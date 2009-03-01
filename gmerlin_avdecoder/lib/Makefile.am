@@ -5,10 +5,20 @@ INCLUDES = -I$(top_srcdir)/include
 
 noinst_HEADERS = pnm.h targa.h
 
+if HAVE_OGG
+ogg_cflags = @OGG_CFLAGS@
+ogg_libs =   @OGG_LIBS@
+ogg_sources = demux_ogg.c
+else
+ogg_cflags = 
+ogg_libs =   
+ogg_sources =
+endif
+
 if HAVE_VORBIS
 vorbis_cflags = @VORBIS_CFLAGS@
 vorbis_libs =   @VORBIS_LIBS@ @VORBISENC_LIBS@
-vorbis_sources = audio_vorbis.c demux_ogg.c
+vorbis_sources = audio_vorbis.c
 else
 vorbis_cflags =
 vorbis_libs =
@@ -268,6 +278,7 @@ libgmerlin_avdec_la_LDFLAGS=-export-dynamic -version-info @LTVERSION_CURRENT@:@L
 libgmerlin_avdec_la_LIBADD= \
 @GMERLIN_DEP_LIBS@ \
 $(vorbis_libs) \
+$(ogg_libs) \
 $(libmpeg2_libs) \
 $(win32_libs) \
 $(png_libs) \
@@ -301,6 +312,7 @@ AM_CFLAGS = \
 -DLOCALE_DIR=\"$(localedir)\" \
 @OPT_CFLAGS@ \
 $(vorbis_cflags) \
+$(ogg_cflags) \
 $(mad_cflags) \
 $(png_cflags) \
 $(openjpeg_cflags) \
@@ -325,6 +337,7 @@ $(libswscale_cflags)
 libgmerlin_avdec_la_SOURCES = \
 $(libmpeg2_sources) \
 $(vorbis_sources) \
+$(ogg_sources) \
 $(faad2_sources) \
 $(png_sources) \
 $(openjpeg_sources) \

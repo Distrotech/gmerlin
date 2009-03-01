@@ -215,6 +215,12 @@ dnl
 GMERLIN_CHECK_MJPEGTOOLS
 
 dnl
+dnl Ogg
+dnl 
+
+GMERLIN_CHECK_OGG
+
+dnl
 dnl Vorbis
 dnl 
 

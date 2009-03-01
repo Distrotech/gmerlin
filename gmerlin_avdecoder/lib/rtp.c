@@ -34,6 +34,10 @@
 
 #include <bitstream.h>
 
+#ifdef HAVE_OGG
+#include <ogg/ogg.h>
+#endif
+
 // #define FOURCC_UNKNOWN BGAV_MK_FOURCC('?','?','?','?')
 #define LOG_DOMAIN "rtp"
 
@@ -50,6 +54,10 @@ static int init_mpv(bgav_stream_t * s);
 
 
 static int init_mp4v_es(bgav_stream_t * s);
+
+#ifdef HAVE_OGG
+static int init_ogg(bgav_stream_t * s);
+#endif
 
 static int init_h263_1998(bgav_stream_t * s);
 
@@ -172,19 +180,22 @@ static const static_payload_t static_payloads[] =
 
 static const dynamic_payload_t dynamic_video_payloads[] =
   {
-    { "H264", BGAV_MK_FOURCC('h', '2', '6', '4'), init_h264 },
-    { "MP4V-ES", BGAV_MK_FOURCC('m', 'p', '4', 'v'), init_mp4v_es },
+    { "H264",      BGAV_MK_FOURCC('h', '2', '6', '4'), init_h264 },
+    { "MP4V-ES",   BGAV_MK_FOURCC('m', 'p', '4', 'v'), init_mp4v_es },
     { "H263-1998", BGAV_MK_FOURCC('h', '2', '6', '3'), init_h263_1998 },
     { "H263-2000", BGAV_MK_FOURCC('h', '2', '6', '3'), init_h263_1998 },
+#ifdef HAVE_OGG
+    { "theora",    BGAV_MK_FOURCC('T', 'H', 'R', 'A'), init_ogg },
+#endif
     { },
   };
 
 static const dynamic_payload_t dynamic_audio_payloads[] =
   {
-    { "mpeg4-generic",
-      BGAV_MK_FOURCC('m', 'p', '4', 'a'),
-      init_mpeg4_generic_audio
-    },
+    { "mpeg4-generic", BGAV_MK_FOURCC('m', 'p', '4', 'a'), init_mpeg4_generic_audio },
+#ifdef HAVE_OGG
+    { "vorbis",        BGAV_MK_FOURCC('V','B','I','S'),    init_ogg },
+#endif
     { },
   };
 
@@ -1585,5 +1596,150 @@ static int init_h263_1998(bgav_stream_t * s)
   return 1;
   }
 
-/* Theora (draft-barbato-avt-rtp-theora-01) */
+/*
+ *  Theora (draft-barbato-avt-rtp-theora-01)
+ *  and Vorbis (RFC 5215) are practically identical
+ */
 
+#ifdef HAVE_OGG
+
+static int process_ogg(bgav_stream_t * s,
+                       rtp_header_t * h, uint8_t * data, int len)
+  {
+  uint32_t header;
+  rtp_stream_priv_t * sp = s->priv;
+  header = BGAV_PTR_2_32BE(data);
+  data += 4;
+  len -= 4;
+
+  fprintf(stderr, "Ident: %d, fragment_type: %d, data_type: %d, packets: %d\n",
+          header >> 8,
+          (header & 0xff) >> 6,
+          (header & 0x30) >> 4,
+          (header & 0x0f));
+  
+  return 0;
+  }
+
+static int get_v_ogg(uint8_t * data1, int * ret)
+  {
+  uint8_t * data = data1;
+  *ret = 0;
+
+  while(*data & 0x80)
+    {
+    *ret <<= 7;
+    *ret |= (*data & 0x7f);
+    data++;
+    }
+
+  *ret <<= 7;
+  *ret |= (*data & 0x7f);
+  data++;
+  return data - data1;
+  }
+
+static int extract_extradata_ogg(bgav_stream_t * s, uint8_t * data, int siz)
+  {
+  int i;
+  int count_total, count, len;
+  int sizes[3];
+  uint8_t * pos;
+  ogg_packet op;
+  rtp_stream_priv_t * sp;
+  uint8_t * end = data + siz;
+
+  sp = s->priv;
+  
+  count_total = BGAV_PTR_2_32BE(data); data += 4;
+
+  fprintf(stderr, "Extract extradata: %d\n", siz);
+    
+  /* TODO: handle count > 1 */
+  if(count_total != 1)
+    {
+    fprintf(stderr, "Only exactly one configuration supported\n");
+    return 0;
+    }
+
+  sp->priv.xiph.ident  = BGAV_PTR_2_24BE(data); data += 3;
+  len = BGAV_PTR_2_16BE(data); data += 2;
+
+  fprintf(stderr, "ID: %d, len: %d\n",
+          sp->priv.xiph.ident, len);
+
+  data += get_v_ogg(data, &count);
+  fprintf(stderr, "count: %d\n", count);
+
+  if(count != 2)
+    {
+    fprintf(stderr, "need 3 header packets\n");
+    return 0;
+    }
+  
+  for(i = 0; i < count; i++)
+    {
+    data += get_v_ogg(data, &sizes[i]);
+    fprintf(stderr, "val: %d\n", sizes[i]);
+    }
+  sizes[2] = (end - data) - (sizes[0] + sizes[1]);
+  
+  /* Assemble 3 header packets */
+  
+  s->ext_size = sizes[0]+sizes[1]+sizes[2] + 3*sizeof(op);
+  s->ext_data = malloc(s->ext_size);
+  pos = s->ext_data;
+  
+  for(i = 0; i < 3; i++)
+    {
+    bgav_hexdump(data, 16, 16);
+    memset(&op, 0, sizeof(op));
+    if(!i)
+      op.b_o_s = 1;
+    op.bytes = sizes[i];
+    op.packet = pos + sizeof(op);
+    memcpy(pos, &op, sizeof(op));
+    pos+= sizeof(op);
+    memcpy(pos, data, sizes[i]);
+    data += sizes[i];
+    }
+  
+  return 1;
+  }
+
+static int init_ogg(bgav_stream_t * s)
+  {
+  rtp_stream_priv_t * sp;
+  char * value;
+  int config_len_base64;
+  int config_len_raw;
+  uint8_t * config_buffer;
+  
+  sp = s->priv;
+
+  value = find_fmtp(sp->fmtp, "configuration");
+  if(!value)
+    return 0;
+
+  config_len_base64 = strlen(value);
+  
+  config_buffer = malloc(config_len_base64);
+  config_len_raw = bgav_base64decode(value,
+                                     config_len_base64,
+                                     config_buffer,
+                                     config_len_base64);
+
+  //  bgav_hexdump(config_buffer, config_len_raw, 16);
+  
+  if(!extract_extradata_ogg(s, config_buffer, config_len_raw))
+    {
+    free(config_buffer);
+    return 0;
+    }
+  free(config_buffer);
+  
+  sp->process = process_ogg;
+  return 1;
+  }
+
+#endif

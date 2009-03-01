@@ -150,6 +150,10 @@ typedef struct rtp_stream_priv_s
       mpeg4_au_t * aus;
       int aus_alloc;
       } mpeg4_generic;
+    struct
+      {
+      int ident;
+      } xiph;
     } priv;
   
   } rtp_stream_priv_t;
