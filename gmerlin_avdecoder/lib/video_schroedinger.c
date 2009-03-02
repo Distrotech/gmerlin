@@ -19,73 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <avdec_private.h>
-#include <codecs.h>
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <avdec_private.h>
+#include <codecs.h>
+#include <ptscache.h>
 
 #include <schroedinger/schro.h>
 #include <schroedinger/schrovideoformat.h>
 
 #define LOG_DOMAIN "video_schroedinger"
-
-#define MAX_PTS 16
-
-typedef struct
-  {
-  int used;
-  uint32_t pic_num;
-  int64_t pts;
-  int duration;
-  } pts_cache_t;
-
-#if 0
-static void pts_cache_clear(pts_cache_t * p)
-  {
-  int i;
-  for(i = 0; i < MAX_PTS; i++)
-    p[i].used = 0;
-  }
-#endif
-
-static void pts_cache_put(pts_cache_t * p,
-                          int64_t pts, int duration,
-                          uint32_t pic_num)
-  {
-  int i;
-  fprintf(stderr, "Cache put: %d %ld\n", pic_num, pts);
-  for(i = 0; i < MAX_PTS; i++)
-    {
-    if(!p[i].used)
-      {
-      p[i].pic_num = pic_num;
-      p[i].pts = pts;
-      p[i].duration = duration;
-      p[i].used = 1;
-      }
-    }
-  }
-
-static int64_t pts_cache_get(pts_cache_t * p, int * duration,
-                             uint32_t pic_num)
-  {
-  int i;
-  fprintf(stderr, "Cache get: %d\n", pic_num);
-  for(i = 0; i < MAX_PTS; i++)
-    {
-    if(p[i].used && (p[i].pic_num == pic_num))
-      {
-      p[i].used = 0;
-      *duration = p[i].duration;
-      return p[i].pts;
-      }
-    }
-  fprintf(stderr, "Cache get failed\n");
-  *duration = -1;
-  return BGAV_TIMESTAMP_UNDEFINED;
-  }
 
 typedef struct
   {
@@ -104,7 +49,8 @@ typedef struct
   
   bgav_packet_t * p;
 
-  pts_cache_t pts_cache[MAX_PTS];
+  bgav_pts_cache_t pc;
+  
   } schroedinger_priv_t;
 
 /* Pixelformat stuff */
@@ -219,8 +165,9 @@ static SchroBuffer * get_data(bgav_stream_t * s)
       {
       uint32_t pic_num;
       pic_num = BGAV_PTR_2_32BE(priv->buffer_ptr + 13);
-      pts_cache_put(priv->pts_cache,
-                    priv->p->pts, priv->p->duration, pic_num);
+      bgav_pts_cache_push(&priv->pc,
+                          priv->p->pts, priv->p->duration,
+                          NULL, NULL);
       priv->last_pts = priv->p->pts;
       }
     //    codec->dec_delay++;
@@ -301,9 +248,7 @@ static void get_format(bgav_stream_t * s)
 
 static int decode_picture(bgav_stream_t * s)
   {
-  int duration;
   uint32_t pic_num;
-  int64_t pts;
   int state;
   SchroBuffer * buf = NULL;
   SchroFrame * frame = NULL;
@@ -365,13 +310,6 @@ static int decode_picture(bgav_stream_t * s)
         //          {
         priv->dec_frame = schro_decoder_pull(priv->dec);
         
-        pts = pts_cache_get(priv->pts_cache, &duration, pic_num);
-        
-        s->out_time =
-          gavl_time_rescale(s->timescale,
-                            s->data.video.format.timescale,
-                            pts);
-        
         return 1;
           //          }
         break;
@@ -417,6 +355,7 @@ static int init_schroedinger(bgav_stream_t * s)
 
 static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
+  int duration;
   schroedinger_priv_t * priv;
   priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
 
@@ -435,6 +374,9 @@ static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   gavl_video_frame_copy(&s->data.video.format,
                         frame, priv->frame);
+
+  frame->timestamp = bgav_pts_cache_get_first(&priv->pc, &duration);
+  frame->duration = duration;
   
   schro_frame_unref(priv->dec_frame);
   priv->dec_frame = NULL;
@@ -464,7 +406,7 @@ static void resync_schroedinger(bgav_stream_t * s)
   /* TODO: Skip non-keyframes and update out_time */
   
   schro_decoder_reset(priv->dec);
-  
+  bgav_pts_cache_clear(&priv->pc);
   if(priv->dec_frame)
     {
     schro_frame_unref(priv->dec_frame);

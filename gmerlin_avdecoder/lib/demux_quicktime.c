@@ -1383,6 +1383,43 @@ static void build_edl(bgav_demuxer_context_t * ctx)
   
   }
 
+static void fix_index(bgav_demuxer_context_t * ctx)
+  {
+  int i, j;
+  bgav_stream_t * s;
+
+  fprintf(stderr, "Fix index\n");
+  bgav_superindex_dump(ctx->si);
+  
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    s = &ctx->tt->cur->audio_streams[i];
+    if(s->fourcc == BGAV_MK_FOURCC('m','p','4','a'))
+      {
+      /* Check for HE-AAC and update superindex */
+      
+      }
+    }
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    s = &ctx->tt->cur->video_streams[i];
+    if(s->fourcc == BGAV_MK_FOURCC('d','r','a','c'))
+      {
+      /* Remove the last sample (the sequence end code) */
+      j = ctx->si->num_entries - 1;
+      while(ctx->si->entries[j].stream_id != s->stream_id)
+        j--;
+      /* Disable this packet */
+      if(ctx->si->entries[j].size == 13)
+        {
+        ctx->si->entries[j].stream_id = -1;
+        s->duration -= ctx->si->entries[j].duration;
+        }
+      }
+    }
+  
+  }
+
 
 static int open_quicktime(bgav_demuxer_context_t * ctx)
   {
@@ -1486,11 +1523,14 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
 
   /* Build index */
   build_index(ctx);
-    
+  
   /* No packets are found */
   if(!ctx->si)
     return 0;
 
+  /* Fix index */
+  fix_index(ctx);
+  
   /* Check if we have an EDL */
   if(priv->has_edl)
     build_edl(ctx);

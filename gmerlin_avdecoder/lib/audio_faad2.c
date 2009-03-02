@@ -282,13 +282,19 @@ static int init_faad2(bgav_stream_t * s)
      so we correct it here */
   if(samplerate == 2 * s->data.audio.format.samplerate)
     {
+    fprintf(stderr, "Detected HE-AAC\n");
+    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    
     s->data.audio.format.samples_per_frame = 2048;
     if(s->duration)
       s->duration *= 2;
     }
   else
+    {
     s->data.audio.format.samples_per_frame = 1024;
-
+    fprintf(stderr, "Detected NO HE-AAC\n");
+    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    }
   s->data.audio.format.samplerate = samplerate;
   
   s->data.audio.format.num_channels = channels;
