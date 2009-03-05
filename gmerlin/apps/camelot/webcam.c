@@ -394,8 +394,8 @@ static void open_monitor(gmerlin_webcam_t * cam)
     cam->monitor_frame = gavl_video_frame_create(&cam->monitor_format);
   cam->monitor_open = 1;
 
-  fprintf(stderr, "Monitor format:\n");
-  gavl_video_format_dump(&cam->monitor_format);
+  //  fprintf(stderr, "Monitor format:\n");
+  //  gavl_video_format_dump(&cam->monitor_format);
   
   }
 
@@ -440,11 +440,11 @@ static void build_pipeline(gmerlin_webcam_t * cam)
   
   cam->input_frame = gavl_video_frame_create(&cam->input_format);
   
-  fprintf(stderr, "Cam format:\n");
-  gavl_video_format_dump(&cam->cam_format);
+  //  fprintf(stderr, "Cam format:\n");
+  //  gavl_video_format_dump(&cam->cam_format);
   
-  fprintf(stderr, "Input format:\n");
-  gavl_video_format_dump(&cam->input_format);
+  //  fprintf(stderr, "Input format:\n");
+  //  gavl_video_format_dump(&cam->input_format);
 
 #ifdef HAVE_V4L
   bg_vloopback_set_format(cam->vloopback, &cam->input_format);

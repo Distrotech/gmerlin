@@ -435,37 +435,29 @@ static int open_v4l(void * priv,
     free(v4l->controls);
   
   v4l->controls = create_card_controls(v4l->fd, &v4l->num_controls);
-  
-  fprintf(stderr, "Device name: %s\n", cap.card);
+
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Device name: %s", cap.card);
   
   if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-    fprintf (stderr, "%s is no video capture device\n",
-             v4l->device);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s is no video capture device",
+           v4l->device);
     return 0;
     }
-  
-  switch (v4l->io)
-    {
-    case IO_METHOD_READ:
-      if (!(cap.capabilities & V4L2_CAP_READWRITE))
-        {
-        fprintf (stderr, "%s does not support read i/o\n",
-                 v4l->device);
-        return 0;
-        }
-      break;
-    case IO_METHOD_MMAP:
-    case IO_METHOD_USERPTR:
-      if (!(cap.capabilities & V4L2_CAP_STREAMING))
-        {
-        fprintf (stderr, "%s does not support streaming i/o\n",
-                 v4l->device);
-        return 0;
-        }
-      break;
-    }
 
+  if (cap.capabilities & V4L2_CAP_STREAMING)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Trying mmap i/o");
+    v4l->io = IO_METHOD_MMAP;
+    }
+  else if(cap.capabilities & V4L2_CAP_READWRITE)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Trying read i/o");
+    v4l->io = IO_METHOD_READ;
+    }
+  
   /* Select video input, video standard and tune here. */
 
 #if 0
@@ -545,16 +537,16 @@ static int open_v4l(void * priv,
   format->frame_width  = v4l->fmt.fmt.pix.width;
   format->frame_height = v4l->fmt.fmt.pix.height;
   format->timescale = GAVL_TIME_SCALE / TIME_DIV;
-  format->frame_duration = 1;
+  format->frame_duration = 0;
   format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   gavl_pixelformat_chroma_sub(format->pixelformat, &v4l->sub_h, &v4l->sub_v);
   v4l->num_planes = gavl_pixelformat_num_planes(format->pixelformat);
 
   gavl_video_format_copy(&v4l->format, format);
-  gavl_video_format_dump(&v4l->format);
+  //  gavl_video_format_dump(&v4l->format);
 
-  fprintf(stderr, "Bytesperline: %d, sizeimage: %d\n",
-          v4l->fmt.fmt.pix.bytesperline, v4l->fmt.fmt.pix.sizeimage);
+  //  fprintf(stderr, "Bytesperline: %d, sizeimage: %d\n",
+  //          v4l->fmt.fmt.pix.bytesperline, v4l->fmt.fmt.pix.sizeimage);
 
   gavl_video_frame_set_strides(v4l->frame, &v4l->format);
   

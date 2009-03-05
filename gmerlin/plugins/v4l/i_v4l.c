@@ -281,7 +281,7 @@ static int open_v4l(void * priv,
   format->pixel_height = 1;
 
   format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
-  format->frame_duration = 1;
+  format->frame_duration = 0;
   format->timescale = 1;
 
   gavl_video_format_copy(&v4l->format, format);

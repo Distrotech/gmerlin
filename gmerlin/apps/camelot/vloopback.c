@@ -375,10 +375,10 @@ static void init(bg_vloopback_t * v)
   v->do_convert = gavl_video_converter_init(v->cnv, &v->input_format,
                                             &v->output_format);
 
-  fprintf(stderr, "Initializing vloopback, in format:\n");
-  gavl_video_format_dump(&v->input_format);
-  fprintf(stderr, "Out format:\n");
-  gavl_video_format_dump(&v->output_format);
+  //  fprintf(stderr, "Initializing vloopback, in format:\n");
+  //  gavl_video_format_dump(&v->input_format);
+  //  fprintf(stderr, "Out format:\n");
+  //  gavl_video_format_dump(&v->output_format);
   
   }
 
