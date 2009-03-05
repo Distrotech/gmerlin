@@ -25,6 +25,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+#define LOG_DOMAIN "x11_shm"
+#include <gmerlin/log.h>
 
 /* Check for xshm extension */
 
@@ -82,9 +84,7 @@ int bg_x11_window_create_shm(bg_x11_window_t * win,
   if(shmerror)
     {
     error:
-#ifdef DEBUG
-    fprintf (stderr, "cannot create shared memory\n");
-#endif
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Cannot create shared memory");
     return 0;
     }
 
