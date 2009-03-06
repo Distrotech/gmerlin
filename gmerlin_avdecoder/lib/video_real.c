@@ -355,8 +355,10 @@ static void close_real(bgav_stream_t * s)
   
   if(priv->gavl_frame)
     gavl_video_frame_destroy(priv->gavl_frame);
-  priv->rvyuv_free(priv->real_context);
-  dlclose(priv->module);
+  if(priv->rvyuv_free)
+    priv->rvyuv_free(priv->real_context);
+  if(priv->module)
+    dlclose(priv->module);
   free(priv);
   };
 
