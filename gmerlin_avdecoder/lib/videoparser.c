@@ -42,6 +42,7 @@ parsers[] =
     { BGAV_MK_FOURCC('m', 'p', '4', 'v'), bgav_video_parser_init_mpeg4 },
     { BGAV_MK_FOURCC('C', 'A', 'V', 'S'), bgav_video_parser_init_cavs },
     { BGAV_MK_FOURCC('V', 'C', '-', '1'), bgav_video_parser_init_vc1 },
+    { BGAV_MK_FOURCC('d', 'r', 'a', 'c'), bgav_video_parser_init_dirac },
   };
 
 bgav_video_parser_t *
@@ -365,7 +366,7 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
                           &parser->cache[parser->cache_size-1].duration);
     
     bgav_video_parser_set_coding_type(parser, type);
-
+    
     if(result == PARSER_HAVE_HEADER)
       return result;
     else if(bgav_video_parser_check_output(parser))
@@ -421,6 +422,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
     c->position = p->position;
     /* Set position to the start of the frame */
     parser->pos = parser->buf.size;
+    parser->packet_duration = p->duration;
     }
   bgav_bytebuffer_append_data(&parser->buf, p->data, p->data_size, 0);
   }

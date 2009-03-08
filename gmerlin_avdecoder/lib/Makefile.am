@@ -427,6 +427,7 @@ demux_wav.c \
 demux_wavpack.c \
 demux_wve.c \
 device.c \
+dirac_header.c \
 dvframe.c \
 edl.c \
 fileindex.c \
@@ -464,6 +465,7 @@ packetbuffer.c \
 packet.c \
 parse_a52.c \
 parse_cavs.c \
+parse_dirac.c \
 parse_h264.c \
 parse_mpeg4.c \
 parse_mpv.c \

@@ -11,6 +11,7 @@ bitstream.h \
 bswap.h \
 cavs_header.h \
 codecs.h \
+dirac_header.h \
 dvb_channels.h \
 dvframe.h \
 h264_header.h \

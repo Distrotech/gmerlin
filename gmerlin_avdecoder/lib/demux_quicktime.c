@@ -1388,8 +1388,8 @@ static void fix_index(bgav_demuxer_context_t * ctx)
   int i, j;
   bgav_stream_t * s;
 
-  fprintf(stderr, "Fix index\n");
-  bgav_superindex_dump(ctx->si);
+  //  fprintf(stderr, "Fix index\n");
+  //  bgav_superindex_dump(ctx->si);
   
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
     {

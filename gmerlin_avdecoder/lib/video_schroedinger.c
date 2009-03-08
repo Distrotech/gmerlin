@@ -165,6 +165,9 @@ static SchroBuffer * get_data(bgav_stream_t * s)
       {
       uint32_t pic_num;
       pic_num = BGAV_PTR_2_32BE(priv->buffer_ptr + 13);
+      
+      //      fprintf(stderr, "Got picture %d\n", pic_num);
+      
       bgav_pts_cache_push(&priv->pc,
                           priv->p->pts, priv->p->duration,
                           NULL, NULL);
@@ -172,6 +175,10 @@ static SchroBuffer * get_data(bgav_stream_t * s)
       }
     //    codec->dec_delay++;
     //    fprintf(stderr, "** Delay++: %d\n", codec->dec_delay);
+    }
+  else if(SCHRO_PARSE_CODE_IS_SEQ_HEADER(priv->buffer_ptr[4]))
+    {
+    //    fprintf(stderr, "Got sequence\n");
     }
   data = malloc(size);
   memcpy(data, priv->buffer_ptr, size);

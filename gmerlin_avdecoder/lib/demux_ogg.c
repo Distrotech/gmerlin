@@ -29,7 +29,7 @@
    logical bitstreams start, we catch the new metadata and hope, that
    the new track has the same stream layout and format as before.
    
-   As streams we support:
+   As codecs we support:
    - Vorbis
    - Theora
    - Speex
@@ -45,6 +45,7 @@
 
 #include <avdec_private.h>
 #include <vorbis_comment.h>
+#include <dirac_header.h>
 
 #include <ogg/ogg.h>
 
@@ -60,6 +61,7 @@
 #define FOURCC_SPEEX     BGAV_MK_FOURCC('S','P','E','X')
 #define FOURCC_OGM_AUDIO BGAV_MK_FOURCC('O','G','M','A')
 #define FOURCC_OGM_VIDEO BGAV_MK_FOURCC('O','G','M','V')
+#define FOURCC_DIRAC     BGAV_MK_FOURCC('d','r','a','c')
 
 #define FOURCC_OGM_TEXT  BGAV_MK_FOURCC('T','E','X','T')
 
@@ -115,6 +117,9 @@ typedef struct
   /* Position of the current and previous page */
   int64_t page_pos;
   int64_t prev_page_pos;
+
+  /* Used for dirac */
+  int interlaced_coding;
   } stream_priv_t;
 
 typedef struct
@@ -472,6 +477,9 @@ static uint32_t detect_stream(ogg_packet * op)
           (op->packet[0] == 0x01) &&
           !strncmp((char*)(op->packet+1), "text", 4))
     return FOURCC_OGM_TEXT;
+  else if((op->bytes >= 4) &&
+          !strncmp((char*)(op->packet), "BBCD", 4))
+    return FOURCC_DIRAC;
   
   return 0;
   }
@@ -504,6 +512,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
   ogm_header_t ogm_header;
   bgav_input_context_t * input_mem;
   int header_bytes = 0;
+  bgav_dirac_sequence_header_t dirac_header;
   
   priv = (ogg_t *)(ctx->priv);
 
@@ -533,7 +542,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
     serialno = ogg_page_serialno(&(priv->current_page));
     ogg_stream = calloc(1, sizeof(*ogg_stream));
     ogg_stream->last_granulepos = -1;
-    
+
     ogg_stream_init(&ogg_stream->os, serialno);
     ogg_stream_pagein(&ogg_stream->os, &(priv->current_page));
     priv->page_valid = 0;
@@ -603,6 +612,39 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
           if(ogg_stream->header_packets_read == ogg_stream->header_packets_needed)
             break;
           }
+        break;
+      case FOURCC_DIRAC:
+        s = bgav_track_add_video_stream(track, ctx->opt);
+        s->cleanup = cleanup_stream_ogg;
+        s->fourcc = FOURCC_DIRAC;
+        s->index_mode = INDEX_MODE_SIMPLE;
+        s->priv   = ogg_stream;
+        s->stream_id = serialno;
+        s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
+        ogg_stream->header_packets_needed = 1;
+        //  append_extradata(s, &priv->op);
+        ogg_stream->header_packets_read = 1;
+
+        if(!bgav_dirac_sequence_header_parse(&dirac_header, 
+                                             priv->op.packet, priv->op.bytes))
+          return 0;
+        bgav_dirac_sequence_header_dump(&dirac_header);
+        if(!dirac_header.timescale || !dirac_header.frame_duration)
+          {
+          bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                   "Dirac header contains no framerate, assuming 24 fps");
+          dirac_header.timescale      = 24;
+          dirac_header.frame_duration =  1;
+          }
+        s->data.video.format.timescale = dirac_header.timescale;
+        s->data.video.format.frame_duration = dirac_header.frame_duration;
+
+        if(dirac_header.picture_coding_mode == 1)
+          ogg_stream->interlaced_coding = 1;
+        
+        while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
+          ;
+        
         break;
       case FOURCC_FLAC_NEW:
         s = bgav_track_add_audio_stream(track, ctx->opt);
@@ -1163,7 +1205,14 @@ static gavl_time_t granulepos_2_time(bgav_stream_t * s,
                                  s->data.video.format.frame_duration,
                                  pos);
       break;
-    
+    case FOURCC_DIRAC:
+      {
+      int64_t high_word = pos >> 22;
+      int32_t low_word  = pos & 0x3fffff;
+      if(!stream_priv->interlaced_coding)
+        return ((high_word + low_word) >> 10) * s->data.video.format.frame_duration;
+      return ((high_word + low_word) >> 9) * s->data.video.format.frame_duration;
+      }
     }
   return GAVL_TIME_UNDEFINED;
   }
@@ -1572,6 +1621,31 @@ static int check_header_packet(ogg_t * op, bgav_stream_t * s, ogg_packet * p)
         }
       return 1;
       break;
+    case FOURCC_DIRAC:
+      {
+      /* Dirac header packet is a sequence
+         header followed by a sequence end code */
+      int len, next, code;
+      uint8_t * ptr = p->packet;
+      len = p->bytes;
+      
+      code = bgav_dirac_get_code(ptr, len, &next);
+      if(code != DIRAC_CODE_SEQUENCE)
+        return 1;
+
+      ptr += next;
+      len -= next;
+
+      if(!len)
+        return 1;
+      
+      code = bgav_dirac_get_code(ptr, len, &next);
+      if(code != DIRAC_CODE_END)
+        return 1;
+      
+      return 0;
+      }
+      break;
     case FOURCC_OGM_VIDEO:
       if(p->packet[0] & 0x01) /* Header is already read -> skip it */
         return 0;
@@ -1631,7 +1705,6 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   int ret = 0;
   int done = 0;
 
-
   while(!done)
     {
     if(!get_page(ctx))
@@ -1641,7 +1714,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     
     serialno   = ogg_page_serialno(&(priv->current_page));
     granulepos = ogg_page_granulepos(&(priv->current_page));
-
+    
     if(ogg_page_bos(&(priv->current_page)))
       {
       if(!ctx->input->input->seek_byte && priv->nonbos_seen)
@@ -1669,8 +1742,9 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
       priv->page_valid = 0;
       continue;
       }
-    stream_priv = (stream_priv_t*)(s->priv);
 
+    stream_priv = s->priv;
+    
     page_continued = ogg_page_continued(&priv->current_page);
   
     ogg_stream_pagein(&stream_priv->os, &(priv->current_page));
@@ -1686,8 +1760,11 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         done = 1;
       continue;
       }
-    while(ogg_stream_packetout(&stream_priv->os, &priv->op))
+    while(ogg_stream_packetout(&stream_priv->os, &priv->op) == 1)
       {
+      // fprintf(stderr, "got packet %d bytes\n", priv->op.bytes);
+      // bgav_hexdump(priv->op.packet, 16, 16);
+
       switch(stream_priv->fourcc_priv)
         {
         case FOURCC_THEORA:
@@ -1748,6 +1825,56 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         
           set_packet_pos(priv, stream_priv, &page_continued, p);
 
+          bgav_packet_done_write(p);
+          break;
+
+        case FOURCC_DIRAC:
+          if(stream_priv->do_sync)
+            {
+            if(stream_priv->prev_granulepos == -1)
+              break;
+            else
+              {
+              /* Set sync time */
+              if(priv->op.granulepos >= 0)
+                STREAM_SET_SYNC(s, granulepos_2_time(s, priv->op.granulepos));
+              
+              /* Check for keyframe */
+              if(!((priv->op.granulepos >> 22) & 0xff) &&
+                 !(priv->op.granulepos & 0xff))
+                stream_priv->do_sync = 0;
+              else
+                break;
+              }
+            }
+        
+          if(!check_header_packet(priv, s, &priv->op))
+            break;
+        
+          p = bgav_stream_get_packet_write(s);
+          bgav_packet_alloc(p, priv->op.bytes);
+          memcpy(p->data, priv->op.packet, priv->op.bytes);
+          p->data_size = priv->op.bytes;
+
+          if(!((priv->op.granulepos >> 22) & 0xff) &&
+             !(priv->op.granulepos & 0xff))
+            PACKET_SET_KEYFRAME(p);
+          
+          p->pts = granulepos_2_time(s, priv->op.granulepos);
+          p->dts = priv->op.granulepos >> 31;
+          
+          if(!stream_priv->interlaced_coding)
+            p->dts /= 2;
+          
+          p->duration = s->data.video.format.frame_duration;
+          
+          if(s->action == BGAV_STREAM_PARSE)
+            {
+            if(p->pts + s->data.video.format.frame_duration > s->duration)
+              s->duration = p->pts + s->data.video.format.frame_duration;
+            }
+          set_packet_pos(priv, stream_priv, &page_continued, p);
+          
           bgav_packet_done_write(p);
           break;
         case FOURCC_OGM_VIDEO:
@@ -2119,7 +2246,6 @@ static void init_track(bgav_track_t * track)
     ogg_stream_reset(&stream_priv->os);
     }
   }
-
 
 static int select_track_ogg(bgav_demuxer_context_t * ctx,
                              int track)
