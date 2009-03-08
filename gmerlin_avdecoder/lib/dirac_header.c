@@ -493,10 +493,21 @@ void bgav_dirac_sequence_header_dump(const bgav_dirac_sequence_header_t * h)
 int bgav_dirac_picture_header_parse(bgav_dirac_picture_header_t * ret,
                                     const uint8_t * buffer, int len)
   {
-  return 0;
+  int parse_code;
+  
+  if(len < 17)
+    return 0;
+  
+  parse_code = buffer[4];
+  
+  ret->num_refs = parse_code & 0x03;
+  ret->pic_num = BGAV_PTR_2_32BE(buffer + 13);
+  return 1;
   }
 
 void bgav_dirac_picture_header_dump(const bgav_dirac_picture_header_t * h)
   {
-  
+  bgav_dprintf("Dirac picture header\n");
+  bgav_dprintf("  Num refs: %d\n", h->num_refs);
+  bgav_dprintf("  Pic num:  %d\n",     h->pic_num);
   }

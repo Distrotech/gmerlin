@@ -144,8 +144,13 @@ static SchroBuffer * get_data(bgav_stream_t * s)
     {
     if(priv->p)
       bgav_demuxer_done_packet_read(s->demuxer, priv->p);
-
-    priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    while(1)
+      {
+      priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+      if(!priv->p || !(priv->p->flags & PACKET_FLAG_SKIP))
+        break;
+      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+      }
     if(!priv->p)
       {
       priv->eof = 1;
@@ -371,19 +376,24 @@ static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   /* Copy frame */
 
-  priv->frame->planes[0] = priv->dec_frame->components[0].data;
-  priv->frame->planes[1] = priv->dec_frame->components[1].data;
-  priv->frame->planes[2] = priv->dec_frame->components[2].data;
-  
-  priv->frame->strides[0] = priv->dec_frame->components[0].stride;
-  priv->frame->strides[1] = priv->dec_frame->components[1].stride;
-  priv->frame->strides[2] = priv->dec_frame->components[2].stride;
-
-  gavl_video_frame_copy(&s->data.video.format,
-                        frame, priv->frame);
-
-  frame->timestamp = bgav_pts_cache_get_first(&priv->pc, &duration);
-  frame->duration = duration;
+  if(frame)
+    {
+    priv->frame->planes[0] = priv->dec_frame->components[0].data;
+    priv->frame->planes[1] = priv->dec_frame->components[1].data;
+    priv->frame->planes[2] = priv->dec_frame->components[2].data;
+    
+    priv->frame->strides[0] = priv->dec_frame->components[0].stride;
+    priv->frame->strides[1] = priv->dec_frame->components[1].stride;
+    priv->frame->strides[2] = priv->dec_frame->components[2].stride;
+    
+    gavl_video_frame_copy(&s->data.video.format,
+                          frame, priv->frame);
+    
+    frame->timestamp = bgav_pts_cache_get_first(&priv->pc, &duration);
+    frame->duration = duration;
+    }
+  else
+    bgav_pts_cache_get_first(&priv->pc, &duration);
   
   schro_frame_unref(priv->dec_frame);
   priv->dec_frame = NULL;

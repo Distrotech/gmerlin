@@ -627,7 +627,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
                  "PMT section spans multiple packets, please report");
         return 0;
         }
-      //      bgav_pmt_section_dump(&priv->programs[program].pmts);
+      bgav_pmt_section_dump(&priv->programs[program].pmts);
       if(priv->programs[program].pmts.section_number ||
          priv->programs[program].pmts.last_section_number)
         {
@@ -635,7 +635,6 @@ static int init_psi(bgav_demuxer_context_t * ctx,
                  "PMT has multiple sections, please report");
         return 0;
         }
-      //      bgav_pmt_section_dump(&priv->programs[program].pmts);
       }
     if(!next_packet_scan(ctx->input, priv, input_can_seek))
       break;

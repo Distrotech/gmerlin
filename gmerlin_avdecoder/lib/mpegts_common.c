@@ -441,7 +441,6 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
       s->fourcc = st->fourcc;
       s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
       }
-#if 1
     /* ISO/IEC 13818-1 PES packets containing private data */
     else if(pmts->streams[i].type == 0x06)
       {
@@ -464,7 +463,27 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
           *extra_pcr_pid = 1;
         }
       }
-#endif
+    else if(pmts->streams[i].type == 0xd1)
+      {
+      desc = find_descriptor(pmts->streams[i].descriptor,
+                             pmts->streams[i].descriptor_len,
+                             0x05, &desc_len);
+      if(desc && (desc_len >= 4) &&
+         (BGAV_PTR_2_FOURCC(desc+2) == BGAV_MK_FOURCC('d','r','a','c')) &&
+         ((max_video_streams < 0) ||
+          (track->num_video_streams < max_video_streams)))
+        {
+        s = bgav_track_add_video_stream(track, opt);
+        s->fourcc = BGAV_MK_FOURCC('d','r','a','c');
+        s->index_mode = INDEX_MODE_MPEG;
+        }
+      else
+        {
+        s = (bgav_stream_t*)0;
+        if(extra_pcr_pid && (pmts->streams[i].pid == pmts->pcr_pid))
+          *extra_pcr_pid = 1;
+        }
+      }
     else
       {
       /* No usable stream, but can carry the PCR! */
@@ -488,7 +507,11 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
           bgav_correct_language(s->language);
           }
         }
-      s->flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
+
+      if(s->fourcc == BGAV_MK_FOURCC('d','r','a','c'))
+        s->flags |= (STREAM_PARSE_FRAME|STREAM_START_TIME);
+      else
+        s->flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
       s->timescale = 90000;
       s->stream_id = pmts->streams[i].pid;
       ret++;

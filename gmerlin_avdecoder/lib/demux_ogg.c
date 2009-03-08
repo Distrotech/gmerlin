@@ -1868,11 +1868,6 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           
           p->duration = s->data.video.format.frame_duration;
           
-          if(s->action == BGAV_STREAM_PARSE)
-            {
-            if(p->pts + s->data.video.format.frame_duration > s->duration)
-              s->duration = p->pts + s->data.video.format.frame_duration;
-            }
           set_packet_pos(priv, stream_priv, &page_continued, p);
           
           bgav_packet_done_write(p);

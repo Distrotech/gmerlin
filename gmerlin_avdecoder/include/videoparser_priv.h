@@ -22,6 +22,7 @@
 #define PARSER_CACHE_MAX 16
 
 #define PARSER_CONTINUE     (PARSER_PRIV+0)
+#define PARSER_DISCARD      (PARSER_PRIV+1)
 
 typedef void (*init_func)(bgav_video_parser_t*);
 
@@ -110,6 +111,7 @@ struct bgav_video_parser_s
   int last_non_b_frame;
 
   int packet_duration;
+  //  int64_t packet_timestamp;
   };
 
 void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser);

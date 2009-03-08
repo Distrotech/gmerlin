@@ -364,11 +364,20 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
     result =
       parser->parse_frame(parser, &type,
                           &parser->cache[parser->cache_size-1].duration);
-    
-    bgav_video_parser_set_coding_type(parser, type);
+
+    //    fprintf(stderr, "Coding type: %c\n", type);
+
+    if(result != PARSER_DISCARD)
+      bgav_video_parser_set_coding_type(parser, type);
     
     if(result == PARSER_HAVE_HEADER)
       return result;
+    else if(result == PARSER_DISCARD)
+      {
+      parser->cache_size--;
+      bgav_bytebuffer_flush(&parser->buf);
+      return PARSER_NEED_DATA;
+      }
     else if(bgav_video_parser_check_output(parser))
       return PARSER_HAVE_PACKET;
     else
@@ -420,6 +429,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
     c->duration = parser->format.frame_duration;
     c->size = p->data_size;
     c->position = p->position;
+    c->in_pts = p->pts;
     /* Set position to the start of the frame */
     parser->pos = parser->buf.size;
     parser->packet_duration = p->duration;
@@ -494,6 +504,9 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
     PACKET_SET_KEYFRAME(p);
 
   PACKET_SET_CODING_TYPE(p, c->coding_type);
+
+  if(c->skip)
+    p->flags |= PACKET_FLAG_SKIP;
   
   p->position = c->position;
   p->field2_offset = c->field2_offset;

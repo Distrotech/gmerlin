@@ -63,8 +63,8 @@ void bgav_dirac_sequence_header_dump(const bgav_dirac_sequence_header_t *);
 
 typedef struct
   {
-  int pic_num;
-  int coding_type;
+  uint32_t pic_num;
+  int num_refs;
   } bgav_dirac_picture_header_t;
 
 int bgav_dirac_picture_header_parse(bgav_dirac_picture_header_t *,
