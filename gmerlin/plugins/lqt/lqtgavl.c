@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <lqtgavl.h>
 #include <colormodels.h>
+#include <lqt_version.h>
 
 /* Sampleformat conversion */
 
