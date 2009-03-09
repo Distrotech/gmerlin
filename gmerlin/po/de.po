@@ -1361,10 +1361,6 @@ msgstr "Verschiebe nach unten"
 msgid "Remove"
 msgstr "Löschen"
 
-#: apps/transcoder/tracklist.c:944
-msgid "Configure..."
-msgstr "Konfiguereren..."
-
 #: apps/transcoder/tracklist.c:946
 msgid "Edit chapters..."
 msgstr "Kapitel bearbeiten"
