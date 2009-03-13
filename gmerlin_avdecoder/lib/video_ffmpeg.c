@@ -1746,12 +1746,20 @@ static const struct
   } pixelformats[] =
   {
     { PIX_FMT_YUV420P,       GAVL_YUV_420_P },  ///< Planar YUV 4:2:0 (1 Cr & Cb sample per 2x2 Y samples)
+#if LIBAVUTIL_VERSION_INT < (50<<16)
     { PIX_FMT_YUV422,        GAVL_YUY2      },
+#else
+    { PIX_FMT_YUYV422,       GAVL_YUY2      },
+#endif
     { PIX_FMT_RGB24,         GAVL_RGB_24    },  ///< Packed pixel, 3 bytes per pixel, RGBRGB...
     { PIX_FMT_BGR24,         GAVL_BGR_24    },  ///< Packed pixel, 3 bytes per pixel, BGRBGR...
     { PIX_FMT_YUV422P,       GAVL_YUV_422_P },  ///< Planar YUV 4:2:2 (1 Cr & Cb sample per 2x1 Y samples)
     { PIX_FMT_YUV444P,       GAVL_YUV_444_P }, ///< Planar YUV 4:4:4 (1 Cr & Cb sample per 1x1 Y samples)
+#if LIBAVUTIL_VERSION_INT < (50<<16)
     { PIX_FMT_RGBA32,        GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
+#else
+    { PIX_FMT_RGB32,         GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
+#endif
     { PIX_FMT_YUV410P,       GAVL_YUV_410_P }, ///< Planar YUV 4:1:0 (1 Cr & Cb sample per 4x4 Y samples)
     { PIX_FMT_YUV411P,       GAVL_YUV_411_P }, ///< Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
     { PIX_FMT_RGB565,        GAVL_RGB_16 }, ///< always stored in cpu endianness
@@ -1939,7 +1947,11 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
                     s->data.video.format.image_width,
                     s->data.video.format.image_height, s->data.video.flip_y);
     }
+#if LIBAVUTIL_VERSION_INT < (50<<16)
   else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
+#else
+  else if(priv->ctx->pix_fmt == PIX_FMT_RGB32)
+#endif
     {
     rgba32_to_rgba32(f, priv->frame,
                      s->data.video.format.image_width,
