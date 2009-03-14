@@ -64,6 +64,7 @@ typedef struct bgav_charset_converter_s bgav_charset_converter_t;
 typedef struct bgav_track_s bgav_track_t;
 
 typedef struct bgav_timecode_table_s bgav_timecode_table_t;
+typedef struct bgav_keyframe_table_s bgav_keyframe_table_t;
 
 #include <id3.h>
 #include <yml.h>
@@ -1018,7 +1019,7 @@ typedef struct
     uint32_t size;
     int stream_id;
     int flags;
-    int64_t time;  /* Time is scaled with the timescale of the stream */
+    int64_t pts;  /* Time is scaled with the timescale of the stream */
     int duration;  /* In timescale tics, can be 0 if unknown */
     } * entries;
   } bgav_superindex_t;
@@ -1069,6 +1070,9 @@ typedef struct
    * For 2-layer muxed files, it's the
    * fseek() position of the lowest level
    * paket inside which the subpacket *starts*
+   *
+   * For superindex formats, it's the position
+   * inside the superindex
    */
   
   uint64_t position; 
@@ -1079,7 +1083,7 @@ typedef struct
    *  stream timescale)
    */
 
-  int64_t time;
+  int64_t pts;
   
   } bgav_file_index_entry_t;
 
@@ -1814,6 +1818,34 @@ bgav_timecode_table_destroy(bgav_timecode_table_t *);
 gavl_timecode_t
 bgav_timecode_table_get_timecode(bgav_timecode_table_t * table,
                                  int64_t pts);
+
+/* keyframetable.c */
+
+/*
+ *  A keyframe table is always associated with 
+ *  either a file index or a superindex.
+ */
+
+struct bgav_keyframe_table_s
+  {
+  int num_entries;
+  struct
+    {
+    int pos;
+    int64_t pts;
+    } * entries;
+  };
+
+bgav_keyframe_table_t * bgav_keyframe_table_create_fi(bgav_file_index_t * fi);
+bgav_keyframe_table_t * bgav_keyframe_table_create_si(bgav_superindex_t * si,
+                                                      bgav_stream_t * s);
+
+void bgav_keyframe_table_destroy(bgav_keyframe_table_t *);
+
+/* Returns the index position */
+int bgav_keyframe_table_seek(bgav_keyframe_table_t *,
+                             int64_t  seek_pts,
+                             int64_t * kf_pts);
 
 /* parse_dca.c */
 #ifdef HAVE_DCA

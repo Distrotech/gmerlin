@@ -302,10 +302,8 @@ void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser)
 
   for(i = 0; i < parser->cache_size; i++)
     {
-    if((parser->cache[parser->cache_size-1].pts ==
-        BGAV_TIMESTAMP_UNDEFINED) &&
-       (parser->cache[parser->cache_size-1].coding_type ==
-        BGAV_CODING_TYPE_B))
+    if((parser->cache[i].pts == BGAV_TIMESTAMP_UNDEFINED) &&
+       (parser->cache[i].coding_type == BGAV_CODING_TYPE_B))
       SET_PTS(i);
     }
 

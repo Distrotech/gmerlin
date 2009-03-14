@@ -449,6 +449,7 @@ in_pnm.c \
 in_rtsp.c \
 in_vcd.c \
 input.c \
+keyframetable.c \
 languages.c \
 log.c \
 md5.c \

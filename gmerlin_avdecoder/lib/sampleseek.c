@@ -40,7 +40,7 @@ static int file_index_seek(bgav_file_index_t * idx, int64_t time)
     {
     tmp = (pos1 + pos2)/2;
     
-    if(idx->entries[tmp].time < time)
+    if(idx->entries[tmp].pts < time)
       pos1 = tmp;
     else
       pos2 = tmp;
@@ -49,7 +49,7 @@ static int file_index_seek(bgav_file_index_t * idx, int64_t time)
       break;
     }
   
-  while((idx->entries[pos2].time > time) && pos2)
+  while((idx->entries[pos2].pts > time) && pos2)
     pos2--;
   
   return pos2;
@@ -113,10 +113,10 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   else /* Fileindex */
     {
     s->index_position = file_index_seek(s->file_index, sample);
-    frame_time = s->file_index->entries[s->index_position].time;
+    frame_time = s->file_index->entries[s->index_position].pts;
     /* Handle preroll */
     while(s->index_position &&
-          (frame_time - s->file_index->entries[s->index_position].time) < s->data.audio.preroll)
+          (frame_time - s->file_index->entries[s->index_position].pts) < s->data.audio.preroll)
       s->index_position--;
     
     /* Decrease until a real packet starts */
@@ -125,7 +125,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
            s->file_index->entries[s->index_position].position))
       s->index_position--;
     
-    s->out_time = s->file_index->entries[s->index_position].time + s->start_time;
+    s->out_time = s->file_index->entries[s->index_position].pts + s->start_time;
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
@@ -171,7 +171,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     {
     frame_time = time;
     bgav_superindex_seek(bgav->demuxer->si, s, &frame_time, s->timescale);
-    s->out_time = bgav->demuxer->si->entries[s->index_position].time;
+    s->out_time = bgav->demuxer->si->entries[s->index_position].pts;
     }
   else /* Fileindex */
     {
@@ -180,7 +180,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     while(!(s->file_index->entries[s->index_position].flags & PACKET_FLAG_KEY) && s->index_position)
       s->index_position--;
     
-    frame_time = s->file_index->entries[s->index_position].time;
+    frame_time = s->file_index->entries[s->index_position].pts;
     
     /* Decrease until a real packet starts */
     while(s->index_position &&
@@ -188,7 +188,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
            s->file_index->entries[s->index_position].position))
       s->index_position--;
     
-    STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].time);
+    STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].pts);
     s->out_time = frame_time + s->start_time;
 
     // if(s->data.video.parser)
@@ -219,7 +219,7 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
       {
       if((bgav->demuxer->si->entries[pos].stream_id == s->stream_id) &&
          (bgav->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
-         (bgav->demuxer->si->entries[pos].time < time))
+         (bgav->demuxer->si->entries[pos].pts < time))
         {
         break;
         }
@@ -228,7 +228,7 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
     if(pos < s->first_index_position)
       return BGAV_TIMESTAMP_UNDEFINED;
     else
-      return bgav->demuxer->si->entries[pos].time;
+      return bgav->demuxer->si->entries[pos].pts;
     }
   else /* Fileindex */
     {
@@ -238,14 +238,14 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
       pos = file_index_seek(s->file_index, time);
 
     while(pos &&
-          ((s->file_index->entries[pos].time >= time) ||
+          ((s->file_index->entries[pos].pts >= time) ||
            !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY)))
       pos--;
     
-    if((s->file_index->entries[pos].time >= time) ||
+    if((s->file_index->entries[pos].pts >= time) ||
        !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY))
       return BGAV_TIMESTAMP_UNDEFINED;
-    return s->file_index->entries[pos].time;
+    return s->file_index->entries[pos].pts;
     }
   /* Stupid gcc :( */
   return BGAV_TIMESTAMP_UNDEFINED;
@@ -264,7 +264,7 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
       {
       if((bgav->demuxer->si->entries[pos].stream_id == s->stream_id) &&
          (bgav->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
-         (bgav->demuxer->si->entries[pos].time > time))
+         (bgav->demuxer->si->entries[pos].pts > time))
         {
         break;
         }
@@ -284,16 +284,16 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
     pos = file_index_seek(s->file_index, time);
 
     while((pos < s->file_index->num_entries - 1) &&
-          ((s->file_index->entries[pos].time <= time) ||
+          ((s->file_index->entries[pos].pts <= time) ||
            !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY)))
       pos++;
 
-    if((s->file_index->entries[pos].time <= time) ||
+    if((s->file_index->entries[pos].pts <= time) ||
        !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY))
       {
       return BGAV_TIMESTAMP_UNDEFINED;
       }
-    return s->file_index->entries[pos].time;
+    return s->file_index->entries[pos].pts;
     }
   /* Stupid gcc :( */
   return BGAV_TIMESTAMP_UNDEFINED;
@@ -320,7 +320,7 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
   if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
     bgav_superindex_seek(bgav->demuxer->si, s, &time, s->timescale);
-    s->out_time = bgav->demuxer->si->entries[s->index_position].time;
+    s->out_time = bgav->demuxer->si->entries[s->index_position].pts;
     }
   else /* Fileindex */
     {
@@ -332,7 +332,7 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
            s->file_index->entries[s->index_position].position))
       s->index_position--;
     
-    STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].time);
+    STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].pts);
     s->out_time = STREAM_GET_SYNC(s);
     
     if(bgav->demuxer->demuxer->resync)

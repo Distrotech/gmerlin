@@ -383,7 +383,7 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
       {
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->subtitle_streams[i]);
       ctx->tt->cur->subtitle_streams[i].start_time =
-        ctx->si->entries[ctx->tt->cur->subtitle_streams[i].first_index_position].time;
+        ctx->si->entries[ctx->tt->cur->subtitle_streams[i].first_index_position].pts;
       i++;
       }
     }
@@ -545,7 +545,7 @@ int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx)
 
   p->flags = ctx->si->entries[ctx->si->current_position].flags;
   
-  p->pts = ctx->si->entries[ctx->si->current_position].time;
+  p->pts = ctx->si->entries[ctx->si->current_position].pts;
   p->duration = ctx->si->entries[ctx->si->current_position].duration;
   p->position = ctx->si->current_position;
   
@@ -586,7 +586,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   p->data_size = ctx->si->entries[s->index_position].size;
   bgav_packet_alloc(p, p->data_size);
   
-  p->pts = ctx->si->entries[s->index_position].time;
+  p->pts = ctx->si->entries[s->index_position].pts;
   p->duration = ctx->si->entries[s->index_position].duration;
 
   p->flags = ctx->si->entries[s->index_position].flags;

@@ -50,15 +50,15 @@ static void dump_index(bgav_stream_t * s)
     bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64" D: ",
                  !!(s->file_index->entries[i].flags & PACKET_FLAG_KEY),
                  s->file_index->entries[i].position,
-                 s->file_index->entries[i].time);
+                 s->file_index->entries[i].pts);
     
     if(i < s->file_index->num_entries-1)
       bgav_dprintf("%"PRId64" posdiff: %"PRId64"\n",
-                   s->file_index->entries[i+1].time-s->file_index->entries[i].time,
+                   s->file_index->entries[i+1].pts-s->file_index->entries[i].pts,
                    s->file_index->entries[i+1].position-s->file_index->entries[i].position
                    );
     else
-      bgav_dprintf("%"PRId64"\n", s->duration-s->file_index->entries[i].time);
+      bgav_dprintf("%"PRId64"\n", s->duration-s->file_index->entries[i].pts);
     }
   }
 
@@ -143,7 +143,7 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
     flags |= PACKET_FLAG_KEY;
     
   idx->entries[idx->num_entries].position = position;
-  idx->entries[idx->num_entries].time     = time;
+  idx->entries[idx->num_entries].pts     = time;
   idx->entries[idx->num_entries].flags    = flags;
   idx->num_entries++;
   }
@@ -305,7 +305,7 @@ file_index_read_stream(bgav_input_context_t * input, bgav_stream_t * s)
     {
     if(!bgav_input_read_32_be(input, &ret->entries[i].flags) ||
        !bgav_input_read_64_be(input, &ret->entries[i].position) ||
-       !bgav_input_read_64_be(input, &ret->entries[i].time))
+       !bgav_input_read_64_be(input, (uint64_t*)(&ret->entries[i].pts)))
       return NULL;
     }
   return ret;
@@ -342,7 +342,7 @@ file_index_write_stream(FILE * output,
     {
     write_32(output, idx->entries[i].flags);
     write_64(output, idx->entries[i].position);
-    write_64(output, idx->entries[i].time);
+    write_64(output, idx->entries[i].pts);
     }
   }
 

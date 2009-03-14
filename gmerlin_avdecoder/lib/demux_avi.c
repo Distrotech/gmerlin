@@ -1577,7 +1577,7 @@ static void process_packet_iavs_stream(bgav_stream_t * s, bgav_packet_t * p)
       }
     else
       {
-      p->pts      = s->demuxer->si->entries[s->index_position].time;
+      p->pts      = s->demuxer->si->entries[s->index_position].pts;
       p->duration = s->demuxer->si->entries[s->index_position].duration;
       }
     p->audio_frame->timestamp = p->pts;
@@ -1592,7 +1592,7 @@ static void process_packet_iavs_stream(bgav_stream_t * s, bgav_packet_t * p)
       }
     else
       {
-      p->pts      = s->demuxer->si->entries[s->index_position].time;
+      p->pts      = s->demuxer->si->entries[s->index_position].pts;
       p->duration = s->demuxer->si->entries[s->index_position].duration;
       }
     }
@@ -1809,7 +1809,7 @@ static void duplicate_si(bgav_superindex_t * idx)
     idx->entries[2*i+1].offset = idx->entries[2*i].offset;
     idx->entries[2*i+1].size   = idx->entries[2*i].size;
     idx->entries[2*i+1].flags  = PACKET_FLAG_KEY;
-    idx->entries[2*i+1].time = 0;
+    idx->entries[2*i+1].pts = 0;
     idx->entries[2*i+1].duration = 0;
     }
   }
