@@ -271,6 +271,12 @@ void bgav_video_stop(bgav_stream_t * s)
 
   if(s->data.video.parser)
     bgav_video_parser_destroy(s->data.video.parser);
+
+  if(s->data.video.kft)
+    {
+    bgav_keyframe_table_destroy(s->data.video.kft);
+    s->data.video.kft = NULL;
+    }
   }
 
 void bgav_video_resync(bgav_stream_t * s)

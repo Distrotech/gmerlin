@@ -23,11 +23,21 @@
 
 #include <avdec_private.h>
 
+static void bgav_keyframe_table_dump(bgav_keyframe_table_t* tab)
+  {
+  int i;
+  bgav_dprintf("keyframe table:\n");
+  for(i = 0; i < tab->num_entries; i++)
+    {
+    bgav_dprintf("  Pos: %d, pts: %ld\n", tab->entries[i].pos, tab->entries[i].pts);
+    }
+  }
+
 static void append_entry(bgav_keyframe_table_t * tab, int * allocated)
   {
   if(tab->num_entries >= *allocated)
     {
-    allocated += 1024;
+    *allocated += 1024;
     tab->entries = realloc(tab->entries, *allocated * sizeof(*tab->entries));
     }
   tab->num_entries++;
@@ -48,7 +58,7 @@ bgav_keyframe_table_t * bgav_keyframe_table_create_fi(bgav_file_index_t * fi)
       ret->entries[ret->num_entries-1].pts = fi->entries[i].pts;
       }
     }
-
+  bgav_keyframe_table_dump(ret);
   return ret;
   }
 
@@ -86,6 +96,7 @@ int bgav_keyframe_table_seek(bgav_keyframe_table_t * tab,
                              int64_t  seek_pts,
                              int64_t * kf_pts)
   {
+#if 0
   int pos1, pos2, ret, mid;
   pos1 = 0;
   pos2 = tab->num_entries-1;
@@ -110,5 +121,20 @@ int bgav_keyframe_table_seek(bgav_keyframe_table_t * tab,
     }
     
   return 0;
+#else
+  int i;
+  for(i = tab->num_entries-1; i >= 0; i--)
+    {
+    if(tab->entries[i].pts <= seek_pts)
+      {
+      if(kf_pts) *kf_pts = tab->entries[i].pts;
+      return tab->entries[i].pos;
+      }
+    }
+  
+  if(kf_pts)
+    *kf_pts = tab->entries[0].pts;
+  return 0;
+#endif
   }
 

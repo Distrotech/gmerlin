@@ -175,13 +175,20 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     }
   else /* Fileindex */
     {
+    if(!s->data.video.kft)
+      s->data.video.kft = bgav_keyframe_table_create_fi(s->file_index);
+
+    s->index_position = bgav_keyframe_table_seek(s->data.video.kft, time, &frame_time);
+    fprintf(stderr, "Index position: %d, keyframe timestamp: %ld\n", s->index_position,
+            frame_time);
+#if 0    
     s->index_position = file_index_seek(s->file_index, time);
     /* Decrease until we have the keyframe before this frame */
     while(!(s->file_index->entries[s->index_position].flags & PACKET_FLAG_KEY) && s->index_position)
       s->index_position--;
     
     frame_time = s->file_index->entries[s->index_position].pts;
-    
+#endif
     /* Decrease until a real packet starts */
     while(s->index_position &&
           (s->file_index->entries[s->index_position-1].position ==

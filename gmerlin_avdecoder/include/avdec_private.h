@@ -507,6 +507,7 @@ struct bgav_stream_s
       int frametime_mode;
       
       bgav_video_parser_t * parser;
+      bgav_keyframe_table_t * kft;
       } video;
     struct
       {

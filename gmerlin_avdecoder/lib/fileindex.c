@@ -40,25 +40,46 @@
 
 /* Version must be increased each time the fileformat
    changes */
-#define INDEX_VERSION 2
+#define INDEX_VERSION 3
 
 static void dump_index(bgav_stream_t * s)
   {
   int i;
-  for(i = 0; i < s->file_index->num_entries; i++)
+  if(s->type == BGAV_STREAM_VIDEO)
     {
-    bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64" D: ",
-                 !!(s->file_index->entries[i].flags & PACKET_FLAG_KEY),
-                 s->file_index->entries[i].position,
-                 s->file_index->entries[i].pts);
-    
-    if(i < s->file_index->num_entries-1)
-      bgav_dprintf("%"PRId64" posdiff: %"PRId64"\n",
-                   s->file_index->entries[i+1].pts-s->file_index->entries[i].pts,
-                   s->file_index->entries[i+1].position-s->file_index->entries[i].position
-                   );
-    else
-      bgav_dprintf("%"PRId64"\n", s->duration-s->file_index->entries[i].pts);
+    for(i = 0; i < s->file_index->num_entries; i++)
+      {
+      bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64" CT: %c ",
+                   !!(s->file_index->entries[i].flags & PACKET_FLAG_KEY),
+                   s->file_index->entries[i].position,
+                   s->file_index->entries[i].pts,
+                   s->file_index->entries[i].flags & 0xff);
+      
+      if(i < s->file_index->num_entries-1)
+        bgav_dprintf(" posdiff: %"PRId64"\n",
+                     s->file_index->entries[i+1].position-s->file_index->entries[i].position
+                     );
+      else
+        bgav_dprintf("\n");
+      }
+    }
+  else
+    {
+    for(i = 0; i < s->file_index->num_entries; i++)
+      {
+      bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64,
+                   !!(s->file_index->entries[i].flags & PACKET_FLAG_KEY),
+                   s->file_index->entries[i].position,
+                   s->file_index->entries[i].pts);
+      
+      if(i < s->file_index->num_entries-1)
+        bgav_dprintf(" D: %"PRId64" posdiff: %"PRId64"\n",
+                     s->file_index->entries[i+1].pts-s->file_index->entries[i].pts,
+                     s->file_index->entries[i+1].position-s->file_index->entries[i].position
+                     );
+      else
+        bgav_dprintf("%"PRId64"\n", s->duration-s->file_index->entries[i].pts);
+      }
     }
   }
 
@@ -635,12 +656,12 @@ static void flush_stream_simple(bgav_stream_t * s)
     
     t = p->pts - s->start_time;
     
-    /* This will omit B-frames */
-    if((t >= s->duration) && (p->pts != BGAV_TIMESTAMP_UNDEFINED))
+    if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_file_index_append_packet(s->file_index,
                                     p->position, t, p->flags);
-      s->duration = t + p->duration;
+      if(t >= s->duration)
+        s->duration = t + p->duration;
       }
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
@@ -652,9 +673,7 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
   while(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    /* We don't output B-Frames (recognizable by non-monotone PTSes) */
-    if((p->pts != BGAV_TIMESTAMP_UNDEFINED) &&
-       (p->pts >= s->out_time))
+    if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_file_index_append_packet(s->file_index,
                                     p->position, p->pts, p->flags);
