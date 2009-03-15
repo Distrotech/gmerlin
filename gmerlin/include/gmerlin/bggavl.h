@@ -115,7 +115,7 @@ void bg_gavl_video_options_set_interlace(const bg_gavl_video_options_t * opt,
   .val_default = { .val_i = GAVL_QUALITY_DEFAULT },                      \
   .help_string = TRS("Set the conversion quality for format conversions. \
 Lower quality means more speed. Values above 3 enable slow high quality calculations.") \
-    }
+   }
 
 #define BG_GAVL_PARAM_FRAMERATE                                 \
   {                                                             \
