@@ -11,6 +11,7 @@ bgfreetype.h \
 bgfrei0r.h \
 bglv.h \
 bgladspa.h \
+float_cast.h \
 frei0r.h \
 ladspa.h \
 language_table.h \

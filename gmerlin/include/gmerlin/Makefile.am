@@ -14,7 +14,6 @@ encoderinfo.h \
 fifo.h \
 fileformat.h \
 filters.h \
-float_cast.h \
 keycodes.h \
 lcdproc.h \
 log.h \
