@@ -77,7 +77,7 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
           if(!bgav_dirac_sequence_header_parse(&priv->sh,
                                                start, end - start))
             return PARSER_ERROR;
-          bgav_dirac_sequence_header_dump(&priv->sh);
+          //          bgav_dirac_sequence_header_dump(&priv->sh);
           priv->have_sh = 1;
 
           parser->header = malloc(len);

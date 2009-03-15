@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#define DUMP_SUPERINDEX    
+// #define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 #include <parser.h>
 
@@ -567,7 +567,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s = (bgav_stream_t*)0;
 
   s = ctx->request_stream;
-
+  
   if(s->index_position > s->last_index_position)
     return 0;
   

@@ -241,8 +241,9 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
       bgav_dprintf("\n");
     }
   }
-  
-void bgav_superindex_merge_fileindex(bgav_superindex_t * idx, bgav_stream_t * s)
+
+static void
+merge_fileindex_audio(bgav_superindex_t * idx, bgav_stream_t * s)
   {
   int64_t pts;
   int i;
@@ -283,5 +284,29 @@ void bgav_superindex_merge_fileindex(bgav_superindex_t * idx, bgav_stream_t * s)
   bgav_superindex_set_durations(idx, s);
 
   //  bgav_superindex_dump(idx);
+  }
+
+static void
+merge_fileindex_video(bgav_superindex_t * idx, bgav_stream_t * s)
+  {
+  int i;
+
+  for(i = 0; i < s->file_index->num_entries; i++)
+    {
+    idx->entries[s->file_index->entries[i].position].pts =
+      s->file_index->entries[i].pts;
+    }
+  }
+
+void bgav_superindex_merge_fileindex(bgav_superindex_t * idx, bgav_stream_t * s)
+  {
+  if(s->type == BGAV_STREAM_AUDIO)
+    merge_fileindex_audio(idx, s);
+  else if(s->type == BGAV_STREAM_VIDEO)
+    merge_fileindex_video(idx, s);
+
+  //  fprintf(stderr, "Merged fileindex\n");
+  //  bgav_superindex_dump(idx);
+  
   }
 

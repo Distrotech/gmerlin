@@ -106,7 +106,9 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Audio stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->data.audio.format.samplerate,
                    s->start_time);
-      bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].audio_streams[j].duration);
+      bgav_dprintf("   Duration: %ld, entries: %d\n",
+                   b->tt->tracks[i].audio_streams[j].duration,
+                   s->file_index->num_entries);
       dump_index(&b->tt->tracks[i].audio_streams[j]);
       }
     for(j = 0; j < b->tt->tracks[i].num_video_streams; j++)
@@ -117,7 +119,9 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Video stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->data.video.format.timescale,
                    s->start_time);
-      bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].video_streams[j].duration);
+      bgav_dprintf("   Duration: %ld, entries: %d\n",
+                   b->tt->tracks[i].video_streams[j].duration,
+                   s->file_index->num_entries);
       dump_index(&b->tt->tracks[i].video_streams[j]);
       }
     for(j = 0; j < b->tt->tracks[i].num_subtitle_streams; j++)
@@ -646,11 +650,11 @@ void bgav_write_file_index(bgav_t * b)
  *  Top level packets contain complete frames of one elemtary stream
  */
 
-static void flush_stream_simple(bgav_stream_t * s)
+static void flush_stream_simple(bgav_stream_t * s, int force)
   {
   bgav_packet_t * p;
   int64_t t;
-  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+  while(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     
@@ -694,15 +698,22 @@ static int build_file_index_simple(bgav_t * b)
   while(1)
     {
     if(!bgav_demuxer_next_packet(b->demuxer))
-      return 1;
+      break;
     
     for(j = 0; j < b->tt->cur->num_audio_streams; j++)
-      flush_stream_simple(&b->tt->cur->audio_streams[j]);
+      flush_stream_simple(&b->tt->cur->audio_streams[j], 0);
     for(j = 0; j < b->tt->cur->num_video_streams; j++)
-      flush_stream_simple(&b->tt->cur->video_streams[j]);
+      flush_stream_simple(&b->tt->cur->video_streams[j], 0);
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
-      flush_stream_simple(&b->tt->cur->subtitle_streams[j]);
+      flush_stream_simple(&b->tt->cur->subtitle_streams[j], 0);
     }
+
+  for(j = 0; j < b->tt->cur->num_audio_streams; j++)
+    flush_stream_simple(&b->tt->cur->audio_streams[j], 1);
+  for(j = 0; j < b->tt->cur->num_video_streams; j++)
+    flush_stream_simple(&b->tt->cur->video_streams[j], 1);
+  for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
+    flush_stream_simple(&b->tt->cur->subtitle_streams[j], 1);
   
   bgav_input_seek(b->input, old_position, SEEK_SET);
   return 1;
@@ -806,7 +817,7 @@ static int build_file_index_mixed(bgav_t * b)
             return 0;
           break;
         case INDEX_MODE_SIMPLE:
-          flush_stream_simple(&b->tt->cur->audio_streams[j]);
+          flush_stream_simple(&b->tt->cur->audio_streams[j], 0);
           break;
         case INDEX_MODE_PTS:
           flush_stream_pts(&b->tt->cur->audio_streams[j], 0);
@@ -823,7 +834,7 @@ static int build_file_index_mixed(bgav_t * b)
             return 0;
           break;
         case INDEX_MODE_SIMPLE:
-          flush_stream_simple(&b->tt->cur->video_streams[j]);
+          flush_stream_simple(&b->tt->cur->video_streams[j], 0);
           break;
         case INDEX_MODE_PTS:
           flush_stream_pts(&b->tt->cur->video_streams[j], 0);
@@ -841,7 +852,7 @@ static int build_file_index_mixed(bgav_t * b)
               return 0;
             break;
           case INDEX_MODE_SIMPLE:
-            flush_stream_simple(&b->tt->cur->subtitle_streams[j]);
+            flush_stream_simple(&b->tt->cur->subtitle_streams[j], 0);
             break;
           case INDEX_MODE_PTS:
             flush_stream_pts(&b->tt->cur->subtitle_streams[j], 0);
@@ -864,6 +875,9 @@ static int build_file_index_mixed(bgav_t * b)
       case INDEX_MODE_PTS:
         flush_stream_pts(&b->tt->cur->audio_streams[j], 1);
         break;
+      case INDEX_MODE_SIMPLE:
+        flush_stream_simple(&b->tt->cur->audio_streams[j], 1);
+        break;
       }
       
     }
@@ -873,6 +887,9 @@ static int build_file_index_mixed(bgav_t * b)
       {
       case INDEX_MODE_PTS:
         flush_stream_pts(&b->tt->cur->video_streams[j], 1);
+        break;
+      case INDEX_MODE_SIMPLE:
+        flush_stream_simple(&b->tt->cur->video_streams[j], 1);
         break;
       case INDEX_MODE_MPEG:
         if(!flush_stream_mpeg_video(&b->tt->cur->video_streams[j], 1))
@@ -888,6 +905,9 @@ static int build_file_index_mixed(bgav_t * b)
         case INDEX_MODE_PTS:
           flush_stream_pts(&b->tt->cur->subtitle_streams[j], 1);
           break;
+        case INDEX_MODE_SIMPLE:
+          flush_stream_simple(&b->tt->cur->subtitle_streams[j], 1);
+          break;
         }
       }
     }
@@ -895,7 +915,6 @@ static int build_file_index_mixed(bgav_t * b)
   bgav_input_seek(b->input, old_position, SEEK_SET);
   return 1;
   }
-
 
 static int bgav_build_file_index_parseall(bgav_t * b)
   {
@@ -962,6 +981,75 @@ static int bgav_build_file_index_parseall(bgav_t * b)
   return ret;
   }
 
+static int build_file_index_si_parse_audio(bgav_t * b, int track, int stream)
+  {
+  bgav_stream_t * s;
+  bgav_select_track(b, track);
+
+  s = &b->tt->cur->audio_streams[stream];
+  
+  s->file_index = bgav_file_index_create();
+  bgav_set_audio_stream(b, stream, BGAV_STREAM_PARSE);
+  bgav_start(b);
+  b->demuxer->request_stream = &b->tt->cur->audio_streams[stream];
+  s->duration = 0; 
+
+  if(s->index_mode == INDEX_MODE_MPEG)
+    {
+    while(bgav_demuxer_next_packet(b->demuxer))
+      {
+      if(!flush_stream_mpeg_audio(&b->tt->cur->audio_streams[stream]))
+        {
+        b->demuxer->flags &= ~BGAV_DEMUXER_BUILD_INDEX;
+        return 0;
+        }
+      b->demuxer->request_stream = s;
+      }
+    }
+  else if(s->index_mode == INDEX_MODE_SIMPLE)
+    {
+    while(1)
+      {
+      if(!bgav_demuxer_next_packet(b->demuxer))
+        break;
+      flush_stream_simple(&b->tt->cur->audio_streams[stream], 0);
+      b->demuxer->request_stream = s;
+      }
+    flush_stream_simple(&b->tt->cur->audio_streams[stream], 1);
+    }
+  
+  bgav_stop(b);
+  bgav_set_audio_stream(b, stream, BGAV_STREAM_MUTE);
+
+  }
+
+static int build_file_index_si_parse_video(bgav_t * b, int track, int stream)
+  {
+  bgav_stream_t * s;
+
+  bgav_select_track(b, track);
+
+  s = &b->tt->cur->video_streams[stream];
+  
+  s->file_index = bgav_file_index_create();
+  bgav_set_video_stream(b, stream, BGAV_STREAM_PARSE);
+  bgav_start(b);
+  b->demuxer->request_stream = s;
+  
+  if(s->index_mode == INDEX_MODE_SIMPLE)
+    {
+    while(1)
+      {
+      if(!bgav_demuxer_next_packet(b->demuxer))
+        break;
+      flush_stream_simple(s, 0);
+      b->demuxer->request_stream = s;
+      }
+    flush_stream_simple(s, 1);
+    }
+  bgav_stop(b);
+  bgav_set_video_stream(b, stream, BGAV_STREAM_MUTE);
+  }
 
 static int bgav_build_file_index_si_parse(bgav_t * b)
   {
@@ -974,37 +1062,16 @@ static int bgav_build_file_index_si_parse(bgav_t * b)
       if(!b->tt->cur->audio_streams[j].index_mode)
         continue;
 
-      bgav_select_track(b, i);
-      b->tt->cur->audio_streams[j].file_index = bgav_file_index_create();
-      bgav_set_audio_stream(b, j, BGAV_STREAM_PARSE);
-      bgav_start(b);
-      b->demuxer->request_stream = &b->tt->cur->audio_streams[j];
-      b->tt->cur->audio_streams[j].duration = 0; 
+      if(!build_file_index_si_parse_audio(b, i, j))
+        return 0;
+      }
+    for(j = 0; j < b->tt->cur->num_video_streams; j++)
+      {
+      if(!b->tt->cur->video_streams[j].index_mode)
+        continue;
 
-      if(b->tt->cur->audio_streams[j].index_mode == INDEX_MODE_MPEG)
-        {
-        while(bgav_demuxer_next_packet(b->demuxer))
-          {
-          if(!flush_stream_mpeg_audio(&b->tt->cur->audio_streams[j]))
-            {
-            b->demuxer->flags &= ~BGAV_DEMUXER_BUILD_INDEX;
-            return 0;
-            }
-          b->demuxer->request_stream = &b->tt->cur->audio_streams[j];
-          }
-        }
-      else if(b->tt->cur->audio_streams[j].index_mode == INDEX_MODE_SIMPLE)
-        {
-        while(1)
-          {
-          if(!bgav_demuxer_next_packet(b->demuxer))
-            break;
-          flush_stream_simple(&b->tt->cur->audio_streams[j]);
-          b->demuxer->request_stream = &b->tt->cur->audio_streams[j];
-          }
-        }
-      bgav_stop(b);
-      bgav_set_audio_stream(b, j, BGAV_STREAM_MUTE);
+      if(!build_file_index_si_parse_video(b, i, j))
+        return 0;
       }
     b->demuxer->flags &= ~BGAV_DEMUXER_BUILD_INDEX;
     }

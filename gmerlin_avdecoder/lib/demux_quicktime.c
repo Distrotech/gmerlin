@@ -1387,6 +1387,7 @@ static void fix_index(bgav_demuxer_context_t * ctx)
   {
   int i, j;
   bgav_stream_t * s;
+  stream_priv_t * sp;
 
   //  fprintf(stderr, "Fix index\n");
   //  bgav_superindex_dump(ctx->si);
@@ -1414,6 +1415,24 @@ static void fix_index(bgav_demuxer_context_t * ctx)
         {
         ctx->si->entries[j].stream_id = -1;
         s->duration -= ctx->si->entries[j].duration;
+        }
+      /* Update last index position */
+      j--;
+      while(ctx->si->entries[j].stream_id != s->stream_id)
+        j--;
+      s->last_index_position = j;
+      
+      /* Check if we have a ctts. If not, we will parse the
+         whole stream for getting sample accuracy */
+      sp = s->priv;
+
+      if(!sp->trak->mdia.minf.stbl.has_ctts)
+        {
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Dirac stream has no ctts");
+        ctx->index_mode = INDEX_MODE_SI_PARSE;
+        s->index_mode = INDEX_MODE_MPEG;
+        s->flags |= STREAM_PARSE_FRAME;
         }
       }
     }
@@ -1528,7 +1547,10 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
   if(!ctx->si)
     return 0;
 
-  /* Fix index */
+  /* Quicktime is almost always sample accurate */
+  ctx->index_mode = INDEX_MODE_SI_SA;
+  
+  /* Fix index (probably changing index mode) */
   fix_index(ctx);
   
   /* Check if we have an EDL */
@@ -1570,9 +1592,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
   
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
-
-  /* Seem that quicktime is always sample accurate :) */
-  ctx->index_mode = INDEX_MODE_SI_SA;
   
   return 1;
   }

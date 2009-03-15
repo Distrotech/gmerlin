@@ -23,6 +23,9 @@
 
 #include <avdec_private.h>
 
+#define DUMP_TABLE
+
+#ifdef DUMP_TABLE
 static void bgav_keyframe_table_dump(bgav_keyframe_table_t* tab)
   {
   int i;
@@ -32,6 +35,7 @@ static void bgav_keyframe_table_dump(bgav_keyframe_table_t* tab)
     bgav_dprintf("  Pos: %d, pts: %ld\n", tab->entries[i].pos, tab->entries[i].pts);
     }
   }
+#endif
 
 static void append_entry(bgav_keyframe_table_t * tab, int * allocated)
   {
@@ -58,7 +62,9 @@ bgav_keyframe_table_t * bgav_keyframe_table_create_fi(bgav_file_index_t * fi)
       ret->entries[ret->num_entries-1].pts = fi->entries[i].pts;
       }
     }
+#ifdef DUMP_TABLE
   bgav_keyframe_table_dump(ret);
+#endif
   return ret;
   }
 
@@ -80,7 +86,9 @@ bgav_keyframe_table_t * bgav_keyframe_table_create_si(bgav_superindex_t * si,
       }
       
     }
-
+#ifdef DUMP_TABLE
+  bgav_keyframe_table_dump(ret);
+#endif
   return ret;
   }
 

@@ -410,9 +410,14 @@ int bgav_set_sample_accurate(bgav_t * b)
           {
           bgav_superindex_merge_fileindex(b->demuxer->si,
                                           &b->tt->tracks[0].audio_streams[i]);
-          /* After merging, the file index is no longer used */
-          //          bgav_file_index_destroy(b->tt->tracks[0].audio_streams[i].file_index);
-          //          b->tt->tracks[0].audio_streams[i].file_index = (bgav_file_index_t*)0;
+          }
+        }
+      for(i = 0; i < b->tt->tracks[0].num_video_streams; i++)
+        {
+        if(b->tt->tracks[0].video_streams[i].file_index)
+          {
+          bgav_superindex_merge_fileindex(b->demuxer->si,
+                                          &b->tt->tracks[0].video_streams[i]);
           }
         }
       /* After patching the superindex, we are sample accurate :) */
