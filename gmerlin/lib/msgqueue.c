@@ -21,7 +21,7 @@
 
 #include <inttypes.h>
 #include <config.h>
-#include <gmerlin/float_cast.h>
+#include <float_cast.h>
 
 #include <unistd.h>
 #include <errno.h>

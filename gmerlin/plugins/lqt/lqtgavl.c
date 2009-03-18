@@ -159,6 +159,18 @@ pixelformat_lqt_2_gavl(int pixelformat)
   return GAVL_PIXELFORMAT_NONE;
   }
 
+static int
+pixelformat_gavl_2_lqt(gavl_pixelformat_t pixelformat)
+  {
+  int i;
+  for(i = 0; i < sizeof(pixelformats) / sizeof(pixelformats[0]); i++)
+    {
+    if(pixelformats[i].gavl == pixelformat)
+      return pixelformats[i].lqt;
+    }
+  return LQT_COLORMODEL_NONE;
+  }
+
 static const struct
   {
   gavl_channel_id_t gavl;
@@ -291,15 +303,41 @@ void lqt_gavl_add_video_track(quicktime_t * file,
   {
   int track = quicktime_video_tracks(file);
 
+  
   lqt_add_video_track(file, format->image_width, format->image_height,
                       format->frame_duration, format->timescale,
                       codec);
   lqt_set_pixel_aspect(file, track, format->pixel_width, format->pixel_height);
   lqt_set_interlace_mode(file, track,
                          interlace_mode_gavl_2_lqt(format->interlace_mode));
-  
-  format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
 
+#if LQT_BUILD < LQT_MAKE_BUILD(1,1,2)
+  format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
+#else
+  if(codec->num_encoding_colormodels)
+    {
+    gavl_pixelformat_t * pixelformats;
+    int i;
+    
+    pixelformats = malloc((codec->num_encoding_colormodels+1) *
+                          sizeof(*pixelformats));
+
+    for(i = 0; i < codec->num_encoding_colormodels; i++)
+      {
+      pixelformats[i] =
+        pixelformat_lqt_2_gavl(codec->encoding_colormodels[i]);
+      }
+    pixelformats[codec->num_encoding_colormodels] = GAVL_PIXELFORMAT_NONE;
+    format->pixelformat =
+      gavl_pixelformat_get_best(format->pixelformat, pixelformats, NULL);
+
+    lqt_set_cmodel(file, track, pixelformat_gavl_2_lqt(format->pixelformat));
+    free(pixelformats);
+    }
+  else
+    format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
+#endif
+  
   if(format->timecode_format.int_framerate > 0)
     {
     lqt_add_timecode_track(file, track,
