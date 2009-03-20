@@ -215,8 +215,6 @@ fi
 
 ])
 
-
-
 dnl
 dnl Check for theora
 dnl
@@ -250,6 +248,43 @@ AM_CONDITIONAL(HAVE_THEORA, test x$have_theora = xtrue)
 
 if test "x$have_theora" = "xtrue"; then
 AC_DEFINE([HAVE_THEORA])
+fi
+
+])
+
+dnl
+dnl Check for schroedinger
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_SCHROEDINGER],[
+
+AH_TEMPLATE([HAVE_SCHROEDINGER],
+            [Do we have schroedinger installed?])
+
+have_schroedinger="false"
+
+SCHROEDINGER_REQUIRED="1.0.5"
+
+AC_ARG_ENABLE(schroedinger,
+[AC_HELP_STRING([--disable-schroedinger],[Disable schroedinger (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_schroedinger=true ;;
+   no)  test_schroedinger=false ;;
+esac],[test_schroedinger=true])
+
+if test x$test_schroedinger = xtrue; then
+
+PKG_CHECK_MODULES(SCHROEDINGER, schroedinger-1.0 >= $SCHROEDINGER_REQUIRED, have_schroedinger="true", have_schroedinger="false")
+fi
+
+AC_SUBST(SCHROEDINGER_REQUIRED)
+AC_SUBST(SCHROEDINGER_LIBS)
+AC_SUBST(SCHROEDINGER_CFLAGS)
+
+AM_CONDITIONAL(HAVE_SCHROEDINGER, test x$have_schroedinger = xtrue)
+
+if test "x$have_schroedinger" = "xtrue"; then
+AC_DEFINE([HAVE_SCHROEDINGER])
 fi
 
 ])
@@ -1522,10 +1557,14 @@ dnl Change to true to match other macros
 have_GL=true
 fi
 
+if test "x$have_GL" = "xtrue"; then
+
 if test "x$have_GLX" = "xyes"; then
 AC_DEFINE(HAVE_GLX)
 dnl Change to true to match other macros
 have_GLX=true
+fi
+
 fi
 
 AM_CONDITIONAL(HAVE_GL, test x$have_GL = xtrue)

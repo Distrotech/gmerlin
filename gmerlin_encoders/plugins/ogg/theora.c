@@ -374,6 +374,7 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   {
   theora_t * theora;
   int sub_h, sub_v;
+  int result;
   yuv_buffer yuv;
   ogg_packet op;
   
@@ -385,10 +386,13 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
              "Theora encoder produced no packet");
+      fprintf(stderr, "Packetout failed\n");
+      
       return 0;
       }
+    
     ogg_stream_packetin(&theora->os,&op);
-    if(bg_ogg_flush(&theora->os, theora->output, 0) <= 0)
+    if(bg_ogg_flush(&theora->os, theora->output, 0) < 0)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
              "Writing theora packet failed");
@@ -410,7 +414,7 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   yuv.y = frame->planes[0];
   yuv.u = frame->planes[1];
   yuv.v = frame->planes[2];
-  theora_encode_YUVin(&theora->ts, &yuv);
+  result = theora_encode_YUVin(&theora->ts, &yuv);
   theora->have_packet = 1;
   return 1;
   }
