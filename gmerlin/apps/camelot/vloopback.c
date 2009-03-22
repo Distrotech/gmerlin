@@ -36,7 +36,7 @@
 #define MAX_FRAMESIZE (MAX_WIDTH*MAX_HEIGHT*4)
 #define NUM_FRAMES 2
 
-// #define DUMP_IOCTLS
+#define DUMP_IOCTLS
 
 struct bg_vloopback_s
   {

@@ -369,7 +369,7 @@ init_userp(v4l2_t * v4l, unsigned int		buffer_size)
   return 1;
   }
 
-static uint32_t get_pixelformat(int fd)
+static int get_pixelformat(int fd, uint32_t * ret)
   {
   int index = 0;
   struct v4l2_fmtdesc desc;
@@ -380,12 +380,22 @@ static uint32_t get_pixelformat(int fd)
     desc.index = index;
     if(-1 == xioctl (fd, VIDIOC_ENUM_FMT, &desc))
       return 0;
-
+#if 0
+    fprintf(stderr, "Cam pixelformat %c%c%c%c\n",
+            desc.pixelformat & 0xff,
+            (desc.pixelformat >> 8) & 0xff,
+            (desc.pixelformat >> 16) & 0xff,
+            (desc.pixelformat >> 24) & 0xff);
+#endif
+    
     if(pixelformat_v4l2_2_gavl(desc.pixelformat) != GAVL_PIXELFORMAT_NONE)
-      return desc.pixelformat;
+      {
+      *ret = desc.pixelformat;
+      return 1;
+      }
     index++;
     }
-  
+  return 0;
   }
 
 
@@ -489,7 +499,11 @@ static int open_v4l(void * priv,
     }
 #endif
   
-  v4l->v4l2_pixelformat = get_pixelformat(v4l->fd);
+  if(!get_pixelformat(v4l->fd, &v4l->v4l2_pixelformat))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no supported pixelformat");
+    return 0;
+    }
 
   v4l->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   
