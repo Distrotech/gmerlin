@@ -104,9 +104,12 @@ static int init_theora(bgav_stream_t * s)
     s->data.video.format.pixel_height = priv->ti.aspect_denominator;
     }
 
-  s->data.video.format.timescale      = priv->ti.fps_numerator;
-  s->data.video.format.frame_duration = priv->ti.fps_denominator;
-
+  if(!s->data.video.format.timescale)
+    {
+    s->data.video.format.timescale      = priv->ti.fps_numerator;
+    s->data.video.format.frame_duration = priv->ti.fps_denominator;
+    }
+  
   switch(priv->ti.pixelformat)
     {
     case OC_PF_420:

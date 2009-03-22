@@ -389,7 +389,8 @@ static int init_vorbis(bgav_stream_t * s)
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                  &priv->dec_op) < 0)
       {
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "decode: vorbis_synthesis_headerin: not a vorbis header");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "vorbis_synthesis_headerin: not a vorbis header");
       return 0;
       }
     ptr = parse_packet(&priv->dec_op, ptr);
@@ -446,7 +447,8 @@ static int decode_frame_vorbis(bgav_stream_t * s)
     
   /* Decode stuff */
   
-  while((samples_decoded = vorbis_synthesis_pcmout(&priv->dec_vd, &(channels))) < 1)
+  while((samples_decoded =
+         vorbis_synthesis_pcmout(&priv->dec_vd, &(channels))) < 1)
     {
     if(!next_packet(s))
       return 0;

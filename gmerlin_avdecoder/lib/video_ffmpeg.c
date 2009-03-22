@@ -52,8 +52,8 @@
    This seems always be true for H.264.
 */
 
-// #define DUMP_DECODE
-// #define DUMP_EXTRADATA
+#define DUMP_DECODE
+#define DUMP_EXTRADATA
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
@@ -196,6 +196,18 @@ static void init_pp(bgav_stream_t * s);
 
 static void handle_dv(bgav_stream_t * s);
 
+static int frame_dumped = 0;
+static void dump_frame(uint8_t * data, int len)
+  {
+  FILE * out;
+  if(frame_dumped)
+    return;
+  frame_dumped = 1;
+  out = fopen("frame.dat", "wb");
+  fwrite(data, 1, len, out);
+  fclose(out);
+  }
+
 static int decode_picture(bgav_stream_t * s)
   {
   int i, imax;
@@ -244,7 +256,7 @@ static int decode_picture(bgav_stream_t * s)
         }
       else
         {
-        priv->ctx->skip_frame = AVDISCARD_NONE;
+        priv->ctx->skip_frame = AVDISCARD_DEFAULT;
         if(!(priv->flags & HAS_GET_BUFFER))
           bgav_pts_cache_push(&priv->pts_cache,
                               priv->packet->pts,
@@ -254,7 +266,7 @@ static int decode_picture(bgav_stream_t * s)
       }
     else
       {
-      priv->ctx->skip_frame = AVDISCARD_NONE;
+      priv->ctx->skip_frame = AVDISCARD_DEFAULT;
       if(!(priv->flags & HAS_GET_BUFFER))
         bgav_pts_cache_push(&priv->pts_cache,
                             priv->packet->pts,
@@ -325,6 +337,8 @@ static int decode_picture(bgav_stream_t * s)
       bgav_hexdump(priv->frame_buffer, 64, 16);
 #endif
     
+    //    dump_frame(priv->frame_buffer, priv->frame_buffer_len);
+    
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
                                       &have_picture,
@@ -333,7 +347,7 @@ static int decode_picture(bgav_stream_t * s)
 
 #ifdef DUMP_DECODE
     bgav_dprintf("Used %d/%d bytes, got picture: %d\n",
-                 bytes_used, priv->frame_buffer_len, priv->have_picture);
+                 bytes_used, priv->frame_buffer_len, have_picture);
 #endif
     
     /* Decode 2nd field for field pictures */
@@ -364,8 +378,8 @@ static int decode_picture(bgav_stream_t * s)
       }
 #ifdef DUMP_DECODE
     bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                 bytes_used, priv->frame_buffer_len, priv->have_picture);
-    if(!priv->have_picture)
+                 bytes_used, priv->frame_buffer_len, have_picture);
+    if(!have_picture)
       bgav_dprintf("\n");
     else
       {
@@ -488,6 +502,8 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   ffmpeg_video_priv * priv;
 
+  //  av_log_set_level(AV_LOG_DEBUG);
+  
   if((s->action == BGAV_STREAM_PARSE) &&
      (s->demuxer->index_mode != INDEX_MODE_MPEG) &&
      (s->index_mode != INDEX_MODE_MPEG))
@@ -516,6 +532,7 @@ static int init_ffmpeg(bgav_stream_t * s)
 
   /* Setting codec tag with Nuppelvideo crashes */
   //  if(s->fourcc != BGAV_MK_FOURCC('R', 'J', 'P', 'G'))
+#if 1
     {
     priv->ctx->codec_tag   =
       ((s->fourcc & 0x000000ff) << 24) |
@@ -523,7 +540,7 @@ static int init_ffmpeg(bgav_stream_t * s)
       ((s->fourcc & 0x00ff0000) >> 8) |
       ((s->fourcc & 0xff000000) >> 24);
     }
-  
+#endif
   priv->ctx->codec_id = codec->id;
     
   /*
@@ -532,11 +549,14 @@ static int init_ffmpeg(bgav_stream_t * s)
    *  we need an AVParser
    */
   priv->ctx->flags &= ~CODEC_FLAG_TRUNCATED;
+  priv->ctx->flags |=  CODEC_FLAG_BITEXACT;
+
+  /* Set get_buffer and release_buffer */
   
   if(codec->capabilities & CODEC_CAP_DELAY)
     {
     priv->flags |= HAS_DELAY;
-
+#if 1
     if(!(s->flags & STREAM_WRONG_B_TIMESTAMPS))
       {
       priv->ctx->get_buffer = my_get_buffer;
@@ -544,10 +564,8 @@ static int init_ffmpeg(bgav_stream_t * s)
       priv->ctx->opaque = s;
       priv->flags |= HAS_GET_BUFFER;
       }
+#endif
     }
-  
-  /* Set get_buffer and release_buffer */
-
   
   if(s->ext_data)
     {
@@ -581,8 +599,6 @@ static int init_ffmpeg(bgav_stream_t * s)
     priv->ctx->palctrl = &(priv->palette);
   
   //  bgav_hexdump(s->ext_data, s->ext_size, 16);
-
-
   
   priv->frame = avcodec_alloc_frame();
   priv->gavl_frame = gavl_video_frame_create(NULL);

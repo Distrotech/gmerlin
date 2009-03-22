@@ -715,7 +715,11 @@ static int flush_stream(bgav_stream_t * s,
     
     if(sp->process)
       {
-      sp->process(s, &p->h, p->buf, p->len);
+      if(!sp->process(s, &p->h, p->buf, p->len))
+        {
+        bgav_rtp_packet_buffer_unlock_read(buf);
+        return 0;
+        }
       (*processed)++;
       }
     bgav_rtp_packet_buffer_unlock_read(buf);
@@ -1603,22 +1607,91 @@ static int init_h263_1998(bgav_stream_t * s)
 
 #ifdef HAVE_OGG
 
+static void start_packet_ogg(bgav_stream_t * s, int64_t pts)
+  {
+  s->packet = bgav_stream_get_packet_write(s);
+  
+  bgav_packet_alloc(s->packet, sizeof(ogg_packet));
+  memset(s->packet->data, 0, sizeof(ogg_packet));
+  s->packet->data_size = sizeof(ogg_packet);
+  s->packet->pts = pts;
+  }
+
+static void append_packet_ogg(bgav_stream_t * s, uint8_t * data, int len)
+  {
+  ogg_packet * op;
+  bgav_packet_alloc(s->packet, s->packet->data_size + len);
+  op = (ogg_packet *)s->packet->data;
+  op->packet = s->packet->data + sizeof(*op);
+  op->bytes += len;
+  memcpy(s->packet->data + s->packet->data_size, data, len);
+  s->packet->data_size += len;
+  }
+
+static void end_packet_ogg(bgav_stream_t * s)
+  {
+  //  fprintf(stderr, "Done packet %d bytes\n", s->packet->data_size);
+  bgav_packet_done_write(s->packet);
+  s->packet = (bgav_packet_t*)0;
+  }
+
 static int process_ogg(bgav_stream_t * s,
                        rtp_header_t * h, uint8_t * data, int len)
   {
   uint32_t header;
+  int size, i;
+  ogg_packet op;
+  int fragment_type, data_type, num_packets, ident;
   rtp_stream_priv_t * sp = s->priv;
+  
   header = BGAV_PTR_2_32BE(data);
   data += 4;
   len -= 4;
 
+  ident = header >> 8;
+  fragment_type = (header & 0xff) >> 6;
+  data_type = (header & 0x30) >> 4;
+  num_packets = (header & 0x0f);
+
+  if(data_type != 0)
+    return 1;
+
+  switch(fragment_type)
+    {
+    case 0: // Not fragmented
+      for(i = 0; i < num_packets; i++)
+        {
+        size = BGAV_PTR_2_16BE(data); data += 2;
+        start_packet_ogg(s, !i ? h->timestamp : BGAV_TIMESTAMP_UNDEFINED);
+        append_packet_ogg(s, data, size);
+        end_packet_ogg(s);
+        data += size;
+        }
+      break;
+    case 1: // Start fragment
+      size = BGAV_PTR_2_16BE(data); data += 2;
+      start_packet_ogg(s, h->timestamp);
+      append_packet_ogg(s, data, size);
+      break;
+    case 2: // Continuation fragment
+      size = BGAV_PTR_2_16BE(data); data += 2;
+      append_packet_ogg(s, data, size);
+      break;
+    case 3: // End fragment
+      size = BGAV_PTR_2_16BE(data); data += 2;
+      append_packet_ogg(s, data, size);
+      end_packet_ogg(s);
+      break;
+    }
+  
+#if 0
   fprintf(stderr, "Ident: %d, fragment_type: %d, data_type: %d, packets: %d\n",
           header >> 8,
           (header & 0xff) >> 6,
           (header & 0x30) >> 4,
           (header & 0x0f));
-  
-  return 0;
+#endif
+  return 1;
   }
 
 static int get_v_ogg(uint8_t * data1, int * ret)
@@ -1702,6 +1775,7 @@ static int extract_extradata_ogg(bgav_stream_t * s, uint8_t * data, int siz)
     pos+= sizeof(op);
     memcpy(pos, data, sizes[i]);
     data += sizes[i];
+    pos += sizes[i];
     }
   
   return 1;
@@ -1737,6 +1811,13 @@ static int init_ogg(bgav_stream_t * s)
     return 0;
     }
   free(config_buffer);
+
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    s->data.video.format.timescale = s->timescale;
+    s->data.video.format.frame_duration = 0;
+    s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+    }
   
   sp->process = process_ogg;
   return 1;
