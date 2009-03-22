@@ -1653,6 +1653,9 @@ static int process_ogg(bgav_stream_t * s,
   data_type = (header & 0x30) >> 4;
   num_packets = (header & 0x0f);
 
+  if(sp->priv.xiph.ident != ident)
+    return 0;
+  
   if(data_type != 0)
     return 1;
 
@@ -1726,34 +1729,34 @@ static int extract_extradata_ogg(bgav_stream_t * s, uint8_t * data, int siz)
   
   count_total = BGAV_PTR_2_32BE(data); data += 4;
 
-  fprintf(stderr, "Extract extradata: %d\n", siz);
+  //  fprintf(stderr, "Extract extradata: %d\n", siz);
     
   /* TODO: handle count > 1 */
   if(count_total != 1)
     {
-    fprintf(stderr, "Only exactly one configuration supported\n");
+    //    fprintf(stderr, "Only exactly one configuration supported\n");
     return 0;
     }
 
   sp->priv.xiph.ident  = BGAV_PTR_2_24BE(data); data += 3;
   len = BGAV_PTR_2_16BE(data); data += 2;
 
-  fprintf(stderr, "ID: %d, len: %d\n",
-          sp->priv.xiph.ident, len);
+  //  fprintf(stderr, "ID: %d, len: %d\n",
+  //          sp->priv.xiph.ident, len);
 
   data += get_v_ogg(data, &count);
-  fprintf(stderr, "count: %d\n", count);
+  //  fprintf(stderr, "count: %d\n", count);
 
   if(count != 2)
     {
-    fprintf(stderr, "need 3 header packets\n");
+    //    fprintf(stderr, "need 3 header packets\n");
     return 0;
     }
   
   for(i = 0; i < count; i++)
     {
     data += get_v_ogg(data, &sizes[i]);
-    fprintf(stderr, "val: %d\n", sizes[i]);
+    //    fprintf(stderr, "val: %d\n", sizes[i]);
     }
   sizes[2] = (end - data) - (sizes[0] + sizes[1]);
   
@@ -1765,7 +1768,7 @@ static int extract_extradata_ogg(bgav_stream_t * s, uint8_t * data, int siz)
   
   for(i = 0; i < 3; i++)
     {
-    bgav_hexdump(data, 16, 16);
+    //    bgav_hexdump(data, 16, 16);
     memset(&op, 0, sizeof(op));
     if(!i)
       op.b_o_s = 1;
