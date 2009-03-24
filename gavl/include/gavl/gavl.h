@@ -1949,15 +1949,7 @@ int gavl_video_formats_equal(const gavl_video_format_t * format_1,
 void gavl_video_format_get_chroma_offset(const gavl_video_format_t * format, int field, int plane,
                                          float * off_x, float * off_y);
   
-
-  
-/*! 
-  \ingroup video_format
-  \brief Dump a video format to stderr
-  \param format A video format
- */
-  
-void gavl_video_format_dump(const gavl_video_format_t * format);
+ 
 
 /*! 
   \ingroup video_format
@@ -1973,6 +1965,24 @@ void gavl_video_format_dump(const gavl_video_format_t * format);
   
 void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
                                      const gavl_video_format_t * src);
+
+/*! 
+  \ingroup video_format
+  \brief Get the unpadded image size
+  \param format A video format
+  \return The image size in bytes of an unpadded frame
+ */
+  
+int gavl_video_format_get_image_size(const gavl_video_format_t * format);
+
+  
+/*! 
+  \ingroup video_format
+  \brief Dump a video format to stderr
+  \param format A video format
+ */
+  
+void gavl_video_format_dump(const gavl_video_format_t * format);
 
   
 /** \defgroup video_frame Video frames

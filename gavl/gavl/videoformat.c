@@ -231,3 +231,32 @@ int gavl_video_formats_equal(const gavl_video_format_t * format_1,
   {
   return !memcmp(format_1, format_2, sizeof(*format_1));
   }
+
+int gavl_video_format_get_image_size(const gavl_video_format_t * format)
+  {
+  int i;
+  int bytes_per_line;
+  int sub_h, sub_v;
+  int ret = 0, height;
+  
+  int num_planes = gavl_pixelformat_num_planes(format->pixelformat);
+  bytes_per_line = gavl_pixelformat_is_planar(format->pixelformat) ?
+    format->frame_width * gavl_pixelformat_bytes_per_component(format->pixelformat) :
+    format->frame_width * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
+  
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+
+  height = format->frame_height;
+  
+  for(i = 0; i < num_planes; i++)
+    {
+    ret += bytes_per_line * height;
+
+    if(!i)
+      {
+      bytes_per_line /= sub_h;
+      height /= sub_v;
+      }
+    }
+  return ret;
+  }
