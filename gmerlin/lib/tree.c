@@ -1019,6 +1019,7 @@ int bg_media_tree_previous(bg_media_tree_t * tree, int wrap, bg_shuffle_mode_t s
   return 0;
   }
 
+#if 0
 static int get_open_tracks(bg_album_t * albums)
   {
   int ret = 0;
@@ -1066,6 +1067,7 @@ static int set_open_track(bg_album_t * albums, int index)
     }
   return 0;
   }
+#endif
 
 void bg_shuffle_list_destroy(bg_shuffle_list_t * l)
   {

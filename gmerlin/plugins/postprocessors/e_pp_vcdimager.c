@@ -222,7 +222,7 @@ static void parse_output_line(vcdimager_t * vcdimager, char * line)
     if(!(end = strstr(start, "</log>")))
       return;
     *end = '\0';
-    bg_log(log_level, LOG_DOMAIN, start);
+    bg_log(log_level, LOG_DOMAIN, "%s", start);
     }
   else if(!strncmp(line, "<progress ", 10))
     {

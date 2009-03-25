@@ -387,6 +387,10 @@ static int get_pixelformat(int fd, uint32_t * ret)
             (desc.pixelformat >> 16) & 0xff,
             (desc.pixelformat >> 24) & 0xff);
 #endif
+
+    /* Return first pixelformat even if we don't support that */
+    if(!desc.index)
+      *ret = desc.pixelformat;
     
     if(pixelformat_v4l2_2_gavl(desc.pixelformat) != GAVL_PIXELFORMAT_NONE)
       {
@@ -416,7 +420,6 @@ static int open_v4l(void * priv,
   gavl_timer_start(v4l->timer);
   /* Open device */
   v4l->fd = open(v4l->device, O_RDWR /* required */ | O_NONBLOCK, 0);
-
   
   if(v4l->fd < 0)
     {

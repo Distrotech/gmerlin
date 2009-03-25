@@ -67,3 +67,9 @@ void gmerlin_webcam_destroy(gmerlin_webcam_t *);
 const bg_parameter_info_t * gmerlin_webcam_get_filter_parameters(gmerlin_webcam_t *);
 void gmerlin_webcam_set_filter_parameter(void * data, const char * name,
                                          const bg_parameter_value_t * val);
+
+#ifdef HAVE_V4L
+const bg_parameter_info_t * gmerlin_webcam_get_vloopback_parameters(gmerlin_webcam_t *);
+void gmerlin_webcam_set_vloopback_parameter(void * data, const char * name,
+                                            const bg_parameter_value_t * val);
+#endif

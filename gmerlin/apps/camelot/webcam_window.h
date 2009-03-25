@@ -32,7 +32,7 @@ void
 gmerlin_webcam_window_show(gmerlin_webcam_window_t * w);
 
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 gmerlin_webcam_window_get_parameters(gmerlin_webcam_window_t * w);
 
 int

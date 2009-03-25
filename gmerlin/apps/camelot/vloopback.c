@@ -18,6 +18,10 @@
 #include <gavl/gavl.h>
 #include <linux/videodev.h>
 
+#include <gmerlin/translation.h>
+#include <gmerlin/utils.h>
+
+#include <gmerlin/parameter.h>
 #include "vloopback.h"
 
 #include <gmerlin/log.h>
@@ -38,8 +42,16 @@
 
 #define DUMP_IOCTLS
 
+#define MODE_WRITE 0
+#define MODE_IOCTL 1
+
+static void put_frame_ioctl(bg_vloopback_t * v, gavl_video_frame_t * frame);
+static void put_frame_write(bg_vloopback_t * v, gavl_video_frame_t * frame);
+
+
 struct bg_vloopback_s
   {
+  int mode;
   int fd;
   gavl_video_converter_t * cnv;
   uint8_t * mmap;
@@ -47,6 +59,14 @@ struct bg_vloopback_s
 
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
+
+  /* write() */
+  gavl_video_format_t write_format;
+  int write_width;
+  int write_height;
+  int write_size_custom;
+  gavl_video_frame_t * write_frame;
+  int write_bytes;
   
   int out_palette;
   
@@ -59,9 +79,15 @@ struct bg_vloopback_s
   int grab_frame;
   
   int format_changed;
-  gavl_video_frame_t * frames[NUM_FRAMES];
+  gavl_video_frame_t * mmap_frames[NUM_FRAMES];
 
   int do_convert;
+
+  char * device;
+
+  int changed;
+
+  void (*put_frame)(bg_vloopback_t * v, gavl_video_frame_t * frame);
   };
 
 
@@ -174,24 +200,28 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
       return 0;
       }
     case VIDIOCCAPTURE:
+      {
+      int * start = arg;
 #ifdef DUMP_IOCTLS
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCCAPTURE");
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCCAPTURE %d", *start);
 #endif
       return 0;
-      
+      }
     case VIDIOCGPICT:
       {
       struct video_picture *vidpic = arg;
-#ifdef DUMP_IOCTLS
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGPICT");
-#endif
       vidpic->colour = 0xffff;
       vidpic->hue = 0xffff;
       vidpic->brightness = 0xffff;
       vidpic->contrast = 0xffff;
       vidpic->whiteness = 0xffff;
-      vidpic->depth = v->out_depth;
+      //      vidpic->depth = v->out_depth;
+      vidpic->depth = 12;
       vidpic->palette = v->out_palette;
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGPICT %d %d",
+             vidpic->depth, vidpic->palette);
+#endif
       return 0;
       }
     case VIDIOCSPICT:
@@ -220,9 +250,6 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
     case VIDIOCGWIN:
       {
       struct video_window *vidwin = arg;
-#ifdef DUMP_IOCTLS
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGWIN");
-#endif
       vidwin->x = 0;
       vidwin->y = 0;
       vidwin->width = v->output_format.image_width;
@@ -231,6 +258,9 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
       vidwin->flags = 655360;
       //      vidwin->flags = 0;
       vidwin->clipcount = 0;
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGWIN %dx%d", vidwin->width, vidwin->height);
+#endif
       return 0;
       }
       
@@ -287,16 +317,20 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
         {
         if(vidmmap->width > MAX_WIDTH || vidmmap->height > MAX_HEIGHT)
           {
-          bg_log(BG_LOG_WARNING, LOG_DOMAIN, "requested capture size is too big: %dx%d",
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN, "VIDIOCMCAPTURE: requested capture size is too big: %dx%d",
                  vidmmap->width, vidmmap->height);
           return EINVAL;
           }
         if(vidmmap->width < MIN_WIDTH || vidmmap->height < MIN_HEIGHT)
           {
-          bg_log(BG_LOG_WARNING, LOG_DOMAIN, "requested capture size is too small: %dx%d",
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN, "VIDIOCMCAPTURE: requested capture size is too small: %dx%d",
                  vidmmap->width, vidmmap->height);
           return EINVAL;
           }
+#ifdef DUMP_IOCTLS
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCMCAPTURE %dx%d, format: %d",
+               vidmmap->width, vidmmap->height, vidmmap->format);
+#endif
         v->output_format.image_width = vidmmap->width;
         v->output_format.image_height = vidmmap->height;
         v->format_changed = 1;
@@ -361,8 +395,8 @@ static void init(bg_vloopback_t * v)
 
   for(i = 0; i < NUM_FRAMES; i++)
     {
-    v->frames[i]->strides[0] = 0;
-    gavl_video_frame_set_planes(v->frames[i],
+    v->mmap_frames[i]->strides[0] = 0;
+    gavl_video_frame_set_planes(v->mmap_frames[i],
                                 &v->output_format, v->mmap + i * MAX_FRAMESIZE);
     }
   
@@ -397,7 +431,7 @@ bg_vloopback_t * bg_vloopback_create()
   ret->fd = -1;
   for(i = 0; i < NUM_FRAMES; i++)
     {
-    ret->frames[i] = gavl_video_frame_create(NULL);
+    ret->mmap_frames[i] = gavl_video_frame_create(NULL);
     }
   ret->cnv = gavl_video_converter_create();
   
@@ -417,42 +451,138 @@ void bg_vloopback_destroy(bg_vloopback_t * v)
 
   for(i = 0; i < NUM_FRAMES; i++)
     {
-    gavl_video_frame_null(v->frames[i]);
-    gavl_video_frame_destroy(v->frames[i]);
+    gavl_video_frame_null(v->mmap_frames[i]);
+    gavl_video_frame_destroy(v->mmap_frames[i]);
     }
   free(v);
   }
 
-int bg_vloopback_open(bg_vloopback_t * v, const char * device)
+int bg_vloopback_open(bg_vloopback_t * v)
   {
+  struct video_capability vid_caps;
+  struct video_window vid_win;
+  struct video_picture vid_pic;
   
-  v->fd = open(device, O_RDWR);
+  fprintf(stderr, "vloopback open\n");
+  v->fd = open(v->device, O_RDWR);
 
   if(v->fd < 0)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "vloopback open failed: %s",
-           strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening %s failed: %s",
+           v->device, strerror(errno));
     return 0;
     }
-  v->mmap_len = MAX_FRAMESIZE * NUM_FRAMES;
-  
-  v->mmap = mmap((void*)0, v->mmap_len, PROT_READ | PROT_WRITE /* required */,
-                 MAP_SHARED /* recommended */, v->fd, 0);
-  
-  if(MAP_FAILED == v->mmap)
+
+  if(v->write_frame)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "vloopback mmap failed: %s",
-           strerror(errno));
-    return 0;
+    gavl_video_frame_destroy(v->write_frame);
+    v->write_frame = NULL;
     }
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Opened vloopback");
+  
+  if(v->mode == MODE_WRITE)
+    {
+    int depth;
+    if(v->write_size_custom)
+      {
+      v->write_format.image_width = v->write_width;
+      v->write_format.image_height = v->write_height;
+      }
+    v->write_format.frame_width  = v->write_format.image_width;
+    v->write_format.frame_height = v->write_format.image_height;
+
+    v->write_format.pixel_width  = 1;
+    v->write_format.pixel_height = 1;
+
+    v->format_changed = 1;
+    
+    gavl_video_format_copy(&v->output_format, 
+                           &v->write_format);
+    
+    v->write_frame = gavl_video_frame_create(&v->write_format);
+
+    v->write_bytes = gavl_video_format_get_image_size(&v->write_format);
+
+    fprintf(stderr, "Write format %d bytes:\n", v->write_bytes);
+    gavl_video_format_dump(&v->write_format);
+    
+    
+    /* The following is from the vloopback example code */
+    if (ioctl(v->fd, VIDIOCGCAP, &vid_caps) == -1)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCGCAP failed %s",strerror(errno));
+      return 0;
+      }
+  
+    if (ioctl(v->fd, VIDIOCGPICT, &vid_pic) == -1)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCGPICT failed: %s",strerror(errno));
+      return 0;
+      }
+
+    vid_pic.palette = get_v4l_pixelformat(v->write_format.pixelformat,
+                                          &depth);
+    vid_pic.depth = depth;
+    
+    if (ioctl(v->fd, VIDIOCSPICT, &vid_pic) == -1)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCSPICT failed: %s",strerror(errno));
+      return 0;
+      }
+  
+    if (ioctl(v->fd, VIDIOCGWIN, &vid_win) == -1)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "ioctl VIDIOCGWIN failed");
+      return 0;
+      }
+
+    vid_win.width  = v->write_format.image_width;
+    vid_win.height = v->write_format.image_height;
+  
+    if (ioctl(v->fd, VIDIOCSWIN, &vid_win) == -1)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "ioctl VIDIOCSWIN failed");
+      return (1);
+      } 
+
+    v->put_frame = put_frame_write;
+
+    v->output_open = 1;
+    
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Opened vloopback in write mode");
+    }
+  else
+    {
+    v->mmap_len = MAX_FRAMESIZE * NUM_FRAMES;
+  
+    v->mmap = mmap((void*)0, v->mmap_len, PROT_READ | PROT_WRITE /* required */,
+                   MAP_SHARED /* recommended */, v->fd, 0);
+  
+    if(MAP_FAILED == v->mmap)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "vloopback mmap failed: %s",
+             strerror(errno));
+      return 0;
+      }
+
+    v->put_frame = put_frame_ioctl;
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Opened vloopback in ioctl mode");
+    }
+
+  v->changed = 0;
+  
+  /* */
+  
   return 1;
   }
 
 void bg_vloopback_close(bg_vloopback_t * v)
   {
-  munmap(v->mmap, v->mmap_len);
-  
+  if(v->mmap)
+    {
+    munmap(v->mmap, v->mmap_len);
+    v->mmap = NULL;
+    }
   close(v->fd);
   v->fd = -1;
   v->output_open = 0;
@@ -462,23 +592,26 @@ void bg_vloopback_close(bg_vloopback_t * v)
 
 void bg_vloopback_set_format(bg_vloopback_t * v, const gavl_video_format_t * format)
   {
+  fprintf(stderr, "vloopback set format\n");
   gavl_video_format_copy(&v->input_format, format);
   if(!v->output_open)
     {
     gavl_video_format_copy(&v->output_format, format);
-    v->out_palette = get_v4l_pixelformat(v->output_format.pixelformat, &v->out_depth);
-
+    v->out_palette =
+      get_v4l_pixelformat(v->output_format.pixelformat, &v->out_depth);
+    
     if(v->out_palette == -1)
       {
       /* Works for sure */
       v->out_palette = VIDEO_PALETTE_YUV420P;
       v->output_format.pixelformat = get_v4l_pixelformat(v->out_palette, &v->out_depth);
       }
+    
     }
   v->format_changed = 1;
   }
 
-void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
+static void put_frame_ioctl(bg_vloopback_t * v, gavl_video_frame_t * frame)
   {
   struct pollfd pfd;
   uint8_t buffer[MAXIOCTL];
@@ -523,7 +656,7 @@ void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
       memset(arg, 0xff, MAXIOCTL-sizeof(unsigned long int));
       ioctl(v->fd, VIDIOCSINVALID);
       }
-    if(ioctl(v->fd, ioctl_nr, arg))
+    else if(ioctl(v->fd, ioctl_nr, arg))
       {
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, "ioctl %lx unsuccessfull.", ioctl_nr);
       fprintf(stderr, "vloopback: ioctl %lx unsuccessfull.\n", ioctl_nr);
@@ -537,9 +670,9 @@ void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
         }
 
       if(v->do_convert)
-        gavl_video_convert(v->cnv, frame, v->frames[v->grab_frame]);
+        gavl_video_convert(v->cnv, frame, v->mmap_frames[v->grab_frame]);
       else
-        gavl_video_frame_copy(&v->output_format, v->frames[v->grab_frame], frame);
+        gavl_video_frame_copy(&v->output_format, v->mmap_frames[v->grab_frame], frame);
       
       v->do_grab = 0;
       }
@@ -547,3 +680,212 @@ void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
   
   }
 
+static void put_frame_write(bg_vloopback_t * v, gavl_video_frame_t * frame)
+  {
+  if(v->format_changed)
+    {
+    init(v);
+    v->format_changed = 0;
+    }
+  
+  if(v->do_convert)
+    gavl_video_convert(v->cnv, frame, v->write_frame);
+  else
+    gavl_video_frame_copy(&v->write_format, v->write_frame, frame);
+  write(v->fd, v->write_frame->planes[0], v->write_bytes);
+  }
+
+void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
+  {
+  v->put_frame(v, frame);
+  }
+
+static const bg_parameter_info_t parameters[] =
+  {
+    {
+      .name        = "device",
+      .long_name   = TRS("Device"),
+      .type        = BG_PARAMETER_FILE,
+      .val_default = { .val_str = "/dev/video1" },
+    },
+    {
+      .name         = "mode",
+      .long_name    = TRS("Mode"),
+      .type         = BG_PARAMETER_STRINGLIST,
+      .val_default  = { .val_str = "ioctl" },
+      .multi_names  = (char const *[]){ "write", "ioctl", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Write"), TRS("ioctl"),  (char*)0 },
+      .help_string = TRS("Set the operating mode. Ioctl is more flexible on the clients side but doesn't work with all applications. Write works with more applications but has a larger overhead"),
+      
+    },
+    {
+      .name =      "resolution",
+      .long_name = TRS("Resolution"),
+      .type =      BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "QVGA (320x240)" },
+      .multi_names =     (char const *[]){ "QSIF (160x112)",
+                              "QCIF (176x144)", 
+                              "QVGA (320x240)", 
+                              "SIF(352x240)", 
+                              "CIF (352x288)", 
+                              "VGA (640x480)", 
+                              "User defined",
+                              (char*)0 },
+      .multi_labels =     (char const *[]){ TRS("QSIF (160x112)"),
+                                   TRS("QCIF (176x144)"), 
+                                   TRS("QVGA (320x240)"), 
+                                   TRS("SIF(352x240)"), 
+                                   TRS("CIF (352x288)"), 
+                                   TRS("VGA (640x480)"), 
+                                   TRS("User defined"),
+                                   (char*)0 },
+      .help_string = TRS("Fixed resolution for write mode"),
+    },
+    {
+      .name =        "user_width",
+      .long_name =   TRS("User defined width"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 720 },
+      .val_min =     { .val_i = 160 },
+      .val_max =     { .val_i = 1024 },
+      .help_string = TRS("User defined width for write mode"),
+    },
+    {
+      .name =        "user_height",
+      .long_name =   TRS("User defined height"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 576 },
+      .val_min =     { .val_i = 112 },
+      .val_max =     { .val_i = 768 },
+      .help_string = TRS("User defined height for write mode"),
+    },
+    {
+      .name =      "pixelformat",
+      .long_name = TRS("Pixelformat"),
+      .type =      BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "yuv420p" },
+      .multi_names =     (char const *[]){ "yuv420p", "rgb24",
+                                           (char*)0 },
+      .multi_labels =     (char const *[]){ TRS("Y'CbCr 4:2:0"),
+                                            TRS("RGB (24 bit)"), 
+                                            (char*)0 },
+      .help_string = TRS("Pixelformat for write mode"),
+      
+    },
+    { /* End of parameters */ }
+  };
+
+const bg_parameter_info_t * bg_vloopback_get_parameters(bg_vloopback_t * v)
+  {
+  return parameters;
+  }
+
+void bg_vloopback_set_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * val)
+  {
+  bg_vloopback_t * v = data;
+
+  fprintf(stderr, "vloopback_set_parameter %s\n", name); 
+
+  if(!name)
+    return;
+  else if(!strcmp(name, "device"))
+    {
+    if(!v->device || strcmp(val->val_str, v->device))
+      {
+      v->device = bg_strdup(v->device, val->val_str);
+      v->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "mode"))
+    {
+    int new_mode;
+    if(!strcmp(val->val_str, "write"))
+      new_mode = MODE_WRITE;
+    else
+      new_mode = MODE_IOCTL;
+    if(v->mode != new_mode)
+      {
+      v->mode = new_mode;
+      v->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "resolution"))
+    {
+    int width = 0, height = 0, custom = 0;
+    
+    if(!strcmp(val->val_str, "QSIF (160x112)"))
+      {
+      width  = 160;
+      height = 112;
+      }
+    else if(!strcmp(val->val_str, "QCIF (176x144)"))
+      {
+      width  = 176;
+      height = 144;
+      }
+    else if(!strcmp(val->val_str, "QVGA (320x240)"))
+      {
+      width  = 320;
+      height = 240;
+      }
+    else if(!strcmp(val->val_str, "SIF(352x240)"))
+      {
+      width  = 352;
+      height = 240;
+      }
+    else if(!strcmp(val->val_str, "CIF (352x288)"))
+      {
+      width  = 352;
+      height = 288;
+      }
+    else if(!strcmp(val->val_str, "VGA (640x480)"))
+      {
+      width  = 640;
+      height = 480;
+      }
+    else if(!strcmp(val->val_str, "User defined"))
+      {
+      custom = 1;
+      width = v->write_format.image_width;
+      height = v->write_format.image_height;
+      }
+    if((v->write_size_custom != custom) ||
+       (v->write_format.image_width != width) ||
+       (v->write_format.image_height != height))
+      {
+      v->write_size_custom = custom;
+      v->write_format.image_width = width;
+      v->write_format.image_height = height;
+      v->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "user_width"))
+    {
+    if(v->write_width != val->val_i)
+      {
+      v->write_width = val->val_i;
+      v->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "user_height"))
+    {
+    if(v->write_height != val->val_i)
+      {
+      v->write_height = val->val_i;
+      v->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "pixelformat"))
+    {
+    if(!strcmp(val->val_str, "yuv420p"))
+      v->write_format.pixelformat = GAVL_YUV_420_P;
+    else
+      v->write_format.pixelformat = GAVL_RGB_24;
+    }
+  }
+
+int bg_vloopback_changed(bg_vloopback_t * v)
+  {
+  return v->changed;
+  }

@@ -114,6 +114,7 @@ struct gmerlin_webcam_s
 #ifdef HAVE_V4L
   bg_vloopback_t * vloopback;
   int do_vloopback;
+  pthread_mutex_t vloopback_mutex;
 #endif  
   };
 
@@ -161,7 +162,8 @@ gmerlin_webcam_t * gmerlin_webcam_create(bg_plugin_registry_t * plugin_reg)
 
 #ifdef HAVE_V4L
   ret->vloopback = bg_vloopback_create();
-#endif  
+  pthread_mutex_init(&(ret->vloopback_mutex),(pthread_mutexattr_t *)0);
+#endif
   
   return ret;
   }
@@ -205,9 +207,11 @@ void gmerlin_webcam_destroy(gmerlin_webcam_t * w)
     gavl_video_converter_destroy(w->monitor_cnv);
   
   gavl_timer_destroy(w->timer);
+  pthread_mutex_destroy(&w->mutex);
   
 #ifdef HAVE_V4L
   bg_vloopback_destroy(w->vloopback);
+  pthread_mutex_destroy(&w->vloopback_mutex);
 #endif  
   
   free(w);
@@ -485,7 +489,6 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
   bg_plugin_handle_t * h;
   int arg_i;
   float arg_f;
-  char * arg_str;
   
   switch(bg_msg_get_id(msg))
     {
@@ -586,11 +589,10 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
 #ifdef HAVE_V4L
     case CMD_SET_VLOOPBACK:
       arg_i = bg_msg_get_arg_int(msg, 0);
-      arg_str = bg_msg_get_arg_string(msg, 1);
       cam->do_vloopback = 0;
       if(arg_i)
         {
-        if(bg_vloopback_open(cam->vloopback, arg_str))
+        if(bg_vloopback_open(cam->vloopback))
           cam->do_vloopback = 1;
         }
       else
@@ -649,9 +651,10 @@ static void * thread_func(void * data)
         w->next_capture_time += w->capture_interval;
         }
 #ifdef HAVE_V4L
+      pthread_mutex_lock(&w->vloopback_mutex);
       if(w->do_vloopback)
         bg_vloopback_put_frame(w->vloopback, w->input_frame);
-      
+      pthread_mutex_unlock(&w->vloopback_mutex);
 #endif      
       /* Caculate framerate */
       
@@ -761,3 +764,32 @@ void gmerlin_webcam_set_filter_parameter(void * data, const char * name,
     //    fprintf(stderr, "Restarting\n");
     }
   }
+
+#ifdef HAVE_V4L
+const bg_parameter_info_t *
+gmerlin_webcam_get_vloopback_parameters(gmerlin_webcam_t * w)
+  {
+  return bg_vloopback_get_parameters(w->vloopback);
+  }
+
+void gmerlin_webcam_set_vloopback_parameter(void * data, const char * name,
+                                            const bg_parameter_value_t * val)
+  {
+  gmerlin_webcam_t * w = data;
+  pthread_mutex_lock(&w->vloopback_mutex);
+  bg_vloopback_set_parameter(w->vloopback, name, val);
+
+  if(bg_vloopback_changed(w->vloopback) && w->do_vloopback)
+    {
+    bg_vloopback_close(w->vloopback);
+    if(!bg_vloopback_open(w->vloopback))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Restarting vloopback failed, close client and try again");
+      w->do_vloopback = 0;
+      }
+    }
+
+  pthread_mutex_unlock(&w->vloopback_mutex);
+  }
+#endif

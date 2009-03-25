@@ -178,12 +178,12 @@ int bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
 
     if(!strncmp(line, "ERROR", 5))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, line);	   
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s", line);	   
       //      break;
       }
     else if(!strncmp(line, "WARNING", 7))
       {
-      bg_log(BG_LOG_WARNING, LOG_DOMAIN, line);	   
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "%s", line);	   
       //      break;
       }
     else if(!strncmp(line, "Writing", 7))
@@ -191,7 +191,7 @@ int bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
       if(c->callbacks && c->callbacks->action_callback)
         c->callbacks->action_callback(c->callbacks->data,
                                       line);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "%s", line);
 
       if(c->callbacks && c->callbacks->progress_callback)
         {
@@ -206,10 +206,10 @@ int bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
         c->callbacks->progress_callback(c->callbacks->data,
                                         (float)mb_written/(float)mb_total);
       else
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "%s", line);
       }
     else
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "%s", line);
     }
   bg_subprocess_close(cdrdao);
 

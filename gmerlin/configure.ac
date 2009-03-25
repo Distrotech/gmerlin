@@ -392,6 +392,35 @@ AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
 AC_SUBST(LQT_REQUIRED)
 
 dnl
+dnl libv4lconvert
+dnl
+
+AH_TEMPLATE([HAVE_V4LCONVERT],
+            [Do we have libv4lconvert installed?])
+
+V4LCONVERT_REQUIRED="0.5.7"
+have_v4lconvert=false
+
+AC_ARG_ENABLE(lqt,
+              AC_HELP_STRING(--disable-v4lconvert, [Disable libv4lconvert support (default: autodetect)]),
+              [case "${enableval}" in
+                 yes) test_v4lconvert=true ;;
+                 no) test_v4lconvert=false ;;
+               esac],
+	       test_v4lconvert=true)
+
+if test x$test_v4lconvert = "xtrue"; then
+PKG_CHECK_MODULES(V4LCONVERT, libv4lconvert >= $V4LCONVERT_REQUIRED, have_v4lconvert=true, have_v4lconvert=false)
+fi
+
+AM_CONDITIONAL(HAVE_V4LVCONVERT, test x$have_v4lconvert = xtrue)
+AC_SUBST(V4LCONVERT_REQUIRED)
+
+if test x$have_v4lconvert = xtrue; then
+AC_DEFINE(HAVE_V4LCONVERT)
+fi
+
+dnl
 dnl Libvisual
 dnl
 
@@ -1137,6 +1166,17 @@ echo "Yes (CFLAGS=$CDDB_CFLAGS LIBS=$CDDB_LIBS)"
 else
 if test "x$test_cddb" = "xtrue"; then
 echo "Missing (Go to http://libcddb.sourceforge.net)"
+else
+echo "Disabled"
+fi
+fi
+
+echo -n "libv4lconvert:       "
+if test "x$have_v4lconvert" = "xtrue"; then
+echo "Yes (CFLAGS=$V4LCONVERT_CFLAGS LIBS=$V4LCONVERT_LIBS)"
+else
+if test "x$test_v4lconvert" = "xtrue"; then
+echo "Missing (Go to http://people.atrpms.net/~hdegoede/)"
 else
 echo "Disabled"
 fi
