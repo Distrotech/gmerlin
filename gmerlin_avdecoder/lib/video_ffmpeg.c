@@ -52,8 +52,8 @@
    This seems always be true for H.264.
 */
 
-#define DUMP_DECODE
-#define DUMP_EXTRADATA
+// #define DUMP_DECODE
+// #define DUMP_EXTRADATA
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
