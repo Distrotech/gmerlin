@@ -160,7 +160,7 @@ static int write_image_bmp(void * priv, gavl_video_frame_t * frame)
   uint8_t *frame_ptr;
   uint8_t *frame_ptr_start;
   int i, skip;
-  uint8_t zero = 0x00;
+  uint8_t zero[3] = { 0x00, 0x00, 0x00 };
 
   /* write image data */
   frame_ptr_start = frame->planes[0] + (bmp->height - 1) * frame->strides[0];
@@ -176,8 +176,8 @@ static int write_image_bmp(void * priv, gavl_video_frame_t * frame)
     {
     frame_ptr = frame_ptr_start ;
     fwrite(frame_ptr, 3, bmp->width, bmp->bmp_file);
-    for(i = 0; i < skip; i++)
-      fwrite(&zero, 1, 1, bmp->bmp_file);
+    if(skip)
+      fwrite(zero, 1, skip, bmp->bmp_file);
     frame_ptr_start -= frame->strides[0];
     }
 
