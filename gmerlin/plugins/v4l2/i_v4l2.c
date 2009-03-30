@@ -51,6 +51,10 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "i_v4l2"
 
+#ifdef HAVE_V4LCONVERT
+#include "convert.h"
+#endif
+
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 /* Input module */
@@ -87,12 +91,14 @@ typedef struct
   int width;
   int height;
   
-  int sub_h, sub_v, num_planes;
   struct v4l2_format fmt;
 
   struct v4l2_queryctrl * controls;
   int num_controls;
   gavl_timer_t * timer;
+#ifdef HAVE_V4LCONVERT
+  bg_v4l2_convert_t * converter;
+#endif
   } v4l2_t;
 
 static int
@@ -100,8 +106,9 @@ xioctl(int fd, int request, void * arg)
   {
   int r;
   
-  do r = ioctl (fd, request, arg);
-  while (-1 == r && EINTR == errno);
+  do{
+    r = ioctl (fd, request, arg);
+  } while (-1 == r && EINTR == errno);
   
   return r;
   }
@@ -235,7 +242,7 @@ init_read(v4l2_t * v4l, unsigned int		buffer_size)
   
   if (!v4l->buffers)
     {
-    fprintf (stderr, "Out of memory\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
     return 0;
     }
   
@@ -244,7 +251,7 @@ init_read(v4l2_t * v4l, unsigned int		buffer_size)
   
   if (!v4l->buffers[0].start)
     {
-    fprintf (stderr, "Out of memory\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
     return 0;
     }
   return 1;
@@ -265,8 +272,8 @@ init_mmap(v4l2_t * v4l)
     {
     if (EINVAL == errno)
       {
-      fprintf (stderr, "%s does not support "
-               "memory mapping\n", v4l->device);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
+               "memory mapping", v4l->device);
       return 0;
       }
     else
@@ -277,7 +284,7 @@ init_mmap(v4l2_t * v4l)
   
   if (req.count < 2)
     {
-    fprintf (stderr, "Insufficient buffer memory on %s\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Insufficient buffer memory on %s",
              v4l->device);
     return 0;
     }
@@ -286,7 +293,7 @@ init_mmap(v4l2_t * v4l)
 
   if (!v4l->buffers)
     {
-    fprintf (stderr, "Out of memory\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
     return 0;
     }
   
@@ -336,8 +343,8 @@ init_userp(v4l2_t * v4l, unsigned int		buffer_size)
     {
     if (EINVAL == errno)
       {
-      fprintf (stderr, "%s does not support "
-               "user pointer i/o\n", v4l->device);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
+               "user pointer i/o", v4l->device);
       return 0;
       }
     else
@@ -350,7 +357,7 @@ init_userp(v4l2_t * v4l, unsigned int		buffer_size)
 
   if (!v4l->buffers)
     {
-    fprintf (stderr, "Out of memory\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
     return 0;
     }
   
@@ -362,7 +369,7 @@ init_userp(v4l2_t * v4l, unsigned int		buffer_size)
     
     if (!v4l->buffers[v4l->n_buffers].start)
       {
-      fprintf (stderr, "Out of memory\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
       return 0;
       }
     }
@@ -423,7 +430,7 @@ static int open_v4l(void * priv,
   
   if(v4l->fd < 0)
     {
-    fprintf(stderr, "Opening %s failed: %s\n", v4l->device, strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening %s failed: %s", v4l->device, strerror(errno));
     return 0;
     }
   
@@ -431,13 +438,13 @@ static int open_v4l(void * priv,
     {
     if (EINVAL == errno)
       {
-      fprintf (stderr, "%s is no V4L2 device\n",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s is no V4L2 device",
                v4l->device);
       return 0;
       }
     else
       {
-      fprintf(stderr, "VIDIOC_QUERYCAP failed: %s\n", strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QUERYCAP failed: %s", strerror(errno));
       return 0;
       }
     }
@@ -460,14 +467,12 @@ static int open_v4l(void * priv,
 
   if (cap.capabilities & V4L2_CAP_STREAMING)
     {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN,
-           "Trying mmap i/o");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");
     v4l->io = IO_METHOD_MMAP;
     }
   else if(cap.capabilities & V4L2_CAP_READWRITE)
     {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN,
-           "Trying read i/o");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying read i/o");
     v4l->io = IO_METHOD_READ;
     }
   
@@ -504,15 +509,31 @@ static int open_v4l(void * priv,
   
   if(!get_pixelformat(v4l->fd, &v4l->v4l2_pixelformat))
     {
+#ifdef HAVE_V4LCONVERT
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying v4lconvert");
+    v4l->converter = bg_v4l2_convert_create(v4l->fd,
+                                            &v4l->v4l2_pixelformat,
+                                            &format->pixelformat, v4l->width,
+                                            v4l->height);
+    if(!v4l->converter)
+      {
+      return 0;
+      }
+#else
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no supported pixelformat");
     return 0;
+#endif
     }
-
+  else
+    {
+    format->pixelformat  = pixelformat_v4l2_2_gavl(v4l->v4l2_pixelformat);
+    }
+  
   v4l->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   
   if (-1 == xioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
     {
-    fprintf(stderr, "VIDIOC_G_FMT failed: %s\n", strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s", strerror(errno));
     return 0;
     }
   
@@ -525,7 +546,7 @@ static int open_v4l(void * priv,
   
   if (-1 == xioctl (v4l->fd, VIDIOC_S_FMT, &v4l->fmt))
     {
-    fprintf(stderr, "VIDIOC_S_FMT failed: %s\n", strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_FMT failed: %s", strerror(errno));
     return 0;
     }
   /* Note VIDIOC_S_FMT may change width and height. */
@@ -542,13 +563,12 @@ static int open_v4l(void * priv,
 
   if (-1 == xioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
     {
-    fprintf(stderr, "VIDIOC_G_FMT failed: %s\n", strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s", strerror(errno));
     return 0;
     }
  
   format->pixel_width  = 1;
   format->pixel_height = 1;
-  format->pixelformat  = pixelformat_v4l2_2_gavl(v4l->fmt.fmt.pix.pixelformat);
   format->image_width  = v4l->fmt.fmt.pix.width;
   format->image_height = v4l->fmt.fmt.pix.height;
   format->frame_width  = v4l->fmt.fmt.pix.width;
@@ -556,11 +576,9 @@ static int open_v4l(void * priv,
   format->timescale = GAVL_TIME_SCALE / TIME_DIV;
   format->frame_duration = 0;
   format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
-  gavl_pixelformat_chroma_sub(format->pixelformat, &v4l->sub_h, &v4l->sub_v);
-  v4l->num_planes = gavl_pixelformat_num_planes(format->pixelformat);
 
   gavl_video_format_copy(&v4l->format, format);
-  //  gavl_video_format_dump(&v4l->format);
+  gavl_video_format_dump(&v4l->format);
 
   //  fprintf(stderr, "Bytesperline: %d, sizeimage: %d\n",
   //          v4l->fmt.fmt.pix.bytesperline, v4l->fmt.fmt.pix.sizeimage);
@@ -639,8 +657,6 @@ static int open_v4l(void * priv,
       
       break;
     }
-
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using mmap capturing");
   
   return 1;
   }
@@ -705,8 +721,20 @@ static void close_v4l(void * priv)
 static void process_image(v4l2_t * v4l, void * data,
                           gavl_video_frame_t * frame)
   {
+#ifdef HAVE_V4LCONVERT
+  if(v4l->converter)
+    {
+    bg_v4l2_convert_convert(v4l->converter, data, v4l->fmt.fmt.pix.sizeimage,
+                            frame);
+    }
+  else
+    {
+#endif
   gavl_video_frame_set_planes(v4l->frame, &v4l->format, data);
   gavl_video_frame_copy(&v4l->format, frame, v4l->frame);
+#ifdef HAVE_V4LCONVERT
+    }
+#endif
   frame->timestamp = gavl_timer_get(v4l->timer) / TIME_DIV;
   }
 
@@ -841,7 +869,7 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
     
     if (0 == r)
       {
-      fprintf (stderr, "select timeout\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Select timeout");
       return 0;
       }
 
@@ -879,12 +907,19 @@ static void  destroy_v4l(void * priv)
   v4l = (v4l2_t*)priv;
   gavl_video_frame_null(v4l->frame);
   gavl_video_frame_destroy(v4l->frame);
+#if HAVE_V4LCONVERT
+  if(v4l->converter)
+    bg_v4l2_convert_destroy(v4l->converter);
+#endif
   close_v4l(priv);
   gavl_timer_destroy(v4l->timer);
   
   if(v4l->parameters)
     bg_parameter_info_destroy_array(v4l->parameters);
 
+  if(v4l->device)
+    free(v4l->device);
+  
   free(v4l);
   }
 
@@ -1042,16 +1077,16 @@ static int get_parameter_v4l(void * priv, const char * name,
 
         ctrl.id = v4l->controls[i].id;
         
-        fprintf(stderr, "Get parameter: %s \n", v4l->controls[i].name);
+        //        fprintf(stderr, "Get parameter: %s \n", v4l->controls[i].name);
         
         if(!xioctl(v4l->fd, VIDIOC_G_CTRL, &ctrl))
           {
-          fprintf(stderr, " Success %d\n", ctrl.value);
+          //          fprintf(stderr, " Success %d\n", ctrl.value);
           val->val_i = ctrl.value;
           return 1;
           }
-        else
-          fprintf(stderr, " Failure\n");
+        //        else
+        //          fprintf(stderr, " Failure\n");
         return 0;
         }
       }
@@ -1141,20 +1176,18 @@ static void set_parameter_v4l(void * priv, const char * name,
         {
         if(!val)
           {
-          fprintf(stderr, "Set button: %s", name);
+          //          fprintf(stderr, "Set button: %s", name);
           ctrl.value = 0;
           }
         else
           {
-          fprintf(stderr, "Set parameter: %s %d [%d]", name, val->val_i, v4l->controls[i].id);
+          //          fprintf(stderr, "Set parameter: %s %d [%d]", name, val->val_i, v4l->controls[i].id);
           ctrl.value = val->val_i;
           }
         ctrl.id = v4l->controls[i].id;
         
-        if(!xioctl(v4l->fd, VIDIOC_S_CTRL, &ctrl))
-          fprintf(stderr, " Success\n");
-        else
-          fprintf(stderr, " Failure\n");
+        if(xioctl(v4l->fd, VIDIOC_S_CTRL, &ctrl))
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Failure");
         return;
         }
       }

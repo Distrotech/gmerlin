@@ -201,6 +201,11 @@ void gmerlin_webcam_destroy(gmerlin_webcam_t * w)
   bg_msg_queue_destroy(w->cmd_queue);
   bg_msg_queue_destroy(w->msg_queue);
 
+  if(w->fc)
+    bg_video_filter_chain_destroy(w->fc);
+
+  bg_gavl_video_options_free(&w->opt);
+  
   if(w->capture_cnv)
     gavl_video_converter_destroy(w->capture_cnv);
   if(w->monitor_cnv)

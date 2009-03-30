@@ -67,6 +67,13 @@ static void destroy_interlace(void * priv)
   vp = (interlace_priv_t *)priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
+
+  gavl_video_frame_null(vp->src_field);
+  gavl_video_frame_null(vp->dst_field);
+
+  gavl_video_frame_destroy(vp->src_field);
+  gavl_video_frame_destroy(vp->dst_field);
+  
   free(vp);
   }
 

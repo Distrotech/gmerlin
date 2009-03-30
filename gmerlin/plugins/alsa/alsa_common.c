@@ -421,9 +421,16 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
       char * name, *label;
       snd_pcm_info_malloc(&pcminfo);
       if (snd_ctl_pcm_next_device(handle, &dev)<0)
+        {
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_ctl_pcm_next_device failed");
-      if (dev < 0)
+        snd_pcm_info_free(pcminfo);
         break;
+        }
+      if (dev < 0)
+        {
+        snd_pcm_info_free(pcminfo);
+        break;
+        }
       snd_pcm_info_set_device(pcminfo, dev);
       snd_pcm_info_set_subdevice(pcminfo, 0);
       snd_pcm_info_set_stream(pcminfo, stream);
@@ -433,6 +440,7 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
           bg_log(BG_LOG_ERROR, LOG_DOMAIN,
                  "control digital audio info failed (%i): %s",
                  card, snd_strerror(err));
+        snd_pcm_info_free(pcminfo);
         continue;
         }
       name = bg_sprintf("hw:%d,%d", card, dev);

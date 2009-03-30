@@ -464,6 +464,9 @@ void bg_vloopback_destroy(bg_vloopback_t * v)
   if(v->fd >= 0)
     bg_vloopback_close(v);
 
+  if(v->device)
+    free(v->device);
+  
   /* Restore signal mask */
   //  pthread_sigmask(SIG_SETMASK, &v->oldset, NULL);
   
@@ -483,7 +486,7 @@ int bg_vloopback_open(bg_vloopback_t * v)
   struct video_window vid_win;
   struct video_picture vid_pic;
   
-  fprintf(stderr, "vloopback open\n");
+  //  fprintf(stderr, "vloopback open\n");
   v->fd = open(v->device, O_RDWR);
 
   if(v->fd < 0)
@@ -522,8 +525,8 @@ int bg_vloopback_open(bg_vloopback_t * v)
 
     v->write_bytes = gavl_video_format_get_image_size(&v->write_format);
 
-    fprintf(stderr, "Write format %d bytes:\n", v->write_bytes);
-    gavl_video_format_dump(&v->write_format);
+    //    fprintf(stderr, "Write format %d bytes:\n", v->write_bytes);
+    //    gavl_video_format_dump(&v->write_format);
     
     
     /* The following is from the vloopback example code */
@@ -612,7 +615,7 @@ void bg_vloopback_close(bg_vloopback_t * v)
 
 void bg_vloopback_set_format(bg_vloopback_t * v, const gavl_video_format_t * format)
   {
-  fprintf(stderr, "vloopback set format\n");
+  //  fprintf(stderr, "vloopback set format\n");
   gavl_video_format_copy(&v->input_format, format);
   if(!v->output_open)
     {
@@ -679,7 +682,7 @@ static void put_frame_ioctl(bg_vloopback_t * v, gavl_video_frame_t * frame)
     else if(ioctl(v->fd, ioctl_nr, arg))
       {
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, "ioctl %lx unsuccessfull.", ioctl_nr);
-      fprintf(stderr, "vloopback: ioctl %lx unsuccessfull.\n", ioctl_nr);
+      //      fprintf(stderr, "vloopback: ioctl %lx unsuccessfull.\n", ioctl_nr);
       }
     if(v->do_grab)
       {
@@ -805,7 +808,7 @@ void bg_vloopback_set_parameter(void * data, const char * name,
   {
   bg_vloopback_t * v = data;
 
-  fprintf(stderr, "vloopback_set_parameter %s\n", name); 
+  //  fprintf(stderr, "vloopback_set_parameter %s\n", name); 
 
   if(!name)
     return;
