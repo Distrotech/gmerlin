@@ -578,7 +578,7 @@ static int open_v4l(void * priv,
   format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
 
   gavl_video_format_copy(&v4l->format, format);
-  gavl_video_format_dump(&v4l->format);
+  //  gavl_video_format_dump(&v4l->format);
 
   //  fprintf(stderr, "Bytesperline: %d, sizeimage: %d\n",
   //          v4l->fmt.fmt.pix.bytesperline, v4l->fmt.fmt.pix.sizeimage);
