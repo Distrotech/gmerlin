@@ -179,8 +179,8 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
       s->data.video.kft = bgav_keyframe_table_create_fi(s->file_index);
 
     s->index_position = bgav_keyframe_table_seek(s->data.video.kft, time, &frame_time);
-    fprintf(stderr, "Index position: %d, keyframe timestamp: %ld\n", s->index_position,
-            frame_time);
+    //    fprintf(stderr, "Index position: %d, keyframe timestamp: %ld\n", s->index_position,
+    //            frame_time);
 #if 0    
     s->index_position = file_index_seek(s->file_index, time);
     /* Decrease until we have the keyframe before this frame */

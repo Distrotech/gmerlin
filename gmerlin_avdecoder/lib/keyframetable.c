@@ -23,7 +23,7 @@
 
 #include <avdec_private.h>
 
-#define DUMP_TABLE
+// #define DUMP_TABLE
 
 #ifdef DUMP_TABLE
 static void bgav_keyframe_table_dump(bgav_keyframe_table_t* tab)
