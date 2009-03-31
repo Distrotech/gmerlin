@@ -44,6 +44,8 @@
 #include <gmerlin/converters.h>
 #include <gmerlin/filters.h>
 
+#define DUMP_VIDEO_TIMESTAMPS
+
 #define LOG_DOMAIN "transcoder"
 
 #define STREAM_STATE_OFF      0
@@ -771,6 +773,11 @@ static int decode_video_frame(void * priv, gavl_video_frame_t * f, int stream)
 
   if(!result)
     return 0;
+
+#ifdef DUMP_VIDEO_TIMESTAMPS
+  bg_debug("Input timestamp: %"PRId64" Offset: %"PRId64"\n",
+           f->timestamp, s->start_time_scaled);
+#endif
   
   /* Check for end of stream */
   
@@ -1617,6 +1624,10 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
       }
     }
 
+#ifdef DUMP_VIDEO_TIMESTAMPS
+  bg_debug("Output timestamp: %"PRId64"\n", s->frame->timestamp);
+#endif
+  
   ret = s->com.out_plugin->write_video_frame(s->com.out_handle->priv,
                                              s->frame,
                                              s->com.out_index);
