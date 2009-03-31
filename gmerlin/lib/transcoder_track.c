@@ -631,14 +631,14 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
     
   gavl_time_t duration = GAVL_TIME_UNDEFINED;
   int i;
-  int seekable = 0;
+  int flags = 0;
   
   track->general_parameters = bg_parameter_info_copy_array(parameters_general);
 
   bg_cfg_section_get_parameter_time(track->general_section,
                                     "duration", &duration);
   bg_cfg_section_get_parameter_int(track->general_section,
-                                   "seekable", &seekable);
+                                   "flags", &flags);
 
   if(duration != GAVL_TIME_UNDEFINED)
     {
@@ -653,7 +653,7 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
       }
 
 
-    if(seekable)
+    if(flags & BG_TRACK_SEEKABLE)
       {
       i = 0;
       while(track->general_parameters[i].name)
