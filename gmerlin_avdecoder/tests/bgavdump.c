@@ -34,6 +34,7 @@
 
 static int64_t audio_seek = 0;
 static int64_t video_seek = 0;
+static gavl_time_t global_seek = 0;
 
 /* Callback based reading: We do a simple stdio mapping here */
 
@@ -165,7 +166,7 @@ int main(int argc, char ** argv)
   
   if(argc == 1)
     {
-    fprintf(stderr, "Usage: bgavdump [-s] [-aseek <sample>] [-vseek <time>] <location>\n");
+    fprintf(stderr, "Usage: bgavdump [-s] [-aseek <sample>] [-vseek <time>] [-seek <time>] <location>\n");
 
     bgav_inputs_dump();
     bgav_redirectors_dump();
@@ -199,6 +200,11 @@ int main(int argc, char ** argv)
     else if(!strcmp(argv[arg_index], "-vseek"))
       {
       video_seek = strtoll(argv[arg_index+1], (char**)0, 10);
+      arg_index+=2;
+      }
+    else if(!strcmp(argv[arg_index], "-seek"))
+      {
+      global_seek = strtoll(argv[arg_index+1], (char**)0, 10);
       arg_index+=2;
       }
     else
@@ -321,10 +327,10 @@ int main(int argc, char ** argv)
     for(i = 0; i < num_subtitle_streams; i++)
       bgav_set_subtitle_stream(file, i, BGAV_STREAM_DECODE);
     
-    fprintf(stderr, "Starting decoders...");
+    fprintf(stderr, "Starting decoders...\n");
     if(!bgav_start(file))
       {
-      fprintf(stderr, "failed\n");
+      fprintf(stderr, "Starting decoders failed\n");
 #ifndef TRACK  
       continue;
 #else
@@ -332,8 +338,15 @@ int main(int argc, char ** argv)
 #endif
       }
     else
-      fprintf(stderr, "done\n");
-    
+      fprintf(stderr, "Starting decoders done\n");
+
+    if(global_seek)
+      {
+      fprintf(stderr, "Doing global seek to %"PRId64"...\n", global_seek);
+      bgav_seek(file, &global_seek);
+      fprintf(stderr, "Time after seek: %"PRId64"\n", global_seek);
+      }
+      
     fprintf(stderr, "Dumping file contents...\n");
     bgav_dump(file);
     fprintf(stderr, "End of file contents\n");
