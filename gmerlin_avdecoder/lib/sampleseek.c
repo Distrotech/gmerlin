@@ -131,7 +131,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
   
-  //  bgav_audio_resync(s);
+  bgav_audio_resync(s);
   bgav_audio_skipto(s, &sample, s->data.audio.format.samplerate);
     
   s->out_time += s->start_time;
@@ -142,9 +142,8 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   bgav_stream_t * s;
   int64_t frame_time;
   s = &bgav->tt->cur->video_streams[stream];
-
+  
   //  fprintf(stderr, "Seek video: %ld\n", time);
-
   
   if(time >= s->duration) /* EOF */
     {
@@ -153,13 +152,13 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     }
   
   s->flags &= ~STREAM_EOF;
-
   
   if(time == s->out_time)
     {
     return;
     }
-  if((time > s->out_time) && (bgav_video_keyframe_after(bgav, stream, s->out_time) > time))
+  if((time > s->out_time) &&
+     (bgav_video_keyframe_after(bgav, stream, s->out_time) > time))
     {
     bgav_video_skipto(s, &time, s->data.video.format.timescale);
     return;
@@ -178,26 +177,21 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     if(!s->data.video.kft)
       s->data.video.kft = bgav_keyframe_table_create_fi(s->file_index);
 
-    s->index_position = bgav_keyframe_table_seek(s->data.video.kft, time, &frame_time);
+    s->index_position =
+      bgav_keyframe_table_seek(s->data.video.kft, time, &frame_time);
     //    fprintf(stderr, "Index position: %d, keyframe timestamp: %ld\n", s->index_position,
     //            frame_time);
-#if 0    
-    s->index_position = file_index_seek(s->file_index, time);
-    /* Decrease until we have the keyframe before this frame */
-    while(!(s->file_index->entries[s->index_position].flags & PACKET_FLAG_KEY) && s->index_position)
-      s->index_position--;
-    
-    frame_time = s->file_index->entries[s->index_position].pts;
-#endif
+
     /* Decrease until a real packet starts */
     while(s->index_position &&
           (s->file_index->entries[s->index_position-1].position ==
            s->file_index->entries[s->index_position].position))
       s->index_position--;
     
-    STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].pts);
-    s->out_time = frame_time + s->start_time;
-
+    STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].pts + s->start_time);
+    //    s->out_time = frame_time + s->start_time;
+    s->out_time = s->file_index->entries[s->index_position].pts + s->start_time;
+    
     // if(s->data.video.parser)
     //   bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, frame_time);
     
@@ -207,10 +201,12 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
 
   bgav_video_resync(s);
 
-  //  fprintf(stderr, "Skip to: %ld\n", time);
+
+  time += s->start_time;
   
+  //  fprintf(stderr, "Skip to: %ld\n", time);
   bgav_video_skipto(s, &time, s->data.video.format.timescale);
-  //  fprintf(stderr, "Skipped to: %ld\n", time);
+  //  fprintf(stderr, "Skipped to: %ld %ld\n", time, s->out_time);
   }
 
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)

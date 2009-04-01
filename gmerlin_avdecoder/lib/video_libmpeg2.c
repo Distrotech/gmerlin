@@ -571,6 +571,9 @@ static int skipto_mpeg2(bgav_stream_t * s, int64_t time)
     /* TODO: Skip B-frames */
     if(!decode_picture(s))
       return 0;
+
+    s->flags |= STREAM_HAVE_PICTURE;
+
     if(priv->picture_timestamp + priv->picture_duration > time)
       {
       s->out_time = priv->picture_timestamp;

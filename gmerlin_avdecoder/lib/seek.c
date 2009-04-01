@@ -146,8 +146,7 @@ static void seek_sa(bgav_t * b, int64_t * time, int scale)
         {
         *time =
           gavl_time_rescale(s->data.video.format.timescale,
-                            scale,
-                            s->out_time + s->start_time);
+                            scale, s->out_time);
         }
       }
     }
