@@ -44,7 +44,7 @@
 #include <gmerlin/converters.h>
 #include <gmerlin/filters.h>
 
-#define DUMP_VIDEO_TIMESTAMPS
+// #define DUMP_VIDEO_TIMESTAMPS
 
 #define LOG_DOMAIN "transcoder"
 
@@ -1327,11 +1327,6 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   
   s->com.time = gavl_samples_to_time(s->out_format.samplerate,
                                      s->samples_read);
-#if 0
-  if(t->start_time != GAVL_TIME_UNDEFINED)
-    s->com.time += t->start_time;
-#endif
-  
   
   /* Volume normalization */
   if(s->normalize)
