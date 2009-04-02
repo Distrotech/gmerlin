@@ -624,6 +624,12 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
   
   priv = (mpegaudio_priv_t*)(ctx->priv);
   s = ctx->tt->cur->audio_streams;
+
+  time -= gavl_time_rescale(scale,
+                            s->data.audio.format.samplerate,
+                            s->data.audio.preroll);
+  if(time < 0)
+    time = 0;
   
   if(priv->have_xing) /* VBR */
     {
@@ -635,12 +641,13 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
     }
   else /* CBR */
     {
-    pos = ((priv->data_end - priv->data_start) * gavl_time_unscale(scale, time)) / ctx->tt->cur->duration;
+    pos = ((priv->data_end - priv->data_start) *
+           gavl_time_unscale(scale, time)) / ctx->tt->cur->duration;
     }
   
   STREAM_SET_SYNC(s,
                   gavl_time_rescale(scale,
-                                    ctx->tt->cur->audio_streams[0].data.audio.format.samplerate, time));
+                                    s->data.audio.format.samplerate, time));
   
   pos += priv->data_start;
   bgav_input_seek(ctx->input, pos, SEEK_SET);
