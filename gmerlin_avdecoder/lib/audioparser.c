@@ -87,6 +87,8 @@ void bgav_audio_parser_destroy(bgav_audio_parser_t * parser)
 
 void bgav_audio_parser_reset(bgav_audio_parser_t * parser, int64_t in_pts, int64_t out_pts)
   {
+  bgav_bytebuffer_flush(&parser->buf);
+  
   parser->num_packets = 0;
   parser->frame_samples = 0;
   parser->frame_bytes = 0;

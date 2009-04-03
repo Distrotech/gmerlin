@@ -214,7 +214,6 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
       frame->valid_samples = 0;
     return 0;
     }
-  
   while(samples_decoded < num_samples)
     {
     if(!s->data.audio.frame->valid_samples)
@@ -235,6 +234,7 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
                             s->data.audio.frame->valid_samples,  /* in_pos */
                             num_samples - samples_decoded, /* out_size, */
                             s->data.audio.frame->valid_samples /* in_size */);
+
     s->data.audio.frame->valid_samples -= samples_copied;
     samples_decoded += samples_copied;
     }
@@ -284,8 +284,11 @@ void bgav_audio_resync(bgav_stream_t * s)
     }
   
   if(s->data.audio.parser)
+    {
+    if(s->parsed_packet)
+      s->parsed_packet->valid = 0;
     bgav_audio_parser_reset(s->data.audio.parser, BGAV_TIMESTAMP_UNDEFINED, s->out_time);
-  
+    }
   if(s->data.audio.decoder &&
      s->data.audio.decoder->decoder->resync)
     s->data.audio.decoder->decoder->resync(s);
