@@ -357,7 +357,7 @@ struct gavl_video_scale_context_s
   
   /* These are used by the generic scaler */
 
-  int64_t tmp[4]; /* For accumulating values */
+  //  int64_t tmp[4]; /* For accumulating values */
 
   /* For copying */
   int bytes_per_line;

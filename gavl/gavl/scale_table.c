@@ -29,6 +29,8 @@
 
 #define BLUR_THRESHOLD 5.0e-3
 
+// #define DUMP_TABLE
+
 /* Conversion between src and dst coordinates */
 
 #define DST_TO_SRC(c) ((double)c)/scale_factor+src_off
@@ -292,10 +294,9 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
     
   //  fprintf(stderr, "After shift %d\n", src_width);
   //if(deinterlace || (total_fields == 2))
-  //  gavl_video_scale_table_dump(tab);
-
-  
-  
+#ifdef DUMP_TABLE
+  gavl_video_scale_table_dump(tab);
+#endif  
   }
 
 void 

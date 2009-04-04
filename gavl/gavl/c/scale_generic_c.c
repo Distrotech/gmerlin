@@ -30,78 +30,86 @@
 #define FUNC_NAME scale_rgb_15_x_generic_c
 #define TYPE color_15
 
-#define SCALE_INIT ctx->tmp[0] = 0; ctx->tmp[1] = 0; ctx->tmp[2] = 0;
+#define INIT int64_t tmp[3];
+
+#define SCALE_INIT tmp[0] = 0; tmp[1] = 0; tmp[2] = 0;
 
 #define SCALE_ACCUM                                                    \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->r;   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->g;   \
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->b;
+  tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->r;   \
+  tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->g;   \
+  tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->b;
 
 #define SCALE_FINISH                                                    \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  RECLIP_H(ctx->tmp[0],0);                                                     \
-  RECLIP_H(ctx->tmp[1],1);                                                     \
-  RECLIP_H(ctx->tmp[2],2);                                                     \
-  dst->r = ctx->tmp[0];                                                 \
-  dst->g = ctx->tmp[1];                                                 \
-  dst->b = ctx->tmp[2];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  RECLIP_H(tmp[0],0);                                                     \
+  RECLIP_H(tmp[1],1);                                                     \
+  RECLIP_H(tmp[2],2);                                                     \
+  dst->r = tmp[0];                                                 \
+  dst->g = tmp[1];                                                 \
+  dst->b = tmp[2];
 
 #include "scale_generic_x.h"
 
 #define FUNC_NAME scale_rgb_16_x_generic_c
 #define TYPE color_16
 
-#define SCALE_INIT ctx->tmp[0] = 0; ctx->tmp[1] = 0; ctx->tmp[2] = 0;
+#define INIT int64_t tmp[3];
+
+#define SCALE_INIT tmp[0] = 0; tmp[1] = 0; tmp[2] = 0;
 
 #define SCALE_ACCUM                                                    \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->r;   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->g;   \
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->b;
+  tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->r;   \
+  tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->g;   \
+  tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->b;
 
 #define SCALE_FINISH                                                    \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  RECLIP_H(ctx->tmp[0],0);                                                     \
-  RECLIP_H(ctx->tmp[1],1);                                                     \
-  RECLIP_H(ctx->tmp[2],2);                                                     \
-  dst->r = ctx->tmp[0];                                                 \
-  dst->g = ctx->tmp[1];                                                 \
-  dst->b = ctx->tmp[2];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  RECLIP_H(tmp[0],0);                                                     \
+  RECLIP_H(tmp[1],1);                                                     \
+  RECLIP_H(tmp[2],2);                                                     \
+  dst->r = tmp[0];                                                 \
+  dst->g = tmp[1];                                                 \
+  dst->b = tmp[2];
 
 #include "scale_generic_x.h"
 
 #define FUNC_NAME scale_uint8_x_1_x_generic_c
 #define TYPE uint8_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;
+#define INIT int64_t tmp;
 
-#define SCALE_ACCUM ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];
+#define SCALE_INIT tmp = 0;
+
+#define SCALE_ACCUM tmp += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];
 
 #define SCALE_FINISH   \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  RECLIP_H(ctx->tmp[0],ctx->plane);               \
-  dst[0] = ctx->tmp[0];
+  tmp = DOWNSHIFT(tmp, 16); \
+  RECLIP_H(tmp,ctx->plane);               \
+  dst[0] = tmp;
 
 #include "scale_generic_x.h"
 
 #define FUNC_NAME scale_uint8_x_2_x_generic_c
 #define TYPE uint8_t
 
-#define SCALE_INIT ctx->tmp[0] = 0; ctx->tmp[1] = 0;
+#define INIT int64_t tmp[2];
 
-#define SCALE_ACCUM ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];
+#define SCALE_INIT tmp[0] = 0; tmp[1] = 0;
+
+#define SCALE_ACCUM tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];\
+  tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];
 
 #define SCALE_FINISH   \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  RECLIP_H(ctx->tmp[0],ctx->plane);               \
-  dst[0] = ctx->tmp[0];\
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  RECLIP_H(ctx->tmp[1],ctx->plane);               \
-  dst[1] = ctx->tmp[1];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  RECLIP_H(tmp[0],ctx->plane);               \
+  dst[0] = tmp[0];\
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  RECLIP_H(tmp[1],ctx->plane);               \
+  dst[1] = tmp[1];
 
 #include "scale_generic_x.h"
 
@@ -109,23 +117,25 @@
 #define FUNC_NAME scale_uint8_x_3_x_generic_c
 #define TYPE uint8_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
+#define INIT int64_t tmp[3];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];
+  tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];\
+  tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];\
+  tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];
 
 #define SCALE_FINISH   \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  RECLIP_H(ctx->tmp[0],0);                        \
-  RECLIP_H(ctx->tmp[1],1);                        \
-  RECLIP_H(ctx->tmp[2],2);                        \
-  dst[0] = ctx->tmp[0];                    \
-  dst[1] = ctx->tmp[1];                    \
-  dst[2] = ctx->tmp[2];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  RECLIP_H(tmp[0],0);                        \
+  RECLIP_H(tmp[1],1);                        \
+  RECLIP_H(tmp[2],2);                        \
+  dst[0] = tmp[0];                    \
+  dst[1] = tmp[1];                    \
+  dst[2] = tmp[2];
 
 
 #include "scale_generic_x.h"
@@ -133,117 +143,126 @@
 #define FUNC_NAME scale_uint8_x_4_x_generic_c
 #define TYPE uint8_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;ctx->tmp[3] = 0;
+#define INIT int64_t tmp[4];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;tmp[3] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];\
-  ctx->tmp[3] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[3];
+  tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];\
+  tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];\
+  tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];\
+  tmp[3] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[3];
 
 
 #define SCALE_FINISH   \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  ctx->tmp[3] = DOWNSHIFT(ctx->tmp[3], 16); \
-  RECLIP_H(ctx->tmp[0],0);                        \
-  RECLIP_H(ctx->tmp[1],1);                        \
-  RECLIP_H(ctx->tmp[2],2);                        \
-  RECLIP_H(ctx->tmp[3],3);                        \
-  dst[0] = ctx->tmp[0];                    \
-  dst[1] = ctx->tmp[1];                    \
-  dst[2] = ctx->tmp[2];                    \
-  dst[3] = ctx->tmp[3];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  tmp[3] = DOWNSHIFT(tmp[3], 16); \
+  RECLIP_H(tmp[0],0);                        \
+  RECLIP_H(tmp[1],1);                        \
+  RECLIP_H(tmp[2],2);                        \
+  RECLIP_H(tmp[3],3);                        \
+  dst[0] = tmp[0];                    \
+  dst[1] = tmp[1];                    \
+  dst[2] = tmp[2];                    \
+  dst[3] = tmp[3];
 
 #include "scale_generic_x.h"
 
 #define FUNC_NAME scale_uint16_x_1_x_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;
+#define INIT int64_t tmp;
+
+#define SCALE_INIT tmp = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];
+  tmp += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];
 
 #define SCALE_FINISH                            \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  RECLIP_H(ctx->tmp[0],ctx->plane);                    \
-  dst[0] = ctx->tmp[0];
+  tmp = DOWNSHIFT(tmp, 16); \
+  RECLIP_H(tmp,ctx->plane);                    \
+  dst[0] = tmp;
 
 #include "scale_generic_x.h"
 
 #define FUNC_NAME scale_uint16_x_2_x_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;
+#define INIT int64_t tmp[2];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;
 
 #define SCALE_ACCUM                                                     \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];
+  tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];   \
+  tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];
 
 #define SCALE_FINISH                            \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  RECLIP_H(ctx->tmp[0],0);                             \
-  RECLIP_H(ctx->tmp[1],1);                             \
-  dst[0] = ctx->tmp[0];                        \
-  dst[1] = ctx->tmp[1];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  RECLIP_H(tmp[0],0);                             \
+  RECLIP_H(tmp[1],1);                             \
+  dst[0] = tmp[0];                        \
+  dst[1] = tmp[1];
 
 #include "scale_generic_x.h"
 
 #define FUNC_NAME scale_uint16_x_3_x_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
+#define INIT int64_t tmp[3];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;
 
 #define SCALE_ACCUM                                                     \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];   \
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];
+  tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];   \
+  tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];   \
+  tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];
 
 #define SCALE_FINISH                            \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  RECLIP_H(ctx->tmp[0],0);                             \
-  RECLIP_H(ctx->tmp[1],1);                             \
-  RECLIP_H(ctx->tmp[2],2);                             \
-  dst[0] = ctx->tmp[0];                        \
-  dst[1] = ctx->tmp[1];                        \
-  dst[2] = ctx->tmp[2];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  RECLIP_H(tmp[0],0);                             \
+  RECLIP_H(tmp[1],1);                             \
+  RECLIP_H(tmp[2],2);                             \
+  dst[0] = tmp[0];                        \
+  dst[1] = tmp[1];                        \
+  dst[2] = tmp[2];
 
 #include "scale_generic_x.h"
 
 #define FUNC_NAME scale_uint16_x_4_x_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT \
-ctx->tmp[0] = 0;\
-ctx->tmp[1] = 0;\
-ctx->tmp[2] = 0;\
-ctx->tmp[3] = 0;
+#define INIT int64_t tmp[4];
 
+#define SCALE_INIT \
+tmp[0] = 0;\
+tmp[1] = 0;\
+tmp[2] = 0;\
+tmp[3] = 0;
 
 #define SCALE_ACCUM                                                     \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];   \
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];   \
-  ctx->tmp[3] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[3];
+  tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];   \
+  tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];   \
+  tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];   \
+  tmp[3] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[3];
 
 #define SCALE_FINISH                            \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  ctx->tmp[3] = DOWNSHIFT(ctx->tmp[3], 16); \
-  RECLIP_H(ctx->tmp[0],0);                             \
-  RECLIP_H(ctx->tmp[1],1);                             \
-  RECLIP_H(ctx->tmp[2],2);                             \
-  RECLIP_H(ctx->tmp[3],3);                             \
-  dst[0] = ctx->tmp[0];                        \
-  dst[1] = ctx->tmp[1];                        \
-  dst[2] = ctx->tmp[2];                        \
-  dst[3] = ctx->tmp[3];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  tmp[3] = DOWNSHIFT(tmp[3], 16); \
+  RECLIP_H(tmp[0],0);                             \
+  RECLIP_H(tmp[1],1);                             \
+  RECLIP_H(tmp[2],2);                             \
+  RECLIP_H(tmp[3],3);                             \
+  dst[0] = tmp[0];                        \
+  dst[1] = tmp[1];                        \
+  dst[2] = tmp[2];                        \
+  dst[3] = tmp[3];
 
 #include "scale_generic_x.h"
 
@@ -317,103 +336,113 @@ ctx->tmp[3] = 0;
 #define FUNC_NAME scale_rgb_15_y_generic_c
 #define TYPE color_15
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
+#define INIT int64_t tmp[3];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src->r;\
-  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src->g;\
-  ctx->tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src->b;
+  tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src->r;\
+  tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src->g;\
+  tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src->b;
 
 #define SCALE_FINISH                            \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  RECLIP_V(ctx->tmp[0], 0);                                       \
-  RECLIP_V(ctx->tmp[1], 1);                                       \
-  RECLIP_V(ctx->tmp[2], 2);                                       \
-  dst->r = ctx->tmp[0];                                    \
-  dst->g = ctx->tmp[1];                                    \
-  dst->b = ctx->tmp[2];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  RECLIP_V(tmp[0], 0);                                       \
+  RECLIP_V(tmp[1], 1);                                       \
+  RECLIP_V(tmp[2], 2);                                       \
+  dst->r = tmp[0];                                    \
+  dst->g = tmp[1];                                    \
+  dst->b = tmp[2];
 
 #include "scale_generic_y.h"
 
 #define FUNC_NAME scale_rgb_16_y_generic_c
 #define TYPE color_16
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
+#define INIT int64_t tmp[3];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src->r;\
-  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src->g;\
-  ctx->tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src->b;
+  tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src->r;\
+  tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src->g;\
+  tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src->b;
 
 #define SCALE_FINISH                            \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  RECLIP_V(ctx->tmp[0], 0);                                       \
-  RECLIP_V(ctx->tmp[1], 1);                                       \
-  RECLIP_V(ctx->tmp[2], 2);                                       \
-  dst->r = ctx->tmp[0];                                    \
-  dst->g = ctx->tmp[1];                                    \
-  dst->b = ctx->tmp[2];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  RECLIP_V(tmp[0], 0);                                       \
+  RECLIP_V(tmp[1], 1);                                       \
+  RECLIP_V(tmp[2], 2);                                       \
+  dst->r = tmp[0];                                    \
+  dst->g = tmp[1];                                    \
+  dst->b = tmp[2];
 
 #include "scale_generic_y.h"
 
 #define FUNC_NAME scale_uint8_x_1_y_generic_c
 #define TYPE uint8_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;
+#define INIT int64_t tmp;
+
+#define SCALE_INIT tmp = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];
+  tmp += ctx->table_v.pixels[scanline].factor_i[j] * src[0];
 
 #define SCALE_FINISH                            \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  RECLIP_V(ctx->tmp[0], ctx->plane);                      \
-  dst[0] = ctx->tmp[0];
+  tmp = DOWNSHIFT(tmp, 16); \
+  RECLIP_V(tmp, ctx->plane);                      \
+  dst[0] = tmp;
 
 #include "scale_generic_y.h"
 
 #define FUNC_NAME scale_uint8_x_2_y_generic_c
 #define TYPE uint8_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;
+#define INIT int64_t tmp[2];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];
+  tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];
 
 #define SCALE_FINISH                                    \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  RECLIP_V(ctx->tmp[0], 0);                               \
-  RECLIP_V(ctx->tmp[1], 1);                               \
-  dst[0] = ctx->tmp[0];                            \
-  dst[1] = ctx->tmp[1];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  RECLIP_V(tmp[0], 0);                               \
+  RECLIP_V(tmp[1], 1);                               \
+  dst[0] = tmp[0];                            \
+  dst[1] = tmp[1];
 
 #include "scale_generic_y.h"
 
 #define FUNC_NAME scale_uint8_x_3_y_generic_c
 #define TYPE uint8_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
+#define INIT int64_t tmp[3];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
-  ctx->tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src[2];
+  tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
+  tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src[2];
 
 #define SCALE_FINISH                                    \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  RECLIP_V(ctx->tmp[0], 0);                               \
-  RECLIP_V(ctx->tmp[1], 1);                               \
-  RECLIP_V(ctx->tmp[2], 2);                               \
-  dst[0] = ctx->tmp[0];                            \
-  dst[1] = ctx->tmp[1];                            \
-  dst[2] = ctx->tmp[2];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  RECLIP_V(tmp[0], 0);                               \
+  RECLIP_V(tmp[1], 1);                               \
+  RECLIP_V(tmp[2], 2);                               \
+  dst[0] = tmp[0];                            \
+  dst[1] = tmp[1];                            \
+  dst[2] = tmp[2];
 
 #include "scale_generic_y.h"
 
@@ -421,27 +450,29 @@ ctx->tmp[3] = 0;
 #define FUNC_NAME scale_uint8_x_4_y_generic_c
 #define TYPE uint8_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;ctx->tmp[3] = 0;
+#define INIT int64_t tmp[4];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;tmp[3] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
-  ctx->tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src[2];\
-  ctx->tmp[3] += ctx->table_v.pixels[scanline].factor_i[j] * src[3];
+  tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
+  tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src[2];\
+  tmp[3] += ctx->table_v.pixels[scanline].factor_i[j] * src[3];
 
 #define SCALE_FINISH                                    \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  ctx->tmp[3] = DOWNSHIFT(ctx->tmp[3], 16); \
-  RECLIP_V(ctx->tmp[0], 0);                               \
-  RECLIP_V(ctx->tmp[1], 1);                               \
-  RECLIP_V(ctx->tmp[2], 2);                               \
-  RECLIP_V(ctx->tmp[3], 3);                               \
-  dst[0] = ctx->tmp[0];                            \
-  dst[1] = ctx->tmp[1];                            \
-  dst[2] = ctx->tmp[2];                            \
-  dst[3] = ctx->tmp[3];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  tmp[3] = DOWNSHIFT(tmp[3], 16); \
+  RECLIP_V(tmp[0], 0);                               \
+  RECLIP_V(tmp[1], 1);                               \
+  RECLIP_V(tmp[2], 2);                               \
+  RECLIP_V(tmp[3], 3);                               \
+  dst[0] = tmp[0];                            \
+  dst[1] = tmp[1];                            \
+  dst[2] = tmp[2];                            \
+  dst[3] = tmp[3];
 
 
 #include "scale_generic_y.h"
@@ -449,57 +480,63 @@ ctx->tmp[3] = 0;
 #define FUNC_NAME scale_uint16_x_1_y_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;
+#define INIT int64_t tmp;
+
+#define SCALE_INIT tmp = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];
+  tmp += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];
 
 #define SCALE_FINISH \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  RECLIP_V(ctx->tmp[0], ctx->plane);                      \
-  dst[0] = ctx->tmp[0];
+  tmp = DOWNSHIFT(tmp, 16); \
+  RECLIP_V(tmp, ctx->plane);                      \
+  dst[0] = tmp;
 
 #include "scale_generic_y.h"
 
 #define FUNC_NAME scale_uint16_x_2_y_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;
+#define INIT int64_t tmp[2];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];
+  tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];
 
 #define SCALE_FINISH \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  RECLIP_V(ctx->tmp[0], 0);                      \
-  RECLIP_V(ctx->tmp[1], 1);                      \
-  dst[0] = ctx->tmp[0];                  \
-  dst[1] = ctx->tmp[1];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  RECLIP_V(tmp[0], 0);                      \
+  RECLIP_V(tmp[1], 1);                      \
+  dst[0] = tmp[0];                  \
+  dst[1] = tmp[1];
 
 #include "scale_generic_y.h"
 
 #define FUNC_NAME scale_uint16_x_3_y_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
+#define INIT int64_t tmp[3];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[2];
+  tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
+  tmp[2] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[2];
 
 #define SCALE_FINISH \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  RECLIP_V(ctx->tmp[0], 0);                      \
-  RECLIP_V(ctx->tmp[1], 1);                      \
-  RECLIP_V(ctx->tmp[2], 2);                      \
-  dst[0] = ctx->tmp[0];                  \
-  dst[1] = ctx->tmp[1];                  \
-  dst[2] = ctx->tmp[2];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  RECLIP_V(tmp[0], 0);                      \
+  RECLIP_V(tmp[1], 1);                      \
+  RECLIP_V(tmp[2], 2);                      \
+  dst[0] = tmp[0];                  \
+  dst[1] = tmp[1];                  \
+  dst[2] = tmp[2];
 
 #include "scale_generic_y.h"
 
@@ -507,27 +544,29 @@ ctx->tmp[3] = 0;
 #define FUNC_NAME scale_uint16_x_4_y_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;ctx->tmp[3] = 0;
+#define INIT int64_t tmp[4];
+
+#define SCALE_INIT tmp[0] = 0;tmp[1] = 0;tmp[2] = 0;tmp[3] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[2];\
-  ctx->tmp[3] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[3];
+  tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
+  tmp[2] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[2];\
+  tmp[3] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[3];
 
 #define SCALE_FINISH \
-  ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
-  ctx->tmp[1] = DOWNSHIFT(ctx->tmp[1], 16); \
-  ctx->tmp[2] = DOWNSHIFT(ctx->tmp[2], 16); \
-  ctx->tmp[3] = DOWNSHIFT(ctx->tmp[3], 16); \
-  RECLIP_V(ctx->tmp[0], 0);                      \
-  RECLIP_V(ctx->tmp[1], 1);                      \
-  RECLIP_V(ctx->tmp[2], 2);                      \
-  RECLIP_V(ctx->tmp[3], 3);                      \
-  dst[0] = ctx->tmp[0];                  \
-  dst[1] = ctx->tmp[1];                  \
-  dst[2] = ctx->tmp[2];                  \
-  dst[3] = ctx->tmp[3];
+  tmp[0] = DOWNSHIFT(tmp[0], 16); \
+  tmp[1] = DOWNSHIFT(tmp[1], 16); \
+  tmp[2] = DOWNSHIFT(tmp[2], 16); \
+  tmp[3] = DOWNSHIFT(tmp[3], 16); \
+  RECLIP_V(tmp[0], 0);                      \
+  RECLIP_V(tmp[1], 1);                      \
+  RECLIP_V(tmp[2], 2);                      \
+  RECLIP_V(tmp[3], 3);                      \
+  dst[0] = tmp[0];                  \
+  dst[1] = tmp[1];                  \
+  dst[2] = tmp[2];                  \
+  dst[3] = tmp[3];
 
 #include "scale_generic_y.h"
 
