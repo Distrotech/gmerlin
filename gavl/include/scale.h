@@ -355,8 +355,6 @@ struct gavl_video_scale_context_s
   float min_values_f[4];
   float max_values_f[4];
   
-  /* These are used by the generic scaler */
-
   /* For copying */
   int bytes_per_line;
   
