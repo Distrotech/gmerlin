@@ -365,15 +365,21 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
   bgav_track_clear_eof(track);
   b->eof = 0;
   
-  /* Seek with sample accuracy */
-  if(b->tt->cur->sample_accurate)
-    {
-    seek_sa(b, time, scale);    
-    }
-  /* Seek with superindex */
-  else if(b->demuxer->si && !(b->demuxer->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
+  /*
+   * Seek with superindex
+   *
+   * This must be checked *before* we check for seek_sa because
+   * AVIs with mp3 audio will also have b->tt->cur->sample_accurate = 1
+   */
+  
+  if(b->demuxer->si && !(b->demuxer->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
     {
     seek_si(b, b->demuxer, *time, scale);
+    }
+  /* Seek with sample accuracy */
+  else if(b->tt->cur->sample_accurate)
+    {
+    seek_sa(b, time, scale);    
     }
   /* Seek once */
   else if(!(b->demuxer->flags & BGAV_DEMUXER_SEEK_ITERATIVE))

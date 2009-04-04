@@ -78,7 +78,7 @@ static void dump_index(bgav_stream_t * s)
                      s->file_index->entries[i+1].position-s->file_index->entries[i].position
                      );
       else
-        bgav_dprintf("%"PRId64"\n", s->duration-s->file_index->entries[i].pts);
+        bgav_dprintf(" D: %"PRId64"\n", s->duration-s->file_index->entries[i].pts);
       }
     }
   }
