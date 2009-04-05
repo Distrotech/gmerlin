@@ -82,6 +82,8 @@ void bgav_audio_parser_destroy(bgav_audio_parser_t * parser)
   {
   if(parser->packets)
     free(parser->packets);
+  bgav_bytebuffer_free(&parser->buf);
+  
   free(parser);
   }
 
