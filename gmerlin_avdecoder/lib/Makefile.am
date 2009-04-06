@@ -359,6 +359,7 @@ $(schroedinger_sources) \
 $(speex_sources) \
 $(dvb_sources) \
 RTjpeg.c \
+aac_frame.c \
 a52_header.c \
 apetag.c \
 audio.c \
