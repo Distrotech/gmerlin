@@ -838,8 +838,6 @@ int bgav_input_open(bgav_input_context_t * ctx,
 void bgav_input_close(bgav_input_context_t * ctx)
   {
   const bgav_options_t * opt;
-  if(ctx->tt)
-    bgav_track_table_unref(ctx->tt);
   if(ctx->input && ctx->priv)
     {
     ctx->input->close(ctx);
@@ -861,7 +859,10 @@ void bgav_input_close(bgav_input_context_t * ctx)
     free(ctx->charset);
   if(ctx->cnv)
     bgav_charset_converter_destroy(ctx->cnv);
-  
+
+  if(ctx->tt)
+    bgav_track_table_unref(ctx->tt);
+    
   bgav_metadata_free(&(ctx->metadata));
   //  free(ctx);
   

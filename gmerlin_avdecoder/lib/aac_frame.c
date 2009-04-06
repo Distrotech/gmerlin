@@ -48,6 +48,8 @@ typedef struct
   int max_sfb;
   int common_window;
   int window_sequence;
+  
+  uint8_t sfb_cb[8][8*15];
   } aac_state_t;
 
 #define ONLY_LONG_SEQUENCE   0
@@ -125,8 +127,44 @@ static int section_data(bgav_aac_header_t * h,
     {
     
     }
+  return 0;
   }
-     
+
+static int scale_factor_data(bgav_aac_header_t * h,
+                             bgav_bitstream_t * b,
+                             aac_state_t * st)
+  {
+  return 0;
+  }
+
+static int pulse_data(bgav_aac_header_t * h,
+                      bgav_bitstream_t * b,
+                      aac_state_t * st)
+  {
+  return 0;
+  }
+
+static int tns_data(bgav_aac_header_t * h,
+                    bgav_bitstream_t * b,
+                    aac_state_t * st)
+  {
+  return 0;
+  }
+
+static int gain_control_data(bgav_aac_header_t * h,
+                             bgav_bitstream_t * b,
+                             aac_state_t * st)
+  {
+  return 0;
+  }
+
+static int spectral_data(bgav_aac_header_t * h,
+                         bgav_bitstream_t * b,
+                         aac_state_t * st)
+  {
+  return 0;
+  }
+
 static int individial_channel_stream(bgav_aac_header_t * h,
                                      bgav_bitstream_t * b,
                                      aac_state_t * st, int common_window)
@@ -140,8 +178,44 @@ static int individial_channel_stream(bgav_aac_header_t * h,
     if(!ics_info(h, b, st))
       return 0;
     }
+
+  if(!section_data(h, b, st))
+    return 0;
   
-  return 0;
+  if(!scale_factor_data(h, b, st))
+    return 0;
+
+  if(!bgav_bitstream_get(b, &dummy, 1)) // pulse_data_present
+    return 0;
+
+  if(dummy)
+    {
+    if(!pulse_data(h, b, st))
+      return 0;
+    }
+
+  if(!bgav_bitstream_get(b, &dummy, 1)) // tns_data_present
+    return 0;
+
+  if(dummy)
+    {
+    if(!tns_data(h, b, st))
+      return 0;
+    }
+
+  if(!bgav_bitstream_get(b, &dummy, 1)) // gain_control_data_present
+    return 0;
+
+  if(dummy)
+    {
+    if(!gain_control_data(h, b, st))
+      return 0;
+    }
+  
+  if(!spectral_data(h, b, st))
+    return 0;
+  
+  return 1;
   }
      
 static int single_channel_element(bgav_aac_header_t * h,
@@ -226,6 +300,8 @@ int bgav_aac_frame_parse(bgav_aac_header_t * h,
       case 2: // ID_CCE
         break;
       case 3: // ID_LFE
+        if(!single_channel_element(h, &b, &st))
+          return 0;
         break;
       case 4: // ID_DSE
         break;
