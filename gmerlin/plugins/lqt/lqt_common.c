@@ -226,8 +226,9 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
   }
 
 static const void * get_value(lqt_parameter_info_t * lqt_parameter_info,
-                        const char * name,
-                        const bg_parameter_value_t * val, float * dummy_f)
+                              const char * name,
+                              const bg_parameter_value_t * val,
+                              float * dummy_f)
   {
   int index;
   index = 0;

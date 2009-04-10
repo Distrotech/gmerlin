@@ -55,6 +55,7 @@ bg_chapter_list_t * bg_chapter_list_copy(const bg_chapter_list_t * list)
     ret->chapters[i].name = bg_strdup(ret->chapters[i].name,
                                       list->chapters[i].name);
     }
+  ret->timescale = list->timescale;
   return ret;
   }
 

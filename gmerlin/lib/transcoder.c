@@ -3385,7 +3385,8 @@ static void cleanup_audio_stream(audio_stream_t * s)
     gavl_audio_frame_destroy(s->pipe_frame);
   if(s->cnv_out)
     gavl_audio_converter_destroy(s->cnv_out);
-
+  if(s->fc)
+    bg_audio_filter_chain_destroy(s->fc);
   if(s->volume_control)
     gavl_volume_control_destroy(s->volume_control);
   if(s->peak_detector)

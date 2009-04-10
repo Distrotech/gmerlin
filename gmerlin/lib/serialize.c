@@ -151,6 +151,7 @@ static inline uint8_t * set_64(uint8_t * data, uint64_t val)
   return data;
   }
 
+#if 0
 static int str_len(const char * str)
   {
   int ret = 4;
@@ -158,6 +159,7 @@ static int str_len(const char * str)
     ret += strlen(str);
   return ret;
   }
+#endif
 
 static inline uint8_t * set_str(uint8_t * data, const char * val)
   {

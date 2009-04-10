@@ -25,7 +25,6 @@
 
 int main(int argc, char ** argv)
   {
-  double psnr[4];
     
   gavl_video_format_t format_1;
   gavl_video_format_t format_2;
@@ -38,7 +37,6 @@ int main(int argc, char ** argv)
   bg_cfg_section_t * cfg_section;
   bg_plugin_registry_t * plugin_reg;
   char * tmp_path;
-  int index;
 
   memset(&format_1, 0, sizeof(format_1));
   memset(&format_2, 0, sizeof(format_2));
