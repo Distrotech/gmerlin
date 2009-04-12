@@ -388,15 +388,18 @@ static int close_lqt(void * data, int do_delete)
   {
   int i;
   char * filename_final, *pos;
+  int num_chapters;
   e_lqt_t * e = (e_lqt_t*)data;
-
+  
   if(!e->file)
     return 1;
-
+  
   if(!(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)) &&
      e->chapter_list)
     {
-    /* Write chapter information */
+    /* Count the chapters actually written */
+
+    num_chapters = 0;
     for(i = 0; i < e->chapter_list->num_chapters; i++)
       {
       if(e->chapter_list->chapters[i].time > e->duration)
@@ -409,7 +412,14 @@ static int close_lqt(void * data, int do_delete)
                gavl_time_to_seconds(e->duration));
         break;
         }
-      if(i < e->chapter_list->num_chapters-1)
+      else
+        num_chapters++;
+      }
+    
+    /* Write chapter information */
+    for(i = 0; i < num_chapters; i++)
+      {
+      if(i < num_chapters-1)
         {
         if(lqt_write_text(e->file, e->chapter_track_id,
                           e->chapter_list->chapters[i].name,
