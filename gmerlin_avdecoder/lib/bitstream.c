@@ -75,6 +75,39 @@ int bgav_bitstream_get_bits(bgav_bitstream_t * b)
   return b->bit_cache + 8 * (b->end - b->pos);
   }
 
+int bgav_bitstream_peek(bgav_bitstream_t * b, int * ret, int bits)
+  {
+  int64_t tmp;
+  int result;
+  
+  /* State is saved here */
+  const uint8_t * pos;
+  int bit_cache;
+  uint8_t c;
+
+  /* Save state */
+  pos       = b->pos;
+  bit_cache = b->bit_cache;
+  c         = b->c;
+  
+  result = bgav_bitstream_get_long(b, &tmp, bits);
+
+  /* Restore state */
+  b->pos       = pos;
+  b->bit_cache = bit_cache;
+  b->c         = c;
+
+  *ret = tmp;
+  
+  return result;
+  }
+
+int bgav_bitstream_skip(bgav_bitstream_t * b, int bits)
+  {
+  int64_t tmp;
+  return bgav_bitstream_get_long(b, &tmp, bits);
+  }
+
 /* golomb parsing */
 
 int bgav_bitstream_get_golomb_ue(bgav_bitstream_t * b, int * ret)

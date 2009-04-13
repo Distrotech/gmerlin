@@ -36,6 +36,12 @@ int bgav_bitstream_get(bgav_bitstream_t * b, int * ret,  int bits);
 int bgav_bitstream_get_long(bgav_bitstream_t * b, int64_t * ret,  int bits);
 int bgav_bitstream_get_bits(bgav_bitstream_t * b);
 
+int bgav_bitstream_peek(bgav_bitstream_t * b, int * ret, int bits);
+int bgav_bitstream_skip(bgav_bitstream_t * b, int bits);
+
+
+/* Special parsing functions */
+
 int bgav_bitstream_get_golomb_ue(bgav_bitstream_t * b, int * ret);
 int bgav_bitstream_get_golomb_se(bgav_bitstream_t * b, int * ret);
 int bgav_bitstream_decode012(bgav_bitstream_t * b, int * ret);
