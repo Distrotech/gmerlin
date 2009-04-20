@@ -665,6 +665,8 @@ int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
 
     for(i = 0; i < d->ach; i++)
       pcm[i] = p->audio_frame->channels.u_8[i*2];
+    for(i = d->ach; i < 4; i++)
+      pcm[i] = NULL;
     
     samples = dv_extract_audio(d->buffer,
                                pcm, d->profile);
