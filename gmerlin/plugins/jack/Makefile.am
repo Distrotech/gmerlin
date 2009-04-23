@@ -1,0 +1,16 @@
+INCLUDES = -I$(top_srcdir)/include
+
+AM_CFLAGS = @JACK_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
+AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
+
+libdir=@GMERLIN_PLUGIN_DIR@
+
+lib_LTLIBRARIES = oa_jack.la
+
+oa_jack_la_SOURCES = oa_jack.c
+# i_jack_la_SOURCES  = i_jack.c
+
+oa_jack_la_LIBADD = @GMERLIN_DEP_LIBS@ @JACK_LIBS@ @MODULE_LIBADD@
+# i_jack_la_LIBADD = @GMERLIN_DEP_LIBS@ @JACK_LIBS@ @MODULE_LIBADD@
+
+# noinst_HEADERS = jack_common.h

@@ -58,6 +58,12 @@ else
 alsa_subdirs = 
 endif
 
+if HAVE_JACK
+jack_subdirs = jack
+else
+jack_subdirs = 
+endif
+
 if HAVE_PULSEAUDIO
 pulseaudio_subdirs = pulseaudio
 else
@@ -77,6 +83,7 @@ gavl \
 videofilters \
 visualization \
 $(alsa_subdirs) \
+$(jack_subdirs) \
 $(lqt_subdirs) \
 $(jpeg_subdirs) \
 $(esd_subdirs) \

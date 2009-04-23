@@ -387,6 +387,7 @@ static int write_subtitle_text_lqt(void * data,const char * text,
 static int close_lqt(void * data, int do_delete)
   {
   int i;
+  gavl_time_t chapter_time;
   char * filename_final, *pos;
   int num_chapters;
   e_lqt_t * e = (e_lqt_t*)data;
@@ -398,17 +399,19 @@ static int close_lqt(void * data, int do_delete)
      e->chapter_list)
     {
     /* Count the chapters actually written */
-
+    
     num_chapters = 0;
     for(i = 0; i < e->chapter_list->num_chapters; i++)
       {
-      if(e->chapter_list->chapters[i].time > e->duration)
+      chapter_time = gavl_time_unscale(e->chapter_list->timescale,
+                                       e->chapter_list->chapters[i].time);
+      
+      if(chapter_time > e->duration)
         {
         bg_log(BG_LOG_WARNING, LOG_DOMAIN,
                "Omitting chapter %d: time (%f) > duration (%f)",
                i+1,
-               gavl_time_to_seconds(gavl_time_unscale(e->chapter_list->timescale,
-                                                      e->chapter_list->chapters[i].time)),
+               gavl_time_to_seconds(chapter_time),
                gavl_time_to_seconds(e->duration));
         break;
         }
