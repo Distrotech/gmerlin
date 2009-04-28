@@ -27,6 +27,8 @@
 #include <audio.h>
 #include <mix.h>
 
+// #define DUMP_MATRIX
+
 /*
  *   Mixing coefficients (should be made variable)
  */
@@ -48,12 +50,12 @@
 
 #define CLAMP(x,a,b) if(x<a)x=a;if(x>b)x=b;
 
-#if 0
+#ifdef DUMP_MATRIX
 
 static void input_channel_dump(gavl_mix_input_channel_t * c)
   {
-  fprintf(stderr, "Index: %d, Factor [ 0x%02x 0x%04x 0x%08x %f ]\n",
-          c->index, c->factor.f_8, c->factor.f_16, c->factor.f_32, c->factor.f_float);
+  fprintf(stderr, "Index: %d, Factor [ 0x%08x %f ]\n",
+          c->index, c->factor.f_int, c->factor.f_float);
   }
 
 static void output_channel_dump(gavl_mix_output_channel_t * c)
@@ -85,7 +87,7 @@ void gavl_mix_audio(gavl_audio_convert_context_t * ctx)
     }
   }
 
-#if 0
+#ifdef DUMP_MATRIX
 
 static void dump_matrix(gavl_audio_format_t * in,
                         gavl_audio_format_t * out,
@@ -127,15 +129,9 @@ static void normalize_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
     if(ampl > max_ampl)
       max_ampl = ampl;
     }
-
-  //  dump_matrix(in, out, ret);
-  
   for(i = 0; i < out_channels; i++)
     for(j = 0; j < in_channels; j++)
       ret[i][j] /= max_ampl;
-
-  
-  
   }
 
 #define IN_INDEX(id)  in_index  = gavl_channel_index(in, id);  if(in_index < 0)  goto fail;
@@ -666,6 +662,9 @@ static void init_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
     }
 
   normalize_matrix(ret, in->num_channels, out->num_channels);
+#ifdef DUMP_MATRIX
+  dump_matrix(in, out, ret);
+#endif
   return;
   
   fail:
@@ -692,14 +691,14 @@ static void set_factor(gavl_mix_input_channel_t * ret,
     {
     case GAVL_SAMPLE_U8:
     case GAVL_SAMPLE_S8:
-      ret->factor.f_8 =     (int8_t)(fac * INT8_MAX + 0.5);
+      ret->factor.f_int =    (int)(fac * INT8_MAX + 0.5);
       break;
     case GAVL_SAMPLE_U16:
     case GAVL_SAMPLE_S16:
-      ret->factor.f_16 =    (int16_t)(fac * INT16_MAX + 0.5);
+      ret->factor.f_int =    (int)(fac * INT16_MAX + 0.5);
       break;
     case GAVL_SAMPLE_S32:
-      ret->factor.f_32 =    (int32_t)(fac * (INT32_MAX>>1) + 0.5);
+      ret->factor.f_int =    (int)(fac * (INT32_MAX>>1) + 0.5);
       break;
     case GAVL_SAMPLE_FLOAT:
     case GAVL_SAMPLE_DOUBLE:
@@ -750,9 +749,11 @@ static void init_context(gavl_mix_matrix_t * ctx,
        (fabs(matrix[i][ctx->output_channels[i].inputs[0].index]- 1.0) < 0.01))
       {
       ctx->output_channels[i].func = tab.copy_func;
-#if 0
-      fprintf(stderr, "Copying channel %s to %s\n",
+#ifdef DUMP_MATRIX
+      fprintf(stderr, "Copying channel %d [%s] to %d [%s]\n",
+              ctx->output_channels[i].inputs[0].index,
               gavl_channel_id_to_string(in_format->channel_locations[ctx->output_channels[i].inputs[0].index]),
+              i,
               gavl_channel_id_to_string(out_format->channel_locations[i]));
 #endif
       }
@@ -782,8 +783,9 @@ static void init_context(gavl_mix_matrix_t * ctx,
           break;
         }
       }
-
-    //    output_channel_dump(&(ctx->output_channels[i]));
+#ifdef DUMP_MATRIX
+    output_channel_dump(&(ctx->output_channels[i]));
+#endif
     }
   
   //  fprintf(stderr, "done\n");

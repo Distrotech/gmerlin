@@ -34,7 +34,7 @@
 #define RENAME(a) a ## _s8
 #define SRC(i,j)      input_frame->channels.s_8[SRC_INDEX(i)][j]
 #define SETDST(i,val) output_frame->channels.s_8[channel->index][i]=val
-#define FACTOR(i)     channel->inputs[i].factor.f_8
+#define FACTOR(i)     channel->inputs[i].factor.f_int
 #define SAMPLE_TYPE   int8_t
 #define TMP_TYPE      int
 #define ADJUST_TMP(i) i/=0x100;CLAMP(i, INT8_MIN, INT8_MAX)
@@ -66,7 +66,7 @@
 #define RENAME(a) a ## _s16
 #define SRC(i,j)      input_frame->channels.s_16[SRC_INDEX(i)][j]
 #define SETDST(i,val) output_frame->channels.s_16[channel->index][i]=val
-#define FACTOR(i)     channel->inputs[i].factor.f_16
+#define FACTOR(i)     channel->inputs[i].factor.f_int
 #define SAMPLE_TYPE   int16_t
 #define TMP_TYPE      int
 #define ADJUST_TMP(i) i/=0x10000;CLAMP(i, INT16_MIN, INT16_MAX)
@@ -98,7 +98,7 @@
 #define RENAME(a) a ## _s32
 #define SRC(i,j)      input_frame->channels.s_32[SRC_INDEX(i)][j]
 #define SETDST(i,val) output_frame->channels.s_32[channel->index][i]=val
-#define FACTOR(i)     channel->inputs[i].factor.f_32
+#define FACTOR(i)     channel->inputs[i].factor.f_int
 #define SAMPLE_TYPE   int32_t
 #define TMP_TYPE      int64_t
 #define ADJUST_TMP(i) i/=0x80000000LL;CLAMP(i, INT32_MIN, INT32_MAX)
