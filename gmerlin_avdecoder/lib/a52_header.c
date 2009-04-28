@@ -57,7 +57,8 @@ int bgav_a52_header_read(bgav_a52_header_t * ret, uint8_t * buf)
 
   int cmixlev;
   int smixlev;
-  
+
+  memset(ret, 0, sizeof(*ret));
   
   if ((buf[0] != 0x0b) || (buf[1] != 0x77))   /* syncword */
     {
