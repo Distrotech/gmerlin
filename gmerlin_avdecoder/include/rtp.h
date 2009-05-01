@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <pthread.h> // For the mutex
+
 #include <sdp.h>
 
 extern bgav_demuxer_t bgav_demuxer_rtp;
