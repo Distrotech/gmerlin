@@ -318,12 +318,23 @@ dnl
 
 AH_TEMPLATE([HAVE_W32DLL], [ Win32 dll loader enabled ])
 
+AC_ARG_ENABLE(win32,
+[AC_HELP_STRING([--disable-win32],[Disable win32 DLLs (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_w32dll=true ;;
+   no)  test_w32dll=false ;;
+esac],[test_w32dll=true])
+
 enable_w32dll="false"
+
+if test "x$test_w32dll" = "true"; then
 
 if test x"$GCC" = x"yes"; then
  case "$host_cpu" in
     i?86 | k?-* | athlon | pentium) enable_w32dll="true"
  esac
+fi
+
 fi
 
 if test "x$enable_w32dll" = "xtrue"; then
@@ -682,6 +693,8 @@ echo "=== Other features: ============================"
 echo -n "win32 DLL Support:      "
 if test "x$enable_w32dll" = "xtrue"; then
 echo "Enabled"
+elif test "x$test_w32dll" = "xfalse"; then
+echo "Disabled by user"
 else
 echo "Disabled (Unsupported Architecture)"
 fi
