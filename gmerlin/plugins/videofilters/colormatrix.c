@@ -25,7 +25,7 @@
 #include <config.h>
 
 #include <gavl/gavl.h>
-#include <colormatrix.h>
+#include "colormatrix.h"
 #include <gmerlin/translation.h>
 
 #include <gmerlin/log.h>

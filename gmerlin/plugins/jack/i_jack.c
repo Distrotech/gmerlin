@@ -145,7 +145,7 @@ static int read_frame_jack(void * p, gavl_audio_frame_t * f,
     while(samples_read < num_samples)
       {
       result = jack_ringbuffer_read(priv->ports[i].buffer,
-                                    f->channels.f[i] + samples_read,
+                                    (char*)(f->channels.f[i] + samples_read),
                                     (num_samples - samples_read) *
                                     sizeof(float));
       samples_read += result / sizeof(float);

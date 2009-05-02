@@ -28,141 +28,149 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 
+#include "../videofilters/colormatrix.h"
+
 #define LOG_DOMAIN "vis_scope"
 
-#define BLUR_MODE_GAUSS      0
-#define BLUR_MODE_TRIANGULAR 1
-#define BLUR_MODE_BOX        2
-
-
-typedef struct
+typedef struct scope_priv_s
   {
   gavl_video_format_t video_format;
   gavl_audio_format_t audio_format;
   
-  gavl_video_scaler_t * scaler;
-  
   float fg_float[3];
+
   uint32_t fg_int;
   
   gavl_audio_frame_t * audio_frame;
 
   gavl_video_frame_t * last_video_frame;
+  gavl_video_frame_t * tmp_video_frame;
 
-  int blur_mode;
-  float blur_radius;
+
+  /* Damn simple beat detection */
+  float energy;
+  int beat;
+
+  /* Foreground drawing function */
+  void (*draw_fg)(struct scope_priv_s *, gavl_video_frame_t *);
+  int fg_index;
+
+  /* Transforms */
+  gavl_image_transform_t * transform_sin;
+  gavl_image_transform_t * transform_cos;
+  gavl_image_transform_t * transform_rotate_left;
+  gavl_image_transform_t * transform_rotate_right;
+  gavl_image_transform_t * transform_lens;
+
+  gavl_image_transform_t * transform_zoom_in;
+  gavl_image_transform_t * transform_zoom_out;
+
+  gavl_image_transform_t * transform_current;
+  int transform_index;
   
-  int changed;
-  float fade_factor;
+  double sin_rotate;
+  double cos_rotate;
+
+  float half_width;
+  float half_height;
   
-  gavl_video_options_t * scaler_opt;
+  /* Colormatrix */
+  bg_colormatrix_t * colormatrix;
+
+  int colormatrix_index;
+  
+  gavl_video_options_t * opt;
+
+  int fg_color_index;
+
+  gavl_video_scaler_t * scaler;
   
   } scope_priv_t;
 
-static float get_coeff_rectangular(float radius)
+/* Random functions */
+
+static float scope_random(float min, float max);
+
+int scope_random_int(int min, int max);
+
+/* return 1 with a probability of p */
+
+int scope_decide(float p);
+
+/* Foreground drawing functions */
+
+static void draw_fg_scope(scope_priv_t * vp, gavl_video_frame_t * frame);
+static void draw_fg_vectorscope(scope_priv_t * vp, gavl_video_frame_t * frame);
+static void draw_fg_vectorscope_dots(scope_priv_t * vp, gavl_video_frame_t * frame);
+     
+static const struct
   {
-  if(radius <= 1.0)
-    return radius;
-  return 1.0;
+  void (*func)(struct scope_priv_s *, gavl_video_frame_t *);
   }
-
-static float get_coeff_triangular(float radius)
+fg_funcs[] =
   {
-  if(radius <= 1.0)
-    return 1.0 - (1.0-radius)*(1.0-radius);
-  return 1.0;
-  }
+    { draw_fg_scope },
+    { draw_fg_vectorscope },
+    { draw_fg_vectorscope_dots },
+  };
 
-static float get_coeff_gauss(float radius)
-  {
-  return erf(radius);
-  }
+static const int num_fg_funcs =
+sizeof(fg_funcs) / sizeof(fg_funcs[0]);
 
+/* Transformations */
 
-static float * get_coeffs(float radius, int * r_i, int mode, float fade_factor)
-  {
-  float sum;
-  float * ret;
-  float coeff, last_coeff;
-  int i;
-  float (*get_coeff)(float);
-  if(radius == 0.0)
-    return (float*)0;
-  switch(mode)
-    {
-    case BLUR_MODE_GAUSS:
-      get_coeff = get_coeff_gauss;
-      *r_i = 2*(int)(radius + 0.4999);
-      break;
-    case BLUR_MODE_TRIANGULAR:
-      get_coeff = get_coeff_triangular;
-      *r_i = (int)(radius + 0.4999);
-      break;
-    case BLUR_MODE_BOX:
-      get_coeff = get_coeff_rectangular;
-      *r_i = (int)(radius + 0.4999);
-      break;
-    default:
-      return (float*)0;
-    }
-  if(*r_i < 1)
-    return (float*)0;
-  /* Allocate and set return values */
-  ret = malloc(((*r_i * 2) + 1)*sizeof(*ret));
+static void
+transform_sin(void *priv, double xdst, double ydst, double *xsrc, double *ysrc);
+static void
+transform_cos(void *priv, double xdst, double ydst, double *xsrc, double *ysrc);
+static void
+transform_rotate_left(void *priv, double xdst, double ydst, double *xsrc, double *ysrc);
+static void
+transform_rotate_right(void *priv, double xdst, double ydst, double *xsrc, double *ysrc);
+static void
+transform_lens(void *priv, double xdst, double ydst, double *xsrc, double *ysrc);
 
-//  ret[*r_i] =   
-  last_coeff = 0.0;
-  coeff = get_coeff(0.5 / radius);
-  ret[*r_i] = 2.0 * coeff;
-  
-  for(i = 1; i <= *r_i; i++)
-    {
-    last_coeff = coeff;
-    coeff = get_coeff((i) / radius);
-    ret[*r_i+i] = coeff - last_coeff;
-    ret[*r_i-i] = ret[*r_i+i];
-    }
+static void
+transform_zoom_in(void *priv, double xdst, double ydst, double *xsrc, double *ysrc);
+static void
+transform_zoom_out(void *priv, double xdst, double ydst, double *xsrc, double *ysrc);
 
-  sum = 0.0;
-  for(i = 0; i < (2 * *r_i) + 1; i++)
-    sum += ret[i];
-
-  for(i = 0; i < (2 * *r_i) + 1; i++)
-    ret[i] *= fade_factor / sum;
-  
-  return ret;
-  }
-
-
-static void init_scaler(scope_priv_t * vp)
-  {
-  float * blur_coeffs;
-  int num_blur_coeffs = 0;
-  blur_coeffs = get_coeffs(vp->blur_radius, &num_blur_coeffs, vp->blur_mode, vp->fade_factor);
-  
-  gavl_video_scaler_init_convolve(vp->scaler,
-                                  &vp->video_format,
-                                  num_blur_coeffs, blur_coeffs,
-                                  num_blur_coeffs, blur_coeffs);
-  if(blur_coeffs) free(blur_coeffs);
-  
-  }
-
+/* */
 
 static void * create_scope()
   {
   scope_priv_t * ret;
-  int flags;
   ret = calloc(1, sizeof(*ret));
-  ret->scaler = gavl_video_scaler_create();
-  ret->scaler_opt = gavl_video_scaler_get_options(ret->scaler);
-
-  //  gavl_video_options_set_quality(ret->scaler_opt, 3);
-
-  flags = gavl_video_options_get_conversion_flags(ret->scaler_opt);
-  flags &= ~GAVL_CONVOLVE_NORMALIZE;
-  gavl_video_options_set_conversion_flags(ret->scaler_opt, flags);
   
+  ret->opt = gavl_video_options_create();
+  gavl_video_options_set_scale_mode(ret->opt, GAVL_SCALE_BILINEAR);
+  
+  //  gavl_video_options_set_quality(ret->scaler_opt, 3);
+  
+  //  ret->draw_fg = draw_fg_scope;
+  //  ret->draw_fg = draw_fg_vectorscope;
+  ret->draw_fg = draw_fg_vectorscope_dots;
+  
+  ret->transform_sin = gavl_image_transform_create();
+  ret->transform_cos = gavl_image_transform_create();
+  ret->transform_rotate_left = gavl_image_transform_create();
+  ret->transform_rotate_right = gavl_image_transform_create();
+  ret->transform_lens = gavl_image_transform_create();
+  ret->transform_zoom_in = gavl_image_transform_create();
+  ret->transform_zoom_out = gavl_image_transform_create();
+
+  ret->scaler = gavl_video_scaler_create();
+  
+  gavl_video_options_copy(gavl_image_transform_get_options(ret->transform_sin),
+                          ret->opt);
+  
+  
+  ret->colormatrix = bg_colormatrix_create();
+  
+  ret->sin_rotate = sin(0.05);
+  ret->cos_rotate = cos(0.05);
+
+
   return ret;
   }
 
@@ -175,120 +183,48 @@ static void destroy_scope(void * priv)
     gavl_audio_frame_destroy(vp->audio_frame);
   if(vp->last_video_frame)
     gavl_video_frame_destroy(vp->last_video_frame);
-  
+  if(vp->tmp_video_frame)
+    gavl_video_frame_destroy(vp->tmp_video_frame);
+
+  gavl_image_transform_destroy(vp->transform_sin);
+  gavl_image_transform_destroy(vp->transform_cos);
+  gavl_image_transform_destroy(vp->transform_rotate_left);
+  gavl_image_transform_destroy(vp->transform_rotate_right);
+  gavl_image_transform_destroy(vp->transform_lens);
+  gavl_image_transform_destroy(vp->transform_zoom_in);
+  gavl_image_transform_destroy(vp->transform_zoom_out);
+
+  bg_colormatrix_destroy(vp->colormatrix);
+
   gavl_video_scaler_destroy(vp->scaler);
+  
+  gavl_video_options_destroy(vp->opt);
+  
   free(vp);
   }
 
-static const bg_parameter_info_t parameters[] =
+static float cm_coeffs_r[3][4] =
   {
-    {
-      .gettext_domain = PACKAGE,
-      .gettext_directory = LOCALE_DIR,
-      .name = "fg_color",
-      .long_name = TRS("Foreground color"),
-      .type = BG_PARAMETER_COLOR_RGB,
-      .flags = BG_PARAMETER_SYNC,
-      .val_default = { .val_color = { 1.0, 1.0, 0.0 } },
-    },
-    {
-      .name = "blur_mode",
-      .long_name = TRS("Blur mode"),
-      .type = BG_PARAMETER_STRINGLIST,
-      .flags = BG_PARAMETER_SYNC,
-      .val_default = { .val_str = "gauss" },
-      .multi_names = (char const *[]){ "gauss", "triangular", "box", 
-                              (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Gauss"), 
-                               TRS("Triangular"), 
-                               TRS("Rectangular"),
-                              (char*)0 },
-    },
-    {
-      .name = "blur_radius",
-      .long_name = TRS("Blur radius"),
-      .type = BG_PARAMETER_FLOAT,
-      .flags = BG_PARAMETER_SYNC,
-      .val_min = { .val_f =  1.0 },
-      .val_max = { .val_f = 50.0 },
-      .val_default = { .val_f =  1.0 },
-      .num_digits = 1,
-    },
-    {
-      .name = "fade_factor",
-      .long_name = TRS("Fade factor"),
-      .type = BG_PARAMETER_SLIDER_FLOAT,
-      .flags = BG_PARAMETER_SYNC,
-      .val_min = { .val_f =  0.1 },
-      .val_max = { .val_f =  1.0 },
-      .val_default = { .val_f =  0.98 },
-      .num_digits = 2,
-    },
-    { /* End of parameters */ },
+    { 0.98, 0.00, 0.0,  0.0 },
+    { 0.09, 0.89, 0.0,  0.0 },
+    { 0.09, 0.00, 0.89, 0.0 },
   };
 
-static const bg_parameter_info_t * get_parameters_scope(void * priv)
+static float cm_coeffs_g[3][4] =
   {
-  return parameters;
-  }
+    { 0.89, 0.09, 0.0,  0.0 },
+    { 0.0,  0.98, 0.0,  0.0 },
+    { 0.0,  0.09, 0.89, 0.0 },
+  };
 
-static void
-set_parameter_scope(void * priv, const char * name,
-                    const bg_parameter_value_t * val)
+static float cm_coeffs_b[3][4] =
   {
-  uint8_t fg_r, fg_g, fg_b;
-  
-  scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+    { 0.89, 0.00, 0.09,  0.0 },
+    { 0.0,  0.89, 0.09,  0.0 },
+    { 0.0,  0.00, 0.98, 0.0 },
+  };
 
-  if(!name)
-    return;
-  
-  if(!strcmp(name, "fg_color"))
-    {
-    vp->fg_float[0] = val->val_color[0];
-    vp->fg_float[1] = val->val_color[1];
-    vp->fg_float[2] = val->val_color[2];
-
-    /* Set foreground color */
-    fg_r = (int)(vp->fg_float[0] * 255.0 + 0.5);
-    fg_g = (int)(vp->fg_float[1] * 255.0 + 0.5);
-    fg_b = (int)(vp->fg_float[2] * 255.0 + 0.5);
-    
-#ifndef WORDS_BIGENDIAN
-    vp->fg_int = fg_r | (fg_g << 8) | (fg_b << 16) | 0xff000000;
-#else
-    vp->fg_int = (fg_r<<24) | (fg_g << 16) | (fg_b << 8) | 0x000000ff;
-#endif
-    
-    }
-  else if(!strcmp(name, "blur_mode"))
-    {
-    if(!strcmp(val->val_str, "gauss"))
-      vp->blur_mode = BLUR_MODE_GAUSS;
-    else if(!strcmp(val->val_str, "triangular"))
-      vp->blur_mode = BLUR_MODE_TRIANGULAR;
-    else if(!strcmp(val->val_str, "box"))
-      vp->blur_mode = BLUR_MODE_BOX;
-    vp->changed = 1;
-    }
-  else if(!strcmp(name, "blur_radius"))
-    {
-    if(vp->blur_radius != val->val_f)
-      {
-      vp->blur_radius = val->val_f;
-      vp->changed = 1;
-      }
-    }
-  else if(!strcmp(name, "fade_factor"))
-    {
-    if(vp->fade_factor != val->val_f)
-      {
-      vp->fade_factor = val->val_f;
-      vp->changed = 1;
-      }
-    }
-  }
+static const float blur_coeffs[] = { 0.05, 0.9, 0.05 };
 
 static int
 open_scope(void * priv, gavl_audio_format_t * audio_format,
@@ -319,13 +255,12 @@ open_scope(void * priv, gavl_audio_format_t * audio_format,
   audio_format->sample_format = GAVL_SAMPLE_FLOAT;
   audio_format->interleave_mode = GAVL_INTERLEAVE_NONE;
   audio_format->samples_per_frame = video_format->image_width;
+
+  /* Force stereo */
+  audio_format->num_channels = 2;
+  audio_format->channel_locations[0] = GAVL_CHID_NONE;
+  gavl_set_channel_setup(audio_format);
   
-  if(audio_format->num_channels > 2)
-    {
-    audio_format->num_channels = 2;
-    audio_format->channel_locations[0] = GAVL_CHID_NONE;
-    gavl_set_channel_setup(audio_format);
-    }
   gavl_video_format_copy(&vp->video_format, video_format);
   gavl_audio_format_copy(&vp->audio_format, audio_format);
 
@@ -334,19 +269,298 @@ open_scope(void * priv, gavl_audio_format_t * audio_format,
     gavl_audio_frame_destroy(vp->audio_frame);
   if(vp->last_video_frame)
     gavl_video_frame_destroy(vp->last_video_frame);
+  if(vp->tmp_video_frame)
+    gavl_video_frame_destroy(vp->tmp_video_frame);
 
   vp->audio_frame = gavl_audio_frame_create(&vp->audio_format);
   gavl_audio_frame_mute(vp->audio_frame, &vp->audio_format);
 
   vp->last_video_frame = gavl_video_frame_create(&vp->video_format);
   gavl_video_frame_clear(vp->last_video_frame, &vp->video_format);
-  
 
-  /* Initialize scaler */
-  init_scaler(vp);
+  vp->tmp_video_frame = gavl_video_frame_create(&vp->video_format);
+  gavl_video_frame_clear(vp->tmp_video_frame, &vp->video_format);
+  
+  /* Init transformations */
+  vp->half_width  = (float)vp->video_format.image_width*0.5;
+  vp->half_height = (float)vp->video_format.image_height*0.5;
+#if 1
+  gavl_image_transform_init(vp->transform_sin,
+                            video_format, transform_sin, vp);
+  gavl_image_transform_init(vp->transform_cos,
+                            video_format, transform_cos, vp);
+
+  gavl_image_transform_init(vp->transform_rotate_left,
+                            video_format, transform_rotate_left, vp);
+
+  gavl_image_transform_init(vp->transform_rotate_right,
+                            video_format, transform_rotate_right, vp);
+
+  gavl_image_transform_init(vp->transform_zoom_in,
+                            video_format, transform_zoom_in, vp);
+  gavl_image_transform_init(vp->transform_zoom_out,
+                            video_format, transform_zoom_out, vp);
+#endif
+  gavl_image_transform_init(vp->transform_lens,
+                            video_format, transform_lens, vp);
+
+  gavl_video_scaler_init_convolve(vp->scaler,
+                                  video_format,
+                                  1, blur_coeffs,
+                                  1, blur_coeffs);
+  
+  /* Init colormatrix */
+  
+  bg_colormatrix_init(vp->colormatrix,
+                      video_format, 0,
+                      vp->opt);
+  
+  bg_colormatrix_set_rgb(vp->colormatrix, cm_coeffs_r);
+
   
   return 1;
   }
+
+static void set_fg_func(scope_priv_t * vp)
+  {
+  int index;
+  index = scope_random_int(0, num_fg_funcs - 2);
+  if(index >= vp->fg_index)
+    index++;
+  vp->fg_index = index;
+  vp->draw_fg = fg_funcs[vp->fg_index].func;
+  }
+
+static void set_transform(scope_priv_t * vp)
+  {
+  int index;
+  index = scope_random_int(0, 4);
+  if(index >= vp->transform_index)
+    index++;
+  
+  vp->transform_index = index;
+
+  switch(vp->transform_index)
+    {
+    case 0:
+      vp->transform_current = vp->transform_sin;
+      break;
+    case 1:
+      vp->transform_current = vp->transform_cos;
+      break;
+    case 2:
+      if(scope_decide(0.5))
+        vp->transform_current = vp->transform_rotate_left;
+      else
+        vp->transform_current = vp->transform_rotate_right;
+      break;
+    case 3:
+      vp->transform_current = vp->transform_lens;
+      break;
+    case 4:
+      vp->transform_current = vp->transform_zoom_out;
+      break;
+    case 5:
+      vp->transform_current = vp->transform_zoom_in;
+      break;
+    }
+  }
+
+static void set_colormatrix(scope_priv_t * vp)
+  {
+  int index;
+  index = scope_random_int(0, 1);
+  if(index >= vp->colormatrix_index)
+    index++;
+
+  vp->colormatrix_index = index;
+
+  switch(index)
+    {
+    case 0:
+      bg_colormatrix_set_rgb(vp->colormatrix, cm_coeffs_r);
+      break;
+    case 1:
+      bg_colormatrix_set_rgb(vp->colormatrix, cm_coeffs_g);
+      break;
+    case 2:
+      bg_colormatrix_set_rgb(vp->colormatrix, cm_coeffs_b);
+      break;
+    }
+  }
+
+static const struct
+  {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  }
+fg_colors[] =
+  {
+    { 0xff, 0x00, 0x00 },
+    { 0x00, 0xff, 0x00 },
+    { 0xff, 0xff, 0x00 },
+    { 0x00, 0x00, 0xff },
+    { 0xff, 0x00, 0xff },
+    { 0x00, 0xff, 0xff },
+    { 0xff, 0x80, 0x80 },
+    { 0x80, 0xff, 0x80 },
+    { 0x80, 0x80, 0xff },
+  };
+
+static const int num_fg_colors = sizeof(fg_colors)/sizeof(fg_colors[0]);
+
+static void set_fg_color(scope_priv_t * vp)
+  {
+  int index;
+  index = scope_random_int(0, num_fg_colors-2);
+  if(index >= vp->fg_color_index)
+    index++;
+
+  vp->fg_color_index = index;
+  
+#ifndef WORDS_BIGENDIAN
+  vp->fg_int = fg_colors[index].r |
+    (fg_colors[index].g << 8) |
+    (fg_colors[index].b << 16) | 0xff000000;
+#else
+  vp->fg_int = (fg_colors[index].r<<24) |
+    (fg_colors[index].g << 16) |
+    (fg_colors[index].b << 8) | 0x000000ff;
+#endif
+  }
+
+static void draw_frame_scope(void * priv, gavl_video_frame_t * frame)
+  {
+  scope_priv_t * vp;
+
+  vp = (scope_priv_t *)priv;
+
+  /* Set foreground */
+  
+  if((vp->beat && scope_decide(0.05)) || !vp->draw_fg)
+    set_fg_func(vp);
+
+  if((vp->beat && scope_decide(0.05)) || !vp->transform_current)
+    set_transform(vp);
+
+  if((vp->beat && scope_decide(0.3)))
+    set_fg_color(vp);
+
+  if((vp->beat && scope_decide(0.1)))
+    set_colormatrix(vp);
+  
+  gavl_video_frame_clear(frame, &vp->video_format);
+  gavl_video_frame_clear(vp->tmp_video_frame, &vp->video_format);
+
+  /* Blur */
+  //  gavl_video_scaler_scale(vp->scaler, vp->last_video_frame, vp->tmp_video_frame);
+
+  /* Transform */
+  
+  gavl_image_transform_transform(vp->transform_current,
+                                 vp->last_video_frame, vp->tmp_video_frame);
+  
+  
+  //  gavl_image_transform_transform(vp->transform_lens,
+  //                                vp->last_video_frame, vp->tmp_video_frame);
+
+  gavl_video_scaler_scale(vp->scaler, vp->tmp_video_frame, frame);
+  
+  bg_colormatrix_process(vp->colormatrix, frame);
+
+  
+  vp->draw_fg(vp, frame);
+  
+  gavl_video_frame_copy(&vp->video_format, vp->last_video_frame, frame);
+  
+  //  gavl_video_frame_fill(frame, &vp->video_format, color);
+  }
+
+
+static void update_scope(void * priv, gavl_audio_frame_t * frame)
+  {
+  int i, j;
+  float new_energy;
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+  gavl_audio_frame_copy(&vp->audio_format, vp->audio_frame, frame,
+                        0, 0, vp->audio_format.samples_per_frame,
+                        frame->valid_samples);
+
+  /* The probably most simple beat detection */
+    
+  new_energy = 0.0;
+
+  for(i = 0; i < vp->audio_format.num_channels; i++)
+    {
+    for(j = 0; j < frame->valid_samples; j++)
+      new_energy += frame->channels.f[i][j] * frame->channels.f[i][j];
+    }
+
+  new_energy /= (frame->valid_samples * vp->audio_format.num_channels);
+
+  if((new_energy / vp->energy > 2.0) && !vp->beat && (new_energy > 0.001))
+    vp->beat = 1;
+  else
+    vp->beat = 0;
+
+  vp->energy = vp->energy * 0.95 + new_energy * 0.05;
+  }
+
+static void close_scope(void * priv)
+  {
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+  
+  }
+
+const bg_visualization_plugin_t the_plugin = 
+  {
+    .common =
+    {
+      BG_LOCALE,
+      .name =      "vis_scope",
+      .long_name = TRS("Scope"),
+      .description = TRS("Scope plugin"),
+      .type =     BG_PLUGIN_VISUALIZATION,
+      .flags =    BG_PLUGIN_VISUALIZE_FRAME,
+      .create =   create_scope,
+      .destroy =   destroy_scope,
+      .priority =         1,
+    },
+    .open_ov = open_scope,
+    .update = update_scope,
+    .draw_frame = draw_frame_scope,
+    .close = close_scope
+  };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+BG_GET_PLUGIN_API_VERSION;
+
+/* Random functions */
+
+static float scope_random(float min, float max)
+  {
+  return min + (float)rand()*(max - min)/(float)(RAND_MAX);
+  }
+
+int scope_random_int(int min, int max)
+  {
+  int den = max - min + 1;
+  return (rand() % den) + min;
+  }
+
+/* return 1 with a probability of p */
+
+int scope_decide(float p)
+  {
+  float rand_f = (float)(rand())/(float)(RAND_MAX) ;
+  return rand_f < p ? 1 : 0;
+  }
+
+/* Drawing functions */
 
 static void
 draw_point(scope_priv_t * vp, gavl_video_frame_t * f, int x, int y)
@@ -355,6 +569,22 @@ draw_point(scope_priv_t * vp, gavl_video_frame_t * f, int x, int y)
 
   ptr = (uint32_t*)(f->planes[0] + y * f->strides[0] + x * 4);
   *ptr = vp->fg_int;
+  }
+
+static void
+draw_point_large(scope_priv_t * vp, gavl_video_frame_t * f, int x, int y)
+  {
+  draw_point(vp, f, x, y);
+
+  if(x > 0)
+    draw_point(vp, f, x-1, y);
+  if(y > 0)
+    draw_point(vp, f, x, y-1);
+
+  if(x < vp->video_format.image_width - 1)
+    draw_point(vp, f, x+1, y);
+  if(y < vp->video_format.image_height - 1)
+    draw_point(vp, f, x, y+1);
   }
 
 static void
@@ -367,6 +597,12 @@ draw_line(scope_priv_t * vp, gavl_video_frame_t * f,
 
   abs_x = abs(x2 - x1);
   abs_y = abs(y2 - y1);
+
+  if(abs_x == 0 && abs_y == 0)
+    {
+    draw_point(vp, f, x1, y1);
+    return;
+    }
   
   if(abs_x > abs_y)
     {
@@ -409,10 +645,8 @@ static void draw_scope(scope_priv_t * vp, int y_off, int y_ampl, float * samples
 
   x1 = 0;
   y1 = y_off + (int)(samples[0] * y_ampl + 0.5);
-
-
+  
   CLAMP(y1, 0, vp->video_format.image_height - 1);
-
   
   for(i = 1; i < vp->audio_format.samples_per_frame; i++)
     {
@@ -428,94 +662,208 @@ static void draw_scope(scope_priv_t * vp, int y_off, int y_ampl, float * samples
     }
   }
 
-static void draw_frame_scope(void * priv, gavl_video_frame_t * frame)
+static void draw_fg_scope(scope_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  draw_scope(vp,
+             vp->video_format.image_height / 4,
+             vp->video_format.image_height / 4,
+             vp->audio_frame->channels.f[0],
+             frame);
+  draw_scope(vp,
+             (3 * vp->video_format.image_height) / 4,
+             vp->video_format.image_height / 4,
+             vp->audio_frame->channels.f[1],
+             frame);
+  }
+
+/* Vectorscope */
+
+#define SQRT_2 0.707106871
+
+#define GET_COORDS_VECTORSCOPE(index, dstx, dsty) \
+  tmpx = SQRT_2*(vp->audio_frame->channels.f[0][index]-vp->audio_frame->channels.f[1][index]);\
+  tmpy = SQRT_2*(vp->audio_frame->channels.f[0][index]+vp->audio_frame->channels.f[1][index]);\
+  dstx = (int)((tmpx + 1.0) * vp->half_width);\
+  dsty = (int)((tmpy + 1.0) * vp->half_height);\
+  CLAMP(dstx, 0, vp->video_format.image_width  - 1);\
+  CLAMP(dsty, 0, vp->video_format.image_height - 1);
+
+static void draw_fg_vectorscope(scope_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int i;
+
+  float tmpx, tmpy;
+  
+  int x1, y1, x2, y2;
+  
+  GET_COORDS_VECTORSCOPE(0, x1, y1);
+  
+  for(i = 1; i < vp->audio_frame->valid_samples; i++)
+    {
+    GET_COORDS_VECTORSCOPE(i, x2, y2);
+    draw_line(vp, frame, x1, y1, x2, y2);
+    
+    x1 = x2;
+    y1 = y2;
+    }
+  }
+
+static void draw_fg_vectorscope_dots(scope_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int i;
+
+  float tmpx, tmpy;
+  
+  int x, y;
+  
+  for(i = 0; i < vp->audio_frame->valid_samples; i++)
+    {
+    GET_COORDS_VECTORSCOPE(i, x, y);
+    draw_point_large(vp, frame, x, y);
+    }
+  }
+
+static void transform_sin(void *priv, double xdst, double ydst,
+                          double *xsrc, double *ysrc)
   {
   scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+  
+  *xsrc = xdst;
+  *ysrc = ydst + (5.0 * vp->half_height / 120.0) * 
+    sin(*xsrc / vp->video_format.image_width * 4.0 * M_PI);
+  }
 
+static void transform_cos(void *priv, double xdst, double ydst, double *xsrc, double *ysrc)
+  {
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+  
+  *xsrc = xdst;
+  *ysrc = ydst + (5.0 * vp->half_height / 120.0) *
+    cos(*xsrc / vp->video_format.image_width * 4.0 * M_PI);
+  }
+
+static void
+transform_rotate_left(void *priv, double xdst, double ydst,
+                      double *xsrc, double *ysrc)
+  {
+  scope_priv_t * vp;
   vp = (scope_priv_t *)priv;
 
-  if(vp->changed)
-    {
-    init_scaler(vp);
-    vp->changed = 0;
-    }
+  xdst -= vp->half_width;
+  ydst -= vp->half_height;
   
-  gavl_video_frame_clear(frame, &vp->video_format);
+  *xsrc = xdst * vp->cos_rotate - ydst * vp->sin_rotate;
+  *ysrc = xdst * vp->sin_rotate + ydst * vp->cos_rotate;
+
+  *xsrc += vp->half_width;
+  *ysrc += vp->half_height;
+  }
+
+static void
+transform_rotate_right(void *priv, double xdst, double ydst,
+                       double *xsrc, double *ysrc)
+  {
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+
+  xdst -= vp->half_width;
+  ydst -= vp->half_height;
   
-  gavl_video_scaler_scale(vp->scaler, vp->last_video_frame, frame);
+  *xsrc = xdst * vp->cos_rotate + ydst * vp->sin_rotate;
+  *ysrc = -xdst * vp->sin_rotate + ydst * vp->cos_rotate;
+
+  *xsrc += vp->half_width;
+  *ysrc += vp->half_height;
+  }
+
+static void transform_zoom_in(void * priv,
+                              double xdst,
+                              double ydst,
+                              double *xsrc,
+                              double *ysrc)
+  {
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+
+  xdst -= vp->half_width;
+  ydst -= vp->half_height;
   
-  //  draw_line(vp, frame, 0, vp->video_format.image_height/2,
-  //            (vp->video_format.image_width - 1), vp->video_format.image_height/2);
+  *xsrc = xdst * 1.1;
+  *ysrc = ydst * 1.1;
   
+  *xsrc += vp->half_width;
+  *ysrc += vp->half_height;
+  }
+
+static void transform_zoom_out(void * priv,
+                               double xdst,
+                               double ydst,
+                               double *xsrc,
+                               double *ysrc)
+  {
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+
+  xdst -= vp->half_width;
+  ydst -= vp->half_height;
+  
+  *xsrc = xdst * 0.9;
+  *ysrc = ydst * 0.9;
+  
+  *xsrc += vp->half_width;
+  *ysrc += vp->half_height;
+  }
+
+
+static void transform_lens(void * priv,
+                           double x,
+                           double y,
+                           double *newx,
+                           double *newy)
+  {
 #if 1
-  if(vp->audio_format.num_channels == 1)
+  double distance;
+  double shift;
+  double x1, y1;
+
+  double lens_zoom = 1.5;
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+  
+  x1 = x - vp->half_width;
+  y1 = y - vp->half_height;
+  
+  distance = (x1 * x1 + y1 * y1 - vp->half_height * vp->half_height) / (vp->half_height * vp->half_height);
+  
+  if(distance > 0)
     {
-    draw_scope(vp,
-               vp->video_format.image_height / 2,
-               vp->video_format.image_height / 2,
-               vp->audio_frame->channels.f[0],
-               frame);
+    *newx = (x - vp->half_width) * 1.01 + vp->half_width;
+    *newy = (y - vp->half_height) * 1.01 + vp->half_height;
+
+    //    *newx = x;
+    //    *newy = y;
+
+    return;
     }
   else
     {
-    draw_scope(vp,
-               vp->video_format.image_height / 4,
-               vp->video_format.image_height / 4,
-               vp->audio_frame->channels.f[0],
-               frame);
-    draw_scope(vp,
-               (3 * vp->video_format.image_height) / 4,
-               vp->video_format.image_height / 4,
-               vp->audio_frame->channels.f[1],
-               frame);
+    shift = lens_zoom /
+      sqrt(lens_zoom * lens_zoom - distance);
+    
+    *newx = vp->half_width  + x1 * shift;
+    *newy = vp->half_height + y1 * shift;
     }
-#endif
-  gavl_video_frame_copy(&vp->video_format, vp->last_video_frame, frame);
-  
-  //  gavl_video_frame_fill(frame, &vp->video_format, color);
-  }
-
-
-static void update_scope(void * priv, gavl_audio_frame_t * frame)
-  {
-  scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
-  gavl_audio_frame_copy(&vp->audio_format, vp->audio_frame, frame,
-                        0, 0, vp->audio_format.samples_per_frame,
-                        frame->valid_samples);
-  }
-
-
-
-static void close_scope(void * priv)
-  {
-  scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
-  
-  }
-
-const bg_visualization_plugin_t the_plugin = 
-  {
-    .common =
+#else
+  static int printed = 0;
+  if(!printed)
     {
-      BG_LOCALE,
-      .name =      "vis_scope",
-      .long_name = TRS("Scope"),
-      .description = TRS("Scope plugin"),
-      .type =     BG_PLUGIN_VISUALIZATION,
-      .flags =    BG_PLUGIN_VISUALIZE_FRAME,
-      .create =   create_scope,
-      .destroy =   destroy_scope,
-      .get_parameters =   get_parameters_scope,
-      .set_parameter =    set_parameter_scope,
-      .priority =         1,
-    },
-    .open_ov = open_scope,
-    .update = update_scope,
-    .draw_frame = draw_frame_scope,
-    .close = close_scope
-  };
+    fprintf(stderr, "Transform: %f %f\n", x, y);
+    printed = 1;
+    }
+  *newx = x;
+  *newy = y;
+#endif
+  }
 
-/* Include this into all plugin modules exactly once
-   to let the plugin loader obtain the API version */
-BG_GET_PLUGIN_API_VERSION;

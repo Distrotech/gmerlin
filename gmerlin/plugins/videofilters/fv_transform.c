@@ -755,8 +755,7 @@ static void init_matrix_rotate(transform_t * vp)
   
   sin_angle = sin(vp->rotate_angle / 180.0 * M_PI);
   cos_angle = cos(vp->rotate_angle / 180.0 * M_PI);
-
-
+  
   mat[0][0] = cos_angle;
   mat[1][0] = sin_angle;
   mat[0][1] = -sin_angle;

@@ -8,5 +8,5 @@ LDADD = @MODULE_LIBADD@
 lib_LTLIBRARIES = \
 vis_scope.la
 
-vis_scope_la_SOURCES  = vis_scope.c
+vis_scope_la_SOURCES  = vis_scope.c ../videofilters/colormatrix.c
 
