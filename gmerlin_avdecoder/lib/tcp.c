@@ -45,6 +45,11 @@
 #define MSG_NOSIGNAL 0
 #endif
 
+/* for MacOSX */
+#ifndef AI_NUMERICSERV
+#define AI_NUMERICSERV 0
+#endif
+
 /* Utility functions */
 
 static int create_socket(int domain, int type, int protocol)
