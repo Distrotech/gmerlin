@@ -15,7 +15,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *  $Id: gdither.c,v 1.4 2008-04-20 11:43:33 gmerlin Exp $
+ *  $Id: gdither.c,v 1.5 2009-05-03 21:39:35 gmerlin Exp $
  */
 
 #include "gdither_types_internal.h"
@@ -175,7 +175,7 @@ inline static void gdither_innner_loop(const GDitherType dt,
     const int clamp_l)
 {
     unsigned int pos, i;
-    u_int8_t *o8 = (u_int8_t*) y;
+    uint8_t *o8 = (uint8_t*) y;
     int16_t *o16 = (int16_t*) y;
     int32_t *o32 = (int32_t*) y;
     float tmp, r, ideal;
@@ -227,7 +227,7 @@ inline static void gdither_innner_loop(const GDitherType dt,
 
 	switch (bit_depth) {
 	case GDither8bit:
-	    o8[i] = (u_int8_t) (clamped * post_scale);
+	    o8[i] = (uint8_t) (clamped * post_scale);
 	    break;
 	case GDither16bit:
 	    o16[i] = (int16_t) (clamped * post_scale);
