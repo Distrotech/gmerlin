@@ -489,8 +489,8 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
 
 int gavl_video_scaler_init_convolve(gavl_video_scaler_t * scaler,
                                     const gavl_video_format_t * format,
-                                    int h_radius, float * h_coeffs,
-                                    int v_radius, float * v_coeffs)
+                                    int h_radius, const float * h_coeffs,
+                                    int v_radius, const float * v_coeffs)
   {
   gavl_rectangle_f_t src_rect;
   gavl_rectangle_i_t  dst_rect;

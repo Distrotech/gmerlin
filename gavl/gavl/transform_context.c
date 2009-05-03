@@ -201,6 +201,8 @@ gavl_transform_context_init(gavl_image_transform_t * t,
 
   off_x = 0.5;
   off_y = 0.5 + (float)(ctx->field);
+  //  off_x = 0.0;
+  //  off_y = (float)(ctx->field);
   
   if(plane_index)
     {

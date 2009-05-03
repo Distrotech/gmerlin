@@ -29,12 +29,12 @@
 
 #include "../mmx/mmx.h"
 
-static int sad_8_mmxext(uint8_t * src_1, uint8_t * src_2, 
+static int sad_8_mmxext(const uint8_t * src_1, const uint8_t * src_2, 
                         int stride_1, int stride_2, 
                         int w, int h)
   {
   uint32_t ret = 0, i, j;
-  uint8_t * s1, *s2;
+  const uint8_t * s1, *s2;
   
   pxor_r2r(mm0, mm0);
 

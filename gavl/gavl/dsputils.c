@@ -40,7 +40,7 @@ int gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
   void (*interpolate)(const uint8_t * src_1,
                       const uint8_t * src_2, 
                       uint8_t * dst, int num, float fac) =
-    (void (*)(uint8_t *, uint8_t *, uint8_t *, int, float))0;
+    (void (*)(const uint8_t *, const uint8_t *, uint8_t *, int, float))0;
   
   num_planes = gavl_pixelformat_num_planes(format->pixelformat);
   gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);

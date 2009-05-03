@@ -272,7 +272,7 @@ void gavl_timecode_dump(const gavl_timecode_format_t * tf,
   {
   char str[GAVL_TIMECODE_STRING_LEN];
   gavl_timecode_prettyprint(tf, tc, str);
-  fprintf(stderr, str);
+  fprintf(stderr, "%s", str);
   }
   
 

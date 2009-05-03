@@ -302,7 +302,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
 void 
 gavl_video_scale_table_init_convolve(gavl_video_scale_table_t * tab,
                                      gavl_video_options_t * opt,
-                                     int num_coeffs, float * coeffs,
+                                     int num_coeffs, const float * coeffs,
                                      int size)
   {
   int i, j;

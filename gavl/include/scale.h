@@ -272,7 +272,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
 void 
 gavl_video_scale_table_init_convolve(gavl_video_scale_table_t * tab,
                                      gavl_video_options_t * opt,
-                                     int num_coeffs, float * coeffs,
+                                     int num_coeffs, const float * coeffs,
                                      int size);
 
 void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
@@ -389,8 +389,8 @@ int gavl_video_scale_context_init_convolve(gavl_video_scale_context_t*,
                                            int plane,
                                            const gavl_video_format_t * format,
                                            int num_fields,
-                                           int h_radius, float * h_coeffs,
-                                           int v_radius, float * v_coeffs);
+                                           int h_radius, const float * h_coeffs,
+                                           int v_radius, const float * v_coeffs);
 
 void gavl_video_scale_context_cleanup(gavl_video_scale_context_t * ctx);
 

@@ -835,7 +835,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 /* Factor must be a power of 2 */
 
 static void downsample_coeffs(int factor,
-                              float * coeffs, int num_coeffs,
+                              const float * coeffs, int num_coeffs,
                               float ** coeffs_ret, 
                               int * num_coeffs_ret)
   {
@@ -909,8 +909,8 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
                                        int plane,
                                        const gavl_video_format_t * format,
                                        int num_fields,
-                                       int h_radius, float * h_coeffs,
-                                       int v_radius, float * v_coeffs)
+                                       int h_radius, const float * h_coeffs,
+                                       int v_radius, const float * v_coeffs)
   {
   int bits_h = 1, bits_v = 1;
   int sub_h = 1, sub_v = 1;
@@ -923,9 +923,11 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
   gavl_rectangle_i_t src_rect_i;
 
   int h_radius_real;
-  float * h_coeffs_real, *h_c = (float*)0;
+  const float * h_coeffs_real;
+  float *h_c = (float*)0;
   int v_radius_real;
-  float * v_coeffs_real, *v_c = (float*)0;
+  const float * v_coeffs_real;
+  float *v_c = (float*)0;
 
   int src_width, src_height; /* Needed for generating the scale table */
  

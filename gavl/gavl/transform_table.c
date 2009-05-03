@@ -207,11 +207,14 @@ static void init_slice(void* p, int start, int end)
       
       sd->func(sd->func_priv, x_dst_f, y_dst_f, &x_src_f, &y_src_f);
 
-      //      fprintf(stderr, "Transform: %f %f -> %f %f\n",
+      //      fprintf(stderr, "Transform: src: %f %f -> dst: %f %f\n",
       //              x_src_f, y_src_f, x_dst_f, y_dst_f);
 
-      x_src_f = (x_src_f - sd->off_x) / sd->scale_x;
-      y_src_f = (y_src_f - sd->off_y) / sd->scale_y;
+      //      x_src_f = (x_src_f - sd->off_x) / sd->scale_x;
+      //      y_src_f = (y_src_f - sd->off_y) / sd->scale_y;
+
+      x_src_f = (x_src_f) / sd->scale_x;
+      y_src_f = (y_src_f) / sd->scale_y;
       
       if((x_src_f < 0.0) || (x_src_f > (double)sd->width) || 
          (y_src_f < 0.0) || (y_src_f > (double)sd->height))
@@ -245,7 +248,7 @@ static void init_slice(void* p, int start, int end)
       
       /* x weights */
       t = (x_src_f - 0.5 - sd->tab->pixels[i][j].index_x);
-      
+      //      t = (x_src_f - sd->tab->pixels[i][j].index_x);
       for(k = 0; k < sd->tab->factors_per_pixel; k++)
         {
         //        fprintf(stderr, "%d w_x(%f)\n", k, t);
@@ -257,6 +260,7 @@ static void init_slice(void* p, int start, int end)
         }
 
       t = (y_src_f - 0.5 - sd->tab->pixels[i][j].index_y);
+      //      t = (y_src_f - sd->tab->pixels[i][j].index_y);
       
       for(k = 0; k < sd->tab->factors_per_pixel; k++)
         {

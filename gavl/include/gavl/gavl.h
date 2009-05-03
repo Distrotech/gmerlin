@@ -2093,7 +2093,7 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
 
 void gavl_video_frame_fill(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           float * color);
+                           const float * color);
 
 /*!
   \ingroup video_frame
@@ -2984,8 +2984,8 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
 
 int gavl_video_scaler_init_convolve(gavl_video_scaler_t * scaler,
                                     const gavl_video_format_t * format,
-                                    int h_radius, float * h_coeffs,
-                                    int v_radius, float * v_coeffs);
+                                    int h_radius, const float * h_coeffs,
+                                    int v_radius, const float * v_coeffs);
   
 /*! \ingroup video_scaler
  *  \brief Scale video

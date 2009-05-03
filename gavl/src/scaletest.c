@@ -333,7 +333,6 @@ static void do_scale(gavl_video_scaler_t * scaler, const char * accel,
 
 static void print_help()
   {
-  int i;
   printf("Usage: scaletest [-pfmt <pfmt>] [-x <num>] [-y <num>] file.png\n");
   printf("       scaletest -help\n\n");
   printf("       scaletest -listpfmt\n\n");

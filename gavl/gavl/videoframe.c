@@ -1312,7 +1312,7 @@ static void fill_16_packed(gavl_video_frame_t * frame,
 
 static void fill_24_packed(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           uint8_t * color)
+                           const uint8_t * color)
   {
   FILL_FUNC_HEAD_PACKED(uint8_t);
   dst[0] = color[0];
@@ -1323,7 +1323,7 @@ static void fill_24_packed(gavl_video_frame_t * frame,
 
 static void fill_32_packed(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           uint8_t * _color)
+                           const uint8_t * _color)
   {
   uint32_t * color = (uint32_t*)_color;
   FILL_FUNC_HEAD_PACKED(uint32_t);
@@ -1333,7 +1333,7 @@ static void fill_32_packed(gavl_video_frame_t * frame,
 
 static void fill_32_packed_422(gavl_video_frame_t * frame,
                                const gavl_video_format_t * format,
-                               uint8_t * _color)
+                               const uint8_t * _color)
   {
   uint32_t * color = (uint32_t*)_color;
   FILL_FUNC_HEAD_PACKED_422(uint32_t);
@@ -1344,7 +1344,7 @@ static void fill_32_packed_422(gavl_video_frame_t * frame,
 
 static void fill_48_packed(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           uint16_t * color)
+                           const uint16_t * color)
   {
   FILL_FUNC_HEAD_PACKED(uint16_t);
   gavl_memcpy(dst, color, 3*sizeof(*dst));
@@ -1353,7 +1353,7 @@ static void fill_48_packed(gavl_video_frame_t * frame,
 
 static void fill_64_packed(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           uint16_t * color)
+                           const uint16_t * color)
   {
   FILL_FUNC_HEAD_PACKED(uint16_t);
   gavl_memcpy(dst, color, 4*sizeof(*dst));
@@ -1362,7 +1362,7 @@ static void fill_64_packed(gavl_video_frame_t * frame,
 
 static void fill_float_gray(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           float * color)
+                           const float * color)
   {
   FILL_FUNC_HEAD_PACKED(float);
   gavl_memcpy(dst, color, sizeof(*dst));
@@ -1371,7 +1371,7 @@ static void fill_float_gray(gavl_video_frame_t * frame,
 
 static void fill_float_graya(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           float * color)
+                           const float * color)
   {
   FILL_FUNC_HEAD_PACKED(float);
   gavl_memcpy(dst, color, 2*sizeof(*dst));
@@ -1380,7 +1380,7 @@ static void fill_float_graya(gavl_video_frame_t * frame,
 
 static void fill_float_rgb(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           float * color)
+                           const float * color)
   {
   FILL_FUNC_HEAD_PACKED(float);
   gavl_memcpy(dst, color, 3*sizeof(*dst));
@@ -1389,7 +1389,7 @@ static void fill_float_rgb(gavl_video_frame_t * frame,
 
 static void fill_float_rgba(gavl_video_frame_t * frame,
                             const gavl_video_format_t * format,
-                            float * color)
+                            const float * color)
   {
   FILL_FUNC_HEAD_PACKED(float);
   gavl_memcpy(dst, color, 4*sizeof(*dst));
@@ -1504,7 +1504,7 @@ static void fill_planar_16(gavl_video_frame_t * frame,
 
 void gavl_video_frame_fill(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
-                           float * color)
+                           const float * color)
   {
   INIT_RGB_FLOAT_TO_YUV
   uint16_t packed_16;
