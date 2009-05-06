@@ -1060,7 +1060,7 @@ static const char * get_default_key(bg_plugin_type_t type)
   int i = 0;
   while(default_keys[i].key)
     {
-    if(type == default_keys[i].type)
+    if(type & default_keys[i].type)
       return default_keys[i].key;
     i++;
     }

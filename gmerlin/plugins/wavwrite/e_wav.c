@@ -443,8 +443,8 @@ static void set_parameter_wav(void * data, const char * name,
   }
 
 static int open_wav(void * data, const char * filename,
-                    bg_metadata_t * metadata,
-                    bg_chapter_list_t * chapter_list)
+                    const bg_metadata_t * metadata,
+                    const bg_chapter_list_t * chapter_list)
   {
   int result;
   wav_t * wav;
@@ -462,7 +462,8 @@ static int open_wav(void * data, const char * filename,
   else
     result = 1;
 
-  bg_metadata_copy(&(wav->metadata), metadata);
+  if(metadata)
+    bg_metadata_copy(&(wav->metadata), metadata);
   
   return result;
   }

@@ -138,8 +138,8 @@ static const char * get_extension_lqt(void * data)
   }
 
 static int open_lqt(void * data, const char * filename,
-                    bg_metadata_t * metadata,
-                    bg_chapter_list_t * chapter_list)
+                    const bg_metadata_t * metadata,
+                    const bg_chapter_list_t * chapter_list)
   {
   char * track_string;
   e_lqt_t * e = (e_lqt_t*)data;
@@ -161,27 +161,30 @@ static int open_lqt(void * data, const char * filename,
     
   /* Set metadata */
 
-  if(metadata->copyright)
-    quicktime_set_copyright(e->file, metadata->copyright);
-  if(metadata->title)
-    quicktime_set_name(e->file, metadata->title);
-
-  if(metadata->comment)
-    lqt_set_comment(e->file, metadata->comment);
-  if(metadata->artist)
-    lqt_set_artist(e->file, metadata->artist);
-  if(metadata->genre)
-    lqt_set_genre(e->file, metadata->genre);
-  if(metadata->track)
+  if(metadata)
     {
-    track_string = bg_sprintf("%d", metadata->track);
-    lqt_set_track(e->file, track_string);
-    free(track_string);
+    if(metadata->copyright)
+      quicktime_set_copyright(e->file, metadata->copyright);
+    if(metadata->title)
+      quicktime_set_name(e->file, metadata->title);
+
+    if(metadata->comment)
+      lqt_set_comment(e->file, metadata->comment);
+    if(metadata->artist)
+      lqt_set_artist(e->file, metadata->artist);
+    if(metadata->genre)
+      lqt_set_genre(e->file, metadata->genre);
+    if(metadata->track)
+      {
+      track_string = bg_sprintf("%d", metadata->track);
+      lqt_set_track(e->file, track_string);
+      free(track_string);
+      }
+    if(metadata->album)
+      lqt_set_album(e->file, metadata->album);
+    if(metadata->author)
+      lqt_set_author(e->file, metadata->author);
     }
-  if(metadata->album)
-    lqt_set_album(e->file, metadata->album);
-  if(metadata->author)
-    lqt_set_author(e->file, metadata->author);
   
   e->chapter_list = chapter_list;
   

@@ -153,8 +153,8 @@ static const char * get_extension_subtext(void * data)
   }
 
 static int open_subtext(void * data, const char * filename,
-                        bg_metadata_t * metadata,
-                        bg_chapter_list_t * chapter_list)
+                        const bg_metadata_t * metadata,
+                        const bg_chapter_list_t * chapter_list)
   {
   subtext_t * e;
   e = (subtext_t *)data;
@@ -162,7 +162,8 @@ static int open_subtext(void * data, const char * filename,
   e->filename = bg_strdup(e->filename, filename);
   e->output = fopen(e->filename, "w");
 
-  bg_metadata_copy(&e->metadata, metadata);
+  if(metadata)
+    bg_metadata_copy(&e->metadata, metadata);
   
   return 1;
   }

@@ -1307,8 +1307,8 @@ struct bg_encoder_plugin_s
    */
   
   int (*open)(void * data, const char * filename,
-              bg_metadata_t * metadata, bg_chapter_list_t * chapter_list);
-
+              const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list);
+  
   /** \brief Return the filename, which can be passed to the player
    *  \param priv The handle returned by the create() method
    *
@@ -2091,7 +2091,7 @@ struct bg_visualization_plugin_s
    *  \param priv The handle returned by the create() method
    *
    *  This function is needed only for OpenGL plugins. Under X11,
-   *  it will typically call glXSwapBuffers and process eventy on the
+   *  it will typically call glXSwapBuffers and process events on the
    *  X11 window.
    */
   
