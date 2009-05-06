@@ -26,6 +26,9 @@
 
 #include <gavltime.h>
 
+#ifdef HAVE_SYS_TIMES_H
+#include <sys/times.h>
+#endif
 
 static void get_time(gavl_time_t * ret)
   {
@@ -84,3 +87,79 @@ void gavl_timer_set(gavl_timer_t * t, gavl_time_t v)
   {
   t->start_time = v;
   }
+
+/* */
+
+#ifdef HAVE_CLOCK_GETTIME
+
+uint64_t gavl_benchmark_get_time(int config_flags)
+  {
+  struct timespec ts;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+  return (uint64_t)(ts.tv_sec) * 1000000000 + ts.tv_nsec;
+  }
+
+const char * gavl_benchmark_get_desc(int flags)
+  {
+  return "nanoseconds returned by clock_gettime with CLOCK_PROCESS_CPUTIME_ID";
+  }
+
+#elif defined(ARCH_X86) || defined(HAVE_SYS_TIMES_H)
+
+uint64_t gavl_benchmark_get_time(int config_flags)
+  {
+  struct timeval tv;
+#ifdef ARCH_X86
+  uint64_t x;
+  /* that should prevent us from trying cpuid with old cpus */
+  if( config_flags & GAVL_ACCEL_MMX )
+    {
+    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+    return x;
+    }
+  else
+    {
+#endif
+    gettimeofday(&tv, NULL);
+    return (uint64_t)(tv.tv_sec) * 1000000 + tv.tv_usec;
+#ifdef ARCH_X86
+  }
+#endif
+  }
+
+const char * gavl_benchmark_get_desc(int flags)
+  {
+#ifdef ARCH_X86
+  uint64_t x;
+  /* that should prevent us from trying cpuid with old cpus */
+  if( config_flags & GAVL_ACCEL_MMX )
+    {
+    return "Units returned by rdtsc";
+    }
+  else
+    {
+#endif
+    return "microseconds returned by gettimeofday"
+#ifdef ARCH_X86
+    }
+#endif
+  }
+
+#else /* gettimeofday */
+
+uint64_t gavl_benchmark_get_time(int config_flags)
+  {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (uint64_t)(tv.tv_sec) * 1000000 + tv.tv_usec;
+  /* FIXME: implement an equivalent for using optimized memcpy on other
+     architectures */
+  }
+
+const char * gavl_benchmark_get_desc(int flags)
+  {
+  return "microseconds returned by gettimeofday";
+  }
+
+#endif
+

@@ -225,6 +225,28 @@ gavl_time_t gavl_timer_get(gavl_timer_t * timer);
 
 void gavl_timer_set(gavl_timer_t * timer, gavl_time_t t);
 
+/*! \ingroup timer
+ * \brief Get the current time for benchmarking
+ * \param flags Flags returned by \reg gavl_accel_supported
+ * \returns The time in arbitrary units
+ *
+ * The returned value itself is meaningless since the
+ * timescale depends on the system. Use this only for relative comparisons
+ * for benchmarks. A textual description on how the values can be
+ * interpreted can be ontained with \ref gavl_benchmark_get_desc
+ */
+
+uint64_t gavl_benchmark_get_time(int flags);
+
+/*! \ingroup timer
+ * \brief Get a description about the value returned by \ref gavl_benchmark_get_time
+ * \param flags Flags returned by \reg gavl_accel_supported
+ * \returns A string describing what the time value means
+ *
+ */
+
+const char * gavl_benchmark_get_desc(int flags);
+  
 #pragma GCC visibility pop
   
 #ifdef __cplusplus

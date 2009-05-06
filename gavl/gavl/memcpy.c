@@ -68,7 +68,6 @@
 #endif
 #endif
 
-
 #ifdef HAVE_SYS_TIMES_H
 #include <sys/times.h>
 #endif
@@ -444,37 +443,6 @@ static struct {
     
 };
 
-#if defined(ARCH_X86) || defined(HAVE_SYS_TIMES_H)
-static unsigned long long int rdtsc(int config_flags)
-{
-#ifdef ARCH_X86
-  unsigned long long int x;
-  /* that should prevent us from trying cpuid with old cpus */
-  if( config_flags & GAVL_ACCEL_MMX ) {
-    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-    return x;
-  } else {
-#endif
-    return times(NULL);
-#ifdef ARCH_X86
-  }
-#endif
-}
-#else
-
-static uint64_t rdtsc(int config_flags)
-{
-  /* FIXME: implement an equivalent for using optimized memcpy on other
-            architectures */
-#ifdef HAVE_SYS_TIMES_H
-  struct tms tp;
-  return times(&tp);
-#else
-	return ((uint64_t)0);
-#endif /* HAVE_SYS_TIMES_H */
-}
-#endif
-
 #define BUFSIZE 1024*1024
 void gavl_init_memcpy()
 {
@@ -522,13 +490,13 @@ void gavl_init_memcpy()
       }
     if(benchmark)
       {
-      t = rdtsc(config_flags);
+      t = gavl_benchmark_get_time(config_flags);
       for(j=0;j<50;j++)
         {
         memcpy_method[i].function(buf2,buf1,BUFSIZE);
         memcpy_method[i].function(buf1,buf2,BUFSIZE);
         }
-      t = rdtsc(config_flags) - t;
+      t = gavl_benchmark_get_time(config_flags) - t;
       memcpy_method[i].time = t;
       
       fprintf(stderr, "%6s: %" PRIu64 "\n", memcpy_method[i].name, t);

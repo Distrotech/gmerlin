@@ -64,59 +64,6 @@ int do_html = 0;
 gavl_pixelformat_t opt_pfmt1 = GAVL_PIXELFORMAT_NONE;
 gavl_pixelformat_t opt_pfmt2 = GAVL_PIXELFORMAT_NONE;
 
-// #ifdef _POSIX_CPUTIME
-#ifdef HAVE_CLOCK_GETTIME
-
-#define TIME_UNIT "nanoseconds returned by clock_gettime with CLOCK_PROCESS_CPUTIME_ID"
-
-static unsigned long long int get_time(int config_flags)
-  {
-  struct timespec ts;
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-  return (uint64_t)(ts.tv_sec) * 1000000000 + ts.tv_nsec;
-  }
-
-#elif defined(ARCH_X86) || defined(HAVE_SYS_TIMES_H)
-
-#define TIME_UNIT "Units returned by rdtsc"
-
-static unsigned long long int get_time(int config_flags)
-{
-struct timeval tv;
-#ifdef ARCH_X86
-  unsigned long long int x;
-  /* that should prevent us from trying cpuid with old cpus */
-  if( config_flags & GAVL_ACCEL_MMX ) {
-    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-    return x;
-  } else {
-#endif
-  gettimeofday(&tv, NULL);
-  return (uint64_t)(tv.tv_sec) * 1000000 + tv.tv_usec;
-#ifdef ARCH_X86
-  }
-#endif
-}
-#else
-
-#define TIME_UNIT "microseconds returned by gettimeofday"
-
-static uint64_t get_time(int config_flags)
-{
-struct timeval tv;
-gettimeofday(&tv, NULL);
-return (uint64_t)(tv.tv_sec) * 1000000 + tv.tv_usec;
-/* FIXME: implement an equivalent for using optimized memcpy on other
-            architectures */
-#ifdef HAVE_SYS_TIMES_H
-#else
-	return ((uint64_t)0);
-#endif /* HAVE_SYS_TIMES_H */
-}
-#endif
-
-
-
 typedef struct
   {
   uint64_t times[NUM_RUNS];
@@ -207,9 +154,9 @@ static void gavl_benchmark_run(gavl_benchmark_t * b)
     {
     if(b->init)
       b->init(b->data);
-    time_before = get_time(b->accel_supported);
+    time_before = gavl_benchmark_get_time(b->accel_supported);
     b->func(b->data);
-    time_after = get_time(b->accel_supported);
+    time_after = gavl_benchmark_get_time(b->accel_supported);
 
     if(i >= INIT_RUNS)
       {
@@ -1740,7 +1687,7 @@ int main(int argc, char ** argv)
     printf("<h1>gavl Benchmarks</h1>");
     printf("These benchmarks are generated with the benchmark tool in the src/ directory of gavl.<br>");
     printf("Number of init runs: %d, number of counted runs: %d<br>\n", INIT_RUNS, NUM_RUNS);
-    printf("Times are %s<br>\n", TIME_UNIT);
+    printf("Times are %s<br>\n", gavl_benchmark_get_desc(gavl_accel_supported()));
     printf("<h2>/proc/cpuinfo</h2>\n");
     printf("<pre>\n");
     fflush(stdout);
@@ -1764,7 +1711,7 @@ int main(int argc, char ** argv)
       printf("<a href=\"#ip\">Video frame interpolation</a><br>\n");
     }
   else
-    printf("Times are %s\n", TIME_UNIT);
+    printf("Times are %s\n", gavl_benchmark_get_desc(gavl_accel_supported()));
   
   
   if(flags & BENCHMARK_SAMPLEFORMAT)
