@@ -67,14 +67,6 @@ static void * create_theora(FILE * output, long serialno)
 static const bg_parameter_info_t parameters[] =
   {
     {
-      .name =        "chroma_mode",
-      .long_name =   TRS("Chroma subsampling mode"),
-      .type =        BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "420" },
-      .multi_names =  (char const *[]){ "420",   "422",   "444",   (char*)0 },
-      .multi_labels = (char const *[]){ "4:2:0", "4:2:2", "4:4:4", (char*)0 },
-    },
-    {
       .name =        "cbr",
       .long_name =   TRS("Use constant bitrate"),
       .type =        BG_PARAMETER_CHECKBUTTON,
@@ -170,22 +162,7 @@ static void set_parameter_theora(void * data, const char * name,
     {
     return;
     }
-  else if(!strcmp(name, "chroma_mode"))
-    {
-    if(!strcmp(v->val_str, "420"))
-      {
-      theora->ti.pixelformat = OC_PF_420;
-      }
-    else if(!strcmp(v->val_str, "422"))
-      {
-      theora->ti.pixelformat = OC_PF_422;
-      }
-    else if(!strcmp(v->val_str, "444"))
-      {
-      theora->ti.pixelformat = OC_PF_444;
-      }
-    }
-  else if(!strcmp(name, "target_bitrate"))
+  if(!strcmp(name, "target_bitrate"))
     {
     theora->ti.target_bitrate = v->val_i * 1000;
     }
@@ -268,6 +245,13 @@ static void build_comment(theora_comment * vc, bg_metadata_t * metadata)
     theora_comment_add(vc, metadata->comment);
   }
 
+static const gavl_pixelformat_t supported_pixelformats[] =
+  {
+    GAVL_YUV_420_P,
+    GAVL_YUV_422_P,
+    GAVL_YUV_444_P,
+    GAVL_PIXELFORMAT_NONE,
+  };
 
 static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t * metadata)
   {
@@ -307,17 +291,21 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   theora->ti.keyframe_data_target_bitrate=theora->ti.keyframe_data_target_bitrate*1.5;
   theora->ti.keyframe_auto_threshold=80;
   theora->ti.keyframe_mindistance=8;
-  
-  switch(theora->ti.pixelformat)
+
+  format->pixelformat =
+    gavl_pixelformat_get_best(format->pixelformat,
+                              supported_pixelformats, NULL);
+    
+  switch(format->pixelformat)
     {
-    case OC_PF_420:
-      format->pixelformat = GAVL_YUV_420_P;
+    case GAVL_YUV_420_P:
+      theora->ti.pixelformat = OC_PF_420;
       break;
-    case OC_PF_422:
-      format->pixelformat = GAVL_YUV_422_P;
+    case GAVL_YUV_422_P:
+      theora->ti.pixelformat = OC_PF_422;
       break;
-    case OC_PF_444:
-      format->pixelformat = GAVL_YUV_444_P;
+    case GAVL_YUV_444_P:
+      theora->ti.pixelformat = OC_PF_444;
       break;
     default:
       return 0;

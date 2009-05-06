@@ -161,8 +161,8 @@ const char * bg_ffmpeg_get_extension(void * data)
   }
 
 int bg_ffmpeg_open(void * data, const char * filename,
-                   bg_metadata_t * metadata,
-                   bg_chapter_list_t * chapter_list)
+                   const bg_metadata_t * metadata,
+                   const bg_chapter_list_t * chapter_list)
   {
   ffmpeg_priv_t * priv;
   AVOutputFormat *fmt;

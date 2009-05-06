@@ -133,7 +133,7 @@ static void create_seektable(flac_t * flac)
   }
 
 static int open_flac(void * data, const char * filename,
-                    bg_metadata_t * m, bg_chapter_list_t * chapter_list)
+                     const bg_metadata_t * m, const bg_chapter_list_t * chapter_list)
   {
   int result = 1;
   flac_t * flac;
@@ -147,7 +147,7 @@ static int open_flac(void * data, const char * filename,
 
   /* Create vorbis comment */
 
-  if(flac->use_vorbis_comment)
+  if(flac->use_vorbis_comment && m)
     {
     bg_flac_init_metadata(&flac->com, m);
     flac->metadata[flac->num_metadata++] = flac->com.vorbis_comment;

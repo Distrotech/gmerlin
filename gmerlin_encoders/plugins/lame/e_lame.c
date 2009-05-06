@@ -505,8 +505,8 @@ static void set_parameter_lame(void * data, const char * name,
   }
 
 static int open_lame(void * data, const char * filename,
-                     bg_metadata_t * metadata,
-                     bg_chapter_list_t * chapter_list)
+                     const bg_metadata_t * metadata,
+                     const bg_chapter_list_t * chapter_list)
   {
   int ret = 1;
   lame_priv_t * lame;
@@ -526,7 +526,7 @@ static int open_lame(void * data, const char * filename,
     }
   lame->filename = bg_strdup(lame->filename, filename);
 
-  if(lame->do_id3v2)
+  if(lame->do_id3v2 && metadata)
     {
     id3v2 = bgen_id3v2_create(metadata);
     if(!bgen_id3v2_write(lame->output, id3v2, lame->id3v2_charset))
@@ -536,7 +536,7 @@ static int open_lame(void * data, const char * filename,
 
   /* Create id3v1 tag. It will be appended to the file at the very end */
 
-  if(lame->do_id3v1)
+  if(lame->do_id3v1 && metadata)
     {
     lame->id3v1 = bgen_id3v1_create(metadata);
     }

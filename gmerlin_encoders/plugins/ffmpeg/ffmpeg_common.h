@@ -132,8 +132,8 @@ const char * bg_ffmpeg_get_extension(void * data);
 
 
 int bg_ffmpeg_open(void * data, const char * filename,
-                   bg_metadata_t * metadata,
-                   bg_chapter_list_t * chapter_list);
+                   const bg_metadata_t * metadata,
+                   const bg_chapter_list_t * chapter_list);
 
 const bg_parameter_info_t * bg_ffmpeg_get_audio_parameters(void * data);
 const bg_parameter_info_t * bg_ffmpeg_get_video_parameters(void * data);

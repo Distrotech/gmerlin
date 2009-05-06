@@ -75,8 +75,8 @@ typedef struct
 void * bg_ogg_encoder_create();
 
 int bg_ogg_encoder_open(void *, const char * file,
-                        bg_metadata_t * metadata,
-                        bg_chapter_list_t * chapter_list);
+                        const bg_metadata_t * metadata,
+                        const bg_chapter_list_t * chapter_list);
 
 void bg_ogg_encoder_destroy(void*);
 

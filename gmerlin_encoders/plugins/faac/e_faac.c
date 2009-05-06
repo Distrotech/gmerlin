@@ -287,8 +287,8 @@ static void set_parameter_faac(void * data, const char * name,
   }
 
 static int open_faac(void * data, const char * filename,
-                     bg_metadata_t * metadata,
-                     bg_chapter_list_t * chapter_list)
+                     const bg_metadata_t * metadata,
+                     const bg_chapter_list_t * chapter_list)
   {
   faac_t * faac;
   bgen_id3v2_t * id3v2;
@@ -306,9 +306,9 @@ static int open_faac(void * data, const char * filename,
   
   faac->filename = bg_strdup(faac->filename, filename);
 
-  if(faac->do_id3v1)
+  if(faac->do_id3v1 && metadata)
     faac->id3v1 = bgen_id3v1_create(metadata);
-  if(faac->do_id3v2)
+  if(faac->do_id3v2 && metadata)
     {
     id3v2 = bgen_id3v2_create(metadata);
     bgen_id3v2_write(faac->output, id3v2, faac->id3v2_charset);

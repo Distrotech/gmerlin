@@ -71,8 +71,8 @@ static void set_parameter_mpa(void * data, const char * name,
   }
 
 static int open_mpa(void * data, const char * filename,
-                    bg_metadata_t * metadata,
-                    bg_chapter_list_t * chapter_list)
+                    const bg_metadata_t * metadata,
+                    const bg_chapter_list_t * chapter_list)
   {
   e_mpa_t * mpa;
   mpa = (e_mpa_t*)data;

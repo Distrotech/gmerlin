@@ -92,8 +92,8 @@ static const char * get_extension_mpeg(void * data)
   }
 
 static int open_mpeg(void * data, const char * filename,
-                     bg_metadata_t * metadata,
-                     bg_chapter_list_t * chapter_list)
+                     const bg_metadata_t * metadata,
+                     const bg_chapter_list_t * chapter_list)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
 
