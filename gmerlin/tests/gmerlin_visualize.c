@@ -40,9 +40,34 @@ static int fps_den = 1;
 bg_cfg_section_t * vis_section = NULL;
 
 bg_plugin_handle_t        * vis_handle = NULL;
+bg_plugin_handle_t        * enc_handle = NULL;
+
 bg_plugin_registry_t * plugin_reg = NULL;
 
-int encode_audio = 0;
+// int encode_audio = 0;
+
+int audio_index = -1;
+int video_index = -1;
+
+gavl_audio_converter_t * audio_cnv_v = NULL;
+gavl_audio_converter_t * audio_cnv_e = NULL;
+gavl_video_converter_t * video_cnv_e = NULL;
+int convert_audio_v = 0;
+int convert_audio_e = 0;
+int convert_video_e = 0;
+
+gavl_audio_frame_t * aframe_v = NULL;
+gavl_audio_frame_t * aframe_e = NULL;
+
+gavl_video_frame_t * vframe_v = NULL;
+gavl_video_frame_t * vframe_e = NULL;
+
+gavl_audio_format_t afmt_i, afmt_e, afmt_v;
+gavl_video_format_t vfmt_v, vfmt_e;
+
+gavl_time_t track_duration;
+gavl_time_t start_duration = 0;
+gavl_time_t end_duration = 0;
 
 static int load_input_file(bg_plugin_registry_t * plugin_reg,
                            bg_plugin_handle_t ** input_handle,
@@ -72,7 +97,9 @@ static int load_input_file(bg_plugin_registry_t * plugin_reg,
     fprintf(stderr, "File %s has no audio\n", file);
     return 0;
     }
-
+  
+  track_duration = ti->duration;
+  
   /* Select first stream */
   (*input_plugin)->set_audio_stream((*input_handle)->priv, 0,
                                     BG_STREAM_ACTION_DECODE);
@@ -87,6 +114,26 @@ static int load_input_file(bg_plugin_registry_t * plugin_reg,
                          &ti->audio_streams[0].format);
   
   return 1;
+  }
+
+static void set_audio_parameter(void * priv, const char * name,
+                                const bg_parameter_value_t * val)
+  {
+  bg_encoder_plugin_t * plugin;
+  bg_plugin_handle_t * handle = priv;
+  plugin = (bg_encoder_plugin_t *)(handle)->plugin;
+  
+  plugin->set_audio_parameter(handle->priv, audio_index, name, val);
+  }
+
+static void set_video_parameter(void * priv, const char * name,
+                                const bg_parameter_value_t * val)
+  {
+  bg_encoder_plugin_t * plugin;
+  bg_plugin_handle_t * handle = priv;
+  plugin = (bg_encoder_plugin_t *)(handle)->plugin;
+  plugin->set_video_parameter(handle->priv, video_index, name, val);
+  //  fprintf(stderr, "Set video parameter %s\n", name);
   }
 
 static int open_encoder(bg_plugin_registry_t * plugin_reg,
@@ -123,15 +170,57 @@ static int open_encoder(bg_plugin_registry_t * plugin_reg,
 
   /* Open */
 
-  if(!(*plugin)->open((*handle)->priv, filename, NULL))
+  if(!(*plugin)->open((*handle)->priv, filename, NULL, NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening %s failed", filename);
     }
 
   /* Add video stream */
+  video_index = (*plugin)->add_video_stream((*handle)->priv, video_format);
+
+  /* Add audio stream */
+  if((*plugin)->add_audio_stream)
+    audio_index = (*plugin)->add_audio_stream((*handle)->priv, "eng", audio_format);
+
+  /* Set video parameters */
+
+  if((*plugin)->get_video_parameters)
+    {
+    bg_cfg_section_t * s;
+    s = bg_plugin_registry_get_section(plugin_reg, info->name);
+    s = bg_cfg_section_find_subsection(s, "$video");
+
+    bg_cfg_section_apply(s,
+                         (*plugin)->get_video_parameters((*handle)->priv),
+                         set_video_parameter,
+                         *handle);
+    }
   
+  /* Set audio parameters */
+  if((*plugin)->get_audio_parameters)
+    {
+    bg_cfg_section_t * s;
+    s = bg_plugin_registry_get_section(plugin_reg, info->name);
+    s = bg_cfg_section_find_subsection(s, "$audio");
+
+    bg_cfg_section_apply(s,
+                         (*plugin)->get_audio_parameters((*handle)->priv),
+                         set_audio_parameter,
+                         *handle);
+    }
+
+  if((*plugin)->start && !(*plugin)->start((*handle)->priv))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting %s failed", info->name);
+    return 0;
+    }
+
+  if((*plugin)->add_audio_stream)
+    (*plugin)->get_audio_format((*handle)->priv, audio_index, audio_format);
+
+  (*plugin)->get_video_format((*handle)->priv, video_index, video_format);
   
-  return 0;
+  return 1;
   }
 
 static void opt_width(void * data, int * argc, char *** argv, int arg)
@@ -261,7 +350,76 @@ bg_cmdline_app_data_t app_data =
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
                                        {  } },
   };
- 
+
+int64_t next_frame_time = 0;
+int64_t audio_time      = 0;
+
+static void iteration(gavl_audio_frame_t * frame)
+  {
+  float percentage;
+  bg_visualization_plugin_t * vis_plugin;
+  bg_encoder_plugin_t * enc_plugin = (bg_encoder_plugin_t*)enc_handle->plugin;
+  
+  vis_plugin = (bg_visualization_plugin_t*)vis_handle->plugin;
+  
+  /* Update visualization */
+  if(convert_audio_v)
+    {
+    gavl_audio_convert(audio_cnv_v, frame, aframe_v);
+    vis_plugin->update(vis_handle->priv, aframe_v);
+    }
+  else
+    {
+    vis_plugin->update(vis_handle->priv, frame);
+    }
+
+  audio_time += frame->valid_samples;
+  
+  /* Write audio */
+
+  if(audio_index >= 0)
+    {
+    if(convert_audio_e)
+      {
+      gavl_audio_convert(audio_cnv_e, frame, aframe_e);
+      enc_plugin->write_audio_frame(enc_handle->priv, aframe_e, audio_index);
+      }
+    else
+      {
+      enc_plugin->write_audio_frame(enc_handle->priv, frame, audio_index);
+      }
+    }
+  
+  /* Write video */
+
+  if(gavl_time_rescale(afmt_i.samplerate,
+                       vfmt_e.timescale, audio_time) >= next_frame_time)
+    {
+    vis_plugin->draw_frame(vis_handle->priv, vframe_v);
+    
+    if(convert_audio_e)
+      {
+      gavl_video_convert(video_cnv_e, vframe_v, vframe_e);
+      vframe_e->timestamp = next_frame_time;
+      vframe_e->duration = vfmt_e.frame_duration;
+      enc_plugin->write_video_frame(enc_handle->priv, vframe_e, video_index);
+      }
+    else
+      {
+      vframe_v->timestamp = next_frame_time;
+      vframe_v->duration = vfmt_v.frame_duration;
+      enc_plugin->write_video_frame(enc_handle->priv, vframe_v, video_index);
+      }
+    next_frame_time += vfmt_e.frame_duration;
+    }
+
+  percentage = ((double)audio_time / (double)afmt_i.samplerate) /
+    gavl_time_to_seconds(track_duration + start_duration + end_duration);
+
+  printf("Done %6.2f %%\r", percentage * 100.0);
+  fflush(stdout);
+  }
+
 int main(int argc, char ** argv)
   {
   char * tmp_path;
@@ -269,21 +427,15 @@ int main(int argc, char ** argv)
   bg_plugin_handle_t * input_handle;
   bg_input_plugin_t * input_plugin;
 
-  bg_plugin_handle_t * enc_handle;
   bg_encoder_plugin_t * enc_plugin;
   
   bg_visualization_plugin_t * vis_plugin;
   
-  gavl_audio_converter_t * audio_cnv_v;
-  gavl_audio_converter_t * audio_cnv_e;
-  gavl_video_converter_t * video_cnv_e;
-  
-  gavl_audio_format_t afmt_i, afmt_e, afmt_v;
-  gavl_video_format_t vfmt_v, vfmt_e;
-
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
   char ** files;
+  
+  gavl_audio_frame_t * aframe_i = NULL;
   
   /* Create registries */
   
@@ -368,11 +520,52 @@ int main(int argc, char ** argv)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open encoder");
     return -1;
     }
+
+  /* Initialize converters */
+
+  audio_cnv_v = gavl_audio_converter_create();
+  convert_audio_v = gavl_audio_converter_init(audio_cnv_v, &afmt_i, &afmt_v);
+  
+  if(audio_index >= 0)
+    {
+    audio_cnv_e = gavl_audio_converter_create();
+    convert_audio_e = gavl_audio_converter_init(audio_cnv_e, &afmt_i, &afmt_e);
+    }
+
+  gavl_video_format_dump(&vfmt_v);
+  gavl_video_format_dump(&vfmt_e);
+  
+  
+  video_cnv_e = gavl_video_converter_create();
+  convert_video_e = gavl_video_converter_init(video_cnv_e, &vfmt_v, &vfmt_e);
+
+  /* Create frames */
+
+  afmt_e.samples_per_frame = afmt_v.samples_per_frame;
+  afmt_i.samples_per_frame = afmt_v.samples_per_frame;
+
+  aframe_i = gavl_audio_frame_create(&afmt_i);
+  
+  if(convert_audio_v)
+    aframe_v = gavl_audio_frame_create(&afmt_v);
+
+  if((audio_index >= 0) && (convert_audio_e))
+    aframe_e = gavl_audio_frame_create(&afmt_e);
+
+  vframe_v = gavl_video_frame_create(&vfmt_v);
+  if(convert_video_e)
+    vframe_e = gavl_video_frame_create(&vfmt_e);
   
   while(1)
     {
+    if(!input_plugin->read_audio(input_handle->priv,
+                                 aframe_i, 0, afmt_i.samples_per_frame))
+      break;
     
+    iteration(aframe_i);
     }
-
+  
+  enc_plugin->close(enc_handle->priv, 0);
+  
   return 0;
   }

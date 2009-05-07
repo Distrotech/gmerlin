@@ -72,7 +72,7 @@
  */
 
 typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame, int stream,
-                                  int num_samples);
+                                    int num_samples);
 
 /** \ingroup plugin
  *  \brief Generic prototype for reading video
