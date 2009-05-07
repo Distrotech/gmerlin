@@ -60,11 +60,11 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
   bgav_dirac_picture_header_t ph;
   int ret = PARSER_CONTINUE;
   priv = parser->priv;
-  
-  //  fprintf(stderr, "parse_frame_dirac %d %d\n",
-  //          parser->pos, parser->buf.size);
-  //  bgav_hexdump(start, 16, 16);
-  
+#if 0  
+  fprintf(stderr, "parse_frame_dirac %d %d\n",
+          parser->pos, parser->buf.size);
+  bgav_hexdump(start, 16, 16);
+#endif
   while(start < end)
     {
     code = bgav_dirac_get_code(start, end - start, &len);
@@ -117,6 +117,9 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
           priv->sh.frame_duration;
         
         return ret;        
+        break;
+      case DIRAC_CODE_END:
+        fprintf(stderr, "Dirac code end %d\n", len);
         break;
       }
     start += len;

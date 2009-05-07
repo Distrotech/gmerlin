@@ -40,8 +40,12 @@ int bgav_dirac_get_code(uint8_t * data, int len, int * size)
   parse_code = *data; data++;
   
   if(size)
-    *size = BGAV_PTR_2_32BE(data);
-
+    {
+    if(parse_code == 0x10)
+      *size = 13;
+    else
+      *size = BGAV_PTR_2_32BE(data);
+    }
   data+=4;
 
   if(parse_code == 0x00)
