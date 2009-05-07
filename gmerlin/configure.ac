@@ -882,7 +882,7 @@ fi
 
 GMERLIN_PLUGIN_DIR="$exec_prefix/lib/$PACKAGE/plugins"
 GMERLIN_DATA_DIR="$prefix/share/$PACKAGE"
-GMERLIN_DOC_DIR="$prefix/share/doc/$PACKAGE"
+GMERLIN_DOC_DIR="$docdir"
 
 AC_DEFINE_UNQUOTED(PREFIX, "$prefix", Installation prefix)
 
