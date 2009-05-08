@@ -623,7 +623,7 @@ AC_ARG_ENABLE(jack,
 JACK_REQUIRED="0.109.2"
 
 if test x$test_jack = xtrue; then
-PKG_CHECK_MODULES(JACK, jack >= $JACK_REQUIRED, have_jack="true")
+PKG_CHECK_MODULES(JACK, jack >= $JACK_REQUIRED, have_jack="true", have_jack="false")
 fi
 
 AC_SUBST(JACK_REQUIRED)
