@@ -1426,7 +1426,11 @@ static void fix_index(bgav_demuxer_context_t * ctx)
          whole stream for getting sample accuracy */
       sp = s->priv;
 
-      if(!sp->trak->mdia.minf.stbl.has_ctts)
+      /* If the track doesn't have a ctts, we parse the complete
+         stream, except if the file was created with libquicktime */
+      if(!sp->trak->mdia.minf.stbl.has_ctts &&
+         strncmp(sp->trak->mdia.minf.stbl.stsd.entries[0].desc.format.video.compressor_name,
+                 "libquicktime", 12))
         {
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                  "Dirac stream has no ctts");
