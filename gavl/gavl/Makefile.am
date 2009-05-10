@@ -1,3 +1,4 @@
+AM_CFLAGS = @LIBGAVL_CFLAGS@
 
 if HAVE_MMX
 mmx_libs = mmx/libgavl_mmx.la mmxext/libgavl_mmxext.la

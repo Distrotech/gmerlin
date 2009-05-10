@@ -26,9 +26,8 @@
 extern "C" {
 #endif
 
-#pragma GCC visibility push(default)
+#include <gavl/gavldefs.h>
 
-  
 /** \defgroup timecode Timecodes
  *  \brief Timecode definitions
  *
@@ -71,6 +70,7 @@ typedef struct
  *  \param frames If non NULL, returns the frames
  */
   
+GAVL_PUBLIC
 void gavl_timecode_to_hmsf(gavl_timecode_t tc,
                            int * hours,
                            int * minutes,
@@ -84,6 +84,7 @@ void gavl_timecode_to_hmsf(gavl_timecode_t tc,
  *  \param day If non NULL, returns the day
  */
   
+GAVL_PUBLIC
 void gavl_timecode_to_ymd(gavl_timecode_t tc,
                           int * year,
                           int * month,
@@ -97,6 +98,7 @@ void gavl_timecode_to_ymd(gavl_timecode_t tc,
  *  \param frames The frames
  */
   
+GAVL_PUBLIC
 void gavl_timecode_from_hmsf(gavl_timecode_t * tc,
                             int hours,
                             int minutes,
@@ -110,6 +112,7 @@ void gavl_timecode_from_hmsf(gavl_timecode_t * tc,
  *  \param day The day
  */
   
+GAVL_PUBLIC
 void gavl_timecode_from_ymd(gavl_timecode_t * tc,
                             int year,
                             int month,
@@ -125,6 +128,7 @@ void gavl_timecode_from_ymd(gavl_timecode_t * tc,
  *  00:00:00, January 1, 1970
  */
   
+GAVL_PUBLIC
 int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
                                     gavl_timecode_t tc);
 
@@ -138,6 +142,7 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
  *  00:00:00, January 1, 1970
  */
 
+GAVL_PUBLIC
 gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
                                               int64_t fc);
 
@@ -148,6 +153,7 @@ gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
  *  This is used mainly for debugging
  */
   
+GAVL_PUBLIC
 void gavl_timecode_dump(const gavl_timecode_format_t * tf,
                         gavl_timecode_t tc);
   
@@ -158,6 +164,7 @@ void gavl_timecode_dump(const gavl_timecode_format_t * tf,
                                       which a timecode will be printed */
 
 
+GAVL_PUBLIC
 void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
                                gavl_timecode_t tc,
                                char str[GAVL_TIMECODE_STRING_LEN]);
@@ -168,8 +175,6 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
  * @}
  */
 
-#pragma GCC visibility pop
-  
 #ifdef __cplusplus
 }
 #endif

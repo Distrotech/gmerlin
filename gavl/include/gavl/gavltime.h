@@ -26,8 +26,8 @@
 extern "C" {
 #endif
 
-#pragma GCC visibility push(default)
-  
+#include <gavl/gavldefs.h>
+
 /*! \defgroup time Time
  */
 
@@ -57,6 +57,7 @@ typedef int64_t gavl_time_t;
  * \brief Convert a number of samples to a time for a given samplerate
  */
 
+GAVL_PUBLIC
 gavl_time_t gavl_samples_to_time(int samplerate, int64_t samples);
 
 /*! \ingroup time
@@ -66,12 +67,14 @@ gavl_time_t gavl_samples_to_time(int samplerate, int64_t samples);
  * \returns Number of audio samples
  */
 
+GAVL_PUBLIC
 int64_t gavl_time_to_samples(int samplerate, gavl_time_t time);
 
 /*! \ingroup time
  * \brief Convert a number of video frames to a time for a given framerate
  */
 
+GAVL_PUBLIC
 gavl_time_t gavl_frames_to_time(int rate_num, int rate_den, int64_t frames);
 
 
@@ -83,6 +86,7 @@ gavl_time_t gavl_frames_to_time(int rate_num, int rate_den, int64_t frames);
  * \returns Number of frames
  */
 
+GAVL_PUBLIC
 int64_t gavl_time_to_frames(int rate_num, int rate_den, gavl_time_t time); 
 
 /*! \ingroup time
@@ -92,6 +96,7 @@ int64_t gavl_time_to_frames(int rate_num, int rate_den, gavl_time_t time);
  * \returns Time scaled by scale
  */
 
+GAVL_PUBLIC
 int64_t gavl_time_scale(int scale, gavl_time_t time);
 
 /*! \ingroup time
@@ -101,6 +106,7 @@ int64_t gavl_time_scale(int scale, gavl_time_t time);
  * \returns Time scaled by \ref GAVL_TIME_SCALE
  */
 
+GAVL_PUBLIC
 gavl_time_t gavl_time_unscale(int scale, int64_t time);
 
 /*! \ingroup time
@@ -111,6 +117,7 @@ gavl_time_t gavl_time_unscale(int scale, int64_t time);
  * \returns Time scaled by scale2
  */
 
+GAVL_PUBLIC
 int64_t gavl_time_rescale(int scale1, int scale2, int64_t time);
 
 /*! \ingroup time
@@ -134,6 +141,7 @@ int64_t gavl_time_rescale(int scale1, int scale2, int64_t time);
  * \param time Time after which execution of the current thread is resumed
  */
 
+GAVL_PUBLIC
 void gavl_time_delay(gavl_time_t * time);
 
 /*! \ingroup time
@@ -151,13 +159,14 @@ void gavl_time_delay(gavl_time_t * time);
  * The format is: -hhh:mm:ss
  */
 
-void
+GAVL_PUBLIC void
 gavl_time_prettyprint(gavl_time_t time, char str[GAVL_TIME_STRING_LEN]);
 
 
 /* Scan time: format is hhh:mm:ss with hh: hours, mm: minutes, ss: seconds. Seconds can be a fractional
    value (i.e. with decimal point) */
 
+GAVL_PUBLIC
 int gavl_time_parse(const char * str, gavl_time_t * ret);
 
 
@@ -184,6 +193,7 @@ typedef struct gavl_timer_s gavl_timer_t;
  * \returns A newly allocated timer
  */
 
+GAVL_PUBLIC
 gavl_timer_t * gavl_timer_create();
 
 /*! \ingroup timer
@@ -193,6 +203,7 @@ gavl_timer_t * gavl_timer_create();
  * Destroys a timer and frees all associated memory
  */
 
+GAVL_PUBLIC
 void gavl_timer_destroy(gavl_timer_t * timer);
 
 /*! \ingroup timer
@@ -200,6 +211,7 @@ void gavl_timer_destroy(gavl_timer_t * timer);
  * \param timer A timer
  */
 
+GAVL_PUBLIC
 void gavl_timer_start(gavl_timer_t * timer);
 
 /*! \ingroup timer
@@ -207,6 +219,7 @@ void gavl_timer_start(gavl_timer_t * timer);
  * \param timer A timer
  */
 
+GAVL_PUBLIC
 void gavl_timer_stop(gavl_timer_t * timer);
 
 /*! \ingroup timer
@@ -215,6 +228,7 @@ void gavl_timer_stop(gavl_timer_t * timer);
  * \returns Current time
  */
 
+GAVL_PUBLIC
 gavl_time_t gavl_timer_get(gavl_timer_t * timer);
 
 /*! \ingroup timer
@@ -223,6 +237,7 @@ gavl_time_t gavl_timer_get(gavl_timer_t * timer);
  * \param t New time
  */
 
+GAVL_PUBLIC
 void gavl_timer_set(gavl_timer_t * timer, gavl_time_t t);
 
 /*! \ingroup timer
@@ -236,6 +251,7 @@ void gavl_timer_set(gavl_timer_t * timer, gavl_time_t t);
  * interpreted can be ontained with \ref gavl_benchmark_get_desc
  */
 
+GAVL_PUBLIC
 uint64_t gavl_benchmark_get_time(int flags);
 
 /*! \ingroup timer
@@ -245,9 +261,9 @@ uint64_t gavl_benchmark_get_time(int flags);
  *
  */
 
+GAVL_PUBLIC
 const char * gavl_benchmark_get_desc(int flags);
   
-#pragma GCC visibility pop
   
 #ifdef __cplusplus
 }

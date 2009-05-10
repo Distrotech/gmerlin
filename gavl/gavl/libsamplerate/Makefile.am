@@ -1,6 +1,8 @@
 # This file was automatically generated from the Makefile.am
 # DO NOT EDIT!
 
+AM_CFLAGS = @LIBGAVL_CFLAGS@
+
 noinst_LTLIBRARIES = libsamplerate.la
 
 EXTRA_DIST = 

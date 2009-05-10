@@ -29,6 +29,7 @@
 
 #include <inttypes.h>
 
+#include <gavl/gavldefs.h>
 #include <gavl/gavltime.h>
 
 #ifdef __cplusplus
@@ -37,7 +38,6 @@ extern "C" {
 
 #include <gavl/timecode.h>
 
-#pragma GCC visibility push(default)
 
 /** \defgroup mt Multithreading
  *  \brief Multithreading
@@ -169,7 +169,7 @@ typedef struct gavl_video_format_s gavl_video_format_t;
  *  \returns A combination of GAVL_ACCEL_* flags.
  */
   
-int gavl_accel_supported();
+GAVL_PUBLIC int gavl_accel_supported();
 
 /**
  *  @}
@@ -282,6 +282,7 @@ typedef struct
   \returns A string describing the format
  */
   
+GAVL_PUBLIC 
 const char * gavl_sample_format_to_string(gavl_sample_format_t format);
 
 /*! 
@@ -292,6 +293,7 @@ const char * gavl_sample_format_to_string(gavl_sample_format_t format);
   str must be one of the strings returned by \ref gavl_sample_format_to_string
  */
 
+GAVL_PUBLIC 
 gavl_sample_format_t gavl_string_to_sample_format(const char * str);
 
 /*! \ingroup audio_format
@@ -299,6 +301,7 @@ gavl_sample_format_t gavl_string_to_sample_format(const char * str);
  * \returns total number of supported sample formats
  */
 
+GAVL_PUBLIC 
 int gavl_num_sample_formats();
 
 /*! \ingroup audio_format
@@ -307,6 +310,7 @@ int gavl_num_sample_formats();
  * \returns The sample format corresponding to index or GAVL_SAMPLE_NONE.
  */
 
+GAVL_PUBLIC
 gavl_sample_format_t gavl_get_sample_format(int index);
   
 /*! 
@@ -315,6 +319,7 @@ gavl_sample_format_t gavl_get_sample_format(int index);
   \param id A channel id
  */
 
+GAVL_PUBLIC
 const char * gavl_channel_id_to_string(gavl_channel_id_t id);
 
 
@@ -324,6 +329,7 @@ const char * gavl_channel_id_to_string(gavl_channel_id_t id);
   \param mode An interleave mode
  */
 
+GAVL_PUBLIC
 const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t mode);
 
 /*! 
@@ -332,6 +338,7 @@ const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t mode);
   \param format An audio format
  */
 
+GAVL_PUBLIC
 void gavl_audio_format_dump(const gavl_audio_format_t * format);
 
 /*!
@@ -342,6 +349,7 @@ void gavl_audio_format_dump(const gavl_audio_format_t * format);
   \returns The index of the channel in the format or -1 if such a channel is not present
  */
 
+GAVL_PUBLIC
 int gavl_channel_index(const gavl_audio_format_t * format, gavl_channel_id_t id);
 
 /*!
@@ -350,6 +358,7 @@ int gavl_channel_index(const gavl_audio_format_t * format, gavl_channel_id_t id)
   \param format An audio format
  */
   
+GAVL_PUBLIC
 int gavl_front_channels(const gavl_audio_format_t * format);
 
 /*!
@@ -358,6 +367,7 @@ int gavl_front_channels(const gavl_audio_format_t * format);
   \param format An audio format
  */
   
+GAVL_PUBLIC
 int gavl_rear_channels(const gavl_audio_format_t * format);
 
 /*!
@@ -366,6 +376,7 @@ int gavl_rear_channels(const gavl_audio_format_t * format);
   \param format An audio format
  */
   
+GAVL_PUBLIC
 int gavl_side_channels(const gavl_audio_format_t * format);
 
 /*!
@@ -374,6 +385,7 @@ int gavl_side_channels(const gavl_audio_format_t * format);
   \param format An audio format
  */
 
+GAVL_PUBLIC
 int gavl_aux_channels(const gavl_audio_format_t * format);
 
   
@@ -384,6 +396,7 @@ int gavl_aux_channels(const gavl_audio_format_t * format);
   \param format An audio format
  */
 
+GAVL_PUBLIC
 int gavl_lfe_channels(const gavl_audio_format_t * format);
 
 /*!
@@ -393,6 +406,7 @@ int gavl_lfe_channels(const gavl_audio_format_t * format);
   \param src Source format 
  */
   
+GAVL_PUBLIC
 void gavl_audio_format_copy(gavl_audio_format_t * dst,
                             const gavl_audio_format_t * src);
 
@@ -404,6 +418,7 @@ void gavl_audio_format_copy(gavl_audio_format_t * dst,
   \returns 1 if the formats are equal, 0 else
 */
   
+GAVL_PUBLIC
 int gavl_audio_formats_equal(const gavl_audio_format_t * format_1,
                               const gavl_audio_format_t * format_2);
 
@@ -418,6 +433,7 @@ int gavl_audio_formats_equal(const gavl_audio_format_t * format_1,
   speaker configurations.
 */
   
+GAVL_PUBLIC
 void gavl_set_channel_setup(gavl_audio_format_t * format);
 
 /*!
@@ -426,6 +442,7 @@ void gavl_set_channel_setup(gavl_audio_format_t * format);
   \param format A sample format
 */
  
+GAVL_PUBLIC
 int gavl_bytes_per_sample(gavl_sample_format_t format);
 
 /** \defgroup audio_frame Audio frame
@@ -514,6 +531,7 @@ typedef struct
   pointers manually.
 */
   
+GAVL_PUBLIC
 gavl_audio_frame_t * gavl_audio_frame_create(const gavl_audio_format_t* format);
 
 /*!
@@ -527,6 +545,7 @@ gavl_audio_frame_t * gavl_audio_frame_create(const gavl_audio_format_t* format);
   
 */
   
+GAVL_PUBLIC
 void gavl_audio_frame_null(gavl_audio_frame_t * frame);
 
 /*!
@@ -538,6 +557,7 @@ void gavl_audio_frame_null(gavl_audio_frame_t * frame);
   to allocate the frame, call \ref gavl_audio_frame_null before.
 */
   
+GAVL_PUBLIC
 void gavl_audio_frame_destroy(gavl_audio_frame_t * frame);
 
 /*!
@@ -549,6 +569,7 @@ void gavl_audio_frame_destroy(gavl_audio_frame_t * frame);
   Fills the frame with digital zero samples according to the audio format
 */
   
+GAVL_PUBLIC
 void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
                            const gavl_audio_format_t * format);
 
@@ -562,6 +583,7 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
   Fills the frame with digital zero samples according to the audio format
 */
 
+GAVL_PUBLIC
 void gavl_audio_frame_mute_samples(gavl_audio_frame_t * frame,
                                    const gavl_audio_format_t * format,
                                    int num_samples);
@@ -578,6 +600,7 @@ void gavl_audio_frame_mute_samples(gavl_audio_frame_t * frame,
   Fills the frame with digital zero samples according to the audio format
 */
   
+GAVL_PUBLIC
 void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
                                    const gavl_audio_format_t * format,
                                    int channel);
@@ -602,6 +625,7 @@ void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
   
 */
   
+GAVL_PUBLIC
 int gavl_audio_frame_copy(const gavl_audio_format_t * format,
                           gavl_audio_frame_t * dst,
                           const gavl_audio_frame_t * src,
@@ -622,6 +646,7 @@ int gavl_audio_frame_copy(const gavl_audio_format_t * format,
   Since 1.1.1
 */
 
+GAVL_PUBLIC
 void gavl_audio_frame_copy_ptrs(const gavl_audio_format_t * format,
                                 gavl_audio_frame_t * dst,
                                 const gavl_audio_frame_t * src);
@@ -721,6 +746,7 @@ typedef struct gavl_audio_options_s gavl_audio_options_t;
  *  \param quality Quality level (see \ref quality)
  */
   
+GAVL_PUBLIC
 void gavl_audio_options_set_quality(gavl_audio_options_t * opt, int quality);
 
 /*! \ingroup audio_options
@@ -729,6 +755,7 @@ void gavl_audio_options_set_quality(gavl_audio_options_t * opt, int quality);
  *  \returns Quality level (see \ref quality)
  */
   
+GAVL_PUBLIC
 int gavl_audio_options_get_quality(gavl_audio_options_t * opt);
   
 /*! \ingroup audio_options
@@ -737,6 +764,7 @@ int gavl_audio_options_get_quality(gavl_audio_options_t * opt);
  *  \param mode A dither mode
  */
   
+GAVL_PUBLIC
 void gavl_audio_options_set_dither_mode(gavl_audio_options_t * opt, gavl_audio_dither_mode_t mode);
 
 /*! \ingroup audio_options
@@ -745,6 +773,7 @@ void gavl_audio_options_set_dither_mode(gavl_audio_options_t * opt, gavl_audio_d
  *  \returns The dither mode
  */
   
+GAVL_PUBLIC
 gavl_audio_dither_mode_t gavl_audio_options_get_dither_mode(gavl_audio_options_t * opt);
 
   
@@ -754,6 +783,7 @@ gavl_audio_dither_mode_t gavl_audio_options_get_dither_mode(gavl_audio_options_t
  *  \param mode A resample mode
  */
   
+GAVL_PUBLIC
 void gavl_audio_options_set_resample_mode(gavl_audio_options_t * opt, gavl_resample_mode_t mode);
 
 /*! \ingroup audio_options
@@ -762,6 +792,7 @@ void gavl_audio_options_set_resample_mode(gavl_audio_options_t * opt, gavl_resam
  *  \returns The resample mode
  */
   
+GAVL_PUBLIC
 gavl_resample_mode_t gavl_audio_options_get_resample_mode(gavl_audio_options_t * opt);
   
 /*! \ingroup audio_options
@@ -770,6 +801,7 @@ gavl_resample_mode_t gavl_audio_options_get_resample_mode(gavl_audio_options_t *
  *  \param flags Flags (see \ref audio_conversion_flags)
  */
   
+GAVL_PUBLIC
 void gavl_audio_options_set_conversion_flags(gavl_audio_options_t * opt,
                                              int flags);
   
@@ -779,6 +811,7 @@ void gavl_audio_options_set_conversion_flags(gavl_audio_options_t * opt,
  *  \returns Flags (see \ref audio_conversion_flags)
  */
   
+GAVL_PUBLIC
 int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt);
 
 /*! \ingroup audio_options
@@ -786,6 +819,7 @@ int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt);
  *  \param opt Audio options
  */
   
+GAVL_PUBLIC
 void gavl_audio_options_set_defaults(gavl_audio_options_t * opt);
 
 /*! \ingroup audio_options
@@ -797,6 +831,7 @@ void gavl_audio_options_set_defaults(gavl_audio_options_t * opt);
  *  gavl_*_get_options() followed by gavl_audio_options_copy().
  */
   
+GAVL_PUBLIC
 gavl_audio_options_t * gavl_audio_options_create();
 
 /*! \ingroup audio_options
@@ -805,6 +840,7 @@ gavl_audio_options_t * gavl_audio_options_create();
  *  \param src Source
  */
 
+GAVL_PUBLIC
 void gavl_audio_options_copy(gavl_audio_options_t * dst,
                              const gavl_audio_options_t * src);
 
@@ -813,6 +849,7 @@ void gavl_audio_options_copy(gavl_audio_options_t * dst,
  *  \param opt Audio options
  */
 
+GAVL_PUBLIC
 void gavl_audio_options_destroy(gavl_audio_options_t * opt);
   
   
@@ -859,6 +896,7 @@ typedef struct gavl_audio_converter_s gavl_audio_converter_t;
  *  \returns A newly allocated audio converter
  */
 
+GAVL_PUBLIC
 gavl_audio_converter_t * gavl_audio_converter_create();
 
 /*! \ingroup audio_converter
@@ -866,6 +904,7 @@ gavl_audio_converter_t * gavl_audio_converter_create();
  *  \param cnv An audio converter
  */
 
+GAVL_PUBLIC
 void gavl_audio_converter_destroy(gavl_audio_converter_t* cnv);
 
 /*! \ingroup audio_converter
@@ -876,6 +915,7 @@ void gavl_audio_converter_destroy(gavl_audio_converter_t* cnv);
  * the options. Options will become valid with the next call to \ref gavl_audio_converter_init or \ref gavl_audio_converter_reinit
  */
 
+GAVL_PUBLIC
 gavl_audio_options_t * gavl_audio_converter_get_options(gavl_audio_converter_t*cnv);
 
 
@@ -893,6 +933,7 @@ gavl_audio_options_t * gavl_audio_converter_get_options(gavl_audio_converter_t*c
  * This function can be called multiple times with one instance
  */
   
+GAVL_PUBLIC
 int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
                               const gavl_audio_format_t * input_format,
                               const gavl_audio_format_t * output_format);
@@ -911,6 +952,7 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
  * Since 1.1.0.
  */
 
+GAVL_PUBLIC
 int gavl_audio_converter_init_resample(gavl_audio_converter_t * cnv,
                                    const gavl_audio_format_t * format);
 
@@ -928,6 +970,7 @@ int gavl_audio_converter_init_resample(gavl_audio_converter_t * cnv,
  */
 
   
+GAVL_PUBLIC
 int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv);
 
   
@@ -944,6 +987,7 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv);
  *
  */
   
+GAVL_PUBLIC
 void gavl_audio_convert(gavl_audio_converter_t * cnv,
                         const gavl_audio_frame_t * input_frame,
                         gavl_audio_frame_t * output_frame);
@@ -967,6 +1011,7 @@ void gavl_audio_convert(gavl_audio_converter_t * cnv,
  * Since 1.1.0.
  */
  
+GAVL_PUBLIC
 int gavl_audio_converter_set_resample_ratio(gavl_audio_converter_t * cnv, 
 		double ratio ) ;
 
@@ -986,6 +1031,7 @@ int gavl_audio_converter_set_resample_ratio(gavl_audio_converter_t * cnv,
  * Since 1.1.0.
  */
   
+GAVL_PUBLIC
 void gavl_audio_converter_resample(gavl_audio_converter_t * cnv,
                               gavl_audio_frame_t * input_frame,
                               gavl_audio_frame_t * output_frame,
@@ -1014,6 +1060,7 @@ typedef struct gavl_volume_control_s gavl_volume_control_t;
  *  \returns A newly allocated volume control
  */
   
+GAVL_PUBLIC
 gavl_volume_control_t * gavl_volume_control_create();
 
 /*! \ingroup volume_control
@@ -1021,6 +1068,7 @@ gavl_volume_control_t * gavl_volume_control_create();
  *  \param ctrl A volume control 
  */
 
+GAVL_PUBLIC
 void gavl_volume_control_destroy(gavl_volume_control_t *ctrl);
 
 /*! \ingroup volume_control
@@ -1030,6 +1078,7 @@ void gavl_volume_control_destroy(gavl_volume_control_t *ctrl);
  * This function can be called multiple times with one instance
  */
 
+GAVL_PUBLIC
 void gavl_volume_control_set_format(gavl_volume_control_t *ctrl,
                                     const gavl_audio_format_t * format);
 
@@ -1039,6 +1088,7 @@ void gavl_volume_control_set_format(gavl_volume_control_t *ctrl,
  *  \param volume Volume in dB (must be <= 0.0 to prevent overflows)
  */
   
+GAVL_PUBLIC
 void gavl_volume_control_set_volume(gavl_volume_control_t * ctrl,
                                     float volume);
 
@@ -1048,6 +1098,7 @@ void gavl_volume_control_set_volume(gavl_volume_control_t * ctrl,
  *  \param frame An audio frame
  */
   
+GAVL_PUBLIC
 void gavl_volume_control_apply(gavl_volume_control_t *ctrl,
                                gavl_audio_frame_t * frame);
 
@@ -1075,6 +1126,7 @@ typedef struct gavl_peak_detector_s gavl_peak_detector_t;
  *  \returns A newly allocated peak detector
  */
   
+GAVL_PUBLIC
 gavl_peak_detector_t * gavl_peak_detector_create();
 
 /*! \ingroup peak_detection
@@ -1082,6 +1134,7 @@ gavl_peak_detector_t * gavl_peak_detector_create();
  *  \param pd A peak detector
  */
 
+GAVL_PUBLIC
 void gavl_peak_detector_destroy(gavl_peak_detector_t *pd);
 
 /*! \ingroup peak_detection
@@ -1093,6 +1146,7 @@ void gavl_peak_detector_destroy(gavl_peak_detector_t *pd);
  * calls \ref gavl_peak_detector_reset.
  */
 
+GAVL_PUBLIC
 void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
                                    const gavl_audio_format_t * format);
 
@@ -1102,6 +1156,7 @@ void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
  *  \param frame An audio frame
  */
   
+GAVL_PUBLIC
 void gavl_peak_detector_update(gavl_peak_detector_t *pd,
                               gavl_audio_frame_t * frame);
   
@@ -1117,6 +1172,7 @@ void gavl_peak_detector_update(gavl_peak_detector_t *pd,
  *  corresponds to 1.0.
  */
   
+GAVL_PUBLIC
 void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
                                  double * min, double * max,
                                  double * abs);
@@ -1133,6 +1189,7 @@ void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
  *  corresponds to 1.0.
  */
   
+GAVL_PUBLIC
 void gavl_peak_detector_get_peaks(gavl_peak_detector_t * pd,
                                   double * min, double * max,
                                   double * abs);
@@ -1142,6 +1199,7 @@ void gavl_peak_detector_get_peaks(gavl_peak_detector_t * pd,
  *  \param pd A peak detector
  */
   
+GAVL_PUBLIC
 void gavl_peak_detector_reset(gavl_peak_detector_t * pd);
   
 /** \defgroup video Video
@@ -1191,6 +1249,7 @@ typedef struct
  * \param format The video format into which the rectangle must fit
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_i_crop_to_format(gavl_rectangle_i_t * r,
                                    const gavl_video_format_t * format);
 
@@ -1200,6 +1259,7 @@ void gavl_rectangle_i_crop_to_format(gavl_rectangle_i_t * r,
  * \param format The video format into which the rectangle must fit
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_f_crop_to_format(gavl_rectangle_f_t * r,
                                      const gavl_video_format_t * format);
 
@@ -1217,6 +1277,7 @@ void gavl_rectangle_f_crop_to_format(gavl_rectangle_f_t * r,
  * for the case, that no scaling is available.
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_i_t * src_rect,
                                            gavl_rectangle_i_t * dst_rect,
                                            const gavl_video_format_t * src_format,
@@ -1233,6 +1294,7 @@ void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_i_t * src_rect,
  * boundaries of the format.
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_crop_to_format_scale(gavl_rectangle_f_t * src_rect,
                                          gavl_rectangle_i_t * dst_rect,
                                          const gavl_video_format_t * src_format,
@@ -1246,6 +1308,7 @@ void gavl_rectangle_crop_to_format_scale(gavl_rectangle_f_t * src_rect,
  * \param format The video format into which the rectangle must fit
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_i_set_all(gavl_rectangle_i_t * r, const gavl_video_format_t * format);
 
 /*! \brief Let a float rectangle span the whole image size of a video format
@@ -1254,6 +1317,7 @@ void gavl_rectangle_i_set_all(gavl_rectangle_i_t * r, const gavl_video_format_t 
  * \param format The video format into which the rectangle must fit
  */
 
+GAVL_PUBLIC
 void gavl_rectangle_f_set_all(gavl_rectangle_f_t * r, const gavl_video_format_t * format);
 
 /*! \brief Crop an integer rectangle by some pixels from the left border
@@ -1262,6 +1326,7 @@ void gavl_rectangle_f_set_all(gavl_rectangle_f_t * r, const gavl_video_format_t 
  * \param num_pixels The number of pixels by which the rectangle gets smaller
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_i_crop_left(gavl_rectangle_i_t * r,   int num_pixels);
 
 /*! \brief Crop an integer rectangle by some pixels from the right border
@@ -1270,6 +1335,7 @@ void gavl_rectangle_i_crop_left(gavl_rectangle_i_t * r,   int num_pixels);
  * \param num_pixels The number of pixels by which the rectangle gets smaller
  */
 
+GAVL_PUBLIC
 void gavl_rectangle_i_crop_right(gavl_rectangle_i_t * r,  int num_pixels);
 
 /*! \brief Crop an integer rectangle by some pixels from the top border
@@ -1278,6 +1344,7 @@ void gavl_rectangle_i_crop_right(gavl_rectangle_i_t * r,  int num_pixels);
  * \param num_pixels The number of pixels by which the rectangle gets smaller
  */
 
+GAVL_PUBLIC
 void gavl_rectangle_i_crop_top(gavl_rectangle_i_t * r,    int num_pixels);
 
 /*! \brief Crop an integer rectangle by some pixels from the bottom border
@@ -1286,6 +1353,7 @@ void gavl_rectangle_i_crop_top(gavl_rectangle_i_t * r,    int num_pixels);
  * \param num_pixels The number of pixels by which the rectangle gets smaller
  */
 
+GAVL_PUBLIC
 void gavl_rectangle_i_crop_bottom(gavl_rectangle_i_t * r, int num_pixels);
 
 /*! \brief Crop a float rectangle by some pixels from the left border
@@ -1294,6 +1362,7 @@ void gavl_rectangle_i_crop_bottom(gavl_rectangle_i_t * r, int num_pixels);
  * \param num_pixels The number of pixels by which the rectangle gets smaller
  */
  
+GAVL_PUBLIC
 void gavl_rectangle_f_crop_left(gavl_rectangle_f_t * r,   double num_pixels);
 
 /*! \brief Crop a float rectangle by some pixels from the right border
@@ -1302,6 +1371,7 @@ void gavl_rectangle_f_crop_left(gavl_rectangle_f_t * r,   double num_pixels);
  * \param num_pixels The number of pixels by which the rectangle gets smaller
  */
 
+GAVL_PUBLIC
 void gavl_rectangle_f_crop_right(gavl_rectangle_f_t * r,  double num_pixels);
 
 /*! \brief Crop a float rectangle by some pixels from the top border
@@ -1310,6 +1380,7 @@ void gavl_rectangle_f_crop_right(gavl_rectangle_f_t * r,  double num_pixels);
  * \param num_pixels The number of pixels by which the rectangle gets smaller
  */
 
+GAVL_PUBLIC
 void gavl_rectangle_f_crop_top(gavl_rectangle_f_t * r,    double num_pixels);
 
 /*! \brief Crop a float rectangle by some pixels from the bottom border
@@ -1318,6 +1389,7 @@ void gavl_rectangle_f_crop_top(gavl_rectangle_f_t * r,    double num_pixels);
  * \param num_pixels The number of pixels by which the rectangle gets smaller
  */
 
+GAVL_PUBLIC
 void gavl_rectangle_f_crop_bottom(gavl_rectangle_f_t * r, double num_pixels);
 
 /*! \brief Align a rectangle
@@ -1333,6 +1405,7 @@ void gavl_rectangle_f_crop_bottom(gavl_rectangle_f_t * r, double num_pixels);
  * video frames.
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_i_align(gavl_rectangle_i_t * r, int h_align, int v_align);
 
 /*! \brief Align a rectangle to a format
@@ -1344,6 +1417,7 @@ void gavl_rectangle_i_align(gavl_rectangle_i_t * r, int h_align, int v_align);
  * but takes a format as argument.
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_i_align_to_format(gavl_rectangle_i_t * r,
                                       const gavl_video_format_t * format);
 
@@ -1354,6 +1428,7 @@ void gavl_rectangle_i_align_to_format(gavl_rectangle_i_t * r,
  * \param src Source rectangle
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_i_copy(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * src);
 
 /*! \brief Copy a float rectangle
@@ -1362,6 +1437,7 @@ void gavl_rectangle_i_copy(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * 
  * \param src Source rectangle
  */
 
+GAVL_PUBLIC
 void gavl_rectangle_f_copy(gavl_rectangle_f_t * dst, const gavl_rectangle_f_t * src);
 
 
@@ -1372,6 +1448,7 @@ void gavl_rectangle_f_copy(gavl_rectangle_f_t * dst, const gavl_rectangle_f_t * 
  * \param src Source rectangle
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_i_to_f(gavl_rectangle_f_t * dst, const gavl_rectangle_i_t * src);
 
 /*! \brief Convert a floating point rectangle to an integer rectangle
@@ -1380,6 +1457,7 @@ void gavl_rectangle_i_to_f(gavl_rectangle_f_t * dst, const gavl_rectangle_i_t * 
  * \param src Source rectangle
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_f_to_i(gavl_rectangle_i_t * dst, const gavl_rectangle_f_t * src);
   
 /*! \brief Check if an integer rectangle is empty
@@ -1390,6 +1468,7 @@ void gavl_rectangle_f_to_i(gavl_rectangle_i_t * dst, const gavl_rectangle_f_t * 
  * A rectangle is considered to be empty if the width or height are <= 0.
  */
 
+GAVL_PUBLIC
 int gavl_rectangle_i_is_empty(const gavl_rectangle_i_t * r);
 
 /*! \brief Check if a float rectangle is empty
@@ -1400,6 +1479,7 @@ int gavl_rectangle_i_is_empty(const gavl_rectangle_i_t * r);
  * A rectangle is considered to be empty if the width or height are <= 0.
  */
   
+GAVL_PUBLIC
 int gavl_rectangle_f_is_empty(const gavl_rectangle_f_t * r);
 
 /*!\brief Calculate a destination rectangle for scaling
@@ -1429,6 +1509,7 @@ int gavl_rectangle_f_is_empty(const gavl_rectangle_f_t * r);
  * \ref gavl_rectangle_i_align_to_format.
  */
   
+GAVL_PUBLIC
 void gavl_rectangle_fit_aspect(gavl_rectangle_i_t * dst_rect,
                                const gavl_video_format_t * src_format,
                                const gavl_rectangle_f_t * src_rect,
@@ -1439,12 +1520,14 @@ void gavl_rectangle_fit_aspect(gavl_rectangle_i_t * dst_rect,
  * \ingroup rectangle
  * \param r Rectangle
  */
+GAVL_PUBLIC
 void gavl_rectangle_i_dump(const gavl_rectangle_i_t * r);
 
 /*! \brief Dump a floating point rectangle to stderr
  * \ingroup rectangle
  * \param r Floating point rectangle
  */
+GAVL_PUBLIC
 void gavl_rectangle_f_dump(const gavl_rectangle_f_t * r);
 
   
@@ -1719,6 +1802,7 @@ typedef enum
  * \returns The number of planes (1 for packet formats)
  */
 
+GAVL_PUBLIC
 int gavl_pixelformat_num_planes(gavl_pixelformat_t pixelformat);
 
 /*! \ingroup video_format
@@ -1730,6 +1814,7 @@ int gavl_pixelformat_num_planes(gavl_pixelformat_t pixelformat);
  * E.g. for 4:2:0 subsampling: sub_h = 2, sub_v = 2
  */
 
+GAVL_PUBLIC
 void gavl_pixelformat_chroma_sub(gavl_pixelformat_t pixelformat, int * sub_h, int * sub_v);
 
 /*! \ingroup video_format
@@ -1738,6 +1823,7 @@ void gavl_pixelformat_chroma_sub(gavl_pixelformat_t pixelformat, int * sub_h, in
  * \returns The number of bytes per component for planar formats, 0 for packed formats
  */
   
+GAVL_PUBLIC
 int gavl_pixelformat_bytes_per_component(gavl_pixelformat_t pixelformat);
 
 /*! \ingroup video_format
@@ -1746,6 +1832,7 @@ int gavl_pixelformat_bytes_per_component(gavl_pixelformat_t pixelformat);
  * \returns The number of bytes per pixel for packed formats, 0 for planar formats
  */
 
+GAVL_PUBLIC
 int gavl_pixelformat_bytes_per_pixel(gavl_pixelformat_t pixelformat);
   
 /*! \ingroup video_format
@@ -1754,6 +1841,7 @@ int gavl_pixelformat_bytes_per_pixel(gavl_pixelformat_t pixelformat);
  *  \returns Number of bits per pixel
  */
 
+GAVL_PUBLIC
 int gavl_pixelformat_bits_per_pixel(gavl_pixelformat_t pixelformat);
 
 /*! \ingroup video_format
@@ -1770,6 +1858,7 @@ int gavl_pixelformat_bits_per_pixel(gavl_pixelformat_t pixelformat);
  *  combinations among each other.
  */
 
+GAVL_PUBLIC
 int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
                                         gavl_pixelformat_t dst);
 
@@ -1786,7 +1875,7 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
  *  (see \ref gavl_pixelformat_conversion_penalty).
  */
 
-gavl_pixelformat_t 
+GAVL_PUBLIC gavl_pixelformat_t 
 gavl_pixelformat_get_best(gavl_pixelformat_t src,
                           const gavl_pixelformat_t * dst_supported,
                           int * penalty);
@@ -1799,6 +1888,7 @@ gavl_pixelformat_get_best(gavl_pixelformat_t src,
  * \returns A string describing the pixelformat
  */
 
+GAVL_PUBLIC
 const char * gavl_pixelformat_to_string(gavl_pixelformat_t pixelformat);
 
 /*! \ingroup video_format
@@ -1807,6 +1897,7 @@ const char * gavl_pixelformat_to_string(gavl_pixelformat_t pixelformat);
  * \returns The pixelformat or GAVL_PIXELFORMAT_NONE if no match.
  */
 
+GAVL_PUBLIC
 gavl_pixelformat_t gavl_string_to_pixelformat(const char * name);
 
 /*! \ingroup video_format
@@ -1814,6 +1905,7 @@ gavl_pixelformat_t gavl_string_to_pixelformat(const char * name);
  * \returns total number of supported pixelformats
  */
 
+GAVL_PUBLIC
 int gavl_num_pixelformats();
 
 /*! \ingroup video_format
@@ -1822,6 +1914,7 @@ int gavl_num_pixelformats();
  * \returns The pixelformat corresponding to index or GAVL_PIXELFORMAT_NONE.
  */
 
+GAVL_PUBLIC
 gavl_pixelformat_t gavl_get_pixelformat(int index);
 
 /*  */
@@ -1847,6 +1940,7 @@ typedef enum
  * \returns A string describing the chroma placement
  */
 
+GAVL_PUBLIC
 const char * gavl_chroma_placement_to_string(gavl_chroma_placement_t mode);
   
 /*! \ingroup video_format
@@ -1878,6 +1972,7 @@ typedef enum
  * \returns A string describing the interlace mode
  */
 
+GAVL_PUBLIC
 const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode);
   
   
@@ -1921,6 +2016,7 @@ struct gavl_video_format_s
   \param src Source format 
  */
   
+GAVL_PUBLIC
 void gavl_video_format_copy(gavl_video_format_t * dst,
                             const gavl_video_format_t * src);
 
@@ -1932,6 +2028,7 @@ void gavl_video_format_copy(gavl_video_format_t * dst,
   \returns 1 if the formats are equal, 0 else
 */
   
+GAVL_PUBLIC
 int gavl_video_formats_equal(const gavl_video_format_t * format_1,
                              const gavl_video_format_t * format_2);
 
@@ -1946,6 +2043,7 @@ int gavl_video_formats_equal(const gavl_video_format_t * format_1,
   \param off_y Returns the offset in y-direction
 */
   
+GAVL_PUBLIC
 void gavl_video_format_get_chroma_offset(const gavl_video_format_t * format, int field, int plane,
                                          float * off_x, float * off_y);
   
@@ -1963,6 +2061,7 @@ void gavl_video_format_get_chroma_offset(const gavl_video_format_t * format, int
   in source and destination, the images will be scaled.
  */
   
+GAVL_PUBLIC
 void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
                                      const gavl_video_format_t * src);
 
@@ -1973,6 +2072,7 @@ void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
   \return The image size in bytes of an unpadded frame
  */
   
+GAVL_PUBLIC
 int gavl_video_format_get_image_size(const gavl_video_format_t * format);
 
   
@@ -1982,6 +2082,7 @@ int gavl_video_format_get_image_size(const gavl_video_format_t * format);
   \param format A video format
  */
   
+GAVL_PUBLIC
 void gavl_video_format_dump(const gavl_video_format_t * format);
 
   
@@ -2031,6 +2132,7 @@ typedef struct
   scanlines start at certain byte boundaries (currently 8).
 */
   
+GAVL_PUBLIC
 gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t*format);
 
 /*!
@@ -2043,6 +2145,7 @@ gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t*format);
   
 */
   
+GAVL_PUBLIC
 gavl_video_frame_t * gavl_video_frame_create_nopad(const gavl_video_format_t*format);
 
   
@@ -2056,6 +2159,7 @@ gavl_video_frame_t * gavl_video_frame_create_nopad(const gavl_video_format_t*for
   to allocate the frame, call \ref gavl_video_frame_null before.
 */
 
+GAVL_PUBLIC
 void gavl_video_frame_destroy(gavl_video_frame_t*frame);
 
 /*!
@@ -2069,6 +2173,7 @@ void gavl_video_frame_destroy(gavl_video_frame_t*frame);
   
 */
   
+GAVL_PUBLIC
 void gavl_video_frame_null(gavl_video_frame_t*frame);
   
 /*!
@@ -2079,6 +2184,7 @@ void gavl_video_frame_null(gavl_video_frame_t*frame);
  
 */
 
+GAVL_PUBLIC
 void gavl_video_frame_clear(gavl_video_frame_t * frame,
                             const gavl_video_format_t * format);
 
@@ -2091,6 +2197,7 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
  
 */
 
+GAVL_PUBLIC
 void gavl_video_frame_fill(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
                            const float * color);
@@ -2107,6 +2214,7 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
 
 */
   
+GAVL_PUBLIC
 void gavl_video_frame_absdiff(gavl_video_frame_t * dst,
                               const gavl_video_frame_t * src1,
                               const gavl_video_frame_t * src2,
@@ -2124,6 +2232,7 @@ void gavl_video_frame_absdiff(gavl_video_frame_t * dst,
 
 */
   
+GAVL_PUBLIC
 void gavl_video_frame_psnr(double * psnr,
                            const gavl_video_frame_t * src1,
                            const gavl_video_frame_t * src2,
@@ -2143,6 +2252,7 @@ void gavl_video_frame_psnr(double * psnr,
   \ref gavl_video_frame_copy_metadata.
 */
 
+GAVL_PUBLIC
 void gavl_video_frame_copy(const gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
                            const gavl_video_frame_t * src);
@@ -2159,6 +2269,7 @@ void gavl_video_frame_copy(const gavl_video_format_t * format,
  
 */
   
+GAVL_PUBLIC
 void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
                                  gavl_video_frame_t * dst,
                                  const gavl_video_frame_t * src, int plane);
@@ -2174,6 +2285,7 @@ void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
  
 */
   
+GAVL_PUBLIC
 void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   const gavl_video_frame_t * src);
@@ -2189,6 +2301,7 @@ void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
  
 */
   
+GAVL_PUBLIC
 void gavl_video_frame_copy_flip_y(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   const gavl_video_frame_t * src);
@@ -2204,6 +2317,7 @@ void gavl_video_frame_copy_flip_y(const gavl_video_format_t * format,
  
 */
 
+GAVL_PUBLIC
 void gavl_video_frame_copy_flip_xy(const gavl_video_format_t * format,
                                    gavl_video_frame_t * dst,
                                   const gavl_video_frame_t * src);
@@ -2220,6 +2334,7 @@ void gavl_video_frame_copy_flip_xy(const gavl_video_format_t * format,
   Since 1.1.0.
 */
 
+GAVL_PUBLIC
 void gavl_video_frame_copy_metadata(gavl_video_frame_t * dst,
                                     const gavl_video_frame_t * src);
 
@@ -2241,6 +2356,7 @@ void gavl_video_frame_copy_metadata(gavl_video_frame_t * dst,
   \ref gavl_rectangle_i_align on src_rect before.
 */
 
+GAVL_PUBLIC
 void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
                                    const gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
@@ -2261,6 +2377,7 @@ void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
   must be called before destroying dst.
 */
 
+GAVL_PUBLIC
 void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
                                 const gavl_video_frame_t * src,
                                 gavl_video_frame_t * dst,
@@ -2280,6 +2397,7 @@ void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
   \<namebase\>.p2 etc
 */
  
+GAVL_PUBLIC
 void gavl_video_frame_dump(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
                            const char * namebase);
@@ -2294,6 +2412,7 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
   that no padding is done.
 */
  
+GAVL_PUBLIC
 void gavl_video_frame_set_strides(gavl_video_frame_t * frame,
                                   const gavl_video_format_t * format);
 
@@ -2309,6 +2428,7 @@ void gavl_video_frame_set_strides(gavl_video_frame_t * frame,
 */
 
   
+GAVL_PUBLIC
 void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
                                  const gavl_video_format_t * format,
                                  uint8_t * buffer);
@@ -2444,6 +2564,7 @@ typedef struct gavl_video_options_s gavl_video_options_t;
  *  \param opt Video options
  */
   
+GAVL_PUBLIC
 void gavl_video_options_set_defaults(gavl_video_options_t * opt);
 
 /*! \ingroup video_options
@@ -2455,6 +2576,7 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt);
  *  gavl_*_get_options() followed by gavl_video_options_copy().
  */
   
+GAVL_PUBLIC
 gavl_video_options_t * gavl_video_options_create();
 
 /*! \ingroup video_options
@@ -2463,6 +2585,7 @@ gavl_video_options_t * gavl_video_options_create();
  *  \param src Source
  */
 
+GAVL_PUBLIC
 void gavl_video_options_copy(gavl_video_options_t * dst,
                              const gavl_video_options_t * src);
 
@@ -2471,6 +2594,7 @@ void gavl_video_options_copy(gavl_video_options_t * dst,
  *  \param opt Video options
  */
 
+GAVL_PUBLIC
 void gavl_video_options_destroy(gavl_video_options_t * opt);
   
   
@@ -2488,6 +2612,7 @@ void gavl_video_options_destroy(gavl_video_options_t * opt);
  *  situations.
  */
   
+GAVL_PUBLIC
 void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
                                        const gavl_rectangle_f_t * src_rect,
                                        const gavl_rectangle_i_t * dst_rect);
@@ -2498,6 +2623,8 @@ void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
  *  \param src_rect Returns the rectangular area in the source frame
  *  \param dst_rect Returns the rectangular area in the destination frame
  */
+
+GAVL_PUBLIC
 void gavl_video_options_get_rectangles(gavl_video_options_t * opt,
                                        gavl_rectangle_f_t * src_rect,
                                        gavl_rectangle_i_t * dst_rect);
@@ -2508,6 +2635,7 @@ void gavl_video_options_get_rectangles(gavl_video_options_t * opt,
  *  \param quality Quality level (see \ref quality)
  */
 
+GAVL_PUBLIC
 void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
 
 /*! \ingroup video_options
@@ -2516,6 +2644,7 @@ void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
  *  \returns Quality level (see \ref quality)
  */
 
+GAVL_PUBLIC
 int gavl_video_options_get_quality(gavl_video_options_t * opt);
 
   
@@ -2525,6 +2654,7 @@ int gavl_video_options_get_quality(gavl_video_options_t * opt);
  *  \param conversion_flags Conversion flags (see \ref video_conversion_flags)
  */
   
+GAVL_PUBLIC
 void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
                                              int conversion_flags);
 
@@ -2534,6 +2664,7 @@ void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
  *  \returns Flags (see \ref video_conversion_flags)
  */
 
+GAVL_PUBLIC
 int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
   
 /*! \ingroup video_options
@@ -2542,6 +2673,7 @@ int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
  *  \param alpha_mode Alpha mode
  */
 
+GAVL_PUBLIC
 void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
                                        gavl_alpha_mode_t alpha_mode);
 
@@ -2551,7 +2683,7 @@ void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
  *  \returns Alpha mode
  */
 
-gavl_alpha_mode_t
+GAVL_PUBLIC gavl_alpha_mode_t
 gavl_video_options_get_alpha_mode(gavl_video_options_t * opt);
 
   
@@ -2561,6 +2693,7 @@ gavl_video_options_get_alpha_mode(gavl_video_options_t * opt);
  *  \param scale_mode Scale mode
  */
   
+GAVL_PUBLIC
 void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
                                        gavl_scale_mode_t scale_mode);
 
@@ -2570,7 +2703,7 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
  *  \returns Scale mode
  */
   
-gavl_scale_mode_t
+GAVL_PUBLIC gavl_scale_mode_t
 gavl_video_options_get_scale_mode(gavl_video_options_t * opt);
 
   
@@ -2580,6 +2713,7 @@ gavl_video_options_get_scale_mode(gavl_video_options_t * opt);
  *  \param order Order (must be at least 4)
  */
   
+GAVL_PUBLIC
 void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
                                         int order);
 
@@ -2589,6 +2723,7 @@ void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
  *  \returns Order
  */
   
+GAVL_PUBLIC
 int gavl_video_options_get_scale_order(gavl_video_options_t * opt);
 
   
@@ -2598,6 +2733,7 @@ int gavl_video_options_get_scale_order(gavl_video_options_t * opt);
  *  \param color Array of 3 float values (0.0 .. 1.0) in RGB order
  */
 
+GAVL_PUBLIC
 void gavl_video_options_set_background_color(gavl_video_options_t * opt,
                                              const float * color);
 
@@ -2607,6 +2743,7 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
  *  \param color Returns 3 float values (0.0 .. 1.0) in RGB order
  */
 
+GAVL_PUBLIC
 void gavl_video_options_get_background_color(gavl_video_options_t * opt,
                                              float * color);
   
@@ -2616,6 +2753,7 @@ void gavl_video_options_get_background_color(gavl_video_options_t * opt,
  *  \param deinterlace_mode Deinterlace mode
  */
   
+GAVL_PUBLIC
 void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
                                              gavl_deinterlace_mode_t deinterlace_mode);
 
@@ -2625,7 +2763,7 @@ void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
  *  \returns Deinterlace mode
  */
   
-gavl_deinterlace_mode_t
+GAVL_PUBLIC gavl_deinterlace_mode_t
 gavl_video_options_get_deinterlace_mode(gavl_video_options_t * opt);
 
 /*! \ingroup video_options
@@ -2634,6 +2772,7 @@ gavl_video_options_get_deinterlace_mode(gavl_video_options_t * opt);
  *  \param deinterlace_drop_mode Deinterlace drop mode
  */
   
+GAVL_PUBLIC
 void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
                                                   gavl_deinterlace_drop_mode_t deinterlace_drop_mode);
 
@@ -2643,7 +2782,7 @@ void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
  *  \returns Deinterlace drop mode
  */
   
-gavl_deinterlace_drop_mode_t
+GAVL_PUBLIC gavl_deinterlace_drop_mode_t
 gavl_video_options_get_deinterlace_drop_mode(gavl_video_options_t * opt);
 
 /*!  \ingroup video_options
@@ -2654,6 +2793,7 @@ gavl_video_options_get_deinterlace_drop_mode(gavl_video_options_t * opt);
  *  Since 1.1.0
  */
 
+GAVL_PUBLIC
 void gavl_video_options_set_downscale_filter(gavl_video_options_t * opt,
                                              gavl_downscale_filter_t f);
   
@@ -2666,7 +2806,7 @@ void gavl_video_options_set_downscale_filter(gavl_video_options_t * opt,
  *  Since 1.1.0
  */
   
-gavl_downscale_filter_t
+GAVL_PUBLIC gavl_downscale_filter_t
 gavl_video_options_get_downscale_filter(gavl_video_options_t * opt);
 
 /*!  \ingroup video_options
@@ -2686,6 +2826,7 @@ gavl_video_options_get_downscale_filter(gavl_video_options_t * opt);
  *  Since 1.1.0
  */
 
+GAVL_PUBLIC
 void gavl_video_options_set_downscale_blur(gavl_video_options_t * opt,
                                            float f);
 
@@ -2697,6 +2838,7 @@ void gavl_video_options_set_downscale_blur(gavl_video_options_t * opt,
  *  Since 1.1.0
  */
   
+GAVL_PUBLIC
 float gavl_video_options_get_downscale_blur(gavl_video_options_t * opt);
 
 /*!  \ingroup video_options
@@ -2707,6 +2849,7 @@ float gavl_video_options_get_downscale_blur(gavl_video_options_t * opt);
  *  Since 1.1.1
  */
   
+GAVL_PUBLIC
 void gavl_video_options_set_num_threads(gavl_video_options_t * opt, int n);
 
   
@@ -2718,6 +2861,7 @@ void gavl_video_options_set_num_threads(gavl_video_options_t * opt, int n);
  *  Since 1.1.1
  */
   
+GAVL_PUBLIC
 int gavl_video_options_get_num_threads(gavl_video_options_t * opt);
 
 /*!  \ingroup video_options
@@ -2729,6 +2873,7 @@ int gavl_video_options_get_num_threads(gavl_video_options_t * opt);
  *  Since 1.1.1
  */
 
+GAVL_PUBLIC
 void gavl_video_options_set_run_func(gavl_video_options_t * opt,
                                      gavl_video_run_func func,
                                      void * client_data);
@@ -2742,6 +2887,7 @@ void gavl_video_options_set_run_func(gavl_video_options_t * opt,
  *  Since 1.1.1
  */
 
+GAVL_PUBLIC
 gavl_video_run_func gavl_video_options_get_run_func(gavl_video_options_t * opt,
                                                     void ** client_data);
 
@@ -2754,6 +2900,7 @@ gavl_video_run_func gavl_video_options_get_run_func(gavl_video_options_t * opt,
  *  Since 1.1.1
  */
 
+GAVL_PUBLIC
 void gavl_video_options_set_stop_func(gavl_video_options_t * opt,
                                       gavl_video_stop_func func, 
                                       void * client_data);
@@ -2767,6 +2914,7 @@ void gavl_video_options_set_stop_func(gavl_video_options_t * opt,
  *  Since 1.1.1
  */
 
+GAVL_PUBLIC
 gavl_video_stop_func gavl_video_options_get_stop_func(gavl_video_options_t * opt,
                                                       void ** client_data);
 
@@ -2814,6 +2962,7 @@ typedef struct gavl_video_converter_s gavl_video_converter_t;
  *  \returns A newly allocated video converter
  */
 
+GAVL_PUBLIC
 gavl_video_converter_t * gavl_video_converter_create();
 
 /*! \ingroup video_converter
@@ -2821,6 +2970,7 @@ gavl_video_converter_t * gavl_video_converter_create();
  *  \param cnv A video converter
  */
   
+GAVL_PUBLIC
 void gavl_video_converter_destroy(gavl_video_converter_t*cnv);
 
 /**************************************************
@@ -2836,7 +2986,7 @@ void gavl_video_converter_destroy(gavl_video_converter_t*cnv);
  * the options. Options will become valid with the next call to \ref gavl_video_converter_init or \ref gavl_video_converter_reinit.
  */
   
-gavl_video_options_t *
+GAVL_PUBLIC gavl_video_options_t *
 gavl_video_converter_get_options(gavl_video_converter_t*cnv);
 
 
@@ -2853,6 +3003,7 @@ gavl_video_converter_get_options(gavl_video_converter_t*cnv);
  * This function can be called multiple times with one instance
  */
   
+GAVL_PUBLIC
 int gavl_video_converter_init(gavl_video_converter_t* cnv,
                               const gavl_video_format_t * input_format,
                               const gavl_video_format_t * output_format);
@@ -2869,6 +3020,7 @@ int gavl_video_converter_init(gavl_video_converter_t* cnv,
  * change but the options did.
  */
   
+GAVL_PUBLIC
 int gavl_video_converter_reinit(gavl_video_converter_t* cnv);
  
   
@@ -2883,6 +3035,7 @@ int gavl_video_converter_reinit(gavl_video_converter_t* cnv);
  *  \param output_frame Output frame
  */
   
+GAVL_PUBLIC
 void gavl_video_convert(gavl_video_converter_t * cnv,
                         const gavl_video_frame_t * input_frame,
                         gavl_video_frame_t * output_frame);
@@ -2925,6 +3078,7 @@ typedef struct gavl_video_scaler_s gavl_video_scaler_t;
  *  \returns A newly allocated video scaler
  */
 
+GAVL_PUBLIC
 gavl_video_scaler_t * gavl_video_scaler_create();
 
 /*! \ingroup video_scaler
@@ -2932,6 +3086,7 @@ gavl_video_scaler_t * gavl_video_scaler_create();
  *  \param scaler A video scaler
  */
 
+GAVL_PUBLIC
 void gavl_video_scaler_destroy(gavl_video_scaler_t * scaler);
 
 /*! \ingroup video_scaler
@@ -2942,7 +3097,7 @@ void gavl_video_scaler_destroy(gavl_video_scaler_t * scaler);
  * the options. Options will become valid with the next call to \ref gavl_video_scaler_init
  */
   
-gavl_video_options_t *
+GAVL_PUBLIC gavl_video_options_t *
 gavl_video_scaler_get_options(gavl_video_scaler_t * scaler);
 
 /*! \ingroup video_scaler
@@ -2957,6 +3112,7 @@ gavl_video_scaler_get_options(gavl_video_scaler_t * scaler);
  */
 
 
+GAVL_PUBLIC
 int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                            const gavl_video_format_t * src_format,
                            const gavl_video_format_t * dst_format);
@@ -2982,6 +3138,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
  */
 
 
+GAVL_PUBLIC
 int gavl_video_scaler_init_convolve(gavl_video_scaler_t * scaler,
                                     const gavl_video_format_t * format,
                                     int h_radius, const float * h_coeffs,
@@ -2994,6 +3151,7 @@ int gavl_video_scaler_init_convolve(gavl_video_scaler_t * scaler,
  *  \param output_frame Output frame
  */
   
+GAVL_PUBLIC
 void gavl_video_scaler_scale(gavl_video_scaler_t * scaler,
                              const gavl_video_frame_t * input_frame,
                              gavl_video_frame_t * output_frame);
@@ -3020,6 +3178,7 @@ typedef struct gavl_video_deinterlacer_s gavl_video_deinterlacer_t;
  *  \returns A newly allocated video deinterlacer
  */
 
+GAVL_PUBLIC
 gavl_video_deinterlacer_t * gavl_video_deinterlacer_create();
 
 /*! \ingroup video_deinterlacer
@@ -3027,6 +3186,7 @@ gavl_video_deinterlacer_t * gavl_video_deinterlacer_create();
  *  \param deinterlacer A video deinterlacer
  */
 
+GAVL_PUBLIC
 void gavl_video_deinterlacer_destroy(gavl_video_deinterlacer_t * deinterlacer);
 
 /*! \ingroup video_deinterlacer
@@ -3037,7 +3197,7 @@ void gavl_video_deinterlacer_destroy(gavl_video_deinterlacer_t * deinterlacer);
  * the options. Options will become valid with the next call to \ref gavl_video_deinterlacer_init
  */
   
-gavl_video_options_t *
+GAVL_PUBLIC gavl_video_options_t *
 gavl_video_deinterlacer_get_options(gavl_video_deinterlacer_t * deinterlacer);
 
 /*! \ingroup video_deinterlacer
@@ -3050,6 +3210,7 @@ gavl_video_deinterlacer_get_options(gavl_video_deinterlacer_t * deinterlacer);
  * This function can be called multiple times with one instance. 
  */
   
+GAVL_PUBLIC
 int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * deinterlacer,
                                  const gavl_video_format_t * src_format);
 
@@ -3061,6 +3222,7 @@ int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * deinterlacer,
  *  \param output_frame Output frame
  */
   
+GAVL_PUBLIC
 void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * deinterlacer,
                                          const gavl_video_frame_t * input_frame,
                                          gavl_video_frame_t * output_frame);
@@ -3121,6 +3283,7 @@ typedef struct gavl_overlay_blend_context_s gavl_overlay_blend_context_t;
  *  \returns A newly allocated blend context.
  */
   
+GAVL_PUBLIC
 gavl_overlay_blend_context_t * gavl_overlay_blend_context_create();
 
 /*! \ingroup video_blend
@@ -3128,6 +3291,7 @@ gavl_overlay_blend_context_t * gavl_overlay_blend_context_create();
  *  \param ctx A blend context
  */
 
+GAVL_PUBLIC
 void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t * ctx);
 
 /*! \ingroup video_blend
@@ -3136,7 +3300,7 @@ void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t * ctx);
  *  \returns Options (See \ref video_options)
  */
   
-gavl_video_options_t *
+GAVL_PUBLIC gavl_video_options_t *
 gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx);
 
 /*! \ingroup video_blend
@@ -3154,6 +3318,7 @@ gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx);
  *  
  */
 
+GAVL_PUBLIC
 int gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
                                     const gavl_video_format_t * frame_format,
                                     gavl_video_format_t * overlay_format);
@@ -3167,6 +3332,7 @@ int gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
  *  or not.
  */
   
+GAVL_PUBLIC
 void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
                                             gavl_overlay_t * ovl);
 
@@ -3176,6 +3342,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
  *  \param dst_frame Destination frame
  */
   
+GAVL_PUBLIC
 void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
                         gavl_video_frame_t * dst_frame);
 
@@ -3228,6 +3395,7 @@ typedef void (*gavl_image_transform_func)(void * priv,
  * Since 1.1.0.
  */
   
+GAVL_PUBLIC
 gavl_image_transform_t * gavl_image_transform_create();
 
 /** \brief Destroy a transformation engine
@@ -3235,6 +3403,7 @@ gavl_image_transform_t * gavl_image_transform_create();
  * Since 1.1.0.
  */
 
+GAVL_PUBLIC
 void gavl_image_transform_destroy(gavl_image_transform_t * t);
 
 /** \brief Initialize a transformation engine
@@ -3251,6 +3420,7 @@ void gavl_image_transform_destroy(gavl_image_transform_t * t);
  */
 
   
+GAVL_PUBLIC
 void gavl_image_transform_init(gavl_image_transform_t * t,
                                gavl_video_format_t * format,
                                gavl_image_transform_func func, void * priv);
@@ -3262,6 +3432,7 @@ void gavl_image_transform_init(gavl_image_transform_t * t,
  * Since 1.1.0.
  */
   
+GAVL_PUBLIC
 void gavl_image_transform_transform(gavl_image_transform_t * t,
                                     gavl_video_frame_t * in_frame,
                                     gavl_video_frame_t * out_frame);
@@ -3276,14 +3447,12 @@ void gavl_image_transform_transform(gavl_image_transform_t * t,
  * Since 1.1.0.
  */
 
-gavl_video_options_t *
+GAVL_PUBLIC gavl_video_options_t *
 gavl_image_transform_get_options(gavl_image_transform_t * t);
   
 /**
  * @}
  */
-  
-#pragma GCC visibility pop
   
 #ifdef __cplusplus
 }

@@ -22,7 +22,7 @@
 #ifndef GAVLDSP_H_INCLUDED
 #define GAVLDSP_H_INCLUDED
 
-#pragma GCC visibility push(default)
+#include <gavl/gavldefs.h>
 
 /** \defgroup dsp DSP Context
  *  \brief DSP Context
@@ -264,6 +264,7 @@ typedef struct
  *  chosen according to the default quality value.
  */
 
+GAVL_PUBLIC
 gavl_dsp_context_t * gavl_dsp_context_create();
 
 /** \brief Set the quality for a DSP context
@@ -273,6 +274,7 @@ gavl_dsp_context_t * gavl_dsp_context_create();
  *  See \ref quality.
  */
 
+GAVL_PUBLIC
 void gavl_dsp_context_set_quality(gavl_dsp_context_t * ctx,
                                   int q);
 
@@ -284,6 +286,7 @@ void gavl_dsp_context_set_quality(gavl_dsp_context_t * ctx,
  *  functions are chosen based on the quality
  */
 
+GAVL_PUBLIC
 void gavl_dsp_context_set_accel_flags(gavl_dsp_context_t * ctx,
                                       int flags);
 
@@ -297,13 +300,14 @@ void gavl_dsp_context_set_accel_flags(gavl_dsp_context_t * ctx,
  *  functions will.
  */
 
-gavl_dsp_funcs_t * 
+GAVL_PUBLIC gavl_dsp_funcs_t * 
 gavl_dsp_context_get_funcs(gavl_dsp_context_t * ctx);
 
 /** \brief Destroy a DSP context
  *  \param ctx A DSP context
  */
 
+GAVL_PUBLIC
 void gavl_dsp_context_destroy(gavl_dsp_context_t * ctx);
 
 /** @}
@@ -336,6 +340,7 @@ void gavl_dsp_context_destroy(gavl_dsp_context_t * ctx);
  *  never fails.
  */
 
+GAVL_PUBLIC
 int gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
                                       gavl_video_format_t * format,
                                       gavl_video_frame_t * src_1,
@@ -355,6 +360,7 @@ int gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
 
 */
 
+GAVL_PUBLIC
 int gavl_dsp_audio_frame_swap_endian(gavl_dsp_context_t * ctx,
                                       gavl_audio_frame_t * frame,
                                       const gavl_audio_format_t * format);
@@ -377,11 +383,10 @@ int gavl_dsp_audio_frame_swap_endian(gavl_dsp_context_t * ctx,
 
 */
 
+GAVL_PUBLIC
 int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
                                       gavl_video_frame_t * frame,
                                       const gavl_video_format_t * format);
-
-#pragma GCC visibility pop
 
 /**
  * @}

@@ -1,3 +1,5 @@
+AM_CFLAGS = @LIBGAVL_CFLAGS@
+
 noinst_LTLIBRARIES = libgavl_sse2.la
 
 libgavl_sse2_la_SOURCES = \

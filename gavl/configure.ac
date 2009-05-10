@@ -155,6 +155,9 @@ LQT_TRY_CFLAGS([-Wdeclaration-after-statement], CFLAGS="$CFLAGS -Wdeclaration-af
 LQT_TRY_CFLAGS([-mfpmath=387], CFLAGS="$CFLAGS -mfpmath=387")
 LQT_TRY_CFLAGS([-fvisibility=hidden], CFLAGS="$CFLAGS -fvisibility=hidden")
 
+LIBGAVL_CFLAGS=-D__GAVL__
+AC_SUBST(LIBGAVL_CFLAGS)
+
 dnl
 dnl Stuff from libsamplerate
 dnl

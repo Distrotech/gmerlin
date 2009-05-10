@@ -1,3 +1,4 @@
+AM_CFLAGS = @LIBGAVL_CFLAGS@
 
 noinst_LTLIBRARIES = libgavl_c.la
 

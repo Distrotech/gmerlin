@@ -1,3 +1,5 @@
+AM_CFLAGS = @LIBGAVL_CFLAGS@
+
 noinst_LTLIBRARIES = libgdither.la
 
 libgdither_la_SOURCES = gdither.c
