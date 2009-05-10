@@ -1,4 +1,4 @@
-AC_INIT(gmerlin-mozilla, 1.0.0)
+AC_INIT(gmerlin-mozilla, 1.0.0pre1)
 AC_CONFIG_SRCDIR([plugin/plugin.c])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.8.5)

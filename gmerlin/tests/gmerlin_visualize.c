@@ -19,8 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <string.h>
 #include <config.h>
+
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/utils.h>
@@ -436,6 +439,9 @@ int main(int argc, char ** argv)
   char ** files;
   
   gavl_audio_frame_t * aframe_i = NULL;
+
+  /* Initialize random generator */
+  srand(time(NULL));
   
   /* Create registries */
   

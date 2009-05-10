@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-effectv 1.0.0pre1\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-09-30 21:37+0200\n"
+"POT-Creation-Date: 2009-05-10 03:27+0200\n"
 "PO-Revision-Date: 2008-01-26 15:11+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin-general@lists.sourceforge.net>\n"
 "Language-Team: German\n"
@@ -506,11 +506,11 @@ msgid ""
 "EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_timedisttv.c:151
+#: plugins/fv_timedisttv.c:152
 msgid "TimedistTV"
 msgstr ""
 
-#: plugins/fv_timedisttv.c:152
+#: plugins/fv_timedisttv.c:153
 msgid ""
 "Distorts moving objects in the sight. When it detects a moving part, it "
 "rollbacks to an old frame around that. Ported from EffecTV (http://effectv."
