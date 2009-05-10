@@ -27,9 +27,7 @@
  */
 
 #include <gavl/gavl.h>
-
-#pragma GCC visibility push(default)
-
+#include "bgavdefs.h" // This is ugly, but works
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,6 +79,7 @@ typedef struct bgav_s bgav_t;
  * \returns A newly allocated decoder instance
  */
 
+BGAV_PUBLIC
 bgav_t * bgav_create();
 
 /** \defgroup options Configuration of a decoder
@@ -121,6 +120,7 @@ typedef struct bgav_metadata_s bgav_metadata_t;
  * \returns The author of the track in UTF-8 or NULL
  */
 
+BGAV_PUBLIC
 const char * bgav_metadata_get_author(const bgav_metadata_t*metadata);
 
 /** \ingroup metadata
@@ -129,6 +129,7 @@ const char * bgav_metadata_get_author(const bgav_metadata_t*metadata);
  * \returns The title of the track in UTF-8 or NULL
  */
 
+BGAV_PUBLIC
 const char * bgav_metadata_get_title(const bgav_metadata_t * metadata);
 
 /** \ingroup metadata
@@ -137,6 +138,7 @@ const char * bgav_metadata_get_title(const bgav_metadata_t * metadata);
  * \returns The comment in UTF-8 or NULL
  */
 
+BGAV_PUBLIC
 const char * bgav_metadata_get_comment(const bgav_metadata_t * metadata);
 
 /** \ingroup metadata
@@ -145,6 +147,7 @@ const char * bgav_metadata_get_comment(const bgav_metadata_t * metadata);
  * \returns The copyright notice in UTF-8 or NULL
  */
 
+BGAV_PUBLIC
 const char * bgav_metadata_get_copyright(const bgav_metadata_t * metadata);
 
 /** \ingroup metadata
@@ -152,6 +155,8 @@ const char * bgav_metadata_get_copyright(const bgav_metadata_t * metadata);
  * \param metadata Metadata container
  * \returns The album in UTF-8 or NULL
  */
+
+BGAV_PUBLIC
 const char * bgav_metadata_get_album(const bgav_metadata_t * metadata);
 
 /** \ingroup metadata
@@ -159,6 +164,8 @@ const char * bgav_metadata_get_album(const bgav_metadata_t * metadata);
  * \param metadata Metadata container
  * \returns The artist in UTF-8 or NULL
  */
+
+BGAV_PUBLIC
 const char * bgav_metadata_get_artist(const bgav_metadata_t * metadata);
 
 /** \ingroup metadata
@@ -167,6 +174,7 @@ const char * bgav_metadata_get_artist(const bgav_metadata_t * metadata);
  * \returns The genre in UTF-8 or NULL
  */
 
+BGAV_PUBLIC
 const char * bgav_metadata_get_genre(const bgav_metadata_t * metadata);
 
 /** \ingroup metadata
@@ -175,6 +183,7 @@ const char * bgav_metadata_get_genre(const bgav_metadata_t * metadata);
  * \returns The date in UTF-8 or NULL
  */
 
+BGAV_PUBLIC
 const char * bgav_metadata_get_date(const bgav_metadata_t * metadata);
 
 /** \ingroup metadata
@@ -183,6 +192,7 @@ const char * bgav_metadata_get_date(const bgav_metadata_t * metadata);
  * \returns The track index or 0
  */
 
+BGAV_PUBLIC
 int bgav_metadata_get_track(const bgav_metadata_t * metadata);
 
 /***************************************************
@@ -209,6 +219,7 @@ typedef struct bgav_options_s bgav_options_t;
  * bgav_open*() functions.
  */
 
+BGAV_PUBLIC
 bgav_options_t * bgav_get_options(bgav_t * bgav);
 
 /** \ingroup options
@@ -224,6 +235,8 @@ bgav_options_t * bgav_get_options(bgav_t * bgav);
  * and \ref bgav_options_copy.
  *
  */
+
+BGAV_PUBLIC
 bgav_options_t * bgav_options_create();
 
 /** \ingroup options
@@ -235,6 +248,7 @@ bgav_options_t * bgav_options_create();
  * and must not be freed by you.
  */
 
+BGAV_PUBLIC
 void bgav_options_destroy(bgav_options_t * opt);
 
 /** \ingroup options
@@ -243,6 +257,7 @@ void bgav_options_destroy(bgav_options_t * opt);
  *  \param src Source
  */
 
+BGAV_PUBLIC
 void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src);
 
 /** \ingroup options
@@ -254,6 +269,7 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src);
  *  receive media data.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_connect_timeout(bgav_options_t * opt, int timeout);
 
 /** \ingroup options
@@ -265,6 +281,7 @@ void bgav_options_set_connect_timeout(bgav_options_t * opt, int timeout);
  *  failures.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_read_timeout(bgav_options_t * opt, int timeout);
 
 /** \ingroup options
@@ -281,6 +298,7 @@ void bgav_options_set_read_timeout(bgav_options_t * opt, int timeout);
  */
 
 
+BGAV_PUBLIC
 void bgav_options_set_rtp_port_base(bgav_options_t*b, int p);
 
 /** \ingroup options
@@ -292,6 +310,7 @@ void bgav_options_set_rtp_port_base(bgav_options_t*b, int p);
  *  however, support TCP fallback.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_rtp_try_tcp(bgav_options_t*b, int enable);
 
 /** \ingroup options
@@ -303,6 +322,7 @@ void bgav_options_set_rtp_try_tcp(bgav_options_t*b, int enable);
  *  to select among multiple streams according to the speed of the internet connection.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_network_bandwidth(bgav_options_t * opt, int bandwidth);
 
 /** \ingroup options
@@ -314,6 +334,7 @@ void bgav_options_set_network_bandwidth(bgav_options_t * opt, int bandwidth);
  *  \todo Make buffer size depend on the stream bitrate.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_network_buffer_size(bgav_options_t * opt, int size);
 
 /* HTTP Options */
@@ -328,6 +349,7 @@ void bgav_options_set_network_buffer_size(bgav_options_t * opt, int size);
  *  \ref bgav_options_set_http_proxy_port.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_http_use_proxy(bgav_options_t* opt, int enable);
 
 /** \ingroup options
@@ -339,6 +361,7 @@ void bgav_options_set_http_use_proxy(bgav_options_t* opt, int enable);
  *  it's actually used.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_http_proxy_host(bgav_options_t* opt, const char * host);
 
 /** \ingroup options
@@ -350,6 +373,7 @@ void bgav_options_set_http_proxy_host(bgav_options_t* opt, const char * host);
  *  it's actually used.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_http_proxy_port(bgav_options_t* opt, int port);
 
 /** \ingroup options
@@ -362,6 +386,7 @@ void bgav_options_set_http_proxy_port(bgav_options_t* opt, int port);
  *  \ref bgav_options_set_http_proxy_pass.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_http_proxy_auth(bgav_options_t* opt, int enable);
 
 /** \ingroup options
@@ -372,6 +397,7 @@ void bgav_options_set_http_proxy_auth(bgav_options_t* opt, int enable);
  *  Note that you must enable proxy authentication with \ref bgav_options_set_http_proxy_auth.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_http_proxy_user(bgav_options_t* opt, const char * user);
 
 /** \ingroup options
@@ -382,6 +408,7 @@ void bgav_options_set_http_proxy_user(bgav_options_t* opt, const char * user);
  *  Note that you must enable proxy authentication with \ref bgav_options_set_http_proxy_auth.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_http_proxy_pass(bgav_options_t* opt, const char * pass);
 
 /** \ingroup options
@@ -392,6 +419,7 @@ void bgav_options_set_http_proxy_pass(bgav_options_t* opt, const char * pass);
  * Normally it's ok to enable shoutcast metadata streaming even if we connect to non-shoutcast servers.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_http_shoutcast_metadata(bgav_options_t* opt, int enable);
 
 /* Set FTP options */
@@ -402,6 +430,7 @@ void bgav_options_set_http_shoutcast_metadata(bgav_options_t* opt, int enable);
  *  \param enable Set to 1 if the decoder should try log anonymously into ftp servers, 0 else
  */
 
+BGAV_PUBLIC
 void bgav_options_set_ftp_anonymous(bgav_options_t* opt, int enable);
 
 /** \ingroup options
@@ -412,6 +441,7 @@ void bgav_options_set_ftp_anonymous(bgav_options_t* opt, int enable);
  *  Note that you must enable anonymous ftp login with \ref bgav_options_set_ftp_anonymous.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_ftp_anonymous_password(bgav_options_t* opt, const char* pass);
 
 /** \ingroup options
@@ -425,6 +455,7 @@ void bgav_options_set_ftp_anonymous_password(bgav_options_t* opt, const char* pa
  *  encodings).
  */
 
+BGAV_PUBLIC
 void bgav_options_set_default_subtitle_encoding(bgav_options_t* opt,
                                                 const char* encoding);
 
@@ -438,6 +469,7 @@ void bgav_options_set_default_subtitle_encoding(bgav_options_t* opt,
  *  off for the case, that you have a better dynamic range control in your processing pipe.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_audio_dynrange(bgav_options_t* opt,
                                      int audio_dynrange);
 
@@ -457,6 +489,7 @@ void bgav_options_set_audio_dynrange(bgav_options_t* opt,
  *  \todo Seamless playback isn't implemented yet. This function might be removed in future versions.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_seamless(bgav_options_t* opt,
                                int seamless);
 
@@ -473,6 +506,7 @@ void bgav_options_set_seamless(bgav_options_t* opt,
  *  methods are enabled, which might slow things down a bit.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_sample_accurate(bgav_options_t*opt, int enable);
 
 /** \ingroup options
@@ -486,6 +520,7 @@ void bgav_options_set_sample_accurate(bgav_options_t*opt, int enable);
  *  zero, all indices are cached.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_cache_time(bgav_options_t*opt, int t);
 
 /** \ingroup options
@@ -497,6 +532,7 @@ void bgav_options_set_cache_time(bgav_options_t*opt, int t);
  *  the maximum size, older indices will be deleted. Zero means infinite.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_cache_size(bgav_options_t*opt, int s);
 
 /** \ingroup options
@@ -514,6 +550,7 @@ void bgav_options_set_cache_size(bgav_options_t*opt, int s);
  *  any of the subtitle readers.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_seek_subtitles(bgav_options_t* opt,
                                     int seek_subtitles);
 
@@ -523,6 +560,7 @@ void bgav_options_set_seek_subtitles(bgav_options_t* opt,
  *  \param pp_level Value between 0 (no postprocessing) and 6 (maximum postprocessing)
  */
 
+BGAV_PUBLIC
 void bgav_options_set_pp_level(bgav_options_t* opt,
                                int pp_level);
 
@@ -537,6 +575,7 @@ void bgav_options_set_pp_level(bgav_options_t* opt,
  *  searched.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_dvb_channels_file(bgav_options_t* opt,
                                         const char * file);
 
@@ -551,6 +590,7 @@ void bgav_options_set_dvb_channels_file(bgav_options_t* opt,
  *  this function is meaningless.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_prefer_ffmpeg_demuxers(bgav_options_t* opt,
                                              int prefer);
 
@@ -560,6 +600,7 @@ void bgav_options_set_prefer_ffmpeg_demuxers(bgav_options_t* opt,
  *  \param datetime 1 to export date and time as timecodes, 0 else
  */
 
+BGAV_PUBLIC
 void bgav_options_set_dv_datetime(bgav_options_t* opt,
                                   int datetime);
 
@@ -572,6 +613,7 @@ void bgav_options_set_dv_datetime(bgav_options_t* opt,
  *  Currently only supported for JPEG-2000.
  */
 
+BGAV_PUBLIC
 void bgav_options_set_shrink(bgav_options_t* opt,
                              int factor);
 
@@ -609,7 +651,7 @@ typedef void (*bgav_log_callback)(void*data, bgav_log_level_t level,
  *  \param data Some data you want to get passed to the callback
  */
 
-void
+BGAV_PUBLIC void
 bgav_options_set_log_callback(bgav_options_t* opt,
                               bgav_log_callback callback,
                               void * data);
@@ -635,7 +677,7 @@ typedef void (*bgav_name_change_callback)(void*data, const char * name);
  *  \param data Some data you want to get passed to the callback
  */
 
-void
+BGAV_PUBLIC void
 bgav_options_set_name_change_callback(bgav_options_t* opt,
                                       bgav_name_change_callback callback,
                                       void * data);
@@ -659,7 +701,7 @@ typedef void (*bgav_metadata_change_callback)(void*data, const bgav_metadata_t *
  *  \param data Some data you want to get passed to the callback
  */
 
-void
+BGAV_PUBLIC void
 bgav_options_set_metadata_change_callback(bgav_options_t* opt,
                                           bgav_metadata_change_callback callback,
                                           void * data);
@@ -683,7 +725,7 @@ typedef void (*bgav_track_change_callback)(void*data, int track);
  *  \param data Some data you want to get passed to the callback
  */
 
-void
+BGAV_PUBLIC void
 bgav_options_set_track_change_callback(bgav_options_t* opt,
                                        bgav_track_change_callback callback,
                                        void * data);
@@ -706,7 +748,7 @@ typedef void (*bgav_buffer_callback)(void*data, float percentage);
  *  \param data Some data you want to get passed to the callback
  */
   
-void
+BGAV_PUBLIC void
 bgav_options_set_buffer_callback(bgav_options_t* opt,
                                  bgav_buffer_callback callback,
                                  void * data);
@@ -736,7 +778,7 @@ typedef int (*bgav_user_pass_callback)(void*data, const char * resource,
  *  enter authentication data, cannot be openend.
  */
 
-void
+BGAV_PUBLIC void
 bgav_options_set_user_pass_callback(bgav_options_t* opt,
                                     bgav_user_pass_callback callback,
                                     void * data);
@@ -762,7 +804,7 @@ typedef void (*bgav_aspect_callback)(void*data, int stream,
  *  \param data Some data you want to get passed to the callback
  */
 
-void
+BGAV_PUBLIC void
 bgav_options_set_aspect_callback(bgav_options_t* opt,
                                  bgav_aspect_callback callback,
                                  void * data);
@@ -783,7 +825,7 @@ typedef void (*bgav_index_callback)(void*data, float percentage);
  *  \param data Some data you want to get passed to the callback
  */
 
-void
+BGAV_PUBLIC void
 bgav_options_set_index_callback(bgav_options_t* opt,
                                 bgav_index_callback callback,
                                 void * data);
@@ -823,6 +865,7 @@ typedef struct
  *  Free the returned array with \ref bgav_device_info_destroy
  */
 
+BGAV_PUBLIC
 bgav_device_info_t * bgav_find_devices_vcd();
 
 /** \ingroup devices
@@ -832,6 +875,7 @@ bgav_device_info_t * bgav_find_devices_vcd();
  *  \returns 1 if the device can play VCDs, 0 else.
 */
 
+BGAV_PUBLIC
 int bgav_check_device_vcd(const char * device, char ** name);
 
 /** \ingroup devices
@@ -841,6 +885,7 @@ int bgav_check_device_vcd(const char * device, char ** name);
  *  Free the returned array with \ref bgav_device_info_destroy
  */
 
+BGAV_PUBLIC
 bgav_device_info_t * bgav_find_devices_dvd();
 
 /** \ingroup devices
@@ -850,6 +895,7 @@ bgav_device_info_t * bgav_find_devices_dvd();
  *  \returns 1 if the device can play DVDs, 0 else.
 */
 
+BGAV_PUBLIC
 int bgav_check_device_dvd(const char * device, char ** name);
 
 /** \ingroup devices
@@ -859,6 +905,7 @@ int bgav_check_device_dvd(const char * device, char ** name);
  *  Free the returned array with \ref bgav_device_info_destroy
  */
 
+BGAV_PUBLIC
 bgav_device_info_t * bgav_find_devices_dvb();
 
 /** \ingroup devices
@@ -868,6 +915,7 @@ bgav_device_info_t * bgav_find_devices_dvb();
  *  \returns 1 if the device is ready to receive DVB streams, 0 else.
 */
 
+BGAV_PUBLIC
 int bgav_check_device_dvb(const char * device, char ** name);
 
 /** \ingroup devices
@@ -876,6 +924,7 @@ int bgav_check_device_dvb(const char * device, char ** name);
  */
 
 
+BGAV_PUBLIC
 void bgav_device_info_destroy(bgav_device_info_t * arr);
 
 /** \ingroup devices
@@ -884,6 +933,7 @@ void bgav_device_info_destroy(bgav_device_info_t * arr);
  *  \return 1 if the disc could be ejected, 0 else
  */
 
+BGAV_PUBLIC
 int bgav_eject_disc(const char * device);
 
 /** \ingroup devices
@@ -892,6 +942,7 @@ int bgav_eject_disc(const char * device);
  *  \return The name of the disc, or NULL if it's not known or irrelevant
  */
 
+BGAV_PUBLIC
 const char * bgav_get_disc_name(bgav_t * bgav);
 
 /******************************************************
@@ -907,6 +958,7 @@ const char * bgav_get_disc_name(bgav_t * bgav);
  *  \returns 1 if the location was successfully openend, 0 else.
  */
 
+BGAV_PUBLIC
 int bgav_open(bgav_t * bgav, const char * location);
 
 /** \ingroup opening
@@ -916,6 +968,7 @@ int bgav_open(bgav_t * bgav, const char * location);
  *  \returns 1 if the VCD device was successfully openend, 0 else.
  */
 
+BGAV_PUBLIC
 int bgav_open_vcd(bgav_t * bgav, const char * location);
 
 /** \ingroup opening
@@ -925,6 +978,7 @@ int bgav_open_vcd(bgav_t * bgav, const char * location);
  *  \returns 1 if the DVD device was successfully openend, 0 else.
  */
 
+BGAV_PUBLIC
 int bgav_open_dvd(bgav_t * bgav, const char * location);
 
 /** \ingroup opening
@@ -938,6 +992,7 @@ int bgav_open_dvd(bgav_t * bgav, const char * location);
  *  normal tracks.
  */
 
+BGAV_PUBLIC
 int bgav_open_dvb(bgav_t * bgav, const char * location);
 
 
@@ -950,6 +1005,7 @@ int bgav_open_dvb(bgav_t * bgav, const char * location);
  *  \returns 1 if the filedescriptor was successfully openend, 0 else.
  */
 
+BGAV_PUBLIC
 int bgav_open_fd(bgav_t * bgav, int fd,
                  int64_t total_size,
                  const char * mimetype);
@@ -965,6 +1021,7 @@ int bgav_open_fd(bgav_t * bgav, int fd,
  *  \returns 1 on success, 0 else.
  */
 
+BGAV_PUBLIC
 int bgav_open_callbacks(bgav_t * bgav,
                         int (*read_callback)(void * priv, uint8_t * data, int len),
                         int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
@@ -979,6 +1036,7 @@ int bgav_open_callbacks(bgav_t * bgav,
  *  \param bgav A decoder instance
  */
 
+BGAV_PUBLIC
 void bgav_close(bgav_t * bgav);
 
 /** \defgroup edl EDL support
@@ -1071,12 +1129,14 @@ struct bgav_edl_s
  *  \returns The edl or NULL
  */
 
+BGAV_PUBLIC
 bgav_edl_t * bgav_get_edl(bgav_t * bgav);
 
 /** \brief Dump an EDL to stderr
  *  \param e EDL
  */
 
+BGAV_PUBLIC
 void bgav_edl_dump(const bgav_edl_t * e);
 
 /** 
@@ -1113,6 +1173,7 @@ void bgav_edl_dump(const bgav_edl_t * e);
  *  openend a redirector.
  */
 
+BGAV_PUBLIC
 int bgav_is_redirector(bgav_t * bgav);
 
 /** \ingroup redirector
@@ -1121,6 +1182,7 @@ int bgav_is_redirector(bgav_t * bgav);
  *  \returns The number of URLs.
  */
 
+BGAV_PUBLIC
 int bgav_redirector_get_num_urls(bgav_t * bgav);
 
 /** \ingroup redirector
@@ -1130,6 +1192,7 @@ int bgav_redirector_get_num_urls(bgav_t * bgav);
  *  \returns The URL (can be passed to a subsequent \ref bgav_open)
  */
 
+BGAV_PUBLIC
 const char * bgav_redirector_get_url(bgav_t * bgav, int index);
 
 /** \ingroup redirector
@@ -1139,6 +1202,7 @@ const char * bgav_redirector_get_url(bgav_t * bgav, int index);
  *  \returns The name of the stream or NULL if this information is not present.
  */
 
+BGAV_PUBLIC
 const char * bgav_redirector_get_name(bgav_t * bgav, int index);
 
 /***************************************************
@@ -1158,6 +1222,7 @@ const char * bgav_redirector_get_name(bgav_t * bgav, int index);
  *  \returns The number of tracks.
  */
 
+BGAV_PUBLIC
 int bgav_num_tracks(bgav_t * bgav);
 
 /** \ingroup track
@@ -1166,6 +1231,7 @@ int bgav_num_tracks(bgav_t * bgav);
  *  \returns Description
  */
 
+BGAV_PUBLIC
 const char * bgav_get_description(bgav_t * bgav);
 
 /** \ingroup track
@@ -1175,6 +1241,7 @@ const char * bgav_get_description(bgav_t * bgav);
  *  \returns The duration of a track or \ref GAVL_TIME_UNDEFINED if the duration is not known.
  */
 
+BGAV_PUBLIC
 gavl_time_t bgav_get_duration(bgav_t * bgav, int track);
 
 /* Query stream numbers */
@@ -1186,6 +1253,7 @@ gavl_time_t bgav_get_duration(bgav_t * bgav, int track);
  *  \returns The number of audio streams
  */
 
+BGAV_PUBLIC
 int bgav_num_audio_streams(bgav_t * bgav, int track);
 
 /** \ingroup track
@@ -1195,6 +1263,7 @@ int bgav_num_audio_streams(bgav_t * bgav, int track);
  *  \returns The number of video streams
  */
 
+BGAV_PUBLIC
 int bgav_num_video_streams(bgav_t * bgav, int track);
 
 /** \ingroup track
@@ -1204,6 +1273,7 @@ int bgav_num_video_streams(bgav_t * bgav, int track);
  *  \returns The number of subtitle streams
  */
 
+BGAV_PUBLIC
 int bgav_num_subtitle_streams(bgav_t * bgav, int track);
 
 
@@ -1214,6 +1284,7 @@ int bgav_num_subtitle_streams(bgav_t * bgav, int track);
  *  \returns The track name if present or NULL.
  */
 
+BGAV_PUBLIC
 const char * bgav_get_track_name(bgav_t * bgav, int track);
 
 /** \ingroup track
@@ -1223,6 +1294,7 @@ const char * bgav_get_track_name(bgav_t * bgav, int track);
  *  \returns A metadata container (see \ref metadata)
  */
 
+BGAV_PUBLIC
 const bgav_metadata_t * bgav_get_metadata(bgav_t * bgav,int track);
 
 /** \ingroup track
@@ -1236,6 +1308,7 @@ const bgav_metadata_t * bgav_get_metadata(bgav_t * bgav,int track);
  */
 
 
+BGAV_PUBLIC
 int bgav_select_track(bgav_t * bgav, int track);
 
 /** \ingroup track
@@ -1250,6 +1323,7 @@ int bgav_select_track(bgav_t * bgav, int track);
  *  to query the chapters.
  */
 
+BGAV_PUBLIC
 int bgav_get_num_chapters(bgav_t * bgav, int track, int * timescale);
 
 /** \ingroup track
@@ -1260,7 +1334,7 @@ int bgav_get_num_chapters(bgav_t * bgav, int track, int * timescale);
  *  \returns The name of the chapter or NULL
  */
 
-const char *
+BGAV_PUBLIC const char *
 bgav_get_chapter_name(bgav_t * bgav, int track, int chapter);
 
 /** \ingroup track
@@ -1271,6 +1345,7 @@ bgav_get_chapter_name(bgav_t * bgav, int track, int chapter);
  *  \returns The time of the chapter
  */
 
+BGAV_PUBLIC
 int64_t bgav_get_chapter_time(bgav_t * bgav, int track, int chapter);
 
 /** \defgroup streams Query and select streams
@@ -1288,6 +1363,7 @@ int64_t bgav_get_chapter_time(bgav_t * bgav, int track, int chapter);
  *  \returns A language string.
  */
 
+BGAV_PUBLIC
 const char * bgav_get_audio_language(bgav_t * bgav, int stream);
 
 /** \ingroup streams
@@ -1297,6 +1373,7 @@ const char * bgav_get_audio_language(bgav_t * bgav, int stream);
  *  \returns A language string.
  */
 
+BGAV_PUBLIC
 const char * bgav_get_subtitle_language(bgav_t * bgav, int stream);
 
 /** \ingroup streams
@@ -1324,6 +1401,7 @@ bgav_stream_action_t;
  * all streams are switched off by default.
  */
 
+BGAV_PUBLIC
 int bgav_set_audio_stream(bgav_t * bgav, int stream, bgav_stream_action_t action);
 
 /** \ingroup streams
@@ -1336,6 +1414,7 @@ int bgav_set_audio_stream(bgav_t * bgav, int stream, bgav_stream_action_t action
  * all streams are switched off by default.
  */
 
+BGAV_PUBLIC
 int bgav_set_video_stream(bgav_t * bgav, int stream, bgav_stream_action_t action);
 
 /** \ingroup streams
@@ -1348,6 +1427,7 @@ int bgav_set_video_stream(bgav_t * bgav, int stream, bgav_stream_action_t action
  * all streams are switched off by default.
  */
 
+BGAV_PUBLIC
 int bgav_set_subtitle_stream(bgav_t * bgav, int stream, bgav_stream_action_t action);
 
 /***************************************************
@@ -1374,6 +1454,7 @@ int bgav_set_subtitle_stream(bgav_t * bgav, int stream, bgav_stream_action_t act
  *  and/or \ref bgav_set_video_stream.
  */
 
+BGAV_PUBLIC
 int bgav_start(bgav_t * bgav);
 
 /** \defgroup stream_info Information about the streams
@@ -1391,6 +1472,7 @@ int bgav_start(bgav_t * bgav);
  *  (see \ref bgav_start).
  */
 
+BGAV_PUBLIC
 const gavl_audio_format_t * bgav_get_audio_format(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
@@ -1409,6 +1491,7 @@ const gavl_audio_format_t * bgav_get_audio_format(bgav_t * bgav, int stream);
  *  \ref bgav_video_has_still.
  */
 
+BGAV_PUBLIC
 const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
@@ -1426,7 +1509,7 @@ const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
  *  video frames).
  */
 
-const gavl_video_format_t *
+BGAV_PUBLIC const gavl_video_format_t *
 bgav_get_subtitle_format(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
@@ -1439,6 +1522,7 @@ bgav_get_subtitle_format(bgav_t * bgav, int stream);
  *  to decode subtitles, else use \ref bgav_read_subtitle_overlay
  */
 
+BGAV_PUBLIC
 int bgav_subtitle_is_text(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
@@ -1452,6 +1536,7 @@ int bgav_subtitle_is_text(bgav_t * bgav, int stream);
  *  (see \ref bgav_start).
  */
 
+BGAV_PUBLIC
 const char * bgav_get_audio_description(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
@@ -1468,6 +1553,7 @@ const char * bgav_get_audio_description(bgav_t * bgav, int stream);
  *  (see \ref bgav_start).
  */
 
+BGAV_PUBLIC
 const char * bgav_get_audio_info(bgav_t * bgav, int stream);
 
 
@@ -1482,6 +1568,7 @@ const char * bgav_get_audio_info(bgav_t * bgav, int stream);
  *  (see \ref bgav_start).
  */
 
+BGAV_PUBLIC
 const char * bgav_get_video_description(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
@@ -1495,6 +1582,7 @@ const char * bgav_get_video_description(bgav_t * bgav, int stream);
  *  (see \ref bgav_start).
  */
 
+BGAV_PUBLIC
 const char * bgav_get_subtitle_description(bgav_t * bgav, int stream);
 
 
@@ -1512,6 +1600,7 @@ const char * bgav_get_subtitle_description(bgav_t * bgav, int stream);
  *  (see \ref bgav_start).
  */
 
+BGAV_PUBLIC
 const char * bgav_get_subtitle_info(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
@@ -1523,6 +1612,7 @@ const char * bgav_get_subtitle_info(bgav_t * bgav, int stream);
  *  doesn't make sense, so in this case 0 is returned.
  */
 
+BGAV_PUBLIC
 int bgav_can_pause(bgav_t * bgav);
 
 /***************************************************
@@ -1550,6 +1640,7 @@ int bgav_can_pause(bgav_t * bgav);
  *  Since 1.0.1
  */
   
+BGAV_PUBLIC
 int bgav_video_has_still(bgav_t * bgav, int stream);
   
 /** \ingroup decode
@@ -1560,6 +1651,7 @@ int bgav_video_has_still(bgav_t * bgav, int stream);
     \returns 1 if a frame could be decoded, 0 for EOF.
 */
 
+BGAV_PUBLIC
 int bgav_read_video(bgav_t * bgav, gavl_video_frame_t * frame, int stream);
 
 /** \ingroup decode
@@ -1571,6 +1663,7 @@ int bgav_read_video(bgav_t * bgav, gavl_video_frame_t * frame, int stream);
     \returns The number of actually decoded samples, which can be smaller than num_samples. 0 means EOF.
 */
 
+BGAV_PUBLIC
 int bgav_read_audio(bgav_t * bgav, gavl_audio_frame_t * frame, int stream,
                     int num_samples);
 
@@ -1585,6 +1678,7 @@ int bgav_read_audio(bgav_t * bgav, gavl_audio_frame_t * frame, int stream,
 
 */
 
+BGAV_PUBLIC
 int bgav_has_subtitle(bgav_t * bgav, int stream);
 
 /** \ingroup decode
@@ -1602,6 +1696,7 @@ int bgav_has_subtitle(bgav_t * bgav, int stream);
 
 */
 
+BGAV_PUBLIC
 int bgav_read_subtitle_overlay(bgav_t * bgav, gavl_overlay_t * ovl, int stream);
 
 /** \ingroup decode
@@ -1623,6 +1718,7 @@ int bgav_read_subtitle_overlay(bgav_t * bgav, gavl_overlay_t * ovl, int stream);
     (see \ref bgav_get_subtitle_format).
 */
 
+BGAV_PUBLIC
 int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,
                             int64_t * start_time, int64_t * duration,
                             int stream);
@@ -1667,6 +1763,7 @@ int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,
  *  \returns 1 if the track is seekable, 0 else.
  */
 
+BGAV_PUBLIC
 int bgav_can_seek(bgav_t * bgav);
 
 /** \ingroup seeking
@@ -1677,6 +1774,7 @@ int bgav_can_seek(bgav_t * bgav);
  * The time argument is changed to the actually seeked time, which can be different.
  */
 
+BGAV_PUBLIC
 void bgav_seek(bgav_t * bgav, gavl_time_t * time);
 
 
@@ -1703,6 +1801,7 @@ void bgav_seek(bgav_t * bgav, gavl_time_t * time);
  * decoding mode. For more sophisticated sample accurate access, see \ref sampleseek.
  */
 
+BGAV_PUBLIC
 void bgav_seek_scaled(bgav_t * bgav, int64_t * time, int scale);
 
 /** \ingroup sampleseek
@@ -1727,6 +1826,7 @@ void bgav_seek_scaled(bgav_t * bgav, int64_t * time, int scale);
  *  return zero for any file.
  */
 
+BGAV_PUBLIC
 int bgav_can_seek_sample(bgav_t * bgav);
 
 
@@ -1742,6 +1842,7 @@ int bgav_can_seek_sample(bgav_t * bgav);
  *  is <b>not</b> included in the duration.
  */
 
+BGAV_PUBLIC
 int64_t bgav_audio_duration(bgav_t * bgav, int stream);
 
 /** \ingroup sampleseek
@@ -1755,6 +1856,7 @@ int64_t bgav_audio_duration(bgav_t * bgav, int stream);
  *  decoded audio frame.
  */
 
+BGAV_PUBLIC
 int64_t bgav_audio_start_time(bgav_t * bgav, int stream);
 
 /** \ingroup sampleseek
@@ -1769,6 +1871,7 @@ int64_t bgav_audio_start_time(bgav_t * bgav, int stream);
  *  is <b>not</b> included in the duration.
  */
 
+BGAV_PUBLIC
 int64_t bgav_video_duration(bgav_t * bgav, int stream);
 
 /** \ingroup sampleseek
@@ -1782,6 +1885,7 @@ int64_t bgav_video_duration(bgav_t * bgav, int stream);
  *  decoded video frame.
  */
 
+BGAV_PUBLIC
 int64_t bgav_video_start_time(bgav_t * bgav, int stream);
 
 
@@ -1794,6 +1898,7 @@ int64_t bgav_video_start_time(bgav_t * bgav, int stream);
  *  Use this only after \ref bgav_can_seek_sample returned 1.
  */
 
+BGAV_PUBLIC
 int64_t bgav_subtitle_duration(bgav_t * bgav, int stream);
 
 /** \ingroup sampleseek
@@ -1809,6 +1914,7 @@ int64_t bgav_subtitle_duration(bgav_t * bgav, int stream);
  *  
  */
 
+BGAV_PUBLIC
 void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample);
 
 /** \ingroup sampleseek
@@ -1824,6 +1930,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample);
  *  \ref bgav_video_start_time is <b>not</b> included here.
  */
 
+BGAV_PUBLIC
 void bgav_seek_video(bgav_t * bgav, int stream, int64_t time);
 
 /** \ingroup sampleseek
@@ -1841,6 +1948,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time);
  *  this function returns \ref BGAV_TIMESTAMP_UNDEFINED.
  */
 
+BGAV_PUBLIC
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time);
 
 /** \ingroup sampleseek
@@ -1858,6 +1966,7 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time);
  *  this function returns \ref BGAV_TIMESTAMP_UNDEFINED.
  */
 
+BGAV_PUBLIC
 int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time);
 
 
@@ -1871,6 +1980,7 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time);
  *  If time is between 2 subtitles, the earlier one will be chosen.
  */
 
+BGAV_PUBLIC
 void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time);
 
 
@@ -1886,6 +1996,7 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time);
  *  \param bgav A decoder handle
 */
 
+BGAV_PUBLIC
 void bgav_dump(bgav_t * bgav);
 
 /* Dump infos about the installed codecs */
@@ -1897,6 +2008,7 @@ void bgav_dump(bgav_t * bgav);
  * for the webpage.
  */
 
+BGAV_PUBLIC
 void bgav_codecs_dump();
 
 /* Dump known media formats */
@@ -1908,6 +2020,7 @@ void bgav_codecs_dump();
  * for the webpage.
  */
 
+BGAV_PUBLIC
 void bgav_formats_dump();
 
 /** \ingroup debugging
@@ -1917,6 +2030,7 @@ void bgav_formats_dump();
  * for the webpage.
  */
 
+BGAV_PUBLIC
 void bgav_inputs_dump();
 
 /** \ingroup debugging
@@ -1926,6 +2040,7 @@ void bgav_inputs_dump();
  * for the webpage.
  */
 
+BGAV_PUBLIC
 void bgav_redirectors_dump();
 
 /** \ingroup debugging
@@ -1935,6 +2050,7 @@ void bgav_redirectors_dump();
  * for the webpage.
  */
 
+BGAV_PUBLIC
 void bgav_subreaders_dump();
 
 
@@ -1942,5 +2058,3 @@ void bgav_subreaders_dump();
 }
 #endif
 
-
-#pragma GCC visibility pop

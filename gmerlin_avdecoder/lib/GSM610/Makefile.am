@@ -1,5 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
+AM_CFLAGS = @LIBBGAV_CFLAGS@
+
 EXTRA_DIST = README COPYRIGHT ChangeLog
 
 noinst_HEADERS = gsm.h config.h gsm610_priv.h

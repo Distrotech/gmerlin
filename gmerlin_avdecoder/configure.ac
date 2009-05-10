@@ -433,6 +433,9 @@ if test x$LQT_DEBUG = xtrue; then
   CFLAGS="-g $CFLAGS"
 fi
 
+LIBBGAV_CFLAGS=-D__BGAV__
+AC_SUBST(LIBBGAV_CFLAGS)
+
 dnl
 dnl Common libs
 dnl 

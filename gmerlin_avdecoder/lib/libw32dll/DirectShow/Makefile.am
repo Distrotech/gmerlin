@@ -3,7 +3,7 @@
 AM_CFLAGS = $(X_CFLAGS) -fno-omit-frame-pointer \
 	-Wmissing-prototypes -Wimplicit-function-declaration \
 	-DWIN32_PATH=\"@w32_path@\" -DNOAVIFILE_HEADERS \
-	-I$(srcdir)/.. -I$(srcdir)/../wine
+	-I$(srcdir)/.. -I$(srcdir)/../wine @LIBBGAV_CFLAGS@
 
 if HAVE_W32DLL
 ds_filter_lib = libds_filter.la

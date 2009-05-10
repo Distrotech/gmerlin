@@ -275,6 +275,7 @@ endif
 SUBDIRS = $(win32_subdirs) GSM610
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@
+
 libgmerlin_avdec_la_LIBADD= \
 @GMERLIN_DEP_LIBS@ \
 $(vorbis_libs) \
@@ -310,6 +311,7 @@ $(top_builddir)/lib/GSM610/libgsm.la \
 
 AM_CFLAGS = \
 -DLOCALE_DIR=\"$(localedir)\" \
+@LIBBGAV_CFLAGS@ \
 @OPT_CFLAGS@ \
 $(vorbis_cflags) \
 $(ogg_cflags) \

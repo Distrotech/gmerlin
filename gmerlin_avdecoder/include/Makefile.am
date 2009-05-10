@@ -1,5 +1,5 @@
 pkgincludedir=$(includedir)/gmerlin
-pkginclude_HEADERS = avdec.h bgav_version.h
+pkginclude_HEADERS = avdec.h bgav_version.h bgavdefs.h
 
 noinst_HEADERS = \
 aac_frame.h \
