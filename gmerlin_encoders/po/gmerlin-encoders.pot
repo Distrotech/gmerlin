@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-09-30 21:37+0200\n"
+"POT-Creation-Date: 2009-05-10 03:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -401,7 +401,7 @@ msgstr ""
 msgid "Codec"
 msgstr ""
 
-#: plugins/ogg/e_theora.c:154 plugins/ogg/theora.c:457
+#: plugins/ogg/e_theora.c:154 plugins/ogg/theora.c:449
 msgid "Theora encoder"
 msgstr ""
 
@@ -495,87 +495,83 @@ msgid "Vorbis encoder"
 msgstr ""
 
 #: plugins/ogg/theora.c:71
-msgid "Chroma subsampling mode"
-msgstr ""
-
-#: plugins/ogg/theora.c:79
 msgid "Use constant bitrate"
 msgstr ""
 
-#: plugins/ogg/theora.c:81
+#: plugins/ogg/theora.c:73
 msgid ""
 "For constant bitrate, choose a target bitrate. For variable bitrate, choose "
 "a nominal quality."
 msgstr ""
 
-#: plugins/ogg/theora.c:85
+#: plugins/ogg/theora.c:77
 msgid "Target bitrate (kbps)"
 msgstr ""
 
-#: plugins/ogg/theora.c:93
+#: plugins/ogg/theora.c:85
 msgid "Nominal quality"
 msgstr ""
 
-#: plugins/ogg/theora.c:99
+#: plugins/ogg/theora.c:91
 msgid ""
 "Quality for VBR mode\n"
 "63: best (largest output file)\n"
 "0:  worst (smallest output file)"
 msgstr ""
 
-#: plugins/ogg/theora.c:105
+#: plugins/ogg/theora.c:97
 msgid "Automatic keyframe insertion"
 msgstr ""
 
-#: plugins/ogg/theora.c:111
+#: plugins/ogg/theora.c:103
 msgid "Keyframe frequency"
 msgstr ""
 
-#: plugins/ogg/theora.c:117
+#: plugins/ogg/theora.c:109
 msgid "Keyframe frequency force"
 msgstr ""
 
-#: plugins/ogg/theora.c:123
+#: plugins/ogg/theora.c:115
 msgid "Keyframe auto threshold"
 msgstr ""
 
-#: plugins/ogg/theora.c:129
+#: plugins/ogg/theora.c:121
 msgid "Keyframe minimum distance"
 msgstr ""
 
-#: plugins/ogg/theora.c:135
+#: plugins/ogg/theora.c:127
 msgid "Quick encode"
 msgstr ""
 
-#: plugins/ogg/theora.c:141
+#: plugins/ogg/theora.c:133
 msgid "Sharpness"
 msgstr ""
 
-#: plugins/ogg/theora.c:149
+#: plugins/ogg/theora.c:141
 msgid "Noise Sensitivity"
 msgstr ""
 
-#: plugins/ogg/theora.c:331
+#: plugins/ogg/theora.c:319
 msgid "theora_encode_init failed"
 msgstr ""
 
-#: plugins/ogg/theora.c:341
+#: plugins/ogg/theora.c:329
 msgid "theora_encode_header failed"
 msgstr ""
 
-#: plugins/ogg/theora.c:350
+#: plugins/ogg/theora.c:338
 msgid "Got no Theora ID page"
 msgstr ""
 
-#: plugins/ogg/theora.c:387 plugins/ogg/theora.c:429
+#: plugins/ogg/theora.c:376 plugins/ogg/theora.c:421
 msgid "Theora encoder produced no packet"
 msgstr ""
 
-#: plugins/ogg/theora.c:394
+#: plugins/ogg/theora.c:386
 msgid "Writing theora packet failed"
 msgstr ""
 
-#: plugins/ogg/theora.c:438
+#: plugins/ogg/theora.c:430
 msgid "Writing packet failed"
 msgstr ""
 

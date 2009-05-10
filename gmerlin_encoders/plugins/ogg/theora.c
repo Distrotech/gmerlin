@@ -248,8 +248,8 @@ static void build_comment(theora_comment * vc, bg_metadata_t * metadata)
 static const gavl_pixelformat_t supported_pixelformats[] =
   {
     GAVL_YUV_420_P,
-    GAVL_YUV_422_P,
-    GAVL_YUV_444_P,
+    //    GAVL_YUV_422_P,
+    //    GAVL_YUV_444_P,
     GAVL_PIXELFORMAT_NONE,
   };
 
