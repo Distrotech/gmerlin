@@ -23,7 +23,7 @@
 
 #include <config.h>
 
-
+/* poll() */
 
 #ifndef HAVE_POLL 
 
@@ -31,11 +31,15 @@
 
 #endif // HAVE_POLL
 
+/* getaddrinfo */
+
 #ifndef HAVE_GETADDRINFO
 
 #else
 
 #endif // HAVE_GETADDRINFO
+
+/* readdir_r */
 
 #ifndef HAVE_READDIR_R
 
