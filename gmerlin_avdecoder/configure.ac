@@ -130,6 +130,12 @@ AC_CHECK_LIB(iconv, libiconv_close, ICONV_LIBS="-liconv")
 AC_SUBST(ICONV_LIBS)
 
 dnl
+dnl Library functions
+dnl
+
+AC_CHECK_FUNCS([poll getaddrinfo readdir_r closesocket])
+
+dnl
 dnl Optional Libraries
 dnl
 

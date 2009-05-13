@@ -401,9 +401,9 @@ static void close_ftp(bgav_input_context_t * ctx)
   free(server_cmd);
   
   if(p->control_fd >= 0)
-    close(p->control_fd);
+    closesocket(p->control_fd);
   if(p->data_fd >= 0)
-    close(p->data_fd);
+    closesocket(p->data_fd);
   
   free(p);
   }

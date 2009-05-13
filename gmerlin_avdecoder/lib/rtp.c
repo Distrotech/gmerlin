@@ -771,9 +771,9 @@ static void close_rtp(bgav_demuxer_context_t * ctx)
       bgav_rtp_packet_buffer_destroy(priv->streams[i].buf);
 
     if(priv->streams[i].rtp_fd >= 0)
-      close(priv->streams[i].rtp_fd);
+      closesocket(priv->streams[i].rtp_fd);
     if(priv->streams[i].rtcp_fd >= 0)
-      close(priv->streams[i].rtcp_fd);
+      closesocket(priv->streams[i].rtcp_fd);
     }
   if(priv->streams)
     free(priv->streams);

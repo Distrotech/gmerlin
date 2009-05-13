@@ -27,6 +27,8 @@
 
 #include <libintl.h>
 
+#include <os.h>
+
 #define BGAV_MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 
 // typedef struct bgav_edl_dec_s bgav_edl_dec_t;

@@ -725,7 +725,7 @@ void bgav_mms_close(bgav_mms_t * mms)
   FREE(mms->packet_buffer);
   FREE(mms->header);
   if(mms->fd >= 0)
-    close(mms->fd);
+    closesocket(mms->fd);
   FREE(mms);
   }
 

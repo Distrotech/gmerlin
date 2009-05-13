@@ -283,7 +283,7 @@ static int do_connect(bgav_rtsp_t * rtsp,
   done:
 
   if(!ret && (rtsp->fd >= 0))
-    close(rtsp->fd);
+    closesocket(rtsp->fd);
   
   if(host)
     free(host);
@@ -315,7 +315,7 @@ int bgav_rtsp_reopen(bgav_rtsp_t * rtsp)
   {
   int got_redirected = 0;
   if(rtsp->fd >= 0)
-    close(rtsp->fd);
+    closesocket(rtsp->fd);
   return do_connect(rtsp, &got_redirected, 0);
   }
 
@@ -336,7 +336,7 @@ void bgav_rtsp_close(bgav_rtsp_t * r, int teardown)
   if(r->session) free(r->session);
 
   if(r->fd > 0)
-    close(r->fd);
+    closesocket(r->fd);
   
   free(r);
   }

@@ -447,7 +447,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
 void bgav_http_close(bgav_http_t * h)
   {
   if(h->fd >= 0)
-    close(h->fd);
+    closesocket(h->fd);
   if(h->header)
     bgav_http_header_destroy(h->header);
   free(h);
