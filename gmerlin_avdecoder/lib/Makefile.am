@@ -465,6 +465,7 @@ mms.c \
 mxf.c \
 nanosoft.c \
 options.c \
+os.c \
 packetbuffer.c \
 packet.c \
 parse_a52.c \
