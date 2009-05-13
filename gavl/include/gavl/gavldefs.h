@@ -22,7 +22,12 @@
 #ifndef GAVLDEFS_H_INCLUDED
 #define GAVLDEFS_H_INCLUDED
 
+#ifdef DLLEXPORT  
+#define GAVL_PUBLIC __declspec(dllexport)
+#else
 #define GAVL_PUBLIC __attribute__ ((visibility("default")))
+#endif  
+
 
 #endif // GAVLDEFS_H_INCLUDED
 

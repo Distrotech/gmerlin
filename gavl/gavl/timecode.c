@@ -58,6 +58,23 @@
 #define TC_YEAR_SHIFT     36
 #define TC_YEAR_MASK  BITMASK(TC_YEAR_BITS, TC_YEAR_SHIFT)
 
+#ifdef _WIN32
+/*  windows localtime returns the results in a per-thread buffer */  
+struct tm *
+gavl_localtime_r (const time_t *timer, struct tm *result)
+{
+   struct tm *local_result;
+   local_result = localtime (timer);
+
+   if (local_result == NULL || result == NULL)
+     return NULL;
+
+   memcpy (result, local_result, sizeof (result));
+   return result;
+} 
+#else
+#define gavl_localtime_r localtime_r
+#endif
 
 void gavl_timecode_to_hmsf(gavl_timecode_t tc,
                            int * hours,
@@ -247,7 +264,7 @@ gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
   else
     {
     ti = fc;
-    localtime_r(&ti, &tm);
+    gavl_localtime_r(&ti, &tm);
     tm.tm_mon++;
     tm.tm_mday++;
     tm.tm_year += 1900;

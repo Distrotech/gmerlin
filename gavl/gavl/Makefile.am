@@ -96,7 +96,8 @@ csp_packed_planar.h  \
 csp_planar_packed.h  \
 csp_planar_planar.h
 
-AM_LDFLAGS = -export-symbols-regex gavl -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@
+AM_LDFLAGS = -export-symbols-regex gavl -version-info \ @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ \
+@LIBGAVL_LDFLAGS@
 
 libgavl_la_LIBADD = \
 @GMERLIN_DEP_LIBS@ \
@@ -109,6 +110,7 @@ c/libgavl_c.la \
 hq/libgavl_hq.la \
 libgdither/libgdither.la \
 libsamplerate/libsamplerate.la \
+@LIBGAVL_LIBS@ \
 -lm
 
 EXTRA_DIST=Makefile.am.in

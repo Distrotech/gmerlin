@@ -30,6 +30,10 @@
 #include <gavltime.h>
 #include <arith128.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
+
 /* Sleep for a specified time */
 
 void gavl_time_delay(gavl_time_t * t)

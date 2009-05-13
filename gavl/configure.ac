@@ -32,6 +32,7 @@ AC_CANONICAL_HOST
 AC_DISABLE_STATIC
 
 AC_PROG_LIBTOOL
+AM_PROG_LIBTOOL
 
 AC_PROG_MAKE_SET
 
@@ -98,6 +99,33 @@ fi
 LDFLAGS="$GMERLIN_DEP_RPATH"
 AC_SUBST(GMERLIN_DEP_LIBS)
 
+LIBGAVL_LIBS=""
+LIBGAVL_LDFLAGS=""
+
+dnl
+dnl Check for mingw
+dnl
+
+case "$host" in
+	*-*-mingw*|*cygwin*)
+	os_win32=yes		
+	AC_MSG_WARN([host is $host])
+	;;
+	*)
+	os_win32=no
+	;;
+esac
+AM_CONDITIONAL(OS_WIN32, [test "$os_win32" = "yes"])
+
+if test "$os_win32" = "yes"; then
+LIBGAVL_LIBS="-lws2_32 $LIBGAVL_LIBS"
+
+dnl it appears that -no-undefined is necessary in mingw in order to build dll
+dnl maybe we should check here if the user only wants static libs
+
+LIBGAVL_LDFLAGS="-no-undefined $LIBGAVL_LDFLAGS"
+fi
+
 dnl
 dnl Check for library functions
 dnl 
@@ -155,9 +183,6 @@ LQT_TRY_CFLAGS([-Wdeclaration-after-statement], CFLAGS="$CFLAGS -Wdeclaration-af
 LQT_TRY_CFLAGS([-mfpmath=387], CFLAGS="$CFLAGS -mfpmath=387")
 LQT_TRY_CFLAGS([-fvisibility=hidden], CFLAGS="$CFLAGS -fvisibility=hidden")
 
-LIBGAVL_CFLAGS=-D__GAVL__
-AC_SUBST(LIBGAVL_CFLAGS)
-
 dnl
 dnl Stuff from libsamplerate
 dnl
@@ -197,6 +222,12 @@ dnl
 
 INCLUDES='-I$(top_srcdir)/include -I$(top_srcdir)/include/gavl -I$(top_builddir)/include'
 AC_SUBST(INCLUDES)
+
+LIBGAVL_CFLAGS=-D__GAVL__
+AC_SUBST(LIBGAVL_CFLAGS)
+
+AC_SUBST(LIBGAVL_LIBS)	
+AC_SUBST(LIBGAVL_LDFLAGS)	
 
 AC_OUTPUT(Makefile \
 gavl.spec \
