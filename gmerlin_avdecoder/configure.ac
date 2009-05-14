@@ -92,6 +92,29 @@ AC_SUBST(GMERLIN_DEP_LIBS)
 LDFLAGS="$GMERLIN_DEP_RPATH"
 
 
+dnl Check for mingw
+
+case "$host" in
+	*-*-mingw*|*cygwin*)
+	os_win32=yes		
+	AC_MSG_WARN([host is $host])
+	;;
+	*)
+	os_win32=no
+	;;
+esac
+AM_CONDITIONAL(OS_WIN32, [test "$os_win32" = "yes"])
+
+if test "$os_win32" = "yes"; then
+	dnl LIBS="-lws2_32   -lwsnmp32  -lwsock32  -lwst -lwinstrm -lnetapi32 -lws2_32 -lwsock32 -lwinmm -lwinstrm -lpthreadGC2 -lltdl -lregex -lz -lkernel32 -luser32 -lgdi32 $LIBS"
+	LIBS=" -lpthreadGC2  -lregex -lz -lws2_32  $LIBS"
+	dnl it appears that -no-undefined is necessary in mingw in order to build dll
+	dnl maybe we should check here if the user only wants static libs
+	LDFLAGS="-no-undefined -mwindows -mms-bitfields $LDFLAGS"
+fi
+
+
+
 dnl
 dnl Doxygen
 dnl
@@ -133,7 +156,7 @@ dnl
 dnl Library functions
 dnl
 
-AC_CHECK_FUNCS([poll getaddrinfo readdir_r closesocket])
+AC_CHECK_FUNCS([poll getaddrinfo inet_aton readdir_r closesocket])
 
 dnl
 dnl Optional Libraries
@@ -734,3 +757,5 @@ echo "If you installed a library but it was not detected, check the file INSTALL
 echo "for troubleshooting tips. Also note that if the configure script reaches"
 echo "this point, all missing packages are optional so compilation should succeed"
 echo "anyway."
+
+

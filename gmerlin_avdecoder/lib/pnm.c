@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: pnm.c,v 1.8 2008-01-12 17:41:31 gmerlin Exp $
+ * $Id: pnm.c,v 1.9 2009-05-14 07:32:13 gmerlin Exp $
  *
  * pnm protocol implementation 
  * based upon code from joschka
@@ -35,14 +35,16 @@
 #include <inttypes.h>
 
 #include "config.h"
-#ifndef HAVE_WINSOCK2
-#define closesocket close
-#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <netdb.h>
-#else
+
+#ifdef _WIN32
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#define sleep(x) Sleep((x)*1000)
+#else
+#include <sys/socket.h>
 #endif
+
+#include <os.h>
 
 #include "pnm.h"
 //#include "libreal/rmff.h"
@@ -214,7 +216,7 @@ static int rm_write(int s, const char *buf, int len) {
     if (n > 0)
       total += n;
     else if (n < 0) {
-#ifndef HAVE_WINSOCK2
+#ifndef _WIN32
       if ((timeout>0) && ((errno == EAGAIN) || (errno == EINPROGRESS))) {
 #else
       if ((timeout>0) && ((errno == EAGAIN) || (WSAGetLastError() == WSAEINPROGRESS))) {

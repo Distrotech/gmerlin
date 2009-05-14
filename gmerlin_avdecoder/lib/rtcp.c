@@ -22,8 +22,15 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#ifdef HAVE_POLL
 #include <poll.h>
+#endif
 #include <unistd.h>
+
+#ifdef _WIN32
+#include <ws2spi.h>
+#include <winsock2.h>
+#endif
 
 
 #include <avdec_private.h>

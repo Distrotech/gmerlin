@@ -18,18 +18,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
-
-#include <netdb.h> /* gethostbyname */
                                                                                
 #include <fcntl.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
-#include <string.h>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2spi.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+
 
 
 #include <avdec_private.h>

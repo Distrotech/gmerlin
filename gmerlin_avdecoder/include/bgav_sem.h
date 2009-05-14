@@ -53,7 +53,7 @@ struct sem {
 #define _SEMAPHORE_H_
 
 /*
- * $Id: bgav_sem.h,v 1.1 2008-11-08 14:06:26 gmerlin Exp $
+ * $Id: bgav_sem.h,v 1.2 2009-05-14 07:32:13 gmerlin Exp $
  *
  * semaphore.h: POSIX 1003.1b semaphores
 */
@@ -108,7 +108,13 @@ typedef struct sem *sem_t;
 #endif
 
 #ifndef KERNEL
+#ifndef _WIN32
 #include <sys/cdefs.h>
+#else
+#define __P(protos) protos 
+#define __BEGIN_DECLS
+#define __END_DECLS
+#endif
 
 __BEGIN_DECLS
 int	 sem_init __P((sem_t *, int, unsigned int));

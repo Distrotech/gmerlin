@@ -36,9 +36,15 @@
 #include <fcntl.h>
 #include <time.h>
 #include <errno.h>
-#include <sys/select.h>
 #include <sys/types.h>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
+#include <sys/select.h>
+#endif
 
 #include <mms.h>
 
@@ -448,7 +454,12 @@ bgav_mms_t * bgav_mms_open(const bgav_options_t * opt,
 
   /* Set nonblocking mode */
 
+#ifdef _WIN32
+  unsigned long flags = 1;
+  if (ioctlsocket(ret->fd,FIONBIO, &flags) == SOCKET_ERROR)
+#else
   if(fcntl(ret->fd, F_SETFL, O_NONBLOCK) < 0)
+#endif   
     {
     bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     goto fail;

@@ -22,7 +22,39 @@
 #ifndef BGAVDEFS_H_INCLUDED
 #define BGAVDEFS_H_INCLUDED
 
+#ifdef DLL_EXPORT  
+#define BGAV_PUBLIC __declspec(dllexport)
+#else
 #define BGAV_PUBLIC __attribute__ ((visibility("default")))
+#endif
+
+
+#ifdef _WIN32
+
+/* need to declare that we are XP or newer 
+ * otherwise, getaddrinfo and other things 
+ * won't work */
+#define WINVER 0x501
+
+#ifndef EINVAL
+#define EINVAL WSAEINVAL
+#endif
+
+#ifndef EINPROGRESS
+#define EINPROGRESS WSAEINPROGRESS
+#endif
+
+/* for MacOSX AND mingw */
+#ifndef AI_NUMERICSERV
+#define AI_NUMERICSERV 0
+#endif
+
+#ifndef NAME_MAX
+#define NAME_MAX 255
+#endif
+
+#endif
+
 
 #endif // BGAVDEFS_H_INCLUDED
 

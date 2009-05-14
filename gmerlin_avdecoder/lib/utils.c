@@ -31,13 +31,20 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
-#include <sys/select.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <limits.h>
 #include <regex.h>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <pthread.h>
+#else
+#include <sys/socket.h>
+#include <sys/select.h>
+#endif
 
 #include <utils.h>
 
@@ -529,7 +536,11 @@ char * bgav_search_file_write(const bgav_options_t * opt,
 
     *pos2 = '\0';
 
+#ifdef _WIN32
+    if(mkdir(testpath) == -1)
+#else
     if(mkdir(testpath, S_IRUSR|S_IWUSR|S_IXUSR) == -1)
+#endif
       {
       if(errno != EEXIST)
         {

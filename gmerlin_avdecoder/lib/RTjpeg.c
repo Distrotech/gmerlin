@@ -3459,7 +3459,7 @@ void RTjpeg_yuv420rgb8(RTjpeg_t *rtj, uint8_t **planes, uint8_t **rows)
  uint8_t *b = planes[0];
  for(i=0; i<rtj->height; i++)
  {
-  bcopy(b, rows[i], rtj->width);
+  memcpy(b, rows[i], rtj->width);
   b+=rtj->width;
  }
 }
