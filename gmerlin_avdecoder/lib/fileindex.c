@@ -494,7 +494,6 @@ static void purge_cache(const char * filename,
   struct dirent * res;
   struct stat st;
   int i;
-  
   union
     {
     struct dirent d;
@@ -522,8 +521,12 @@ static void purge_cache(const char * filename,
     {
     if(!res)
       break;
-    
+#ifdef _WIN32
+    stat(res->d_name, &st);
+    if( S_ISDIR(st.st_mode  ))
+#else    
     if(res->d_type == DT_REG)
+#endif
       {
       if(num_files + 1 > files_alloc)
         {

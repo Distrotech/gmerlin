@@ -27,16 +27,21 @@
 #include <errno.h>
 #include <unistd.h>
                                                                                
-#include <netdb.h> /* gethostbyname */
-                                                                               
 #include <fcntl.h>
 #include <sys/types.h>
+
+#ifdef _WIN32
+#include <bgavdefs.h>
+#include <winsock2.h>
+#include <ws2spi.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
-
-#include <netdb.h>
-
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
+#endif
+
 
 #include <avdec_private.h>
 #define LOG_DOMAIN "tcp"
@@ -118,7 +123,7 @@ bgav_hostbyname(const bgav_options_t * opt,
   
   /* prevent DNS lookup for numeric IP addresses */
   
-  if(hostname && inet_aton(hostname, &(ipv4_addr)))
+  if(hostname && bgav_inet_aton(hostname, &(ipv4_addr)))
     hints.ai_flags |= AI_NUMERICHOST;
   
   if(!hostname)
@@ -163,7 +168,12 @@ static int socket_connect_inet(const bgav_options_t * opt, struct addrinfo * add
     }
   
   /* Set nonblocking mode */
+#ifdef _WIN32
+  unsigned long flags = 1;
+  if (ioctlsocket(ret,FIONBIO, &flags) == SOCKET_ERROR)
+#else
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
+#endif   
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     return -1;
@@ -192,8 +202,12 @@ static int socket_connect_inet(const bgav_options_t * opt, struct addrinfo * add
     }
   
   /* Set back to blocking mode */
-  
+#ifdef _WIN32
+  flags = 0;
+  if (ioctlsocket(ret,FIONBIO, &flags) == SOCKET_ERROR)
+#else
   if(fcntl(ret, F_SETFL, 0) < 0)
+#endif   
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Cannot set blocking mode");

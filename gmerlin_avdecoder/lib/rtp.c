@@ -22,14 +22,25 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <poll.h>
 #include <unistd.h>
-#include <netdb.h>
 #include <math.h>
 #include <pthread.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <netdb.h>
+#endif
+
+
 #include <avdec_private.h>
 // #include <inttypes.h>
+
+#ifdef HAVE_POLL
+#include <poll.h>
+#endif
+
 #include <rtp.h>
 
 #include <bitstream.h>
@@ -666,7 +677,7 @@ static void * udp_thread(void * data)
 
   while(1)
     {
-    if(poll(priv->pollfds, priv->num_pollfds, ctx->opt->read_timeout) <= 0)
+    if(bgav_poll(priv->pollfds, priv->num_pollfds, ctx->opt->read_timeout) <= 0)
       {
       break;
       }
@@ -674,7 +685,7 @@ static void * udp_thread(void * data)
       {
       break;
       }
-    while(poll(priv->pollfds, priv->num_pollfds, 0) > 0)
+    while(bgav_poll(priv->pollfds, priv->num_pollfds, 0) > 0)
       {
       if(!handle_pollfds(ctx))
         {
