@@ -26,17 +26,8 @@
 
 #include <config.h>
 
-#if 0
 #ifdef _WIN32
-#include <winsock2.h>
-#include <ws2spi.h>
-#include <ws2tcpip.h>
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#endif
+#include <winsock2.h> //needed for in_addr
 #endif
 
 #ifndef HAVE_CLOSESOCKET
