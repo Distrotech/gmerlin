@@ -32,22 +32,17 @@ static char * find_file_nocase(const char * dir, const char * file)
   DIR * d;
   struct dirent * res;
   char * ret;
-  union
-    {
-    struct dirent d;
-    char b[sizeof (struct dirent) + NAME_MAX];
-    } u;
   d = opendir(dir);
 
-  while(!readdir_r(d, &u.d, &res))
+  while( (res=readdir(d)) )
     {
     if(!res)
       break;
     
     /* Check, if the filenames match */
-    if(!strcasecmp(u.d.d_name, file))
+    if(!strcasecmp(res->d_name, file))
       {
-      ret = bgav_sprintf("%s/%s", dir, u.d.d_name);
+      ret = bgav_sprintf("%s/%s", dir, res->d_name);
       closedir(d);
       return ret;
       }
@@ -73,20 +68,20 @@ static char * find_audio_file(const char * dir, const char * name_root, int stre
 
   root_len = strlen(name_root);
   
-  while(!readdir_r(d, &u.d, &res))
+  while( (res=readdir(d)) )
     {
     if(!res)
       break;
     
     /* Check, if the filenames match */
-    if(!strncasecmp(u.d.d_name, name_root, root_len))
+    if(!strncasecmp(res->d_name, name_root, root_len))
       {
-      i = strtol(&u.d.d_name[root_len], &rest, 10);
-      if((rest == &u.d.d_name[root_len]) ||
+      i = strtol(&res->d_name[root_len], &rest, 10);
+      if((rest == &res->d_name[root_len]) ||
          (i != stream) ||
          strcasecmp(rest, ".mxf"))
         continue;
-      ret = bgav_sprintf("%s/%s", dir, u.d.d_name);
+      ret = bgav_sprintf("%s/%s", dir, res->d_name);
       closedir(d);
       return ret;
       }

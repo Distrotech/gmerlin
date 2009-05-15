@@ -38,6 +38,10 @@ static gavl_time_t global_seek = 0;
 
 /* Callback based reading: We do a simple stdio mapping here */
 
+#ifdef _WIN32
+#define BGAV_FSEEK(a,b,c) fseeko64(a,b,c)
+#define BGAV_FTELL(a) ftello64(a)
+#else
 #ifdef HAVE_FSEEKO
 #define BGAV_FSEEK fseeko
 #else
@@ -48,6 +52,8 @@ static gavl_time_t global_seek = 0;
 #define BGAV_FTELL ftello
 #else
 #define BGAV_FSEEK ftell
+#endif
+
 #endif
 
 static void index_callback(void * data, float perc)

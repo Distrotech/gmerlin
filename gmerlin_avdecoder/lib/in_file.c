@@ -28,6 +28,11 @@
 #include <string.h>
 #include <stdio.h>
 
+
+#ifdef _WIN32
+#define BGAV_FSEEK(a,b,c) fseeko64(a,b,c)
+#define BGAV_FTELL(a) ftello64(a)
+#else
 #ifdef HAVE_FSEEKO
 #define BGAV_FSEEK fseeko
 #else
@@ -38,6 +43,8 @@
 #define BGAV_FTELL ftello
 #else
 #define BGAV_FSEEK ftell
+#endif
+
 #endif
 
 static int open_file(bgav_input_context_t * ctx, const char * url, char ** r)

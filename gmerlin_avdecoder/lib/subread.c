@@ -786,17 +786,17 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     return (bgav_subtitle_reader_context_t*)0;
     }
 
-  while(!readdir_r(dir, &u.d, &res))
+  while( (res=readdir(dir)) )
     {
     if(!res)
       break;
     
     /* Check, if the filenames match */
-    if(strncasecmp(u.d.d_name, file, file_len) ||
-       !strcmp(u.d.d_name, file))
+    if(strncasecmp(res->d_name, file, file_len) ||
+       !strcmp(res->d_name, file))
       continue;
     
-    subtitle_filename = bgav_sprintf("%s/%s", directory, u.d.d_name);
+    subtitle_filename = bgav_sprintf("%s/%s", directory, res->d_name);
     
     r = find_subtitle_reader(subtitle_filename, input_ctx->opt);
     if(!r)
@@ -810,7 +810,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     new->reader   = r;
     new->p = bgav_packet_create();
     
-    name = u.d.d_name + file_len;
+    name = res->d_name + file_len;
 
     
     while(!isalnum(*name) && (*name != '\0'))

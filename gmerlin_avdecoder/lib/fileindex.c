@@ -494,12 +494,6 @@ static void purge_cache(const char * filename,
   struct dirent * res;
   struct stat st;
   int i;
-  union
-    {
-    struct dirent d;
-    char b[sizeof (struct dirent) + NAME_MAX];
-    } u;
-
   directory = bgav_strdup(filename);
   pos = strrchr(directory, '/');
   if(!pos)
@@ -517,7 +511,7 @@ static void purge_cache(const char * filename,
   num_files = 0;
   files_alloc = 0;
   total_size = 0;
-  while(!readdir_r(dir, &u.d, &res))
+  while( (res=readdir(dir)) )
     {
     if(!res)
       break;
