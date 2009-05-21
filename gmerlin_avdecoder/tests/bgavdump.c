@@ -28,7 +28,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef _WIN32
 #include <termios.h> /* Ask passwords */
+#endif
 
 // #define TRACK 6
 
@@ -79,6 +81,7 @@ static int64_t seek_callback(void * priv, uint64_t pos, int whence)
 
 /* Taken from the Unix programmer FAQ: http://www.faqs.org/faqs/unix-faq/programmer/faq/ */
 
+#ifndef _WIN32
 static struct termios stored_settings;
 static void echo_off(void)
   {
@@ -129,6 +132,7 @@ static int user_pass_func(void * data, const char * resource, char ** user, char
   *pass = bgav_strndup(buf, (char*)0);
   return 1;
   }
+#endif
 
 /* Configuration data */
 
@@ -228,8 +232,10 @@ int main(int argc, char ** argv)
 
   if(sample_accurate)
     bgav_options_set_sample_accurate(opt, 1);
-  
+ 
+#ifndef _WIN32 
   bgav_options_set_user_pass_callback(opt, user_pass_func, (void*)0);
+#endif
   
   if(!strncmp(argv[argc-1], "vcd://", 6))
     {

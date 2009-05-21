@@ -107,10 +107,13 @@ AM_CONDITIONAL(OS_WIN32, [test "$os_win32" = "yes"])
 
 if test "$os_win32" = "yes"; then
 	dnl LIBS="-lws2_32   -lwsnmp32  -lwsock32  -lwst -lwinstrm -lnetapi32 -lws2_32 -lwsock32 -lwinmm -lwinstrm -lpthreadGC2 -lltdl -lregex -lz -lkernel32 -luser32 -lgdi32 $LIBS"
-	LIBS=" -lpthreadGC2  -lregex -lz -lws2_32  $LIBS"
+	LIBS=" -lpthreadGC2  -lregex -lz -lws2_32 -lintl $LIBS"
 	dnl it appears that -no-undefined is necessary in mingw in order to build dll
 	dnl maybe we should check here if the user only wants static libs
 	LDFLAGS="-no-undefined -mwindows -mms-bitfields $LDFLAGS"
+	AC_CHECK_LIB(pthreadGC2, pthread_mutex_lock, , AC_MSG_ERROR([libpthread not found get it from ftp://sourceware.org/pub/pthreads-win32/]))
+else
+	AC_CHECK_LIB(pthread, pthread_mutex_lock, , AC_MSG_ERROR([libpthread not found but you are not using windows.  You should really have this.]))
 fi
 
 
@@ -152,11 +155,21 @@ ICONV_LIBS=
 AC_CHECK_LIB(iconv, libiconv_close, ICONV_LIBS="-liconv")
 AC_SUBST(ICONV_LIBS)
 
+if test "x$os_win32" = "xyes"; then
+AC_CHECK_LIB(regex, regcomp, , AC_MSG_ERROR([libregex not found.]))
+AC_CHECK_LIB(gettextlib, rpl_open, , AC_MSG_ERROR([libgettextlib not found get it from http://www.gnu.org/software/gettext/]))
+AC_CHECK_LIB(intl, libintl_sprintf, , AC_MSG_ERROR([libintl not found get it from http://www.gnu.org/software/gettext/]))
+fi
+
+AC_CHECK_HEADER(dlfcn.h, , AC_MSG_ERROR([dlfcn.h not found]))
+AC_CHECK_LIB(z, uncompress, , AC_MSG_ERROR([libz not found get it from http://zlib.net]))
+
+
 dnl
 dnl Library functions
 dnl
 
-AC_CHECK_FUNCS([poll getaddrinfo inet_aton readdir_r closesocket])
+AC_CHECK_FUNCS([poll getaddrinfo inet_aton closesocket])
 
 dnl
 dnl Optional Libraries
