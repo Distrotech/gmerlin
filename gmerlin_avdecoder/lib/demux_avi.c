@@ -33,7 +33,7 @@
    on each open call */
 
 // #define DUMP_HEADERS
-// #define DUMP_INDICES
+#define DUMP_INDICES
 // #define DUMP_AUDIO_TYPE
 
 /* AVI Flags */
@@ -181,6 +181,12 @@ static const uint32_t video_codecs_mpeg4[] =
     BGAV_MK_FOURCC('x', 'v', 'i', 'd'),
     BGAV_MK_FOURCC('F', 'M', 'P', '4'),
     BGAV_MK_FOURCC('f', 'm', 'p', '4'),    
+    0x00,
+  };
+
+static const uint32_t video_codecs_h264[] =
+  {
+    BGAV_MK_FOURCC('h', '2', '6', '4'),
     0x00,
   };
 
@@ -1382,7 +1388,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   bg_vs->stream_id = (ctx->tt->cur->num_audio_streams +
                       ctx->tt->cur->num_video_streams) - 1;
 
-  if(check_codec(bg_vs->fourcc, video_codecs_mpeg4))
+  if(check_codec(bg_vs->fourcc, video_codecs_mpeg4) ||
+     check_codec(bg_vs->fourcc, video_codecs_h264))
     bg_vs->flags |= (STREAM_WRONG_B_TIMESTAMPS | STREAM_B_FRAMES);
   
   return 1;
