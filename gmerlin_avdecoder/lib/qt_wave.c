@@ -25,6 +25,8 @@
 #include <string.h>
 #include <qt.h>
 
+#define LOG_DOMAIN "quicktime.wave"
+
 int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_wave_t * ret)
   {
@@ -70,6 +72,15 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
         ret->raw_size -= 8;
         break;
       default:
+        /* Workaround for some broken encoders, which write some parts
+           of the wave atom in little endian */
+        if(ch.size > ret->raw_size)
+          {
+          bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                   "Skipping remainder of broken wave atom");
+          done = 1;
+          break;
+          }
         /* Append user atom */
         ret->user_atoms = realloc(ret->user_atoms,
                                   sizeof(*(ret->user_atoms))*(ret->num_user_atoms+1));
