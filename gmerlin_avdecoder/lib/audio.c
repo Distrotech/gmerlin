@@ -75,6 +75,16 @@ int bgav_audio_start(bgav_stream_t * s)
       return 0;
       }
 
+    if(s->ext_data)
+      {
+      if(!bgav_audio_parser_set_header(parser, s->ext_data, s->ext_size))
+        {
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Audio parser doesn't support out-of-band header");
+        }
+      }
+
+    
     /* Start the parser and extract the header */
 
     while(!done)

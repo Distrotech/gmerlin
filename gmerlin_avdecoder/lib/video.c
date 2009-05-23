@@ -92,7 +92,6 @@ int bgav_video_start(bgav_stream_t * s)
         {
         bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                  "Video parser doesn't support out-of-band header");
-        return 0;
         }
       }
     

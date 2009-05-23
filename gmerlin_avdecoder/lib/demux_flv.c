@@ -42,7 +42,7 @@
 
 //#define DUMP_METADATA
 
-#define FOURCC_AAC BGAV_MK_FOURCC('m', 'p', '4', 'a')
+#define FOURCC_AAC  BGAV_MK_FOURCC('m', 'p', '4', 'a')
 #define FOURCC_H264 BGAV_MK_FOURCC('h', '2', '6', '4')
 
 typedef struct meta_object_s meta_object_t;
@@ -168,7 +168,9 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   flv_priv_t * priv;
 
   priv = (flv_priv_t*)(ctx->priv);
-  
+
+  s->flags |= STREAM_START_TIME;
+    
   if(!s->fourcc) /* Initialize */
     {
     s->data.audio.bits_per_sample = (flags & 2) ? 16 : 8;
@@ -183,6 +185,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
         s->index_mode = INDEX_MODE_SIMPLE;
         s->data.audio.block_align = s->data.audio.format.num_channels *
           (s->data.audio.bits_per_sample / 8);
+        s->duration = 0;
         break;
       case 1: /* Flash ADPCM */
         s->fourcc = BGAV_MK_FOURCC('F', 'L', 'A', '1');
@@ -198,12 +201,14 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
         s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
         s->index_mode = INDEX_MODE_MPEG;
         s->flags |= STREAM_PARSE_FULL;
+        s->duration = 0;
         break;
       case 3: /* Uncompressed, Little endian */
         s->fourcc = BGAV_MK_FOURCC('s', 'o', 'w', 't');
         s->index_mode = INDEX_MODE_SIMPLE;
         s->data.audio.block_align = s->data.audio.format.num_channels *
           (s->data.audio.bits_per_sample / 8);
+        s->duration = 0;
         break;
       case 5: /* NellyMoser */
         s->data.audio.format.samplerate = 8000;
@@ -218,8 +223,11 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
         break;
       case 10:
         s->fourcc = FOURCC_AAC;
+        //        s->index_mode = INDEX_MODE_MPEG;
+        s->flags |= STREAM_PARSE_FULL | STREAM_START_TIME;
         s->index_mode = INDEX_MODE_MPEG;
         // ctx->index_mode = 0;
+        s->duration = 0;
         priv->need_audio_extradata = 1;
         break;
       default: /* Set some nonsense so we can finish initializing */
@@ -239,6 +247,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   flv_priv_t * priv;
   uint8_t header[1];
   priv = (flv_priv_t*)(ctx->priv);
+
+  s->flags |= STREAM_START_TIME;
   
   switch(flags & 0xF)
     {

@@ -38,7 +38,7 @@ endif
 if HAVE_FAAD2
 faad2_cflags = @FAAD2_CFLAGS@
 faad2_libs =   @FAAD2_LIBS@
-faad2_sources = audio_faad2.c
+faad2_sources = audio_faad2.c aac_frame.c parse_aac.c
 else
 faad2_cflags =
 faad2_libs = 
@@ -361,7 +361,6 @@ $(schroedinger_sources) \
 $(speex_sources) \
 $(dvb_sources) \
 RTjpeg.c \
-aac_frame.c \
 a52_header.c \
 apetag.c \
 audio.c \

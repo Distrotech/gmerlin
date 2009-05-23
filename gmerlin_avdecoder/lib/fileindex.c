@@ -1017,7 +1017,7 @@ static int build_file_index_si_parse_audio(bgav_t * b, int track, int stream)
   
   bgav_stop(b);
   bgav_set_audio_stream(b, stream, BGAV_STREAM_MUTE);
-
+  return 1;
   }
 
 static int build_file_index_si_parse_video(bgav_t * b, int track, int stream)
@@ -1046,6 +1046,7 @@ static int build_file_index_si_parse_video(bgav_t * b, int track, int stream)
     }
   bgav_stop(b);
   bgav_set_video_stream(b, stream, BGAV_STREAM_MUTE);
+  return 1;
   }
 
 static int bgav_build_file_index_si_parse(bgav_t * b)

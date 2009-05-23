@@ -1028,6 +1028,9 @@ typedef struct
 bgav_superindex_t * bgav_superindex_create(int size);
 void bgav_superindex_destroy(bgav_superindex_t *);
 
+void bgav_superindex_set_sbr(bgav_superindex_t * si,
+                             bgav_stream_t * s);
+
 void bgav_superindex_add_packet(bgav_superindex_t * idx,
                                 bgav_stream_t * s,
                                 int64_t offset,

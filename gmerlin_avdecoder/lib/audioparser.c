@@ -46,8 +46,22 @@ parsers[] =
 #ifdef HAVE_DCA
     { BGAV_MK_FOURCC('d','t','s',' '), bgav_audio_parser_init_dca },
 #endif
-
+#ifdef HAVE_FAAD2
+    { BGAV_MK_FOURCC('m','p','4','a'), bgav_audio_parser_init_aac },
+#endif
   };
+
+int bgav_audio_parser_supported(uint32_t fourcc)
+  {
+  int i;
+  for(i = 0; i < sizeof(parsers)/sizeof(parsers[0]); i++)
+    {
+    if(parsers[i].fourcc == fourcc)
+      return 1;
+    }
+  return 0;
+  }
+
 
 bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,
                                                const bgav_options_t * opt)
@@ -297,3 +311,18 @@ void bgav_audio_parser_set_frame(bgav_audio_parser_t * parser,
   parser->frame_bytes   = len;
   }
 
+int bgav_audio_parser_set_header(bgav_audio_parser_t * parser,
+                                 const uint8_t * header, int len)
+  {
+  //  fprintf(stderr, "Got header %d bytes\n", len);
+  //  bgav_hexdump(header, len, 16);
+  
+  if(!parser->parse_header)
+    return 0;
+  
+  parser->header = malloc(len);
+  memcpy(parser->header, header, len);
+  parser->header_len = len;
+  parser->parse_header(parser);
+  return 1;
+  }

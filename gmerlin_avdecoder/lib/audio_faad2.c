@@ -26,37 +26,7 @@
 #include <config.h>
 #include <avdec_private.h>
 #include <codecs.h>
-
-#ifdef HAVE_NEAACDEC_H
-#include <neaacdec.h>
-
-/*
- *  Backwards compatibility names (currently in neaacdec.h,
- *  but might be removed in future versions)
- */
-#ifndef faacDecHandle
-/* structs */
-#define faacDecHandle                  NeAACDecHandle
-#define faacDecConfiguration           NeAACDecConfiguration
-#define faacDecConfigurationPtr        NeAACDecConfigurationPtr
-#define faacDecFrameInfo               NeAACDecFrameInfo
-/* functions */
-#define faacDecGetErrorMessage         NeAACDecGetErrorMessage
-#define faacDecSetConfiguration        NeAACDecSetConfiguration
-#define faacDecGetCurrentConfiguration NeAACDecGetCurrentConfiguration
-#define faacDecInit                    NeAACDecInit
-#define faacDecInit2                   NeAACDecInit2
-#define faacDecInitDRM                 NeAACDecInitDRM
-#define faacDecPostSeekReset           NeAACDecPostSeekReset
-#define faacDecOpen                    NeAACDecOpen
-#define faacDecClose                   NeAACDecClose
-#define faacDecDecode                  NeAACDecDecode
-#define AudioSpecificConfig            NeAACDecAudioSpecificConfig
-#endif
-
-#else
-#include <faad.h>
-#endif
+#include <aac_frame.h>
 
 #define LOG_DOMAIN "faad2"
 
@@ -96,54 +66,6 @@ static int get_data(bgav_stream_t * s)
   return 1;
   }
 
-static const struct
-  {
-  int faad_channel;
-  gavl_channel_id_t gavl_channel;
-  }
-channels[] =
-  {
-    { FRONT_CHANNEL_CENTER,  GAVL_CHID_FRONT_CENTER },
-    { FRONT_CHANNEL_LEFT,    GAVL_CHID_FRONT_LEFT },
-    { FRONT_CHANNEL_RIGHT,   GAVL_CHID_FRONT_RIGHT },
-    { SIDE_CHANNEL_LEFT,     GAVL_CHID_SIDE_LEFT },
-    { SIDE_CHANNEL_RIGHT,    GAVL_CHID_SIDE_RIGHT },
-    { BACK_CHANNEL_LEFT,     GAVL_CHID_REAR_LEFT },
-    { BACK_CHANNEL_RIGHT,    GAVL_CHID_REAR_RIGHT },
-    { BACK_CHANNEL_CENTER,   GAVL_CHID_REAR_CENTER },
-    { LFE_CHANNEL,           GAVL_CHID_LFE },
-    { UNKNOWN_CHANNEL,       GAVL_CHID_NONE }
-  };
-
-static gavl_channel_id_t get_channel(int ch)
-  {
-  int i;
-  for(i = 0; i < sizeof(channels)/sizeof(channels[0]); i++)
-    {
-    if(channels[i].faad_channel == ch)
-      return channels[i].gavl_channel;
-    }
-  return GAVL_CHID_AUX;
-  }
-
-static void set_channel_setup(faacDecFrameInfo * frame_info,
-                              gavl_audio_format_t * format)
-  {
-  int i;
-
-  /* This method fails for HE-AAC streams. So we
-     use our own detection for mono and stereo */
-  if(format->num_channels > 2)
-    {
-    for(i = 0; i < format->num_channels; i++)
-      format->channel_locations[i] =
-        get_channel(frame_info->channel_position[i]);
-    }
-  else
-    gavl_set_channel_setup(format);
-  
-  }
-
 static int decode_frame_faad2(bgav_stream_t * s)
   {
   faacDecFrameInfo frame_info;
@@ -164,7 +86,7 @@ static int decode_frame_faad2(bgav_stream_t * s)
     bgav_dprintf("faacDecDecode %d bytes\n", priv->buf.size);
     bgav_hexdump(priv->buf.buffer, 7, 7);
 #endif
-   
+    
     s->data.audio.frame->samples.f = faacDecDecode(priv->dec,
                                                    &frame_info,
                                                    priv->buf.buffer,
@@ -212,8 +134,8 @@ static int decode_frame_faad2(bgav_stream_t * s)
   
   if(s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
     {
-    set_channel_setup(&frame_info,
-                      &(s->data.audio.format));
+    bgav_faad_set_channel_setup(&frame_info,
+                                &(s->data.audio.format));
     }
   if(!s->description)
     {
@@ -282,8 +204,8 @@ static int init_faad2(bgav_stream_t * s)
      so we correct it here */
   if(samplerate == 2 * s->data.audio.format.samplerate)
     {
-    fprintf(stderr, "Detected HE-AAC\n");
-    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    //    fprintf(stderr, "Detected HE-AAC\n");
+    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
     
     s->data.audio.format.samples_per_frame = 2048;
     if(s->duration)
@@ -292,8 +214,8 @@ static int init_faad2(bgav_stream_t * s)
   else
     {
     s->data.audio.format.samples_per_frame = 1024;
-    fprintf(stderr, "Detected NO HE-AAC\n");
-    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    //    fprintf(stderr, "Detected NO HE-AAC\n");
+    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
     }
   s->data.audio.format.samplerate = samplerate;
   
@@ -358,7 +280,6 @@ static void parse_faad2(bgav_stream_t * s)
     bgav_bytebuffer_append(&priv->buf, p, 0);
     position = p->position;
     bgav_demuxer_done_packet_read(s->demuxer, p);
-    
     
     while(priv->buf.size >= FAAD_MIN_STREAMSIZE)
       {

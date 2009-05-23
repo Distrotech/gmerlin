@@ -461,6 +461,9 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
     s = &(track->audio_streams[i]);
     if(!bgav_find_audio_decoder(s))
       bgav_track_remove_audio_stream(track, i);
+    else if((s->flags & STREAM_PARSE_FULL) &&
+       !bgav_audio_parser_supported(s->fourcc))
+      bgav_track_remove_audio_stream(track, i);
     else
       i++;
     }
@@ -469,6 +472,9 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
     {
     s = &(track->video_streams[i]);
     if(!bgav_find_video_decoder(s))
+      bgav_track_remove_video_stream(track, i);
+    else if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
+       !bgav_video_parser_supported(s->fourcc))
       bgav_track_remove_video_stream(track, i);
     else
       i++;

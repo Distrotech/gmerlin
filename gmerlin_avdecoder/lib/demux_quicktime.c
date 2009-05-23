@@ -32,6 +32,10 @@
 
 // #define DUMP_MOOV
 
+#ifdef HAVE_FAAD2
+#include <aac_frame.h>
+#endif
+
 typedef struct
   {
   qt_trak_t * trak;
@@ -1383,6 +1387,76 @@ static void build_edl(bgav_demuxer_context_t * ctx)
   
   }
 
+#ifdef HAVE_FAAD2
+static void check_he_aac(bgav_demuxer_context_t * ctx,
+                         bgav_stream_t * s)
+  {
+  uint8_t * buffer = NULL;
+  int buffer_alloc = 0;
+  int index_pos = 0;
+  int done = 0;
+  int samples = 0;
+  int result;
+  int bytes;
+  bgav_aac_frame_t * frame;
+  frame = bgav_aac_frame_create(ctx->opt,
+                                s->ext_data, s->ext_size);
+
+  while(!done)
+    {
+    /* Seek next packet */
+    while((ctx->si->entries[index_pos].stream_id != s->stream_id) &&
+          (index_pos < ctx->si->num_entries))
+      index_pos++;
+    
+    if(index_pos > ctx->si->num_entries)
+      break;
+
+    /* Read packet */
+    if(ctx->si->entries[index_pos].size > buffer_alloc)
+      {
+      buffer_alloc += 1024;
+      buffer = realloc(buffer, buffer_alloc);
+      }
+
+    bgav_input_seek(ctx->input, ctx->si->entries[index_pos].offset,
+                    SEEK_SET);
+    
+    if(bgav_input_read_data(ctx->input, buffer, 
+                            ctx->si->entries[index_pos].size) <
+       ctx->si->entries[index_pos].size)
+      break;
+
+    result = bgav_aac_frame_parse(frame, buffer,
+                                  ctx->si->entries[index_pos].size,
+                                  &bytes, &samples);
+    if(result <= 0)
+      break;
+
+    if(samples)
+      {
+      if(samples == 2048)
+        {
+        /* Detected HE-AAC */
+        bgav_superindex_set_sbr(ctx->si, s);
+        bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Detected HE-AAC");
+        s->data.audio.format.samples_per_frame = 2048;
+        }
+      else
+        {
+        bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Detected no HE-AAC");
+        s->data.audio.format.samples_per_frame = 1024;
+        }
+      break;
+      }
+    index_pos++;
+    }
+  bgav_aac_frame_destroy(frame);
+  if(buffer)
+    free(buffer);
+  }
+#endif
+
 static void fix_index(bgav_demuxer_context_t * ctx)
   {
   int i, j;
@@ -1395,10 +1469,13 @@ static void fix_index(bgav_demuxer_context_t * ctx)
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
     {
     s = &ctx->tt->cur->audio_streams[i];
-    if(s->fourcc == BGAV_MK_FOURCC('m','p','4','a'))
+    if(ctx->input->input->seek_byte &&
+       (s->fourcc == BGAV_MK_FOURCC('m','p','4','a')))
       {
       /* Check for HE-AAC and update superindex */
-      
+#ifdef HAVE_FAAD2
+      check_he_aac(ctx, s);
+#endif
       }
     }
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)

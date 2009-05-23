@@ -45,6 +45,18 @@ parsers[] =
     { BGAV_MK_FOURCC('d', 'r', 'a', 'c'), bgav_video_parser_init_dirac },
   };
 
+int bgav_video_parser_supported(uint32_t fourcc)
+  {
+  int i;
+  for(i = 0; i < sizeof(parsers)/sizeof(parsers[0]); i++)
+    {
+    if(parsers[i].fourcc == fourcc)
+      return 1;
+    }
+  return 0;
+  }
+
+
 bgav_video_parser_t *
 bgav_video_parser_create(uint32_t fourcc, int timescale,
                          const bgav_options_t * opt, int stream_flags)
@@ -261,7 +273,9 @@ int bgav_video_parser_set_header(bgav_video_parser_t * parser,
   parser->header = malloc(len);
   memcpy(parser->header, header, len);
   parser->header_len = len;
-  parser->parse_header(parser);
+  
+  if(parser->parse_header)
+    parser->parse_header(parser);
   return 1;
   }
 
