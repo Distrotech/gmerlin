@@ -897,6 +897,7 @@ void * bg_player_input_thread(void * data)
   
   bg_msg_queue_unlock_write(ctx->player->command_queue);
 
+#if 0  
   if(DO_AUDIO(ctx->player->flags))
     {
     sprintf(tmp_string, "%" PRId64, ctx->audio_samples_written);
@@ -909,6 +910,7 @@ void * bg_player_input_thread(void * data)
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Processed %s video frames",
            tmp_string);
     }
+#endif
   return NULL;
   }
 
