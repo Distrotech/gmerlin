@@ -380,7 +380,8 @@ codecs.c \
 demuxer.c \
 demux_4xm.c \
 demux_8svx.c \
-demux_aac.c \
+demux_adif.c \
+demux_adts.c \
 demux_aiff.c \
 demux_asf.c \
 demux_avi.c \

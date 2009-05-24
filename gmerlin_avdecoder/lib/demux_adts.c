@@ -25,20 +25,17 @@
 
 #include <avdec_private.h>
 
+#ifdef HAVE_FAAD2
+#include <aac_frame.h>
+#endif
+
+#define LOG_DOMAIN "adts"
+
 /* Supported header types */
 
-#define TYPE_ADIF 0
-#define TYPE_ADTS 1
-
 #define ADTS_SIZE 9
-#define ADIF_SIZE 17
 
 #define BYTES_TO_READ (768*GAVL_MAX_CHANNELS)
-
-#define IS_ADIF(h) ((h[0] == 'A') && \
-                    (h[1] == 'D') && \
-                    (h[2] == 'I') && \
-                    (h[3] == 'F'))
      
 #define IS_ADTS(h) ((h[0] == 0xff) && \
                     ((h[1] & 0xf0) == 0xf0) && \
@@ -48,24 +45,6 @@ static const int adts_samplerates[] =
   {96000,88200,64000,48000,44100,
    32000,24000,22050,16000,12000,
    11025,8000,7350,0,0,0};
-
-#if 0
-static const int samplerates[] =
-  {
-    96000,
-    88200,
-    64000,
-    48000,
-    44100,
-    32000,
-    24000,
-    22050,
-    16000,
-    12000,
-    11025,
-    8000
-  };
-#endif
 
 /* The following struct is not exactly the same as in the spec */
 
@@ -77,7 +56,6 @@ typedef struct
   int channel_configuration;
   int frame_bytes;
   int num_blocks;
-  int block_samples;
   } adts_header_t;
 #if 0
 static void adts_header_dump(adts_header_t * adts)
@@ -126,9 +104,9 @@ static void adts_header_dump(adts_header_t * adts)
   bgav_dprintf( "  Channel configuration: %d\n", adts->channel_configuration);
   bgav_dprintf( "  Frame bytes:           %d\n", adts->frame_bytes);
   bgav_dprintf( "  Num blocks:            %d\n", adts->num_blocks);
-  bgav_dprintf( "  Samples per block:     %d\n", adts->block_samples);
   }
 #endif
+
 static int adts_header_read(uint8_t * data, adts_header_t * ret)
   {
   int protection_absent;
@@ -151,11 +129,6 @@ static int adts_header_read(uint8_t * data, adts_header_t * ret)
     | (((unsigned int)data[4]) << 3) | (data[5] >> 5);
   
   ret->num_blocks = (data[6] & 0x03) + 1;
-
-  if(ret->profile == 2) 
-    ret->block_samples = 960;
-  else
-    ret->block_samples = 1024;
   return 1;
   }
 
@@ -163,17 +136,12 @@ static int adts_header_read(uint8_t * data, adts_header_t * ret)
 
 typedef struct
   {
-  int type;
-
   int64_t data_size;
-  
-  uint32_t seek_table_size;
-
   int64_t sample_count;
-  
+  int block_samples;
   } aac_priv_t;
 
-static int probe_aac(bgav_input_context_t * input)
+static int probe_adts(bgav_input_context_t * input)
   {
   uint8_t header[4];
 
@@ -187,125 +155,86 @@ static int probe_aac(bgav_input_context_t * input)
   if(bgav_input_get_data(input, header, 4) < 4)
     return 0;
   
-  if(IS_ADIF(header) || IS_ADTS(header))
+  if(IS_ADTS(header))
     return 1;
   return 0;
   }
 
-#define TABLE_ALLOC 1024
+#ifdef HAVE_FAAD2
+#define BYTES_TO_SCAN 1024
+
+static void check_he_aac(bgav_demuxer_context_t * ctx,
+                         bgav_stream_t * s)
+  {
+  uint8_t * buffer = NULL;
+  int buffer_alloc = 0;
+  int buffer_size = 0;
+  aac_priv_t * priv;
+  
+  int done = 0;
+  int samples = 0;
+  int result;
+  int bytes;
+  bgav_aac_frame_t * frame;
+  int64_t old_position = ctx->input->position;
+  frame = bgav_aac_frame_create(ctx->opt, NULL, 0);
+  priv = ctx->priv;
+  while(!done)
+    {
+    /* Read data */
+    buffer_alloc += BYTES_TO_SCAN;
+    buffer = realloc(buffer, buffer_alloc);
+    
+    if(bgav_input_read_data(ctx->input, buffer + buffer_size, 
+                            BYTES_TO_SCAN) < BYTES_TO_SCAN)
+      break;
+
+    buffer_size += BYTES_TO_SCAN;
+    
+    result = bgav_aac_frame_parse(frame, buffer,
+                                  buffer_size,
+                                  &bytes, &samples);
+    if(result < 0)
+      break;
+
+    if(!result)
+      continue;
+    
+    if(samples)
+      {
+      if(samples == 2048)
+        {
+        /* Detected HE-AAC */
+        bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Detected HE-AAC");
+        s->data.audio.format.samplerate *= 2;
+        priv->block_samples *= 2;
+        }
+      else
+        {
+        bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Detected no HE-AAC");
+        }
+      break;
+      }
+    }
+  bgav_aac_frame_destroy(frame);
+  if(buffer)
+    free(buffer);
+  bgav_input_seek(ctx->input, old_position, SEEK_SET);
+  }
+#endif
+
+
 
 static int open_adts(bgav_demuxer_context_t * ctx)
-  {
-  //  int i;
-  uint8_t buf[ADTS_SIZE];
-
-  adts_header_t adts;
-  bgav_stream_t * s;
-  aac_priv_t * priv;
-    
-  priv = (aac_priv_t*)(ctx->priv);
-  
-  /* The first header will also be the streams extradata */
-  s = ctx->tt->cur->audio_streams;
-
-  if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
-    return 0;
-
-  if(!adts_header_read(buf, &adts))
-    return 0;
-
-  s->data.audio.format.samplerate = adts.samplerate;
-  
-  if(adts.mpeg_version == 2)
-    {
-    switch(adts.profile)
-      {
-      case 0:
-        ctx->stream_description =
-          bgav_strdup("MPEG-2 AAC Main profile");
-        break;
-      case 1:
-        ctx->stream_description =
-          bgav_strdup("MPEG-2 AAC Low Complexity profile (LC)");
-        break;
-      case 2:
-        ctx->stream_description =
-          bgav_strdup("MPEG-2 AAC Scalable Sample Rate profile (SSR)");
-        break;
-      case 3:
-        ctx->stream_description =
-          bgav_strdup("MPEG-2 AAC (reserved)");
-        break;
-      }
-    }
-  else
-    {
-    switch(adts.profile)
-      {
-      case 0:
-        ctx->stream_description =
-          bgav_strdup("MPEG-4 AAC MAIN");
-        break;
-      case 1:
-        ctx->stream_description =
-          bgav_strdup("MPEG-4 AAC LC");
-        break;
-      case 2:
-        ctx->stream_description =
-          bgav_strdup("MPEG-4 AAC SSR");
-        break;
-      case 3:
-        ctx->stream_description =
-          bgav_strdup("MPEG-4 AAC LTP");
-        break;
-      }
-    }
-  
-  //  adts_header_dump(&adts);
-
-  ctx->index_mode = INDEX_MODE_SIMPLE;
-    
-  return 1;
-  }
-
-static int open_adif(bgav_demuxer_context_t * ctx)
-  {
-  uint8_t buf[ADIF_SIZE];
-  int skip_size;
-  aac_priv_t * priv;
-  priv = (aac_priv_t*)(ctx->priv);
-
-  /* Try to get the bitrate */
-
-  if(bgav_input_get_data(ctx->input, buf, ADIF_SIZE) < ADIF_SIZE)
-    return 0;
-
-  skip_size = (buf[4] & 0x80) ? 9 : 0;
-
-  if(buf[4 + skip_size] & 0x10)
-    {
-    ctx->tt->cur->audio_streams[0].container_bitrate = BGAV_BITRATE_VBR;
-    }
-  else
-    {
-    ctx->tt->cur->audio_streams[0].container_bitrate =
-      ((unsigned int)(buf[4 + skip_size] & 0x0F)<<19) |
-      ((unsigned int)buf[5 + skip_size]<<11) |
-      ((unsigned int)buf[6 + skip_size]<<3) |
-      ((unsigned int)buf[7 + skip_size] & 0xE0);
-    ctx->tt->cur->duration = (GAVL_TIME_SCALE * (priv->data_size) * 8) /
-      (ctx->tt->cur->audio_streams[0].container_bitrate);
-    }
-  return 1;
-  }
-
-static int open_aac(bgav_demuxer_context_t * ctx)
   {
   uint8_t header[4];
   aac_priv_t * priv;
   bgav_stream_t * s;
   bgav_id3v1_tag_t * id3v1 = (bgav_id3v1_tag_t*)0;
   bgav_metadata_t id3v1_metadata, id3v2_metadata;
+  uint8_t buf[ADTS_SIZE];
+
+  adts_header_t adts;
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -318,16 +247,7 @@ static int open_aac(bgav_demuxer_context_t * ctx)
       return 0;
     
     if(IS_ADTS(header))
-      {
-      priv->type = TYPE_ADTS;
       break;
-      }
-    else if(IS_ADIF(header))
-      {
-      priv->type = TYPE_ADIF;
-      //    return 0;
-      break;
-      }
     bgav_input_skip(ctx->input, 1);
     }
   
@@ -386,21 +306,71 @@ static int open_aac(bgav_demuxer_context_t * ctx)
 
   /* This fourcc reminds the decoder to call a different init function */
 
-  s->fourcc = BGAV_MK_FOURCC('a', 'a', 'c', ' ');
+  s->fourcc = BGAV_MK_FOURCC('A', 'D', 'T', 'S');
 
   /* Initialize rest */
+
+  if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
+    goto fail;
+
+  if(!adts_header_read(buf, &adts))
+    goto fail;
+
+  if(adts.profile == 2) 
+    priv->block_samples = 960;
+  else
+    priv->block_samples = 1024;
   
-  switch(priv->type)
+  s->data.audio.format.samplerate = adts.samplerate;
+  
+  if(adts.mpeg_version == 2)
     {
-    case TYPE_ADTS:
-      if(!open_adts(ctx))
-        goto fail;
-      break;
-    case TYPE_ADIF:
-      if(!open_adif(ctx))
-        goto fail;
-      break;
+    switch(adts.profile)
+      {
+      case 0:
+        ctx->stream_description =
+          bgav_strdup("MPEG-2 AAC Main profile [ADTS]");
+        break;
+      case 1:
+        ctx->stream_description =
+          bgav_strdup("MPEG-2 AAC Low Complexity profile (LC) [ADTS]");
+        break;
+      case 2:
+        ctx->stream_description =
+          bgav_strdup("MPEG-2 AAC Scalable Sample Rate profile (SSR) [ADTS]");
+        break;
+      case 3:
+        ctx->stream_description =
+          bgav_strdup("MPEG-2 AAC (reserved) [ADTS]");
+        break;
+      }
     }
+  else
+    {
+    switch(adts.profile)
+      {
+      case 0:
+        ctx->stream_description =
+          bgav_strdup("MPEG-4 AAC MAIN [ADTS]");
+        break;
+      case 1:
+        ctx->stream_description =
+          bgav_strdup("MPEG-4 AAC LC [ADTS]");
+        break;
+      case 2:
+        ctx->stream_description =
+          bgav_strdup("MPEG-4 AAC SSR [ADTS]");
+        break;
+      case 3:
+        ctx->stream_description =
+          bgav_strdup("MPEG-4 AAC LTP [ADTS]");
+        break;
+      }
+    }
+  
+  //  adts_header_dump(&adts);
+
+  ctx->index_mode = INDEX_MODE_SIMPLE;
   
   //  bgav_stream_dump(s);
 
@@ -408,6 +378,14 @@ static int open_aac(bgav_demuxer_context_t * ctx)
     {
     ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
     }
+
+#ifdef HAVE_FAAD2
+  if(ctx->input->input->seek_byte)
+    {
+    /* Check for HE-AAC and update sample counts */
+    check_he_aac(ctx, s);
+    }
+#endif
   
   //  ctx->stream_description = bgav_sprintf("AAC");
   return 1;
@@ -438,7 +416,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   p = bgav_stream_get_packet_write(s);
   
   p->pts = priv->sample_count;
-  p->duration = adts.block_samples * adts.num_blocks;
+  p->duration = priv->block_samples * adts.num_blocks;
   p->position = ctx->input->position;
 
   PACKET_SET_KEYFRAME(p);
@@ -452,84 +430,19 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   
   bgav_packet_done_write(p);
 
-  priv->sample_count += adts.block_samples * adts.num_blocks;
+  priv->sample_count += priv->block_samples * adts.num_blocks;
   
   return 1;
   }
 
-static int next_packet_adif(bgav_demuxer_context_t * ctx)
-  {
-  bgav_stream_t * s;
-  bgav_packet_t * p;
-  aac_priv_t * priv;
-  int bytes_read;
-  priv = (aac_priv_t *)(ctx->priv);
-  s = ctx->tt->cur->audio_streams;
-  
-  /* Just copy the bytes, we have no idea about
-     aac frame boundaries or timestamps here */
-
-  p = bgav_stream_get_packet_write(s);
-  bgav_packet_alloc(p, BYTES_TO_READ);
-  
-  bytes_read = bgav_input_read_data(ctx->input, p->data, BYTES_TO_READ);
-  if(!bytes_read)
-    return 0;
-  p->data_size = bytes_read;
-
-  bgav_packet_done_write(p);
-  return 1;
-  }
-
-static int next_packet_aac(bgav_demuxer_context_t * ctx)
-  {
-  aac_priv_t * priv;
-    
-  priv = (aac_priv_t *)(ctx->priv);
-
-  switch(priv->type)
-    {
-    case TYPE_ADTS:
-      return next_packet_adts(ctx);
-      break;
-    case TYPE_ADIF:
-      return next_packet_adif(ctx);
-      break;
-    }
-  return 0;
-  }
-
-#if 0
-static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
-  {
-  aac_priv_t * priv;
-  uint32_t i;
-  int64_t time_scaled;
-  time_scaled =
-    gavl_time_rescale(scale,
-                      ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
-                      time);
-  
-  priv = (aac_priv_t *)(ctx->priv);
-  i = priv->seek_table_size - 1;
-  
-  while((i>=0) && priv->seek_table[i].time_scaled > time_scaled)
-    i--;
-  if(i < 0)
-    return;
-  bgav_input_seek(ctx->input, priv->seek_table[i].position, SEEK_SET);
-  ctx->tt->cur->audio_streams->in_time = priv->seek_table[i].time_scaled;
-  }
-#endif
-
-static void resync_aac(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
+static void resync_adts(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   aac_priv_t * priv;
   priv = (aac_priv_t *)(ctx->priv);
   priv->sample_count = STREAM_GET_SYNC(ctx->tt->cur->audio_streams);
   }
 
-static int select_track_aac(bgav_demuxer_context_t * ctx, int track)
+static int select_track_adts(bgav_demuxer_context_t * ctx, int track)
   {
   aac_priv_t * priv;
   priv = (aac_priv_t *)(ctx->priv);
@@ -537,7 +450,7 @@ static int select_track_aac(bgav_demuxer_context_t * ctx, int track)
   return 1;
   }
 
-static void close_aac(bgav_demuxer_context_t * ctx)
+static void close_adts(bgav_demuxer_context_t * ctx)
   {
   aac_priv_t * priv;
   priv = (aac_priv_t *)(ctx->priv);
@@ -545,13 +458,12 @@ static void close_aac(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-const bgav_demuxer_t bgav_demuxer_aac =
+const bgav_demuxer_t bgav_demuxer_adts =
   {
-    .probe =       probe_aac,
-    .open =        open_aac,
-    .select_track = select_track_aac,
-    .next_packet = next_packet_aac,
-    .resync        = resync_aac,
-    .close =       close_aac
+    .probe =       probe_adts,
+    .open =        open_adts,
+    .select_track = select_track_adts,
+    .next_packet = next_packet_adts,
+    .resync        = resync_adts,
+    .close =       close_adts,
   };
-

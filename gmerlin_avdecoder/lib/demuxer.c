@@ -54,7 +54,8 @@ extern const bgav_demuxer_t bgav_demuxer_mpegps;
 extern const bgav_demuxer_t bgav_demuxer_mpegts;
 extern const bgav_demuxer_t bgav_demuxer_mxf;
 extern const bgav_demuxer_t bgav_demuxer_flac;
-extern const bgav_demuxer_t bgav_demuxer_aac;
+extern const bgav_demuxer_t bgav_demuxer_adts;
+extern const bgav_demuxer_t bgav_demuxer_adif;
 extern const bgav_demuxer_t bgav_demuxer_nsv;
 extern const bgav_demuxer_t bgav_demuxer_4xm;
 extern const bgav_demuxer_t bgav_demuxer_dsicin;
@@ -112,6 +113,7 @@ typedef struct
 static const demuxer_t demuxers[] =
   {
     { &bgav_demuxer_asf,       "ASF/WMV/WMA" },
+    { &bgav_demuxer_adif,      "ADIF" },
     { &bgav_demuxer_avi,       "AVI" },
     { &bgav_demuxer_rmff,      "Real Media" },
     { &bgav_demuxer_ra,        "Real Audio" },
@@ -120,7 +122,6 @@ static const demuxer_t demuxers[] =
     { &bgav_demuxer_au,        "Sun AU" },
     { &bgav_demuxer_aiff,      "AIFF(C)" },
     { &bgav_demuxer_flac,      "FLAC" },
-    { &bgav_demuxer_aac,       "AAC" },
     { &bgav_demuxer_vivo,      "Vivo" },
     { &bgav_demuxer_mpegvideo, "Elementary video" },
     { &bgav_demuxer_fli,       "FLI/FLC Animation" },
@@ -173,9 +174,10 @@ static const demuxer_t demuxers[] =
 
 static const demuxer_t sync_demuxers[] =
   {
+    { &bgav_demuxer_adts,      "ADTS" },
     { &bgav_demuxer_mpegts,    "MPEG-2 transport stream" },
     { &bgav_demuxer_mpegaudio, "MPEG Audio" },
-    { &bgav_demuxer_mpegps, "MPEG System" },
+    { &bgav_demuxer_mpegps,    "MPEG System" },
   };
 
 static const demuxer_t yml_demuxers[] =
