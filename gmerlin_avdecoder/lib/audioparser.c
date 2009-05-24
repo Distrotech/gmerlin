@@ -248,6 +248,7 @@ void bgav_audio_parser_set_eof(bgav_audio_parser_t * parser)
 
 void bgav_audio_parser_flush(bgav_audio_parser_t * parser, int bytes)
   {
+  //  fprintf(stderr, "bgav_audio_parser_flush %d\n", bytes);
   bgav_bytebuffer_remove(&parser->buf, bytes);
   if(parser->raw)
     parser->raw_position += bytes;
@@ -281,6 +282,8 @@ void bgav_audio_parser_set_frame(bgav_audio_parser_t * parser,
   {
   int i;
 
+  //  fprintf(stderr, "bgav_audio_parser_set_frame\n");
+  
   if(pos)
     bgav_audio_parser_flush(parser, pos);
   
@@ -304,6 +307,7 @@ void bgav_audio_parser_set_frame(bgav_audio_parser_t * parser,
                                                      parser->packets[i].pts);
         else
           parser->frame_pts      = BGAV_TIMESTAMP_UNDEFINED;
+        break;
         }
       }
     }

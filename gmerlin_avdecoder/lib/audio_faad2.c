@@ -93,8 +93,8 @@ static int decode_frame_faad2(bgav_stream_t * s)
                                                    priv->buf.size);
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Used %d bytes, ptr: %p, samples: %d\n",
-                 frame_info.bytesconsumed, priv->frame->samples.f,
+    bgav_dprintf("Used %ld bytes, ptr: %p, samples: %ld\n",
+                 frame_info.bytesconsumed, s->data.audio.frame->samples.f,
                  frame_info.samples);
 #endif
    
@@ -206,14 +206,16 @@ static int init_faad2(bgav_stream_t * s)
     {
     //    fprintf(stderr, "Detected HE-AAC\n");
     //    bgav_hexdump(s->ext_data, s->ext_size, 16);
-    
-    s->data.audio.format.samples_per_frame = 2048;
+
+    if(!s->data.audio.format.samples_per_frame)
+      s->data.audio.format.samples_per_frame = 2048;
     if(s->duration)
       s->duration *= 2;
     }
   else
     {
-    s->data.audio.format.samples_per_frame = 1024;
+    if(!s->data.audio.format.samples_per_frame)
+      s->data.audio.format.samples_per_frame = 1024;
     //    fprintf(stderr, "Detected NO HE-AAC\n");
     //    bgav_hexdump(s->ext_data, s->ext_size, 16);
     }

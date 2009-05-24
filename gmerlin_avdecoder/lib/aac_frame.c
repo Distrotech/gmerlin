@@ -142,6 +142,7 @@ void bgav_aac_frame_get_audio_format(bgav_aac_frame_t * frame,
   format->num_channels = frame->channels;
   bgav_faad_set_channel_setup(&frame->frame_info,
                               format);
+  format->samples_per_frame = frame->frame_info.samples / frame->channels;
   }
 
 static const struct
