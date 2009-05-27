@@ -30,7 +30,7 @@
 
 #define LOG_DOMAIN "faad2"
 
-// #define DUMP_DECODE
+#define DUMP_DECODE
 
 typedef struct
   {
