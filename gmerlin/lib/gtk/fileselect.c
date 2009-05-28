@@ -243,6 +243,8 @@ filesel_create(const char * title,
     bg_gtk_box_pack_start_defaults(GTK_BOX(extra),
                                 ret->watch);
     }
+
+  gtk_window_set_default_size(GTK_WINDOW(ret->filesel), 400, 400);
   
   /* Create plugin menu */
     

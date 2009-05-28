@@ -1200,12 +1200,15 @@ void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
 void bg_gtk_info_window_show(bg_gtk_info_window_t * w)
   {
   if(!w->width || !w->height)
+    {
     gtk_window_set_position(GTK_WINDOW(w->window), GTK_WIN_POS_CENTER);
-  
+    }
   gtk_widget_show(w->window);
   if(w->width && w->height)
     gtk_decorated_window_move_resize_window(GTK_WINDOW(w->window),
                                             w->x, w->y, w->width, w->height);
+  else
+    gtk_window_resize(GTK_WINDOW(w->window), 400, 400);
   }
 
 void bg_gtk_info_window_hide(bg_gtk_info_window_t * w)

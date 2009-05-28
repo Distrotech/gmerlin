@@ -304,12 +304,17 @@ void
 bg_gtk_log_window_show(bg_gtk_log_window_t * w)
   {
   if(!w->width || !w->height)
+    {
     gtk_window_set_position(GTK_WINDOW(w->window), GTK_WIN_POS_CENTER_ON_PARENT);
+    }
   gtk_widget_show(w->window);
 
   if(w->width && w->height)
     gtk_decorated_window_move_resize_window(GTK_WINDOW(w->window),
                                             w->x, w->y, w->width, w->height);
+  else
+    gtk_window_resize(GTK_WINDOW(w->window), 600, 300);
+
   w->visible = 1;
   }
 
