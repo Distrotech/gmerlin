@@ -1651,7 +1651,6 @@ static int process_ogg(bgav_stream_t * s,
   {
   uint32_t header;
   int size, i;
-  ogg_packet op;
   int fragment_type, data_type, num_packets, ident;
   rtp_stream_priv_t * sp = s->priv;
   

@@ -1043,7 +1043,7 @@ static void seek_time_dvd(bgav_input_context_t * ctx, int64_t t1, int scale)
 
   if(dvd->cell >= dvd->current_track_priv->end_cell)
     {
-    bgav_track_set_eof(ctx->demuxer->tt->cur);
+    bgav_track_set_eof_d(ctx->demuxer->tt->cur);
     return;
     }
   /* Now, seek forward using the seek information in the dsi packets */

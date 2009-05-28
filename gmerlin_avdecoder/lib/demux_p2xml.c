@@ -59,11 +59,6 @@ static char * find_audio_file(const char * dir, const char * name_root, int stre
   char * rest;
   int root_len;
   int i;
-  union
-    {
-    struct dirent d;
-    char b[sizeof (struct dirent) + NAME_MAX];
-    } u;
   d = opendir(dir);
 
   root_len = strlen(name_root);

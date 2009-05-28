@@ -246,7 +246,8 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
   bgav_dprintf( "superindex %d entries:\n", idx->num_entries);
   for(i = 0; i < idx->num_entries; i++)
     {
-    bgav_dprintf( "  ID: %d K: %d O: %" PRId64 " T: %" PRId64 " D: %d S: %6d", 
+    bgav_dprintf( "  No: %6d ID: %d K: %d O: %" PRId64 " T: %" PRId64 " D: %d S: %6d", 
+                  i,
                   idx->entries[i].stream_id,
                   !!(idx->entries[i].flags & PACKET_FLAG_KEY),
                   idx->entries[i].offset,

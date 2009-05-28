@@ -751,12 +751,6 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   bgav_subtitle_reader_context_t * end = (bgav_subtitle_reader_context_t *)0;
   bgav_subtitle_reader_context_t *new;
   
-  union
-    {
-    struct dirent d;
-    char b[sizeof (struct dirent) + NAME_MAX];
-    } u;
-  
   /* Check if input is a regular file */
   if((input_ctx->input != &bgav_input_file) || !input_ctx->filename)
     {

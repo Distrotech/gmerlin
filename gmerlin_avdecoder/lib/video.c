@@ -399,7 +399,7 @@ int bgav_video_has_still(bgav_t * bgav, int stream)
     return 1;
   if(bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0))
     return 1;
-  else if(s->flags & STREAM_EOF)
+  else if(s->flags & STREAM_EOF_D)
     return 1;
   
   return 0;

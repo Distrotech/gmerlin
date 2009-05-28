@@ -87,7 +87,7 @@ void bgav_stream_stop(bgav_stream_t * s)
   s->out_time = 0;
   s->packet_seq = 0;
 
-  s->flags &= ~STREAM_EOF;
+  s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
   
   STREAM_UNSET_SYNC(s);
   
@@ -199,7 +199,7 @@ void bgav_stream_clear(bgav_stream_t * s)
   s->in_position  = 0;
   s->out_time = BGAV_TIMESTAMP_UNDEFINED;
   STREAM_UNSET_SYNC(s);
-  s->flags &= ~STREAM_EOF;
+  s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
   }
 
 int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)

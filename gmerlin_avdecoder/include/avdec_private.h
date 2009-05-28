@@ -330,13 +330,14 @@ typedef enum
 #define STREAM_HEADER_FROM_PARSER (1<<5)
 #define STREAM_STILL_MODE         (1<<6) /* Still image mode */
 #define STREAM_STILL_SHOWN        (1<<7) /* Still image already shown */
-#define STREAM_EOF                (1<<8) /* End of file */
+#define STREAM_EOF_D              (1<<8) /* End of file at demuxer */
+#define STREAM_EOF_C              (1<<9) /* End of file at codec */
 
 /* Stream can have a nonzero start time */
-#define STREAM_START_TIME         (1<<9)
+#define STREAM_START_TIME         (1<<10)
 
 /* Picture is available for immediate output */
-#define STREAM_HAVE_PICTURE       (1<<10)
+#define STREAM_HAVE_PICTURE       (1<<11)
 
 #define STREAM_SET_SYNC(s, t)  s->sync_time = t
 #define STREAM_GET_SYNC(s)     s->sync_time
@@ -656,9 +657,9 @@ void bgav_track_stop(bgav_track_t * t);
 int64_t bgav_track_sync_time(bgav_track_t * t, int scale);
 int64_t bgav_track_out_time(bgav_track_t * t, int scale);
 
-void bgav_track_set_eof(bgav_track_t * t);
-void bgav_track_clear_eof(bgav_track_t * t);
-int bgav_track_eof(bgav_track_t * t);
+void bgav_track_set_eof_d(bgav_track_t * t);
+void bgav_track_clear_eof_d(bgav_track_t * t);
+int bgav_track_eof_d(bgav_track_t * t);
 
 /* Remove unsupported streams */
 

@@ -17,7 +17,6 @@
  
 *****************************************************************/
 
-
 // #include <avdec.h>
 #include <avdec_private.h>
 #include <locale.h>

@@ -196,6 +196,7 @@ static void init_pp(bgav_stream_t * s);
 
 static void handle_dv(bgav_stream_t * s);
 
+#if 0
 static int frame_dumped = 0;
 static void dump_frame(uint8_t * data, int len)
   {
@@ -207,6 +208,7 @@ static void dump_frame(uint8_t * data, int len)
   fwrite(data, 1, len, out);
   fclose(out);
   }
+#endif
 
 static int decode_picture(bgav_stream_t * s)
   {

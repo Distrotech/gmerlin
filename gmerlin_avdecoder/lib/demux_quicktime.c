@@ -335,6 +335,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      check_keyframe(s), chunk_samples, packet_size);
           
           bgav_s->duration += chunk_samples;
+          
           chunk_offset += packet_size;
           /* Advance stts */
           if(s->stts_pos >= 0)

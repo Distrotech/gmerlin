@@ -85,11 +85,11 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   
   if(sample >= s->duration) /* EOF */
     {
-    s->flags |= STREAM_EOF;
+    s->flags |= STREAM_EOF_C;
     return;
     }
 
-  s->flags &= ~STREAM_EOF;
+  s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
   
   bgav_stream_clear(s);
 
@@ -147,11 +147,11 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   
   if(time >= s->duration) /* EOF */
     {
-    s->flags |= STREAM_EOF;
+    s->flags |= STREAM_EOF_C;
     return;
     }
   
-  s->flags &= ~STREAM_EOF;
+  s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
   
   if(time == s->out_time)
     {
@@ -308,7 +308,7 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
   s = &bgav->tt->cur->subtitle_streams[stream];
   bgav_stream_clear(s);
 
-  s->flags &= ~STREAM_EOF;
+  s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
 
   if(s->data.subtitle.subreader)
     {

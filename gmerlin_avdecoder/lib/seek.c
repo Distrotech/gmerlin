@@ -133,7 +133,7 @@ static void seek_sa(bgav_t * b, int64_t * time, int scale)
       bgav_seek_video(b, i,
                       gavl_time_rescale(scale, s->data.video.format.timescale,
                                         *time) - s->start_time);
-      if(s->flags & STREAM_EOF)
+      if(s->flags & STREAM_EOF_C)
         {
         b->eof = 1;
         return;
@@ -159,7 +159,7 @@ static void seek_sa(bgav_t * b, int64_t * time, int scale)
       bgav_seek_audio(b, i,
                       gavl_time_rescale(scale, s->data.audio.format.samplerate,
                                         *time) - s->start_time);
-      if(s->flags & STREAM_EOF)
+      if(s->flags & STREAM_EOF_C)
         {
         b->eof = 1;
         return;
@@ -362,7 +362,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
 
   /* Clear EOF */
 
-  bgav_track_clear_eof(track);
+  bgav_track_clear_eof_d(track);
   b->eof = 0;
   
   /*
@@ -399,7 +399,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
        track->subtitle_streams[i].action != BGAV_STREAM_MUTE)
       {
       /* Clear EOF state */
-      track->subtitle_streams[i].flags &= ~STREAM_EOF;
+      track->subtitle_streams[i].flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
       bgav_subtitle_reader_seek(&track->subtitle_streams[i],
                                 *time, scale);
       }

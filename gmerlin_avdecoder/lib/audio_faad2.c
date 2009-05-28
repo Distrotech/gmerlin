@@ -48,12 +48,13 @@ static int get_data(bgav_stream_t * s)
   bgav_packet_t * p;
   
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
-
   
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
     return 0;
 
+  //  fprintf(stderr, "get_packet_read %ld\n", p->position);
+  
   /* If we know the number of samples (i.e. when the packet comes
      from an mp4/mov container), flush the buffer to remove previous
      padding bytes */

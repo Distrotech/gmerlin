@@ -614,25 +614,25 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   switch(demuxer->demux_mode)
     {
     case DEMUX_MODE_SI_I:
-      if(bgav_track_eof(demuxer->tt->cur))
+      if(bgav_track_eof_d(demuxer->tt->cur))
         return 0;
       
       ret = bgav_demuxer_next_packet_interleaved(demuxer);
       if(!ret)
-        bgav_track_set_eof(demuxer->tt->cur);
+        bgav_track_set_eof_d(demuxer->tt->cur);
       
       break;
     case DEMUX_MODE_SI_NI:
-      if(demuxer->request_stream->flags & STREAM_EOF)
+      if(demuxer->request_stream->flags & STREAM_EOF_D)
         return 0;
       ret = next_packet_noninterleaved(demuxer);
       if(!ret)
-        demuxer->request_stream->flags |= STREAM_EOF;
+        demuxer->request_stream->flags |= STREAM_EOF_D;
       break;
     case DEMUX_MODE_FI:
       ret = bgav_demuxer_next_packet_fileindex(demuxer);
       if(!ret)
-        demuxer->request_stream->flags |= STREAM_EOF;
+        demuxer->request_stream->flags |= STREAM_EOF_D;
       break;
     case DEMUX_MODE_STREAM:
       ret = demuxer->demuxer->next_packet(demuxer);
@@ -660,7 +660,7 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
             ret = 1;
             }
           }
-        bgav_track_set_eof(demuxer->tt->cur);
+        bgav_track_set_eof_d(demuxer->tt->cur);
         }
       break;
     }
@@ -854,7 +854,7 @@ static bgav_packet_t * peek_packet_vparse(bgav_demuxer_context_t * demuxer,
             bgav_video_parser_add_packet(s->data.video.parser, p);
             p->valid = 0;
             }
-          else if(s->flags & STREAM_EOF)
+          else if(s->flags & STREAM_EOF_D)
             {
             bgav_video_parser_set_eof(s->data.video.parser);
             }
@@ -917,7 +917,7 @@ static bgav_packet_t * peek_packet_aparse(bgav_demuxer_context_t * demuxer,
             bgav_audio_parser_add_packet(s->data.audio.parser, p);
             p->valid = 0;
             }
-          else if(s->flags & STREAM_EOF)
+          else if(s->flags & STREAM_EOF_D)
             {
             bgav_audio_parser_set_eof(s->data.audio.parser);
             }

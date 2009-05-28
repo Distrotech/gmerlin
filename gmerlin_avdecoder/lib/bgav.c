@@ -299,7 +299,7 @@ int bgav_select_track(bgav_t * b, int track)
   if(b->is_running)
     {
     bgav_track_stop(b->tt->cur);
-    bgav_track_clear_eof(b->tt->cur);
+    bgav_track_clear_eof_d(b->tt->cur);
     b->is_running = 0;
     was_running = 1;
     }

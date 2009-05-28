@@ -9,7 +9,8 @@ indextest \
 mmstest \
 rtsptest \
 vcdtest \
-ymltest
+ymltest \
+count_samples
 
 bgavdump_SOURCES = bgavdump.c
 bgavdump_LDADD = $(top_builddir)/lib/libgmerlin_avdec.la
@@ -20,6 +21,8 @@ indextest_LDADD = $(top_builddir)/lib/libgmerlin_avdec.la
 indexdump_SOURCES = indexdump.c
 indexdump_LDADD = $(top_builddir)/lib/libgmerlin_avdec.la
 
+count_samples_SOURCES = count_samples.c
+count_samples_LDADD = $(top_builddir)/lib/libgmerlin_avdec.la
 
 vcdtest_SOURCES = vcdtest.c
 vcdtest_LDADD = $(top_builddir)/lib/libgmerlin_avdec.la
