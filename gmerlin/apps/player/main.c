@@ -105,11 +105,8 @@ int main(int argc, char ** argv)
   bg_cmdline_parse(NULL, &argc, &argv, NULL);
   
   locations = bg_cmdline_get_locations_from_args(&argc, &argv);
-
-  if(locations)
-    gmerlin_play_locations(gmerlin, locations);
   
-  gmerlin_run(gmerlin);
+  gmerlin_run(gmerlin, locations);
   
   gmerlin_destroy(gmerlin);
 

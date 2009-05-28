@@ -172,7 +172,7 @@ void gmerlin_play_device(gmerlin_t * g, char * device);
 
 void gmerlin_destroy(gmerlin_t*);
 
-void gmerlin_run(gmerlin_t*);
+void gmerlin_run(gmerlin_t*, char ** locations);
 
 /* Skin stuff */
 

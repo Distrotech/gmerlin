@@ -421,7 +421,7 @@ void gmerlin_destroy(gmerlin_t * g)
   
   }
 
-void gmerlin_run(gmerlin_t * g)
+void gmerlin_run(gmerlin_t * g, char ** locations)
   {
   gmerlin_apply_config(g);
   
@@ -458,6 +458,9 @@ void gmerlin_run(gmerlin_t * g)
   
   player_window_show(g->player_window);
 
+  if(locations)
+    gmerlin_play_locations(g, locations);
+  
   gtk_main();
 
   /* The following saves the coords */
