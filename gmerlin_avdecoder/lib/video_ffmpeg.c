@@ -133,7 +133,10 @@ typedef struct
   int     picture_duration;
   
   int64_t skip_time;
-  
+
+#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+  AVPacket pkt;
+#endif
   } ffmpeg_video_priv;
 
 static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
@@ -340,13 +343,22 @@ static int decode_picture(bgav_stream_t * s)
 #endif
     
     //    dump_frame(priv->frame_buffer, priv->frame_buffer_len);
-    
+
+#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+    priv->pkt.data = priv->frame_buffer;
+    priv->pkt.size = priv->frame_buffer_len;
+    bytes_used = avcodec_decode_video2(priv->ctx,
+                                       priv->frame,
+                                       &have_picture,
+                                       &priv->pkt);
+#else
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
                                       &have_picture,
                                       priv->frame_buffer,
                                       priv->frame_buffer_len);
-
+#endif
+    
 #ifdef DUMP_DECODE
     bgav_dprintf("Used %d/%d bytes, got picture: %d\n",
                  bytes_used, priv->frame_buffer_len, have_picture);
@@ -359,17 +371,27 @@ static int decode_picture(bgav_stream_t * s)
       priv->frame_buffer_len = priv->packet->data_size - priv->packet->field2_offset;
 
 #ifdef DUMP_DECODE
-    bgav_dprintf("Decode (f2): out_time: %" PRId64 " len: %d\n", s->out_time,
-                 priv->frame_buffer_len);
-    if(priv->frame_buffer)
-      bgav_hexdump(priv->frame_buffer, 16, 16);
+      bgav_dprintf("Decode (f2): out_time: %" PRId64 " len: %d\n", s->out_time,
+                   priv->frame_buffer_len);
+      if(priv->frame_buffer)
+        bgav_hexdump(priv->frame_buffer, 16, 16);
 #endif
+
+#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+      priv->pkt.data = priv->frame_buffer;
+      priv->pkt.size = priv->frame_buffer_len;
+      bytes_used = avcodec_decode_video2(priv->ctx,
+                                         priv->frame,
+                                         &have_picture,
+                                         &priv->pkt);
+#else
       
       bytes_used = avcodec_decode_video(priv->ctx,
                                         priv->frame,
                                         &have_picture,
                                         priv->frame_buffer,
                                         priv->frame_buffer_len);
+#endif
       }
     
     /* If we passed no data and got no picture, we are done here */
@@ -1990,7 +2012,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
       {
       if(s->data.video.flip_y)
         {
-        pp_postprocess(priv->frame->data, priv->frame->linesize,
+        pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
                        priv->flip_frame->planes, priv->flip_frame->strides,
                        priv->ctx->width, priv->ctx->height,
                        priv->frame->qscale_table, priv->frame->qstride,
@@ -1999,7 +2021,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
         gavl_video_frame_copy_flip_y(&(s->data.video.format), f, priv->flip_frame);
         }
       else
-        pp_postprocess(priv->frame->data, priv->frame->linesize,
+        pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
                        f->planes, f->strides,
                        priv->ctx->width, priv->ctx->height,
                        priv->frame->qscale_table, priv->frame->qstride,

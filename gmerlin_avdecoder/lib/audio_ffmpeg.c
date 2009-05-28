@@ -40,7 +40,7 @@
 
 /* Different decoding functions */
 
-#if LIBAVCODEC_BUILD >= 3349760
+#if LIBAVCODEC_BUILD >= ((51<<16)+(29<<8)+0)
 #define DECODE_FUNC avcodec_decode_audio2
 #else
 #define DECODE_FUNC avcodec_decode_audio
@@ -70,6 +70,10 @@ typedef struct
   /* ffmpeg changes the extradata sometimes,
      so we save them locally here */
   uint8_t * ext_data;
+
+#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+  AVPacket pkt;
+#endif
   } ffmpeg_audio_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s);
@@ -111,21 +115,40 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   
   if(priv->frame)
     {
+#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+    priv->pkt.data = priv->buf.buffer;
+    priv->pkt.size = priv->buf.size;
+    
+    bytes_used = avcodec_decode_audio3(priv->ctx,
+                                       priv->frame->samples.s_16,
+                                       &frame_size,
+                                       &priv->pkt);
+#else    
     bytes_used = DECODE_FUNC(priv->ctx,
                              priv->frame->samples.s_16,
                              &frame_size,
                              priv->buf.buffer,
                              priv->buf.size);
+#endif
     }
   else
     {
     int16_t * tmp_buf = malloc(priv->frame_alloc);
+#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+    priv->pkt.data = priv->buf.buffer;
+    priv->pkt.size = priv->buf.size;
+    
+    bytes_used = avcodec_decode_audio3(priv->ctx,
+                                       tmp_buf,
+                                       &frame_size,
+                                       &priv->pkt);
+#else    
     bytes_used = DECODE_FUNC(priv->ctx,
                              tmp_buf,
                              &frame_size,
                              priv->buf.buffer,
                              priv->buf.size);
-    
+#endif
     s->data.audio.format.num_channels = priv->ctx->channels;
     s->data.audio.format.samplerate   = priv->ctx->sample_rate;
 
