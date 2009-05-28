@@ -538,9 +538,8 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
   ctx->audio_samples_written += frame->valid_samples;
 #ifdef DEBUG_COUNTER
   ctx->audio_sample_counter += frame->valid_samples;
+  //  fprintf(stderr, "Got %d of %d samples, result: %d\n", frame->valid_samples, samples, result);
 #endif
-
-  
   return result;
   }
 
@@ -673,8 +672,9 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   
   if(!s->in_func(s->in_data, audio_frame, s->in_stream,
                  s->fifo_format.samples_per_frame))
+    {
     ctx->audio_finished = 1;
-  
+    }
   if(ctx->audio_finished &&
      (!ctx->video_finished || !ctx->subtitle_finished))
     ctx->send_silence = 1;
