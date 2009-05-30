@@ -174,9 +174,9 @@ static const demuxer_t demuxers[] =
 
 static const demuxer_t sync_demuxers[] =
   {
-    { &bgav_demuxer_adts,      "ADTS" },
     { &bgav_demuxer_mpegts,    "MPEG-2 transport stream" },
     { &bgav_demuxer_mpegaudio, "MPEG Audio" },
+    { &bgav_demuxer_adts,      "ADTS" },
     { &bgav_demuxer_mpegps,    "MPEG System" },
   };
 

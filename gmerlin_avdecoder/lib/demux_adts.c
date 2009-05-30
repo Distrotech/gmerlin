@@ -143,21 +143,40 @@ typedef struct
 
 static int probe_adts(bgav_input_context_t * input)
   {
-  uint8_t header[4];
-
+  int ret;
+  uint8_t * buffer;
+  uint8_t header[7];
+  
+  adts_header_t h1, h2;
+  
   /* Support aac live streams */
 
   if(input->mimetype &&
      (!strcmp(input->mimetype, "audio/aacp") ||
       !strcmp(input->mimetype, "audio/aac")))
     return 1;
-
-  if(bgav_input_get_data(input, header, 4) < 4)
-    return 0;
   
-  if(IS_ADTS(header))
-    return 1;
-  return 0;
+  if(bgav_input_get_data(input, header, 7) < 7)
+    return 0;
+
+  if(!adts_header_read(header, &h1))
+    return 0;
+
+  buffer = malloc(ADTS_SIZE + h1.frame_bytes);
+  
+  if(bgav_input_get_data(input, buffer, ADTS_SIZE + h1.frame_bytes) <
+     ADTS_SIZE + h1.frame_bytes)
+    return 0;
+
+  ret = 0;
+
+  if(adts_header_read(buffer + h1.frame_bytes, &h2) &&
+     (h1.mpeg_version == h2.mpeg_version) &&
+     (h1.samplerate == h2.samplerate) &&
+     (h1.channel_configuration == h2.channel_configuration))
+    ret = 1;
+  free(buffer);
+  return ret;
   }
 
 #ifdef HAVE_FAAD2
