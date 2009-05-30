@@ -27,6 +27,7 @@ mpegts_common.h \
 mpv_header.h \
 mxf.h \
 nanosoft.h \
+os.h \
 parser.h \
 pes_header.h \
 pngreader.h \
