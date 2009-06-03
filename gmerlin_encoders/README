@@ -1,0 +1,10 @@
+This package contains some encoder plugins for gmerlin.
+If you install it, gmerlin-transcoder will be able to
+encode more file formats.
+
+I utilizes mostly the existing encoder APIs for the
+supported formats. A small amount of common code is in the
+lib directory with the headers in include.
+
+Please consult the file INSTALL for installation instructions.
+

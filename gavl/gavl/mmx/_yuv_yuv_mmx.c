@@ -1,0 +1,233 @@
+/*****************************************************************
+
+  _yuv_yuv_mmx.c
+
+  Copyright (c) 2001-2002 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+
+  http://gmerlin.sourceforge.net
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+
+*****************************************************************/
+
+#include "../colorspace_macros.h"
+#include "mmx_macros.h"
+#include "../_video_copy.c"
+
+/*
+ *  Support for mmxext
+ *  this macro procudes another set of
+ *  functions in ../mmxext
+ */
+
+#ifdef MMXEXT
+#define MOVQ_R2M(reg,mem) movntq_r2m(reg, mem)
+#else
+#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
+#endif
+
+
+/* Pixel conversion Macros */
+
+/*
+ *   Convert a single scanline from YUY2 to separate planes
+ *   preserving the horizonal subsampling.
+ *   This macro does practically the same as the LOAD_YUY2
+ *   macro in _yuv_rgb_mmx.c
+ */
+
+#define YUY2_TO_YUV_PLANAR movq_m2r(*src,mm0);\
+                           movq_m2r(*(src+8),mm1);\
+                           movq_r2r(mm0,mm2);/*       mm2: V2 Y3 U2 Y2 V0 Y1 U0 Y0 */\
+                           pand_m2r(mmx_00ffw,mm2);/* mm2: 00 Y3 00 Y2 00 Y1 00 Y0 */\
+                           pxor_r2r(mm4, mm4);/*      Zero mm4 */\
+                           packuswb_r2r(mm4,mm2);/*   mm2: 00 00 00 00 Y3 Y2 Y1 Y0 */\
+                           movq_r2r(mm1,mm3);/*       mm3: V6 Y7 U6 Y6 V4 Y5 U4 Y4 */\
+                           pand_m2r(mmx_00ffw,mm3);/* mm3: 00 Y7 00 Y6 00 Y5 00 Y4 */\
+                           pxor_r2r(mm6, mm6);/*      Zero mm6 */\
+                           packuswb_r2r(mm3,mm6);/*   mm6: Y7 Y6 Y5 Y4 00 00 00 00 */\
+                           por_r2r(mm2,mm6);/*        mm6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0 */\
+                           psrlw_i2r(8,mm0);/*        mm0: 00 V2 00 U2 00 V0 00 U0 */\
+                           psrlw_i2r(8,mm1);/*        mm1: 00 V6 00 U6 00 V4 00 U4 */\
+                           packuswb_r2r(mm1,mm0);/*   mm0: V6 U6 V4 U4 V2 U2 V0 U0 */\
+                           movq_r2r(mm0,mm1);/*       mm1: V6 U6 V4 U4 V2 U2 V0 U0 */\
+                           pand_m2r(mmx_00ffw,mm0);/* mm0: 00 U6 00 U4 00 U2 00 U0 */\
+                           psrlw_i2r(8,mm1);/*        mm1: 00 V6 00 V4 00 V2 00 V0 */\
+                           packuswb_r2r(mm4,mm0);/*   mm0: 00 00 00 00 U6 U4 U2 U0 */\
+                           packuswb_r2r(mm4,mm1);/*   mm1: 00 00 00 00 V6 V4 V2 V0 */\
+                           MOVQ_R2M(mm6, *dst_y);\
+                           movd_r2m(mm0, *dst_u);\
+                           movd_r2m(mm1, *dst_v);
+
+/*
+ *  Convert a single scanline from YUY2 to a luminance plane
+ *  preserving the horizontal subsampling
+ */
+
+#define YUY2_TO_Y_PLANAR movq_m2r(*src,mm0);\
+                         movq_m2r(*(src+8),mm1);\
+                         movq_r2r(mm0,mm2);/*           mm2: V2 Y3 U2 Y2 V0 Y1 U0 Y0 */\
+                         pand_m2r(mmx_00ffw,mm2);/*     mm2: 00 Y3 00 Y2 00 Y1 00 Y0 */\
+                         pxor_r2r(mm4, mm4);/*          Zero mm4 */\
+                         packuswb_r2r(mm4,mm2);/*       mm2: 00 00 00 00 Y3 Y2 Y1 Y0 */\
+                         movq_r2r(mm1,mm3);/*           mm3: V6 Y7 U6 Y6 V4 Y5 U4 Y4 */\
+                         pand_m2r(mmx_00ffw,mm3);/*     mm3: 00 Y7 00 Y6 00 Y5 00 Y4 */\
+                         pxor_r2r(mm6, mm6);/*          Zero mm6 */\
+                         packuswb_r2r(mm3,mm6);/*       mm6: Y7 Y6 Y5 Y4 00 00 00 00 */\
+                         por_r2r(mm2,mm6);/*            mm6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0 */\
+                         MOVQ_R2M(mm6, *dst_y);
+
+#define PLANAR_TO_YUY2     movq_m2r(*src_y, mm0);/*   mm0: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0 */\
+                           movd_m2r(*src_u, mm1);/*   mm1: 00 00 00 00 U3 U2 U1 U0 */\
+                           movd_m2r(*src_v, mm2);/*   mm2: 00 00 00 00 V3 V2 V1 V0 */\
+                           pxor_r2r(mm3, mm3);/*      Zero mm3                     */\
+                           movq_r2r(mm0, mm7);\
+                           punpcklbw_r2r(mm3, mm0);/* mm0: 00 Y3 00 Y2 00 Y1 00 Y0 */\
+                           punpckhbw_r2r(mm3, mm7);/* mm7: 00 Y7 00 Y6 00 Y5 00 Y4 */\
+                           pxor_r2r(mm4, mm4);\
+                           punpcklbw_r2r(mm1, mm4);/* mm4: U3 00 U2 00 U1 00 U0 00 */\
+                           pxor_r2r(mm5, mm5);\
+                           punpcklbw_r2r(mm2, mm5);/* mm5: V3 00 V2 00 V1 00 V0 00 */\
+                           movq_r2r(mm4, mm6);/*      mm6: U3 00 U2 00 U1 00 U0 00 */\
+                           punpcklwd_r2r(mm3, mm6);/* mm6: 00 00 U1 00 00 00 U0 00 */\
+                           por_r2r(mm6, mm0);\
+                           punpcklwd_r2r(mm3, mm4);/* mm4: 00 00 U3 00 00 00 U2 00 */\
+                           por_r2r(mm4, mm7);\
+                           pxor_r2r(mm6, mm6);\
+                           punpcklwd_r2r(mm5, mm6);\
+                           por_r2r(mm6, mm0);\
+                           punpckhwd_r2r(mm5, mm3);\
+                           por_r2r(mm3, mm7);\
+                           MOVQ_R2M(mm0, *dst);\
+                           MOVQ_R2M(mm7, *(dst+8));
+
+
+static void yuy2_to_yuv_420_p_mmx(gavl_video_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START_PACKED_PLANAR(uint8_t, uint8_t, 8, 2)
+
+  CONVERSION_LOOP_START_PACKED_PLANAR(uint8_t, uint8_t)
+
+  SCANLINE_LOOP_START_PACKED
+
+  YUY2_TO_YUV_PLANAR
+
+  SCANLINE_LOOP_END_PACKED_PLANAR(16, 8, 4)
+
+#ifndef SCANLINE
+      
+  CONVERSION_FUNC_MIDDLE_PACKED_TO_420(uint8_t, uint8_t)
+
+  SCANLINE_LOOP_START_PACKED
+
+  YUY2_TO_Y_PLANAR
+
+  SCANLINE_LOOP_END_PACKED_TO_420_Y(16, 8)
+
+#endif
+      
+  CONVERSION_FUNC_END_PACKED_PLANAR
+  emms();
+  }
+
+static void yuy2_to_yuv_422_p_mmx(gavl_video_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START_PACKED_PLANAR(uint8_t, uint8_t, 8, 1)
+
+  CONVERSION_LOOP_START_PACKED_PLANAR(uint8_t, uint8_t)
+
+  SCANLINE_LOOP_START_PACKED
+
+  YUY2_TO_YUV_PLANAR
+
+  SCANLINE_LOOP_END_PACKED_PLANAR(16, 8, 4)
+      
+  CONVERSION_FUNC_END_PACKED_PLANAR
+  emms();
+  }
+
+static void yuv_420_p_to_yuy2_mmx(gavl_video_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
+
+  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
+
+    SCANLINE_LOOP_START_PLANAR
+
+    PLANAR_TO_YUY2
+
+    SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
+
+#ifndef SCANLINE
+      
+  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
+
+    SCANLINE_LOOP_START_PLANAR
+
+    PLANAR_TO_YUY2
+
+    SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
+
+#endif
+      
+  CONVERSION_FUNC_END_PLANAR_PACKED
+  emms();
+  }
+
+static void yuv_422_p_to_yuy2_mmx(gavl_video_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
+
+  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
+
+    SCANLINE_LOOP_START_PLANAR
+    PLANAR_TO_YUY2
+    SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
+      
+  CONVERSION_FUNC_END_PLANAR_PACKED
+  emms();
+  }
+
+#ifdef MMXEXT
+
+#ifdef SCANLINE
+void
+gavl_init_yuv_yuv_scanline_funcs_mmxext(gavl_colorspace_function_table_t * tab,
+                                        int width)
+#else     
+void
+gavl_init_yuv_yuv_funcs_mmxext(gavl_colorspace_function_table_t * tab,
+                               int width)
+#endif
+
+#else /* !MMXEXT */     
+
+#ifdef SCANLINE
+void
+gavl_init_yuv_yuv_scanline_funcs_mmx(gavl_colorspace_function_table_t * tab, int width)
+#else     
+void
+gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab, int width)
+#endif
+
+#endif /* MMXEXT */
+  {
+  if(width % 8)
+    return;
+  
+  tab->yuy2_to_yuv_420_p      = yuy2_to_yuv_420_p_mmx;
+  tab->yuy2_to_yuv_422_p      = yuy2_to_yuv_422_p_mmx;
+
+  tab->yuv_420_p_to_yuv_422_p = yuv_420_p_to_yuv_422_p_generic;
+  tab->yuv_420_p_to_yuy2      = yuv_420_p_to_yuy2_mmx;
+
+  tab->yuv_422_p_to_yuv_420_p = yuv_422_p_to_yuv_420_p_generic;
+  tab->yuv_422_p_to_yuy2      = yuv_422_p_to_yuy2_mmx;
+  }

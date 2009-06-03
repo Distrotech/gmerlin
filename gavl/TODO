@@ -1,0 +1,22 @@
+Missing routines:
+
+- RGB->RGB (MMX): 24->*, *->24, RGBA ->*
+
+- YUV->RGB (MMX): * -> RGB24, * -> BGR24
+
+- RGB->YUV (MMX): Complete missing
+
+Other stuff:
+
+- Enable passing of YUV Coefficients
+
+- Seek accelerated memcpy replacements and test them (avifile, mplayer)
+
+Port audio stuff to gavl:
+
+- Port interleaving routines.
+
+- Port sample conversion
+
+- Port mix routines
+

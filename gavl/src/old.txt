@@ -1,0 +1,264 @@
+************* Colorspace conversion RGB 15 -> BGR 15 *************
+Made 100 conversions, Time: 0.871152 (0.008712 per conversion)
+************* Colorspace conversion RGB 15 -> RGB 16 *************
+Made 100 conversions, Time: 0.325664 (0.003257 per conversion)
+************* Colorspace conversion RGB 15 -> BGR 16 *************
+Made 100 conversions, Time: 0.323751 (0.003238 per conversion)
+************* Colorspace conversion RGB 15 -> RGB 24 *************
+Made 100 conversions, Time: 1.032672 (0.010327 per conversion)
+************* Colorspace conversion RGB 15 -> BGR 24 *************
+Made 100 conversions, Time: 1.111571 (0.011116 per conversion)
+************* Colorspace conversion RGB 15 -> RGB 32 *************
+Made 100 conversions, Time: 1.036910 (0.010369 per conversion)
+************* Colorspace conversion RGB 15 -> BGR 32 *************
+Made 100 conversions, Time: 1.111017 (0.011110 per conversion)
+************* Colorspace conversion RGB 15 -> RGBA 32 *************
+Made 100 conversions, Time: 1.223299 (0.012233 per conversion)
+************* Colorspace conversion RGB 15 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion RGB 15 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGB 15 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion BGR 15 -> RGB 15 *************
+Made 100 conversions, Time: 0.871219 (0.008712 per conversion)
+************* Colorspace conversion BGR 15 -> RGB 16 *************
+Made 100 conversions, Time: 0.323954 (0.003240 per conversion)
+************* Colorspace conversion BGR 15 -> BGR 16 *************
+Made 100 conversions, Time: 0.325611 (0.003256 per conversion)
+************* Colorspace conversion BGR 15 -> RGB 24 *************
+Made 100 conversions, Time: 1.111809 (0.011118 per conversion)
+************* Colorspace conversion BGR 15 -> BGR 24 *************
+Made 100 conversions, Time: 1.032945 (0.010329 per conversion)
+************* Colorspace conversion BGR 15 -> RGB 32 *************
+Made 100 conversions, Time: 1.111459 (0.011115 per conversion)
+************* Colorspace conversion BGR 15 -> BGR 32 *************
+Made 100 conversions, Time: 1.035810 (0.010358 per conversion)
+************* Colorspace conversion BGR 15 -> RGBA 32 *************
+Made 100 conversions, Time: 1.244199 (0.012442 per conversion)
+************* Colorspace conversion BGR 15 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion BGR 15 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion BGR 15 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGB 16 -> RGB 15 *************
+Made 100 conversions, Time: 0.324407 (0.003244 per conversion)
+************* Colorspace conversion RGB 16 -> BGR 15 *************
+Made 100 conversions, Time: 0.323869 (0.003239 per conversion)
+************* Colorspace conversion RGB 16 -> BGR 16 *************
+Made 100 conversions, Time: 0.874251 (0.008743 per conversion)
+************* Colorspace conversion RGB 16 -> RGB 24 *************
+Made 100 conversions, Time: 1.032635 (0.010326 per conversion)
+************* Colorspace conversion RGB 16 -> BGR 24 *************
+Made 100 conversions, Time: 1.014034 (0.010140 per conversion)
+************* Colorspace conversion RGB 16 -> RGB 32 *************
+Made 100 conversions, Time: 1.035044 (0.010350 per conversion)
+************* Colorspace conversion RGB 16 -> BGR 32 *************
+Made 100 conversions, Time: 1.017208 (0.010172 per conversion)
+************* Colorspace conversion RGB 16 -> RGBA 32 *************
+Made 100 conversions, Time: 1.223647 (0.012236 per conversion)
+************* Colorspace conversion RGB 16 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion RGB 16 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGB 16 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion BGR 16 -> RGB 15 *************
+Made 100 conversions, Time: 0.324512 (0.003245 per conversion)
+************* Colorspace conversion BGR 16 -> BGR 15 *************
+Made 100 conversions, Time: 0.325533 (0.003255 per conversion)
+************* Colorspace conversion BGR 16 -> RGB 16 *************
+Made 100 conversions, Time: 0.875343 (0.008753 per conversion)
+************* Colorspace conversion BGR 16 -> RGB 24 *************
+Made 100 conversions, Time: 1.014218 (0.010142 per conversion)
+************* Colorspace conversion BGR 16 -> BGR 24 *************
+Made 100 conversions, Time: 1.033108 (0.010331 per conversion)
+************* Colorspace conversion BGR 16 -> RGB 32 *************
+Made 100 conversions, Time: 1.019378 (0.010194 per conversion)
+************* Colorspace conversion BGR 16 -> BGR 32 *************
+Made 100 conversions, Time: 1.037014 (0.010370 per conversion)
+************* Colorspace conversion BGR 16 -> RGBA 32 *************
+Made 100 conversions, Time: 1.250027 (0.012500 per conversion)
+************* Colorspace conversion BGR 16 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion BGR 16 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion BGR 16 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGB 24 -> RGB 15 *************
+Made 100 conversions, Time: 1.058029 (0.010580 per conversion)
+************* Colorspace conversion RGB 24 -> BGR 15 *************
+Made 100 conversions, Time: 1.067621 (0.010676 per conversion)
+************* Colorspace conversion RGB 24 -> RGB 16 *************
+Made 100 conversions, Time: 1.086879 (0.010869 per conversion)
+************* Colorspace conversion RGB 24 -> BGR 16 *************
+Made 100 conversions, Time: 1.086717 (0.010867 per conversion)
+************* Colorspace conversion RGB 24 -> BGR 24 *************
+Made 100 conversions, Time: 1.097129 (0.010971 per conversion)
+************* Colorspace conversion RGB 24 -> RGB 32 *************
+Made 100 conversions, Time: 1.089722 (0.010897 per conversion)
+************* Colorspace conversion RGB 24 -> BGR 32 *************
+Made 100 conversions, Time: 1.097789 (0.010978 per conversion)
+************* Colorspace conversion RGB 24 -> RGBA 32 *************
+Made 100 conversions, Time: 1.279378 (0.012794 per conversion)
+************* Colorspace conversion RGB 24 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion RGB 24 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGB 24 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion BGR 24 -> RGB 15 *************
+Made 100 conversions, Time: 1.067297 (0.010673 per conversion)
+************* Colorspace conversion BGR 24 -> BGR 15 *************
+Made 100 conversions, Time: 1.057554 (0.010576 per conversion)
+************* Colorspace conversion BGR 24 -> RGB 16 *************
+Made 100 conversions, Time: 1.087414 (0.010874 per conversion)
+************* Colorspace conversion BGR 24 -> BGR 16 *************
+Made 100 conversions, Time: 1.088724 (0.010887 per conversion)
+************* Colorspace conversion BGR 24 -> RGB 24 *************
+Made 100 conversions, Time: 1.096712 (0.010967 per conversion)
+************* Colorspace conversion BGR 24 -> RGB 32 *************
+Made 100 conversions, Time: 1.098487 (0.010985 per conversion)
+************* Colorspace conversion BGR 24 -> BGR 32 *************
+Made 100 conversions, Time: 1.098036 (0.010980 per conversion)
+************* Colorspace conversion BGR 24 -> RGBA 32 *************
+Made 100 conversions, Time: 1.324494 (0.013245 per conversion)
+************* Colorspace conversion BGR 24 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion BGR 24 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion BGR 24 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGB 32 -> RGB 15 *************
+Made 100 conversions, Time: 1.090578 (0.010906 per conversion)
+************* Colorspace conversion RGB 32 -> BGR 15 *************
+Made 100 conversions, Time: 1.148593 (0.011486 per conversion)
+************* Colorspace conversion RGB 32 -> RGB 16 *************
+Made 100 conversions, Time: 1.146382 (0.011464 per conversion)
+************* Colorspace conversion RGB 32 -> BGR 16 *************
+Made 100 conversions, Time: 1.146824 (0.011468 per conversion)
+************* Colorspace conversion RGB 32 -> RGB 24 *************
+Made 100 conversions, Time: 1.113164 (0.011132 per conversion)
+************* Colorspace conversion RGB 32 -> BGR 24 *************
+Made 100 conversions, Time: 1.113241 (0.011132 per conversion)
+************* Colorspace conversion RGB 32 -> BGR 32 *************
+Made 100 conversions, Time: 1.149377 (0.011494 per conversion)
+************* Colorspace conversion RGB 32 -> RGBA 32 *************
+Made 100 conversions, Time: 1.295875 (0.012959 per conversion)
+************* Colorspace conversion RGB 32 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion RGB 32 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGB 32 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion BGR 32 -> RGB 15 *************
+Made 100 conversions, Time: 1.152681 (0.011527 per conversion)
+************* Colorspace conversion BGR 32 -> BGR 15 *************
+Made 100 conversions, Time: 1.090126 (0.010901 per conversion)
+************* Colorspace conversion BGR 32 -> RGB 16 *************
+Made 100 conversions, Time: 1.146718 (0.011467 per conversion)
+************* Colorspace conversion BGR 32 -> BGR 16 *************
+Made 100 conversions, Time: 1.146794 (0.011468 per conversion)
+************* Colorspace conversion BGR 32 -> RGB 24 *************
+Made 100 conversions, Time: 1.113223 (0.011132 per conversion)
+************* Colorspace conversion BGR 32 -> BGR 24 *************
+Made 100 conversions, Time: 1.108178 (0.011082 per conversion)
+************* Colorspace conversion BGR 32 -> RGB 32 *************
+Made 100 conversions, Time: 1.149678 (0.011497 per conversion)
+************* Colorspace conversion BGR 32 -> RGBA 32 *************
+Made 100 conversions, Time: 1.346654 (0.013467 per conversion)
+************* Colorspace conversion BGR 32 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion BGR 32 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion BGR 32 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGBA 32 -> RGB 15 *************
+Made 100 conversions, Time: 0.325678 (0.003257 per conversion)
+************* Colorspace conversion RGBA 32 -> BGR 15 *************
+Made 100 conversions, Time: 0.324547 (0.003245 per conversion)
+************* Colorspace conversion RGBA 32 -> RGB 16 *************
+Made 100 conversions, Time: 0.325015 (0.003250 per conversion)
+************* Colorspace conversion RGBA 32 -> BGR 16 *************
+Made 100 conversions, Time: 0.324167 (0.003242 per conversion)
+************* Colorspace conversion RGBA 32 -> RGB 24 *************
+Made 100 conversions, Time: 0.324556 (0.003246 per conversion)
+************* Colorspace conversion RGBA 32 -> BGR 24 *************
+Made 100 conversions, Time: 0.324098 (0.003241 per conversion)
+************* Colorspace conversion RGBA 32 -> RGB 32 *************
+Made 100 conversions, Time: 0.323563 (0.003236 per conversion)
+************* Colorspace conversion RGBA 32 -> BGR 32 *************
+Made 100 conversions, Time: 0.324109 (0.003241 per conversion)
+************* Colorspace conversion RGBA 32 -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion RGBA 32 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion RGBA 32 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> RGB 15 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> BGR 15 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> RGB 16 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> BGR 16 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> RGB 24 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> BGR 24 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> RGB 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> BGR 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> RGBA 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> YUV 4:2:0 Planar *************
+No Conversion defined yet
+************* Colorspace conversion YUY2 -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> RGB 15 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> BGR 15 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> RGB 16 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> BGR 16 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> RGB 24 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> BGR 24 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> RGB 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> BGR 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> RGBA 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:0 Planar -> YUV 4:2:2 Planar *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> RGB 15 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> BGR 15 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> RGB 16 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> BGR 16 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> RGB 24 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> BGR 24 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> RGB 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> BGR 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> RGBA 32 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> YUY2 *************
+No Conversion defined yet
+************* Colorspace conversion YUV 4:2:2 Planar -> YUV 4:2:0 Planar *************
+No Conversion defined yet

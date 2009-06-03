@@ -1,0 +1,125 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.75 [de] (X11; U; Linux 2.4.14 i686) [Netscape]">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+
+<h1>
+GAVL API Documentation</h1>
+
+<h2>
+1. Compiling and linking</h2>
+All exported functions are defined in the header file gavl.h, so every
+sourcefile, which makes use of GAVL sould contain the line
+<pre>#include &lt;gavl.h></pre>
+TODO Write something about linking
+<h2>
+2. Converting video frames</h2>
+The generic structure for converting video frames is gavl_video_converter_t.
+It's an anonymous pointer, which can only be created and destroyed by gavl
+functions. To create a video converter, use:
+<p><tt>gavl_video_converter_t * gavl_create_video_converter();</tt>
+<p>You will also want to set some conversion options. All options are in
+a structure gavl_video_options_t:
+<p><tt>typedef struct</tt>
+<br><tt>&nbsp; {</tt>
+<br><tt>&nbsp; int accel_flags; /* CPU Acceleration flags */</tt>
+<br><tt>&nbsp; int conversion_flags;</tt>
+<p><tt>&nbsp; float crop_factor; /* Not used yet (for scaling) */</tt>
+<p><tt>&nbsp; /* Background color (0x0000 - 0xFFFF) */</tt>
+<p><tt>&nbsp; uint16_t background_red;</tt>
+<br><tt>&nbsp; uint16_t background_green;</tt>
+<br><tt>&nbsp; uint16_t background_blue;</tt>
+<p><tt>&nbsp; } gavl_video_options_t;</tt>
+<p>accel_flags is an ORed combination of the following constants:
+<p><tt>#define GAVL_ACCEL_C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (1&lt;&lt;0)</tt>
+<br><tt>#define GAVL_ACCEL_C_HQ&nbsp;&nbsp;&nbsp; (1&lt;&lt;1)</tt>
+<br><tt>#define GAVL_ACCEL_MMX&nbsp;&nbsp;&nbsp;&nbsp; (1&lt;&lt;2)</tt>
+<br><tt>#define GAVL_ACCEL_MMXEXT&nbsp; (1&lt;&lt;3)</tt>
+<br><tt>#define GAVL_ACCEL_SSE&nbsp;&nbsp;&nbsp;&nbsp; (1&lt;&lt;4)</tt>
+<br><tt>#define GAVL_ACCEL_SSE2&nbsp;&nbsp;&nbsp; (1&lt;&lt;5)</tt>
+<br><tt>#define GAVL_ACCEL_3DNOW&nbsp;&nbsp; (1&lt;&lt;6)</tt>
+<p>All routines are available in a Standard C version. C-High Quality functions
+aren't available for all routines, but they are always there, no matter
+on what platform gavl runs. Processor specific routines are selected acccording
+to runtime detection and compile time configuration. If you pass invalid
+flags here, they will silently be ignored. Normally, you will always pass
+GAVL_ACCEL_C and either GAVL_ACCEL_C_HQ (for highest quality) or the supported
+processor specific flags for higher speed requirements.
+<p>To get the supported accellerations (runtime detection) use:
+<p><tt>int gavl_accel_supported();</tt>
+<p>Note, that GAVL_ACCEL_C and GAVL_ACCEL_C_HQ are never returned by this
+function, so you must OR these flags manually if you want to use them.
+<p>Conversion flags are additional flags for modifying the bevahiour of
+the converter. Currently, only GAVL_SCANLINE is supported to switch to
+optimized scanline functions, which take only one scanline at a time and
+don't care about the picture height.
+<br>'The background color will be blended in, when the transparency information
+is removed.
+<p>You are now free to use it for different type of conversions. If your
+player loads a movie, and it found out the best input and output formats,
+you initialize the gavl converter if the input and output formats are different.
+Do this by calling:
+<p><tt>int gavl_video_init(gavl_video_converter_t* cnv,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+const gavl_video_options_t * options,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+const gavl_video_format_t * input_format,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+const gavl_video_format_t * output_format);</tt>
+<p>cnv is the converter you allocated with gavl_create_video_converter().
+The options pointer are the options described above. The input and output
+formats are defined in gavl_video_format_t structures:
+<p><tt>typedef struct</tt>
+<br><tt>&nbsp; {</tt>
+<br><tt>&nbsp; int width;</tt>
+<br><tt>&nbsp; int height;</tt>
+<br><tt>&nbsp; gavl_colorspace_t colorspace;</tt>
+<br><tt>&nbsp; } gavl_video_format_t;</tt>
+<p>Width and height are the size of the picture. colorspace is an enum:
+<p><tt>typedef enum</tt>
+<br><tt>&nbsp; {</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_COLORSPACE_NONE = 0,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_RGB_15,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_BGR_15,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_RGB_16,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_BGR_16,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_RGB_24,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_BGR_24,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_RGB_32,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_BGR_32,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_RGBA_32,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_YUY2,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_YUV_420_P,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; GAVL_YUV_422_P</tt>
+<br><tt>&nbsp; } gavl_colorspace_t;</tt>
+<p>Some confusion exists about the definition of RGB and BGR order. No
+matter if this is a "standard" or whatever, here comes the definition of
+gavl:
+<p>RGB byte order for 24 and 32 bpp means, that if you have a scanline
+pointer
+<p><tt>uint8_t * pixels;</tt>
+<p>the red byte is the FIRST element, i.e <tt>pixels[0]</tt>. BGR means,
+that the blue byte is the first element. RGB order for 15 and 16 bpp formats
+means, that the red bits are the HIGHEST bits of a 16 bit short, which
+represents a pixel.BGR order, the HIGHEST bits are blue. The YUV formats
+are pretty ghood standardized, so gavl should be compatible with most software
+here.
+<p>gavl_video_init() will seek for the conversion functions and set up
+all tables (if needed). If the conversion is impossible (e.g. if you selected
+flags, for which the necessary routines are missing), the function returns
+zero. Therefore, you should always select CAVL_ACCEL_C.
+<p>One you called gavl_video_init(), you can convert an arbitrary number
+of video frames by successive calls to:
+<p><tt>void gavl_video_convert(gavl_video_converter_t * cnv,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+gavl_video_frame_t * input_frame,</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+gavl_video_frame_t * output_frame);</tt>
+<p>If the movie is over, you can reuse the video converter by simply calling
+gavl_video_init() with the new format.
+<br>&nbsp;
+</body>
+</html>

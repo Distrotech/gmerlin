@@ -1,0 +1,19 @@
+
+private_headers = \
+attributes.h \
+audio.h \
+bufferprivate.h \
+colorspace.h \
+interleave.h \
+mix.h \
+sampleformat.h \
+video.h
+
+public_headers = gavl.h buffer.h
+
+@STANDALONE_TRUE@pkginclude_HEADERS = $(public_headers)
+@STANDALONE_TRUE@noinst_HEADERS =  $(private_headers)
+
+@STANDALONE_FALSE@noinst_HEADERS =  $(public_headers) $(private_headers)
+
+EXTRA_DIST=Makefile.am.in

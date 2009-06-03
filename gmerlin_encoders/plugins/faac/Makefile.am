@@ -1,0 +1,10 @@
+libdir=@GMERLIN_PLUGIN_DIR@
+
+AM_CFLAGS = @OPT_CFLAGS@ @FAAC_CFLAGS@
+
+lib_LTLIBRARIES = \
+e_faac.la
+
+e_faac_la_SOURCES = e_faac.c
+e_faac_la_LDFLAGS = -avoid-version -module
+e_faac_la_LIBADD = @top_srcdir@/lib/libgmerlin_encoders.la @FAAC_LIBS@
