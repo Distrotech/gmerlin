@@ -1,8 +1,12 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 
+#include <gmerlin/cfg_registry.h>
+
 #include <config.h>
 #include <track.h>
+#include <project.h>
+
 #include <gui_gtk/trackwidget.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/gui_gtk/gtkutils.h>

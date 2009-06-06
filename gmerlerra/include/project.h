@@ -1,15 +1,33 @@
+#ifndef PROJECT_H
+#define PROJECT_H
 
+
+#define BG_NLE_PROJECT_CHANGED (1<<0)
 
 typedef struct
   {
+  int flags;
+
   int num_audio_tracks;
-  bg_nle_track_t ** audio_tracks;
-  
   int num_video_tracks;
+  int num_tracks;
+
+  int audio_tracks_alloc;
+  int video_tracks_alloc;
+  int tracks_alloc;
+  
+  bg_nle_track_t ** audio_tracks;
   bg_nle_track_t ** video_tracks;
+  bg_nle_track_t ** tracks;
   
   //  int num_files;
   //  bg_nle_file_t ** files;
+
+  /* Timeline status */
+  gavl_time_t start_visible;
+  gavl_time_t end_visible;
+  gavl_time_t start_selection;
+  gavl_time_t end_selection;
   
   bg_cfg_section_t * audio_section;
   bg_cfg_section_t * video_section;
@@ -20,7 +38,6 @@ typedef struct
 
   gavl_video_format_t video_format_preset;
   gavl_video_format_t video_format;
-  
   } bg_nle_project_t;
 
 bg_nle_project_t * bg_nle_project_create(const char * file);
@@ -42,3 +59,12 @@ void bg_nle_project_destroy(bg_nle_project_t * p);
 bg_nle_track_t * bg_nle_project_add_audio_track(bg_nle_project_t * p);
 bg_nle_track_t * bg_nle_project_add_video_track(bg_nle_project_t * p);
 
+void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);
+
+/* project_xml.c */
+
+bg_nle_project_t * bg_nle_project_load(const char * filename);
+
+void bg_nle_project_save(bg_nle_project_t *, const char * filename);
+
+#endif

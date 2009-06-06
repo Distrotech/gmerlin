@@ -1,6 +1,11 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <math.h>
+#include <config.h>
+
+#include <gmerlin/utils.h>
+#include <gmerlin/gui_gtk/gtkutils.h>
+#include <gmerlin/cfg_registry.h>
 
 #include <gui_gtk/timeruler.h>
 
@@ -12,14 +17,9 @@ struct bg_nle_time_ruler_s
   GtkWidget * wid;
   int width, height;
   GdkCursor * cursor;
-
-  gavl_time_t start_visible;
-  gavl_time_t end_visible;
+  
   gavl_time_t spacing_major;
   gavl_time_t spacing_minor;
-
-  gavl_time_t start_selection;
-  gavl_time_t end_selection;
   
   PangoLayout * pl;
 
@@ -28,6 +28,7 @@ struct bg_nle_time_ruler_s
   
   int mouse_x;
   
+  bg_nle_project_t * p;
   };
 
 static void print_time(gavl_time_t t, char * str)
@@ -51,39 +52,6 @@ static void print_time(gavl_time_t t, char * str)
     sprintf(str, "%02d:%02d.%03d", minutes, seconds, milliseconds);
   }
 
-static void size_allocate_callback(GtkWidget     *widget,
-                                   GtkAllocation *allocation,
-                                   gpointer       user_data)
-  {
-  double scale_factor;
-  bg_nle_time_ruler_t * r = user_data;
-
-  if(r->width >= 0)
-    {
-    scale_factor =
-      (double)(r->end_visible-r->start_visible)/(double)(r->width);
-    r->end_visible = r->start_visible +
-      (int)(scale_factor * (double)(allocation->width) + 0.5);
-    }
-  
-  r->width  = allocation->width;
-  r->height = allocation->height;
-  }
-
-int64_t bg_nle_time_ruler_pos_2_time(bg_nle_time_ruler_t * r, int pos)
-  {
-  double ret_d = (double)pos /
-    (double)r->width * (double)(r->end_visible - r->start_visible);
-  return (int64_t)(ret_d + 0.5) + r->start_visible;
-  }
-
-int bg_nle_time_ruler_time_2_pos(bg_nle_time_ruler_t * r, int64_t time)
-  {
-  double ret_d = (double)(time - r->start_visible) /
-    (double)(r->end_visible - r->start_visible) * (double)r->width;
-  return (int)(ret_d + 0.5);
-  }
-
 static void calc_spacing(bg_nle_time_ruler_t * r)
   {
   double dt;
@@ -93,7 +61,7 @@ static void calc_spacing(bg_nle_time_ruler_t * r)
   /* Minor spacing should be at least 10 pixels,
      Spacings can be [1|2|5]*10^n */
 
-  dt = 10.0 * (double)(r->end_visible-r->start_visible) / r->width;
+  dt = 10.0 * (double)(r->p->end_visible-r->p->start_visible) / r->width;
 
   log_dt = (int)(log10(dt));
   
@@ -120,11 +88,51 @@ static void calc_spacing(bg_nle_time_ruler_t * r)
       5 * tmp1 : 10 * tmp1;
     }
   r->spacing_major = 10 * r->spacing_minor;
+  }
+
+static void size_allocate_callback(GtkWidget     *widget,
+                                   GtkAllocation *allocation,
+                                   gpointer       user_data)
+  {
+  double scale_factor;
+  int init;
+  bg_nle_time_ruler_t * r = user_data;
+
+  if(r->width >= 0)
+    {
+    scale_factor =
+      (double)(r->p->end_visible-r->p->start_visible)/(double)(r->width);
+    r->p->end_visible = r->p->start_visible +
+      (int)(scale_factor * (double)(allocation->width) + 0.5);
+    init = 0;
+    }
+  else
+    {
+    init = 1;
+    }
   
-  fprintf(stderr, "dt: %f, tmp1: %ld\n",
-          dt, tmp1);
+  r->width  = allocation->width;
+  r->height = allocation->height;
+
+  if(init)
+    calc_spacing(r);
   
   }
+
+int64_t bg_nle_time_ruler_pos_2_time(bg_nle_time_ruler_t * r, int pos)
+  {
+  double ret_d = (double)pos /
+    (double)r->width * (double)(r->p->end_visible - r->p->start_visible);
+  return (int64_t)(ret_d + 0.5) + r->p->start_visible;
+  }
+
+int bg_nle_time_ruler_time_2_pos(bg_nle_time_ruler_t * r, int64_t time)
+  {
+  double ret_d = (double)(time - r->p->start_visible) /
+    (double)(r->p->end_visible - r->p->start_visible) * (double)r->width;
+  return (int)(ret_d + 0.5);
+  }
+
 
 static void redraw(bg_nle_time_ruler_t * r)
   {
@@ -146,9 +154,9 @@ static void redraw(bg_nle_time_ruler_t * r)
 
   /* Draw tics */
   
-  time = ((r->start_visible / r->spacing_minor)) * r->spacing_minor;
+  time = ((r->p->start_visible / r->spacing_minor)) * r->spacing_minor;
   
-  while(time < r->end_visible)
+  while(time < r->p->end_visible)
     {
     pos = bg_nle_time_ruler_time_2_pos(r, time);
 
@@ -212,6 +220,7 @@ static gboolean button_press_callback(GtkWidget *widget,
   bg_nle_time_ruler_t * r = user_data;
   
   r->mouse_x = evt->x;
+  return TRUE;
   }
 
 static gboolean motion_callback(GtkWidget *widget,
@@ -224,19 +233,20 @@ static gboolean motion_callback(GtkWidget *widget,
     bg_nle_time_ruler_pos_2_time(r, r->mouse_x) -
     bg_nle_time_ruler_pos_2_time(r, evt->x);
 
-  if(r->start_visible + diff_time < 0)
-    diff_time = -r->start_visible;
+  if(r->p->start_visible + diff_time < 0)
+    diff_time = -r->p->start_visible;
 
   if(!diff_time)
-    return;
+    return TRUE;
   
-  r->start_visible += diff_time;
-  r->end_visible += diff_time;
+  r->p->start_visible += diff_time;
+  r->p->end_visible += diff_time;
   r->mouse_x = evt->x;
   redraw(r);
   
   if(r->selection_changed_callback)
     r->selection_changed_callback(r->selection_changed_data);
+  return TRUE;
   }
 
 static void realize_callback(GtkWidget *widget,
@@ -246,15 +256,17 @@ static void realize_callback(GtkWidget *widget,
   gdk_window_set_cursor(r->wid->window, r->cursor);
   }
 
-bg_nle_time_ruler_t * bg_nle_time_ruler_create()
+bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_project_t * p)
   {
   bg_nle_time_ruler_t * ret;
   ret = calloc(1, sizeof(*ret));
+  ret->p = p;
   
-  ret->start_visible = 0;
-  ret->end_visible = 10 * GAVL_TIME_SCALE;
-  ret->spacing_major = GAVL_TIME_SCALE;
-  ret->spacing_minor = GAVL_TIME_SCALE / 10;
+  //  ret->p->start_visible = 0;
+  //  ret->p->end_visible = 10 * GAVL_TIME_SCALE;
+  
+  //  ret->spacing_major = GAVL_TIME_SCALE;
+  //  ret->spacing_minor = GAVL_TIME_SCALE / 10;
 
   ret->width = -1;
   ret->height = -1;
@@ -302,11 +314,12 @@ GtkWidget * bg_nle_time_ruler_get_widget(bg_nle_time_ruler_t * t)
   return t->wid;
   }
 
+#if 0
 void bg_nle_time_ruler_get_visible(bg_nle_time_ruler_t * t,
                                    gavl_time_t * start, gavl_time_t * end)
   {
-  *start = t->start_visible;
-  *end = t->end_visible;
+  *start = t->p->start_visible;
+  *end = t->p->end_visible;
   }
 
 void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
@@ -314,19 +327,20 @@ void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
   {
   
   }
+#endif
 
 void bg_nle_time_ruler_get_selection(bg_nle_time_ruler_t * t,
                                      gavl_time_t * start, gavl_time_t * end)
   {
-  *start = t->start_selection;
-  *end = t->end_selection;
+  *start = t->p->start_selection;
+  *end = t->p->end_selection;
   }
 
 void bg_nle_time_ruler_set_selection(bg_nle_time_ruler_t * t,
                                      gavl_time_t start, gavl_time_t end)
   {
-  t->start_selection = start;
-  t->end_selection = end;
+  t->p->start_selection = start;
+  t->p->end_selection = end;
   if(t->selection_changed_callback)
     t->selection_changed_callback(t->selection_changed_data);
   }
@@ -387,11 +401,11 @@ void bg_nle_time_ruler_zoom_in(bg_nle_time_ruler_t * r)
   {
   gavl_time_t center, diff;
   
-  diff = r->end_visible - r->start_visible;
-  center = (r->end_visible + r->start_visible)/2;
+  diff = r->p->end_visible - r->p->start_visible;
+  center = (r->p->end_visible + r->p->start_visible)/2;
   
-  r->start_visible = center - diff / 4;
-  r->end_visible   = center + diff / 4;
+  r->p->start_visible = center - diff / 4;
+  r->p->end_visible   = center + diff / 4;
 
   if(r->selection_changed_callback)
     r->selection_changed_callback(r->selection_changed_data);
@@ -404,13 +418,13 @@ void bg_nle_time_ruler_zoom_out(bg_nle_time_ruler_t * r)
   {
   gavl_time_t center, diff;
   
-  diff = r->end_visible - r->start_visible;
-  center = (r->end_visible + r->start_visible)/2;
+  diff = r->p->end_visible - r->p->start_visible;
+  center = (r->p->end_visible + r->p->start_visible)/2;
   
-  r->start_visible = center - diff * 4;
-  if(r->start_visible < 0)
-    r->start_visible = 0;
-  r->end_visible   = center + diff * 4;
+  r->p->start_visible = center - diff * 4;
+  if(r->p->start_visible < 0)
+    r->p->start_visible = 0;
+  r->p->end_visible   = center + diff * 4;
   
   if(r->selection_changed_callback)
     r->selection_changed_callback(r->selection_changed_data);

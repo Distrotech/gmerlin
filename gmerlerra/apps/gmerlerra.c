@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <gui_gtk/projectwindow.h>
 #include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
 
 #include <gmerlin/gui_gtk/gtkutils.h>
 

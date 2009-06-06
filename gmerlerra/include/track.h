@@ -1,11 +1,17 @@
+#ifndef TRACK_H
+#define TRACK_H
+
 #include <gmerlin/parameter.h>
+#include <gmerlin/xmlutils.h>
 
 typedef enum
   {
+    BG_NLE_TRACK_NONE = 0,
     BG_NLE_TRACK_AUDIO,
     BG_NLE_TRACK_VIDEO,
   } bg_nle_track_type_t;
 
+/* WARNING: Changing these alters the file format */
 #define BG_NLE_TRACK_SELECTED (1<<0)
 #define BG_NLE_TRACK_EXPANDED (1<<1)
 
@@ -47,3 +53,7 @@ void bg_nle_track_set_parameter(void * data, const char * name,
 
 /* track_xml.c */
 
+bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node);
+void bg_nle_track_save(bg_nle_track_t * t, xmlNodePtr parent);
+
+#endif

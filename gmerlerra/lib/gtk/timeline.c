@@ -2,14 +2,16 @@
 #include <stdlib.h>
 #include <config.h>
 
+#include <gmerlin/utils.h>
+#include <gmerlin/gui_gtk/gtkutils.h>
+#include <gmerlin/cfg_registry.h>
+
 #include <track.h>
+#include <project.h>
 
 #include <gui_gtk/timeruler.h>
 #include <gui_gtk/timeline.h>
 #include <gui_gtk/trackwidget.h>
-
-#include <gmerlin/utils.h>
-#include <gmerlin/gui_gtk/gtkutils.h>
 
 struct bg_nle_timeline_s
   {
@@ -30,7 +32,9 @@ struct bg_nle_timeline_s
   
   GtkWidget * panel_box;
   GtkWidget * preview_box;
-    
+
+  bg_nle_project_t * p;
+  
   };
 
 static void button_callback(GtkWidget * w, gpointer  data)
@@ -96,13 +100,16 @@ static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
   return button;
   }
 
-
-bg_nle_timeline_t * bg_nle_timeline_create()
+bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   {
   GtkWidget * box;
-  bg_nle_timeline_t * ret = calloc(1, sizeof(*ret));  
+  int i;
 
-  ret->ruler = bg_nle_time_ruler_create();
+  bg_nle_timeline_t * ret = calloc(1, sizeof(*ret));  
+  
+  ret->p = p;
+  
+  ret->ruler = bg_nle_time_ruler_create(p);
 
   bg_nle_time_ruler_set_selection_callback(ret->ruler,
                                            selection_changed_callback,
@@ -187,6 +194,27 @@ bg_nle_timeline_t * bg_nle_timeline_create()
                    GTK_EXPAND|GTK_FILL, GTK_EXPAND|GTK_FILL, 0, 0);
   
   gtk_widget_show(ret->table);
+
+  /* Add tracks */
+
+  if(ret->p->num_tracks)
+    ret->tracks = calloc(ret->p->num_tracks, sizeof(*ret->tracks));
+
+  for(i = 0; i < ret->p->num_tracks; i++)
+    {
+    ret->tracks[ret->num_tracks] =
+      bg_nle_track_widget_create(ret->p->tracks[i], ret->ruler);
+
+    gtk_box_pack_start(GTK_BOX(ret->panel_box),
+                       bg_nle_track_widget_get_panel(ret->tracks[ret->num_tracks]),
+                       FALSE, FALSE, 0);
+    
+    gtk_box_pack_start(GTK_BOX(ret->preview_box),
+                       bg_nle_track_widget_get_preview(ret->tracks[ret->num_tracks]),
+                       FALSE, FALSE, 0);
+    ret->num_tracks++;
+    }
+  
   return ret;
   }
 

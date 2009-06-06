@@ -1,12 +1,17 @@
 #ifndef TIMERULER_H
 #define TIMERULER_H
 
-
 #include <gavl/gavl.h>
+
+#include <gmerlin/cfg_registry.h>
+
+#include <track.h>
+#include <project.h>
+
 
 typedef struct bg_nle_time_ruler_s bg_nle_time_ruler_t;
 
-bg_nle_time_ruler_t * bg_nle_time_ruler_create();
+bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_project_t*);
 
 void bg_nle_time_ruler_set_selection_callback(bg_nle_time_ruler_t *,
                                               void (*selection_changed)(void*),
