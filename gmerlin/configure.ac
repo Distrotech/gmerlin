@@ -845,6 +845,18 @@ fi
 
 AM_CONDITIONAL(HAVE_VISUALIZER, test x$have_visualizer = xtrue)
 
+dnl Thumbnailer
+
+AC_ARG_ENABLE(thumbnailer,
+              AC_HELP_STRING(--disable-thumbnailer, [Disable thumbnailer (default: enabled)]),
+              [case "${enableval}" in
+                 yes) have_thumbnailer=true ;;
+                 no) have_thumbnailer=false ;;
+               esac],
+	       have_thumbnailer=true)
+
+AM_CONDITIONAL(HAVE_THUMBNAILER, test x$have_thumbnailer = xtrue)
+
 dnl
 dnl CFLAGS
 dnl
@@ -932,6 +944,7 @@ apps/visualizer/Makefile \
 apps/visualizer/gmerlin-visualizer.desktop \
 apps/kbd/Makefile \
 apps/kbd/gmerlin-kbd.desktop \
+apps/thumbnailer/Makefile \
 doc/Makefile \
 doc/Doxyfile \
 icons/Makefile \
@@ -1265,6 +1278,13 @@ fi
 
 echo -n "Keyboard daemon:     "
 if test "x$have_kbd" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled"
+fi
+
+echo -n "Thumbnailer:         "
+if test "x$have_thumbnailer" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled"

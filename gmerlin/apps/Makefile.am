@@ -41,6 +41,12 @@ else
 visualizer_subdirs =
 endif
 
+if HAVE_THUMBNAILER
+thumbnailer_subdirs = thumbnailer
+else
+thumbnailer_subdirs =
+endif
+
 
 SUBDIRS = $(player_subdirs) \
 cmdlineplayer \
@@ -48,6 +54,7 @@ $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
 $(camelot_subdirs) \
 $(transcoder_subdirs) \
+$(thumbnailer_subdirs) \
 $(kbd_subdirs) \
 $(visualizer_subdirs)
 
