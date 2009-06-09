@@ -133,7 +133,7 @@ int main(int argc, char ** argv)
   /* Converter */
   
   gavl_video_converter_t * cnv;
-  int do_convert;
+  int do_convert, have_frame;
   
   /* Get commandline options */
   bg_cmdline_init(&app_data);
@@ -255,29 +255,10 @@ int main(int argc, char ** argv)
     }
 
   output_plugin = (bg_image_writer_plugin_t*)output_handle->plugin;
-
-  /* Initialize image writer */
-
-  if(!output_plugin->write_header(output_handle->priv,
-                                  out_file, &output_format))
-    {
-    fprintf(stderr, "Writing image header failed\n");
-    return -1;
-    }
-
-  gavl_video_format_dump(&input_format);
-  gavl_video_format_dump(&output_format);
   
-  
-  /* Initialize video converter */
-  cnv = gavl_video_converter_create();
-  do_convert = gavl_video_converter_init(cnv, &input_format, &output_format);
-
-  /* Create frames */
+  /* Create input frame */
 
   input_frame = gavl_video_frame_create(&input_format);
-  output_frame = gavl_video_frame_create(&output_format);
-  gavl_video_frame_clear(&output_format, output_frame);
   
   /* Seek to the time */
 
@@ -297,11 +278,11 @@ int main(int argc, char ** argv)
   if(info->flags & BG_TRACK_SEEKABLE)
     {
     input_plugin->seek(input_handle->priv, &seek_time, GAVL_TIME_SCALE);
-    input_plugin->read_video(input_handle->priv, input_frame, 0);
+    have_frame = input_plugin->read_video(input_handle->priv, input_frame, 0);
     }
   else
     {
-    while(input_plugin->read_video(input_handle->priv, input_frame, 0))
+    while((have_frame = input_plugin->read_video(input_handle->priv, input_frame, 0)))
       {
       if(gavl_time_unscale(input_format.timescale,
                            input_frame->timestamp) >= seek_time)
@@ -309,8 +290,28 @@ int main(int argc, char ** argv)
       }
     }
 
+  if(!have_frame)
+    return -1;
+  
+  /* Initialize image writer */
+  
+  if(!output_plugin->write_header(output_handle->priv,
+                                  out_file, &output_format))
+    {
+    fprintf(stderr, "Writing image header failed\n");
+    return -1;
+    }
+
+  //  gavl_video_format_dump(&input_format);
+  //  gavl_video_format_dump(&output_format);
+  
+  /* Initialize video converter */
+  cnv = gavl_video_converter_create();
+  do_convert = gavl_video_converter_init(cnv, &input_format, &output_format);
+  
   if(do_convert)
     {
+    output_frame = gavl_video_frame_create(&output_format);
     gavl_video_convert(cnv, input_frame, output_frame);
     if(!output_plugin->write_image(output_handle->priv,
                                    output_frame))
@@ -318,6 +319,7 @@ int main(int argc, char ** argv)
       fprintf(stderr, "Writing image failed\n");
       return -1;
       }
+    gavl_video_frame_destroy(output_frame);
     }
   else
     {
@@ -333,7 +335,6 @@ int main(int argc, char ** argv)
   bg_plugin_unref(output_handle);
 
   gavl_video_frame_destroy(input_frame);
-  gavl_video_frame_destroy(output_frame);
 
   gavl_video_converter_destroy(cnv);
   
