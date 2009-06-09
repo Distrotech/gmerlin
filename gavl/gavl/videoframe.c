@@ -163,10 +163,10 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
         }
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0]*format->frame_height+
-                             ret->strides[1]*(format->frame_height+1)/2+
-                             ret->strides[2]*(format->frame_height+1)/2);
+                             ret->strides[1]*((format->frame_height+1)/2)+
+                             ret->strides[2]*((format->frame_height+1)/2));
       ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
-      ret->planes[2] = ret->planes[1] + ret->strides[1]*(format->frame_height+1)/2;
+      ret->planes[2] = ret->planes[1] + ret->strides[1]*((format->frame_height+1)/2);
       break;
     case GAVL_YUV_410_P:
       ret->strides[0] = format->frame_width;
@@ -182,10 +182,10 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0]*format->frame_height+
-                             ret->strides[1]*(format->frame_height+3)/4+
-                             ret->strides[2]*(format->frame_height+3)/4);
+                             ret->strides[1]*((format->frame_height+3)/4)+
+                             ret->strides[2]*((format->frame_height+3)/4));
       ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
-      ret->planes[2] = ret->planes[1] + ret->strides[1]*(format->frame_height+3)/4;
+      ret->planes[2] = ret->planes[1] + ret->strides[1]*((format->frame_height+3)/4);
       break;
     case GAVL_YUV_422_P:
     case GAVL_YUVJ_422_P:
