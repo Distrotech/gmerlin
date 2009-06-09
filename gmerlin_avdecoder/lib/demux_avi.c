@@ -2231,13 +2231,10 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
         p->pts = avi_vs->frame_counter * s->data.video.format.frame_duration;
         avi_vs->frame_counter++;
         if(s->action == BGAV_STREAM_PARSE)
-          {
           s->duration = avi_vs->frame_counter * s->data.video.format.frame_duration;
-          if(avi_vs->is_keyframe && avi_vs->is_keyframe(p->data)) 
-            PACKET_SET_KEYFRAME(p);
-          else
-            PACKET_SET_KEYFRAME(p);
-          }
+        
+        if(avi_vs->is_keyframe && avi_vs->is_keyframe(p->data)) 
+          PACKET_SET_KEYFRAME(p);
         }
       else if(s->type == BGAV_STREAM_AUDIO)
         {

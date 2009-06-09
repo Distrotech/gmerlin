@@ -273,8 +273,8 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
 
   header = bgav_video_parser_get_header(priv->parser, &header_len);
 
-  fprintf(stderr, "Got extradata %d bytes\n", header_len);
-  bgav_hexdump(header, header_len, 16);
+  //  fprintf(stderr, "Got extradata %d bytes\n", header_len);
+  //  bgav_hexdump(header, header_len, 16);
 
   s->ext_size = header_len;
   s->ext_data = malloc(s->ext_size);
@@ -316,7 +316,7 @@ static int select_track_mpegvideo(bgav_demuxer_context_t * ctx, int track)
   {
   mpegvideo_priv_t * priv;
   priv = (mpegvideo_priv_t *)(ctx->priv);
-  bgav_video_parser_reset(priv->parser, 0, 0);
+  bgav_video_parser_reset(priv->parser, BGAV_TIMESTAMP_UNDEFINED, 0);
   priv->eof = 0;
   return 1;
   }

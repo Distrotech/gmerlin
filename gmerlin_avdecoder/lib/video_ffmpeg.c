@@ -183,6 +183,9 @@ static int get_data(bgav_stream_t * s)
     }
 
   priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+  //  fprintf(stderr, "Got packet %d\n", PACKET_GET_KEYFRAME(priv->packet));
+  
   if(!priv->packet)
     return 0;
   return 1;
@@ -781,7 +784,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
       break;
       }
     /* Skip this packet */
-    fprintf(stderr, "Skipping packet %c\n", PACKET_GET_CODING_TYPE(p));
+    bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Skipping packet %c", PACKET_GET_CODING_TYPE(p));
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }

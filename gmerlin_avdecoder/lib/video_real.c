@@ -264,7 +264,8 @@ static int init_real(bgav_stream_t * s)
 
   s->data.video.format.pixelformat = GAVL_YUV_420_P;
 
-  priv->gavl_frame = gavl_video_frame_create_nopad(&s->data.video.format);
+  //  priv->gavl_frame = gavl_video_frame_create_nopad(&s->data.video.format);
+  priv->gavl_frame = gavl_video_frame_create(&s->data.video.format);
   
   version = ((s->fourcc & 0x000000FF) - '0') +
     (((s->fourcc & 0x0000FF00) >> 8)- '0') * 10;
