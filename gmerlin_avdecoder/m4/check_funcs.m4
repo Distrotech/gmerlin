@@ -18,8 +18,8 @@ AC_ARG_ENABLE(libavcodec,
    no)  test_avcodec=false ;;
 esac],[test_avcodec=true])
 
-if test x$test_avcodec = xtrue; then
 
+if test x$test_avcodec = xtrue; then
 ACL_PATH_AVCODEC($AVCODEC_BUILD , have_avcodec="true", have_avcodec="false")
 AVCODEC_REQUIRED=$AVCODEC_VERSION
 

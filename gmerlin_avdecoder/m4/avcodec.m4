@@ -95,6 +95,15 @@ dnl
 
 if test "x$avcodec_done" = "xfalse"; then
   PKG_CHECK_MODULES(AVCODEC, libavcodec, avcodec_orig="true", avcodec_orig="false")
+
+dnl
+dnl No idea for what this is good but libavcodec is not found if this is missing
+dnl
+
+  if test "x$os_win32" = "xyes"; then
+    AVCODEC_LIBS="-L/usr/local/bin $AVCODEC_LIBS"
+  fi
+
   ACL_CHECK_AVCODEC([$1])
   if test "x$avcodec_ok" = "xtrue"; then
     avcodec_done="true"
