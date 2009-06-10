@@ -216,7 +216,7 @@ int bg_url_split(const char * url,
  *  freed by the caller.
  */
 
-char * bg_get_tumbnail_file(const char * gml);
+char * bg_get_thumbnail_file(const char * gml);
 
 
 /** \brief Print into a string

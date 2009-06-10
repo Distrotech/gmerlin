@@ -531,7 +531,7 @@ char * bg_toupper(const char * str)
  *  freed by the caller.
  */
 
-char * bg_get_tumbnail_file(const char * gml)
+char * bg_get_thumbnail_file(const char * gml)
   {
   char * ret;
   uint8_t md5sum[16];
