@@ -18,8 +18,8 @@ AC_ARG_ENABLE(libavcodec,
    no)  test_avcodec=false ;;
 esac],[test_avcodec=true])
 
-if test x$test_avcodec = xtrue; then
 
+if test x$test_avcodec = xtrue; then
 ACL_PATH_AVCODEC($AVCODEC_BUILD , have_avcodec="true", have_avcodec="false")
 AVCODEC_REQUIRED=$AVCODEC_VERSION
 
@@ -402,6 +402,40 @@ AC_DEFINE([HAVE_PULSEAUDIO])
 fi
 
 ])
+
+dnl
+dnl Ogg
+dnl 
+
+AC_DEFUN([GMERLIN_CHECK_OGG],[
+
+OGG_REQUIRED="1.0"
+
+have_ogg=false
+AH_TEMPLATE([HAVE_OGG], [Ogg libraries are there])
+
+AC_ARG_ENABLE(ogg,
+[AC_HELP_STRING([--disable-ogg],[Disable ogg (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_ogg=true ;;
+   no)  test_ogg=false ;;
+esac],[test_ogg=true])
+
+if test x$test_ogg = xtrue; then
+    
+XIPH_PATH_OGG(have_ogg=true)
+fi
+
+AM_CONDITIONAL(HAVE_OGG, test x$have_ogg = xtrue)
+ 
+if test x$have_ogg = xtrue; then
+AC_DEFINE(HAVE_OGG)
+fi
+
+AC_SUBST(OGG_REQUIRED)
+
+])
+
 
 
 dnl
