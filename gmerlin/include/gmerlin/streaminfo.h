@@ -177,6 +177,16 @@ char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs);
 
 int bg_metadata_get_year(const bg_metadata_t * m);
 
+/** \brief Append extended metadata
+ *  \param m Metadata
+ *  \param key Key
+ *  \param value Value
+ *
+ *  Append a key-value pair to the extended metadata
+ */
+
+void bg_metadata_append_ext(bg_metadata_t * m, const char * key, const char * value);
+
 /* XML Interface */
 
 /** \brief Convert a libxml2 node into a metadata struct

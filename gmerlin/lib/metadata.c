@@ -472,3 +472,20 @@ char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs)
   return ret;
   }
 
+void bg_metadata_append_ext(bg_metadata_t * m, const char * key, const char * value)
+  {
+  int num_ext = 0;
+
+  if(m->ext)
+    {
+    while(m->ext[num_ext].key)
+      num_ext++;
+    }
+
+  m->ext = realloc(m->ext, (num_ext+2) * sizeof(*m->ext));
+
+  memset(m->ext + num_ext, 0, 2 * sizeof(*m->ext));
+  
+  m->ext[num_ext].key = bg_strdup(m->ext[num_ext].key, key);
+  m->ext[num_ext].value = bg_strdup(m->ext[num_ext].value, value);
+  }

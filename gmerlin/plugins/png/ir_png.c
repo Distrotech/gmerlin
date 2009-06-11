@@ -25,6 +25,7 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
 
 #include <png.h>
 
@@ -37,6 +38,8 @@ typedef struct
   gavl_video_format_t format;
 
   FILE * file;
+  
+  bg_metadata_t metadata;
   } png_t;
 
 static void * create_png()
@@ -61,6 +64,10 @@ static int read_header_png(void * priv, const char * filename,
   int color_type;
   int has_alpha = 0;
   int is_gray = 0;
+  
+  png_text * text;
+  int num_text;
+  
   png_byte signature[8];
   png_t * png = (png_t*)priv;
 
@@ -208,12 +215,38 @@ static int read_header_png(void * priv, const char * filename,
         format->pixelformat = GAVL_RGB_48;
       }
     }
+
+  if(png_get_text(png->png_ptr, png->info_ptr, &text, &num_text))
+    {
+    int i;
+    for(i = 0; i < num_text; i++)
+      {
+      if(text[i].compression == PNG_TEXT_COMPRESSION_NONE)
+        {
+        if(!strcasecmp(text[i].key, "Author"))
+          png->metadata.author = bg_strdup(png->metadata.author, text[i].text);
+        else if(!strcasecmp(text[i].key, "Title"))
+          png->metadata.title = bg_strdup(png->metadata.title, text[i].text);
+        else if(!strcasecmp(text[i].key, "Copyright"))
+          png->metadata.copyright = bg_strdup(png->metadata.copyright, text[i].text);
+        else
+          bg_metadata_append_ext(&png->metadata, text[i].key, text[i].text);
+        // fprintf(stderr, "png text: key: %s text: %s\n", text[i].key, text[i].text);
+        }
+      }
+    }
   
   gavl_video_format_copy(&(png->format), format);
   return 1;
   fail:
   return 0;
 
+  }
+
+static const bg_metadata_t * get_metadata_png(void * priv)
+  {
+  png_t * png = (png_t*)priv;
+  return(&png->metadata);
   }
 
 static int read_image_png(void * priv, gavl_video_frame_t * frame)
@@ -235,9 +268,10 @@ static int read_image_png(void * priv, gavl_video_frame_t * frame)
                           &(png->end_info));
   fclose(png->file);
   free(rows);
-  
+  bg_metadata_free(&png->metadata);
   return 1;
   }
+
 
 const bg_image_reader_plugin_t the_plugin =
   {
@@ -255,6 +289,7 @@ const bg_image_reader_plugin_t the_plugin =
     },
     .extensions =    "png",
     .read_header = read_header_png,
+    .get_metadata = get_metadata_png,
     .read_image =  read_image_png,
   };
 

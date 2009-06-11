@@ -226,10 +226,16 @@ int main(int argc, char ** argv)
   fprintf(stderr, "Wrote %s\n", files[1]);
   
   gavl_video_frame_destroy(in_frame);
+  bg_plugin_unref(output_handle);
+
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
 
   bg_gavl_video_options_free(&vopt);
 
+  gavl_video_converter_destroy(cnv);
+
+  bg_metadata_free(&metadata);
+  
   return 0;
   }

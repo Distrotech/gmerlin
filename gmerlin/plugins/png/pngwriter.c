@@ -43,6 +43,7 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
   {
   int color_type;
   int bits = 8;
+  int i, j;
   bg_pngwriter_t * png = (bg_pngwriter_t*)priv;
 
   png->transform_flags = PNG_TRANSFORM_IDENTITY;
@@ -133,7 +134,67 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
                PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
   
   gavl_video_format_copy(&(png->format), format);
+
+  /* Set metadata */
   
+  if(!metadata)
+    return 1;
+
+  if(metadata->author)
+    png->num_text++;
+  if(metadata->title)
+    png->num_text++;
+  if(metadata->copyright)
+    png->num_text++;
+  
+  if(metadata->ext)
+    {
+    i = 0;
+    while(metadata->ext[i].key)
+      {
+      i++;
+      png->num_text++;
+      }
+    }
+
+  png->text = calloc(png->num_text, sizeof(*png->text));
+
+  j = 0;
+  if(metadata->author)
+    {
+    png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
+    png->text[j].key         = bg_strdup(png->text[j].key, "Author");
+    png->text[j].text        = bg_strdup(png->text[j].text, metadata->author);
+    j++;
+    }
+  if(metadata->title)
+    {
+    png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
+    png->text[j].key         = bg_strdup(png->text[j].key, "Title");
+    png->text[j].text        = bg_strdup(png->text[j].text, metadata->title);
+    j++;
+    }
+  if(metadata->copyright)
+    {
+    png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
+    png->text[j].key         = bg_strdup(png->text[j].key, "Copyright");
+    png->text[j].text        = bg_strdup(png->text[j].text, metadata->copyright);
+    j++;
+    }
+
+  if(metadata->ext)
+    {
+    i = 0;
+    while(metadata->ext[i].key)
+      {
+      png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
+      png->text[j].key         = bg_strdup(png->text[j].key, metadata->ext[i].key);
+      png->text[j].text        = bg_strdup(png->text[j].text, metadata->ext[i].value);
+      j++;
+      i++;
+      }
+    }
+  png_set_text(png->png_ptr, png->info_ptr, png->text, png->num_text);
   return 1;
   }
 
@@ -154,6 +215,19 @@ int bg_pngwriter_write_image(void * priv, gavl_video_frame_t * frame)
   png_destroy_write_struct(&png->png_ptr, &png->info_ptr);
   fclose(png->output);
   free(rows);
+
+  if(png->num_text)
+    {
+    for(i = 0; i < png->num_text; i++)
+      {
+      free(png->text[i].key);
+      free(png->text[i].text);
+      }
+    free(png->text);
+    png->num_text = 0;
+    png->text = NULL;
+    }
+  
   return 1;
   }
 

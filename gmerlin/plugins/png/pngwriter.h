@@ -32,6 +32,10 @@ typedef struct
   int bit_mode;
   int compression_level;
   gavl_video_format_t format;
+
+  png_text * text;
+  int num_text;
+  
   } bg_pngwriter_t;
 
 int bg_pngwriter_write_header(void * priv, const char * filename,
