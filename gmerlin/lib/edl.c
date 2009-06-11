@@ -28,28 +28,6 @@
 #include <gmerlin/edl.h>
 #include <gmerlin/utils.h>
 
-
-static void bg_dprintf(const char * format, ...)
-  {
-  va_list argp; /* arg ptr */
-  va_start( argp, format);
-  vfprintf(stderr, format, argp);
-  va_end(argp);
-  }
-
-static void bg_diprintf(int indent, const char * format, ...)
-  {
-  int i;
-  va_list argp; /* arg ptr */
-  for(i = 0; i < indent; i++)
-    bg_dprintf( " ");
-  
-  va_start( argp, format);
-  vfprintf(stderr, format, argp);
-  va_end(argp);
-  }
-
-
 bg_edl_t * bg_edl_create()
   {
   bg_edl_t * ret;

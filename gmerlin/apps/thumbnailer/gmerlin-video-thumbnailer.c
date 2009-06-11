@@ -106,7 +106,9 @@ int main(int argc, char ** argv)
   
   bg_input_plugin_t        * input_plugin;
   bg_image_writer_plugin_t * output_plugin;
-
+  
+  bg_metadata_t metadata;
+  
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
   bg_plugin_registry_t * plugin_reg;

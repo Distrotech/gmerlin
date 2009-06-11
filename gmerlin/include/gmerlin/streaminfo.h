@@ -233,6 +233,14 @@ bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m);
 void bg_metadata_set_parameter(void * data, const char * name,
                                const bg_parameter_value_t * v);
 
+/** \brief Dump metadata to stderr
+ *  \param m Metadata
+ *
+ *  Used for debugging purposes
+ */
+
+void bg_metadata_dump(const bg_metadata_t * m);
+
 
 /** \brief Chapter list
  *

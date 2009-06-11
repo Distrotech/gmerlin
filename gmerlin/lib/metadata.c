@@ -489,3 +489,49 @@ void bg_metadata_append_ext(bg_metadata_t * m, const char * key, const char * va
   m->ext[num_ext].key = bg_strdup(m->ext[num_ext].key, key);
   m->ext[num_ext].value = bg_strdup(m->ext[num_ext].value, value);
   }
+
+void bg_metadata_dump(const bg_metadata_t * m)
+  {
+  int len, max_len, i;
+  bg_dprintf("Metadata:\n");
+
+  if(m->artist)    bg_diprintf(2, "Artist:    %s\n", m->artist);
+  if(m->title)     bg_diprintf(2, "Title:     %s\n", m->title);
+  if(m->album)     bg_diprintf(2, "Album:     %s\n", m->album);
+  if(m->track)     bg_diprintf(2, "Track:     %d\n", m->track);
+  if(m->date)      bg_diprintf(2, "Date:      %s\n", m->date);
+  if(m->genre)     bg_diprintf(2, "Genre:     %s\n", m->genre);
+  if(m->comment)   bg_diprintf(2, "Comment:   %s\n", m->comment);
+  if(m->author)    bg_diprintf(2, "Author:    %s\n", m->author);
+  if(m->copyright) bg_diprintf(2, "Copyright: %s\n", m->copyright);
+
+  if(m->ext)
+    {
+    i = 0;
+    max_len = 0;
+
+    bg_diprintf(2, "Extended metadata:\n");
+    
+    while(m->ext[i].key)
+      {
+      len = strlen(m->ext[i].key);
+      if(len > max_len)
+        max_len = len;
+      i++;
+      }
+
+    fprintf(stderr, "Max len: %d\n", max_len);
+    
+    i = 0;
+
+    while(m->ext[i].key)
+      {
+      bg_diprintf(4, "%s: ", m->ext[i].key);
+      bg_diprintf(max_len - strlen(m->ext[i].key), "%s\n", m->ext[i].value);
+      i++;
+      }
+    
+    }
+  
+  }
+

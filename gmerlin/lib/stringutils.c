@@ -548,3 +548,23 @@ void bg_get_filename_hash(const char * gml, char ret[33])
           md5sum[12], md5sum[13], md5sum[14], md5sum[15]);
   free(uri);
   }
+
+void bg_dprintf(const char * format, ...)
+  {
+  va_list argp; /* arg ptr */
+  va_start( argp, format);
+  vfprintf(stderr, format, argp);
+  va_end(argp);
+  }
+
+void bg_diprintf(int indent, const char * format, ...)
+  {
+  int i;
+  va_list argp; /* arg ptr */
+  for(i = 0; i < indent; i++)
+    bg_dprintf( " ");
+  
+  va_start( argp, format);
+  vfprintf(stderr, format, argp);
+  va_end(argp);
+  }

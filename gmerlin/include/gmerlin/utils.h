@@ -390,6 +390,19 @@ char * bg_audio_format_to_string(gavl_audio_format_t * format, int use_tabs);
 
 char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs);
 
+/** \brief Dump to stderr
+ *  \param format Format (printf compatible)
+ */
+
+void bg_dprintf(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
+
+/** \brief Dump to stderr with intendation
+ *  \param indent How many spaces to prepend
+ *  \param format Format (printf compatible)
+ */
+
+void bg_diprintf(int indent, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
+
 /* @} */
 
 extern char const * const bg_language_codes[];
@@ -400,6 +413,7 @@ extern char const * const bg_language_labels[];
 #else
 #define bg_debug(f,...)
 #endif
+
 
 
 #endif // __BG_UTILS_H_
