@@ -50,7 +50,8 @@ char * bg_string_to_uri(const char * _pos, int len)
   char * dst;
   int i;
   int num_substitutions;
-
+  int prepend_file = 0;
+  
   const uint8_t * pos; 
   
   if(!_pos)
@@ -67,9 +68,19 @@ char * bg_string_to_uri(const char * _pos, int len)
     if(do_substitute(pos[i]))
       num_substitutions++;
     }
-  ret = calloc(1, len + num_substitutions * 2 + 1);
+
+  if(_pos[0] == '/')
+    prepend_file = 1;
+  
+  ret = calloc(1, len + num_substitutions * 2 + 1 + prepend_file * 7 /* file:// */ );
   dst = ret;
 
+  if(prepend_file)
+    {
+    sprintf(dst, "file://");
+    dst += 7;
+    }
+  
   for(i = 0; i < len; i++)
     {
     if(do_substitute(pos[i]))

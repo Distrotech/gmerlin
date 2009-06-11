@@ -21,6 +21,10 @@
 
 #include <string.h>
 
+#include <sys/types.h> /* stat() */
+#include <sys/stat.h>  /* stat() */
+#include <unistd.h>    /* stat() */
+
 #include <config.h>
 
 #include <gmerlin/pluginregistry.h>
@@ -113,7 +117,7 @@ int main(int argc, char ** argv)
   bg_cfg_section_t * cfg_section;
   bg_plugin_registry_t * plugin_reg;
   bg_track_info_t * info;
-  char * tmp_path;
+  char * tmp_string;
 
   const bg_plugin_info_t * plugin_info;
   
@@ -136,6 +140,9 @@ int main(int argc, char ** argv)
   
   gavl_video_converter_t * cnv;
   int do_convert, have_frame;
+  struct stat st;
+  
+  memset(&metadata, 0, sizeof(metadata));
   
   /* Get commandline options */
   bg_cmdline_init(&app_data);
@@ -148,17 +155,25 @@ int main(int argc, char ** argv)
     fprintf(stderr, "No input files given\n");
     return -1;
     }
-
+  
   in_file = files[0];
   out_file = files[1];
+
+  /* stat() */
+  
+  if(stat(in_file, &st))
+    {
+    fprintf(stderr, "Cannot stat %s\n", in_file);
+    return -1;
+    }
   
   /* Create registries */
 
   cfg_reg = bg_cfg_registry_create();
-  tmp_path =  bg_search_file_read("generic", "config.xml");
-  bg_cfg_registry_load(cfg_reg, tmp_path);
-  if(tmp_path)
-    free(tmp_path);
+  tmp_string =  bg_search_file_read("generic", "config.xml");
+  bg_cfg_registry_load(cfg_reg, tmp_string);
+  if(tmp_string)
+    free(tmp_string);
 
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
@@ -183,6 +198,9 @@ int main(int argc, char ** argv)
     }
   
   info = input_plugin->get_track_info(input_handle->priv, 0);
+  
+  /* Copy metadata (extend them later) */
+  bg_metadata_copy(&metadata, &info->metadata);
   
   /* Select track */
   if(input_plugin->set_track)
@@ -294,11 +312,34 @@ int main(int argc, char ** argv)
 
   if(!have_frame)
     return -1;
+
+  /* Extended metadata */
+
+  tmp_string = bg_string_to_uri(in_file, -1);
+  bg_metadata_append_ext(&metadata, "Thumb::URI", tmp_string);
+  free(tmp_string);
+
+  tmp_string = bg_sprintf("%"PRId64, (int64_t)st.st_mtime);
+  bg_metadata_append_ext(&metadata, "Thumb::MTime", tmp_string);
+  free(tmp_string);
+
+  bg_metadata_append_ext(&metadata, "Software", "gmerlin-video-thumbnailer");
+
+  tmp_string = bg_sprintf("%"PRId64, (int64_t)st.st_size);
+  bg_metadata_append_ext(&metadata, "Thumb::Size", tmp_string);
+  free(tmp_string);
+
+  if(info->duration != GAVL_TIME_UNDEFINED)
+    {
+    tmp_string = bg_sprintf("%d", (int)(gavl_time_to_seconds(info->duration)));
+    bg_metadata_append_ext(&metadata, "Thumb::Movie::Length", tmp_string);
+    free(tmp_string);
+    }
   
   /* Initialize image writer */
   
   if(!output_plugin->write_header(output_handle->priv,
-                                  out_file, &output_format, NULL))
+                                  out_file, &output_format, &metadata))
     {
     fprintf(stderr, "Writing image header failed\n");
     return -1;
@@ -339,6 +380,7 @@ int main(int argc, char ** argv)
   gavl_video_frame_destroy(input_frame);
 
   gavl_video_converter_destroy(cnv);
+  bg_metadata_free(&metadata);
   
   return 0;
   }

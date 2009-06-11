@@ -525,20 +525,11 @@ char * bg_toupper(const char * str)
 
 void bg_get_filename_hash(const char * gml, char ret[33])
   {
-  char * tmp_string;
   char * uri;
   uint8_t md5sum[16];
     
-  if(gml[0] == '/') /* Absolute filename: Prepend file:// */
-    {
-    tmp_string = bg_sprintf("file://%s", gml);
-    uri = bg_string_to_uri(tmp_string, -1);
-    free(tmp_string);
-    }
-  else
-    {
-    uri = bg_string_to_uri(gml, -1);
-    }
+  uri = bg_string_to_uri(gml, -1);
+  
   bg_md5_buffer(uri, strlen(uri), md5sum);
   sprintf(ret,
           "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",

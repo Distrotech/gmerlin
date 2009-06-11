@@ -519,8 +519,6 @@ void bg_metadata_dump(const bg_metadata_t * m)
         max_len = len;
       i++;
       }
-
-    fprintf(stderr, "Max len: %d\n", max_len);
     
     i = 0;
 
@@ -530,7 +528,6 @@ void bg_metadata_dump(const bg_metadata_t * m)
       bg_diprintf(max_len - strlen(m->ext[i].key), "%s\n", m->ext[i].value);
       i++;
       }
-    
     }
   
   }
