@@ -523,75 +523,28 @@ char * bg_toupper(const char * str)
   return ret;
   }
 
-/** \brief Get thumbnail filename
- *  \param gml
- *  \returns Filename of the corresponding thumbnail
- *
- *  This function allocates the returned string, thus it must be
- *  freed by the caller.
- */
-
-char * bg_get_thumbnail_file(const char * gml)
+void bg_get_filename_hash(const char * gml, char ret[33])
   {
-  char * ret;
+  char * tmp_string;
+  char * uri;
   uint8_t md5sum[16];
-  char md5sum_s[33];
-  char * tmp_string_1 = (char *)0;
-  char * tmp_string_2 = (char *)0;
-  
-  char * home_dir;
-  char * thumbs_dir;
-  
-  home_dir = getenv("HOME");
-  if(!home_dir)
-    return (char*)0;
-
-  thumbs_dir = bg_sprintf("%s/.thumbnails", home_dir);
-
-  if(access(thumbs_dir, R_OK))
-    {
-    if(mkdir(thumbs_dir, S_IRUSR|S_IWUSR|S_IXUSR) == -1)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not create directory %s: %s",
-             thumbs_dir, strerror(errno));
-      return (char*)0;
-      }
-    else
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created directory %s",
-             thumbs_dir);
-    }
-  
+    
   if(gml[0] == '/') /* Absolute filename: Prepend file:// */
     {
-    tmp_string_1 = bg_sprintf("file://%s", gml);
-    tmp_string_2 = bg_string_to_uri(tmp_string_1, -1);
+    tmp_string = bg_sprintf("file://%s", gml);
+    uri = bg_string_to_uri(tmp_string, -1);
+    free(tmp_string);
     }
   else
     {
-    tmp_string_2 = bg_string_to_uri(gml, -1);
+    uri = bg_string_to_uri(gml, -1);
     }
-  bg_md5_buffer(tmp_string_2, strlen(tmp_string_2),
-                md5sum);
-  sprintf(md5sum_s,
+  bg_md5_buffer(uri, strlen(uri), md5sum);
+  sprintf(ret,
           "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
           md5sum[0], md5sum[1], md5sum[2], md5sum[3], 
           md5sum[4], md5sum[5], md5sum[6], md5sum[7], 
           md5sum[8], md5sum[9], md5sum[10], md5sum[11], 
           md5sum[12], md5sum[13], md5sum[14], md5sum[15]);
-  
-  /* Check for jpeg file */
-  ret = bg_sprintf("%s/%s.jpg", thumbs_dir, md5sum_s);
-  if(!access(ret, R_OK))
-    return ret;
-
-  free(ret);
-  
-  ret = bg_sprintf("%s/%s.png", thumbs_dir, md5sum_s);
-
-  free(thumbs_dir);
-  free(tmp_string_2);
-  if(tmp_string_1)
-    free(tmp_string_1);
-  
-  return ret;
+  free(uri);
   }

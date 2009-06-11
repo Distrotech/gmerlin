@@ -208,6 +208,17 @@ int bg_url_split(const char * url,
                  int * port,
                  char ** path);
 
+/** \brief Get MD5 hash of a filename
+ *  \param gml
+ *  \ret Returns the MD5 sum
+ *
+ *  This creates an MD5 hash of a gml. For regular
+ *  files this is compatible with the thumbnailing
+ *  specification
+ */
+
+void bg_get_filename_hash(const char * gml, char ret[33]);
+
 /** \brief Get thumbnail filename
  *  \param gml
  *  \returns Filename of the corresponding thumbnail
@@ -217,6 +228,7 @@ int bg_url_split(const char * url,
  */
 
 char * bg_get_thumbnail_file(const char * gml);
+
 
 
 /** \brief Print into a string

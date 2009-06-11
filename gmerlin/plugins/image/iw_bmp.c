@@ -96,7 +96,8 @@ static void destroy_bmp(void * priv)
   }
 
 static int write_header_bmp(void * priv, const char * filename,
-                            gavl_video_format_t * format)
+                            gavl_video_format_t * format,
+                            const bg_metadata_t * m)
   {
   bmp_t * bmp = (bmp_t*)priv;
 

@@ -110,7 +110,7 @@ int main(int argc, char ** argv)
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
   bg_plugin_registry_save_image(plugin_reg, "text.png", ovl.frame,
-                                &ovl_format);
+                                &ovl_format, NULL);
   
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);

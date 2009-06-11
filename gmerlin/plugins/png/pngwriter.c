@@ -39,7 +39,7 @@
 #include "pngwriter.h"
 
 int bg_pngwriter_write_header(void * priv, const char * filename,
-                              gavl_video_format_t * format)
+                              gavl_video_format_t * format, const bg_metadata_t * metadata)
   {
   int color_type;
   int bits = 8;

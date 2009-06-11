@@ -82,7 +82,7 @@ static void destroy_jpeg(void * priv)
 
 static
 int write_header_jpeg(void * priv, const char * filename,
-                      gavl_video_format_t * format)
+                      gavl_video_format_t * format, const bg_metadata_t * metadata)
   {
   jpeg_t * jpeg = (jpeg_t*)priv;
   

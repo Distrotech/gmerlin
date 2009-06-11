@@ -102,6 +102,7 @@ stringutils.c \
 subprocess.c \
 textrenderer.c \
 threadpool.c \
+thumbnail.c \
 transcoder.c \
 transcoder_enc.c \
 transcoder_pp.c \

@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
   frame_1 =
-    bg_plugin_registry_load_image(plugin_reg, argv[1], &format_1);  
+    bg_plugin_registry_load_image(plugin_reg, argv[1], &format_1, NULL);  
   if(!frame_1)
     {
     fprintf(stderr, "Cannot open %s\n", argv[1]);
@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
     }
   
   frame_2 =
-    bg_plugin_registry_load_image(plugin_reg, argv[2], &format_2);
+    bg_plugin_registry_load_image(plugin_reg, argv[2], &format_2, NULL);
   if(!frame_2)
     {
     fprintf(stderr, "Cannot open %s\n", argv[2]);

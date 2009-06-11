@@ -677,6 +677,8 @@ typedef struct
   bg_plugin_handle_t * plugin_handle;
   bg_image_writer_plugin_t * image_writer;
   
+  bg_metadata_t metadata;
+  
   bg_parameter_info_t * parameters;
 
   bg_plugin_registry_t * plugin_reg;
@@ -814,6 +816,9 @@ static int open_encoder(void * data, const char * filename,
 
   e->first_filename = bg_sprintf(e->mask, e->frame_counter);
 
+  if(metadata)
+    bg_metadata_copy(&e->metadata, metadata);
+  
   return 1;
   }
 
@@ -835,8 +840,8 @@ static int write_frame_header(encoder_t * e)
   
   ret = e->image_writer->write_header(e->plugin_handle->priv,
                                       e->filename_buffer,
-                                      &(e->format));
-
+                                      &(e->format), &e->metadata);
+  
   if(!ret)
     {
     e->have_header = 0;
@@ -917,6 +922,8 @@ static int close_encoder(void * data, int do_delete)
   STR_FREE(e->mask);
   STR_FREE(e->filename_buffer);
   STR_FREE(e->first_filename);
+  
+  bg_metadata_free(&e->metadata);
   
   if(e->plugin_handle)
     {

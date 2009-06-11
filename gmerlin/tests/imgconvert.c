@@ -121,13 +121,16 @@ int main(int argc, char ** argv)
   char ** files;
   int num_conversions;
   
+  bg_metadata_t metadata;
+  
   conversion_section =
     bg_cfg_section_create_from_parameters("conversion",
                                           conversion_parameters);
   
   memset(&in_format, 0, sizeof(in_format));
   memset(&out_format, 0, sizeof(out_format));
-
+  memset(&metadata, 0, sizeof(metadata));
+  
   cnv = gavl_video_converter_create();
   /* Handle options */
   bg_gavl_video_options_init(&vopt);
@@ -156,7 +159,7 @@ int main(int argc, char ** argv)
 
   in_frame = bg_plugin_registry_load_image(plugin_reg,
                                            files[0],
-                                           &in_format);
+                                           &in_format, &metadata);
   if(!in_frame)
     {
     fprintf(stderr, "Couldn't load %s\n", files[0]);
@@ -180,7 +183,7 @@ int main(int argc, char ** argv)
 
   bg_gavl_video_options_set_format(&vopt, &in_format, &out_format);
   
-  output_plugin->write_header(output_handle->priv, files[1], &out_format);
+  output_plugin->write_header(output_handle->priv, files[1], &out_format, &metadata);
 
   /* For testing gavl chroma sampling */
 #if 0

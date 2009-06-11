@@ -296,7 +296,7 @@ int main(int argc, char ** argv)
   /* Initialize image writer */
   
   if(!output_plugin->write_header(output_handle->priv,
-                                  out_file, &output_format))
+                                  out_file, &output_format, NULL))
     {
     fprintf(stderr, "Writing image header failed\n");
     return -1;

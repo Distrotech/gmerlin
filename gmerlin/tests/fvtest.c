@@ -341,7 +341,7 @@ int main(int argc, char ** argv)
 
   fprintf(stderr, "Processing took %f seconds\n", gavl_time_to_seconds(gavl_timer_get(timer)));
   
-  bg_plugin_registry_save_image(plugin_reg, gmls[1], frame, &out_format);
+  bg_plugin_registry_save_image(plugin_reg, gmls[1], frame, &out_format, NULL);
 
   /* Destroy everything */
   bg_plugin_unref(input_handle);

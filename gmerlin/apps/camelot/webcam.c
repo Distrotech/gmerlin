@@ -333,7 +333,7 @@ static void do_capture(gmerlin_webcam_t * cam)
     }
   
   if(!cam->capture->write_header(cam->capture_handle->priv,
-                                 filename, &cam->capture_format))
+                                 filename, &cam->capture_format, NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Saving %s failed", filename);
     goto fail;

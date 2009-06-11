@@ -816,8 +816,6 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
 
 void * bg_player_input_thread(void * data)
   {
-  char tmp_string[128];
-  
   bg_player_input_context_t * ctx;
   bg_msg_t * msg;
   bg_fifo_state_t state;

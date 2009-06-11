@@ -65,7 +65,7 @@ static const char * get_extension_gavl(void * p)
   }
 
 static int write_header_gavl(void * priv, const char * filename,
-                      gavl_video_format_t * format)
+                             gavl_video_format_t * format, const bg_metadata_t * metadata)
   {
   bg_f_signature_t sig;
   gavl_t * gavl = (gavl_t*)priv;

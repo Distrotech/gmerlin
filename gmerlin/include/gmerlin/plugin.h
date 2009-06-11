@@ -131,9 +131,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 /** @}
  */
 
-
-
-#define BG_PLUGIN_API_VERSION 18
+#define BG_PLUGIN_API_VERSION 19
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -1739,7 +1737,17 @@ struct bg_image_reader_plugin_s
   
   int (*read_header)(void * priv, const char * filename,
                      gavl_video_format_t * format);
-
+  
+  const bg_metadata_t * (*get_metadata)(void * priv);
+  
+  /** \brief Get file infos
+   *  \param priv The handle returned by the create() method
+   *  \returns 
+   */
+  
+  
+  char ** (*get_info)(void * priv);
+  
   /** \brief Read the image
    *  \param priv The handle returned by the create() method
    *  \param frame The frame, where the image will be copied
@@ -1789,7 +1797,7 @@ struct bg_image_writer_plugin_s
    */
   
   int (*write_header)(void * priv, const char * filename,
-                      gavl_video_format_t * format);
+                      gavl_video_format_t * format, const bg_metadata_t * m);
   
   /** \brief Write the image
    *  \param priv The handle returned by the create() method

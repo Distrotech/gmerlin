@@ -63,7 +63,7 @@ static void destroy_pnm(void* priv)
   }
 
 static int write_header_pnm(void * priv, const char * filename,
-                     gavl_video_format_t * format)
+                            gavl_video_format_t * format, const bg_metadata_t * m)
   {
   pnm_t * p = (pnm_t*)priv;
 

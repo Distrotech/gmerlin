@@ -87,6 +87,17 @@ typedef struct
   int64_t duration;   //!< Duration in timescale tics
   } bg_subtitle_info_t;
 
+/** \brief Metadata extensions
+ *
+ *  Generic structure for extended metadata as key-value pairs
+ */
+
+typedef struct
+  {
+  char * key;   //!< Key
+  char * value; //!< Value
+  } bg_metadata_extended_t;
+
 /** \brief Description of metadata
  *
  *  Unknown fields can be NULL. Strings here MUST be in UTF-8
@@ -105,6 +116,8 @@ typedef struct
 
   char * author;//!< Author
   char * copyright;//!< Copyright
+  
+  bg_metadata_extended_t * ext; //!< Extended metadata as NULL terminated array
   } bg_metadata_t;
 
 /** \brief Free all strings in a metadata structure
@@ -173,7 +186,6 @@ int bg_metadata_get_year(const bg_metadata_t * m);
  *
  *  See the libxml2 documentation for more infos
  */
-
 
 void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
                        bg_metadata_t * ret);

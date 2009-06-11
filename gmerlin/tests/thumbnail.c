@@ -26,7 +26,7 @@
 
 int main(int argc, char ** argv)
   {
-  char * th = bg_get_tumbnail_file(argv[1]);
+  char * th = bg_get_thumbnail_file(argv[1]);
   printf("Thumbnail: %s\n", th);
   free(th);
   return 0;

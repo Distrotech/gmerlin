@@ -48,6 +48,18 @@ void bg_metadata_free(bg_metadata_t * m)
   MY_FREE(m->copyright);
   MY_FREE(m->date);
 
+  if(m->ext)
+    {
+    int i = 0;
+    while(m->ext[i].key)
+      {
+      MY_FREE(m->ext[i].key);
+      MY_FREE(m->ext[i].value);
+      i++;
+      }
+    free(m->ext);
+    }
+  
   memset(m, 0, sizeof(*m));
   }
 
@@ -70,6 +82,20 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src)
   MY_STRCPY(author);
   MY_STRCPY(copyright);
   MY_INTCOPY(track);
+
+  if(src->ext)
+    {
+    int num = 0;
+    int i;
+    while(src->ext[num].key)
+      num++;
+    dst->ext = calloc(num+1, sizeof(*dst->ext));
+    for(i = 0; i < num; i++)
+      {
+      dst->ext[i].key   = bg_strdup(dst->ext[i].key, src->ext[i].key);
+      dst->ext[i].value = bg_strdup(dst->ext[i].value, src->ext[i].value);
+      }
+    }
   }
 
 #undef MY_STRCPY

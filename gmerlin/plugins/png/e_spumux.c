@@ -44,6 +44,8 @@ typedef struct
   char * filename_template;
   char * filename;
   int subtitles_written;
+
+  bg_metadata_t metadata;
   } spumux_t;
 
 static void * create_spumux()
@@ -68,6 +70,9 @@ static int open_spumux(void * priv, const char * filename,
   {
   char * pos;
   spumux_t * spumux = (spumux_t*)priv;
+  
+  if(metadata)
+    bg_metadata_copy(&spumux->metadata, metadata);
   
   spumux->filename = bg_strdup(spumux->filename, filename);
   spumux->filename_template = bg_strdup(spumux->filename_template, filename);
@@ -137,7 +142,7 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
   image_filename = bg_sprintf(spumux->filename_template, spumux->subtitles_written);
 
   if(!bg_pngwriter_write_header(priv, image_filename,
-                                &tmp_format))
+                                &tmp_format, &spumux->metadata))
     return 0;
   
   if(!bg_pngwriter_write_image(priv, spumux->subframe))

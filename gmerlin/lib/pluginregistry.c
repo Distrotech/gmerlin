@@ -1199,7 +1199,7 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
 gavl_video_frame_t *
 bg_plugin_registry_load_image(bg_plugin_registry_t * r,
                               const char * filename,
-                              gavl_video_format_t * format)
+                              gavl_video_format_t * format, bg_metadata_t * m)
   {
   const bg_plugin_info_t * info;
   
@@ -1223,6 +1223,14 @@ bg_plugin_registry_load_image(bg_plugin_registry_t * r,
 
   if(!ir->read_header(handle->priv, filename, format))
     goto fail;
+
+  if(ir->get_metadata && m)
+    {
+    const bg_metadata_t * m_ret;
+    m_ret = ir->get_metadata(handle->priv);
+    if(m_ret)
+      bg_metadata_copy(m, m_ret);
+    }
   
   ret = gavl_video_frame_create(format);
   if(!ir->read_image(handle->priv, ret))
@@ -1241,7 +1249,7 @@ void
 bg_plugin_registry_save_image(bg_plugin_registry_t * r,
                               const char * filename,
                               gavl_video_frame_t * frame,
-                              const gavl_video_format_t * format)
+                              const gavl_video_format_t * format, const bg_metadata_t * m)
   {
   const bg_plugin_info_t * info;
   gavl_video_format_t tmp_format;
@@ -1268,7 +1276,7 @@ bg_plugin_registry_save_image(bg_plugin_registry_t * r,
 
   gavl_video_format_copy(&tmp_format, format);
   
-  if(!iw->write_header(handle->priv, filename, &tmp_format))
+  if(!iw->write_header(handle->priv, filename, &tmp_format, m))
     goto fail;
 
   if(gavl_video_converter_init(cnv, format, &tmp_format))
