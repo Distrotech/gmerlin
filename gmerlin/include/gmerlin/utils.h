@@ -49,6 +49,16 @@
 
 char * bg_fix_path(char * path);
 
+/** \brief Ensure that a directory exists
+ *  \param dir Directory
+ *  \returns 1 if the directory exists after the function call, 0 else
+ *
+ *  Non-existing directories will be created if possible
+ */
+
+int bg_ensure_directory(const char * dir);
+
+
 /** \brief Search for a file for reading
  *  \param directory Directory
  *  \param file Filename
@@ -218,18 +228,6 @@ int bg_url_split(const char * url,
  */
 
 void bg_get_filename_hash(const char * gml, char ret[33]);
-
-/** \brief Get thumbnail filename
- *  \param gml
- *  \returns Filename of the corresponding thumbnail
- *
- *  This function allocates the returned string, thus it must be
- *  freed by the caller.
- */
-
-char * bg_get_thumbnail_file(const char * gml);
-
-
 
 /** \brief Print into a string
  *  \param format printf like format

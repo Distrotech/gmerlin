@@ -26,9 +26,9 @@
 
 int main(int argc, char ** argv)
   {
-  char * th = bg_get_thumbnail_file(argv[1]);
-  printf("Thumbnail: %s\n", th);
-  free(th);
+  //  char * th = bg_get_thumbnail_file(argv[1]);
+  //  printf("Thumbnail: %s\n", th);
+  //  free(th);
   return 0;
   }
 

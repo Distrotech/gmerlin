@@ -597,6 +597,23 @@ bg_plugin_registry_save_image(bg_plugin_registry_t * reg,
                               const gavl_video_format_t * format, const bg_metadata_t * m);
 
 
+/** \brief Get thumbnail of a movie
+ *  \param gml Location (should be a regular file)
+ *  \param thumbnail_file If non-null, returns the filename of the thumbnail
+ *  \param plugin_reg Plugin registry
+ *  \param frame_ret If non-null, returns the video frame
+ *  \param format_ret If non-null, the video format of the thumbnail will be
+                      copied here
+ *  \returns 1 if a unique thumbnail could be generated, 0 if a default thumbnail was returned
+ *
+ */
+
+int bg_get_thumbnail(const char * gml,
+                     bg_plugin_registry_t * plugin_reg,
+                     char ** thumbnail_filename_ret,
+                     gavl_video_frame_t ** frame_ret,
+                     gavl_video_format_t * format_ret);
+
 
 /*
  *  These are the actual loading/unloading functions

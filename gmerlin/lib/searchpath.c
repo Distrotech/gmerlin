@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -78,76 +79,80 @@ char * bg_search_file_write(const char * directory, const char * file)
   {
   char * home_dir;
   char * testpath;
-  char * pos1;
-  char * pos2;
+  char * testdir;
+  
   FILE * testfile;
 
   if(!file)
     return (char*)0;
   
-  testpath = malloc(FILENAME_MAX * sizeof(char));
-  
   home_dir = getenv("HOME");
 
   /* Try to open the file */
 
-  sprintf(testpath, "%s/.%s/%s/%s", home_dir, PACKAGE, directory, file);
+  testdir  = bg_sprintf("%s/.%s/%s", home_dir, PACKAGE, directory);
+
+  if(!bg_ensure_directory(testdir))
+    {
+    free(testdir);
+    return NULL;
+    }
+  
+  testpath = bg_sprintf("%s/%s", testdir, file);
+  
   testfile = fopen(testpath, "a");
   if(testfile)
     {
     fclose(testfile);
+    free(testdir);
     return testpath;
     }
-  
-  if(errno != ENOENT)
+  else
     {
     free(testpath);
+    free(testdir);
     return (char*)0;
     }
+  }
 
-  /*
-   *  No such file or directory can mean, that the directory 
-   *  doesn't exist
-   */
+int bg_ensure_directory(const char * dir)
+  {
+  char ** directories;
+  char * subpath = (char*)0;
+  int i, ret;
   
-  pos1 = &(testpath[strlen(home_dir)+1]);
+  /* Return early */
+  if(!access(dir, R_OK|W_OK|X_OK))
+    return 1;
   
-  while(1)
+  /* We omit the first slash */
+  directories = bg_strbreak(dir+1, '/');
+
+  i = 0;
+  ret = 1;
+  while(directories[i])
     {
-    pos2 = strchr(pos1, '/');
+    subpath = bg_strcat(subpath, "/");
+    subpath = bg_strcat(subpath, directories[i]);
 
-    if(!pos2)
-      break;
-
-    *pos2 = '\0';
-
-    if(mkdir(testpath, S_IRUSR|S_IWUSR|S_IXUSR) == -1)
+    if(access(subpath, R_OK) && (errno == ENOENT))
       {
-      if(errno != EEXIST)
+      if(mkdir(subpath, S_IRUSR|S_IWUSR|S_IXUSR) == -1)
         {
-        *pos2 = '/';
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Creating directory %s failed: %s",
+               subpath, strerror(errno));
+        ret = 0;
         break;
         }
+      else
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created directory %s", subpath);
       }
-    else
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created directory %s", testpath);
-    
-    *pos2 = '/';
-    pos1 = pos2;
-    pos1++;
+    i++;
     }
-
-  /* Try once more to open the file */
-
-  testfile = fopen(testpath, "w");
-
-  if(testfile)
-    {
-    fclose(testfile);
-    return testpath;
-    }
-  free(testpath);
-  return (char*)0;
+  if(subpath)
+    free(subpath);
+  bg_strbreak_free(directories);
+  return ret;
   }
 
 int bg_search_file_exec(const char * file, char ** _path)
