@@ -20,15 +20,57 @@
  ******************************************************************/
 
 #include <stdio.h>
-#include <gmerlin/utils.h>
-#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+
+#include <gmerlin/utils.h>
+#include <gmerlin/pluginregistry.h>
 
 int main(int argc, char ** argv)
   {
-  //  char * th = bg_get_thumbnail_file(argv[1]);
-  //  printf("Thumbnail: %s\n", th);
-  //  free(th);
+  bg_cfg_registry_t    * cfg_reg;
+  bg_plugin_registry_t * plugin_reg;
+
+  char * tmp_path;
+  bg_cfg_section_t * cfg_section;
+
+  char * th_filename;
+  gavl_video_format_t th_format;
+  gavl_video_frame_t * th_frame;
+
+  memset(&th_format, 0, sizeof(th_format));
+  
+  /* Create registries */
+  cfg_reg = bg_cfg_registry_create();
+
+  tmp_path = bg_search_file_read("generic", "config.xml");
+  bg_cfg_registry_load(cfg_reg, tmp_path);
+  
+  if(tmp_path)
+    free(tmp_path);
+
+  cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
+  plugin_reg = bg_plugin_registry_create(cfg_section);
+
+  /* Get thumbnail */
+  
+  if(bg_get_thumbnail(argv[1],
+                      plugin_reg,
+                      &th_filename,
+                      &th_frame,
+                      &th_format))
+    {
+    fprintf(stderr, "Thumbnail file: %s\n", th_filename);
+    fprintf(stderr, "Thumbnail format:\n");
+    gavl_video_format_dump(&th_format);
+    fprintf(stderr, "Thumbnail frame: %p\n", th_frame);
+    gavl_video_frame_destroy(th_frame);
+    free(th_filename);
+    }
+
+  bg_plugin_registry_destroy(plugin_reg);
+  bg_cfg_registry_destroy(cfg_reg);
+  
   return 0;
   }
 

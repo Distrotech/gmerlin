@@ -36,25 +36,18 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "thumbnails"
 
-static int thumbnail_up_to_date(const char * gml,
+static int thumbnail_up_to_date(const char * thumbnail_file,
                                 bg_plugin_registry_t * plugin_reg,
-                                const char * thumbnail_file,
                                 gavl_video_frame_t ** frame,
-                                gavl_video_format_t * format)
+                                gavl_video_format_t * format,
+                                int64_t mtime)
   {
-  struct stat st;
   int i;
   bg_metadata_t metadata;
-  int64_t mtime;
+  int64_t test_mtime;
   int ret = 0;
   memset(&metadata, 0, sizeof(metadata));
-
-  if(stat(gml, &st))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat %s: %s",
-           gml, strerror(errno));
-    return 0;
-    }
+  memset(format, 0, sizeof(*format));
   
   *frame = bg_plugin_registry_load_image(plugin_reg,
                                          thumbnail_file,
@@ -68,22 +61,57 @@ static int thumbnail_up_to_date(const char * gml,
       {
       if(!strcmp(metadata.ext[i].key, "Thumb::MTime"))
         {
-        mtime = strtoll(metadata.ext[i].value, (char**)0, 10);
-        if(mtime == st.st_mtime)
+        test_mtime = strtoll(metadata.ext[i].value, (char**)0, 10);
+        if(mtime == test_mtime)
           ret = 1;
         break;
         }
+      i++;
       }
     }
   bg_metadata_free(&metadata);
   return ret;
   }
 
-static void make_fail_thumbnail(const char * gml)
+static void make_fail_thumbnail(const char * gml,
+                                const char * thumb_filename,
+                                bg_plugin_registry_t * plugin_reg,
+                                int64_t mtime)
   {
+  gavl_video_format_t format;
+  gavl_video_frame_t * frame;
+  bg_metadata_t metadata;
+  char * tmp_string;
   
+  memset(&format, 0, sizeof(format));
+  memset(&metadata, 0, sizeof(metadata));
+  
+  format.image_width = 1;
+  format.image_height = 1;
+  format.frame_width = 1;
+  format.frame_height = 1;
+  format.pixel_width = 1;
+  format.pixel_height = 1;
+  format.pixelformat = GAVL_RGBA_32;
+  
+  frame = gavl_video_frame_create(&format);
+  gavl_video_frame_clear(frame, &format);
+  
+  tmp_string = bg_string_to_uri(gml, -1);
+  bg_metadata_append_ext(&metadata, "Thumb::URI", tmp_string);
+  free(tmp_string);
+
+  tmp_string = bg_sprintf("%"PRId64, mtime);
+  bg_metadata_append_ext(&metadata, "Thumb::MTime", tmp_string);
+  free(tmp_string);
+
+  bg_plugin_registry_save_image(plugin_reg,
+                                thumb_filename,
+                                frame,
+                                &format, &metadata);
+  bg_metadata_free(&metadata);
+  gavl_video_frame_destroy(frame);
   }
-                                
 
 int bg_get_thumbnail(const char * gml,
                      bg_plugin_registry_t * plugin_reg,
@@ -105,11 +133,22 @@ int bg_get_thumbnail(const char * gml,
   int ret = 0;
   gavl_video_frame_t * frame = NULL;
   gavl_video_format_t format;
+  struct stat st;
+
+  if(stat(gml, &st))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat %s: %s",
+           gml, strerror(errno));
+    return 0;
+    }
   
   /* Get and create directories */
   home_dir = getenv("HOME");
   if(!home_dir)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot get home directory");
     return 0;
+    }
   
   thumbs_dir_normal = bg_sprintf("%s/.thumbnails/normal",       home_dir);
   thumbs_dir_fail   = bg_sprintf("%s/.thumbnails/fail/gmerlin", home_dir);
@@ -121,15 +160,15 @@ int bg_get_thumbnail(const char * gml,
   bg_get_filename_hash(gml, hash);
 
   thumb_filename_normal = bg_sprintf("%s/%s.png", thumbs_dir_normal, hash);
+  thumb_filename_fail = bg_sprintf("%s/%s.png", thumbs_dir_fail, hash);
   
   if(access(thumb_filename_normal, R_OK)) /* Thumbnail file not present */
     {
     /* Check if there is a failed thumbnail */
-    thumb_filename_fail = bg_sprintf("%s/%s.png", thumbs_dir_fail, hash);
     if(!access(thumb_filename_fail, R_OK))
       {
-      if(thumbnail_up_to_date(gml, plugin_reg, thumb_filename_fail,
-                              &frame, &format))
+      if(thumbnail_up_to_date(thumb_filename_fail, plugin_reg, 
+                              &frame, &format, st.st_mtime))
         {
         gavl_video_frame_destroy(frame);
         frame = NULL;
@@ -147,8 +186,8 @@ int bg_get_thumbnail(const char * gml,
   else /* Thumbnail file present */
     {
     /* Check if the thumbnail is recent */
-    if(thumbnail_up_to_date(gml, plugin_reg, thumb_filename_normal,
-                            &frame, &format))
+    if(thumbnail_up_to_date(thumb_filename_normal, plugin_reg,
+                            &frame, &format, st.st_mtime))
       {
       if(thumbnail_filename_ret)
         {
@@ -182,24 +221,27 @@ int bg_get_thumbnail(const char * gml,
   
   if(!access(thumb_filename_normal, R_OK)) /* Thumbnail generation succeeded */
     {
+    if(frame_ret && format_ret)
+      {
+      *frame_ret = bg_plugin_registry_load_image(plugin_reg,
+                                                thumb_filename_normal,
+                                                format_ret,
+                                                (bg_metadata_t*)0);
+      }
     if(thumbnail_filename_ret)
       {
       *thumbnail_filename_ret = thumb_filename_normal;
       thumb_filename_normal = NULL;
       }
-    if(frame_ret)
-      {
-      *frame_ret = frame;
-      frame = NULL;
-      }
-    if(format_ret)
-      gavl_video_format_copy(format_ret, &format);
+    
     ret = 1;
     goto done;
     }
   else /* Thumbnail generation failed */
     {
-    make_fail_thumbnail(gml);
+    make_fail_thumbnail(gml, thumb_filename_fail,
+                        plugin_reg,
+                        st.st_mtime);
     }
   
   done:
