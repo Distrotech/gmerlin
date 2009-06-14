@@ -301,9 +301,12 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   }
 
 bg_nle_project_window_t *
-bg_nle_project_window_create(const char * project_file, bg_plugin_registry_t * plugin_reg)
+bg_nle_project_window_create(const char * project_file,
+                             bg_plugin_registry_t * plugin_reg)
   {
   GtkWidget * box;
+  GtkWidget * paned;
+
   bg_nle_project_window_t * ret;
   ret = calloc(1, sizeof(*ret));
 
@@ -314,7 +317,6 @@ bg_nle_project_window_create(const char * project_file, bg_plugin_registry_t * p
     }
   else
     ret->p = bg_nle_project_create(project_file, plugin_reg);
-    
   
   project_windows = g_list_append(project_windows, ret);
   
@@ -329,15 +331,22 @@ bg_nle_project_window_create(const char * project_file, bg_plugin_registry_t * p
 
   /* Pack everything */
   box = gtk_vbox_new(0, 0);
+  paned = gtk_vpaned_new();
+  
   gtk_box_pack_start(GTK_BOX(box), ret->menubar, FALSE, FALSE, 0);
 
-  gtk_box_pack_start(GTK_BOX(box),
-                     bg_nle_media_browser_get_widget(ret->media_browser), TRUE, TRUE, 0);
+  gtk_paned_add1(GTK_PANED(paned),
+                 bg_nle_media_browser_get_widget(ret->media_browser));
+  gtk_paned_add2(GTK_PANED(paned),
+                 bg_nle_timeline_get_widget(ret->timeline));
+  
+  gtk_widget_show(paned);
 
-  gtk_box_pack_start(GTK_BOX(box),
-                     bg_nle_timeline_get_widget(ret->timeline), TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(box), paned, TRUE, TRUE, 0);
+  
   gtk_widget_show(box);
-
+  
+  
   gtk_container_add(GTK_CONTAINER(ret->win), box);
   
   return ret;

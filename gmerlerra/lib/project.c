@@ -8,7 +8,8 @@
 #include <project.h>
 
 
-bg_nle_project_t * bg_nle_project_create(const char * file, bg_plugin_registry_t * plugin_reg)
+bg_nle_project_t * bg_nle_project_create(const char * file,
+                                         bg_plugin_registry_t * plugin_reg)
   {
   bg_nle_project_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -16,6 +17,7 @@ bg_nle_project_t * bg_nle_project_create(const char * file, bg_plugin_registry_t
   ret->start_selection = 0;
   ret->end_selection = -1;
   ret->media_list = bg_nle_media_list_create(plugin_reg);
+  ret->plugin_reg = plugin_reg;
   return ret;
   }
 

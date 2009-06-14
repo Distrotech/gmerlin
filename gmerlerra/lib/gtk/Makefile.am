@@ -6,6 +6,7 @@ libgmerlerra_gtk_la_LIBADD = @GMERLIN_GTK_LIBS@
 
 libgmerlerra_gtk_la_SOURCES = \
 mediabrowser.c \
+playerwidget.c \
 projectwindow.c \
 timeline.c \
 timeruler.c \

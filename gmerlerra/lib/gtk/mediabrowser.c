@@ -14,6 +14,7 @@
 // #include <medialist.h>
 
 #include <gui_gtk/mediabrowser.h>
+#include <gui_gtk/playerwidget.h>
 
 struct bg_nle_media_browser_s
   {
@@ -27,6 +28,8 @@ struct bg_nle_media_browser_s
   GtkTreeViewColumn * col_name;
 
   bg_gtk_filesel_t * filesel;
+
+  bg_nle_player_widget_t * player;
   };
 
 enum
@@ -140,18 +143,19 @@ static void update_entry(bg_nle_media_browser_t * w,
   
   }
 
-
-
 bg_nle_media_browser_t *
 bg_nle_media_browser_create(bg_nle_media_list_t * list)
   {
+  int i;
   bg_nle_media_browser_t * ret;
   GtkListStore *store;
   GtkTreeViewColumn * col;
   GtkCellRenderer *renderer;
-  GtkTreeSelection * selection;
+  //  GtkTreeSelection * selection;
   GtkWidget * scrolledwin;
-
+  GtkTreeIter iter;
+  GtkTreeModel * model;
+  
   ret = calloc(1, sizeof(*ret));
   ret->list = list;
   
@@ -238,11 +242,25 @@ bg_nle_media_browser_create(bg_nle_media_list_t * list)
 
   gtk_widget_show(scrolledwin);
 
+  /* Player */
+  
+  ret->player = bg_nle_player_widget_create(ret->list->plugin_reg);
+  
   /* Pack everything */
-  ret->box = gtk_hbox_new(FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(ret->box), scrolledwin, TRUE, TRUE, 0);
-
+  ret->box = gtk_hpaned_new();
+  
+  gtk_paned_add1(GTK_PANED(ret->box), scrolledwin);
+  gtk_paned_add2(GTK_PANED(ret->box), bg_nle_player_widget_get_widget(ret->player));
   gtk_widget_show(ret->box);
+  
+  /* Append files */
+
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(ret->treeview));
+  for(i = 0; i < ret->list->num_files; i++)
+    {
+    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+    update_entry(ret, ret->list->files[i], &iter);
+    }
   
   return ret;
   }

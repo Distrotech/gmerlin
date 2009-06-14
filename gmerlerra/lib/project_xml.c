@@ -21,7 +21,8 @@ static const char * selection_name = "selection";
 static const char * visible_name   = "visible";
 static const char * media_name     = "media";
 
-bg_nle_project_t * bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
+bg_nle_project_t *
+bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
   {
   xmlDocPtr xml_doc;
   xmlNodePtr node;
