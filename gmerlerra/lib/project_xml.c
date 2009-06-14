@@ -19,8 +19,9 @@ static const char * project_name   = "gmerlerra_project";
 static const char * tracks_name    = "tracks";
 static const char * selection_name = "selection";
 static const char * visible_name   = "visible";
+static const char * media_name     = "media";
 
-bg_nle_project_t * bg_nle_project_load(const char * filename)
+bg_nle_project_t * bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
   {
   xmlDocPtr xml_doc;
   xmlNodePtr node;
@@ -47,7 +48,8 @@ bg_nle_project_t * bg_nle_project_load(const char * filename)
     return (bg_nle_project_t*)0;
     }
   ret = calloc(1, sizeof(*ret));
-
+  ret->plugin_reg = plugin_reg;
+  
   node = node->children;
 
   while(node)
@@ -61,14 +63,21 @@ bg_nle_project_t * bg_nle_project_load(const char * filename)
     if(!BG_XML_STRCMP(node->name, visible_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
-      sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->start_visible, &ret->end_visible);
+      sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->start_visible,
+             &ret->end_visible);
       free(tmp_string);
       }
     if(!BG_XML_STRCMP(node->name, selection_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
-      sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->start_selection, &ret->end_selection);
+      sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->start_selection,
+             &ret->end_selection);
       free(tmp_string);
+      }
+    if(!BG_XML_STRCMP(node->name, media_name))
+      {
+      ret->media_list = bg_nle_media_list_load(ret->plugin_reg,
+                                               xml_doc, node);
       }
     if(!BG_XML_STRCMP(node->name, tracks_name))
       {
@@ -116,15 +125,23 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
 
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
                          (xmlChar*)selection_name, NULL);
-  tmp_string = bg_sprintf("%"PRId64" %"PRId64, p->start_selection, p->end_selection);
+  tmp_string =
+    bg_sprintf("%"PRId64" %"PRId64, p->start_selection, p->end_selection);
   xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
   free(tmp_string);
   
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
                          (xmlChar*)visible_name, NULL);
-  tmp_string = bg_sprintf("%"PRId64" %"PRId64, p->start_visible, p->end_visible);
+  tmp_string =
+    bg_sprintf("%"PRId64" %"PRId64, p->start_visible, p->end_visible);
   xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
   free(tmp_string);
+
+  /* Media list */
+  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
+                         (xmlChar*)media_name, NULL);
+
+  bg_nle_media_list_save(p->media_list, node);
   
   /* Add tracks */
 

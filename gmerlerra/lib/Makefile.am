@@ -3,6 +3,8 @@ SUBDIRS = gtk
 noinst_LTLIBRARIES = libgmerlerra.la
 
 libgmerlerra_la_SOURCES = \
+medialist.c \
+medialist_xml.c \
 project.c \
 project_xml.c \
 projectsettings.c \

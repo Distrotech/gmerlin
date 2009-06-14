@@ -11,6 +11,7 @@
 
 #include <gui_gtk/projectwindow.h>
 #include <gui_gtk/timeline.h>
+#include <gui_gtk/mediabrowser.h>
 
 #include <gmerlin/gui_gtk/gtkutils.h>
 #include <gmerlin/gui_gtk/fileselect.h>
@@ -26,6 +27,7 @@ static GList * project_windows = NULL;
 typedef struct
   {
   GtkWidget * load;
+  GtkWidget * load_media;
   GtkWidget * new;
   GtkWidget * save;
   GtkWidget * save_as;
@@ -65,7 +67,8 @@ struct bg_nle_project_window_s
   bg_nle_project_t * p;
 
   bg_nle_timeline_t * timeline;
-
+  bg_nle_media_browser_t * media_browser;
+  
   char * filename;
   };
 
@@ -101,7 +104,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
   
   if(w == win->project_menu.new)
     {
-    new_win = bg_nle_project_window_create((char*)0);
+    new_win = bg_nle_project_window_create((char*)0, win->p->plugin_reg);
     bg_nle_project_window_show(new_win);
     }
   else if(w == win->project_menu.load)
@@ -111,7 +114,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
                                         &project_path, win->win);
     if(filename)
       {
-      new_win = bg_nle_project_window_create(filename);
+      new_win = bg_nle_project_window_create(filename, win->p->plugin_reg);
       bg_nle_project_window_show(new_win);
       free(filename);
       }
@@ -160,6 +163,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(w == win->project_menu.settings)
     {
     show_settings_dialog(win);
+    }
+  else if(w == win->project_menu.load_media)
+    {
+    bg_nle_media_browser_load_files(win->media_browser);
     }
   else if(w == win->track_menu.add_audio)
     {
@@ -239,6 +246,8 @@ static void init_menu_bar(bg_nle_project_window_t * w)
     create_menu_item(w, w->project_menu.menu, TR("Save as..."), "save_as_16.png");
   w->project_menu.set_default =
     create_menu_item(w, w->project_menu.menu, TR("Set as default"), NULL);
+  w->project_menu.load_media =
+    create_menu_item(w, w->project_menu.menu, TR("Load media..."), "video_16.png");
   w->project_menu.settings =
     create_menu_item(w, w->project_menu.menu, TR("Settings..."), "config_16.png");
   w->project_menu.close =
@@ -292,7 +301,7 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   }
 
 bg_nle_project_window_t *
-bg_nle_project_window_create(const char * project_file)
+bg_nle_project_window_create(const char * project_file, bg_plugin_registry_t * plugin_reg)
   {
   GtkWidget * box;
   bg_nle_project_window_t * ret;
@@ -300,11 +309,11 @@ bg_nle_project_window_create(const char * project_file)
 
   if(project_file)
     {
-    ret->p = bg_nle_project_load(project_file);
+    ret->p = bg_nle_project_load(project_file, plugin_reg);
     ret->filename = bg_strdup(ret->filename, project_file);
     }
   else
-    ret->p = bg_nle_project_create(project_file);
+    ret->p = bg_nle_project_create(project_file, plugin_reg);
     
   
   project_windows = g_list_append(project_windows, ret);
@@ -313,6 +322,7 @@ bg_nle_project_window_create(const char * project_file)
   gtk_window_set_default_size(GTK_WINDOW(ret->win), 1024, 768);
   
   ret->timeline = bg_nle_timeline_create(ret->p);
+  ret->media_browser = bg_nle_media_browser_create(ret->p->media_list);
   
   /* menubar */
   init_menu_bar(ret);
@@ -320,6 +330,10 @@ bg_nle_project_window_create(const char * project_file)
   /* Pack everything */
   box = gtk_vbox_new(0, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->menubar, FALSE, FALSE, 0);
+
+  gtk_box_pack_start(GTK_BOX(box),
+                     bg_nle_media_browser_get_widget(ret->media_browser), TRUE, TRUE, 0);
+
   gtk_box_pack_start(GTK_BOX(box),
                      bg_nle_timeline_get_widget(ret->timeline), TRUE, TRUE, 0);
   gtk_widget_show(box);

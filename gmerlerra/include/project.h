@@ -1,6 +1,7 @@
 #ifndef PROJECT_H
 #define PROJECT_H
 
+#include <medialist.h>
 
 #define BG_NLE_PROJECT_CHANGED (1<<0)
 
@@ -20,9 +21,8 @@ typedef struct
   bg_nle_track_t ** video_tracks;
   bg_nle_track_t ** tracks;
   
-  //  int num_files;
-  //  bg_nle_file_t ** files;
-
+  bg_nle_media_list_t * media_list;
+  
   /* Timeline status */
   gavl_time_t start_visible;
   gavl_time_t end_visible;
@@ -38,9 +38,11 @@ typedef struct
 
   gavl_video_format_t video_format_preset;
   gavl_video_format_t video_format;
+  
+  bg_plugin_registry_t * plugin_reg;
   } bg_nle_project_t;
 
-bg_nle_project_t * bg_nle_project_create(const char * file);
+bg_nle_project_t * bg_nle_project_create(const char * file, bg_plugin_registry_t * plugin_reg);
 
 void bg_nle_project_save(bg_nle_project_t *, const char * file);
 
@@ -63,7 +65,7 @@ void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);
 
 /* project_xml.c */
 
-bg_nle_project_t * bg_nle_project_load(const char * filename);
+bg_nle_project_t * bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg);
 
 void bg_nle_project_save(bg_nle_project_t *, const char * filename);
 

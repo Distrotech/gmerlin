@@ -4,6 +4,8 @@
 #include <gmerlin/parameter.h>
 #include <gmerlin/xmlutils.h>
 
+#include <medialist.h>
+
 typedef enum
   {
     BG_NLE_TRACK_NONE = 0,
@@ -23,8 +25,7 @@ typedef struct
   int64_t dst_pos;
   int64_t len;
   
-  char * location;
-  int track;
+  bg_nle_file_t * file;
   int stream;
   } bg_nle_track_segment_t;
 

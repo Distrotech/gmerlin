@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
   
   create_registries();
   
-  w = bg_nle_project_window_create((const char *)0 /* project */);
+  w = bg_nle_project_window_create((const char *)0 /* project */, plugin_reg);
   bg_nle_project_window_show(w);
   gtk_main();
 
