@@ -457,3 +457,41 @@ GtkWidget * bg_gtk_get_toplevel(GtkWidget * w)
   return toplevel;
   }
 
+void pixbuf_destroy_notify(guchar *pixels,
+                           gpointer data)
+  {
+  gavl_video_frame_destroy(data);
+  }
+
+
+GdkPixbuf * bg_gtk_pixbuf_from_frame(gavl_video_format_t * format,
+                                     gavl_video_frame_t * frame)
+  {
+  if(format->pixelformat == GAVL_RGB_24)
+    {
+    return gdk_pixbuf_new_from_data(frame->planes[0],
+                                    GDK_COLORSPACE_RGB,
+                                    FALSE,
+                                    8,
+                                    format->image_width,
+                                    format->image_height,
+                                    frame->strides[0],
+                                    pixbuf_destroy_notify,
+                                    frame);
+    }
+  else if(format->pixelformat == GAVL_RGBA_32)
+    {
+    return gdk_pixbuf_new_from_data(frame->planes[0],
+                                    GDK_COLORSPACE_RGB,
+                                    TRUE,
+                                    8,
+                                    format->image_width,
+                                    format->image_height,
+                                    frame->strides[0],
+                                    pixbuf_destroy_notify,
+                                    frame);
+    
+    }
+  else
+    return NULL;
+  }

@@ -21,12 +21,16 @@
 
 
 #include <gmerlin/translation.h>
+#include <gavl/gavl.h>
 
 GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
                                       int dest_width,
                                       int dest_height,
                                       float * foreground,
                                       float * background);
+
+GdkPixbuf * bg_gtk_pixbuf_from_frame(gavl_video_format_t * format,
+                                     gavl_video_frame_t * frame);
 
 void bg_gtk_init(int * argc, char *** argv, char * default_window_icon);
 
