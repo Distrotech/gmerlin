@@ -163,12 +163,36 @@ void gavl_timecode_dump(const gavl_timecode_format_t * tf,
 #define GAVL_TIMECODE_STRING_LEN 26 /*!< Length for a string into
                                       which a timecode will be printed */
 
-
+/** \brief Print a full timecode into a string
+ *  \param tf The timecode format
+ *  \param tc A timecode
+ *  \param str String where the timecode will be printed
+ *
+ *  This prints the full timecode (including calendar date if available).
+ *  For real-life applications, you might want to try
+ *  \ref gavl_timecode_prettyprint_short instead.
+ */
+  
 GAVL_PUBLIC
 void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
                                gavl_timecode_t tc,
                                char str[GAVL_TIMECODE_STRING_LEN]);
  
+/* -HH:MM:SS:FF */
+
+#define GAVL_TIMECODE_STRING_LEN_SHORT 13 /*!< Length for a string into
+                                            which a short timecode will be printed */
+
+/** \brief Print a short timecode into a string
+ *  \param tc A timecode
+ *  \param str String where the timecode will be printed
+ *
+ *  Since 1.1.1
+ */
+  
+GAVL_PUBLIC
+void gavl_timecode_prettyprint_short(gavl_timecode_t tc,
+                                     char str[GAVL_TIMECODE_STRING_LEN_SHORT]);
 
   
 /*

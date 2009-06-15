@@ -322,10 +322,30 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
     }
 
   if(tf->int_framerate < 100)
-    sprintf(ptr, "%02d:%02d:%02d.%02d", hours, minutes, seconds, frames);
+    sprintf(ptr, "%02d:%02d:%02d:%02d", hours, minutes, seconds, frames);
   else if(tf->int_framerate < 1000)
-    sprintf(ptr, "%02d:%02d:%02d.%03d", hours, minutes, seconds, frames);
+    sprintf(ptr, "%02d:%02d:%02d:%03d", hours, minutes, seconds, frames);
   else
-    sprintf(ptr, "%02d:%02d:%02d.%04d", hours, minutes, seconds, frames);
+    sprintf(ptr, "%02d:%02d:%02d:%04d", hours, minutes, seconds, frames);
+  }
+  
+void gavl_timecode_prettyprint_short(gavl_timecode_t tc,
+                                     char str[GAVL_TIMECODE_STRING_LEN_SHORT])
+  {
+  char * ptr;
+  int hours, minutes, seconds, frames;
+  
+  gavl_timecode_to_hmsf(tc, &hours,
+                        &minutes, &seconds, &frames);
+  
+  ptr = str;
+  
+  if(tc & GAVL_TIMECODE_SIGN_MASK)
+    {
+    sprintf(ptr, "-");
+    ptr++;
+    }
+  
+  sprintf(ptr, "%02d:%02d:%02d:%02d", hours % 100, minutes, seconds, frames);
   }
   

@@ -162,6 +162,26 @@ void gavl_time_delay(gavl_time_t * time);
 GAVL_PUBLIC void
 gavl_time_prettyprint(gavl_time_t time, char str[GAVL_TIME_STRING_LEN]);
 
+/*! \ingroup time
+ * \brief Length of the string passed to \ref gavl_time_prettyprint_ms
+ */
+
+#define GAVL_TIME_STRING_LEN_MS 15
+
+/*! \ingroup time
+ * \brief Convert a time to a string with millisecond precision
+ * \param time Time to print
+ * \param str String
+ *
+ * This prints a gavl_time into ASCII string if a format suitable for player displays.
+ * The format is: -hhh:mm:ss.MMM
+ *
+ * Since 1.1.1
+ */
+
+GAVL_PUBLIC void
+gavl_time_prettyprint_ms(gavl_time_t time, char str[GAVL_TIME_STRING_LEN_MS]);
+  
 
 /* Scan time: format is hhh:mm:ss with hh: hours, mm: minutes, ss: seconds. Seconds can be a fractional
    value (i.e. with decimal point) */

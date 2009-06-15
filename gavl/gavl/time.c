@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <inttypes.h>
 #include <gavltime.h>
@@ -50,101 +51,80 @@ void gavl_time_delay(gavl_time_t * t)
  *  hhh:mm:ss
  */
 
-static char digit_to_char_array[] = "0123456789 ";
-
-static char digit_to_char(int digit)
+GAVL_PUBLIC void
+gavl_time_prettyprint_ms(gavl_time_t t, char str[GAVL_TIME_STRING_LEN_MS])
   {
-  if((digit > 9) || (digit < 0))
-    return ' ';
-  return digit_to_char_array[digit];
-  }
-
-static void
-do_prettyprint(int total_seconds, char ret[GAVL_TIME_STRING_LEN])
-  {
-  char * pos;
-  int seconds;
-  int minutes;
-  int hours;
-  int negative;
-  int digits_started;
+  int hours, minutes, seconds, milliseconds;
+  char * pos = str;
   
-  if(total_seconds < 0)
+  if(t == GAVL_TIME_UNDEFINED)
     {
-    negative = 1;
-    total_seconds = -total_seconds;
+    strcpy(str, "-:--.---");
+    return;
     }
-  else
-    {
-    negative = 0;
-    }
-  
-  seconds = total_seconds % 60;
-  total_seconds /= 60;
-  minutes = total_seconds % 60;
-  total_seconds /= 60;
-  hours = total_seconds;
 
-  pos = ret;
-  digits_started = 0;
-    
-  if(negative)
+  if(t < 0)
     {
+    t = -t;
     *(pos++) = '-';
     }
-
-  /* Print hours */
   
-  if(hours / 100)
-    {
-    *(pos++) = digit_to_char(hours/100);
-    digits_started = 1;
-    }
-  if(digits_started || (hours % 100) / 10)
-    {
-    *(pos++) = digit_to_char((hours % 100) / 10);
-    digits_started = 1;
-    }
-  if(digits_started || (hours % 10))
-    {
-    *(pos++) = digit_to_char(hours % 10);
-    digits_started = 1;
-    }
+  milliseconds = (t/1000) % 1000;
+  t /= GAVL_TIME_SCALE;
+  seconds = t % 60;
+  t /= 60;
 
-  if(digits_started)
-    *(pos++) = ':';
+  minutes = t % 60;
+  t /= 60;
 
-
-  if(digits_started || (minutes / 10))
-    {
-    *(pos++) = digit_to_char(minutes / 10);
-    digits_started = 1;
-    }
-
-  *(pos++) = digit_to_char(minutes % 10);
+  hours = t % 60;
+  t /= 60;
   
-  *(pos++) = ':';
-  *(pos++) =   digit_to_char(seconds / 10);
-  *(pos++) =   digit_to_char(seconds % 10);
-  *pos = '\0';
- 
+  if(hours)
+    sprintf(str, "%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
+  else
+    sprintf(str, "%02d:%02d.%03d", minutes, seconds, milliseconds);
+
   }
 
 void
-gavl_time_prettyprint(gavl_time_t time, char ret[GAVL_TIME_STRING_LEN])
+gavl_time_prettyprint(gavl_time_t t, char str[GAVL_TIME_STRING_LEN])
   {
-  int total_seconds;
-
-  if(time == GAVL_TIME_UNDEFINED)
+  int seconds;
+  int minutes;
+  int hours;
+  
+  char * pos = str;
+  
+  if(t == GAVL_TIME_UNDEFINED)
     {
-    strcpy(ret, "-:--");
+    strcpy(str, "-:--");
+    return;
     }
+  
+  if(t < 0)
+    {
+    t = -t;
+    *(pos++) = '-';
+    }
+  
+  t /= GAVL_TIME_SCALE;
+  
+  seconds = t % 60;
+  t /= 60;
+  minutes = t % 60;
+  t /= 60;
+  hours = t % 1000;
+  
+  /* Print hours */
+  
+  if(hours)
+    sprintf(pos, "%d:%02d:%02d", hours, minutes, seconds);
   else
-    {
-    total_seconds = time / GAVL_TIME_SCALE;
-    do_prettyprint(total_seconds, ret);
-    }
+    sprintf(pos, "%d:%02d", minutes, seconds);
   }
+
+
 
 /* Scan seconds: format is hhh:mm:ss with hh: hours, mm: minutes, ss: seconds. Seconds can be a fractional
    value (i.e. with decimal point) */
