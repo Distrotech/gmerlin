@@ -568,7 +568,9 @@ display_t * display_create(gmerlin_t * gmerlin)
   
   bg_gtk_scrolltext_set_font(ret->scrolltext, "Sans Bold 10");
 
-  ret->time_display = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_NORMAL, 0);
+  ret->time_display =
+    bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_NORMAL, 0,
+                               BG_GTK_DISPLAY_MODE_HMS);
 
   
   /* Set attributes */
@@ -667,7 +669,7 @@ void display_set_time(display_t * d, gavl_time_t time)
         break;
       }
     }
-  bg_gtk_time_display_update(d->time_display, display_time);
+  bg_gtk_time_display_update(d->time_display, display_time, BG_GTK_DISPLAY_MODE_HMS);
   }
 
 static void update_state(display_t * d)
@@ -681,7 +683,7 @@ static void update_state(display_t * d)
 
       bg_gtk_time_display_update(d->time_display,
                                  d->duration_before+d->duration_current+
-                                 d->duration_after);
+                                 d->duration_after, BG_GTK_DISPLAY_MODE_HMS);
       break;
     case BG_PLAYER_STATE_SEEKING:
       d->state_index = STATE_SEEKING;

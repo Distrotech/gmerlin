@@ -30,15 +30,20 @@ typedef enum
     BG_GTK_DISPLAY_SIZE_SMALL,  /*  40 x 16  1/6 */
   } BG_GTK_DISPLAY_SIZE;
 
+#define BG_GTK_DISPLAY_MODE_HMS      (1<<0) // 000:00:00
+#define BG_GTK_DISPLAY_MODE_HMSMS    (1<<1) // 000:00:00.000
+#define BG_GTK_DISPLAY_MODE_TIMECODE (1<<2) //  00:00:00:00
+
 typedef struct bg_gtk_time_display_s bg_gtk_time_display_t;
 
 bg_gtk_time_display_t *
-bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width);
+bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size,
+                           int border_width, int mode_mask);
 
 GtkWidget * bg_gtk_time_display_get_widget(bg_gtk_time_display_t *);
 
 void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
-                                gavl_time_t time);
+                                gavl_time_t time, int mode);
 
 void bg_gtk_time_display_set_colors(bg_gtk_time_display_t * d,
                                     float * foreground,

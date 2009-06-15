@@ -382,8 +382,8 @@ static gboolean idle_callback(gpointer data)
         remaining_time = bg_msg_get_arg_time(msg, 1);
 
         bg_gtk_time_display_update(win->time_remaining,
-                                   remaining_time);
-        
+                                   remaining_time,
+                                   BG_GTK_DISPLAY_MODE_HMS);
         
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar),
                                       percentage_done);
@@ -392,7 +392,9 @@ static gboolean idle_callback(gpointer data)
 
         finish_transcoding(win);
         
-        bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
+        bg_gtk_time_display_update(win->time_remaining,
+                                   GAVL_TIME_UNDEFINED,
+                                   BG_GTK_DISPLAY_MODE_HMS);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
         
         
@@ -426,7 +428,9 @@ static gboolean idle_callback(gpointer data)
 
         finish_transcoding(win);
         
-        bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
+        bg_gtk_time_display_update(win->time_remaining,
+                                   GAVL_TIME_UNDEFINED,
+                                   BG_GTK_DISPLAY_MODE_HMS);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
         
         win->transcoder = (bg_transcoder_t*)0;
@@ -632,7 +636,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     gtk_widget_set_sensitive(win->stop_button, 0);
     gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
 
-    bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
+    bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED,
+                               BG_GTK_DISPLAY_MODE_HMS);
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
 
     bg_gtk_scrolltext_set_text(win->scrolltext,
@@ -955,14 +960,17 @@ transcoder_window_t * transcoder_window_create()
   gtk_widget_show(ret->progress_bar);
 
   /* Time display */
-  ret->time_remaining = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
+  ret->time_remaining =
+    bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4,
+                               BG_GTK_DISPLAY_MODE_HMS);
 
   bg_gtk_tooltips_set_tip(bg_gtk_time_display_get_widget(ret->time_remaining),
                           "Estimated remaining transcoding time",
                           PACKAGE);
 
 
-  bg_gtk_time_display_update(ret->time_remaining, GAVL_TIME_UNDEFINED);
+  bg_gtk_time_display_update(ret->time_remaining, GAVL_TIME_UNDEFINED,
+                             BG_GTK_DISPLAY_MODE_HMS);
 
   /* Scrolltext */
 

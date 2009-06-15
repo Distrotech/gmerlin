@@ -840,7 +840,9 @@ static void bg_gtk_album_widget_update_entry(bg_gtk_album_widget_t * w, const bg
   bg_album_entry_t * current_entry;
   current_entry = bg_album_get_current_entry(w->album);
   update_entry(w, entry, iter, (current_entry == entry));
-  bg_gtk_time_display_update(w->total_time, bg_album_get_duration(w->album));
+  bg_gtk_time_display_update(w->total_time,
+                             bg_album_get_duration(w->album),
+                             BG_GTK_DISPLAY_MODE_HMS);
   }
 
 static void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
@@ -906,7 +908,9 @@ static void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
       }
     }
 
-  bg_gtk_time_display_update(w->total_time, bg_album_get_duration(w->album));
+  bg_gtk_time_display_update(w->total_time,
+                             bg_album_get_duration(w->album),
+                             BG_GTK_DISPLAY_MODE_HMS);
 
   set_sensitive(w);
     
@@ -2513,7 +2517,8 @@ static void delete_callback(bg_album_t * a,
   update_indices(w, indices[0]);
   update_cursor_pos(w);
   bg_gtk_time_display_update(w->total_time,
-                             bg_album_get_duration(w->album));
+                             bg_album_get_duration(w->album),
+                             BG_GTK_DISPLAY_MODE_HMS);
   set_sensitive(w);
   find_widget_reset(w);
   }
@@ -2919,7 +2924,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   ret->find_button               = create_pixmap_button(ret, "find_16.png",
                                                         TRS("Find tracks"));
   
-  ret->total_time                = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
+  ret->total_time                = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4, BG_GTK_DISPLAY_MODE_HMS);
 
   bg_gtk_tooltips_set_tip(bg_gtk_time_display_get_widget(ret->total_time),
                           TRS("Total playback time"),

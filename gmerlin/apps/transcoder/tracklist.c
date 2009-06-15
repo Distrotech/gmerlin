@@ -509,7 +509,8 @@ static void track_list_update(track_list_t * w)
     }
   g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
 
-  bg_gtk_time_display_update(w->time_total, duration_total);
+  bg_gtk_time_display_update(w->time_total, duration_total,
+                             BG_GTK_DISPLAY_MODE_HMS);
 
   /* Flush events */
 
@@ -1188,7 +1189,9 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   ret = calloc(1, sizeof(*ret));
     
   ret->track_defaults_section = track_defaults_section;
-  ret->time_total = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
+  ret->time_total =
+    bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4,
+                               BG_GTK_DISPLAY_MODE_HMS);
   ret->encoder_pp_window = encoder_pp_window_create(plugin_reg);
 
   ret->accel_group = gtk_accel_group_new();

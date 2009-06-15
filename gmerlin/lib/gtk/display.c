@@ -45,8 +45,9 @@
 #define DIGIT_9     9
 #define DIGIT_COLON 10
 #define DIGIT_MINUS 11
+#define DIGIT_DOT   12
 
-#define NUM_PIXBUFS 12
+#define NUM_PIXBUFS 13
 
 static int num_time_displays = 0;
 
@@ -81,6 +82,10 @@ static void load_pixbufs()
   c_tmp2 = bg_search_file_read("icons", "digit_minus.png");
   digit_pixbufs[DIGIT_MINUS] = gdk_pixbuf_new_from_file(c_tmp2, NULL);    
   free(c_tmp2);
+
+  c_tmp2 = bg_search_file_read("icons", "digit_dot.png");
+  digit_pixbufs[DIGIT_DOT] = gdk_pixbuf_new_from_file(c_tmp2, NULL);    
+  free(c_tmp2);
   }
 
 static void unload_pixbufs()
@@ -100,7 +105,7 @@ static void unload_pixbufs()
 
 struct bg_gtk_time_display_s
   {
-  GdkPixbuf * pixbufs[12];
+  GdkPixbuf * pixbufs[NUM_PIXBUFS];
   float foreground_color[3];
   float background_color[3];
   int height;
@@ -253,7 +258,7 @@ void bg_gtk_time_display_set_colors(bg_gtk_time_display_t * d,
 
 
 void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
-                                gavl_time_t time)
+                                gavl_time_t time, int mode)
   {
   char * pos;
   char buf[GAVL_TIME_STRING_LEN];
@@ -286,7 +291,8 @@ void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
   }
 
 bg_gtk_time_display_t *
-bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width)
+bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width,
+                           int mode_mask)
   {
   bg_gtk_time_display_t * ret;
 
@@ -346,7 +352,7 @@ bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width)
                               2 * ret->border_width + ret->height);
   
   gtk_widget_show(ret->widget);
-  bg_gtk_time_display_update(ret, 0);
+  //  bg_gtk_time_display_update(ret, 0);
   return ret;
   }
 
