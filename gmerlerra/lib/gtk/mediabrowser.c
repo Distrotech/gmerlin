@@ -77,12 +77,15 @@ static void column_resize_callback(GtkTreeViewColumn * col,
     if(width > width_needed)
       {
       name_width += width - width_needed;
-      gtk_tree_view_column_set_fixed_width (w->col_name, name_width);
+
+      if(name_width > 0)
+        gtk_tree_view_column_set_fixed_width (w->col_name, name_width);
       }
     else if(width < width_needed)
       {
       name_width -= width_needed - width;
-      gtk_tree_view_column_set_fixed_width (w->col_name, name_width);
+      if(name_width > 0)
+        gtk_tree_view_column_set_fixed_width (w->col_name, name_width);
       }
     
     }

@@ -12,9 +12,11 @@
 #include <gui_gtk/projectwindow.h>
 #include <gui_gtk/timeline.h>
 #include <gui_gtk/mediabrowser.h>
+#include <gui_gtk/playerwidget.h>
 
 #include <gmerlin/gui_gtk/gtkutils.h>
 #include <gmerlin/gui_gtk/fileselect.h>
+#include <gmerlin/gui_gtk/display.h>
 
 #include <gmerlin/utils.h>
 #include <gmerlin/cfg_dialog.h>
@@ -70,6 +72,14 @@ struct bg_nle_project_window_s
   bg_nle_media_browser_t * media_browser;
   
   char * filename;
+  GtkWidget * notebook;
+
+  bg_nle_player_widget_t * compositor;
+
+  bg_gtk_time_display_t * time_display;
+  GtkWidget * statusbar;
+  GtkWidget * progressbar;
+  
   };
 
 static void show_settings_dialog(bg_nle_project_window_t * win)
@@ -304,9 +314,11 @@ bg_nle_project_window_t *
 bg_nle_project_window_create(const char * project_file,
                              bg_plugin_registry_t * plugin_reg)
   {
-  GtkWidget * box;
+  GtkWidget * mainbox;
   GtkWidget * paned;
-
+  GtkWidget * label;
+  GtkWidget * box;
+  
   bg_nle_project_window_t * ret;
   ret = calloc(1, sizeof(*ret));
 
@@ -326,28 +338,75 @@ bg_nle_project_window_create(const char * project_file,
   ret->timeline = bg_nle_timeline_create(ret->p);
   ret->media_browser = bg_nle_media_browser_create(ret->p->media_list);
   
+  ret->compositor = bg_nle_player_widget_create(plugin_reg);
+  
   /* menubar */
   init_menu_bar(ret);
 
+  /* Statusbar */
+
+  ret->time_display = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL,
+                                                 4, BG_GTK_DISPLAY_MODE_TIMECODE |
+                                                 BG_GTK_DISPLAY_MODE_HMSMS);
+
+  ret->progressbar = gtk_progress_bar_new();
+  gtk_widget_show(ret->progressbar);
+
+  ret->statusbar = gtk_statusbar_new();
+
+  gtk_statusbar_set_has_resize_grip(GTK_STATUSBAR(ret->statusbar), FALSE);
+  
+  gtk_widget_show(ret->statusbar);
+  
+  
   /* Pack everything */
-  box = gtk_vbox_new(0, 0);
+  mainbox = gtk_vbox_new(0, 0);
   paned = gtk_vpaned_new();
   
-  gtk_box_pack_start(GTK_BOX(box), ret->menubar, FALSE, FALSE, 0);
-
-  gtk_paned_add1(GTK_PANED(paned),
-                 bg_nle_media_browser_get_widget(ret->media_browser));
-  gtk_paned_add2(GTK_PANED(paned),
-                 bg_nle_timeline_get_widget(ret->timeline));
+  gtk_box_pack_start(GTK_BOX(mainbox), ret->menubar, FALSE, FALSE, 0);
+  
+  ret->notebook = gtk_notebook_new();
   
   gtk_widget_show(paned);
 
-  gtk_box_pack_start(GTK_BOX(box), paned, TRUE, TRUE, 0);
+  label = gtk_label_new(TR("Media browser"));
+  gtk_widget_show(label);
+
+  gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook),
+                           bg_nle_media_browser_get_widget(ret->media_browser),
+                           label); 
+
+  label = gtk_label_new(TR("Compositor"));
+  gtk_widget_show(label);
+  gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook),
+                           bg_nle_player_widget_get_widget(ret->compositor),
+                           label); 
   
+  gtk_widget_show(ret->notebook);
+
+  gtk_paned_add1(GTK_PANED(paned),
+                 ret->notebook);
+  gtk_paned_add2(GTK_PANED(paned),
+                 bg_nle_timeline_get_widget(ret->timeline));
+
+  
+  gtk_box_pack_start(GTK_BOX(mainbox), paned, TRUE, TRUE, 0);
+
+  box = gtk_hbox_new(FALSE, 0);
+
+  gtk_box_pack_start(GTK_BOX(box),
+                     bg_gtk_time_display_get_widget(ret->time_display),
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->statusbar, TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->progressbar, FALSE, FALSE, 0);
+
   gtk_widget_show(box);
   
+  gtk_box_pack_start(GTK_BOX(mainbox), box, FALSE, FALSE, 0);
   
-  gtk_container_add(GTK_CONTAINER(ret->win), box);
+  gtk_widget_show(mainbox);
+  
+  gtk_container_add(GTK_CONTAINER(ret->win), mainbox);
   
   return ret;
   }
