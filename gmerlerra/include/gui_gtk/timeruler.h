@@ -8,7 +8,6 @@
 #include <track.h>
 #include <project.h>
 
-
 typedef struct bg_nle_time_ruler_s bg_nle_time_ruler_t;
 
 bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_project_t*);
@@ -22,7 +21,7 @@ void bg_nle_time_ruler_destroy(bg_nle_time_ruler_t *);
 GtkWidget * bg_nle_time_ruler_get_widget(bg_nle_time_ruler_t *);
 
 int64_t bg_nle_time_ruler_pos_2_time(bg_nle_time_ruler_t * r, int pos);
-int bg_nle_time_ruler_time_2_pos(bg_nle_time_ruler_t * r, int64_t time);
+double bg_nle_time_ruler_time_2_pos(bg_nle_time_ruler_t * r, int64_t time);
 
 
 void bg_nle_time_ruler_get_range(bg_nle_time_ruler_t *,

@@ -1,7 +1,11 @@
-#include <gtk/gtk.h>
+
 #include <stdlib.h>
 #include <math.h>
 #include <config.h>
+
+#include <gtk/gtk.h>
+#include <pango/pangocairo.h>
+
 
 #include <gmerlin/utils.h>
 #include <gmerlin/gui_gtk/gtkutils.h>
@@ -10,7 +14,9 @@
 #include <gui_gtk/timeruler.h>
 
 // 000:00:00.000
-#define TIME_STRING_LEN 14
+// #define TIME_STRING_LEN 14
+
+#define FONT "Sans 10"
 
 struct bg_nle_time_ruler_s
   {
@@ -21,36 +27,15 @@ struct bg_nle_time_ruler_s
   gavl_time_t spacing_major;
   gavl_time_t spacing_minor;
   
-  PangoLayout * pl;
-
   void (*selection_changed_callback)(void*);
   void * selection_changed_data;
   
   int mouse_x;
   
   bg_nle_project_t * p;
+  
+  PangoFontDescription *font_desc;
   };
-
-static void print_time(gavl_time_t t, char * str)
-  {
-  int hours, minutes, seconds, milliseconds;
-
-  milliseconds = (t/1000) % 1000;
-  t /= GAVL_TIME_SCALE;
-  seconds = t % 60;
-  t /= 60;
-
-  minutes = t % 60;
-  t /= 60;
-
-  hours = t % 60;
-  t /= 60;
-
-  if(hours)
-    sprintf(str, "%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
-  else
-    sprintf(str, "%02d:%02d.%03d", minutes, seconds, milliseconds);
-  }
 
 static void calc_spacing(bg_nle_time_ruler_t * r)
   {
@@ -126,19 +111,23 @@ int64_t bg_nle_time_ruler_pos_2_time(bg_nle_time_ruler_t * r, int pos)
   return (int64_t)(ret_d + 0.5) + r->p->start_visible;
   }
 
-int bg_nle_time_ruler_time_2_pos(bg_nle_time_ruler_t * r, int64_t time)
+double bg_nle_time_ruler_time_2_pos(bg_nle_time_ruler_t * r, int64_t time)
   {
   double ret_d = (double)(time - r->p->start_visible) /
     (double)(r->p->end_visible - r->p->start_visible) * (double)r->width;
-  return (int)(ret_d + 0.5);
+  return ret_d;
   }
 
 
 static void redraw(bg_nle_time_ruler_t * r)
   {
   int64_t time;
-  int pos;
-  char time_string[TIME_STRING_LEN];
+  double pos;
+  char time_string[GAVL_TIME_STRING_LEN_MS];
+  PangoLayout * pl;
+  cairo_t * c = gdk_cairo_create(r->wid->window);
+
+  pl = pango_cairo_create_layout(c);
   
   gtk_paint_box(gtk_widget_get_style(r->wid),
                 r->wid->window,
@@ -154,37 +143,40 @@ static void redraw(bg_nle_time_ruler_t * r)
 
   /* Draw tics */
   
-  time = ((r->p->start_visible / r->spacing_minor)) * r->spacing_minor;
+  time = ((r->p->start_visible / r->spacing_major)) * r->spacing_major;
   
+  cairo_set_line_width(c, 1.0);
+  pango_layout_set_font_description(pl, r->font_desc);
+    
   while(time < r->p->end_visible)
     {
     pos = bg_nle_time_ruler_time_2_pos(r, time);
-
+#if 0
     if(pos < 0)
       {
       time += r->spacing_minor;
       continue;
       }
-
+#endif
     if(time % r->spacing_major)
       {
-      gtk_paint_vline(gtk_widget_get_style(r->wid),
-                      r->wid->window,
-                      GTK_STATE_NORMAL,
-                      (const GdkRectangle *)0,
-                      r->wid,
-                      (const gchar *)0,
-                      16, 32, pos);
+      cairo_move_to(c, pos, 16.0);
+      cairo_line_to(c, pos, 32.0);
+      cairo_stroke(c);
       }
     else
       {
-      gtk_paint_vline(gtk_widget_get_style(r->wid),
-                      r->wid->window,
-                      GTK_STATE_NORMAL,
-                      (const GdkRectangle *)0,
-                      r->wid,
-                      (const gchar *)0,
-                      0, 32, pos);
+      cairo_move_to(c, pos, 0.0);
+      cairo_line_to(c, pos, 32.0);
+      cairo_stroke(c);
+
+      gavl_time_prettyprint_ms(time, time_string);
+      pango_layout_set_text(pl, time_string, -1);
+      cairo_move_to(c, pos+2.0, 0.0);
+      pango_cairo_show_layout(c, pl);
+      
+#if 0
+
       print_time(time, time_string);
       pango_layout_set_text(r->pl, time_string, -1);
       
@@ -198,6 +190,7 @@ static void redraw(bg_nle_time_ruler_t * r)
                        pos+ 2,
                        0,
                        r->pl);
+#endif
       }
     time += r->spacing_minor;
     }
@@ -273,7 +266,7 @@ bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_project_t * p)
   
   ret->wid = gtk_drawing_area_new();
 
-  ret->pl = pango_layout_new(gtk_widget_get_pango_context(ret->wid));
+  ret->font_desc = pango_font_description_from_string(FONT);
   
   ret->cursor = gdk_cursor_new(GDK_SB_H_DOUBLE_ARROW);
   
@@ -306,7 +299,7 @@ bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_project_t * p)
 
 void bg_nle_time_ruler_destroy(bg_nle_time_ruler_t * t)
   {
-  g_object_unref(t->pl);
+  pango_font_description_free(t->font_desc);
   }
 
 GtkWidget * bg_nle_time_ruler_get_widget(bg_nle_time_ruler_t * t)

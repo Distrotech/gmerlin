@@ -104,8 +104,8 @@ void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
   {
   gavl_time_t selection_start_time;
   gavl_time_t selection_end_time;
-  int selection_start_pos;
-  int selection_end_pos;
+  float selection_start_pos;
+  float selection_end_pos;
   
   cairo_t * c = gdk_cairo_create(w->preview->window);
   
