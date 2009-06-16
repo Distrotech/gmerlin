@@ -34,8 +34,20 @@ struct bg_nle_timeline_s
   GtkWidget * preview_box;
 
   bg_nle_project_t * p;
+
+  void (*motion_callback)(gavl_time_t time, void * data);
+  void * motion_callback_data;
   
   };
+
+void bg_nle_timeline_set_motion_callback(bg_nle_timeline_t * t,
+                                         void (*callback)(gavl_time_t time, void * data),
+                                         void * data)
+  {
+  t->motion_callback = callback;
+  t->motion_callback_data = data;
+  }
+
 
 static void button_callback(GtkWidget * w, gpointer  data)
   {
@@ -68,6 +80,16 @@ static void selection_changed_callback(void * data)
     bg_nle_track_widget_redraw(t->tracks[i]);
     }
         
+  }
+
+static void motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
+                                   gpointer data)
+  {
+  bg_nle_timeline_t * t = data;
+  
+  if(t->motion_callback)
+    t->motion_callback(bg_nle_time_ruler_pos_2_time(t->ruler, (int)evt->x), t->motion_callback_data);
+  
   }
 
 static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
@@ -103,6 +125,7 @@ static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
 bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   {
   GtkWidget * box;
+  GtkWidget * eventbox;
   int i;
 
   bg_nle_timeline_t * ret = calloc(1, sizeof(*ret));  
@@ -131,7 +154,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   
   ret->preview_window = gtk_scrolled_window_new((GtkAdjustment *)0,
                                                 (GtkAdjustment *)0);
-
+  
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->preview_window),
                                  GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
 
@@ -144,9 +167,21 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   
   ret->preview_box = gtk_vbox_new(FALSE, 2);
   ret->panel_box = gtk_vbox_new(FALSE, 2);
+
+  eventbox = gtk_event_box_new();
+  
+  gtk_widget_set_events(eventbox,
+                        GDK_POINTER_MOTION_MASK);
+
+  g_signal_connect(eventbox,
+                   "motion-notify-event",
+                   G_CALLBACK(motion_notify_callback), ret);
+
+  gtk_container_add(GTK_CONTAINER(eventbox), ret->preview_box);
+  gtk_widget_show(eventbox);
   
   gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(ret->preview_window),
-                                        ret->preview_box);
+                                        eventbox);
   gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(ret->panel_window),
                                         ret->panel_box);
 

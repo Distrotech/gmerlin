@@ -310,6 +310,14 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   gtk_widget_show(w->menubar);
   }
 
+static void motion_callback(gavl_time_t time, void * data)
+  {
+  bg_nle_project_window_t * p = data;
+  bg_gtk_time_display_update(p->time_display, time, BG_GTK_DISPLAY_MODE_HMSMS);  
+  }
+
+
+
 bg_nle_project_window_t *
 bg_nle_project_window_create(const char * project_file,
                              bg_plugin_registry_t * plugin_reg)
@@ -336,6 +344,10 @@ bg_nle_project_window_create(const char * project_file,
   gtk_window_set_default_size(GTK_WINDOW(ret->win), 1024, 768);
   
   ret->timeline = bg_nle_timeline_create(ret->p);
+
+  bg_nle_timeline_set_motion_callback(ret->timeline,
+                                      motion_callback, ret);
+
   ret->media_browser = bg_nle_media_browser_create(ret->p->media_list);
   
   ret->compositor = bg_nle_player_widget_create(plugin_reg);
@@ -346,9 +358,10 @@ bg_nle_project_window_create(const char * project_file,
   /* Statusbar */
 
   ret->time_display = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL,
-                                                 4, BG_GTK_DISPLAY_MODE_TIMECODE |
+                                                 4,
+                                                 BG_GTK_DISPLAY_MODE_TIMECODE |
                                                  BG_GTK_DISPLAY_MODE_HMSMS);
-
+  
   ret->progressbar = gtk_progress_bar_new();
   gtk_widget_show(ret->progressbar);
 

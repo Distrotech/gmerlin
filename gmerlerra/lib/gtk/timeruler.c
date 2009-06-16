@@ -151,13 +151,7 @@ static void redraw(bg_nle_time_ruler_t * r)
   while(time < r->p->end_visible)
     {
     pos = bg_nle_time_ruler_time_2_pos(r, time);
-#if 0
-    if(pos < 0)
-      {
-      time += r->spacing_minor;
-      continue;
-      }
-#endif
+    
     if(time % r->spacing_major)
       {
       cairo_move_to(c, pos, 16.0);
