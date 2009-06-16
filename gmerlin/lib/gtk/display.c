@@ -33,6 +33,8 @@
 #include <gui_gtk/gtkutils.h>
 #include <gmerlin/utils.h>
 
+#define MAX_CHARS GAVL_TIME_STRING_LEN_MS // 15
+
 #define DIGIT_0     0
 #define DIGIT_1     1
 #define DIGIT_2     2
@@ -112,10 +114,12 @@ struct bg_gtk_time_display_s
   int digit_width;
   int colon_width;
   GtkWidget * widget;
-  int indices[GAVL_TIME_STRING_LEN];
+  int indices[MAX_CHARS];
   
   GdkGC * gc;
 
+  int type_mask;
+  int max_width;
   int border_width;
   };
 
@@ -140,20 +144,19 @@ static void set_bg_color(bg_gtk_time_display_t * d)
   gdk_gc_set_foreground(d->gc, &bg);
   }
 
-
-
 static void create_pixmaps(bg_gtk_time_display_t * d)
   {
   int i;
   
-  if(d->pixbufs[0])
+  for(i = 0; i < NUM_PIXBUFS; i++)
     {
-    for(i = 0; i < 12; i++)
+    if(d->pixbufs[i])
+      {
       g_object_unref(G_OBJECT(d->pixbufs[i]));
+      d->pixbufs[i] = NULL;
+      }
     }
-
   /* Scale down the pixmaps */
-
   
   for(i = 0; i < 10; i++)
     {
@@ -163,17 +166,26 @@ static void create_pixmaps(bg_gtk_time_display_t * d)
                                               d->foreground_color,
                                               d->background_color);
     }
-  d->pixbufs[10] = bg_gtk_pixbuf_scale_alpha(digit_pixbufs[10],
-                                             d->colon_width,
-                                             d->height,
-                                             d->foreground_color,
-                                             d->background_color);
+  d->pixbufs[DIGIT_COLON] = bg_gtk_pixbuf_scale_alpha(digit_pixbufs[DIGIT_COLON],
+                                                      d->colon_width,
+                                                      d->height,
+                                                      d->foreground_color,
+                                                      d->background_color);
 
-  d->pixbufs[11] = bg_gtk_pixbuf_scale_alpha(digit_pixbufs[11],
-                                             d->digit_width,
-                                             d->height,
-                                             d->foreground_color,
-                                             d->background_color);
+  d->pixbufs[DIGIT_MINUS] = bg_gtk_pixbuf_scale_alpha(digit_pixbufs[DIGIT_MINUS],
+                                                      d->digit_width,
+                                                      d->height,
+                                                      d->foreground_color,
+                                                      d->background_color);
+  if(d->type_mask & BG_GTK_DISPLAY_MODE_HMSMS)
+    {
+    d->pixbufs[DIGIT_DOT] = bg_gtk_pixbuf_scale_alpha(digit_pixbufs[DIGIT_DOT],
+                                                      d->colon_width,
+                                                      d->height,
+                                                      d->foreground_color,
+                                                      d->background_color);
+    }
+  
   }
 
 static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
@@ -189,11 +201,12 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
     return TRUE;
     
   pos_i = 0;
-  x = 7 * d->digit_width + 2 * d->colon_width + d->border_width;
+  x = d->max_width - d->border_width;
   
-  while(d->indices[pos_i] >= 0)
+  while((d->indices[pos_i] >= 0) && (pos_i < MAX_CHARS))
     {
-    if(d->indices[pos_i] == DIGIT_COLON)
+    if((d->indices[pos_i] == DIGIT_COLON) ||
+       (d->indices[pos_i] == DIGIT_DOT))
       {
       x -= d->colon_width;
       gdk_draw_pixbuf(d->widget->window,
@@ -258,31 +271,43 @@ void bg_gtk_time_display_set_colors(bg_gtk_time_display_t * d,
 
 
 void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
-                                gavl_time_t time, int mode)
+                                int64_t time, int mode)
   {
   char * pos;
-  char buf[GAVL_TIME_STRING_LEN];
+  char buf[MAX_CHARS];
   int pos_i;
-  
-  gavl_time_prettyprint(time, buf);
+
+  switch(mode)
+    {
+    case BG_GTK_DISPLAY_MODE_HMS:
+      gavl_time_prettyprint(time, buf);
+      break;
+    case BG_GTK_DISPLAY_MODE_HMSMS:
+      gavl_time_prettyprint_ms(time, buf);
+      break;
+    case BG_GTK_DISPLAY_MODE_TIMECODE:
+      gavl_timecode_prettyprint_short(time, buf);
+      break;
+    }
   
   pos = &(buf[strlen(buf)]);
-
-  
+ 
   pos_i = 0;
   
   do{
     pos--;
     if(*pos == ':')
       d->indices[pos_i] = DIGIT_COLON;
-    if(*pos == '-')
+    else if(*pos == '-')
       d->indices[pos_i] = DIGIT_MINUS;
+    else if(*pos == '.')
+      d->indices[pos_i] = DIGIT_DOT;
     else if(isdigit(*pos))
       d->indices[pos_i] = (int)(*pos) - (int)('0');
     pos_i++;
   } while(pos != buf);
-
-  while(pos_i < GAVL_TIME_STRING_LEN)
+  
+  while(pos_i < MAX_CHARS)
     {
     d->indices[pos_i] = -1;
     pos_i++;
@@ -292,14 +317,16 @@ void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
 
 bg_gtk_time_display_t *
 bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width,
-                           int mode_mask)
+                           int type_mask)
   {
   bg_gtk_time_display_t * ret;
-
+  
   load_pixbufs();
   
   ret = calloc(1, sizeof(*ret));
   ret->border_width = border_width;
+  ret->type_mask = type_mask;
+
   switch(size)
     {
     case BG_GTK_DISPLAY_SIZE_HUGE:   /* 480 x 96, 1/1 */
@@ -345,14 +372,28 @@ bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width,
   
   g_signal_connect(G_OBJECT(ret->widget), "realize",
                    G_CALLBACK(realize_callback), (gpointer)ret);
+  
 
+  ret->max_width = 2 * ret->border_width;
+  
+  if(ret->type_mask & BG_GTK_DISPLAY_MODE_HMSMS)
+    { // -000:00:00.000
+    ret->max_width += 3 * ret->colon_width + 10 * ret->digit_width;
+    }
+  else if(ret->type_mask & BG_GTK_DISPLAY_MODE_TIMECODE)
+    { // -00:00:00:00
+    ret->max_width += 3 * ret->colon_width + 9 * ret->digit_width;
+    }
+  else
+    { // -000:00:00
+    ret->max_width += 2 * ret->colon_width + 7 * ret->digit_width;
+    }
+  
   gtk_widget_set_size_request(ret->widget,
-                              2 * ret->border_width +
-                              7 * ret->digit_width + 2 * ret->colon_width,
+                              ret->max_width,
                               2 * ret->border_width + ret->height);
   
   gtk_widget_show(ret->widget);
-  //  bg_gtk_time_display_update(ret, 0);
   return ret;
   }
 
@@ -370,7 +411,8 @@ void bg_gtk_time_display_destroy(bg_gtk_time_display_t * d)
 
   for(i = 0; i < NUM_PIXBUFS; i++)
     {
-    g_object_unref(d->pixbufs[i]);
+    if(d->pixbufs[i])
+      g_object_unref(d->pixbufs[i]);
     }
   free(d);
   unload_pixbufs();
