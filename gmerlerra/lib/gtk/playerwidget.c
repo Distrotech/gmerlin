@@ -104,7 +104,7 @@ static void socket_realize(GtkWidget * w, gpointer data)
   bg_nle_player_widget_t * p = data;
   
   fprintf(stderr, "Socket realize\n");
-
+  load_output_plugins(p);
   }
 
 bg_nle_player_widget_t *

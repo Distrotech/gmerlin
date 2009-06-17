@@ -55,22 +55,19 @@ static void button_callback(GtkWidget * w, gpointer  data)
 
   if(w == t->zoom_in)
     {
-    fprintf(stderr, "zoom in\n");
     bg_nle_time_ruler_zoom_in(t->ruler);
     }
   else if(w == t->zoom_out)
     {
-    fprintf(stderr, "zoom out\n");
     bg_nle_time_ruler_zoom_out(t->ruler);
     }
   else if(w == t->zoom_fit)
     {
-    fprintf(stderr, "zoom fit\n");
-    
+    bg_nle_time_ruler_zoom_fit(t->ruler);
     }
   }
 
-static void selection_changed_callback(void * data)
+static void selection_changed_callback(void * data, int64_t start, int64_t end)
   {
   int i;
   bg_nle_timeline_t * t = data;
@@ -82,14 +79,27 @@ static void selection_changed_callback(void * data)
         
   }
 
+static void visibility_changed_callback(void * data, int64_t start, int64_t end)
+  {
+  int i;
+  bg_nle_timeline_t * t = data;
+  
+  for(i = 0; i < t->num_tracks; i++)
+    {
+    bg_nle_track_widget_redraw(t->tracks[i]);
+    }
+        
+  }
+
+
 static void motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
                                    gpointer data)
   {
   bg_nle_timeline_t * t = data;
   
   if(t->motion_callback)
-    t->motion_callback(bg_nle_time_ruler_pos_2_time(t->ruler, (int)evt->x), t->motion_callback_data);
-  
+    t->motion_callback(bg_nle_time_ruler_pos_2_time(t->ruler,
+                                                    (int)evt->x), t->motion_callback_data);
   }
 
 static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
@@ -132,12 +142,22 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   
   ret->p = p;
   
-  ret->ruler = bg_nle_time_ruler_create(p);
+  ret->ruler = bg_nle_time_ruler_create();
 
+  bg_nle_time_ruler_set_selection(ret->ruler,
+                                  p->start_selection,
+                                  p->end_selection);
+  bg_nle_time_ruler_set_visible(ret->ruler,
+                                p->start_visible,
+                                p->end_visible);
+  
   bg_nle_time_ruler_set_selection_callback(ret->ruler,
                                            selection_changed_callback,
                                            ret);
-    
+  bg_nle_time_ruler_set_visibility_callback(ret->ruler,
+                                            visibility_changed_callback,
+                                            ret);
+  
   ret->table = gtk_table_new(2, 2, 0);
 
   ret->zoom_in = create_pixmap_button(ret, "time_zoom_in.png",
