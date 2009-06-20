@@ -91,7 +91,46 @@ typedef struct
   uint32_t index_record;
   uint32_t data_start, data_end, data_pos;
   } rm_stream_t;
+
+typedef struct
+  {
+  rm_stream_t com;
+  uint32_t kf_pts;
+  uint32_t kf_base;
+  uint32_t sub_id;
+  void (*set_keyframe)(bgav_stream_t * s,
+                       bgav_packet_t * p,
+                       uint8_t * data, int len);
+  } rm_video_stream_t;
+
+static void set_keyframe_rv2(bgav_stream_t * s,
+                             bgav_packet_t * p,
+                             uint8_t * data, int len)
+  {
+  rm_video_stream_t * sp = s->priv;
+
+  if(p->flags)
+    return;
   
+  switch(data[0] >> 6)
+    {
+    case 0:
+    case 1:
+      PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_I);
+      PACKET_SET_KEYFRAME(p);
+      break;
+    case 2:
+      PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_P);
+      break;
+    case 3:
+      PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_B);
+      break;
+    }
+
+  //  fprintf(stderr, "RV20 type: %02x, %c %08x\n", data[0],
+  //          PACKET_GET_CODING_TYPE(p), sp->sub_id);
+  
+  }
 /* Audio and video stream specific stuff */
 
 typedef struct
@@ -346,12 +385,6 @@ static void init_audio_stream_mp3(bgav_demuxer_context_t * ctx, bgav_rmff_stream
 
   }
 
-typedef struct
-  {
-  rm_stream_t com;
-  uint32_t kf_pts;
-  uint32_t kf_base;
-  } rm_video_stream_t;
 
 static void init_video_stream(bgav_demuxer_context_t * ctx,
                               bgav_rmff_stream_t * stream,
@@ -433,7 +466,10 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   /* h263 hack */
   tmp = BGAV_PTR_2_32BE(data);data+=4;
   ((uint32_t*)(bg_vs->ext_data))[1] = tmp;
-  switch (tmp)
+  
+  rm_vs->sub_id = tmp;
+  
+  switch(tmp)
     {
     case 0x10000000:
       /* sub id: 0 */
@@ -449,6 +485,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     case 0x20100001:
     case 0x20200002:
       /* codec id: rv20 */
+      rm_vs->set_keyframe = set_keyframe_rv2;
       break;
     case 0x30202002:
       /* codec id: rv30 */
@@ -848,7 +885,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
   unsigned char* dp_data;
   uint32_t* extra;
   int len = PAYLOAD_LENGTH(h);
-
+  rm_video_stream_t * sp = stream->priv;
+  
   while(len > 2)
     {
     //    vpkg_length = 0;
@@ -969,10 +1007,11 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           //                 "fragment (%d bytes) appended, %d bytes left\n",
           //                 vpkg_offset,len);
           // we know that this is the last fragment -> we can close the packet!
-#if 1
           p->pts=(dp_hdr->len<3)?0:
             fix_timestamp(stream,dp_data,dp_hdr->timestamp, p);
-#endif
+          //          if(sp->set_keyframe)
+          //            sp->set_keyframe(stream, p);
+          
           bgav_packet_done_write(p);
           stream->packet = (bgav_packet_t*)0;
           // ds_add_packet(ds,dp);
@@ -1019,6 +1058,10 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       dp_hdr->len=len;
       if(bgav_input_read_data(ctx->input, dp_data, len) < len)
         return 0;
+
+      if(sp->set_keyframe)
+        sp->set_keyframe(stream, p, dp_data, len);
+      
       //      stream_read(demuxer->stream, dp_data, len);
       stream->packet=p;
       len=0;
@@ -1028,6 +1071,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
 
     if(vpkg_length > len)
       {
+      //      if(sp->set_keyframe)
+      //        sp->set_keyframe(stream, p);
       bgav_packet_done_write(p);
       break;
       }
@@ -1035,12 +1080,19 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
     dp_hdr->len=vpkg_length; len-=vpkg_length;
 
     if(bgav_input_read_data(ctx->input, dp_data, vpkg_length) < vpkg_length)
+      {
       return 0;
+      }
 
+    if(sp->set_keyframe)
+      sp->set_keyframe(stream, p, dp_data, vpkg_length);
+    
     //    stream_read(demuxer->stream, dp_data, vpkg_length);
     p->pts=(dp_hdr->len<3)?0:
       fix_timestamp(stream,dp_data,dp_hdr->timestamp, p);
 
+    //    if(sp->set_keyframe)
+    //      sp->set_keyframe(stream, p);
     bgav_packet_done_write(p);
     //    stream->packet = (bgav_packet_t*)0;
     

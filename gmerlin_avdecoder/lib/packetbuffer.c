@@ -106,14 +106,15 @@ bgav_packet_t *
 bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b, int get_duration)
   {
   bgav_packet_t * ret;
-  ret = bgav_packet_buffer_peek_packet_read(b, get_duration);
-  if(!ret)
-    return ret;
+  if(!(ret = bgav_packet_buffer_peek_packet_read(b, get_duration)))
+    return NULL;
   b->read_packet = b->read_packet->next;
   return ret;
   }
 
-bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b, bgav_stream_t * s)
+bgav_packet_t *
+bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b,
+                                    bgav_stream_t * s)
   {
   bgav_packet_t * cur;
   bgav_packet_t * ret;
