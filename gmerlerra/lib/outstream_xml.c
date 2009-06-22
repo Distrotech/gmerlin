@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include <track.h>
+#include <outstream.h>
 #include <gmerlin/utils.h>
 
 static const char * parameters_name = "parameters";
@@ -41,9 +42,9 @@ static bg_nle_track_type_t name_to_type(const char * name)
   return BG_NLE_TRACK_NONE;
   }
 
-bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
+bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
   {
-  bg_nle_track_t * ret;
+  bg_nle_outstream_t * ret;
   char * tmp_string;
   xmlNodePtr child;
   
@@ -82,14 +83,14 @@ bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
   return ret;
   }
 
-void bg_nle_track_save(bg_nle_track_t * t, xmlNodePtr parent)
+void bg_nle_outstream_save(bg_nle_outstream_t * t, xmlNodePtr parent)
   {
   char * tmp_string;
   xmlNodePtr node;
   xmlNodePtr child;
   
   node = xmlNewTextChild(parent, (xmlNsPtr)0,
-                         (xmlChar*)"track", NULL);
+                         (xmlChar*)"outstream", NULL);
   BG_XML_SET_PROP(node, "type", type_to_name(t->type));
   
   tmp_string = bg_sprintf("%08x", t->flags);

@@ -17,6 +17,7 @@
 
 static const char * project_name   = "gmerlerra_project";
 static const char * tracks_name    = "tracks";
+static const char * outstreams_name    = "outstreams";
 static const char * selection_name = "selection";
 static const char * visible_name   = "visible";
 static const char * media_name     = "media";
@@ -29,6 +30,7 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
   xmlNodePtr child;
   char * tmp_string;
   bg_nle_track_t * track;
+  bg_nle_outstream_t * outstream;
   bg_nle_project_t * ret;
   
   xml_doc = bg_xml_parse_file(filename);
@@ -101,6 +103,27 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
         child = child->next;
         }
       }
+    if(!BG_XML_STRCMP(node->name, outstreams_name))
+      {
+      child = node->children;
+
+      while(child)
+        {
+        if(!child->name)
+          {
+          child = child->next;
+          continue;
+          }
+
+        if(!BG_XML_STRCMP(child->name, "outstream"))
+          {
+          outstream = bg_nle_outstream_load(xml_doc, child);
+          bg_nle_project_append_outstream(ret, outstream);
+          }
+        
+        child = child->next;
+        }
+      }
     node = node->next;
     }
   xmlFreeDoc(xml_doc);
@@ -158,6 +181,23 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
     for(i = 0; i < p->num_tracks; i++)
       {
       bg_nle_track_save(p->tracks[i], node);
+      }
+    }
+
+  /* Add outstreams */
+
+  if(p->num_outstreams)
+    {
+    node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
+                           (xmlChar*)outstreams_name, NULL);
+
+    tmp_string = bg_sprintf("%d", p->num_outstreams);
+    BG_XML_SET_PROP(node, "num", tmp_string);
+    free(tmp_string);
+    
+    for(i = 0; i < p->num_outstreams; i++)
+      {
+      bg_nle_outstream_save(p->outstreams[i], node);
       }
     }
   

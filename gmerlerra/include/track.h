@@ -25,7 +25,7 @@ typedef struct
   int64_t dst_pos;
   int64_t len;
   
-  bg_nle_file_t * file;
+  int file_id;
   int stream;
   } bg_nle_track_segment_t;
 
@@ -36,21 +36,26 @@ typedef struct
   int num_segments;
   bg_nle_track_segment_t * segments;
   
-  char * name;
-
   int flags;
   int index;
   bg_nle_track_type_t type;
+  int id;
+  
+  bg_cfg_section_t * section;
   } bg_nle_track_t;
 
 bg_nle_track_t * bg_nle_track_create(bg_nle_track_type_t type);
 
 void bg_nle_track_destroy(bg_nle_track_t *);
+void bg_nle_track_set_name(bg_nle_track_t *, const char * name);
+const char * bg_nle_track_get_name(bg_nle_track_t *);
 
 const bg_parameter_info_t * bg_nle_track_get_parameters(bg_nle_track_t * t);
 
+/* 
 void bg_nle_track_set_parameter(void * data, const char * name,
                                 const bg_parameter_info_t * value);
+*/
 
 /* track_xml.c */
 

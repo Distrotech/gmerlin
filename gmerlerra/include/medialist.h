@@ -12,6 +12,8 @@ typedef struct
   gavl_time_t duration;
   int refcount;    // How many tracks reference this file
   int track;       // Track within the file
+  
+  int id;          /* Internal ID */
   } bg_nle_file_t;
 
 typedef struct

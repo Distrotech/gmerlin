@@ -12,6 +12,7 @@
 #include <gui_gtk/timeruler.h>
 #include <gui_gtk/timeline.h>
 #include <gui_gtk/trackwidget.h>
+#include <gui_gtk/outstreamwidget.h>
 
 struct bg_nle_timeline_s
   {
@@ -29,6 +30,9 @@ struct bg_nle_timeline_s
   
   int num_tracks;
   bg_nle_track_widget_t ** tracks;
+
+  int num_outstreams;
+  bg_nle_outstream_widget_t ** outstreams;
   
   GtkWidget * panel_box;
   GtkWidget * preview_box;
@@ -76,6 +80,10 @@ static void selection_changed_callback(void * data, int64_t start, int64_t end)
     {
     bg_nle_track_widget_redraw(t->tracks[i]);
     }
+  for(i = 0; i < t->num_outstreams; i++)
+    {
+    bg_nle_outstream_widget_redraw(t->outstreams[i]);
+    }
         
   }
 
@@ -88,9 +96,12 @@ static void visibility_changed_callback(void * data, int64_t start, int64_t end)
     {
     bg_nle_track_widget_redraw(t->tracks[i]);
     }
+  for(i = 0; i < t->num_outstreams; i++)
+    {
+    bg_nle_outstream_widget_redraw(t->outstreams[i]);
+    }
         
   }
-
 
 static void motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
                                    gpointer data)
@@ -149,7 +160,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                                   p->end_selection);
   bg_nle_time_ruler_set_visible(ret->ruler,
                                 p->start_visible,
-                                p->end_visible);
+                                p->end_visible, 1);
   
   bg_nle_time_ruler_set_selection_callback(ret->ruler,
                                            selection_changed_callback,
@@ -269,7 +280,27 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                        FALSE, FALSE, 0);
     ret->num_tracks++;
     }
-  
+
+  /* Add outstreams */
+
+  if(ret->p->num_outstreams)
+    ret->outstreams = calloc(ret->p->num_outstreams, sizeof(*ret->outstreams));
+
+  for(i = 0; i < ret->p->num_outstreams; i++)
+    {
+    ret->outstreams[ret->num_outstreams] =
+      bg_nle_outstream_widget_create(ret->p->outstreams[i], ret->ruler);
+
+    gtk_box_pack_start(GTK_BOX(ret->panel_box),
+                       bg_nle_outstream_widget_get_panel(ret->outstreams[ret->num_outstreams]),
+                       FALSE, FALSE, 0);
+    
+    gtk_box_pack_start(GTK_BOX(ret->preview_box),
+                       bg_nle_outstream_widget_get_preview(ret->outstreams[ret->num_outstreams]),
+                       FALSE, FALSE, 0);
+    ret->num_outstreams++;
+    }
+
   return ret;
   }
 
@@ -294,17 +325,48 @@ GtkWidget * bg_nle_timeline_get_widget(bg_nle_timeline_t * t)
 void bg_nle_timeline_add_track(bg_nle_timeline_t * t,
                                bg_nle_track_t * track)
   {
+  GtkWidget * w;
   t->tracks = realloc(t->tracks,
                         sizeof(*t->tracks) * (t->num_tracks+1));
   t->tracks[t->num_tracks] = bg_nle_track_widget_create(track, t->ruler);
 
-  gtk_box_pack_start(GTK_BOX(t->panel_box),
-                     bg_nle_track_widget_get_panel(t->tracks[t->num_tracks]),
-                     FALSE, FALSE, 0);
+  w = bg_nle_track_widget_get_panel(t->tracks[t->num_tracks]);
+  
+  gtk_box_pack_start(GTK_BOX(t->panel_box), w, FALSE, FALSE, 0);
 
+  gtk_box_reorder_child(GTK_BOX(t->panel_box), w, t->num_tracks);
+
+  w = bg_nle_track_widget_get_preview(t->tracks[t->num_tracks]);
+  
   gtk_box_pack_start(GTK_BOX(t->preview_box),
-                     bg_nle_track_widget_get_preview(t->tracks[t->num_tracks]),
-                     FALSE, FALSE, 0);
+                     w, FALSE, FALSE, 0);
+  gtk_box_reorder_child(GTK_BOX(t->preview_box), w, t->num_tracks);
   
   t->num_tracks++;
+  }
+
+void bg_nle_timeline_add_outstream(bg_nle_timeline_t * t,
+                                   bg_nle_outstream_t * outstream)
+  {
+  t->outstreams = realloc(t->outstreams,
+                          sizeof(*t->outstreams) * (t->num_outstreams+1));
+  t->outstreams[t->num_outstreams] = bg_nle_outstream_widget_create(outstream, t->ruler);
+
+  gtk_box_pack_start(GTK_BOX(t->panel_box),
+                     bg_nle_outstream_widget_get_panel(t->outstreams[t->num_outstreams]),
+                     FALSE, FALSE, 0);
+  
+  gtk_box_pack_start(GTK_BOX(t->preview_box),
+                     bg_nle_outstream_widget_get_preview(t->outstreams[t->num_outstreams]),
+                     FALSE, FALSE, 0);
+
+  
+  
+  t->num_outstreams++;
+  }
+
+
+bg_nle_time_ruler_t * bg_nle_timeline_get_ruler(bg_nle_timeline_t * t)
+  {
+  return t->ruler;
   }

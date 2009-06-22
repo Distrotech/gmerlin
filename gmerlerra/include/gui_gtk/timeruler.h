@@ -48,9 +48,8 @@ void bg_nle_time_ruler_set_selection(bg_nle_time_ruler_t * t,
                                      gavl_time_t start, gavl_time_t end);
 
 void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
-                                   gavl_time_t start, gavl_time_t end);
-
-
+                                   gavl_time_t start, gavl_time_t end,
+                                   int recalc_spacing);
 
 /* Change zoom */
 

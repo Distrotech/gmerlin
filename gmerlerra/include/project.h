@@ -2,13 +2,19 @@
 #define PROJECT_H
 
 #include <medialist.h>
+#include <track.h>
+#include <outstream.h>
 
-#define BG_NLE_PROJECT_CHANGED (1<<0)
+#define BG_NLE_PROJECT_SELECTION_CHANGED  (1<<0)
+#define BG_NLE_PROJECT_VISIBLE_CHANGED    (1<<1)
+#define BG_NLE_PROJECT_TRACKS_CHANGED     (1<<2)
+#define BG_NLE_PROJECT_OUTSTREAMS_CHANGED (1<<3)
 
 typedef struct
   {
-  int flags;
+  int changed_flags;
 
+  
   int num_audio_tracks;
   int num_video_tracks;
   int num_tracks;
@@ -20,6 +26,17 @@ typedef struct
   bg_nle_track_t ** audio_tracks;
   bg_nle_track_t ** video_tracks;
   bg_nle_track_t ** tracks;
+
+  bg_nle_outstream_t ** audio_outstreams;
+  bg_nle_outstream_t ** video_outstreams;
+  bg_nle_outstream_t ** outstreams;
+
+  int num_audio_outstreams;
+  int num_video_outstreams;
+  int num_outstreams;
+  int audio_outstreams_alloc;
+  int video_outstreams_alloc;
+  int outstreams_alloc;
   
   bg_nle_media_list_t * media_list;
   
@@ -61,7 +78,12 @@ void bg_nle_project_destroy(bg_nle_project_t * p);
 bg_nle_track_t * bg_nle_project_add_audio_track(bg_nle_project_t * p);
 bg_nle_track_t * bg_nle_project_add_video_track(bg_nle_project_t * p);
 
+bg_nle_outstream_t * bg_nle_project_add_audio_outstream(bg_nle_project_t * p);
+bg_nle_outstream_t * bg_nle_project_add_video_outstream(bg_nle_project_t * p);
+
+
 void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);
+void bg_nle_project_append_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t);
 
 /* project_xml.c */
 

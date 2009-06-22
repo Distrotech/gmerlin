@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <medialist.h>
 
+#include <gmerlin/utils.h>
+
 bg_nle_media_list_t *
 bg_nle_media_list_create(bg_plugin_registry_t * plugin_reg)
   {
@@ -78,7 +80,7 @@ bg_nle_file_t *
 bg_nle_media_list_find_file(bg_nle_media_list_t * list,
                             const char * filename, int track)
   {
-  
+  return NULL;
   }
 
 void bg_nle_media_list_destroy(bg_nle_media_list_t * list)

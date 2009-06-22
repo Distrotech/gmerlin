@@ -52,6 +52,17 @@ typedef struct
 
 typedef struct
   {
+  GtkWidget * add_audio;
+  GtkWidget * add_video;
+  GtkWidget * move_up;
+  GtkWidget * move_down;
+  GtkWidget * delete;
+  GtkWidget * menu;
+  } outstream_menu_t;
+
+
+typedef struct
+  {
   GtkWidget * cut;
   GtkWidget * copy;
   GtkWidget * paste;
@@ -64,6 +75,7 @@ struct bg_nle_project_window_s
   GtkWidget * menubar;
   project_menu_t project_menu;
   track_menu_t track_menu;
+  outstream_menu_t outstream_menu;
   edit_menu_t edit_menu;
   
   bg_nle_project_t * p;
@@ -111,6 +123,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
   bg_nle_project_window_t * win = data;
   bg_nle_track_t * track;
   bg_nle_project_window_t * new_win;
+  bg_nle_outstream_t * outstream;
   
   if(w == win->project_menu.new)
     {
@@ -192,7 +205,18 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     /* */
     }
+  else if(w == win->outstream_menu.add_audio)
+    {
+    outstream = bg_nle_project_add_audio_outstream(win->p);
+    bg_nle_timeline_add_outstream(win->timeline, outstream);
+    }
+  else if(w == win->outstream_menu.add_video)
+    {
+    outstream = bg_nle_project_add_video_outstream(win->p);
+    bg_nle_timeline_add_outstream(win->timeline, outstream);
+    }
 
+  
   else if(w == win->edit_menu.cut)
     {
     
@@ -280,6 +304,19 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   w->track_menu.delete =
     create_menu_item(w, w->track_menu.menu, TR("Delete selected"), "trash_16.png");
 
+  /* Output stream */
+  w->outstream_menu.menu = gtk_menu_new();
+  w->outstream_menu.add_audio =
+    create_menu_item(w, w->outstream_menu.menu, TR("Add audio output stream"), "audio_16.png");
+  w->outstream_menu.add_video =
+    create_menu_item(w, w->outstream_menu.menu, TR("Add video output stream"), "video_16.png");
+  w->outstream_menu.move_up =
+    create_menu_item(w, w->outstream_menu.menu, TR("Move up"), "up_16.png");
+  w->outstream_menu.move_down =
+    create_menu_item(w, w->outstream_menu.menu, TR("Move down"), "down_16.png");
+  w->outstream_menu.delete =
+    create_menu_item(w, w->outstream_menu.menu, TR("Delete selected"), "trash_16.png");
+  
   /* Edit */
   w->edit_menu.menu = gtk_menu_new();
   w->edit_menu.cut =
@@ -302,6 +339,11 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   gtk_widget_show(item);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menubar), item);
 
+  item = gtk_menu_item_new_with_label(TR("Output stream"));
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), w->outstream_menu.menu);
+  gtk_widget_show(item);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menubar), item);
+  
   item = gtk_menu_item_new_with_label(TR("Edit"));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), w->edit_menu.menu);
   gtk_widget_show(item);
@@ -350,7 +392,8 @@ bg_nle_project_window_create(const char * project_file,
 
   ret->media_browser = bg_nle_media_browser_create(ret->p->media_list);
   
-  ret->compositor = bg_nle_player_widget_create(plugin_reg);
+  ret->compositor = bg_nle_player_widget_create(plugin_reg,
+                                                bg_nle_timeline_get_ruler(ret->timeline));
   
   /* menubar */
   init_menu_bar(ret);

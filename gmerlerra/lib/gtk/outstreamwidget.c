@@ -8,11 +8,11 @@
 #include <track.h>
 #include <project.h>
 
-#include <gui_gtk/trackwidget.h>
+#include <gui_gtk/outstreamwidget.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/gui_gtk/gtkutils.h>
 
-struct bg_nle_track_widget_s
+struct bg_nle_outstream_widget_s
   {
   GtkWidget * panel;
   GtkWidget * panel_child;
@@ -20,43 +20,36 @@ struct bg_nle_track_widget_s
   
   GtkWidget * preview;
   GtkWidget * preview_box;
-  GtkWidget * selected;
+  //  GtkWidget * selected;
   GtkWidget * config_button;
 
   int preview_width;
   int preview_height;
   
   bg_nle_time_ruler_t * ruler;  
-  bg_nle_track_t * track;
+  bg_nle_outstream_t * outstream;
   };
 
 static void button_callback(GtkWidget * w, gpointer  data)
   {
-  bg_nle_track_widget_t * t = data;
+  bg_nle_outstream_widget_t * t = data;
   bg_dialog_t * dialog;
-  
+
   if(w == t->config_button)
     {
-    dialog = bg_dialog_create(t->track->section,
+    dialog = bg_dialog_create(t->outstream->section,
                               NULL, // bg_set_parameter_func_t set_param,
                               NULL, // bg_get_parameter_func_t get_param,
                               NULL, // void * callback_data,
-                              bg_nle_track_get_parameters(t->track),
-                              TR("Track parameters"));
+                              bg_nle_outstream_get_parameters(t->outstream),
+                              TR("Output stream parameters"));
     bg_dialog_show(dialog, t->panel_child);
     bg_dialog_destroy(dialog);
-    }
-  if(w == t->selected)
-    {
-    // fprintf(stderr, "selected\n");
-    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(t->selected)))
-      t->track->flags |= BG_NLE_TRACK_SELECTED;
-    else
-      t->track->flags &= ~BG_NLE_TRACK_SELECTED;
+    // fprintf(stderr, "config button\n");
     }
   }
      
-static GtkWidget * create_pixmap_button(bg_nle_track_widget_t * w,
+static GtkWidget * create_pixmap_button(bg_nle_outstream_widget_t * w,
                                         const char * filename,
                                         const char * tooltip)
   {
@@ -92,24 +85,23 @@ expander_callback(GObject    *object,
                   gpointer    user_data)
   {
   GtkExpander *expander;
-  bg_nle_track_widget_t * w = user_data;
+  bg_nle_outstream_widget_t * w = user_data;
   expander = GTK_EXPANDER (object);
   if (gtk_expander_get_expanded (expander))
     {
     /* Show or create widgets */
     gtk_widget_show(w->preview);
-    w->track->flags |= BG_NLE_TRACK_EXPANDED;
+    w->outstream->flags |= BG_NLE_TRACK_EXPANDED;
     }
   else
     {
     /* Hide or destroy widgets */
     gtk_widget_hide(w->preview);
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w->selected), 0);
-    w->track->flags &= ~BG_NLE_TRACK_EXPANDED;
+    w->outstream->flags &= ~BG_NLE_TRACK_EXPANDED;
     }
   }
 
-void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
+void bg_nle_outstream_widget_redraw(bg_nle_outstream_widget_t * w)
   {
   gavl_time_t selection_start_time;
   gavl_time_t selection_end_time;
@@ -170,8 +162,8 @@ static gboolean expose_callback(GtkWidget *widget,
                                 GdkEventExpose * evt,
                                 gpointer       user_data)
   {
-  bg_nle_track_widget_t * w = user_data;
-  bg_nle_track_widget_redraw(w);
+  bg_nle_outstream_widget_t * w = user_data;
+  bg_nle_outstream_widget_redraw(w);
   return TRUE;
   }
 
@@ -179,7 +171,7 @@ static gboolean button_press_callback(GtkWidget *widget,
                                       GdkEventButton * evt,
                                       gpointer user_data)
   {
-  bg_nle_track_widget_t * w = user_data;
+  bg_nle_outstream_widget_t * w = user_data;
   
   if(evt->button == 1)
     bg_nle_time_ruler_handle_button_press(w->ruler, evt);
@@ -192,7 +184,7 @@ static void size_allocate_callback(GtkWidget     *widget,
                                    GtkAllocation *allocation,
                                    gpointer       user_data)
   {
-  bg_nle_track_widget_t * w = user_data;
+  bg_nle_outstream_widget_t * w = user_data;
   w->preview_width  = allocation->width;
   w->preview_height = allocation->height;
   
@@ -206,52 +198,37 @@ static const GdkColor preview_bg =
     0x4000
   };
 
-bg_nle_track_widget_t *
-bg_nle_track_widget_create(bg_nle_track_t * track,
+bg_nle_outstream_widget_t *
+bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
                            bg_nle_time_ruler_t * ruler)
   {
-  bg_nle_track_widget_t * ret;
+  bg_nle_outstream_widget_t * ret;
   
   GtkSizeGroup * size_group;
   
   ret = calloc(1, sizeof(*ret));
-  ret->track = track;
+  ret->outstream = outstream;
   ret->ruler = ruler;
   
   /* Create expander */
-  ret->panel = gtk_expander_new(bg_nle_track_get_name(track));
+  ret->panel = gtk_expander_new(bg_nle_outstream_get_name(outstream));
   
-  if(ret->track->flags & BG_NLE_TRACK_EXPANDED)
+  if(ret->outstream->flags & BG_NLE_TRACK_EXPANDED)
     gtk_expander_set_expanded(GTK_EXPANDER(ret->panel), TRUE);
   
   g_signal_connect (ret->panel, "notify::expanded",
                     G_CALLBACK (expander_callback), ret);
   
   /* Create panel widgets */
-  ret->selected = gtk_check_button_new();
-  bg_gtk_tooltips_set_tip(ret->selected,
-                          TRS("Select track for editing operations"),
-                          PACKAGE);
   
-  if(ret->track->flags & BG_NLE_TRACK_SELECTED)
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->selected),
-                                 1);
-  
-  g_signal_connect(G_OBJECT(ret->selected), "toggled",
-                   G_CALLBACK(button_callback), ret);
-  
-  gtk_widget_show(ret->selected);
-
   ret->config_button =
     create_pixmap_button(ret,
                          "config_16.png",
-                         TRS("Configure track"));
+                         TRS("Configure outstream"));
 
   /* Pack panel */
   ret->panel_child = gtk_hbox_new(FALSE, 0);
 
-  gtk_box_pack_start(GTK_BOX(ret->panel_child),
-                     ret->selected, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->panel_child),
                      ret->config_button, FALSE, FALSE, 0);
   
@@ -265,10 +242,6 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   gtk_widget_set_events(ret->preview,
                         GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK);
 
-  if(ret->track->type == BG_NLE_TRACK_VIDEO)
-    {
-    gtk_widget_set_size_request(ret->preview, -1, 64);
-    }
 
   gtk_widget_modify_bg(ret->preview,
                        GTK_STATE_NORMAL,
@@ -288,7 +261,7 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   
   ret->preview_box = gtk_hbox_new(FALSE, 0);
   
-  if(ret->track->flags & BG_NLE_TRACK_EXPANDED)
+  if(ret->outstream->flags & BG_NLE_TRACK_EXPANDED)
     gtk_widget_show(ret->preview);
   gtk_box_pack_start(GTK_BOX(ret->preview_box), ret->preview,
                      TRUE, TRUE, 0);
@@ -302,17 +275,17 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   return ret;
   }
 
-void bg_nle_track_widget_destroy(bg_nle_track_widget_t * w)
+void bg_nle_outstream_widget_destroy(bg_nle_outstream_widget_t * w)
   {
   free(w);
   }
 
-GtkWidget * bg_nle_track_widget_get_panel(bg_nle_track_widget_t * w)
+GtkWidget * bg_nle_outstream_widget_get_panel(bg_nle_outstream_widget_t * w)
   {
   return w->panel;
   }
 
-GtkWidget * bg_nle_track_widget_get_preview(bg_nle_track_widget_t * w)
+GtkWidget * bg_nle_outstream_widget_get_preview(bg_nle_outstream_widget_t * w)
   {
   return w->preview_box;
   }

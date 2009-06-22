@@ -30,6 +30,9 @@ struct bg_nle_player_widget_s
   
   bg_gtk_vumeter_t * vumeter;
   bg_gtk_time_display_t * display;
+
+  bg_nle_time_ruler_t * ruler;
+  bg_nle_time_ruler_t * ruler_priv;
   };
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -108,14 +111,27 @@ static void socket_realize(GtkWidget * w, gpointer data)
   }
 
 bg_nle_player_widget_t *
-bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg)
+bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
+                            bg_nle_time_ruler_t * ruler)
   {
   GtkWidget * box;
   bg_nle_player_widget_t * ret;
 
   ret = calloc(1, sizeof(*ret));
   ret->plugin_reg = plugin_reg;
-  
+
+  if(!ruler)
+    {
+    ret->ruler_priv = bg_nle_time_ruler_create();
+
+    bg_nle_time_ruler_set_visible(ret->ruler_priv,
+                                  0, 10 * GAVL_TIME_SCALE, 1);
+    
+    ret->ruler = ret->ruler_priv;
+    }
+  else
+    ret->ruler = ruler;
+    
   /* Create buttons */  
   ret->play_button = create_pixmap_button(ret, "gmerlerra_play.png", TRS("Play"));
 
@@ -166,7 +182,12 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg)
   gtk_widget_show(box);
 
   gtk_box_pack_start(GTK_BOX(ret->box), box, TRUE, TRUE, 0);
-  
+
+  if(ret->ruler_priv)
+    {
+    gtk_box_pack_start(GTK_BOX(ret->box), bg_nle_time_ruler_get_widget(ret->ruler_priv),
+                       FALSE, FALSE, 0);
+    }
   
   box = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->goto_start_button, FALSE, FALSE, 0);

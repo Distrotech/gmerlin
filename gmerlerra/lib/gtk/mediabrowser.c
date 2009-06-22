@@ -247,7 +247,7 @@ bg_nle_media_browser_create(bg_nle_media_list_t * list)
 
   /* Player */
   
-  ret->player = bg_nle_player_widget_create(ret->list->plugin_reg);
+  ret->player = bg_nle_player_widget_create(ret->list->plugin_reg, NULL);
   
   /* Pack everything */
   ret->box = gtk_hpaned_new();

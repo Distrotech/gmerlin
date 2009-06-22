@@ -98,7 +98,7 @@ static void size_allocate_callback(GtkWidget     *widget,
                                   r->start_visible,
                                   r->start_visible +
                                   (int)(scale_factor *
-                                        (double)(allocation->width) + 0.5));
+                                        (double)(allocation->width) + 0.5), 0);
     init = 0;
     }
   else
@@ -238,7 +238,7 @@ static gboolean motion_callback(GtkWidget *widget,
 
   bg_nle_time_ruler_set_visible(r,
                                 r->start_visible + diff_time,
-                                r->end_visible += diff_time);
+                                r->end_visible += diff_time, 0);
   r->mouse_x = evt->x;
   
   //  if(r->selection_callback)
@@ -327,7 +327,8 @@ void bg_nle_time_ruler_set_selection(bg_nle_time_ruler_t * t,
   }
 
 void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
-                                   gavl_time_t start, gavl_time_t end)
+                                   gavl_time_t start, gavl_time_t end,
+                                   int recalc_spacing)
   {
   t->start_visible = start;
   t->end_visible = end;
@@ -336,7 +337,8 @@ void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
   
   if((t->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
     {
-    calc_spacing(t);
+    if(recalc_spacing)
+      calc_spacing(t);
     redraw(t);
     }
   }
@@ -422,7 +424,7 @@ void bg_nle_time_ruler_zoom_in(bg_nle_time_ruler_t * r)
   start = center - diff / 4;
   end   = center + diff / 4;
 
-  bg_nle_time_ruler_set_visible(r, start, end);
+  bg_nle_time_ruler_set_visible(r, start, end, 1);
   }
 
 void bg_nle_time_ruler_zoom_out(bg_nle_time_ruler_t * r)
@@ -437,7 +439,7 @@ void bg_nle_time_ruler_zoom_out(bg_nle_time_ruler_t * r)
     start = 0;
   end = center + diff;
 
-  bg_nle_time_ruler_set_visible(r, start, end);
+  bg_nle_time_ruler_set_visible(r, start, end, 1);
   }
 
 void bg_nle_time_ruler_zoom_fit(bg_nle_time_ruler_t * r)
@@ -454,5 +456,5 @@ void bg_nle_time_ruler_zoom_fit(bg_nle_time_ruler_t * r)
     start = 0;
   end = center + diff / 2;
   
-  bg_nle_time_ruler_set_visible(r, start, end);
+  bg_nle_time_ruler_set_visible(r, start, end, 1);
   }
