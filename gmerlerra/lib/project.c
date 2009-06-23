@@ -18,6 +18,20 @@ bg_nle_project_t * bg_nle_project_create(const char * file,
   ret->end_selection = -1;
   ret->media_list = bg_nle_media_list_create(plugin_reg);
   ret->plugin_reg = plugin_reg;
+
+  ret->audio_track_section =
+    bg_cfg_section_create_from_parameters("",
+                                          bg_nle_track_audio_parameters);
+  ret->video_track_section =
+    bg_cfg_section_create_from_parameters("",
+                                          bg_nle_track_video_parameters);
+  ret->audio_outstream_section =
+    bg_cfg_section_create_from_parameters("",
+                                          bg_nle_outstream_audio_parameters);
+  ret->video_outstream_section =
+    bg_cfg_section_create_from_parameters("",
+                                          bg_nle_outstream_video_parameters);
+  
   return ret;
   }
 
@@ -65,6 +79,9 @@ bg_nle_track_t * bg_nle_project_add_audio_track(bg_nle_project_t * p)
     }
   
   track = bg_nle_track_create(BG_NLE_TRACK_AUDIO);
+
+  bg_cfg_section_transfer(p->audio_track_section,
+                          track->section);
   
   p->audio_tracks[p->num_audio_tracks] = track;
   p->tracks[p->num_tracks] = track;
@@ -102,13 +119,16 @@ bg_nle_track_t * bg_nle_project_add_video_track(bg_nle_project_t * p)
     }
 
   track = bg_nle_track_create(BG_NLE_TRACK_VIDEO);
+  bg_cfg_section_transfer(p->video_track_section,
+                          track->section);
+  
   p->video_tracks[p->num_video_tracks] = track;
   p->tracks[p->num_tracks] = track;
 
   p->num_video_tracks++;
   p->num_tracks++;
 
-  tmp_string = bg_sprintf("Video track %d", p->num_audio_tracks);
+  tmp_string = bg_sprintf("Video track %d", p->num_video_tracks);
   bg_nle_track_set_name(track, tmp_string);
   free(tmp_string);
 
@@ -181,6 +201,10 @@ bg_nle_outstream_t * bg_nle_project_add_video_outstream(bg_nle_project_t * p)
     }
 
   outstream = bg_nle_outstream_create(BG_NLE_TRACK_VIDEO);
+
+  bg_cfg_section_transfer(p->video_outstream_section,
+                          outstream->section);
+  
   p->video_outstreams[p->num_video_outstreams] = outstream;
   p->outstreams[p->num_outstreams] = outstream;
 
@@ -218,6 +242,10 @@ bg_nle_outstream_t * bg_nle_project_add_audio_outstream(bg_nle_project_t * p)
     }
 
   outstream = bg_nle_outstream_create(BG_NLE_TRACK_AUDIO);
+  
+  bg_cfg_section_transfer(p->audio_outstream_section,
+                          outstream->section);
+  
   p->audio_outstreams[p->num_audio_outstreams] = outstream;
   p->outstreams[p->num_outstreams] = outstream;
 

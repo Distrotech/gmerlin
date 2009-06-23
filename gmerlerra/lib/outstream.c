@@ -11,11 +11,13 @@ bg_nle_outstream_create(bg_nle_track_type_t type)
   ret = calloc(1, sizeof(*ret));
   ret->type = type;
   ret->section = bg_cfg_section_create("");
+  ret->flags = BG_NLE_TRACK_EXPANDED;
   return ret;
   }
 
 void bg_nle_outstream_destroy(bg_nle_outstream_t * s)
   {
+  bg_cfg_section_destroy(s->section);
   free(s);
   }
 
@@ -26,26 +28,46 @@ void bg_nle_outstream_destroy(bg_nle_outstream_t * s)
   .type = BG_PARAMETER_STRING, \
   }
 
+#define PARAM_AUDIO \
+    BG_GAVL_PARAM_CHANNEL_SETUP
+
+#define PARAM_VIDEO \
+    BG_GAVL_PARAM_PIXELFORMAT, \
+    BG_GAVL_PARAM_FRAMESIZE_NOSOURCE, \
+    BG_GAVL_PARAM_FRAMERATE_NOSOURCE
+
+const bg_parameter_info_t bg_nle_outstream_video_parameters[] =
+  {
+    PARAM_VIDEO,
+    { /* End */ },
+  };
+
+const bg_parameter_info_t bg_nle_outstream_audio_parameters[] =
+  {
+    PARAM_AUDIO,
+    { /* End */ },
+  };
+
 static const bg_parameter_info_t video_parameters[] =
   {
     PARAM_NAME,
-    BG_GAVL_PARAM_PIXELFORMAT,
-    BG_GAVL_PARAM_FRAMESIZE,
+    PARAM_VIDEO,
     { /* End */ },
   };
 
 static const bg_parameter_info_t audio_parameters[] =
   {
     PARAM_NAME,
-    BG_GAVL_PARAM_CHANNEL_SETUP,
+    PARAM_AUDIO,
     { /* End */ },
   };
 
-const bg_parameter_info_t * bg_nle_outstream_get_parameters(bg_nle_outstream_t * t)
+
+const bg_parameter_info_t *
+bg_nle_outstream_get_parameters(bg_nle_outstream_t * t)
   {
   switch(t->type)
     {
-    
     case BG_NLE_TRACK_AUDIO:
       return audio_parameters;
       break;

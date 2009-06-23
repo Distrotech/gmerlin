@@ -22,6 +22,12 @@ static const char * selection_name = "selection";
 static const char * visible_name   = "visible";
 static const char * media_name     = "media";
 
+static const char * audio_track_parameters_name = "audio_track_parameters";
+static const char * video_track_parameters_name = "video_track_parameters";
+static const char * audio_outstream_parameters_name = "audio_outstream_parameters";
+static const char * video_outstream_parameters_name = "video_outstream_parameters";
+
+
 bg_nle_project_t *
 bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
   {
@@ -70,19 +76,40 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
              &ret->end_visible);
       free(tmp_string);
       }
-    if(!BG_XML_STRCMP(node->name, selection_name))
+    else if(!BG_XML_STRCMP(node->name, selection_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
       sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->start_selection,
              &ret->end_selection);
       free(tmp_string);
       }
-    if(!BG_XML_STRCMP(node->name, media_name))
+    else if(!BG_XML_STRCMP(node->name, audio_track_parameters_name))
+      {
+      ret->audio_track_section = bg_cfg_section_create("");
+      bg_cfg_xml_2_section(xml_doc, node, ret->audio_track_section);
+      }
+    else if(!BG_XML_STRCMP(node->name, video_track_parameters_name))
+      {
+      ret->video_track_section = bg_cfg_section_create("");
+      bg_cfg_xml_2_section(xml_doc, node, ret->video_track_section);
+      }
+    else if(!BG_XML_STRCMP(node->name, audio_outstream_parameters_name))
+      {
+      ret->audio_outstream_section = bg_cfg_section_create("");
+      bg_cfg_xml_2_section(xml_doc, node, ret->audio_outstream_section);
+      }
+    else if(!BG_XML_STRCMP(node->name, video_outstream_parameters_name))
+      {
+      ret->video_outstream_section = bg_cfg_section_create("");
+      bg_cfg_xml_2_section(xml_doc, node, ret->video_outstream_section);
+      }
+    
+    else if(!BG_XML_STRCMP(node->name, media_name))
       {
       ret->media_list = bg_nle_media_list_load(ret->plugin_reg,
                                                xml_doc, node);
       }
-    if(!BG_XML_STRCMP(node->name, tracks_name))
+    else if(!BG_XML_STRCMP(node->name, tracks_name))
       {
       child = node->children;
 
@@ -103,7 +130,7 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
         child = child->next;
         }
       }
-    if(!BG_XML_STRCMP(node->name, outstreams_name))
+    else if(!BG_XML_STRCMP(node->name, outstreams_name))
       {
       child = node->children;
 
@@ -147,12 +174,16 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
 
   /* Global data */
 
+  /* Selection */
+
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
                          (xmlChar*)selection_name, NULL);
   tmp_string =
     bg_sprintf("%"PRId64" %"PRId64, p->start_selection, p->end_selection);
   xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
   free(tmp_string);
+
+  /* Visible Range */
   
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
                          (xmlChar*)visible_name, NULL);
@@ -166,6 +197,24 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
                          (xmlChar*)media_name, NULL);
 
   bg_nle_media_list_save(p->media_list, node);
+
+  /* Sections */
+
+  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
+                          (xmlChar*)audio_track_parameters_name, NULL);
+  bg_cfg_section_2_xml(p->audio_track_section, node);
+
+  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
+                          (xmlChar*)video_track_parameters_name, NULL);
+  bg_cfg_section_2_xml(p->video_track_section, node);
+
+  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
+                          (xmlChar*)audio_outstream_parameters_name, NULL);
+  bg_cfg_section_2_xml(p->audio_outstream_section, node);
+
+  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
+                         (xmlChar*)video_outstream_parameters_name, NULL);
+  bg_cfg_section_2_xml(p->video_outstream_section, node);
   
   /* Add tracks */
 

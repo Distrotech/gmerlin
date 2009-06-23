@@ -97,23 +97,44 @@ struct bg_nle_project_window_s
 static void show_settings_dialog(bg_nle_project_window_t * win)
   {
   bg_dialog_t * cfg_dialog;
+  void * parent;
+  
   cfg_dialog = bg_dialog_create_multi(TR("Project settings"));
+  
+  parent = bg_dialog_add_parent(cfg_dialog, NULL, TR("Audio"));
+  bg_dialog_add_child(cfg_dialog, parent,
+                      TR("Track format"),
+                      win->p->audio_track_section,
+                      NULL,
+                      NULL,
+                      NULL,
+                      bg_nle_track_audio_parameters);
+  bg_dialog_add_child(cfg_dialog, parent,
+                      TR("Compositing format"),
+                      win->p->audio_outstream_section,
+                      NULL,
+                      NULL,
+                      NULL,
+                      bg_nle_outstream_audio_parameters);
 
-  bg_dialog_add(cfg_dialog,
-                TR("Audio"),
-                win->p->audio_section,
-                bg_nle_project_set_audio_parameter,
-                NULL,
-                win->p,
-                bg_nle_project_get_audio_parameters());
+  parent = bg_dialog_add_parent(cfg_dialog, NULL, TR("Video"));
+  bg_dialog_add_child(cfg_dialog, parent,
+                      TR("Track format"),
+                      win->p->video_track_section,
+                      NULL,
+                      NULL,
+                      NULL,
+                      bg_nle_track_video_parameters);
+  bg_dialog_add_child(cfg_dialog, parent,
+                      TR("Compositing format"),
+                      win->p->video_outstream_section,
+                      NULL,
+                      NULL,
+                      NULL,
+                      bg_nle_outstream_video_parameters);
 
-  bg_dialog_add(cfg_dialog,
-                TR("Video"),
-                win->p->video_section,
-                bg_nle_project_set_video_parameter,
-                NULL,
-                win->p,
-                bg_nle_project_get_video_parameters());
+  
+    
 
   bg_dialog_show(cfg_dialog, win->win);
   }

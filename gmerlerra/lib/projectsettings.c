@@ -68,31 +68,3 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
     { /* End */ },
   };
 
-const bg_parameter_info_t * bg_nle_project_get_audio_parameters()
-  {
-  return audio_parameters;
-  }
-
-const bg_parameter_info_t * bg_nle_project_get_video_parameters()
-  {
-  return video_parameters;
-  }
-
-void bg_nle_project_set_audio_parameter(void * data, const char * name,
-                                        const bg_parameter_value_t * val)
-  {
-  if(!name)
-    {
-
-    }
-  }
-
-void bg_nle_project_set_video_parameter(void * data, const char * name,
-                                        const bg_parameter_value_t * val)
-  {
-  if(!name)
-    {
-
-    }
-  
-  }

@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <gmerlin/cfg_registry.h>
 #include <gmerlin/cfg_dialog.h>
@@ -22,13 +23,24 @@ struct bg_nle_track_widget_s
   GtkWidget * preview_box;
   GtkWidget * selected;
   GtkWidget * config_button;
-
+  GtkWidget * play_button;
+  
   int preview_width;
   int preview_height;
   
   bg_nle_time_ruler_t * ruler;  
   bg_nle_track_t * track;
   };
+
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val)
+  {
+  bg_nle_track_widget_t * t = data;
+  if(!name)
+    return;
+  if(!strcmp(name, "name"))
+    gtk_expander_set_label(GTK_EXPANDER(t->panel), val->val_str);
+  }
 
 static void button_callback(GtkWidget * w, gpointer  data)
   {
@@ -38,9 +50,9 @@ static void button_callback(GtkWidget * w, gpointer  data)
   if(w == t->config_button)
     {
     dialog = bg_dialog_create(t->track->section,
-                              NULL, // bg_set_parameter_func_t set_param,
+                              set_parameter, // bg_set_parameter_func_t set_param,
                               NULL, // bg_get_parameter_func_t get_param,
-                              NULL, // void * callback_data,
+                              t, // void * callback_data,
                               bg_nle_track_get_parameters(t->track),
                               TR("Track parameters"));
     bg_dialog_show(dialog, t->panel_child);
@@ -246,14 +258,21 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
     create_pixmap_button(ret,
                          "config_16.png",
                          TRS("Configure track"));
-
+  ret->play_button =
+    create_pixmap_button(ret,
+                         "gmerlerra_play.png",
+                         TRS("Select track for playback"));
+  
   /* Pack panel */
-  ret->panel_child = gtk_hbox_new(FALSE, 0);
+  ret->panel_child = gtk_table_new(1, 2, FALSE);
 
-  gtk_box_pack_start(GTK_BOX(ret->panel_child),
-                     ret->selected, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(ret->panel_child),
-                     ret->config_button, FALSE, FALSE, 0);
+  gtk_table_attach(GTK_TABLE(ret->panel_child), ret->selected, 
+                   0, 1, 0, 1, GTK_FILL,
+                   GTK_FILL|GTK_SHRINK, 0, 0);
+
+  gtk_table_attach(GTK_TABLE(ret->panel_child),ret->config_button, 
+                   1, 2, 0, 1, GTK_FILL,
+                   GTK_FILL|GTK_SHRINK, 0, 0);
   
   gtk_widget_show(ret->panel_child);
   gtk_container_add(GTK_CONTAINER(ret->panel), ret->panel_child);

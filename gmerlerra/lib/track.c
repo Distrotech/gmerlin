@@ -19,6 +19,7 @@ bg_nle_track_t * bg_nle_track_create(bg_nle_track_type_t type)
 
 void bg_nle_track_destroy(bg_nle_track_t * t)
   {
+  bg_cfg_section_destroy(t->section);
   free(t);
   }
 
@@ -29,22 +30,43 @@ void bg_nle_track_destroy(bg_nle_track_t * t)
   .type = BG_PARAMETER_STRING, \
   }
 
+#define PARAM_AUDIO \
+   BG_GAVL_PARAM_CHANNEL_SETUP
+
+#define PARAM_VIDEO \
+  BG_GAVL_PARAM_PIXELFORMAT, \
+  BG_GAVL_PARAM_FRAMESIZE_NOSOURCE
+
+
+const bg_parameter_info_t bg_nle_track_video_parameters[] =
+  {
+    PARAM_VIDEO,
+    { /* End */ },
+  };
+
+const bg_parameter_info_t bg_nle_track_audio_parameters[] =
+  {
+    PARAM_AUDIO,
+    { /* End */ },
+  };
+
 static const bg_parameter_info_t video_parameters[] =
   {
     PARAM_NAME,
-    BG_GAVL_PARAM_PIXELFORMAT,
-    BG_GAVL_PARAM_FRAMESIZE,
+    PARAM_VIDEO,
     { /* End */ },
   };
 
 static const bg_parameter_info_t audio_parameters[] =
   {
     PARAM_NAME,
-    BG_GAVL_PARAM_CHANNEL_SETUP,
+    PARAM_AUDIO,
     { /* End */ },
   };
 
-const bg_parameter_info_t * bg_nle_track_get_parameters(bg_nle_track_t * t)
+
+const bg_parameter_info_t *
+bg_nle_track_get_parameters(bg_nle_track_t * t)
   {
   switch(t->type)
     {

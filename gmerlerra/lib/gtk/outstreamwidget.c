@@ -30,6 +30,17 @@ struct bg_nle_outstream_widget_s
   bg_nle_outstream_t * outstream;
   };
 
+
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val)
+  {
+  bg_nle_outstream_widget_t * t = data;
+  if(!name)
+    return;
+  if(!strcmp(name, "name"))
+    gtk_expander_set_label(GTK_EXPANDER(t->panel), val->val_str);
+  }
+
 static void button_callback(GtkWidget * w, gpointer  data)
   {
   bg_nle_outstream_widget_t * t = data;
@@ -38,9 +49,9 @@ static void button_callback(GtkWidget * w, gpointer  data)
   if(w == t->config_button)
     {
     dialog = bg_dialog_create(t->outstream->section,
-                              NULL, // bg_set_parameter_func_t set_param,
+                              set_parameter, // bg_set_parameter_func_t set_param,
                               NULL, // bg_get_parameter_func_t get_param,
-                              NULL, // void * callback_data,
+                              t, // void * callback_data,
                               bg_nle_outstream_get_parameters(t->outstream),
                               TR("Output stream parameters"));
     bg_dialog_show(dialog, t->panel_child);
@@ -193,9 +204,9 @@ static void size_allocate_callback(GtkWidget     *widget,
 static const GdkColor preview_bg =
   {
     0x00000000,
-    0x4000,
-    0x4000,
-    0x4000
+    0x8000,
+    0x8000,
+    0xFFFF
   };
 
 bg_nle_outstream_widget_t *
@@ -227,12 +238,15 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
                          TRS("Configure outstream"));
 
   /* Pack panel */
-  ret->panel_child = gtk_hbox_new(FALSE, 0);
-
-  gtk_box_pack_start(GTK_BOX(ret->panel_child),
-                     ret->config_button, FALSE, FALSE, 0);
+  ret->panel_child = gtk_table_new(1, 1, FALSE);
+  
+  gtk_table_attach(GTK_TABLE(ret->panel_child),ret->config_button, 
+                   1, 2, 0, 1, GTK_FILL,
+                   GTK_FILL|GTK_SHRINK, 0, 0);
   
   gtk_widget_show(ret->panel_child);
+
+  
   gtk_container_add(GTK_CONTAINER(ret->panel), ret->panel_child);
   gtk_widget_show(ret->panel);
   

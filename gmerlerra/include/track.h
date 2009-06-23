@@ -62,4 +62,7 @@ void bg_nle_track_set_parameter(void * data, const char * name,
 bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node);
 void bg_nle_track_save(bg_nle_track_t * t, xmlNodePtr parent);
 
+extern const bg_parameter_info_t bg_nle_track_audio_parameters[];
+extern const bg_parameter_info_t bg_nle_track_video_parameters[];
+
 #endif

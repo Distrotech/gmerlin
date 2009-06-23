@@ -46,10 +46,12 @@ typedef struct
   gavl_time_t start_selection;
   gavl_time_t end_selection;
   
-  bg_cfg_section_t * audio_section;
-  bg_cfg_section_t * video_section;
+  bg_cfg_section_t * audio_track_section;
+  bg_cfg_section_t * video_track_section;
+  bg_cfg_section_t * audio_outstream_section;
+  bg_cfg_section_t * video_outstream_section;
   bg_cfg_section_t * paths_section;
-
+  
   gavl_audio_format_t audio_format_preset;
   gavl_audio_format_t audio_format;
 

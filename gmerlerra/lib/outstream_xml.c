@@ -71,7 +71,7 @@ bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
       continue;
       }
 
-    if(!strcmp(child->name, parameters_name))
+    if(!BG_XML_STRCMP(child->name, parameters_name))
       {
       ret->section = bg_cfg_section_create("");
       bg_cfg_xml_2_section(xml_doc, child, ret->section);
