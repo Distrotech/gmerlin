@@ -16,7 +16,7 @@
 
 struct bg_nle_timeline_s
   {
-  GtkWidget * table;
+  GtkWidget * paned;
   bg_nle_time_ruler_t * ruler;
   
   GtkWidget * panel_window;
@@ -146,7 +146,11 @@ static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
 bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   {
   GtkWidget * box;
+  GtkWidget * table;
   GtkWidget * eventbox;
+  GtkSizeGroup * size_group;
+  GtkWidget * table1;
+  
   int i;
 
   bg_nle_timeline_t * ret = calloc(1, sizeof(*ret));  
@@ -168,9 +172,9 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   bg_nle_time_ruler_set_visibility_callback(ret->ruler,
                                             visibility_changed_callback,
                                             ret);
-  
-  ret->table = gtk_table_new(2, 2, 0);
 
+  ret->paned = gtk_hpaned_new();
+  
   ret->zoom_in = create_pixmap_button(ret, "time_zoom_in.png",
                                       TRS("Zoom in"));
   ret->zoom_out = create_pixmap_button(ret, "time_zoom_out.png",
@@ -223,44 +227,60 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   gtk_widget_show(ret->panel_window);
     
   /* Pack */
-
+  
   box = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), 
-                     ret->zoom_in, TRUE, TRUE, 0);
+                     ret->zoom_in, FALSE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(box), 
-                     ret->zoom_out, TRUE, TRUE, 0);
+                     ret->zoom_out, FALSE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(box), 
-                     ret->zoom_fit, TRUE, TRUE, 0);
+                     ret->zoom_fit, FALSE, TRUE, 0);
 
   gtk_box_pack_start(GTK_BOX(box), 
-                     ret->start_button, TRUE, TRUE, 0);
+                     ret->start_button, FALSE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(box), 
-                     ret->end_button, TRUE, TRUE, 0);
+                     ret->end_button, FALSE, TRUE, 0);
 
   gtk_widget_show(box);
 
-  gtk_table_attach(GTK_TABLE(ret->table),
+  size_group = gtk_size_group_new(GTK_SIZE_GROUP_VERTICAL);
+  gtk_size_group_add_widget(size_group, box);
+  gtk_size_group_add_widget(size_group, bg_nle_time_ruler_get_widget(ret->ruler));
+  g_object_unref(size_group);
+
+  
+  table = gtk_table_new(2, 1, 0);
+  
+  gtk_table_attach(GTK_TABLE(table),
                    box,
                    0, 1, 0, 1,
-                   GTK_FILL, GTK_FILL, 0, 0);
-  
-  gtk_table_attach(GTK_TABLE(ret->table),
-                   bg_nle_time_ruler_get_widget(ret->ruler),
-                   1, 2, 0, 1,
-                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-  
-  gtk_table_attach(GTK_TABLE(ret->table),
+                   GTK_FILL|GTK_EXPAND, GTK_FILL|GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table),
                    ret->panel_window,
                    0, 1, 1, 2,
-                   GTK_FILL, GTK_FILL, 0, 0);
+                   GTK_FILL|GTK_EXPAND, GTK_EXPAND|GTK_FILL, 0, 0);
 
-  gtk_table_attach(GTK_TABLE(ret->table),
+  gtk_widget_show(table);
+
+  gtk_paned_add1(GTK_PANED(ret->paned), table);
+  
+  table = gtk_table_new(2, 1, 0);
+    
+  gtk_table_attach(GTK_TABLE(table),
+                   bg_nle_time_ruler_get_widget(ret->ruler),
+                   0, 1, 0, 1,
+                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
+  
+
+  gtk_table_attach(GTK_TABLE(table),
                    ret->preview_window,
-                   1, 2, 1, 2,
+                   0, 1, 1, 2,
                    GTK_EXPAND|GTK_FILL, GTK_EXPAND|GTK_FILL, 0, 0);
   
-  gtk_widget_show(ret->table);
+  gtk_widget_show(table);
+  gtk_paned_add2(GTK_PANED(ret->paned), table);
 
+  gtk_widget_show(ret->paned);
   /* Add tracks */
 
   if(ret->p->num_tracks)
@@ -319,7 +339,7 @@ void bg_nle_timeline_destroy(bg_nle_timeline_t * t)
 
 GtkWidget * bg_nle_timeline_get_widget(bg_nle_timeline_t * t)
   {
-  return t->table;
+  return t->paned;
   }
 
 void bg_nle_timeline_add_track(bg_nle_timeline_t * t,
