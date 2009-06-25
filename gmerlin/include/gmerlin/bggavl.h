@@ -64,6 +64,12 @@ typedef struct
   int framerate_mode;
   int frame_duration;
   int timescale;
+
+  int size;
+  int user_image_width;
+  int user_image_height;
+  int user_pixel_width;
+  int user_pixel_height;
   
   bg_thread_pool_t * thread_pool;
   int num_threads;
@@ -117,103 +123,160 @@ void bg_gavl_video_options_set_interlace(const bg_gavl_video_options_t * opt,
 Lower quality means more speed. Values above 3 enable slow high quality calculations.") \
    }
 
-#define BG_GAVL_PARAM_FRAMERATE                                 \
-  {                                                             \
-  .name =      "framerate",                                       \
-  .long_name = TRS("Framerate"),                                       \
-  .type =      BG_PARAMETER_STRINGLIST,                           \
-  .flags =       BG_PARAMETER_SYNC,                     \
-  .val_default = { .val_str = "from_source" },                      \
-  .multi_names = (char const *[]){ "from_source",                      \
-                   "user_defined",                              \
-                   "23_976",      \
-                   "24", \
-                   "25",        \
-                   "29_970",                                    \
-                   "30",                                        \
-                   "50",                                        \
-                   "59_940",                                    \
-                   "60", (char*)0 },                              \
-    .multi_labels = (char const *[]){ TRS("From Source"),                      \
-                   TRS("User defined"),                              \
-                   TRS("23.976 (NTSC encapsulated film rate)"),        \
-                   TRS("24 (Standard international cinema film rate)"), \
-                   TRS("25 (PAL [625/50] video frame rate)"),        \
-                   TRS("29.970 (NTSC video frame rate)"),            \
-                   TRS("30 (NTSC drop-frame [525/60] video frame rate)"),  \
-                   TRS("50 (Double frame rate / progressive PAL)"),   \
-                   TRS("59.940 (Double frame rate NTSC)"),     \
-                   TRS("60 (Double frame rate drop-frame NTSC)"),           \
-                    (char*)0 },                                         \
-  .help_string = TRS("Output framerate. For user defined framerate, enter the \
-timescale and frame duration below (framerate = timescale / frame duration).")\
-  },                                              \
-  {                                           \
-  .name =      "timescale",                     \
-  .long_name = TRS("Timescale"),                   \
-  .type =      BG_PARAMETER_INT,              \
-  .val_min =     { .val_i = 1 },                \
-  .val_max =     { .val_i = 100000 },           \
-  .val_default = { .val_i = 25 },                                         \
+#define BG_GAVL_PARAM_FRAMERATE_USER           \
+  {                                            \
+  .name =      "timescale",                    \
+  .long_name = TRS("Timescale"),               \
+  .type =      BG_PARAMETER_INT,               \
+  .val_min =     { .val_i = 1 },               \
+  .val_max =     { .val_i = 100000 },          \
+  .val_default = { .val_i = 25 },              \
   .help_string = TRS("Timescale for user defined output framerate (Framerate = timescale / frame duration)."), \
-  },                                                                  \
-  {                                                                 \
-  .name =      "frame_duration",                                      \
-  .long_name = TRS("Frame duration"),                                    \
-  .type =      BG_PARAMETER_INT,                                    \
-  .val_min =     { .val_i = 1 },                                      \
-  .val_max =     { .val_i = 100000 },                                 \
-  .val_default = { .val_i = 1 },                                      \
+  },                                           \
+  {                                            \
+  .name =      "frame_duration",               \
+  .long_name = TRS("Frame duration"),          \
+  .type =      BG_PARAMETER_INT,               \
+  .val_min =     { .val_i = 1 },               \
+  .val_max =     { .val_i = 100000 },          \
+  .val_default = { .val_i = 1 },               \
   .help_string = TRS("Frame duration for user defined output framerate (Framerate = timescale / frame duration)."), \
   }
 
+#define BG_GAVL_PARAM_FRAMERATE_NAMES \
+                   "user_defined",    \
+                   "23_976",          \
+                   "24",              \
+                   "25",              \
+                   "29_970",          \
+                   "30",              \
+                   "50",              \
+                   "59_940",          \
+                   "60", (char*)0
+
+#define BG_GAVL_PARAM_FRAMERATE_LABELS                                   \
+                   TRS("User defined"),                                  \
+                   TRS("23.976 (NTSC encapsulated film rate)"),          \
+                   TRS("24 (Standard international cinema film rate)"),  \
+                   TRS("25 (PAL [625/50] video frame rate)"),            \
+                   TRS("29.970 (NTSC video frame rate)"),                \
+                   TRS("30 (NTSC drop-frame [525/60] video frame rate)"),\
+                   TRS("50 (Double frame rate / progressive PAL)"),      \
+                   TRS("59.940 (Double frame rate NTSC)"),               \
+                   TRS("60 (Double frame rate drop-frame NTSC)"),        \
+                    (char*)0
+
+
+#define BG_GAVL_PARAM_FRAMERATE                        \
+  {                                                    \
+  .name =      "framerate",                            \
+  .long_name = TRS("Framerate"),                       \
+  .type =      BG_PARAMETER_STRINGLIST,                \
+  .flags =       BG_PARAMETER_SYNC,                    \
+  .val_default = { .val_str = "from_source" },         \
+  .multi_names = (char const *[]){ "from_source",      \
+  BG_GAVL_PARAM_FRAMERATE_NAMES                        \
+                  },                                   \
+  .multi_labels = (char const *[]){ TRS("From Source"),\
+  BG_GAVL_PARAM_FRAMERATE_LABELS                       \
+                   },                                  \
+  .help_string = TRS("Output framerate. For user defined framerate, enter the \
+timescale and frame duration below (framerate = timescale / frame duration).")\
+  },                                                   \
+BG_GAVL_PARAM_FRAMERATE_USER
+
+#define BG_GAVL_PARAM_FRAMERATE_NOSOURCE \
+  {                                      \
+  .name =      "framerate",              \
+  .long_name = TRS("Framerate"),         \
+  .type =      BG_PARAMETER_STRINGLIST,  \
+  .flags =       BG_PARAMETER_SYNC,      \
+  .val_default = { .val_str = "25" },    \
+  .multi_names = (char const *[]){       \
+  BG_GAVL_PARAM_FRAMERATE_NAMES          \
+                  },                     \
+  .multi_labels = (char const *[]){      \
+  BG_GAVL_PARAM_FRAMERATE_LABELS         \
+                   },                    \
+  .help_string = TRS("Output framerate. For user defined framerate, enter the \
+timescale and frame duration below (framerate = timescale / frame duration).")\
+  },                                     \
+BG_GAVL_PARAM_FRAMERATE_USER
+
+
+    
 #define BG_GAVL_PARAM_DEINTERLACE           \
- {                                            \
-  .name =      "deinterlace_mode",              \
-  .long_name = TRS("Deinterlace mode"),             \
-  .opt =       "dm", \
-  .type =      BG_PARAMETER_STRINGLIST,        \
-  .val_default = { .val_str = "none" },          \
-  .multi_names =  (char const *[]){ "none", "copy", "scale", (char*)0 },         \
-  .multi_labels = (char const *[]){ TRS("None"), TRS("Copy"), TRS("Scale"), (char*)0 },         \
-  .help_string = "Specify interlace mode. Higher modes are better but slower." \
-  },                                                                   \
-  {                                                                  \
-  .name =      "deinterlace_drop_mode",                                            \
-  .opt =       "ddm", \
-  .long_name = "Drop mode",                                          \
-  .type =      BG_PARAMETER_STRINGLIST,                              \
-  .val_default = { .val_str = "top" },                                 \
-  .multi_names =   (char const *[]){ "top", "bottom", (char*)0 },               \
+ {                                          \
+  .name =      "deinterlace_mode",          \
+  .long_name = TRS("Deinterlace mode"),     \
+  .opt =       "dm",                        \
+  .type =      BG_PARAMETER_STRINGLIST,     \
+  .val_default = { .val_str = "none" },     \
+  .multi_names =  (char const *[]){ "none", "copy", "scale", (char*)0 },                \
+  .multi_labels = (char const *[]){ TRS("None"), TRS("Copy"), TRS("Scale"), (char*)0 }, \
+  .help_string = "Specify interlace mode. Higher modes are better but slower."          \
+  },                                        \
+  {                                         \
+  .name =      "deinterlace_drop_mode",     \
+  .opt =       "ddm",                       \
+  .long_name = "Drop mode",                 \
+  .type =      BG_PARAMETER_STRINGLIST,     \
+  .val_default = { .val_str = "top" },      \
+  .multi_names =   (char const *[]){ "top", "bottom", (char*)0 }, \
   .multi_labels =  (char const *[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },   \
   .help_string = TRS("Specifies which field the deinterlacer should drop.") \
-  },                                                              \
-  {\
-  .name =      "force_deinterlacing",           \
-  .long_name = TRS("Force deinterlacing"),         \
-  .opt =       "fd", \
-  .type =      BG_PARAMETER_CHECKBUTTON,              \
-  .val_default = { .val_i = 0 },                \
-  .help_string = TRS("Force deinterlacing if you want progressive output and the input format pretends to be progressive also.") \
-  }                                                                  \
+  },                                        \
+  {                                         \
+  .name =      "force_deinterlacing",       \
+  .long_name = TRS("Force deinterlacing"),  \
+  .opt =       "fd",                        \
+  .type =      BG_PARAMETER_CHECKBUTTON,    \
+  .val_default = { .val_i = 0 },            \
+  .help_string = TRS("Force deinterlacing if you want progressive output and the input format pretends to be progressive also.")                                     \
+  }
 
+#define BG_GAVL_PARAM_PIXELFORMAT                      \
+ {                                                     \
+  .name =      "pixelformat",                          \
+  .long_name = TRS("Pixelformat"),                     \
+  .opt =       "pf",                                   \
+  .type =      BG_PARAMETER_STRINGLIST,                \
+  .val_default = { .val_str = "YUV 444 Planar" },      \
+  .multi_names =  (char const *[]){                    \
+     "YUV 444 Planar",          "YUVA 4444 (8 bit)",   \
+     "YUV 444 Planar (16 bit)", "YUVA 4444 (16 bit)",  \
+     "YUV 444 (float)",         "YUVA 4444 (float)",   \
+     "32 bpp RGB",              "32 bpp RGBA",         \
+     "48 bpp RGB",              "64 bpp RGBA",         \
+     "Float RGB",               "Float RGBA",          \
+     (char*)0 },                                       \
+  .multi_labels = (char const *[]){                    \
+     TRS("Y'CbCr 8 bit"), TRS("Y'CbCrA 8 bit"),        \
+     TRS("Y'CbCr 16 bit"), TRS("Y'CbCrA 16 bit"),      \
+     TRS("Y'CbCr float"), TRS("Y'CbCrA float"),        \
+     TRS("RGB 8 bit"), TRS("RGBA 8 bit"),              \
+     TRS("RGB 16 bit"), TRS("RGBA 16 bit"),            \
+     TRS("RGB float"), TRS("RGBA float"),              \
+     (char*)0 },                                       \
+  .help_string = TRS("Specify the pixelformat"),       \
+  }
 
 #define BG_GAVL_SCALE_MODE_NAMES \
-   (char const *[]){ "auto",\
+   (char const *[]){ "auto",     \
               "nearest",         \
-              "bilinear", \
-              "quadratic", \
-              "cubic_bspline", \
-              "cubic_mitchell", \
-              "cubic_catmull", \
-              "sinc_lanczos", \
+              "bilinear",        \
+              "quadratic",       \
+              "cubic_bspline",   \
+              "cubic_mitchell",  \
+              "cubic_catmull",   \
+              "sinc_lanczos",    \
               (char*)0 }
 
-#define BG_GAVL_SCALE_MODE_LABELS \
-  (char const *[]){ TRS("Auto"), \
-             TRS("Nearest"),            \
-             TRS("Bilinear"), \
-             TRS("Quadratic"), \
+#define BG_GAVL_SCALE_MODE_LABELS   \
+  (char const *[]){ TRS("Auto"),    \
+             TRS("Nearest"),        \
+             TRS("Bilinear"),       \
+             TRS("Quadratic"),      \
              TRS("Cubic B-Spline"), \
              TRS("Cubic Mitchell-Netravali"), \
              TRS("Cubic Catmull-Rom"), \
@@ -221,19 +284,19 @@ timescale and frame duration below (framerate = timescale / frame duration).")\
             (char*)0 }
 
 #define BG_GAVL_TRANSFORM_MODE_NAMES \
-   (char const *[]){ "auto",\
-              "nearest",         \
-              "bilinear", \
-              "quadratic", \
+   (char const *[]){ "auto",   \
+              "nearest",       \
+              "bilinear",      \
+              "quadratic",     \
               "cubic_bspline", \
               (char*)0 }
 
 #define BG_GAVL_TRANSFORM_MODE_LABELS \
-  (char const *[]){ TRS("Auto"), \
-             TRS("Nearest"),            \
-             TRS("Bilinear"), \
-             TRS("Quadratic"), \
-             TRS("Cubic B-Spline"), \
+  (char const *[]){ TRS("Auto"),      \
+             TRS("Nearest"),          \
+             TRS("Bilinear"),         \
+             TRS("Quadratic"),        \
+             TRS("Cubic B-Spline"),   \
             (char*)0 }
 
 #define BG_GAVL_DOWNSCALE_FILTER_NAMES \
@@ -250,37 +313,37 @@ timescale and frame duration below (framerate = timescale / frame duration).")\
                     TRS("Gaussian preblur"), \
                     (char*)0 }
 
-#define BG_GAVL_PARAM_SCALE_MODE                                    \
-  {                                                                 \
-  .name =        "scale_mode",                                          \
-  .long_name =   TRS("Scale mode"),                                          \
-  .opt =       "sm",                                                  \
-  .type =        BG_PARAMETER_STRINGLIST,                               \
-  .flags =       BG_PARAMETER_SYNC,                     \
-  .multi_names = BG_GAVL_SCALE_MODE_NAMES, \
-  .multi_labels = BG_GAVL_SCALE_MODE_LABELS, \
-  .val_default = { .val_str = "auto" },                                   \
-  .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."), \
-  },                                                                  \
-  {                                                                   \
-  .name =        "scale_order",                                         \
-  .long_name =   TRS("Scale order"),                                        \
-  .opt =       "so",                                                  \
-  .type =        BG_PARAMETER_INT,                               \
-  .flags =       BG_PARAMETER_SYNC,                     \
-  .val_min =     { .val_i = 4 },                                 \
-  .val_max =     { .val_i = 1000 },                              \
-  .val_default = { .val_i = 4 },                                \
+#define BG_GAVL_PARAM_SCALE_MODE               \
+  {                                            \
+  .name =        "scale_mode",                 \
+  .long_name =   TRS("Scale mode"),            \
+  .opt =       "sm",                           \
+  .type =        BG_PARAMETER_STRINGLIST,      \
+  .flags =       BG_PARAMETER_SYNC,            \
+  .multi_names = BG_GAVL_SCALE_MODE_NAMES,     \
+  .multi_labels = BG_GAVL_SCALE_MODE_LABELS,   \
+  .val_default = { .val_str = "auto" },        \
+  .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."),          \
+  },                                           \
+  {                                            \
+  .name =        "scale_order",                \
+  .long_name =   TRS("Scale order"),           \
+  .opt =       "so",                           \
+  .type =        BG_PARAMETER_INT,             \
+  .flags =       BG_PARAMETER_SYNC,            \
+  .val_min =     { .val_i = 4 },               \
+  .val_max =     { .val_i = 1000 },            \
+  .val_default = { .val_i = 4 },               \
   .help_string = TRS("Order for sinc scaling"),\
   }
 
-#define BG_GAVL_PARAM_RESAMPLE_CHROMA \
-  {                                                                 \
-  .name =        "resample_chroma",                                          \
-  .long_name =   TRS("Resample chroma"),                                          \
-  .opt =       "sm",                                                  \
-  .type =        BG_PARAMETER_CHECKBUTTON,                               \
-  .flags =       BG_PARAMETER_SYNC,                     \
+#define BG_GAVL_PARAM_RESAMPLE_CHROMA     \
+  {                                       \
+  .name =        "resample_chroma",       \
+  .long_name =   TRS("Resample chroma"),  \
+  .opt =       "sm",                      \
+  .type =        BG_PARAMETER_CHECKBUTTON,\
+  .flags =       BG_PARAMETER_SYNC,       \
     .help_string = TRS("Always perform chroma resampling if chroma subsampling factors or chroma placements are different. Usually, this is only done for qualities above 3."), \
   }
 
@@ -304,6 +367,147 @@ timescale and frame duration below (framerate = timescale / frame duration).")\
       .val_default = { .val_color = { 0.0, 0.0, 0.0 } }, \
       .help_string = TRS("Background color to use, when alpha mode above is \"Blend background color\"."), \
     }
+
+#define BG_GAVL_PARAM_FRAMESIZE_USER           \
+    { \
+      .name =      "user_image_width", \
+      .long_name = TRS("User defined width"), \
+      .opt =       "w", \
+      .type =      BG_PARAMETER_INT,    \
+      .flags =     BG_PARAMETER_SYNC, \
+      .val_min =     { .val_i = 1 }, \
+      .val_max =     { .val_i = 100000 }, \
+      .val_default = { .val_i = 640 }, \
+      .help_string = TRS("User defined width in pixels. Only meaningful if you selected \"User defined\" for the image size."), \
+    }, \
+    {                                         \
+      .name =      "user_image_height", \
+      .long_name = TRS("User defined height"), \
+      .opt =       "h",  \
+      .type =      BG_PARAMETER_INT, \
+      .flags =     BG_PARAMETER_SYNC, \
+      .val_min =     { .val_i = 1 }, \
+      .val_max =     { .val_i = 100000 }, \
+      .val_default = { .val_i = 480 }, \
+      .help_string = TRS("User defined height in pixels. Only meaningful if you selected \"User defined\" for the image size."), \
+      }, \
+    { \
+      .name =      "user_pixel_width", \
+      .long_name = TRS("User defined pixel width"), \
+      .opt =       "sw", \
+      .type =      BG_PARAMETER_INT,    \
+      .flags =     BG_PARAMETER_SYNC, \
+      .val_min =     { .val_i = 1 }, \
+      .val_max =     { .val_i = 100000 },\
+      .val_default = { .val_i = 1 },\
+      .help_string = TRS("User defined pixel width. Only meaningful if you selected \"User defined\" for the image size."),\
+    },\
+    {                                       \
+      .name =      "user_pixel_height",\
+      .long_name = TRS("User defined pixel height"),\
+      .opt =       "sh",\
+      .type =      BG_PARAMETER_INT,\
+      .flags =     BG_PARAMETER_SYNC,\
+      .val_min =     { .val_i = 1 },\
+      .val_max =     { .val_i = 100000 },\
+      .val_default = { .val_i = 1 },\
+      .help_string = TRS("User defined pixel height. Only meaningful if you selected \"User defined\" for the image size."),\
+    }
+
+
+#define BG_GAVL_PARAM_FRAMESIZE_NAMES           \
+        "user_defined", \
+        "pal_d1", \
+        "pal_d1_wide", \
+        "pal_dv", \
+        "pal_dv_wide", \
+        "pal_cvd", \
+        "pal_vcd", \
+        "pal_svcd", \
+        "pal_svcd_wide", \
+        "ntsc_d1", \
+        "ntsc_d1_wide", \
+        "ntsc_dv", \
+        "ntsc_dv_wide", \
+        "ntsc_cvd", \
+        "ntsc_vcd", \
+        "ntsc_svcd", \
+        "ntsc_svcd_wide", \
+        "720", \
+        "1080", \
+        "vga", \
+        "qvga", \
+        "sqcif", \
+        "qcif", \
+        "cif", \
+        "4cif", \
+        "16cif", \
+        (char*)0
+
+#define BG_GAVL_PARAM_FRAMESIZE_LABELS           \
+        TRS("User defined"), \
+        TRS("PAL DVD D1 4:3 (720 x 576)"), \
+        TRS("PAL DVD D1 16:9 (720 x 576)"), \
+        TRS("PAL DV 4:3 (720 x 576)"), \
+        TRS("PAL DV 16:9 (720 x 576)"), \
+        TRS("PAL CVD (352 x 576)"), \
+        TRS("PAL VCD (352 x 288)"), \
+        TRS("PAL SVCD 4:3 (480 x 576)"), \
+        TRS("PAL SVCD 16:9 (480 x 576)"), \
+        TRS("NTSC DVD D1 4:3 (720 x 480)"), \
+        TRS("NTSC DVD D1 16:9 (720 x 480)"), \
+        TRS("NTSC DV 4:3 (720 x 480)"), \
+        TRS("NTSC DV 16:9 (720 x 480)"), \
+        TRS("NTSC CVD (352 x 480)"), \
+        TRS("NTSC VCD (352 x 240)"), \
+        TRS("NTSC SVCD 4:3 (480 x 480)"), \
+        TRS("NTSC SVCD 16:9 (480 x 480)"), \
+        TRS("HD 720p/i (1280x720)"), \
+        TRS("HD 1080p/i (1920x1080)"), \
+        TRS("VGA (640 x 480)"), \
+        TRS("QVGA (320 x 240)"), \
+        TRS("SQCIF (128 × 96)"), \
+        TRS("QCIF (176 × 144)"), \
+        TRS("CIF (352 × 288)"), \
+        TRS("4CIF (704 × 576)"), \
+        TRS("16CIF (1408 × 1152)"), \
+        (char*)0
+
+#define BG_GAVL_PARAM_FRAMESIZE_NOSOURCE       \
+    { \
+      .name =        "frame_size", \
+      .long_name =   TRS("Image size"), \
+      .type =        BG_PARAMETER_STRINGLIST, \
+      .flags =     BG_PARAMETER_SYNC, \
+      .multi_names = (char const *[]){ \
+      BG_GAVL_PARAM_FRAMESIZE_NAMES \
+        }, \
+      .multi_labels =  (char const *[]){  \
+      BG_GAVL_PARAM_FRAMESIZE_LABELS \
+        }, \
+      .val_default = { .val_str = "pal_d1" }, \
+      .help_string = TRS("Set the output image size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height."), \
+    }, \
+BG_GAVL_PARAM_FRAMESIZE_USER
+
+#define BG_GAVL_PARAM_FRAMESIZE       \
+    { \
+      .name =        "frame_size", \
+      .long_name =   TRS("Image size"), \
+      .type =        BG_PARAMETER_STRINGLIST, \
+      .flags =     BG_PARAMETER_SYNC, \
+      .multi_names = (char const *[]){ \
+      "from_source", \
+      BG_GAVL_PARAM_FRAMESIZE_NAMES \
+        }, \
+      .multi_labels =  (char const *[]){  \
+      TRS("From source"), \
+      BG_GAVL_PARAM_FRAMESIZE_LABELS \
+        }, \
+      .val_default = { .val_str = "from_source" }, \
+      .help_string = TRS("Set the output image size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height."), \
+    }, \
+BG_GAVL_PARAM_FRAMESIZE_USER
 
 
 #define BG_GAVL_PARAM_SAMPLERATE                \

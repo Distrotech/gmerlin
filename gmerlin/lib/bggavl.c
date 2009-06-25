@@ -411,6 +411,127 @@ gavl_downscale_filter_t bg_gavl_string_to_downscale_filter(const char * str)
     }
   }
 
+#define FRAME_SIZE_FROM_INPUT      0
+#define FRAME_SIZE_USER            1
+#define FRAME_SIZE_PAL_D1          2
+#define FRAME_SIZE_PAL_D1_WIDE     3
+#define FRAME_SIZE_PAL_DV          4
+#define FRAME_SIZE_PAL_DV_WIDE     5
+#define FRAME_SIZE_PAL_CVD         6
+#define FRAME_SIZE_PAL_VCD         7
+#define FRAME_SIZE_PAL_SVCD        8
+#define FRAME_SIZE_PAL_SVCD_WIDE   9
+#define FRAME_SIZE_NTSC_D1        10
+#define FRAME_SIZE_NTSC_D1_WIDE   11
+#define FRAME_SIZE_NTSC_DV        12
+#define FRAME_SIZE_NTSC_DV_WIDE   13
+#define FRAME_SIZE_NTSC_CVD       14
+#define FRAME_SIZE_NTSC_VCD       15
+#define FRAME_SIZE_NTSC_SVCD      16
+#define FRAME_SIZE_NTSC_SVCD_WIDE 17
+#define FRAME_SIZE_VGA            18
+#define FRAME_SIZE_QVGA           19
+#define FRAME_SIZE_720            20
+#define FRAME_SIZE_1080           21
+#define FRAME_SIZE_SQCIF          22
+#define FRAME_SIZE_QCIF           23
+#define FRAME_SIZE_CIF            24
+#define FRAME_SIZE_4CIF           25
+#define FRAME_SIZE_16CIF          26
+#define NUM_FRAME_SIZES           27
+
+
+static const struct
+  {
+  const char * name;
+  int size;
+  int image_width;
+  int image_height;
+  int pixel_width;
+  int pixel_height;
+  }
+framesizes[] =
+  {
+    { "from_input",     FRAME_SIZE_FROM_INPUT,      0,      0,    0,    0},
+    { "user_defined",   FRAME_SIZE_USER,            0,      0,    0,    0},
+    { "pal_d1",         FRAME_SIZE_PAL_D1,          720,  576,   59,   54},
+    { "pal_d1_wide",    FRAME_SIZE_PAL_D1_WIDE,     720,  576,  118,   81},
+    { "pal_dv",         FRAME_SIZE_PAL_DV,          720,  576,   59,   54},
+    { "pal_dv_wide",    FRAME_SIZE_PAL_DV_WIDE,     720,  576,  118,   81},
+    { "pal_cvd",        FRAME_SIZE_PAL_CVD,         352,  576,   59,   27},
+    { "pal_vcd",        FRAME_SIZE_PAL_VCD,         352,  288,   59,   54},
+    { "pal_svcd",       FRAME_SIZE_PAL_SVCD,        480,  576,   59,   36},
+    { "pal_svcd_wide",  FRAME_SIZE_PAL_SVCD_WIDE,   480,  576,   59,   27},
+    { "ntsc_d1",        FRAME_SIZE_NTSC_D1,         720,  480,   10,   11},
+    { "ntsc_d1_wide",   FRAME_SIZE_NTSC_D1_WIDE,    720,  480,   40,   33},
+    { "ntsc_dv",        FRAME_SIZE_NTSC_DV,         720,  480,   10,   11},
+    { "ntsc_dv_wide",   FRAME_SIZE_NTSC_DV_WIDE,    720,  480,   40,   33},
+    { "ntsc_cvd",       FRAME_SIZE_NTSC_CVD,        352,  480,   20,   11},
+    { "ntsc_vcd",       FRAME_SIZE_NTSC_VCD,        352,  240,   10,   11},
+    { "ntsc_svcd",      FRAME_SIZE_NTSC_SVCD,       480,  480,   15,   11},
+    { "ntsc_svcd_wide", FRAME_SIZE_NTSC_SVCD_WIDE,  480,  480,   20,   11},
+    { "720",            FRAME_SIZE_720,             1280,  720,    1,    1},
+    { "1080",           FRAME_SIZE_1080,            1920, 1080,    1,    1},
+    { "vga",            FRAME_SIZE_VGA,             640,  480,    1,    1},
+    { "qvga",           FRAME_SIZE_QVGA,            320,  240,    1,    1},
+    { "sqcif",          FRAME_SIZE_SQCIF,           128,   96,   12,   11},
+    { "qcif",           FRAME_SIZE_QCIF,            176,  144,   12,   11},
+    { "cif",            FRAME_SIZE_CIF,             352,  288,   12,   11},
+    { "4cif",           FRAME_SIZE_4CIF,            704,  576,   12,   11},
+    { "16cif",          FRAME_SIZE_16CIF,           1408, 1152,   12,   11},
+  };
+
+static void set_frame_size_mode(bg_gavl_video_options_t * opt,
+                                const bg_parameter_value_t * val)
+  {
+  int i;
+  for(i = 0; i < NUM_FRAME_SIZES; i++)
+    {
+    if(!strcmp(val->val_str, framesizes[i].name))
+      opt->size = framesizes[i].size;
+    }
+  }
+
+static void set_frame_size(const bg_gavl_video_options_t * opt,
+                           const gavl_video_format_t * in_format,
+                           gavl_video_format_t * out_format)
+  {
+  int i;
+  
+  if(opt->size == FRAME_SIZE_FROM_INPUT)
+    {
+    out_format->image_width =  in_format->image_width;
+    out_format->image_height = in_format->image_height;
+    out_format->frame_width =  in_format->frame_width;
+    out_format->frame_height = in_format->frame_height;
+    out_format->pixel_width  = in_format->pixel_width;
+    out_format->pixel_height = in_format->pixel_height;
+    return;
+    }
+  else if(opt->size == FRAME_SIZE_USER)
+    {
+    out_format->image_width = opt->user_image_width;
+    out_format->image_height = opt->user_image_height;
+    out_format->frame_width = opt->user_image_width;
+    out_format->frame_height = opt->user_image_height;
+    out_format->pixel_width = opt->user_pixel_width;
+    out_format->pixel_height = opt->user_pixel_height;
+    return;
+    }
+  
+  for(i = 0; i < NUM_FRAME_SIZES; i++)
+    {
+    if(opt->size == framesizes[i].size)
+      {
+      out_format->image_width =  framesizes[i].image_width;
+      out_format->image_height = framesizes[i].image_height;
+      out_format->frame_width =  framesizes[i].image_width;
+      out_format->frame_height = framesizes[i].image_height;
+      out_format->pixel_width  = framesizes[i].pixel_width;
+      out_format->pixel_height = framesizes[i].pixel_height;
+      }
+    }
+  }
 
 int bg_gavl_video_set_parameter(void * data, const char * name,
                                 const bg_parameter_value_t * val)
@@ -428,20 +549,25 @@ int bg_gavl_video_set_parameter(void * data, const char * name,
     gavl_video_options_set_quality(opt->opt, val->val_i);
     return 1;
     }
-
-  if(!strcmp(name, "framerate"))
+  else if(!strcmp(name, "framerate"))
     {
     set_frame_rate_mode(opt, val);
     return 1;
     }
+  else if(!strcmp(name, "frame_size"))
+    {
+    set_frame_size_mode(opt, val);
+    return 1;
+    }
+
   //  SP_INT(fixed_framerate);
   SP_INT(frame_duration);
   SP_INT(timescale);
 
-  //  SP_INT(user_image_width);
-  //  SP_INT(user_image_height);
-  //  SP_INT(user_pixel_width);
-  //  SP_INT(user_pixel_height);
+  SP_INT(user_image_width);
+  SP_INT(user_image_height);
+  SP_INT(user_pixel_width);
+  SP_INT(user_pixel_height);
   //  SP_INT(maintain_aspect);
   
   SP_FLAG("force_deinterlacing", GAVL_FORCE_DEINTERLACE);
@@ -572,6 +698,7 @@ void bg_gavl_video_options_set_format(const bg_gavl_video_options_t * opt,
   {
   set_framerate(opt, in_format, out_format);
   set_interlace(opt, in_format, out_format);
+  set_frame_size(opt, in_format, out_format);
   }
 
 

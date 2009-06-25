@@ -241,7 +241,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
       return;
       }
     
-    fprintf(stderr, "Sync time: %ld\n", sync_time);
+    //    fprintf(stderr, "Sync time: %ld\n", sync_time);
     
     diff_time = *time - sync_time;
 

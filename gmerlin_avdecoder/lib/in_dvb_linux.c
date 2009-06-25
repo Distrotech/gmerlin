@@ -45,6 +45,8 @@
 
 #define LOG_DOMAIN "dvb"
 
+// #define DUMP_PMT
+
 extern bgav_demuxer_t bgav_demuxer_mpegts;
 
 #define FILTER_AUDIO 0
@@ -417,8 +419,9 @@ static int get_streams(bgav_input_context_t * ctx,
     /* We assume, that all streams are present */
     for(j = 0; j < pmts.num_streams; j++)
       pmts.streams[j].present = 1;
-    
+#ifdef DUMP_PMT    
     bgav_pmt_section_dump(&pmts);  
+#endif
 
     /* Setup streams from pmt */
     bgav_pmt_section_setup_track(&pmts,

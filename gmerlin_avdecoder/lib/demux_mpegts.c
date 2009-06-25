@@ -51,6 +51,8 @@
 /* Maximum number of consecutive error packets */
 #define MAX_ERROR_PACKETS   10
 
+// #define DUMP_PMT
+
 typedef struct
   {
   int64_t last_pts;
@@ -627,7 +629,9 @@ static int init_psi(bgav_demuxer_context_t * ctx,
                  "PMT section spans multiple packets, please report");
         return 0;
         }
+#ifdef DUMP_PMT
       bgav_pmt_section_dump(&priv->programs[program].pmts);
+#endif
       if(priv->programs[program].pmts.section_number ||
          priv->programs[program].pmts.last_section_number)
         {
@@ -1152,7 +1156,9 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       
       bgav_pmt_section_read(priv->ptr, 188 - (priv->ptr - priv->packet_start),
                             &pmts);
+#ifdef DUMP_PMT
       bgav_pmt_section_dump(&pmts);
+#endif
 #endif
       next_packet(priv);
       position += priv->packet_size;
