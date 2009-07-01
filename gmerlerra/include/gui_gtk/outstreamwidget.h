@@ -2,8 +2,12 @@
 
 typedef struct bg_nle_outstream_widget_s bg_nle_outstream_widget_t;
 
-bg_nle_outstream_widget_t * bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
-                                                   bg_nle_time_ruler_t * ruler);
+bg_nle_outstream_widget_t *
+bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
+                               bg_nle_time_ruler_t * ruler,
+                               void (*play_callback)(bg_nle_outstream_widget_t *, void *),
+                               void (*delete_callback)(bg_nle_outstream_widget_t *, void *),
+                               void * callback_data);
 
 void bg_nle_outstream_widget_destroy(bg_nle_outstream_widget_t *);
 

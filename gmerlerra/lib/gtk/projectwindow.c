@@ -44,9 +44,7 @@ typedef struct
   {
   GtkWidget * add_audio;
   GtkWidget * add_video;
-  GtkWidget * move_up;
-  GtkWidget * move_down;
-  GtkWidget * delete;
+
   GtkWidget * menu;
   } track_menu_t;
 
@@ -54,9 +52,6 @@ typedef struct
   {
   GtkWidget * add_audio;
   GtkWidget * add_video;
-  GtkWidget * move_up;
-  GtkWidget * move_down;
-  GtkWidget * delete;
   GtkWidget * menu;
   } outstream_menu_t;
 
@@ -246,10 +241,6 @@ static void menu_callback(GtkWidget * w, gpointer data)
     track = bg_nle_project_add_video_track(win->p);
     bg_nle_timeline_add_track(win->timeline, track);
     }
-  else if(w == win->track_menu.delete)
-    {
-    /* */
-    }
   else if(w == win->outstream_menu.add_audio)
     {
     outstream = bg_nle_project_add_audio_outstream(win->p);
@@ -342,12 +333,6 @@ static void init_menu_bar(bg_nle_project_window_t * w)
     create_menu_item(w, w->track_menu.menu, TR("Add audio track"), "audio_16.png");
   w->track_menu.add_video =
     create_menu_item(w, w->track_menu.menu, TR("Add video track"), "video_16.png");
-  w->track_menu.move_up =
-    create_menu_item(w, w->track_menu.menu, TR("Move up"), "up_16.png");
-  w->track_menu.move_down =
-    create_menu_item(w, w->track_menu.menu, TR("Move down"), "down_16.png");
-  w->track_menu.delete =
-    create_menu_item(w, w->track_menu.menu, TR("Delete selected"), "trash_16.png");
 
   /* Output stream */
   w->outstream_menu.menu = gtk_menu_new();
@@ -355,12 +340,6 @@ static void init_menu_bar(bg_nle_project_window_t * w)
     create_menu_item(w, w->outstream_menu.menu, TR("Add audio output stream"), "audio_16.png");
   w->outstream_menu.add_video =
     create_menu_item(w, w->outstream_menu.menu, TR("Add video output stream"), "video_16.png");
-  w->outstream_menu.move_up =
-    create_menu_item(w, w->outstream_menu.menu, TR("Move up"), "up_16.png");
-  w->outstream_menu.move_down =
-    create_menu_item(w, w->outstream_menu.menu, TR("Move down"), "down_16.png");
-  w->outstream_menu.delete =
-    create_menu_item(w, w->outstream_menu.menu, TR("Delete selected"), "trash_16.png");
   
   /* Edit */
   w->edit_menu.menu = gtk_menu_new();

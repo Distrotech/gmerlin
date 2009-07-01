@@ -3,7 +3,9 @@
 typedef struct bg_nle_track_widget_s bg_nle_track_widget_t;
 
 bg_nle_track_widget_t * bg_nle_track_widget_create(bg_nle_track_t * track,
-                                                   bg_nle_time_ruler_t * ruler);
+                                                   bg_nle_time_ruler_t * ruler,
+                                                   void (*delete_callback)(bg_nle_track_widget_t *, void *),
+                                                   void * callback_data);
 
 void bg_nle_track_widget_destroy(bg_nle_track_widget_t *);
 

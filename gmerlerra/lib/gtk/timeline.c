@@ -143,6 +143,27 @@ static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
   return button;
   }
 
+static void track_delete(bg_nle_track_widget_t * w,
+                         void * data)
+  {
+  bg_nle_timeline_t * t = data;
+  
+  }
+
+static void outstream_delete(bg_nle_outstream_widget_t * w,
+                             void * data)
+  {
+  bg_nle_timeline_t * t = data;
+  
+  }
+
+static void outstream_play(bg_nle_outstream_widget_t * w,
+                           void * data)
+  {
+  bg_nle_timeline_t * t = data;
+  fprintf(stderr, "Play callback\n");
+  }
+
 bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   {
   GtkWidget * box;
@@ -288,7 +309,8 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   for(i = 0; i < ret->p->num_tracks; i++)
     {
     ret->tracks[ret->num_tracks] =
-      bg_nle_track_widget_create(ret->p->tracks[i], ret->ruler);
+      bg_nle_track_widget_create(ret->p->tracks[i], ret->ruler, track_delete,
+                                 ret);
 
     gtk_box_pack_start(GTK_BOX(ret->panel_box),
                        bg_nle_track_widget_get_panel(ret->tracks[ret->num_tracks]),
@@ -309,7 +331,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
     for(i = 0; i < ret->p->num_outstreams; i++)
       {
       ret->outstreams[ret->num_outstreams] =
-        bg_nle_outstream_widget_create(ret->p->outstreams[i], ret->ruler);
+        bg_nle_outstream_widget_create(ret->p->outstreams[i], ret->ruler, outstream_play, outstream_delete, ret);
 
       gtk_box_pack_start(GTK_BOX(ret->panel_box),
                          bg_nle_outstream_widget_get_panel(ret->outstreams[ret->num_outstreams]),
@@ -348,7 +370,8 @@ void bg_nle_timeline_add_track(bg_nle_timeline_t * t,
   GtkWidget * w;
   t->tracks = realloc(t->tracks,
                         sizeof(*t->tracks) * (t->num_tracks+1));
-  t->tracks[t->num_tracks] = bg_nle_track_widget_create(track, t->ruler);
+  t->tracks[t->num_tracks] = bg_nle_track_widget_create(track, t->ruler,
+                                                        track_delete, t);
 
   w = bg_nle_track_widget_get_panel(t->tracks[t->num_tracks]);
   
@@ -370,7 +393,9 @@ void bg_nle_timeline_add_outstream(bg_nle_timeline_t * t,
   {
   t->outstreams = realloc(t->outstreams,
                           sizeof(*t->outstreams) * (t->num_outstreams+1));
-  t->outstreams[t->num_outstreams] = bg_nle_outstream_widget_create(outstream, t->ruler);
+  t->outstreams[t->num_outstreams] =
+    bg_nle_outstream_widget_create(outstream, t->ruler,
+                                   outstream_play, outstream_delete, t);
 
   gtk_box_pack_start(GTK_BOX(t->panel_box),
                      bg_nle_outstream_widget_get_panel(t->outstreams[t->num_outstreams]),
