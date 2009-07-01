@@ -132,11 +132,21 @@ static void show_settings_dialog(bg_nle_project_window_t * win)
                       NULL,
                       NULL,
                       bg_nle_outstream_video_parameters);
-
   
-    
-
   bg_dialog_show(cfg_dialog, win->win);
+  }
+
+static gboolean destroy_func(gpointer data)
+  {
+  bg_nle_project_window_t * win = data;
+  if(win->p->changed_flags)
+    {
+    /* Ask to save */
+    }
+  bg_nle_project_window_destroy(win);
+  if(!project_windows)
+    gtk_main_quit();
+  return FALSE;
   }
 
 static void menu_callback(GtkWidget * w, gpointer data)
@@ -161,6 +171,13 @@ static void menu_callback(GtkWidget * w, gpointer data)
       new_win = bg_nle_project_window_create(filename, win->p->plugin_reg);
       bg_nle_project_window_show(new_win);
       free(filename);
+
+      /* If our project has no filename and is not changed,
+         we can close ourselves */
+      if(!win->filename && !win->p->changed_flags)
+        {
+        g_idle_add(destroy_func, win);
+        }
       }
     }
   else if(w == win->project_menu.save)
@@ -170,7 +187,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     else
       {
       char * filename;
-      filename = bg_gtk_get_filename_write("Load project",
+      filename = bg_gtk_get_filename_write("Save project",
                                            &project_path, 1, win->win);
       if(filename)
         {
@@ -192,9 +209,9 @@ static void menu_callback(GtkWidget * w, gpointer data)
       free(filename);
       }
     }
-  else if(w == win->project_menu.set_default)
+  else if(w == win->project_menu.close)
     {
-    bg_nle_project_save(win->p, (char*)0);
+    g_idle_add(destroy_func, win);
     }
   else if(w == win->project_menu.close)
     {
@@ -211,6 +228,13 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(w == win->project_menu.load_media)
     {
     bg_nle_media_browser_load_files(win->media_browser);
+    }
+  else if(w == win->project_menu.set_default)
+    {
+    char * filename;
+    filename = bg_search_file_write("gmerlerra", "default_project.xml");
+    bg_nle_project_save(win->p, filename);
+    free(filename);
     }
   else if(w == win->track_menu.add_audio)
     {
@@ -399,7 +423,18 @@ bg_nle_project_window_create(const char * project_file,
     ret->filename = bg_strdup(ret->filename, project_file);
     }
   else
-    ret->p = bg_nle_project_create(project_file, plugin_reg);
+    {
+    char * filename = bg_search_file_read("gmerlerra", "default_project.xml");
+
+    if(filename)
+      {
+      ret->p = bg_nle_project_load(filename, plugin_reg);
+      free(filename);
+      }
+    else
+      ret->p = bg_nle_project_create(plugin_reg);
+    }
+    
   
   project_windows = g_list_append(project_windows, ret);
   
@@ -496,5 +531,20 @@ void bg_nle_project_window_show(bg_nle_project_window_t * w)
 void bg_nle_project_window_destroy(bg_nle_project_window_t * w)
   {
   project_windows = g_list_remove(project_windows, w);
+  
+  gtk_widget_destroy(w->win);
+  
+  bg_nle_project_destroy(w->p);
+
+  bg_nle_timeline_destroy(w->timeline);
+  bg_nle_media_browser_destroy(w->media_browser);
+
+  bg_nle_player_widget_destroy(w->compositor);
+
+  bg_gtk_time_display_destroy(w->time_display);
+  
+  if(w->filename)
+    free(w->filename);
+  
   free(w);
   }

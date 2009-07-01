@@ -149,7 +149,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   GtkWidget * table;
   GtkWidget * eventbox;
   GtkSizeGroup * size_group;
-  GtkWidget * table1;
+  //  GtkWidget * table1;
   
   int i;
 
@@ -271,7 +271,6 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                    0, 1, 0, 1,
                    GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
   
-
   gtk_table_attach(GTK_TABLE(table),
                    ret->preview_window,
                    0, 1, 1, 2,
@@ -304,23 +303,24 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   /* Add outstreams */
 
   if(ret->p->num_outstreams)
+    {
     ret->outstreams = calloc(ret->p->num_outstreams, sizeof(*ret->outstreams));
 
-  for(i = 0; i < ret->p->num_outstreams; i++)
-    {
-    ret->outstreams[ret->num_outstreams] =
-      bg_nle_outstream_widget_create(ret->p->outstreams[i], ret->ruler);
+    for(i = 0; i < ret->p->num_outstreams; i++)
+      {
+      ret->outstreams[ret->num_outstreams] =
+        bg_nle_outstream_widget_create(ret->p->outstreams[i], ret->ruler);
 
-    gtk_box_pack_start(GTK_BOX(ret->panel_box),
-                       bg_nle_outstream_widget_get_panel(ret->outstreams[ret->num_outstreams]),
-                       FALSE, FALSE, 0);
+      gtk_box_pack_start(GTK_BOX(ret->panel_box),
+                         bg_nle_outstream_widget_get_panel(ret->outstreams[ret->num_outstreams]),
+                         FALSE, FALSE, 0);
     
-    gtk_box_pack_start(GTK_BOX(ret->preview_box),
-                       bg_nle_outstream_widget_get_preview(ret->outstreams[ret->num_outstreams]),
-                       FALSE, FALSE, 0);
-    ret->num_outstreams++;
+      gtk_box_pack_start(GTK_BOX(ret->preview_box),
+                         bg_nle_outstream_widget_get_preview(ret->outstreams[ret->num_outstreams]),
+                         FALSE, FALSE, 0);
+      ret->num_outstreams++;
+      }
     }
-
   return ret;
   }
 

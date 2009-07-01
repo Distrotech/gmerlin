@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <gmerlin/cfg_registry.h>
 #include <gmerlin/cfg_dialog.h>

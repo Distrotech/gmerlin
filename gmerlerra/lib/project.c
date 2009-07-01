@@ -8,8 +8,7 @@
 #include <project.h>
 
 
-bg_nle_project_t * bg_nle_project_create(const char * file,
-                                         bg_plugin_registry_t * plugin_reg)
+bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_nle_project_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -159,7 +158,7 @@ void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t)
                                   sizeof(*p->audio_tracks) *
                                   (p->audio_tracks_alloc));
         }
-      p->tracks[p->num_audio_tracks] = t;
+      p->audio_tracks[p->num_audio_tracks] = t;
       p->num_audio_tracks++;
       break;
     case BG_NLE_TRACK_VIDEO:
@@ -170,7 +169,7 @@ void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t)
                                   sizeof(*p->video_tracks) *
                                   (p->video_tracks_alloc));
         }
-      p->tracks[p->num_video_tracks] = t;
+      p->video_tracks[p->num_video_tracks] = t;
       p->num_video_tracks++;
       break;
     case BG_NLE_TRACK_NONE:
@@ -283,7 +282,7 @@ void bg_nle_project_append_outstream(bg_nle_project_t * p, bg_nle_outstream_t * 
                                   sizeof(*p->audio_outstreams) *
                                   (p->audio_outstreams_alloc));
         }
-      p->outstreams[p->num_audio_outstreams] = t;
+      p->audio_outstreams[p->num_audio_outstreams] = t;
       p->num_audio_outstreams++;
       break;
     case BG_NLE_TRACK_VIDEO:
@@ -294,7 +293,7 @@ void bg_nle_project_append_outstream(bg_nle_project_t * p, bg_nle_outstream_t * 
                                   sizeof(*p->video_outstreams) *
                                   (p->video_outstreams_alloc));
         }
-      p->outstreams[p->num_video_outstreams] = t;
+      p->video_outstreams[p->num_video_outstreams] = t;
       p->num_video_outstreams++;
       break;
     case BG_NLE_TRACK_NONE:

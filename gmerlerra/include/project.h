@@ -52,16 +52,10 @@ typedef struct
   bg_cfg_section_t * video_outstream_section;
   bg_cfg_section_t * paths_section;
   
-  gavl_audio_format_t audio_format_preset;
-  gavl_audio_format_t audio_format;
-
-  gavl_video_format_t video_format_preset;
-  gavl_video_format_t video_format;
-  
   bg_plugin_registry_t * plugin_reg;
   } bg_nle_project_t;
 
-bg_nle_project_t * bg_nle_project_create(const char * file, bg_plugin_registry_t * plugin_reg);
+bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg);
 
 void bg_nle_project_save(bg_nle_project_t *, const char * file);
 
