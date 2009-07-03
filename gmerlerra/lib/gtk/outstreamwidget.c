@@ -21,6 +21,11 @@ typedef struct
   GtkWidget * delete;
   GtkWidget * configure;
   GtkWidget * filter;
+  GtkWidget * tracks_menu;
+  
+  GtkWidget ** tracks_items;
+  GtkWidget * track_item;
+  
   } menu_t;
 
 struct bg_nle_outstream_widget_s

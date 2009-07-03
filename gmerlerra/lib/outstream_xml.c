@@ -4,7 +4,8 @@
 #include <outstream.h>
 #include <gmerlin/utils.h>
 
-static const char * parameters_name = "parameters";
+static const char * parameters_name    = "parameters";
+static const char * source_tracks_name = "source_tracks";
 
 static const struct
   {
@@ -76,7 +77,11 @@ bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
       ret->section = bg_cfg_section_create("");
       bg_cfg_xml_2_section(xml_doc, child, ret->section);
       }
-    
+
+    if(!BG_XML_STRCMP(child->name, source_tracks_name))
+      {
+      
+      }
     child = child->next;
     }
   
@@ -85,9 +90,11 @@ bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
 
 void bg_nle_outstream_save(bg_nle_outstream_t * t, xmlNodePtr parent)
   {
+  int i;
   char * tmp_string;
   xmlNodePtr node;
   xmlNodePtr child;
+  xmlNodePtr grandchild;
   
   node = xmlNewTextChild(parent, (xmlNsPtr)0,
                          (xmlChar*)"outstream", NULL);
@@ -100,5 +107,26 @@ void bg_nle_outstream_save(bg_nle_outstream_t * t, xmlNodePtr parent)
   child = xmlNewTextChild(node, (xmlNsPtr)0,
                           (xmlChar*)parameters_name, NULL);
   bg_cfg_section_2_xml(t->section, child);
+
+  /* Save source tracks */
+  if(t->num_source_tracks)
+    {
+    child = xmlNewTextChild(node, (xmlNsPtr)0,
+                            (xmlChar*)source_tracks_name, NULL);
+
+    tmp_string = bg_sprintf("%d", t->num_source_tracks);
+    BG_XML_SET_PROP(node, "num", tmp_string);
+    free(tmp_string);
+
+    for(i = 0; i < t->num_source_tracks; i++)
+      {
+      grandchild = xmlNewTextChild(child, (xmlNsPtr)0,
+                                   (xmlChar*)source_tracks_name, NULL);
+      tmp_string = bg_sprintf("%08x", t->source_tracks[i]->id);
+      BG_XML_SET_PROP(grandchild, "id", tmp_string);
+      free(tmp_string);
+      }
+    }
+
   }
 

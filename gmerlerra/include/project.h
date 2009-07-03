@@ -10,7 +10,7 @@
 #define BG_NLE_PROJECT_TRACKS_CHANGED     (1<<2)
 #define BG_NLE_PROJECT_OUTSTREAMS_CHANGED (1<<3)
 
-typedef struct
+struct bg_nle_project_s
   {
   int changed_flags;
 
@@ -53,7 +53,7 @@ typedef struct
   bg_cfg_section_t * paths_section;
   
   bg_plugin_registry_t * plugin_reg;
-  } bg_nle_project_t;
+  };
 
 bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg);
 

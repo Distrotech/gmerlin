@@ -23,6 +23,12 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
   char * tmp_string;
   ret = calloc(1, sizeof(*ret));
 
+  if((tmp_string = BG_XML_GET_PROP(child, "id")))
+    {
+    ret->id = strtoll(tmp_string, (char**)0, 16);
+    free(tmp_string);
+    }
+  
   child = node->children;
 
   while(child)
@@ -33,6 +39,7 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
       continue;
       }
 
+    
     if(!BG_XML_STRCMP(child->name, filename_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
@@ -69,7 +76,6 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
       ret->duration = strtoll(tmp_string, (char**)0, 10);
       xmlFree(tmp_string);
       }
-    
     child = child->next;
     }
   
@@ -146,11 +152,16 @@ static void save_file(xmlNodePtr node, bg_nle_file_t * file)
   xmlNodePtr child;
   char * tmp_string;
 
+  /* ID */
+  tmp_string = bg_sprintf("%08x", file->id);
+  BG_XML_SET_PROP(node, "id", tmp_string);
+  free(tmp_string);
+  
   /* Filename */
   child = xmlNewTextChild(node, (xmlNsPtr)0,
                           (xmlChar*)filename_name, NULL);
   xmlAddChild(child, BG_XML_NEW_TEXT(file->filename));
-
+  
   /* Name */
   child = xmlNewTextChild(node, (xmlNsPtr)0,
                           (xmlChar*)name_name, NULL);

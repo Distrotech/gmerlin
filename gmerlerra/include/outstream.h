@@ -6,11 +6,18 @@
 typedef struct
   {
   bg_nle_track_type_t type;
-  int num_source_tracks;
-  int source_tracks_alloc;
-  int * source_track_ids;
   int flags;
   bg_cfg_section_t * section;
+
+  /* Source tracks */
+  bg_nle_id_t * source_track_ids;
+  int num_source_tracks;
+  int source_tracks_alloc;
+  bg_nle_track_t ** source_tracks;
+  
+  /* Pointer to the project */
+  bg_nle_project_t * p;
+  
   } bg_nle_outstream_t;
 
 bg_nle_outstream_t * bg_nle_outstream_create(bg_nle_track_type_t type);

@@ -60,6 +60,12 @@ bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
     xmlFree(tmp_string);
     }
   
+  if((tmp_string = BG_XML_GET_PROP(child, "id")))
+    {
+    ret->id = strtoll(tmp_string, (char**)0, 16);
+    free(tmp_string);
+    }
+  
   child = node->children;
 
   while(child)
@@ -91,6 +97,10 @@ void bg_nle_track_save(bg_nle_track_t * t, xmlNodePtr parent)
   node = xmlNewTextChild(parent, (xmlNsPtr)0,
                          (xmlChar*)"track", NULL);
   BG_XML_SET_PROP(node, "type", type_to_name(t->type));
+
+  tmp_string = bg_sprintf("%08x", t->id);
+  BG_XML_SET_PROP(node, "id", tmp_string);
+  free(tmp_string);
   
   tmp_string = bg_sprintf("%08x", t->flags);
   BG_XML_SET_PROP(node, "flags", tmp_string);

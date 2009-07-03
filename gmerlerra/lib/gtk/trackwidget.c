@@ -131,7 +131,7 @@ static void init_menu()
     return;
   the_menu.menu      = gtk_menu_new();
   the_menu.configure = create_menu_item(the_menu.menu, TR("Configure"), "config_16.png");
-  the_menu.filter = create_menu_item(the_menu.menu, TR("Add filter"), "filter_16.png");
+  the_menu.filter    = create_menu_item(the_menu.menu, TR("Add filter"), "filter_16.png");
   the_menu.up        = create_menu_item(the_menu.menu, TR("Move up"),   "up_16.png");
   the_menu.down      = create_menu_item(the_menu.menu, TR("Move down"), "down_16.png");
   the_menu.delete    = create_menu_item(the_menu.menu, TR("Delete"),    "trash_16.png");

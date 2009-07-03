@@ -4,18 +4,9 @@
 #include <gmerlin/parameter.h>
 #include <gmerlin/xmlutils.h>
 
+#include <types.h>
+
 #include <medialist.h>
-
-typedef enum
-  {
-    BG_NLE_TRACK_NONE = 0,
-    BG_NLE_TRACK_AUDIO,
-    BG_NLE_TRACK_VIDEO,
-  } bg_nle_track_type_t;
-
-/* WARNING: Changing these alters the file format */
-#define BG_NLE_TRACK_SELECTED (1<<0)
-#define BG_NLE_TRACK_EXPANDED (1<<1)
 
 typedef struct
   {
@@ -25,7 +16,7 @@ typedef struct
   int64_t dst_pos;
   int64_t len;
   
-  int file_id;
+  bg_nle_id_t file_id;
   int stream;
   } bg_nle_track_segment_t;
 
@@ -39,9 +30,13 @@ typedef struct
   int flags;
   int index;
   bg_nle_track_type_t type;
-  int id;
+  bg_nle_id_t id;
   
   bg_cfg_section_t * section;
+
+  /* Pointer to the project */
+  bg_nle_project_t * p;
+  
   } bg_nle_track_t;
 
 bg_nle_track_t * bg_nle_track_create(bg_nle_track_type_t type);
