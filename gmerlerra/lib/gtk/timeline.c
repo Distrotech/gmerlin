@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <config.h>
+#include <string.h>
 
 #include <gmerlin/utils.h>
 #include <gmerlin/gui_gtk/gtkutils.h>
@@ -408,6 +409,21 @@ void bg_nle_timeline_add_outstream(bg_nle_timeline_t * t,
   
   
   t->num_outstreams++;
+  }
+
+void bg_nle_timeline_delete_track(bg_nle_timeline_t * t, int index)
+  {
+  fprintf(stderr, "bg_nle_timeline_delete_track: %d\n", index);
+  bg_nle_track_widget_destroy(t->tracks[index]);
+  if(index > t->num_tracks-1)
+    memmove(t->tracks + index, t->tracks + index + 1,
+            (t->num_tracks-1 - index) * sizeof(*t->tracks));
+  t->num_tracks--;
+  }
+
+void bg_nle_timeline_delete_outstream(bg_nle_timeline_t * t, int index)
+  {
+  
   }
 
 

@@ -10,32 +10,23 @@
 #define BG_NLE_PROJECT_TRACKS_CHANGED     (1<<2)
 #define BG_NLE_PROJECT_OUTSTREAMS_CHANGED (1<<3)
 
+typedef void (*bg_nle_edit_callback)(bg_nle_project_t*,
+                                     bg_nle_edit_op_t op,
+                                     void * op_data,
+                                     void * user_data);
+
 struct bg_nle_project_s
   {
   int changed_flags;
-
-  
-  int num_audio_tracks;
-  int num_video_tracks;
   int num_tracks;
 
-  int audio_tracks_alloc;
-  int video_tracks_alloc;
   int tracks_alloc;
   
-  bg_nle_track_t ** audio_tracks;
-  bg_nle_track_t ** video_tracks;
   bg_nle_track_t ** tracks;
 
-  bg_nle_outstream_t ** audio_outstreams;
-  bg_nle_outstream_t ** video_outstreams;
   bg_nle_outstream_t ** outstreams;
 
-  int num_audio_outstreams;
-  int num_video_outstreams;
   int num_outstreams;
-  int audio_outstreams_alloc;
-  int video_outstreams_alloc;
   int outstreams_alloc;
   
   bg_nle_media_list_t * media_list;
@@ -53,6 +44,9 @@ struct bg_nle_project_s
   bg_cfg_section_t * paths_section;
   
   bg_plugin_registry_t * plugin_reg;
+
+  bg_nle_edit_callback edit_callback;
+  void * edit_callback_data;
   };
 
 bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg);
@@ -61,6 +55,9 @@ void bg_nle_project_save(bg_nle_project_t *, const char * file);
 
 void bg_nle_project_resolve_ids(bg_nle_project_t *);
 
+void bg_nle_project_set_edit_callback(bg_nle_project_t *,
+                                      bg_nle_edit_callback callback,
+                                      void * callback_data);
 
 const bg_parameter_info_t * bg_nle_project_get_audio_parameters();
 const bg_parameter_info_t * bg_nle_project_get_video_parameters();
@@ -74,15 +71,21 @@ void bg_nle_project_set_video_parameter(void * data, const char * name,
 
 void bg_nle_project_destroy(bg_nle_project_t * p);
 
-bg_nle_track_t * bg_nle_project_add_audio_track(bg_nle_project_t * p);
-bg_nle_track_t * bg_nle_project_add_video_track(bg_nle_project_t * p);
+void bg_nle_project_add_audio_track(bg_nle_project_t * p);
+void bg_nle_project_add_video_track(bg_nle_project_t * p);
 
-bg_nle_outstream_t * bg_nle_project_add_audio_outstream(bg_nle_project_t * p);
-bg_nle_outstream_t * bg_nle_project_add_video_outstream(bg_nle_project_t * p);
+void bg_nle_project_add_audio_outstream(bg_nle_project_t * p);
+void bg_nle_project_add_video_outstream(bg_nle_project_t * p);
 
+void bg_nle_project_delete_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t);
+void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t);
 
 void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);
 void bg_nle_project_append_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t);
+
+int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * outstream);
+int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track);
+
 
 /* project_xml.c */
 

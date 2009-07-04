@@ -71,7 +71,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu.delete)
     {
-    
+    bg_nle_project_delete_track(menu_widget->track->p, menu_widget->track);
     }
   else if(w == the_menu.filter)
     {
@@ -453,6 +453,8 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
 
 void bg_nle_track_widget_destroy(bg_nle_track_widget_t * w)
   {
+  gtk_widget_destroy(w->panel);
+  gtk_widget_destroy(w->preview_box);
   free(w);
   }
 

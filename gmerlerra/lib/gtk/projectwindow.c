@@ -8,6 +8,7 @@
 
 #include <track.h>
 #include <project.h>
+#include <editops.h>
 
 #include <gui_gtk/projectwindow.h>
 #include <gui_gtk/timeline.h>
@@ -89,6 +90,47 @@ struct bg_nle_project_window_s
   
   };
 
+static void edit_callback(bg_nle_project_t * p,
+                          bg_nle_edit_op_t op,
+                          void * op_data,
+                          void * user_data)
+  {
+  bg_nle_project_window_t * win = user_data;
+
+  switch(op)
+    {
+    case BG_NLE_EDIT_ADD_TRACK:
+      {
+      bg_nle_op_add_track_t * d = op_data;
+      bg_nle_timeline_add_track(win->timeline, d->track);
+      }
+      break;
+    case BG_NLE_EDIT_DELETE_TRACK:
+      {
+      bg_nle_op_delete_track_t * d = op_data;
+      bg_nle_timeline_delete_track(win->timeline, d->index);
+      }
+      break;
+    case BG_NLE_EDIT_MOVE_TRACK:
+      break;
+    case BG_NLE_EDIT_ADD_OUTSTREAM:
+      {
+      bg_nle_op_add_outstream_t * d = op_data;
+      bg_nle_timeline_add_outstream(win->timeline, d->outstream);
+      }
+      break;
+    case BG_NLE_EDIT_DELETE_OUTSTREAM:
+      {
+      bg_nle_op_delete_outstream_t * d = op_data;
+      bg_nle_timeline_delete_outstream(win->timeline, d->index);
+      }
+      break;
+    case BG_NLE_EDIT_MOVE_OUTSTREAM:
+      break;
+    }
+  
+  }
+
 static void show_settings_dialog(bg_nle_project_window_t * win)
   {
   bg_dialog_t * cfg_dialog;
@@ -147,9 +189,7 @@ static gboolean destroy_func(gpointer data)
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   bg_nle_project_window_t * win = data;
-  bg_nle_track_t * track;
   bg_nle_project_window_t * new_win;
-  bg_nle_outstream_t * outstream;
   
   if(w == win->project_menu.new)
     {
@@ -233,26 +273,20 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->track_menu.add_audio)
     {
-    track = bg_nle_project_add_audio_track(win->p);
-    bg_nle_timeline_add_track(win->timeline, track);
+    bg_nle_project_add_audio_track(win->p);
     }
   else if(w == win->track_menu.add_video)
     {
-    track = bg_nle_project_add_video_track(win->p);
-    bg_nle_timeline_add_track(win->timeline, track);
+    bg_nle_project_add_video_track(win->p);
     }
   else if(w == win->outstream_menu.add_audio)
     {
-    outstream = bg_nle_project_add_audio_outstream(win->p);
-    bg_nle_timeline_add_outstream(win->timeline, outstream);
+    bg_nle_project_add_audio_outstream(win->p);
     }
   else if(w == win->outstream_menu.add_video)
     {
-    outstream = bg_nle_project_add_video_outstream(win->p);
-    bg_nle_timeline_add_outstream(win->timeline, outstream);
+    bg_nle_project_add_video_outstream(win->p);
     }
-
-  
   else if(w == win->edit_menu.cut)
     {
     
@@ -413,7 +447,8 @@ bg_nle_project_window_create(const char * project_file,
     else
       ret->p = bg_nle_project_create(plugin_reg);
     }
-    
+
+  bg_nle_project_set_edit_callback(ret->p, edit_callback, ret);
   
   project_windows = g_list_append(project_windows, ret);
   
@@ -527,3 +562,4 @@ void bg_nle_project_window_destroy(bg_nle_project_window_t * w)
   
   free(w);
   }
+

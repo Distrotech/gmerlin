@@ -33,6 +33,13 @@ bg_nle_outstream_get_parameters(bg_nle_outstream_t * t);
 void bg_nle_outstream_attach_track(bg_nle_outstream_t *,
                                    bg_nle_track_t * t);
 
+void bg_nle_outstream_detach_track(bg_nle_outstream_t *,
+                                   bg_nle_track_t * t);
+
+int bg_nle_outstream_has_track(bg_nle_outstream_t *,
+                               bg_nle_track_t * t);
+
+
 extern const bg_parameter_info_t bg_nle_outstream_audio_parameters[];
 extern const bg_parameter_info_t bg_nle_outstream_video_parameters[];
 

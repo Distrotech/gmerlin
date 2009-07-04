@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <renderer.h>
 
 #include <gmerlin/translation.h>
@@ -109,4 +110,33 @@ void bg_nle_outstream_attach_track(bg_nle_outstream_t * os,
     }
   os->source_tracks[os->num_source_tracks] = t;
   os->num_source_tracks++;
+  }
+
+void bg_nle_outstream_detach_track(bg_nle_outstream_t * os,
+                                   bg_nle_track_t * t)
+  {
+  int i;
+  for(i = 0; i < os->num_source_tracks; i++)
+    {
+    if(t == os->source_tracks[i])
+      {
+      if(i < os->num_source_tracks-1)
+        memmove(os->source_tracks+i, os->source_tracks+i+1,
+                (os->num_source_tracks-1-i) * sizeof(*os->source_tracks));
+      os->num_source_tracks--;
+      break;
+      }
+    }
+  }
+
+int bg_nle_outstream_has_track(bg_nle_outstream_t * os,
+                                bg_nle_track_t * t)
+  {
+  int i;
+  for(i = 0; i < os->num_source_tracks; i++)
+    {
+    if(t == os->source_tracks[i])
+      return 1;
+    }
+  return 0;
   }

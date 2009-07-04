@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include <gavl/gavl.h>
 
 #include <gmerlin/cfg_registry.h>
@@ -6,6 +8,24 @@
 
 #include <track.h>
 #include <project.h>
+#include <editops.h>
+
+static void bg_nle_edit_callback_stub(bg_nle_project_t * p,
+                                      bg_nle_edit_op_t op,
+                                      void * op_data,
+                                      void * user_data)
+  {
+
+  }
+
+static void edited(bg_nle_project_t * p,
+                   bg_nle_edit_op_t op,
+                   void * op_data)
+  {
+  /* TODO: Push data */
+  
+  p->edit_callback(p, op, op_data, p->edit_callback_data);
+  }
 
 
 bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
@@ -30,6 +50,8 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   ret->video_outstream_section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_outstream_video_parameters);
+
+  ret->edit_callback = bg_nle_edit_callback_stub;
   
   return ret;
   }
@@ -39,23 +61,30 @@ void bg_nle_project_destroy(bg_nle_project_t * p)
   int i;
 
   /* Free tracks */
-  for(i = 0; i < p->num_audio_tracks; i++)
-    bg_nle_track_destroy(p->audio_tracks[i]);
-
-  if(p->audio_tracks)
-    free(p->audio_tracks);
-
-  for(i = 0; i < p->num_video_tracks; i++)
-    bg_nle_track_destroy(p->video_tracks[i]);
-
-  if(p->video_tracks)
-    free(p->video_tracks);
-
+  for(i = 0; i < p->num_tracks; i++)
+    bg_nle_track_destroy(p->tracks[i]);
+  
   if(p->tracks)
     free(p->tracks);
+
+  for(i = 0; i < p->num_outstreams; i++)
+    bg_nle_outstream_destroy(p->outstreams[i]);
+  
+  if(p->outstreams)
+    free(p->outstreams);
+
   
   free(p);
   }
+
+void bg_nle_project_set_edit_callback(bg_nle_project_t * p,
+                                      bg_nle_edit_callback callback,
+                                      void * callback_data)
+  {
+  p->edit_callback = callback;
+  p->edit_callback_data = callback_data;
+  }
+
 
 static bg_nle_id_t create_track_id(bg_nle_track_t ** tracks,
                                    int num_tracks)
@@ -79,63 +108,85 @@ static bg_nle_id_t create_track_id(bg_nle_track_t ** tracks,
   return ret;
   }
 
-bg_nle_track_t * bg_nle_project_add_audio_track(bg_nle_project_t * p)
+void bg_nle_project_add_audio_track(bg_nle_project_t * p)
   {
   int i;
   bg_nle_track_t * track;
   char * tmp_string;
-  
+  bg_nle_op_add_track_t d;
+  int num_tracks;
   track = bg_nle_track_create(BG_NLE_TRACK_AUDIO);
-
+  
   /* Create ID */
-  track->id = create_track_id(p->audio_tracks, p->num_audio_tracks);
+  track->id = create_track_id(p->tracks, p->num_tracks);
   bg_cfg_section_transfer(p->audio_track_section,
                           track->section);
+
+  /* Create default name */
+  num_tracks = 0;
+  for(i = 0; i < p->num_tracks; i++)
+    {
+    if(p->tracks[i]->type == BG_NLE_TRACK_AUDIO)
+      num_tracks++;
+    }
   
-  tmp_string = bg_sprintf("Audio track %d", p->num_audio_tracks+1);
+  tmp_string = bg_sprintf("Audio track %d", num_tracks+1);
   bg_nle_track_set_name(track, tmp_string);
   free(tmp_string);
 
   bg_nle_project_append_track(p, track);
-  for(i = 0; i < p->num_video_outstreams; i++)
+  for(i = 0; i < p->num_outstreams; i++)
     {
-    bg_nle_outstream_attach_track(p->audio_outstreams[i],
-                                  track);
+    if(p->outstreams[i]->type == BG_NLE_TRACK_AUDIO)
+      bg_nle_outstream_attach_track(p->outstreams[i],
+                                    track);
     }
   
   p->changed_flags |= BG_NLE_PROJECT_TRACKS_CHANGED;
+
+  d.track = track;
+  edited(p, BG_NLE_EDIT_ADD_TRACK, &d);
   
-  return track;
   }
 
-bg_nle_track_t * bg_nle_project_add_video_track(bg_nle_project_t * p)
+void bg_nle_project_add_video_track(bg_nle_project_t * p)
   {
   int i;
   bg_nle_track_t * track;
   char * tmp_string;
+  bg_nle_op_add_track_t d;
+  int num_tracks;
   
   track = bg_nle_track_create(BG_NLE_TRACK_VIDEO);
 
   /* Create ID */
-  track->id = create_track_id(p->video_tracks, p->num_video_tracks);
+  track->id = create_track_id(p->tracks, p->num_tracks);
   
   bg_cfg_section_transfer(p->video_track_section,
                           track->section);
+  /* Create default name */
+  num_tracks = 0;
+  for(i = 0; i < p->num_tracks; i++)
+    {
+    if(p->tracks[i]->type == BG_NLE_TRACK_VIDEO)
+      num_tracks++;
+    }
   
-  tmp_string = bg_sprintf("Video track %d", p->num_video_tracks+1);
+  tmp_string = bg_sprintf("Video track %d", num_tracks+1);
   bg_nle_track_set_name(track, tmp_string);
   free(tmp_string);
 
   p->changed_flags |= BG_NLE_PROJECT_TRACKS_CHANGED;
   
   bg_nle_project_append_track(p, track);
-  for(i = 0; i < p->num_video_outstreams; i++)
+  for(i = 0; i < p->num_outstreams; i++)
     {
-    bg_nle_outstream_attach_track(p->video_outstreams[i],
-                                  track);
+    if(p->outstreams[i]->type == BG_NLE_TRACK_VIDEO)
+      bg_nle_outstream_attach_track(p->outstreams[i],
+                                    track);
     }
-  
-  return track;
+  d.track = track;
+  edited(p, BG_NLE_EDIT_ADD_TRACK, &d);
   }
 
 void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t)
@@ -149,85 +200,83 @@ void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t)
     }
   p->tracks[p->num_tracks] = t;
   p->num_tracks++;
-  
-  switch(t->type)
-    {
-    case BG_NLE_TRACK_AUDIO:
-      if(p->num_audio_tracks+1 > p->audio_tracks_alloc)
-        {
-        p->audio_tracks_alloc += 16;
-        p->audio_tracks = realloc(p->audio_tracks,
-                                  sizeof(*p->audio_tracks) *
-                                  (p->audio_tracks_alloc));
-        }
-      p->audio_tracks[p->num_audio_tracks] = t;
-      p->num_audio_tracks++;
-      break;
-    case BG_NLE_TRACK_VIDEO:
-      if(p->num_video_tracks+1 > p->video_tracks_alloc)
-        {
-        p->video_tracks_alloc += 16;
-        p->video_tracks = realloc(p->video_tracks,
-                                  sizeof(*p->video_tracks) *
-                                  (p->video_tracks_alloc));
-        }
-      p->video_tracks[p->num_video_tracks] = t;
-      p->num_video_tracks++;
-      break;
-    case BG_NLE_TRACK_NONE:
-      break;
-    }
+  t->p = p;
   
   }
 
-bg_nle_outstream_t * bg_nle_project_add_video_outstream(bg_nle_project_t * p)
+void bg_nle_project_add_video_outstream(bg_nle_project_t * p)
   {
   bg_nle_outstream_t * outstream;
   char * tmp_string;
   int i;
+  int num;
+  bg_nle_op_add_outstream_t d;
+  
   outstream = bg_nle_outstream_create(BG_NLE_TRACK_VIDEO);
   bg_cfg_section_transfer(p->video_outstream_section,
                           outstream->section);
-  tmp_string = bg_sprintf("Video outstream %d", p->num_video_outstreams+1);
+
+  /* Get default label */
+  num = 0;
+  for(i = 0; i < p->num_outstreams; i++)
+    {
+    if(p->outstreams[i]->type == BG_NLE_TRACK_VIDEO)
+      num++;
+    }
+  
+  tmp_string = bg_sprintf("Video outstream %d", num+1);
   bg_nle_outstream_set_name(outstream, tmp_string);
   free(tmp_string);
   
   bg_nle_project_append_outstream(p, outstream);
   p->changed_flags |= BG_NLE_PROJECT_OUTSTREAMS_CHANGED;
 
-  for(i = 0; i < p->num_video_tracks; i++)
+  for(i = 0; i < p->num_tracks; i++)
     {
-    bg_nle_outstream_attach_track(outstream,
-                                  p->video_tracks[i]);
+    if(p->tracks[i]->type == BG_NLE_TRACK_VIDEO)
+      bg_nle_outstream_attach_track(outstream,
+                                    p->tracks[i]);
     }
-  
-  return outstream;
+
+  d.outstream = outstream;
+  edited(p, BG_NLE_EDIT_ADD_OUTSTREAM, &d);
   
   }
 
-
-bg_nle_outstream_t * bg_nle_project_add_audio_outstream(bg_nle_project_t * p)
+void bg_nle_project_add_audio_outstream(bg_nle_project_t * p)
   {
   bg_nle_outstream_t * outstream;
   char * tmp_string;
   int i;
+  bg_nle_op_add_outstream_t d;
+  int num;
+  
   outstream = bg_nle_outstream_create(BG_NLE_TRACK_AUDIO);
   bg_cfg_section_transfer(p->audio_outstream_section,
                           outstream->section);
-  tmp_string = bg_sprintf("Audio outstream %d", p->num_audio_outstreams+1);
+
+  num = 0;
+  for(i = 0; i < p->num_outstreams; i++)
+    {
+    if(p->outstreams[i]->type == BG_NLE_TRACK_VIDEO)
+      num++;
+    }
+  
+  tmp_string = bg_sprintf("Audio outstream %d", num);
   bg_nle_outstream_set_name(outstream, tmp_string);
   free(tmp_string);
   
   bg_nle_project_append_outstream(p, outstream);
   p->changed_flags |= BG_NLE_PROJECT_OUTSTREAMS_CHANGED;
-
-  for(i = 0; i < p->num_video_tracks; i++)
-    {
-    bg_nle_outstream_attach_track(outstream,
-                                  p->audio_tracks[i]);
-    }
   
-  return outstream;
+  for(i = 0; i < p->num_tracks; i++)
+    {
+    if(p->tracks[i]->type == BG_NLE_TRACK_VIDEO)
+      bg_nle_outstream_attach_track(outstream,
+                                    p->tracks[i]);
+    }
+  d.outstream = outstream;
+  edited(p, BG_NLE_EDIT_ADD_OUTSTREAM, &d);
   
   }
 
@@ -245,34 +294,6 @@ void bg_nle_project_append_outstream(bg_nle_project_t * p,
   p->num_outstreams++;
 
   t->p = p;
-  
-  switch(t->type)
-    {
-    case BG_NLE_TRACK_AUDIO:
-      if(p->num_audio_outstreams+1 > p->audio_outstreams_alloc)
-        {
-        p->audio_outstreams_alloc += 16;
-        p->audio_outstreams = realloc(p->audio_outstreams,
-                                  sizeof(*p->audio_outstreams) *
-                                  (p->audio_outstreams_alloc));
-        }
-      p->audio_outstreams[p->num_audio_outstreams] = t;
-      p->num_audio_outstreams++;
-      break;
-    case BG_NLE_TRACK_VIDEO:
-      if(p->num_video_outstreams+1 > p->video_outstreams_alloc)
-        {
-        p->video_outstreams_alloc += 16;
-        p->video_outstreams = realloc(p->video_outstreams,
-                                  sizeof(*p->video_outstreams) *
-                                  (p->video_outstreams_alloc));
-        }
-      p->video_outstreams[p->num_video_outstreams] = t;
-      p->num_video_outstreams++;
-      break;
-    case BG_NLE_TRACK_NONE:
-      break;
-    }
   
   }
 
@@ -302,15 +323,77 @@ void bg_nle_project_resolve_ids(bg_nle_project_t * p)
   int i;
   /* Set the source tracks of the outstreams */
 
-  for(i = 0; i < p->num_audio_outstreams; i++)
+  for(i = 0; i < p->num_outstreams; i++)
     {
-    resolve_source_tracks(p->audio_outstreams[i],
-                          p->audio_tracks, p->num_audio_tracks);
-    }
-  for(i = 0; i < p->num_video_outstreams; i++)
-    {
-    resolve_source_tracks(p->video_outstreams[i],
-                          p->video_tracks, p->num_video_tracks);
+    resolve_source_tracks(p->outstreams[i],
+                          p->tracks, p->num_tracks);
     }
   
+  }
+
+int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * outstream)
+  {
+  int i;
+  for(i = 0; i < p->num_outstreams; i++)
+    {
+    if(p->outstreams[i] == outstream)
+      return i;
+    }
+  return -1;
+  }
+
+void bg_nle_project_delete_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t)
+  {
+  bg_nle_op_delete_outstream_t d;
+  int index;
+  
+  /* First call callback */
+  d.outstream = t;
+  edited(p, BG_NLE_EDIT_DELETE_OUTSTREAM, &d);
+
+  index = bg_nle_project_outstream_index(p, t);
+  if(index < p->num_outstreams - 1)
+    memmove(p->outstreams + index, p->outstreams + index + 1, p->num_outstreams - 1 - index);
+  p->num_outstreams--;
+  
+  
+  }
+
+int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track)
+  {
+  int i;
+  for(i = 0; i < p->num_tracks; i++)
+    {
+    if(p->tracks[i] == track)
+      return i;
+    }
+  return -1;
+  }
+
+void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t)
+  {
+  bg_nle_op_delete_track_t d;
+  int index, i;
+
+  /* Detach from source tracks */
+  for(i = 0; i < p->num_outstreams; i++)
+    {
+    if(bg_nle_outstream_has_track(p->outstreams[i], t))
+      bg_nle_outstream_detach_track(p->outstreams[i], t);
+    }
+
+  index = bg_nle_project_track_index(p, t);
+
+  /* First call callback */
+  d.track = t;
+  d.index = index;
+  
+  edited(p, BG_NLE_EDIT_DELETE_TRACK, &d);
+
+  if(index < p->num_tracks - 1)
+    memmove(p->tracks + index, p->tracks + index + 1,
+            (p->num_tracks - 1 - index) * sizeof(*p->tracks));
+
+
+  p->num_tracks--;
   }

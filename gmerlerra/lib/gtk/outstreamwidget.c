@@ -198,25 +198,19 @@ static void init_menu()
 
 static void init_tracks_menu(bg_nle_outstream_t * os)
   {
-  bg_nle_track_t ** tracks;
   int num_tracks;
   int new_items_alloc;
-  int i;
+  int i, index = 0;
   GtkWidget * w;
-  
-  switch(os->type)
+
+  /* Count tracks */
+  num_tracks = 0;
+  for(i = 0; i < os->p->num_tracks; i++)
     {
-    case BG_NLE_TRACK_AUDIO:
-      tracks     = os->p->audio_tracks;
-      num_tracks = os->p->num_audio_tracks;
-      break;
-    case BG_NLE_TRACK_VIDEO:
-      tracks     = os->p->video_tracks;
-      num_tracks = os->p->num_video_tracks;
-      break;
-    default:
-      return;
+    if(os->p->tracks[i]->type == os->type)
+      num_tracks++;
     }
+  
   /* Allocate items */
   
   if(num_tracks > the_menu.tracks_menu.items_alloc)
@@ -242,14 +236,19 @@ static void init_tracks_menu(bg_nle_outstream_t * os)
     the_menu.tracks_menu.items_alloc = new_items_alloc;
     }
 
-  for(i = 0; i < num_tracks; i++)
+  index = 0;
+  for(i = 0; i < os->p->num_tracks; i++)
     {
-    w = the_menu.tracks_menu.items[i].item;
-    
-    gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))),
-                       bg_nle_track_get_name(tracks[i]));
-
-    gtk_widget_show(w);
+    if(os->p->tracks[i]->type == os->type)
+      {
+      w = the_menu.tracks_menu.items[index].item;
+      
+      gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))),
+                         bg_nle_track_get_name(os->p->tracks[i]));
+      
+      gtk_widget_show(w);
+      index++;
+      }
     }
   for(i = num_tracks; i < the_menu.tracks_menu.items_alloc; i++)
     gtk_widget_hide(the_menu.tracks_menu.items[i].item);
