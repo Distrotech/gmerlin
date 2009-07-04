@@ -21,10 +21,21 @@ typedef struct
   GtkWidget * delete;
   GtkWidget * configure;
   GtkWidget * filter;
-  GtkWidget * tracks_menu;
-  
-  GtkWidget ** tracks_items;
-  GtkWidget * track_item;
+
+  GtkWidget * tracks_item;
+
+  struct
+    {
+    GtkWidget * menu;
+
+    struct
+      {
+      guint id;
+      GtkWidget * item;
+      } * items;
+    int num_items;
+    int items_alloc;
+    } tracks_menu;
   
   } menu_t;
 
@@ -97,6 +108,26 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   }
 
+static void track_toggle_callback(GtkWidget * w, gpointer data)
+  {
+  int i;
+  int index = -1;
+  
+  for(i = 0; i < the_menu.tracks_menu.items_alloc; i++)
+    {
+    if(the_menu.tracks_menu.items[i].item == w)
+      {
+      index = i;
+      break;
+      }
+    }
+  if(index < 0)
+    return;
+  
+  fprintf(stderr, "Toggle callback %d %d\n",
+          index, gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w)));
+  }
+
 static GtkWidget *
 create_menu_item(GtkWidget * parent,
                  const char * label, const char * pixmap)
@@ -135,14 +166,94 @@ static void init_menu()
   {
   if(the_menu.menu)
     return;
+
+  the_menu.tracks_menu.menu  = gtk_menu_new();
+  
   the_menu.menu      = gtk_menu_new();
-  the_menu.configure = create_menu_item(the_menu.menu, TR("Configure"), "config_16.png");
-  the_menu.filter    = create_menu_item(the_menu.menu, TR("Add filter"),    "filter_16.png");
-  the_menu.up        = create_menu_item(the_menu.menu, TR("Move up"),   "up_16.png");
-  the_menu.down      = create_menu_item(the_menu.menu, TR("Move down"), "down_16.png");
-  the_menu.delete    = create_menu_item(the_menu.menu, TR("Delete"),    "trash_16.png");
+  the_menu.configure = create_menu_item(the_menu.menu,
+                                        TR("Configure"),
+                                        "config_16.png");
+  
+  the_menu.tracks_item = create_menu_item(the_menu.menu,
+                                          TR("Source tracks"),
+                                          NULL);
+
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(the_menu.tracks_item),
+                            the_menu.tracks_menu.menu);
+  
+  the_menu.filter    = create_menu_item(the_menu.menu,
+                                        TR("Add filter"),
+                                        "filter_16.png");
+  the_menu.up        = create_menu_item(the_menu.menu,
+                                        TR("Move up"),
+                                        "up_16.png");
+  the_menu.down      = create_menu_item(the_menu.menu,
+                                        TR("Move down"),
+                                        "down_16.png");
+  the_menu.delete    = create_menu_item(the_menu.menu,
+                                        TR("Delete"),
+                                        "trash_16.png");
+  
   }
 
+static void init_tracks_menu(bg_nle_outstream_t * os)
+  {
+  bg_nle_track_t ** tracks;
+  int num_tracks;
+  int new_items_alloc;
+  int i;
+  GtkWidget * w;
+  
+  switch(os->type)
+    {
+    case BG_NLE_TRACK_AUDIO:
+      tracks     = os->p->audio_tracks;
+      num_tracks = os->p->num_audio_tracks;
+      break;
+    case BG_NLE_TRACK_VIDEO:
+      tracks     = os->p->video_tracks;
+      num_tracks = os->p->num_video_tracks;
+      break;
+    default:
+      return;
+    }
+  /* Allocate items */
+  
+  if(num_tracks > the_menu.tracks_menu.items_alloc)
+    {
+    new_items_alloc = num_tracks + 16;
+    
+    the_menu.tracks_menu.items = realloc(the_menu.tracks_menu.items,
+                                         new_items_alloc *
+                                         sizeof(*the_menu.tracks_menu.items));
+
+    for(i = the_menu.tracks_menu.items_alloc; i < new_items_alloc; i++)
+      {
+      the_menu.tracks_menu.items[i].item =
+        gtk_check_menu_item_new_with_label("");
+      gtk_menu_shell_append(GTK_MENU_SHELL(the_menu.tracks_menu.menu),
+                            the_menu.tracks_menu.items[i].item);
+      /* TODO: Callback */
+      
+      the_menu.tracks_menu.items[i].id =
+        g_signal_connect(the_menu.tracks_menu.items[i].item,
+                         "toggled", G_CALLBACK(track_toggle_callback), NULL);
+      }
+    the_menu.tracks_menu.items_alloc = new_items_alloc;
+    }
+
+  for(i = 0; i < num_tracks; i++)
+    {
+    w = the_menu.tracks_menu.items[i].item;
+    
+    gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))),
+                       bg_nle_track_get_name(tracks[i]));
+
+    gtk_widget_show(w);
+    }
+  for(i = num_tracks; i < the_menu.tracks_menu.items_alloc; i++)
+    gtk_widget_hide(the_menu.tracks_menu.items[i].item);
+  }
 
 static void button_callback(GtkWidget * w, gpointer  data)
   {
@@ -316,6 +427,7 @@ static gboolean button_press_callback(GtkWidget *widget,
   else if(evt->button == 3)
     {
     menu_widget = w;
+    init_tracks_menu(w->outstream);
     gtk_menu_popup(GTK_MENU(the_menu.menu),
                    (GtkWidget *)0,
                    (GtkWidget *)0,

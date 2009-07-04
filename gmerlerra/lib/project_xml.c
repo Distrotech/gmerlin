@@ -153,7 +153,11 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
       }
     node = node->next;
     }
+
+  
+  
   xmlFreeDoc(xml_doc);
+  bg_nle_project_resolve_ids(ret);
   return ret;
   }
 

@@ -59,6 +59,9 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg);
 
 void bg_nle_project_save(bg_nle_project_t *, const char * file);
 
+void bg_nle_project_resolve_ids(bg_nle_project_t *);
+
+
 const bg_parameter_info_t * bg_nle_project_get_audio_parameters();
 const bg_parameter_info_t * bg_nle_project_get_video_parameters();
 const bg_parameter_info_t * bg_nle_project_get_paths_parameters();

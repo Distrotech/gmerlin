@@ -6,6 +6,7 @@
 
 static const char * parameters_name    = "parameters";
 static const char * source_tracks_name = "source_tracks";
+static const char * source_track_name = "source_track";
 
 static const struct
   {
@@ -48,6 +49,7 @@ bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
   bg_nle_outstream_t * ret;
   char * tmp_string;
   xmlNodePtr child;
+  xmlNodePtr grandchild;
   
   ret = calloc(1, sizeof(*ret));
   
@@ -80,7 +82,36 @@ bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
 
     if(!BG_XML_STRCMP(child->name, source_tracks_name))
       {
-      
+      if((tmp_string = BG_XML_GET_PROP(child, "num")))
+        {
+        ret->source_tracks_alloc = strtol(tmp_string, NULL, 10);
+        xmlFree(tmp_string);
+        
+        ret->source_track_ids = calloc(ret->source_tracks_alloc,
+                                       sizeof(*ret->source_track_ids));
+
+        grandchild = child->children;
+
+        while(grandchild)
+          {
+          if(!grandchild->name)
+            {
+            grandchild = grandchild->next;
+            continue;
+            }
+          if(!BG_XML_STRCMP(child->name, source_track_name))
+            {
+            if((tmp_string = BG_XML_GET_PROP(child, "id")))
+              {
+              ret->source_track_ids[ret->num_source_tracks] =
+                strtol(tmp_string, NULL, 10);
+              xmlFree(tmp_string);
+              ret->num_source_tracks++;
+              }
+            }
+          grandchild = grandchild->next;
+          }
+        }
       }
     child = child->next;
     }
@@ -115,18 +146,18 @@ void bg_nle_outstream_save(bg_nle_outstream_t * t, xmlNodePtr parent)
                             (xmlChar*)source_tracks_name, NULL);
 
     tmp_string = bg_sprintf("%d", t->num_source_tracks);
-    BG_XML_SET_PROP(node, "num", tmp_string);
+    BG_XML_SET_PROP(child, "num", tmp_string);
     free(tmp_string);
 
     for(i = 0; i < t->num_source_tracks; i++)
       {
       grandchild = xmlNewTextChild(child, (xmlNsPtr)0,
-                                   (xmlChar*)source_tracks_name, NULL);
+                                   (xmlChar*)source_track_name, NULL);
       tmp_string = bg_sprintf("%08x", t->source_tracks[i]->id);
       BG_XML_SET_PROP(grandchild, "id", tmp_string);
       free(tmp_string);
       }
     }
-
+  
   }
 

@@ -30,6 +30,9 @@ const char * bg_nle_outstream_get_name(bg_nle_outstream_t *);
 const bg_parameter_info_t *
 bg_nle_outstream_get_parameters(bg_nle_outstream_t * t);
 
+void bg_nle_outstream_attach_track(bg_nle_outstream_t *,
+                                   bg_nle_track_t * t);
+
 extern const bg_parameter_info_t bg_nle_outstream_audio_parameters[];
 extern const bg_parameter_info_t bg_nle_outstream_video_parameters[];
 

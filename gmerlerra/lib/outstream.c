@@ -18,6 +18,12 @@ bg_nle_outstream_create(bg_nle_track_type_t type)
 void bg_nle_outstream_destroy(bg_nle_outstream_t * s)
   {
   bg_cfg_section_destroy(s->section);
+
+  if(s->source_track_ids)
+    free(s->source_track_ids);
+  if(s->source_tracks)
+    free(s->source_tracks);
+  
   free(s);
   }
 
@@ -89,4 +95,18 @@ const char * bg_nle_outstream_get_name(bg_nle_outstream_t * t)
   const char * ret;
   bg_cfg_section_get_parameter_string(t->section, "name", &ret);
   return ret;
+  }
+
+void bg_nle_outstream_attach_track(bg_nle_outstream_t * os,
+                                   bg_nle_track_t * t)
+  {
+  if(os->num_source_tracks >= os->source_tracks_alloc)
+    {
+    os->source_tracks_alloc += 16;
+    os->source_tracks = realloc(os->source_tracks,
+                                os->source_tracks_alloc *
+                                sizeof(*os->source_tracks));
+    }
+  os->source_tracks[os->num_source_tracks] = t;
+  os->num_source_tracks++;
   }
