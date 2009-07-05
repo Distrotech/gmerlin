@@ -413,9 +413,8 @@ void bg_nle_timeline_add_outstream(bg_nle_timeline_t * t,
 
 void bg_nle_timeline_delete_track(bg_nle_timeline_t * t, int index)
   {
-  fprintf(stderr, "bg_nle_timeline_delete_track: %d\n", index);
   bg_nle_track_widget_destroy(t->tracks[index]);
-  if(index > t->num_tracks-1)
+  if(index < t->num_tracks-1)
     memmove(t->tracks + index, t->tracks + index + 1,
             (t->num_tracks-1 - index) * sizeof(*t->tracks));
   t->num_tracks--;
@@ -423,7 +422,11 @@ void bg_nle_timeline_delete_track(bg_nle_timeline_t * t, int index)
 
 void bg_nle_timeline_delete_outstream(bg_nle_timeline_t * t, int index)
   {
-  
+  bg_nle_outstream_widget_destroy(t->outstreams[index]);
+  if(index < t->num_outstreams-1)
+    memmove(t->outstreams + index, t->outstreams + index + 1,
+            (t->num_outstreams-1 - index) * sizeof(*t->outstreams));
+  t->num_outstreams--;
   }
 
 

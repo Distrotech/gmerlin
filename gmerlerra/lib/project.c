@@ -347,21 +347,23 @@ void bg_nle_project_delete_outstream(bg_nle_project_t * p, bg_nle_outstream_t * 
   bg_nle_op_delete_outstream_t d;
   int index;
   
-  /* First call callback */
-  d.outstream = t;
-  edited(p, BG_NLE_EDIT_DELETE_OUTSTREAM, &d);
-
   index = bg_nle_project_outstream_index(p, t);
+  
+  d.outstream = t;
+  d.index = index;
+  
   if(index < p->num_outstreams - 1)
-    memmove(p->outstreams + index, p->outstreams + index + 1, p->num_outstreams - 1 - index);
+    memmove(p->outstreams + index,
+            p->outstreams + index + 1, (p->num_outstreams - 1 - index) * sizeof(*p->outstreams));
   p->num_outstreams--;
   
-  
+  edited(p, BG_NLE_EDIT_DELETE_OUTSTREAM, &d);
   }
 
 int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track)
   {
   int i;
+  
   for(i = 0; i < p->num_tracks; i++)
     {
     if(p->tracks[i] == track)
@@ -388,12 +390,12 @@ void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t)
   d.track = t;
   d.index = index;
   
-  edited(p, BG_NLE_EDIT_DELETE_TRACK, &d);
-
   if(index < p->num_tracks - 1)
     memmove(p->tracks + index, p->tracks + index + 1,
             (p->num_tracks - 1 - index) * sizeof(*p->tracks));
 
 
   p->num_tracks--;
+  
+  edited(p, BG_NLE_EDIT_DELETE_TRACK, &d);
   }

@@ -88,7 +88,8 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu.delete)
     {
-    
+    bg_nle_project_delete_outstream(menu_widget->outstream->p,
+                                    menu_widget->outstream);
     }
   else if(w == the_menu.filter)
     {
@@ -548,6 +549,9 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
 
 void bg_nle_outstream_widget_destroy(bg_nle_outstream_widget_t * w)
   {
+  gtk_widget_destroy(w->panel);
+  gtk_widget_destroy(w->preview_box);
+  
   free(w);
   }
 
