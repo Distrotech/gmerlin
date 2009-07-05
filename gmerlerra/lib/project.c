@@ -223,7 +223,7 @@ void bg_nle_project_insert_track(bg_nle_project_t * p,
   if(pos < p->num_tracks)
     {
     memmove(p->tracks + pos + 1, p->tracks + pos,
-            p->num_tracks - pos);
+            (p->num_tracks - pos)*sizeof(*p->tracks));
     }
   
   p->tracks[pos] = t;
@@ -332,7 +332,7 @@ void bg_nle_project_insert_outstream(bg_nle_project_t * p,
   if(pos < p->num_outstreams)
     {
     memmove(p->outstreams + pos + 1, p->outstreams + pos,
-            p->num_outstreams - pos);
+            (p->num_outstreams - pos)*sizeof(*p->outstreams));
     }
   
   p->outstreams[pos] = t;

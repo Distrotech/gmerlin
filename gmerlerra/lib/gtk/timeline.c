@@ -356,15 +356,19 @@ void bg_nle_timeline_add_track(bg_nle_timeline_t * t,
   GtkWidget * w;
   t->tracks = realloc(t->tracks,
                         sizeof(*t->tracks) * (t->num_tracks+1));
-  t->tracks[t->num_tracks] = bg_nle_track_widget_create(track, t->ruler);
 
-  w = bg_nle_track_widget_get_panel(t->tracks[t->num_tracks]);
+  if(pos < t->num_tracks)
+    memmove(t->tracks + pos + 1, t->tracks + pos, (t->num_tracks - pos) * sizeof(*t->tracks));
+  
+  t->tracks[pos] = bg_nle_track_widget_create(track, t->ruler);
+
+  w = bg_nle_track_widget_get_panel(t->tracks[pos]);
   
   gtk_box_pack_start(GTK_BOX(t->panel_box), w, FALSE, FALSE, 0);
 
   gtk_box_reorder_child(GTK_BOX(t->panel_box), w, pos);
   
-  w = bg_nle_track_widget_get_preview(t->tracks[t->num_tracks]);
+  w = bg_nle_track_widget_get_preview(t->tracks[pos]);
   
   gtk_box_pack_start(GTK_BOX(t->preview_box),
                      w, FALSE, FALSE, 0);
@@ -379,17 +383,22 @@ void bg_nle_timeline_add_outstream(bg_nle_timeline_t * t,
   GtkWidget * w;
   t->outstreams = realloc(t->outstreams,
                           sizeof(*t->outstreams) * (t->num_outstreams+1));
-  t->outstreams[t->num_outstreams] =
+
+  if(pos < t->num_outstreams)
+    memmove(t->outstreams + pos + 1, t->outstreams + pos,
+            (t->num_outstreams - pos) * sizeof(*t->outstreams));
+  
+  t->outstreams[pos] =
     bg_nle_outstream_widget_create(outstream, t->ruler,
                                    outstream_play, t);
 
-  w = bg_nle_outstream_widget_get_panel(t->outstreams[t->num_outstreams]);
+  w = bg_nle_outstream_widget_get_panel(t->outstreams[pos]);
   gtk_box_pack_start(GTK_BOX(t->panel_box), w, FALSE, FALSE, 0);
 
   if(pos < t->num_outstreams)
     gtk_box_reorder_child(GTK_BOX(t->panel_box), w, t->num_tracks + pos);
 
-  w = bg_nle_outstream_widget_get_preview(t->outstreams[t->num_outstreams]);
+  w = bg_nle_outstream_widget_get_preview(t->outstreams[pos]);
   gtk_box_pack_start(GTK_BOX(t->preview_box), w, FALSE, FALSE, 0);
   if(pos < t->num_outstreams)
     gtk_box_reorder_child(GTK_BOX(t->preview_box), w, t->num_tracks + pos);
@@ -430,7 +439,7 @@ void bg_nle_timeline_move_track(bg_nle_timeline_t * t, int old_index, int new_in
 void bg_nle_timeline_move_outstream(bg_nle_timeline_t * t, int old_index, int new_index)
   {
   GtkWidget * w;
-  bg_nle_track_widget_t * wid;
+  bg_nle_outstream_widget_t * wid;
 
   w = bg_nle_outstream_widget_get_preview(t->outstreams[old_index]);
   gtk_box_reorder_child(GTK_BOX(t->preview_box), w, t->num_tracks + new_index);
