@@ -461,7 +461,6 @@ bg_nle_outstream_widget_t *
 bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
                                bg_nle_time_ruler_t * ruler,
                                void (*play_callback)(bg_nle_outstream_widget_t *, void *),
-                               void (*delete_callback)(bg_nle_outstream_widget_t *, void *),
                                void * callback_data)
   {
   bg_nle_outstream_widget_t * ret;
@@ -475,7 +474,6 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
   ret->ruler = ruler;
 
   ret->play_callback = play_callback;
-  ret->delete_callback = delete_callback;
   ret->callback_data = callback_data;
   
   /* Create expander */

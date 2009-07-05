@@ -29,10 +29,7 @@ struct bg_nle_track_widget_s
   
   bg_nle_time_ruler_t * ruler;  
   bg_nle_track_t * track;
-
-  void (*delete_callback)(bg_nle_track_widget_t *, void *);
-  void * callback_data;
-
+  
   };
 
 static void set_parameter(void * data, const char * name,
@@ -345,10 +342,7 @@ static const GdkColor preview_bg =
 
 bg_nle_track_widget_t *
 bg_nle_track_widget_create(bg_nle_track_t * track,
-                           bg_nle_time_ruler_t * ruler,
-                           void (*delete_callback)(bg_nle_track_widget_t *,
-                                                   void *),
-                           void * callback_data)
+                           bg_nle_time_ruler_t * ruler)
   {
   bg_nle_track_widget_t * ret;
   
@@ -359,9 +353,6 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   ret = calloc(1, sizeof(*ret));
   ret->track = track;
   ret->ruler = ruler;
-
-  ret->delete_callback = delete_callback;
-  ret->callback_data = callback_data;
   
   /* Create expander */
   ret->panel = gtk_expander_new(bg_nle_track_get_name(track));

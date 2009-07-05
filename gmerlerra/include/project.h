@@ -47,6 +47,9 @@ struct bg_nle_project_s
 
   bg_nle_edit_callback edit_callback;
   void * edit_callback_data;
+
+  bg_nle_undo_data_t * undo;
+  bg_nle_undo_data_t * redo;
   };
 
 bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg);
@@ -81,10 +84,17 @@ void bg_nle_project_delete_outstream(bg_nle_project_t * p, bg_nle_outstream_t * 
 void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t);
 
 void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);
+void bg_nle_project_insert_track(bg_nle_project_t * p, bg_nle_track_t * t, int pos);
+
 void bg_nle_project_append_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t);
+void bg_nle_project_insert_outstream(bg_nle_project_t * p,
+                                     bg_nle_outstream_t * t, int pos);
 
 int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * outstream);
 int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track);
+
+void bg_nle_project_edit(bg_nle_project_t * p,
+                         bg_nle_undo_data_t * data);
 
 
 /* project_xml.c */
@@ -92,5 +102,7 @@ int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track);
 bg_nle_project_t * bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg);
 
 void bg_nle_project_save(bg_nle_project_t *, const char * filename);
+
+
 
 #endif

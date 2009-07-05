@@ -19,5 +19,7 @@ typedef struct bg_nle_project_s bg_nle_project_t;
 
 typedef enum bg_nle_edit_op_e bg_nle_edit_op_t;
 
+typedef struct bg_nle_undo_data_s bg_nle_undo_data_t;
+
 
 #endif

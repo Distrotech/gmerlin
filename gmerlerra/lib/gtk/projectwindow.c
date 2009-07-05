@@ -59,6 +59,9 @@ typedef struct
 
 typedef struct
   {
+  GtkWidget * undo;
+  GtkWidget * redo;
+  
   GtkWidget * cut;
   GtkWidget * copy;
   GtkWidget * paste;
@@ -101,13 +104,13 @@ static void edit_callback(bg_nle_project_t * p,
     {
     case BG_NLE_EDIT_ADD_TRACK:
       {
-      bg_nle_op_add_track_t * d = op_data;
+      bg_nle_op_track_t * d = op_data;
       bg_nle_timeline_add_track(win->timeline, d->track);
       }
       break;
     case BG_NLE_EDIT_DELETE_TRACK:
       {
-      bg_nle_op_delete_track_t * d = op_data;
+      bg_nle_op_track_t * d = op_data;
       bg_nle_timeline_delete_track(win->timeline, d->index);
       }
       break;
@@ -115,13 +118,13 @@ static void edit_callback(bg_nle_project_t * p,
       break;
     case BG_NLE_EDIT_ADD_OUTSTREAM:
       {
-      bg_nle_op_add_outstream_t * d = op_data;
+      bg_nle_op_outstream_t * d = op_data;
       bg_nle_timeline_add_outstream(win->timeline, d->outstream);
       }
       break;
     case BG_NLE_EDIT_DELETE_OUTSTREAM:
       {
-      bg_nle_op_delete_outstream_t * d = op_data;
+      bg_nle_op_outstream_t * d = op_data;
       bg_nle_timeline_delete_outstream(win->timeline, d->index);
       }
       break;
@@ -299,6 +302,14 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     
     }
+  else if(w == win->edit_menu.undo)
+    {
+    bg_nle_project_undo(win->p);
+    }
+  else if(w == win->edit_menu.redo)
+    {
+    bg_nle_project_redo(win->p);
+    }
   
   }
 
@@ -377,6 +388,10 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   
   /* Edit */
   w->edit_menu.menu = gtk_menu_new();
+  w->edit_menu.undo =
+    create_menu_item(w, w->edit_menu.menu, TR("Undo"), "undo_16.png");
+  w->edit_menu.redo =
+    create_menu_item(w, w->edit_menu.menu, TR("Redo"), "redo_16.png");
   w->edit_menu.cut =
     create_menu_item(w, w->edit_menu.menu, TR("Cut"), "cut_16.png");
   w->edit_menu.copy =
