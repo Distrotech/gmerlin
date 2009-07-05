@@ -419,3 +419,23 @@ void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t)
   
   edited(p, BG_NLE_EDIT_DELETE_TRACK, d);
   }
+
+void bg_nle_project_move_track(bg_nle_project_t * p, int old_pos, int new_pos)
+  {
+  bg_nle_op_move_track_t * d;
+  
+  d = calloc(1, sizeof(*d));
+  d->old_index = old_pos;
+  d->new_index = new_pos;
+  edited(p, BG_NLE_EDIT_MOVE_TRACK, d);
+  }
+
+
+void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_pos)
+  {
+  bg_nle_op_move_outstream_t * d;
+  d = calloc(1, sizeof(*d));
+  d->old_index = old_pos;
+  d->new_index = new_pos;
+  edited(p, BG_NLE_EDIT_MOVE_OUTSTREAM, d);
+  }

@@ -60,10 +60,15 @@ static void menu_callback(GtkWidget * w, gpointer data)
   {
   if(w == the_menu.up)
     {
-    
+    int index = bg_nle_project_track_index(menu_widget->track->p, menu_widget->track);
+    if(index > 0)
+      bg_nle_project_move_track(menu_widget->track->p, index, index-1);
     }
   else if(w == the_menu.down)
     {
+    int index = bg_nle_project_track_index(menu_widget->track->p, menu_widget->track);
+    if(index < menu_widget->track->p->num_tracks-1)
+      bg_nle_project_move_track(menu_widget->track->p, index, index+1);
     
     }
   else if(w == the_menu.delete)

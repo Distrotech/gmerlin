@@ -11,14 +11,16 @@ void bg_nle_timeline_destroy(bg_nle_timeline_t *);
 GtkWidget * bg_nle_timeline_get_widget(bg_nle_timeline_t *);
 
 void bg_nle_timeline_add_track(bg_nle_timeline_t *,
-                               bg_nle_track_t * track);
+                               bg_nle_track_t * track, int pos);
 
 void bg_nle_timeline_add_outstream(bg_nle_timeline_t * t,
-                                   bg_nle_outstream_t * os);
+                                   bg_nle_outstream_t * os, int pos);
 
 void bg_nle_timeline_delete_track(bg_nle_timeline_t * t, int index);
-
 void bg_nle_timeline_delete_outstream(bg_nle_timeline_t * t, int index);
+
+void bg_nle_timeline_move_track(bg_nle_timeline_t * t, int old_index, int new_index);
+void bg_nle_timeline_move_outstream(bg_nle_timeline_t * t, int old_index, int new_index);
 
 void bg_nle_timeline_set_motion_callback(bg_nle_timeline_t *,
                                          void (*callback)(gavl_time_t time, void * data),

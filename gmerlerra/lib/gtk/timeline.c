@@ -351,7 +351,7 @@ GtkWidget * bg_nle_timeline_get_widget(bg_nle_timeline_t * t)
   }
 
 void bg_nle_timeline_add_track(bg_nle_timeline_t * t,
-                               bg_nle_track_t * track)
+                               bg_nle_track_t * track, int pos)
   {
   GtkWidget * w;
   t->tracks = realloc(t->tracks,
@@ -362,35 +362,37 @@ void bg_nle_timeline_add_track(bg_nle_timeline_t * t,
   
   gtk_box_pack_start(GTK_BOX(t->panel_box), w, FALSE, FALSE, 0);
 
-  gtk_box_reorder_child(GTK_BOX(t->panel_box), w, t->num_tracks);
-
+  gtk_box_reorder_child(GTK_BOX(t->panel_box), w, pos);
+  
   w = bg_nle_track_widget_get_preview(t->tracks[t->num_tracks]);
   
   gtk_box_pack_start(GTK_BOX(t->preview_box),
                      w, FALSE, FALSE, 0);
-  gtk_box_reorder_child(GTK_BOX(t->preview_box), w, t->num_tracks);
+  gtk_box_reorder_child(GTK_BOX(t->preview_box), w, pos);
   
   t->num_tracks++;
   }
 
 void bg_nle_timeline_add_outstream(bg_nle_timeline_t * t,
-                                   bg_nle_outstream_t * outstream)
+                                   bg_nle_outstream_t * outstream, int pos)
   {
+  GtkWidget * w;
   t->outstreams = realloc(t->outstreams,
                           sizeof(*t->outstreams) * (t->num_outstreams+1));
   t->outstreams[t->num_outstreams] =
     bg_nle_outstream_widget_create(outstream, t->ruler,
                                    outstream_play, t);
 
-  gtk_box_pack_start(GTK_BOX(t->panel_box),
-                     bg_nle_outstream_widget_get_panel(t->outstreams[t->num_outstreams]),
-                     FALSE, FALSE, 0);
-  
-  gtk_box_pack_start(GTK_BOX(t->preview_box),
-                     bg_nle_outstream_widget_get_preview(t->outstreams[t->num_outstreams]),
-                     FALSE, FALSE, 0);
+  w = bg_nle_outstream_widget_get_panel(t->outstreams[t->num_outstreams]);
+  gtk_box_pack_start(GTK_BOX(t->panel_box), w, FALSE, FALSE, 0);
 
-  
+  if(pos < t->num_outstreams)
+    gtk_box_reorder_child(GTK_BOX(t->panel_box), w, t->num_tracks + pos);
+
+  w = bg_nle_outstream_widget_get_preview(t->outstreams[t->num_outstreams]);
+  gtk_box_pack_start(GTK_BOX(t->preview_box), w, FALSE, FALSE, 0);
+  if(pos < t->num_outstreams)
+    gtk_box_reorder_child(GTK_BOX(t->preview_box), w, t->num_tracks + pos);
   
   t->num_outstreams++;
   }
@@ -402,6 +404,50 @@ void bg_nle_timeline_delete_track(bg_nle_timeline_t * t, int index)
     memmove(t->tracks + index, t->tracks + index + 1,
             (t->num_tracks-1 - index) * sizeof(*t->tracks));
   t->num_tracks--;
+  }
+
+void bg_nle_timeline_move_track(bg_nle_timeline_t * t, int old_index, int new_index)
+  {
+  GtkWidget * w;
+  bg_nle_track_widget_t * wid;
+  w = bg_nle_track_widget_get_preview(t->tracks[old_index]);
+  gtk_box_reorder_child(GTK_BOX(t->preview_box), w, new_index);
+  w = bg_nle_track_widget_get_panel(t->tracks[old_index]);
+  gtk_box_reorder_child(GTK_BOX(t->panel_box), w, new_index);
+
+  /* Reorder widget array */
+  wid = t->tracks[old_index];
+  if(old_index < t->num_tracks-1)
+    memmove(t->tracks + old_index, t->tracks + old_index + 1,
+            (t->num_tracks-1 - old_index) * sizeof(*t->tracks));
+
+  if(new_index < t->num_tracks-1)
+    memmove(t->tracks + new_index + 1, t->tracks + new_index,
+            (t->num_tracks-1 - new_index) * sizeof(*t->tracks));
+  t->tracks[new_index] = wid;
+  }
+
+void bg_nle_timeline_move_outstream(bg_nle_timeline_t * t, int old_index, int new_index)
+  {
+  GtkWidget * w;
+  bg_nle_track_widget_t * wid;
+
+  w = bg_nle_outstream_widget_get_preview(t->outstreams[old_index]);
+  gtk_box_reorder_child(GTK_BOX(t->preview_box), w, t->num_tracks + new_index);
+  w = bg_nle_outstream_widget_get_panel(t->outstreams[old_index]);
+  gtk_box_reorder_child(GTK_BOX(t->panel_box), w, t->num_tracks + new_index);
+
+  /* Reorder widget array */
+  wid = t->outstreams[old_index];
+  if(old_index < t->num_outstreams-1)
+    memmove(t->outstreams + old_index, t->outstreams + old_index + 1,
+            (t->num_outstreams-1 - old_index) * sizeof(*t->outstreams));
+
+  if(new_index < t->num_outstreams-1)
+    memmove(t->outstreams + new_index + 1, t->outstreams + new_index,
+            (t->num_outstreams-1 - new_index) * sizeof(*t->outstreams));
+  t->outstreams[new_index] = wid;
+
   }
 
 void bg_nle_timeline_delete_outstream(bg_nle_timeline_t * t, int index)

@@ -105,7 +105,7 @@ static void edit_callback(bg_nle_project_t * p,
     case BG_NLE_EDIT_ADD_TRACK:
       {
       bg_nle_op_track_t * d = op_data;
-      bg_nle_timeline_add_track(win->timeline, d->track);
+      bg_nle_timeline_add_track(win->timeline, d->track, d->index);
       }
       break;
     case BG_NLE_EDIT_DELETE_TRACK:
@@ -115,11 +115,15 @@ static void edit_callback(bg_nle_project_t * p,
       }
       break;
     case BG_NLE_EDIT_MOVE_TRACK:
+      {
+      bg_nle_op_move_track_t * d = op_data;
+      bg_nle_timeline_move_track(win->timeline, d->old_index, d->new_index);
+      }
       break;
     case BG_NLE_EDIT_ADD_OUTSTREAM:
       {
       bg_nle_op_outstream_t * d = op_data;
-      bg_nle_timeline_add_outstream(win->timeline, d->outstream);
+      bg_nle_timeline_add_outstream(win->timeline, d->outstream, d->index);
       }
       break;
     case BG_NLE_EDIT_DELETE_OUTSTREAM:
@@ -129,6 +133,10 @@ static void edit_callback(bg_nle_project_t * p,
       }
       break;
     case BG_NLE_EDIT_MOVE_OUTSTREAM:
+      {
+      bg_nle_op_move_outstream_t * d = op_data;
+      bg_nle_timeline_move_outstream(win->timeline, d->old_index, d->new_index);
+      }
       break;
     }
   

@@ -80,11 +80,15 @@ static void menu_callback(GtkWidget * w, gpointer data)
   {
   if(w == the_menu.up)
     {
-    
+    int index = bg_nle_project_outstream_index(menu_widget->outstream->p, menu_widget->outstream);
+    if(index > 0)
+      bg_nle_project_move_outstream(menu_widget->outstream->p, index, index-1);
     }
   else if(w == the_menu.down)
     {
-    
+    int index = bg_nle_project_outstream_index(menu_widget->outstream->p, menu_widget->outstream);
+    if(index < menu_widget->outstream->p->num_outstreams-1)
+      bg_nle_project_move_outstream(menu_widget->outstream->p, index, index+1);
     }
   else if(w == the_menu.delete)
     {

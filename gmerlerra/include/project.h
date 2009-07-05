@@ -86,9 +86,14 @@ void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t);
 void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);
 void bg_nle_project_insert_track(bg_nle_project_t * p, bg_nle_track_t * t, int pos);
 
+void bg_nle_project_move_track(bg_nle_project_t * p, int old_pos, int new_pos);
+
+
 void bg_nle_project_append_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t);
 void bg_nle_project_insert_outstream(bg_nle_project_t * p,
                                      bg_nle_outstream_t * t, int pos);
+
+void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_pos);
 
 int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * outstream);
 int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track);
