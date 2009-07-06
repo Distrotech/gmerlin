@@ -43,9 +43,8 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_nle_project_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->end_visible = GAVL_TIME_SCALE * 10;
-  ret->start_selection = 0;
-  ret->end_selection = -1;
+  ret->visible.end = GAVL_TIME_SCALE * 10;
+  ret->selection.end = -1;
   ret->media_list = bg_nle_media_list_create(plugin_reg);
   ret->plugin_reg = plugin_reg;
 

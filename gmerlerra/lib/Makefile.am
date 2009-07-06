@@ -16,6 +16,7 @@ project.c \
 project_xml.c \
 projectsettings.c \
 renderer.c \
+timerange.c \
 track.c \
 track_xml.c
 

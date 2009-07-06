@@ -116,7 +116,10 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   {
   GtkWidget * box;
   bg_nle_player_widget_t * ret;
-
+  bg_nle_time_range_t r;
+  r.start = 0;
+  r.end = 10 * GAVL_TIME_SCALE;
+  
   ret = calloc(1, sizeof(*ret));
   ret->plugin_reg = plugin_reg;
 
@@ -125,7 +128,7 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
     ret->ruler_priv = bg_nle_time_ruler_create();
 
     bg_nle_time_ruler_set_visible(ret->ruler_priv,
-                                  0, 10 * GAVL_TIME_SCALE, 1);
+                                  &r, 1);
     
     ret->ruler = ret->ruler_priv;
     }

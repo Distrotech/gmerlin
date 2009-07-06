@@ -8,6 +8,8 @@ enum bg_nle_edit_op_e
     BG_NLE_EDIT_ADD_OUTSTREAM,
     BG_NLE_EDIT_DELETE_OUTSTREAM,
     BG_NLE_EDIT_MOVE_OUTSTREAM,
+    BG_NLE_EDIT_CHANGE_SELECTION,
+    BG_NLE_EDIT_CHANGE_VISIBLE,
   };
 
 // BG_NLE_EDIT_ADD_TRACK
@@ -40,6 +42,15 @@ typedef struct
   int old_index;
   int new_index;
   } bg_nle_op_move_outstream_t;
+
+// BG_NLE_EDIT_CHANGE_SELECTION
+// BG_NLE_EDIT_CHANGE_VISIBLE
+
+typedef struct
+  {
+  bg_nle_time_range_t old_range;
+  bg_nle_time_range_t new_range;
+  } bg_nle_op_change_range_t;
 
 /* Undo data */
 

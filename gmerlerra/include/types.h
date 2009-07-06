@@ -21,5 +21,17 @@ typedef enum bg_nle_edit_op_e bg_nle_edit_op_t;
 
 typedef struct bg_nle_undo_data_s bg_nle_undo_data_t;
 
+typedef struct
+  {
+  int64_t start;
+  int64_t end;
+  } bg_nle_time_range_t;
+
+void bg_nle_time_range_copy(bg_nle_time_range_t * dst, const bg_nle_time_range_t * src);
+void bg_nle_time_range_swap(bg_nle_time_range_t * r1, bg_nle_time_range_t * r2);
+
+int64_t bg_nle_pos_2_time(bg_nle_time_range_t * visible, int width, double pos);
+double bg_nle_time_2_pos(bg_nle_time_range_t * visible, int width, int64_t time);
+
 
 #endif

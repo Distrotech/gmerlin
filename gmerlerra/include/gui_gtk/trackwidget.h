@@ -11,3 +11,9 @@ GtkWidget * bg_nle_track_widget_get_panel(bg_nle_track_widget_t *);
 GtkWidget * bg_nle_track_widget_get_preview(bg_nle_track_widget_t *);
 
 void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w);
+
+void bg_nle_track_widget_set_selection(bg_nle_track_widget_t * w,
+                                       bg_nle_time_range_t * selection);
+
+void bg_nle_track_widget_set_visible(bg_nle_track_widget_t * w,
+                                     bg_nle_time_range_t * visible);

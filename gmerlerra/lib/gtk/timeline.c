@@ -42,6 +42,10 @@ struct bg_nle_timeline_s
 
   void (*motion_callback)(gavl_time_t time, void * data);
   void * motion_callback_data;
+
+  int width, height;
+
+  bg_nle_time_range_t visible;
   
   };
 
@@ -53,6 +57,14 @@ void bg_nle_timeline_set_motion_callback(bg_nle_timeline_t * t,
   t->motion_callback_data = data;
   }
 
+static void size_allocate_callback(GtkWidget     *widget,
+                                   GtkAllocation *allocation,
+                                   gpointer       user_data)
+  {
+  bg_nle_timeline_t * w = user_data;
+  w->width  = allocation->width;
+  w->height = allocation->height;
+  }
 
 static void button_callback(GtkWidget * w, gpointer  data)
   {
@@ -72,36 +84,47 @@ static void button_callback(GtkWidget * w, gpointer  data)
     }
   }
 
-static void selection_changed_callback(void * data, int64_t start, int64_t end)
+void bg_nle_timeline_set_selection(bg_nle_timeline_t * t, bg_nle_time_range_t * selection)
   {
   int i;
-  bg_nle_timeline_t * t = data;
-  
   for(i = 0; i < t->num_tracks; i++)
     {
-    bg_nle_track_widget_redraw(t->tracks[i]);
+    bg_nle_track_widget_set_selection(t->tracks[i], selection);
     }
   for(i = 0; i < t->num_outstreams; i++)
     {
-    bg_nle_outstream_widget_redraw(t->outstreams[i]);
+    bg_nle_outstream_widget_set_selection(t->outstreams[i], selection);
     }
+  }
+
+void bg_nle_timeline_set_visible(bg_nle_timeline_t * t, bg_nle_time_range_t * visible)
+  {
+  int i;
+  bg_nle_time_range_copy(&t->visible, visible);
+  for(i = 0; i < t->num_tracks; i++)
+    {
+    bg_nle_track_widget_set_visible(t->tracks[i], visible);
+    }
+  for(i = 0; i < t->num_outstreams; i++)
+    {
+    bg_nle_outstream_widget_set_visible(t->outstreams[i], visible);
+    }
+  
+  }
+
+static void selection_changed_callback(void * data, bg_nle_time_range_t * selection)
+  {
+  //  int i;
+  //  bg_nle_timeline_t * t = data;
+  
         
   }
 
-static void visibility_changed_callback(void * data, int64_t start, int64_t end)
+static void visibility_changed_callback(void * data, bg_nle_time_range_t * visible)
   {
-  int i;
-  bg_nle_timeline_t * t = data;
+  //  int i;
+  //  bg_nle_timeline_t * t = data;
   
-  for(i = 0; i < t->num_tracks; i++)
-    {
-    bg_nle_track_widget_redraw(t->tracks[i]);
-    }
-  for(i = 0; i < t->num_outstreams; i++)
-    {
-    bg_nle_outstream_widget_redraw(t->outstreams[i]);
-    }
-        
   }
 
 static void motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
@@ -110,8 +133,7 @@ static void motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
   bg_nle_timeline_t * t = data;
   
   if(t->motion_callback)
-    t->motion_callback(bg_nle_time_ruler_pos_2_time(t->ruler,
-                                                    (int)evt->x), t->motion_callback_data);
+    t->motion_callback(bg_nle_pos_2_time(&t->visible, t->width, (int)evt->x), t->motion_callback_data);
   }
 
 static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
@@ -168,11 +190,9 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   ret->ruler = bg_nle_time_ruler_create();
 
   bg_nle_time_ruler_set_selection(ret->ruler,
-                                  p->start_selection,
-                                  p->end_selection);
+                                  &p->selection);
   bg_nle_time_ruler_set_visible(ret->ruler,
-                                p->start_visible,
-                                p->end_visible, 1);
+                                &p->visible, 1);
   
   bg_nle_time_ruler_set_selection_callback(ret->ruler,
                                            selection_changed_callback,
@@ -219,7 +239,10 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   g_signal_connect(eventbox,
                    "motion-notify-event",
                    G_CALLBACK(motion_notify_callback), ret);
-
+  g_signal_connect(eventbox,
+                   "size-allocate", G_CALLBACK(size_allocate_callback),
+                   ret);
+  
   gtk_container_add(GTK_CONTAINER(eventbox), ret->preview_box);
   gtk_widget_show(eventbox);
   

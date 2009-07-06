@@ -59,7 +59,9 @@ struct bg_nle_outstream_widget_s
   void (*play_callback)(bg_nle_outstream_widget_t *, void *);
   void (*delete_callback)(bg_nle_outstream_widget_t *, void *);
   void * callback_data;
-  
+
+  bg_nle_time_range_t visible;
+  bg_nle_time_range_t selection;
   };
 
 static bg_nle_outstream_widget_t * menu_widget;
@@ -269,7 +271,8 @@ static void button_callback(GtkWidget * w, gpointer  data)
       t->play_callback(t, t->callback_data);
     }
   }
-     
+
+#if 0
 static GtkWidget * create_pixmap_button(bg_nle_outstream_widget_t * w,
                                         const char * filename,
                                         const char * tooltip)
@@ -299,6 +302,7 @@ static GtkWidget * create_pixmap_button(bg_nle_outstream_widget_t * w,
   
   return button;
   }
+#endif
 
 static GtkWidget * create_pixmap_toggle_button(bg_nle_outstream_widget_t * w,
                                                const char * filename,
@@ -372,14 +376,13 @@ void bg_nle_outstream_widget_redraw(bg_nle_outstream_widget_t * w)
   /* Draw preview */
 
   /* Draw selection */
-  bg_nle_time_ruler_get_selection(w->ruler,
-                                  &selection_start_time,
-                                  &selection_end_time);
-
-  selection_start_pos = bg_nle_time_ruler_time_2_pos(w->ruler,
-                                                     selection_start_time);
-  selection_end_pos = bg_nle_time_ruler_time_2_pos(w->ruler,
-                                                   selection_end_time);
+  
+  selection_start_pos = bg_nle_time_2_pos(&w->visible,
+                                          w->preview_width,
+                                          w->selection.start);
+  selection_end_pos = bg_nle_time_2_pos(&w->visible,
+                                        w->preview_width,
+                                        w->selection.end);
   
   if(selection_start_time >= 0)
     {
@@ -565,4 +568,18 @@ GtkWidget * bg_nle_outstream_widget_get_panel(bg_nle_outstream_widget_t * w)
 GtkWidget * bg_nle_outstream_widget_get_preview(bg_nle_outstream_widget_t * w)
   {
   return w->preview_box;
+  }
+
+void bg_nle_outstream_widget_set_selection(bg_nle_outstream_widget_t * w,
+                                           bg_nle_time_range_t * selection)
+  {
+  bg_nle_time_range_copy(&w->selection, selection);
+  bg_nle_outstream_widget_redraw(w);
+  }
+
+void bg_nle_outstream_widget_set_visible(bg_nle_outstream_widget_t * w,
+                                         bg_nle_time_range_t * visible)
+  {
+  bg_nle_time_range_copy(&w->visible, visible);
+  bg_nle_outstream_widget_redraw(w);
   }

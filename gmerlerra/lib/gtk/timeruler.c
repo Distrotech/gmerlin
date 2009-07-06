@@ -27,19 +27,17 @@ struct bg_nle_time_ruler_s
   gavl_time_t spacing_major;
   gavl_time_t spacing_minor;
   
-  void (*selection_callback)(void*, int64_t start, int64_t end);
+  void (*selection_callback)(void*, bg_nle_time_range_t * selection);
   void * selection_data;
 
-  void (*visibility_callback)(void*, int64_t start, int64_t end);
+  void (*visibility_callback)(void*, bg_nle_time_range_t * selection);
   void * visibility_data;
   
   int mouse_x;
-  
-  int64_t start_selected;
-  int64_t end_selected;
-  int64_t start_visible;
-  int64_t end_visible;
-  
+
+  bg_nle_time_range_t selection;
+  bg_nle_time_range_t visible;
+    
   PangoFontDescription *font_desc;
   };
 
@@ -52,7 +50,7 @@ static void calc_spacing(bg_nle_time_ruler_t * r)
   /* Minor spacing should be at least 15 pixels,
      Spacings can be [1|2|5]*10^n */
 
-  dt = 15.0 * (double)(r->end_visible-r->start_visible) / r->width;
+  dt = 15.0 * (double)(r->visible.end-r->visible.start) / r->width;
 
   log_dt = (int)(log10(dt));
   
@@ -87,18 +85,21 @@ static void size_allocate_callback(GtkWidget     *widget,
   {
   double scale_factor;
   int init;
+  bg_nle_time_range_t range;
+  
   bg_nle_time_ruler_t * r = user_data;
 
+  range.start = r->visible.start;
+  
   if(r->width >= 0)
     {
     scale_factor =
-      (double)(r->end_visible-r->start_visible)/(double)(r->width);
+      (double)(r->visible.end-r->visible.start)/(double)(r->width);
 
-    bg_nle_time_ruler_set_visible(r,
-                                  r->start_visible,
-                                  r->start_visible +
-                                  (int)(scale_factor *
-                                        (double)(allocation->width) + 0.5), 0);
+    range.end = r->visible.start +
+      (int)(scale_factor * (double)(allocation->width) + 0.5);
+    
+    bg_nle_time_ruler_set_visible(r, &range, 0);
     init = 0;
     }
   else
@@ -114,19 +115,6 @@ static void size_allocate_callback(GtkWidget     *widget,
   
   }
 
-int64_t bg_nle_time_ruler_pos_2_time(bg_nle_time_ruler_t * r, int pos)
-  {
-  double ret_d = (double)pos /
-    (double)r->width * (double)(r->end_visible - r->start_visible);
-  return (int64_t)(ret_d + 0.5) + r->start_visible;
-  }
-
-double bg_nle_time_ruler_time_2_pos(bg_nle_time_ruler_t * r, int64_t time)
-  {
-  double ret_d = (double)(time - r->start_visible) /
-    (double)(r->end_visible - r->start_visible) * (double)r->width;
-  return ret_d;
-  }
 
 
 static void redraw(bg_nle_time_ruler_t * r)
@@ -153,14 +141,14 @@ static void redraw(bg_nle_time_ruler_t * r)
 
   /* Draw tics */
   
-  time = ((r->start_visible / r->spacing_major)) * r->spacing_major;
+  time = ((r->visible.start / r->spacing_major)) * r->spacing_major;
   
   cairo_set_line_width(c, 1.0);
   pango_layout_set_font_description(pl, r->font_desc);
     
-  while(time < r->end_visible)
+  while(time < r->visible.end)
     {
-    pos = bg_nle_time_ruler_time_2_pos(r, time);
+    pos = bg_nle_time_2_pos(&r->visible, r->width, time);
     
     if(time % r->spacing_major)
       {
@@ -224,21 +212,24 @@ static gboolean motion_callback(GtkWidget *widget,
                                 GdkEventButton * evt,
                                 gpointer user_data)
   {
+  bg_nle_time_range_t range;
   bg_nle_time_ruler_t * r = user_data;
   
   gavl_time_t diff_time =
-    bg_nle_time_ruler_pos_2_time(r, r->mouse_x) -
-    bg_nle_time_ruler_pos_2_time(r, evt->x);
+    bg_nle_pos_2_time(&r->visible, r->width, r->mouse_x) -
+    bg_nle_pos_2_time(&r->visible, r->width, evt->x);
 
-  if(r->start_visible + diff_time < 0)
-    diff_time = -r->start_visible;
+  if(r->visible.start + diff_time < 0)
+    diff_time = -r->visible.start;
 
   if(!diff_time)
     return TRUE;
 
-  bg_nle_time_ruler_set_visible(r,
-                                r->start_visible + diff_time,
-                                r->end_visible += diff_time, 0);
+  bg_nle_time_range_copy(&range, &r->visible);
+  range.start += diff_time;
+  range.end   += diff_time;
+  
+  bg_nle_time_ruler_set_visible(r, &range, 0);
   r->mouse_x = evt->x;
   
   //  if(r->selection_callback)
@@ -258,8 +249,8 @@ bg_nle_time_ruler_t * bg_nle_time_ruler_create(void)
   bg_nle_time_ruler_t * ret;
   ret = calloc(1, sizeof(*ret));
   
-  //  ret->start_visible = 0;
-  //  ret->end_visible = 10 * GAVL_TIME_SCALE;
+  //  ret->visible.start = 0;
+  //  ret->visible.end = 10 * GAVL_TIME_SCALE;
   
   //  ret->spacing_major = GAVL_TIME_SCALE;
   //  ret->spacing_minor = GAVL_TIME_SCALE / 10;
@@ -310,30 +301,24 @@ GtkWidget * bg_nle_time_ruler_get_widget(bg_nle_time_ruler_t * t)
   return t->wid;
   }
 
-void bg_nle_time_ruler_get_selection(bg_nle_time_ruler_t * t,
-                                     gavl_time_t * start, gavl_time_t * end)
-  {
-  *start = t->start_selected;
-  *end = t->end_selected;
-  }
 
 void bg_nle_time_ruler_set_selection(bg_nle_time_ruler_t * t,
-                                     gavl_time_t start, gavl_time_t end)
+                                     const bg_nle_time_range_t * selection)
   {
-  t->start_selected = start;
-  t->end_selected = end;
+  bg_nle_time_range_copy(&t->selection, selection);
+  
   if(t->selection_callback)
-    t->selection_callback(t->selection_data, t->start_selected, t->end_selected);
+    t->selection_callback(t->selection_data, &t->selection);
   }
 
 void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
-                                   gavl_time_t start, gavl_time_t end,
+                                   bg_nle_time_range_t * visible,
                                    int recalc_spacing)
   {
-  t->start_visible = start;
-  t->end_visible = end;
+  bg_nle_time_range_copy(&t->visible, visible);
+  
   if(t->visibility_callback)
-    t->visibility_callback(t->visibility_data, t->start_visible, t->end_visible);
+    t->visibility_callback(t->visibility_data, &t->visible);
   
   if((t->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
     {
@@ -345,9 +330,7 @@ void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
 
 
 void bg_nle_time_ruler_set_selection_callback(bg_nle_time_ruler_t * t,
-                                              void (*callback)(void*,
-                                                               int64_t start,
-                                                               int64_t end),
+                                              void (*callback)(void*, bg_nle_time_range_t*),
                                               void* data)
   {
   t->selection_callback = callback;
@@ -355,9 +338,7 @@ void bg_nle_time_ruler_set_selection_callback(bg_nle_time_ruler_t * t,
   }
 
 void bg_nle_time_ruler_set_visibility_callback(bg_nle_time_ruler_t * t,
-                                               void (*callback)(void*,
-                                                                int64_t start,
-                                                                int64_t end),
+                                               void (*callback)(void*,bg_nle_time_range_t*),
                                                void* data)
   {
   t->visibility_callback = callback;
@@ -368,93 +349,106 @@ void bg_nle_time_ruler_set_visibility_callback(bg_nle_time_ruler_t * t,
 void bg_nle_time_ruler_handle_button_press(bg_nle_time_ruler_t * r,
                                            GdkEventButton * evt)
   {
+  bg_nle_time_range_t selection;
+    
   if(evt->state == GDK_SHIFT_MASK)
     {
-    gavl_time_t selection_start, selection_end, t;
+    gavl_time_t t;
+
+    bg_nle_time_range_copy(&selection, &r->selection);
     
-    bg_nle_time_ruler_get_selection(r,
-                                    &selection_start,
-                                    &selection_end);
-    t = bg_nle_time_ruler_pos_2_time(r, evt->x);
+    t = bg_nle_pos_2_time(&r->visible, r->width, evt->x);
     
-    if(selection_start < 0)
+    if(selection.start < 0)
       {
-      bg_nle_time_ruler_set_selection(r, t, -1);
+      selection.start = t;
+      selection.end = -1;
+      bg_nle_time_ruler_set_selection(r, &selection);
       }
-    else if(selection_end < 0)
+    else if(selection.end < 0)
       {
-      if(t > selection_start)
-        bg_nle_time_ruler_set_selection(r,
-                                        selection_start, t);
-      else if(t < selection_start)
-        bg_nle_time_ruler_set_selection(r,
-                                        t, selection_start);
+      if(t > selection.start)
+        {
+        selection.end = t;
+        bg_nle_time_ruler_set_selection(r, &selection);
+        }
+      else if(t < selection.start)
+        {
+        selection.end = selection.start;
+        selection.start = t;
+        bg_nle_time_ruler_set_selection(r, &selection);
+        }
       else
-        bg_nle_time_ruler_set_selection(r,
-                                        t, -1);
+        {
+        selection.start = t;
+        selection.end   = -1;
+        bg_nle_time_ruler_set_selection(r, &selection);
+        }
       }
     else
       {
-      bg_nle_time_ruler_set_selection(r,
-                                      selection_start, t);
+      selection.end = t;
+      bg_nle_time_ruler_set_selection(r, &selection);
       }
     }
   else if(!evt->state)
     {
-    bg_nle_time_ruler_set_selection(r,
-                                    bg_nle_time_ruler_pos_2_time(r,
-                                                                 evt->x),
-                                    -1);
+    bg_nle_time_range_copy(&selection, &r->selection);
+    selection.start = bg_nle_pos_2_time(&r->visible, r->width, evt->x);
+    selection.end = -1;
+    bg_nle_time_ruler_set_selection(r, &selection);
     }
-
   }
 
 
 
 void bg_nle_time_ruler_zoom_in(bg_nle_time_ruler_t * r)
   {
-  int64_t center, diff, start, end;
+  int64_t center, diff;
+  bg_nle_time_range_t range;
   
-  diff = r->end_visible - r->start_visible;
-  center = (r->end_visible + r->start_visible)/2;
+  diff = r->visible.end - r->visible.start;
+  center = (r->visible.end + r->visible.start)/2;
 
   if(diff < GAVL_TIME_SCALE / 5)
     diff = GAVL_TIME_SCALE / 5;
   
-  start = center - diff / 4;
-  end   = center + diff / 4;
+  range.start = center - diff / 4;
+  range.end   = center + diff / 4;
 
-  bg_nle_time_ruler_set_visible(r, start, end, 1);
+  bg_nle_time_ruler_set_visible(r, &range, 1);
   }
 
 void bg_nle_time_ruler_zoom_out(bg_nle_time_ruler_t * r)
   {
-  int64_t center, diff, start, end;
+  int64_t center, diff;
+  bg_nle_time_range_t range;
   
-  diff = r->end_visible - r->start_visible;
-  center = (r->end_visible + r->start_visible)/2;
+  diff = r->visible.end - r->visible.start;
+  center = (r->visible.end + r->visible.start)/2;
 
-  start = center - diff;
-  if(start < 0)
-    start = 0;
-  end = center + diff;
+  range.start = center - diff;
+  if(range.start < 0)
+    range.start = 0;
+  range.end = center + diff;
 
-  bg_nle_time_ruler_set_visible(r, start, end, 1);
+  bg_nle_time_ruler_set_visible(r, &range, 1);
   }
 
 void bg_nle_time_ruler_zoom_fit(bg_nle_time_ruler_t * r)
   {
-  int64_t center, diff, start, end;
-  diff = ((r->end_selected - r->start_selected) / 9) * 10;
-
+  int64_t center, diff;
+  bg_nle_time_range_t range;
+  diff = ((r->selection.end - r->selection.start) / 9) * 10;
+  
   if(diff < GAVL_TIME_SCALE / 10)
     diff = GAVL_TIME_SCALE / 10;
   
-  center = (r->end_selected + r->start_selected) / 2;
-  start = center - diff / 2;
-  if(start < 0)
-    start = 0;
-  end = center + diff / 2;
+  center = (r->selection.end + r->selection.start) / 2;
+  range.start = center - diff / 2;
+  if(range.start < 0)
+    range.start = 0;
+  range.end = center + diff / 2;
   
-  bg_nle_time_ruler_set_visible(r, start, end, 1);
+  bg_nle_time_ruler_set_visible(r, &range, 1);
   }

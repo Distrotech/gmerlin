@@ -72,15 +72,15 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
     if(!BG_XML_STRCMP(node->name, visible_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
-      sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->start_visible,
-             &ret->end_visible);
+      sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->visible.start,
+             &ret->visible.end);
       free(tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, selection_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
-      sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->start_selection,
-             &ret->end_selection);
+      sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->selection.start,
+             &ret->selection.end);
       free(tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, audio_track_parameters_name))
@@ -183,7 +183,7 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
                          (xmlChar*)selection_name, NULL);
   tmp_string =
-    bg_sprintf("%"PRId64" %"PRId64, p->start_selection, p->end_selection);
+    bg_sprintf("%"PRId64" %"PRId64, p->selection.start, p->selection.end);
   xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
   free(tmp_string);
 
@@ -192,7 +192,7 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
                          (xmlChar*)visible_name, NULL);
   tmp_string =
-    bg_sprintf("%"PRId64" %"PRId64, p->start_visible, p->end_visible);
+    bg_sprintf("%"PRId64" %"PRId64, p->visible.start, p->visible.end);
   xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
   free(tmp_string);
 

@@ -32,10 +32,9 @@ struct bg_nle_project_s
   bg_nle_media_list_t * media_list;
   
   /* Timeline status */
-  gavl_time_t start_visible;
-  gavl_time_t end_visible;
-  gavl_time_t start_selection;
-  gavl_time_t end_selection;
+
+  bg_nle_time_range_t visible;
+  bg_nle_time_range_t selection;
   
   bg_cfg_section_t * audio_track_section;
   bg_cfg_section_t * video_track_section;
