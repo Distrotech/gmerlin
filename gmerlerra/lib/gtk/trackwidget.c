@@ -41,7 +41,10 @@ static void set_parameter(void * data, const char * name,
   if(!name)
     return;
   if(!strcmp(name, "name"))
+    {
     gtk_expander_set_label(GTK_EXPANDER(t->panel), val->val_str);
+    gtk_container_check_resize(GTK_CONTAINER(gtk_widget_get_parent(t->panel)));
+    }
   }
 
 typedef struct

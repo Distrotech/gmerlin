@@ -17,8 +17,10 @@
 
 struct bg_nle_timeline_s
   {
-  GtkWidget * paned;
+  //  GtkWidget * paned;
   bg_nle_time_ruler_t * ruler;
+
+  GtkWidget * table;
   
   GtkWidget * panel_window;
   GtkWidget * preview_window;
@@ -176,15 +178,18 @@ static void outstream_play(bg_nle_outstream_widget_t * w,
 bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   {
   GtkWidget * box;
-  GtkWidget * table;
+  //  GtkWidget * table;
   GtkWidget * eventbox;
   GtkSizeGroup * size_group;
   //  GtkWidget * table1;
+  GtkWidget * scrollbar;
   
   int i;
 
   bg_nle_timeline_t * ret = calloc(1, sizeof(*ret));  
-  
+
+  //  GtkObject *adj = gtk_adjustment_new( 0, 0, 100, 1, 10, 0 );
+
   ret->p = p;
   
   ret->ruler = bg_nle_time_ruler_create();
@@ -201,7 +206,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                                             visibility_changed_callback,
                                             ret);
 
-  ret->paned = gtk_hpaned_new();
+  //  ret->paned = gtk_hpaned_new();
   
   ret->zoom_in = create_pixmap_button(ret, "time_zoom_in.png",
                                       TRS("Zoom in"));
@@ -214,19 +219,30 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                                            TRS("Goto start"));
   ret->end_button = create_pixmap_button(ret, "last_16.png",
                                          TRS("Goto end"));
+
   
-  ret->preview_window = gtk_scrolled_window_new((GtkAdjustment *)0,
-                                                (GtkAdjustment *)0);
+  ret->preview_window = gtk_viewport_new(NULL, NULL);
   
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->preview_window),
-                                 GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  scrollbar =
+    gtk_vscrollbar_new(gtk_viewport_get_vadjustment(GTK_VIEWPORT(ret->preview_window)));
+  gtk_widget_show(scrollbar);
+  
+  //  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->preview_window),
+  //                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+
 
   ret->panel_window =
-    gtk_scrolled_window_new((GtkAdjustment *)0,
-                            gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(ret->preview_window)));
+    gtk_viewport_new(NULL, gtk_viewport_get_vadjustment(GTK_VIEWPORT(ret->preview_window)));
+
+  gtk_widget_set_size_request(ret->panel_window, -1, 0);
+  gtk_widget_set_size_request(ret->preview_window, -1, 0);
   
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->panel_window),
-                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+  //  ret->panel_window =
+  //    gtk_scrolled_window_new((GtkAdjustment *)0,
+  //                            GTK_ADJUSTMENT(adj));
+  
+  //  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->panel_window),
+  //                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
   
   ret->preview_box = gtk_vbox_new(FALSE, 2);
   ret->panel_box = gtk_vbox_new(FALSE, 2);
@@ -246,11 +262,15 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   gtk_container_add(GTK_CONTAINER(eventbox), ret->preview_box);
   gtk_widget_show(eventbox);
   
-  gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(ret->preview_window),
-                                        eventbox);
-  gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(ret->panel_window),
-                                        ret->panel_box);
+  //  gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(ret->preview_window),
+  //                                        eventbox);
+  //  gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(ret->panel_window),
+  //                                        ret->panel_box);
 
+  gtk_container_add(GTK_CONTAINER(ret->preview_window), eventbox);
+  gtk_container_add(GTK_CONTAINER(ret->panel_window), ret->panel_box);
+
+  
   gtk_widget_show(ret->preview_box);
   gtk_widget_show(ret->panel_box);
 
@@ -280,37 +300,42 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   g_object_unref(size_group);
 
   
-  table = gtk_table_new(2, 1, 0);
+  ret->table = gtk_table_new(2, 3, 0);
   
-  gtk_table_attach(GTK_TABLE(table),
+  gtk_table_attach(GTK_TABLE(ret->table),
                    box,
                    0, 1, 0, 1,
-                   GTK_FILL|GTK_EXPAND, GTK_FILL|GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
+                   GTK_FILL|GTK_SHRINK, GTK_FILL|GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(ret->table),
                    ret->panel_window,
                    0, 1, 1, 2,
-                   GTK_FILL|GTK_EXPAND, GTK_EXPAND|GTK_FILL, 0, 0);
+                   GTK_FILL|GTK_SHRINK, GTK_EXPAND|GTK_FILL, 0, 0);
 
-  gtk_widget_show(table);
+  //  gtk_widget_show(table);
 
-  gtk_paned_add1(GTK_PANED(ret->paned), table);
+  //  gtk_paned_add1(GTK_PANED(ret->paned), table);
   
-  table = gtk_table_new(2, 1, 0);
+  //  table = gtk_table_new(2, 1, 0);
     
-  gtk_table_attach(GTK_TABLE(table),
+  gtk_table_attach(GTK_TABLE(ret->table),
                    bg_nle_time_ruler_get_widget(ret->ruler),
-                   0, 1, 0, 1,
-                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
+                   1, 2, 0, 1,
+                   GTK_EXPAND|GTK_FILL, GTK_FILL|GTK_SHRINK, 0, 0);
   
-  gtk_table_attach(GTK_TABLE(table),
+  gtk_table_attach(GTK_TABLE(ret->table),
                    ret->preview_window,
-                   0, 1, 1, 2,
+                   1, 2, 1, 2,
                    GTK_EXPAND|GTK_FILL, GTK_EXPAND|GTK_FILL, 0, 0);
-  
-  gtk_widget_show(table);
-  gtk_paned_add2(GTK_PANED(ret->paned), table);
 
-  gtk_widget_show(ret->paned);
+  gtk_table_attach(GTK_TABLE(ret->table),
+                   scrollbar,
+                   2, 3, 1, 2,
+                   GTK_FILL|GTK_SHRINK, GTK_EXPAND|GTK_FILL, 0, 0);
+  
+  gtk_widget_show(ret->table);
+  //  gtk_paned_add2(GTK_PANED(ret->paned), table);
+
+  //  gtk_widget_show(ret->paned);
   /* Add tracks */
 
   if(ret->p->num_tracks)
@@ -370,7 +395,7 @@ void bg_nle_timeline_destroy(bg_nle_timeline_t * t)
 
 GtkWidget * bg_nle_timeline_get_widget(bg_nle_timeline_t * t)
   {
-  return t->paned;
+  return t->table;
   }
 
 void bg_nle_timeline_add_track(bg_nle_timeline_t * t,
