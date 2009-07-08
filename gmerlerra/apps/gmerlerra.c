@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include <gui_gtk/projectwindow.h>
+#include <gui_gtk/utils.h>
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/utils.h>
 
@@ -44,6 +45,8 @@ int main(int argc, char ** argv)
   {
   bg_nle_project_window_t * w;
   bg_gtk_init(&argc, &argv, (char *)0);
+
+  bg_nle_init_cursors();
   
   create_registries();
   

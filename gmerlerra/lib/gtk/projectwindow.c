@@ -10,6 +10,7 @@
 #include <project.h>
 #include <editops.h>
 
+#include <gui_gtk/timerange.h>
 #include <gui_gtk/projectwindow.h>
 #include <gui_gtk/timeline.h>
 #include <gui_gtk/mediabrowser.h>

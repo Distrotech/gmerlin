@@ -1,2 +1,3 @@
 noinst_HEADERS = \
-projectwindow.h
+projectwindow.h \
+utils.h

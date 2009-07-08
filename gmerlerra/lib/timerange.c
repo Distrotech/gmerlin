@@ -22,16 +22,3 @@ void bg_nle_time_range_swap(bg_nle_time_range_t * r1, bg_nle_time_range_t * r2)
   
   }
 
-int64_t bg_nle_pos_2_time(bg_nle_time_range_t * visible, int width, double pos)
-  {
-  double ret_d = (double)pos /
-    (double)width * (double)(visible->end - visible->start);
-  return (int64_t)(ret_d + 0.5) + visible->start;
-  }
-
-double bg_nle_time_2_pos(bg_nle_time_range_t * visible, int width, int64_t time)
-  {
-  double ret_d = (double)(time - visible->start) /
-    (double)(visible->end - visible->start) * (double)width;
-  return ret_d;
-  }

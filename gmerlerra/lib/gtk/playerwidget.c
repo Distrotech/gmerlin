@@ -8,6 +8,11 @@
 #include <gmerlin/gui_gtk/audio.h>
 #include <gmerlin/gui_gtk/display.h>
 
+
+#include <types.h>
+
+#include <gui_gtk/timerange.h>
+#include <gui_gtk/timeruler.h>
 #include <gui_gtk/playerwidget.h>
 
 struct bg_nle_player_widget_s
@@ -33,6 +38,8 @@ struct bg_nle_player_widget_s
 
   bg_nle_time_ruler_t * ruler;
   bg_nle_time_ruler_t * ruler_priv;
+
+  bg_nle_timerange_widget_t tr;
   };
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -110,6 +117,14 @@ static void socket_realize(GtkWidget * w, gpointer data)
   load_output_plugins(p);
   }
 
+static void size_allocate_callback(GtkWidget     *widget,
+                                   GtkAllocation *allocation,
+                                   gpointer       user_data)
+  {
+  bg_nle_player_widget_t * w = user_data;
+  bg_nle_timerange_widget_set_width(&w->tr, allocation->width);
+  }
+
 bg_nle_player_widget_t *
 bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
                             bg_nle_time_ruler_t * ruler)
@@ -123,9 +138,13 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   ret = calloc(1, sizeof(*ret));
   ret->plugin_reg = plugin_reg;
 
+  ret->tr.visible.start = 0;
+  ret->tr.visible.end = GAVL_TIME_SCALE * 10;
+  
+  
   if(!ruler)
     {
-    ret->ruler_priv = bg_nle_time_ruler_create();
+    ret->ruler_priv = bg_nle_time_ruler_create(&ret->tr);
 
     bg_nle_time_ruler_set_visible(ret->ruler_priv,
                                   &r, 1);
@@ -188,6 +207,7 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   if(ret->ruler_priv)
     {
+    g_signal_connect(ret->box, "size-allocate", G_CALLBACK(size_allocate_callback), ret);
     gtk_box_pack_start(GTK_BOX(ret->box), bg_nle_time_ruler_get_widget(ret->ruler_priv),
                        FALSE, FALSE, 0);
     }

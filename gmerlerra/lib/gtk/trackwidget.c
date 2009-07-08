@@ -9,6 +9,8 @@
 #include <track.h>
 #include <project.h>
 
+#include <gui_gtk/utils.h>
+#include <gui_gtk/timerange.h>
 #include <gui_gtk/trackwidget.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/gui_gtk/gtkutils.h>
@@ -29,9 +31,9 @@ struct bg_nle_track_widget_s
   
   bg_nle_track_t * track;
   bg_nle_time_ruler_t * ruler;
+
+  bg_nle_timerange_widget_t * tr;
   
-  bg_nle_time_range_t visible;
-  bg_nle_time_range_t selection;
   };
 
 static void set_parameter(void * data, const char * name,
@@ -263,12 +265,10 @@ void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
   /* Draw preview */
 
   /* Draw selection */
-  selection_start_pos = bg_nle_time_2_pos(&w->visible,
-                                          w->preview_width,
-                                          w->selection.start);
-  selection_end_pos = bg_nle_time_2_pos(&w->visible,
-                                        w->preview_width,
-                                        w->selection.end);
+  selection_start_pos = bg_nle_time_2_pos(w->tr,
+                                          w->tr->selection.start);
+  selection_end_pos = bg_nle_time_2_pos(w->tr,
+                                        w->tr->selection.end);
   
   if(selection_start_time >= 0)
     {
@@ -314,9 +314,9 @@ static gboolean button_press_callback(GtkWidget *widget,
                                       gpointer user_data)
   {
   bg_nle_track_widget_t * w = user_data;
-  
-  if(evt->button == 1)
-    bg_nle_time_ruler_handle_button_press(w->ruler, evt);
+
+  if(bg_nle_timerange_widget_handle_button_press(w->tr, widget, evt))
+    return TRUE;
   else if(evt->button == 3)
     {
     menu_widget = w;
@@ -331,6 +331,13 @@ static gboolean button_press_callback(GtkWidget *widget,
   return TRUE;
   }
 
+static gboolean button_release_callback(GtkWidget *widget,
+                                        GdkEventButton * evt,
+                                        gpointer user_data)
+  {
+  gdk_window_set_cursor(widget->window, bg_nle_cursor_xterm);
+  return TRUE;
+  }
 
 static void size_allocate_callback(GtkWidget     *widget,
                                    GtkAllocation *allocation,
@@ -350,8 +357,15 @@ static const GdkColor preview_bg =
     0x4000
   };
 
+static void realize_callback(GtkWidget *widget,
+                             gpointer       user_data)
+  {
+  gdk_window_set_cursor(widget->window, bg_nle_cursor_xterm);
+  }
+
 bg_nle_track_widget_t *
 bg_nle_track_widget_create(bg_nle_track_t * track,
+                           bg_nle_timerange_widget_t * tr,
                            bg_nle_time_ruler_t * ruler)
   {
   bg_nle_track_widget_t * ret;
@@ -363,7 +377,7 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   ret = calloc(1, sizeof(*ret));
   ret->track = track;
   ret->ruler = ruler;
-  
+  ret->tr = tr;
   /* Create expander */
   ret->panel = gtk_expander_new(bg_nle_track_get_name(track));
   
@@ -413,8 +427,8 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   
   ret->preview = gtk_drawing_area_new();
   gtk_widget_set_events(ret->preview,
-                        GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK);
-
+                        GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+  
   if(ret->track->type == BG_NLE_TRACK_VIDEO)
     {
     gtk_widget_set_size_request(ret->preview, -1, 64);
@@ -431,9 +445,14 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   g_signal_connect(ret->preview,
                    "button-press-event", G_CALLBACK(button_press_callback),
                    ret);
-
+  g_signal_connect(ret->preview,
+                   "button-release-event", G_CALLBACK(button_release_callback),
+                   ret);
+  
   g_signal_connect(ret->preview,
                    "size-allocate", G_CALLBACK(size_allocate_callback),
+                   ret);
+  g_signal_connect(ret->preview, "realize", G_CALLBACK(realize_callback),
                    ret);
   
   ret->preview_box = gtk_hbox_new(FALSE, 0);
@@ -472,13 +491,11 @@ GtkWidget * bg_nle_track_widget_get_preview(bg_nle_track_widget_t * w)
 void bg_nle_track_widget_set_selection(bg_nle_track_widget_t * w,
                                        bg_nle_time_range_t * selection)
   {
-  bg_nle_time_range_copy(&w->selection, selection);
   bg_nle_track_widget_redraw(w);
   }
 
 void bg_nle_track_widget_set_visible(bg_nle_track_widget_t * w,
                                      bg_nle_time_range_t * visible)
   {
-  bg_nle_time_range_copy(&w->visible, visible);
   bg_nle_track_widget_redraw(w);
   }

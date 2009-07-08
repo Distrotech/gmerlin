@@ -30,8 +30,5 @@ typedef struct
 void bg_nle_time_range_copy(bg_nle_time_range_t * dst, const bg_nle_time_range_t * src);
 void bg_nle_time_range_swap(bg_nle_time_range_t * r1, bg_nle_time_range_t * r2);
 
-int64_t bg_nle_pos_2_time(bg_nle_time_range_t * visible, int width, double pos);
-double bg_nle_time_2_pos(bg_nle_time_range_t * visible, int width, int64_t time);
-
 
 #endif

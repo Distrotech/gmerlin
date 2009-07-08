@@ -12,7 +12,9 @@
 #include <gmerlin/gui_gtk/gtkutils.h>
 
 // #include <medialist.h>
+#include <types.h>
 
+#include <gui_gtk/timerange.h>
 #include <gui_gtk/mediabrowser.h>
 #include <gui_gtk/playerwidget.h>
 

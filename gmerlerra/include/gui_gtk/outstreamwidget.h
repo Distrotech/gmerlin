@@ -5,6 +5,7 @@ typedef struct bg_nle_outstream_widget_s bg_nle_outstream_widget_t;
 bg_nle_outstream_widget_t *
 bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
                                bg_nle_time_ruler_t * ruler,
+                               bg_nle_timerange_widget_t * tr,
                                void (*play_callback)(bg_nle_outstream_widget_t *, void *),
                                void * callback_data);
 
