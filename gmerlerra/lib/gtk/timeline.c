@@ -46,8 +46,6 @@ struct bg_nle_timeline_s
   void (*motion_callback)(gavl_time_t time, void * data);
   void * motion_callback_data;
   
-  bg_nle_time_range_t visible;
-
   bg_nle_timerange_widget_t tr;
   };
 
@@ -81,27 +79,28 @@ static void button_callback(GtkWidget * w, gpointer  data)
 void bg_nle_timeline_set_selection(bg_nle_timeline_t * t, bg_nle_time_range_t * selection)
   {
   int i;
+  bg_nle_time_range_copy(&t->tr.selection, selection);
   for(i = 0; i < t->num_tracks; i++)
     {
-    bg_nle_track_widget_set_selection(t->tracks[i], selection);
+    bg_nle_track_widget_update_selection(t->tracks[i]);
     }
   for(i = 0; i < t->num_outstreams; i++)
     {
-    bg_nle_outstream_widget_set_selection(t->outstreams[i], selection);
+    bg_nle_outstream_widget_update_selection(t->outstreams[i]);
     }
   }
 
 void bg_nle_timeline_set_visible(bg_nle_timeline_t * t, bg_nle_time_range_t * visible)
   {
   int i;
-  bg_nle_time_range_copy(&t->visible, visible);
+  bg_nle_time_range_copy(&t->tr.visible, visible);
   for(i = 0; i < t->num_tracks; i++)
     {
-    bg_nle_track_widget_set_visible(t->tracks[i], visible);
+    bg_nle_track_widget_update_visible(t->tracks[i]);
     }
   for(i = 0; i < t->num_outstreams; i++)
     {
-    bg_nle_outstream_widget_set_visible(t->outstreams[i], visible);
+    bg_nle_outstream_widget_update_visible(t->outstreams[i]);
     }
   
   }
@@ -110,18 +109,19 @@ static void selection_changed_callback(bg_nle_time_range_t * selection, void * d
   {
   
   //  int i;
-  //  bg_nle_timeline_t * t = data;
+  bg_nle_timeline_t * t = data;
   
-        
+  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
+  bg_nle_project_set_selection(t->p, selection);
   }
 
 static void visibility_changed_callback(bg_nle_time_range_t * visible, void * data)
   {
   //  int i;
-  //  bg_nle_timeline_t * t = data;
+  bg_nle_timeline_t * t = data;
 
   fprintf(stderr, "visibility changed %ld %ld\n", visible->start, visible->end);
-  
+  bg_nle_project_set_selection(t->p, visible);
   }
 
 static gboolean motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,

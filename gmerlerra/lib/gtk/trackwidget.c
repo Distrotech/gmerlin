@@ -249,8 +249,6 @@ expander_callback(GObject    *object,
 
 void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
   {
-  gavl_time_t selection_start_time;
-  gavl_time_t selection_end_time;
   float selection_start_pos;
   float selection_end_pos;
   cairo_t * c;
@@ -270,14 +268,14 @@ void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
   selection_end_pos = bg_nle_time_2_pos(w->tr,
                                         w->tr->selection.end);
   
-  if(selection_start_time >= 0)
+  if(w->tr->selection.start >= 0)
     {
     cairo_move_to(c, selection_start_pos, 0);
     cairo_line_to(c, selection_start_pos, w->preview_height);
     cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
     cairo_stroke(c);
     
-    if(selection_end_time >= 0)
+    if(w->tr->selection.end >= 0)
       {
       GdkRectangle r;
       r.x = selection_start_pos;
@@ -488,14 +486,12 @@ GtkWidget * bg_nle_track_widget_get_preview(bg_nle_track_widget_t * w)
   return w->preview_box;
   }
 
-void bg_nle_track_widget_set_selection(bg_nle_track_widget_t * w,
-                                       bg_nle_time_range_t * selection)
+void bg_nle_track_widget_update_selection(bg_nle_track_widget_t * w)
   {
   bg_nle_track_widget_redraw(w);
   }
 
-void bg_nle_track_widget_set_visible(bg_nle_track_widget_t * w,
-                                     bg_nle_time_range_t * visible)
+void bg_nle_track_widget_update_visible(bg_nle_track_widget_t * w)
   {
   bg_nle_track_widget_redraw(w);
   }

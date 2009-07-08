@@ -202,6 +202,31 @@ void bg_nle_project_add_video_track(bg_nle_project_t * p)
   edited(p, BG_NLE_EDIT_ADD_TRACK, d);
   }
 
+void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visible)
+  {
+  bg_nle_op_change_range_t * d;
+
+  d = calloc(1, sizeof(*d));
+
+  bg_nle_time_range_copy(&d->old_range, &p->visible);
+  bg_nle_time_range_copy(&d->new_range, visible);
+  
+  edited(p, BG_NLE_EDIT_CHANGE_VISIBLE, d);
+  }
+
+void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * selection)
+  {
+  bg_nle_op_change_range_t * d;
+
+  d = calloc(1, sizeof(*d));
+
+  bg_nle_time_range_copy(&d->old_range, &p->selection);
+  bg_nle_time_range_copy(&d->new_range, selection);
+  
+  edited(p, BG_NLE_EDIT_CHANGE_SELECTION, d);
+  }
+
+
 void bg_nle_project_append_track(bg_nle_project_t * p,
                                      bg_nle_track_t * t)
   {

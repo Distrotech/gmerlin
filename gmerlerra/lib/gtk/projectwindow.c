@@ -141,13 +141,13 @@ static void edit_callback(bg_nle_project_t * p,
       break;
     case BG_NLE_EDIT_CHANGE_SELECTION:
       {
-      //      bg_nle_op_change_range_t * d = op_data;
-      
+      bg_nle_op_change_range_t * d = op_data;
+      bg_nle_timeline_set_selection(win->timeline, &d->new_range);
       }
     case BG_NLE_EDIT_CHANGE_VISIBLE:
       {
-      //      bg_nle_op_change_range_t * d = op_data;
-      
+      bg_nle_op_change_range_t * d = op_data;
+      bg_nle_timeline_set_visible(win->timeline, &d->new_range);
       }
     }
   
