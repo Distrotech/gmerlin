@@ -259,6 +259,9 @@ void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
   c = gdk_cairo_create(w->preview->window);
   
   gdk_window_clear(w->preview->window);
+
+  fprintf(stderr, "Track widget Selection: %ld %ld\n",
+          w->tr->selection.start, w->tr->selection.end);
   
   /* Draw preview */
 
@@ -361,6 +364,17 @@ static void realize_callback(GtkWidget *widget,
   gdk_window_set_cursor(widget->window, bg_nle_cursor_xterm);
   }
 
+static gboolean motion_callback(GtkWidget *widget,
+                                GdkEventMotion * evt,
+                                gpointer user_data)
+  {
+  bg_nle_track_widget_t * r = user_data;
+  
+  bg_nle_timerange_widget_handle_motion(r->tr, evt);
+  return FALSE;
+  }
+
+
 bg_nle_track_widget_t *
 bg_nle_track_widget_create(bg_nle_track_t * track,
                            bg_nle_timerange_widget_t * tr,
@@ -425,7 +439,11 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   
   ret->preview = gtk_drawing_area_new();
   gtk_widget_set_events(ret->preview,
-                        GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+                        GDK_EXPOSURE_MASK |
+                        GDK_BUTTON_PRESS_MASK |
+                        GDK_BUTTON_RELEASE_MASK |
+                        GDK_BUTTON1_MOTION_MASK |
+                        GDK_BUTTON2_MOTION_MASK);
   
   if(ret->track->type == BG_NLE_TRACK_VIDEO)
     {
@@ -445,6 +463,9 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
                    ret);
   g_signal_connect(ret->preview,
                    "button-release-event", G_CALLBACK(button_release_callback),
+                   ret);
+  g_signal_connect(ret->preview, "motion-notify-event",
+                   G_CALLBACK(motion_callback),
                    ret);
   
   g_signal_connect(ret->preview,

@@ -18,9 +18,8 @@ void bg_nle_time_ruler_destroy(bg_nle_time_ruler_t *);
 GtkWidget * bg_nle_time_ruler_get_widget(bg_nle_time_ruler_t *);
 
 
-void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
-                                   bg_nle_time_range_t * visible,
-                                   int recalc_spacing);
+void bg_nle_time_ruler_update_visible(bg_nle_time_ruler_t * t,
+                                      int recalc_spacing);
 
 /* Change zoom */
 

@@ -478,6 +478,17 @@ static void realize_callback(GtkWidget *widget,
   gdk_window_set_cursor(widget->window, bg_nle_cursor_xterm);
   }
 
+static gboolean motion_callback(GtkWidget *widget,
+                                GdkEventMotion * evt,
+                                gpointer user_data)
+  {
+  bg_nle_outstream_widget_t * r = user_data;
+  
+  bg_nle_timerange_widget_handle_motion(r->tr, evt);
+  return FALSE;
+  }
+
+
 bg_nle_outstream_widget_t *
 bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
                                bg_nle_time_ruler_t * ruler,
@@ -533,9 +544,12 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
   
   ret->preview = gtk_drawing_area_new();
   gtk_widget_set_events(ret->preview,
-                        GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
-
-
+                        GDK_EXPOSURE_MASK |
+                        GDK_BUTTON_PRESS_MASK |
+                        GDK_BUTTON_RELEASE_MASK |
+                        GDK_BUTTON1_MOTION_MASK |
+                        GDK_BUTTON2_MOTION_MASK);
+  
   gtk_widget_modify_bg(ret->preview,
                        GTK_STATE_NORMAL,
                        &preview_bg);
@@ -549,6 +563,9 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
                    ret);
   g_signal_connect(ret->preview,
                    "button-release-event", G_CALLBACK(button_release_callback),
+                   ret);
+  g_signal_connect(ret->preview, "motion-notify-event",
+                   G_CALLBACK(motion_callback),
                    ret);
 
   g_signal_connect(ret->preview,

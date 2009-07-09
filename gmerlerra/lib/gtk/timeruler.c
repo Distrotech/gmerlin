@@ -77,6 +77,7 @@ static void size_allocate_callback(GtkWidget     *widget,
                                    GtkAllocation *allocation,
                                    gpointer       user_data)
   {
+
   }
 
 static void redraw(bg_nle_time_ruler_t * r)
@@ -131,23 +132,6 @@ static void redraw(bg_nle_time_ruler_t * r)
       pango_layout_set_text(pl, time_string, -1);
       cairo_move_to(c, pos+2.0, 0.0);
       pango_cairo_show_layout(c, pl);
-      
-#if 0
-
-      print_time(time, time_string);
-      pango_layout_set_text(r->pl, time_string, -1);
-      
-      gtk_paint_layout(gtk_widget_get_style(r->wid),
-                       r->wid->window,
-                       GTK_STATE_NORMAL,
-                       FALSE, // gboolean use_text,
-                       (const GdkRectangle *)0,
-                       r->wid,
-                       (const gchar *)0,
-                       pos+ 2,
-                       0,
-                       r->pl);
-#endif
       }
     time += r->spacing_minor;
     }
@@ -254,9 +238,8 @@ GtkWidget * bg_nle_time_ruler_get_widget(bg_nle_time_ruler_t * t)
   return t->wid;
   }
 
-void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
-                                   bg_nle_time_range_t * visible,
-                                   int recalc_spacing)
+void bg_nle_time_ruler_update_visible(bg_nle_time_ruler_t * t,
+                                      int recalc_spacing)
   {
   if((t->tr->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
     {
@@ -268,53 +251,3 @@ void bg_nle_time_ruler_set_visible(bg_nle_time_ruler_t * t,
 
 
 
-void bg_nle_time_ruler_zoom_in(bg_nle_time_ruler_t * r)
-  {
-  int64_t center, diff;
-  bg_nle_time_range_t range;
-  
-  diff = r->tr->visible.end - r->tr->visible.start;
-  center = (r->tr->visible.end + r->tr->visible.start)/2;
-
-  if(diff < GAVL_TIME_SCALE / 5)
-    diff = GAVL_TIME_SCALE / 5;
-  
-  range.start = center - diff / 4;
-  range.end   = center + diff / 4;
-
-  bg_nle_time_ruler_set_visible(r, &range, 1);
-  }
-
-void bg_nle_time_ruler_zoom_out(bg_nle_time_ruler_t * r)
-  {
-  int64_t center, diff;
-  bg_nle_time_range_t range;
-  
-  diff = r->tr->visible.end - r->tr->visible.start;
-  center = (r->tr->visible.end + r->tr->visible.start)/2;
-
-  range.start = center - diff;
-  if(range.start < 0)
-    range.start = 0;
-  range.end = center + diff;
-
-  bg_nle_time_ruler_set_visible(r, &range, 1);
-  }
-
-void bg_nle_time_ruler_zoom_fit(bg_nle_time_ruler_t * r)
-  {
-  int64_t center, diff;
-  bg_nle_time_range_t range;
-  diff = ((r->tr->selection.end - r->tr->selection.start) / 9) * 10;
-  
-  if(diff < GAVL_TIME_SCALE / 10)
-    diff = GAVL_TIME_SCALE / 10;
-  
-  center = (r->tr->selection.end + r->tr->selection.start) / 2;
-  range.start = center - diff / 2;
-  if(range.start < 0)
-    range.start = 0;
-  range.end = center + diff / 2;
-  
-  bg_nle_time_ruler_set_visible(r, &range, 1);
-  }

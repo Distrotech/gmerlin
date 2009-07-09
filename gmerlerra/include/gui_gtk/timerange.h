@@ -33,4 +33,9 @@ int bg_nle_timerange_widget_handle_button_press(bg_nle_timerange_widget_t * w,
 int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * w,
                                           GdkEventMotion * evt);
 
+void bg_nle_timerange_widget_zoom_in(bg_nle_timerange_widget_t * r);
+void bg_nle_timerange_widget_zoom_out(bg_nle_timerange_widget_t * r);
+void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r);
+
+
 #endif // TIMERANGE_H

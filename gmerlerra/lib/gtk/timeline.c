@@ -64,15 +64,15 @@ static void button_callback(GtkWidget * w, gpointer  data)
 
   if(w == t->zoom_in)
     {
-    bg_nle_time_ruler_zoom_in(t->ruler);
+    bg_nle_timerange_widget_zoom_in(&t->tr);
     }
   else if(w == t->zoom_out)
     {
-    bg_nle_time_ruler_zoom_out(t->ruler);
+    bg_nle_timerange_widget_zoom_out(&t->tr);
     }
   else if(w == t->zoom_fit)
     {
-    bg_nle_time_ruler_zoom_fit(t->ruler);
+    bg_nle_timerange_widget_zoom_fit(&t->tr);
     }
   }
 
@@ -102,6 +102,7 @@ void bg_nle_timeline_set_visible(bg_nle_timeline_t * t, bg_nle_time_range_t * vi
     {
     bg_nle_outstream_widget_update_visible(t->outstreams[i]);
     }
+  bg_nle_time_ruler_update_visible(t->ruler, 1);
   
   }
 
@@ -121,7 +122,7 @@ static void visibility_changed_callback(bg_nle_time_range_t * visible, void * da
   bg_nle_timeline_t * t = data;
 
   fprintf(stderr, "visibility changed %ld %ld\n", visible->start, visible->end);
-  bg_nle_project_set_selection(t->p, visible);
+  bg_nle_project_set_visible(t->p, visible);
   }
 
 static gboolean motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
