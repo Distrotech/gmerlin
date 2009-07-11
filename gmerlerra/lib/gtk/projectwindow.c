@@ -23,6 +23,8 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/cfg_dialog.h>
 
+#include <gdk/gdkkeysyms.h>
+
 static char * project_path = (char*)0;
 
 /* List of all open windows */
@@ -91,6 +93,8 @@ struct bg_nle_project_window_s
   bg_gtk_time_display_t * time_display;
   GtkWidget * statusbar;
   GtkWidget * progressbar;
+
+  GtkAccelGroup * accel_group;
   
   };
 
@@ -392,12 +396,32 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   w->project_menu.menu = gtk_menu_new();
   w->project_menu.new =
     create_menu_item(w, w->project_menu.menu, TR("New"), "gmerlerra/new_16.png");
+
+  gtk_widget_add_accelerator(w->project_menu.new,
+                             "activate",
+                             w->accel_group,
+                             GDK_n, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
   w->project_menu.load =
     create_menu_item(w, w->project_menu.menu, TR("Open..."), "folder_open_16.png");
+  gtk_widget_add_accelerator(w->project_menu.load,
+                             "activate",
+                             w->accel_group,
+                             GDK_o, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
   w->project_menu.save =
     create_menu_item(w, w->project_menu.menu, TR("Save"), "save_16.png");
+  gtk_widget_add_accelerator(w->project_menu.save,
+                             "activate",
+                             w->accel_group,
+                             GDK_s, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
   w->project_menu.save_as =
     create_menu_item(w, w->project_menu.menu, TR("Save as..."), "gmerlerra/save_as_16.png");
+  gtk_widget_add_accelerator(w->project_menu.save_as,
+                             "activate",
+                             w->accel_group,
+                             GDK_s, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
   w->project_menu.set_default =
     create_menu_item(w, w->project_menu.menu, TR("Set as default"), NULL);
   w->project_menu.load_media =
@@ -408,6 +432,10 @@ static void init_menu_bar(bg_nle_project_window_t * w)
     create_menu_item(w, w->project_menu.menu, TR("close"), "close_16.png");
   w->project_menu.quit =
     create_menu_item(w, w->project_menu.menu, TR("Quit..."), "quit_16.png");
+  gtk_widget_add_accelerator(w->project_menu.quit,
+                             "activate",
+                             w->accel_group,
+                             GDK_q, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
   
   gtk_widget_show(w->project_menu.menu);
 
@@ -429,14 +457,39 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   w->edit_menu.menu = gtk_menu_new();
   w->edit_menu.undo =
     create_menu_item(w, w->edit_menu.menu, TR("Undo"), "gmerlerra/undo_16.png");
+
+  gtk_widget_add_accelerator(w->edit_menu.undo,
+                             "activate",
+                             w->accel_group,
+                             GDK_z, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
   w->edit_menu.redo =
     create_menu_item(w, w->edit_menu.menu, TR("Redo"), "gmerlerra/redo_16.png");
+
+  gtk_widget_add_accelerator(w->edit_menu.redo,
+                             "activate",
+                             w->accel_group,
+                             GDK_y, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
   w->edit_menu.cut =
     create_menu_item(w, w->edit_menu.menu, TR("Cut"), "cut_16.png");
+
+  gtk_widget_add_accelerator(w->edit_menu.cut,
+                             "activate",
+                             w->accel_group,
+                             GDK_x, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   w->edit_menu.copy =
     create_menu_item(w, w->edit_menu.menu, TR("Copy"), "copy_16.png");
+  gtk_widget_add_accelerator(w->edit_menu.copy,
+                             "activate",
+                             w->accel_group,
+                             GDK_c, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   w->edit_menu.paste =
     create_menu_item(w, w->edit_menu.menu, TR("Paste"), "paste_16.png");
+  gtk_widget_add_accelerator(w->edit_menu.paste,
+                             "activate",
+                             w->accel_group,
+                             GDK_v, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   /* Menubar */
   w->menubar = gtk_menu_bar_new();
@@ -484,6 +537,8 @@ bg_nle_project_window_create(const char * project_file,
   bg_nle_project_window_t * ret;
   ret = calloc(1, sizeof(*ret));
 
+  ret->accel_group = gtk_accel_group_new();
+  
   if(project_file)
     {
     ret->p = bg_nle_project_load(project_file, plugin_reg);
@@ -508,6 +563,8 @@ bg_nle_project_window_create(const char * project_file,
   
   ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_default_size(GTK_WINDOW(ret->win), 1024, 768);
+
+  gtk_window_add_accel_group(GTK_WINDOW(ret->win), ret->accel_group);
   
   ret->timeline = bg_nle_timeline_create(ret->p);
 
@@ -613,6 +670,8 @@ void bg_nle_project_window_destroy(bg_nle_project_window_t * w)
   
   if(w->filename)
     free(w->filename);
+
+  g_object_unref(w->accel_group);
   
   free(w);
   }
