@@ -487,12 +487,37 @@ int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track)
 
 void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t)
   {
+  int num_outstreams, i;
   bg_nle_op_track_t * d;
   
   d = calloc(1, sizeof(*d));
   d->index = bg_nle_project_track_index(p, t);
   d->track = t;
-  
+
+  /* Check to which outstreams this track was attached */
+  num_outstreams = 0;
+
+  for(i = 0; i < p->num_outstreams; i++)
+    {
+    if(bg_nle_outstream_has_track(p->outstreams[i], t))
+      num_outstreams++;
+    }
+
+  if(!num_outstreams)
+    d->num_outstreams = -1;
+  else
+    {
+    d->outstreams = calloc(num_outstreams, sizeof(*d->outstreams));
+    for(i = 0; i < p->num_outstreams; i++)
+      {
+      if(bg_nle_outstream_has_track(p->outstreams[i], t))
+        {
+        d->outstreams[d->num_outstreams] = p->outstreams[i];
+        d->num_outstreams++;
+        }
+      }
+    }
+    
   edited(p, BG_NLE_EDIT_DELETE_TRACK, d);
   }
 

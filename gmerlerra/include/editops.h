@@ -23,6 +23,10 @@ typedef struct
   {
   bg_nle_track_t * track;
   int index;
+
+  int num_outstreams;
+  bg_nle_outstream_t ** outstreams;
+  
   } bg_nle_op_track_t;
 
 // BG_NLE_EDIT_MOVE_TRACK
