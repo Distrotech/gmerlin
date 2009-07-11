@@ -483,11 +483,9 @@ static gboolean motion_callback(GtkWidget *widget,
                                 gpointer user_data)
   {
   bg_nle_outstream_widget_t * r = user_data;
-  
   bg_nle_timerange_widget_handle_motion(r->tr, evt);
-  return FALSE;
+  return TRUE;
   }
-
 
 bg_nle_outstream_widget_t *
 bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
@@ -547,8 +545,7 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
                         GDK_EXPOSURE_MASK |
                         GDK_BUTTON_PRESS_MASK |
                         GDK_BUTTON_RELEASE_MASK |
-                        GDK_BUTTON1_MOTION_MASK |
-                        GDK_BUTTON2_MOTION_MASK);
+                        GDK_POINTER_MOTION_MASK);
   
   gtk_widget_modify_bg(ret->preview,
                        GTK_STATE_NORMAL,
@@ -557,7 +554,6 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
   g_signal_connect(ret->preview,
                    "expose-event", G_CALLBACK(expose_callback),
                    ret);
-
   g_signal_connect(ret->preview,
                    "button-press-event", G_CALLBACK(button_press_callback),
                    ret);
@@ -567,14 +563,11 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
   g_signal_connect(ret->preview, "motion-notify-event",
                    G_CALLBACK(motion_callback),
                    ret);
-
   g_signal_connect(ret->preview,
                    "size-allocate", G_CALLBACK(size_allocate_callback),
                    ret);
-
   g_signal_connect(ret->preview, "realize", G_CALLBACK(realize_callback),
                    ret);
-
   
   ret->preview_box = gtk_hbox_new(FALSE, 0);
   

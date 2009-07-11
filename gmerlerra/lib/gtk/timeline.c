@@ -130,7 +130,7 @@ static void selection_changed_callback(bg_nle_time_range_t * selection, void * d
   //  int i;
   bg_nle_timeline_t * t = data;
   
-  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
+  //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
   bg_nle_project_set_selection(t->p, selection);
   }
 
@@ -139,7 +139,7 @@ static void visibility_changed_callback(bg_nle_time_range_t * visible, void * da
   //  int i;
   bg_nle_timeline_t * t = data;
 
-  fprintf(stderr, "visibility changed %ld %ld\n", visible->start, visible->end);
+  //  fprintf(stderr, "visibility changed %ld %ld\n", visible->start, visible->end);
   bg_nle_project_set_visible(t->p, visible);
   }
 
@@ -148,8 +148,16 @@ static void zoom_changed_callback(bg_nle_time_range_t * visible, void * data)
   //  int i;
   bg_nle_timeline_t * t = data;
 
-  fprintf(stderr, "zoom changed %ld %ld\n", visible->start, visible->end);
+  //  fprintf(stderr, "zoom changed %ld %ld\n", visible->start, visible->end);
   bg_nle_project_set_zoom(t->p, visible);
+  }
+
+static void timewidget_motion_callback(int64_t time, void * data)
+  {
+  bg_nle_timeline_t * t = data;
+  
+  if(t->motion_callback)
+    t->motion_callback(time, t->motion_callback_data);
   }
 
 static gboolean motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
@@ -162,6 +170,7 @@ static gboolean motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
                        t->motion_callback_data);
   return FALSE;
   }
+
 
 static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
                                         const char * filename,
@@ -234,6 +243,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   ret->tr.set_visible = visibility_changed_callback;
   ret->tr.set_zoom = zoom_changed_callback;
   ret->tr.set_selection = selection_changed_callback;
+  ret->tr.motion_callback = timewidget_motion_callback;
   ret->tr.callback_data = ret;
   
   ret->ruler = bg_nle_time_ruler_create(&ret->tr);

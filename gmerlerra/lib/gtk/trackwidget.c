@@ -371,9 +371,8 @@ static gboolean motion_callback(GtkWidget *widget,
                                 gpointer user_data)
   {
   bg_nle_track_widget_t * r = user_data;
-  
   bg_nle_timerange_widget_handle_motion(r->tr, evt);
-  return FALSE;
+  return TRUE;
   }
 
 
@@ -444,8 +443,7 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
                         GDK_EXPOSURE_MASK |
                         GDK_BUTTON_PRESS_MASK |
                         GDK_BUTTON_RELEASE_MASK |
-                        GDK_BUTTON1_MOTION_MASK |
-                        GDK_BUTTON2_MOTION_MASK);
+                        GDK_POINTER_MOTION_MASK);
   
   if(ret->track->type == BG_NLE_TRACK_VIDEO)
     {

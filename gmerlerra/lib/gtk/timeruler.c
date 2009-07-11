@@ -256,7 +256,7 @@ bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr)
 
   gtk_widget_set_events(ret->wid,
                         GDK_EXPOSURE_MASK |
-                        GDK_BUTTON1_MOTION_MASK | GDK_BUTTON2_MOTION_MASK |
+                        GDK_POINTER_MOTION_MASK |
                         GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
   
   g_signal_connect(ret->wid, "size-allocate", G_CALLBACK(size_allocate_callback),

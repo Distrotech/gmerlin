@@ -114,13 +114,17 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
                                           GdkEventMotion * evt)
   {
   bg_nle_time_range_t range;
+
+  int64_t time = bg_nle_pos_2_time(r, evt->x);
+
+  if(r->motion_callback)
+    r->motion_callback(time, r->callback_data);
   
   if(evt->state == GDK_BUTTON2_MASK)
     {
     int64_t diff_time =
-      bg_nle_pos_2_time(r, r->mouse_x) -
-      bg_nle_pos_2_time(r, evt->x);
-
+      bg_nle_pos_2_time(r, r->mouse_x) - time;
+    
     fprintf(stderr, "Motion callback: %d %f %ld\n", r->mouse_x, evt->x, diff_time);
     
     if(r->visible.start + diff_time < 0)
