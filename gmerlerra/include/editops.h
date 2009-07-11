@@ -34,7 +34,6 @@ typedef struct
   {
   bg_nle_outstream_t * outstream;
   int index;
-  
   } bg_nle_op_outstream_t;
 
 // BG_NLE_EDIT_MOVE_OUTSTREAM
@@ -62,6 +61,9 @@ struct bg_nle_undo_data_s
   void * data;
   bg_nle_undo_data_t * next;
   };
+
+void bg_nle_project_push_undo(bg_nle_project_t * p, bg_nle_undo_data_t * data);
+void bg_nle_undo_data_destroy(bg_nle_undo_data_t * data);
 
 void bg_nle_undo_data_reverse(bg_nle_undo_data_t *);
 

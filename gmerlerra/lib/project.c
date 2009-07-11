@@ -29,13 +29,12 @@ static void edited(bg_nle_project_t * p,
   
   /* Apply the edit operation to the project */
   bg_nle_project_edit(p, data);
-  
-  /* Push data to undo stack */
-  data->next = p->undo;
-  p->undo = data;
+
   
   /* Notify GUI */
   p->edit_callback(p, op, op_data, p->edit_callback_data);
+  
+  bg_nle_project_push_undo(p, data);
   }
 
 
