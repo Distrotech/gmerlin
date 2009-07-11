@@ -60,7 +60,7 @@ bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
     xmlFree(tmp_string);
     }
   
-  if((tmp_string = BG_XML_GET_PROP(child, "id")))
+  if((tmp_string = BG_XML_GET_PROP(node, "id")))
     {
     ret->id = strtoll(tmp_string, (char**)0, 16);
     free(tmp_string);

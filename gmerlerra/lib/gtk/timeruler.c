@@ -43,7 +43,7 @@ static void calc_spacing(bg_nle_time_ruler_t * r)
   int64_t tmp1;
   int log_dt;
 
-  fprintf(stderr, "Calc spacing\n");
+  //  fprintf(stderr, "Calc spacing\n");
   
   /* Minor spacing should be at least 15 pixels,
      Spacings can be [1|2|5]*10^n */

@@ -63,7 +63,7 @@ bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
     ret->flags = strtol(tmp_string, NULL, 16);
     xmlFree(tmp_string);
     }
-  if((tmp_string = BG_XML_GET_PROP(child, "id")))
+  if((tmp_string = BG_XML_GET_PROP(node, "id")))
     {
     ret->id = strtoll(tmp_string, (char**)0, 16);
     free(tmp_string);
@@ -104,9 +104,9 @@ bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
             grandchild = grandchild->next;
             continue;
             }
-          if(!BG_XML_STRCMP(child->name, source_track_name))
+          if(!BG_XML_STRCMP(grandchild->name, source_track_name))
             {
-            if((tmp_string = BG_XML_GET_PROP(child, "id")))
+            if((tmp_string = BG_XML_GET_PROP(grandchild, "id")))
               {
               ret->source_track_ids[ret->num_source_tracks] =
                 strtol(tmp_string, NULL, 10);

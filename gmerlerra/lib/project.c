@@ -548,3 +548,29 @@ void bg_nle_project_set_outstream_flags(bg_nle_project_t * p,
   edited(p, BG_NLE_EDIT_OUTSTREAM_FLAGS, d);
   
   }
+
+void bg_nle_project_attach_track(bg_nle_project_t * p,
+                                 bg_nle_outstream_t * outstream,
+                                 bg_nle_track_t * track)
+  {
+  bg_nle_op_outstream_track_t * d;
+  if(bg_nle_outstream_has_track(outstream, track))
+    return;
+  d = calloc(1, sizeof(*d));
+  d->track = track;
+  d->outstream = outstream;
+  edited(p, BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK, d);
+  }
+
+void bg_nle_project_detach_track(bg_nle_project_t * p,
+                                 bg_nle_outstream_t * outstream,
+                                 bg_nle_track_t * track)
+  {
+  bg_nle_op_outstream_track_t * d;
+  if(!bg_nle_outstream_has_track(outstream, track))
+    return;
+  d = calloc(1, sizeof(*d));
+  d->track = track;
+  d->outstream = outstream;
+  edited(p, BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK, d);
+  }

@@ -119,20 +119,53 @@ static void menu_callback(GtkWidget * w, gpointer data)
 static void track_toggle_callback(GtkWidget * w, gpointer data)
   {
   int i;
-  int index = -1;
-  
+  int index1 = -1;
+  int index2;
+  bg_nle_track_t * track = NULL;
+
+  /* Find item */ 
   for(i = 0; i < the_menu.tracks_menu.items_alloc; i++)
     {
     if(the_menu.tracks_menu.items[i].item == w)
       {
-      index = i;
+      index1 = i;
       break;
       }
     }
-  if(index < 0)
+  if(index1 < 0)
     return;
-  fprintf(stderr, "Toggle callback %d %d\n",
-          index, gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w)));
+
+  index2 = 0;
+  /* Get track */ 
+  for(i = 0; i < menu_widget->outstream->p->num_tracks; i++)
+    {
+    if(menu_widget->outstream->p->tracks[i]->type ==
+       menu_widget->outstream->type)
+      {
+      if(index1 == index2)
+        {
+        track = menu_widget->outstream->p->tracks[i];
+        break;
+        }
+      else
+        index2++;
+      }
+    }
+
+  if(!track)
+    return;
+  
+  if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w)))
+    bg_nle_project_attach_track(menu_widget->outstream->p,
+                                menu_widget->outstream,
+                                track);
+  else
+    bg_nle_project_detach_track(menu_widget->outstream->p,
+                                menu_widget->outstream,
+                                track);
+  
+  //  fprintf(stderr, "Toggle callback %d %d\n",
+  //          index, gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w)));
   }
 
 static GtkWidget *
@@ -252,6 +285,15 @@ static void init_tracks_menu(bg_nle_outstream_t * os)
       
       gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))),
                          bg_nle_track_get_name(os->p->tracks[i]));
+
+      g_signal_handler_block(G_OBJECT(w), the_menu.tracks_menu.items[index].id);
+
+      if(bg_nle_outstream_has_track(os, os->p->tracks[i]))
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(w), 1);
+      else
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(w), 0);
+      
+      g_signal_handler_unblock(G_OBJECT(w), the_menu.tracks_menu.items[index].id);
       
       gtk_widget_show(w);
       index++;

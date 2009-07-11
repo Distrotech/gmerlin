@@ -173,6 +173,10 @@ static void edit_callback(bg_nle_project_t * p,
       bg_nle_timeline_set_outstream_flags(win->timeline, d->outstream, d->new_flags);
       }
       break;
+    case BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK:
+    case BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK:
+      /* Nothing ATM because the menu is updated whenever it is popped up */
+      break;
     }
   
   }
@@ -447,16 +451,20 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   /* Track */
   w->track_menu.menu = gtk_menu_new();
   w->track_menu.add_audio =
-    create_menu_item(w, w->track_menu.menu, TR("Add audio track"), "audio_16.png");
+    create_menu_item(w, w->track_menu.menu, TR("Add audio track"),
+                     "audio_16.png");
   w->track_menu.add_video =
-    create_menu_item(w, w->track_menu.menu, TR("Add video track"), "video_16.png");
+    create_menu_item(w, w->track_menu.menu, TR("Add video track"),
+                     "video_16.png");
 
   /* Output stream */
   w->outstream_menu.menu = gtk_menu_new();
   w->outstream_menu.add_audio =
-    create_menu_item(w, w->outstream_menu.menu, TR("Add audio output stream"), "audio_16.png");
+    create_menu_item(w, w->outstream_menu.menu, TR("Add audio output stream"),
+                     "audio_16.png");
   w->outstream_menu.add_video =
-    create_menu_item(w, w->outstream_menu.menu, TR("Add video output stream"), "video_16.png");
+    create_menu_item(w, w->outstream_menu.menu, TR("Add video output stream"),
+                     "video_16.png");
   
   /* Edit */
   w->edit_menu.menu = gtk_menu_new();

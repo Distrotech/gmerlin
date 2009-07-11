@@ -107,6 +107,16 @@ void bg_nle_project_set_outstream_flags(bg_nle_project_t * p,
 void bg_nle_project_set_zoom(bg_nle_project_t * p,
                              bg_nle_time_range_t * visible);
 
+void bg_nle_project_attach_track(bg_nle_project_t * p,
+                                 bg_nle_outstream_t * outstream,
+                                 bg_nle_track_t * track);
+
+void bg_nle_project_detach_track(bg_nle_project_t * p,
+                                 bg_nle_outstream_t * outstream,
+                                 bg_nle_track_t * track);
+
+                                 
+
 
 int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * outstream);
 int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track);
