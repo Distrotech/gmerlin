@@ -1,14 +1,14 @@
-pkgdatadir = $(datadir)/gmerlin/icons
+pkgdatadir = $(datadir)/gmerlin/icons/gmerlerra
 
 icons = \
-gmerlerra_frame_backward.png \
-gmerlerra_frame_forward.png \
-gmerlerra_goto_end.png \
-gmerlerra_goto_start.png \
-gmerlerra_goto_next.png \
-gmerlerra_goto_prev.png \
-gmerlerra_play.png \
-gmerlerra_stop.png \
+frame_backward.png \
+frame_forward.png \
+goto_end.png \
+goto_start.png \
+goto_next.png \
+goto_prev.png \
+play.png \
+stop.png \
 new_16.png \
 redo_16.png \
 save_as_16.png \

@@ -134,7 +134,6 @@ static void track_toggle_callback(GtkWidget * w, gpointer data)
     }
   if(index < 0)
     return;
-  
   fprintf(stderr, "Toggle callback %d %d\n",
           index, gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w)));
   }
@@ -522,7 +521,7 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
 
   ret->play_button =
     create_pixmap_toggle_button(ret,
-                                "gmerlerra_play.png",
+                                "gmerlerra/play.png",
                                 TRS("Select outstream for playback"));
   
   /* Pack panel */

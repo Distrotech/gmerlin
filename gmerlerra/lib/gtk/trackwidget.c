@@ -417,7 +417,7 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
 
   ret->play_button =
     create_pixmap_toggle_button(ret,
-                         "gmerlerra_play.png",
+                         "gmerlerra/play.png",
                          TRS("Select track for playback"));
   
   /* Pack panel */

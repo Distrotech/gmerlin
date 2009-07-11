@@ -271,6 +271,27 @@ void bg_nle_project_insert_track(bg_nle_project_t * p,
   
   }
 
+static bg_nle_id_t create_outstream_id(bg_nle_outstream_t ** outstreams,
+                                       int num_outstreams)
+  {
+  bg_nle_id_t ret = 0;
+  int keep_going;
+  int i;
+  
+  do{
+    ret++;
+    keep_going = 0;
+    for(i = 0; i < num_outstreams; i++)
+      {
+      if(outstreams[i]->id == ret)
+        {
+        keep_going = 1;
+        break;
+        }
+      }
+    }while(keep_going);
+  return ret;
+  }
 
 static bg_nle_outstream_t * create_video_outstream(bg_nle_project_t * p)
   {
@@ -278,6 +299,10 @@ static bg_nle_outstream_t * create_video_outstream(bg_nle_project_t * p)
   char * tmp_string;
   int num, i;
   outstream = bg_nle_outstream_create(BG_NLE_TRACK_VIDEO);
+
+  /* Create ID */
+  outstream->id = create_outstream_id(p->outstreams, p->num_outstreams);
+  
   bg_cfg_section_transfer(p->video_outstream_section,
                           outstream->section);
 
@@ -301,7 +326,7 @@ void bg_nle_project_add_video_outstream(bg_nle_project_t * p)
   bg_nle_op_outstream_t * d;
 
   outstream = create_video_outstream(p);
-
+  
   d = calloc(1, sizeof(*d));
 
   d->outstream = outstream;
@@ -317,6 +342,10 @@ static bg_nle_outstream_t * create_audio_outstream(bg_nle_project_t * p)
   char * tmp_string;
   int num, i;
   outstream = bg_nle_outstream_create(BG_NLE_TRACK_AUDIO);
+
+  /* Create ID */
+  outstream->id = create_outstream_id(p->outstreams, p->num_outstreams);
+  
   bg_cfg_section_transfer(p->audio_outstream_section,
                           outstream->section);
 

@@ -11,6 +11,8 @@ typedef struct
 
   /* Source tracks */
   bg_nle_id_t * source_track_ids;
+  bg_nle_id_t id;
+  
   int num_source_tracks;
   int source_tracks_alloc;
   bg_nle_track_t ** source_tracks;

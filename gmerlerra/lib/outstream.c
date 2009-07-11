@@ -130,7 +130,7 @@ void bg_nle_outstream_detach_track(bg_nle_outstream_t * os,
   }
 
 int bg_nle_outstream_has_track(bg_nle_outstream_t * os,
-                                bg_nle_track_t * t)
+                               bg_nle_track_t * t)
   {
   int i;
   for(i = 0; i < os->num_source_tracks; i++)

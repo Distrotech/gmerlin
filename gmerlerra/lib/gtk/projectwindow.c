@@ -379,13 +379,13 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   /* Project */
   w->project_menu.menu = gtk_menu_new();
   w->project_menu.new =
-    create_menu_item(w, w->project_menu.menu, TR("New"), "new_16.png");
+    create_menu_item(w, w->project_menu.menu, TR("New"), "gmerlerra/new_16.png");
   w->project_menu.load =
     create_menu_item(w, w->project_menu.menu, TR("Open..."), "folder_open_16.png");
   w->project_menu.save =
     create_menu_item(w, w->project_menu.menu, TR("Save"), "save_16.png");
   w->project_menu.save_as =
-    create_menu_item(w, w->project_menu.menu, TR("Save as..."), "save_as_16.png");
+    create_menu_item(w, w->project_menu.menu, TR("Save as..."), "gmerlerra/save_as_16.png");
   w->project_menu.set_default =
     create_menu_item(w, w->project_menu.menu, TR("Set as default"), NULL);
   w->project_menu.load_media =
@@ -416,9 +416,9 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   /* Edit */
   w->edit_menu.menu = gtk_menu_new();
   w->edit_menu.undo =
-    create_menu_item(w, w->edit_menu.menu, TR("Undo"), "undo_16.png");
+    create_menu_item(w, w->edit_menu.menu, TR("Undo"), "gmerlerra/undo_16.png");
   w->edit_menu.redo =
-    create_menu_item(w, w->edit_menu.menu, TR("Redo"), "redo_16.png");
+    create_menu_item(w, w->edit_menu.menu, TR("Redo"), "gmerlerra/redo_16.png");
   w->edit_menu.cut =
     create_menu_item(w, w->edit_menu.menu, TR("Cut"), "cut_16.png");
   w->edit_menu.copy =

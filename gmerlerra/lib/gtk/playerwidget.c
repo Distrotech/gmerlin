@@ -154,24 +154,24 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
     ret->ruler = ruler;
     
   /* Create buttons */  
-  ret->play_button = create_pixmap_button(ret, "gmerlerra_play.png", TRS("Play"));
+  ret->play_button = create_pixmap_button(ret, "gmerlerra/play.png", TRS("Play"));
 
-  ret->stop_button = create_pixmap_button(ret, "gmerlerra_stop.png", TRS("Stop"));
+  ret->stop_button = create_pixmap_button(ret, "gmerlerra/stop.png", TRS("Stop"));
 
-  ret->goto_next_button = create_pixmap_button(ret, "gmerlerra_goto_next.png",
+  ret->goto_next_button = create_pixmap_button(ret, "gmerlerra/goto_next.png",
                                                TRS("Goto next label"));
   
-  ret->goto_prev_button = create_pixmap_button(ret, "gmerlerra_goto_prev.png",
+  ret->goto_prev_button = create_pixmap_button(ret, "gmerlerra/goto_prev.png",
                                                TRS("Goto previous label"));
   
-  ret->goto_start_button = create_pixmap_button(ret, "gmerlerra_goto_start.png",
+  ret->goto_start_button = create_pixmap_button(ret, "gmerlerra/goto_start.png",
                                                 TRS("Goto start"));
-  ret->goto_end_button = create_pixmap_button(ret, "gmerlerra_goto_end.png",
+  ret->goto_end_button = create_pixmap_button(ret, "gmerlerra/goto_end.png",
                                                 TRS("Goto end"));
 
-  ret->frame_forward_button = create_pixmap_button(ret, "gmerlerra_frame_forward.png",
+  ret->frame_forward_button = create_pixmap_button(ret, "gmerlerra/frame_forward.png",
                                                    TRS("1 frame forward"));
-  ret->frame_backward_button = create_pixmap_button(ret, "gmerlerra_frame_backward.png",
+  ret->frame_backward_button = create_pixmap_button(ret, "gmerlerra/frame_backward.png",
                                                     TRS("1 frame backward"));
 
   /* Create socket */

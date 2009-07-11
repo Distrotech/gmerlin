@@ -252,11 +252,11 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   
   //  ret->paned = gtk_hpaned_new();
   
-  ret->zoom_in = create_pixmap_button(ret, "time_zoom_in.png",
+  ret->zoom_in = create_pixmap_button(ret, "gmerlerra/time_zoom_in.png",
                                       TRS("Zoom in"));
-  ret->zoom_out = create_pixmap_button(ret, "time_zoom_out.png",
+  ret->zoom_out = create_pixmap_button(ret, "gmerlerra/time_zoom_out.png",
                                        TRS("Zoom out"));
-  ret->zoom_fit = create_pixmap_button(ret, "time_zoom_fit.png",
+  ret->zoom_fit = create_pixmap_button(ret, "gmerlerra/time_zoom_fit.png",
                                        TRS("Fit to selection"));
 
   ret->start_button = create_pixmap_button(ret, "first_16.png",

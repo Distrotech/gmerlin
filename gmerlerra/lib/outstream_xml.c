@@ -63,6 +63,11 @@ bg_nle_outstream_t * bg_nle_outstream_load(xmlDocPtr xml_doc, xmlNodePtr node)
     ret->flags = strtol(tmp_string, NULL, 16);
     xmlFree(tmp_string);
     }
+  if((tmp_string = BG_XML_GET_PROP(child, "id")))
+    {
+    ret->id = strtoll(tmp_string, (char**)0, 16);
+    free(tmp_string);
+    }
   
   child = node->children;
 
@@ -134,7 +139,11 @@ void bg_nle_outstream_save(bg_nle_outstream_t * t, xmlNodePtr parent)
   tmp_string = bg_sprintf("%08x", t->flags);
   BG_XML_SET_PROP(node, "flags", tmp_string);
   free(tmp_string);
-
+  
+  tmp_string = bg_sprintf("%08x", t->id);
+  BG_XML_SET_PROP(node, "id", tmp_string);
+  free(tmp_string);
+  
   child = xmlNewTextChild(node, (xmlNsPtr)0,
                           (xmlChar*)parameters_name, NULL);
   bg_cfg_section_2_xml(t->section, child);
