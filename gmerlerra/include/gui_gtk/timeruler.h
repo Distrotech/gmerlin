@@ -18,15 +18,8 @@ void bg_nle_time_ruler_destroy(bg_nle_time_ruler_t *);
 GtkWidget * bg_nle_time_ruler_get_widget(bg_nle_time_ruler_t *);
 
 
-void bg_nle_time_ruler_update_visible(bg_nle_time_ruler_t * t,
-                                      int recalc_spacing);
-
-/* Change zoom */
-
-void bg_nle_time_ruler_zoom_in(bg_nle_time_ruler_t * r);
-void bg_nle_time_ruler_zoom_out(bg_nle_time_ruler_t * r);
-void bg_nle_time_ruler_zoom_fit(bg_nle_time_ruler_t * r);
-
-
+void bg_nle_time_ruler_update_visible(bg_nle_time_ruler_t * t);
+void bg_nle_time_ruler_update_selection(bg_nle_time_ruler_t * t);
+void bg_nle_time_ruler_update_zoom(bg_nle_time_ruler_t * t);
 
 #endif // TIMERULER_H

@@ -53,7 +53,6 @@ struct bg_nle_outstream_widget_s
   //  GtkWidget * selected;
   GtkWidget * play_button;
 
-  int preview_width;
   int preview_height;
   
   bg_nle_time_ruler_t * ruler;  
@@ -379,35 +378,40 @@ void bg_nle_outstream_widget_redraw(bg_nle_outstream_widget_t * w)
   /* Draw preview */
 
   /* Draw selection */
-  
-  selection_start_pos = bg_nle_time_2_pos(w->tr,
-                                          w->tr->selection.start);
-  selection_end_pos = bg_nle_time_2_pos(w->tr,
-                                        w->tr->selection.end);
-  
-  if(w->tr->selection.start >= 0)
+
+  if(bg_nle_time_range_intersect(&w->tr->selection,
+                                 &w->tr->visible))
     {
-    cairo_move_to(c, selection_start_pos, 0);
-    cairo_line_to(c, selection_start_pos, w->preview_height);
-    cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
-    cairo_stroke(c);
     
-    if(w->tr->selection.end >= 0)
+    selection_start_pos = bg_nle_time_2_pos(w->tr,
+                                            w->tr->selection.start);
+    selection_end_pos = bg_nle_time_2_pos(w->tr,
+                                          w->tr->selection.end);
+  
+    if(w->tr->selection.start >= 0)
       {
-      GdkRectangle r;
-      r.x = selection_start_pos;
-      r.width = selection_end_pos - selection_start_pos;
-      r.y = 0;
-      r.height = w->preview_height;
-      gdk_cairo_rectangle(c, &r);
-
-      cairo_set_source_rgba(c, 1.0, 0.0, 0.0, 0.2);
-      cairo_fill(c);
-
-      cairo_move_to(c, selection_end_pos, 0);
-      cairo_line_to(c, selection_end_pos, w->preview_height);
+      cairo_move_to(c, selection_start_pos, 0);
+      cairo_line_to(c, selection_start_pos, w->preview_height);
       cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
       cairo_stroke(c);
+    
+      if(w->tr->selection.end >= 0)
+        {
+        GdkRectangle r;
+        r.x = selection_start_pos;
+        r.width = selection_end_pos - selection_start_pos;
+        r.y = 0;
+        r.height = w->preview_height;
+        gdk_cairo_rectangle(c, &r);
+
+        cairo_set_source_rgba(c, 1.0, 0.0, 0.0, 0.2);
+        cairo_fill(c);
+
+        cairo_move_to(c, selection_end_pos, 0);
+        cairo_line_to(c, selection_end_pos, w->preview_height);
+        cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
+        cairo_stroke(c);
+        }
       }
     }
   cairo_destroy(c);
@@ -457,12 +461,8 @@ static void size_allocate_callback(GtkWidget     *widget,
                                    gpointer       user_data)
   {
   bg_nle_outstream_widget_t * w = user_data;
-  w->preview_width  = allocation->width;
   w->preview_height = allocation->height;
-  
   }
-
-
 
 static const GdkColor preview_bg =
   {
@@ -616,6 +616,11 @@ void bg_nle_outstream_widget_update_selection(bg_nle_outstream_widget_t * w)
   }
 
 void bg_nle_outstream_widget_update_visible(bg_nle_outstream_widget_t * w)
+  {
+  bg_nle_outstream_widget_redraw(w);
+  }
+
+void bg_nle_outstream_widget_update_zoom(bg_nle_outstream_widget_t * w)
   {
   bg_nle_outstream_widget_redraw(w);
   }

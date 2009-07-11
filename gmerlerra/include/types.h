@@ -30,5 +30,8 @@ typedef struct
 void bg_nle_time_range_copy(bg_nle_time_range_t * dst, const bg_nle_time_range_t * src);
 void bg_nle_time_range_swap(bg_nle_time_range_t * r1, bg_nle_time_range_t * r2);
 
+int bg_nle_time_range_intersect(const bg_nle_time_range_t * r1,
+                                const bg_nle_time_range_t * r2);
+
 
 #endif

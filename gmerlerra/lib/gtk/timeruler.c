@@ -30,6 +30,8 @@ struct bg_nle_time_ruler_s
   gavl_time_t spacing_major;
   gavl_time_t spacing_minor;
   
+  double spacing_minor_f;
+  
   bg_nle_timerange_widget_t * tr;
   
   PangoFontDescription *font_desc;
@@ -40,6 +42,8 @@ static void calc_spacing(bg_nle_time_ruler_t * r)
   double dt;
   int64_t tmp1;
   int log_dt;
+
+  fprintf(stderr, "Calc spacing\n");
   
   /* Minor spacing should be at least 15 pixels,
      Spacings can be [1|2|5]*10^n */
@@ -71,6 +75,11 @@ static void calc_spacing(bg_nle_time_ruler_t * r)
       5 * tmp1 : 10 * tmp1;
     }
   r->spacing_major = 10 * r->spacing_minor;
+
+  r->spacing_minor_f =
+    bg_nle_time_2_pos(r->tr, r->tr->visible.start + r->spacing_minor) -
+    bg_nle_time_2_pos(r->tr, r->tr->visible.start);
+  
   }
 
 static void size_allocate_callback(GtkWidget     *widget,
@@ -85,9 +94,12 @@ static void redraw(bg_nle_time_ruler_t * r)
   int64_t time;
   double pos;
   char time_string[GAVL_TIME_STRING_LEN_MS];
+  float selection_start_pos;
+  float selection_end_pos;
+  
   PangoLayout * pl;
   cairo_t * c = gdk_cairo_create(r->wid->window);
-
+  
   if(!r->spacing_major || !r->spacing_minor)
     calc_spacing(r);
   
@@ -108,13 +120,13 @@ static void redraw(bg_nle_time_ruler_t * r)
   /* Draw tics */
   
   time = ((r->tr->visible.start / r->spacing_major)) * r->spacing_major;
+  pos = bg_nle_time_2_pos(r->tr, time);
   
   cairo_set_line_width(c, 1.0);
   pango_layout_set_font_description(pl, r->font_desc);
     
   while(time < r->tr->visible.end)
     {
-    pos = bg_nle_time_2_pos(r->tr, time);
     
     if(time % r->spacing_major)
       {
@@ -133,9 +145,52 @@ static void redraw(bg_nle_time_ruler_t * r)
       cairo_move_to(c, pos+2.0, 0.0);
       pango_cairo_show_layout(c, pl);
       }
+
+    pos += r->spacing_minor_f;
+    
     time += r->spacing_minor;
     }
 
+  /* Draw selection */
+
+  if(bg_nle_time_range_intersect(&r->tr->selection,
+                                 &r->tr->visible))
+    {
+    selection_start_pos = bg_nle_time_2_pos(r->tr,
+                                            r->tr->selection.start);
+    selection_end_pos = bg_nle_time_2_pos(r->tr,
+                                          r->tr->selection.end);
+  
+    if(r->tr->selection.start >= 0)
+      {
+      cairo_move_to(c, selection_start_pos, RULER_HEIGHT/2);
+      cairo_line_to(c, selection_start_pos, RULER_HEIGHT);
+      cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
+      cairo_stroke(c);
+    
+      if(r->tr->selection.end >= 0)
+        {
+        GdkRectangle r;
+        r.x = selection_start_pos;
+        r.width = selection_end_pos - selection_start_pos;
+        r.y = RULER_HEIGHT/2;
+        r.height = RULER_HEIGHT/2;
+        gdk_cairo_rectangle(c, &r);
+
+        cairo_set_source_rgba(c, 1.0, 0.0, 0.0, 0.2);
+        cairo_fill(c);
+
+        cairo_move_to(c, selection_end_pos, RULER_HEIGHT/2);
+        cairo_line_to(c, selection_end_pos, RULER_HEIGHT);
+        cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
+        cairo_stroke(c);
+        }
+    
+      }
+
+    }
+  
+  cairo_destroy(c);
   }
 
 
@@ -238,13 +293,28 @@ GtkWidget * bg_nle_time_ruler_get_widget(bg_nle_time_ruler_t * t)
   return t->wid;
   }
 
-void bg_nle_time_ruler_update_visible(bg_nle_time_ruler_t * t,
-                                      int recalc_spacing)
+void bg_nle_time_ruler_update_visible(bg_nle_time_ruler_t * t)
   {
   if((t->tr->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
     {
-    if(recalc_spacing)
-      calc_spacing(t);
+    redraw(t);
+    }
+  }
+
+void bg_nle_time_ruler_update_zoom(bg_nle_time_ruler_t * t)
+  {
+  if((t->tr->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
+    {
+    calc_spacing(t);
+    redraw(t);
+    }
+  }
+
+
+void bg_nle_time_ruler_update_selection(bg_nle_time_ruler_t * t)
+  {
+  if((t->tr->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
+    {
     redraw(t);
     }
   }

@@ -24,12 +24,11 @@ double bg_nle_time_2_pos(bg_nle_timerange_widget_t * w, int64_t time)
 void bg_nle_timerange_widget_set_width(bg_nle_timerange_widget_t * r,
                                        int width)
   {
-  int init;
   double scale_factor;
   bg_nle_time_range_t range;
   
   range.start = r->visible.start;
-  if(r->width >= 0)
+  if(r->width > 0)
     {
     scale_factor =
       (double)(r->visible.end-r->visible.start)/(double)(r->width);
@@ -38,13 +37,7 @@ void bg_nle_timerange_widget_set_width(bg_nle_timerange_widget_t * r,
       (int)(scale_factor * (double)(width) + 0.5);
 
     if(r->set_visible)
-      r->set_visible(&r->visible, r->callback_data);
-    
-    init = 0;
-    }
-  else
-    {
-    init = 1;
+      r->set_visible(&range, r->callback_data);
     }
   
   r->width  = width;
@@ -164,8 +157,8 @@ void bg_nle_timerange_widget_zoom_in(bg_nle_timerange_widget_t * r)
   range.start = center - diff / 4;
   range.end   = center + diff / 4;
 
-  if(r->set_visible)
-    r->set_visible(&range, r->callback_data);
+  if(r->set_zoom)
+    r->set_zoom(&range, r->callback_data);
   }
 
 void bg_nle_timerange_widget_zoom_out(bg_nle_timerange_widget_t * r)
@@ -181,8 +174,8 @@ void bg_nle_timerange_widget_zoom_out(bg_nle_timerange_widget_t * r)
     range.start = 0;
   range.end = center + diff;
 
-  if(r->set_visible)
-    r->set_visible(&range, r->callback_data);
+  if(r->set_zoom)
+    r->set_zoom(&range, r->callback_data);
   }
 
 void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r)
@@ -200,6 +193,6 @@ void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r)
     range.start = 0;
   range.end = center + diff / 2;
   
-  if(r->set_visible)
-    r->set_visible(&range, r->callback_data);
+  if(r->set_zoom)
+    r->set_zoom(&range, r->callback_data);
   }

@@ -97,6 +97,9 @@ void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_po
 void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visible);
 void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * selection);
 
+void bg_nle_project_set_zoom(bg_nle_project_t * p,
+                             bg_nle_time_range_t * visible);
+
 
 int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * outstream);
 int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track);

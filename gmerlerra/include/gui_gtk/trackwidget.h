@@ -14,5 +14,5 @@ GtkWidget * bg_nle_track_widget_get_preview(bg_nle_track_widget_t *);
 void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w);
 
 void bg_nle_track_widget_update_selection(bg_nle_track_widget_t * w);
-
 void bg_nle_track_widget_update_visible(bg_nle_track_widget_t * w);
+void bg_nle_track_widget_update_zoom(bg_nle_track_widget_t * w);

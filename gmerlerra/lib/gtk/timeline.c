@@ -76,7 +76,8 @@ static void button_callback(GtkWidget * w, gpointer  data)
     }
   }
 
-void bg_nle_timeline_set_selection(bg_nle_timeline_t * t, bg_nle_time_range_t * selection)
+void bg_nle_timeline_set_selection(bg_nle_timeline_t * t,
+                                   bg_nle_time_range_t * selection)
   {
   int i;
   bg_nle_time_range_copy(&t->tr.selection, selection);
@@ -88,9 +89,11 @@ void bg_nle_timeline_set_selection(bg_nle_timeline_t * t, bg_nle_time_range_t * 
     {
     bg_nle_outstream_widget_update_selection(t->outstreams[i]);
     }
+  bg_nle_time_ruler_update_selection(t->ruler);
   }
 
-void bg_nle_timeline_set_visible(bg_nle_timeline_t * t, bg_nle_time_range_t * visible)
+void bg_nle_timeline_set_visible(bg_nle_timeline_t * t,
+                                 bg_nle_time_range_t * visible)
   {
   int i;
   bg_nle_time_range_copy(&t->tr.visible, visible);
@@ -102,8 +105,23 @@ void bg_nle_timeline_set_visible(bg_nle_timeline_t * t, bg_nle_time_range_t * vi
     {
     bg_nle_outstream_widget_update_visible(t->outstreams[i]);
     }
-  bg_nle_time_ruler_update_visible(t->ruler, 1);
-  
+  bg_nle_time_ruler_update_visible(t->ruler);
+  }
+
+void bg_nle_timeline_set_zoom(bg_nle_timeline_t * t,
+                                 bg_nle_time_range_t * visible)
+  {
+  int i;
+  bg_nle_time_range_copy(&t->tr.visible, visible);
+  for(i = 0; i < t->num_tracks; i++)
+    {
+    bg_nle_track_widget_update_zoom(t->tracks[i]);
+    }
+  for(i = 0; i < t->num_outstreams; i++)
+    {
+    bg_nle_outstream_widget_update_zoom(t->outstreams[i]);
+    }
+  bg_nle_time_ruler_update_zoom(t->ruler);
   }
 
 static void selection_changed_callback(bg_nle_time_range_t * selection, void * data)
@@ -123,6 +141,15 @@ static void visibility_changed_callback(bg_nle_time_range_t * visible, void * da
 
   fprintf(stderr, "visibility changed %ld %ld\n", visible->start, visible->end);
   bg_nle_project_set_visible(t->p, visible);
+  }
+
+static void zoom_changed_callback(bg_nle_time_range_t * visible, void * data)
+  {
+  //  int i;
+  bg_nle_timeline_t * t = data;
+
+  fprintf(stderr, "zoom changed %ld %ld\n", visible->start, visible->end);
+  bg_nle_project_set_zoom(t->p, visible);
   }
 
 static gboolean motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
@@ -205,6 +232,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                          &p->visible);
 
   ret->tr.set_visible = visibility_changed_callback;
+  ret->tr.set_zoom = zoom_changed_callback;
   ret->tr.set_selection = selection_changed_callback;
   ret->tr.callback_data = ret;
   

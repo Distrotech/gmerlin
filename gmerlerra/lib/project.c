@@ -214,6 +214,21 @@ void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visi
   edited(p, BG_NLE_EDIT_CHANGE_VISIBLE, d);
   }
 
+void bg_nle_project_set_zoom(bg_nle_project_t * p,
+                             bg_nle_time_range_t * visible)
+  {
+  bg_nle_op_change_range_t * d;
+
+  d = calloc(1, sizeof(*d));
+
+  bg_nle_time_range_copy(&d->old_range, &p->visible);
+  bg_nle_time_range_copy(&d->new_range, visible);
+  
+  edited(p, BG_NLE_EDIT_CHANGE_ZOOM, d);
+  
+  }
+
+
 void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * selection)
   {
   bg_nle_op_change_range_t * d;

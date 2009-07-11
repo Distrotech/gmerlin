@@ -146,7 +146,7 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
     {
     ret->ruler_priv = bg_nle_time_ruler_create(&ret->tr);
     
-    bg_nle_time_ruler_update_visible(ret->ruler_priv, 1);
+    bg_nle_time_ruler_update_visible(ret->ruler_priv);
     
     ret->ruler = ret->ruler_priv;
     }

@@ -14,6 +14,7 @@ typedef struct
 
   void (*set_selection)(bg_nle_time_range_t * selection, void * priv);
   void (*set_visible)(bg_nle_time_range_t * visible, void * priv);
+  void (*set_zoom)(bg_nle_time_range_t * visible, void * priv);
   void (*motion_callback)(int64_t time, void * priv);
   void * callback_data;
 
