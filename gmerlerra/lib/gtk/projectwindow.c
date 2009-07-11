@@ -429,13 +429,18 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   w->project_menu.settings =
     create_menu_item(w, w->project_menu.menu, TR("Settings..."), "config_16.png");
   w->project_menu.close =
-    create_menu_item(w, w->project_menu.menu, TR("close"), "close_16.png");
+    create_menu_item(w, w->project_menu.menu, TR("Close"), "close_16.png");
   w->project_menu.quit =
     create_menu_item(w, w->project_menu.menu, TR("Quit..."), "quit_16.png");
+  gtk_widget_add_accelerator(w->project_menu.close,
+                             "activate",
+                             w->accel_group,
+                             GDK_w, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
   gtk_widget_add_accelerator(w->project_menu.quit,
                              "activate",
                              w->accel_group,
-                             GDK_q, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
+                             GDK_q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   gtk_widget_show(w->project_menu.menu);
 
