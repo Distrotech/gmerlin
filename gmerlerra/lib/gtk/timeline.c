@@ -226,6 +226,8 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   GtkSizeGroup * size_group;
   //  GtkWidget * table1;
   GtkWidget * scrollbar;
+  GtkStyle *style;
+  GtkWidget * frame;
   
   int i;
 
@@ -261,8 +263,6 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                                            TRS("Goto start"));
   ret->end_button = create_pixmap_button(ret, "last_16.png",
                                          TRS("Goto end"));
-
-  
   ret->preview_window = gtk_viewport_new(NULL, NULL);
   
   scrollbar =
@@ -276,6 +276,18 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   ret->panel_window =
     gtk_viewport_new(NULL, gtk_viewport_get_vadjustment(GTK_VIEWPORT(ret->preview_window)));
 
+  gtk_viewport_set_shadow_type(GTK_VIEWPORT(ret->preview_window),
+                               GTK_SHADOW_NONE);
+  gtk_viewport_set_shadow_type(GTK_VIEWPORT(ret->panel_window),
+                               GTK_SHADOW_NONE);
+#if 0
+  
+  style = gtk_style_copy(ret->preview_window->style);
+  style->xthickness = 2;
+  style->ythickness = 2;
+  gtk_widget_set_style(ret->preview_window, style);
+  g_object_unref(style);
+#endif
   gtk_widget_set_size_request(ret->panel_window, -1, 0);
   gtk_widget_set_size_request(ret->preview_window, -1, 0);
   
@@ -337,32 +349,93 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
 
   
   ret->table = gtk_table_new(2, 3, 0);
+
+  /* Button box */
+  frame = gtk_frame_new(NULL);
+  gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_OUT);
+  gtk_container_set_border_width(GTK_CONTAINER(frame), 0); 
+
+  style = gtk_style_copy(frame->style);
+  style->xthickness = 1;
+  style->ythickness = 1;
+  gtk_widget_set_style(frame, style);
+  g_object_unref(style);
+
+
+  gtk_container_add(GTK_CONTAINER(frame), box);
+  gtk_widget_show(frame);
   
   gtk_table_attach(GTK_TABLE(ret->table),
-                   box,
+                   frame,
                    0, 1, 0, 1,
                    GTK_FILL|GTK_SHRINK, GTK_FILL|GTK_SHRINK, 0, 0);
+
+  /* Panel window */
+  frame = gtk_frame_new(NULL);
+  gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+  gtk_container_set_border_width(GTK_CONTAINER(frame), 0); 
+
+  style = gtk_style_copy(frame->style);
+  style->xthickness = 1;
+  style->ythickness = 1;
+  gtk_widget_set_style(frame, style);
+  g_object_unref(style);
+  
+  gtk_container_add(GTK_CONTAINER(frame), ret->panel_window);
+  gtk_widget_show(frame);
+  
+  
   gtk_table_attach(GTK_TABLE(ret->table),
-                   ret->panel_window,
+                   frame,
                    0, 1, 1, 2,
                    GTK_FILL|GTK_SHRINK, GTK_EXPAND|GTK_FILL, 0, 0);
-
+  
   //  gtk_widget_show(table);
 
   //  gtk_paned_add1(GTK_PANED(ret->paned), table);
   
   //  table = gtk_table_new(2, 1, 0);
-    
+
+  /* Time ruler */
+  frame = gtk_frame_new(NULL);
+  gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+  gtk_container_set_border_width(GTK_CONTAINER(frame), 0); 
+
+  style = gtk_style_copy(frame->style);
+  style->xthickness = 1;
+  style->ythickness = 1;
+  gtk_widget_set_style(frame, style);
+  g_object_unref(style);
+  
+  gtk_container_add(GTK_CONTAINER(frame), bg_nle_time_ruler_get_widget(ret->ruler));
+  gtk_widget_show(frame);
+  
   gtk_table_attach(GTK_TABLE(ret->table),
-                   bg_nle_time_ruler_get_widget(ret->ruler),
+                   frame,
                    1, 2, 0, 1,
                    GTK_EXPAND|GTK_FILL, GTK_FILL|GTK_SHRINK, 0, 0);
   
+  /* Preview window */
+
+  frame = gtk_frame_new(NULL);
+  gtk_frame_set_shadow_type(GTK_FRAME(frame), GTK_SHADOW_IN);
+  gtk_container_set_border_width(GTK_CONTAINER(frame), 0); 
+
+  style = gtk_style_copy(frame->style);
+  style->xthickness = 1;
+  style->ythickness = 1;
+  gtk_widget_set_style(frame, style);
+  g_object_unref(style);
+  
+  gtk_container_add(GTK_CONTAINER(frame), ret->preview_window);
+  gtk_widget_show(frame);
+
+  
   gtk_table_attach(GTK_TABLE(ret->table),
-                   ret->preview_window,
+                   frame,
                    1, 2, 1, 2,
                    GTK_EXPAND|GTK_FILL, GTK_EXPAND|GTK_FILL, 0, 0);
-
+  
   gtk_table_attach(GTK_TABLE(ret->table),
                    scrollbar,
                    2, 3, 1, 2,
