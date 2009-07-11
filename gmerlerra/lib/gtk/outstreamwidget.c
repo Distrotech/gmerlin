@@ -57,12 +57,9 @@ struct bg_nle_outstream_widget_s
   
   bg_nle_time_ruler_t * ruler;  
   bg_nle_outstream_t * outstream;
-
-  void (*play_callback)(bg_nle_outstream_widget_t *, void *);
-  void (*delete_callback)(bg_nle_outstream_widget_t *, void *);
-  void * callback_data;
   
   bg_nle_timerange_widget_t * tr;
+  int callback;
   };
 
 static bg_nle_outstream_widget_t * menu_widget;
@@ -268,11 +265,17 @@ static void button_callback(GtkWidget * w, gpointer  data)
   {
   bg_nle_outstream_widget_t * t = data;
 
+  int flags = t->outstream->flags;
+  if(t->callback)
+    return;
   if(w == t->play_button)
     {
-    if(t->play_callback)
-      t->play_callback(t, t->callback_data);
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(t->play_button)))
+      flags |= BG_NLE_TRACK_PLAYBACK;
+    else
+      flags &= ~BG_NLE_TRACK_PLAYBACK;
     }
+  bg_nle_project_set_outstream_flags(t->outstream->p, t->outstream, flags);
   }
 
 #if 0
@@ -489,9 +492,7 @@ static gboolean motion_callback(GtkWidget *widget,
 bg_nle_outstream_widget_t *
 bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
                                bg_nle_time_ruler_t * ruler,
-                               bg_nle_timerange_widget_t * tr,
-                               void (*play_callback)(bg_nle_outstream_widget_t *, void *),
-                               void * callback_data)
+                               bg_nle_timerange_widget_t * tr)
   {
   bg_nle_outstream_widget_t * ret;
   
@@ -503,9 +504,6 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
   ret->outstream = outstream;
   ret->ruler = ruler;
   ret->tr = tr;
-  
-  ret->play_callback = play_callback;
-  ret->callback_data = callback_data;
   
   /* Create expander */
   ret->panel = gtk_expander_new(bg_nle_outstream_get_name(outstream));
@@ -615,4 +613,28 @@ void bg_nle_outstream_widget_update_visible(bg_nle_outstream_widget_t * w)
 void bg_nle_outstream_widget_update_zoom(bg_nle_outstream_widget_t * w)
   {
   bg_nle_outstream_widget_redraw(w);
+  }
+
+void bg_nle_outstream_widget_set_flags(bg_nle_outstream_widget_t * w, int flags)
+  {
+  w->callback = 1;
+  //  fprintf(stderr, "bg_nle_track_widget_set_flags\n");
+  /* Selected */
+  
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w->play_button),
+                               !!(flags & BG_NLE_TRACK_PLAYBACK));
+  
+  /* Expanded */
+  if(flags & BG_NLE_TRACK_EXPANDED)
+    {
+    gtk_expander_set_expanded(GTK_EXPANDER(w->panel), 1);
+    gtk_widget_show(w->preview);
+    }
+  else
+    {
+    gtk_expander_set_expanded(GTK_EXPANDER(w->panel), 0);
+    gtk_widget_hide(w->preview);
+    }
+  w->callback = 0;
+  
   }

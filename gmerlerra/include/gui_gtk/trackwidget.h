@@ -16,3 +16,4 @@ void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w);
 void bg_nle_track_widget_update_selection(bg_nle_track_widget_t * w);
 void bg_nle_track_widget_update_visible(bg_nle_track_widget_t * w);
 void bg_nle_track_widget_update_zoom(bg_nle_track_widget_t * w);
+void bg_nle_track_widget_set_flags(bg_nle_track_widget_t * w, int flags);

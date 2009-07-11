@@ -205,6 +205,10 @@ void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visi
   {
   bg_nle_op_change_range_t * d;
 
+  if((p->visible.start == visible->start) &&
+     (p->visible.end == visible->end))
+    return;
+  
   d = calloc(1, sizeof(*d));
 
   bg_nle_time_range_copy(&d->old_range, &p->visible);
@@ -232,6 +236,11 @@ void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * se
   {
   bg_nle_op_change_range_t * d;
 
+  if((p->selection.start == selection->start) &&
+     (p->selection.end == selection->end))
+    return;
+
+  
   d = calloc(1, sizeof(*d));
 
   bg_nle_time_range_copy(&d->old_range, &p->selection);
@@ -505,4 +514,37 @@ void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_po
   d->old_index = old_pos;
   d->new_index = new_pos;
   edited(p, BG_NLE_EDIT_MOVE_OUTSTREAM, d);
+  }
+
+void bg_nle_project_set_track_flags(bg_nle_project_t * p,
+                                    bg_nle_track_t * t, int flags)
+  {
+  bg_nle_op_track_flags_t * d;
+
+  if(t->flags == flags)
+    return;
+
+  if(!(flags & BG_NLE_TRACK_EXPANDED))
+    flags &= ~BG_NLE_TRACK_SELECTED;
+  
+  d = calloc(1, sizeof(*d));
+  d->old_flags = t->flags;
+  d->new_flags = flags;
+  d->track = t;
+  edited(p, BG_NLE_EDIT_TRACK_FLAGS, d);
+  
+  }
+
+void bg_nle_project_set_outstream_flags(bg_nle_project_t * p,
+                                        bg_nle_outstream_t * t, int flags)
+  {
+  bg_nle_op_outstream_flags_t * d;
+  if(t->flags == flags)
+    return;
+  d = calloc(1, sizeof(*d));
+  d->old_flags = t->flags;
+  d->new_flags = flags;
+  d->outstream = t;
+  edited(p, BG_NLE_EDIT_OUTSTREAM_FLAGS, d);
+  
   }

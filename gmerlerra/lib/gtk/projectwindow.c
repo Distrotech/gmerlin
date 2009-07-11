@@ -157,6 +157,18 @@ static void edit_callback(bg_nle_project_t * p,
       bg_nle_timeline_set_zoom(win->timeline, &d->new_range);
       }
       break;
+    case BG_NLE_EDIT_TRACK_FLAGS:
+      {
+      bg_nle_op_track_flags_t * d = op_data;
+      bg_nle_timeline_set_track_flags(win->timeline, d->track, d->new_flags);
+      }
+      break;
+    case BG_NLE_EDIT_OUTSTREAM_FLAGS:
+      {
+      bg_nle_op_outstream_flags_t * d = op_data;
+      bg_nle_timeline_set_outstream_flags(win->timeline, d->outstream, d->new_flags);
+      }
+      break;
     }
   
   }

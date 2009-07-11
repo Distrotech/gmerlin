@@ -125,7 +125,7 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
     int64_t diff_time =
       bg_nle_pos_2_time(r, r->mouse_x) - time;
     
-    fprintf(stderr, "Motion callback: %d %f %ld\n", r->mouse_x, evt->x, diff_time);
+    //fprintf(stderr, "Motion callback: %d %f %ld\n", r->mouse_x, evt->x, diff_time);
     
     if(r->visible.start + diff_time < 0)
       diff_time = -r->visible.start;

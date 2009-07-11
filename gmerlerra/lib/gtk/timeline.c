@@ -202,12 +202,6 @@ static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
   return button;
   }
 
-static void outstream_play(bg_nle_outstream_widget_t * w,
-                           void * data)
-  {
-  bg_nle_timeline_t * t = data;
-  fprintf(stderr, "Play callback\n");
-  }
 
 static void size_allocate_callback(GtkWidget     *widget,
                                    GtkAllocation *allocation,
@@ -474,7 +468,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
     for(i = 0; i < ret->p->num_outstreams; i++)
       {
       ret->outstreams[ret->num_outstreams] =
-        bg_nle_outstream_widget_create(ret->p->outstreams[i], ret->ruler, &ret->tr, outstream_play, ret);
+        bg_nle_outstream_widget_create(ret->p->outstreams[i], ret->ruler, &ret->tr);
 
       gtk_box_pack_start(GTK_BOX(ret->panel_box),
                          bg_nle_outstream_widget_get_panel(ret->outstreams[ret->num_outstreams]),
@@ -546,8 +540,7 @@ void bg_nle_timeline_add_outstream(bg_nle_timeline_t * t,
             (t->num_outstreams - pos) * sizeof(*t->outstreams));
   
   t->outstreams[pos] =
-    bg_nle_outstream_widget_create(outstream, t->ruler, &t->tr, 
-                                   outstream_play, t);
+    bg_nle_outstream_widget_create(outstream, t->ruler, &t->tr);
 
   w = bg_nle_outstream_widget_get_panel(t->outstreams[pos]);
   gtk_box_pack_start(GTK_BOX(t->panel_box), w, FALSE, FALSE, 0);
@@ -629,4 +622,18 @@ void bg_nle_timeline_delete_outstream(bg_nle_timeline_t * t, int index)
 bg_nle_time_ruler_t * bg_nle_timeline_get_ruler(bg_nle_timeline_t * t)
   {
   return t->ruler;
+  }
+
+void bg_nle_timeline_set_track_flags(bg_nle_timeline_t * t,
+                                     bg_nle_track_t * track, int flags)
+  {
+  int index = bg_nle_project_track_index(t->p, track);
+  bg_nle_track_widget_set_flags(t->tracks[index], flags);
+  }
+
+void bg_nle_timeline_set_outstream_flags(bg_nle_timeline_t * t,
+                                         bg_nle_outstream_t * outstream, int flags)
+  {
+  int index = bg_nle_project_outstream_index(t->p, outstream);
+  bg_nle_outstream_widget_set_flags(t->outstreams[index], flags);
   }

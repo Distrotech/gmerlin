@@ -30,6 +30,13 @@ void bg_nle_timeline_set_selection(bg_nle_timeline_t * t, bg_nle_time_range_t * 
 void bg_nle_timeline_set_visible(bg_nle_timeline_t * t, bg_nle_time_range_t * visible);
 void bg_nle_timeline_set_zoom(bg_nle_timeline_t * t, bg_nle_time_range_t * visible);
 
+void bg_nle_timeline_set_track_flags(bg_nle_timeline_t * t,
+                                     bg_nle_track_t * track, int flags);
+
+void bg_nle_timeline_set_outstream_flags(bg_nle_timeline_t * t,
+                                         bg_nle_outstream_t * outstream, int flags);
+
+
 bg_nle_time_ruler_t * bg_nle_timeline_get_ruler(bg_nle_timeline_t *);
 
 

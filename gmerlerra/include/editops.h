@@ -11,8 +11,10 @@ enum bg_nle_edit_op_e
     BG_NLE_EDIT_CHANGE_SELECTION,
     BG_NLE_EDIT_CHANGE_VISIBLE,
     BG_NLE_EDIT_CHANGE_ZOOM,
-    BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK,
-    BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK,
+    //    BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK,
+    //    BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK,
+    BG_NLE_EDIT_TRACK_FLAGS,
+    BG_NLE_EDIT_OUTSTREAM_FLAGS,
   };
 
 // BG_NLE_EDIT_ADD_TRACK
@@ -54,6 +56,24 @@ typedef struct
   bg_nle_time_range_t old_range;
   bg_nle_time_range_t new_range;
   } bg_nle_op_change_range_t;
+
+// BG_NLE_EDIT_TRACK_FLAGS,
+
+typedef struct
+  {
+  bg_nle_track_t * track;
+  int old_flags;
+  int new_flags;
+  } bg_nle_op_track_flags_t;
+
+// BG_NLE_EDIT_OUTSTREAM_FLAGS,
+
+typedef struct
+  {
+  bg_nle_outstream_t * outstream;
+  int old_flags;
+  int new_flags;
+  } bg_nle_op_outstream_flags_t;
 
 /* Undo data */
 
