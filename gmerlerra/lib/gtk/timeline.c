@@ -244,7 +244,6 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   {
   GtkWidget * box;
   //  GtkWidget * table;
-  GtkWidget * eventbox;
   GtkSizeGroup * size_group;
   //  GtkWidget * table1;
   GtkStyle *style;
@@ -285,6 +284,20 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   ret->end_button = create_pixmap_button(ret, "last_16.png",
                                          TRS("Goto end"));
   ret->preview_window = gtk_viewport_new(NULL, NULL);
+
+  gtk_widget_set_events(ret->preview_window,
+                        GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK);
+
+  g_signal_connect(ret->preview_window,
+                   "scroll-event",
+                   G_CALLBACK(scroll_callback), ret);
+  g_signal_connect(ret->preview_window,
+                   "motion-notify-event",
+                   G_CALLBACK(motion_notify_callback), ret);
+  g_signal_connect(ret->preview_window,
+                   "size-allocate", G_CALLBACK(size_allocate_callback),
+                   ret);
+
   
   ret->scrollbar =
     gtk_vscrollbar_new(gtk_viewport_get_vadjustment(GTK_VIEWPORT(ret->preview_window)));
@@ -309,14 +322,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                                GTK_SHADOW_NONE);
   gtk_viewport_set_shadow_type(GTK_VIEWPORT(ret->panel_window),
                                GTK_SHADOW_NONE);
-#if 0
-  
-  style = gtk_style_copy(ret->preview_window->style);
-  style->xthickness = 2;
-  style->ythickness = 2;
-  gtk_widget_set_style(ret->preview_window, style);
-  g_object_unref(style);
-#endif
+
   gtk_widget_set_size_request(ret->panel_window, -1, 0);
   gtk_widget_set_size_request(ret->preview_window, -1, 0);
   
@@ -330,25 +336,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   ret->preview_box = gtk_vbox_new(FALSE, 1);
   ret->panel_box = gtk_vbox_new(FALSE, 1);
 
-  eventbox = gtk_event_box_new();
-  
-  gtk_widget_set_events(eventbox,
-                        GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK);
-
-  g_signal_connect(eventbox,
-                   "scroll-event",
-                   G_CALLBACK(scroll_callback), ret);
-  g_signal_connect(eventbox,
-                   "motion-notify-event",
-                   G_CALLBACK(motion_notify_callback), ret);
-  g_signal_connect(eventbox,
-                   "size-allocate", G_CALLBACK(size_allocate_callback),
-                   ret);
-  
-  gtk_container_add(GTK_CONTAINER(eventbox), ret->preview_box);
-  gtk_widget_show(eventbox);
-  
-  gtk_container_add(GTK_CONTAINER(ret->preview_window), eventbox);
+  gtk_container_add(GTK_CONTAINER(ret->preview_window), ret->preview_box);
   gtk_container_add(GTK_CONTAINER(ret->panel_window), ret->panel_box);
   
   gtk_widget_show(ret->preview_box);
