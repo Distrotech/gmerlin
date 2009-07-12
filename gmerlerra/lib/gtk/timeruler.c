@@ -211,6 +211,21 @@ static gboolean button_press_callback(GtkWidget *widget,
   return TRUE;
   }
 
+static gboolean scroll_callback(GtkWidget *widget,
+                                GdkEventScroll * evt,
+                                gpointer user_data)
+  {
+  bg_nle_time_ruler_t * r = user_data;
+  if(evt->direction == GDK_SCROLL_UP)
+    bg_nle_timerange_widget_handle_scroll(r->tr,
+                                          -3 * r->spacing_minor);
+  else
+    bg_nle_timerange_widget_handle_scroll(r->tr,
+                                          3 * r->spacing_minor);
+    
+  return TRUE;
+  }
+
 static gboolean button_release_callback(GtkWidget *widget,
                                         GdkEventButton * evt,
                                         gpointer user_data)
@@ -266,6 +281,9 @@ bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr)
 
   g_signal_connect(ret->wid, "button-press-event",
                    G_CALLBACK(button_press_callback),
+                   ret);
+  g_signal_connect(ret->wid, "scroll-event",
+                   G_CALLBACK(scroll_callback),
                    ret);
   g_signal_connect(ret->wid, "button-release-event",
                    G_CALLBACK(button_release_callback),

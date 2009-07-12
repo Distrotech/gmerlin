@@ -147,6 +147,22 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
   return 0;
   }
 
+void bg_nle_timerange_widget_handle_scroll(bg_nle_timerange_widget_t * r,
+                                           int64_t diff_time)
+  {
+  bg_nle_time_range_t range;
+  if(r->visible.start + diff_time < 0)
+    diff_time = -r->visible.start;
+  if(!diff_time)
+    return;
+  
+  bg_nle_time_range_copy(&range, &r->visible);
+  range.start += diff_time;
+  range.end   += diff_time;
+  if(r->set_visible)
+    r->set_visible(&range, r->callback_data);
+  }
+
 void bg_nle_timerange_widget_zoom_in(bg_nle_timerange_widget_t * r)
   {
   int64_t center, diff;
