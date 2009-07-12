@@ -353,7 +353,7 @@ static GtkWidget * create_pixmap_button(bg_nle_outstream_widget_t * w,
 
 static GtkWidget * create_pixmap_toggle_button(bg_nle_outstream_widget_t * w,
                                                const char * filename,
-                                               const char * tooltip)
+                                               const char * tooltip, int active)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -369,6 +369,10 @@ static GtkWidget * create_pixmap_toggle_button(bg_nle_outstream_widget_t * w,
 
   gtk_widget_show(image);
   button = gtk_toggle_button_new();
+
+  if(active)
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button), 1);
+  
   gtk_container_add(GTK_CONTAINER(button), image);
 
   g_signal_connect(G_OBJECT(button), "toggled",
@@ -561,7 +565,8 @@ bg_nle_outstream_widget_create(bg_nle_outstream_t * outstream,
   ret->play_button =
     create_pixmap_toggle_button(ret,
                                 "gmerlerra/play.png",
-                                TRS("Select outstream for playback"));
+                                TRS("Select outstream for playback"),
+                                !!(outstream->flags & BG_NLE_TRACK_PLAYBACK));
   
   /* Pack panel */
   ret->panel_child = gtk_table_new(1, 2, FALSE);

@@ -218,6 +218,8 @@ static bg_nle_outstream_t * create_video_outstream(bg_nle_project_t * p)
   char * tmp_string;
   int num, i;
   outstream = bg_nle_outstream_create(BG_NLE_TRACK_VIDEO);
+  if(!p->current_video_outstream)
+    outstream->flags |= BG_NLE_TRACK_PLAYBACK;
 
   /* Create ID */
   outstream->id = create_outstream_id(p->outstreams, p->num_outstreams);
@@ -262,6 +264,9 @@ static bg_nle_outstream_t * create_audio_outstream(bg_nle_project_t * p)
   int num, i;
   outstream = bg_nle_outstream_create(BG_NLE_TRACK_AUDIO);
 
+  if(!p->current_audio_outstream)
+    outstream->flags |= BG_NLE_TRACK_PLAYBACK;
+  
   /* Create ID */
   outstream->id = create_outstream_id(p->outstreams, p->num_outstreams);
   

@@ -87,6 +87,21 @@ static void edit_add_outstream(bg_nle_project_t * p, bg_nle_op_outstream_t * op)
 
 static void edit_delete_outstream(bg_nle_project_t * p, bg_nle_op_outstream_t * op)
   {
+  if(op->outstream->flags & BG_NLE_TRACK_PLAYBACK)
+    {
+    switch(op->outstream->type)
+      {
+      case BG_NLE_TRACK_AUDIO:
+        p->current_audio_outstream = NULL;
+        break;
+      case BG_NLE_TRACK_VIDEO:
+        p->current_video_outstream = NULL;
+        break;
+      case BG_NLE_TRACK_NONE:
+        break;
+      }
+    }
+  
   if(op->index < p->num_outstreams - 1)
     memmove(p->outstreams + op->index,
             p->outstreams + op->index + 1, (p->num_outstreams - 1 - op->index) *
@@ -359,6 +374,7 @@ void bg_nle_project_push_undo(bg_nle_project_t * p, bg_nle_undo_data_t * data)
       case BG_NLE_EDIT_OUTSTREAM_FLAGS:
       case BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK:
       case BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK:
+      case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
         break;
       case BG_NLE_EDIT_CHANGE_SELECTION:
       case BG_NLE_EDIT_CHANGE_VISIBLE:

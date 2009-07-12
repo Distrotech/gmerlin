@@ -113,6 +113,21 @@ void bg_nle_project_append_outstream(bg_nle_project_t * p,
 void bg_nle_project_insert_outstream(bg_nle_project_t * p,
                                      bg_nle_outstream_t * t, int pos)
   {
+  if(t->flags & BG_NLE_TRACK_PLAYBACK)
+    {
+    switch(t->type)
+      {
+      case BG_NLE_TRACK_AUDIO:
+        p->current_audio_outstream = t;
+        break;
+      case BG_NLE_TRACK_VIDEO:
+        p->current_video_outstream = t;
+        break;
+      case BG_NLE_TRACK_NONE:
+        break;
+      }
+    }
+  
   if(p->num_outstreams+1 > p->outstreams_alloc)
     {
     p->outstreams_alloc += 16;
