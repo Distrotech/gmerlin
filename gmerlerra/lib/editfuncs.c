@@ -477,3 +477,86 @@ void bg_nle_project_outstream_make_current(bg_nle_project_t * p,
   d->type = type;
   edited(p, BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT, d);
   }
+
+// BG_NLE_EDIT_PROJECT_PARAMETERS
+
+bg_cfg_section_t * bg_nle_project_set_parameters_start(bg_nle_project_t * p)
+  {
+  return bg_cfg_section_copy(p->section);
+  }
+
+void bg_nle_project_set_parameters_end(bg_nle_project_t * p,
+                                       bg_cfg_section_t * s,
+                                       int changed)
+  {
+  if(changed)
+    {
+    bg_nle_op_parameters_t * d;
+    d = calloc(1, sizeof(*d));
+    d->old_section = bg_cfg_section_copy(p->section);
+    d->new_section = s;
+    edited(p, BG_NLE_EDIT_PROJECT_PARAMETERS, d);
+    }
+  else
+    {
+    bg_cfg_section_destroy(s);
+    }
+    
+  }
+
+// BG_NLE_EDIT_TRACK_PARAMETERS
+
+bg_cfg_section_t * bg_nle_project_set_track_parameters_start(bg_nle_project_t * p,
+                                               bg_nle_track_t * track)
+  {
+  return bg_cfg_section_copy(track->section);
+  }
+
+void bg_nle_project_set_track_parameters_end(bg_nle_project_t * p,
+                                             bg_cfg_section_t * s,
+                                             int changed,
+                                             bg_nle_track_t * track)
+  {
+  if(changed)
+    {
+    bg_nle_op_parameters_t * d;
+    d = calloc(1, sizeof(*d));
+    d->old_section = bg_cfg_section_copy(track->section);
+    d->new_section = s;
+    d->index = bg_nle_project_track_index(p, track);
+    edited(p, BG_NLE_EDIT_TRACK_PARAMETERS, d);
+    }
+  else
+    {
+    bg_cfg_section_destroy(s);
+    }
+
+  }
+
+// BG_NLE_EDIT_OUTSTREAM_PARAMETERS
+
+bg_cfg_section_t * bg_nle_project_set_outstream_parameters_start(bg_nle_project_t * p,
+                                                   bg_nle_outstream_t * outstream)
+  {
+  return bg_cfg_section_copy(outstream->section);
+  }
+
+void bg_nle_project_set_outstream_parameters_end(bg_nle_project_t * p,
+                                                 bg_cfg_section_t * s,
+                                                 int changed,
+                                                 bg_nle_outstream_t * outstream)
+  {
+  if(changed)
+    {
+    bg_nle_op_parameters_t * d;
+    d = calloc(1, sizeof(*d));
+    d->old_section = bg_cfg_section_copy(outstream->section);
+    d->new_section = s;
+    d->index = bg_nle_project_outstream_index(p, outstream);
+    edited(p, BG_NLE_EDIT_OUTSTREAM_PARAMETERS, d);
+    }
+  else
+    {
+    bg_cfg_section_destroy(s);
+    }
+  }

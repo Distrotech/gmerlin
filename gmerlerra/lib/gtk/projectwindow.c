@@ -180,6 +180,21 @@ static void edit_callback(bg_nle_project_t * p,
     case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
       bg_nle_timeline_outstreams_make_current(win->timeline);
       break;
+    case BG_NLE_EDIT_PROJECT_PARAMETERS:
+      /* Nothing */
+      break;
+    case BG_NLE_EDIT_TRACK_PARAMETERS:
+      {
+      bg_nle_op_parameters_t * d = op_data;
+      bg_nle_timeline_update_track_parameters(win->timeline, d->index, d->new_section);
+      }
+      break;
+    case BG_NLE_EDIT_OUTSTREAM_PARAMETERS:
+      {
+      bg_nle_op_parameters_t * d = op_data;
+      bg_nle_timeline_update_outstream_parameters(win->timeline, d->index, d->new_section);
+      }
+      break;
     }
   
   }
@@ -188,20 +203,25 @@ static void show_settings_dialog(bg_nle_project_window_t * win)
   {
   bg_dialog_t * cfg_dialog;
   void * parent;
+  int result;
+
+  bg_cfg_section_t * s;
+
+  s = bg_nle_project_set_parameters_start(win->p);
   
   cfg_dialog = bg_dialog_create_multi(TR("Project settings"));
   
   parent = bg_dialog_add_parent(cfg_dialog, NULL, TR("Audio"));
   bg_dialog_add_child(cfg_dialog, parent,
                       TR("Track format"),
-                      win->p->audio_track_section,
+                      bg_cfg_section_find_subsection(s, "audio_track"),
                       NULL,
                       NULL,
                       NULL,
                       bg_nle_track_audio_parameters);
   bg_dialog_add_child(cfg_dialog, parent,
                       TR("Compositing format"),
-                      win->p->audio_outstream_section,
+                      bg_cfg_section_find_subsection(s, "audio_outstream"),
                       NULL,
                       NULL,
                       NULL,
@@ -210,20 +230,23 @@ static void show_settings_dialog(bg_nle_project_window_t * win)
   parent = bg_dialog_add_parent(cfg_dialog, NULL, TR("Video"));
   bg_dialog_add_child(cfg_dialog, parent,
                       TR("Track format"),
-                      win->p->video_track_section,
+                      bg_cfg_section_find_subsection(s, "video_track"),
                       NULL,
                       NULL,
                       NULL,
                       bg_nle_track_video_parameters);
   bg_dialog_add_child(cfg_dialog, parent,
                       TR("Compositing format"),
-                      win->p->video_outstream_section,
+                      bg_cfg_section_find_subsection(s, "video_outstream"),
                       NULL,
                       NULL,
                       NULL,
                       bg_nle_outstream_video_parameters);
   
-  bg_dialog_show(cfg_dialog, win->win);
+  result = bg_dialog_show(cfg_dialog, win->win);
+  bg_dialog_destroy(cfg_dialog);
+  
+  bg_nle_project_set_parameters_end(win->p, s, result);
   }
 
 static gboolean destroy_func(gpointer data)

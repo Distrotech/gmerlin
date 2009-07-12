@@ -39,12 +39,14 @@ struct bg_nle_project_s
   bg_nle_time_range_t visible;
   bg_nle_time_range_t selection;
   
+  bg_cfg_section_t * section; // Root section, contains all following sections
+  
   bg_cfg_section_t * audio_track_section;
   bg_cfg_section_t * video_track_section;
   bg_cfg_section_t * audio_outstream_section;
   bg_cfg_section_t * video_outstream_section;
   bg_cfg_section_t * paths_section;
-  
+
   bg_plugin_registry_t * plugin_reg;
 
   bg_nle_edit_callback edit_callback;
@@ -117,7 +119,31 @@ void bg_nle_project_detach_track(bg_nle_project_t * p,
 void bg_nle_project_outstream_make_current(bg_nle_project_t * p,
                                            bg_nle_track_type_t type,
                                            bg_nle_outstream_t * t);
-                                 
+
+bg_cfg_section_t *
+bg_nle_project_set_parameters_start(bg_nle_project_t * p);
+void bg_nle_project_set_parameters_end(bg_nle_project_t * p,
+                                       bg_cfg_section_t *,
+                                       int changed);
+
+bg_cfg_section_t *
+bg_nle_project_set_track_parameters_start(bg_nle_project_t * p,
+                                          bg_nle_track_t * track);
+
+void bg_nle_project_set_track_parameters_end(bg_nle_project_t * p,
+                                             bg_cfg_section_t *,
+                                             int changed,
+                                             bg_nle_track_t * track);
+
+bg_cfg_section_t *
+bg_nle_project_set_outstream_parameters_start(bg_nle_project_t * p,
+                                              bg_nle_outstream_t * outstream);
+
+void bg_nle_project_set_outstream_parameters_end(bg_nle_project_t * p,
+                                                 bg_cfg_section_t *,
+                                                 int changed,
+                                                 bg_nle_outstream_t * outstream);
+
 /* Utility functions */
 
 void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);

@@ -49,6 +49,15 @@ static void set_parameter(void * data, const char * name,
     }
   }
 
+void bg_nle_track_widget_update_parameters(bg_nle_track_widget_t * w, bg_cfg_section_t * s)
+  {
+  const char * str;
+  bg_cfg_section_get_parameter_string(s, "name", &str);
+  gtk_expander_set_label(GTK_EXPANDER(w->panel), str);
+  gtk_container_check_resize(GTK_CONTAINER(gtk_widget_get_parent(w->panel)));
+  }
+
+
 typedef struct
   {
   GtkWidget * menu;
@@ -89,14 +98,21 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(w == the_menu.configure)
     {
     bg_dialog_t * dialog;
-    dialog = bg_dialog_create(menu_widget->track->section,
+    int result;
+    bg_cfg_section_t * s = bg_nle_project_set_track_parameters_start(menu_widget->track->p,
+                                                                 menu_widget->track);
+    
+    dialog = bg_dialog_create(s,
                               set_parameter, // bg_set_parameter_func_t set_param,
                               NULL, // bg_get_parameter_func_t get_param,
                               menu_widget, // void * callback_data,
                               bg_nle_track_get_parameters(menu_widget->track),
                               TR("Track parameters"));
-    bg_dialog_show(dialog, menu_widget->panel_child);
+    result = bg_dialog_show(dialog, menu_widget->panel_child);
     bg_dialog_destroy(dialog);
+    bg_nle_project_set_track_parameters_end(menu_widget->track->p,
+                                            s, result,
+                                            menu_widget->track);
     }
   }
 

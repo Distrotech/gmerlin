@@ -21,3 +21,5 @@ void bg_nle_outstream_widget_update_current(bg_nle_outstream_widget_t * w);
 
 
 void bg_nle_outstream_widget_redraw(bg_nle_outstream_widget_t * w);
+void bg_nle_outstream_widget_update_parameters(bg_nle_outstream_widget_t * w,
+                                               bg_cfg_section_t * s);

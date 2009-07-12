@@ -22,10 +22,7 @@ static const char * selection_name = "selection";
 static const char * visible_name   = "visible";
 static const char * media_name     = "media";
 
-static const char * audio_track_parameters_name = "audio_track_parameters";
-static const char * video_track_parameters_name = "video_track_parameters";
-static const char * audio_outstream_parameters_name = "audio_outstream_parameters";
-static const char * video_outstream_parameters_name = "video_outstream_parameters";
+static const char * parameters_name = "parameters";
 
 
 bg_nle_project_t *
@@ -83,25 +80,20 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
              &ret->selection.end);
       free(tmp_string);
       }
-    else if(!BG_XML_STRCMP(node->name, audio_track_parameters_name))
+    else if(!BG_XML_STRCMP(node->name, parameters_name))
       {
-      ret->audio_track_section = bg_cfg_section_create("");
-      bg_cfg_xml_2_section(xml_doc, node, ret->audio_track_section);
-      }
-    else if(!BG_XML_STRCMP(node->name, video_track_parameters_name))
-      {
-      ret->video_track_section = bg_cfg_section_create("");
-      bg_cfg_xml_2_section(xml_doc, node, ret->video_track_section);
-      }
-    else if(!BG_XML_STRCMP(node->name, audio_outstream_parameters_name))
-      {
-      ret->audio_outstream_section = bg_cfg_section_create("");
-      bg_cfg_xml_2_section(xml_doc, node, ret->audio_outstream_section);
-      }
-    else if(!BG_XML_STRCMP(node->name, video_outstream_parameters_name))
-      {
-      ret->video_outstream_section = bg_cfg_section_create("");
-      bg_cfg_xml_2_section(xml_doc, node, ret->video_outstream_section);
+      ret->section = bg_cfg_section_create("");
+      bg_cfg_xml_2_section(xml_doc, node, ret->section);
+
+      /* Get subsections */
+      ret->audio_track_section = bg_cfg_section_find_subsection(ret->section,
+                                                                "audio_track");
+      ret->video_track_section = bg_cfg_section_find_subsection(ret->section,
+                                                                "video_track");
+      ret->audio_outstream_section = bg_cfg_section_find_subsection(ret->section,
+                                                                "audio_outstream");
+      ret->video_outstream_section = bg_cfg_section_find_subsection(ret->section,
+                                                                "video_outstream");
       }
     
     else if(!BG_XML_STRCMP(node->name, media_name))
@@ -202,23 +194,11 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
 
   bg_nle_media_list_save(p->media_list, node);
 
-  /* Sections */
+  /* Section */
 
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
-                          (xmlChar*)audio_track_parameters_name, NULL);
-  bg_cfg_section_2_xml(p->audio_track_section, node);
-
-  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
-                          (xmlChar*)video_track_parameters_name, NULL);
-  bg_cfg_section_2_xml(p->video_track_section, node);
-
-  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
-                          (xmlChar*)audio_outstream_parameters_name, NULL);
-  bg_cfg_section_2_xml(p->audio_outstream_section, node);
-
-  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
-                         (xmlChar*)video_outstream_parameters_name, NULL);
-  bg_cfg_section_2_xml(p->video_outstream_section, node);
+                          (xmlChar*)parameters_name, NULL);
+  bg_cfg_section_2_xml(p->section, node);
   
   /* Add tracks */
 

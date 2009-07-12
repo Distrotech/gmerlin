@@ -657,6 +657,19 @@ void bg_nle_timeline_set_track_flags(bg_nle_timeline_t * t,
   bg_nle_track_widget_set_flags(t->tracks[index], flags);
   }
 
+void bg_nle_timeline_update_track_parameters(bg_nle_timeline_t * t, int index,
+                                             bg_cfg_section_t * s)
+  {
+  bg_nle_track_widget_update_parameters(t->tracks[index], s);
+  
+  }
+
+void bg_nle_timeline_update_outstream_parameters(bg_nle_timeline_t * t, int index,
+                                                 bg_cfg_section_t * s)
+  {
+  bg_nle_outstream_widget_update_parameters(t->outstreams[index], s);
+  }
+
 void bg_nle_timeline_set_outstream_flags(bg_nle_timeline_t * t,
                                          bg_nle_outstream_t * outstream, int flags)
   {

@@ -191,6 +191,24 @@ static void edit_outstream_make_current(bg_nle_project_t * p,
     }
   }
 
+static void edit_project_parameters(bg_nle_project_t * p,
+                                    bg_nle_op_parameters_t * op)
+  {
+  bg_cfg_section_transfer(op->new_section, p->section);
+  }
+
+static void edit_track_parameters(bg_nle_project_t * p,
+                                  bg_nle_op_parameters_t * op)
+  {
+  bg_cfg_section_transfer(op->new_section, p->tracks[op->index]->section);
+  }
+
+static void edit_outstream_parameters(bg_nle_project_t * p,
+                                      bg_nle_op_parameters_t * op)
+  {
+  bg_cfg_section_transfer(op->new_section, p->outstreams[op->index]->section);
+  }
+
 void bg_nle_project_edit(bg_nle_project_t * p,
                          bg_nle_undo_data_t * data)
   {
@@ -237,6 +255,15 @@ void bg_nle_project_edit(bg_nle_project_t * p,
       break;
     case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
       edit_outstream_make_current(p, data->data);
+      break;
+    case BG_NLE_EDIT_PROJECT_PARAMETERS:
+      edit_project_parameters(p, data->data);
+      break;
+    case BG_NLE_EDIT_TRACK_PARAMETERS:
+      edit_track_parameters(p, data->data);
+      break;
+    case BG_NLE_EDIT_OUTSTREAM_PARAMETERS:
+      edit_outstream_parameters(p, data->data);
       break;
     }
   }
@@ -316,6 +343,17 @@ void bg_nle_undo_data_reverse(bg_nle_undo_data_t * data)
       d->new_outstream = tmp;
       }
       break;
+    case BG_NLE_EDIT_PROJECT_PARAMETERS:
+    case BG_NLE_EDIT_TRACK_PARAMETERS:
+    case BG_NLE_EDIT_OUTSTREAM_PARAMETERS:
+      {
+      bg_cfg_section_t * tmp;
+      bg_nle_op_parameters_t * d = data->data;
+      tmp = d->old_section;
+      d->old_section = d->new_section;
+      d->new_section = tmp;
+      }
+      break;
     }
   }
 
@@ -350,6 +388,15 @@ void bg_nle_undo_data_destroy(bg_nle_undo_data_t * data)
       bg_nle_outstream_destroy(d->outstream);
       }
       break;
+    case BG_NLE_EDIT_PROJECT_PARAMETERS:
+    case BG_NLE_EDIT_TRACK_PARAMETERS:
+    case BG_NLE_EDIT_OUTSTREAM_PARAMETERS:
+      {
+      bg_nle_op_parameters_t * d = data->data;
+      bg_cfg_section_destroy(d->old_section);
+      bg_cfg_section_destroy(d->new_section);
+      }
+      break;
     }
   if(data->data)
     free(data->data);
@@ -375,6 +422,9 @@ void bg_nle_project_push_undo(bg_nle_project_t * p, bg_nle_undo_data_t * data)
       case BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK:
       case BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK:
       case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
+      case BG_NLE_EDIT_PROJECT_PARAMETERS:
+      case BG_NLE_EDIT_TRACK_PARAMETERS:
+      case BG_NLE_EDIT_OUTSTREAM_PARAMETERS:
         break;
       case BG_NLE_EDIT_CHANGE_SELECTION:
       case BG_NLE_EDIT_CHANGE_VISIBLE:

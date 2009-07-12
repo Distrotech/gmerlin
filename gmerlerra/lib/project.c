@@ -21,24 +21,52 @@ static void bg_nle_edit_callback_stub(bg_nle_project_t * p,
 bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_nle_project_t * ret;
+  bg_cfg_section_t * section;
   ret = calloc(1, sizeof(*ret));
   ret->visible.end = GAVL_TIME_SCALE * 10;
   ret->selection.end = -1;
   ret->media_list = bg_nle_media_list_create(plugin_reg);
   ret->plugin_reg = plugin_reg;
 
-  ret->audio_track_section =
+  ret->section = bg_cfg_section_create(NULL);
+
+  /* Audio track defaults */
+  section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_track_audio_parameters);
-  ret->video_track_section =
+  ret->audio_track_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "audio_track");
+  bg_cfg_section_transfer(section, ret->audio_track_section);
+  bg_cfg_section_destroy(section);
+
+  /* Video track defaults */
+  section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_track_video_parameters);
-  ret->audio_outstream_section =
+  ret->video_track_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "video_track");
+  bg_cfg_section_transfer(section, ret->video_track_section);
+  bg_cfg_section_destroy(section);
+
+  /* Audio outstream defaults */
+  section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_outstream_audio_parameters);
-  ret->video_outstream_section =
+  ret->audio_outstream_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "audio_outstream");
+  bg_cfg_section_transfer(section, ret->audio_outstream_section);
+  bg_cfg_section_destroy(section);
+
+  /* Video outstream defaults */
+  section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_outstream_video_parameters);
+  ret->video_outstream_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "video_outstream");
+  bg_cfg_section_transfer(section, ret->video_outstream_section);
+  bg_cfg_section_destroy(section);
+
+  /* */
 
   ret->edit_callback = bg_nle_edit_callback_stub;
   
