@@ -241,7 +241,7 @@ static gboolean motion_callback(GtkWidget *widget,
   {
   bg_nle_time_ruler_t * r = user_data;
   
-  bg_nle_timerange_widget_handle_motion(r->tr, evt);
+  bg_nle_timerange_widget_handle_motion(r->tr, widget, evt);
   return FALSE;
   }
 

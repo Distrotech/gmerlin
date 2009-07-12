@@ -7,6 +7,9 @@
 #include <gui_gtk/timerange.h>
 #include <gui_gtk/utils.h>
 
+#define SELECTION_MODE_LEFT  1
+#define SELECTION_MODE_RIGHT 2
+
 int64_t bg_nle_pos_2_time(bg_nle_timerange_widget_t * w, double pos)
   {
   double ret_d = (double)pos /
@@ -103,6 +106,7 @@ int bg_nle_timerange_widget_handle_button_press(bg_nle_timerange_widget_t * r,
     selection.start = bg_nle_pos_2_time(r, evt->x);
     selection.end = -1;
     ret = 1;
+    r->selection_mode = 0;
     }
   
   if(ret && r->set_selection)
@@ -111,6 +115,7 @@ int bg_nle_timerange_widget_handle_button_press(bg_nle_timerange_widget_t * r,
   }
 
 int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
+                                          GtkWidget * w,
                                           GdkEventMotion * evt)
   {
   bg_nle_time_range_t range;
@@ -139,6 +144,74 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
 
     if(r->set_visible)
       r->set_visible(&range, r->callback_data);
+    
+    r->mouse_x = evt->x;
+    return 1;
+    }
+  else if(evt->state == GDK_BUTTON1_MASK)
+    {
+    if(r->selection.end < 0)
+      {
+      if(evt->x > r->mouse_x)
+        {
+        r->selection_mode = SELECTION_MODE_RIGHT;
+        gdk_window_set_cursor(w->window, bg_nle_cursor_right_side);
+        bg_nle_time_range_copy(&range, &r->selection);
+        range.end = time;
+        if(r->set_selection)
+          r->set_selection(&range, r->callback_data);
+        }
+      else if(evt->x < r->mouse_x)
+        {
+        r->selection_mode = SELECTION_MODE_LEFT;
+        gdk_window_set_cursor(w->window, bg_nle_cursor_left_side);
+        bg_nle_time_range_copy(&range, &r->selection);
+        range.end = range.start;
+        range.start = time;
+        if(r->set_selection)
+          r->set_selection(&range, r->callback_data);
+        }
+      }
+    else if(r->selection_mode == SELECTION_MODE_RIGHT)
+      {
+      if(time < r->selection.start)
+        {
+        r->selection_mode = SELECTION_MODE_LEFT;
+        gdk_window_set_cursor(w->window, bg_nle_cursor_left_side);
+        bg_nle_time_range_copy(&range, &r->selection);
+        range.end = range.start;
+        range.start = time;
+        if(r->set_selection)
+          r->set_selection(&range, r->callback_data);
+        }
+      else
+        {
+        bg_nle_time_range_copy(&range, &r->selection);
+        range.end = time;
+        if(r->set_selection)
+          r->set_selection(&range, r->callback_data);
+        }
+      }
+    else if(r->selection_mode == SELECTION_MODE_LEFT)
+      {
+      if(time > r->selection.end)
+        {
+        r->selection_mode = SELECTION_MODE_RIGHT;
+        gdk_window_set_cursor(w->window, bg_nle_cursor_right_side);
+        bg_nle_time_range_copy(&range, &r->selection);
+        range.start = range.end;
+        range.end = time;
+        if(r->set_selection)
+          r->set_selection(&range, r->callback_data);
+        }
+      else
+        {
+        bg_nle_time_range_copy(&range, &r->selection);
+        range.start = time;
+        if(r->set_selection)
+          r->set_selection(&range, r->callback_data);
+        }
+      }
     
     r->mouse_x = evt->x;
     return 1;

@@ -383,7 +383,7 @@ static gboolean motion_callback(GtkWidget *widget,
                                 gpointer user_data)
   {
   bg_nle_track_widget_t * r = user_data;
-  bg_nle_timerange_widget_handle_motion(r->tr, evt);
+  bg_nle_timerange_widget_handle_motion(r->tr, widget, evt);
   return TRUE;
   }
 

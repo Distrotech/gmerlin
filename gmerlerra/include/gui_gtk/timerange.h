@@ -9,7 +9,9 @@ typedef struct
   int width;
   bg_nle_time_range_t selection;
   bg_nle_time_range_t visible;
-
+  
+  int selection_mode;
+  
   int mouse_x;
 
   void (*set_selection)(bg_nle_time_range_t * selection, void * priv);
@@ -31,6 +33,7 @@ int bg_nle_timerange_widget_handle_button_press(bg_nle_timerange_widget_t * w,
                                                 GdkEventButton * evt);
 
 int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * w,
+                                          GtkWidget * widget,
                                           GdkEventMotion * evt);
 
 void bg_nle_timerange_widget_handle_scroll(bg_nle_timerange_widget_t * r,
