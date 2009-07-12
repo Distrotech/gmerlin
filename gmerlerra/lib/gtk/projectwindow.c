@@ -203,6 +203,7 @@ static void show_settings_dialog(bg_nle_project_window_t * win)
   {
   bg_dialog_t * cfg_dialog;
   void * parent;
+  void * child;
   int result;
 
   bg_cfg_section_t * s;
@@ -212,15 +213,21 @@ static void show_settings_dialog(bg_nle_project_window_t * win)
   cfg_dialog = bg_dialog_create_multi(TR("Project settings"));
   
   parent = bg_dialog_add_parent(cfg_dialog, NULL, TR("Audio"));
-  bg_dialog_add_child(cfg_dialog, parent,
-                      TR("Track format"),
+  
+  child = bg_dialog_add_parent(cfg_dialog, parent, TR("Track format"));
+  
+  bg_dialog_add_child(cfg_dialog, child,
+                      NULL,
                       bg_cfg_section_find_subsection(s, "audio_track"),
                       NULL,
                       NULL,
                       NULL,
                       bg_nle_track_audio_parameters);
-  bg_dialog_add_child(cfg_dialog, parent,
-                      TR("Compositing format"),
+  
+  child = bg_dialog_add_parent(cfg_dialog, parent, TR("Compositing format"));
+    
+  bg_dialog_add_child(cfg_dialog, child,
+                      NULL,
                       bg_cfg_section_find_subsection(s, "audio_outstream"),
                       NULL,
                       NULL,
@@ -228,15 +235,21 @@ static void show_settings_dialog(bg_nle_project_window_t * win)
                       bg_nle_outstream_audio_parameters);
 
   parent = bg_dialog_add_parent(cfg_dialog, NULL, TR("Video"));
-  bg_dialog_add_child(cfg_dialog, parent,
-                      TR("Track format"),
+
+  child = bg_dialog_add_parent(cfg_dialog, parent, TR("Track format"));
+  
+  bg_dialog_add_child(cfg_dialog, child,
+                      NULL,
                       bg_cfg_section_find_subsection(s, "video_track"),
                       NULL,
                       NULL,
                       NULL,
                       bg_nle_track_video_parameters);
-  bg_dialog_add_child(cfg_dialog, parent,
-                      TR("Compositing format"),
+
+  child = bg_dialog_add_parent(cfg_dialog, parent, TR("Compositing format"));
+
+  bg_dialog_add_child(cfg_dialog, child,
+                      NULL,
                       bg_cfg_section_find_subsection(s, "video_outstream"),
                       NULL,
                       NULL,

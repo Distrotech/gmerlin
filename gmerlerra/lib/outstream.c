@@ -35,37 +35,80 @@ void bg_nle_outstream_destroy(bg_nle_outstream_t * s)
   .type = BG_PARAMETER_STRING, \
   }
 
-#define PARAM_AUDIO \
-    BG_GAVL_PARAM_CHANNEL_SETUP
+#define PARAM_GENERAL \
+  { \
+  .name = "general", \
+  .long_name = TRS("General"), \
+  .type = BG_PARAMETER_SECTION, \
+  }
 
-#define PARAM_VIDEO \
-    BG_GAVL_PARAM_PIXELFORMAT, \
-    BG_GAVL_PARAM_FRAMESIZE_NOSOURCE, \
-    BG_GAVL_PARAM_FRAMERATE_NOSOURCE
+#define PARAM_SIZE \
+  { \
+  .name = "size_sec", \
+  .long_name = TRS("Frame size"), \
+  .type = BG_PARAMETER_SECTION, \
+  }, \
+  BG_GAVL_PARAM_FRAMESIZE_NOSOURCE
+
+#define PARAM_FRAMERATE \
+  { \
+  .name = "framerate_sec", \
+  .long_name = TRS("Framerate"), \
+  .type = BG_PARAMETER_SECTION, \
+  }, \
+  BG_GAVL_PARAM_FRAMERATE_NOSOURCE
+
+#define PARAM_BGCOLOR \
+  { \
+  .name = "background", \
+  .long_name = TRS("Background"), \
+  .type = BG_PARAMETER_COLOR_RGBA, \
+  .val_default = { .val_color = { 0.0, 0.0, 0.0, 1.0 }}, \
+  }
+    
+#define PARAM_CHANNELS \
+  { \
+  .name = "channel_sec", \
+  .long_name = TRS("Channels"), \
+  .type = BG_PARAMETER_SECTION, \
+  }, \
+BG_GAVL_PARAM_CHANNEL_SETUP_NOSOURCE
 
 const bg_parameter_info_t bg_nle_outstream_video_parameters[] =
   {
-    PARAM_VIDEO,
+    PARAM_GENERAL,
+    BG_GAVL_PARAM_PIXELFORMAT,
+    PARAM_BGCOLOR,
+    PARAM_SIZE,
+    PARAM_FRAMERATE,
     { /* End */ },
   };
 
 const bg_parameter_info_t bg_nle_outstream_audio_parameters[] =
   {
-    PARAM_AUDIO,
+    PARAM_GENERAL,
+    BG_GAVL_PARAM_SAMPLERATE_NOSOURCE,
+    PARAM_CHANNELS,
     { /* End */ },
   };
 
 static const bg_parameter_info_t video_parameters[] =
   {
+    PARAM_GENERAL,
     PARAM_NAME,
-    PARAM_VIDEO,
+    BG_GAVL_PARAM_PIXELFORMAT,
+    PARAM_BGCOLOR,
+    PARAM_SIZE,
+    PARAM_FRAMERATE,
     { /* End */ },
   };
 
 static const bg_parameter_info_t audio_parameters[] =
   {
+    PARAM_GENERAL,
     PARAM_NAME,
-    PARAM_AUDIO,
+    BG_GAVL_PARAM_SAMPLERATE_NOSOURCE,
+    PARAM_CHANNELS,
     { /* End */ },
   };
 
