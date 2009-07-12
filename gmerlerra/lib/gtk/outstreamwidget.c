@@ -307,17 +307,16 @@ static void button_callback(GtkWidget * w, gpointer  data)
   {
   bg_nle_outstream_widget_t * t = data;
 
-  int flags = t->outstream->flags;
   if(t->callback)
     return;
   if(w == t->play_button)
     {
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(t->play_button)))
-      flags |= BG_NLE_TRACK_PLAYBACK;
+      bg_nle_project_outstream_make_current(t->outstream->p, t->outstream->type, t->outstream);
     else
-      flags &= ~BG_NLE_TRACK_PLAYBACK;
+      bg_nle_project_outstream_make_current(t->outstream->p, t->outstream->type, NULL);
+      
     }
-  bg_nle_project_set_outstream_flags(t->outstream->p, t->outstream, flags);
   }
 
 #if 0
@@ -663,8 +662,6 @@ void bg_nle_outstream_widget_set_flags(bg_nle_outstream_widget_t * w, int flags)
   //  fprintf(stderr, "bg_nle_track_widget_set_flags\n");
   /* Selected */
   
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w->play_button),
-                               !!(flags & BG_NLE_TRACK_PLAYBACK));
   
   /* Expanded */
   if(flags & BG_NLE_TRACK_EXPANDED)
@@ -679,4 +676,12 @@ void bg_nle_outstream_widget_set_flags(bg_nle_outstream_widget_t * w, int flags)
     }
   w->callback = 0;
   
+  }
+
+void bg_nle_outstream_widget_update_current(bg_nle_outstream_widget_t * w)
+  {
+  w->callback = 1;
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w->play_button),
+                               !!(w->outstream->flags & BG_NLE_TRACK_PLAYBACK));
+  w->callback = 0;
   }

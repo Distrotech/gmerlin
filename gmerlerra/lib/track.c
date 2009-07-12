@@ -12,7 +12,7 @@ bg_nle_track_t * bg_nle_track_create(bg_nle_track_type_t type)
   bg_nle_track_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->type = type;
-  ret->flags = BG_NLE_TRACK_SELECTED | BG_NLE_TRACK_EXPANDED;
+  ret->flags = BG_NLE_TRACK_SELECTED | BG_NLE_TRACK_EXPANDED | BG_NLE_TRACK_PLAYBACK;
   ret->section = bg_cfg_section_create("");
   return ret;
   }

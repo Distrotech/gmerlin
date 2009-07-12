@@ -5,6 +5,7 @@ noinst_LTLIBRARIES = libgmerlerra.la
 libgmerlerra_la_SOURCES = \
 composite_audio.c \
 composite_video.c \
+editfuncs.c \
 editops.c \
 instream.c \
 medialist.c \

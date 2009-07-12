@@ -28,6 +28,9 @@ struct bg_nle_project_s
 
   int num_outstreams;
   int outstreams_alloc;
+
+  bg_nle_outstream_t * current_audio_outstream;
+  bg_nle_outstream_t * current_video_outstream;
   
   bg_nle_media_list_t * media_list;
   
@@ -73,6 +76,8 @@ void bg_nle_project_set_video_parameter(void * data, const char * name,
 
 void bg_nle_project_destroy(bg_nle_project_t * p);
 
+/* Editing operations */
+
 void bg_nle_project_add_audio_track(bg_nle_project_t * p);
 void bg_nle_project_add_video_track(bg_nle_project_t * p);
 
@@ -82,15 +87,9 @@ void bg_nle_project_add_video_outstream(bg_nle_project_t * p);
 void bg_nle_project_delete_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t);
 void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t);
 
-void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);
-void bg_nle_project_insert_track(bg_nle_project_t * p, bg_nle_track_t * t, int pos);
 
 void bg_nle_project_move_track(bg_nle_project_t * p, int old_pos, int new_pos);
 
-
-void bg_nle_project_append_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t);
-void bg_nle_project_insert_outstream(bg_nle_project_t * p,
-                                     bg_nle_outstream_t * t, int pos);
 
 void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_pos);
 
@@ -115,8 +114,18 @@ void bg_nle_project_detach_track(bg_nle_project_t * p,
                                  bg_nle_outstream_t * outstream,
                                  bg_nle_track_t * track);
 
+void bg_nle_project_outstream_make_current(bg_nle_project_t * p,
+                                           bg_nle_track_type_t type,
+                                           bg_nle_outstream_t * t);
                                  
+/* Utility functions */
 
+void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);
+void bg_nle_project_insert_track(bg_nle_project_t * p, bg_nle_track_t * t, int pos);
+
+void bg_nle_project_append_outstream(bg_nle_project_t * p, bg_nle_outstream_t * t);
+void bg_nle_project_insert_outstream(bg_nle_project_t * p,
+                                     bg_nle_outstream_t * t, int pos);
 
 int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * outstream);
 int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track);

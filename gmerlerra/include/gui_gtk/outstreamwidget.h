@@ -17,5 +17,7 @@ void bg_nle_outstream_widget_update_visible(bg_nle_outstream_widget_t * w);
 void bg_nle_outstream_widget_update_zoom(bg_nle_outstream_widget_t * w);
 void bg_nle_outstream_widget_set_flags(bg_nle_outstream_widget_t * w, int flags);
 
+void bg_nle_outstream_widget_update_current(bg_nle_outstream_widget_t * w);
+
 
 void bg_nle_outstream_widget_redraw(bg_nle_outstream_widget_t * w);

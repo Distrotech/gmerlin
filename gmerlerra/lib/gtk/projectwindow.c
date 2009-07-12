@@ -177,6 +177,9 @@ static void edit_callback(bg_nle_project_t * p,
     case BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK:
       /* Nothing ATM because the menu is updated whenever it is popped up */
       break;
+    case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
+      bg_nle_timeline_outstreams_make_current(win->timeline);
+      break;
     }
   
   }

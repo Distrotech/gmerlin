@@ -36,6 +36,8 @@ void bg_nle_timeline_set_track_flags(bg_nle_timeline_t * t,
 void bg_nle_timeline_set_outstream_flags(bg_nle_timeline_t * t,
                                          bg_nle_outstream_t * outstream, int flags);
 
+void bg_nle_timeline_outstreams_make_current(bg_nle_timeline_t * t);
+      
 
 bg_nle_time_ruler_t * bg_nle_timeline_get_ruler(bg_nle_timeline_t *);
 

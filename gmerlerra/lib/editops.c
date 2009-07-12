@@ -152,6 +152,30 @@ static void edit_outstream_detach_track(bg_nle_project_t * p,
   bg_nle_outstream_detach_track(op->outstream, op->track);
   }
 
+static void edit_outstream_make_current(bg_nle_project_t * p,
+                                        bg_nle_op_outstream_make_current_t * op)
+  {
+  switch(op->type)
+    {
+    case BG_NLE_TRACK_AUDIO:
+      if(p->current_audio_outstream)
+        p->current_audio_outstream->flags &= ~BG_NLE_TRACK_PLAYBACK;
+      p->current_audio_outstream = op->new_outstream;
+      if(p->current_audio_outstream)
+        p->current_audio_outstream->flags |= BG_NLE_TRACK_PLAYBACK;
+      break;
+    case BG_NLE_TRACK_VIDEO:
+      if(p->current_video_outstream)
+        p->current_video_outstream->flags &= ~BG_NLE_TRACK_PLAYBACK;
+      p->current_video_outstream = op->new_outstream;
+      if(p->current_video_outstream)
+        p->current_video_outstream->flags |= BG_NLE_TRACK_PLAYBACK;
+      break;
+    case BG_NLE_TRACK_NONE:
+      break;
+    }
+  }
+
 void bg_nle_project_edit(bg_nle_project_t * p,
                          bg_nle_undo_data_t * data)
   {
@@ -195,6 +219,9 @@ void bg_nle_project_edit(bg_nle_project_t * p,
       break;
     case BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK:
       edit_outstream_detach_track(p, data->data);
+      break;
+    case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
+      edit_outstream_make_current(p, data->data);
       break;
     }
   }
@@ -265,7 +292,15 @@ void bg_nle_undo_data_reverse(bg_nle_undo_data_t * data)
     case BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK:
       data->op = BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK;
       break;
-      
+    case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
+      {
+      bg_nle_outstream_t * tmp;
+      bg_nle_op_outstream_make_current_t * d = data->data;
+      tmp = d->old_outstream;
+      d->old_outstream = d->new_outstream;
+      d->new_outstream = tmp;
+      }
+      break;
     }
   }
 
@@ -284,6 +319,7 @@ void bg_nle_undo_data_destroy(bg_nle_undo_data_t * data)
     case BG_NLE_EDIT_OUTSTREAM_FLAGS:
     case BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK:
     case BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK:
+    case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
       break;
     case BG_NLE_EDIT_DELETE_TRACK:
       {

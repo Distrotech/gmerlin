@@ -637,3 +637,12 @@ void bg_nle_timeline_set_outstream_flags(bg_nle_timeline_t * t,
   int index = bg_nle_project_outstream_index(t->p, outstream);
   bg_nle_outstream_widget_set_flags(t->outstreams[index], flags);
   }
+
+void bg_nle_timeline_outstreams_make_current(bg_nle_timeline_t * t)
+  {
+  int i;
+  for(i = 0; i < t->num_outstreams; i++)
+    {
+    bg_nle_outstream_widget_update_current(t->outstreams[i]);
+    }
+  }
