@@ -343,9 +343,9 @@ static gboolean button_press_callback(GtkWidget *widget,
                    (GtkMenuPositionFunc)0,
                    (gpointer)0,
                    3, evt->time);
+    return TRUE;
     }
-    
-  return TRUE;
+  return FALSE;
   }
 
 static gboolean button_release_callback(GtkWidget *widget,

@@ -31,6 +31,7 @@ struct bg_nle_timeline_s
   GtkWidget * zoom_fit;
   GtkWidget * start_button;
   GtkWidget * end_button;
+  GtkWidget * scrollbar;
   
   int num_tracks;
   bg_nle_track_widget_t ** tracks;
@@ -171,6 +172,33 @@ static gboolean motion_notify_callback(GtkWidget * w, GdkEventMotion * evt,
   return FALSE;
   }
 
+static gboolean scroll_callback(GtkWidget * w, GdkEventScroll * evt,
+                                gpointer data)
+  {
+  bg_nle_timeline_t * t = data;
+  double new_val;
+  GtkAdjustment * adj = gtk_viewport_get_vadjustment(GTK_VIEWPORT(t->preview_window));
+  
+  //  gtk_scrollbar_get_adjustment(GTK_SCROLLBAR(t->scrollbar));
+  
+  if(evt->direction == GDK_SCROLL_UP)
+    {
+    new_val = adj->value - 3 * adj->step_increment;
+    gtk_adjustment_set_value(adj, new_val);
+    return TRUE;
+    }
+  else if(evt->direction == GDK_SCROLL_DOWN)
+    {
+    new_val = adj->value + 3 * adj->step_increment;
+    if(new_val > adj->upper - adj->page_size)
+      new_val = adj->upper - adj->page_size;
+    gtk_adjustment_set_value(adj, new_val);
+    return TRUE;
+    }
+  
+  return FALSE;
+  }
+
 
 static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
                                         const char * filename,
@@ -219,7 +247,6 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   GtkWidget * eventbox;
   GtkSizeGroup * size_group;
   //  GtkWidget * table1;
-  GtkWidget * scrollbar;
   GtkStyle *style;
   GtkWidget * frame;
   
@@ -259,9 +286,9 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                                          TRS("Goto end"));
   ret->preview_window = gtk_viewport_new(NULL, NULL);
   
-  scrollbar =
+  ret->scrollbar =
     gtk_vscrollbar_new(gtk_viewport_get_vadjustment(GTK_VIEWPORT(ret->preview_window)));
-  gtk_widget_show(scrollbar);
+  gtk_widget_show(ret->scrollbar);
   
   //  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->preview_window),
   //                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
@@ -270,6 +297,14 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   ret->panel_window =
     gtk_viewport_new(NULL, gtk_viewport_get_vadjustment(GTK_VIEWPORT(ret->preview_window)));
 
+  gtk_widget_set_events(ret->panel_window,
+                        GDK_BUTTON_PRESS_MASK);
+
+  g_signal_connect(ret->panel_window,
+                   "scroll-event",
+                   G_CALLBACK(scroll_callback), ret);
+
+  
   gtk_viewport_set_shadow_type(GTK_VIEWPORT(ret->preview_window),
                                GTK_SHADOW_NONE);
   gtk_viewport_set_shadow_type(GTK_VIEWPORT(ret->panel_window),
@@ -292,14 +327,17 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   //  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->panel_window),
   //                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
   
-  ret->preview_box = gtk_vbox_new(FALSE, 2);
-  ret->panel_box = gtk_vbox_new(FALSE, 2);
+  ret->preview_box = gtk_vbox_new(FALSE, 1);
+  ret->panel_box = gtk_vbox_new(FALSE, 1);
 
   eventbox = gtk_event_box_new();
   
   gtk_widget_set_events(eventbox,
-                        GDK_POINTER_MOTION_MASK);
+                        GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK);
 
+  g_signal_connect(eventbox,
+                   "scroll-event",
+                   G_CALLBACK(scroll_callback), ret);
   g_signal_connect(eventbox,
                    "motion-notify-event",
                    G_CALLBACK(motion_notify_callback), ret);
@@ -431,7 +469,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                    GTK_EXPAND|GTK_FILL, GTK_EXPAND|GTK_FILL, 0, 0);
   
   gtk_table_attach(GTK_TABLE(ret->table),
-                   scrollbar,
+                   ret->scrollbar,
                    2, 3, 1, 2,
                    GTK_FILL|GTK_SHRINK, GTK_EXPAND|GTK_FILL, 0, 0);
   
