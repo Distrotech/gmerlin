@@ -409,10 +409,10 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   const char * flag_name;
   
   uint32_t flag;
-    
+  
   xmlNodePtr xml_plugin;
   xmlNodePtr xml_item;
-
+  
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     
   xml_plugin = xmlNewTextChild(parent, (xmlNsPtr)0,

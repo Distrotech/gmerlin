@@ -75,6 +75,8 @@ struct bg_dialog_s
   GtkWidget * treeview;
   GtkWidget * scrolledwindow;
   guint select_handler_id;
+
+  int result;
   };
 
 static int parent_index(dialog_section_t * s)
@@ -330,6 +332,7 @@ static void button_callback(GtkWidget * w, gpointer * data)
   else if(w == d->apply_button)
     {
     apply_values(d);
+    d->result = 1;
     }
   else if(w == d->ok_button)
     {
@@ -337,6 +340,7 @@ static void button_callback(GtkWidget * w, gpointer * data)
     gtk_widget_hide(d->window);
     gtk_main_quit();
     apply_values(d);
+    d->result = 1;
     }
   }
 
@@ -949,9 +953,10 @@ void bg_dialog_add(bg_dialog_t *d,
                       section, set_param, get_param, callback_data, info);
   }
 
-void bg_dialog_show(bg_dialog_t * d, void * parent)
+int bg_dialog_show(bg_dialog_t * d, void * parent)
   {
   GtkWidget * parent_w;
+  d->result = 0;
   if(d->visible)
     {
     gtk_window_present(GTK_WINDOW(d->window));
@@ -970,6 +975,7 @@ void bg_dialog_show(bg_dialog_t * d, void * parent)
   gtk_widget_grab_default(d->ok_button);
   gtk_widget_grab_focus(d->ok_button);
   gtk_main();
+  return d->result;
   }
 
 static void destroy_section(dialog_section_t * s)

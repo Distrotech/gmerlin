@@ -167,7 +167,7 @@ bg_gtk_about_window_create(const char * name, const char * version, const char *
 #endif
   gtk_widget_show(label1);
 
-  label2 = gtk_label_new(TR("Copyright \302\251 2001-2007 Members of the gmerlin project"));
+  label2 = gtk_label_new(TR("Copyright \302\251 2001-2009 Members of the gmerlin project"));
   gtk_widget_show(label2);
   
   label3 =

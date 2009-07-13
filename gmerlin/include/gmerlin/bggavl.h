@@ -509,6 +509,18 @@ BG_GAVL_PARAM_FRAMESIZE_USER
     }, \
 BG_GAVL_PARAM_FRAMESIZE_USER
 
+#define BG_GAVL_PARAM_SAMPLERATE_NOSOURCE \
+    {\
+      .name =        "samplerate",\
+      .long_name =   TRS("Samplerate"),\
+      .type =        BG_PARAMETER_INT,\
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_min =     { .val_i = 8000 },\
+      .val_max =     { .val_i = 192000 },\
+      .val_default = { .val_i = 44100 },\
+      .help_string = TRS("Samplerate"),\
+    }
+
 
 #define BG_GAVL_PARAM_SAMPLERATE                \
     {\
@@ -519,27 +531,9 @@ BG_GAVL_PARAM_FRAMESIZE_USER
       .val_default = { .val_i = 0 },\
       .help_string = TRS("If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used.")\
     },\
-    {\
-      .name =        "samplerate",\
-      .long_name =   TRS("Samplerate"),\
-      .type =        BG_PARAMETER_INT,\
-      .flags =       BG_PARAMETER_SYNC,                     \
-      .val_min =     { .val_i = 8000 },\
-      .val_max =     { .val_i = 192000 },\
-      .val_default = { .val_i = 44100 },\
-      .help_string = TRS("Fixed output samplerate"),\
-    }
+BG_GAVL_PARAM_SAMPLERATE_NOSOURCE
 
-
-#define BG_GAVL_PARAM_CHANNEL_SETUP \
-    { \
-      .name =      "fixed_channel_setup", \
-      .long_name = TRS("Fixed channel setup"), \
-      .type =      BG_PARAMETER_CHECKBUTTON,\
-      .flags =       BG_PARAMETER_SYNC,                     \
-      .val_default = { .val_i = 0 },\
-      .help_string = TRS("If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used.") \
-    },                                        \
+#define BG_GAVL_PARAM_CHANNEL_SETUP_NOSOURCE \
     {                                         \
     .name =        "num_front_channels",          \
     .long_name =   TRS("Front channels"),              \
@@ -598,6 +592,18 @@ but the source doesn't."), \
                               (char*)0 }, \
       .help_string = TRS("Mix mode when downmixing Stereo to Mono."), \
     }
+
+
+#define BG_GAVL_PARAM_CHANNEL_SETUP \
+    { \
+      .name =      "fixed_channel_setup", \
+      .long_name = TRS("Fixed channel setup"), \
+      .type =      BG_PARAMETER_CHECKBUTTON,\
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_i = 0 },\
+      .help_string = TRS("If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used.") \
+    }, \
+BG_GAVL_PARAM_CHANNEL_SETUP_NOSOURCE
 
 
 #define BG_GAVL_PARAM_FORCE_SAMPLEFORMAT \

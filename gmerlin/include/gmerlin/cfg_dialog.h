@@ -66,7 +66,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * parent,
                          void * callback_data,
                          const bg_parameter_info_t * info);
 
-void bg_dialog_show(bg_dialog_t *, void * parent);
+int bg_dialog_show(bg_dialog_t *, void * parent);
 
 void bg_dialog_destroy(bg_dialog_t *);
 #endif // __BG_CFG_DIALOG_H_
