@@ -1660,3 +1660,62 @@ LIBS=$OLD_LIBS
 AM_CONDITIONAL(HAVE_POSIX_SEMAPHORES, test x$have_posix_semaphores = xtrue)
 
 ])
+
+dnl
+dnl vdpau
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_VDPAU],[
+
+AH_TEMPLATE([HAVE_VDPAU], [Enable tiff codec])
+ 
+have_vdpau=false
+
+AC_ARG_ENABLE(vdpau,
+[AC_HELP_STRING([--disable-vdpau],[Disable vdpau (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_vdpau=true ;;
+   no)  test_vdpau=false ;;
+esac],[test_vdpau=true])
+
+if test x$test_vdpau = xtrue; then
+   
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+LIBS="$LIBS -lvdpau"
+CFLAGS="$CFLAGS"
+   
+AC_MSG_CHECKING(for vdpau)
+AC_TRY_LINK([#include <vdpau/vdpau_x11.h>],
+            [int i = 0;
+	     /* We ensure the function is here but never call it */
+             if(i)
+	       vdp_device_create_x11((Display*)0, 0,
+		                     (VdpDevice*)0,
+				     (VdpGetProcAddress**)0);
+	       return 0;],
+             [have_vdpau=true])
+ 
+case $have_vdpau in
+  true) AC_MSG_RESULT(yes)
+        VDPAU_LIBS=$LIBS;
+        VDPAU_CFLAGS=$CFLAGS ;;
+  false) AC_MSG_RESULT(no); VDPAU_LIBS=""; VDPAU_CFLAGS="";;
+esac
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
+AC_SUBST(VDPAU_CFLAGS)
+AC_SUBST(VDPAU_LIBS)
+AC_SUBST(VDPAU_REQUIRED)
+
+AM_CONDITIONAL(HAVE_VDPAU, test x$have_vdpau = xtrue)
+
+if test x$have_vdpau = xtrue; then
+AC_DEFINE(HAVE_VDPAU)
+fi
+
+])

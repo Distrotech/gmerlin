@@ -233,6 +233,13 @@ dnl
 GMERLIN_CHECK_AVFORMAT
 
 dnl
+dnl VDPAU
+dnl
+
+GMERLIN_CHECK_VDPAU
+
+
+dnl
 dnl Check for theora
 dnl
 
@@ -568,6 +575,15 @@ elif test "x$test_avformat" = "xfalse"; then
 echo "Disabled"
 else
 echo "Missing (Go to http://www.ffmpeg.org/)"
+fi
+
+echo -n "vdpau:                   "
+if test "x$have_vdpau" = "xtrue"; then
+echo "Found (CFLAGS=$VDPAU_CFLAGS LIBS=$VDPAU_LIBS)"
+elif test "x$test_vdpau" = "xfalse"; then
+echo "Disabled"
+else
+echo "Missing (Comes with latest NVidia drivers)"
 fi
 
 echo -n "faad2:                  "
