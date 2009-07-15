@@ -107,7 +107,7 @@ static void set_keyframe_rv2(bgav_stream_t * s,
                              bgav_packet_t * p,
                              uint8_t * data, int len)
   {
-  rm_video_stream_t * sp = s->priv;
+  //  rm_video_stream_t * sp = s->priv;
 
   if(p->flags)
     return;

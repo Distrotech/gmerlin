@@ -126,6 +126,12 @@ static const bg_parameter_info_t parameters[] =
       .help_string = TRS("This enables downscaling of images while decoding. Currently only supported for JPEG-2000."),
     },
     {
+      .name      =  "vdpau",
+      .long_name =  TRS("Use vdpau"),
+      .type      =  BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Use VDPAU"),
+    },
+    {
       .name =       "network_options",
       .long_name =  TRS("Network options"),
       .type =       BG_PARAMETER_SECTION

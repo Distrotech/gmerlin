@@ -195,6 +195,11 @@ void bgav_options_set_shrink(bgav_options_t* opt,
   opt->shrink = shrink;
   }
 
+void bgav_options_set_vdpau(bgav_options_t* opt,
+                            int vdpau)
+  {
+  opt->vdpau = vdpau;
+  }
 
 #define FREE(ptr) if(ptr) free(ptr)
 
@@ -295,6 +300,9 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_INT(prefer_ffmpeg_demuxers);
   CP_INT(dv_datetime);
   CP_INT(shrink);
+
+  CP_INT(vdpau);
+
   /* Callbacks */
   
   CP_INT(name_change_callback);

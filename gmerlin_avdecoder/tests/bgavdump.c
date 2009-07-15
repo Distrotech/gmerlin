@@ -158,6 +158,7 @@ int main(int argc, char ** argv)
   gavl_time_t sub_time;
   gavl_time_t sub_duration;
   int sample_accurate = 0;
+  int vdpau = 0;
   
   bgav_t * file;
   bgav_options_t * opt;
@@ -201,6 +202,11 @@ int main(int argc, char ** argv)
       bgav_options_set_index_callback(opt, index_callback, NULL);
       arg_index++;
       }
+    else if(!strcmp(argv[arg_index], "-vdpau"))
+      {
+      vdpau = 1;
+      arg_index++;
+      }
     else if(!strcmp(argv[arg_index], "-aseek"))
       {
       audio_seek = strtoll(argv[arg_index+1], (char**)0, 10);
@@ -231,7 +237,10 @@ int main(int argc, char ** argv)
 
   if(sample_accurate)
     bgav_options_set_sample_accurate(opt, 1);
- 
+
+  if(vdpau)
+    bgav_options_set_vdpau(opt, 1);
+  
 #ifndef _WIN32 
   bgav_options_set_user_pass_callback(opt, user_pass_func, (void*)0);
 #endif

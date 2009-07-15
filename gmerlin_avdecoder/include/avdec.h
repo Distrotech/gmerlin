@@ -617,6 +617,23 @@ BGAV_PUBLIC
 void bgav_options_set_shrink(bgav_options_t* opt,
                              int factor);
 
+/** \ingroup options
+ *  \brief VDPAU acceleration
+ *  \param opt Option container
+ *  \param 1 to enable vdpau, 0 else
+ *
+ *  Use this only if you are sure that vdpau actually
+ *  works on your system, since a non-vdpau fallback isn't
+ *  possible right now.
+ *
+ *  Since 1.0.2
+ */
+
+BGAV_PUBLIC
+void bgav_options_set_vdpau(bgav_options_t* opt,
+                            int vdpau);
+
+  
 
 /** \ingroup options
  *  \brief Enumeration for log levels

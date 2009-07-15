@@ -756,6 +756,8 @@ struct bgav_options_s
   int dv_datetime;
   
   int shrink;
+
+  int vdpau;
   
   /* Callbacks */
 
