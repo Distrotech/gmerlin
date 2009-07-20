@@ -165,6 +165,10 @@ typedef struct
   VdpDecoder vdpau_decoder;
   
 #endif
+
+  int b_age;
+  int ip_age[2];
+  
   } ffmpeg_video_priv;
 
 #if 0
@@ -198,6 +202,8 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   int i = 0;
   bgav_stream_t * s = c->opaque;
   priv = s->data.video.decoder->priv;
+
+  //  fprintf(stderr, "vdpau_get_buffer\n");
   
   for(i = 0; i < VDPAU_MAX_STATES; i++)
     {
@@ -205,7 +211,8 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
       {
       pic->data[0] = (uint8_t*)(&priv->vdpau_states[i]);
       pic->type = FF_BUFFER_TYPE_USER;
-      pic->age = INT_MAX;
+      
+      //      pic->age = INT_MAX;
       
       if(priv->vdpau_states[i].state.surface == VDP_INVALID_HANDLE)
         {
@@ -213,7 +220,33 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
           bgav_vdpau_context_create_video_surface(priv->vdpau_ctx,
                                                   VDP_CHROMA_TYPE_420,
                                                   c->width, c->height);
+        if(priv->vdpau_states[i].state.surface != VDP_INVALID_HANDLE)
+          {
+          //          fprintf(stderr, "Created surface: %d\n",
+          //                  priv->vdpau_states[i].state.surface);
+          }
         }
+#if 1
+      if(pic->reference)
+        {
+        pic->age= priv->ip_age[0];
+        
+        priv->ip_age[0]= priv->ip_age[1]+1;
+        priv->ip_age[1]= 1;
+        priv->b_age++;
+        }
+      else
+        {
+        pic->age= priv->b_age;
+        
+        priv->ip_age[0]++;
+        priv->ip_age[1]++;
+        priv->b_age=1;
+        }
+      //      fprintf(stderr, "Picture age: %d\n", pic->age);
+#else
+      pic->age = INT_MAX;
+#endif
       priv->vdpau_states[i].used = 1;
       return 0;
       }
@@ -221,12 +254,20 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   
   return -1;
   }
+#if 0
+static int vdpau_reget_buffer(struct AVCodecContext *c, AVFrame *pic)
+  {
+  //  fprintf(stderr, "vdpau_reget_buffer\n");
+  return 0;
+  }
+#endif
 
 static void vdpau_release_buffer(struct AVCodecContext *avctx, AVFrame *pic)
   {
   vdpau_state_t * state = (vdpau_state_t *)pic->data[0];
   pic->data[0] = NULL;
   state->used = 0;
+  //  fprintf(stderr, "vdpau_release_buffer %d\n", state->state.surface);
   }
 
 static void vdpau_draw_horiz_band(struct AVCodecContext *c,
@@ -240,9 +281,10 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
   bgav_stream_t * s = c->opaque;
   priv = s->data.video.decoder->priv;
 
-  // fprintf(stderr, "vdpau_draw_horiz_band\n");
 
   state = (struct vdpau_render_state *)src->data[0];
+
+  //  fprintf(stderr, "vdpau_draw_horiz_band %d %d\n", state->surface, type);
   
   if(priv->vdpau_decoder == VDP_INVALID_HANDLE)
     {
@@ -251,6 +293,7 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
       case PIX_FMT_VDPAU_H264:
         profile = VDP_DECODER_PROFILE_H264_HIGH;
         max_references = state->info.h264.num_ref_frames;
+        // fprintf(stderr, "max references: %d\n", max_references);
         break;
       case PIX_FMT_VDPAU_MPEG1:
         profile = VDP_DECODER_PROFILE_MPEG1;
@@ -465,7 +508,7 @@ static int decode_picture(bgav_stream_t * s)
     bgav_dprintf("Decode: out_time: %" PRId64 " len: %d\n", s->out_time,
                  priv->frame_buffer_len);
     if(priv->frame_buffer)
-      bgav_hexdump(priv->frame_buffer, 64, 16);
+      bgav_hexdump(priv->frame_buffer, 16, 16);
 #endif
     
     //    dump_frame(priv->frame_buffer, priv->frame_buffer_len);
@@ -486,8 +529,34 @@ static int decode_picture(bgav_stream_t * s)
 #endif
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Used %d/%d bytes, got picture: %d\n",
-                 bytes_used, priv->frame_buffer_len, have_picture);
+      bgav_dprintf("Used %d/%d bytes, got picture: %d ",
+                   bytes_used, priv->frame_buffer_len, have_picture);
+      if(!have_picture)
+        bgav_dprintf("\n");
+      else
+        {
+        if(priv->frame->pict_type == FF_I_TYPE)
+          bgav_dprintf("I-Frame ");
+        else if(priv->frame->pict_type == FF_B_TYPE)
+          bgav_dprintf("B-Frame ");
+        else if(priv->frame->pict_type == FF_P_TYPE)
+          bgav_dprintf("P-Frame ");
+        else if(priv->frame->pict_type == FF_S_TYPE)
+          bgav_dprintf("S-Frame ");
+        else if(priv->frame->pict_type == FF_SI_TYPE)
+          bgav_dprintf("SI-Frame ");
+        else if(priv->frame->pict_type == FF_SP_TYPE)
+          bgav_dprintf("SP-Frame ");
+
+        bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
+                     priv->frame->interlaced_frame,
+                     priv->frame->top_field_first,
+                     priv->frame->repeat_pict,
+                     (float)(priv->ctx->time_base.den) / (float)(priv->ctx->time_base.num)
+                     );
+      
+        bgav_dprintf("\n");
+        }
 #endif
     
     /* Decode 2nd field for field pictures */
@@ -518,6 +587,39 @@ static int decode_picture(bgav_stream_t * s)
                                         priv->frame_buffer,
                                         priv->frame_buffer_len);
 #endif
+
+#ifdef DUMP_DECODE
+      bgav_dprintf("Used %d/%d bytes, got picture: %d ",
+                   bytes_used, priv->frame_buffer_len, have_picture);
+      if(!have_picture)
+        bgav_dprintf("\n");
+      else
+        {
+        if(priv->frame->pict_type == FF_I_TYPE)
+          bgav_dprintf("I-Frame ");
+        else if(priv->frame->pict_type == FF_B_TYPE)
+          bgav_dprintf("B-Frame ");
+        else if(priv->frame->pict_type == FF_P_TYPE)
+          bgav_dprintf("P-Frame ");
+        else if(priv->frame->pict_type == FF_S_TYPE)
+          bgav_dprintf("S-Frame ");
+        else if(priv->frame->pict_type == FF_SI_TYPE)
+          bgav_dprintf("SI-Frame ");
+        else if(priv->frame->pict_type == FF_SP_TYPE)
+          bgav_dprintf("SP-Frame ");
+
+        bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
+                     priv->frame->interlaced_frame,
+                     priv->frame->top_field_first,
+                     priv->frame->repeat_pict,
+                     (float)(priv->ctx->time_base.den) / (float)(priv->ctx->time_base.num)
+                     );
+      
+        bgav_dprintf("\n");
+        }
+#endif
+
+
       }
     
     /* If we passed no data and got no picture, we are done here */
@@ -526,36 +628,6 @@ static int decode_picture(bgav_stream_t * s)
       priv->codec_eof = 1;
       return 0;
       }
-#ifdef DUMP_DECODE
-    bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                 bytes_used, priv->frame_buffer_len, have_picture);
-    if(!have_picture)
-      bgav_dprintf("\n");
-    else
-      {
-      if(priv->frame->pict_type == FF_I_TYPE)
-        bgav_dprintf("I-Frame ");
-      else if(priv->frame->pict_type == FF_B_TYPE)
-        bgav_dprintf("B-Frame ");
-      else if(priv->frame->pict_type == FF_P_TYPE)
-        bgav_dprintf("P-Frame ");
-      else if(priv->frame->pict_type == FF_S_TYPE)
-        bgav_dprintf("S-Frame ");
-      else if(priv->frame->pict_type == FF_SI_TYPE)
-        bgav_dprintf("SI-Frame ");
-      else if(priv->frame->pict_type == FF_SP_TYPE)
-        bgav_dprintf("SP-Frame ");
-
-      bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
-                   priv->frame->interlaced_frame,
-                   priv->frame->top_field_first,
-                   priv->frame->repeat_pict,
-                   (float)(priv->ctx->time_base.den) / (float)(priv->ctx->time_base.num)
-                   );
-      
-      bgav_dprintf("\n");
-      }
-#endif
     
     if(have_picture)
       {
@@ -671,6 +743,10 @@ static int init_ffmpeg(bgav_stream_t * s)
 
   priv = calloc(1, sizeof(*priv));
   priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
+
+  priv->ip_age[0] = 256*256*256*64;
+  priv->ip_age[1] = 256*256*256*64;
+  priv->b_age = 256*256*256*64;
   
   s->data.video.decoder->priv = priv;
   
@@ -680,9 +756,39 @@ static int init_ffmpeg(bgav_stream_t * s)
     s->data.video.flip_y = 1;
   
   priv->info = lookup_codec(s);
-  codec = find_decoder(priv->info->ffmpeg_id, s->fourcc, s->opt);
 
   priv->ctx = avcodec_alloc_context();
+
+  codec = find_decoder(priv->info->ffmpeg_id, s->fourcc, s->opt);
+  
+  /* Check for vdpau */
+#ifdef HAVE_VDPAU
+  if(codec->capabilities & CODEC_CAP_HWACCEL_VDPAU)
+    {
+    int i;
+    priv->vdpau_ctx = bgav_vdpau_context_create(s->opt);
+    if(!priv->vdpau_ctx)
+      {
+      codec = avcodec_find_decoder(priv->info->ffmpeg_id);
+      }
+    else
+      {
+      bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+               "Using VDPAU for decoding");
+      priv->ctx->get_buffer      = vdpau_get_buffer;
+      //    priv->ctx->reget_buffer      = vdpau_reget_buffer;
+      priv->ctx->release_buffer      = vdpau_release_buffer;
+      priv->ctx->draw_horiz_band = vdpau_draw_horiz_band;
+
+      for(i = 0; i < VDPAU_MAX_STATES; i++)
+        priv->vdpau_states[i].state.surface = VDP_INVALID_HANDLE;
+      priv->vdpau_decoder = VDP_INVALID_HANDLE;
+
+      priv->ctx->slice_flags = SLICE_FLAG_CODED_ORDER|SLICE_FLAG_ALLOW_FIELD;
+      }
+    }
+#endif
+  
   priv->ctx->width = s->data.video.format.frame_width;
   priv->ctx->height = s->data.video.format.frame_height;
 #if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
@@ -712,29 +818,6 @@ static int init_ffmpeg(bgav_stream_t * s)
   priv->ctx->flags &= ~CODEC_FLAG_TRUNCATED;
   //  priv->ctx->flags |=  CODEC_FLAG_BITEXACT;
 
-  /* Check for vdpau */
-#ifdef HAVE_VDPAU
-  if(codec->capabilities & CODEC_CAP_HWACCEL_VDPAU)
-    {
-    int i;
-    priv->vdpau_ctx = bgav_vdpau_context_create(s->opt);
-    if(!priv->vdpau_ctx)
-      fprintf(stderr, "Vdpau init failed\n");
-    else
-      fprintf(stderr, "Codec has vdpau\n");
-
-    priv->ctx->get_buffer      = vdpau_get_buffer;
-    priv->ctx->release_buffer      = vdpau_release_buffer;
-    priv->ctx->draw_horiz_band = vdpau_draw_horiz_band;
-
-    for(i = 0; i < VDPAU_MAX_STATES; i++)
-      priv->vdpau_states[i].state.surface = VDP_INVALID_HANDLE;
-    priv->vdpau_decoder = VDP_INVALID_HANDLE;
-    }
-  else
-    fprintf(stderr, "No vdpau\n");
-    
-#endif
   /* Check if there might be B-frames */
   if(codec->capabilities & CODEC_CAP_DELAY)
     priv->flags |= HAS_DELAY;
@@ -915,6 +998,10 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv = s->data.video.decoder->priv;
   avcodec_flush_buffers(priv->ctx);
 
+  priv->ip_age[0] = 256*256*256*64;
+  priv->ip_age[1] = 256*256*256*64;
+  priv->b_age = 256*256*256*64;
+  
   priv->packet = NULL;
 
   priv->demuxer_eof = 0;
@@ -2149,6 +2236,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
   else if(priv->vdpau_ctx)
     {
     struct vdpau_render_state * state = priv->frame->data[0];
+    //    gavl_video_frame_clear(f, &s->data.video.format);
     bgav_vdpau_context_surface_to_frame(priv->vdpau_ctx,
                                         state->surface, f);
     }

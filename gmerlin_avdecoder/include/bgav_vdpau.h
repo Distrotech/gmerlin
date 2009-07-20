@@ -1,24 +1,6 @@
 #include <vdpau/vdpau_x11.h>
 
-typedef struct
-  {
-  Display * dpy;
-  VdpDevice device;
-  VdpGetProcAddress *get_proc_address;
-  
-  /* Surface */
-  VdpVideoSurfaceCreate  * video_surface_create;
-  VdpVideoSurfaceDestroy * video_surface_destroy;
-  VdpVideoSurfaceGetBitsYCbCr * video_surface_get_bits_ycbcr;
-  
-  /* Decoder */
-  VdpDecoderCreate  * decoder_create;
-  VdpDecoderDestroy * decoder_destroy;
-  VdpDecoderRender * decoder_render;
-  
-  VdpDeviceDestroy * device_destroy;
-  
-  } bgav_vdpau_context_t;
+typedef struct bgav_vdpau_context_s bgav_vdpau_context_t;
 
 bgav_vdpau_context_t * bgav_vdpau_context_create(const bgav_options_t * opt);
 

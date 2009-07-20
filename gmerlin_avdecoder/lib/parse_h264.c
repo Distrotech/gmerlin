@@ -350,6 +350,9 @@ static int handle_nal(bgav_video_parser_t * parser)
         
         bgav_video_parser_set_framerate(parser, priv->sps.vui.time_scale,
                                         priv->sps.vui.num_units_in_tick * 2);
+
+        bgav_h264_sps_get_image_size(&priv->sps,
+                                     &parser->format);
         
         }
       priv->have_sps = 1;

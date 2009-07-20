@@ -28,6 +28,59 @@
 
 #include <bitstream.h>
 
+static const struct
+  {
+  int pixel_width;
+  int pixel_height;
+  }
+pixel_aspect[] =
+  {
+    {1, 1}, /* Unspecified */
+    {1, 1},
+    {12, 11},
+    {10, 11},
+    {16, 11},
+    {40, 33},
+    {24, 11},
+    {20, 11},
+    {32, 11},
+    {80, 33},
+    {18, 11},
+    {15, 11},
+    {64, 33},
+    {160,99},
+    {4, 3},
+    {3, 2},
+    {2, 1},
+  };
+
+static void get_pixel_size(bgav_h264_vui_t * v, int * w, int * h)
+  {
+  if(v->aspect_ratio_info_present_flag)
+    {
+    if(v->aspect_ratio_idc < 17)
+      {
+      *w = pixel_aspect[v->aspect_ratio_idc].pixel_width;
+      *h = pixel_aspect[v->aspect_ratio_idc].pixel_height;
+      }
+    else if(v->aspect_ratio_idc == 255)
+      {
+      *w = v->sar_width;
+      *h = v->sar_height;
+      }
+    else
+      {
+      *w = 1;
+      *h = 1;
+      }
+    }
+  else
+    {
+    *w = 1;
+    *h = 1;
+    }
+  }
+
 /* */
 
 const uint8_t *
@@ -436,6 +489,49 @@ void bgav_h264_sps_dump(bgav_h264_sps_t * sps)
   if(sps->vui_parameters_present_flag)
     vui_dump(&sps->vui);
   
+  }
+
+void bgav_h264_sps_get_image_size(bgav_h264_sps_t * sps,
+                                  gavl_video_format_t * format)
+  {
+  int crop_right, crop_bottom, width, height;
+
+  width  = 16 * (sps->pic_width_in_mbs_minus1 + 1);
+  height = 16 * (sps->pic_height_in_map_units_minus1 + 1) *
+    (2 - sps->frame_mbs_only_flag);
+
+  crop_right  = sps->frame_crop_right_offset;
+  crop_bottom = sps->frame_crop_bottom_offset;
+
+  if(crop_right)
+    {
+    if(crop_right > 7)
+      crop_right = 7;
+    width -= 2 * crop_right;
+    }
+  if(crop_bottom)
+    {
+    if(sps->frame_mbs_only_flag)
+      {
+      if(crop_bottom > 7)
+        crop_bottom = 7;
+      height -= 2 * crop_bottom;
+      }
+    else
+      {
+      if(crop_bottom > 3)
+        crop_bottom = 3;
+      height -= 4 * crop_bottom;
+      }
+    }
+
+  format->image_width  = width;
+  format->image_height = height;
+
+  format->frame_width  = ((width + 15)/16)*16;
+  format->frame_height = ((height + 15)/16)*16;
+  
+  get_pixel_size(&sps->vui, &format->pixel_width, &format->pixel_height);
   }
 
 int bgav_h264_decode_sei_message_header(const uint8_t * data, int len,

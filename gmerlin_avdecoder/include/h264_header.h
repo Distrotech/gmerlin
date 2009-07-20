@@ -174,6 +174,10 @@ void bgav_h264_sps_free(bgav_h264_sps_t *);
 
 void bgav_h264_sps_dump(bgav_h264_sps_t *);
 
+void bgav_h264_sps_get_image_size(bgav_h264_sps_t * sps,
+                                  gavl_video_format_t * format);
+
+
 #if 0 /* Not needed */
 
 typedef struct
