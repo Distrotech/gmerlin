@@ -64,6 +64,9 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
 const gavl_video_format_t *
 bgav_video_parser_get_format(bgav_video_parser_t * parser);
 
+int bgav_video_parser_max_ref_frames(bgav_video_parser_t * parser);
+
+
 void
 bgav_video_parser_set_format(bgav_video_parser_t * parser, const gavl_video_format_t *);
 

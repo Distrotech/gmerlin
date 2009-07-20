@@ -134,6 +134,9 @@ int bgav_video_start(bgav_stream_t * s)
       }
 
     format = bgav_video_parser_get_format(parser);
+
+    s->data.video.max_ref_frames = bgav_video_parser_max_ref_frames(parser);
+    
     gavl_video_format_copy(&s->data.video.format, format);
     
     s->data.video.parser = parser;

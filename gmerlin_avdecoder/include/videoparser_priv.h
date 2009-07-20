@@ -112,6 +112,9 @@ struct bgav_video_parser_s
 
   int packet_duration;
   //  int64_t packet_timestamp;
+
+  /* Needed by the vdpau decoder */
+  int max_ref_frames;
   };
 
 void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser);

@@ -275,8 +275,6 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
                                   int y, int type, int height)
   {
   ffmpeg_video_priv * priv;
-  VdpDecoderProfile profile;
-  int max_references = 2;
   struct vdpau_render_state *state;
   bgav_stream_t * s = c->opaque;
   priv = s->data.video.decoder->priv;
@@ -284,47 +282,15 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
 
   state = (struct vdpau_render_state *)src->data[0];
 
-  //  fprintf(stderr, "vdpau_draw_horiz_band %d %d\n", state->surface, type);
+  // fprintf(stderr, "vdpau_draw_horiz_band %d %d\n", state->surface, priv->vdpau_decoder);
   
-  if(priv->vdpau_decoder == VDP_INVALID_HANDLE)
-    {
-    switch(c->pix_fmt)
-      {
-      case PIX_FMT_VDPAU_H264:
-        profile = VDP_DECODER_PROFILE_H264_HIGH;
-        max_references = state->info.h264.num_ref_frames;
-        // fprintf(stderr, "max references: %d\n", max_references);
-        break;
-      case PIX_FMT_VDPAU_MPEG1:
-        profile = VDP_DECODER_PROFILE_MPEG1;
-        break;
-      case PIX_FMT_VDPAU_MPEG2:
-        profile = VDP_DECODER_PROFILE_MPEG2_MAIN;
-        break;
-      case PIX_FMT_VDPAU_WMV3:
-        profile = VDP_DECODER_PROFILE_VC1_MAIN;
-        break;
-      case PIX_FMT_VDPAU_VC1:
-        profile = VDP_DECODER_PROFILE_VC1_ADVANCED;
-        break;
-      default:
-        break;
-      }
-    priv->vdpau_decoder =
-      bgav_vdpau_context_create_decoder(priv->vdpau_ctx,
-                                        profile,
-                                        c->width, c->height,
-                                        max_references);
-    }
-
   /* Decode */
-  if(bgav_vdpau_context_decoder_render(priv->vdpau_ctx,
-                                       priv->vdpau_decoder,
-                                       state->surface,
-                                       (void *)&state->info,
-                                       state->bitstream_buffers_used,
-                                       state->bitstream_buffers) != VDP_STATUS_OK)
-    fprintf(stderr, "rendering failed\n");
+  bgav_vdpau_context_decoder_render(priv->vdpau_ctx,
+                                    priv->vdpau_decoder,
+                                    state->surface,
+                                    (void *)&state->info,
+                                    state->bitstream_buffers_used,
+                                    state->bitstream_buffers);
   }
 
 #endif
@@ -699,11 +665,6 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
     }
   else if(!priv->need_format)
     return 0; /* EOF */
-
-  /* If we do the timing ourselves, we must decode one frame in advance */
-  
-  //  if(priv->do_timing)
-  //    decode_picture(s);
   
   return 1;
   }
@@ -726,6 +687,96 @@ static AVCodec * find_decoder(enum CodecID id, uint32_t fourcc,
   }
 #else
 #define find_decoder(id, fourcc, opt) avcodec_find_decoder(id)
+#endif
+
+#ifdef HAVE_VDPAU
+static void cleanup_vdpau(bgav_stream_t * s)
+  {
+  int i;
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+
+  if(priv->vdpau_decoder != VDP_INVALID_HANDLE)
+    {
+    bgav_vdpau_context_destroy_decoder(priv->vdpau_ctx, priv->vdpau_decoder);
+    priv->vdpau_decoder = VDP_INVALID_HANDLE;
+    }
+
+  for(i = 0; i < VDPAU_MAX_STATES; i++)
+    {
+    if(priv->vdpau_states[i].state.surface != VDP_INVALID_HANDLE)
+      {
+      bgav_vdpau_context_destroy_video_surface(priv->vdpau_ctx,
+                                               priv->vdpau_states[i].state.surface);
+      priv->vdpau_states[i].state.surface = VDP_INVALID_HANDLE;
+      }
+    }
+  
+  if(priv->vdpau_ctx)
+    {
+    bgav_vdpau_context_destroy(priv->vdpau_ctx);
+    priv->vdpau_ctx = NULL;
+    }
+  }
+
+static int init_vdpau(bgav_stream_t * s, enum CodecID id)
+  {
+  int i;
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  VdpDecoderProfile profile;
+  
+  /* Create VDPAU context */
+  priv->vdpau_ctx = bgav_vdpau_context_create(s->opt);
+  if(!priv->vdpau_ctx)
+    goto fail;
+
+  priv->vdpau_decoder = VDP_INVALID_HANDLE;
+  
+  /* Create video decoder */
+  switch(id)
+    {
+    case CODEC_ID_H264:
+      profile = VDP_DECODER_PROFILE_H264_HIGH;
+      // fprintf(stderr, "max references: %d\n", max_references);
+      break;
+    case CODEC_ID_MPEG1VIDEO:
+      profile = VDP_DECODER_PROFILE_MPEG1;
+      break;
+    case CODEC_ID_MPEG2VIDEO:
+      profile = VDP_DECODER_PROFILE_MPEG2_MAIN;
+      break;
+    case CODEC_ID_WMV3:
+      profile = VDP_DECODER_PROFILE_VC1_MAIN;
+      break;
+    case CODEC_ID_VC1:
+      profile = VDP_DECODER_PROFILE_VC1_ADVANCED;
+      break;
+    default:
+      break;
+    }
+  priv->vdpau_decoder =
+    bgav_vdpau_context_create_decoder(priv->vdpau_ctx,
+                                      profile,
+                                      s->data.video.format.image_width,
+                                      s->data.video.format.image_height,
+                                      s->data.video.max_ref_frames);
+  
+  if(priv->vdpau_decoder == VDP_INVALID_HANDLE)
+    goto fail;
+  
+  priv->ctx->get_buffer      = vdpau_get_buffer;
+  priv->ctx->release_buffer      = vdpau_release_buffer;
+  priv->ctx->draw_horiz_band = vdpau_draw_horiz_band;
+  
+  for(i = 0; i < VDPAU_MAX_STATES; i++)
+    priv->vdpau_states[i].state.surface = VDP_INVALID_HANDLE;
+  
+  priv->ctx->slice_flags = SLICE_FLAG_CODED_ORDER|SLICE_FLAG_ALLOW_FIELD;
+  return 1;
+  
+  fail:
+  cleanup_vdpau(s);
+  return 0;
+  }
 #endif
 
 static int init_ffmpeg(bgav_stream_t * s)
@@ -763,11 +814,12 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   /* Check for vdpau */
 #ifdef HAVE_VDPAU
-  if(codec->capabilities & CODEC_CAP_HWACCEL_VDPAU)
+  if((codec->capabilities & CODEC_CAP_HWACCEL_VDPAU) &&
+     s->data.video.format.image_width &&
+     s->data.video.format.image_height &&
+     s->data.video.max_ref_frames)
     {
-    int i;
-    priv->vdpau_ctx = bgav_vdpau_context_create(s->opt);
-    if(!priv->vdpau_ctx)
+    if(!init_vdpau(s, priv->info->ffmpeg_id))
       {
       codec = avcodec_find_decoder(priv->info->ffmpeg_id);
       }
@@ -775,16 +827,6 @@ static int init_ffmpeg(bgav_stream_t * s)
       {
       bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
                "Using VDPAU for decoding");
-      priv->ctx->get_buffer      = vdpau_get_buffer;
-      //    priv->ctx->reget_buffer      = vdpau_reget_buffer;
-      priv->ctx->release_buffer      = vdpau_release_buffer;
-      priv->ctx->draw_horiz_band = vdpau_draw_horiz_band;
-
-      for(i = 0; i < VDPAU_MAX_STATES; i++)
-        priv->vdpau_states[i].state.surface = VDP_INVALID_HANDLE;
-      priv->vdpau_decoder = VDP_INVALID_HANDLE;
-
-      priv->ctx->slice_flags = SLICE_FLAG_CODED_ORDER|SLICE_FLAG_ALLOW_FIELD;
       }
     }
 #endif
@@ -1040,7 +1082,11 @@ static void close_ffmpeg(bgav_stream_t * s)
 
   if(!priv)
     return;
-  
+
+#ifdef HAVE_VDPAU
+  if(priv->vdpau_ctx)
+    cleanup_vdpau(s);
+#endif
   if(priv->ctx)
     {
     avcodec_close(priv->ctx);

@@ -511,6 +511,8 @@ struct bgav_stream_s
       
       bgav_video_parser_t * parser;
       bgav_keyframe_table_t * kft;
+      
+      int max_ref_frames; /* Needed for VDPAU */
       } video;
     struct
       {

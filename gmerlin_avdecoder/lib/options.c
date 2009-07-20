@@ -223,6 +223,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->audio_dynrange = 1;
   b->cache_time = 500;
   b->cache_size = 20;
+  b->vdpau = 1;
   // Test
   //  b->rtp_try_tcp = 1;
   }

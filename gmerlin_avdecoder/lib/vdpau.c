@@ -91,10 +91,10 @@ void bgav_vdpau_context_destroy(bgav_vdpau_context_t * ctx)
   {
   if(ctx->device != VDP_INVALID_HANDLE)
     ctx->device_destroy(ctx->device);
-  
+  if(ctx->dpy)
+    XCloseDisplay(ctx->dpy);
   free(ctx);
   }
-
 
 VdpVideoSurface
 bgav_vdpau_context_create_video_surface(bgav_vdpau_context_t * ctx,

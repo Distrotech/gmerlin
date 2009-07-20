@@ -84,6 +84,7 @@ bgav_video_parser_create(uint32_t fourcc, int timescale,
   ret->last_non_b_frame = -1;
   ret->raw_position = -1;
   ret->stream_flags = stream_flags;
+  ret->max_ref_frames = 2;
   func(ret);
   return ret;
   }
@@ -252,6 +253,12 @@ bgav_video_parser_get_format(bgav_video_parser_t * parser)
   {
   return &parser->format;
   }
+
+int bgav_video_parser_max_ref_frames(bgav_video_parser_t * parser)
+  {
+  return parser->max_ref_frames;
+  }
+
 
 const uint8_t *
 bgav_video_parser_get_header(bgav_video_parser_t * parser,

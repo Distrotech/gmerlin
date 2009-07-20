@@ -130,6 +130,7 @@ static const bg_parameter_info_t parameters[] =
       .long_name =  TRS("Use vdpau"),
       .type      =  BG_PARAMETER_CHECKBUTTON,
       .help_string = TRS("Use VDPAU"),
+      .val_default = { .val_i = 1 },
     },
     {
       .name =       "network_options",
