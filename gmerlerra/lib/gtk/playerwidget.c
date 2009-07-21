@@ -246,3 +246,11 @@ GtkWidget * bg_nle_player_widget_get_widget(bg_nle_player_widget_t * w)
   {
   return w->box;
   }
+
+void bg_nle_player_set_track(bg_nle_player_widget_t * w,
+                             bg_plugin_handle_t * input_plugin, int track,
+                             const char * track_name)
+  {
+  bg_player_play(w->player, input_plugin,
+                 track, BG_PLAY_FLAG_INIT_THEN_PAUSE, track_name);
+  }

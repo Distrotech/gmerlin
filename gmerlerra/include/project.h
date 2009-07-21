@@ -144,6 +144,13 @@ void bg_nle_project_set_outstream_parameters_end(bg_nle_project_t * p,
                                                  int changed,
                                                  bg_nle_outstream_t * outstream);
 
+void bg_nle_project_add_file(bg_nle_project_t * p,
+                             bg_nle_file_t * file);
+
+void bg_nle_project_delete_file(bg_nle_project_t * p,
+                                int index);
+
+
 /* Utility functions */
 
 void bg_nle_project_append_track(bg_nle_project_t * p, bg_nle_track_t * t);

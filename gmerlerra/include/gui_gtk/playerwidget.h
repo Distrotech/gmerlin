@@ -10,3 +10,7 @@ void
 bg_nle_player_widget_destroy(bg_nle_player_widget_t *);
 
 GtkWidget * bg_nle_player_widget_get_widget(bg_nle_player_widget_t *);
+
+void bg_nle_player_set_track(bg_nle_player_widget_t * w,
+                             bg_plugin_handle_t * input_plugin, int track,
+                             const char * track_name);

@@ -195,6 +195,18 @@ static void edit_callback(bg_nle_project_t * p,
       bg_nle_timeline_update_outstream_parameters(win->timeline, d->index, d->new_section);
       }
       break;
+    case BG_NLE_EDIT_ADD_FILE:
+      {
+      bg_nle_op_file_t * d = op_data;
+      bg_nle_media_browser_add_file(win->media_browser, d->index);
+      }
+      break;
+    case BG_NLE_EDIT_DELETE_FILE:
+      {
+      bg_nle_op_file_t * d = op_data;
+      bg_nle_media_browser_delete_file(win->media_browser, d->index);
+      }
+      break;
     }
   
   }
@@ -623,7 +635,7 @@ bg_nle_project_window_create(const char * project_file,
   bg_nle_timeline_set_motion_callback(ret->timeline,
                                       motion_callback, ret);
 
-  ret->media_browser = bg_nle_media_browser_create(ret->p->media_list);
+  ret->media_browser = bg_nle_media_browser_create(ret->p);
   
   ret->compositor = bg_nle_player_widget_create(plugin_reg,
                                                 bg_nle_timeline_get_ruler(ret->timeline));

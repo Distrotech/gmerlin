@@ -19,6 +19,8 @@ enum bg_nle_edit_op_e
     BG_NLE_EDIT_PROJECT_PARAMETERS,
     BG_NLE_EDIT_TRACK_PARAMETERS,
     BG_NLE_EDIT_OUTSTREAM_PARAMETERS,
+    BG_NLE_EDIT_ADD_FILE,
+    BG_NLE_EDIT_DELETE_FILE,
   };
 
 // BG_NLE_EDIT_ADD_TRACK
@@ -111,6 +113,15 @@ typedef struct
   bg_cfg_section_t * new_section;
   int index; // Track or outstream index
   } bg_nle_op_parameters_t;
+
+// BG_NLE_EDIT_ADD_FILE,
+// BG_NLE_EDIT_DELETE_FILE,
+
+typedef struct
+  {
+  bg_nle_file_t * file;
+  int index; // index
+  } bg_nle_op_file_t;
 
 /* Undo data */
 

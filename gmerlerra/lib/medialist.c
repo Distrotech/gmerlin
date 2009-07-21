@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <medialist.h>
 
 #include <gmerlin/utils.h>
@@ -11,6 +12,37 @@ bg_nle_media_list_create(bg_plugin_registry_t * plugin_reg)
   ret = calloc(1, sizeof(*ret));
   ret->plugin_reg = plugin_reg;
   return ret;
+  }
+
+void bg_nle_media_list_insert(bg_nle_media_list_t * list,
+                              bg_nle_file_t * file, int index)
+  {
+  if(list->num_files+1 > list->files_alloc)
+    {
+    list->files_alloc += 16;
+    list->files = realloc(list->files, list->files_alloc * sizeof(*list->files));
+    }
+  if(index < list->num_files)
+    {
+    memmove(list->files + list->num_files + 1,
+            list->files + list->num_files,
+            (list->num_files - index) * sizeof(*list->files));
+    }
+  list->files[index] = file;
+  list->num_files++;
+  }
+
+void bg_nle_media_list_delete(bg_nle_media_list_t * list,
+                              int index)
+  {
+  if(index < list->num_files - 1)
+    {
+    memmove(list->files + index,
+            list->files + index+1,
+            (list->num_files - 1 - index) * sizeof(*list->files));
+    
+    }
+  list->num_files--;
   }
 
 bg_nle_file_t *
@@ -50,18 +82,11 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
     /* TODO: Ask which track to load */
     }
 
-  if(list->num_files+1 > list->files_alloc)
-    {
-    list->files_alloc += 16;
-    list->files = realloc(list->files, list->files_alloc * sizeof(*list->files));
-    }
   
   ti = input->get_track_info(handle->priv, track);
   
   ret = calloc(1, sizeof(*ret));
-  list->files[list->num_files] = ret;
-  list->num_files++;
-
+  
   ret->filename = bg_strdup(ret->filename, file);
   ret->num_audio_streams = ti->num_audio_streams;
   ret->num_video_streams = ti->num_video_streams;
@@ -86,4 +111,11 @@ bg_nle_media_list_find_file(bg_nle_media_list_t * list,
 void bg_nle_media_list_destroy(bg_nle_media_list_t * list)
   {
   free(list);
+  }
+
+void bg_nle_file_destroy(bg_nle_file_t * file)
+  {
+  if(file->name) free(file->name);
+  if(file->filename) free(file->filename);
+  free(file);
   }

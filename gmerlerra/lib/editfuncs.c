@@ -560,3 +560,28 @@ void bg_nle_project_set_outstream_parameters_end(bg_nle_project_t * p,
     bg_cfg_section_destroy(s);
     }
   }
+
+// BG_NLE_EDIT_ADD_FILE,
+
+void bg_nle_project_add_file(bg_nle_project_t * p,
+                             bg_nle_file_t * file)
+  {
+  bg_nle_op_file_t * d;
+
+  d = calloc(1, sizeof(*d));
+  d->index = p->media_list->num_files;
+  d->file  = file;
+  edited(p, BG_NLE_EDIT_ADD_FILE, d);
+  }
+
+// BG_NLE_EDIT_DELETE_FILE,
+
+void bg_nle_project_delete_file(bg_nle_project_t * p,
+                                int index)
+  {
+  bg_nle_op_file_t * d;
+  d = calloc(1, sizeof(*d));
+  d->index = index;
+  d->file = p->media_list->files[index];
+  edited(p, BG_NLE_EDIT_DELETE_FILE, d);
+  }

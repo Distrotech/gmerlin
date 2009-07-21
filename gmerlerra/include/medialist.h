@@ -18,6 +18,8 @@ typedef struct
   bg_nle_id_t id;
   } bg_nle_file_t;
 
+void bg_nle_file_destroy(bg_nle_file_t * file);
+
 typedef struct
   {
   bg_nle_file_t ** files;
@@ -42,6 +44,14 @@ bg_nle_media_list_find_file(bg_nle_media_list_t * list,
 
 void bg_nle_media_list_destroy(bg_nle_media_list_t * list);
 
+void bg_nle_media_list_insert(bg_nle_media_list_t * list,
+                              bg_nle_file_t * file, int index);
+
+void bg_nle_media_list_delete(bg_nle_media_list_t * list,
+                              int index);
+
+
+
 /* medialist_xml.c */
 
 bg_nle_media_list_t *
@@ -50,5 +60,7 @@ bg_nle_media_list_load(bg_plugin_registry_t * plugin_reg,
 
 void
 bg_nle_media_list_save(bg_nle_media_list_t * t, xmlNodePtr node);
+
+
 
 #endif

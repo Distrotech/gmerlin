@@ -25,7 +25,8 @@ struct bg_nle_media_browser_s
   GtkWidget * box;
   GtkWidget * plug;
   bg_nle_media_list_t * list;
-
+  bg_nle_project_t * p;
+  
   GtkTreeViewColumn * col_duration;
   GtkTreeViewColumn * col_name;
 
@@ -144,12 +145,60 @@ static void update_entry(bg_nle_media_browser_t * w,
   
   /* Duration */
   gavl_time_prettyprint(file->duration, string_buffer);
-  gtk_list_store_set(GTK_LIST_STORE(model), iter, COLUMN_DURATION, string_buffer, -1);
+  gtk_list_store_set(GTK_LIST_STORE(model), iter, COLUMN_DURATION,
+                     string_buffer, -1);
   
   }
 
+static bg_nle_file_t * iter_to_file(bg_nle_media_browser_t * b,
+                                    GtkTreeIter * iter)
+  {
+  GtkTreeModel * model;
+  GtkTreePath * path;
+  gint * indices;
+  bg_nle_file_t * ret;
+  
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(b->treeview));
+  path = gtk_tree_model_get_path(model, iter);
+  indices = gtk_tree_path_get_indices(path);
+  
+  ret = b->list->files[indices[0]];
+  gtk_tree_path_free(path);
+  return ret;
+  }
+
+static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
+                                      gpointer data)
+  {
+  if(evt->type == GDK_2BUTTON_PRESS)
+    {
+    bg_nle_media_browser_t * b = data;
+    GtkTreeIter iter;
+    bg_nle_file_t * file;
+    bg_plugin_handle_t * handle;
+    
+    GtkTreeSelection *selection =
+      gtk_tree_view_get_selection(GTK_TREE_VIEW(b->treeview));
+    
+    if(gtk_tree_selection_get_selected(selection,
+                                       (GtkTreeModel **)0,
+                                       &iter))
+      {
+      file = iter_to_file(b, &iter);
+      fprintf(stderr, "doubleclick %s\n", file->filename);
+      bg_nle_player_set_track(b->player,
+                              handle, file->track,
+                              file->name);
+      }
+    
+    return TRUE;
+    }
+  else
+    return FALSE;
+  }
+
 bg_nle_media_browser_t *
-bg_nle_media_browser_create(bg_nle_media_list_t * list)
+bg_nle_media_browser_create(bg_nle_project_t * p)
   {
   int i;
   bg_nle_media_browser_t * ret;
@@ -162,7 +211,8 @@ bg_nle_media_browser_create(bg_nle_media_list_t * list)
   GtkTreeModel * model;
   
   ret = calloc(1, sizeof(*ret));
-  ret->list = list;
+  ret->p = p;
+  ret->list = p->media_list;
   
   /* Create list */
 
@@ -173,6 +223,15 @@ bg_nle_media_browser_create(bg_nle_media_list_t * list)
                              G_TYPE_INT);     // Foreground
 
   ret->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+
+  gtk_widget_set_events(ret->treeview,
+                        GDK_BUTTON_PRESS_MASK);
+
+  g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
+                   G_CALLBACK(button_press_callback), (gpointer)ret);
+
+  
+  
   gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(ret->treeview), TRUE);
   gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(ret->treeview), 0);
 
@@ -281,16 +340,39 @@ bg_nle_media_browser_get_widget(bg_nle_media_browser_t * b)
   return b->box;
   }
 
+void bg_nle_media_browser_add_file(bg_nle_media_browser_t * b, int index)
+  {
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(b->treeview));
+  gtk_list_store_insert(GTK_LIST_STORE(model), &iter, index);
+  update_entry(b, b->list->files[index], &iter);
+  
+  }
+
+void bg_nle_media_browser_delete_file(bg_nle_media_browser_t * b, int index)
+  {
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+  int i;
+  
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(b->treeview));
+
+  gtk_tree_model_get_iter_first(model, &iter);
+  for(i = 0; i < index; i++)
+    gtk_tree_model_iter_next(model, &iter);
+  
+  gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+  }
+
 static void add_file_callback(char ** files, const char * plugin,
                               void * data)
   {
   int i;
   bg_nle_media_browser_t * b = data;
   bg_nle_file_t * new_file;
-  GtkTreeModel * model;
-  GtkTreeIter iter;
   
-  model = gtk_tree_view_get_model(GTK_TREE_VIEW(b->treeview));
   
   b->list->open_path = bg_strdup(b->list->open_path,
                                  bg_gtk_filesel_get_directory(b->filesel));
@@ -300,12 +382,8 @@ static void add_file_callback(char ** files, const char * plugin,
   while(files[i])
     {
     new_file = bg_nle_media_list_load_file(b->list, files[i], plugin);
-
     if(new_file)
-      {
-      gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-      update_entry(b, new_file, &iter);
-      }
+      bg_nle_project_add_file(b->p, new_file);
     
     i++;
     }
