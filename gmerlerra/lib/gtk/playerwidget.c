@@ -15,10 +15,13 @@
 #include <gui_gtk/timeruler.h>
 #include <gui_gtk/playerwidget.h>
 
+#define DELAY_TIME 10 /* 10 milliseconds */
+
 struct bg_nle_player_widget_s
   {
   bg_player_t * player;
-
+  bg_msg_queue_t * queue;
+  
   GtkWidget * play_button;
   GtkWidget * stop_button;
   GtkWidget * goto_next_button;
@@ -130,6 +133,38 @@ static void size_allocate_callback(GtkWidget     *widget,
   bg_nle_timerange_widget_set_width(&w->tr, allocation->width);
   }
 
+static gboolean timeout_func(void * data)
+  {
+  bg_msg_t * msg;
+  bg_nle_player_widget_t * w = data;
+
+  while((msg = bg_msg_queue_try_lock_read(w->queue)))
+    {
+    switch(bg_msg_get_id(msg))
+      {
+      case BG_PLAYER_MSG_TIME_CHANGED:
+        {
+        gavl_time_t t = bg_msg_get_arg_time(msg, 0);
+        bg_gtk_time_display_update(w->display, t, BG_GTK_DISPLAY_MODE_HMSMS);
+        }
+        break;
+      case BG_PLAYER_MSG_AUDIO_PEAK:
+        {
+        double peaks[2];
+        int samples;
+        samples = bg_msg_get_arg_int(msg, 0);
+        peaks[0] = bg_msg_get_arg_float(msg, 1);
+        peaks[1] = bg_msg_get_arg_float(msg, 2);
+        bg_gtk_vumeter_update_peak(w->vumeter, peaks, samples);
+        //  fprintf(stderr, "Got peak %d %f %f\n", samples, peaks[0], peaks[1]);
+        }
+        break;
+      }
+    bg_msg_queue_unlock_read(w->queue);
+    }
+  return TRUE;
+  }
+
 bg_nle_player_widget_t *
 bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
                             bg_nle_time_ruler_t * ruler)
@@ -137,6 +172,7 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   GtkWidget * box;
   bg_nle_player_widget_t * ret;
   bg_nle_time_range_t r;
+  bg_parameter_value_t val;
   r.start = 0;
   r.end = 10 * GAVL_TIME_SCALE;
   
@@ -235,9 +271,25 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   gtk_widget_show(ret->box);
 
-  ret->player = bg_player_create(ret->plugin_reg);
+  /* Setup player */
 
+  ret->queue = bg_msg_queue_create();
+  
+  ret->player = bg_player_create(ret->plugin_reg);
+  
+  bg_player_add_message_queue(ret->player, ret->queue);
+
+  val.val_str = "frame";
+  bg_player_set_parameter(ret->player, "time_update", &val);
+  val.val_i = 1;
+  bg_player_set_parameter(ret->player, "report_peak", &val);
+  bg_player_set_parameter(ret->player, NULL, NULL);
+      
   bg_player_run(ret->player);
+  bg_player_set_volume(ret->player, 0.0);
+  
+  /* Add idle callback */
+  g_timeout_add(DELAY_TIME, timeout_func, ret);
   
   return ret;
   }
@@ -245,7 +297,8 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 void
 bg_nle_player_widget_destroy(bg_nle_player_widget_t * w)
   {
-
+  bg_player_destroy(w->player);
+  bg_msg_queue_destroy(w->queue);
   }
 
 GtkWidget * bg_nle_player_widget_get_widget(bg_nle_player_widget_t * w)
