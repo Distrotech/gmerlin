@@ -165,6 +165,8 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   ret->current_subtitle_stream = -1;
   //  ret->current_subtitle_stream = 5;
   ret->state = BG_PLAYER_STATE_INIT;
+
+  ret->wait_time = 10000;
   
   return ret;
   }
@@ -347,4 +349,65 @@ bg_player_set_visualization_plugin(bg_player_t * p, const bg_plugin_info_t * plu
       }
     }
 
+  }
+
+static const bg_parameter_info_t parameters[] =
+  {
+    {
+      .name        = "message_interval",
+      .long_name   = TRS("Control loop interval"),
+      .type        = BG_PARAMETER_INT,
+      .val_default = { .val_i = 10 },
+    },
+    {
+      .name         = "time_update",
+      .long_name    = TRS("Time update interval"),
+      .type         = BG_PARAMETER_STRINGLIST,
+      .multi_names  = (char const *[]){ "seconds", "frames", NULL },
+      .multi_labels = (char const *[]){ TRS("Seconds"), TRS("frames"), NULL },
+      .val_default  = { .val_str = "seconds" },
+    },
+    {
+      .name         = "report_peak",
+      .long_name    = TRS("Report peak values for audio"),
+      .type         = BG_PARAMETER_CHECKBUTTON,
+    },
+    { /* End of parameters */ }
+  };
+
+const bg_parameter_info_t * bg_player_get_parameters(bg_player_t * player)
+  {
+  return parameters;
+  }
+
+
+void bg_player_set_parameter(void * player, const char * name,
+                             const bg_parameter_value_t * val)
+  {
+  bg_player_t * p = player;
+  if(!name)
+    return;
+  else if(!strcmp(name, "message_interval"))
+    {
+    p->wait_time = val->val_i;
+    p->wait_time *= 1000;
+    }
+  else if(!strcmp(name, "time_update"))
+    {
+    if(!strcmp(val->val_str, "second"))
+      {
+      p->time_update_mode = TIME_UPDATE_SECOND;
+      }
+    else if(!strcmp(val->val_str, "frame"))
+      {
+      p->time_update_mode = TIME_UPDATE_FRAME;
+      }
+    }
+  else if(!strcmp(name, "report_peak"))
+    {
+    if(val->val_i)
+      p->flags |= PLAYER_DO_REPORT_PEAK;
+    else
+      p->flags &= ~PLAYER_DO_REPORT_PEAK;
+    }
   }

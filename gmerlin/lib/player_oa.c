@@ -82,7 +82,7 @@ void bg_player_oa_create(bg_player_t * player)
   ctx->player = player;
 
   ctx->timer = gavl_timer_create();
-
+  
   pthread_mutex_init(&(ctx->time_mutex),(pthread_mutexattr_t *)0);
   
   player->oa_context = ctx;
@@ -111,7 +111,7 @@ void bg_player_oa_destroy(bg_player_t * player)
   pthread_mutex_destroy(&(ctx->time_mutex));
 
   gavl_timer_destroy(ctx->timer);
-    
+  
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
   free(ctx);
@@ -249,6 +249,79 @@ void bg_player_time_set(bg_player_t * player, gavl_time_t time)
   pthread_mutex_unlock(&(ctx->time_mutex));
   }
 
+#define CHECK_PEAK(id, pos) \
+   index = gavl_channel_index(&ctx->player->audio_stream.fifo_format, id); \
+   if(index >= 0) \
+     { \
+     if(d.peak_out[pos] < peak[index]) \
+       d.peak_out[pos] = peak[index]; \
+     }
+
+#define CHECK_PEAK_2(id) \
+   index = gavl_channel_index(&ctx->player->audio_stream.fifo_format, id); \
+   if(index >= 0) \
+     { \
+     if(d.peak_out[0] < peak[index]) \
+       d.peak_out[0] = peak[index]; \
+     if(d.peak_out[1] < peak[index]) \
+       d.peak_out[1] = peak[index]; \
+     }
+
+typedef struct
+  {
+  double peak_out[2];
+  int num_samples;
+  } peak_data_t;
+
+static void msg_peak(bg_msg_t * msg,
+                     const void * data)
+  {
+  const peak_data_t * d = data;
+  bg_msg_set_id(msg, BG_PLAYER_MSG_AUDIO_PEAK);
+  bg_msg_set_arg_int(msg, 0, d->num_samples);
+  bg_msg_set_arg_float(msg, 1, d->peak_out[0]);
+  bg_msg_set_arg_float(msg, 2, d->peak_out[1]);
+  }
+
+static void do_peak(bg_player_oa_context_t * ctx, gavl_audio_frame_t * frame)
+  {
+  peak_data_t d;
+  int index;
+  double peak[GAVL_MAX_CHANNELS];
+
+  d.peak_out[0] = 0.0;
+  d.peak_out[1] = 0.0;
+  d.num_samples = frame->valid_samples;
+  
+  gavl_peak_detector_reset(ctx->player->audio_stream.peak_detector);
+  gavl_peak_detector_update(ctx->player->audio_stream.peak_detector,
+                            frame);
+
+  gavl_peak_detector_get_peaks(ctx->player->audio_stream.peak_detector,
+                               (double*)0,
+                               (double*)0,
+                               peak);
+  
+  /* Collect channels and merge into 2 */
+  CHECK_PEAK(GAVL_CHID_FRONT_LEFT, 0);
+  CHECK_PEAK(GAVL_CHID_FRONT_RIGHT, 1);
+
+  CHECK_PEAK(GAVL_CHID_REAR_LEFT, 0);
+  CHECK_PEAK(GAVL_CHID_REAR_RIGHT, 1);
+
+  CHECK_PEAK(GAVL_CHID_SIDE_LEFT, 0);
+  CHECK_PEAK(GAVL_CHID_SIDE_RIGHT, 1);
+
+  CHECK_PEAK(GAVL_CHID_FRONT_CENTER_LEFT, 0);
+  CHECK_PEAK(GAVL_CHID_FRONT_CENTER_RIGHT, 1);
+  
+  CHECK_PEAK_2(GAVL_CHID_FRONT_CENTER);
+  CHECK_PEAK_2(GAVL_CHID_LFE);
+
+  /* Broadcast */
+  bg_msg_queue_list_send(ctx->player->message_queues, msg_peak, &d);
+  }
+
 /* Audio output thread */
 
 void * bg_player_oa_thread(void * data)
@@ -312,6 +385,9 @@ void * bg_player_oa_thread(void * data)
       if(DO_VISUALIZE(ctx->player->flags))
         bg_visualizer_update(ctx->player->visualizer, frame);
 
+      if(DO_PEAK(ctx->player->flags))
+        do_peak(ctx, frame);
+      
       if(do_mute)
         {
         gavl_audio_frame_mute(frame,

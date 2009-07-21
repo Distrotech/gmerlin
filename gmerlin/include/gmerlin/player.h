@@ -47,6 +47,34 @@ typedef struct bg_player_s bg_player_t;
 bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg);
 
 /** \ingroup player
+ *  \brief Get parameters
+ *  \param player A player 
+ *  \returns An array of parameters
+ *
+ *  This returns only some internal parameters, which should never be
+ *  changed by the user. For user settable parameters, see
+ *  \ref bg_player_get_input_parameters,
+ *  \ref bg_player_get_audio_parameters,
+ *  \ref bg_player_get_audio_filter_parameters,
+ *  \ref bg_player_get_video_parameters,
+ *  \ref bg_player_get_video_filter_parameters
+ *  \ref bg_player_get_subtitle_parameters and
+ *  \ref bg_player_get_osd_parameters
+ */
+
+const bg_parameter_info_t * bg_player_get_parameters(bg_player_t * player);
+
+/** \ingroup player
+ *  \brief Get parameters
+ *  \param player A player cast to void
+ *  \param name The name of the parameter
+ *  \param val The parameter value
+ */
+
+void bg_player_set_parameter(void * player, const char * name,
+                             const bg_parameter_value_t * val);
+
+/** \ingroup player
  *  \brief Set accelerators
  *  \param player A newly created player 
  *  \param list A list of accelerators, terminated with BG_KEY_NONE
@@ -130,7 +158,6 @@ void bg_player_play(bg_player_t * player, bg_plugin_handle_t * handle,
  *  \param player A player
  *  \param time Time to seek to
  */
-
 
 void bg_player_seek(bg_player_t * player, gavl_time_t time);
 
@@ -352,7 +379,9 @@ void bg_player_set_video_filter_parameter(void*data, const char * name,
  *
  *  Returned parameters can be passed to \ref bg_player_set_subtitle_parameter
  */
+
 const bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * player);
+
 /** \brief Set a subtitle parameter
  *  \param data Player casted to void*
  *  \param name Name
@@ -366,14 +395,16 @@ void bg_player_set_subtitle_parameter(void*data, const char * name, const bg_par
  *
  *  Returned parameters can be passed to \ref bg_player_set_osd_parameter
  */
+
 const bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * player);
+
 /** \brief Set an OSD parameter
  *  \param data Player casted to void*
  *  \param name Name
  *  \param val Value
  */
-void bg_player_set_osd_parameter(void*data, const char * name, const bg_parameter_value_t*val);
 
+void bg_player_set_osd_parameter(void*data, const char * name, const bg_parameter_value_t*val);
 
 /** \brief En- or disable music visualizations
  *  \param p A player
@@ -411,6 +442,7 @@ bg_player_get_visualization_parameters(bg_player_t *  player);
  *  \param name Name
  *  \param val Value
  */
+
 void
 bg_player_set_visualization_parameter(void*data,
                                       const char * name, const bg_parameter_value_t*val);

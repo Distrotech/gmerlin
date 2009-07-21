@@ -424,10 +424,7 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
     }
   if(w->still_frame)
     {
-    if(w->current_driver->driver->destroy_frame)
-      w->current_driver->driver->destroy_frame(w->current_driver, w->still_frame);
-    else
-      gavl_video_frame_destroy(w->still_frame);
+    bg_x11_window_destroy_frame(w, w->still_frame);
     w->still_frame = (gavl_video_frame_t*)0;
     }
   

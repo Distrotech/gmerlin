@@ -858,14 +858,10 @@ void bg_gtk_vumeter_set_format(bg_gtk_vumeter_t * m,
   m->num_channels = format->num_channels;
   }
 
-void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
-                           gavl_audio_frame_t * frame)
+void bg_gtk_vumeter_update_peak(bg_gtk_vumeter_t * m,
+                                double * ampl, int samples)
   {
   int i;
-  double ampl[GAVL_MAX_CHANNELS];
-  gavl_peak_detector_reset(m->pd);
-  gavl_peak_detector_update(m->pd, frame);
-  gavl_peak_detector_get_peaks(m->pd, (double*)0, (double*)0, ampl);
   
   for(i = 0; i < m->num_channels; i++)
     {
@@ -883,7 +879,7 @@ void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
         m->meters[i].peak_age = 0;
         }
       else
-        m->meters[i].peak_age += frame->valid_samples;
+        m->meters[i].peak_age += samples;
       }
     else /* Lowpass */
       {
@@ -895,12 +891,22 @@ void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
         m->meters[i].peak_age = 0;
         }
       else
-        m->meters[i].peak_age += frame->valid_samples;
+        m->meters[i].peak_age += samples;
       }
     }
   
   m->pixmaps_valid = 0;
   draw_dynamic(m);
+  }
+
+void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
+                           gavl_audio_frame_t * frame)
+  {
+  double ampl[GAVL_MAX_CHANNELS];
+  gavl_peak_detector_reset(m->pd);
+  gavl_peak_detector_update(m->pd, frame);
+  gavl_peak_detector_get_peaks(m->pd, (double*)0, (double*)0, ampl);
+  bg_gtk_vumeter_update_peak(m, ampl, frame->valid_samples);
   }
 
 void bg_gtk_vumeter_draw(bg_gtk_vumeter_t * m)

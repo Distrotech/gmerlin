@@ -399,6 +399,13 @@
 
 #define BG_PLAYER_MSG_INPUT                  28
 
+/** \brief Audio peaks
+ *  arg0: Number of samples processed
+ *  arg1: Left peak
+ *  arg2: Right peak
+ */
+
+#define BG_PLAYER_MSG_AUDIO_PEAK             29
 
 /**  @}
  */

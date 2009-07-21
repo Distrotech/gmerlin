@@ -749,6 +749,11 @@ void * bg_player_ov_thread(void * data)
     else if(diff_time < -100000)
       {
       }
+
+    if(ctx->player->time_update_mode == TIME_UPDATE_FRAME)
+      {
+      bg_player_broadcast_time(ctx->player, ctx->frame_time);
+      }
     
     bg_plugin_lock(ctx->plugin_handle);
     ctx->plugin->put_video(ctx->priv, ctx->frame);
@@ -757,6 +762,8 @@ void * bg_player_ov_thread(void * data)
     
     bg_plugin_unlock(ctx->plugin_handle);
     }
+
+
 
   bg_player_delete_message_queue(ctx->player,
                               ctx->msg_queue);

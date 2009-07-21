@@ -1346,7 +1346,6 @@ static int process_commands(bg_player_t * player)
 static void * player_thread(void * data)
   {
   bg_player_t * player;
-  gavl_time_t wait_time;
   int old_seconds = -1;
   int seconds;
   int do_exit;
@@ -1356,8 +1355,7 @@ static void * player_thread(void * data)
   player = (bg_player_t*)data;
 
   bg_player_set_state(player, BG_PLAYER_STATE_STOPPED, NULL, NULL);
-
-  wait_time = 10000;
+  
   do_exit = 0;
   while(1)
     {
@@ -1373,14 +1371,17 @@ static void * player_thread(void * data)
       {
       case BG_PLAYER_STATE_PLAYING:
       case BG_PLAYER_STATE_FINISHING:
-        bg_player_time_get(player, 1, &time);
-        seconds = time / GAVL_TIME_SCALE;
-        if(seconds != old_seconds)
+        if(player->time_update_mode == TIME_UPDATE_SECOND)
           {
-          old_seconds = seconds;
-          bg_msg_queue_list_send(player->message_queues,
-                                 msg_time,
-                                 &time);
+          bg_player_time_get(player, 1, &time);
+          seconds = time / GAVL_TIME_SCALE;
+          if(seconds != old_seconds)
+            {
+            old_seconds = seconds;
+            bg_msg_queue_list_send(player->message_queues,
+                                   msg_time,
+                                   &time);
+            }
           }
         if(player->track_info->chapter_list &&
            bg_chapter_list_changed(player->track_info->chapter_list,
@@ -1393,9 +1394,17 @@ static void * player_thread(void * data)
         
         break;
       }
-    gavl_time_delay(&wait_time);
+    gavl_time_delay(&player->wait_time);
     }
   return (void*)0;
+  }
+
+void bg_player_broadcast_time(bg_player_t * player, gavl_time_t time)
+  {
+  bg_msg_queue_list_send(player->message_queues,
+                         msg_time,
+                         &time);
+  
   }
 
 void bg_player_run(bg_player_t * player)

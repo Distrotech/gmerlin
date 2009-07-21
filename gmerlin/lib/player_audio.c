@@ -40,9 +40,9 @@ void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   p->audio_stream.cnv_out = gavl_audio_converter_create();
 
   p->audio_stream.volume = gavl_volume_control_create();
-  pthread_mutex_init(&(p->audio_stream.volume_mutex),(pthread_mutexattr_t *)0);
-
+  p->audio_stream.peak_detector = gavl_peak_detector_create();
   
+  pthread_mutex_init(&(p->audio_stream.volume_mutex),(pthread_mutexattr_t *)0);
   pthread_mutex_init(&(p->audio_stream.config_mutex),(pthread_mutexattr_t *)0);
   }
 
@@ -54,8 +54,9 @@ void bg_player_audio_destroy(bg_player_t * p)
 
   
   gavl_volume_control_destroy(p->audio_stream.volume);
+  gavl_peak_detector_destroy(p->audio_stream.peak_detector);
   pthread_mutex_destroy(&(p->audio_stream.volume_mutex));
-
+  
   }
 
 int bg_player_audio_init(bg_player_t * player, int audio_stream)
@@ -114,6 +115,8 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   /* Volume control */
   gavl_volume_control_set_format(s->volume,
                                  &(s->fifo_format));
+  gavl_peak_detector_set_format(s->peak_detector,
+                                &(s->fifo_format));
 
   /* Output conversion */
   opt = gavl_audio_converter_get_options(s->cnv_out);

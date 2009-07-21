@@ -47,6 +47,12 @@ typedef enum
     SYNC_INPUT,
   } bg_player_sync_mode_t;
 
+typedef enum
+  {
+    TIME_UPDATE_SECOND = 0,
+    TIME_UPDATE_FRAME,
+  } bg_player_time_update_mode_t;
+
 /* Stream structures */
 
 typedef struct
@@ -81,6 +87,8 @@ typedef struct
   /* Volume control */
   gavl_volume_control_t * volume;
   pthread_mutex_t volume_mutex;
+
+  gavl_peak_detector_t * peak_detector;
   
   /* If the playback was interrupted due to changed parameters */
   int interrupted;
@@ -146,6 +154,7 @@ typedef struct
 #define PLAYER_DO_SUBTITLE_TEXT    (1<<4) /* Set by start() */
 #define PLAYER_DO_SUBTITLE_ONLY    (1<<5)
 #define PLAYER_DO_VISUALIZE        (1<<6)
+#define PLAYER_DO_REPORT_PEAK      (1<<7)
 
 #define DO_SUBTITLE_TEXT(f) \
  (f & PLAYER_DO_SUBTITLE_TEXT)
@@ -168,6 +177,8 @@ typedef struct
 #define DO_VISUALIZE(f) \
  (f & PLAYER_DO_VISUALIZE)
 
+#define DO_PEAK(f) \
+ (f & PLAYER_DO_REPORT_PEAK)
 
 /* The player */
 
@@ -259,6 +270,8 @@ struct bg_player_s
   int visualizer_enabled;
   pthread_mutex_t config_mutex;
   
+  bg_player_time_update_mode_t time_update_mode;
+  gavl_time_t wait_time;
   };
 
 int  bg_player_get_state(bg_player_t * player);
@@ -283,6 +296,7 @@ void bg_player_time_start(bg_player_t * player);
 void bg_player_time_init(bg_player_t * player);
 void bg_player_time_reset(bg_player_t * player);
 void bg_player_time_set(bg_player_t * player, gavl_time_t time);
+void bg_player_broadcast_time(bg_player_t * player, gavl_time_t time);
 
 /* player_input.c */
 

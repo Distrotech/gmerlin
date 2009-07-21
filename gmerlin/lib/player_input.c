@@ -208,7 +208,13 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
     }
   
   /* Check if the streams are actually there */
-  ctx->player->flags = 0;
+  ctx->player->flags &= ~(PLAYER_DO_AUDIO|
+                          PLAYER_DO_VIDEO|
+                          PLAYER_DO_SUBTITLE|
+                          PLAYER_DO_VISUALIZE|
+                          PLAYER_DO_SUBTITLE_ONLY|
+                          PLAYER_DO_SUBTITLE_OVERLAY|
+                          PLAYER_DO_SUBTITLE_TEXT);
   
   ctx->audio_finished = 1;
   ctx->video_finished = 1;

@@ -45,3 +45,5 @@ void bg_gtk_vumeter_draw(bg_gtk_vumeter_t * m);
 
 void bg_gtk_vumeter_destroy(bg_gtk_vumeter_t * m);
 
+void bg_gtk_vumeter_update_peak(bg_gtk_vumeter_t * m,
+                                double * ampl, int samples);
