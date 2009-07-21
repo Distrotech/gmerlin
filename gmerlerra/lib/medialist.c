@@ -128,3 +128,48 @@ void bg_nle_file_destroy(bg_nle_file_t * file)
   if(file->section) bg_cfg_section_destroy(file->section);
   free(file);
   }
+
+bg_plugin_handle_t * bg_nle_media_list_open_file(bg_nle_media_list_t * list,
+                                                 bg_nle_file_t * file)
+  {
+  const bg_plugin_info_t * info;
+  bg_plugin_handle_t * handle;
+  bg_input_plugin_t * plugin;
+  
+  /* Get plugin */
+  info = bg_plugin_find_by_name(list->plugin_reg, file->plugin);
+  if(!info)
+    {
+    /* Plugin not found */
+    return NULL;
+    }
+
+  /* Load plugin */
+  handle = bg_plugin_load(list->plugin_reg, info);
+  if(!handle)
+    {
+    /* Plugin could not be loaded */
+    return NULL;
+    }
+  plugin = (bg_input_plugin_t *)handle->plugin;
+  
+  /* Set parameters */
+  if(file->section)
+    {
+    bg_cfg_section_apply(file->section,
+                         plugin->common.get_parameters(handle->priv),
+                         plugin->common.set_parameter,
+                         handle->priv);
+    }
+
+  /* Open */
+
+  if(!plugin->open(handle->priv, file->filename))
+    {
+    /* Open failed */
+    bg_plugin_unref(handle);
+    return NULL;
+    }
+  
+  return handle;
+  }

@@ -232,6 +232,8 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   gtk_widget_show(ret->box);
 
   ret->player = bg_player_create(ret->plugin_reg);
+
+  bg_player_run(ret->player);
   
   return ret;
   }

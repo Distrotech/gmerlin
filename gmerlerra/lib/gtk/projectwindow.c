@@ -19,6 +19,7 @@
 #include <gmerlin/gui_gtk/gtkutils.h>
 #include <gmerlin/gui_gtk/fileselect.h>
 #include <gmerlin/gui_gtk/display.h>
+#include <gmerlin/gui_gtk/logwindow.h>
 
 #include <gmerlin/utils.h>
 #include <gmerlin/cfg_dialog.h>
@@ -29,6 +30,8 @@ static char * project_path = (char*)0;
 
 /* List of all open windows */
 static GList * project_windows = NULL;
+
+static bg_gtk_log_window_t * log_window = NULL;
 
 typedef struct
   {
@@ -71,6 +74,14 @@ typedef struct
   GtkWidget * menu;
   } edit_menu_t;
 
+typedef struct
+  {
+  GtkWidget * messages;
+  guint messages_id;
+  
+  GtkWidget * menu;
+  } view_menu_t;
+
 struct bg_nle_project_window_s
   {
   GtkWidget * win;
@@ -79,6 +90,7 @@ struct bg_nle_project_window_s
   track_menu_t track_menu;
   outstream_menu_t outstream_menu;
   edit_menu_t edit_menu;
+  view_menu_t view_menu;
   
   bg_nle_project_t * p;
 
@@ -97,6 +109,42 @@ struct bg_nle_project_window_s
   GtkAccelGroup * accel_group;
   
   };
+
+/* Log window stuff */
+
+static void disable_log_item(void * data, void * user_data)
+  {
+  bg_nle_project_window_t * win = data;
+
+  g_signal_handler_block(G_OBJECT(win->view_menu.messages),
+                         win->view_menu.messages_id);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(win->view_menu.messages),
+                                 0);
+  g_signal_handler_unblock(G_OBJECT(win->view_menu.messages),
+                           win->view_menu.messages_id);
+  }
+
+static void log_close_callback(bg_gtk_log_window_t* w, void * data)
+  {
+  g_list_foreach(project_windows, disable_log_item, NULL);
+  }
+
+static void enable_log_item(void * data, void * user_data)
+  {
+  bg_nle_project_window_t * win = data;
+
+  g_signal_handler_block(G_OBJECT(win->view_menu.messages),
+                         win->view_menu.messages_id);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(win->view_menu.messages),
+                                 1);
+  g_signal_handler_unblock(G_OBJECT(win->view_menu.messages),
+                           win->view_menu.messages_id);
+  }
+
+static void log_open_callback(void)
+  {
+  g_list_foreach(project_windows, enable_log_item, NULL);
+  }
 
 static void edit_callback(bg_nle_project_t * p,
                           bg_nle_edit_op_t op,
@@ -408,6 +456,19 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     bg_nle_project_redo(win->p);
     }
+  else if(w == win->view_menu.messages)
+    {
+    if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w)))
+      {
+      bg_gtk_log_window_show(log_window);
+      log_open_callback();
+      }
+    else
+      {
+      bg_gtk_log_window_hide(log_window);
+      log_close_callback(NULL, NULL);
+      }
+    }
   
   }
 
@@ -439,6 +500,20 @@ create_menu_item(bg_nle_project_window_t * w, GtkWidget * parent,
   
   g_signal_connect(G_OBJECT(ret), "activate", G_CALLBACK(menu_callback),
                    (gpointer)w);
+  gtk_widget_show(ret);
+  gtk_menu_shell_append(GTK_MENU_SHELL(parent), ret);
+  return ret;
+  }
+
+static GtkWidget *
+create_toggle_item(bg_nle_project_window_t * w, GtkWidget * parent,
+                   const char * label, guint * id)
+  {
+  GtkWidget * ret;
+  ret = gtk_check_menu_item_new_with_label(label);
+
+  *id = g_signal_connect(G_OBJECT(ret), "toggled", G_CALLBACK(menu_callback),
+                         (gpointer)w);
   gtk_widget_show(ret);
   gtk_menu_shell_append(GTK_MENU_SHELL(parent), ret);
   return ret;
@@ -554,6 +629,12 @@ static void init_menu_bar(bg_nle_project_window_t * w)
                              "activate",
                              w->accel_group,
                              GDK_v, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  /* View */
+  w->view_menu.menu = gtk_menu_new();
+  w->view_menu.messages =
+    create_toggle_item(w, w->view_menu.menu,
+                       TR("Messages"), &w->view_menu.messages_id);
   
   /* Menubar */
   w->menubar = gtk_menu_bar_new();
@@ -575,6 +656,11 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   
   item = gtk_menu_item_new_with_label(TR("Edit"));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), w->edit_menu.menu);
+  gtk_widget_show(item);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menubar), item);
+
+  item = gtk_menu_item_new_with_label(TR("View"));
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), w->view_menu.menu);
   gtk_widget_show(item);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menubar), item);
   
@@ -599,8 +685,12 @@ bg_nle_project_window_create(const char * project_file,
   GtkWidget * box;
   
   bg_nle_project_window_t * ret;
-  ret = calloc(1, sizeof(*ret));
 
+  if(!log_window)
+    log_window = bg_gtk_log_window_create(log_close_callback, NULL, "Gmerlerra");
+  
+  ret = calloc(1, sizeof(*ret));
+  
   ret->accel_group = gtk_accel_group_new();
   
   if(project_file)

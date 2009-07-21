@@ -25,7 +25,7 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
   char * tmp_string;
   ret = calloc(1, sizeof(*ret));
 
-  if((tmp_string = BG_XML_GET_PROP(child, "id")))
+  if((tmp_string = BG_XML_GET_PROP(node, "id")))
     {
     ret->id = strtoll(tmp_string, (char**)0, 16);
     free(tmp_string);

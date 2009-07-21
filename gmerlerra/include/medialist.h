@@ -54,6 +54,10 @@ void bg_nle_media_list_insert(bg_nle_media_list_t * list,
 void bg_nle_media_list_delete(bg_nle_media_list_t * list,
                               int index);
 
+/* This is used whenever a file is opened */
+bg_plugin_handle_t * bg_nle_media_list_open_file(bg_nle_media_list_t * list,
+                                                 bg_nle_file_t * file);
+
 
 
 /* medialist_xml.c */
