@@ -15,6 +15,8 @@ static const char * duration_name      = "duration";
 static const char * name_name          = "name";
 static const char * filename_name      = "filename";
 static const char * track_name         = "track";
+static const char * plugin_name        = "plugin";
+static const char * parameters_name    = "parameters";
 
 static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
   {
@@ -46,35 +48,46 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
       ret->filename = bg_strdup(ret->filename, tmp_string);
       xmlFree(tmp_string);
       }
-    if(!BG_XML_STRCMP(child->name, name_name))
+    else if(!BG_XML_STRCMP(child->name, name_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
       ret->name = bg_strdup(ret->name, tmp_string);
       xmlFree(tmp_string);
       }
-    if(!BG_XML_STRCMP(child->name, track_name))
+    else if(!BG_XML_STRCMP(child->name, plugin_name))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
+      ret->plugin = bg_strdup(ret->plugin, tmp_string);
+      xmlFree(tmp_string);
+      }
+    else if(!BG_XML_STRCMP(child->name, track_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
       ret->track = atoi(tmp_string);
       xmlFree(tmp_string);
       }
-    if(!BG_XML_STRCMP(child->name, audio_streams_name))
+    else if(!BG_XML_STRCMP(child->name, audio_streams_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
       ret->num_audio_streams = atoi(tmp_string);
       xmlFree(tmp_string);
       }
-    if(!BG_XML_STRCMP(child->name, video_streams_name))
+    else if(!BG_XML_STRCMP(child->name, video_streams_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
       ret->num_video_streams = atoi(tmp_string);
       xmlFree(tmp_string);
       }
-    if(!BG_XML_STRCMP(child->name, duration_name))
+    else if(!BG_XML_STRCMP(child->name, duration_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
       ret->duration = strtoll(tmp_string, (char**)0, 10);
       xmlFree(tmp_string);
+      }
+    else if(!BG_XML_STRCMP(child->name, parameters_name))
+      {
+      ret->section = bg_cfg_section_create("");
+      bg_cfg_xml_2_section(xml_doc, child, ret->section);
       }
     child = child->next;
     }
@@ -166,6 +179,19 @@ static void save_file(xmlNodePtr node, bg_nle_file_t * file)
   child = xmlNewTextChild(node, (xmlNsPtr)0,
                           (xmlChar*)name_name, NULL);
   xmlAddChild(child, BG_XML_NEW_TEXT(file->name));
+
+  /* Plugin */
+  child = xmlNewTextChild(node, (xmlNsPtr)0,
+                          (xmlChar*)plugin_name, NULL);
+  xmlAddChild(child, BG_XML_NEW_TEXT(file->plugin));
+
+  /* Section */
+  if(file->section)
+    {
+    child = xmlNewTextChild(node, (xmlNsPtr)0,
+                            (xmlChar*)parameters_name, NULL);
+    bg_cfg_section_2_xml(file->section, child);
+    }
   
   /* Track */
   child = xmlNewTextChild(node, (xmlNsPtr)0,

@@ -11,6 +11,10 @@ typedef struct
   int num_video_streams;
   char * filename;
   char * name;
+  /* For loading the track */
+  char * plugin;
+  bg_cfg_section_t * section;
+  
   gavl_time_t duration;
   int refcount;    // How many tracks reference this file
   int track;       // Track within the file

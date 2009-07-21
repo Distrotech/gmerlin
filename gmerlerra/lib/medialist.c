@@ -93,11 +93,19 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
   ret->track = track;
   ret->duration = ti->duration;
 
+  ret->plugin = bg_strdup(ret->plugin, handle->info->name);
+
+  /* Section */
+  ret->section = 
+    bg_plugin_registry_get_section(list->plugin_reg,
+                                   ret->plugin);
+  
   if(ti->name)  
     ret->name = bg_strdup(ret->name, ti->name);
   else
     ret->name = bg_get_track_name_default(ret->filename, ret->track, num_tracks);
   
+  bg_plugin_unref(handle);
   return ret;
   }
 
@@ -117,5 +125,6 @@ void bg_nle_file_destroy(bg_nle_file_t * file)
   {
   if(file->name) free(file->name);
   if(file->filename) free(file->filename);
+  if(file->section) bg_cfg_section_destroy(file->section);
   free(file);
   }
