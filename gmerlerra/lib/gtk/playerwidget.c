@@ -44,7 +44,11 @@ struct bg_nle_player_widget_s
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
-
+  bg_nle_player_widget_t * p = data;
+  if(w == p->play_button)
+    {
+    bg_player_pause(p->player);
+    }
   }
 
 static GtkWidget * create_pixmap_button(bg_nle_player_widget_t * w,
@@ -87,6 +91,7 @@ static void load_output_plugins(bg_nle_player_widget_t * p)
   const bg_plugin_info_t * info;
   GdkDisplay * dpy;
 
+  /* Video */
   dpy = gdk_display_get_default();
   
   info = bg_plugin_registry_get_default(p->plugin_reg,
@@ -97,16 +102,16 @@ static void load_output_plugins(bg_nle_player_widget_t * p)
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(p->socket)));
   
   handle = bg_ov_plugin_load(p->plugin_reg, info, display_string);
+  free(display_string);
   
   bg_player_set_ov_plugin(p->player, handle);
 
+  /* Audio */
   info = bg_plugin_registry_get_default(p->plugin_reg,
                                         BG_PLUGIN_OUTPUT_AUDIO);
   handle = bg_plugin_load(p->plugin_reg, info);
-  
   bg_player_set_oa_plugin(p->player, handle);
   
-  free(display_string);
   }
 
 static void socket_realize(GtkWidget * w, gpointer data)
@@ -201,7 +206,6 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
                      FALSE, FALSE, 0);
   
   gtk_widget_show(box);
-
   gtk_box_pack_start(GTK_BOX(ret->box), box, TRUE, TRUE, 0);
 
   if(ret->ruler_priv)
