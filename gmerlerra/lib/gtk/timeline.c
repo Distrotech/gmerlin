@@ -78,10 +78,11 @@ static void button_callback(GtkWidget * w, gpointer  data)
   }
 
 void bg_nle_timeline_set_selection(bg_nle_timeline_t * t,
-                                   bg_nle_time_range_t * selection)
+                                   bg_nle_time_range_t * selection, int64_t cursor_pos)
   {
   int i;
   bg_nle_time_range_copy(&t->tr.selection, selection);
+  t->tr.cursor_pos = cursor_pos;
   for(i = 0; i < t->num_tracks; i++)
     {
     bg_nle_track_widget_update_selection(t->tracks[i]);
@@ -91,6 +92,14 @@ void bg_nle_timeline_set_selection(bg_nle_timeline_t * t,
     bg_nle_outstream_widget_update_selection(t->outstreams[i]);
     }
   bg_nle_time_ruler_update_selection(t->ruler);
+  }
+
+void bg_nle_timeline_set_cursor_pos(bg_nle_timeline_t * t,
+                                    int64_t cursor_pos)
+  {
+  int i;
+  t->tr.cursor_pos = cursor_pos;
+  bg_nle_time_ruler_update_cursor_pos(t->ruler);
   }
 
 void bg_nle_timeline_set_visible(bg_nle_timeline_t * t,
@@ -125,14 +134,16 @@ void bg_nle_timeline_set_zoom(bg_nle_timeline_t * t,
   bg_nle_time_ruler_update_zoom(t->ruler);
   }
 
-static void selection_changed_callback(bg_nle_time_range_t * selection, void * data)
+static void selection_changed_callback
+(bg_nle_time_range_t * selection, int64_t cursor_pos,
+                                       void * data)
   {
   
   //  int i;
   bg_nle_timeline_t * t = data;
   
   //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
-  bg_nle_project_set_selection(t->p, selection);
+  bg_nle_project_set_selection(t->p, selection, cursor_pos);
   }
 
 static void visibility_changed_callback(bg_nle_time_range_t * visible, void * data)

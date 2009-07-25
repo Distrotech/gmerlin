@@ -21,6 +21,7 @@ static const char * outstreams_name    = "outstreams";
 static const char * selection_name = "selection";
 static const char * visible_name   = "visible";
 static const char * media_name     = "media";
+static const char * cursor_name   = "cursor";
 
 static const char * parameters_name = "parameters";
 
@@ -65,8 +66,14 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
       node = node->next;
       continue;
       }
-    
-    if(!BG_XML_STRCMP(node->name, visible_name))
+
+    if(!BG_XML_STRCMP(node->name, cursor_name))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
+      sscanf(tmp_string, "%"PRId64, &ret->cursor_pos);
+      free(tmp_string);
+      }
+    else if(!BG_XML_STRCMP(node->name, visible_name))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
       sscanf(tmp_string, "%"PRId64" %"PRId64, &ret->visible.start,
@@ -170,6 +177,15 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
 
   /* Global data */
 
+  /* Cursor pos */
+  
+  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
+                         (xmlChar*)cursor_name, NULL);
+  tmp_string =
+    bg_sprintf("%"PRId64, p->cursor_pos);
+  xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
+  free(tmp_string);
+  
   /* Selection */
 
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
@@ -179,6 +195,7 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
   xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
   free(tmp_string);
 
+  
   /* Visible Range */
   
   node = xmlNewTextChild(xml_project, (xmlNsPtr)0,

@@ -38,6 +38,8 @@ struct bg_nle_project_s
 
   bg_nle_time_range_t visible;
   bg_nle_time_range_t selection;
+
+  int64_t cursor_pos;
   
   bg_cfg_section_t * section; // Root section, contains all following sections
   
@@ -96,7 +98,8 @@ void bg_nle_project_move_track(bg_nle_project_t * p, int old_pos, int new_pos);
 void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_pos);
 
 void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visible);
-void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * selection);
+void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * selection,
+                                  int64_t cursor_pos);
 
 void bg_nle_project_set_track_flags(bg_nle_project_t * p,
                                     bg_nle_track_t * t, int flags);
@@ -149,6 +152,8 @@ void bg_nle_project_add_file(bg_nle_project_t * p,
 
 void bg_nle_project_delete_file(bg_nle_project_t * p,
                                 int index);
+
+void bg_nle_project_set_cursor_pos(bg_nle_project_t * p, int64_t cursor_pos);
 
 
 /* Utility functions */

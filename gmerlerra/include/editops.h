@@ -21,6 +21,7 @@ enum bg_nle_edit_op_e
     BG_NLE_EDIT_OUTSTREAM_PARAMETERS,
     BG_NLE_EDIT_ADD_FILE,
     BG_NLE_EDIT_DELETE_FILE,
+    BG_NLE_EDIT_SET_CURSOR_POS,
   };
 
 // BG_NLE_EDIT_ADD_TRACK
@@ -65,6 +66,9 @@ typedef struct
   {
   bg_nle_time_range_t old_range;
   bg_nle_time_range_t new_range;
+  
+  int64_t old_cursor_pos;
+  int64_t new_cursor_pos;
   } bg_nle_op_change_range_t;
 
 // BG_NLE_EDIT_TRACK_FLAGS,
@@ -122,6 +126,14 @@ typedef struct
   bg_nle_file_t * file;
   int index; // index
   } bg_nle_op_file_t;
+
+// BG_NLE_EDIT_SET_CURSOR_POS,
+
+typedef struct
+  {
+  int64_t old_pos;
+  int64_t new_pos;
+  } bg_nle_op_cursor_pos_t;
 
 /* Undo data */
 

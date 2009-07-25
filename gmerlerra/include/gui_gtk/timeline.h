@@ -26,7 +26,11 @@ void bg_nle_timeline_set_motion_callback(bg_nle_timeline_t *,
                                          void (*callback)(gavl_time_t time, void * data),
                                          void * data);
 
-void bg_nle_timeline_set_selection(bg_nle_timeline_t * t, bg_nle_time_range_t * selection);
+void bg_nle_timeline_set_selection(bg_nle_timeline_t * t, bg_nle_time_range_t * selection,
+                                   int64_t cursor_pos);
+
+void bg_nle_timeline_set_cursor_pos(bg_nle_timeline_t * t, int64_t cursor_pos);
+
 void bg_nle_timeline_set_visible(bg_nle_timeline_t * t, bg_nle_time_range_t * visible);
 void bg_nle_timeline_set_zoom(bg_nle_timeline_t * t, bg_nle_time_range_t * visible);
 

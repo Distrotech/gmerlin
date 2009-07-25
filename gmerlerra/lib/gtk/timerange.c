@@ -52,17 +52,18 @@ int bg_nle_timerange_widget_handle_button_press(bg_nle_timerange_widget_t * r,
                                                 GdkEventButton * evt)
   {
   bg_nle_time_range_t selection;
+  int64_t t;
   int ret = 0;
-
+  
+  t = bg_nle_pos_2_time(r, evt->x);
   r->mouse_x = evt->x;
+  
+  //  if(r->set_cursor_pos)
+  //    r->set_cursor_pos(&selection, r->callback_data);
   
   if(evt->state == GDK_SHIFT_MASK)
     {
-    int64_t t;
-
     bg_nle_time_range_copy(&selection, &r->selection);
-    
-    t = bg_nle_pos_2_time(r, evt->x);
     
     if(selection.start < 0)
       {
@@ -103,14 +104,14 @@ int bg_nle_timerange_widget_handle_button_press(bg_nle_timerange_widget_t * r,
   else if(!evt->state && evt->button == 1)
     {
     bg_nle_time_range_copy(&selection, &r->selection);
-    selection.start = bg_nle_pos_2_time(r, evt->x);
+    selection.start = t;
     selection.end = -1;
     ret = 1;
     r->selection_mode = 0;
     }
   
   if(ret && r->set_selection)
-    r->set_selection(&selection, r->callback_data);
+    r->set_selection(&selection, t, r->callback_data);
   return ret;
   }
 
@@ -159,7 +160,7 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
         bg_nle_time_range_copy(&range, &r->selection);
         range.end = time;
         if(r->set_selection)
-          r->set_selection(&range, r->callback_data);
+          r->set_selection(&range, time, r->callback_data);
         }
       else if(evt->x < r->mouse_x)
         {
@@ -169,7 +170,7 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
         range.end = range.start;
         range.start = time;
         if(r->set_selection)
-          r->set_selection(&range, r->callback_data);
+          r->set_selection(&range, time, r->callback_data);
         }
       }
     else if(r->selection_mode == SELECTION_MODE_RIGHT)
@@ -182,14 +183,14 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
         range.end = range.start;
         range.start = time;
         if(r->set_selection)
-          r->set_selection(&range, r->callback_data);
+          r->set_selection(&range, time, r->callback_data);
         }
       else
         {
         bg_nle_time_range_copy(&range, &r->selection);
         range.end = time;
         if(r->set_selection)
-          r->set_selection(&range, r->callback_data);
+          r->set_selection(&range, time, r->callback_data);
         }
       }
     else if(r->selection_mode == SELECTION_MODE_LEFT)
@@ -202,14 +203,14 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
         range.start = range.end;
         range.end = time;
         if(r->set_selection)
-          r->set_selection(&range, r->callback_data);
+          r->set_selection(&range, time, r->callback_data);
         }
       else
         {
         bg_nle_time_range_copy(&range, &r->selection);
         range.start = time;
         if(r->set_selection)
-          r->set_selection(&range, r->callback_data);
+          r->set_selection(&range, time, r->callback_data);
         }
       }
     
@@ -271,6 +272,12 @@ void bg_nle_timerange_widget_zoom_out(bg_nle_timerange_widget_t * r)
     r->set_zoom(&range, r->callback_data);
   }
 
+void bg_nle_timerange_widget_set_cursor_pos(bg_nle_timerange_widget_t * w, int64_t cursor_pos)
+  {
+  if(w->set_cursor_pos)
+    w->set_cursor_pos(cursor_pos, w->callback_data);
+  }
+
 void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r)
   {
   int64_t center, diff;
@@ -289,3 +296,4 @@ void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r)
   if(r->set_zoom)
     r->set_zoom(&range, r->callback_data);
   }
+

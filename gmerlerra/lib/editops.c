@@ -136,6 +136,7 @@ static void edit_change_selection(bg_nle_project_t * p, bg_nle_op_change_range_t
   {
   /* This affects the GUI only */
   bg_nle_time_range_copy(&p->selection, &op->new_range);
+  p->cursor_pos = op->new_cursor_pos;
   }
 
 static void edit_change_zoom(bg_nle_project_t * p, bg_nle_op_change_range_t * op)
@@ -223,6 +224,12 @@ static void edit_delete_file(bg_nle_project_t * p,
                            op->index);
   }
 
+static void edit_set_cursor_pos(bg_nle_project_t * p, bg_nle_op_cursor_pos_t * op)
+  {
+  /* This affects the GUI only */
+  p->cursor_pos = op->new_pos;
+  }
+
 void bg_nle_project_edit(bg_nle_project_t * p,
                          bg_nle_undo_data_t * data)
   {
@@ -285,6 +292,9 @@ void bg_nle_project_edit(bg_nle_project_t * p,
     case BG_NLE_EDIT_DELETE_FILE:
       edit_delete_file(p, data->data);
       break;
+    case BG_NLE_EDIT_SET_CURSOR_POS:
+      edit_set_cursor_pos(p, data->data);
+      break;
     }
   }
 
@@ -326,8 +336,12 @@ void bg_nle_undo_data_reverse(bg_nle_undo_data_t * data)
     case BG_NLE_EDIT_CHANGE_VISIBLE:
     case BG_NLE_EDIT_CHANGE_ZOOM:
       {
+      int64_t swp;
       bg_nle_op_change_range_t * d = data->data;
       bg_nle_time_range_swap(&d->old_range, &d->new_range);
+      swp = d->old_cursor_pos;
+      d->old_cursor_pos = d->new_cursor_pos;
+      d->new_cursor_pos = swp;
       }
       break;
     case BG_NLE_EDIT_TRACK_FLAGS:
@@ -380,6 +394,15 @@ void bg_nle_undo_data_reverse(bg_nle_undo_data_t * data)
     case BG_NLE_EDIT_DELETE_FILE:
       data->op = BG_NLE_EDIT_ADD_FILE;
       break;
+    case BG_NLE_EDIT_SET_CURSOR_POS:
+      {
+      int64_t swp;
+      bg_nle_op_cursor_pos_t * d = data->data;
+      swp = d->old_pos;
+      d->old_pos = d->new_pos;
+      d->new_pos = swp;
+      }
+      break;
     }
   }
 
@@ -400,6 +423,7 @@ void bg_nle_undo_data_destroy(bg_nle_undo_data_t * data)
     case BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK:
     case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
     case BG_NLE_EDIT_ADD_FILE:
+    case BG_NLE_EDIT_SET_CURSOR_POS:
       break;
     case BG_NLE_EDIT_DELETE_TRACK:
       {
@@ -467,10 +491,19 @@ void bg_nle_project_push_undo(bg_nle_project_t * p, bg_nle_undo_data_t * data)
         bg_nle_op_change_range_t * d1 = p->undo->data;
         bg_nle_op_change_range_t * d2 = data->data;
         bg_nle_time_range_copy(&d1->new_range, &d2->new_range);
+        d1->new_cursor_pos = d2->new_cursor_pos;
         bg_nle_undo_data_destroy(data);
         data = NULL;
         }
         break;
+      case BG_NLE_EDIT_SET_CURSOR_POS:
+        {
+        bg_nle_op_cursor_pos_t * d1 = p->undo->data;
+        bg_nle_op_cursor_pos_t * d2 = data->data;
+        d1->new_pos = d2->new_pos;
+        bg_nle_undo_data_destroy(data);
+        data = NULL;
+        }
       }
     }
   if(!data)

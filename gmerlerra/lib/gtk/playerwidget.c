@@ -23,7 +23,6 @@ struct bg_nle_player_widget_s
   bg_msg_queue_t * queue;
   
   GtkWidget * play_button;
-  GtkWidget * stop_button;
   GtkWidget * goto_next_button;
   GtkWidget * goto_prev_button;
   GtkWidget * goto_start_button;
@@ -33,6 +32,8 @@ struct bg_nle_player_widget_s
   GtkWidget * socket;
   
   GtkWidget * box;
+  
+  guint play_id;
   
   bg_plugin_registry_t * plugin_reg;
   
@@ -91,6 +92,37 @@ static GtkWidget * create_pixmap_button(bg_nle_player_widget_t * w,
   
   return button;
   }
+
+static GtkWidget * create_pixmap_toggle_button(bg_nle_player_widget_t * w,
+                                               const char * filename,
+                                               const char * tooltip, guint * id)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_toggle_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  *id = g_signal_connect(G_OBJECT(button), "toggled",
+                         G_CALLBACK(button_callback), w);
+  
+  gtk_widget_show(button);
+
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
+  
+  return button;
+  }
+
 
 static float display_fg[] = { 0.0, 1.0, 0.0 };
 static float display_bg[] = { 0.0, 0.0, 0.0 };
@@ -155,6 +187,7 @@ static gboolean timeout_func(void * data)
         {
         gavl_time_t t = bg_msg_get_arg_time(msg, 0);
         bg_gtk_time_display_update(w->display, t, BG_GTK_DISPLAY_MODE_HMSMS);
+        bg_nle_timerange_widget_set_cursor_pos(bg_nle_time_ruler_get_tr(w->ruler), t);
         }
         break;
       case BG_PLAYER_MSG_AUDIO_PEAK:
@@ -170,6 +203,16 @@ static gboolean timeout_func(void * data)
       case BG_PLAYER_MSG_STATE_CHANGED:
         w->player_state = bg_msg_get_arg_int(msg, 0);
         fprintf(stderr, "State changed: %d\n", w->player_state);
+
+        if(w->player_state == BG_PLAYER_STATE_PAUSED)
+          {
+          if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w->play_button)))
+            {
+            g_signal_handler_block(w->play_button, w->play_id);
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w->play_button), 0);
+            g_signal_handler_unblock(w->play_button, w->play_id);
+            }
+          }
         break;
       }
     bg_msg_queue_unlock_read(w->queue);
@@ -184,6 +227,57 @@ static gboolean timeout_func(void * data)
   
   return TRUE;
   }
+
+
+static void visibility_changed_callback(bg_nle_time_range_t * visible, void * data)
+  {
+  //  int i;
+  bg_nle_player_widget_t * w = data;
+  
+  // fprintf(stderr, "visibility changed %ld %ld\n", visible->start, visible->end);
+  // bg_nle_project_set_visible(w->p, visible);
+  bg_nle_time_range_copy(&w->tr.visible, visible);
+  bg_nle_time_ruler_update_visible(w->ruler);
+  }
+
+static void zoom_changed_callback(bg_nle_time_range_t * visible, void * data)
+  {
+  //  int i;
+  bg_nle_player_widget_t * w = data;
+  
+  //  fprintf(stderr, "zoom changed %ld %ld\n", visible->start, visible->end);
+  //  bg_nle_project_set_zoom(w->p, visible);
+  bg_nle_time_range_copy(&w->tr.visible, visible);
+  bg_nle_time_ruler_update_zoom(w->ruler);
+  }
+
+static void selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos, void * data)
+  {
+  bg_nle_player_widget_t * w = data;
+  
+  //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
+  //  bg_nle_project_set_selection(t->p, selection);
+  bg_nle_time_range_copy(&w->tr.selection, selection);
+  w->tr.cursor_pos = cursor_pos;
+  bg_nle_time_ruler_update_selection(w->ruler);
+  }
+
+static void cursor_changed_callback(int64_t cursor_pos, void * data)
+  {
+  bg_nle_player_widget_t * w = data;
+  w->tr.cursor_pos = cursor_pos;
+  bg_nle_time_ruler_update_cursor_pos(w->ruler);
+  }
+
+static void timewidget_motion_callback(int64_t time, void * data)
+  {
+  bg_nle_player_widget_t * w = data;
+  
+  //  if(t->motion_callback)
+  //    t->motion_callback(time, t->motion_callback_data);
+  
+  }
+
 
 bg_nle_player_widget_t *
 bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
@@ -201,7 +295,15 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   ret->tr.visible.start = 0;
   ret->tr.visible.end = GAVL_TIME_SCALE * 10;
-  
+
+  ret->tr.set_visible = visibility_changed_callback;
+  ret->tr.set_zoom = zoom_changed_callback;
+  ret->tr.set_selection = selection_changed_callback;
+  ret->tr.motion_callback = timewidget_motion_callback;
+  ret->tr.set_cursor_pos = cursor_changed_callback;
+
+  ret->tr.callback_data = ret;
+
   
   if(!ruler)
     {
@@ -213,12 +315,10 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
     }
   else
     ret->ruler = ruler;
-    
+  
   /* Create buttons */  
-  ret->play_button = create_pixmap_button(ret, "gmerlerra/play.png", TRS("Play"));
-
-  ret->stop_button = create_pixmap_button(ret, "gmerlerra/stop.png", TRS("Stop"));
-
+  ret->play_button = create_pixmap_toggle_button(ret, "gmerlerra/play.png", TRS("Play"), &ret->play_id);
+  
   ret->goto_next_button = create_pixmap_button(ret, "gmerlerra/goto_next.png",
                                                TRS("Goto next label"));
   
@@ -275,7 +375,6 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->goto_start_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->goto_prev_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->frame_backward_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->stop_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->play_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->frame_forward_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->goto_next_button, FALSE, FALSE, 0);

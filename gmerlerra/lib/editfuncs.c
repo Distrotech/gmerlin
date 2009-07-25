@@ -21,7 +21,6 @@ static void edited(bg_nle_project_t * p,
   
   /* Apply the edit operation to the project */
   bg_nle_project_edit(p, data);
-
   
   /* Notify GUI */
   p->edit_callback(p, op, op_data, p->edit_callback_data);
@@ -329,7 +328,8 @@ void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_po
 
 // BG_NLE_EDIT_CHANGE_SELECTION
 
-void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * selection)
+void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * selection,
+                                  int64_t cursor_pos)
   {
   bg_nle_op_change_range_t * d;
 
@@ -342,6 +342,9 @@ void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * se
 
   bg_nle_time_range_copy(&d->old_range, &p->selection);
   bg_nle_time_range_copy(&d->new_range, selection);
+
+  d->old_cursor_pos = p->cursor_pos;
+  d->new_cursor_pos = cursor_pos;
   
   edited(p, BG_NLE_EDIT_CHANGE_SELECTION, d);
   }
@@ -584,4 +587,17 @@ void bg_nle_project_delete_file(bg_nle_project_t * p,
   d->index = index;
   d->file = p->media_list->files[index];
   edited(p, BG_NLE_EDIT_DELETE_FILE, d);
+  }
+
+// BG_NLE_EDIT_SE_CURSOR_POS,
+
+void bg_nle_project_set_cursor_pos(bg_nle_project_t * p, int64_t cursor_pos)
+  {
+  bg_nle_op_cursor_pos_t * d;
+  d = calloc(1, sizeof(*d));
+  d->old_pos = p->cursor_pos;
+  d->new_pos = cursor_pos;
+  
+  edited(p, BG_NLE_EDIT_SET_CURSOR_POS, d);
+  
   }

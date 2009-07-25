@@ -189,6 +189,19 @@ static void redraw(bg_nle_time_ruler_t * r)
       }
 
     }
+
+  // draw cursor
+
+  pos = bg_nle_time_2_pos(r->tr, r->tr->cursor_pos);
+
+  if((pos > -16.0) && (pos < r->tr->width + 16.0))
+    {
+    cairo_set_source_rgba(c, 0.0, 0.6, 0.0, 5.0);
+    cairo_move_to(c, pos - RULER_HEIGHT/4, RULER_HEIGHT/4);
+    cairo_line_to(c, pos + RULER_HEIGHT/4, RULER_HEIGHT/4);
+    cairo_line_to(c, pos, RULER_HEIGHT/2);
+    cairo_fill(c);
+    }
   
   cairo_destroy(c);
   }
@@ -337,5 +350,17 @@ void bg_nle_time_ruler_update_selection(bg_nle_time_ruler_t * t)
     }
   }
 
+void bg_nle_time_ruler_update_cursor_pos(bg_nle_time_ruler_t * t)
+  {
+  if((t->tr->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
+    {
+    redraw(t);
+    }
+  }
 
 
+
+bg_nle_timerange_widget_t * bg_nle_time_ruler_get_tr(bg_nle_time_ruler_t * t)
+  {
+  return t->tr;
+  }
