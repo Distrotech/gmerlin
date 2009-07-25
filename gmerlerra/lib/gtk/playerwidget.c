@@ -46,6 +46,8 @@ struct bg_nle_player_widget_s
   bg_nle_timerange_widget_t tr;
 
   int player_state;
+  
+  int time_changed;
   };
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -260,6 +262,12 @@ static void selection_changed_callback(bg_nle_time_range_t * selection, int64_t 
   bg_nle_time_range_copy(&w->tr.selection, selection);
   w->tr.cursor_pos = cursor_pos;
   bg_nle_time_ruler_update_selection(w->ruler);
+
+  if(w->player_state != BG_PLAYER_STATE_PAUSED)
+    bg_player_pause(w->player);
+  
+  bg_player_seek(w->player, cursor_pos);
+  
   }
 
 static void cursor_changed_callback(int64_t cursor_pos, void * data)
@@ -269,6 +277,7 @@ static void cursor_changed_callback(int64_t cursor_pos, void * data)
   bg_nle_time_ruler_update_cursor_pos(w->ruler);
   }
 
+#if 0
 static void timewidget_motion_callback(int64_t time, void * data)
   {
   bg_nle_player_widget_t * w = data;
@@ -277,7 +286,7 @@ static void timewidget_motion_callback(int64_t time, void * data)
   //    t->motion_callback(time, t->motion_callback_data);
   
   }
-
+#endif
 
 bg_nle_player_widget_t *
 bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
@@ -299,7 +308,7 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   ret->tr.set_visible = visibility_changed_callback;
   ret->tr.set_zoom = zoom_changed_callback;
   ret->tr.set_selection = selection_changed_callback;
-  ret->tr.motion_callback = timewidget_motion_callback;
+  //  ret->tr.motion_callback = timewidget_motion_callback;
   ret->tr.set_cursor_pos = cursor_changed_callback;
 
   ret->tr.callback_data = ret;
