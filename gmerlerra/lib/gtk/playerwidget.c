@@ -43,6 +43,8 @@ struct bg_nle_player_widget_s
   bg_nle_time_ruler_t * ruler_priv;
 
   bg_nle_timerange_widget_t tr;
+
+  int player_state;
   };
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -51,6 +53,12 @@ static void button_callback(GtkWidget * w, gpointer data)
   if(w == p->play_button)
     {
     bg_player_pause(p->player);
+    }
+  else if(w == p->goto_start_button)
+    {
+    if(p->player_state != BG_PLAYER_STATE_PAUSED)
+      bg_player_pause(p->player);
+    bg_player_seek(p->player, 0);
     }
   }
 
@@ -121,7 +129,7 @@ static void socket_realize(GtkWidget * w, gpointer data)
   {
   bg_nle_player_widget_t * p = data;
   
-  fprintf(stderr, "Socket realize\n");
+  //  fprintf(stderr, "Socket realize\n");
   load_output_plugins(p);
   }
 
@@ -137,7 +145,8 @@ static gboolean timeout_func(void * data)
   {
   bg_msg_t * msg;
   bg_nle_player_widget_t * w = data;
-
+  double peaks[2];
+  
   while((msg = bg_msg_queue_try_lock_read(w->queue)))
     {
     switch(bg_msg_get_id(msg))
@@ -150,7 +159,6 @@ static gboolean timeout_func(void * data)
         break;
       case BG_PLAYER_MSG_AUDIO_PEAK:
         {
-        double peaks[2];
         int samples;
         samples = bg_msg_get_arg_int(msg, 0);
         peaks[0] = bg_msg_get_arg_float(msg, 1);
@@ -159,9 +167,21 @@ static gboolean timeout_func(void * data)
         //  fprintf(stderr, "Got peak %d %f %f\n", samples, peaks[0], peaks[1]);
         }
         break;
+      case BG_PLAYER_MSG_STATE_CHANGED:
+        w->player_state = bg_msg_get_arg_int(msg, 0);
+        fprintf(stderr, "State changed: %d\n", w->player_state);
+        break;
       }
     bg_msg_queue_unlock_read(w->queue);
     }
+
+  if(w->player_state == BG_PLAYER_STATE_PAUSED)
+    {
+    peaks[0] = 0.0;
+    peaks[1] = 0.0;
+    bg_gtk_vumeter_update_peak(w->vumeter, peaks, 480);
+    }
+  
   return TRUE;
   }
 
@@ -281,6 +301,10 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   val.val_str = "frame";
   bg_player_set_parameter(ret->player, "time_update", &val);
+
+  val.val_str = "pause";
+  bg_player_set_parameter(ret->player, "finish_mode", &val);
+  
   val.val_i = 1;
   bg_player_set_parameter(ret->player, "report_peak", &val);
   bg_player_set_parameter(ret->player, NULL, NULL);
