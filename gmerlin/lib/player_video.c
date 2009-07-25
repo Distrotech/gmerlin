@@ -85,11 +85,11 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     if(s->input_format.framerate_mode == GAVL_FRAMERATE_STILL)
       s->fifo = bg_fifo_create(2,
                                bg_player_ov_create_frame,
-                               (void*)(player->ov_context));
+                               (void*)(player->ov_context), player->finish_mode);
     else 
       s->fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
                                bg_player_ov_create_frame,
-                               (void*)(player->ov_context));
+                               (void*)(player->ov_context), player->finish_mode);
     }
   
   if(DO_SUBTITLE_ONLY(player->flags))

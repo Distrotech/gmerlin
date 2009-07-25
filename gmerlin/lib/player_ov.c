@@ -493,7 +493,8 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
     }
   else
     {
-    gavl_video_frame_clear(ctx->still_frame, &(ctx->player->video_stream.output_format));
+    gavl_video_frame_clear(ctx->still_frame,
+                           &(ctx->player->video_stream.output_format));
     }
   
   bg_plugin_lock(ctx->plugin_handle);
@@ -579,7 +580,6 @@ static void ping_func(void * data)
   {
   bg_player_ov_context_t * ctx;
   ctx = (bg_player_ov_context_t*)data;
-  
   pthread_mutex_lock(&ctx->still_mutex);
   
   if(!ctx->still_shown)
@@ -611,29 +611,25 @@ static void ping_func(void * data)
 void * bg_player_ov_thread(void * data)
   {
   gavl_overlay_t tmp_overlay;
+  int eof;
   
   bg_player_ov_context_t * ctx;
   gavl_time_t diff_time;
   gavl_time_t current_time;
   bg_fifo_state_t state;
+  int interrupt = 0;
+  int have_next_frame;
   
   ctx = (bg_player_ov_context_t*)data;
 
   bg_player_add_message_queue(ctx->player,
                               ctx->msg_queue);
-
   
-
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player, ping_func, ctx))
+    if(!bg_player_keep_going(ctx->player, ping_func, ctx, interrupt))
       {
       break;
-      }
-    if(ctx->frame)
-      {
-      bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-      ctx->frame = (gavl_video_frame_t*)0;
       }
 
     pthread_mutex_lock(&ctx->still_mutex);
@@ -645,7 +641,24 @@ void * bg_player_ov_thread(void * data)
     pthread_mutex_unlock(&ctx->still_mutex);
     
     ctx->still_shown = 0;
+    
+    have_next_frame =
+      bg_fifo_test_read(ctx->player->video_stream.fifo,
+                        &state, &eof);
 
+    if(!have_next_frame)
+      {
+      if((state != BG_FIFO_PLAYING) || eof)
+        interrupt = 1;
+      continue;
+      }
+    
+    if(ctx->frame)
+      {
+      bg_fifo_unlock_read(ctx->player->video_stream.fifo);
+      ctx->frame = (gavl_video_frame_t*)0;
+      }
+    
     ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
     
     if(!ctx->frame)
@@ -656,6 +669,7 @@ void * bg_player_ov_thread(void * data)
         }
       else if(state == BG_FIFO_PAUSED)
         {
+        interrupt = 1;
         continue;
         }
       break;

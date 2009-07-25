@@ -784,7 +784,7 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
       player_cleanup(player);
     }
   player->old_flags = player->flags;
-  player->flags = 0;
+  player->flags &= 0xFFFF0000;
   }
 
 static void stream_change_init(bg_player_t * player)
@@ -1244,11 +1244,11 @@ static int process_commands(bg_player_t * player)
         arg_i1 = bg_msg_get_arg_int(command, 0);
         switch(arg_i1)
           {
-          case BG_PLAYER_STATE_FINISHING:
+          case BG_PLAYER_STATE_FINISHING_STOP:
             state = bg_player_get_state(player);
           
             /* Close down everything */
-            bg_player_set_state(player, BG_PLAYER_STATE_FINISHING, NULL, NULL);
+            bg_player_set_state(player, BG_PLAYER_STATE_FINISHING_STOP, NULL, NULL);
           
             bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread...");
             pthread_join(player->input_thread, (void**)0);
@@ -1268,6 +1268,19 @@ static int process_commands(bg_player_t * player)
             player_cleanup(player);
             next_track = 1;
             bg_player_set_state(player, BG_PLAYER_STATE_CHANGING, &next_track, NULL);
+            break;
+          case BG_PLAYER_STATE_FINISHING_PAUSE:
+            bg_player_set_state(player, BG_PLAYER_STATE_FINISHING_PAUSE, NULL, NULL);
+            
+            pthread_mutex_lock(&(player->stop_mutex));
+            pthread_cond_wait(&(player->stop_cond), &(player->stop_mutex));
+            pthread_mutex_unlock(&player->stop_mutex);
+            bg_player_time_stop(player);
+
+            if(DO_AUDIO(player->flags))
+              bg_player_oa_stop(player->oa_context);
+            
+            bg_player_set_state(player, BG_PLAYER_STATE_PAUSED, NULL, NULL);
             break;
           case BG_PLAYER_STATE_ERROR:
             stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
@@ -1370,7 +1383,8 @@ static void * player_thread(void * data)
     switch(state)
       {
       case BG_PLAYER_STATE_PLAYING:
-      case BG_PLAYER_STATE_FINISHING:
+      case BG_PLAYER_STATE_FINISHING_STOP:
+      case BG_PLAYER_STATE_FINISHING_PAUSE:
         if(player->time_update_mode == TIME_UPDATE_SECOND)
           {
           bg_player_time_get(player, 1, &time);

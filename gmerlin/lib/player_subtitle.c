@@ -155,5 +155,5 @@ void bg_player_subtitle_init_converter(bg_player_t * player)
   /* Initialize FIFO */
   player->subtitle_stream.fifo =
     bg_fifo_create(NUM_SUBTITLE_FRAMES,
-                   bg_player_ov_create_subtitle_overlay, player->ov_context);
+                   bg_player_ov_create_subtitle_overlay, player->ov_context, player->finish_mode);
   }

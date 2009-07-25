@@ -208,13 +208,7 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
     }
   
   /* Check if the streams are actually there */
-  ctx->player->flags &= ~(PLAYER_DO_AUDIO|
-                          PLAYER_DO_VIDEO|
-                          PLAYER_DO_SUBTITLE|
-                          PLAYER_DO_VISUALIZE|
-                          PLAYER_DO_SUBTITLE_ONLY|
-                          PLAYER_DO_SUBTITLE_OVERLAY|
-                          PLAYER_DO_SUBTITLE_TEXT);
+  ctx->player->flags &= 0xFFFF0000;
   
   ctx->audio_finished = 1;
   ctx->video_finished = 1;
@@ -646,6 +640,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
           gavl_time_to_seconds(ctx->audio_time),
           gavl_time_to_seconds(ctx->video_time));
 #endif
+  
   if(ctx->send_silence)
     {
     if(preload)
@@ -825,7 +820,8 @@ void * bg_player_input_thread(void * data)
   bg_player_input_context_t * ctx;
   bg_msg_t * msg;
   bg_fifo_state_t state;
-  
+  int eof;
+  int eof_signaled;
   int read_audio;
   
   ctx = (bg_player_input_context_t*)data;
@@ -843,11 +839,15 @@ void * bg_player_input_thread(void * data)
     read_audio = 1;
   else
     read_audio = 0; // Decide inside loop
+
+  eof = 0;
+  eof_signaled = 0;
   
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player, NULL, NULL))
+    if(!bg_player_keep_going(ctx->player, NULL, NULL, eof))
       return NULL;
+    eof = 0;
     
     /* Read subtitles early */
     if(!ctx->subtitle_finished)
@@ -861,9 +861,49 @@ void * bg_player_input_thread(void * data)
         bg_fifo_lock_write(ctx->player->audio_stream.fifo, &state);
         bg_fifo_unlock_write(ctx->player->audio_stream.fifo, 1);
         }
-      break;
+      if(ctx->player->finish_mode == BG_FIFO_FINISH_CHANGE)
+        {
+        break;
+        }
+      else if(eof_signaled)
+        return NULL;
+      else
+        {
+        bg_msg_queue_t * queue = bg_msg_queue_create();
+        bg_player_add_message_queue(ctx->player, queue);
+        
+        msg = bg_msg_queue_lock_write(ctx->player->command_queue);
+        bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
+        bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING_PAUSE);
+        bg_msg_queue_unlock_write(ctx->player->command_queue);
+        eof = 1;
+
+        // fprintf(stderr, "input EOF 1\n");
+        
+        while(1)
+          {
+          msg = bg_msg_queue_lock_read(queue);
+          
+          if((bg_msg_get_id(msg) == BG_PLAYER_MSG_STATE_CHANGED) &&
+             (bg_msg_get_arg_int(msg, 0) == BG_PLAYER_STATE_FINISHING_PAUSE))
+            {
+            bg_msg_queue_unlock_read(queue);
+            break;
+            }
+          bg_msg_queue_unlock_read(queue);
+          }
+        // fprintf(stderr, "input EOF 2\n");
+        
+        eof_signaled = 1;
+        
+        bg_player_delete_message_queue(ctx->player, queue);
+        bg_msg_queue_destroy(queue);
+        continue;
+        }
       }
 
+    eof_signaled = 0;
+    
     if(!DO_SUBTITLE_ONLY(ctx->player->flags))
       {
       if(DO_AUDIO(ctx->player->flags) &&
@@ -896,9 +936,7 @@ void * bg_player_input_thread(void * data)
     }
   msg = bg_msg_queue_lock_write(ctx->player->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
-  
-  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
-  
+  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING_STOP);
   bg_msg_queue_unlock_write(ctx->player->command_queue);
 
 #if 0  
@@ -929,7 +967,7 @@ void * bg_player_input_thread_bypass(void * data)
     
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player, NULL, NULL))
+    if(!bg_player_keep_going(ctx->player, NULL, NULL, 0))
       {
       return NULL;
       }
@@ -947,7 +985,7 @@ void * bg_player_input_thread_bypass(void * data)
 
   msg = bg_msg_queue_lock_write(ctx->player->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
-  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
+  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING_STOP);
   bg_msg_queue_unlock_write(ctx->player->command_queue);
   return NULL;
   }

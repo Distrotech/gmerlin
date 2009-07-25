@@ -36,6 +36,12 @@
  *  @{
  */
 
+typedef enum
+  {
+    BG_FIFO_FINISH_CHANGE = 0,
+    BG_FIFO_FINISH_PAUSE,
+  } bg_fifo_finish_mode_t;
+
 /** \brief Operation states a fifo can have
  *  
  */
@@ -62,7 +68,8 @@ typedef struct bg_fifo_s bg_fifo_t;
  */
 
 bg_fifo_t * bg_fifo_create(int num_frames,
-                           void * (*create_func)(void*), void * data);
+                           void * (*create_func)(void*), void * data,
+                           bg_fifo_finish_mode_t finish_mode);
 
 /** \brief Destroy a fifo
  *  \param f A fifo
@@ -91,6 +98,20 @@ void * bg_fifo_lock_read(bg_fifo_t * f, bg_fifo_state_t * state);
 
 void * bg_fifo_try_lock_read(bg_fifo_t*f, bg_fifo_state_t * state);
 
+/** \brief Check if locking a fifo for reading would succeed
+ *  \param f A fifo
+ *  \param state Returns the state of the fifo
+ *  \param returns 1 if eof is reached
+ *  \returns 1 if \ref bg_fifo_lock_read() would return immediately,
+ *        0 if it might fail or block.
+ *
+ *  This function  returning zero is no garantuee, that to further
+ *  frames are available. Test the returned state to make sure.
+ */
+
+int bg_fifo_test_read(bg_fifo_t * f, bg_fifo_state_t * state,
+                      int * eof);
+
 /** \brief Unlock a fifo for reading
  *  \param f A fifo
  */
@@ -114,6 +135,17 @@ void * bg_fifo_lock_write(bg_fifo_t*f, bg_fifo_state_t * state);
 
 void * bg_fifo_try_lock_write(bg_fifo_t*f, bg_fifo_state_t * state);
 
+/** \brief Check if locking a fifo for writing would succeed
+ *  \param f A fifo
+ *  \param state Returns the state of the fifo
+ *  \returns 1 if \ref bg_fifo_lock_write() would return immediately,
+ *        0 if it might fail or block.
+ *
+ *  This function  returning zero is no garantuee, that to further
+ *  frames are available. Test the returned state to make sure.
+ */
+
+int bg_fifo_test_write(bg_fifo_t * f, bg_fifo_state_t * state);
 
 /** \brief Unlock a fifo for writing
  *  \param f A fifo

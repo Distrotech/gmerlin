@@ -111,7 +111,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
 
   s->fifo =
     bg_fifo_create(NUM_AUDIO_FRAMES, bg_player_oa_create_frame,
-                   (void*)player->oa_context);
+                   (void*)player->oa_context, player->finish_mode);
   /* Volume control */
   gavl_volume_control_set_format(s->volume,
                                  &(s->fifo_format));

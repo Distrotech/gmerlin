@@ -29,16 +29,17 @@
  *  @{
 */
 
-#define BG_PLAYER_STATE_INIT      -1 //!< Initializing
-#define BG_PLAYER_STATE_STOPPED   0 //!< Stopped, waiting for play command
-#define BG_PLAYER_STATE_PLAYING   1 //!< Playing
-#define BG_PLAYER_STATE_SEEKING   2 //!< Seeking
-#define BG_PLAYER_STATE_CHANGING  3 //!< Changing the track
-#define BG_PLAYER_STATE_BUFFERING 4 //!< Buffering data
-#define BG_PLAYER_STATE_PAUSED    5 //!< Paused
-#define BG_PLAYER_STATE_FINISHING 6 //!< Finishing playback
-#define BG_PLAYER_STATE_STARTING  7 //!< Starting playback
-#define BG_PLAYER_STATE_ERROR     8 //!< Error
+#define BG_PLAYER_STATE_INIT            -1 //!< Initializing
+#define BG_PLAYER_STATE_STOPPED         0 //!< Stopped, waiting for play command
+#define BG_PLAYER_STATE_PLAYING         1 //!< Playing
+#define BG_PLAYER_STATE_SEEKING         2 //!< Seeking
+#define BG_PLAYER_STATE_CHANGING        3 //!< Changing the track
+#define BG_PLAYER_STATE_BUFFERING       4 //!< Buffering data
+#define BG_PLAYER_STATE_PAUSED          5 //!< Paused
+#define BG_PLAYER_STATE_FINISHING_STOP  6 //!< Finishing playback, will change to next track
+#define BG_PLAYER_STATE_FINISHING_PAUSE 7 //!< Finishing playback, will pause track
+#define BG_PLAYER_STATE_STARTING        8 //!< Starting playback
+#define BG_PLAYER_STATE_ERROR           9 //!< Error
 
 /**
  *  @}

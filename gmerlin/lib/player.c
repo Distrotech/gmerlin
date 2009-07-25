@@ -49,7 +49,8 @@ static void wait_unnotify(bg_player_t * p)
   pthread_mutex_unlock(&(p->waiting_plugin_threads_mutex));
   }
 
-int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
+int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data,
+                         int interrupt)
   {
   struct timespec timeout;
   struct timeval now;
@@ -61,8 +62,12 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
     case BG_PLAYER_STATE_CHANGING:
       return 0;
     case BG_PLAYER_STATE_PLAYING:
-    case BG_PLAYER_STATE_FINISHING:
+    case BG_PLAYER_STATE_FINISHING_STOP:
       break;
+    case BG_PLAYER_STATE_FINISHING_PAUSE:
+      if(!interrupt)
+        break;
+      /* Fall through */
     case BG_PLAYER_STATE_STARTING:
     case BG_PLAYER_STATE_PAUSED:
     case BG_PLAYER_STATE_SEEKING:
@@ -372,6 +377,14 @@ static const bg_parameter_info_t parameters[] =
       .long_name    = TRS("Report peak values for audio"),
       .type         = BG_PARAMETER_CHECKBUTTON,
     },
+    {
+      .name         = "finish_mode",
+      .long_name    = TRS("Finish mode"),
+      .type         = BG_PARAMETER_STRINGLIST,
+      .multi_names  = (char const *[]){ "change", "pause", NULL },
+      .multi_labels = (char const *[]){ TRS("Change"), TRS("Pause"), NULL },
+      .val_default  = { .val_str = "change" },
+    },
     { /* End of parameters */ }
   };
 
@@ -401,6 +414,17 @@ void bg_player_set_parameter(void * player, const char * name,
     else if(!strcmp(val->val_str, "frame"))
       {
       p->time_update_mode = TIME_UPDATE_FRAME;
+      }
+    }
+  else if(!strcmp(name, "finish_mode"))
+    {
+    if(!strcmp(val->val_str, "change"))
+      {
+      p->finish_mode = BG_FIFO_FINISH_CHANGE;
+      }
+    else if(!strcmp(val->val_str, "pause"))
+      {
+      p->finish_mode = BG_FIFO_FINISH_PAUSE;
       }
     }
   else if(!strcmp(name, "report_peak"))

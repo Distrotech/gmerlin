@@ -333,22 +333,27 @@ void * bg_player_oa_thread(void * data)
   int do_mute;
   bg_fifo_state_t state;
   char tmp_string[128];
-    
+  int interrupt = 0;
+  
   ctx = (bg_player_oa_context_t *)data;
   
   s = &(ctx->player->audio_stream);
+
+  
   
   /* Wait for playback */
     
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player, NULL, NULL))
+    if(!bg_player_keep_going(ctx->player, NULL, NULL, interrupt))
       break;
 
-    wait_time = GAVL_TIME_UNDEFINED;
+    interrupt = 0;
     
     if(!s->fifo) // Audio was switched off
       break;
+
+    wait_time = GAVL_TIME_UNDEFINED;
     
     frame = bg_fifo_lock_read(s->fifo, &state);
     if(!frame)
@@ -356,7 +361,10 @@ void * bg_player_oa_thread(void * data)
       if(state == BG_FIFO_STOPPED) 
         break;
       else if(state == BG_FIFO_PAUSED)
+        {
+        interrupt = 1;
         continue;
+        }
       }
 
 #if 1

@@ -53,6 +53,7 @@ typedef enum
     TIME_UPDATE_FRAME,
   } bg_player_time_update_mode_t;
 
+
 /* Stream structures */
 
 typedef struct
@@ -154,7 +155,7 @@ typedef struct
 #define PLAYER_DO_SUBTITLE_TEXT    (1<<4) /* Set by start() */
 #define PLAYER_DO_SUBTITLE_ONLY    (1<<5)
 #define PLAYER_DO_VISUALIZE        (1<<6)
-#define PLAYER_DO_REPORT_PEAK      (1<<7)
+#define PLAYER_DO_REPORT_PEAK      (1<<16)
 
 #define DO_SUBTITLE_TEXT(f) \
  (f & PLAYER_DO_SUBTITLE_TEXT)
@@ -271,6 +272,8 @@ struct bg_player_s
   pthread_mutex_t config_mutex;
   
   bg_player_time_update_mode_t time_update_mode;
+  
+  bg_fifo_finish_mode_t finish_mode;
   gavl_time_t wait_time;
   };
 
@@ -286,7 +289,8 @@ void bg_player_set_state(bg_player_t * player, int state, const void * arg1,
       until playback can continue again
  */
 
-int bg_player_keep_going(bg_player_t * player, void (*ping_func)(void*), void * data);
+int bg_player_keep_going(bg_player_t * player,
+                         void (*ping_func)(void*), void * data, int interrupt);
 
 /* Get the current time (thread save) */
 
