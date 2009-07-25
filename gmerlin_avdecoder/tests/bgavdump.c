@@ -139,7 +139,9 @@ static int connect_timeout   = 5000;
 static int read_timeout      = 5000;
 static int network_bandwidth = 524300; /* 524.3 Kbps (Cable/DSL) */
 static int seek_subtitles    = 2;
-static int frames_to_read  = 10;
+static int frames_to_read    = 10;
+static int do_audio          = 1;
+static int do_video          = 1;
 
 int main(int argc, char ** argv)
   {
@@ -207,6 +209,21 @@ int main(int argc, char ** argv)
       vdpau = 1;
       arg_index++;
       }
+    else if(!strcmp(argv[arg_index], "-na"))
+      {
+      do_audio = 0;
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-nv"))
+      {
+      do_video = 0;
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-nf"))
+      {
+      frames_to_read = strtoll(argv[arg_index+1], (char**)0, 10);
+      arg_index+=2;
+      }
     else if(!strcmp(argv[arg_index], "-aseek"))
       {
       audio_seek = strtoll(argv[arg_index+1], (char**)0, 10);
@@ -238,8 +255,7 @@ int main(int argc, char ** argv)
   if(sample_accurate)
     bgav_options_set_sample_accurate(opt, 1);
 
-  if(vdpau)
-    bgav_options_set_vdpau(opt, 1);
+  bgav_options_set_vdpau(opt, vdpau);
   
 #ifndef _WIN32 
   bgav_options_set_user_pass_callback(opt, user_pass_func, (void*)0);
@@ -340,10 +356,16 @@ int main(int argc, char ** argv)
     num_audio_streams = bgav_num_audio_streams(file, track);
     num_video_streams = bgav_num_video_streams(file, track);
     num_subtitle_streams = bgav_num_subtitle_streams(file, track);
-    for(i = 0; i < num_audio_streams; i++)
-      bgav_set_audio_stream(file, i, BGAV_STREAM_DECODE);
-    for(i = 0; i < num_video_streams; i++)
-      bgav_set_video_stream(file, i, BGAV_STREAM_DECODE);
+    if(do_audio)
+      {
+      for(i = 0; i < num_audio_streams; i++)
+        bgav_set_audio_stream(file, i, BGAV_STREAM_DECODE);
+      }
+    if(do_video)
+      {
+      for(i = 0; i < num_video_streams; i++)
+        bgav_set_video_stream(file, i, BGAV_STREAM_DECODE);
+      }
     for(i = 0; i < num_subtitle_streams; i++)
       bgav_set_subtitle_stream(file, i, BGAV_STREAM_DECODE);
     
@@ -372,67 +394,72 @@ int main(int argc, char ** argv)
     fprintf(stderr, "End of file contents\n");
 
     /* Try to get some frames from each stream */
-  
-    for(i = 0; i < num_audio_streams; i++)
+    if(do_audio)
       {
-      audio_format = bgav_get_audio_format(file, i);
-      af = gavl_audio_frame_create(audio_format);
-      if(sample_accurate && audio_seek)
-        bgav_seek_audio(file, i, audio_seek);
+      for(i = 0; i < num_audio_streams; i++)
+        {
+        audio_format = bgav_get_audio_format(file, i);
+        af = gavl_audio_frame_create(audio_format);
+        if(sample_accurate && audio_seek)
+          bgav_seek_audio(file, i, audio_seek);
 
-      for(j = 0; j < frames_to_read; j++)
-        {
-        fprintf(stderr, "Reading %d samples from audio stream %d...",
-                audio_format->samples_per_frame, i+1);
-        if(bgav_read_audio(file, af, i, audio_format->samples_per_frame))
-          fprintf(stderr, "Done, PTS: %"PRId64", Samples: %d\n", af->timestamp, af->valid_samples);
-        else
-          fprintf(stderr, "Failed\n");
-        }
-      
-      gavl_audio_frame_destroy(af);
-      }
-    
-    for(i = 0; i < num_video_streams; i++)
-      {
-      video_format = bgav_get_video_format(file, i);
-      vf = gavl_video_frame_create(video_format);
-#if 1
-      if(sample_accurate)
-        {
-        if(video_seek)
-          bgav_seek_video(file, i, video_seek);
-        start_time = bgav_video_start_time(file, i);
-        }
-      else
-        start_time = 0;
-      for(j = 0; j < frames_to_read; j++)
-        {
-        fprintf(stderr, "Reading frame from video stream %d...", i+1);
-        if(bgav_read_video(file, vf, i))
+        for(j = 0; j < frames_to_read; j++)
           {
-          fprintf(stderr, "Done, timestamp: %"PRId64", Duration: %"PRId64", Timecode: ",
-                  vf->timestamp, vf->duration);
-          if(vf->timecode != GAVL_TIMECODE_UNDEFINED)
-            gavl_timecode_dump(&video_format->timecode_format,
-                               vf->timecode);
+          fprintf(stderr, "Reading %d samples from audio stream %d...",
+                  audio_format->samples_per_frame, i+1);
+          if(bgav_read_audio(file, af, i, audio_format->samples_per_frame))
+            fprintf(stderr, "Done, PTS: %"PRId64", Samples: %d\n", af->timestamp, af->valid_samples);
           else
-            fprintf(stderr, "None");
-          
-          fprintf(stderr, "\n");
+            fprintf(stderr, "Failed\n");
+          }
+      
+        gavl_audio_frame_destroy(af);
+        }
+      }
 
-          // fprintf(stderr, "First 16 bytes of first plane follow\n");
-          // bgav_hexdump(vf->planes[0] + vf->strides[0] * 20, 16, 16);
+    if(do_video)
+      {
+      for(i = 0; i < num_video_streams; i++)
+        {
+        video_format = bgav_get_video_format(file, i);
+        vf = gavl_video_frame_create(video_format);
+#if 1
+        if(sample_accurate)
+          {
+          if(video_seek)
+            bgav_seek_video(file, i, video_seek);
+          start_time = bgav_video_start_time(file, i);
           }
         else
+          start_time = 0;
+        for(j = 0; j < frames_to_read; j++)
           {
-          fprintf(stderr, "Failed\n");
-          break;
+          fprintf(stderr, "Reading frame from video stream %d...", i+1);
+          if(bgav_read_video(file, vf, i))
+            {
+            fprintf(stderr, "Done, timestamp: %"PRId64", Duration: %"PRId64", Timecode: ",
+                    vf->timestamp, vf->duration);
+            if(vf->timecode != GAVL_TIMECODE_UNDEFINED)
+              gavl_timecode_dump(&video_format->timecode_format,
+                                 vf->timecode);
+            else
+              fprintf(stderr, "None");
+          
+            fprintf(stderr, "\n");
+  
+            // fprintf(stderr, "First 16 bytes of first plane follow\n");
+            // bgav_hexdump(vf->planes[0] + vf->strides[0] * 20, 16, 16);
+            }
+          else
+            {
+            fprintf(stderr, "Failed\n");
+            break;
+            }
           }
-        }
 #endif
-      //      gavl_video_frame_dump(vf, video_format, "frame");
-      gavl_video_frame_destroy(vf);
+        //      gavl_video_frame_dump(vf, video_format, "frame");
+        gavl_video_frame_destroy(vf);
+        }
       }
 
     for(i = 0; i < num_subtitle_streams; i++)

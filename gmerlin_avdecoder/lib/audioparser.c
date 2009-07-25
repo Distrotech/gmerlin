@@ -110,7 +110,8 @@ void bgav_audio_parser_reset(bgav_audio_parser_t * parser,
   parser->frame_samples = 0;
   parser->frame_bytes = 0;
   parser->raw_position = -1;
-
+  parser->eof = 0;
+  
   if(in_pts != BGAV_TIMESTAMP_UNDEFINED)
     parser->timestamp = gavl_time_rescale(parser->in_scale,
                                           parser->format.samplerate,
