@@ -28,6 +28,7 @@ void bg_nle_timeline_set_motion_callback(bg_nle_timeline_t *,
 
 void bg_nle_timeline_set_selection(bg_nle_timeline_t * t, bg_nle_time_range_t * selection,
                                    int64_t cursor_pos);
+void bg_nle_timeline_set_in_out(bg_nle_timeline_t * t, bg_nle_time_range_t * selection);
 
 void bg_nle_timeline_set_cursor_pos(bg_nle_timeline_t * t, int64_t cursor_pos);
 

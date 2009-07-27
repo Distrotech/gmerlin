@@ -29,6 +29,13 @@ struct bg_nle_player_widget_s
   GtkWidget * goto_end_button;
   GtkWidget * frame_forward_button;
   GtkWidget * frame_backward_button;
+  GtkWidget * zoom_in;
+  GtkWidget * zoom_out;
+  GtkWidget * zoom_fit;
+
+  GtkWidget * in_button;
+  GtkWidget * out_button;
+  
   GtkWidget * socket;
   
   GtkWidget * box;
@@ -62,6 +69,26 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(p->player_state != BG_PLAYER_STATE_PAUSED)
       bg_player_pause(p->player);
     bg_player_seek(p->player, 0);
+    }
+  else if(w == p->zoom_in)
+    {
+    bg_nle_timerange_widget_zoom_in(bg_nle_time_ruler_get_tr(p->ruler));
+    }
+  else if(w == p->zoom_out)
+    {
+    bg_nle_timerange_widget_zoom_out(bg_nle_time_ruler_get_tr(p->ruler));
+    }
+  else if(w == p->zoom_fit)
+    {
+    bg_nle_timerange_widget_zoom_fit(bg_nle_time_ruler_get_tr(p->ruler));
+    }
+  else if(w == p->in_button)
+    {
+    bg_nle_timerange_widget_toggle_in(bg_nle_time_ruler_get_tr(p->ruler));
+    }
+  else if(w == p->out_button)
+    {
+    bg_nle_timerange_widget_toggle_out(bg_nle_time_ruler_get_tr(p->ruler));
     }
   }
 
@@ -270,6 +297,17 @@ static void selection_changed_callback(bg_nle_time_range_t * selection, int64_t 
   
   }
 
+static void in_out_changed_callback(bg_nle_time_range_t * in_out, void * data)
+  {
+  bg_nle_player_widget_t * w = data;
+  
+  //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
+  //  bg_nle_project_set_selection(t->p, selection);
+  bg_nle_time_range_copy(&w->tr.in_out, in_out);
+
+  bg_nle_time_ruler_update_in_out(w->ruler);
+  }
+
 static void cursor_changed_callback(int64_t cursor_pos, void * data)
   {
   bg_nle_player_widget_t * w = data;
@@ -293,6 +331,7 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
                             bg_nle_time_ruler_t * ruler)
   {
   GtkWidget * box;
+  GtkWidget * sep;
   bg_nle_player_widget_t * ret;
   bg_nle_time_range_t r;
   bg_parameter_value_t val;
@@ -305,10 +344,14 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   ret->tr.visible.start = 0;
   ret->tr.visible.end = GAVL_TIME_SCALE * 10;
 
+  ret->tr.in_out.start = -1;
+  ret->tr.in_out.end   = -1;
+
+  
   ret->tr.set_visible = visibility_changed_callback;
   ret->tr.set_zoom = zoom_changed_callback;
   ret->tr.set_selection = selection_changed_callback;
-  //  ret->tr.motion_callback = timewidget_motion_callback;
+  ret->tr.set_in_out = in_out_changed_callback;
   ret->tr.set_cursor_pos = cursor_changed_callback;
 
   ret->tr.callback_data = ret;
@@ -343,7 +386,18 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
                                                    TRS("1 frame forward"));
   ret->frame_backward_button = create_pixmap_button(ret, "gmerlerra/frame_backward.png",
                                                     TRS("1 frame backward"));
+  
+  ret->zoom_in = create_pixmap_button(ret, "gmerlerra/time_zoom_in.png",
+                                      TRS("Zoom in"));
+  ret->zoom_out = create_pixmap_button(ret, "gmerlerra/time_zoom_out.png",
+                                       TRS("Zoom out"));
+  ret->zoom_fit = create_pixmap_button(ret, "gmerlerra/time_zoom_fit.png",
+                                       TRS("Fit to selection"));
 
+  ret->in_button = create_pixmap_button(ret, "gmerlerra/in.png",
+                                        TRS("Toggle in point at cursor position"));
+  ret->out_button = create_pixmap_button(ret, "gmerlerra/out.png",
+                                         TRS("Toggle out point at cursor position"));
   /* Create socket */
   
   ret->socket = gtk_socket_new();
@@ -388,6 +442,21 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->frame_forward_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->goto_next_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->goto_end_button, FALSE, FALSE, 0);
+
+  sep = gtk_vseparator_new();
+  gtk_widget_show(sep);
+  gtk_box_pack_start(GTK_BOX(box), sep,  FALSE, TRUE, 0);
+  
+  gtk_box_pack_start(GTK_BOX(box), ret->zoom_in,  FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->zoom_out, FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->zoom_fit, FALSE, TRUE, 0);
+
+  sep = gtk_vseparator_new();
+  gtk_widget_show(sep);
+  gtk_box_pack_start(GTK_BOX(box), sep,  FALSE, TRUE, 0);
+
+  gtk_box_pack_start(GTK_BOX(box), ret->in_button,  FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->out_button,  FALSE, TRUE, 0);
   
   gtk_box_pack_end(GTK_BOX(box),
                    bg_gtk_time_display_get_widget(ret->display),

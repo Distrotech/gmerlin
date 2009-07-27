@@ -197,6 +197,12 @@ static void edit_callback(bg_nle_project_t * p,
       bg_nle_timeline_set_selection(win->timeline, &d->new_range, d->new_cursor_pos);
       }
       break;
+    case BG_NLE_EDIT_CHANGE_IN_OUT:
+      {
+      bg_nle_op_change_range_t * d = op_data;
+      bg_nle_timeline_set_in_out(win->timeline, &d->new_range);
+      }
+      break;
     case BG_NLE_EDIT_SET_CURSOR_POS:
       {
       bg_nle_op_cursor_pos_t * d = op_data;

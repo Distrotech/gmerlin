@@ -7,6 +7,8 @@ goto_end.png \
 goto_start.png \
 goto_next.png \
 goto_prev.png \
+in.png \
+out.png \
 play.png \
 record.png \
 stop.png \

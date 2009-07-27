@@ -139,6 +139,12 @@ static void edit_change_selection(bg_nle_project_t * p, bg_nle_op_change_range_t
   p->cursor_pos = op->new_cursor_pos;
   }
 
+static void edit_change_in_out(bg_nle_project_t * p, bg_nle_op_change_range_t * op)
+  {
+  /* This affects the GUI only */
+  bg_nle_time_range_copy(&p->in_out, &op->new_range);
+  }
+
 static void edit_change_zoom(bg_nle_project_t * p, bg_nle_op_change_range_t * op)
   {
   /* This affects the GUI only */
@@ -256,6 +262,9 @@ void bg_nle_project_edit(bg_nle_project_t * p,
     case BG_NLE_EDIT_CHANGE_SELECTION:
       edit_change_selection(p, data->data);
       break;
+    case BG_NLE_EDIT_CHANGE_IN_OUT:
+      edit_change_in_out(p, data->data);
+      break;
     case BG_NLE_EDIT_CHANGE_VISIBLE:
       edit_change_visible(p, data->data);
       break;
@@ -333,6 +342,7 @@ void bg_nle_undo_data_reverse(bg_nle_undo_data_t * data)
       }
       break;
     case BG_NLE_EDIT_CHANGE_SELECTION:
+    case BG_NLE_EDIT_CHANGE_IN_OUT:
     case BG_NLE_EDIT_CHANGE_VISIBLE:
     case BG_NLE_EDIT_CHANGE_ZOOM:
       {
@@ -415,6 +425,7 @@ void bg_nle_undo_data_destroy(bg_nle_undo_data_t * data)
     case BG_NLE_EDIT_ADD_OUTSTREAM:
     case BG_NLE_EDIT_MOVE_OUTSTREAM:
     case BG_NLE_EDIT_CHANGE_SELECTION:
+    case BG_NLE_EDIT_CHANGE_IN_OUT:
     case BG_NLE_EDIT_CHANGE_VISIBLE:
     case BG_NLE_EDIT_CHANGE_ZOOM:
     case BG_NLE_EDIT_TRACK_FLAGS:
@@ -484,6 +495,7 @@ void bg_nle_project_push_undo(bg_nle_project_t * p, bg_nle_undo_data_t * data)
       case BG_NLE_EDIT_OUTSTREAM_PARAMETERS:
       case BG_NLE_EDIT_ADD_FILE:
       case BG_NLE_EDIT_DELETE_FILE:
+      case BG_NLE_EDIT_CHANGE_IN_OUT:
         break;
       case BG_NLE_EDIT_CHANGE_SELECTION:
       case BG_NLE_EDIT_CHANGE_VISIBLE:

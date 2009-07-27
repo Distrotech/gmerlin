@@ -94,8 +94,8 @@ static void redraw(bg_nle_time_ruler_t * r)
   int64_t time;
   double pos;
   char time_string[GAVL_TIME_STRING_LEN_MS];
-  float selection_start_pos;
-  float selection_end_pos;
+  float start_pos;
+  float end_pos;
   
   PangoLayout * pl;
   cairo_t * c = gdk_cairo_create(r->wid->window);
@@ -156,23 +156,23 @@ static void redraw(bg_nle_time_ruler_t * r)
   if(bg_nle_time_range_intersect(&r->tr->selection,
                                  &r->tr->visible))
     {
-    selection_start_pos = bg_nle_time_2_pos(r->tr,
+    start_pos = bg_nle_time_2_pos(r->tr,
                                             r->tr->selection.start);
-    selection_end_pos = bg_nle_time_2_pos(r->tr,
+    end_pos = bg_nle_time_2_pos(r->tr,
                                           r->tr->selection.end);
   
     if(r->tr->selection.start >= 0)
       {
-      cairo_move_to(c, selection_start_pos, RULER_HEIGHT/2);
-      cairo_line_to(c, selection_start_pos, RULER_HEIGHT);
+      cairo_move_to(c, start_pos, RULER_HEIGHT/2);
+      cairo_line_to(c, start_pos, RULER_HEIGHT);
       cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
       cairo_stroke(c);
     
       if(r->tr->selection.end >= 0)
         {
         GdkRectangle r;
-        r.x = selection_start_pos;
-        r.width = selection_end_pos - selection_start_pos;
+        r.x = start_pos;
+        r.width = end_pos - start_pos;
         r.y = RULER_HEIGHT/2;
         r.height = RULER_HEIGHT/2;
         gdk_cairo_rectangle(c, &r);
@@ -180,8 +180,8 @@ static void redraw(bg_nle_time_ruler_t * r)
         cairo_set_source_rgba(c, 1.0, 0.0, 0.0, 0.2);
         cairo_fill(c);
 
-        cairo_move_to(c, selection_end_pos, RULER_HEIGHT/2);
-        cairo_line_to(c, selection_end_pos, RULER_HEIGHT);
+        cairo_move_to(c, end_pos, RULER_HEIGHT/2);
+        cairo_line_to(c, end_pos, RULER_HEIGHT);
         cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
         cairo_stroke(c);
         }
@@ -190,6 +190,45 @@ static void redraw(bg_nle_time_ruler_t * r)
 
     }
 
+  if(bg_nle_time_range_intersect(&r->tr->in_out,
+                                 &r->tr->visible))
+    {
+    start_pos = bg_nle_time_2_pos(r->tr, r->tr->in_out.start);
+    end_pos = bg_nle_time_2_pos(r->tr,   r->tr->in_out.end);
+    
+    if(r->tr->in_out.start >= 0)
+      {
+      cairo_move_to(c, start_pos+4.0, RULER_HEIGHT/2);
+      cairo_line_to(c, start_pos, RULER_HEIGHT/2);
+      cairo_line_to(c, start_pos, RULER_HEIGHT-1);
+      cairo_line_to(c, start_pos+4.0, RULER_HEIGHT-1);
+      cairo_set_source_rgb(c, 0.0, 0.0, 1.0);
+      cairo_stroke(c);
+      }
+    if(r->tr->in_out.end >= 0)
+      {
+      cairo_move_to(c, end_pos-4.0, RULER_HEIGHT/2);
+      cairo_line_to(c, end_pos, RULER_HEIGHT/2);
+      cairo_line_to(c, end_pos, RULER_HEIGHT-1);
+      cairo_line_to(c, end_pos-4.0, RULER_HEIGHT-1);
+      cairo_set_source_rgb(c, 0.0, 0.0, 1.0);
+      cairo_stroke(c);
+      }
+    
+    if((r->tr->in_out.start >= 0) && (r->tr->in_out.end >= 0))
+      {
+      GdkRectangle r;
+      r.x = start_pos;
+      r.width = end_pos - start_pos;
+      r.y = RULER_HEIGHT/2;
+      r.height = RULER_HEIGHT/2;
+      gdk_cairo_rectangle(c, &r);
+      
+      cairo_set_source_rgba(c, 0.0, 0.0, 1.0, 0.2);
+      cairo_fill(c);
+      }
+    }
+  
   // draw cursor
 
   pos = bg_nle_time_2_pos(r->tr, r->tr->cursor_pos);
@@ -343,6 +382,14 @@ void bg_nle_time_ruler_update_zoom(bg_nle_time_ruler_t * t)
 
 
 void bg_nle_time_ruler_update_selection(bg_nle_time_ruler_t * t)
+  {
+  if((t->tr->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
+    {
+    redraw(t);
+    }
+  }
+
+void bg_nle_time_ruler_update_in_out(bg_nle_time_ruler_t * t)
   {
   if((t->tr->width > 0) && GTK_WIDGET_REALIZED(t->wid)) 
     {

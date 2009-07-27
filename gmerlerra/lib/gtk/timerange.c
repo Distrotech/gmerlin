@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include <gtk/gtk.h>
 #include <inttypes.h>
 #include <gavl/gavl.h>
@@ -22,6 +24,13 @@ double bg_nle_time_2_pos(bg_nle_timerange_widget_t * w, int64_t time)
   double ret_d = (double)(time - w->visible.start) /
     (double)(w->visible.end - w->visible.start) * (double)w->width;
   return ret_d;
+  }
+
+static int is_near(bg_nle_timerange_widget_t * r, int64_t time1, int64_t time2)
+  {
+  double diff = fabs(bg_nle_time_2_pos(r, time1) - bg_nle_time_2_pos(r, time2));
+  
+  return diff < 3.0 ? 1 : 0;
   }
 
 void bg_nle_timerange_widget_set_width(bg_nle_timerange_widget_t * r,
@@ -54,8 +63,17 @@ int bg_nle_timerange_widget_handle_button_press(bg_nle_timerange_widget_t * r,
   bg_nle_time_range_t selection;
   int64_t t;
   int ret = 0;
+
+  if(r->snap_time)
+    {
+    t = *r->snap_time;
+    r->snap_time = NULL;
+    }
+  else
+    {
+    t = bg_nle_pos_2_time(r, evt->x);
+    }
   
-  t = bg_nle_pos_2_time(r, evt->x);
   r->mouse_x = evt->x;
   
   //  if(r->set_cursor_pos)
@@ -151,6 +169,10 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
     }
   else if(evt->state == GDK_BUTTON1_MASK)
     {
+    /* Prevent negative values */
+    if(time < 0)
+      time = 0;
+    
     if(r->selection.end < 0)
       {
       if(evt->x > r->mouse_x)
@@ -217,6 +239,30 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
     r->mouse_x = evt->x;
     return 1;
     }
+  /* No buttons pressed */
+  else if(!(evt->state & (GDK_BUTTON1_MASK|
+                          GDK_BUTTON2_MASK|
+                          GDK_BUTTON3_MASK|
+                          GDK_BUTTON4_MASK|
+                          GDK_BUTTON5_MASK)))
+    {
+    if((r->in_out.start >= 0) && is_near(r, r->in_out.start, time))
+      {
+      r->snap_time = &r->in_out.start;
+      gdk_window_set_cursor(w->window, bg_nle_cursor_left_side);
+      }
+    else if((r->in_out.end >= 0) && is_near(r, r->in_out.end, time))
+      {
+      r->snap_time = &r->in_out.end;
+      gdk_window_set_cursor(w->window, bg_nle_cursor_right_side);
+      }
+    else
+      {
+      r->snap_time = NULL;
+      gdk_window_set_cursor(w->window, bg_nle_cursor_xterm);
+      }
+    }
+  
   
   return 0;
   }
@@ -297,3 +343,45 @@ void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r)
     r->set_zoom(&range, r->callback_data);
   }
 
+/* */
+
+void bg_nle_timerange_widget_toggle_in(bg_nle_timerange_widget_t * r)
+  {
+  bg_nle_time_range_t range;
+  bg_nle_time_range_copy(&range, &r->in_out);
+
+  if(range.start == r->cursor_pos)
+    range.start = -1;
+  else
+    {
+    range.start = r->cursor_pos;
+  
+    /* Make some sanity checks */
+    if(range.end <= range.start)
+      range.end = -1;
+    }
+  
+  
+  if(r->set_in_out)
+    r->set_in_out(&range, r->callback_data);
+  }
+
+void bg_nle_timerange_widget_toggle_out(bg_nle_timerange_widget_t * r)
+  {
+  bg_nle_time_range_t range;
+  bg_nle_time_range_copy(&range, &r->in_out);
+
+  if(range.end == r->cursor_pos)
+    range.end = -1;
+  else
+    {
+    range.end = r->cursor_pos;
+    /* Make some sanity checks */
+    if(range.end <= range.start)
+      range.start = -1;
+    }
+  
+  if(r->set_in_out)
+    r->set_in_out(&range, r->callback_data);
+  
+  }

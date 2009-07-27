@@ -94,10 +94,16 @@ void bg_nle_timeline_set_selection(bg_nle_timeline_t * t,
   bg_nle_time_ruler_update_selection(t->ruler);
   }
 
+void bg_nle_timeline_set_in_out(bg_nle_timeline_t * t, bg_nle_time_range_t * in_out)
+  {
+  bg_nle_time_range_copy(&t->tr.in_out, in_out);
+  bg_nle_time_ruler_update_in_out(t->ruler);
+  }
+
+
 void bg_nle_timeline_set_cursor_pos(bg_nle_timeline_t * t,
                                     int64_t cursor_pos)
   {
-  int i;
   t->tr.cursor_pos = cursor_pos;
   bg_nle_time_ruler_update_cursor_pos(t->ruler);
   }
@@ -134,9 +140,9 @@ void bg_nle_timeline_set_zoom(bg_nle_timeline_t * t,
   bg_nle_time_ruler_update_zoom(t->ruler);
   }
 
-static void selection_changed_callback
-(bg_nle_time_range_t * selection, int64_t cursor_pos,
-                                       void * data)
+static void
+selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos,
+                           void * data)
   {
   
   //  int i;
@@ -144,6 +150,17 @@ static void selection_changed_callback
   
   //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
   bg_nle_project_set_selection(t->p, selection, cursor_pos);
+  }
+
+static void
+in_out_changed_callback(bg_nle_time_range_t * selection,
+                        void * data)
+  {
+  //  int i;
+  bg_nle_timeline_t * t = data;
+  
+  //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
+  bg_nle_project_set_in_out(t->p, selection);
   }
 
 static void visibility_changed_callback(bg_nle_time_range_t * visible, void * data)
@@ -272,10 +289,14 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                          &p->selection);
   bg_nle_time_range_copy(&ret->tr.visible,
                          &p->visible);
-
+  bg_nle_time_range_copy(&ret->tr.in_out,
+                         &p->in_out);
+  ret->tr.cursor_pos = p->cursor_pos;
+  
   ret->tr.set_visible = visibility_changed_callback;
   ret->tr.set_zoom = zoom_changed_callback;
   ret->tr.set_selection = selection_changed_callback;
+  ret->tr.set_in_out = in_out_changed_callback;
   ret->tr.motion_callback = timewidget_motion_callback;
   ret->tr.callback_data = ret;
   

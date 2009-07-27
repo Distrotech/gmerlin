@@ -349,6 +349,26 @@ void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * se
   edited(p, BG_NLE_EDIT_CHANGE_SELECTION, d);
   }
 
+// BG_NLE_EDIT_CHANGE_IN_OUT
+
+void bg_nle_project_set_in_out(bg_nle_project_t * p, bg_nle_time_range_t * in_out)
+  {
+  bg_nle_op_change_range_t * d;
+  
+  if((p->in_out.start == in_out->start) &&
+     (p->in_out.end == in_out->end))
+    return;
+  
+  d = calloc(1, sizeof(*d));
+
+  bg_nle_time_range_copy(&d->old_range, &p->in_out);
+  bg_nle_time_range_copy(&d->new_range, in_out);
+  
+  edited(p, BG_NLE_EDIT_CHANGE_IN_OUT, d);
+  }
+
+
+
 // BG_NLE_EDIT_CHANGE_VISIBLE
 
 void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visible)

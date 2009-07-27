@@ -50,6 +50,7 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
                             const char * file,
                             const char * plugin)
   {
+  int i, keep_going;
   bg_plugin_handle_t * handle = NULL;
   bg_input_plugin_t  * input;
   int num_tracks, track;
@@ -106,6 +107,22 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
     ret->name = bg_get_track_name_default(ret->filename, ret->track, num_tracks);
   
   bg_plugin_unref(handle);
+
+  /* Get ID */
+
+  do{
+    ret->id++;
+    keep_going = 0;
+    for(i = 0; i < list->num_files; i++)
+      {
+      if(list->files[i]->id == ret->id)
+        {
+        keep_going = 1;
+        break;
+        }
+      }
+    }while(keep_going);
+  
   return ret;
   }
 

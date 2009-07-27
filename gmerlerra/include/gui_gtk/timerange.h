@@ -9,10 +9,13 @@ typedef struct
   int width;
   bg_nle_time_range_t selection;
   bg_nle_time_range_t visible;
+  bg_nle_time_range_t in_out;
   
   int64_t cursor_pos;
   
   int selection_mode;
+  
+  int64_t * snap_time;
   
   int mouse_x;
 
@@ -20,6 +23,7 @@ typedef struct
   void (*set_visible)(bg_nle_time_range_t * visible, void * priv);
   void (*set_zoom)(bg_nle_time_range_t * visible, void * priv);
   void (*set_cursor_pos)(int64_t time, void * priv);
+  void (*set_in_out)(bg_nle_time_range_t * selection, void * priv);
   
   void (*motion_callback)(int64_t time, void * priv);
   void * callback_data;
@@ -49,5 +53,7 @@ void bg_nle_timerange_widget_zoom_in(bg_nle_timerange_widget_t * r);
 void bg_nle_timerange_widget_zoom_out(bg_nle_timerange_widget_t * r);
 void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r);
 
+void bg_nle_timerange_widget_toggle_in(bg_nle_timerange_widget_t * r);
+void bg_nle_timerange_widget_toggle_out(bg_nle_timerange_widget_t * r);
 
 #endif // TIMERANGE_H

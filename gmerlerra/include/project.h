@@ -38,7 +38,8 @@ struct bg_nle_project_s
 
   bg_nle_time_range_t visible;
   bg_nle_time_range_t selection;
-
+  bg_nle_time_range_t in_out;
+  
   int64_t cursor_pos;
   
   bg_cfg_section_t * section; // Root section, contains all following sections
@@ -100,6 +101,8 @@ void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_po
 void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visible);
 void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * selection,
                                   int64_t cursor_pos);
+
+void bg_nle_project_set_in_out(bg_nle_project_t * p, bg_nle_time_range_t * in_out);
 
 void bg_nle_project_set_track_flags(bg_nle_project_t * p,
                                     bg_nle_track_t * t, int flags);
