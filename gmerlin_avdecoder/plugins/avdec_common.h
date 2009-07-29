@@ -80,6 +80,9 @@ int bg_avdec_set_subtitle_stream(void * priv,
 int bg_avdec_start(void * priv);
 void bg_avdec_seek(void * priv, int64_t * t, int scale);
 
+gavl_frame_table_t * bg_avdec_get_frame_table(void * priv, int stream);
+
+
 int bg_avdec_init(avdec_priv * avdec);
 
 const char * bg_avdec_get_disc_name(void * priv);

@@ -590,6 +590,14 @@ int bg_avdec_set_track(void * priv, int track)
   return 1;
   }
 
+gavl_frame_table_t * bg_avdec_get_frame_table(void * priv, int stream)
+  {
+  avdec_priv * avdec;
+  avdec = (avdec_priv*)(priv);
+  return bgav_get_frame_table(avdec->dec, stream);
+  }
+
+
 static void metadata_change_callback(void * priv,
                                      const bgav_metadata_t * metadata)
   {
@@ -608,6 +616,8 @@ static void metadata_change_callback(void * priv,
     bg_metadata_free(&m);
     }
   }
+
+
 
 void bg_avdec_set_callbacks(void * priv,
                             bg_input_callbacks_t * callbacks)
@@ -670,7 +680,6 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
     }
   return ret;
   }
-
 
 const char * bg_avdec_get_disc_name(void * priv)
   {
@@ -758,3 +767,4 @@ bg_edl_t * bg_avdec_convert_edl(const bgav_edl_t * e)
   ret->url = bg_strdup(ret->url, e->url);
   return ret;
   }
+

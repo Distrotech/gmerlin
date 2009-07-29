@@ -1508,6 +1508,27 @@ BGAV_PUBLIC
 const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
+ *  \brief Get the frame table of a video stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns The frame table or NULL
+ *
+ *  Note, that you can trust the return value of this function only, if
+ *  you enabled the stream (see \ref bgav_set_video_stream) and started
+ *  the decoders (see \ref bgav_start).
+ *
+ *  If you want to make sure that the frame table is available for
+ *  as many files as possible, use sample accurate mode (see
+ *  \ref bgav_options_set_sample_accurate)
+ *  The returned table (if non-null) must be freed by the caller with
+ *  \ref gavl_frame_table_destroy.
+ */
+  
+BGAV_PUBLIC
+gavl_frame_table_t * bgav_get_frame_table(bgav_t * bgav, int stream);
+
+  
+/** \ingroup stream_info
  *  \brief Get the video format of a subtitle stream
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
@@ -1522,6 +1543,8 @@ const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
  *  video frames).
  */
 
+
+  
 BGAV_PUBLIC const gavl_video_format_t *
 bgav_get_subtitle_format(bgav_t * bgav, int stream);
 

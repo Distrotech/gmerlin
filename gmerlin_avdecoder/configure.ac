@@ -146,7 +146,7 @@ dnl
 dnl Check for Libraries
 dnl
 
-GAVL_REQUIRED="1.1.0"
+GAVL_REQUIRED="1.1.2"
 
 PKG_CHECK_MODULES(GAVL, gavl >= $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
 AC_SUBST(GAVL_REQUIRED)

@@ -407,3 +407,9 @@ int bgav_video_has_still(bgav_t * bgav, int stream)
   
   return 0;
   }
+
+gavl_frame_table_t * bgav_get_frame_table(bgav_t * bgav, int stream)
+  {
+  /* TODO */
+  return NULL;
+  }

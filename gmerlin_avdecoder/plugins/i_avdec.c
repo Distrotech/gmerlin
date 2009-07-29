@@ -424,6 +424,9 @@ const bg_input_plugin_t the_plugin =
      *  in the stream infos to check out, which streams are to be decoded
      */
     .start =                 bg_avdec_start,
+
+    .get_frame_table =       bg_avdec_get_frame_table,
+
     /* Read one audio frame (returns FALSE on EOF) */
     .read_audio =    bg_avdec_read_audio,
     /* Read one video frame (returns FALSE on EOF) */
