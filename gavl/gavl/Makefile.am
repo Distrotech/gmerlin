@@ -66,6 +66,7 @@ deinterlace_copy.c \
 deinterlace_scale.c \
 dsp.c \
 dsputils.c \
+frametable.c \
 interleave.c \
 memcpy.c \
 mix.c \

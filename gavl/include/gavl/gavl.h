@@ -3345,7 +3345,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
 GAVL_PUBLIC
 void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
                         gavl_video_frame_t * dst_frame);
-
+  
 /*! \defgroup video_transform Image transformation
  * \ingroup video
  *
@@ -3453,6 +3453,125 @@ gavl_image_transform_get_options(gavl_image_transform_t * t);
 /**
  * @}
  */
+
+/*! \defgroup frame_table Frame table
+ * \ingroup video
+ *
+ * This is a table, which tolds the complete timing information
+ * of a video sequence. If is meant for e.g. for editing applications,
+ * where the complete timing must be known in advance.
+ *
+ * A frame table is always associated with a \ref gavl_video_format_t,
+ * which must be passed to most functions.
+ * 
+ * @{
+ */
+
+/** \brief frame table structure
+ *
+ * Since 1.1.2.
+ */
+  
+typedef struct
+  {
+  int64_t offset; //!< Timestamp of the first frame
+  /* Primary */
+  int num_entries; //!< Number of entries
+  int entries_alloc; //!< Number of allocated entries (never touch this)
+
+
+  struct
+    {
+    int num_frames; //!< Number of frames
+    int duration;   //!< Duration of each of these frames
+    } * entries;
+  
+  int num_timecodes; //!< Number of timecodes
+  int timecodes_alloc; //!< Number of allocated timecodes (never touch this)
+
+  struct
+    {
+    int64_t time;             //!< Timestamp of this frame
+    gavl_timecode_t timecode; //!< Timecode associated with this timestamp
+    } * timecodes;
+  
+  /* Secondary */
+  
+  } gavl_frame_table_t;
+
+/** \brief Create a frame table
+ *  \returns A newly allocated frame table
+ *
+ * Since 1.1.2.
+ */
+gavl_frame_table_t * gavl_frame_table_create();
+
+/** \brief Destroy a frame table and free all memory
+ *  \param t A frame table
+ *
+ * Since 1.1.2.
+ */
+  
+void gavl_frame_table_destroy(gavl_frame_table_t * t);
+
+/** \brief Allocate entries
+ *  \param t A frame table
+ *  \param num Number of entries to allocate
+ *
+ * Since 1.1.2.
+ */
+
+void gavl_frame_table_alloc_entries(gavl_frame_table_t * t, int num);
+
+/** \brief Allocate timecodes
+ *  \param t A frame table
+ *  \param num Number of timecode entries to allocate
+ *
+ * Since 1.1.2.
+ */
+
+void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int num);
+
+/** \brief Convert a frame index to a timestamp
+ *  \param t A frame table
+ *  \param frame Frame index (starting with zero)
+ *  \param duration If non NULL, returns the duration of that frame
+ *  \returns The timestamp of that frame in video timescale or
+ *           GAVL_TIME_UNDEFINED if such frame doesn't exist.
+ *
+ * Since 1.1.2.
+ */
+
+int64_t gavl_frame_table_frame_to_time(gavl_frame_table_t * t,
+                                       int frame, int * duration);
+
+/** \brief Convert a timestamp to a frame index
+ *  \param t A frame table
+ *  \param time Time in stream timescale
+ *  \param start_time If non NULL, returns the start time of that frame
+ *  \returns The index that frame (starting with 0)
+ *           or -1 if such frame doesn't exist.
+ *
+ * Since 1.1.2.
+ */
+
+int gavl_frame_table_time_to_frame(gavl_frame_table_t * t,
+                                   int64_t time,
+                                   int64_t * start_time);
+
+/** \brief get the total number of video frames
+ *  \param t A frame table
+ *  \returns The total number of video frames
+ *
+ * Since 1.1.2.
+ */
+  
+int gavl_frame_table_num_frames(gavl_frame_table_t * t);
+  
+/**
+ * @}
+ */
+
   
 #ifdef __cplusplus
 }
