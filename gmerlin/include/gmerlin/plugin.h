@@ -131,7 +131,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 /** @}
  */
 
-#define BG_PLUGIN_API_VERSION 19
+#define BG_PLUGIN_API_VERSION 20
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -664,6 +664,17 @@ struct bg_input_plugin_s
   
   int (*start)(void * priv);
 
+  /** \brief Get frame table
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index (starting with 0)
+   *  \returns A newly allocated frame table or NULL
+   *
+   *  The returned frame table must be freed with
+   *  \ref gavL_frame_table_destroy.
+   */
+
+  gavl_frame_table_t * (*get_frame_table)(void * priv, int stream);
+    
   /** \brief Read audio samples
    *  \param priv The handle returned by the create() method
    *  \param frame The frame, where the samples will be copied
