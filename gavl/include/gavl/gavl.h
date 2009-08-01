@@ -3478,12 +3478,11 @@ typedef struct
   /* Primary */
   int num_entries; //!< Number of entries
   int entries_alloc; //!< Number of allocated entries (never touch this)
-
-
+  
   struct
     {
     int num_frames; //!< Number of frames
-    int duration;   //!< Duration of each of these frames
+    int64_t duration;   //!< Duration of each of these frames
     } * entries;
   
   int num_timecodes; //!< Number of timecodes
@@ -3504,7 +3503,7 @@ typedef struct
  *
  * Since 1.1.2.
  */
-gavl_frame_table_t * gavl_frame_table_create();
+GAVL_PUBLIC gavl_frame_table_t * gavl_frame_table_create();
 
 /** \brief Destroy a frame table and free all memory
  *  \param t A frame table
@@ -3512,16 +3511,16 @@ gavl_frame_table_t * gavl_frame_table_create();
  * Since 1.1.2.
  */
   
-void gavl_frame_table_destroy(gavl_frame_table_t * t);
+GAVL_PUBLIC void gavl_frame_table_destroy(gavl_frame_table_t * t);
 
-/** \brief Allocate entries
+/** \brief Append an entry
  *  \param t A frame table
- *  \param num Number of entries to allocate
+ *  \param duration The duration of this frame
  *
  * Since 1.1.2.
  */
-
-void gavl_frame_table_alloc_entries(gavl_frame_table_t * t, int num);
+  
+GAVL_PUBLIC void gavl_frame_table_append_entry(gavl_frame_table_t * t, int64_t duration);
 
 /** \brief Allocate timecodes
  *  \param t A frame table
@@ -3530,7 +3529,7 @@ void gavl_frame_table_alloc_entries(gavl_frame_table_t * t, int num);
  * Since 1.1.2.
  */
 
-void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int num);
+GAVL_PUBLIC void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int num);
 
 /** \brief Convert a frame index to a timestamp
  *  \param t A frame table
@@ -3542,7 +3541,7 @@ void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int num);
  * Since 1.1.2.
  */
 
-int64_t gavl_frame_table_frame_to_time(gavl_frame_table_t * t,
+GAVL_PUBLIC int64_t gavl_frame_table_frame_to_time(gavl_frame_table_t * t,
                                        int frame, int * duration);
 
 /** \brief Convert a timestamp to a frame index
@@ -3555,9 +3554,9 @@ int64_t gavl_frame_table_frame_to_time(gavl_frame_table_t * t,
  * Since 1.1.2.
  */
 
-int gavl_frame_table_time_to_frame(gavl_frame_table_t * t,
-                                   int64_t time,
-                                   int64_t * start_time);
+GAVL_PUBLIC int gavl_frame_table_time_to_frame(gavl_frame_table_t * t,
+                                               int64_t time,
+                                               int64_t * start_time);
 
 /** \brief get the total number of video frames
  *  \param t A frame table
@@ -3566,7 +3565,16 @@ int gavl_frame_table_time_to_frame(gavl_frame_table_t * t,
  * Since 1.1.2.
  */
   
-int gavl_frame_table_num_frames(gavl_frame_table_t * t);
+GAVL_PUBLIC int gavl_frame_table_num_frames(gavl_frame_table_t * t);
+
+/** \brief Dump a frame table to stderr for debugging
+ *  \param t A frame table
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC void gavl_frame_table_dump(gavl_frame_table_t * t);
+
   
 /**
  * @}

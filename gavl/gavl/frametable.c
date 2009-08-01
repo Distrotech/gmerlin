@@ -23,8 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-
-
+#include <stdio.h>
 
 gavl_frame_table_t * gavl_frame_table_create()
   {
@@ -41,19 +40,27 @@ void gavl_frame_table_destroy(gavl_frame_table_t * tab)
     free(tab->timecodes);
   free(tab);
   }
-
-void gavl_frame_table_alloc_entries(gavl_frame_table_t * t, int num)
+  
+void gavl_frame_table_append_entry(gavl_frame_table_t * t, int64_t duration)
   {
-  if(t->entries_alloc < num)
+  if(t->num_entries && (t->entries[t->num_entries-1].duration == duration))
     {
-    t->entries_alloc = num + 128;
+    t->entries[t->num_entries-1].num_frames++;
+    return;
+    }
+  
+  if(t->entries_alloc <= t->num_entries)
+    {
+    t->entries_alloc = t->num_entries + 128;
     t->entries = realloc(t->entries,
                          t->entries_alloc * sizeof(*t->entries));
+    memset(t->entries + t->num_entries, 0,
+           (t->entries_alloc-t->num_entries) * sizeof(*t->entries));
     }
-  memset(t->entries + t->num_entries, 0,
-         (t->entries_alloc-t->num_entries) * sizeof(*t->entries));
+  t->entries[t->num_entries].duration = duration;
+  t->entries[t->num_entries].num_frames = 1;
+  t->num_entries++;
   }
-
 
 void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int num)
   {
@@ -144,4 +151,17 @@ int gavl_frame_table_num_frames(gavl_frame_table_t * t)
     ret += t->entries[i].num_frames;
     }
   return ret;
+  }
+
+void gavl_frame_table_dump(gavl_frame_table_t * t)
+  {
+  int i;
+  fprintf(stderr, "Entries: %d, total frames: %d, offset: %"PRId64"\n",
+          t->num_entries, gavl_frame_table_num_frames(t), t->offset);
+  
+  for(i = 0; i < t->num_entries; i++)
+    {
+    fprintf(stderr, "  Frames: %d, duration: %"PRId64"\n",
+            t->entries[i].num_frames, t->entries[i].duration);
+    }
   }
