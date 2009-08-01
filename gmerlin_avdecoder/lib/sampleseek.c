@@ -75,6 +75,17 @@ int64_t bgav_subtitle_duration(bgav_t * bgav, int stream)
   return bgav->tt->cur->subtitle_streams[stream].duration;
   }
 
+int64_t bgav_audio_start_time(bgav_t * bgav, int stream)
+  {
+  return bgav->tt->cur->audio_streams[stream].start_time;
+  }
+
+int64_t bgav_video_start_time(bgav_t * bgav, int stream)
+  {
+  return bgav->tt->cur->video_streams[stream].start_time;
+  }
+
+
 void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   {
   int64_t frame_time;
