@@ -412,10 +412,11 @@ static void frame_table_append_frame(gavl_frame_table_t * t,
   *last_time = time;
   }
 
+/* Create frame table from file index */
+
 static gavl_frame_table_t * create_frame_table_fi(bgav_stream_t * s)
   {
   gavl_frame_table_t * ret;
-  int ct;
   int i;
   int last_non_b_index = -1;
   bgav_file_index_t * fi = s->file_index;
@@ -427,9 +428,7 @@ static gavl_frame_table_t * create_frame_table_fi(bgav_stream_t * s)
   
   for(i = 0; i < fi->num_entries; i++)
     {
-    ct = fi->entries[i].flags & 0xff;
-    
-    if(ct == BGAV_CODING_TYPE_B)
+    if((fi->entries[i].flags & 0xff) == BGAV_CODING_TYPE_B)
       {
       frame_table_append_frame(ret,
                                fi->entries[i].pts,
@@ -460,10 +459,38 @@ static gavl_frame_table_t * create_frame_table_fi(bgav_stream_t * s)
   return ret;
   }
 
+/* Create frame table from superindex */
+
 static gavl_frame_table_t *
 create_frame_table_si(bgav_stream_t * s, bgav_superindex_t * si)
   {
-  return NULL;
+  int i;
+  gavl_frame_table_t * ret;
+  int last_non_b_index = -1;
+  
+  ret = gavl_frame_table_create();
+
+  for(i = 0; i < si->num_entries; i++)
+    {
+    if(si->entries[i].stream_id == s->stream_id)
+      {
+      if((si->entries[i].flags & 0xff) == BGAV_CODING_TYPE_B)
+        {
+        gavl_frame_table_append_entry(ret, si->entries[i].duration);
+        }
+      else
+        {
+        if(last_non_b_index >= 0)
+          gavl_frame_table_append_entry(ret, si->entries[last_non_b_index].duration);
+        last_non_b_index = i;
+        }
+      }
+    }
+
+  if(last_non_b_index >= 0)
+    gavl_frame_table_append_entry(ret, si->entries[last_non_b_index].duration);
+  
+  return ret;
   }
 
 gavl_frame_table_t * bgav_get_frame_table(bgav_t * bgav, int stream)
