@@ -341,6 +341,10 @@ typedef enum
 /* Picture is available for immediate output */
 #define STREAM_HAVE_PICTURE       (1<<11)
 
+/* Already got the format from the parser */
+#define STREAM_PARSE_HAVE_FORMAT  (1<<12)
+
+
 #define STREAM_SET_SYNC(s, t)  s->sync_time = t
 #define STREAM_GET_SYNC(s)     s->sync_time
 

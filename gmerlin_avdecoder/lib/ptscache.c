@@ -45,6 +45,7 @@ static int get_min_index(bgav_pts_cache_t * c)
 void bgav_pts_cache_push(bgav_pts_cache_t * c,
                          int64_t pts,
                          int duration,
+                         gavl_timecode_t tc,
                          int * index,
                          bgav_pts_cache_entry_t ** e)
   {
@@ -60,6 +61,7 @@ void bgav_pts_cache_push(bgav_pts_cache_t * c,
   c->entries[i].used      = 1;
   c->entries[i].pts       = pts;
   c->entries[i].duration  = duration;
+  c->entries[i].tc        = tc;
   
   if(index)
     *index = i;
@@ -75,7 +77,8 @@ void bgav_pts_cache_clear(bgav_pts_cache_t * c)
   }
 
 /* Get the smallest timestamp */
-int64_t bgav_pts_cache_get_first(bgav_pts_cache_t * c, int * duration)
+int64_t bgav_pts_cache_get_first(bgav_pts_cache_t * c, int * duration,
+                                 gavl_timecode_t * tc)
   {
   int i = get_min_index(c);
 
@@ -85,6 +88,8 @@ int64_t bgav_pts_cache_get_first(bgav_pts_cache_t * c, int * duration)
     {
     c->entries[i].used = 0;
     *duration = c->entries[i].duration;
+    if(tc)
+      *tc = c->entries[i].tc;
     return c->entries[i].pts;
     }
   }

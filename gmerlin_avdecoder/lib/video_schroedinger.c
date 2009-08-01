@@ -175,6 +175,7 @@ static SchroBuffer * get_data(bgav_stream_t * s)
       
       bgav_pts_cache_push(&priv->pc,
                           priv->p->pts, priv->p->duration,
+                          priv->p->pts,
                           NULL, NULL);
       priv->last_pts = priv->p->pts;
       }
@@ -368,6 +369,7 @@ static int init_schroedinger(bgav_stream_t * s)
 static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   int duration;
+  gavl_timecode_t tc;
   schroedinger_priv_t * priv;
   priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
 
@@ -389,11 +391,11 @@ static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
     gavl_video_frame_copy(&s->data.video.format,
                           frame, priv->frame);
     
-    frame->timestamp = bgav_pts_cache_get_first(&priv->pc, &duration);
+    frame->timestamp = bgav_pts_cache_get_first(&priv->pc, &duration, &tc);
     frame->duration = duration;
     }
   else
-    bgav_pts_cache_get_first(&priv->pc, &duration);
+    bgav_pts_cache_get_first(&priv->pc, &duration, &tc);
   
   schro_frame_unref(priv->dec_frame);
   priv->dec_frame = NULL;

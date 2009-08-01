@@ -26,6 +26,7 @@ typedef struct
   int64_t pts;
   int duration;
   int used;
+  gavl_timecode_t tc;
   } bgav_pts_cache_entry_t;
 
 typedef struct
@@ -34,11 +35,12 @@ typedef struct
   } bgav_pts_cache_t;
 
 void bgav_pts_cache_push(bgav_pts_cache_t * c,
-                         int64_t pts, int duration,
+                         int64_t pts, int duration, gavl_timecode_t tc,
                          int * index,
                          bgav_pts_cache_entry_t ** e);
 
 void bgav_pts_cache_clear(bgav_pts_cache_t * c);
 
 /* Get the smallest timestamp */
-int64_t bgav_pts_cache_get_first(bgav_pts_cache_t * c, int * duration);
+int64_t bgav_pts_cache_get_first(bgav_pts_cache_t * c, int * duration,
+                                 gavl_timecode_t * tc);

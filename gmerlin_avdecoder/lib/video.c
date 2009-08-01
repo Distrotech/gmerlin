@@ -62,7 +62,6 @@ int bgav_video_start(bgav_stream_t * s)
     {
     int result, done = 0;
     bgav_packet_t * p;
-    const gavl_video_format_t * format;
     bgav_video_parser_t * parser;
     const uint8_t * header;
     int header_len;
@@ -132,9 +131,6 @@ int bgav_video_start(bgav_stream_t * s)
           break;
         }
       }
-    
-    format = bgav_video_parser_get_format(parser);
-    gavl_video_format_copy(&s->data.video.format, format);
     
     s->data.video.max_ref_frames = bgav_video_parser_max_ref_frames(parser);
     
@@ -407,36 +403,65 @@ int bgav_video_has_still(bgav_t * bgav, int stream)
   return 0;
   }
 
+static void frame_table_append_frame(gavl_frame_table_t * t,
+                                     int64_t time,
+                                     int64_t * last_time)
+  {
+  if(*last_time != BGAV_TIMESTAMP_UNDEFINED)
+    gavl_frame_table_append_entry(t, time - *last_time);
+  *last_time = time;
+  }
+
 static gavl_frame_table_t * create_frame_table_fi(bgav_stream_t * s)
   {
   gavl_frame_table_t * ret;
   int ct;
   int i;
   int last_non_b_index = -1;
-  int64_t last_time = BGAV_TIMESTAMP_UNDEFINED;
   bgav_file_index_t * fi = s->file_index;
-  int append_entry = -1;
+  
+  int64_t last_time = BGAV_TIMESTAMP_UNDEFINED;
   
   ret = gavl_frame_table_create();
   ret->offset = s->start_time;
   
-  for(i = 0; i < s->file_index->num_entries; i++)
+  for(i = 0; i < fi->num_entries; i++)
     {
-    ct = s->file_index->entries[i].flags & 0xff;
+    ct = fi->entries[i].flags & 0xff;
     
     if(ct == BGAV_CODING_TYPE_B)
       {
-      if(i)
-        {
-        }
+      frame_table_append_frame(ret,
+                               fi->entries[i].pts,
+                               &last_time);
       }
-    
+    else
+      {
+      if(last_non_b_index >= 0)
+        frame_table_append_frame(ret,
+                                 fi->entries[last_non_b_index].pts,
+                                 &last_time);
+      last_non_b_index = i;
+      }
     }
+
+  /* Flush last non B-frame */
   
-  return NULL;
+  if(last_non_b_index >= 0)
+    {
+    frame_table_append_frame(ret,
+                             fi->entries[last_non_b_index].pts,
+                             &last_time);
+    }
+
+  /* Flush last frame */
+  gavl_frame_table_append_entry(ret, s->duration - last_time);
+  
+  return ret;
   }
 
-static gavl_frame_table_t * create_frame_table_si(bgav_stream_t * s, bgav_superindex_t * si)
+static gavl_frame_table_t *
+create_frame_table_si(bgav_stream_t * s, bgav_superindex_t * si)
   {
   return NULL;
   }

@@ -150,6 +150,7 @@ typedef struct
 
   int64_t picture_timestamp;
   int     picture_duration;
+  gavl_timecode_t picture_timecode;
   
   int64_t skip_time;
 
@@ -360,6 +361,8 @@ static int decode_picture(bgav_stream_t * s)
   int have_picture = 0;
   
   priv = s->data.video.decoder->priv;
+
+  priv->picture_timecode = GAVL_TIMECODE_UNDEFINED;
   
   while(1)
     {
@@ -402,6 +405,7 @@ static int decode_picture(bgav_stream_t * s)
         bgav_pts_cache_push(&priv->pts_cache,
                             priv->packet->pts,
                             priv->packet->duration,
+                            priv->packet->tc,
                             (int*)0, &e);
         }
       }
@@ -411,6 +415,7 @@ static int decode_picture(bgav_stream_t * s)
       bgav_pts_cache_push(&priv->pts_cache,
                           priv->packet->pts,
                           priv->packet->duration,
+                          priv->packet->tc,
                           (int*)0, &e);
       
       }
@@ -601,10 +606,11 @@ static int decode_picture(bgav_stream_t * s)
       break;
       }
     }
-
+  
   priv->picture_timestamp =
     bgav_pts_cache_get_first(&priv->pts_cache,
-                             &priv->picture_duration);
+                             &priv->picture_duration,
+                             &priv->picture_timecode);
   return 1;
   }
 
@@ -2281,7 +2287,8 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
 #ifdef HAVE_VDPAU
   else if(priv->vdpau_ctx)
     {
-    struct vdpau_render_state * state = priv->frame->data[0];
+    struct vdpau_render_state * state =
+      (struct vdpau_render_state *)priv->frame->data[0];
     //    gavl_video_frame_clear(f, &s->data.video.format);
     bgav_vdpau_context_surface_to_frame(priv->vdpau_ctx,
                                         state->surface, f);
@@ -2400,7 +2407,12 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
     }
   f->timestamp = priv->picture_timestamp;
   f->duration = priv->picture_duration;
-  
+
+  if(priv->picture_timecode != GAVL_TIMECODE_UNDEFINED)
+    {
+    s->codec_timecode = priv->picture_timecode;
+    s->has_codec_timecode = 1;
+    }
   }
 
 /* Extract format and get timecode */

@@ -120,6 +120,7 @@ static int get_data(bgav_stream_t*s)
 
   bgav_pts_cache_push(&priv->pts_cache,
                       priv->p->pts, priv->p->duration,
+                      priv->p->tc,
                       &cache_index,
                       (bgav_pts_cache_entry_t**)0);
   
@@ -148,8 +149,9 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
       if(!s->data.video.format.timecode_format.int_framerate)
         {
         s->data.video.format.timecode_format.int_framerate =
-          (int)((float)s->data.video.format.timescale /
-                (float)s->data.video.format.frame_duration+0.5);
+          s->data.video.format.timescale / s->data.video.format.frame_duration;
+        if(s->data.video.format.timescale % s->data.video.format.frame_duration)
+          s->data.video.format.timecode_format.int_framerate++;
         if(priv->info->gop->flags & GOP_FLAG_DROP_FRAME)
           s->data.video.format.timecode_format.flags |=
             GAVL_TIMECODE_DROP_FRAME;

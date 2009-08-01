@@ -702,6 +702,14 @@ static bgav_packet_t * get_packet_read_vparse(bgav_demuxer_context_t * demuxer,
           }
         break;
       case PARSER_HAVE_PACKET:
+        if(!(s->flags & STREAM_PARSE_HAVE_FORMAT))
+          {
+          const gavl_video_format_t * format;
+          format = bgav_video_parser_get_format(s->data.video.parser);
+          gavl_video_format_copy(&s->data.video.format, format);
+          s->flags |= STREAM_PARSE_HAVE_FORMAT;
+          }
+        
         bgav_video_parser_get_packet(s->data.video.parser,
                                      s->parsed_packet);
         return s->parsed_packet;
@@ -863,6 +871,13 @@ static bgav_packet_t * peek_packet_vparse(bgav_demuxer_context_t * demuxer,
           }
         break;
       case PARSER_HAVE_PACKET:
+        if(!(s->flags & STREAM_PARSE_HAVE_FORMAT))
+          {
+          const gavl_video_format_t * format;
+          format = bgav_video_parser_get_format(s->data.video.parser);
+          gavl_video_format_copy(&s->data.video.format, format);
+          s->flags |= STREAM_PARSE_HAVE_FORMAT;
+          }
         bgav_video_parser_get_packet(s->data.video.parser,
                                      s->parsed_packet);
         return s->parsed_packet;

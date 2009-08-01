@@ -231,7 +231,6 @@ int bgav_mpv_gop_header_parse(const bgav_options_t * opt,
                               bgav_mpv_gop_header_t * ret,
                               const uint8_t * buffer, int len)
   {
-  uint32_t h;
   buffer += 4;
   len -= 4;
 

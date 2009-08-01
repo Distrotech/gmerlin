@@ -51,7 +51,7 @@
 /* Maximum number of consecutive error packets */
 #define MAX_ERROR_PACKETS   10
 
-#define DUMP_PMT_PAT
+// #define DUMP_PMT_PAT
 
 typedef struct
   {
@@ -1156,7 +1156,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       
       bgav_pmt_section_read(priv->ptr, 188 - (priv->ptr - priv->packet_start),
                             &pmts);
-#ifdef DUMP_PMT
+#ifdef DUMP_PMT_PAT
       bgav_pmt_section_dump(&pmts);
 #endif
 #endif

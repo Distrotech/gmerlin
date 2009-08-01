@@ -162,28 +162,31 @@ static void handle_sei(bgav_video_parser_t * parser)
         // fprintf(stderr, "Got SEI user_data_registered_itu_t_t35\n");
         break;
       case 5:
-        
-        if((sei_size >= 31) && !memcmp(ptr, avchd_mdpm, 20) &&
-           !parser->format.timecode_format.int_framerate)
+        /* AVCHD Timecodes: Since every scene is written to a new file
+           it is sufficient to output just the start of the recording */
+        if(!parser->format.timecode_format.int_framerate &&
+           (sei_size >= 31) && !memcmp(ptr, avchd_mdpm, 20))
           {
           int year = -1, month = -1, day = -1, hour = -1, minute = -1, second = -1;
           
-          fprintf(stderr, "Got AVCHD sei message\n");
-
-          bgav_hexdump(ptr, sei_size, 16);
+          // fprintf(stderr, "Got AVCHD sei message\n");
+          // bgav_hexdump(ptr, sei_size, 16);
           
-          ptr += 16;
-          sei_size -= 16;
+          /* Skip GUID + MDPM */
+          ptr += 20;
+          sei_size -= 20;
 
-          
-          ptr += 4;
-          sei_size -= 4;
-
+          /* Get the timecode framerate */
           parser->format.timecode_format.int_framerate =
             parser->format.timescale / parser->format.frame_duration;
           if(parser->format.timescale % parser->format.frame_duration)
             parser->format.timecode_format.int_framerate++;
-          // if(parser->format.
+
+          /* For NTSC framerate we make a drop frame timecode */
+          
+          if((int64_t)parser->format.timescale * 1001 ==
+             (int64_t)parser->format.frame_duration * 30000)
+            parser->format.timecode_format.flags |= GAVL_TIMECODE_DROP_FRAME;
           
           // Now, check for the recording date and time 
           
@@ -199,8 +202,23 @@ static void handle_sei(bgav_video_parser_t * parser)
             minute = BCD_2_INT(ptr[9]);
             second = BCD_2_INT(ptr[10]);
             }
-          fprintf(stderr, "%04d-%02d-%02d %02d:%02d:%02d\n",
-                  year, month, day, hour, minute, second);
+
+          if((year >= 0) && (month >= 0) && (day >= 0) &&
+             (hour >= 0) && (minute >= 0) && (second >= 0))
+            {
+            // fprintf(stderr, "%04d-%02d-%02d %02d:%02d:%02d\n",
+            //      year, month, day, hour, minute, second);
+            
+            gavl_timecode_from_hmsf(&parser->cache[parser->cache_size-1].tc,
+                                    hour,
+                                    minute,
+                                    second,
+                                    0);
+            gavl_timecode_from_ymd(&parser->cache[parser->cache_size-1].tc,
+                                   year,
+                                   month,
+                                   day);
+            }
           }
         
         // fprintf(stderr, "Got SEI user_data_unregistered\n");
