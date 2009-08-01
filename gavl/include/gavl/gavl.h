@@ -3476,16 +3476,16 @@ typedef struct
   {
   int64_t offset; //!< Timestamp of the first frame
   /* Primary */
-  int num_entries; //!< Number of entries
+  int32_t num_entries; //!< Number of entries
   int entries_alloc; //!< Number of allocated entries (never touch this)
   
   struct
     {
-    int num_frames; //!< Number of frames
+    int32_t num_frames; //!< Number of frames
     int64_t duration;   //!< Duration of each of these frames
     } * entries;
   
-  int num_timecodes; //!< Number of timecodes
+  int32_t num_timecodes; //!< Number of timecodes
   int timecodes_alloc; //!< Number of allocated timecodes (never touch this)
 
   struct
@@ -3541,8 +3541,9 @@ GAVL_PUBLIC void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int nu
  * Since 1.1.2.
  */
 
-GAVL_PUBLIC int64_t gavl_frame_table_frame_to_time(gavl_frame_table_t * t,
-                                       int frame, int * duration);
+GAVL_PUBLIC int64_t
+gavl_frame_table_frame_to_time(const gavl_frame_table_t * t,
+                               int frame, int * duration);
 
 /** \brief Convert a timestamp to a frame index
  *  \param t A frame table
@@ -3554,9 +3555,10 @@ GAVL_PUBLIC int64_t gavl_frame_table_frame_to_time(gavl_frame_table_t * t,
  * Since 1.1.2.
  */
 
-GAVL_PUBLIC int gavl_frame_table_time_to_frame(gavl_frame_table_t * t,
-                                               int64_t time,
-                                               int64_t * start_time);
+GAVL_PUBLIC int
+gavl_frame_table_time_to_frame(const gavl_frame_table_t * t,
+                               int64_t time,
+                               int64_t * start_time);
 
 /** \brief get the total number of video frames
  *  \param t A frame table
@@ -3565,16 +3567,44 @@ GAVL_PUBLIC int gavl_frame_table_time_to_frame(gavl_frame_table_t * t,
  * Since 1.1.2.
  */
   
-GAVL_PUBLIC int gavl_frame_table_num_frames(gavl_frame_table_t * t);
+GAVL_PUBLIC int
+gavl_frame_table_num_frames(const gavl_frame_table_t * t);
 
+/** \brief Save a frame table to a file
+ *  \param t A frame table
+ *  \param filename Filename
+ *  \returns 1 on success, 0 on error
+ *
+ * Since 1.1.2.
+ */
+  
+GAVL_PUBLIC
+int gavl_frame_table_save(const gavl_frame_table_t * tab,
+                          const char * filename);
+
+/** \brief Load a frame table from a file
+ *  \param filename Filename
+ *  \returns The loaded frame table or NULL if an error occurred
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC
+gavl_frame_table_t * gavl_frame_table_load(const char * filename);
+  
 /** \brief Dump a frame table to stderr for debugging
  *  \param t A frame table
  *
  * Since 1.1.2.
  */
 
-GAVL_PUBLIC void gavl_frame_table_dump(gavl_frame_table_t * t);
+GAVL_PUBLIC void
+gavl_frame_table_dump(const gavl_frame_table_t * t);
 
+
+  
+
+  
   
 /**
  * @}
