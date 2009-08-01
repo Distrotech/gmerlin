@@ -512,7 +512,8 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
 
   p->pts = c->pts;
   p->dts = BGAV_TIMESTAMP_UNDEFINED;
-
+  p->tc  = c->tc;
+  
   p->duration = c->duration;
 
   p->flags = 0;
@@ -584,7 +585,8 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   c = &parser->cache[parser->cache_size-1];
   memset(c, 0, sizeof(*c));
   c->pts = BGAV_TIMESTAMP_UNDEFINED;
-
+  c->tc = GAVL_TIMECODE_UNDEFINED;
+  
   c->duration = parser->format.frame_duration;
   
   /* Set picture position */

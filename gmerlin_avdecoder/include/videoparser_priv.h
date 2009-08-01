@@ -47,6 +47,8 @@ typedef struct
   
   int field_pic;
   int field2_offset;
+  
+  gavl_timecode_t tc;
   } cache_t;
 
 typedef struct

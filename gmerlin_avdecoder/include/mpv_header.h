@@ -101,3 +101,16 @@ int bgav_mpv_picture_header_parse(const bgav_options_t * opt,
 int bgav_mpv_picture_extension_parse(const bgav_options_t * opt,
                                      bgav_mpv_picture_extension_t *,
                                      const uint8_t * buffer, int len);
+
+typedef struct
+  {
+  int drop;
+  int hours;
+  int minutes;
+  int seconds;
+  int frames;
+  } bgav_mpv_gop_header_t;
+
+int bgav_mpv_gop_header_parse(const bgav_options_t * opt,
+                              bgav_mpv_gop_header_t *,
+                              const uint8_t * buffer, int len);

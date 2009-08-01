@@ -51,7 +51,7 @@
 /* Maximum number of consecutive error packets */
 #define MAX_ERROR_PACKETS   10
 
-// #define DUMP_PMT
+#define DUMP_PMT_PAT
 
 typedef struct
   {
@@ -535,9 +535,9 @@ static int init_psi(bgav_demuxer_context_t * ctx,
              "PAT section spans multiple packets, please report");
     return 0;
     }
-  
-  //  bgav_pat_section_dump(&pats);
-  
+#ifdef DUMP_PMT_PAT
+  bgav_pat_section_dump(&pats);
+#endif
   if(pats.section_number || pats.last_section_number)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -629,7 +629,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
                  "PMT section spans multiple packets, please report");
         return 0;
         }
-#ifdef DUMP_PMT
+#ifdef DUMP_PMT_PAT
       bgav_pmt_section_dump(&priv->programs[program].pmts);
 #endif
       if(priv->programs[program].pmts.section_number ||
@@ -1169,6 +1169,9 @@ static int process_packet(bgav_demuxer_context_t * ctx)
     
     if(!s)
       {
+      //      fprintf(stderr, "No stream for PID %04x\n", priv->packet.pid);      
+      //      bgav_hexdump(priv->packet_start, 188, 16);
+      
       next_packet(priv);
       position += priv->packet_size;
       continue;

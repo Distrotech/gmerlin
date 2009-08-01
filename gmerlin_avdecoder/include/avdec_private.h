@@ -204,13 +204,15 @@ struct bgav_packet_s
   int data_alloc;
   uint8_t * data;
 
+  gavl_timecode_t tc;
+  
   int field2_offset; /* Offset of 2nd field if 2 field pictures are in the
                         packet (0 else) */
   
   int64_t pts; /* In stream timescale tics */
   int64_t dts; /* In stream timescale tics */
   
-  int64_t duration;  /* For text subtitles and VFR video only! */
+  int64_t duration;
   bgav_stream_t * stream; /* The stream this packet belongs to */
 
   gavl_audio_frame_t * audio_frame; /* For demuxers, which deliver audio

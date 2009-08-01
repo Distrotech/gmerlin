@@ -69,12 +69,19 @@ static void get_rbsp(bgav_video_parser_t * parser, uint8_t * pos, int len)
   priv->rbsp_len = bgav_h264_decode_nal_rbsp(pos, len, priv->rbsp);
   }
 
+static const uint8_t avchd_mdpm[] =
+  { 0x17,0xee,0x8c,0x60,0xf8,0x4d,0x11,0xd9,0x8c,0xd6,0x08,0x00,0x20,0x0c,0x9a,0x66,
+    'M','D','P','M' };
+
+#define BCD_2_INT(c) ((c >> 4)*10+(c&0xf))
+
 static void handle_sei(bgav_video_parser_t * parser)
   {
   int sei_type, sei_size;
   uint8_t * ptr;
   int header_len;
-  int pic_struct;
+  bgav_h264_sei_pic_timing_t pt;
+  
   h264_priv_t * priv = parser->priv;
   
   ptr = priv->rbsp;
@@ -85,7 +92,9 @@ static void handle_sei(bgav_video_parser_t * parser)
                                                      priv->rbsp_len -
                                                      (ptr - priv->rbsp),
                                                      &sei_type, &sei_size);
+    
     ptr += header_len;
+    
     switch(sei_type)
       {
       case 0:
@@ -95,10 +104,10 @@ static void handle_sei(bgav_video_parser_t * parser)
         bgav_h264_decode_sei_pic_timing(ptr, priv->rbsp_len -
                                         (ptr - priv->rbsp),
                                         &priv->sps,
-                                        &pic_struct);
+                                        &pt);
         // fprintf(stderr, "Got SEI pic_timing, pic_struct: %d\n", pic_struct);
-
-        switch(pic_struct)
+        
+        switch(pt.pic_struct)
           {
           case 0: // frame
             break;
@@ -119,7 +128,29 @@ static void handle_sei(bgav_video_parser_t * parser)
           case 8: // frame tripling
             break;
           }
-
+        /* Output timecode */
+#if 0
+        if(pt.have_timecode)
+          {
+          if(!parser->format.timecode_format.int_framerate)
+            {
+            parser->format.timecode_format.int_framerate =
+              parser->format.timescale / parser->format.frame_duration;
+            if(parser->format.timescale % parser->format.frame_duration)
+              parser->format.timecode_format.int_framerate++;
+            if(pt.counting_type == 4)
+              parser->format.timecode_format.flags |= GAVL_TIMECODE_DROP_FRAME;
+            }
+          gavl_timecode_from_hmsf(&parser->cache[parser->cache_size-1].tc,
+                                  pt.tc_hours,
+                                  pt.tc_minutes,
+                                  pt.tc_seconds,
+                                  pt.tc_frames);
+          gavl_timecode_dump(&parser->format.timecode_format,
+                             parser->cache[parser->cache_size-1].tc);
+          fprintf(stderr, "\n");
+          }
+#endif
         break;
       case 2:
         //        fprintf(stderr, "Got SEI pan_scan_rect\n");
@@ -131,6 +162,47 @@ static void handle_sei(bgav_video_parser_t * parser)
         // fprintf(stderr, "Got SEI user_data_registered_itu_t_t35\n");
         break;
       case 5:
+        
+        if((sei_size >= 31) && !memcmp(ptr, avchd_mdpm, 20) &&
+           !parser->format.timecode_format.int_framerate)
+          {
+          int year = -1, month = -1, day = -1, hour = -1, minute = -1, second = -1;
+          
+          fprintf(stderr, "Got AVCHD sei message\n");
+
+          bgav_hexdump(ptr, sei_size, 16);
+          
+          ptr += 16;
+          sei_size -= 16;
+
+          
+          ptr += 4;
+          sei_size -= 4;
+
+          parser->format.timecode_format.int_framerate =
+            parser->format.timescale / parser->format.frame_duration;
+          if(parser->format.timescale % parser->format.frame_duration)
+            parser->format.timecode_format.int_framerate++;
+          // if(parser->format.
+          
+          // Now, check for the recording date and time 
+          
+          if(ptr[1] == 0x18)
+            {
+            year  = BCD_2_INT(ptr[3])*100 + BCD_2_INT(ptr[4]);
+            month = BCD_2_INT(ptr[5]);
+            }
+          if(ptr[6] == 0x19)
+            {
+            day    = BCD_2_INT(ptr[7]);
+            hour   = BCD_2_INT(ptr[8]);
+            minute = BCD_2_INT(ptr[9]);
+            second = BCD_2_INT(ptr[10]);
+            }
+          fprintf(stderr, "%04d-%02d-%02d %02d:%02d:%02d\n",
+                  year, month, day, hour, minute, second);
+          }
+        
         // fprintf(stderr, "Got SEI user_data_unregistered\n");
         break;
       case 6:

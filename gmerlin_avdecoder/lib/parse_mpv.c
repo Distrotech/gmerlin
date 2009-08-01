@@ -39,7 +39,7 @@
 #define MPEG_HAS_PICTURE_HEADER          3
 #define MPEG_HAS_PICTURE_EXT_CODE        4
 #define MPEG_HAS_PICTURE_EXT_HEADER      5
-#define MPEG_GOP_CODE                    6
+#define MPEG_HAS_GOP_CODE                6
 #define MPEG_HAS_SEQUENCE_CODE           7
 #define MPEG_HAS_SEQUENCE_HEADER         8
 #define MPEG_HAS_SEQUENCE_EXT_CODE       9
@@ -71,6 +71,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
   //  cache_t * c;
   bgav_mpv_picture_extension_t pe;
   bgav_mpv_picture_header_t    ph;
+  bgav_mpv_gop_header_t        gh;
   int duration;
   int start_code;
 
@@ -153,17 +154,14 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
               return PARSER_ERROR;
             priv->has_picture_start = 1;
             }
+
+          priv->state = MPEG_HAS_GOP_CODE;
           
           if(!parser->header)
             {
             bgav_video_parser_extract_header(parser);
-            parser->pos += 4;
-            priv->state = MPEG_NEED_STARTCODE;
             return PARSER_HAVE_HEADER;
             }
-          
-          parser->pos += 4;
-          priv->state = MPEG_NEED_STARTCODE;
           break;
         case MPEG_CODE_END:
           parser->pos += 4;
@@ -233,7 +231,14 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       parser->pos += len;
       priv->state = MPEG_NEED_STARTCODE;
       break;
-    case MPEG_GOP_CODE:
+    case MPEG_HAS_GOP_CODE:
+      len = bgav_mpv_gop_header_parse(parser->opt,
+                                      &gh,
+                                      parser->buf.buffer + parser->pos,
+                                      parser->buf.size - parser->pos);
+      if(!len)
+        return PARSER_NEED_DATA;
+      parser->pos += len;
       break;
     case MPEG_HAS_SEQUENCE_CODE:
       /* Try to get the sequence header */

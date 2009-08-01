@@ -77,7 +77,7 @@ void bgav_hexdump(const uint8_t * data, int len, int linebreak)
       bgav_dprintf( "   ");
     for(i = 0; i < imax; i++)
       {
-      if(!(data[bytes_written + i] & 0x80) && (data[bytes_written + i] >= 32))
+      if((data[bytes_written + i] < 0x7f) && (data[bytes_written + i] >= 32))
         bgav_dprintf( "%c", data[bytes_written + i]);
       else
         bgav_dprintf( ".");

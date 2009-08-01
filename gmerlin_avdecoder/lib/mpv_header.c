@@ -227,3 +227,24 @@ int bgav_mpv_picture_extension_parse(const bgav_options_t * opt,
   return 5;
   }
 
+int bgav_mpv_gop_header_parse(const bgav_options_t * opt,
+                              bgav_mpv_gop_header_t * ret,
+                              const uint8_t * buffer, int len)
+  {
+  uint32_t h;
+  buffer += 4;
+  len -= 4;
+
+  if(len < 4)
+    return 0;
+  
+  /* Gop header has a fixed length of 27 bytes */
+
+  ret->drop    = buffer[0] >> 7;
+  ret->hours   = (buffer[0] >> 2) & 31;
+  ret->minutes = ((buffer[0] << 4) | (buffer[1] >> 4)) & 63;
+  ret->seconds = ((buffer[1] << 3) | (buffer[2] >> 5)) & 63;
+  ret->frames  = ((buffer[2] << 1) | (buffer[3] >> 7)) & 63;
+  
+  return 1;
+  }

@@ -563,11 +563,12 @@ int bgav_h264_decode_sei_message_header(const uint8_t * data, int len,
 
 int bgav_h264_decode_sei_pic_timing(const uint8_t * data, int len,
                                     bgav_h264_sps_t * sps,
-                                    int * pic_struct)
+                                    bgav_h264_sei_pic_timing_t * ret)
   {
   int dummy;
   bgav_bitstream_t b;
-  *pic_struct = -1;
+  int full_timestamp_flag;
+  ret->pic_struct = -1;
   bgav_bitstream_init(&b, data, len);
   
   if(sps->vui.nal_hrd_parameters_present_flag ||
@@ -577,7 +578,66 @@ int bgav_h264_decode_sei_pic_timing(const uint8_t * data, int len,
     bgav_bitstream_get(&b, &dummy, sps->vui.dpb_output_delay_length_minus1+1);
     }
   if(sps->vui.pic_struct_present_flag)
-    bgav_bitstream_get(&b, pic_struct, 4);
+    bgav_bitstream_get(&b, &ret->pic_struct, 4);
+
+  if(!bgav_bitstream_get(&b, &dummy, 1)) // clock_timestamp_flag[0]
+    return 0;
+  if(dummy)
+    {
+    ret->have_timecode = 1;
+    if(!bgav_bitstream_get(&b, &dummy, 2) || // ct_type
+       !bgav_bitstream_get(&b, &dummy, 1) || // nuit_field_based_flag
+       !bgav_bitstream_get(&b, &ret->counting_type, 5) ||
+       !bgav_bitstream_get(&b, &full_timestamp_flag, 1) || 
+       !bgav_bitstream_get(&b, &dummy, 1) || // discontinuity_flag
+       !bgav_bitstream_get(&b, &dummy, 1) || // cnt_dropped_flag
+       !bgav_bitstream_get(&b, &ret->tc_frames, 8)) // n_frames
+      return 0;
+
+    if(full_timestamp_flag)
+      {
+      if(!bgav_bitstream_get(&b, &ret->tc_seconds, 6) || // seconds
+         !bgav_bitstream_get(&b, &ret->tc_minutes, 6) || // minutes
+         !bgav_bitstream_get(&b, &ret->tc_hours, 5)) // hours
+        return 0;
+      }
+    else
+      {
+      ret->tc_minutes = 0;
+      ret->tc_seconds = 0;
+      ret->tc_hours   = 0;
+      
+      if(!bgav_bitstream_get(&b, &dummy, 1)) // seconds_flag
+        return 0;
+
+      if(dummy)
+        {
+        if(!bgav_bitstream_get(&b, &ret->tc_seconds, 6)) // seconds
+          return 0;
+
+        if(!bgav_bitstream_get(&b, &dummy, 1)) // minutes_flag
+          return 0;
+
+        if(dummy)
+          {
+          if(!bgav_bitstream_get(&b, &ret->tc_minutes, 6)) // minutes
+            return 0;
+          
+          if(!bgav_bitstream_get(&b, &dummy, 1)) // hours_flag
+            return 0;
+
+          if(dummy)
+            {
+            if(!bgav_bitstream_get(&b, &ret->tc_hours, 5)) // hours
+              return 0;
+            }
+          }
+        }
+      }
+    }
+  else
+    ret->have_timecode = 0;
+      
   return 1;
   }
 

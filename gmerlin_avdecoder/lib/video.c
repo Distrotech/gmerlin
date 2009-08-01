@@ -132,12 +132,11 @@ int bgav_video_start(bgav_stream_t * s)
           break;
         }
       }
-
-    format = bgav_video_parser_get_format(parser);
-
-    s->data.video.max_ref_frames = bgav_video_parser_max_ref_frames(parser);
     
+    format = bgav_video_parser_get_format(parser);
     gavl_video_format_copy(&s->data.video.format, format);
+    
+    s->data.video.max_ref_frames = bgav_video_parser_max_ref_frames(parser);
     
     s->data.video.parser = parser;
     s->parsed_packet = bgav_packet_create();
@@ -408,8 +407,53 @@ int bgav_video_has_still(bgav_t * bgav, int stream)
   return 0;
   }
 
+static gavl_frame_table_t * create_frame_table_fi(bgav_stream_t * s)
+  {
+  gavl_frame_table_t * ret;
+  int ct;
+  int i;
+  int last_non_b_index = -1;
+  int64_t last_time = BGAV_TIMESTAMP_UNDEFINED;
+  bgav_file_index_t * fi = s->file_index;
+  int append_entry = -1;
+  
+  ret = gavl_frame_table_create();
+  ret->offset = s->start_time;
+  
+  for(i = 0; i < s->file_index->num_entries; i++)
+    {
+    ct = s->file_index->entries[i].flags & 0xff;
+    
+    if(ct == BGAV_CODING_TYPE_B)
+      {
+      if(i)
+        {
+        }
+      }
+    
+    }
+  
+  return NULL;
+  }
+
+static gavl_frame_table_t * create_frame_table_si(bgav_stream_t * s, bgav_superindex_t * si)
+  {
+  return NULL;
+  }
+
 gavl_frame_table_t * bgav_get_frame_table(bgav_t * bgav, int stream)
   {
-  /* TODO */
-  return NULL;
+  bgav_stream_t * s;
+  s = &bgav->tt->cur->video_streams[stream];
+
+  if(s->file_index)
+    {
+    return create_frame_table_fi(s);
+    }
+  else if(bgav->demuxer->si)
+    {
+    return create_frame_table_si(s, bgav->demuxer->si);
+    }
+  else
+    return NULL;
   }
