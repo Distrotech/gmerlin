@@ -62,7 +62,10 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data,
     case BG_PLAYER_STATE_CHANGING:
       return 0;
     case BG_PLAYER_STATE_PLAYING:
+      break;
     case BG_PLAYER_STATE_FINISHING_STOP:
+      if(interrupt)
+        return 0;
       break;
     case BG_PLAYER_STATE_FINISHING_PAUSE:
       if(!interrupt)

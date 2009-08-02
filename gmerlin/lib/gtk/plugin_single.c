@@ -32,8 +32,6 @@
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/gtkutils.h>
 
-
-
 struct bg_gtk_plugin_widget_single_s
   {
   GtkWidget * label;

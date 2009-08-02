@@ -1078,8 +1078,9 @@ void bg_plugin_registry_set_default(bg_plugin_registry_t * r,
     bg_cfg_section_set_parameter_string(r->config_section, key, name);
   }
 
-const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t * r,
-                                                        bg_plugin_type_t type)
+const bg_plugin_info_t *
+bg_plugin_registry_get_default(bg_plugin_registry_t * r,
+                               bg_plugin_type_t type)
   {
   const char * key;
   const char * name = (const char*)0;

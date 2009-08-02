@@ -55,6 +55,7 @@ typedef struct
   char   language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
   char * info;        //!< Directors comments etc...
   int64_t duration;   //!< Duration in timescale tics
+  int64_t pts_offset; //!< First timestamp
   } bg_audio_info_t;
 
 /** \brief Description of a video stream
@@ -69,6 +70,7 @@ typedef struct
   char language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
   char * info;        //!< Info about this stream
   int64_t duration;   //!< Duration in timescale tics
+  int64_t pts_offset; //!< First timestamp
   } bg_video_info_t;
 
 /** \brief Description of a subtitle stream
