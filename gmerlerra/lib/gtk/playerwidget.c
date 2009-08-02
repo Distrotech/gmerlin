@@ -170,7 +170,7 @@ static void load_output_plugins(bg_nle_player_widget_t * p)
                                         BG_PLUGIN_OUTPUT_VIDEO);
 
   display_string =
-    bg_sprintf("%s:%08lx", gdk_display_get_name(dpy),
+    bg_sprintf("%s:%08lx:", gdk_display_get_name(dpy),
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(p->socket)));
   
   handle = bg_ov_plugin_load(p->plugin_reg, info, display_string);

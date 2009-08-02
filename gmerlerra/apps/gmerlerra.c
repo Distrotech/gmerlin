@@ -23,6 +23,9 @@ static void create_registries()
     free(tmp_path);
 
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
+
+  bg_nle_project_window_init_global(cfg_reg);
+  
   plugin_reg = bg_plugin_registry_create(cfg_section);
   }
 

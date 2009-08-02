@@ -33,6 +33,9 @@ static GList * project_windows = NULL;
 
 static bg_gtk_log_window_t * log_window = NULL;
 
+static void configure_global(GtkWidget * w);
+
+
 typedef struct
   {
   GtkWidget * load;
@@ -82,6 +85,14 @@ typedef struct
   GtkWidget * menu;
   } view_menu_t;
 
+typedef struct
+  {
+  GtkWidget * options;
+  GtkWidget * menu;
+  
+  } options_menu_t;
+
+
 struct bg_nle_project_window_s
   {
   GtkWidget * win;
@@ -91,6 +102,7 @@ struct bg_nle_project_window_s
   outstream_menu_t outstream_menu;
   edit_menu_t edit_menu;
   view_menu_t view_menu;
+  options_menu_t options_menu;
   
   bg_nle_project_t * p;
 
@@ -481,6 +493,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
       log_close_callback(NULL, NULL);
       }
     }
+  else if(w == win->options_menu.options)
+    {
+    configure_global(win->win);
+    }
   
   }
 
@@ -647,6 +663,12 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   w->view_menu.messages =
     create_toggle_item(w, w->view_menu.menu,
                        TR("Messages"), &w->view_menu.messages_id);
+
+  /* Options */
+  w->options_menu.menu = gtk_menu_new();
+  w->options_menu.options =
+    create_menu_item(w, w->options_menu.menu,
+                     TR("Program settings..."), "config_16.png");
   
   /* Menubar */
   w->menubar = gtk_menu_bar_new();
@@ -675,6 +697,11 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), w->view_menu.menu);
   gtk_widget_show(item);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menubar), item);
+
+  item = gtk_menu_item_new_with_label(TR("Options"));
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), w->options_menu.menu);
+  gtk_widget_show(item);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menubar), item);
   
   gtk_widget_show(w->menubar);
   }
@@ -697,9 +724,6 @@ bg_nle_project_window_create(const char * project_file,
   GtkWidget * box;
   
   bg_nle_project_window_t * ret;
-
-  if(!log_window)
-    log_window = bg_gtk_log_window_create(log_close_callback, NULL, "Gmerlerra");
   
   ret = calloc(1, sizeof(*ret));
   
@@ -842,3 +866,132 @@ void bg_nle_project_window_destroy(bg_nle_project_window_t * w)
   free(w);
   }
 
+
+/* Configuration stuff */
+
+static const bg_parameter_info_t display_parameters[] =
+  {
+#if 0
+    {
+      .name = "display_features",
+      .long_name = "Display features",
+      .type = BG_PARAMETER_SECTION,
+    },
+#endif
+    {
+      .name = "view_audio_envelope",
+      .long_name = "Audio envelope",
+      .type = TRS(BG_PARAMETER_CHECKBUTTON),
+      .val_default = { .val_i = 1 },
+    },
+    {
+      .name = "view_video_pictures",
+      .long_name =TRS("Video thumbnails"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+    },
+    {
+      .name = "time_unit",
+      .long_name =TRS("Time unit"),
+      .type = BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "milliseconds" },
+      .multi_names = (const char*[]){ "milliseconds", "timecode", (char*)0 },
+      .multi_labels = (const char*[]){ TRS("Milliseconds"), TRS("Timecode"),
+                                      (char*)0 },
+    },
+    { /* */ }
+    
+  };
+
+typedef struct
+  {
+  const char * name;
+  const bg_parameter_value_t * val;
+  bg_set_parameter_func_t func;
+  } set_parameteter_data_t;
+
+static void
+set_parameter_wrapper(void * data, void * user_data)
+  {
+  set_parameteter_data_t * d = user_data;
+  d->func(data, d->name, d->val);
+  }
+
+static void
+set_display_parameter(void * priv, const char * name,
+                      const bg_parameter_value_t * val)
+  {
+  
+  }
+
+
+static void
+set_display_parameter_global(void * priv, const char * name,
+                             const bg_parameter_value_t * val)
+  {
+  set_parameteter_data_t d;
+  d.name = name;
+  d.val = val;
+  d.func = set_display_parameter;
+  g_list_foreach(project_windows, set_parameter_wrapper, &d);
+  
+  }
+
+static bg_cfg_registry_t * cfg_reg = NULL;
+
+static bg_cfg_section_t  * log_window_section = NULL;
+static bg_cfg_section_t  * display_section = NULL;
+
+
+void
+bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1)
+  {
+  if(cfg_reg)
+    return;
+  
+  cfg_reg = cfg_reg1;
+
+  log_window =
+    bg_gtk_log_window_create(log_close_callback, NULL, "Gmerlerra");
+  
+  /* Get sections */
+  log_window_section =
+    bg_cfg_registry_find_section(cfg_reg, "log_window");
+  display_section =
+    bg_cfg_registry_find_section(cfg_reg, "display");
+
+  /* Apply sections */
+  bg_cfg_section_apply(log_window_section,
+                       bg_gtk_log_window_get_parameters(log_window),
+                       bg_gtk_log_window_set_parameter,
+                       log_window);
+  
+  }
+
+static void
+configure_global(GtkWidget * parent)
+  {
+  bg_dialog_t * dialog;
+  dialog = bg_dialog_create_multi(TR("Program settings"));  
+
+  bg_dialog_add(dialog,
+                TR("Log window"),
+                log_window_section,
+                bg_gtk_log_window_set_parameter,
+                NULL,
+                log_window,
+                bg_gtk_log_window_get_parameters(log_window));
+
+  bg_dialog_add(dialog,
+                TR("Display"),
+                display_section,
+                set_display_parameter_global ,
+                NULL,
+                NULL,
+                display_parameters);
+
+  bg_dialog_show(dialog, parent);
+  bg_dialog_destroy(dialog);
+  
+  
+  }

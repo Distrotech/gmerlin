@@ -4,6 +4,10 @@
 
 typedef struct bg_nle_project_window_s bg_nle_project_window_t;
 
+void
+bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg);
+
+
 bg_nle_project_window_t *
 bg_nle_project_window_create(const char * project, bg_plugin_registry_t * plugin_reg);
 

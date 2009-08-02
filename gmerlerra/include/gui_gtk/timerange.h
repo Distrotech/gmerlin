@@ -56,4 +56,7 @@ void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r);
 void bg_nle_timerange_widget_toggle_in(bg_nle_timerange_widget_t * r);
 void bg_nle_timerange_widget_toggle_out(bg_nle_timerange_widget_t * r);
 
+int bg_nle_time_is_near(bg_nle_timerange_widget_t * r, int64_t time, double pos);
+
+
 #endif // TIMERANGE_H

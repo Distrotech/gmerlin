@@ -26,10 +26,9 @@ double bg_nle_time_2_pos(bg_nle_timerange_widget_t * w, int64_t time)
   return ret_d;
   }
 
-static int is_near(bg_nle_timerange_widget_t * r, int64_t time1, int64_t time2)
+int bg_nle_time_is_near(bg_nle_timerange_widget_t * r, int64_t time, double pos)
   {
-  double diff = fabs(bg_nle_time_2_pos(r, time1) - bg_nle_time_2_pos(r, time2));
-  
+  double diff = fabs(bg_nle_time_2_pos(r, time) - pos);
   return diff < 3.0 ? 1 : 0;
   }
 
@@ -246,12 +245,12 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
                           GDK_BUTTON4_MASK|
                           GDK_BUTTON5_MASK)))
     {
-    if((r->in_out.start >= 0) && is_near(r, r->in_out.start, time))
+    if((r->in_out.start >= 0) && bg_nle_time_is_near(r, r->in_out.start, evt->x))
       {
       r->snap_time = &r->in_out.start;
       gdk_window_set_cursor(w->window, bg_nle_cursor_left_side);
       }
-    else if((r->in_out.end >= 0) && is_near(r, r->in_out.end, time))
+    else if((r->in_out.end >= 0) && bg_nle_time_is_near(r, r->in_out.end, evt->x))
       {
       r->snap_time = &r->in_out.end;
       gdk_window_set_cursor(w->window, bg_nle_cursor_right_side);
