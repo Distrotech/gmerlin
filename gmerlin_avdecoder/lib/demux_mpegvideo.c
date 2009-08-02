@@ -252,11 +252,13 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
    */
 
   s->fourcc = detect_type(ctx->input);
-  s->flags |= (STREAM_PARSE_FULL|STREAM_B_FRAMES);
+  s->flags |= (STREAM_B_FRAMES|STREAM_PARSE_FULL);
   priv->parser = bgav_video_parser_create(s->fourcc, 0, ctx->opt, s->flags);
   if(!priv->parser)
     return 0;
 
+  s->flags &= ~STREAM_PARSE_FULL;
+  
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 

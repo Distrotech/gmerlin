@@ -1225,7 +1225,7 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('d', 'i', 'v', 'x'),
                BGAV_MK_FOURCC('D', 'X', '5', '0'),
                BGAV_MK_FOURCC('X', 'V', 'I', 'D'),
-               BGAV_MK_FOURCC('X', 'V', 'I', 'D'),
+               BGAV_MK_FOURCC('x', 'v', 'i', 'd'),
                BGAV_MK_FOURCC('M', 'P', '4', 'S'),
                BGAV_MK_FOURCC('M', '4', 'S', '2'),
                BGAV_MK_FOURCC(0x04, 0, 0, 0), /* some broken avi use this */
