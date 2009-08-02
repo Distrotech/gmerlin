@@ -239,6 +239,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       if(!len)
         return PARSER_NEED_DATA;
       parser->pos += len;
+      priv->state = MPEG_NEED_STARTCODE;
       break;
     case MPEG_HAS_SEQUENCE_CODE:
       /* Try to get the sequence header */
