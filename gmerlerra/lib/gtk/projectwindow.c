@@ -33,7 +33,7 @@ static GList * project_windows = NULL;
 
 static bg_gtk_log_window_t * log_window = NULL;
 
-static void configure_global(GtkWidget * w);
+static void configure_global(GtkWidget * w, bg_plugin_registry_t * plugin_reg);
 
 
 typedef struct
@@ -495,7 +495,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->options_menu.options)
     {
-    configure_global(win->win);
+    configure_global(win->win, win->p->plugin_reg);
     }
   
   }
@@ -942,6 +942,10 @@ static bg_cfg_registry_t * cfg_reg = NULL;
 static bg_cfg_section_t  * log_window_section = NULL;
 static bg_cfg_section_t  * display_section = NULL;
 
+static bg_parameter_info_t * input_plugin_parameters = NULL;
+static bg_parameter_info_t * image_reader_parameters = NULL;
+
+static bg_parameter_info_t * output_plugin_parameters = NULL;
 
 void
 bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1)
@@ -969,9 +973,35 @@ bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1)
   }
 
 static void
-configure_global(GtkWidget * parent)
+configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
   {
   bg_dialog_t * dialog;
+
+  /* Initialize plugins */
+
+  if(!input_plugin_parameters)
+    {
+    input_plugin_parameters = calloc(2, sizeof(*input_plugin_parameters));
+    input_plugin_parameters->name = bg_strdup(NULL, "input_plugins");
+    input_plugin_parameters->long_name = bg_strdup(NULL, TR("Input plugins"));
+    bg_plugin_registry_set_parameter_info_input(plugin_reg,
+                                                BG_PLUGIN_INPUT,
+                                                BG_PLUGIN_FILE,
+                                                input_plugin_parameters);
+    }
+  
+  if(!image_reader_parameters)
+    {
+    image_reader_parameters = calloc(2, sizeof(*image_reader_parameters));
+    image_reader_parameters->name = bg_strdup(NULL, "image_reader_plugins");
+    image_reader_parameters->long_name =
+      bg_strdup(NULL, TR("Image reader plugins"));
+    bg_plugin_registry_set_parameter_info_input(plugin_reg,
+                                                BG_PLUGIN_IMAGE_READER,
+                                                BG_PLUGIN_FILE,
+                                                image_reader_parameters);
+    }
+  
   dialog = bg_dialog_create_multi(TR("Program settings"));  
 
   bg_dialog_add(dialog,
@@ -990,6 +1020,22 @@ configure_global(GtkWidget * parent)
                 NULL,
                 display_parameters);
 
+  bg_dialog_add(dialog,
+                TR("Input plugins"),
+                NULL,
+                bg_plugin_registry_set_parameter_input,
+                bg_plugin_registry_get_parameter_input,
+                plugin_reg,
+                input_plugin_parameters);
+
+  bg_dialog_add(dialog,
+                TR("Image readers"),
+                NULL,
+                bg_plugin_registry_set_parameter_input,
+                bg_plugin_registry_get_parameter_input,
+                plugin_reg,
+                image_reader_parameters);
+  
   bg_dialog_show(dialog, parent);
   bg_dialog_destroy(dialog);
   
