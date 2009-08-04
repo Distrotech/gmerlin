@@ -1921,3 +1921,289 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
       }
     }
   }
+
+static const bg_parameter_info_t registry_settings_parameter =
+  {
+    .name = "$registry",
+    .long_name = TRS("Registry settings"),
+    .type = BG_PARAMETER_SECTION,
+  };
+
+static const bg_parameter_info_t plugin_settings_parameter =
+  {
+    .name = "$plugin",
+    .long_name = TRS("Plugin settings"),
+    .type = BG_PARAMETER_SECTION,
+  };
+
+static const bg_parameter_info_t extensions_parameter =
+  {
+    .name = "$extensions",
+    .long_name = TRS("Extensions"),
+    .type = BG_PARAMETER_STRING,
+  };
+
+static const bg_parameter_info_t protocols_parameter =
+  {
+    .name = "$protocols",
+    .long_name = TRS("Protocols"),
+    .type = BG_PARAMETER_STRING,
+  };
+
+static const bg_parameter_info_t priority_parameter =
+  {
+    .name = "$priority",
+    .long_name = TRS("Priority"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 1 },
+    .val_max = { .val_i = 10 },
+  };
+
+void bg_plugin_registry_set_parameter_info_input(bg_plugin_registry_t * reg,
+                                                 uint32_t type_mask,
+                                                 uint32_t flag_mask,
+                                                 bg_parameter_info_t * ret)
+  {
+  int num_plugins, i;
+  const bg_plugin_info_t * info;
+  int index, index1, num_parameters;
+  char * prefix;
+  
+  num_plugins =
+    bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
+
+  ret->type = BG_PARAMETER_MULTI_LIST;
+  ret->flags |= BG_PARAMETER_NO_SORT;
+  
+  ret->multi_names_nc      = calloc(num_plugins + 1, sizeof(*ret->multi_names));
+  ret->multi_labels_nc     = calloc(num_plugins + 1, sizeof(*ret->multi_labels));
+  ret->multi_parameters_nc = calloc(num_plugins + 1,
+                                 sizeof(*ret->multi_parameters));
+
+  ret->multi_descriptions_nc = calloc(num_plugins + 1,
+                                   sizeof(*ret->multi_descriptions));
+
+  bg_parameter_info_set_const_ptrs(ret);
+  
+  for(i = 0; i < num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(reg, i,
+                                   type_mask, flag_mask);
+    ret->multi_names_nc[i] = bg_strdup(NULL, info->name);
+
+    /* First plugin is the default one */
+    if(!i && (ret->type != BG_PARAMETER_MULTI_CHAIN)) 
+      {
+      ret->val_default.val_str = bg_strdup(NULL, info->name);
+      }
+    
+    bg_bindtextdomain(info->gettext_domain, info->gettext_directory);
+    ret->multi_descriptions_nc[i] = bg_strdup(NULL, TRD(info->description,
+                                                        info->gettext_domain));
+    
+    ret->multi_labels_nc[i] = bg_strdup(NULL, TRD(info->long_name,
+                                               info->gettext_domain));
+
+    /* Create parameters: Extensions and protocols are added to the array
+       if necessary */
+
+    num_parameters = 1; /* Priority */
+    if(info->flags & BG_PLUGIN_FILE)
+      num_parameters++;
+    if(info->flags & BG_PLUGIN_URL)
+      num_parameters++;
+
+    if(info->parameters && (info->parameters[0].type != BG_PARAMETER_SECTION))
+      num_parameters++; /* Plugin section */
+
+    if(info->parameters)
+      num_parameters++; /* Registry */
+    
+    //    prefix = bg_sprintf("%s.", info->name);
+
+    prefix = NULL;
+    
+    if(info->parameters)
+      {
+      index = 0;
+      while(info->parameters[index].name)
+        {
+        index++;
+        num_parameters++;
+        }
+      }
+    
+    ret->multi_parameters_nc[i] =
+      calloc(num_parameters+1, sizeof(*ret->multi_parameters_nc[i]));
+
+    index = 0;
+
+    /* Now, build the parameter array */
+
+    if(info->parameters && (info->parameters[0].type != BG_PARAMETER_SECTION))
+      {
+      bg_parameter_info_copy(&ret->multi_parameters_nc[i][index],
+                             &plugin_settings_parameter);
+      index++;
+      }
+    
+    if(info->parameters)
+      {
+      index1 = 0;
+
+      while(info->parameters[index1].name)
+        {
+        bg_parameter_info_copy(&ret->multi_parameters_nc[i][index],
+                               &info->parameters[index1]);
+        index++;
+        index1++;
+        }
+      }
+
+    if(info->parameters)
+      {
+      bg_parameter_info_copy(&ret->multi_parameters_nc[i][index],
+                             &registry_settings_parameter);
+      index++;
+      }
+
+    if(info->flags & BG_PLUGIN_FILE)
+      {
+      bg_parameter_info_copy(&ret->multi_parameters_nc[i][index],
+                             &extensions_parameter);
+      ret->multi_parameters_nc[i][index].val_default.val_str =
+        bg_strdup(NULL, info->extensions);
+      index++;
+      }
+    if(info->flags & BG_PLUGIN_URL)
+      {
+      bg_parameter_info_copy(&ret->multi_parameters_nc[i][index],
+                             &protocols_parameter);
+      ret->multi_parameters_nc[i][index].val_default.val_str =
+        bg_strdup(NULL, info->protocols);
+      index++;
+      }
+
+    bg_parameter_info_copy(&ret->multi_parameters_nc[i][index],
+                           &priority_parameter);
+    ret->multi_parameters_nc[i][index].val_default.val_i =
+      info->priority;
+    index++;
+    }
+  
+  }
+
+static int find_parameter_input(bg_plugin_registry_t * plugin_reg,
+                                const char * name,
+                                const bg_parameter_info_t ** parameter_info,
+                                bg_plugin_info_t ** plugin_info,
+                                bg_cfg_section_t ** section,
+                                const char ** parameter_name)
+  {
+  const char * pos1;
+  const char * pos2;
+  char * plugin_name;
+  int ret = 0;
+  
+  pos1 = strchr(name, '.');
+  if(!pos1)
+    return 0;
+  pos1++;
+
+  pos2 = strchr(pos1, '.');
+  if(!pos2)
+    return 0;
+
+  plugin_name = bg_strndup(NULL, pos1, pos2);
+  pos2++;
+
+  *parameter_name = pos2;
+  
+  *plugin_info = find_by_name(plugin_reg->entries, plugin_name);
+  if(!(*plugin_info))
+    goto fail;
+  
+  if(*pos2 != '$')
+    {
+    *section = bg_cfg_section_find_subsection(plugin_reg->config_section,
+                                                  plugin_name);
+
+    *parameter_info = bg_parameter_find((*plugin_info)->parameters, pos2);
+    if(!(*parameter_info))
+      goto fail;
+    }
+  
+  ret = 1;
+  fail:
+  free(plugin_name);
+  return ret;
+  }
+
+void bg_plugin_registry_set_parameter_input(void * data, const char * name,
+                                            const bg_parameter_value_t * val)
+  {
+  bg_plugin_registry_t * plugin_reg = data;
+  bg_cfg_section_t * cfg_section;
+  const bg_parameter_info_t * parameter_info;
+  bg_plugin_info_t * plugin_info;
+  const char * parameter_name;
+  
+  fprintf(stderr, "bg_plugin_registry_set_parameter_input %s\n",
+          name);
+  
+  if(!name)
+    return;
+
+  if(!find_parameter_input(plugin_reg, name, &parameter_info,
+                           &plugin_info, &cfg_section, &parameter_name))
+    return;
+  
+  fprintf(stderr, "plugin name: %s\n", plugin_info->name);
+  
+  if(!strcmp(parameter_name, "$priority"))
+    {
+    bg_plugin_registry_set_priority(plugin_reg, plugin_info->name, val->val_i);
+    fprintf(stderr, "set priority: %d\n", val->val_i);
+    }
+  else if(!strcmp(parameter_name, "$extensions"))
+    bg_plugin_registry_set_extensions(plugin_reg, plugin_info->name, val->val_str);
+  else if(!strcmp(parameter_name, "$protocols"))
+    bg_plugin_registry_set_protocols(plugin_reg, plugin_info->name, val->val_str);
+  else
+    bg_cfg_section_set_parameter(cfg_section, parameter_info, val);
+  }
+
+int bg_plugin_registry_get_parameter_input(void * data, const char * name,
+                                            bg_parameter_value_t * val)
+  {
+  bg_plugin_registry_t * plugin_reg = data;
+  bg_cfg_section_t * cfg_section;
+  const bg_parameter_info_t * parameter_info;
+  bg_plugin_info_t * plugin_info;
+  const char * parameter_name;
+  
+  fprintf(stderr, "bg_plugin_registry_get_parameter_input %s\n",
+          name);
+  
+  if(!name)
+    return 0;
+
+  if(!find_parameter_input(plugin_reg, name, &parameter_info,
+                           &plugin_info, &cfg_section, &parameter_name))
+    return 0;
+  
+  fprintf(stderr, "plugin name: %s\n", plugin_info->name);
+  
+  if(!strcmp(parameter_name, "$priority"))
+    {
+    val->val_i = plugin_info->priority;
+    fprintf(stderr, "get priority: %d\n", val->val_i);
+    }
+  else if(!strcmp(parameter_name, "$extensions"))
+    val->val_str = bg_strdup(val->val_str, plugin_info->extensions);
+  else if(!strcmp(parameter_name, "$protocols"))
+    val->val_str = bg_strdup(val->val_str, plugin_info->protocols);
+  else
+    bg_cfg_section_get_parameter(cfg_section, parameter_info, val);
+  return 1;
+  }

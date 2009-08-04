@@ -76,6 +76,7 @@ xmlDocPtr bg_xml_parse_file(const char * filename)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat %s: %s",
            filename, strerror(errno));
+    return (xmlDocPtr)0;
     }
 
   /* Return silently */

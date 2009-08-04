@@ -214,7 +214,7 @@ int bg_get_thumbnail(const char * gml,
     }
 
   /* Regenerate */
-  command = bg_sprintf("gmerlin-video-thumbnailer \"%s\" '%s'", gml, thumb_filename_normal);
+  command = bg_sprintf("gmerlin-video-thumbnailer \"%s\" %s", gml, thumb_filename_normal);
   sp = bg_subprocess_create(command, 0, 0, 0);
   bg_subprocess_close(sp);
   free(command);

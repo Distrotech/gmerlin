@@ -43,6 +43,7 @@ struct list_priv_s
   GtkWidget * treeview;
   GtkWidget * config_button;
   GtkWidget * info_button;
+
   GtkWidget * top_button;
   GtkWidget * bottom_button;
   GtkWidget * up_button;
@@ -56,6 +57,7 @@ struct list_priv_s
 
   const char * translation_domain;
   bg_set_parameter_func_t  set_param;
+  bg_get_parameter_func_t  get_param;
   void * data;
   int selected;
   int param_selected;
@@ -117,6 +119,37 @@ static void set_sub_param(void * priv, const char * name,
   
   }
 
+static int get_sub_param(void * priv, const char * name,
+                         bg_parameter_value_t * val)
+  {
+  char * tmp_string;
+  list_priv_t * list;
+  bg_gtk_widget_t * w;
+  int ret;
+  w = (bg_gtk_widget_t*)priv;
+  list = (list_priv_t*)(w->priv);
+
+  if(!list->get_param)
+    return 0;
+  
+  if(!name)
+    tmp_string = (char*)0;
+  else if(list->is_chain)
+    tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->selected,
+                            name);
+  else
+    {
+    tmp_string = bg_sprintf("%s.%s.%s", w->info->name,
+                            w->info->multi_names[list->param_selected],
+                            name);
+    }
+  ret = list->get_param(list->data, tmp_string, val);
+  if(tmp_string)
+    free(tmp_string);
+  return ret;
+  }
+
+
 static void apply_sub_params(bg_gtk_widget_t * w)
   {
   list_priv_t * list = (list_priv_t*)(w->priv);
@@ -148,8 +181,12 @@ static void apply_sub_params(bg_gtk_widget_t * w)
     
     if(w->info->multi_names[index] && w->info->multi_parameters[index])
       {
-      subsubsection =
-        bg_cfg_section_find_subsection_by_index(subsection, list->selected);
+      if(list->is_chain)
+        subsubsection =
+          bg_cfg_section_find_subsection_by_index(subsection, list->selected);
+      else
+        subsubsection =
+          bg_cfg_section_find_subsection(subsection, names[list->selected]);
       
       bg_cfg_section_apply_noterminate(subsubsection,
                                        w->info->multi_parameters[index],
@@ -480,21 +517,33 @@ static void attach(void * p, GtkWidget * table,
                    2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
   *row += 1;
 
-  gtk_table_attach(GTK_TABLE(table), e->top_button,
-                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
-  *row += 1;
+  if(e->top_button)
+    {
+    gtk_table_attach(GTK_TABLE(table), e->top_button,
+                     2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+    *row += 1;
+    }
 
-  gtk_table_attach(GTK_TABLE(table), e->up_button,
-                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
-  *row += 1;
+  if(e->up_button)
+    {
+    gtk_table_attach(GTK_TABLE(table), e->up_button,
+                     2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+    *row += 1;
+    }
 
-  gtk_table_attach(GTK_TABLE(table), e->down_button,
-                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
-  *row += 1;
+  if(e->down_button)
+    {
+    gtk_table_attach(GTK_TABLE(table), e->down_button,
+                     2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+    *row += 1;
+    }
 
-  gtk_table_attach(GTK_TABLE(table), e->bottom_button,
-                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
-  *row += 1;
+  if(e->bottom_button)
+    {
+    gtk_table_attach(GTK_TABLE(table), e->bottom_button,
+                     2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+    *row += 1;
+    }
   }
 
 static void destroy(bg_gtk_widget_t * w)
@@ -551,10 +600,15 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
     {
     gtk_widget_set_sensitive(priv->info_button, 0);
     gtk_widget_set_sensitive(priv->config_button, 0);
-    gtk_widget_set_sensitive(priv->top_button, 0);
-    gtk_widget_set_sensitive(priv->bottom_button, 0);
-    gtk_widget_set_sensitive(priv->up_button, 0);
-    gtk_widget_set_sensitive(priv->down_button, 0);
+
+    if(priv->top_button)
+      gtk_widget_set_sensitive(priv->top_button, 0);
+    if(priv->bottom_button)
+      gtk_widget_set_sensitive(priv->bottom_button, 0);
+    if(priv->up_button)
+      gtk_widget_set_sensitive(priv->up_button, 0);
+    if(priv->down_button)
+      gtk_widget_set_sensitive(priv->down_button, 0);
     if(priv->remove_button)
       gtk_widget_set_sensitive(priv->remove_button, 0);
     priv->param_selected = priv->selected;
@@ -581,24 +635,32 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
 
     if(priv->selected > 0)
       {
-      gtk_widget_set_sensitive(priv->top_button, 1);
-      gtk_widget_set_sensitive(priv->up_button, 1);
+      if(priv->top_button)
+        gtk_widget_set_sensitive(priv->top_button, 1);
+      if(priv->up_button)
+        gtk_widget_set_sensitive(priv->up_button, 1);
       }
     else
       {
-      gtk_widget_set_sensitive(priv->top_button, 0);
-      gtk_widget_set_sensitive(priv->up_button, 0);
+      if(priv->top_button)
+        gtk_widget_set_sensitive(priv->top_button, 0);
+      if(priv->up_button)
+        gtk_widget_set_sensitive(priv->up_button, 0);
       }
 
     if(priv->selected < priv->num-1)
       {
-      gtk_widget_set_sensitive(priv->bottom_button, 1);
-      gtk_widget_set_sensitive(priv->down_button, 1);
+      if(priv->bottom_button)
+        gtk_widget_set_sensitive(priv->bottom_button, 1);
+      if(priv->down_button)
+        gtk_widget_set_sensitive(priv->down_button, 1);
       }
     else
       {
-      gtk_widget_set_sensitive(priv->bottom_button, 0);
-      gtk_widget_set_sensitive(priv->down_button, 0);
+      if(priv->bottom_button)
+        gtk_widget_set_sensitive(priv->bottom_button, 0);
+      if(priv->down_button)
+        gtk_widget_set_sensitive(priv->down_button, 0);
       }
     
     if(priv->remove_button)
@@ -676,24 +738,32 @@ static void move_selected(bg_gtk_widget_t * w, int new_pos)
   
   if(!priv->selected)
     {
-    gtk_widget_set_sensitive(priv->top_button, 0);
-    gtk_widget_set_sensitive(priv->up_button, 0);
+    if(priv->top_button)
+      gtk_widget_set_sensitive(priv->top_button, 0);
+    if(priv->up_button)
+      gtk_widget_set_sensitive(priv->up_button, 0);
     }
   else
     {
-    gtk_widget_set_sensitive(priv->top_button, 1);
-    gtk_widget_set_sensitive(priv->up_button, 1);
+    if(priv->top_button)
+      gtk_widget_set_sensitive(priv->top_button, 1);
+    if(priv->up_button)
+      gtk_widget_set_sensitive(priv->up_button, 1);
     }
 
   if(priv->selected >= priv->num - 1)
     {
-    gtk_widget_set_sensitive(priv->down_button, 0);
-    gtk_widget_set_sensitive(priv->bottom_button, 0);
+    if(priv->down_button)
+      gtk_widget_set_sensitive(priv->down_button, 0);
+    if(priv->bottom_button)
+      gtk_widget_set_sensitive(priv->bottom_button, 0);
     }
   else
     {
-    gtk_widget_set_sensitive(priv->down_button, 1);
-    gtk_widget_set_sensitive(priv->bottom_button, 1);
+    if(priv->down_button)
+      gtk_widget_set_sensitive(priv->down_button, 1);
+    if(priv->bottom_button)
+      gtk_widget_set_sensitive(priv->bottom_button, 1);
     }
   }
 
@@ -714,30 +784,31 @@ static void button_callback(GtkWidget * wid, gpointer data)
 
   if(wid == priv->config_button)
     {
-    subsection = bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
+    if(w->cfg_section)
+      {
+      subsection = bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
     
-    if(priv->is_chain)
-      subsection =
-        bg_cfg_section_find_subsection_by_index(subsection,
-                                                priv->selected);
+      if(priv->is_chain)
+        subsection =
+          bg_cfg_section_find_subsection_by_index(subsection,
+                                                  priv->selected);
+      else
+        subsection =
+          bg_cfg_section_find_subsection(subsection,
+                                         w->info->multi_names[priv->param_selected]);
+      }
     else
-      subsection =
-        bg_cfg_section_find_subsection(subsection,
-                                       w->info->multi_names[priv->param_selected]);
+      subsection = NULL;
+
     
     if(w->info->multi_labels && w->info->multi_labels[priv->param_selected])
       label = TRD(w->info->multi_labels[priv->param_selected], priv->translation_domain);
     else
       label = w->info->multi_names[priv->param_selected];
 
-    if(priv->set_param)
-      dialog = bg_dialog_create(subsection, set_sub_param, NULL, w,
-                                w->info->multi_parameters[priv->param_selected],
-                                label);
-    else
-      dialog = bg_dialog_create(subsection, NULL, NULL, w,
-                                w->info->multi_parameters[priv->param_selected],
-                                label);
+    dialog = bg_dialog_create(subsection, set_sub_param, get_sub_param, w,
+                              w->info->multi_parameters[priv->param_selected],
+                              label);
     bg_dialog_show(dialog, priv->treeview);
     }
   else if(wid == priv->info_button)
@@ -846,6 +917,7 @@ static GtkWidget * create_pixmap_button(const char * filename)
 
 static void create_list_common(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
                                bg_set_parameter_func_t set_param,
+                               bg_get_parameter_func_t get_param,
                                void * data, const char * translation_domain,
                                int is_chain)
   {
@@ -857,6 +929,7 @@ static void create_list_common(bg_gtk_widget_t * w, const bg_parameter_info_t * 
   list_priv_t * priv = calloc(1, sizeof(*priv));
 
   priv->set_param   = set_param;
+  priv->get_param   = get_param;
   priv->data        = data;
   priv->translation_domain = translation_domain;
 
@@ -869,43 +942,46 @@ static void create_list_common(bg_gtk_widget_t * w, const bg_parameter_info_t * 
 
   priv->info_button = create_pixmap_button("info_16.png");
   priv->config_button = create_pixmap_button("config_16.png");
-  priv->top_button = create_pixmap_button("top_16.png");
-  priv->bottom_button = create_pixmap_button("bottom_16.png");
-  priv->up_button = create_pixmap_button("up_16.png");
-  priv->down_button = create_pixmap_button("down_16.png");
-  
   g_signal_connect(G_OBJECT(priv->info_button),
                    "clicked", G_CALLBACK(button_callback),
                    (gpointer)w);
   g_signal_connect(G_OBJECT(priv->config_button),
                    "clicked", G_CALLBACK(button_callback),
                    (gpointer)w);
-  g_signal_connect(G_OBJECT(priv->top_button),
-                   "clicked", G_CALLBACK(button_callback),
-                   (gpointer)w);
-  g_signal_connect(G_OBJECT(priv->bottom_button),
-                   "clicked", G_CALLBACK(button_callback),
-                   (gpointer)w);
-  g_signal_connect(G_OBJECT(priv->up_button),
-                   "clicked", G_CALLBACK(button_callback),
-                   (gpointer)w);
-  g_signal_connect(G_OBJECT(priv->down_button),
-                   "clicked", G_CALLBACK(button_callback),
-                   (gpointer)w);
-
   gtk_widget_show(priv->info_button);
   gtk_widget_show(priv->config_button);
-  gtk_widget_show(priv->top_button);
-  gtk_widget_show(priv->bottom_button);
-  gtk_widget_show(priv->up_button);
-  gtk_widget_show(priv->down_button);
 
   gtk_widget_set_sensitive(priv->info_button, 0);
   gtk_widget_set_sensitive(priv->config_button, 0);
-  gtk_widget_set_sensitive(priv->top_button, 0);
-  gtk_widget_set_sensitive(priv->bottom_button, 0);
-  gtk_widget_set_sensitive(priv->up_button, 0);
-  gtk_widget_set_sensitive(priv->down_button, 0);
+
+  if(!(info->flags & BG_PARAMETER_NO_SORT))
+    {
+    priv->top_button = create_pixmap_button("top_16.png");
+    priv->bottom_button = create_pixmap_button("bottom_16.png");
+    priv->up_button = create_pixmap_button("up_16.png");
+    priv->down_button = create_pixmap_button("down_16.png");
+    g_signal_connect(G_OBJECT(priv->top_button),
+                     "clicked", G_CALLBACK(button_callback),
+                     (gpointer)w);
+    g_signal_connect(G_OBJECT(priv->bottom_button),
+                     "clicked", G_CALLBACK(button_callback),
+                     (gpointer)w);
+    g_signal_connect(G_OBJECT(priv->up_button),
+                     "clicked", G_CALLBACK(button_callback),
+                     (gpointer)w);
+    g_signal_connect(G_OBJECT(priv->down_button),
+                     "clicked", G_CALLBACK(button_callback),
+                     (gpointer)w);
+    gtk_widget_show(priv->top_button);
+    gtk_widget_show(priv->bottom_button);
+    gtk_widget_show(priv->up_button);
+    gtk_widget_show(priv->down_button);
+
+    gtk_widget_set_sensitive(priv->top_button, 0);
+    gtk_widget_set_sensitive(priv->bottom_button, 0);
+    gtk_widget_set_sensitive(priv->up_button, 0);
+    gtk_widget_set_sensitive(priv->down_button, 0);
+    }
   
   if(priv->is_chain)
     {
@@ -967,15 +1043,17 @@ static void create_list_common(bg_gtk_widget_t * w, const bg_parameter_info_t * 
 void
 bg_gtk_create_multi_list(bg_gtk_widget_t * w,
                          bg_set_parameter_func_t set_param,
+                         bg_get_parameter_func_t get_param,
                          void * data, const char * translation_domain)
   {
-  create_list_common(w, w->info, set_param, data, translation_domain, 0);
+  create_list_common(w, w->info, set_param, get_param, data, translation_domain, 0);
   }
 
 void
 bg_gtk_create_multi_chain(bg_gtk_widget_t * w,
                           bg_set_parameter_func_t set_param,
+                          bg_get_parameter_func_t get_param,
                           void * data, const char * translation_domain)
   {
-  create_list_common(w, w->info, set_param, data, translation_domain, 1);
+  create_list_common(w, w->info, set_param, get_param, data, translation_domain, 1);
   }

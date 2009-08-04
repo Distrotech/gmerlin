@@ -149,7 +149,9 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
                             const bg_parameter_info_t * src)
   {
   int num_options, i;
+
   dst->name = bg_strdup(dst->name, src->name);
+  
   dst->long_name = bg_strdup(dst->long_name, src->long_name);
   dst->opt = bg_strdup(dst->opt, src->opt);
   dst->help_string = bg_strdup(dst->help_string, src->help_string);
@@ -286,7 +288,7 @@ bg_parameter_info_copy_array(const bg_parameter_info_t * src)
   
   for(i = 0; i < num_parameters; i++)
     bg_parameter_info_copy(&(ret[i]), &(src[i]));
-
+  
   return ret;
   }
 

@@ -102,6 +102,11 @@ typedef union
 #define BG_PARAMETER_HIDE_DIALOG  (1<<1) //!< Don't make a configuration widget (for objects, which change values themselves)
 
 /** \ingroup parameter
+ */
+
+#define BG_PARAMETER_NO_SORT      (1<<2) //!< Don't make a list sortable
+
+/** \ingroup parameter
  *  \brief Typedef for parmeter description
  */
 
@@ -202,6 +207,14 @@ typedef int (*bg_get_parameter_func_t)(void * data, const char * name,
                                        bg_parameter_value_t * v);
 
 /** \ingroup parameter
+ *  \brief Copy a single parameter info
+ *  \param src Source 
+ */
+
+void bg_parameter_info_copy(bg_parameter_info_t * dst,
+                            const bg_parameter_info_t * src);
+
+/** \ingroup parameter
  *  \brief Copy a NULL terminated parameter array
  *  \param src Source array
  *
@@ -223,18 +236,6 @@ bg_parameter_info_copy_array(const bg_parameter_info_t * src);
 
 void
 bg_parameter_info_set_const_ptrs(bg_parameter_info_t * info);
-
-
-/** \ingroup parameter
- *  \brief Copy a single parameter description
- *  \param dst Destination parameter description
- *  \param src Source parameter description
- *
- *  Make sure, that src is memset to 0 before calling this.
- */
-
-void bg_parameter_info_copy(bg_parameter_info_t * dst,
-                            const bg_parameter_info_t * src);
 
 /** \ingroup parameter
  *  \brief Free a NULL terminated parameter array

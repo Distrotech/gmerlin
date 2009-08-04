@@ -699,16 +699,7 @@ typedef struct
 static bg_parameter_info_t *
 create_encoder_parameters(bg_plugin_registry_t * plugin_reg)
   {
-  int i;
-  bg_parameter_info_t * ret;
-  ret =
-    calloc(sizeof(parameters_encoder)/sizeof(parameters_encoder[0])+1,
-           sizeof(*ret));
-  
-  for(i = 0; i < sizeof(parameters_encoder)/sizeof(parameters_encoder[0]); i++)
-    {
-    bg_parameter_info_copy(&ret[i], &parameters_encoder[i]);
-    }
+  bg_parameter_info_t * ret = bg_parameter_info_copy_array(parameters_encoder);
   bg_plugin_registry_set_parameter_info(plugin_reg,
                                         BG_PLUGIN_IMAGE_WRITER,
                                         BG_PLUGIN_FILE, &ret[0]);

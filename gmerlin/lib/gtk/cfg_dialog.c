@@ -581,7 +581,7 @@ static GtkWidget * create_section(dialog_section_t * section,
     section->widgets[count].info = &(info[i]);
 
     section->widgets[count].cfg_section = cfg_section;
-    if(info[i].multi_parameters)
+    if(info[i].multi_parameters && cfg_section)
       {
       cfg_subsection = bg_cfg_section_find_subsection(cfg_section, info[i].name);
       section->widgets[count].cfg_subsection_save = bg_cfg_section_copy(cfg_subsection);
@@ -656,12 +656,12 @@ static GtkWidget * create_section(dialog_section_t * section,
         break;
       case BG_PARAMETER_MULTI_LIST:
         bg_gtk_create_multi_list(&(section->widgets[count]),
-                                 set_param, data,
+                                 set_param, get_param, data,
                                  translation_domain);
         break;
       case BG_PARAMETER_MULTI_CHAIN:
         bg_gtk_create_multi_chain(&(section->widgets[count]),
-                                  set_param, data,
+                                  set_param, get_param, data,
                                   translation_domain);
         break;
       case BG_PARAMETER_POSITION:
@@ -678,13 +678,15 @@ static GtkWidget * create_section(dialog_section_t * section,
     if(cfg_section)
       bg_cfg_section_get_parameter(cfg_section, &(info[i]),
                                    &(section->widgets[count].value));
+    /* ... or from the get_param function */
+    else if(get_param &&
+            get_param(data, info[i].name, &(section->widgets[count].value)))
+      ;
     /* ... or from the parameter default */
     else
-      {
       bg_parameter_value_copy(&(section->widgets[count].value),
                               &(info[i].val_default),
                               &(info[i]));
-      }
     
     bg_parameter_value_copy(&section->widgets[count].last_value,
                             &section->widgets[count].value,
@@ -793,8 +795,8 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
     gtk_widget_show(label);
 
     ret->root_section.num_children = 1;
-    ret->root_section.children = calloc(1,
-                           ret->root_section.num_children * sizeof(dialog_section_t));
+    ret->root_section.children = calloc(ret->root_section.num_children,
+                                        sizeof(*ret->root_section.children));
     table =
       create_section(ret->root_section.children, info, section, set_param, get_param,
                      callback_data, (const char *)0);
@@ -960,7 +962,7 @@ int bg_dialog_show(bg_dialog_t * d, void * parent)
   if(d->visible)
     {
     gtk_window_present(GTK_WINDOW(d->window));
-    return;
+    return 0;
     }
   if(parent)
     {

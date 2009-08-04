@@ -111,11 +111,13 @@ bg_gtk_create_time(bg_gtk_widget_t *, const char * translation_domain);
 void
 bg_gtk_create_multi_list(bg_gtk_widget_t *,
                          bg_set_parameter_func_t set_param,
+                         bg_get_parameter_func_t get_param,
                          void * data, const char * translation_domain);
 
 void
 bg_gtk_create_multi_chain(bg_gtk_widget_t *,
                           bg_set_parameter_func_t set_param,
+                          bg_get_parameter_func_t get_param,
                           void * data, const char * translation_domain);
 
 void
