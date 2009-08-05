@@ -274,6 +274,9 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     else if(!BG_XML_STRCMP(cur->name, priority_key))
       {
       sscanf(tmp_string, "%d", &(ret->priority));
+
+      if(!strcmp(ret->name, "i_avdec"))
+        fprintf(stderr, "avdec priority: %d\n", ret->priority);
       }
     else if(!BG_XML_STRCMP(cur->name, index_key))
       {
@@ -468,6 +471,17 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
 
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_time_key, NULL);
+  sprintf(buffer, "%ld", info->module_time);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)priority_key, NULL);
+  sprintf(buffer, "%d", info->priority);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+
+
   
   if(info->parameters)
     {
@@ -593,15 +607,6 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_time_key, NULL);
-  sprintf(buffer, "%ld", info->module_time);
-  xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
-  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
-
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)priority_key, NULL);
-  sprintf(buffer, "%d", info->priority);
-  xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
-  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
   if(info->devices && info->devices->device)
     save_devices(xml_plugin, info->devices);
