@@ -117,6 +117,22 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 NULL,
                 (void*)(g->player),
                 parameters);
+
+  bg_dialog_add(g->cfg_dialog,
+                TR("Input plugins"),
+                NULL,
+                bg_plugin_registry_set_parameter_input,
+                bg_plugin_registry_get_parameter_input,
+                g->plugin_reg,
+                g->input_plugin_parameters);
+
+  bg_dialog_add(g->cfg_dialog,
+                TR("Image readers"),
+                NULL,
+                bg_plugin_registry_set_parameter_input,
+                bg_plugin_registry_get_parameter_input,
+                g->plugin_reg,
+                g->image_reader_parameters);
   
   parameters = bg_player_get_osd_parameters(g->player);
   

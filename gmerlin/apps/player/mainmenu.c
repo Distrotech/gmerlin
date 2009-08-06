@@ -107,7 +107,6 @@ struct help_menu_s
 struct options_menu_s
   {
   GtkWidget * preferences;
-  GtkWidget * plugins;
   GtkWidget * skins;
   GtkWidget * kbd;
   GtkWidget * menu;
@@ -376,11 +375,6 @@ static void menu_callback(GtkWidget * w, gpointer data)
     if(!g->skin_browser)
       g->skin_browser = gmerlin_skin_browser_create(g);
     gmerlin_skin_browser_show(g->skin_browser);
-    }
-  else if(w == the_menu->options_menu.plugins)
-    {
-    plugin_window_show(g->plugin_window);
-    gtk_widget_set_sensitive(the_menu->options_menu.plugins, 0);
     }
   else if(w == the_menu->options_menu.kbd)
     {
@@ -1046,12 +1040,6 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
                              GDK_o, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   
-
-  ret->options_menu.plugins =
-    create_pixmap_item(TR("Input plugins..."), "plugin_16.png", gmerlin, ret->options_menu.menu);
-  gtk_widget_add_accelerator(ret->options_menu.plugins, "activate", ret->g->accel_group,
-                             GDK_p, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
-
   ret->options_menu.skins =
     create_item(TR("Skins..."), gmerlin, ret->options_menu.menu);
 
@@ -1274,7 +1262,3 @@ void main_menu_set_log_window_item(main_menu_t * m, int state)
                            m->windows_menu.logwindow_id);
   }
 
-void main_menu_set_plugin_window_item(main_menu_t * m, int state)
-  {
-  gtk_widget_set_sensitive(m->options_menu.plugins, !state);
-  }

@@ -509,10 +509,6 @@ static void handle_message(player_window_t * win,
         case ACCEL_GOTO_CURRENT:
           bg_gtk_tree_window_goto_current(win->gmerlin->tree_window);
           break;
-        case ACCEL_PLUGINS:
-          plugin_window_show(win->gmerlin->plugin_window);
-          main_menu_set_plugin_window_item(win->main_menu, 1);
-          break;
         }
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:

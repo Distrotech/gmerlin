@@ -38,8 +38,6 @@ typedef struct gmerlin_s gmerlin_t;
 
 #include "display.h"
 #include "playerwindow.h"
-#include "pluginwindow.h"
-
 
 /* Repeat mode */
 
@@ -67,7 +65,6 @@ typedef enum
 #define ACCEL_PREV                   11
 #define ACCEL_QUIT                   12
 #define ACCEL_OPTIONS                13
-#define ACCEL_PLUGINS                14
 #define ACCEL_GOTO_CURRENT           15
 #define ACCEL_CURRENT_TO_FAVOURITES  16
 
@@ -121,8 +118,6 @@ struct gmerlin_s
   gmerlin_skin_t skin;
   char * skin_dir;
   
-  plugin_window_t * plugin_window;
-    
   gmerlin_skin_browser_t * skin_browser;
 
   int tree_error;
@@ -144,6 +139,9 @@ struct gmerlin_s
   bg_cfg_section_t * logwindow_section;
   bg_cfg_section_t * infowindow_section;
   bg_cfg_section_t * visualization_section;
+
+  bg_parameter_info_t * input_plugin_parameters;
+  bg_parameter_info_t * image_reader_parameters;
   
   int show_info_window;
   int show_log_window;

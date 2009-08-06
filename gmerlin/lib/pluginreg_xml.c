@@ -274,9 +274,6 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     else if(!BG_XML_STRCMP(cur->name, priority_key))
       {
       sscanf(tmp_string, "%d", &(ret->priority));
-
-      if(!strcmp(ret->name, "i_avdec"))
-        fprintf(stderr, "avdec priority: %d\n", ret->priority);
       }
     else if(!BG_XML_STRCMP(cur->name, index_key))
       {

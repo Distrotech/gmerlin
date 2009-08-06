@@ -53,7 +53,6 @@ static bg_accelerator_t accels[] =
     { BG_KEY_PAGE_UP,   BG_KEY_CONTROL_MASK,                   ACCEL_PREV                    },
     { BG_KEY_q,         BG_KEY_CONTROL_MASK,                   ACCEL_QUIT                    },
     { BG_KEY_o,         BG_KEY_CONTROL_MASK,                   ACCEL_OPTIONS                 },
-    { BG_KEY_p,         BG_KEY_CONTROL_MASK,                   ACCEL_PLUGINS                 },
     { BG_KEY_g,         BG_KEY_CONTROL_MASK,                   ACCEL_GOTO_CURRENT            },
     { BG_KEY_F9,        0,                                     ACCEL_CURRENT_TO_FAVOURITES   },
     { BG_KEY_NONE,      0,                                     0                             },
@@ -205,13 +204,6 @@ static void logwindow_close_callback(bg_gtk_log_window_t * w, void * data)
   g->show_log_window = 0;
   }
 
-static void pluginwindow_close_callback(plugin_window_t * w, void * data)
-  {
-  gmerlin_t * g;
-  g = (gmerlin_t*)data;
-  main_menu_set_plugin_window_item(g->player_window->main_menu, 0);
-  }
-
 static void treewindow_close_callback(bg_gtk_tree_window_t * win,
                                void * data)
   {
@@ -220,6 +212,24 @@ static void treewindow_close_callback(bg_gtk_tree_window_t * win,
   main_menu_set_tree_window_item(g->player_window->main_menu, 0);
   g->show_tree_window = 0;
   }
+
+static const bg_parameter_info_t input_plugin_parameters[] =
+  {
+    {
+      .name = "input_plugins",
+      .long_name = "Input plugins",
+    },
+    { /* */ },
+  };
+
+static const bg_parameter_info_t image_reader_parameters[] =
+  {
+    {
+      .name = "image_readers",
+      .long_name = "Image readers",
+    },
+    { /* */ },
+  };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   {
@@ -270,6 +280,21 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "Infowindow");
   ret->visualization_section =
     bg_cfg_registry_find_section(cfg_reg, "Visualization");
+
+  ret->input_plugin_parameters = bg_parameter_info_copy_array(input_plugin_parameters);
+  bg_plugin_registry_set_parameter_info_input(ret->plugin_reg,
+                                              BG_PLUGIN_INPUT,
+                                              BG_PLUGIN_FILE|
+                                              BG_PLUGIN_URL|
+                                              BG_PLUGIN_REMOVABLE|
+                                              BG_PLUGIN_TUNER,
+                                              ret->input_plugin_parameters);
+  
+  ret->image_reader_parameters = bg_parameter_info_copy_array(image_reader_parameters);
+  bg_plugin_registry_set_parameter_info_input(ret->plugin_reg,
+                                              BG_PLUGIN_IMAGE_READER,
+                                              BG_PLUGIN_FILE,
+                                              ret->image_reader_parameters);
   
   /* Log window should be created quite early so we can catch messages
      during startup */
@@ -324,9 +349,6 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
                                                infowindow_close_callback, 
                                                ret);
 
-  ret->plugin_window = plugin_window_create(ret,
-                                            pluginwindow_close_callback, 
-                                            ret);
   
   
   ret->lcdproc = bg_lcdproc_create(ret->player);
@@ -366,7 +388,6 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
 void gmerlin_destroy(gmerlin_t * g)
   {
     
-  plugin_window_destroy(g->plugin_window);
   player_window_destroy(g->player_window);
 
   /* Must destroy the dialogs early, because the
@@ -388,7 +409,9 @@ void gmerlin_destroy(gmerlin_t * g)
   
   bg_gtk_tree_window_destroy(g->tree_window);
 
-
+  bg_parameter_info_destroy_array(g->input_plugin_parameters);
+  bg_parameter_info_destroy_array(g->image_reader_parameters);
+  
   /* Fetch parameters */
   
   bg_cfg_section_get(g->infowindow_section,

@@ -2148,9 +2148,6 @@ void bg_plugin_registry_set_parameter_input(void * data, const char * name,
   bg_plugin_info_t * plugin_info;
   const char * parameter_name;
   
-  fprintf(stderr, "bg_plugin_registry_set_parameter_input %s\n",
-          name);
-  
   if(!name)
     return;
 
@@ -2158,12 +2155,9 @@ void bg_plugin_registry_set_parameter_input(void * data, const char * name,
                            &plugin_info, &cfg_section, &parameter_name))
     return;
   
-  fprintf(stderr, "plugin name: %s\n", plugin_info->name);
-  
   if(!strcmp(parameter_name, "$priority"))
     {
     bg_plugin_registry_set_priority(plugin_reg, plugin_info->name, val->val_i);
-    fprintf(stderr, "set priority: %d\n", val->val_i);
     }
   else if(!strcmp(parameter_name, "$extensions"))
     bg_plugin_registry_set_extensions(plugin_reg, plugin_info->name, val->val_str);
@@ -2181,9 +2175,6 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
   const bg_parameter_info_t * parameter_info;
   bg_plugin_info_t * plugin_info;
   const char * parameter_name;
-  
-  fprintf(stderr, "bg_plugin_registry_get_parameter_input %s\n",
-          name);
   
   if(!name)
     return 0;

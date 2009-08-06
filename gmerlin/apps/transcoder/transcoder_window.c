@@ -842,7 +842,7 @@ static void init_menus(transcoder_window_t * w)
 
   w->options_menu.menu = gtk_menu_new();
   w->options_menu.config_item = create_item(w, w->options_menu.menu, TR("Preferences..."), "config_16.png");
-  w->options_menu.plugin_item = create_item(w, w->options_menu.menu, TR("Plugins..."), "plugin_16.png");
+  w->options_menu.plugin_item = create_item(w, w->options_menu.menu, TR("Encoder plugins..."), "plugin_16.png");
   w->options_menu.load_item = create_item(w, w->options_menu.menu, TR("Load profile..."), "folder_open_16.png");
   w->options_menu.save_item = create_item(w, w->options_menu.menu, TR("Save profile..."), "save_16.png");
   gtk_widget_show(w->options_menu.menu);
@@ -1190,6 +1190,24 @@ void transcoder_window_run(transcoder_window_t * w)
   gtk_main();
   }
 
+static const bg_parameter_info_t input_plugin_parameters[] =
+  {
+    {
+      .name = "input_plugins",
+      .long_name = "Input plugins",
+    },
+    { /* */ },
+  };
+
+static const bg_parameter_info_t image_reader_parameters[] =
+  {
+    {
+      .name = "image_readers",
+      .long_name = "Image readers",
+    },
+    { /* */ },
+  };
+
 /* Configuration stuff */
 
 static void transcoder_window_preferences(transcoder_window_t * w)
@@ -1204,6 +1222,24 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_gavl_audio_options_t ao;
   bg_gavl_video_options_t vo;
 
+  bg_parameter_info_t * params_i;
+  bg_parameter_info_t * params_ir;
+
+  params_i = bg_parameter_info_copy_array(input_plugin_parameters);
+  params_ir = bg_parameter_info_copy_array(image_reader_parameters);
+
+  bg_plugin_registry_set_parameter_info_input(w->plugin_reg,
+                                              BG_PLUGIN_INPUT,
+                                              BG_PLUGIN_FILE|
+                                              BG_PLUGIN_URL|
+                                              BG_PLUGIN_REMOVABLE|
+                                              BG_PLUGIN_TUNER,
+                                              params_i);
+  bg_plugin_registry_set_parameter_info_input(w->plugin_reg,
+                                              BG_PLUGIN_IMAGE_READER,
+                                              BG_PLUGIN_FILE,
+                                              params_ir);
+  
   memset(&ao, 0, sizeof(ao));
   memset(&vo, 0, sizeof(vo));
 
@@ -1320,6 +1356,22 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 NULL,
                 bg_transcoder_track_subtitle_overlay_get_general_parameters());
   
+
+  bg_dialog_add(dlg,
+                TR("Input plugins"),
+                NULL,
+                bg_plugin_registry_set_parameter_input,
+                bg_plugin_registry_get_parameter_input,
+                w->plugin_reg,
+                params_i);
+
+  bg_dialog_add(dlg,
+                TR("Image readers"),
+                NULL,
+                bg_plugin_registry_set_parameter_input,
+                bg_plugin_registry_get_parameter_input,
+                w->plugin_reg,
+                params_ir);
   
   cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
                                              "transcoder_window");

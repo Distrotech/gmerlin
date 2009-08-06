@@ -18,7 +18,6 @@ gmerlin.c \
 main.c \
 mainmenu.c \
 playerwindow.c \
-pluginwindow.c \
 remote.c \
 skin.c \
 skinbrowser.c
@@ -30,8 +29,7 @@ noinst_HEADERS = \
 display.h \
 gmerlin.h \
 player_remote.h \
-playerwindow.h \
-pluginwindow.h
+playerwindow.h
 
 gmerlin_LDADD = $(top_builddir)/lib/libgmerlin.la $(top_builddir)/lib/gtk/libgmerlin_gtk.la
 gmerlin_remote_LDADD = $(top_builddir)/lib/libgmerlin.la
