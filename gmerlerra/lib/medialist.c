@@ -83,14 +83,59 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
     /* TODO: Ask which track to load */
     }
 
+  if(input->set_track)
+    {
+    input->set_track(handle->priv, track);
+    }
+  
+  /* Check out streams */
+  
+  
   
   ti = input->get_track_info(handle->priv, track);
+
+  if(input->set_audio_stream)
+    {
+    for(i = 0; i < ti->num_audio_streams; i++)
+      input->set_audio_stream(handle->priv, i, BG_STREAM_ACTION_DECODE);
+    }
+  
+  if(input->set_video_stream)
+    {
+    for(i = 0; i < ti->num_video_streams; i++)
+      input->set_video_stream(handle->priv, i, BG_STREAM_ACTION_DECODE);
+    }
+
+  if((input->start) && !input->start(handle->priv))
+    {
+    bg_plugin_unref(handle);
+    return NULL;
+    }
   
   ret = calloc(1, sizeof(*ret));
   
   ret->filename = bg_strdup(ret->filename, file);
   ret->num_audio_streams = ti->num_audio_streams;
+
+  ret->audio_streams = calloc(ret->num_audio_streams,
+                              sizeof(*ret->audio_streams));
+  
+  for(i = 0; i < ret->num_audio_streams; i++)
+    {
+    ret->audio_streams[i].timescale  = ti->audio_streams[i].format.samplerate;
+    ret->audio_streams[i].start_time = ti->audio_streams[i].pts_offset;
+    ret->audio_streams[i].duration   = ti->audio_streams[i].duration;
+    }
+  
   ret->num_video_streams = ti->num_video_streams;
+  ret->video_streams = calloc(ret->num_video_streams,
+                              sizeof(*ret->video_streams));
+  
+  for(i = 0; i < ret->num_video_streams; i++)
+    {
+    ret->video_streams[i].timescale  = ti->video_streams[i].format.timescale;
+    }
+  
   ret->track = track;
   ret->duration = ti->duration;
 
@@ -133,11 +178,6 @@ bg_nle_media_list_find_file(bg_nle_media_list_t * list,
   return NULL;
   }
 
-void bg_nle_media_list_destroy(bg_nle_media_list_t * list)
-  {
-  free(list);
-  }
-
 void bg_nle_file_destroy(bg_nle_file_t * file)
   {
   if(file->name) free(file->name);
@@ -145,6 +185,17 @@ void bg_nle_file_destroy(bg_nle_file_t * file)
   if(file->section) bg_cfg_section_destroy(file->section);
   free(file);
   }
+
+void bg_nle_media_list_destroy(bg_nle_media_list_t * list)
+  {
+  int i;
+  for(i = 0; i < list->num_files; i++)
+    bg_nle_file_destroy(list->files[i]);
+  if(list->files)
+    free(list->files);
+  free(list);
+  }
+
 
 bg_plugin_handle_t * bg_nle_media_list_open_file(bg_nle_media_list_t * list,
                                                  bg_nle_file_t * file)

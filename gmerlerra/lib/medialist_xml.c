@@ -11,18 +11,72 @@ static const char * file_name = "file";
 
 static const char * audio_streams_name = "audio_streams";
 static const char * video_streams_name = "video_streams";
+static const char * audio_stream_name = "audio_stream";
+static const char * video_stream_name = "video_stream";
+
 static const char * duration_name      = "duration";
 static const char * name_name          = "name";
 static const char * filename_name      = "filename";
 static const char * track_name         = "track";
 static const char * plugin_name        = "plugin";
 static const char * parameters_name    = "parameters";
+static const char * start_time_name    = "start_time";
+
+
+static void load_audio_stream(xmlDocPtr xml_doc,
+                              xmlNodePtr node, bg_nle_audio_stream_t * ret)
+  {
+  char * tmp_string;
+  if((tmp_string = BG_XML_GET_PROP(node, "scale")))
+    {
+    ret->timescale = atoi(tmp_string);
+    free(tmp_string);
+    }
+
+  node = node->children;
+  while(node)
+    {
+    if(!node->name)
+      {
+      node = node->next;
+      continue;
+      }
+
+    if(!BG_XML_STRCMP(node->name, start_time_name))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
+      ret->start_time = strtoll(tmp_string, (char**)0, 10);
+      xmlFree(tmp_string);
+      }
+    else if(!BG_XML_STRCMP(node->name, duration_name))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
+      ret->duration = strtoll(tmp_string, (char**)0, 10);
+      xmlFree(tmp_string);
+      }
+    node = node->next;
+    }
+  
+  }
+
+static void load_video_stream(xmlDocPtr xml_doc,
+                              xmlNodePtr node, bg_nle_audio_stream_t * ret)
+  {
+  char * tmp_string;
+  if((tmp_string = BG_XML_GET_PROP(node, "scale")))
+    {
+    ret->timescale = atoi(tmp_string);
+    free(tmp_string);
+    }
+  
+  }
 
 static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
   {
-  xmlNodePtr child;
+  xmlNodePtr child, grandchild;
   bg_nle_file_t * ret;
   char * tmp_string;
+  int index;
   ret = calloc(1, sizeof(*ret));
 
   if((tmp_string = BG_XML_GET_PROP(node, "id")))
@@ -40,7 +94,6 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
       child = child->next;
       continue;
       }
-
     
     if(!BG_XML_STRCMP(child->name, filename_name))
       {
@@ -68,15 +121,56 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
       }
     else if(!BG_XML_STRCMP(child->name, audio_streams_name))
       {
-      tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
+      tmp_string = BG_XML_GET_PROP(child, "num");
       ret->num_audio_streams = atoi(tmp_string);
       xmlFree(tmp_string);
+
+      ret->audio_streams = calloc(ret->num_audio_streams,
+                                  sizeof(*ret->audio_streams));
+      index = 0;
+      grandchild = child->children;
+      while(grandchild)
+        {
+        if(!grandchild->name)
+          {
+          grandchild = grandchild->next;
+          continue;
+          }
+
+        if(!BG_XML_STRCMP(grandchild->name, audio_stream_name))
+          {
+          load_audio_stream(xml_doc,
+                            grandchild, &ret->audio_streams[index]);
+          index++;
+          }
+        grandchild = grandchild->next;
+        }
       }
     else if(!BG_XML_STRCMP(child->name, video_streams_name))
       {
-      tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
+      tmp_string = BG_XML_GET_PROP(child, "num");
       ret->num_video_streams = atoi(tmp_string);
       xmlFree(tmp_string);
+
+      ret->video_streams = calloc(ret->num_video_streams,
+                                  sizeof(*ret->video_streams));
+      index = 0;
+      grandchild = child->children;
+      while(grandchild)
+        {
+        if(!grandchild->name)
+          {
+          grandchild = grandchild->next;
+          continue;
+          }
+        if(!BG_XML_STRCMP(grandchild->name, video_stream_name))
+          {
+          load_video_stream(xml_doc,
+                            grandchild, &ret->video_streams[index]);
+          index++;
+          }
+        grandchild = grandchild->next;
+        }
       }
     else if(!BG_XML_STRCMP(child->name, duration_name))
       {
@@ -160,11 +254,50 @@ bg_nle_media_list_load(bg_plugin_registry_t * plugin_reg,
   return ret;
   }
 
-static void save_file(xmlNodePtr node, bg_nle_file_t * file)
+static void save_audio_stream(xmlNodePtr node,
+                              bg_nle_audio_stream_t * s)
   {
   xmlNodePtr child;
   char * tmp_string;
+  /* Timescale */
+  tmp_string = bg_sprintf("%d", s->timescale);
+  BG_XML_SET_PROP(node, "scale", tmp_string);
+  free(tmp_string);
+  
+  /* Offset */
+  child = xmlNewTextChild(node, (xmlNsPtr)0,
+                          (xmlChar*)start_time_name, NULL);
+  
+  tmp_string = bg_sprintf("%"PRId64, s->start_time);
+  xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+  free(tmp_string);
 
+  /* Duration */
+  child = xmlNewTextChild(node, (xmlNsPtr)0,
+                          (xmlChar*)duration_name, NULL);
+  tmp_string = bg_sprintf("%"PRId64, s->duration);
+  xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+  free(tmp_string);
+  
+  }
+
+static void save_video_stream(xmlNodePtr node,
+                              bg_nle_video_stream_t * s)
+  {
+  char * tmp_string;
+  /* Timescale */
+  tmp_string = bg_sprintf("%d", s->timescale);
+  BG_XML_SET_PROP(node, "scale", tmp_string);
+  free(tmp_string);
+  
+  }
+
+static void save_file(xmlNodePtr node, bg_nle_file_t * file)
+  {
+  xmlNodePtr child, grandchild;
+  char * tmp_string;
+  int i;
+  
   /* ID */
   tmp_string = bg_sprintf("%08x", file->id);
   BG_XML_SET_PROP(node, "id", tmp_string);
@@ -208,8 +341,15 @@ static void save_file(xmlNodePtr node, bg_nle_file_t * file)
                             (xmlChar*)audio_streams_name, NULL);
     tmp_string =
       bg_sprintf("%d", file->num_audio_streams);
-    xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+    BG_XML_SET_PROP(child, "num", tmp_string);
     free(tmp_string);
+
+    for(i = 0; i < file->num_audio_streams; i++)
+      {
+      grandchild = xmlNewTextChild(child, (xmlNsPtr)0,
+                                   (xmlChar*)audio_stream_name, NULL);
+      save_audio_stream(grandchild, &file->audio_streams[i]);
+      }
     }
   
   /* Video streams */
@@ -220,8 +360,15 @@ static void save_file(xmlNodePtr node, bg_nle_file_t * file)
                             (xmlChar*)video_streams_name, NULL);
     tmp_string =
       bg_sprintf("%d", file->num_video_streams);
-    xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+    BG_XML_SET_PROP(child, "num", tmp_string);
     free(tmp_string);
+
+    for(i = 0; i < file->num_video_streams; i++)
+      {
+      grandchild = xmlNewTextChild(child, (xmlNsPtr)0,
+                                   (xmlChar*)video_stream_name, NULL);
+      save_video_stream(grandchild, &file->video_streams[i]);
+      }
     }
   
   /* Duration */

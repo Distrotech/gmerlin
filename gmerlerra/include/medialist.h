@@ -7,8 +7,26 @@
 
 typedef struct
   {
+  int timescale;
+  int64_t start_time;
+  int64_t duration;
+  } bg_nle_audio_stream_t;
+
+typedef struct
+  {
+  int timescale;
+  gavl_frame_table_t * frametable;
+  char * frametable_file;
+  } bg_nle_video_stream_t;
+
+typedef struct
+  {
   int num_audio_streams;
   int num_video_streams;
+
+  bg_nle_audio_stream_t * audio_streams;
+  bg_nle_video_stream_t * video_streams;
+  
   char * filename;
   char * name;
   /* For loading the track */

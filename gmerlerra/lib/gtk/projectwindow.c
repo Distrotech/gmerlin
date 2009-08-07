@@ -1003,15 +1003,7 @@ configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
     }
   
   dialog = bg_dialog_create_multi(TR("Program settings"));  
-
-  bg_dialog_add(dialog,
-                TR("Log window"),
-                log_window_section,
-                bg_gtk_log_window_set_parameter,
-                NULL,
-                log_window,
-                bg_gtk_log_window_get_parameters(log_window));
-
+  
   bg_dialog_add(dialog,
                 TR("Display"),
                 display_section,
@@ -1035,6 +1027,14 @@ configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
                 bg_plugin_registry_get_parameter_input,
                 plugin_reg,
                 image_reader_parameters);
+  
+  bg_dialog_add(dialog,
+                TR("Log window"),
+                log_window_section,
+                bg_gtk_log_window_set_parameter,
+                NULL,
+                log_window,
+                bg_gtk_log_window_get_parameters(log_window));
   
   bg_dialog_show(dialog, parent);
   bg_dialog_destroy(dialog);

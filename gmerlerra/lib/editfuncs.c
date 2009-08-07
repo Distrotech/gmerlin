@@ -477,7 +477,7 @@ void bg_nle_project_outstream_make_current(bg_nle_project_t * p,
                                            bg_nle_outstream_t * new_outstream)
   {
   bg_nle_op_outstream_make_current_t * d;
-  bg_nle_outstream_t * old_outstream;
+  bg_nle_outstream_t * old_outstream = NULL;
 
   switch(type)
     {
