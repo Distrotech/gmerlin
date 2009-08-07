@@ -2183,12 +2183,12 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
                            &plugin_info, &cfg_section, &parameter_name))
     return 0;
   
-  fprintf(stderr, "plugin name: %s\n", plugin_info->name);
+  //  fprintf(stderr, "plugin name: %s\n", plugin_info->name);
   
   if(!strcmp(parameter_name, "$priority"))
     {
     val->val_i = plugin_info->priority;
-    fprintf(stderr, "get priority: %d\n", val->val_i);
+    //    fprintf(stderr, "get priority: %d\n", val->val_i);
     }
   else if(!strcmp(parameter_name, "$extensions"))
     val->val_str = bg_strdup(val->val_str, plugin_info->extensions);
