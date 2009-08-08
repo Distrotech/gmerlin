@@ -86,18 +86,16 @@ AC_DEFINE_UNQUOTED(PREFIX, "$prefix", Installation prefix)
 dnl
 dnl OpenGL
 dnl
-MDL_HAVE_OPENGL
+GMERLIN_CHECK_OPENGL
 
-if test x$have_GL = "xno"; then
+if test x$have_GL = "xfalse"; then
   AC_MSG_ERROR(Lemuria needs OpenGL headers, 1)
-else
-  echo "Found OpenGL"
 fi
 
-if test x$have_GLU = "xno"; then
+GMERLIN_CHECK_GLU
+
+if test x$have_GLU = "xfalse"; then
   AC_MSG_ERROR(Lemuria needs GLU headers, 1)
-else
-  echo "Found GLU"
 fi
 
 dnl
@@ -140,7 +138,7 @@ AC_CONFIG_SUBDIRS(lib/xaos)
 
 AC_SUBST(GL_LIBS,   $GL_LIBS)
 
-AC_OUTPUT(Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile plugins/libvisual/Makefile include/Makefile utils/Makefile lemuria.spec)
+AC_OUTPUT(Makefile m4/Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile plugins/libvisual/Makefile include/Makefile utils/Makefile lemuria.spec)
 
 echo
 echo

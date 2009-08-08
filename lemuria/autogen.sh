@@ -1,8 +1,8 @@
 #!/bin/sh
 if test -d /usr/local/share/aclocal; then
-ACLOCAL_FLAGS="-I /usr/local/share/aclocal"
+ACLOCAL_FLAGS="-I m4 -I /usr/local/share/aclocal"
 else
-ACLOCAL_FLAGS=""
+ACLOCAL_FLAGS="-I m4"
 fi
 
 LIBTOOLIZE=`which glibtoolize`

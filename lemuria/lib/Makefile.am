@@ -11,7 +11,7 @@ lib_LTLIBRARIES = liblemuria.la
 
 # liblemuria_la_SOURCES = lemuria_plugin.c
 
-liblemuria_la_LIBADD = -L/usr/X11R6/lib @GL_LIBS@ -lpthread $(xaos_libadd) -lpthread -lXinerama
+liblemuria_la_LIBADD = -L/usr/X11R6/lib @GLU_LIBS@ @GL_LIBS@ -lpthread $(xaos_libadd) -lpthread -lXinerama
 
 liblemuria_la_SOURCES = effect.c \
 analyis.c \
