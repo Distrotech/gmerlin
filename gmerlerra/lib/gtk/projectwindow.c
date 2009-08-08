@@ -339,6 +339,22 @@ static void show_settings_dialog(bg_nle_project_window_t * win)
                       NULL,
                       NULL,
                       bg_nle_outstream_video_parameters);
+
+  bg_dialog_add(cfg_dialog,
+                TR("Performance"),
+                bg_cfg_section_find_subsection(s, "performance"),
+                NULL,
+                NULL,
+                NULL,
+                bg_nle_performance_parameters);
+
+  bg_dialog_add(cfg_dialog,
+                TR("Cache"),
+                bg_cfg_section_find_subsection(s, "cache"),
+                NULL,
+                NULL,
+                NULL,
+                win->p->cache_parameters);
   
   result = bg_dialog_show(cfg_dialog, win->win);
   bg_dialog_destroy(cfg_dialog);
@@ -871,13 +887,6 @@ void bg_nle_project_window_destroy(bg_nle_project_window_t * w)
 
 static const bg_parameter_info_t display_parameters[] =
   {
-#if 0
-    {
-      .name = "display_features",
-      .long_name = "Display features",
-      .type = BG_PARAMETER_SECTION,
-    },
-#endif
     {
       .name = "view_audio_envelope",
       .long_name = "Audio envelope",
@@ -945,7 +954,7 @@ static bg_cfg_section_t  * display_section = NULL;
 static bg_parameter_info_t * input_plugin_parameters = NULL;
 static bg_parameter_info_t * image_reader_parameters = NULL;
 
-static bg_parameter_info_t * output_plugin_parameters = NULL;
+// static bg_parameter_info_t * output_plugin_parameters = NULL;
 
 void
 bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1)

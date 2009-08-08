@@ -48,8 +48,10 @@ struct bg_nle_project_s
   bg_cfg_section_t * video_track_section;
   bg_cfg_section_t * audio_outstream_section;
   bg_cfg_section_t * video_outstream_section;
-  bg_cfg_section_t * paths_section;
-
+  bg_cfg_section_t * cache_section;
+  bg_cfg_section_t * performance_section;
+  bg_parameter_info_t * cache_parameters;
+  
   bg_plugin_registry_t * plugin_reg;
 
   bg_nle_edit_callback edit_callback;
@@ -182,6 +184,7 @@ bg_nle_project_t * bg_nle_project_load(const char * filename, bg_plugin_registry
 
 void bg_nle_project_save(bg_nle_project_t *, const char * filename);
 
+extern const bg_parameter_info_t bg_nle_performance_parameters[];
 
 
 #endif

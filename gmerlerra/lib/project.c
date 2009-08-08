@@ -10,13 +10,54 @@
 #include <project.h>
 #include <editops.h>
 
-static void bg_nle_edit_callback_stub(bg_nle_project_t * p,
-                                      bg_nle_edit_op_t op,
-                                      void * op_data,
-                                      void * user_data)
+static void edit_callback_stub(bg_nle_project_t * p,
+                               bg_nle_edit_op_t op,
+                               void * op_data,
+                               void * user_data)
   {
-
+  
   }
+
+const bg_parameter_info_t bg_nle_performance_parameters[] =
+  {
+    {
+      .name        = "proxy_width_theshold",
+      .long_name   = TRS("Width threshold"),
+      .type        = BG_PARAMETER_INT,
+      .val_min     = { .val_i = 1 },
+      .val_max     = { .val_i = 1000000 },
+      .val_default = { .val_i = 2048 },
+      .help_string = TRS("Maximum image width to process without proxy editing"),
+    },
+    {
+      .name        = "editing_quality",
+      .long_name   = TRS("Editing quality"),
+      .type        = BG_PARAMETER_SLIDER_INT,
+      .val_min     = { .val_i = GAVL_QUALITY_FASTEST },
+      .val_max     = { .val_i = GAVL_QUALITY_BEST    },
+      .val_default = { .val_i = GAVL_QUALITY_FASTEST },
+    },
+    {
+      .name        = "render_quality",
+      .long_name   = TRS("Render quality"),
+      .type        = BG_PARAMETER_SLIDER_INT,
+      .val_min     = { .val_i = GAVL_QUALITY_FASTEST },
+      .val_max     = { .val_i = GAVL_QUALITY_BEST    },
+      .val_default = { .val_i = GAVL_QUALITY_BEST },
+    },
+    { /* */ },
+  };
+
+const bg_parameter_info_t cache_parameters[] =
+  {
+    {
+      .name        = "cache_directory",
+      .long_name   = TRS("Cache directory"),
+      .type        = BG_PARAMETER_DIRECTORY,
+      .help_string = TRS("Directory for the cache"),
+    },
+    { /* */ }
+  };
 
 bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   {
@@ -70,9 +111,34 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   bg_cfg_section_transfer(section, ret->video_outstream_section);
   bg_cfg_section_destroy(section);
 
+  /* Performance */
+  section =
+    bg_cfg_section_create_from_parameters("",
+                                          bg_nle_performance_parameters);
+  ret->performance_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "performance");
+  bg_cfg_section_transfer(section, ret->performance_section);
+  bg_cfg_section_destroy(section);
+
+  /* Cache */
+  
+  ret->cache_parameters = bg_parameter_info_copy_array(cache_parameters);
+  ret->cache_parameters[0].val_default.val_str =
+    bg_sprintf("%s/.gmerlin/gmerlerra/cache", getenv("HOME"));
+  bg_ensure_directory(ret->cache_parameters[0].val_default.val_str);
+
+  section =
+    bg_cfg_section_create_from_parameters("",
+                                          ret->cache_parameters);
+  ret->cache_section = bg_cfg_section_find_subsection(ret->section,
+                                                      "cache");
+
+  bg_cfg_section_transfer(section, ret->cache_section);
+  bg_cfg_section_destroy(section);
+  
   /* */
 
-  ret->edit_callback = bg_nle_edit_callback_stub;
+  ret->edit_callback = edit_callback_stub;
   
   return ret;
   }
