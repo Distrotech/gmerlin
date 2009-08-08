@@ -28,6 +28,9 @@ typedef struct
   bg_nle_video_stream_t * video_streams;
   
   char * filename;
+
+  char filename_hash[33];
+  
   char * name;
   /* For loading the track */
   char * plugin;
@@ -38,6 +41,8 @@ typedef struct
   int track;       // Track within the file
 
   bg_nle_id_t id;
+  
+  char * cache_dir;
   } bg_nle_file_t;
 
 void bg_nle_file_destroy(bg_nle_file_t * file);
@@ -50,6 +55,8 @@ typedef struct
   
   bg_plugin_registry_t * plugin_reg;
   char * open_path;
+
+  char * cache_dir; // Is saved in the project
   } bg_nle_media_list_t;
 
 bg_nle_media_list_t *
@@ -71,6 +78,9 @@ void bg_nle_media_list_insert(bg_nle_media_list_t * list,
 
 void bg_nle_media_list_delete(bg_nle_media_list_t * list,
                               int index);
+
+char * bg_nle_media_list_get_frame_table_filename(bg_nle_file_t * file,
+                                                  int stream);
 
 /* This is used whenever a file is opened */
 bg_plugin_handle_t * bg_nle_media_list_open_file(bg_nle_media_list_t * list,

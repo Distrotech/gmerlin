@@ -202,6 +202,11 @@ static void edit_project_parameters(bg_nle_project_t * p,
                                     bg_nle_op_parameters_t * op)
   {
   bg_cfg_section_transfer(op->new_section, p->section);
+
+  bg_cfg_section_apply(p->cache_section,
+                       p->cache_parameters,
+                       bg_nle_project_set_cache_parameter,
+                       p);
   }
 
 static void edit_track_parameters(bg_nle_project_t * p,

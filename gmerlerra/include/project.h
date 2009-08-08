@@ -81,6 +81,10 @@ void bg_nle_project_set_audio_parameter(void * data, const char * name,
 void bg_nle_project_set_video_parameter(void * data, const char * name,
                                         const bg_parameter_value_t * val);
 
+void bg_nle_project_set_cache_parameter(void * data, const char * name,
+                                        const bg_parameter_value_t * val);
+
+
 void bg_nle_project_destroy(bg_nle_project_t * p);
 
 /* Editing operations */
@@ -183,6 +187,8 @@ void bg_nle_project_edit(bg_nle_project_t * p,
 bg_nle_project_t * bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg);
 
 void bg_nle_project_save(bg_nle_project_t *, const char * filename);
+
+bg_parameter_info_t * bg_nle_project_create_cache_parameters();
 
 extern const bg_parameter_info_t bg_nle_performance_parameters[];
 

@@ -166,6 +166,15 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
   
   xmlFreeDoc(xml_doc);
   bg_nle_project_resolve_ids(ret);
+
+  ret->cache_parameters = bg_nle_project_create_cache_parameters();
+  
+  bg_cfg_section_apply(ret->cache_section,
+                       ret->cache_parameters,
+                       bg_nle_project_set_cache_parameter,
+                       ret);
+
+  
   return ret;
   }
 

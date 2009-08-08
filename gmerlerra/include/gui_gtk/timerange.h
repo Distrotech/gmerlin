@@ -19,6 +19,8 @@ typedef struct
   
   int mouse_x;
 
+  gavl_frame_table_t * frametable;
+  
   void (*set_selection)(bg_nle_time_range_t * selection, int64_t cursor_pos, void * priv);
   void (*set_visible)(bg_nle_time_range_t * visible, void * priv);
   void (*set_zoom)(bg_nle_time_range_t * visible, void * priv);

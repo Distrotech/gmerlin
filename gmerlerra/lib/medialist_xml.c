@@ -21,6 +21,7 @@ static const char * track_name         = "track";
 static const char * plugin_name        = "plugin";
 static const char * parameters_name    = "parameters";
 static const char * start_time_name    = "start_time";
+static const char * cache_dir_name    = "cache_dir";
 
 
 static void load_audio_stream(xmlDocPtr xml_doc,
@@ -60,7 +61,7 @@ static void load_audio_stream(xmlDocPtr xml_doc,
   }
 
 static void load_video_stream(xmlDocPtr xml_doc,
-                              xmlNodePtr node, bg_nle_audio_stream_t * ret)
+                              xmlNodePtr node, bg_nle_video_stream_t * ret)
   {
   char * tmp_string;
   if((tmp_string = BG_XML_GET_PROP(node, "scale")))
@@ -77,6 +78,8 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
   bg_nle_file_t * ret;
   char * tmp_string;
   int index;
+  int i;
+  
   ret = calloc(1, sizeof(*ret));
 
   if((tmp_string = BG_XML_GET_PROP(node, "id")))
@@ -99,6 +102,13 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
       ret->filename = bg_strdup(ret->filename, tmp_string);
+      xmlFree(tmp_string);
+      bg_get_filename_hash(ret->filename, ret->filename_hash);
+      }
+    else if(!BG_XML_STRCMP(child->name, cache_dir_name))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
+      ret->cache_dir = bg_strdup(ret->cache_dir, tmp_string);
       xmlFree(tmp_string);
       }
     else if(!BG_XML_STRCMP(child->name, name_name))
@@ -185,6 +195,15 @@ static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
       }
     child = child->next;
     }
+
+  for(i = 0; i < ret->num_video_streams; i++)
+    {
+    tmp_string = bg_nle_media_list_get_frame_table_filename(ret, i);
+    ret->video_streams[i].frametable = gavl_frame_table_load(tmp_string);
+    free(tmp_string);
+    }
+  
+  
   
   return ret;
   
@@ -243,10 +262,6 @@ bg_nle_media_list_load(bg_plugin_registry_t * plugin_reg,
           }
         grandchild = grandchild->next;
         }
-      
-      tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
-      ret->open_path = bg_strdup(ret->open_path, tmp_string);
-      xmlFree(tmp_string);
       }
     
     child = child->next;
@@ -307,6 +322,11 @@ static void save_file(xmlNodePtr node, bg_nle_file_t * file)
   child = xmlNewTextChild(node, (xmlNsPtr)0,
                           (xmlChar*)filename_name, NULL);
   xmlAddChild(child, BG_XML_NEW_TEXT(file->filename));
+
+  /* Cache directory */
+  child = xmlNewTextChild(node, (xmlNsPtr)0,
+                          (xmlChar*)cache_dir_name, NULL);
+  xmlAddChild(child, BG_XML_NEW_TEXT(file->cache_dir));
   
   /* Name */
   child = xmlNewTextChild(node, (xmlNsPtr)0,

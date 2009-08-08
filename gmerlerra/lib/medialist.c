@@ -1,8 +1,14 @@
 #include <stdlib.h>
 #include <string.h>
+
+#include <config.h>
+
 #include <medialist.h>
 
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+
+#define LOG_DOMAIN "medialist"
 
 bg_nle_media_list_t *
 bg_nle_media_list_create(bg_plugin_registry_t * plugin_reg)
@@ -45,6 +51,11 @@ void bg_nle_media_list_delete(bg_nle_media_list_t * list,
   list->num_files--;
   }
 
+char * bg_nle_media_list_get_frame_table_filename(bg_nle_file_t * file, int stream)
+  {
+  return bg_sprintf("%s/%s/frametable_%02d", file->cache_dir, file->filename_hash, stream);
+  }
+
 bg_nle_file_t *
 bg_nle_media_list_load_file(bg_nle_media_list_t * list,
                             const char * file,
@@ -55,8 +66,9 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
   bg_input_plugin_t  * input;
   int num_tracks, track;
   const bg_plugin_info_t * info;
-  bg_nle_file_t * ret;
+  bg_nle_file_t * ret = NULL;
   bg_track_info_t * ti;
+  char * tmp_string;
   
   if(plugin)
     info = bg_plugin_find_by_name(list->plugin_reg, file);
@@ -94,6 +106,13 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
   
   ti = input->get_track_info(handle->priv, track);
 
+  if(!input->get_frame_table && ti->num_video_streams)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Plugin %s doesn't export video frame tables, try i_avdec", handle->info->name);
+    goto fail;
+    }
+  
   if(input->set_audio_stream)
     {
     for(i = 0; i < ti->num_audio_streams; i++)
@@ -107,14 +126,26 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
     }
 
   if((input->start) && !input->start(handle->priv))
-    {
-    bg_plugin_unref(handle);
-    return NULL;
-    }
-  
+    goto fail;
+    
   ret = calloc(1, sizeof(*ret));
-  
+
+  ret->cache_dir = bg_strdup(ret->cache_dir, list->cache_dir);
   ret->filename = bg_strdup(ret->filename, file);
+  
+  bg_get_filename_hash(ret->filename, ret->filename_hash);
+  
+  tmp_string = bg_sprintf("%s/%s", ret->cache_dir, ret->filename_hash);
+  if(!bg_ensure_directory(tmp_string))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot create cache directory %s, check permissions",
+           tmp_string);
+    free(tmp_string);
+    goto fail;
+    }
+  free(tmp_string);
+  
   ret->num_audio_streams = ti->num_audio_streams;
 
   ret->audio_streams = calloc(ret->num_audio_streams,
@@ -134,6 +165,18 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
   for(i = 0; i < ret->num_video_streams; i++)
     {
     ret->video_streams[i].timescale  = ti->video_streams[i].format.timescale;
+    
+    ret->video_streams[i].frametable = input->get_frame_table(handle->priv, i);
+    if(!ret->video_streams[i].frametable)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Video stream %d has no frame table. Try i_avdec in sample accurate mode",
+             i+1);
+      }
+
+    tmp_string = bg_nle_media_list_get_frame_table_filename(ret, i);
+    gavl_frame_table_save(ret->video_streams[i].frametable, tmp_string);
+    free(tmp_string);
     }
   
   ret->track = track;
@@ -152,7 +195,7 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
     ret->name = bg_get_track_name_default(ret->filename, ret->track, num_tracks);
   
   bg_plugin_unref(handle);
-
+  
   /* Get ID */
 
   do{
@@ -167,8 +210,15 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
         }
       }
     }while(keep_going);
-  
+
   return ret;
+
+  fail:
+  if(ret)
+    bg_nle_file_destroy(ret);
+  if(handle)
+    bg_plugin_unref(handle);
+  return NULL;
   }
 
 bg_nle_file_t *
@@ -180,9 +230,24 @@ bg_nle_media_list_find_file(bg_nle_media_list_t * list,
 
 void bg_nle_file_destroy(bg_nle_file_t * file)
   {
+  int i;
   if(file->name) free(file->name);
   if(file->filename) free(file->filename);
   if(file->section) bg_cfg_section_destroy(file->section);
+  if(file->cache_dir) free(file->cache_dir);
+
+  if(file->video_streams)
+    {
+    for(i = 0; i < file->num_video_streams; i++)
+      {
+      if(file->video_streams[i].frametable)
+        gavl_frame_table_destroy(file->video_streams[i].frametable);
+      }
+    free(file->video_streams);
+    }
+  if(file->audio_streams)
+    free(file->audio_streams);
+  
   free(file);
   }
 
