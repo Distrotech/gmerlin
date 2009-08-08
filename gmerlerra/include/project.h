@@ -180,6 +180,7 @@ int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track);
 void bg_nle_project_edit(bg_nle_project_t * p,
                          bg_nle_undo_data_t * data);
 
+void bg_nle_project_create_sections(bg_nle_project_t * p);
 
 
 /* project_xml.c */

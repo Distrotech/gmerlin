@@ -67,6 +67,23 @@ bg_parameter_info_t * bg_nle_project_create_cache_parameters()
     bg_sprintf("%s/.gmerlin/gmerlerra/cache", getenv("HOME"));
   }
 
+void bg_nle_project_create_sections(bg_nle_project_t * ret)
+  {
+  ret->audio_track_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "audio_track");
+  
+  ret->video_track_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "video_track");
+  ret->audio_outstream_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "audio_outstream");
+  ret->video_outstream_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "video_outstream");
+  ret->performance_section = bg_cfg_section_find_subsection(ret->section,
+                                                            "performance");
+  ret->cache_section = bg_cfg_section_find_subsection(ret->section,
+                                                      "cache");
+  }
+
 bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_nle_project_t * ret;
@@ -83,12 +100,13 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
 
   ret->section = bg_cfg_section_create(NULL);
 
+  bg_nle_project_create_sections(ret);
+  
+  
   /* Audio track defaults */
   section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_track_audio_parameters);
-  ret->audio_track_section = bg_cfg_section_find_subsection(ret->section,
-                                                            "audio_track");
   bg_cfg_section_transfer(section, ret->audio_track_section);
   bg_cfg_section_destroy(section);
 
@@ -96,8 +114,6 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_track_video_parameters);
-  ret->video_track_section = bg_cfg_section_find_subsection(ret->section,
-                                                            "video_track");
   bg_cfg_section_transfer(section, ret->video_track_section);
   bg_cfg_section_destroy(section);
 
@@ -105,8 +121,6 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_outstream_audio_parameters);
-  ret->audio_outstream_section = bg_cfg_section_find_subsection(ret->section,
-                                                            "audio_outstream");
   bg_cfg_section_transfer(section, ret->audio_outstream_section);
   bg_cfg_section_destroy(section);
 
@@ -114,8 +128,6 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_outstream_video_parameters);
-  ret->video_outstream_section = bg_cfg_section_find_subsection(ret->section,
-                                                            "video_outstream");
   bg_cfg_section_transfer(section, ret->video_outstream_section);
   bg_cfg_section_destroy(section);
 
@@ -123,8 +135,6 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   section =
     bg_cfg_section_create_from_parameters("",
                                           bg_nle_performance_parameters);
-  ret->performance_section = bg_cfg_section_find_subsection(ret->section,
-                                                            "performance");
   bg_cfg_section_transfer(section, ret->performance_section);
   bg_cfg_section_destroy(section);
 
@@ -136,9 +146,6 @@ bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg)
   section =
     bg_cfg_section_create_from_parameters("",
                                           ret->cache_parameters);
-  ret->cache_section = bg_cfg_section_find_subsection(ret->section,
-                                                      "cache");
-
   bg_cfg_section_transfer(section, ret->cache_section);
   bg_cfg_section_destroy(section);
 
