@@ -15,6 +15,7 @@ $(png_programs) \
 benchmark \
 colorspace_time \
 deinterlace_time \
+dump_frame_table \
 pixelformat_penalty \
 plot_scale_kernels \
 scale_time \
@@ -30,6 +31,10 @@ benchmark_LDADD = ../gavl/libgavl.la @RT_LIBS@
 
 volume_test_SOURCES = volume_test.c
 volume_test_LDADD = ../gavl/libgavl.la
+
+dump_frame_table_SOURCES = dump_frame_table.c
+dump_frame_table_LDADD = ../gavl/libgavl.la
+
 
 colorspace_test_SOURCES = colorspace_test.c
 colorspace_test_LDADD = ../gavl/libgavl.la -lpng -lz
