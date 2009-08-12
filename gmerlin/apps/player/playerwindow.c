@@ -235,14 +235,20 @@ static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt,
 static void seek_change_callback(bg_gtk_slider_t * slider, float perc,
                                  void * data)
   {
+  gavl_time_t time;
   player_window_t * win = (player_window_t *)data;
+  
+  time = (gavl_time_t)(perc * (double)win->duration);
 
+  if(!win->seek_active)
+    bg_player_pause(win->gmerlin->player);
+  
   win->seek_active = 1;
   
   //  player_window_t * win = (player_window_t *)data;
 
-  display_set_time(win->display, (gavl_time_t)(perc *
-                                               (float)win->duration + 0.5));
+  bg_player_seek(win->gmerlin->player, time, GAVL_TIME_SCALE);
+  display_set_time(win->display, time);
   }
 
 static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
@@ -254,7 +260,8 @@ static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
   time = (gavl_time_t)(perc * (double)win->duration);
   
   //  player_window_t * win = (player_window_t *)data;
-  bg_player_seek(win->gmerlin->player, time);
+  bg_player_seek(win->gmerlin->player, time, GAVL_TIME_SCALE);
+  bg_player_pause(win->gmerlin->player);
   
   }
 
@@ -402,7 +409,6 @@ static void handle_message(player_window_t * win,
           break;
         case BG_PLAYER_STATE_SEEKING:
           display_set_state(win->display, win->gmerlin->player_state, NULL);
-          win->seek_active = 0;
           break;
         case BG_PLAYER_STATE_ERROR:
           bg_gtk_log_window_flush(win->gmerlin->log_window);
@@ -416,6 +422,7 @@ static void handle_message(player_window_t * win,
         case BG_PLAYER_STATE_PLAYING:
           display_set_state(win->display, win->gmerlin->player_state, NULL);
           bg_media_tree_mark_error(win->gmerlin->tree, 0);
+          win->seek_active = 0;
           break;
         case BG_PLAYER_STATE_STOPPED:
           bg_gtk_slider_set_state(win->seek_slider,
@@ -473,7 +480,7 @@ static void handle_message(player_window_t * win,
           bg_player_seek_rel(win->gmerlin->player,   2 * GAVL_TIME_SCALE );
           break;
         case ACCEL_SEEK_START:
-          bg_player_seek(win->gmerlin->player,   0 );
+          bg_player_seek(win->gmerlin->player,0, GAVL_TIME_SCALE );
           break;
         case ACCEL_PAUSE:
           bg_player_pause(win->gmerlin->player);

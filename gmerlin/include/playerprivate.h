@@ -347,7 +347,7 @@ bg_player_input_set_still_stream(bg_player_input_context_t * ctx,
                                  int still_stream);
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
-                          gavl_time_t * time);
+                          gavl_time_t * time, int scale);
 
 void bg_player_input_bypass_set_volume(bg_player_input_context_t * ctx,
                                        float volume);

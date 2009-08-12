@@ -212,13 +212,14 @@ void bg_player_accel_pressed(bg_player_t * p, int id)
                          msg_accel, &s);
   }
 
-void bg_player_seek(bg_player_t * p, gavl_time_t time)
+void bg_player_seek(bg_player_t * p, gavl_time_t time, int scale)
   {
   bg_msg_t * msg;
   
   msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SEEK);
   bg_msg_set_arg_time(msg, 0, time);
+  bg_msg_set_arg_int(msg, 1, scale);
   bg_msg_queue_unlock_write(p->command_queue);
   }
 

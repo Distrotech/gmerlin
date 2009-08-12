@@ -457,7 +457,7 @@ GtkWidget * bg_gtk_get_toplevel(GtkWidget * w)
   return toplevel;
   }
 
-void pixbuf_destroy_notify(guchar *pixels,
+static void pixbuf_destroy_notify(guchar *pixels,
                            gpointer data)
   {
   gavl_video_frame_destroy(data);

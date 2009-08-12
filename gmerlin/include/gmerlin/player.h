@@ -157,9 +157,10 @@ void bg_player_play(bg_player_t * player, bg_plugin_handle_t * handle,
 /** \brief Seek to a specific time
  *  \param player A player
  *  \param time Time to seek to
+ *  \param scale Timescale by which the time is scaled
  */
 
-void bg_player_seek(bg_player_t * player, gavl_time_t time);
+void bg_player_seek(bg_player_t * player, gavl_time_t time, int scale);
 
 /** \brief Seek relative by a specific time
  *  \param player A player

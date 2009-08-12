@@ -229,10 +229,6 @@ dnl
 
 GMERLIN_CHECK_OPENGL
 
-dnl if test "x$have_GL" != "xtrue" -o "x$have_GLX" != "xtrue"; then
-dnl   AC_MSG_ERROR([Gmerlin needs OpenGL and GLX])
-dnl fi
-
 dnl
 dnl Pulseaudio
 dnl
@@ -1154,14 +1150,14 @@ fi
 
 echo -n "OpenGL:              "
 if test "x$have_GL" = "xtrue"; then
-echo "Yes"
+echo "Yes (CFLAGS=$GL_CFLAGS, LIBS=$GL_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "GLX:                 "
 if test "x$have_GLX" = "xtrue"; then
-echo "Yes"
+echo "Yes (CFLAGS=$GLX_CFLAGS, LIBS=$GLX_LIBS)"
 else
 echo "Missing"
 fi

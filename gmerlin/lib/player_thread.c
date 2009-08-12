@@ -633,7 +633,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
 
   if((time > 0) && (p->can_seek))
     {
-    bg_player_input_seek(p->input_context, &time);
+    bg_player_input_seek(p->input_context, &time, GAVL_TIME_SCALE);
     bg_player_time_set(p, time);
     }
   else
@@ -864,13 +864,14 @@ static void set_oa_plugin_cmd(bg_player_t * player,
   stream_change_done(player);
   }
 
-static void do_seek(bg_player_t * player, gavl_time_t t, int old_state)
+static void do_seek(bg_player_t * player, gavl_time_t t, int scale,
+                    int old_state)
   {
   int new_chapter;
   gavl_time_t sync_time = t;
 
   if(player->can_seek)
-    bg_player_input_seek(player->input_context, &sync_time);
+    bg_player_input_seek(player->input_context, &sync_time, scale);
   
   /* Clear fifos and filter chains */
 
@@ -940,7 +941,7 @@ static void do_seek(bg_player_t * player, gavl_time_t t, int old_state)
     start_playback(player, BG_PLAYER_STATE_PLAYING);
   }
 
-static void seek_cmd(bg_player_t * player, gavl_time_t t)
+static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
   {
   int old_state;
 
@@ -949,7 +950,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   //  gavl_video_frame_t * vf;
   interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
   
-  do_seek(player, t, old_state);  
+  do_seek(player, t, scale, old_state);  
   }
 
 
@@ -1004,9 +1005,8 @@ static void chapter_cmd(bg_player_t * player, int chapter)
      (chapter < 0) ||
      (chapter >= player->track_info->chapter_list->num_chapters))
     return;
-  seek_cmd(player,
-           gavl_time_unscale(player->track_info->chapter_list->timescale,
-                             player->track_info->chapter_list->chapters[chapter].time));
+  seek_cmd(player, player->track_info->chapter_list->chapters[chapter].time,
+           player->track_info->chapter_list->timescale);
   }
 
 /* Process command, return FALSE if thread should be ended */
@@ -1144,6 +1144,8 @@ static int process_commands(bg_player_t * player)
                                &player);
         break;
       case BG_PLAYER_CMD_SEEK:
+        {
+        int scale;
         if(!player->can_seek)
           break;
 
@@ -1154,7 +1156,25 @@ static int process_commands(bg_player_t * player)
           break;           
 
         time = bg_msg_get_arg_time(command, 0);
-        seek_cmd(player, time);
+        scale = bg_msg_get_arg_time(command, 1);
+        
+        bg_msg_queue_unlock_read(player->command_queue);
+        queue_locked = 0;
+        
+        /* Check if there are more messages */
+        while(bg_msg_queue_peek(player->command_queue, &id) && 
+              (id == BG_PLAYER_CMD_SEEK))
+          {
+          command = bg_msg_queue_lock_read(player->command_queue);
+          queue_locked = 1;
+          time = bg_msg_get_arg_time(command, 0);
+          scale = bg_msg_get_arg_time(command, 1);
+          bg_msg_queue_unlock_read(player->command_queue);
+          queue_locked = 0;
+          }
+        
+        seek_cmd(player, time, scale);
+        }
         break;
       case BG_PLAYER_CMD_SET_CHAPTER:
         arg_i1 = bg_msg_get_arg_int(command, 0);
@@ -1205,7 +1225,7 @@ static int process_commands(bg_player_t * player)
           break;
           }
         else
-          seek_cmd(player, time);
+          seek_cmd(player, time, GAVL_TIME_SCALE);
         break;
       case BG_PLAYER_CMD_SET_VOLUME:
         arg_f1 = bg_msg_get_arg_float(command, 0);

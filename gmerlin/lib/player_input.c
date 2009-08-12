@@ -1016,11 +1016,11 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   }
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
-                          gavl_time_t * time)
+                          gavl_time_t * time, int scale)
   {
   int do_audio, do_video, do_subtitle;
   bg_plugin_lock(ctx->plugin_handle);
-  ctx->plugin->seek(ctx->priv, time, GAVL_TIME_SCALE);
+  ctx->plugin->seek(ctx->priv, time, scale);
   bg_plugin_unlock(ctx->plugin_handle);
 #ifdef DEBUG_COUNTER
   ctx->audio_sample_counter = 0;
