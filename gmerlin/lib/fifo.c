@@ -268,7 +268,7 @@ int bg_fifo_test_write(bg_fifo_t * f, bg_fifo_state_t * state)
   if(f->input_locked)
     sem_getvalue(&f->input_frame->next->consumed, &semval);
   else
-    sem_getvalue(&f->input_frame->next->consumed, &semval);
+    sem_getvalue(&f->input_frame->consumed, &semval);
   return (semval > 0) ? 1 : 0;
   }
 
@@ -396,6 +396,8 @@ void bg_fifo_clear(bg_fifo_t * f)
   {
   int i;
   frame_t * tmp_frame;
+  
+  //  fprintf(stderr, "fifo clear\n");
   
   tmp_frame = f->frames;
   for(i = 0; i < f->num_frames; i++)

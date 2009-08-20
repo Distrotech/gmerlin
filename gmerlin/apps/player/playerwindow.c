@@ -241,9 +241,15 @@ static void seek_change_callback(bg_gtk_slider_t * slider, float perc,
   time = (gavl_time_t)(perc * (double)win->duration);
 
   if(!win->seek_active)
-    bg_player_pause(win->gmerlin->player);
-  
-  win->seek_active = 1;
+    {
+    if(win->gmerlin->player_state == BG_PLAYER_STATE_PAUSED)
+      win->seek_active = 2;
+    else
+      {
+      win->seek_active = 1;
+      bg_player_pause(win->gmerlin->player);
+      }
+    }
   
   //  player_window_t * win = (player_window_t *)data;
 
@@ -261,8 +267,9 @@ static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
   
   //  player_window_t * win = (player_window_t *)data;
   bg_player_seek(win->gmerlin->player, time, GAVL_TIME_SCALE);
-  bg_player_pause(win->gmerlin->player);
-  
+
+  if(win->seek_active == 1)
+    bg_player_pause(win->gmerlin->player);
   }
 
 static void

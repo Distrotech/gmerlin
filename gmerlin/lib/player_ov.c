@@ -73,90 +73,12 @@ struct bg_player_ov_context_s
   
   };
 
-/* Callback functions */
-#if 0
-static void key_callback(void * data, int key, int mask)
-  {
-  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-
-  switch(key)
-    {
-    /* Take the keys, we can handle from here */
-    case BG_KEY_LEFT:
-      if(mask == BG_KEY_SHIFT_MASK)
-        {
-        bg_player_set_volume_rel(ctx->player,  -1.0);
-        return;
-        }
-      else if(mask == BG_KEY_CONTROL_MASK)
-        {
-        bg_player_seek_rel(ctx->player,   -2 * GAVL_TIME_SCALE );
-        return;
-        }
-      break;
-    case BG_KEY_RIGHT:
-      if(mask == BG_KEY_SHIFT_MASK)
-        {
-        bg_player_set_volume_rel(ctx->player,  1.0);
-        return;
-        }
-      else if(mask == BG_KEY_CONTROL_MASK)
-        {
-        bg_player_seek_rel(ctx->player,   2 * GAVL_TIME_SCALE );
-        return;
-        }
-      break;
-    case BG_KEY_0:
-      if(!mask)
-        {
-        bg_player_seek(ctx->player, 0 );
-        return;
-        }
-      break;
-    case BG_KEY_SPACE:
-      if(!mask)
-        {
-        bg_player_pause(ctx->player);
-        return;
-        }
-      break;
-    case BG_KEY_M:
-      if(mask == BG_KEY_CONTROL_MASK)
-        {
-        bg_player_toggle_mute(ctx->player);
-        return;
-        }
-      break;
-    case BG_KEY_PAGE_UP:
-      if(mask == (BG_KEY_SHIFT_MASK | BG_KEY_CONTROL_MASK))
-        {
-        bg_player_prev_chapter(ctx->player);
-        return;
-        }
-      break;
-    case BG_KEY_PAGE_DOWN:
-      if(mask == (BG_KEY_SHIFT_MASK | BG_KEY_CONTROL_MASK))
-        {
-        bg_player_next_chapter(ctx->player);
-        return;
-        }
-      break;
-    default:
-      break;
-    }
-  /* Broadcast event if we didn't handle it */
-  bg_player_key_pressed(ctx->player, key, mask);
-  }
-#else
-
 static int accel_callback(void * data, int id)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
   bg_player_accel_pressed(ctx->player, id);
   return 1;
   }
-#endif
-
 
 static int
 button_callback(void * data, int x, int y, int button, int mask)
@@ -230,7 +152,6 @@ bg_plugin_handle_t * bg_player_ov_get_plugin(bg_player_ov_context_t * ctx)
   {
   return ctx->plugin_handle;
   }
-
 
 /* Create frame */
 
@@ -475,8 +396,11 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
   pthread_mutex_lock(&ctx->still_mutex);
 
   if(ctx->frame)
+    {
+    //    fprintf(stderr, "Unlock read\n");
     bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-
+    }
+  //  fprintf(stderr, "Lock read\n");
   ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
 
   if(!ctx->still_frame)
@@ -488,6 +412,7 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
     {
     gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
                           ctx->still_frame, ctx->frame);
+    //    fprintf(stderr, "Unlock read\n");
     bg_fifo_unlock_read(ctx->player->video_stream.fifo);
     ctx->frame = (gavl_video_frame_t*)0;
     }
@@ -590,6 +515,7 @@ static void ping_func(void * data)
       
       gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
                             ctx->still_frame, ctx->frame);
+      //      fprintf(stderr, "Unlock read\n");
       bg_fifo_unlock_read(ctx->player->video_stream.fifo);
       ctx->frame = (gavl_video_frame_t*)0;
       bg_plugin_lock(ctx->plugin_handle);
@@ -607,10 +533,65 @@ static void ping_func(void * data)
   pthread_mutex_unlock(&ctx->still_mutex);
   }
 
+static void handle_subtitle(bg_player_ov_context_t * ctx)
+  {
+  bg_fifo_state_t state;
+  gavl_overlay_t tmp_overlay;
+  
+  /* Try to get next subtitle */
+  if(!ctx->next_subtitle)
+    {
+    ctx->next_subtitle = bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
+                                               &state);
+    if(ctx->next_subtitle)
+      ctx->next_subtitle_time =
+        gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
+                          ctx->next_subtitle->frame->timestamp);
+    }
+  /* Check if the overlay is expired */
+  if(ctx->has_subtitle)
+    {
+    if(bg_overlay_too_old(ctx->frame_time,
+                          ctx->current_subtitle_time,
+                          ctx->current_subtitle_duration))
+      {
+      ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
+      ctx->has_subtitle = 0;
+      }
+    }
+      
+  /* Check if new overlay should be used */
+      
+  if(ctx->next_subtitle)
+    {
+    if(!bg_overlay_too_new(ctx->frame_time, ctx->next_subtitle_time))
+      {
+      memcpy(&tmp_overlay, ctx->next_subtitle, sizeof(tmp_overlay));
+      memcpy(ctx->next_subtitle, &(ctx->current_subtitle),
+             sizeof(tmp_overlay));
+      memcpy(&(ctx->current_subtitle), &tmp_overlay, sizeof(tmp_overlay));
+
+      ctx->current_subtitle_time =
+        gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
+                          ctx->current_subtitle.frame->timestamp);
+
+      ctx->current_subtitle_duration =
+        gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
+                          ctx->current_subtitle.frame->duration);
+          
+      ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id,
+                               &(ctx->current_subtitle));
+          
+      ctx->has_subtitle = 1;
+      ctx->next_subtitle = (gavl_overlay_t*)0;
+      ctx->next_subtitle_time = GAVL_TIME_UNDEFINED;
+      bg_fifo_unlock_read(ctx->player->subtitle_stream.fifo);
+      }
+    }
+  }
 
 void * bg_player_ov_thread(void * data)
   {
-  gavl_overlay_t tmp_overlay;
   int eof;
   
   bg_player_ov_context_t * ctx;
@@ -655,10 +636,12 @@ void * bg_player_ov_thread(void * data)
     
     if(ctx->frame)
       {
+      //      fprintf(stderr, "Unlock read\n");
       bg_fifo_unlock_read(ctx->player->video_stream.fifo);
       ctx->frame = (gavl_video_frame_t*)0;
       }
-    
+
+    //    fprintf(stderr, "Lock read\n");
     ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
     
     if(!ctx->frame)
@@ -683,57 +666,7 @@ void * bg_player_ov_thread(void * data)
     /* Subtitle handling */
     if(DO_SUBTITLE(ctx->player->flags))
       {
-
-      /* Try to get next subtitle */
-      if(!ctx->next_subtitle)
-        {
-        ctx->next_subtitle = bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
-                                                  &state);
-        if(ctx->next_subtitle)
-          ctx->next_subtitle_time =
-            gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
-                              ctx->next_subtitle->frame->timestamp);
-        }
-      /* Check if the overlay is expired */
-      if(ctx->has_subtitle)
-        {
-        if(bg_overlay_too_old(ctx->frame_time,
-                              ctx->current_subtitle_time,
-                              ctx->current_subtitle_duration))
-          {
-          ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
-          ctx->has_subtitle = 0;
-          }
-        }
-      
-      /* Check if new overlay should be used */
-      
-      if(ctx->next_subtitle)
-        {
-        if(!bg_overlay_too_new(ctx->frame_time, ctx->next_subtitle_time))
-          {
-          memcpy(&tmp_overlay, ctx->next_subtitle, sizeof(tmp_overlay));
-          memcpy(ctx->next_subtitle, &(ctx->current_subtitle),
-                 sizeof(tmp_overlay));
-          memcpy(&(ctx->current_subtitle), &tmp_overlay, sizeof(tmp_overlay));
-
-          ctx->current_subtitle_time =
-            gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
-                              ctx->current_subtitle.frame->timestamp);
-
-          ctx->current_subtitle_duration =
-            gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
-                              ctx->current_subtitle.frame->duration);
-          
-          ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id,
-                                   &(ctx->current_subtitle));
-          
-          ctx->has_subtitle = 1;
-          ctx->next_subtitle = (gavl_overlay_t*)0;
-          ctx->next_subtitle_time = GAVL_TIME_UNDEFINED;
-          bg_fifo_unlock_read(ctx->player->subtitle_stream.fifo);
-          }
-        }
+      handle_subtitle(ctx);
       }
     /* Handle message */
     handle_messages(ctx, ctx->frame_time);
