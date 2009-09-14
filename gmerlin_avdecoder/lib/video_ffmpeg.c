@@ -29,6 +29,7 @@
 #include <ptscache.h>
 
 #include <stdio.h>
+#include <pthread.h>
 
 #include AVCODEC_HEADER
 
@@ -969,10 +970,16 @@ static int init_ffmpeg(bgav_stream_t * s)
   //  priv->ctx->error_resilience = 3;
   
   /* Open this thing */
+
+  bgav_ffmpeg_lock();
   
   if(avcodec_open(priv->ctx, codec) != 0)
+    {
+    bgav_ffmpeg_unlock();
     return 0;
-
+    }
+  bgav_ffmpeg_unlock();
+  
   //  priv->ctx->skip_frame = AVDISCARD_NONREF;
   //  priv->ctx->skip_loop_filter = AVDISCARD_ALL;
   //  priv->ctx->skip_idct = AVDISCARD_ALL;
@@ -1095,7 +1102,9 @@ static void close_ffmpeg(bgav_stream_t * s)
 #endif
   if(priv->ctx)
     {
+    bgav_ffmpeg_lock();
     avcodec_close(priv->ctx);
+    bgav_ffmpeg_unlock();
     free(priv->ctx);
     }
   if(priv->gavl_frame)
@@ -2482,4 +2491,18 @@ static void handle_dv(bgav_stream_t * s)
       s->has_codec_timecode = 1;
     }
   
+  }
+
+/* Global locking */
+
+static pthread_mutex_t ffmpeg_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void bgav_ffmpeg_lock()
+  {
+  pthread_mutex_lock(&ffmpeg_mutex);
+  }
+
+void bgav_ffmpeg_unlock()
+  {
+  pthread_mutex_unlock(&ffmpeg_mutex);
   }

@@ -1864,6 +1864,13 @@ int bgav_keyframe_table_seek(bgav_keyframe_table_t *,
 void bgav_dca_flags_2_channel_setup(int flags, gavl_audio_format_t * format);
 #endif
 
+/* Global locking around avcodec_[open|close]()
+   Defined in video_ffmpeg.c, used from audio_ffmpeg.c as well
+*/
+
+void bgav_ffmpeg_lock();
+void bgav_ffmpeg_unlock();
+
 
 #if __GNUC__ >= 3
 

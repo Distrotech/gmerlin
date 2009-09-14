@@ -259,9 +259,16 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   /* Some codecs need extra stuff */
     
   /* Open codec */
+
+  bgav_ffmpeg_lock();
   
   if(avcodec_open(priv->ctx, codec) != 0)
+    {
+    bgav_ffmpeg_unlock();
     return 0;
+    }
+  bgav_ffmpeg_unlock();
+  
   s->data.audio.decoder->priv = priv;
 
   /* Set missing format values */
@@ -319,7 +326,9 @@ static void close_ffmpeg(bgav_stream_t * s)
   
   if(priv->ctx)
     {
+    bgav_ffmpeg_lock();
     avcodec_close(priv->ctx);
+    bgav_ffmpeg_unlock();
     free(priv->ctx);
     }
   free(priv);
