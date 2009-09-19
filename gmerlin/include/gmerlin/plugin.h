@@ -822,6 +822,23 @@ struct bg_input_plugin_s
  */ 
 
 /** \ingroup plugin_oa
+ *  \brief typedef for audio output callbacks
+ *
+ */
+
+typedef struct bg_oa_callbacks_s bg_oa_callbacks_t;
+
+/** \ingroup plugin_oa
+ *  \brief Callbacks for audio output plugins
+ *
+ */
+
+struct bg_oa_callbacks_s
+  {
+  bg_read_audio_func_t read_audio;
+  };
+
+/** \ingroup plugin_oa
  *  \brief Typedef for audio output plugin
  */
 

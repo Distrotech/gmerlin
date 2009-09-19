@@ -396,9 +396,7 @@ void bg_fifo_clear(bg_fifo_t * f)
   {
   int i;
   frame_t * tmp_frame;
-  
-  //  fprintf(stderr, "fifo clear\n");
-  
+  fprintf(stderr, "bg_fifo_clear\n");
   tmp_frame = f->frames;
   for(i = 0; i < f->num_frames; i++)
     {

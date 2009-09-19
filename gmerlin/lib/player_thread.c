@@ -864,12 +864,18 @@ static void set_oa_plugin_cmd(bg_player_t * player,
   stream_change_done(player);
   }
 
-static void do_seek(bg_player_t * player, gavl_time_t t, int scale,
-                    int old_state)
+static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
   {
   int new_chapter;
   gavl_time_t sync_time = t;
 
+  int old_state;
+
+  old_state = bg_player_get_state(player);
+  
+  //  gavl_video_frame_t * vf;
+  interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
+  
   if(player->can_seek)
     bg_player_input_seek(player->input_context, &sync_time, scale);
   
@@ -897,8 +903,16 @@ static void do_seek(bg_player_t * player, gavl_time_t t, int scale,
     bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_PLAYING);
   if(DO_VIDEO(player->flags))
     bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_PLAYING);
-  
-  preload(player);
+
+  if(old_state == BG_PLAYER_STATE_PAUSED)
+    {
+    if(DO_VIDEO(player->flags))
+      bg_player_input_process_video(player->input_context, 1);
+    }
+  else
+    {
+    preload(player);
+    }
   
   if(player->can_seek)
     bg_player_time_set(player, sync_time);
@@ -907,6 +921,7 @@ static void do_seek(bg_player_t * player, gavl_time_t t, int scale,
     
   bg_player_ov_reset(player);
 
+  /* Update position in chapter list */
   if(player->track_info->chapter_list)
     {
     new_chapter =
@@ -941,25 +956,10 @@ static void do_seek(bg_player_t * player, gavl_time_t t, int scale,
     start_playback(player, BG_PLAYER_STATE_PLAYING);
   }
 
-static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
-  {
-  int old_state;
-
-  old_state = bg_player_get_state(player);
-  
-  //  gavl_video_frame_t * vf;
-  interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
-  
-  do_seek(player, t, scale, old_state);  
-  }
-
-
 static void set_audio_stream_cmd(bg_player_t * player, int stream)
   {
-  
   if(stream == player->current_audio_stream)
     return;
-
   stream_change_init(player);
   player->current_audio_stream = stream;
   stream_change_done(player);
@@ -967,10 +967,8 @@ static void set_audio_stream_cmd(bg_player_t * player, int stream)
 
 static void set_video_stream_cmd(bg_player_t * player, int stream)
   {
-  
   if(stream == player->current_video_stream)
     return;
-
   stream_change_init(player);
   player->current_video_stream = stream;
   stream_change_done(player);
@@ -979,10 +977,8 @@ static void set_video_stream_cmd(bg_player_t * player, int stream)
 
 static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
   {
-  
   if(stream == player->current_subtitle_stream)
     return;
-
   stream_change_init(player);
   player->current_subtitle_stream = stream;
   stream_change_done(player);

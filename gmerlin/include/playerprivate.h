@@ -319,6 +319,7 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx);
 int bg_player_input_start(bg_player_input_context_t * ctx);
 void bg_player_input_stop(bg_player_input_context_t * ctx);
 
+int bg_player_input_process_video(bg_player_input_context_t * ctx, int preload);
 
 
 void bg_player_input_cleanup(bg_player_input_context_t * ctx);

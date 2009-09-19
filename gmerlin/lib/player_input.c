@@ -544,7 +544,8 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
   }
 
 int
-bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream)
+bg_player_input_read_video(void * priv,
+                           gavl_video_frame_t * frame, int stream)
   {
   int result;
   bg_player_input_context_t * ctx;
@@ -775,18 +776,19 @@ static int process_subtitle(bg_player_input_context_t * ctx)
   return 1;
   }
 
-static int process_video(bg_player_input_context_t * ctx, int preload)
+int bg_player_input_process_video(bg_player_input_context_t * ctx, int preload)
   {
   int result;
   bg_fifo_state_t state;
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
   s = &(ctx->player->video_stream);
-#if 0
-  fprintf(stderr, "process_video A: %f, V: %f\n",
-          gavl_time_to_seconds(ctx->audio_time),
-          gavl_time_to_seconds(ctx->video_time));
-#endif  
+#if 1
+  if(preload)
+    fprintf(stderr, "process_video A: %f, V: %f\n",
+            gavl_time_to_seconds(ctx->audio_time),
+            gavl_time_to_seconds(ctx->video_time));
+#endif
   if(preload || DO_SUBTITLE_ONLY(ctx->player->flags))
     video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
                                                               &state);
@@ -919,11 +921,11 @@ void * bg_player_input_thread(void * data)
       if(read_audio)
         process_audio(ctx, 0);
       else
-        process_video(ctx, 0);
+        bg_player_input_process_video(ctx, 0);
       }
     else
       {
-      process_video(ctx, 0);
+      bg_player_input_process_video(ctx, 0);
       process_audio(ctx, 0);
       }
     /* If we sent silence before, we must tell the audio fifo EOF */
@@ -997,6 +999,8 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   int do_video;
   int do_subtitle;
 
+  fprintf(stderr, "Preload\n");
+  
   if(!(ctx->player->track_info->flags & BG_TRACK_PAUSABLE))
     return;
   
@@ -1011,7 +1015,7 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
     if(do_audio)
       do_audio = process_audio(ctx, 1);
     if(do_video)
-      do_video = process_video(ctx, 1);
+      do_video = bg_player_input_process_video(ctx, 1);
     }
   }
 
