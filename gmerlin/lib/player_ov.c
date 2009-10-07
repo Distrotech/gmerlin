@@ -310,11 +310,13 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   /* Fixme: Lets just hope, that the OSD format doesn't get changed
      by this call. Otherwise, we would need a gavl_video_converter */
   vs->osd_id = vs->plugin->add_overlay_stream(vs->priv,
-                                                &vs->osd_format);
-
+                                              &vs->osd_format);
+  
   /* create_overlay needs the lock again */
   bg_plugin_unlock(vs->plugin_handle);
-  
+
+  /* Create frame */
+  vs->frame = create_frame(vs);
   
   vs->osd_ovl = create_overlay(vs, vs->osd_id);
   bg_osd_set_overlay(vs->osd, vs->osd_ovl);
@@ -370,8 +372,13 @@ void bg_player_ov_cleanup(bg_player_video_stream_t * ctx)
     destroy_overlay(ctx, ctx->osd_id, ctx->osd_ovl);
     ctx->osd_ovl = (gavl_overlay_t*)0;
     }
+
+  destroy_frame(ctx, ctx->frame);
+  ctx->frame = NULL;
   
   bg_plugin_lock(ctx->plugin_handle);
+
+  
   ctx->plugin->close(ctx->priv);
   bg_plugin_unlock(ctx->plugin_handle);
   }
@@ -610,7 +617,9 @@ const bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * p)
   return bg_osd_get_parameters(p->video_stream.osd);
   }
 
-void bg_player_set_osd_parameter(void * data, const char * name, const bg_parameter_value_t*val)
+void bg_player_set_osd_parameter(void * data,
+                                 const char * name,
+                                 const bg_parameter_value_t*val)
   {
   bg_player_t * p = data;
   bg_osd_set_parameter(p->video_stream.osd, name, val);

@@ -43,6 +43,8 @@ void bg_player_video_create(bg_player_t * p,
   
   pthread_mutex_init(&s->config_mutex,NULL);
   s->ss = &p->subtitle_stream;
+  s->osd = bg_osd_create();
+  s->msg_queue = bg_msg_queue_create();
   }
 
 void bg_player_video_destroy(bg_player_t * p)
@@ -52,6 +54,8 @@ void bg_player_video_destroy(bg_player_t * p)
   bg_gavl_video_options_free(&s->options);
   bg_video_filter_chain_destroy(s->fc);
   bg_player_thread_destroy(s->th);
+  bg_osd_destroy(s->osd);
+  bg_msg_queue_destroy(s->msg_queue);
   }
 
 int bg_player_video_init(bg_player_t * player, int video_stream)

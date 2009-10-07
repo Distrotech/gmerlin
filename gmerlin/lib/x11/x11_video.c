@@ -399,7 +399,7 @@ void bg_x11_window_put_frame_internal(bg_x11_window_t * w,
 void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
   {
   w->still_mode = 0;
-  bg_x11_window_put_frame_internal(w, w->out_frame);
+  bg_x11_window_put_frame_internal(w, f);
   }
 
 void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)

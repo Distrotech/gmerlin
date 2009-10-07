@@ -184,7 +184,6 @@ static void read_audio_callback(void * priv,
 void * bg_player_oa_thread(void * data)
   {
   bg_player_audio_stream_t * s;
-  gavl_audio_frame_t * frame;
   gavl_time_t wait_time;
 
   int state;
@@ -220,11 +219,11 @@ void * bg_player_oa_thread(void * data)
     //    
     
 #endif
-    if(frame->valid_samples)
+    if(s->fifo_frame->valid_samples)
       {
       if(s->do_convert_out)
         {
-        gavl_audio_convert(s->cnv_out, frame,
+        gavl_audio_convert(s->cnv_out, s->fifo_frame,
                            s->output_frame);
 
         bg_plugin_lock(s->plugin_handle);
@@ -235,19 +234,19 @@ void * bg_player_oa_thread(void * data)
       else
         {
         bg_plugin_lock(s->plugin_handle);
-        s->plugin->write_audio(s->priv, frame);
+        s->plugin->write_audio(s->priv, s->fifo_frame);
         bg_plugin_unlock(s->plugin_handle);
         }
       
       pthread_mutex_lock(&(s->time_mutex));
-      s->samples_written += frame->valid_samples;
+      s->samples_written += s->fifo_frame->valid_samples;
       pthread_mutex_unlock(&(s->time_mutex));
       
       /* Now, wait a while to give other threads a chance to access the
          player time */
       wait_time =
         gavl_samples_to_time(s->output_format.samplerate,
-                             frame->valid_samples)/2;
+                             s->fifo_frame->valid_samples)/2;
       }
     
     if(wait_time != GAVL_TIME_UNDEFINED)
