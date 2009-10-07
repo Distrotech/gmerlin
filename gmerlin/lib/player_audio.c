@@ -34,6 +34,8 @@ void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   bg_player_audio_stream_t * s = &p->audio_stream;
   
   bg_gavl_audio_options_init(&(s->options));
+
+  s->th = bg_player_thread_create(p->thread_common);
   
   s->fc =
     bg_audio_filter_chain_create(&s->options,
@@ -60,7 +62,6 @@ void bg_player_audio_destroy(bg_player_t * p)
   gavl_audio_converter_destroy(s->cnv_out);
   bg_gavl_audio_options_free(&(s->options));
   bg_audio_filter_chain_destroy(s->fc);
-
   
   gavl_volume_control_destroy(s->volume);
   gavl_peak_detector_destroy(s->peak_detector);
@@ -71,6 +72,8 @@ void bg_player_audio_destroy(bg_player_t * p)
   
   if(s->plugin_handle)
     bg_plugin_unref(s->plugin_handle);
+  
+  bg_player_thread_destroy(s->th); 
   
   }
 

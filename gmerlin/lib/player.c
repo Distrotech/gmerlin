@@ -30,111 +30,6 @@
 #define LOG_DOMAIN "player"
 #include <gmerlin/log.h>
 
-static void wait_notify(bg_player_t * p)
-  {
-  pthread_mutex_lock(&p->stop_mutex);
-
-  pthread_mutex_lock(&(p->waiting_plugin_threads_mutex));
-  p->waiting_plugin_threads++;
-
-  if(p->waiting_plugin_threads == p->total_plugin_threads)
-    pthread_cond_broadcast(&(p->stop_cond));
-  
-  pthread_mutex_unlock(&p->stop_mutex);
-  
-  pthread_mutex_unlock(&(p->waiting_plugin_threads_mutex));
-  }
-
-static void wait_unnotify(bg_player_t * p)
-  {
-  pthread_mutex_lock(&(p->waiting_plugin_threads_mutex));
-  p->waiting_plugin_threads--;
-  pthread_mutex_unlock(&(p->waiting_plugin_threads_mutex));
-  }
-
-int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data,
-                         int interrupt)
-  {
-  struct timespec timeout;
-  struct timeval now;
-  int state, old_state;
-  old_state = bg_player_get_state(p);
-  switch(old_state)
-    {
-    case BG_PLAYER_STATE_STOPPED:
-    case BG_PLAYER_STATE_CHANGING:
-      return 0;
-    case BG_PLAYER_STATE_PLAYING:
-      break;
-    case BG_PLAYER_STATE_FINISHING_STOP:
-      if(interrupt)
-        return 0;
-      break;
-    case BG_PLAYER_STATE_FINISHING_PAUSE:
-      if(!interrupt)
-        break;
-      /* Fall through */
-    case BG_PLAYER_STATE_STARTING:
-    case BG_PLAYER_STATE_PAUSED:
-    case BG_PLAYER_STATE_SEEKING:
-    case BG_PLAYER_STATE_BUFFERING:
-
-      /* Suspend the thread until restart */
-
-      pthread_mutex_lock(&(p->start_mutex));
-
-      /* If we are the last thread to stop, tell the player
-         to continue */
-
-
-      if(!ping_func)
-        {
-        wait_notify(p);
-        pthread_cond_wait(&(p->start_cond), &(p->start_mutex));
-        }
-      else
-        {
-        if(old_state == BG_PLAYER_STATE_PAUSED)
-          ping_func(data);
-        wait_notify(p);
-        while(1)
-          {
-          gettimeofday(&now, NULL);
-          timeout.tv_sec = now.tv_sec;
-          /* 10 milliseconds */
-          timeout.tv_nsec = (now.tv_usec + 10000) * 1000;
-          while(timeout.tv_nsec >= 1000000000)
-            {
-            timeout.tv_nsec -= 1000000000;
-            timeout.tv_sec++;
-            }
-          if(!pthread_cond_timedwait(&(p->start_cond), &(p->start_mutex), &timeout))
-            break;
-          
-          state = bg_player_get_state(p);
-          if(state == BG_PLAYER_STATE_PAUSED)
-            ping_func(data);
-          }
-        }
-      
-      wait_unnotify(p);
-      
-      pthread_mutex_unlock(&(p->start_mutex));
-
-      
-      if(old_state == BG_PLAYER_STATE_PAUSED)
-        {
-        state = bg_player_get_state(p);
-        if((state == BG_PLAYER_STATE_STOPPED) ||
-           (state == BG_PLAYER_STATE_CHANGING))
-          return 0;
-        }
-
-      break;
-    }
-  return 1;
-  }
-
 /* Input callbacks */
 
 static void track_changed(void * data, int track)
@@ -208,6 +103,9 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   ret->message_queues = bg_msg_queue_list_create();
   
   ret->visualizer = bg_visualizer_create(plugin_reg);
+
+  ret->thread_common = bg_player_thread_common_create();
+  ret->bypass_thread = bg_player_thread_create(ret->thread_common);
   
   /* Create contexts */
 
@@ -218,17 +116,15 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   bg_player_input_create(ret);
   bg_player_ov_create(ret);
 
-
+  ret->threads[0] = ret->bypass_thread;
+  ret->threads[1] = ret->audio_stream.th;
+  ret->threads[2] = ret->video_stream.th;
+  
   pthread_mutex_init(&(ret->state_mutex), (pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->start_mutex), (pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->stop_mutex),  (pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->waiting_plugin_threads_mutex),
-                     (pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->config_mutex), (pthread_mutexattr_t *)0);
 
-
-  pthread_cond_init (&(ret->start_cond),  (pthread_condattr_t *)0);
-  pthread_cond_init (&(ret->stop_cond),   (pthread_condattr_t *)0);
+  
+  
 
   /* Subtitles are off by default */
   ret->current_subtitle_stream = -1;
@@ -257,6 +153,9 @@ void bg_player_destroy(bg_player_t * player)
   
   pthread_mutex_destroy(&(player->state_mutex));
   pthread_mutex_destroy(&(player->config_mutex));
+
+  bg_player_thread_destroy(player->bypass_thread);
+  bg_player_thread_common_destroy(player->thread_common);
   
   free(player);
   }

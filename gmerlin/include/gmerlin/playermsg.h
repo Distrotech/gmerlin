@@ -36,8 +36,7 @@
 #define BG_PLAYER_STATE_CHANGING        3 //!< Changing the track
 #define BG_PLAYER_STATE_BUFFERING       4 //!< Buffering data
 #define BG_PLAYER_STATE_PAUSED          5 //!< Paused
-#define BG_PLAYER_STATE_FINISHING_STOP  6 //!< Finishing playback, will change to next track
-#define BG_PLAYER_STATE_FINISHING_PAUSE 7 //!< Finishing playback, will pause track
+#define BG_PLAYER_STATE_EOF             6 //!< Finished playback
 #define BG_PLAYER_STATE_STARTING        8 //!< Starting playback
 #define BG_PLAYER_STATE_ERROR           9 //!< Error
 

@@ -34,6 +34,8 @@
 
 #include <gmerlin/translation.h>
 
+#include <player_thread.h>
+
 /* Each thread get it's private context */
 
 
@@ -116,6 +118,9 @@ typedef struct
   int has_first_timestamp_i;
 
   int eof;
+
+  bg_player_thread_t * th;
+  
   } bg_player_audio_stream_t;
 
 typedef struct
@@ -213,6 +218,7 @@ typedef struct
   
   float bg_color[4];
 
+  bg_player_thread_t * th;
 
   } bg_player_video_stream_t;
 
@@ -260,14 +266,17 @@ typedef struct
 
 /* The player */
 
+#define PLAYER_MAX_THREADS 3
+
 struct bg_player_s
   {
-  pthread_t bypass_thread;
-  pthread_t ov_thread;
-  pthread_t oa_thread;
   pthread_t player_thread;
 
+  bg_player_thread_t * bypass_thread;
+  bg_player_thread_common_t * thread_common;
 
+  bg_player_thread_t * threads[PLAYER_MAX_THREADS];
+  
   /* Input plugin and stuff */
 
   bg_input_callbacks_t input_callbacks;
@@ -330,17 +339,6 @@ struct bg_player_s
   pthread_mutex_t state_mutex;
 
   /* Stuff for synchronous stopping and starting of the playback */
-
-  pthread_cond_t  start_cond;
-  pthread_mutex_t start_mutex;
-
-  pthread_cond_t  stop_cond;
-  pthread_mutex_t stop_mutex;
-
-  int             waiting_plugin_threads;
-  pthread_mutex_t waiting_plugin_threads_mutex;
-  
-  int total_plugin_threads;
   
   float volume; /* Current volume in dB (0 == max) */
   
@@ -362,16 +360,6 @@ int  bg_player_get_state(bg_player_t * player);
 void bg_player_set_state(bg_player_t * player, int state, const void * arg1,
                          const void * arg2);
 
-/* This function has 3 possible results:
-   1. It returns TRUE immediately, meaning that normal playback
-      is running
-   2. It returnas FALSE immediately, meaning that playback should be stopped
-   3. If playback is paused (or during a sek operation), this function blocks
-      until playback can continue again
- */
-
-int bg_player_keep_going(bg_player_t * player,
-                         void (*ping_func)(void*), void * data, int interrupt);
 
 /* Get the current time (thread save) */
 

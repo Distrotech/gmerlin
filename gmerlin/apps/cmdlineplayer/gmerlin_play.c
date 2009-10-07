@@ -806,8 +806,7 @@ static int handle_message(bg_player_t * player,
           break;
         case BG_PLAYER_STATE_PAUSED:
           break;
-        case BG_PLAYER_STATE_FINISHING_STOP:
-        case BG_PLAYER_STATE_FINISHING_PAUSE:
+        case BG_PLAYER_STATE_EOF:
           bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player finishing");
           break;
         }

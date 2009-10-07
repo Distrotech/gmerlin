@@ -32,20 +32,26 @@
 void bg_player_video_create(bg_player_t * p,
                             bg_plugin_registry_t * plugin_reg)
   {
-  bg_gavl_video_options_init(&(p->video_stream.options));
-  p->video_stream.fc =
-    bg_video_filter_chain_create(&p->video_stream.options,
-                                 plugin_reg);
+  bg_player_video_stream_t * s = &p->video_stream;
   
-  pthread_mutex_init(&(p->video_stream.config_mutex),NULL);
-  p->video_stream.ss = &p->subtitle_stream;
+  s->th = bg_player_thread_create(p->thread_common);
+  
+  bg_gavl_video_options_init(&s->options);
+
+  s->fc = bg_video_filter_chain_create(&s->options,
+                                       plugin_reg);
+  
+  pthread_mutex_init(&s->config_mutex,NULL);
+  s->ss = &p->subtitle_stream;
   }
 
 void bg_player_video_destroy(bg_player_t * p)
   {
-  pthread_mutex_destroy(&(p->video_stream.config_mutex));
-  bg_gavl_video_options_free(&(p->video_stream.options));
-  bg_video_filter_chain_destroy(p->video_stream.fc);
+  bg_player_video_stream_t * s = &p->video_stream;
+  pthread_mutex_destroy(&s->config_mutex);
+  bg_gavl_video_options_free(&s->options);
+  bg_video_filter_chain_destroy(s->fc);
+  bg_player_thread_destroy(s->th);
   }
 
 int bg_player_video_init(bg_player_t * player, int video_stream)

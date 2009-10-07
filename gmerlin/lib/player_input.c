@@ -859,10 +859,9 @@ void * bg_player_input_thread_bypass(void * data)
   
   while(1)
     {
-    if(!bg_player_keep_going(p, NULL, NULL, 0))
-      {
+    if(!bg_player_thread_check(p->bypass_thread))
       return NULL;
-      }
+    
     bg_plugin_lock(p->input_handle);
 
     if(p->input_plugin->bypass && !p->input_plugin->bypass(p->input_priv))
@@ -877,7 +876,7 @@ void * bg_player_input_thread_bypass(void * data)
 
   msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
-  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING_STOP);
+  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_EOF);
   bg_msg_queue_unlock_write(p->command_queue);
   return NULL;
   }
