@@ -52,14 +52,14 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   
   s = &(player->subtitle_stream);
 
-  bg_player_input_get_subtitle_format(player->input_context);
+  bg_player_input_get_subtitle_format(player);
   
   if(DO_SUBTITLE_TEXT(player->flags))
     {
-    pthread_mutex_lock(&(player->subtitle_stream.config_mutex));
+    pthread_mutex_lock(&(s->config_mutex));
     if(DO_SUBTITLE_ONLY(player->flags))
       {
-      bg_text_renderer_init(player->subtitle_stream.renderer,
+      bg_text_renderer_init(s->renderer,
                             (gavl_video_format_t*)0,
                             &(player->subtitle_stream.input_format));
       
@@ -67,8 +67,6 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
                                         &(player->video_stream.input_format));
       gavl_video_format_copy(&(player->video_stream.output_format),
                              &(player->video_stream.input_format));
-      
-      
       }
     else
       {
@@ -94,28 +92,23 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   if(!DO_SUBTITLE_ONLY(player->flags))
     {
     /* Video output already initialized */
-    bg_player_ov_set_subtitle_format(player->ov_context);
+    bg_player_ov_set_subtitle_format(&player->video_stream);
     bg_player_subtitle_init_converter(player);
     }
   
   return 1;
   }
 
+#define FREE_OVERLAY(ovl) if(ovl.frame) { gavl_video_frame_destroy(ovl.frame); ovl.frame = NULL; }
+
 void bg_player_subtitle_cleanup(bg_player_t * player)
   {
-  if(player->subtitle_stream.fifo)
-    {
-    bg_fifo_destroy(player->subtitle_stream.fifo,
-                    bg_player_ov_destroy_subtitle_overlay, player->ov_context);
-    player->subtitle_stream.fifo = (bg_fifo_t*)0;
-    }
-  if(player->subtitle_stream.in_ovl.frame)
-    {
-    gavl_video_frame_destroy(player->subtitle_stream.in_ovl.frame);
-    player->subtitle_stream.in_ovl.frame = (gavl_video_frame_t*)0;
-    }
+  FREE_OVERLAY(player->subtitle_stream.input_subtitle);
+  FREE_OVERLAY(player->subtitle_stream.subtitles[0]);
+  FREE_OVERLAY(player->subtitle_stream.subtitles[1]);
   }
 
+#undef FREE_OVERLAY
 /* Configuration stuff */
 
 const bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * p)
@@ -150,10 +143,78 @@ void bg_player_subtitle_init_converter(bg_player_t * player)
                               &s->input_format,
                               &s->output_format);
   if(s->do_convert)
-    s->in_ovl.frame = gavl_video_frame_create(&s->input_format);
+    s->input_subtitle.frame = gavl_video_frame_create(&s->input_format);
+  }
 
-  /* Initialize FIFO */
-  player->subtitle_stream.fifo =
-    bg_fifo_create(NUM_SUBTITLE_FRAMES,
-                   bg_player_ov_create_subtitle_overlay, player->ov_context, player->finish_mode);
+int bg_player_has_subtitle(bg_player_t * p)
+  {
+  int ret;
+  bg_plugin_lock(p->input_handle);
+  ret= p->input_plugin->has_subtitle(p->input_priv,
+                                     p->current_subtitle_stream);
+  bg_plugin_unlock(p->input_handle);
+  return ret;
+  }
+
+int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl)
+  {
+  gavl_time_t start, duration;
+  bg_player_subtitle_stream_t * s = &p->subtitle_stream;
+  
+  
+  if(DO_SUBTITLE_TEXT(p->flags))
+    {
+    bg_plugin_lock(p->input_handle);
+    if(!p->input_plugin->read_subtitle_text(p->input_priv,
+                                            &(s->buffer),
+                                            &(s->buffer_alloc),
+                                            &start, &duration,
+                                            p->current_subtitle_stream))
+      {
+      bg_plugin_unlock(p->input_handle);
+      return 0;
+      }
+    bg_plugin_unlock(p->input_handle);
+    if(s->do_convert)
+      {
+      bg_text_renderer_render(s->renderer, s->buffer, &s->input_subtitle);
+      gavl_video_convert(s->cnv, s->input_subtitle.frame, ovl->frame);
+      gavl_rectangle_i_copy(&ovl->ovl_rect, &s->input_subtitle.ovl_rect);
+      ovl->dst_x = s->input_subtitle.dst_x;
+      ovl->dst_y = s->input_subtitle.dst_y;
+      }
+    else
+      {
+      bg_text_renderer_render(s->renderer, s->buffer, ovl);
+      }
+    ovl->frame->timestamp = start;
+    ovl->frame->duration = duration;
+    }
+  else
+    {
+    if(s->do_convert)
+      {
+      bg_plugin_lock(p->input_handle);
+      if(!p->input_plugin->read_subtitle_overlay(p->input_priv, &s->input_subtitle,
+                                                 p->current_subtitle_stream))
+        {
+        bg_plugin_unlock(p->input_handle);
+        return 0;
+        }
+      bg_plugin_unlock(p->input_handle);
+      gavl_video_convert(s->cnv, s->input_subtitle.frame, ovl->frame);
+      gavl_rectangle_i_copy(&ovl->ovl_rect, &s->input_subtitle.ovl_rect);
+      ovl->dst_x = s->input_subtitle.dst_x;
+      ovl->dst_y = s->input_subtitle.dst_y;
+      }
+    else
+      {
+      if(!p->input_plugin->read_subtitle_overlay(p->input_priv, ovl,
+                                                 p->current_subtitle_stream))
+        {
+        return 0;
+        }
+      }
+    }
+  return 1;
   }

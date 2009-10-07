@@ -27,6 +27,9 @@
 #include <gmerlin/player.h>
 #include <playerprivate.h>
 
+#define LOG_DOMAIN "player"
+#include <gmerlin/log.h>
+
 static void wait_notify(bg_player_t * p)
   {
   pthread_mutex_lock(&p->stop_mutex);
@@ -132,12 +135,72 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data,
   return 1;
   }
 
+/* Input callbacks */
+
+static void track_changed(void * data, int track)
+  {
+  bg_player_t * p = data;
+  bg_player_set_track(p, track);
+  }
+
+static void time_changed(void * data, gavl_time_t time)
+  {
+  bg_player_t * p = data;
+  bg_player_time_set(p, time);
+  }
+
+static void duration_changed(void * data, gavl_time_t duration)
+  {
+  bg_player_t * p = data;
+  bg_player_set_duration(p, duration, p->can_seek);
+  }
+
+static void name_changed(void * data, const char * name)
+  {
+  bg_player_t * p = data;
+  bg_player_set_track_name(p, name);
+  }
+
+static void metadata_changed(void * data, const bg_metadata_t * m)
+  {
+  bg_player_t * p = data;
+  bg_player_set_metadata(p, m);
+  }
+
+static void buffer_notify(void * data, float percentage)
+  {
+  bg_player_t * p = data;
+  bg_player_set_state(p, BG_PLAYER_STATE_BUFFERING,
+                      &percentage, NULL);
+  }
+
+static void aspect_changed(void * data, int stream, int pixel_width,
+                           int pixel_height)
+  {
+  bg_player_t * p = data;
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Aspect ratio changed");
+
+  bg_player_ov_update_aspect(&p->video_stream,
+                             pixel_width, pixel_height);
+  }
+
+
 bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_player_t * ret;
     
   ret = calloc(1, sizeof(*ret));
 
+  /* Callbacks */
+  ret->input_callbacks.data = ret;
+  ret->input_callbacks.track_changed    = track_changed;
+  ret->input_callbacks.time_changed     = time_changed;
+  ret->input_callbacks.name_changed     = name_changed;
+  ret->input_callbacks.duration_changed = duration_changed;
+  ret->input_callbacks.metadata_changed = metadata_changed;
+  ret->input_callbacks.buffer_notify    = buffer_notify;
+  ret->input_callbacks.aspect_changed   = aspect_changed;
+  
   /* Create message queues */
 
   ret->command_queue  = bg_msg_queue_create();
@@ -153,7 +216,6 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   bg_player_subtitle_create(ret);
   
   bg_player_input_create(ret);
-  bg_player_oa_create(ret);
   bg_player_ov_create(ret);
 
 
@@ -162,7 +224,6 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   pthread_mutex_init(&(ret->stop_mutex),  (pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->waiting_plugin_threads_mutex),
                      (pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->mute_mutex), (pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->config_mutex), (pthread_mutexattr_t *)0);
 
 
@@ -183,7 +244,6 @@ void bg_player_destroy(bg_player_t * player)
   {
     
   bg_player_input_destroy(player);
-  bg_player_oa_destroy(player);
   bg_player_ov_destroy(player);
   bg_player_audio_destroy(player);
   bg_player_video_destroy(player);

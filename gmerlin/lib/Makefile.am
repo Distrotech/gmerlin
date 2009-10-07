@@ -86,8 +86,10 @@ player_input.c \
 player_oa.c \
 player_ov.c \
 player_audio.c \
+player_loop.c \
 player_subtitle.c \
 player_thread.c \
+player_time.c \
 player_video.c \
 playercmd.c \
 pluginregistry.c \

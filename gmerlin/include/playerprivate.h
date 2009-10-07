@@ -36,9 +36,6 @@
 
 /* Each thread get it's private context */
 
-typedef struct bg_player_input_context_s bg_player_input_context_t;
-typedef struct bg_player_ov_context_s    bg_player_ov_context_t;
-typedef struct bg_player_oa_context_s    bg_player_oa_context_t;
 
 typedef enum
   {
@@ -58,10 +55,10 @@ typedef enum
 
 typedef struct
   {
-  gavl_audio_converter_t * cnv_out;
-  bg_fifo_t * fifo;
-
+  /* Pipeline */
+  
   bg_audio_filter_chain_t * fc;
+  gavl_audio_converter_t * cnv_out;
   
   bg_read_audio_func_t in_func;
   void * in_data;
@@ -69,17 +66,11 @@ typedef struct
   
   int do_convert_out;
   
-  gavl_audio_frame_t * frame_out;
+  gavl_audio_frame_t * fifo_frame;
+  gavl_audio_frame_t * output_frame;
   
   pthread_mutex_t config_mutex;
-
   bg_gavl_audio_options_t options;
-
-  //  gavl_audio_options_t opt;
-  //  int fixed_channel_setup;
-  //  int fixed_samplerate;
-  //  gavl_channel_setup_t channel_setup;
-  //  int samplerate;
   
   gavl_audio_format_t input_format;
   gavl_audio_format_t output_format;
@@ -89,15 +80,74 @@ typedef struct
   gavl_volume_control_t * volume;
   pthread_mutex_t volume_mutex;
 
+  /* Mute */
+  int mute;
+  pthread_mutex_t mute_mutex;
+
+  
   gavl_peak_detector_t * peak_detector;
   
   /* If the playback was interrupted due to changed parameters */
   int interrupted;
+  
+  /* Output plugin */
+  bg_plugin_handle_t * plugin_handle;
+  bg_oa_plugin_t     * plugin;
+  void               * priv;
+
+  /*
+   *  Sync mode, set ONLY in init function,
+   *  read by various threads
+   */
+  
+  bg_player_sync_mode_t sync_mode;
+
+  int output_open;
+  /* Timing stuff */
+  
+  pthread_mutex_t time_mutex;
+  gavl_time_t     current_time;
+  gavl_timer_t *  timer;
+
+  int64_t samples_written;
+  int64_t samples_read;
+
+  int has_first_timestamp_o;
+  int has_first_timestamp_i;
+
+  int eof;
   } bg_player_audio_stream_t;
 
 typedef struct
   {
-  bg_fifo_t * fifo;
+  bg_text_renderer_t * renderer;
+  gavl_video_converter_t * cnv;
+  int do_convert;
+  
+  //  bg_fifo_t * fifo;
+
+  pthread_mutex_t config_mutex;
+  
+  gavl_video_format_t input_format;
+  gavl_video_format_t output_format;
+
+  /* For text subtitles */
+  char * buffer;
+  int buffer_alloc;
+  
+  gavl_overlay_t input_subtitle;
+  
+  gavl_overlay_t * current_subtitle;
+  gavl_overlay_t * next_subtitle;
+
+  gavl_overlay_t subtitles[2];
+  
+  int eof;
+  } bg_player_subtitle_stream_t;
+
+typedef struct
+  {
+  //  bg_fifo_t * fifo;
   
   bg_video_filter_chain_t * fc;
   
@@ -118,27 +168,54 @@ typedef struct
 
   /* If the playback was interrupted due to changed parameters */
   int interrupted;
+
+  bg_plugin_handle_t * plugin_handle;
+  bg_ov_plugin_t     * plugin;
+  void               * priv;
+
+  bg_ov_callbacks_t callbacks;
+  gavl_video_frame_t * frame;
+  gavl_time_t frame_time;
+  //  gavl_time_t last_time; /* Last player time */
   
+  gavl_video_frame_t * still_frame;
+  pthread_mutex_t     still_mutex;
+  int still_shown;
+
+  gavl_overlay_t       current_subtitle;
+  gavl_overlay_t     * next_subtitle;
+  int subtitle_id; /* Stream id for subtitles in the output plugin */
+  int has_subtitle;
+
+  gavl_video_format_t osd_format;
+  
+  bg_osd_t * osd;
+  int osd_id;
+  gavl_overlay_t * osd_ovl;
+  
+  bg_msg_queue_t * msg_queue;
+  
+  int64_t frames_written;
+  int64_t frames_read;
+  
+  bg_accelerator_map_t * accel_map;
+
+  int64_t current_subtitle_time;
+  int64_t current_subtitle_duration;
+  int64_t next_subtitle_time;
+
+  bg_player_subtitle_stream_t * ss;
+
+  gavl_video_frame_t * still_frame_in;
+  int do_still;
+  
+  int eof;
+  
+  float bg_color[4];
+
+
   } bg_player_video_stream_t;
 
-typedef struct
-  {
-  bg_text_renderer_t * renderer;
-  gavl_video_converter_t * cnv;
-  int do_convert;
-  
-  bg_fifo_t * fifo;
-
-  pthread_mutex_t config_mutex;
-  
-  gavl_video_format_t input_format;
-  gavl_video_format_t output_format;
-  
-  char * buffer;
-  int buffer_alloc;
-  
-  gavl_overlay_t in_ovl;
-  } bg_player_subtitle_stream_t;
 
 typedef struct
   {
@@ -185,16 +262,19 @@ typedef struct
 
 struct bg_player_s
   {
-  pthread_t input_thread;
+  pthread_t bypass_thread;
   pthread_t ov_thread;
   pthread_t oa_thread;
   pthread_t player_thread;
 
-  /* Private contexts defined in .c files */
-    
-  bg_player_input_context_t * input_context;
-  bg_player_oa_context_t    * oa_context;
-  bg_player_ov_context_t    * ov_context;
+
+  /* Input plugin and stuff */
+
+  bg_input_callbacks_t input_callbacks;
+
+  bg_plugin_handle_t * input_handle;
+  bg_input_plugin_t  * input_plugin;
+  void * input_priv;
   
   /* Stream Infos */
     
@@ -231,6 +311,8 @@ struct bg_player_s
   int current_subtitle_stream;
   int current_chapter;
 
+  int current_track;
+  
   /* Can we seek? */
 
   int can_seek;
@@ -259,16 +341,15 @@ struct bg_player_s
   pthread_mutex_t waiting_plugin_threads_mutex;
   
   int total_plugin_threads;
-  bg_plugin_handle_t * input_handle;
-
+  
   float volume; /* Current volume in dB (0 == max) */
-
-  int mute;
-  pthread_mutex_t mute_mutex;
   
   bg_player_saved_state_t saved_state;
   
   int visualizer_enabled;
+  int use_bypass;
+  float still_framerate;
+  
   pthread_mutex_t config_mutex;
   
   bg_player_time_update_mode_t time_update_mode;
@@ -307,29 +388,26 @@ void bg_player_broadcast_time(bg_player_t * player, gavl_time_t time);
 void bg_player_input_create(bg_player_t * player);
 void bg_player_input_destroy(bg_player_t * player);
 
-void * bg_player_input_thread(void *);
+// void * bg_player_input_thread(void *);
 void * bg_player_input_thread_bypass(void *);
 
-int bg_player_input_init(bg_player_input_context_t * ctx,
+int bg_player_input_init(bg_player_t * p,
                          bg_plugin_handle_t * handle,
                          int track_index);
-int bg_player_input_set_track(bg_player_input_context_t * ctx);
 
-void bg_player_input_select_streams(bg_player_input_context_t * ctx);
-int bg_player_input_start(bg_player_input_context_t * ctx);
-void bg_player_input_stop(bg_player_input_context_t * ctx);
+int bg_player_input_set_track(bg_player_t * p);
 
-int bg_player_input_process_video(bg_player_input_context_t * ctx, int preload);
+void bg_player_input_select_streams(bg_player_t * p);
+int bg_player_input_start(bg_player_t * p);
+void bg_player_input_stop(bg_player_t * p);
 
+void bg_player_input_cleanup(bg_player_t * p);
 
-void bg_player_input_cleanup(bg_player_input_context_t * ctx);
-
-void bg_player_input_preload(bg_player_input_context_t * ctx);
 
 int
-bg_player_input_get_audio_format(bg_player_input_context_t * ctx);
+bg_player_input_get_audio_format(bg_player_t * ctx);
 int
-bg_player_input_get_video_format(bg_player_input_context_t * ctx);
+bg_player_input_get_video_format(bg_player_t * ctx);
 
 int
 bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, int samples);
@@ -338,25 +416,25 @@ int
 bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream);
 
 int
+bg_player_input_read_video_still(void * priv, gavl_video_frame_t * frame, int stream);
+
+int
 bg_player_input_read_video_subtitle_only(void * priv, gavl_video_frame_t * frame, int stream);
 
 int
-bg_player_input_get_subtitle_format(bg_player_input_context_t * ctx);
+bg_player_input_get_subtitle_format(bg_player_t * ctx);
 
-int
-bg_player_input_set_still_stream(bg_player_input_context_t * ctx,
-                                 int still_stream);
 
-void bg_player_input_seek(bg_player_input_context_t * ctx,
+void bg_player_input_seek(bg_player_t * ctx,
                           gavl_time_t * time, int scale);
 
-void bg_player_input_bypass_set_volume(bg_player_input_context_t * ctx,
+void bg_player_input_bypass_set_volume(bg_player_t * p,
                                        float volume);
 
-void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
+void bg_player_input_bypass_set_pause(bg_player_t * p,
                                       int pause);
 
-void bg_player_input_send_messages(bg_player_input_context_t * ctx);
+void bg_player_input_send_messages(bg_player_t * p);
 
 
 
@@ -367,38 +445,30 @@ void bg_player_ov_create(bg_player_t * player);
 void bg_player_ov_reset(bg_player_t * player);
 
 void bg_player_ov_destroy(bg_player_t * player);
-int  bg_player_ov_init(bg_player_ov_context_t * ctx);
+int bg_player_ov_init(bg_player_video_stream_t * vs);
 
-int  bg_player_ov_has_plugin(bg_player_ov_context_t * ctx);
-
-
-void bg_player_ov_cleanup(bg_player_ov_context_t * ctx);
+void bg_player_ov_cleanup(bg_player_video_stream_t * ctx);
 void * bg_player_ov_thread(void *);
 
-void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
+void bg_player_ov_update_aspect(bg_player_video_stream_t * ctx,
                                 int pixel_width, int pixel_height);
 
 /* Update still image: To be called during pause */
-void bg_player_ov_update_still(bg_player_ov_context_t * ctx);
+void bg_player_ov_update_still(bg_player_video_stream_t * ctx);
 
-void bg_player_ov_standby(bg_player_ov_context_t * ctx);
+void bg_player_ov_standby(bg_player_video_stream_t * ctx);
 
-/* Create/destroy frames */
-void * bg_player_ov_create_frame(void * data);
-void bg_player_ov_destroy_frame(void * data, void * frame);
-
-void * bg_player_ov_create_subtitle_overlay(void * data);
-void bg_player_ov_destroy_subtitle_overlay(void * data, void * frame);
 
 /* Set this extra because we must initialize subtitles after the video output */
-void bg_player_ov_set_subtitle_format(void * data);
+void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * ctx);
+
 
 void bg_player_ov_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);
 
 /* Plugin handle is needed by the core to fire up the visualizer */
 
-bg_plugin_handle_t * bg_player_ov_get_plugin(bg_player_ov_context_t * ctx);
+// bg_plugin_handle_t * bg_player_ov_get_plugin(bg_player_ov_context_t * ctx);
 
 /*
  *  This call will let the video plugin adjust the playertime from the
@@ -413,29 +483,23 @@ void bg_player_video_cleanup(bg_player_t * p);
 void bg_player_video_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg);
 void bg_player_video_destroy(bg_player_t * p);
 
+int bg_player_read_video(bg_player_t * p,
+                         gavl_video_frame_t * frame, int * state);
+
 
 /* player_oa.c */
 
-void * bg_player_oa_create_frame(void * data);
-void bg_player_oa_destroy_frame(void * data, void * frame);
+int bg_player_oa_init(bg_player_audio_stream_t * ctx);
+int bg_player_oa_start(bg_player_audio_stream_t * ctx);
+void bg_player_oa_stop(bg_player_audio_stream_t * ctx);
 
-void bg_player_oa_create(bg_player_t * player);
-void bg_player_oa_destroy(bg_player_t * player);
-
-int  bg_player_oa_has_plugin(bg_player_oa_context_t * ctx);
-
-
-int bg_player_oa_init(bg_player_oa_context_t * ctx);
-int bg_player_oa_start(bg_player_oa_context_t * ctx);
-void bg_player_oa_stop(bg_player_oa_context_t * ctx);
-
-void bg_player_oa_cleanup(bg_player_oa_context_t * ctx);
+void bg_player_oa_cleanup(bg_player_audio_stream_t * ctx);
 void * bg_player_oa_thread(void *);
 
 void bg_player_oa_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);
 
-void bg_player_oa_set_volume(bg_player_oa_context_t * ctx,
+void bg_player_oa_set_volume(bg_player_audio_stream_t * ctx,
                              float volume);
 
 
@@ -444,7 +508,7 @@ void bg_player_oa_set_volume(bg_player_oa_context_t * ctx,
  *  obtained from here by other threads
  */
 
-int  bg_player_oa_get_latency(bg_player_oa_context_t * ctx);
+int  bg_player_oa_get_latency(bg_player_audio_stream_t * ctx);
 
 /* player_audio.c */
 
@@ -453,6 +517,12 @@ void bg_player_audio_cleanup(bg_player_t * p);
 
 void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg);
 void bg_player_audio_destroy(bg_player_t * p);
+
+void bg_player_set_oa_plugin_internal(bg_player_t * player,
+                                      bg_plugin_handle_t * handle);
+
+int bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame, int * state);
+
 
 /* player_subtitle.c */
 
@@ -463,6 +533,10 @@ void bg_player_subtitle_create(bg_player_t * p);
 void bg_player_subtitle_destroy(bg_player_t * p);
 
 void bg_player_subtitle_init_converter(bg_player_t * player);
+
+int bg_player_has_subtitle(bg_player_t * p);
+int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl);
+
 
 
 void bg_player_accel_pressed(bg_player_t * player, int id);

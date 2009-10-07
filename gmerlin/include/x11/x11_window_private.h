@@ -253,6 +253,9 @@ struct bg_x11_window_s
   
   /* Overlay stuff */
   int num_overlay_streams;
+  
+  int has_overlay; /* 1 if there are overlays to blend, 0 else */
+  
   struct
     {
     gavl_overlay_blend_context_t * ctx;
@@ -265,8 +268,9 @@ struct bg_x11_window_s
   float saturation;
   float contrast;
   float hue;
-
+  
   gavl_video_frame_t * still_frame;
+  gavl_video_frame_t * out_frame;
   int still_mode;
   };
 

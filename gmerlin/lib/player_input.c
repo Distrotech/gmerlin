@@ -33,14 +33,11 @@
 
 #define DEBUG_COUNTER
 
+#if 1
 struct bg_player_input_context_s
   {
   /* Plugin stuff */
   
-  bg_plugin_handle_t * plugin_handle;
-  bg_input_plugin_t  * plugin;
-  void * priv;
-
   int audio_finished;
   int video_finished;
   int subtitle_finished;
@@ -54,7 +51,7 @@ struct bg_player_input_context_s
   int64_t video_frame_counter;
 #endif
   
-  int has_first_audio_timestamp;
+  // int has_first_audio_timestamp;
   
   /* Internal times */
 
@@ -64,313 +61,216 @@ struct bg_player_input_context_s
   /* For changing global stuff */
   
   bg_player_t * player;
-
-  /* Callback structure */
-
-  bg_input_callbacks_t callbacks;
   
-  /* Config stuff */
-  pthread_mutex_t config_mutex;
-  int do_bypass;
-  float still_framerate;
   
-  int current_track;
-  
-  float bg_color[4];
-  
-  gavl_video_frame_t * still_frame;
-  
-  int do_still;
   };
-
-static void track_changed(void * data, int track)
-  {
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)data;
-
-
-  bg_player_set_track(ctx->player, track);
-  
-  }
-
-static void time_changed(void * data, gavl_time_t time)
-  {
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)data;
-
-  bg_player_time_set(ctx->player, time);
-  }
-
-static void duration_changed(void * data, gavl_time_t duration)
-  {
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)data;
-
-
-  bg_player_set_duration(ctx->player, duration, ctx->player->can_seek);
-
-
-  //  bg_player_time_set(ctx->player, time);
-  }
-
-static void name_changed(void * data, const char * name)
-  {
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)data;
-  bg_player_set_track_name(ctx->player, name);
-  }
-
-static void metadata_changed(void * data, const bg_metadata_t * m)
-  {
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)data;
-  bg_player_set_metadata(ctx->player, m);
-  }
-
-static void buffer_notify(void * data, float percentage)
-  {
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)data;
-  bg_player_set_state(ctx->player, BG_PLAYER_STATE_BUFFERING,
-                      &percentage, NULL);
-  }
-
-static void aspect_changed(void * data, int stream, int pixel_width,
-                           int pixel_height)
-  {
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)data;
-
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Aspect ratio changed");
-
-  bg_player_ov_update_aspect(ctx->player->ov_context,
-                             pixel_width, pixel_height);
-  
-  }
+#endif
 
 void bg_player_input_create(bg_player_t * player)
   {
-  bg_player_input_context_t * ctx;
-  ctx = calloc(1, sizeof(*ctx));
-  player->input_context = ctx;
-
-  /* Set up callbacks */
-
-  ctx->callbacks.data = ctx;
-  ctx->callbacks.track_changed    = track_changed;
-  ctx->callbacks.time_changed     = time_changed;
-  ctx->callbacks.name_changed     = name_changed;
-  ctx->callbacks.duration_changed = duration_changed;
-  ctx->callbacks.metadata_changed = metadata_changed;
-  ctx->callbacks.buffer_notify    = buffer_notify;
-  ctx->callbacks.aspect_changed   = aspect_changed;
-  
-  ctx->player = player;
-  
-  pthread_mutex_init(&(player->input_context->config_mutex),(pthread_mutexattr_t *)0);
   }
 
 void bg_player_input_destroy(bg_player_t * player)
   {
-  if(player->input_context->plugin_handle)
-    bg_plugin_unref(player->input_context->plugin_handle);
-  pthread_mutex_destroy(&(player->input_context->config_mutex));
-  free(player->input_context);
+  if(player->input_handle)
+    bg_plugin_unref(player->input_handle);
   }
 
-void bg_player_input_select_streams(bg_player_input_context_t * ctx)
+void bg_player_input_select_streams(bg_player_t * p)
   {
   int i, vis_enable;
-  ctx->do_still = 0;
-  if(ctx->still_frame)
+  bg_player_audio_stream_t * as = &p->audio_stream;
+  bg_player_video_stream_t * vs = &p->video_stream;
+  bg_player_subtitle_stream_t * ss = &p->subtitle_stream;
+  
+  vs->do_still = 0;
+  if(vs->still_frame_in)
     {
-    gavl_video_frame_destroy(ctx->still_frame);
-    ctx->still_frame = (gavl_video_frame_t*)0;
+    gavl_video_frame_destroy(vs->still_frame_in);
+    vs->still_frame_in = (gavl_video_frame_t*)0;
     }
   
   /* Adjust stream indices */
-  if(ctx->player->current_audio_stream >= ctx->player->track_info->num_audio_streams)
-    ctx->player->current_audio_stream = 0;
+  if(p->current_audio_stream >= p->track_info->num_audio_streams)
+    p->current_audio_stream = 0;
 
-  if(ctx->player->current_video_stream >= ctx->player->track_info->num_video_streams)
-    ctx->player->current_video_stream = 0;
+  if(p->current_video_stream >= p->track_info->num_video_streams)
+    p->current_video_stream = 0;
 
-  if(ctx->player->current_subtitle_stream >= ctx->player->track_info->num_subtitle_streams)
-    ctx->player->current_subtitle_stream = 0;
+  if(p->current_subtitle_stream >= p->track_info->num_subtitle_streams)
+    p->current_subtitle_stream = 0;
 
-  if(!bg_player_oa_has_plugin(ctx->player->oa_context))
-    ctx->player->current_audio_stream = -1;
+  if(!p->audio_stream.plugin_handle)
+    p->current_audio_stream = -1;
 
-  if(!bg_player_ov_has_plugin(ctx->player->ov_context))
+  if(!p->video_stream.plugin)
     {
-    ctx->player->current_video_stream = -1;
-    ctx->player->current_subtitle_stream = -1;
+    p->current_video_stream = -1;
+    p->current_subtitle_stream = -1;
     }
   
   /* Check if the streams are actually there */
-  ctx->player->flags &= 0xFFFF0000;
+  p->flags &= 0xFFFF0000;
   
-  ctx->audio_finished = 1;
-  ctx->video_finished = 1;
-  ctx->subtitle_finished = 1;
-
-  if(!ctx->player->do_bypass)
+  as->eof = 1;
+  vs->eof = 1;
+  ss->eof = 1;
+  
+  if(!p->do_bypass)
     {
-    if((ctx->player->current_audio_stream >= 0) &&
-       (ctx->player->current_audio_stream < ctx->player->track_info->num_audio_streams))
+    if((p->current_audio_stream >= 0) &&
+       (p->current_audio_stream < p->track_info->num_audio_streams))
       {
-      ctx->audio_finished = 0;
-      ctx->player->flags |= PLAYER_DO_AUDIO;
+      as->eof = 0;
+      p->flags |= PLAYER_DO_AUDIO;
       }
-    if((ctx->player->current_video_stream >= 0) &&
-       (ctx->player->current_video_stream < ctx->player->track_info->num_video_streams))
+    if((p->current_video_stream >= 0) &&
+       (p->current_video_stream < p->track_info->num_video_streams))
       {
-      ctx->video_finished = 0;
-      ctx->player->flags |= PLAYER_DO_VIDEO;
+      vs->eof = 0;
+      p->flags |= PLAYER_DO_VIDEO;
       }
 
-    if((ctx->player->current_subtitle_stream >= 0) &&
-       (ctx->player->current_subtitle_stream < ctx->player->track_info->num_subtitle_streams))
+    if((p->current_subtitle_stream >= 0) &&
+       (p->current_subtitle_stream < p->track_info->num_subtitle_streams))
       {
-      ctx->player->flags |= PLAYER_DO_SUBTITLE;
-      ctx->subtitle_finished = 0;
+      p->flags |= PLAYER_DO_SUBTITLE;
+      ss->eof = 0;
       }
     }
   
-  pthread_mutex_lock(&ctx->player->config_mutex);
-  vis_enable = ctx->player->visualizer_enabled;
-  pthread_mutex_unlock(&ctx->player->config_mutex);
+  pthread_mutex_lock(&p->config_mutex);
+  vis_enable = p->visualizer_enabled;
+  pthread_mutex_unlock(&p->config_mutex);
   
-  
-  if(DO_AUDIO(ctx->player->flags) &&
-     !DO_VIDEO(ctx->player->flags) &&
-     !DO_SUBTITLE(ctx->player->flags) &&
+  if(DO_AUDIO(p->flags) &&
+     !DO_VIDEO(p->flags) &&
+     !DO_SUBTITLE(p->flags) &&
      vis_enable)
     {
-    ctx->player->flags |= PLAYER_DO_VISUALIZE;
+    p->flags |= PLAYER_DO_VISUALIZE;
     }
-  else if(!DO_VIDEO(ctx->player->flags) &&
-          DO_SUBTITLE(ctx->player->flags))
+  else if(!DO_VIDEO(p->flags) &&
+          DO_SUBTITLE(p->flags))
     {
-    ctx->player->flags |= PLAYER_DO_VIDEO;
-    ctx->video_finished = 0;
+    p->flags |= PLAYER_DO_VIDEO;
+    vs->eof = 0;
     
-    ctx->player->flags |= PLAYER_DO_SUBTITLE_ONLY;
+    p->flags |= PLAYER_DO_SUBTITLE_ONLY;
     
-    pthread_mutex_lock(&(ctx->player->video_stream.config_mutex));
+    pthread_mutex_lock(&(p->video_stream.config_mutex));
     /* Get background color */
-    gavl_video_options_get_background_color(ctx->player->video_stream.options.opt,
-                                            ctx->bg_color);
-    pthread_mutex_unlock(&(ctx->player->video_stream.config_mutex));
+    gavl_video_options_get_background_color(p->video_stream.options.opt,
+                                            vs->bg_color);
+    pthread_mutex_unlock(&(p->video_stream.config_mutex));
     
-    ctx->bg_color[3] = 1.0;
+    vs->bg_color[3] = 1.0;
     }
   
   /* En-/Disable streams at the input plugin */
   
-  if(ctx->plugin->set_audio_stream)
+  if(p->input_plugin->set_audio_stream)
     {
-    for(i = 0; i < ctx->player->track_info->num_audio_streams; i++)
+    for(i = 0; i < p->track_info->num_audio_streams; i++)
       {
-      if(i == ctx->player->current_audio_stream) 
-        ctx->plugin->set_audio_stream(ctx->priv, i,
-                                      ctx->player->do_bypass ?
+      if(i == p->current_audio_stream) 
+        p->input_plugin->set_audio_stream(p->input_priv, i,
+                                      p->do_bypass ?
                                       BG_STREAM_ACTION_BYPASS :
                                       BG_STREAM_ACTION_DECODE);
       else
-        ctx->plugin->set_audio_stream(ctx->priv, i,
+        p->input_plugin->set_audio_stream(p->input_priv, i,
                                       BG_STREAM_ACTION_OFF);
       }
     }
 
 
-  if(ctx->plugin->set_video_stream)
+  if(p->input_plugin->set_video_stream)
     {
-    for(i = 0; i < ctx->player->track_info->num_video_streams; i++)
+    for(i = 0; i < p->track_info->num_video_streams; i++)
       {
-      if(i == ctx->player->current_video_stream) 
-        ctx->plugin->set_video_stream(ctx->priv, i,
-                                      ctx->player->do_bypass ?
+      if(i == p->current_video_stream) 
+        p->input_plugin->set_video_stream(p->input_priv, i,
+                                      p->do_bypass ?
                                       BG_STREAM_ACTION_BYPASS :
                                       BG_STREAM_ACTION_DECODE);
       else
-        ctx->plugin->set_video_stream(ctx->priv, i,
+        p->input_plugin->set_video_stream(p->input_priv, i,
                                       BG_STREAM_ACTION_OFF);
       }
     }
 
-  if(ctx->plugin->set_subtitle_stream)
+  if(p->input_plugin->set_subtitle_stream)
     {
-    for(i = 0; i < ctx->player->track_info->num_subtitle_streams; i++)
+    for(i = 0; i < p->track_info->num_subtitle_streams; i++)
       {
-      if(i == ctx->player->current_subtitle_stream) 
-        ctx->plugin->set_subtitle_stream(ctx->priv, i,
-                                      ctx->player->do_bypass ?
+      if(i == p->current_subtitle_stream) 
+        p->input_plugin->set_subtitle_stream(p->input_priv, i,
+                                      p->do_bypass ?
                                       BG_STREAM_ACTION_BYPASS :
                                       BG_STREAM_ACTION_DECODE);
       else
-        ctx->plugin->set_subtitle_stream(ctx->priv, i,
+        p->input_plugin->set_subtitle_stream(p->input_priv, i,
                                          BG_STREAM_ACTION_OFF);
       }
     }
   }
 
-int bg_player_input_start(bg_player_input_context_t * ctx)
+int bg_player_input_start(bg_player_t * p)
   {
   gavl_video_format_t * video_format;
   
   /* Start input plugin, so we get the formats */
-  if(ctx->plugin->start)
+  if(p->input_plugin->start)
     {
-    if(!ctx->plugin->start(ctx->priv))
+    if(!p->input_plugin->start(p->input_priv))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting input plugin failed");
 
-      if(ctx->plugin_handle)
-        bg_plugin_unref(ctx->plugin_handle);
-      ctx->plugin_handle = NULL;
-      ctx->plugin = NULL;
-      
+      if(p->input_handle)
+        bg_plugin_unref(p->input_handle);
+      p->input_handle = NULL;
+      p->input_plugin = NULL;
       return 0;
       }
     }
-
+  
   /* Subtitle type must be set here, because it's unknown before the
      start() call */
 
-  if(DO_SUBTITLE(ctx->player->flags))
+  if(DO_SUBTITLE(p->flags))
     {
-    if(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
-      ctx->player->flags |= PLAYER_DO_SUBTITLE_TEXT;
+    if(p->track_info->subtitle_streams[p->current_subtitle_stream].is_text)
+      p->flags |= PLAYER_DO_SUBTITLE_TEXT;
     else
-      ctx->player->flags |= PLAYER_DO_SUBTITLE_OVERLAY;
+      p->flags |= PLAYER_DO_SUBTITLE_OVERLAY;
     }
   
   /* Check for still image mode */
   
-  if(ctx->player->flags & PLAYER_DO_VIDEO)
+  if(p->flags & PLAYER_DO_VIDEO)
     {
     video_format =
-      &ctx->player->track_info->video_streams[ctx->player->current_video_stream].format;
+      &p->track_info->video_streams[p->current_video_stream].format;
     
     if(video_format->framerate_mode == GAVL_FRAMERATE_STILL)
-      ctx->do_still = 1;
+      p->video_stream.do_still = 1;
     }
-  ctx->has_first_audio_timestamp = 0;
+  p->audio_stream.has_first_timestamp_i = 0;
   return 1;
   }
 
-void bg_player_input_stop(bg_player_input_context_t * ctx)
+void bg_player_input_stop(bg_player_t * p)
   {
-  if(ctx->plugin->stop)
-    ctx->plugin->stop(ctx->priv);
+  if(p->input_plugin->stop)
+    p->input_plugin->stop(p->input_priv);
   }
 
-int bg_player_input_set_track(bg_player_input_context_t * ctx)
+int bg_player_input_set_track(bg_player_t * p)
   {
-  if(ctx->plugin->set_track)
+  if(p->input_plugin->set_track)
     {
-    if(!ctx->plugin->set_track(ctx->priv, ctx->current_track))
+    if(!p->input_plugin->set_track(p->input_priv, p->current_track))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
              "Cannot select track, skipping");
@@ -380,44 +280,45 @@ int bg_player_input_set_track(bg_player_input_context_t * ctx)
   return 1;
   }
 
-int bg_player_input_init(bg_player_input_context_t * ctx,
+int bg_player_input_init(bg_player_t * p,
                          bg_plugin_handle_t * handle,
                          int track_index)
   {
   int do_bypass;
 
-  pthread_mutex_lock(&(ctx->config_mutex));
-  do_bypass = ctx->do_bypass;
-  pthread_mutex_unlock(&(ctx->config_mutex));
+  pthread_mutex_lock(&(p->config_mutex));
+  do_bypass = p->use_bypass;
+  pthread_mutex_unlock(&(p->config_mutex));
   
-  ctx->plugin_handle = handle;
-  ctx->current_track = track_index;
+  p->input_handle = handle;
+  p->current_track = track_index;
   
-  ctx->plugin = (bg_input_plugin_t*)(handle->plugin);
-  ctx->priv = handle->priv;
-
-  if(ctx->plugin->set_callbacks)
+  p->input_plugin = (bg_input_plugin_t*)(handle->plugin);
+  p->input_priv = handle->priv;
+  
+  if(p->input_plugin->set_callbacks)
     {
-    ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
+    p->input_plugin->set_callbacks(p->input_priv,
+                                   &(p->input_callbacks));
     }
-
-  ctx->player->track_info = ctx->plugin->get_track_info(ctx->priv,
-                                                        track_index);
   
-  if(ctx->plugin->seek &&
-     (ctx->player->track_info->flags & BG_TRACK_SEEKABLE) &&
-     (ctx->player->track_info->duration > 0))
-    ctx->player->can_seek = 1;
-  else
-    ctx->player->can_seek = 0;
-
-  if(ctx->player->track_info->flags & BG_TRACK_PAUSABLE)
-    ctx->player->can_pause = 1;
-  else
-    ctx->player->can_pause = 0;
+  p->track_info = p->input_plugin->get_track_info(p->input_priv,
+                                            track_index);
   
-  if(!ctx->player->track_info->num_audio_streams &&
-     !ctx->player->track_info->num_video_streams)
+  if(p->input_plugin->seek &&
+     (p->track_info->flags & BG_TRACK_SEEKABLE) &&
+     (p->track_info->duration > 0))
+    p->can_seek = 1;
+  else
+    p->can_seek = 0;
+  
+  if(p->track_info->flags & BG_TRACK_PAUSABLE)
+    p->can_pause = 1;
+  else
+    p->can_pause = 0;
+  
+  if(!p->track_info->num_audio_streams &&
+     !p->track_info->num_video_streams)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
             "Track has neither audio nor video, skipping");
@@ -426,55 +327,49 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   
   /* Set the track if neccesary */
 
-  if(!bg_player_input_set_track(ctx))
+  if(!bg_player_input_set_track(p))
     return 0;
   
   /* Check for bypass mode */
   
-  if(do_bypass && ctx->plugin_handle->info &&
-     (ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS))
+  if(do_bypass && p->input_handle->info &&
+     (p->input_handle->info->flags & BG_PLUGIN_BYPASS))
     {
     /* Initialize volume for bypass mode */
-    bg_player_input_bypass_set_volume(ctx, ctx->player->volume);
-    ctx->player->do_bypass = 1;
+    bg_player_input_bypass_set_volume(p, p->volume);
+    p->do_bypass = 1;
     }
   else
-    ctx->player->do_bypass = 0;
-
+    p->do_bypass = 0;
+  
   /* Select streams */
-  bg_player_input_select_streams(ctx);
+  bg_player_input_select_streams(p);
   
   /* Start input plugin, so we get the formats */
   
-  if(!bg_player_input_start(ctx))
+  if(!bg_player_input_start(p))
     {
     return 0;
     }
-
-#ifdef DEBUG_COUNTER
-  ctx->video_frame_counter = 0;
-  ctx->audio_sample_counter = 0;
-#endif
-  
   return 1;
   }
 
-void bg_player_input_cleanup(bg_player_input_context_t * ctx)
+void bg_player_input_cleanup(bg_player_t * p)
   {
-  char tmp_string[128];
   
-  bg_player_input_stop(ctx);
-  if(ctx->plugin_handle)
-    bg_plugin_unref(ctx->plugin_handle);
-  ctx->plugin_handle = NULL;
-  ctx->plugin = NULL;
+  bg_player_input_stop(p);
+  if(p->input_handle)
+    bg_plugin_unref(p->input_handle);
+  p->input_handle = NULL;
+  p->input_plugin = NULL;
 
-  if(ctx->still_frame)
+  if(p->video_stream.still_frame_in)
     {
-    gavl_video_frame_destroy(ctx->still_frame);
-    ctx->still_frame = (gavl_video_frame_t*)0;
+    gavl_video_frame_destroy(p->video_stream.still_frame_in);
+    p->video_stream.still_frame_in = (gavl_video_frame_t*)0;
     }
-#ifdef DEBUG_COUNTER
+  // #ifdef DEBUG_COUNTER
+#if 0
   sprintf(tmp_string, "%" PRId64, ctx->audio_sample_counter);
   
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Audio sample counter: %s",
@@ -487,35 +382,35 @@ void bg_player_input_cleanup(bg_player_input_context_t * ctx)
 #endif
   }
 
-int bg_player_input_get_audio_format(bg_player_input_context_t * ctx)
+int bg_player_input_get_audio_format(bg_player_t * p)
   {
-  gavl_audio_format_copy(&(ctx->player->audio_stream.input_format),
-                         &(ctx->player->track_info->audio_streams[ctx->player->current_audio_stream].format));
+  gavl_audio_format_copy(&(p->audio_stream.input_format),
+                         &(p->track_info->audio_streams[p->current_audio_stream].format));
   return 1;
   }
 
-int bg_player_input_get_video_format(bg_player_input_context_t * ctx)
+int bg_player_input_get_video_format(bg_player_t * p)
   {
-  gavl_video_format_copy(&(ctx->player->video_stream.input_format),
-                         &(ctx->player->track_info->video_streams[ctx->player->current_video_stream].format));
+  gavl_video_format_copy(&(p->video_stream.input_format),
+                         &(p->track_info->video_streams[p->current_video_stream].format));
 
-  if(ctx->do_still)
+  if(p->video_stream.do_still)
     {
-    ctx->player->video_stream.input_format.timescale = GAVL_TIME_SCALE;
-    pthread_mutex_lock(&ctx->config_mutex);
-    ctx->player->video_stream.input_format.frame_duration =
-      (int)((float)GAVL_TIME_SCALE / ctx->still_framerate);
-    pthread_mutex_unlock(&ctx->config_mutex);
+    p->video_stream.input_format.timescale = GAVL_TIME_SCALE;
+    pthread_mutex_lock(&p->config_mutex);
+    p->video_stream.input_format.frame_duration =
+      (int)((float)GAVL_TIME_SCALE / p->still_framerate);
+    pthread_mutex_unlock(&p->config_mutex);
     }
   
   return 1;
   }
 
 int
-bg_player_input_get_subtitle_format(bg_player_input_context_t * ctx)
+bg_player_input_get_subtitle_format(bg_player_t * p)
   {
-  gavl_video_format_copy(&(ctx->player->subtitle_stream.input_format),
-                         &(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].format));
+  gavl_video_format_copy(&(p->subtitle_stream.input_format),
+                         &(p->track_info->subtitle_streams[p->current_subtitle_stream].format));
   return 1;
   }
 
@@ -523,24 +418,66 @@ int
 bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, int samples)
   {
   int result;
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)priv;
+  bg_player_t * p = priv;
+  bg_player_audio_stream_t * as = &p->audio_stream;
   
-  bg_plugin_lock(ctx->plugin_handle);
-  result = ctx->plugin->read_audio(ctx->priv, frame, stream, samples);
-  bg_plugin_unlock(ctx->plugin_handle);
+  bg_plugin_lock(p->input_handle);
+  result = p->input_plugin->read_audio(p->input_priv, frame, stream, samples);
+  bg_plugin_unlock(p->input_handle);
   
-  if(!ctx->has_first_audio_timestamp)
+  if(!as->has_first_timestamp_i)
     {
-    ctx->audio_samples_written = frame->timestamp;
-    ctx->has_first_audio_timestamp = 1;
+    as->samples_read = frame->timestamp;
+    as->has_first_timestamp_i = 1;
     }
-  ctx->audio_samples_written += frame->valid_samples;
-#ifdef DEBUG_COUNTER
-  ctx->audio_sample_counter += frame->valid_samples;
-  //  fprintf(stderr, "Got %d of %d samples, result: %d\n", frame->valid_samples, samples, result);
+  as->samples_read += frame->valid_samples;
+  return result;
+  }
+
+int
+bg_player_input_read_video_still(void * priv,
+                                 gavl_video_frame_t * frame, int stream)
+  {
+  int result;
+  bg_player_t * p = priv;
+  bg_player_video_stream_t * vs = &p->video_stream;
+
+  gavl_video_format_t * format;
+  format = &vs->input_format;
+
+  if(!vs->still_frame_in)
+    {
+    vs->still_frame_in = gavl_video_frame_create(&vs->input_format);
+    vs->still_frame_in->timestamp = 0;
+    }
+  
+  bg_plugin_lock(p->input_handle);
+
+  if(p->input_plugin->has_still(p->input_priv, stream))
+    result = p->input_plugin->read_video(p->input_priv, frame,
+                                         stream);
+    
+  else
+    result = 0;
+    
+  bg_plugin_unlock(p->input_handle);
+    
+  if(result)
+    gavl_video_frame_copy(&vs->input_format, vs->still_frame_in, frame);
+  else
+    {
+    gavl_video_frame_copy(&vs->input_format, frame, vs->still_frame_in);
+    frame->timestamp = vs->still_frame_in->timestamp;
+    }
+  vs->still_frame_in->timestamp += vs->input_format.frame_duration;
+  result = 1;
+#ifdef DUMP_TIMESTAMPS
+  bg_debug("Input timestamp: %"PRId64"\n",
+           gavl_time_unscale(vs->input_format.timescale,
+                             frame->timestamp));
 #endif
   return result;
+    
   }
 
 int
@@ -548,63 +485,20 @@ bg_player_input_read_video(void * priv,
                            gavl_video_frame_t * frame, int stream)
   {
   int result;
-  bg_player_input_context_t * ctx;
-  ctx = (bg_player_input_context_t *)priv;
-
-  if(ctx->do_still)
-    {
-    gavl_video_format_t * format;
-    format = &ctx->player->video_stream.input_format;
-    if(!ctx->still_frame)
-      {
-      ctx->still_frame = gavl_video_frame_create(format);
-      ctx->still_frame->timestamp = 0;
-      }
-
-    bg_plugin_lock(ctx->plugin_handle);
-
-    if(ctx->plugin->has_still(ctx->priv, stream))
-      result = ctx->plugin->read_video(ctx->priv, frame,
-                                       stream);
-    
-    else
-      result = 0;
-    
-    bg_plugin_unlock(ctx->plugin_handle);
-    
-    if(result)
-      gavl_video_frame_copy(format, ctx->still_frame, frame);
-    else
-      {
-      gavl_video_frame_copy(format, frame, ctx->still_frame);
-      frame->timestamp = ctx->still_frame->timestamp;
-      }
-    ctx->still_frame->timestamp += format->frame_duration;
-    result = 1;
+  bg_player_t * p = priv;
 #ifdef DUMP_TIMESTAMPS
-    bg_debug("Input timestamp: %"PRId64"\n",
-             gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
-                               frame->timestamp));
+  bg_player_video_stream_t * vs = &p->video_stream;
 #endif
+  
+  bg_plugin_lock(p->input_handle);
+  result = p->input_plugin->read_video(p->input_priv, frame, stream);
+  bg_plugin_unlock(p->input_handle);
 
-    
-
-    }
-  else
-    {
-    bg_plugin_lock(ctx->plugin_handle);
-    result = ctx->plugin->read_video(ctx->priv, frame, stream);
-    bg_plugin_unlock(ctx->plugin_handle);
 #ifdef DUMP_TIMESTAMPS
-    bg_debug("Input timestamp: %"PRId64"\n",
-             gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
-                               frame->timestamp));
+  bg_debug("Input timestamp: %"PRId64"\n",
+           gavl_time_unscale(vs->input_format.timescale,
+                             frame->timestamp));
 #endif
-#ifdef DEBUG_COUNTER
-    if(result)
-      ctx->video_frame_counter++;
-#endif
-    }
   return result;
   }
 
@@ -613,15 +507,12 @@ bg_player_input_read_video_subtitle_only(void * priv,
                                          gavl_video_frame_t * frame,
                                          int stream)
   {
-  bg_player_input_context_t * ctx;
-  bg_player_video_stream_t * s;
-  ctx = (bg_player_input_context_t *)priv;
-  s = &(ctx->player->video_stream);
+  bg_player_t * p = priv;
+  bg_player_video_stream_t * vs = &p->video_stream;
   
-  gavl_video_frame_fill(frame, &s->output_format, ctx->bg_color);
+  gavl_video_frame_fill(frame, &vs->output_format, vs->bg_color);
   
-  frame->timestamp = (int64_t)ctx->video_frames_written *
-    ctx->player->video_stream.output_format.frame_duration;
+  frame->timestamp = (int64_t)vs->frames_read * vs->output_format.frame_duration;
   return 1;
   }
 
@@ -630,6 +521,7 @@ bg_player_input_read_video_subtitle_only(void * priv,
  *  the output plugin is ready
  */
 
+#if 0
 static int process_audio(bg_player_input_context_t * ctx, int preload)
   {
   gavl_audio_frame_t * audio_frame;
@@ -957,42 +849,40 @@ void * bg_player_input_thread(void * data)
 #endif
   return NULL;
   }
+#endif
 
 void * bg_player_input_thread_bypass(void * data)
   {
   bg_msg_t * msg;
-  bg_player_input_context_t * ctx;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 20;
-
-  ctx = (bg_player_input_context_t*)data;
-
-    
+  bg_player_t * p = data;
+  
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player, NULL, NULL, 0))
+    if(!bg_player_keep_going(p, NULL, NULL, 0))
       {
       return NULL;
       }
-    bg_plugin_lock(ctx->plugin_handle);
+    bg_plugin_lock(p->input_handle);
 
-    if(ctx->plugin->bypass && !ctx->plugin->bypass(ctx->priv))
+    if(p->input_plugin->bypass && !p->input_plugin->bypass(p->input_priv))
       {
-      bg_plugin_unlock(ctx->plugin_handle);
+      bg_plugin_unlock(p->input_handle);
       break;
       }
-    bg_plugin_unlock(ctx->plugin_handle);
+    bg_plugin_unlock(p->input_handle);
     
     gavl_time_delay(&delay_time);
     }
 
-  msg = bg_msg_queue_lock_write(ctx->player->command_queue);
+  msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
   bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING_STOP);
-  bg_msg_queue_unlock_write(ctx->player->command_queue);
+  bg_msg_queue_unlock_write(p->command_queue);
   return NULL;
   }
 
-
+#if 0
 void bg_player_input_preload(bg_player_input_context_t * ctx)
   {
   int do_audio;
@@ -1018,73 +908,73 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
       do_video = bg_player_input_process_video(ctx, 1);
     }
   }
+#endif
 
-void bg_player_input_seek(bg_player_input_context_t * ctx,
+
+void bg_player_input_seek(bg_player_t * p,
                           gavl_time_t * time, int scale)
   {
   int do_audio, do_video, do_subtitle;
-  bg_plugin_lock(ctx->plugin_handle);
-  ctx->plugin->seek(ctx->priv, time, scale);
-  bg_plugin_unlock(ctx->plugin_handle);
-#ifdef DEBUG_COUNTER
-  ctx->audio_sample_counter = 0;
-  ctx->video_frame_counter = 0;
-#endif  
+
+  bg_player_audio_stream_t * as;
+  bg_player_video_stream_t * vs;
+  bg_player_subtitle_stream_t * ss;
+
+  as = &p->audio_stream;
+  vs = &p->video_stream;
+  ss = &p->subtitle_stream;
   
-  ctx->audio_time = *time;
-  ctx->video_time = *time;
+  bg_plugin_lock(p->input_handle);
+  p->input_plugin->seek(p->input_priv, time, scale);
+  bg_plugin_unlock(p->input_handle);
   
-  ctx->audio_samples_written =
-    gavl_time_to_samples(ctx->player->audio_stream.input_format.samplerate,
-                         ctx->audio_time);
+  as->samples_read =
+    gavl_time_to_samples(as->input_format.samplerate, *time);
 
   // This wasn't set before if we switch streams or replug filters
-  ctx->has_first_audio_timestamp = 1;
+  as->has_first_timestamp_i = 1;
   
-  if(DO_SUBTITLE_ONLY(ctx->player->flags))
-    ctx->video_frames_written =
-      gavl_time_to_frames(ctx->player->video_stream.output_format.timescale,
-                          ctx->player->video_stream.output_format.frame_duration,
-                          ctx->video_time);
+  if(DO_SUBTITLE_ONLY(p->flags))
+    vs->frames_read =
+      gavl_time_to_frames(vs->output_format.timescale, vs->output_format.frame_duration,
+                          *time);
   else
     {
-    ctx->video_frames_written =
-      gavl_time_to_frames(ctx->player->video_stream.input_format.timescale,
-                          ctx->player->video_stream.input_format.frame_duration,
-                          ctx->video_time);
-    if(ctx->still_frame)
-      ctx->still_frame->timestamp =
-        gavl_time_scale(ctx->player->video_stream.input_format.timescale,
-                        *time);
+    vs->frames_written =
+      gavl_time_to_frames(vs->input_format.timescale, vs->input_format.frame_duration,
+                          *time);
+    if(vs->still_frame_in)
+      vs->still_frame_in->timestamp =
+        gavl_time_scale(vs->input_format.timescale, *time);
     }
   // Clear EOF states
-  do_audio = DO_AUDIO(ctx->player->flags);
-  do_video = DO_VIDEO(ctx->player->flags);
-  do_subtitle = DO_SUBTITLE(ctx->player->flags);
+  do_audio = DO_AUDIO(p->flags);
+  do_video = DO_VIDEO(p->flags);
+  do_subtitle = DO_SUBTITLE(p->flags);
   
-  ctx->subtitle_finished = !do_subtitle;
-  ctx->audio_finished = !do_audio;
-  ctx->video_finished = !do_video;
-  ctx->send_silence = 0;
+  ss->eof = !do_subtitle;
+  as->eof = !do_audio;
+  vs->eof = !do_video;
+  //  as->send_silence = 0;
   
   }
 
-void bg_player_input_bypass_set_volume(bg_player_input_context_t * ctx,
+void bg_player_input_bypass_set_volume(bg_player_t * p,
                                        float volume)
   {
-  bg_plugin_lock(ctx->plugin_handle);
-  if(ctx->plugin->bypass_set_volume)
-    ctx->plugin->bypass_set_volume(ctx->priv, volume);
-  bg_plugin_unlock(ctx->plugin_handle);
+  bg_plugin_lock(p->input_handle);
+  if(p->input_plugin->bypass_set_volume)
+    p->input_plugin->bypass_set_volume(p->input_priv, volume);
+  bg_plugin_unlock(p->input_handle);
   }
 
-void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
+void bg_player_input_bypass_set_pause(bg_player_t * p,
                                       int pause)
   {
-  bg_plugin_lock(ctx->plugin_handle);
-  if(ctx->plugin->bypass_set_pause)
-    ctx->plugin->bypass_set_pause(ctx->priv, pause);
-  bg_plugin_unlock(ctx->plugin_handle);
+  bg_plugin_lock(p->input_handle);
+  if(p->input_plugin->bypass_set_pause)
+    p->input_plugin->bypass_set_pause(p->input_priv, pause);
+  bg_plugin_unlock(p->input_handle);
   }
 
 /* Configuration stuff */
@@ -1132,14 +1022,12 @@ void bg_player_set_input_parameter(void * data, const char * name,
   if(!name)
     return;
 
-  pthread_mutex_lock(&(player->input_context->config_mutex));
-
+  pthread_mutex_lock(&(player->config_mutex));
   if(!strcmp(name, "do_bypass"))
-    player->input_context->do_bypass = val->val_i;
+    player->use_bypass = val->val_i;
   else if(!strcmp(name, "still_framerate"))
-    player->input_context->still_framerate = val->val_f;
-  
-  pthread_mutex_unlock(&(player->input_context->config_mutex));
+    player->still_framerate = val->val_f;
+  pthread_mutex_unlock(&(player->config_mutex));
   }
 
 struct msg_input_data
@@ -1162,11 +1050,10 @@ static void msg_input(bg_msg_t * msg, const void * data)
     }
   }
 
-void bg_player_input_send_messages(bg_player_input_context_t * ctx)
+void bg_player_input_send_messages(bg_player_t * p)
   {
   struct msg_input_data d;
-  d.handle = ctx->plugin_handle;
-  d.track = ctx->current_track;
-
-  bg_msg_queue_list_send(ctx->player->message_queues, msg_input, &d);
+  d.handle = p->input_handle;
+  d.track =  p->current_track;
+  bg_msg_queue_list_send(p->message_queues, msg_input, &d);
   }

@@ -36,63 +36,29 @@
 
 struct bg_player_ov_context_s
   {
-  bg_plugin_handle_t * plugin_handle;
-  bg_ov_plugin_t     * plugin;
-  void               * priv;
-  bg_player_t        * player;
-  bg_ov_callbacks_t callbacks;
-  gavl_video_frame_t * frame;
-  gavl_time_t frame_time;
-  //  gavl_time_t last_time; /* Last player time */
-  
-  gavl_video_frame_t * still_frame;
-  pthread_mutex_t     still_mutex;
-  
-  int still_shown;
-
-  gavl_overlay_t       current_subtitle;
-  gavl_overlay_t     * next_subtitle;
-  int subtitle_id; /* Stream id for subtitles in the output plugin */
-  int has_subtitle;
-
-  gavl_video_format_t osd_format;
-  
-  bg_osd_t * osd;
-  int osd_id;
-  gavl_overlay_t * osd_ovl;
-  
-  bg_msg_queue_t * msg_queue;
-  
-  int64_t frames_written;
-  
-  bg_accelerator_map_t * accel_map;
-
-  int64_t current_subtitle_time;
-  int64_t current_subtitle_duration;
-  int64_t next_subtitle_time;
   
   };
 
 static int accel_callback(void * data, int id)
   {
-  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  bg_player_accel_pressed(ctx->player, id);
+  bg_player_t * p = data;
+  bg_player_accel_pressed(p, id);
   return 1;
   }
 
 static int
 button_callback(void * data, int x, int y, int button, int mask)
   {
-  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
+  bg_player_t * p = data;
 
   if(button == 4)
     {
-    bg_player_seek_rel(ctx->player, 2 * GAVL_TIME_SCALE );
+    bg_player_seek_rel(p, 2 * GAVL_TIME_SCALE );
     return 1;
     }
   else if(button == 5)
     {
-    bg_player_seek_rel(ctx->player, - 2 * GAVL_TIME_SCALE );
+    bg_player_seek_rel(p, - 2 * GAVL_TIME_SCALE );
     return 1;
     }
   return 0;
@@ -100,24 +66,30 @@ button_callback(void * data, int x, int y, int button, int mask)
 
 static void brightness_callback(void * data, float val)
   {
-  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  bg_osd_set_brightness_changed(ctx->osd, val, ctx->frame_time);
+  bg_player_t * p = data;
+
+  bg_osd_set_brightness_changed(p->video_stream.osd, val,
+                                p->video_stream.frame_time);
   }
 
 static void saturation_callback(void * data, float val)
   {
-  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  bg_osd_set_saturation_changed(ctx->osd, val, ctx->frame_time);
+  bg_player_t * p = data;
+
+  bg_osd_set_saturation_changed(p->video_stream.osd, val,
+                                p->video_stream.frame_time);
   }
 
 static void contrast_callback(void * data, float val)
   {
-  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  bg_osd_set_contrast_changed(ctx->osd, val, ctx->frame_time);
+  bg_player_t * p = data;
+
+  bg_osd_set_contrast_changed(p->video_stream.osd, val,
+                              p->video_stream.frame_time);
   }
 
 static void
-handle_messages(bg_player_ov_context_t * ctx, gavl_time_t time)
+handle_messages(bg_player_video_stream_t * ctx, gavl_time_t time)
   {
   bg_msg_t * msg;
   int id;
@@ -139,102 +111,84 @@ handle_messages(bg_player_ov_context_t * ctx, gavl_time_t time)
       }
 
     bg_msg_queue_unlock_read(ctx->msg_queue);
-    
     }
-  }
-
-int  bg_player_ov_has_plugin(bg_player_ov_context_t * ctx)
-  {
-  return (ctx->plugin_handle ? 1 : 0);
-  }
-
-bg_plugin_handle_t * bg_player_ov_get_plugin(bg_player_ov_context_t * ctx)
-  {
-  return ctx->plugin_handle;
   }
 
 /* Create frame */
 
-void * bg_player_ov_create_frame(void * data)
+static gavl_video_frame_t * create_frame(bg_player_video_stream_t * s)
   {
   gavl_video_frame_t * ret;
-  bg_player_ov_context_t * ctx;
-  ctx = (bg_player_ov_context_t *)data;
 
-  if(ctx->plugin->create_frame)
+  if(s->plugin->create_frame)
     {
-    bg_plugin_lock(ctx->plugin_handle);
-    ret = ctx->plugin->create_frame(ctx->priv);
-    bg_plugin_unlock(ctx->plugin_handle);
+    bg_plugin_lock(s->plugin_handle);
+    ret = s->plugin->create_frame(s->priv);
+    bg_plugin_unlock(s->plugin_handle);
     }
   else
-    ret = gavl_video_frame_create(&(ctx->player->video_stream.output_format));
+    ret = gavl_video_frame_create(&s->output_format);
 
-  gavl_video_frame_clear(ret, &(ctx->player->video_stream.output_format));
+  gavl_video_frame_clear(ret, &(s->output_format));
   
   return (void*)ret;
   }
 
-void bg_player_ov_destroy_frame(void * data, void * frame)
+static void destroy_frame(bg_player_video_stream_t * s,
+                          gavl_video_frame_t * frame)
   {
-  bg_player_ov_context_t * ctx;
-  ctx = (bg_player_ov_context_t *)data;
-  
-  if(ctx->plugin->destroy_frame)
+  if(s->plugin->destroy_frame)
     {
-    bg_plugin_lock(ctx->plugin_handle);
-    ctx->plugin->destroy_frame(ctx->priv, (gavl_video_frame_t*)frame);
-    bg_plugin_unlock(ctx->plugin_handle);
+    bg_plugin_lock(s->plugin_handle);
+    s->plugin->destroy_frame(s->priv, frame);
+    bg_plugin_unlock(s->plugin_handle);
     }
   else
-    gavl_video_frame_destroy((gavl_video_frame_t*)frame);
+    gavl_video_frame_destroy(frame);
   }
 
-static gavl_overlay_t * create_overlay(void * data, int id)
+static gavl_overlay_t * create_overlay(bg_player_video_stream_t * vs,
+                                       int id)
   {
-  bg_player_ov_context_t * ctx;
   gavl_overlay_t * ret;
-  ctx = (bg_player_ov_context_t *)data;
-
-  if(ctx->plugin->create_overlay)
+  
+  if(vs->plugin->create_overlay)
     {
-    bg_plugin_lock(ctx->plugin_handle);
-    ret = ctx->plugin->create_overlay(ctx->priv, id);
-    bg_plugin_unlock(ctx->plugin_handle);
+    bg_plugin_lock(vs->plugin_handle);
+    ret = vs->plugin->create_overlay(vs->priv, id);
+    bg_plugin_unlock(vs->plugin_handle);
     }
   else
     {
     ret = calloc(1, sizeof(*ret));
 
-    if(id == ctx->subtitle_id)
+    if(id == vs->subtitle_id)
       ret->frame =
-        gavl_video_frame_create(&(ctx->player->subtitle_stream.output_format));
+        gavl_video_frame_create(&(vs->ss->output_format));
     else
       ret->frame =
-        gavl_video_frame_create(&(ctx->osd_format));
+        gavl_video_frame_create(&(vs->osd_format));
     }
 
-  if(id == ctx->subtitle_id)
+  if(id == vs->subtitle_id)
     gavl_video_frame_clear(ret->frame,
-                           &(ctx->player->subtitle_stream.output_format));
+                           &(vs->ss->output_format));
   else
     gavl_video_frame_clear(ret->frame,
-                           &(ctx->osd_format));
+                           &(vs->osd_format));
     
   
   return ret;
   }
 
-static void destroy_overlay(void * data, int id, gavl_overlay_t * ovl)
+static void destroy_overlay(bg_player_video_stream_t * vs,
+                            int id, gavl_overlay_t * ovl)
   {
-  bg_player_ov_context_t * ctx;
-  ctx = (bg_player_ov_context_t *)data;
-  
-  if(ctx->plugin->destroy_overlay)
+  if(vs->plugin->destroy_overlay)
     {
-    bg_plugin_lock(ctx->plugin_handle);
-    ctx->plugin->destroy_overlay(ctx->priv, id, ovl);
-    bg_plugin_unlock(ctx->plugin_handle);
+    bg_plugin_lock(vs->plugin_handle);
+    vs->plugin->destroy_overlay(vs->priv, id, ovl);
+    bg_plugin_unlock(vs->plugin_handle);
     }
   else
     {
@@ -244,26 +198,12 @@ static void destroy_overlay(void * data, int id, gavl_overlay_t * ovl)
   }
 
 
-void * bg_player_ov_create_subtitle_overlay(void * data)
-  {
-  bg_player_ov_context_t * ctx;
-  ctx = (bg_player_ov_context_t *)data;
-  return create_overlay(ctx, ctx->subtitle_id);
-  }
-
-void bg_player_ov_destroy_subtitle_overlay(void * data, void * frame)
-  {
-  bg_player_ov_context_t * ctx;
-  ctx = (bg_player_ov_context_t *)data;
-  destroy_overlay(ctx, ctx->subtitle_id, frame);
-  }
 
 void bg_player_ov_create(bg_player_t * player)
   {
-  bg_player_ov_context_t * ctx;
+  bg_player_video_stream_t * ctx = &player->video_stream;
   ctx = calloc(1, sizeof(*ctx));
-  ctx->player = player;
-
+  
   ctx->msg_queue = bg_msg_queue_create();
   ctx->accel_map = bg_accelerator_map_create();
   
@@ -278,34 +218,30 @@ void bg_player_ov_create(bg_player_t * player)
   ctx->callbacks.saturation_callback = saturation_callback;
   ctx->callbacks.contrast_callback   = contrast_callback;
   
-  ctx->callbacks.data      = ctx;
+  ctx->callbacks.data      = player;
   ctx->callbacks.accel_map = ctx->accel_map;
   
-  player->ov_context = ctx;
-
   ctx->osd = bg_osd_create();
   }
 
 void bg_player_add_accelerators(bg_player_t * player, const bg_accelerator_t * list)
   {
-  if(player->ov_context->plugin_handle)
-    bg_plugin_lock(player->ov_context->plugin_handle);
+  if(player->video_stream.plugin_handle)
+    bg_plugin_lock(player->video_stream.plugin_handle);
 
-  bg_accelerator_map_append_array(player->ov_context->accel_map, list);
+  bg_accelerator_map_append_array(player->video_stream.accel_map, list);
   
-  if(player->ov_context->plugin_handle)
-    bg_plugin_unlock(player->ov_context->plugin_handle);
+  if(player->video_stream.plugin_handle)
+    bg_plugin_unlock(player->video_stream.plugin_handle);
   }
 
 
-void bg_player_ov_standby(bg_player_ov_context_t * ctx)
+void bg_player_ov_standby(bg_player_video_stream_t * ctx)
   {
-  
   if(!ctx->plugin_handle)
     return;
 
   bg_plugin_lock(ctx->plugin_handle);
-
   if(ctx->plugin->show_window)
     ctx->plugin->show_window(ctx->priv, 0);
   bg_plugin_unlock(ctx->plugin_handle);
@@ -314,9 +250,9 @@ void bg_player_ov_standby(bg_player_ov_context_t * ctx)
 
 void bg_player_ov_set_plugin(bg_player_t * player, bg_plugin_handle_t * handle)
   {
-  bg_player_ov_context_t * ctx;
+  bg_player_video_stream_t * ctx;
 
-  ctx = player->ov_context;
+  ctx = &player->video_stream;
 
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
@@ -337,107 +273,93 @@ void bg_player_ov_set_plugin(bg_player_t * player, bg_plugin_handle_t * handle)
 
 void bg_player_ov_destroy(bg_player_t * player)
   {
-  bg_player_ov_context_t * ctx;
-  
-  ctx = player->ov_context;
+  bg_player_video_stream_t * ctx = &player->video_stream;
   
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
   bg_osd_destroy(ctx->osd);
-
+  
   bg_accelerator_map_destroy(ctx->accel_map);
 
   bg_msg_queue_destroy(ctx->msg_queue);
   
-  free(ctx);
   }
 
-int bg_player_ov_init(bg_player_ov_context_t * ctx)
+int bg_player_ov_init(bg_player_video_stream_t * vs)
   {
   int result;
   
-  ctx->next_subtitle    = (gavl_overlay_t*)0;
-  ctx->has_subtitle = 0;
+  vs->next_subtitle    = (gavl_overlay_t*)0;
+  vs->has_subtitle = 0;
 
-  bg_plugin_lock(ctx->plugin_handle);
-  result = ctx->plugin->open(ctx->priv,
-                             &(ctx->player->video_stream.output_format), 1);
+  bg_plugin_lock(vs->plugin_handle);
+  result = vs->plugin->open(vs->priv,
+                             &(vs->output_format), 1);
   
-  ctx->plugin->set_window_title(ctx->priv, "Video output");
+  vs->plugin->set_window_title(vs->priv, "Video output");
   
-  if(result && ctx->plugin->show_window)
-    ctx->plugin->show_window(ctx->priv, 1);
+  if(result && vs->plugin->show_window)
+    vs->plugin->show_window(vs->priv, 1);
   else if(!result)
     return result;
   
-  memset(&(ctx->osd_format), 0, sizeof(ctx->osd_format));
+  memset(&(vs->osd_format), 0, sizeof(vs->osd_format));
   
-  bg_osd_init(ctx->osd, &(ctx->player->video_stream.output_format),
-              &ctx->osd_format);
+  bg_osd_init(vs->osd, &(vs->output_format),
+              &vs->osd_format);
   /* Fixme: Lets just hope, that the OSD format doesn't get changed
      by this call. Otherwise, we would need a gavl_video_converter */
-  ctx->osd_id = ctx->plugin->add_overlay_stream(ctx->priv,
-                                                &ctx->osd_format);
+  vs->osd_id = vs->plugin->add_overlay_stream(vs->priv,
+                                                &vs->osd_format);
 
   /* create_overlay needs the lock again */
-  bg_plugin_unlock(ctx->plugin_handle);
+  bg_plugin_unlock(vs->plugin_handle);
   
   
-  ctx->osd_ovl = create_overlay(ctx, ctx->osd_id);
-  bg_osd_set_overlay(ctx->osd, ctx->osd_ovl);
-  ctx->frames_written = 0;
+  vs->osd_ovl = create_overlay(vs, vs->osd_id);
+  bg_osd_set_overlay(vs->osd, vs->osd_ovl);
+  vs->frames_written = 0;
   return result;
   }
 
-void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
+void bg_player_ov_update_still(bg_player_video_stream_t * ctx)
   {
-  bg_fifo_state_t state;
 
   pthread_mutex_lock(&ctx->still_mutex);
-
-  if(ctx->frame)
-    {
-    //    fprintf(stderr, "Unlock read\n");
-    bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-    }
-  //  fprintf(stderr, "Lock read\n");
-  ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
-
+  
   if(!ctx->still_frame)
     {
-    ctx->still_frame = bg_player_ov_create_frame(ctx);
+    ctx->still_frame = create_frame(ctx);
     }
   
   if(ctx->frame)
     {
-    gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
+    gavl_video_frame_copy(&(ctx->output_format),
                           ctx->still_frame, ctx->frame);
-    //    fprintf(stderr, "Unlock read\n");
-    bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-    ctx->frame = (gavl_video_frame_t*)0;
     }
   else
     {
     gavl_video_frame_clear(ctx->still_frame,
-                           &(ctx->player->video_stream.output_format));
+                           &(ctx->output_format));
     }
   
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->put_still(ctx->priv, ctx->still_frame);
   bg_plugin_unlock(ctx->plugin_handle);
-
   
   pthread_mutex_unlock(&ctx->still_mutex);
   }
 
-void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
+void bg_player_ov_cleanup(bg_player_video_stream_t * ctx)
   {
   pthread_mutex_lock(&ctx->still_mutex);
   if(ctx->still_frame)
     {
-    bg_player_ov_destroy_frame(ctx, ctx->still_frame);
+    destroy_frame(ctx, ctx->still_frame);
     ctx->still_frame = (gavl_video_frame_t*)0;
     }
+  pthread_mutex_unlock(&ctx->still_mutex);
+  
   if(ctx->current_subtitle.frame)
     {
     gavl_video_frame_destroy(ctx->current_subtitle.frame);
@@ -449,18 +371,15 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
     ctx->osd_ovl = (gavl_overlay_t*)0;
     }
   
-  pthread_mutex_unlock(&ctx->still_mutex);
-
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->close(ctx->priv);
   bg_plugin_unlock(ctx->plugin_handle);
-
   }
 
 void bg_player_ov_reset(bg_player_t * player)
   {
-  bg_player_ov_context_t * ctx;
-  ctx = player->ov_context;
+  bg_player_video_stream_t * ctx;
+  ctx = &player->video_stream;
   if(ctx->has_subtitle)
     {
     ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
@@ -470,7 +389,7 @@ void bg_player_ov_reset(bg_player_t * player)
   ctx->frame = NULL;
   }
 
-void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
+void bg_player_ov_update_aspect(bg_player_video_stream_t * ctx,
                                 int pixel_width, int pixel_height)
   {
   bg_plugin_lock(ctx->plugin_handle);
@@ -480,46 +399,38 @@ void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
   }
 
 /* Set this extra because we must initialize subtitles after the video output */
-void bg_player_ov_set_subtitle_format(void * data)
+void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * ctx)
   {
-  bg_player_ov_context_t * ctx;
-  ctx = (bg_player_ov_context_t*)data;
-  
-  gavl_video_format_copy(&ctx->player->subtitle_stream.output_format,
-                         &ctx->player->subtitle_stream.input_format);
+  gavl_video_format_copy(&ctx->ss->output_format,
+                         &ctx->ss->input_format);
   
   /* Add subtitle stream for plugin */
   
   ctx->subtitle_id =
     ctx->plugin->add_overlay_stream(ctx->priv,
-                                    &ctx->player->subtitle_stream.output_format);
+                                    &ctx->ss->output_format);
   
   /* Allocate private overlay frame */
   ctx->current_subtitle.frame =
-    gavl_video_frame_create(&ctx->player->subtitle_stream.output_format);
+    gavl_video_frame_create(&ctx->ss->output_format);
   }
 
-
-
-static void ping_func(void * data)
+#if 0
+static void ping_func(bg_player_video_stream_t * ctx)
   {
-  bg_player_ov_context_t * ctx;
-  ctx = (bg_player_ov_context_t*)data;
   pthread_mutex_lock(&ctx->still_mutex);
   
   if(!ctx->still_shown)
     {
     if(ctx->frame)
       {
-      ctx->still_frame = bg_player_ov_create_frame(data);
+      ctx->still_frame = create_frame(ctx);
       
-      gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
+      gavl_video_frame_copy(&(ctx->output_format),
                             ctx->still_frame, ctx->frame);
       //      fprintf(stderr, "Unlock read\n");
-      bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-      ctx->frame = (gavl_video_frame_t*)0;
-      bg_plugin_lock(ctx->plugin_handle);
       
+      bg_plugin_lock(ctx->plugin_handle);
       ctx->plugin->put_still(ctx->priv, ctx->still_frame);
       bg_plugin_unlock(ctx->plugin_handle);
       }
@@ -532,17 +443,19 @@ static void ping_func(void * data)
   
   pthread_mutex_unlock(&ctx->still_mutex);
   }
+#endif
 
-static void handle_subtitle(bg_player_ov_context_t * ctx)
+#if 0
+static void handle_subtitle(bg_player_video_stream_t * ctx)
   {
-  bg_fifo_state_t state;
   gavl_overlay_t tmp_overlay;
   
   /* Try to get next subtitle */
-  if(!ctx->next_subtitle)
+  if(!vs->next_subtitle)
     {
-    ctx->next_subtitle = bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
-                                               &state);
+    vs->next_subtitle =
+      bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
+                            &state);
     if(ctx->next_subtitle)
       ctx->next_subtitle_time =
         gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
@@ -590,83 +503,55 @@ static void handle_subtitle(bg_player_ov_context_t * ctx)
     }
   }
 
+#endif
+
 void * bg_player_ov_thread(void * data)
   {
-  int eof;
+  int state;
   
-  bg_player_ov_context_t * ctx;
+  bg_player_video_stream_t * ctx;
   gavl_time_t diff_time;
   gavl_time_t current_time;
-  bg_fifo_state_t state;
-  int interrupt = 0;
-  int have_next_frame;
   
-  ctx = (bg_player_ov_context_t*)data;
-
-  bg_player_add_message_queue(ctx->player,
-                              ctx->msg_queue);
+  bg_player_t * p = data;
+  
+  ctx = &p->video_stream;
+  
+  bg_player_add_message_queue(p, ctx->msg_queue);
   
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player, ping_func, ctx, interrupt))
+    if(!bg_player_read_video(p, ctx->frame, &state))
       {
-      break;
+      if(state == BG_PLAYER_STATE_PLAYING)
+        {
+        /* EOF */
+        }
+      else
+        {
+        /* Wait for restart or quit */
+        }
       }
-
     pthread_mutex_lock(&ctx->still_mutex);
     if(ctx->still_frame)
       {
-      bg_player_ov_destroy_frame(data, ctx->still_frame);
+      destroy_frame(data, ctx->still_frame);
       ctx->still_frame = (gavl_video_frame_t*)0;
       }
     pthread_mutex_unlock(&ctx->still_mutex);
     
     ctx->still_shown = 0;
     
-    have_next_frame =
-      bg_fifo_test_read(ctx->player->video_stream.fifo,
-                        &state, &eof);
-
-    if(!have_next_frame)
-      {
-      if((state != BG_FIFO_PLAYING) || eof)
-        interrupt = 1;
-      continue;
-      }
-    
-    if(ctx->frame)
-      {
-      //      fprintf(stderr, "Unlock read\n");
-      bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-      ctx->frame = (gavl_video_frame_t*)0;
-      }
-
-    //    fprintf(stderr, "Lock read\n");
-    ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
-    
-    if(!ctx->frame)
-      {
-      if(state == BG_FIFO_STOPPED) 
-        {
-        break;
-        }
-      else if(state == BG_FIFO_PAUSED)
-        {
-        interrupt = 1;
-        continue;
-        }
-      break;
-      }
-
     /* Get frame time */
-    ctx->frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
-                                        ctx->frame->timestamp);
 
+    ctx->frame_time =
+      gavl_time_unscale(ctx->output_format.timescale,
+                        ctx->frame->timestamp);
     
     /* Subtitle handling */
-    if(DO_SUBTITLE(ctx->player->flags))
+    if(DO_SUBTITLE(p->flags))
       {
-      handle_subtitle(ctx);
+      //      handle_subtitle(ctx);
       }
     /* Handle message */
     handle_messages(ctx, ctx->frame_time);
@@ -679,7 +564,7 @@ void * bg_player_ov_thread(void * data)
       ctx->plugin->set_overlay(ctx->priv, ctx->osd_id, (gavl_overlay_t*)0);
     
     /* Check Timing */
-    bg_player_time_get(ctx->player, 1, &current_time);
+    bg_player_time_get(p, 1, &current_time);
 
     diff_time =  ctx->frame_time - current_time;
     
@@ -697,9 +582,9 @@ void * bg_player_ov_thread(void * data)
       {
       }
 
-    if(ctx->player->time_update_mode == TIME_UPDATE_FRAME)
+    if(p->time_update_mode == TIME_UPDATE_FRAME)
       {
-      bg_player_broadcast_time(ctx->player, ctx->frame_time);
+      bg_player_broadcast_time(p, ctx->frame_time);
       }
     
     bg_plugin_lock(ctx->plugin_handle);
@@ -710,20 +595,18 @@ void * bg_player_ov_thread(void * data)
     bg_plugin_unlock(ctx->plugin_handle);
     }
 
-
-
-  bg_player_delete_message_queue(ctx->player,
+  bg_player_delete_message_queue(p,
                               ctx->msg_queue);
   return NULL;
   }
 
 const bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * p)
   {
-  return bg_osd_get_parameters(p->ov_context->osd);
+  return bg_osd_get_parameters(p->video_stream.osd);
   }
 
 void bg_player_set_osd_parameter(void * data, const char * name, const bg_parameter_value_t*val)
   {
-  bg_player_t * p = (bg_player_t *)data;
-  bg_osd_set_parameter(p->ov_context->osd, name, val);
+  bg_player_t * p = data;
+  bg_osd_set_parameter(p->video_stream.osd, name, val);
   }

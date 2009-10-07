@@ -54,13 +54,24 @@ int bg_x11_window_add_overlay_stream(bg_x11_window_t * w,
   return w->num_overlay_streams - 1;
   }
 
-void bg_x11_window_set_overlay(bg_x11_window_t * w, int stream, gavl_overlay_t * ovl)
+void bg_x11_window_set_overlay(bg_x11_window_t * w, int stream,
+                               gavl_overlay_t * ovl)
   {
+  int i;
   w->overlay_streams[stream].ovl = ovl;
   if(w->current_driver->driver->set_overlay)
     w->current_driver->driver->set_overlay(w->current_driver, stream, ovl);
   else
     gavl_overlay_blend_context_set_overlay(w->overlay_streams[stream].ctx, ovl);
+  w->has_overlay = 0;
+  for(i = 0; i < w->num_overlay_streams; i++)
+    {
+    if(w->overlay_streams[i].ovl)
+      {
+      w->has_overlay = 1;
+      break;
+      }
+    }
   }
 
 gavl_overlay_t *

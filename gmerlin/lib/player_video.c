@@ -29,14 +29,16 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "player.video"
 
-void bg_player_video_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
+void bg_player_video_create(bg_player_t * p,
+                            bg_plugin_registry_t * plugin_reg)
   {
   bg_gavl_video_options_init(&(p->video_stream.options));
   p->video_stream.fc =
     bg_video_filter_chain_create(&p->video_stream.options,
                                  plugin_reg);
   
-  pthread_mutex_init(&(p->video_stream.config_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&(p->video_stream.config_mutex),NULL);
+  p->video_stream.ss = &p->subtitle_stream;
   }
 
 void bg_player_video_destroy(bg_player_t * p)
@@ -51,8 +53,12 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   bg_player_video_stream_t * s;
   s = &(player->video_stream);
 
-  s->in_func = bg_player_input_read_video;
-  s->in_data = player->input_context;
+  if(s->do_still)
+    s->in_func = bg_player_input_read_video_still;
+  else
+    s->in_func = bg_player_input_read_video;
+
+  s->in_data = player;
   s->in_stream = player->current_video_stream;
   
   if(!DO_VIDEO(player->flags))
@@ -60,7 +66,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   
   if(!DO_SUBTITLE_ONLY(player->flags))
     {
-    bg_player_input_get_video_format(player->input_context);
+    bg_player_input_get_video_format(player);
     
     bg_video_filter_chain_connect_input(s->fc, s->in_func,
                                         s->in_data, s->in_stream);
@@ -72,35 +78,21 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     s->in_stream = 0;
     }
   
-  if(!bg_player_ov_init(player->ov_context))
+  if(!bg_player_ov_init(&player->video_stream))
     return 0;
 
   if(!DO_SUBTITLE_ONLY(player->flags))
     bg_video_filter_chain_set_out_format(s->fc, &(s->output_format));
   
-  /* Initialize video fifo */
-
-  if(DO_VIDEO(player->flags))
-    {
-    if(s->input_format.framerate_mode == GAVL_FRAMERATE_STILL)
-      s->fifo = bg_fifo_create(2,
-                               bg_player_ov_create_frame,
-                               (void*)(player->ov_context), player->finish_mode);
-    else 
-      s->fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
-                               bg_player_ov_create_frame,
-                               (void*)(player->ov_context), player->finish_mode);
-    }
-  
   if(DO_SUBTITLE_ONLY(player->flags))
     {
     /* Video output already initialized */
-    bg_player_ov_set_subtitle_format(player->ov_context);
+    bg_player_ov_set_subtitle_format(&player->video_stream);
 
     bg_player_subtitle_init_converter(player);
     
     s->in_func = bg_player_input_read_video_subtitle_only;
-    s->in_data = player->input_context;
+    s->in_data = player;
     s->in_stream = 0;
     }
   
@@ -109,12 +101,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
 
 void bg_player_video_cleanup(bg_player_t * player)
   {
-  if(player->video_stream.fifo)
-    {
-    bg_fifo_destroy(player->video_stream.fifo, bg_player_ov_destroy_frame,
-                    (void*)(player->ov_context));
-    player->video_stream.fifo = (bg_fifo_t*)0;
-    }
+  
   }
 
 /* Configuration stuff */
@@ -149,25 +136,6 @@ const bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * p)
   {
   return parameters;
   }
-
-#if 0
-void bg_player_set_video_parameter(void * data, char * name,
-                                   bg_parameter_value_t * val)
-  {
-  bg_player_t * player = (bg_player_t*)data;
-
-  if(!name)
-    return;
-
-  pthread_mutex_lock(&(player->video_stream.config_mutex));
-
-  bg_gavl_video_set_parameter(&(player->video_stream.options),
-                              name, val);
-  
-  pthread_mutex_unlock(&(player->video_stream.config_mutex));
-
-  }
-#endif
 
 void bg_player_set_video_parameter(void * data, const char * name,
                                    const bg_parameter_value_t * val)
@@ -276,4 +244,18 @@ void bg_player_set_video_filter_parameter(void * data, const char * name,
     }
 
   
+  }
+
+int
+bg_player_read_video(bg_player_t * p, gavl_video_frame_t * frame,
+                     int * state)
+  {
+  bg_player_video_stream_t * s = &p->video_stream;
+  
+  *state = bg_player_get_state(p);
+  
+  if(*state != BG_PLAYER_STATE_PLAYING)
+    return 0;
+  
+  return s->in_func(s->in_data, frame, s->in_stream);
   }
