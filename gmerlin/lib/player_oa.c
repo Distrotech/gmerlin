@@ -193,9 +193,14 @@ void * bg_player_oa_thread(void * data)
   s = &(p->audio_stream);
   
   /* Wait for playback */
+
+  bg_player_thread_wait_for_start(s->th);
   
   while(1)
     {
+    if(!bg_player_thread_check(s->th))
+      break;
+    
     if(!bg_player_read_audio(p, s->fifo_frame, &state))
       {
       if(state == BG_PLAYER_STATE_PLAYING)

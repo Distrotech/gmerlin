@@ -474,6 +474,8 @@ void bg_player_video_destroy(bg_player_t * p);
 int bg_player_read_video(bg_player_t * p,
                          gavl_video_frame_t * frame, int * state);
 
+void bg_player_video_set_eof(bg_player_t * p);
+
 
 /* player_oa.c */
 
@@ -510,6 +512,8 @@ void bg_player_set_oa_plugin_internal(bg_player_t * player,
                                       bg_plugin_handle_t * handle);
 
 int bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame, int * state);
+
+void bg_player_audio_set_eof(bg_player_t * p);
 
 
 /* player_subtitle.c */

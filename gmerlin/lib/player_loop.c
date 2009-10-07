@@ -284,17 +284,10 @@ static void preload(bg_player_t * p)
 
 /* Start playback */
 
-static void start_playback(bg_player_t * p, int new_state)
+static void start_playback(bg_player_t * p)
   {
-  int want_new;
-  if(new_state == BG_PLAYER_STATE_CHANGING)
-    {
-    want_new = 0;
-    bg_player_set_state(p, new_state, &want_new, NULL);
-    }
-  else if(new_state == BG_PLAYER_STATE_PLAYING)
-    bg_player_set_state(p, new_state, &p->can_pause, NULL);
-  
+  bg_player_set_state(p, BG_PLAYER_STATE_PLAYING, &p->can_pause, NULL);
+    
   /* Start timer */
   
   bg_player_time_start(p);
@@ -332,7 +325,7 @@ static void pause_cmd(bg_player_t * p)
     if(p->do_bypass)
       bg_player_input_bypass_set_pause(p, 0);
 
-    start_playback(p, BG_PLAYER_STATE_PLAYING);
+    start_playback(p);
     }
   }
 
@@ -634,7 +627,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
       bg_player_ov_update_still(&p->video_stream);
     }
   else
-    start_playback(p, BG_PLAYER_STATE_PLAYING);
+    start_playback(p);
   
   /* Set start time to zero */
 
@@ -690,9 +683,7 @@ static void cleanup_playback(bg_player_t * player,
     case BG_PLAYER_STATE_PAUSED:
     case BG_PLAYER_STATE_SEEKING:
     case BG_PLAYER_STATE_BUFFERING:
-      /* If the threads are sleeping, wake them up now so they'll end */
-      start_playback(player, new_state);
-    case BG_PLAYER_STATE_PLAYING: // Fall through
+    case BG_PLAYER_STATE_PLAYING:
       bg_player_threads_join(player->threads, PLAYER_MAX_THREADS);
       
       if(DO_AUDIO(player->flags))
@@ -882,7 +873,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
     // bg_player_input_bypass_set_pause(p->input_context, 1);
     }
   else
-    start_playback(player, BG_PLAYER_STATE_PLAYING);
+    start_playback(player);
   }
 
 static void set_audio_stream_cmd(bg_player_t * player, int stream)

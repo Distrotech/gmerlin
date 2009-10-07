@@ -86,6 +86,8 @@ void bg_player_thread_set_func(bg_player_thread_t * th,
   {
   th->func = func;
   th->arg = arg;
+  th->do_pause = 0;
+  th->do_stop = 0;
   }
 
 void bg_player_threads_init(bg_player_thread_t ** th, int num)
@@ -152,6 +154,11 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
       pthread_mutex_unlock(&th[i]->mutex);
       }
     }
+
+  /* Start the threads if they where paused.
+     If not paused, this call does no harm */
+  bg_player_threads_start(th, num);
+  
   for(i = 0; i < num; i++)
     {
     if(th[i]->func)
@@ -162,12 +169,21 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
   }
 /* called from within the thread */
 
-void bg_player_thread_wait_for_start(bg_player_thread_t * th)
+int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   {
   pthread_mutex_lock(&th->com->start_mutex);
   sem_post(&th->sem);
   pthread_cond_wait(&th->com->start_cond, &th->com->start_mutex);
   pthread_mutex_unlock(&th->com->start_mutex);
+
+  pthread_mutex_lock(&th->mutex);
+  if(th->do_stop)
+    {
+    pthread_mutex_unlock(&th->mutex);
+    return 0;
+    }
+  pthread_mutex_unlock(&th->mutex);
+  return 1;
   }
 
 int bg_player_thread_check(bg_player_thread_t * th)
@@ -189,8 +205,7 @@ int bg_player_thread_check(bg_player_thread_t * th)
     th->do_pause = 0;
     pthread_mutex_unlock(&th->mutex);
     
-    bg_player_thread_wait_for_start(th);
+    return bg_player_thread_wait_for_start(th);
     }
-
   return 1;
   }

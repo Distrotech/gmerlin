@@ -516,11 +516,16 @@ void * bg_player_ov_thread(void * data)
   bg_player_t * p = data;
   
   ctx = &p->video_stream;
-  
+
   bg_player_add_message_queue(p, ctx->msg_queue);
+
+  bg_player_thread_wait_for_start(ctx->th);
   
   while(1)
     {
+    if(!bg_player_thread_check(ctx->th))
+      break;
+
     if(!bg_player_read_video(p, ctx->frame, &state))
       {
       if(state == BG_PLAYER_STATE_PLAYING)

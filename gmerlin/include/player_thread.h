@@ -51,6 +51,6 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num);
    If the thread was paused, this function blocks until we restart */
    
 int bg_player_thread_check(bg_player_thread_t * th);
-void bg_player_thread_wait_for_start(bg_player_thread_t * th);
+int bg_player_thread_wait_for_start(bg_player_thread_t * th);
 
 
