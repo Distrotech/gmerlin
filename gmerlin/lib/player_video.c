@@ -42,20 +42,28 @@ void bg_player_video_create(bg_player_t * p,
                                        plugin_reg);
   
   pthread_mutex_init(&s->config_mutex,NULL);
+  pthread_mutex_init(&s->eof_mutex,NULL);
   s->ss = &p->subtitle_stream;
-  s->osd = bg_osd_create();
   s->msg_queue = bg_msg_queue_create();
+  
+  s->accel_map = bg_accelerator_map_create();
+  pthread_mutex_init(&(s->still_mutex),(pthread_mutexattr_t *)0);
+  s->osd = bg_osd_create();
+  
   }
 
 void bg_player_video_destroy(bg_player_t * p)
   {
   bg_player_video_stream_t * s = &p->video_stream;
   pthread_mutex_destroy(&s->config_mutex);
+  pthread_mutex_destroy(&s->eof_mutex);
   bg_gavl_video_options_free(&s->options);
   bg_video_filter_chain_destroy(s->fc);
   bg_player_thread_destroy(s->th);
-  bg_osd_destroy(s->osd);
   bg_msg_queue_destroy(s->msg_queue);
+
+  bg_osd_destroy(s->osd);
+  bg_accelerator_map_destroy(s->accel_map);
   }
 
 int bg_player_video_init(bg_player_t * player, int video_stream)
@@ -268,4 +276,26 @@ bg_player_read_video(bg_player_t * p, gavl_video_frame_t * frame,
     return 0;
   
   return s->in_func(s->in_data, frame, s->in_stream);
+  }
+
+void bg_player_video_set_eof(bg_player_t * p)
+  {
+  bg_msg_t * msg;
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Detected EOF");
+  pthread_mutex_lock(&p->video_stream.eof_mutex);
+  pthread_mutex_lock(&p->audio_stream.eof_mutex);
+
+  p->video_stream.eof = 1;
+  
+  if(p->audio_stream.eof)
+    {
+    msg = bg_msg_queue_lock_write(p->command_queue);
+    bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
+    bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_EOF);
+    bg_msg_queue_unlock_write(p->command_queue);
+    }
+  
+  pthread_mutex_unlock(&p->audio_stream.eof_mutex);
+  pthread_mutex_unlock(&p->video_stream.eof_mutex);
   }

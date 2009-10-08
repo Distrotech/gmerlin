@@ -117,6 +117,7 @@ typedef struct
   int has_first_timestamp_o;
   int has_first_timestamp_i;
 
+  pthread_mutex_t eof_mutex;
   int eof;
 
   bg_player_thread_t * th;
@@ -128,8 +129,6 @@ typedef struct
   bg_text_renderer_t * renderer;
   gavl_video_converter_t * cnv;
   int do_convert;
-  
-  //  bg_fifo_t * fifo;
 
   pthread_mutex_t config_mutex;
   
@@ -152,8 +151,6 @@ typedef struct
 
 typedef struct
   {
-  //  bg_fifo_t * fifo;
-  
   bg_video_filter_chain_t * fc;
   
   bg_read_video_func_t in_func;
@@ -215,6 +212,7 @@ typedef struct
   int do_still;
   
   int eof;
+  pthread_mutex_t eof_mutex;
   
   float bg_color[4];
 

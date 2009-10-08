@@ -202,23 +202,14 @@ void * bg_player_oa_thread(void * data)
     
     if(!bg_player_read_audio(p, s->fifo_frame, &state))
       {
-      if(state == BG_PLAYER_STATE_PLAYING)
-        {
-        /* EOF */
-        }
-      else
-        {
-        /* Wait for restart or quit */
-        }
+      bg_player_audio_set_eof(p);
+      if(!bg_player_thread_wait_for_start(s->th))
+        break;
+      continue;
       }
-
+    
     process_frame(p, s->fifo_frame);
     
-#if 1
-
-    //    
-    
-#endif
     if(s->fifo_frame->valid_samples)
       {
       if(s->do_convert_out)

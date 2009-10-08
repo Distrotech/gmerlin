@@ -1180,8 +1180,10 @@ static int process_commands(bg_player_t * player)
           {
           case BG_PLAYER_STATE_EOF:
             /* TODO: Switch to pause */
+            bg_log(BG_LOG_INFO, LOG_DOMAIN, "Detected EOF");
             bg_player_threads_join(player->threads, PLAYER_MAX_THREADS);
             player_cleanup(player);
+            bg_player_set_state(player, BG_PLAYER_STATE_EOF, NULL, NULL);
             break;
 #if 0
           case BG_PLAYER_STATE_FINISHING_PAUSE:

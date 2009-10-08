@@ -790,6 +790,7 @@ static int handle_message(bg_player_t * player,
           bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player now seeking");
           break;
         case BG_PLAYER_STATE_CHANGING:
+        case BG_PLAYER_STATE_EOF:
           bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player now changing");
           if(time_active) { putc('\n', stderr); time_active = 0; }
           
@@ -805,9 +806,6 @@ static int handle_message(bg_player_t * player,
         case BG_PLAYER_STATE_BUFFERING:
           break;
         case BG_PLAYER_STATE_PAUSED:
-          break;
-        case BG_PLAYER_STATE_EOF:
-          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player finishing");
           break;
         }
       break;

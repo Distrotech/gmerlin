@@ -201,27 +201,18 @@ static void destroy_overlay(bg_player_video_stream_t * vs,
 
 void bg_player_ov_create(bg_player_t * player)
   {
-  bg_player_video_stream_t * ctx = &player->video_stream;
-  ctx = calloc(1, sizeof(*ctx));
+  bg_player_video_stream_t * s = &player->video_stream;
   
-  ctx->msg_queue = bg_msg_queue_create();
-  ctx->accel_map = bg_accelerator_map_create();
-  
-  pthread_mutex_init(&(ctx->still_mutex),(pthread_mutexattr_t *)0);
-  
-  /* Load output plugin */
-  
-  ctx->callbacks.accel_callback    = accel_callback;
-  ctx->callbacks.button_callback = button_callback;
+  s->callbacks.accel_callback    = accel_callback;
+  s->callbacks.button_callback = button_callback;
 
-  ctx->callbacks.brightness_callback = brightness_callback;
-  ctx->callbacks.saturation_callback = saturation_callback;
-  ctx->callbacks.contrast_callback   = contrast_callback;
+  s->callbacks.brightness_callback = brightness_callback;
+  s->callbacks.saturation_callback = saturation_callback;
+  s->callbacks.contrast_callback   = contrast_callback;
   
-  ctx->callbacks.data      = player;
-  ctx->callbacks.accel_map = ctx->accel_map;
+  s->callbacks.data      = player;
+  s->callbacks.accel_map = s->accel_map;
   
-  ctx->osd = bg_osd_create();
   }
 
 void bg_player_add_accelerators(bg_player_t * player, const bg_accelerator_t * list)
@@ -277,12 +268,6 @@ void bg_player_ov_destroy(bg_player_t * player)
   
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
-  bg_osd_destroy(ctx->osd);
-  
-  bg_accelerator_map_destroy(ctx->accel_map);
-
-  bg_msg_queue_destroy(ctx->msg_queue);
-  
   }
 
 int bg_player_ov_init(bg_player_video_stream_t * vs)
@@ -516,49 +501,46 @@ void * bg_player_ov_thread(void * data)
   {
   int state;
   
-  bg_player_video_stream_t * ctx;
+  bg_player_video_stream_t * s;
   gavl_time_t diff_time;
   gavl_time_t current_time;
   
   bg_player_t * p = data;
   
-  ctx = &p->video_stream;
+  s = &p->video_stream;
 
-  bg_player_add_message_queue(p, ctx->msg_queue);
+  bg_player_add_message_queue(p, s->msg_queue);
 
-  bg_player_thread_wait_for_start(ctx->th);
+  bg_player_thread_wait_for_start(s->th);
   
   while(1)
     {
-    if(!bg_player_thread_check(ctx->th))
+    if(!bg_player_thread_check(s->th))
       break;
 
-    if(!bg_player_read_video(p, ctx->frame, &state))
+    if(!bg_player_read_video(p, s->frame, &state))
       {
-      if(state == BG_PLAYER_STATE_PLAYING)
-        {
-        /* EOF */
-        }
-      else
-        {
-        /* Wait for restart or quit */
-        }
+      bg_player_video_set_eof(p);
+      if(!bg_player_thread_wait_for_start(s->th))
+        break;
+      continue;
       }
-    pthread_mutex_lock(&ctx->still_mutex);
-    if(ctx->still_frame)
-      {
-      destroy_frame(data, ctx->still_frame);
-      ctx->still_frame = (gavl_video_frame_t*)0;
-      }
-    pthread_mutex_unlock(&ctx->still_mutex);
     
-    ctx->still_shown = 0;
+    pthread_mutex_lock(&s->still_mutex);
+    if(s->still_frame)
+      {
+      destroy_frame(data, s->still_frame);
+      s->still_frame = (gavl_video_frame_t*)0;
+      }
+    pthread_mutex_unlock(&s->still_mutex);
+    
+    s->still_shown = 0;
     
     /* Get frame time */
 
-    ctx->frame_time =
-      gavl_time_unscale(ctx->output_format.timescale,
-                        ctx->frame->timestamp);
+    s->frame_time =
+      gavl_time_unscale(s->output_format.timescale,
+                        s->frame->timestamp);
     
     /* Subtitle handling */
     if(DO_SUBTITLE(p->flags))
@@ -566,24 +548,24 @@ void * bg_player_ov_thread(void * data)
       //      handle_subtitle(ctx);
       }
     /* Handle message */
-    handle_messages(ctx, ctx->frame_time);
+    handle_messages(s, s->frame_time);
     
     /* Display OSD */
 
-    if(bg_osd_overlay_valid(ctx->osd, ctx->frame_time))
-      ctx->plugin->set_overlay(ctx->priv, ctx->osd_id, ctx->osd_ovl);
+    if(bg_osd_overlay_valid(s->osd, s->frame_time))
+      s->plugin->set_overlay(s->priv, s->osd_id, s->osd_ovl);
     else
-      ctx->plugin->set_overlay(ctx->priv, ctx->osd_id, (gavl_overlay_t*)0);
+      s->plugin->set_overlay(s->priv, s->osd_id, (gavl_overlay_t*)0);
     
     /* Check Timing */
     bg_player_time_get(p, 1, &current_time);
 
-    diff_time =  ctx->frame_time - current_time;
+    diff_time =  s->frame_time - current_time;
     
     
 #ifdef DUMP_TIMESTAMPS
     bg_debug("C: %"PRId64", F: %"PRId64", D: %"PRId64"\n",
-             current_time, ctx->frame_time, diff_time);
+             current_time, s->frame_time, diff_time);
 #endif
     /* Wait until we can display the frame */
     if(diff_time > 0)
@@ -596,19 +578,18 @@ void * bg_player_ov_thread(void * data)
 
     if(p->time_update_mode == TIME_UPDATE_FRAME)
       {
-      bg_player_broadcast_time(p, ctx->frame_time);
+      bg_player_broadcast_time(p, s->frame_time);
       }
     
-    bg_plugin_lock(ctx->plugin_handle);
-    ctx->plugin->put_video(ctx->priv, ctx->frame);
-    ctx->plugin->handle_events(ctx->priv);
-    ctx->frames_written++;
+    bg_plugin_lock(s->plugin_handle);
+    s->plugin->put_video(s->priv, s->frame);
+    s->plugin->handle_events(s->priv);
+    s->frames_written++;
     
-    bg_plugin_unlock(ctx->plugin_handle);
+    bg_plugin_unlock(s->plugin_handle);
     }
 
-  bg_player_delete_message_queue(p,
-                              ctx->msg_queue);
+  bg_player_delete_message_queue(p, s->msg_queue);
   return NULL;
   }
 

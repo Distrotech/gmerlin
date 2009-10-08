@@ -442,6 +442,10 @@ static void handle_message(player_window_t * win,
           if(arg_i_2)
             gmerlin_next_track(win->gmerlin);
           break;
+        case BG_PLAYER_STATE_EOF:
+          display_set_state(win->display, win->gmerlin->player_state, NULL);
+          gmerlin_next_track(win->gmerlin);
+          break;
         }
       break;
     case BG_PLAYER_MSG_TRACK_NAME:

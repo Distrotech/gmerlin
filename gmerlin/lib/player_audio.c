@@ -50,10 +50,9 @@ void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   pthread_mutex_init(&(s->config_mutex),NULL);
   pthread_mutex_init(&(s->time_mutex),NULL);
   pthread_mutex_init(&(s->mute_mutex), NULL);
+  pthread_mutex_init(&(s->eof_mutex),NULL);
   
   s->timer = gavl_timer_create();
-  
-
   }
 
 void bg_player_audio_destroy(bg_player_t * p)
@@ -66,6 +65,7 @@ void bg_player_audio_destroy(bg_player_t * p)
   gavl_volume_control_destroy(s->volume);
   gavl_peak_detector_destroy(s->peak_detector);
   pthread_mutex_destroy(&(s->volume_mutex));
+  pthread_mutex_destroy(&(s->eof_mutex));
 
   pthread_mutex_destroy(&(s->time_mutex));
   gavl_timer_destroy(s->timer);
@@ -155,16 +155,19 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
 
 void bg_player_audio_cleanup(bg_player_t * player)
   {
-  if(player->audio_stream.output_frame)
+  bg_player_audio_stream_t * s;
+  s = &player->audio_stream;
+  
+  if(s->fifo_frame)
     {
-    gavl_audio_frame_destroy(player->audio_stream.output_frame);
-    player->audio_stream.output_frame = (gavl_audio_frame_t*)0;
+    gavl_audio_frame_destroy(s->fifo_frame);
+    s->fifo_frame = (gavl_audio_frame_t*)0;
     }
-  if(player->audio_stream.fifo_frame)
+  if(s->output_frame && s->do_convert_out)
     {
-    gavl_audio_frame_destroy(player->audio_stream.fifo_frame);
-    player->audio_stream.fifo_frame = (gavl_audio_frame_t*)0;
+    gavl_audio_frame_destroy(s->output_frame);
     }
+  s->output_frame = (gavl_audio_frame_t*)0;
   }
 
 /* Configuration stuff */
@@ -315,4 +318,26 @@ bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame,
   
   return s->in_func(s->in_data, frame, s->in_stream,
                     s->fifo_format.samples_per_frame);
+  }
+
+void bg_player_audio_set_eof(bg_player_t * p)
+  {
+  bg_msg_t * msg;
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Detected EOF");
+  
+  pthread_mutex_lock(&p->video_stream.eof_mutex);
+  pthread_mutex_lock(&p->audio_stream.eof_mutex);
+
+  p->audio_stream.eof = 1;
+  
+  if(p->video_stream.eof)
+    {
+    msg = bg_msg_queue_lock_write(p->command_queue);
+    bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
+    bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_EOF);
+    bg_msg_queue_unlock_write(p->command_queue);
+    }
+  
+  pthread_mutex_unlock(&p->audio_stream.eof_mutex);
+  pthread_mutex_unlock(&p->video_stream.eof_mutex);
   }
