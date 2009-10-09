@@ -423,7 +423,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = @TOP_SRCDIR@/doc/mainpage.incl @TOP_SRCDIR@/include/gmerlin/log.h @TOP_SRCDIR@/include/gmerlin/parameter.h @TOP_SRCDIR@/include/gmerlin/cfg_registry.h @TOP_SRCDIR@/include/gmerlin/streaminfo.h @TOP_SRCDIR@/include/gmerlin/edl.h @TOP_SRCDIR@/include/gmerlin/converters.h @TOP_SRCDIR@/include/gmerlin/plugin.h @TOP_SRCDIR@/include/gmerlin/keycodes.h @TOP_SRCDIR@/include/gmerlin/pluginregistry.h @TOP_SRCDIR@/include/gmerlin/filters.h @TOP_SRCDIR@/include/gmerlin/msgqueue.h @TOP_SRCDIR@/include/gmerlin/fifo.h @TOP_SRCDIR@/include/gmerlin/player.h @TOP_SRCDIR@/include/gmerlin/playermsg.h @TOP_SRCDIR@/include/gmerlin/utils.h @TOP_SRCDIR@/include/gmerlin/charset.h @TOP_SRCDIR@/include/gmerlin/subprocess.h @TOP_SRCDIR@/include/gmerlin/visualize.h
+INPUT                  = @TOP_SRCDIR@/doc/mainpage.incl @TOP_SRCDIR@/include/gmerlin/log.h @TOP_SRCDIR@/include/gmerlin/parameter.h @TOP_SRCDIR@/include/gmerlin/cfg_registry.h @TOP_SRCDIR@/include/gmerlin/streaminfo.h @TOP_SRCDIR@/include/gmerlin/edl.h @TOP_SRCDIR@/include/gmerlin/converters.h @TOP_SRCDIR@/include/gmerlin/plugin.h @TOP_SRCDIR@/include/gmerlin/keycodes.h @TOP_SRCDIR@/include/gmerlin/pluginregistry.h @TOP_SRCDIR@/include/gmerlin/filters.h @TOP_SRCDIR@/include/gmerlin/msgqueue.h @TOP_SRCDIR@/include/gmerlin/player.h @TOP_SRCDIR@/include/gmerlin/playermsg.h @TOP_SRCDIR@/include/gmerlin/utils.h @TOP_SRCDIR@/include/gmerlin/charset.h @TOP_SRCDIR@/include/gmerlin/subprocess.h @TOP_SRCDIR@/include/gmerlin/visualize.h
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

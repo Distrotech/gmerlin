@@ -382,11 +382,11 @@ void bg_player_set_parameter(void * player, const char * name,
     {
     if(!strcmp(val->val_str, "change"))
       {
-      p->finish_mode = BG_FIFO_FINISH_CHANGE;
+      p->finish_mode = BG_PLAYER_FINISH_CHANGE;
       }
     else if(!strcmp(val->val_str, "pause"))
       {
-      p->finish_mode = BG_FIFO_FINISH_PAUSE;
+      p->finish_mode = BG_PLAYER_FINISH_PAUSE;
       }
     }
   else if(!strcmp(name, "report_peak"))

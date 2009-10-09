@@ -23,7 +23,7 @@
 #include <config.h>
 
 #include <gmerlin/pluginregistry.h>
-#include <gmerlin/fifo.h>
+// #include <gmerlin/fifo.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/bggavl.h>
 #include <gmerlin/textrenderer.h>
@@ -52,6 +52,11 @@ typedef enum
     TIME_UPDATE_FRAME,
   } bg_player_time_update_mode_t;
 
+typedef enum
+  {
+    BG_PLAYER_FINISH_CHANGE = 0,
+    BG_PLAYER_FINISH_PAUSE,
+  } bg_player_finish_mode_t;
 
 /* Stream structures */
 
@@ -350,7 +355,7 @@ struct bg_player_s
   
   bg_player_time_update_mode_t time_update_mode;
   
-  bg_fifo_finish_mode_t finish_mode;
+  bg_player_finish_mode_t finish_mode;
   gavl_time_t wait_time;
   };
 

@@ -67,7 +67,6 @@ device.c \
 edl.c \
 edldec.c \
 edl_xml.c \
-fifo.c \
 fileformat.c \
 filters.c \
 formats.c \

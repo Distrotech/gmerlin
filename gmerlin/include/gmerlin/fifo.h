@@ -36,11 +36,6 @@
  *  @{
  */
 
-typedef enum
-  {
-    BG_FIFO_FINISH_CHANGE = 0,
-    BG_FIFO_FINISH_PAUSE,
-  } bg_fifo_finish_mode_t;
 
 /** \brief Operation states a fifo can have
  *  
