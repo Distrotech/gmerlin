@@ -186,7 +186,6 @@ void * bg_player_oa_thread(void * data)
   bg_player_audio_stream_t * s;
   gavl_time_t wait_time;
 
-  int state;
   bg_player_t * p = data;
   
   s = &(p->audio_stream);
@@ -200,7 +199,7 @@ void * bg_player_oa_thread(void * data)
     if(!bg_player_thread_check(s->th))
       break;
     
-    if(!bg_player_read_audio(p, s->fifo_frame, &state))
+    if(!bg_player_read_audio(p, s->fifo_frame))
       {
       bg_player_audio_set_eof(p);
       if(!bg_player_thread_wait_for_start(s->th))

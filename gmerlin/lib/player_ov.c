@@ -34,10 +34,6 @@
 
 // #define DUMP_TIMESTAMPS
 
-struct bg_player_ov_context_s
-  {
-  
-  };
 
 static int accel_callback(void * data, int id)
   {
@@ -309,43 +305,21 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   return result;
   }
 
-void bg_player_ov_update_still(bg_player_video_stream_t * ctx)
+void bg_player_ov_update_still(bg_player_t * p)
   {
-
-  pthread_mutex_lock(&ctx->still_mutex);
+  bg_player_video_stream_t * s = &p->video_stream;
   
-  if(!ctx->still_frame)
-    {
-    ctx->still_frame = create_frame(ctx);
-    }
+  if(s->frame->timestamp == GAVL_TIME_UNDEFINED)
+    bg_player_read_video(p, s->frame);
   
-  if(ctx->frame)
-    {
-    gavl_video_frame_copy(&(ctx->output_format),
-                          ctx->still_frame, ctx->frame);
-    }
-  else
-    {
-    gavl_video_frame_clear(ctx->still_frame,
-                           &(ctx->output_format));
-    }
-  
-  bg_plugin_lock(ctx->plugin_handle);
-  ctx->plugin->put_still(ctx->priv, ctx->still_frame);
-  bg_plugin_unlock(ctx->plugin_handle);
-  
-  pthread_mutex_unlock(&ctx->still_mutex);
+  bg_plugin_lock(s->plugin_handle);
+  s->plugin->put_still(s->priv, s->frame);
+  s->plugin->handle_events(s->priv);
+  bg_plugin_unlock(s->plugin_handle);
   }
 
 void bg_player_ov_cleanup(bg_player_video_stream_t * ctx)
   {
-  pthread_mutex_lock(&ctx->still_mutex);
-  if(ctx->still_frame)
-    {
-    destroy_frame(ctx, ctx->still_frame);
-    ctx->still_frame = (gavl_video_frame_t*)0;
-    }
-  pthread_mutex_unlock(&ctx->still_mutex);
   
   if(ctx->current_subtitle.frame)
     {
@@ -378,7 +352,6 @@ void bg_player_ov_reset(bg_player_t * player)
     ctx->has_subtitle = 0;
     }
   ctx->next_subtitle = (gavl_overlay_t*)0;
-  ctx->frame = NULL;
   }
 
 void bg_player_ov_update_aspect(bg_player_video_stream_t * ctx,
@@ -407,35 +380,12 @@ void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * ctx)
     gavl_video_frame_create(&ctx->ss->output_format);
   }
 
-#if 0
-static void ping_func(bg_player_video_stream_t * ctx)
+void bg_player_ov_handle_events(bg_player_video_stream_t * s)
   {
-  pthread_mutex_lock(&ctx->still_mutex);
-  
-  if(!ctx->still_shown)
-    {
-    if(ctx->frame)
-      {
-      ctx->still_frame = create_frame(ctx);
-      
-      gavl_video_frame_copy(&(ctx->output_format),
-                            ctx->still_frame, ctx->frame);
-      //      fprintf(stderr, "Unlock read\n");
-      
-      bg_plugin_lock(ctx->plugin_handle);
-      ctx->plugin->put_still(ctx->priv, ctx->still_frame);
-      bg_plugin_unlock(ctx->plugin_handle);
-      }
-    
-    ctx->still_shown = 1;
-    }
-  bg_plugin_lock(ctx->plugin_handle);
-  ctx->plugin->handle_events(ctx->priv);
-  bg_plugin_unlock(ctx->plugin_handle);
-  
-  pthread_mutex_unlock(&ctx->still_mutex);
+  bg_plugin_lock(s->plugin_handle);
+  s->plugin->handle_events(s->priv);
+  bg_plugin_unlock(s->plugin_handle);
   }
-#endif
 
 #if 0
 static void handle_subtitle(bg_player_video_stream_t * ctx)
@@ -499,7 +449,6 @@ static void handle_subtitle(bg_player_video_stream_t * ctx)
 
 void * bg_player_ov_thread(void * data)
   {
-  int state;
   
   bg_player_video_stream_t * s;
   gavl_time_t diff_time;
@@ -518,23 +467,13 @@ void * bg_player_ov_thread(void * data)
     if(!bg_player_thread_check(s->th))
       break;
 
-    if(!bg_player_read_video(p, s->frame, &state))
+    if(!bg_player_read_video(p, s->frame))
       {
       bg_player_video_set_eof(p);
       if(!bg_player_thread_wait_for_start(s->th))
         break;
       continue;
       }
-    
-    pthread_mutex_lock(&s->still_mutex);
-    if(s->still_frame)
-      {
-      destroy_frame(data, s->still_frame);
-      s->still_frame = (gavl_video_frame_t*)0;
-      }
-    pthread_mutex_unlock(&s->still_mutex);
-    
-    s->still_shown = 0;
     
     /* Get frame time */
 
@@ -562,7 +501,6 @@ void * bg_player_ov_thread(void * data)
 
     diff_time =  s->frame_time - current_time;
     
-    
 #ifdef DUMP_TIMESTAMPS
     bg_debug("C: %"PRId64", F: %"PRId64", D: %"PRId64"\n",
              current_time, s->frame_time, diff_time);
@@ -584,11 +522,10 @@ void * bg_player_ov_thread(void * data)
     bg_plugin_lock(s->plugin_handle);
     s->plugin->put_video(s->priv, s->frame);
     s->plugin->handle_events(s->priv);
-    s->frames_written++;
-    
     bg_plugin_unlock(s->plugin_handle);
+    s->frames_written++;
     }
-
+  
   bg_player_delete_message_queue(p, s->msg_queue);
   return NULL;
   }

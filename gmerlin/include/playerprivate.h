@@ -185,10 +185,6 @@ typedef struct
   gavl_time_t frame_time;
   //  gavl_time_t last_time; /* Last player time */
   
-  gavl_video_frame_t * still_frame;
-  pthread_mutex_t     still_mutex;
-  int still_shown;
-
   gavl_overlay_t       current_subtitle;
   gavl_overlay_t     * next_subtitle;
   int subtitle_id; /* Stream id for subtitles in the output plugin */
@@ -242,6 +238,7 @@ typedef struct
 #define PLAYER_DO_SUBTITLE_ONLY    (1<<5)
 #define PLAYER_DO_VISUALIZE        (1<<6)
 #define PLAYER_DO_REPORT_PEAK      (1<<16)
+#define PLAYER_FREEZE_FRAME        (1<<17)
 
 #define DO_SUBTITLE_TEXT(f) \
  (f & PLAYER_DO_SUBTITLE_TEXT)
@@ -445,7 +442,9 @@ void bg_player_ov_update_aspect(bg_player_video_stream_t * ctx,
                                 int pixel_width, int pixel_height);
 
 /* Update still image: To be called during pause */
-void bg_player_ov_update_still(bg_player_video_stream_t * ctx);
+void bg_player_ov_update_still(bg_player_t * p);
+void bg_player_ov_handle_events(bg_player_video_stream_t * s);
+
 
 void bg_player_ov_standby(bg_player_video_stream_t * ctx);
 
@@ -475,7 +474,7 @@ void bg_player_video_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg);
 void bg_player_video_destroy(bg_player_t * p);
 
 int bg_player_read_video(bg_player_t * p,
-                         gavl_video_frame_t * frame, int * state);
+                         gavl_video_frame_t * frame);
 
 void bg_player_video_set_eof(bg_player_t * p);
 
@@ -514,7 +513,7 @@ void bg_player_audio_destroy(bg_player_t * p);
 void bg_player_set_oa_plugin_internal(bg_player_t * player,
                                       bg_plugin_handle_t * handle);
 
-int bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame, int * state);
+int bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame);
 
 void bg_player_audio_set_eof(bg_player_t * p);
 

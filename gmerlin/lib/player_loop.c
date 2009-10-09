@@ -271,9 +271,10 @@ static void interrupt_cmd(bg_player_t * p, int new_state)
 
   if(DO_AUDIO(p->flags))
     bg_player_oa_stop(&p->audio_stream);
+
+  if(DO_VIDEO(p->flags))
+    p->flags |= PLAYER_FREEZE_FRAME;
   }
-
-
 
 /* Preload fifos */
 
@@ -294,6 +295,9 @@ static void start_playback(bg_player_t * p)
 
   if(DO_AUDIO(p->flags))
     bg_player_oa_start(&p->audio_stream);
+
+  if(DO_VIDEO(p->flags))
+    p->flags &= ~PLAYER_FREEZE_FRAME;
 
   bg_player_threads_start(p->threads, PLAYER_MAX_THREADS);
   }
@@ -318,6 +322,10 @@ static void pause_cmd(bg_player_t * p)
 
     if(p->do_bypass)
       bg_player_input_bypass_set_pause(p, 1);
+    
+    if(DO_VIDEO(p->flags))
+      bg_player_ov_update_still(p);
+    
     }
   else if(state == BG_PLAYER_STATE_PAUSED)
     {
@@ -624,7 +632,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     if(p->do_bypass)
       bg_player_input_bypass_set_pause(p, 1);
     if(DO_VIDEO(p->flags))
-      bg_player_ov_update_still(&p->video_stream);
+      bg_player_ov_update_still(p);
     }
   else
     start_playback(p);
@@ -867,7 +875,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
                            &sync_time);
     
     if(DO_VIDEO(player->flags))
-      bg_player_ov_update_still(&player->video_stream);
+      bg_player_ov_update_still(player);
     
     // if(p->do_bypass)
     // bg_player_input_bypass_set_pause(p->input_context, 1);
@@ -1297,6 +1305,12 @@ static void * player_thread(void * data)
     if(do_exit)
       break;
 
+    if(player->flags & PLAYER_FREEZE_FRAME)
+      {
+      bg_player_ov_handle_events(&player->video_stream);
+      }
+
+    
     state = bg_player_get_state(player);
     switch(state)
       {

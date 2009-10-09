@@ -306,16 +306,9 @@ void bg_player_set_audio_filter_parameter(void * data, const char * name,
   }
 
 int
-bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame,
-                     int * state)
+bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame)
   {
   bg_player_audio_stream_t * s = &p->audio_stream;
-  
-  *state = bg_player_get_state(p);
-  
-  if(*state != BG_PLAYER_STATE_PLAYING)
-    return 0;
-  
   return s->in_func(s->in_data, frame, s->in_stream,
                     s->fifo_format.samples_per_frame);
   }

@@ -47,7 +47,6 @@ void bg_player_video_create(bg_player_t * p,
   s->msg_queue = bg_msg_queue_create();
   
   s->accel_map = bg_accelerator_map_create();
-  pthread_mutex_init(&(s->still_mutex),(pthread_mutexattr_t *)0);
   s->osd = bg_osd_create();
   
   }
@@ -265,16 +264,9 @@ void bg_player_set_video_filter_parameter(void * data, const char * name,
   }
 
 int
-bg_player_read_video(bg_player_t * p, gavl_video_frame_t * frame,
-                     int * state)
+bg_player_read_video(bg_player_t * p, gavl_video_frame_t * frame)
   {
   bg_player_video_stream_t * s = &p->video_stream;
-  
-  *state = bg_player_get_state(p);
-  
-  if(*state != BG_PLAYER_STATE_PLAYING)
-    return 0;
-  
   return s->in_func(s->in_data, frame, s->in_stream);
   }
 
