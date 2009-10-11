@@ -43,7 +43,10 @@
 //#define DUMP_METADATA
 
 #define FOURCC_AAC  BGAV_MK_FOURCC('m', 'p', '4', 'a')
-#define FOURCC_H264 BGAV_MK_FOURCC('h', '2', '6', '4')
+// #define FOURCC_H264 BGAV_MK_FOURCC('h', '2', '6', '4')
+
+/* H.264 data are the same as in mp4 files */
+#define FOURCC_H264 BGAV_MK_FOURCC('a', 'v', 'c', '1')
 
 typedef struct meta_object_s meta_object_t;
 
