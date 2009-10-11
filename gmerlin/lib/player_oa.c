@@ -173,6 +173,7 @@ static void process_frame(bg_player_t * p, gavl_audio_frame_t * frame)
   
   }
 
+#if 0
 static void read_audio_callback(void * priv,
                                 gavl_audio_frame_t* frame,
                                 int stream,
@@ -180,6 +181,7 @@ static void read_audio_callback(void * priv,
   {
   
   }
+#endif
 
 void * bg_player_oa_thread(void * data)
   {

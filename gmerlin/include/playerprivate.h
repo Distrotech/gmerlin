@@ -149,7 +149,7 @@ typedef struct
   gavl_overlay_t * current_subtitle;
   gavl_overlay_t * next_subtitle;
 
-  gavl_overlay_t subtitles[2];
+  gavl_overlay_t * subtitles[2];
   
   int eof;
   } bg_player_subtitle_stream_t;

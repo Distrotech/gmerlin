@@ -104,8 +104,6 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
 void bg_player_subtitle_cleanup(bg_player_t * player)
   {
   FREE_OVERLAY(player->subtitle_stream.input_subtitle);
-  FREE_OVERLAY(player->subtitle_stream.subtitles[0]);
-  FREE_OVERLAY(player->subtitle_stream.subtitles[1]);
   }
 
 #undef FREE_OVERLAY

@@ -405,6 +405,8 @@ void bg_player_ov_update_still(bg_player_t * p)
   if(DO_SUBTITLE(p->flags))
     handle_subtitle(p);
   
+  handle_messages(s, s->frame_time);
+  
   bg_plugin_lock(s->plugin_handle);
   s->plugin->put_still(s->priv, s->frame);
   s->plugin->handle_events(s->priv);
@@ -421,10 +423,22 @@ void bg_player_ov_cleanup(bg_player_video_stream_t * s)
 
   destroy_frame(s, s->frame);
   s->frame = NULL;
+
+  if(s->ss->subtitles[0])
+    {
+    destroy_overlay(s, s->subtitle_id, s->ss->subtitles[0]);
+    s->ss->subtitles[0] = NULL;
+    }
+  if(s->ss->subtitles[1])
+    {
+    destroy_overlay(s, s->subtitle_id, s->ss->subtitles[1]);
+    s->ss->subtitles[1] = NULL;
+    }
   
   bg_plugin_lock(s->plugin_handle);
   s->plugin->close(s->priv);
   bg_plugin_unlock(s->plugin_handle);
+
   }
 
 void bg_player_ov_reset(bg_player_t * p)
@@ -471,14 +485,14 @@ void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * s)
   
   /* Allocate overlay frames */
   
-  s->ss->subtitles[0].frame = gavl_video_frame_create(&s->ss->output_format);
-  s->ss->subtitles[1].frame = gavl_video_frame_create(&s->ss->output_format);
+  s->ss->subtitles[0] = create_overlay(s, s->subtitle_id);
+  s->ss->subtitles[1] = create_overlay(s, s->subtitle_id);
 
-  s->ss->subtitles[0].frame->timestamp = GAVL_TIME_UNDEFINED;  
-  s->ss->subtitles[1].frame->timestamp = GAVL_TIME_UNDEFINED;  
+  s->ss->subtitles[0]->frame->timestamp = GAVL_TIME_UNDEFINED;  
+  s->ss->subtitles[1]->frame->timestamp = GAVL_TIME_UNDEFINED;  
   
-  s->ss->current_subtitle = &s->ss->subtitles[0];
-  s->ss->next_subtitle    = &s->ss->subtitles[1];
+  s->ss->current_subtitle = s->ss->subtitles[0];
+  s->ss->next_subtitle    = s->ss->subtitles[1];
   }
 
 void bg_player_ov_handle_events(bg_player_video_stream_t * s)
@@ -486,6 +500,7 @@ void bg_player_ov_handle_events(bg_player_video_stream_t * s)
   bg_plugin_lock(s->plugin_handle);
   s->plugin->handle_events(s->priv);
   bg_plugin_unlock(s->plugin_handle);
+  handle_messages(s, s->frame_time);
   }
 
 
