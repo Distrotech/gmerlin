@@ -270,9 +270,6 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   {
   int result;
   
-  vs->next_subtitle    = (gavl_overlay_t*)0;
-  vs->has_subtitle = 0;
-
   bg_plugin_lock(vs->plugin_handle);
   result = vs->plugin->open(vs->priv,
                              &(vs->output_format), 1);
@@ -305,12 +302,108 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   return result;
   }
 
+static int overlay_is_current(gavl_overlay_t * ovl,
+                              gavl_time_t frame_time)
+  {
+  if(ovl->frame->timestamp == GAVL_TIME_UNDEFINED)
+    return 0;
+  if((ovl->frame->timestamp <= frame_time) &&
+     ((ovl->frame->duration < 0) ||
+      (frame_time < ovl->frame->timestamp + ovl->frame->duration)))
+    return 1;
+  return 0;
+  }
+
+static void handle_subtitle(bg_player_t * p)
+  {
+  bg_player_video_stream_t * s = &p->video_stream;
+  gavl_overlay_t * swp;
+  
+  /* Check if subtitle expired */
+  if(s->subtitle_active &&
+     !overlay_is_current(s->ss->current_subtitle, s->frame_time))
+    {
+    bg_plugin_lock(s->plugin_handle);
+    s->plugin->set_overlay(s->priv, s->subtitle_id,
+                           NULL);
+    bg_plugin_unlock(s->plugin_handle);
+    
+    /* Make invalid */
+    s->ss->current_subtitle->frame->timestamp = GAVL_TIME_UNDEFINED;
+    s->subtitle_active = 0;
+    
+    /* Swap */
+    swp = s->ss->current_subtitle;
+    s->ss->current_subtitle = s->ss->next_subtitle;
+    s->ss->next_subtitle = swp;
+    
+    }
+  
+  /* Try to read as many subtitles as possible */
+  
+  if((s->ss->current_subtitle->frame->timestamp == GAVL_TIME_UNDEFINED) &&
+     bg_player_has_subtitle(p) && !s->ss->eof)
+    {
+    if(!bg_player_read_subtitle(p, s->ss->current_subtitle))
+      s->ss->eof = 1;
+    }
+  if((s->ss->next_subtitle->frame->timestamp == GAVL_TIME_UNDEFINED) &&
+     bg_player_has_subtitle(p) && !s->ss->eof)
+    {
+    if(!bg_player_read_subtitle(p, s->ss->next_subtitle))
+      s->ss->eof = 1;
+    }
+  
+  /* Check if the current subtitle became valid */
+  if(!s->subtitle_active &&
+     (s->ss->current_subtitle->frame->timestamp != GAVL_TIME_UNDEFINED) &&
+     overlay_is_current(s->ss->current_subtitle, s->frame_time))
+    {
+    bg_plugin_lock(s->plugin_handle);
+    s->plugin->set_overlay(s->priv, s->subtitle_id,
+                           s->ss->current_subtitle);
+    bg_plugin_unlock(s->plugin_handle);
+    s->subtitle_active = 1;
+    }
+  /* Check if the next subtitle became valid */
+  else if((s->ss->next_subtitle->frame->timestamp != GAVL_TIME_UNDEFINED) &&
+          overlay_is_current(s->ss->next_subtitle, s->frame_time))
+    {
+    if(s->subtitle_active)
+      {
+      s->ss->current_subtitle->frame->timestamp =
+        GAVL_TIME_UNDEFINED;
+      }
+    
+    /* Swap */
+    swp = s->ss->current_subtitle;
+    s->ss->current_subtitle = s->ss->next_subtitle;
+    s->ss->next_subtitle = swp;
+
+    bg_plugin_lock(s->plugin_handle);
+    s->plugin->set_overlay(s->priv, s->subtitle_id,
+                           s->ss->current_subtitle);
+    bg_plugin_unlock(s->plugin_handle);
+    s->subtitle_active = 1;
+    }
+  }
+
+
 void bg_player_ov_update_still(bg_player_t * p)
   {
   bg_player_video_stream_t * s = &p->video_stream;
   
   if(s->frame->timestamp == GAVL_TIME_UNDEFINED)
-    bg_player_read_video(p, s->frame);
+    {
+    if(!bg_player_read_video(p, s->frame))
+      return;
+    s->frame_time =
+      gavl_time_unscale(s->output_format.timescale,
+                        s->frame->timestamp);
+    }
+  
+  if(DO_SUBTITLE(p->flags))
+    handle_subtitle(p);
   
   bg_plugin_lock(s->plugin_handle);
   s->plugin->put_still(s->priv, s->frame);
@@ -318,40 +411,41 @@ void bg_player_ov_update_still(bg_player_t * p)
   bg_plugin_unlock(s->plugin_handle);
   }
 
-void bg_player_ov_cleanup(bg_player_video_stream_t * ctx)
+void bg_player_ov_cleanup(bg_player_video_stream_t * s)
   {
-  
-  if(ctx->current_subtitle.frame)
+  if(s->osd_ovl)
     {
-    gavl_video_frame_destroy(ctx->current_subtitle.frame);
-    ctx->current_subtitle.frame = (gavl_video_frame_t*)0;
-    }
-  if(ctx->osd_ovl)
-    {
-    destroy_overlay(ctx, ctx->osd_id, ctx->osd_ovl);
-    ctx->osd_ovl = (gavl_overlay_t*)0;
+    destroy_overlay(s, s->osd_id, s->osd_ovl);
+    s->osd_ovl = (gavl_overlay_t*)0;
     }
 
-  destroy_frame(ctx, ctx->frame);
-  ctx->frame = NULL;
+  destroy_frame(s, s->frame);
+  s->frame = NULL;
   
-  bg_plugin_lock(ctx->plugin_handle);
-
-  
-  ctx->plugin->close(ctx->priv);
-  bg_plugin_unlock(ctx->plugin_handle);
+  bg_plugin_lock(s->plugin_handle);
+  s->plugin->close(s->priv);
+  bg_plugin_unlock(s->plugin_handle);
   }
 
-void bg_player_ov_reset(bg_player_t * player)
+void bg_player_ov_reset(bg_player_t * p)
   {
-  bg_player_video_stream_t * ctx;
-  ctx = &player->video_stream;
-  if(ctx->has_subtitle)
+  bg_player_video_stream_t * s = &p->video_stream;
+
+  if(DO_SUBTITLE(p->flags))
     {
-    ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
-    ctx->has_subtitle = 0;
+    if(s->subtitle_active)
+      {
+      bg_plugin_lock(s->plugin_handle);
+      s->plugin->set_overlay(s->priv, s->subtitle_id,
+                             NULL);
+      bg_plugin_unlock(s->plugin_handle);
+      }
+    s->subtitle_active = 0;
+    s->ss->current_subtitle->frame->timestamp = GAVL_TIME_UNDEFINED;
+    s->ss->next_subtitle->frame->timestamp = GAVL_TIME_UNDEFINED;
     }
-  ctx->next_subtitle = (gavl_overlay_t*)0;
+  s->frame->timestamp = GAVL_TIME_UNDEFINED;
+  
   }
 
 void bg_player_ov_update_aspect(bg_player_video_stream_t * ctx,
@@ -364,20 +458,27 @@ void bg_player_ov_update_aspect(bg_player_video_stream_t * ctx,
   }
 
 /* Set this extra because we must initialize subtitles after the video output */
-void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * ctx)
+void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * s)
   {
-  gavl_video_format_copy(&ctx->ss->output_format,
-                         &ctx->ss->input_format);
+  gavl_video_format_copy(&s->ss->output_format,
+                         &s->ss->input_format);
   
   /* Add subtitle stream for plugin */
   
-  ctx->subtitle_id =
-    ctx->plugin->add_overlay_stream(ctx->priv,
-                                    &ctx->ss->output_format);
+  s->subtitle_id =
+    s->plugin->add_overlay_stream(s->priv,
+                                    &s->ss->output_format);
   
-  /* Allocate private overlay frame */
-  ctx->current_subtitle.frame =
-    gavl_video_frame_create(&ctx->ss->output_format);
+  /* Allocate overlay frames */
+  
+  s->ss->subtitles[0].frame = gavl_video_frame_create(&s->ss->output_format);
+  s->ss->subtitles[1].frame = gavl_video_frame_create(&s->ss->output_format);
+
+  s->ss->subtitles[0].frame->timestamp = GAVL_TIME_UNDEFINED;  
+  s->ss->subtitles[1].frame->timestamp = GAVL_TIME_UNDEFINED;  
+  
+  s->ss->current_subtitle = &s->ss->subtitles[0];
+  s->ss->next_subtitle    = &s->ss->subtitles[1];
   }
 
 void bg_player_ov_handle_events(bg_player_video_stream_t * s)
@@ -387,65 +488,6 @@ void bg_player_ov_handle_events(bg_player_video_stream_t * s)
   bg_plugin_unlock(s->plugin_handle);
   }
 
-#if 0
-static void handle_subtitle(bg_player_video_stream_t * ctx)
-  {
-  gavl_overlay_t tmp_overlay;
-  
-  /* Try to get next subtitle */
-  if(!vs->next_subtitle)
-    {
-    vs->next_subtitle =
-      bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
-                            &state);
-    if(ctx->next_subtitle)
-      ctx->next_subtitle_time =
-        gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
-                          ctx->next_subtitle->frame->timestamp);
-    }
-  /* Check if the overlay is expired */
-  if(ctx->has_subtitle)
-    {
-    if(bg_overlay_too_old(ctx->frame_time,
-                          ctx->current_subtitle_time,
-                          ctx->current_subtitle_duration))
-      {
-      ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
-      ctx->has_subtitle = 0;
-      }
-    }
-      
-  /* Check if new overlay should be used */
-      
-  if(ctx->next_subtitle)
-    {
-    if(!bg_overlay_too_new(ctx->frame_time, ctx->next_subtitle_time))
-      {
-      memcpy(&tmp_overlay, ctx->next_subtitle, sizeof(tmp_overlay));
-      memcpy(ctx->next_subtitle, &(ctx->current_subtitle),
-             sizeof(tmp_overlay));
-      memcpy(&(ctx->current_subtitle), &tmp_overlay, sizeof(tmp_overlay));
-
-      ctx->current_subtitle_time =
-        gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
-                          ctx->current_subtitle.frame->timestamp);
-
-      ctx->current_subtitle_duration =
-        gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
-                          ctx->current_subtitle.frame->duration);
-          
-      ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id,
-                               &(ctx->current_subtitle));
-          
-      ctx->has_subtitle = 1;
-      ctx->next_subtitle = (gavl_overlay_t*)0;
-      ctx->next_subtitle_time = GAVL_TIME_UNDEFINED;
-      bg_fifo_unlock_read(ctx->player->subtitle_stream.fifo);
-      }
-    }
-  }
-
-#endif
 
 void * bg_player_ov_thread(void * data)
   {
@@ -484,7 +526,7 @@ void * bg_player_ov_thread(void * data)
     /* Subtitle handling */
     if(DO_SUBTITLE(p->flags))
       {
-      //      handle_subtitle(ctx);
+      handle_subtitle(p);
       }
     /* Handle message */
     handle_messages(s, s->frame_time);

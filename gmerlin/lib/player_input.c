@@ -954,11 +954,7 @@ void bg_player_input_seek(bg_player_t * p,
   ss->eof = !do_subtitle;
   as->eof = !do_audio;
   vs->eof = !do_video;
-
-  /* Invalidate last frame */
-  if(vs->frame)
-    vs->frame->timestamp = GAVL_TIME_UNDEFINED;
-
+  
   //  as->send_silence = 0;
   
   }

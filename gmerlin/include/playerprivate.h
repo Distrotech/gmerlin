@@ -185,10 +185,7 @@ typedef struct
   gavl_time_t frame_time;
   //  gavl_time_t last_time; /* Last player time */
   
-  gavl_overlay_t       current_subtitle;
-  gavl_overlay_t     * next_subtitle;
   int subtitle_id; /* Stream id for subtitles in the output plugin */
-  int has_subtitle;
 
   gavl_video_format_t osd_format;
   
@@ -202,11 +199,7 @@ typedef struct
   int64_t frames_read;
   
   bg_accelerator_map_t * accel_map;
-
-  int64_t current_subtitle_time;
-  int64_t current_subtitle_duration;
-  int64_t next_subtitle_time;
-
+  
   bg_player_subtitle_stream_t * ss;
 
   gavl_video_frame_t * still_frame_in;
@@ -219,6 +212,9 @@ typedef struct
 
   bg_player_thread_t * th;
 
+  /* 1 if we are currently displaying a subtitle */
+  int subtitle_active;
+  
   } bg_player_video_stream_t;
 
 
