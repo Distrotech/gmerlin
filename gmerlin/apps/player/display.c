@@ -725,7 +725,7 @@ static void update_state(display_t * d)
                                  d->foreground_error, d->background);
       
       break;
-    default: /* BG_PLAYER_STATE_PLAYING, BG_PLAYER_STATE_FINISHING */
+    default: /* BG_PLAYER_STATE_PLAYING */
       if(d->state_index != STATE_PLAYING)
         bg_gtk_scrolltext_set_text(d->scrolltext,
                                    d->track_name,
@@ -750,7 +750,7 @@ void display_set_state(display_t * d, int state,
     case BG_PLAYER_STATE_ERROR:
       d->error_msg = bg_strdup(d->error_msg, (char*)arg);
       break;
-    default: /* BG_PLAYER_STATE_PLAYING, BG_PLAYER_STATE_FINISHING */
+    default: /* BG_PLAYER_STATE_PLAYING */
       break;
     }
   d->state = state;
