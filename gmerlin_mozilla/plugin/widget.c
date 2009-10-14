@@ -375,7 +375,7 @@ static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
   time = (gavl_time_t)(perc * (double)win->duration);
   
   //  bg_mozilla_widget_t * win = (bg_mozilla_widget_t *)data;
-  bg_player_seek(win->m->player, time);
+  bg_player_seek(win->m->player, time, GAVL_TIME_SCALE);
   
   }
 
