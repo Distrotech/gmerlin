@@ -24,6 +24,9 @@
 #include <pthread.h>
 #include <gmerlin/bg_sem.h>
 
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "player.thread"
+
 #include <stdlib.h>
 
 struct bg_player_thread_common_s
@@ -97,7 +100,11 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
   for(i = 0; i < num; i++)
     {
     if(th[i]->func)
+      {
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Starting thread...");
       pthread_create(&(th[i]->thread), NULL, th[i]->func, th[i]->arg);
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Starting thread done");
+      }
     }
 
   /* Wait until all threads are started */
@@ -137,7 +144,7 @@ void bg_player_threads_pause(bg_player_thread_t ** th, int num)
   for(i = 0; i < num; i++)
     {
     if(th[i]->func)
-      sem_wait(&(th[i]->sem));
+      sem_wait(&th[i]->sem);
     }
   }
 
@@ -163,7 +170,9 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
     {
     if(th[i]->func)
       {
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining thread...");
       pthread_join(th[i]->thread, NULL);
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining thread done");
       }
     }
   }
