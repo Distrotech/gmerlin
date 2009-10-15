@@ -186,7 +186,9 @@ int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   {
   pthread_mutex_lock(&th->com->start_mutex);
   sem_post(&th->sem);
+  fprintf(stderr, "Wait for start...\n");
   pthread_cond_wait(&th->com->start_cond, &th->com->start_mutex);
+  fprintf(stderr, "Wait for start done\n");
   pthread_mutex_unlock(&th->com->start_mutex);
 
   pthread_mutex_lock(&th->mutex);
