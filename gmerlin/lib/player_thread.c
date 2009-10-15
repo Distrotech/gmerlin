@@ -28,6 +28,7 @@
 #define LOG_DOMAIN "player.thread"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 struct bg_player_thread_common_s
   {
@@ -111,7 +112,11 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
   for(i = 0; i < num; i++)
     {
     if(th[i]->func)
+      {
+      fprintf(stderr, "Sem wait...");
       sem_wait(&(th[i]->sem));
+      fprintf(stderr, "done\n");
+      }
     }
   
   }
