@@ -102,12 +102,11 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
     {
     if(th[i]->func)
       {
-      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Starting thread...");
+      fprintf(stderr, "Starting thread...\n");
       pthread_create(&(th[i]->thread), NULL, th[i]->func, th[i]->arg);
-      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Starting thread done");
+      fprintf(stderr, "Starting thread done\n");
       }
     }
-
   /* Wait until all threads are started */
   for(i = 0; i < num; i++)
     {
@@ -175,9 +174,9 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
     {
     if(th[i]->func)
       {
-      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining thread...");
+      fprintf(stderr, "Joining thread...\n");
       pthread_join(th[i]->thread, NULL);
-      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining thread done");
+      fprintf(stderr, "Joining thread done\n");
       }
     }
   }
