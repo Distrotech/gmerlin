@@ -89,8 +89,6 @@ typedef struct
       
   int first_sector;
   
-  int do_bypass;
-
   bg_input_callbacks_t * callbacks;
 
   int old_seconds;
@@ -377,17 +375,12 @@ static int set_track_cdaudio(void * data, int track)
 static int set_audio_stream_cdaudio(void * priv, int stream,
                                     bg_stream_action_t action)
   {
-  cdaudio_t * cd = (cdaudio_t*)priv;
-  if(action == BG_STREAM_ACTION_BYPASS)
-    cd->do_bypass = 1;
-  else
-    cd->do_bypass = 0;
   return 1;
   }
 
 static int start_cdaudio(void * priv)
   {
-  int i, last_sector;
+  int i;
   cdaudio_t * cd = (cdaudio_t*)priv;
 
 
@@ -398,64 +391,30 @@ static int start_cdaudio(void * priv)
       return 0;
     }
   
-  if(cd->do_bypass)
-    {
-
-    last_sector = cd->index->tracks[cd->current_track].last_sector;
-
-    for(i = cd->current_track; i < cd->index->num_tracks; i++)
-      {
-      if((i == cd->index->num_tracks - 1) || !cd->index->tracks[i+1].is_audio)
-        last_sector = cd->index->tracks[i].last_sector;
-      }
-    if(!bg_cdaudio_play(cd->cdio, cd->first_sector, last_sector))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Play command failed. Disk missing?");
-      return 0;
-      }
-    cd->status.sector = cd->first_sector;
-    cd->status.track  = cd->current_track;
-
-    for(i = 0; i < cd->index->num_audio_tracks; i++)
-      {
-      cd->track_info[i].audio_streams[0].format.samples_per_frame = 588;
-      }
-    }
-  else
-    {
     /* Rip */
     
-    for(i = 0; i < cd->index->num_audio_tracks; i++)
-      {
-      cd->track_info[i].audio_streams[0].format.samples_per_frame =
-        588;
-      }
-    
-    cd->current_sector = cd->first_sector;
-    cd->samples_written = 0;
+  for(i = 0; i < cd->index->num_audio_tracks; i++)
+    {
+    cd->track_info[i].audio_streams[0].format.samples_per_frame =
+      588;
     }
+    
+  cd->current_sector = cd->first_sector;
+  cd->samples_written = 0;
   return 1;
   }
 
 static void stop_cdaudio(void * priv)
   {
   cdaudio_t * cd = (cdaudio_t*)priv;
-  if(cd->do_bypass)
+  if(cd->rip_initialized)
     {
-    bg_cdaudio_stop(cd->cdio);
-    close_cdaudio(cd);
-    }
-  else
-    {
-    if(cd->rip_initialized)
+    bg_cdaudio_rip_close(cd->ripper);
+    cd->rip_initialized = 0;
+    if(cd->frame)
       {
-      bg_cdaudio_rip_close(cd->ripper);
-      cd->rip_initialized = 0;
-      if(cd->frame)
-        {
-        gavl_audio_frame_destroy(cd->frame);
-        cd->frame = (gavl_audio_frame_t*)0;
-        }
+      gavl_audio_frame_destroy(cd->frame);
+      cd->frame = (gavl_audio_frame_t*)0;
       }
     }
   cd->cdio = (CdIo_t*)0;
@@ -530,147 +489,46 @@ static int read_audio_cdaudio(void * priv,
   return samples_read;
   }
 
-static int bypass_cdaudio(void * priv)
-  {
-  int j;
-  int seconds;
-  
-  cdaudio_t * cd = (cdaudio_t*)priv;
-
-  if(!bg_cdaudio_get_status(cd->cdio, &(cd->status)))
-    {
-    return 0;
-    }
-  if((cd->status.track < cd->current_track) ||
-     (cd->status.track > cd->current_track+1))
-    {
-    cd->status.track = cd->current_track;
-    return 1;
-    }
-  if(cd->status.track == cd->current_track + 1)
-    {
-    cd->current_track = cd->status.track;
-
-    j = cd->index->tracks[cd->current_track].index;
-    
-    if(cd->callbacks)
-      {
-      if(cd->callbacks->track_changed)
-        cd->callbacks->track_changed(cd->callbacks->data,
-                                     cd->current_track);
-
-      if(cd->callbacks->name_changed)
-        cd->callbacks->name_changed(cd->callbacks->data,
-                                    cd->track_info[j].name);
-
-      if(cd->callbacks->duration_changed)
-        cd->callbacks->duration_changed(cd->callbacks->data,
-                                        cd->track_info[j].duration);
-
-      if(cd->callbacks->metadata_changed)
-        cd->callbacks->metadata_changed(cd->callbacks->data,
-                                        &(cd->track_info[j].metadata));
-      
-
-      }
-    cd->first_sector = cd->index->tracks[cd->current_track].first_sector;
-    }
-
-  seconds = (cd->status.sector - cd->first_sector) / 75;
-
-  if(cd->old_seconds != seconds)
-    {
-    cd->old_seconds = seconds;
-
-    if((cd->callbacks) && (cd->callbacks->time_changed))
-      {
-      cd->callbacks->time_changed(cd->callbacks->data,
-                                  ((gavl_time_t)seconds) * GAVL_TIME_SCALE);
-      }
-    }
-  
-  return 1;
-  }
-
 static void seek_cdaudio(void * priv, int64_t * time, int scale)
   {
   /* We seek with frame accuracy (1/75 seconds) */
 
-  int i, last_sector;
-  int sector;
   uint32_t sample_position, samples_to_skip;
   
   cdaudio_t * cd = (cdaudio_t*)priv;
   
-  if(cd->do_bypass)
+  if(!cd->rip_initialized)
     {
-    sector = cd->index->tracks[cd->current_track].first_sector +
-      (*time * 75) / scale;
+    gavl_audio_format_t format;
+    bg_cdaudio_rip_init(cd->ripper, cd->cdio,
+                        cd->first_sector,
+                        cd->first_sector - cd->index->tracks[0].first_sector,
+                        &(cd->read_sectors));
     
-    last_sector = cd->index->tracks[cd->current_track].last_sector;
-
-    for(i = cd->current_track; i < cd->index->num_tracks; i++)
-      {
-      if((i == cd->index->num_tracks - 1) || !cd->index->tracks[i+1].is_audio)
-        last_sector = cd->index->tracks[i].last_sector;
-      }
-    *time = ((int64_t)sector * scale) / 75;
-    if(!bg_cdaudio_play(cd->cdio, sector, last_sector))
-      return;
-    
-    if(cd->paused)
-      {
-      bg_cdaudio_set_pause(cd->cdio, 1);
-      }
+    gavl_audio_format_copy(&format,
+                           &(cd->track_info[0].audio_streams[0].format));
+    format.samples_per_frame = cd->read_sectors * 588;
+    cd->frame = gavl_audio_frame_create(&format);
+    cd->rip_initialized = 1;
     }
-  else
-    {
-    if(!cd->rip_initialized)
-      {
-      gavl_audio_format_t format;
-      bg_cdaudio_rip_init(cd->ripper, cd->cdio,
-                          cd->first_sector,
-                          cd->first_sector - cd->index->tracks[0].first_sector,
-                          &(cd->read_sectors));
-
-      gavl_audio_format_copy(&format,
-                             &(cd->track_info[0].audio_streams[0].format));
-      format.samples_per_frame = cd->read_sectors * 588;
-      cd->frame = gavl_audio_frame_create(&format);
-      cd->rip_initialized = 1;
-      }
-    
-    sample_position = gavl_time_rescale(scale, 44100, *time);
+  
+  sample_position = gavl_time_rescale(scale, 44100, *time);
         
-    cd->current_sector =
-      sample_position / 588 + cd->index->tracks[cd->current_track].first_sector;
-    samples_to_skip = sample_position % 588;
-
-    /* Seek to the point */
-
-    bg_cdaudio_rip_seek(cd->ripper, cd->current_sector,
-                        cd->current_sector - cd->index->tracks[0].first_sector);
-
-    /* Read one frame os samples (can be more than one sector) */
-    read_frame(cd);
-
-    /* Set skipped samples */
-    
-    cd->frame->valid_samples -= samples_to_skip;
-    }
-  }
-
-static void bypass_set_pause_cdaudio(void * priv, int pause)
-  {
-  cdaudio_t * cd = (cdaudio_t*)priv;
-  bg_cdaudio_set_pause(cd->cdio, pause);
-  cd->paused = pause;
-  }
-
-static void bypass_set_volume_cdaudio(void * priv, float volume)
-  {
-  cdaudio_t * cd = (cdaudio_t*)priv;
-  bg_cdaudio_set_volume(cd->cdio, volume);
+  cd->current_sector =
+    sample_position / 588 + cd->index->tracks[cd->current_track].first_sector;
+  samples_to_skip = sample_position % 588;
+  
+  /* Seek to the point */
+  
+  bg_cdaudio_rip_seek(cd->ripper, cd->current_sector,
+                      cd->current_sector - cd->index->tracks[0].first_sector);
+  
+  /* Read one frame os samples (can be more than one sector) */
+  read_frame(cd);
+  
+  /* Set skipped samples */
+  
+  cd->frame->valid_samples -= samples_to_skip;
   }
 
 static void close_cdaudio(void * priv)
@@ -944,11 +802,7 @@ const bg_input_plugin_t the_plugin =
       .description =   TRS("Plugin for audio CDs. Supports both playing with direct connection from the CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained from Musicbrainz, freedb or CD-text. Metadata are cached in $HOME/.gmerlin/cdaudio_metadata."),
       .type =          BG_PLUGIN_INPUT,
 
-      .flags =         BG_PLUGIN_REMOVABLE |
-                     BG_PLUGIN_BYPASS |
-                     BG_PLUGIN_KEEP_RUNNING |
-                     BG_PLUGIN_INPUT_HAS_SYNC,
-      
+      .flags =         BG_PLUGIN_REMOVABLE,      
       .priority =      BG_PLUGIN_PRIORITY_MAX,
       .create =        create_cdaudio,
       .destroy =       destroy_cdaudio,
@@ -987,10 +841,6 @@ const bg_input_plugin_t the_plugin =
     /* Read one audio frame (returns FALSE on EOF) */
     .read_audio =    read_audio_cdaudio,
     
-    .bypass =                bypass_cdaudio,
-    .bypass_set_pause =      bypass_set_pause_cdaudio,
-    .bypass_set_volume =     bypass_set_volume_cdaudio,
-
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this

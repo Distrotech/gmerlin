@@ -319,10 +319,6 @@ static void pause_cmd(bg_player_t * p)
   if(state == BG_PLAYER_STATE_PLAYING)
     {
     interrupt_cmd(p, BG_PLAYER_STATE_PAUSED);
-
-    if(p->do_bypass)
-      bg_player_input_bypass_set_pause(p, 1);
-    
     if(DO_VIDEO(p->flags))
       bg_player_ov_update_still(p);
     
@@ -330,9 +326,6 @@ static void pause_cmd(bg_player_t * p)
   else if(state == BG_PLAYER_STATE_PAUSED)
     {
     preload(p);
-    if(p->do_bypass)
-      bg_player_input_bypass_set_pause(p, 0);
-
     start_playback(p);
     }
   }
@@ -442,13 +435,10 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   if(DO_VISUALIZE(p->old_flags) && !DO_VISUALIZE(p->flags))
     bg_visualizer_close(p->visualizer);
   
-  /* Initialize audio and video streams if not in bypass mode */
+  /* Initialize audio and video streams  */
   
-  if(!p->do_bypass)
-    {
-    if(!init_streams(p))
-      return;
-    }
+  if(!init_streams(p))
+    return;
   
   /* Set up visualizations */
   
@@ -571,16 +561,6 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   
   /* Count the threads */
 
-  if(p->do_bypass)
-    {
-    bg_player_thread_set_func(p->bypass_thread,
-                              bg_player_input_thread_bypass, p);
-    }
-  else
-    {
-    bg_player_thread_set_func(p->bypass_thread, NULL, NULL);
-    
-    }
   if(DO_AUDIO(p->flags))
     {
     bg_player_thread_set_func(p->audio_stream.th,
@@ -619,18 +599,11 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     }
 
   bg_player_threads_init(p->threads, PLAYER_MAX_THREADS);
-
-  
-  if(!p->do_bypass)
-    {
-    preload(p);
-    }
+  preload(p);
   
   if(flags & BG_PLAY_FLAG_INIT_THEN_PAUSE)
     {
     bg_player_set_state(p, BG_PLAYER_STATE_PAUSED, NULL, NULL);
-    if(p->do_bypass)
-      bg_player_input_bypass_set_pause(p, 1);
     if(DO_VIDEO(p->flags))
       bg_player_ov_update_still(p);
     }
@@ -724,9 +697,7 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
   if((old_state == BG_PLAYER_STATE_PLAYING) ||
      (old_state == BG_PLAYER_STATE_PAUSED))
     {
-    if((new_state == BG_PLAYER_STATE_STOPPED) ||
-       !(player->do_bypass) ||
-       !(player->input_handle->info->flags & BG_PLUGIN_KEEP_RUNNING))
+    if(new_state == BG_PLAYER_STATE_STOPPED)
       player_cleanup(player);
     }
   player->old_flags = player->flags;
@@ -1153,10 +1124,7 @@ static int process_commands(bg_player_t * player)
       case BG_PLAYER_CMD_SET_VOLUME:
         arg_f1 = bg_msg_get_arg_float(command, 0);
         player->volume = arg_f1;
-        if(player->do_bypass)
-          bg_player_input_bypass_set_volume(player, player->volume);
-        else
-          bg_player_oa_set_volume(&player->audio_stream, player->volume);
+        bg_player_oa_set_volume(&player->audio_stream, player->volume);
 
         bg_msg_queue_list_send(player->message_queues,
                                msg_volume_changed,
@@ -1172,11 +1140,7 @@ static int process_commands(bg_player_t * player)
           player->volume = 1.0;
         if(player->volume < BG_PLAYER_VOLUME_MIN)
           player->volume = BG_PLAYER_VOLUME_MIN;
-        if(player->do_bypass)
-          bg_player_input_bypass_set_volume(player,
-                                            player->volume);
-        else
-          bg_player_oa_set_volume(&player->audio_stream, player->volume);
+        bg_player_oa_set_volume(&player->audio_stream, player->volume);
 
         bg_msg_queue_list_send(player->message_queues,
                                msg_volume_changed,

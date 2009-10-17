@@ -32,17 +32,6 @@
 
 /* Input callbacks */
 
-static void track_changed(void * data, int track)
-  {
-  bg_player_t * p = data;
-  bg_player_set_track(p, track);
-  }
-
-static void time_changed(void * data, gavl_time_t time)
-  {
-  bg_player_t * p = data;
-  bg_player_time_set(p, time);
-  }
 
 static void duration_changed(void * data, gavl_time_t duration)
   {
@@ -88,8 +77,6 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
 
   /* Callbacks */
   ret->input_callbacks.data = ret;
-  ret->input_callbacks.track_changed    = track_changed;
-  ret->input_callbacks.time_changed     = time_changed;
   ret->input_callbacks.name_changed     = name_changed;
   ret->input_callbacks.duration_changed = duration_changed;
   ret->input_callbacks.metadata_changed = metadata_changed;
@@ -105,7 +92,6 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   ret->visualizer = bg_visualizer_create(plugin_reg);
 
   ret->thread_common = bg_player_thread_common_create();
-  ret->bypass_thread = bg_player_thread_create(ret->thread_common);
   
   /* Create contexts */
 
@@ -116,9 +102,8 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   bg_player_input_create(ret);
   bg_player_ov_create(ret);
 
-  ret->threads[0] = ret->bypass_thread;
-  ret->threads[1] = ret->audio_stream.th;
-  ret->threads[2] = ret->video_stream.th;
+  ret->threads[0] = ret->audio_stream.th;
+  ret->threads[1] = ret->video_stream.th;
   
   pthread_mutex_init(&(ret->state_mutex), (pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->config_mutex), (pthread_mutexattr_t *)0);
@@ -154,7 +139,6 @@ void bg_player_destroy(bg_player_t * player)
   pthread_mutex_destroy(&(player->state_mutex));
   pthread_mutex_destroy(&(player->config_mutex));
 
-  bg_player_thread_destroy(player->bypass_thread);
   bg_player_thread_common_destroy(player->thread_common);
   
   free(player);

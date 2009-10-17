@@ -103,12 +103,6 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 #define BG_PLUGIN_URL          (1<<3)  //!< Plugin can load URLs
 #define BG_PLUGIN_PLAYBACK     (1<<4)  //!< Plugin is an audio or video driver for playback
 
-#define BG_PLUGIN_BYPASS       (1<<5)  //!< Plugin can send A/V data directly to the output bypassing the player engine
-
-#define BG_PLUGIN_KEEP_RUNNING (1<<6) //!< Plugin should not be stopped and restarted if tracks change
-
-#define BG_PLUGIN_INPUT_HAS_SYNC (1<<7) //!< For input plugins in bypass mode: Plugin will set the time via callback
-
 #define BG_PLUGIN_STDIN         (1<<8)  //!< Plugin can read from stdin ("-")
 
 #define BG_PLUGIN_TUNER         (1<<9)  //!< Plugin has some kind of tuner. Channels will be loaded as tracks.
@@ -162,8 +156,6 @@ typedef enum
     
     /*
      */
-    
-    BG_STREAM_ACTION_BYPASS, //!< A/V data will bypass the player. It will only be chosen if the BG_PLUGIN_BYPASS flag (see below) is present. Currently, this is used only for Audio-CD playback to the soundcard.
     
     /*
      *  Future support for compressed frames
@@ -369,25 +361,6 @@ typedef struct bg_input_callbacks_s bg_input_callbacks_t;
 
 struct bg_input_callbacks_s
   {
-  /** \brief Track changed
-   *  \param data The data member of this bg_input_callbacks_s struct
-   *  \param track The track number starting with 0
-   *
-   *  This is called by plugins, which support multiple tracks and can switch to a new track without
-   *  closing/reopening (e.g. the audio-cd player)
-   */
-   void (*track_changed)(void * data, int track);
-
-  /** \brief Time changed
-   *  \param data The data member of this bg_input_callbacks_s struct
-   *  \param time The current time
-   *
-   *  This is used only by plugins, which do playback without the player engine
-   *  (currently only the audio-cd player) to update the displayed time. Normal plugins never call this.
-   */
-  
-  void (*time_changed)(void * data, gavl_time_t time);
-  
   /** \brief Duration changed
    *  \param data The data member of this bg_input_callbacks_s struct
    *  \param time The new duration
@@ -754,36 +727,6 @@ struct bg_input_plugin_s
                             int64_t * start_time,
                             int64_t * duration, int stream);
   
-  /* The following 3 functions are only meaningful for plugins, which
-     have the BG_PLUGIN_BYPASS flag set. */
-
-  /** \brief Update a plugin in bypass mode
-   *  \param priv The handle returned by the create() method
-   *  \returns 1 on success, 0 on error
-   *
-   *  For plugins in bypass mode, this function must be called
-   *  periodically by the application, so the plugin can call the
-   *  callbacks if something interesting happened.
-   */
-    
-  int (*bypass)(void * priv);
-  
-  /** \brief pause a plugin in bypass mode
-   *  \param priv The handle returned by the create() method
-   *  \param pause 1 for pausing, 0 for resuming
-   */
-  
-  void (*bypass_set_pause)(void * priv, int pause);
-
-  /** \brief Set volume for a plugin in bypass mode
-   *  \param priv The handle returned by the create() method
-   *  \param volume Volume in dB (0 is maximum).
-   *
-   * This function is optional.
-   */
-  
-  void (*bypass_set_volume)(void * priv, float volume);
-    
   /** \brief Seek within a media track
    *  \param priv The handle returned by the create() method
    *  \param time Time to seek to

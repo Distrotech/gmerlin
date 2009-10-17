@@ -43,7 +43,6 @@ typedef enum
   {
     SYNC_SOFTWARE,
     SYNC_SOUNDCARD,
-    SYNC_INPUT,
   } bg_player_sync_mode_t;
 
 typedef enum
@@ -262,13 +261,12 @@ typedef struct
 
 /* The player */
 
-#define PLAYER_MAX_THREADS 3
+#define PLAYER_MAX_THREADS 2
 
 struct bg_player_s
   {
   pthread_t player_thread;
 
-  bg_player_thread_t * bypass_thread;
   bg_player_thread_common_t * thread_common;
 
   bg_player_thread_t * threads[PLAYER_MAX_THREADS];
@@ -322,7 +320,6 @@ struct bg_player_s
 
   int can_seek;
   int can_pause;
-  int do_bypass; /* Bypass mode */
   
   /* Message stuff */
 
@@ -341,7 +338,6 @@ struct bg_player_s
   bg_player_saved_state_t saved_state;
   
   int visualizer_enabled;
-  int use_bypass;
   float still_framerate;
   
   pthread_mutex_t config_mutex;
@@ -372,8 +368,6 @@ void bg_player_broadcast_time(bg_player_t * player, gavl_time_t time);
 void bg_player_input_create(bg_player_t * player);
 void bg_player_input_destroy(bg_player_t * player);
 
-// void * bg_player_input_thread(void *);
-void * bg_player_input_thread_bypass(void *);
 
 int bg_player_input_init(bg_player_t * p,
                          bg_plugin_handle_t * handle,
@@ -412,11 +406,6 @@ bg_player_input_get_subtitle_format(bg_player_t * ctx);
 void bg_player_input_seek(bg_player_t * ctx,
                           gavl_time_t * time, int scale);
 
-void bg_player_input_bypass_set_volume(bg_player_t * p,
-                                       float volume);
-
-void bg_player_input_bypass_set_pause(bg_player_t * p,
-                                      int pause);
 
 void bg_player_input_send_messages(bg_player_t * p);
 
@@ -531,16 +520,6 @@ int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl);
 
 void bg_player_accel_pressed(bg_player_t * player, int id);
 
-void bg_player_set_track(bg_player_t *  player, int track);
 void bg_player_set_track_name(bg_player_t * player, const char *);
 void bg_player_set_duration(bg_player_t * player, gavl_time_t duration, int can_seek);
 void bg_player_set_metadata(bg_player_t * player, const bg_metadata_t *);
-
-
-
-/* Number of frames in the buffers */
-
-#define NUM_AUDIO_FRAMES   16
-#define NUM_VIDEO_FRAMES    8
-#define NUM_SUBTITLE_FRAMES 4
-

@@ -116,27 +116,24 @@ void bg_player_input_select_streams(bg_player_t * p)
   vs->eof = 1;
   ss->eof = 1;
   
-  if(!p->do_bypass)
+  if((p->current_audio_stream >= 0) &&
+     (p->current_audio_stream < p->track_info->num_audio_streams))
     {
-    if((p->current_audio_stream >= 0) &&
-       (p->current_audio_stream < p->track_info->num_audio_streams))
-      {
-      as->eof = 0;
-      p->flags |= PLAYER_DO_AUDIO;
-      }
-    if((p->current_video_stream >= 0) &&
-       (p->current_video_stream < p->track_info->num_video_streams))
-      {
-      vs->eof = 0;
-      p->flags |= PLAYER_DO_VIDEO;
-      }
+    as->eof = 0;
+    p->flags |= PLAYER_DO_AUDIO;
+    }
+  if((p->current_video_stream >= 0) &&
+     (p->current_video_stream < p->track_info->num_video_streams))
+    {
+    vs->eof = 0;
+    p->flags |= PLAYER_DO_VIDEO;
+    }
 
-    if((p->current_subtitle_stream >= 0) &&
-       (p->current_subtitle_stream < p->track_info->num_subtitle_streams))
-      {
-      p->flags |= PLAYER_DO_SUBTITLE;
-      ss->eof = 0;
-      }
+  if((p->current_subtitle_stream >= 0) &&
+     (p->current_subtitle_stream < p->track_info->num_subtitle_streams))
+    {
+    p->flags |= PLAYER_DO_SUBTITLE;
+    ss->eof = 0;
     }
   
   pthread_mutex_lock(&p->config_mutex);
@@ -175,12 +172,10 @@ void bg_player_input_select_streams(bg_player_t * p)
       {
       if(i == p->current_audio_stream) 
         p->input_plugin->set_audio_stream(p->input_priv, i,
-                                      p->do_bypass ?
-                                      BG_STREAM_ACTION_BYPASS :
-                                      BG_STREAM_ACTION_DECODE);
+                                          BG_STREAM_ACTION_DECODE);
       else
         p->input_plugin->set_audio_stream(p->input_priv, i,
-                                      BG_STREAM_ACTION_OFF);
+                                          BG_STREAM_ACTION_OFF);
       }
     }
 
@@ -191,8 +186,6 @@ void bg_player_input_select_streams(bg_player_t * p)
       {
       if(i == p->current_video_stream) 
         p->input_plugin->set_video_stream(p->input_priv, i,
-                                      p->do_bypass ?
-                                      BG_STREAM_ACTION_BYPASS :
                                       BG_STREAM_ACTION_DECODE);
       else
         p->input_plugin->set_video_stream(p->input_priv, i,
@@ -206,8 +199,6 @@ void bg_player_input_select_streams(bg_player_t * p)
       {
       if(i == p->current_subtitle_stream) 
         p->input_plugin->set_subtitle_stream(p->input_priv, i,
-                                      p->do_bypass ?
-                                      BG_STREAM_ACTION_BYPASS :
                                       BG_STREAM_ACTION_DECODE);
       else
         p->input_plugin->set_subtitle_stream(p->input_priv, i,
@@ -284,11 +275,6 @@ int bg_player_input_init(bg_player_t * p,
                          bg_plugin_handle_t * handle,
                          int track_index)
   {
-  int do_bypass;
-
-  pthread_mutex_lock(&(p->config_mutex));
-  do_bypass = p->use_bypass;
-  pthread_mutex_unlock(&(p->config_mutex));
   
   p->input_handle = handle;
   p->current_track = track_index;
@@ -330,17 +316,6 @@ int bg_player_input_init(bg_player_t * p,
   if(!bg_player_input_set_track(p))
     return 0;
   
-  /* Check for bypass mode */
-  
-  if(do_bypass && p->input_handle->info &&
-     (p->input_handle->info->flags & BG_PLUGIN_BYPASS))
-    {
-    /* Initialize volume for bypass mode */
-    bg_player_input_bypass_set_volume(p, p->volume);
-    p->do_bypass = 1;
-    }
-  else
-    p->do_bypass = 0;
   
   /* Select streams */
   bg_player_input_select_streams(p);
@@ -516,35 +491,6 @@ bg_player_input_read_video_subtitle_only(void * priv,
   return 1;
   }
 
-void * bg_player_input_thread_bypass(void * data)
-  {
-  bg_msg_t * msg;
-  gavl_time_t delay_time = GAVL_TIME_SCALE / 20;
-  bg_player_t * p = data;
-  
-  while(1)
-    {
-    if(!bg_player_thread_check(p->bypass_thread))
-      return NULL;
-    
-    bg_plugin_lock(p->input_handle);
-
-    if(p->input_plugin->bypass && !p->input_plugin->bypass(p->input_priv))
-      {
-      bg_plugin_unlock(p->input_handle);
-      break;
-      }
-    bg_plugin_unlock(p->input_handle);
-    
-    gavl_time_delay(&delay_time);
-    }
-
-  msg = bg_msg_queue_lock_write(p->command_queue);
-  bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
-  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_EOF);
-  bg_msg_queue_unlock_write(p->command_queue);
-  return NULL;
-  }
 
 void bg_player_input_seek(bg_player_t * p,
                           gavl_time_t * time, int scale)
@@ -595,36 +541,11 @@ void bg_player_input_seek(bg_player_t * p,
   
   }
 
-void bg_player_input_bypass_set_volume(bg_player_t * p,
-                                       float volume)
-  {
-  bg_plugin_lock(p->input_handle);
-  if(p->input_plugin->bypass_set_volume)
-    p->input_plugin->bypass_set_volume(p->input_priv, volume);
-  bg_plugin_unlock(p->input_handle);
-  }
-
-void bg_player_input_bypass_set_pause(bg_player_t * p,
-                                      int pause)
-  {
-  bg_plugin_lock(p->input_handle);
-  if(p->input_plugin->bypass_set_pause)
-    p->input_plugin->bypass_set_pause(p->input_priv, pause);
-  bg_plugin_unlock(p->input_handle);
-  }
 
 /* Configuration stuff */
 
 static const bg_parameter_info_t parameters[] =
   {
-    {
-      .name =      "do_bypass",
-      .long_name = TRS("Enable bypass mode"),
-      .type =      BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 1 },
-      .help_string = TRS("Use input plugins in bypass mode if they support it (Currently only the audio CD player).\
- This dramatically decreases CPU usage but doesn't work on all hardware setups.")
-    },
     {
       .name =        "still_framerate",
       .long_name =   "Still image repitition rate",
@@ -652,9 +573,7 @@ void bg_player_set_input_parameter(void * data, const char * name,
     return;
 
   pthread_mutex_lock(&(player->config_mutex));
-  if(!strcmp(name, "do_bypass"))
-    player->use_bypass = val->val_i;
-  else if(!strcmp(name, "still_framerate"))
+  if(!strcmp(name, "still_framerate"))
     player->still_framerate = val->val_f;
   pthread_mutex_unlock(&(player->config_mutex));
   }

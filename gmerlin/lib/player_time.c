@@ -29,11 +29,8 @@ void bg_player_time_init(bg_player_t * player)
   {
   bg_player_audio_stream_t * s = &player->audio_stream;
   
-  if((player->input_handle->plugin->flags & BG_PLUGIN_INPUT_HAS_SYNC) &&
-     player->do_bypass)
-    s->sync_mode = SYNC_INPUT;
-  else if(s->plugin && (s->plugin->get_delay) &&
-          DO_AUDIO(player->flags))
+  if(s->plugin && (s->plugin->get_delay) &&
+     DO_AUDIO(player->flags))
     s->sync_mode = SYNC_SOUNDCARD;
   else
     s->sync_mode = SYNC_SOFTWARE;
@@ -93,7 +90,7 @@ void bg_player_time_get(bg_player_t * player, int exact,
 
   int samples_in_soundcard;
   
-  if(!exact || (ctx->sync_mode == SYNC_INPUT))
+  if(!exact)
     {
     pthread_mutex_lock(&(ctx->time_mutex));
     *ret = ctx->current_time;

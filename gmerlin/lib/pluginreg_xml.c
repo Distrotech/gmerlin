@@ -80,9 +80,6 @@ flag_names[] =
     { "File",         BG_PLUGIN_FILE           }, /* Plugin reads/writes files      */
     { "URL",          BG_PLUGIN_URL            }, /* Plugin reads URLs or streams   */
     { "Playback",     BG_PLUGIN_PLAYBACK       }, /* Output plugins for playback    */
-    { "Bypass",       BG_PLUGIN_BYPASS         }, /* Plugin can bypass playback engine */
-    { "KeepRunning", BG_PLUGIN_KEEP_RUNNING   }, /* Plugin should not be stopped and restarted if tracks change */
-    { "HasSync",     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
     { "Stdin",          BG_PLUGIN_STDIN         }, /* Plugin reads from stdin */
     { "Tuner",          BG_PLUGIN_TUNER         }, /* Plugin has tuner */
     { "Filter1",        BG_PLUGIN_FILTER_1      }, /* Filter with one input port */
