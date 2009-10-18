@@ -315,9 +315,6 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_INT(metadata_change_callback);
   CP_INT(metadata_change_callback_data);
 
-  CP_INT(track_change_callback);
-  CP_INT(track_change_callback_data);
-
   CP_INT(buffer_callback);
   CP_INT(buffer_callback_data);
 
@@ -361,17 +358,6 @@ bgav_options_set_user_pass_callback(bgav_options_t * opt,
   opt->user_pass_callback      = callback;
   opt->user_pass_callback_data = data;
   }
-
-
-void
-bgav_options_set_track_change_callback(bgav_options_t * opt,
-                                       bgav_track_change_callback callback,
-                                       void * data)
-  {
-  opt->track_change_callback      = callback;
-  opt->track_change_callback_data = data;
-  }
-
 
 void
 bgav_options_set_buffer_callback(bgav_options_t * opt,

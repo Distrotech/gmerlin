@@ -236,9 +236,6 @@ static bgav_stream_action_t get_stream_action(bg_stream_action_t action)
     case BG_STREAM_ACTION_DECODE:
       return BGAV_STREAM_DECODE;
       break;
-    case BG_STREAM_ACTION_BYPASS:
-      return -1;
-      break;
     }
   return -1;
   }
@@ -634,10 +631,6 @@ void bg_avdec_set_callbacks(void * priv,
                                 avdec->bg_callbacks->name_changed,
                                 avdec->bg_callbacks->data);
   
-  bgav_options_set_track_change_callback(avdec->opt,
-                                 avdec->bg_callbacks->track_changed,
-                                 avdec->bg_callbacks->data);
-
   bgav_options_set_buffer_callback(avdec->opt,
                            avdec->bg_callbacks->buffer_notify,
                            avdec->bg_callbacks->data);

@@ -777,10 +777,7 @@ struct bgav_options_s
   
   bgav_metadata_change_callback metadata_change_callback;
   void * metadata_change_callback_data;
-
-  bgav_track_change_callback track_change_callback;
-  void * track_change_callback_data;
-
+  
   bgav_buffer_callback buffer_callback;
   void * buffer_callback_data;
 
