@@ -840,15 +840,7 @@ static int check_next_cell(bgav_input_context_t * ctx)
   
   if(d->next_cell >= d->current_track_priv->end_cell)
     {
-#if 0
-    /* No seamless playback requested */
-    if(ctx->opt->seamless)
-      {
-      /* Check if the next track is in the same title */
-      }
-    else
-#endif
-      return 0;
+    return 0;
     }
   return 1;
   }

@@ -475,25 +475,6 @@ void bgav_options_set_audio_dynrange(bgav_options_t* opt,
 
 
 /** \ingroup options
- *  \brief Enable seamless playback
- *  \param opt Option container
- *  \param seamless 1 for enabling seamless playback
- *  \note This function does nothing for now
- *
- *  If a source has multiple tracks, we can sometimes switch to the
- *  next track seamlessly (i.e. without closing and reopening the
- *  codecs). If you set this option, the decoder will not signal EOF at the
- *  end of a track if a seamless transition to the next track is possible.
- *  Instead, the track change is signalled with the
- *  \ref bgav_track_change_callback (if available) and decoding continues.
- *  \todo Seamless playback isn't implemented yet. This function might be removed in future versions.
- */
-
-BGAV_PUBLIC
-void bgav_options_set_seamless(bgav_options_t* opt,
-                               int seamless);
-
-/** \ingroup options
  *  \brief Try to be sample accurate
  *  \param opt Option container
  *  \param enable Specifies how sample accurate mode should be enabled (see below)
@@ -718,30 +699,6 @@ BGAV_PUBLIC void
 bgav_options_set_metadata_change_callback(bgav_options_t* opt,
                                           bgav_metadata_change_callback callback,
                                           void * data);
-
-/** \ingroup options
- *  \brief Function to be called if the track number changes
- *  \param data The data you passed to \ref bgav_options_set_track_change_callback.
- *  \param track The new track number
- *
- *  This function will be called if the decoder has multiple tracks, but allows
- *  seamless playback of the tracks and a track change occurred.
- *
- */
-
-typedef void (*bgav_track_change_callback)(void*data, int track);
-
-/** \ingroup options
- *  \brief Set the callback for track change events
- *  \param opt Option container
- *  \param callback The callback
- *  \param data Some data you want to get passed to the callback
- */
-
-BGAV_PUBLIC void
-bgav_options_set_track_change_callback(bgav_options_t* opt,
-                                       bgav_track_change_callback callback,
-                                       void * data);
 
 /** \ingroup options
  *  \brief Function to be called if the input module is buffering data

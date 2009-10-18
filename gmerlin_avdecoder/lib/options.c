@@ -147,12 +147,6 @@ void bgav_options_set_default_subtitle_encoding(bgav_options_t* b,
   b->default_subtitle_encoding = bgav_strdup(encoding);
   }
 
-void bgav_options_set_seamless(bgav_options_t* opt,
-                               int seamless)
-  {
-  opt->seamless = seamless;
-  }
-
 void bgav_options_set_seek_subtitles(bgav_options_t* opt,
                                      int seek_subtitles)
   {
