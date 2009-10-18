@@ -96,15 +96,15 @@ void bg_player_thread_set_func(bg_player_thread_t * th,
 
 void bg_player_threads_init(bg_player_thread_t ** th, int num)
   {
-  int i, ret;
+  int i, ret, val;
 
   for(i = 0; i < num; i++)
     {
     if(th[i]->func)
       {
-      fprintf(stderr, "Starting thread...\n");
+      // fprintf(stderr, "Starting thread...\n");
       pthread_create(&(th[i]->thread), NULL, th[i]->func, th[i]->arg);
-      fprintf(stderr, "Starting thread done\n");
+      // fprintf(stderr, "Starting thread done\n");
       }
     }
   /* Wait until all threads are started */
@@ -112,9 +112,10 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
     {
     if(th[i]->func)
       {
-      fprintf(stderr, "Sem wait...");
+      // fprintf(stderr, "Sem wait...");
       ret = sem_wait(&(th[i]->sem));
-      fprintf(stderr, "done %d\n", ret);
+      sem_getvalue(&(th[i]->sem), &val);
+      // fprintf(stderr, "done ret: %d, val: %d\n", ret, val);
       }
     }
   
@@ -174,9 +175,13 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
     {
     if(th[i]->func)
       {
-      fprintf(stderr, "Joining thread...\n");
+      // fprintf(stderr, "Joining thread...\n");
       pthread_join(th[i]->thread, NULL);
-      fprintf(stderr, "Joining thread done\n");
+      // fprintf(stderr, "Joining thread done, sem\n");
+
+      sem_destroy(&th[i]->sem);
+      sem_init(&th[i]->sem, 0, 0);
+      
       }
     }
   }
@@ -185,10 +190,13 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
 int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   {
   pthread_mutex_lock(&th->com->start_mutex);
+  // fprintf(stderr, "Sem post...\n");
   sem_post(&th->sem);
-  fprintf(stderr, "Wait for start...\n");
+  // fprintf(stderr, "Sem post done\n");
+  
+  // fprintf(stderr, "Wait for start...\n");
   pthread_cond_wait(&th->com->start_cond, &th->com->start_mutex);
-  fprintf(stderr, "Wait for start done\n");
+  // fprintf(stderr, "Wait for start done\n");
   pthread_mutex_unlock(&th->com->start_mutex);
 
   pthread_mutex_lock(&th->mutex);

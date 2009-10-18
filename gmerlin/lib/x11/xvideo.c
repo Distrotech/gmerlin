@@ -25,6 +25,9 @@
 #include <X11/extensions/Xvlib.h>
 #include <string.h>
 
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "xv"
+
 #define XV_ID_YV12  0x32315659 
 #define XV_ID_I420  0x30323449
 #define XV_ID_YUY2  0x32595559
@@ -235,6 +238,11 @@ static int open_xv(driver_data_t * d)
     if(d->pixelformats[i] == d->pixelformat)
       {
       priv->format = priv->format_ids[i];
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using XV format: %c%c%c%c",
+             priv->format & 0xff,
+             (priv->format >> 8) & 0xff, 
+             (priv->format >> 16) & 0xff, 
+             (priv->format >> 24) & 0xff);
       break;
       }
     i++;
