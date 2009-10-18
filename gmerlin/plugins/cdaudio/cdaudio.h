@@ -122,8 +122,7 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t*,
 
 void * bg_cdaudio_rip_create();
 
-int bg_cdaudio_rip_init(void *, CdIo_t *cdio, int start_sector,
-                        int * frames_per_read);
+int bg_cdaudio_rip_init(void *, CdIo_t *cdio, int start_sector);
 
 int bg_cdaudio_rip_rip(void * data, gavl_audio_frame_t * f);
 

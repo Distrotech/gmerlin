@@ -43,7 +43,6 @@ typedef struct
   void * ripper;
   gavl_audio_frame_t * frame;
   int last_read_samples;
-  int read_sectors; /* Sectors to read at once */
 
   char disc_id[DISCID_SIZE];
 
@@ -426,28 +425,19 @@ static void read_frame(cdaudio_t * cd)
     {
     gavl_audio_format_t format;
     bg_cdaudio_rip_init(cd->ripper, cd->cdio,
-                        cd->first_sector,
-                        &(cd->read_sectors));
+                        cd->first_sector);
     
     gavl_audio_format_copy(&format,
                            &(cd->track_info[0].audio_streams[0].format));
-    format.samples_per_frame = cd->read_sectors * 588;
+    format.samples_per_frame = 588;
     cd->frame = gavl_audio_frame_create(&format);
     cd->rip_initialized = 1;
     }
   bg_cdaudio_rip_rip(cd->ripper, cd->frame);
 
-  if(cd->current_sector + cd->read_sectors >
-     cd->index->tracks[cd->current_track].last_sector)
-    {
-    cd->frame->valid_samples =
-      (cd->index->tracks[cd->current_track].last_sector - 
-       cd->current_sector + 1) * 588;
-    }
-  else
-    cd->frame->valid_samples = cd->read_sectors * 588;
+  cd->frame->valid_samples = 588;
   cd->last_read_samples = cd->frame->valid_samples;
-  cd->current_sector += cd->read_sectors;
+  cd->current_sector ++;
   }
 
 static int read_audio_cdaudio(void * priv,
@@ -500,12 +490,11 @@ static void seek_cdaudio(void * priv, int64_t * time, int scale)
     {
     gavl_audio_format_t format;
     bg_cdaudio_rip_init(cd->ripper, cd->cdio,
-                        cd->first_sector,
-                        &(cd->read_sectors));
+                        cd->first_sector);
     
     gavl_audio_format_copy(&format,
                            &(cd->track_info[0].audio_streams[0].format));
-    format.samples_per_frame = cd->read_sectors * 588;
+    format.samples_per_frame = 588;
     cd->frame = gavl_audio_frame_create(&format);
     cd->rip_initialized = 1;
     }

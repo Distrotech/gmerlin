@@ -59,8 +59,7 @@ void * bg_cdaudio_rip_create()
   }
 
 int bg_cdaudio_rip_init(void * data,
-                        CdIo_t *cdio, int start_sector,
-                        int * frames_per_read)
+                        CdIo_t *cdio, int start_sector)
   {
   char * msg = (char*)0;
   int paranoia_mode;
@@ -94,7 +93,6 @@ int bg_cdaudio_rip_init(void * data,
   cdio_paranoia_seek(priv->paranoia, start_sector, SEEK_SET);
   cdio_paranoia_modeset(priv->paranoia,paranoia_mode);
 
-  *frames_per_read = priv->drive->nsectors;
   return 1;
   }
 
@@ -109,12 +107,10 @@ int bg_cdaudio_rip_rip(void * data, gavl_audio_frame_t * f)
   int16_t * samples;
   cdparanoia_priv_t * priv;
   priv = (cdparanoia_priv_t *)data;
-
-  for(i = 0; i < priv->drive->nsectors; i++)
-    {
-    samples = cdio_paranoia_read(priv->paranoia, paranoia_callback);
-    memcpy(f->samples.s_16 + i * (588 * 2), samples, 588 * 4);
-    }
+  
+  samples = cdio_paranoia_read(priv->paranoia, paranoia_callback);
+  memcpy(f->samples.s_16, samples, 588 * 4);
+  
   return 1;
   }
 
