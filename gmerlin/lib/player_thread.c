@@ -96,7 +96,7 @@ void bg_player_thread_set_func(bg_player_thread_t * th,
 
 void bg_player_threads_init(bg_player_thread_t ** th, int num)
   {
-  int i;
+  int i, ret;
 
   for(i = 0; i < num; i++)
     {
@@ -113,8 +113,8 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
     if(th[i]->func)
       {
       fprintf(stderr, "Sem wait...");
-      sem_wait(&(th[i]->sem));
-      fprintf(stderr, "done\n");
+      ret = sem_wait(&(th[i]->sem));
+      fprintf(stderr, "done %d\n", ret);
       }
     }
   

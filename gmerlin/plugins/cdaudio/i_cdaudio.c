@@ -427,7 +427,6 @@ static void read_frame(cdaudio_t * cd)
     gavl_audio_format_t format;
     bg_cdaudio_rip_init(cd->ripper, cd->cdio,
                         cd->first_sector,
-                        cd->first_sector - cd->index->tracks[0].first_sector,
                         &(cd->read_sectors));
     
     gavl_audio_format_copy(&format,
@@ -502,7 +501,6 @@ static void seek_cdaudio(void * priv, int64_t * time, int scale)
     gavl_audio_format_t format;
     bg_cdaudio_rip_init(cd->ripper, cd->cdio,
                         cd->first_sector,
-                        cd->first_sector - cd->index->tracks[0].first_sector,
                         &(cd->read_sectors));
     
     gavl_audio_format_copy(&format,

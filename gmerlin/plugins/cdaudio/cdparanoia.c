@@ -59,7 +59,7 @@ void * bg_cdaudio_rip_create()
   }
 
 int bg_cdaudio_rip_init(void * data,
-                        CdIo_t *cdio, int start_sector, int start_sector_lba,
+                        CdIo_t *cdio, int start_sector,
                         int * frames_per_read)
   {
   char * msg = (char*)0;

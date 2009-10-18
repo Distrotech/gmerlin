@@ -76,11 +76,6 @@ void bg_cdaudio_stop(CdIo_t*);
  * The st structure MUST be saved between calls
  */
 
-int bg_cdaudio_get_status(CdIo_t*, bg_cdaudio_status_t *st);
-
-void bg_cdaudio_set_volume(CdIo_t*, float volume);
-
-void bg_cdaudio_set_pause(CdIo_t*, int pause);
 
 void bg_cdaudio_get_disc_id(bg_cdaudio_index_t * idx, char disc_id[DISCID_SIZE]);
 
@@ -127,7 +122,7 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t*,
 
 void * bg_cdaudio_rip_create();
 
-int bg_cdaudio_rip_init(void *, CdIo_t *cdio, int start_sector, int start_sector_lba,
+int bg_cdaudio_rip_init(void *, CdIo_t *cdio, int start_sector,
                         int * frames_per_read);
 
 int bg_cdaudio_rip_rip(void * data, gavl_audio_frame_t * f);
