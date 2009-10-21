@@ -507,8 +507,7 @@ static void seek_cdaudio(void * priv, int64_t * time, int scale)
   
   /* Seek to the point */
   
-  bg_cdaudio_rip_seek(cd->ripper, cd->current_sector,
-                      cd->current_sector - cd->index->tracks[0].first_sector);
+  bg_cdaudio_rip_seek(cd->ripper, cd->current_sector);
   
   /* Read one frame os samples (can be more than one sector) */
   read_frame(cd);

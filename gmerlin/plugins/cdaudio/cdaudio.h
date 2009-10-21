@@ -128,7 +128,7 @@ int bg_cdaudio_rip_rip(void * data, gavl_audio_frame_t * f);
 
 /* Sector is absolute */
 
-void bg_cdaudio_rip_seek(void * data, int sector, int start_sector_lba);
+void bg_cdaudio_rip_seek(void * data, int sector);
 
 void bg_cdaudio_rip_close(void * data);
 

@@ -628,7 +628,7 @@ static void play_cmd(bg_player_t * p,
   {
   /* Shut down from last playback if necessary */
   
-  if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
+  if(p->input_handle)
     player_cleanup(p);
   
   bg_player_set_track_name(p, track_name);
@@ -798,17 +798,15 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
   /* Clear fifos and filter chains */
 
   if(DO_AUDIO(player->flags))
-    {
     bg_audio_filter_chain_reset(player->audio_stream.fc);
-    }
+  
   if(DO_VIDEO(player->flags))
-    {
     bg_video_filter_chain_reset(player->video_stream.fc);
-    }
+#if 0  
   if(DO_SUBTITLE(player->flags))
     {
     }
-  
+#endif
   /* Resync */
   
   preload(player);
@@ -817,8 +815,9 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
     bg_player_time_set(player, sync_time);
   else
     bg_player_time_set(player, 0);
-    
-  bg_player_ov_reset(player);
+  
+  if(DO_VIDEO(player->flags))
+    bg_player_ov_reset(player);
 
   /* Update position in chapter list */
   if(player->track_info->chapter_list)

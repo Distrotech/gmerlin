@@ -48,6 +48,9 @@ typedef struct
   int disable_paranoia;       // -Z
   int disable_extra_paranoia; // -Y
   int max_retries;            // (0: unlimited)
+  
+  CdIo_t *cdio;
+  int current_sector;
   } cdparanoia_priv_t;
 
 
@@ -66,32 +69,43 @@ int bg_cdaudio_rip_init(void * data,
   cdparanoia_priv_t * priv;
   priv = (cdparanoia_priv_t *)data;
   
-  priv->drive = cdio_cddap_identify_cdio(cdio, 1, &msg);
-
-  if(!priv->drive)
-    return 0;
-
-  cdio_cddap_verbose_set(priv->drive,CDDA_MESSAGE_FORGETIT,CDDA_MESSAGE_FORGETIT);
-
-  if(priv->speed != -1)
-  cdio_cddap_speed_set(priv->drive, priv->speed);
-
-  cdio_cddap_open(priv->drive);
+  priv->cdio = cdio;
   
-  paranoia_mode=PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP;
-
-  if(priv->disable_paranoia)
-    paranoia_mode=PARANOIA_MODE_DISABLE;
-  if(priv->disable_extra_paranoia)
+  /* cdparanoia */
+  if(!priv->disable_paranoia)
     {
-    paranoia_mode|=PARANOIA_MODE_OVERLAP; /* cdda2wav style overlap
-                                             check only */
-    paranoia_mode&=~PARANOIA_MODE_VERIFY;
-    }
+    priv->drive = cdio_cddap_identify_cdio(cdio, 1, &msg);
 
-  priv->paranoia = cdio_paranoia_init(priv->drive);
-  cdio_paranoia_seek(priv->paranoia, start_sector, SEEK_SET);
-  cdio_paranoia_modeset(priv->paranoia,paranoia_mode);
+    if(!priv->drive)
+      return 0;
+
+    cdio_cddap_verbose_set(priv->drive,CDDA_MESSAGE_FORGETIT,CDDA_MESSAGE_FORGETIT);
+
+    if(priv->speed != -1)
+      cdio_cddap_speed_set(priv->drive, priv->speed);
+
+    cdio_cddap_open(priv->drive);
+  
+    paranoia_mode=PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP;
+
+    if(priv->disable_paranoia)
+      paranoia_mode=PARANOIA_MODE_DISABLE;
+    if(priv->disable_extra_paranoia)
+      {
+      paranoia_mode|=PARANOIA_MODE_OVERLAP; /* cdda2wav style overlap
+                                               check only */
+      paranoia_mode&=~PARANOIA_MODE_VERIFY;
+      }
+
+    priv->paranoia = cdio_paranoia_init(priv->drive);
+    cdio_paranoia_seek(priv->paranoia, start_sector, SEEK_SET);
+    cdio_paranoia_modeset(priv->paranoia,paranoia_mode);
+    }
+  /* Simple audio reading */
+  else
+    {
+    priv->current_sector = start_sector;
+    }
 
   return 1;
   }
@@ -103,31 +117,48 @@ static void paranoia_callback(long inpos, paranoia_cb_mode_t function)
 
 int bg_cdaudio_rip_rip(void * data, gavl_audio_frame_t * f)
   {
-  int i;
-  int16_t * samples;
-  cdparanoia_priv_t * priv;
-  priv = (cdparanoia_priv_t *)data;
+  cdparanoia_priv_t * priv = data;
   
-  samples = cdio_paranoia_read(priv->paranoia, paranoia_callback);
-  memcpy(f->samples.s_16, samples, 588 * 4);
+  if(!priv->disable_paranoia)
+    {
+    int16_t * samples;
+    samples = cdio_paranoia_read(priv->paranoia, paranoia_callback);
+    memcpy(f->samples.s_16, samples, 588 * 4);
+    }
+  else
+    {
+    driver_return_code_t err;
+    //    fprintf(stderr, "read sector...");
+    err = cdio_read_audio_sector(priv->cdio, f->samples.s_16, priv->current_sector);
+    if(err != DRIVER_OP_SUCCESS)
+      {
+      //      fprintf(stderr, "Failed\n");
+      return 0;
+      }
+    //    else
+    //      fprintf(stderr, "Ok\n");
+      
+    priv->current_sector++;
+    }
   
   return 1;
   }
 
 /* Sector is absolute */
 
-void bg_cdaudio_rip_seek(void * data, int sector, int sector_lba)
+void bg_cdaudio_rip_seek(void * data, int sector)
   {
-  cdparanoia_priv_t * priv;
-  priv = (cdparanoia_priv_t *)data;
-  cdio_paranoia_seek(priv->paranoia, sector, SEEK_SET);
+  cdparanoia_priv_t * priv = data;
+  
+  if(!priv->disable_paranoia)
+    cdio_paranoia_seek(priv->paranoia, sector, SEEK_SET);
+  else
+    priv->current_sector = sector;
   }
 
 void bg_cdaudio_rip_close(void * data)
   {
-  cdparanoia_priv_t * priv;
-  priv = (cdparanoia_priv_t *)data;
-
+  cdparanoia_priv_t * priv = data;
   
   if(priv->paranoia)
     {

@@ -719,16 +719,4 @@ void bg_plugin_unref(bg_plugin_handle_t * h);
  */
 void bg_plugin_unref_nolock(bg_plugin_handle_t * h);
 
-/* Check if 2 plugins handles are equal */
-
-/** \ingroup plugin_registry
- *  \brief Check if 2 plugins are equal
- *  \param h1 A Plugin handle
- *  \param h2 Another plugin handle
- *  \returns 1 if the plugins are equal, 0 else
- */
-
-int bg_plugin_equal(bg_plugin_handle_t * h1,
-                    bg_plugin_handle_t * h2);                    
-
 #endif // __BG_PLUGINREGISTRY_H_

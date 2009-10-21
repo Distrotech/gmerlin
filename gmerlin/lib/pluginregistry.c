@@ -1867,13 +1867,6 @@ int bg_plugin_registry_get_encode_pp(bg_plugin_registry_t * reg)
   return ret;
   }
 
-
-int bg_plugin_equal(bg_plugin_handle_t * h1,
-                     bg_plugin_handle_t * h2)
-  {
-  return h1 == h2;
-  }
-
 void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
                                            uint32_t type_mask,
                                            uint32_t flag_mask,
