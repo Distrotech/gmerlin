@@ -48,6 +48,10 @@ int bg_avdec_read_video(void * priv,
                         gavl_video_frame_t * frame,
                         int stream);
 
+void bg_avdec_skip_video(void * priv, int stream, int64_t * time,
+                         int scale, int exact);
+
+
 int bg_avdec_has_still(void * priv,
                        int stream);
 

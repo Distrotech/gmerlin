@@ -312,13 +312,15 @@ void bgav_video_resync(bgav_stream_t * s)
       we'll call
 */
 
-int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
+int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
+                      int exact)
   {
   bgav_packet_t * p; 
   //  gavl_time_t stream_time;
   int result;
   int64_t time_scaled;
-  time_scaled = gavl_time_rescale(scale, s->data.video.format.timescale, *time);
+  time_scaled =
+    gavl_time_rescale(scale, s->data.video.format.timescale, *time);
   
   if(s->flags & STREAM_STILL_MODE)
     {
@@ -389,6 +391,15 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   
   *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
   return 1;
+  }
+
+void bgav_skip_video(bgav_t * bgav, int stream,
+                     int64_t * time, int scale,
+                     int exact)
+  {
+  bgav_stream_t * s;
+  s = &bgav->tt->cur->video_streams[stream];
+  bgav_video_skipto(s, time, scale, exact);
   }
 
 int bgav_video_has_still(bgav_t * bgav, int stream)

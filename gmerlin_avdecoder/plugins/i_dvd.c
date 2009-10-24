@@ -145,6 +145,7 @@ const bg_input_plugin_t the_plugin =
     .has_still  =      bg_avdec_has_still,
     /* Read one video frame (returns FALSE on EOF) */
     .read_video =      bg_avdec_read_video,
+    .skip_video =      bg_avdec_skip_video,
 
     .has_subtitle =          bg_avdec_has_subtitle,
 

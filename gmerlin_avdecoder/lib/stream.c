@@ -213,7 +213,7 @@ int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)
       return bgav_audio_skipto(s, time, scale);
       break;
     case BGAV_STREAM_VIDEO:
-      return bgav_video_skipto(s, time, scale);
+      return bgav_video_skipto(s, time, scale, 1);
       break;
     case BGAV_STREAM_SUBTITLE_TEXT:
     case BGAV_STREAM_SUBTITLE_OVERLAY:

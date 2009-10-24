@@ -1625,7 +1625,8 @@ void bgav_video_stop(bgav_stream_t * s);
 void bgav_video_resync(bgav_stream_t * s);
 // void bgav_video_clear(bgav_stream_t * s);
 
-int bgav_video_skipto(bgav_stream_t * stream, int64_t * t, int scale);
+int bgav_video_skipto(bgav_stream_t * stream, int64_t * t, int scale,
+                      int exact);
 
 /* subtitle.c */
 

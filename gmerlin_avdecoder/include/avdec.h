@@ -1648,6 +1648,25 @@ BGAV_PUBLIC
 int bgav_read_video(bgav_t * bgav, gavl_video_frame_t * frame, int stream);
 
 /** \ingroup decode
+    \brief Skip forward in a video stream
+    \param bgav A decoder instance
+    \param stream Stream index (starting with 0)
+    \param time The time to skip to (will be changed to the true time)
+    \param scale Scale by which the time is scaled
+    \param exact 1 if an exact skip should be done, 0 for faster approximate skip
+    
+    Use this function if it turns out, that the machine is too weak to
+    decode all frames. Set exact to 0 to make the skipping even faster
+    but less accurate.
+*/
+
+BGAV_PUBLIC
+void bgav_skip_video(bgav_t * bgav, int stream,
+                     int64_t * time, int scale,
+                     int exact);
+
+  
+/** \ingroup decode
     \brief Decode audio samples
     \param bgav A decoder instance
     \param frame The frame to which the samples will be decoded.

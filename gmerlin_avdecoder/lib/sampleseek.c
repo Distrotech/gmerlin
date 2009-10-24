@@ -171,7 +171,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   if((time > s->out_time) &&
      (bgav_video_keyframe_after(bgav, stream, s->out_time) > time))
     {
-    bgav_video_skipto(s, &time, s->data.video.format.timescale);
+    bgav_video_skipto(s, &time, s->data.video.format.timescale, 1);
     return;
     }
 
@@ -216,7 +216,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   time += s->start_time;
   
   //  fprintf(stderr, "Skip to: %ld\n", time);
-  bgav_video_skipto(s, &time, s->data.video.format.timescale);
+  bgav_video_skipto(s, &time, s->data.video.format.timescale, 1);
   //  fprintf(stderr, "Skipped to: %ld %ld\n", time, s->out_time);
   }
 
