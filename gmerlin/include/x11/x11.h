@@ -37,10 +37,6 @@
 #define BG_CONTRAST_MAX       10.0
 #define BG_CONTRAST_DELTA      0.5
 
-#define BG_HUE_MIN        -180.0
-#define BG_HUE_MAX         180.0
-#define BG_HUE_DELTA         9.0
-
 typedef struct
   {
   const bg_accelerator_map_t * accel_map;
@@ -159,9 +155,6 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
 int bg_x11_window_set_brightness(bg_x11_window_t*, float val);
 int bg_x11_window_set_saturation(bg_x11_window_t*, float val);
 int bg_x11_window_set_contrast(bg_x11_window_t*, float val);
-int bg_x11_window_set_hue(bg_x11_window_t*, float val);
-
-
 
 void bg_x11_window_put_frame(bg_x11_window_t*, gavl_video_frame_t * frame);
 void bg_x11_window_put_still(bg_x11_window_t*, gavl_video_frame_t * frame);

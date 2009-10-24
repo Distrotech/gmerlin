@@ -55,8 +55,6 @@
 #define ACCEL_DEC_SATURATION    11<<8
 #define ACCEL_INC_CONTRAST      12<<8
 #define ACCEL_DEC_CONTRAST      13<<8
-#define ACCEL_INC_HUE           14<<8
-#define ACCEL_DEC_HUE           15<<8
 #define ACCEL_FIT_WINDOW        16<<8
 #define ACCEL_SHRINK_WINDOW     17<<8
 
@@ -78,8 +76,6 @@ static const bg_accelerator_t accels[] =
     { BG_KEY_S,        BG_KEY_SHIFT_MASK, ACCEL_INC_SATURATION    },
     { BG_KEY_c,                        0, ACCEL_DEC_CONTRAST      },
     { BG_KEY_C,        BG_KEY_SHIFT_MASK, ACCEL_INC_CONTRAST      },
-    { BG_KEY_h,                        0, ACCEL_DEC_HUE           },
-    { BG_KEY_H,        BG_KEY_SHIFT_MASK, ACCEL_INC_HUE           },
     { BG_KEY_NONE,                     0,  0                      },
   };
 
@@ -372,40 +368,6 @@ static int accel_callback(void * data, int id)
           }
         }
       break;
-    case ACCEL_INC_HUE:
-      f_tmp = priv->hue + BG_HUE_DELTA;
-      if(f_tmp > BG_HUE_MAX)
-        f_tmp = BG_HUE_MAX;
-
-      if(bg_x11_window_set_hue(priv->win, f_tmp))
-        {
-        priv->hue = f_tmp;
-        if(priv->callbacks && priv->callbacks->hue_callback)
-          {
-          f_tmp_scaled =
-            (f_tmp-BG_HUE_MIN)/(BG_HUE_MAX - BG_HUE_MIN);
-          priv->callbacks->hue_callback(priv->callbacks->data,
-                                        f_tmp_scaled);
-          }
-        }
-      break;
-    case ACCEL_DEC_HUE:
-      f_tmp = priv->hue - BG_HUE_DELTA;
-      if(f_tmp < BG_HUE_MIN)
-        f_tmp = BG_HUE_MIN;
-
-      if(bg_x11_window_set_hue(priv->win, f_tmp))
-        {
-        priv->hue = f_tmp;
-        if(priv->callbacks && priv->callbacks->hue_callback)
-          {
-          f_tmp_scaled =
-            (f_tmp-BG_HUE_MIN)/(BG_HUE_MAX - BG_HUE_MIN);
-          priv->callbacks->hue_callback(priv->callbacks->data,
-                                        f_tmp_scaled);
-          }
-        }
-      break;
     case ACCEL_FIT_WINDOW:
       if(priv->is_open)
         {
@@ -694,15 +656,6 @@ static const bg_parameter_info_t common_parameters[] =
       .val_max =     { .val_f = ZOOM_MAX },
     },
     {
-      .name =        "hue",
-      .long_name =   "Hue",
-      .type =        BG_PARAMETER_SLIDER_FLOAT,
-      .flags =       BG_PARAMETER_SYNC | BG_PARAMETER_HIDE_DIALOG,
-      .val_default = { .val_f = 0.0 },
-      .val_min =     { .val_f = BG_HUE_MIN },
-      .val_max =     { .val_f = BG_HUE_MAX },
-    },
-    {
       .name =        "saturation",
       .long_name =   "Saturation",
       .type =        BG_PARAMETER_SLIDER_FLOAT,
@@ -774,11 +727,6 @@ static void set_parameter_x11(void * data,
     priv->zoom = val->val_f;
     if(priv->is_open)
       set_drawing_coords(priv);
-    }
-  else if(!strcmp(name, "hue"))
-    {
-    priv->hue = val->val_f;
-    bg_x11_window_set_hue(priv->win, val->val_f);
     }
   else if(!strcmp(name, "saturation"))
     {

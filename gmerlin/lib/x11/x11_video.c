@@ -88,23 +88,6 @@ int bg_x11_window_set_contrast(bg_x11_window_t * w, float val)
   return set_contrast(w);
   }
 
-static int set_hue(bg_x11_window_t * w)
-  {
-  if(w->video_open &&
-     w->current_driver->driver->set_hue &&
-     (w->current_driver->flags & DRIVER_FLAG_HUE))
-    {
-    w->current_driver->driver->set_hue(w->current_driver, w->hue);
-    return 1;
-    }
-  return 0;
-  }
-
-int bg_x11_window_set_hue(bg_x11_window_t * w, float val)
-  {
-  w->hue = val;
-  return set_hue(w);
-  }
 
 static void init(bg_x11_window_t * w)
   {
@@ -268,9 +251,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   set_contrast(w);
   set_saturation(w);
   set_brightness(w);
-  set_hue(w);
   
-
   return 1;
   }
 

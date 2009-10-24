@@ -36,8 +36,7 @@
 #define XV_ATTR_BRIGHTNESS 0
 #define XV_ATTR_SATURATION 1
 #define XV_ATTR_CONTRAST   2
-#define XV_ATTR_HUE        3
-#define XV_ATTR_NUM        4
+#define XV_ATTR_NUM        3
 
 typedef struct
   {
@@ -166,26 +165,19 @@ static void check_xv(driver_data_t * d)
           XInternAtom(d->win->dpy, "XV_BRIGHTNESS", False);
         d->flags |= DRIVER_FLAG_BRIGHTNESS;
         }
-      if(!strcmp(priv->xv_attributes[i].name, "XV_CONTRAST"))
+      else if(!strcmp(priv->xv_attributes[i].name, "XV_CONTRAST"))
         {
         priv->attributes[XV_ATTR_CONTRAST].index = i;
         priv->attributes[XV_ATTR_CONTRAST].atom =
           XInternAtom(d->win->dpy, "XV_CONTRAST", False);
         d->flags |= DRIVER_FLAG_CONTRAST;
         }
-      if(!strcmp(priv->xv_attributes[i].name, "XV_SATURATION"))
+      else if(!strcmp(priv->xv_attributes[i].name, "XV_SATURATION"))
         {
         priv->attributes[XV_ATTR_SATURATION].index = i;
         priv->attributes[XV_ATTR_SATURATION].atom =
           XInternAtom(d->win->dpy, "XV_SATURATION", False);
         d->flags |= DRIVER_FLAG_SATURATION;
-        }
-      if(!strcmp(priv->xv_attributes[i].name, "XV_HUE"))
-        {
-        priv->attributes[XV_ATTR_HUE].index = i;
-        priv->attributes[XV_ATTR_HUE].atom =
-          XInternAtom(d->win->dpy, "XV_HUE", False);
-        d->flags |= DRIVER_FLAG_HUE;
         }
       }
     
@@ -475,14 +467,18 @@ static int rescale(XvAttribute * attr, float val, float min, float max)
 static void set_brightness_xv(driver_data_t* d,float val)
   {
   xv_priv_t * priv;
-  priv = (xv_priv_t *)(d->priv);
+  int val_i;
+
+  priv = d->priv;
+
+  val_i =
+    rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_BRIGHTNESS].index],
+            val,
+            BG_BRIGHTNESS_MIN,
+            BG_BRIGHTNESS_MAX);
   
   XvSetPortAttribute(d->win->dpy, priv->port,
-                     priv->attributes[XV_ATTR_BRIGHTNESS].atom, 
-                     rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_BRIGHTNESS].index],
-                             val,
-                             BG_BRIGHTNESS_MIN,
-                             BG_BRIGHTNESS_MAX));
+                     priv->attributes[XV_ATTR_BRIGHTNESS].atom, val_i);
   }
 
 static void set_saturation_xv(driver_data_t* d,float val)
@@ -511,20 +507,6 @@ static void set_contrast_xv(driver_data_t* d,float val)
   
   }
 
-static void set_hue_xv(driver_data_t* d,float val)
-  {
-  xv_priv_t * priv;
-  priv = (xv_priv_t *)(d->priv);
-  XvSetPortAttribute(d->win->dpy, priv->port,
-                     priv->attributes[XV_ATTR_HUE].atom, 
-                     rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_HUE].index],
-                             val,
-                             BG_HUE_MIN,
-                             BG_HUE_MAX));
-  
-  }
-
-
 const video_driver_t xv_driver =
   {
     .can_scale          = 1,
@@ -534,7 +516,6 @@ const video_driver_t xv_driver =
     .set_brightness     = set_brightness_xv,
     .set_saturation     = set_saturation_xv,
     .set_contrast       = set_contrast_xv,
-    .set_hue            = set_hue_xv,
     .put_frame          = put_frame_xv,
     .destroy_frame      = destroy_frame_xv,
     .close              = close_xv,

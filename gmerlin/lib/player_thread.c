@@ -30,6 +30,59 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* Binary semaphores: Like POSIX semaphores but the
+   value can only be 1 or 0 */
+
+typedef struct
+  {
+  int count;
+  int nwaiting;
+  pthread_mutex_t lock;
+  pthread_cond_t cond;
+  } bin_sem_t;
+
+static void bin_sem_init(bin_sem_t * s)
+  {
+  pthread_mutex_init(&s->lock, NULL);
+  pthread_cond_init(&s->cond, NULL);
+  }
+
+static void bin_sem_destroy(bin_sem_t * s)
+  {
+  pthread_mutex_destroy(&s->lock);
+  pthread_cond_destroy(&s->cond);
+  }
+
+static void bin_sem_wait(bin_sem_t * s)
+  {
+  pthread_mutex_lock(&s->lock);
+  if(!s->count)
+    {
+    s->nwaiting++;
+    pthread_cond_wait(&s->cond, &s->lock);
+    s->nwaiting--;
+    }
+  s->count = 0;
+  pthread_mutex_unlock(&s->lock);
+  }
+
+static void bin_sem_post(bin_sem_t * s)
+  {
+  pthread_mutex_lock(&s->lock);
+
+  s->count = 1;
+  if(s->nwaiting)
+    pthread_cond_broadcast(&s->cond);
+  pthread_mutex_unlock(&s->lock);
+  }
+
+static void bin_sem_reset(bin_sem_t * s)
+  {
+  pthread_mutex_lock(&s->lock);
+  s->count = 0;
+  pthread_mutex_unlock(&s->lock);
+  }
+
 struct bg_player_thread_common_s
   {
   pthread_cond_t start_cond;
@@ -41,7 +94,7 @@ struct bg_player_thread_s
   bg_player_thread_common_t * com;
   
   pthread_t thread;
-  sem_t sem;
+  bin_sem_t sem;
 
   void * (*func)(void*);
   void * arg;
@@ -73,14 +126,14 @@ bg_player_thread_create(bg_player_thread_common_t * com)
   {
   bg_player_thread_t * th = calloc(1, sizeof(*th));
   th->com = com;
-  sem_init(&th->sem, 0, 0);
+  bin_sem_init(&th->sem);
   pthread_mutex_init(&th->mutex, NULL);
   return th;
   }
 
 void bg_player_thread_destroy(bg_player_thread_t * th)
   {
-  sem_destroy(&th->sem);
+  bin_sem_destroy(&th->sem);
   pthread_mutex_destroy(&th->mutex);
   free(th);
   }
@@ -96,7 +149,7 @@ void bg_player_thread_set_func(bg_player_thread_t * th,
 
 void bg_player_threads_init(bg_player_thread_t ** th, int num)
   {
-  int i, ret, val;
+  int i;
 
   for(i = 0; i < num; i++)
     {
@@ -113,8 +166,7 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
     if(th[i]->func)
       {
       // fprintf(stderr, "Sem wait...");
-      ret = sem_wait(&(th[i]->sem));
-      sem_getvalue(&(th[i]->sem), &val);
+      bin_sem_wait(&(th[i]->sem));
       // fprintf(stderr, "done ret: %d, val: %d\n", ret, val);
       }
     }
@@ -149,7 +201,7 @@ void bg_player_threads_pause(bg_player_thread_t ** th, int num)
   for(i = 0; i < num; i++)
     {
     if(th[i]->func)
-      sem_wait(&th[i]->sem);
+      bin_sem_wait(&th[i]->sem);
     }
   }
 
@@ -179,8 +231,8 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
       pthread_join(th[i]->thread, NULL);
       // fprintf(stderr, "Joining thread done, sem\n");
 
-      sem_destroy(&th[i]->sem);
-      sem_init(&th[i]->sem, 0, 0);
+      bin_sem_reset(&th[i]->sem);
+      //      bin_sem_init(&th[i]->sem, 0, 0);
       
       }
     }
@@ -191,7 +243,7 @@ int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   {
   pthread_mutex_lock(&th->com->start_mutex);
   // fprintf(stderr, "Sem post...\n");
-  sem_post(&th->sem);
+  bin_sem_post(&th->sem);
   // fprintf(stderr, "Sem post done\n");
   
   // fprintf(stderr, "Wait for start...\n");

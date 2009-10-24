@@ -47,7 +47,6 @@ typedef struct video_driver_s video_driver_t;
 #define DRIVER_FLAG_BRIGHTNESS (1<<0)
 #define DRIVER_FLAG_SATURATION (1<<1)
 #define DRIVER_FLAG_CONTRAST   (1<<2)
-#define DRIVER_FLAG_HUE        (1<<3)
 
 typedef struct
   {
@@ -95,7 +94,6 @@ struct video_driver_s
   void (*set_brightness)(driver_data_t* data,float brightness);
   void (*set_saturation)(driver_data_t* data,float saturation);
   void (*set_contrast)(driver_data_t* data,float contrast);
-  void (*set_hue)(driver_data_t* data,float hue);
   
   void (*close)(driver_data_t* data);
   void (*cleanup)(driver_data_t* data);
@@ -267,7 +265,6 @@ struct bg_x11_window_s
   float brightness;
   float saturation;
   float contrast;
-  float hue;
   
   gavl_video_frame_t * still_frame;
   gavl_video_frame_t * out_frame;
