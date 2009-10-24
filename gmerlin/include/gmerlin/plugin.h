@@ -125,7 +125,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 /** @}
  */
 
-#define BG_PLUGIN_API_VERSION 20
+#define BG_PLUGIN_API_VERSION 21
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -681,7 +681,21 @@ struct bg_input_plugin_s
    */
   
   bg_read_video_func_t read_video;
-  
+
+  /** \brief Skip frames in a video stream
+      \param stream Stream index (starting with 0)
+      \param time The time to skip to (will be changed to the true time)
+      \param scale Scale by which the time is scaled
+      \param exact 1 if an exact skip should be done, 0 for faster approximate skip
+      
+      Use this function if it turns out, that the machine is too weak to
+      decode all frames. Set exact to 0 to make the skipping even faster
+      but less accurate.
+
+  */
+
+  void (*skip_video)(void * priv, int stream, int64_t * time, int scale, int exact);
+    
   /** \brief Query if a new subtitle is available
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0
