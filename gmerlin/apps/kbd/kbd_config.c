@@ -790,7 +790,7 @@ int main(int argc, char ** argv)
   {
   window_t * win;
   
-  bg_gtk_init(&argc, &argv, "kbd_icon.png");
+  bg_gtk_init(&argc, &argv, "kbd_icon.png", NULL, NULL);
   
   win = create_window();
   gtk_main();

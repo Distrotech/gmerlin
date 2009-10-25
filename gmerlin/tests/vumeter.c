@@ -59,7 +59,7 @@ int main(int argc, char ** argv)
   idle_data_t id;
   const bg_plugin_info_t * info;
   
-  bg_gtk_init(&argc, &argv, (char*)0);
+  bg_gtk_init(&argc, &argv, NULL, NULL, NULL);
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   

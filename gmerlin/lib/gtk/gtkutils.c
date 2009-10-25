@@ -94,6 +94,9 @@ GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
 
 static GdkPixbuf * window_pixbuf = (GdkPixbuf*)0;
 
+static char * default_window_name = NULL;
+static char * default_window_class = NULL;
+
 static void set_default_window_icon(const char * icon)
   {
   char * tmp;
@@ -112,11 +115,19 @@ GtkWidget * bg_gtk_window_new(GtkWindowType type)
   GtkWidget * ret = gtk_window_new(type);
   if(window_pixbuf)
     gtk_window_set_icon(GTK_WINDOW(ret), window_pixbuf);
+  if(default_window_name && default_window_class)
+    {
+    gtk_window_set_wmclass(GTK_WINDOW(ret), 
+                           default_window_name, 
+                           default_window_class);
+    }
   return ret;
   }
 
 
-void bg_gtk_init(int * argc, char *** argv, char * default_window_icon)
+void bg_gtk_init(int * argc, char *** argv, 
+                 const char * default_window_icon,
+                 const char * win_name, const char * win_class)
   {
   //  gtk_disable_setlocale();
   gtk_init(argc, argv);
@@ -127,6 +138,10 @@ void bg_gtk_init(int * argc, char *** argv, char * default_window_icon)
 
   /* Set the default window icon */
   set_default_window_icon(default_window_icon);
+
+  /* Set default class hints */
+  default_window_name = bg_strdup(default_window_name, win_name);
+  default_window_class = bg_strdup(default_window_class, win_class);
 
   }
 

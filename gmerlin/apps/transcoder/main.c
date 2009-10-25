@@ -81,7 +81,7 @@ int main(int argc, char ** argv)
   {
   transcoder_window_t * win;
 
-  bg_gtk_init(&argc, &argv, "transcoder_icon.png");
+  bg_gtk_init(&argc, &argv, "transcoder_icon.png", NULL, NULL);
 
   /* We must initialize the random number generator if we want the
      Vorbis encoder to work */

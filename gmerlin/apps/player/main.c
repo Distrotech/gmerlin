@@ -85,7 +85,7 @@ int main(int argc, char ** argv)
   srand(time(NULL));
   
   bg_translation_init();
-  bg_gtk_init(&argc, &argv, "player_icon.png");
+  bg_gtk_init(&argc, &argv, "player_icon.png", WINDOW_NAME, WINDOW_CLASS);
   
   cfg_reg = bg_cfg_registry_create();
   

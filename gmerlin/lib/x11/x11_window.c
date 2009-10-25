@@ -1520,6 +1520,10 @@ void bg_x11_window_set_title(bg_x11_window_t * w, const char * title)
   if(w->normal.parent == w->root)
     XmbSetWMProperties(w->dpy, w->normal.win, title,
                        title, NULL, 0, NULL, NULL, NULL);
+  if(w->fullscreen.parent == w->root)
+    XmbSetWMProperties(w->dpy, w->fullscreen.win, title,
+                       title, NULL, 0, NULL, NULL, NULL);
+
   }
 
 void bg_x11_window_set_class_hint(bg_x11_window_t * w,

@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
   gavl_time_t duration = 3600;
   duration *= GAVL_TIME_SCALE;
 
-  bg_gtk_init(&argc, &argv, (char*)0);
+  bg_gtk_init(&argc, &argv, NULL, NULL, NULL);;
   
   cl = create_chapter_list();
   bg_gtk_chapter_dialog_show(&cl, duration, NULL);

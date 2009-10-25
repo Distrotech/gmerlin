@@ -1242,7 +1242,7 @@ int main(int argc, char ** argv)
   {
   visualizer_t * win;
   
-  bg_gtk_init(&argc, &argv, "visualizer_icon.png");
+  bg_gtk_init(&argc, &argv, "visualizer_icon.png", NULL, NULL);
 
   win = visualizer_create();
   gtk_main();

@@ -650,7 +650,7 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
 
-  bg_gtk_init(&argc, &argv, "plugincfg_icon.png");
+  bg_gtk_init(&argc, &argv, "plugincfg_icon.png", NULL, NULL);
   cfg_reg = bg_cfg_registry_create();
     
   config_path = bg_search_file_read("generic", "config.xml");

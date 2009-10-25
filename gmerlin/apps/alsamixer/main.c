@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
     
   //  alsa_mixer_dump(mixer);
 
-  bg_gtk_init(&argc, &argv, "mixer_icon.png");
+  bg_gtk_init(&argc, &argv, "mixer_icon.png", NULL, NULL);
 
   mixer = alsa_mixer_create();
 

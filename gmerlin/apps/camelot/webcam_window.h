@@ -21,6 +21,9 @@
 
 typedef struct gmerlin_webcam_window_s gmerlin_webcam_window_t;
 
+#define WINDOW_NAME  "Camelot"
+#define WINDOW_CLASS "camelot"
+
 gmerlin_webcam_window_t *
 gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                              bg_plugin_registry_t * reg,

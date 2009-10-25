@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
   char * user = (char*)0;
   char * pass = (char*)0;
   int save_auth = 0;
-  bg_gtk_init(&argc, &argv, (char*)0);
+  bg_gtk_init(&argc, &argv, NULL, NULL, NULL);
 
   if(bg_gtk_get_userpass("Area 51",
                          &user, &pass,

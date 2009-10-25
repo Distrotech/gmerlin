@@ -40,8 +40,8 @@ int main(int argc, char ** argv)
   bg_cfg_section_t     * cfg_section;
   bg_plugin_registry_t * plugin_reg;
   
-  bg_gtk_init(&argc, &argv, (char*)0);
-  
+  bg_gtk_init(&argc, &argv, NULL, NULL, NULL);  
+
   cfg_reg = bg_cfg_registry_create();
     
   tmp_path =  bg_search_file_read("generic", "config.xml");

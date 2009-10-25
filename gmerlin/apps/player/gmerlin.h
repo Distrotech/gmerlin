@@ -39,6 +39,11 @@ typedef struct gmerlin_s gmerlin_t;
 #include "display.h"
 #include "playerwindow.h"
 
+/* Class hints */
+
+#define WINDOW_NAME  "Gmerlin"
+#define WINDOW_CLASS "gmerlin"
+
 /* Repeat mode */
 
 typedef enum
