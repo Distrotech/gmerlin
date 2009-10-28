@@ -43,6 +43,7 @@ typedef struct gmerlin_s gmerlin_t;
 
 #define WINDOW_NAME  "Gmerlin"
 #define WINDOW_CLASS "gmerlin"
+#define WINDOW_ICON  "player_icon.png"
 
 /* Repeat mode */
 

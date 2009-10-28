@@ -458,7 +458,7 @@ static int button_callback(void * data, int x, int y, int button, int mask)
     {
     case 4:
       if(!priv->is_open)
-        return 0;
+        break;
       if((mask & BG_KEY_ALT_MASK) == BG_KEY_ALT_MASK)
         {
         /* Increase Zoom */
@@ -480,7 +480,7 @@ static int button_callback(void * data, int x, int y, int button, int mask)
       break;
     case 5:
       if(!priv->is_open)
-        return 0;
+        break;
       if((mask & BG_KEY_ALT_MASK) == BG_KEY_ALT_MASK)
         {
         /* Decrease Zoom */
@@ -512,7 +512,8 @@ static int button_callback(void * data, int x, int y, int button, int mask)
   return 0;
   }
 
-static int button_release_callback(void * data, int x, int y, int button, int mask)
+static int button_release_callback(void * data, int x, int y, int button, 
+                                   int mask)
   {
   x11_t * priv;
   priv = (x11_t *)data;
@@ -811,9 +812,22 @@ static const char * get_window_x11(void * data)
 
 static void set_window_title_x11(void * data, const char * title)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   bg_x11_window_set_title(priv->win, title);
   }
+
+static void set_window_options_x11(void * data, 
+                                 const char * name,
+                                 const char * klass,
+                                 const gavl_video_frame_t * icon,
+                                 const gavl_video_format_t * icon_format)
+  {
+  x11_t * priv = data;
+  ensure_window_realized(priv);
+  bg_x11_window_set_options(priv->win, name, klass,
+                            icon, icon_format);
+  }
+
 
 static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   {
@@ -944,6 +958,7 @@ const bg_ov_plugin_t the_plugin =
     
     .set_window =         set_window_x11,
     .get_window =         get_window_x11,
+    .set_window_options =   set_window_options_x11,
     .set_window_title =   set_window_title_x11,
     .open =               open_x11,
     .create_frame =    create_frame_x11,

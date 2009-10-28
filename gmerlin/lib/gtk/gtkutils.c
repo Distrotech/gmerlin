@@ -129,11 +129,9 @@ void bg_gtk_init(int * argc, char *** argv,
                  const char * default_window_icon,
                  const char * win_name, const char * win_class)
   {
-  //  gtk_disable_setlocale();
   gtk_init(argc, argv);
 
   /* No, we don't like commas as decimal separators */
-  
   setlocale(LC_NUMERIC, "C");
 
   /* Set the default window icon */

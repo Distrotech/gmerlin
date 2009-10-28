@@ -23,6 +23,7 @@ typedef struct gmerlin_webcam_window_s gmerlin_webcam_window_t;
 
 #define WINDOW_NAME  "Camelot"
 #define WINDOW_CLASS "camelot"
+#define WINDOW_ICON "camelot_icon.png"
 
 gmerlin_webcam_window_t *
 gmerlin_webcam_window_create(gmerlin_webcam_t * w,

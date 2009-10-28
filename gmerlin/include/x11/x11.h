@@ -109,8 +109,10 @@ void bg_x11_window_handle_events(bg_x11_window_t*, int milliseconds);
 
 int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen);
 void bg_x11_window_set_title(bg_x11_window_t * w, const char * title);
-void bg_x11_window_set_class_hint(bg_x11_window_t * w,
-                             char * name, char * klass);
+void bg_x11_window_set_options(bg_x11_window_t * w,
+                               const char * name, const char * klass,
+                               const gavl_video_frame_t * icon,
+                               const gavl_video_format_t * icon_format);
 
 void bg_x11_window_show(bg_x11_window_t * w, int show);
 

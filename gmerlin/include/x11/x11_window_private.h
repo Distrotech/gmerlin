@@ -284,6 +284,15 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
                               int * height);
 void bg_x11_window_init(bg_x11_window_t * w);
 
+gavl_pixelformat_t 
+bg_x11_window_get_pixelformat(bg_x11_window_t * win);
+
+void bg_x11_window_make_icon(bg_x11_window_t * win,
+                             const gavl_video_frame_t * icon,
+                             const gavl_video_format_t * icon_format,
+                             Pixmap * icon_ret, Pixmap * mask_ret);
+
+
 int bg_x11_window_check_shm(Display * dpy, int * completion_type);
 
 int bg_x11_window_create_shm(bg_x11_window_t * w,

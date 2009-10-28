@@ -272,7 +272,34 @@ plugin_menu_set_plugin(plugin_menu_t * s, int index)
     }
   else if(s->type == BG_PLUGIN_OUTPUT_VIDEO)
     {
+    bg_ov_plugin_t * plugin;
+
     s->plugin_handle = bg_plugin_load(s->g->plugin_reg, s->plugin_info);
+    plugin = (bg_ov_plugin_t *)s->plugin_handle->plugin;
+    if(plugin->set_window_options)
+      {
+      gavl_video_frame_t * icon = NULL;
+      gavl_video_format_t icon_format;
+      char * icon_path;
+
+      /* Load icon */
+      icon_path = bg_search_file_read("icons", WINDOW_ICON);
+      if(icon_path)
+        {
+        icon = 
+          bg_plugin_registry_load_image(s->g->plugin_reg,
+                                        icon_path,
+                                        &icon_format,
+                                        (bg_metadata_t*)0);
+        }
+      plugin->set_window_options(s->plugin_handle->priv,
+                                 WINDOW_NAME, WINDOW_CLASS,
+                                 icon, &icon_format);
+      if(icon)
+        gavl_video_frame_destroy(icon);
+      if(icon_path)
+        free(icon_path);
+      }
     bg_player_set_ov_plugin(s->g->player, s->plugin_handle);
     }
   else if(s->type == BG_PLUGIN_VISUALIZATION)

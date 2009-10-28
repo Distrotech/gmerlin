@@ -919,7 +919,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
       break;
     case ButtonPress:
     case ButtonRelease:
-
+      
       if(evt->xbutton.window == w->normal.win)
         cur = &w->normal;
       else if(evt->xbutton.window == w->fullscreen.win)
@@ -929,7 +929,6 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
       if(cur->modality)
         return;
-
       
       transform_coords(w, evt->xbutton.x, evt->xbutton.y, &x_src, &y_src);
       evt->xkey.state &= STATE_IGNORE;

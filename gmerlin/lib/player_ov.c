@@ -46,7 +46,6 @@ static int
 button_callback(void * data, int x, int y, int button, int mask)
   {
   bg_player_t * p = data;
-
   if(button == 4)
     {
     bg_player_seek_rel(p, 2 * GAVL_TIME_SCALE );
@@ -99,7 +98,8 @@ handle_messages(bg_player_video_stream_t * ctx, gavl_time_t time)
       case BG_PLAYER_MSG_VOLUME_CHANGED:
         arg_f = bg_msg_get_arg_float(msg, 0);
         bg_osd_set_volume_changed(ctx->osd,
-                                  (arg_f - BG_PLAYER_VOLUME_MIN)/(-BG_PLAYER_VOLUME_MIN),
+                                  (arg_f - BG_PLAYER_VOLUME_MIN)/
+                                  (-BG_PLAYER_VOLUME_MIN),
                                   time);
         break;
       default:
@@ -537,6 +537,10 @@ void * bg_player_ov_thread(void * data)
     s->frame_time =
       gavl_time_unscale(s->output_format.timescale,
                         s->frame->timestamp);
+
+    pthread_mutex_lock(&p->config_mutex);
+    s->frame_time += p->sync_offset;
+    pthread_mutex_unlock(&p->config_mutex);
     
     /* Subtitle handling */
     if(DO_SUBTITLE(p->flags))

@@ -274,6 +274,8 @@ static void interrupt_cmd(bg_player_t * p, int new_state)
 
   if(DO_VIDEO(p->flags))
     p->flags |= PLAYER_FREEZE_FRAME;
+  if(DO_VISUALIZE(p->flags))
+    p->flags |= PLAYER_FREEZE_VIS;
   }
 
 /* Preload fifos */
@@ -296,8 +298,7 @@ static void start_playback(bg_player_t * p)
   if(DO_AUDIO(p->flags))
     bg_player_oa_start(&p->audio_stream);
 
-  if(DO_VIDEO(p->flags))
-    p->flags &= ~PLAYER_FREEZE_FRAME;
+  p->flags &= ~(PLAYER_FREEZE_FRAME|PLAYER_FREEZE_VIS);
 
   bg_player_threads_start(p->threads, PLAYER_MAX_THREADS);
   }
@@ -1269,11 +1270,11 @@ static void * player_thread(void * data)
       break;
 
     if(player->flags & PLAYER_FREEZE_FRAME)
-      {
       bg_player_ov_handle_events(&player->video_stream);
-      }
 
-    
+    if(player->flags & PLAYER_FREEZE_VIS)
+      bg_visualizer_update(player->visualizer, NULL);    
+
     state = bg_player_get_state(player);
     switch(state)
       {

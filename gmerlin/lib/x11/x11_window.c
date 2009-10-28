@@ -1513,8 +1513,6 @@ void bg_x11_window_set_callbacks(bg_x11_window_t * win,
   win->callbacks = callbacks;
   }
 
-
-
 void bg_x11_window_set_title(bg_x11_window_t * w, const char * title)
   {
   if(w->normal.parent == w->root)
@@ -1523,19 +1521,38 @@ void bg_x11_window_set_title(bg_x11_window_t * w, const char * title)
   if(w->fullscreen.parent == w->root)
     XmbSetWMProperties(w->dpy, w->fullscreen.win, title,
                        title, NULL, 0, NULL, NULL, NULL);
-
   }
 
-void bg_x11_window_set_class_hint(bg_x11_window_t * w,
-                                  char * name, char * klass)
+void bg_x11_window_set_options(bg_x11_window_t * w,
+                               const char * name, 
+                               const char * klass,
+                               const gavl_video_frame_t * icon,
+                               const gavl_video_format_t * icon_format)
   {
-  XClassHint xclasshint={name,klass};
+  /* Set Class hints */
+  if(name && klass)
+    {
+    XClassHint xclasshint;
 
-  if(w->normal.parent == w->root)
-    XSetClassHint(w->dpy, w->normal.win, &xclasshint);
+    /* const madness */
+    xclasshint.res_name = bg_strdup(NULL, name);
+    xclasshint.res_class = bg_strdup(NULL, klass);
 
-  if(w->fullscreen.parent == w->root)
-    XSetClassHint(w->dpy, w->fullscreen.win, &xclasshint);
+    if(w->normal.parent == w->root)
+      XSetClassHint(w->dpy, w->normal.win, &xclasshint);
+
+    if(w->fullscreen.parent == w->root)
+      XSetClassHint(w->dpy, w->fullscreen.win, &xclasshint);
+
+    free(xclasshint.res_name);
+    free(xclasshint.res_class);
+    }
+
+  /* Set Icon (TODO) */
+  if(icon && icon_format)
+    {
+    
+    }
   }
 
 void bg_x11_window_show(bg_x11_window_t * win, int show)
@@ -1546,7 +1563,6 @@ void bg_x11_window_show(bg_x11_window_t * win, int show)
     disable_screensaver(win);
   else
     enable_screensaver(win);
-
 
   if(!show)
     {
@@ -1590,8 +1606,10 @@ Window bg_x11_window_get_toplevel(bg_x11_window_t * w, Window win)
   return win;
   }
 
-void bg_x11_window_send_xembed_message(bg_x11_window_t * w, Window win, long time,
-                                       int message, int detail, int data1, int data2)
+void 
+bg_x11_window_send_xembed_message(bg_x11_window_t * w, Window win, 
+                                  long time, int message, int detail, 
+                                  int data1, int data2)
   {
   XClientMessageEvent xclient;
 
@@ -1659,3 +1677,59 @@ int bg_x11_window_check_embed_property(bg_x11_window_t * win,
     }
   return 1;
   }
+
+gavl_pixelformat_t 
+bg_x11_window_get_pixelformat(bg_x11_window_t * win)
+  {
+  int bpp;
+  XPixmapFormatValues * pf;
+  int i;
+  int num_pf;
+  gavl_pixelformat_t ret = GAVL_PIXELFORMAT_NONE;
+  
+  bpp = 0;
+  pf = XListPixmapFormats(win->dpy, &num_pf);
+  for(i = 0; i < num_pf; i++)
+    {
+    if(pf[i].depth == win->depth)
+      bpp = pf[i].bits_per_pixel;
+    }
+  XFree(pf);
+  
+  ret = GAVL_PIXELFORMAT_NONE;
+  switch(bpp)
+    {
+    case 16:
+      if((win->visual->red_mask == 63488) &&
+         (win->visual->green_mask == 2016) &&
+         (win->visual->blue_mask == 31))
+        ret = GAVL_RGB_16;
+      else if((win->visual->blue_mask == 63488) &&
+              (win->visual->green_mask == 2016) &&
+              (win->visual->red_mask == 31))
+        ret = GAVL_BGR_16;
+      break;
+    case 24:
+      if((win->visual->red_mask == 0xff) && 
+         (win->visual->green_mask == 0xff00) &&
+         (win->visual->blue_mask == 0xff0000))
+        ret = GAVL_RGB_24;
+      else if((win->visual->red_mask == 0xff0000) && 
+         (win->visual->green_mask == 0xff00) &&
+         (win->visual->blue_mask == 0xff))
+        ret = GAVL_BGR_24;
+      break;
+    case 32:
+      if((win->visual->red_mask == 0xff) && 
+         (win->visual->green_mask == 0xff00) &&
+         (win->visual->blue_mask == 0xff0000))
+        ret = GAVL_RGB_32;
+      else if((win->visual->red_mask == 0xff0000) && 
+         (win->visual->green_mask == 0xff00) &&
+         (win->visual->blue_mask == 0xff))
+        ret = GAVL_BGR_32;
+      break;
+    }
+  return ret;
+  }
+

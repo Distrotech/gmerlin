@@ -555,6 +555,16 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_f = 100.0 },
       .help_string = TRS("When showing still images, gmerlin repeats them periodically to make realtime filter tweaking work."),
     },
+    {
+      .name =        "sync_offset",
+      .long_name =   "Sync offset [ms]",
+      .type      =   BG_PARAMETER_SLIDER_INT,
+      .flags     =   BG_PARAMETER_SYNC,
+      .val_default = { .val_i = 0 },
+      .val_min =     { .val_i = -1000 },
+      .val_max =     { .val_i =  1000 },
+      .help_string = TRS("Use this for playing buggy files, which have a constant offset between audio and video. Use positive values if the video is ahead of audio"),
+    },
     { /* End of parameters */ }
   };
 
@@ -575,6 +585,9 @@ void bg_player_set_input_parameter(void * data, const char * name,
   pthread_mutex_lock(&(player->config_mutex));
   if(!strcmp(name, "still_framerate"))
     player->still_framerate = val->val_f;
+  else if(!strcmp(name, "sync_offset"))
+    player->sync_offset = gavl_time_unscale(1000, val->val_i);
+
   pthread_mutex_unlock(&(player->config_mutex));
   }
 

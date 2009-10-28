@@ -22,6 +22,7 @@ noinst_LTLIBRARIES = \
 libx11.la
 
 libx11_la_SOURCES = \
+icon.c \
 shm.c \
 x11_event.c \
 x11_gl.c \

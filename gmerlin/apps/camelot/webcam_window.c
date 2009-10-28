@@ -132,10 +132,38 @@ static void set_monitor_plugin(const bg_plugin_info_t * info, void *  data)
   bg_msg_t * msg;
   gmerlin_webcam_window_t * w;
   bg_plugin_handle_t * h;
+  bg_ov_plugin_t * p;
+
   w = (gmerlin_webcam_window_t *)data;
   h = bg_gtk_plugin_widget_single_load_plugin(w->monitor_plugin);
-  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_OUTPUT_VIDEO, info->name);
-                                 
+  bg_plugin_registry_set_default(w->plugin_reg, 
+                                 BG_PLUGIN_OUTPUT_VIDEO, 
+                                 info->name);
+  p = (bg_ov_plugin_t*)h->plugin;
+  if(p->set_window_options)
+    {
+    gavl_video_frame_t * icon = NULL;
+    gavl_video_format_t icon_format;
+    char * icon_path;
+
+    /* Load icon */
+    icon_path = bg_search_file_read("icons", WINDOW_ICON);
+    if(icon_path)       
+      {
+      icon = 
+        bg_plugin_registry_load_image(w->plugin_reg,
+                                      icon_path,
+                                      &icon_format,
+                                      (bg_metadata_t*)0);
+       }
+    p->set_window_options(h->priv, WINDOW_NAME, WINDOW_CLASS, 
+                          icon, &icon_format);
+    if(icon)
+      gavl_video_frame_destroy(icon);
+    if(icon_path)
+      free(icon_path);
+    }
+
   msg = bg_msg_queue_lock_write(w->cmd_queue);
   bg_msg_set_id(msg, CMD_SET_MONITOR_PLUGIN);
   bg_msg_set_arg_ptr_nocopy(msg, 0, h);

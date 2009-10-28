@@ -24,64 +24,10 @@
 
 /* XImage video driver */
 
-static gavl_pixelformat_t get_pixelformat(bg_x11_window_t * win)
-  {
-  int bpp;
-  XPixmapFormatValues * pf;
-  int i;
-  int num_pf;
-  gavl_pixelformat_t ret = GAVL_PIXELFORMAT_NONE;
-  
-  bpp = 0;
-  pf = XListPixmapFormats(win->dpy, &num_pf);
-  for(i = 0; i < num_pf; i++)
-    {
-    if(pf[i].depth == win->depth)
-      bpp = pf[i].bits_per_pixel;
-    }
-  XFree(pf);
-  
-  ret = GAVL_PIXELFORMAT_NONE;
-  switch(bpp)
-    {
-    case 16:
-      if((win->visual->red_mask == 63488) &&
-         (win->visual->green_mask == 2016) &&
-         (win->visual->blue_mask == 31))
-        ret = GAVL_RGB_16;
-      else if((win->visual->blue_mask == 63488) &&
-              (win->visual->green_mask == 2016) &&
-              (win->visual->red_mask == 31))
-        ret = GAVL_BGR_16;
-      break;
-    case 24:
-      if((win->visual->red_mask == 0xff) && 
-         (win->visual->green_mask == 0xff00) &&
-         (win->visual->blue_mask == 0xff0000))
-        ret = GAVL_RGB_24;
-      else if((win->visual->red_mask == 0xff0000) && 
-         (win->visual->green_mask == 0xff00) &&
-         (win->visual->blue_mask == 0xff))
-        ret = GAVL_BGR_24;
-      break;
-    case 32:
-      if((win->visual->red_mask == 0xff) && 
-         (win->visual->green_mask == 0xff00) &&
-         (win->visual->blue_mask == 0xff0000))
-        ret = GAVL_RGB_32;
-      else if((win->visual->red_mask == 0xff0000) && 
-         (win->visual->green_mask == 0xff00) &&
-         (win->visual->blue_mask == 0xff))
-        ret = GAVL_BGR_32;
-      break;
-    }
-  return ret;
-  }
-
 static int init_ximage(driver_data_t * d)
   {
   d->pixelformats = malloc(2*sizeof(*d->pixelformats));
-  d->pixelformats[0] = get_pixelformat(d->win);
+  d->pixelformats[0] = bg_x11_window_get_pixelformat(d->win);
   d->pixelformats[1] = GAVL_PIXELFORMAT_NONE;
   return 1;
   }
@@ -90,7 +36,7 @@ typedef struct
   {
   XImage * x11_image;
   XShmSegmentInfo shminfo;
-  }  ximage_frame_t;
+  } ximage_frame_t;
 
 static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
   {

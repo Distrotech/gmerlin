@@ -545,21 +545,23 @@ void bg_visualizer_update(bg_visualizer_t * v,
     pthread_mutex_unlock(&v->mutex);
     return;
     }
-  
-  bg_msg_set_id(v->msg, BG_VIS_MSG_AUDIO_DATA);
 
-  if(!bg_msg_write_audio_frame(v->msg,
-                               &v->audio_format,
-                               frame,
-                               proc_write_func, v))
+  if(frame)
     {
-    bg_subprocess_close(v->proc);
-    v->proc = (bg_subprocess_t*)0;
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Visualization process crashed, restart to try again");
+    bg_msg_set_id(v->msg, BG_VIS_MSG_AUDIO_DATA);
+    if(!bg_msg_write_audio_frame(v->msg,
+                                 &v->audio_format,
+                                 frame,
+                                 proc_write_func, v))
+      {
+      bg_subprocess_close(v->proc);
+      v->proc = (bg_subprocess_t*)0;
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Visualization process crashed, restart to try again");
+      }
+    bg_msg_free(v->msg);
     }
-  bg_msg_free(v->msg);
-  
+
   if(v->ov_plugin)
     v->ov_plugin->handle_events(v->ov_handle->priv);
 

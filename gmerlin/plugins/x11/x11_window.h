@@ -148,8 +148,8 @@ void x11_window_set_title(x11_window_t*, const char * title);
 void x11_window_show(x11_window_t*, int show);
 
 void x11_window_set_class_hint(x11_window_t*,
-                                char * name,
-                                char * class);
+                                const char * name,
+                                const char * klass);
 
 void x11_window_clear(x11_window_t*);
 

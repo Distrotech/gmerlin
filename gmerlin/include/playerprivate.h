@@ -234,6 +234,7 @@ typedef struct
 #define PLAYER_DO_VISUALIZE        (1<<6)
 #define PLAYER_DO_REPORT_PEAK      (1<<16)
 #define PLAYER_FREEZE_FRAME        (1<<17)
+#define PLAYER_FREEZE_VIS          (1<<18)
 
 #define DO_SUBTITLE_TEXT(f) \
  (f & PLAYER_DO_SUBTITLE_TEXT)
@@ -338,9 +339,10 @@ struct bg_player_s
   bg_player_saved_state_t saved_state;
   
   int visualizer_enabled;
-  float still_framerate;
   
   pthread_mutex_t config_mutex;
+  float still_framerate;
+  gavl_time_t sync_offset;
   
   bg_player_time_update_mode_t time_update_mode;
   

@@ -125,7 +125,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 /** @}
  */
 
-#define BG_PLUGIN_API_VERSION 21
+#define BG_PLUGIN_API_VERSION 22
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -1082,8 +1082,9 @@ struct bg_ov_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param window Window identifier
    *
-   *  Call this immediately after creation of the plugin to embed video output
-   *  into a foreign application. For X11, the window identifier has the form
+   *  Call this immediately after creation of the plugin to embed 
+   *  video output into a foreign application. 
+   *  For X11, the window identifier has the form
    *  \<display_name\>:\<normal_id\>:\<fullscreen_id\>. 
    */
   
@@ -1096,6 +1097,23 @@ struct bg_ov_plugin_s
   
   const char * (*get_window)(void * priv);
   
+  /** \brief Set window class
+   *  \param priv The handle returned by the create() method
+   *  \param name The name of the window
+   *  \param klass The class of the window
+   *
+   *  This makes sense probably only in an X11 environment.
+   *  If the klass argument is the same for all windows of an
+   *  application, they, might be grouped together in the
+   *  window list. On X11 this results in a call to
+   *  XSetClassHint().
+   */
+
+  void (*set_window_options)(void * priv, const char * name, 
+                             const char * klass, 
+                             const gavl_video_frame_t * icon,
+                             const gavl_video_format_t * icon_format);
+
   /** \brief Set window title
    *  \param priv The handle returned by the create() method
    *  \param title The title for the window
@@ -1127,11 +1145,11 @@ struct bg_ov_plugin_s
    *  \param priv The handle returned by the create() method
    *  \returns a newly allocated video frame
    *
-   *  This optional method allocates a video frame in a plugin specific manner
-   *  (e.g. in a shared memory segment). If this funtion is defined, all frames
-   *  which are passed to the plugin, must be allocated by this function.
-   *  Before the plugin is closed, all created frames must be freed with
-   *  the destroy_frame() method.
+   *  This optional method allocates a video frame in a plugin specific 
+   *  manner (e.g. in a shared memory segment). If this funtion is 
+   *  defined, all frames which are passed to the plugin, must be allocated
+   *  by this function. Before the plugin is closed, all created frames must
+   *  be freed with the destroy_frame() method.
    */
   
   gavl_video_frame_t * (*create_frame)(void * priv);
