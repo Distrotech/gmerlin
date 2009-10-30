@@ -1479,6 +1479,8 @@ const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
  *  \ref bgav_options_set_sample_accurate)
  *  The returned table (if non-null) must be freed by the caller with
  *  \ref gavl_frame_table_destroy.
+ *
+ *  Since 1.0.2
  */
   
 BGAV_PUBLIC
