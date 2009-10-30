@@ -58,6 +58,7 @@ audioformat.c \
 audioframe.c \
 audiooptions.c \
 blend.c \
+colorchannel.c \
 colorspace.c \
 cputest.c \
 deinterlace.c \

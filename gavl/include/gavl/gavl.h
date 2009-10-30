@@ -1742,6 +1742,22 @@ typedef enum
  *  \brief Pixelformat for storing 4-dimensional FLOAT data */
 #define GAVL_PIXELFORMAT_4D_FLOAT GAVL_RGBA_FLOAT
 
+/*! \ingroup video_format
+ *  \brief Color channel definitions
+ *
+ *  Enum definitions for color channels
+ */
+
+typedef enum
+  {
+    GAVL_CCH_RED,    //!< Red
+    GAVL_CCH_GREEN,  //!< Green
+    GAVL_CCH_BLUE,   //!< Blue
+    GAVL_CCH_Y,      //!< Luminance (also gracscale)
+    GAVL_CCH_CB,     //!< Chrominance blue (aka U)
+    GAVL_CCH_CR,     //!< Chrominance red (aka V)
+    GAVL_CCH_ALPHA,  //!< Transparency (or, to be more precise opacity)
+  } gavl_color_channel_t;
   
 /*
  *  Colormodel related functions
@@ -2075,6 +2091,24 @@ void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
 GAVL_PUBLIC
 int gavl_video_format_get_image_size(const gavl_video_format_t * format);
 
+/*!
+  \ingroup video_format
+  \brief Get the video format for extracting/merging one channel
+  \param frame_format   The video format of the full frame
+  \param channel_format Format of the extracted channel (grayscale)
+  \param ch Channel
+  \returns 1 on success, 0 if the requested channel is not available in the format
+
+  Use this function in conjunction with
+  \ref gavl_video_frame_extract_channel and
+  \ref gavl_video_frame_merge_channel 
+*/
+
+GAVL_PUBLIC
+int gavl_get_color_channel_format(const gavl_video_format_t * frame_format,
+                                  gavl_video_format_t * channel_format,
+                                  gavl_color_channel_t ch);
+  
   
 /*! 
   \ingroup video_format
@@ -2432,6 +2466,8 @@ GAVL_PUBLIC
 void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
                                  const gavl_video_format_t * format,
                                  uint8_t * buffer);
+
+  
 
   
 /*****************************
