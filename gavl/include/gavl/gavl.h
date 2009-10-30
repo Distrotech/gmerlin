@@ -2101,7 +2101,9 @@ int gavl_video_format_get_image_size(const gavl_video_format_t * format);
 
   Use this function in conjunction with
   \ref gavl_video_frame_extract_channel and
-  \ref gavl_video_frame_merge_channel 
+  \ref gavl_video_frame_merge_channel
+
+  Since 1.1.2
 */
 
 GAVL_PUBLIC
@@ -2467,6 +2469,47 @@ void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
                                  const gavl_video_format_t * format,
                                  uint8_t * buffer);
 
+/*!
+  \ingroup video_frame
+  \brief Extract one channel of a video frame into a grayscale image
+  \param format Format of the source frame
+  \param ch Channel to extract
+  \param src Source frame
+  \param dst Destination where the extracted channel will be copied
+
+  This extracts one color channel into a grayscale image for separate
+  processing. Use \ref gavl_get_color_channel_format to obtain the
+  format for the destination frame.
+  
+*/
+  
+GAVL_PUBLIC
+int gavl_video_frame_extract_channel(const gavl_video_format_t * format,
+                                     gavl_color_channel_t ch,
+                                     const gavl_video_frame_t * src,
+                                     gavl_video_frame_t * dst);
+
+/*!
+  \ingroup video_frame
+  \brief Merge one channel from a grayscale image into a video frame
+  \param format Format of the source frame
+  \param ch Channel to merge
+  \param src Source frame (grayscale image containing one chanel)
+  \param dst Destination
+
+  This merges one color channel from a grayscale image into a video
+  frame (overwriting the previous contents of that channel).
+  Use \ref gavl_get_color_channel_format to obtain the
+  format for the source grayscale frame.
+*/
+
+  
+GAVL_PUBLIC
+int gavl_video_frame_merge_channel(const gavl_video_format_t * format,
+                                   gavl_color_channel_t ch,
+                                   const gavl_video_frame_t * src,
+                                   gavl_video_frame_t * dst);
+  
   
 
   

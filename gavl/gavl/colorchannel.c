@@ -690,3 +690,21 @@ int gavl_get_color_channel_format(const gavl_video_format_t * frame_format,
   channel_format->frame_height /= sub_v;
   return 1;
   }
+
+int
+gavl_video_frame_extract_channel(const gavl_video_format_t * format,
+                                 gavl_color_channel_t ch,
+                                 const gavl_video_frame_t * src,
+                                 gavl_video_frame_t * dst)
+  {
+  return 1;
+  }
+
+int
+gavl_video_frame_merge_channel(const gavl_video_format_t * format,
+                               gavl_color_channel_t ch,
+                               const gavl_video_frame_t * src,
+                               gavl_video_frame_t * dst)
+  {
+  return 1;
+  }
