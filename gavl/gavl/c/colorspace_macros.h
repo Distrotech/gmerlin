@@ -160,13 +160,15 @@
 #define Y_16_TO_Y_8(val,dst) dst=((val+0x80)>>8)
 #define UV_16_TO_UV_8(val,dst) dst=((val+0x80)>>8)
 #define YJ_16_TO_Y_8(val,dst)  dst=(((int)val * 219+0x8000)>>16) + 16;
-#define YJ_16_TO_Y_16(val,dst)  dst=(((int)val * 219+0x8000)>>8) + 0x1000;
+#define YJ_16_TO_Y_16(val,dst)  dst=(((int)val * 219+0x80)>>8) + 0x1000;
+#define UVJ_16_TO_UV_16(val,dst)  dst=(((int)val * 224+0x80)>>8) + 0x1000;
 
 #else
 #define Y_16_TO_Y_8(val,dst) dst=((val)>>8)
 #define UV_16_TO_UV_8(val,dst) dst=((val)>>8)
 #define YJ_16_TO_Y_8(val,dst)  dst=(((int)val * 219)>>16) + 16;
 #define YJ_16_TO_Y_16(val,dst)  dst=(((int)val * 219)>>8) + 0x1000;
+#define UVJ_16_TO_UV_16(val,dst)  dst=(((int)val * 224)>>8) + 0x1000;
 #endif
 
 

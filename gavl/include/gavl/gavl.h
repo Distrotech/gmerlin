@@ -2491,13 +2491,13 @@ int gavl_video_frame_extract_channel(const gavl_video_format_t * format,
 
 /*!
   \ingroup video_frame
-  \brief Merge one channel from a grayscale image into a video frame
+  \brief Insert one channel from a grayscale image into a video frame
   \param format Format of the source frame
   \param ch Channel to merge
   \param src Source frame (grayscale image containing one chanel)
   \param dst Destination
 
-  This merges one color channel from a grayscale image into a video
+  This inserts one color channel from a grayscale image into a video
   frame (overwriting the previous contents of that channel).
   Use \ref gavl_get_color_channel_format to obtain the
   format for the source grayscale frame.
@@ -2505,10 +2505,10 @@ int gavl_video_frame_extract_channel(const gavl_video_format_t * format,
 
   
 GAVL_PUBLIC
-int gavl_video_frame_merge_channel(const gavl_video_format_t * format,
-                                   gavl_color_channel_t ch,
-                                   const gavl_video_frame_t * src,
-                                   gavl_video_frame_t * dst);
+int gavl_video_frame_insert_channel(const gavl_video_format_t * format,
+                                    gavl_color_channel_t ch,
+                                    const gavl_video_frame_t * src,
+                                    gavl_video_frame_t * dst);
   
   
 
