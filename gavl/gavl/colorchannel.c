@@ -21,140 +21,434 @@
 
 #include <stdlib.h> // NULL
 
-
 #include <gavl/gavl.h>
+#include "c/colorspace_tables.h"
+#include "c/colorspace_macros.h"
 
-#if 0
+typedef struct channel_data_s channel_data_t;
 
-typedef (*extract_func)(const gavl_video_frame_t * src,
-                        gavl_video_frame_t * dst,
-                        int plane, int offset, int advance,
-                        int width, int height);
+typedef void (*channel_func)(channel_data_t * data,
+                             const gavl_video_frame_t * src,
+                             gavl_video_frame_t * dst);
 
-static void extract_rgb15_r(const gavl_video_frame_t * src,
-                            gavl_video_frame_t * dst,
-                            int plane, int offset, int advance,
-                            int width, int height)
+
+struct channel_data_s
   {
+  int plane;
+  int offset;
+  int advance;
+  int sub_h;
+  int sub_v;
+
+  int width;
+  int height;
+  
+  channel_func extract_func;
+  channel_func merge_func;
+  };
+
+static void extract_rgb15_r(channel_data_t * d,
+                            const gavl_video_frame_t * src,
+                            gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint16_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = RGB15_TO_R_8(*src_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+  }
+
+static void extract_rgb15_g(channel_data_t * d,
+                            const gavl_video_frame_t * src,
+                            gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint16_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = RGB15_TO_G_8(*src_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+  }
+
+static void extract_rgb15_b(channel_data_t * d,
+                            const gavl_video_frame_t * src,
+                            gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint16_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = RGB15_TO_B_8(*src_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+
+  }
+
+/* */
+
+static void extract_rgb16_r(channel_data_t * d,
+                            const gavl_video_frame_t * src,
+                            gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint16_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = RGB16_TO_R_8(*src_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+  }
+
+static void extract_rgb16_g(channel_data_t * d,
+                            const gavl_video_frame_t * src,
+                            gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint16_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = RGB16_TO_G_8(*src_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+  }
+
+static void extract_rgb16_b(channel_data_t * d,
+                            const gavl_video_frame_t * src,
+                            gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint16_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = RGB16_TO_B_8(*src_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+
+  }
+
+
+/* */
+
+
+static void extract_8(channel_data_t * d,
+                      const gavl_video_frame_t * src,
+                      gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint8_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = *src_ptr;
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+  }
+
+
+static void extract_8_y(channel_data_t * d,
+                        const gavl_video_frame_t * src,
+                        gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint8_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = Y_8_TO_YJ_8(*src_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+  }
+
+static void extract_8_uv(channel_data_t * d,
+                         const gavl_video_frame_t * src,
+                         gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint8_t * src_ptr;
+  uint8_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = src_ptr_start + d->offset;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = UV_8_TO_UVJ_8(*src_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
   
   }
 
-static void extract_rgb15_g(const gavl_video_frame_t * src,
-                            gavl_video_frame_t * dst,
-                            int plane, int offset, int advance,
-                            int width, int height)
+static void extract_16(channel_data_t * d,
+                       const gavl_video_frame_t * src,
+                       gavl_video_frame_t * dst)
   {
+  int i, j;
+  uint16_t * src_ptr;
+  uint16_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = (uint16_t *)dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = *src_ptr;
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
+  }
+
+static void extract_16_y(channel_data_t * d,
+                         const gavl_video_frame_t * src,
+                         gavl_video_frame_t * dst)
+  {
+  int i, j;
+  uint16_t * src_ptr;
+  uint16_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = (uint16_t *)dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      Y_16_TO_YJ_16(*src_ptr, *dst_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
   
   }
 
-static void extract_rgb15_b(const gavl_video_frame_t * src,
-                            gavl_video_frame_t * dst,
-                            int plane, int offset, int advance,
-                            int width, int height)
+static void extract_16_uv(channel_data_t * d,
+                          const gavl_video_frame_t * src,
+                          gavl_video_frame_t * dst)
   {
+  int i, j;
+  uint16_t * src_ptr;
+  uint16_t * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
+  
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (uint16_t *)src_ptr_start + d->offset;
+    dst_ptr = (uint16_t *)dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      UV_16_TO_UVJ_16(*src_ptr, *dst_ptr);
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
   
   }
 
-static void extract_rgb16_r(const gavl_video_frame_t * src,
-                            gavl_video_frame_t * dst,
-                            int plane, int offset, int advance,
-                            int width, int height)
+static void extract_float(channel_data_t * d,
+                          const gavl_video_frame_t * src,
+                          gavl_video_frame_t * dst)
   {
+  int i, j;
+  float * src_ptr;
+  float * dst_ptr;
+
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
   
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (float *)src_ptr_start + d->offset;
+    dst_ptr = (float *)dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = *src_ptr;
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
   }
 
-static void extract_rgb16_g(const gavl_video_frame_t * src,
-                            gavl_video_frame_t * dst,
-                            int plane, int offset, int advance,
-                            int width, int height)
+static void extract_float_uv(channel_data_t * d,
+                             const gavl_video_frame_t * src,
+                             gavl_video_frame_t * dst)
   {
-  
-  }
+  int i, j;
+  float * src_ptr;
+  float * dst_ptr;
 
-static void extract_rgb16_b(const gavl_video_frame_t * src,
-                            gavl_video_frame_t * dst,
-                            int plane, int offset, int advance,
-                            int width, int height)
-  {
+  uint8_t * src_ptr_start = src->planes[d->plane];
+  uint8_t * dst_ptr_start = dst->planes[0];
   
+  for(i = 0; i < d->height; i++)
+    {
+    src_ptr = (float *)src_ptr_start + d->offset;
+    dst_ptr = (float *)dst_ptr_start;
+    
+    for(j = 0; j < d->width; j++)
+      {
+      *dst_ptr = *src_ptr + 0.5; // -0.5 .. 0.5 -> 0.0 .. 1.0
+      dst_ptr++;
+      src_ptr += d->advance;
+      }
+    src_ptr_start += src->strides[d->plane];
+    dst_ptr_start += dst->strides[0];
+    }
   }
-
-static void extract_8(const gavl_video_frame_t * src,
-                      gavl_video_frame_t * dst,
-                      int plane, int offset, int advance,
-                      int width, int height)
-  {
-  
-  }
-
-static void extract_8_y(const gavl_video_frame_t * src,
-                        gavl_video_frame_t * dst,
-                        int plane, int offset, int advance,
-                        int width, int height)
-  {
-  
-  }
-
-static void extract_8_uv(const gavl_video_frame_t * src,
-                         gavl_video_frame_t * dst,
-                         int plane, int offset, int advance,
-                         int width, int height)
-  {
-  
-  }
-
-static void extract_16(const gavl_video_frame_t * src,
-                      gavl_video_frame_t * dst,
-                      int plane, int offset, int advance,
-                      int width, int height)
-  {
-  
-  }
-
-static void extract_16_y(const gavl_video_frame_t * src,
-                         gavl_video_frame_t * dst,
-                         int plane, int offset, int advance,
-                         int width, int height)
-  {
-  
-  }
-
-static void extract_16_uv(const gavl_video_frame_t * src,
-                          gavl_video_frame_t * dst,
-                          int plane, int offset, int advance,
-                          int width, int height)
-  {
-  
-  }
-
-static void extract_float(const gavl_video_frame_t * src,
-                          gavl_video_frame_t * dst,
-                          int plane, int offset, int advance,
-                          int width, int height)
-  {
-  
-  }
-
-static void extract_float_uv(const gavl_video_frame_t * src,
-                             gavl_video_frame_t * dst,
-                             int plane, int offset, int advance,
-                             int width, int height)
-  {
-  
-  }
-
-#endif
 
 static int get_channel_properties(gavl_pixelformat_t src_format,
                                   gavl_pixelformat_t * dst_format_ret,
                                   gavl_color_channel_t ch,
-                                  int * plane_ret,
-                                  int * offset_ret,
-                                  int * advance_ret,
-                                  int * sub_h_ret, int * sub_v_ret)
+                                  channel_data_t * d)
   {
-  int plane = 0, offset = 0, advance = 1, sub_h = 1, sub_v = 1;
   gavl_pixelformat_t dst_format;
+  
+  d->plane = 0;
+  d->offset = 0;
+  d->advance = 1;
+  d->sub_h = 1;
+  d->sub_v = 1;
   
   switch(src_format)
     {
@@ -162,6 +456,7 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       return 0;
     case GAVL_GRAY_8:
       dst_format = GAVL_GRAY_8;
+      d->extract_func = extract_8;
       switch(ch)
         {
         case GAVL_CCH_Y:
@@ -172,6 +467,7 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_GRAY_16:
       dst_format = GAVL_GRAY_16;
+      d->extract_func = extract_16;
       switch(ch)
         {
         case GAVL_CCH_Y:
@@ -182,6 +478,7 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_GRAY_FLOAT:
       dst_format = GAVL_GRAY_FLOAT;
+      d->extract_func = extract_float;
       switch(ch)
         {
         case GAVL_CCH_Y:
@@ -192,13 +489,14 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_GRAYA_16:
       dst_format = GAVL_GRAY_8;
-      advance = 2;
+      d->extract_func = extract_8;
+      d->advance = 2;
       switch(ch)
         {
         case GAVL_CCH_Y:
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 1;
+          d->offset  = 1;
           break;
         default:
           return 0;
@@ -206,13 +504,14 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_GRAYA_32:
       dst_format = GAVL_GRAY_16;
-      advance = 2;
+      d->extract_func = extract_16;
+      d->advance = 2;
       switch(ch)
         {
         case GAVL_CCH_Y:
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 1;
+          d->offset  = 1;
           break;
         default:
           return 0;
@@ -220,13 +519,14 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_GRAYA_FLOAT:
       dst_format = GAVL_GRAY_FLOAT;
-      advance = 2;
+      d->extract_func = extract_float;
+      d->advance = 2;
       switch(ch)
         {
         case GAVL_CCH_Y:
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 1;
+          d->offset  = 1;
           break;
         default:
           return 0;
@@ -237,10 +537,13 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       switch(ch)
         {
         case GAVL_CCH_RED:
+          d->extract_func = extract_rgb15_r;
           break;
         case GAVL_CCH_GREEN:
+          d->extract_func = extract_rgb15_g;
           break;
         case GAVL_CCH_BLUE:
+          d->extract_func = extract_rgb15_b;
           break;
         default:
           return 0;
@@ -251,10 +554,13 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       switch(ch)
         {
         case GAVL_CCH_RED:
+          d->extract_func = extract_rgb15_b;
           break;
         case GAVL_CCH_GREEN:
+          d->extract_func = extract_rgb15_g;
           break;
         case GAVL_CCH_BLUE:
+          d->extract_func = extract_rgb15_r;
           break;
         default:
           return 0;
@@ -265,10 +571,13 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       switch(ch)
         {
         case GAVL_CCH_RED:
+          d->extract_func = extract_rgb16_r;
           break;
         case GAVL_CCH_GREEN:
+          d->extract_func = extract_rgb16_g;
           break;
         case GAVL_CCH_BLUE:
+          d->extract_func = extract_rgb16_b;
           break;
         default:
           return 0;
@@ -279,10 +588,13 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       switch(ch)
         {
         case GAVL_CCH_RED:
+          d->extract_func = extract_rgb16_b;
           break;
         case GAVL_CCH_GREEN:
+          d->extract_func = extract_rgb16_g;
           break;
         case GAVL_CCH_BLUE:
+          d->extract_func = extract_rgb16_r;
           break;
         default:
           return 0;
@@ -290,17 +602,18 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_RGB_24:
       dst_format = GAVL_GRAY_8;
-      advance = 3;
+      d->extract_func = extract_8;
+      d->advance = 3;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 0;
+          d->offset  = 0;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 2;
+          d->offset  = 2;
           break;
         default:
           return 0;
@@ -308,17 +621,18 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_BGR_24:
       dst_format = GAVL_GRAY_8;
-      advance = 3;
+      d->extract_func = extract_8;
+      d->advance = 3;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 2;
+          d->offset  = 2;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 0;
+          d->offset  = 0;
           break;
         default:
           return 0;
@@ -326,17 +640,18 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_RGB_32:
       dst_format = GAVL_GRAY_8;
-      advance = 4;
+      d->extract_func = extract_8;
+      d->advance = 4;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 0;
+          d->offset  = 0;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 2;
+          d->offset  = 2;
           break;
         default:
           return 0;
@@ -344,17 +659,18 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_BGR_32:
       dst_format = GAVL_GRAY_8;
-      advance = 4;
+      d->extract_func = extract_8;
+      d->advance = 4;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 2;
+          d->offset  = 2;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 0;
+          d->offset  = 0;
           break;
         default:
           return 0;
@@ -362,20 +678,21 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_RGBA_32:
       dst_format = GAVL_GRAY_8;
-      advance = 4;
+      d->extract_func = extract_8;
+      d->advance = 4;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 0;
+          d->offset  = 0;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 2;
+          d->offset  = 2;
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 3;
+          d->offset  = 3;
           break;
         default:
           return 0;
@@ -383,17 +700,18 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_RGB_48:
       dst_format = GAVL_GRAY_16;
-      advance = 3;
+      d->extract_func = extract_16;
+      d->advance = 3;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 0;
+          d->offset  = 0;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 2;
+          d->offset  = 2;
           break;
         default:
           return 0;
@@ -401,20 +719,21 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_RGBA_64:
       dst_format = GAVL_GRAY_16;
-      advance = 4;
+      d->extract_func = extract_16;
+      d->advance = 4;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 0;
+          d->offset  = 0;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 2;
+          d->offset  = 2;
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 3;
+          d->offset  = 3;
           break;
         default:
           return 0;
@@ -422,17 +741,18 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_RGB_FLOAT:
       dst_format = GAVL_GRAY_FLOAT;
-      advance = 3;
+      d->extract_func = extract_float;
+      d->advance = 3;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 0;
+          d->offset  = 0;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 2;
+          d->offset  = 2;
           break;
         default:
           return 0;
@@ -440,20 +760,21 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_RGBA_FLOAT:
       dst_format = GAVL_GRAY_FLOAT;
-      advance = 4;
+      d->extract_func = extract_float;
+      d->advance = 4;
       switch(ch)
         {
         case GAVL_CCH_RED:
-          offset  = 0;
+          d->offset  = 0;
           break;
         case GAVL_CCH_GREEN:
-          offset  = 1;
+          d->offset  = 1;
           break;
         case GAVL_CCH_BLUE:
-          offset  = 2;
+          d->offset  = 2;
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 3;
+          d->offset  = 3;
           break;
         default:
           return 0;
@@ -464,16 +785,19 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       switch(ch)
         {
         case GAVL_CCH_Y:
-          offset  = 0;
-          advance = 2;
+          d->extract_func = extract_8_y;
+          d->offset  = 0;
+          d->advance = 2;
           break;
         case GAVL_CCH_CB:
-          offset  = 1;
-          advance = 4;
+          d->extract_func = extract_8_uv;
+          d->offset  = 1;
+          d->advance = 4;
           break;
         case GAVL_CCH_CR:
-          offset  = 3;
-          advance = 4;
+          d->extract_func = extract_8_uv;
+          d->offset  = 3;
+          d->advance = 4;
           break;
         default:
           return 0;
@@ -484,16 +808,19 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       switch(ch)
         {
         case GAVL_CCH_Y:
-          offset  = 1;
-          advance = 2;
+          d->extract_func = extract_8_y;
+          d->offset  = 1;
+          d->advance = 2;
           break;
         case GAVL_CCH_CB:
-          offset  = 0;
-          advance = 4;
+          d->extract_func = extract_8_uv;
+          d->offset  = 0;
+          d->advance = 4;
           break;
         case GAVL_CCH_CR:
-          offset  = 2;
-          advance = 4;
+          d->extract_func = extract_8_uv;
+          d->offset  = 2;
+          d->advance = 4;
           break;
         default:
           return 0;
@@ -501,20 +828,24 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_YUVA_32:
       dst_format = GAVL_GRAY_8;
-      advance = 4;
+      d->advance = 4;
       switch(ch)
         {
         case GAVL_CCH_Y:
-          offset  = 0;
+          d->extract_func = extract_8_y;
+          d->offset  = 0;
           break;
         case GAVL_CCH_CB:
-          offset  = 1;
+          d->extract_func = extract_8_uv;
+          d->offset  = 1;
           break;
         case GAVL_CCH_CR:
-          offset  = 2;
+          d->extract_func = extract_8_uv;
+          d->offset  = 2;
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 3;
+          d->offset  = 3;
+          d->extract_func = extract_8;
           break;
         default:
           return 0;
@@ -522,20 +853,24 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_YUVA_64:
       dst_format = GAVL_GRAY_16;
-      advance = 4;
+      d->advance = 4;
       switch(ch)
         {
         case GAVL_CCH_Y:
-          offset  = 0;
+          d->extract_func = extract_16_y;
+          d->offset  = 0;
           break;
         case GAVL_CCH_CB:
-          offset  = 1;
+          d->extract_func = extract_16_uv;
+          d->offset  = 1;
           break;
         case GAVL_CCH_CR:
-          offset  = 2;
+          d->extract_func = extract_16_uv;
+          d->offset  = 2;
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 3;
+          d->extract_func = extract_16;
+          d->offset  = 3;
           break;
         default:
           return 0;
@@ -543,17 +878,20 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_YUV_FLOAT:
       dst_format = GAVL_GRAY_FLOAT;
-      advance = 3;
+      d->advance = 3;
       switch(ch)
         {
         case GAVL_CCH_Y:
-          offset  = 0;
+          d->extract_func = extract_float;
+          d->offset  = 0;
           break;
         case GAVL_CCH_CB:
-          offset  = 1;
+          d->extract_func = extract_float_uv;
+          d->offset  = 1;
           break;
         case GAVL_CCH_CR:
-          offset  = 2;
+          d->extract_func = extract_float_uv;
+          d->offset  = 2;
           break;
         default:
           return 0;
@@ -561,20 +899,24 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       break;
     case GAVL_YUVA_FLOAT:
       dst_format = GAVL_GRAY_FLOAT;
-      advance = 4;
+      d->advance = 4;
       switch(ch)
         {
         case GAVL_CCH_Y:
-          offset  = 0;
+          d->extract_func = extract_float;
+          d->offset  = 0;
           break;
         case GAVL_CCH_CB:
-          offset  = 1;
+          d->extract_func = extract_float_uv;
+          d->offset  = 1;
           break;
         case GAVL_CCH_CR:
-          offset  = 2;
+          d->extract_func = extract_float_uv;
+          d->offset  = 2;
           break;
         case GAVL_CCH_ALPHA:
-          offset  = 3;
+          d->extract_func = extract_float;
+          d->offset  = 3;
           break;
         default:
           return 0;
@@ -589,13 +931,16 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       switch(ch)
         {
         case GAVL_CCH_Y:
-          plane  = 0;
+          d->extract_func = extract_8_y;
+          d->plane  = 0;
           break;
         case GAVL_CCH_CB:
-          plane  = 1;
+          d->extract_func = extract_8_uv;
+          d->plane  = 1;
           break;
         case GAVL_CCH_CR:
-          plane  = 2;
+          d->extract_func = extract_8_uv;
+          d->plane  = 2;
           break;
         default:
           return 0;
@@ -605,16 +950,17 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
       dst_format = GAVL_GRAY_8;
+      d->extract_func = extract_8;
       switch(ch)
         {
         case GAVL_CCH_Y:
-          plane  = 0;
+          d->plane  = 0;
           break;
         case GAVL_CCH_CB:
-          plane  = 1;
+          d->plane  = 1;
           break;
         case GAVL_CCH_CR:
-          plane  = 2;
+          d->plane  = 2;
           break;
         default:
           return 0;
@@ -626,13 +972,16 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
       switch(ch)
         {
         case GAVL_CCH_Y:
-          plane  = 0;
+          d->extract_func = extract_16_y;
+          d->plane  = 0;
           break;
         case GAVL_CCH_CB:
-          plane  = 1;
+          d->extract_func = extract_16_uv;
+          d->plane  = 1;
           break;
         case GAVL_CCH_CR:
-          plane  = 2;
+          d->extract_func = extract_16_uv;
+          d->plane  = 2;
           break;
         default:
           return 0;
@@ -642,26 +991,14 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
 
   /* Get chroma subsampling */
   
-  if(plane)
-    gavl_pixelformat_chroma_sub(src_format, &sub_h, &sub_v);
+  if(d->plane ||
+     (((src_format == GAVL_YUY2) ||
+       (src_format == GAVL_UYVY)) && (ch != GAVL_CCH_Y)))
+    gavl_pixelformat_chroma_sub(src_format, &d->sub_h, &d->sub_v);
   
   /* Return stuff */
   if(dst_format_ret)
     *dst_format_ret = dst_format;
-
-  if(plane_ret)
-    *plane_ret = plane;
-  if(offset_ret)
-    *offset_ret = offset;
-  
-  if(advance_ret)
-    *advance_ret = advance;
-
-  if(sub_h_ret)
-    *sub_h_ret = sub_h;
-
-  if(sub_v_ret)
-    *sub_v_ret = sub_v;
   
   return 1;
   }
@@ -670,24 +1007,20 @@ int gavl_get_color_channel_format(const gavl_video_format_t * frame_format,
                                   gavl_video_format_t * channel_format,
                                   gavl_color_channel_t ch)
   {
-  int sub_h, sub_v;
-
+  channel_data_t d;
+  
   gavl_video_format_copy(channel_format, frame_format);
 
   if(!get_channel_properties(frame_format->pixelformat,
                              &channel_format->pixelformat,
-                             ch,
-                             NULL, // int * plane_ret,
-                             NULL, // int * offset_ret,
-                             NULL, // int * advance_ret,
-                             &sub_h, &sub_v))
+                             ch, &d))
     return 0;
 
-  channel_format->image_width /= sub_h;
-  channel_format->frame_width /= sub_h;
+  channel_format->image_width /= d.sub_h;
+  channel_format->frame_width /= d.sub_h;
 
-  channel_format->image_height /= sub_v;
-  channel_format->frame_height /= sub_v;
+  channel_format->image_height /= d.sub_v;
+  channel_format->frame_height /= d.sub_v;
   return 1;
   }
 
@@ -697,6 +1030,17 @@ gavl_video_frame_extract_channel(const gavl_video_format_t * format,
                                  const gavl_video_frame_t * src,
                                  gavl_video_frame_t * dst)
   {
+  channel_data_t d;
+  if(!get_channel_properties(format->pixelformat,
+                             NULL,
+                             ch, &d))
+    return 0;
+
+  d.width  = format->image_width  / d.sub_h;
+  d.height = format->image_height / d.sub_v;
+
+  d.extract_func(&d, src, dst);
+  
   return 1;
   }
 

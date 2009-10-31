@@ -174,15 +174,15 @@
 #define Y_16_TO_YJ_8(val,dst)   dst=((((RECLIP(val, 0x1000, 0xEB00)-0x1000)*255)/219+0x80)>>8)
 #define UV_16_TO_UVJ_8(val,dst) dst=((((RECLIP(val, 0x1000, 0xF000)-0x1000)*255)/224+0x80)>>8)
 
-#define Y_16_TO_YJ_16(val,dst)   dst=(((uint32_t)((RECLIP((uint32_t)val, 0x1000, 0xEB00)-0x1000)*65535)/219+0x8000)>>16)
-#define UV_16_TO_UVJ_16(val,dst) dst=((((RECLIP(val, 0x1000, 0xF000)-0x1000)*65535)/224+0x8000)>>16)
+#define Y_16_TO_YJ_16(val,dst)   dst=(((uint32_t)((RECLIP((uint32_t)val, 0x1000, 0xEB00)-0x1000)*65535)/219+0x80)>>8)
+#define UV_16_TO_UVJ_16(val,dst) dst=(((uint32_t)((RECLIP((uint32_t)val, 0x1000, 0xF000)-0x1000)*65535)/224+0x80)>>8)
 
 #else
 #define Y_16_TO_YJ_8(val,dst)   dst=((((RECLIP(val, 0x1000, 0xEB00)-0x1000)*255)/219)>>8)
 #define UV_16_TO_UVJ_8(val,dst) dst=((((RECLIP(val, 0x1000, 0xF000)-0x1000)*255)/224)>>8)
 
 #define Y_16_TO_YJ_16(val,dst)   dst=((((uint32_t)(RECLIP(val, 0x1000, 0xEB00)-0x1000)*65535)/219)>>8)
-//#define UV_16_TO_UVJ_16(val,dst) dst=((((RECLIP(val, 0x1000, 0xF000)-0x1000)*65535)/224)>>16)
+#define UV_16_TO_UVJ_16(val,dst) dst=((((uint32_t)(RECLIP(val, 0x1000, 0xF000)-0x1000)*65535)/224)>>8)
 
 #endif
 
