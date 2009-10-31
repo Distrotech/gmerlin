@@ -1753,7 +1753,7 @@ typedef enum
     GAVL_CCH_RED,    //!< Red
     GAVL_CCH_GREEN,  //!< Green
     GAVL_CCH_BLUE,   //!< Blue
-    GAVL_CCH_Y,      //!< Luminance (also gracscale)
+    GAVL_CCH_Y,      //!< Luminance (also grayscale)
     GAVL_CCH_CB,     //!< Chrominance blue (aka U)
     GAVL_CCH_CR,     //!< Chrominance red (aka V)
     GAVL_CCH_ALPHA,  //!< Transparency (or, to be more precise opacity)
