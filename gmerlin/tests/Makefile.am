@@ -31,6 +31,7 @@ server \
 client \
 dump_plugins \
 extractchannel \
+insertchannel \
 textrenderer \
 ladspa \
 thumbnail \
@@ -51,6 +52,9 @@ audioplayer1_LDADD = ../lib/libgmerlin.la -ldl
 
 extractchannel_SOURCES = extractchannel.c
 extractchannel_LDADD = ../lib/libgmerlin.la -ldl
+
+insertchannel_SOURCES = insertchannel.c
+insertchannel_LDADD = ../lib/libgmerlin.la -ldl
 
 
 dump_plugins_SOURCES = dump_plugins.c

@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <string.h>
+
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/utils.h>
 
@@ -50,25 +52,14 @@ int main(int argc, char ** argv)
   char * tmp_string;
   
   gavl_video_frame_t * in_frame;
-  gavl_video_frame_t * tmp_frame = NULL;
   gavl_video_frame_t * out_frame;
-  gavl_video_frame_t * f;
   
   gavl_video_format_t in_format;
-  gavl_video_format_t tmp_format;
   gavl_video_format_t out_format;
-  int do_convert;
 
   int num_formats;
-    
-  gavl_video_converter_t * cnv;
-  gavl_video_options_t   * opt;
-  
-  if(argc != 2)
-    {
-    fprintf(stderr, "Usage: %s <image>\n", argv[0]);
-    return -1;
-    }
+
+  gavl_pixelformat_t fmt;
   
   /* Create registries */
   
@@ -81,92 +72,70 @@ int main(int argc, char ** argv)
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
   
-  /* Load input image */
-  in_frame = bg_plugin_registry_load_image(plugin_reg,
-                                           argv[1],
-                                           &in_format, NULL);
-  
-  if(!in_frame)
-    {
-    fprintf(stderr, "Couldn't load %s\n", argv[1]);
-    return -1;
-    }
-
-  gavl_video_format_copy(&tmp_format, &in_format);
-  
   /* Create converter */
-  cnv = gavl_video_converter_create();
 
-  opt = gavl_video_converter_get_options(cnv);
-  gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_BLEND_COLOR);
-  
   num_formats = gavl_num_pixelformats();
 
   for(i = 0; i < num_formats; i++)
     {
-    tmp_format.pixelformat = gavl_get_pixelformat(i);
+    fmt = gavl_get_pixelformat(i);
 
-    do_convert = gavl_video_converter_init(cnv, &in_format, &tmp_format);
-
-    if(do_convert)
-      {
-      tmp_frame = gavl_video_frame_create(&tmp_format);
-      gavl_video_convert(cnv, in_frame, tmp_frame);
-      f = tmp_frame;
-      }
-    else
-      f = in_frame;
+    memset(&out_format, 0, sizeof(out_format));
     
     for(j = 0; j < num_channels; j++)
       {
-      /* Check if channel is available */
-      if(!gavl_get_color_channel_format(&tmp_format,
-                                        &out_format,
-                                        channels[j].ch))
-        continue;
-      
-      out_frame = gavl_video_frame_create(&out_format);
-
-      if(!gavl_video_frame_extract_channel(&tmp_format,
-                                           channels[j].ch,
-                                           f,
-                                           out_frame))
-        {
-        fprintf(stderr, "Huh? Extracting %s from %s failed\n",
-                channels[j].name,
-                gavl_pixelformat_to_string(tmp_format.pixelformat));
-        return -1;
-        }
       tmp_string =
         bg_sprintf("%s_%s.gavi",
-                   gavl_pixelformat_to_string(tmp_format.pixelformat),
+                   gavl_pixelformat_to_string(fmt),
                    channels[j].name);
 
-      bg_plugin_registry_save_image(plugin_reg,
-                                    tmp_string,
-                                    out_frame, &out_format,
-                                    NULL);
-
-      fprintf(stderr, "Wrote %s\n", tmp_string);
-      
+      in_frame = bg_plugin_registry_load_image(plugin_reg,
+                                               tmp_string,
+                                               &in_format, NULL);
       free(tmp_string);
-      gavl_video_frame_destroy(out_frame);
+      if(!in_frame)
+        continue;
+
+      if(!out_format.image_width)
+        {
+        gavl_video_format_copy(&out_format, &in_format);
+        out_format.pixelformat = fmt;
+        out_frame = gavl_video_frame_create(&out_format);
+        gavl_video_frame_clear(out_frame, &out_format);
+        }
+      
+      if(!gavl_video_frame_insert_channel(&out_format,
+                                          channels[j].ch,
+                                          in_frame,
+                                          out_frame))
+        {
+        fprintf(stderr, "Huh? Inserting %s to %s failed\n",
+                channels[j].name,
+                gavl_pixelformat_to_string(fmt));
+        return -1;
+        }
+
+      gavl_video_frame_destroy(in_frame);
       
       }
-    if(tmp_frame)
-      {
-      gavl_video_frame_destroy(tmp_frame);
-      tmp_frame = NULL;
-      }
+
+    tmp_string =
+      bg_sprintf("insert_%s.gavi",
+                 gavl_pixelformat_to_string(fmt));
+    
+    bg_plugin_registry_save_image(plugin_reg,
+                                  tmp_string,
+                                  out_frame, &out_format,
+                                  NULL);
+    
+    fprintf(stderr, "Wrote %s\n", tmp_string);
+    
+    free(tmp_string);
+    
     
     }
-
-  gavl_video_frame_destroy(in_frame);
-
-  gavl_video_converter_destroy(cnv);
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
-  
   
   return 0;
   
