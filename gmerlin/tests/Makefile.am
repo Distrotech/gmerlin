@@ -30,6 +30,7 @@ msgtest \
 server \
 client \
 dump_plugins \
+extractchannel \
 textrenderer \
 ladspa \
 thumbnail \
@@ -47,6 +48,10 @@ gmerlin_visualize
 
 audioplayer1_SOURCES = audioplayer1.c
 audioplayer1_LDADD = ../lib/libgmerlin.la -ldl
+
+extractchannel_SOURCES = extractchannel.c
+extractchannel_LDADD = ../lib/libgmerlin.la -ldl
+
 
 dump_plugins_SOURCES = dump_plugins.c
 dump_plugins_LDADD = ../lib/libgmerlin.la -ldl

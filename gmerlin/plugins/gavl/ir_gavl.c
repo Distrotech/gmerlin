@@ -106,7 +106,8 @@ static int read_image_gavl(void * priv, gavl_video_frame_t * frame)
   if(ch.type != CHUNK_TYPE_VIDEO_FRAME)
     return 0;
   
-  if(!bg_f_video_frame_read(&gavl->io, &ch, &gavl->format, frame, gavl->big_endian, gavl->ctx))
+  if(!bg_f_video_frame_read(&gavl->io, &ch, &gavl->format,
+                            frame, gavl->big_endian, gavl->ctx))
     return 0;
   
   bg_f_io_close(&gavl->io);

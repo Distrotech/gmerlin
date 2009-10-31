@@ -142,8 +142,10 @@ int main(int argc, char ** argv)
   files = bg_cmdline_get_locations_from_args(&argc, &argv);
 
   if(!files || !files[0] || !files[1] || files[2])
+    {
     bg_cmdline_print_help(argv[0], 0);
-  
+    return -1;
+    }
   /* Create registries */
 
   cfg_reg = bg_cfg_registry_create();
