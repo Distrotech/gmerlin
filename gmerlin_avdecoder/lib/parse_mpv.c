@@ -53,7 +53,13 @@ typedef struct
   int has_picture_start;
   int state;
 
+  /* Frames since sequence header (for intra slice refresh) */
   int frames_since_sh;
+  
+  /* Framecounts for I and P/B frames, reset at sequence end
+     (for MPEG still images) */
+  int pb_count;
+  int i_count;
   } mpeg12_priv_t;
 
 static void reset_mpeg12(bgav_video_parser_t * parser)
@@ -165,7 +171,13 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           break;
         case MPEG_CODE_END:
           parser->pos += 4;
-          bgav_video_parser_set_sequence_end(parser);
+
+          /* Set sequence end for still mode */
+          if(!priv->pb_count && (priv->i_count == 1))
+            bgav_video_parser_set_sequence_end(parser);
+          
+          priv->pb_count = 0;
+          priv->i_count = 0;
           //          fprintf(stderr, "Detected sequence end\n");
           break;
         default:
@@ -199,6 +211,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           }
         priv->frames_since_sh++;
         }
+
+      if(ph.coding_type == BGAV_CODING_TYPE_I)
+        priv->i_count++;
+      else
+        priv->pb_count++;
+        
       
       //        fprintf(stderr, "Pic type: %c\n", ph.coding_type);
       parser->pos += len;

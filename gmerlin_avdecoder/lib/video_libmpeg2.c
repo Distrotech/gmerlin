@@ -35,6 +35,8 @@
 
 #define LOG_DOMAIN "video_libmpeg2"
 
+// #define DUMP_TIMESTAMS
+
 static const char picture_types[] = { "?IPB????" };
 
 /* Debug function */
@@ -115,6 +117,10 @@ static int get_data(bgav_stream_t*s)
     else
       return 0;
     }
+#ifdef DUMP_TIMESTAMS
+  bgav_dprintf("Packet timestamp: %"PRId64"\n", priv->p->pts);
+#endif
+  
   priv->eof = 0;
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
 

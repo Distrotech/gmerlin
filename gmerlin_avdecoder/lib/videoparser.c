@@ -226,6 +226,7 @@ void bgav_video_parser_destroy(bgav_video_parser_t * parser)
 
 void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t in_pts, int64_t out_pts)
   {
+  //  fprintf(stderr, "bgav_video_parser_reset\n");
   bgav_bytebuffer_flush(&parser->buf);
   
   parser->raw_position = -1;
@@ -307,6 +308,9 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
 void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser)
   {
   int i;
+
+  //  fprintf(stderr, "Set Sequence end\n");
+
   update_previous_size(parser);
 
   /* Remove incomplete cache entries */
