@@ -1116,6 +1116,9 @@ bg_x11_window_t * bg_x11_window_create(const char * display_string)
   bg_x11_window_set_gl_attribute(ret, BG_GL_ATTRIBUTE_BLUE_SIZE, 8);
   bg_x11_window_set_gl_attribute(ret, BG_GL_ATTRIBUTE_DOUBLEBUFFER, 1);
   
+  ret->icon      = None;
+  ret->icon_mask = None;
+  
   return ret;
   }
 
@@ -1160,6 +1163,12 @@ void bg_x11_window_destroy(bg_x11_window_t * w)
 #endif
   if(w->gl_vi)
     XFree(w->gl_vi);
+
+  if(w->icon != None)
+    XFreePixmap(w->dpy, w->icon);
+  
+  if(w->icon_mask != None)
+    XFreePixmap(w->dpy, w->icon_mask);
   
   if(w->dpy)
     XCloseDisplay(w->dpy);
@@ -1551,7 +1560,43 @@ void bg_x11_window_set_options(bg_x11_window_t * w,
   /* Set Icon (TODO) */
   if(icon && icon_format)
     {
-    
+    XWMHints xwmhints;
+    memset(&xwmhints, 0, sizeof(xwmhints));
+
+    if((w->normal.parent == w->root) ||
+       (w->fullscreen.parent == w->root))
+      {
+      if(w->icon != None)
+        {
+        XFreePixmap(w->dpy, w->icon);
+        w->icon = None; 
+        }
+      if(w->icon_mask != None)
+        {
+        XFreePixmap(w->dpy, w->icon_mask);
+        w->icon_mask = None; 
+        }
+      
+      bg_x11_window_make_icon(w,
+                              icon,
+                              icon_format,
+                              &w->icon,
+                              &w->icon_mask);
+      
+      xwmhints.icon_pixmap = w->icon;
+      xwmhints.icon_mask   = w->icon_mask;
+      
+      if(xwmhints.icon_pixmap != None)
+        xwmhints.flags |= IconPixmapHint;
+      
+      if(xwmhints.icon_mask != None)
+        xwmhints.flags |= IconMaskHint;
+      
+      if(w->normal.parent == w->root)
+        XSetWMHints(w->dpy, w->normal.win, &xwmhints);
+      if(w->fullscreen.parent == w->root)
+        XSetWMHints(w->dpy, w->fullscreen.win, &xwmhints);
+      }
     }
   }
 

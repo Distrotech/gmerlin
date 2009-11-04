@@ -269,6 +269,9 @@ struct bg_x11_window_s
   gavl_video_frame_t * still_frame;
   gavl_video_frame_t * out_frame;
   int still_mode;
+
+  Pixmap icon;
+  Pixmap icon_mask;
   };
 
 void bg_x11_window_put_frame_internal(bg_x11_window_t * win,

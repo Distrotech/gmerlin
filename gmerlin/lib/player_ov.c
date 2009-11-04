@@ -34,7 +34,6 @@
 
 // #define DUMP_TIMESTAMPS
 
-
 static int accel_callback(void * data, int id)
   {
   bg_player_t * p = data;
