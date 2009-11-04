@@ -436,20 +436,28 @@ bg_player_input_read_video_still(void * priv,
     result = 0;
     
   bg_plugin_unlock(p->input_handle);
-    
+  
   if(result)
     gavl_video_frame_copy(&vs->input_format, vs->still_frame_in, frame);
   else
     {
-    gavl_video_frame_copy(&vs->input_format, frame, vs->still_frame_in);
-    frame->timestamp = vs->still_frame_in->timestamp;
+    if(!DO_AUDIO(p->flags) &&
+       (p->track_info->duration != GAVL_TIME_UNDEFINED) &&
+       gavl_time_unscale(vs->input_format.timescale,
+                         vs->still_frame_in->timestamp) > p->track_info->duration)
+      result = 0;
+    else
+      {
+      gavl_video_frame_copy(&vs->input_format, frame, vs->still_frame_in);
+      frame->timestamp = vs->still_frame_in->timestamp;
+      result = 1;
+      }
     }
   vs->still_frame_in->timestamp += vs->input_format.frame_duration;
-  result = 1;
 #ifdef DUMP_TIMESTAMPS
-  bg_debug("Input timestamp: %"PRId64"\n",
+  bg_debug("Input timestamp: %"PRId64" (timescale: %d)\n",
            gavl_time_unscale(vs->input_format.timescale,
-                             frame->timestamp));
+                             frame->timestamp), vs->input_format.timescale);
 #endif
   return result;
     
