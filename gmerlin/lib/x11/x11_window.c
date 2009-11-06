@@ -29,7 +29,6 @@
 #include <sys/time.h>
 
 #include <X11/Xatom.h>
-
 #include <X11/Xutil.h>
 
 #include <gmerlin/translation.h>
@@ -1724,7 +1723,7 @@ int bg_x11_window_check_embed_property(bg_x11_window_t * win,
   }
 
 gavl_pixelformat_t 
-bg_x11_window_get_pixelformat(bg_x11_window_t * win)
+bg_x11_window_get_pixelformat(Display * dpy, Visual * visual, int depth)
   {
   int bpp;
   XPixmapFormatValues * pf;
@@ -1733,10 +1732,10 @@ bg_x11_window_get_pixelformat(bg_x11_window_t * win)
   gavl_pixelformat_t ret = GAVL_PIXELFORMAT_NONE;
   
   bpp = 0;
-  pf = XListPixmapFormats(win->dpy, &num_pf);
+  pf = XListPixmapFormats(dpy, &num_pf);
   for(i = 0; i < num_pf; i++)
     {
-    if(pf[i].depth == win->depth)
+    if(pf[i].depth == depth)
       bpp = pf[i].bits_per_pixel;
     }
   XFree(pf);
@@ -1745,33 +1744,33 @@ bg_x11_window_get_pixelformat(bg_x11_window_t * win)
   switch(bpp)
     {
     case 16:
-      if((win->visual->red_mask == 63488) &&
-         (win->visual->green_mask == 2016) &&
-         (win->visual->blue_mask == 31))
+      if((visual->red_mask == 63488) &&
+         (visual->green_mask == 2016) &&
+         (visual->blue_mask == 31))
         ret = GAVL_RGB_16;
-      else if((win->visual->blue_mask == 63488) &&
-              (win->visual->green_mask == 2016) &&
-              (win->visual->red_mask == 31))
+      else if((visual->blue_mask == 63488) &&
+              (visual->green_mask == 2016) &&
+              (visual->red_mask == 31))
         ret = GAVL_BGR_16;
       break;
     case 24:
-      if((win->visual->red_mask == 0xff) && 
-         (win->visual->green_mask == 0xff00) &&
-         (win->visual->blue_mask == 0xff0000))
+      if((visual->red_mask == 0xff) && 
+         (visual->green_mask == 0xff00) &&
+         (visual->blue_mask == 0xff0000))
         ret = GAVL_RGB_24;
-      else if((win->visual->red_mask == 0xff0000) && 
-         (win->visual->green_mask == 0xff00) &&
-         (win->visual->blue_mask == 0xff))
+      else if((visual->red_mask == 0xff0000) && 
+         (visual->green_mask == 0xff00) &&
+         (visual->blue_mask == 0xff))
         ret = GAVL_BGR_24;
       break;
     case 32:
-      if((win->visual->red_mask == 0xff) && 
-         (win->visual->green_mask == 0xff00) &&
-         (win->visual->blue_mask == 0xff0000))
+      if((visual->red_mask == 0xff) && 
+         (visual->green_mask == 0xff00) &&
+         (visual->blue_mask == 0xff0000))
         ret = GAVL_RGB_32;
-      else if((win->visual->red_mask == 0xff0000) && 
-         (win->visual->green_mask == 0xff00) &&
-         (win->visual->blue_mask == 0xff))
+      else if((visual->red_mask == 0xff0000) && 
+         (visual->green_mask == 0xff00) &&
+         (visual->blue_mask == 0xff))
         ret = GAVL_BGR_32;
       break;
     }

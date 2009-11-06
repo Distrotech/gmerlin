@@ -287,8 +287,8 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
                               int * height);
 void bg_x11_window_init(bg_x11_window_t * w);
 
-gavl_pixelformat_t 
-bg_x11_window_get_pixelformat(bg_x11_window_t * win);
+gavl_pixelformat_t
+bg_x11_window_get_pixelformat(Display * dpy, Visual * visual, int depth);
 
 void bg_x11_window_make_icon(bg_x11_window_t * win,
                              const gavl_video_frame_t * icon,

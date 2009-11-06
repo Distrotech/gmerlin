@@ -27,7 +27,7 @@
 static int init_ximage(driver_data_t * d)
   {
   d->pixelformats = malloc(2*sizeof(*d->pixelformats));
-  d->pixelformats[0] = bg_x11_window_get_pixelformat(d->win);
+  d->pixelformats[0] = bg_x11_window_get_pixelformat(d->win->dpy, d->win->visual, d->win->depth);
   d->pixelformats[1] = GAVL_PIXELFORMAT_NONE;
   return 1;
   }
