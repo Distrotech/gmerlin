@@ -593,7 +593,7 @@ static int open_display(bg_x11_window_t * w)
 
 
 
-void bg_x11_window_get_coords(bg_x11_window_t * w,
+void bg_x11_window_get_coords(Display * dpy,
                               Window win,
                               int * x, int * y, int * width,
                               int * height)
@@ -608,11 +608,11 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
   unsigned int depth_return;
   //  Window child_return;
 
-  XGetGeometry(w->dpy, win, &root_return, &x_return, &y_return,
+  XGetGeometry(dpy, win, &root_return, &x_return, &y_return,
                &width_return, &height_return,
                &border_width_return, &depth_return);
   
-  XQueryTree(w->dpy, win, &root_return, &parent_return,
+  XQueryTree(dpy, win, &root_return, &parent_return,
              &children_return, &nchildren_return);
 
   if(nchildren_return)
@@ -628,7 +628,7 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
   
   if((x || y) && (parent_return != root_return))
     {
-    XGetGeometry(w->dpy, parent_return, &root_return,
+    XGetGeometry(dpy, parent_return, &root_return,
                  &x_return, &y_return,
                  &width_return, &height_return,
                  &border_width_return, &depth_return);
@@ -697,14 +697,14 @@ void bg_x11_window_init(bg_x11_window_t * w)
     {
     //    fprintf(stderr, "bg_x11_window_init %ld %ld\n", w->current->win,
     //            w->current->parent);
-    bg_x11_window_get_coords(w, w->current->parent,
+    bg_x11_window_get_coords(w->dpy, w->current->parent,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
     XMoveResizeWindow(w->dpy, w->current->win, 0, 0,
                       w->window_width, w->window_height);
     }
   else
-    bg_x11_window_get_coords(w, w->current->win,
+    bg_x11_window_get_coords(w->dpy, w->current->win,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
 #endif

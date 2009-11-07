@@ -699,7 +699,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
           
           if(w->normal.parent == w->root)
             {
-            bg_x11_window_get_coords(w,
+            bg_x11_window_get_coords(w->dpy,
                                   w->normal.win,
                                   &w->window_x, &w->window_y,
                                   (int*)0, (int*)0);

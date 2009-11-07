@@ -146,6 +146,8 @@ static void set_monitor_plugin(const bg_plugin_info_t * info, void *  data)
     gavl_video_format_t icon_format;
     char * icon_path;
 
+    memset(&icon_format, 0, sizeof(icon_format));
+    
     /* Load icon */
     icon_path = bg_search_file_read("icons", WINDOW_ICON);
     if(icon_path)       

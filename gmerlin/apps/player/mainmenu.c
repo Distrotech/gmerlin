@@ -282,6 +282,8 @@ plugin_menu_set_plugin(plugin_menu_t * s, int index)
       gavl_video_format_t icon_format;
       char * icon_path;
 
+      memset(&icon_format, 0, sizeof(icon_format));
+
       /* Load icon */
       icon_path = bg_search_file_read("icons", WINDOW_ICON);
       if(icon_path)

@@ -526,10 +526,13 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
         open_monitor(cam);
       break;
     case CMD_SET_INPUT_PLUGIN:          /* ARG0: plugin_handle */
+      if(cam->do_monitor)
+        close_monitor(cam);
+      
       if(cam->input)
         {
-        bg_plugin_unref(cam->input_handle);
         close_input(cam);
+        bg_plugin_unref(cam->input_handle);
         }
       h = bg_msg_get_arg_ptr_nocopy(msg, 0);
       cam->input_handle = h;
@@ -538,6 +541,10 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
 
       cam->input = (bg_recorder_plugin_t*)cam->input_handle->plugin;
       open_input(cam);
+
+      if(cam->do_monitor)
+        open_monitor(cam);
+      
       break;
     case CMD_INPUT_REOPEN:
       if(cam->do_monitor)
@@ -661,7 +668,7 @@ static void * thread_func(void * data)
         bg_vloopback_put_frame(w->vloopback, w->input_frame);
       pthread_mutex_unlock(&w->vloopback_mutex);
 #endif      
-      /* Caculate framerate */
+      /* Calculate framerate */
       
       w->frame_counter++;
       if(w->frame_counter == FRAMERATE_INTERVAL)

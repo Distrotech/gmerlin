@@ -172,6 +172,10 @@ const bg_parameter_info_t * bg_x11_grab_window_get_parameters(bg_x11_grab_window
 void bg_x11_grab_window_set_parameter(void * data, const char * name,
                                       const bg_parameter_value_t * val);
 
+int bg_x11_grab_window_get_parameter(void * data, const char * name,
+                                     bg_parameter_value_t * val);
+
+
 bg_x11_grab_window_t * bg_x11_grab_window_create();
 void bg_x11_grab_window_destroy(bg_x11_grab_window_t *);
 

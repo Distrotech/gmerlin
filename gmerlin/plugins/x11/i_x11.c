@@ -57,7 +57,14 @@ static void set_parameter_x11(void * priv, const char * name,
                               const bg_parameter_value_t * val)
   {
   x11_t * x11 = priv;
-  return bg_x11_grab_window_set_parameter(x11->win, name, val);
+  bg_x11_grab_window_set_parameter(x11->win, name, val);
+  }
+
+static int get_parameter_x11(void * priv, const char * name,
+                             bg_parameter_value_t * val)
+  {
+  x11_t * x11 = priv;
+  return bg_x11_grab_window_get_parameter(x11->win, name, val);
   }
 
 static int open_x11(void * priv,
@@ -96,6 +103,7 @@ const bg_recorder_plugin_t the_plugin =
 
       .get_parameters = get_parameters_x11,
       .set_parameter =  set_parameter_x11,
+      .get_parameter =  get_parameter_x11,
     },
     
     .open =       open_x11,

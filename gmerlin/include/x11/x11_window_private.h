@@ -281,7 +281,7 @@ void bg_x11_window_put_frame_internal(bg_x11_window_t * win,
 
 void bg_x11_window_handle_event(bg_x11_window_t * win, XEvent * evt);
 void bg_x11_window_ping_screensaver(bg_x11_window_t * w);
-void bg_x11_window_get_coords(bg_x11_window_t * w,
+void bg_x11_window_get_coords(Display * dpy,
                               Window win,
                               int * x, int * y, int * width,
                               int * height);

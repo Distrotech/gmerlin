@@ -50,8 +50,9 @@ static Pixmap make_icon(bg_x11_window_t * win,
 
   /* Set up format and converter */
   gavl_video_format_copy(&out_format, format);
-  out_format.pixelformat = bg_x11_window_get_pixelformat(win->dpy, win->visual, win->depth);
-
+  out_format.pixelformat =
+    bg_x11_window_get_pixelformat(win->dpy, win->visual, win->depth);
+  
   do_convert = gavl_video_converter_init(cnv, format, &out_format);
   if(do_convert)
     {
