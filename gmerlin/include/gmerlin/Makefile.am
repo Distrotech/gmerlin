@@ -23,6 +23,7 @@ player.h \
 playermsg.h \
 plugin.h \
 pluginregistry.h \
+recorder.h \
 remote.h \
 serialize.h \
 singlepic.h \

@@ -28,7 +28,6 @@ bg_player_thread_common_create();
 
 void bg_player_thread_common_destroy(bg_player_thread_common_t * com);
 
-
 bg_player_thread_t *
 bg_player_thread_create(bg_player_thread_common_t * com);
 

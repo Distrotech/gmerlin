@@ -73,3 +73,11 @@ const bg_parameter_info_t * gmerlin_webcam_get_vloopback_parameters(gmerlin_webc
 void gmerlin_webcam_set_vloopback_parameter(void * data, const char * name,
                                             const bg_parameter_value_t * val);
 #endif
+
+const bg_parameter_info_t *
+gmerlin_webcam_get_parameters(gmerlin_webcam_t * w);
+
+void
+gmerlin_webcam_set_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * val);
+

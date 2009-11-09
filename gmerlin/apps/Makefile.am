@@ -29,6 +29,12 @@ else
 transcoder_subdirs =
 endif
 
+if HAVE_RECORDER
+recorder_subdirs = recorder
+else
+recorder_subdirs =
+endif
+
 if HAVE_KBD
 kbd_subdirs = kbd
 else
@@ -53,6 +59,7 @@ cmdlineplayer \
 $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
 $(camelot_subdirs) \
+$(recorder_subdirs) \
 $(transcoder_subdirs) \
 $(thumbnailer_subdirs) \
 $(kbd_subdirs) \

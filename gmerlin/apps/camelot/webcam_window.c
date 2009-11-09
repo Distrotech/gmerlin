@@ -420,7 +420,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                                     &(ret->msg_queue));
   
   ret->plugin_reg = reg;
-    
+  
   ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
   gtk_window_set_title(GTK_WINDOW(ret->win), "Camelot-"VERSION);

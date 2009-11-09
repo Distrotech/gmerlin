@@ -93,6 +93,9 @@ player_video.c \
 playercmd.c \
 pluginregistry.c \
 pluginreg_xml.c \
+recorder.c \
+recorder_audio.c \
+recorder_video.c \
 remote.c \
 searchpath.c \
 serialize.c \

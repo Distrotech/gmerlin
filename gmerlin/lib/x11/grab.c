@@ -49,6 +49,14 @@ static const bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_CHECKBUTTON,
     },
     {
+      .name =      "framerate",
+      .long_name = TRS("Framerate"),
+      .type = BG_PARAMETER_FLOAT,
+      .val_min = { .val_f = 0.5   },
+      .val_max = { .val_f = 100.0 },
+      .num_digits = 2,
+    },
+    {
       .name = "x",
       .long_name = "X",
       .type  = BG_PARAMETER_INT,
@@ -104,6 +112,7 @@ struct bg_x11_grab_window_s
   int use_shm;
   
   int root_width, root_height;
+  
   };
 
 const bg_parameter_info_t *
@@ -342,11 +351,16 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
 
   handle_events(win);
   
+  gavl_timer_set(win->timer, 0);
+  gavl_timer_start(win->timer);
+  
   return 1;
   }
 
 void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
   {
+  gavl_timer_stop(win->timer);
+
   if(win->use_shm)
     {
 
@@ -410,6 +424,11 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
     
     gavl_video_frame_copy(&win->format, frame, win->frame);
     }
+
+  frame->timestamp = gavl_time_scale(gavl_timer_get(win->timer),
+                                     win->format.timescale);
+
+  fprintf(stderr, "Timestamp: %"PRId64"\n", frame->timestamp);
   
   return 1;
   }

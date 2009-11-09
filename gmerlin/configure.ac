@@ -825,6 +825,23 @@ fi
 
 AM_CONDITIONAL(HAVE_TRANSCODER, test x$have_transcoder = xtrue)
 
+dnl Recorder
+
+AC_ARG_ENABLE(recorder,
+              AC_HELP_STRING(--disable-recorder, [Disable recorder (default: enabled)]),
+              [case "${enableval}" in
+                 yes) have_recorder=true ;;
+                 no) have_recorder=false ;;
+               esac],
+	       have_recorder=true)
+
+if test "x$have_gtk" = "xfalse"; then
+have_recorder=false
+fi
+
+AM_CONDITIONAL(HAVE_RECORDER, test x$have_recorder = xtrue)
+
+
 dnl Visualizer
 
 AC_ARG_ENABLE(visualizer,
@@ -934,6 +951,7 @@ apps/alsamixer/gmerlin-alsamixer.desktop \
 apps/camelot/Makefile \
 apps/camelot/gmerlin-camelot.desktop \
 apps/cmdlineplayer/Makefile \
+apps/recorder/Makefile \
 apps/transcoder/Makefile \
 apps/transcoder/gmerlin-transcoder.desktop \
 apps/visualizer/Makefile \
@@ -1260,6 +1278,13 @@ fi
 
 echo -n "Transcoder:          "
 if test "x$have_transcoder" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled"
+fi
+
+echo -n "Recorder:            "
+if test "x$have_recorder" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled"
