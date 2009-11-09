@@ -24,8 +24,8 @@
 
 #include <gmerlin/utils.h> 
 
-#include "recorder.h"
-#include "recorder_private.h"
+#include <gmerlin/recorder.h>
+#include <recorder_private.h>
 
 bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   {

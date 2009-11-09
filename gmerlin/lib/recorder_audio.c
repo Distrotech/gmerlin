@@ -24,8 +24,8 @@
 
 #include <gmerlin/translation.h>
 
-#include "recorder.h"
-#include "recorder_private.h"
+#include <gmerlin/recorder.h>
+#include <recorder_private.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "recorder.audio"

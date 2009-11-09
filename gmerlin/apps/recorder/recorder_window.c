@@ -33,7 +33,7 @@
 #include <gmerlin/gui_gtk/aboutwindow.h>
 #include <gmerlin/gui_gtk/logwindow.h>
 
-#include "recorder.h"
+#include <gmerlin/recorder.h>
 #include "recorder_window.h"
 
 struct bg_recorder_window_s

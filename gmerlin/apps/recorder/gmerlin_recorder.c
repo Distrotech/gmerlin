@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include "recorder.h"
+#include <gmerlin/recorder.h>
 #include "recorder_window.h"
 
 #include <gmerlin/utils.h>
