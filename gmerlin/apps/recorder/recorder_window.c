@@ -36,6 +36,8 @@
 #include <gmerlin/recorder.h>
 #include "recorder_window.h"
 
+#define DELAY_TIME 100
+
 struct bg_recorder_window_s
   {
   GtkWidget * win;
@@ -49,6 +51,7 @@ struct bg_recorder_window_s
   GtkWidget * about_button;
   GtkWidget * log_button;
   GtkWidget * config_button;
+  GtkWidget * restart_button;
   
   bg_dialog_t * cfg_dialog;
   
@@ -64,6 +67,9 @@ struct bg_recorder_window_s
   bg_cfg_section_t * video_section;
   
   bg_cfg_section_t * log_section;
+
+  bg_msg_queue_t * msg_queue;
+  
   };
 
 static void about_window_close_callback(bg_gtk_about_window_t * w,
@@ -94,6 +100,11 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == win->config_button)
     {
     bg_dialog_show(win->cfg_dialog, win->win);
+    }
+  else if(w == win->restart_button)
+    {
+    bg_recorder_stop(win->rec);
+    bg_recorder_run(win->rec);
     }
   }
 
@@ -175,6 +186,36 @@ static void socket_realize(GtkWidget * w, gpointer data)
                        win->rec);
   }
 
+static gboolean timeout_func(void * data)
+  {
+  bg_msg_t * msg;
+  bg_recorder_window_t * win = data;
+  
+  while((msg = bg_msg_queue_try_lock_read(win->msg_queue)))
+    {
+    switch(bg_msg_get_id(msg))
+      {
+      case BG_RECORDER_MSG_FRAMERATE:
+        break; 
+      case BG_RECORDER_MSG_AUDIOLEVEL:
+        {
+        double l[2];
+        int samples;
+        l[0] = bg_msg_get_arg_float(msg, 0);
+        l[1] = bg_msg_get_arg_float(msg, 1);
+        samples = bg_msg_get_arg_int(msg, 2);
+        bg_gtk_vumeter_update_peak(win->vumeter,
+                                   l, samples);
+        }
+        break; 
+      }
+    bg_msg_queue_unlock_read(win->msg_queue);
+    }
+
+
+  return TRUE;
+  }
+
 bg_recorder_window_t *
 bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                           bg_plugin_registry_t * plugin_reg)
@@ -189,6 +230,9 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   /* Create recorder */  
   ret->rec = bg_recorder_create(plugin_reg);
 
+  ret->msg_queue = bg_msg_queue_create();
+  bg_recorder_add_message_queue(ret->rec, ret->msg_queue);
+    
   /* Create widgets */  
   ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
@@ -210,7 +254,16 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     create_pixmap_button(ret, "log_16.png", TRS("Log messages"));
   ret->config_button =
     create_pixmap_button(ret, "config_16.png", TRS("Preferences"));
+  ret->restart_button =
+    create_pixmap_button(ret, "refresh_16.png", TRS("Reopen inputs"));
+  
+  ret->statusbar = gtk_statusbar_new();
+  ret->framerate_context =
+    gtk_statusbar_get_context_id(GTK_STATUSBAR(ret->statusbar),
+                                 "framerate");
+  gtk_widget_show(ret->statusbar);
 
+  
   /* Create other windows */
   ret->logwindow =
     bg_gtk_log_window_create(log_window_close_callback,
@@ -239,6 +292,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->config_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->about_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->log_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->restart_button, FALSE, FALSE, 0);
   gtk_widget_show(box);
 
   gtk_box_pack_start(GTK_BOX(mainbox),
@@ -246,6 +300,11 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                      FALSE, FALSE, 0);
   
   /* Statusbar */
+
+  gtk_box_pack_start(GTK_BOX(mainbox),
+                     ret->statusbar,
+                     FALSE, FALSE, 0);
+  
   
   /* */
     
@@ -328,6 +387,9 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                        bg_gtk_log_window_get_parameters(ret->logwindow),
                        bg_gtk_log_window_set_parameter,
                        ret->logwindow);
+
+  g_timeout_add(DELAY_TIME, timeout_func, ret);
+  
   return ret;
   }
 

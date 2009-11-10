@@ -42,6 +42,7 @@ void bg_recorder_create_video(bg_recorder_t * rec)
   vs->fc = bg_video_filter_chain_create(&(vs->opt), rec->plugin_reg);
 
   vs->th = bg_player_thread_create(rec->tc);
+  vs->timer = gavl_timer_create();
   
   }
 
@@ -52,6 +53,8 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   gavl_video_converter_destroy(vs->output_cnv);
   bg_video_filter_chain_destroy(vs->fc);
   bg_player_thread_destroy(vs->th);
+  gavl_timer_destroy(vs->timer);
+
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -104,9 +107,14 @@ bg_recorder_set_video_parameter(void * data,
 
   if(!strcmp(name, "do_video"))
     {
-    if(rec->running && (vs->active != val->val_i))
+    if(rec->running && (!!(vs->flags & STREAM_ACTIVE) != val->val_i))
       bg_recorder_stop(rec);
-    vs->active = val->val_i;
+
+    if(val->val_i)
+      vs->flags |= STREAM_ACTIVE;
+    else
+      vs->flags &= ~STREAM_ACTIVE;
+
     }
   else if(!strcmp(name, "plugin"))
     {
@@ -183,9 +191,13 @@ bg_recorder_set_video_monitor_parameter(void * data,
 
   if(!strcmp(name, "do_monitor"))
     {
-    if(rec->running && (vs->active != val->val_i))
+    if(rec->running && (!!(vs->flags & STREAM_MONITOR) != val->val_i))
       bg_recorder_stop(rec);
-    vs->do_monitor = val->val_i;
+
+    if(val->val_i)
+      vs->flags |= STREAM_MONITOR;
+    else
+      vs->flags &= ~STREAM_MONITOR;
     }
   else if(!strcmp(name, "plugin"))
     {
@@ -243,7 +255,6 @@ bg_recorder_set_video_filter_parameter(void * data,
 
 void * bg_recorder_video_thread(void * data)
   {
-  gavl_time_t delay_time = GAVL_TIME_SCALE / 2;
   bg_recorder_t * rec = data;
   bg_recorder_video_stream_t * vs = &rec->vs;
 
@@ -259,7 +270,7 @@ void * bg_recorder_video_thread(void * data)
       break; /* Should never happen */
 
     /* Monitor */
-    if(vs->do_monitor)
+    if(vs->flags & STREAM_MONITOR)
       {
       if(vs->do_convert_monitor)
         gavl_video_convert(vs->monitor_cnv, vs->pipe_frame, vs->monitor_frame);
@@ -289,6 +300,8 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   if(!vs->input_plugin->open(vs->input_handle->priv, NULL, &vs->input_format))
     return 0;
 
+  vs->flags |= STREAM_INPUT_OPEN;
+  
   fprintf(stderr, "Opened video output %s\n", vs->input_handle->info->long_name);
 
   vs->in_func   = read_video_internal;
@@ -310,30 +323,31 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   
   /* Set up monitoring */
 
-  if(vs->do_monitor)
+  if(vs->flags & STREAM_MONITOR)
     {
     gavl_video_format_copy(&vs->monitor_format, &vs->pipe_format);
     vs->monitor_plugin->open(vs->monitor_handle->priv, &vs->monitor_format, 1);
 
     vs->do_convert_monitor = gavl_video_converter_init(vs->monitor_cnv, &vs->pipe_format,
                                                        &vs->monitor_format);
+    vs->flags |= STREAM_MONITOR_OPEN;
     }
   else
-    vs->do_convert_monitor;
+    vs->do_convert_monitor = 0;
   
   /* Set up output */
 
   /* Create frames */
   
-  if(vs->do_monitor)
+  if(vs->flags & STREAM_MONITOR)
     {
     if(vs->monitor_plugin->create_frame)
       vs->monitor_frame = vs->monitor_plugin->create_frame(vs->monitor_handle->priv);
     else
       vs->monitor_frame = gavl_video_frame_create(&vs->monitor_format);
     }
-
-  if(!vs->do_convert_monitor && vs->do_monitor)
+  
+  if(!vs->do_convert_monitor && (vs->flags & STREAM_MONITOR))
     vs->pipe_frame = vs->monitor_frame;
   else
     vs->pipe_frame = gavl_video_frame_create(&vs->pipe_format);
@@ -341,3 +355,28 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   return 1;
   }
 
+void bg_recorder_video_cleanup(bg_recorder_t * rec)
+  {
+  bg_recorder_video_stream_t * vs = &rec->vs;
+  if(vs->flags & STREAM_INPUT_OPEN)
+    vs->input_plugin->close(vs->input_handle->priv);
+
+  if(vs->pipe_frame && (vs->pipe_frame != vs->monitor_frame))
+    {
+    gavl_video_frame_destroy(vs->pipe_frame);
+    vs->pipe_frame = NULL;
+    }
+
+  if(vs->monitor_frame)
+    {
+    if(vs->monitor_plugin->destroy_frame)
+      vs->monitor_plugin->destroy_frame(vs->monitor_handle->priv,
+                                        vs->monitor_frame);
+    else
+      gavl_video_frame_destroy(vs->monitor_frame);
+    vs->monitor_frame = NULL;
+    }
+  
+  if(vs->flags & STREAM_MONITOR_OPEN)
+    vs->monitor_plugin->close(vs->monitor_handle->priv);
+  }

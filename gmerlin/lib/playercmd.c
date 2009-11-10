@@ -135,23 +135,6 @@ void bg_player_set_track_name(bg_player_t * p, const char * name)
                          msg_name, name);
   }
 
-static void msg_track(bg_msg_t * msg,
-                      const void * data)
-  {
-  int *track;
-  track = (int*)data;
-
-  bg_msg_set_id(msg, BG_PLAYER_MSG_TRACK_CHANGED);
-  bg_msg_set_arg_int(msg, 0, *track);
-  }
-
-void bg_player_set_track(bg_player_t * p, int track)
-  {
-  bg_msg_queue_list_send(p->message_queues,
-                         msg_track, &track);
-
-  }
-
 typedef struct
   {
   gavl_time_t duration;

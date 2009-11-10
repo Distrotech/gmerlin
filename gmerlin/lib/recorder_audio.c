@@ -41,6 +41,8 @@ void bg_recorder_create_audio(bg_recorder_t * rec)
   as->fc = bg_audio_filter_chain_create(&(as->opt), rec->plugin_reg);
   as->th = bg_player_thread_create(rec->tc);
 
+  as->pd = gavl_peak_detector_create();
+  
   }
 
 void bg_recorder_destroy_audio(bg_recorder_t * rec)
@@ -49,6 +51,9 @@ void bg_recorder_destroy_audio(bg_recorder_t * rec)
   gavl_audio_converter_destroy(as->output_cnv);
   bg_audio_filter_chain_destroy(as->fc);
   bg_player_thread_destroy(as->th);
+
+  gavl_peak_detector_destroy(as->pd);
+  
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -100,9 +105,13 @@ bg_recorder_set_audio_parameter(void * data,
 
   if(!strcmp(name, "do_audio"))
     {
-    if(rec->running && (as->active != val->val_i))
+    if(rec->running && (!!(as->flags & STREAM_ACTIVE) != val->val_i))
       bg_recorder_stop(rec);
-    as->active = val->val_i;
+
+    if(val->val_i)
+      as->flags |= STREAM_ACTIVE;
+    else
+      as->flags &= ~STREAM_ACTIVE;
     }
   else if(!strcmp(name, "plugin"))
     {
@@ -152,7 +161,8 @@ bg_recorder_set_audio_filter_parameter(void * data,
 
 void * bg_recorder_audio_thread(void * data)
   {
-  gavl_time_t delay_time = GAVL_TIME_SCALE / 2;
+  double peaks[2]; /* Doesn't work for > 2 channels!! */
+  
   bg_recorder_t * rec = data;
   bg_recorder_audio_stream_t * as = &rec->as;
 
@@ -162,10 +172,18 @@ void * bg_recorder_audio_thread(void * data)
     {
     if(!bg_player_thread_check(as->th))
       break;
-
-    /* Audio processing thread */
-    gavl_time_delay(&delay_time);
     
+    if(!as->in_func(as->in_data, as->pipe_frame, as->in_stream,
+                    as->pipe_format.samples_per_frame))
+      break; /* Should never happen */
+
+    /* Peak detection */    
+    gavl_peak_detector_update(as->pd, as->pipe_frame);
+    gavl_peak_detector_get_peaks(as->pd, NULL, NULL, peaks);
+    if(as->pipe_format.num_channels == 1)
+      peaks[1] = peaks[0];
+    bg_recorder_msg_audiolevel(rec, peaks, as->pipe_frame->valid_samples);
+    gavl_peak_detector_reset(as->pd);   	
     }
   return NULL;
 
@@ -181,6 +199,9 @@ int bg_recorder_audio_init(bg_recorder_t * rec)
     return 0;
     }
 
+  as->flags |= STREAM_INPUT_OPEN;
+
+  
   fprintf(stderr, "Opened audio output %s\n", as->input_handle->info->long_name);
 
   as->in_func   = as->input_plugin->read_audio;
@@ -198,12 +219,30 @@ int bg_recorder_audio_init(bg_recorder_t * rec)
   as->in_data = as->fc;
   as->in_stream = 0;
   
-  bg_audio_filter_chain_init(as->fc, &(as->input_format), &(as->pipe_format));
+  bg_audio_filter_chain_init(as->fc, &as->input_format, &as->pipe_format);
 
   /* Set up peak detection */
+
+  gavl_peak_detector_set_format(as->pd, &as->pipe_format);
+
+  /* Create frame(s) */
+  
+  as->pipe_frame = gavl_audio_frame_create(&as->pipe_format);
   
   /* Set up output */
   
   return 1;
   }
 
+
+void bg_recorder_audio_cleanup(bg_recorder_t * rec)
+  {
+  bg_recorder_audio_stream_t * as = &rec->as;
+
+  if(as->flags & STREAM_INPUT_OPEN)
+    as->input_plugin->close(as->input_handle->priv);
+
+  if(as->pipe_frame)
+    gavl_audio_frame_destroy(as->pipe_frame);
+  
+  }

@@ -38,11 +38,24 @@ void bg_recorder_stop(bg_recorder_t *);
 void bg_recorder_add_message_queue(bg_recorder_t *,
                                    bg_msg_queue_t * msg_queue);
 
+void bg_recorder_remove_message_queue(bg_recorder_t *,
+                                      bg_msg_queue_t * msg_queue);
+
 /* Commands */
 
 // void bg_recorder_restart(bg_recorder_t*);
 
 void bg_recorder_set_display_string(bg_recorder_t*, const char * str);
+
+/* Messages */
+
+/* Framerate (arg0: float) */
+#define BG_RECORDER_MSG_FRAMERATE 0
+
+/* Audio level (arg0: float, arg1: float) */
+#define BG_RECORDER_MSG_AUDIOLEVEL 1
+
+
 
 /* Parameter stuff */
 

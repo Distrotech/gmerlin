@@ -566,7 +566,7 @@ bg_msg_queue_list_send(bg_msg_queue_list_t * list,
  */
 
 void bg_msg_queue_list_add(bg_msg_queue_list_t * list,
-                        bg_msg_queue_t * queue);
+                           bg_msg_queue_t * queue);
 
 /** \brief Remove a queue from the list
  *  \param list A message queue list
@@ -574,7 +574,7 @@ void bg_msg_queue_list_add(bg_msg_queue_list_t * list,
  */
 
 void bg_msg_queue_list_remove(bg_msg_queue_list_t * list,
-                           bg_msg_queue_t * queue);
+                              bg_msg_queue_t * queue);
 
 /** @} */
 

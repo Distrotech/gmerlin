@@ -26,9 +26,15 @@
 
 #define NUM_THREADS 2
 
+#define STREAM_ACTIVE       (1<<0)
+#define STREAM_INPUT_OPEN   (1<<1)
+#define STREAM_MONITOR      (1<<2)
+#define STREAM_MONITOR_OPEN (1<<3)
+
 typedef struct 
   {
-  int active;
+  int flags;
+
   /* Options */
   bg_gavl_audio_options_t opt;
   
@@ -37,8 +43,6 @@ typedef struct
   bg_recorder_plugin_t * input_plugin;
   
   bg_audio_filter_chain_t * fc;
-  
-  int do_monitor;
   
   /* Output section */
   bg_plugin_handle_t * output_handle;
@@ -58,12 +62,15 @@ typedef struct
   gavl_audio_format_t pipe_format;
   
   gavl_audio_frame_t * pipe_frame;
+
+  gavl_peak_detector_t * pd;
   
   } bg_recorder_audio_stream_t;
 
 typedef struct 
   {
-  int active;
+  int flags;
+
   /* Options */
   bg_gavl_video_options_t opt;
   
@@ -103,7 +110,8 @@ typedef struct
   /* Frames */
   gavl_video_frame_t * pipe_frame;
   gavl_video_frame_t * monitor_frame;
-  
+
+  gavl_timer_t * timer;
   } bg_recorder_video_stream_t;
 
 
@@ -121,6 +129,8 @@ struct bg_recorder_s
   char * display_string;
   
   int running;
+  
+  bg_msg_queue_list_t * msg_queues;
   };
 
 void bg_recorder_create_audio(bg_recorder_t*);
@@ -134,3 +144,13 @@ void * bg_recorder_video_thread(void * data);
 
 int bg_recorder_audio_init(bg_recorder_t *);
 int bg_recorder_video_init(bg_recorder_t *);
+
+void bg_recorder_audio_cleanup(bg_recorder_t *);
+void bg_recorder_video_cleanup(bg_recorder_t *);
+
+/* Message stuff */
+void bg_recorder_msg_framerate(bg_recorder_t * rec,
+                               float framerate);
+
+void bg_recorder_msg_audiolevel(bg_recorder_t * rec,
+                                double * level, int samples);

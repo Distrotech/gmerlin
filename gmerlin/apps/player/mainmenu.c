@@ -20,6 +20,8 @@
  * *****************************************************************/
 
 #include <config.h>
+#include <string.h>
+
 #include <gmerlin/translation.h>
 #include "gmerlin.h"
 #include <gmerlin/utils.h>

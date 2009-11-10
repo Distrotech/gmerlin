@@ -39,12 +39,17 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
 
   ret->th[0] = ret->as.th;
   ret->th[1] = ret->vs.th;
-  
+
+  ret->msg_queues = bg_msg_queue_list_create();
+
   return ret;
   }
 
 void bg_recorder_destroy(bg_recorder_t * rec)
   {
+  if(rec->running)
+    bg_recorder_stop(rec);
+
   bg_recorder_destroy_audio(rec);
   bg_recorder_destroy_video(rec);
 
@@ -52,35 +57,47 @@ void bg_recorder_destroy(bg_recorder_t * rec)
 
   free(rec->display_string);
   
+  bg_msg_queue_list_destroy(rec->msg_queues);
+  
   free(rec);
+  }
+
+void bg_recorder_add_message_queue(bg_recorder_t * rec,
+                               bg_msg_queue_t * q)
+  {
+  bg_msg_queue_list_add(rec->msg_queues, q);
+  }
+
+void bg_recorder_remove_message_queue(bg_recorder_t * rec,
+                                      bg_msg_queue_t * q)
+  {
+  bg_msg_queue_list_remove(rec->msg_queues, q);
   }
 
 int bg_recorder_run(bg_recorder_t * rec)
   {
-  if(rec->as.active)
+  if(rec->as.flags & STREAM_ACTIVE)
     {
     if(!bg_recorder_audio_init(rec))
-      rec->as.active = 0;
+      rec->as.flags |= ~STREAM_ACTIVE;
     }
   
-  if(rec->vs.active)
+  if(rec->vs.flags & STREAM_ACTIVE)
     {
     if(!bg_recorder_video_init(rec))
-      rec->vs.active = 0;
+      rec->vs.flags |= ~STREAM_ACTIVE;
     }
-
   
-  if(rec->vs.active)
-    bg_player_thread_set_func(rec->vs.th, bg_recorder_video_thread, rec);
-  else
-    bg_player_thread_set_func(rec->vs.th, NULL, NULL);
-
-  
-  if(rec->as.active)
+  if(rec->as.flags & STREAM_ACTIVE)
     bg_player_thread_set_func(rec->as.th, bg_recorder_audio_thread, rec);
   else
     bg_player_thread_set_func(rec->as.th, NULL, NULL);
-    
+
+  if(rec->vs.flags & STREAM_ACTIVE)
+    bg_player_thread_set_func(rec->vs.th, bg_recorder_video_thread, rec);
+  else
+    bg_player_thread_set_func(rec->vs.th, NULL, NULL);
+  
   
   bg_player_threads_init(rec->th, NUM_THREADS);
   bg_player_threads_start(rec->th, NUM_THREADS);
@@ -92,11 +109,62 @@ int bg_recorder_run(bg_recorder_t * rec)
 
 void bg_recorder_stop(bg_recorder_t * rec)
   {
+  if(!rec->running)
+    return;
   bg_player_threads_join(rec->th, NUM_THREADS);
+  
+  bg_recorder_audio_cleanup(rec);
+  bg_recorder_video_cleanup(rec);
+  
   rec->running = 0;
   }
 
 void bg_recorder_set_display_string(bg_recorder_t * rec, const char * str)
   {
   rec->display_string = bg_strdup(rec->display_string, str);
+  }
+
+/* Message stuff */
+
+static void msg_framerate(bg_msg_t * msg,
+                          const void * data)
+  {
+  const float * f = data;
+  bg_msg_set_id(msg, BG_RECORDER_MSG_FRAMERATE);
+  bg_msg_set_arg_float(msg, 0, *f);
+  }
+                       
+void bg_recorder_msg_framerate(bg_recorder_t * rec,
+                               float framerate)
+  {
+  bg_msg_queue_list_send(rec->msg_queues,
+                         msg_framerate, &framerate);
+  }
+
+typedef struct
+  {
+  double * l;
+  int samples;
+  } audiolevel_t;
+
+static void msg_audiolevel(bg_msg_t * msg,
+                           const void * data)
+  {
+  const audiolevel_t * d = data;
+  
+  bg_msg_set_id(msg, BG_RECORDER_MSG_AUDIOLEVEL);
+  bg_msg_set_arg_float(msg, 0, d->l[0]);
+  bg_msg_set_arg_float(msg, 1, d->l[1]);
+  bg_msg_set_arg_int(msg, 2, d->samples);
+  }
+
+void bg_recorder_msg_audiolevel(bg_recorder_t * rec,
+                                double * level, int samples)
+  {
+  audiolevel_t d;
+  d.l = level;
+  d.samples = samples;
+  
+  bg_msg_queue_list_send(rec->msg_queues,
+                         msg_audiolevel, &d);
   }
