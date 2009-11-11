@@ -57,8 +57,10 @@ int main(int argc, char ** argv)
   win = bg_recorder_window_create(cfg_reg, plugin_reg);
 
   bg_recorder_window_run(win);
+
+  bg_recorder_window_destroy(win);
   
-  /* Cleanup */
+  /* Save config */
 
   tmp_path =  bg_search_file_write("recorder", "config.xml");
   

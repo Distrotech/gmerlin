@@ -415,7 +415,6 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
 void bg_recorder_window_destroy(bg_recorder_window_t * win)
   {
   bg_recorder_destroy(win->rec);
-  
   free(win);
   }
 

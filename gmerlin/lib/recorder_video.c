@@ -52,6 +52,7 @@ void bg_recorder_create_video(bg_recorder_t * rec)
 void bg_recorder_destroy_video(bg_recorder_t * rec)
   {
   bg_recorder_video_stream_t * vs = &rec->vs;
+  
   gavl_video_converter_destroy(vs->monitor_cnv);
   gavl_video_converter_destroy(vs->output_cnv);
   bg_video_filter_chain_destroy(vs->fc);
@@ -59,6 +60,11 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   gavl_timer_destroy(vs->timer);
   pthread_mutex_destroy(&vs->config_mutex);
 
+  if(vs->monitor_handle)
+    bg_plugin_unref(vs->monitor_handle);
+  if(vs->input_handle)
+    bg_plugin_unref(vs->input_handle);
+  
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -116,8 +122,8 @@ bg_recorder_set_video_parameter(void * data,
   if(!name)
     return;
   
-  if(name)
-    fprintf(stderr, "bg_recorder_set_video_parameter %s\n", name);
+  //  if(name)
+  //    fprintf(stderr, "bg_recorder_set_video_parameter %s\n", name);
 
   if(!strcmp(name, "do_video"))
     {
@@ -209,8 +215,8 @@ bg_recorder_set_video_monitor_parameter(void * data,
   if(!name)
     return;
   
-  if(name)
-    fprintf(stderr, "bg_recorder_set_video_monitor_parameter %s\n", name);
+  //  if(name)
+  //    fprintf(stderr, "bg_recorder_set_video_monitor_parameter %s\n", name);
 
   if(!strcmp(name, "do_monitor"))
     {
@@ -271,8 +277,8 @@ bg_recorder_set_video_filter_parameter(void * data,
   if(!name)
     return;
   
-  if(name)
-    fprintf(stderr, "bg_recorder_set_video_filter_parameter %s\n", name);
+  //  if(name)
+  //    fprintf(stderr, "bg_recorder_set_video_filter_parameter %s\n", name);
   
   }
 
@@ -309,6 +315,7 @@ void * bg_recorder_video_thread(void * data)
     
     }
   gavl_timer_stop(vs->timer);
+  
   return NULL;
   }
 
@@ -376,7 +383,6 @@ int bg_recorder_video_init(bg_recorder_t * rec)
 
   vs->flags |= STREAM_INPUT_OPEN;
   
-  fprintf(stderr, "Opened video output %s\n", vs->input_handle->info->long_name);
 
   vs->in_func   = read_video_internal;
   vs->in_stream = 0;

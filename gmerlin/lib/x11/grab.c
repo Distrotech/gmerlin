@@ -134,18 +134,22 @@ void bg_x11_grab_window_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "x"))
     {
+    fprintf(stderr, "Set parameter x %d\n", val->val_i);
     win->win_rect.x = val->val_i;
     }
   else if(!strcmp(name, "y"))
     {
+    fprintf(stderr, "Set parameter y %d\n", val->val_i);
     win->win_rect.y = val->val_i;
     }
   else if(!strcmp(name, "w"))
     {
+    fprintf(stderr, "Set parameter w %d\n", val->val_i);
     win->win_rect.w = val->val_i;
     }
   else if(!strcmp(name, "h"))
     {
+    fprintf(stderr, "Set parameter h %d\n", val->val_i);
     win->win_rect.h = val->val_i;
     }
   else if(!strcmp(name, "root"))
@@ -161,24 +165,30 @@ int bg_x11_grab_window_get_parameter(void * data, const char * name,
                                      bg_parameter_value_t * val)
   {
   bg_x11_grab_window_t * win = data;
+
+
   if(!strcmp(name, "x"))
     {
     val->val_i = win->win_rect.x;
+    fprintf(stderr, "Get parameter x %d\n", val->val_i);
     return 1;
     }
   else if(!strcmp(name, "y"))
     {
     val->val_i = win->win_rect.y;
+    fprintf(stderr, "Get parameter y %d\n", val->val_i);
     return 1;
     }
   else if(!strcmp(name, "w"))
     {
     val->val_i = win->win_rect.w;
+    fprintf(stderr, "Get parameter w %d\n", val->val_i);
     return 1;
     }
   else if(!strcmp(name, "h"))
     {
     val->val_i = win->win_rect.h;
+    fprintf(stderr, "Get parameter h %d\n", val->val_i);
     return 1;
     }
   return 0;
@@ -208,6 +218,8 @@ static int realize_window(bg_x11_grab_window_t * ret)
   attr.background_pixmap = None;
 
   valuemask = CWBackPixmap; 
+
+  gavl_rectangle_i_dump(&ret->win_rect);
   
   ret->win = XCreateWindow(ret->dpy, ret->root,
                            ret->win_rect.x, // int x,

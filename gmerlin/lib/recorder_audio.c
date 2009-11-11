@@ -100,8 +100,8 @@ bg_recorder_set_audio_parameter(void * data,
   if(!name)
     return;
   
-  if(name)
-    fprintf(stderr, "bg_recorder_set_audio_parameter %s\n", name);
+  //  if(name)
+  //    fprintf(stderr, "bg_recorder_set_audio_parameter %s\n", name);
 
   if(!strcmp(name, "do_audio"))
     {
@@ -154,8 +154,8 @@ bg_recorder_set_audio_filter_parameter(void * data,
   if(!name)
     return;
   
-  if(name)
-    fprintf(stderr, "bg_recorder_set_audio_filter_parameter %s\n", name);
+  //  if(name)
+  //    fprintf(stderr, "bg_recorder_set_audio_filter_parameter %s\n", name);
   
   }
 
@@ -200,10 +200,7 @@ int bg_recorder_audio_init(bg_recorder_t * rec)
     }
 
   as->flags |= STREAM_INPUT_OPEN;
-
   
-  fprintf(stderr, "Opened audio output %s\n", as->input_handle->info->long_name);
-
   as->in_func   = as->input_plugin->read_audio;
   as->in_stream = 0;
   as->in_data   = as->input_handle->priv;
