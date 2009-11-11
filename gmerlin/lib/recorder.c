@@ -42,6 +42,8 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
 
   ret->msg_queues = bg_msg_queue_list_create();
 
+  pthread_mutex_init(&ret->config_mutex, NULL);
+  
   return ret;
   }
 
@@ -58,7 +60,9 @@ void bg_recorder_destroy(bg_recorder_t * rec)
   free(rec->display_string);
   
   bg_msg_queue_list_destroy(rec->msg_queues);
-  
+
+  pthread_mutex_destroy(&rec->config_mutex);
+
   free(rec);
   }
 

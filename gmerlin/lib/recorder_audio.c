@@ -243,6 +243,8 @@ void bg_recorder_audio_cleanup(bg_recorder_t * rec)
     as->input_plugin->close(as->input_handle->priv);
 
   if(as->pipe_frame)
+    {
     gavl_audio_frame_destroy(as->pipe_frame);
-  
+    as->pipe_frame = NULL;
+    }
   }

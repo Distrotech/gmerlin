@@ -110,8 +110,17 @@ typedef struct
   /* Frames */
   gavl_video_frame_t * pipe_frame;
   gavl_video_frame_t * monitor_frame;
-
+  
   gavl_timer_t * timer;
+  
+  gavl_time_t fps_frame_time;
+  int fps_frame_counter;
+  
+  gavl_time_t last_frame_time;
+  gavl_time_t last_capture_curation;
+
+  double limit_fps;
+  
   } bg_recorder_video_stream_t;
 
 
@@ -131,6 +140,8 @@ struct bg_recorder_s
   int running;
   
   bg_msg_queue_list_t * msg_queues;
+
+  pthread_mutex_t config_mutex;
   };
 
 void bg_recorder_create_audio(bg_recorder_t*);

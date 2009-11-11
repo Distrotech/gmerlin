@@ -43,7 +43,6 @@ void bg_recorder_create_video(bg_recorder_t * rec)
 
   vs->th = bg_player_thread_create(rec->tc);
   vs->timer = gavl_timer_create();
-  
   }
 
 void bg_recorder_destroy_video(bg_recorder_t * rec)
@@ -54,7 +53,6 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   bg_video_filter_chain_destroy(vs->fc);
   bg_player_thread_destroy(vs->th);
   gavl_timer_destroy(vs->timer);
-
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -69,6 +67,16 @@ static const bg_parameter_info_t parameters[] =
       .name      = "plugin",
       .long_name = TRS("Plugin"),
       .type      = BG_PARAMETER_MULTI_MENU,
+    },
+    {
+      .name        = "limit_fps",
+      .long_name   = TRS("Maximum framerate"),
+      .type        = BG_PARAMETER_FLOAT,
+      .val_min     = { .val_f = 1.0 },
+      .val_max     = { .val_f = 100.0 },
+      .val_default = { .val_f = 25.0 },
+      .num_digits  = 2,
+      .help_string = TRS("Specify the maximum framerate for input plugins, which can capture images really fast"),
     },
     { },
   };
@@ -134,10 +142,18 @@ bg_recorder_set_video_parameter(void * data,
     vs->input_handle = bg_plugin_load(rec->plugin_reg, info);
     vs->input_plugin = (bg_recorder_plugin_t*)(vs->input_handle->plugin);
     }
+  else if(!strcmp(name, "limit_fps"))
+    {
+    pthread_mutex_lock(&rec->config_mutex);
+    vs->limit_fps = val->val_f;
+    pthread_mutex_unlock(&rec->config_mutex);
+    }
   else if(vs->input_handle && vs->input_plugin->common.set_parameter)
     {
     vs->input_plugin->common.set_parameter(vs->input_handle->priv, name, val);
     }
+
+  
   }
 
 /* Monitor */
@@ -364,9 +380,9 @@ void bg_recorder_video_cleanup(bg_recorder_t * rec)
   if(vs->pipe_frame && (vs->pipe_frame != vs->monitor_frame))
     {
     gavl_video_frame_destroy(vs->pipe_frame);
-    vs->pipe_frame = NULL;
     }
-
+  vs->pipe_frame = NULL;
+  
   if(vs->monitor_frame)
     {
     if(vs->monitor_plugin->destroy_frame)
