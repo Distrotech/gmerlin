@@ -408,7 +408,7 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
     win->frame->planes[0] = (uint8_t*)win->image->data;
     win->frame->strides[0] = win->image->bytes_per_line;
 
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Using shared memory for grabbing");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using shared memory for grabbing");
     }
   else
     {
