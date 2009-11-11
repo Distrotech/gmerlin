@@ -424,11 +424,11 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
     
     gavl_video_frame_copy(&win->format, frame, win->frame);
     }
-
+  
   frame->timestamp = gavl_time_scale(gavl_timer_get(win->timer),
                                      win->format.timescale);
-
-  fprintf(stderr, "Timestamp: %"PRId64"\n", frame->timestamp);
+  
+  // fprintf(stderr, "Timestamp: %"PRId64"\n", frame->timestamp);
   
   return 1;
   }

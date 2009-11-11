@@ -30,6 +30,9 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "recorder.video"
 
+#define FRAMERATE_INTERVAL 10
+
+
 void bg_recorder_create_video(bg_recorder_t * rec)
   {
   bg_recorder_video_stream_t * vs = &rec->vs;
@@ -43,6 +46,7 @@ void bg_recorder_create_video(bg_recorder_t * rec)
 
   vs->th = bg_player_thread_create(rec->tc);
   vs->timer = gavl_timer_create();
+  pthread_mutex_init(&vs->config_mutex, NULL);
   }
 
 void bg_recorder_destroy_video(bg_recorder_t * rec)
@@ -53,6 +57,8 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   bg_video_filter_chain_destroy(vs->fc);
   bg_player_thread_destroy(vs->th);
   gavl_timer_destroy(vs->timer);
+  pthread_mutex_destroy(&vs->config_mutex);
+
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -144,9 +150,10 @@ bg_recorder_set_video_parameter(void * data,
     }
   else if(!strcmp(name, "limit_fps"))
     {
-    pthread_mutex_lock(&rec->config_mutex);
-    vs->limit_fps = val->val_f;
-    pthread_mutex_unlock(&rec->config_mutex);
+    pthread_mutex_lock(&vs->config_mutex);
+    vs->limit_timescale      = (int)(val->val_f * 100.0);
+    vs->limit_duration = 100;
+    pthread_mutex_unlock(&vs->config_mutex);
     }
   else if(vs->input_handle && vs->input_plugin->common.set_parameter)
     {
@@ -276,6 +283,8 @@ void * bg_recorder_video_thread(void * data)
 
   bg_player_thread_wait_for_start(vs->th);
 
+  gavl_timer_set(vs->timer, 0);
+  gavl_timer_start(vs->timer);
   
   while(1)
     {
@@ -284,7 +293,7 @@ void * bg_recorder_video_thread(void * data)
 
     if(!vs->in_func(vs->in_data, vs->pipe_frame, vs->in_stream))
       break; /* Should never happen */
-
+    
     /* Monitor */
     if(vs->flags & STREAM_MONITOR)
       {
@@ -295,22 +304,71 @@ void * bg_recorder_video_thread(void * data)
       }
     if(vs->monitor_plugin && vs->monitor_plugin->handle_events)
       vs->monitor_plugin->handle_events(vs->monitor_handle->priv);
+
+    /* */
     
     }
+  gavl_timer_stop(vs->timer);
   return NULL;
   }
 
 static int read_video_internal(void * data, gavl_video_frame_t * frame, int stream)
   {
-  bg_recorder_video_stream_t * vs = data;
+  gavl_time_t diff_time, time_after, cur_time, next_frame_time;
+  
+  int ret;
 
-  /* TODO: Limit framerate */
-  return vs->input_plugin->read_video(vs->input_handle->priv, frame, 0);
+  bg_recorder_t * rec = data;
+  bg_recorder_video_stream_t * vs = &rec->vs;
+  
+  /* Limit the captured framerate */
+  if(vs->frame_counter)
+    {
+    pthread_mutex_lock(&vs->config_mutex);
+    next_frame_time = vs->last_frame_time +
+      gavl_frames_to_time(vs->limit_timescale, vs->limit_duration, 1);
+    pthread_mutex_unlock(&vs->config_mutex);
+    
+    cur_time = gavl_timer_get(vs->timer);
+    diff_time = next_frame_time - cur_time - vs->last_capture_duration;
+    
+    if(diff_time > 0)
+      gavl_time_delay(&diff_time);
+    }
+  
+  cur_time = gavl_timer_get(vs->timer);
+  ret = vs->input_plugin->read_video(vs->input_handle->priv, frame, 0);
+  time_after = gavl_timer_get(vs->timer);
+
+  vs->last_capture_duration = time_after - cur_time;
+  vs->frame_counter++;
+
+  /* Calculate actual framerate */
+  
+  vs->fps_frame_counter++;
+  if(vs->fps_frame_counter == FRAMERATE_INTERVAL)
+    vs->fps_frame_counter = 0;
+  
+  if(!vs->fps_frame_counter)
+    {
+    bg_recorder_msg_framerate(rec, (double)(FRAMERATE_INTERVAL*GAVL_TIME_SCALE) /
+                              (double)(time_after - vs->fps_frame_time));
+    
+    vs->fps_frame_time = time_after;
+    }
+
+  vs->last_frame_time = time_after;
+  
+  return ret;
   }
 
 int bg_recorder_video_init(bg_recorder_t * rec)
   {
   bg_recorder_video_stream_t * vs = &rec->vs;
+
+  vs->frame_counter = 0;
+  vs->fps_frame_time = 0;
+  vs->fps_frame_counter = 0;
 
   /* Open input */
   if(!vs->input_plugin->open(vs->input_handle->priv, NULL, &vs->input_format))
@@ -322,7 +380,7 @@ int bg_recorder_video_init(bg_recorder_t * rec)
 
   vs->in_func   = read_video_internal;
   vs->in_stream = 0;
-  vs->in_data   = vs;
+  vs->in_data   = rec;
   
   /* Set up filter chain */
 

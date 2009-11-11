@@ -47,7 +47,8 @@ struct bg_recorder_window_s
 
   GtkWidget * statusbar;
   guint framerate_context;
-
+  int framerate_shown;
+  
   GtkWidget * about_button;
   GtkWidget * log_button;
   GtkWidget * config_button;
@@ -196,6 +197,24 @@ static gboolean timeout_func(void * data)
     switch(bg_msg_get_id(msg))
       {
       case BG_RECORDER_MSG_FRAMERATE:
+        {
+        char * tmp_string;
+        float framerate;
+        framerate = bg_msg_get_arg_float(msg, 0);
+        
+        tmp_string = bg_sprintf(TR("Framerate: %.2f fps"), framerate);
+        
+        if(win->framerate_shown)
+          gtk_statusbar_pop(GTK_STATUSBAR(win->statusbar),
+                            win->framerate_context);
+        else
+          win->framerate_shown = 1;
+        
+        gtk_statusbar_push(GTK_STATUSBAR(win->statusbar),
+                           win->framerate_context,
+                           tmp_string);
+        free(tmp_string);
+        }
         break; 
       case BG_RECORDER_MSG_AUDIOLEVEL:
         {
