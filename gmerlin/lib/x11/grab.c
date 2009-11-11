@@ -29,6 +29,9 @@
 #include <x11/x11_window_private.h>
 
 #include <X11/extensions/shape.h>
+#include <X11/extensions/XShm.h>
+
+#include <sys/shm.h>
 
 #define DRAW_CURSOR (1<<0)
 #define GRAB_ROOT   (1<<1)
@@ -47,14 +50,6 @@ static const bg_parameter_info_t parameters[] =
       .name =      "draw_cursor",
       .long_name = TRS("Draw cursor"),
       .type = BG_PARAMETER_CHECKBUTTON,
-    },
-    {
-      .name =      "framerate",
-      .long_name = TRS("Framerate"),
-      .type = BG_PARAMETER_FLOAT,
-      .val_min = { .val_f = 0.5   },
-      .val_max = { .val_f = 100.0 },
-      .num_digits = 2,
     },
     {
       .name = "x",
@@ -94,7 +89,7 @@ struct bg_x11_grab_window_s
   Window root;
   gavl_rectangle_i_t grab_rect;
   gavl_rectangle_i_t win_rect;
-
+  
   int flags;
 
   gavl_pixelformat_t pixelformat;
@@ -110,8 +105,10 @@ struct bg_x11_grab_window_s
   int depth;
   
   int use_shm;
+  XShmSegmentInfo shminfo;
   
   int root_width, root_height;
+  int screen;
   
   };
 
@@ -151,6 +148,13 @@ void bg_x11_grab_window_set_parameter(void * data, const char * name,
     {
     win->win_rect.h = val->val_i;
     }
+  else if(!strcmp(name, "root"))
+    {
+    if(val->val_i)
+      win->flags |= GRAB_ROOT;
+    else
+      win->flags &= ~GRAB_ROOT;
+    }
   }
 
 int bg_x11_grab_window_get_parameter(void * data, const char * name,
@@ -184,7 +188,6 @@ static int realize_window(bg_x11_grab_window_t * ret)
   {
   XSetWindowAttributes attr;
   unsigned long valuemask;
-  int screen;
   
   /* Open Display */
   ret->dpy = XOpenDisplay(NULL);
@@ -193,11 +196,11 @@ static int realize_window(bg_x11_grab_window_t * ret)
     return 0;
   
   /* Get X11 stuff */
-  screen = DefaultScreen(ret->dpy);
-  ret->visual = DefaultVisual(ret->dpy, screen);
-  ret->depth = DefaultDepth(ret->dpy, screen);
+  ret->screen = DefaultScreen(ret->dpy);
+  ret->visual = DefaultVisual(ret->dpy, ret->screen);
+  ret->depth = DefaultDepth(ret->dpy, ret->screen);
   
-  ret->root = RootWindow(ret->dpy, screen);
+  ret->root = RootWindow(ret->dpy, ret->screen);
   /* Create atoms */
   
   /* Create window */
@@ -239,7 +242,8 @@ static int realize_window(bg_x11_grab_window_t * ret)
   
   ret->pixelformat =
     bg_x11_window_get_pixelformat(ret->dpy, ret->visual, ret->depth);
-  
+
+  ret->use_shm = XShmQueryExtension(ret->dpy);
   return 1;
   }
 
@@ -278,11 +282,43 @@ static void handle_events(bg_x11_grab_window_t * win)
     switch(evt.type)
       {
       case ConfigureNotify:
+        {
+        Window * children_return;
+        Window root_return;
+        Window parent_return;
+        unsigned int nchildren_return;
+        int x_return, y_return;
+        unsigned int width_return, height_return;
+        unsigned int border_width_return;
+        unsigned int depth_return;
+        
         win->win_rect.w = evt.xconfigure.width;
         win->win_rect.h = evt.xconfigure.height;
-        win->win_rect.x = evt.xconfigure.x;
-        win->win_rect.y = evt.xconfigure.y;
+        
+        XGetGeometry(win->dpy, win->win, &root_return, &x_return, &y_return,
+                     &width_return, &height_return,
+                     &border_width_return, &depth_return);
 
+        win->win_rect.x = x_return;
+        win->win_rect.y = y_return;
+        
+        XQueryTree(win->dpy, win->win, &root_return, &parent_return,
+                   &children_return, &nchildren_return);
+
+        if(nchildren_return)
+          XFree(children_return);
+
+        /* Get offset of the window frame */
+        if(parent_return != root_return)
+          {
+          XGetGeometry(win->dpy, parent_return, &root_return, &x_return, &y_return,
+                       &width_return, &height_return,
+                       &border_width_return, &depth_return);
+          
+          win->win_rect.x += x_return;
+          win->win_rect.y += y_return;
+          }
+        
         if(!(win->flags & GRAB_ROOT))
           {
           win->grab_rect.x = win->win_rect.x;
@@ -292,6 +328,7 @@ static void handle_events(bg_x11_grab_window_t * win)
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Window geometry: %dx%d+%d+%d",
                win->win_rect.w, win->win_rect.h,
                win->win_rect.x, win->win_rect.y);
+        }
         break;
       }
     }
@@ -306,15 +343,25 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
       return 0;
     }
   
-  if(!(win->flags & GRAB_ROOT))
+  if(win->flags & GRAB_ROOT)
+    {
+    /* TODO */
+
+    format->image_width = win->root_width;
+    format->image_height = win->root_height;
+
+    win->grab_rect.x = 0;
+    win->grab_rect.y = 0;
+    
+    win->grab_rect.w = win->root_width;
+    win->grab_rect.h = win->root_height;
+    
+    }
+  else
     {
     format->image_width = win->win_rect.w;
     format->image_height = win->win_rect.h;
     gavl_rectangle_i_copy(&win->grab_rect, &win->win_rect);
-    }
-  else
-    {
-    /* TODO */
     }
   
   /* Common format parameters */
@@ -333,7 +380,35 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
   /* Create image */
   if(win->use_shm)
     {
+    win->frame = gavl_video_frame_create(NULL);
+    win->image = XShmCreateImage(win->dpy,
+                                 win->visual,
+                                 win->depth,
+                                 ZPixmap,
+                                 NULL,
+                                 &win->shminfo,
+                                 format->frame_width,
+                                 format->frame_height);
+    win->shminfo.shmid = shmget(IPC_PRIVATE,
+                                    win->image->bytes_per_line * win->image->height,
+                                    IPC_CREAT|0777);
+    if(win->shminfo.shmid == -1)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't get shared memory segment");
+      return 0;
+      }
+    win->shminfo.shmaddr = shmat(win->shminfo.shmid, 0, 0);
+    win->image->data = win->shminfo.shmaddr;
     
+    if(!XShmAttach(win->dpy, &win->shminfo))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't attach shared memory segment");
+      return 0;
+      }
+    win->frame->planes[0] = (uint8_t*)win->image->data;
+    win->frame->strides[0] = win->image->bytes_per_line;
+
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Using shared memory for grabbing");
     }
   else
     {
@@ -347,8 +422,9 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
                               win->frame->strides[0]);
     }
   
-  XMapWindow(win->dpy, win->win);
-
+  if(!(win->flags & GRAB_ROOT))
+    XMapWindow(win->dpy, win->win);
+  
   handle_events(win);
   
   gavl_timer_set(win->timer, 0);
@@ -363,7 +439,13 @@ void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
 
   if(win->use_shm)
     {
+    gavl_video_frame_null(win->frame);
+    gavl_video_frame_destroy(win->frame);
 
+    XShmDetach(win->dpy, &win->shminfo);
+    shmdt(win->shminfo.shmaddr);
+    shmctl(win->shminfo.shmid, IPC_RMID, NULL);
+    XDestroyImage(win->image);
     }
   else
     {
@@ -413,7 +495,10 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
   
   if(win->use_shm)
     {
-
+    if(!XShmGetImage(win->dpy, win->root, win->image, rect.x, rect.y, AllPlanes))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "XShmGetImage failed");
+      }
     }
   else
     {
@@ -421,9 +506,9 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
                  rect.x, rect.y, rect.w, rect.h,
                  AllPlanes, ZPixmap, win->image,
                  crop_left, crop_top);
-    
-    gavl_video_frame_copy(&win->format, frame, win->frame);
     }
+    
+  gavl_video_frame_copy(&win->format, frame, win->frame);
   
   frame->timestamp = gavl_time_scale(gavl_timer_get(win->timer),
                                      win->format.timescale);

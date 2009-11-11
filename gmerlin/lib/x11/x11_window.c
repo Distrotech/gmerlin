@@ -591,8 +591,6 @@ static int open_display(bg_x11_window_t * w)
   return 1;
   }
 
-
-
 void bg_x11_window_get_coords(Display * dpy,
                               Window win,
                               int * x, int * y, int * width,
@@ -616,10 +614,8 @@ void bg_x11_window_get_coords(Display * dpy,
              &children_return, &nchildren_return);
 
   if(nchildren_return)
-    {
     XFree(children_return);
-    }
-
+  
   if(x) *x = x_return;
   if(y) *y = y_return;
   
