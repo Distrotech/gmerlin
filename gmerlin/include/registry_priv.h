@@ -50,6 +50,12 @@ struct bg_cfg_section_s
 
   struct bg_cfg_section_s * next;
   struct bg_cfg_section_s * children;
+
+  /* References: These are returned as if they were children,
+     but are never saved since they are actually at a different position
+     in the registry */
+  int num_refs;
+  struct bg_cfg_section_s ** refs;
   };
 
 struct bg_cfg_registry_s

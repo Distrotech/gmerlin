@@ -23,6 +23,7 @@
 #define __BG_CFG_DIALOG_H_
 
 #include <gmerlin/cfg_registry.h>
+#include <gmerlin/pluginregistry.h>
 
 /* Opaque pointer, will look different with all toolkits */
 
@@ -42,6 +43,9 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * config,
 /* Create a dialog, add sections later */
 
 bg_dialog_t * bg_dialog_create_multi(const char * label);
+
+void bg_dialog_set_plugin_registry(bg_dialog_t *, bg_plugin_registry_t * plugin_reg);
+
 
 /* Add sections to a dialog */
 

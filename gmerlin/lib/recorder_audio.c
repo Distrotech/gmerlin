@@ -68,6 +68,7 @@ static const bg_parameter_info_t parameters[] =
       .name      = "plugin",
       .long_name = TRS("Plugin"),
       .type      = BG_PARAMETER_MULTI_MENU,
+      .flags     = BG_PARAMETER_PLUGIN,
     },
     { },
   };

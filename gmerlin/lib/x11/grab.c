@@ -79,6 +79,20 @@ static const bg_parameter_info_t parameters[] =
       .flags = BG_PARAMETER_HIDE_DIALOG,
       .val_default = { .val_i = 240 },
     },
+    {
+      .name = "decoration_x",
+      .long_name = "DX",
+      .type  = BG_PARAMETER_INT,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 0 },
+    },
+    {
+      .name = "decoration_y",
+      .long_name = "DY",
+      .type  = BG_PARAMETER_INT,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 0 },
+    },
     { /* End */ },
   };
 
@@ -109,6 +123,8 @@ struct bg_x11_grab_window_s
   
   int root_width, root_height;
   int screen;
+
+  int decoration_x, decoration_y;
   
   };
 
@@ -124,33 +140,31 @@ void bg_x11_grab_window_set_parameter(void * data, const char * name,
   bg_x11_grab_window_t * win = data;
   if(!name)
     {
-    /* Configure window */
-    if(win->win != None)
-      XMoveResizeWindow(win->dpy, win->win,
-                        win->win_rect.x,
-                        win->win_rect.y,
-                        win->win_rect.w,
-                        win->win_rect.h);
+    return;
     }
   else if(!strcmp(name, "x"))
     {
-    fprintf(stderr, "Set parameter x %d\n", val->val_i);
     win->win_rect.x = val->val_i;
     }
   else if(!strcmp(name, "y"))
     {
-    fprintf(stderr, "Set parameter y %d\n", val->val_i);
     win->win_rect.y = val->val_i;
     }
   else if(!strcmp(name, "w"))
     {
-    fprintf(stderr, "Set parameter w %d\n", val->val_i);
     win->win_rect.w = val->val_i;
     }
   else if(!strcmp(name, "h"))
     {
-    fprintf(stderr, "Set parameter h %d\n", val->val_i);
     win->win_rect.h = val->val_i;
+    }
+  else if(!strcmp(name, "decoration_x"))
+    {
+    win->decoration_x = val->val_i;
+    }
+  else if(!strcmp(name, "decoration_y"))
+    {
+    win->decoration_y = val->val_i;
     }
   else if(!strcmp(name, "root"))
     {
@@ -170,25 +184,31 @@ int bg_x11_grab_window_get_parameter(void * data, const char * name,
   if(!strcmp(name, "x"))
     {
     val->val_i = win->win_rect.x;
-    fprintf(stderr, "Get parameter x %d\n", val->val_i);
     return 1;
     }
   else if(!strcmp(name, "y"))
     {
     val->val_i = win->win_rect.y;
-    fprintf(stderr, "Get parameter y %d\n", val->val_i);
     return 1;
     }
   else if(!strcmp(name, "w"))
     {
     val->val_i = win->win_rect.w;
-    fprintf(stderr, "Get parameter w %d\n", val->val_i);
     return 1;
     }
   else if(!strcmp(name, "h"))
     {
     val->val_i = win->win_rect.h;
-    fprintf(stderr, "Get parameter h %d\n", val->val_i);
+    return 1;
+    }
+  else if(!strcmp(name, "decoration_x"))
+    {
+    val->val_i = win->decoration_x;
+    return 1;
+    }
+  else if(!strcmp(name, "decoration_y"))
+    {
+    val->val_i = win->decoration_y;
     return 1;
     }
   return 0;
@@ -218,8 +238,6 @@ static int realize_window(bg_x11_grab_window_t * ret)
   attr.background_pixmap = None;
 
   valuemask = CWBackPixmap; 
-
-  gavl_rectangle_i_dump(&ret->win_rect);
   
   ret->win = XCreateWindow(ret->dpy, ret->root,
                            ret->win_rect.x, // int x,
@@ -326,6 +344,9 @@ static void handle_events(bg_x11_grab_window_t * win)
           XGetGeometry(win->dpy, parent_return, &root_return, &x_return, &y_return,
                        &width_return, &height_return,
                        &border_width_return, &depth_return);
+
+          win->decoration_x = x_return;
+          win->decoration_y = y_return;
           
           win->win_rect.x += x_return;
           win->win_rect.y += y_return;
@@ -435,8 +456,10 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
     }
   
   if(!(win->flags & GRAB_ROOT))
+    {
     XMapWindow(win->dpy, win->win);
-  
+    XMoveWindow(win->dpy, win->win, win->decoration_x, win->decoration_y);
+    }
   handle_events(win);
   
   gavl_timer_set(win->timer, 0);
@@ -482,31 +505,23 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
   handle_events(win);
 
   /* Crop */
-  if(win->grab_rect.x < 0)
-    crop_left = -win->grab_rect.x;
-  if(win->grab_rect.y < 0)
-    crop_top = -win->grab_rect.y;
-
-  if(win->grab_rect.x + win->grab_rect.w > win->root_width)
-    crop_right = win->grab_rect.x + win->grab_rect.w - win->root_width;
-
-  if(win->grab_rect.y + win->grab_rect.h > win->root_height)
-    crop_bottom = win->grab_rect.y + win->grab_rect.h - win->root_height;
-  
-  if(crop_left || crop_right || crop_top || crop_bottom)
-    {
-    gavl_video_frame_clear(win->frame, &win->format);
-    }
-
-  gavl_rectangle_i_copy(&rect, &win->grab_rect);
-
-  rect.x += crop_left;
-  rect.y += crop_top;
-  rect.w -= (crop_left + crop_right);
-  rect.h -= (crop_top + crop_bottom);
   
   if(win->use_shm)
     {
+    gavl_rectangle_i_copy(&rect, &win->grab_rect);
+
+    if(rect.x < 0)
+      rect.x = 0;
+    if(rect.y < 0)
+      rect.y = 0;
+
+    if(rect.x + rect.w > win->root_width)
+      rect.x = win->root_width - rect.w;
+
+    if(rect.y + rect.h > win->root_height)
+      rect.y = win->root_height - rect.h;
+    
+    //    fprintf(stderr, "XShmGetImage %d %d\n", rect.x, rect.y);
     if(!XShmGetImage(win->dpy, win->root, win->image, rect.x, rect.y, AllPlanes))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "XShmGetImage failed");
@@ -514,6 +529,29 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
     }
   else
     {
+    if(win->grab_rect.x < 0)
+      crop_left = -win->grab_rect.x;
+    if(win->grab_rect.y < 0)
+      crop_top = -win->grab_rect.y;
+
+    if(win->grab_rect.x + win->grab_rect.w > win->root_width)
+      crop_right = win->grab_rect.x + win->grab_rect.w - win->root_width;
+
+    if(win->grab_rect.y + win->grab_rect.h > win->root_height)
+      crop_bottom = win->grab_rect.y + win->grab_rect.h - win->root_height;
+  
+    if(crop_left || crop_right || crop_top || crop_bottom)
+      {
+      gavl_video_frame_clear(win->frame, &win->format);
+      }
+
+    gavl_rectangle_i_copy(&rect, &win->grab_rect);
+
+    rect.x += crop_left;
+    rect.y += crop_top;
+    rect.w -= (crop_left + crop_right);
+    rect.h -= (crop_top + crop_bottom);
+    
     XGetSubImage(win->dpy, win->root,
                  rect.x, rect.y, rect.w, rect.h,
                  AllPlanes, ZPixmap, win->image,

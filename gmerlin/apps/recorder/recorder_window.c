@@ -343,8 +343,9 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   ret->video_monitor_section =
     bg_cfg_registry_find_section(cfg_reg, "video_monitor");
   
-  ret->cfg_dialog = bg_dialog_create_multi(TR("Recorder confiuration"));
-
+  ret->cfg_dialog = bg_dialog_create_multi(TR("Recorder configuration"));
+  bg_dialog_set_plugin_registry(ret->cfg_dialog, plugin_reg);
+  
   /* Audio */
   parent = bg_dialog_add_parent(ret->cfg_dialog, NULL, TRS("Audio"));
   bg_dialog_add_child(ret->cfg_dialog, parent,

@@ -244,15 +244,6 @@ void bg_cfg_section_destroy(bg_cfg_section_t * section);
 bg_cfg_section_t * bg_cfg_section_copy(const bg_cfg_section_t * src);
 
 /** \ingroup cfg_section
- *  \brief Restore a configuration section from a previously copied one
- *  \param section       Configuration section
- *  \param section_saved Saved configuration section
- *  \returns A newly allocated section with all values copied from src.
- */
-
-void bg_cfg_section_restore(bg_cfg_section_t * section, bg_cfg_section_t * section_saved);
-
-/** \ingroup cfg_section
  *  \brief Set values in a configuration section from another section
  *  \param src Source section
  *  \param dst Destination section
@@ -263,6 +254,14 @@ void bg_cfg_section_restore(bg_cfg_section_t * section, bg_cfg_section_t * secti
  */
 
 void bg_cfg_section_transfer(bg_cfg_section_t * src, bg_cfg_section_t * dst);
+
+/** \ingroup cfg_section
+ *  \brief Insert a reference to a section as child
+ *  \param src s
+ *  \param dst Child section to be added as reference
+ */
+
+void bg_cfg_section_add_ref(bg_cfg_section_t * s, bg_cfg_section_t * ref);
 
 /*
  *  Get/Set section names

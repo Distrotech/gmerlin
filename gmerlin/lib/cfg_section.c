@@ -110,11 +110,18 @@ bg_cfg_section_create_from_parameters(const char * name,
 bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t * s,
                                                   const char * name)
   {
+  int i;
   bg_cfg_section_t * prev_section;
   bg_cfg_section_t * section;
 
-  section = s->children;
+  /* Try references */
+  for(i = 0; i < s->num_refs; i++)
+    {
+    if(!strcmp(s->refs[i]->name, name))
+      return s->refs[i];
+    }
 
+  section = s->children;
   prev_section = (bg_cfg_section_t *)0;
   
   while(section)
@@ -790,6 +797,8 @@ void bg_cfg_section_destroy(bg_cfg_section_t * s)
     free(s->gettext_domain);
   if(s->gettext_directory)
     free(s->gettext_directory);
+  if(s->refs)
+    free(s->refs);
   
   free(s);
   }
@@ -1090,7 +1099,6 @@ static void copy_contents(const bg_cfg_section_t * src, bg_cfg_section_t * ret)
   bg_cfg_section_t * src_child;
   bg_cfg_section_t * end_child = (bg_cfg_section_t*)0;
   
-
   /* Copy items */
   
   src_item = src->items;
@@ -1130,6 +1138,40 @@ static void copy_contents(const bg_cfg_section_t * src, bg_cfg_section_t * ret)
     }
   }
 
+static void copy_refs(const bg_cfg_section_t * src, bg_cfg_section_t * ret)
+  {
+  bg_cfg_section_t * end_child, *new_child;
+  int i;
+
+  if(src->num_refs)
+    return;
+  
+  end_child = ret->children;
+  
+  if(ret->children)
+    {
+    end_child = ret->children;
+    while(end_child->next)
+      end_child = end_child->next;
+    }
+
+  for(i = 0; i < src->num_refs; i++)
+    {
+    new_child = bg_cfg_section_copy(src->refs[i]);
+
+    if(ret->children)
+      {
+      end_child->next = new_child;
+      end_child = end_child->next;
+      }
+    else
+      {
+      ret->children = new_child;
+      end_child = new_child;
+      }
+    }
+  }
+
 /* Copy one config section to another */
 
 bg_cfg_section_t * bg_cfg_section_copy(const bg_cfg_section_t * src)
@@ -1139,7 +1181,7 @@ bg_cfg_section_t * bg_cfg_section_copy(const bg_cfg_section_t * src)
   ret = calloc(1, sizeof(*ret));
   ret->name = bg_strdup(ret->name, src->name);
   copy_contents(src, ret);
-  
+  copy_refs(src, ret);
   return ret;
   }
 
@@ -1277,9 +1319,17 @@ void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,
   
   }
 
-                                  
-void bg_cfg_section_restore(bg_cfg_section_t * section, bg_cfg_section_t * section_saved)
+void bg_cfg_section_add_ref(bg_cfg_section_t * s, bg_cfg_section_t * ref)
   {
-  free_contents(section);
-  copy_contents(section_saved, section);
+  int i;
+  /* Add refs only once */
+  for(i = 0; i < s->num_refs; i++)
+    {
+    if(!strcmp(ref->name, s->refs[i]->name))
+      return;
+    }
+  
+  s->refs = realloc(s->refs, (s->num_refs+1)*sizeof(*s->refs));
+  s->refs[s->num_refs] = ref;
+  s->num_refs++;
   }

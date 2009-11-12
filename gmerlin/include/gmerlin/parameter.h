@@ -107,6 +107,12 @@ typedef union
 #define BG_PARAMETER_NO_SORT      (1<<2) //!< Don't make a list sortable
 
 /** \ingroup parameter
+ */
+
+#define BG_PARAMETER_PLUGIN      (1<<3) //!< Parameter refers to a plugin
+
+
+/** \ingroup parameter
  *  \brief Typedef for parmeter description
  */
 

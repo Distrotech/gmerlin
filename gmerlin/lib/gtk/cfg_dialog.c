@@ -77,6 +77,8 @@ struct bg_dialog_s
   guint select_handler_id;
 
   int result;
+  
+  bg_plugin_registry_t * plugin_reg;
   };
 
 static int parent_index(dialog_section_t * s)
@@ -210,7 +212,7 @@ static void reset_section(dialog_section_t * s)
       if(s->widgets[i].cfg_subsection_save)
         {
         cfg_subsection = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
-        bg_cfg_section_restore(cfg_subsection, s->widgets[i].cfg_subsection_save);
+        bg_cfg_section_transfer(s->widgets[i].cfg_subsection_save, cfg_subsection);
         }
       if(s->widgets[i].funcs->apply_sub_params)
         s->widgets[i].funcs->apply_sub_params(&(s->widgets[i]));
@@ -498,9 +500,10 @@ static GtkWidget * create_section(dialog_section_t * section,
                                   bg_set_parameter_func_t set_param,
                                   bg_get_parameter_func_t get_param,
                                   void * data,
-                                  const char * translation_domain)
+                                  const char * translation_domain,
+                                  bg_plugin_registry_t * plugin_reg)
   {
-  int i, count;
+  int i, count, j;
   int row, column, num_columns;
   bg_cfg_section_t * cfg_subsection;
   
@@ -571,7 +574,12 @@ static GtkWidget * create_section(dialog_section_t * section,
       i++;
       continue;
       }
-      
+
+    if(info[i].flags & BG_PARAMETER_PLUGIN)
+      {
+      section->widgets[count].plugin_reg = plugin_reg;
+      }
+    
     if((info[i].flags & BG_PARAMETER_SYNC) ||
        (info[i].type == BG_PARAMETER_BUTTON))
       {
@@ -581,11 +589,26 @@ static GtkWidget * create_section(dialog_section_t * section,
     section->widgets[count].info = &(info[i]);
 
     section->widgets[count].cfg_section = cfg_section;
+    
     if(info[i].multi_parameters && cfg_section)
       {
       cfg_subsection = bg_cfg_section_find_subsection(cfg_section, info[i].name);
+
+      /* Add references to the plugin registry */
+      if(section->widgets[count].plugin_reg)
+        {
+        j = 0;
+        while(info[i].multi_names[j])
+          {
+          bg_cfg_section_add_ref(cfg_subsection,
+                                 bg_plugin_registry_get_section(section->widgets[count].plugin_reg,
+                                                                info[i].multi_names[j]));
+          j++;
+          }
+        }
       section->widgets[count].cfg_subsection_save = bg_cfg_section_copy(cfg_subsection);
       }
+    
     switch(info[i].type)
       {
       case BG_PARAMETER_BUTTON:
@@ -776,7 +799,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
       
       table = create_section(&(ret->root_section.children[i]), &(info[index]),
                              section, set_param, get_param, callback_data,
-                             translation_domain);
+                             translation_domain, ret->plugin_reg);
       
       ret->root_section.children[i].notebook_index =
         gtk_notebook_get_n_pages(GTK_NOTEBOOK(ret->notebook));
@@ -799,7 +822,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
                                         sizeof(*ret->root_section.children));
     table =
       create_section(ret->root_section.children, info, section, set_param, get_param,
-                     callback_data, (const char *)0);
+                     callback_data, (const char *)0, ret->plugin_reg);
     gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
     gtk_notebook_set_current_page(GTK_NOTEBOOK(ret->notebook), 1);
     gtk_widget_hide(ret->scrolledwindow);
@@ -856,7 +879,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
     
     table = create_section(&(parent->children[parent->num_children]),
                            info, section, set_param, get_param, callback_data,
-                           (const char*)0);
+                           (const char*)0, d->plugin_reg);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
 
@@ -923,7 +946,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       table = create_section(&(parent->children[section_index]),
                              &(info[item_index]),
                              section, set_param, get_param, callback_data,
-                             translation_domain);
+                             translation_domain, d->plugin_reg);
       
       parent->children[section_index].parent = parent;
 
@@ -1084,3 +1107,7 @@ void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
   return &(parent->children[parent->num_children-1]);
   }
 
+void bg_dialog_set_plugin_registry(bg_dialog_t * d, bg_plugin_registry_t * plugin_reg)
+  {
+  d->plugin_reg = plugin_reg;
+  }

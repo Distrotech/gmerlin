@@ -635,10 +635,9 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
     while(tmp_info)
       {
       tmp_info->module_time = st.st_mtime;
-    
-    
-    /* Create parameter entries in the registry */
-
+      
+      /* Create parameter entries in the registry */
+      
       plugin_section =
         bg_cfg_section_find_subsection(cfg_section, tmp_info->name);
     

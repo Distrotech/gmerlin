@@ -64,10 +64,12 @@ struct bg_gtk_widget_s
   /* position needs this */
   gulong callback_id_2;
   GtkWidget * callback_widget_2;
-
   
   bg_cfg_section_t * cfg_section;
   bg_cfg_section_t * cfg_subsection_save;
+  
+  /* Only set if the parameter refers to a plugin */
+  bg_plugin_registry_t * plugin_reg;
   };
 
 void 
