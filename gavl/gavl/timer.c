@@ -19,23 +19,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <config.h>
+
 #include <inttypes.h>
-#include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
-
-#include <gavltime.h>
-
+#include <time.h>
 #ifdef HAVE_SYS_TIMES_H
 #include <sys/times.h>
 #endif
+#include <sys/time.h>
 
+#include <gavltime.h>
+
+#ifdef HAVE_CLOCK_MONOTONIC
+
+/* High precision version */
+static void get_time(gavl_time_t * ret)
+  {
+  struct timespec time;
+  clock_gettime(CLOCK_MONOTONIC, &time);
+  *ret = (int64_t)(time.tv_sec)*1000000LL + (time.tv_nsec)/1000;
+  }
+
+#else
 static void get_time(gavl_time_t * ret)
   {
   struct timeval time;
   gettimeofday(&time, NULL);
   *ret = (int64_t)(time.tv_sec)*1000000LL + time.tv_usec;
   }
+#endif
 
 struct gavl_timer_s
   {

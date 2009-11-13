@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <config.h>
+
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -26,17 +28,44 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
 #include <inttypes.h>
-#include <gavltime.h>
-#include <arith128.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
 #endif
 
-/* Sleep for a specified time */
+#ifdef HAVE_CLOCK_MONOTONIC
+#include <time.h>
+#include <errno.h>
+#endif
 
+#include <gavltime.h>
+#include <arith128.h>
+
+
+/* Sleep for a specified time */
+#ifdef HAVE_CLOCK_MONOTONIC
+void gavl_time_delay(gavl_time_t * t)
+  {
+  struct timespec tm;
+  struct timespec rem;
+
+  tm.tv_sec = *t / 1000000;
+  tm.tv_nsec = (*t % 1000000)*1000;
+  
+  while(clock_nanosleep(CLOCK_MONOTONIC, 0,
+                        &tm, &rem))
+    {
+    if(errno == EINTR)
+      {
+      tm.tv_sec = rem.tv_sec;
+      tm.tv_nsec = rem.tv_nsec;
+      }
+     else
+       break;
+     }
+  }
+#else
 void gavl_time_delay(gavl_time_t * t)
   {
   struct timeval tv;
@@ -45,6 +74,7 @@ void gavl_time_delay(gavl_time_t * t)
   tv.tv_usec = *t % 1000000;
   select(0, NULL, NULL, NULL, &tv);
   }
+#endif
 
 /*
  *  Pretty print a time in the format:

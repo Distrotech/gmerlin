@@ -130,14 +130,21 @@ dnl
 dnl Check for library functions
 dnl 
 
-dnl Checks for library functions.
 AC_CHECK_FUNCS([memalign])
 AC_CHECK_FUNCS([sched_setaffinity])
 
+dnl
+dnl clock_gettime
+dnl
+
 AH_TEMPLATE([HAVE_CLOCK_GETTIME],
             [clock_gettime available?])
+AH_TEMPLATE([HAVE_CLOCK_MONOTONIC],
+            [CLOCK_MONOTONIC available?])
 
 HAVE_CLOCK_GETTIME="true"
+HAVE_CLOCK_MONOTONIC="false"
+
 OLD_LIBS=$LIBS
 AC_SEARCH_LIBS([clock_gettime], [rt], , HAVE_CLOCK_GETTIME="false")
 RT_LIBS=$LIBS
@@ -146,7 +153,45 @@ LIBS=$OLD_LIBS
 
 if test "x$HAVE_CLOCK_GETTIME" = "xtrue"; then
   AC_DEFINE([HAVE_CLOCK_GETTIME])
+
+OLD_LIBS=$LIBS
+LIBS=$RT_LIBS
+
+AC_MSG_CHECKING(for CLOCK_MONOTONIC)
+
+AC_TRY_RUN([
+  #include <time.h>
+  #include <errno.h>
+main()
+  {
+  struct timespec tp;
+  if(clock_gettime(CLOCK_MONOTONIC, &tp))
+    return -1;
+  else
+    return 0;
+  }
+  ],
+  [
+    # program could be run
+    AC_MSG_RESULT(yes)
+    HAVE_CLOCK_MONOTONIC="true"
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+if test "x$HAVE_CLOCK_MONOTONIC" = "xtrue"; then
+  AC_DEFINE([HAVE_CLOCK_MONOTONIC])
 fi
+
+fi
+
+
+
+dnl
+dnl lrint, lrintf
+dnl
 
 AC_C99_FUNC_LRINT
 AC_C99_FUNC_LRINTF
