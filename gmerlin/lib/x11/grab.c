@@ -22,6 +22,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h> // INT_MIN
 
 #include <gmerlin/translation.h>
 
@@ -32,6 +33,9 @@
 #include <X11/extensions/XShm.h>
 #include <X11/Xatom.h>
 
+#ifdef HAVE_XFIXES
+#include <X11/extensions/Xfixes.h>
+#endif
 
 #include <sys/shm.h>
 
@@ -42,6 +46,8 @@
 
 #define LOG_DOMAIN "x11grab"
 #include <gmerlin/log.h>
+
+#define MAX_CURSOR_SIZE 32
 
 static const bg_parameter_info_t parameters[] = 
   {
@@ -54,6 +60,7 @@ static const bg_parameter_info_t parameters[] =
       .name =      "draw_cursor",
       .long_name = TRS("Draw cursor"),
       .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     {
       .name =      "win_ontop",
@@ -121,6 +128,7 @@ struct bg_x11_grab_window_s
   gavl_rectangle_i_t win_rect;
   
   int flags;
+  int cfg_flags;
 
   gavl_pixelformat_t pixelformat;
 
@@ -141,6 +149,26 @@ struct bg_x11_grab_window_s
   int screen;
 
   int decoration_x, decoration_y;
+
+#ifdef HAVE_XFIXES
+  int use_xfixes;
+  int xfixes_eventbase;
+  int cursor_changed;
+#endif
+
+  gavl_overlay_t      cursor;
+  gavl_video_format_t cursor_format;
+  
+  int cursor_off_x;
+  int cursor_off_y;
+
+  int cursor_x;
+  int cursor_y;
+  
+  gavl_rectangle_i_t cursor_rect;
+
+  
+  gavl_overlay_blend_context_t * blend;
   
   };
 
@@ -185,23 +213,30 @@ void bg_x11_grab_window_set_parameter(void * data, const char * name,
   else if(!strcmp(name, "root"))
     {
     if(val->val_i)
-      win->flags |= GRAB_ROOT;
+      win->cfg_flags |= GRAB_ROOT;
     else
-      win->flags &= ~GRAB_ROOT;
+      win->cfg_flags &= ~GRAB_ROOT;
     }
   else if(!strcmp(name, "win_ontop"))
     {
     if(val->val_i)
-      win->flags |= WIN_ONTOP;
+      win->cfg_flags |= WIN_ONTOP;
     else
-      win->flags &= ~WIN_ONTOP;
+      win->cfg_flags &= ~WIN_ONTOP;
     }
   else if(!strcmp(name, "win_sticky"))
     {
     if(val->val_i)
-      win->flags |= WIN_STICKY;
+      win->cfg_flags |= WIN_STICKY;
     else
-      win->flags &= ~WIN_STICKY;
+      win->cfg_flags &= ~WIN_STICKY;
+    }
+  else if(!strcmp(name, "draw_cursor"))
+    {
+    if(val->val_i)
+      win->cfg_flags |= DRAW_CURSOR;
+    else
+      win->cfg_flags &= ~DRAW_CURSOR;
     }
   }
 
@@ -244,9 +279,82 @@ int bg_x11_grab_window_get_parameter(void * data, const char * name,
   return 0;
   }
 
+/* Static cursor bitmap taken from ffmpeg/libavdevice/x11grab.c
+   Generation routine is native development though */
+
+/* 16x20x1bpp bitmap for the black channel of the mouse pointer */
+static const uint16_t const cursor_black[] =
+
+  {
+    0x0000, 0x0003, 0x0005, 0x0009, 0x0011,
+    0x0021, 0x0041, 0x0081, 0x0101, 0x0201,
+    0x03c1, 0x0049, 0x0095, 0x0093, 0x0120,
+    0x0120, 0x0240, 0x0240, 0x0380, 0x0000
+  };
+
+/* 16x20x1bpp bitmap for the white channel of the mouse pointer */
+
+static const uint16_t const cursor_white[] =
+  {
+    0x0000, 0x0000, 0x0002, 0x0006, 0x000e,
+    0x001e, 0x003e, 0x007e, 0x00fe, 0x01fe,
+    0x003e, 0x0036, 0x0062, 0x0060, 0x00c0,
+    0x00c0, 0x0180, 0x0180, 0x0000, 0x0000
+  };
+
+static const float cursor_transparent[4] = { 0.0, 0.0, 0.0, 0.0 };
+
+#define CURSOR_WIDTH  16
+#define CURSOR_HEIGHT 20
+
+static void create_cursor_static(bg_x11_grab_window_t * win)
+  {
+  int i, j;
+
+  uint16_t black;
+  uint16_t white;
+  uint8_t * ptr;
+  
+  gavl_video_frame_fill(win->cursor.frame, &win->cursor_format, cursor_transparent);
+  
+  for(i = 0; i < CURSOR_HEIGHT; i++)
+    {
+    black = cursor_black[i];
+    white = cursor_white[i];
+    ptr = win->cursor.frame->planes[0] +
+      i * win->cursor.frame->strides[0];
+    
+    for(j = 0; j < CURSOR_WIDTH; j++)
+      {
+      if(white & 0x01)
+        {
+        ptr[0] = 0xff;
+        ptr[1] = 0xff;
+        ptr[2] = 0xff;
+        ptr[3] = 0xff;
+        }
+      else if(black & 0x01)
+        {
+        ptr[0] = 0x00;
+        ptr[1] = 0x00;
+        ptr[2] = 0x00;
+        ptr[3] = 0xff;
+        }
+      ptr += 4;
+      black >>= 1;
+      white >>= 1;
+      }
+    }
+  win->cursor.ovl_rect.w = CURSOR_WIDTH;
+  win->cursor.ovl_rect.h = CURSOR_HEIGHT;
+  }
+
+
 static int realize_window(bg_x11_grab_window_t * ret)
   {
-  
+#ifdef HAVE_XFIXES
+  int xfixes_errorbase;
+#endif
   XSetWindowAttributes attr;
   unsigned long valuemask;
   
@@ -262,8 +370,16 @@ static int realize_window(bg_x11_grab_window_t * ret)
   ret->depth = DefaultDepth(ret->dpy, ret->screen);
   
   ret->root = RootWindow(ret->dpy, ret->screen);
-  /* Create atoms */
-  
+
+  /* Check for XFixes */
+#ifdef HAVE_XFIXES
+  ret->use_xfixes = XFixesQueryExtension(ret->dpy,
+                                         &ret->xfixes_eventbase,
+                                         &xfixes_errorbase);
+  if(!ret->use_xfixes)
+#endif
+    create_cursor_static(ret);
+    
   /* Create window */
 
   attr.background_pixmap = None;
@@ -283,6 +399,12 @@ static int realize_window(bg_x11_grab_window_t * ret)
                            &attr);
 
   XSelectInput(ret->dpy, ret->win, StructureNotifyMask);
+
+#ifdef HAVE_XFIXES
+  if(ret->use_xfixes)
+    XFixesSelectCursorInput(ret->dpy, ret->root,
+                            XFixesDisplayCursorNotifyMask);
+#endif
   
   XShapeCombineRectangles(ret->dpy,
                           ret->win,
@@ -317,6 +439,20 @@ bg_x11_grab_window_t * bg_x11_grab_window_create()
   ret->win = None;
 
   ret->timer = gavl_timer_create();
+  ret->blend = gavl_overlay_blend_context_create();
+
+  ret->cursor_format.image_width  = MAX_CURSOR_SIZE;
+  ret->cursor_format.image_height = MAX_CURSOR_SIZE;
+  ret->cursor_format.frame_width  = MAX_CURSOR_SIZE;
+  ret->cursor_format.frame_height = MAX_CURSOR_SIZE;
+  ret->cursor_format.pixel_width = 1;
+  ret->cursor_format.pixel_height = 1;
+  
+  // Fixme: This will break for > 8 bit/channel RGB visuals
+  //        and other 8bit / channel RGBA formats
+  ret->cursor_format.pixelformat = GAVL_RGBA_32; 
+
+  ret->cursor.frame = gavl_video_frame_create(&ret->cursor_format);
   
   return ret;
   }
@@ -329,7 +465,8 @@ void bg_x11_grab_window_destroy(bg_x11_grab_window_t * win)
     XCloseDisplay(win->dpy);
   
   gavl_timer_destroy(win->timer);
-  
+  gavl_overlay_blend_context_destroy(win->blend);
+  gavl_video_frame_destroy(win->cursor.frame);
   free(win);
   }
 
@@ -340,6 +477,16 @@ static void handle_events(bg_x11_grab_window_t * win)
     {
     XNextEvent(win->dpy, &evt);
 
+#ifdef HAVE_XFIXES
+    if(evt.type == win->xfixes_eventbase + XFixesCursorNotify)
+      {
+      win->cursor_changed = 1;
+      // fprintf(stderr, "Cursor notify\n");
+      continue;
+      }
+#endif
+
+    
     switch(evt.type)
       {
       case ConfigureNotify:
@@ -401,6 +548,8 @@ static void handle_events(bg_x11_grab_window_t * win)
 int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
                             gavl_video_format_t * format)
   {
+  win->flags = win->cfg_flags;
+
   if(win->win == None)
     {
     if(!realize_window(win))
@@ -485,6 +634,20 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
                               32,
                               win->frame->strides[0]);
     }
+
+  if(win->flags & DRAW_CURSOR)
+    {
+    gavl_overlay_blend_context_init(win->blend,
+                                    &win->format,
+                                    &win->cursor_format);
+#ifdef HAVE_XFIXES
+    if(win->use_xfixes)
+      win->cursor_changed = 1;
+#endif
+    
+    win->cursor_x = INT_MIN;
+    win->cursor_y = INT_MIN;
+    }
   
   if(!(win->flags & GRAB_ROOT))
     {
@@ -554,6 +717,117 @@ void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
      
   }
 
+#ifdef HAVE_XFIXES
+static void get_cursor_xfixes(bg_x11_grab_window_t * win)
+  {
+  int i, j;
+  unsigned long * src;
+  uint8_t * dst;
+  
+  XFixesCursorImage *im;
+  im = XFixesGetCursorImage(win->dpy);
+
+  win->cursor.ovl_rect.w = im->width;
+  win->cursor.ovl_rect.h = im->height;
+
+  if(win->cursor.ovl_rect.w > MAX_CURSOR_SIZE)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cursor too wide, increase MAX_CURSOR_SIZE in grab.c to %d",
+           win->cursor.ovl_rect.w);
+    win->cursor.ovl_rect.w = MAX_CURSOR_SIZE;
+    }
+  if(win->cursor.ovl_rect.h > MAX_CURSOR_SIZE)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cursor too high, increase MAX_CURSOR_SIZE in grab.c to %d",
+           win->cursor.ovl_rect.h);
+    win->cursor.ovl_rect.h = MAX_CURSOR_SIZE;
+    }
+  
+  win->cursor_off_x = im->xhot;
+  win->cursor_off_y = im->yhot;
+
+  for(i = 0; i < win->cursor.ovl_rect.h; i++)
+    {
+    src = (im->pixels) + i * im->width;
+    dst = win->cursor.frame->planes[0] + i * win->cursor.frame->strides[0];
+
+    for(j = 0; j < win->cursor.ovl_rect.w; j++)
+      {
+      dst[3] = *src >> 24;          // A
+      dst[0] = (*src >> 16) & 0xff; // R
+      dst[1] = (*src >> 8)  & 0xff; // G
+      dst[2] = (*src)       & 0xff; // B
+
+      dst += 4;
+      src ++;
+      }
+    }
+  win->cursor_changed = 0;
+  XFree(im);
+  }
+#endif
+
+static void draw_cursor(bg_x11_grab_window_t * win, gavl_rectangle_i_t * rect,
+                        gavl_video_frame_t * frame)
+  {
+  Window root;
+  Window child;
+  int root_x;
+  int root_y;
+  int win_x;
+  int win_y;
+  unsigned int mask;
+  int init_blend = 0;
+  
+  if(!XQueryPointer(win->dpy, win->root, &root,
+                    &child, &root_x,
+                    &root_y, &win_x, &win_y,
+                    &mask))
+    return;
+  
+  /* Bounding box check */
+  if(root_x >= rect->x + rect->w)
+    return;
+
+  if(root_x + MAX_CURSOR_SIZE < rect->x)
+    return;
+
+  if(root_y >= rect->y + rect->h)
+    return;
+
+  if(root_y + MAX_CURSOR_SIZE < rect->y)
+    return;
+
+  win->cursor.dst_x = root_x - rect->x - win->cursor_off_x;
+  win->cursor.dst_y = root_y - rect->y - win->cursor_off_y;
+
+  if((win->cursor.dst_x != win->cursor_x) ||
+     (win->cursor.dst_y != win->cursor_y))
+    init_blend = 1;
+
+#ifdef HAVE_XFIXES
+  if(win->cursor_changed)
+    {
+    init_blend = 1;
+    get_cursor_xfixes(win);
+    }
+#endif
+  
+  if(init_blend)
+    {
+    gavl_overlay_blend_context_set_overlay(win->blend,
+                                           &win->cursor);
+    }
+  
+  gavl_overlay_blend(win->blend, frame);
+  // fprintf(stderr, "Cursor 2: %d %d\n", win->cursor.dst_x, win->cursor.dst_y);
+
+  win->cursor_x = win->cursor.dst_x;
+  win->cursor_x = win->cursor.dst_y;
+  }
+
 int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
                             gavl_video_frame_t  * frame)
   {
@@ -621,6 +895,9 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
     }
     
   gavl_video_frame_copy(&win->format, frame, win->frame);
+
+  if(win->flags & DRAW_CURSOR)
+    draw_cursor(win, &rect, frame);
   
   frame->timestamp = gavl_time_scale(gavl_timer_get(win->timer),
                                      win->format.timescale);

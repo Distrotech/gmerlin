@@ -34,4 +34,4 @@ ximage.c \
 $(glx_sources) \
 $(xv_sources)
 
-libx11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @X_LIBS@ @XINERAMA_LIBS@ $(xv_libs) $(glx_libs)
+libx11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @XINERAMA_LIBS@ @XFIXES_LIBS@ @XDPMS_LIBS@ $(xv_libs) $(glx_libs) @X_LIBS@
