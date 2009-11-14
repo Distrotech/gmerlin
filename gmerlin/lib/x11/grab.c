@@ -788,13 +788,13 @@ static void draw_cursor(bg_x11_grab_window_t * win, gavl_rectangle_i_t * rect,
     return;
   
   /* Bounding box check */
-  if(root_x >= rect->x + rect->w)
+  if(root_x >= rect->x + rect->w + MAX_CURSOR_SIZE)
     return;
 
   if(root_x + MAX_CURSOR_SIZE < rect->x)
     return;
 
-  if(root_y >= rect->y + rect->h)
+  if(root_y >= rect->y + rect->h + MAX_CURSOR_SIZE)
     return;
 
   if(root_y + MAX_CURSOR_SIZE < rect->y)

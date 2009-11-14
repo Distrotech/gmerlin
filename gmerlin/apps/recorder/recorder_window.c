@@ -32,6 +32,7 @@
 #include <gmerlin/gui_gtk/audio.h>
 #include <gmerlin/gui_gtk/aboutwindow.h>
 #include <gmerlin/gui_gtk/logwindow.h>
+#include <gmerlin/gui_gtk/display.h>
 
 #include <gmerlin/recorder.h>
 #include "recorder_window.h"
@@ -70,6 +71,7 @@ struct bg_recorder_window_s
   bg_cfg_section_t * log_section;
 
   bg_msg_queue_t * msg_queue;
+  bg_gtk_time_display_t * display;
   
   };
 
@@ -235,6 +237,10 @@ static gboolean timeout_func(void * data)
   return TRUE;
   }
 
+static float display_fg[] = { 0.0, 1.0, 0.0 };
+static float display_bg[] = { 0.0, 0.0, 0.0 };
+
+
 bg_recorder_window_t *
 bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                           bg_plugin_registry_t * plugin_reg)
@@ -260,6 +266,14 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   
   ret->socket = gtk_socket_new();
 
+  ret->display = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL,
+                                            4, BG_GTK_DISPLAY_MODE_HMS);
+
+  bg_gtk_time_display_update(ret->display,
+                             GAVL_TIME_UNDEFINED, BG_GTK_DISPLAY_MODE_HMS);
+
+  bg_gtk_time_display_set_colors(ret->display, display_fg, display_bg );
+  
   g_signal_connect(G_OBJECT(ret->socket), "realize",
                    G_CALLBACK(socket_realize), ret);
   
@@ -312,6 +326,12 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->about_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->log_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->restart_button, FALSE, FALSE, 0);
+
+  
+  
+  gtk_box_pack_end(GTK_BOX(box), bg_gtk_time_display_get_widget(ret->display),
+                   FALSE, FALSE, 0);
+  
   gtk_widget_show(box);
 
   gtk_box_pack_start(GTK_BOX(mainbox),
