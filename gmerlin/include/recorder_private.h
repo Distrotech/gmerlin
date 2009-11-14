@@ -146,6 +146,9 @@ struct bg_recorder_s
   
   bg_msg_queue_list_t * msg_queues;
 
+  bg_parameter_info_t * encoder_parameters;
+  bg_cfg_section_t * encoder_section;
+  
   };
 
 void bg_recorder_create_audio(bg_recorder_t*);

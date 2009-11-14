@@ -407,6 +407,19 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
                                             bg_parameter_value_t * val);
 
 
+/** \ingroup plugin_registry
+ *  \brief Create a parameter array for encoders
+ *  \param reg       A plugin registry
+ *  \param type_mask Mask of all returned plugin types
+ *  \param flag_mask Mask of all returned plugin flags
+ *  \returns Parameter array for setting up encoders (free with \ref bg_parameter_info_destroy_array)
+ */
+
+bg_parameter_info_t *
+bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
+                                             uint32_t type_mask,
+                                             uint32_t flag_mask);
+
 /** \ingroup plugin_registry_defaults 
  *  \brief Set the default for a particular plugin type
  *  \param reg A plugin registry

@@ -96,28 +96,20 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
  *  @{
  */
 
-#define BG_PLUGIN_REMOVABLE    (1<<0)  //!< Plugin handles removable media (CD, DVD etc.)
-#define BG_PLUGIN_FILE         (1<<1)  //!< Plugin reads/writes files
-#define BG_PLUGIN_RECORDER     (1<<2)  //!< Plugin does hardware recording
-
-#define BG_PLUGIN_URL          (1<<3)  //!< Plugin can load URLs
-#define BG_PLUGIN_PLAYBACK     (1<<4)  //!< Plugin is an audio or video driver for playback
-
-#define BG_PLUGIN_STDIN         (1<<8)  //!< Plugin can read from stdin ("-")
-
-#define BG_PLUGIN_TUNER         (1<<9)  //!< Plugin has some kind of tuner. Channels will be loaded as tracks.
-#define BG_PLUGIN_FILTER_1     (1<<10)  //!< Plugin acts as a filter with one input
-
-#define BG_PLUGIN_EMBED_WINDOW (1<<11)  //!< Plugin can embed it's window into another application
-
+#define BG_PLUGIN_REMOVABLE        (1<<0)  //!< Plugin handles removable media (CD, DVD etc.)
+#define BG_PLUGIN_FILE             (1<<1)  //!< Plugin reads/writes files
+#define BG_PLUGIN_RECORDER         (1<<2)  //!< Plugin does hardware recording
+#define BG_PLUGIN_URL              (1<<3)  //!< Plugin can load URLs
+#define BG_PLUGIN_PLAYBACK         (1<<4)  //!< Plugin is an audio or video driver for playback
+#define BG_PLUGIN_STDIN            (1<<8)  //!< Plugin can read from stdin ("-")
+#define BG_PLUGIN_TUNER            (1<<9)  //!< Plugin has some kind of tuner. Channels will be loaded as tracks.
+#define BG_PLUGIN_FILTER_1        (1<<10)  //!< Plugin acts as a filter with one input
+#define BG_PLUGIN_EMBED_WINDOW    (1<<11)  //!< Plugin can embed it's window into another application
 #define BG_PLUGIN_VISUALIZE_FRAME (1<<12)  //!< Visualization plugin outputs video frames
-
-#define BG_PLUGIN_VISUALIZE_GL (1<<13)  //!< Visualization plugin outputs via OpenGL
-
-#define BG_PLUGIN_PP  (1<<14)  //!< Postprocessor
-#define BG_PLUGIN_CALLBACKS     (1<<15)  //!< Plugin can be opened from callbacks
-
-#define BG_PLUGIN_UNSUPPORTED  (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
+#define BG_PLUGIN_VISUALIZE_GL    (1<<13)  //!< Visualization plugin outputs via OpenGL
+#define BG_PLUGIN_PP              (1<<14)  //!< Postprocessor
+#define BG_PLUGIN_CALLBACKS       (1<<15)  //!< Plugin can be opened from callbacks
+#define BG_PLUGIN_UNSUPPORTED     (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
 
 
 #define BG_PLUGIN_ALL 0xFFFFFFFF //!< Mask of all possible plugin flags

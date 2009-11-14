@@ -104,3 +104,9 @@ bg_recorder_set_video_monitor_parameter(void * data,
                                         const char * name,
                                         const bg_parameter_value_t * val);
 
+/* Encoders */
+
+const bg_parameter_info_t *
+bg_recorder_get_encoder_parameters(bg_recorder_t *);
+
+void bg_recorder_set_encoder_section(bg_recorder_t *, bg_cfg_section_t *);

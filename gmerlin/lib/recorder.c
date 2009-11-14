@@ -59,8 +59,10 @@ void bg_recorder_destroy(bg_recorder_t * rec)
   free(rec->display_string);
   
   bg_msg_queue_list_destroy(rec->msg_queues);
-
-
+  
+  if(rec->encoder_parameters)
+    bg_parameter_info_destroy_array(rec->encoder_parameters);
+  
   free(rec);
   }
 
@@ -107,6 +109,28 @@ int bg_recorder_run(bg_recorder_t * rec)
   rec->running = 1;
   
   return 1;
+  }
+
+/* Encoders */
+
+const bg_parameter_info_t *
+bg_recorder_get_encoder_parameters(bg_recorder_t * rec)
+  {
+  if(!rec->encoder_parameters)
+    rec->encoder_parameters =
+      bg_plugin_registry_create_encoder_parameters(rec->plugin_reg,
+                                                   BG_PLUGIN_ENCODER_AUDIO |
+                                                   BG_PLUGIN_ENCODER_VIDEO |
+                                                   BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
+                                                   BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY |
+                                                   BG_PLUGIN_ENCODER,
+                                                   BG_PLUGIN_FILE);
+  return rec->encoder_parameters;
+  }
+
+void bg_recorder_set_encoder_section(bg_recorder_t * rec, bg_cfg_section_t * s)
+  {
+  rec->encoder_section = s;
   }
 
 void bg_recorder_stop(bg_recorder_t * rec)

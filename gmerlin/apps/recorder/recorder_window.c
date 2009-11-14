@@ -68,8 +68,11 @@ struct bg_recorder_window_s
   bg_cfg_section_t * audio_section;
   bg_cfg_section_t * video_section;
   
+  bg_cfg_section_t * encoder_section;
+  
   bg_cfg_section_t * log_section;
 
+  
   bg_msg_queue_t * msg_queue;
   bg_gtk_time_display_t * display;
   
@@ -362,6 +365,12 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     bg_cfg_registry_find_section(cfg_reg, "videofilter");
   ret->video_monitor_section =
     bg_cfg_registry_find_section(cfg_reg, "video_monitor");
+
+  /* Encoders */
+  ret->encoder_section =
+    bg_cfg_registry_find_section(cfg_reg, "encoder_section");
+
+  bg_recorder_set_encoder_section(ret->rec, ret->encoder_section);
   
   ret->cfg_dialog = bg_dialog_create_multi(TR("Recorder configuration"));
   bg_dialog_set_plugin_registry(ret->cfg_dialog, plugin_reg);
@@ -411,6 +420,15 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                       ret->rec,
                       bg_recorder_get_video_monitor_parameters(ret->rec));
 
+  bg_dialog_add(ret->cfg_dialog,
+                TR("Encoders"),
+                ret->encoder_section,
+                NULL,
+                NULL,
+                NULL,
+                bg_recorder_get_encoder_parameters(ret->rec));
+
+  
   bg_dialog_add(ret->cfg_dialog,
                 TR("Log window"),
                 ret->log_section,
