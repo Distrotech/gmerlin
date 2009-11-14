@@ -83,7 +83,7 @@ static const bg_parameter_info_t parameters[] =
     },
     {
       .name        = "limit_fps",
-      .long_name   = TRS("Maximum framerate"),
+      .long_name   = TRS("fps limit"),
       .type        = BG_PARAMETER_FLOAT,
       .val_min     = { .val_f = 1.0 },
       .val_max     = { .val_f = 100.0 },

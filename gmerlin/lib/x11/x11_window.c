@@ -254,8 +254,8 @@ wm_check_capability(Display *dpy, Window root, Atom list, Atom wanted)
   return retval;
   }
 
-static void
-netwm_set_state(bg_x11_window_t * w, Window win, int action, Atom state)
+void
+bg_x11_window_set_netwm_state(Display * dpy, Window win, Window root, int action, Atom state)
   {
   /* Setting _NET_WM_STATE by XSendEvent works only, if the window
      is already mapped!! */
@@ -263,15 +263,14 @@ netwm_set_state(bg_x11_window_t * w, Window win, int action, Atom state)
   XEvent e;
   memset(&e,0,sizeof(e));
   e.xclient.type = ClientMessage;
-  e.xclient.message_type = w->_NET_WM_STATE;
-  //  e.xclient.display = w->dpy;
+  e.xclient.message_type = XInternAtom(dpy, "_NET_WM_STATE", False);
   e.xclient.window = win;
   e.xclient.send_event = True;
   e.xclient.format = 32;
   e.xclient.data.l[0] = action;
   e.xclient.data.l[1] = state;
   
-  XSendEvent(w->dpy, w->root, False,
+  XSendEvent(dpy, root, False,
              SubstructureRedirectMask | SubstructureNotifyMask, &e);
   }
 
@@ -344,18 +343,18 @@ void bg_x11_window_set_fullscreen_mapped(bg_x11_window_t * win,
   {
   if(win->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
     {
-    netwm_set_state(win, w->win,
-                    _NET_WM_STATE_ADD, win->_NET_WM_STATE_ABOVE);
+    bg_x11_window_set_netwm_state(win->dpy, w->win, win->root,
+                                  _NET_WM_STATE_ADD, win->_NET_WM_STATE_ABOVE);
     }
   else if(win->fullscreen_mode & FULLSCREEN_MODE_NET_STAYS_ON_TOP)
     {
-    netwm_set_state(win, w->win,
-                    _NET_WM_STATE_ADD, win->_NET_WM_STATE_STAYS_ON_TOP);
+    bg_x11_window_set_netwm_state(win->dpy, w->win, win->root,
+                                  _NET_WM_STATE_ADD, win->_NET_WM_STATE_STAYS_ON_TOP);
     }
   if(win->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
     {
-    netwm_set_state(win, w->win,
-                    _NET_WM_STATE_ADD, win->_NET_WM_STATE_FULLSCREEN);
+    bg_x11_window_set_netwm_state(win->dpy, w->win, win->root,
+                                  _NET_WM_STATE_ADD, win->_NET_WM_STATE_FULLSCREEN);
     }
   }
 
@@ -1040,10 +1039,11 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
       return 0;
     /* Unmap fullscreen window */
 #if 1
-    netwm_set_state(w, w->fullscreen.win,
-                    _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_FULLSCREEN);
-    netwm_set_state(w, w->fullscreen.win,
-                    _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_ABOVE);
+    bg_x11_window_set_netwm_state(w->dpy, w->fullscreen.win, w->root,
+                                  _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_FULLSCREEN);
+
+    bg_x11_window_set_netwm_state(w->dpy, w->fullscreen.win, w->root,
+                                  _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_ABOVE);
     XUnmapWindow(w->dpy, w->fullscreen.win);
 #endif
     XWithdrawWindow(w->dpy, w->fullscreen.win, w->screen);

@@ -30,11 +30,15 @@
 
 #include <X11/extensions/shape.h>
 #include <X11/extensions/XShm.h>
+#include <X11/Xatom.h>
+
 
 #include <sys/shm.h>
 
 #define DRAW_CURSOR (1<<0)
 #define GRAB_ROOT   (1<<1)
+#define WIN_ONTOP   (1<<2)
+#define WIN_STICKY  (1<<3)
 
 #define LOG_DOMAIN "x11grab"
 #include <gmerlin/log.h>
@@ -50,6 +54,18 @@ static const bg_parameter_info_t parameters[] =
       .name =      "draw_cursor",
       .long_name = TRS("Draw cursor"),
       .type = BG_PARAMETER_CHECKBUTTON,
+    },
+    {
+      .name =      "win_ontop",
+      .long_name = TRS("Keep grab window on top"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+    },
+    {
+      .name =      "win_sticky",
+      .long_name = TRS("Make grab window sticky"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     {
       .name = "x",
@@ -173,6 +189,20 @@ void bg_x11_grab_window_set_parameter(void * data, const char * name,
     else
       win->flags &= ~GRAB_ROOT;
     }
+  else if(!strcmp(name, "win_ontop"))
+    {
+    if(val->val_i)
+      win->flags |= WIN_ONTOP;
+    else
+      win->flags &= ~WIN_ONTOP;
+    }
+  else if(!strcmp(name, "win_sticky"))
+    {
+    if(val->val_i)
+      win->flags |= WIN_STICKY;
+    else
+      win->flags &= ~WIN_STICKY;
+    }
   }
 
 int bg_x11_grab_window_get_parameter(void * data, const char * name,
@@ -216,6 +246,7 @@ int bg_x11_grab_window_get_parameter(void * data, const char * name,
 
 static int realize_window(bg_x11_grab_window_t * ret)
   {
+  
   XSetWindowAttributes attr;
   unsigned long valuemask;
   
@@ -262,10 +293,10 @@ static int realize_window(bg_x11_grab_window_t * ret)
                           ShapeSet,
                           YXBanded); 
 
+  
   XmbSetWMProperties(ret->dpy, ret->win, "X11 grab",
                      "X11 grab", NULL, 0, NULL, NULL, NULL);
-
-
+  
   bg_x11_window_get_coords(ret->dpy, ret->root,
                            (int*)0, (int*)0,
                            &ret->root_width, &ret->root_height);
@@ -457,7 +488,30 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
   
   if(!(win->flags & GRAB_ROOT))
     {
+    if(win->flags & (WIN_ONTOP|WIN_STICKY))
+      {
+      Atom wm_states[2];
+      int num_props = 0;
+      Atom wm_state = XInternAtom(win->dpy, "_NET_WM_STATE", False);
+
+      if(win->flags & WIN_ONTOP)
+        {
+        wm_states[num_props++] =
+          XInternAtom(win->dpy, "_NET_WM_STATE_ABOVE", False);
+        }
+      if(win->flags & WIN_STICKY)
+        {
+        wm_states[num_props++] =
+          XInternAtom(win->dpy, "_NET_WM_STATE_STICKY", False);
+        }
+      
+      XChangeProperty(win->dpy, win->win, wm_state, XA_ATOM, 32,
+                      PropModeReplace,
+                      (unsigned char *)wm_states, num_props);
+      }
+    
     XMapWindow(win->dpy, win->win);
+    XSync(win->dpy, False);
     XMoveWindow(win->dpy, win->win, win->decoration_x, win->decoration_y);
     }
   handle_events(win);
@@ -488,8 +542,16 @@ void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
     win->image->data = NULL;
     XDestroyImage(win->image);
     }
-  
-  XUnmapWindow(win->dpy, win->win);
+
+  /* Get the ontop and sticky properties */
+  if(!(win->flags & GRAB_ROOT))
+    {
+    XWithdrawWindow(win->dpy, win->win, win->screen);
+    XSync(win->dpy, False);
+    }
+     
+  handle_events(win);
+     
   }
 
 int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,

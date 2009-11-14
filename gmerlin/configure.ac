@@ -365,6 +365,49 @@ LDFLAGS=$OLD_LDFLAGS
 fi
 
 dnl
+dnl XFixes
+dnl
+
+AH_TEMPLATE([HAVE_XFIXES],
+            [Do we have XFixes extension installed?])
+
+have_xfixes="false"
+XFIXES_LIBS=""
+
+if test x$have_x = xtrue; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+OLD_LDFLAGS=$LDFLAGS                                                                               
+CFLAGS=$X_FLAGS
+LIBS=$X_LIBS
+LDFLAGS="$X_LIBS $LDFLAGS -lXfixes"
+
+AC_MSG_CHECKING(for x11 dpms)
+AC_TRY_LINK([#include <X11/Xlib.h>
+             #include <X11/extensions/Xfixes.h>],
+            [int i = 0;
+             /* We ensure the function is here but never call it */
+             if(i)
+		 XFixesQueryExtension(NULL, NULL, NULL);
+             return 0;],
+            [XFIXES_LIBS="-lXfixes";have_xfixes=true;AC_MSG_RESULT(Yes)],
+	    AC_MSG_RESULT("No"))
+
+if test x$have_xfixes = "xtrue"; then
+AC_DEFINE(HAVE_XFIXES)
+fi
+
+AC_SUBST(XFIXES_LIBS)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+LDFLAGS=$OLD_LDFLAGS
+
+fi
+
+
+dnl
 dnl Libquicktime
 dnl
 
@@ -1200,6 +1243,14 @@ echo "Yes"
 else
 echo "Missing"
 fi
+
+echo -n "XFixes extension:    "
+if test "x$have_xfixes" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
 
 echo -n "libcdio:             "
 if test "x$have_cdio" = "xtrue"; then

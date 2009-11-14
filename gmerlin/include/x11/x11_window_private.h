@@ -324,6 +324,10 @@ int bg_x11_window_check_embed_property(bg_x11_window_t * win,
 void bg_x11_window_set_fullscreen_mapped(bg_x11_window_t * win,
                                          window_t * w);
 
+void
+bg_x11_window_set_netwm_state(Display * dpy, Window win, Window root, int action, Atom state);
+
+
 /* For OpenGL support */
 
 int bg_x11_window_init_gl(bg_x11_window_t *);
