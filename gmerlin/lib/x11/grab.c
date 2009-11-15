@@ -357,6 +357,7 @@ static int realize_window(bg_x11_grab_window_t * ret)
 #endif
   XSetWindowAttributes attr;
   unsigned long valuemask;
+  Atom wm_protocols[1];
   
   /* Open Display */
   ret->dpy = XOpenDisplay(NULL);
@@ -415,6 +416,8 @@ static int realize_window(bg_x11_grab_window_t * ret)
                           ShapeSet,
                           YXBanded); 
 
+  wm_protocols[0] = XInternAtom(ret->dpy, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols(ret->dpy, ret->win, wm_protocols, 1);
   
   XmbSetWMProperties(ret->dpy, ret->win, "X11 grab",
                      "X11 grab", NULL, 0, NULL, NULL, NULL);

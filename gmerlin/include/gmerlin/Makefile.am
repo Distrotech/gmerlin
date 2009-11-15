@@ -10,6 +10,7 @@ charset.h \
 cmdline.h \
 converters.h \
 edl.h \
+encoder.h \
 encoderinfo.h \
 fileformat.h \
 filters.h \

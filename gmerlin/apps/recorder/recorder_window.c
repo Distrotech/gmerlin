@@ -264,7 +264,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   /* Create widgets */  
   ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-  g_signal_connect(G_OBJECT(ret->win), "delete-event", G_CALLBACK(delete_callback),
+  g_signal_connect(G_OBJECT(ret->win), "delete-event",
+                   G_CALLBACK(delete_callback),
                    ret);
   
   ret->socket = gtk_socket_new();
@@ -304,7 +305,6 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   ret->logwindow =
     bg_gtk_log_window_create(log_window_close_callback,
                              ret, "Recorder");
-
   
   /* Pack everything */
 
@@ -436,10 +436,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                 NULL,
                 (void*)(ret->logwindow),
                 bg_gtk_log_window_get_parameters(ret->logwindow));
-
-  
+ 
   /* Apply config sections */
-
 
   bg_cfg_section_apply(ret->log_section,
                        bg_gtk_log_window_get_parameters(ret->logwindow),
@@ -461,5 +459,6 @@ void bg_recorder_window_run(bg_recorder_window_t * win)
   {
   gtk_widget_show(win->win);
   bg_recorder_run(win->rec);
+  
   gtk_main();
   }
