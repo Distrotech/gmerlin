@@ -27,6 +27,7 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 
 #include <targa.h>
@@ -42,6 +43,8 @@ typedef struct
   {
   gavl_video_format_t format;
   int rle;
+
+  bg_iw_callbacks_t * cb;
   char * filename;
   } tga_t;
 
@@ -58,6 +61,12 @@ static void destroy_tga(void * priv)
   free(tga);
   }
 
+static void set_callbacks_tga(void * data, bg_iw_callbacks_t * cb)
+  {
+  tga_t * e = data;
+  e->cb = cb;
+  }
+
 static int write_header_tga(void * priv, const char * filename,
                             gavl_video_format_t * format, const bg_metadata_t * m)
   {
@@ -69,7 +78,12 @@ static int write_header_tga(void * priv, const char * filename,
     format->pixelformat = GAVL_BGR_24;
 
   gavl_video_format_copy(&(tga->format), format);
-  tga->filename = bg_strdup(tga->filename, filename);
+
+  tga->filename = bg_filename_ensure_extension(filename, "tga");
+  
+  if(!bg_iw_cb_create_output_file(tga->cb, tga->filename))
+    return 0;
+  
   return 1;
   }
 
@@ -77,7 +91,7 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
   {
   tga_t * tga = (tga_t*)priv;
   gavl_video_frame_t * tmp_frame;
-  int result;
+  int result, ret = 1;
 
   errno = 0;
 
@@ -127,14 +141,13 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
     else
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot save %s: %s",
              tga->filename, tga_error(result));
-    free(tga->filename);
-    tga->filename = (char*)0;
-    return 0;
+    ret = 0;
     }
-  free(tga->filename);
-  tga->filename = (char*)0;
 
-  return 1;
+  free(tga->filename);
+  tga->filename = NULL;
+  
+  return ret;
   }
 
 /* Configuration stuff */
@@ -168,13 +181,6 @@ static void set_parameter_tga(void * p, const char * name,
     tga->rle = val->val_i;
   }
 
-static char const * const tga_extension = ".tga";
-
-static const char * get_extension_tga(void * p)
-  {
-  return tga_extension;
-  }
-
 
 const bg_image_writer_plugin_t the_plugin =
   {
@@ -193,8 +199,8 @@ const bg_image_writer_plugin_t the_plugin =
       .set_parameter =  set_parameter_tga
     },
     .extensions = "tga",
+    .set_callbacks = set_callbacks_tga,
     .write_header = write_header_tga,
-    .get_extension = get_extension_tga,
     .write_image =  write_image_tga,
   };
 

@@ -30,6 +30,7 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "iw_tiff"
@@ -45,7 +46,15 @@ typedef struct
   uint16_t compression;
   int jpeg_quality;
   int zip_quality;  /* Compression level, actually */
+  bg_iw_callbacks_t * cb;
   } tiff_t;
+
+static void set_callbacks_tiff(void * data, bg_iw_callbacks_t * cb)
+  {
+  tiff_t * e = data;
+  e->cb = cb;
+  }
+
 
 static void * create_tiff()
   {
@@ -66,9 +75,34 @@ static int write_header_tiff(void * priv, const char * filename,
   tiff_t * p = (tiff_t*)priv;
   uint16_t v[1];
 
+  char * real_filename;
+  
+  real_filename = bg_filename_ensure_extension(filename, "tif");
+  
+  if(!bg_iw_cb_create_output_file(p->cb, real_filename))
+    {
+    free(real_filename);
+    return 0;
+    }
+  
+  errno = 0;
+  p->output = TIFFOpen(real_filename,"w");
+  free(real_filename);
+  
+  if(!p->output)
+    {
+    if(errno)
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Cannot open %s: %s",
+             filename, strerror(errno));
+    else
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s",  filename);
+    return 0;
+    }
+
   p->Width =  format->image_width;
   p->Height =  format->image_height;
-
+  
   if(gavl_pixelformat_has_alpha(format->pixelformat))
     {
     format->pixelformat = GAVL_RGBA_32;
@@ -78,20 +112,6 @@ static int write_header_tiff(void * priv, const char * filename,
     {
     format->pixelformat = GAVL_RGB_24;
     p->SamplesPerPixel = 3;
-    }
-
-  errno = 0;
-  p->output = TIFFOpen(filename,"w");
-
-  if(!p->output)
-    {
-    
-    if(errno)
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
-             filename, strerror(errno));
-    else
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s",  filename);
-    return 0;
     }
   
   TIFFSetField(p->output, TIFFTAG_IMAGEWIDTH, p->Width);
@@ -200,14 +220,6 @@ static void set_parameter_tiff(void * p, const char * name,
   
   }
 
-static char const * const tiff_extension = ".tif";
-
-static const char * get_extension_tiff(void * p)
-  {
-  return tiff_extension;
-  }
-
-
 const bg_image_writer_plugin_t the_plugin =
   {
     .common =
@@ -225,7 +237,7 @@ const bg_image_writer_plugin_t the_plugin =
       .set_parameter =  set_parameter_tiff
     },
     .extensions = "tif",
-    .get_extension = get_extension_tiff,
+    .set_callbacks = set_callbacks_tiff,
     .write_header =  write_header_tiff,
     .write_image =   write_image_tiff,
   };

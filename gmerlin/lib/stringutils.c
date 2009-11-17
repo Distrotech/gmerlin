@@ -559,3 +559,15 @@ void bg_diprintf(int indent, const char * format, ...)
   vfprintf(stderr, format, argp);
   va_end(argp);
   }
+
+char * bg_filename_ensure_extension(const char * filename,
+                                    const char * ext)
+  {
+  const char * pos;
+
+  if((pos = strrchr(filename, '.')) &&
+     (!strcasecmp(pos+1, ext)))
+    return bg_strdup(NULL, filename);
+  else
+    return bg_sprintf("%s.%s", filename, ext);
+  }

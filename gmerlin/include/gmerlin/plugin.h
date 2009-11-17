@@ -117,7 +117,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 /** @}
  */
 
-#define BG_PLUGIN_API_VERSION 22
+#define BG_PLUGIN_API_VERSION 23
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -1261,6 +1261,45 @@ struct bg_ov_plugin_s
  *  \brief Encoder
  */ 
 
+/** \ingroup plugin_ov
+ * \brief Typedef for callbacks for the encoder plugin
+ *
+ */
+
+typedef struct bg_encoder_callbacks_s bg_encoder_callbacks_t;
+
+/** \ingroup plugin_ov
+ * \brief Callbacks for the encoder plugin
+ *
+ */
+
+struct bg_encoder_callbacks_s
+  {
+  
+  /** \brief   Output file callback
+   *  \param   data The data member of this bg_ov_callbacks_s struct
+   *  \param   filename Name of the created file
+   *  \returns 1 if the file may be created, 0 else
+   *
+   *  This is called whenever an output file is created.
+   */
+  
+  int (*create_output_file)(void * data, const char * filename);
+
+  /** \brief   Temp file callback
+   *  \param   data The data member of this bg_ov_callbacks_s struct
+   *  \param   filename Name of the created file
+   *  \returns 1 if the file may be created, 0 else
+   *
+   *  This is called whenever a temporary file is created.
+   */
+
+  int (*create_temp_file)(void * data, const char * filename);
+  
+  void * data;//!< Application specific data passed as the first argument to all callbacks.
+  };
+
+
 /** \ingroup plugin_e
  *  \brief Typedef for encoder plugin
  */
@@ -1280,27 +1319,24 @@ struct bg_encoder_plugin_s
   int max_video_streams;  //!< Maximum number of video streams. -1 means infinite
   int max_subtitle_text_streams;//!< Maximum number of text subtitle streams. -1 means infinite
   int max_subtitle_overlay_streams;//!< Maximum number of overlay subtitle streams. -1 means infinite
-
-  /** \brief Return the file extension
+  
+  /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
-   *  \returns The file extension
-   *
-   *  If a plugin supports more than one output format, the actual format
-   *  is configured as a parameter. This function returns the extension
-   *  according to the format.
+   *  \param cb Callback structure
    */
   
-  const char * (*get_extension)(void * priv);
+  void (*set_callbacks)(void * priv, bg_encoder_callbacks_t * cb);
   
   /** \brief Open a file
    *  \param priv The handle returned by the create() method
-   *  \param filename Name of the file to be opened
+   *  \param filename Name of the file to be opened (without extension!)
    *  \param metadata Metadata to be written to the file
    *  \param chapter_list Chapter list (optional, can be NULL)
    */
   
   int (*open)(void * data, const char * filename,
-              const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list);
+              const bg_metadata_t * metadata,
+              const bg_chapter_list_t * chapter_list);
   
   /** \brief Return the filename, which can be passed to the player
    *  \param priv The handle returned by the create() method
@@ -1387,7 +1423,8 @@ struct bg_encoder_plugin_s
    *  \returns Index of this stream (starting with 0)
    */
   
-  int (*add_subtitle_text_stream)(void * priv, const char * language, int * timescale);
+  int (*add_subtitle_text_stream)(void * priv, const char * language,
+                                  int * timescale);
   
   /** \brief Add a text subtitle stream
    *  \param priv The handle returned by the create() method
@@ -1755,6 +1792,28 @@ struct bg_image_reader_plugin_s
   int (*read_image)(void * priv, gavl_video_frame_t * frame);
   };
 
+/**  
+ * \brief Typedef for callbacks for the image writer plugin
+ */
+
+typedef struct bg_iw_callbacks_s bg_iw_callbacks_t;
+
+struct bg_iw_callbacks_s
+  {
+  
+  /** \brief   Output file callback
+   *  \param   data The data member of this bg_ov_callbacks_s struct
+   *  \param   filename Name of the created file
+   *  \returns 1 if the file may be created, 0 else
+   *
+   *  This is called whenever an output file is created.
+   */
+  
+  int (*create_output_file)(void * data, const char * filename);
+  
+  void * data;//!< Application specific data passed as the first argument to all callbacks.
+  };
+
 /** \brief Typedef for image writer plugin
  *
  */
@@ -1770,16 +1829,12 @@ struct bg_image_writer_plugin_s
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   const char * extensions; //!< Supported file extensions (space separated)
 
-  /** \brief Return the file extension
+  /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
-   *  \returns The extension
-   *
-   *  This function is mandatory for all plugins. Most plugins will always
-   *  return the same extension. Others might have multiple supported formats,
-   *  which are selected through parameters.
+   *  \param cb Callback structure
    */
-
-  const char * (*get_extension)(void * priv);
+  
+  void (*set_callbacks)(void * priv, bg_iw_callbacks_t * cb);
   
   /** \brief Write the file header
    *  \param priv The handle returned by the create() method

@@ -33,6 +33,7 @@
 
 
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_wav"
@@ -76,6 +77,7 @@ typedef struct wav_s
   uint8_t * buffer;
   int buffer_alloc;
   void (*convert_func)(struct wav_s*, uint8_t * samples, int num_samples);
+  bg_encoder_callbacks_t * cb;
   } wav_t;
 
 static int write_8(FILE * output, uint32_t val)
@@ -287,6 +289,12 @@ static void * create_wav()
   return ret;
   }
 
+static void set_callbacks_wav(void * data, bg_encoder_callbacks_t * cb)
+  {
+  wav_t * e = data;
+  e->cb = cb;
+  }
+
 static void destroy_wav(void * priv)
   {
   wav_t * wav;
@@ -450,7 +458,11 @@ static int open_wav(void * data, const char * filename,
   wav_t * wav;
   wav = (wav_t*)data;
   
-  wav->filename = bg_strdup(wav->filename, filename);
+  wav->filename = bg_filename_ensure_extension(filename, "wav");
+
+  if(!bg_encoder_cb_create_output_file(wav->cb, wav->filename))
+    return 0;
+  
   wav->output = fopen(wav->filename, "wb");
 
   if(!wav->output)
@@ -468,12 +480,6 @@ static int open_wav(void * data, const char * filename,
   return result;
   }
 
-static char const * const wav_extension = ".wav";
-
-static const char * get_extension_wav(void * data)
-  {
-  return wav_extension;
-  }
 
 static int add_audio_stream_wav(void * data, const char * language, gavl_audio_format_t * format)
   {
@@ -643,7 +649,7 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =   1,
     .max_video_streams =   0,
     
-    .get_extension =       get_extension_wav,
+    .set_callbacks =       set_callbacks_wav,
     
     .open =                open_wav,
     

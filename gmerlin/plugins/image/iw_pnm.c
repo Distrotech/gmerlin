@@ -29,6 +29,7 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 
 #include <gmerlin/log.h>
@@ -45,6 +46,7 @@ typedef struct
   uint32_t Height;
   gavl_video_format_t format;
   uint16_t pnm_format;
+  bg_iw_callbacks_t * cb;
   } pnm_t;
 
 static void * create_pnm()
@@ -62,24 +64,40 @@ static void destroy_pnm(void* priv)
   free(pnm);
   }
 
+static void set_callbacks_pnm(void * data, bg_iw_callbacks_t * cb)
+  {
+  pnm_t * e = data;
+  e->cb = cb;
+  }
+
 static int write_header_pnm(void * priv, const char * filename,
                             gavl_video_format_t * format, const bg_metadata_t * m)
   {
+  char * real_filename;
   pnm_t * p = (pnm_t*)priv;
 
-  p->Width =  format->image_width;
-  p->Height =  format->image_height;
+  real_filename = bg_filename_ensure_extension(filename, "ppm");
 
-  format->pixelformat = GAVL_RGB_24;
-
-  p->output = fopen(filename,"wb");
-
+  if(!bg_iw_cb_create_output_file(p->cb, real_filename))
+    {
+    free(real_filename);
+    return 0;
+    }
+  
+  p->output = fopen(real_filename,"wb");
+  free(real_filename);
+  
   if(!p->output)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
-           filename, strerror(errno));
+           real_filename, strerror(errno));
     return 0;
     }
+  
+  p->Width =  format->image_width;
+  p->Height =  format->image_height;
+  format->pixelformat = GAVL_RGB_24;
+
   /* Write the header lines */  
   if(p->pnm_format == BINARY)
     {
@@ -191,14 +209,6 @@ static void set_parameter_pnm(void * p, const char * name,
    
   }
 
-
-static char const * const pnm_extension = ".ppm";
-
-static const char * get_extension_pnm(void * p)
-  {
-  return pnm_extension;
-  }
-
 const bg_image_writer_plugin_t the_plugin =
   {
     .common =
@@ -215,8 +225,8 @@ const bg_image_writer_plugin_t the_plugin =
       .get_parameters = get_parameters_pnm,
       .set_parameter =  set_parameter_pnm
     },
-    .extensions = "pnm",
-    .get_extension = get_extension_pnm,
+    .extensions = "ppm",
+    .set_callbacks = set_callbacks_pnm,
     .write_header =  write_header_pnm,
     .write_image =   write_image_pnm,
   };

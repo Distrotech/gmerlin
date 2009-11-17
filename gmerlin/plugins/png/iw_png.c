@@ -26,20 +26,30 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 
 #include <png.h>
 
 #include "pngwriter.h"
 
-#define PADD(i, size) i = ((i + size - 1) / size) * size
-
-
 /* PNG writer */
+
+typedef struct
+  {
+  bg_pngwriter_t writer; /* Must come first */
+  bg_iw_callbacks_t * cb;
+  } png_t;
+
+static void set_callbacks_png(void * data, bg_iw_callbacks_t * cb)
+  {
+  png_t * e = data;
+  e->cb = cb;
+  }
 
 static void * create_png()
   {
-  bg_pngwriter_t * ret;
+  png_t * ret;
   ret = calloc(1, sizeof(*ret));
 
   return ret;
@@ -47,11 +57,30 @@ static void * create_png()
 
 static void destroy_png(void * priv)
   {
-  bg_pngwriter_t * png = (bg_pngwriter_t*)priv;
+  png_t * png = priv;
   free(png);
   }
 
-
+static int write_header_png(void * priv, const char * filename,
+                            gavl_video_format_t * format, const bg_metadata_t * metadata)
+  {
+  int ret;
+  char * real_filename;
+  png_t * png = priv;
+  
+  real_filename = bg_filename_ensure_extension(filename, "png");
+  
+  if(!bg_iw_cb_create_output_file(png->cb, real_filename))
+    {
+    free(real_filename);
+    return 0;
+    }
+  ret = bg_pngwriter_write_header(&png->writer, real_filename,
+                                  format, metadata);
+  
+  free(real_filename);
+  return ret;
+  }
 
 /* Configuration stuff */
 
@@ -81,12 +110,6 @@ static const bg_parameter_info_t * get_parameters_png(void * p)
   return parameters;
   }
 
-static char const * const png_extension = ".png";
-
-static const char * get_extension_png(void * p)
-  {
-  return png_extension;
-  }
 
 const bg_image_writer_plugin_t the_plugin =
   {
@@ -105,8 +128,8 @@ const bg_image_writer_plugin_t the_plugin =
       .set_parameter =  bg_pngwriter_set_parameter
     },
     .extensions = "png",
-    .get_extension = get_extension_png,
-    .write_header =  bg_pngwriter_write_header,
+    .set_callbacks = set_callbacks_png,
+    .write_header =  write_header_png,
     .write_image =   bg_pngwriter_write_image,
   };
 

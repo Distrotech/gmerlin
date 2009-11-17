@@ -120,7 +120,6 @@ struct bg_transcoder_track_s
 const bg_parameter_info_t *
 bg_transcoder_track_get_general_parameters();
 
-
 const bg_parameter_info_t *
 bg_transcoder_track_audio_get_general_parameters();
 

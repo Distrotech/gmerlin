@@ -22,6 +22,11 @@
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/encoder.h>
 
+#define SEPARATE_AUDIO            (1<<0)
+#define SEPARATE_VIDEO            (1<<1)
+#define SEPARATE_SUBTITLE_TEXT    (1<<3)
+#define SEPARATE_SUBTITLE_OVERLAY (1<<4)
+
 typedef struct
   {
   int index;
@@ -60,6 +65,11 @@ typedef struct
 
 struct bg_encoder_s
   {
+  const bg_plugin_info_t * audio_info;
+  const bg_plugin_info_t * video_info;
+  const bg_plugin_info_t * subtitle_text_info;
+  const bg_plugin_info_t * subtitle_overlay_info;
+  
   int num_audio_streams;
   int num_video_streams;
   int num_subtitle_text_streams;
@@ -72,6 +82,8 @@ struct bg_encoder_s
   
   int num_plugins;
   bg_plugin_handle_t ** plugins;
+
+  int flags;
   };
 
 bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
@@ -82,7 +94,8 @@ bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
   return ret;
   }
 
-void bg_encoder_destroy(bg_encoder_t * enc) /* Also closes all internal encoders */
+void bg_encoder_destroy(bg_encoder_t * enc)
+     /* Also closes all internal encoders */
   {
   free(enc);
   }
@@ -92,12 +105,36 @@ int bg_encoder_open(bg_encoder_t * enc, const char * filename_base)
   return 0;
   }
 
+#define REALLOC_STREAM(streams, num) \
+  streams = realloc(streams, sizeof(streams)*(num+1));\
+  s = &streams[num]
+
+static bg_plugin_handle_t *
+load_plugin_separate(bg_encoder_t * enc, const char * name)
+  {
+  bg_plugin_info_t * info;
+  enc->plugins = realloc(enc->plugins,
+                         (enc->num_plugins+1)* sizeof(enc->plugins));
+  
+  }
+
+static bg_plugin_handle_t *
+load_plugin_common(bg_encoder_t * enc)
+  {
+  
+  }
 
 /* Add streams */
-int bg_encoder_add_audio_stream(bg_encoder_t * enc, const char * language,
-                                gavl_audio_format_t * format, bg_cfg_section_t * section)
+int bg_encoder_add_audio_stream(bg_encoder_t * enc,
+                                const char * language,
+                                gavl_audio_format_t * format,
+                                bg_cfg_section_t * section)
   {
   int ret;
+  audio_stream_t * s;
+  
+  REALLOC_STREAM(enc->audio_streams,
+                 enc->num_audio_streams);
   
   ret = enc->num_audio_streams;
   enc->num_audio_streams++;
@@ -105,30 +142,47 @@ int bg_encoder_add_audio_stream(bg_encoder_t * enc, const char * language,
   }
 
 int bg_encoder_add_video_stream(bg_encoder_t * enc,
-                                gavl_video_format_t * format, bg_cfg_section_t * section)
+                                gavl_video_format_t * format,
+                                bg_cfg_section_t * section)
   {
   int ret;
+  video_stream_t * s;
+
+  REALLOC_STREAM(enc->video_streams,
+                 enc->num_video_streams);
   
   ret = enc->num_video_streams;
   enc->num_video_streams++;
   return ret;
-
   }
 
-int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc, const char * language,
-                                        int timescale, bg_cfg_section_t * section)
+int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc,
+                                        const char * language,
+                                        int timescale,
+                                        bg_cfg_section_t * section)
   {
   int ret;
+  subtitle_text_stream_t * s;
+
+  REALLOC_STREAM(enc->subtitle_text_streams,
+                 enc->num_subtitle_text_streams);
+
   ret = enc->num_subtitle_text_streams;
   enc->num_subtitle_text_streams++;
   return ret;
 
   }
 
-int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t * enc, const char * language,
-                                           gavl_video_format_t * format, bg_cfg_section_t * section)
+int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t * enc,
+                                           const char * language,
+                                           gavl_video_format_t * format,
+                                           bg_cfg_section_t * section)
   {
   int ret;
+  subtitle_overlay_stream_t * s;
+
+  REALLOC_STREAM(enc->subtitle_overlay_streams,
+                 enc->num_subtitle_overlay_streams);
   
   ret = enc->num_subtitle_overlay_streams;
   enc->num_subtitle_overlay_streams++;
@@ -149,19 +203,25 @@ int bg_encoder_start(bg_encoder_t * enc)
   }
 
 /* Get formats */
-void bg_encoder_get_audio_format(bg_encoder_t * enc, int stream, gavl_audio_format_t*ret)
+void bg_encoder_get_audio_format(bg_encoder_t * enc,
+                                 int stream,
+                                 gavl_audio_format_t*ret)
   {
   audio_stream_t * s = &enc->audio_streams[stream];
   s->plugin->get_audio_format(s->priv, s->index, ret);
   }
 
-void bg_encoder_get_video_format(bg_encoder_t * enc, int stream, gavl_video_format_t*ret)
+void bg_encoder_get_video_format(bg_encoder_t * enc,
+                                 int stream,
+                                 gavl_video_format_t*ret)
   {
   video_stream_t * s = &enc->video_streams[stream];
   s->plugin->get_video_format(s->priv, s->index, ret);
   }
 
-void bg_encoder_get_subtitle_overlay_format(bg_encoder_t * enc, int stream, gavl_video_format_t*ret)
+void bg_encoder_get_subtitle_overlay_format(bg_encoder_t * enc,
+                                            int stream,
+                                            gavl_video_format_t*ret)
   {
   subtitle_overlay_stream_t * s = &enc->subtitle_overlay_streams[stream];
   s->plugin->get_subtitle_overlay_format(s->priv, s->index, ret);
@@ -169,27 +229,34 @@ void bg_encoder_get_subtitle_overlay_format(bg_encoder_t * enc, int stream, gavl
 
 
 /* Write frame */
-int bg_encoder_write_audio_frame(bg_encoder_t * enc, gavl_audio_frame_t * frame, int stream)
+int bg_encoder_write_audio_frame(bg_encoder_t * enc,
+                                 gavl_audio_frame_t * frame,
+                                 int stream)
   {
   audio_stream_t * s = &enc->audio_streams[stream];
   s->plugin->write_audio_frame(s->priv, frame, s->index);
   }
   
 
-int bg_encoder_write_video_frame(bg_encoder_t * enc, gavl_video_frame_t * frame, int stream)
+int bg_encoder_write_video_frame(bg_encoder_t * enc,
+                                 gavl_video_frame_t * frame,
+                                 int stream)
   {
   video_stream_t * s = &enc->video_streams[stream];
   s->plugin->write_video_frame(s->priv, frame, s->index);
   }
 
-int bg_encoder_write_subtitle_text(bg_encoder_t * enc,const char * text,
-                                   int64_t start, int64_t duration, int stream)
+int bg_encoder_write_subtitle_text(bg_encoder_t * enc,
+                                   const char * text,
+                                   int64_t start,
+                                   int64_t duration, int stream)
   {
   subtitle_text_stream_t * s = &enc->subtitle_text_streams[stream];
   s->plugin->write_subtitle_text(s->priv, text, start, duration, s->index);
   }
 
-int bg_encoder_write_subtitle_overlay(bg_encoder_t * enc, gavl_overlay_t * ovl, int stream)
+int bg_encoder_write_subtitle_overlay(bg_encoder_t * enc,
+                                      gavl_overlay_t * ovl, int stream)
   {
   subtitle_overlay_stream_t * s = &enc->subtitle_overlay_streams[stream];
   s->plugin->write_subtitle_overlay(s->priv, ovl, s->index);

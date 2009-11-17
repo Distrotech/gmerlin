@@ -692,8 +692,13 @@ typedef struct
   char * filename_buffer;
   
   gavl_video_format_t format;
-
+  
+  bg_encoder_callbacks_t * cb;
+  
   int have_header;
+  
+  bg_iw_callbacks_t iw_callbacks;
+  
   } encoder_t;
 
 static bg_parameter_info_t *
@@ -741,6 +746,9 @@ static void set_parameter_encoder(void * priv, const char * name,
       info = bg_plugin_find_by_name(e->plugin_reg, val->val_str);
       e->plugin_handle = bg_plugin_load(e->plugin_reg, info);
       e->image_writer = (bg_image_writer_plugin_t*)(e->plugin_handle->plugin);
+      
+      if(e->image_writer->set_callbacks)
+        e->image_writer->set_callbacks(e->plugin_handle->priv, &e->iw_callbacks);
       }
     }
   else if(!strcmp(name, "frame_digits"))
@@ -760,26 +768,11 @@ static void set_parameter_encoder(void * priv, const char * name,
     }
   }
 
-
-static const char * get_extension_encoder(void * data)
+static void set_callbacks_encoder(void * data, bg_encoder_callbacks_t * cb)
   {
-  const char * plugin_extension;
-  
-  encoder_t * e;
-  e = (encoder_t *)data;
-
-  if(!e->extension)
-    {
-    /* Create extension */
-    
-    plugin_extension = e->image_writer->get_extension(e->plugin_handle->priv);
-    e->extension_mask = bg_sprintf("-%%0%d"PRId64"%s", e->frame_digits, plugin_extension);
-    e->extension      = bg_sprintf(e->extension_mask, (int64_t)e->frame_offset);
-
-    }
-  return e->extension;
+  encoder_t * e = data;
+  e->cb = cb;
   }
-
 
 static int open_encoder(void * data, const char * filename,
                         const bg_metadata_t * metadata,
@@ -795,9 +788,21 @@ static int open_encoder(void * data, const char * filename,
   e->mask = bg_strdup(e->mask, filename);
 
   filename_len = strlen(filename);
-  
-  e->mask[filename_len - strlen(get_extension_encoder(data))] = '\0';
 
+  if(!e->extension)
+    {
+    char ** extensions;
+
+    extensions = bg_strbreak(e->image_writer->extensions, ' ');
+    
+    /* Create extension */
+    
+    e->extension_mask = bg_sprintf("-%%0%d"PRId64".%s", e->frame_digits, extensions[0]);
+    e->extension      = bg_sprintf(e->extension_mask, (int64_t)e->frame_offset);
+    
+    bg_strbreak_free(extensions);
+    }
+  
   e->mask = bg_strcat(e->mask, e->extension_mask);
 
 
@@ -961,11 +966,11 @@ const bg_encoder_plugin_t encoder_plugin =
     .max_audio_streams = 0,
     .max_video_streams = 1,
 
-    .get_extension =     get_extension_encoder,
-    
     /* Open a file, filename base is without extension, which
        will be added by the plugin */
-        
+    
+    .set_callbacks =     set_callbacks_encoder,
+    
     .open =              open_encoder,
     .get_filename =      get_filename_encoder,
     

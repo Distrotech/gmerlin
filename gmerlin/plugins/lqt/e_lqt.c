@@ -25,6 +25,7 @@
 #include <gmerlin/translation.h>
 
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 
@@ -48,6 +49,7 @@ typedef struct
   {
   int max_riff_size;
   char * filename;
+  char * filename_tmp;
   quicktime_t * file;
   
   //  bg_parameter_info_t * parameters;
@@ -67,6 +69,8 @@ typedef struct
   
   /* Needed for calculating the duration of the last chapter */
   gavl_time_t duration;
+  
+  bg_encoder_callbacks_t * cb;
   
   struct
     {
@@ -109,6 +113,11 @@ static void * create_lqt()
   return ret;
   }
 
+static void set_callbacks_lqt(void * data, bg_encoder_callbacks_t * cb)
+  {
+  e_lqt_t * e = data;
+  e->cb = cb;
+  }
 
 static const struct
   {
@@ -117,24 +126,22 @@ static const struct
   }
 extensions[] =
   {
-    { LQT_FILE_QT  | LQT_FILE_QT_OLD,      ".mov" },
-    { LQT_FILE_AVI | LQT_FILE_AVI_ODML,    ".avi" },
-    { LQT_FILE_MP4,                        ".mp4" },
-    { LQT_FILE_M4A,                        ".m4a" },
-    { LQT_FILE_3GP,                        ".3gp" },
+    { LQT_FILE_QT  | LQT_FILE_QT_OLD,      "mov" },
+    { LQT_FILE_AVI | LQT_FILE_AVI_ODML,    "avi" },
+    { LQT_FILE_MP4,                        "mp4" },
+    { LQT_FILE_M4A,                        "m4a" },
+    { LQT_FILE_3GP,                        "3gp" },
   };
 
-static const char * get_extension_lqt(void * data)
+static const char * get_extension(int type)
   {
   int i;
-  e_lqt_t * e = (e_lqt_t*)data;
-
   for(i = 0; i < sizeof(extensions)/sizeof(extensions[0]); i++)
     {
-    if(extensions[i].type_mask & e->file_type)
+    if(extensions[i].type_mask & type)
       return extensions[i].extension;
     }
-  return extensions[0].extension; /* ".mov" */
+  return extensions[0].extension; /* "mov" */
   }
 
 static int open_lqt(void * data, const char * filename,
@@ -143,13 +150,26 @@ static int open_lqt(void * data, const char * filename,
   {
   char * track_string;
   e_lqt_t * e = (e_lqt_t*)data;
+
+  e->filename = bg_filename_ensure_extension(filename, get_extension(e->file_type));
+
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+    return 0;
   
   if(e->make_streamable && !(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
-    e->filename = bg_sprintf("%s.tmp", filename);
+    {
+    e->filename_tmp = bg_sprintf("%s.tmp", e->filename);
+    
+    if(!bg_encoder_cb_create_temp_file(e->cb, e->filename_tmp))
+      return 0;
+    
+    e->file = lqt_open_write(e->filename_tmp, e->file_type);
+    }
   else
-    e->filename = bg_strdup(e->filename, filename);
-
-  e->file = lqt_open_write(e->filename, e->file_type);
+    {
+    
+    e->file = lqt_open_write(e->filename, e->file_type);
+    }
   if(!e->file)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s", e->filename);
@@ -391,7 +411,6 @@ static int close_lqt(void * data, int do_delete)
   {
   int i;
   gavl_time_t chapter_time;
-  char * filename_final, *pos;
   int num_chapters;
   e_lqt_t * e = (e_lqt_t*)data;
   
@@ -449,22 +468,23 @@ static int close_lqt(void * data, int do_delete)
   if(do_delete)
     remove(e->filename);
 
-  else if(e->make_streamable && !(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
+  else if(e->filename_tmp)
     {
-    filename_final = bg_strdup((char*)0, e->filename);
-    pos = strrchr(filename_final, '.');
-    *pos = '\0';
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Making streamable....");
-    quicktime_make_streamable(e->filename, filename_final);
+    quicktime_make_streamable(e->filename_tmp, e->filename);
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Making streamable....done");
-    remove(e->filename);
-    free(filename_final);
+    remove(e->filename_tmp);
     }
   
   if(e->filename)
     {
     free(e->filename);
     e->filename = (char*)0;
+    }
+  if(e->filename_tmp)
+    {
+    free(e->filename_tmp);
+    e->filename_tmp = (char*)0;
     }
   if(e->audio_streams)
     {
@@ -804,12 +824,12 @@ like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and t
     .max_video_streams =         -1,
     .max_subtitle_text_streams = -1,
 
+    .set_callbacks =         set_callbacks_lqt,
+    
     .get_audio_parameters =         get_audio_parameters_lqt,
     .get_video_parameters =         get_video_parameters_lqt,
     .get_subtitle_text_parameters = get_subtitle_text_parameters_lqt,
 
-    .get_extension =        get_extension_lqt,
-    
     .open =                 open_lqt,
 
     .add_audio_stream =     add_audio_stream_lqt,

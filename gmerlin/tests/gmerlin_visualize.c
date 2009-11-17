@@ -146,10 +146,7 @@ static int open_encoder(bg_plugin_registry_t * plugin_reg,
                         gavl_audio_format_t * audio_format,
                         gavl_video_format_t * video_format)
   {
-  const char * extension;
   const bg_plugin_info_t * info;
-
-  char * filename;
   
   info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_VIDEO);
   if(!info)
@@ -165,17 +162,11 @@ static int open_encoder(bg_plugin_registry_t * plugin_reg,
     }
   *plugin = (bg_encoder_plugin_t *)(*handle)->plugin;
   
-  extension = (*plugin)->get_extension((*handle)->priv);
-
-  filename = bg_sprintf("%s%s", file_prefix, extension);
-
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Filename %s", filename);
-
   /* Open */
 
-  if(!(*plugin)->open((*handle)->priv, filename, NULL, NULL))
+  if(!(*plugin)->open((*handle)->priv, file_prefix, NULL, NULL))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening %s failed", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening %s failed", file_prefix);
     }
 
   /* Add video stream */

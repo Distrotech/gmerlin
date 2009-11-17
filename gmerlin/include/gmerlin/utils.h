@@ -125,6 +125,21 @@ void bg_display_html_help(const char * path);
 
 char * bg_create_unique_filename(char * format);
 
+/** \brief Ensure a file extension
+ *  \param filename Filename (with or without extension)
+ *  \param extension Extension to look for
+ *  \returns A newly allocated filename
+ *
+ *  This function checks case insensitively if filename
+ *  ends with the extension. If yes, it returns a copy of
+ *  the filename. If not, it returns a copy with the extension
+ *  appended. The extention must not start with the dot.
+ */
+
+char * bg_filename_ensure_extension(const char * filename,
+                                    const char * ext);
+
+
 
 /** @} */
 

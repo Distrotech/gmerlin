@@ -57,12 +57,6 @@ static void destroy_gavl(void* priv)
   free(gavl);
   }
 
-static char const * const gavl_extension = ".gavi";
-
-static const char * get_extension_gavl(void * p)
-  {
-  return gavl_extension;
-  }
 
 static int write_header_gavl(void * priv, const char * filename,
                              gavl_video_format_t * format, const bg_metadata_t * metadata)
@@ -107,7 +101,6 @@ const bg_image_writer_plugin_t the_plugin =
       .destroy =        destroy_gavl,
     },
     .extensions = "gavi",
-    .get_extension = get_extension_gavl,
     .write_header =  write_header_gavl,
     .write_image =   write_image_gavl,
   };

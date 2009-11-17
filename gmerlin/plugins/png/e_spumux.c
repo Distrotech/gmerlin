@@ -26,6 +26,7 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 
 #include <png.h>
@@ -46,6 +47,9 @@ typedef struct
   int subtitles_written;
 
   bg_metadata_t metadata;
+
+  bg_encoder_callbacks_t * cb;
+  
   } spumux_t;
 
 static void * create_spumux()
@@ -57,11 +61,10 @@ static void * create_spumux()
   return ret;
   }
 
-static char const * const extension = "xml";
-
-static const char * get_extension_spumux(void * priv)
+static void set_callbacks_spumux(void * data, bg_encoder_callbacks_t * cb)
   {
-  return extension;
+  spumux_t * e = data;
+  e->cb = cb;
   }
 
 static int open_spumux(void * priv, const char * filename,
@@ -74,7 +77,11 @@ static int open_spumux(void * priv, const char * filename,
   if(metadata)
     bg_metadata_copy(&spumux->metadata, metadata);
   
-  spumux->filename = bg_strdup(spumux->filename, filename);
+  spumux->filename = bg_filename_ensure_extension(filename, "xml");
+  
+  if(!bg_encoder_cb_create_output_file(spumux->cb, spumux->filename))
+    return 0;
+  
   spumux->filename_template = bg_strdup(spumux->filename_template, filename);
 
   pos = strrchr(spumux->filename_template, '.');
@@ -141,6 +148,12 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
 
   image_filename = bg_sprintf(spumux->filename_template, spumux->subtitles_written);
 
+  if(!bg_encoder_cb_create_output_file(spumux->cb, image_filename))
+    {
+    free(image_filename);
+    return 0;
+    }
+  
   if(!bg_pngwriter_write_header(priv, image_filename,
                                 &tmp_format, &spumux->metadata))
     return 0;
@@ -243,7 +256,7 @@ const bg_encoder_plugin_t the_plugin =
 
     .max_subtitle_overlay_streams = 1,
     
-    .get_extension =        get_extension_spumux,
+    .set_callbacks =        set_callbacks_spumux,
     
     .open =                 open_spumux,
 

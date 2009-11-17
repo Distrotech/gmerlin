@@ -27,6 +27,7 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 
 #include <gmerlin/log.h>
@@ -57,6 +58,9 @@ typedef struct
   gavl_pixelformat_t pixelformat;
   
   int quality;
+
+  bg_iw_callbacks_t * cb;
+
   } jpeg_t;
 
 static void * create_jpeg()
@@ -73,9 +77,15 @@ static void * create_jpeg()
   return ret;
   }
 
+static void set_callbacks_jpeg(void * data, bg_iw_callbacks_t * cb)
+  {
+  jpeg_t * e = data;
+  e->cb = cb;
+  }
+
 static void destroy_jpeg(void * priv)
   {
-  jpeg_t * jpeg = (jpeg_t*)priv;
+  jpeg_t * jpeg = priv;
   jpeg_destroy_compress(&(jpeg->cinfo));
   free(jpeg);
   }
@@ -84,9 +94,21 @@ static
 int write_header_jpeg(void * priv, const char * filename,
                       gavl_video_format_t * format, const bg_metadata_t * metadata)
   {
-  jpeg_t * jpeg = (jpeg_t*)priv;
+  jpeg_t * jpeg = priv;
+
+  char * real_filename;
   
-  jpeg->output = fopen(filename, "wb");
+  real_filename = bg_filename_ensure_extension(filename, "jpg");
+  
+  if(!bg_iw_cb_create_output_file(jpeg->cb, real_filename))
+    {
+    free(real_filename);
+    return 0;
+    }
+  
+  jpeg->output = fopen(real_filename, "wb");
+  free(real_filename);
+
   if(!jpeg->output)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
@@ -178,7 +200,7 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
   {
   int i;
   int num_lines;
-  jpeg_t * jpeg = (jpeg_t*)priv;
+  jpeg_t * jpeg = priv;
 
   switch(jpeg->pixelformat)
     {
@@ -290,13 +312,6 @@ static void set_parameter_jpeg(void * p, const char * name,
     }
   }
 
-static char const * const jpeg_extension = ".jpg";
-
-static const char * get_extension_jpeg(void * p)
-  {
-  return jpeg_extension;
-  }
-
 const bg_image_writer_plugin_t the_plugin =
   {
     .common =
@@ -314,7 +329,7 @@ const bg_image_writer_plugin_t the_plugin =
       .set_parameter =  set_parameter_jpeg
     },
     .extensions = "jpg",
-    .get_extension = get_extension_jpeg,
+    .set_callbacks = set_callbacks_jpeg,
     .write_header = write_header_jpeg,
     .write_image =  write_image_jpeg,
   };

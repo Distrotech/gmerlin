@@ -2677,9 +2677,8 @@ static int init_subtitle_encoders_separate(bg_transcoder_t * ret)
     
     if(!ret->subtitle_text_streams[i].com.com.output_filename)
       ret->subtitle_text_streams[i].com.com.output_filename =
-        bg_sprintf("%s/%s_subtitle_%02d.%s", ret->output_directory, ret->name,
-                   ret->subtitle_text_streams[i].com.com.in_index+1,
-                   encoder_plugin->get_extension(encoder_handle->priv));
+        bg_sprintf("%s/%s_subtitle_%02d", ret->output_directory, ret->name,
+                   ret->subtitle_text_streams[i].com.com.in_index+1);
     
     if(!open_encoder(ret, encoder_handle,
                      encoder_plugin,
@@ -2723,9 +2722,8 @@ static int init_subtitle_encoders_separate(bg_transcoder_t * ret)
       
     if(!ret->subtitle_overlay_streams[i].com.output_filename)
       ret->subtitle_overlay_streams[i].com.output_filename =
-        bg_sprintf("%s/%s_subtitle_%02d.%s", ret->output_directory, ret->name,
-                   ret->subtitle_overlay_streams[i].com.in_index+1,
-                   encoder_plugin->get_extension(encoder_handle->priv));
+        bg_sprintf("%s/%s_subtitle_%02d", ret->output_directory, ret->name,
+                   ret->subtitle_overlay_streams[i].com.in_index+1);
       
     if(!open_encoder(ret, encoder_handle,
                      encoder_plugin,
@@ -2787,9 +2785,8 @@ static int init_encoders(bg_transcoder_t * ret)
       
       if(!ret->audio_streams[i].com.output_filename)
         ret->audio_streams[i].com.output_filename =
-          bg_sprintf("%s/%s_audio_%02d%s", ret->output_directory, ret->name,
-                     ret->audio_streams[i].com.in_index,
-                     encoder_plugin->get_extension(encoder_handle->priv));
+          bg_sprintf("%s/%s_audio_%02d", ret->output_directory, ret->name,
+                     ret->audio_streams[i].com.in_index);
       
       if(!open_encoder(ret, encoder_handle,
                        encoder_plugin,
@@ -2823,9 +2820,8 @@ static int init_encoders(bg_transcoder_t * ret)
                                     &encoder_plugin);
       if(!ret->video_streams[i].com.output_filename)
         ret->video_streams[i].com.output_filename =
-          bg_sprintf("%s/%s_video_%02d%s", ret->output_directory, ret->name,
-                     ret->video_streams[i].com.in_index+1,
-                     encoder_plugin->get_extension(encoder_handle->priv));
+          bg_sprintf("%s/%s_video_%02d", ret->output_directory, ret->name,
+                     ret->video_streams[i].com.in_index+1);
       
       if(!open_encoder(ret, encoder_handle,
                        encoder_plugin, &ret->video_streams[i].com.output_filename))
@@ -2876,9 +2872,9 @@ static int init_encoders(bg_transcoder_t * ret)
     if(ret->out_handle)
       {
       if(!ret->output_filename)
-        ret->output_filename = bg_sprintf("%s/%s%s", ret->output_directory, ret->name,
-                                          encoder_plugin->get_extension(ret->out_handle->priv));
-    
+        ret->output_filename = bg_sprintf("%s/%s",
+                                          ret->output_directory, ret->name);
+      
       if(!open_encoder(ret, ret->out_handle,
                        encoder_plugin, &ret->output_filename))
         {

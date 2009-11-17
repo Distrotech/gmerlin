@@ -26,6 +26,7 @@
 #include <gmerlin/translation.h>
 
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 
 typedef struct
@@ -40,6 +41,8 @@ typedef struct
   
   bg_metadata_t metadata;
   
+  bg_encoder_callbacks_t * cb;
+
   } subtext_t;
 
 static void write_time_srt(FILE * output, gavl_time_t time)
@@ -145,11 +148,10 @@ static void * create_subtext()
   return ret;
   }
 
-static const char * get_extension_subtext(void * data)
+static void set_callbacks_subtext(void * data, bg_encoder_callbacks_t * cb)
   {
-  subtext_t * e;
-  e = (subtext_t *)data;
-  return formats[e->format_index].extension;
+  subtext_t * e = data;
+  e->cb = cb;
   }
 
 static int open_subtext(void * data, const char * filename,
@@ -158,8 +160,14 @@ static int open_subtext(void * data, const char * filename,
   {
   subtext_t * e;
   e = (subtext_t *)data;
+  
+  e->filename =
+    bg_filename_ensure_extension(filename,
+                                 formats[e->format_index].extension);
 
-  e->filename = bg_strdup(e->filename, filename);
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+    return 0;
+  
   e->output = fopen(e->filename, "w");
 
   if(metadata)
@@ -288,7 +296,7 @@ const bg_encoder_plugin_t the_plugin =
 
     .max_subtitle_text_streams = 1,
     
-    .get_extension =        get_extension_subtext,
+    .set_callbacks =        set_callbacks_subtext,
     
     .open =                 open_subtext,
 

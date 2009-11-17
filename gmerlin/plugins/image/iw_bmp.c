@@ -30,6 +30,7 @@
 #include <gmerlin/translation.h>
 
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "iw_bmp"
 
@@ -59,6 +60,9 @@ typedef struct
   uint32_t ncolours;           /* Number of colours         */
   uint32_t importantcolours;   /* Important colours         */
 
+  bg_iw_callbacks_t * cb;
+  
+  
   } bmp_t;
 
 static void write_16(FILE * output, uint32_t val)
@@ -95,12 +99,39 @@ static void destroy_bmp(void * priv)
   free(bmp);
   }
 
+static void set_callbacks_bmp(void * data, bg_iw_callbacks_t * cb)
+  {
+  bmp_t * e = data;
+  e->cb = cb;
+  }
+
 static int write_header_bmp(void * priv, const char * filename,
                             gavl_video_format_t * format,
                             const bg_metadata_t * m)
   {
+  char * real_filename;
   bmp_t * bmp = (bmp_t*)priv;
 
+  real_filename = bg_filename_ensure_extension(filename, "bmp");
+
+  if(!bg_iw_cb_create_output_file(bmp->cb, real_filename))
+    {
+    free(real_filename);
+    return 0;
+    }
+  
+  /* open file */
+  bmp->bmp_file = fopen(real_filename,"wb");
+  free(real_filename);
+  
+  if(!bmp->bmp_file)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+           real_filename, strerror(errno));
+    return 0;
+    }
+
+  
   /* set header */
   bmp->type = 19778;                    /* 19228 = BM */
   bmp->file_size = 0;                   /* at this time no set */
@@ -121,16 +152,6 @@ static int write_header_bmp(void * priv, const char * filename,
   bmp->yresolution = format->pixel_height;
   bmp->ncolours = 0;                     /* BI_RGB = 0 */
   bmp->importantcolours = 0;             /* BI_RGB = 0 */
-
-  /* open file */
-  bmp->bmp_file = fopen(filename,"wb");
-  
-  if(!bmp->bmp_file)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
-           filename, strerror(errno));
-    return 0;
-    }
   
   /* write header */
   write_16(bmp->bmp_file, bmp->type);
@@ -199,14 +220,6 @@ static int write_image_bmp(void * priv, gavl_video_frame_t * frame)
   return 1;
   }
 
-static char const * const bmp_extension = ".bmp";
-
-static const char * get_extension_bmp(void * p)
-  {
-  return bmp_extension;
-  }
-
-
 const bg_image_writer_plugin_t the_plugin =
   {
     .common =
@@ -222,8 +235,8 @@ const bg_image_writer_plugin_t the_plugin =
       .destroy =        destroy_bmp,
     },
     .extensions = "bmp",
+    .set_callbacks = set_callbacks_bmp,
     .write_header = write_header_bmp,
-    .get_extension = get_extension_bmp,
     .write_image =  write_image_bmp,
   };
 

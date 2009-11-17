@@ -92,6 +92,7 @@ player_thread.c \
 player_time.c \
 player_video.c \
 playercmd.c \
+pluginfuncs.c \
 pluginregistry.c \
 pluginreg_xml.c \
 recorder.c \
