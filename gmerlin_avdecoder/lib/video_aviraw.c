@@ -59,6 +59,18 @@ static void scanline_8(uint8_t * src, uint8_t * dst,
     }
   }
 
+static void scanline_8_gray(uint8_t * src, uint8_t * dst,
+                            int num_pixels, bgav_palette_entry_t * pal)
+  {
+  int i;
+  for(i = 0; i < num_pixels; i++)
+    {
+    *dst = *src;
+    src++;
+    dst++;
+    }
+  }
+
 /* Non palette */
 
 static void scanline_16(uint8_t * src, uint8_t * dst,
@@ -194,11 +206,21 @@ static int init_aviraw(bgav_stream_t * s)
       break;
 #endif
     case 8:
-      if(s->data.video.palette_size < 256)
-        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Palette too small %d < 256",
-                s->data.video.palette_size);
-      priv->scanline_func = scanline_8;
+      /* Depth 8 and no palette means grayscale */
+      if(!s->data.video.palette_size)
+        {
+        priv->scanline_func = scanline_8_gray;
+        s->data.video.format.pixelformat = GAVL_GRAY_8;
+        }
+      else
+        {
+        if(s->data.video.palette_size < 256)
+          bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                   "Palette too small %d < 256",
+                   s->data.video.palette_size);
+        priv->scanline_func = scanline_8;
+        s->data.video.format.pixelformat = GAVL_RGB_24;
+        }
       break;
     case 16:
       if(s->fourcc == BGAV_MK_FOURCC('M','T','V',' '))
