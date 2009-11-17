@@ -54,7 +54,8 @@ typedef struct
 
   int is_planar;
   
-  void (*convert_scanline)(uint8_t * dst, uint8_t * src, int width, int plane);
+  void (*convert_scanline)(uint8_t * dst, uint8_t * src,
+                           int width, int plane);
   
 
   } tiff_t;
@@ -165,12 +166,16 @@ static int tiff_read_mem(tiff_t *tiff, const char *filename)
   return 1;
   }
 
-static void convert_scanline_RGB_16(uint8_t * dst, uint8_t * src, int width, int plane)
+static void
+convert_scanline_RGB_16(uint8_t * dst, uint8_t * src,
+                        int width, int plane)
   {
   memcpy(dst, src, width * 3 * 2);
   }
 
-static void convert_scanline_RGB_16_planar(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void
+convert_scanline_RGB_16_planar(uint8_t * _dst, uint8_t * _src,
+                               int width, int plane)
   {
   int i;
   uint16_t * dst = (uint16_t *)_dst;
@@ -185,7 +190,9 @@ static void convert_scanline_RGB_16_planar(uint8_t * _dst, uint8_t * _src, int w
     }
   }
 
-static void convert_scanline_gray_16(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void convert_scanline_gray_16(uint8_t * _dst,
+                                     uint8_t * _src,
+                                     int width, int plane)
   {
   int i;
   uint16_t * dst = (uint16_t *)_dst;
@@ -193,20 +200,22 @@ static void convert_scanline_gray_16(uint8_t * _dst, uint8_t * _src, int width, 
 
   for(i = 0; i < width; i++)
     {
-    dst[0] = *src;
-    dst[1] = *src;
-    dst[2] = *src;
-    dst += 3;
+    *dst = *src;
+    dst++;
     src++;
     }
   }
 
-static void convert_scanline_RGBA_16(uint8_t * dst, uint8_t * src, int width, int plane)
+static void
+convert_scanline_RGBA_16(uint8_t * dst, uint8_t * src,
+                         int width, int plane)
   {
   memcpy(dst, src, width * 4 * 2);
   }
 
-static void convert_scanline_RGBA_16_planar(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void
+convert_scanline_RGBA_16_planar(uint8_t * _dst, uint8_t * _src,
+                                int width, int plane)
   {
   int i;
   uint16_t * dst = (uint16_t *)_dst;
@@ -223,7 +232,9 @@ static void convert_scanline_RGBA_16_planar(uint8_t * _dst, uint8_t * _src, int 
 
 /* 32 bit uint */
 
-static void convert_scanline_RGB_32(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void
+convert_scanline_RGB_32(uint8_t * _dst, uint8_t * _src,
+                        int width, int plane)
   {
   int i;
   float * dst = (float *)_dst;
@@ -237,7 +248,9 @@ static void convert_scanline_RGB_32(uint8_t * _dst, uint8_t * _src, int width, i
     }
   }
 
-static void convert_scanline_RGB_32_planar(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void
+convert_scanline_RGB_32_planar(uint8_t * _dst, uint8_t * _src,
+                               int width, int plane)
   {
   int i;
   float * dst = (float *)_dst;
@@ -253,7 +266,9 @@ static void convert_scanline_RGB_32_planar(uint8_t * _dst, uint8_t * _src, int w
     }
   }
 
-static void convert_scanline_RGBA_32(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void
+convert_scanline_RGBA_32(uint8_t * _dst, uint8_t * _src,
+                         int width, int plane)
   {
   int i;
   float * dst = (float *)_dst;
@@ -267,7 +282,9 @@ static void convert_scanline_RGBA_32(uint8_t * _dst, uint8_t * _src, int width, 
     }
   }
 
-static void convert_scanline_RGBA_32_planar(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void
+convert_scanline_RGBA_32_planar(uint8_t * _dst, uint8_t * _src,
+                                int width, int plane)
   {
   int i;
   float * dst = (float *)_dst;
@@ -284,7 +301,9 @@ static void convert_scanline_RGBA_32_planar(uint8_t * _dst, uint8_t * _src, int 
   }
 
 
-static void convert_scanline_gray_32(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void
+convert_scanline_gray_32(uint8_t * _dst, uint8_t * _src,
+                         int width, int plane)
   {
   int i;
   float * dst = (float*)_dst;
@@ -438,7 +457,9 @@ static void convert_scanline_RGB_float_32(uint8_t * dst, uint8_t * src, int widt
   }
 #endif
 
-static void convert_scanline_RGB_float_64(uint8_t * _dst, uint8_t * src, int width, int plane)
+static void
+convert_scanline_RGB_float_64(uint8_t * _dst, uint8_t * src,
+                              int width, int plane)
   {
   int i;
   float * dst = (float*)_dst;
@@ -451,7 +472,9 @@ static void convert_scanline_RGB_float_64(uint8_t * _dst, uint8_t * src, int wid
     }
   }
 
-static void convert_scanline_RGB_float_64_planar(uint8_t * _dst, uint8_t * src, int width, int plane)
+static void
+convert_scanline_RGB_float_64_planar(uint8_t * _dst, uint8_t * src,
+                                     int width, int plane)
   {
   int i;
   float * dst = (float*)_dst;
@@ -470,16 +493,22 @@ static void convert_scanline_RGB_float_64_planar(uint8_t * _dst, uint8_t * src, 
   }
 
 #if 0
-static void convert_scanline_RGBA_float_32(uint8_t * dst, uint8_t * src, int width, int plane)
+static void
+convert_scanline_RGBA_float_32(uint8_t * dst, uint8_t * src,
+                               int width, int plane)
   {
   }
 
-static void convert_scanline_RGBA_float_64(uint8_t * dst, uint8_t * src, int width, int plane)
+static void
+convert_scanline_RGBA_float_64(uint8_t * dst, uint8_t * src,
+                                           int width, int plane)
   {
   }
 #endif
 
-static void convert_scanline_logl(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void
+convert_scanline_logl(uint8_t * _dst, uint8_t * _src,
+                      int width, int plane)
   {
   int i;
   float * dst = (float*)_dst;
@@ -498,21 +527,22 @@ static void convert_scanline_logl(uint8_t * _dst, uint8_t * _src, int width, int
   }
 
 static void XYZtoRGB(float * xyz, float * rgb)
-{
-        double  r, g, b;
-                                        /* assume CCIR-709 primaries */
-        r =  2.690*xyz[0] + -1.276*xyz[1] + -0.414*xyz[2];
-        g = -1.022*xyz[0] +  1.978*xyz[1] +  0.044*xyz[2];
-        b =  0.061*xyz[0] + -0.224*xyz[1] +  1.163*xyz[2];
-                                        /* assume 2.0 gamma for speed */
-        /* could use integer sqrt approx., but this is probably faster */
-        rgb[0] = (r<=0.) ? 0 : (r >= 1.) ? 1.0 : sqrt(r);
-        rgb[1] = (g<=0.) ? 0 : (g >= 1.) ? 1.0 : sqrt(g);
-        rgb[2] = (b<=0.) ? 0 : (b >= 1.) ? 1.0 : sqrt(b);
-}
+  {
+  double  r, g, b;
+  /* assume CCIR-709 primaries */
+  r =  2.690*xyz[0] + -1.276*xyz[1] + -0.414*xyz[2];
+  g = -1.022*xyz[0] +  1.978*xyz[1] +  0.044*xyz[2];
+  b =  0.061*xyz[0] + -0.224*xyz[1] +  1.163*xyz[2];
+  /* assume 2.0 gamma for speed */
+  /* could use integer sqrt approx., but this is probably faster */
+  rgb[0] = (r<=0.) ? 0 : (r >= 1.) ? 1.0 : sqrt(r);
+  rgb[1] = (g<=0.) ? 0 : (g >= 1.) ? 1.0 : sqrt(g);
+  rgb[2] = (b<=0.) ? 0 : (b >= 1.) ? 1.0 : sqrt(b);
+  }
 
 
-static void convert_scanline_logluv(uint8_t * _dst, uint8_t * _src, int width, int plane)
+static void convert_scanline_logluv(uint8_t * _dst, uint8_t * _src,
+                                    int width, int plane)
   {
   int i;
   float * dst = (float*)_dst;
@@ -527,10 +557,9 @@ static void convert_scanline_logluv(uint8_t * _dst, uint8_t * _src, int width, i
     }
   }
 
-
-
-
-static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t * format)
+static int
+read_header_tiff(void *priv,const char *filename,
+                 gavl_video_format_t * format)
   {
   double minmax_d[4];
   uint16_t tmp_16;
@@ -599,7 +628,7 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
             if(p->SamplesPerPixel == 1)
               {
               p->convert_scanline = convert_scanline_gray_16;
-              format->pixelformat = GAVL_RGB_48;
+              format->pixelformat = GAVL_GRAY_16;
               }
             /* GAVL_RGB_48 */
             else if(p->SamplesPerPixel == 3)
@@ -651,12 +680,15 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
               }
             else
               {
-              bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported samples per pixel");
+              bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                     "Unsupported samples per pixel");
               return 0;
               }
             break;
           default:
-            bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported bits per sample (%d) for UINT", p->BitsPerSample);
+            bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                   "Unsupported bits per sample (%d) for UINT",
+                   p->BitsPerSample);
             return 0;
           }
         break;
@@ -680,12 +712,15 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
               }
             else
               {
-              bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported samples per pixel");
+              bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                     "Unsupported samples per pixel");
               return 0;
               }
             break;
           default:
-            bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported depth %d for IEEE float", p->BitsPerSample);
+            bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                   "Unsupported depth %d for IEEE float",
+                   p->BitsPerSample);
             return 0;
           }
         
@@ -698,7 +733,9 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
         return 0;
         break;
       default:
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown sampleformat %d", p->SampleFormat);
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "Unknown sampleformat %d",
+               p->SampleFormat);
         return 0;
         
       }
