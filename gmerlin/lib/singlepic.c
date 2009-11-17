@@ -34,6 +34,7 @@
 
 #include <gmerlin/cfg_registry.h>
 #include <gmerlin/pluginregistry.h>
+#include <gmerlin/pluginfuncs.h>
 #include <config.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/singlepic.h>
@@ -701,6 +702,12 @@ typedef struct
   
   } encoder_t;
 
+static int iw_callbacks_create_output_file(void * priv, const char * filename)
+  {
+  encoder_t * e = priv;
+  return bg_encoder_cb_create_output_file(e->cb, filename);
+  }
+
 static bg_parameter_info_t *
 create_encoder_parameters(bg_plugin_registry_t * plugin_reg)
   {
@@ -1027,5 +1034,8 @@ void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg)
 
   ret->plugin_reg = reg;
 
+  ret->iw_callbacks.data = ret;
+  ret->iw_callbacks.create_output_file = iw_callbacks_create_output_file;
+  
   return ret;
   }
