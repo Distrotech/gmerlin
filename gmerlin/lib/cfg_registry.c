@@ -132,3 +132,17 @@ bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t * r,
   
   return section;
   }
+
+int bg_cfg_registry_has_section(bg_cfg_registry_t * r,
+                                const char * name)
+  {
+  bg_cfg_section_t * section;
+  section = r->sections;
+  while(section)
+    {
+    if(!strcmp(section->name, name))
+      return 1;
+    section = section->next;
+    }
+  return 0;
+  }

@@ -38,75 +38,6 @@ bg_cfg_section_t * bg_cfg_section_create(const char * name)
   return ret;
   }
 
-bg_cfg_section_t *
-bg_cfg_section_create_from_parameters(const char * name,
-                                      const bg_parameter_info_t * parameters)
-  {
-  bg_cfg_section_t * ret;
-  bg_cfg_section_t * last_child = (bg_cfg_section_t*)0;
-  bg_cfg_section_t * last_subchild;
-  
-  int i, j;
-  
-  ret = bg_cfg_section_create(name);
-
-  i = 0;
-  while(parameters[i].name)
-    {
-    bg_cfg_section_find_item(ret, &(parameters[i]));
-    i++;
-    }
-
-  /* Add child sections */
-  
-  i = 0;
-  while(parameters[i].name)
-    {
-    if((parameters[i].type == BG_PARAMETER_MULTI_LIST) ||
-       (parameters[i].type == BG_PARAMETER_MULTI_MENU) ||
-       (parameters[i].type == BG_PARAMETER_MULTI_CHAIN))
-      {
-      if(!last_child)
-        {
-        ret->children = bg_cfg_section_create(parameters[i].name);
-        last_child = ret->children;
-        }
-      else
-        {
-        last_child->next = bg_cfg_section_create(parameters[i].name);
-        last_child = last_child->next;
-        }
-      j = 0;
-
-      last_subchild = (bg_cfg_section_t*)0;
-      while(parameters[i].multi_names[j])
-        {
-        if(parameters[i].multi_parameters[j])
-          {
-          if(!last_subchild)
-            {
-            last_child->children =
-              bg_cfg_section_create_from_parameters(parameters[i].multi_names[j],
-                                                    parameters[i].multi_parameters[j]);
-            last_subchild = last_child->children;
-            }
-          else
-            {
-            last_subchild->next =
-              bg_cfg_section_create_from_parameters(parameters[i].multi_names[j],
-                                                    parameters[i].multi_parameters[j]);
-            last_subchild = last_subchild->next;
-            }
-          }
-        j++;
-        }
-      }
-    i++;
-    }
-  return ret;
-  }
-
-
 bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t * s,
                                                   const char * name)
   {
@@ -1247,8 +1178,18 @@ void bg_cfg_section_set_name(bg_cfg_section_t * s, const char * name,
   s->gettext_directory = bg_strdup(s->gettext_directory, gettext_directory);
   }
 
-void bg_cfg_section_create_items(bg_cfg_section_t * section,
-                                 const bg_parameter_info_t * info)
+bg_cfg_section_t *
+bg_cfg_section_create_from_parameters(const char * name,
+                                      const bg_parameter_info_t * parameters)
+  {
+  bg_cfg_section_t * ret;
+  ret = bg_cfg_section_create(name);
+  bg_cfg_section_create_items(ret, parameters);
+  return ret;
+  }
+
+static void create_items(bg_cfg_section_t * section,
+                         const bg_parameter_info_t * info, int stop_at_section)
   {
   int i;
   int j;
@@ -1260,6 +1201,25 @@ void bg_cfg_section_create_items(bg_cfg_section_t * section,
 
   while(info[i].name)
     {
+    if((info[i].type == BG_PARAMETER_SECTION) &&
+       stop_at_section)
+      return;
+    
+    if(info[i].flags & BG_PARAMETER_OWN_SECTION)
+      {
+      subsection =
+        bg_cfg_section_find_subsection(section, info[i].name);
+      i++;
+      create_items(subsection,
+                   &info[i], 1);
+
+      while(info[i].name && (info[i].type != BG_PARAMETER_SECTION))
+        i++;
+      
+      if(!info[i].name)
+        return;
+      }
+    
     bg_cfg_section_find_item(section, &(info[i]));
     
     if(info[i].multi_parameters)
@@ -1285,6 +1245,11 @@ void bg_cfg_section_create_items(bg_cfg_section_t * section,
     }
   }
 
+void bg_cfg_section_create_items(bg_cfg_section_t * section,
+                                 const bg_parameter_info_t * info)
+  {
+  create_items(section, info, 0);
+  }
 
 
 void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,

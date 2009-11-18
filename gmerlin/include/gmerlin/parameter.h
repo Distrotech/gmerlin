@@ -111,6 +111,10 @@ typedef union
 
 #define BG_PARAMETER_PLUGIN      (1<<3) //!< Parameter refers to a plugin
 
+/** \ingroup parameter
+ */
+
+#define BG_PARAMETER_OWN_SECTION (1<<4) //!< For parameters of the type BG_PARAMETER_SECTION: Following parameters should be stored in an own section
 
 /** \ingroup parameter
  *  \brief Typedef for parmeter description

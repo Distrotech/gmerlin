@@ -1878,6 +1878,7 @@ static const bg_parameter_info_t encoder_section_audio =
     .name      = "$audio",
     .long_name = TRS("Audio"),
     .type      = BG_PARAMETER_SECTION,
+    .flags     = BG_PARAMETER_OWN_SECTION,
   };
 
 static const bg_parameter_info_t encoder_section_video =
@@ -1885,6 +1886,7 @@ static const bg_parameter_info_t encoder_section_video =
     .name      = "$video",
     .long_name = TRS("Video"),
     .type      = BG_PARAMETER_SECTION,
+    .flags     = BG_PARAMETER_OWN_SECTION,
   };
 
 static const bg_parameter_info_t encoder_section_subtitle_overlay =
@@ -1892,6 +1894,7 @@ static const bg_parameter_info_t encoder_section_subtitle_overlay =
     .name      = "$subtitle_overlay",
     .long_name = TRS("Overlay subtitles"),
     .type      = BG_PARAMETER_SECTION,
+    .flags     = BG_PARAMETER_OWN_SECTION,
   };
 
 static const bg_parameter_info_t encoder_section_subtitle_text =
@@ -1899,6 +1902,7 @@ static const bg_parameter_info_t encoder_section_subtitle_text =
     .name      = "$subtitle_text",
     .long_name = TRS("Text subtitles"),
     .type      = BG_PARAMETER_SECTION,
+    .flags     = BG_PARAMETER_OWN_SECTION,
   };
 
 static bg_parameter_info_t * create_encoder_parameters(const bg_plugin_info_t * info)
@@ -1961,7 +1965,7 @@ static bg_parameter_info_t * create_encoder_parameters(const bg_plugin_info_t * 
     ret = bg_parameter_info_concat_arrays(src);
 
     /* Prefix the names of the stream parameters to avoid confusion */
-    
+#if 0    
     i = 0;
     prefix = NULL;
     while(ret[i].name)
@@ -1982,6 +1986,7 @@ static bg_parameter_info_t * create_encoder_parameters(const bg_plugin_info_t * 
         }
       i++;
       }
+#endif
     return ret;
     }
   else

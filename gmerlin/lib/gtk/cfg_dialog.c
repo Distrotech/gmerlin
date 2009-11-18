@@ -496,7 +496,7 @@ static bg_dialog_t * create_dialog(const char * title)
 
 static GtkWidget * create_section(dialog_section_t * section,
                                   const bg_parameter_info_t * info,
-                                  bg_cfg_section_t * cfg_section,
+                                  bg_cfg_section_t * s,
                                   bg_set_parameter_func_t set_param,
                                   bg_get_parameter_func_t get_param,
                                   void * data,
@@ -526,6 +526,10 @@ static GtkWidget * create_section(dialog_section_t * section,
   
   section->num_widgets = 0;
   i = 0;
+
+  if(info[0].type == BG_PARAMETER_SECTION)
+    i++;
+  
   while(info[i].name &&
         (info[i].type != BG_PARAMETER_SECTION))
     {
@@ -534,7 +538,13 @@ static GtkWidget * create_section(dialog_section_t * section,
     i++;
     }
   section->infos = info;
-  section->cfg_section = cfg_section;
+  
+  if((info[0].type == BG_PARAMETER_SECTION) &&
+     (info[0].flags & BG_PARAMETER_OWN_SECTION))
+    section->cfg_section =
+      bg_cfg_section_find_subsection(s, info[0].name);
+  else
+    section->cfg_section = s;
   section->callback_data = data;
   section->set_param = set_param;
   section->get_param = get_param;
@@ -562,19 +572,16 @@ static GtkWidget * create_section(dialog_section_t * section,
       translation_domain = info[i].gettext_domain;
     if(info[i].gettext_directory)
       bg_bindtextdomain(translation_domain, info[i].gettext_directory);
-    
-    if(info[i].flags & BG_PARAMETER_HIDE_DIALOG)
-      {
-      i++;
-      continue;
-      }
-    if((info[i].type == BG_PARAMETER_BUTTON) &&
-       !set_param)
-      {
-      i++;
-      continue;
-      }
 
+    /* Check what to skip */
+    if((info[i].flags & BG_PARAMETER_HIDE_DIALOG) ||
+       ((info[i].type == BG_PARAMETER_BUTTON) && !set_param) ||
+       (info[i].type == BG_PARAMETER_SECTION))
+      {
+      i++;
+      continue;
+      }
+    
     if(info[i].flags & BG_PARAMETER_PLUGIN)
       {
       section->widgets[count].plugin_reg = plugin_reg;
@@ -586,13 +593,13 @@ static GtkWidget * create_section(dialog_section_t * section,
       section->widgets[count].change_callback = set_param;
       section->widgets[count].change_callback_data = data;
       }
-    section->widgets[count].info = &(info[i]);
+    section->widgets[count].info = &info[i];
 
-    section->widgets[count].cfg_section = cfg_section;
+    section->widgets[count].cfg_section = section->cfg_section;
     
-    if(info[i].multi_parameters && cfg_section)
+    if(info[i].multi_parameters && section->cfg_section)
       {
-      cfg_subsection = bg_cfg_section_find_subsection(cfg_section, info[i].name);
+      cfg_subsection = bg_cfg_section_find_subsection(section->cfg_section, info[i].name);
 
       /* Add references to the plugin registry */
       if(section->widgets[count].plugin_reg)
@@ -698,8 +705,8 @@ static GtkWidget * create_section(dialog_section_t * section,
                                  &row, &num_columns);
 
     /* Get the value from the config data... */
-    if(cfg_section)
-      bg_cfg_section_get_parameter(cfg_section, &(info[i]),
+    if(section->cfg_section)
+      bg_cfg_section_get_parameter(section->cfg_section, &info[i],
                                    &(section->widgets[count].value));
     /* ... or from the get_param function */
     else if(get_param &&
@@ -709,11 +716,11 @@ static GtkWidget * create_section(dialog_section_t * section,
     else
       bg_parameter_value_copy(&(section->widgets[count].value),
                               &(info[i].val_default),
-                              &(info[i]));
+                              &info[i]);
     
     bg_parameter_value_copy(&section->widgets[count].last_value,
                             &section->widgets[count].value,
-                            &(info[i]));
+                            &info[i]);
     
     if(section->widgets[count].info->flags & BG_PARAMETER_SYNC)
       bg_gtk_change_callback_block(&section->widgets[count], 1);
@@ -793,9 +800,6 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
       gtk_tree_store_append(GTK_TREE_STORE(model), &root_iter, NULL);
       gtk_tree_store_set(GTK_TREE_STORE(model), &root_iter, COLUMN_NAME,
                          TR_DOM(info[index].long_name), -1);
-            
-      while(info[index].type == BG_PARAMETER_SECTION)
-        index++;
       
       table = create_section(&(ret->root_section.children[i]), &(info[index]),
                              section, set_param, get_param, callback_data,
@@ -806,7 +810,11 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
       gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
 
       ret->root_section.children[i].parent = &(ret->root_section);
-            
+
+      while(info[index].type == BG_PARAMETER_SECTION)
+        index++;
+
+      
       while(info[index].name &&
             (info[index].type != BG_PARAMETER_SECTION))
         index++;
@@ -940,8 +948,6 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       
       gtk_tree_store_set(GTK_TREE_STORE(model), &iter, COLUMN_NAME,
                          info[item_index].long_name, -1);
-
-      item_index++;
       
       table = create_section(&(parent->children[section_index]),
                              &(info[item_index]),
@@ -956,6 +962,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       gtk_notebook_append_page(GTK_NOTEBOOK(d->notebook),
                                table, tab_label);
       
+      item_index++;
       while((info[item_index].name) &&
             (info[item_index].type != BG_PARAMETER_SECTION))
         item_index++;

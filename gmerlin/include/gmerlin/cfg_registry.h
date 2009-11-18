@@ -100,6 +100,17 @@ void bg_cfg_registry_load(bg_cfg_registry_t * reg, const char * filename);
 
 void bg_cfg_registry_save(bg_cfg_registry_t * reg, const char * filename);
 
+/** \ingroup cfg_registry
+ *  \brief Check if a registry has a section
+ *  \param reg A configuration registry.
+ *  \param name Name of the section
+ *  \returns 1 if the section is present, 0 else
+ */
+
+
+int bg_cfg_registry_has_section(bg_cfg_registry_t * r, const char * name);
+
+
 /* The name and xml tag of the section must be set before */
 
 /** \ingroup cfg_section

@@ -367,9 +367,19 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     bg_cfg_registry_find_section(cfg_reg, "video_monitor");
 
   /* Encoders */
-  ret->encoder_section =
-    bg_cfg_registry_find_section(cfg_reg, "encoder_section");
 
+  if(bg_cfg_registry_has_section(cfg_reg, "encoders"))
+    {
+    ret->encoder_section =
+      bg_cfg_registry_find_section(cfg_reg, "encoders");
+
+    bg_cfg_section_create_items(ret->encoder_section,
+                                bg_recorder_get_encoder_parameters(ret->rec));
+    }
+  else
+    ret->encoder_section =
+      bg_cfg_registry_find_section(cfg_reg, "encoders");
+  
   bg_recorder_set_encoder_section(ret->rec, ret->encoder_section);
   
   ret->cfg_dialog = bg_dialog_create_multi(TR("Recorder configuration"));

@@ -92,6 +92,7 @@ flag_names[] =
     { "hide_dialog", BG_PARAMETER_HIDE_DIALOG },
     { "no_sort",     BG_PARAMETER_NO_SORT     },
     { "plugin",      BG_PARAMETER_PLUGIN      },
+    { "own_section", BG_PARAMETER_OWN_SECTION },
   };
 
 static int string_to_flags(const char * str)

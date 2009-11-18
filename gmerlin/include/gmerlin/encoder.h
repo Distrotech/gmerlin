@@ -38,19 +38,19 @@ int bg_encoder_open(bg_encoder_t * enc, const char * filename_base);
 /* Add streams */
 int bg_encoder_add_audio_stream(bg_encoder_t *, const char * language,
                                 gavl_audio_format_t * format,
-                                bg_cfg_section_t * section);
+                                int index);
 
 int bg_encoder_add_video_stream(bg_encoder_t *,
                                 gavl_video_format_t * format,
-                                bg_cfg_section_t * section);
+                                int index);
 
 int bg_encoder_add_subtitle_text_stream(bg_encoder_t *, const char * language,
                                         int timescale,
-                                        bg_cfg_section_t * section);
+                                        int index);
 
 int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t *, const char * language,
                                            gavl_video_format_t * format,
-                                           bg_cfg_section_t * section);
+                                           int index);
 
 
 /* Get formats */

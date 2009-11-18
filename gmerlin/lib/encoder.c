@@ -84,6 +84,8 @@ struct bg_encoder_s
   bg_plugin_handle_t ** plugins;
 
   int flags;
+  
+  bg_plugin_registry_t * plugin_reg;
   };
 
 bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
@@ -91,6 +93,9 @@ bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
                                  int type_mask, int flag_mask)
   {
   bg_encoder_t * ret = calloc(1, sizeof(*ret));
+  ret->plugin_reg = plugin_reg;
+
+  /* Set plugin infos */
   return ret;
   }
 
@@ -110,12 +115,19 @@ int bg_encoder_open(bg_encoder_t * enc, const char * filename_base)
   s = &streams[num]
 
 static bg_plugin_handle_t *
-load_plugin_separate(bg_encoder_t * enc, const char * name)
+load_plugin_separate(bg_encoder_t * enc, const bg_plugin_info_t * info)
   {
-  bg_plugin_info_t * info;
+  bg_plugin_handle_t * ret;
   enc->plugins = realloc(enc->plugins,
                          (enc->num_plugins+1)* sizeof(enc->plugins));
+
+  enc->plugins[enc->num_plugins] =
+    bg_plugin_load(enc->plugin_reg, info);
+  ret = enc->plugins[enc->num_plugins];
   
+  /* Apply parameters */
+    
+  return ret;
   }
 
 static bg_plugin_handle_t *
@@ -128,7 +140,7 @@ load_plugin_common(bg_encoder_t * enc)
 int bg_encoder_add_audio_stream(bg_encoder_t * enc,
                                 const char * language,
                                 gavl_audio_format_t * format,
-                                bg_cfg_section_t * section)
+                                int index)
   {
   int ret;
   audio_stream_t * s;
@@ -143,7 +155,7 @@ int bg_encoder_add_audio_stream(bg_encoder_t * enc,
 
 int bg_encoder_add_video_stream(bg_encoder_t * enc,
                                 gavl_video_format_t * format,
-                                bg_cfg_section_t * section)
+                                int index)
   {
   int ret;
   video_stream_t * s;
@@ -159,7 +171,7 @@ int bg_encoder_add_video_stream(bg_encoder_t * enc,
 int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc,
                                         const char * language,
                                         int timescale,
-                                        bg_cfg_section_t * section)
+                                        int index)
   {
   int ret;
   subtitle_text_stream_t * s;
@@ -176,7 +188,7 @@ int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc,
 int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t * enc,
                                            const char * language,
                                            gavl_video_format_t * format,
-                                           bg_cfg_section_t * section)
+                                           int index)
   {
   int ret;
   subtitle_overlay_stream_t * s;
