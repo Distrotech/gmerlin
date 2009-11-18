@@ -83,7 +83,7 @@ void bg_flac_init_file_encoder(bg_flac_t * flac, FLAC__FileEncoder * enc);
 #define bg_flac_init_file_encoder(a,b) bg_flac_init_stream_encoder(a,b)
 #endif
 
-void bg_flac_init_metadata(bg_flac_t * flac, bg_metadata_t * metadata);
+void bg_flac_init_metadata(bg_flac_t * flac, const bg_metadata_t * metadata);
 
 void bg_flac_prepare_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame);
 void bg_flac_free(bg_flac_t * flac);

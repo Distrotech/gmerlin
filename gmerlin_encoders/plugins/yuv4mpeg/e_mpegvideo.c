@@ -27,6 +27,7 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
 #include <gmerlin/log.h>
@@ -39,6 +40,9 @@ typedef struct
   {
   bg_mpv_common_t mpv;
   char * filename;
+
+  bg_encoder_callbacks_t * cb;
+  
   } e_mpv_t;
 
 static void * create_mpv()
@@ -47,11 +51,10 @@ static void * create_mpv()
   return ret;
   }
 
-
-static const char * get_extension_mpv(void * data)
+static void set_callbacks_mpv(void * data, bg_encoder_callbacks_t * cb)
   {
-  e_mpv_t * e = (e_mpv_t*)data;
-  return bg_mpv_get_extension(&(e->mpv));
+  e_mpv_t * mpv = data;
+  mpv->cb = cb;
   }
 
 static int open_mpv(void * data, const char * filename,
@@ -59,7 +62,12 @@ static int open_mpv(void * data, const char * filename,
                     const bg_chapter_list_t * chapter_list)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  e->filename = bg_strdup(e->filename, filename);
+  e->filename =
+    bg_filename_ensure_extension(filename, bg_mpv_get_extension(&(e->mpv)));
+
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+    return 0;
+  
   return bg_mpv_open(&e->mpv, filename);
   }
 
@@ -150,9 +158,7 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =  0,
     .max_video_streams =  1,
 
-    //    .get_video_parameters = get_video_parameters_mpv,
-
-    .get_extension =        get_extension_mpv,
+    .set_callbacks =        set_callbacks_mpv,
 
     .open =                 open_mpv,
 

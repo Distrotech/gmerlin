@@ -69,14 +69,18 @@ typedef struct
   char * filename;
   
   bg_parameter_info_t * audio_parameters;
-
+  
+  bg_encoder_callbacks_t * cb;
   } bg_ogg_encoder_t;
 
 void * bg_ogg_encoder_create();
 
+void bg_ogg_encoder_set_callbacks(void *, bg_encoder_callbacks_t * cb);
+
+
 int bg_ogg_encoder_open(void *, const char * file,
                         const bg_metadata_t * metadata,
-                        const bg_chapter_list_t * chapter_list);
+                        const bg_chapter_list_t * chapter_list, const char * ext);
 
 void bg_ogg_encoder_destroy(void*);
 

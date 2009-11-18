@@ -25,6 +25,7 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
 #include <gmerlin/log.h>
@@ -40,6 +41,9 @@ typedef struct
   char * filename;
 
   bg_mpa_common_t com;
+
+  bg_encoder_callbacks_t * cb;
+
   } e_mpa_t;
 
 static void * create_mpa()
@@ -55,6 +59,12 @@ static void destroy_mpa(void * priv)
   mpa = (e_mpa_t*)priv;
 
   free(mpa);
+  }
+
+static void set_callbacks_mpa(void * data, bg_encoder_callbacks_t * cb)
+  {
+  e_mpa_t * mpa = data;
+  mpa->cb = cb;
   }
 
 
@@ -77,7 +87,12 @@ static int open_mpa(void * data, const char * filename,
   e_mpa_t * mpa;
   mpa = (e_mpa_t*)data;
 
-  mpa->filename = bg_strdup(mpa->filename, filename);
+  mpa->filename =
+    bg_filename_ensure_extension(filename,
+                                 bg_mpa_get_extension(&mpa->com));
+
+  if(!bg_encoder_cb_create_output_file(mpa->cb, mpa->filename))
+    return 0;
   
   return 1;
   }
@@ -140,12 +155,6 @@ static int close_mpa(void * data, int do_delete)
   return ret;
   }
 
-static const char * get_extension_mpa(void * data)
-  {
-  e_mpa_t * mpa;
-  mpa = (e_mpa_t*)data;
-  return bg_mpa_get_extension(&mpa->com);
-  }
 
 static const bg_parameter_info_t * get_parameters_mpa(void * data)
   {
@@ -173,7 +182,7 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =   1,
     .max_video_streams =   0,
 
-    .get_extension =       get_extension_mpa,
+    .set_callbacks =       set_callbacks_mpa,
 
     .open =                open_mpa,
     .add_audio_stream =    add_audio_stream_mpa,

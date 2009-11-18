@@ -101,13 +101,6 @@ static const bg_parameter_info_t * get_video_parameters_theora(void * data)
   return bg_theora_codec.get_parameters();
   }
 
-static char * theora_extension = ".ogg";
-
-static const char * get_extension_theora(void * data)
-  {
-  return theora_extension;
-  }
-
 static int add_audio_stream_theora(void * data,
                                    const char * language,
                                    gavl_audio_format_t * format)
@@ -144,6 +137,14 @@ static void set_audio_parameter_theora(void * data, int stream,
     bg_ogg_encoder_set_audio_parameter(data, stream, name, val);
   }
 
+static int
+open_theora(void * data, const char * file,
+            const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list)
+  {
+  return bg_ogg_encoder_open(data, file, metadata, chapter_list,
+                             "ogv");
+  }
+
 
 const bg_encoder_plugin_t the_plugin =
   {
@@ -166,9 +167,8 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =   -1,
     .max_video_streams =   -1,
     
-    .get_extension =       get_extension_theora,
-    
-    .open =                bg_ogg_encoder_open,
+    .set_callbacks =       bg_ogg_encoder_set_callbacks,
+    .open =                open_theora,
     
     .get_audio_parameters =    get_audio_parameters_theora,
     .get_video_parameters =    get_video_parameters_theora,

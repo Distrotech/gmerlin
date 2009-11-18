@@ -30,6 +30,7 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin_encoders.h>
 #include <yuv4mpeg.h>
@@ -39,6 +40,8 @@ typedef struct
   {
   bg_y4m_common_t com;
   char * filename;
+  bg_encoder_callbacks_t * cb;
+  
   } e_y4m_t;
 
 static void * create_y4m()
@@ -47,15 +50,11 @@ static void * create_y4m()
   return ret;
   }
 
-
-static const char * extension_y4m  = ".y4m";
-
-static const char * get_extension_y4m(void * data)
+static void set_callbacks_y4m(void * data, bg_encoder_callbacks_t * cb)
   {
-  //  e_y4m_t * e = (e_y4m_t*)data;
-  return extension_y4m;
+  e_y4m_t * y4m = data;
+  y4m->cb = cb;
   }
-
 
 
 static int open_y4m(void * data, const char * filename,
@@ -63,12 +62,17 @@ static int open_y4m(void * data, const char * filename,
                     const bg_chapter_list_t * chapter_list)
   {
   e_y4m_t * e = (e_y4m_t*)data;
+
+  /* Copy filename for later reusal */
+  e->filename = bg_filename_ensure_extension(filename, "y4m");
+
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+    return 0;
+  
   e->com.fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
   if(e->com.fd == -1)
     return 0;
 
-  /* Copy filename for later reusal */
-  e->filename = bg_strdup(e->filename, filename);
   
   return 1;
   }
@@ -124,29 +128,6 @@ static void destroy_y4m(void * data)
   
   free(e);
   }
-
-/* Global parameters */
-
-#if 0
-static bg_parmeter_info_t video_parameters[] =
-  {
-    {
-      
-    }
-  };
-
-
-static const bg_parameter_info_t * get_parameters_y4m(void * data)
-  {
-  return parameters;
-  }
-
-static void set_parameter_y4m(void * data, char * name,
-                              bg_parameter_value_t * val)
-  {
-
-  }
-#endif
 
 /* Per stream parameters */
 
@@ -278,7 +259,7 @@ const bg_encoder_plugin_t the_plugin =
 
     .get_video_parameters = get_video_parameters_y4m,
 
-    .get_extension =        get_extension_y4m,
+    .set_callbacks =        set_callbacks_y4m,
 
     .open =                 open_y4m,
 

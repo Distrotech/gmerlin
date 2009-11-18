@@ -166,7 +166,7 @@ const bg_encoder_plugin_t the_plugin =
     .get_audio_parameters = bg_ffmpeg_get_audio_parameters,
     .get_video_parameters = bg_ffmpeg_get_video_parameters,
 
-    .get_extension =        bg_ffmpeg_get_extension,
+    .set_callbacks =        bg_ffmpeg_set_callbacks,
     
     .open =                 bg_ffmpeg_open,
     

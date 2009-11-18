@@ -31,6 +31,7 @@
 #include <gmerlin_encoders.h>
 
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_faac"
@@ -58,6 +59,7 @@ typedef struct
   int id3v2_charset;
 
   int64_t samples_read;
+  bg_encoder_callbacks_t * cb;
   
   } faac_t;
 
@@ -76,7 +78,11 @@ static void destroy_faac(void * priv)
   free(faac);
   }
 
-
+static void set_callbacks_faac(void * data, bg_encoder_callbacks_t * cb)
+  {
+  faac_t * faac = data;
+  faac->cb = cb;
+  }
 
 static const bg_parameter_info_t audio_parameters[] =
   {
@@ -294,8 +300,13 @@ static int open_faac(void * data, const char * filename,
   bgen_id3v2_t * id3v2;
 
   faac = (faac_t*)data;
+
+  faac->filename = bg_filename_ensure_extension(filename, "aac");
+
+  if(!bg_encoder_cb_create_output_file(faac->cb, faac->filename))
+    return 0;
   
-  faac->output = fopen(filename, "wb");
+  faac->output = fopen(faac->filename, "wb");
 
   if(!faac->output)
     {
@@ -304,7 +315,6 @@ static int open_faac(void * data, const char * filename,
     return 0;
     }
   
-  faac->filename = bg_strdup(faac->filename, filename);
 
   if(faac->do_id3v1 && metadata)
     faac->id3v1 = bgen_id3v1_create(metadata);
@@ -315,13 +325,6 @@ static int open_faac(void * data, const char * filename,
     bgen_id3v2_destroy(id3v2);
     }
   return 1;
-  }
-
-static const char * faac_extension = ".aac";
-
-static const char * get_extension_faac(void * data)
-  {
-  return faac_extension;
   }
 
 static int add_audio_stream_faac(void * data,
@@ -548,7 +551,7 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =   1,
     .max_video_streams =   0,
     
-    .get_extension =       get_extension_faac,
+    .set_callbacks =       set_callbacks_faac,
     
     .open =                open_faac,
     

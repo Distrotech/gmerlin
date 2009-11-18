@@ -30,6 +30,7 @@
 
 #include <gmerlin/log.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 
 #include "ogg_common.h"
@@ -45,7 +46,7 @@ void * bg_ogg_encoder_create()
 
 void bg_ogg_encoder_destroy(void * data)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   if(e->output)
     bg_ogg_encoder_close(e, 1);
   if(e->audio_streams) free(e->audio_streams);
@@ -58,14 +59,24 @@ void bg_ogg_encoder_destroy(void * data)
   free(e);
   }
 
+void bg_ogg_encoder_set_callbacks(void * data, bg_encoder_callbacks_t * cb)
+  {
+  bg_ogg_encoder_t * e = data;
+  e->cb = cb;
+  }
+
 int
 bg_ogg_encoder_open(void * data, const char * file,
-                    const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list)
+                    const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list,
+                    const char * ext)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
-
-  e->filename = bg_strdup(e->filename, file);
+  bg_ogg_encoder_t * e = data;
   
+  e->filename = bg_filename_ensure_extension(file, ext);
+
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+    return 0;
+    
   if(!(e->output = fopen(file, "w")))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s: %s",
@@ -114,7 +125,7 @@ int bg_ogg_flush(ogg_stream_state * os, FILE * output, int force)
 
 int bg_ogg_encoder_add_audio_stream(void * data, gavl_audio_format_t * format)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   e->audio_streams =
     realloc(e->audio_streams, (e->num_audio_streams+1)*(sizeof(*e->audio_streams)));
   memset(e->audio_streams + e->num_audio_streams, 0, sizeof(*e->audio_streams));
@@ -126,7 +137,7 @@ int bg_ogg_encoder_add_audio_stream(void * data, gavl_audio_format_t * format)
 
 int bg_ogg_encoder_add_video_stream(void * data, gavl_video_format_t * format)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   e->video_streams =
     realloc(e->video_streams, (e->num_video_streams+1)*(sizeof(*e->video_streams)));
   memset(e->video_streams + e->num_video_streams, 0, sizeof(*e->video_streams));
@@ -138,7 +149,7 @@ int bg_ogg_encoder_add_video_stream(void * data, gavl_video_format_t * format)
 
 void bg_ogg_encoder_init_audio_stream(void * data, int stream, const bg_ogg_codec_t * codec)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   e->audio_streams[stream].codec = codec;
   e->audio_streams[stream].codec_priv = e->audio_streams[stream].codec->create(e->output, e->serialno);
   e->serialno++;
@@ -146,7 +157,7 @@ void bg_ogg_encoder_init_audio_stream(void * data, int stream, const bg_ogg_code
 
 void bg_ogg_encoder_init_video_stream(void * data, int stream, const bg_ogg_codec_t * codec)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   e->video_streams[stream].codec = codec;
   e->video_streams[stream].codec_priv = e->video_streams[stream].codec->create(e->output, e->serialno);
   e->serialno++;
@@ -155,13 +166,13 @@ void bg_ogg_encoder_init_video_stream(void * data, int stream, const bg_ogg_code
 void
 bg_ogg_encoder_set_audio_parameter(void * data, int stream, const char * name, const bg_parameter_value_t * val)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   e->audio_streams[stream].codec->set_parameter(e->audio_streams[stream].codec_priv, name, val);
   }
 
 void bg_ogg_encoder_set_video_parameter(void * data, int stream, const char * name, const bg_parameter_value_t * val)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   e->video_streams[stream].codec->set_parameter(e->video_streams[stream].codec_priv, name, val);
   }
 
@@ -186,7 +197,7 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
 int bg_ogg_encoder_start(void * data)
   {
   int i;
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
 
   /* Start encoders and write identification headers */
   for(i = 0; i < e->num_video_streams; i++)
@@ -215,26 +226,26 @@ int bg_ogg_encoder_start(void * data)
 
 void bg_ogg_encoder_get_audio_format(void * data, int stream, gavl_audio_format_t*ret)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   gavl_audio_format_copy(ret, &e->audio_streams[stream].format);
   }
 
 void bg_ogg_encoder_get_video_format(void * data, int stream, gavl_video_format_t*ret)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   gavl_video_format_copy(ret, &e->video_streams[stream].format);
   }
 
 int bg_ogg_encoder_write_audio_frame(void * data, gavl_audio_frame_t*f,int stream)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   return
     e->audio_streams[stream].codec->encode_audio(e->audio_streams[stream].codec_priv, f);
   }
 
 int bg_ogg_encoder_write_video_frame(void * data, gavl_video_frame_t*f,int stream)
   {
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
   return
     e->video_streams[stream].codec->encode_video(e->video_streams[stream].codec_priv, f);
   }
@@ -243,7 +254,7 @@ int bg_ogg_encoder_close(void * data, int do_delete)
   {
   int ret = 1;
   int i;
-  bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
+  bg_ogg_encoder_t * e = data;
 
   if(!e->output)
     return 1;

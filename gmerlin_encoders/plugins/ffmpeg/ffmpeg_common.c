@@ -28,6 +28,7 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
+#include <gmerlin/pluginfuncs.h>
 
 #define LOG_DOMAIN "ffmpeg"
 
@@ -82,6 +83,14 @@ void * bg_ffmpeg_create(const ffmpeg_format_info_t * formats)
   
   return ret;
   }
+
+void bg_ffmpeg_set_callbacks(void * data,
+                             bg_encoder_callbacks_t * cb)
+  {
+  ffmpeg_priv_t * f = data;
+  f->cb = cb;
+  }
+                             
 
 void bg_ffmpeg_destroy(void * data)
   {
@@ -150,23 +159,14 @@ void bg_ffmpeg_set_parameter(void * data, const char * name,
   
   }
 
-const char * bg_ffmpeg_get_extension(void * data)
-  {
-  ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
-
-  if(priv->format)
-    return priv->format->extension;
-  return (const char *)0;
-  }
-
 int bg_ffmpeg_open(void * data, const char * filename,
                    const bg_metadata_t * metadata,
                    const bg_chapter_list_t * chapter_list)
   {
   ffmpeg_priv_t * priv;
   AVOutputFormat *fmt;
-
+  char * tmp_string;
+  
   priv = (ffmpeg_priv_t *)data;
   if(!priv->format)
     return 0;
@@ -175,12 +175,28 @@ int bg_ffmpeg_open(void * data, const char * filename,
   fmt = guess_format(priv->format->short_name, (char*)0, (char*)0);
   if(!fmt)
     return 0;
-  
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 26, 0)
   priv->ctx = av_alloc_format_context();
-  priv->ctx->oformat = fmt;
-  snprintf(priv->ctx->filename,
-           sizeof(priv->ctx->filename), "%s", filename);
+#else
+  priv->ctx = avformat_alloc_context();
+#endif
+  tmp_string =
+    bg_filename_ensure_extension(filename,
+                                 priv->format->extension);
 
+  if(!bg_encoder_cb_create_output_file(priv->cb, tmp_string))
+    {
+    free(tmp_string);
+    return 0;
+    }
+  
+  snprintf(priv->ctx->filename,
+           sizeof(priv->ctx->filename), "%s", tmp_string);
+  
+  free(tmp_string);
+  
+  priv->ctx->oformat = fmt;
+    
   /* Add metadata */
 
   if(metadata)
@@ -631,7 +647,7 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
     /* Write stats */
     
     if((st->pass == 1) && st->stream->codec->stats_out && st->stats_file)
-      fprintf(st->stats_file, st->stream->codec->stats_out);
+      fprintf(st->stats_file, "%s", st->stream->codec->stats_out);
     }
   return bytes_encoded;
   }

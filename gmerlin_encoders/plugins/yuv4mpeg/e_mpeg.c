@@ -25,6 +25,7 @@
 #include <config.h>
 
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
 #include <gmerlin/translation.h>
@@ -75,6 +76,9 @@ typedef struct
   char * aux_stream_2;
   char * aux_stream_3;
   
+  bg_encoder_callbacks_t * cb;
+
+  
   } e_mpeg_t;
 
 static void * create_mpeg()
@@ -83,12 +87,10 @@ static void * create_mpeg()
   return ret;
   }
 
-
-static const char * extension_mpg  = ".mpg";
-
-static const char * get_extension_mpeg(void * data)
+static void set_callbacks_mpeg(void * data, bg_encoder_callbacks_t * cb)
   {
-  return extension_mpg;
+  e_mpeg_t * mpg = data;
+  mpg->cb = cb;
   }
 
 static int open_mpeg(void * data, const char * filename,
@@ -96,9 +98,13 @@ static int open_mpeg(void * data, const char * filename,
                      const bg_chapter_list_t * chapter_list)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
+  
+  e->filename = bg_filename_ensure_extension(filename, "mpg");
 
-  e->filename = bg_strdup(e->filename, filename);
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+    return 0;
 
+  
   /* To make sure this will work, we check for the execuables of mpeg2enc, mplex and mp2enc */
   if(!bg_search_file_exec("mpeg2enc", (char**)0))
     {
@@ -546,7 +552,7 @@ const bg_encoder_plugin_t the_plugin =
     .get_audio_parameters = get_audio_parameters_mpeg,
     .get_video_parameters = get_video_parameters_mpeg,
 
-    .get_extension =        get_extension_mpeg,
+    .set_callbacks =        set_callbacks_mpeg,
 
     .open =                 open_mpeg,
 

@@ -424,7 +424,7 @@ void bg_flac_free(bg_flac_t * flac)
     free(entry.entry); \
     }
 
-void bg_flac_init_metadata(bg_flac_t * flac, bg_metadata_t * m)
+void bg_flac_init_metadata(bg_flac_t * flac, const bg_metadata_t * m)
   {
   FLAC__StreamMetadata_VorbisComment_Entry entry;
   

@@ -117,19 +117,21 @@ typedef struct
   int initialized;
   
   int got_error;
+  bg_encoder_callbacks_t * cb;
   } ffmpeg_priv_t;
 
 void * bg_ffmpeg_create(const ffmpeg_format_info_t * formats);
 
 void bg_ffmpeg_destroy(void*);
 
+void bg_ffmpeg_set_callbacks(void * data,
+                             bg_encoder_callbacks_t * cb);
+
+
 const bg_parameter_info_t * bg_ffmpeg_get_parameters(void * data);
 
 void bg_ffmpeg_set_parameter(void * data, const char * name,
                              const bg_parameter_value_t * v);
-
-const char * bg_ffmpeg_get_extension(void * data);
-
 
 int bg_ffmpeg_open(void * data, const char * filename,
                    const bg_metadata_t * metadata,

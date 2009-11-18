@@ -24,6 +24,7 @@
 #include <config.h>
 #include <errno.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/translation.h>
 
 #include <gmerlin/utils.h>
@@ -177,6 +178,7 @@ typedef struct
   bgen_id3v1_t * id3v1;
   
   int64_t samples_read;
+  bg_encoder_callbacks_t * cb;
   
   } lame_priv_t;
 
@@ -199,7 +201,11 @@ static void destroy_lame(void * priv)
   free(lame);
   }
 
-
+static void set_callbacks_lame(void * data, bg_encoder_callbacks_t * cb)
+  {
+  lame_priv_t * lame = data;
+  lame->cb = cb;
+  }
 
 static const bg_parameter_info_t audio_parameters[] =
   {
@@ -516,15 +522,19 @@ static int open_lame(void * data, const char * filename,
 
   lame->lame = lame_init();
   id3tag_init(lame->lame);
+
+  lame->filename = bg_filename_ensure_extension(filename, "mp3");
+
+  if(!bg_encoder_cb_create_output_file(lame->cb, lame->filename))
+    return 0;
   
-  lame->output = fopen(filename, "wb+");
+  lame->output = fopen(lame->filename, "wb+");
   if(!lame->output)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
            filename, strerror(errno));
     return 0;
     }
-  lame->filename = bg_strdup(lame->filename, filename);
 
   if(lame->do_id3v2 && metadata)
     {
@@ -543,14 +553,6 @@ static int open_lame(void * data, const char * filename,
   
   return ret;
   }
-
-static char * lame_extension = ".mp3";
-
-static const char * get_extension_lame(void * data)
-  {
-  return lame_extension;
-  }
-
 
 static int add_audio_stream_lame(void * data, const char * language,
                                  gavl_audio_format_t * format)
@@ -720,7 +722,7 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =   1,
     .max_video_streams =   0,
     
-    .get_extension =       get_extension_lame,
+    .set_callbacks =       set_callbacks_lame,
     
     .open =                open_lame,
     

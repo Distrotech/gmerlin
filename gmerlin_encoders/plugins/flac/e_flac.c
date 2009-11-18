@@ -26,6 +26,7 @@
 
 #include <config.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_flac"
@@ -57,6 +58,8 @@ typedef struct
   int num_seektable_entries;
 
   int64_t samples_written;
+
+  bg_encoder_callbacks_t * cb;
   
   } flac_t;
 
@@ -67,7 +70,11 @@ static void * create_flac()
   return ret;
   }
 
-
+static void set_callbacks_flac(void * data, bg_encoder_callbacks_t * cb)
+  {
+  flac_t * flac = data;
+  flac->cb = cb;
+  }
 
 static const bg_parameter_info_t parameters[] =
   {
@@ -143,8 +150,11 @@ static int open_flac(void * data, const char * filename,
   /* Create encoder instance */
   flac->enc = FLAC__file_encoder_new();
   
-  flac->filename = bg_strdup(flac->filename, filename);
+  flac->filename = bg_filename_ensure_extension(filename, "flac");
 
+  if(!bg_encoder_cb_create_output_file(flac->cb, flac->filename))
+    return 0;
+  
   /* Create vorbis comment */
 
   if(flac->use_vorbis_comment && m)
@@ -166,15 +176,6 @@ static int open_flac(void * data, const char * filename,
     
   FLAC__file_encoder_set_metadata(flac->enc, flac->metadata, flac->num_metadata);
   return result;
-  }
-
-
-
-static char * flac_extension = ".flac";
-
-static const char * get_extension_flac(void * data)
-  {
-  return flac_extension;
   }
 
 static int add_audio_stream_flac(void * data,
@@ -491,7 +492,7 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =   1,
     .max_video_streams =   0,
     
-    .get_extension =       get_extension_flac,
+    .set_callbacks =       set_callbacks_flac,
     
     .open =                open_flac,
     

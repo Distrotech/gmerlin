@@ -40,12 +40,6 @@ static const bg_parameter_info_t * get_audio_parameters_speex(void * data)
   return bg_speex_codec.get_parameters();
   }
 
-static char * speex_extension = ".spx";
-
-static const char * get_extension_speex(void * data)
-  {
-  return speex_extension;
-  }
 
 static int add_audio_stream_speex(void * data, const char * language,
                                   gavl_audio_format_t * format)
@@ -56,6 +50,13 @@ static int add_audio_stream_speex(void * data, const char * language,
   return ret;
   }
 
+static int
+open_speex(void * data, const char * file,
+           const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list)
+  {
+  return bg_ogg_encoder_open(data, file, metadata, chapter_list,
+                             "spx");
+  }
 
 
 const bg_encoder_plugin_t the_plugin =
@@ -79,9 +80,8 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =   1,
     .max_video_streams =   0,
     
-    .get_extension =       get_extension_speex,
-    
-    .open =                bg_ogg_encoder_open,
+    .set_callbacks =       bg_ogg_encoder_set_callbacks,
+    .open =                open_speex,
     
     .get_audio_parameters =    get_audio_parameters_speex,
 

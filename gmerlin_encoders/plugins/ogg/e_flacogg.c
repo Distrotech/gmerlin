@@ -40,12 +40,6 @@ static const bg_parameter_info_t * get_audio_parameters_flacogg(void * data)
   return bg_flacogg_codec.get_parameters();
   }
 
-static char * flacogg_extension = ".ogg";
-
-static const char * get_extension_flacogg(void * data)
-  {
-  return flacogg_extension;
-  }
 
 static int add_audio_stream_flacogg(void * data, const char * language,
                                     gavl_audio_format_t * format)
@@ -55,6 +49,15 @@ static int add_audio_stream_flacogg(void * data, const char * language,
   bg_ogg_encoder_init_audio_stream(data, ret, &bg_flacogg_codec);
   return ret;
   }
+
+static int
+open_flacogg(void * data, const char * file,
+           const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list)
+  {
+  return bg_ogg_encoder_open(data, file, metadata, chapter_list,
+                             "ogg");
+  }
+
 
 const bg_encoder_plugin_t the_plugin =
   {
@@ -77,9 +80,9 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =   1,
     .max_video_streams =   0,
     
-    .get_extension =       get_extension_flacogg,
+    .set_callbacks =       bg_ogg_encoder_set_callbacks,
     
-    .open =                bg_ogg_encoder_open,
+    .open =                open_flacogg,
     
     .get_audio_parameters =    get_audio_parameters_flacogg,
 
