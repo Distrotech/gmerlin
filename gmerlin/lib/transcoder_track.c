@@ -995,7 +995,7 @@ bg_transcoder_track_create(const char * url,
   
   if(!bg_encoder_info_get_from_registry(plugin_reg, &encoder_info))
     return (bg_transcoder_track_t*)0;
-    
+  
   /* Load the plugin */
 
   bg_cfg_section_get_parameter_int(track_defaults_section, "prefer_edl", &prefer_edl);
@@ -1597,56 +1597,32 @@ char * bg_transcoder_track_get_name(bg_transcoder_track_t * t)
   return val.val_str;
   }
 
-char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t)
+const char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t)
   {
-  bg_parameter_value_t val;
-  bg_parameter_info_t info;
-
-  memset(&val, 0, sizeof(val));
-  memset(&info, 0, sizeof(info));
-  info.name = "audio_encoder";
-    
-  bg_cfg_section_get_parameter(t->general_section, &info, &val);
-  return val.val_str;
+  const char * ret;
+  bg_cfg_section_get_parameter_string(t->general_section, "audio_encoder", &ret);
+  return ret;
   }
 
-char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t)
+const char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t)
   {
-  bg_parameter_value_t val;
-  bg_parameter_info_t info;
-
-  memset(&val, 0, sizeof(val));
-  memset(&info, 0, sizeof(info));
-  info.name = "video_encoder";
-    
-  bg_cfg_section_get_parameter(t->general_section, &info, &val);
-  return val.val_str;
+  const char * ret;
+  bg_cfg_section_get_parameter_string(t->general_section, "video_encoder", &ret);
+  return ret;
   }
 
-char * bg_transcoder_track_get_subtitle_text_encoder(bg_transcoder_track_t * t)
+const char * bg_transcoder_track_get_subtitle_text_encoder(bg_transcoder_track_t * t)
   {
-  bg_parameter_value_t val;
-  bg_parameter_info_t info;
-
-  memset(&val, 0, sizeof(val));
-  memset(&info, 0, sizeof(info));
-  info.name = "subtitle_text_encoder";
-  
-  bg_cfg_section_get_parameter(t->general_section, &info, &val);
-  return val.val_str;
+  const char * ret;
+  bg_cfg_section_get_parameter_string(t->general_section, "subtitle_text_encoder", &ret);
+  return ret;
   }
 
-char * bg_transcoder_track_get_subtitle_overlay_encoder(bg_transcoder_track_t * t)
+const char * bg_transcoder_track_get_subtitle_overlay_encoder(bg_transcoder_track_t * t)
   {
-  bg_parameter_value_t val;
-  bg_parameter_info_t info;
-
-  memset(&val, 0, sizeof(val));
-  memset(&info, 0, sizeof(info));
-  info.name = "subtitle_overlay_encoder";
-  
-  bg_cfg_section_get_parameter(t->general_section, &info, &val);
-  return val.val_str;
+  const char * ret;
+  bg_cfg_section_get_parameter_string(t->general_section, "subtitle_overlay_encoder", &ret);
+  return ret;
   }
 
 

@@ -55,6 +55,18 @@ typedef enum
   } bg_plugin_api_t;
 
 /** \ingroup plugin_registry
+ *  \brief Identifiers for stream types
+ */
+
+typedef enum
+  {
+    BG_STREAM_AUDIO             = (1<<0),
+    BG_STREAM_SUBTITLE_TEXT     = (1<<1),
+    BG_STREAM_SUBTITLE_OVERLAY  = (1<<2),
+    BG_STREAM_VIDEO             = (1<<3),
+  } bg_stream_type_t;
+
+/** \ingroup plugin_registry
  *  \brief Typedef for plugin info
  */
 
@@ -410,16 +422,76 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
 /** \ingroup plugin_registry
  *  \brief Create a parameter array for encoders
  *  \param reg       A plugin registry
- *  \param type_mask Mask of all returned plugin types
+ *  \param type_mask Mask of all stream types to be encoded
  *  \param flag_mask Mask of all returned plugin flags
- *  \returns Parameter array for setting up encoders (free with \ref bg_parameter_info_destroy_array)
+ *  \returns Parameter array for setting up encoders
+ *
+ *  Free the returned parameters with
+ *  \ref bg_parameter_info_destroy_array
+ *
+ *  If you create a config section from the returned parameters
+ *  (with \ref bg_cfg_section_create_from_parameters or \ref bg_cfg_section_create_items)
+ *  the resulting encoding section will contain the complete encoder setup.
+ *  It can be manipulated through the bg_encoder_section_*() functions.
  */
 
 bg_parameter_info_t *
 bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
-                                             uint32_t type_mask,
+                                             uint32_t stream_type_mask,
                                              uint32_t flag_mask);
 
+/** \ingroup plugin_registry
+ *  \brief Get the name for an encoding plugin
+ *  \param plugin_ref A plugin registry
+ *  \param s An encoder section (see \ref bg_plugin_registry_create_encoder_parameters)
+ *  \param stream_type The stream type to encode
+ *  \param stream_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
+ *  \returns Returns the plugin name or NULL if the stream will be encoded by the video encoder
+ */
+
+const char * 
+bg_encoder_section_get_plugin(bg_plugin_registry_t * plugin_reg,
+                              bg_cfg_section_t * s,
+                              bg_stream_type_t stream_type,
+                              int stream_mask);
+
+/** \ingroup plugin_registry
+ *  \brief Get the plugin configuration for an encoding plugin
+ *  \param plugin_ref A plugin registry
+ *  \param s An encoder section (see \ref bg_plugin_registry_create_encoder_parameters)
+ *  \param stream_type The stream type to encode
+ *  \param stream_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
+ *  \param section_ret If non-null returns the config section for the plugin
+ *  \param params_ret If non-null returns the parameters for the plugin
+ */
+
+  
+void
+bg_encoder_section_get_plugin_config(bg_plugin_registry_t * plugin_reg,
+                                     bg_cfg_section_t * s,
+                                     bg_stream_type_t stream_type,
+                                     int stream_mask,
+                                     bg_cfg_section_t ** section_ret,
+                                     const bg_parameter_info_t ** params_ret);
+
+/** \ingroup plugin_registry
+ *  \brief Get the stream configuration for an encoding plugin
+ *  \param plugin_ref A plugin registry
+ *  \param s An encoder section (see \ref bg_plugin_registry_create_encoder_parameters)
+ *  \param stream_type The stream type to encode
+ *  \param stream_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
+ *  \param section_ret If non-null returns the config section for the stream
+ *  \param params_ret If non-null returns the parameters for the stream
+ */
+
+void
+bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
+                                     bg_cfg_section_t * s,
+                                     bg_stream_type_t stream_type,
+                                     int stream_mask,
+                                     bg_cfg_section_t ** section_ret,
+                                     const bg_parameter_info_t ** params_ret);
+  
 /** \ingroup plugin_registry_defaults 
  *  \brief Set the default for a particular plugin type
  *  \param reg A plugin registry

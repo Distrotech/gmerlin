@@ -1905,11 +1905,11 @@ static const bg_parameter_info_t encoder_section_subtitle_text =
     .flags     = BG_PARAMETER_OWN_SECTION,
   };
 
-static bg_parameter_info_t * create_encoder_parameters(const bg_plugin_info_t * info)
+static bg_parameter_info_t *
+create_encoder_parameters(const bg_plugin_info_t * info)
   {
   int i = 0;
   bg_parameter_info_t * ret;
-  const char * prefix;
   
   const bg_parameter_info_t * src[11];
   
@@ -1964,29 +1964,6 @@ static bg_parameter_info_t * create_encoder_parameters(const bg_plugin_info_t * 
     src[i] = NULL;
     ret = bg_parameter_info_concat_arrays(src);
 
-    /* Prefix the names of the stream parameters to avoid confusion */
-#if 0    
-    i = 0;
-    prefix = NULL;
-    while(ret[i].name)
-      {
-      if(!strcmp(ret[i].name, "$audio"))
-        prefix = "$audio";
-      else if(!strcmp(ret[i].name, "$video"))
-        prefix = "$video";
-      else if(!strcmp(ret[i].name, "$subtitle_text"))
-        prefix = "$subtitle_text";
-      else if(!strcmp(ret[i].name, "$subtitle_overlay"))
-        prefix = "$subtitle_overlay";
-      else if(prefix)
-        {
-        char * new_string = bg_sprintf("%s.%s", prefix, ret[i].name);
-        free(ret[i].name);
-        ret[i].name = new_string;
-        }
-      i++;
-      }
-#endif
     return ret;
     }
   else
@@ -2327,21 +2304,21 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
 
 static const bg_parameter_info_t audio_to_video_param =
   {
-    .name      = "audio_to_video",
+    .name      = "encode_audio_to_video",
     .long_name = TRS("Write audio stream to video file if possible"),
     .type      = BG_PARAMETER_CHECKBUTTON,
   };
 
 static const bg_parameter_info_t subtitle_text_to_video_param =
   {
-    .name      = "subtitle_text_to_video",
+    .name      = "encode_subtitle_text_to_video",
     .long_name = TRS("Write text subtitles to video file if possible"),
     .type      = BG_PARAMETER_CHECKBUTTON,
   };
 
 static const bg_parameter_info_t subtitle_overlay_to_video_param =
   {
-    .name      = "subtitle_text_to_video",
+    .name      = "encode_subtitle_overlay_to_video",
     .long_name = TRS("Write overlay subtitles to video file if possible"),
     .type      = BG_PARAMETER_CHECKBUTTON,
   };
@@ -2389,13 +2366,13 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
   
   /* Determine what stream we want */
 
-  if(type_mask & BG_PLUGIN_ENCODER_AUDIO)
+  if(type_mask & BG_STREAM_AUDIO)
     do_audio = 1;
-  if(type_mask & BG_PLUGIN_ENCODER_VIDEO)
+  if(type_mask & BG_STREAM_VIDEO)
     do_video = 1;
-  if(type_mask & BG_PLUGIN_ENCODER_SUBTITLE_TEXT)
+  if(type_mask & BG_STREAM_SUBTITLE_TEXT)
     do_subtitle_text = 1;
-  if(type_mask & BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY)
+  if(type_mask & BG_STREAM_SUBTITLE_OVERLAY)
     do_subtitle_overlay = 1;
   
   /* Count parameters */
@@ -2467,4 +2444,240 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
     i++;
     }
   return ret;
+  }
+
+static int
+encode_to_video(bg_plugin_registry_t * plugin_reg,
+                bg_cfg_section_t * s,
+                bg_stream_type_t type,
+                int stream_mask)
+  {
+  int preference;
+  const char * plugin_name = NULL;
+  const bg_plugin_info_t * info;
+
+  if(!(stream_mask & BG_STREAM_VIDEO))
+    return 0;
+  
+  bg_cfg_section_get_parameter_string(s, "video_encoder",
+                                      &plugin_name);
+  info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+
+  if(!info)
+    return 0;
+  
+  switch(type)
+    {
+    case BG_STREAM_AUDIO:
+      bg_cfg_section_get_parameter_int(s, "encode_audio_to_video",
+                                       &preference);
+      if(preference && info->max_audio_streams)
+        return 1;
+      break;
+    case BG_STREAM_SUBTITLE_TEXT:
+      bg_cfg_section_get_parameter_int(s, "encode_subtitle_text_to_video",
+                                       &preference);
+      if(preference && info->max_subtitle_text_streams)
+        return 1;
+      break;
+    case BG_STREAM_SUBTITLE_OVERLAY:
+      bg_cfg_section_get_parameter_int(s, "encode_subtitle_overlay_to_video",
+                                       &preference);
+      if(preference && info->max_subtitle_overlay_streams)
+        return 1;
+      break;
+    default:
+      break;
+    }
+  return 0;
+  }
+                              
+
+const char * 
+bg_encoder_section_get_plugin(bg_plugin_registry_t * plugin_reg,
+                              bg_cfg_section_t * s,
+                              bg_stream_type_t stream_type,
+                              int stream_mask)
+  {
+  const char * ret = NULL;
+  
+  switch(stream_type)
+    {
+    case BG_STREAM_AUDIO:
+      if(!encode_to_video(plugin_reg, s, BG_STREAM_AUDIO, stream_mask))
+        bg_cfg_section_get_parameter_string(s, "audio_encoder",
+                                            &ret);
+      break;
+    case BG_STREAM_SUBTITLE_TEXT:
+      if(!encode_to_video(plugin_reg, s, BG_STREAM_SUBTITLE_TEXT, stream_mask))
+        bg_cfg_section_get_parameter_string(s, "subtitle_text_encoder",
+                                            &ret);
+      break;
+    case BG_STREAM_SUBTITLE_OVERLAY:
+      if(!encode_to_video(plugin_reg, s, BG_STREAM_SUBTITLE_OVERLAY,
+                          stream_mask))
+        bg_cfg_section_get_parameter_string(s, "subtitle_overlay_encoder",
+                                            &ret);
+      break;
+    case BG_STREAM_VIDEO:
+      bg_cfg_section_get_parameter_string(s, "video_encoder", &ret);
+      break;
+    }
+  return ret;
+  }
+
+void
+bg_encoder_section_get_plugin_config(bg_plugin_registry_t * plugin_reg,
+                                     bg_cfg_section_t * s,
+                                     bg_stream_type_t stream_type,
+                                     int stream_mask,
+                                     bg_cfg_section_t ** section_ret,
+                                     const bg_parameter_info_t ** params_ret)
+  {
+  const char * plugin_name;
+  const bg_plugin_info_t * info;
+
+  plugin_name =
+    bg_encoder_section_get_plugin(plugin_reg,
+                                  s, stream_type,
+                                  stream_mask);
+  
+  if(section_ret)
+    *section_ret = NULL;
+  if(params_ret)
+    *params_ret = NULL;
+
+  if(!plugin_name)
+    return;
+  
+  switch(stream_type)
+    {
+    case BG_STREAM_AUDIO:
+      if(section_ret)
+        {
+        *section_ret = bg_cfg_section_find_subsection(s, "audio_encoder");
+        *section_ret = bg_cfg_section_find_subsection(*section_ret, plugin_name);
+        }
+      break;
+    case BG_STREAM_SUBTITLE_TEXT:
+      if(section_ret)
+        {
+        *section_ret = bg_cfg_section_find_subsection(s, "subtitle_text_encoder");
+        *section_ret = bg_cfg_section_find_subsection(*section_ret, plugin_name);
+        }
+      break;
+    case BG_STREAM_SUBTITLE_OVERLAY:
+      if(section_ret)
+        {
+        *section_ret = bg_cfg_section_find_subsection(s, "subtitle_overlay_encoder");
+        *section_ret = bg_cfg_section_find_subsection(*section_ret, plugin_name);
+        }
+      break;
+    case BG_STREAM_VIDEO:
+      if(section_ret)
+        {
+        *section_ret = bg_cfg_section_find_subsection(s, "video_encoder");
+        *section_ret = bg_cfg_section_find_subsection(*section_ret, plugin_name);
+        }
+      break;
+    }
+
+  if(params_ret)
+    {
+    info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+    *params_ret = info->parameters;
+    }
+  
+  }
+
+void
+bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
+                                     bg_cfg_section_t * s,
+                                     bg_stream_type_t stream_type,
+                                     int stream_mask,
+                                     bg_cfg_section_t ** section_ret,
+                                     const bg_parameter_info_t ** params_ret)
+  {
+  const char * plugin_name;
+  const bg_plugin_info_t * info;
+  bg_cfg_section_t * subsection = NULL;
+  
+  int to_video = 0;
+  
+  plugin_name =
+    bg_encoder_section_get_plugin(plugin_reg,
+                                  s, stream_type,
+                                  stream_mask);
+  
+  if(!plugin_name)
+    {
+    plugin_name =
+      bg_encoder_section_get_plugin(plugin_reg,
+                                    s, BG_STREAM_VIDEO,
+                                    stream_mask);
+    
+    subsection = bg_cfg_section_find_subsection(s, "video_encoder");
+    
+    to_video = 1;
+    }
+
+  info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+  
+  if(section_ret)
+    *section_ret = NULL;
+  if(params_ret)
+    *params_ret = NULL;
+  
+  switch(stream_type)
+    {
+    case BG_STREAM_AUDIO:
+      if(params_ret)
+        *params_ret = info->audio_parameters;
+
+      if(section_ret)
+        {
+        if(!subsection)
+          subsection = bg_cfg_section_find_subsection(s, "audio_encoder");
+        *section_ret = bg_cfg_section_find_subsection(subsection, "$audio");
+        }
+
+      break;
+    case BG_STREAM_SUBTITLE_TEXT:
+      if(params_ret)
+        *params_ret = info->subtitle_text_parameters;
+
+      if(section_ret)
+        {
+        if(!subsection)
+          subsection = bg_cfg_section_find_subsection(s, "subtitle_text_encoder");
+        *section_ret = bg_cfg_section_find_subsection(subsection, "$subtitle_text");
+        
+        }
+      
+      break;
+    case BG_STREAM_SUBTITLE_OVERLAY:
+      if(params_ret)
+        *params_ret = info->subtitle_overlay_parameters;
+
+      if(section_ret)
+        {
+        if(!subsection)
+          subsection = bg_cfg_section_find_subsection(s, "subtitle_overlay_encoder");
+        *section_ret = bg_cfg_section_find_subsection(subsection, "$subtitle_overlay");
+        
+        }
+      
+      break;
+    case BG_STREAM_VIDEO:
+      if(params_ret)
+        *params_ret = info->video_parameters;
+
+      if(section_ret)
+        {
+        if(!subsection)
+          subsection = bg_cfg_section_find_subsection(s, "video_encoder");
+        *section_ret = bg_cfg_section_find_subsection(subsection, "$video");
+        }
+      break;
+    }
   }

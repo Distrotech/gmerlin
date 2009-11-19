@@ -158,10 +158,10 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t);
 
 char * bg_transcoder_track_get_name(bg_transcoder_track_t * t);
 
-char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t);
-char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t);
-char * bg_transcoder_track_get_subtitle_text_encoder(bg_transcoder_track_t * t);
-char * bg_transcoder_track_get_subtitle_overlay_encoder(bg_transcoder_track_t * t);
+const char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t);
+const char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t);
+const char * bg_transcoder_track_get_subtitle_text_encoder(bg_transcoder_track_t * t);
+const char * bg_transcoder_track_get_subtitle_overlay_encoder(bg_transcoder_track_t * t);
 
 void bg_transcoder_track_get_duration(bg_transcoder_track_t * t,
                                       gavl_time_t * ret, gavl_time_t * ret_total);

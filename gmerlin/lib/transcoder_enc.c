@@ -239,10 +239,10 @@ int bg_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
                                                bg_transcoder_track_t * track,
                                                bg_encoder_info_t * encoder_info)
   {
-  char * video_encoder;
-  char * audio_encoder;
-  char * subtitle_text_encoder;
-  char * subtitle_overlay_encoder;
+  const char * video_encoder;
+  const char * audio_encoder;
+  const char * subtitle_text_encoder;
+  const char * subtitle_overlay_encoder;
   int create_sections = 0;
   bg_encoder_info_t default_info;
   memset(encoder_info, 0, sizeof(*encoder_info));
@@ -294,11 +294,6 @@ int bg_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
     bg_encoder_info_get_from_registry(plugin_reg, &default_info);
     bg_transcoder_track_create_encoder_sections(track, &default_info);
     }
-  
-  free(video_encoder);
-  free(audio_encoder);
-  if(subtitle_text_encoder)    free(subtitle_text_encoder);
-  if(subtitle_overlay_encoder) free(subtitle_overlay_encoder);
   
   return 1;
   }

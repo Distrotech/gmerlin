@@ -24,12 +24,14 @@
    separate file or not.
 */
 
+#include <gmerlin/transcoder_track.h>
 
 typedef struct bg_encoder_s bg_encoder_t;
 
 bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
                                  bg_cfg_section_t * section,
-                                 int type_mask, int flag_mask);
+                                 bg_transcoder_track_t * tt,
+                                 int stream_mask, int flag_mask);
 
 void bg_encoder_destroy(bg_encoder_t * enc); /* Also closes all internal encoders */
 

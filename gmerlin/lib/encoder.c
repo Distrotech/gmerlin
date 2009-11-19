@@ -63,12 +63,30 @@ typedef struct
 
   } subtitle_overlay_stream_t;
 
+typedef struct
+  {
+  const bg_plugin_info_t * info;
+  bg_cfg_section_t * section;
+  const bg_parameter_info_t * parameters;
+  } plugin_config_t;
+
+typedef struct
+  {
+  bg_cfg_section_t * section;
+  const bg_parameter_info_t * parameters;
+  } stream_config_t;
+
 struct bg_encoder_s
   {
-  const bg_plugin_info_t * audio_info;
-  const bg_plugin_info_t * video_info;
-  const bg_plugin_info_t * subtitle_text_info;
-  const bg_plugin_info_t * subtitle_overlay_info;
+  plugin_config_t audio_plugin;
+  plugin_config_t video_plugin;
+  plugin_config_t subtitle_text_plugin;
+  plugin_config_t subtitle_overlay_plugin;
+
+  stream_config_t audio_stream;
+  stream_config_t video_stream;
+  stream_config_t subtitle_text_stream;
+  stream_config_t subtitle_overlay_stream;
   
   int num_audio_streams;
   int num_video_streams;
@@ -86,16 +104,84 @@ struct bg_encoder_s
   int flags;
   
   bg_plugin_registry_t * plugin_reg;
+
+  /* Config stuff */
+  bg_cfg_section_t * es;
+  bg_transcoder_track_t * tt;
+
+  int stream_mask;
+  
   };
 
+static void init_plugin_from_section(bg_encoder_t * e, plugin_config_t * ret,
+                                     bg_stream_type_t type)
+  {
+  const char * name;
+  name = bg_encoder_section_get_plugin(e->plugin_reg, e->es, type, e->stream_mask);
+  if(name)
+    {
+    ret->info = bg_plugin_find_by_name(e->plugin_reg, name);
+    bg_encoder_section_get_plugin_config(e->plugin_reg, e->es, type, e->stream_mask,
+                                         &ret->section, &ret->parameters);
+    }
+  }
+
+static void init_stream_from_section(bg_encoder_t * e, stream_config_t * ret,
+                                     bg_stream_type_t type)
+  {
+  bg_encoder_section_get_stream_config(e->plugin_reg, e->es, type, e->stream_mask,
+                                       &ret->section, &ret->parameters);
+  }
+
+static void init_from_section(bg_encoder_t * e)
+  {
+  if(e->stream_mask & BG_STREAM_AUDIO)
+    {
+    init_plugin_from_section(e, &e->audio_plugin, BG_STREAM_AUDIO);
+    init_stream_from_section(e, &e->audio_stream, BG_STREAM_AUDIO);
+    }
+  if(e->stream_mask & BG_STREAM_SUBTITLE_TEXT)
+    {
+    init_plugin_from_section(e, &e->subtitle_text_plugin, BG_STREAM_SUBTITLE_TEXT);
+    init_stream_from_section(e, &e->subtitle_text_stream, BG_STREAM_SUBTITLE_TEXT);
+    }
+  if(e->stream_mask & BG_STREAM_SUBTITLE_OVERLAY)
+    {
+    init_plugin_from_section(e, &e->subtitle_overlay_plugin, BG_STREAM_SUBTITLE_OVERLAY);
+    init_stream_from_section(e, &e->subtitle_overlay_stream, BG_STREAM_SUBTITLE_OVERLAY);
+    }
+  if(e->stream_mask & BG_STREAM_VIDEO)
+    {
+    init_plugin_from_section(e, &e->video_plugin, BG_STREAM_VIDEO);
+    init_stream_from_section(e, &e->video_stream, BG_STREAM_VIDEO);
+    }
+  }
+
+static void init_from_tt(bg_encoder_t * e)
+  {
+  }
+
 bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
-                                 bg_cfg_section_t * section,
-                                 int type_mask, int flag_mask)
+                                 bg_cfg_section_t * es,
+                                 bg_transcoder_track_t * tt,
+                                 int stream_mask, int flag_mask)
   {
   bg_encoder_t * ret = calloc(1, sizeof(*ret));
   ret->plugin_reg = plugin_reg;
-
+  ret->stream_mask = stream_mask;
   /* Set plugin infos */
+
+  if(es)
+    {
+    ret->es = es;
+    init_from_section(ret);
+    }
+  else if(ret->tt)
+    {
+    ret->tt = tt;
+    init_from_tt(ret);
+    }
+  
   return ret;
   }
 
@@ -144,6 +230,15 @@ int bg_encoder_add_audio_stream(bg_encoder_t * enc,
   {
   int ret;
   audio_stream_t * s;
+
+  if(enc->audio_plugin.info)
+    {
+    
+    }
+  else
+    {
+    
+    }
   
   REALLOC_STREAM(enc->audio_streams,
                  enc->num_audio_streams);
@@ -246,7 +341,7 @@ int bg_encoder_write_audio_frame(bg_encoder_t * enc,
                                  int stream)
   {
   audio_stream_t * s = &enc->audio_streams[stream];
-  s->plugin->write_audio_frame(s->priv, frame, s->index);
+  return s->plugin->write_audio_frame(s->priv, frame, s->index);
   }
   
 
@@ -255,7 +350,7 @@ int bg_encoder_write_video_frame(bg_encoder_t * enc,
                                  int stream)
   {
   video_stream_t * s = &enc->video_streams[stream];
-  s->plugin->write_video_frame(s->priv, frame, s->index);
+  return s->plugin->write_video_frame(s->priv, frame, s->index);
   }
 
 int bg_encoder_write_subtitle_text(bg_encoder_t * enc,
@@ -264,12 +359,12 @@ int bg_encoder_write_subtitle_text(bg_encoder_t * enc,
                                    int64_t duration, int stream)
   {
   subtitle_text_stream_t * s = &enc->subtitle_text_streams[stream];
-  s->plugin->write_subtitle_text(s->priv, text, start, duration, s->index);
+  return s->plugin->write_subtitle_text(s->priv, text, start, duration, s->index);
   }
 
 int bg_encoder_write_subtitle_overlay(bg_encoder_t * enc,
                                       gavl_overlay_t * ovl, int stream)
   {
   subtitle_overlay_stream_t * s = &enc->subtitle_overlay_streams[stream];
-  s->plugin->write_subtitle_overlay(s->priv, ovl, s->index);
+  return s->plugin->write_subtitle_overlay(s->priv, ovl, s->index);
   }

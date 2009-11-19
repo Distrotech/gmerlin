@@ -119,11 +119,10 @@ bg_recorder_get_encoder_parameters(bg_recorder_t * rec)
   if(!rec->encoder_parameters)
     rec->encoder_parameters =
       bg_plugin_registry_create_encoder_parameters(rec->plugin_reg,
-                                                   BG_PLUGIN_ENCODER_AUDIO |
-                                                   BG_PLUGIN_ENCODER_VIDEO |
-                                                   BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
-                                                   BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY |
-                                                   BG_PLUGIN_ENCODER,
+                                                   BG_STREAM_AUDIO |
+                                                   BG_STREAM_VIDEO |
+                                                   BG_STREAM_SUBTITLE_TEXT |
+                                                   BG_STREAM_SUBTITLE_OVERLAY,
                                                    BG_PLUGIN_FILE);
   return rec->encoder_parameters;
   }
