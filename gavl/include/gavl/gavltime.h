@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+#include <inttypes.h>
 #include <gavl/gavldefs.h>
 
 /*! \defgroup time Time
