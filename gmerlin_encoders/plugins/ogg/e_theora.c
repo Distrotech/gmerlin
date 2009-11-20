@@ -103,7 +103,7 @@ static const bg_parameter_info_t * get_video_parameters_theora(void * data)
 
 static int add_audio_stream_theora(void * data,
                                    const char * language,
-                                   gavl_audio_format_t * format)
+                                   const gavl_audio_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, format);
@@ -111,7 +111,7 @@ static int add_audio_stream_theora(void * data,
   return ret;
   }
 
-static int add_video_stream_theora(void * data, gavl_video_format_t * format)
+static int add_video_stream_theora(void * data, const gavl_video_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_video_stream(data, format);

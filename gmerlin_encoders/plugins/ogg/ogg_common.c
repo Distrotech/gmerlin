@@ -123,7 +123,7 @@ int bg_ogg_flush(ogg_stream_state * os, FILE * output, int force)
   return ret;
   }
 
-int bg_ogg_encoder_add_audio_stream(void * data, gavl_audio_format_t * format)
+int bg_ogg_encoder_add_audio_stream(void * data, const gavl_audio_format_t * format)
   {
   bg_ogg_encoder_t * e = data;
   e->audio_streams =
@@ -135,7 +135,7 @@ int bg_ogg_encoder_add_audio_stream(void * data, gavl_audio_format_t * format)
   return e->num_audio_streams-1;
   }
 
-int bg_ogg_encoder_add_video_stream(void * data, gavl_video_format_t * format)
+int bg_ogg_encoder_add_video_stream(void * data, const gavl_video_format_t * format)
   {
   bg_ogg_encoder_t * e = data;
   e->video_streams =

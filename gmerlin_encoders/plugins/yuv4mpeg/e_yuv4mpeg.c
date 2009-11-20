@@ -77,7 +77,7 @@ static int open_y4m(void * data, const char * filename,
   return 1;
   }
 
-static int add_video_stream_y4m(void * data, gavl_video_format_t* format)
+static int add_video_stream_y4m(void * data, const gavl_video_format_t* format)
   {
   e_y4m_t * e = (e_y4m_t*)data;
   gavl_video_format_copy(&(e->com.format), format);

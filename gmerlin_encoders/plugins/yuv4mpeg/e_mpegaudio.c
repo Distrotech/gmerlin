@@ -99,7 +99,7 @@ static int open_mpa(void * data, const char * filename,
 
 static int add_audio_stream_mpa(void * data,
                                 const char * language,
-                                gavl_audio_format_t * format)
+                                const gavl_audio_format_t * format)
   {
   e_mpa_t * mpa;
 

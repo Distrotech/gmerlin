@@ -235,7 +235,7 @@ int bg_ffmpeg_open(void * data, const char * filename,
   }
 
 int bg_ffmpeg_add_audio_stream(void * data, const char * language,
-                               gavl_audio_format_t * format)
+                               const gavl_audio_format_t * format)
   {
   ffmpeg_priv_t * priv;
   ffmpeg_audio_stream_t * st;
@@ -268,7 +268,7 @@ int bg_ffmpeg_add_audio_stream(void * data, const char * language,
   return priv->num_audio_streams-1;
   }
 
-int bg_ffmpeg_add_video_stream(void * data, gavl_video_format_t * format)
+int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
   {
   ffmpeg_priv_t * priv;
   ffmpeg_video_stream_t * st;

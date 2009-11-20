@@ -555,7 +555,7 @@ static int open_lame(void * data, const char * filename,
   }
 
 static int add_audio_stream_lame(void * data, const char * language,
-                                 gavl_audio_format_t * format)
+                                 const gavl_audio_format_t * format)
   {
   lame_priv_t * lame;
   

@@ -42,7 +42,7 @@ static const bg_parameter_info_t * get_audio_parameters_speex(void * data)
 
 
 static int add_audio_stream_speex(void * data, const char * language,
-                                  gavl_audio_format_t * format)
+                                  const gavl_audio_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, format);

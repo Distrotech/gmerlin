@@ -141,9 +141,9 @@ const bg_parameter_info_t * bg_ffmpeg_get_audio_parameters(void * data);
 const bg_parameter_info_t * bg_ffmpeg_get_video_parameters(void * data);
 
 int bg_ffmpeg_add_audio_stream(void * data, const char * language,
-                               gavl_audio_format_t * format);
+                               const gavl_audio_format_t * format);
 
-int bg_ffmpeg_add_video_stream(void * data, gavl_video_format_t * format);
+int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format);
 
 void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
                                    const bg_parameter_value_t * v);

@@ -329,7 +329,7 @@ static int open_faac(void * data, const char * filename,
 
 static int add_audio_stream_faac(void * data,
                                  const char * language,
-                                 gavl_audio_format_t * format)
+                                 const gavl_audio_format_t * format)
   {
   unsigned long input_samples;
   unsigned long output_bytes;

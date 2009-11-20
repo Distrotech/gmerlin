@@ -88,8 +88,8 @@ int bg_ogg_flush_page(ogg_stream_state * os, FILE * output, int force);
 
 int bg_ogg_flush(ogg_stream_state * os, FILE * output, int force);
 
-int bg_ogg_encoder_add_audio_stream(void*, gavl_audio_format_t * format);
-int bg_ogg_encoder_add_video_stream(void*, gavl_video_format_t * format);
+int bg_ogg_encoder_add_audio_stream(void*, const gavl_audio_format_t * format);
+int bg_ogg_encoder_add_video_stream(void*, const gavl_video_format_t * format);
 
 void bg_ogg_encoder_init_audio_stream(void*, int stream, const bg_ogg_codec_t * codec);
 void bg_ogg_encoder_init_video_stream(void*, int stream, const bg_ogg_codec_t * codec);

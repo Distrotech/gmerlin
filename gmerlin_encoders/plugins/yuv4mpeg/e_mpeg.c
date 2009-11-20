@@ -126,7 +126,7 @@ static int open_mpeg(void * data, const char * filename,
 
 static int add_audio_stream_mpeg(void * data,
                                  const char * language,
-                                 gavl_audio_format_t * format)
+                                 const gavl_audio_format_t * format)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
 
@@ -143,7 +143,7 @@ static int add_audio_stream_mpeg(void * data,
   return (e->num_audio_streams - 1);
   }
 
-static int add_video_stream_mpeg(void * data, gavl_video_format_t* format)
+static int add_video_stream_mpeg(void * data, const gavl_video_format_t* format)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
 

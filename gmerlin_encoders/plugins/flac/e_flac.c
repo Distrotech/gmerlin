@@ -180,7 +180,7 @@ static int open_flac(void * data, const char * filename,
 
 static int add_audio_stream_flac(void * data,
                                  const char * language,
-                                 gavl_audio_format_t * format)
+                                 const gavl_audio_format_t * format)
   {
   flac_t * flac;
   flac = (flac_t*)data;
