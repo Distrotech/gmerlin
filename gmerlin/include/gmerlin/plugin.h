@@ -1403,7 +1403,7 @@ struct bg_encoder_plugin_s
    */
   
   int (*add_audio_stream)(void * priv, const char * language,
-                          gavl_audio_format_t * format);
+                          const gavl_audio_format_t * format);
 
   /** \brief Add a video stream
    *  \param priv The handle returned by the create() method
@@ -1415,7 +1415,7 @@ struct bg_encoder_plugin_s
    *  needed by the plugin, after \ref start() was called.
    */
   
-  int (*add_video_stream)(void * priv, gavl_video_format_t * format);
+  int (*add_video_stream)(void * priv, const gavl_video_format_t * format);
 
   /** \brief Add a text subtitle stream
    *  \param priv The handle returned by the create() method
@@ -1439,7 +1439,7 @@ struct bg_encoder_plugin_s
    */
   
   int (*add_subtitle_overlay_stream)(void * priv, const char * language,
-                                     gavl_video_format_t * format);
+                                     const gavl_video_format_t * format);
   
   /* Set parameters for the streams */
 

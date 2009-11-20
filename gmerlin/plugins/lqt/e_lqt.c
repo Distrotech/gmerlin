@@ -212,7 +212,7 @@ static int open_lqt(void * data, const char * filename,
   }
 
 static int add_audio_stream_lqt(void * data, const char * language,
-                                gavl_audio_format_t * format)
+                                const gavl_audio_format_t * format)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
@@ -253,7 +253,7 @@ static int add_subtitle_text_stream_lqt(void * data, const char * language, int 
 
 
 static int add_video_stream_lqt(void * data,
-                                gavl_video_format_t* format)
+                                const gavl_video_format_t* format)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 

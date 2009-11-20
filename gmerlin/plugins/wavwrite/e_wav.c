@@ -481,7 +481,8 @@ static int open_wav(void * data, const char * filename,
   }
 
 
-static int add_audio_stream_wav(void * data, const char * language, gavl_audio_format_t * format)
+static int add_audio_stream_wav(void * data, const char * language,
+                                const gavl_audio_format_t * format)
   {
   wav_t * wav;
   

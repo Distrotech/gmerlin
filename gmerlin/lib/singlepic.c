@@ -860,7 +860,7 @@ static int start_encoder(void * data)
   return e->have_header;
   }
      
-static int add_video_stream_encoder(void * data, gavl_video_format_t * format)
+static int add_video_stream_encoder(void * data, const gavl_video_format_t * format)
   {
   encoder_t * e;
   e = (encoder_t *)data;

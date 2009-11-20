@@ -97,7 +97,7 @@ static int open_spumux(void * priv, const char * filename,
   }
 
 static int add_subtitle_overlay_stream_spumux(void * priv, const char * language,
-                                              gavl_video_format_t * format)
+                                              const gavl_video_format_t * format)
   {
   spumux_t * spumux = (spumux_t*)priv;
   gavl_video_format_copy((&spumux->format), format);

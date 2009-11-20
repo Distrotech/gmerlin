@@ -159,6 +159,25 @@ static void init_from_section(bg_encoder_t * e)
 
 static void init_from_tt(bg_encoder_t * e)
   {
+  const char * plugin_name;
+  
+  if((e->stream_mask & BG_STREAM_AUDIO) && e->tt->num_audio_streams)
+    {
+    
+    }
+  if((e->stream_mask & BG_STREAM_SUBTITLE_TEXT) && e->tt->num_subtitle_text_streams)
+    {
+    
+    }
+  if((e->stream_mask & BG_STREAM_SUBTITLE_OVERLAY) && e->tt->num_subtitle_overlay_streams)
+    {
+    
+    }
+  if((e->stream_mask & BG_STREAM_VIDEO) && e->tt->num_video_streams)
+    {
+    
+    }
+  
   }
 
 bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
