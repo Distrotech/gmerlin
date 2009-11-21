@@ -503,7 +503,7 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
  */
 
 void bg_plugin_registry_set_default(bg_plugin_registry_t * reg,
-                                    bg_plugin_type_t type,
+                                    bg_plugin_type_t type, uint32_t flag_mask,
                                     const char * plugin_name);
 
 /** \ingroup plugin_registry_defaults
@@ -515,7 +515,7 @@ void bg_plugin_registry_set_default(bg_plugin_registry_t * reg,
  *  Note, that the registry does not store a default input plugin.
  */
 const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t * reg,
-                                                        bg_plugin_type_t type);
+                                                        bg_plugin_type_t type, uint32_t flag_mask);
 
 
 /** \defgroup plugin_registry_defaults Defaults saved between sessions

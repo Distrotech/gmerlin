@@ -88,7 +88,7 @@ int main(int argc, char ** argv)
   /* Load output plugin */
   
   info = bg_plugin_registry_get_default(plugin_reg,
-                                        BG_PLUGIN_OUTPUT_VIDEO);
+                                        BG_PLUGIN_OUTPUT_VIDEO, BG_PLUGIN_PLAYBACK);
   
   if(!info)
     {

@@ -148,7 +148,7 @@ static int open_encoder(bg_plugin_registry_t * plugin_reg,
   {
   const bg_plugin_info_t * info;
   
-  info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_VIDEO);
+  info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_VIDEO, BG_PLUGIN_FILE);
   if(!info)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No encoder plugin present");

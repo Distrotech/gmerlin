@@ -142,13 +142,17 @@ static void init_from_section(bg_encoder_t * e)
     }
   if(e->stream_mask & BG_STREAM_SUBTITLE_TEXT)
     {
-    init_plugin_from_section(e, &e->subtitle_text_plugin, BG_STREAM_SUBTITLE_TEXT);
-    init_stream_from_section(e, &e->subtitle_text_stream, BG_STREAM_SUBTITLE_TEXT);
+    init_plugin_from_section(e, &e->subtitle_text_plugin,
+                             BG_STREAM_SUBTITLE_TEXT);
+    init_stream_from_section(e, &e->subtitle_text_stream,
+                             BG_STREAM_SUBTITLE_TEXT);
     }
   if(e->stream_mask & BG_STREAM_SUBTITLE_OVERLAY)
     {
-    init_plugin_from_section(e, &e->subtitle_overlay_plugin, BG_STREAM_SUBTITLE_OVERLAY);
-    init_stream_from_section(e, &e->subtitle_overlay_stream, BG_STREAM_SUBTITLE_OVERLAY);
+    init_plugin_from_section(e, &e->subtitle_overlay_plugin,
+                             BG_STREAM_SUBTITLE_OVERLAY);
+    init_stream_from_section(e, &e->subtitle_overlay_stream,
+                             BG_STREAM_SUBTITLE_OVERLAY);
     }
   if(e->stream_mask & BG_STREAM_VIDEO)
     {
@@ -160,23 +164,23 @@ static void init_from_section(bg_encoder_t * e)
 static void init_from_tt(bg_encoder_t * e)
   {
   const char * plugin_name;
-  
-  if((e->stream_mask & BG_STREAM_AUDIO) && e->tt->num_audio_streams)
+
+  /* Video plugin (must come first) */
+  plugin_name = bg_transcoder_track_get_video_encoder(e->tt);
+  e->video_plugin.info = bg_plugin_find_by_name(e->plugin_reg, plugin_name);
+  e->video_plugin.section    = e->tt->video_encoder_section;
+  e->video_plugin.parameters = e->video_plugin.info->parameters;
+#if 0
+  /* Audio plugin */
+  plugin_name = bg_transcoder_track_get_audio_encoder(e->tt);
+
+  if(plugin_name && strcmp(plugin_name, e->video_plugin.info->name))
     {
-    
     }
-  if((e->stream_mask & BG_STREAM_SUBTITLE_TEXT) && e->tt->num_subtitle_text_streams)
-    {
-    
-    }
-  if((e->stream_mask & BG_STREAM_SUBTITLE_OVERLAY) && e->tt->num_subtitle_overlay_streams)
-    {
-    
-    }
-  if((e->stream_mask & BG_STREAM_VIDEO) && e->tt->num_video_streams)
-    {
-    
-    }
+  s->video_plugin.info = bg_plugin_find_by_name(e->plugin_reg, plugin_name);
+  s->video_plugin.section    = e->tt.video_encoder_section;
+  s->video_plugin.parameters = s->video_plugin.info->parameters;
+#endif
   
   }
 
@@ -195,7 +199,7 @@ bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
     ret->es = es;
     init_from_section(ret);
     }
-  else if(ret->tt)
+  else if(tt)
     {
     ret->tt = tt;
     init_from_tt(ret);

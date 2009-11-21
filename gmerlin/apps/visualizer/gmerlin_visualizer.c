@@ -488,7 +488,7 @@ static void set_ra_plugin(const bg_plugin_info_t * plugin,
                           void * data)
   {
   visualizer_t * v = (visualizer_t*)data;
-  bg_plugin_registry_set_default(v->plugin_reg, BG_PLUGIN_RECORDER_AUDIO,
+  bg_plugin_registry_set_default(v->plugin_reg, BG_PLUGIN_RECORDER_AUDIO, BG_PLUGIN_RECORDER,
                                  plugin->name);
   
   v->ra_info = plugin;
@@ -979,6 +979,7 @@ static void set_vis_plugin(const bg_plugin_info_t * plugin,
   visualizer_t * v = (visualizer_t*)data;
   bg_visualizer_set_vis_plugin(v->visualizer, plugin);
   bg_plugin_registry_set_default(v->plugin_reg, BG_PLUGIN_VISUALIZATION,
+                                 BG_PLUGIN_VISUALIZE_FRAME | BG_PLUGIN_VISUALIZE_GL,
                                  plugin->name);
   if(bg_visualizer_need_restart(v->visualizer))
     {

@@ -140,7 +140,8 @@ static void set_video_encoder(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
 
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg,
+                                 BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER, BG_PLUGIN_FILE, info->name);
 
   if(!info->max_audio_streams)
     {
@@ -186,55 +187,55 @@ static void set_video_encoder(const bg_plugin_info_t * info, void * data)
 static void set_audio_encoder(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_AUDIO, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_AUDIO, BG_PLUGIN_FILE, info->name);
   }
 
 static void set_subtitle_text_encoder(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_SUBTITLE_TEXT, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_SUBTITLE_TEXT, BG_PLUGIN_FILE, info->name);
   }
 
 static void set_subtitle_overlay_encoder(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, BG_PLUGIN_FILE, info->name);
   }
 
 static void set_audio_recorder(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_RECORDER_AUDIO, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_RECORDER_AUDIO, BG_PLUGIN_RECORDER, info->name);
   }
 
 static void set_video_recorder(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_RECORDER_VIDEO, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_RECORDER_VIDEO, BG_PLUGIN_RECORDER, info->name);
   }
 
 static void set_audio_output(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_OUTPUT_AUDIO, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_OUTPUT_AUDIO, BG_PLUGIN_PLAYBACK, info->name);
   }
 
 static void set_video_output(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_OUTPUT_VIDEO, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_OUTPUT_VIDEO, BG_PLUGIN_PLAYBACK, info->name);
   }
 
 static void set_encoder_pp(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_PP, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_ENCODER_PP, BG_PLUGIN_PP, info->name);
   }
 
 static void set_image_writer(const bg_plugin_info_t * info, void * data)
   {
   app_window * win = (app_window *)data;
-  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_IMAGE_WRITER, info->name);
+  bg_plugin_registry_set_default(win->plugin_reg, BG_PLUGIN_IMAGE_WRITER, BG_PLUGIN_FILE, info->name);
   }
 
 

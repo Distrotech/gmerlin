@@ -41,7 +41,8 @@ typedef struct
   const bg_plugin_info_t * plugin_info;
   bg_plugin_handle_t * plugin_handle;
   bg_plugin_type_t type;
-
+  uint32_t flags;
+  
   bg_cfg_section_t * section;
   int no_callback;
 
@@ -254,7 +255,7 @@ plugin_menu_set_plugin(plugin_menu_t * s, int index)
                                            s->type, BG_PLUGIN_ALL);
 
   /* Save for future use */
-  bg_plugin_registry_set_default(s->g->plugin_reg, s->type,
+  bg_plugin_registry_set_default(s->g->plugin_reg, s->type, s->flags,
                                  s->plugin_info->name);
   
   if(s->plugin_handle)
@@ -670,7 +671,7 @@ typedef struct stream_menu_s
 #endif
 
 static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
-                             bg_plugin_type_t plugin_type)
+                             bg_plugin_type_t plugin_type, uint32_t flags)
   {
   int i;
   const bg_plugin_info_t * info;
@@ -679,6 +680,7 @@ static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
   GSList * group = (GSList*)0;
 
   m->type = plugin_type;
+  m->flags = flags;
   m->menu = create_menu();
   m->g = gmerlin;
   
@@ -719,7 +721,7 @@ static void plugin_menu_finalize(plugin_menu_t * m)
   const bg_plugin_info_t * info;
   int default_index = 0, i;
   default_info = bg_plugin_registry_get_default(m->g->plugin_reg,
-                                                m->type);
+                                                m->type, m->flags);
 
   m->no_callback = 1;
   for(i = 0; i < m->num_plugins; i++)
@@ -766,7 +768,7 @@ static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin,
     {
     s->plugins = create_pixmap_item(TR("Output plugin..."), "plugin_16.png",
                                     gmerlin, s->menu);
-    plugin_menu_init(&s->plugin_menu, gmerlin, plugin_type);
+    plugin_menu_init(&s->plugin_menu, gmerlin, plugin_type, BG_PLUGIN_PLAYBACK);
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(s->plugins), s->plugin_menu.menu);
     }
   }
@@ -800,7 +802,8 @@ static void visualization_menu_init(visualization_menu_t * s, gmerlin_t * gmerli
   
   s->plugins = create_pixmap_item(TR("Plugin..."), "plugin_16.png",
                                   gmerlin, s->menu);
-  plugin_menu_init(&s->plugin_menu, gmerlin, BG_PLUGIN_VISUALIZATION);
+  plugin_menu_init(&s->plugin_menu, gmerlin, BG_PLUGIN_VISUALIZATION,
+                   BG_PLUGIN_VISUALIZE_FRAME | BG_PLUGIN_VISUALIZE_GL);
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(s->plugins), s->plugin_menu.menu);
   
   }

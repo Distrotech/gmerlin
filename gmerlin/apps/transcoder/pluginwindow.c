@@ -74,7 +74,7 @@ static void set_audio_encoder(const bg_plugin_info_t * info, void * data)
   {
   plugin_window_t * w = (plugin_window_t*)data;
   bg_plugin_registry_set_default(w->plugin_reg,
-                                 BG_PLUGIN_ENCODER_AUDIO, info->name);
+                                 BG_PLUGIN_ENCODER_AUDIO, BG_PLUGIN_FILE, info->name);
   
   }
 
@@ -82,7 +82,7 @@ static void set_video_encoder(const bg_plugin_info_t * info, void * data)
   {
   plugin_window_t * w = (plugin_window_t*)data;
   bg_plugin_registry_set_default(w->plugin_reg,
-                                 BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER, info->name);
+                                 BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER, BG_PLUGIN_FILE, info->name);
   bg_gtk_encoder_widget_update_sensitive(w->encoders);
   }
 
@@ -90,7 +90,7 @@ static void set_subtitle_text_encoder(const bg_plugin_info_t * info, void * data
   {
   plugin_window_t * w = (plugin_window_t*)data;
   bg_plugin_registry_set_default(w->plugin_reg,
-                                 BG_PLUGIN_ENCODER_SUBTITLE_TEXT, info->name);
+                                 BG_PLUGIN_ENCODER_SUBTITLE_TEXT, BG_PLUGIN_FILE, info->name);
   
   }
 
@@ -100,7 +100,7 @@ static void set_subtitle_overlay_encoder(const bg_plugin_info_t * info,
   {
   plugin_window_t * w = (plugin_window_t*)data;
   bg_plugin_registry_set_default(w->plugin_reg,
-                                 BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, info->name);
+                                 BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, BG_PLUGIN_FILE, info->name);
   
   }
 #endif

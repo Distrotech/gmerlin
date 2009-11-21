@@ -121,7 +121,7 @@ int main(int argc, char ** argv)
   
   /* Load input */
 
-  info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_RECORDER_AUDIO);
+  info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_RECORDER_AUDIO, BG_PLUGIN_RECORDER);
   if(!info)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No input plugin defined");
@@ -138,7 +138,7 @@ int main(int argc, char ** argv)
   input_plugin = (bg_recorder_plugin_t*)(input_handle->plugin);
   
   /* Load output */
-  info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_OUTPUT_VIDEO);
+  info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_OUTPUT_VIDEO, BG_PLUGIN_PLAYBACK);
   if(!info)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No output plugin defined");

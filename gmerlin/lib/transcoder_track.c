@@ -1719,7 +1719,7 @@ bg_transcoder_track_global_to_reg(bg_transcoder_track_global_t * g,
   
   if(g->pp_plugin)
     {
-    bg_plugin_registry_set_default(plugin_reg, BG_PLUGIN_ENCODER_PP,
+    bg_plugin_registry_set_default(plugin_reg, BG_PLUGIN_ENCODER_PP, BG_PLUGIN_PP,
                                    g->pp_plugin);
     bg_plugin_registry_set_encode_pp(plugin_reg, 1);
 
@@ -1745,7 +1745,7 @@ bg_transcoder_track_global_from_reg(bg_transcoder_track_global_t * g,
   bg_transcoder_track_global_free(g);
   if(bg_plugin_registry_get_encode_pp(plugin_reg))
     {
-    plugin_info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_PP);
+    plugin_info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_PP, BG_PLUGIN_PP);
     g->pp_plugin = bg_strdup((char*)0, plugin_info->name);
     plugin_section = bg_plugin_registry_get_section(plugin_reg, plugin_info->name);
     g->pp_section = bg_cfg_section_copy(plugin_section);

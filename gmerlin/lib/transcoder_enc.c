@@ -96,8 +96,8 @@ bg_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
   /* Find video encoder */
   
   encoder_info->video_info = bg_plugin_registry_get_default(plugin_reg,
-                                                           BG_PLUGIN_ENCODER |
-                                                           BG_PLUGIN_ENCODER_VIDEO);
+                                                            BG_PLUGIN_ENCODER |
+                                                            BG_PLUGIN_ENCODER_VIDEO, BG_PLUGIN_FILE);
   
   if(!encoder_info->video_info)
     {
@@ -111,7 +111,7 @@ bg_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
      !bg_plugin_registry_get_encode_audio_to_video(plugin_reg))
     {
     encoder_info->audio_info = bg_plugin_registry_get_default(plugin_reg,
-                                                                     BG_PLUGIN_ENCODER_AUDIO);
+                                                              BG_PLUGIN_ENCODER_AUDIO, BG_PLUGIN_FILE);
     if(!encoder_info->audio_info)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No audio encoder found, check installation");
@@ -125,7 +125,8 @@ bg_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
      !bg_plugin_registry_get_encode_subtitle_text_to_video(plugin_reg))
     {
     encoder_info->subtitle_text_info = bg_plugin_registry_get_default(plugin_reg,
-                                                                      BG_PLUGIN_ENCODER_SUBTITLE_TEXT);
+                                                                      BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
+                                                                      BG_PLUGIN_FILE);
     if(!encoder_info->subtitle_text_info)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No encoder for text subtitles found, check installation");
@@ -140,7 +141,7 @@ bg_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
     {
     encoder_info->subtitle_overlay_info =
       bg_plugin_registry_get_default(plugin_reg,
-                                     BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY);
+                                     BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, BG_PLUGIN_FILE);
     if(!encoder_info->subtitle_overlay_info)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No encoder for overlay subtitles found, check installation");
@@ -271,7 +272,7 @@ int bg_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
     {
     encoder_info->subtitle_text_info =
       bg_plugin_registry_get_default(plugin_reg,
-                                     BG_PLUGIN_ENCODER_SUBTITLE_TEXT);    
+                                     BG_PLUGIN_ENCODER_SUBTITLE_TEXT, BG_PLUGIN_FILE);    
     create_sections = 1;
     }
   if(subtitle_overlay_encoder)
@@ -284,7 +285,7 @@ int bg_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
     {
     encoder_info->subtitle_overlay_info =
       bg_plugin_registry_get_default(plugin_reg,
-                                     BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY);
+                                     BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, BG_PLUGIN_FILE);
     create_sections = 1;
     }
   create_parameters(plugin_reg, encoder_info);

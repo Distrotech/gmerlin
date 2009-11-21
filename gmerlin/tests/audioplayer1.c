@@ -105,7 +105,7 @@ int main(int argc, char ** argv)
   /* Load output plugin */
   
   plugin_info = bg_plugin_registry_get_default(plugin_reg,
-                                               BG_PLUGIN_OUTPUT_AUDIO);
+                                               BG_PLUGIN_OUTPUT_AUDIO, BG_PLUGIN_PLAYBACK);
 
   if(!plugin_info)
     {

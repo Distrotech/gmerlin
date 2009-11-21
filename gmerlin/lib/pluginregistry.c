@@ -1037,69 +1037,86 @@ bg_plugin_registry_get_section(bg_plugin_registry_t * reg,
 static const struct
   {
   bg_plugin_type_t type;
+  uint32_t flag_mask;
   char * key;
   } default_keys[] =
   {
-    { BG_PLUGIN_OUTPUT_AUDIO,                    "default_audio_output"   },
-    { BG_PLUGIN_OUTPUT_VIDEO,                    "default_video_output"   },
-    { BG_PLUGIN_RECORDER_AUDIO,                  "default_audio_recorder" },
-    { BG_PLUGIN_RECORDER_VIDEO,                  "default_video_recorder" },
-    { BG_PLUGIN_ENCODER_AUDIO,                   "default_audio_encoder"  },
-    { BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER, "default_video_encoder" },
-    { BG_PLUGIN_ENCODER_SUBTITLE_TEXT,           "default_subtitle_text_encoder" },
-    { BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,        "default_subtitle_overlay_encoder" },
-    { BG_PLUGIN_IMAGE_WRITER,                    "default_image_writer"   },
-    { BG_PLUGIN_ENCODER_PP,                      "default_encoder_pp"  },
-    { BG_PLUGIN_VISUALIZATION,                   "default_visualization"  },
-    { BG_PLUGIN_NONE,                            (char*)NULL              },
+    { BG_PLUGIN_OUTPUT_AUDIO,                    BG_PLUGIN_PLAYBACK, "audio_output" },
+    { BG_PLUGIN_OUTPUT_VIDEO,                    BG_PLUGIN_PLAYBACK, "video_output" },
+    { BG_PLUGIN_RECORDER_AUDIO,                  BG_PLUGIN_RECORDER, "audio_recorder" },
+    { BG_PLUGIN_RECORDER_VIDEO,                  BG_PLUGIN_RECORDER, "video_recorder" },
+    { BG_PLUGIN_ENCODER_AUDIO,                   BG_PLUGIN_FILE,     "audio_encoder"  },
+    { BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER, BG_PLUGIN_FILE,     "video_encoder" },
+    { BG_PLUGIN_ENCODER_SUBTITLE_TEXT,           BG_PLUGIN_FILE,     "subtitle_text_encoder" },
+    { BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,        BG_PLUGIN_FILE,     "subtitle_overlay_encoder" },
+    { BG_PLUGIN_IMAGE_WRITER,                    BG_PLUGIN_FILE,     "image_writer"   },
+    { BG_PLUGIN_ENCODER_PP,                      BG_PLUGIN_PP,       "encoder_pp"  },
+    { BG_PLUGIN_VISUALIZATION,                   BG_PLUGIN_VISUALIZE_FRAME, "visualization_frame" },
+    { BG_PLUGIN_VISUALIZATION,                   BG_PLUGIN_VISUALIZE_GL, "visualization_gl" },
+    { BG_PLUGIN_VISUALIZATION,                   BG_PLUGIN_VISUALIZE_FRAME | BG_PLUGIN_VISUALIZE_GL,
+      "visualization" },
+    { BG_PLUGIN_NONE,                            0, (char*)NULL              },
   };
 
-static const char * get_default_key(bg_plugin_type_t type)
+static const char * get_default_key(bg_plugin_type_t type, uint32_t flag_mask)
   {
   int i = 0;
+
+  /* Try exact match */
   while(default_keys[i].key)
     {
-    if(type & default_keys[i].type)
+    if((type & default_keys[i].type) && (flag_mask == default_keys[i].flag_mask))
       return default_keys[i].key;
     i++;
     }
+
+  /* Try approximate match */
+  i = 0;
+  while(default_keys[i].key)
+    {
+    if((type & default_keys[i].type) && (flag_mask & default_keys[i].flag_mask))
+      return default_keys[i].key;
+    i++;
+    }
+  
   return (const char*)0;
   }
 
 void bg_plugin_registry_set_default(bg_plugin_registry_t * r,
                                     bg_plugin_type_t type,
+                                    uint32_t flag_mask,
                                     const char * name)
   {
   const char * key;
 
-  key = get_default_key(type);
+  key = get_default_key(type, flag_mask);
   if(key)
     bg_cfg_section_set_parameter_string(r->config_section, key, name);
   }
 
 const bg_plugin_info_t *
 bg_plugin_registry_get_default(bg_plugin_registry_t * r,
-                               bg_plugin_type_t type)
+                               bg_plugin_type_t type, uint32_t flag_mask)
   {
   const char * key;
   const char * name = (const char*)0;
   const bg_plugin_info_t * ret;
   
-  key = get_default_key(type);
+  key = get_default_key(type, flag_mask);
   if(key)  
     bg_cfg_section_get_parameter_string(r->config_section, key, &name);
 
   if(!name)
     {
     return find_by_priority(r->entries,
-                            type, BG_PLUGIN_ALL);
+                            type, flag_mask);
     }
   else
     {
     ret = bg_plugin_find_by_name(r, name);
     if(!ret)
       ret = find_by_priority(r->entries,
-                            type, BG_PLUGIN_ALL);
+                            type, flag_mask);
     return ret;
     }
   }
@@ -2681,3 +2698,35 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
       break;
     }
   }
+
+bg_cfg_section_t *
+bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
+                                     const bg_parameter_info_t * parameters,
+                                     uint32_t type_mask,
+                                     uint32_t flag_mask)
+  {
+  const char * name;
+  const bg_plugin_info_t * info;
+  
+  bg_parameter_info_t * parameters_priv = NULL;
+  bg_cfg_section_t * ret;
+
+  if(!parameters)
+    {
+    parameters_priv =
+      bg_plugin_registry_create_encoder_parameters(plugin_reg, type_mask, flag_mask);
+    parameters = parameters_priv;
+    }
+
+  /* Create section */
+  ret = bg_cfg_section_create_from_parameters("encoders", parameters);
+
+  /* Get the plugin values */
+  
+  
+  if(parameters_priv)
+    bg_parameter_info_destroy_array(parameters_priv);
+
+  return ret;
+  }
+                                     

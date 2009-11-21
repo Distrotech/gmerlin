@@ -393,7 +393,7 @@ bg_gtk_plugin_widget_single_create(char * label,
                                                    type_mask,
                                                    flag_mask);
 
-  default_info = bg_plugin_registry_get_default(reg, type_mask);
+  default_info = bg_plugin_registry_get_default(reg, type_mask, flag_mask);
 
   
   /* Make combo */

@@ -102,7 +102,7 @@ static void set_input_plugin(const bg_plugin_info_t * info, void * data)
   bg_plugin_handle_t * h;
   w = (gmerlin_webcam_window_t *)data;
   h = bg_gtk_plugin_widget_single_load_plugin(w->input_plugin);
-  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_RECORDER_VIDEO, info->name);
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_RECORDER_VIDEO, BG_PLUGIN_RECORDER, info->name);
 
   msg = bg_msg_queue_lock_write(w->cmd_queue);
   bg_msg_set_id(msg, CMD_SET_INPUT_PLUGIN);
@@ -119,7 +119,7 @@ static void set_capture_plugin(const bg_plugin_info_t * info, void *  data)
   bg_plugin_handle_t * h;
   w = (gmerlin_webcam_window_t *)data;
   h = bg_gtk_plugin_widget_single_load_plugin(w->capture_plugin);
-  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_IMAGE_WRITER, info->name);
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_IMAGE_WRITER, BG_PLUGIN_FILE, info->name);
   
   msg = bg_msg_queue_lock_write(w->cmd_queue);
   bg_msg_set_id(msg, CMD_SET_CAPTURE_PLUGIN);
@@ -137,7 +137,7 @@ static void set_monitor_plugin(const bg_plugin_info_t * info, void *  data)
   w = (gmerlin_webcam_window_t *)data;
   h = bg_gtk_plugin_widget_single_load_plugin(w->monitor_plugin);
   bg_plugin_registry_set_default(w->plugin_reg, 
-                                 BG_PLUGIN_OUTPUT_VIDEO, 
+                                 BG_PLUGIN_OUTPUT_VIDEO, BG_PLUGIN_PLAYBACK,
                                  info->name);
   p = (bg_ov_plugin_t*)h->plugin;
   if(p->set_window_options)

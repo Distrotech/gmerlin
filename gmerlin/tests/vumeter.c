@@ -82,7 +82,7 @@ int main(int argc, char ** argv)
   /* Load and open plugin */
 
   info = bg_plugin_registry_get_default(plugin_reg,
-                                        BG_PLUGIN_RECORDER_AUDIO);
+                                        BG_PLUGIN_RECORDER_AUDIO, BG_PLUGIN_RECORDER);
   
   id.ra_handle = bg_plugin_load(plugin_reg, info);
   id.ra_plugin = (bg_recorder_plugin_t*)(id.ra_handle->plugin);
