@@ -491,7 +491,39 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
                                      int stream_mask,
                                      bg_cfg_section_t ** section_ret,
                                      const bg_parameter_info_t ** params_ret);
-  
+
+
+/** \ingroup plugin_registry
+ *  \brief Get an encoder configuration section from a registry
+ *  \param plugin_ref A plugin registry
+ *  \param type_mask The stream mask passed to \ref bg_plugin_registry_create_encoder_parameters
+ *  \param flag_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
+ *  \returns The encoder section with the values from the registry
+*/
+
+bg_cfg_section_t *
+bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
+                                     const bg_parameter_info_t * parameters,
+                                     uint32_t type_mask,
+                                     uint32_t flag_mask);
+
+/** \ingroup plugin_registry
+ *  \brief Store an encoder configuration in a registry
+ *  \param plugin_ref A plugin registry
+ *  \param s The encoder section to store
+ *  \param type_mask The stream mask passed to \ref bg_plugin_registry_create_encoder_parameters
+ *  \param flag_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
+ *  \returns The encoder section with the values from the registry
+ */
+
+void
+bg_encoder_section_store_in_registry(bg_plugin_registry_t * plugin_reg,
+                                     bg_cfg_section_t * s,
+                                     const bg_parameter_info_t * parameters,
+                                     uint32_t type_mask,
+                                     uint32_t flag_mask);
+
+
 /** \ingroup plugin_registry_defaults 
  *  \brief Set the default for a particular plugin type
  *  \param reg A plugin registry
