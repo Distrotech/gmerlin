@@ -33,9 +33,21 @@ bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
                                  bg_transcoder_track_t * tt,
                                  int stream_mask, int flag_mask);
 
+void
+bg_encoder_set_callbacks(bg_encoder_t * e, bg_encoder_callbacks_t * cb);
+
+int
+bg_encoder_set_video_pass(bg_encoder_t * enc,
+                          int stream, int pass, int total_passes,
+                          const char * stats_file);
+
+
+
 void bg_encoder_destroy(bg_encoder_t * enc); /* Also closes all internal encoders */
 
-int bg_encoder_open(bg_encoder_t * enc, const char * filename_base);
+int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
+                    const bg_metadata_t * metadata,
+                    const bg_chapter_list_t * chapter_list);
 
 /* Add streams */
 int bg_encoder_add_audio_stream(bg_encoder_t *, const char * language,
@@ -52,7 +64,7 @@ int bg_encoder_add_subtitle_text_stream(bg_encoder_t *, const char * language,
 
 int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t *, const char * language,
                                            gavl_video_format_t * format,
-                                           int index);
+                                           int index, bg_stream_type_t source_format);
 
 
 /* Get formats */

@@ -1262,8 +1262,10 @@ static int set_video_pass(bg_transcoder_t * t, int i)
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using statistics file: %s", s->stats_file);
     }
   
-  if(!s->com.out_plugin->set_video_pass(s->com.out_handle->priv, s->com.out_index, t->pass, t->total_passes,
-                                          s->stats_file))
+  if(!s->com.out_plugin->set_video_pass(s->com.out_handle->priv,
+                                        s->com.out_index,
+                                        t->pass, t->total_passes,
+                                        s->stats_file))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Multipass encoding not supported by codec");
     return 0;

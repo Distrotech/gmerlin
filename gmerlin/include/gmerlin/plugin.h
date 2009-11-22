@@ -1332,6 +1332,9 @@ struct bg_encoder_plugin_s
    *  \param filename Name of the file to be opened (without extension!)
    *  \param metadata Metadata to be written to the file
    *  \param chapter_list Chapter list (optional, can be NULL)
+   *
+   *  The extension is added automatically by the plugin.
+   *  To keep track of the written files, use the \ref bg_encoder_callbacks_t.
    */
   
   int (*open)(void * data, const char * filename,

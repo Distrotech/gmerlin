@@ -1002,7 +1002,8 @@ int bg_cfg_section_get_parameter_float(bg_cfg_section_t * section,
   }
 
 int bg_cfg_section_get_parameter_string(bg_cfg_section_t * section,
-                                         const char * name, const char ** value)
+                                        const char * name,
+                                        const char ** value)
   {
   bg_cfg_item_t * item;
   item = find_item_by_name(section, name, 0);

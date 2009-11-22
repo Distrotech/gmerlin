@@ -519,8 +519,6 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
   create_subtitle_parameters(track);
 
   create_filter_parameters(track, plugin_reg);
-  
-  
   }
 
 static char * create_stream_label(const char * info, const char * language)

@@ -539,6 +539,38 @@ static void xml_2_subtitle_overlay(bg_transcoder_track_subtitle_overlay_t * s,
     }
   }
 
+/* Upgrade saved tracks with older versions */
+
+static void purge_track(bg_transcoder_track_t * t)
+  {
+  const char * video_name = NULL;
+  const char * name;
+
+  bg_cfg_section_get_parameter_string(t->general_section,
+                                      "video_encoder", &video_name);
+  if(!video_name)
+    return;
+
+  bg_cfg_section_get_parameter_string(t->general_section,
+                                      "audio_encoder", &name);
+  if(name && !strcmp(name, video_name))
+    bg_cfg_section_set_parameter_string(t->general_section,
+                                        "audio_encoder", NULL);
+
+  bg_cfg_section_get_parameter_string(t->general_section,
+                                      "subtitle_text_encoder", &name);
+
+  if(name && !strcmp(name, video_name))
+    bg_cfg_section_set_parameter_string(t->general_section,
+                                        "subtitle_text_encoder", NULL);
+  
+  bg_cfg_section_get_parameter_string(t->general_section,
+                                      "subtitle_overlay_encoder", &name);
+  if(name && !strcmp(name, video_name))
+    bg_cfg_section_set_parameter_string(t->general_section,
+                                        "subtitle_overlay_encoder", NULL);
+  }
+
 static int xml_2_track(bg_transcoder_track_t * t,
                        xmlDocPtr xml_doc, xmlNodePtr xml_track,
                        bg_plugin_registry_t * plugin_reg)
@@ -737,10 +769,9 @@ static int xml_2_track(bg_transcoder_track_t * t,
     node = node->next;
     }
   
-  /* Load audio encoder */
-
-
   bg_transcoder_track_create_parameters(t, plugin_reg);
+
+  purge_track(t);
   
   ret = 1;
   
