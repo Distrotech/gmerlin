@@ -58,6 +58,10 @@ typedef struct
   bg_cfg_section_t * section;
   const bg_parameter_info_t * parameters;
 
+  int pass;
+  int total_passes;
+  char * stats_file;
+  
   } video_stream_t;
 
 typedef struct
@@ -431,7 +435,66 @@ static void set_stream_param(void * priv, const char * name,
   s = (set_stream_param_struct_t *)priv;
   s->func(s->data, s->index, name, val);
   }
-     
+
+
+
+static bg_plugin_handle_t * get_stream_handle(bg_encoder_t * enc,
+                                              bg_stream_type_t type,
+                                              int stream, int in_index)
+  {
+  bg_plugin_handle_t * ret;
+  const bg_plugin_info_t * info;
+  bg_cfg_section_t * section;
+  char * filename_base;
+  const char * type_string;
+  
+  if(enc->separate & type)
+    {
+    switch(type)
+      {
+      case BG_STREAM_AUDIO:
+        type_string = "audio";
+        info = enc->audio_plugin.info;
+        section = enc->audio_plugin.section;
+        break;
+      case BG_STREAM_VIDEO:
+        type_string = "video";
+        info = enc->video_plugin.info;
+        section = enc->video_plugin.section;
+        break;
+      case BG_STREAM_SUBTITLE_TEXT:
+        type_string = "subtext";
+        info = enc->subtitle_text_plugin.info;
+        section = enc->subtitle_text_plugin.section;
+        break;
+      case BG_STREAM_SUBTITLE_OVERLAY:
+        type_string = "subovl";
+        info = enc->subtitle_overlay_plugin.info;
+        section = enc->subtitle_overlay_plugin.section;
+        break;
+      }
+
+    if(enc->total_streams > 1)
+      {
+      filename_base = bg_sprintf("%s_%s_%02d", enc->filename_base, type_string, in_index+1);
+      ret = load_encoder(enc, info, section, filename_base);
+      free(filename_base);
+      }
+    else
+      ret = load_encoder(enc, info, section, enc->filename_base);
+    }
+  else
+    {
+    if(enc->num_plugins)
+      ret = enc->plugins[0];
+    else
+      ret = load_encoder(enc, enc->video_plugin.info, enc->video_plugin.section,
+                         enc->filename_base);
+    }
+  
+  return ret;
+  }
+
 static int start_audio(bg_encoder_t * enc, int stream)
   {
   audio_stream_t * s;
@@ -441,6 +504,8 @@ static int start_audio(bg_encoder_t * enc, int stream)
   s = &enc->audio_streams[stream];
 
   /* Get handle */
+
+  h = get_stream_handle(enc, BG_STREAM_AUDIO, stream, s->in_index);
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
@@ -475,6 +540,7 @@ static int start_video(bg_encoder_t * enc, int stream)
   s = &enc->video_streams[stream];
 
   /* Get handle */
+  h = get_stream_handle(enc, BG_STREAM_VIDEO, stream, s->in_index);
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
@@ -482,7 +548,6 @@ static int start_video(bg_encoder_t * enc, int stream)
   /* Add stream */
   
   s->out_index = s->plugin->add_video_stream(s->priv, &s->format);
-
   
   /* Apply parameters */ 
   if(s->plugin->set_video_parameter)
@@ -497,6 +562,19 @@ static int start_video(bg_encoder_t * enc, int stream)
                          &st);
     }
 
+  /* Set pass */
+
+  if(s->total_passes)
+    {
+    if(!s->plugin->set_video_pass)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Multipass encoding not supported by encoder plugin");
+      return 0;
+      }
+    s->plugin->set_video_pass(s->priv, s->out_index, s->pass, s->total_passes,
+                              s->stats_file);
+    }
+  
   return 1;
   }
 
@@ -509,6 +587,7 @@ static int start_subtitle_text(bg_encoder_t * enc, int stream)
   s = &enc->subtitle_text_streams[stream];
 
   /* Get handle */
+  h = get_stream_handle(enc, BG_STREAM_SUBTITLE_TEXT, stream, s->in_index);
     
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
@@ -542,6 +621,7 @@ static int start_subtitle_overlay(bg_encoder_t * enc, int stream)
   s = &enc->subtitle_overlay_streams[stream];
 
   /* Get handle */
+  h = get_stream_handle(enc, BG_STREAM_SUBTITLE_OVERLAY, stream, s->in_index);
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
@@ -753,19 +833,17 @@ int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t * enc,
   return ret;
   }
 
-int
+void
 bg_encoder_set_video_pass(bg_encoder_t * enc,
                           int stream, int pass, int total_passes,
                           const char * stats_file)
   {
   video_stream_t * s = &enc->video_streams[stream];
+
+  s->pass = pass;
+  s->total_passes = total_passes;
+  s->stats_file = bg_strdup(s->stats_file, stats_file);
   
-  if(!s->plugin->set_video_pass)
-    return 0;
-  
-  return s->plugin->set_video_pass(s->priv,
-                                   stream, pass, total_passes,
-                                   stats_file);
   }
 
 

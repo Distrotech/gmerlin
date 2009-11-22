@@ -36,7 +36,7 @@ bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
 void
 bg_encoder_set_callbacks(bg_encoder_t * e, bg_encoder_callbacks_t * cb);
 
-int
+void
 bg_encoder_set_video_pass(bg_encoder_t * enc,
                           int stream, int pass, int total_passes,
                           const char * stats_file);
