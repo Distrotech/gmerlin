@@ -55,7 +55,12 @@
 
 #include "tracklist.h"
 
-#include "pluginwindow.h"
+static const uint32_t stream_flags = BG_STREAM_AUDIO |
+BG_STREAM_VIDEO |
+BG_STREAM_SUBTITLE_TEXT |
+BG_STREAM_SUBTITLE_OVERLAY;
+
+static const uint32_t plugin_flags = BG_PLUGIN_FILE;
 
 struct transcoder_window_s
   {
@@ -68,7 +73,6 @@ struct transcoder_window_s
 
   GtkWidget * run_button;
   GtkWidget * stop_button;
-  GtkWidget * plugin_button;
   GtkWidget * properties_button;
   GtkWidget * quit_button;
   GtkWidget * load_button;
@@ -81,8 +85,6 @@ struct transcoder_window_s
   bg_gtk_time_display_t * time_remaining;
   bg_gtk_scrolltext_t   * scrolltext;
   
-  plugin_window_t * plugin_window;
-  
   /* Configuration stuff */
 
   char * output_directory;
@@ -90,6 +92,9 @@ struct transcoder_window_s
 
   bg_cfg_section_t * track_defaults_section;
 
+  bg_parameter_info_t * encoder_parameters;
+  bg_cfg_section_t * encoder_section;
+    
   /* The actual transcoder */
 
   bg_transcoder_t * transcoder;
@@ -130,7 +135,6 @@ struct transcoder_window_s
   struct
     {
     GtkWidget * config_item;
-    GtkWidget * plugin_item;
     GtkWidget * load_item;
     GtkWidget * save_item;
     GtkWidget * menu;
@@ -305,14 +309,6 @@ get_transcoder_window_parameter(void * data, const char * name,
   
 static void
 transcoder_window_preferences(transcoder_window_t * win);
-
-static void plugin_window_close_notify(plugin_window_t * w,
-                                       void * data)
-  {
-  transcoder_window_t * win = (transcoder_window_t *)data;
-
-  gtk_widget_set_sensitive(win->plugin_button, 1);
-  }
 
 static void finish_transcoding(transcoder_window_t * win)
   {
@@ -686,11 +682,6 @@ static void button_callback(GtkWidget * w, gpointer data)
       free(tmp_string);
       }
     }
-  else if((w == win->plugin_button) || (w == win->options_menu.plugin_item))
-    {
-    gtk_widget_set_sensitive(win->plugin_button, 0);
-    plugin_window_show(win->plugin_window);
-    }
   else if((w == win->quit_button) || (w == win->file_menu.quit_item))
     {
     gtk_widget_hide(win->win);
@@ -826,7 +817,6 @@ create_toggle_item(transcoder_window_t * w, GtkWidget * parent,
   struct
     {
     GtkWidget * config_item;
-    GtkWidget * plugin_item;
     GtkWidget * load_item;
     GtkWidget * save_item;
     } options_menu;
@@ -842,7 +832,6 @@ static void init_menus(transcoder_window_t * w)
 
   w->options_menu.menu = gtk_menu_new();
   w->options_menu.config_item = create_item(w, w->options_menu.menu, TR("Preferences..."), "config_16.png");
-  w->options_menu.plugin_item = create_item(w, w->options_menu.menu, TR("Encoder plugins..."), "plugin_16.png");
   w->options_menu.load_item = create_item(w, w->options_menu.menu, TR("Load profile..."), "folder_open_16.png");
   w->options_menu.save_item = create_item(w, w->options_menu.menu, TR("Save profile..."), "save_16.png");
   gtk_widget_show(w->options_menu.menu);
@@ -912,12 +901,24 @@ transcoder_window_t * transcoder_window_create()
   
   cfg_section     = bg_cfg_registry_find_section(ret->cfg_reg, "plugins");
   ret->plugin_reg = bg_plugin_registry_create(cfg_section);
+
+  /* Create encoding parameters */
+
+  ret->encoder_parameters =
+    bg_plugin_registry_create_encoder_parameters(ret->plugin_reg,
+                                                 stream_flags, plugin_flags);
+  ret->encoder_section =
+    bg_encoder_section_get_from_registry(ret->plugin_reg,
+                                         ret->encoder_parameters,
+                                         stream_flags, plugin_flags);
   
   /* Create track list */
 
   ret->track_defaults_section = bg_cfg_registry_find_section(ret->cfg_reg, "track_defaults");
-  ret->tracklist = track_list_create(ret->plugin_reg, ret->track_defaults_section);
-
+  ret->tracklist = track_list_create(ret->plugin_reg,
+                                     ret->track_defaults_section,
+                                     ret->encoder_parameters, ret->encoder_section);
+  
   gtk_window_add_accel_group(GTK_WINDOW(ret->win), track_list_get_accel_group(ret->tracklist));
   
   cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "track_list");
@@ -941,9 +942,6 @@ transcoder_window_t * transcoder_window_create()
                                           "stop_16.png",
                                           TRS("Stop transcoding"));
 
-  ret->plugin_button = create_pixmap_button(ret,
-                                            "plugin_16.png",
-                                            TRS("Change and configure plugins\nfor newly added tracks"));
   ret->properties_button = create_pixmap_button(ret,
                                                "config_16.png", TRS("Set global options and track defaults"));
   ret->quit_button = create_pixmap_button(ret,
@@ -1031,7 +1029,6 @@ transcoder_window_t * transcoder_window_create()
   gtk_box_pack_start(GTK_BOX(box), ret->save_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->run_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->stop_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->plugin_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->properties_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->quit_button, FALSE, FALSE, 0);
   gtk_widget_show(box);
@@ -1068,13 +1065,7 @@ transcoder_window_t * transcoder_window_create()
   
   gtk_widget_show(main_table);
   gtk_container_add(GTK_CONTAINER(ret->win), main_table);
-
-  ret->plugin_window =
-    plugin_window_create(ret->plugin_reg,
-                         ret,
-                         plugin_window_close_notify,
-                         ret);
-
+  
   bg_gtk_scrolltext_set_text(ret->scrolltext, "Gmerlin transcoder version "VERSION,
                              ret->fg_color, ret->bg_color);
 
@@ -1103,6 +1094,14 @@ void transcoder_window_destroy(transcoder_window_t* w)
   {
   char * tmp_path;
   bg_cfg_section_t * cfg_section;
+
+  bg_encoder_section_store_in_registry(w->plugin_reg,
+                                       w->encoder_section,
+                                       w->encoder_parameters,
+                                       stream_flags, plugin_flags);
+
+  bg_cfg_section_destroy(w->encoder_section);
+  bg_parameter_info_destroy_array(w->encoder_parameters);
   
   cfg_section = bg_cfg_registry_find_section(w->cfg_reg, "transcoder_window");
   bg_cfg_section_get(cfg_section, transcoder_window_parameters,
@@ -1348,6 +1347,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   
   cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
                                              "subtitle_overlay");
+
   bg_dialog_add(dlg,
                 TR("Overlay subtitle defaults"),
                 cfg_section,
@@ -1355,8 +1355,15 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 NULL,
                 NULL,
                 bg_transcoder_track_subtitle_overlay_get_general_parameters());
-  
 
+  bg_dialog_add(dlg,
+                TR("Encoders"),
+                w->encoder_section,
+                NULL,
+                NULL,
+                NULL,
+                w->encoder_parameters);
+  
   bg_dialog_add(dlg,
                 TR("Input plugins"),
                 NULL,

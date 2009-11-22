@@ -67,10 +67,13 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   char * label;
   track_dialog_t * ret;
   void * parent, * child;
-  bg_encoder_info_t encoder_info;
+  const char * plugin_name;
+  const bg_plugin_info_t * plugin_info;
+
+  const char * plugin_name1;
+  const bg_plugin_info_t * plugin_info1;
+
   
-  bg_encoder_info_get_from_track(plugin_reg, t, &encoder_info);
-                                            
   ret = calloc(1, sizeof(*ret));
 
   ret->update_callback = update_callback;
@@ -98,70 +101,105 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                 t->metadata_parameters);
 
   /* Audio encoder */
-
-  if(encoder_info.audio_encoder_parameters && t->num_audio_streams)
+  
+  if(t->num_audio_streams && t->audio_encoder_section)
     {
-    label = bg_cfg_section_get_name_translated(t->audio_encoder_section);
-    bg_dialog_add(ret->cfg_dialog,
-                  label,
-                  t->audio_encoder_section,
-                  NULL,
-                  NULL,
-                  NULL,
-                  encoder_info.audio_encoder_parameters);
-    free(label);
+    plugin_name = bg_transcoder_track_get_audio_encoder(t);
+    plugin_info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+
+    if(plugin_info->parameters)
+      {
+      label = TRD(plugin_info->long_name, plugin_info->gettext_domain);
+      bg_dialog_add(ret->cfg_dialog,
+                    label,
+                    t->audio_encoder_section,
+                    NULL,
+                    NULL,
+                    NULL,
+                    plugin_info->parameters);
+      }
     }
   
   /* Video encoder */
 
-  if(encoder_info.video_encoder_parameters &&
-     (!(encoder_info.audio_info) || t->num_video_streams))
+  if((!t->audio_encoder_section && t->num_audio_streams ) || t->num_video_streams)
     {
-    label = bg_cfg_section_get_name_translated(t->video_encoder_section);
-    bg_dialog_add(ret->cfg_dialog,
-                  label,
-                  t->video_encoder_section,
-                  NULL,
-                  NULL,
-                  NULL,
-                  encoder_info.video_encoder_parameters);
-    free(label);
-    }
+    plugin_name = bg_transcoder_track_get_video_encoder(t);
+    plugin_info = bg_plugin_find_by_name(plugin_reg, plugin_name);
 
+    if(plugin_info->parameters)
+      {
+      label = TRD(plugin_info->long_name, plugin_info->gettext_domain);
+      bg_dialog_add(ret->cfg_dialog,
+                    label,
+                    t->video_encoder_section,
+                    NULL,
+                    NULL,
+                    NULL,
+                    plugin_info->parameters);
+      }
+    }
   /* Subtitle text encoder */
 
-  if(encoder_info.subtitle_text_encoder_parameters && t->num_subtitle_text_streams)
+  if(t->subtitle_text_encoder_section && t->num_subtitle_text_streams)
     {
-    label = bg_cfg_section_get_name_translated(t->subtitle_text_encoder_section);
-    bg_dialog_add(ret->cfg_dialog,
-                  label,
-                  t->subtitle_text_encoder_section,
-                  NULL,
-                  NULL,
-                  NULL,
-                  encoder_info.subtitle_text_encoder_parameters);
-    free(label);
+    plugin_name = bg_transcoder_track_get_subtitle_text_encoder(t);
+
+    if(plugin_name)
+      {
+      plugin_info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+
+      if(plugin_info->parameters)
+        {
+        label = TRD(plugin_info->long_name, plugin_info->gettext_domain);
+        bg_dialog_add(ret->cfg_dialog,
+                      label,
+                      t->subtitle_text_encoder_section,
+                      NULL,
+                      NULL,
+                      NULL,
+                      plugin_info->parameters);
+        }
+      }
     }
 
   /* Subtitle overlay encoder */
 
-  if(encoder_info.subtitle_overlay_encoder_parameters &&
+  if(t->subtitle_overlay_encoder_section &&
      (t->num_subtitle_text_streams || t->num_subtitle_overlay_streams))
     {
-    label = bg_cfg_section_get_name_translated(t->subtitle_overlay_encoder_section);
-    bg_dialog_add(ret->cfg_dialog,
-                  label,
-                  t->subtitle_overlay_encoder_section,
-                  NULL,
-                  NULL,
-                  NULL,
-                  encoder_info.subtitle_overlay_encoder_parameters);
-    free(label);
+    plugin_name = bg_transcoder_track_get_subtitle_overlay_encoder(t);
+
+    if(plugin_name)
+      {
+      plugin_info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+      if(plugin_info->parameters)
+        {
+        label = TRD(plugin_info->long_name, plugin_info->gettext_domain);
+        bg_dialog_add(ret->cfg_dialog,
+                      label,
+                      t->subtitle_overlay_encoder_section,
+                      NULL,
+                      NULL,
+                      NULL,
+                      plugin_info->parameters);
+        }
+      }
     }
 
   
   /* Audio streams */
 
+  plugin_name = bg_transcoder_track_get_audio_encoder(t);
+  
+  if(!plugin_name)
+    plugin_name = bg_transcoder_track_get_video_encoder(t);
+
+  if(plugin_name)
+    plugin_info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+  else
+    plugin_info = NULL;
+  
   for(i = 0; i < t->num_audio_streams; i++)
     {
     if(t->num_audio_streams > 1)
@@ -200,10 +238,11 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         t->audio_streams[i].filter_parameters);
     
-    if(encoder_info.audio_stream_parameters)
+    if(t->audio_streams[i].encoder_section && plugin_info)
       {
-      label = bg_cfg_section_get_name_translated(t->audio_streams[i].encoder_section);
-      if(encoder_info.audio_stream_parameters[0].type != BG_PARAMETER_SECTION)
+      label = TR("Encode options");
+      
+      if(plugin_info->audio_parameters[0].type != BG_PARAMETER_SECTION)
         {
         bg_dialog_add_child(ret->cfg_dialog, parent,
                             label,
@@ -211,7 +250,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                             NULL,
                             NULL,
                             NULL,
-                            encoder_info.audio_stream_parameters);
+                            plugin_info->audio_parameters);
         }
       else
         {
@@ -222,15 +261,16 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                             NULL,
                             NULL,
                             NULL,
-                            encoder_info.audio_stream_parameters);
-        
+                            plugin_info->audio_parameters);
         }
-      free(label);
       }
     }
 
   /* Video streams */
 
+  plugin_name = bg_transcoder_track_get_video_encoder(t);
+  plugin_info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+  
   for(i = 0; i < t->num_video_streams; i++)
     {
     if(t->num_video_streams > 1)
@@ -267,12 +307,12 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         NULL,
                         t->video_streams[i].filter_parameters);
-
     
-    if(encoder_info.video_stream_parameters)
+    if(t->video_streams[i].encoder_section && plugin_info)
       {
-      label = bg_cfg_section_get_name_translated(t->video_streams[i].encoder_section);
-      if(encoder_info.video_stream_parameters[0].type != BG_PARAMETER_SECTION)
+      label = TR("Encode options");
+      
+      if(plugin_info->video_parameters[0].type != BG_PARAMETER_SECTION)
         {
         bg_dialog_add_child(ret->cfg_dialog, parent,
                             label,
@@ -280,7 +320,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                             NULL,
                             NULL,
                             NULL,
-                            encoder_info.video_stream_parameters);
+                            plugin_info->video_parameters);
         }
       else
         {
@@ -292,14 +332,30 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                             NULL,
                             NULL,
                             NULL,
-                            encoder_info.video_stream_parameters);
-        
+                            plugin_info->video_parameters);
         }
-      free(label);
       }
     }
   
   /* Subtitle streams */
+
+  plugin_name = bg_transcoder_track_get_subtitle_text_encoder(t);
+  if(!plugin_name)
+    plugin_name = bg_transcoder_track_get_video_encoder(t);
+  
+  if(plugin_name)
+    plugin_info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+  else
+    plugin_info = NULL;
+
+  plugin_name1 = bg_transcoder_track_get_subtitle_overlay_encoder(t);
+  if(!plugin_name1)
+    plugin_name1 = bg_transcoder_track_get_video_encoder(t);
+  
+  if(plugin_name1)
+    plugin_info1 = bg_plugin_find_by_name(plugin_reg, plugin_name1);
+  else
+    plugin_info1 = NULL;
   
   for(i = 0; i < t->num_subtitle_text_streams; i++)
     {
@@ -338,20 +394,36 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         bg_text_renderer_get_parameters());
 
-    if(encoder_info.subtitle_text_stream_parameters)
+    if(plugin_info->subtitle_text_parameters)
       {
-      label = bg_cfg_section_get_name_translated(t->subtitle_text_streams[i].encoder_section_text);
+      label = TR("Encode options (text)");
+      
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           label,
                           t->subtitle_text_streams[i].encoder_section_text,
                           NULL,
                           NULL,
                           NULL,
-                          encoder_info.subtitle_text_stream_parameters);
-      free(label);
+                          plugin_info->subtitle_text_parameters);
       }
+
+    if(plugin_info1->subtitle_overlay_parameters)
+      {
+      label = TR("Encode options (overlay)");
+      
+      bg_dialog_add_child(ret->cfg_dialog, parent,
+                          label,
+                          t->subtitle_text_streams[i].encoder_section_overlay,
+                          NULL,
+                          NULL,
+                          NULL,
+                          plugin_info1->subtitle_overlay_parameters);
+      }
+    
     }
 
+  
+  
   for(i = 0; i < t->num_subtitle_overlay_streams; i++)
     {
     if(t->num_subtitle_overlay_streams > 1)
@@ -382,20 +454,19 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         t->subtitle_overlay_streams[i].general_parameters);
 
-    if(encoder_info.subtitle_overlay_stream_parameters)
+    if(plugin_info1->subtitle_overlay_parameters)
       {
-      label = bg_cfg_section_get_name_translated(t->subtitle_overlay_streams[i].encoder_section);
+      
+      label = TR("Encode options");
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           label,
                           t->subtitle_overlay_streams[i].encoder_section,
                           NULL,
                           NULL,
                           NULL,
-                          encoder_info.subtitle_overlay_stream_parameters);
+                          plugin_info1->subtitle_overlay_parameters);
       }
-
     }
-  
   return ret;
   
   }

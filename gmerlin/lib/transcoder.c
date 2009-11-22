@@ -439,8 +439,6 @@ struct bg_transcoder_s
   /* Track we are created from */
   bg_transcoder_track_t * transcoder_track;
 
-  /* Encoder info */
-  bg_encoder_info_t encoder_info;
     
   /* Postprocess only */
   int pp_only;
@@ -1028,6 +1026,7 @@ static void add_audio_stream(audio_stream_t * ret,
                              bg_transcoder_track_audio_t * s,
                              bg_transcoder_t * t)
   {
+#if 0
   set_stream_param_struct_t st;
   char * language;
   
@@ -1085,13 +1084,14 @@ static void add_audio_stream(audio_stream_t * ret,
                          set_stream_param,
                          &st);
     }
+#endif
   }
 
 static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
                                      bg_transcoder_track_subtitle_text_t * s,
                                      bg_transcoder_t * t)
   {
-  
+#if 0  
   char * language;
   set_stream_param_struct_t st;
   if(ret->com.com.action == STREAM_ACTION_TRANSCODE)
@@ -1161,12 +1161,14 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
       }
     
     }
+#endif
   }
 
 static void add_subtitle_overlay_stream(subtitle_stream_t * ret,
                                         bg_transcoder_track_subtitle_overlay_t * s,
                                         bg_transcoder_t * t)
   {
+#if 0
   set_stream_param_struct_t st;
   char * language;
   
@@ -1195,13 +1197,14 @@ static void add_subtitle_overlay_stream(subtitle_stream_t * ret,
                          set_stream_param,
                          &st);
     }
-  
+#endif
   }
 
 static void add_video_stream(video_stream_t * ret,
                              bg_transcoder_track_video_t * s,
                              bg_transcoder_t * t)
   {
+#if 0
   set_stream_param_struct_t st;
 
   ret->in_func = decode_video_frame;
@@ -1236,6 +1239,7 @@ static void add_video_stream(video_stream_t * ret,
                          set_stream_param,
                          &st);
     }
+#endif
   }
 
 static int set_video_pass(bg_transcoder_t * t, int i)
@@ -2293,7 +2297,7 @@ static int start_input(bg_transcoder_t * ret)
 
 static int check_separate(bg_transcoder_t * ret)
   {
-  
+#if 0  
   ret->separate_streams = 0;
   ret->separate_subtitles = 0;
 
@@ -2376,7 +2380,7 @@ static int check_separate(bg_transcoder_t * ret)
       }
     
     }
-
+#endif
   
   return 1;
   
@@ -2623,6 +2627,8 @@ static int start_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_ha
 
 static int init_subtitle_encoders_separate(bg_transcoder_t * ret)
   {
+#if 0
+
   int i;
   const bg_plugin_info_t * encoder_info = (const bg_plugin_info_t*)0;
   bg_parameter_info_t * encoder_parameters = (bg_parameter_info_t*)0;
@@ -2740,11 +2746,13 @@ static int init_subtitle_encoders_separate(bg_transcoder_t * ret)
     }
   return 1;
   fail:
+#endif
   return 0;
   }
 
 static int init_encoders(bg_transcoder_t * ret)
   {
+#if 0
   int i;
 
   const bg_plugin_info_t * encoder_info;
@@ -2936,6 +2944,7 @@ static int init_encoders(bg_transcoder_t * ret)
     }
   return 1;
   fail:
+#endif
   return 0;
   }
 
@@ -3262,11 +3271,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   ret->transcoder_track = track;
 
   /* Initialize encoder info */
-
-  bg_encoder_info_get_from_track(ret->plugin_reg,
-                                            ret->transcoder_track,
-                                            &(ret->encoder_info));
-    
+  
+  
   /* Set general parameter */
 
   bg_cfg_section_apply(track->general_section,

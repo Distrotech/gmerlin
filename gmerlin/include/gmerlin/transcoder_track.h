@@ -24,9 +24,11 @@
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
-#include <gmerlin/encoderinfo.h>
+// #include <gmerlin/encoderinfo.h>
 /* This defines a track with all information
    necessary for transcoding */
+
+typedef struct bg_transcoder_track_s bg_transcoder_track_t;
 
 typedef struct
   {
@@ -137,18 +139,22 @@ bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
                            const bg_plugin_info_t * plugin,
                            int track, bg_plugin_registry_t * plugin_reg,
-                           bg_cfg_section_t * section, char * name);
+                           bg_cfg_section_t * section,
+                           bg_cfg_section_t * encoder_section,
+                           char * name);
 
 bg_transcoder_track_t *
 bg_transcoder_track_create_from_urilist(const char * list,
                                         int len,
                                         bg_plugin_registry_t * plugin_reg,
-                                        bg_cfg_section_t * section);
+                                        bg_cfg_section_t * section,
+                                        bg_cfg_section_t * encoder_section);
 
 bg_transcoder_track_t *
 bg_transcoder_track_create_from_albumentries(const char * xml_string,
                                              bg_plugin_registry_t * plugin_reg,
-                                             bg_cfg_section_t * section);
+                                             bg_cfg_section_t * section,
+                                             bg_cfg_section_t * encoder_section);
 
 void bg_transcoder_track_destroy(bg_transcoder_track_t * t);
 
@@ -175,14 +181,26 @@ void
 bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
                                       bg_plugin_registry_t * plugin_reg);
 
+#if 0
 void
 bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
                                  bg_plugin_registry_t * plugin_reg,
                                  const bg_encoder_info_t * info);
+#endif
 
+void bg_transcoder_track_get_encoders(bg_transcoder_track_t * t,
+                                      bg_plugin_registry_t * plugin_reg,
+                                      bg_cfg_section_t * encoder_section);
+
+void bg_transcoder_track_set_encoders(bg_transcoder_track_t * t,
+                                      bg_plugin_registry_t * plugin_reg,
+                                      bg_cfg_section_t * encoder_section);
+  
+
+#if 0
 void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
                                                  const bg_encoder_info_t * info);
-
+#endif
 
 /*
  *  Global options

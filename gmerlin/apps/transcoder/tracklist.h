@@ -22,7 +22,9 @@
 typedef struct track_list_s track_list_t;
 
 track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
-                                 bg_cfg_section_t * track_defaults_section);
+                                 bg_cfg_section_t * track_defaults_section,
+                                 const bg_parameter_info_t * encoder_parameters,
+                                 bg_cfg_section_t * encoder_section);
 
 void track_list_destroy(track_list_t *);
 

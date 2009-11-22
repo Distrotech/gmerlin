@@ -10,10 +10,8 @@ bin_PROGRAMS = gmerlin_transcoder gmerlin_transcoder_remote
 dist_man_MANS = gmerlin_transcoder.1 gmerlin_transcoder_remote.1
 
 gmerlin_transcoder_SOURCES = \
-encoderwidget.c \
 ppwidget.c \
 main.c \
-pluginwindow.c \
 transcoder_window.c \
 trackdialog.c \
 tracklist.c
@@ -28,10 +26,8 @@ gmerlin_transcoder_remote_LDADD = \
 $(top_builddir)/lib/libgmerlin.la
 
 noinst_HEADERS = \
-encoderwidget.h \
 ppwidget.h \
 transcoder_remote.h \
 transcoder_window.h \
 tracklist.h \
-pluginwindow.h \
 trackdialog.h

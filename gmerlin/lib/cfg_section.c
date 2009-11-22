@@ -1253,7 +1253,7 @@ void bg_cfg_section_create_items(bg_cfg_section_t * section,
 
 
 void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,
-                                   bg_cfg_section_t * subsection)
+                                      bg_cfg_section_t * subsection)
   {
   bg_cfg_section_t * before;
 

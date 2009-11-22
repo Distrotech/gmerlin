@@ -2417,7 +2417,7 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
     bg_parameter_info_copy(&ret[i], &audio_encoder_param);
 
     bg_plugin_registry_set_parameter_info(reg,
-                                          type_mask & BG_PLUGIN_ENCODER_AUDIO,
+                                          BG_PLUGIN_ENCODER_AUDIO,
                                           flag_mask, &ret[i]);
 
     i++;
@@ -2432,7 +2432,7 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
     bg_parameter_info_copy(&ret[i], &subtitle_text_encoder_param);
 
     bg_plugin_registry_set_parameter_info(reg,
-                                          type_mask & BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
+                                          BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
                                           flag_mask, &ret[i]);
 
     i++;
@@ -2446,7 +2446,7 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
       }
     bg_parameter_info_copy(&ret[i], &subtitle_overlay_encoder_param);
     bg_plugin_registry_set_parameter_info(reg,
-                                          type_mask & BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
+                                          BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
                                           flag_mask, &ret[i]);
     i++;
     }
@@ -2455,7 +2455,7 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
     bg_parameter_info_copy(&ret[i], &video_encoder_param);
 
     bg_plugin_registry_set_parameter_info(reg,
-                                          type_mask & (BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER),
+                                          BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER,
                                           flag_mask, &ret[i]);
 
     i++;
@@ -2566,6 +2566,16 @@ bg_encoder_section_get_plugin_config(bg_plugin_registry_t * plugin_reg,
 
   if(!plugin_name)
     return;
+
+  info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+
+  if(!info->parameters)
+    return;
+  
+  if(params_ret)
+    {
+    *params_ret = info->parameters;
+    }
   
   switch(stream_type)
     {
@@ -2597,12 +2607,6 @@ bg_encoder_section_get_plugin_config(bg_plugin_registry_t * plugin_reg,
         *section_ret = bg_cfg_section_find_subsection(*section_ret, plugin_name);
         }
       break;
-    }
-
-  if(params_ret)
-    {
-    info = bg_plugin_find_by_name(plugin_reg, plugin_name);
-    *params_ret = info->parameters;
     }
   
   }
@@ -2727,7 +2731,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
 
   if(type_mask & BG_STREAM_AUDIO)
     {
-    info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_AUDIO, flag_mask);
+    info = bg_plugin_registry_get_default(plugin_reg,
+                                          BG_PLUGIN_ENCODER_AUDIO, flag_mask);
     bg_cfg_section_set_parameter_string(ret, "audio_encoder", info->name);
 
     bg_cfg_section_get_parameter_int(plugin_reg->config_section,
@@ -2740,7 +2745,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
     j = 0;
     while(parameters[i].multi_names[j])
       {
-      s_src = bg_cfg_section_find_subsection(plugin_reg->config_section, parameters[i].multi_names[j]);
+      s_src = bg_cfg_section_find_subsection(plugin_reg->config_section,
+                                             parameters[i].multi_names[j]);
 
       s_dst = bg_cfg_section_find_subsection(ret, "audio_encoder");
       s_dst = bg_cfg_section_find_subsection(s_dst, parameters[i].multi_names[j]);
@@ -2750,7 +2756,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
     }
   if(type_mask & BG_STREAM_SUBTITLE_TEXT)
     {
-    info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_SUBTITLE_TEXT, flag_mask);
+    info = bg_plugin_registry_get_default(plugin_reg,
+                                          BG_PLUGIN_ENCODER_SUBTITLE_TEXT, flag_mask);
     bg_cfg_section_set_parameter_string(ret, "subtitle_text_encoder", info->name);
 
     bg_cfg_section_get_parameter_int(plugin_reg->config_section,
@@ -2763,7 +2770,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
     j = 0;
     while(parameters[i].multi_names[j])
       {
-      s_src = bg_cfg_section_find_subsection(plugin_reg->config_section, parameters[i].multi_names[j]);
+      s_src = bg_cfg_section_find_subsection(plugin_reg->config_section,
+                                             parameters[i].multi_names[j]);
 
       s_dst = bg_cfg_section_find_subsection(ret, "subtitle_text_encoder");
       s_dst = bg_cfg_section_find_subsection(s_dst, parameters[i].multi_names[j]);
@@ -2774,7 +2782,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
     }
   if(type_mask & BG_STREAM_SUBTITLE_OVERLAY)
     {
-    info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, flag_mask);
+    info = bg_plugin_registry_get_default(plugin_reg,
+                                          BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, flag_mask);
     bg_cfg_section_set_parameter_string(ret, "subtitle_overlay_encoder", info->name);
 
     bg_cfg_section_get_parameter_int(plugin_reg->config_section,
@@ -2787,7 +2796,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
     j = 0;
     while(parameters[i].multi_names[j])
       {
-      s_src = bg_cfg_section_find_subsection(plugin_reg->config_section, parameters[i].multi_names[j]);
+      s_src = bg_cfg_section_find_subsection(plugin_reg->config_section,
+                                             parameters[i].multi_names[j]);
 
       s_dst = bg_cfg_section_find_subsection(ret, "subtitle_overlay_encoder");
       s_dst = bg_cfg_section_find_subsection(s_dst, parameters[i].multi_names[j]);
@@ -2806,7 +2816,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
     j = 0;
     while(parameters[i].multi_names[j])
       {
-      s_src = bg_cfg_section_find_subsection(plugin_reg->config_section, parameters[i].multi_names[j]);
+      s_src = bg_cfg_section_find_subsection(plugin_reg->config_section,
+                                             parameters[i].multi_names[j]);
 
       s_dst = bg_cfg_section_find_subsection(ret, "video_encoder");
       s_dst = bg_cfg_section_find_subsection(s_dst, parameters[i].multi_names[j]);

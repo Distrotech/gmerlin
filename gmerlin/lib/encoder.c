@@ -242,7 +242,7 @@ load_plugin_separate(bg_encoder_t * enc, const bg_plugin_info_t * info)
 static bg_plugin_handle_t *
 load_plugin_common(bg_encoder_t * enc)
   {
-  
+  return NULL;
   }
 
 /* Add streams */

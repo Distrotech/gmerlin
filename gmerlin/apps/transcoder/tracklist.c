@@ -32,6 +32,9 @@
 
 #include <gmerlin/tree.h>
 
+#include <gmerlin/cfg_dialog.h>
+
+
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/urlselect.h>
 #include <gui_gtk/driveselect.h>
@@ -44,7 +47,6 @@
 #include <gmerlin/transcoder_track.h>
 #include "tracklist.h"
 #include "trackdialog.h"
-#include "encoderwidget.h"
 #include "ppwidget.h"
 
 static void track_list_update(track_list_t * w);
@@ -234,6 +236,9 @@ struct track_list_s
   gulong select_handler_id;
 
   bg_cfg_section_t * track_defaults_section;
+  bg_cfg_section_t * encoder_section;
+  const bg_parameter_info_t * encoder_parameters;
+  
   bg_gtk_time_display_t * time_total;
 
 
@@ -241,7 +246,6 @@ struct track_list_s
 
   menu_t menu;
 
-  encoder_window_t * encoder_window;
   encoder_pp_window_t * encoder_pp_window;
 
   char * open_path;
@@ -727,7 +731,7 @@ static void add_file_callback(char ** files, const char * plugin,
     new_track =
       bg_transcoder_track_create(files[i], plugin_info,
                                  -1, l->plugin_reg,
-                                 l->track_defaults_section, (char*)0);
+                                 l->track_defaults_section, l->encoder_section, (char*)0);
     add_track(l, new_track);
     track_list_update(l);
     i++;
@@ -769,6 +773,67 @@ static void update_track(void * data)
   track_list_t * l = (track_list_t *)data;
 
   track_list_update(l);
+  }
+
+typedef struct
+  {
+  int changed;
+  } encoder_parameter_data;
+
+static void set_encoder_parameter(void * data, const char * name,
+                                 const bg_parameter_value_t * val)
+  {
+  encoder_parameter_data * d = data;
+  d->changed = 1;
+  }
+
+static void configure_encoders(track_list_t * l)
+  {
+  
+  bg_cfg_section_t * s;
+  bg_dialog_t * dlg;
+  
+  bg_transcoder_track_t * first_selected;
+
+  encoder_parameter_data d;
+  d.changed = 0;
+  
+  first_selected = l->tracks;
+
+  while(first_selected && !first_selected->selected)
+    first_selected = first_selected->next;
+
+  if(!first_selected)
+    return;
+
+  s = bg_cfg_section_create("Encoders");
+  bg_transcoder_track_get_encoders(first_selected, l->plugin_reg, s);
+  
+  dlg = bg_dialog_create(s,
+                         set_encoder_parameter,
+                         NULL,
+                         &d,
+                         l->encoder_parameters,
+                         TR("Encoder configuration"));
+
+  bg_dialog_show(dlg, l->widget);
+
+  if(d.changed)
+    {
+    while(first_selected)
+      {
+      if(first_selected->selected)
+        {
+        bg_transcoder_track_set_encoders(first_selected,
+                                         l->plugin_reg,
+                                         s);
+        }
+      first_selected = first_selected->next;
+      }
+    }
+
+  bg_dialog_destroy(dlg);
+  bg_cfg_section_destroy(s);
   }
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -871,9 +936,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if((w == t->encoder_button) ||
           (w == t->menu.selected_menu.encoder_item))
     {
-    if(!t->encoder_window)
-      t->encoder_window = encoder_window_create(t->plugin_reg);
-    encoder_window_run(t->encoder_window, t->tracks);
+    configure_encoders(t);
     }
   else if(w == t->menu.pp_item)
     {
@@ -1068,7 +1131,7 @@ void track_list_add_albumentries_xml(track_list_t * l, char * xml_string)
   new_tracks =
     bg_transcoder_track_create_from_albumentries(xml_string,
                                                  l->plugin_reg,
-                                                 l->track_defaults_section);
+                                                 l->track_defaults_section, l->encoder_section);
   add_track(l, new_tracks);
   track_list_update(l);  
   }
@@ -1080,7 +1143,7 @@ void track_list_add_url(track_list_t * l, char * url)
     bg_transcoder_track_create(url,
                                (const bg_plugin_info_t *)0,
                                -1, l->plugin_reg,
-                               l->track_defaults_section, (char*)0);
+                               l->track_defaults_section, l->encoder_section, (char*)0);
   add_track(l, new_tracks);
   track_list_update(l);  
   }
@@ -1125,7 +1188,7 @@ static void drag_received_callback(GtkWidget *widget,
       bg_transcoder_track_create_from_urilist((char*)(data->data),
                                               data->length,
                                               l->plugin_reg,
-                                              l->track_defaults_section);
+                                              l->track_defaults_section, l->encoder_section);
     add_track(l, new_tracks);
     track_list_update(l);  
     }
@@ -1171,7 +1234,9 @@ static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
 
 
 track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
-                                 bg_cfg_section_t * track_defaults_section)
+                                 bg_cfg_section_t * track_defaults_section,
+                                 const bg_parameter_info_t * encoder_parameters,
+                                 bg_cfg_section_t * encoder_section)
   {
   GtkWidget * scrolled;
   GtkWidget * box;
@@ -1187,8 +1252,11 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   load_pixmaps();
   
   ret = calloc(1, sizeof(*ret));
-    
+  
   ret->track_defaults_section = track_defaults_section;
+  ret->encoder_section = encoder_section;
+  ret->encoder_parameters = encoder_parameters;
+  
   ret->time_total =
     bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4,
                                BG_GTK_DISPLAY_MODE_HMS);

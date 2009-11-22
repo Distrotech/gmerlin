@@ -31,7 +31,6 @@ cfg_time.c \
 chapterdialog.c \
 display.c \
 driveselect.c \
-encoder.c \
 fileselect.c \
 fileentry.c \
 gtkutils.c \
