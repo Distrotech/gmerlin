@@ -39,6 +39,7 @@ void bg_recorder_create_video(bg_recorder_t * rec)
 
   vs->monitor_cnv = gavl_video_converter_create();
   vs->output_cnv = gavl_video_converter_create();
+  vs->encoder_cnv = gavl_video_converter_create();
 
   bg_gavl_video_options_init(&(vs->opt));
   
@@ -54,6 +55,7 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   bg_recorder_video_stream_t * vs = &rec->vs;
   
   gavl_video_converter_destroy(vs->monitor_cnv);
+  gavl_video_converter_destroy(vs->encoder_cnv);
   gavl_video_converter_destroy(vs->output_cnv);
   bg_video_filter_chain_destroy(vs->fc);
   bg_player_thread_destroy(vs->th);
@@ -128,7 +130,8 @@ bg_recorder_set_video_parameter(void * data,
 
   if(!strcmp(name, "do_video"))
     {
-    if(rec->running && (!!(vs->flags & STREAM_ACTIVE) != val->val_i))
+    if((rec->flags & FLAG_RUNNING) &&
+       (!!(vs->flags & STREAM_ACTIVE) != val->val_i))
       bg_recorder_stop(rec);
 
     if(val->val_i)
@@ -145,7 +148,7 @@ bg_recorder_set_video_parameter(void * data,
        !strcmp(vs->input_handle->info->name, val->val_str))
       return;
     
-    if(rec->running)
+    if(rec->flags & FLAG_RUNNING)
       bg_recorder_stop(rec);
 
     if(vs->input_handle)
@@ -222,7 +225,8 @@ bg_recorder_set_video_monitor_parameter(void * data,
 
   if(!strcmp(name, "do_monitor"))
     {
-    if(rec->running && (!!(vs->flags & STREAM_MONITOR) != val->val_i))
+    if((rec->flags & FLAG_RUNNING) &&
+       (!!(vs->flags & STREAM_MONITOR) != val->val_i))
       bg_recorder_stop(rec);
 
     if(val->val_i)
@@ -238,7 +242,7 @@ bg_recorder_set_video_monitor_parameter(void * data,
        !strcmp(vs->monitor_handle->info->name, val->val_str))
       return;
     
-    if(rec->running)
+    if(rec->flags & FLAG_RUNNING)
       bg_recorder_stop(rec);
     
     if(vs->monitor_handle)
@@ -273,8 +277,8 @@ bg_recorder_set_video_filter_parameter(void * data,
                                        const char * name,
                                        const bg_parameter_value_t * val)
   {
-  bg_recorder_t * rec = data;
-  bg_recorder_video_stream_t * vs = &rec->vs;
+  //  bg_recorder_t * rec = data;
+  //  bg_recorder_video_stream_t * vs = &rec->vs;
 
   if(!name)
     return;

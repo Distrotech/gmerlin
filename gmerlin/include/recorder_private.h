@@ -21,6 +21,7 @@
 
 #include <gmerlin/bggavl.h>
 #include <gmerlin/filters.h>
+#include <gmerlin/encoder.h>
 
 #include <player_thread.h>
 
@@ -30,6 +31,12 @@
 #define STREAM_INPUT_OPEN   (1<<1)
 #define STREAM_MONITOR      (1<<2)
 #define STREAM_MONITOR_OPEN (1<<3)
+#define STREAM_ENCODE       (1<<4)
+#define STREAM_ENCODE_OPEN  (1<<5)
+
+#define FLAG_RUNNING        (1<<0)     
+#define FLAG_RECORDING      (1<<1) 
+#define FLAG_DO_RECORD      (1<<2) 
 
 typedef struct 
   {
@@ -48,6 +55,10 @@ typedef struct
   bg_plugin_handle_t * output_handle;
   gavl_audio_converter_t * output_cnv;
   gavl_audio_frame_t     * output_frame;
+
+  /* Encoder section */
+  gavl_audio_converter_t * encoder_cnv;
+  gavl_audio_frame_t     * encoder_frame;
   
   bg_player_thread_t * th;
   
@@ -92,6 +103,10 @@ typedef struct
   bg_plugin_handle_t * output_handle;
   gavl_video_converter_t * output_cnv;
   gavl_video_frame_t     * output_frame;
+
+  /* Encoder section */
+  gavl_video_converter_t * encoder_cnv;
+  gavl_video_frame_t     * encoder_frame;
   
   bg_player_thread_t * th;
 
@@ -128,7 +143,6 @@ typedef struct
   
   } bg_recorder_video_stream_t;
 
-
 struct bg_recorder_s
   {
   bg_recorder_audio_stream_t as;
@@ -142,12 +156,14 @@ struct bg_recorder_s
   
   char * display_string;
   
-  int running;
+  int flags;
   
   bg_msg_queue_list_t * msg_queues;
 
   bg_parameter_info_t * encoder_parameters;
   bg_cfg_section_t * encoder_section;
+  
+  bg_encoder_t * enc;
   
   };
 

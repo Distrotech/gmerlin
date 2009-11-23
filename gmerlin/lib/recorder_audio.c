@@ -35,6 +35,7 @@ void bg_recorder_create_audio(bg_recorder_t * rec)
   bg_recorder_audio_stream_t * as = &rec->as;
   
   as->output_cnv = gavl_audio_converter_create();
+  as->encoder_cnv = gavl_audio_converter_create();
 
   bg_gavl_audio_options_init(&(as->opt));
   
@@ -49,6 +50,7 @@ void bg_recorder_destroy_audio(bg_recorder_t * rec)
   {
   bg_recorder_audio_stream_t * as = &rec->as;
   gavl_audio_converter_destroy(as->output_cnv);
+  gavl_audio_converter_destroy(as->encoder_cnv);
   bg_audio_filter_chain_destroy(as->fc);
   bg_player_thread_destroy(as->th);
 
@@ -106,9 +108,10 @@ bg_recorder_set_audio_parameter(void * data,
 
   if(!strcmp(name, "do_audio"))
     {
-    if(rec->running && (!!(as->flags & STREAM_ACTIVE) != val->val_i))
+    if((rec->flags & FLAG_RUNNING) &&
+       (!!(as->flags & STREAM_ACTIVE) != val->val_i))
       bg_recorder_stop(rec);
-
+    
     if(val->val_i)
       as->flags |= STREAM_ACTIVE;
     else
@@ -122,7 +125,7 @@ bg_recorder_set_audio_parameter(void * data,
        !strcmp(as->input_handle->info->name, val->val_str))
       return;
     
-    if(rec->running)
+    if(rec->flags & FLAG_RUNNING)
       bg_recorder_stop(rec);
 
     if(as->input_handle)
@@ -150,8 +153,8 @@ bg_recorder_set_audio_filter_parameter(void * data,
                                        const char * name,
                                        const bg_parameter_value_t * val)
   {
-  bg_recorder_t * rec = data;
-  bg_recorder_audio_stream_t * as = &rec->as;
+  //  bg_recorder_t * rec = data;
+  //  bg_recorder_audio_stream_t * as = &rec->as;
   if(!name)
     return;
   

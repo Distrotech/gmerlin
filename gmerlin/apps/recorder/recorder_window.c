@@ -54,6 +54,7 @@ struct bg_recorder_window_s
   GtkWidget * log_button;
   GtkWidget * config_button;
   GtkWidget * restart_button;
+  GtkWidget * record_button;
   
   bg_dialog_t * cfg_dialog;
   
@@ -69,15 +70,15 @@ struct bg_recorder_window_s
   bg_cfg_section_t * video_section;
   
   bg_cfg_section_t * encoder_section;
+  bg_cfg_section_t * output_section;
   
   bg_cfg_section_t * log_section;
-
   
   bg_msg_queue_t * msg_queue;
   bg_gtk_time_display_t * display;
-  
   };
 
+#if 0
 static void about_window_close_callback(bg_gtk_about_window_t * w,
                                         void * data)
   {
@@ -85,6 +86,7 @@ static void about_window_close_callback(bg_gtk_about_window_t * w,
   win = (bg_recorder_window_t *)data;
   gtk_widget_set_sensitive(win->about_button, 1);
   }
+#endif
 
 static void log_window_close_callback(bg_gtk_log_window_t * w,
                                       void * data)
@@ -112,6 +114,14 @@ static void button_callback(GtkWidget * w, gpointer data)
     bg_recorder_stop(win->rec);
     bg_recorder_run(win->rec);
     }
+  else if(w == win->record_button)
+    {
+    int do_record = !!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->record_button));
+    gtk_widget_set_sensitive(win->restart_button, !do_record);
+    gtk_widget_set_sensitive(win->config_button, !do_record);
+    bg_recorder_record(win->rec, do_record);
+    }
+  
   }
 
 static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
@@ -151,6 +161,37 @@ static GtkWidget * create_pixmap_button(bg_recorder_window_t * w,
   
   return button;
   }
+
+static GtkWidget * create_pixmap_toggle_button(bg_recorder_window_t * w,
+                                               const char * filename,
+                                               const char * tooltip)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_toggle_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+  
+  g_signal_connect(G_OBJECT(button), "toggled",
+                   G_CALLBACK(button_callback), w);
+  
+  gtk_widget_show(button);
+  
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
+  
+  return button;
+  }
+
 
 static void socket_realize(GtkWidget * w, gpointer data)
   {
@@ -293,6 +334,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     create_pixmap_button(ret, "config_16.png", TRS("Preferences"));
   ret->restart_button =
     create_pixmap_button(ret, "refresh_16.png", TRS("Reopen inputs"));
+  ret->record_button =
+    create_pixmap_toggle_button(ret, "record_16.png", TRS("Record"));
   
   ret->statusbar = gtk_statusbar_new();
   ret->framerate_context =
@@ -329,6 +372,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->about_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->log_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->restart_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->record_button, FALSE, FALSE, 0);
 
   
   
@@ -365,7 +409,9 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     bg_cfg_registry_find_section(cfg_reg, "videofilter");
   ret->video_monitor_section =
     bg_cfg_registry_find_section(cfg_reg, "video_monitor");
-
+  ret->output_section =
+    bg_cfg_registry_find_section(cfg_reg, "output");
+  
   /* Encoders */
 
   if(bg_cfg_registry_has_section(cfg_reg, "encoders"))
@@ -384,6 +430,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   
   ret->cfg_dialog = bg_dialog_create_multi(TR("Recorder configuration"));
   bg_dialog_set_plugin_registry(ret->cfg_dialog, plugin_reg);
+
   
   /* Audio */
   parent = bg_dialog_add_parent(ret->cfg_dialog, NULL, TRS("Audio"));
@@ -430,6 +477,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                       ret->rec,
                       bg_recorder_get_video_monitor_parameters(ret->rec));
 
+  /* Other stuff */
+  
   bg_dialog_add(ret->cfg_dialog,
                 TR("Encoders"),
                 ret->encoder_section,
@@ -438,6 +487,15 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                 NULL,
                 bg_recorder_get_encoder_parameters(ret->rec));
 
+  /* Output */
+  
+  bg_dialog_add(ret->cfg_dialog,
+                TR("Output files"),
+                ret->output_section,
+                NULL,
+                NULL,
+                NULL,
+                bg_recorder_get_output_parameters(ret->rec));
   
   bg_dialog_add(ret->cfg_dialog,
                 TR("Log window"),
@@ -454,6 +512,12 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                        bg_gtk_log_window_set_parameter,
                        ret->logwindow);
 
+  bg_cfg_section_apply(ret->output_section,
+                       bg_recorder_get_output_parameters(ret->rec),
+                       bg_recorder_set_output_parameter,
+                       ret->rec);
+
+  
   g_timeout_add(DELAY_TIME, timeout_func, ret);
   
   return ret;

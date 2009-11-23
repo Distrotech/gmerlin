@@ -23,9 +23,15 @@
 #include <stdlib.h>
 
 #include <gmerlin/utils.h> 
+#include <gmerlin/translation.h> 
 
 #include <gmerlin/recorder.h>
 #include <recorder_private.h>
+
+static const int stream_mask =
+BG_STREAM_AUDIO | BG_STREAM_VIDEO;                                   
+
+static const uint32_t plugin_mask = BG_PLUGIN_FILE;
 
 bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   {
@@ -48,7 +54,7 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
 
 void bg_recorder_destroy(bg_recorder_t * rec)
   {
-  if(rec->running)
+  if(rec->flags & FLAG_RUNNING)
     bg_recorder_stop(rec);
 
   bg_recorder_destroy_audio(rec);
@@ -80,6 +86,23 @@ void bg_recorder_remove_message_queue(bg_recorder_t * rec,
 
 int bg_recorder_run(bg_recorder_t * rec)
   {
+  if(rec->flags & FLAG_DO_RECORD)
+    {
+    rec->as.flags |= STREAM_ENCODE;
+    rec->vs.flags |= STREAM_ENCODE;
+    
+    rec->enc = bg_encoder_create(rec->plugin_reg,
+                                 rec->encoder_section,
+                                 NULL,
+                                 stream_mask, plugin_mask);
+    //    bg_encoder_open(rec->enc, );
+    }
+  else
+    {
+    rec->as.flags &= ~STREAM_ENCODE;
+    rec->vs.flags &= ~STREAM_ENCODE;
+    }
+  
   if(rec->as.flags & STREAM_ACTIVE)
     {
     if(!bg_recorder_audio_init(rec))
@@ -102,11 +125,14 @@ int bg_recorder_run(bg_recorder_t * rec)
   else
     bg_player_thread_set_func(rec->vs.th, NULL, NULL);
   
+  if(rec->flags & FLAG_DO_RECORD)
+    rec->flags &= FLAG_RECORDING;
+    
   
   bg_player_threads_init(rec->th, NUM_THREADS);
   bg_player_threads_start(rec->th, NUM_THREADS);
-
-  rec->running = 1;
+  
+  rec->flags |= FLAG_RUNNING;
   
   return 1;
   }
@@ -119,11 +145,8 @@ bg_recorder_get_encoder_parameters(bg_recorder_t * rec)
   if(!rec->encoder_parameters)
     rec->encoder_parameters =
       bg_plugin_registry_create_encoder_parameters(rec->plugin_reg,
-                                                   BG_STREAM_AUDIO |
-                                                   BG_STREAM_VIDEO |
-                                                   BG_STREAM_SUBTITLE_TEXT |
-                                                   BG_STREAM_SUBTITLE_OVERLAY,
-                                                   BG_PLUGIN_FILE);
+                                                   stream_mask,
+                                                   plugin_mask);
   return rec->encoder_parameters;
   }
 
@@ -134,14 +157,29 @@ void bg_recorder_set_encoder_section(bg_recorder_t * rec, bg_cfg_section_t * s)
 
 void bg_recorder_stop(bg_recorder_t * rec)
   {
-  if(!rec->running)
+  if(!(rec->flags & FLAG_RUNNING))
     return;
   bg_player_threads_join(rec->th, NUM_THREADS);
-  
   bg_recorder_audio_cleanup(rec);
   bg_recorder_video_cleanup(rec);
   
-  rec->running = 0;
+  rec->flags &= ~(FLAG_RECORDING | FLAG_RUNNING);
+  }
+
+void bg_recorder_record(bg_recorder_t * rec, int record)
+  {
+  int was_running = !!(rec->flags & FLAG_RUNNING);
+
+  if(was_running)
+    bg_recorder_stop(rec);
+
+  if(record)
+    rec->flags |= FLAG_DO_RECORD;
+  else
+    rec->flags &= ~FLAG_DO_RECORD;
+
+  if(was_running)
+    bg_recorder_run(rec);
   }
 
 void bg_recorder_set_display_string(bg_recorder_t * rec, const char * str)
@@ -192,4 +230,47 @@ void bg_recorder_msg_audiolevel(bg_recorder_t * rec,
   
   bg_msg_queue_list_send(rec->msg_queues,
                          msg_audiolevel, &d);
+  }
+
+static const bg_parameter_info_t output_parameters[] =
+  {
+    {
+      .name      = "output_directory",
+      .long_name = TRS("Output directory"),
+      .type      = BG_PARAMETER_DIRECTORY,
+      .val_default = { .val_str = "." },
+    },
+    {
+      .name      = "output_filename_mask",
+      .long_name = TRS("Output filename mask"),
+      .type      = BG_PARAMETER_STRING,
+      .val_default = { .val_str = "%Y-%m-%d-%H:%M:%S" },
+    },
+    {
+      .name      = "snapshot_directory",
+      .long_name = TRS("Snapshot directory"),
+      .type      = BG_PARAMETER_DIRECTORY,
+      .val_default = { .val_str = "." },
+    },
+    {
+      .name      = "snapshot_filename_mask",
+      .long_name = TRS("Snapshot filename mask"),
+      .type      = BG_PARAMETER_STRING,
+      .val_default = { .val_str = "shot_%5n" },
+    },
+    { /* End */ }
+  };
+
+const bg_parameter_info_t *
+bg_recorder_get_output_parameters(bg_recorder_t * rec)
+  {
+  return output_parameters;
+  }
+
+void
+bg_recorder_set_output_parameter(void * data,
+                                 const char * name,
+                                 const bg_parameter_value_t * val)
+  {
+
   }

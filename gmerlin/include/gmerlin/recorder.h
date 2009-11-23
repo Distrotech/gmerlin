@@ -55,6 +55,11 @@ void bg_recorder_set_display_string(bg_recorder_t*, const char * str);
 /* Audio level (arg0: float, arg1: float) */
 #define BG_RECORDER_MSG_AUDIOLEVEL 1
 
+/*
+ *  Record = 1: Start recording
+ *  Record = 0: Stop recording
+ */
+void bg_recorder_record(bg_recorder_t*, int record);
 
 
 /* Parameter stuff */
@@ -110,3 +115,14 @@ const bg_parameter_info_t *
 bg_recorder_get_encoder_parameters(bg_recorder_t *);
 
 void bg_recorder_set_encoder_section(bg_recorder_t *, bg_cfg_section_t *);
+
+
+/* Output */
+
+const bg_parameter_info_t *
+bg_recorder_get_output_parameters(bg_recorder_t *);
+
+void
+bg_recorder_set_output_parameter(void * data,
+                                 const char * name,
+                                 const bg_parameter_value_t * val);
