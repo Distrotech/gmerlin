@@ -71,6 +71,7 @@ struct bg_recorder_window_s
   
   bg_cfg_section_t * encoder_section;
   bg_cfg_section_t * output_section;
+  bg_cfg_section_t * metadata_section;
   
   bg_cfg_section_t * log_section;
   
@@ -116,12 +117,12 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->record_button)
     {
-    int do_record = !!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->record_button));
+    int do_record =
+      !!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->record_button));
     gtk_widget_set_sensitive(win->restart_button, !do_record);
     gtk_widget_set_sensitive(win->config_button, !do_record);
     bg_recorder_record(win->rec, do_record);
     }
-  
   }
 
 static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
@@ -411,6 +412,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     bg_cfg_registry_find_section(cfg_reg, "video_monitor");
   ret->output_section =
     bg_cfg_registry_find_section(cfg_reg, "output");
+  ret->metadata_section =
+    bg_cfg_registry_find_section(cfg_reg, "metadata");
   
   /* Encoders */
 
@@ -496,6 +499,14 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                 NULL,
                 NULL,
                 bg_recorder_get_output_parameters(ret->rec));
+
+  bg_dialog_add(ret->cfg_dialog,
+                TR("Metadata"),
+                ret->metadata_section,
+                NULL,
+                NULL,
+                NULL,
+                bg_recorder_get_metadata_parameters(ret->rec));
   
   bg_dialog_add(ret->cfg_dialog,
                 TR("Log window"),

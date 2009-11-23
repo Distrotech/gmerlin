@@ -57,8 +57,8 @@ typedef struct
   gavl_audio_frame_t     * output_frame;
 
   /* Encoder section */
-  gavl_audio_converter_t * encoder_cnv;
-  gavl_audio_frame_t     * encoder_frame;
+  gavl_audio_converter_t * enc_cnv;
+  gavl_audio_frame_t     * enc_frame;
   
   bg_player_thread_t * th;
   
@@ -67,14 +67,21 @@ typedef struct
   int in_stream;
   
   bg_parameter_info_t * parameters;
-
+  
+  int do_convert_enc;
+  
   /* Formats */
   gavl_audio_format_t input_format;
   gavl_audio_format_t pipe_format;
+  gavl_audio_format_t enc_format;
   
   gavl_audio_frame_t * pipe_frame;
 
   gavl_peak_detector_t * pd;
+
+  int enc_index;
+
+  char language[4];
   
   } bg_recorder_audio_stream_t;
 
@@ -97,7 +104,9 @@ typedef struct
   gavl_video_converter_t * monitor_cnv;
   
   int do_convert_monitor;
-  int do_monitor;
+  int do_convert_enc;
+
+  //  int do_monitor;
   
   /* Output section */
   bg_plugin_handle_t * output_handle;
@@ -105,8 +114,8 @@ typedef struct
   gavl_video_frame_t     * output_frame;
 
   /* Encoder section */
-  gavl_video_converter_t * encoder_cnv;
-  gavl_video_frame_t     * encoder_frame;
+  gavl_video_converter_t * enc_cnv;
+  gavl_video_frame_t     * enc_frame;
   
   bg_player_thread_t * th;
 
@@ -121,6 +130,7 @@ typedef struct
   gavl_video_format_t input_format;
   gavl_video_format_t pipe_format;
   gavl_video_format_t monitor_format;
+  gavl_video_format_t enc_format;
 
   /* Frames */
   gavl_video_frame_t * pipe_frame;
@@ -141,6 +151,8 @@ typedef struct
   
   pthread_mutex_t config_mutex;
   
+  int enc_index;
+
   } bg_recorder_video_stream_t;
 
 struct bg_recorder_s
@@ -165,6 +177,16 @@ struct bg_recorder_s
   
   bg_encoder_t * enc;
   
+  pthread_mutex_t enc_mutex;
+  
+  char * output_directory;
+  char * output_filename_mask;
+  char * snapshot_directory;
+  char * snapshot_filename_mask;
+
+  bg_metadata_t m;
+  bg_parameter_info_t * metadata_parameters;
+  
   };
 
 void bg_recorder_create_audio(bg_recorder_t*);
@@ -178,6 +200,10 @@ void * bg_recorder_video_thread(void * data);
 
 int bg_recorder_audio_init(bg_recorder_t *);
 int bg_recorder_video_init(bg_recorder_t *);
+
+void bg_recorder_audio_finalize_encode(bg_recorder_t *);
+void bg_recorder_video_finalize_encode(bg_recorder_t *);
+
 
 void bg_recorder_audio_cleanup(bg_recorder_t *);
 void bg_recorder_video_cleanup(bg_recorder_t *);

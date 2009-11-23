@@ -20,6 +20,8 @@
  * *****************************************************************/
 
 #include <config.h>
+#include <string.h>
+
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/encoder.h>
 #include <gmerlin/utils.h>
@@ -41,7 +43,7 @@ typedef struct
   bg_cfg_section_t * section;
   const bg_parameter_info_t * parameters;
 
-  char * language;
+  char language[4];
   
   } audio_stream_t;
 
@@ -77,7 +79,7 @@ typedef struct
   bg_cfg_section_t * section;
   const bg_parameter_info_t * parameters;
 
-  char * language;
+  char language[4];
 
   } subtitle_text_stream_t;
 
@@ -94,7 +96,7 @@ typedef struct
   bg_cfg_section_t * section;
   const bg_parameter_info_t * parameters;
 
-  char * language;
+  char language[4];
   
   } subtitle_overlay_stream_t;
 
@@ -314,10 +316,21 @@ bg_encoder_set_callbacks(bg_encoder_t * e, bg_encoder_callbacks_t * cb)
   e->cb_ext = cb;
   }
 
-void bg_encoder_destroy(bg_encoder_t * enc)
-     /* Also closes all internal encoders */
+void bg_encoder_destroy(bg_encoder_t * enc, int do_delete)
   {
+  int i;
+  /* Close all encoder plugins */
 
+  for(i = 0; i < enc->num_plugins; i++)
+    {
+    bg_encoder_plugin_t * encoder =
+      (bg_encoder_plugin_t *)enc->plugins[i]->plugin;
+    encoder->close(enc->plugins[i]->priv, do_delete);
+    bg_plugin_unref(enc->plugins[i]);
+    }
+  if(enc->plugins)
+    free(enc->plugins);
+  
   if(enc->filename_base)
     free(enc->filename_base);
   
@@ -730,8 +743,9 @@ int bg_encoder_add_audio_stream(bg_encoder_t * enc,
     s->parameters = enc->audio_plugin.info->audio_parameters;
   else if(enc->video_plugin.info)
     s->parameters = enc->video_plugin.info->audio_parameters;
-  
-  s->language = bg_strdup(s->language, language);
+
+  if(language)
+    strncpy(s->language, language, 3);
   
   ret = enc->num_audio_streams;
   enc->num_audio_streams++;
@@ -787,9 +801,8 @@ int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc,
   else if(enc->video_plugin.info)
     s->parameters = enc->video_plugin.info->subtitle_text_parameters;
 
-  
-  s->language = bg_strdup(s->language, language);
-
+  if(language)
+    strncpy(s->language, language, 3);
   
   ret = enc->num_subtitle_text_streams;
   enc->num_subtitle_text_streams++;
@@ -825,8 +838,9 @@ int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t * enc,
     s->parameters = enc->subtitle_overlay_plugin.info->subtitle_overlay_parameters;
   else if(enc->video_plugin.info)
     s->parameters = enc->video_plugin.info->subtitle_overlay_parameters;
-  
-  s->language = bg_strdup(s->language, language);
+
+  if(language)
+    strncpy(s->language, language, 3);
   
   ret = enc->num_subtitle_overlay_streams;
   enc->num_subtitle_overlay_streams++;

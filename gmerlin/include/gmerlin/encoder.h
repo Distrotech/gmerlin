@@ -42,8 +42,8 @@ bg_encoder_set_video_pass(bg_encoder_t * enc,
                           const char * stats_file);
 
 
-
-void bg_encoder_destroy(bg_encoder_t * enc); /* Also closes all internal encoders */
+/* Also closes all internal encoders */
+void bg_encoder_destroy(bg_encoder_t * enc, int do_delete); 
 
 int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
                     const bg_metadata_t * metadata,

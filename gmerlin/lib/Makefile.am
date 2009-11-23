@@ -72,6 +72,7 @@ fileformat.c \
 filters.c \
 formats.c \
 hexdump.c \
+language_table.c \
 lcdproc.c \
 log.c \
 md5.c \

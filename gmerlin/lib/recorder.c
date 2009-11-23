@@ -21,6 +21,9 @@
 
 #include <config.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 
 #include <gmerlin/utils.h> 
 #include <gmerlin/translation.h> 
@@ -47,7 +50,7 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   ret->th[1] = ret->vs.th;
 
   ret->msg_queues = bg_msg_queue_list_create();
-
+  pthread_mutex_init(&ret->enc_mutex, NULL);
   
   return ret;
   }
@@ -68,6 +71,14 @@ void bg_recorder_destroy(bg_recorder_t * rec)
   
   if(rec->encoder_parameters)
     bg_parameter_info_destroy_array(rec->encoder_parameters);
+
+  if(rec->output_directory)       free(rec->output_directory);
+  if(rec->output_filename_mask)   free(rec->output_filename_mask);
+  if(rec->snapshot_directory)     free(rec->snapshot_directory);
+  if(rec->snapshot_filename_mask) free(rec->snapshot_filename_mask);
+
+  bg_metadata_free(&rec->m);
+  pthread_mutex_destroy(&rec->enc_mutex);
   
   free(rec);
   }
@@ -84,19 +95,53 @@ void bg_recorder_remove_message_queue(bg_recorder_t * rec,
   bg_msg_queue_list_remove(rec->msg_queues, q);
   }
 
+static void init_encoding(bg_recorder_t * rec)
+  {
+  struct tm brokentime;
+  time_t t;
+  char time_string[512];
+  char * filename_base;
+  
+  time(&t);
+  localtime_r(&t, &brokentime);
+  strftime(time_string, 511, rec->output_filename_mask, &brokentime);
+
+  filename_base =
+    bg_sprintf("%s/%s", rec->output_directory, time_string);
+  
+  rec->as.flags |= STREAM_ENCODE;
+  rec->vs.flags |= STREAM_ENCODE;
+  
+  rec->enc = bg_encoder_create(rec->plugin_reg,
+                               rec->encoder_section,
+                               NULL,
+                               stream_mask, plugin_mask);
+  
+  bg_encoder_open(rec->enc, filename_base, NULL, NULL);
+  free(filename_base);
+  }
+
+static int finalize_encoding(bg_recorder_t * rec)
+  {
+  if(!bg_encoder_start(rec->enc))
+    return 0;
+  
+  if(rec->as.flags & STREAM_ACTIVE)
+    {
+    bg_recorder_audio_finalize_encode(rec);
+    }
+  if(rec->vs.flags & STREAM_ACTIVE)
+    {
+    bg_recorder_video_finalize_encode(rec);
+    }
+
+  return 1;
+  }
+
 int bg_recorder_run(bg_recorder_t * rec)
   {
   if(rec->flags & FLAG_DO_RECORD)
-    {
-    rec->as.flags |= STREAM_ENCODE;
-    rec->vs.flags |= STREAM_ENCODE;
-    
-    rec->enc = bg_encoder_create(rec->plugin_reg,
-                                 rec->encoder_section,
-                                 NULL,
-                                 stream_mask, plugin_mask);
-    //    bg_encoder_open(rec->enc, );
-    }
+    init_encoding(rec);
   else
     {
     rec->as.flags &= ~STREAM_ENCODE;
@@ -114,6 +159,10 @@ int bg_recorder_run(bg_recorder_t * rec)
     if(!bg_recorder_video_init(rec))
       rec->vs.flags |= ~STREAM_ACTIVE;
     }
+
+  if(rec->flags & FLAG_DO_RECORD)
+    finalize_encoding(rec);
+  
   
   if(rec->as.flags & STREAM_ACTIVE)
     bg_player_thread_set_func(rec->as.th, bg_recorder_audio_thread, rec);
@@ -162,7 +211,12 @@ void bg_recorder_stop(bg_recorder_t * rec)
   bg_player_threads_join(rec->th, NUM_THREADS);
   bg_recorder_audio_cleanup(rec);
   bg_recorder_video_cleanup(rec);
-  
+
+  if(rec->enc)
+    {
+    bg_encoder_destroy(rec->enc, 0);
+    rec->enc = NULL;
+    }
   rec->flags &= ~(FLAG_RECORDING | FLAG_RUNNING);
   }
 
@@ -272,5 +326,35 @@ bg_recorder_set_output_parameter(void * data,
                                  const char * name,
                                  const bg_parameter_value_t * val)
   {
+  bg_recorder_t * rec;
+  if(!name)
+    return;
 
+  rec = data;
+  
+  if(!strcmp(name, "output_directory"))
+    rec->output_directory = bg_strdup(rec->output_directory, val->val_str);
+  else if(!strcmp(name, "output_filename_mask"))
+    rec->output_filename_mask = bg_strdup(rec->output_filename_mask, val->val_str);
+  else if(!strcmp(name, "snapshot_directory"))
+    rec->snapshot_directory = bg_strdup(rec->snapshot_directory, val->val_str);
+  else if(!strcmp(name, "snapshot_filename_mask"))
+    rec->snapshot_filename_mask = bg_strdup(rec->snapshot_filename_mask, val->val_str);
+  }
+
+const bg_parameter_info_t *
+bg_recorder_get_metadata_parameters(bg_recorder_t * rec)
+  {
+  if(!rec->metadata_parameters)
+    rec->metadata_parameters = bg_metadata_get_parameters(&rec->m);
+  return rec->metadata_parameters;
+  }
+
+void
+bg_recorder_set_metadata_parameter(void * data,
+                                   const char * name,
+                                   const bg_parameter_value_t * val)
+  {
+  bg_recorder_t * rec = data;
+  bg_metadata_set_parameter(&rec->m, name, val);
   }

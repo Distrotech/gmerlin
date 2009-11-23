@@ -26,6 +26,7 @@
 
 #include <gmerlin/recorder.h>
 #include <recorder_private.h>
+#include <language_table.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "recorder.audio"
@@ -35,7 +36,7 @@ void bg_recorder_create_audio(bg_recorder_t * rec)
   bg_recorder_audio_stream_t * as = &rec->as;
   
   as->output_cnv = gavl_audio_converter_create();
-  as->encoder_cnv = gavl_audio_converter_create();
+  as->enc_cnv = gavl_audio_converter_create();
 
   bg_gavl_audio_options_init(&(as->opt));
   
@@ -50,7 +51,7 @@ void bg_recorder_destroy_audio(bg_recorder_t * rec)
   {
   bg_recorder_audio_stream_t * as = &rec->as;
   gavl_audio_converter_destroy(as->output_cnv);
-  gavl_audio_converter_destroy(as->encoder_cnv);
+  gavl_audio_converter_destroy(as->enc_cnv);
   bg_audio_filter_chain_destroy(as->fc);
   bg_player_thread_destroy(as->th);
 
@@ -71,6 +72,14 @@ static const bg_parameter_info_t parameters[] =
       .long_name = TRS("Plugin"),
       .type      = BG_PARAMETER_MULTI_MENU,
       .flags     = BG_PARAMETER_PLUGIN,
+    },
+    {
+      .name      = "language",
+      .long_name = TRS("Language"),
+      .type      = BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "eng" },
+      .multi_names = bg_language_codes,
+      .multi_labels = bg_language_labels,
     },
     { },
   };
@@ -116,6 +125,10 @@ bg_recorder_set_audio_parameter(void * data,
       as->flags |= STREAM_ACTIVE;
     else
       as->flags &= ~STREAM_ACTIVE;
+    }
+  else if(!strcmp(name, "language"))
+    {
+    strncpy(as->language, val->val_str, 3);
     }
   else if(!strcmp(name, "plugin"))
     {
@@ -180,7 +193,7 @@ void * bg_recorder_audio_thread(void * data)
     if(!as->in_func(as->in_data, as->pipe_frame, as->in_stream,
                     as->pipe_format.samples_per_frame))
       break; /* Should never happen */
-
+    
     /* Peak detection */    
     gavl_peak_detector_update(as->pd, as->pipe_frame);
     gavl_peak_detector_get_peaks(as->pd, NULL, NULL, peaks);
@@ -188,6 +201,25 @@ void * bg_recorder_audio_thread(void * data)
       peaks[1] = peaks[0];
     bg_recorder_msg_audiolevel(rec, peaks, as->pipe_frame->valid_samples);
     gavl_peak_detector_reset(as->pd);   	
+
+    /* Encoding */
+    if(as->flags & STREAM_ENCODE_OPEN)
+      {
+      if(as->do_convert_enc)
+        {
+        gavl_audio_convert(as->enc_cnv, as->pipe_frame, as->enc_frame);
+        pthread_mutex_lock(&rec->enc_mutex);
+        bg_encoder_write_audio_frame(rec->enc, as->enc_frame, as->enc_index);
+        pthread_mutex_unlock(&rec->enc_mutex);
+        }
+      else
+        {
+        pthread_mutex_lock(&rec->enc_mutex);
+        bg_encoder_write_audio_frame(rec->enc, as->pipe_frame, as->enc_index);
+        pthread_mutex_unlock(&rec->enc_mutex);
+        }
+      }
+    
     }
   return NULL;
 
@@ -231,6 +263,12 @@ int bg_recorder_audio_init(bg_recorder_t * rec)
   as->pipe_frame = gavl_audio_frame_create(&as->pipe_format);
   
   /* Set up output */
+
+  if(as->flags & STREAM_ENCODE)
+    {
+    as->enc_index = bg_encoder_add_audio_stream(rec->enc, as->language,
+                                                &as->pipe_format, 0);
+    }
   
   return 1;
   }
@@ -248,4 +286,28 @@ void bg_recorder_audio_cleanup(bg_recorder_t * rec)
     gavl_audio_frame_destroy(as->pipe_frame);
     as->pipe_frame = NULL;
     }
+
+  if(as->enc_frame)
+    {
+    gavl_audio_frame_destroy(as->enc_frame);
+    as->enc_frame = NULL;
+    }
+
+  as->flags &= ~(STREAM_INPUT_OPEN | STREAM_ENCODE_OPEN);
+  
+  }
+
+void bg_recorder_audio_finalize_encode(bg_recorder_t * rec)
+  {
+  bg_recorder_audio_stream_t * as = &rec->as;
+  bg_encoder_get_audio_format(rec->enc, as->enc_index, &as->enc_format);
+
+  as->do_convert_enc = gavl_audio_converter_init(as->enc_cnv, &as->pipe_format,
+                                                 &as->enc_format);
+
+  if(as->do_convert_enc)
+    as->enc_frame = gavl_audio_frame_create(&as->enc_format);
+
+  as->flags |= STREAM_ENCODE_OPEN;
+
   }

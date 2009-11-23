@@ -39,7 +39,7 @@ void bg_recorder_create_video(bg_recorder_t * rec)
 
   vs->monitor_cnv = gavl_video_converter_create();
   vs->output_cnv = gavl_video_converter_create();
-  vs->encoder_cnv = gavl_video_converter_create();
+  vs->enc_cnv = gavl_video_converter_create();
 
   bg_gavl_video_options_init(&(vs->opt));
   
@@ -55,7 +55,7 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   bg_recorder_video_stream_t * vs = &rec->vs;
   
   gavl_video_converter_destroy(vs->monitor_cnv);
-  gavl_video_converter_destroy(vs->encoder_cnv);
+  gavl_video_converter_destroy(vs->enc_cnv);
   gavl_video_converter_destroy(vs->output_cnv);
   bg_video_filter_chain_destroy(vs->fc);
   bg_player_thread_destroy(vs->th);
@@ -317,6 +317,24 @@ void * bg_recorder_video_thread(void * data)
     if(vs->monitor_plugin && vs->monitor_plugin->handle_events)
       vs->monitor_plugin->handle_events(vs->monitor_handle->priv);
 
+    /* Encoding */
+    if(vs->flags & STREAM_ENCODE_OPEN)
+      {
+      if(vs->do_convert_enc)
+        {
+        gavl_video_convert(vs->enc_cnv, vs->pipe_frame, vs->enc_frame);
+        pthread_mutex_lock(&rec->enc_mutex);
+        bg_encoder_write_video_frame(rec->enc, vs->enc_frame, vs->enc_index);
+        pthread_mutex_unlock(&rec->enc_mutex);
+        }
+      else
+        {
+        pthread_mutex_lock(&rec->enc_mutex);
+        bg_encoder_write_video_frame(rec->enc, vs->pipe_frame, vs->enc_index);
+        pthread_mutex_unlock(&rec->enc_mutex);
+        }
+      }
+    
     /* */
     
     }
@@ -421,8 +439,13 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   else
     vs->do_convert_monitor = 0;
   
-  /* Set up output */
+  /* Set up encoding */
 
+  if(vs->flags & STREAM_ENCODE)
+    {
+    vs->enc_index = bg_encoder_add_video_stream(rec->enc, &vs->pipe_format, 0);
+    }
+  
   /* Create frames */
   
   if(vs->flags & STREAM_MONITOR)
@@ -440,6 +463,22 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   
   return 1;
   }
+
+void bg_recorder_video_finalize_encode(bg_recorder_t * rec)
+  {
+  bg_recorder_video_stream_t * vs = &rec->vs;
+  bg_encoder_get_video_format(rec->enc, vs->enc_index, &vs->enc_format);
+
+  vs->do_convert_enc = gavl_video_converter_init(vs->enc_cnv, &vs->pipe_format,
+                                                 &vs->enc_format);
+
+  if(vs->do_convert_enc)
+    vs->enc_frame = gavl_video_frame_create(&vs->enc_format);
+
+  vs->flags |= STREAM_ENCODE_OPEN;
+  
+  }
+
 
 void bg_recorder_video_cleanup(bg_recorder_t * rec)
   {
@@ -465,4 +504,14 @@ void bg_recorder_video_cleanup(bg_recorder_t * rec)
   
   if(vs->flags & STREAM_MONITOR_OPEN)
     vs->monitor_plugin->close(vs->monitor_handle->priv);
+
+  if(vs->enc_frame)
+    {
+    gavl_video_frame_destroy(vs->enc_frame);
+    vs->enc_frame = NULL;
+    }
+
+  vs->flags &= ~(STREAM_INPUT_OPEN | STREAM_ENCODE_OPEN | STREAM_MONITOR_OPEN);
+  
   }
+
