@@ -109,11 +109,6 @@ int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch);
 int bg_audio_filter_chain_need_restart(bg_audio_filter_chain_t * ch);
 
 
-/** \brief Rebuild an audio chain
- *  \param ch An audio filter chain
- */
-
-void bg_audio_filter_chain_rebuild(bg_audio_filter_chain_t * ch);
 
 /** \brief Set input callback of an audio filter chain
  *  \param ch An audio filter chain
@@ -237,8 +232,8 @@ void bg_video_filter_chain_set_parameter(void * data, const char * name,
  *  \param ch A video filter chain
  *  \returns 1 if the chain must be rebuilt, 0 else
  *
- *  If this returns true, you should call \ref bg_video_filter_chain_rebuild
- *  or \ref bg_video_filter_chain_init. It's usually used after
+ *  If this returns true, you should call 
+ *  \ref bg_video_filter_chain_init. It's usually used after
  *  \ref bg_video_filter_chain_set_parameter.
  */
 
@@ -254,14 +249,6 @@ int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch);
  */
 
 int bg_video_filter_chain_need_restart(bg_video_filter_chain_t * ch);
-
-
-/** \brief Rebuild a video chain
- *  \param ch A video filter chain
- */
-
-void bg_video_filter_chain_rebuild(bg_video_filter_chain_t * ch);
-
 
 
 /** \brief Set input callback of a video filter chain

@@ -276,15 +276,31 @@ bg_recorder_set_video_filter_parameter(void * data,
                                        const char * name,
                                        const bg_parameter_value_t * val)
   {
-  //  bg_recorder_t * rec = data;
-  //  bg_recorder_video_stream_t * vs = &rec->vs;
+  int need_restart;
+  
+  bg_recorder_t * rec = data;
+  bg_recorder_video_stream_t * vs = &rec->vs;
 
   if(!name)
+    {
+    if(!(rec->flags & FLAG_RUNNING))
+      bg_recorder_run(rec);
     return;
+    }
+
+  bg_video_filter_chain_lock(vs->fc);
+  bg_video_filter_chain_set_parameter(vs->fc, name, val);
   
-  //  if(name)
-  //    fprintf(stderr, "bg_recorder_set_video_filter_parameter %s\n", name);
+  if(bg_video_filter_chain_need_rebuild(vs->fc) ||
+     bg_video_filter_chain_need_restart(vs->fc))
+    need_restart = 1;
+  else
+    need_restart = 0;
+
+  bg_video_filter_chain_unlock(vs->fc);
   
+  if(need_restart)
+    bg_recorder_stop(rec);
   }
 
 void * bg_recorder_video_thread(void * data)

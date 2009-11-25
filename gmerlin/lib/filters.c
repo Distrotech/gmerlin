@@ -143,7 +143,7 @@ static void destroy_audio_chain(bg_audio_filter_chain_t * ch)
   ch->num_filters = 0;
   }
 
-void bg_audio_filter_chain_rebuild(bg_audio_filter_chain_t * ch)
+static void bg_audio_filter_chain_rebuild(bg_audio_filter_chain_t * ch)
   {
   int i;
   char ** filter_names;
@@ -517,7 +517,7 @@ static void destroy_video_chain(bg_video_filter_chain_t * ch)
   ch->num_filters = 0;
   }
 
-void bg_video_filter_chain_rebuild(bg_video_filter_chain_t * ch)
+static void bg_video_filter_chain_rebuild(bg_video_filter_chain_t * ch)
   {
   int i;
   char ** filter_names;

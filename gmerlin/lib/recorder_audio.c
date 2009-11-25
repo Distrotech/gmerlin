@@ -166,13 +166,29 @@ bg_recorder_set_audio_filter_parameter(void * data,
                                        const char * name,
                                        const bg_parameter_value_t * val)
   {
-  //  bg_recorder_t * rec = data;
-  //  bg_recorder_audio_stream_t * as = &rec->as;
-  if(!name)
-    return;
+  int need_restart;
   
-  //  if(name)
-  //    fprintf(stderr, "bg_recorder_set_audio_filter_parameter %s\n", name);
+  bg_recorder_t * rec = data;
+  bg_recorder_audio_stream_t * as = &rec->as;
+  if(!name)
+    {
+    if(!(rec->flags & FLAG_RUNNING))
+      bg_recorder_run(rec);
+    return;
+    }
+  bg_audio_filter_chain_lock(as->fc);
+  bg_audio_filter_chain_set_parameter(as->fc, name, val);
+  
+  if(bg_audio_filter_chain_need_rebuild(as->fc) ||
+     bg_audio_filter_chain_need_restart(as->fc))
+    need_restart = 1;
+  else
+    need_restart = 0;
+
+  bg_audio_filter_chain_unlock(as->fc);
+
+  if(need_restart)
+    bg_recorder_stop(rec);
   
   }
 
