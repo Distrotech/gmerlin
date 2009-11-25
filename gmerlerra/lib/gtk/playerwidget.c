@@ -68,7 +68,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     if(p->player_state != BG_PLAYER_STATE_PAUSED)
       bg_player_pause(p->player);
-    bg_player_seek(p->player, 0);
+    bg_player_seek(p->player, 0, GAVL_TIME_SCALE);
     }
   else if(w == p->zoom_in)
     {
@@ -293,7 +293,7 @@ static void selection_changed_callback(bg_nle_time_range_t * selection, int64_t 
   if(w->player_state != BG_PLAYER_STATE_PAUSED)
     bg_player_pause(w->player);
   
-  bg_player_seek(w->player, cursor_pos);
+  bg_player_seek(w->player, cursor_pos, GAVL_TIME_SCALE);
   
   }
 

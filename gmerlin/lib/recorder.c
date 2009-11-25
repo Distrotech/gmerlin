@@ -138,6 +138,9 @@ static int finalize_encoding(bg_recorder_t * rec)
 
 int bg_recorder_run(bg_recorder_t * rec)
   {
+  int do_audio = 0;
+  int do_video = 0;
+  
   if(rec->flags & FLAG_DO_RECORD)
     {
     init_encoding(rec);
@@ -154,14 +157,18 @@ int bg_recorder_run(bg_recorder_t * rec)
     {
     if(!bg_recorder_audio_init(rec))
       rec->as.flags |= ~STREAM_ACTIVE;
+    else
+      do_audio = 1;
     }
   
   if(rec->vs.flags & STREAM_ACTIVE)
     {
     if(!bg_recorder_video_init(rec))
       rec->vs.flags |= ~STREAM_ACTIVE;
+    else
+      do_video = 1;
     }
-
+  
   if(rec->flags & FLAG_DO_RECORD)
     finalize_encoding(rec);
   
@@ -184,6 +191,9 @@ int bg_recorder_run(bg_recorder_t * rec)
   bg_player_threads_start(rec->th, NUM_THREADS);
   
   rec->flags |= FLAG_RUNNING;
+
+  bg_recorder_msg_running(rec,
+                          do_audio, do_video);
   
   return 1;
   }
@@ -305,6 +315,33 @@ void bg_recorder_msg_time(bg_recorder_t * rec,
   bg_msg_queue_list_send(rec->msg_queues,
                          msg_time, &t);
   }
+
+typedef struct
+  {
+  int do_audio;
+  int do_video;
+  } running_t;
+
+static void msg_running(bg_msg_t * msg,
+                        const void * data)
+  {
+  running_t * r = data;
+  bg_msg_set_id(msg, BG_RECORDER_MSG_RUNNING);
+  bg_msg_set_arg_int(msg, 0, r->do_audio);
+  bg_msg_set_arg_int(msg, 1, r->do_video);
+  }
+
+void bg_recorder_msg_running(bg_recorder_t * rec,
+                             int do_audio, int do_video)
+  {
+  running_t r;
+  r.do_audio = do_audio;
+  r.do_video = do_video;
+  
+  bg_msg_queue_list_send(rec->msg_queues,
+                         msg_running, &r);
+  }
+
 
 
 /* Parameter stuff */

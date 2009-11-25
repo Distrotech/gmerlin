@@ -62,6 +62,10 @@ void bg_recorder_set_display_string(bg_recorder_t*, const char * str);
 /* Recording (arg0: time) */
 #define BG_RECORDER_MSG_TIME       2
 
+/* Recording (arg0: audio (int), arg1: video (int) ) */
+
+#define BG_RECORDER_MSG_RUNNING    3
+
 /*
  *  Record = 1: Start recording
  *  Record = 0: Stop recording

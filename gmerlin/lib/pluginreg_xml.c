@@ -88,6 +88,7 @@ flag_names[] =
     { "VisualizeGL",    BG_PLUGIN_VISUALIZE_GL },
     { "PP",             BG_PLUGIN_PP },
     { "Callbacks",      BG_PLUGIN_CALLBACKS },
+    { "Broadcast",      BG_PLUGIN_BROADCAST },
     { "Unsupported",    BG_PLUGIN_UNSUPPORTED   },
     { (char*)0,    0                           },
   };

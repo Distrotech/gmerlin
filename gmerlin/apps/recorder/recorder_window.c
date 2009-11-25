@@ -283,6 +283,21 @@ static gboolean timeout_func(void * data)
                                    t,
                                    BG_GTK_DISPLAY_MODE_HMS);
         }
+      case BG_RECORDER_MSG_RUNNING:
+        {
+        int arg_i;
+        arg_i = bg_msg_get_arg_int(msg, 0);
+        if(arg_i)
+          gtk_widget_show(bg_gtk_vumeter_get_widget(win->vumeter));
+        else
+          gtk_widget_hide(bg_gtk_vumeter_get_widget(win->vumeter));
+
+        arg_i = bg_msg_get_arg_int(msg, 1);
+        if(arg_i)
+          gtk_widget_show(win->socket);
+        else
+          gtk_widget_hide(win->socket);
+        }
       }
     bg_msg_queue_unlock_read(win->msg_queue);
     }
@@ -336,8 +351,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   
   gtk_widget_show(ret->socket);
 
-  ret->vumeter = bg_gtk_vumeter_create(2, 1);
-
+  ret->vumeter = bg_gtk_vumeter_create(2, 0);
+  
   ret->about_button =
     create_pixmap_button(ret, "info_16.png", TRS("About"));
   ret->log_button =
@@ -366,7 +381,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   mainbox = gtk_vbox_new(0, 0);
 
   /* Monitor */
-  box = gtk_hbox_new(0, 0);
+  box = gtk_vbox_new(0, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->socket, TRUE, TRUE, 0);
 
   gtk_box_pack_start(GTK_BOX(box), bg_gtk_vumeter_get_widget(ret->vumeter),

@@ -222,3 +222,6 @@ void bg_recorder_msg_audiolevel(bg_recorder_t * rec,
                                 double * level, int samples);
 
 void bg_recorder_msg_time(bg_recorder_t * rec, gavl_time_t t);
+
+void bg_recorder_msg_running(bg_recorder_t * rec,
+                             int do_audio, int do_video);

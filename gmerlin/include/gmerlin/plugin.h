@@ -109,6 +109,8 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 #define BG_PLUGIN_VISUALIZE_GL    (1<<13)  //!< Visualization plugin outputs via OpenGL
 #define BG_PLUGIN_PP              (1<<14)  //!< Postprocessor
 #define BG_PLUGIN_CALLBACKS       (1<<15)  //!< Plugin can be opened from callbacks
+#define BG_PLUGIN_BROADCAST       (1<<16)  //!< Plugin can broadcasts (e.g. webstreams)
+
 #define BG_PLUGIN_UNSUPPORTED     (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
 
 
