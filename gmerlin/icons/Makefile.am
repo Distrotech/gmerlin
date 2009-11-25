@@ -73,6 +73,7 @@ repeat_mode_none.png \
 right_16.png \
 run_16.png \
 save_16.png \
+snapshot_16.png \
 sort_16.png \
 state_buffering_1.png \
 state_buffering_2.png \
