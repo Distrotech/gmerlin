@@ -675,6 +675,7 @@ static void set_video_parameter_lqt(void * data, int stream, const char * name,
   if(!name)
     return;
 
+  fprintf(stderr, "set_video_parameter_lqt %s\n", name);
   
   if(!strcmp(name, "codec"))
     {

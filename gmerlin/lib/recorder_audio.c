@@ -205,6 +205,11 @@ void * bg_recorder_audio_thread(void * data)
     /* Encoding */
     if(as->flags & STREAM_ENCODE_OPEN)
       {
+      bg_recorder_update_time(rec,
+                              gavl_time_unscale(as->pipe_format.samplerate,
+                                                as->pipe_frame->timestamp +
+                                                as->pipe_frame->valid_samples));
+      
       if(as->do_convert_enc)
         {
         gavl_audio_convert(as->enc_cnv, as->pipe_frame, as->enc_frame);

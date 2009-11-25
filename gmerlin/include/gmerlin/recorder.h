@@ -22,6 +22,10 @@
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/msgqueue.h>
 
+extern const uint32_t bg_recorder_stream_mask;
+extern const uint32_t bg_recorder_plugin_mask;
+
+
 typedef struct bg_recorder_s bg_recorder_t;
 
 bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg);
@@ -54,6 +58,9 @@ void bg_recorder_set_display_string(bg_recorder_t*, const char * str);
 
 /* Audio level (arg0: float, arg1: float) */
 #define BG_RECORDER_MSG_AUDIOLEVEL 1
+
+/* Recording (arg0: time) */
+#define BG_RECORDER_MSG_TIME       2
 
 /*
  *  Record = 1: Start recording

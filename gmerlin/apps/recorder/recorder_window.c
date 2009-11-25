@@ -77,6 +77,8 @@ struct bg_recorder_window_s
   
   bg_msg_queue_t * msg_queue;
   bg_gtk_time_display_t * display;
+
+  bg_plugin_registry_t * plugin_reg;
   };
 
 #if 0
@@ -274,6 +276,13 @@ static gboolean timeout_func(void * data)
                                    l, samples);
         }
         break; 
+      case BG_RECORDER_MSG_TIME:
+        {
+        gavl_time_t t = bg_msg_get_arg_time(msg, 0);
+        bg_gtk_time_display_update(win->display,
+                                   t,
+                                   BG_GTK_DISPLAY_MODE_HMS);
+        }
       }
     bg_msg_queue_unlock_read(win->msg_queue);
     }
@@ -291,13 +300,15 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                           bg_plugin_registry_t * plugin_reg)
   {
   void * parent;
-
+  
   GtkWidget * box;
   GtkWidget * mainbox;
   bg_recorder_window_t * ret;
   ret = calloc(1, sizeof(*ret));
   
   /* Create recorder */  
+  ret->plugin_reg = plugin_reg;
+
   ret->rec = bg_recorder_create(plugin_reg);
 
   ret->msg_queue = bg_msg_queue_create();
@@ -417,17 +428,11 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   
   /* Encoders */
 
-  if(bg_cfg_registry_has_section(cfg_reg, "encoders"))
-    {
-    ret->encoder_section =
-      bg_cfg_registry_find_section(cfg_reg, "encoders");
-
-    bg_cfg_section_create_items(ret->encoder_section,
-                                bg_recorder_get_encoder_parameters(ret->rec));
-    }
-  else
-    ret->encoder_section =
-      bg_cfg_registry_find_section(cfg_reg, "encoders");
+  ret->encoder_section =
+    bg_encoder_section_get_from_registry(plugin_reg,
+                                         bg_recorder_get_encoder_parameters(ret->rec),
+                                         bg_recorder_stream_mask,
+                                         bg_recorder_plugin_mask);
   
   bg_recorder_set_encoder_section(ret->rec, ret->encoder_section);
   
@@ -536,7 +541,15 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
 
 void bg_recorder_window_destroy(bg_recorder_window_t * win)
   {
+  bg_encoder_section_store_in_registry(win->plugin_reg,
+                                       win->encoder_section,
+                                       bg_recorder_get_encoder_parameters(win->rec),
+                                       bg_recorder_stream_mask,
+                                       bg_recorder_plugin_mask);
+
+  
   bg_recorder_destroy(win->rec);
+  bg_cfg_section_destroy(win->encoder_section);
   free(win);
   }
 

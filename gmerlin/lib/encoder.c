@@ -581,7 +581,8 @@ static int start_video(bg_encoder_t * enc, int stream)
     {
     if(!s->plugin->set_video_pass)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Multipass encoding not supported by encoder plugin");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Multipass encoding not supported by encoder plugin");
       return 0;
       }
     s->plugin->set_video_pass(s->priv, s->out_index, s->pass, s->total_passes,
@@ -704,7 +705,7 @@ int bg_encoder_start(bg_encoder_t * enc)
     {
     bg_encoder_plugin_t * plugin =
       (bg_encoder_plugin_t *)enc->plugins[i]->plugin;
-    if(plugin->start && plugin->start(enc->plugins[i]->priv))
+    if(plugin->start && !plugin->start(enc->plugins[i]->priv))
       return 0;
     }
   
@@ -716,8 +717,10 @@ int bg_encoder_start(bg_encoder_t * enc)
 /* Add streams */
 
 #define REALLOC_STREAM(streams, num) \
-  streams = realloc(streams, sizeof(streams)*(num+1));\
-  s = &streams[num]
+  streams = realloc(streams, sizeof(*streams)*(num+1));\
+  s = &streams[num]; \
+  memset(s, 0, sizeof(*s));
+
 
 /* Add streams */
 int bg_encoder_add_audio_stream(bg_encoder_t * enc,
@@ -902,6 +905,7 @@ int bg_encoder_write_video_frame(bg_encoder_t * enc,
                                  int stream)
   {
   video_stream_t * s = &enc->video_streams[stream];
+  fprintf(stderr, "Write video frame %ld\n", frame->timestamp);
   return s->plugin->write_video_frame(s->priv, frame, s->out_index);
   }
 

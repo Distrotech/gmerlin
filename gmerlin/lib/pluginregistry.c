@@ -2659,6 +2659,7 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
         {
         if(!subsection)
           subsection = bg_cfg_section_find_subsection(s, "audio_encoder");
+        subsection = bg_cfg_section_find_subsection(subsection, plugin_name);
         *section_ret = bg_cfg_section_find_subsection(subsection, "$audio");
         }
 
@@ -2671,6 +2672,7 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
         {
         if(!subsection)
           subsection = bg_cfg_section_find_subsection(s, "subtitle_text_encoder");
+        subsection = bg_cfg_section_find_subsection(subsection, plugin_name);
         *section_ret = bg_cfg_section_find_subsection(subsection, "$subtitle_text");
         
         }
@@ -2684,6 +2686,7 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
         {
         if(!subsection)
           subsection = bg_cfg_section_find_subsection(s, "subtitle_overlay_encoder");
+        subsection = bg_cfg_section_find_subsection(subsection, plugin_name);
         *section_ret = bg_cfg_section_find_subsection(subsection, "$subtitle_overlay");
         
         }
@@ -2697,6 +2700,7 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
         {
         if(!subsection)
           subsection = bg_cfg_section_find_subsection(s, "video_encoder");
+        subsection = bg_cfg_section_find_subsection(subsection, plugin_name);
         *section_ret = bg_cfg_section_find_subsection(subsection, "$video");
         }
       break;

@@ -186,6 +186,10 @@ struct bg_recorder_s
 
   bg_metadata_t m;
   bg_parameter_info_t * metadata_parameters;
+
+  gavl_time_t recording_time;
+  gavl_time_t last_recording_time;
+  pthread_mutex_t time_mutex;
   
   };
 
@@ -208,9 +212,13 @@ void bg_recorder_video_finalize_encode(bg_recorder_t *);
 void bg_recorder_audio_cleanup(bg_recorder_t *);
 void bg_recorder_video_cleanup(bg_recorder_t *);
 
+void bg_recorder_update_time(bg_recorder_t *, gavl_time_t t);
+
 /* Message stuff */
 void bg_recorder_msg_framerate(bg_recorder_t * rec,
                                float framerate);
 
 void bg_recorder_msg_audiolevel(bg_recorder_t * rec,
                                 double * level, int samples);
+
+void bg_recorder_msg_time(bg_recorder_t * rec, gavl_time_t t);

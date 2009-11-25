@@ -31,10 +31,10 @@
 #include <gmerlin/recorder.h>
 #include <recorder_private.h>
 
-static const int stream_mask =
+const uint32_t bg_recorder_stream_mask =
 BG_STREAM_AUDIO | BG_STREAM_VIDEO;                                   
 
-static const uint32_t plugin_mask = BG_PLUGIN_FILE;
+const uint32_t bg_recorder_plugin_mask = BG_PLUGIN_FILE;
 
 bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   {
@@ -51,6 +51,7 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
 
   ret->msg_queues = bg_msg_queue_list_create();
   pthread_mutex_init(&ret->enc_mutex, NULL);
+  pthread_mutex_init(&ret->time_mutex, NULL);
   
   return ret;
   }
@@ -79,6 +80,7 @@ void bg_recorder_destroy(bg_recorder_t * rec)
 
   bg_metadata_free(&rec->m);
   pthread_mutex_destroy(&rec->enc_mutex);
+  pthread_mutex_destroy(&rec->time_mutex);
   
   free(rec);
   }
@@ -115,7 +117,7 @@ static void init_encoding(bg_recorder_t * rec)
   rec->enc = bg_encoder_create(rec->plugin_reg,
                                rec->encoder_section,
                                NULL,
-                               stream_mask, plugin_mask);
+                               bg_recorder_stream_mask, bg_recorder_plugin_mask);
   
   bg_encoder_open(rec->enc, filename_base, NULL, NULL);
   free(filename_base);
@@ -127,21 +129,21 @@ static int finalize_encoding(bg_recorder_t * rec)
     return 0;
   
   if(rec->as.flags & STREAM_ACTIVE)
-    {
     bg_recorder_audio_finalize_encode(rec);
-    }
   if(rec->vs.flags & STREAM_ACTIVE)
-    {
     bg_recorder_video_finalize_encode(rec);
-    }
-
+  
   return 1;
   }
 
 int bg_recorder_run(bg_recorder_t * rec)
   {
   if(rec->flags & FLAG_DO_RECORD)
+    {
     init_encoding(rec);
+    rec->recording_time = 0;
+    rec->last_recording_time = - 2 * GAVL_TIME_SCALE;
+    }
   else
     {
     rec->as.flags &= ~STREAM_ENCODE;
@@ -194,12 +196,13 @@ bg_recorder_get_encoder_parameters(bg_recorder_t * rec)
   if(!rec->encoder_parameters)
     rec->encoder_parameters =
       bg_plugin_registry_create_encoder_parameters(rec->plugin_reg,
-                                                   stream_mask,
-                                                   plugin_mask);
+                                                   bg_recorder_stream_mask,
+                                                   bg_recorder_plugin_mask);
   return rec->encoder_parameters;
   }
 
-void bg_recorder_set_encoder_section(bg_recorder_t * rec, bg_cfg_section_t * s)
+void bg_recorder_set_encoder_section(bg_recorder_t * rec,
+                                     bg_cfg_section_t * s)
   {
   rec->encoder_section = s;
   }
@@ -216,6 +219,8 @@ void bg_recorder_stop(bg_recorder_t * rec)
     {
     bg_encoder_destroy(rec->enc, 0);
     rec->enc = NULL;
+    bg_recorder_msg_time(rec,
+                         GAVL_TIME_UNDEFINED);
     }
   rec->flags &= ~(FLAG_RECORDING | FLAG_RUNNING);
   }
@@ -286,6 +291,26 @@ void bg_recorder_msg_audiolevel(bg_recorder_t * rec,
                          msg_audiolevel, &d);
   }
 
+static void msg_time(bg_msg_t * msg,
+                     const void * data)
+  {
+  const gavl_time_t * t = data;
+  bg_msg_set_id(msg, BG_RECORDER_MSG_TIME);
+  bg_msg_set_arg_time(msg, 0, *t);
+  }
+                       
+void bg_recorder_msg_time(bg_recorder_t * rec,
+                          gavl_time_t t)
+  {
+  bg_msg_queue_list_send(rec->msg_queues,
+                         msg_time, &t);
+  }
+
+
+/* Parameter stuff */
+
+
+
 static const bg_parameter_info_t output_parameters[] =
   {
     {
@@ -298,7 +323,7 @@ static const bg_parameter_info_t output_parameters[] =
       .name      = "output_filename_mask",
       .long_name = TRS("Output filename mask"),
       .type      = BG_PARAMETER_STRING,
-      .val_default = { .val_str = "%Y-%m-%d-%H:%M:%S" },
+      .val_default = { .val_str = "%Y-%m-%d-%H-%M-%S" },
     },
     {
       .name      = "snapshot_directory",
@@ -357,4 +382,21 @@ bg_recorder_set_metadata_parameter(void * data,
   {
   bg_recorder_t * rec = data;
   bg_metadata_set_parameter(&rec->m, name, val);
+  }
+
+void bg_recorder_update_time(bg_recorder_t * rec, gavl_time_t t)
+  {
+  pthread_mutex_lock(&rec->time_mutex);
+
+  if(rec->recording_time < t)
+    rec->recording_time = t;
+
+  if(rec->recording_time - rec->last_recording_time >
+     GAVL_TIME_SCALE)
+    {
+    bg_recorder_msg_time(rec,
+                         rec->recording_time);
+    rec->last_recording_time = rec->recording_time;
+    }
+  pthread_mutex_unlock(&rec->time_mutex);
   }

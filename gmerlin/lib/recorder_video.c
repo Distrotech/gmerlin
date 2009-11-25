@@ -32,7 +32,6 @@
 
 #define FRAMERATE_INTERVAL 10
 
-
 void bg_recorder_create_video(bg_recorder_t * rec)
   {
   bg_recorder_video_stream_t * vs = &rec->vs;
@@ -320,6 +319,9 @@ void * bg_recorder_video_thread(void * data)
     /* Encoding */
     if(vs->flags & STREAM_ENCODE_OPEN)
       {
+      bg_recorder_update_time(rec,
+                              gavl_time_unscale(vs->pipe_format.timescale,
+                                                vs->pipe_frame->timestamp));
       if(vs->do_convert_enc)
         {
         gavl_video_convert(vs->enc_cnv, vs->pipe_frame, vs->enc_frame);
