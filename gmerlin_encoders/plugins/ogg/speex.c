@@ -51,7 +51,7 @@ typedef struct
   ogg_stream_state enc_os;
   
   long serialno;
-  FILE * output;
+  bg_ogg_encoder_t * output;
   
   
   int64_t samples_read;
@@ -129,7 +129,7 @@ static void comment_add(char **comments, int* length, char *tag, char *val)
 #undef readint
 #undef writeint
 
-static void * create_speex(FILE * output, long serialno)
+static void * create_speex(bg_ogg_encoder_t * output, long serialno)
   {
   speex_t * ret;
   ret = calloc(1, sizeof(*ret));

@@ -120,6 +120,12 @@ dnl
 GMERLIN_CHECK_AVFORMAT
 
 dnl
+dnl libshout
+dnl
+
+GMERLIN_CHECK_SHOUT
+
+dnl
 dnl CFLAGS
 dnl
 
@@ -228,6 +234,14 @@ echo "Found (CFLAGS=$AVFORMAT_CFLAGS LIBS=$AVFORMAT_LIBS)"
 else
 echo "Missing (Go to: http://ffmpeg.org/)"
 fi
+
+echo -n "libshout:   "
+if test "x$have_shout" = "xtrue"; then
+echo "Found (CFLAGS=$SHOUT_CFLAGS LIBS=$SHOUT_LIBS)"
+else
+echo "Missing (Go to: http://icecast.org/)"
+fi
+
 
 echo
 echo "If you installed a library but it was not detected, check the file INSTALL"

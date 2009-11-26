@@ -47,7 +47,7 @@ typedef struct
   ogg_stream_state os;
   
   long serialno;
-  FILE * output;
+  bg_ogg_encoder_t * output;
   
   FLAC__StreamEncoder * enc;
   FLAC__StreamMetadata * vorbis_comment;
@@ -188,7 +188,7 @@ static void metadata_callback(const FLAC__StreamEncoder *encoder,
   {
   }
 
-static void * create_flacogg(FILE * output, long serialno)
+static void * create_flacogg(bg_ogg_encoder_t * output, long serialno)
   {
   uint8_t header_bytes[] =
     {

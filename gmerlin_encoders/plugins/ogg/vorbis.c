@@ -51,7 +51,7 @@ typedef struct
   vorbis_block enc_vb;
 
   long serialno;
-  FILE * output;
+  bg_ogg_encoder_t * output;
   
   /* Options */
 
@@ -73,7 +73,7 @@ typedef struct
   
   } vorbis_t;
 
-static void * create_vorbis(FILE * output, long serialno)
+static void * create_vorbis(bg_ogg_encoder_t * output, long serialno)
   {
   vorbis_t * ret;
   ret = calloc(1, sizeof(*ret));

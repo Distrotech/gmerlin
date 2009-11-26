@@ -6,8 +6,17 @@ AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
 if HAVE_THEORA
 theora_plugins = e_theora.la
+
+if HAVE_SHOUT
+shout_plugins = b_ogg.la
+bgshout_libs    = $(top_builddir)/lib/libbgshout.la @SHOUT_LIBS@
+else
+shout_plugins =
+endif
+
 else
 theora_plugins =
+shout_plugins =
 endif
 
 if HAVE_SPEEX
@@ -31,7 +40,9 @@ gmerlin_plugin_LTLIBRARIES = \
 e_vorbis.la \
 $(theora_plugins) \
 $(speex_plugins) \
-$(flac_plugins)
+$(flac_plugins) \
+$(shout_plugins)
+
 
 AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
 
@@ -46,6 +57,10 @@ e_flacogg_la_LIBADD = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_encoders
 e_theora_la_CFLAGS = @THEORA_CFLAGS@ @VORBIS_CFLAGS@ @SPEEX_CFLAGS@ @FLAC_CFLAGS@ $(AM_CFLAGS) $(AM_CFLAGS)
 e_theora_la_SOURCES = e_theora.c vorbis.c $(speex_sources) $(flac_sources) theora.c ogg_common.c
 e_theora_la_LIBADD = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_encoders.la @VORBISENC_LIBS@ @VORBIS_LIBS@ @THEORA_LIBS@ @SPEEX_LIBS@ $(bgflac_libs)
+
+b_ogg_la_CFLAGS = @THEORA_CFLAGS@ @VORBIS_CFLAGS@ @SPEEX_CFLAGS@  $(AM_CFLAGS)
+b_ogg_la_SOURCES = b_ogg.c vorbis.c $(speex_sources) theora.c ogg_common.c
+b_ogg_la_LIBADD = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_encoders.la @VORBISENC_LIBS@ @VORBIS_LIBS@ @THEORA_LIBS@ @SPEEX_LIBS@ $(bgshout_libs)
 
 e_speex_la_CFLAGS = @SPEEX_CFLAGS@ $(AM_CFLAGS)
 e_speex_la_SOURCES = e_speex.c speex.c ogg_common.c

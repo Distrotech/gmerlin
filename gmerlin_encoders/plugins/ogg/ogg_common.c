@@ -28,6 +28,7 @@
 
 #include <config.h>
 
+#include <gmerlin/translation.h>
 #include <gmerlin/log.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/pluginfuncs.h>
@@ -47,7 +48,7 @@ void * bg_ogg_encoder_create()
 void bg_ogg_encoder_destroy(void * data)
   {
   bg_ogg_encoder_t * e = data;
-  if(e->output)
+  if(e->write_callback_data)
     bg_ogg_encoder_close(e, 1);
   if(e->audio_streams) free(e->audio_streams);
   if(e->video_streams) free(e->video_streams);
@@ -65,31 +66,52 @@ void bg_ogg_encoder_set_callbacks(void * data, bg_encoder_callbacks_t * cb)
   e->cb = cb;
   }
 
+static int write_file(void * priv, const uint8_t * data, int len)
+  {
+  return fwrite(data,1,len,priv);
+  }
+
+static void close_file(void * priv)
+  {
+  fclose(priv);
+  }
+
 int
 bg_ogg_encoder_open(void * data, const char * file,
                     const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list,
                     const char * ext)
   {
   bg_ogg_encoder_t * e = data;
-  
-  e->filename = bg_filename_ensure_extension(file, ext);
 
-  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
-    return 0;
-    
-  if(!(e->output = fopen(file, "w")))
+  if(file)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s: %s",
-           file, strerror(errno));
-    return 0;
+    e->filename = bg_filename_ensure_extension(file, ext);
+    
+    if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+      return 0;
+    
+    if(!(e->write_callback_data = fopen(file, "w")))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s: %s",
+             file, strerror(errno));
+      return 0;
+      }
+    e->write_callback = write_file;
+    e->close_callback = close_file;
     }
+  else if(e->open_callback)
+    {
+    if(!e->open_callback(e->write_callback_data))
+      return 0;
+    }
+  
   e->serialno = rand();
   if(metadata)
     bg_metadata_copy(&(e->metadata), metadata);
   return 1;
   }
 
-int bg_ogg_flush_page(ogg_stream_state * os, FILE * output, int force)
+int bg_ogg_flush_page(ogg_stream_state * os, bg_ogg_encoder_t * output, int force)
   {
   int result;
   ogg_page og;
@@ -101,9 +123,8 @@ int bg_ogg_flush_page(ogg_stream_state * os, FILE * output, int force)
   
   if(result)
     {
-    
-    if((fwrite(og.header,1,og.header_len,output) < og.header_len) ||
-       (fwrite(og.body,1,og.body_len,output) < og.body_len))
+    if((output->write_callback(output->write_callback_data,og.header,og.header_len) < og.header_len) ||
+       (output->write_callback(output->write_callback_data,og.body,og.body_len) < og.body_len))
       return -1;
     else
       return 1;
@@ -111,7 +132,7 @@ int bg_ogg_flush_page(ogg_stream_state * os, FILE * output, int force)
   return 0;
   }
 
-int bg_ogg_flush(ogg_stream_state * os, FILE * output, int force)
+int bg_ogg_flush(ogg_stream_state * os, bg_ogg_encoder_t * output, int force)
   {
   int result, ret = 0;
   while((result = bg_ogg_flush_page(os, output, force)) > 0)
@@ -151,7 +172,8 @@ void bg_ogg_encoder_init_audio_stream(void * data, int stream, const bg_ogg_code
   {
   bg_ogg_encoder_t * e = data;
   e->audio_streams[stream].codec = codec;
-  e->audio_streams[stream].codec_priv = e->audio_streams[stream].codec->create(e->output, e->serialno);
+  e->audio_streams[stream].codec_priv =
+    e->audio_streams[stream].codec->create(e, e->serialno);
   e->serialno++;
   }
 
@@ -159,7 +181,8 @@ void bg_ogg_encoder_init_video_stream(void * data, int stream, const bg_ogg_code
   {
   bg_ogg_encoder_t * e = data;
   e->video_streams[stream].codec = codec;
-  e->video_streams[stream].codec_priv = e->video_streams[stream].codec->create(e->output, e->serialno);
+  e->video_streams[stream].codec_priv =
+    e->video_streams[stream].codec->create(e, e->serialno);
   e->serialno++;
   }
 
@@ -256,7 +279,7 @@ int bg_ogg_encoder_close(void * data, int do_delete)
   int i;
   bg_ogg_encoder_t * e = data;
 
-  if(!e->output)
+  if(!e->write_callback_data)
     return 1;
   
   for(i = 0; i < e->num_audio_streams; i++)
@@ -276,9 +299,55 @@ int bg_ogg_encoder_close(void * data, int do_delete)
       }
     }
   
-  fclose(e->output);
-  e->output = (FILE*)0;
+  e->close_callback(e->write_callback_data);
+  e->write_callback_data = NULL;
   if(do_delete)
     remove(e->filename);
   return ret;
+  }
+
+static const bg_parameter_info_t audio_parameters[] =
+  {
+    {
+      .name =      "codec",
+      .long_name = TRS("Codec"),
+      .type =      BG_PARAMETER_MULTI_MENU,
+      .val_default = { .val_str = "vorbis" },
+    },
+    { /* End of parameters */ }
+  };
+
+bg_parameter_info_t *
+bg_ogg_encoder_get_audio_parameters(bg_ogg_encoder_t * e,
+                                    bg_ogg_codec_t const * const * audio_codecs)
+  {
+  int num_audio_codecs;
+  int i;
+  if(!e->audio_parameters)
+    {
+    num_audio_codecs = 0;
+    while(audio_codecs[num_audio_codecs])
+      num_audio_codecs++;
+    
+    e->audio_parameters = bg_parameter_info_copy_array(audio_parameters);
+    e->audio_parameters[0].multi_names_nc =
+      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_names));
+    e->audio_parameters[0].multi_labels_nc =
+      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_labels));
+    e->audio_parameters[0].multi_parameters_nc =
+      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_parameters));
+    for(i = 0; i < num_audio_codecs; i++)
+      {
+      e->audio_parameters[0].multi_names_nc[i]  =
+        bg_strdup((char*)0, audio_codecs[i]->name);
+      e->audio_parameters[0].multi_labels_nc[i] =
+        bg_strdup((char*)0, audio_codecs[i]->long_name);
+      
+      if(audio_codecs[i]->get_parameters)
+        e->audio_parameters[0].multi_parameters_nc[i] =
+          bg_parameter_info_copy_array(audio_codecs[i]->get_parameters());
+      }
+    bg_parameter_info_set_const_ptrs(&e->audio_parameters[0]);
+    }
+  return e->audio_parameters;
   }

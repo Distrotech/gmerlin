@@ -46,14 +46,14 @@ typedef struct
   theora_state   ts;
   
   long serialno;
-  FILE * output;
+  bg_ogg_encoder_t * output;
 
   gavl_video_format_t * format;
   int have_packet;
   int cbr;
   } theora_t;
 
-static void * create_theora(FILE * output, long serialno)
+static void * create_theora(bg_ogg_encoder_t * output, long serialno)
   {
   theora_t * ret;
   ret = calloc(1, sizeof(*ret));
