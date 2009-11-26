@@ -646,9 +646,9 @@ void bg_gavl_video_options_free(bg_gavl_video_options_t * opt)
   }
 
 
-static void set_framerate(const bg_gavl_video_options_t * opt,
-                          const gavl_video_format_t * in_format,
-                          gavl_video_format_t * out_format)
+void bg_gavl_video_options_set_framerate(const bg_gavl_video_options_t * opt,
+                                         const gavl_video_format_t * in_format,
+                                         gavl_video_format_t * out_format)
   {
   int i;
   if(opt->framerate_mode == FRAME_RATE_FROM_INPUT)
@@ -696,7 +696,7 @@ void bg_gavl_video_options_set_format(const bg_gavl_video_options_t * opt,
                                       const gavl_video_format_t * in_format,
                                       gavl_video_format_t * out_format)
   {
-  set_framerate(opt, in_format, out_format);
+  bg_gavl_video_options_set_framerate(opt, in_format, out_format);
   set_interlace(opt, in_format, out_format);
   set_frame_size(opt, in_format, out_format);
   }

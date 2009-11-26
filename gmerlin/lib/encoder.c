@@ -905,7 +905,6 @@ int bg_encoder_write_video_frame(bg_encoder_t * enc,
                                  int stream)
   {
   video_stream_t * s = &enc->video_streams[stream];
-  fprintf(stderr, "Write video frame %ld\n", frame->timestamp);
   return s->plugin->write_video_frame(s->priv, frame, s->out_index);
   }
 

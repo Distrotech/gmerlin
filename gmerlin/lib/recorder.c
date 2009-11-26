@@ -325,7 +325,7 @@ typedef struct
 static void msg_running(bg_msg_t * msg,
                         const void * data)
   {
-  running_t * r = data;
+  const running_t * r = data;
   bg_msg_set_id(msg, BG_RECORDER_MSG_RUNNING);
   bg_msg_set_arg_int(msg, 0, r->do_audio);
   bg_msg_set_arg_int(msg, 1, r->do_video);

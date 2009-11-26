@@ -320,12 +320,28 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
         (in_format->timescale * out_format->frame_duration !=
          out_format->timescale * in_format->frame_duration) )
       {
+      char * str1, *str2;
+      
       cnv->convert_framerate = 1;
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)",
-             (float)(cnv->in_format.timescale) / (float)(cnv->in_format.frame_duration),
-             (cnv->in_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "variable" : "constant"),
-             (float)(cnv->out_format.timescale) / (float)(cnv->out_format.frame_duration),
-             (cnv->out_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "variable" : "constant"));
+
+      if(cnv->in_format.framerate_mode == GAVL_FRAMERATE_VARIABLE)
+        str1 = bg_strdup(NULL, TR("variable"));
+      else
+        str1 = bg_sprintf(NULL, "%5.2f",
+                          (float)(cnv->in_format.timescale) /
+                          (float)(cnv->in_format.frame_duration));
+
+      if(cnv->out_format.framerate_mode == GAVL_FRAMERATE_VARIABLE)
+        str2 = bg_strdup(NULL, TR("variable"));
+      else
+        str2 = bg_sprintf(NULL, "%5.2f",
+                          (float)(cnv->out_format.timescale) /
+                          (float)(cnv->out_format.frame_duration));
+      
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Doing framerate conversion %s -> %s",
+             str1, str2);
+      free(str1);
+      free(str2);
       }
     }
   if(!cnv->convert_framerate)

@@ -83,6 +83,10 @@ void bg_gavl_video_options_init(bg_gavl_video_options_t *);
 
 void bg_gavl_video_options_free(bg_gavl_video_options_t *);
 
+void bg_gavl_video_options_set_framerate(const bg_gavl_video_options_t *,
+                                         const gavl_video_format_t * in_format,
+                                         gavl_video_format_t * out_format);
+
 void bg_gavl_video_options_set_format(const bg_gavl_video_options_t *,
                                       const gavl_video_format_t * in_format,
                                       gavl_video_format_t * out_format);

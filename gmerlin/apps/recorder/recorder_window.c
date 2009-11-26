@@ -283,15 +283,17 @@ static gboolean timeout_func(void * data)
                                    t,
                                    BG_GTK_DISPLAY_MODE_HMS);
         }
+        break;
       case BG_RECORDER_MSG_RUNNING:
         {
         int arg_i;
+        
         arg_i = bg_msg_get_arg_int(msg, 0);
         if(arg_i)
           gtk_widget_show(bg_gtk_vumeter_get_widget(win->vumeter));
         else
           gtk_widget_hide(bg_gtk_vumeter_get_widget(win->vumeter));
-
+        
         arg_i = bg_msg_get_arg_int(msg, 1);
         if(arg_i)
           gtk_widget_show(win->socket);

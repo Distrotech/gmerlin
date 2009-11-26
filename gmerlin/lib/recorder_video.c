@@ -66,6 +66,7 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   if(vs->input_handle)
     bg_plugin_unref(vs->input_handle);
   
+  bg_gavl_video_options_free(&(vs->opt));
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -90,7 +91,8 @@ static const bg_parameter_info_t parameters[] =
       .val_max     = { .val_f = 100.0 },
       .val_default = { .val_f = 25.0 },
       .num_digits  = 2,
-      .help_string = TRS("Specify the maximum framerate for input plugins, which can capture images really fast"),
+      .help_string = TRS("Specify the maximum framerate for input plugins, which can \
+capture images really fast"),
     },
     { },
   };

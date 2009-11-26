@@ -16,6 +16,7 @@ fv_decimate.la \
 fv_deinterlace.la \
 fv_equalizer.la \
 fv_flip.la \
+fv_framerate.la \
 fv_interlace.la \
 fv_invert_rgb.la \
 fv_oldcolor.la \
@@ -62,6 +63,9 @@ fv_transform_la_LIBADD = @MODULE_LIBADD@
 
 fv_cropscale_la_SOURCES  = fv_cropscale.c
 fv_cropscale_la_LIBADD = @MODULE_LIBADD@
+
+fv_framerate_la_SOURCES  = fv_framerate.c
+fv_framerate_la_LIBADD = @MODULE_LIBADD@
 
 
 fv_flip_la_SOURCES  = fv_flip.c
