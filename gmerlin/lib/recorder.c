@@ -34,7 +34,7 @@
 const uint32_t bg_recorder_stream_mask =
 BG_STREAM_AUDIO | BG_STREAM_VIDEO;                                   
 
-const uint32_t bg_recorder_plugin_mask = BG_PLUGIN_FILE;
+const uint32_t bg_recorder_plugin_mask = BG_PLUGIN_FILE | BG_PLUGIN_BROADCAST;
 
 bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   {

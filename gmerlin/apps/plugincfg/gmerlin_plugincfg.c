@@ -141,7 +141,7 @@ static void set_video_encoder(const bg_plugin_info_t * info, void * data)
   app_window * win = (app_window *)data;
 
   bg_plugin_registry_set_default(win->plugin_reg,
-                                 BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER, BG_PLUGIN_FILE, info->name);
+                                 BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER, BG_PLUGIN_FILE | BG_PLUGIN_BROADCAST, info->name);
 
   if(!info->max_audio_streams)
     {
@@ -364,7 +364,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
     bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_ENCODER_VIDEO |
                                        BG_PLUGIN_ENCODER,
-                                       BG_PLUGIN_FILE);
+                                       BG_PLUGIN_FILE | BG_PLUGIN_BROADCAST);
   bg_gtk_plugin_widget_single_set_change_callback(ret->video_encoder_plugins, set_video_encoder, ret);
   
   /* Postprocessors */
