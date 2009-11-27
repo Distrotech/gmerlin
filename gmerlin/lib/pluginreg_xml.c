@@ -89,6 +89,7 @@ flag_names[] =
     { "PP",             BG_PLUGIN_PP },
     { "Callbacks",      BG_PLUGIN_CALLBACKS },
     { "Broadcast",      BG_PLUGIN_BROADCAST },
+    { "Devparam",       BG_PLUGIN_DEVPARAM },
     { "Unsupported",    BG_PLUGIN_UNSUPPORTED   },
     { (char*)0,    0                           },
   };

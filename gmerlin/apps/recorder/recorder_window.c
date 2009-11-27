@@ -333,7 +333,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     
   /* Create widgets */  
   ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
+  
   g_signal_connect(G_OBJECT(ret->win), "delete-event",
                    G_CALLBACK(delete_callback),
                    ret);

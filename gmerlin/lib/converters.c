@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <gmerlin/translation.h>
+#include <gmerlin/utils.h>
 
 
 #include <gmerlin/log.h>
@@ -327,14 +328,14 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
       if(cnv->in_format.framerate_mode == GAVL_FRAMERATE_VARIABLE)
         str1 = bg_strdup(NULL, TR("variable"));
       else
-        str1 = bg_sprintf(NULL, "%5.2f",
+        str1 = bg_sprintf("%5.2f",
                           (float)(cnv->in_format.timescale) /
                           (float)(cnv->in_format.frame_duration));
 
       if(cnv->out_format.framerate_mode == GAVL_FRAMERATE_VARIABLE)
         str2 = bg_strdup(NULL, TR("variable"));
       else
-        str2 = bg_sprintf(NULL, "%5.2f",
+        str2 = bg_sprintf("%5.2f",
                           (float)(cnv->out_format.timescale) /
                           (float)(cnv->out_format.frame_duration));
       

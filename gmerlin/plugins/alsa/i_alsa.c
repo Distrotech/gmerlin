@@ -119,7 +119,7 @@ get_parameters_alsa(void * p)
     {
     priv->parameters = calloc(num_static_parameters + 2,
                               sizeof(*(priv->parameters)));
-
+    
     bg_alsa_create_card_parameters(priv->parameters, 1);
     
     for(i = 0; i < num_static_parameters; i++)
@@ -341,7 +341,7 @@ const bg_recorder_plugin_t the_plugin =
       .long_name =     TRS("Alsa"),
       .description =   TRS("Alsa recorder"),
       .type =          BG_PLUGIN_RECORDER_AUDIO,
-      .flags =         BG_PLUGIN_RECORDER,
+      .flags =         BG_PLUGIN_RECORDER | BG_PLUGIN_DEVPARAM,
       .priority =      BG_PLUGIN_PRIORITY_MAX,
       .create =        create_alsa,
       .destroy =       destroy_alsa,

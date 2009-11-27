@@ -524,6 +524,7 @@ static bg_plugin_info_t * get_info(void * test_module, const char * filename)
   return new_info;
   }
 
+
 static bg_plugin_info_t *
 scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
                         int * changed,
@@ -983,6 +984,43 @@ int bg_plugin_registry_get_num_plugins(bg_plugin_registry_t * reg,
   return ret;
   }
 
+void bg_plugin_registry_scan_devices(bg_plugin_registry_t * plugin_reg,
+                                     uint32_t type_mask, uint32_t flag_mask)
+  {
+  int i;
+  bg_plugin_info_t * info;
+  bg_plugin_common_t * plugin;
+  void * priv;
+  void * module;
+  const bg_parameter_info_t * parameters;
+  int num = bg_plugin_registry_get_num_plugins(plugin_reg, type_mask, flag_mask);
+  
+  for(i = 0; i < num; i++)
+    {
+    info = find_by_index(plugin_reg->entries, i, type_mask, flag_mask);
+    
+    if(!(info->flags & BG_PLUGIN_DEVPARAM))
+      continue;
+    module = dlopen(info->module_filename, RTLD_NOW);
+    plugin = (bg_plugin_common_t*)(dlsym(module, "the_plugin"));
+    if(!plugin)
+      {
+      dlclose(module);
+      continue;
+      }
+    priv = plugin->create();
+    parameters = plugin->get_parameters(priv);
+
+    if(info->parameters)
+      bg_parameter_info_destroy_array(info->parameters);
+    info->parameters = bg_parameter_info_copy_array(parameters);
+    
+    dlclose(module);
+    }
+  
+  }
+
+
 void bg_plugin_registry_set_extensions(bg_plugin_registry_t * reg,
                                        const char * plugin_name,
                                        const char * extensions)
@@ -1120,8 +1158,6 @@ bg_plugin_registry_get_default(bg_plugin_registry_t * r,
     return ret;
     }
   }
-
-
 
 void bg_plugin_ref(bg_plugin_handle_t * h)
   {

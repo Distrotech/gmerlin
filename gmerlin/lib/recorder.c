@@ -40,6 +40,14 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_recorder_t * ret = calloc(1, sizeof(*ret));
 
+  bg_plugin_registry_scan_devices(plugin_reg,
+                                  BG_PLUGIN_RECORDER_AUDIO,
+                                  BG_PLUGIN_RECORDER);
+
+  bg_plugin_registry_scan_devices(plugin_reg,
+                                  BG_PLUGIN_RECORDER_VIDEO,
+                                  BG_PLUGIN_RECORDER);
+  
   ret->plugin_reg = plugin_reg;
   ret->tc = bg_player_thread_common_create();
   
