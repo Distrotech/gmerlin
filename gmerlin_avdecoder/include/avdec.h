@@ -539,12 +539,28 @@ void bgav_options_set_seek_subtitles(bgav_options_t* opt,
  *  \brief Set postprocessing level
  *  \param opt Option container
  *  \param pp_level Value between 0 (no postprocessing) and 6 (maximum postprocessing)
+ *
+ *  Warning: This function is depracated, use \ref bgav_options_set_postprocessing_level
+ *  instead.
  */
 
 BGAV_PUBLIC
 void bgav_options_set_pp_level(bgav_options_t* opt,
                                int pp_level);
 
+/** \ingroup options
+ *  \brief Set postprocessing level
+ *  \param opt Option container
+ *  \param pp_level Value between 0.0 (no postprocessing) and 1.0 (maximum postprocessing)
+ *
+ *  Since 1.0.2
+ */
+
+BGAV_PUBLIC
+void bgav_options_set_postprocessing_level(bgav_options_t* opt,
+                                           float pp_level);
+
+  
 /** \ingroup options
  *  \brief Set DVB channels file
  *  \param opt Option container

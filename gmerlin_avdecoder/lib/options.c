@@ -163,6 +163,17 @@ void bgav_options_set_pp_level(bgav_options_t* opt,
     opt->pp_level = 6;
   }
 
+BGAV_PUBLIC
+void bgav_options_set_postprocessing_level(bgav_options_t* opt,
+                                           float pp_level)
+  {
+  opt->pp_level = pp_level;
+  if(opt->pp_level < 0.0)
+    opt->pp_level = 0.0;
+  if(opt->pp_level > 1.0)
+    opt->pp_level = 1.0;
+  }
+
 void bgav_options_set_dvb_channels_file(bgav_options_t* opt,
                                         const char * file)
   {
@@ -238,6 +249,8 @@ void bgav_options_destroy(bgav_options_t * opt)
   }
 
 #define CP_INT(i) dst->i = src->i
+#define CP_FLOAT(i) dst->i = src->i
+
 #define CP_STR(s) if(dst->s) free(dst->s); dst->s = bgav_strdup(src->s)
 
 void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
@@ -280,7 +293,7 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 
   /* Postprocessing */
   
-  CP_INT(pp_level);
+  CP_FLOAT(pp_level);
   
   /* DVD */
 

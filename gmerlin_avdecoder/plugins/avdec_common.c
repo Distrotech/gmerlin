@@ -528,9 +528,9 @@ bg_avdec_set_parameter(void * p, const char * name,
     else
       bgav_options_set_seek_subtitles(avdec->opt, 0);
     }
-  else if(!strcmp(name, "video_pp_level"))
+  else if(!strcmp(name, "video_postprocessing_level"))
     {
-    bgav_options_set_pp_level(avdec->opt, val->val_i);
+    bgav_options_set_postprocessing_level(avdec->opt, val->val_f);
     }
   else if(!strcmp(name, "dvb_channels_file"))
     {

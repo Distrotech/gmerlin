@@ -752,9 +752,9 @@ struct bgav_options_s
   int seamless;
   int seek_subtitles;
 
-  /* Postprocessing level (0..6) */
+  /* Postprocessing level (0.0 .. 1.0) */
   
-  int pp_level;
+  float pp_level;
 
   char * dvb_channels_file;
 

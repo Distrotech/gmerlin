@@ -117,13 +117,14 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
 
 #define PARAM_PP_LEVEL \
   {                    \
-  .name = "video_pp_level",    \
+  .name = "video_postprocessing_level",    \
   .long_name = TRS("Postprocessing level"),         \
   .opt = "pp", \
-  .type = BG_PARAMETER_SLIDER_INT,           \
-  .val_default = { .val_i = 1 },              \
-  .val_min =     { .val_i = 0 },              \
-  .val_max = { .val_i = 6 },              \
-  .help_string = TRS("Set postprocessing (to remove compression artifacts). 0 means no postprocessing, 6 means maximum postprocessing.") \
+  .type = BG_PARAMETER_SLIDER_FLOAT,           \
+  .val_default = { .val_i = 0.2 },              \
+  .val_min =     { .val_i = 0.0 },              \
+  .val_max = { .val_i = 1.0 },              \
+  .num_digits = 2,                           \
+  .help_string = TRS("Set postprocessing (to remove compression artifacts). 0 means no postprocessing, 1 means maximum postprocessing.") \
   }
 

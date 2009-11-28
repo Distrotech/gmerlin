@@ -2219,12 +2219,13 @@ static void init_pp(bgav_stream_t * s)
   {
   int accel_flags;
   int pp_flags;
+  int level;
   ffmpeg_video_priv * priv;
   priv = s->data.video.decoder->priv;
 
   
   /* Initialize postprocessing */
-  if(s->opt->pp_level > 0)
+  if(s->opt->pp_level > 0.0)
     {
     switch(priv->info->ffmpeg_id)
       {
@@ -2257,9 +2258,15 @@ static void init_pp(bgav_stream_t * s)
         priv->pp_context =
           pp_get_context(priv->ctx->width, priv->ctx->height,
                          pp_flags);
-        priv->pp_mode = pp_get_mode_by_name_and_quality("hb:a,vb:a,dr:a",
-                                                        s->opt->pp_level);
 
+        level = (int)(s->opt->pp_level * 6.0 + 0.5);
+
+        if(level > 6)
+          level = 6;
+        
+        priv->pp_mode = pp_get_mode_by_name_and_quality("hb:a,vb:a,dr:a",
+                                                        level);
+        
         if(s->data.video.flip_y)
           priv->flip_frame = gavl_video_frame_create(&s->data.video.format);
             
