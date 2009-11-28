@@ -22,7 +22,7 @@
 #include <avdec_private.h>
 #include <codecs.h>
 
-#include <theora/theora.h>
+#include <theora/theoradec.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,9 +31,12 @@
 
 typedef struct
   {
-  theora_info    ti;
-  theora_comment tc;
-  theora_state   ts;
+  th_info    ti;
+  th_comment tc;
+  th_setup_info *ts;
+
+  th_dec_ctx * ctx;
+  
   gavl_video_frame_t * frame;  
 
   /* For setting up the video frame */
@@ -65,8 +68,8 @@ static int init_theora(bgav_stream_t * s)
   s->data.video.decoder->priv = priv;
 
   /* Initialize theora structures */
-  theora_info_init(&priv->ti);
-  theora_comment_init(&priv->tc);
+  th_info_init(&priv->ti);
+  th_comment_init(&priv->tc);
 
   /* Get header packets and initialize decoder */
   if(!s->ext_data)
@@ -80,15 +83,19 @@ static int init_theora(bgav_stream_t * s)
   for(i = 0; i < 3; i++)
     {
     ext_pos = ptr_2_op(ext_pos, &op);
-    theora_decode_header(&priv->ti, &priv->tc, &op);
+    if(th_decode_headerin(&priv->ti, &priv->tc, &priv->ts, &op) <= 0)
+      {
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Parsing header packets failed");
+      return 0;
+      }
     }
-
-  theora_decode_init(&priv->ts, &priv->ti);
-
+  priv->ctx = th_decode_alloc(&priv->ti, priv->ts);
+  
   /* Get format */
 
-  s->data.video.format.image_width  = priv->ti.frame_width;
-  s->data.video.format.image_height = priv->ti.frame_height;
+  s->data.video.format.image_width  = priv->ti.pic_width;
+  s->data.video.format.image_height = priv->ti.pic_height;
 
   s->data.video.format.frame_width  = priv->ti.frame_width;
   s->data.video.format.frame_height = priv->ti.frame_height;
@@ -110,21 +117,21 @@ static int init_theora(bgav_stream_t * s)
     s->data.video.format.frame_duration = priv->ti.fps_denominator;
     }
   
-  switch(priv->ti.pixelformat)
+  switch(priv->ti.pixel_fmt)
     {
-    case OC_PF_420:
+    case TH_PF_420:
       s->data.video.format.pixelformat = GAVL_YUV_420_P;
       break;
-    case OC_PF_422:
+    case TH_PF_422:
       s->data.video.format.pixelformat = GAVL_YUV_422_P;
       break;
-    case OC_PF_444:
+    case TH_PF_444:
       s->data.video.format.pixelformat = GAVL_YUV_444_P;
       break;
     default:
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Unknown pixelformat %d",
-              priv->ti.pixelformat);
+              priv->ti.pixel_fmt);
       return 0;
     }
 
@@ -133,11 +140,11 @@ static int init_theora(bgav_stream_t * s)
   gavl_pixelformat_chroma_sub(s->data.video.format.pixelformat,
                               &sub_h, &sub_v);
   
-  priv->offset_x = priv->ti.offset_x;
-  priv->offset_y = priv->ti.offset_y;
-
-  priv->offset_x_uv = priv->ti.offset_x / sub_h;
-  priv->offset_y_uv = priv->ti.offset_y / sub_v;
+  priv->offset_x = priv->ti.pic_x;
+  priv->offset_y = priv->ti.pic_y;
+  
+  priv->offset_x_uv = priv->ti.pic_x / sub_h;
+  priv->offset_y_uv = priv->ti.pic_y / sub_v;
   
   /* Create frame */
   priv->frame = gavl_video_frame_create((gavl_video_format_t*)0);
@@ -152,9 +159,11 @@ static int init_theora(bgav_stream_t * s)
 
 static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
+  int i;
   bgav_packet_t * p;
   ogg_packet op;
-  yuv_buffer yuv;
+  
+  th_ycbcr_buffer yuv;
   theora_priv_t * priv;
   priv = (theora_priv_t*)(s->data.video.decoder->priv);
 
@@ -167,50 +176,32 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     memcpy(&op, p->data, sizeof(op));
     op.packet = p->data + sizeof(op);
     
-    if(!theora_packet_isheader(&op))
+    if(!th_packet_isheader(&op))
       break;
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   
-  theora_decode_packetin(&priv->ts, &op);
+  th_decode_packetin(priv->ctx, &op, NULL);
+  th_decode_ycbcr_out(priv->ctx, yuv);
   
-  theora_decode_YUVout(&priv->ts, &yuv);
-
-#if 0
-  s->data.video.last_frame_time =
-    theora_granule_frame(&priv->ts, priv->ts.granulepos) * s->data.video.format.frame_duration;
-#endif
   /* Copy the frame */
 
   if(frame)
     {
-    priv->frame->planes[0] =
-      yuv.y + priv->offset_y * yuv.y_stride + priv->offset_x;
-    
-    priv->frame->planes[1] =
-
-      yuv.u + priv->offset_y_uv * yuv.uv_stride + priv->offset_x_uv;
-
-    priv->frame->planes[2] =
-      yuv.v + priv->offset_y_uv * yuv.uv_stride + priv->offset_x_uv;
-
-    priv->frame->strides[0] = yuv.y_stride;
-    priv->frame->strides[1] = yuv.uv_stride;
-    priv->frame->strides[2] = yuv.uv_stride;
+    for(i = 0; i < 3; i++)
+      {
+      priv->frame->planes[i] =
+        yuv[i].data + priv->offset_y * yuv[i].stride + priv->offset_x;
+      priv->frame->strides[i] = yuv[i].stride;
+      }
     
     gavl_video_frame_copy(&s->data.video.format,
                           frame, priv->frame);
     
-    //    s->time_scaled = (frame_counter++) * s->data.video.format.frame_duration;
-    if(frame)
-      {
-      frame->timestamp = p->pts;
-      frame->duration = p->duration;
-      }
+    frame->timestamp = p->pts;
+    frame->duration = p->duration;
     }
-
   bgav_demuxer_done_packet_read(s->demuxer, p);
-  
   return 1;
   }
 
@@ -218,11 +209,12 @@ static void close_theora(bgav_stream_t * s)
   {
   theora_priv_t * priv;
   priv = (theora_priv_t*)(s->data.video.decoder->priv);
-
-  theora_clear(&priv->ts);
-  theora_comment_clear(&priv->tc);
-  theora_info_clear(&priv->ti);
-
+  
+  th_decode_free(priv->ctx);
+  th_setup_free(priv->ts);
+  th_comment_clear(&priv->tc);
+  th_info_clear(&priv->ti);
+  
   gavl_video_frame_null(priv->frame);
   gavl_video_frame_destroy(priv->frame);
 

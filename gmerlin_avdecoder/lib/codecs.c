@@ -259,7 +259,7 @@ void bgav_codecs_init(bgav_options_t * opt)
   bgav_init_video_decoders_tiff();
 #endif
 
-#ifdef HAVE_THEORA
+#ifdef HAVE_THEORADEC
   bgav_init_video_decoders_theora();
 #endif
 

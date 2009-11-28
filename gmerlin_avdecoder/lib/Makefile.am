@@ -205,9 +205,9 @@ samba_libs =
 samba_sources =
 endif
 
-if HAVE_THEORA
-theora_cflags  = @THEORA_CFLAGS@
-theora_libs    = @THEORA_LIBS@
+if HAVE_THEORADEC
+theora_cflags  = @THEORADEC_CFLAGS@
+theora_libs    = @THEORADEC_LIBS@
 theora_sources = video_theora.c
 else
 theora_cflags  =

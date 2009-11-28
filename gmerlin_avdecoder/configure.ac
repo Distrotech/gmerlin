@@ -243,7 +243,7 @@ dnl
 dnl Check for theora
 dnl
 
-GMERLIN_CHECK_THEORA
+GMERLIN_CHECK_THEORADEC
 
 dnl
 dnl Check for schroedinger
@@ -613,10 +613,10 @@ else
 echo "Missing (Go to http://www.vorbis.com/)"
 fi
 
-echo -n "theora:                 "
-if test "x$have_theora" = "xtrue"; then
-echo "Found (CFLAGS=$THEORA_CFLAGS LIBS=$THEORA_LIBS)"
-elif test "x$test_theora" = "xfalse"; then
+echo -n "theoradec:              "
+if test "x$have_theoradec" = "xtrue"; then
+echo "Found (CFLAGS=$THEORADEC_CFLAGS LIBS=$THEORADEC_LIBS)"
+elif test "x$test_theoradec" = "xfalse"; then
 echo "Disabled"
 else
 echo "Missing (Go to http://www.theora.org/)"

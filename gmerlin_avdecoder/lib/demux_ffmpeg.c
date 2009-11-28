@@ -577,10 +577,18 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
 
   /* With the current implementation in ffmpeg, this can be
      called multiple times */
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 29, 0)
   register_protocol(&bgav_protocol);
-
+#else
+  av_register_protocol(&bgav_protocol);
+#endif
+  
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 26, 0)
   avfc = av_alloc_format_context();
-
+#else
+  avfc = avformat_alloc_context();
+#endif
+  
   tmp_filename = bgav_sprintf("bgav:%s", ctx->input->filename);
 
   url_fopen(&priv->pb, tmp_filename, URL_RDONLY);

@@ -52,7 +52,7 @@ void bgav_init_video_decoders_openjpeg();
 void bgav_init_video_decoders_tiff();
 #endif
 
-#ifdef HAVE_THEORA
+#ifdef HAVE_THEORADEC
 void bgav_init_video_decoders_theora();
 #endif
 
