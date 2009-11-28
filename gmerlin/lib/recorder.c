@@ -164,7 +164,7 @@ int bg_recorder_run(bg_recorder_t * rec)
   if(rec->as.flags & STREAM_ACTIVE)
     {
     if(!bg_recorder_audio_init(rec))
-      rec->as.flags |= ~STREAM_ACTIVE;
+      rec->as.flags &= ~STREAM_ACTIVE;
     else
       do_audio = 1;
     }
@@ -172,7 +172,7 @@ int bg_recorder_run(bg_recorder_t * rec)
   if(rec->vs.flags & STREAM_ACTIVE)
     {
     if(!bg_recorder_video_init(rec))
-      rec->vs.flags |= ~STREAM_ACTIVE;
+      rec->vs.flags &= ~STREAM_ACTIVE;
     else
       do_video = 1;
     }
@@ -444,4 +444,22 @@ void bg_recorder_update_time(bg_recorder_t * rec, gavl_time_t t)
     rec->last_recording_time = rec->recording_time;
     }
   pthread_mutex_unlock(&rec->time_mutex);
+  }
+
+void bg_recorder_interrupt(bg_recorder_t * rec)
+  {
+  if(rec->flags & FLAG_RUNNING)
+    {
+    bg_recorder_stop(rec);
+    rec->flags |= FLAG_INTERRUPTED;
+    }
+  }
+
+void bg_recorder_resume(bg_recorder_t * rec)
+  {
+  if(rec->flags & FLAG_INTERRUPTED)
+    {
+    rec->flags &= ~FLAG_INTERRUPTED;
+    bg_recorder_run(rec);
+    }
   }

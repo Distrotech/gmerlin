@@ -117,9 +117,8 @@ bg_recorder_set_audio_parameter(void * data,
 
   if(!strcmp(name, "do_audio"))
     {
-    if((rec->flags & FLAG_RUNNING) &&
-       (!!(as->flags & STREAM_ACTIVE) != val->val_i))
-      bg_recorder_stop(rec);
+    if(!!(as->flags & STREAM_ACTIVE) != val->val_i)
+      bg_recorder_interrupt(rec);
     
     if(val->val_i)
       as->flags |= STREAM_ACTIVE;
@@ -139,7 +138,7 @@ bg_recorder_set_audio_parameter(void * data,
       return;
     
     if(rec->flags & FLAG_RUNNING)
-      bg_recorder_stop(rec);
+      bg_recorder_interrupt(rec);
 
     if(as->input_handle)
       bg_plugin_unref(as->input_handle);
@@ -173,7 +172,7 @@ bg_recorder_set_audio_filter_parameter(void * data,
   if(!name)
     {
     if(!(rec->flags & FLAG_RUNNING))
-      bg_recorder_run(rec);
+      bg_recorder_resume(rec);
     return;
     }
   bg_audio_filter_chain_lock(as->fc);
@@ -188,7 +187,7 @@ bg_recorder_set_audio_filter_parameter(void * data,
   bg_audio_filter_chain_unlock(as->fc);
 
   if(need_restart)
-    bg_recorder_stop(rec);
+    bg_recorder_interrupt(rec);
   
   }
 

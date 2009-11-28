@@ -37,6 +37,7 @@
 #define FLAG_RUNNING        (1<<0)     
 #define FLAG_RECORDING      (1<<1) 
 #define FLAG_DO_RECORD      (1<<2) 
+#define FLAG_INTERRUPTED    (1<<3)
 
 typedef struct 
   {
@@ -213,6 +214,10 @@ void bg_recorder_audio_cleanup(bg_recorder_t *);
 void bg_recorder_video_cleanup(bg_recorder_t *);
 
 void bg_recorder_update_time(bg_recorder_t *, gavl_time_t t);
+
+void bg_recorder_interrupt(bg_recorder_t *);
+void bg_recorder_resume(bg_recorder_t *);
+
 
 /* Message stuff */
 void bg_recorder_msg_framerate(bg_recorder_t * rec,

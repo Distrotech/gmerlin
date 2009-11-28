@@ -50,6 +50,9 @@ struct bg_recorder_window_s
   guint framerate_context;
   int framerate_shown;
   
+  guint noinput_context;
+  int noinput_shown;
+  
   GtkWidget * about_button;
   GtkWidget * log_button;
   GtkWidget * config_button;
@@ -286,19 +289,32 @@ static gboolean timeout_func(void * data)
         break;
       case BG_RECORDER_MSG_RUNNING:
         {
-        int arg_i;
+        int do_audio, do_video;
         
-        arg_i = bg_msg_get_arg_int(msg, 0);
-        if(arg_i)
+        do_audio = bg_msg_get_arg_int(msg, 0);
+        if(do_audio)
           gtk_widget_show(bg_gtk_vumeter_get_widget(win->vumeter));
         else
           gtk_widget_hide(bg_gtk_vumeter_get_widget(win->vumeter));
         
-        arg_i = bg_msg_get_arg_int(msg, 1);
-        if(arg_i)
+        do_video = bg_msg_get_arg_int(msg, 1);
+        if(do_video)
           gtk_widget_show(win->socket);
         else
           gtk_widget_hide(win->socket);
+
+        if(!do_audio && !do_video)
+          {
+          gtk_statusbar_push(GTK_STATUSBAR(win->statusbar),
+                             win->noinput_context,
+                             TR("Check recording setting"));
+          win->noinput_shown = 1;
+          }
+        else if(win->noinput_shown)
+          {
+          gtk_statusbar_pop(GTK_STATUSBAR(win->statusbar),
+                            win->noinput_context);
+          }
         }
       }
     bg_msg_queue_unlock_read(win->msg_queue);
@@ -370,6 +386,10 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   ret->framerate_context =
     gtk_statusbar_get_context_id(GTK_STATUSBAR(ret->statusbar),
                                  "framerate");
+  ret->noinput_context =
+    gtk_statusbar_get_context_id(GTK_STATUSBAR(ret->statusbar),
+                                 "noinput");
+  
   gtk_widget_show(ret->statusbar);
 
   

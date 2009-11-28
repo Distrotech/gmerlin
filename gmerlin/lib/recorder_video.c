@@ -133,7 +133,7 @@ bg_recorder_set_video_parameter(void * data,
     {
     if((rec->flags & FLAG_RUNNING) &&
        (!!(vs->flags & STREAM_ACTIVE) != val->val_i))
-      bg_recorder_stop(rec);
+      bg_recorder_interrupt(rec);
 
     if(val->val_i)
       vs->flags |= STREAM_ACTIVE;
@@ -150,7 +150,7 @@ bg_recorder_set_video_parameter(void * data,
       return;
     
     if(rec->flags & FLAG_RUNNING)
-      bg_recorder_stop(rec);
+      bg_recorder_interrupt(rec);
 
     if(vs->input_handle)
       bg_plugin_unref(vs->input_handle);
@@ -226,9 +226,8 @@ bg_recorder_set_video_monitor_parameter(void * data,
 
   if(!strcmp(name, "do_monitor"))
     {
-    if((rec->flags & FLAG_RUNNING) &&
-       (!!(vs->flags & STREAM_MONITOR) != val->val_i))
-      bg_recorder_stop(rec);
+    if(!!(vs->flags & STREAM_MONITOR) != val->val_i)
+      bg_recorder_interrupt(rec);
 
     if(val->val_i)
       vs->flags |= STREAM_MONITOR;
@@ -243,8 +242,7 @@ bg_recorder_set_video_monitor_parameter(void * data,
        !strcmp(vs->monitor_handle->info->name, val->val_str))
       return;
     
-    if(rec->flags & FLAG_RUNNING)
-      bg_recorder_stop(rec);
+    bg_recorder_interrupt(rec);
     
     if(vs->monitor_handle)
       bg_plugin_unref(vs->monitor_handle);
@@ -285,8 +283,7 @@ bg_recorder_set_video_filter_parameter(void * data,
 
   if(!name)
     {
-    if(!(rec->flags & FLAG_RUNNING))
-      bg_recorder_run(rec);
+    bg_recorder_resume(rec);
     return;
     }
 
@@ -302,7 +299,7 @@ bg_recorder_set_video_filter_parameter(void * data,
   bg_video_filter_chain_unlock(vs->fc);
   
   if(need_restart)
-    bg_recorder_stop(rec);
+    bg_recorder_interrupt(rec);
   }
 
 void * bg_recorder_video_thread(void * data)
