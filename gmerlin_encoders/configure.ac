@@ -75,7 +75,7 @@ dnl
 dnl Theora
 dnl
 
-GMERLIN_CHECK_THEORA
+GMERLIN_CHECK_THEORAENC
 
 dnl
 dnl Speex
@@ -193,9 +193,9 @@ else
 echo "Missing (Go to: http://www.vorbis.com/)"
 fi
 
-echo -n "theora:     "
-if test "x$have_theora" = "xtrue"; then
-echo "Found (CFLAGS=$THEORA_CFLAGS LIBS=$THEORA_LIBS)"
+echo -n "theoraenc:  "
+if test "x$have_theoraenc" = "xtrue"; then
+echo "Found (CFLAGS=$THEORAENC_CFLAGS LIBS=$THEORAENC_LIBS)"
 else
 echo "Missing (Go to: http://www.theora.org/)"
 fi
