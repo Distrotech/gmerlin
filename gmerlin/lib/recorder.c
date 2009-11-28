@@ -178,8 +178,18 @@ int bg_recorder_run(bg_recorder_t * rec)
     }
   
   if(rec->flags & FLAG_DO_RECORD)
-    finalize_encoding(rec);
-  
+    {
+    if(!finalize_encoding(rec))
+      {
+      if(rec->as.flags & STREAM_ACTIVE)
+        bg_recorder_audio_cleanup(rec);
+      if(rec->vs.flags & STREAM_ACTIVE)
+        bg_recorder_video_cleanup(rec);
+
+      bg_recorder_msg_running(rec, 0, 0);
+      return;
+      }
+    }
   
   if(rec->as.flags & STREAM_ACTIVE)
     bg_player_thread_set_func(rec->as.th, bg_recorder_audio_thread, rec);

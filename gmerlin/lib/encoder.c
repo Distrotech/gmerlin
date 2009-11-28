@@ -519,6 +519,9 @@ static int start_audio(bg_encoder_t * enc, int stream)
   /* Get handle */
 
   h = get_stream_handle(enc, BG_STREAM_AUDIO, stream, s->in_index);
+
+  if(!h)
+    return 0;
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
@@ -554,6 +557,9 @@ static int start_video(bg_encoder_t * enc, int stream)
 
   /* Get handle */
   h = get_stream_handle(enc, BG_STREAM_VIDEO, stream, s->in_index);
+
+  if(!h)
+    return 0;
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
@@ -602,7 +608,10 @@ static int start_subtitle_text(bg_encoder_t * enc, int stream)
 
   /* Get handle */
   h = get_stream_handle(enc, BG_STREAM_SUBTITLE_TEXT, stream, s->in_index);
-    
+
+  if(!h)
+    return 0;
+  
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
 
@@ -636,14 +645,18 @@ static int start_subtitle_overlay(bg_encoder_t * enc, int stream)
 
   /* Get handle */
   h = get_stream_handle(enc, BG_STREAM_SUBTITLE_OVERLAY, stream, s->in_index);
+
+  if(!h)
+    return 0;
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
 
   /* Add stream */
-  s->out_index = s->plugin->add_subtitle_overlay_stream(s->priv, s->language, &s->format);
-
-  
+  s->out_index =
+    s->plugin->add_subtitle_overlay_stream(s->priv,
+                                           s->language, &s->format);
+    
   /* Apply parameters */ 
   if(s->plugin->set_subtitle_overlay_parameter)
     {

@@ -309,6 +309,10 @@ static gboolean timeout_func(void * data)
                              win->noinput_context,
                              TR("Check recording setting"));
           win->noinput_shown = 1;
+
+          gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->record_button), 0);
+
+
           }
         else if(win->noinput_shown)
           {
@@ -422,8 +426,6 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->log_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->restart_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->record_button, FALSE, FALSE, 0);
-
-  
   
   gtk_box_pack_end(GTK_BOX(box), bg_gtk_time_display_get_widget(ret->display),
                    FALSE, FALSE, 0);
@@ -439,7 +441,6 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   gtk_box_pack_start(GTK_BOX(mainbox),
                      ret->statusbar,
                      FALSE, FALSE, 0);
-  
   
   /* */
     
@@ -569,7 +570,6 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                        bg_recorder_get_output_parameters(ret->rec),
                        bg_recorder_set_output_parameter,
                        ret->rec);
-
   
   g_timeout_add(DELAY_TIME, timeout_func, ret);
   
