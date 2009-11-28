@@ -216,41 +216,79 @@ fi
 ])
 
 dnl
-dnl Check for theora
+dnl Check for theora decoder
 dnl
 
-AC_DEFUN([GMERLIN_CHECK_THEORA],[
+AC_DEFUN([GMERLIN_CHECK_THEORADEC],[
 
-AH_TEMPLATE([HAVE_THEORA],
-            [Do we have theora installed?])
+AH_TEMPLATE([HAVE_THEORADEC],
+            [Do we have theora decoder installed?])
 
 have_theora="false"
 
-THEORA_REQUIRED="1.0alpha5"
+THEORADEC_REQUIRED="1.0.0"
 
-AC_ARG_ENABLE(theora,
-[AC_HELP_STRING([--disable-theora],[Disable theora (default: autodetect)])],
+AC_ARG_ENABLE(theoradec,
+[AC_HELP_STRING([--disable-theoradec],[Disable theoradec (default: autodetect)])],
 [case "${enableval}" in
-   yes) test_theora=true ;;
-   no)  test_theora=false ;;
-esac],[test_theora=true])
+   yes) test_theoradec=true ;;
+   no)  test_theoradec=false ;;
+esac],[test_theoradec=true])
 
-if test x$test_theora = xtrue; then
+if test x$test_theoradec = xtrue; then
 
-PKG_CHECK_MODULES(THEORA, theora >= $THEORA_REQUIRED, have_theora="true", have_theora="false")
+PKG_CHECK_MODULES(THEORADEC, theoradec >= $THEORADEC_REQUIRED, have_theoradec="true", have_theoradec="false")
 fi
 
-AC_SUBST(THEORA_REQUIRED)
-AC_SUBST(THEORA_LIBS)
-AC_SUBST(THEORA_CFLAGS)
+AC_SUBST(THEORADEC_REQUIRED)
+AC_SUBST(THEORADEC_LIBS)
+AC_SUBST(THEORADEC_CFLAGS)
 
-AM_CONDITIONAL(HAVE_THEORA, test x$have_theora = xtrue)
+AM_CONDITIONAL(HAVE_THEORADEC, test x$have_theoradec = xtrue)
 
-if test "x$have_theora" = "xtrue"; then
-AC_DEFINE([HAVE_THEORA])
+if test "x$have_theoradec" = "xtrue"; then
+AC_DEFINE([HAVE_THEORADEC])
 fi
 
 ])
+
+dnl
+dnl Check for theora encoder
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_THEORAENC],[
+
+AH_TEMPLATE([HAVE_THEORAENC],
+            [Do we have theoraenc installed?])
+
+have_theoraenc="false"
+
+THEORAENC_REQUIRED="1.0.0"
+
+AC_ARG_ENABLE(theoraenc,
+[AC_HELP_STRING([--disable-theoraenc],[Disable theoraenc (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_theoraenc=true ;;
+   no)  test_theoraenc=false ;;
+esac],[test_theoraenc=true])
+
+if test x$test_theoraenc = xtrue; then
+
+PKG_CHECK_MODULES(THEORAENC, theoraenc >= $THEORAENC_REQUIRED, have_theoraenc="true", have_theoraenc="false")
+fi
+
+AC_SUBST(THEORAENC_REQUIRED)
+AC_SUBST(THEORAENC_LIBS)
+AC_SUBST(THEORAENC_CFLAGS)
+
+AM_CONDITIONAL(HAVE_THEORAENC, test x$have_theoraenc = xtrue)
+
+if test "x$have_theoraenc" = "xtrue"; then
+AC_DEFINE([HAVE_THEORAENC])
+fi
+
+])
+
 
 dnl
 dnl Check for schroedinger
@@ -1583,26 +1621,105 @@ AC_DEFUN([GMERLIN_CHECK_OPENGL],[
 AH_TEMPLATE([HAVE_GL],[OpenGL available])
 AH_TEMPLATE([HAVE_GLX],[GLX available])
 
-MDL_HAVE_OPENGL
+dnl
+dnl Search for OpenGL libraries
+dnl
 
-if test "x$have_GL" = "xyes"; then
-AC_DEFINE(HAVE_GL)
-dnl Change to true to match other macros
-have_GL=true
-fi
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+have_GL="true"
+AC_SEARCH_LIBS([glBegin], [GL], [], [have_GL="false"], [])
 
 if test "x$have_GL" = "xtrue"; then
+AC_TRY_RUN([
+#include <GL/gl.h>
+int main() { if(0) glBegin(GL_QUADS); return 0;}
+],[],[have_GL="false"])
+fi
 
-if test "x$have_GLX" = "xyes"; then
+GL_CFLAGS=$CFLAGS
+GL_LIBS=$LIBS
+
+CFLAGS="$OLD_CFLAGS"
+LIBS="$OLD_LIBS"
+
+dnl
+dnl Check for GLX
+dnl
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+have_GLX="true"
+AC_SEARCH_LIBS([glXCreateContext], [GL glx], [], [have_GLX="false"], [])
+
+if test "x$have_GL" = "xtrue"; then
+AC_TRY_RUN([
+#include <GL/glx.h>
+int main() { if(0) glXCreateContext(NULL, NULL, NULL, 0); return 0;}],[],[have_GLX="false"])
+fi
+
+GLX_CFLAGS=$CFLAGS
+GLX_LIBS=$LIBS
+
+CFLAGS="$OLD_CFLAGS"
+LIBS="$OLD_LIBS"
+
+if test "x$have_GL" = "xtrue"; then
+AC_DEFINE(HAVE_GL)
+
+if test "x$have_GLX" = "xtrue"; then
 AC_DEFINE(HAVE_GLX)
-dnl Change to true to match other macros
-have_GLX=true
 fi
 
 fi
 
 AM_CONDITIONAL(HAVE_GL, test x$have_GL = xtrue)
-AM_CONDITIONAL(HAVE_GLX, test x$have_GL = xtrue)
+AM_CONDITIONAL(HAVE_GLX, test x$have_GLX = xtrue)
+
+AC_SUBST(GL_CFLAGS)
+AC_SUBST(GL_LIBS)
+AC_SUBST(GLX_CFLAGS)
+AC_SUBST(GLX_LIBS)
+
+])
+
+
+dnl
+dnl GLU
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_GLU],[
+AH_TEMPLATE([HAVE_GLU],[GLU available])
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+have_GLU="true"
+AC_SEARCH_LIBS([gluLookAt], [GLU], [], [have_GLU="false"], [])
+
+if test "x$have_GLU" = "xtrue"; then
+AC_TRY_RUN([
+#include <GL/glu.h>
+int main() { if(0) gluLookAt(0, 0, 0, 0, 0, 0, 0, 0, 0); return 0;}],[],[have_GLU="false"])
+fi
+
+GLU_CFLAGS=$CFLAGS
+GLU_LIBS=$LIBS
+
+CFLAGS="$OLD_CFLAGS"
+LIBS="$OLD_LIBS"
+
+if test "x$have_GLU" = "xtrue"; then
+AC_DEFINE(HAVE_GLU)
+fi
+
+AM_CONDITIONAL(HAVE_GLU, test x$have_GLU = xtrue)
+
+AC_SUBST(GLU_CFLAGS)
+AC_SUBST(GLU_LIBS)
+
 ])
 
 dnl
@@ -1658,5 +1775,101 @@ LIBS=$OLD_LIBS
 
 
 AM_CONDITIONAL(HAVE_POSIX_SEMAPHORES, test x$have_posix_semaphores = xtrue)
+
+])
+
+dnl
+dnl vdpau
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_VDPAU],[
+
+AH_TEMPLATE([HAVE_VDPAU], [Enable tiff codec])
+ 
+have_vdpau=false
+
+AC_ARG_ENABLE(vdpau,
+[AC_HELP_STRING([--disable-vdpau],[Disable vdpau (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_vdpau=true ;;
+   no)  test_vdpau=false ;;
+esac],[test_vdpau=true])
+
+if test x$test_vdpau = xtrue; then
+   
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+LIBS="$LIBS -lvdpau"
+CFLAGS="$CFLAGS"
+   
+AC_MSG_CHECKING(for vdpau)
+AC_TRY_LINK([#include <vdpau/vdpau_x11.h>],
+            [int i = 0;
+	     /* We ensure the function is here but never call it */
+             if(i)
+	       vdp_device_create_x11((Display*)0, 0,
+		                     (VdpDevice*)0,
+				     (VdpGetProcAddress**)0);
+	       return 0;],
+             [have_vdpau=true])
+ 
+case $have_vdpau in
+  true) AC_MSG_RESULT(yes)
+        VDPAU_LIBS=$LIBS;
+        VDPAU_CFLAGS=$CFLAGS ;;
+  false) AC_MSG_RESULT(no); VDPAU_LIBS=""; VDPAU_CFLAGS="";;
+esac
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
+AC_SUBST(VDPAU_CFLAGS)
+AC_SUBST(VDPAU_LIBS)
+AC_SUBST(VDPAU_REQUIRED)
+
+AM_CONDITIONAL(HAVE_VDPAU, test x$have_vdpau = xtrue)
+
+if test x$have_vdpau = xtrue; then
+AC_DEFINE(HAVE_VDPAU)
+fi
+
+])
+
+dnl
+dnl libshout
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_SHOUT],[
+
+AH_TEMPLATE([HAVE_SHOUT],
+            [Do we have libshout installed?])
+
+have_shout="false"
+
+SHOUT_REQUIRED="2.2.2"
+
+AC_ARG_ENABLE(libshout,
+[AC_HELP_STRING([--disable-libshout],[Disable libshout (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_shout=true ;;
+   no)  test_shout=false ;;
+esac],[test_shout=true])
+
+if test x$test_shout = xtrue; then
+
+PKG_CHECK_MODULES(SHOUT, shout >= $SHOUT_REQUIRED, have_shout="true", have_shout="false")
+fi
+
+AC_SUBST(SHOUT_REQUIRED)
+AC_SUBST(SHOUT_LIBS)
+AC_SUBST(SHOUT_CFLAGS)
+
+AM_CONDITIONAL(HAVE_SHOUT, test x$have_shout = xtrue)
+
+if test "x$have_shout" = "xtrue"; then
+AC_DEFINE([HAVE_SHOUT])
+fi
 
 ])

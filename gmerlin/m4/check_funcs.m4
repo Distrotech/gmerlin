@@ -216,41 +216,79 @@ fi
 ])
 
 dnl
-dnl Check for theora
+dnl Check for theora decoder
 dnl
 
-AC_DEFUN([GMERLIN_CHECK_THEORA],[
+AC_DEFUN([GMERLIN_CHECK_THEORADEC],[
 
-AH_TEMPLATE([HAVE_THEORA],
-            [Do we have theora installed?])
+AH_TEMPLATE([HAVE_THEORADEC],
+            [Do we have theora decoder installed?])
 
 have_theora="false"
 
-THEORA_REQUIRED="1.0alpha5"
+THEORADEC_REQUIRED="1.0.0"
 
-AC_ARG_ENABLE(theora,
-[AC_HELP_STRING([--disable-theora],[Disable theora (default: autodetect)])],
+AC_ARG_ENABLE(theoradec,
+[AC_HELP_STRING([--disable-theoradec],[Disable theoradec (default: autodetect)])],
 [case "${enableval}" in
-   yes) test_theora=true ;;
-   no)  test_theora=false ;;
-esac],[test_theora=true])
+   yes) test_theoradec=true ;;
+   no)  test_theoradec=false ;;
+esac],[test_theoradec=true])
 
-if test x$test_theora = xtrue; then
+if test x$test_theoradec = xtrue; then
 
-PKG_CHECK_MODULES(THEORA, theora >= $THEORA_REQUIRED, have_theora="true", have_theora="false")
+PKG_CHECK_MODULES(THEORADEC, theoradec >= $THEORADEC_REQUIRED, have_theoradec="true", have_theoradec="false")
 fi
 
-AC_SUBST(THEORA_REQUIRED)
-AC_SUBST(THEORA_LIBS)
-AC_SUBST(THEORA_CFLAGS)
+AC_SUBST(THEORADEC_REQUIRED)
+AC_SUBST(THEORADEC_LIBS)
+AC_SUBST(THEORADEC_CFLAGS)
 
-AM_CONDITIONAL(HAVE_THEORA, test x$have_theora = xtrue)
+AM_CONDITIONAL(HAVE_THEORADEC, test x$have_theoradec = xtrue)
 
-if test "x$have_theora" = "xtrue"; then
-AC_DEFINE([HAVE_THEORA])
+if test "x$have_theoradec" = "xtrue"; then
+AC_DEFINE([HAVE_THEORADEC])
 fi
 
 ])
+
+dnl
+dnl Check for theora encoder
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_THEORAENC],[
+
+AH_TEMPLATE([HAVE_THEORAENC],
+            [Do we have theoraenc installed?])
+
+have_theoraenc="false"
+
+THEORAENC_REQUIRED="1.0.0"
+
+AC_ARG_ENABLE(theoraenc,
+[AC_HELP_STRING([--disable-theoraenc],[Disable theoraenc (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_theoraenc=true ;;
+   no)  test_theoraenc=false ;;
+esac],[test_theoraenc=true])
+
+if test x$test_theoraenc = xtrue; then
+
+PKG_CHECK_MODULES(THEORAENC, theoraenc >= $THEORAENC_REQUIRED, have_theoraenc="true", have_theoraenc="false")
+fi
+
+AC_SUBST(THEORAENC_REQUIRED)
+AC_SUBST(THEORAENC_LIBS)
+AC_SUBST(THEORAENC_CFLAGS)
+
+AM_CONDITIONAL(HAVE_THEORAENC, test x$have_theoraenc = xtrue)
+
+if test "x$have_theoraenc" = "xtrue"; then
+AC_DEFINE([HAVE_THEORAENC])
+fi
+
+])
+
 
 dnl
 dnl Check for schroedinger
