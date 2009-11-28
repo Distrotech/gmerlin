@@ -192,14 +192,6 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
         bg_metadata_free(&p->metadata);
         bg_msg_get_arg_metadata(msg, 0, &p->metadata);
         break;
-      case BG_TRANSCODER_MSG_VIDEO_FILE:
-        str = bg_msg_get_arg_string(msg, 1);
-        pp_only = bg_msg_get_arg_int(msg, 2);
-        break;
-      case BG_TRANSCODER_MSG_AUDIO_FILE:
-        str = bg_msg_get_arg_string(msg, 1);
-        pp_only = bg_msg_get_arg_int(msg, 2);
-        break;
       case BG_TRANSCODER_MSG_FILE:
         str = bg_msg_get_arg_string(msg, 0);
         pp_only = bg_msg_get_arg_int(msg, 1);

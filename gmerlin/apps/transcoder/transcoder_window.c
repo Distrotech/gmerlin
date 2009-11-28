@@ -363,15 +363,9 @@ static gboolean idle_callback(gpointer data)
         break;
       case BG_TRANSCODER_MSG_AUDIO_FORMAT:
         break;
-      case BG_TRANSCODER_MSG_AUDIO_FILE:
-        break;
       case BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS:
         break;
       case BG_TRANSCODER_MSG_VIDEO_FORMAT:
-        break;
-      case BG_TRANSCODER_MSG_VIDEO_FILE:
-        break;
-      case BG_TRANSCODER_MSG_FILE:
         break;
       case BG_TRANSCODER_MSG_PROGRESS:
         percentage_done = bg_msg_get_arg_float(msg, 0);

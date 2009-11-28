@@ -36,9 +36,6 @@
 
 #define BG_TRANSCODER_MSG_AUDIO_FORMAT      2
 
-/* Output file (0: Filename) */
-
-#define BG_TRANSCODER_MSG_AUDIO_FILE        3
 
 
 /*
@@ -55,9 +52,7 @@
 
 #define BG_TRANSCODER_MSG_VIDEO_FORMAT      5
 
-/* Output file (0: Filename) */
-
-#define BG_TRANSCODER_MSG_VIDEO_FILE        6
+/* Output file (0: Filename, 1: pp_only) */
 
 #define BG_TRANSCODER_MSG_FILE              7
 

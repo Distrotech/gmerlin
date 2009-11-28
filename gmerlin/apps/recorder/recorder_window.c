@@ -52,6 +52,8 @@ struct bg_recorder_window_s
   
   guint noinput_context;
   int noinput_shown;
+
+  guint record_id;
   
   GtkWidget * about_button;
   GtkWidget * log_button;
@@ -77,6 +79,7 @@ struct bg_recorder_window_s
   bg_cfg_section_t * metadata_section;
   
   bg_cfg_section_t * log_section;
+  bg_cfg_section_t * gui_section;
   
   bg_msg_queue_t * msg_queue;
   bg_gtk_time_display_t * display;
@@ -170,11 +173,13 @@ static GtkWidget * create_pixmap_button(bg_recorder_window_t * w,
 
 static GtkWidget * create_pixmap_toggle_button(bg_recorder_window_t * w,
                                                const char * filename,
-                                               const char * tooltip)
+                                               const char * tooltip, guint * callback_id)
   {
   GtkWidget * button;
   GtkWidget * image;
   char * path;
+  guint id;
+  
   path = bg_search_file_read("icons", filename);
   if(path)
     {
@@ -188,8 +193,11 @@ static GtkWidget * create_pixmap_toggle_button(bg_recorder_window_t * w,
   button = gtk_toggle_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
   
-  g_signal_connect(G_OBJECT(button), "toggled",
-                   G_CALLBACK(button_callback), w);
+  id= g_signal_connect(G_OBJECT(button), "toggled",
+                       G_CALLBACK(button_callback), w);
+
+  if(callback_id)
+    *callback_id = id;
   
   gtk_widget_show(button);
   
@@ -307,10 +315,12 @@ static gboolean timeout_func(void * data)
           {
           gtk_statusbar_push(GTK_STATUSBAR(win->statusbar),
                              win->noinput_context,
-                             TR("Check recording setting"));
+                             TR("Error, check messages and settings"));
           win->noinput_shown = 1;
 
+          g_signal_handler_block(G_OBJECT(win->record_button), win->record_id);
           gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->record_button), 0);
+          g_signal_handler_unblock(G_OBJECT(win->record_button), win->record_id);
 
 
           }
@@ -384,7 +394,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   ret->restart_button =
     create_pixmap_button(ret, "refresh_16.png", TRS("Reopen inputs"));
   ret->record_button =
-    create_pixmap_toggle_button(ret, "record_16.png", TRS("Record"));
+    create_pixmap_toggle_button(ret, "record_16.png", TRS("Record"), &ret->record_id);
   
   ret->statusbar = gtk_statusbar_new();
   ret->framerate_context =

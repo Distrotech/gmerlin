@@ -74,14 +74,6 @@ void bg_transcoder_send_msg_video_format(bg_msg_queue_list_t * l,
                                          gavl_video_format_t * input_format,
                                          gavl_video_format_t * output_format);
 
-void bg_transcoder_send_msg_audio_file(bg_msg_queue_list_t * l,
-                                       int index,
-                                       const char * filename, int pp_only);
-
-void bg_transcoder_send_msg_video_file(bg_msg_queue_list_t * l,
-                                       int index,
-                                       const char * filename, int pp_only);
-
 void bg_transcoder_send_msg_file(bg_msg_queue_list_t * l,
                                  const char * filename, int pp_only);
 
