@@ -187,7 +187,7 @@ int bg_recorder_run(bg_recorder_t * rec)
         bg_recorder_video_cleanup(rec);
 
       bg_recorder_msg_running(rec, 0, 0);
-      return;
+      return 0;
       }
     }
   

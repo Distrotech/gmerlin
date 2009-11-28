@@ -902,6 +902,15 @@ void bg_encoder_get_subtitle_overlay_format(bg_encoder_t * enc,
   s->plugin->get_subtitle_overlay_format(s->priv, s->out_index, ret);
   }
 
+void bg_encoder_get_subtitle_text_timescale(bg_encoder_t * enc,
+                                            int stream,
+                                            int * ret)
+  {
+  subtitle_text_stream_t * s = &enc->subtitle_text_streams[stream];
+  *ret = s->timescale;
+  }
+
+
 
 /* Write frame */
 int bg_encoder_write_audio_frame(bg_encoder_t * enc,

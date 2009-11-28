@@ -2470,9 +2470,12 @@ static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
   gavl_video_format_copy(&ss->out_format, &vs->out_format);
   }
 
-static void subtitle_init_encode_text(subtitle_text_stream_t * ss)
+static void subtitle_init_encode_text(subtitle_text_stream_t * ss, bg_transcoder_t * t)
   {
   /* Nothing to do here for now */
+  bg_encoder_get_subtitle_text_timescale(t->enc,
+                                         ss->com.com.out_index,
+                                         &ss->com.out_format.timescale);
   }
 
 static void subtitle_init_encode_overlay(subtitle_stream_t * ss, bg_transcoder_t * t)
@@ -2546,7 +2549,7 @@ static int init_converters(bg_transcoder_t * ret)
                             &ret->video_streams[ret->subtitle_text_streams[i].com.video_stream]);
         break;
       case STREAM_ACTION_TRANSCODE:
-        subtitle_init_encode_text((&ret->subtitle_text_streams[i]));
+        subtitle_init_encode_text((&ret->subtitle_text_streams[i]), ret);
         break;
       case STREAM_ACTION_TRANSCODE_OVERLAY:
         subtitle_init_encode_overlay((subtitle_stream_t*)&ret->subtitle_text_streams[i], ret);

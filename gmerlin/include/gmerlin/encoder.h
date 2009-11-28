@@ -71,6 +71,8 @@ int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t *, const char * language
 void bg_encoder_get_audio_format(bg_encoder_t *, int stream, gavl_audio_format_t*ret);
 void bg_encoder_get_video_format(bg_encoder_t *, int stream, gavl_video_format_t*ret);
 void bg_encoder_get_subtitle_overlay_format(bg_encoder_t *, int stream, gavl_video_format_t*ret);
+void bg_encoder_get_subtitle_text_timescale(bg_encoder_t *, int stream, int * ret);
+
 
 /* Start encoding */
 int bg_encoder_start(bg_encoder_t *);
