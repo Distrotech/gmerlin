@@ -2470,7 +2470,8 @@ static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
   gavl_video_format_copy(&ss->out_format, &vs->out_format);
   }
 
-static void subtitle_init_encode_text(subtitle_text_stream_t * ss, bg_transcoder_t * t)
+static void subtitle_init_encode_text(subtitle_text_stream_t * ss,
+                                      bg_transcoder_t * t)
   {
   /* Nothing to do here for now */
   bg_encoder_get_subtitle_text_timescale(t->enc,
@@ -2478,14 +2479,15 @@ static void subtitle_init_encode_text(subtitle_text_stream_t * ss, bg_transcoder
                                          &ss->com.out_format.timescale);
   }
 
-static void subtitle_init_encode_overlay(subtitle_stream_t * ss, bg_transcoder_t * t)
+static void subtitle_init_encode_overlay(subtitle_stream_t * ss,
+                                         bg_transcoder_t * t)
   {
   subtitle_text_stream_t * sst;
 
   bg_encoder_get_subtitle_overlay_format(t->enc,
-                                         ss->com.out_index, &(ss->out_format));
-  
-  
+                                         ss->com.out_index,
+                                         &(ss->out_format));
+    
   /* Check whether to initialize the text renderer */
   if(ss->com.type == STREAM_TYPE_SUBTITLE_TEXT)
     {

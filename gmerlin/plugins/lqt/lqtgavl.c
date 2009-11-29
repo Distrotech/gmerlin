@@ -374,11 +374,12 @@ int lqt_gavl_encode_video(quicktime_t * file, int track,
     lqt_set_row_span(file, track, frame->strides[0]);
     lqt_set_row_span_uv(file, track, frame->strides[1]);
 #if LQT_BUILD >= LQT_MAKE_BUILD(1,1,2)
-    result = lqt_encode_video_d(file, frame->planes, track, frame->timestamp,
-                                frame->duration);
-#else
-    result = lqt_encode_video(file, frame->planes, track, frame->timestamp);
+    if(frame->duration > 0)
+      result = lqt_encode_video_d(file, frame->planes, track, frame->timestamp,
+                                  frame->duration);
+    else
 #endif
+      result = lqt_encode_video(file, frame->planes, track, frame->timestamp);
 
     }
   else
@@ -390,10 +391,11 @@ int lqt_gavl_encode_video(quicktime_t * file, int track,
       rows[i] = frame->planes[0] + i * frame->strides[0];
       }
 #if LQT_BUILD >= LQT_MAKE_BUILD(1,1,2)
-    result = lqt_encode_video_d(file, rows, track, frame->timestamp, frame->duration);
-#else
-    result = lqt_encode_video(file, rows, track, frame->timestamp);
+    if(frame->duration > 0)
+      result = lqt_encode_video_d(file, rows, track, frame->timestamp, frame->duration);
+    else
 #endif
+      result = lqt_encode_video(file, rows, track, frame->timestamp);
     }
   return result;
   }
