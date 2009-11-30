@@ -674,6 +674,7 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
       XChangeProperty(win->dpy, win->win, wm_state, XA_ATOM, 32,
                       PropModeReplace,
                       (unsigned char *)wm_states, num_props);
+      XSync(win->dpy, False);
       }
     
     XMapWindow(win->dpy, win->win);
@@ -709,10 +710,10 @@ void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
     XDestroyImage(win->image);
     }
 
-  /* Get the ontop and sticky properties */
   if(!(win->flags & GRAB_ROOT))
     {
-    XWithdrawWindow(win->dpy, win->win, win->screen);
+    XUnmapWindow(win->dpy, win->win);
+    //    XWithdrawWindow(win->dpy, win->win, win->screen);
     XSync(win->dpy, False);
     }
      
@@ -838,7 +839,7 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
   int crop_right = 0;
   int crop_top = 0;
   int crop_bottom = 0;
-
+  
   gavl_rectangle_i_t rect;
   
   handle_events(win);
@@ -902,10 +903,6 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
   if(win->flags & DRAW_CURSOR)
     draw_cursor(win, &rect, frame);
   
-  frame->timestamp = gavl_time_scale(gavl_timer_get(win->timer),
-                                     win->format.timescale);
-  
-  // fprintf(stderr, "Timestamp: %"PRId64"\n", frame->timestamp);
-  
+  frame->timestamp = gavl_time_scale(win->format.timescale, gavl_timer_get(win->timer));
   return 1;
   }

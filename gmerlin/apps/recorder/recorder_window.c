@@ -21,6 +21,7 @@
 
 #include <config.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <gtk/gtk.h>
 
@@ -85,7 +86,89 @@ struct bg_recorder_window_s
   bg_gtk_time_display_t * display;
 
   bg_plugin_registry_t * plugin_reg;
+  
+  gavl_rectangle_i_t win_rect;
+  
   };
+
+static const bg_parameter_info_t gui_parameters[] =
+  {
+    {
+      .name = "x",
+      .type = BG_PARAMETER_INT,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      .name = "y",
+      .type = BG_PARAMETER_INT,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      .name = "width",
+      .type = BG_PARAMETER_INT,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      .name = "height",
+      .type = BG_PARAMETER_INT,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+    },
+    { /* End */ }
+  };
+
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val)
+  {
+  bg_recorder_window_t * win = data;
+  if(!name)
+    return;
+  else if(!strcmp(name, "x"))
+    {
+    win->win_rect.x = val->val_i;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    win->win_rect.y = val->val_i;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    win->win_rect.w = val->val_i;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    win->win_rect.h = val->val_i;
+    }
+  }
+
+static int get_parameter(void * data, const char * name,
+                         bg_parameter_value_t * val)
+  {
+  bg_recorder_window_t * win = data;
+  if(!name)
+    return 1;
+  else if(!strcmp(name, "x"))
+    {
+    val->val_i = win->win_rect.x;
+    return 1;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    val->val_i = win->win_rect.y;
+    return 1;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    val->val_i = win->win_rect.w;
+    return 1;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    val->val_i = win->win_rect.h;
+    return 1;
+    }
+  return 0;
+  }
+
 
 #if 0
 static void about_window_close_callback(bg_gtk_about_window_t * w,
@@ -136,6 +219,22 @@ static void button_callback(GtkWidget * w, gpointer data)
 static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   {
   bg_recorder_window_t * win = (bg_recorder_window_t *)data;
+  
+  if(win->win->window) /* Remember coordinates */
+    {
+    gdk_window_get_geometry(win->win->window,
+                            NULL, NULL, &win->win_rect.w, &win->win_rect.h,
+                            NULL);
+    
+    gdk_window_get_root_origin(win->win->window,
+                               &win->win_rect.x, &win->win_rect.y);
+    
+    bg_cfg_section_get(win->gui_section,
+                       gui_parameters,
+                       get_parameter,
+                       win);
+    }
+  
   gtk_widget_hide(win->win);
   gtk_main_quit();
   }
@@ -342,6 +441,7 @@ static float display_fg[] = { 0.0, 1.0, 0.0 };
 static float display_bg[] = { 0.0, 0.0, 0.0 };
 
 
+
 bg_recorder_window_t *
 bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                           bg_plugin_registry_t * plugin_reg)
@@ -460,6 +560,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   /* Config stuff */
 
   ret->log_section = bg_cfg_registry_find_section(cfg_reg, "log");
+  ret->gui_section = bg_cfg_registry_find_section(cfg_reg, "gui");
+  
   ret->audio_section = bg_cfg_registry_find_section(cfg_reg, "audio");
   ret->video_section = bg_cfg_registry_find_section(cfg_reg, "video");
 
@@ -576,6 +678,11 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                        bg_gtk_log_window_set_parameter,
                        ret->logwindow);
 
+  bg_cfg_section_apply(ret->gui_section,
+                       gui_parameters,
+                       set_parameter,
+                       ret);
+  
   bg_cfg_section_apply(ret->output_section,
                        bg_recorder_get_output_parameters(ret->rec),
                        bg_recorder_set_output_parameter,
@@ -603,6 +710,20 @@ void bg_recorder_window_destroy(bg_recorder_window_t * win)
 void bg_recorder_window_run(bg_recorder_window_t * win)
   {
   gtk_widget_show(win->win);
+  
+  
+  if((win->win_rect.w > 0) && (win->win_rect.h > 0))
+    {
+    gtk_decorated_window_move_resize_window(GTK_WINDOW(win->win),
+                                            win->win_rect.x, win->win_rect.y,
+                                            win->win_rect.w, win->win_rect.h);
+    }
+  else
+    {
+    gtk_window_set_default_size(GTK_WINDOW(win->win),
+                                320, 300);
+    }
+  
   bg_recorder_run(win->rec);
   
   gtk_main();

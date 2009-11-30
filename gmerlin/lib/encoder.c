@@ -64,6 +64,8 @@ typedef struct
   int total_passes;
   char * stats_file;
   
+  //  int64_t last_timestamp;
+  
   } video_stream_t;
 
 typedef struct
@@ -927,6 +929,16 @@ int bg_encoder_write_video_frame(bg_encoder_t * enc,
                                  int stream)
   {
   video_stream_t * s = &enc->video_streams[stream];
+#if 0  
+  fprintf(stderr, "Write video frame %"PRId64"\n", frame->timestamp);
+
+  if(frame->timestamp < s->last_timestamp)
+    {
+    fprintf(stderr, "Error: %"PRId64" < %"PRId64"\n",
+            frame->timestamp, s->last_timestamp);
+    }
+  s->last_timestamp = frame->timestamp;
+#endif
   return s->plugin->write_video_frame(s->priv, frame, s->out_index);
   }
 
