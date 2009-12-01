@@ -60,6 +60,7 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   ret->msg_queues = bg_msg_queue_list_create();
   pthread_mutex_init(&ret->enc_mutex, NULL);
   pthread_mutex_init(&ret->time_mutex, NULL);
+  pthread_mutex_init(&ret->snapshot_mutex, NULL);
   
   return ret;
   }
@@ -89,6 +90,7 @@ void bg_recorder_destroy(bg_recorder_t * rec)
   bg_metadata_free(&rec->m);
   pthread_mutex_destroy(&rec->enc_mutex);
   pthread_mutex_destroy(&rec->time_mutex);
+  pthread_mutex_destroy(&rec->snapshot_mutex);
   
   free(rec);
   }
@@ -379,6 +381,9 @@ static const bg_parameter_info_t output_parameters[] =
       .long_name = TRS("Output filename mask"),
       .type      = BG_PARAMETER_STRING,
       .val_default = { .val_str = "%Y-%m-%d-%H-%M-%S" },
+      .help_string = TRS("Extension is appended by the plugin\n\
+For the date and time formatting, consult the documentation\n\
+of the strftime(3) function"),
     },
     {
       .name      = "snapshot_directory",
@@ -391,6 +396,10 @@ static const bg_parameter_info_t output_parameters[] =
       .long_name = TRS("Snapshot filename mask"),
       .type      = BG_PARAMETER_STRING,
       .val_default = { .val_str = "shot_%5n" },
+      .help_string = TRS("Extension is appended by the plugin\n\
+%t    Inserts time\n\
+%d    Inserts date\n\
+%<i>n Inserts Frame number with <i> digits")
     },
     { /* End */ }
   };
@@ -472,4 +481,12 @@ void bg_recorder_resume(bg_recorder_t * rec)
     rec->flags &= ~FLAG_INTERRUPTED;
     bg_recorder_run(rec);
     }
+  }
+
+void bg_recorder_snapshot(bg_recorder_t * rec)
+  {
+  pthread_mutex_lock(&rec->snapshot_mutex);
+  rec->snapshot = 1;
+  pthread_mutex_unlock(&rec->snapshot_mutex);
+  fprintf(stderr, "Snapshot\n");
   }

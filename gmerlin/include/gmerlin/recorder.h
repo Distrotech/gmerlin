@@ -72,6 +72,7 @@ void bg_recorder_set_display_string(bg_recorder_t*, const char * str);
  */
 void bg_recorder_record(bg_recorder_t*, int record);
 
+void bg_recorder_snapshot(bg_recorder_t*);
 
 /* Parameter stuff */
 
@@ -117,6 +118,15 @@ void
 bg_recorder_set_video_monitor_parameter(void * data,
                                         const char * name,
                                         const bg_parameter_value_t * val);
+
+const bg_parameter_info_t *
+bg_recorder_get_video_snapshot_parameters(bg_recorder_t *);
+
+void
+bg_recorder_set_video_snapshot_parameter(void * data,
+                                         const char * name,
+                                         const bg_parameter_value_t * val);
+
 
 /* Encoders */
 const bg_parameter_info_t *

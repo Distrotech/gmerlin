@@ -27,12 +27,14 @@
 
 #define NUM_THREADS 2
 
-#define STREAM_ACTIVE       (1<<0)
-#define STREAM_INPUT_OPEN   (1<<1)
-#define STREAM_MONITOR      (1<<2)
-#define STREAM_MONITOR_OPEN (1<<3)
-#define STREAM_ENCODE       (1<<4)
-#define STREAM_ENCODE_OPEN  (1<<5)
+#define STREAM_ACTIVE        (1<<0)
+#define STREAM_INPUT_OPEN    (1<<1)
+#define STREAM_MONITOR       (1<<2)
+#define STREAM_MONITOR_OPEN  (1<<3)
+#define STREAM_ENCODE        (1<<4)
+#define STREAM_ENCODE_OPEN   (1<<5)
+#define STREAM_SNAPSHOT_INIT (1<<6)
+#define STREAM_SNAPSHOT_AUTO (1<<7)
 
 #define FLAG_RUNNING        (1<<0)     
 #define FLAG_RECORDING      (1<<1) 
@@ -102,7 +104,6 @@ typedef struct
   /* Monitor section */
   bg_plugin_handle_t     * monitor_handle;
   bg_ov_plugin_t         * monitor_plugin;
-  gavl_video_converter_t * monitor_cnv;
   
   int do_convert_monitor;
   int do_convert_enc;
@@ -110,13 +111,14 @@ typedef struct
   //  int do_monitor;
   
   /* Output section */
-  bg_plugin_handle_t * output_handle;
-  gavl_video_converter_t * output_cnv;
-  gavl_video_frame_t     * output_frame;
+  //  bg_plugin_handle_t * output_handle;
+  //  gavl_video_converter_t * output_cnv;
+  //  gavl_video_frame_t     * output_frame;
 
   /* Encoder section */
   gavl_video_converter_t * enc_cnv;
-  gavl_video_frame_t     * enc_frame;
+  gavl_video_converter_t * monitor_cnv;
+  gavl_video_converter_t * snapshot_cnv;
   
   bg_player_thread_t * th;
 
@@ -126,16 +128,20 @@ typedef struct
   
   bg_parameter_info_t * parameters;
   bg_parameter_info_t * monitor_parameters;
-
+  bg_parameter_info_t * snapshot_parameters;
+  
   /* Formats */
   gavl_video_format_t input_format;
   gavl_video_format_t pipe_format;
   gavl_video_format_t monitor_format;
   gavl_video_format_t enc_format;
-
+  gavl_video_format_t snapshot_format;
+  
   /* Frames */
   gavl_video_frame_t * pipe_frame;
   gavl_video_frame_t * monitor_frame;
+  gavl_video_frame_t * snapshot_frame;
+  gavl_video_frame_t * enc_frame;
   
   gavl_timer_t * timer;
   
@@ -154,6 +160,15 @@ typedef struct
   
   int enc_index;
 
+  bg_iw_callbacks_t snapshot_cb;
+
+  bg_plugin_handle_t       * snapshot_handle;
+  bg_image_writer_plugin_t * snapshot_plugin;
+  
+  gavl_time_t snapshot_interval;
+  
+  int snapshot_counter;
+  
   } bg_recorder_video_stream_t;
 
 struct bg_recorder_s
@@ -184,13 +199,18 @@ struct bg_recorder_s
   char * output_filename_mask;
   char * snapshot_directory;
   char * snapshot_filename_mask;
-
+  
   bg_metadata_t m;
   bg_parameter_info_t * metadata_parameters;
 
   gavl_time_t recording_time;
   gavl_time_t last_recording_time;
   pthread_mutex_t time_mutex;
+
+  int snapshot;
+  
+
+  pthread_mutex_t snapshot_mutex;
   
   };
 

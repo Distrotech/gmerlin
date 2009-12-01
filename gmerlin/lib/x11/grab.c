@@ -349,38 +349,12 @@ static void create_cursor_static(bg_x11_grab_window_t * win)
   win->cursor.ovl_rect.h = CURSOR_HEIGHT;
   }
 
-
-static int realize_window(bg_x11_grab_window_t * ret)
+static void create_window(bg_x11_grab_window_t * ret)
   {
-#ifdef HAVE_XFIXES
-  int xfixes_errorbase;
-#endif
   XSetWindowAttributes attr;
   unsigned long valuemask;
   Atom wm_protocols[1];
-  
-  /* Open Display */
-  ret->dpy = XOpenDisplay(NULL);
-  
-  if(!ret->dpy)
-    return 0;
-  
-  /* Get X11 stuff */
-  ret->screen = DefaultScreen(ret->dpy);
-  ret->visual = DefaultVisual(ret->dpy, ret->screen);
-  ret->depth = DefaultDepth(ret->dpy, ret->screen);
-  
-  ret->root = RootWindow(ret->dpy, ret->screen);
 
-  /* Check for XFixes */
-#ifdef HAVE_XFIXES
-  ret->use_xfixes = XFixesQueryExtension(ret->dpy,
-                                         &ret->xfixes_eventbase,
-                                         &xfixes_errorbase);
-  if(!ret->use_xfixes)
-#endif
-    create_cursor_static(ret);
-    
   /* Create window */
 
   attr.background_pixmap = None;
@@ -401,11 +375,6 @@ static int realize_window(bg_x11_grab_window_t * ret)
 
   XSelectInput(ret->dpy, ret->win, StructureNotifyMask);
 
-#ifdef HAVE_XFIXES
-  if(ret->use_xfixes)
-    XFixesSelectCursorInput(ret->dpy, ret->root,
-                            XFixesDisplayCursorNotifyMask);
-#endif
   
   XShapeCombineRectangles(ret->dpy,
                           ret->win,
@@ -421,6 +390,69 @@ static int realize_window(bg_x11_grab_window_t * ret)
   
   XmbSetWMProperties(ret->dpy, ret->win, "X11 grab",
                      "X11 grab", NULL, 0, NULL, NULL, NULL);
+
+  if(!(ret->flags & GRAB_ROOT))
+    {
+    if(ret->flags & (WIN_ONTOP|WIN_STICKY))
+      {
+      Atom wm_states[2];
+      int num_props = 0;
+      Atom wm_state = XInternAtom(ret->dpy, "_NET_WM_STATE", False);
+
+      if(ret->flags & WIN_ONTOP)
+        {
+        wm_states[num_props++] =
+          XInternAtom(ret->dpy, "_NET_WM_STATE_ABOVE", False);
+        }
+      if(ret->flags & WIN_STICKY)
+        {
+        wm_states[num_props++] =
+          XInternAtom(ret->dpy, "_NET_WM_STATE_STICKY", False);
+        }
+      
+      XChangeProperty(ret->dpy, ret->win, wm_state, XA_ATOM, 32,
+                      PropModeReplace,
+                      (unsigned char *)wm_states, num_props);
+      XSync(ret->dpy, False);
+      }
+    
+    XMapWindow(ret->dpy, ret->win);
+    XSync(ret->dpy, False);
+    XMoveWindow(ret->dpy, ret->win, ret->decoration_x, ret->decoration_y);
+    }
+  }
+
+static int realize_window(bg_x11_grab_window_t * ret)
+  {
+#ifdef HAVE_XFIXES
+  int xfixes_errorbase;
+#endif
+  
+  /* Open Display */
+  ret->dpy = XOpenDisplay(NULL);
+  
+  if(!ret->dpy)
+    return 0;
+  
+  /* Get X11 stuff */
+  ret->screen = DefaultScreen(ret->dpy);
+  ret->visual = DefaultVisual(ret->dpy, ret->screen);
+  ret->depth = DefaultDepth(ret->dpy, ret->screen);
+  
+  ret->root = RootWindow(ret->dpy, ret->screen);
+
+  /* Check for XFixes */
+#ifdef HAVE_XFIXES
+  ret->use_xfixes = XFixesQueryExtension(ret->dpy,
+                                         &ret->xfixes_eventbase,
+                                         &xfixes_errorbase);
+
+  if(ret->use_xfixes)
+    XFixesSelectCursorInput(ret->dpy, ret->root,
+                            XFixesDisplayCursorNotifyMask);
+  else
+#endif
+    create_cursor_static(ret);
   
   bg_x11_window_get_coords(ret->dpy, ret->root,
                            (int*)0, (int*)0,
@@ -430,6 +462,7 @@ static int realize_window(bg_x11_grab_window_t * ret)
     bg_x11_window_get_pixelformat(ret->dpy, ret->visual, ret->depth);
 
   ret->use_shm = XShmQueryExtension(ret->dpy);
+  
   return 1;
   }
 
@@ -553,7 +586,7 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
   {
   win->flags = win->cfg_flags;
 
-  if(win->win == None)
+  if(!win->dpy)
     {
     if(!realize_window(win))
       return 0;
@@ -651,36 +684,8 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
     win->cursor_x = INT_MIN;
     win->cursor_y = INT_MIN;
     }
-  
-  if(!(win->flags & GRAB_ROOT))
-    {
-    if(win->flags & (WIN_ONTOP|WIN_STICKY))
-      {
-      Atom wm_states[2];
-      int num_props = 0;
-      Atom wm_state = XInternAtom(win->dpy, "_NET_WM_STATE", False);
 
-      if(win->flags & WIN_ONTOP)
-        {
-        wm_states[num_props++] =
-          XInternAtom(win->dpy, "_NET_WM_STATE_ABOVE", False);
-        }
-      if(win->flags & WIN_STICKY)
-        {
-        wm_states[num_props++] =
-          XInternAtom(win->dpy, "_NET_WM_STATE_STICKY", False);
-        }
-      
-      XChangeProperty(win->dpy, win->win, wm_state, XA_ATOM, 32,
-                      PropModeReplace,
-                      (unsigned char *)wm_states, num_props);
-      XSync(win->dpy, False);
-      }
-    
-    XMapWindow(win->dpy, win->win);
-    XSync(win->dpy, False);
-    XMoveWindow(win->dpy, win->win, win->decoration_x, win->decoration_y);
-    }
+  create_window(win);
   handle_events(win);
   
   gavl_timer_set(win->timer, 0);
@@ -713,12 +718,12 @@ void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
   if(!(win->flags & GRAB_ROOT))
     {
     XUnmapWindow(win->dpy, win->win);
-    //    XWithdrawWindow(win->dpy, win->win, win->screen);
+    
     XSync(win->dpy, False);
     }
-     
-  handle_events(win);
-     
+  //  handle_events(win);
+  XDestroyWindow(win->dpy, win->win);
+  win->win = None;
   }
 
 #ifdef HAVE_XFIXES

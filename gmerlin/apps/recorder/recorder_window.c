@@ -61,6 +61,7 @@ struct bg_recorder_window_s
   GtkWidget * config_button;
   GtkWidget * restart_button;
   GtkWidget * record_button;
+  GtkWidget * snapshot_button;
   
   bg_dialog_t * cfg_dialog;
   
@@ -71,6 +72,7 @@ struct bg_recorder_window_s
   bg_cfg_section_t * audio_filter_section;
   bg_cfg_section_t * video_filter_section;
   bg_cfg_section_t * video_monitor_section;
+  bg_cfg_section_t * video_snapshot_section;
   
   bg_cfg_section_t * audio_section;
   bg_cfg_section_t * video_section;
@@ -214,6 +216,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     gtk_widget_set_sensitive(win->config_button, !do_record);
     bg_recorder_record(win->rec, do_record);
     }
+  else if(w == win->snapshot_button)
+    bg_recorder_snapshot(win->rec);
   }
 
 static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
@@ -344,6 +348,11 @@ static void socket_realize(GtkWidget * w, gpointer data)
                        bg_recorder_get_video_monitor_parameters(win->rec),
                        bg_recorder_set_video_monitor_parameter,
                        win->rec);
+
+  bg_cfg_section_apply(win->video_snapshot_section,
+                       bg_recorder_get_video_snapshot_parameters(win->rec),
+                       bg_recorder_set_video_snapshot_parameter,
+                       win->rec);
   }
 
 static gboolean timeout_func(void * data)
@@ -406,10 +415,15 @@ static gboolean timeout_func(void * data)
         
         do_video = bg_msg_get_arg_int(msg, 1);
         if(do_video)
+          {
           gtk_widget_show(win->socket);
+          gtk_widget_set_sensitive(win->snapshot_button, 1);
+          }
         else
+          {
           gtk_widget_hide(win->socket);
-
+          gtk_widget_set_sensitive(win->snapshot_button, 0);
+          }
         if(!do_audio && !do_video)
           {
           gtk_statusbar_push(GTK_STATUSBAR(win->statusbar),
@@ -495,6 +509,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     create_pixmap_button(ret, "refresh_16.png", TRS("Reopen inputs"));
   ret->record_button =
     create_pixmap_toggle_button(ret, "record_16.png", TRS("Record"), &ret->record_id);
+  ret->snapshot_button =
+    create_pixmap_button(ret, "snapshot_16.png", TRS("Make snapshot"));
   
   ret->statusbar = gtk_statusbar_new();
   ret->framerate_context =
@@ -536,6 +552,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->log_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->restart_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->record_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->snapshot_button, FALSE, FALSE, 0);
   
   gtk_box_pack_end(GTK_BOX(box), bg_gtk_time_display_get_widget(ret->display),
                    FALSE, FALSE, 0);
@@ -571,6 +588,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     bg_cfg_registry_find_section(cfg_reg, "videofilter");
   ret->video_monitor_section =
     bg_cfg_registry_find_section(cfg_reg, "video_monitor");
+  ret->video_snapshot_section =
+    bg_cfg_registry_find_section(cfg_reg, "video_snapshot");
   ret->output_section =
     bg_cfg_registry_find_section(cfg_reg, "output");
   ret->metadata_section =
@@ -635,6 +654,14 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                       ret->rec,
                       bg_recorder_get_video_monitor_parameters(ret->rec));
 
+  bg_dialog_add_child(ret->cfg_dialog, parent,
+                      TRS("Snapshots"),
+                      ret->video_snapshot_section,
+                      bg_recorder_set_video_snapshot_parameter,
+                      NULL,
+                      ret->rec,
+                      bg_recorder_get_video_snapshot_parameters(ret->rec));
+  
   /* Other stuff */
   
   bg_dialog_add(ret->cfg_dialog,

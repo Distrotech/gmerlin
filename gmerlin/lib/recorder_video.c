@@ -21,8 +21,10 @@
 
 #include <config.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <gmerlin/translation.h>
+#include <gmerlin/utils.h>
 
 #include <gmerlin/recorder.h>
 #include <recorder_private.h>
@@ -37,9 +39,9 @@ void bg_recorder_create_video(bg_recorder_t * rec)
   bg_recorder_video_stream_t * vs = &rec->vs;
 
   vs->monitor_cnv = gavl_video_converter_create();
-  vs->output_cnv = gavl_video_converter_create();
   vs->enc_cnv = gavl_video_converter_create();
-
+  vs->snapshot_cnv = gavl_video_converter_create();
+  
   bg_gavl_video_options_init(&(vs->opt));
   
   vs->fc = bg_video_filter_chain_create(&(vs->opt), rec->plugin_reg);
@@ -55,7 +57,8 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   
   gavl_video_converter_destroy(vs->monitor_cnv);
   gavl_video_converter_destroy(vs->enc_cnv);
-  gavl_video_converter_destroy(vs->output_cnv);
+  gavl_video_converter_destroy(vs->snapshot_cnv);
+  
   bg_video_filter_chain_destroy(vs->fc);
   bg_player_thread_destroy(vs->th);
   gavl_timer_destroy(vs->timer);
@@ -65,6 +68,8 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
     bg_plugin_unref(vs->monitor_handle);
   if(vs->input_handle)
     bg_plugin_unref(vs->input_handle);
+  if(vs->snapshot_handle)
+    bg_plugin_unref(vs->snapshot_handle);
   
   bg_gavl_video_options_free(&(vs->opt));
   }
@@ -264,6 +269,95 @@ bg_recorder_set_video_monitor_parameter(void * data,
     }
   }
 
+static const bg_parameter_info_t snapshot_parameters[] =
+  {
+    {
+      .name = "snapshot_auto",
+      .long_name = TRS("Automatic"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+    },
+    {
+      .name = "snapshot_interval",
+      .long_name = TRS("Snapshot interval"),
+      .type = BG_PARAMETER_FLOAT,
+      .val_default = { .val_f = 5.0 },
+      .val_min     = { .val_f = 0.5 },
+      .val_max     = { .val_f = 10000.0 },
+      .num_digits  = 1,
+    },
+    {
+      .name      = "plugin",
+      .long_name = TRS("Plugin"),
+      .type      = BG_PARAMETER_MULTI_MENU,
+    },
+    { /* End */ }
+  };
+
+const bg_parameter_info_t *
+bg_recorder_get_video_snapshot_parameters(bg_recorder_t * rec)
+  {
+  bg_recorder_video_stream_t * vs = &rec->vs;
+  if(!vs->snapshot_parameters)
+    {
+    vs->snapshot_parameters = bg_parameter_info_copy_array(snapshot_parameters);
+    bg_plugin_registry_set_parameter_info(rec->plugin_reg,
+                                          BG_PLUGIN_IMAGE_WRITER,
+                                          BG_PLUGIN_FILE,
+                                          &vs->snapshot_parameters[2]);
+    }
+  return vs->snapshot_parameters;
+  }
+
+void
+bg_recorder_set_video_snapshot_parameter(void * data,
+                                         const char * name,
+                                         const bg_parameter_value_t * val)
+  {
+  bg_recorder_t * rec;
+  bg_recorder_video_stream_t * vs;
+
+  if(!name)
+    return;
+
+  rec = data;
+  vs = &rec->vs;
+  
+  if(!strcmp(name, "snapshot_auto"))
+    {
+    if(val->val_i)
+      vs->flags |= STREAM_SNAPSHOT_AUTO;
+    else
+      vs->flags &= ~STREAM_SNAPSHOT_AUTO;
+    }
+  else if(!strcmp(name, "snapshot_interval"))
+    vs->snapshot_interval = gavl_seconds_to_time(val->val_f);
+  else if( !strcmp(name, "plugin"))
+    {
+    const bg_plugin_info_t * info;
+    
+    if(vs->snapshot_handle &&
+       !strcmp(vs->snapshot_handle->info->name, val->val_str))
+      return;
+    
+    bg_recorder_interrupt(rec);
+    
+    if(vs->snapshot_handle)
+      bg_plugin_unref(vs->snapshot_handle);
+    
+    info = bg_plugin_find_by_name(rec->plugin_reg, val->val_str);
+
+    vs->snapshot_handle = bg_plugin_load(rec->plugin_reg,
+                                         info);
+    vs->snapshot_plugin = (bg_image_writer_plugin_t*)(vs->snapshot_handle->plugin);
+    }
+  else
+    {
+    vs->snapshot_plugin->common.set_parameter(vs->snapshot_handle->priv,
+                                              name, val);
+    }
+  }
+
+
 const bg_parameter_info_t *
 bg_recorder_get_video_filter_parameters(bg_recorder_t * rec)
   {
@@ -302,6 +396,94 @@ bg_recorder_set_video_filter_parameter(void * data,
     bg_recorder_interrupt(rec);
   }
 
+#define BUFFER_SIZE 256
+
+static char * create_filename(bg_recorder_t * rec, int * have_count)
+  {
+  char mask[16];
+  char buf[BUFFER_SIZE];
+  char * pos;
+  char * end;
+  char * filename;
+  int have_time = 0;
+  time_t t;
+  struct tm time_date;
+  
+  filename = bg_sprintf("%s/", rec->snapshot_directory);
+  
+  pos = rec->snapshot_filename_mask;
+
+  if(have_count)
+    *have_count = 0;
+  
+  while(1)
+    {
+    end = pos;
+    
+    while((*end != '%') && (*end != '\0'))
+      {
+      end++;
+      }
+    
+    if(end - pos)
+      filename = bg_strncat(filename, pos, end);
+    
+    if(*end == '\0')
+      break;
+
+    pos = end;
+    
+    /* Insert frame count */
+    if(isdigit(pos[1]) && (pos[2] == 'n'))
+      {
+      mask[0] = '%';
+      mask[1] = '0';
+      mask[2] = pos[1];
+      mask[3] = 'd';
+      mask[4] = '\0';
+      sprintf(buf, mask, rec->vs.snapshot_counter);
+      filename = bg_strcat(filename, buf);
+      pos += 3;
+
+      if(have_count)
+        *have_count = 1;
+      }
+    /* Insert date */
+    else if(pos[1] == 'd')
+      {
+      if(!have_time)
+        {
+        time(&t);
+        localtime_r(&t, &time_date);
+        have_time = 1;
+        }
+      strftime(buf, BUFFER_SIZE, "%Y-%m-%d", &time_date);
+      filename = bg_strcat(filename, buf);
+      pos += 2;
+      }
+    /* Insert date */
+    else if(pos[1] == 't')
+      {
+      if(!have_time)
+        {
+        time(&t);
+        localtime_r(&t, &time_date);
+        have_time = 1;
+        }
+      strftime(buf, BUFFER_SIZE, "%H-%M-%S", &time_date);
+      filename = bg_strcat(filename, buf);
+      pos += 2;
+      }
+    else
+      {
+      filename = bg_strcat(filename, "%");
+      pos++;
+      }
+    }
+  return filename;
+  }
+
+
 void * bg_recorder_video_thread(void * data)
   {
   bg_recorder_t * rec = data;
@@ -319,6 +501,9 @@ void * bg_recorder_video_thread(void * data)
 
     if(!vs->in_func(vs->in_data, vs->pipe_frame, vs->in_stream))
       break; /* Should never happen */
+
+    /* Check whether to make a snapshot */
+    
     
     /* Monitor */
     if(vs->flags & STREAM_MONITOR)
@@ -477,6 +662,9 @@ int bg_recorder_video_init(bg_recorder_t * rec)
     vs->pipe_frame = vs->monitor_frame;
   else
     vs->pipe_frame = gavl_video_frame_create(&vs->pipe_format);
+
+  /* Initialize snapshot counter */
+  
   
   return 1;
   }
@@ -528,7 +716,10 @@ void bg_recorder_video_cleanup(bg_recorder_t * rec)
     vs->enc_frame = NULL;
     }
 
-  vs->flags &= ~(STREAM_INPUT_OPEN | STREAM_ENCODE_OPEN | STREAM_MONITOR_OPEN);
+  vs->flags &= ~(STREAM_INPUT_OPEN |
+                 STREAM_ENCODE_OPEN |
+                 STREAM_MONITOR_OPEN |
+                 STREAM_SNAPSHOT_INIT);
   
   }
 
