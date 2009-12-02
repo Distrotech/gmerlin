@@ -814,3 +814,16 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parame
   BG_XML_SET_PROP(xml_parameters, num_key, tmp_string);
   free(tmp_string);
   }
+
+void
+bg_parameters_dump(const bg_parameter_info_t * info, const char * filename)
+  {
+  xmlDocPtr  xml_doc;
+  xmlNodePtr xml_params;
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  xml_params = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"PARAMETERS", NULL);
+  xmlDocSetRootElement(xml_doc, xml_params);
+  bg_parameters_2_xml(info, xml_params);
+  xmlSaveFile(filename, xml_doc);
+  xmlFreeDoc(xml_doc);
+  }

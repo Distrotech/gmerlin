@@ -1888,7 +1888,7 @@ void bg_transcoder_track_set_encoders(bg_transcoder_track_t * t,
   for(i = 0; i < t->num_audio_streams; i++)
     DELETE_SECTION(t->audio_streams[i].encoder_section);
   for(i = 0; i < t->num_video_streams; i++)
-    DELETE_SECTION(t->audio_streams[i].encoder_section);
+    DELETE_SECTION(t->video_streams[i].encoder_section);
   for(i = 0; i < t->num_subtitle_text_streams; i++)
     {
     DELETE_SECTION(t->subtitle_text_streams[i].encoder_section_text);

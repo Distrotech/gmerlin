@@ -238,7 +238,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         t->audio_streams[i].filter_parameters);
     
-    if(t->audio_streams[i].encoder_section && plugin_info)
+    if(plugin_info && plugin_info->audio_parameters)
       {
       label = TR("Encode options");
       
@@ -307,8 +307,8 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         NULL,
                         t->video_streams[i].filter_parameters);
-    
-    if(t->video_streams[i].encoder_section && plugin_info)
+
+    if(plugin_info && plugin_info->video_parameters)
       {
       label = TR("Encode options");
       
@@ -456,7 +456,6 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
     if(plugin_info1->subtitle_overlay_parameters)
       {
-      
       label = TR("Encode options");
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           label,

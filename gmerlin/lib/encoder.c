@@ -432,6 +432,14 @@ static void check_separate(bg_encoder_t * enc)
       BG_STREAM_SUBTITLE_TEXT |
       BG_STREAM_AUDIO;
     }
+  else
+    {
+    /* Under some conditions, we want the video to be marked as separate as well */
+    if(((enc->separate & BG_STREAM_SUBTITLE_OVERLAY) || !enc->num_subtitle_overlay_streams) &&
+       ((enc->separate & BG_STREAM_SUBTITLE_TEXT) || !enc->num_subtitle_text_streams) &&
+       ((enc->separate & BG_STREAM_AUDIO) || !enc->num_audio_streams))
+      enc->separate |= BG_STREAM_VIDEO;
+    }
   
   }
 

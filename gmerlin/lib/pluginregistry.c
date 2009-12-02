@@ -667,14 +667,14 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
         stream_section = bg_cfg_section_find_subsection(plugin_section,
                                                         "$subtitle_text");
         bg_cfg_section_create_items(stream_section,
-                                    tmp_info->video_parameters);
+                                    tmp_info->subtitle_text_parameters);
         }
       if(tmp_info->subtitle_overlay_parameters)
         {
         stream_section = bg_cfg_section_find_subsection(plugin_section,
                                                         "$subtitle_overlay");
         bg_cfg_section_create_items(stream_section,
-                                    tmp_info->video_parameters);
+                                    tmp_info->subtitle_overlay_parameters);
         }
       tmp_info = tmp_info->next;
       }
@@ -2690,8 +2690,8 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
     case BG_STREAM_AUDIO:
       if(params_ret)
         *params_ret = info->audio_parameters;
-
-      if(section_ret)
+      
+      if(section_ret && info->audio_parameters)
         {
         if(!subsection)
           subsection = bg_cfg_section_find_subsection(s, "audio_encoder");
@@ -2704,7 +2704,7 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
       if(params_ret)
         *params_ret = info->subtitle_text_parameters;
 
-      if(section_ret)
+      if(section_ret && info->subtitle_text_parameters)
         {
         if(!subsection)
           subsection = bg_cfg_section_find_subsection(s, "subtitle_text_encoder");
@@ -2718,7 +2718,7 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
       if(params_ret)
         *params_ret = info->subtitle_overlay_parameters;
 
-      if(section_ret)
+      if(section_ret && info->subtitle_overlay_parameters)
         {
         if(!subsection)
           subsection = bg_cfg_section_find_subsection(s, "subtitle_overlay_encoder");
@@ -2732,7 +2732,7 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
       if(params_ret)
         *params_ret = info->video_parameters;
 
-      if(section_ret)
+      if(section_ret && info->video_parameters)
         {
         if(!subsection)
           subsection = bg_cfg_section_find_subsection(s, "video_encoder");

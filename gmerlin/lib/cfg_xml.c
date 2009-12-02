@@ -363,3 +363,16 @@ void bg_cfg_registry_save(bg_cfg_registry_t * r, const char * filename)
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
   }
+
+void bg_cfg_section_dump(bg_cfg_section_t * section, const char * filename)
+  {
+  xmlDocPtr  xml_doc;
+  xmlNodePtr xml_section;
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  xml_section = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"SECTION", NULL);
+  xmlDocSetRootElement(xml_doc, xml_section);
+  BG_XML_SET_PROP(xml_section, "name", section->name);
+  bg_cfg_section_2_xml(section, xml_section);
+  xmlSaveFile(filename, xml_doc);
+  xmlFreeDoc(xml_doc);
+  }

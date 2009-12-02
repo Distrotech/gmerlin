@@ -1214,35 +1214,42 @@ static void create_items(bg_cfg_section_t * section,
       create_items(subsection,
                    &info[i], 1);
 
-      while(info[i].name && (info[i].type != BG_PARAMETER_SECTION))
-        i++;
-      
-      if(!info[i].name)
-        return;
-      }
-    
-    bg_cfg_section_find_item(section, &(info[i]));
-    
-    if(info[i].multi_parameters)
-      {
-      j = 0;
-
-      subsection = bg_cfg_section_find_subsection(section, info[i].name);
-  
-      while(info[i].multi_names[j])
+      /* Skip what we read so far */
+      while(info[i].type != BG_PARAMETER_SECTION)
         {
-        if(info[i].multi_parameters[j])
-          {
-          subsubsection =
-            bg_cfg_section_find_subsection(subsection, info[i].multi_names[j]);
-          
-          bg_cfg_section_create_items(subsubsection,
-                                      info[i].multi_parameters[j]);
-          }
-        j++;
+        if(!info[i].name)
+          return;
+        i++;
         }
       }
-    i++;
+    else
+      {
+      //      fprintf(stderr, "Section: %s, parameter: %s\n",
+      //            section->name, info[i].name);
+      
+      bg_cfg_section_find_item(section, &(info[i]));
+    
+      if(info[i].multi_parameters)
+        {
+        j = 0;
+
+        subsection = bg_cfg_section_find_subsection(section, info[i].name);
+  
+        while(info[i].multi_names[j])
+          {
+          if(info[i].multi_parameters[j])
+            {
+            subsubsection =
+              bg_cfg_section_find_subsection(subsection, info[i].multi_names[j]);
+          
+            bg_cfg_section_create_items(subsubsection,
+                                        info[i].multi_parameters[j]);
+            }
+          j++;
+          }
+        }
+      i++;
+      }
     }
   }
 

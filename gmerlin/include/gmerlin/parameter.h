@@ -343,6 +343,16 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
 void
 bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parameters);
 
+/** \ingroup parameter
+ *  \brief Dump a parameter array into a xml file
+ *  \param info Parameter array
+ *  \param filename File to dump to
+ *
+ *  Used for debugging
+ */
+
+void
+bg_parameters_dump(const bg_parameter_info_t * info, const char * filename);
 
 
 #endif /* __BG_PARAMETER_H_ */

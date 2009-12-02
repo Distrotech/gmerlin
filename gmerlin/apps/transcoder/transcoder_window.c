@@ -901,10 +901,15 @@ transcoder_window_t * transcoder_window_create()
   ret->encoder_parameters =
     bg_plugin_registry_create_encoder_parameters(ret->plugin_reg,
                                                  stream_flags, plugin_flags);
+
+  // bg_parameters_dump(ret->encoder_parameters, "encoder_params.xml");
+  
   ret->encoder_section =
     bg_encoder_section_get_from_registry(ret->plugin_reg,
                                          ret->encoder_parameters,
                                          stream_flags, plugin_flags);
+
+  // bg_cfg_section_dump(ret->encoder_section, "encoders.xml");
   
   /* Create track list */
 

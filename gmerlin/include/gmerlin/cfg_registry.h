@@ -135,6 +135,16 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section);
 void bg_cfg_xml_2_section(xmlDocPtr xml_doc, xmlNodePtr xml_section,
                           bg_cfg_section_t * section);
 
+/** \ingroup cfg_section
+ *  \brief Dump a config section to a file
+ *  \param section Configuration section
+ *  \param filename File to write this to
+ *
+ *  Used for debugging
+ */
+
+void bg_cfg_section_dump(bg_cfg_section_t * section, const char * filename);
+
 /*
  *  Path looks like "section:subsection:subsubsection"
  */
