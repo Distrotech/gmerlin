@@ -69,7 +69,7 @@ static int open_y4m(void * data, const char * filename,
   if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
     return 0;
   
-  e->com.fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+  e->com.fd = open(e->filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
   if(e->com.fd == -1)
     return 0;
 
