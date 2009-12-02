@@ -807,6 +807,11 @@ static void configure_encoders(track_list_t * l)
     return;
 
   s = bg_cfg_section_create("Encoders");
+
+  /* All settings, which are not in the track, are taken from the
+     current encoder settings */
+  bg_cfg_section_transfer(l->encoder_section, s);
+  
   bg_transcoder_track_get_encoders(first_selected, l->plugin_reg, s);
   
   dlg = bg_dialog_create(s,
