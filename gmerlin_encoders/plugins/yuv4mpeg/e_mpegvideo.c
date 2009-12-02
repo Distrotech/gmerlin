@@ -68,7 +68,7 @@ static int open_mpv(void * data, const char * filename,
   if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
     return 0;
   
-  return bg_mpv_open(&e->mpv, filename);
+  return bg_mpv_open(&e->mpv, e->filename);
   }
 
 static int add_video_stream_mpv(void * data, const gavl_video_format_t* format)

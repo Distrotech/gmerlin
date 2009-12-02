@@ -30,7 +30,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "AVI",
       .short_name = "avi",
-      .extension =  ".avi",
+      .extension =  "avi",
       .max_audio_streams = 1,
       .max_video_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_PCM_S16LE,
@@ -49,7 +49,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "MPEG-1",
       .short_name = "mpeg",
-      .extension =  ".mpg",
+      .extension =  "mpg",
       .max_audio_streams = -1,
       .max_video_streams = -1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP2,
@@ -62,7 +62,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "MPEG-2",
       .short_name = "vob",
-      .extension =  ".vob",
+      .extension =  "vob",
       .max_audio_streams = -1,
       .max_video_streams = -1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP2,
@@ -76,7 +76,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "Flash Video",
       .short_name = "flv",
-      .extension =  ".flv",
+      .extension =  "flv",
       .max_audio_streams = 1,
       .max_video_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP3,
@@ -88,7 +88,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "ASF",
       .short_name = "asf",
-      .extension =  ".asf",
+      .extension =  "asf",
       .max_audio_streams = 1,
       .max_video_streams = 1,
       .audio_codecs = (enum CodecID[]){
@@ -107,7 +107,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "MPEG-2 Transport stream",
       .short_name = "mpegts",
-      .extension =  ".ts",
+      .extension =  "ts",
       .max_audio_streams = 1,
       .max_video_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP3,
@@ -123,7 +123,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "Real Media",
       .short_name = "rm",
-      .extension =  ".rm",
+      .extension =  "rm",
       .max_audio_streams = 1,
       .max_video_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_AC3,

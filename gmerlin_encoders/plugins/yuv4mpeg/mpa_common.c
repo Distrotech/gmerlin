@@ -259,8 +259,8 @@ static int get_samplerate(int in_rate, int vcd)
 
 
 
-static const char * extension_layer1  = ".mpa";
-static const char * extension_layer2  = ".mp2";
+static const char * extension_layer1  = "mpa";
+static const char * extension_layer2  = "mp2";
 
 const char * bg_mpa_get_extension(bg_mpa_common_t * mpa)
   {

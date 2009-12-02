@@ -364,8 +364,8 @@ static void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
     }
   }
 
-static const char * extension_mpeg1  = ".m1v";
-static const char * extension_mpeg2  = ".m2v";
+static const char * extension_mpeg1  = "m1v";
+static const char * extension_mpeg2  = "m2v";
 
 const char * bg_mpv_get_extension(bg_mpv_common_t * mpv)
   {

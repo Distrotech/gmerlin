@@ -28,7 +28,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name = "SUN AU Format",
       .short_name = "au",
-      .extension =  ".au",
+      .extension =  "au",
       .max_audio_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_PCM_MULAW,
                                        CODEC_ID_PCM_S16BE,
@@ -38,7 +38,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name = "Raw AC3",
       .short_name = "ac3",
-      .extension =  ".ac3",
+      .extension =  "ac3",
       .max_audio_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_AC3,
                                        CODEC_ID_NONE },
@@ -46,7 +46,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "AIFF",
       .short_name = "aiff",
-      .extension =  ".aif",
+      .extension =  "aif",
       .max_audio_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_PCM_S16BE,
                                        CODEC_ID_PCM_S8,
@@ -57,7 +57,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "MP2",
       .short_name = "mp2",
-      .extension =  ".mp2",
+      .extension =  "mp2",
       .max_audio_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP2,
                                        CODEC_ID_NONE },
@@ -66,7 +66,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "WMA",
       .short_name = "asf",
-      .extension =  ".wma",
+      .extension =  "wma",
       .max_audio_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_WMAV2,
                                        CODEC_ID_WMAV1,

@@ -30,7 +30,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "MPEG-1 video",
       .short_name = "mpeg1video",
-      .extension =  ".m1v",
+      .extension =  "m1v",
       .max_video_streams = 1,
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG1VIDEO,
                                        CODEC_ID_NONE },
@@ -38,7 +38,7 @@ static const ffmpeg_format_info_t formats[] =
     {
       .name =       "MPEG-2 video",
       .short_name = "mpeg2video",
-      .extension =  ".m2v",
+      .extension =  "m2v",
       .max_video_streams = 1,
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG2VIDEO,
                                        CODEC_ID_NONE },

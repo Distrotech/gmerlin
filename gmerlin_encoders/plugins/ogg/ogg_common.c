@@ -90,7 +90,7 @@ bg_ogg_encoder_open(void * data, const char * file,
     if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
       return 0;
     
-    if(!(e->write_callback_data = fopen(file, "w")))
+    if(!(e->write_callback_data = fopen(e->filename, "w")))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s: %s",
              file, strerror(errno));
