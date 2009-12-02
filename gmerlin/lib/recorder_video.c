@@ -22,6 +22,7 @@
 #include <config.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h> // access()
 
 #include <gmerlin/translation.h>
 #include <gmerlin/utils.h>
@@ -33,6 +34,27 @@
 #define LOG_DOMAIN "recorder.video"
 
 #define FRAMERATE_INTERVAL 10
+
+static int create_snapshot_cb(void * data, const char * filename)
+  {
+  bg_recorder_t * rec = data;
+  bg_recorder_video_stream_t * vs = &rec->vs;
+
+  int overwrite;
+
+  pthread_mutex_lock(&rec->snapshot_mutex);
+  overwrite = vs->flags & STREAM_SNAPSHOT_OVERWRITE;
+  pthread_mutex_unlock(&rec->snapshot_mutex);
+  
+  if(!overwrite && !access(filename, R_OK))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Won't save snapshot %s (file exists)",
+           filename);
+    return 0;
+    }
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Saving snapshot %s", filename);
+  return 1;
+  }
 
 void bg_recorder_create_video(bg_recorder_t * rec)
   {
@@ -49,6 +71,9 @@ void bg_recorder_create_video(bg_recorder_t * rec)
   vs->th = bg_player_thread_create(rec->tc);
   vs->timer = gavl_timer_create();
   pthread_mutex_init(&vs->config_mutex, NULL);
+
+  vs->snapshot_cb.create_output_file = create_snapshot_cb;
+  vs->snapshot_cb.data = rec;
   }
 
 void bg_recorder_destroy_video(bg_recorder_t * rec)
@@ -286,6 +311,11 @@ static const bg_parameter_info_t snapshot_parameters[] =
       .num_digits  = 1,
     },
     {
+      .name = "snapshot_overwrite",
+      .long_name = TRS("Overwrite existing files"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+    },
+    {
       .name      = "plugin",
       .long_name = TRS("Plugin"),
       .type      = BG_PARAMETER_MULTI_MENU,
@@ -303,7 +333,7 @@ bg_recorder_get_video_snapshot_parameters(bg_recorder_t * rec)
     bg_plugin_registry_set_parameter_info(rec->plugin_reg,
                                           BG_PLUGIN_IMAGE_WRITER,
                                           BG_PLUGIN_FILE,
-                                          &vs->snapshot_parameters[2]);
+                                          &vs->snapshot_parameters[3]);
     }
   return vs->snapshot_parameters;
   }
@@ -324,10 +354,19 @@ bg_recorder_set_video_snapshot_parameter(void * data,
   
   if(!strcmp(name, "snapshot_auto"))
     {
+    pthread_mutex_lock(&rec->snapshot_mutex);
     if(val->val_i)
       vs->flags |= STREAM_SNAPSHOT_AUTO;
     else
       vs->flags &= ~STREAM_SNAPSHOT_AUTO;
+    pthread_mutex_unlock(&rec->snapshot_mutex);
+    }
+  else if(!strcmp(name, "snapshot_overwrite"))
+    {
+    if(val->val_i)
+      vs->flags |= STREAM_SNAPSHOT_OVERWRITE;
+    else
+      vs->flags &= ~STREAM_SNAPSHOT_OVERWRITE;
     }
   else if(!strcmp(name, "snapshot_interval"))
     vs->snapshot_interval = gavl_seconds_to_time(val->val_f);
@@ -349,6 +388,11 @@ bg_recorder_set_video_snapshot_parameter(void * data,
     vs->snapshot_handle = bg_plugin_load(rec->plugin_reg,
                                          info);
     vs->snapshot_plugin = (bg_image_writer_plugin_t*)(vs->snapshot_handle->plugin);
+
+    if(vs->snapshot_plugin->set_callbacks)
+      vs->snapshot_plugin->set_callbacks(vs->snapshot_handle->priv,
+                                         &vs->snapshot_cb);
+    
     }
   else
     {
@@ -398,7 +442,7 @@ bg_recorder_set_video_filter_parameter(void * data,
 
 #define BUFFER_SIZE 256
 
-static char * create_filename(bg_recorder_t * rec, int * have_count)
+static char * create_snapshot_filename(bg_recorder_t * rec, int * have_count)
   {
   char mask[16];
   char buf[BUFFER_SIZE];
@@ -483,6 +527,81 @@ static char * create_filename(bg_recorder_t * rec, int * have_count)
   return filename;
   }
 
+static void check_snapshot(bg_recorder_t * rec)
+  {
+  int doit = 0;
+  char * filename;
+  gavl_time_t frame_time;
+  
+  bg_recorder_video_stream_t * vs = &rec->vs;
+
+  frame_time =
+    gavl_time_unscale(vs->pipe_format.timescale,
+                      vs->pipe_frame->timestamp);
+  
+  /* Check whether to make a snapshot */
+
+  pthread_mutex_lock(&rec->snapshot_mutex);
+  if(rec->snapshot)
+    {
+    doit = 1;
+    rec->snapshot = 0;
+    }
+  
+  if(!doit &&
+     ((vs->flags & STREAM_SNAPSHOT_AUTO) &&
+      (!(vs->flags & STREAM_SNAPSHOT_INIT) ||
+       frame_time >= vs->last_snapshot_time + vs->snapshot_interval)))
+    {
+    doit = 1;
+    }
+  pthread_mutex_unlock(&rec->snapshot_mutex);
+  
+  if(!doit)
+    return;
+  
+  filename = create_snapshot_filename(rec, NULL);
+  
+  /* Initialize snapshot plugin */
+  if(!(vs->flags & STREAM_SNAPSHOT_INIT))
+    gavl_video_format_copy(&vs->snapshot_format,
+                           &vs->pipe_format);
+
+  if(!vs->snapshot_plugin->write_header(vs->snapshot_handle->priv,
+                                        filename,
+                                        &vs->snapshot_format,
+                                        &rec->m))
+    return;
+  
+  if(!(vs->flags & STREAM_SNAPSHOT_INIT))
+    {
+    vs->do_convert_snapshot =
+      gavl_video_converter_init(vs->snapshot_cnv,
+                                &vs->pipe_format,
+                                &vs->snapshot_format);
+
+    if(vs->do_convert_snapshot)
+      vs->snapshot_frame = gavl_video_frame_create(&vs->snapshot_format);
+    vs->flags |= STREAM_SNAPSHOT_INIT;
+    }
+
+  if(vs->do_convert_snapshot)
+    {
+    gavl_video_convert(vs->snapshot_cnv, vs->pipe_frame,
+                       vs->snapshot_frame);
+    vs->snapshot_plugin->write_image(vs->snapshot_handle->priv,
+                                     vs->snapshot_frame);
+    }
+  else
+    {
+    vs->snapshot_plugin->write_image(vs->snapshot_handle->priv,
+                                     vs->pipe_frame);
+    }
+  vs->snapshot_counter++;
+  vs->last_snapshot_time = frame_time;
+  }
+                      
+
 
 void * bg_recorder_video_thread(void * data)
   {
@@ -503,7 +622,7 @@ void * bg_recorder_video_thread(void * data)
       break; /* Should never happen */
 
     /* Check whether to make a snapshot */
-    
+    check_snapshot(rec);
     
     /* Monitor */
     if(vs->flags & STREAM_MONITOR)

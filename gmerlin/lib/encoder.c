@@ -171,7 +171,7 @@ static int cb_create_output_file(void * data, const char * filename)
     ret = 1;
 
   if(ret)
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created output file %s\n",
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created output file %s",
            filename);
   return ret;
   }

@@ -1833,8 +1833,8 @@ typedef struct bg_image_writer_plugin_s bg_image_writer_plugin_t;
 struct bg_image_writer_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
-  const char * extensions; //!< Supported file extensions (space separated)
-
+  const char * extensions; //!< File extensions (space separated)
+  
   /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
    *  \param cb Callback structure

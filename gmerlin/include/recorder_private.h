@@ -27,14 +27,15 @@
 
 #define NUM_THREADS 2
 
-#define STREAM_ACTIVE        (1<<0)
-#define STREAM_INPUT_OPEN    (1<<1)
-#define STREAM_MONITOR       (1<<2)
-#define STREAM_MONITOR_OPEN  (1<<3)
-#define STREAM_ENCODE        (1<<4)
-#define STREAM_ENCODE_OPEN   (1<<5)
-#define STREAM_SNAPSHOT_INIT (1<<6)
-#define STREAM_SNAPSHOT_AUTO (1<<7)
+#define STREAM_ACTIVE             (1<<0)
+#define STREAM_INPUT_OPEN         (1<<1)
+#define STREAM_MONITOR            (1<<2)
+#define STREAM_MONITOR_OPEN       (1<<3)
+#define STREAM_ENCODE             (1<<4)
+#define STREAM_ENCODE_OPEN        (1<<5)
+#define STREAM_SNAPSHOT_INIT      (1<<6)
+#define STREAM_SNAPSHOT_AUTO      (1<<7)
+#define STREAM_SNAPSHOT_OVERWRITE (1<<8)
 
 #define FLAG_RUNNING        (1<<0)     
 #define FLAG_RECORDING      (1<<1) 
@@ -107,6 +108,7 @@ typedef struct
   
   int do_convert_monitor;
   int do_convert_enc;
+  int do_convert_snapshot;
 
   //  int do_monitor;
   
@@ -166,6 +168,7 @@ typedef struct
   bg_image_writer_plugin_t * snapshot_plugin;
   
   gavl_time_t snapshot_interval;
+  gavl_time_t last_snapshot_time;
   
   int snapshot_counter;
   
