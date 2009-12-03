@@ -302,6 +302,8 @@ int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
   st->stream->codec->time_base.num = st->format.frame_duration;
   st->stream->codec->sample_aspect_ratio.num = st->format.pixel_width;
   st->stream->codec->sample_aspect_ratio.den = st->format.pixel_height;
+  st->stream->sample_aspect_ratio.num = st->format.pixel_width;
+  st->stream->sample_aspect_ratio.den = st->format.pixel_height;
   
   
   priv->num_video_streams++;
