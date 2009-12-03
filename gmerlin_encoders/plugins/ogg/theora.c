@@ -56,6 +56,7 @@ typedef struct
   int have_packet;
   int cbr;
   int max_keyframe_interval;
+  int rate_flags;
   
   th_ycbcr_buffer buf;
 
@@ -121,6 +122,27 @@ static const bg_parameter_info_t parameters[] =
       .val_default = { .val_i = 64   },
     },
     {
+      .name = "drop_frames",
+      .long_name = TRS("Enable frame dropping"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Drop frames to keep within bitrate buffer constraints. This can have a severe impact on quality, but is the only way to ensure that bitrate targets are met at low rates during sudden bursts of activity."),
+    },
+    {
+      .name = "cap_overflow",
+      .long_name = TRS("Don't bank excess bits for later use"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Ignore bitrate buffer overflows. If the encoder uses so few bits that the reservoir of available bits overflows, ignore the excess. The encoder will not try to use these extra bits in future frames. At high rates this may cause the result to be undersized, but allows a client to play the stream using a finite buffer; it should normally be enabled."),
+    },
+    {
+      .name = "cap_underflow",
+      .long_name = TRS("Don't try to make up shortfalls later"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Ignore bitrate buffer underflows. If the encoder uses so many bits that the reservoir of available bits underflows, ignore the deficit. The encoder will not try to make up these extra bits in future frames. At low rates this may cause the result to be oversized; it should normally be disabled."),
+    },
+    {
       .name =      "speed",
       .long_name = TRS("Encoding speed"),
       .type =      BG_PARAMETER_SLIDER_FLOAT,
@@ -155,7 +177,27 @@ static void set_parameter_theora(void * data, const char * name,
     theora->max_keyframe_interval = v->val_i;
   else if(!strcmp(name, "speed"))
     theora->speed = v->val_f;
-  
+  else if(!strcmp(name, "drop_frames"))
+    {
+    if(v->val_i)
+      theora->rate_flags |= TH_RATECTL_DROP_FRAMES;
+    else
+      theora->rate_flags &= ~TH_RATECTL_DROP_FRAMES;
+    }
+  else if(!strcmp(name, "cap_overflow"))
+    {
+    if(v->val_i)
+      theora->rate_flags |= TH_RATECTL_CAP_OVERFLOW;
+    else
+      theora->rate_flags &= ~TH_RATECTL_CAP_OVERFLOW;
+    }
+  else if(!strcmp(name, "cap_underflow"))
+    {
+    if(v->val_i)
+      theora->rate_flags |= TH_RATECTL_CAP_UNDERFLOW;
+    else
+      theora->rate_flags &= ~TH_RATECTL_CAP_UNDERFLOW;
+    }
   }
 
 
@@ -281,6 +323,12 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   th_encode_ctl(theora->ts,
                 TH_ENCCTL_SET_KEYFRAME_FREQUENCY_FORCE,
                 &theora->max_keyframe_interval, sizeof(arg_i1));
+
+  // Rate flags
+
+  th_encode_ctl(theora->ts,
+                TH_ENCCTL_SET_RATE_FLAGS,
+                &theora->rate_flags,sizeof(theora->rate_flags));
   
   // Maximum speed
 
