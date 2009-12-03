@@ -148,6 +148,7 @@ const bg_encoder_plugin_t the_plugin =
     
     .set_audio_parameter =     set_audio_parameter_theora,
     .set_video_parameter =     bg_ogg_encoder_set_video_parameter,
+    .set_video_pass      =     bg_ogg_encoder_set_video_pass,
     
     .start =                  bg_ogg_encoder_start,
 

@@ -156,7 +156,7 @@ int bg_shout_open(bg_shout_t * s)
 void bg_shout_set_metadata(bg_shout_t * s, const bg_metadata_t * m)
   {
   if(m->genre)
-    shout_set_genre(s, m->genre);
+    shout_set_genre(s->s, m->genre);
   }
 
 void bg_shout_destroy(bg_shout_t * s)

@@ -35,6 +35,10 @@
 
 #include "ogg_common.h"
 
+#ifdef TH_ENCCTL_2PASS_IN
+#define HAVE_2_PASS
+#endif
+
 typedef struct
   {
   /* Ogg theora stuff */
@@ -56,6 +60,17 @@ typedef struct
   th_ycbcr_buffer buf;
 
   float speed;
+  
+  int64_t frame_counter;
+  
+#ifdef HAVE_2_PASS
+  int pass;
+  FILE * stats_file;
+  
+  char * stats_buf;
+  char * stats_ptr;
+  int stats_size;
+#endif
   } theora_t;
 
 static void * create_theora(bg_ogg_encoder_t * output, long serialno)
@@ -126,8 +141,7 @@ static const bg_parameter_info_t * get_parameters_theora()
 static void set_parameter_theora(void * data, const char * name,
                                  const bg_parameter_value_t * v)
   {
-  theora_t * theora;
-  theora = (theora_t*)data;
+  theora_t * theora = data;
   
   if(!name)
     return;
@@ -322,10 +336,72 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   return 1;
   }
 
+#ifdef HAVE_2_PASS
+
+static int set_video_pass_theora(void * data, int pass, int total_passes,
+                                 const char * stats_file)
+  {
+  char * buf;
+  int ret;
+  theora_t * theora = data;
+
+  theora->pass = pass;
+
+  if(theora->pass == 1)
+    {
+    theora->stats_file = fopen(stats_file, "wb");
+    /* Get initial header */
+
+    if(!theora->stats_file)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "couldn't open stats file %s", stats_file);
+      return 0;
+      }
+    
+    ret = th_encode_ctl(theora->ts,
+                        TH_ENCCTL_2PASS_OUT,
+                        &buf, sizeof(buf));
+
+    if(ret < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "getting 2 pass header failed");
+      return 0;
+      }
+    fwrite(buf, 1, ret, theora->stats_file);
+    }
+  else
+    {
+    theora->stats_file = fopen(stats_file, "rb");
+
+    if(!theora->stats_file)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "couldn't open stats file %s", stats_file);
+      return 0;
+      }
+
+    fseek(theora->stats_file, 0, SEEK_END);
+    theora->stats_size = ftell(theora->stats_file);
+    fseek(theora->stats_file, 0, SEEK_SET);
+    
+    theora->stats_buf = malloc(theora->stats_size);
+    if(fread(theora->stats_buf, 1, theora->stats_size, theora->stats_file) <
+       theora->stats_size)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "couldn't read stats data");
+      return 0;
+      }
+      
+    fclose(theora->stats_file);
+    theora->stats_file = 0;
+    theora->stats_ptr = theora->stats_buf;
+    }
+  return 1;
+  }
+#endif
+
 static int flush_header_pages_theora(void*data)
   {
-  theora_t * theora;
-  theora = (theora_t*)data;
+  theora_t * theora = data;
   if(bg_ogg_flush(&theora->os, theora->output, 1) <= 0)
     return 0;
   return 1;
@@ -339,7 +415,7 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   int i;
   ogg_packet op;
   
-  theora = (theora_t*)data;
+  theora = data;
   
   if(theora->have_packet)
     {
@@ -359,14 +435,63 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
       }
     theora->have_packet = 0;
     }
-
+ 
   for(i = 0; i < 3; i++)
     {
     theora->buf[i].stride = frame->strides[i];
     theora->buf[i].data   = frame->planes[i];
     }
+
+#ifdef HAVE_2_PASS
+  if(theora->pass == 2)
+    {
+    /* Input pass data */
+    int ret;
+    
+    while(theora->stats_ptr - theora->stats_buf < theora->stats_size)
+      {
+      
+      ret = th_encode_ctl(theora->ts,
+                          TH_ENCCTL_2PASS_IN,
+                          theora->stats_ptr,
+                          theora->stats_size -
+                          (theora->stats_ptr - theora->stats_buf));
+
+      if(ret < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "passing 2 pass data failed");
+        return 0;
+        }
+      else if(!ret)
+        break;
+      else
+        {
+        theora->stats_ptr += ret;
+        }
+      }
+    }
+#endif
   
   result = th_encode_ycbcr_in(theora->ts, theora->buf);
+
+#ifdef HAVE_2_PASS
+  /* Output pass data */
+  if(theora->pass == 1)
+    {
+    int ret;
+    char * buf;
+    ret = th_encode_ctl(theora->ts,
+                        TH_ENCCTL_2PASS_OUT,
+                        &buf, sizeof(buf));
+    if(ret < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "getting 2 pass data failed");
+      return 0;
+      }
+    fwrite(buf, 1, ret, theora->stats_file);
+    }
+#endif
+  
   theora->have_packet = 1;
   return 1;
   }
@@ -376,7 +501,7 @@ static int close_theora(void * data)
   int ret = 1;
   theora_t * theora;
   ogg_packet op;
-  theora = (theora_t*)data;
+  theora = data;
 
   if(theora->have_packet)
     {
@@ -396,7 +521,35 @@ static int close_theora(void * data)
         }
       }
     theora->have_packet = 0;
+
+#ifdef HAVE_2_PASS
+    /* Output pass data */
+    if(theora->pass == 1)
+      {
+      int ret;
+      char * buf;
+      ret = th_encode_ctl(theora->ts,
+                          TH_ENCCTL_2PASS_OUT,
+                          &buf, sizeof(buf));
+
+      if(ret < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "getting 2 pass data failed");
+        return 0;
+        }
+      fseek(theora->stats_file, 0, SEEK_SET);
+      fwrite(buf, 1, ret, theora->stats_file);
+      }
+#endif
+    
     }
+
+#ifdef HAVE_2_PASS
+  if(theora->stats_file)
+    fclose(theora->stats_file);
+  if(theora->stats_buf)
+    free(theora->stats_buf);
+#endif
   
   ogg_stream_clear(&theora->os);
   th_comment_clear(&theora->tc);
@@ -415,11 +568,11 @@ const bg_ogg_codec_t bg_theora_codec =
 
     .get_parameters = get_parameters_theora,
     .set_parameter =  set_parameter_theora,
-    
+#ifdef HAVE_2_PASS
+    .set_video_pass = set_video_pass_theora,
+#endif    
     .init_video =     init_theora,
     
-    //  int (*init_video)(void*, gavl_video_format_t * format);
-  
     .flush_header_pages = flush_header_pages_theora,
     
     .encode_video = write_video_frame_theora,

@@ -4,8 +4,11 @@ AC_CONFIG_SRCDIR([include/gmerlin_encoders.h])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(gmerlin-encoders, 0.2.8)
 
+SAVE_CFLAGS=$CFLAGS
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
+
+CFLAGS=$SAVE_CFLAGS
 
 dnl
 dnl Check for Dependencies package

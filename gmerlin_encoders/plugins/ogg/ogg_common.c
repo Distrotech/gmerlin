@@ -47,10 +47,18 @@ void * bg_ogg_encoder_create()
 
 void bg_ogg_encoder_destroy(void * data)
   {
+  int i;
   bg_ogg_encoder_t * e = data;
   if(e->write_callback_data)
     bg_ogg_encoder_close(e, 1);
   if(e->audio_streams) free(e->audio_streams);
+
+  for(i = 0; i < e->num_video_streams; i++)
+    {
+    if(e->video_streams[i].stats_file)
+      free(e->video_streams[i].stats_file);
+    }
+
   if(e->video_streams) free(e->video_streams);
   if(e->filename) free(e->filename);
   
@@ -187,16 +195,30 @@ void bg_ogg_encoder_init_video_stream(void * data, int stream, const bg_ogg_code
   }
 
 void
-bg_ogg_encoder_set_audio_parameter(void * data, int stream, const char * name, const bg_parameter_value_t * val)
+bg_ogg_encoder_set_audio_parameter(void * data, int stream,
+                                   const char * name, const bg_parameter_value_t * val)
   {
   bg_ogg_encoder_t * e = data;
   e->audio_streams[stream].codec->set_parameter(e->audio_streams[stream].codec_priv, name, val);
   }
 
-void bg_ogg_encoder_set_video_parameter(void * data, int stream, const char * name, const bg_parameter_value_t * val)
+void bg_ogg_encoder_set_video_parameter(void * data, int stream,
+                                        const char * name, const bg_parameter_value_t * val)
   {
   bg_ogg_encoder_t * e = data;
   e->video_streams[stream].codec->set_parameter(e->video_streams[stream].codec_priv, name, val);
+  }
+
+int bg_ogg_encoder_set_video_pass(void * data, int stream,
+                                  int pass, int total_passes, const char * stats_file)
+  {
+  bg_ogg_encoder_t * e = data;
+
+  e->video_streams[stream].pass = pass;
+  e->video_streams[stream].total_passes = total_passes;
+  e->video_streams[stream].stats_file =
+    bg_strdup(e->video_streams[stream].stats_file, stats_file);
+  return 1;
   }
 
 static int start_audio(bg_ogg_encoder_t * e, int stream)
@@ -214,6 +236,20 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
                                                  &(e->video_streams[stream].format),
                                                  &(e->metadata)))
     return 0;
+
+  if(e->video_streams[stream].pass)
+    {
+    if(!e->video_streams[stream].codec->set_video_pass)
+      return 0;
+    
+    else 
+      if(!e->video_streams[stream].codec->set_video_pass(e->video_streams[stream].codec_priv,
+                                                         e->video_streams[stream].pass,
+                                                         e->video_streams[stream].total_passes,
+                                                         e->video_streams[stream].stats_file))
+        return 0;
+    }
+  
   return 1;
   }
 

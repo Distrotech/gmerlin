@@ -30,6 +30,8 @@ const bg_parameter_info_t * bg_shout_get_parameters(bg_shout_t *);
 void bg_shout_set_parameter(void * data, const char * name,
                             const bg_parameter_value_t * val);
 
+void bg_shout_set_metadata(bg_shout_t * s, const bg_metadata_t * m);
+
 int bg_shout_open(bg_shout_t *);
 
 
@@ -40,3 +42,4 @@ int bg_shout_write(bg_shout_t *, const uint8_t * data, int len);
 
 /* Also closes */
 void bg_shout_destroy(bg_shout_t *);
+
