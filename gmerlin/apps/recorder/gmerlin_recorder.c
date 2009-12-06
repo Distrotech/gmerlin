@@ -27,7 +27,7 @@
 #include <gtk/gtk.h>
 #include <gmerlin/gui_gtk/gtkutils.h>
 
-#define WINDOW_ICON NULL
+#define WINDOW_ICON "recorder_icon.png"
 #define WINDOW_NAME "gmerlin-recorder"
 #define WINDOW_CLASS "gmerlin-recorder"
 

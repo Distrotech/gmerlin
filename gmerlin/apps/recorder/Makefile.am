@@ -2,8 +2,8 @@ INCLUDES = -I$(top_srcdir)/include
 
 AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@
 
-# Desktopdir = $(datadir)/applications
-# Desktop_DATA = gmerlin-camelot.desktop
+Desktopdir = $(datadir)/applications
+Desktop_DATA = gmerlin-recorder.desktop
 
 bin_PROGRAMS = gmerlin_recorder
 

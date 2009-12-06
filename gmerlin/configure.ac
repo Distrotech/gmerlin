@@ -995,6 +995,7 @@ apps/camelot/Makefile \
 apps/camelot/gmerlin-camelot.desktop \
 apps/cmdlineplayer/Makefile \
 apps/recorder/Makefile \
+apps/recorder/gmerlin-recorder.desktop \
 apps/transcoder/Makefile \
 apps/transcoder/gmerlin-transcoder.desktop \
 apps/visualizer/Makefile \

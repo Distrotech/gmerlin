@@ -65,6 +65,7 @@ plugin_16.png \
 plugincfg_icon.png \
 quit_16.png \
 record_16.png \
+recorder_icon.png \
 refresh_16.png \
 rename_16.png \
 repeat_mode_1.png \

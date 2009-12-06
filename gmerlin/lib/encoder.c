@@ -595,14 +595,14 @@ static int start_video(bg_encoder_t * enc, int stream)
 
   if(s->total_passes)
     {
-    if(!s->plugin->set_video_pass)
+    if(!s->plugin->set_video_pass ||
+       !s->plugin->set_video_pass(s->priv, s->out_index, s->pass, s->total_passes,
+                                  s->stats_file))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
              "Multipass encoding not supported by encoder plugin");
       return 0;
       }
-    s->plugin->set_video_pass(s->priv, s->out_index, s->pass, s->total_passes,
-                              s->stats_file);
     }
   
   return 1;

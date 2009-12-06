@@ -2144,6 +2144,7 @@ static int setup_pass(bg_transcoder_t * ret)
   {
   int i;
   int result = 0;
+  
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     /* Reset the samples already decoded */
@@ -2201,6 +2202,7 @@ static int setup_pass(bg_transcoder_t * ret)
       ret->video_streams[i].com.status = STREAM_STATE_OFF;
     else
       ret->video_streams[i].com.status = STREAM_STATE_ON;
+
     }
   
   /* Subtitles */
@@ -2929,6 +2931,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
     if(t->pass < t->total_passes)
       {
       log_transcoding_time(t);
+      
       next_pass(t);
       return 1;
       }
