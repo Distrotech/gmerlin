@@ -10,7 +10,6 @@ goom_tools.h \
 goomsl.h \
 goomsl_hash.h \
 goomsl_heap.h \
-goom_tools.h \
 goom_config.h
 
 goom_headers_private = \
