@@ -29,11 +29,11 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/cfg_dialog.h>
 
-#include <gmerlin/gui_gtk/gtkutils.h>
-#include <gmerlin/gui_gtk/audio.h>
-#include <gmerlin/gui_gtk/aboutwindow.h>
-#include <gmerlin/gui_gtk/logwindow.h>
-#include <gmerlin/gui_gtk/display.h>
+#include <gui_gtk/gtkutils.h>
+#include <gui_gtk/audio.h>
+#include <gui_gtk/aboutwindow.h>
+#include <gui_gtk/logwindow.h>
+#include <gui_gtk/display.h>
 
 #include <gmerlin/recorder.h>
 #include "recorder_window.h"

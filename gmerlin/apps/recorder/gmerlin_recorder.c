@@ -25,7 +25,7 @@
 #include <gmerlin/utils.h>
 
 #include <gtk/gtk.h>
-#include <gmerlin/gui_gtk/gtkutils.h>
+#include <gui_gtk/gtkutils.h>
 
 #define WINDOW_ICON "recorder_icon.png"
 #define WINDOW_NAME "gmerlin-recorder"
