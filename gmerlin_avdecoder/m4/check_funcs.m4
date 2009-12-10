@@ -237,7 +237,7 @@ esac],[test_theoradec=true])
 
 if test x$test_theoradec = xtrue; then
 
-PKG_CHECK_MODULES(THEORADEC, theoradec >= $THEORADEC_REQUIRED, have_theoradec="true", have_theoradec="false")
+PKG_CHECK_MODULES(THEORADEC, theoradec, have_theoradec="true", have_theoradec="false")
 fi
 
 AC_SUBST(THEORADEC_REQUIRED)
@@ -274,7 +274,7 @@ esac],[test_theoraenc=true])
 
 if test x$test_theoraenc = xtrue; then
 
-PKG_CHECK_MODULES(THEORAENC, theoraenc >= $THEORAENC_REQUIRED, have_theoraenc="true", have_theoraenc="false")
+PKG_CHECK_MODULES(THEORAENC, theoraenc, have_theoraenc="true", have_theoraenc="false")
 fi
 
 AC_SUBST(THEORAENC_REQUIRED)
