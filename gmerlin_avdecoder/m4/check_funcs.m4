@@ -1323,6 +1323,16 @@ if test "x$have_dca" != "xtrue"; then
 PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dts="true", have_dts="false")
 
 dnl
+dnl Check for old dts.h header
+dnl
+
+OLD_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS $DCA_CFLAGS"
+AC_CHECK_HEADERS([dts.h])
+CFLAGS=$OLD_CFLAGS
+
+
+dnl
 dnl Some systems need -ldts_pic
 dnl
 

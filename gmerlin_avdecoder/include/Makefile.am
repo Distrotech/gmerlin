@@ -7,6 +7,7 @@ a52_header.h \
 asmrp.h \
 audioparser_priv.h \
 avdec_private.h \
+bgav_dca.h \
 bgav_sem.h \
 bitstream.h \
 bswap.h \

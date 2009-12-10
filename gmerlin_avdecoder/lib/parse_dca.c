@@ -27,7 +27,7 @@
 #include <parser.h>
 #include <audioparser_priv.h>
 
-#include <dts.h>
+#include <bgav_dca.h>
 
 #define DCA_HEADER_BYTES 14
 

@@ -30,7 +30,7 @@
 #include <codecs.h>
 // #include <dca_header.h>
 
-#include <dts.h>
+#include <bgav_dca.h>
 
 #define BLOCK_SAMPLES 256
 
