@@ -435,7 +435,9 @@ static gboolean timeout_func(void * data)
           gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->record_button), 0);
           g_signal_handler_unblock(G_OBJECT(win->record_button), win->record_id);
 
-
+          gtk_widget_set_sensitive(win->config_button, 1);
+          gtk_widget_set_sensitive(win->restart_button, 1);
+          gtk_widget_set_sensitive(win->snapshot_button, 1);
           }
         else if(win->noinput_shown)
           {
@@ -477,6 +479,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     
   /* Create widgets */  
   ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(ret->win), "Gmerlin-recorder-"VERSION);
   
   g_signal_connect(G_OBJECT(ret->win), "delete-event",
                    G_CALLBACK(delete_callback),

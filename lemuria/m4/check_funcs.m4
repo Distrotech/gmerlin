@@ -237,7 +237,7 @@ esac],[test_theoradec=true])
 
 if test x$test_theoradec = xtrue; then
 
-PKG_CHECK_MODULES(THEORADEC, theoradec >= $THEORADEC_REQUIRED, have_theoradec="true", have_theoradec="false")
+PKG_CHECK_MODULES(THEORADEC, theoradec, have_theoradec="true", have_theoradec="false")
 fi
 
 AC_SUBST(THEORADEC_REQUIRED)
@@ -274,7 +274,7 @@ esac],[test_theoraenc=true])
 
 if test x$test_theoraenc = xtrue; then
 
-PKG_CHECK_MODULES(THEORAENC, theoraenc >= $THEORAENC_REQUIRED, have_theoraenc="true", have_theoraenc="false")
+PKG_CHECK_MODULES(THEORAENC, theoraenc, have_theoraenc="true", have_theoraenc="false")
 fi
 
 AC_SUBST(THEORAENC_REQUIRED)
@@ -1321,6 +1321,16 @@ PKG_CHECK_MODULES(DCA, libdca >= $DCA_REQUIRED, have_dca="true", have_dca="false
 
 if test "x$have_dca" != "xtrue"; then
 PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dts="true", have_dts="false")
+
+dnl
+dnl Check for old dts.h header
+dnl
+
+OLD_CFLAGS=$CFLAGS
+CFLAGS="$CFLAGS $DCA_CFLAGS"
+AC_CHECK_HEADERS([dts.h])
+CFLAGS=$OLD_CFLAGS
+
 
 dnl
 dnl Some systems need -ldts_pic

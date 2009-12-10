@@ -449,8 +449,6 @@ struct bg_video_filter_chain_s
   gavl_video_format_t  in_format_1;
   gavl_video_format_t  in_format_2;
   
-  int                  do_convert_out;
-
   bg_read_video_func_t in_func;
   void * in_data;
   int in_stream;
