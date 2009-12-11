@@ -254,7 +254,8 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   else
     priv->ctx->codec_tag = bswap_32(s->fourcc);
 
-  priv->ctx->codec_id  = codec->id;
+  priv->ctx->codec_type  = codec->type;
+  priv->ctx->codec_id    = codec->id;
   
   /* Some codecs need extra stuff */
     
