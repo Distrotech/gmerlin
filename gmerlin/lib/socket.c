@@ -40,7 +40,7 @@
 
 #include <fcntl.h>
 //#include <sys/types.h>
-//#include <sys/socket.h>
+#include <sys/socket.h>
 #include <sys/un.h>
 
 #include <netinet/in.h>
@@ -236,7 +236,7 @@ int bg_host_address_set(bg_host_address_t * a, const char * hostname,
 int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   {
   int ret = -1;
-
+  int err, err_len;
   struct timeval timeout;
   fd_set write_fds;
                                                                                
@@ -275,6 +275,13 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
       return -1;
       }
     }
+
+  /* Check for error */
+
+  err_len = sizeof(err);
+  getsockopt(ret, SOL_SOCKET, SO_ERROR, &err, &err_len);
+
+  fprintf(stderr, "Connection completed, err: %d (%s)\n", err, strerror(err));
   
   /* Set back to blocking mode */
   

@@ -799,6 +799,9 @@ void bg_recorder_video_finalize_encode(bg_recorder_t * rec)
   if(vs->do_convert_enc)
     vs->enc_frame = gavl_video_frame_create(&vs->enc_format);
 
+  /* Hack: The encoder might have changed the framerate. */
+     
+  
   vs->flags |= STREAM_ENCODE_OPEN;
   
   }
