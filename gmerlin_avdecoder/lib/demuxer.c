@@ -709,6 +709,8 @@ static bgav_packet_t * get_packet_read_vparse(bgav_demuxer_context_t * demuxer,
           gavl_video_format_copy(&s->data.video.format, format);
           s->flags |= STREAM_PARSE_HAVE_FORMAT;
           }
+
+        s->parsed_packet->tc = GAVL_TIMECODE_UNDEFINED;
         
         bgav_video_parser_get_packet(s->data.video.parser,
                                      s->parsed_packet);
