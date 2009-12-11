@@ -281,7 +281,12 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   err_len = sizeof(err);
   getsockopt(ret, SOL_SOCKET, SO_ERROR, &err, &err_len);
 
-  fprintf(stderr, "Connection completed, err: %d (%s)\n", err, strerror(err));
+  if(err)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting failed: %s",
+           strerror(errno));
+    return -1;
+    }
   
   /* Set back to blocking mode */
   
