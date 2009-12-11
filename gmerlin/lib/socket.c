@@ -263,9 +263,17 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
       timeout.tv_usec = 1000 * (milliseconds % 1000);
       FD_ZERO (&write_fds);
       FD_SET (ret, &write_fds);
-      if(!select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout))
+
+      err = select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout);
+      
+      if(!err)
         {
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
+        return -1;
+        }
+      else if(err < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "select() failed on connect");
         return -1;
         }
       }
