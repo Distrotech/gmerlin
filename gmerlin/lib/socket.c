@@ -441,7 +441,11 @@ int bg_socket_write_data(int fd, const uint8_t * data, int len)
   int result;
   result = send(fd, data, len, MSG_NOSIGNAL);
   if(result != len)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Sending data failed: %s", 
+           strerror(errno));    
     return 0;
+    }
   return result;
   }
 
