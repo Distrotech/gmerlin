@@ -213,6 +213,11 @@ static struct addrinfo * hostbyname(const char * hostname, int port, int socktyp
     return (struct addrinfo *)0;
     }
 
+  if(ret[0].ai_addr->sa_family == AF_INET)
+    fprintf(stderr, "Got IPV4 address\n");
+  else if(ret[0].ai_addr->sa_family == AF_INET6)
+    fprintf(stderr, "Got IPV6 address\n");
+  
   address_set_port(ret, port);
   
   return ret;
