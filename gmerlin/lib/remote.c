@@ -64,6 +64,7 @@ struct bg_remote_server_s
   /* Configuration stuff */
 
   int allow_remote;
+  
   int listen_port;
   int max_connections;
 
@@ -87,9 +88,13 @@ bg_remote_server_t * bg_remote_server_create(int listen_port,
 
 int bg_remote_server_init(bg_remote_server_t * s)
   {
+  int flags = 0;
+  if(!s->allow_remote)
+    flags |= BG_SOCKET_LOOPBACK;
+  
   s->fd = bg_listen_socket_create_inet(s->listen_port,
                                        s->max_connections,
-                                       s->allow_remote ? INADDR_ANY : INADDR_LOOPBACK);
+                                       flags);
   if(s->fd < 0)
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN_SERVER,

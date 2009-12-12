@@ -73,6 +73,7 @@ bg_host_address_t * bg_host_address_create()
 
 void bg_host_address_destroy(bg_host_address_t * a)
   {
+  freeaddrinfo(a->addr);
   free(a);
   }
 
@@ -212,12 +213,12 @@ static struct addrinfo * hostbyname(const char * hostname, int port, int socktyp
            hostname, gai_strerror(err));
     return (struct addrinfo *)0;
     }
-
+#if 0
   if(ret[0].ai_addr->sa_family == AF_INET)
     fprintf(stderr, "Got IPV4 address\n");
   else if(ret[0].ai_addr->sa_family == AF_INET6)
     fprintf(stderr, "Got IPV6 address\n");
-  
+#endif  
   address_set_port(ret, port);
   
   return ret;
@@ -343,17 +344,65 @@ void bg_socket_disconnect(int sock)
   close(sock);
   }
 
+/* Older systems assign an ipv4 address to localhost,
+   newer systems (e.g. Ubuntu Karmic) assign an ipv6 address to localhost.
+
+   To test this, we make a name lookup for "localhost" and test if it returns
+   an IPV4 or an IPV6 address */
+
+static int have_ipv6()
+  {
+  struct addrinfo hints;
+  struct addrinfo * ret;
+  int err, has_ipv6;
+  
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family   = PF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM; // SOCK_DGRAM
+  hints.ai_protocol = 0; // 0
+  hints.ai_flags    = 0;
+
+  if((err = getaddrinfo("localhost", (char*)0 /* service */,
+                        &hints, &ret)))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot resolve address of localhost: %s",
+           gai_strerror(err));
+    return 0;
+    }
+
+  if(ret[0].ai_addr->sa_family == AF_INET6)
+    has_ipv6 = 1;
+  else
+    has_ipv6 = 0;
+
+  freeaddrinfo(ret);
+  return has_ipv6;
+  }
+
 /* Server socket (stream oriented) */
 
 int bg_listen_socket_create_inet(int port,
                                  int queue_size,
-                                 uint32_t addr)
+                                 int flags)
   {
-  int ret;
-  struct sockaddr_in name;
+  int ret, err, use_ipv6;
+  struct sockaddr_in  name_ipv4;
+  struct sockaddr_in6 name_ipv6;
+
+  if(flags & BG_SOCKET_LOOPBACK)
+    use_ipv6 = have_ipv6();
+  else
+    use_ipv6 = 0;
+  
+  memset(&name_ipv4, 0, sizeof(name_ipv4));
+  memset(&name_ipv6, 0, sizeof(name_ipv6));
+  
+  if(use_ipv6)
+    ret = create_socket(PF_INET6, SOCK_STREAM, 0);
+  else
+    ret = create_socket(PF_INET, SOCK_STREAM, 0);
   
   /* Create the socket. */
-  ret = create_socket(PF_INET, SOCK_STREAM, 0);
   if (ret < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create inet server socket");
@@ -361,10 +410,30 @@ int bg_listen_socket_create_inet(int port,
     }
   
   /* Give the socket a name. */
-  name.sin_family = AF_INET;
-  name.sin_port = htons (port);
-  name.sin_addr.s_addr = htonl (INADDR_ANY);
-  if (bind (ret, (struct sockaddr *) &name, sizeof (name)) < 0)
+
+  if(use_ipv6)
+    {
+    name_ipv6.sin6_family = AF_INET6;
+    name_ipv6.sin6_port   = htons(port);
+    if(flags & BG_SOCKET_LOOPBACK)
+      name_ipv6.sin6_addr = in6addr_loopback;
+    else
+      name_ipv6.sin6_addr = in6addr_any;
+
+    err = bind(ret, (struct sockaddr *)&name_ipv6, sizeof(name_ipv6));
+    }
+  else
+    {
+    name_ipv4.sin_family = AF_INET;
+    name_ipv4.sin_port = htons(port);
+    if(flags & BG_SOCKET_LOOPBACK)
+      name_ipv4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    else
+      name_ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
+    err = bind(ret, (struct sockaddr *)&name_ipv4, sizeof(name_ipv4));
+    }
+  
+  if(err < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot bind inet socket: %s", strerror(errno));
     return -1;

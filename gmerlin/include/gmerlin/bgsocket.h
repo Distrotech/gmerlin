@@ -53,9 +53,12 @@ void bg_socket_disconnect(int);
 
 /* Server socket (stream oriented) */
 
+// #define BG_SOCKET_IPV6     (1<<0)
+#define BG_SOCKET_LOOPBACK (1<<1)
+
 int bg_listen_socket_create_inet(int port,
                                  int queue_size,
-                                 uint32_t addr);
+                                 int flags);
 
 int bg_listen_socket_create_unix(const char * name,
                                  int queue_size);
