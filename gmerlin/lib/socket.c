@@ -236,7 +236,9 @@ int bg_host_address_set(bg_host_address_t * a, const char * hostname,
 int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   {
   int ret = -1;
-  int err, err_len;
+  int err;
+  socklen_t err_len;
+
   struct timeval timeout;
   fd_set write_fds;
                                                                                
