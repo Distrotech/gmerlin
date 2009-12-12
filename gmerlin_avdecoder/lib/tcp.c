@@ -156,10 +156,15 @@ bgav_hostbyname(const bgav_options_t * opt,
 static int socket_connect_inet(const bgav_options_t * opt, struct addrinfo * addr)
   {
   int ret = -1;
+  int err;
+  socklen_t err_len;
 
   struct timeval timeout;
   fd_set write_fds;
-                                                                               
+#ifdef _WIN32
+  unsigned long flags = 1;
+#endif
+  
   /* Create the socket */
   if((ret = create_socket(addr->ai_family, SOCK_STREAM, 0)) < 0)
     {
@@ -169,7 +174,6 @@ static int socket_connect_inet(const bgav_options_t * opt, struct addrinfo * add
   
   /* Set nonblocking mode */
 #ifdef _WIN32
-  unsigned long flags = 1;
   if (ioctlsocket(ret,FIONBIO, &flags) == SOCKET_ERROR)
 #else
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
@@ -196,9 +200,21 @@ static int socket_connect_inet(const bgav_options_t * opt, struct addrinfo * add
       }
     else
       {
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Connecting failed: %s", strerror(errno));
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Connecting failed: %s", strerror(errno));
       return -1;
       }
+    }
+
+  /* Check for errors */
+  err_len = sizeof(err);
+  getsockopt(ret, SOL_SOCKET, SO_ERROR, &err, &err_len);
+
+  if(err)
+    {
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Connecting failed: %s",
+             strerror(err));
+    return -1;
     }
   
   /* Set back to blocking mode */
