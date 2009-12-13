@@ -26,7 +26,9 @@
 void bg_player_set_oa_plugin(bg_player_t * p, bg_plugin_handle_t * handle)
   {
   bg_msg_t * msg;
-  bg_plugin_ref(handle);
+
+  if(handle)
+    bg_plugin_ref(handle);
   
   msg = bg_msg_queue_lock_write(p->command_queue);
 
@@ -39,7 +41,8 @@ void bg_player_set_oa_plugin(bg_player_t * p, bg_plugin_handle_t * handle)
 void bg_player_set_ov_plugin(bg_player_t * p, bg_plugin_handle_t * handle)
   {
   bg_msg_t * msg;
-  bg_plugin_ref(handle);
+  if(handle)
+    bg_plugin_ref(handle);
 
   msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SET_OV_PLUGIN);

@@ -466,7 +466,6 @@ static bg_dialog_t * create_dialog(const char * title)
                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_container_add(GTK_CONTAINER(ret->scrolledwindow), ret->treeview);
   gtk_widget_show(ret->scrolledwindow);
-
   
   /* Create the rest */
 

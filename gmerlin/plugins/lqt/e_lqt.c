@@ -34,15 +34,24 @@
 
 #define LOG_DOMAIN "e_lqt"
 
-#define TEXT_TIME_SCALE GAVL_TIME_SCALE
-// #define TEXT_TIME_SCALE 1000
+#define CODEC_PARAMETER \
+    { \
+      .name =      "codec", \
+      .long_name = TRS("Codec"), \
+    }
 
-static const bg_parameter_info_t stream_parameters[] = 
+
+static const bg_parameter_info_t audio_parameters[] = 
   {
-    {
-      .name =      "codec",
-      .long_name = TRS("Codec"),
-    },
+    CODEC_PARAMETER,
+    { /* End */ }
+  };
+
+static const bg_parameter_info_t video_parameters[] = 
+  {
+    BG_ENCODER_FRAMERATE_PARAMS, /* Must come first (before the codec is set) */
+    CODEC_PARAMETER,
+    { /* End */ }
   };
 
 typedef struct
@@ -52,8 +61,6 @@ typedef struct
   char * filename_tmp;
   quicktime_t * file;
   
-  //  bg_parameter_info_t * parameters;
-
   char * audio_codec_name;
   char * video_codec_name;
 
@@ -85,6 +92,7 @@ typedef struct
     gavl_video_format_t format;
     uint8_t ** rows;
     lqt_codec_info_t ** codec_info;
+    bg_encoder_framerate_t fr;
     } * video_streams;
   
   struct
@@ -530,15 +538,12 @@ static void destroy_lqt(void * data)
 
 static void create_parameters(e_lqt_t * e)
   {
-  e->audio_parameters = calloc(2, sizeof(*(e->audio_parameters)));
-  e->video_parameters = calloc(2, sizeof(*(e->video_parameters)));
-
-  bg_parameter_info_copy(&(e->audio_parameters[0]), &(stream_parameters[0]));
-  bg_parameter_info_copy(&(e->video_parameters[0]), &(stream_parameters[0]));
+  e->audio_parameters = bg_parameter_info_copy_array(audio_parameters);
+  e->video_parameters = bg_parameter_info_copy_array(video_parameters);
   
   bg_lqt_create_codec_info(&(e->audio_parameters[0]),
                            1, 0, 1, 0);
-  bg_lqt_create_codec_info(&(e->video_parameters[0]),
+  bg_lqt_create_codec_info(&(e->video_parameters[2]),
                            0, 1, 1, 0);
   
   }
@@ -674,27 +679,23 @@ static void set_video_parameter_lqt(void * data, int stream, const char * name,
   
   if(!name)
     return;
-  
-  if(!strcmp(name, "codec"))
+  else if(bg_encoder_set_framerate_parameter(&e->video_streams[stream].fr,
+                                             name, val))
+    return;
+  else if(!strcmp(name, "codec"))
     {
     /* Now we can add the stream */
 
     e->video_streams[stream].codec_info =
       lqt_find_video_codec_by_name(val->val_str);
     
-    if(e->file_type == LQT_FILE_AVI)
+    if(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML))
       {
-      //      e->video_streams[stream].format.image_width *=
-      //        e->video_streams[stream].format.pixel_width;
-      
-      //      e->video_streams[stream].format.image_width /=
-      //        e->video_streams[stream].format.pixel_height;
-
       e->video_streams[stream].format.pixel_width = 1;
       e->video_streams[stream].format.pixel_height = 1;
 
-      //      e->video_streams[stream].format.frame_width =
-      //        e->video_streams[stream].format.image_width;
+      bg_encoder_set_framerate(&e->video_streams[stream].fr,
+                               &e->video_streams[stream].format);
       }
     
     lqt_gavl_add_video_track(e->file, &e->video_streams[stream].format,

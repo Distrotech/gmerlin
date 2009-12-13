@@ -793,13 +793,25 @@ void bg_recorder_video_finalize_encode(bg_recorder_t * rec)
   bg_recorder_video_stream_t * vs = &rec->vs;
   bg_encoder_get_video_format(rec->enc, vs->enc_index, &vs->enc_format);
 
+  /*
+   *  The encoder might have changed the framerate.
+   *  This affects the pipe_format as well, but not the other formats
+   */
+  
+  vs->pipe_format.framerate_mode = vs->enc_format.framerate_mode;
+  vs->pipe_format.timescale      = vs->enc_format.timescale;
+  vs->pipe_format.frame_duration = vs->enc_format.frame_duration;
+  
+  bg_video_filter_chain_set_out_format(vs->fc,
+                                       &vs->pipe_format);
+  
   vs->do_convert_enc = gavl_video_converter_init(vs->enc_cnv, &vs->pipe_format,
                                                  &vs->enc_format);
 
   if(vs->do_convert_enc)
     vs->enc_frame = gavl_video_frame_create(&vs->enc_format);
 
-  /* Hack: The encoder might have changed the framerate. */
+
   
   
   vs->flags |= STREAM_ENCODE_OPEN;

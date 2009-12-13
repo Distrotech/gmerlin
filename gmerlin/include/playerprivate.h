@@ -497,9 +497,6 @@ void bg_player_audio_cleanup(bg_player_t * p);
 void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg);
 void bg_player_audio_destroy(bg_player_t * p);
 
-void bg_player_set_oa_plugin_internal(bg_player_t * player,
-                                      bg_plugin_handle_t * handle);
-
 int bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame);
 
 void bg_player_audio_set_eof(bg_player_t * p);

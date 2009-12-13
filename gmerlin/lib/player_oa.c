@@ -28,21 +28,6 @@
 
 #define LOG_DOMAIN "player.audio_output"
 
-void bg_player_set_oa_plugin_internal(bg_player_t * player,
-                                      bg_plugin_handle_t * handle)
-  {
-  bg_player_audio_stream_t * s = &player->audio_stream;
-  
-  if(s->plugin_handle)
-    bg_plugin_unref(s->plugin_handle);
-  
-  s->plugin_handle = handle;
-  
-  s->plugin = (bg_oa_plugin_t*)(s->plugin_handle->plugin);
-  s->priv = s->plugin_handle->priv;
-  }
-
-
 #define CHECK_PEAK(id, pos) \
    index = gavl_channel_index(&s->fifo_format, id); \
    if(index >= 0) \
@@ -330,14 +315,18 @@ void bg_player_oa_set_plugin(bg_player_t * player,
     bg_plugin_unref(ctx->plugin_handle);
   
   ctx->plugin_handle = handle;
-  
-  ctx->plugin = (bg_oa_plugin_t*)(ctx->plugin_handle->plugin);
-  ctx->priv = ctx->plugin_handle->priv;
+
+  if(handle)
+    {
+    ctx->plugin = (bg_oa_plugin_t*)(ctx->plugin_handle->plugin);
+    ctx->priv = ctx->plugin_handle->priv;
 
 #if 0  
-  bg_plugin_lock(ctx->plugin_handle);
-  if(ctx->plugin->set_callbacks)
-    ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
-  bg_plugin_unlock(ctx->plugin_handle);
+    bg_plugin_lock(ctx->plugin_handle);
+    if(ctx->plugin->set_callbacks)
+      ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
+    bg_plugin_unlock(ctx->plugin_handle);
 #endif
+    }
+  
   }

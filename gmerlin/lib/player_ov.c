@@ -246,15 +246,16 @@ void bg_player_ov_set_plugin(bg_player_t * player, bg_plugin_handle_t * handle)
 
   ctx->plugin_handle = handle;
 
-
-  ctx->plugin = (bg_ov_plugin_t*)(ctx->plugin_handle->plugin);
-  ctx->priv = ctx->plugin_handle->priv;
-
-  bg_plugin_lock(ctx->plugin_handle);
-  if(ctx->plugin->set_callbacks)
-    ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
-  bg_plugin_unlock(ctx->plugin_handle);
-
+  if(handle)
+    {
+    ctx->plugin = (bg_ov_plugin_t*)(ctx->plugin_handle->plugin);
+    ctx->priv = ctx->plugin_handle->priv;
+    
+    bg_plugin_lock(ctx->plugin_handle);
+    if(ctx->plugin->set_callbacks)
+      ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
+    bg_plugin_unlock(ctx->plugin_handle);
+    }
   }
 
 void bg_player_ov_destroy(bg_player_t * player)
