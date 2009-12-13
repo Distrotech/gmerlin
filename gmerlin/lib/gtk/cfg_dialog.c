@@ -476,7 +476,7 @@ static bg_dialog_t * create_dialog(const char * title)
   gtk_widget_show(hbox);
   
   ret->mainbox = gtk_vbox_new(0, 5);
-  gtk_box_pack_start(GTK_BOX(ret->mainbox), hbox, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(ret->mainbox), hbox, TRUE, TRUE, 0);
   
   buttonbox = gtk_hbutton_box_new();
   gtk_box_set_spacing(GTK_BOX(buttonbox), 10);
