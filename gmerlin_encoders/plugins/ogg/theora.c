@@ -27,6 +27,7 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "oggtheora"
@@ -72,6 +73,8 @@ typedef struct
   char * stats_ptr;
   int stats_size;
 #endif
+  
+  bg_encoder_framerate_t fr;
   } theora_t;
 
 static void * create_theora(bg_ogg_encoder_t * output, long serialno)
@@ -152,6 +155,7 @@ static const bg_parameter_info_t parameters[] =
       .num_digits  = 2,
       .help_string = TRS("Higher speed levels favor quicker encoding over better quality per bit. Depending on the encoding mode, and the internal algorithms used, quality may actually improve, but in this case bitrate will also likely increase. In any case, overall rate/distortion performance will probably decrease."),
     },
+    BG_ENCODER_FRAMERATE_PARAMS,
     { /* End of parameters */ }
   };
 
@@ -166,6 +170,8 @@ static void set_parameter_theora(void * data, const char * name,
   theora_t * theora = data;
   
   if(!name)
+    return;
+  else if(bg_encoder_set_framerate_parameter(&theora->fr, name, v))
     return;
   else if(!strcmp(name, "target_bitrate"))
     theora->ti.target_bitrate = v->val_i * 1000;
@@ -255,6 +261,8 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   theora_t * theora = (theora_t *)data;
 
   theora->format = format;
+
+  bg_encoder_set_framerate(&theora->fr, format);
   
   /* Set video format */
   theora->ti.frame_width  = ((format->image_width  + 15)/16*16);
@@ -268,7 +276,10 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   theora->ti.aspect_denominator = format->pixel_height;
 
   format->interlace_mode = GAVL_INTERLACE_NONE;
-  format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+
+    
+  // format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+  
   format->frame_width  = theora->ti.frame_width;
   format->frame_height = theora->ti.frame_height;
   
@@ -322,7 +333,7 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
 
   th_encode_ctl(theora->ts,
                 TH_ENCCTL_SET_KEYFRAME_FREQUENCY_FORCE,
-                &theora->max_keyframe_interval, sizeof(arg_i1));
+                &theora->max_keyframe_interval, sizeof(theora->max_keyframe_interval));
 
   // Rate flags
 
