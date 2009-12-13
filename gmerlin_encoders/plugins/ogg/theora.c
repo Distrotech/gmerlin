@@ -245,8 +245,14 @@ static void build_comment(th_comment * vc, bg_metadata_t * metadata)
 static const gavl_pixelformat_t supported_pixelformats[] =
   {
     GAVL_YUV_420_P,
-    //    GAVL_YUV_422_P,
-    //    GAVL_YUV_444_P,
+
+    /* Of course 2-pass and 4:2:2/4:4:4 are completely unrelated.
+       But both appeared in libtheora 1.1.0 and we have no other
+       way to check the version at compile time */
+#ifdef HAVE_2_PASS
+    GAVL_YUV_422_P,
+    GAVL_YUV_444_P,
+#endif
     GAVL_PIXELFORMAT_NONE,
   };
 
