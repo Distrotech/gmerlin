@@ -61,7 +61,7 @@ static int open_mpv(void * data, const char * filename,
                     const bg_metadata_t * metadata,
                     const bg_chapter_list_t * chapter_list)
   {
-  e_mpv_t * e = (e_mpv_t*)data;
+  e_mpv_t * e = data;
   e->filename =
     bg_filename_ensure_extension(filename, bg_mpv_get_extension(&(e->mpv)));
 
@@ -73,7 +73,7 @@ static int open_mpv(void * data, const char * filename,
 
 static int add_video_stream_mpv(void * data, const gavl_video_format_t* format)
   {
-  e_mpv_t * e = (e_mpv_t*)data;
+  e_mpv_t * e = data;
   bg_mpv_set_format(&e->mpv, format);
   return 0;
   }
@@ -81,16 +81,13 @@ static int add_video_stream_mpv(void * data, const gavl_video_format_t* format)
 static void get_video_format_mpv(void * data, int stream,
                                  gavl_video_format_t * ret)
   {
-  e_mpv_t * e = (e_mpv_t*)data;
-
-  
-  
+  e_mpv_t * e = data;
   gavl_video_format_copy(ret, &(e->mpv.y4m.format));
   }
 
 static int start_mpv(void * data)
   {
-  e_mpv_t * e = (e_mpv_t*)data;
+  e_mpv_t * e = data;
   return bg_mpv_start(&e->mpv);
   }
 
@@ -98,14 +95,14 @@ static int write_video_frame_mpv(void * data,
                                   gavl_video_frame_t* frame,
                                   int stream)
   {
-  e_mpv_t * e = (e_mpv_t*)data;
+  e_mpv_t * e = data;
   return bg_mpv_write_video_frame(&(e->mpv), frame);
   }
 
 static int close_mpv(void * data, int do_delete)
   {
   int ret;
-  e_mpv_t * e = (e_mpv_t*)data;
+  e_mpv_t * e = data;
   ret = bg_mpv_close(&e->mpv);
   if(do_delete)
     {
@@ -117,7 +114,7 @@ static int close_mpv(void * data, int do_delete)
 
 static void destroy_mpv(void * data)
   {
-  e_mpv_t * e = (e_mpv_t*)data;
+  e_mpv_t * e = data;
   free(e);
   }
 
@@ -131,7 +128,7 @@ static const bg_parameter_info_t * get_parameters_mpv(void * data)
 static void set_parameter_mpv(void * data, const char * name,
                               const bg_parameter_value_t * val)
   {
-  e_mpv_t * e = (e_mpv_t*)data;
+  e_mpv_t * e = data;
   bg_mpv_set_parameter(&e->mpv, name, val);
   }
 

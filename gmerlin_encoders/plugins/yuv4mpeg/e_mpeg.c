@@ -97,7 +97,7 @@ static int open_mpeg(void * data, const char * filename,
                      const bg_metadata_t * metadata,
                      const bg_chapter_list_t * chapter_list)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   
   e->filename = bg_filename_ensure_extension(filename, "mpg");
 
@@ -128,7 +128,7 @@ static int add_audio_stream_mpeg(void * data,
                                  const char * language,
                                  const gavl_audio_format_t * format)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
 
   e->audio_streams =
     realloc(e->audio_streams,
@@ -145,7 +145,7 @@ static int add_audio_stream_mpeg(void * data,
 
 static int add_video_stream_mpeg(void * data, const gavl_video_format_t* format)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
 
   e->video_streams =
     realloc(e->video_streams,
@@ -163,14 +163,14 @@ static int add_video_stream_mpeg(void * data, const gavl_video_format_t* format)
 static void get_audio_format_mpeg(void * data, int stream,
                                   gavl_audio_format_t * ret)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   bg_mpa_get_format(&(e->audio_streams[stream].mpa), ret);
   }
 
 static void get_video_format_mpeg(void * data, int stream,
                                   gavl_video_format_t * ret)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   bg_mpv_get_format(&(e->video_streams[stream].mpv), ret);
   }
 
@@ -206,11 +206,11 @@ static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
     }
   if(is_audio)
     {
-    template = bg_strcat(template, "_audio_%04d");
+    template = bg_strcat(template, "_audio_%04d.");
     }
   else
     {
-    template = bg_strcat(template, "_video_%04d");
+    template = bg_strcat(template, "_video_%04d.");
     }
   template = bg_strcat(template, extension);
   ret = bg_create_unique_filename(template);
@@ -223,7 +223,7 @@ static int start_mpeg(void * data)
   {
   
   int i;
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   e->is_open = 1;
   
   for(i = 0; i < e->num_audio_streams; i++)
@@ -257,14 +257,14 @@ static int start_mpeg(void * data)
 static int write_audio_frame_mpeg(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   return bg_mpa_write_audio_frame(&e->audio_streams[stream].mpa, frame);
   }
 
 static int write_video_frame_mpeg(void * data, gavl_video_frame_t* frame,
                                   int stream)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   return bg_mpv_write_video_frame(&e->video_streams[stream].mpv, frame);
   }
 
@@ -275,7 +275,7 @@ static int close_mpeg(void * data, int do_delete)
   char * tmp_string;
   int ret = 1;
   int i;
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
 
   if(!e->is_open)
     return 1;
@@ -400,7 +400,7 @@ static int close_mpeg(void * data, int do_delete)
 
 static void destroy_mpeg(void * data)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
 
   close_mpeg(data, 1);
   
@@ -473,7 +473,7 @@ static const bg_parameter_info_t * get_parameters_mpeg(void * data)
 static void set_parameter_mpeg(void * data, const char * name,
                                const bg_parameter_value_t * val)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   if(!name)
     return;
 
@@ -508,7 +508,7 @@ static void set_audio_parameter_mpeg(void * data, int stream,
                                      const char * name,
                                      const bg_parameter_value_t * val)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   
   if(!name)
     return;
@@ -521,7 +521,7 @@ static void set_video_parameter_mpeg(void * data, int stream,
                                      const char * name,
                                      const bg_parameter_value_t * val)
   {
-  e_mpeg_t * e = (e_mpeg_t*)data;
+  e_mpeg_t * e = data;
   if(!name)
     return;
   bg_mpv_set_parameter(&e->video_streams[stream].mpv, name, val);

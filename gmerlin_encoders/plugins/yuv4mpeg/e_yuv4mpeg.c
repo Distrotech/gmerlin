@@ -96,10 +96,13 @@ static int start_y4m(void * data)
   {
   int result;
   e_y4m_t * e = (e_y4m_t*)data;
+  
+  bg_encoder_set_framerate(&e->com.fr,
+                           &e->com.format);
+  
   result = bg_y4m_write_header(&e->com);
   return result;
   }
-
 
 static int write_video_frame_y4m(void * data,
                                  gavl_video_frame_t* frame,
@@ -160,6 +163,7 @@ static const bg_parameter_info_t video_parameters[] =
                                (char*)0 },
       .help_string = TRS("Set the chroma mode of the output file. Auto means to take the format most similar to the source.")
     },
+    BG_ENCODER_FRAMERATE_PARAMS,
     { /* End of parameters */ }
   };
 
@@ -218,8 +222,13 @@ static void set_video_parameter_y4m(void * data, int stream, const char * name,
     bg_y4m_set_pixelformat(&e->com);
     return;
     }
-  
-  if(!strcmp(name, "chroma_mode"))
+  else if(bg_encoder_set_framerate_parameter(&e->com.fr,
+                                             name,
+                                             val))
+    {
+    return;
+    }
+  else if(!strcmp(name, "chroma_mode"))
     {
     SET_ENUM("auto",     e->com.chroma_mode, -1);
     SET_ENUM("420jpeg",  e->com.chroma_mode, Y4M_CHROMA_420JPEG);
@@ -250,8 +259,6 @@ const bg_encoder_plugin_t the_plugin =
       .priority =       BG_PLUGIN_PRIORITY_MAX,
       .create =         create_y4m,
       .destroy =        destroy_y4m,
-      //      .get_parameters = get_parameters_y4m,
-      //      .set_parameter =  set_parameter_y4m,
     },
 
     .max_audio_streams =  0,

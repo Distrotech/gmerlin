@@ -38,6 +38,8 @@ typedef struct
   bg_subprocess_t * mpeg2enc;
   bg_y4m_common_t y4m;
   sigset_t oldset;
+  
+  bg_encoder_framerate_t fr;
   } bg_mpv_common_t;
 
 const bg_parameter_info_t * bg_mpv_get_parameters();

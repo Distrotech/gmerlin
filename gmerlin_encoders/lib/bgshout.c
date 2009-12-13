@@ -74,6 +74,7 @@ static const bg_parameter_info_t parameters[] =
       .name        = "user",
       .long_name   = TRS("User"),
       .type        = BG_PARAMETER_STRING,
+      .val_default = { .val_str = "source" },
     },
     {
       .name        = "password",

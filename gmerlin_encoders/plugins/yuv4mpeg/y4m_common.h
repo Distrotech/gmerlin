@@ -36,7 +36,8 @@ typedef struct
 
   gavl_video_frame_t * frame;
   uint8_t * tmp_planes[4];
-
+  
+  bg_encoder_framerate_t fr;
   } bg_y4m_common_t;
 
 /* Set pixelformat and chroma placement from chroma_mode */

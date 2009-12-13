@@ -28,6 +28,8 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
+
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "mpegvideo"
@@ -122,6 +124,7 @@ the VCD standard requires 2 B-frames, no matter if you like them or not."),
       .help_string = TRS("Enter further commandline options for mpeg2enc here. Check the mpeg2enc manual page \
 for details"),
     },
+    BG_ENCODER_FRAMERATE_PARAMS,
     { /* End of parameters */ }
     
   };
@@ -141,6 +144,11 @@ void bg_mpv_set_parameter(void * data, const char * name, const bg_parameter_val
 
   if(!name)
     return;
+  else if(bg_encoder_set_framerate_parameter(&com->y4m.fr,
+                                             name, val))
+    {
+    return;
+    }
   else if(!strcmp(name, "format"))
     {
     SET_ENUM("mpeg1", com->format, FORMAT_MPEG1);
@@ -265,62 +273,7 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
   return ret;
   }
 
-static struct
-  {
-  int timescale;
-  int frame_duration;
-  }
-mpeg_framerates[] =
-  {
-    { 24000, 1001 },
-    {    24,    1 },
-    {    25,    1 },
-    { 30000, 1001 },
-    {    30,    1 },
-    {    50,    1 },
-    { 60000, 1001 },
-    {    60,    1 },
-    { /* End of framerates */ }
-  };
 
-
-static void bg_mpv_adjust_framerate(gavl_video_format_t * format)
-  {
-  double rate_d;
-  double test_rate_d;
-  double min_diff, test_diff;
-  int min_index;
-  int i;
-
-  
-  /* Constant framerate */
-  format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
-  
-  /* Nearest framerate */
-  rate_d = (double)format->timescale / (double)format->frame_duration;
-
-  test_rate_d = (double)mpeg_framerates[0].timescale / (double)mpeg_framerates[0].frame_duration;
-  
-  min_diff = fabs(rate_d - test_rate_d);
-  min_index = 0;
-  
-  i = 1;
-  while(mpeg_framerates[i].timescale)
-    {
-    test_rate_d = (double)mpeg_framerates[i].timescale /
-      (double)mpeg_framerates[i].frame_duration;
-
-    test_diff = fabs(rate_d - test_rate_d);
-    if(test_diff < min_diff)
-      {
-      min_index = i;
-      min_diff = test_diff;
-      }
-    i++;
-    }
-  format->timescale      = mpeg_framerates[min_index].timescale;
-  format->frame_duration = mpeg_framerates[min_index].frame_duration;
-  }
 
 static int bg_mpv_get_chroma_mode(bg_mpv_common_t * com)
   {
@@ -418,13 +371,22 @@ int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
   
   }
 
+static const bg_encoder_framerate_t mpeg_framerates[] =
+  {
+    { 24000, 1001 },
+    {    24,    1 },
+    {    25,    1 },
+    { 30000, 1001 },
+    {    30,    1 },
+    {    50,    1 },
+    { 60000, 1001 },
+    {    60,    1 },
+    { /* End of framerates */ }
+  };
+
 void bg_mpv_set_format(bg_mpv_common_t * com, const gavl_video_format_t * format)
   {
   gavl_video_format_copy(&(com->y4m.format), format);
-  com->y4m.chroma_mode = bg_mpv_get_chroma_mode(com);
-  bg_mpv_adjust_framerate(&(com->y4m.format));
-  bg_mpv_adjust_interlacing(&(com->y4m.format), com->format);
-  bg_y4m_set_pixelformat(&com->y4m);
   }
 
 void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format)
@@ -459,6 +421,16 @@ int bg_mpv_close(bg_mpv_common_t * com)
 int bg_mpv_start(bg_mpv_common_t * com)
   {
   int result;
+
+  com->y4m.chroma_mode = bg_mpv_get_chroma_mode(com);
+
+  bg_encoder_set_framerate_nearest(&com->y4m.fr,
+                                   mpeg_framerates,
+                                   &(com->y4m.format));
+  
+  bg_mpv_adjust_interlacing(&(com->y4m.format), com->format);
+  bg_y4m_set_pixelformat(&com->y4m);
+  
   result = bg_y4m_write_header(&com->y4m);
   return result;
   }

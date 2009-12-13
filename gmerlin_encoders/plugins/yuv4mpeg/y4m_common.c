@@ -20,10 +20,12 @@
  * *****************************************************************/
 
 #include <string.h>
+#include <errno.h>
 
 #include <config.h>
 
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "y4m"
@@ -80,8 +82,10 @@ void bg_y4m_set_pixelformat(bg_y4m_common_t * com)
 
 int bg_y4m_write_header(bg_y4m_common_t * com)
   {
-  int i;
+  int i, err;
   y4m_ratio_t r;
+
+  y4m_accept_extensions(1);
   
   /* Set up the stream- and frame header */
   y4m_init_stream_info(&(com->si));
@@ -119,9 +123,12 @@ int bg_y4m_write_header(bg_y4m_common_t * com)
 
   /* Now, it's time to write the stream header */
 
-  if(y4m_write_stream_header(com->fd, &(com->si)) != Y4M_OK)
+  err = y4m_write_stream_header(com->fd, &(com->si));
+  
+  if(err != Y4M_OK)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing stream header failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing stream header failed: %s",
+           ((err == Y4M_ERR_SYSTEM) ? strerror(errno) : y4m_strerr(err)));
     return 0;
     }
   return 1;
@@ -165,7 +172,8 @@ static uint8_t yj_8_to_y_8[256] =
 };
 
 
-static void convert_yuva4444(uint8_t ** dst, uint8_t ** src, int width, int height, int stride)
+static void convert_yuva4444(uint8_t ** dst, uint8_t ** src,
+                             int width, int height, int stride)
   {
   int i, j;
   uint8_t *y, *u, *v, *a, *s;
