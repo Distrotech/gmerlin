@@ -39,3 +39,10 @@ void kbd_table_save(const char * filename, kbd_table_t *, int len);
 void kbd_table_destroy(kbd_table_t *, int len);
 
 void kbd_table_entry_free(kbd_table_t * kbd);
+
+/* Convert modifiers from/to string */
+
+uint32_t kbd_modifiers_from_string(const char * str);
+char *  kbd_modifiers_to_string(uint32_t state);
+
+#define kbd_ignore_mask (Mod2Mask)

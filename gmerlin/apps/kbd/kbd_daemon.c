@@ -43,63 +43,6 @@
 #include "kbd_remote.h"
 #include "kbd.h"
 
-static int ignore_mask = Mod2Mask;
-
-/* Gdk Modifiers */
-
-static struct
-  {
-  uint32_t flag;
-  char * name;
-  }
-modifiers[] =
-  {
-    { ShiftMask,   "Shift" }, //   = 1 << 0,
-    { LockMask,    "Lock" }, //	    = 1 << 1,
-    { ControlMask, "Control" }, //  = 1 << 2,
-    { Mod1Mask,    "Mod1" }, //	    = 1 << 3,
-    { Mod2Mask,    "Mod2" }, //	    = 1 << 4,
-    { Mod3Mask,    "Mod3" }, //	    = 1 << 5,
-    { Mod4Mask,    "Mod4" }, //	    = 1 << 6,
-    { Mod5Mask,    "Mod5" }, //	    = 1 << 7,
-    { Button1Mask, "Button1" }, //  = 1 << 8,
-    { Button2Mask, "Button2" }, //  = 1 << 9,
-    { Button3Mask, "Button3" }, //  = 1 << 10,
-    { Button4Mask, "Button4" }, //  = 1 << 11,
-    { Button5Mask, "Button5" }, //  = 1 << 12,
-    { /* End of array */ }, //  = 1 << 12,
-  };
-
-static uint32_t get_modifiers(const char * str)
-  {
-  char ** mods;
-  int i, j;
-  uint32_t ret = 0;
-  
-  if(!str)
-    return ret;
-
-  mods = bg_strbreak(str, '+');
-
-  i = 0;
-  while(mods[i])
-    {
-    j = 0;
-    while(modifiers[j].name)
-      {
-      if(!strcmp(modifiers[j].name, mods[i]))
-        {
-        ret |= modifiers[j].flag;
-        break;
-        }
-      j++;
-      }
-    i++;
-    }
-  bg_strbreak_free(mods);
-  return ret;
-  }
-
 
 typedef struct
   {
@@ -189,7 +132,7 @@ static void grab_keys(kbd_daemon_t * d)
                GrabModeAsync // int keyboard_mode
                );
       XGrabKey(d->dpy, d->keys[i].scancode, 
-               d->keys[i].modifiers_i | ignore_mask,
+               d->keys[i].modifiers_i | kbd_ignore_mask,
                d->root,
                False, // Bool owner_events,
                GrabModeAsync, // int pointer_mode,
@@ -268,7 +211,7 @@ static kbd_daemon_t * kbd_daemon_create()
   ret->keys = kbd_table_load(filename, &ret->num_keys);
 
   for(i = 0; i < ret->num_keys; i++)
-    ret->keys[i].modifiers_i = get_modifiers(ret->keys[i].modifiers);
+    ret->keys[i].modifiers_i = kbd_modifiers_from_string(ret->keys[i].modifiers);
   
   free(filename);
 
@@ -308,12 +251,12 @@ static void kbd_loop(kbd_daemon_t * d)
         case KeyPress:
           bg_log(BG_LOG_INFO, LOG_DOMAIN, 
                  "State %02x -> %02x\n", evt.xkey.state,
-                 evt.xkey.state & ~ignore_mask);
+                 evt.xkey.state & ~kbd_ignore_mask);
           for(i = 0; i < d->num_keys; i++)
             {
             if((d->keys[i].scancode == evt.xkey.keycode) &&
-               ((d->keys[i].modifiers_i & ~ignore_mask) == 
-                (evt.xkey.state & ~ignore_mask)))
+               ((d->keys[i].modifiers_i & ~kbd_ignore_mask) == 
+                (evt.xkey.state & ~kbd_ignore_mask)))
               {
               proc = bg_subprocess_create(d->keys[i].command, 0, 0, 0);
               bg_subprocess_close(proc);
@@ -343,7 +286,7 @@ static void kbd_loop(kbd_daemon_t * d)
           /* Load keyboad mapping */
           d->keys = kbd_table_load(filename, &d->num_keys);
           for(i = 0; i < d->num_keys; i++)
-            d->keys[i].modifiers_i = get_modifiers(d->keys[i].modifiers);
+            d->keys[i].modifiers_i = kbd_modifiers_from_string(d->keys[i].modifiers);
           free(filename);
           grab_keys(d);
           bg_log(BG_LOG_INFO, LOG_DOMAIN, "Reloaded keys");

@@ -96,69 +96,6 @@ static int create_socket(int domain, int type, int protocol)
   return ret;
   }
 
-
-/* gethostbyname */
-
-#if 0
-static int hostbyname(bg_host_address_t * a, const char * hostname)
-  {
-  struct hostent   h_ent;
-  struct hostent * h_ent_p;
-  int gethostbyname_buffer_size;
-
-  char * gethostbyname_buffer = (char*)0;
-  int result, herr;
-  int ret = 0;
-  
-  gethostbyname_buffer_size = 1024;
-  gethostbyname_buffer = malloc(gethostbyname_buffer_size);
-
-    
-  while((result = gethostbyname_r(hostname,
-                                  &h_ent,
-                                  gethostbyname_buffer,
-                                  gethostbyname_buffer_size,
-                                  &h_ent_p, &herr)) == ERANGE)
-    {
-    gethostbyname_buffer_size *= 2;
-    gethostbyname_buffer = realloc(gethostbyname_buffer,
-                                  gethostbyname_buffer_size);
-    }
-  
-  /* Fill in return value           */
-
-  if(result || (h_ent_p == NULL))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not resolve address");
-    goto fail;
-    }
-  if(h_ent_p->h_addrtype == AF_INET)
-    {
-    a->addr_type = AF_INET;
-    memcpy(&(a->addr.ipv4_addr),
-           h_ent_p->h_addr, sizeof(a->addr.ipv4_addr));
-    }
-  else if(h_ent_p->h_addrtype == AF_INET6)
-    {
-    a->addr_type = AF_INET6;
-    memcpy(&(a->addr.ipv6_addr),
-           h_ent_p->h_addr, sizeof(a->addr.ipv6_addr));
-    }
-  else
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No known address space");
-    goto fail;
-    }
-  ret = 1;
-
-  fail:
-  
-  if(gethostbyname_buffer)
-    free(gethostbyname_buffer);
-  return ret;
-  }
-#endif
-
 /* */
 
 static void address_set_port(struct addrinfo * info, int port)

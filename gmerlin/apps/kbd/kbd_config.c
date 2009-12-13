@@ -38,53 +38,10 @@
 #define LOG_DOMAIN "gmerlin_kbd_config"
 #include <gmerlin/subprocess.h>
 
-static int ignore_mask = GDK_MOD2_MASK;
-
-/* Gdk Modifiers */
-
-static struct
-  {
-  GdkModifierType type;
-  char * name;
-  }
-modifiers[] =
-  {
-    { GDK_SHIFT_MASK,   TRS("Shift") }, //   = 1 << 0,
-    { GDK_LOCK_MASK,    TRS("Lock") }, //	    = 1 << 1,
-    { GDK_CONTROL_MASK, TRS("Control") }, //  = 1 << 2,
-    { GDK_MOD1_MASK,    TRS("Mod1") }, //	    = 1 << 3,
-    { GDK_MOD2_MASK,    TRS("Mod2") }, //	    = 1 << 4,
-    { GDK_MOD3_MASK,    TRS("Mod3") }, //	    = 1 << 5,
-    { GDK_MOD4_MASK,    TRS("Mod4") }, //	    = 1 << 6,
-    { GDK_MOD5_MASK,    TRS("Mod5") }, //	    = 1 << 7,
-    { GDK_BUTTON1_MASK, TRS("Button1") }, //  = 1 << 8,
-    { GDK_BUTTON2_MASK, TRS("Button2") }, //  = 1 << 9,
-    { GDK_BUTTON3_MASK, TRS("Button3") }, //  = 1 << 10,
-    { GDK_BUTTON4_MASK, TRS("Button4") }, //  = 1 << 11,
-    { GDK_BUTTON5_MASK, TRS("Button5") }, //  = 1 << 12,
-
-  };
-
-static char * get_modifier_string(uint32_t state)
-  {
-  int i;
-  char * ret = (char*)0;
-
-  for(i = 0; i < sizeof(modifiers)/sizeof(modifiers[0]); i++)
-    {
-    if(state & modifiers[i].type)
-      {
-      if(ret)
-        {
-        ret = bg_strcat(ret, "+");
-        ret = bg_strcat(ret, dgettext(PACKAGE, modifiers[i].name));
-        }
-      else
-        ret = bg_strdup(ret, dgettext(PACKAGE, modifiers[i].name));
-      }
-    }
-  return ret;
-  }
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include <X11/Xutil.h>
+#include <X11/cursorfont.h>
 
 /* Config dialog */
 
@@ -99,43 +56,76 @@ typedef struct
   GtkWidget * ok_button;
   GtkWidget * cancel_button;
   int ret;
-  int do_grab; /* 1 if we are currently grabbing */
   } edit_dialog_t;
 
-static gboolean dialog_key_callback(GtkWidget * w,
-                                GdkEventKey * evt,
-                                gpointer data)
+static void grab_key(edit_dialog_t * dlg)
   {
+  /* We completely circumvent GTK here */
+  Display * dpy;
+  XEvent evt;
+  char key_char;
+  KeySym keysym;
+  Cursor cursor;
+  Window dummy_w;
+  int dummy_i;
+  unsigned int state;
+
   char * tmp_string;
-  edit_dialog_t * dlg = (edit_dialog_t *)data;
-  if(!dlg->do_grab)
-    return FALSE;
   
+  dpy = XOpenDisplay(gdk_display_get_name(gdk_display_get_default()));
 
-  /* Check, if we have a modifier */
+  cursor = XCreateFontCursor(dpy, XC_crosshair);
+  
+  XGrabKeyboard(dpy, DefaultRootWindow(dpy),
+                True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
-  switch(evt->keyval)
+  XGrabPointer(dpy, DefaultRootWindow(dpy),
+               True, 0, GrabModeAsync, GrabModeAsync, None, cursor, CurrentTime);
+  
+  while(1)
     {
-    case GDK_Shift_L:
-    case GDK_Shift_R:
-    case GDK_Control_L:
-    case GDK_Control_R:
-    case GDK_Alt_L:
-    case GDK_Alt_R:
-    case GDK_Meta_L:
-    case GDK_Meta_R:
-    case GDK_Super_L:
-    case GDK_Super_R:
-    case GDK_ISO_Level3_Shift:
-      return TRUE;
-      break;
+    XNextEvent(dpy, &evt);
+
+    if(evt.type != KeyPress)
+      continue;
+
+    XLookupString(&(evt.xkey), &key_char, 1, &keysym, NULL);
+    
+    switch(keysym)
+      {
+      case XK_Shift_L:
+      case XK_Shift_R:
+      case XK_Control_L:
+      case XK_Control_R:
+      case XK_Alt_L:
+      case XK_Alt_R:
+      case XK_Meta_L:
+      case XK_Meta_R:
+      case XK_Super_L:
+      case XK_Super_R:
+      case XK_ISO_Level3_Shift:
+        continue;
+        break;
+      default:
+        break;
+      }
+    
+    //    fprintf(stderr, "Got keycode: %d, modifiers: %08x, state: %08x\n",
+    //            evt.xkey.keycode, evt.xkey.state, state);
+    
+    break;
     }
-  tmp_string = bg_sprintf("%d", evt->hardware_keycode);
+
+  XQueryPointer(dpy, DefaultRootWindow(dpy), &dummy_w, &dummy_w, &dummy_i, &dummy_i,
+                &dummy_i, &dummy_i, &state);
   
+  /* Scancode */
+  tmp_string = bg_sprintf("%d", evt.xkey.keycode);
   gtk_entry_set_text(GTK_ENTRY(dlg->scancode), tmp_string);
   free(tmp_string);
-  
-  tmp_string = get_modifier_string(evt->state & ~ignore_mask);
+
+  /* Modifiers */
+  tmp_string = kbd_modifiers_to_string(state & ~kbd_ignore_mask);
   
   if(tmp_string)
     {
@@ -144,22 +134,19 @@ static gboolean dialog_key_callback(GtkWidget * w,
     }
   else
     gtk_entry_set_text(GTK_ENTRY(dlg->modifiers), "");
-  if(gdk_pointer_is_grabbed())
-    gdk_pointer_ungrab(evt->time);
-
-  gdk_keyboard_ungrab(evt->time);
   
-  gdk_keyboard_ungrab(GDK_CURRENT_TIME);
+  /* Cleanup */
+  XUngrabKeyboard(dpy, evt.xkey.time);
+  XUngrabPointer(dpy, evt.xkey.time);
 
-  dlg->do_grab = 0;
+  XFreeCursor(dpy, cursor);
   
-  gtk_main_quit();
-  return TRUE;
+  XCloseDisplay(dpy);
   }
 
 static void dialog_button_callback(GtkWidget * w, gpointer data)
   {
-  GdkCursor * cursor;
+  //  GdkCursor * cursor;
   edit_dialog_t * dlg = (edit_dialog_t *)data;
 
   if(w == dlg->ok_button)
@@ -173,21 +160,7 @@ static void dialog_button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == dlg->grab_button)
     {
-    
-    if(GDK_GRAB_SUCCESS == gdk_keyboard_grab(dlg->window->window,
-                                             FALSE,
-                                             GDK_CURRENT_TIME))
-      {
-      cursor = gdk_cursor_new(GDK_CROSS);
-      
-      gdk_pointer_grab(dlg->window->window, FALSE, 
-                       0, (GdkWindow*)0, cursor,
-                       GDK_CURRENT_TIME);
-      dlg->do_grab = 1;
-      gtk_main();
-      gdk_cursor_unref(cursor);
-      }
-
+    grab_key(dlg);
     }
 
   }
@@ -224,10 +197,6 @@ static edit_dialog_t * edit_dialog_create(kbd_table_t * kbd)
   
   ret->ok_button = gtk_button_new_from_stock(GTK_STOCK_OK);
   ret->cancel_button = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
-
-  g_signal_connect(G_OBJECT(ret->window), "key-press-event",
-                   G_CALLBACK(dialog_key_callback),
-                   ret);
 
   g_signal_connect(G_OBJECT(ret->grab_button), "clicked",
                    G_CALLBACK(dialog_button_callback),

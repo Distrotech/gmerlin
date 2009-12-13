@@ -9,6 +9,7 @@ bin_PROGRAMS = gmerlin_kbd gmerlin_kbd_config
 
 gmerlin_kbd_config_SOURCES = \
 kbd.c \
+keys.c \
 kbd_config.c \
 kbd_remote.c \
 keys_xml.c
@@ -16,6 +17,7 @@ keys_xml.c
 
 gmerlin_kbd_SOURCES = \
 kbd_daemon.c \
+keys.c \
 kbd.c \
 keys_xml.c
 
