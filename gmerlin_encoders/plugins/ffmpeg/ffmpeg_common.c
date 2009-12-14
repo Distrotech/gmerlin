@@ -28,7 +28,6 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
-#include <gmerlin/pluginfuncs.h>
 
 #define LOG_DOMAIN "ffmpeg"
 
@@ -291,20 +290,16 @@ int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
   st->stream->codec->pix_fmt = PIX_FMT_YUV420P;
   
   /* Adjust format */
-  st->format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
   st->format.pixelformat    = GAVL_YUV_420_P;
   
   /* Set format for codec */
   st->stream->codec->width  = st->format.image_width;
   st->stream->codec->height = st->format.image_height;
 
-  st->stream->codec->time_base.den = st->format.timescale;
-  st->stream->codec->time_base.num = st->format.frame_duration;
   st->stream->codec->sample_aspect_ratio.num = st->format.pixel_width;
   st->stream->codec->sample_aspect_ratio.den = st->format.pixel_height;
   st->stream->sample_aspect_ratio.num = st->format.pixel_width;
   st->stream->sample_aspect_ratio.den = st->format.pixel_height;
-  
   
   priv->num_video_streams++;
   return priv->num_video_streams-1;
@@ -323,7 +318,7 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
   st = &priv->audio_streams[stream];
   
   if(!strcmp(name, "codec"))
-    st->stream->codec->codec_id = bg_ffmpeg_find_audio_encoder(v->val_str);
+    st->stream->codec->codec_id = bg_ffmpeg_find_audio_encoder(priv->format, v->val_str);
   else
     bg_ffmpeg_set_codec_parameter(st->stream->codec, name, v);
   
@@ -343,7 +338,11 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
   st = &priv->video_streams[stream];
   
   if(!strcmp(name, "codec"))
-    st->stream->codec->codec_id = bg_ffmpeg_find_video_encoder(v->val_str);
+    st->stream->codec->codec_id = bg_ffmpeg_find_video_encoder(priv->format, v->val_str);
+  else if(bg_encoder_set_framerate_parameter(&st->fr, name, v))
+    {
+    return;
+    }
   else
     bg_ffmpeg_set_codec_parameter(st->stream->codec, name, v);
   
@@ -430,6 +429,29 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
       st->stream->codec->flags |= CODEC_FLAG_PASS2;
       }
     }
+
+  /* Set up framerate */
+
+  if(priv->format->flags & FLAG_CONSTANT_FRAMERATE)
+    {
+    if(priv->format->framerates)
+      bg_encoder_set_framerate_nearest(&st->fr,
+                                       priv->format->framerates,
+                                       &st->format);
+    else
+      bg_encoder_set_framerate(&st->fr, &st->format);
+    }
+  
+  if(st->format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
+    {
+    st->stream->codec->time_base.den = st->format.timescale;
+    st->stream->codec->time_base.num = st->format.frame_duration;
+    }
+  else
+    {
+    st->stream->codec->time_base.den = st->format.timescale;
+    st->stream->codec->time_base.num = 1;
+    }
   
   if(avcodec_open(st->stream->codec, codec) < 0)
     return 0;
@@ -447,44 +469,6 @@ int bg_ffmpeg_start(void * data)
   ffmpeg_priv_t * priv;
   int i, j;
   priv = (ffmpeg_priv_t *)data;
-
-  /* Check if all codecs are supported by the format */
-
-  for(i = 0; i < priv->num_audio_streams; i++)
-    {
-    j = 0;
-
-    while(priv->format->audio_codecs[j] != CODEC_ID_NONE)
-      {
-      if(priv->format->audio_codecs[j] ==
-         priv->audio_streams[i].stream->codec->codec_id)
-        break;
-      j++;
-      }
-    if(priv->format->audio_codecs[j] == CODEC_ID_NONE)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Audio codec is not compatible with format");
-      return 0;
-      }
-    }
-  for(i = 0; i < priv->num_video_streams; i++)
-    {
-    j = 0;
-
-    while(priv->format->video_codecs[j] != CODEC_ID_NONE)
-      {
-      if(priv->format->video_codecs[j] ==
-         priv->video_streams[i].stream->codec->codec_id)
-        break;
-      j++;
-      }
-    if(priv->format->video_codecs[j] == CODEC_ID_NONE)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Video codec is not compatible with format");
-      return 0;
-      }
-    }
   
   /* set the output parameters (must be done even if no
      parameters). */
@@ -664,7 +648,7 @@ int bg_ffmpeg_write_video_frame(void * data,
   
   priv = (ffmpeg_priv_t *)data;
   st = &(priv->video_streams[stream]);
-    
+  st->frame->pts = frame->timestamp;
   st->frame->data[0]     = frame->planes[0];
   st->frame->data[1]     = frame->planes[1];
   st->frame->data[2]     = frame->planes[2];
@@ -773,3 +757,16 @@ int bg_ffmpeg_close(void * data, int do_delete)
   
   return 1;
   }
+
+const bg_encoder_framerate_t bg_ffmpeg_mpeg_framerates[] =
+  {
+    { 24000, 1001 },
+    {    24,    1 },
+    {    25,    1 },
+    { 30000, 1001 },
+    {    30,    1 },
+    {    50,    1 },
+    { 60000, 1001 },
+    {    60,    1 },
+    { /* End of framerates */ }
+  };

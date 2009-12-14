@@ -22,6 +22,9 @@
 #include <config.h>
 #include AVFORMAT_HEADER
 #include <gmerlin/plugin.h>
+#include <gmerlin/pluginfuncs.h>
+
+#define FLAG_CONSTANT_FRAMERATE (1<<9)
 
 typedef struct
   {
@@ -42,6 +45,10 @@ typedef struct
   
   const enum CodecID * audio_codecs;
   const enum CodecID * video_codecs;
+  
+  int flags;
+  const bg_encoder_framerate_t * framerates;
+  
   } ffmpeg_format_info_t;
 
 /* codecs.c */
@@ -60,10 +67,10 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
                               const bg_parameter_value_t * val);
 
 enum CodecID
-bg_ffmpeg_find_audio_encoder(const char * name);
+bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format, const char * name);
 
 enum CodecID
-bg_ffmpeg_find_video_encoder(const char * name);
+bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format, const char * name);
 
 typedef struct
   {
@@ -94,7 +101,7 @@ typedef struct
   int pass;
   int total_passes;
   FILE * stats_file;
-  
+  bg_encoder_framerate_t fr;
   } ffmpeg_video_stream_t;
 
 typedef struct
@@ -119,6 +126,9 @@ typedef struct
   int got_error;
   bg_encoder_callbacks_t * cb;
   } ffmpeg_priv_t;
+
+extern const bg_encoder_framerate_t
+bg_ffmpeg_mpeg_framerates[];
 
 void * bg_ffmpeg_create(const ffmpeg_format_info_t * formats);
 

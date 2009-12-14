@@ -25,6 +25,9 @@
 #include "params.h"
 #include <gmerlin/utils.h>
 #include <gmerlin/translation.h>
+#include <gmerlin/log.h>
+
+#define LOG_DOMAIN "ffmpeg.codecs"
 
 #define ENCODE_PARAM_MP2                 \
   {                                      \
@@ -417,16 +420,32 @@ add_codec_info(const ffmpeg_codec_info_t ** info, enum CodecID id, int * num)
   return info;
   }
 
+static const bg_parameter_info_t audio_parameters[] =
+  {
+    {
+      .name      = "codec",
+      .long_name = TRS("Codec"),
+      .type      = BG_PARAMETER_MULTI_MENU,
+    },
+    { /* */ }
+  };
+
+static const bg_parameter_info_t video_parameters[] =
+  {
+    {
+      .name      = "codec",
+      .long_name = TRS("Codec"),
+      .type      = BG_PARAMETER_MULTI_MENU,
+    },
+    BG_ENCODER_FRAMERATE_PARAMS,
+    { /* */ }
+  };
+
 static void create_codec_parameter(bg_parameter_info_t * parameter_info,
                                    const ffmpeg_codec_info_t ** infos,
                                    int num_infos)
   {
   int i;
-  parameter_info[0].name = bg_strdup(parameter_info[0].name, "codec");
-  parameter_info[0].long_name =
-    bg_strdup(parameter_info[0].long_name, TRS("Codec"));
-
-  parameter_info[0].type = BG_PARAMETER_MULTI_MENU;
   parameter_info[0].multi_names_nc =
     calloc(num_infos+1, sizeof(*parameter_info[0].multi_names));
   parameter_info[0].multi_labels_nc =
@@ -482,8 +501,8 @@ bg_ffmpeg_create_audio_parameters(const ffmpeg_format_info_t * format_info)
     return (bg_parameter_info_t*)0;
   
   /* Create parameters */
-  ret = calloc(2, sizeof(*ret));
-  create_codec_parameter(ret, infos, num_infos);
+  ret = bg_parameter_info_copy_array(audio_parameters);
+  create_codec_parameter(&ret[0], infos, num_infos);
   free(infos);
   
   return ret;
@@ -519,37 +538,89 @@ bg_ffmpeg_create_video_parameters(const ffmpeg_format_info_t * format_info)
     return (bg_parameter_info_t*)0;
   
   /* Create parameters */
-  ret = calloc(2, sizeof(*ret));
-  create_codec_parameter(ret, infos, num_infos);
-  free(infos);
 
+  /* Create parameters */
+  ret = bg_parameter_info_copy_array(video_parameters);
+  create_codec_parameter(&ret[0], infos, num_infos);
+  free(infos);
+  
   return ret;
   }
 
 enum CodecID
-bg_ffmpeg_find_audio_encoder(const char * name)
+bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format, const char * name)
   {
-  int i = 0;
+  int i = 0, found = 0;
+  enum CodecID ret = CODEC_ID_NONE;
+  
   while(audio_codecs[i].name)
     {
     if(!strcmp(name, audio_codecs[i].name))
-      return audio_codecs[i].id;
+      {
+      ret = audio_codecs[i].id;
+      break;
+      }
     i++;
     }
-  return CODEC_ID_NONE;
+
+  i = 0;
+  while(format->audio_codecs[i] != CODEC_ID_NONE)
+    {
+    if(format->audio_codecs[i] == ret)
+      {
+      found = 1;
+      break;
+      }
+    i++;
+    }
+
+  if(!found)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Audio codec %s is not supported by format %s",
+           name, format->name);
+    ret = CODEC_ID_NONE;
+    }
+  
+  return ret;
   }
 
 enum CodecID
-bg_ffmpeg_find_video_encoder(const char * name)
+bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format, const char * name)
   {
-  int i = 0;
+  int i = 0, found = 0;
+  enum CodecID ret = CODEC_ID_NONE;
+  
   while(video_codecs[i].name)
     {
     if(!strcmp(name, video_codecs[i].name))
-      return video_codecs[i].id;
+      {
+      ret = video_codecs[i].id;
+      break;
+      }
     i++;
     }
-  return CODEC_ID_NONE;
+
+  i = 0;
+  while(format->video_codecs[i] != CODEC_ID_NONE)
+    {
+    if(format->video_codecs[i] == ret)
+      {
+      found = 1;
+      break;
+      }
+    i++;
+    }
+
+  if(!found)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Video codec %s is not supported by format %s",
+           name, format->name);
+    ret = CODEC_ID_NONE;
+    }
+  
+  return ret;
   }
 
 

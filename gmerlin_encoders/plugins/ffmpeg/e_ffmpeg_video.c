@@ -34,6 +34,8 @@ static const ffmpeg_format_info_t formats[] =
       .max_video_streams = 1,
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG1VIDEO,
                                        CODEC_ID_NONE },
+      .flags = FLAG_CONSTANT_FRAMERATE,
+      .framerates = bg_ffmpeg_mpeg_framerates,
     },
     {
       .name =       "MPEG-2 video",
@@ -42,6 +44,8 @@ static const ffmpeg_format_info_t formats[] =
       .max_video_streams = 1,
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG2VIDEO,
                                        CODEC_ID_NONE },
+      .flags = FLAG_CONSTANT_FRAMERATE,
+      .framerates = bg_ffmpeg_mpeg_framerates,
     },
     { /* End of formats */ }
   };
