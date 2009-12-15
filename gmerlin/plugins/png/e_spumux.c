@@ -89,7 +89,7 @@ static int open_spumux(void * priv, const char * filename,
 
   spumux->filename_template = bg_strcat(spumux->filename_template, "_%05d.png");
   
-  spumux->xml_file = fopen(filename, "w");
+  spumux->xml_file = fopen(spumux->filename, "w");
 
   fprintf(spumux->xml_file, "<subpictures>\n  <stream>\n");
 

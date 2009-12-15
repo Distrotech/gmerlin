@@ -74,11 +74,11 @@ static void gmerlin_apply_config(gmerlin_t * g)
 
   bg_cfg_section_apply(g->display_section, parameters,
                        display_set_parameter, (void*)(g->player_window->display));
-
+#if 0
   parameters = bg_media_tree_get_parameters(g->tree);
   bg_cfg_section_apply(g->tree_section, parameters,
                        bg_media_tree_set_parameter, (void*)(g->tree));
-
+#endif
   parameters = bg_remote_server_get_parameters(g->remote);
   bg_cfg_section_apply(g->remote_section, parameters,
                        bg_remote_server_set_parameter, (void*)(g->remote));
@@ -322,12 +322,17 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     }
   
   ret->tree = bg_media_tree_create(tmp_string, ret->plugin_reg);
+  free(tmp_string);
   
   bg_media_tree_set_play_callback(ret->tree, tree_play_callback, ret);
   bg_media_tree_set_userpass_callback(ret->tree, bg_gtk_get_userpass, NULL);
-  
-  free(tmp_string);
 
+  /* Apply tree config */
+  bg_cfg_section_apply(ret->tree_section, bg_media_tree_get_parameters(ret->tree),
+                       bg_media_tree_set_parameter, (void*)(ret->tree));
+
+  bg_media_tree_init(ret->tree);
+  
   /* Start creating the GUI */
 
   ret->accel_group = gtk_accel_group_new();

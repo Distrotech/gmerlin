@@ -159,13 +159,12 @@ int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl)
   gavl_time_t start, duration;
   bg_player_subtitle_stream_t * s = &p->subtitle_stream;
   
-  
   if(DO_SUBTITLE_TEXT(p->flags))
     {
     bg_plugin_lock(p->input_handle);
     if(!p->input_plugin->read_subtitle_text(p->input_priv,
-                                            &(s->buffer),
-                                            &(s->buffer_alloc),
+                                            &s->buffer,
+                                            &s->buffer_alloc,
                                             &start, &duration,
                                             p->current_subtitle_stream))
       {

@@ -137,8 +137,7 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
       }
     xmlFree(tmp_string);
     }
-
-
+  
   bg_album_set_default_location(ret);
   
   /* Load the album if necessary */

@@ -399,6 +399,11 @@ static int write_subtitle_text_lqt(void * data,const char * text,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "AVI subtitles not supported");
     return 0;
     }
+
+  //  fprintf(stderr, "write subtitle %"PRId64", %"PRId64", \"%s\"\n",
+  //        start, duration, text);
+          
+
   /* Put empty subtitle if the last end time is not equal to
      this start time */
   if(e->subtitle_text_streams[stream].last_end_time < start)

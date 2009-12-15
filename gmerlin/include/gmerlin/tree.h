@@ -350,6 +350,11 @@ char * bg_album_selected_to_string(bg_album_t * a);
 bg_media_tree_t * bg_media_tree_create(const char * filename,
                                        bg_plugin_registry_t * plugin_reg);
 
+/* Call this after the configuration is set up */
+
+void bg_media_tree_init(bg_media_tree_t * ret);
+
+
 bg_plugin_registry_t *
 bg_media_tree_get_plugin_registry(bg_media_tree_t *);
 

@@ -1038,6 +1038,10 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
                             ret->com.out_language,
                             ret->com.force_language);
 
+    gavl_video_format_copy(&(ret->com.out_format),
+                           &(ret->com.in_format));
+
+    
     /* TODO: timescale might get changed by the encoder!!! */
     ret->com.com.out_index =
       bg_encoder_add_subtitle_text_stream(t->enc,
@@ -2359,6 +2363,20 @@ static int init_encoders(bg_transcoder_t * ret)
     
     }
 
+  /* Video streams: Must be added before the subtitle streams, because we need to know
+     the output format (at least the output size) of the stream */
+  for(i = 0; i < ret->num_video_streams; i++)
+    {
+    if(!ret->video_streams[i].com.do_decode)/* If we don't encode we still need to open the
+                                               plugin to get the final output format */
+      continue;
+
+    add_video_stream(&(ret->video_streams[i]),
+                     &(ret->transcoder_track->video_streams[i]), ret);
+    
+    set_video_pass(ret, i);
+    }
+    
   for(i = 0; i < ret->num_subtitle_text_streams; i++)
     {
     if(!ret->subtitle_text_streams[i].com.com.do_encode)
@@ -2376,19 +2394,6 @@ static int init_encoders(bg_transcoder_t * ret)
     
     }
   
-  /* Video streams */
-  for(i = 0; i < ret->num_video_streams; i++)
-    {
-    if(!ret->video_streams[i].com.do_decode)/* If we don't encode we still need to open the
-                                               plugin to get the final output format */
-      continue;
-
-    add_video_stream(&(ret->video_streams[i]),
-                     &(ret->transcoder_track->video_streams[i]), ret);
-    
-    set_video_pass(ret, i);
-    }
-
   return bg_encoder_start(ret->enc);
   }
 

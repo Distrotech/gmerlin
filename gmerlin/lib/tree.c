@@ -415,7 +415,12 @@ bg_media_tree_create(const char * filename,
   pos1 = strrchr(ret->filename, '/');
   
   ret->com.directory = bg_strndup(ret->com.directory, ret->filename, pos1);
-  
+
+  return ret;
+  }
+
+void bg_media_tree_init(bg_media_tree_t * ret)
+  {
   /* Load the entire tree */
   
   bg_media_tree_load(ret);
@@ -441,10 +446,8 @@ bg_media_tree_create(const char * filename,
     }
   
   /* Check for removable devices */
-  add_device_plugins(ret, plugin_reg, BG_PLUGIN_TUNER,     BG_ALBUM_TYPE_TUNER);
-  add_device_plugins(ret, plugin_reg, BG_PLUGIN_REMOVABLE, BG_ALBUM_TYPE_REMOVABLE);
-  
-  return ret;
+  add_device_plugins(ret, ret->com.plugin_reg, BG_PLUGIN_TUNER,     BG_ALBUM_TYPE_TUNER);
+  add_device_plugins(ret, ret->com.plugin_reg, BG_PLUGIN_REMOVABLE, BG_ALBUM_TYPE_REMOVABLE);
   }
 
 void bg_media_tree_destroy(bg_media_tree_t * t)
