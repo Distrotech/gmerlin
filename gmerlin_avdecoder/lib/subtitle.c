@@ -163,12 +163,18 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
 int bgav_has_subtitle(bgav_t * b, int stream)
   {
   bgav_stream_t * s = &(b->tt->cur->subtitle_streams[stream]);
+  int force;
   
   if(s->packet_buffer)
     {
     if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
       {
-      if(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+      if(b->tt->cur->sample_accurate)
+        force = 1;
+      else
+        force = 0;
+      
+      if(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
         return 1;
       else
         {
