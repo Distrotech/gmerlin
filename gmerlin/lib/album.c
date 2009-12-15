@@ -2059,6 +2059,22 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
   return entries;
   }
 
+static int is_blacklisted(bg_album_common_t * com,
+                          const char * url)
+  {
+  const char * ext;
+  if(!com->blacklist) // No blacklist
+    return 0;
+  if(strncmp(url, "file:", 5) && (*url != '/'))  // Remote file
+    return 0;
+
+  ext = strrchr(url, '.');
+  if(!ext)
+    return 0;
+  ext++;
+  return bg_string_match(ext, com->blacklist);
+  }
+
 bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                      char * url,
                                      const char * plugin_name)
@@ -2075,6 +2091,12 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   //  const char * file_plugin_name;
+
+  if(is_blacklisted(album->com, url))
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Not loading %s (blacklisted extension)", url);
+    return NULL;
+    }
   
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading %s", url);
   

@@ -72,6 +72,8 @@ typedef struct
   int use_metadata;
   char * metadata_format;
 
+  char * blacklist;
+  
   /* Shuffle list */
 
   bg_shuffle_list_t * shuffle_list;

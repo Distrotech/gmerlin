@@ -466,6 +466,10 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
     }
   if(t->com.directory)
     free(t->com.directory);
+  if(t->com.metadata_format)
+    free(t->com.metadata_format);
+  if(t->com.blacklist)
+    free(t->com.blacklist);
   if(t->com.load_handle)
     bg_plugin_unref(t->com.load_handle);
   
@@ -1019,56 +1023,6 @@ int bg_media_tree_previous(bg_media_tree_t * tree, int wrap, bg_shuffle_mode_t s
   return 0;
   }
 
-#if 0
-static int get_open_tracks(bg_album_t * albums)
-  {
-  int ret = 0;
-  bg_album_t * tmp = albums;
-
-  while(tmp)
-    {
-    if(bg_album_is_open(tmp))
-      ret += bg_album_get_num_entries(tmp);
-    if(tmp->children)
-      ret += get_open_tracks(tmp->children);
-    tmp = tmp->next;
-    }
-  return ret;
-  }
-
-static int set_open_track(bg_album_t * albums, int index)
-  {
-  int num_entries;
-  int result;
-  bg_album_entry_t * entry;
-  bg_album_t * tmp = albums;
-  
-  while(tmp)
-    {
-    if(bg_album_is_open(tmp))
-      {
-      num_entries = bg_album_get_num_entries(tmp);
-      if(index < num_entries)
-        {
-        entry = bg_album_get_entry(tmp, index);
-        bg_album_set_current(tmp, entry);
-        return 1;
-        }
-      else
-        index -= num_entries;
-      }
-    if(tmp->children)
-      {
-      result = set_open_track(tmp->children, index);
-      if(result)
-        return 1;
-      }
-    tmp = tmp->next;
-    }
-  return 0;
-  }
-#endif
-
 void bg_shuffle_list_destroy(bg_shuffle_list_t * l)
   {
   bg_shuffle_list_t * tmp;
@@ -1138,8 +1092,6 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       info = bg_plugin_find_by_filename(t->com.plugin_reg,
                                         t->com.current_entry->location,
                                         (BG_PLUGIN_INPUT));
-
-
 #if 0    
     if(!info)
       {
@@ -1240,6 +1192,13 @@ unused album files) at program exit")
       .val_default = { .val_i = 0 },
       .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects which one to decode. This setting is saved in the album once the file is loaded.")
     },
+    {
+      .name =        "blacklist",
+      .long_name =   TRS("Blacklist"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "srt txt pdf" },
+      .help_string = TRS("File extensions, which are never loaded automatically"),
+    },
     { /* End of parameters */ }
   };
 
@@ -1262,7 +1221,11 @@ void bg_media_tree_set_parameter(void * priv, const char * name,
     }
   else if(!strcmp(name, "metadata_format"))
     {
-    tree->com.metadata_format = val->val_str;
+    tree->com.metadata_format = bg_strdup(tree->com.metadata_format, val->val_str);
+    }
+  else if(!strcmp(name, "blacklist"))
+    {
+    tree->com.blacklist = bg_strdup(tree->com.blacklist, val->val_str);
     }
   else if(!strcmp(name, "purge_directory"))
     {
