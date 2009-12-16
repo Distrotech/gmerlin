@@ -31,6 +31,8 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/cmdline.h>
 #include <gmerlin/translation.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "thumbnailer"
 
 static int thumb_size = 128;
 
@@ -41,7 +43,7 @@ static void opt_size(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -s requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -s requires an argument");
     exit(-1);
     }
   thumb_size = atoi((*_argv)[arg]);
@@ -53,7 +55,7 @@ static void opt_time(void * data, int * argc, char *** _argv, int arg)
   char * str;
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -t requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -t requires an argument");
     exit(-1);
     }
   str = (*_argv)[arg];
@@ -141,6 +143,7 @@ int main(int argc, char ** argv)
   gavl_video_converter_t * cnv;
   int do_convert, have_frame;
   struct stat st;
+  bg_parameter_value_t val;
   
   memset(&metadata, 0, sizeof(metadata));
   
@@ -152,7 +155,7 @@ int main(int argc, char ** argv)
 
   if(!files || !(files[0]) || !(files[1]) || files[2])
     {
-    fprintf(stderr, "No input files given\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No input files given");
     return -1;
     }
   
@@ -163,7 +166,7 @@ int main(int argc, char ** argv)
   
   if(stat(in_file, &st))
     {
-    fprintf(stderr, "Cannot stat %s\n", in_file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat %s", in_file);
     return -1;
     }
   
@@ -186,7 +189,7 @@ int main(int argc, char ** argv)
                            &input_handle,
                            (bg_input_callbacks_t*)0, 0))
     {
-    fprintf(stderr, "Cannot open %s\n", in_file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s", in_file);
     return -1;
     }
   input_plugin = (bg_input_plugin_t*)(input_handle->plugin);
@@ -194,7 +197,7 @@ int main(int argc, char ** argv)
   if(input_plugin->get_num_tracks &&
      !input_plugin->get_num_tracks(input_handle->priv))
     {
-    fprintf(stderr, "%s has no tracks\n", in_file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s has no tracks", in_file);
     }
   
   info = input_plugin->get_track_info(input_handle->priv, 0);
@@ -208,7 +211,7 @@ int main(int argc, char ** argv)
 
   if(!info->num_video_streams)
     {
-    fprintf(stderr, "File %s has no video\n", in_file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "File %s has no video", in_file);
     return -1;
     }
 
@@ -255,14 +258,12 @@ int main(int argc, char ** argv)
   
   /* Load output plugin */
   
-  //  plugin_info =
-  //    bg_plugin_find_by_filename(plugin_reg, out_file, BG_PLUGIN_IMAGE_WRITER);
   plugin_info =
     bg_plugin_find_by_name(plugin_reg, "iw_png");
   
   if(!plugin_info)
     {
-    fprintf(stderr, "No plugin for %s\n", out_file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin for %s", out_file);
     return -1;
     }
   
@@ -270,11 +271,16 @@ int main(int argc, char ** argv)
 
   if(!output_handle)
     {
-    fprintf(stderr, "Loading %s failed\n", plugin_info->long_name);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", plugin_info->long_name);
     return -1;
     }
-
+  
   output_plugin = (bg_image_writer_plugin_t*)output_handle->plugin;
+
+  /* Don't force file extension */
+
+  val.val_i = 1;
+  output_plugin->common.set_parameter(output_handle->priv, "dont_force_extension", &val);
   
   /* Create input frame */
 
@@ -323,8 +329,10 @@ int main(int argc, char ** argv)
   bg_metadata_append_ext(&metadata, "Thumb::MTime", tmp_string);
   free(tmp_string);
 
-  bg_metadata_append_ext(&metadata, "Software", "gmerlin-video-thumbnailer");
+  //  bg_metadata_append_ext(&metadata, "Software", "gmerlin-video-thumbnailer");
 
+  bg_metadata_append_ext(&metadata, "Software", "GNOME::ThumbnailFactory");
+  
   tmp_string = bg_sprintf("%"PRId64, (int64_t)st.st_size);
   bg_metadata_append_ext(&metadata, "Thumb::Size", tmp_string);
   free(tmp_string);
@@ -341,7 +349,7 @@ int main(int argc, char ** argv)
   if(!output_plugin->write_header(output_handle->priv,
                                   out_file, &output_format, &metadata))
     {
-    fprintf(stderr, "Writing image header failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image header failed");
     return -1;
     }
 
@@ -359,7 +367,7 @@ int main(int argc, char ** argv)
     if(!output_plugin->write_image(output_handle->priv,
                                    output_frame))
       {
-      fprintf(stderr, "Writing image failed\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image failed");
       return -1;
       }
     gavl_video_frame_destroy(output_frame);
@@ -369,7 +377,7 @@ int main(int argc, char ** argv)
     if(!output_plugin->write_image(output_handle->priv,
                                    input_frame))
       {
-      fprintf(stderr, "Writing image failed\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image failed");
       return -1;
       }
     }
@@ -381,6 +389,8 @@ int main(int argc, char ** argv)
 
   gavl_video_converter_destroy(cnv);
   bg_metadata_free(&metadata);
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Successfully saved %s", out_file);
   
   return 0;
   }

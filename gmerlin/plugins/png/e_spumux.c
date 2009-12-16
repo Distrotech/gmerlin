@@ -121,7 +121,7 @@ static void get_subtitle_overlay_format_spumux(void * priv, int stream,
 static void print_time(FILE * out, gavl_time_t time, gavl_video_format_t * format)
   {
   int h, m, s, f;
-
+    
   f = gavl_time_to_frames(format->timescale, format->frame_duration, time % GAVL_TIME_SCALE);
   time /= GAVL_TIME_SCALE;
   s = time % 60;
@@ -189,7 +189,7 @@ static int close_spumux(void * priv, int do_delete)
     {
     for(i = 0; i < spumux->subtitles_written; i++)
       {
-      image_filename = bg_sprintf(spumux->filename_template, spumux->subtitles_written);
+      image_filename = bg_sprintf(spumux->filename_template, i);
       remove(image_filename);
       free(image_filename);
       }

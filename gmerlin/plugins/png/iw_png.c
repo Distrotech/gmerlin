@@ -39,6 +39,8 @@ typedef struct
   {
   bg_pngwriter_t writer; /* Must come first */
   bg_iw_callbacks_t * cb;
+  
+  int dont_force_extension;
   } png_t;
 
 static void set_callbacks_png(void * data, bg_iw_callbacks_t * cb)
@@ -68,7 +70,10 @@ static int write_header_png(void * priv, const char * filename,
   char * real_filename;
   png_t * png = priv;
   
-  real_filename = bg_filename_ensure_extension(filename, "png");
+  if(png->writer.dont_force_extension)
+    real_filename = bg_strdup(NULL, filename);
+  else
+    real_filename = bg_filename_ensure_extension(filename, "png");
   
   if(!bg_iw_cb_create_output_file(png->cb, real_filename))
     {
@@ -101,6 +106,12 @@ static const bg_parameter_info_t parameters[] =
       .multi_names = (char const *[]){ "Auto", "8", "16" },
       .val_default = { .val_str = "8" },
       .help_string = TRS("If you select auto, the depth will be chosen according to the input format")
+    },
+    {
+      /* Needed for the gmerlin video thumbnailer */
+      .name =        "dont_force_extension",
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags =        BG_PARAMETER_HIDE_DIALOG,
     },
     { /* End of parameters */ }
   };

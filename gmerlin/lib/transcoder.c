@@ -2502,13 +2502,11 @@ static void subtitle_init_encode_overlay(subtitle_stream_t * ss,
     bg_text_renderer_init(sst->textrenderer,
                           &(ss->out_format),
                           &(ss->in_format));
-
-    gavl_video_format_dump(&(ss->in_format));
-    gavl_video_format_dump(&(ss->out_format));
     
-
+    //    gavl_video_format_dump(&(ss->in_format));
+    //    gavl_video_format_dump(&(ss->out_format));
     }
-
+  
   ss->do_convert = gavl_video_converter_init(ss->cnv, &(ss->in_format),
                                              &(ss->out_format));
   

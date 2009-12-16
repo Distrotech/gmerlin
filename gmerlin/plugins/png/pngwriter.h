@@ -35,6 +35,7 @@ typedef struct
 
   png_text * text;
   int num_text;
+  int dont_force_extension;
   
   } bg_pngwriter_t;
 

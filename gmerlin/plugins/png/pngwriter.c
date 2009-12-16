@@ -242,6 +242,8 @@ void bg_pngwriter_set_parameter(void * p, const char * name,
 
   if(!strcmp(name, "compression"))
     png->compression_level = val->val_i;
+  if(!strcmp(name, "dont_force_extension"))
+    png->dont_force_extension = val->val_i;
   if(!strcmp(name, "bit_mode"))
     {
     if(!strcmp(val->val_str, "Auto"))
