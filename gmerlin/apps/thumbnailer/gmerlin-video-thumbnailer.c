@@ -329,9 +329,7 @@ int main(int argc, char ** argv)
   bg_metadata_append_ext(&metadata, "Thumb::MTime", tmp_string);
   free(tmp_string);
 
-  //  bg_metadata_append_ext(&metadata, "Software", "gmerlin-video-thumbnailer");
-
-  bg_metadata_append_ext(&metadata, "Software", "GNOME::ThumbnailFactory");
+  bg_metadata_append_ext(&metadata, "Software", "gmerlin-video-thumbnailer");
   
   tmp_string = bg_sprintf("%"PRId64, (int64_t)st.st_size);
   bg_metadata_append_ext(&metadata, "Thumb::Size", tmp_string);
