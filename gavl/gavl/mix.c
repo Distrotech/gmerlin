@@ -781,6 +781,9 @@ static void init_context(gavl_mix_matrix_t * ctx,
         case 6:
           ctx->output_channels[i].func = tab.mix_6_to_1;
           break;
+        default:
+          ctx->output_channels[i].func = tab.mix_all_to_1;
+          break;
         }
       }
 #ifdef DUMP_MATRIX
