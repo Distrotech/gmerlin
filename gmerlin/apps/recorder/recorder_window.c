@@ -40,14 +40,25 @@
 
 #define DELAY_TIME 100
 
-struct bg_recorder_window_s
+typedef struct
   {
   GtkWidget * win;
-  bg_recorder_t * rec;
+  GtkWidget * box;
   GtkWidget * socket;
-  bg_gtk_vumeter_t * vumeter;
+  } window_t;
 
+struct bg_recorder_window_s
+  {
+  bg_recorder_t * rec;
+  bg_gtk_vumeter_t * vumeter;
+  
   GtkWidget * statusbar;
+  GtkWidget * toolbar;
+
+  window_t normal_window;
+  window_t fullscreen_window;
+  window_t * current_window;
+  
   guint framerate_context;
   int framerate_shown;
   
@@ -62,6 +73,10 @@ struct bg_recorder_window_s
   GtkWidget * restart_button;
   GtkWidget * record_button;
   GtkWidget * snapshot_button;
+
+  GtkWidget * fullscreen_button;
+  GtkWidget * nofullscreen_button;
+  GtkWidget * hide_button;
   
   bg_dialog_t * cfg_dialog;
   
@@ -90,6 +105,8 @@ struct bg_recorder_window_s
   bg_plugin_registry_t * plugin_reg;
   
   gavl_rectangle_i_t win_rect;
+
+  int toolbar_hidden;
   
   };
 
@@ -172,7 +189,6 @@ static int get_parameter(void * data, const char * name,
   }
 
 
-#if 0
 static void about_window_close_callback(bg_gtk_about_window_t * w,
                                         void * data)
   {
@@ -180,7 +196,6 @@ static void about_window_close_callback(bg_gtk_about_window_t * w,
   win = (bg_recorder_window_t *)data;
   gtk_widget_set_sensitive(win->about_button, 1);
   }
-#endif
 
 static void log_window_close_callback(bg_gtk_log_window_t * w,
                                       void * data)
@@ -189,6 +204,77 @@ static void log_window_close_callback(bg_gtk_log_window_t * w,
   win = (bg_recorder_window_t *)data;
   gtk_widget_set_sensitive(win->log_button, 1);
   }
+
+static void set_fullscreen(bg_recorder_window_t * v)
+  {
+  /* Reparent toolbar */
+  gtk_container_remove(GTK_CONTAINER(v->normal_window.box),
+                       v->toolbar);
+
+  gtk_box_pack_start(GTK_BOX(v->fullscreen_window.box),
+                     v->toolbar, FALSE, FALSE, 0);
+
+  /* Remember coordinates */
+
+  gdk_window_get_geometry(v->normal_window.win->window,
+                          NULL, NULL, &v->win_rect.w, &v->win_rect.h,
+                          NULL);
+  
+  gdk_window_get_root_origin(v->normal_window.win->window,
+                             &v->win_rect.x, &v->win_rect.y);
+  
+  bg_cfg_section_get(v->gui_section,
+                     gui_parameters,
+                     get_parameter,
+                     v);
+  
+  /* Hide normal window, show fullscreen window */
+  gtk_widget_show(v->fullscreen_window.win);
+  gtk_widget_hide(v->normal_window.win);
+    
+  gtk_window_fullscreen(GTK_WINDOW(v->fullscreen_window.win));
+  /* Update toolbar */
+  gtk_widget_show(v->nofullscreen_button);
+  gtk_widget_hide(v->fullscreen_button);
+  
+  gtk_widget_hide(v->config_button);
+  gtk_widget_hide(v->log_button);
+  gtk_widget_hide(v->about_button);
+  
+  
+  v->current_window = &v->fullscreen_window;
+  
+  }
+
+static void set_nofullscreen(bg_recorder_window_t * v)
+  {
+  /* Reparent toolbar */
+  gtk_container_remove(GTK_CONTAINER(v->fullscreen_window.box),
+                       v->toolbar);
+  gtk_box_pack_start(GTK_BOX(v->normal_window.box),
+                     v->toolbar, FALSE, FALSE, 0);
+  
+  /* Hide normal window, show fullscreen window */
+  gtk_widget_show(v->normal_window.win);
+  gtk_widget_hide(v->fullscreen_window.win);
+
+  gtk_decorated_window_move_resize_window(GTK_WINDOW(v->normal_window.win),
+                                          v->win_rect.x, v->win_rect.y,
+                                          v->win_rect.w, v->win_rect.h);
+
+  
+  /* Update toolbar */
+  gtk_widget_show(v->fullscreen_button);
+  gtk_widget_hide(v->nofullscreen_button);
+  
+  gtk_widget_show(v->config_button);
+  gtk_widget_show(v->config_button);
+  gtk_widget_show(v->log_button);
+  gtk_widget_show(v->about_button);
+  
+  v->current_window = &v->normal_window;
+  }
+
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -201,7 +287,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->config_button)
     {
-    bg_dialog_show(win->cfg_dialog, win->win);
+    bg_dialog_show(win->cfg_dialog, win->current_window->win);
     }
   else if(w == win->restart_button)
     {
@@ -218,19 +304,53 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->snapshot_button)
     bg_recorder_snapshot(win->rec);
+  else if(w == win->hide_button)
+    {
+    gtk_widget_hide(win->toolbar);
+    win->toolbar_hidden = 1;
+    }
+  else if(w == win->about_button)
+    {
+    gtk_widget_set_sensitive(win->about_button, 0);
+    bg_gtk_about_window_create("Gmerlin recorder", VERSION,
+                               "recorder_icon.png",
+                               about_window_close_callback,
+                               win);
+    }
+  else if(w == win->fullscreen_button)
+    set_fullscreen(win);
+  else if(w == win->nofullscreen_button)
+    set_nofullscreen(win);
+  
+
+  
   }
+
+static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
+                                      gpointer * data)
+  {
+  bg_recorder_window_t * win = (bg_recorder_window_t *)data;
+  if(win->toolbar_hidden)
+    {
+    gtk_widget_show(win->toolbar);
+    win->toolbar_hidden = 0;
+    }
+  return TRUE;
+  }
+
+
 
 static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   {
   bg_recorder_window_t * win = (bg_recorder_window_t *)data;
-  
-  if(win->win->window) /* Remember coordinates */
+#if 1
+  if(win->current_window == &win->normal_window) /* Remember coordinates */
     {
-    gdk_window_get_geometry(win->win->window,
+    gdk_window_get_geometry(win->normal_window.win->window,
                             NULL, NULL, &win->win_rect.w, &win->win_rect.h,
                             NULL);
     
-    gdk_window_get_root_origin(win->win->window,
+    gdk_window_get_root_origin(win->normal_window.win->window,
                                &win->win_rect.x, &win->win_rect.y);
     
     bg_cfg_section_get(win->gui_section,
@@ -238,8 +358,8 @@ static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
                        get_parameter,
                        win);
     }
-  
-  gtk_widget_hide(win->win);
+#endif
+  //  gtk_widget_hide(win->win);
   gtk_main_quit();
   }
 
@@ -309,52 +429,6 @@ static GtkWidget * create_pixmap_toggle_button(bg_recorder_window_t * w,
   return button;
   }
 
-
-static void socket_realize(GtkWidget * w, gpointer data)
-  {
-  GdkDisplay * dpy;
-  char * str;
-  bg_recorder_window_t * win = data;
-
-  dpy = gdk_display_get_default();
-  
-  str = bg_sprintf("%s:%08lx:", gdk_display_get_name(dpy),
-                   (long unsigned int)gtk_socket_get_id(GTK_SOCKET(win->socket)));
-
-  bg_recorder_set_display_string(win->rec, str);
-  free(str);
-
-  /* Now that we have the display string we can apply the config sections,
-     which will load the plugins */
-  bg_cfg_section_apply(win->audio_section,
-                       bg_recorder_get_audio_parameters(win->rec),
-                       bg_recorder_set_audio_parameter,
-                       win->rec);
-  bg_cfg_section_apply(win->audio_filter_section,
-                       bg_recorder_get_audio_filter_parameters(win->rec),
-                       bg_recorder_set_audio_filter_parameter,
-                       win->rec);
-
-  bg_cfg_section_apply(win->video_section,
-                       bg_recorder_get_video_parameters(win->rec),
-                       bg_recorder_set_video_parameter,
-                       win->rec);
-  bg_cfg_section_apply(win->video_filter_section,
-                       bg_recorder_get_video_filter_parameters(win->rec),
-                       bg_recorder_set_video_filter_parameter,
-                       win->rec);
-
-  bg_cfg_section_apply(win->video_monitor_section,
-                       bg_recorder_get_video_monitor_parameters(win->rec),
-                       bg_recorder_set_video_monitor_parameter,
-                       win->rec);
-
-  bg_cfg_section_apply(win->video_snapshot_section,
-                       bg_recorder_get_video_snapshot_parameters(win->rec),
-                       bg_recorder_set_video_snapshot_parameter,
-                       win->rec);
-  }
-
 static gboolean timeout_func(void * data)
   {
   bg_msg_t * msg;
@@ -416,12 +490,15 @@ static gboolean timeout_func(void * data)
         do_video = bg_msg_get_arg_int(msg, 1);
         if(do_video)
           {
-          gtk_widget_show(win->socket);
+          gtk_widget_show(win->current_window->socket);
           gtk_widget_set_sensitive(win->snapshot_button, 1);
+          gtk_widget_show(win->hide_button);
           }
         else
           {
-          gtk_widget_hide(win->socket);
+          gtk_widget_hide(win->current_window->socket);
+          gtk_widget_hide(win->hide_button);
+          
           gtk_widget_set_sensitive(win->snapshot_button, 0);
           }
         if(!do_audio && !do_video)
@@ -456,6 +533,44 @@ static gboolean timeout_func(void * data)
 static float display_fg[] = { 0.0, 1.0, 0.0 };
 static float display_bg[] = { 0.0, 0.0, 0.0 };
 
+static void window_init(bg_recorder_window_t * r, window_t * w, int fullscreen)
+  {
+
+  /* Window */
+  w->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(w->win), "Gmerlin-recorder-"VERSION);
+  
+  if(fullscreen)
+    gtk_window_fullscreen(GTK_WINDOW(w->win));
+
+  /* Socket */
+  w->socket = gtk_socket_new();
+  gtk_widget_set_events(w->socket,
+                        GDK_BUTTON_PRESS_MASK);
+
+  g_signal_connect(G_OBJECT(w->socket), "button-press-event",
+                   G_CALLBACK(button_press_callback),
+                   r);
+  
+  gtk_widget_show(w->socket);
+  
+  w->box = gtk_vbox_new(0, 0);
+
+  gtk_box_pack_start(GTK_BOX(w->box), w->socket, TRUE, TRUE, 0);
+  
+  gtk_widget_show(w->box);
+  
+  gtk_container_add(GTK_CONTAINER(w->win), w->box);
+  
+  g_signal_connect(G_OBJECT(w->win), "delete_event",
+                   G_CALLBACK(delete_callback),
+                   r);
+  
+  g_signal_connect(G_OBJECT(w->socket), "button-press-event",
+                   G_CALLBACK(button_press_callback),
+                   r);
+  gtk_widget_realize(w->socket);
+  }
 
 
 bg_recorder_window_t *
@@ -463,6 +578,8 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                           bg_plugin_registry_t * plugin_reg)
   {
   void * parent;
+  GdkDisplay * dpy;
+  char * tmp_string;
   
   GtkWidget * box;
   GtkWidget * mainbox;
@@ -478,15 +595,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   bg_recorder_add_message_queue(ret->rec, ret->msg_queue);
     
   /* Create widgets */  
-  ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(ret->win), "Gmerlin-recorder-"VERSION);
   
-  g_signal_connect(G_OBJECT(ret->win), "delete-event",
-                   G_CALLBACK(delete_callback),
-                   ret);
-  
-  ret->socket = gtk_socket_new();
-
   ret->display = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL,
                                             4, BG_GTK_DISPLAY_MODE_HMS);
 
@@ -494,12 +603,7 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                              GAVL_TIME_UNDEFINED, BG_GTK_DISPLAY_MODE_HMS);
 
   bg_gtk_time_display_set_colors(ret->display, display_fg, display_bg );
-  
-  g_signal_connect(G_OBJECT(ret->socket), "realize",
-                   G_CALLBACK(socket_realize), ret);
-  
-  gtk_widget_show(ret->socket);
-
+    
   ret->vumeter = bg_gtk_vumeter_create(2, 0);
   
   ret->about_button =
@@ -514,6 +618,13 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
     create_pixmap_toggle_button(ret, "record_16.png", TRS("Record"), &ret->record_id);
   ret->snapshot_button =
     create_pixmap_button(ret, "snapshot_16.png", TRS("Make snapshot"));
+
+  ret->fullscreen_button =
+    create_pixmap_button(ret, "fullscreen_16.png", TRS("Fullscreen mode"));
+  ret->nofullscreen_button =
+    create_pixmap_button(ret, "windowed_16.png", TRS("Leave fullscreen mode"));
+  ret->hide_button =
+    create_pixmap_button(ret, "close_16.png", TRS("Hide controls"));
   
   ret->statusbar = gtk_statusbar_new();
   ret->framerate_context =
@@ -524,7 +635,6 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                                  "noinput");
   
   gtk_widget_show(ret->statusbar);
-
   
   /* Create other windows */
   ret->logwindow =
@@ -534,49 +644,41 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   /* Pack everything */
 
   mainbox = gtk_vbox_new(0, 0);
-
-  /* Monitor */
-  box = gtk_vbox_new(0, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->socket, TRUE, TRUE, 0);
-
-  gtk_box_pack_start(GTK_BOX(box), bg_gtk_vumeter_get_widget(ret->vumeter),
-                     FALSE, FALSE, 0);
-  gtk_widget_show(box);
-  
-  gtk_box_pack_start(GTK_BOX(mainbox),
-                     box,
-                     TRUE, TRUE, 0);
+  ret->toolbar = gtk_vbox_new(0, 0);
   
   /* Display and buttons */
 
+  gtk_box_pack_start(GTK_BOX(ret->toolbar), bg_gtk_vumeter_get_widget(ret->vumeter),
+                     FALSE, FALSE, 0);
+
+  
   box = gtk_hbox_new(0, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->hide_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->config_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->about_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->log_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->restart_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->record_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->snapshot_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->fullscreen_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->nofullscreen_button, FALSE, FALSE, 0);
   
   gtk_box_pack_end(GTK_BOX(box), bg_gtk_time_display_get_widget(ret->display),
                    FALSE, FALSE, 0);
   
   gtk_widget_show(box);
 
-  gtk_box_pack_start(GTK_BOX(mainbox),
-                     box,
-                     FALSE, FALSE, 0);
-  
+  gtk_box_pack_start(GTK_BOX(ret->toolbar), box, FALSE, FALSE, 0);
+    
   /* Statusbar */
 
-  gtk_box_pack_start(GTK_BOX(mainbox),
+  gtk_box_pack_start(GTK_BOX(ret->toolbar),
                      ret->statusbar,
                      FALSE, FALSE, 0);
-  
-  /* */
-    
-  gtk_widget_show(mainbox);
-  gtk_container_add(GTK_CONTAINER(ret->win), mainbox);
 
+  g_object_ref(ret->toolbar);
+  gtk_widget_show(ret->toolbar);
+  
   /* Config stuff */
 
   ret->log_section = bg_cfg_registry_find_section(cfg_reg, "log");
@@ -717,7 +819,58 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                        bg_recorder_get_output_parameters(ret->rec),
                        bg_recorder_set_output_parameter,
                        ret->rec);
+
+  /* Initialize windows */
+
+  dpy = gdk_display_get_default();
   
+  window_init(ret, &ret->normal_window, 0);
+  window_init(ret, &ret->fullscreen_window, 1);
+  
+  tmp_string =
+    bg_sprintf("%s:%08lx:%08lx", gdk_display_get_name(dpy),
+               (long unsigned int)gtk_socket_get_id(GTK_SOCKET(ret->normal_window.socket)),
+               (long unsigned int)gtk_socket_get_id(GTK_SOCKET(ret->fullscreen_window.socket)));
+  bg_recorder_set_display_string(ret->rec, tmp_string);
+  free(tmp_string);
+
+  /* Now that we have the display string we can apply the config sections,
+     which will load the plugins */
+  bg_cfg_section_apply(ret->audio_section,
+                       bg_recorder_get_audio_parameters(ret->rec),
+                       bg_recorder_set_audio_parameter,
+                       ret->rec);
+  bg_cfg_section_apply(ret->audio_filter_section,
+                       bg_recorder_get_audio_filter_parameters(ret->rec),
+                       bg_recorder_set_audio_filter_parameter,
+                       ret->rec);
+
+  bg_cfg_section_apply(ret->video_section,
+                       bg_recorder_get_video_parameters(ret->rec),
+                       bg_recorder_set_video_parameter,
+                       ret->rec);
+  bg_cfg_section_apply(ret->video_filter_section,
+                       bg_recorder_get_video_filter_parameters(ret->rec),
+                       bg_recorder_set_video_filter_parameter,
+                       ret->rec);
+
+  bg_cfg_section_apply(ret->video_monitor_section,
+                       bg_recorder_get_video_monitor_parameters(ret->rec),
+                       bg_recorder_set_video_monitor_parameter,
+                       ret->rec);
+
+  bg_cfg_section_apply(ret->video_snapshot_section,
+                       bg_recorder_get_video_snapshot_parameters(ret->rec),
+                       bg_recorder_set_video_snapshot_parameter,
+                       ret->rec);
+
+  /* Intialize windowed mode */
+  ret->current_window = &ret->normal_window;
+  gtk_box_pack_start(GTK_BOX(ret->current_window->box),
+                     ret->toolbar, FALSE, FALSE, 0);
+  gtk_widget_hide(ret->nofullscreen_button);
+  
+  /* Timeout */
   g_timeout_add(DELAY_TIME, timeout_func, ret);
   
   return ret;
@@ -739,18 +892,17 @@ void bg_recorder_window_destroy(bg_recorder_window_t * win)
 
 void bg_recorder_window_run(bg_recorder_window_t * win)
   {
-  gtk_widget_show(win->win);
-  
+  gtk_widget_show(win->current_window->win);
   
   if((win->win_rect.w > 0) && (win->win_rect.h > 0))
     {
-    gtk_decorated_window_move_resize_window(GTK_WINDOW(win->win),
+    gtk_decorated_window_move_resize_window(GTK_WINDOW(win->current_window->win),
                                             win->win_rect.x, win->win_rect.y,
                                             win->win_rect.w, win->win_rect.h);
     }
   else
     {
-    gtk_window_set_default_size(GTK_WINDOW(win->win),
+    gtk_window_set_default_size(GTK_WINDOW(win->current_window->win),
                                 320, 300);
     }
   
