@@ -427,7 +427,7 @@ static int decode_picture(bgav_stream_t * s)
       priv->frame_buffer_len = priv->packet->field2_offset;
     else
       priv->frame_buffer_len = priv->packet->data_size;
-    
+#if 0    
     /* Other Real Video oddities */
     if((s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '0')) ||
        (s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '3')) ||
@@ -435,7 +435,7 @@ static int decode_picture(bgav_stream_t * s)
        (s->fourcc == BGAV_MK_FOURCC('R', 'V', '3', '0')) ||
        (s->fourcc == BGAV_MK_FOURCC('R', 'V', '4', '0')))
       {
-      if(priv->ctx->extradata_size == 8)
+      if(priv->ctx->extradata_size >= 8)
         {
         hdr= (dp_hdr_t*)(priv->frame_buffer);
         if(priv->ctx->slice_offset==NULL)
@@ -446,9 +446,10 @@ static int decode_picture(bgav_stream_t * s)
             ((uint32_t*)(priv->frame_buffer+hdr->chunktab))[2*i+1];
         priv->frame_buffer_len=hdr->len;
         priv->frame_buffer += sizeof(dp_hdr_t);
+        fprintf(stderr, "Slice count: %d\n", priv->ctx->slice_count);
         }
       }
-    
+#endif
     /* DV Video ugliness */
     
     if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
@@ -933,7 +934,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   
   /* RealVideo oddities */
-
+#if 0
   if((s->fourcc == BGAV_MK_FOURCC('R','V','1','0')) ||
      (s->fourcc == BGAV_MK_FOURCC('R','V','1','3')) ||
      (s->fourcc == BGAV_MK_FOURCC('R','V','2','0')))
@@ -963,6 +964,7 @@ static int init_ffmpeg(bgav_stream_t * s)
       }
 
     }
+#endif
   
   priv->ctx->workaround_bugs = FF_BUG_AUTODETECT;
   priv->ctx->error_concealment = 3;
@@ -1565,8 +1567,16 @@ static codec_info_t codec_infos[] =
                0x00 } },
     
     /*     CODEC_ID_RV30, */
-    /*     CODEC_ID_RV40, */
 
+    { "FFmpeg Real video 3.0 decoder", "Real video 3.0", CODEC_ID_RV30,
+      (uint32_t[]){ BGAV_MK_FOURCC('R', 'V', '3', '0'),
+               0x00 } },
+    
+    /*     CODEC_ID_RV40, */
+    { "FFmpeg Real video 4.0 decoder", "Real video 4.0", CODEC_ID_RV40,
+      (uint32_t[]){ BGAV_MK_FOURCC('R', 'V', '4', '0'),
+               0x00 } },
+    
     /*     CODEC_ID_VC1, */
     { "FFmpeg VC1 decoder", "VC1", CODEC_ID_VC1,
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'V', 'C', '1'),

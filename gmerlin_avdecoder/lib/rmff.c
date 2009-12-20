@@ -946,7 +946,7 @@ void bgav_rmff_packet_header_dump(bgav_rmff_packet_header_t * h)
     }
   else
     {
-    bgav_dprintf("Error: packet header .version = %d\n", h->object_version);
+    bgav_dprintf("Error: packet header version: %d\n", h->object_version);
     }
   }
 

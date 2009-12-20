@@ -49,6 +49,12 @@ typedef struct
   int is_multirate;
   } rm_private_t;
 
+/* Frame info for a video frame */
+typedef struct
+  {
+  int pts;
+  int pict_type;
+  } frame_info_t;
 
 static uint32_t seek_indx(bgav_rmff_indx_t * indx, uint32_t millisecs,
                           uint32_t * position, uint32_t * start_packet,
@@ -95,14 +101,25 @@ typedef struct
 typedef struct
   {
   rm_stream_t com;
-  uint32_t kf_pts;
-  uint32_t kf_base;
+  //  uint32_t kf_pts;
+  //  uint32_t kf_base;
   uint32_t sub_id;
+  
+  void (*parse_frame_info)(uint8_t * data, int len, frame_info_t * info, uint32_t sub_id);
+  
+#if 0  
   void (*set_keyframe)(bgav_stream_t * s,
                        bgav_packet_t * p,
                        uint8_t * data, int len);
+#endif
+  int num_slices;
+  int pic_num;
+  int64_t pts_offset;
+  int last_pts;
   } rm_video_stream_t;
 
+
+#if 0
 static void set_keyframe_rv2(bgav_stream_t * s,
                              bgav_packet_t * p,
                              uint8_t * data, int len)
@@ -131,6 +148,109 @@ static void set_keyframe_rv2(bgav_stream_t * s,
   //          PACKET_GET_CODING_TYPE(p), sp->sub_id);
   
   }
+#endif
+
+static void dump_frame_info(frame_info_t * info)
+  {
+  bgav_dprintf("  Frame info: type: %c, PTS: %d\n",
+               info->pict_type, info->pts);
+  }
+
+#define SKIP_BITS(n) buffer<<=n
+#define SHOW_BITS(n) ((buffer)>>(32-(n)))
+
+static void parse_frame_info_rv10(uint8_t * data, int len, frame_info_t * info, uint32_t sub_id)
+  {
+  uint32_t buffer = BGAV_PTR_2_32BE(data);
+  info->pts = -1;
+
+  SKIP_BITS(1);
+
+  info->pict_type= SHOW_BITS(1);
+
+  if(info->pict_type == 1)
+    info->pict_type = BGAV_CODING_TYPE_P;
+  else
+    info->pict_type = BGAV_CODING_TYPE_I;
+  }
+
+static void parse_frame_info_rv20(uint8_t * data, int len, frame_info_t * info, uint32_t sub_id)
+  {
+  uint32_t buffer = BGAV_PTR_2_32BE(data);
+  if(sub_id == 0x30202002 || sub_id == 0x30203002)
+    {
+    SKIP_BITS(3);
+    }
+
+  info->pict_type= SHOW_BITS(2);
+
+  switch(info->pict_type)
+    {
+    case 0:
+    case 1:
+      info->pict_type = BGAV_CODING_TYPE_I;
+      break;
+    case 2:
+      info->pict_type = BGAV_CODING_TYPE_P;
+      break;
+    case 3:
+      info->pict_type = BGAV_CODING_TYPE_B;
+      break;
+    }
+  
+  info->pts = -1;
+  }
+
+static void parse_frame_info_rv30(uint8_t * data, int len, frame_info_t * info, uint32_t sub_id)
+  {
+  uint32_t buffer = BGAV_PTR_2_32BE(data);
+
+  SKIP_BITS(3);
+  info->pict_type= SHOW_BITS(2);
+  SKIP_BITS(2 + 7);
+  info->pts = SHOW_BITS(13);
+
+  switch(info->pict_type)
+    {
+    case 0:
+    case 1:
+      info->pict_type = BGAV_CODING_TYPE_I;
+      break;
+    case 2:
+      info->pict_type = BGAV_CODING_TYPE_P;
+      break;
+    case 3:
+      info->pict_type = BGAV_CODING_TYPE_B;
+      break;
+    }
+  
+  }
+
+static void parse_frame_info_rv40(uint8_t * data, int len, frame_info_t * info, uint32_t sub_id)
+  {
+  uint32_t buffer = BGAV_PTR_2_32BE(data);
+
+  SKIP_BITS(1);
+  info->pict_type= SHOW_BITS(2);
+  SKIP_BITS(2 + 7 + 3);
+  info->pts = SHOW_BITS(13);
+
+  switch(info->pict_type)
+    {
+    case 0:
+    case 1:
+      info->pict_type = BGAV_CODING_TYPE_I;
+      break;
+    case 2:
+      info->pict_type = BGAV_CODING_TYPE_P;
+      break;
+    case 3:
+      info->pict_type = BGAV_CODING_TYPE_B;
+      break;
+    }
+  }
+
+
 /* Audio and video stream specific stuff */
 
 typedef struct
@@ -390,6 +510,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
                               bgav_rmff_stream_t * stream,
                               uint8_t * _data, int len)
   {
+  uint16_t fps, fps2;
   uint32_t tmp;
   bgav_stream_t * bg_vs;
   rm_video_stream_t * rm_vs;
@@ -411,12 +532,12 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
 
   /* Set container bitrate */
   bg_vs->container_bitrate = stream->mdpr.avg_bit_rate;
-    
-  bg_vs->ext_size = 16;
-  bg_vs->ext_data = calloc(bg_vs->ext_size, 1);
+  
+  //  bg_vs->ext_size = 16;
+  //  bg_vs->ext_data = calloc(bg_vs->ext_size, 1);
   bg_vs->priv = rm_vs;
 
-  data += 4;
+  data += 4; // VIDO
 
   bg_vs->fourcc = BGAV_PTR_2_FOURCC(data);data+=4;
 
@@ -435,17 +556,45 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   //  bg_vs->data.video.format.framerate_den = 1;
   // we probably won't even care about fps
   //  if (bg_vs->data.video.format.framerate_num<=0) bg_vs->data.video.format.framerate_num=24; 
-  data+=2; /* Skip framerate */
 
   bg_vs->data.video.format.timescale = 1000;
   bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-#if 1
-  data += 4;
-#else
-  printf("unknown1: 0x%X  \n",BGAV_PTR_2_32BE(data));data+=4;
-  printf("unknown2: 0x%X  \n",stream_read_word(demuxer->stream));
-  printf("unknown3: 0x%X  \n",stream_read_word(demuxer->stream));
-#endif
+  
+  fps =  BGAV_PTR_2_16BE(data); data+=2; /* fps */
+  data += 4; /* Unknown */
+  fps2 =  BGAV_PTR_2_16BE(data); data+=2; /* fps2 */
+  data += 2; /* Unknown */
+
+  fprintf(stderr, "FPS: %d, FPS2: %d\n", fps, fps2);
+  
+  /* Read extradata */
+
+  bg_vs->ext_size = len - (data - _data);
+  bg_vs->ext_data = malloc(bg_vs->ext_size);
+
+  memcpy(bg_vs->ext_data, data, bg_vs->ext_size);
+
+  switch(bg_vs->fourcc)
+    {
+    case BGAV_MK_FOURCC('R','V','1','0'):
+      rm_vs->parse_frame_info = parse_frame_info_rv10;
+      rm_vs->sub_id = BGAV_PTR_2_32BE(bg_vs->ext_data+4);
+      
+      break;
+    case BGAV_MK_FOURCC('R','V','2','0'):
+      rm_vs->parse_frame_info = parse_frame_info_rv20;
+      rm_vs->sub_id = BGAV_PTR_2_32BE(bg_vs->ext_data+4);
+      break;
+    case BGAV_MK_FOURCC('R','V','3','0'):
+      rm_vs->parse_frame_info = parse_frame_info_rv30;
+      break;
+    case BGAV_MK_FOURCC('R','V','4','0'):
+      rm_vs->parse_frame_info = parse_frame_info_rv40;
+      break;
+    }
+  
+#if 0
+  
   //		    if(sh->format==0x30335652 || sh->format==0x30325652 )
   if(1)
     {
@@ -457,7 +606,8 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     int fps=BGAV_PTR_2_16BE(data);data+=2;
     printf("realvid: ignoring FPS = %d\n",fps);
     }
-  data += 2;
+
+  data += 2; // Unknown
   
   // read codec sub-format (to make difference between low and high rate codec)
   //  ((unsigned int*)(sh->bih+1))[0]=BGAV_PTR_2_32BE(data);data+=4;
@@ -526,6 +676,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
           (unsigned short)data[ii];
       }
     }
+#endif
   
   bg_vs->stream_id = stream->mdpr.stream_number;
   rm_vs->com.stream = stream;
@@ -807,6 +958,9 @@ typedef struct dp_hdr_s {
     uint32_t chunktab;  // offset to chunk offset array
 } dp_hdr_t;
 
+
+#if 0
+
 #define SKIP_BITS(n) buffer<<=n
 #define SHOW_BITS(n) ((buffer)>>(32-(n)))
 
@@ -865,11 +1019,14 @@ fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp, bgav_pack
   return (int64_t)kf;
   }
 
+#endif
+
 #define PAYLOAD_LENGTH(HEADER) ((HEADER)->length - (((HEADER)->object_version == 0) ? 12 : 13))
 
 #define IS_KEYFRAME(HEADER) \
   (((HEADER)->object_version == 0) ? ((HEADER)->flags & 0x02) : ((HEADER)->asm_flags & 0x02))
 
+#if 0
 static int process_video_chunk(bgav_demuxer_context_t * ctx,
                                bgav_rmff_packet_header_t * h,
                                bgav_stream_t * stream)
@@ -886,6 +1043,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
   uint32_t* extra;
   int len = PAYLOAD_LENGTH(h);
   rm_video_stream_t * sp = stream->priv;
+
+  bgav_rmff_packet_header_dump(h);
   
   while(len > 2)
     {
@@ -1110,6 +1269,231 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
     }
   return 1;
   }
+#else
+
+static int get_num(bgav_input_context_t * ctx, int * len, int * ret)
+
+  {
+  uint16_t n, n1;
+
+  if(!bgav_input_read_16_be(ctx,&n))
+    return 0;
+  
+  (*len) -= 2;
+  
+  n &= 0x7FFF;
+  if(n >= 0x4000)
+    {
+    *ret = n - 0x4000;
+    }
+  else
+    {
+    if(!bgav_input_read_16_be(ctx,&n1))
+      return 0;
+    
+    (*len) -= 2;
+    
+    *ret = (n << 16) | n1;
+    }
+  return 1;
+  }
+
+static void set_vpacket_flags(bgav_stream_t * s, int len, bgav_rmff_packet_header_t * h)
+  {
+  frame_info_t fi;
+  rm_video_stream_t * sp = s->priv;
+
+  memset(&fi, 0, sizeof(fi));
+  sp->parse_frame_info(s->packet->data + 9, len, &fi, sp->sub_id);
+  dump_frame_info(&fi);
+  
+  /* Set picture type and keyframe flag */
+  PACKET_SET_CODING_TYPE(s->packet, fi.pict_type);
+  
+  if(fi.pict_type == BGAV_CODING_TYPE_I)
+    PACKET_SET_KEYFRAME(s->packet);
+
+  /* Set pts */
+
+  if(fi.pts >= 0)
+    {
+    if(fi.pict_type == BGAV_CODING_TYPE_I)
+      {
+      s->packet->pts = h->timestamp;
+      sp->pts_offset = (int64_t)h->timestamp - (int64_t)fi.pts;
+      }
+    else
+      {
+      s->packet->pts = sp->pts_offset + fi.pts;
+
+      if(s->packet->pts - sp->last_pts < -4096)
+        {
+        s->packet->pts         += 8192;
+        sp->pts_offset += 8192;
+        }
+      else if(s->packet->pts - sp->last_pts > 4096)
+        s->packet->pts         -= 8192;
+      }
+    sp->last_pts = s->packet->pts;
+    }
+  else
+    s->packet->pts = h->timestamp;
+  
+  }
+
+static int process_video_chunk(bgav_demuxer_context_t * ctx,
+                               bgav_rmff_packet_header_t * h,
+                               bgav_stream_t * s)
+  {
+  uint8_t hdr, seq;
+  int type;
+  int len = PAYLOAD_LENGTH(h);
+  int len2 = 0, pos = 0;
+  uint8_t pic_num = 0;
+  rm_video_stream_t * sp = s->priv;
+  int num_chunks = 0;
+  
+  bgav_rmff_packet_header_dump(h);
+  
+  while(len >= 1)
+    {
+  
+    READ_8(hdr);
+
+    /*
+     *  Type:
+     *  0 Whole slice in one packet
+     *  1 Whole frame in one packet
+     *  2 Slice as part of packet
+     *  3 Frame as part of a packet
+     */
+  
+    type = hdr >> 6;
+
+    fprintf(stderr, "  Type: %d ", type);
+  
+    if(type != 3) // not frame as a part of packet
+      {
+      READ_8(seq);
+      fprintf(stderr, "Seq: %d ", seq);
+    
+      }
+    if(type != 1) // not whole frame
+      {
+      if(!get_num(ctx->input, &len, &len2) ||
+         !get_num(ctx->input, &len, &pos))
+        return 0;
+      READ_8(pic_num);
+      fprintf(stderr, "len2: %d, pos: %d, pic_num: %d", len2, pos, pic_num);
+      }
+    fprintf(stderr, "\n");
+    
+    if(len <= 0)
+      return 0;
+
+    if(type & 1) // Frame (not slice)
+      {
+      int packet_size, frame_size;
+      
+      if(s->packet)
+        bgav_packet_done_write(s->packet);
+      s->packet = bgav_stream_get_packet_write(s);
+
+      if(!num_chunks)
+        s->packet->pts = h->timestamp;
+      
+      if(type == 3)
+        frame_size = len2;
+      else
+        frame_size = len;
+      
+      /* 1 byte slice count + 8 bytes per slice */
+      packet_size = frame_size + 1 + 8;
+    
+      bgav_packet_alloc(s->packet, packet_size);
+
+      if(bgav_input_read_data(ctx->input, s->packet->data + 9, frame_size) < frame_size)
+        return 0;
+      
+      s->packet->data[0] = 0;
+      BGAV_32LE_2_PTR(1, s->packet->data+1);
+      BGAV_32LE_2_PTR(0, s->packet->data+5);
+      s->packet->data_size = packet_size;
+      
+      len -= frame_size;
+
+      set_vpacket_flags(s, frame_size, h);
+      }
+    else // Slices
+      {
+      int bytes_to_read = len;
+      
+      if((type == 2) && (bytes_to_read > pos))
+        bytes_to_read = pos;
+      
+      if(sp->pic_num != pic_num) /* New picture started */
+        {
+        if(s->packet)
+          bgav_packet_done_write(s->packet);
+        s->packet = bgav_stream_get_packet_write(s);
+
+        if(!num_chunks)
+          s->packet->pts = h->timestamp;
+        
+        bgav_packet_alloc(s->packet, bytes_to_read + 9);
+
+        s->packet->data[0] = 0;
+        BGAV_32LE_2_PTR(1, s->packet->data+1);
+        BGAV_32LE_2_PTR(0, s->packet->data+5);
+        
+        if(bgav_input_read_data(ctx->input, s->packet->data + 9, bytes_to_read) < bytes_to_read)
+          return 0;
+        
+        s->packet->data_size = bytes_to_read + 9;
+        sp->num_slices = 1;
+
+        // fprintf(stderr, "slice: %d (%d bytes)\n", sp->num_slices, bytes_to_read);
+        sp->pic_num = pic_num;
+        
+        set_vpacket_flags(s, bytes_to_read, h);
+        }
+      else /* Append slice */
+        {
+        bgav_packet_alloc(s->packet, s->packet->data_size + bytes_to_read + 8);
+
+        /* Move payload up by 8 bytes */
+        memmove(s->packet->data + 1 + (sp->num_slices+1) * 8,
+                s->packet->data + 1 + sp->num_slices * 8,
+                s->packet->data_size - (1 + sp->num_slices * 8));
+
+        BGAV_32LE_2_PTR(1, s->packet->data + 1 + 8 * sp->num_slices);
+        BGAV_32LE_2_PTR(s->packet->data_size - (1 + sp->num_slices * 8),
+                        s->packet->data + 1 + 8 * sp->num_slices + 4);
+        s->packet->data_size += 8;
+
+        if(bgav_input_read_data(ctx->input,
+                                s->packet->data + s->packet->data_size, bytes_to_read) < bytes_to_read)
+          return 0;
+        
+        sp->num_slices++;
+        s->packet->data[0] += 1;
+        s->packet->data_size += bytes_to_read;
+
+        // fprintf(stderr, "slice: %d (%d bytes)\n", sp->num_slices, bytes_to_read);
+        }
+      len -= bytes_to_read;
+      
+      // s->packet_seq = seq;
+
+      
+      }
+    num_chunks++;
+    }
+  
+  return 1; 
+  
+  }
+#endif
 
 static const unsigned char sipr_swaps[38][2]={
     {0,63},{1,22},{2,44},{3,90},{5,81},{7,31},{8,86},{9,58},{10,36},{12,68},
@@ -1468,8 +1852,9 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     vs->com.index_record = seek_indx(&(vs->com.stream->indx), real_time,
                                  &position, &start_packet, &end_packet);
     STREAM_SET_SYNC(stream, vs->com.stream->indx.records[vs->com.index_record].timestamp);
-    vs->kf_pts = vs->com.stream->indx.records[vs->com.index_record].timestamp;
+    // vs->kf_pts = vs->com.stream->indx.records[vs->com.index_record].timestamp;
     vs->com.data_pos = vs->com.stream->indx.records[vs->com.index_record].offset;
+    vs->pic_num = -1;
     }
   for(i = 0; i < track->num_audio_streams; i++)
     {
@@ -1540,9 +1925,10 @@ static int select_track_rmff(bgav_demuxer_context_t * ctx, int t)
     vs = (rm_video_stream_t*)(track->video_streams[i].priv);
     if(vs)
       {
-      vs->kf_pts = 0;
-      vs->kf_base = 0;
+      //      vs->kf_pts = 0;
+      //      vs->kf_base = 0;
       vs->com.data_pos = vs->com.data_start;
+      vs->pic_num = -1;
       }
     }
 #endif
