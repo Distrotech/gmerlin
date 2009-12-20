@@ -1298,7 +1298,9 @@ static int get_num(bgav_input_context_t * ctx, int * len, int * ret)
   return 1;
   }
 
-static void set_vpacket_flags(bgav_stream_t * s, int len, bgav_rmff_packet_header_t * h)
+static void set_vpacket_flags(bgav_stream_t * s, int len,
+                              bgav_rmff_packet_header_t * h,
+                              int chunk_type, int pos)
   {
   frame_info_t fi;
   rm_video_stream_t * sp = s->priv;
@@ -1337,8 +1339,12 @@ static void set_vpacket_flags(bgav_stream_t * s, int len, bgav_rmff_packet_heade
     sp->last_pts = s->packet->pts;
     }
   else
-    s->packet->pts = h->timestamp;
-  
+    {
+    if(chunk_type == 3)
+      s->packet->pts = pos;
+    else
+      s->packet->pts = h->timestamp;
+    }
   }
 
 static int process_video_chunk(bgav_demuxer_context_t * ctx,
@@ -1422,7 +1428,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       
       len -= frame_size;
 
-      set_vpacket_flags(s, frame_size, h);
+      set_vpacket_flags(s, frame_size, h, type, pos);
       }
     else // Slices
       {
@@ -1455,7 +1461,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         // fprintf(stderr, "slice: %d (%d bytes)\n", sp->num_slices, bytes_to_read);
         sp->pic_num = pic_num;
         
-        set_vpacket_flags(s, bytes_to_read, h);
+        set_vpacket_flags(s, bytes_to_read, h, type, pos);
         }
       else /* Append slice */
         {
