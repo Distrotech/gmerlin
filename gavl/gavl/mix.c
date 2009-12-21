@@ -134,25 +134,24 @@ static void normalize_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
       ret[i][j] /= max_ampl;
   }
 
-#define IN_INDEX(id)  in_index  = gavl_channel_index(in, id);  if(in_index < 0)  goto fail;
-#define OUT_INDEX(id) out_index = gavl_channel_index(out, id); if(out_index < 0) goto fail;
+#define IN_INDEX(id)  in_index  = gavl_channel_index(in, id);
+#define OUT_INDEX(id) out_index = gavl_channel_index(out, id);
 
-static void init_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
-                        gavl_audio_options_t * opt,
-                        gavl_audio_format_t * in,
-                        gavl_audio_format_t * out)
+static int init_matrix_predefined(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
+                                  gavl_audio_options_t * opt,
+                                  gavl_audio_format_t * in,
+                                  gavl_audio_format_t * out)
   {
   int input_front;
   int output_front;
   int input_rear;
   int output_rear;
-  int input_side;
-  int output_side;
+  //  int input_side;
+  //  int output_side;
   int input_lfe;
   int output_lfe;
 
   int in_index, out_index;
-  
 
   input_front = gavl_front_channels(in);
   output_front = gavl_front_channels(out);
@@ -160,22 +159,23 @@ static void init_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
   input_rear  = gavl_rear_channels(in);
   output_rear = gavl_rear_channels(out);
 
-  input_side  = gavl_side_channels(in);
-  output_side = gavl_side_channels(out);
+  //  input_side  = gavl_side_channels(in);
+  //  output_side = gavl_side_channels(out);
 
   input_lfe  = gavl_lfe_channels(in);
   output_lfe = gavl_lfe_channels(out);
-
-#if 0
-  fprintf(stderr, "INIT MATRIX\n");
-  fprintf(stderr, "In:\n");
-  gavl_audio_format_dump(in);
-  fprintf(stderr, "Out:\n");
-  gavl_audio_format_dump(out);
-#endif
-
-  /* Handle front channels */
   
+  /* Check if we can handle this at all */
+  if((input_front > 3) || (output_front > 5) ||
+     (input_rear > 2) || (output_rear > 2) ||
+     (input_lfe > 1) || (output_lfe > 1) ||
+     (input_front + input_rear + input_lfe < in->num_channels) ||
+     (output_front + output_rear + output_lfe < out->num_channels))
+    {
+    return 0;
+    }
+  
+  /* Handle front channels */
   switch(input_front)
     {
     case 1:
@@ -436,6 +436,7 @@ static void init_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
       break;
     }
 
+
   /* Handle rear channels */
   
   switch(input_rear)
@@ -660,28 +661,72 @@ static void init_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
     IN_INDEX(GAVL_CHID_LFE);
     ret[out_index][in_index] = 1.0;
     }
-
+  
   normalize_matrix(ret, in->num_channels, out->num_channels);
+
 #ifdef DUMP_MATRIX
   dump_matrix(in, out, ret);
 #endif
-  return;
   
-  fail:
-  fprintf(stderr, "Couldn't construct mix matrix, using (probably wrong) default\n");
-  in_index = 0;
-  out_index = 0;
+  return 1;
+  }
 
-  while(out_index < out->num_channels)
-    {
-    memset(ret[out_index], 0, sizeof(ret[out_index][0]) * in->num_channels);
-    ret[out_index][in_index] = 1.0;
-    in_index++;
-    if(in_index == in->num_channels)
-      in_index++;
-    }
+static void init_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
+                        gavl_audio_options_t * opt,
+                        gavl_audio_format_t * in,
+                        gavl_audio_format_t * out)
+  {
+  int i, j;
+
+#if 0
+  fprintf(stderr, "INIT MATRIX\n");
+  fprintf(stderr, "In:\n");
+  gavl_audio_format_dump(in);
+  fprintf(stderr, "Out:\n");
+  gavl_audio_format_dump(out);
+#endif
   
-  //  dump_matrix(in, out, ret);
+  /* 1. Check for user defined matrix */
+
+  if(opt->mix_matrix)
+    {
+    for(i = 0; i < out->num_channels; i++)
+      {
+      for(j = 0; j < in->num_channels; j++)
+        {
+        ret[i][j] = opt->mix_matrix[i][j];
+        }
+      }
+    
+    if(opt->conversion_flags & GAVL_AUDIO_NORMALIZE_MIX_MATRIX)
+      normalize_matrix(ret, in->num_channels, out->num_channels);
+
+#ifdef DUMP_MATRIX
+    dump_matrix(in, out, ret);
+#endif
+    
+    return;
+    }
+
+  /* 2. Check for predefined matrix */
+
+  if(init_matrix_predefined(ret, opt, in, out))
+    return;
+
+  /* 3. Default (possibly wrong) */
+
+  for(i = 0; i < out->num_channels; i++)
+    {
+    for(j = 0; j < in->num_channels; j++)
+      {
+      ret[i][j] = (i == j) ? 1.0 : 0.0;
+      }
+    }
+#ifdef DUMP_MATRIX
+  dump_matrix(in, out, ret);
+#endif
+  
+  return;
   }
 
 static void set_factor(gavl_mix_input_channel_t * ret,

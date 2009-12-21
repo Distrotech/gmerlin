@@ -705,6 +705,12 @@ GAVL_AUDIO_FRONT_TO_REAR_MUTE | \
 GAVL_AUDIO_STEREO_TO_MONO_RIGHT | \
 GAVL_AUDIO_STEREO_TO_MONO_MIX) /*!< Mask for converting stereo to mono */
 
+/*! \ingroup audio_conversion_flags
+ */
+  
+#define GAVL_AUDIO_NORMALIZE_MIX_MATRIX (1<<6) /*!< Normalize the user defined mix matrix (since 1.1.2) */
+
+  
 /*! \ingroup audio_options
  *  \brief Dither mode
  */
@@ -822,6 +828,37 @@ int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt);
 GAVL_PUBLIC
 void gavl_audio_options_set_defaults(gavl_audio_options_t * opt);
 
+/*! \ingroup audio_options
+ *  \brief Set a user defined mix matrix
+ *  \param opt Audio options
+ *  \param matrix Mix matrix to use
+ *
+ *  The matrix consists of coefficients, where matrix[i][j]
+ *  is the factor for mixing input channel j to output channel i.
+ *  The matrix is not copied, so it should be valid at least until
+ *  the next call to \ref gavl_audio_converter_init.
+ *
+ *  To clear a previously defined mix matrix (restoring gavls default
+ *  behaviour) pass NULL.
+ *
+ *  Since 1.1.2
+ */
+  
+GAVL_PUBLIC
+void gavl_audio_options_set_mix_matrix(gavl_audio_options_t * opt,
+                                       const double ** matrix);
+  
+/*! \ingroup audio_options
+ *  \brief Get the mix matrix
+ *  \param opt Audio options
+ *  \returns The user defined mix matrix
+ *
+ *  Since 1.1.2
+ */
+  
+GAVL_PUBLIC
+const double ** gavl_audio_options_get_mix_matrix(gavl_audio_options_t * opt);
+  
 /*! \ingroup audio_options
  *  \brief Create an options container
  *  \returns Newly allocated udio options with default values

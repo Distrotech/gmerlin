@@ -95,7 +95,9 @@ void gavl_audio_options_set_defaults(gavl_audio_options_t * opt)
   
   opt->conversion_flags =
     GAVL_AUDIO_FRONT_TO_REAR_COPY |
-    GAVL_AUDIO_STEREO_TO_MONO_MIX;
+    GAVL_AUDIO_STEREO_TO_MONO_MIX |
+    GAVL_AUDIO_NORMALIZE_MIX_MATRIX;
+  
   opt->accel_flags = gavl_accel_supported();
   opt->quality = GAVL_QUALITY_DEFAULT;
   gavl_init_memcpy();
@@ -117,4 +119,15 @@ void gavl_audio_options_copy(gavl_audio_options_t * dst,
 void gavl_audio_options_destroy(gavl_audio_options_t * opt)
   {
   free(opt);
+  }
+
+void gavl_audio_options_set_mix_matrix(gavl_audio_options_t * opt,
+                                       const double ** matrix)
+  {
+  opt->mix_matrix = matrix;
+  }
+  
+const double ** gavl_audio_options_get_mix_matrix(gavl_audio_options_t * opt)
+  {
+  return opt->mix_matrix;
   }

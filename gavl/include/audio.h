@@ -45,6 +45,8 @@ struct gavl_audio_options_s
 
   gavl_audio_dither_mode_t dither_mode;
   gavl_resample_mode_t resample_mode;
+  
+  const double ** mix_matrix;
   };
 
 typedef struct gavl_audio_convert_context_s gavl_audio_convert_context_t;
