@@ -437,14 +437,19 @@ int main(int argc, char ** argv)
           fprintf(stderr, "Reading frame from video stream %d...", i+1);
           if(bgav_read_video(file, vf, i))
             {
-            fprintf(stderr, "Done, timestamp: %"PRId64", Duration: %"PRId64", Timecode: ",
-                    vf->timestamp, vf->duration);
+            fprintf(stderr, "Done, timestamp: %"PRId64, vf->timestamp);
+
+            if(vf->duration > 0)
+              fprintf(stderr, ", Duration: %"PRId64, vf->duration);
+            else
+              fprintf(stderr, ", Duration: Unknown");
+            
             if(vf->timecode != GAVL_TIMECODE_UNDEFINED)
+              {
+              fprintf(stderr, ", Timecode: ");
               gavl_timecode_dump(&video_format->timecode_format,
                                  vf->timecode);
-            else
-              fprintf(stderr, "None");
-          
+              }
             fprintf(stderr, "\n");
   
             // fprintf(stderr, "First 16 bytes of first plane follow\n");

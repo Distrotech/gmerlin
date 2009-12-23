@@ -82,7 +82,9 @@ int bgav_packet_buffer_total_bytes(bgav_packet_buffer_t * b)
   return ret;
   }
 
-bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b, int get_duration)
+bgav_packet_t *
+bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b,
+                                    int get_duration)
   {
   if(get_duration)
     {
@@ -95,6 +97,7 @@ bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b, in
     else
       b->read_packet->duration =
         b->read_packet->next->pts - b->read_packet->pts;
+      
     }
   else if(!b->read_packet->valid)
     return (bgav_packet_t*)0;

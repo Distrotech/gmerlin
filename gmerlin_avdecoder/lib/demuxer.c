@@ -816,6 +816,14 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
 
     }
 
+  /* Hack: If we got the duration from pts only and the stream
+   * has B-frames, the durations are invalid and set as such
+   */
+#if 1
+  if(get_duration && (ret->dts == BGAV_TIMESTAMP_UNDEFINED) &&
+     (s->flags & STREAM_B_FRAMES))
+    ret->duration = -1;
+#endif
   demuxer->request_stream = (bgav_stream_t*)0;
   return ret;
   }

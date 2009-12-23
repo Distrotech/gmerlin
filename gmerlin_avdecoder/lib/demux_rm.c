@@ -150,11 +150,13 @@ static void set_keyframe_rv2(bgav_stream_t * s,
   }
 #endif
 
+#if 0
 static void dump_frame_info(frame_info_t * info)
   {
   bgav_dprintf("  Frame info: type: %c, PTS: %d\n",
                info->pict_type, info->pts);
   }
+#endif
 
 #define SKIP_BITS(n) buffer<<=n
 #define SHOW_BITS(n) ((buffer)>>(32-(n)))
@@ -511,10 +513,8 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
                               uint8_t * _data, int len)
   {
   uint16_t fps, fps2;
-  uint32_t tmp;
   bgav_stream_t * bg_vs;
   rm_video_stream_t * rm_vs;
-  uint32_t version;
   rm_private_t * priv;
   
   bgav_track_t * track = ctx->tt->cur;
@@ -565,7 +565,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   fps2 =  BGAV_PTR_2_16BE(data); data+=2; /* fps2 */
   data += 2; /* Unknown */
 
-  fprintf(stderr, "FPS: %d, FPS2: %d\n", fps, fps2);
+  //  fprintf(stderr, "FPS: %d, FPS2: %d\n", fps, fps2);
   
   /* Read extradata */
 
@@ -584,12 +584,19 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     case BGAV_MK_FOURCC('R','V','2','0'):
       rm_vs->parse_frame_info = parse_frame_info_rv20;
       rm_vs->sub_id = BGAV_PTR_2_32BE(bg_vs->ext_data+4);
+
+      if(rm_vs->sub_id == 0x30202002
+         || rm_vs->sub_id == 0x30203002
+         || (rm_vs->sub_id >= 0x20200002 && rm_vs->sub_id < 0x20300000))
+        bg_vs->flags |= STREAM_B_FRAMES;
       break;
     case BGAV_MK_FOURCC('R','V','3','0'):
       rm_vs->parse_frame_info = parse_frame_info_rv30;
+      bg_vs->flags |= STREAM_B_FRAMES;
       break;
     case BGAV_MK_FOURCC('R','V','4','0'):
       rm_vs->parse_frame_info = parse_frame_info_rv40;
+      bg_vs->flags |= STREAM_B_FRAMES;
       break;
     }
   
@@ -1307,7 +1314,7 @@ static void set_vpacket_flags(bgav_stream_t * s, int len,
 
   memset(&fi, 0, sizeof(fi));
   sp->parse_frame_info(s->packet->data + 9, len, &fi, sp->sub_id);
-  dump_frame_info(&fi);
+  //  dump_frame_info(&fi);
   
   /* Set picture type and keyframe flag */
   PACKET_SET_CODING_TYPE(s->packet, fi.pict_type);
@@ -1359,7 +1366,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
   rm_video_stream_t * sp = s->priv;
   int num_chunks = 0;
   
-  bgav_rmff_packet_header_dump(h);
+  //  bgav_rmff_packet_header_dump(h);
   
   while(len >= 1)
     {
@@ -1376,12 +1383,12 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
   
     type = hdr >> 6;
 
-    fprintf(stderr, "  Type: %d ", type);
+    //    fprintf(stderr, "  Type: %d ", type);
   
     if(type != 3) // not frame as a part of packet
       {
       READ_8(seq);
-      fprintf(stderr, "Seq: %d ", seq);
+      //      fprintf(stderr, "Seq: %d ", seq);
     
       }
     if(type != 1) // not whole frame
@@ -1390,9 +1397,9 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
          !get_num(ctx->input, &len, &pos))
         return 0;
       READ_8(pic_num);
-      fprintf(stderr, "len2: %d, pos: %d, pic_num: %d", len2, pos, pic_num);
+      //      fprintf(stderr, "len2: %d, pos: %d, pic_num: %d", len2, pos, pic_num);
       }
-    fprintf(stderr, "\n");
+    //    fprintf(stderr, "\n");
     
     if(len <= 0)
       return 0;
