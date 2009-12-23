@@ -29,7 +29,6 @@
 #include <sys/time.h>
 
 #include <X11/Xatom.h>
-#include <X11/Xutil.h>
 
 #include <gmerlin/translation.h>
 #include <gmerlin/utils.h>
@@ -63,131 +62,6 @@ int XShmGetEventBase (Display *);
 
 /* Screensaver detection */
 
-static void check_screensaver(bg_x11_window_t * w)
-  {
-  char * env;
-  
-  /* Check for gnome */
-  env = getenv("GNOME_DESKTOP_SESSION_ID");
-  if(env)
-    {
-    w->screensaver_mode = SCREENSAVER_MODE_GNOME;
-    return;
-    }
-
-  /* Check for KDE */
-  env = getenv("KDE_FULL_SESSION");
-  if(env && !strcmp(env, "true"))
-    {
-    w->screensaver_mode = SCREENSAVER_MODE_KDE;
-    return;
-    }
-
-  /* TODO: xfce4 */
-  
-  }
-
-static void disable_screensaver(bg_x11_window_t * w)
-  {
-  int interval, prefer_blank, allow_exp;
-
-#if HAVE_XDPMS
-  int nothing;
-#endif // HAVE_XDPMS
-  
-  if(w->screensaver_disabled)
-    return;
-
-#if HAVE_XDPMS
-  if(DPMSQueryExtension(w->dpy, &nothing, &nothing))
-    {
-    BOOL onoff;
-    CARD16 state;
-    
-    DPMSInfo(w->dpy, &state, &onoff);
-    if(onoff)
-      {
-      w->dpms_disabled = 1;
-      DPMSDisable(w->dpy);       // monitor powersave off
-      }
-    }
-#endif // HAVE_XDPMS
-    
-  switch(w->screensaver_mode)
-    {
-    case SCREENSAVER_MODE_XLIB:
-      XGetScreenSaver(w->dpy, &w->screensaver_saved_timeout,
-                      &interval, &prefer_blank,
-                      &allow_exp);
-      if(w->screensaver_saved_timeout)
-        w->screensaver_was_enabled = 1;
-      else
-        w->screensaver_was_enabled = 0;
-      XSetScreenSaver(w->dpy, 0, interval, prefer_blank, allow_exp);
-      break;
-    case SCREENSAVER_MODE_GNOME:
-      break;
-    case SCREENSAVER_MODE_KDE:
-      w->screensaver_was_enabled =
-        (system
-             ("dcop kdesktop KScreensaverIface isEnabled 2>/dev/null | sed 's/1/true/g' | grep true 2>/dev/null >/dev/null")
-         == 0);
-      
-      if(w->screensaver_was_enabled)
-        system("dcop kdesktop KScreensaverIface enable false > /dev/null");
-      break;
-    }
-  w->screensaver_disabled = 1;
-  }
-
-static void enable_screensaver(bg_x11_window_t * w)
-  {
-  int dummy, interval, prefer_blank, allow_exp;
-
-  if(!w->screensaver_disabled)
-    return;
-
-#if HAVE_XDPMS
-  if(w->dpms_disabled)
-    {
-    if(DPMSQueryExtension(w->dpy, &dummy, &dummy))
-      {
-      if(DPMSEnable(w->dpy))
-        {
-        // DPMS does not seem to be enabled unless we call DPMSInfo
-        BOOL onoff;
-        CARD16 state;
-
-        DPMSForceLevel(w->dpy, DPMSModeOn);      
-        DPMSInfo(w->dpy, &state, &onoff);
-        }
-
-      }
-    w->dpms_disabled = 0;
-    }
-#endif // HAVE_XDPMS
-  
-  w->screensaver_disabled = 0;
-  
-  
-  if(!w->screensaver_was_enabled)
-    return;
-  
-  switch(w->screensaver_mode)
-    {
-    case SCREENSAVER_MODE_XLIB:
-      XGetScreenSaver(w->dpy, &dummy, &interval, &prefer_blank,
-                      &allow_exp);
-      XSetScreenSaver(w->dpy, w->screensaver_saved_timeout, interval, prefer_blank,
-                      allow_exp);
-      break;
-    case SCREENSAVER_MODE_GNOME:
-      break;
-    case SCREENSAVER_MODE_KDE:
-      break;
-    }
-  }
-
 static int check_disable_screensaver(bg_x11_window_t * w)
   {
   /* Never change global settings if we are embedded */
@@ -202,26 +76,6 @@ static int check_disable_screensaver(bg_x11_window_t * w)
 
 void bg_x11_window_ping_screensaver(bg_x11_window_t * w)
   {
-  struct timeval tm;
-  gettimeofday(&tm, (struct timezone *)0);
-
-  if(tm.tv_sec - w->screensaver_last_ping_time < 40) // 40 Sec interval
-    {
-    return;
-    }
-
-  w->screensaver_last_ping_time = tm.tv_sec;
-  
-  switch(w->screensaver_mode)
-    {
-    case SCREENSAVER_MODE_XLIB:
-      break;
-    case SCREENSAVER_MODE_GNOME:
-      system("gnome-screensaver-command --poke > /dev/null 2> /dev/null");
-      break;
-    case SCREENSAVER_MODE_KDE:
-      break;
-    }
   }
 
 
@@ -571,8 +425,8 @@ static int open_display(bg_x11_window_t * w)
   /* Check, which fullscreen modes we have */
   
   w->fullscreen_mode = get_fullscreen_mode(w);
-  
-  check_screensaver(w);
+
+  bg_x11_screensaver_init(&w->scr, w->dpy);
   
   /* Get xinerama screens */
 
@@ -1068,9 +922,9 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
   if(ret)
     {
     if(check_disable_screensaver(w))
-      disable_screensaver(w);
+      bg_x11_screensaver_disable(&w->scr);
     else
-      enable_screensaver(w);
+      bg_x11_screensaver_enable(&w->scr);
     }
   return ret;
   }
@@ -1166,8 +1020,10 @@ void bg_x11_window_destroy(bg_x11_window_t * w)
     XFreePixmap(w->dpy, w->icon_mask);
   
   if(w->dpy)
+    {
     XCloseDisplay(w->dpy);
-  
+    bg_x11_screensaver_cleanup(&w->scr);
+    }
   if(w->display_string_parent)
     free(w->display_string_parent);
   if(w->display_string_child)
@@ -1600,10 +1456,10 @@ void bg_x11_window_show(bg_x11_window_t * win, int show)
   show_window(win, win->current, show);
   
   if(show && check_disable_screensaver(win))
-    disable_screensaver(win);
+    bg_x11_screensaver_disable(&win->scr);
   else
-    enable_screensaver(win);
-
+    bg_x11_screensaver_enable(&win->scr);
+  
   if(!show)
     {
     XSync(win->dpy, False);

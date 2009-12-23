@@ -264,7 +264,7 @@ AC_TRY_LINK([#include <X11/Xlib.h>
                XineramaQueryExtension(NULL, NULL, NULL);
              return 0;],
             [XINERAMA_LIBS="-lXinerama";have_xinerama=true;AC_MSG_RESULT(Yes)],
-	    AC_MSG_RESULT("No"))
+	    AC_MSG_RESULT(No))
 
 if test x$have_xinerama = "xtrue"; then
 AC_DEFINE(HAVE_LIBXINERAMA)
@@ -277,6 +277,51 @@ LDFLAGS=$OLD_LDFLAGS
 LIBS=$OLD_LIBS
 
 fi
+
+dnl
+dnl XTest
+dnl
+
+AH_TEMPLATE([HAVE_XTEST],
+            [Do we have xtest installed?])
+
+have_xtest="false"
+XTEST_LIBS=""
+
+if test x$have_x = xtrue; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+OLD_LDFLAGS=$LDFLAGS
+                                                                               
+CFLAGS=$X_FLAGS
+LDFLAGS="$X_LIBS $LDFLAGS -lXtst"
+LIBS=$X_LIBS
+
+AC_MSG_CHECKING(for xtest)
+AC_TRY_LINK([#include <X11/Xlib.h>
+             #include <X11/extensions/XTest.h>],
+            [int i = 0;
+             /* We ensure the function is here but never call it */
+             if(i)
+               XTestQueryExtension(NULL, NULL, NULL, NULL, NULL);
+             return 0;],
+            [XTEST_LIBS="-lXtst";have_xtest=true;AC_MSG_RESULT(Yes)],
+	    AC_MSG_RESULT(No))
+
+if test x$have_xtest = "xtrue"; then
+AC_DEFINE(HAVE_XTEST)
+fi
+
+AC_SUBST(XTEST_LIBS)
+
+CFLAGS=$OLD_CFLAGS
+LDFLAGS=$OLD_LDFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
+AM_CONDITIONAL(HAVE_XTEST, test x$have_xtest = xtrue)
 
 dnl
 dnl Xv
@@ -1230,6 +1275,14 @@ echo "Yes"
 else
 echo "Missing"
 fi
+
+echo -n "Xtest:               "
+if test "x$have_xtest" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
 
 echo -n "Xvideo extension:    "
 if test "x$have_xv" = "xtrue"; then

@@ -18,6 +18,12 @@ glx_sources =
 glx_libs =
 endif
 
+if HAVE_XTEST
+xtest_libs = @XTEST_LIBS@
+else
+xtest_libs =
+endif
+
 noinst_LTLIBRARIES = \
 libx11.la
 
@@ -30,8 +36,9 @@ x11_gl.c \
 x11_video.c \
 x11_window.c \
 overlay.c \
+screensaver.c \
 ximage.c \
 $(glx_sources) \
 $(xv_sources)
 
-libx11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @XINERAMA_LIBS@ @XFIXES_LIBS@ @XDPMS_LIBS@ $(xv_libs) $(glx_libs) @X_LIBS@
+libx11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @XINERAMA_LIBS@ @XFIXES_LIBS@ @XDPMS_LIBS@ $(xv_libs) $(glx_libs) $(xtest_libs) @X_LIBS@

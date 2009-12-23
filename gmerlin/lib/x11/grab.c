@@ -39,10 +39,11 @@
 
 #include <sys/shm.h>
 
-#define DRAW_CURSOR (1<<0)
-#define GRAB_ROOT   (1<<1)
-#define WIN_ONTOP   (1<<2)
-#define WIN_STICKY  (1<<3)
+#define DRAW_CURSOR         (1<<0)
+#define GRAB_ROOT           (1<<1)
+#define WIN_ONTOP           (1<<2)
+#define WIN_STICKY          (1<<3)
+#define DISABLE_SCREENSAVER (1<<4)
 
 #define LOG_DOMAIN "x11grab"
 #include <gmerlin/log.h>
@@ -73,6 +74,13 @@ static const bg_parameter_info_t parameters[] =
       .long_name = TRS("Make grab window sticky"),
       .type = BG_PARAMETER_CHECKBUTTON,
       .val_default = { .val_i = 1 },
+    },
+    {
+      .name =      "disable_screensaver",
+      .long_name = TRS("Disable screensaver"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Disable screensaver and energy saving mode"),
     },
     {
       .name = "x",
@@ -169,6 +177,8 @@ struct bg_x11_grab_window_s
 
   
   gavl_overlay_blend_context_t * blend;
+
+  bg_x11_screensaver_t scr;
   
   };
 
@@ -237,6 +247,13 @@ void bg_x11_grab_window_set_parameter(void * data, const char * name,
       win->cfg_flags |= DRAW_CURSOR;
     else
       win->cfg_flags &= ~DRAW_CURSOR;
+    }
+  else if(!strcmp(name, "disable_screensaver"))
+    {
+    if(val->val_i)
+      win->cfg_flags |= DISABLE_SCREENSAVER;
+    else
+      win->cfg_flags &= ~DISABLE_SCREENSAVER;
     }
   }
 
@@ -315,7 +332,9 @@ static void create_cursor_static(bg_x11_grab_window_t * win)
   uint16_t white;
   uint8_t * ptr;
   
-  gavl_video_frame_fill(win->cursor.frame, &win->cursor_format, cursor_transparent);
+  gavl_video_frame_fill(win->cursor.frame,
+                        &win->cursor_format,
+                        cursor_transparent);
   
   for(i = 0; i < CURSOR_HEIGHT; i++)
     {
@@ -433,6 +452,8 @@ static int realize_window(bg_x11_grab_window_t * ret)
   
   if(!ret->dpy)
     return 0;
+
+  bg_x11_screensaver_init(&ret->scr, ret->dpy);
   
   /* Get X11 stuff */
   ret->screen = DefaultScreen(ret->dpy);
@@ -499,6 +520,8 @@ void bg_x11_grab_window_destroy(bg_x11_grab_window_t * win)
     XDestroyWindow(win->dpy, win->win);
   if(win->dpy)
     XCloseDisplay(win->dpy);
+
+  bg_x11_screensaver_cleanup(&win->scr);
   
   gavl_timer_destroy(win->timer);
   gavl_overlay_blend_context_destroy(win->blend);
@@ -509,6 +532,9 @@ void bg_x11_grab_window_destroy(bg_x11_grab_window_t * win)
 static void handle_events(bg_x11_grab_window_t * win)
   {
   XEvent evt;
+
+  bg_x11_screensaver_ping(&win->scr);
+  
   while(XPending(win->dpy))
     {
     XNextEvent(win->dpy, &evt);
@@ -690,6 +716,9 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
   
   gavl_timer_set(win->timer, 0);
   gavl_timer_start(win->timer);
+
+  if(win->flags & DISABLE_SCREENSAVER)
+    bg_x11_screensaver_disable(&win->scr);
   
   return 1;
   }
@@ -697,7 +726,8 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
 void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
   {
   gavl_timer_stop(win->timer);
-
+  bg_x11_screensaver_enable(&win->scr);
+  
   if(win->use_shm)
     {
     gavl_video_frame_null(win->frame);

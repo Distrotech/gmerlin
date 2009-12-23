@@ -381,13 +381,12 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         XFlush(w->dpy);
         w->pointer_hidden = 1;
         }
-
-      if(w->screensaver_disabled)
-        bg_x11_window_ping_screensaver(w);
       w->idle_counter = 0;
       }
     }
 
+  bg_x11_screensaver_ping(&w->scr);
+  
   if(w->need_focus && window_is_viewable(w->dpy, w->current->focus_child))
     {
     XSetInputFocus(w->dpy, w->current->focus_child,

@@ -35,12 +35,50 @@
 #define SCREENSAVER_MODE_XLIB  0 // MUST be 0 (fallback)
 #define SCREENSAVER_MODE_GNOME 1
 #define SCREENSAVER_MODE_KDE   2
+#define SCREENSAVER_MODE_XTEST 3
 
 #ifdef HAVE_GLX
 #include <GL/glx.h>
 #endif
 
 #include <X11/extensions/XShm.h>
+
+/* Screensaver module */
+
+typedef struct
+  {
+  Display * dpy;
+  int mode;
+  int disabled;
+  int was_enabled;
+  int saved_timeout;
+  int64_t last_ping_time;
+
+  KeyCode fake_keycode; /* Which key to press */
+  int was_pressed;
+  
+  gavl_timer_t * timer;
+
+#ifdef HAVE_XDPMS
+  int dpms_disabled;
+#endif
+  } bg_x11_screensaver_t;
+
+void
+bg_x11_screensaver_init(bg_x11_screensaver_t *, Display * dpy);
+
+void
+bg_x11_screensaver_enable(bg_x11_screensaver_t *);
+
+void
+bg_x11_screensaver_disable(bg_x11_screensaver_t *);
+
+void
+bg_x11_screensaver_ping(bg_x11_screensaver_t *);
+
+void
+bg_x11_screensaver_cleanup(bg_x11_screensaver_t *);
+
 
 typedef struct video_driver_s video_driver_t;
 
@@ -131,10 +169,6 @@ struct bg_x11_window_s
   XineramaScreenInfo *xinerama;
   int                nxinerama;
 #endif
-
-#ifdef HAVE_XDPMS
-  int dpms_disabled;
-#endif
   
   unsigned long black;  
   Display * dpy;
@@ -184,14 +218,9 @@ struct bg_x11_window_s
   int pointer_hidden;
   
   /* Screensaver stuff */
-  int screensaver_mode;
-  int screensaver_disabled;
-  int screensaver_was_enabled;
-  int screensaver_saved_timeout;
-
+  
   int disable_screensaver_normal;
   int disable_screensaver_fullscreen;
-  int64_t screensaver_last_ping_time;
   
   char * display_string_parent;
   char * display_string_child;
@@ -272,6 +301,10 @@ struct bg_x11_window_s
 
   Pixmap icon;
   Pixmap icon_mask;
+
+  /* Screensaver */
+  bg_x11_screensaver_t scr;
+  
   };
 
 void bg_x11_window_put_frame_internal(bg_x11_window_t * win,
