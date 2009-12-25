@@ -61,6 +61,15 @@ void bg_visualizer_destroy(bg_visualizer_t * v);
 
 const bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t* v);
 
+/** \brief Set ov callbacks
+ *  \param priv A visualizer 
+ *  \param cb Callbacks
+ */
+
+void bg_visualizer_set_callbacks(bg_visualizer_t* v,
+                                 bg_ov_callbacks_t * cb);
+
+
 /** \brief Set a parameter of a visualizer
  *  \param priv A visualizer casted to void
  *  \param name Name

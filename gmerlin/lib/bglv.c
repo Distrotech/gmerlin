@@ -530,15 +530,15 @@ typedef struct
   VisUIWidget ** widgets;
   VisParamEntry ** params;
   
-  bg_ov_callbacks_t ov_callbacks;
+  bg_ov_callbacks_t * ov_callbacks;
   int have_audio;
   } lv_priv_t;
 
-static bg_ov_callbacks_t * get_callbacks_lv(void * data)
+static void set_callbacks_lv(void * data, bg_ov_callbacks_t * cb)
   {
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
-  return &priv->ov_callbacks;
+  priv->ov_callbacks = cb;
   }
 
 static void draw_frame_gl_lv(void * data, gavl_video_frame_t * frame)
@@ -852,7 +852,7 @@ int bg_lv_load(bg_plugin_handle_t * ret,
     }
   p->update = update_lv;
   p->close  = close_lv;
-  p->get_callbacks = get_callbacks_lv;
+  p->set_callbacks = set_callbacks_lv;
   p->common.get_parameters = get_parameters_lv;
   p->common.set_parameter  = set_parameter_lv;
     
@@ -860,14 +860,14 @@ int bg_lv_load(bg_plugin_handle_t * ret,
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;
   priv->audio = visual_audio_new();
-
+#if 0
   priv->ov_callbacks.data = priv;
   priv->ov_callbacks.key_callback = key_callback;
   priv->ov_callbacks.key_release_callback = key_release_callback;
   priv->ov_callbacks.button_callback = button_callback;
   priv->ov_callbacks.button_release_callback = button_release_callback;
   priv->ov_callbacks.motion_callback = motion_callback;
-  
+#endif
   /* Remove gmerlin added prefix from the plugin name */
   priv->actor = visual_actor_new(name + 7);
 
@@ -1123,6 +1123,13 @@ static int motion_callback(void * data, int x, int y, int mask)
   eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor));
   
   visual_event_queue_add_mousemotion(eventqueue, x, y);
+
+  if(priv->ov_callbacks && priv->ov_callbacks->motion_callback)
+    {
+    priv->ov_callbacks->motion_callback(priv->ov_callbacks->data,
+                                        x, y, mask);
+    }
+
   return 1;
   }
 
@@ -1132,6 +1139,11 @@ static int button_callback(void * data, int x, int y, int button, int mask)
   lv_priv_t * priv = (lv_priv_t*)data;
   eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor));
   visual_event_queue_add_mousebutton(eventqueue, button, VISUAL_MOUSE_DOWN, x, y);
+  if(priv->ov_callbacks && priv->ov_callbacks->button_callback)
+    {
+    priv->ov_callbacks->button_callback(priv->ov_callbacks->data,
+                                        x, y, button, mask);
+    }
   return 1;
   }
 
@@ -1141,5 +1153,12 @@ static int button_release_callback(void * data, int x, int y, int button, int ma
   lv_priv_t * priv = (lv_priv_t*)data;
   eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor));
   visual_event_queue_add_mousebutton(eventqueue, button, VISUAL_MOUSE_UP, x, y);
+
+  if(priv->ov_callbacks && priv->ov_callbacks->button_release_callback)
+    {
+    priv->ov_callbacks->button_release_callback(priv->ov_callbacks->data,
+                                                x, y, button, mask);
+    }
+
   return 1;
   }

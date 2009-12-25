@@ -74,6 +74,8 @@ struct bg_visualizer_s
   double fps;
   
   const char * display_string;
+
+  bg_ov_callbacks_t * cb;
   };
 
 static int proc_write_func(void * data, const uint8_t * ptr, int len)
@@ -529,24 +531,27 @@ static int handle_slave_message(bg_visualizer_t * v)
       return 0;
       break;
     case BG_VIS_MSG_CB_MOTION: // x, y, mask
-      fprintf("Motion event: %d %d %d\n",
-              bg_msg_get_arg_int(msg, 0),
-              bg_msg_get_arg_int(msg, 1),
-              bg_msg_get_arg_int(msg, 2));
+      if(v->cb && v->cb->motion_callback)
+        v->cb->motion_callback(v->cb->data,
+                               bg_msg_get_arg_int(v->msg, 0),
+                               bg_msg_get_arg_int(v->msg, 1),
+                               bg_msg_get_arg_int(v->msg, 2));
       break;
     case BG_VIS_MSG_CB_BUTTON: // x, y, button, mask
-      fprintf("Button press event: %d %d %d %d\n",
-              bg_msg_get_arg_int(msg, 0),
-              bg_msg_get_arg_int(msg, 1),
-              bg_msg_get_arg_int(msg, 2),
-              bg_msg_get_arg_int(msg, 3));
+      if(v->cb && v->cb->button_callback)
+        v->cb->button_callback(v->cb->data,
+                               bg_msg_get_arg_int(v->msg, 0),
+                               bg_msg_get_arg_int(v->msg, 1),
+                               bg_msg_get_arg_int(v->msg, 2),
+                               bg_msg_get_arg_int(v->msg, 3));
       break;
     case BG_VIS_MSG_CB_BUTTON_REL: // x, y, button, mask
-      fprintf("Button release event: %d %d %d %d\n",
-              bg_msg_get_arg_int(msg, 0),
-              bg_msg_get_arg_int(msg, 1),
-              bg_msg_get_arg_int(msg, 2),
-              bg_msg_get_arg_int(msg, 3));
+      if(v->cb && v->cb->button_release_callback)
+        v->cb->button_release_callback(v->cb->data,
+                                       bg_msg_get_arg_int(v->msg, 0),
+                                       bg_msg_get_arg_int(v->msg, 1),
+                                       bg_msg_get_arg_int(v->msg, 2),
+                                       bg_msg_get_arg_int(v->msg, 3));
       break;
     }
   return 1;
@@ -628,4 +633,10 @@ void bg_visualizer_close(bg_visualizer_t * v)
 int bg_visualizer_need_restart(bg_visualizer_t * v)
   {
   return v->proc && v->changed;
+  }
+
+void bg_visualizer_set_callbacks(bg_visualizer_t* v,
+                                 bg_ov_callbacks_t * cb)
+  {
+  v->cb = cb;
   }

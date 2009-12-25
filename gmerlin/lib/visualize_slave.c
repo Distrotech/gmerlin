@@ -352,9 +352,7 @@ static int ov_button_callback(void * data, int x, int y,
   {
   bg_msg_t * msg;
   bg_visualizer_slave_t * s = data;
-
-  fprintf(stderr, "ov_button_callback\n");
-
+  
   msg = bg_msg_queue_lock_write(s->cb_queue);
   bg_msg_set_id(msg, BG_VIS_MSG_CB_BUTTON);
   bg_msg_set_arg_int(msg, 0, x);
@@ -371,8 +369,6 @@ static int ov_button_release_callback(void * data, int x, int y,
   bg_msg_t * msg;
   bg_visualizer_slave_t * s = data;
 
-  fprintf(stderr, "ov_button_release_callback\n");
-
   msg = bg_msg_queue_lock_write(s->cb_queue);
   bg_msg_set_id(msg, BG_VIS_MSG_CB_BUTTON_REL);
   bg_msg_set_arg_int(msg, 0, x);
@@ -388,8 +384,6 @@ static int ov_motion_callback(void * data, int x, int y,
   {
   bg_msg_t * msg;
   bg_visualizer_slave_t * s = data;
-
-  fprintf(stderr, "ov_motion_callback\n");
 
   msg = bg_msg_queue_lock_write(s->cb_queue);
   bg_msg_set_id(msg, BG_VIS_MSG_CB_MOTION);
@@ -502,11 +496,9 @@ bg_visualizer_slave_create(int argc, char ** argv)
   
   ret->vis_plugin = (bg_visualization_plugin_t*)(ret->vis_handle->plugin);
   
-  if(ret->do_ov && ret->ov_plugin->set_callbacks && ret->vis_plugin->get_callbacks)
-    {
-    ret->ov_plugin->set_callbacks(ret->ov_handle->priv,
-                                  ret->vis_plugin->get_callbacks(ret->vis_handle->priv));
-    }
+  if(ret->vis_plugin->set_callbacks)
+    ret->vis_plugin->set_callbacks(ret->vis_handle->priv, &ret->cb);
+  
   return ret;
   }
 

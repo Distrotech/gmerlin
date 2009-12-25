@@ -2091,13 +2091,13 @@ typedef struct bg_visualization_plugin_s bg_visualization_plugin_t;
 struct bg_visualization_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
-  /** \brief return callback \param priv The handle returned by the
+
+  /** \brief return callback
    *  \param priv The handle returned by the create() method
-   *
-   *  create() method \returns The callbacks or NULL
+   *  \param cb The callbacks to be called
    */
   
-  bg_ov_callbacks_t * (*get_callbacks)(void * priv);
+  void (*set_callbacks)(void * priv, bg_ov_callbacks_t * cb);
 
   /** \brief Open a frame based visualization plugin
    *  \param priv The handle returned by the create() method

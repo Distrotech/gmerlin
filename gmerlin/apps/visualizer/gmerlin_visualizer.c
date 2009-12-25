@@ -135,6 +135,8 @@ typedef struct
   int x, y, width, height;
   
   bg_gtk_log_window_t * log_window;
+
+  bg_ov_callbacks_t cb;
   } visualizer_t;
 
 static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
@@ -554,23 +556,9 @@ static void plugin_window_init(plugin_window_t * win, visualizer_t * v)
   gtk_container_add(GTK_CONTAINER(win->window),  table);
   }
 
-static gboolean motion_callback(GtkWidget * w,
-                                GdkEventMotion * evt,
-                                gpointer data)
+static int motion_callback(void * data, int x, int y)
   {
   visualizer_t * v = (visualizer_t*)data;
-  fprintf(stderr, "motion_callback\n");
-  if(v->toolbar_trigger & TOOLBAR_TRIGGER_MOUSE)
-    show_toolbar(v);
-  return FALSE;
-  }
-
-static gboolean button_press_callback(GtkWidget * w,
-                                      GdkEventButton * evt,
-                                      gpointer data)
-  {
-  visualizer_t * v = (visualizer_t*)data;
-  fprintf(stderr, "button_press_callback\n");
   if(v->toolbar_trigger & TOOLBAR_TRIGGER_MOUSE)
     show_toolbar(v);
   return FALSE;
@@ -581,9 +569,7 @@ static gboolean key_callback(GtkWidget * w,
                              gpointer data)
   {
   visualizer_t * v = (visualizer_t*)data;
-
-  fprintf(stderr, "Key callback\n");
-
+  
   //  gtk_widget_show(v->toolbar);
   //  g_timeout_add(2000, toolbar_timeout, v);
   switch(evt->keyval)
@@ -632,8 +618,7 @@ static void window_init(visualizer_t * v,
   gtk_widget_show(table);
   
   gtk_widget_set_events(w->socket,
-                        GDK_KEY_PRESS_MASK | 
-                        GDK_POINTER_MOTION_MASK |
+                        GDK_KEY_PRESS_MASK |
                         GDK_BUTTON_PRESS_MASK);
   
   //  gtk_window_set_focus_on_map(w->window, 0);
@@ -642,14 +627,6 @@ static void window_init(visualizer_t * v,
   
   g_signal_connect(G_OBJECT(w->window), "delete_event",
                    G_CALLBACK(delete_callback),
-                   v);
-  
-  g_signal_connect(G_OBJECT(w->socket), "motion-notify-event",
-                   G_CALLBACK(motion_callback),
-                   v);
-
-  g_signal_connect(G_OBJECT(w->socket), "button-press-event",
-                   G_CALLBACK(button_press_callback),
                    v);
   
   g_signal_connect(G_OBJECT(w->socket), "plug-removed",
@@ -1035,7 +1012,10 @@ static visualizer_t * visualizer_create()
   bg_cfg_section_t * cfg_section;
   
   ret = calloc(1, sizeof(*ret));
-
+  
+  ret->cb.motion_callback = motion_callback;
+  ret->cb.data = ret;
+  
   window_init(ret, &ret->normal_window, 0);
   window_init(ret, &ret->fullscreen_window, 1);
   ret->current_window = &ret->normal_window;
@@ -1105,6 +1085,8 @@ static visualizer_t * visualizer_create()
   ret->plugin_reg = bg_plugin_registry_create(cfg_section);
   ret->visualizer = bg_visualizer_create(ret->plugin_reg);
 
+  bg_visualizer_set_callbacks(ret->visualizer, &ret->cb);
+  
   /* Create vis plugin widget */
 
   ret->vis_plugins =
