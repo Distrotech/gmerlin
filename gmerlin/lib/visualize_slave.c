@@ -274,6 +274,11 @@ typedef struct
   
   pthread_mutex_t fps_mutex;
   float fps;
+
+  bg_msg_queue_t * cb_queue; /* Pass events */
+
+  bg_ov_callbacks_t   cb;
+  
   } bg_visualizer_slave_t;
 
 static void init_plugin(bg_visualizer_slave_t * v);
@@ -337,6 +342,63 @@ load_plugin_lv(const char * name, int plugin_flags, const char * window_id)
   }
 #endif
 
+// #define BG_VIS_MSG_CB_MOTION // x, y, mask
+// #define // x, y, button, mask
+// #define BG_VIS_MSG_CB_BUTTON_REL // x, y, button, mask
+
+
+static int ov_button_callback(void * data, int x, int y,
+                              int button, int mask)
+  {
+  bg_msg_t * msg;
+  bg_visualizer_slave_t * s = data;
+
+  fprintf(stderr, "ov_button_callback\n");
+
+  msg = bg_msg_queue_lock_write(s->cb_queue);
+  bg_msg_set_id(msg, BG_VIS_MSG_CB_BUTTON);
+  bg_msg_set_arg_int(msg, 0, x);
+  bg_msg_set_arg_int(msg, 1, y);
+  bg_msg_set_arg_int(msg, 2, button);
+  bg_msg_set_arg_int(msg, 3, mask);
+  bg_msg_queue_unlock_write(s->cb_queue);
+  return 1;
+  }
+
+static int ov_button_release_callback(void * data, int x, int y,
+                                      int button, int mask)
+  {
+  bg_msg_t * msg;
+  bg_visualizer_slave_t * s = data;
+
+  fprintf(stderr, "ov_button_release_callback\n");
+
+  msg = bg_msg_queue_lock_write(s->cb_queue);
+  bg_msg_set_id(msg, BG_VIS_MSG_CB_BUTTON_REL);
+  bg_msg_set_arg_int(msg, 0, x);
+  bg_msg_set_arg_int(msg, 1, y);
+  bg_msg_set_arg_int(msg, 2, button);
+  bg_msg_set_arg_int(msg, 3, mask);
+  bg_msg_queue_unlock_write(s->cb_queue);
+  return 1;
+  }
+
+static int ov_motion_callback(void * data, int x, int y,
+                              int mask)
+  {
+  bg_msg_t * msg;
+  bg_visualizer_slave_t * s = data;
+
+  fprintf(stderr, "ov_motion_callback\n");
+
+  msg = bg_msg_queue_lock_write(s->cb_queue);
+  bg_msg_set_id(msg, BG_VIS_MSG_CB_MOTION);
+  bg_msg_set_arg_int(msg, 0, x);
+  bg_msg_set_arg_int(msg, 1, y);
+  bg_msg_set_arg_int(msg, 2, mask);
+  bg_msg_queue_unlock_write(s->cb_queue);
+  return 1;
+  }
 
 static bg_visualizer_slave_t *
 bg_visualizer_slave_create(int argc, char ** argv)
@@ -346,7 +408,7 @@ bg_visualizer_slave_create(int argc, char ** argv)
   char * window_id = (char*)0;
   char * plugin_module = (char*)0;
   char * ov_module = (char*)0;
-
+  
   /* Handle arguments and load plugins */
   i = 1;
   while(i < argc)
@@ -367,7 +429,7 @@ bg_visualizer_slave_create(int argc, char ** argv)
       i += 2;
       }
     }
-
+  
   /* Sanity checks */
   if(!window_id)
     {
@@ -383,6 +445,14 @@ bg_visualizer_slave_create(int argc, char ** argv)
   ret = calloc(1, sizeof(*ret));
   ret->audio_buffer = audio_buffer_create();
   ret->window_id = window_id;
+
+  /* Create callbacks */
+  ret->cb.button_release_callback = ov_button_release_callback;
+  ret->cb.button_callback = ov_button_callback;
+  ret->cb.motion_callback = ov_motion_callback;
+  ret->cb.data = ret;
+  
+  ret->cb_queue = bg_msg_queue_create();
   
   pthread_mutex_init(&(ret->stop_mutex),(pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->running_mutex),(pthread_mutexattr_t *)0);
@@ -403,7 +473,13 @@ bg_visualizer_slave_create(int argc, char ** argv)
       return (bg_visualizer_slave_t*)0;
     
     ret->ov_plugin = (bg_ov_plugin_t*)ret->ov_handle->plugin;
+    
+    if(ret->ov_plugin->set_callbacks)
+      ret->ov_plugin->set_callbacks(ret->ov_handle->priv,
+                                    &ret->cb);
+    
     ret->ov_plugin->set_window(ret->ov_handle->priv, ret->window_id);
+
     }
   ret->vis_api = BG_PLUGIN_API_GMERLIN;
   
@@ -459,6 +535,8 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
   audio_buffer_destroy(v->audio_buffer);
   gavl_timer_destroy(v->timer);
 
+  bg_msg_queue_destroy(v->cb_queue);
+  
   pthread_mutex_destroy(&(v->running_mutex));
   pthread_mutex_destroy(&(v->fps_mutex));
   pthread_mutex_destroy(&(v->stop_mutex));
@@ -710,13 +788,13 @@ static int msg_write_callback(void * priv, const uint8_t * data, int len)
   return write(STDOUT_FILENO, data, len);
   }
 
-static void flush_log_queue(bg_msg_queue_t * log_queue)
+static void flush_queue(bg_msg_queue_t * queue)
   {
   bg_msg_t * msg;
-  while((msg = bg_msg_queue_try_lock_read(log_queue)))
+  while((msg = bg_msg_queue_try_lock_read(queue)))
     {
     bg_msg_write(msg, msg_write_callback, NULL);
-    bg_msg_queue_unlock_read(log_queue);
+    bg_msg_queue_unlock_read(queue);
     }
   }
 
@@ -738,6 +816,7 @@ int main(int argc, char ** argv)
   bg_parameter_type_t parameter_type;
   gavl_dsp_context_t * ctx;
   int big_endian;
+  
   ctx = gavl_dsp_context_create();
   
   memset(&parameter_value, 0, sizeof(parameter_value));
@@ -851,8 +930,8 @@ int main(int argc, char ** argv)
         keep_going = 0;
         break;
       case BG_VIS_MSG_TELL:
-        flush_log_queue(log_queue);
-        
+        flush_queue(log_queue);
+        flush_queue(s->cb_queue);
         if(counter > 10)
           {
           counter = 0;

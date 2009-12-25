@@ -528,6 +528,26 @@ static int handle_slave_message(bg_visualizer_t * v)
     case BG_VIS_SLAVE_MSG_END:
       return 0;
       break;
+    case BG_VIS_MSG_CB_MOTION: // x, y, mask
+      fprintf("Motion event: %d %d %d\n",
+              bg_msg_get_arg_int(msg, 0),
+              bg_msg_get_arg_int(msg, 1),
+              bg_msg_get_arg_int(msg, 2));
+      break;
+    case BG_VIS_MSG_CB_BUTTON: // x, y, button, mask
+      fprintf("Button press event: %d %d %d %d\n",
+              bg_msg_get_arg_int(msg, 0),
+              bg_msg_get_arg_int(msg, 1),
+              bg_msg_get_arg_int(msg, 2),
+              bg_msg_get_arg_int(msg, 3));
+      break;
+    case BG_VIS_MSG_CB_BUTTON_REL: // x, y, button, mask
+      fprintf("Button release event: %d %d %d %d\n",
+              bg_msg_get_arg_int(msg, 0),
+              bg_msg_get_arg_int(msg, 1),
+              bg_msg_get_arg_int(msg, 2),
+              bg_msg_get_arg_int(msg, 3));
+      break;
     }
   return 1;
   }
@@ -541,7 +561,9 @@ void bg_visualizer_update(bg_visualizer_t * v,
   if(!v->proc)
     {
     if(v->ov_plugin)
+      {
       v->ov_plugin->handle_events(v->ov_handle->priv);
+      }
     pthread_mutex_unlock(&v->mutex);
     return;
     }
@@ -563,8 +585,9 @@ void bg_visualizer_update(bg_visualizer_t * v,
     }
 
   if(v->ov_plugin)
+    {
     v->ov_plugin->handle_events(v->ov_handle->priv);
-
+    }
   /* Handle messages from slave */
   bg_msg_set_id(v->msg, BG_VIS_MSG_TELL);
   write_message(v);

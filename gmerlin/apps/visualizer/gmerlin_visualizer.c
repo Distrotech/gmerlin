@@ -554,13 +554,23 @@ static void plugin_window_init(plugin_window_t * win, visualizer_t * v)
   gtk_container_add(GTK_CONTAINER(win->window),  table);
   }
 
-
-
 static gboolean motion_callback(GtkWidget * w,
                                 GdkEventMotion * evt,
                                 gpointer data)
   {
   visualizer_t * v = (visualizer_t*)data;
+  fprintf(stderr, "motion_callback\n");
+  if(v->toolbar_trigger & TOOLBAR_TRIGGER_MOUSE)
+    show_toolbar(v);
+  return FALSE;
+  }
+
+static gboolean button_press_callback(GtkWidget * w,
+                                      GdkEventButton * evt,
+                                      gpointer data)
+  {
+  visualizer_t * v = (visualizer_t*)data;
+  fprintf(stderr, "button_press_callback\n");
   if(v->toolbar_trigger & TOOLBAR_TRIGGER_MOUSE)
     show_toolbar(v);
   return FALSE;
@@ -571,6 +581,9 @@ static gboolean key_callback(GtkWidget * w,
                              gpointer data)
   {
   visualizer_t * v = (visualizer_t*)data;
+
+  fprintf(stderr, "Key callback\n");
+
   //  gtk_widget_show(v->toolbar);
   //  g_timeout_add(2000, toolbar_timeout, v);
   switch(evt->keyval)
@@ -608,7 +621,6 @@ static void window_init(visualizer_t * v,
   w->socket = gtk_socket_new();
   w->box = gtk_vbox_new(0, 0);
   gtk_widget_show(w->box);
-  gtk_widget_show(w->socket);
 
   table = gtk_table_new(1, 1, 0);
 
@@ -621,7 +633,8 @@ static void window_init(visualizer_t * v,
   
   gtk_widget_set_events(w->socket,
                         GDK_KEY_PRESS_MASK | 
-                        GDK_POINTER_MOTION_MASK);
+                        GDK_POINTER_MOTION_MASK |
+                        GDK_BUTTON_PRESS_MASK);
   
   //  gtk_window_set_focus_on_map(w->window, 0);
   
@@ -633,6 +646,10 @@ static void window_init(visualizer_t * v,
   
   g_signal_connect(G_OBJECT(w->socket), "motion-notify-event",
                    G_CALLBACK(motion_callback),
+                   v);
+
+  g_signal_connect(G_OBJECT(w->socket), "button-press-event",
+                   G_CALLBACK(button_press_callback),
                    v);
   
   g_signal_connect(G_OBJECT(w->socket), "plug-removed",
@@ -650,6 +667,8 @@ static void window_init(visualizer_t * v,
   g_signal_connect(G_OBJECT(w->socket), "key-press-event",
                    G_CALLBACK(key_callback),
                    v);
+  
+  gtk_widget_show(w->socket);
   
   if(fullscreen)
     gtk_window_fullscreen(GTK_WINDOW(w->window));
@@ -954,7 +973,7 @@ static gboolean idle_func(void * data)
     if(v->toolbar_visible)
       bg_gtk_vumeter_update(v->vumeter, v->audio_frame);
     
-    bg_visualizer_update(v->visualizer, v->audio_frame);
+    //    bg_visualizer_update(v->visualizer, v->audio_frame);
     }
   return TRUE;
   }

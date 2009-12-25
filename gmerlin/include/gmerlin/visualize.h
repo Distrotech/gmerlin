@@ -127,7 +127,7 @@ void bg_visualizer_set_audio_format(bg_visualizer_t * v,
 /** \brief Send audio data to a visualizer
  *  \param v A Visualizer
  *  \param frame An audio frame
-*/
+ */
 
 void bg_visualizer_update(bg_visualizer_t * v,
                           const gavl_audio_frame_t * frame);

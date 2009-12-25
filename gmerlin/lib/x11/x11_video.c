@@ -105,6 +105,7 @@ static void init(bg_x11_window_t * w)
   /* TODO: Get screen resolution */
   w->window_format.pixel_width = 1;
   w->window_format.pixel_height = 1;
+  w->idle_counter = 0;
   }
 
 void bg_x11_window_cleanup_video(bg_x11_window_t * w)

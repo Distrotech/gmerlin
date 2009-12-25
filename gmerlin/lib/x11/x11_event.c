@@ -372,7 +372,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   if(!evt || (evt->type != MotionNotify))
     {
     w->idle_counter++;
-    if(w->idle_counter == IDLE_MAX)
+    if(w->idle_counter >= IDLE_MAX)
       {
       if(!w->pointer_hidden)
         {
@@ -410,7 +410,8 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
     w->wait_for_completion = 0;
     return;
     }
-    
+
+  
   switch(evt->type)
     {
     case Expose:
@@ -731,7 +732,9 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         }
       break;
     case MotionNotify:
+      
       w->idle_counter = 0;
+      
       if(w->pointer_hidden)
         {
         XDefineCursor(w->dpy, w->normal.win, None);
@@ -746,14 +749,18 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         cur = &w->fullscreen;
       else
         return;
-
+      
       if(cur->modality)
         return;
       
       transform_coords(w, evt->xmotion.x, evt->xmotion.y, &x_src, &y_src);
 
+      fprintf(stderr, "MotionNotify: %08lx %p\n",
+              evt->xmotion.window, w->callbacks->motion_callback);
+
       if(w->callbacks && w->callbacks->motion_callback)
         {
+        fprintf(stderr, "Motion callback\n");
         key_mask = x11_to_key_mask(evt->xmotion.state);
         w->callbacks->motion_callback(w->callbacks->data,
                                       x_src, y_src, key_mask);
@@ -762,11 +769,12 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
       /* Send to parent */
       if(w->current->parent != w->root)
         {
+#if 0
         XMotionEvent motion_event;
         memset(&motion_event, 0, sizeof(motion_event));
         motion_event.type = MotionNotify;
         motion_event.display = w->dpy;
-        motion_event.window = w->current->parent;
+        motion_event.window = cur->parent;
         motion_event.root = w->root;
         motion_event.time = evt->xmotion.time;
         motion_event.x = evt->xmotion.x;
@@ -775,12 +783,19 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         motion_event.y_root = evt->xmotion.y_root;
         motion_event.state  = evt->xmotion.state;
         motion_event.same_screen = evt->xmotion.same_screen;
-
+#endif
+        evt->xmotion.window = cur->parent;
+        evt->xmotion.subwindow = cur->win;
+        evt->xmotion.time = CurrentTime;
         
-        XSendEvent(motion_event.display,
-                   motion_event.window,
-                   False, None, (XEvent *)(&motion_event));
-        // XFlush(w->dpy);
+        XSendEvent(w->dpy,
+                   evt->xmotion.window,
+                   // w->current->parent,
+                   // True, PointerMotionMask,
+                   False, NoEventMask,
+                   evt);
+        XSync(w->dpy, False);
+        fprintf(stderr, "Propagate motion %08lx\n", evt->xmotion.window);
         }
       break;
     case UnmapNotify:
@@ -821,9 +836,9 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         }
       break;
     case KeyPress:
+      fprintf(stderr, "Press");
     case KeyRelease:
-      
-      
+      fprintf(stderr, "Key %08lx\n", evt->xkey.window);
       XLookupString(&(evt->xkey), &key_char, 1, &keysym, NULL);
       evt->xkey.state &= STATE_IGNORE;
       
@@ -912,12 +927,14 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
         XSendEvent(key_event.display,
                    key_event.window,
-                   False, 0, (XEvent *)(&key_event));
+                   False, NoEventMask, (XEvent *)(&key_event));
         XFlush(w->dpy);
         }
       break;
     case ButtonPress:
+      fprintf(stderr, "Press");
     case ButtonRelease:
+      fprintf(stderr, "Button %08lx\n", evt->xbutton.window);
       
       if(evt->xbutton.window == w->normal.win)
         cur = &w->normal;
@@ -986,8 +1003,9 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
         XSendEvent(button_event.display,
                    button_event.window,
-                   False, 0, (XEvent *)(&button_event));
+                   False, NoEventMask, (XEvent *)(&button_event));
         //        XFlush(w->dpy);
+        fprintf(stderr, "Propagate button %08lx\n", button_event.window);
         }
 
     }

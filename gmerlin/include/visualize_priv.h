@@ -40,6 +40,19 @@
 #define BG_VIS_SLAVE_MSG_FPS     (BG_LOG_LEVEL_MAX+1)
 #define BG_VIS_SLAVE_MSG_END     (BG_LOG_LEVEL_MAX+2)
 
+/* The following are callbacks from the ov plugin */
+
+/*
+ * These are mostly there because gdk does't manage to
+ * pass them through to the application if they are propagated
+ * from the child window to their parents
+ *
+ */
+
+#define BG_VIS_MSG_CB_MOTION     (BG_LOG_LEVEL_MAX+3) // x, y, mask
+#define BG_VIS_MSG_CB_BUTTON     (BG_LOG_LEVEL_MAX+4) // x, y, button, mask
+#define BG_VIS_MSG_CB_BUTTON_REL (BG_LOG_LEVEL_MAX+5) // x, y, button, mask
+
 /*
  * gmerlin_visualize_slave
  *   [-w "window_id"|-o "output_module"]
