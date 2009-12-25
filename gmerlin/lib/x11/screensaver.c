@@ -178,6 +178,7 @@ bg_x11_screensaver_enable(bg_x11_screensaver_t * scr)
       break;
     case SCREENSAVER_MODE_KDE:
       break;
+#ifdef HAVE_XTEST
     case SCREENSAVER_MODE_XTEST:
       if(scr->was_pressed)
         {
@@ -185,6 +186,7 @@ bg_x11_screensaver_enable(bg_x11_screensaver_t * scr)
         scr->was_pressed = 0;
         }
       break;
+#endif
     }
   }
 
