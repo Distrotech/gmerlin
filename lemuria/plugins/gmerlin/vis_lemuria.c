@@ -45,6 +45,8 @@ typedef struct
   int width, height;
   bg_accelerator_map_t * accel_map;
   int antialias;
+
+  bg_ov_callbacks_t * cb;
   } lemuria_priv_t;
 
 /* Window callbacks */
@@ -146,6 +148,46 @@ static void size_changed(void * data, int width, int height)
     lemuria_set_size(vp->e, width, height);
   }
 
+static int motion_callback(void * data, int x, int y, int mask)
+  {
+  lemuria_priv_t * vp;
+  vp = (lemuria_priv_t *)data;
+
+  if(vp->cb && vp->cb->motion_callback)
+    {
+    vp->cb->motion_callback(vp->cb->data, x, y, mask);
+    return 1;
+    }
+  return 0;
+  }
+
+static int button_callback(void * data, int x, int y, int button, int mask)
+  {
+  lemuria_priv_t * vp;
+  vp = (lemuria_priv_t *)data;
+  
+  if(vp->cb && vp->cb->button_callback)
+    {
+    vp->cb->button_callback(vp->cb->data, x, y, button, mask);
+    return 1;
+    }
+  return 0;
+  }
+
+static int button_release_callback(void * data, int x, int y,
+                                   int button, int mask)
+  {
+  lemuria_priv_t * vp;
+  vp = (lemuria_priv_t *)data;
+  
+  if(vp->cb && vp->cb->button_release_callback)
+    {
+    vp->cb->button_release_callback(vp->cb->data, x, y, button, mask);
+    return 1;
+    }
+  return 0;
+  }
+
 static void * create_lemuria()
   {
   lemuria_priv_t * ret;
@@ -162,8 +204,9 @@ static void * create_lemuria()
   
   ret->window_callbacks.size_changed = size_changed;
   ret->window_callbacks.set_fullscreen = set_fullscreen;
-  
-  
+  ret->window_callbacks.motion_callback = motion_callback;
+  ret->window_callbacks.button_callback = button_callback;
+  ret->window_callbacks.button_release_callback = button_release_callback;
   ret->window_callbacks.data = ret;
   
   return ret;
@@ -298,6 +341,13 @@ static void show_frame_lemuria(void * priv)
   bg_x11_window_unset_gl(vp->w);
   }
 
+static void set_callbacks_lemuria(void * priv, bg_ov_callbacks_t * cb)
+  {
+  lemuria_priv_t * vp;
+  vp = (lemuria_priv_t *)priv;
+  vp->cb = cb;
+  }
+
 const bg_visualization_plugin_t the_plugin = 
   {
     .common =
@@ -314,6 +364,7 @@ const bg_visualization_plugin_t the_plugin =
       .set_parameter =    set_parameter_lemuria,
       .priority =         1,
     },
+    .set_callbacks = set_callbacks_lemuria,
     .open_win = open_lemuria,
     .update = update_lemuria,
     .draw_frame = draw_frame_lemuria,
