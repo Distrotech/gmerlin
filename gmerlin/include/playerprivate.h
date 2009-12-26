@@ -89,7 +89,8 @@ typedef struct
   /* Mute */
   int mute;
   pthread_mutex_t mute_mutex;
-
+  
+  int send_silence;
   
   gavl_peak_detector_t * peak_detector;
   
@@ -499,7 +500,8 @@ void bg_player_audio_destroy(bg_player_t * p);
 
 int bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame);
 
-void bg_player_audio_set_eof(bg_player_t * p);
+/* Returns 1 if the thread should be finished, 0 if silence should be sent */
+int bg_player_audio_set_eof(bg_player_t * p);
 
 
 /* player_subtitle.c */

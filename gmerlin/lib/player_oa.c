@@ -185,13 +185,22 @@ void * bg_player_oa_thread(void * data)
     {
     if(!bg_player_thread_check(s->th))
       break;
-    
-    if(!bg_player_read_audio(p, s->fifo_frame))
+
+    if(s->send_silence)
       {
-      bg_player_audio_set_eof(p);
-      if(!bg_player_thread_wait_for_start(s->th))
-        break;
-      continue;
+      gavl_audio_frame_mute(s->fifo_frame, &s->fifo_format);
+      }
+    else
+      {
+      if(!bg_player_read_audio(p, s->fifo_frame))
+        {
+        if(bg_player_audio_set_eof(p))
+          {
+          if(!bg_player_thread_wait_for_start(s->th))
+            break;
+          continue;
+          }
+        }
       }
     
     process_frame(p, s->fifo_frame);

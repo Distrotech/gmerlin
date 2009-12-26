@@ -544,9 +544,8 @@ void bg_player_input_seek(bg_player_t * p,
   ss->eof = !do_subtitle;
   as->eof = !do_audio;
   vs->eof = !do_video;
-  
-  //  as->send_silence = 0;
-  
+
+  as->send_silence = 0;
   }
 
 

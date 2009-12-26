@@ -88,6 +88,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
     return 1;
   
   s = &player->audio_stream;
+  s->send_silence = 0;
   
   s->options.options_changed = 0;
   
@@ -313,11 +314,12 @@ bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame)
                     s->fifo_format.samples_per_frame);
   }
 
-void bg_player_audio_set_eof(bg_player_t * p)
+int bg_player_audio_set_eof(bg_player_t * p)
   {
   bg_msg_t * msg;
+  int ret = 1;
+
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Detected EOF");
-  
   pthread_mutex_lock(&p->video_stream.eof_mutex);
   pthread_mutex_lock(&p->audio_stream.eof_mutex);
 
@@ -330,7 +332,12 @@ void bg_player_audio_set_eof(bg_player_t * p)
     bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_EOF);
     bg_msg_queue_unlock_write(p->command_queue);
     }
-  
+  else
+    {
+    ret = 0;
+    p->audio_stream.send_silence = 1;
+    }
   pthread_mutex_unlock(&p->audio_stream.eof_mutex);
   pthread_mutex_unlock(&p->video_stream.eof_mutex);
+  return ret;
   }
