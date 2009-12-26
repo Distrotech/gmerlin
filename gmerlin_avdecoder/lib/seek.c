@@ -263,7 +263,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
         final_seek = 1;
         break;
         }
-
+#if 0
       /* If we cannot go before the target time, exit as well */
       if((sync_time_lower == BGAV_TIMESTAMP_UNDEFINED) &&
          (sync_time == sync_time_upper))
@@ -272,9 +272,11 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
         num_resync++;
         break;
         }
-      
+#endif
       /* Go backward */
       seek_time -= ((3*(sync_time - *time))/2 + one_second);
+      if(seek_time < 0)
+        seek_time = 0;
       continue;
       }
     /* Sync time too early, but already been there: Exit */
