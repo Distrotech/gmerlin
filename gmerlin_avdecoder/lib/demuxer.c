@@ -980,6 +980,9 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
      ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
       (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
     get_duration = 1;
+
+  //  fprintf(stderr, "bgav_demuxer_peek_packet_read: %d %d\n",
+  //          force, get_duration);
   
   if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
     {

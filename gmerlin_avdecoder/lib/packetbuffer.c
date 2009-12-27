@@ -56,6 +56,7 @@ void bgav_packet_buffer_destroy(bgav_packet_buffer_t * b)
 void bgav_packet_buffer_clear(bgav_packet_buffer_t * b)
   {
   bgav_packet_t * tmp_packet;
+
   tmp_packet = b->packets;
 
   do{

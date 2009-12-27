@@ -66,6 +66,8 @@
 // #define DUMP_DECODE
 // #define DUMP_EXTRADATA
 
+// #define DUMP_PACKET
+
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 #define HAS_DELAY      (1<<0)
@@ -299,14 +301,6 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
 
 static codec_info_t * lookup_codec(bgav_stream_t * s);
 
-/* This MUST match demux_rm.c!! */
-
-typedef struct dp_hdr_s {
-    uint32_t chunks;    // number of chunks
-    uint32_t timestamp; // timestamp from packet header
-    uint32_t len;       // length of actual data
-    uint32_t chunktab;  // offset to chunk offset array
-} dp_hdr_t;
 
 static int get_data(bgav_stream_t * s)
   {
@@ -320,8 +314,11 @@ static int get_data(bgav_stream_t * s)
 
   priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
 
-  //  fprintf(stderr, "Got packet %d\n", PACKET_GET_KEYFRAME(priv->packet));
-  
+#ifdef DUMP_PACKET
+  fprintf(stderr, "Got packet\n");
+  bgav_packet_dump(priv->packet);
+#endif
+                   
   if(!priv->packet)
     return 0;
   return 1;
@@ -356,7 +353,6 @@ static int decode_picture(bgav_stream_t * s)
   {
   int i, imax;
   int bytes_used;
-  dp_hdr_t *hdr;
   ffmpeg_video_priv * priv;
   bgav_pts_cache_entry_t * e;
   int have_picture = 0;
@@ -427,31 +423,8 @@ static int decode_picture(bgav_stream_t * s)
       priv->frame_buffer_len = priv->packet->field2_offset;
     else
       priv->frame_buffer_len = priv->packet->data_size;
-#if 0    
-    /* Other Real Video oddities */
-    if((s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '0')) ||
-       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '3')) ||
-       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '2', '0')) ||
-       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '3', '0')) ||
-       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '4', '0')))
-      {
-      if(priv->ctx->extradata_size >= 8)
-        {
-        hdr= (dp_hdr_t*)(priv->frame_buffer);
-        if(priv->ctx->slice_offset==NULL)
-          priv->ctx->slice_offset= malloc(sizeof(int)*1000);
-        priv->ctx->slice_count= hdr->chunks+1;
-        for(i=0; i<priv->ctx->slice_count; i++)
-          priv->ctx->slice_offset[i]=
-            ((uint32_t*)(priv->frame_buffer+hdr->chunktab))[2*i+1];
-        priv->frame_buffer_len=hdr->len;
-        priv->frame_buffer += sizeof(dp_hdr_t);
-        fprintf(stderr, "Slice count: %d\n", priv->ctx->slice_count);
-        }
-      }
-#endif
+
     /* DV Video ugliness */
-    
     if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
       {
       handle_dv(s);
@@ -591,8 +564,12 @@ static int decode_picture(bgav_stream_t * s)
         bgav_dprintf("\n");
         }
 #endif
+      }
 
-
+    if(priv->packet)
+      {
+      bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+      priv->packet = NULL;
       }
     
     /* If we passed no data and got no picture, we are done here */
@@ -607,6 +584,7 @@ static int decode_picture(bgav_stream_t * s)
       s->flags |= STREAM_HAVE_PICTURE; 
       break;
       }
+
     }
   
   priv->picture_timestamp =
@@ -640,8 +618,10 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
     if(!decode_picture(s))
       return 0;
 
-    //    fprintf(stderr, "Skipto ffmpeg %ld %ld\n",
-    //            priv->picture_timestamp, time);
+#if 0
+    fprintf(stderr, "Skipto ffmpeg %ld %ld\n",
+            priv->picture_timestamp, time);
+#endif
     
     if(priv->picture_timestamp + priv->picture_duration > time)
       break;
@@ -931,40 +911,6 @@ static int init_ffmpeg(bgav_stream_t * s)
       (s->fourcc == BGAV_MK_FOURCC('M','J','P','G'))) &&
      priv->ctx->extradata_size)
     priv->ctx->flags |= CODEC_FLAG_EXTERN_HUFF;
-  
-  
-  /* RealVideo oddities */
-#if 0
-  if((s->fourcc == BGAV_MK_FOURCC('R','V','1','0')) ||
-     (s->fourcc == BGAV_MK_FOURCC('R','V','1','3')) ||
-     (s->fourcc == BGAV_MK_FOURCC('R','V','2','0')))
-    {
-    priv->ctx->extradata_size= 8;
-    priv->ctx->extradata = (uint8_t*)priv->rv_extradata;
-    
-    if(priv->ctx->extradata_size != 8)
-      {
-      /* only 1 packet per frame & sub_id from fourcc */
-      priv->rv_extradata[0] = 0;
-      priv->rv_extradata[1] =
-        (s->fourcc == BGAV_MK_FOURCC('R','V','1','3')) ? 0x10003001 :
-        0x10000000;
-      priv->ctx->sub_id = priv->rv_extradata[1];
-      }
-    else
-      {
-      /* has extra slice header (demux_rm or rm->avi streamcopy) */
-      unsigned int* extrahdr=(unsigned int*)(s->ext_data);
-      priv->rv_extradata[0] = be2me_32(extrahdr[0]);
-
-      priv->ctx->sub_id = extrahdr[1];
-
-      
-      priv->rv_extradata[1] = be2me_32(extrahdr[1]);
-      }
-
-    }
-#endif
   
   priv->ctx->workaround_bugs = FF_BUG_AUTODETECT;
   priv->ctx->error_concealment = 3;

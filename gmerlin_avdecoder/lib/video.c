@@ -375,6 +375,10 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
         s->out_time = BGAV_TIMESTAMP_UNDEFINED;
         return 0;
         }
+
+      //      fprintf(stderr, "Peek packet: %ld %ld %ld\n",
+      //              p->pts, p->duration, time_scaled);
+      
       if(p->pts + p->duration > time_scaled)
         {
         s->out_time = p->pts;

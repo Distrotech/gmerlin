@@ -360,8 +360,9 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
   int i;
   bgav_track_t * track = b->tt->cur;
   
-  //  fprintf(stderr, "bgav_seek_scaled: %ld\n", gavl_time_unscale(scale, *time));
-
+  //  fprintf(stderr, "bgav_seek_scaled: %f\n",
+  //          gavl_time_to_seconds(gavl_time_unscale(scale, *time)));
+  
   /* Clear EOF */
 
   bgav_track_clear_eof_d(track);
@@ -406,6 +407,10 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
                                 *time, scale);
       }
     }
+
+
+  //  fprintf(stderr, "bgav_seeked to: %f\n",
+  //          gavl_time_to_seconds(gavl_time_unscale(scale, *time)));
 
   }
 
