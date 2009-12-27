@@ -135,7 +135,7 @@ struct bgav_video_decoder_s
   /* Skip to a specified time. Only needed for
      decoders which are not synchronous
      (not one packet in, one frame out) */
-  int (*skipto)(bgav_stream_t*, int64_t dest);
+  int (*skipto)(bgav_stream_t*, int64_t dest, int exact);
   
   bgav_video_decoder_t * next;
   };
@@ -1773,6 +1773,9 @@ void bgav_bytebuffer_flush(bgav_bytebuffer_t * b);
 
 /* sampleseek.c */
 int bgav_set_sample_accurate(bgav_t * b);
+
+int64_t bgav_video_stream_keyframe_after(bgav_stream_t * s, int64_t time);
+int64_t bgav_video_stream_keyframe_before(bgav_stream_t * s, int64_t time);
 
 /* edl.c */
 

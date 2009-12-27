@@ -65,7 +65,6 @@
 
 // #define DUMP_DECODE
 // #define DUMP_EXTRADATA
-
 // #define DUMP_PACKET
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
@@ -88,6 +87,7 @@ typedef struct
   struct vdpau_render_state state;
   int used;
   } vdpau_state_t;
+
 #endif
 
 typedef struct
@@ -295,6 +295,11 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
                                     (void *)&state->info,
                                     state->bitstream_buffers_used,
                                     state->bitstream_buffers);
+  }
+
+static enum PixelFormat vdpau_get_format(struct AVCodecContext *s, const enum PixelFormat *fmt)
+  {
+  return *fmt;
   }
 
 #endif
@@ -594,34 +599,42 @@ static int decode_picture(bgav_stream_t * s)
   return 1;
   }
 
-static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
+static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
   {
+  bgav_packet_t * p;
   ffmpeg_video_priv * priv;
+  int ct;
+  enum AVDiscard disc;
+  
   priv = s->data.video.decoder->priv;
   priv->skip_time = time;
+
   while(1)
     {
-    /* TODO: Skip B-frames */
-#if 0
-  if(!priv->do_timing && !f)
-    {
-    priv->ctx->skip_idct        = AVDISCARD_NONREF;
-    priv->ctx->skip_loop_filter = AVDISCARD_NONREF;
-    }
-  else
-    {
-    priv->ctx->skip_idct        = AVDISCARD_DEFAULT;
-    priv->ctx->skip_loop_filter = AVDISCARD_DEFAULT;
-    }
-#endif
+    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+
+    if(!p)
+      return 0;
+
+    ct = PACKET_GET_CODING_TYPE(p);
+    
+    disc = AVDISCARD_DEFAULT;
+
+    if(ct == BGAV_CODING_TYPE_B)
+      {
+      if(!exact ||
+         ((p->duration > 0) && p->pts + p->duration < time))
+        {
+        // fprintf(stderr, "Skipping B-frame\n");
+        disc = AVDISCARD_NONREF;
+        }
+      }
+    /* Skip Frames */
+    priv->ctx->skip_frame = disc;
+   
    
     if(!decode_picture(s))
       return 0;
-
-#if 0
-    fprintf(stderr, "Skipto ffmpeg %ld %ld\n",
-            priv->picture_timestamp, time);
-#endif
     
     if(priv->picture_timestamp + priv->picture_duration > time)
       break;
@@ -754,6 +767,7 @@ static int init_vdpau(bgav_stream_t * s, enum CodecID id)
   priv->ctx->get_buffer      = vdpau_get_buffer;
   priv->ctx->release_buffer      = vdpau_release_buffer;
   priv->ctx->draw_horiz_band = vdpau_draw_horiz_band;
+  priv->ctx->get_format      = vdpau_get_format;
   
   for(i = 0; i < VDPAU_MAX_STATES; i++)
     priv->vdpau_states[i].state.surface = VDP_INVALID_HANDLE;

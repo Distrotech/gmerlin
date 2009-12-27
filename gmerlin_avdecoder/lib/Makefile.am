@@ -268,8 +268,8 @@ endif
 
 if HAVE_VDPAU
 vdpau_sources = vdpau.c
-vdpau_libs = @VDPAU_LIBS@
-vdpau_cflags = @VDPAU_CFLAGS@
+vdpau_libs = @VDPAU_LIBS@ @X_LIBS@
+vdpau_cflags = @VDPAU_CFLAGS@ @X_CFLAGS@
 else
 vdpau_sources =
 vdpau_libs = 

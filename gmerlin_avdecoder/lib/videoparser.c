@@ -26,6 +26,7 @@
 #include <avdec_private.h>
 #include <parser.h>
 #include <videoparser_priv.h>
+#include <utils.h>
 
 // #define DUMP_INPUT
 // #define DUMP_OUTPUT
@@ -99,7 +100,11 @@ void bgav_video_parser_extract_header(bgav_video_parser_t * parser)
 static void update_previous_size(bgav_video_parser_t * parser)
   {
   int i, total;
-  if(parser->cache_size && !parser->cache[parser->cache_size-1].size)
+
+  if(!parser->cache_size)
+    return;
+  
+  if(!parser->cache[parser->cache_size-1].size)
     {
     total = 0;
     for(i = 0; i < parser->cache_size-1; i++)
@@ -108,7 +113,7 @@ static void update_previous_size(bgav_video_parser_t * parser)
     }
 
   /* If we don't have a header yet, drop the cached pictures */
-  if(parser->cache_size && !parser->header)
+  if(!parser->header)
     {
     i = parser->cache_size;
     for(i = 0; i < parser->cache_size; i++)
@@ -416,9 +421,10 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p)
   {
   cache_t * c;
-#ifdef DUMP_INPUT  
+#ifdef DUMP_INPUT
   bgav_dprintf("Add packet ");
   bgav_packet_dump(p);
+  //  bgav_hexdump(p->data, 128, 16);
 #endif
   /* Update cache */
 
@@ -471,6 +477,9 @@ void bgav_video_parser_add_data(bgav_video_parser_t * parser,
 
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes)
   {
+  if(!bytes)
+    return;
+  
   bgav_bytebuffer_remove(&parser->buf, bytes);
   parser->pos -= bytes;
   if(parser->pos < 0)

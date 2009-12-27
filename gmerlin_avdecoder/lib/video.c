@@ -319,6 +319,8 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
   //  gavl_time_t stream_time;
   int result;
   int64_t time_scaled;
+  int64_t next_key_frame;
+  
   time_scaled =
     gavl_time_rescale(scale, s->data.video.format.timescale, *time);
   
@@ -329,18 +331,23 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
     }
   else if(s->out_time > time_scaled)
     {
-    char tmp_string1[128];
-    char tmp_string2[128];
-    char tmp_string3[128];
-    sprintf(tmp_string1, "%" PRId64, s->out_time);
-    sprintf(tmp_string2, "%" PRId64, time_scaled);
-    sprintf(tmp_string3, "%" PRId64, time_scaled - s->out_time);
-
-    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "Cannot skip backwards: Stream time: %s skip time: %s difference: %s",
-             tmp_string1, tmp_string2, tmp_string3);
+    if(exact)
+      {
+      char tmp_string1[128];
+      char tmp_string2[128];
+      char tmp_string3[128];
+      sprintf(tmp_string1, "%" PRId64, s->out_time);
+      sprintf(tmp_string2, "%" PRId64, time_scaled);
+      sprintf(tmp_string3, "%" PRId64, time_scaled - s->out_time);
+      
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Cannot skip backwards: Stream time: %s skip time: %s difference: %s",
+               tmp_string1, tmp_string2, tmp_string3);
+      }
     return 1;
     }
+  
+  /* Easy case: Intra only streams */
   else if(s->flags & STREAM_INTRA_ONLY)
     {
     while(1)
@@ -358,10 +365,48 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
       p = bgav_demuxer_get_packet_read(s->demuxer, s);
       bgav_demuxer_done_packet_read(s->demuxer, p);
       }
+    *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
+    return 1;
     }
-  else if(s->data.video.decoder->decoder->skipto)
+
+  /* Fast path: Skip to next keyframe */
+#if 1
+  if(s->data.video.decoder->decoder->resync)
     {
-    if(!s->data.video.decoder->decoder->skipto(s, time_scaled))
+    next_key_frame = BGAV_TIMESTAMP_UNDEFINED;
+    if(!exact)
+      next_key_frame = bgav_video_stream_keyframe_after(s, time_scaled);
+    
+    if(next_key_frame == BGAV_TIMESTAMP_UNDEFINED)
+      next_key_frame = bgav_video_stream_keyframe_before(s, time_scaled);
+    
+    if((next_key_frame != BGAV_TIMESTAMP_UNDEFINED) &&
+       (next_key_frame > s->out_time) &&
+       ((next_key_frame <= time_scaled) ||
+        (!exact &&
+         (gavl_time_unscale(s->data.video.format.timescale, next_key_frame - time_scaled) <
+          GAVL_TIME_SCALE/20))))
+      {
+      while(1)
+        {
+        p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+        
+        if(p->pts >= next_key_frame)
+          break;
+
+        // fprintf(stderr, "Skipping to next keyframe %ld %ld\n", p->pts, next_key_frame);
+        
+        p = bgav_demuxer_get_packet_read(s->demuxer, s);
+        bgav_demuxer_done_packet_read(s->demuxer, p);
+        }
+      s->data.video.decoder->decoder->resync(s);
+      }
+    }
+#endif
+  
+  if(s->data.video.decoder->decoder->skipto)
+    {
+    if(!s->data.video.decoder->decoder->skipto(s, time_scaled, exact))
       return 0;
     }
   else
@@ -392,8 +437,9 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
         }
       }
     }
-  
+
   *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
+  
   return 1;
   }
 

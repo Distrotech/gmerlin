@@ -557,7 +557,6 @@ static void reset_h264(bgav_video_parser_t * parser)
   priv->has_picture_start = 0;
   }
 
-
 static void cleanup_h264(bgav_video_parser_t * parser)
   {
   h264_priv_t * priv = parser->priv;

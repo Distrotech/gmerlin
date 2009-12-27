@@ -222,20 +222,17 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   //  fprintf(stderr, "Skipped to: %ld %ld\n", time, s->out_time);
   }
 
-int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
+int64_t bgav_video_stream_keyframe_before(bgav_stream_t * s, int64_t time)
   {
   int pos;
-  bgav_stream_t * s;
-  s = &bgav->tt->cur->video_streams[stream];
-
-  if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
+  if(s->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
     pos = s->last_index_position;
     while(pos >= s->first_index_position)
       {
-      if((bgav->demuxer->si->entries[pos].stream_id == s->stream_id) &&
-         (bgav->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
-         (bgav->demuxer->si->entries[pos].pts < time))
+      if((s->demuxer->si->entries[pos].stream_id == s->stream_id) &&
+         (s->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
+         (s->demuxer->si->entries[pos].pts < time))
         {
         break;
         }
@@ -244,7 +241,7 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
     if(pos < s->first_index_position)
       return BGAV_TIMESTAMP_UNDEFINED;
     else
-      return bgav->demuxer->si->entries[pos].pts;
+      return s->demuxer->si->entries[pos].pts;
     }
   else /* Fileindex */
     {
@@ -267,31 +264,33 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
   return BGAV_TIMESTAMP_UNDEFINED;
   }
 
-int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
+int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
+  {
+  return bgav_video_stream_keyframe_before(&bgav->tt->cur->video_streams[stream], time);
+  }
+
+int64_t bgav_video_stream_keyframe_after(bgav_stream_t * s, int64_t time)
   {
   int pos;
-  bgav_stream_t * s;
-  s = &bgav->tt->cur->video_streams[stream];
-
-  if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
+  if(s->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
     pos = s->first_index_position;
     while(pos <= s->last_index_position)
       {
-      if((bgav->demuxer->si->entries[pos].stream_id == s->stream_id) &&
-         (bgav->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
-         (bgav->demuxer->si->entries[pos].pts > time))
+      if((s->demuxer->si->entries[pos].stream_id == s->stream_id) &&
+         (s->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
+         (s->demuxer->si->entries[pos].pts > time))
         {
         break;
         }
       pos++;
       }
     if(pos > s->last_index_position)
-      {
       return BGAV_TIMESTAMP_UNDEFINED;
-      }
+    else
+      return s->demuxer->si->entries[pos].pts;
     }
-  else /* Fileindex */
+  else if(s->file_index) /* Fileindex */
     {
     if(time >= s->duration)
       {
@@ -311,8 +310,13 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
       }
     return s->file_index->entries[pos].pts;
     }
-  /* Stupid gcc :( */
   return BGAV_TIMESTAMP_UNDEFINED;
+  
+  }
+
+int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
+  {
+  return bgav_video_stream_keyframe_after(&bgav->tt->cur->video_streams[stream], time);
   }
 
 void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)

@@ -571,7 +571,7 @@ static void close_mpeg2(bgav_stream_t*s)
 
   }
 
-static int skipto_mpeg2(bgav_stream_t * s, int64_t time)
+static int skipto_mpeg2(bgav_stream_t * s, int64_t time, int exact)
   {
   mpeg2_priv_t * priv = s->data.video.decoder->priv;
   while(1)

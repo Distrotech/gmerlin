@@ -233,11 +233,46 @@ dnl
 GMERLIN_CHECK_AVFORMAT
 
 dnl
+dnl X11 (need to check before vdpau)
+dnl
+
+have_x="false"
+
+X_CFLAGS=""
+X_LIBS=""
+
+
+AC_PATH_X
+
+if test x$no_x != xyes; then
+  if test "x$x_includes" != "x"; then
+    X_CFLAGS="-I$x_includes"
+  elif test -d /usr/X11R6/include; then 
+    X_CFLAGS="-I/usr/X11R6/include"
+  else
+    X_CFLAGS=""
+  fi
+
+  if test "x$x_libraries" != "x"; then
+    X_LIBS="-L$x_libraries -lX11"
+  else
+    X_LIBS="-lX11"
+  fi
+  have_x="true"
+else
+  PKG_CHECK_MODULES(X, x11 >= 1.0.0, have_x=true, have_x=false)
+fi
+
+if test x$have_x = xtrue; then
+  X_LIBS="$X_LIBS -lXext"
+
+dnl
 dnl VDPAU
 dnl
 
 GMERLIN_CHECK_VDPAU
 
+fi
 
 dnl
 dnl Check for theora
