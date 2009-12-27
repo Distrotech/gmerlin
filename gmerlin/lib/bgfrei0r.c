@@ -182,6 +182,8 @@ bg_frei0r_get_info(void * dll_handle, const char * filename)
   ret->flags       = BG_PLUGIN_FILTER_1;
   ret->module_filename = bg_strdup((char*)0, filename);
 
+  // fprintf(stderr, "Loading %s\n", ret->name);
+  
   /* Check if we can use this at all */
   if(plugin_info.plugin_type != F0R_PLUGIN_TYPE_FILTER)
     {

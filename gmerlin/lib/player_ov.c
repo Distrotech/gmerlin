@@ -503,10 +503,35 @@ void bg_player_ov_handle_events(bg_player_video_stream_t * s)
   handle_messages(s, s->frame_time);
   }
 
+static void wait_or_skip(bg_player_t * p, gavl_time_t diff_time)
+  {
+  bg_player_video_stream_t * s;
+  s = &p->video_stream;
+  
+  if(diff_time > 0)
+    {
+    gavl_time_delay(&diff_time);
+
+    if(s->skip)
+      {
+      
+      s->skip -= diff_time;
+      if(s->skip < 0)
+        s->skip = 0;
+
+      // fprintf(stderr, "Diff time: %ld, skip: %ld\n", diff_time, s->skip);
+      }
+    }
+  /* TODO: Drop frames */
+  else if(diff_time < -100000) // 100 ms
+    {
+    s->skip -= diff_time;
+    // fprintf(stderr, "Diff time: %ld, skip: %ld\n", diff_time, s->skip);
+    }
+  }
 
 void * bg_player_ov_thread(void * data)
   {
-  
   bg_player_video_stream_t * s;
   gavl_time_t diff_time;
   gavl_time_t current_time;
@@ -567,14 +592,9 @@ void * bg_player_ov_thread(void * data)
              current_time, s->frame_time, diff_time);
 #endif
     /* Wait until we can display the frame */
-    if(diff_time > 0)
-      gavl_time_delay(&diff_time);
-    
-    /* TODO: Drop frames */
-    else if(diff_time < -100000)
-      {
-      }
 
+    wait_or_skip(p, diff_time);
+    
     if(p->time_update_mode == TIME_UPDATE_FRAME)
       {
       bg_player_broadcast_time(p, s->frame_time);

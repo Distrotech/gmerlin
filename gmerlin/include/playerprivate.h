@@ -214,6 +214,9 @@ typedef struct
 
   /* 1 if we are currently displaying a subtitle */
   int subtitle_active;
+
+  int64_t skip;
+  int64_t last_frame_time;
   
   } bg_player_video_stream_t;
 

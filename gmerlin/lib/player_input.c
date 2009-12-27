@@ -469,11 +469,21 @@ bg_player_input_read_video(void * priv,
   {
   int result;
   bg_player_t * p = priv;
-#ifdef DUMP_TIMESTAMPS
   bg_player_video_stream_t * vs = &p->video_stream;
-#endif
   
   bg_plugin_lock(p->input_handle);
+
+  /* Skip */
+
+  if(vs->skip && p->input_plugin->skip_video)
+    {
+    gavl_time_t skip_time = 
+      vs->frame_time + vs->skip;
+    
+    p->input_plugin->skip_video(p->input_priv, stream,
+                                &skip_time, GAVL_TIME_SCALE, 0);
+    }
+  
   result = p->input_plugin->read_video(p->input_priv, frame, stream);
   bg_plugin_unlock(p->input_handle);
 
@@ -546,6 +556,7 @@ void bg_player_input_seek(bg_player_t * p,
   vs->eof = !do_video;
 
   as->send_silence = 0;
+  vs->skip = 0;
   }
 
 
