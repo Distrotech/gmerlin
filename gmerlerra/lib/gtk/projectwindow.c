@@ -89,8 +89,8 @@ typedef struct
   {
   GtkWidget * options;
   GtkWidget * menu;
-  
   } options_menu_t;
+
 
 
 struct bg_nle_project_window_s
@@ -854,10 +854,6 @@ bg_nle_project_window_create(const char * project_file,
   return ret;
   }
 
-void bg_nle_project_window_show(bg_nle_project_window_t * w)
-  {
-  gtk_widget_show(w->win);
-  }
 
 void bg_nle_project_window_destroy(bg_nle_project_window_t * w)
   {
@@ -933,7 +929,6 @@ set_display_parameter(void * priv, const char * name,
   
   }
 
-
 static void
 set_display_parameter_global(void * priv, const char * name,
                              const bg_parameter_value_t * val)
@@ -946,18 +941,65 @@ set_display_parameter_global(void * priv, const char * name,
   
   }
 
+static void
+set_oa_parameter(void * priv, const char * name,
+                 const bg_parameter_value_t * val)
+  {
+  bg_nle_project_window_t * w = priv;
+  bg_nle_player_set_oa_parameter(w->compositor, name, val);
+  bg_nle_media_browser_set_oa_parameter(w->media_browser, name, val);
+
+  }
+
+static void
+set_oa_parameter_global(void * priv, const char * name,
+                             const bg_parameter_value_t * val)
+  {
+  set_parameteter_data_t d;
+  d.name = name;
+  d.val = val;
+  d.func = set_oa_parameter;
+  g_list_foreach(project_windows, set_parameter_wrapper, &d);
+  }
+
+static void
+set_ov_parameter(void * priv, const char * name,
+                 const bg_parameter_value_t * val)
+  {
+  bg_nle_project_window_t * w = priv;
+  bg_nle_player_set_ov_parameter(w->compositor, name, val);
+  bg_nle_media_browser_set_ov_parameter(w->media_browser, name, val);
+  }
+
+static void
+set_ov_parameter_global(void * priv, const char * name,
+                        const bg_parameter_value_t * val)
+  {
+  set_parameteter_data_t d;
+  d.name = name;
+  d.val = val;
+  d.func = set_ov_parameter;
+  g_list_foreach(project_windows, set_parameter_wrapper, &d);
+  }
+
 static bg_cfg_registry_t * cfg_reg = NULL;
 
 static bg_cfg_section_t  * log_window_section = NULL;
 static bg_cfg_section_t  * display_section = NULL;
+static bg_cfg_section_t  * oa_section = NULL;
+static bg_cfg_section_t  * ov_section = NULL;
 
 static bg_parameter_info_t * input_plugin_parameters = NULL;
 static bg_parameter_info_t * image_reader_parameters = NULL;
 
+static bg_parameter_info_t * oa_parameters = NULL;
+static bg_parameter_info_t * ov_parameters = NULL;
+
 // static bg_parameter_info_t * output_plugin_parameters = NULL;
 
 void
-bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1)
+bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1,
+                                  bg_plugin_registry_t * plugin_reg)
   {
   if(cfg_reg)
     return;
@@ -972,21 +1014,16 @@ bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1)
     bg_cfg_registry_find_section(cfg_reg, "log_window");
   display_section =
     bg_cfg_registry_find_section(cfg_reg, "display");
-
+  oa_section =
+    bg_cfg_registry_find_section(cfg_reg, "audio_output");
+  ov_section =
+    bg_cfg_registry_find_section(cfg_reg, "video_output");
+  
   /* Apply sections */
   bg_cfg_section_apply(log_window_section,
                        bg_gtk_log_window_get_parameters(log_window),
                        bg_gtk_log_window_set_parameter,
                        log_window);
-  
-  }
-
-static void
-configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
-  {
-  bg_dialog_t * dialog;
-
-  /* Initialize plugins */
 
   if(!input_plugin_parameters)
     {
@@ -1010,13 +1047,27 @@ configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
                                                 BG_PLUGIN_FILE,
                                                 image_reader_parameters);
     }
+
+  if(!oa_parameters)
+    oa_parameters = bg_nle_player_get_oa_parameters(plugin_reg);
+  if(!ov_parameters)
+    ov_parameters = bg_nle_player_get_ov_parameters(plugin_reg);
+  
+  }
+
+static void
+configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
+  {
+  bg_dialog_t * dialog;
+
+  /* Initialize plugins */
   
   dialog = bg_dialog_create_multi(TR("Program settings"));  
   
   bg_dialog_add(dialog,
                 TR("Display"),
                 display_section,
-                set_display_parameter_global ,
+                set_display_parameter_global,
                 NULL,
                 NULL,
                 display_parameters);
@@ -1036,6 +1087,22 @@ configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
                 bg_plugin_registry_get_parameter_input,
                 plugin_reg,
                 image_reader_parameters);
+
+  bg_dialog_add(dialog,
+                TR("Audio output"),
+                oa_section,
+                set_oa_parameter_global,
+                NULL,
+                NULL,
+                oa_parameters);
+
+  bg_dialog_add(dialog,
+                TR("Video output"),
+                ov_section,
+                set_ov_parameter_global,
+                NULL,
+                NULL,
+                ov_parameters);
   
   bg_dialog_add(dialog,
                 TR("Log window"),
@@ -1047,6 +1114,18 @@ configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
   
   bg_dialog_show(dialog, parent);
   bg_dialog_destroy(dialog);
+  
+  
+  }
+
+void bg_nle_project_window_show(bg_nle_project_window_t * w)
+  {
+  gtk_widget_show(w->win);
+
+  /* Now we can assume everything is realized, so lets set up the plugins */
+
+  bg_cfg_section_apply(oa_section, oa_parameters, set_oa_parameter, w);
+  bg_cfg_section_apply(ov_section, ov_parameters, set_ov_parameter, w);
   
   
   }

@@ -23,10 +23,10 @@ static void create_registries()
     free(tmp_path);
 
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
-
-  bg_nle_project_window_init_global(cfg_reg);
   
   plugin_reg = bg_plugin_registry_create(cfg_section);
+
+  bg_nle_project_window_init_global(cfg_reg, plugin_reg);
   }
 
 static void destroy_registries()
@@ -47,8 +47,12 @@ static void destroy_registries()
 int main(int argc, char ** argv)
   {
   bg_nle_project_window_t * w;
-  bg_gtk_init(&argc, &argv, (char *)0);
 
+  bg_gtk_init(&argc, &argv,
+              (const char *)0, // default_window_icon,
+              (const char *)0, //  default_name,
+              (const char *)0); //  default_class);
+  
   bg_nle_init_cursors();
   
   create_registries();

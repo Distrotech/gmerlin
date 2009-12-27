@@ -172,8 +172,9 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
              "Video stream %d has no frame table. Try i_avdec in sample accurate mode",
              i+1);
+      goto fail;
       }
-
+    
     tmp_string = bg_nle_media_list_get_frame_table_filename(ret, i);
     gavl_frame_table_save(ret->video_streams[i].frametable, tmp_string);
     free(tmp_string);

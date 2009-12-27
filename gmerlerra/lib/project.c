@@ -65,6 +65,7 @@ bg_parameter_info_t * bg_nle_project_create_cache_parameters()
   ret = bg_parameter_info_copy_array(cache_parameters);
   ret[0].val_default.val_str =
     bg_sprintf("%s/.gmerlin/gmerlerra/cache", getenv("HOME"));
+  return ret;
   }
 
 void bg_nle_project_create_sections(bg_nle_project_t * ret)

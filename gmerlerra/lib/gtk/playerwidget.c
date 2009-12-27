@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <string.h>
 
 #include <config.h>
 #include <gmerlin/utils.h>
@@ -16,6 +17,10 @@
 #include <gui_gtk/playerwidget.h>
 
 #define DELAY_TIME 10 /* 10 milliseconds */
+
+#define PAUSE_ON     0
+#define PAUSE_OFF    1
+#define PAUSE_TOGGLE 2
 
 struct bg_nle_player_widget_s
   {
@@ -55,19 +60,107 @@ struct bg_nle_player_widget_s
   int player_state;
   
   int time_changed;
+
+  char * display_string;
+
+  bg_plugin_handle_t * oa_handle;
+  bg_plugin_handle_t * ov_handle;
   };
+
+static void handle_player_message(bg_nle_player_widget_t * w,
+                                  bg_msg_t * msg);
+
+static void pause_cmd(bg_nle_player_widget_t * w, int mode)
+  {
+  bg_msg_t * msg;
+
+  fprintf(stderr, "pause_cmd: %d %d\n",
+          mode, w->player_state == BG_PLAYER_STATE_PAUSED);
+  
+  switch(mode)
+    {
+    case PAUSE_ON:
+      if((w->player_state == BG_PLAYER_STATE_PAUSED) ||
+         (w->player_state == BG_PLAYER_STATE_SEEKING))
+        return;
+      bg_player_pause(w->player);
+
+      while(1)
+        {
+        msg = bg_msg_queue_lock_read(w->queue);
+        handle_player_message(w, msg);
+        bg_msg_queue_unlock_read(w->queue);
+        if(w->player_state == BG_PLAYER_STATE_PAUSED)
+          break;
+        }
+      break;
+    case PAUSE_OFF:
+      if(w->player_state != BG_PLAYER_STATE_PAUSED)
+        return;
+      bg_player_pause(w->player);
+
+      while(1)
+        {
+        msg = bg_msg_queue_lock_read(w->queue);
+        handle_player_message(w, msg);
+        bg_msg_queue_unlock_read(w->queue);
+        if(w->player_state != BG_PLAYER_STATE_PAUSED)
+          break;
+        }
+
+
+      break;
+    case PAUSE_TOGGLE:
+      if(w->player_state == BG_PLAYER_STATE_PAUSED)
+        pause_cmd(w, PAUSE_OFF);
+      else
+        pause_cmd(w, PAUSE_ON);
+      break;
+    }
+  
+  }
+
+static void bg_nle_player_set_oa_plugin(bg_nle_player_widget_t * w,
+                                 const bg_plugin_info_t * info)
+  {
+  if(w->oa_handle)
+    {
+    if(!strcmp(w->oa_handle->info->name, info->name))
+      return;
+    bg_plugin_unref(w->oa_handle);
+    }
+  w->oa_handle = bg_plugin_load(w->plugin_reg, info);
+  bg_plugin_ref(w->oa_handle);
+  
+  bg_player_set_oa_plugin(w->player, w->oa_handle);
+  }
+
+static void bg_nle_player_set_ov_plugin(bg_nle_player_widget_t * w,
+                                 const bg_plugin_info_t * info)
+  {
+  if(w->ov_handle)
+    {
+    if(!strcmp(w->ov_handle->info->name, info->name))
+      return;
+    bg_plugin_unref(w->ov_handle);
+    }
+  w->ov_handle = bg_ov_plugin_load(w->plugin_reg, info, w->display_string);
+  bg_plugin_ref(w->ov_handle);
+  
+  bg_player_set_ov_plugin(w->player, w->ov_handle);
+  }
+
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_nle_player_widget_t * p = data;
   if(w == p->play_button)
     {
-    bg_player_pause(p->player);
+    pause_cmd(p, PAUSE_TOGGLE);
     }
   else if(w == p->goto_start_button)
     {
-    if(p->player_state != BG_PLAYER_STATE_PAUSED)
-      bg_player_pause(p->player);
+    pause_cmd(p, PAUSE_ON);
     bg_player_seek(p->player, 0, GAVL_TIME_SCALE);
     }
   else if(w == p->zoom_in)
@@ -158,8 +251,6 @@ static float display_bg[] = { 0.0, 0.0, 0.0 };
 
 static void load_output_plugins(bg_nle_player_widget_t * p)
   {
-  char * display_string;
-  bg_plugin_handle_t * handle;
   const bg_plugin_info_t * info;
   GdkDisplay * dpy;
 
@@ -167,23 +258,19 @@ static void load_output_plugins(bg_nle_player_widget_t * p)
   dpy = gdk_display_get_default();
   
   info = bg_plugin_registry_get_default(p->plugin_reg,
-                                        BG_PLUGIN_OUTPUT_VIDEO);
+                                        BG_PLUGIN_OUTPUT_VIDEO, BG_PLUGIN_PLAYBACK);
 
-  display_string =
+  p->display_string =
     bg_sprintf("%s:%08lx:", gdk_display_get_name(dpy),
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(p->socket)));
-  
-  handle = bg_ov_plugin_load(p->plugin_reg, info, display_string);
-  free(display_string);
-  
-  bg_player_set_ov_plugin(p->player, handle);
+
+  bg_nle_player_set_ov_plugin(p, info);
 
   /* Audio */
   info = bg_plugin_registry_get_default(p->plugin_reg,
-                                        BG_PLUGIN_OUTPUT_AUDIO);
-  handle = bg_plugin_load(p->plugin_reg, info);
-  bg_player_set_oa_plugin(p->player, handle);
-  
+                                        BG_PLUGIN_OUTPUT_AUDIO, BG_PLUGIN_PLAYBACK);
+
+  bg_nle_player_set_oa_plugin(p, info);
   }
 
 static void socket_realize(GtkWidget * w, gpointer data)
@@ -202,6 +289,46 @@ static void size_allocate_callback(GtkWidget     *widget,
   bg_nle_timerange_widget_set_width(&w->tr, allocation->width);
   }
 
+static void handle_player_message(bg_nle_player_widget_t * w,
+                                  bg_msg_t * msg)
+  {
+  double peaks[2];
+  switch(bg_msg_get_id(msg))
+    {
+    case BG_PLAYER_MSG_TIME_CHANGED:
+      {
+      gavl_time_t t = bg_msg_get_arg_time(msg, 0);
+      bg_gtk_time_display_update(w->display, t, BG_GTK_DISPLAY_MODE_HMSMS);
+      bg_nle_timerange_widget_set_cursor_pos(bg_nle_time_ruler_get_tr(w->ruler), t);
+      }
+      break;
+    case BG_PLAYER_MSG_AUDIO_PEAK:
+      {
+      int samples;
+      samples = bg_msg_get_arg_int(msg, 0);
+      peaks[0] = bg_msg_get_arg_float(msg, 1);
+      peaks[1] = bg_msg_get_arg_float(msg, 2);
+      bg_gtk_vumeter_update_peak(w->vumeter, peaks, samples);
+      //  fprintf(stderr, "Got peak %d %f %f\n", samples, peaks[0], peaks[1]);
+      }
+      break;
+    case BG_PLAYER_MSG_STATE_CHANGED:
+      w->player_state = bg_msg_get_arg_int(msg, 0);
+      fprintf(stderr, "State changed: %d\n", w->player_state);
+
+      if(w->player_state == BG_PLAYER_STATE_PAUSED)
+        {
+        if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w->play_button)))
+          {
+          g_signal_handler_block(w->play_button, w->play_id);
+          gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w->play_button), 0);
+          g_signal_handler_unblock(w->play_button, w->play_id);
+          }
+        }
+      break;
+    }
+  }
+
 static gboolean timeout_func(void * data)
   {
   bg_msg_t * msg;
@@ -210,40 +337,7 @@ static gboolean timeout_func(void * data)
   
   while((msg = bg_msg_queue_try_lock_read(w->queue)))
     {
-    switch(bg_msg_get_id(msg))
-      {
-      case BG_PLAYER_MSG_TIME_CHANGED:
-        {
-        gavl_time_t t = bg_msg_get_arg_time(msg, 0);
-        bg_gtk_time_display_update(w->display, t, BG_GTK_DISPLAY_MODE_HMSMS);
-        bg_nle_timerange_widget_set_cursor_pos(bg_nle_time_ruler_get_tr(w->ruler), t);
-        }
-        break;
-      case BG_PLAYER_MSG_AUDIO_PEAK:
-        {
-        int samples;
-        samples = bg_msg_get_arg_int(msg, 0);
-        peaks[0] = bg_msg_get_arg_float(msg, 1);
-        peaks[1] = bg_msg_get_arg_float(msg, 2);
-        bg_gtk_vumeter_update_peak(w->vumeter, peaks, samples);
-        //  fprintf(stderr, "Got peak %d %f %f\n", samples, peaks[0], peaks[1]);
-        }
-        break;
-      case BG_PLAYER_MSG_STATE_CHANGED:
-        w->player_state = bg_msg_get_arg_int(msg, 0);
-        fprintf(stderr, "State changed: %d\n", w->player_state);
-
-        if(w->player_state == BG_PLAYER_STATE_PAUSED)
-          {
-          if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w->play_button)))
-            {
-            g_signal_handler_block(w->play_button, w->play_id);
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w->play_button), 0);
-            g_signal_handler_unblock(w->play_button, w->play_id);
-            }
-          }
-        break;
-      }
+    handle_player_message(w, msg);
     bg_msg_queue_unlock_read(w->queue);
     }
 
@@ -280,7 +374,8 @@ static void zoom_changed_callback(bg_nle_time_range_t * visible, void * data)
   bg_nle_time_ruler_update_zoom(w->ruler);
   }
 
-static void selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos, void * data)
+static void
+selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos, void * data)
   {
   bg_nle_player_widget_t * w = data;
   
@@ -290,9 +385,7 @@ static void selection_changed_callback(bg_nle_time_range_t * selection, int64_t 
   w->tr.cursor_pos = cursor_pos;
   bg_nle_time_ruler_update_selection(w->ruler);
 
-  if(w->player_state != BG_PLAYER_STATE_PAUSED)
-    bg_player_pause(w->player);
-  
+  pause_cmd(w, PAUSE_ON);
   bg_player_seek(w->player, cursor_pos, GAVL_TIME_SCALE);
   
   }
@@ -500,6 +593,14 @@ bg_nle_player_widget_destroy(bg_nle_player_widget_t * w)
   {
   bg_player_destroy(w->player);
   bg_msg_queue_destroy(w->queue);
+
+  if(w->oa_handle)
+    bg_plugin_unref(w->oa_handle);
+  if(w->ov_handle)
+    bg_plugin_unref(w->ov_handle);
+
+  if(w->display_string)
+    free(w->display_string);
   }
 
 GtkWidget * bg_nle_player_widget_get_widget(bg_nle_player_widget_t * w)
@@ -513,4 +614,77 @@ void bg_nle_player_set_track(bg_nle_player_widget_t * w,
   {
   bg_player_play(w->player, input_plugin,
                  track, BG_PLAY_FLAG_INIT_THEN_PAUSE, track_name);
+  }
+
+
+void bg_nle_player_set_oa_parameter(void * data,
+                                    const char * name, const bg_parameter_value_t * val)
+  {
+  bg_nle_player_widget_t * w = data;
+
+  if(name && !strcmp(name, "plugin"))
+    {
+    const bg_plugin_info_t * info = bg_plugin_find_by_name(w->plugin_reg, val->val_str);
+    bg_nle_player_set_oa_plugin(w, info);
+    return;
+    }
+  
+  bg_plugin_lock(w->oa_handle);
+  if(w->oa_handle->plugin->set_parameter)
+    w->oa_handle->plugin->set_parameter(w->oa_handle->priv, name, val);
+  bg_plugin_unlock(w->oa_handle);
+  }
+
+void bg_nle_player_set_ov_parameter(void * data,
+                                    const char * name, const bg_parameter_value_t * val)
+  {
+  bg_nle_player_widget_t * w = data;
+
+  if(name && !strcmp(name, "plugin"))
+    {
+    const bg_plugin_info_t * info = bg_plugin_find_by_name(w->plugin_reg, val->val_str);
+    bg_nle_player_set_ov_plugin(w, info);
+    return;
+    }
+  
+  bg_plugin_lock(w->ov_handle);
+  if(w->ov_handle->plugin->set_parameter)
+    w->ov_handle->plugin->set_parameter(w->ov_handle->priv, name, val);
+  bg_plugin_unlock(w->ov_handle);
+  
+  }
+
+const bg_parameter_info_t plugin_parameters[] =
+  {
+    {
+      .name = "plugin",
+      .long_name = TRS("Plugin"),
+      .type = BG_PARAMETER_MULTI_MENU,
+    },
+    {
+      /* End */
+    },
+    
+  };
+
+bg_parameter_info_t * bg_nle_player_get_oa_parameters(bg_plugin_registry_t * plugin_reg)
+  {
+  bg_parameter_info_t * ret = bg_parameter_info_copy_array(plugin_parameters);
+  bg_plugin_registry_set_parameter_info(plugin_reg,
+                                        BG_PLUGIN_OUTPUT_AUDIO,
+                                        BG_PLUGIN_PLAYBACK,
+                                        ret);
+  return ret;
+  }
+
+bg_parameter_info_t * bg_nle_player_get_ov_parameters(bg_plugin_registry_t * plugin_reg)
+  {
+  bg_parameter_info_t * ret = bg_parameter_info_copy_array(plugin_parameters);
+
+  bg_plugin_registry_set_parameter_info(plugin_reg,
+                                        BG_PLUGIN_OUTPUT_VIDEO,
+                                        BG_PLUGIN_PLAYBACK,
+                                        ret);
+  return ret;
+  
   }

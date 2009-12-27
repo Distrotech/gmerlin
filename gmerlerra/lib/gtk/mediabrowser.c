@@ -421,3 +421,17 @@ void bg_nle_media_browser_load_files(bg_nle_media_browser_t * b)
                                  ".");
   bg_gtk_filesel_run(b->filesel, 0);
   }
+
+void bg_nle_media_browser_set_oa_parameter(void * data, const char * name,
+                                           const bg_parameter_value_t * val)
+  {
+  bg_nle_media_browser_t * b = data;
+  bg_nle_player_set_oa_parameter(b->player, name, val);
+  }
+
+void bg_nle_media_browser_set_ov_parameter(void * data, const char * name,
+                                           const bg_parameter_value_t * val)
+  {
+  bg_nle_media_browser_t * b = data;
+  bg_nle_player_set_ov_parameter(b->player, name, val);
+  }
