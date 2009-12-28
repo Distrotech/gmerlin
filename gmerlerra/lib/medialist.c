@@ -166,6 +166,9 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
     {
     ret->video_streams[i].timescale  = ti->video_streams[i].format.timescale;
     
+    gavl_timecode_format_copy(&ret->video_streams[i].tc_format,
+                              &ti->video_streams[i].format.timecode_format);
+    
     ret->video_streams[i].frametable = input->get_frame_table(handle->priv, i);
     if(!ret->video_streams[i].frametable)
       {

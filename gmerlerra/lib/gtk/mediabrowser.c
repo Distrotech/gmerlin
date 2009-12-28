@@ -188,8 +188,7 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
       handle = bg_nle_media_list_open_file(b->list, file);
       
       bg_nle_player_set_track(b->player,
-                              handle, file->track,
-                              file->name);
+                              handle, file);
       bg_plugin_unref(handle);
       }
     
@@ -434,4 +433,11 @@ void bg_nle_media_browser_set_ov_parameter(void * data, const char * name,
   {
   bg_nle_media_browser_t * b = data;
   bg_nle_player_set_ov_parameter(b->player, name, val);
+  }
+
+void bg_nle_media_browser_set_display_parameter(void * data, const char * name,
+                                                const bg_parameter_value_t * val)
+  {
+  bg_nle_media_browser_t * b = data;
+  bg_nle_player_set_display_parameter(b->player, name, val);
   }

@@ -15,6 +15,7 @@
 #include <gui_gtk/timerange.h>
 #include <gui_gtk/timeruler.h>
 #include <gui_gtk/playerwidget.h>
+#include <gui_gtk/projectwindow.h>
 
 #define DELAY_TIME 10 /* 10 milliseconds */
 
@@ -65,6 +66,13 @@ struct bg_nle_player_widget_s
 
   bg_plugin_handle_t * oa_handle;
   bg_plugin_handle_t * ov_handle;
+  
+  gavl_time_t last_display_time;
+
+  bg_nle_file_t * file;
+  
+  bg_nle_time_info_t time_info;
+  int time_unit;
   };
 
 static void handle_player_message(bg_nle_player_widget_t * w,
@@ -297,9 +305,19 @@ static void handle_player_message(bg_nle_player_widget_t * w,
     {
     case BG_PLAYER_MSG_TIME_CHANGED:
       {
-      gavl_time_t t = bg_msg_get_arg_time(msg, 0);
-      bg_gtk_time_display_update(w->display, t, BG_GTK_DISPLAY_MODE_HMSMS);
-      bg_nle_timerange_widget_set_cursor_pos(bg_nle_time_ruler_get_tr(w->ruler), t);
+      int64_t time_cnv;
+      w->last_display_time = bg_msg_get_arg_time(msg, 0);
+      
+      bg_nle_convert_time(w->last_display_time,
+                          &time_cnv,
+                          &w->time_info);
+
+      fprintf(stderr, "Convert time %ld %ld (mode: %d, tab: %p)\n",
+              w->last_display_time, time_cnv, w->time_info.mode, w->time_info.tab);
+
+
+      bg_gtk_time_display_update(w->display, time_cnv, w->time_info.mode);
+      bg_nle_timerange_widget_set_cursor_pos(bg_nle_time_ruler_get_tr(w->ruler), w->last_display_time);
       }
       break;
     case BG_PLAYER_MSG_AUDIO_PEAK:
@@ -325,6 +343,22 @@ static void handle_player_message(bg_nle_player_widget_t * w,
           g_signal_handler_unblock(w->play_button, w->play_id);
           }
         }
+      break;
+    case BG_PLAYER_MSG_AUDIO_STREAM:
+      break;
+    case BG_PLAYER_MSG_VIDEO_STREAM:
+      {
+      int stream_index = bg_msg_get_arg_int(msg, 0);
+      w->time_info.tab = w->file->video_streams[stream_index].frametable;
+      w->time_info.scale = w->file->video_streams[stream_index].timescale;
+      gavl_timecode_format_copy(&w->time_info.fmt, &w->file->video_streams[stream_index].tc_format);
+      if((w->time_unit == BG_GTK_DISPLAY_MODE_TIMECODE) &&
+         !w->time_info.fmt.int_framerate)
+        w->time_info.mode = BG_GTK_DISPLAY_MODE_HMSMS;
+      else
+        w->time_info.mode = w->time_unit;
+      bg_nle_time_ruler_update_mode(w->ruler);
+      }
       break;
     }
   }
@@ -448,11 +482,10 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   ret->tr.set_cursor_pos = cursor_changed_callback;
 
   ret->tr.callback_data = ret;
-
   
   if(!ruler)
     {
-    ret->ruler_priv = bg_nle_time_ruler_create(&ret->tr);
+    ret->ruler_priv = bg_nle_time_ruler_create(&ret->tr, &ret->time_info);
     
     bg_nle_time_ruler_update_visible(ret->ruler_priv);
     
@@ -609,13 +642,13 @@ GtkWidget * bg_nle_player_widget_get_widget(bg_nle_player_widget_t * w)
   }
 
 void bg_nle_player_set_track(bg_nle_player_widget_t * w,
-                             bg_plugin_handle_t * input_plugin, int track,
-                             const char * track_name)
+                             bg_plugin_handle_t * input_plugin,
+                             bg_nle_file_t * file)
   {
+  w->file = file;
   bg_player_play(w->player, input_plugin,
-                 track, BG_PLAY_FLAG_INIT_THEN_PAUSE, track_name);
+                 file->track, BG_PLAY_FLAG_INIT_THEN_PAUSE, file->name);
   }
-
 
 void bg_nle_player_set_oa_parameter(void * data,
                                     const char * name, const bg_parameter_value_t * val)
@@ -686,5 +719,29 @@ bg_parameter_info_t * bg_nle_player_get_ov_parameters(bg_plugin_registry_t * plu
                                         BG_PLUGIN_PLAYBACK,
                                         ret);
   return ret;
+  
+  }
+
+void bg_nle_player_set_display_parameter(void * data,
+                                         const char * name, const bg_parameter_value_t * val)
+  {
+  bg_nle_player_widget_t * w = data;
+  if(bg_nle_set_time_unit(name, val, &w->time_unit))
+    {
+    int64_t time_cnv;
+
+    if((w->time_unit == BG_GTK_DISPLAY_MODE_TIMECODE) &&
+       !w->time_info.fmt.int_framerate)
+      w->time_info.mode = BG_GTK_DISPLAY_MODE_HMSMS;
+    else
+      w->time_info.mode = w->time_unit;
+    
+    bg_nle_convert_time(w->last_display_time,
+                        &time_cnv,
+                        &w->time_info);
+    bg_gtk_time_display_update(w->display, time_cnv, w->time_info.mode);
+    bg_nle_time_ruler_update_mode(w->ruler);
+    return;
+    }
   
   }

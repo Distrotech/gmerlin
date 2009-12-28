@@ -17,6 +17,9 @@ typedef struct
   int timescale;
   gavl_frame_table_t * frametable;
   char * frametable_file;
+  
+  gavl_timecode_format_t tc_format;
+
   } bg_nle_video_stream_t;
 
 typedef struct

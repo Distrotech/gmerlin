@@ -14,4 +14,6 @@ bg_nle_project_window_create(const char * project, bg_plugin_registry_t * plugin
 void bg_nle_project_window_show(bg_nle_project_window_t *);
 void bg_nle_project_window_destroy(bg_nle_project_window_t *);
 
+
+
 #endif

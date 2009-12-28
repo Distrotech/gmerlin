@@ -15,6 +15,7 @@
 #include <gui_gtk/timerange.h>
 #include <gui_gtk/timeruler.h>
 #include <gui_gtk/utils.h>
+#include <gmerlin/gui_gtk/display.h>
 
 // 000:00:00.000
 // #define TIME_STRING_LEN 14
@@ -30,14 +31,17 @@ struct bg_nle_time_ruler_s
   gavl_time_t spacing_major;
   gavl_time_t spacing_minor;
   
-  double spacing_minor_f;
   
   bg_nle_timerange_widget_t * tr;
   
   PangoFontDescription *font_desc;
+
+  bg_nle_time_info_t * ti;
+  
+  int time_unit;
   };
 
-static void calc_spacing(bg_nle_time_ruler_t * r)
+static void calc_spacing_hmsms(bg_nle_time_ruler_t * r)
   {
   double dt;
   int64_t tmp1;
@@ -75,12 +79,86 @@ static void calc_spacing(bg_nle_time_ruler_t * r)
       5 * tmp1 : 10 * tmp1;
     }
   r->spacing_major = 10 * r->spacing_minor;
+  }
 
-  r->spacing_minor_f =
-    bg_nle_time_2_pos(r->tr, r->tr->visible.start + r->spacing_minor) -
-    bg_nle_time_2_pos(r->tr, r->tr->visible.start);
+static double get_frame_spacing(bg_nle_time_ruler_t * r, int frames,
+                                int64_t frame1, double pos1)
+  {
+  double pos2;
+  int64_t frame2_time;
+  frame2_time = gavl_frame_table_frame_to_time(r->ti->tab, frame1 + frames, NULL);
+  pos2 = bg_nle_time_2_pos(r->tr, gavl_time_unscale(r->ti->scale, frame2_time));
+
+  fprintf(stderr, "Frame spacing: %d %f\n", frames, pos2 - pos1);
+
+  return pos2 - pos1;
+  }
+
+static void calc_spacing_framecount(bg_nle_time_ruler_t * r)
+  {
+  double pos1;
+  int64_t frame1;
+  int64_t frame1_time;
+  /* spacing_major and spacing_minor are frame counts */
+
+  r->spacing_minor = 1;
+
+  frame1 = gavl_frame_table_time_to_frame(r->ti->tab,
+                                          gavl_time_scale(r->ti->scale, r->tr->visible.start),
+                                          &frame1_time);
+  
+  if(frame1 < 0)
+    {
+    frame1 = 0;
+    frame1_time = gavl_frame_table_frame_to_time(r->ti->tab, 0, NULL);
+    }
+  pos1 = bg_nle_time_2_pos(r->tr, gavl_time_unscale(r->ti->scale, frame1_time));
+
+  while(1)
+    {
+    if(get_frame_spacing(r, r->spacing_minor, frame1, pos1) >= 5.0)
+      {
+      break;
+      }
+    else if(get_frame_spacing(r, r->spacing_minor * 2, frame1, pos1) >= 5.0)
+      {
+      r->spacing_minor *= 2;
+      break;
+      }
+    else if(get_frame_spacing(r, r->spacing_minor * 5, frame1, pos1) >= 5.0)
+      {
+      r->spacing_minor *= 5;
+      break;
+      }
+    r->spacing_minor *= 10;
+    }
+  
+  r->spacing_major = 20 * r->spacing_minor;
+  }
+
+
+static void calc_spacing_timecode(bg_nle_time_ruler_t * r)
+  {
+  
   
   }
+
+static void calc_spacing(bg_nle_time_ruler_t * r)
+  {
+  switch(r->time_unit)
+    {
+    case BG_GTK_DISPLAY_MODE_HMSMS:
+      calc_spacing_hmsms(r);
+      break;
+    case BG_GTK_DISPLAY_MODE_TIMECODE:
+      calc_spacing_timecode(r);
+      break;
+    case BG_GTK_DISPLAY_MODE_FRAMECOUNT:
+      calc_spacing_framecount(r);
+      break;
+    }
+  }
+
 
 static void size_allocate_callback(GtkWidget     *widget,
                                    GtkAllocation *allocation,
@@ -89,42 +167,20 @@ static void size_allocate_callback(GtkWidget     *widget,
 
   }
 
-static void redraw(bg_nle_time_ruler_t * r)
+static void draw_tics_hmsms(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t * c)
   {
+  double spacing_minor_f;
   int64_t time;
   double pos;
   char time_string[GAVL_TIME_STRING_LEN_MS];
-  float start_pos;
-  float end_pos;
   
-  PangoLayout * pl;
-  cairo_t * c = gdk_cairo_create(r->wid->window);
-  
-  if(!r->spacing_major || !r->spacing_minor)
-    calc_spacing(r);
-  
-  pl = pango_cairo_create_layout(c);
-  
-  gtk_paint_box(gtk_widget_get_style(r->wid),
-                r->wid->window,
-                GTK_STATE_NORMAL,
-                GTK_SHADOW_OUT,
-                (const GdkRectangle *)0,
-                r->wid,
-                (const gchar *)0,
-                0,
-                0,
-                r->tr->width,
-                RULER_HEIGHT);
-
-  /* Draw tics */
+  spacing_minor_f =
+    bg_nle_time_2_pos(r->tr, r->tr->visible.start + r->spacing_minor) -
+    bg_nle_time_2_pos(r->tr, r->tr->visible.start);
   
   time = ((r->tr->visible.start / r->spacing_major)) * r->spacing_major;
   pos = bg_nle_time_2_pos(r->tr, time);
   
-  cairo_set_line_width(c, 1.0);
-  pango_layout_set_font_description(pl, r->font_desc);
-    
   while(time < r->tr->visible.end)
     {
     
@@ -146,11 +202,134 @@ static void redraw(bg_nle_time_ruler_t * r)
       pango_cairo_show_layout(c, pl);
       }
 
-    pos += r->spacing_minor_f;
+    pos += spacing_minor_f;
     
     time += r->spacing_minor;
     }
+  
+  }
 
+static void draw_tics_timecode(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t * c)
+  {
+  
+  }
+
+static void draw_tics_framecount(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t * c)
+  {
+  double pos;
+  char str[128];
+  int64_t frame, frame_time;
+  int64_t total_frames;
+  
+  frame = gavl_frame_table_time_to_frame(r->ti->tab,
+                                         gavl_time_scale(r->ti->scale, r->tr->visible.start),
+                                         &frame_time);
+
+  total_frames = gavl_frame_table_num_frames(r->ti->tab);
+  
+  if(frame < 0)
+    {
+    frame = 0;
+    }
+  
+  frame /= r->spacing_major;
+  frame *= r->spacing_major;
+  
+  while(1)
+    {
+    if(frame >= total_frames)
+      break;
+
+    frame_time = gavl_time_unscale(r->ti->scale,
+                                   gavl_frame_table_frame_to_time(r->ti->tab, frame, NULL));
+    
+    if(frame_time > r->tr->visible.end)
+      break;
+    
+    pos = bg_nle_time_2_pos(r->tr, frame_time);
+    
+    if(frame % r->spacing_major)
+      {
+      cairo_move_to(c, pos, 16.0);
+      cairo_line_to(c, pos, 32.0);
+      cairo_stroke(c);
+      }
+    else
+      {
+      cairo_move_to(c, pos, 0.0);
+      cairo_line_to(c, pos, 32.0);
+      cairo_stroke(c);
+
+      sprintf(str, "%"PRId64, frame);
+      pango_layout_set_text(pl, str, -1);
+      cairo_move_to(c, pos+2.0, 0.0);
+      pango_cairo_show_layout(c, pl);
+      }
+    frame += r->spacing_minor;
+    }
+  }
+
+static void redraw(bg_nle_time_ruler_t * r)
+  {
+  double pos;
+  float start_pos;
+  float end_pos;
+  
+  PangoLayout * pl;
+  cairo_t * c = gdk_cairo_create(r->wid->window);
+
+  r->time_unit = r->ti->mode;
+  
+  switch(r->ti->mode)
+    {
+    case BG_GTK_DISPLAY_MODE_HMSMS:
+      break;
+    case BG_GTK_DISPLAY_MODE_TIMECODE:
+      if(!r->ti->fmt.int_framerate ||
+         !r->ti->tab)
+        r->time_unit = BG_GTK_DISPLAY_MODE_HMSMS;
+      break;
+    case BG_GTK_DISPLAY_MODE_FRAMECOUNT:
+      if(!r->ti->tab)
+        r->time_unit = BG_GTK_DISPLAY_MODE_HMSMS;
+      break;
+    }
+  
+  if(!r->spacing_major || !r->spacing_minor)
+    calc_spacing(r);
+  
+  pl = pango_cairo_create_layout(c);
+  
+  gtk_paint_box(gtk_widget_get_style(r->wid),
+                r->wid->window,
+                GTK_STATE_NORMAL,
+                GTK_SHADOW_OUT,
+                (const GdkRectangle *)0,
+                r->wid,
+                (const gchar *)0,
+                0,
+                0,
+                r->tr->width,
+                RULER_HEIGHT);
+
+  /* Draw tics */
+
+  cairo_set_line_width(c, 1.0);
+  pango_layout_set_font_description(pl, r->font_desc);
+
+  switch(r->time_unit)
+    {
+    case BG_GTK_DISPLAY_MODE_HMSMS:
+      draw_tics_hmsms(r, pl, c);
+      break;
+    case BG_GTK_DISPLAY_MODE_TIMECODE:
+      draw_tics_timecode(r, pl, c);
+      break;
+    case BG_GTK_DISPLAY_MODE_FRAMECOUNT:
+      draw_tics_framecount(r, pl, c);
+      break;
+    }
+  
   /* Draw selection */
 
   if(bg_nle_time_range_intersect(&r->tr->selection,
@@ -304,11 +483,15 @@ static void realize_callback(GtkWidget *widget,
   gdk_window_set_cursor(r->wid->window, bg_nle_cursor_xterm);
   }
 
-bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr)
+bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr,
+                                               bg_nle_time_info_t * ti)
   {
   bg_nle_time_ruler_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->tr = tr;
+
+  ret->ti = ti;
+  
   //  ret->visible.start = 0;
   //  ret->visible.end = 10 * GAVL_TIME_SCALE;
   
@@ -410,4 +593,13 @@ void bg_nle_time_ruler_update_cursor_pos(bg_nle_time_ruler_t * t)
 bg_nle_timerange_widget_t * bg_nle_time_ruler_get_tr(bg_nle_time_ruler_t * t)
   {
   return t->tr;
+  }
+
+void bg_nle_time_ruler_update_mode(bg_nle_time_ruler_t * t)
+  {
+  fprintf(stderr, "bg_nle_time_ruler_update_mode\n");
+  
+  t->spacing_major = 0;
+  t->spacing_minor = 0;
+  redraw(t);
   }

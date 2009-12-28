@@ -23,6 +23,8 @@ static const char * parameters_name    = "parameters";
 static const char * start_time_name    = "start_time";
 static const char * cache_dir_name    = "cache_dir";
 
+static const char * tc_rate_name    = "tc_rate";
+static const char * tc_flags_name    = "tc_flags";
 
 static void load_audio_stream(xmlDocPtr xml_doc,
                               xmlNodePtr node, bg_nle_audio_stream_t * ret)
@@ -68,6 +70,29 @@ static void load_video_stream(xmlDocPtr xml_doc,
     {
     ret->timescale = atoi(tmp_string);
     free(tmp_string);
+    }
+
+  while(node)
+    {
+    if(!node->name)
+      {
+      node = node->next;
+      continue;
+      }
+
+    if(!BG_XML_STRCMP(node->name, tc_rate_name))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
+      ret->tc_format.int_framerate = strtol(tmp_string, (char**)0, 10);
+      xmlFree(tmp_string);
+      }
+    else if(!BG_XML_STRCMP(node->name, tc_flags_name))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
+      ret->tc_format.flags = strtol(tmp_string, (char**)0, 10);
+      xmlFree(tmp_string);
+      }
+    node = node->next;
     }
   
   }
@@ -300,10 +325,32 @@ static void save_video_stream(xmlNodePtr node,
                               bg_nle_video_stream_t * s)
   {
   char * tmp_string;
+  xmlNodePtr child;
+
   /* Timescale */
   tmp_string = bg_sprintf("%d", s->timescale);
   BG_XML_SET_PROP(node, "scale", tmp_string);
   free(tmp_string);
+
+  if(s->tc_format.int_framerate)
+    {
+    child = xmlNewTextChild(node, (xmlNsPtr)0,
+                            (xmlChar*)tc_rate_name, NULL);
+    
+    tmp_string = bg_sprintf("%d", s->tc_format.int_framerate);
+    xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+    free(tmp_string);
+    }
+  if(s->tc_format.flags)
+    {
+    child = xmlNewTextChild(node, (xmlNsPtr)0,
+                            (xmlChar*)tc_rate_name, NULL);
+    
+    tmp_string = bg_sprintf("%d", s->tc_format.flags);
+    xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+    free(tmp_string);
+    
+    }
   
   }
 

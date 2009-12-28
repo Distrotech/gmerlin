@@ -35,6 +35,13 @@ void bg_nle_video_compositor_add_stream(bg_nle_video_compositor_t * c,
 int bg_nle_video_compositor_read(bg_nle_video_compositor_t * c,
                                  gavl_video_frame_t * ret)
   {
+  int i = c->num_streams;
+
+  while(--i)
+    {
+    
+    }
+
   return 0;
   }
 

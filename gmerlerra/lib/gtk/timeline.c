@@ -48,6 +48,8 @@ struct bg_nle_timeline_s
   void * motion_callback_data;
   
   bg_nle_timerange_widget_t tr;
+
+  bg_nle_time_info_t time_info;
   };
 
 void bg_nle_timeline_set_motion_callback(bg_nle_timeline_t * t,
@@ -300,7 +302,7 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   ret->tr.motion_callback = timewidget_motion_callback;
   ret->tr.callback_data = ret;
   
-  ret->ruler = bg_nle_time_ruler_create(&ret->tr);
+  ret->ruler = bg_nle_time_ruler_create(&ret->tr, &ret->time_info);
   
   //  ret->paned = gtk_hpaned_new();
   

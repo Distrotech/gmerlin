@@ -1,6 +1,8 @@
 #ifndef TIMERANGE_H
 #define TIMERANGE_H
 
+#include <gmerlin/parameter.h>
+
 /* Common class for various
    timeline associated widgets */
 
@@ -60,5 +62,23 @@ void bg_nle_timerange_widget_toggle_out(bg_nle_timerange_widget_t * r);
 
 int bg_nle_time_is_near(bg_nle_timerange_widget_t * r, int64_t time, double pos);
 
+/* More time related stuff */
+
+int bg_nle_set_time_unit(const char * name,
+                         const bg_parameter_value_t * val,
+                         int * mode);
+
+typedef struct
+  {
+  int scale;
+  gavl_frame_table_t * tab;
+  gavl_timecode_format_t fmt;
+  int mode;
+  } bg_nle_time_info_t;
+
+
+void bg_nle_convert_time(gavl_time_t t,
+                         int64_t * ret,
+                         bg_nle_time_info_t * info);
 
 #endif // TIMERANGE_H

@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include <string.h>
+
+#include <config.h>
 
 #include <gmerlin/cfg_registry.h>
 #include <gmerlin/pluginregistry.h>
 
-#include <config.h>
 
 #include <track.h>
 #include <project.h>
@@ -900,13 +902,74 @@ static const bg_parameter_info_t display_parameters[] =
       .long_name =TRS("Time unit"),
       .type = BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "milliseconds" },
-      .multi_names = (const char*[]){ "milliseconds", "timecode", (char*)0 },
-      .multi_labels = (const char*[]){ TRS("Milliseconds"), TRS("Timecode"),
-                                      (char*)0 },
+      .multi_names = (const char*[]){ "milliseconds", "timecode", "framecount", (char*)0 },
+      .multi_labels = (const char*[]){ TRS("Milliseconds"), TRS("Timecode"), TRS("Framecount"),
+                                       (char*)0 },
+    },
+    {
+      .name = "display_fg",
+      .long_name =TRS("Display foreground"),
+      .type = BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 0.0, 1.0, 0.0 } },
+    },
+    {
+      .name = "display_bg",
+      .long_name =TRS("Display background"),
+      .type = BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 0.0, 0.0, 0.0 } },
     },
     { /* */ }
-    
   };
+
+int bg_nle_set_time_unit(const char * name, const
+                         bg_parameter_value_t * val, int * mode)
+  {
+  int new_mode;
+  if(!name || strcmp(name, "time_unit"))
+    return 0;
+
+  if(!strcmp(val->val_str, "timecode"))
+    new_mode = BG_GTK_DISPLAY_MODE_TIMECODE;
+  else if(!strcmp(val->val_str, "framecount"))
+    new_mode = BG_GTK_DISPLAY_MODE_FRAMECOUNT;
+  else
+    new_mode = BG_GTK_DISPLAY_MODE_HMSMS;
+  
+  if(new_mode != *mode)
+    {
+    *mode =new_mode;
+    return 1;
+    }
+  return 0;
+  }
+
+void bg_nle_convert_time(gavl_time_t t,
+                         int64_t * ret,
+                         bg_nle_time_info_t * info)
+  {
+  int64_t time_scaled;
+
+  switch(info->mode)
+    {
+    case BG_GTK_DISPLAY_MODE_TIMECODE:
+      time_scaled = gavl_time_scale(info->scale, t);
+      if(info->tab)
+        *ret = gavl_frame_table_time_to_timecode(info->tab, time_scaled, NULL, &info->fmt);
+      else
+        *ret = GAVL_TIMECODE_UNDEFINED;
+      break;
+    case BG_GTK_DISPLAY_MODE_FRAMECOUNT:
+      time_scaled = gavl_time_scale(info->scale, t);
+      if(info->tab)
+        *ret = gavl_frame_table_time_to_frame(info->tab, time_scaled, NULL);
+      else
+        *ret = 0;
+      break;
+    case BG_GTK_DISPLAY_MODE_HMSMS:
+      *ret = t;
+      break;
+    }
+  }
 
 typedef struct
   {
@@ -926,7 +989,10 @@ static void
 set_display_parameter(void * priv, const char * name,
                       const bg_parameter_value_t * val)
   {
-  
+  bg_nle_project_window_t * w = priv;
+  bg_nle_media_browser_set_display_parameter(w->media_browser, name, val);
+  bg_nle_player_set_display_parameter(w->compositor,
+                                      name, val);
   }
 
 static void
@@ -1126,6 +1192,7 @@ void bg_nle_project_window_show(bg_nle_project_window_t * w)
 
   bg_cfg_section_apply(oa_section, oa_parameters, set_oa_parameter, w);
   bg_cfg_section_apply(ov_section, ov_parameters, set_ov_parameter, w);
+  bg_cfg_section_apply(display_section, display_parameters, set_display_parameter, w);
   
   
   }
