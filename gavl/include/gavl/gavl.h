@@ -2138,7 +2138,7 @@ int gavl_video_format_get_image_size(const gavl_video_format_t * format);
 
   Use this function in conjunction with
   \ref gavl_video_frame_extract_channel and
-  \ref gavl_video_frame_merge_channel
+  \ref gavl_video_frame_insert_channel
 
   Since 1.1.2
 */
@@ -3524,7 +3524,7 @@ void gavl_image_transform_destroy(gavl_image_transform_t * t);
 
 /** \brief Initialize a transformation engine
  *  \param t A transformation engine
- *  \param Format (can be changed)
+ *  \param format Format (can be changed)
  *  \param func Coordinate transform function
  *  \param priv The priv argument for func
  *
@@ -3543,8 +3543,8 @@ void gavl_image_transform_init(gavl_image_transform_t * t,
 
 /** \brief Transform an image
  *  \param t A transformation engine
- *  \param Input frame
- *  \param Output frame
+ *  \param in_frame Input frame
+ *  \param out_frame Output frame
  * Since 1.1.0.
  */
   
@@ -3599,7 +3599,7 @@ typedef struct
     {
     int32_t num_frames; //!< Number of frames
     int64_t duration;   //!< Duration of each of these frames
-    } * entries;
+    } * entries;        //!< Frame table
   
   int32_t num_timecodes; //!< Number of timecodes
   int timecodes_alloc; //!< Number of allocated timecodes (never touch this)
@@ -3608,7 +3608,7 @@ typedef struct
     {
     int64_t time;             //!< Timestamp of this frame
     gavl_timecode_t timecode; //!< Timecode associated with this timestamp
-    } * timecodes;
+    } * timecodes;            //!< Timecode table
   
   /* Secondary */
   
@@ -3687,7 +3687,7 @@ GAVL_PUBLIC int
 gavl_frame_table_num_frames(const gavl_frame_table_t * t);
 
 /** \brief Save a frame table to a file
- *  \param t A frame table
+ *  \param t Tab frame table
  *  \param filename Filename
  *  \returns 1 on success, 0 on error
  *

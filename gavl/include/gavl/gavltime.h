@@ -263,7 +263,7 @@ void gavl_timer_set(gavl_timer_t * timer, gavl_time_t t);
 
 /*! \ingroup timer
  * \brief Get the current time for benchmarking
- * \param flags Flags returned by \reg gavl_accel_supported
+ * \param flags Flags returned by \ref gavl_accel_supported
  * \returns The time in arbitrary units
  *
  * The returned value itself is meaningless since the
@@ -277,7 +277,7 @@ uint64_t gavl_benchmark_get_time(int flags);
 
 /*! \ingroup timer
  * \brief Get a description about the value returned by \ref gavl_benchmark_get_time
- * \param flags Flags returned by \reg gavl_accel_supported
+ * \param flags Flags returned by \ref gavl_accel_supported
  * \returns A string describing what the time value means
  *
  */

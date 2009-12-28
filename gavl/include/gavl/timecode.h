@@ -47,7 +47,7 @@ typedef uint64_t gavl_timecode_t; //!< Typedef for timecodes
 
 #define GAVL_TIMECODE_DROP_FRAME (1<<0) //!< NTSC drop frame is used
 
-#define GAVL_TIMECODE_UNDEFINED GAVL_TIMECODE_INVALID_MASK //! Convenience macro
+#define GAVL_TIMECODE_UNDEFINED GAVL_TIMECODE_INVALID_MASK //!< Convenience macro
   
 /** \brief Timecode format
  *
@@ -120,7 +120,6 @@ void gavl_timecode_from_ymd(gavl_timecode_t * tc,
 
 /** \brief Get the frame count from the timecode
  *  \param tf The timecode format
- *  \param vf The video format
  *  \param tc A timecode
  *  \returns The frame count
  *
@@ -134,7 +133,6 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
 
 /** \brief Get a timecode from the frame count
  *  \param tf The timecode format
- *  \param vf The video format
  *  \param fc The frame count
  *  \returns The timecode corresponding to the framecount
  *
