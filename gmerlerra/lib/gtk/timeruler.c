@@ -20,6 +20,8 @@
 // 000:00:00.000
 // #define TIME_STRING_LEN 14
 
+#define MIN_TIC_SPACING 10.0
+
 #define FONT "Sans 10"
 
 #define RULER_HEIGHT 32
@@ -41,44 +43,103 @@ struct bg_nle_time_ruler_s
   int time_unit;
   };
 
+static int check_time_spacing(bg_nle_time_ruler_t * r, gavl_time_t spacing)
+  {
+  if(bg_nle_time_2_pos(r->tr, r->tr->visible.start + spacing) > MIN_TIC_SPACING)
+    return 1;
+  return 0;
+  }
+
 static void calc_spacing_hmsms(bg_nle_time_ruler_t * r)
   {
-  double dt;
-  int64_t tmp1;
-  int log_dt;
-
-  //  fprintf(stderr, "Calc spacing\n");
+  int64_t test_fac;
+  int major_fac = 10;
+  int done = 0;
   
-  /* Minor spacing should be at least 15 pixels,
-     Spacings can be [1|2|5]*10^n */
+  r->spacing_minor = 1000; /* Start with one millisecond */
 
-  dt = 15.0 * (double)(r->tr->visible.end-r->tr->visible.start) / r->tr->width;
+  /* Minor spacing 1 ms .. 10 sec */
+  while(1)
+    {
+    if(check_time_spacing(r, r->spacing_minor))
+      {
+      done = 1;
+      break;
+      }
+    test_fac = 2;
+    if(check_time_spacing(r, test_fac*r->spacing_minor))
+      {
+      r->spacing_minor *= test_fac;
+      done = 1;
+      break;
+      }
 
-  log_dt = (int)(log10(dt));
+    test_fac = 5;
+    
+    if(check_time_spacing(r, test_fac*r->spacing_minor))
+      {
+      r->spacing_minor *= test_fac;
+      done = 1;
+      break;
+      }
+
+    r->spacing_minor *= 10;
+    
+    if(r->spacing_minor >= GAVL_TIME_SCALE)
+      {
+      break;
+      }
+    }
+
+  if(!done)
+    {
+    /* Minor spacing > 1 sec */
+    while(1)
+      {
+      if(check_time_spacing(r, r->spacing_minor)) // 1 / 10 sec
+        break;
+    
+      test_fac = 2; // 2 / 20 sec
+      if(check_time_spacing(r, test_fac*r->spacing_minor))
+        {
+        r->spacing_minor *= test_fac;
+        break;
+        }
+
+      test_fac = 3; // 3 / 30 sec
+    
+      if(check_time_spacing(r, test_fac*r->spacing_minor))
+        {
+        r->spacing_minor *= test_fac;
+        break;
+        }
+
+      test_fac = 6; // 6 / 60 sec
+      
+      if(check_time_spacing(r, test_fac*r->spacing_minor))
+        {
+        r->spacing_minor *= test_fac;
+        break;
+        }
+      
+      test_fac = 12; // 12 / 120 sec
+      if(check_time_spacing(r, test_fac*r->spacing_minor))
+        {
+        r->spacing_minor *= test_fac;
+        break;
+        }
+
+      test_fac = 30; // 30 / 300 sec
+      if(check_time_spacing(r, test_fac*r->spacing_minor))
+        {
+        r->spacing_minor *= test_fac;
+        break;
+        }
+      r->spacing_minor *= 60;
+      }
+    }
   
-  tmp1 = 1;
-  while(log_dt--)
-    tmp1 *= 10;
-
-  if(dt < (double)(tmp1 * 2.0))
-    {
-    r->spacing_minor =
-      ((double)tmp1 * 2.0 - dt) > (dt - (double)tmp1) ?
-      tmp1 : 2 * tmp1;
-    }
-  else if(dt < (double)(tmp1 * 5.0))
-    {
-    r->spacing_minor =
-      ((double)tmp1 * 5.0 - dt) > (dt - (double)tmp1 * 2.0) ?
-      2 * tmp1 : 5 * tmp1;
-    }
-  else
-    {
-    r->spacing_minor =
-      ((double)tmp1 * 10.0 - dt) > (dt - (double)tmp1 * 5.0) ?
-      5 * tmp1 : 10 * tmp1;
-    }
-  r->spacing_major = 10 * r->spacing_minor;
+  r->spacing_major = major_fac * r->spacing_minor;
   }
 
 static double get_frame_spacing(bg_nle_time_ruler_t * r, int frames,
@@ -113,16 +174,16 @@ static void calc_spacing_framecount(bg_nle_time_ruler_t * r)
 
   while(1)
     {
-    if(get_frame_spacing(r, r->spacing_minor, frame1, pos1) >= 5.0)
+    if(get_frame_spacing(r, r->spacing_minor, frame1, pos1) >= MIN_TIC_SPACING)
       {
       break;
       }
-    else if(get_frame_spacing(r, r->spacing_minor * 2, frame1, pos1) >= 5.0)
+    else if(get_frame_spacing(r, r->spacing_minor * 2, frame1, pos1) >= MIN_TIC_SPACING)
       {
       r->spacing_minor *= 2;
       break;
       }
-    else if(get_frame_spacing(r, r->spacing_minor * 5, frame1, pos1) >= 5.0)
+    else if(get_frame_spacing(r, r->spacing_minor * 5, frame1, pos1) >= MIN_TIC_SPACING)
       {
       r->spacing_minor *= 5;
       break;
@@ -209,10 +270,9 @@ static void draw_tics_hmsms(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t *
   
   time = ((r->tr->visible.start / r->spacing_major)) * r->spacing_major;
   pos = bg_nle_time_2_pos(r->tr, time);
-  
+
   while(time < r->tr->visible.end)
     {
-    
     if(time % r->spacing_major)
       {
       cairo_move_to(c, pos, 16.0);

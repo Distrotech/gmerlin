@@ -38,6 +38,9 @@ void bg_nle_timerange_widget_set_width(bg_nle_timerange_widget_t * r,
   double scale_factor;
   bg_nle_time_range_t range;
   
+  if(r->width == width)
+    return;
+  
   range.start = r->visible.start;
   if(r->width > 0)
     {
@@ -45,7 +48,7 @@ void bg_nle_timerange_widget_set_width(bg_nle_timerange_widget_t * r,
       (double)(r->visible.end-r->visible.start)/(double)(r->width);
 
     range.end = r->visible.start +
-      (int)(scale_factor * (double)(width) + 0.5);
+      (int64_t)(scale_factor * (double)(width) + 0.5);
 
     if(r->set_visible)
       r->set_visible(&range, r->callback_data);

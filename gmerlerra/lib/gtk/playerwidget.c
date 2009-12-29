@@ -360,7 +360,6 @@ static void handle_player_message(bg_nle_player_widget_t * w,
       if((w->time_unit == BG_GTK_DISPLAY_MODE_TIMECODE) &&
          !w->time_info.fmt.int_framerate)
         {
-        fprintf(stderr, "Player: disabling timecode display mode %d %p\n", w->time_info.fmt.int_framerate);
         w->time_info.mode = BG_GTK_DISPLAY_MODE_HMSMS;
         }
       else
