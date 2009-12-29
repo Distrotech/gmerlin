@@ -20,7 +20,8 @@
 // 000:00:00.000
 // #define TIME_STRING_LEN 14
 
-#define MIN_TIC_SPACING 10.0
+#define MIN_TIC_SPACING   10.0
+#define MIN_MAJOR_SPACING 80.0
 
 #define FONT "Sans 10"
 
@@ -55,12 +56,18 @@ static void calc_spacing_hmsms(bg_nle_time_ruler_t * r)
   int64_t test_fac;
   int major_fac = 10;
   int done = 0;
-  
-  r->spacing_minor = 1000; /* Start with one millisecond */
+
+  if(!r->spacing_minor)
+    r->spacing_minor = 1000; /* Start with one millisecond */
 
   /* Minor spacing 1 ms .. 10 sec */
   while(1)
     {
+    if(r->spacing_minor >= GAVL_TIME_SCALE)
+      {
+      break;
+      }
+    
     if(check_time_spacing(r, r->spacing_minor))
       {
       done = 1;
@@ -84,13 +91,8 @@ static void calc_spacing_hmsms(bg_nle_time_ruler_t * r)
       }
 
     r->spacing_minor *= 10;
-    
-    if(r->spacing_minor >= GAVL_TIME_SCALE)
-      {
-      break;
-      }
     }
-
+  
   if(!done)
     {
     /* Minor spacing > 1 sec */
@@ -200,9 +202,9 @@ static void calc_spacing_timecode(bg_nle_time_ruler_t * r)
   double pos1;
   int64_t frame1;
   int64_t frame1_time;
+  double spacing_f;
   /* spacing_major and spacing_minor are frame counts */
 
-  r->spacing_minor = 1;
 
   frame1 = gavl_frame_table_time_to_frame(r->ti->tab,
                                           gavl_time_scale(r->ti->scale, r->tr->visible.start),
@@ -214,35 +216,46 @@ static void calc_spacing_timecode(bg_nle_time_ruler_t * r)
     frame1_time = gavl_frame_table_frame_to_time(r->ti->tab, 0, NULL);
     }
   pos1 = bg_nle_time_2_pos(r->tr, gavl_time_unscale(r->ti->scale, frame1_time));
+  
+  /* Check if minor tics can be frames */
+  spacing_f = get_frame_spacing(r, 1, frame1, pos1);
 
-  while(1)
+  if(spacing_f >= 4.0)
     {
-    if(get_frame_spacing(r, r->spacing_minor, frame1, pos1) >= 5.0)
-      {
-      break;
-      }
-    else if(get_frame_spacing(r, r->spacing_minor * 2, frame1, pos1) >= 5.0)
-      {
-      r->spacing_minor *= 2;
-      break;
-      }
-    else if(get_frame_spacing(r, r->spacing_minor * 5, frame1, pos1) >= 5.0)
-      {
-      r->spacing_minor *= 5;
-      break;
-      }
-    r->spacing_minor *= 10;
+    r->spacing_minor = 1;
+
+    if(spacing_f >= MIN_MAJOR_SPACING)
+      r->spacing_major = 1;
+    else
+      r->spacing_major = 0;
+    return;
     }
 
-  /* Spacing is larger than approx. 1 second: Recalculate with seconds */
-  if(r->spacing_minor > r->ti->fmt.int_framerate)
+  /* Make at least second steps as minor tics */
+  
+  r->spacing_minor = GAVL_TIME_SCALE;
+  calc_spacing_hmsms(r);
+
+  /* spacing_major is 10 * spacing_minor now, but should probably be smaller */
+
+  spacing_f = bg_nle_time_2_pos(r->tr, r->tr->visible.start + r->spacing_major);
+  
+  if(spacing_f > 5 * MIN_MAJOR_SPACING)
     {
-    
+    r->spacing_major = r->spacing_minor * 2;
     }
+  else if(spacing_f > 2 * MIN_MAJOR_SPACING)
+    {
+    r->spacing_major = r->spacing_minor * 5;
+    }
+  
+  return;
   }
 
 static void calc_spacing(bg_nle_time_ruler_t * r)
   {
+  r->spacing_minor = 0;
+  r->spacing_major = 0;
   switch(r->time_unit)
     {
     case BG_GTK_DISPLAY_MODE_HMSMS:
@@ -298,8 +311,178 @@ static void draw_tics_hmsms(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t *
   
   }
 
+static gavl_time_t make_fake_time(gavl_timecode_t tc)
+  {
+  int hours, minutes, seconds, frames;
+  gavl_time_t ret;
+  
+  gavl_timecode_to_hmsf(tc, &hours, &minutes, &seconds, &frames);
+  
+  ret = hours;
+  ret *= 60;
+  ret += minutes;
+  ret *= 60;
+  ret += seconds;
+  ret *= GAVL_TIME_SCALE;
+  
+  if(frames)
+    ret += GAVL_TIME_SCALE/2;
+  return ret;
+  }
+
 static void draw_tics_timecode(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t * c)
   {
+  double pos;
+  char str[128];
+  int64_t frame, frame_time;
+  int64_t frame_time_scaled;
+  int64_t total_frames;
+  gavl_timecode_t tc;
+  int frames;
+  
+  total_frames = gavl_frame_table_num_frames(r->ti->tab);
+
+  frame = gavl_frame_table_time_to_frame(r->ti->tab,
+                                         gavl_time_scale(r->ti->scale, r->tr->visible.start),
+                                         NULL);
+  
+  if(r->spacing_minor == 1) /* Draw minor tics for each frame */
+    {
+    /* Get the start frame */
+    while(1)
+      {
+      tc = gavl_frame_table_frame_to_timecode(r->ti->tab, frame, &frame_time_scaled, &r->ti->fmt);
+      frame_time = gavl_time_unscale(r->ti->scale, frame_time_scaled);
+      
+      gavl_timecode_to_hmsf(tc, NULL, NULL, NULL, &frames);
+      if(!frames)
+        break;
+      frame--;
+      if(frame < 0)
+        break;
+      }
+    
+    while(1)
+      {
+      if(frame >= total_frames)
+        break;
+
+      tc = gavl_frame_table_frame_to_timecode(r->ti->tab, frame, &frame_time_scaled, &r->ti->fmt);
+      frame_time = gavl_time_unscale(r->ti->scale, frame_time_scaled);
+      
+      if(frame_time > r->tr->visible.end)
+        break;
+      
+      if(!r->spacing_major)
+        gavl_timecode_to_hmsf(tc, NULL, NULL, NULL, &frames);
+      else
+        frames = 0;
+      
+      pos = bg_nle_time_2_pos(r->tr, frame_time);
+      
+      if(frames)
+        {
+        cairo_move_to(c, pos, 16.0);
+        cairo_line_to(c, pos, 32.0);
+        cairo_stroke(c);
+        }
+      else
+        {
+        cairo_move_to(c, pos, 0.0);
+        cairo_line_to(c, pos, 32.0);
+        cairo_stroke(c);
+
+        gavl_timecode_prettyprint_short(tc, str);
+        pango_layout_set_text(pl, str, -1);
+        cairo_move_to(c, pos+2.0, 0.0);
+        pango_cairo_show_layout(c, pl);
+        }
+      frame++;
+      }
+    }
+  else
+    {
+    gavl_time_t fake_time;
+    int diff_min = ((r->spacing_minor / GAVL_TIME_SCALE) - 1) * (r->ti->fmt.int_framerate - 1);
+    
+    if(diff_min <= 0)
+      diff_min = 1;
+    
+    /* Get start frame */
+    
+    while(1)
+      {
+      tc = gavl_frame_table_frame_to_timecode(r->ti->tab, frame, &frame_time_scaled, &r->ti->fmt);
+      fake_time = make_fake_time(tc);
+      
+      if(!(fake_time % r->spacing_major))
+        break;
+      frame--;
+      if(frame < 0)
+        {
+        frame = 0;
+        break;
+        }
+      }
+
+    frame_time = gavl_time_unscale(r->ti->scale, frame_time_scaled);
+    
+    /* Draw the tics */
+    
+    while(1)
+      {
+      pos = bg_nle_time_2_pos(r->tr, frame_time);
+      
+      if(!(fake_time % r->spacing_major))
+        {
+        cairo_move_to(c, pos, 0.0);
+        cairo_line_to(c, pos, 32.0);
+        cairo_stroke(c);
+
+        gavl_timecode_prettyprint_short(tc, str);
+        pango_layout_set_text(pl, str, -1);
+        cairo_move_to(c, pos+2.0, 0.0);
+        pango_cairo_show_layout(c, pl);
+        }
+      else
+        {
+        cairo_move_to(c, pos, 16.0);
+        cairo_line_to(c, pos, 32.0);
+        cairo_stroke(c);
+        }
+
+      /* Find next frame */
+
+      frame += diff_min;
+      
+      if(frame >= total_frames)
+        break;
+      
+      tc = gavl_frame_table_frame_to_timecode(r->ti->tab, frame, &frame_time_scaled, &r->ti->fmt);
+
+      while(1)
+        {
+        fake_time = make_fake_time(tc);
+
+        //        fprintf(stderr, "Fake time: %ld, spacing_minor: %ld\n", 
+        //                fake_time, r->spacing_minor);
+                
+        if(!(fake_time % r->spacing_minor))
+          break;
+
+        frame++;
+        if(frame >= total_frames)
+          break;
+        
+        tc = gavl_frame_table_frame_to_timecode(r->ti->tab, frame, &frame_time_scaled, &r->ti->fmt);
+        }
+      if(frame >= total_frames)
+        break;
+      
+      frame_time = gavl_time_unscale(r->ti->scale, frame_time_scaled);
+      }
+    
+    }
   
   }
 

@@ -952,7 +952,7 @@ void bg_nle_convert_time(gavl_time_t t,
   switch(info->mode)
     {
     case BG_GTK_DISPLAY_MODE_TIMECODE:
-      time_scaled = gavl_time_scale(info->scale, t);
+      time_scaled = gavl_time_scale(info->scale, t+10);
       if(info->tab)
         *ret = gavl_frame_table_time_to_timecode(info->tab, time_scaled, NULL, &info->fmt);
       else
