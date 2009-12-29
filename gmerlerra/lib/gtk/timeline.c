@@ -719,3 +719,8 @@ void bg_nle_timeline_outstreams_make_current(bg_nle_timeline_t * t)
     bg_nle_outstream_widget_update_current(t->outstreams[i]);
     }
   }
+
+void bg_nle_timeline_set_display_parameter(bg_nle_timeline_t * t)
+  {
+  
+  }

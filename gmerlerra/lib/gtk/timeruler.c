@@ -88,9 +88,6 @@ static double get_frame_spacing(bg_nle_time_ruler_t * r, int frames,
   int64_t frame2_time;
   frame2_time = gavl_frame_table_frame_to_time(r->ti->tab, frame1 + frames, NULL);
   pos2 = bg_nle_time_2_pos(r->tr, gavl_time_unscale(r->ti->scale, frame2_time));
-
-  fprintf(stderr, "Frame spacing: %d %f\n", frames, pos2 - pos1);
-
   return pos2 - pos1;
   }
 
@@ -139,8 +136,48 @@ static void calc_spacing_framecount(bg_nle_time_ruler_t * r)
 
 static void calc_spacing_timecode(bg_nle_time_ruler_t * r)
   {
+  double pos1;
+  int64_t frame1;
+  int64_t frame1_time;
+  /* spacing_major and spacing_minor are frame counts */
+
+  r->spacing_minor = 1;
+
+  frame1 = gavl_frame_table_time_to_frame(r->ti->tab,
+                                          gavl_time_scale(r->ti->scale, r->tr->visible.start),
+                                          &frame1_time);
   
-  
+  if(frame1 < 0)
+    {
+    frame1 = 0;
+    frame1_time = gavl_frame_table_frame_to_time(r->ti->tab, 0, NULL);
+    }
+  pos1 = bg_nle_time_2_pos(r->tr, gavl_time_unscale(r->ti->scale, frame1_time));
+
+  while(1)
+    {
+    if(get_frame_spacing(r, r->spacing_minor, frame1, pos1) >= 5.0)
+      {
+      break;
+      }
+    else if(get_frame_spacing(r, r->spacing_minor * 2, frame1, pos1) >= 5.0)
+      {
+      r->spacing_minor *= 2;
+      break;
+      }
+    else if(get_frame_spacing(r, r->spacing_minor * 5, frame1, pos1) >= 5.0)
+      {
+      r->spacing_minor *= 5;
+      break;
+      }
+    r->spacing_minor *= 10;
+    }
+
+  /* Spacing is larger than approx. 1 second: Recalculate with seconds */
+  if(r->spacing_minor > r->ti->fmt.int_framerate)
+    {
+    
+    }
   }
 
 static void calc_spacing(bg_nle_time_ruler_t * r)
@@ -157,14 +194,6 @@ static void calc_spacing(bg_nle_time_ruler_t * r)
       calc_spacing_framecount(r);
       break;
     }
-  }
-
-
-static void size_allocate_callback(GtkWidget     *widget,
-                                   GtkAllocation *allocation,
-                                   gpointer       user_data)
-  {
-
   }
 
 static void draw_tics_hmsms(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t * c)
@@ -287,7 +316,10 @@ static void redraw(bg_nle_time_ruler_t * r)
     case BG_GTK_DISPLAY_MODE_TIMECODE:
       if(!r->ti->fmt.int_framerate ||
          !r->ti->tab)
+        {
         r->time_unit = BG_GTK_DISPLAY_MODE_HMSMS;
+        fprintf(stderr, "Disabling timecode display mode");
+        }
       break;
     case BG_GTK_DISPLAY_MODE_FRAMECOUNT:
       if(!r->ti->tab)
@@ -465,7 +497,6 @@ static gboolean button_release_callback(GtkWidget *widget,
   return TRUE;
   }
 
-
 static gboolean motion_callback(GtkWidget *widget,
                                 GdkEventMotion * evt,
                                 gpointer user_data)
@@ -509,8 +540,6 @@ bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr,
                         GDK_POINTER_MOTION_MASK |
                         GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
   
-  g_signal_connect(ret->wid, "size-allocate", G_CALLBACK(size_allocate_callback),
-                   ret);
   g_signal_connect(ret->wid, "expose-event", G_CALLBACK(expose_callback),
                    ret);
 
@@ -597,9 +626,64 @@ bg_nle_timerange_widget_t * bg_nle_time_ruler_get_tr(bg_nle_time_ruler_t * t)
 
 void bg_nle_time_ruler_update_mode(bg_nle_time_ruler_t * t)
   {
-  fprintf(stderr, "bg_nle_time_ruler_update_mode\n");
-  
   t->spacing_major = 0;
   t->spacing_minor = 0;
   redraw(t);
+  }
+
+void bg_nle_time_ruler_frame_forward(bg_nle_time_ruler_t * t)
+  {
+  int64_t time;
+  int64_t frame;
+  bg_nle_time_range_t selection;
+  
+  if(!t->ti->tab)
+    return;
+
+  frame = gavl_frame_table_time_to_frame(t->ti->tab,
+                                         gavl_time_scale(t->ti->scale,
+                                                         t->tr->cursor_pos+10), NULL);
+  
+  if(frame+1 >= gavl_frame_table_num_frames(t->ti->tab))
+    return;
+
+  frame++;
+  
+  time =
+    gavl_time_unscale(t->ti->scale,
+                      gavl_frame_table_frame_to_time(t->ti->tab, frame, NULL)) + 10;
+  
+  bg_nle_time_range_copy(&selection, &t->tr->selection);
+  
+  if(t->tr->set_selection)
+    t->tr->set_selection(&selection, time, t->tr->callback_data);
+  }
+
+void bg_nle_time_ruler_frame_backward(bg_nle_time_ruler_t * t)
+  {
+  int64_t time;
+  int64_t frame;
+  bg_nle_time_range_t selection;
+  
+  if(!t->ti->tab)
+    return;
+
+  frame = gavl_frame_table_time_to_frame(t->ti->tab,
+                                         gavl_time_scale(t->ti->scale,
+                                                         t->tr->cursor_pos+10), NULL);
+  
+  if(frame <= 0)
+    return;
+  
+  frame--;
+  
+  time =
+    gavl_time_unscale(t->ti->scale,
+                      gavl_frame_table_frame_to_time(t->ti->tab, frame, NULL)) + 10;
+  
+  bg_nle_time_range_copy(&selection, &t->tr->selection);
+  
+  if(t->tr->set_selection)
+    t->tr->set_selection(&selection, time, t->tr->callback_data);
+  
   }

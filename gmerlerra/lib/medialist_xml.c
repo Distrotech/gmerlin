@@ -71,7 +71,8 @@ static void load_video_stream(xmlDocPtr xml_doc,
     ret->timescale = atoi(tmp_string);
     free(tmp_string);
     }
-
+  
+  node = node->children;
   while(node)
     {
     if(!node->name)
@@ -84,6 +85,7 @@ static void load_video_stream(xmlDocPtr xml_doc,
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
       ret->tc_format.int_framerate = strtol(tmp_string, (char**)0, 10);
+      fprintf(stderr, "Timecode rate: %d\n", ret->tc_format.int_framerate);
       xmlFree(tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, tc_flags_name))
@@ -344,12 +346,11 @@ static void save_video_stream(xmlNodePtr node,
   if(s->tc_format.flags)
     {
     child = xmlNewTextChild(node, (xmlNsPtr)0,
-                            (xmlChar*)tc_rate_name, NULL);
+                            (xmlChar*)tc_flags_name, NULL);
     
     tmp_string = bg_sprintf("%d", s->tc_format.flags);
     xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
     free(tmp_string);
-    
     }
   
   }

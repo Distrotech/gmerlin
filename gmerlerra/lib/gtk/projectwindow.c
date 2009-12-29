@@ -959,7 +959,7 @@ void bg_nle_convert_time(gavl_time_t t,
         *ret = GAVL_TIMECODE_UNDEFINED;
       break;
     case BG_GTK_DISPLAY_MODE_FRAMECOUNT:
-      time_scaled = gavl_time_scale(info->scale, t);
+      time_scaled = gavl_time_scale(info->scale, t+10);
       if(info->tab)
         *ret = gavl_frame_table_time_to_frame(info->tab, time_scaled, NULL);
       else

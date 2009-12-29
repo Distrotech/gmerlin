@@ -31,4 +31,8 @@ bg_nle_timerange_widget_t * bg_nle_time_ruler_get_tr(bg_nle_time_ruler_t * t);
 
 void bg_nle_time_ruler_update_mode(bg_nle_time_ruler_t * t);
 
+void bg_nle_time_ruler_frame_forward(bg_nle_time_ruler_t * t);
+void bg_nle_time_ruler_frame_backward(bg_nle_time_ruler_t * t);
+
+
 #endif // TIMERULER_H

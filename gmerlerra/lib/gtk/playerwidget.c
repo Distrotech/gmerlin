@@ -81,9 +81,6 @@ static void handle_player_message(bg_nle_player_widget_t * w,
 static void pause_cmd(bg_nle_player_widget_t * w, int mode)
   {
   bg_msg_t * msg;
-
-  fprintf(stderr, "pause_cmd: %d %d\n",
-          mode, w->player_state == BG_PLAYER_STATE_PAUSED);
   
   switch(mode)
     {
@@ -190,6 +187,14 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == p->out_button)
     {
     bg_nle_timerange_widget_toggle_out(bg_nle_time_ruler_get_tr(p->ruler));
+    }
+  else if(w == p->frame_forward_button)
+    {
+    bg_nle_time_ruler_frame_forward(p->ruler);
+    }
+  else if(w == p->frame_backward_button)
+    {
+    bg_nle_time_ruler_frame_backward(p->ruler);
     }
   }
 
@@ -354,7 +359,10 @@ static void handle_player_message(bg_nle_player_widget_t * w,
       gavl_timecode_format_copy(&w->time_info.fmt, &w->file->video_streams[stream_index].tc_format);
       if((w->time_unit == BG_GTK_DISPLAY_MODE_TIMECODE) &&
          !w->time_info.fmt.int_framerate)
+        {
+        fprintf(stderr, "Player: disabling timecode display mode %d %p\n", w->time_info.fmt.int_framerate);
         w->time_info.mode = BG_GTK_DISPLAY_MODE_HMSMS;
+        }
       else
         w->time_info.mode = w->time_unit;
       bg_nle_time_ruler_update_mode(w->ruler);
@@ -420,7 +428,7 @@ selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos, 
   bg_nle_time_ruler_update_selection(w->ruler);
 
   pause_cmd(w, PAUSE_ON);
-  bg_player_seek(w->player, cursor_pos, GAVL_TIME_SCALE);
+  bg_player_seek(w->player, cursor_pos+10, GAVL_TIME_SCALE);
   
   }
 
@@ -729,7 +737,7 @@ void bg_nle_player_set_display_parameter(void * data,
   if(bg_nle_set_time_unit(name, val, &w->time_unit))
     {
     int64_t time_cnv;
-
+    
     if((w->time_unit == BG_GTK_DISPLAY_MODE_TIMECODE) &&
        !w->time_info.fmt.int_framerate)
       w->time_info.mode = BG_GTK_DISPLAY_MODE_HMSMS;
