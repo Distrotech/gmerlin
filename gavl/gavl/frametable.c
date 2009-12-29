@@ -62,21 +62,23 @@ void gavl_frame_table_append_entry(gavl_frame_table_t * t, int64_t duration)
   t->num_entries++;
   }
 
-void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int num)
+void
+gavl_frame_table_append_timecode(gavl_frame_table_t * t,
+                                 int64_t pts, gavl_timecode_t tc)
   {
-  if(t->timecodes_alloc < num)
+  if(t->num_timecodes + 1 > t->timecodes_alloc)
     {
-    t->timecodes_alloc = num + 128;
+    t->timecodes_alloc += 128;
     t->timecodes = realloc(t->timecodes,
                            t->timecodes_alloc * sizeof(*t->timecodes));
     }
-  memset(t->timecodes + t->num_timecodes, 0,
-         (t->timecodes_alloc-t->num_timecodes) *
-         sizeof(*t->timecodes));
+  t->timecodes[t->num_timecodes].pts = pts;
+  t->timecodes[t->num_timecodes].tc  = tc;
+  t->num_timecodes++;
   }
 
 int64_t gavl_frame_table_frame_to_time(const gavl_frame_table_t * t,
-                                       int frame, int * duration)
+                                       int64_t frame, int * duration)
   {
   int i = 0;
   int64_t ret = t->offset;
@@ -107,14 +109,14 @@ int64_t gavl_frame_table_frame_to_time(const gavl_frame_table_t * t,
   return ret;
   }
 
-int gavl_frame_table_time_to_frame(const gavl_frame_table_t * t,
+int64_t gavl_frame_table_time_to_frame(const gavl_frame_table_t * t,
                                    int64_t time,
                                    int64_t * start_time)
   {
   int i = 0;
-  int ret = 0;
+  int64_t ret = 0;
   int64_t counter = t->offset;
-  int off;
+  int64_t off;
   
   if(time < counter)
     return -1;
@@ -143,9 +145,137 @@ int gavl_frame_table_time_to_frame(const gavl_frame_table_t * t,
   return ret;
   }
 
-int gavl_frame_table_num_frames(const gavl_frame_table_t * t)
+/* time <-> timecode */
+
+/** \brief Convert a timestamp to a timecode
+ *  \param t A frame table
+ *  \param time Time in stream timescale
+ *  \param start_time If non NULL, returns the start time of that frame
+ *  \param fmt Timecode format
+ *  \returns The interpolated timecode of that frame or GAVL_TIMECODE_UNDEFINED if such frame doesn't exist.
+ *
+ * Since 1.1.2.
+ */
+
+gavl_timecode_t
+gavl_frame_table_time_to_timecode(const gavl_frame_table_t * t,
+                                  int64_t time,
+                                  int64_t * start_time,
+                                  const gavl_timecode_format_t * fmt)
   {
-  int i, ret = 0;
+  gavl_timecode_t ret;
+  int64_t frame = gavl_frame_table_time_to_frame(t, time, start_time);
+
+  if(frame < 0)
+    return GAVL_TIMECODE_UNDEFINED;
+  
+  if(!t->num_timecodes)
+    {
+    /* We assume the first timecode to be
+       00:00:00:00 */
+    ret = gavl_timecode_from_framecount(fmt, frame);
+    }
+  else
+    {
+    int pos;
+    int64_t tc_frame;
+    int64_t cnt;
+    
+    /* Get the last table entry */
+    pos = t->num_timecodes - 1;
+    
+    while(1)
+      {
+      if(t->timecodes[pos].pts <= time)
+        break;
+      pos--;
+      if(pos < 0)
+        break;
+      }
+
+    if(pos < 0)
+      {
+      /* Count backwards */
+      tc_frame = gavl_frame_table_time_to_frame(t, t->timecodes[0].pts, NULL);
+      cnt = gavl_timecode_to_framecount(fmt, t->timecodes[0].tc);
+      cnt -= (tc_frame - frame);
+      ret = gavl_timecode_from_framecount(fmt, cnt);
+      }
+    else
+      {
+      /* Count forward */
+      tc_frame = gavl_frame_table_time_to_frame(t, t->timecodes[pos].pts, NULL);
+      cnt = gavl_timecode_to_framecount(fmt, t->timecodes[0].tc);
+      cnt += (frame - tc_frame);
+      ret = gavl_timecode_from_framecount(fmt, cnt);
+      }
+    }
+  return ret;
+  }
+
+/** \brief Convert a timecode to a timestamp
+ *  \param t A frame table
+ *  \param tc Timecode
+ *  \param fmt Timecode format
+ *  \returns The pts corresponding to that timecode or GAVL_TIME_UNDEFINED if such frame doesn't exist.
+ *
+ * Since 1.1.2.
+ */
+
+int64_t
+gavl_frame_table_timecode_to_time(const gavl_frame_table_t * t,
+                                  gavl_timecode_t tc,
+                                  const gavl_timecode_format_t * fmt)
+  {
+  int64_t ret;
+  int64_t cnt;
+  int64_t cnt1;
+  int64_t frame;
+  
+  int pos = t->num_timecodes-1;
+
+  cnt = gavl_timecode_to_framecount(fmt, tc);
+
+  if(!t->num_timecodes)
+    {
+    return gavl_frame_table_frame_to_time(t, cnt, NULL);
+    }
+  
+  while(1)
+    {
+    cnt1 = gavl_timecode_to_framecount(fmt, t->timecodes[pos].tc);
+    if(cnt1 <= cnt)
+      break;
+    pos--;
+    if(pos < 0)
+      break;
+    }
+
+  if(pos < 0)
+    {
+    /* Count backwards */
+    frame = gavl_frame_table_time_to_frame(t, t->timecodes[0].pts, NULL);
+    frame -= cnt1 - cnt;
+
+    if(frame < 0)
+      ret = GAVL_TIME_UNDEFINED;
+    else
+      ret = gavl_frame_table_frame_to_time(t, frame, NULL);
+    }
+  else
+    {
+    /* Count forward */
+    frame = gavl_frame_table_time_to_frame(t, t->timecodes[pos].pts, NULL);
+    frame += cnt - cnt1;
+    ret = gavl_frame_table_frame_to_time(t, frame, NULL);
+    }
+  return ret;
+  }
+
+int64_t gavl_frame_table_num_frames(const gavl_frame_table_t * t)
+  {
+  int i;
+  int64_t ret = 0;
   for(i = 0; i < t->num_entries; i++)
     {
     ret += t->entries[i].num_frames;
@@ -156,19 +286,19 @@ int gavl_frame_table_num_frames(const gavl_frame_table_t * t)
 void gavl_frame_table_dump(const gavl_frame_table_t * t)
   {
   int i;
-  fprintf(stderr, "Entries: %d, total frames: %d, offset: %"PRId64"\n",
+  fprintf(stderr, "Entries: %"PRId64", total frames: %"PRId64", offset: %"PRId64"\n",
           t->num_entries, gavl_frame_table_num_frames(t), t->offset);
   
   for(i = 0; i < t->num_entries; i++)
     {
-    fprintf(stderr, "  Frames: %d, duration: %"PRId64"\n",
+    fprintf(stderr, "  Frames: %"PRId64", duration: %"PRId64"\n",
             t->entries[i].num_frames, t->entries[i].duration);
     }
   }
 
 /* Load / save */
 
-#define FRAMETABLE_VERSION 0
+#define FRAMETABLE_VERSION 1
 
 static const char sig[] = "GAVL_FRAMETABLE";
 #define SIG_LEN 15
@@ -262,18 +392,35 @@ gavl_frame_table_t * gavl_frame_table_load(const char * filename)
     goto fail;
 
   /* Entries */
-  if(!load_32(f, &ret->num_entries))
+  if(!load_64(f, &ret->num_entries))
     goto fail;
   ret->entries_alloc = ret->num_entries;
   ret->entries = calloc(ret->entries_alloc, sizeof(*ret->entries));
 
   for(i = 0; i < ret->num_entries; i++)
     {
-    if(!load_32(f, &ret->entries[i].num_frames) ||
+    if(!load_64(f, &ret->entries[i].num_frames) ||
        !load_64(f, &ret->entries[i].duration))
       goto fail;
     }
 
+  /* Timecodes */
+  if(!load_32(f, &ret->num_timecodes))
+    goto fail;
+
+  if(ret->num_timecodes)
+    {
+    ret->timecodes_alloc = ret->num_timecodes;
+    ret->timecodes = calloc(ret->timecodes_alloc, sizeof(*ret->timecodes));
+
+    for(i = 0; i < ret->num_timecodes; i++)
+      {
+      if(!load_64(f, &ret->timecodes[i].pts) ||
+         !load_64(f, (int64_t*)&ret->timecodes[i].tc))
+        goto fail;
+      }
+    }
+  
   fclose(f);
   return ret;
   
@@ -309,16 +456,27 @@ int gavl_frame_table_save(const gavl_frame_table_t * tab,
     goto fail;
 
   /* Entries */
-  if(!save_32(f, tab->num_entries))
+  if(!save_64(f, tab->num_entries))
     goto fail;
 
   for(i = 0; i < tab->num_entries; i++)
     {
-    if(!save_32(f, tab->entries[i].num_frames) ||
+    if(!save_64(f, tab->entries[i].num_frames) ||
        !save_64(f, tab->entries[i].duration))
       goto fail;
     }
 
+  /* Timecodes */
+  if(!save_32(f, tab->num_timecodes))
+    goto fail;
+
+  for(i = 0; i < tab->num_timecodes; i++)
+    {
+    if(!save_64(f, tab->timecodes[i].pts) ||
+       !save_64(f, tab->timecodes[i].tc))
+      goto fail;
+    }
+  
   fclose(f);
   return 1;
   
@@ -327,4 +485,67 @@ int gavl_frame_table_save(const gavl_frame_table_t * tab,
     fclose(f);
   return 0;
   
+  }
+
+GAVL_PUBLIC gavl_frame_table_t *
+gavl_frame_table_create_audio(int samplerate, int64_t offset, int64_t duration,
+                              gavl_timecode_format_t * fmt_ret)
+  {
+  int64_t num;
+  int samples_per_frame;
+  gavl_frame_table_t * ret = gavl_frame_table_create();
+
+  if(fmt_ret)
+    {
+    memset(fmt_ret, 0, sizeof(*fmt_ret));
+    fmt_ret->int_framerate = 100;
+    }
+  
+  if(!(samplerate % 100))
+    {
+    /* We make frames 10 ms long */
+    samples_per_frame = samplerate / 100;
+    
+    ret->entries_alloc = 2;
+    ret->entries = calloc(2, sizeof(*ret->entries));
+
+    num = duration / samples_per_frame;
+    
+    if(num)
+      {
+      ret->entries[ret->num_entries].num_frames = num;
+      ret->entries[ret->num_entries].duration = samples_per_frame;
+      ret->num_entries++;
+      }
+    
+    num = duration % samples_per_frame;
+    if(num)
+      {
+      ret->entries[ret->num_entries].num_frames = 1;
+      ret->entries[ret->num_entries].duration = num;
+      ret->num_entries++;
+      }
+    }
+  else
+    {
+    /* Yea that's extremely disgusting. But odd framerates are too! */
+    gavl_time_t time_cnt = 0;
+    int64_t count, last_count = 0;
+    
+    while(1)
+      {
+      time_cnt += GAVL_TIME_SCALE / 100;
+      count = gavl_time_scale(samplerate, time_cnt);
+
+      if(count > duration)
+        count = duration;
+      
+      gavl_frame_table_append_entry(ret, count - last_count);
+
+      if(count >= duration)
+        break;
+      last_count = count;
+      }
+    }
+  return ret;
   }

@@ -3592,23 +3592,23 @@ typedef struct
   {
   int64_t offset; //!< Timestamp of the first frame
   /* Primary */
-  int32_t num_entries; //!< Number of entries
-  int entries_alloc; //!< Number of allocated entries (never touch this)
+  int64_t num_entries; //!< Number of entries
+  int64_t entries_alloc; //!< Number of allocated entries (never touch this)
   
   struct
     {
-    int32_t num_frames; //!< Number of frames
+    int64_t num_frames; //!< Number of frames
     int64_t duration;   //!< Duration of each of these frames
     } * entries;        //!< Frame table
   
-  int32_t num_timecodes; //!< Number of timecodes
+  int num_timecodes; //!< Number of timecodes
   int timecodes_alloc; //!< Number of allocated timecodes (never touch this)
 
   struct
     {
-    int64_t time;             //!< Timestamp of this frame
-    gavl_timecode_t timecode; //!< Timecode associated with this timestamp
-    } * timecodes;            //!< Timecode table
+    int64_t pts;          //!< Timestamp of this frame
+    gavl_timecode_t tc;   //!< Timecode associated with this timestamp
+    } * timecodes;        //!< Timecode table
   
   /* Secondary */
   
@@ -3621,6 +3621,21 @@ typedef struct
  */
 GAVL_PUBLIC gavl_frame_table_t * gavl_frame_table_create();
 
+/** \brief Create a frame table for an audio stream
+ *  \param samplerate Samplerate for this stream
+ *  \param offset PTS offset of this stream in samples
+ *  \param duration Sample count
+ *  \param fmt_ret If non-null, returns the timecode format
+ *  \returns A newly allocated frame table
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC gavl_frame_table_t *
+gavl_frame_table_create_audio(int samplerate, int64_t offset, int64_t duration,
+                              gavl_timecode_format_t * fmt_ret);
+
+  
 /** \brief Destroy a frame table and free all memory
  *  \param t A frame table
  *
@@ -3638,14 +3653,17 @@ GAVL_PUBLIC void gavl_frame_table_destroy(gavl_frame_table_t * t);
   
 GAVL_PUBLIC void gavl_frame_table_append_entry(gavl_frame_table_t * t, int64_t duration);
 
-/** \brief Allocate timecodes
+/** \brief Append a timecodes
  *  \param t A frame table
- *  \param num Number of timecode entries to allocate
+ *  \param pts Presentation time of that frame
+ *  \param tc  Timecode of that frame
  *
  * Since 1.1.2.
  */
 
-GAVL_PUBLIC void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int num);
+GAVL_PUBLIC void
+gavl_frame_table_append_timecode(gavl_frame_table_t * t,
+                                 int64_t pts, gavl_timecode_t tc);
 
 /** \brief Convert a frame index to a timestamp
  *  \param t A frame table
@@ -3659,7 +3677,7 @@ GAVL_PUBLIC void gavl_frame_table_alloc_timecodes(gavl_frame_table_t * t, int nu
 
 GAVL_PUBLIC int64_t
 gavl_frame_table_frame_to_time(const gavl_frame_table_t * t,
-                               int frame, int * duration);
+                               int64_t frame, int * duration);
 
 /** \brief Convert a timestamp to a frame index
  *  \param t A frame table
@@ -3671,11 +3689,44 @@ gavl_frame_table_frame_to_time(const gavl_frame_table_t * t,
  * Since 1.1.2.
  */
 
-GAVL_PUBLIC int
+GAVL_PUBLIC int64_t
 gavl_frame_table_time_to_frame(const gavl_frame_table_t * t,
                                int64_t time,
                                int64_t * start_time);
 
+/** \brief Convert a timestamp to a timecode
+ *  \param t A frame table
+ *  \param time Time in stream timescale
+ *  \param start_time If non NULL, returns the start time of that frame
+ *  \param fmt Timecode format
+ *  \returns The interpolated timecode that frame or GAVL_TIMECODE_UNDEFINED if such frame doesn't exist.
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC gavl_timecode_t
+gavl_frame_table_time_to_timecode(const gavl_frame_table_t * t,
+                                  int64_t time,
+                                  int64_t * start_time,
+                                  const gavl_timecode_format_t * fmt);
+
+/** \brief Convert a timecode to a timestamp
+ *  \param t A frame table
+ *  \param tc Timecode
+ *  \param fmt Timecode format
+ *  \returns The pts corresponding to that timecode or GAVL_TIME_UNDEFINED if such frame doesn't exist.
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC int64_t
+gavl_frame_table_timecode_to_time(const gavl_frame_table_t * t,
+                                  gavl_timecode_t tc,
+                                  const gavl_timecode_format_t * fmt);
+
+  
+  
+  
 /** \brief get the total number of video frames
  *  \param t A frame table
  *  \returns The total number of video frames
@@ -3683,7 +3734,7 @@ gavl_frame_table_time_to_frame(const gavl_frame_table_t * t,
  * Since 1.1.2.
  */
   
-GAVL_PUBLIC int
+GAVL_PUBLIC int64_t
 gavl_frame_table_num_frames(const gavl_frame_table_t * t);
 
 /** \brief Save a frame table to a file

@@ -61,6 +61,17 @@ typedef struct
   int int_framerate; //!< Integer framerate. A value of zero signals, that no timecodes are available.
   int flags;         //!< Zero or more of the flags defined above
   } gavl_timecode_format_t;
+
+/*!
+  \brief Copy one timecode format to another
+  \param dst Destination format 
+  \param src Source format 
+ */
+  
+GAVL_PUBLIC
+void gavl_timecode_format_copy(gavl_timecode_format_t * dst,
+                               const gavl_timecode_format_t * src);
+
   
 /** \brief Extract the time part of the timecode
  *  \param tc A timecode

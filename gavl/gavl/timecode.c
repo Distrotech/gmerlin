@@ -302,6 +302,12 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
   char * ptr;
   int year, month, day, hours, minutes, seconds, frames;
 
+  if(tc == GAVL_TIMECODE_UNDEFINED)
+    {
+    sprintf(ptr, "--:--:--:--");
+    return;
+    }
+  
   gavl_timecode_to_hmsf(tc, &hours,
                         &minutes, &seconds, &frames);
 
@@ -334,11 +340,17 @@ void gavl_timecode_prettyprint_short(gavl_timecode_t tc,
   {
   char * ptr;
   int hours, minutes, seconds, frames;
+
+  ptr = str;
   
+  if(tc == GAVL_TIMECODE_UNDEFINED)
+    {
+    sprintf(ptr, "--:--:--:--");
+    return;
+    }
   gavl_timecode_to_hmsf(tc, &hours,
                         &minutes, &seconds, &frames);
   
-  ptr = str;
   
   if(tc & GAVL_TIMECODE_SIGN_MASK)
     {
@@ -349,3 +361,10 @@ void gavl_timecode_prettyprint_short(gavl_timecode_t tc,
   sprintf(ptr, "%02d:%02d:%02d:%02d", hours % 100, minutes, seconds, frames);
   }
   
+
+GAVL_PUBLIC
+void gavl_timecode_format_copy(gavl_timecode_format_t * dst,
+                               const gavl_timecode_format_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
+  }
