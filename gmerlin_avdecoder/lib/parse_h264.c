@@ -81,6 +81,7 @@ static void handle_sei(bgav_video_parser_t * parser)
   uint8_t * ptr;
   int header_len;
   bgav_h264_sei_pic_timing_t pt;
+  bgav_h264_sei_recovery_point_t rp;
   
   h264_priv_t * priv = parser->priv;
   
@@ -224,7 +225,10 @@ static void handle_sei(bgav_video_parser_t * parser)
         // fprintf(stderr, "Got SEI user_data_unregistered\n");
         break;
       case 6:
-        // fprintf(stderr, "Got SEI recovery_point\n");
+        if(!bgav_h264_decode_sei_recovery_point(ptr,
+                                                priv->rbsp_len - (ptr - priv->rbsp), &rp))
+          return;
+        parser->cache[parser->cache_size-1].recovery_point = rp.recovery_frame_cnt;
         break;
       case 7:
         // fprintf(stderr, "Got SEI dec_ref_pic_marking_repetition\n");

@@ -545,6 +545,13 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->field2_offset = c->field2_offset;
   p->valid = 1;
 
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Get packet ");
+  bgav_packet_dump(p);
+  bgav_dprintf("recovery_point %d\n", c->recovery_point);
+#endif
+  bgav_packet_pad(p);
+  
   //  fprintf(stderr, "Get packet %c %ld\n", c->coding_type, p->pts);
   
   parser->cache_size--;
@@ -553,11 +560,6 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
             sizeof(parser->cache[0]) * parser->cache_size);
   parser->last_non_b_frame--;
 
-#ifdef DUMP_OUTPUT
-  bgav_dprintf("Get packet ");
-  bgav_packet_dump(p);
-#endif
-  bgav_packet_pad(p);
   
   }
 
@@ -599,7 +601,7 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   memset(c, 0, sizeof(*c));
   c->pts = BGAV_TIMESTAMP_UNDEFINED;
   c->tc = GAVL_TIMECODE_UNDEFINED;
-  
+  c->recovery_point = -1;
   c->duration = parser->format.frame_duration;
   
   /* Set picture position */

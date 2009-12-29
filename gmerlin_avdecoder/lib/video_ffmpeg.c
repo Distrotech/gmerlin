@@ -175,29 +175,6 @@ typedef struct
   
   } ffmpeg_video_priv;
 
-#if 0
-static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
-  {
-  int ret;
-  ffmpeg_video_priv * priv;
-  bgav_pts_cache_entry_t * e;
-  
-  bgav_stream_t * s = (bgav_stream_t *)c->opaque;
-  priv = s->data.video.decoder->priv;
-  ret = avcodec_default_get_buffer(c, pic);
-
-  //  fprintf(stderr, "Got packet 2 %ld %ld\n",
-  //          priv->packet->position, priv->packet->pts);
-
-  bgav_pts_cache_push(&priv->pts_cache,
-                      priv->packet->pts,
-                      priv->packet->duration,
-                      (int*)0, &e);
-
-  pic->opaque= e;
-  return ret;
-  }
-#endif
 
 #ifdef HAVE_VDPAU
 static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
@@ -396,7 +373,8 @@ static int decode_picture(bgav_stream_t * s)
       }
     else if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
       {
-      if(priv->packet->pts + priv->packet->duration < priv->skip_time)
+      if((PACKET_GET_CODING_TYPE(priv->packet) == BGAV_CODING_TYPE_B) &&
+         (priv->packet->pts + priv->packet->duration < priv->skip_time))
         {
         priv->ctx->skip_frame = AVDISCARD_NONREF;
         // fprintf(stderr, "Skip frame %c\n", priv->packet->flags & 0xff);
@@ -609,41 +587,28 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
   priv = s->data.video.decoder->priv;
   priv->skip_time = time;
 
+  //  fprintf(stderr, "Skipto ffmpeg\n");
+
   while(1)
     {
-    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
-
-    if(!p)
-      return 0;
-
-    ct = PACKET_GET_CODING_TYPE(p);
-    
-    disc = AVDISCARD_DEFAULT;
-
-    if(ct == BGAV_CODING_TYPE_B)
-      {
-      if(!exact ||
-         ((p->duration > 0) && p->pts + p->duration < time))
-        {
-        // fprintf(stderr, "Skipping B-frame\n");
-        disc = AVDISCARD_NONREF;
-        }
-      }
-    /* Skip Frames */
-    priv->ctx->skip_frame = disc;
-   
-   
     if(!decode_picture(s))
       return 0;
-    
-    if(priv->picture_timestamp + priv->picture_duration > time)
-      break;
-
-    }
 #if 0
-  fprintf(stderr, "Skipto ffmpeg %ld %ld\n",
-          priv->picture_timestamp, time);
+    fprintf(stderr, "Skipto ffmpeg %ld %ld %d\n",
+            priv->picture_timestamp, time, exact);
 #endif
+
+    if(priv->picture_duration <= 0)
+      {
+      if(priv->picture_timestamp >= time)
+        break;
+      }
+    else
+      {
+      if(priv->picture_timestamp + priv->picture_duration > time)
+        break;
+      }
+    }
   priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
   s->out_time = priv->picture_timestamp;
   return 1;

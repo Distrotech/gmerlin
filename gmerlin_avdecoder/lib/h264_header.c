@@ -561,6 +561,21 @@ int bgav_h264_decode_sei_message_header(const uint8_t * data, int len,
   
   }
 
+int bgav_h264_decode_sei_recovery_point(const uint8_t * data, int len,
+                                        bgav_h264_sei_recovery_point_t * ret)
+  {
+  bgav_bitstream_t b;
+  bgav_bitstream_init(&b, data, len);
+  
+  if(!bgav_bitstream_get_golomb_ue(&b, &ret->recovery_frame_cnt) ||
+     !bgav_bitstream_get(&b, &ret->exact_match_flag, 1) ||
+     !bgav_bitstream_get(&b, &ret->broken_link_flag, 1) ||
+     !bgav_bitstream_get(&b, &ret->changing_slice_group_idc, 2))
+    return 0;
+     
+  return 1;
+  }
+
 int bgav_h264_decode_sei_pic_timing(const uint8_t * data, int len,
                                     bgav_h264_sps_t * sps,
                                     bgav_h264_sei_pic_timing_t * ret)

@@ -370,7 +370,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
     }
 
   /* Fast path: Skip to next keyframe */
-#if 1
+#if 0
   if(s->data.video.decoder->decoder->resync)
     {
     next_key_frame = BGAV_TIMESTAMP_UNDEFINED;

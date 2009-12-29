@@ -211,6 +211,18 @@ int bgav_h264_decode_sei_pic_timing(const uint8_t * data, int len,
                                     bgav_h264_sps_t * sps,
                                     bgav_h264_sei_pic_timing_t * ret);
 
+typedef struct
+  {
+  int recovery_frame_cnt;
+  int exact_match_flag;
+  int broken_link_flag;
+  int changing_slice_group_idc;
+  } bgav_h264_sei_recovery_point_t;
+
+int bgav_h264_decode_sei_recovery_point(const uint8_t * data, int len,
+                                        bgav_h264_sei_recovery_point_t * ret);
+
+
 /* Slice header */
 
 typedef struct
