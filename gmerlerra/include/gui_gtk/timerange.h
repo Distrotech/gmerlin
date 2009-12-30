@@ -3,6 +3,25 @@
 
 #include <gmerlin/parameter.h>
 
+/* More time related stuff */
+
+int bg_nle_set_time_unit(const char * name,
+                         const bg_parameter_value_t * val,
+                         int * mode);
+
+typedef struct
+  {
+  int scale;
+  gavl_frame_table_t * tab;
+  gavl_timecode_format_t fmt;
+  int mode;
+  } bg_nle_time_info_t;
+
+
+void bg_nle_convert_time(gavl_time_t t,
+                         int64_t * ret,
+                         bg_nle_time_info_t * info);
+
 /* Common class for various
    timeline associated widgets */
 
@@ -34,6 +53,12 @@ typedef struct
   void (*motion_callback)(int64_t time, void * priv);
   void * callback_data;
   
+  bg_nle_time_info_t * ti;
+
+  gavl_time_t * labels;
+  int num_labels;
+  int labels_alloc;
+  
   } bg_nle_timerange_widget_t;
 
 int64_t bg_nle_pos_2_time(bg_nle_timerange_widget_t * w, double pos);
@@ -64,23 +89,10 @@ void bg_nle_timerange_widget_toggle_out(bg_nle_timerange_widget_t * r);
 
 int bg_nle_time_is_near(bg_nle_timerange_widget_t * r, int64_t time, double pos);
 
-/* More time related stuff */
+void bg_nle_timerange_widget_add_label(bg_nle_timerange_widget_t * r, int64_t label);
+void bg_nle_timerange_widget_delete_label(bg_nle_timerange_widget_t * r, int64_t label);
 
-int bg_nle_set_time_unit(const char * name,
-                         const bg_parameter_value_t * val,
-                         int * mode);
-
-typedef struct
-  {
-  int scale;
-  gavl_frame_table_t * tab;
-  gavl_timecode_format_t fmt;
-  int mode;
-  } bg_nle_time_info_t;
-
-
-void bg_nle_convert_time(gavl_time_t t,
-                         int64_t * ret,
-                         bg_nle_time_info_t * info);
+gavl_time_t bg_nle_timerange_widget_next_label(bg_nle_timerange_widget_t * r);
+gavl_time_t bg_nle_timerange_widget_previous_label(bg_nle_timerange_widget_t * r);
 
 #endif // TIMERANGE_H

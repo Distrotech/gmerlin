@@ -301,8 +301,9 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   ret->tr.set_in_out = in_out_changed_callback;
   ret->tr.motion_callback = timewidget_motion_callback;
   ret->tr.callback_data = ret;
-  
-  ret->ruler = bg_nle_time_ruler_create(&ret->tr, &ret->time_info);
+  ret->tr.ti = &ret->time_info;
+    
+  ret->ruler = bg_nle_time_ruler_create(&ret->tr);
   
   //  ret->paned = gtk_hpaned_new();
   

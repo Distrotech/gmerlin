@@ -37,6 +37,24 @@ static bg_gtk_log_window_t * log_window = NULL;
 
 static void configure_global(GtkWidget * w, bg_plugin_registry_t * plugin_reg);
 
+/* Global configuration settings */
+
+int bg_nle_snap_to_frames;
+int bg_nle_play_every_frame;
+
+static bg_cfg_registry_t * cfg_reg = NULL;
+
+static bg_cfg_section_t  * log_window_section = NULL;
+static bg_cfg_section_t  * display_section = NULL;
+static bg_cfg_section_t  * oa_section = NULL;
+static bg_cfg_section_t  * ov_section = NULL;
+
+static bg_parameter_info_t * input_plugin_parameters = NULL;
+static bg_parameter_info_t * image_reader_parameters = NULL;
+
+static bg_parameter_info_t * oa_parameters = NULL;
+static bg_parameter_info_t * ov_parameters = NULL;
+
 
 typedef struct
   {
@@ -90,6 +108,12 @@ typedef struct
 typedef struct
   {
   GtkWidget * options;
+  GtkWidget * snap_to_frames;
+  guint snap_to_frames_id;
+  
+  GtkWidget * play_every_frame;
+  guint play_every_frame_id;
+  
   GtkWidget * menu;
   } options_menu_t;
 
@@ -123,6 +147,192 @@ struct bg_nle_project_window_s
   GtkAccelGroup * accel_group;
   
   };
+
+/* Configuration stuff */
+
+static const bg_parameter_info_t display_parameters[] =
+  {
+    {
+      .name = "view_audio_envelope",
+      .long_name = "Audio envelope",
+      .type = TRS(BG_PARAMETER_CHECKBUTTON),
+      .val_default = { .val_i = 1 },
+    },
+    {
+      .name = "view_video_pictures",
+      .long_name =TRS("Video thumbnails"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+    },
+    {
+      .name = "time_unit",
+      .long_name =TRS("Time unit"),
+      .type = BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "milliseconds" },
+      .multi_names = (const char*[]){ "milliseconds", "timecode", "framecount", (char*)0 },
+      .multi_labels = (const char*[]){ TRS("Milliseconds"), TRS("Timecode"), TRS("Framecount"),
+                                       (char*)0 },
+    },
+    {
+      .name = "display_fg",
+      .long_name =TRS("Display foreground"),
+      .type = BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 0.0, 1.0, 0.0 } },
+    },
+    {
+      .name = "display_bg",
+      .long_name =TRS("Display background"),
+      .type = BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 0.0, 0.0, 0.0 } },
+    },
+    {
+      .name = "snap_to_frames",
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 1 },
+    },
+    {
+      .name = "play_every_frame",
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 0 },
+    },
+    { /* */ }
+  };
+
+typedef struct
+  {
+  const char * name;
+  const bg_parameter_value_t * val;
+  bg_set_parameter_func_t func;
+  } set_parameteter_data_t;
+
+static void
+set_parameter_wrapper(void * data, void * user_data)
+  {
+  set_parameteter_data_t * d = user_data;
+  d->func(data, d->name, d->val);
+  }
+
+static void
+set_display_parameter(void * priv, const char * name,
+                      const bg_parameter_value_t * val)
+  {
+  bg_nle_project_window_t * w = priv;
+
+  if(name)
+    {
+    if(!strcmp(name, "snap_to_frames"))
+      {
+      g_signal_handler_block(G_OBJECT(w->options_menu.snap_to_frames),
+                             w->options_menu.snap_to_frames_id);
+      gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(w->options_menu.snap_to_frames),
+                                 !!val->val_i);
+      g_signal_handler_unblock(G_OBJECT(w->options_menu.snap_to_frames),
+                               w->options_menu.snap_to_frames_id);
+      }
+    else if(!strcmp(name, "play_every_frame"))
+      {
+      g_signal_handler_block(G_OBJECT(w->options_menu.play_every_frame),
+                             w->options_menu.play_every_frame_id);
+      gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(w->options_menu.play_every_frame),
+                                 !!val->val_i);
+      g_signal_handler_unblock(G_OBJECT(w->options_menu.play_every_frame),
+                               w->options_menu.play_every_frame_id);
+      }
+    }
+  
+  bg_nle_media_browser_set_display_parameter(w->media_browser, name, val);
+  bg_nle_player_set_display_parameter(w->compositor,
+                                      name, val);
+  }
+
+static void
+set_display_parameter_global(void * priv, const char * name,
+                             const bg_parameter_value_t * val)
+  {
+  set_parameteter_data_t d;
+
+  if(name)
+    {
+    if(!strcmp(name, "snap_to_frames"))
+      bg_nle_snap_to_frames = val->val_i;
+    else if(!strcmp(name, "play_every_frame"))
+      bg_nle_play_every_frame = val->val_i;
+    }
+  
+  d.name = name;
+  d.val = val;
+  d.func = set_display_parameter;
+  g_list_foreach(project_windows, set_parameter_wrapper, &d);
+  
+  }
+
+static int
+get_display_parameter_global(void * priv, const char * name,
+                             bg_parameter_value_t * val)
+  {
+
+  if(name)
+    {
+    if(!strcmp(name, "snap_to_frames"))
+      {
+      val->val_i = bg_nle_snap_to_frames;
+      fprintf(stderr, "snap_to_frames %d\n", val->val_i);
+      return 1;
+      }
+    else if(!strcmp(name, "play_every_frame"))
+      {
+      val->val_i = bg_nle_play_every_frame;
+      fprintf(stderr, "play_every_frame %d\n", val->val_i);
+      return 1;
+      }
+    }
+  return 0;
+  }
+
+
+static void
+set_oa_parameter(void * priv, const char * name,
+                 const bg_parameter_value_t * val)
+  {
+  bg_nle_project_window_t * w = priv;
+  bg_nle_player_set_oa_parameter(w->compositor, name, val);
+  bg_nle_media_browser_set_oa_parameter(w->media_browser, name, val);
+
+  }
+
+static void
+set_oa_parameter_global(void * priv, const char * name,
+                             const bg_parameter_value_t * val)
+  {
+  set_parameteter_data_t d;
+  d.name = name;
+  d.val = val;
+  d.func = set_oa_parameter;
+  g_list_foreach(project_windows, set_parameter_wrapper, &d);
+  }
+
+static void
+set_ov_parameter(void * priv, const char * name,
+                 const bg_parameter_value_t * val)
+  {
+  bg_nle_project_window_t * w = priv;
+  bg_nle_player_set_ov_parameter(w->compositor, name, val);
+  bg_nle_media_browser_set_ov_parameter(w->media_browser, name, val);
+  }
+
+static void
+set_ov_parameter_global(void * priv, const char * name,
+                        const bg_parameter_value_t * val)
+  {
+  set_parameteter_data_t d;
+  d.name = name;
+  d.val = val;
+  d.func = set_ov_parameter;
+  g_list_foreach(project_windows, set_parameter_wrapper, &d);
+  }
+
 
 /* Log window stuff */
 
@@ -367,13 +577,18 @@ static void show_settings_dialog(bg_nle_project_window_t * win)
 static gboolean destroy_func(gpointer data)
   {
   bg_nle_project_window_t * win = data;
+
+  bg_cfg_section_get(display_section, display_parameters, get_display_parameter_global, NULL);
+  
   if(win->p->changed_flags)
     {
     /* Ask to save */
     }
   bg_nle_project_window_destroy(win);
   if(!project_windows)
+    {
     gtk_main_quit();
+    }
   return FALSE;
   }
 
@@ -439,12 +654,9 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     g_idle_add(destroy_func, win);
     }
-  else if(w == win->project_menu.close)
-    {
-    
-    }
   else if(w == win->project_menu.quit)
     {
+    bg_cfg_section_get(display_section, display_parameters, get_display_parameter_global, NULL);
     gtk_main_quit();
     }
   else if(w == win->project_menu.settings)
@@ -515,7 +727,18 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     configure_global(win->win, win->p->plugin_reg);
     }
-  
+  else if(w == win->options_menu.snap_to_frames)
+    {
+    bg_parameter_value_t val;
+    val.val_i = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w));
+    set_display_parameter_global(NULL, "snap_to_frames", &val);
+    }
+  else if(w == win->options_menu.play_every_frame)
+    {
+    bg_parameter_value_t val;
+    val.val_i = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w));
+    set_display_parameter_global(NULL, "play_every_frame", &val);
+    }
   }
 
 static GtkWidget *
@@ -687,6 +910,16 @@ static void init_menu_bar(bg_nle_project_window_t * w)
   w->options_menu.options =
     create_menu_item(w, w->options_menu.menu,
                      TR("Program settings..."), "config_16.png");
+
+  w->options_menu.snap_to_frames =
+    create_toggle_item(w, w->options_menu.menu,
+                       TR("Snap cursor to frames"),
+                       &w->options_menu.snap_to_frames_id);
+
+  w->options_menu.play_every_frame =
+    create_toggle_item(w, w->options_menu.menu,
+                       TR("Play every frame"),
+                       &w->options_menu.play_every_frame_id);
   
   /* Menubar */
   w->menubar = gtk_menu_bar_new();
@@ -880,47 +1113,6 @@ void bg_nle_project_window_destroy(bg_nle_project_window_t * w)
   free(w);
   }
 
-
-/* Configuration stuff */
-
-static const bg_parameter_info_t display_parameters[] =
-  {
-    {
-      .name = "view_audio_envelope",
-      .long_name = "Audio envelope",
-      .type = TRS(BG_PARAMETER_CHECKBUTTON),
-      .val_default = { .val_i = 1 },
-    },
-    {
-      .name = "view_video_pictures",
-      .long_name =TRS("Video thumbnails"),
-      .type = BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 1 },
-    },
-    {
-      .name = "time_unit",
-      .long_name =TRS("Time unit"),
-      .type = BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "milliseconds" },
-      .multi_names = (const char*[]){ "milliseconds", "timecode", "framecount", (char*)0 },
-      .multi_labels = (const char*[]){ TRS("Milliseconds"), TRS("Timecode"), TRS("Framecount"),
-                                       (char*)0 },
-    },
-    {
-      .name = "display_fg",
-      .long_name =TRS("Display foreground"),
-      .type = BG_PARAMETER_COLOR_RGB,
-      .val_default = { .val_color = { 0.0, 1.0, 0.0 } },
-    },
-    {
-      .name = "display_bg",
-      .long_name =TRS("Display background"),
-      .type = BG_PARAMETER_COLOR_RGB,
-      .val_default = { .val_color = { 0.0, 0.0, 0.0 } },
-    },
-    { /* */ }
-  };
-
 int bg_nle_set_time_unit(const char * name, const
                          bg_parameter_value_t * val, int * mode)
   {
@@ -970,96 +1162,6 @@ void bg_nle_convert_time(gavl_time_t t,
       break;
     }
   }
-
-typedef struct
-  {
-  const char * name;
-  const bg_parameter_value_t * val;
-  bg_set_parameter_func_t func;
-  } set_parameteter_data_t;
-
-static void
-set_parameter_wrapper(void * data, void * user_data)
-  {
-  set_parameteter_data_t * d = user_data;
-  d->func(data, d->name, d->val);
-  }
-
-static void
-set_display_parameter(void * priv, const char * name,
-                      const bg_parameter_value_t * val)
-  {
-  bg_nle_project_window_t * w = priv;
-  bg_nle_media_browser_set_display_parameter(w->media_browser, name, val);
-  bg_nle_player_set_display_parameter(w->compositor,
-                                      name, val);
-  }
-
-static void
-set_display_parameter_global(void * priv, const char * name,
-                             const bg_parameter_value_t * val)
-  {
-  set_parameteter_data_t d;
-  d.name = name;
-  d.val = val;
-  d.func = set_display_parameter;
-  g_list_foreach(project_windows, set_parameter_wrapper, &d);
-  
-  }
-
-static void
-set_oa_parameter(void * priv, const char * name,
-                 const bg_parameter_value_t * val)
-  {
-  bg_nle_project_window_t * w = priv;
-  bg_nle_player_set_oa_parameter(w->compositor, name, val);
-  bg_nle_media_browser_set_oa_parameter(w->media_browser, name, val);
-
-  }
-
-static void
-set_oa_parameter_global(void * priv, const char * name,
-                             const bg_parameter_value_t * val)
-  {
-  set_parameteter_data_t d;
-  d.name = name;
-  d.val = val;
-  d.func = set_oa_parameter;
-  g_list_foreach(project_windows, set_parameter_wrapper, &d);
-  }
-
-static void
-set_ov_parameter(void * priv, const char * name,
-                 const bg_parameter_value_t * val)
-  {
-  bg_nle_project_window_t * w = priv;
-  bg_nle_player_set_ov_parameter(w->compositor, name, val);
-  bg_nle_media_browser_set_ov_parameter(w->media_browser, name, val);
-  }
-
-static void
-set_ov_parameter_global(void * priv, const char * name,
-                        const bg_parameter_value_t * val)
-  {
-  set_parameteter_data_t d;
-  d.name = name;
-  d.val = val;
-  d.func = set_ov_parameter;
-  g_list_foreach(project_windows, set_parameter_wrapper, &d);
-  }
-
-static bg_cfg_registry_t * cfg_reg = NULL;
-
-static bg_cfg_section_t  * log_window_section = NULL;
-static bg_cfg_section_t  * display_section = NULL;
-static bg_cfg_section_t  * oa_section = NULL;
-static bg_cfg_section_t  * ov_section = NULL;
-
-static bg_parameter_info_t * input_plugin_parameters = NULL;
-static bg_parameter_info_t * image_reader_parameters = NULL;
-
-static bg_parameter_info_t * oa_parameters = NULL;
-static bg_parameter_info_t * ov_parameters = NULL;
 
 // static bg_parameter_info_t * output_plugin_parameters = NULL;
 
@@ -1134,7 +1236,7 @@ configure_global(GtkWidget * parent, bg_plugin_registry_t * plugin_reg)
                 TR("Display"),
                 display_section,
                 set_display_parameter_global,
-                NULL,
+                get_display_parameter_global,
                 NULL,
                 display_parameters);
 

@@ -8,15 +8,57 @@
 
 #include <gui_gtk/timerange.h>
 #include <gui_gtk/utils.h>
+#include <gui_gtk/projectwindow.h>
 
 #define SELECTION_MODE_LEFT  1
 #define SELECTION_MODE_RIGHT 2
 
 int64_t bg_nle_pos_2_time(bg_nle_timerange_widget_t * w, double pos)
   {
+  int64_t ret;
   double ret_d = (double)pos /
     (double)w->width * (double)(w->visible.end - w->visible.start);
-  return (int64_t)(ret_d + 0.5) + w->visible.start;
+  ret = (int64_t)(ret_d + 0.5) + w->visible.start;
+
+  if(bg_nle_snap_to_frames && w->ti->tab)
+    {
+    int64_t ret_scaled;
+    int64_t frame_time_1;
+    int64_t frame_time_2;
+    int64_t frame;
+    
+    ret_scaled = gavl_time_scale(w->ti->scale, ret + 10);
+
+    if(ret_scaled <= w->ti->tab->offset)
+      {
+      ret_scaled = w->ti->tab->offset;
+      goto end;
+      }
+
+    frame_time_2 = gavl_frame_table_frame_to_time(w->ti->tab,
+                                                  gavl_frame_table_num_frames(w->ti->tab)-1,
+                                                  NULL);
+    
+    if(ret_scaled >= frame_time_2)
+      {
+      ret_scaled = frame_time_2;
+      goto end;
+      }
+    
+    frame = gavl_frame_table_time_to_frame(w->ti->tab, ret_scaled, &frame_time_1);
+    frame_time_2 = gavl_frame_table_frame_to_time(w->ti->tab, frame + 1, NULL);
+
+    /* Take the frame we are closer to */
+    if(ret_scaled - frame_time_1 < frame_time_2 - ret_scaled)
+      ret_scaled = frame_time_1;
+    else
+      ret_scaled = frame_time_2;
+
+    end:
+    ret = gavl_time_unscale(w->ti->scale, ret_scaled);
+    }
+  
+  return ret;
   }
 
 double bg_nle_time_2_pos(bg_nle_timerange_widget_t * w, int64_t time)
@@ -428,4 +470,86 @@ void bg_nle_timerange_widget_toggle_out(bg_nle_timerange_widget_t * r)
   if(r->set_in_out)
     r->set_in_out(&range, r->callback_data);
   
+  }
+
+void bg_nle_timerange_widget_add_label(bg_nle_timerange_widget_t * r, int64_t label)
+  {
+  if(r->labels_alloc < r->num_labels+1)
+    {
+    r->labels_alloc += 16;
+    r->labels = realloc(r->labels, sizeof(*r->labels) * r->labels_alloc);
+    }
+  
+  if(!r->num_labels)
+    r->labels[0] = label;
+  else
+    {
+    int i;
+    for(i = 0; i < r->num_labels; i++)
+      {
+      if(label < r->labels[i])
+        break;
+      }
+    
+    if(i < r->num_labels)
+      memmove(r->labels + i + 1, r->labels + i, sizeof(*r->labels) * (r->num_labels - i));
+    
+    r->labels[i] = label;
+    }
+  r->num_labels++;
+  }
+
+void bg_nle_timerange_widget_delete_label(bg_nle_timerange_widget_t * r, int64_t label)
+  {
+  int i;
+  for(i = 0; i < r->num_labels; i++)
+    {
+    if(label == r->labels[i])
+      break;
+    }
+  if(i == r->num_labels)
+    {
+    fprintf(stderr, "Couldn't delete label %ld\n", label);
+    return;
+    }
+  if(i < r->num_labels-1)
+    {
+    memmove(r->labels + i, r->labels + i + 1, sizeof(*r->labels) * (r->num_labels - i - 1));
+    }
+  r->num_labels--;
+  }
+
+gavl_time_t bg_nle_timerange_widget_next_label(bg_nle_timerange_widget_t * r)
+  {
+  int i;
+  if(!r->num_labels)
+    return GAVL_TIME_UNDEFINED;
+
+  for(i = 0; i < r->num_labels; i++)
+    {
+    if(r->cursor_pos < r->labels[i])
+      {
+      return r->labels[i];
+      break;
+      }
+    }
+  return GAVL_TIME_UNDEFINED;
+  }
+
+gavl_time_t bg_nle_timerange_widget_previous_label(bg_nle_timerange_widget_t * r)
+  {
+  int i;
+  if(!r->num_labels)
+    return GAVL_TIME_UNDEFINED;
+
+  for(i = 0; i < r->num_labels; i++)
+    {
+    if(r->cursor_pos <= r->labels[i])
+      {
+      if(i)
+        return r->labels[i-1];
+      break;
+      }
+    }
+  return GAVL_TIME_UNDEFINED;
   }

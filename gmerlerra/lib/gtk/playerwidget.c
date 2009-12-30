@@ -29,8 +29,8 @@ struct bg_nle_player_widget_s
   bg_msg_queue_t * queue;
   
   GtkWidget * play_button;
-  GtkWidget * goto_next_button;
-  GtkWidget * goto_prev_button;
+  GtkWidget * label_forward_button;
+  GtkWidget * label_backward_button;
   GtkWidget * goto_start_button;
   GtkWidget * goto_end_button;
   GtkWidget * frame_forward_button;
@@ -41,6 +41,7 @@ struct bg_nle_player_widget_s
 
   GtkWidget * in_button;
   GtkWidget * out_button;
+  GtkWidget * copy_button;
   
   GtkWidget * socket;
   
@@ -221,6 +222,18 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(!p->file)
       return;
     bg_nle_time_ruler_frame_backward(p->ruler);
+    }
+  else if(w == p->label_forward_button)
+    {
+    if(!p->file)
+      return;
+    bg_nle_time_ruler_label_forward(p->ruler);
+    }
+  else if(w == p->label_backward_button)
+    {
+    if(!p->file)
+      return;
+    bg_nle_time_ruler_label_backward(p->ruler);
     }
   }
 
@@ -449,8 +462,20 @@ selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos, 
   
   //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
   //  bg_nle_project_set_selection(t->p, selection);
+
+  if(w->tr.selection.start >= 0)
+    bg_nle_timerange_widget_delete_label(&w->tr, w->tr.selection.start);
+  if(w->tr.selection.end >= 0)
+    bg_nle_timerange_widget_delete_label(&w->tr, w->tr.selection.end);
+  
   bg_nle_time_range_copy(&w->tr.selection, selection);
   w->tr.cursor_pos = cursor_pos;
+
+  if(w->tr.selection.start >= 0)
+    bg_nle_timerange_widget_add_label(&w->tr, w->tr.selection.start);
+  if(w->tr.selection.end >= 0)
+    bg_nle_timerange_widget_add_label(&w->tr, w->tr.selection.end);
+  
   bg_nle_time_ruler_update_selection(w->ruler);
 
   pause_cmd(w, PAUSE_ON);
@@ -464,8 +489,19 @@ static void in_out_changed_callback(bg_nle_time_range_t * in_out, void * data)
   
   //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
   //  bg_nle_project_set_selection(t->p, selection);
+
+  if(w->tr.in_out.start >= 0)
+    bg_nle_timerange_widget_delete_label(&w->tr, w->tr.in_out.start);
+  if(w->tr.in_out.end >= 0)
+    bg_nle_timerange_widget_delete_label(&w->tr, w->tr.in_out.end);
+  
   bg_nle_time_range_copy(&w->tr.in_out, in_out);
 
+  if(w->tr.in_out.start >= 0)
+    bg_nle_timerange_widget_add_label(&w->tr, w->tr.in_out.start);
+  if(w->tr.in_out.end >= 0)
+    bg_nle_timerange_widget_add_label(&w->tr, w->tr.in_out.end);
+  
   bg_nle_time_ruler_update_in_out(w->ruler);
   }
 
@@ -517,10 +553,11 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   ret->tr.set_cursor_pos = cursor_changed_callback;
 
   ret->tr.callback_data = ret;
+  ret->tr.ti = &ret->time_info;
   
   if(!ruler)
     {
-    ret->ruler_priv = bg_nle_time_ruler_create(&ret->tr, &ret->time_info);
+    ret->ruler_priv = bg_nle_time_ruler_create(&ret->tr);
     
     bg_nle_time_ruler_update_visible(ret->ruler_priv);
     
@@ -532,10 +569,10 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   /* Create buttons */  
   ret->play_button = create_pixmap_toggle_button(ret, "gmerlerra/play.png", TRS("Play"), &ret->play_id);
   
-  ret->goto_next_button = create_pixmap_button(ret, "gmerlerra/goto_next.png",
+  ret->label_forward_button = create_pixmap_button(ret, "gmerlerra/goto_next.png",
                                                TRS("Goto next label"));
   
-  ret->goto_prev_button = create_pixmap_button(ret, "gmerlerra/goto_prev.png",
+  ret->label_backward_button = create_pixmap_button(ret, "gmerlerra/goto_prev.png",
                                                TRS("Goto previous label"));
   
   ret->goto_start_button = create_pixmap_button(ret, "gmerlerra/goto_start.png",
@@ -557,8 +594,14 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   ret->in_button = create_pixmap_button(ret, "gmerlerra/in.png",
                                         TRS("Toggle in point at cursor position"));
-  ret->out_button = create_pixmap_button(ret, "gmerlerra/out.png",
-                                         TRS("Toggle out point at cursor position"));
+
+  ret->out_button =
+    create_pixmap_button(ret, "gmerlerra/out.png",
+                         TRS("Toggle out point at cursor position"));
+
+  ret->copy_button =
+    create_pixmap_button(ret, "copy_16.png",
+                         TRS("Copy"));
   /* Create socket */
   
   ret->socket = gtk_socket_new();
@@ -597,11 +640,11 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   
   box = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->goto_start_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->goto_prev_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->label_backward_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->frame_backward_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->play_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->frame_forward_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->goto_next_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->label_forward_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->goto_end_button, FALSE, FALSE, 0);
 
   sep = gtk_vseparator_new();
@@ -618,6 +661,7 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   gtk_box_pack_start(GTK_BOX(box), ret->in_button,  FALSE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->out_button,  FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->copy_button,  FALSE, TRUE, 0);
   
   gtk_box_pack_end(GTK_BOX(box),
                    bg_gtk_time_display_get_widget(ret->display),

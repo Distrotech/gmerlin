@@ -10,8 +10,7 @@
 
 typedef struct bg_nle_time_ruler_s bg_nle_time_ruler_t;
 
-bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr,
-                                               bg_nle_time_info_t * ti);
+bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr);
 
 void bg_nle_time_ruler_destroy(bg_nle_time_ruler_t *);
 
@@ -33,6 +32,9 @@ void bg_nle_time_ruler_update_mode(bg_nle_time_ruler_t * t);
 
 void bg_nle_time_ruler_frame_forward(bg_nle_time_ruler_t * t);
 void bg_nle_time_ruler_frame_backward(bg_nle_time_ruler_t * t);
+
+void bg_nle_time_ruler_label_forward(bg_nle_time_ruler_t * t);
+void bg_nle_time_ruler_label_backward(bg_nle_time_ruler_t * t);
 
 
 #endif // TIMERULER_H
