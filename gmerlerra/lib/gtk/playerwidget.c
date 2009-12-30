@@ -74,6 +74,8 @@ struct bg_nle_player_widget_s
   
   bg_nle_time_info_t time_info;
   int time_unit;
+
+  gavl_time_t last_frame_time;
   };
 
 static void handle_player_message(bg_nle_player_widget_t * w,
@@ -175,21 +177,11 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == p->goto_end_button)
     {
-    int64_t t;
-    int64_t frame;
-    
     if(!p->time_info.tab)
       return;
     
     pause_cmd(p, PAUSE_ON);
-
-    frame = gavl_frame_table_num_frames(p->time_info.tab)-1;
-    
-    t = gavl_time_unscale(p->time_info.scale,
-                          gavl_frame_table_frame_to_time(p->time_info.tab,
-                                                         frame, NULL));
-    t += 10;
-    bg_player_seek(p->player, t, GAVL_TIME_SCALE);
+    bg_player_seek(p->player, p->last_frame_time + 10, GAVL_TIME_SCALE);
     }
   else if(w == p->zoom_in)
     {
@@ -391,6 +383,7 @@ static void handle_player_message(bg_nle_player_widget_t * w,
       break;
     case BG_PLAYER_MSG_VIDEO_STREAM:
       {
+      int64_t frame;
       int stream_index = bg_msg_get_arg_int(msg, 0);
       w->time_info.tab = w->file->video_streams[stream_index].frametable;
       w->time_info.scale = w->file->video_streams[stream_index].timescale;
@@ -402,13 +395,34 @@ static void handle_player_message(bg_nle_player_widget_t * w,
         }
       else
         w->time_info.mode = w->time_unit;
+
+      if(w->tr.media_time.start >= 0)
+        bg_nle_timerange_widget_delete_label(&w->tr, w->tr.media_time.start);
       
-      w->tr.end_time = gavl_time_unscale(w->time_info.scale, gavl_frame_table_end_time(w->time_info.tab));
+      if(w->last_frame_time >= 0)
+        bg_nle_timerange_widget_delete_label(&w->tr, w->last_frame_time);
+      
+      w->tr.media_time.end = gavl_time_unscale(w->time_info.scale, gavl_frame_table_end_time(w->time_info.tab));
+      w->tr.media_time.start = gavl_time_unscale(w->time_info.scale, w->time_info.tab->offset);
+
+
+      frame = gavl_frame_table_num_frames(w->time_info.tab)-1;
+      
+      w->last_frame_time = gavl_time_unscale(w->time_info.scale,
+                                             gavl_frame_table_frame_to_time(w->time_info.tab,
+                                                                            frame, NULL));
+      
+      if(w->tr.media_time.start >= 0)
+        bg_nle_timerange_widget_add_label(&w->tr, w->tr.media_time.start);
+      if(w->last_frame_time)
+        bg_nle_timerange_widget_add_label(&w->tr, w->last_frame_time);
+      
       bg_nle_time_ruler_update_mode(w->ruler);
       }
       break;
     }
   }
+
 
 static gboolean timeout_func(void * data)
   {
@@ -540,8 +554,13 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   ret->tr.visible.start = 0;
   ret->tr.visible.end = GAVL_TIME_SCALE * 10;
-  ret->tr.end_time    = GAVL_TIME_SCALE * 10;
 
+  ret->tr.media_time.start  = GAVL_TIME_SCALE * 10;
+  ret->tr.media_time.end    = GAVL_TIME_SCALE * 10;
+  ret->last_frame_time      = GAVL_TIME_SCALE * 10;
+  bg_nle_timerange_widget_add_label(&ret->tr, ret->tr.media_time.start);
+  bg_nle_timerange_widget_add_label(&ret->tr, ret->last_frame_time);
+  
   ret->tr.in_out.start = -1;
   ret->tr.in_out.end   = -1;
 

@@ -1,4 +1,5 @@
 #include <math.h>
+#include <string.h>
 
 #include <gtk/gtk.h>
 #include <inttypes.h>
@@ -193,7 +194,7 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
     int64_t diff_time;
 
     if(!r->visible.start &&
-       (r->visible.end > r->end_time))
+       (r->visible.end > r->media_time.end))
       return TRUE;
     
     diff_time =
@@ -204,8 +205,8 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
     if(r->visible.start + diff_time < 0)
       diff_time = -r->visible.start;
 
-    if(r->visible.end + diff_time > r->end_time + GAVL_TIME_SCALE)
-      diff_time = r->end_time + GAVL_TIME_SCALE - r->visible.end;
+    if(r->visible.end + diff_time > r->media_time.end + GAVL_TIME_SCALE)
+      diff_time = r->media_time.end + GAVL_TIME_SCALE - r->visible.end;
     
     if(!diff_time)
       return TRUE;
@@ -546,8 +547,7 @@ gavl_time_t bg_nle_timerange_widget_previous_label(bg_nle_timerange_widget_t * r
     {
     if(r->cursor_pos <= r->labels[i])
       {
-      if(i)
-        return r->labels[i-1];
+      return r->labels[i-1];
       break;
       }
     }

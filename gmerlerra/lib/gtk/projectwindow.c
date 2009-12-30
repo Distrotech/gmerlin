@@ -1193,6 +1193,11 @@ bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1,
                        bg_gtk_log_window_set_parameter,
                        log_window);
 
+  bg_cfg_section_apply(display_section,
+                       display_parameters,
+                       set_display_parameter_global,
+                       NULL);
+  
   if(!input_plugin_parameters)
     {
     input_plugin_parameters = calloc(2, sizeof(*input_plugin_parameters));

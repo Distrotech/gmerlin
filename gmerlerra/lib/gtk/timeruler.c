@@ -282,7 +282,7 @@ static void draw_tics_hmsms(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t *
   time = ((r->tr->visible.start / r->spacing_major)) * r->spacing_major;
   pos = bg_nle_time_2_pos(r->tr, time);
 
-  while((time < r->tr->visible.end) && (time < r->tr->end_time))
+  while((time < r->tr->visible.end) && (time < r->tr->media_time.end))
     {
     if(time % r->spacing_major)
       {
@@ -574,8 +574,8 @@ static void redraw(bg_nle_time_ruler_t * r)
   
   pl = pango_cairo_create_layout(c);
 
-  if(r->tr->visible.end > r->tr->end_time)
-    pos_i = bg_nle_time_2_pos(r->tr, r->tr->end_time);
+  if(r->tr->visible.end > r->tr->media_time.end)
+    pos_i = bg_nle_time_2_pos(r->tr, r->tr->media_time.end);
   else
     pos_i = r->tr->width;
   

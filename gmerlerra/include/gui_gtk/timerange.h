@@ -31,8 +31,7 @@ typedef struct
   bg_nle_time_range_t selection;
   bg_nle_time_range_t visible;
   bg_nle_time_range_t in_out;
-  
-  gavl_time_t end_time;
+  bg_nle_time_range_t media_time;
   
   int64_t cursor_pos;
   
