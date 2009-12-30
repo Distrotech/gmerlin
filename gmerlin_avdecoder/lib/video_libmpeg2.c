@@ -85,6 +85,8 @@ typedef struct
   gavl_timecode_t gop_timecode;
 
   bgav_pts_cache_t pts_cache;
+  
+  int need_sequence;
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)
@@ -93,11 +95,7 @@ static int get_data(bgav_stream_t*s)
   int cache_index;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   
-  if(priv->p)
-    {
-    bgav_demuxer_done_packet_read(s->demuxer, priv->p);
-    }
-  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  priv->p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
   if(!priv->p)
     {
     if(!priv->eof)
@@ -120,10 +118,27 @@ static int get_data(bgav_stream_t*s)
 #ifdef DUMP_TIMESTAMS
   bgav_dprintf("Packet timestamp: %"PRId64"\n", priv->p->pts);
 #endif
+
+  if(priv->need_sequence)
+    {
+    priv->need_sequence = 0;
+
+    if((s->ext_size > 0) && (priv->p->data[3] != 0xb3))
+      {
+      mpeg2_buffer(priv->dec, s->ext_data, s->ext_data + s->ext_size);
+      priv->p = NULL;
+      return 1;
+      }
+    }
+  
+  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
   
   priv->eof = 0;
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
 
+  //  fprintf(stderr, "mpeg2_buffer %d bytes\n", priv->p->data_size);
+  //  bgav_hexdump(priv->p->data, 32, 16);
+  
   bgav_pts_cache_push(&priv->pts_cache,
                       priv->p->pts, priv->p->duration,
                       priv->p->tc,
@@ -133,44 +148,6 @@ static int get_data(bgav_stream_t*s)
   mpeg2_tag_picture(priv->dec, cache_index, 0);
   
   return 1;
-  }
-
-static int parse(bgav_stream_t*s, mpeg2_state_t * state)
-  {
-  mpeg2_priv_t * priv;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
-
-  while(1)
-    {
-    *state = mpeg2_parse(priv->dec);
-    if(*state == STATE_BUFFER)
-      {
-      if(!get_data(s))
-        return 0;
-      continue;
-      }
-    
-    if(*state == STATE_GOP)
-      {
-      if(!s->data.video.format.timecode_format.int_framerate)
-        {
-        s->data.video.format.timecode_format.int_framerate =
-          s->data.video.format.timescale / s->data.video.format.frame_duration;
-        if(s->data.video.format.timescale % s->data.video.format.frame_duration)
-          s->data.video.format.timecode_format.int_framerate++;
-        if(priv->info->gop->flags & GOP_FLAG_DROP_FRAME)
-          s->data.video.format.timecode_format.flags |=
-            GAVL_TIMECODE_DROP_FRAME;
-        }
-      gavl_timecode_from_hmsf(&priv->gop_timecode,
-                              priv->info->gop->hours,
-                              priv->info->gop->minutes,
-                              priv->info->gop->seconds,
-                              priv->info->gop->pictures);
-      priv->has_gop_timecode = 1;
-      }
-    return 1;
-    }
   }
 
 static void get_format(bgav_stream_t*s,
@@ -273,6 +250,53 @@ static void get_format(bgav_stream_t*s,
     ret->interlace_mode = GAVL_INTERLACE_MIXED;
   else
     ret->interlace_mode = GAVL_INTERLACE_NONE;
+  }
+
+static int parse(bgav_stream_t*s, mpeg2_state_t * state)
+  {
+  mpeg2_priv_t * priv;
+  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+
+  while(1)
+    {
+    *state = mpeg2_parse(priv->dec);
+
+    //    fprintf(stderr, "mpeg2_parse %d\n", *state);
+    
+    if(priv->p)
+      {
+      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+      priv->p = NULL;
+      }
+    
+    if(*state == STATE_BUFFER)
+      {
+      if(!get_data(s))
+        return 0;
+      continue;
+      }
+    
+    if(*state == STATE_GOP)
+      {
+      if(!s->data.video.format.timecode_format.int_framerate)
+        {
+        s->data.video.format.timecode_format.int_framerate =
+          s->data.video.format.timescale / s->data.video.format.frame_duration;
+        if(s->data.video.format.timescale % s->data.video.format.frame_duration)
+          s->data.video.format.timecode_format.int_framerate++;
+        if(priv->info->gop->flags & GOP_FLAG_DROP_FRAME)
+          s->data.video.format.timecode_format.flags |=
+            GAVL_TIMECODE_DROP_FRAME;
+        }
+      gavl_timecode_from_hmsf(&priv->gop_timecode,
+                              priv->info->gop->hours,
+                              priv->info->gop->minutes,
+                              priv->info->gop->seconds,
+                              priv->info->gop->pictures);
+      priv->has_gop_timecode = 1;
+      }
+    return 1;
+    }
   }
 
 /* Decode one picture, frame will be in priv->info->display_picture
@@ -494,7 +518,8 @@ static int init_mpeg2(bgav_stream_t*s)
                  (priv->info->sequence->flags & SEQ_FLAG_MPEG2) ? 2 : 1,
                  (priv->info->sequence->byte_rate * 8) / 1000);
   s->codec_bitrate = priv->info->sequence->byte_rate * 8;
-
+  priv->need_sequence = 1;
+  
   if(!s->timescale)
     s->timescale = s->data.video.format.timescale;
   
@@ -520,14 +545,18 @@ static void resync_mpeg2(bgav_stream_t*s)
   mpeg2_priv_t * priv;
   bgav_packet_t * p;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
-
+  
   priv->p = (bgav_packet_t*)0;
   priv->non_b_count = 0;
-
+  priv->eof = 0;
+  priv->need_sequence = 1;
+    
   bgav_pts_cache_clear(&priv->pts_cache);
 
   mpeg2_reset(priv->dec, 0);
-  mpeg2_buffer(priv->dec, NULL, NULL);
+  //  mpeg2_buffer(priv->dec, NULL, NULL);
+
+  //  fprintf(stderr, "resync_mpeg2\n");
   
   if(!(s->flags & STREAM_STILL_MODE))
     {
@@ -577,6 +606,7 @@ static int skipto_mpeg2(bgav_stream_t * s, int64_t time, int exact)
   while(1)
     {
     /* TODO: Skip B-frames */
+    //    fprintf(stderr, "skipto_mpeg2 %ld %ld\n", time, priv->picture_timestamp);
     if(!decode_picture(s))
       return 0;
 

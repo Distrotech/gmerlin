@@ -231,7 +231,6 @@ void bgav_video_parser_destroy(bgav_video_parser_t * parser)
 
 void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t in_pts, int64_t out_pts)
   {
-  //  fprintf(stderr, "bgav_video_parser_reset\n");
   bgav_bytebuffer_flush(&parser->buf);
   
   parser->raw_position = -1;
@@ -548,7 +547,7 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
 #ifdef DUMP_OUTPUT
   bgav_dprintf("Get packet ");
   bgav_packet_dump(p);
-  bgav_dprintf("recovery_point %d\n", c->recovery_point);
+  //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
 #endif
   bgav_packet_pad(p);
   
