@@ -284,7 +284,7 @@ static void draw_tics_hmsms(bg_nle_time_ruler_t * r, PangoLayout * pl, cairo_t *
   time = ((r->tr->visible.start / r->spacing_major)) * r->spacing_major;
   pos = bg_nle_time_2_pos(r->tr, time);
 
-  while(time < r->tr->visible.end)
+  while((time < r->tr->visible.end) && (time < r->tr->end_time))
     {
     if(time % r->spacing_major)
       {
@@ -546,6 +546,7 @@ static void redraw(bg_nle_time_ruler_t * r)
   double pos;
   float start_pos;
   float end_pos;
+  int pos_i;
   
   PangoLayout * pl;
   cairo_t * c = gdk_cairo_create(r->wid->window);
@@ -574,19 +575,39 @@ static void redraw(bg_nle_time_ruler_t * r)
     calc_spacing(r);
   
   pl = pango_cairo_create_layout(c);
+
+  if(r->tr->visible.end > r->tr->end_time)
+    pos_i = bg_nle_time_2_pos(r->tr, r->tr->end_time);
+  else
+    pos_i = r->tr->width;
   
   gtk_paint_box(gtk_widget_get_style(r->wid),
                 r->wid->window,
-                GTK_STATE_NORMAL,
+                GTK_STATE_ACTIVE,
                 GTK_SHADOW_OUT,
                 (const GdkRectangle *)0,
                 r->wid,
                 (const gchar *)0,
                 0,
                 0,
-                r->tr->width,
+                pos_i,
                 RULER_HEIGHT);
 
+  if(pos_i < r->tr->width)
+    {
+    gtk_paint_box(gtk_widget_get_style(r->wid),
+                  r->wid->window,
+                  GTK_STATE_NORMAL,
+                  GTK_SHADOW_OUT,
+                  (const GdkRectangle *)0,
+                  r->wid,
+                  (const gchar *)0,
+                  pos_i,
+                  0,
+                  r->tr->width - pos_i,
+                  RULER_HEIGHT);
+    }
+  
   /* Draw tics */
 
   cairo_set_line_width(c, 1.0);

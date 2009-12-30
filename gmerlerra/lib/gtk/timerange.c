@@ -148,13 +148,22 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
   
   if(evt->state == GDK_BUTTON2_MASK)
     {
-    int64_t diff_time =
+    int64_t diff_time;
+
+    if(!r->visible.start &&
+       (r->visible.end > r->end_time))
+      return TRUE;
+    
+    diff_time =
       bg_nle_pos_2_time(r, r->mouse_x) - time;
     
     //fprintf(stderr, "Motion callback: %d %f %ld\n", r->mouse_x, evt->x, diff_time);
     
     if(r->visible.start + diff_time < 0)
       diff_time = -r->visible.start;
+
+    if(r->visible.end + diff_time > r->end_time + GAVL_TIME_SCALE)
+      diff_time = r->end_time + GAVL_TIME_SCALE - r->visible.end;
     
     if(!diff_time)
       return TRUE;
@@ -320,10 +329,43 @@ void bg_nle_timerange_widget_zoom_out(bg_nle_timerange_widget_t * r)
     r->set_zoom(&range, r->callback_data);
   }
 
-void bg_nle_timerange_widget_set_cursor_pos(bg_nle_timerange_widget_t * w, int64_t cursor_pos)
+void bg_nle_timerange_widget_set_cursor_pos(bg_nle_timerange_widget_t * r, int64_t cursor_pos)
   {
-  if(w->set_cursor_pos)
-    w->set_cursor_pos(cursor_pos, w->callback_data);
+  bg_nle_time_range_t range;
+  gavl_time_t min_border_diff = (r->visible.end - r->visible.start)/10;
+  gavl_time_t diff;
+  
+  if(cursor_pos > r->visible.end - min_border_diff)
+    {
+    diff = cursor_pos - (r->visible.end - min_border_diff);
+
+    bg_nle_time_range_copy(&range, &r->visible);
+    range.start += diff;
+    range.end   += diff;
+
+    if(r->set_visible)
+      r->set_visible(&range, r->callback_data);
+    }
+  if(cursor_pos < r->visible.start + min_border_diff)
+    {
+    diff = r->visible.start + min_border_diff - cursor_pos;
+    if(r->visible.start - diff < 0)
+      diff = r->visible.start;
+
+    if(diff)
+      {
+      bg_nle_time_range_copy(&range, &r->visible);
+      
+      range.start -= diff;
+      range.end   -= diff;
+      
+      if(r->set_visible)
+        r->set_visible(&range, r->callback_data);
+      }
+    }
+  
+  if(r->set_cursor_pos)
+    r->set_cursor_pos(cursor_pos, r->callback_data);
   }
 
 void bg_nle_timerange_widget_zoom_fit(bg_nle_timerange_widget_t * r)

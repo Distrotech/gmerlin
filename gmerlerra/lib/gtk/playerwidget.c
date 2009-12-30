@@ -161,12 +161,34 @@ static void button_callback(GtkWidget * w, gpointer data)
   bg_nle_player_widget_t * p = data;
   if(w == p->play_button)
     {
+    if(!p->file)
+      return;
     pause_cmd(p, PAUSE_TOGGLE);
     }
   else if(w == p->goto_start_button)
     {
+    if(!p->file)
+      return;
     pause_cmd(p, PAUSE_ON);
     bg_player_seek(p->player, 0, GAVL_TIME_SCALE);
+    }
+  else if(w == p->goto_end_button)
+    {
+    int64_t t;
+    int64_t frame;
+    
+    if(!p->time_info.tab)
+      return;
+    
+    pause_cmd(p, PAUSE_ON);
+
+    frame = gavl_frame_table_num_frames(p->time_info.tab)-1;
+    
+    t = gavl_time_unscale(p->time_info.scale,
+                          gavl_frame_table_frame_to_time(p->time_info.tab,
+                                                         frame, NULL));
+    t += 10;
+    bg_player_seek(p->player, t, GAVL_TIME_SCALE);
     }
   else if(w == p->zoom_in)
     {
@@ -190,10 +212,14 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == p->frame_forward_button)
     {
+    if(!p->file)
+      return;
     bg_nle_time_ruler_frame_forward(p->ruler);
     }
   else if(w == p->frame_backward_button)
     {
+    if(!p->file)
+      return;
     bg_nle_time_ruler_frame_backward(p->ruler);
     }
   }
@@ -317,10 +343,9 @@ static void handle_player_message(bg_nle_player_widget_t * w,
                           &time_cnv,
                           &w->time_info);
 
-      fprintf(stderr, "Convert time %ld %ld (mode: %d, tab: %p)\n",
-              w->last_display_time, time_cnv, w->time_info.mode, w->time_info.tab);
-
-
+      // fprintf(stderr, "Convert time %ld %ld (mode: %d, tab: %p)\n",
+      //     w->last_display_time, time_cnv, w->time_info.mode, w->time_info.tab);
+      
       bg_gtk_time_display_update(w->display, time_cnv, w->time_info.mode);
       bg_nle_timerange_widget_set_cursor_pos(bg_nle_time_ruler_get_tr(w->ruler), w->last_display_time);
       }
@@ -364,6 +389,8 @@ static void handle_player_message(bg_nle_player_widget_t * w,
         }
       else
         w->time_info.mode = w->time_unit;
+      
+      w->tr.end_time = gavl_time_unscale(w->time_info.scale, gavl_frame_table_end_time(w->time_info.tab));
       bg_nle_time_ruler_update_mode(w->ruler);
       }
       break;
@@ -477,6 +504,7 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   ret->tr.visible.start = 0;
   ret->tr.visible.end = GAVL_TIME_SCALE * 10;
+  ret->tr.end_time    = GAVL_TIME_SCALE * 10;
 
   ret->tr.in_out.start = -1;
   ret->tr.in_out.end   = -1;
