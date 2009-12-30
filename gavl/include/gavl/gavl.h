@@ -3724,12 +3724,28 @@ gavl_frame_table_timecode_to_time(const gavl_frame_table_t * t,
                                   gavl_timecode_t tc,
                                   const gavl_timecode_format_t * fmt);
 
-  
-  
-  
-/** \brief get the total number of video frames
+
+/** \brief Convert a frame index to a timecode
  *  \param t A frame table
- *  \returns The total number of video frames
+ *  \param frame Frame index
+ *  \param start_time If non NULL, returns the start time of that frame
+ *  \param fmt Timecode format
+ *  \returns The interpolated timecode that frame or GAVL_TIMECODE_UNDEFINED if such frame doesn't exist.
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC gavl_timecode_t
+gavl_frame_table_frame_to_timecode(const gavl_frame_table_t * t,
+                                   int64_t frame,
+                                   int64_t * start_time,
+                                   const gavl_timecode_format_t * fmt);
+
+  
+  
+/** \brief get the total number of frames
+ *  \param t A frame table
+ *  \returns The total number of frames
  *
  * Since 1.1.2.
  */
@@ -3737,6 +3753,26 @@ gavl_frame_table_timecode_to_time(const gavl_frame_table_t * t,
 GAVL_PUBLIC int64_t
 gavl_frame_table_num_frames(const gavl_frame_table_t * t);
 
+/** \brief get the total duration of all frames
+ *  \param t A frame table
+ *  \returns Total duration
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC int64_t
+gavl_frame_table_duration(const gavl_frame_table_t * t);
+
+/** \brief get the end time of the last frame
+ *  \param t A frame table
+ *  \returns End time
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC int64_t
+gavl_frame_table_end_time(const gavl_frame_table_t * t);
+  
 /** \brief Save a frame table to a file
  *  \param t Tab frame table
  *  \param filename Filename

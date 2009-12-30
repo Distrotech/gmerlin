@@ -147,27 +147,23 @@ int64_t gavl_frame_table_time_to_frame(const gavl_frame_table_t * t,
 
 /* time <-> timecode */
 
-/** \brief Convert a timestamp to a timecode
- *  \param t A frame table
- *  \param time Time in stream timescale
- *  \param start_time If non NULL, returns the start time of that frame
- *  \param fmt Timecode format
- *  \returns The interpolated timecode of that frame or GAVL_TIMECODE_UNDEFINED if such frame doesn't exist.
- *
- * Since 1.1.2.
- */
-
-gavl_timecode_t
-gavl_frame_table_time_to_timecode(const gavl_frame_table_t * t,
-                                  int64_t time,
-                                  int64_t * start_time,
-                                  const gavl_timecode_format_t * fmt)
+static gavl_timecode_t
+get_timecode(const gavl_frame_table_t * t,
+             int64_t frame,
+             int64_t frame_time,
+             int64_t * start_time,
+             const gavl_timecode_format_t * fmt)
   {
   gavl_timecode_t ret;
-  int64_t frame = gavl_frame_table_time_to_frame(t, time, start_time);
-
+  
   if(frame < 0)
-    return GAVL_TIMECODE_UNDEFINED;
+    frame = gavl_frame_table_time_to_frame(t, frame_time, start_time);
+  else
+    {
+    frame_time = gavl_frame_table_frame_to_time(t, frame, NULL);
+    if(start_time)
+      *start_time = frame_time;
+    }
   
   if(!t->num_timecodes)
     {
@@ -186,7 +182,7 @@ gavl_frame_table_time_to_timecode(const gavl_frame_table_t * t,
     
     while(1)
       {
-      if(t->timecodes[pos].pts <= time)
+      if(t->timecodes[pos].pts <= frame_time)
         break;
       pos--;
       if(pos < 0)
@@ -212,6 +208,35 @@ gavl_frame_table_time_to_timecode(const gavl_frame_table_t * t,
     }
   return ret;
   }
+
+/** \brief Convert a timestamp to a timecode
+ *  \param t A frame table
+ *  \param time Time in stream timescale
+ *  \param start_time If non NULL, returns the start time of that frame
+ *  \param fmt Timecode format
+ *  \returns The interpolated timecode of that frame or GAVL_TIMECODE_UNDEFINED if such frame doesn't exist.
+ *
+ * Since 1.1.2.
+ */
+
+gavl_timecode_t
+gavl_frame_table_time_to_timecode(const gavl_frame_table_t * t,
+                                  int64_t time,
+                                  int64_t * start_time,
+                                  const gavl_timecode_format_t * fmt)
+  {
+  return get_timecode(t, -1, time, start_time, fmt);
+  }
+
+gavl_timecode_t
+gavl_frame_table_frame_to_timecode(const gavl_frame_table_t * t,
+                                   int64_t frame,
+                                   int64_t * start_time,
+                                   const gavl_timecode_format_t * fmt)
+  {
+  return get_timecode(t, frame, GAVL_TIME_UNDEFINED, start_time, fmt);
+  }
+
 
 /** \brief Convert a timecode to a timestamp
  *  \param t A frame table
@@ -281,6 +306,22 @@ int64_t gavl_frame_table_num_frames(const gavl_frame_table_t * t)
     ret += t->entries[i].num_frames;
     }
   return ret;
+  }
+
+int64_t gavl_frame_table_duration(const gavl_frame_table_t * t)
+  {
+  int i;
+  int64_t ret = 0;
+  for(i = 0; i < t->num_entries; i++)
+    {
+    ret += t->entries[i].num_frames * t->entries[i].duration;
+    }
+  return ret;
+  }
+
+int64_t gavl_frame_table_end_time(const gavl_frame_table_t * t)
+  {
+  return gavl_frame_table_duration(t) + t->offset;
   }
 
 void gavl_frame_table_dump(const gavl_frame_table_t * t)
