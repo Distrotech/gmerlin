@@ -30,9 +30,10 @@ typedef enum
     BG_GTK_DISPLAY_SIZE_SMALL,  /*  40 x 16  1/6 */
   } BG_GTK_DISPLAY_SIZE;
 
-#define BG_GTK_DISPLAY_MODE_HMS      (1<<0) // 000:00:00
-#define BG_GTK_DISPLAY_MODE_HMSMS    (1<<1) // 000:00:00.000
-#define BG_GTK_DISPLAY_MODE_TIMECODE (1<<2) //  00:00:00:00
+#define BG_GTK_DISPLAY_MODE_HMS        (1<<0) // 000:00:00
+#define BG_GTK_DISPLAY_MODE_HMSMS      (1<<1) // 000:00:00.000
+#define BG_GTK_DISPLAY_MODE_TIMECODE   (1<<2) //  00:00:00:00
+#define BG_GTK_DISPLAY_MODE_FRAMECOUNT (1<<3) //  00000000
 
 typedef struct bg_gtk_time_display_s bg_gtk_time_display_t;
 

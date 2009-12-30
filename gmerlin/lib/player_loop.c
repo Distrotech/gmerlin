@@ -605,8 +605,15 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   if(flags & BG_PLAY_FLAG_INIT_THEN_PAUSE)
     {
     bg_player_set_state(p, BG_PLAYER_STATE_PAUSED, NULL, NULL);
+
+    
+
     if(DO_VIDEO(p->flags))
+      {
+      bg_player_ov_reset(p);
       bg_player_ov_update_still(p);
+      p->flags |= PLAYER_FREEZE_FRAME;
+      }
     }
   else
     start_playback(p);
@@ -698,7 +705,8 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
   if((old_state == BG_PLAYER_STATE_PLAYING) ||
      (old_state == BG_PLAYER_STATE_PAUSED))
     {
-    if(new_state == BG_PLAYER_STATE_STOPPED)
+    if((new_state == BG_PLAYER_STATE_STOPPED) ||
+       (new_state == BG_PLAYER_STATE_CHANGING))
       player_cleanup(player);
     }
   player->old_flags = player->flags;
@@ -1151,11 +1159,23 @@ static int process_commands(bg_player_t * player)
         switch(arg_i1)
           {
           case BG_PLAYER_STATE_EOF:
-            /* TODO: Switch to pause */
-            bg_log(BG_LOG_INFO, LOG_DOMAIN, "Detected EOF");
-            bg_player_threads_join(player->threads, PLAYER_MAX_THREADS);
-            player_cleanup(player);
-            bg_player_set_state(player, BG_PLAYER_STATE_EOF, NULL, NULL);
+            if(player->finish_mode == BG_PLAYER_FINISH_CHANGE)
+              {
+              bg_log(BG_LOG_INFO, LOG_DOMAIN, "Detected EOF");
+              bg_player_threads_join(player->threads, PLAYER_MAX_THREADS);
+              player_cleanup(player);
+              bg_player_set_state(player, BG_PLAYER_STATE_EOF, NULL, NULL);
+              }
+            else
+              {
+              interrupt_cmd(player, BG_PLAYER_STATE_PAUSED);
+
+              if(DO_AUDIO(player->flags))
+                bg_player_oa_stop(&player->audio_stream);
+              
+              if(DO_VIDEO(player->flags))
+                bg_player_ov_update_still(player);
+              }
             break;
 #if 0
           case BG_PLAYER_STATE_FINISHING_PAUSE:
@@ -1268,10 +1288,11 @@ static void * player_thread(void * data)
 
     if(do_exit)
       break;
-
+    
     if(player->flags & PLAYER_FREEZE_FRAME)
+      {
       bg_player_ov_handle_events(&player->video_stream);
-
+      }
     if(player->flags & PLAYER_FREEZE_VIS)
       bg_visualizer_update(player->visualizer, NULL);    
 

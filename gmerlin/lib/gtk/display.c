@@ -288,6 +288,9 @@ void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
     case BG_GTK_DISPLAY_MODE_TIMECODE:
       gavl_timecode_prettyprint_short(time, buf);
       break;
+    case BG_GTK_DISPLAY_MODE_FRAMECOUNT:
+      sprintf(buf, "%"PRId64, time);
+      break;
     }
   
   pos = &(buf[strlen(buf)]);

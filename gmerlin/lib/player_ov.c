@@ -547,13 +547,16 @@ void * bg_player_ov_thread(void * data)
   while(1)
     {
     if(!bg_player_thread_check(s->th))
+      {
       break;
-
+      }
     if(!bg_player_read_video(p, s->frame))
       {
       bg_player_video_set_eof(p);
       if(!bg_player_thread_wait_for_start(s->th))
+        {
         break;
+        }
       continue;
       }
     

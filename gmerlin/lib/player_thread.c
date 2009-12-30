@@ -252,6 +252,7 @@ int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   pthread_mutex_unlock(&th->com->start_mutex);
 
   pthread_mutex_lock(&th->mutex);
+  th->do_pause = 0;
   if(th->do_stop)
     {
     pthread_mutex_unlock(&th->mutex);

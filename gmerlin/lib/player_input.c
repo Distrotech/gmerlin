@@ -492,6 +492,8 @@ bg_player_input_read_video(void * priv,
            gavl_time_unscale(vs->input_format.timescale,
                              frame->timestamp));
 #endif
+  //  if(!result)
+  //    fprintf(stderr, "Read video failed\n");
   return result;
   }
 
@@ -550,6 +552,8 @@ void bg_player_input_seek(bg_player_t * p,
   do_audio = DO_AUDIO(p->flags);
   do_video = DO_VIDEO(p->flags);
   do_subtitle = DO_SUBTITLE(p->flags);
+  
+  // fprintf(stderr, "Seek, do video: %d\n", do_video);
   
   ss->eof = !do_subtitle;
   as->eof = !do_audio;
