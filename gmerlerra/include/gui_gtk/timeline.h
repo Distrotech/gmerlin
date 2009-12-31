@@ -51,5 +51,9 @@ void bg_nle_timeline_update_outstream_parameters(bg_nle_timeline_t * t, int inde
 
 bg_nle_time_ruler_t * bg_nle_timeline_get_ruler(bg_nle_timeline_t *);
 
+void
+bg_nle_timeline_set_display_parameter(bg_nle_timeline_t *, const char * name,
+                                      const bg_parameter_value_t * val);
+  
 
 #endif // TIMELINE_H

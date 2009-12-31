@@ -821,7 +821,8 @@ bg_parameter_info_t * bg_nle_player_get_ov_parameters(bg_plugin_registry_t * plu
   }
 
 void bg_nle_player_set_display_parameter(void * data,
-                                         const char * name, const bg_parameter_value_t * val)
+                                         const char * name,
+                                         const bg_parameter_value_t * val)
   {
   bg_nle_player_widget_t * w = data;
   if(bg_nle_set_time_unit(name, val, &w->time_unit))

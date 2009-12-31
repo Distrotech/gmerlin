@@ -339,3 +339,42 @@ int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track)
     }
   return -1;
   }
+
+bg_nle_outstream_t * bg_nle_project_find_outstream(bg_nle_project_t * p,
+                                                   bg_nle_track_type_t type,
+                                                   int index)
+  {
+  int count = 0, i;
+
+  for(i = 0; i < p->num_outstreams; i++)
+    {
+    if(p->outstreams[i]->type == type)
+      {
+      if(count == index)
+        return p->outstreams[i];
+      else
+        count++;
+      }
+    }
+  return NULL;
+  }
+
+bg_nle_track_t * bg_nle_project_find_track(bg_nle_project_t * p,
+                                           bg_nle_track_type_t type,
+                                           int index)
+  {
+  int count = 0, i;
+
+  for(i = 0; i < p->num_tracks; i++)
+    {
+    if(p->tracks[i]->type == type)
+      {
+      if(count == index)
+        return p->tracks[i];
+      else
+        count++;
+      }
+    }
+  return NULL;
+  }
+

@@ -183,3 +183,21 @@ int bg_nle_outstream_has_track(bg_nle_outstream_t * os,
     }
   return 0;
   }
+
+gavl_time_t bg_nle_outstream_duration(bg_nle_outstream_t * os)
+  {
+  int i;
+  gavl_time_t ret = 0;
+  gavl_time_t test_time;
+  
+  for(i = 0; i < os->num_source_tracks; i++)
+    {
+    if(os->source_tracks[i]->flags & BG_NLE_TRACK_PLAYBACK)
+      {
+      test_time = bg_nle_track_duration(os->source_tracks[i]);
+      if(test_time > ret)
+        ret = test_time;
+      }
+    }
+  return ret;
+  }

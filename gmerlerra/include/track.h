@@ -11,10 +11,10 @@
 typedef struct
   {
   int scale;
-
-  int64_t src_pos;
-  int64_t dst_pos;
-  int64_t len;
+  
+  int64_t src_pos; /* In source scale */
+  int64_t dst_pos; /* In track scale */
+  int64_t len;     /* In track scale */
   
   bg_nle_id_t file_id;
   int stream;

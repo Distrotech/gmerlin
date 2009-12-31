@@ -245,6 +245,7 @@ set_display_parameter(void * priv, const char * name,
   bg_nle_media_browser_set_display_parameter(w->media_browser, name, val);
   bg_nle_player_set_display_parameter(w->compositor,
                                       name, val);
+  bg_nle_timeline_set_display_parameter(w->timeline, name, val);
   }
 
 static void

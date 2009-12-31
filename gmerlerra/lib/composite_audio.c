@@ -8,13 +8,14 @@ struct bg_nle_audio_compositor_s
     {
     gavl_audio_frame_t * frame;
     } * streams;
-  
+  bg_nle_outstream_t * os;
   };
 
 bg_nle_audio_compositor_t *
-bg_nle_audio_compositor_create()
+bg_nle_audio_compositor_create(bg_nle_outstream_t * os)
   {
   bg_nle_audio_compositor_t * ret = calloc(1, sizeof(*ret));
+  ret->os = os;
   return ret;
   }
 
@@ -24,7 +25,7 @@ void bg_nle_audio_compositor_clear(bg_nle_audio_compositor_t * c)
   }
 
 void bg_nle_audio_compositor_add_stream(bg_nle_audio_compositor_t * c,
-                                        bg_nle_renderer_instream_t * s)
+                                        bg_nle_renderer_instream_audio_t * s)
   {
   
   }

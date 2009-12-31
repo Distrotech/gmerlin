@@ -131,3 +131,13 @@ const char * bg_nle_track_get_name(bg_nle_track_t * t)
   bg_cfg_section_get_parameter_string(t->section, "name", &ret);
   return ret;
   }
+
+gavl_time_t bg_nle_track_duration(bg_nle_track_t * t)
+  {
+  if(!t->num_segments)
+    return 0;
+
+  return gavl_time_unscale(t->scale,
+                           t->segments[t->num_segments-1].dst_pos +
+                           t->segments[t->num_segments-1].len);
+  }

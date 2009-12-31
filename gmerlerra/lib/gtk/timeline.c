@@ -5,6 +5,7 @@
 
 #include <gmerlin/utils.h>
 #include <gmerlin/gui_gtk/gtkutils.h>
+#include <gmerlin/gui_gtk/display.h>
 #include <gmerlin/cfg_registry.h>
 
 #include <track.h>
@@ -50,6 +51,7 @@ struct bg_nle_timeline_s
   bg_nle_timerange_widget_t tr;
 
   bg_nle_time_info_t time_info;
+  int time_unit;
   };
 
 void bg_nle_timeline_set_motion_callback(bg_nle_timeline_t * t,
@@ -721,7 +723,28 @@ void bg_nle_timeline_outstreams_make_current(bg_nle_timeline_t * t)
     }
   }
 
-void bg_nle_timeline_set_display_parameter(bg_nle_timeline_t * t)
+void
+bg_nle_timeline_set_display_parameter(bg_nle_timeline_t * t, const char * name,
+                                      const bg_parameter_value_t * val)
   {
-  
+  if(bg_nle_set_time_unit(name, val, &t->time_unit))
+    {
+    //    int64_t time_cnv;
+    
+    if((t->time_unit == BG_GTK_DISPLAY_MODE_TIMECODE) &&
+       !t->time_info.fmt.int_framerate)
+      t->time_info.mode = BG_GTK_DISPLAY_MODE_HMSMS;
+    else
+      t->time_info.mode = t->time_unit;
+
+#if 0    
+    bg_nle_convert_time(w->last_display_time,
+                        &time_cnv,
+                        &w->time_info);
+    bg_gtk_time_display_update(w->display, time_cnv, w->time_info.mode);
+#endif
+    bg_nle_time_ruler_update_mode(t->ruler);
+    return;
+    }
+
   }
