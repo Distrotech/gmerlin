@@ -383,9 +383,11 @@ void * bg_nle_plugin_create(bg_nle_project_t * p,
   return ret;
   }
 
+static char const * const extensions = "gmprj";
+
 const char * bg_nle_plugin_get_extensions(void * priv)
   {
-  
+  return extensions;
   }
   
   
