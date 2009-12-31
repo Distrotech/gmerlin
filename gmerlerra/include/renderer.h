@@ -1,6 +1,7 @@
 #include <gavl/gavl.h>
 #include <gmerlin/parameter.h>
 #include <gmerlin/streaminfo.h>
+#include <gmerlin/bggavl.h>
 
 #include <project.h>
 
@@ -51,19 +52,17 @@ int bg_nle_renderer_instream_video_seek(bg_nle_renderer_instream_video_t *,
 typedef struct bg_nle_audio_compositor_s bg_nle_audio_compositor_t;
 
 bg_nle_audio_compositor_t *
-bg_nle_audio_compositor_create(bg_nle_outstream_t * s);
+bg_nle_audio_compositor_create(bg_nle_outstream_t * s, bg_gavl_audio_options_t * opt,
+                               const gavl_audio_format_t * format);
 
-void
-bg_nle_audio_compositor_init(bg_nle_audio_compositor_t * c,
-                             gavl_audio_format_t * format);
 
 void bg_nle_audio_compositor_clear(bg_nle_audio_compositor_t *);
 
 void bg_nle_audio_compositor_add_stream(bg_nle_audio_compositor_t *,
-                                        bg_nle_renderer_instream_audio_t * s);
+                                        bg_nle_renderer_instream_audio_t * s,
+                                        bg_nle_track_t * t);
 
-int bg_nle_audio_compositor_read(bg_nle_audio_compositor_t *,
-                                 gavl_audio_frame_t * ret,
+int bg_nle_audio_compositor_read(void * priv, gavl_audio_frame_t* frame, int stream,
                                  int num_samples);
 
 int bg_nle_audio_compositor_seek(bg_nle_audio_compositor_t *,
@@ -74,19 +73,17 @@ void bg_nle_audio_compositor_destroy(bg_nle_audio_compositor_t *);
 typedef struct bg_nle_video_compositor_s bg_nle_video_compositor_t;
 
 bg_nle_video_compositor_t *
-bg_nle_video_compositor_create(bg_nle_outstream_t * s);
-
-void
-bg_nle_video_compositor_init(bg_nle_video_compositor_t * c,
-                             gavl_video_format_t * format);
+bg_nle_video_compositor_create(bg_nle_outstream_t * s,
+                               bg_gavl_video_options_t * opt,
+                               const gavl_video_format_t * format, float * bg_color);
 
 void bg_nle_video_compositor_clear(bg_nle_video_compositor_t *);
 
 void bg_nle_video_compositor_add_stream(bg_nle_video_compositor_t *,
-                                        bg_nle_renderer_instream_video_t * s);
+                                        bg_nle_renderer_instream_video_t * s,
+                                        bg_nle_track_t * t);
 
-int bg_nle_video_compositor_read(bg_nle_video_compositor_t *,
-                                 gavl_video_frame_t * ret);
+int bg_nle_video_compositor_read(void * priv, gavl_video_frame_t* frame, int stream);
 
 int bg_nle_video_compositor_seek(bg_nle_video_compositor_t *,
                                  int64_t time);
@@ -101,15 +98,26 @@ typedef struct bg_nle_renderer_outstream_video_s bg_nle_renderer_outstream_video
 bg_nle_renderer_outstream_audio_t *
 bg_nle_renderer_outstream_audio_create(bg_nle_project_t * p,
                                        bg_nle_outstream_t * s,
-                                       const gavl_audio_options_t * opt);
+                                       const gavl_audio_options_t * opt,
+                                       gavl_audio_format_t * format);
 
 bg_nle_renderer_outstream_video_t *
 bg_nle_renderer_outstream_video_create(bg_nle_project_t * p,
                                        bg_nle_outstream_t * s,
-                                       const gavl_video_options_t * opt);
+                                       const gavl_video_options_t * opt,
+                                       gavl_video_format_t * format);
 
 void bg_nle_renderer_outstream_audio_destroy(bg_nle_renderer_outstream_audio_t *);
 void bg_nle_renderer_outstream_video_destroy(bg_nle_renderer_outstream_video_t *);
+
+void bg_nle_renderer_outstream_audio_add_istream(bg_nle_renderer_outstream_audio_t *,
+                                                 bg_nle_renderer_instream_audio_t * s,
+                                                 bg_nle_track_t * t);
+
+void bg_nle_renderer_outstream_video_add_istream(bg_nle_renderer_outstream_video_t *,
+                                                 bg_nle_renderer_instream_video_t * s,
+                                                 bg_nle_track_t * t);
+
 
 int bg_nle_renderer_outstream_video_read(bg_nle_renderer_outstream_video_t *,
                                          gavl_video_frame_t * ret);
@@ -189,7 +197,7 @@ int bg_nle_plugin_start(void * priv);
 gavl_frame_table_t * bg_nle_plugin_get_frame_table(void * priv, int stream);
 
 int bg_nle_plugin_read_audio(void * priv, gavl_audio_frame_t* frame, int stream,
-                      int num_samples);
+                             int num_samples);
 
 int bg_nle_plugin_read_video(void * priv, gavl_video_frame_t* frame, int stream);
 

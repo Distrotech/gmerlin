@@ -4,43 +4,32 @@
 struct bg_nle_video_compositor_s
   {
   int num_streams;
+  int streams_alloc;
   
   struct
     {
     gavl_video_frame_t * frame;
     gavl_video_converter_t * cnv;
-    int active;
     bg_nle_renderer_instream_video_t * s;
+    bg_nle_track_t * t;
     } * streams;
 
   gavl_video_format_t format;
-  float bg_color[4];
+  float * bg_color;
   bg_nle_outstream_t * os;
   int64_t pts;
+  bg_gavl_video_options_t * opt;
   };
 
-static void set_parameter(void * data, const char * name,
-                          const bg_parameter_value_t * val)
-  {
-  bg_nle_video_compositor_t * c = data;
-  if(!name)
-    return;
-  
-  //  if(bg_gavl_video_set_parameter(&c->opt, name, val))
-  //   return;
-  
-  if(!strcmp(name, "background"))
-    {
-    memcpy(c->bg_color, val->val_color, 4 * sizeof(float));
-    }
-  
-  }
-
 bg_nle_video_compositor_t *
-bg_nle_video_compositor_create(bg_nle_outstream_t * os)
+bg_nle_video_compositor_create(bg_nle_outstream_t * os, bg_gavl_video_options_t * opt,
+                               const gavl_video_format_t * format, float * bg_color)
   {
   bg_nle_video_compositor_t * ret = calloc(1, sizeof(*ret));
   ret->os = os;
+  ret->opt = opt;
+  gavl_video_format_copy(&ret->format, format);
+  ret->bg_color = bg_color;
   return ret;
   }
 
@@ -50,23 +39,26 @@ void bg_nle_video_compositor_clear(bg_nle_video_compositor_t * c)
   }
 
 void bg_nle_video_compositor_add_stream(bg_nle_video_compositor_t * c,
-                                        bg_nle_renderer_instream_video_t * s)
+                                        bg_nle_renderer_instream_video_t * s,
+                                        bg_nle_track_t * t)
   {
-  
+  if(c->num_streams+1 > c->streams_alloc)
+    {
+    c->streams_alloc += 10;
+    c->streams = realloc(c->streams,
+                         c->streams_alloc * sizeof(*c->streams));
+    memset(c->streams + c->num_streams, 0,
+           (c->streams_alloc - c->num_streams) * sizeof(*c->streams));
+    }
+  c->streams[c->num_streams].t = t;
+  c->streams[c->num_streams].s = s;
+  c->num_streams++;
   }
 
-void
-bg_nle_video_compositor_init(bg_nle_video_compositor_t * c,
-                             gavl_video_format_t * format)
-  {
-  /* Initialize format */
-  gavl_video_format_copy(format, &c->format);
-  
-  }
 
-int bg_nle_video_compositor_read(bg_nle_video_compositor_t * c,
-                                 gavl_video_frame_t * ret)
+int bg_nle_video_compositor_read(void * priv, gavl_video_frame_t* ret, int stream)
   {
+  bg_nle_video_compositor_t * c = priv;
   int i = c->num_streams;
 
   gavl_video_frame_fill(ret, &c->format, c->bg_color);

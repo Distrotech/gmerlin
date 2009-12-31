@@ -174,7 +174,8 @@ int bg_nle_renderer_set_audio_stream(bg_nle_renderer_t * r, int stream,
                                     stream);
     
     r->audio_streams[stream].s =
-      bg_nle_renderer_outstream_audio_create(r->p, os, r->aopt);
+      bg_nle_renderer_outstream_audio_create(r->p, os, r->aopt,
+                                             &r->info.audio_streams[stream].format);
     r->audio_streams[stream].os = os;
     }
   }
@@ -186,11 +187,12 @@ int bg_nle_renderer_set_video_stream(bg_nle_renderer_t * r, int stream,
     {
     bg_nle_outstream_t * os = 
       bg_nle_project_find_outstream(r->p,
-                                BG_NLE_TRACK_VIDEO,
-                                stream);
+                                    BG_NLE_TRACK_VIDEO,
+                                    stream);
     
     r->video_streams[stream].s =
-      bg_nle_renderer_outstream_video_create(r->p, os, r->vopt);
+      bg_nle_renderer_outstream_video_create(r->p, os, r->vopt,
+                                             &r->info.video_streams[stream].format);
     r->video_streams[stream].os = os;
     }
   }
@@ -208,50 +210,48 @@ int bg_nle_renderer_start(bg_nle_renderer_t * r)
       {
       for(k = 0; k < r->num_audio_istreams; k++)
         {
-        if(r->audio_istreams[i].t ==
-           r->audio_streams[i].os->source_tracks[i])
+        if(r->audio_istreams[k].t ==
+           r->audio_streams[i].os->source_tracks[j])
           {
-          if(!r->audio_istreams[i].s)
+          if(!r->audio_istreams[k].s)
             {
-            r->audio_istreams[i].s =
+            r->audio_istreams[k].s =
               bg_nle_renderer_instream_audio_create(r->p,
-                                                    r->audio_istreams[i].t,
+                                                    r->audio_istreams[k].t,
                                                     r->aopt);
             }
-          /* TODO: connect */
+          bg_nle_renderer_outstream_audio_add_istream(r->audio_streams[i].s,
+                                                      r->audio_istreams[k].s,
+                                                      r->audio_istreams[k].t);
           break;
           }
         }
       }
     }
 
-  for(i = 0; i < r->num_video_streams; i++)
+  for(j = 0; j < r->video_streams[i].os->num_source_tracks; j++)
     {
-    if(!r->video_streams[i].s)
-      continue;
-
-    /* Connect source tracks */
-    for(j = 0; j < r->video_streams[i].os->num_source_tracks; j++)
+    for(k = 0; k < r->num_video_istreams; k++)
       {
-      for(k = 0; k < r->num_video_istreams; k++)
+      if(r->video_istreams[k].t ==
+         r->video_streams[i].os->source_tracks[j])
         {
-        if(r->video_istreams[i].t ==
-           r->video_streams[i].os->source_tracks[i])
+        if(!r->video_istreams[k].s)
           {
-          if(!r->video_istreams[i].s)
-            {
-            r->video_istreams[i].s =
-              bg_nle_renderer_instream_video_create(r->p,
-                                                    r->video_istreams[i].t,
-                                                    r->vopt);
-            }
-          /* TODO: connect */
-          break;
+          r->video_istreams[k].s =
+            bg_nle_renderer_instream_video_create(r->p,
+                                                  r->video_istreams[k].t,
+                                                  r->vopt);
           }
+        bg_nle_renderer_outstream_video_add_istream(r->video_streams[i].s,
+                                                    r->video_istreams[k].s,
+                                                    r->video_istreams[k].t);
+        break;
         }
       }
     }
   }
+
 
 void bg_nle_renderer_destroy(bg_nle_renderer_t * r)
   {
