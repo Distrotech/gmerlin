@@ -121,6 +121,18 @@ struct bg_plugin_info_s
   };
 
 /** \ingroup plugin_registry
+ *  \brief Creation options for a plugin registry
+ *
+ 
+ */
+
+typedef struct
+  {
+  char ** blacklist; //!< Plugins, which should be ignored
+  int dont_save;            //!< If 1, don't save the registry after it was created
+  } bg_plugin_registry_options_t;
+
+/** \ingroup plugin_registry
  *  \brief Opaque handle for a plugin registry
  *
  *  You don't want to know, what's inside here.
@@ -176,6 +188,21 @@ struct bg_plugin_handle_s
 
 bg_plugin_registry_t *
 bg_plugin_registry_create(bg_cfg_section_t * section);
+
+/** \ingroup plugin_registry
+ * \brief Create a plugin registry with options
+ * \param section A configuration section
+ * \param opt The options structure
+ *
+ *  The configuration section will be owned exclusively
+ *  by the plugin registry, applications should not touch it.
+ */
+
+bg_plugin_registry_t *
+bg_plugin_registry_create_with_options(bg_cfg_section_t * section,
+                                       const bg_plugin_registry_options_t * opt);
+
+
 
 /** \ingroup plugin_registry
  * \brief Scan for pluggable devices

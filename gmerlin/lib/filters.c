@@ -66,11 +66,19 @@ struct bg_audio_filter_chain_s
   gavl_audio_format_t    in_format_1;
   gavl_audio_format_t    in_format_2;
   
+  gavl_audio_format_t    in_format;  /* Input format of first filter */
+  gavl_audio_format_t    out_format; /* Output format of chain */
+  
   pthread_mutex_t mutex;
   
   bg_read_audio_func_t in_func;
   void * in_data;
   int in_stream;
+
+  bg_read_audio_func_t read_func;
+  void * read_data;
+  int read_stream;
+  
   };
 
 int bg_audio_filter_chain_need_restart(bg_audio_filter_chain_t * ch)
@@ -294,6 +302,10 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
   if(ch->opt->force_format != GAVL_SAMPLE_NONE)
     format_1.sample_format = ch->opt->force_format;
   
+  ch->read_func   = ch->in_func;
+  ch->read_data   = ch->in_data;
+  ch->read_stream = ch->in_stream;
+  
   for(i = 0; i < ch->num_filters; i++)
     {
     gavl_audio_format_copy(&format_2, &format_1);
@@ -307,11 +319,75 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
       {
       f->do_convert =
         bg_audio_converter_init(f->cnv, in_format, &format_2);
+      gavl_audio_format_copy(&ch->in_format, &format_2);
       }
     else
       f->do_convert =
         bg_audio_converter_init(f->cnv, &format_1, &format_2);
     
+    if(f->do_convert)
+      {
+      bg_audio_converter_connect_input(f->cnv,
+                                       ch->read_func, ch->read_data, ch->read_stream);
+      
+      f->plugin->connect_input_port(f->handle->priv,
+                                    bg_audio_converter_read,
+                                    f->cnv, 0, 0);
+      }
+    else
+      f->plugin->connect_input_port(f->handle->priv, ch->read_func, ch->read_data,
+                                    ch->read_stream, 0);
+
+    ch->read_func   = f->plugin->read_audio;
+    ch->read_data   = f->handle->priv;
+    ch->read_stream = 0;
+    
+    //    if(f->plugin->init)
+    //      f->plugin->init(f->handle->priv);
+    f->plugin->get_output_format(f->handle->priv, &format_1);
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Initialized audio filter %s",
+           TRD(f->handle->info->long_name,
+               f->handle->info->gettext_domain));
+    f++;
+    }
+  gavl_audio_format_copy(out_format, &format_1);
+  gavl_audio_format_copy(&ch->out_format, &format_1);
+  
+  if(ch->num_filters)
+    gavl_audio_format_copy(&ch->out_format_1, &format_1);
+  else
+    gavl_audio_format_copy(&ch->out_format_1, in_format);
+  
+  return ch->num_filters;
+  }
+
+void bg_audio_filter_chain_set_input_format(bg_audio_filter_chain_t * ch,
+                                            const gavl_audio_format_t * format)
+  {
+  if(!ch->num_filters)
+    {
+    int do_convert_out;
+    
+    do_convert_out = bg_audio_converter_init(ch->cnv_out,
+                                             &ch->out_format_1,
+                                             &ch->out_format);
+    if(do_convert_out)
+      {
+      bg_audio_converter_connect_input(ch->cnv_out,
+                                       ch->in_func, ch->in_data, ch->in_stream);
+      ch->read_func   = bg_audio_converter_read;
+      ch->read_data   = ch->cnv_out;
+      ch->read_stream = 0;
+      }
+    }
+  else
+    {
+    audio_filter_t * f = ch->filters;
+
+    f->do_convert =
+      bg_audio_converter_init(f->cnv, format, &ch->in_format);
+
     if(f->do_convert)
       {
       bg_audio_converter_connect_input(f->cnv,
@@ -324,28 +400,7 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
     else
       f->plugin->connect_input_port(f->handle->priv, ch->in_func, ch->in_data,
                                     ch->in_stream, 0);
-
-    ch->in_func   = f->plugin->read_audio;
-    ch->in_data   = f->handle->priv;
-    ch->in_stream = 0;
-    
-    //    if(f->plugin->init)
-    //      f->plugin->init(f->handle->priv);
-    f->plugin->get_output_format(f->handle->priv, &format_1);
-
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Initialized audio filter %s",
-           TRD(f->handle->info->long_name,
-               f->handle->info->gettext_domain));
-    f++;
     }
-  gavl_audio_format_copy(out_format, &format_1);
-
-  if(ch->num_filters)
-    gavl_audio_format_copy(&ch->out_format_1, &format_1);
-  else
-    gavl_audio_format_copy(&ch->out_format_1, in_format);
-  
-  return ch->num_filters;
   }
 
 int bg_audio_filter_chain_set_out_format(bg_audio_filter_chain_t * ch,
@@ -359,12 +414,13 @@ int bg_audio_filter_chain_set_out_format(bg_audio_filter_chain_t * ch,
   if(do_convert_out)
     {
     bg_audio_converter_connect_input(ch->cnv_out,
-                                     ch->in_func, ch->in_data, ch->in_stream);
+                                     ch->read_func, ch->read_data, ch->read_stream);
     
-    ch->in_func   = bg_audio_converter_read;
-    ch->in_data   = ch->cnv_out;
-    ch->in_stream = 0;
+    ch->read_func   = bg_audio_converter_read;
+    ch->read_data   = ch->cnv_out;
+    ch->read_stream = 0;
     }
+  gavl_audio_format_copy(&ch->out_format, out_format);
   
   return do_convert_out;
   }
@@ -386,7 +442,7 @@ int bg_audio_filter_chain_read(void * priv, gavl_audio_frame_t* frame,
   ch = (bg_audio_filter_chain_t *)priv;
   
   bg_audio_filter_chain_lock(ch);
-  ret = ch->in_func(ch->in_data, frame, ch->in_stream, num_samples);
+  ret = ch->read_func(ch->read_data, frame, ch->read_stream, num_samples);
   bg_audio_filter_chain_unlock(ch);
   return ret;
   }
@@ -448,10 +504,17 @@ struct bg_video_filter_chain_s
   gavl_video_format_t  out_format_1;
   gavl_video_format_t  in_format_1;
   gavl_video_format_t  in_format_2;
+
+  gavl_video_format_t  out_format; /* Final output format */
+  gavl_video_format_t  in_format;  /* Input format of first filter */
   
   bg_read_video_func_t in_func;
   void * in_data;
   int in_stream;
+
+  bg_read_video_func_t read_func;
+  void * read_data;
+  int read_stream;
   
   pthread_mutex_t mutex;
   };
@@ -658,6 +721,9 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   gavl_video_format_copy(&ch->in_format_1, in_format);
   gavl_video_format_copy(&ch->in_format_2, &format_1);
 
+  ch->read_func   = ch->in_func;
+  ch->read_data   = ch->in_data;
+  ch->read_stream = ch->in_stream;
   
   for(i = 0; i < ch->num_filters; i++)
     {
@@ -675,6 +741,7 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
       {
       f->do_convert =
         bg_video_converter_init(f->cnv, in_format, &format_2);
+      gavl_video_format_copy(&ch->in_format, &format_2);
       }
     else
       f->do_convert =
@@ -682,18 +749,18 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
     
     if(f->do_convert)
       {
-      bg_video_converter_connect_input(f->cnv, ch->in_func, ch->in_data, ch->in_stream);
+      bg_video_converter_connect_input(f->cnv, ch->read_func, ch->read_data, ch->read_stream);
       
       f->plugin->connect_input_port(f->handle->priv,
                                     bg_video_converter_read, f->cnv, 0, 0);
       }
     else
       f->plugin->connect_input_port(f->handle->priv,
-                                    ch->in_func, ch->in_data, ch->in_stream, 0);
+                                    ch->read_func, ch->read_data, ch->read_stream, 0);
     
-    ch->in_func   = f->plugin->read_video;
-    ch->in_data   = f->handle->priv;
-    ch->in_stream = 0;
+    ch->read_func   = f->plugin->read_video;
+    ch->read_data   = f->handle->priv;
+    ch->read_stream = 0;
     
     //    if(f->plugin->init)
     //      f->plugin->init(f->handle->priv);
@@ -703,13 +770,54 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
            TRD(f->handle->info->long_name, f->handle->info->gettext_domain));
     f++;
     }
-  
+  gavl_video_format_copy(&ch->out_format, &format_1);
   gavl_video_format_copy(out_format, &format_1);
   if(ch->num_filters)
     gavl_video_format_copy(&ch->out_format_1, &format_1);
   else
     gavl_video_format_copy(&ch->out_format_1, in_format);
   return ch->num_filters;
+  }
+
+void bg_video_filter_chain_set_input_format(bg_video_filter_chain_t * ch,
+                                            const gavl_video_format_t * format)
+  {
+  if(!ch->num_filters)
+    {
+    int do_convert_out;
+    
+    do_convert_out = bg_video_converter_init(ch->cnv_out,
+                                             &ch->out_format_1,
+                                             &ch->out_format);
+    if(do_convert_out)
+      {
+      bg_video_converter_connect_input(ch->cnv_out,
+                                       ch->in_func, ch->in_data, ch->in_stream);
+      ch->read_func   = bg_video_converter_read;
+      ch->read_data   = ch->cnv_out;
+      ch->read_stream = 0;
+      }
+    }
+  else
+    {
+    video_filter_t * f = ch->filters;
+
+    f->do_convert =
+      bg_video_converter_init(f->cnv, format, &ch->in_format);
+
+    if(f->do_convert)
+      {
+      bg_video_converter_connect_input(f->cnv,
+                                       ch->in_func, ch->in_data, ch->in_stream);
+      
+      f->plugin->connect_input_port(f->handle->priv,
+                                    bg_video_converter_read,
+                                    f->cnv, 0, 0);
+      }
+    else
+      f->plugin->connect_input_port(f->handle->priv, ch->in_func, ch->in_data,
+                                    ch->in_stream, 0);
+    }
   }
 
 void bg_video_filter_chain_connect_input(bg_video_filter_chain_t * ch,
@@ -728,7 +836,7 @@ int bg_video_filter_chain_read(void * priv, gavl_video_frame_t* frame, int strea
   ch = (bg_video_filter_chain_t *)priv;
 
   bg_video_filter_chain_lock(ch);
-  ret = ch->in_func(ch->in_data, frame, ch->in_stream);
+  ret = ch->read_func(ch->read_data, frame, ch->read_stream);
   bg_video_filter_chain_unlock(ch);
   return ret;
   }
@@ -740,11 +848,12 @@ int bg_video_filter_chain_set_out_format(bg_video_filter_chain_t * ch,
   do_convert = bg_video_converter_init(ch->cnv_out, &ch->out_format_1, out_format);
   if(do_convert)
     {
-    bg_video_converter_connect_input(ch->cnv_out, ch->in_func, ch->in_data, ch->in_stream);
-    ch->in_func = bg_video_converter_read;
-    ch->in_data = ch->cnv_out;
-    ch->in_stream = 0;
+    bg_video_converter_connect_input(ch->cnv_out, ch->read_func, ch->read_data, ch->read_stream);
+    ch->read_func = bg_video_converter_read;
+    ch->read_data = ch->cnv_out;
+    ch->read_stream = 0;
     }
+  gavl_video_format_copy(&ch->out_format, out_format);
   return do_convert;
   }
 

@@ -389,7 +389,6 @@ void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)
   w->still_mode = 1;
   if(!w->still_frame)
     {
-    fprintf(stderr, "Create still frame\n");
     w->still_frame = bg_x11_window_create_frame(w);
     }
   gavl_video_frame_copy(&w->video_format, w->still_frame, f);
@@ -400,8 +399,7 @@ void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)
 void bg_x11_window_close_video(bg_x11_window_t * w)
   {
   int i;
-  fprintf(stderr, "Close video\n");
-
+  
   if(w->window_frame)
     {
     if(w->current_driver->driver->destroy_frame)
