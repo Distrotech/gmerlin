@@ -5,6 +5,9 @@
 
 #include <project.h>
 
+#define BG_NLE_OVERLAY_REPLACE 0
+#define BG_NLE_OVERLAY_BLEND   1
+
 typedef struct bg_nle_renderer_instream_audio_s
 bg_nle_renderer_instream_audio_t;
 
@@ -25,21 +28,28 @@ void bg_nle_renderer_instream_audio_destroy(bg_nle_renderer_instream_audio_t *);
 void bg_nle_renderer_instream_video_destroy(bg_nle_renderer_instream_video_t *);
 
 int
-bg_nle_renderer_instream_video_connect_output(bg_nle_renderer_instream_video_t *);
+bg_nle_renderer_instream_video_connect_output(bg_nle_renderer_instream_video_t *,
+                                              gavl_video_format_t * format,
+                                              int * overlay_mode);
+
+int
+bg_nle_renderer_instream_audio_connect_output(bg_nle_renderer_instream_audio_t *,
+                                              gavl_audio_format_t * format);
 
 int bg_nle_renderer_instream_video_request(bg_nle_renderer_instream_video_t *,
-                                           gavl_time_t time);
+                                           gavl_time_t time, int stream,
+                                           float * camera, float * projector);
 
 int bg_nle_renderer_instream_video_read(bg_nle_renderer_instream_video_t *,
-                                        gavl_video_frame_t * ret);
+                                        gavl_video_frame_t * ret, int stream);
 
 int bg_nle_renderer_instream_audio_request(bg_nle_renderer_instream_audio_t *,
                                            int64_t sample_position,
-                                           int num_samples);
+                                           int num_samples, int stream);
 
 int bg_nle_renderer_instream_audio_read(bg_nle_renderer_instream_audio_t *,
                                         gavl_audio_frame_t * ret,
-                                        int num_samples);
+                                        int num_samples, int stream);
 
 int bg_nle_renderer_instream_audio_seek(bg_nle_renderer_instream_audio_t *,
                                         int64_t time);

@@ -7,6 +7,7 @@ composite_audio.c \
 composite_video.c \
 editfuncs.c \
 editops.c \
+filecache.c \
 instream.c \
 medialist.c \
 medialist_xml.c \

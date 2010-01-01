@@ -12,6 +12,9 @@ struct bg_nle_audio_compositor_s
     gavl_audio_converter_t * cnv;
     bg_nle_renderer_instream_audio_t * s;
     bg_nle_track_t * t;
+
+    gavl_audio_format_t format;
+    int id;
     } * streams;
   bg_nle_outstream_t * os;
   bg_gavl_audio_options_t * opt;
@@ -49,6 +52,12 @@ void bg_nle_audio_compositor_add_stream(bg_nle_audio_compositor_t * c,
     }
   c->streams[c->num_streams].t = t;
   c->streams[c->num_streams].s = s;
+
+  c->streams[c->num_streams].id =
+    bg_nle_renderer_instream_audio_connect_output(s,
+                                                  &c->streams[c->num_streams].format);
+
+
   c->num_streams++;
   }
 

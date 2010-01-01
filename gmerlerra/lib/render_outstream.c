@@ -187,6 +187,7 @@ bg_nle_renderer_outstream_audio_seek(bg_nle_renderer_outstream_audio_t * s,
                                      int64_t time)
   {
   bg_nle_audio_compositor_seek(s->ac, time);
+  bg_audio_filter_chain_reset(s->fc);
   }
 
 void
@@ -194,6 +195,7 @@ bg_nle_renderer_outstream_video_seek(bg_nle_renderer_outstream_video_t * s,
                                      int64_t time)
   {
   bg_nle_video_compositor_seek(s->vc, time);
+  bg_video_filter_chain_reset(s->fc);
   }
 
 

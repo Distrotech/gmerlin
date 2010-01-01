@@ -45,6 +45,15 @@ const bg_parameter_info_t bg_nle_performance_parameters[] =
       .val_max     = { .val_i = GAVL_QUALITY_BEST    },
       .val_default = { .val_i = GAVL_QUALITY_BEST },
     },
+    {
+      .name        = "max_file_cache",
+      .long_name   = TRS("File cache"),
+      .type        = BG_PARAMETER_INT,
+      .val_min     = { .val_i = 0 },
+      .val_max     = { .val_i = 1000 },
+      .val_default = { .val_i = 10 },
+      .help_string = TRS("Number of media files to keep open during rendering"),
+    },
     { /* */ },
   };
 
