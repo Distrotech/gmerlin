@@ -1,1 +1,1 @@
-SUBDIRS = include lib tests m4 apps icons
+SUBDIRS = include lib tests m4 apps icons plugins

@@ -110,6 +110,7 @@ apps/Makefile \
 icons/Makefile \
 lib/Makefile \
 lib/gtk/Makefile \
+plugins/Makefile \
 m4/Makefile \
 tests/Makefile \
 ])

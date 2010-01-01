@@ -174,6 +174,13 @@ void bg_nle_renderer_set_parameter(void * data, const char * name,
 
 const char * bg_nle_plugin_get_extensions(void * priv);
 
+const bg_parameter_info_t *
+bg_nle_plugin_get_parameters(void*);
+
+void bg_nle_plugin_set_parameter(void * data, const char * name,
+                                 const bg_parameter_value_t * val);
+
+
 void bg_nle_plugin_set_callbacks(void * priv, bg_input_callbacks_t * callbacks);
   
 int bg_nle_plugin_open(void * priv, const char * arg);

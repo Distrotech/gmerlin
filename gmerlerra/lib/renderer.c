@@ -178,6 +178,7 @@ int bg_nle_renderer_set_audio_stream(bg_nle_renderer_t * r, int stream,
                                              &r->info.audio_streams[stream].format);
     r->audio_streams[stream].os = os;
     }
+  return 1;
   }
 
 int bg_nle_renderer_set_video_stream(bg_nle_renderer_t * r, int stream,
@@ -195,6 +196,7 @@ int bg_nle_renderer_set_video_stream(bg_nle_renderer_t * r, int stream,
                                              &r->info.video_streams[stream].format);
     r->video_streams[stream].os = os;
     }
+  return 1;
   }
 
 int bg_nle_renderer_start(bg_nle_renderer_t * r)
@@ -250,6 +252,7 @@ int bg_nle_renderer_start(bg_nle_renderer_t * r)
         }
       }
     }
+  return 1;
   }
 
 
@@ -339,6 +342,19 @@ typedef struct
   
   } bg_nle_plugin_t;
 
+const bg_parameter_info_t *
+bg_nle_plugin_get_parameters(void* priv)
+  {
+  bg_nle_plugin_t * p = priv;
+  return bg_nle_renderer_get_parameters(p->renderer);
+  }
+
+void bg_nle_plugin_set_parameter(void * priv, const char * name,
+                                 const bg_parameter_value_t * val)
+  {
+  bg_nle_plugin_t * p = priv;
+  bg_nle_renderer_set_parameter(p->renderer, name, val);
+  }
 
 void bg_nle_plugin_destroy(void * priv)
   {
@@ -365,13 +381,18 @@ void * bg_nle_plugin_create(bg_nle_project_t * p,
     {
     char * tmp_path;
     bg_cfg_section_t * cfg_section;
+    bg_plugin_registry_options_t opt;
+    memset(&opt, 0, sizeof(opt));
+    opt.dont_save = 1;
+    opt.blacklist = (char*[]){ "i_gmerlerra", NULL };
+    
     ret->cfg_reg = bg_cfg_registry_create();
     tmp_path = bg_search_file_read("gmerlerra", "config.xml");
     bg_cfg_registry_load(ret->cfg_reg, tmp_path);
     if(tmp_path)
       free(tmp_path);
     cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "plugins");
-    ret->plugin_reg_priv = bg_plugin_registry_create(cfg_section);
+    ret->plugin_reg_priv = bg_plugin_registry_create_with_options(cfg_section, &opt);
     ret->plugin_reg = ret->plugin_reg_priv;
     }
 
@@ -436,15 +457,14 @@ int bg_nle_plugin_set_audio_stream(void * priv, int stream,
                                    bg_stream_action_t action)
   {
   bg_nle_plugin_t * p = priv;
-  bg_nle_renderer_set_audio_stream(p->renderer, stream, action);
+  return bg_nle_renderer_set_audio_stream(p->renderer, stream, action);
   }
 
 int bg_nle_plugin_set_video_stream(void * priv, int stream,
                                    bg_stream_action_t action)
   {
   bg_nle_plugin_t * p = priv;
-  bg_nle_renderer_set_video_stream(p->renderer, stream, action);
-  
+  return bg_nle_renderer_set_video_stream(p->renderer, stream, action);
   }
   
 #if 0
@@ -465,7 +485,7 @@ int bg_nle_plugin_start(void * priv)
 gavl_frame_table_t * bg_nle_plugin_get_frame_table(void * priv, int stream)
   {
   bg_nle_plugin_t * p = priv;
-
+  return NULL;
   }
 
 int bg_nle_plugin_read_audio(void * priv, gavl_audio_frame_t* frame, int stream,
