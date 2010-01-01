@@ -12,6 +12,7 @@ struct bg_nle_renderer_instream_audio_s
   bg_gavl_audio_options_t opt;
 
   int num_outputs;
+  bg_nle_file_cache_t * c;
   };
 
 struct bg_nle_renderer_instream_video_s
@@ -24,18 +25,20 @@ struct bg_nle_renderer_instream_video_s
   int overlay_mode;
 
   int num_outputs;
+  bg_nle_file_cache_t * c;
   };
 
 
 bg_nle_renderer_instream_audio_t *
 bg_nle_renderer_instream_audio_create(bg_nle_project_t * p,
                                       bg_nle_track_t * t,
-                                      const gavl_audio_options_t * opt)
+                                      const gavl_audio_options_t * opt, bg_nle_file_cache_t * c)
   {
   bg_nle_renderer_instream_audio_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->p = p;
   ret->t = t;
+  ret->c = c;
   bg_gavl_audio_options_init(&ret->opt);
   gavl_audio_options_copy(ret->opt.opt, opt);
   
@@ -45,12 +48,14 @@ bg_nle_renderer_instream_audio_create(bg_nle_project_t * p,
 bg_nle_renderer_instream_video_t *
 bg_nle_renderer_instream_video_create(bg_nle_project_t * p,
                                       bg_nle_track_t * t,
-                                      const gavl_video_options_t * opt)
+                                      const gavl_video_options_t * opt,
+                                      bg_nle_file_cache_t * c)
   {
   bg_nle_renderer_instream_video_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->p = p;
   ret->t = t;
+  ret->c = c;
   bg_gavl_video_options_init(&ret->opt);
   gavl_video_options_copy(ret->opt.opt, opt);
   

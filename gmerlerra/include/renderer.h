@@ -3,7 +3,7 @@
 #include <gmerlin/streaminfo.h>
 #include <gmerlin/bggavl.h>
 
-#include <project.h>
+#include <filecache.h>
 
 #define BG_NLE_OVERLAY_REPLACE 0
 #define BG_NLE_OVERLAY_BLEND   1
@@ -17,12 +17,14 @@ bg_nle_renderer_instream_video_t;
 bg_nle_renderer_instream_audio_t *
 bg_nle_renderer_instream_audio_create(bg_nle_project_t * p,
                                       bg_nle_track_t * t,
-                                      const gavl_audio_options_t * opt);
+                                      const gavl_audio_options_t * opt,
+                                      bg_nle_file_cache_t * c);
 
 bg_nle_renderer_instream_video_t *
 bg_nle_renderer_instream_video_create(bg_nle_project_t * p,
                                       bg_nle_track_t * t,
-                                      const gavl_video_options_t * opt);
+                                      const gavl_video_options_t * opt,
+                                      bg_nle_file_cache_t * c);
 
 void bg_nle_renderer_instream_audio_destroy(bg_nle_renderer_instream_audio_t *);
 void bg_nle_renderer_instream_video_destroy(bg_nle_renderer_instream_video_t *);

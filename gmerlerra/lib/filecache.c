@@ -182,7 +182,6 @@ void bg_nle_file_cache_unload(bg_nle_file_cache_t * c, bg_nle_file_handle_t * h)
     }
   }
 
-
 void bg_nle_file_cache_destroy(bg_nle_file_cache_t * c)
   {
   bg_nle_file_handle_t * tmp;

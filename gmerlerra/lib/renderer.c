@@ -47,6 +47,8 @@ struct bg_nle_renderer_s
 
   gavl_audio_options_t * aopt;
   gavl_video_options_t * vopt;
+
+  bg_nle_file_cache_t * file_cache;
   
   };
 
@@ -57,7 +59,7 @@ bg_nle_renderer_t * bg_nle_renderer_create(bg_plugin_registry_t * plugin_reg)
 
   ret->aopt = gavl_audio_options_create();
   ret->vopt = gavl_video_options_create();
-
+  
   return ret;
   }
 
@@ -72,7 +74,9 @@ int bg_nle_renderer_open(bg_nle_renderer_t * r, bg_nle_project_t * p)
   int test_duration;
   
   r->p = p;
-
+  
+  r->file_cache = bg_nle_file_cache_create(r->p);
+  
   /* Cleanup from previous playback */
   
   /* Apply parameters */
@@ -220,7 +224,7 @@ int bg_nle_renderer_start(bg_nle_renderer_t * r)
             r->audio_istreams[k].s =
               bg_nle_renderer_instream_audio_create(r->p,
                                                     r->audio_istreams[k].t,
-                                                    r->aopt);
+                                                    r->aopt, r->file_cache);
             }
           bg_nle_renderer_outstream_audio_add_istream(r->audio_streams[i].s,
                                                       r->audio_istreams[k].s,
@@ -243,7 +247,7 @@ int bg_nle_renderer_start(bg_nle_renderer_t * r)
           r->video_istreams[k].s =
             bg_nle_renderer_instream_video_create(r->p,
                                                   r->video_istreams[k].t,
-                                                  r->vopt);
+                                                  r->vopt, r->file_cache);
           }
         bg_nle_renderer_outstream_video_add_istream(r->video_streams[i].s,
                                                     r->video_istreams[k].s,
