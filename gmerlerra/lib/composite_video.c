@@ -52,7 +52,6 @@ struct bg_nle_video_compositor_s
   bg_gavl_video_options_t * opt;
   };
 
-
 bg_nle_video_compositor_t *
 bg_nle_video_compositor_create(bg_nle_outstream_t * os, bg_gavl_video_options_t * opt,
                                const gavl_video_format_t * format, float * bg_color)
@@ -152,11 +151,8 @@ void bg_nle_video_compositor_add_stream(bg_nle_video_compositor_t * c,
       s->blend_context = gavl_overlay_blend_context_create();
       gavl_video_format_copy(&s->composite_format, &c->format);
       s->composite_format.pixelformat = s->src_format.pixelformat;
-        
-
       gavl_video_options_copy(gavl_overlay_blend_context_get_options(s->blend_context),
                               c->opt->opt);
-      
       gavl_overlay_blend_context_init(s->blend_context, &c->format, &s->composite_format);
       break;
     }

@@ -66,7 +66,22 @@ Blend: Do Porter & Duff alpha blending\n\
 Replace: Replace output pixels by track pixels\n\
 For tracks without alpha channel blend is the same as replace"), \
   }
-    
+
+#define PARAM_OVERLAY_MODE_AUDIO \
+  { \
+  .name = "overlay_mode", \
+  .long_name = TRS("Overlay mode"), \
+  .type = BG_PARAMETER_STRINGLIST, \
+  .multi_names = (char const *[]) { "replace", "add", (char*)0 }, \
+  .multi_labels = (char const *[]) { TRS("Replace"), TRS("Add"), (char*)0 }, \
+  .val_default = { .val_str = "add" }, \
+  .help_string = TRS("Set the overlay mode for this track\n\
+Replace: Replace output samples by track samples\n\
+Add: Add track samples to output samples\n\
+For tracks without alpha channel blend is the same as replace"), \
+  }
+
+
 const bg_parameter_info_t bg_nle_track_video_parameters[] =
   {
     PARAM_GENERAL,

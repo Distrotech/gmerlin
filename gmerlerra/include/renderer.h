@@ -7,6 +7,7 @@
 
 #define BG_NLE_OVERLAY_REPLACE 0
 #define BG_NLE_OVERLAY_BLEND   1
+#define BG_NLE_OVERLAY_ADD     2
 
 typedef struct bg_nle_renderer_instream_audio_s
 bg_nle_renderer_instream_audio_t;
@@ -36,7 +37,8 @@ bg_nle_renderer_instream_video_connect_output(bg_nle_renderer_instream_video_t *
 
 int
 bg_nle_renderer_instream_audio_connect_output(bg_nle_renderer_instream_audio_t *,
-                                              gavl_audio_format_t * format, int scale);
+                                              gavl_audio_format_t * format,
+                                              int * overlay_mode, int scale);
 
 int bg_nle_renderer_instream_video_request(bg_nle_renderer_instream_video_t *,
                                            int64_t time, int64_t duration,
@@ -52,7 +54,7 @@ int bg_nle_renderer_instream_audio_request(bg_nle_renderer_instream_audio_t *,
 
 int bg_nle_renderer_instream_audio_read(bg_nle_renderer_instream_audio_t *,
                                         gavl_audio_frame_t * ret,
-                                        int num_samples, int stream);
+                                        int stream);
 
 int bg_nle_renderer_instream_audio_seek(bg_nle_renderer_instream_audio_t *,
                                         int64_t time);

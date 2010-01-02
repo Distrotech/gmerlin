@@ -221,7 +221,7 @@ int bg_nle_renderer_start(bg_nle_renderer_t * r)
         if(r->audio_istreams[k].t ==
            r->audio_streams[i].os->source_tracks[j])
           {
-          if(!r->audio_istreams[k].s)
+          if(!r->audio_istreams[k].s && r->audio_istreams[k].t->num_segments)
             {
             r->audio_istreams[k].s =
               bg_nle_renderer_instream_audio_create(r->p,
@@ -244,7 +244,7 @@ int bg_nle_renderer_start(bg_nle_renderer_t * r)
       if(r->video_istreams[k].t ==
          r->video_streams[i].os->source_tracks[j])
         {
-        if(!r->video_istreams[k].s)
+        if(!r->video_istreams[k].s && r->video_istreams[k].t->num_segments)
           {
           r->video_istreams[k].s =
             bg_nle_renderer_instream_video_create(r->p,

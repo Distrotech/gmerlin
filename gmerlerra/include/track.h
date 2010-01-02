@@ -10,7 +10,7 @@
 
 typedef struct
   {
-  int scale;
+  int scale; /* Source scale */
   
   int64_t src_pos; /* In source scale */
   int64_t dst_pos; /* In track scale */
