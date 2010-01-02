@@ -135,7 +135,7 @@ void bg_nle_video_compositor_add_stream(bg_nle_video_compositor_t * c,
   s->id =
     bg_nle_renderer_instream_video_connect_output(is,
                                                   &s->src_format,
-                                                  &s->overlay_mode);
+                                                  &s->overlay_mode, c->format.timescale);
   
   if(!gavl_pixelformat_has_alpha(s->src_format.pixelformat) &&
      s->overlay_mode == BG_NLE_OVERLAY_BLEND)
@@ -179,14 +179,13 @@ static void set_rectangle(float * values, gavl_rectangle_f_t * ret,
   
 int bg_nle_video_compositor_read(void * priv, gavl_video_frame_t* ret, int stream)
   {
-  gavl_time_t pts_unscaled;
+
   bg_nle_video_compositor_t * c = priv;
   int j;
   int i = c->num_streams;
   
   stream_t * s;
   
-  pts_unscaled = gavl_time_unscale(c->format.timescale, c->pts);
   gavl_video_frame_fill(ret, &c->format, c->bg_color);
   
   while(--i)
@@ -194,7 +193,8 @@ int bg_nle_video_compositor_read(void * priv, gavl_video_frame_t* ret, int strea
     s = &c->streams[i];
     
     if(!bg_nle_renderer_instream_video_request(s->s,
-                                               pts_unscaled, s->id, s->camera, s->projector))
+                                               c->pts, c->format.frame_duration,
+                                               s->id, s->camera, s->projector))
       continue;
     
     /* Check if the rectangles changed */

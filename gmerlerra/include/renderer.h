@@ -32,22 +32,23 @@ void bg_nle_renderer_instream_video_destroy(bg_nle_renderer_instream_video_t *);
 int
 bg_nle_renderer_instream_video_connect_output(bg_nle_renderer_instream_video_t *,
                                               gavl_video_format_t * format,
-                                              int * overlay_mode);
+                                              int * overlay_mode, int scale);
 
 int
 bg_nle_renderer_instream_audio_connect_output(bg_nle_renderer_instream_audio_t *,
-                                              gavl_audio_format_t * format);
+                                              gavl_audio_format_t * format, int scale);
 
 int bg_nle_renderer_instream_video_request(bg_nle_renderer_instream_video_t *,
-                                           gavl_time_t time, int stream,
+                                           int64_t time, int64_t duration,
+                                           int stream,
                                            float * camera, float * projector);
 
 int bg_nle_renderer_instream_video_read(bg_nle_renderer_instream_video_t *,
                                         gavl_video_frame_t * ret, int stream);
 
 int bg_nle_renderer_instream_audio_request(bg_nle_renderer_instream_audio_t *,
-                                           int64_t sample_position,
-                                           int num_samples, int stream);
+                                           int64_t time, int64_t duration,
+                                           int stream);
 
 int bg_nle_renderer_instream_audio_read(bg_nle_renderer_instream_audio_t *,
                                         gavl_audio_frame_t * ret,

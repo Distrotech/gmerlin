@@ -55,9 +55,9 @@ void bg_nle_audio_compositor_add_stream(bg_nle_audio_compositor_t * c,
 
   c->streams[c->num_streams].id =
     bg_nle_renderer_instream_audio_connect_output(s,
-                                                  &c->streams[c->num_streams].format);
-
-
+                                                  &c->streams[c->num_streams].format,
+                                                  c->format.samplerate);
+  
   c->num_streams++;
   }
 

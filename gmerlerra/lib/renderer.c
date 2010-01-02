@@ -78,6 +78,8 @@ int bg_nle_renderer_open(bg_nle_renderer_t * r, bg_nle_project_t * p)
   r->file_cache = bg_nle_file_cache_create(r->p);
   
   /* Cleanup from previous playback */
+
+  cleanup_renderer(r);
   
   /* Apply parameters */
   
