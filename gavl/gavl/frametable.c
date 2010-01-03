@@ -528,14 +528,29 @@ int gavl_frame_table_save(const gavl_frame_table_t * tab,
   
   }
 
+
+
+/** \brief Create a frame table for an audio stream
+ *  \param tab A frame table
+ *  \param samplerate Samplerate for this stream
+ *  \param offset PTS offset of this stream in samples
+ *  \param duration Sample count
+ *  \param fmt_ret If non-null, returns the timecode format
+ *  \returns A newly allocated frame table
+ *
+ * Since 1.1.2.
+ */
+
 GAVL_PUBLIC gavl_frame_table_t *
 gavl_frame_table_create_audio(int samplerate, int64_t offset, int64_t duration,
                               gavl_timecode_format_t * fmt_ret)
   {
   int64_t num;
   int samples_per_frame;
+  
   gavl_frame_table_t * ret = gavl_frame_table_create();
-
+  
+  ret->offset = offset;
   if(fmt_ret)
     {
     memset(fmt_ret, 0, sizeof(*fmt_ret));
@@ -587,6 +602,71 @@ gavl_frame_table_create_audio(int samplerate, int64_t offset, int64_t duration,
         break;
       last_count = count;
       }
+    }
+  return ret;
+  }
+
+/** \brief Set a frame table for constant framerate video
+ *  \param tab A frame table
+ *  \param offset Timestamp of the first frame
+ *  \param duration Duration of each frame
+ *  \param num_frames Number of frames
+ *  \param fmt Timecode format (or NULL)
+ *  \param start_timecode Timecode of the first frame (or GAVL_TIMECODE_UNDEFINED)
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC gavl_frame_table_t *
+gavl_frame_table_create_cfr(int64_t offset, int64_t frame_duration,
+                            int64_t num_frames,
+                            gavl_timecode_t start_timecode)
+  {
+  gavl_frame_table_t * ret = gavl_frame_table_create();
+  ret->offset = offset;
+  
+  /* Make frames */
+  ret->entries_alloc = 1;
+  ret->entries = calloc(ret->entries_alloc, sizeof(*ret->entries));
+  ret->entries[0].duration = frame_duration;
+  ret->entries[0].num_frames = num_frames;
+  ret->num_entries = 1;
+
+  /* Make timecodes */
+  if(start_timecode == GAVL_TIMECODE_UNDEFINED)
+    {
+    ret->timecodes_alloc = 1;
+    ret->timecodes = calloc(ret->timecodes_alloc, sizeof(*ret->timecodes));
+    ret->timecodes[0].pts = 0;
+    ret->timecodes[0].tc = start_timecode;
+    ret->num_timecodes = 1;
+    }
+  return ret;
+  }
+  
+/** \brief Copy a frame table to another
+ *  \param tab A frame table
+ *  \returns A newly allocated copy
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC gavl_frame_table_t *
+gavl_frame_table_copy(const gavl_frame_table_t * tab)
+  {
+  gavl_frame_table_t * ret = malloc(sizeof(*ret));
+  memcpy(ret, tab, sizeof(*ret));
+
+  if(tab->num_entries)
+    {
+    ret->entries = malloc(tab->num_entries * sizeof(*ret->entries));
+    memcpy(ret->entries, tab->entries, tab->num_entries * sizeof(*ret->entries));
+    }
+  
+  if(tab->num_timecodes)
+    {
+    ret->timecodes = malloc(tab->num_timecodes * sizeof(*ret->timecodes));
+    memcpy(ret->timecodes, tab->timecodes, tab->num_timecodes * sizeof(*ret->timecodes));
     }
   return ret;
   }

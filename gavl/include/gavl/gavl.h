@@ -3635,6 +3635,33 @@ GAVL_PUBLIC gavl_frame_table_t *
 gavl_frame_table_create_audio(int samplerate, int64_t offset, int64_t duration,
                               gavl_timecode_format_t * fmt_ret);
 
+/** \brief Create a frame table for constant framerate video
+ *  \param offset Timestamp of the first frame
+ *  \param duration Duration of each frame
+ *  \param num_frames Number of frames
+ *  \param fmt Timecode format (or NULL)
+ *  \param start_timecode Timecode of the first frame (or GAVL_TIMECODE_UNDEFINED)
+ *  \returns A newly allocated frame table
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC gavl_frame_table_t *
+gavl_frame_table_create_cfr(int64_t offset, int64_t frame_duration,
+                            int64_t num_frames,
+                            gavl_timecode_t start_timecode);
+  
+/** \brief Copy a frame table to another
+ *  \param tab A frame table
+ *  \returns A newly allocated copy
+ *
+ * Since 1.1.2.
+ */
+
+GAVL_PUBLIC gavl_frame_table_t *
+gavl_frame_table_copy(const gavl_frame_table_t * tab);
+
+
   
 /** \brief Destroy a frame table and free all memory
  *  \param t A frame table
