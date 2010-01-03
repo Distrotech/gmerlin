@@ -100,6 +100,8 @@ bg_nle_file_handle_t * bg_nle_file_cache_load(bg_nle_file_cache_t * c,
   
   h = calloc(1, sizeof(*h));
 
+  
+  
   for(i = 0; i < c->p->media_list->num_files; i++)
     {
     if(c->p->media_list->files[i]->id == id)

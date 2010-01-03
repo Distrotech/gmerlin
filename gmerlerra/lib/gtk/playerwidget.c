@@ -9,7 +9,6 @@
 #include <gmerlin/gui_gtk/audio.h>
 #include <gmerlin/gui_gtk/display.h>
 
-
 #include <types.h>
 
 #include <gui_gtk/timerange.h>
@@ -76,6 +75,8 @@ struct bg_nle_player_widget_s
   int time_unit;
 
   gavl_time_t last_frame_time;
+
+  bg_nle_project_t * p;
   };
 
 static void handle_player_message(bg_nle_player_widget_t * w,
@@ -158,6 +159,30 @@ static void bg_nle_player_set_ov_plugin(bg_nle_player_widget_t * w,
   bg_player_set_ov_plugin(w->player, w->ov_handle);
   }
 
+static void copy_to_clipboard(bg_nle_player_widget_t * p)
+  {
+  if(!p->file)
+    return;
+  
+  if(p->p) /* Nothing for now */
+    {
+    
+    }
+  else
+    {
+    bg_nle_time_range_t * r;
+    if(p->tr.selection.end > 0)
+      r = &p->tr.selection;
+    else if(p->tr.in_out.end > 0)
+      r = &p->tr.in_out;
+    else
+      r = &p->tr.media_time;
+
+    
+    
+    }
+  }
+
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -226,6 +251,10 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(!p->file)
       return;
     bg_nle_time_ruler_label_backward(p->ruler);
+    }
+  else if(w == p->copy_button)
+    {
+    fprintf(stderr, "Copy\n");
     }
   }
 
@@ -741,9 +770,10 @@ GtkWidget * bg_nle_player_widget_get_widget(bg_nle_player_widget_t * w)
 
 void bg_nle_player_set_track(bg_nle_player_widget_t * w,
                              bg_plugin_handle_t * input_plugin,
-                             bg_nle_file_t * file)
+                             bg_nle_file_t * file, bg_nle_project_t * p)
   {
   w->file = file;
+  w->p = p;
   bg_player_play(w->player, input_plugin,
                  file->track, BG_PLAY_FLAG_INIT_THEN_PAUSE, file->name);
   }

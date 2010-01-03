@@ -229,6 +229,28 @@ bg_nle_file_t *
 bg_nle_media_list_find_file(bg_nle_media_list_t * list,
                             const char * filename, int track)
   {
+  int i;
+
+  for(i = 0; i < list->num_files; i++)
+    {
+    if(!strcmp(list->files[i]->name, filename) &&
+       list->files[i]->track == track)
+      return list->files[i];
+    }
+  return NULL;
+  }
+
+bg_nle_file_t *
+bg_nle_media_list_find_file_by_id(bg_nle_media_list_t * list, bg_nle_id_t id)
+  {
+  int i;
+  
+  for(i = 0; i < list->num_files; i++)
+    {
+    if(list->files[i]->id == id)
+      return list->files[i];
+    }
+  
   return NULL;
   }
 
@@ -255,6 +277,45 @@ void bg_nle_file_destroy(bg_nle_file_t * file)
   free(file);
   }
 
+#define COPY_STRING(s) ret->s = bg_strdup(NULL, file->s)
+
+bg_nle_file_t * bg_nle_file_copy(const bg_nle_file_t * file)
+  {
+  int i;
+  bg_nle_file_t * ret = calloc(1, sizeof(*ret));
+  memcpy(ret, file, sizeof(*file));
+
+  COPY_STRING(name);
+  COPY_STRING(filename);
+  COPY_STRING(cache_dir);
+  ret->section = bg_cfg_section_copy(file->section);
+
+  if(ret->num_audio_streams)
+    {
+    ret->audio_streams = malloc(ret->num_audio_streams *
+                                sizeof(*ret->audio_streams));
+    memcpy(ret->audio_streams, file->audio_streams,
+           ret->num_audio_streams * sizeof(*ret->audio_streams));
+    }
+  if(ret->num_video_streams)
+    {
+    ret->audio_streams = malloc(ret->num_audio_streams *
+                                sizeof(*ret->audio_streams));
+    memcpy(ret->audio_streams, file->audio_streams,
+           ret->num_audio_streams * sizeof(*ret->audio_streams));
+    for(i = 0; i < ret->num_video_streams; i++)
+      {
+      if(file->video_streams[i].frametable)
+        ret->video_streams[i].frametable =
+          gavl_frame_table_copy(file->video_streams[i].frametable);
+      }
+    }
+  
+  ret->name = bg_strdup(NULL, file->name);
+  return ret;
+  }
+
+
 void bg_nle_media_list_destroy(bg_nle_media_list_t * list)
   {
   int i;
@@ -264,7 +325,6 @@ void bg_nle_media_list_destroy(bg_nle_media_list_t * list)
     free(list->files);
   free(list);
   }
-
 
 bg_plugin_handle_t * bg_nle_media_list_open_file(bg_nle_media_list_t * list,
                                                  bg_nle_file_t * file)

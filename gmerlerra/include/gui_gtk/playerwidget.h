@@ -13,7 +13,7 @@ GtkWidget * bg_nle_player_widget_get_widget(bg_nle_player_widget_t *);
 
 void bg_nle_player_set_track(bg_nle_player_widget_t * w,
                              bg_plugin_handle_t * input_plugin,
-                             bg_nle_file_t * file);
+                             bg_nle_file_t * file, bg_nle_project_t * p);
 
 void bg_nle_player_set_oa_parameter(void * data,
                                     const char * name, const bg_parameter_value_t * val);

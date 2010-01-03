@@ -137,7 +137,13 @@ bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
             ret->segments[i].stream = strtol(tmp_string, (char**)0, 10);
             free(tmp_string);
             }
-
+          if((tmp_string = BG_XML_GET_PROP(node, "file_id")))
+            {
+            ret->segments[i].file_id = strtol(tmp_string, (char**)0, 10);
+            free(tmp_string);
+            
+            }
+          
           i++;
           }
         }

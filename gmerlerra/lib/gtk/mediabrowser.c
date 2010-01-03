@@ -187,8 +187,7 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
       file = iter_to_file(b, &iter);
       handle = bg_nle_media_list_open_file(b->list, file);
       
-      bg_nle_player_set_track(b->player,
-                              handle, file);
+      bg_nle_player_set_track(b->player, handle, file, NULL);
       bg_plugin_unref(handle);
       }
     

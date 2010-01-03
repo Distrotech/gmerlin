@@ -16,7 +16,6 @@ typedef struct
   {
   int timescale;
   gavl_frame_table_t * frametable;
-  char * frametable_file;
   
   gavl_timecode_format_t tc_format;
 
@@ -49,6 +48,7 @@ typedef struct
   } bg_nle_file_t;
 
 void bg_nle_file_destroy(bg_nle_file_t * file);
+bg_nle_file_t * bg_nle_file_copy(const bg_nle_file_t * file);
 
 typedef struct
   {
@@ -73,6 +73,10 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
 bg_nle_file_t *
 bg_nle_media_list_find_file(bg_nle_media_list_t * list,
                             const char * filename, int track);
+
+bg_nle_file_t *
+bg_nle_media_list_find_file_by_id(bg_nle_media_list_t * list, bg_nle_id_t id);
+
 
 void bg_nle_media_list_destroy(bg_nle_media_list_t * list);
 

@@ -3,6 +3,7 @@ SUBDIRS = gtk
 noinst_LTLIBRARIES = libgmerlerra.la
 
 libgmerlerra_la_SOURCES = \
+clipboard.c \
 composite_audio.c \
 composite_video.c \
 editfuncs.c \
