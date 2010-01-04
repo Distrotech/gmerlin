@@ -1,5 +1,7 @@
 #include <gui_gtk/timeruler.h>
 
+#define bg_nle_clipboard_atom "GMERLERRA_CLIPBOARD"
+
 typedef struct bg_nle_player_widget_s bg_nle_player_widget_t;
 
 bg_nle_player_widget_t *

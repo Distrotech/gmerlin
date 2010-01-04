@@ -11,16 +11,29 @@
 
 #include <types.h>
 
+
 #include <gui_gtk/timerange.h>
 #include <gui_gtk/timeruler.h>
 #include <gui_gtk/playerwidget.h>
 #include <gui_gtk/projectwindow.h>
+
+#include <clipboard.h>
 
 #define DELAY_TIME 10 /* 10 milliseconds */
 
 #define PAUSE_ON     0
 #define PAUSE_OFF    1
 #define PAUSE_TOGGLE 2
+
+#define DND_GMERLERRA_CLIPBOARD 0
+#define DND_GMERLERRA_TEXT      1
+
+static const GtkTargetEntry copy_paste_entries[] =
+  {
+    { bg_nle_clipboard_atom, 0, DND_GMERLERRA_CLIPBOARD },
+    { "STRING",                 0, DND_GMERLERRA_TEXT  },
+  };
+
 
 struct bg_nle_player_widget_s
   {
@@ -77,6 +90,8 @@ struct bg_nle_player_widget_s
   gavl_time_t last_frame_time;
 
   bg_nle_project_t * p;
+
+  bg_nle_clipboard_t clipboard;
   };
 
 static void handle_player_message(bg_nle_player_widget_t * w,
@@ -159,28 +174,93 @@ static void bg_nle_player_set_ov_plugin(bg_nle_player_widget_t * w,
   bg_player_set_ov_plugin(w->player, w->ov_handle);
   }
 
+static void clipboard_get_func(GtkClipboard *clipboard,
+                               GtkSelectionData *selection_data,
+                               guint info,
+                               gpointer data)
+  {
+  char * clipboard_xml;
+  GdkAtom type_atom;
+  bg_nle_player_widget_t * w = data;
+  
+  type_atom = gdk_atom_intern("STRING", FALSE);
+  if(!type_atom)
+    return;
+  
+  clipboard_xml = bg_nle_clipboard_to_string(&w->clipboard);
+  
+  gtk_selection_data_set(selection_data, type_atom, 8,
+                         (uint8_t*)clipboard_xml,
+                         strlen(clipboard_xml)+1);
+  free(clipboard_xml);
+  }
+
+static void clipboard_clear_func(GtkClipboard *clipboard,
+                                 gpointer data)
+  {
+  bg_nle_player_widget_t * w = data;
+  bg_nle_clipboard_free(&w->clipboard);
+  }
+
 static void copy_to_clipboard(bg_nle_player_widget_t * p)
   {
+  bg_nle_time_range_t * r;
+  GtkClipboard *clipboard;
+  GdkAtom clipboard_atom;
+  
   if(!p->file)
     return;
   
-  if(p->p) /* Nothing for now */
+  if(p->tr.selection.end > 0)
+    r = &p->tr.selection;
+  else if(p->tr.in_out.end > 0)
+    r = &p->tr.in_out;
+  else
+    r = &p->tr.media_time;
+  
+  if(p->p)
     {
-    
+    bg_nle_clipboard_from_project(&p->clipboard, p->p, r);
     }
   else
     {
-    bg_nle_time_range_t * r;
-    if(p->tr.selection.end > 0)
-      r = &p->tr.selection;
-    else if(p->tr.in_out.end > 0)
-      r = &p->tr.in_out;
-    else
-      r = &p->tr.media_time;
+    int * audio_streams = NULL;
+    int * video_streams = NULL;
+    int i;
 
-    
-    
+    if(p->file->num_audio_streams)
+      {
+      audio_streams =
+        malloc(p->file->num_audio_streams * sizeof(*audio_streams));
+      for(i = 0; i < p->file->num_audio_streams; i++)
+        audio_streams[i] = 1;
+      }
+
+    if(p->file->num_video_streams)
+      {
+      video_streams =
+        malloc(p->file->num_video_streams * sizeof(*video_streams));
+      for(i = 0; i < p->file->num_video_streams; i++)
+        video_streams[i] = 1;
+      }
+    bg_nle_clipboard_from_file(&p->clipboard, p->file, r,
+                               audio_streams, video_streams);
+    if(audio_streams)
+      free(audio_streams);
+    if(video_streams)
+      free(video_streams);
     }
+
+  clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
+  clipboard = gtk_clipboard_get(clipboard_atom);
+  
+  gtk_clipboard_set_with_data(clipboard,
+                              copy_paste_entries,
+                              sizeof(copy_paste_entries)/
+                              sizeof(copy_paste_entries[0]),
+                              clipboard_get_func,
+                              clipboard_clear_func,
+                              (gpointer)p);
   }
 
 
@@ -255,6 +335,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == p->copy_button)
     {
     fprintf(stderr, "Copy\n");
+    copy_to_clipboard(p);
     }
   }
 
