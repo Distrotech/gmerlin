@@ -152,7 +152,6 @@ gavl_time_t bg_nle_track_duration(bg_nle_track_t * t)
   if(!t->num_segments)
     return 0;
 
-  return gavl_time_unscale(t->scale,
-                           t->segments[t->num_segments-1].dst_pos +
-                           t->segments[t->num_segments-1].len);
+  return t->segments[t->num_segments-1].dst_pos +
+    t->segments[t->num_segments-1].len;
   }

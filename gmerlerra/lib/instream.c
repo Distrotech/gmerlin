@@ -114,8 +114,8 @@ static int load_file(common_t * com, bg_nle_track_type_t type)
                           &t,
                           com->t->segments[com->cur_seg].scale);
   com->in_pts = t;
-  com->in_pts_end = com->in_pts + gavl_time_rescale(com->t->scale, com->t->segments[com->cur_seg].scale,
-                                                    com->t->segments[com->cur_seg].len);
+  com->in_pts_end = com->in_pts + gavl_time_scale(com->t->segments[com->cur_seg].scale,
+                                                  com->t->segments[com->cur_seg].len);
 
   /* TODO: This breaks if the filterchain changes the timescale */
   com->fc_pts     = com->t->segments[com->cur_seg].dst_pos;
@@ -376,7 +376,7 @@ static int request_common(common_t * com, int64_t time, int64_t duration, int st
 
   /* Check for segment end */
   if((s->cur_seg >= 0) &&
-     gavl_time_rescale(s->scale, com->t->scale, time) >
+     gavl_time_unscale(s->scale, time) >
      com->t->segments[s->cur_seg].dst_pos + com->t->segments[s->cur_seg].len)
     s->cur_seg = -1;
   
@@ -387,7 +387,7 @@ static int request_common(common_t * com, int64_t time, int64_t duration, int st
     if(s->next_seg < 0)
       ret = 0; /* EOS */
 
-    else if(gavl_time_rescale(s->scale, com->t->scale, time) >=
+    else if(gavl_time_unscale(s->scale, time) >=
             com->t->segments[s->next_seg].dst_pos)
       {
       /* Switch to next segment immediately */
@@ -398,7 +398,7 @@ static int request_common(common_t * com, int64_t time, int64_t duration, int st
         s->next_seg = -1;
       ret = 1;
       }
-    else if(gavl_time_rescale(s->scale, com->t->scale, time + duration) >
+    else if(gavl_time_unscale(s->scale, time + duration) >
             com->t->segments[s->next_seg].dst_pos)
       {
       /* Next segment is about to come during that time */

@@ -28,14 +28,11 @@ void bg_nle_clipboard_free(bg_nle_clipboard_t * c)
   }
 
 
-static void init_file_track(bg_nle_track_t * t, bg_nle_file_t * file,
-                            int scale)
+static void init_file_track(bg_nle_track_t * t, bg_nle_file_t * file)
   {
   t->num_segments = 1;
   t->segments = calloc(t->num_segments, sizeof(*t->segments));
   t->segments[0].file_id = file->id;
-  t->segments[0].scale = scale;
-  t->scale = scale;
   }
 
 void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
@@ -43,9 +40,6 @@ void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
                                 int * video_streams)
   {
   int i, index;
-  int64_t start_time_scaled;
-  int64_t end_time_scaled;
-  int scale;
   
   bg_nle_clipboard_free(c);
   /* File */
@@ -72,17 +66,13 @@ void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
     {
     if(audio_streams[i])
       {
-      scale = file->audio_streams[i].timescale;
-
-      c->tracks[index] = bg_nle_track_create(BG_NLE_TRACK_AUDIO);
-      init_file_track(c->tracks[index], file, scale);
       
-      start_time_scaled = gavl_time_scale(scale, r->start + 5);
-      end_time_scaled = gavl_time_scale(scale, r->start + 5);
-
-      c->tracks[index]->segments[0].src_pos = start_time_scaled;
+      c->tracks[index] = bg_nle_track_create(BG_NLE_TRACK_AUDIO);
+      init_file_track(c->tracks[index], file);
+      
+      c->tracks[index]->segments[0].src_pos = r->start;
       c->tracks[index]->segments[0].dst_pos = 0;
-      c->tracks[index]->segments[0].len = end_time_scaled - start_time_scaled;
+      c->tracks[index]->segments[0].len = r->end - r->start;
       
       index++;
       }
@@ -91,17 +81,12 @@ void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
     {
     if(video_streams[i])
       {
-      scale = file->video_streams[i].timescale;
-
       c->tracks[index] = bg_nle_track_create(BG_NLE_TRACK_VIDEO);
-      init_file_track(c->tracks[index], file, scale);
+      init_file_track(c->tracks[index], file);
       
-      start_time_scaled = gavl_time_scale(scale, r->start + 5);
-      end_time_scaled = gavl_time_scale(scale, r->start + 5);
-      
-      c->tracks[index]->segments[0].src_pos = start_time_scaled;
+      c->tracks[index]->segments[0].src_pos = r->start;
       c->tracks[index]->segments[0].dst_pos = 0;
-      c->tracks[index]->segments[0].len = end_time_scaled - start_time_scaled;
+      c->tracks[index]->segments[0].len = r->end - r->start;
       
       index++;
       }
@@ -125,9 +110,6 @@ void bg_nle_clipboard_from_project(bg_nle_clipboard_t * c, bg_nle_project_t * p,
   {
   int i, j, index;
   bg_nle_file_t * f;
-  int64_t start_time_scaled;
-  int64_t end_time_scaled;
-  int scale;
   bg_nle_track_segment_t * seg;
   
   bg_nle_clipboard_free(c);
@@ -168,20 +150,17 @@ void bg_nle_clipboard_from_project(bg_nle_clipboard_t * c, bg_nle_project_t * p,
       continue;
 
     c->tracks[index] = bg_nle_track_create(p->tracks[i]->type);
-    c->tracks[index]->scale = p->tracks[i]->scale;
-    scale = c->tracks[index]->scale;
-
-    start_time_scaled = gavl_time_scale(scale, r->start + 5);
-    end_time_scaled   = gavl_time_scale(scale, r->end + 5);
     
     /* Create segments */
     
     for(j = 0; j < p->tracks[i]->num_segments; i++)
       {
       seg = &p->tracks[i]->segments[j];
+
+      /* Check is segment is inside the time range */
       
-      if((start_time_scaled < seg->dst_pos + seg->len) &&
-         (end_time_scaled >= seg->dst_pos))
+      if((r->start < seg->dst_pos + seg->len) &&
+         (r->end >= seg->dst_pos))
         {
         
         }
