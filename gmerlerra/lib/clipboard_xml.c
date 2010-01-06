@@ -48,7 +48,7 @@ char * bg_nle_clipboard_to_string(const bg_nle_clipboard_t * c)
   if(c->num_tracks)
     {
     node =
-      xmlNewTextChild(xml_clipboard, (xmlNsPtr)0, (xmlChar*)"files", NULL);
+      xmlNewTextChild(xml_clipboard, (xmlNsPtr)0, (xmlChar*)"tracks", NULL);
     
     tmp_string = bg_sprintf("%d", c->num_tracks);
     BG_XML_SET_PROP(node, "num", tmp_string);

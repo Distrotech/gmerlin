@@ -69,8 +69,10 @@ void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
       
       c->tracks[index] = bg_nle_track_create(BG_NLE_TRACK_AUDIO);
       init_file_track(c->tracks[index], file);
-      
-      c->tracks[index]->segments[0].src_pos = r->start;
+
+      c->tracks[index]->segments[0].scale = file->audio_streams[i].timescale;
+      c->tracks[index]->segments[0].src_pos =
+        gavl_time_scale(c->tracks[index]->segments[0].scale, r->start + 5);
       c->tracks[index]->segments[0].dst_pos = 0;
       c->tracks[index]->segments[0].len = r->end - r->start;
       
@@ -84,7 +86,9 @@ void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
       c->tracks[index] = bg_nle_track_create(BG_NLE_TRACK_VIDEO);
       init_file_track(c->tracks[index], file);
       
-      c->tracks[index]->segments[0].src_pos = r->start;
+      c->tracks[index]->segments[0].scale = file->video_streams[i].timescale;
+      c->tracks[index]->segments[0].src_pos =
+        gavl_time_scale(c->tracks[index]->segments[0].scale, r->start + 5);
       c->tracks[index]->segments[0].dst_pos = 0;
       c->tracks[index]->segments[0].len = r->end - r->start;
       

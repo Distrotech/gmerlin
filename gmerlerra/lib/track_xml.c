@@ -171,10 +171,12 @@ void bg_nle_track_save(bg_nle_track_t * t, xmlNodePtr parent)
   BG_XML_SET_PROP(node, "flags", tmp_string);
   free(tmp_string);
 
-  
-  child = xmlNewTextChild(node, (xmlNsPtr)0,
-                          (xmlChar*)parameters_name, NULL);
-  bg_cfg_section_2_xml(t->section, child);
+  if(t->section)
+    {
+    child = xmlNewTextChild(node, (xmlNsPtr)0,
+                            (xmlChar*)parameters_name, NULL);
+    bg_cfg_section_2_xml(t->section, child);
+    }
   
   if(t->num_segments)
     {
