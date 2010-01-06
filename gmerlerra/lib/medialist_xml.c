@@ -99,7 +99,7 @@ static void load_video_stream(xmlDocPtr xml_doc,
   
   }
 
-static bg_nle_file_t * load_file(xmlDocPtr xml_doc, xmlNodePtr node)
+bg_nle_file_t * bg_nle_file_load(xmlDocPtr xml_doc, xmlNodePtr node)
   {
   xmlNodePtr child, grandchild;
   bg_nle_file_t * ret;
@@ -284,7 +284,7 @@ bg_nle_media_list_load(bg_plugin_registry_t * plugin_reg,
         if(!BG_XML_STRCMP(grandchild->name, file_name))
           {
           ret->files[ret->num_files] =
-            load_file(xml_doc, grandchild);
+            bg_nle_file_load(xml_doc, grandchild);
           ret->num_files++;
           }
         grandchild = grandchild->next;
@@ -355,7 +355,7 @@ static void save_video_stream(xmlNodePtr node,
   
   }
 
-static void save_file(xmlNodePtr node, bg_nle_file_t * file)
+void bg_nle_file_save(xmlNodePtr node, bg_nle_file_t * file)
   {
   xmlNodePtr child, grandchild;
   char * tmp_string;
@@ -476,7 +476,7 @@ bg_nle_media_list_save(bg_nle_media_list_t * list, xmlNodePtr node)
       grandchild = xmlNewTextChild(child, (xmlNsPtr)0,
                                    (xmlChar*)file_name, NULL);
 
-      save_file(grandchild, list->files[i]);
+      bg_nle_file_save(grandchild, list->files[i]);
       }
     }
   

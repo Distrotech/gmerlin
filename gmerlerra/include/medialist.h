@@ -97,6 +97,9 @@ bg_plugin_handle_t * bg_nle_media_list_open_file(bg_nle_media_list_t * list,
 
 /* medialist_xml.c */
 
+bg_nle_file_t * bg_nle_file_load(xmlDocPtr xml_doc, xmlNodePtr node);
+void bg_nle_file_save(xmlNodePtr node, bg_nle_file_t * file);
+
 bg_nle_media_list_t *
 bg_nle_media_list_load(bg_plugin_registry_t * plugin_reg,
                        xmlDocPtr xml_doc, xmlNodePtr node);

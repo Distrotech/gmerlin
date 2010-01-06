@@ -171,12 +171,3 @@ void bg_nle_clipboard_from_project(bg_nle_clipboard_t * c, bg_nle_project_t * p,
   
   }
 
-char * bg_nle_clipboard_to_string(const bg_nle_clipboard_t * c)
-  {
-  return NULL;
-  }
-
-void bg_nle_clipboard_from_string(bg_nle_clipboard_t * c, const char * str)
-  {
-  
-  }
