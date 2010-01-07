@@ -112,9 +112,6 @@ typedef struct
   uint8_t * extradata;
   int extradata_size;
   
-  int demuxer_eof;
-  int codec_eof;
-  
   //  packet_info_t packets[FF_MAX_B_FRAMES+1];
   bgav_packet_t * packet;
   
@@ -184,7 +181,6 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   bgav_stream_t * s = c->opaque;
   priv = s->data.video.decoder->priv;
 
-  //  fprintf(stderr, "vdpau_get_buffer\n");
   
   for(i = 0; i < VDPAU_MAX_STATES; i++)
     {
@@ -224,7 +220,6 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
         priv->ip_age[1]++;
         priv->b_age=1;
         }
-      //      fprintf(stderr, "Picture age: %d\n", pic->age);
 #else
       pic->age = INT_MAX;
 #endif
@@ -235,20 +230,12 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   
   return -1;
   }
-#if 0
-static int vdpau_reget_buffer(struct AVCodecContext *c, AVFrame *pic)
-  {
-  //  fprintf(stderr, "vdpau_reget_buffer\n");
-  return 0;
-  }
-#endif
 
 static void vdpau_release_buffer(struct AVCodecContext *avctx, AVFrame *pic)
   {
   vdpau_state_t * state = (vdpau_state_t *)pic->data[0];
   pic->data[0] = NULL;
   state->used = 0;
-  //  fprintf(stderr, "vdpau_release_buffer %d\n", state->state.surface);
   }
 
 static void vdpau_draw_horiz_band(struct AVCodecContext *c,
@@ -262,8 +249,6 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
 
 
   state = (struct vdpau_render_state *)src->data[0];
-
-  // fprintf(stderr, "vdpau_draw_horiz_band %d %d\n", state->surface, priv->vdpau_decoder);
   
   /* Decode */
   bgav_vdpau_context_decoder_render(priv->vdpau_ctx,
@@ -348,36 +333,39 @@ static int decode_picture(bgav_stream_t * s)
     /* Read data if necessary */
     if(!get_data(s))
       {
-      if(priv->demuxer_eof)
+      if(priv->flags & HAS_DELAY)
         {
-        if(priv->flags & HAS_DELAY)
+        priv->frame_buffer_len = 0;
+        priv->frame_buffer = (uint8_t*)0;
+        }
+      else
+        return 0;
+      }
+    else /* Got packet */
+      {
+      /* Skip non-reference frames */
+
+      if(priv->packet->pts == BGAV_TIMESTAMP_UNDEFINED)
+        {
+        priv->ctx->skip_frame = AVDISCARD_NONREF;
+        }
+      else if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
+        {
+        if((PACKET_GET_CODING_TYPE(priv->packet) == BGAV_CODING_TYPE_B) &&
+           (priv->packet->pts + priv->packet->duration < priv->skip_time))
           {
-          priv->frame_buffer_len = 0;
-          priv->frame_buffer = (uint8_t*)0;
+          priv->ctx->skip_frame = AVDISCARD_NONREF;
+          // fprintf(stderr, "Skip frame %c\n", priv->packet->flags & 0xff);
           }
         else
           {
-          priv->codec_eof = 1;
-          return 0;
+          priv->ctx->skip_frame = AVDISCARD_DEFAULT;
+          bgav_pts_cache_push(&priv->pts_cache,
+                              priv->packet->pts,
+                              priv->packet->duration,
+                              priv->packet->tc,
+                              (int*)0, &e);
           }
-        }
-      else /* Just parsing */
-        return 0;
-      }
-
-    /* Skip non-reference frames */
-
-    if(priv->packet->pts == BGAV_TIMESTAMP_UNDEFINED)
-      {
-      priv->ctx->skip_frame = AVDISCARD_NONREF;
-      }
-    else if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
-      {
-      if((PACKET_GET_CODING_TYPE(priv->packet) == BGAV_CODING_TYPE_B) &&
-         (priv->packet->pts + priv->packet->duration < priv->skip_time))
-        {
-        priv->ctx->skip_frame = AVDISCARD_NONREF;
-        // fprintf(stderr, "Skip frame %c\n", priv->packet->flags & 0xff);
         }
       else
         {
@@ -387,26 +375,16 @@ static int decode_picture(bgav_stream_t * s)
                             priv->packet->duration,
                             priv->packet->tc,
                             (int*)0, &e);
-        }
-      }
-    else
-      {
-      priv->ctx->skip_frame = AVDISCARD_DEFAULT;
-      bgav_pts_cache_push(&priv->pts_cache,
-                          priv->packet->pts,
-                          priv->packet->duration,
-                          priv->packet->tc,
-                          (int*)0, &e);
       
-      }
+        }
     
-    priv->frame_buffer = priv->packet->data;
+      priv->frame_buffer = priv->packet->data;
 
-    if(priv->packet->field2_offset)
-      priv->frame_buffer_len = priv->packet->field2_offset;
-    else
-      priv->frame_buffer_len = priv->packet->data_size;
-
+      if(priv->packet->field2_offset)
+        priv->frame_buffer_len = priv->packet->field2_offset;
+      else
+        priv->frame_buffer_len = priv->packet->data_size;
+      }
     /* DV Video ugliness */
     if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
       {
@@ -489,7 +467,7 @@ static int decode_picture(bgav_stream_t * s)
 #endif
     
     /* Decode 2nd field for field pictures */
-    if(priv->packet->field2_offset && (bytes_used > 0))
+    if(priv->packet && priv->packet->field2_offset && (bytes_used > 0))
       {
       priv->frame_buffer = priv->packet->data + priv->packet->field2_offset;
       priv->frame_buffer_len = priv->packet->data_size - priv->packet->field2_offset;
@@ -558,7 +536,6 @@ static int decode_picture(bgav_stream_t * s)
     /* If we passed no data and got no picture, we are done here */
     if(!priv->frame_buffer_len && !have_picture)
       {
-      priv->codec_eof = 1;
       return 0;
       }
     
@@ -587,12 +564,13 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
   priv = s->data.video.decoder->priv;
   priv->skip_time = time;
 
-  //  fprintf(stderr, "Skipto ffmpeg\n");
-
   while(1)
     {
     if(!decode_picture(s))
+      {
+      fprintf(stderr, "Got EOF while skipping\n");
       return 0;
+      }
 #if 0
     fprintf(stderr, "Skipto ffmpeg %ld %ld %d\n",
             priv->picture_timestamp, time, exact);
@@ -986,8 +964,6 @@ static void resync_ffmpeg(bgav_stream_t * s)
   
   priv->packet = NULL;
 
-  priv->demuxer_eof = 0;
-  priv->codec_eof = 0;
   priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
 
   bgav_pts_cache_clear(&priv->pts_cache);
