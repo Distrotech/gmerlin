@@ -10,7 +10,6 @@ goto_prev.png \
 in.png \
 out.png \
 play.png \
-record.png \
 stop.png \
 new_16.png \
 redo_16.png \

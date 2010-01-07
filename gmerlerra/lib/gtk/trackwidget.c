@@ -431,7 +431,7 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   /* Create panel widgets */
   ret->selected =
     create_pixmap_toggle_button(ret,
-                                "gmerlerra/record.png",
+                                "record_16.png",
                                 TRS("Select track for editing operations"),
                                 !!(ret->track->flags & BG_NLE_TRACK_SELECTED));
   
