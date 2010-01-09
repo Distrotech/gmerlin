@@ -598,6 +598,42 @@ static gboolean destroy_func(gpointer data)
   return FALSE;
   }
 
+static void clipboard_received_func(GtkClipboard *clipboard,
+                                    GtkSelectionData *selection_data,
+                                    gpointer data)
+  {
+  bg_nle_clipboard_t c;
+  
+  bg_nle_project_window_t * w = data;
+  
+  if(selection_data->length <= 0)
+    return;
+
+  memset(&c, 0, sizeof(c));
+  bg_nle_clipboard_from_string(&c, (char*)(selection_data->data));
+  bg_nle_project_paste(w->p, &c);
+  bg_nle_clipboard_free(&c);
+  }
+
+
+static void do_paste(bg_nle_project_window_t * win)
+  {
+  GtkClipboard *clipboard;
+  GdkAtom clipboard_atom;
+  GdkAtom target;
+
+  //    clipboard_atom = gdk_atom_intern ("PRIMARY", FALSE);
+  clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
+  clipboard = gtk_clipboard_get(clipboard_atom);
+  
+  target = gdk_atom_intern(bg_nle_clipboard_atom, FALSE);
+  
+  gtk_clipboard_request_contents(clipboard,
+                                 target,
+                                 clipboard_received_func,
+                                 win);
+  }
+
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   bg_nle_project_window_t * win = data;
@@ -706,7 +742,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->edit_menu.paste)
     {
-    
+    do_paste(win);
     }
   else if(w == win->edit_menu.undo)
     {

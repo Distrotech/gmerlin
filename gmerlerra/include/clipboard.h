@@ -1,3 +1,6 @@
+#ifndef BG_NLE_CLIPBIOARD_H
+#define BG_NLE_CLIPBIOARD_H
+
 typedef struct
   {
   int num_tracks;
@@ -21,3 +24,5 @@ char * bg_nle_clipboard_to_string(const bg_nle_clipboard_t*);
 
 int bg_nle_clipboard_from_string(bg_nle_clipboard_t*, const char * str);
 
+
+#endif

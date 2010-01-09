@@ -4,6 +4,7 @@
 #include <medialist.h>
 #include <track.h>
 #include <outstream.h>
+#include <clipboard.h>
 
 #define BG_NLE_PROJECT_SELECTION_CHANGED  (1<<0)
 #define BG_NLE_PROJECT_VISIBLE_CHANGED    (1<<1)
@@ -165,6 +166,8 @@ void bg_nle_project_delete_file(bg_nle_project_t * p,
                                 int index);
 
 void bg_nle_project_set_cursor_pos(bg_nle_project_t * p, int64_t cursor_pos);
+
+void bg_nle_project_paste(bg_nle_project_t * p, bg_nle_clipboard_t * c);
 
 
 /* Utility functions */

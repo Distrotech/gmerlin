@@ -141,6 +141,7 @@ bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
           
           i++;
           }
+        grandchild = grandchild->next;
         }
       
       }

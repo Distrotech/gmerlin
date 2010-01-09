@@ -635,3 +635,8 @@ void bg_nle_project_set_edit_mode(bg_nle_project_t * p, int mode)
   edited(p, BG_NLE_EDIT_SET_EDIT_MODE, d);
   
   }
+
+void bg_nle_project_paste(bg_nle_project_t * p, bg_nle_clipboard_t * c)
+  {
+  fprintf(stderr, "bg_nle_project_paste\n");
+  }
