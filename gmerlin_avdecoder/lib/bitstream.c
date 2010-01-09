@@ -22,14 +22,38 @@
 #include <avdec_private.h>
 #include <bitstream.h>
 
+static inline void fill_cache(bgav_bitstream_t * b)
+  {
+  int i;
+  int bytes = sizeof(b->c);
+  
+  if(b->end - b->pos < bytes)
+    bytes = b->end - b->pos;
+
+  b->c = 0;
+  
+  for(i = 0; i < bytes; i++)
+    {
+    b->c <<= 8;
+    b->c |= *b->pos;
+    b->pos++;
+    }
+  b->bit_cache = bytes * 8;
+  return bytes;
+  }
+
 void bgav_bitstream_init(bgav_bitstream_t * b, const uint8_t * pos, 
                          int len)
   {
   b->pos = pos;
   b->end = pos + len;
-  b->bit_cache = 8;
+#if 0
   b->c = *pos;
   b->pos++;
+  b->bit_cache = 8;
+#else
+  fill_cache(b);
+#endif
   }
 
 int bgav_bitstream_get_long(bgav_bitstream_t * b, int64_t * ret1,  int bits)
@@ -44,9 +68,13 @@ int bgav_bitstream_get_long(bgav_bitstream_t * b, int64_t * ret1,  int bits)
       {
       if(b->pos >= b->end)
         return 0;
+#if 0
       b->c = *b->pos;
       b->pos++;
       b->bit_cache = 8;
+#else
+      fill_cache(b);
+#endif
       }
     bits_to_copy = bits - bits_read;
     if(bits_to_copy > b->bit_cache)
@@ -83,7 +111,7 @@ int bgav_bitstream_peek(bgav_bitstream_t * b, int * ret, int bits)
   /* State is saved here */
   const uint8_t * pos;
   int bit_cache;
-  uint8_t c;
+  uint32_t c;
 
   /* Save state */
   pos       = b->pos;

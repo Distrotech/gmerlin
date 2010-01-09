@@ -26,7 +26,7 @@ typedef struct
   const uint8_t * pos;
   const uint8_t * end;
   int bit_cache;
-  uint8_t c;
+  uint32_t c;
   } bgav_bitstream_t;
 
 void bgav_bitstream_init(bgav_bitstream_t * b, const uint8_t * pos, 
