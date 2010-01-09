@@ -492,6 +492,11 @@ static void edit_callback(bg_nle_project_t * p,
       bg_nle_media_browser_delete_file(win->media_browser, d->index);
       }
       break;
+    case BG_NLE_EDIT_SET_EDIT_MODE:
+      {
+      bg_nle_op_edit_mode_t * d = op_data;
+      bg_nle_timeline_set_edit_mode(win->timeline, d->new_mode);
+      }
     }
   
   }

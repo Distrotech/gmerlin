@@ -15,6 +15,9 @@ typedef enum
 #define BG_NLE_TRACK_EXPANDED (1<<1)
 #define BG_NLE_TRACK_PLAYBACK (1<<2)
 
+#define BG_NLE_EDIT_INSERT    0
+#define BG_NLE_EDIT_OVERWRITE 1
+
 typedef struct bg_nle_project_s bg_nle_project_t;
 
 typedef enum bg_nle_edit_op_e bg_nle_edit_op_t;

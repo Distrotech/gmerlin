@@ -27,11 +27,14 @@ struct bg_nle_timeline_s
   GtkWidget * panel_window;
   GtkWidget * preview_window;
 
-  GtkWidget * zoom_in;
-  GtkWidget * zoom_out;
-  GtkWidget * zoom_fit;
-  GtkWidget * start_button;
-  GtkWidget * end_button;
+  GtkWidget * edit_insert;
+  GtkWidget * edit_overwrite;
+
+  GSList * edit_mode_group;
+  
+  guint edit_insert_id;
+  guint edit_overwrite_id;
+  
   GtkWidget * scrollbar;
   
   int num_tracks;
@@ -67,17 +70,15 @@ static void button_callback(GtkWidget * w, gpointer  data)
   {
   bg_nle_timeline_t * t = data;
 
-  if(w == t->zoom_in)
+  if(w == t->edit_insert)
     {
-    bg_nle_timerange_widget_zoom_in(&t->tr);
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(t->edit_insert)))
+      bg_nle_project_set_edit_mode(t->p, BG_NLE_EDIT_INSERT);
     }
-  else if(w == t->zoom_out)
+  else if(w == t->edit_overwrite)
     {
-    bg_nle_timerange_widget_zoom_out(&t->tr);
-    }
-  else if(w == t->zoom_fit)
-    {
-    bg_nle_timerange_widget_zoom_fit(&t->tr);
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(t->edit_overwrite)))
+      bg_nle_project_set_edit_mode(t->p, BG_NLE_EDIT_OVERWRITE);
     }
   }
 
@@ -231,7 +232,43 @@ static gboolean scroll_callback(GtkWidget * w, GdkEventScroll * evt,
   return FALSE;
   }
 
+static GtkWidget * create_pixmap_toggle_button(bg_nle_timeline_t * w,
+                                               const char * filename,
+                                               const char * tooltip,
+                                               guint * id, GSList ** group)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
 
+  gtk_widget_show(image);
+  button = gtk_radio_button_new(*group);
+  gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(button), FALSE);
+  
+  if(!(*group))
+    *group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(button));
+  
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  *id = g_signal_connect(G_OBJECT(button), "toggled",
+                         G_CALLBACK(button_callback), w);
+  
+  gtk_widget_show(button);
+
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
+  
+  return button;
+  }
+
+#if 0
 static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
                                         const char * filename,
                                         const char * tooltip)
@@ -261,7 +298,7 @@ static GtkWidget * create_pixmap_button(bg_nle_timeline_t * w,
   
   return button;
   }
-
+#endif
 
 static void size_allocate_callback(GtkWidget     *widget,
                                    GtkAllocation *allocation,
@@ -309,17 +346,17 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   
   //  ret->paned = gtk_hpaned_new();
   
-  ret->zoom_in = create_pixmap_button(ret, "gmerlerra/time_zoom_in.png",
-                                      TRS("Zoom in"));
-  ret->zoom_out = create_pixmap_button(ret, "gmerlerra/time_zoom_out.png",
-                                       TRS("Zoom out"));
-  ret->zoom_fit = create_pixmap_button(ret, "gmerlerra/time_zoom_fit.png",
-                                       TRS("Fit to selection"));
+  ret->edit_insert =
+    create_pixmap_toggle_button(ret, "gmerlerra/edit_insert.png",
+                                TRS("Insert mode"), &ret->edit_insert_id,
+                                &ret->edit_mode_group);
 
-  ret->start_button = create_pixmap_button(ret, "first_16.png",
-                                           TRS("Goto start"));
-  ret->end_button = create_pixmap_button(ret, "last_16.png",
-                                         TRS("Goto end"));
+  ret->edit_overwrite =
+    create_pixmap_toggle_button(ret, "gmerlerra/edit_overwrite.png",
+                                TRS("Overwrite mode"), &ret->edit_overwrite_id,
+                                &ret->edit_mode_group);
+  
+  
   ret->preview_window = gtk_viewport_new(NULL, NULL);
 
   gtk_widget_set_events(ret->preview_window,
@@ -386,17 +423,10 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   
   box = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), 
-                     ret->zoom_in, FALSE, TRUE, 0);
+                     ret->edit_insert, FALSE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(box), 
-                     ret->zoom_out, FALSE, TRUE, 0);
-  gtk_box_pack_start(GTK_BOX(box), 
-                     ret->zoom_fit, FALSE, TRUE, 0);
-
-  gtk_box_pack_start(GTK_BOX(box), 
-                     ret->start_button, FALSE, TRUE, 0);
-  gtk_box_pack_start(GTK_BOX(box), 
-                     ret->end_button, FALSE, TRUE, 0);
-
+                     ret->edit_overwrite, FALSE, TRUE, 0);
+  
   gtk_widget_show(box);
 
   size_group = gtk_size_group_new(GTK_SIZE_GROUP_VERTICAL);
@@ -543,6 +573,10 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
       ret->num_outstreams++;
       }
     }
+
+  /* Set radio buttons */
+  
+  bg_nle_timeline_set_edit_mode(ret, ret->p->edit_mode);
   return ret;
   }
 
@@ -747,4 +781,22 @@ bg_nle_timeline_set_display_parameter(bg_nle_timeline_t * t, const char * name,
     return;
     }
 
+  }
+
+void bg_nle_timeline_set_edit_mode(bg_nle_timeline_t * t, int mode)
+  {
+  g_signal_handler_block(t->edit_insert, t->edit_insert_id);
+  g_signal_handler_block(t->edit_overwrite, t->edit_overwrite_id);
+  
+  switch(mode)
+    {
+    case BG_NLE_EDIT_INSERT:
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(t->edit_insert), 1);
+      break;
+    case BG_NLE_EDIT_OVERWRITE:
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(t->edit_overwrite), 1);
+      break;
+    }
+  g_signal_handler_unblock(t->edit_insert, t->edit_insert_id);
+  g_signal_handler_unblock(t->edit_overwrite, t->edit_overwrite_id);
   }

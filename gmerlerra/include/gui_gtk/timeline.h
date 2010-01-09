@@ -55,5 +55,7 @@ void
 bg_nle_timeline_set_display_parameter(bg_nle_timeline_t *, const char * name,
                                       const bg_parameter_value_t * val);
   
+void bg_nle_timeline_set_edit_mode(bg_nle_timeline_t * t, int mode);
+      
 
 #endif // TIMELINE_H

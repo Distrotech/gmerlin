@@ -19,7 +19,8 @@ struct bg_nle_project_s
   {
   int changed_flags;
   int num_tracks;
-
+  int edit_mode;
+  
   int tracks_alloc;
   
   bg_nle_track_t ** tracks;
@@ -100,8 +101,6 @@ void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t);
 
 
 void bg_nle_project_move_track(bg_nle_project_t * p, int old_pos, int new_pos);
-
-
 void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_pos);
 
 void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visible);
@@ -119,6 +118,9 @@ void bg_nle_project_set_outstream_flags(bg_nle_project_t * p,
 
 void bg_nle_project_set_zoom(bg_nle_project_t * p,
                              bg_nle_time_range_t * visible);
+
+void bg_nle_project_set_edit_mode(bg_nle_project_t * p, int mode);
+
 
 void bg_nle_project_attach_track(bg_nle_project_t * p,
                                  bg_nle_outstream_t * outstream,

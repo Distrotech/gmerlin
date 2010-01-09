@@ -23,6 +23,7 @@ enum bg_nle_edit_op_e
     BG_NLE_EDIT_ADD_FILE,
     BG_NLE_EDIT_DELETE_FILE,
     BG_NLE_EDIT_SET_CURSOR_POS,
+    BG_NLE_EDIT_SET_EDIT_MODE,
   };
 
 // BG_NLE_EDIT_ADD_TRACK
@@ -136,6 +137,14 @@ typedef struct
   int64_t old_pos;
   int64_t new_pos;
   } bg_nle_op_cursor_pos_t;
+
+// BG_NLE_EDIT_SET_EDIT_MODE,
+
+typedef struct
+  {
+  int old_mode;
+  int new_mode;
+  } bg_nle_op_edit_mode_t;
 
 /* Undo data */
 

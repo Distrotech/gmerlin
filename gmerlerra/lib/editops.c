@@ -241,6 +241,12 @@ static void edit_set_cursor_pos(bg_nle_project_t * p, bg_nle_op_cursor_pos_t * o
   p->cursor_pos = op->new_pos;
   }
 
+static void edit_set_edit_mode(bg_nle_project_t * p, bg_nle_op_edit_mode_t * op)
+  {
+  /* This affects the GUI only */
+  p->edit_mode = op->new_mode;
+  }
+
 void bg_nle_project_edit(bg_nle_project_t * p,
                          bg_nle_undo_data_t * data)
   {
@@ -308,6 +314,9 @@ void bg_nle_project_edit(bg_nle_project_t * p,
       break;
     case BG_NLE_EDIT_SET_CURSOR_POS:
       edit_set_cursor_pos(p, data->data);
+      break;
+    case BG_NLE_EDIT_SET_EDIT_MODE:
+      edit_set_edit_mode(p, data->data);
       break;
     }
   }
@@ -418,6 +427,15 @@ void bg_nle_undo_data_reverse(bg_nle_undo_data_t * data)
       d->new_pos = swp;
       }
       break;
+    case BG_NLE_EDIT_SET_EDIT_MODE:
+      {
+      bg_nle_op_edit_mode_t * d = data->data;
+      int tmp;
+      tmp = d->old_mode;
+      d->old_mode = d->new_mode;
+      d->new_mode = tmp;
+      }
+      break;
     }
   }
 
@@ -440,6 +458,7 @@ void bg_nle_undo_data_destroy(bg_nle_undo_data_t * data)
     case BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT:
     case BG_NLE_EDIT_ADD_FILE:
     case BG_NLE_EDIT_SET_CURSOR_POS:
+    case BG_NLE_EDIT_SET_EDIT_MODE:
       break;
     case BG_NLE_EDIT_DELETE_TRACK:
       {
@@ -501,6 +520,7 @@ void bg_nle_project_push_undo(bg_nle_project_t * p, bg_nle_undo_data_t * data)
       case BG_NLE_EDIT_ADD_FILE:
       case BG_NLE_EDIT_DELETE_FILE:
       case BG_NLE_EDIT_CHANGE_IN_OUT:
+      case BG_NLE_EDIT_SET_EDIT_MODE:
         break;
       case BG_NLE_EDIT_CHANGE_SELECTION:
       case BG_NLE_EDIT_CHANGE_VISIBLE:
@@ -568,7 +588,7 @@ void bg_nle_project_redo(bg_nle_project_t * p)
   /* Notify GUI */
   p->edit_callback(p, data->op, data->data, p->edit_callback_data);
 
-  /* Push to redo stack */
+  /* Push to undo stack */
   data->next = p->undo;
   p->undo = data;
   }

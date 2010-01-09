@@ -326,7 +326,8 @@ void bg_nle_project_resolve_ids(bg_nle_project_t * p)
   
   }
 
-int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * outstream)
+int bg_nle_project_outstream_index(bg_nle_project_t * p,
+                                   bg_nle_outstream_t * outstream)
   {
   int i;
   for(i = 0; i < p->num_outstreams; i++)
@@ -337,7 +338,8 @@ int bg_nle_project_outstream_index(bg_nle_project_t * p, bg_nle_outstream_t * ou
   return -1;
   }
 
-int bg_nle_project_track_index(bg_nle_project_t * p, bg_nle_track_t * track)
+int bg_nle_project_track_index(bg_nle_project_t * p,
+                               bg_nle_track_t * track)
   {
   int i;
   

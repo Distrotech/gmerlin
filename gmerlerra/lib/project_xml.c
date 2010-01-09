@@ -20,6 +20,7 @@ static const char * tracks_name    = "tracks";
 static const char * outstreams_name    = "outstreams";
 static const char * selection_name = "selection";
 static const char * in_out_name    = "in_out";
+static const char * edit_mode_name = "edit_mode";
 
 static const char * visible_name   = "visible";
 static const char * media_name     = "media";
@@ -73,6 +74,12 @@ bg_nle_project_load(const char * filename, bg_plugin_registry_t * plugin_reg)
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
       sscanf(tmp_string, "%"PRId64, &ret->cursor_pos);
+      free(tmp_string);
+      }
+    else if(!BG_XML_STRCMP(node->name, edit_mode_name))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
+      sscanf(tmp_string, "%d", &ret->edit_mode);
       free(tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, visible_name))
@@ -203,6 +210,16 @@ void bg_nle_project_save(bg_nle_project_t * p, const char * filename)
     bg_sprintf("%"PRId64, p->cursor_pos);
   xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
   free(tmp_string);
+
+  /* Edit mode */
+  
+  node = xmlNewTextChild(xml_project, (xmlNsPtr)0,
+                         (xmlChar*)edit_mode_name, NULL);
+  tmp_string =
+    bg_sprintf("%d", p->edit_mode);
+  xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
+  free(tmp_string);
+  
   
   /* Selection */
 

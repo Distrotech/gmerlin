@@ -621,3 +621,17 @@ void bg_nle_project_set_cursor_pos(bg_nle_project_t * p, int64_t cursor_pos)
   edited(p, BG_NLE_EDIT_SET_CURSOR_POS, d);
   
   }
+
+void bg_nle_project_set_edit_mode(bg_nle_project_t * p, int mode)
+  {
+  bg_nle_op_edit_mode_t * d;
+
+  if(p->edit_mode == mode)
+    return;
+
+  d = calloc(1, sizeof(*d));
+  d->old_mode = p->edit_mode;
+  d->new_mode = mode;
+  edited(p, BG_NLE_EDIT_SET_EDIT_MODE, d);
+  
+  }
