@@ -79,7 +79,7 @@ first_zero_byte(const uint8_t *p, int len)
   int num, done = 0, i, j;
 
   /* Align pointer to 8 byte boundary */
-  num = (long)(p) & 0x07;
+  num = (unsigned long)(p) & 0x07;
   if(num > len)
     num = len;
   
@@ -131,22 +131,28 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
                                          const uint8_t *end )
   {
   const uint8_t * ptr;
-  int len = end - p;
+  /* Subtract 3 because we want to get the *whole* code */
+  int len = end - p - 3;
 
+  if(len <= 0) /* Reached end */
+    return NULL;
+  
   while(1)
     {
     ptr = first_zero_byte(p, len);
-
-    if(!ptr)
+    
+    if(!ptr) /* Reached end */
       break;
-    else if((end - ptr >= 3) && (ptr[1] == 0x00) && (ptr[2] == 0x01))
+
+    if((ptr[1] == 0x00) && (ptr[2] == 0x01))  /* Found startcode */
       return ptr;
     
+    /* Skip this zero byte */
     p = ptr+1;
 
-    len = end - p;
+    len = end - p - 3;
     
-    if(len <= 0)
+    if(len <= 0) /* Reached end */
       break;
     }
   return NULL;

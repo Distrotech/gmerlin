@@ -22,6 +22,8 @@
 #include <avdec_private.h>
 #include <bitstream.h>
 
+// #define OLD_BITSTREAM
+
 static inline void fill_cache(bgav_bitstream_t * b)
   {
   int i;
@@ -47,7 +49,7 @@ void bgav_bitstream_init(bgav_bitstream_t * b, const uint8_t * pos,
   {
   b->pos = pos;
   b->end = pos + len;
-#if 0
+#ifdef OLD_BITSTREAM
   b->c = *pos;
   b->pos++;
   b->bit_cache = 8;
@@ -68,7 +70,7 @@ int bgav_bitstream_get_long(bgav_bitstream_t * b, int64_t * ret1,  int bits)
       {
       if(b->pos >= b->end)
         return 0;
-#if 0
+#ifdef OLD_BITSTREAM
       b->c = *b->pos;
       b->pos++;
       b->bit_cache = 8;
