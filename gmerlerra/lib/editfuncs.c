@@ -633,6 +633,8 @@ void bg_nle_project_set_cursor_pos(bg_nle_project_t * p, int64_t cursor_pos)
   
   }
 
+// BG_NLE_EDIT_SET_EDIT_MODE,
+
 void bg_nle_project_set_edit_mode(bg_nle_project_t * p, int mode)
   {
   bg_nle_op_edit_mode_t * d;
@@ -649,7 +651,21 @@ void bg_nle_project_set_edit_mode(bg_nle_project_t * p, int mode)
 
 // BG_NLE_EDIT_SPLIT_SEGMENT
 
+static void split_segment(bg_nle_project_t * p,
+                          bg_nle_track_t * t, int index,
+                          gavl_time_t time, int * id)
+  {
+  bg_nle_op_split_segment_t * d;
+  
+  d = calloc(1, sizeof(*d));
+  d->t = t;
+  d->index = index;
+  d->time = time;
+  edited(p, BG_NLE_EDIT_MOVE_SEGMENT, d, id);
+  }
+
 // BG_NLE_EDIT_COMBINE_SEGMENT
+
 
 // BG_NLE_EDIT_MOVE_SEGMENT,
 
@@ -660,6 +676,7 @@ static void move_segment(bg_nle_project_t * p,
   bg_nle_op_move_segment_t * d;
   
   d = calloc(1, sizeof(*d));
+  d->t = t;
   d->old_dst_pos = t->segments[index].dst_pos;
   d->new_dst_pos = new_dst_pos;
   edited(p, BG_NLE_EDIT_MOVE_SEGMENT, d, id);
@@ -679,6 +696,7 @@ static void delete_segment(bg_nle_project_t * p,
   {
   bg_nle_op_segment_t * d;
   d = calloc(1, sizeof(*d));
+  d->t = t;
   d->index = index;
   memcpy(&d->seg, t->segments + index, sizeof(d->seg));
   edited(p, BG_NLE_EDIT_DELETE_SEGMENT, d, id);
@@ -699,6 +717,7 @@ static void insert_segment(bg_nle_project_t * p,
   {
   bg_nle_op_segment_t * d;
   d = calloc(1, sizeof(*d));
+  d->t = t;
   d->index = index;
   memcpy(&d->seg, seg, sizeof(d->seg));
   edited(p, BG_NLE_EDIT_INSERT_SEGMENT, d, id);
@@ -716,6 +735,7 @@ static void change_segment(bg_nle_project_t * p,
   bg_nle_op_change_segment_t * d;
   
   d = calloc(1, sizeof(*d));
+  d->t = t;
   d->old_src_pos = t->segments[index].src_pos;
   d->old_dst_pos = t->segments[index].dst_pos;
   d->old_len     = t->segments[index].len;

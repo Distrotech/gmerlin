@@ -260,15 +260,15 @@ edit_split_segment(bg_nle_project_t * p, bg_nle_op_split_segment_t * op)
   bg_nle_track_alloc_segments(t, 1);
 
   /* Move segments */
-  if(op->segment < t->num_segments - 1)
+  if(op->index < t->num_segments - 1)
     {
-    memmove(t->segments + op->segment + 2,
-            t->segments + op->segment + 1,
+    memmove(t->segments + op->index + 2,
+            t->segments + op->index + 1,
             sizeof(*t->segments) *
-            (t->num_segments - 1 - op->segment));
+            (t->num_segments - 1 - op->index));
     }
-  s1 = &t->segments[op->segment];
-  s2 = &t->segments[op->segment+1];
+  s1 = &t->segments[op->index];
+  s2 = &t->segments[op->index+1];
 
   /* Copy stuff */
   memcpy(s2, s1, sizeof(*s1));
@@ -289,19 +289,19 @@ edit_combine_segment(bg_nle_project_t * p, bg_nle_op_split_segment_t * op)
   bg_nle_track_segment_t * s2;
 
   t = op->t;
-  s1 = &t->segments[op->segment];
-  s2 = &t->segments[op->segment+1];
+  s1 = &t->segments[op->index];
+  s2 = &t->segments[op->index+1];
 
   /* Set length */
   s1->len += s2->len;
 
   /* Move segments */
-  if(op->segment < t->num_segments - 2)
+  if(op->index < t->num_segments - 2)
     {
-    memmove(t->segments + op->segment + 1,
-            t->segments + op->segment + 2,
+    memmove(t->segments + op->index + 1,
+            t->segments + op->index + 2,
             sizeof(*t->segments) *
-            (t->num_segments - 2 - op->segment));
+            (t->num_segments - 2 - op->index));
     }
   t->num_segments--;
   }

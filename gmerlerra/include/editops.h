@@ -159,7 +159,7 @@ typedef struct
 typedef struct
   {
   bg_nle_track_t * t;
-  int segment;
+  int index;
   gavl_time_t time; /* Relative to segment start!! */
   } bg_nle_op_split_segment_t;
 
