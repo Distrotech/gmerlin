@@ -91,7 +91,8 @@ bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
       if((tmp_string = BG_XML_GET_PROP(child, "num")))
         {
         ret->num_segments = strtoll(tmp_string, (char**)0, 10);
-        ret->segments = calloc(ret->num_segments, sizeof(*ret->segments));
+        ret->segments_alloc = ret->num_segments;
+        ret->segments = calloc(ret->segments_alloc, sizeof(*ret->segments));
         free(tmp_string);
         }
       

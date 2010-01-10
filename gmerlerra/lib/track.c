@@ -4,6 +4,7 @@
 
 #include <track.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <gmerlin/bggavl.h>
 
@@ -154,4 +155,19 @@ gavl_time_t bg_nle_track_duration(bg_nle_track_t * t)
 
   return t->segments[t->num_segments-1].dst_pos +
     t->segments[t->num_segments-1].len;
+  }
+
+void bg_nle_track_alloc_segments(bg_nle_track_t * track, int num)
+  {
+  if(track->num_segments+num > track->segments_alloc)
+    {
+    track->segments_alloc += num + 10;
+    track->segments = realloc(track->segments,
+                              sizeof(*track->segments) *
+                              track->segments_alloc);
+    memset(track->segments + track->num_segments, 0,
+           sizeof(*track->segments) * (track->segments_alloc -
+                                       track->num_segments));
+    }
+
   }

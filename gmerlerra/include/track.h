@@ -25,6 +25,7 @@ typedef struct
   //  int scale; dst scale is always GAVL_TIME_SCALE
   
   int num_segments;
+  int segments_alloc;
   bg_nle_track_segment_t * segments;
   
   int flags;
@@ -42,6 +43,9 @@ typedef struct
 bg_nle_track_t * bg_nle_track_create(bg_nle_track_type_t type);
 
 void bg_nle_track_destroy(bg_nle_track_t *);
+
+void bg_nle_track_alloc_segments(bg_nle_track_t *, int num);
+
 void bg_nle_track_set_name(bg_nle_track_t *, const char * name);
 const char * bg_nle_track_get_name(bg_nle_track_t *);
 

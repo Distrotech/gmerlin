@@ -24,6 +24,13 @@ enum bg_nle_edit_op_e
     BG_NLE_EDIT_DELETE_FILE,
     BG_NLE_EDIT_SET_CURSOR_POS,
     BG_NLE_EDIT_SET_EDIT_MODE,
+
+    BG_NLE_EDIT_SPLIT_SEGMENT,
+    BG_NLE_EDIT_COMBINE_SEGMENT,
+    BG_NLE_EDIT_MOVE_SEGMENT,
+    BG_NLE_EDIT_DELETE_SEGMENT,
+    BG_NLE_EDIT_INSERT_SEGMENT,
+    BG_NLE_EDIT_CHANGE_SEGMENT,
   };
 
 // BG_NLE_EDIT_ADD_TRACK
@@ -146,6 +153,50 @@ typedef struct
   int new_mode;
   } bg_nle_op_edit_mode_t;
 
+// BG_NLE_EDIT_SPLIT_SEGMENT,
+// BG_NLE_EDIT_COMBINE_SEGMENT,
+
+typedef struct
+  {
+  bg_nle_track_t * t;
+  int segment;
+  gavl_time_t time; /* Relative to segment start!! */
+  } bg_nle_op_split_segment_t;
+
+// BG_NLE_EDIT_DELETE_SEGMENT,
+// BG_NLE_EDIT_INSERT_SEGMENT,
+
+typedef struct
+  {
+  bg_nle_track_t * t;
+  int index;
+  bg_nle_track_segment_t seg;
+  } bg_nle_op_segment_t;
+
+// BG_NLE_EDIT_MOVE_SEGMENT,
+
+typedef struct
+  {
+  bg_nle_track_t * t;
+  int index;
+  gavl_time_t old_dst_pos;
+  gavl_time_t new_dst_pos;
+  } bg_nle_op_move_segment_t;
+
+// BG_NLE_EDIT_CHANGE_SEGMENT,
+
+typedef struct
+  {
+  bg_nle_track_t * t;
+  int index;
+  gavl_time_t old_dst_pos;
+  gavl_time_t new_dst_pos;
+  gavl_time_t old_len;
+  gavl_time_t new_len;
+  int64_t     old_src_pos;
+  int64_t     new_src_pos;
+  } bg_nle_op_change_segment_t;
+
 /* Undo data */
 
 struct bg_nle_undo_data_s
@@ -153,6 +204,7 @@ struct bg_nle_undo_data_s
   bg_nle_edit_op_t op;
   void * data;
   bg_nle_undo_data_t * next;
+  int id; /* For grouping undo operations together */
   };
 
 void bg_nle_project_push_undo(bg_nle_project_t * p, bg_nle_undo_data_t * data);

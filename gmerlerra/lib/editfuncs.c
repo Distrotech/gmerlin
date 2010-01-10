@@ -12,12 +12,17 @@
 
 static void edited(bg_nle_project_t * p,
                    bg_nle_edit_op_t op,
-                   void * op_data)
+                   void * op_data, int * id)
   {
   bg_nle_undo_data_t * data;
   data = calloc(1, sizeof(*data));
   data->op = op;
   data->data = op_data;
+
+  if(id)
+    data->id = *id;
+  else
+    data->id = p->undo_id++;
   
   /* Apply the edit operation to the project */
   bg_nle_project_edit(p, data);
@@ -90,7 +95,7 @@ void bg_nle_project_add_audio_track(bg_nle_project_t * p)
   d->track = track;
   d->index = p->num_tracks;
   
-  edited(p, BG_NLE_EDIT_ADD_TRACK, d);
+  edited(p, BG_NLE_EDIT_ADD_TRACK, d, NULL);
   }
 
 static bg_nle_track_t * create_video_track(bg_nle_project_t * p)
@@ -132,7 +137,7 @@ void bg_nle_project_add_video_track(bg_nle_project_t * p)
   d->track = track;
   d->index = p->num_tracks;
   
-  edited(p, BG_NLE_EDIT_ADD_TRACK, d);
+  edited(p, BG_NLE_EDIT_ADD_TRACK, d, NULL);
   }
 
 // BG_NLE_EDIT_DELETE_TRACK
@@ -170,7 +175,7 @@ void bg_nle_project_delete_track(bg_nle_project_t * p, bg_nle_track_t * t)
       }
     }
     
-  edited(p, BG_NLE_EDIT_DELETE_TRACK, d);
+  edited(p, BG_NLE_EDIT_DELETE_TRACK, d, NULL);
   }
 
 
@@ -183,7 +188,7 @@ void bg_nle_project_move_track(bg_nle_project_t * p, int old_pos, int new_pos)
   d = calloc(1, sizeof(*d));
   d->old_index = old_pos;
   d->new_index = new_pos;
-  edited(p, BG_NLE_EDIT_MOVE_TRACK, d);
+  edited(p, BG_NLE_EDIT_MOVE_TRACK, d, NULL);
   }
 
 
@@ -252,7 +257,7 @@ void bg_nle_project_add_video_outstream(bg_nle_project_t * p)
   d->outstream = outstream;
   d->index = p->num_outstreams;
   
-  edited(p, BG_NLE_EDIT_ADD_OUTSTREAM, d);
+  edited(p, BG_NLE_EDIT_ADD_OUTSTREAM, d, NULL);
   
   }
 
@@ -298,7 +303,7 @@ void bg_nle_project_add_audio_outstream(bg_nle_project_t * p)
   d->outstream = outstream;
   d->index = p->num_outstreams;
   
-  edited(p, BG_NLE_EDIT_ADD_OUTSTREAM, d);
+  edited(p, BG_NLE_EDIT_ADD_OUTSTREAM, d, NULL);
   
   }
 
@@ -310,7 +315,7 @@ void bg_nle_project_delete_outstream(bg_nle_project_t * p, bg_nle_outstream_t * 
   d = calloc(1, sizeof(*d));
   d->index = bg_nle_project_outstream_index(p, t);
   d->outstream = t;
-  edited(p, BG_NLE_EDIT_DELETE_OUTSTREAM, d);
+  edited(p, BG_NLE_EDIT_DELETE_OUTSTREAM, d, NULL);
   }
 
 // BG_NLE_EDIT_MOVE_OUTSTREAM
@@ -323,7 +328,7 @@ void bg_nle_project_move_outstream(bg_nle_project_t * p, int old_pos, int new_po
   d = calloc(1, sizeof(*d));
   d->old_index = old_pos;
   d->new_index = new_pos;
-  edited(p, BG_NLE_EDIT_MOVE_OUTSTREAM, d);
+  edited(p, BG_NLE_EDIT_MOVE_OUTSTREAM, d, NULL);
   }
 
 // BG_NLE_EDIT_CHANGE_SELECTION
@@ -346,7 +351,7 @@ void bg_nle_project_set_selection(bg_nle_project_t * p, bg_nle_time_range_t * se
   d->old_cursor_pos = p->cursor_pos;
   d->new_cursor_pos = cursor_pos;
   
-  edited(p, BG_NLE_EDIT_CHANGE_SELECTION, d);
+  edited(p, BG_NLE_EDIT_CHANGE_SELECTION, d, NULL);
   }
 
 // BG_NLE_EDIT_CHANGE_IN_OUT
@@ -364,7 +369,7 @@ void bg_nle_project_set_in_out(bg_nle_project_t * p, bg_nle_time_range_t * in_ou
   bg_nle_time_range_copy(&d->old_range, &p->in_out);
   bg_nle_time_range_copy(&d->new_range, in_out);
   
-  edited(p, BG_NLE_EDIT_CHANGE_IN_OUT, d);
+  edited(p, BG_NLE_EDIT_CHANGE_IN_OUT, d, NULL);
   }
 
 
@@ -384,7 +389,7 @@ void bg_nle_project_set_visible(bg_nle_project_t * p, bg_nle_time_range_t * visi
   bg_nle_time_range_copy(&d->old_range, &p->visible);
   bg_nle_time_range_copy(&d->new_range, visible);
   
-  edited(p, BG_NLE_EDIT_CHANGE_VISIBLE, d);
+  edited(p, BG_NLE_EDIT_CHANGE_VISIBLE, d, NULL);
   }
 
 // BG_NLE_EDIT_CHANGE_ZOOM
@@ -399,7 +404,7 @@ void bg_nle_project_set_zoom(bg_nle_project_t * p,
   bg_nle_time_range_copy(&d->old_range, &p->visible);
   bg_nle_time_range_copy(&d->new_range, visible);
   
-  edited(p, BG_NLE_EDIT_CHANGE_ZOOM, d);
+  edited(p, BG_NLE_EDIT_CHANGE_ZOOM, d, NULL);
   
   }
 
@@ -420,7 +425,7 @@ void bg_nle_project_set_track_flags(bg_nle_project_t * p,
   d->old_flags = t->flags;
   d->new_flags = flags;
   d->track = t;
-  edited(p, BG_NLE_EDIT_TRACK_FLAGS, d);
+  edited(p, BG_NLE_EDIT_TRACK_FLAGS, d, NULL);
   
   }
 
@@ -436,7 +441,7 @@ void bg_nle_project_set_outstream_flags(bg_nle_project_t * p,
   d->old_flags = t->flags;
   d->new_flags = flags;
   d->outstream = t;
-  edited(p, BG_NLE_EDIT_OUTSTREAM_FLAGS, d);
+  edited(p, BG_NLE_EDIT_OUTSTREAM_FLAGS, d, NULL);
   
   }
 
@@ -452,7 +457,7 @@ void bg_nle_project_attach_track(bg_nle_project_t * p,
   d = calloc(1, sizeof(*d));
   d->track = track;
   d->outstream = outstream;
-  edited(p, BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK, d);
+  edited(p, BG_NLE_EDIT_OUTSTREAM_ATTACH_TRACK, d, NULL);
   }
 
 // BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK
@@ -467,7 +472,7 @@ void bg_nle_project_detach_track(bg_nle_project_t * p,
   d = calloc(1, sizeof(*d));
   d->track = track;
   d->outstream = outstream;
-  edited(p, BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK, d);
+  edited(p, BG_NLE_EDIT_OUTSTREAM_DETACH_TRACK, d, NULL);
   }
 
 // BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT
@@ -498,7 +503,7 @@ void bg_nle_project_outstream_make_current(bg_nle_project_t * p,
   d->old_outstream = old_outstream;
   d->new_outstream = new_outstream;
   d->type = type;
-  edited(p, BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT, d);
+  edited(p, BG_NLE_EDIT_OUTSTREAM_MAKE_CURRENT, d, NULL);
   }
 
 // BG_NLE_EDIT_PROJECT_PARAMETERS
@@ -518,7 +523,7 @@ void bg_nle_project_set_parameters_end(bg_nle_project_t * p,
     d = calloc(1, sizeof(*d));
     d->old_section = bg_cfg_section_copy(p->section);
     d->new_section = s;
-    edited(p, BG_NLE_EDIT_PROJECT_PARAMETERS, d);
+    edited(p, BG_NLE_EDIT_PROJECT_PARAMETERS, d, NULL);
     }
   else
     {
@@ -547,7 +552,7 @@ void bg_nle_project_set_track_parameters_end(bg_nle_project_t * p,
     d->old_section = bg_cfg_section_copy(track->section);
     d->new_section = s;
     d->index = bg_nle_project_track_index(p, track);
-    edited(p, BG_NLE_EDIT_TRACK_PARAMETERS, d);
+    edited(p, BG_NLE_EDIT_TRACK_PARAMETERS, d, NULL);
     }
   else
     {
@@ -576,7 +581,7 @@ void bg_nle_project_set_outstream_parameters_end(bg_nle_project_t * p,
     d->old_section = bg_cfg_section_copy(outstream->section);
     d->new_section = s;
     d->index = bg_nle_project_outstream_index(p, outstream);
-    edited(p, BG_NLE_EDIT_OUTSTREAM_PARAMETERS, d);
+    edited(p, BG_NLE_EDIT_OUTSTREAM_PARAMETERS, d, NULL);
     }
   else
     {
@@ -586,15 +591,21 @@ void bg_nle_project_set_outstream_parameters_end(bg_nle_project_t * p,
 
 // BG_NLE_EDIT_ADD_FILE,
 
-void bg_nle_project_add_file(bg_nle_project_t * p,
-                             bg_nle_file_t * file)
+static void add_file(bg_nle_project_t * p,
+                     bg_nle_file_t * file, int * id)
   {
   bg_nle_op_file_t * d;
 
   d = calloc(1, sizeof(*d));
   d->index = p->media_list->num_files;
   d->file  = file;
-  edited(p, BG_NLE_EDIT_ADD_FILE, d);
+  edited(p, BG_NLE_EDIT_ADD_FILE, d, id);
+  }
+
+void bg_nle_project_add_file(bg_nle_project_t * p,
+                             bg_nle_file_t * file)
+  {
+  add_file(p, file, NULL);
   }
 
 // BG_NLE_EDIT_DELETE_FILE,
@@ -606,10 +617,10 @@ void bg_nle_project_delete_file(bg_nle_project_t * p,
   d = calloc(1, sizeof(*d));
   d->index = index;
   d->file = p->media_list->files[index];
-  edited(p, BG_NLE_EDIT_DELETE_FILE, d);
+  edited(p, BG_NLE_EDIT_DELETE_FILE, d, NULL);
   }
 
-// BG_NLE_EDIT_SE_CURSOR_POS,
+// BG_NLE_EDIT_SET_CURSOR_POS,
 
 void bg_nle_project_set_cursor_pos(bg_nle_project_t * p, int64_t cursor_pos)
   {
@@ -618,7 +629,7 @@ void bg_nle_project_set_cursor_pos(bg_nle_project_t * p, int64_t cursor_pos)
   d->old_pos = p->cursor_pos;
   d->new_pos = cursor_pos;
   
-  edited(p, BG_NLE_EDIT_SET_CURSOR_POS, d);
+  edited(p, BG_NLE_EDIT_SET_CURSOR_POS, d, NULL);
   
   }
 
@@ -632,11 +643,108 @@ void bg_nle_project_set_edit_mode(bg_nle_project_t * p, int mode)
   d = calloc(1, sizeof(*d));
   d->old_mode = p->edit_mode;
   d->new_mode = mode;
-  edited(p, BG_NLE_EDIT_SET_EDIT_MODE, d);
+  edited(p, BG_NLE_EDIT_SET_EDIT_MODE, d, NULL);
   
   }
+
+// BG_NLE_EDIT_SPLIT_SEGMENT
+
+// BG_NLE_EDIT_COMBINE_SEGMENT
+
+// BG_NLE_EDIT_MOVE_SEGMENT,
+
+static void move_segment(bg_nle_project_t * p,
+                         bg_nle_track_t * t, int index,
+                         int64_t new_dst_pos, int * id)
+  {
+  bg_nle_op_move_segment_t * d;
+  
+  d = calloc(1, sizeof(*d));
+  d->old_dst_pos = t->segments[index].dst_pos;
+  d->new_dst_pos = new_dst_pos;
+  edited(p, BG_NLE_EDIT_MOVE_SEGMENT, d, id);
+  }
+
+void bg_nle_project_move_segment(bg_nle_project_t * p,
+                                 bg_nle_track_t * t, int index,
+                                 int64_t new_dst_pos)
+  {
+  move_segment(p, t, index, new_dst_pos, NULL);
+  }
+
+// BG_NLE_EDIT_DELETE_SEGMENT,
+
+static void delete_segment(bg_nle_project_t * p,
+                           bg_nle_track_t * t, int index, int * id)
+  {
+  bg_nle_op_segment_t * d;
+  d = calloc(1, sizeof(*d));
+  d->index = index;
+  memcpy(&d->seg, t->segments + index, sizeof(d->seg));
+  edited(p, BG_NLE_EDIT_DELETE_SEGMENT, d, id);
+  }
+
+void bg_nle_project_delete_segment(bg_nle_project_t * p,
+                                   bg_nle_track_t * t, int index)
+  {
+  delete_segment(p, t, index, NULL);
+  }
+
+// BG_NLE_EDIT_INSERT_SEGMENT,
+
+static void insert_segment(bg_nle_project_t * p,
+                           bg_nle_track_t * t, int index,
+                           const bg_nle_track_segment_t * seg,
+                           int * id)
+  {
+  bg_nle_op_segment_t * d;
+  d = calloc(1, sizeof(*d));
+  d->index = index;
+  memcpy(&d->seg, seg, sizeof(d->seg));
+  edited(p, BG_NLE_EDIT_INSERT_SEGMENT, d, id);
+  }
+
+// BG_NLE_EDIT_CHANGE_SEGMENT,
+
+static void change_segment(bg_nle_project_t * p,
+                           bg_nle_track_t * t, int index,
+                           int64_t new_src_pos,
+                           gavl_time_t new_dst_pos,
+                           gavl_time_t new_len,
+                           int * id)
+  {
+  bg_nle_op_change_segment_t * d;
+  
+  d = calloc(1, sizeof(*d));
+  d->old_src_pos = t->segments[index].src_pos;
+  d->old_dst_pos = t->segments[index].dst_pos;
+  d->old_len     = t->segments[index].len;
+  
+  d->new_src_pos = new_src_pos;
+  d->new_dst_pos = new_dst_pos;
+  d->new_len     = new_len;
+  edited(p, BG_NLE_EDIT_CHANGE_SEGMENT, d, id);
+  }
+
+
+void bg_nle_project_change_segment(bg_nle_project_t * p,
+                                   bg_nle_track_t * t, int index,
+                                   int64_t new_src_pos,
+                                   int64_t new_dst_pos,
+                                   int64_t new_len)
+  {
+  change_segment(p, t, index, new_src_pos, new_dst_pos,
+                 new_len, NULL);
+  }
+
+/* Paste */
 
 void bg_nle_project_paste(bg_nle_project_t * p, bg_nle_clipboard_t * c)
   {
   fprintf(stderr, "bg_nle_project_paste\n");
+
+  /* 1. Merge files */
+  
+  /* 2. Paste tracks */
+  
   }

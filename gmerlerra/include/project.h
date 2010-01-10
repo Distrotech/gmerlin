@@ -61,6 +61,8 @@ struct bg_nle_project_s
 
   bg_nle_undo_data_t * undo;
   bg_nle_undo_data_t * redo;
+  
+  int undo_id;
   };
 
 bg_nle_project_t * bg_nle_project_create(bg_plugin_registry_t * plugin_reg);
@@ -166,6 +168,20 @@ void bg_nle_project_delete_file(bg_nle_project_t * p,
                                 int index);
 
 void bg_nle_project_set_cursor_pos(bg_nle_project_t * p, int64_t cursor_pos);
+
+void bg_nle_project_move_segment(bg_nle_project_t * p,
+                                 bg_nle_track_t * t, int index,
+                                 int64_t new_dst_pos);
+
+void bg_nle_project_delete_segment(bg_nle_project_t * p,
+                                   bg_nle_track_t * t, int index);
+
+void bg_nle_project_change_segment(bg_nle_project_t * p,
+                                   bg_nle_track_t * t, int index,
+                                   int64_t new_src_pos,
+                                   int64_t new_dst_pos,
+                                   int64_t new_len);
+
 
 void bg_nle_project_paste(bg_nle_project_t * p, bg_nle_clipboard_t * c);
 

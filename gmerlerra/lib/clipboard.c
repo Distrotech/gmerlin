@@ -31,7 +31,8 @@ void bg_nle_clipboard_free(bg_nle_clipboard_t * c)
 static void init_file_track(bg_nle_track_t * t, bg_nle_file_t * file)
   {
   t->num_segments = 1;
-  t->segments = calloc(t->num_segments, sizeof(*t->segments));
+  t->segments_alloc = 1;
+  t->segments = calloc(t->segments_alloc, sizeof(*t->segments));
   t->segments[0].file_id = file->id;
   }
 
