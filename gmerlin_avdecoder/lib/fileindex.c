@@ -505,8 +505,10 @@ static void purge_cache(const char * filename,
 
   dir = opendir(directory);
   if(!dir)
+    {
+    free(directory);
     return;
-  
+    }
   /* Get all index files with their sizes and mtimes */
   num_files = 0;
   files_alloc = 0;
@@ -572,6 +574,7 @@ static void purge_cache(const char * filename,
     if(files[i].name) free(files[i].name);
     }
   free(files);
+  free(directory);
   }
 
 void bgav_write_file_index(bgav_t * b)
