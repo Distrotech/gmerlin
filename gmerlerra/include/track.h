@@ -20,6 +20,8 @@ typedef struct
   int stream;
   } bg_nle_track_segment_t;
 
+void bg_nle_track_segment_dump(const bg_nle_track_segment_t*);
+
 typedef struct
   {
   //  int scale; dst scale is always GAVL_TIME_SCALE

@@ -721,6 +721,10 @@ static void insert_segment(bg_nle_project_t * p,
   d->t = t;
   d->index = index;
   memcpy(&d->seg, seg, sizeof(d->seg));
+
+  fprintf(stderr, "Insert segment 1\n");
+  bg_nle_track_segment_dump(seg);
+  
   d->seg.dst_pos = dst_pos;
   edited(p, BG_NLE_EDIT_INSERT_SEGMENT, d, id);
   }

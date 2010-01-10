@@ -27,7 +27,7 @@ char * bg_nle_clipboard_to_string(const bg_nle_clipboard_t * c)
                                    (xmlChar*)"GMERLERRA_CLIPBOARD", NULL);
 
   tmp_string = bg_sprintf("%"PRId64, c->len);
-  BG_XML_SET_PROP(node, "len", tmp_string);
+  BG_XML_SET_PROP(xml_clipboard, "len", tmp_string);
   free(tmp_string);
   
   xmlDocSetRootElement(xml_doc, xml_clipboard);
@@ -140,7 +140,6 @@ int bg_nle_clipboard_from_string(bg_nle_clipboard_t * c, const char * str)
             }
           child = child->next;
           }
-        free(tmp_string);
         }
       
       }
@@ -171,7 +170,6 @@ int bg_nle_clipboard_from_string(bg_nle_clipboard_t * c, const char * str)
             }
           child = child->next;
           }
-        free(tmp_string);
         }
       
       }

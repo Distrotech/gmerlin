@@ -15,6 +15,14 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/gui_gtk/gtkutils.h>
 
+typedef struct
+  {
+  bg_nle_track_segment_t seg; /* Local copy */
+  
+  /* TODO: Pixmap for preview */
+  
+  } segment_t;
+
 struct bg_nle_track_widget_s
   {
   GtkWidget * panel; // GtkExpander
@@ -34,6 +42,10 @@ struct bg_nle_track_widget_s
   bg_nle_timerange_widget_t * tr;
 
   int callback;
+
+  segment_t * segments;
+  int num_segments;
+  int segments_alloc;
   };
 
 static void set_parameter(void * data, const char * name,
@@ -274,12 +286,37 @@ expander_callback(GtkWidget *wid,
                                  w->track, flags);
   }
 
+static void draw_segment(bg_nle_track_widget_t * w, cairo_t * c, int i)
+  {
+  bg_nle_time_range_t r;
+  GdkRectangle rect;
+  float x1, x2;
+  
+  r.start = w->segments[i].seg.dst_pos;
+  r.end   = w->segments[i].seg.dst_pos + w->segments[i].seg.len;
+  
+  if(!bg_nle_time_range_intersect(&r, &w->tr->visible))
+    return;
+
+  x1 = bg_nle_time_2_pos(w->tr, r.start);
+  x2 = bg_nle_time_2_pos(w->tr, r.end);
+  
+  rect.x = x1;
+  rect.width = x2 - x1;
+  rect.y = 0;
+  rect.height = w->preview_height;
+  gdk_cairo_rectangle(c, &rect);
+  
+  cairo_set_source_rgba(c, 1.0, 1.0, 1.0, 1.0);
+  cairo_fill(c);
+  }
+
 void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
   {
-  float selection_start_pos;
-  float selection_end_pos;
+  float x1, x2;
   cairo_t * c;
-
+  int i;
+  
   if(!GTK_WIDGET_REALIZED(w->preview))
     return;
   
@@ -290,30 +327,35 @@ void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
   //  fprintf(stderr, "Track widget Selection: %ld %ld\n",
   //          w->tr->selection.start, w->tr->selection.end);
   
-  /* Draw preview */
-
+  /* Draw segments */
+  
+  for(i = 0; i < w->num_segments; i++)
+    {
+    draw_segment(w, c, i);
+    }
+  
   /* Draw selection */
 
   if(bg_nle_time_range_intersect(&w->tr->selection,
                                  &w->tr->visible))
     {
-    selection_start_pos = bg_nle_time_2_pos(w->tr,
-                                            w->tr->selection.start);
-    selection_end_pos = bg_nle_time_2_pos(w->tr,
-                                          w->tr->selection.end);
+    x1 = bg_nle_time_2_pos(w->tr,
+                           w->tr->selection.start);
+    x2 = bg_nle_time_2_pos(w->tr,
+                           w->tr->selection.end);
   
     if(w->tr->selection.start >= 0)
       {
-      cairo_move_to(c, selection_start_pos, 0);
-      cairo_line_to(c, selection_start_pos, w->preview_height);
+      cairo_move_to(c, x1, 0);
+      cairo_line_to(c, x1, w->preview_height);
       cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
       cairo_stroke(c);
     
       if(w->tr->selection.end >= 0)
         {
         GdkRectangle r;
-        r.x = selection_start_pos;
-        r.width = selection_end_pos - selection_start_pos;
+        r.x = x1;
+        r.width = x2 - x1;
         r.y = 0;
         r.height = w->preview_height;
         gdk_cairo_rectangle(c, &r);
@@ -321,12 +363,11 @@ void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
         cairo_set_source_rgba(c, 1.0, 0.0, 0.0, 0.2);
         cairo_fill(c);
 
-        cairo_move_to(c, selection_end_pos, 0);
-        cairo_line_to(c, selection_end_pos, w->preview_height);
+        cairo_move_to(c, x2, 0);
+        cairo_line_to(c, x2, w->preview_height);
         cairo_set_source_rgb(c, 1.0, 0.0, 0.0);
         cairo_stroke(c);
         }
-    
       }
     }
   
@@ -409,6 +450,7 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
                            bg_nle_timerange_widget_t * tr,
                            bg_nle_time_ruler_t * ruler)
   {
+  int i;
   bg_nle_track_widget_t * ret;
   
   GtkSizeGroup * size_group;
@@ -508,6 +550,16 @@ bg_nle_track_widget_create(bg_nle_track_t * track,
   gtk_size_group_add_widget(size_group, ret->panel);
   gtk_size_group_add_widget(size_group, ret->preview_box);
   g_object_unref(size_group);
+
+  ret->num_segments = ret->track->num_segments;
+  ret->segments_alloc = ret->num_segments;
+  ret->segments = calloc(ret->segments_alloc, sizeof(*ret->segments));
+
+  for(i = 0; i < ret->num_segments; i++)
+    {
+    memcpy(&ret->segments[i].seg, &ret->track->segments[i], sizeof(ret->segments[i].seg));
+    }
+  
   return ret;
   }
 

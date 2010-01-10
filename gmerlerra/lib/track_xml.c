@@ -108,32 +108,32 @@ bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
         
         if(!BG_XML_STRCMP(grandchild->name, segment_name))
           {
-          if((tmp_string = BG_XML_GET_PROP(node, "src_pos")))
+          if((tmp_string = BG_XML_GET_PROP(grandchild, "src_pos")))
             {
             ret->segments[i].src_pos = strtoll(tmp_string, (char**)0, 10);
             free(tmp_string);
             }
-          if((tmp_string = BG_XML_GET_PROP(node, "dst_pos")))
+          if((tmp_string = BG_XML_GET_PROP(grandchild, "dst_pos")))
             {
             ret->segments[i].dst_pos = strtoll(tmp_string, (char**)0, 10);
             free(tmp_string);
             }
-          if((tmp_string = BG_XML_GET_PROP(node, "len")))
+          if((tmp_string = BG_XML_GET_PROP(grandchild, "len")))
             {
             ret->segments[i].len = strtoll(tmp_string, (char**)0, 10);
             free(tmp_string);
             }
-          if((tmp_string = BG_XML_GET_PROP(node, "scale")))
+          if((tmp_string = BG_XML_GET_PROP(grandchild, "scale")))
             {
             ret->segments[i].scale = strtol(tmp_string, (char**)0, 10);
             free(tmp_string);
             }
-          if((tmp_string = BG_XML_GET_PROP(node, "stream")))
+          if((tmp_string = BG_XML_GET_PROP(grandchild, "stream")))
             {
             ret->segments[i].stream = strtol(tmp_string, (char**)0, 10);
             free(tmp_string);
             }
-          if((tmp_string = BG_XML_GET_PROP(node, "file_id")))
+          if((tmp_string = BG_XML_GET_PROP(grandchild, "file_id")))
             {
             ret->segments[i].file_id = strtol(tmp_string, (char**)0, 10);
             free(tmp_string);

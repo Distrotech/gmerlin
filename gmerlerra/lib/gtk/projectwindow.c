@@ -497,8 +497,30 @@ static void edit_callback(bg_nle_project_t * p,
       bg_nle_op_edit_mode_t * d = op_data;
       bg_nle_timeline_set_edit_mode(win->timeline, d->new_mode);
       }
+      break;
+    case BG_NLE_EDIT_SPLIT_SEGMENT:
+      fprintf(stderr, "Split segment\n");
+      break;
+    case BG_NLE_EDIT_COMBINE_SEGMENT:
+      fprintf(stderr, "Combine segment\n");
+      break;
+    case BG_NLE_EDIT_MOVE_SEGMENT:
+      fprintf(stderr, "Move segment\n");
+      break;
+    case BG_NLE_EDIT_DELETE_SEGMENT:
+      fprintf(stderr, "Delete segment\n");
+      break;
+    case BG_NLE_EDIT_INSERT_SEGMENT:
+      {
+      bg_nle_op_segment_t * d = op_data;
+      fprintf(stderr, "Insert segment 2\n");
+      bg_nle_track_segment_dump(&d->seg);
+      }
+      break;
+    case BG_NLE_EDIT_CHANGE_SEGMENT:
+      fprintf(stderr, "Change segment\n");
+      break;
     }
-  
   }
 
 static void show_settings_dialog(bg_nle_project_window_t * win)

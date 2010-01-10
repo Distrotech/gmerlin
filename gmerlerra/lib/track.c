@@ -171,3 +171,9 @@ void bg_nle_track_alloc_segments(bg_nle_track_t * track, int num)
     }
 
   }
+
+void bg_nle_track_segment_dump(const bg_nle_track_segment_t * s)
+  {
+  fprintf(stderr, "Track segment: src_pos: %"PRId64", dst_pos: %"PRId64", len: %"PRId64"\n",
+          s->src_pos, s->dst_pos, s->len);
+  }
