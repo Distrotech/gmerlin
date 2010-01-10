@@ -83,6 +83,9 @@ void bg_nle_media_list_destroy(bg_nle_media_list_t * list);
 void bg_nle_media_list_insert(bg_nle_media_list_t * list,
                               bg_nle_file_t * file, int index);
 
+int bg_nle_media_list_merge(bg_nle_media_list_t * list,
+                            bg_nle_file_t * file);
+
 void bg_nle_media_list_delete(bg_nle_media_list_t * list,
                               int index);
 

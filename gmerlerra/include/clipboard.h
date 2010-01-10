@@ -3,6 +3,7 @@
 
 typedef struct
   {
+  gavl_time_t len;
   int num_tracks;
   bg_nle_track_t ** tracks;
   int num_files;

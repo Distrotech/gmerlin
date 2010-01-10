@@ -43,6 +43,10 @@ void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
   int i, index;
   
   bg_nle_clipboard_free(c);
+
+  /* Length */
+  c->len = r->end - r->start;
+  
   /* File */
   c->num_files = 1;
   c->files = malloc(c->num_files * sizeof(*c->files));

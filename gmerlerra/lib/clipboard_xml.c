@@ -25,8 +25,13 @@ char * bg_nle_clipboard_to_string(const bg_nle_clipboard_t * c)
   xml_doc = xmlNewDoc((xmlChar*)"1.0");
   xml_clipboard = xmlNewDocRawNode(xml_doc, NULL,
                                    (xmlChar*)"GMERLERRA_CLIPBOARD", NULL);
-  xmlDocSetRootElement(xml_doc, xml_clipboard);
 
+  tmp_string = bg_sprintf("%"PRId64, c->len);
+  BG_XML_SET_PROP(node, "len", tmp_string);
+  free(tmp_string);
+  
+  xmlDocSetRootElement(xml_doc, xml_clipboard);
+  
   /* Add files */
   if(c->num_files)
     {
@@ -92,6 +97,12 @@ int bg_nle_clipboard_from_string(bg_nle_clipboard_t * c, const char * str)
     xmlFreeDoc(xml_doc);
     return 0;
     }
+
+  if((tmp_string = BG_XML_GET_PROP(node, "len")))
+    {
+    c->len = strtoll(tmp_string, NULL, 10);
+    free(tmp_string);
+    }
   
   node = node->children;
 
@@ -129,7 +140,7 @@ int bg_nle_clipboard_from_string(bg_nle_clipboard_t * c, const char * str)
             }
           child = child->next;
           }
-        
+        free(tmp_string);
         }
       
       }
@@ -160,7 +171,7 @@ int bg_nle_clipboard_from_string(bg_nle_clipboard_t * c, const char * str)
             }
           child = child->next;
           }
-        
+        free(tmp_string);
         }
       
       }

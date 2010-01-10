@@ -713,6 +713,7 @@ void bg_nle_project_delete_segment(bg_nle_project_t * p,
 static void insert_segment(bg_nle_project_t * p,
                            bg_nle_track_t * t, int index,
                            const bg_nle_track_segment_t * seg,
+                           gavl_time_t dst_pos,
                            int * id)
   {
   bg_nle_op_segment_t * d;
@@ -720,6 +721,7 @@ static void insert_segment(bg_nle_project_t * p,
   d->t = t;
   d->index = index;
   memcpy(&d->seg, seg, sizeof(d->seg));
+  d->seg.dst_pos = dst_pos;
   edited(p, BG_NLE_EDIT_INSERT_SEGMENT, d, id);
   }
 
@@ -759,12 +761,257 @@ void bg_nle_project_change_segment(bg_nle_project_t * p,
 
 /* Paste */
 
+static void paste_track_insert(bg_nle_project_t * p, bg_nle_track_t * src,
+                               bg_nle_track_t * dst, gavl_time_t dst_pos,
+                               gavl_time_t dst_len)
+  {
+  int i;
+  int start_seg = -1;
+  
+  /* Make room for pasted segments */
+  for(i = 0; i < dst->num_segments; i++)
+    {
+    if(dst->segments[i].dst_pos + dst->segments[i].len > dst_pos)
+      {
+      start_seg = i;
+      break;
+      }
+    }
+
+  if(start_seg >= 0)
+    {
+    /* Check whether to split the segment */
+    if(dst->segments[start_seg].dst_pos < dst_pos)
+      {
+      split_segment(p, dst, start_seg,
+                    dst_pos - dst->segments[start_seg].dst_pos,
+                    &p->undo_id);
+      start_seg++;
+      }
+
+    for(i = dst->num_segments-1; i >= start_seg; i--)
+      {
+      move_segment(p, dst, i,
+                   dst->segments[i].dst_pos + dst_len, &p->undo_id);
+      }
+    }
+
+  /* Insert new segments */
+
+  if(start_seg < 0)
+    start_seg = 0;
+  
+  for(i = 0; i < src->num_segments; i++)
+    {
+    insert_segment(p, dst, start_seg + i,
+                   &src->segments[i],
+                   dst_pos + src->segments[i].dst_pos,
+                   &p->undo_id);
+    }
+  
+  }
+
+static void paste_track_overwrite(bg_nle_project_t * p, bg_nle_track_t * src,
+                                  bg_nle_track_t * dst, gavl_time_t dst_pos,
+                                  gavl_time_t dst_len)
+  {
+  int i;
+  int start_seg = -1;
+  
+  /* Make room for pasted segments */
+  i = 0;
+  while(i < dst->num_segments)
+    {
+    /* ---------|        |------------ */
+    /* ----|  |----------------------- */
+    if(dst->segments[i].dst_pos + dst->segments[i].len < dst_pos)
+      {
+      i++;
+      continue;
+      }
+    /* ---------|        |------------ */
+    /* ----------------------|  |----- */
+    else if(dst->segments[i].dst_pos >= dst_pos + dst_len)
+      break;
+    
+    if(dst->segments[i].dst_pos < dst_pos)
+      {
+      /* ---------|        |------------ */
+      /* ------|   xxxxxxxx     |------- */
+      if(dst->segments[i].dst_pos + dst->segments[i].len > dst_pos + dst_len)
+        {
+        split_segment(p, dst, i,
+                      dst_pos - dst->segments[i].dst_pos,
+                      &p->undo_id);
+        i++;
+
+        change_segment(p, dst, i,
+                       dst->segments[i].src_pos +
+                       gavl_time_scale(dst->segments[i].scale, dst_len+5),
+                       dst->segments[i].dst_pos + dst_len,
+                       dst->segments[i].len - dst_len,
+                       &p->undo_id);
+        
+        start_seg = i;
+        break;
+        }
+      /* ---------|        |------------ */
+      /* ------|   xxxx|---------------- */
+      else
+        {
+        gavl_time_t diff =
+          dst->segments[i].dst_pos +
+          dst->segments[i].len - dst_pos;
+        
+        change_segment(p, dst, i,
+                       dst->segments[i].src_pos,
+                       dst->segments[i].dst_pos,
+                       dst->segments[i].len - diff,
+                       &p->undo_id);
+        start_seg = i;
+        i++;
+        }
+      }
+    else
+      {
+      /* ---------|        |------------ */
+      /* -------------|xxxx     |------- */
+      if(dst->segments[i].dst_pos + dst->segments[i].len > dst_pos + dst_len)
+        {
+        gavl_time_t diff =
+          dst_pos + dst_len - dst->segments[i].dst_pos;
+        
+        change_segment(p, dst, i,
+                       dst->segments[i].src_pos +
+                       gavl_time_scale(dst->segments[i].scale, diff+5),
+                       dst->segments[i].dst_pos + diff,
+                       dst->segments[i].len - diff,
+                       &p->undo_id);
+        
+        if(start_seg < 0)
+          start_seg = i;
+        break;
+        }
+      /* ---------|        |------------ */
+      /* -----------|xx|---------------- */
+      else
+        {
+        delete_segment(p, dst, i, &p->undo_id);
+        if(start_seg < 0)
+          start_seg = i;
+        }
+      }
+    }
+
+  /* Insert new segments */
+  if(start_seg < 0)
+    start_seg = 0;
+  
+  for(i = 0; i < src->num_segments; i++)
+    {
+    insert_segment(p, dst, start_seg + i,
+                   &src->segments[i],
+                   dst_pos + src->segments[i].dst_pos,
+                   &p->undo_id);
+    }
+  
+  }
+
+static bg_nle_track_t *
+find_paste_destination(bg_nle_project_t * p, bg_nle_track_type_t type,
+                       int * index)
+  {
+  int i = *index + 1;
+
+  while(1)
+    {
+    if(i >= p->num_tracks)
+      return NULL;
+    
+    if((p->tracks[i]->type == type) &&
+       (p->tracks[i]->flags & BG_NLE_TRACK_SELECTED))
+      {
+      *index = i;
+      return p->tracks[i];
+      }
+    i++;
+    }
+  return NULL;
+  }
+
+static void paste_tracks(bg_nle_project_t * p, bg_nle_clipboard_t * c,
+                         bg_nle_track_type_t type, gavl_time_t dst_pos)
+  {
+  int dst_index = -1;
+  int i;
+  bg_nle_track_t * dst;
+
+  dst_index = -1;
+  
+  for(i = 0; i < c->num_tracks; i++)
+    {
+    /* Find destination track where we can paste */
+
+    if(c->tracks[i]->type != type)
+      continue;
+
+    
+    dst = find_paste_destination(p, type, &dst_index);
+    if(!dst)
+      break;
+    
+    switch(p->edit_mode)
+      {
+      case BG_NLE_EDIT_INSERT:
+        paste_track_insert(p, c->tracks[i],
+                           dst, dst_pos, c->len);
+        break;
+      case BG_NLE_EDIT_OVERWRITE:
+        paste_track_overwrite(p, c->tracks[i],
+                              dst, dst_pos, c->len);
+        break;
+      }
+    }
+  }
+
 void bg_nle_project_paste(bg_nle_project_t * p, bg_nle_clipboard_t * c)
   {
+  int i;
+  
+  bg_nle_file_t * file;
+  
+  struct
+    {
+    bg_nle_id_t old_id;
+    bg_nle_id_t new_id;
+    } * file_ids;
+  
   fprintf(stderr, "bg_nle_project_paste\n");
 
   /* 1. Merge files */
+
+  file_ids = malloc(c->num_files * sizeof(*file_ids));
+
+  for(i = 0; i < c->num_files; i++)
+    {
+    file = bg_nle_media_list_find_file(p->media_list,
+                                       c->files[i]->name,
+                                       c->files[i]->track);
+    
+    if(file) /* File is already present in the project */
+      {
+      file_ids[i].old_id = c->files[i]->id;
+      file_ids[i].new_id = file->id;
+      }
+    else /* File not present, import it */
+      {
+      
+      }
+    }
   
   /* 2. Paste tracks */
+  paste_tracks(p, c, BG_NLE_TRACK_AUDIO, p->cursor_pos);
+  paste_tracks(p, c, BG_NLE_TRACK_VIDEO, p->cursor_pos);
   
+  p->undo_id++;
   }

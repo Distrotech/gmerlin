@@ -109,7 +109,8 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
   if(!input->get_frame_table && ti->num_video_streams)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Plugin %s doesn't export video frame tables, try i_avdec", handle->info->name);
+           "Plugin %s doesn't export video frame tables, try i_avdec",
+           handle->info->name);
     goto fail;
     }
   
