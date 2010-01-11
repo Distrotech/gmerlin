@@ -54,6 +54,15 @@ struct bg_nle_player_widget_s
   GtkWidget * in_button;
   GtkWidget * out_button;
   GtkWidget * copy_button;
+
+  GtkWidget * audio_stream_menu;
+  GtkWidget * video_stream_menu;
+
+  guint audio_stream_id;
+  guint video_stream_id;
+  
+  int num_audio_stream_items;
+  int num_video_stream_items;
   
   GtkWidget * socket;
   
@@ -339,11 +348,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   }
 
-static GtkWidget * create_pixmap_button(bg_nle_player_widget_t * w,
-                                        const char * filename,
-                                        const char * tooltip)
+static GtkWidget * create_image(const char * filename)
   {
-  GtkWidget * button;
   GtkWidget * image;
   char * path;
   path = bg_search_file_read("icons", filename);
@@ -356,6 +362,18 @@ static GtkWidget * create_pixmap_button(bg_nle_player_widget_t * w,
     image = gtk_image_new();
 
   gtk_widget_show(image);
+  return image;
+  }
+
+static GtkWidget * create_pixmap_button(bg_nle_player_widget_t * w,
+                                        const char * filename,
+                                        const char * tooltip)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+
+  image = create_image(filename);
+  
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
 
@@ -443,12 +461,79 @@ static void size_allocate_callback(GtkWidget     *widget,
   bg_nle_timerange_widget_set_width(&w->tr, allocation->width);
   }
 
+static void stream_menu_callback(GtkWidget * wid, gpointer data)
+  {
+  bg_nle_player_widget_t * w = data;
+
+  if(wid == w->audio_stream_menu)
+    {
+    fprintf(stderr, "Audio stream menu %d\n",
+            gtk_combo_box_get_active(GTK_COMBO_BOX(w->audio_stream_menu)));
+    }
+  else if(wid == w->video_stream_menu)
+    {
+    fprintf(stderr, "Video stream menu %d\n",
+            gtk_combo_box_get_active(GTK_COMBO_BOX(w->video_stream_menu)));
+    }
+  }
+
 static void handle_player_message(bg_nle_player_widget_t * w,
                                   bg_msg_t * msg)
   {
   double peaks[2];
   switch(bg_msg_get_id(msg))
     {
+    case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
+      {
+      /* Remove old menu entries */
+      int i;
+      for(i = 0; i < w->num_audio_stream_items; i++)
+        gtk_combo_box_remove_text(GTK_COMBO_BOX(w->audio_stream_menu), 1);
+      w->num_audio_stream_items = 0;
+
+      for(i = 0; i < w->num_video_stream_items; i++)
+        gtk_combo_box_remove_text(GTK_COMBO_BOX(w->video_stream_menu), 1);
+      w->num_video_stream_items = 0;
+      }
+      break;
+    case BG_PLAYER_MSG_AUDIO_STREAM_INFO:
+      {
+      int index;
+      char * info;
+      char * language;
+      char * label;
+      
+      index = bg_msg_get_arg_int(msg, 0);
+      info = bg_msg_get_arg_string(msg, 1);
+      language = bg_msg_get_arg_string(msg, 2);
+      label = bg_get_stream_label(index, info, language);
+      gtk_combo_box_append_text(GTK_COMBO_BOX(w->audio_stream_menu), label);
+      
+      if(info) free(info);
+      if(language) free(language);
+      free(label);
+      w->num_audio_stream_items++;
+      }
+      break;
+    case BG_PLAYER_MSG_VIDEO_STREAM_INFO:
+      {
+      int index;
+      char * info;
+      char * language;
+      char * label;
+      
+      index = bg_msg_get_arg_int(msg, 0);
+      info = bg_msg_get_arg_string(msg, 1);
+      language = bg_msg_get_arg_string(msg, 2);
+      label = bg_get_stream_label(index, info, language);
+      gtk_combo_box_append_text(GTK_COMBO_BOX(w->video_stream_menu), label);
+      
+      if(info) free(info);
+      if(language) free(language);
+      free(label);
+      w->num_video_stream_items++;
+      }
+      break;
     case BG_PLAYER_MSG_TIME_CHANGED:
       {
       int64_t time_cnv;
@@ -462,7 +547,8 @@ static void handle_player_message(bg_nle_player_widget_t * w,
       //     w->last_display_time, time_cnv, w->time_info.mode, w->time_info.tab);
       
       bg_gtk_time_display_update(w->display, time_cnv, w->time_info.mode);
-      bg_nle_timerange_widget_set_cursor_pos(bg_nle_time_ruler_get_tr(w->ruler), w->last_display_time);
+      bg_nle_timerange_widget_set_cursor_pos(bg_nle_time_ruler_get_tr(w->ruler),
+                                             w->last_display_time);
       }
       break;
     case BG_PLAYER_MSG_AUDIO_PEAK:
@@ -490,11 +576,22 @@ static void handle_player_message(bg_nle_player_widget_t * w,
         }
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM:
+      {
+      int stream_index = bg_msg_get_arg_int(msg, 0);
+      g_signal_handler_block(G_OBJECT(w->audio_stream_menu), w->audio_stream_id);
+      gtk_combo_box_set_active(GTK_COMBO_BOX(w->audio_stream_menu), stream_index+1);
+      g_signal_handler_unblock(G_OBJECT(w->audio_stream_menu), w->audio_stream_id);
+      }
       break;
     case BG_PLAYER_MSG_VIDEO_STREAM:
       {
       int64_t frame;
       int stream_index = bg_msg_get_arg_int(msg, 0);
+
+      g_signal_handler_block(G_OBJECT(w->video_stream_menu), w->video_stream_id);
+      gtk_combo_box_set_active(GTK_COMBO_BOX(w->video_stream_menu), stream_index+1);
+      g_signal_handler_unblock(G_OBJECT(w->video_stream_menu), w->video_stream_id);
+      
       w->time_info.tab = w->file->video_streams[stream_index].frametable;
       w->time_info.scale = w->file->video_streams[stream_index].timescale;
       gavl_timecode_format_copy(&w->time_info.fmt, &w->file->video_streams[stream_index].tc_format);
@@ -512,9 +609,10 @@ static void handle_player_message(bg_nle_player_widget_t * w,
       if(w->last_frame_time >= 0)
         bg_nle_timerange_widget_delete_label(&w->tr, w->last_frame_time);
       
-      w->tr.media_time.end = gavl_time_unscale(w->time_info.scale, gavl_frame_table_end_time(w->time_info.tab));
-      w->tr.media_time.start = gavl_time_unscale(w->time_info.scale, w->time_info.tab->offset);
-
+      w->tr.media_time.end = gavl_time_unscale(w->time_info.scale,
+                                               gavl_frame_table_end_time(w->time_info.tab));
+      w->tr.media_time.start = gavl_time_unscale(w->time_info.scale,
+                                                 w->time_info.tab->offset);
 
       frame = gavl_frame_table_num_frames(w->time_info.tab)-1;
       
@@ -532,7 +630,6 @@ static void handle_player_message(bg_nle_player_widget_t * w,
       break;
     }
   }
-
 
 static gboolean timeout_func(void * data)
   {
@@ -555,7 +652,6 @@ static gboolean timeout_func(void * data)
   
   return TRUE;
   }
-
 
 static void visibility_changed_callback(bg_nle_time_range_t * visible, void * data)
   {
@@ -653,6 +749,8 @@ bg_nle_player_widget_t *
 bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
                             bg_nle_time_ruler_t * ruler)
   {
+  GtkWidget * image;
+  
   GtkWidget * box;
   GtkWidget * sep;
   bg_nle_player_widget_t * ret;
@@ -749,6 +847,27 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   bg_gtk_time_display_set_colors(ret->display, display_fg, display_bg );
   //  bg_gtk_time_display_update(ret->display, 0, BG_GTK_DISPLAY_MODE_TIMECODE);
   bg_gtk_time_display_update(ret->display, 0, BG_GTK_DISPLAY_MODE_HMSMS);
+
+  ret->audio_stream_menu = gtk_combo_box_new_text();
+  ret->video_stream_menu = gtk_combo_box_new_text();
+  
+  gtk_combo_box_append_text(GTK_COMBO_BOX(ret->audio_stream_menu), TR("Off"));
+  gtk_combo_box_append_text(GTK_COMBO_BOX(ret->video_stream_menu), TR("Off"));
+
+  gtk_combo_box_set_active(GTK_COMBO_BOX(ret->audio_stream_menu), 0);
+  gtk_combo_box_set_active(GTK_COMBO_BOX(ret->video_stream_menu), 0);
+  
+  ret->audio_stream_id = g_signal_connect(G_OBJECT(ret->audio_stream_menu),
+                                          "changed", G_CALLBACK(stream_menu_callback),
+                                          ret);
+  ret->video_stream_id = g_signal_connect(G_OBJECT(ret->video_stream_menu),
+                                          "changed", G_CALLBACK(stream_menu_callback),
+                                          ret);
+
+  
+  gtk_widget_show(ret->audio_stream_menu);
+  gtk_widget_show(ret->video_stream_menu);
+  
   /* Pack */
   
   ret->box = gtk_vbox_new(FALSE, 0);
@@ -768,6 +887,8 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
     gtk_box_pack_start(GTK_BOX(ret->box), bg_nle_time_ruler_get_widget(ret->ruler_priv),
                        FALSE, FALSE, 0);
     }
+
+  /* Buttons and display */
   
   box = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->goto_start_button, FALSE, FALSE, 0);
@@ -802,6 +923,22 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
 
   gtk_box_pack_start(GTK_BOX(ret->box), box, FALSE, FALSE, 0);
 
+  /* Stream menu */
+  box = gtk_hbox_new(FALSE, 0);
+
+  image = create_image("audio_16.png");
+  gtk_box_pack_start(GTK_BOX(box), image, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->audio_stream_menu, TRUE, TRUE, 0);
+
+  image = create_image("video_16.png");
+  gtk_box_pack_start(GTK_BOX(box), image, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->video_stream_menu, TRUE, TRUE, 0);
+
+  gtk_widget_show(box);
+  gtk_box_pack_start(GTK_BOX(ret->box), box, FALSE, FALSE, 0);
+    
+  /* */
+  
   gtk_widget_show(ret->box);
 
   /* Setup player */
