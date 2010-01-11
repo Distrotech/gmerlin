@@ -602,9 +602,11 @@ selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos, 
   
   bg_nle_time_ruler_update_selection(w->ruler);
 
-  pause_cmd(w, PAUSE_ON);
-  bg_player_seek(w->player, cursor_pos+10, GAVL_TIME_SCALE);
-  
+  if(w->file)
+    {
+    pause_cmd(w, PAUSE_ON);
+    bg_player_seek(w->player, cursor_pos+10, GAVL_TIME_SCALE);
+    }
   }
 
 static void in_out_changed_callback(bg_nle_time_range_t * in_out, void * data)

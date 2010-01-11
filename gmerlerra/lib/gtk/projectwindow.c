@@ -132,6 +132,10 @@ struct bg_nle_project_window_s
   
   bg_nle_project_t * p;
 
+  /* Handle corresponding to the project */
+  bg_plugin_handle_t * handle; 
+  bg_nle_file_t * file; /* File corresponding to the project */
+  
   bg_nle_timeline_t * timeline;
   bg_nle_media_browser_t * media_browser;
   
@@ -243,8 +247,7 @@ set_display_parameter(void * priv, const char * name,
     }
   
   bg_nle_media_browser_set_display_parameter(w->media_browser, name, val);
-  bg_nle_player_set_display_parameter(w->compositor,
-                                      name, val);
+  bg_nle_player_set_display_parameter(w->compositor, name, val);
   bg_nle_timeline_set_display_parameter(w->timeline, name, val);
   }
 

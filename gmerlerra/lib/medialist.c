@@ -101,9 +101,7 @@ bg_nle_media_list_load_file(bg_nle_media_list_t * list,
     }
   
   /* Check out streams */
-  
-  
-  
+ 
   ti = input->get_track_info(handle->priv, track);
 
   if(!input->get_frame_table && ti->num_video_streams)

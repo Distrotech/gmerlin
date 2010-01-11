@@ -437,8 +437,6 @@ int bg_nle_plugin_open(void * priv, const char * arg)
   return bg_nle_renderer_open(p->renderer, p->project);
   }
 
-
-
 //  const bg_edl_t * (*get_edl)(void * priv);
     
 int bg_nle_plugin_get_num_tracks(void * priv)
@@ -487,11 +485,28 @@ int bg_nle_plugin_start(void * priv)
   return bg_nle_renderer_start(p->renderer);
   }
 
-
-gavl_frame_table_t * bg_nle_plugin_get_frame_table(void * priv, int stream)
+gavl_frame_table_t *
+bg_nle_plugin_get_frame_table(void * priv, int stream)
   {
-  bg_nle_plugin_t * p = priv;
-  return NULL;
+  gavl_video_format_t * format;
+  bg_nle_renderer_t * r;
+  int64_t num_frames;
+  bg_nle_plugin_t * p;
+  bg_nle_outstream_t * os;
+  
+  p = priv;
+  r = p->renderer;
+  os = r->video_streams[stream].os;
+  format = &r->info.video_streams[stream].format;
+  
+  num_frames =
+    gavl_time_scale(format->timescale,
+                    bg_nle_outstream_duration(os) + 5) /
+    format->frame_duration;
+
+  
+  return gavl_frame_table_create_cfr(0, format->frame_duration,
+                                     num_frames, GAVL_TIMECODE_UNDEFINED);
   }
 
 int bg_nle_plugin_read_audio(void * priv, gavl_audio_frame_t* frame, int stream,
@@ -507,10 +522,12 @@ int bg_nle_plugin_read_video(void * priv, gavl_video_frame_t* frame, int stream)
   return bg_nle_renderer_read_video(p->renderer, frame, stream);
   }
 
-void bg_nle_plugin_skip_video(void * priv, int stream, int64_t * time, int scale, int exact)
+void
+bg_nle_plugin_skip_video(void * priv, int stream,
+                         int64_t * time, int scale, int exact)
   {
   bg_nle_plugin_t * p = priv;
-  
+  /* TODO */
   }
   
 void bg_nle_plugin_seek(void * priv, int64_t * time, int scale)

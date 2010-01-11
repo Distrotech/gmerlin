@@ -622,6 +622,9 @@ static void redraw(bg_nle_time_ruler_t * r)
     case BG_GTK_DISPLAY_MODE_FRAMECOUNT:
       draw_tics_framecount(r, pl, c);
       break;
+    default:
+      fprintf(stderr, "No display mode defined\n");
+      break;
     }
   
   /* Draw selection */
