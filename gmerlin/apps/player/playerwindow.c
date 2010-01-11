@@ -579,7 +579,6 @@ static void handle_message(player_window_t * win,
       main_menu_set_video_info(win->main_menu, arg_i_1, arg_str_1, arg_str_2);
       if(arg_str_1) free(arg_str_1);
       if(arg_str_2) free(arg_str_2);
-      
       break;
     case BG_PLAYER_MSG_SUBTITLE_STREAM_INFO:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);

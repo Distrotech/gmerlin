@@ -44,6 +44,9 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "utils"
 
+#include <gmerlin/translation.h>
+
+
 #include <md5.h>
 
 
@@ -570,4 +573,18 @@ char * bg_filename_ensure_extension(const char * filename,
     return bg_strdup(NULL, filename);
   else
     return bg_sprintf("%s.%s", filename, ext);
+  }
+
+char * bg_get_stream_label(int index, const char * info, const char * language)
+  {
+  char * label;
+  if(info && language && *language)
+    label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
+  else if(info)
+    label = bg_sprintf("%s", info);
+  else if(language && *language)
+    label = bg_sprintf(TR("Stream %d [%s]"), index+1, bg_get_language_name(language));
+  else
+    label = bg_sprintf(TR("Stream %d"), index+1);
+  return label;
   }

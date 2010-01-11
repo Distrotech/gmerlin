@@ -403,6 +403,15 @@ char * bg_audio_format_to_string(gavl_audio_format_t * format, int use_tabs);
 
 char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs);
 
+/** \brief Create a stream label
+ *  \param index Index of the stream (starting with 0)
+ *  \param info Information (or NULL)
+ *  \param language Language (or NULL)
+ *  \returns A newly allocated string
+ */
+
+char * bg_get_stream_label(int index, const char * info, const char * language);
+
 /** \brief Dump to stderr
  *  \param format Format (printf compatible)
  */

@@ -926,15 +926,8 @@ void main_menu_set_audio_info(main_menu_t * m, int stream,
   {
   char * label;
   GtkWidget * w;
-  if(info && language && *language)
-    label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
-  else if(info)
-    label = bg_sprintf("%s", info);
-  else if(language && *language)
-    label = bg_sprintf(TR("Stream %d [%s]"), stream+1, bg_get_language_name(language));
-  else
-    label = bg_sprintf(TR("Stream %d"), stream+1);
-
+  
+  label = bg_get_stream_label(stream, info, language);
   w = m->audio_stream_menu.stream_items[stream];
   gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
   free(label);
