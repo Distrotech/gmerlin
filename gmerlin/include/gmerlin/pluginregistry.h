@@ -876,6 +876,31 @@ void bg_plugin_unref(bg_plugin_handle_t * h);
  *  If the reference count gets zero, the plugin will
  *  be destroyed
  */
+
 void bg_plugin_unref_nolock(bg_plugin_handle_t * h);
+
+/** \ingroup plugin_registry
+ *  \brief Create a plugin info from a plugin
+ *  \param plugin A plugin
+ *  \param plugin_priv Handle returned by the create() method
+ *  \returns A newly allocated plugin info
+ *
+ *  Use this function only if you create a plugin handle outside a plugin
+ *  registry. Free the returned info with \ref bg_plugin_info_destroy
+ */
+
+bg_plugin_info_t * bg_plugin_info_create(bg_plugin_common_t * plugin,
+                                         void * plugin_priv);
+
+/** \ingroup plugin_registry
+ *  \brief Create an empty plugin handle
+ *  \returns A newly allocated plugin handle
+ *
+ *  Use this function only if you create a plugin handle outside a plugin
+ *  registry. Free the returned info with \ref bg_plugin_unref
+ */
+
+bg_plugin_handle_t * bg_plugin_handle_create();
+
 
 #endif // __BG_PLUGINREGISTRY_H_

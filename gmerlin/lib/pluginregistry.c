@@ -393,71 +393,11 @@ static int check_plugin_version(void * handle)
   return 1;
   }
 
-static bg_plugin_info_t * get_info(void * test_module,
-                                   const char * filename,
-                                   const bg_plugin_registry_options_t * opt)
+bg_plugin_info_t * bg_plugin_info_create(bg_plugin_common_t * plugin,
+                                         void * plugin_priv)
   {
   bg_plugin_info_t * new_info;
-  bg_plugin_common_t * plugin;
-  void * plugin_priv;
   const bg_parameter_info_t * parameter_info;
-  
-  if(!check_plugin_version(test_module))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version", filename);
-    dlclose(test_module);
-    return (bg_plugin_info_t*)0;
-    }
-  plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));
-  if(!plugin)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No symbol the_plugin in %s", filename);
-    dlclose(test_module);
-    return (bg_plugin_info_t*)0;
-    }
-  if(!plugin->priority)
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Plugin %s has zero priority",
-           plugin->name);
-
-  if(opt->blacklist)
-    {
-    int i = 0;
-    while(opt->blacklist[i])
-      {
-      if(!strcmp(plugin->name, opt->blacklist[i]))
-        {
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Not loading %s (blacklisted)", plugin->name);
-        dlclose(test_module);
-        return (bg_plugin_info_t*)0;
-        }
-      i++;
-      }
-    }
-
-  new_info = calloc(1, sizeof(*new_info));
-  
-  new_info->name = bg_strdup(new_info->name, plugin->name);
-
-  new_info->long_name =  bg_strdup(new_info->long_name,
-                                   plugin->long_name);
-
-  new_info->description = bg_strdup(new_info->description,
-                                    plugin->description);
-  
-  new_info->module_filename = bg_strdup(new_info->module_filename,
-                                        filename);
-
-  new_info->gettext_domain = bg_strdup(new_info->gettext_domain,
-                                       plugin->gettext_domain);
-  new_info->gettext_directory = bg_strdup(new_info->gettext_directory,
-                                          plugin->gettext_directory);
-  new_info->type        = plugin->type;
-  new_info->flags       = plugin->flags;
-  new_info->priority    = plugin->priority;
-
-  /* Get parameters */
-
-  plugin_priv = plugin->create();
   
   if(plugin->get_parameters)
     {
@@ -536,7 +476,54 @@ static bg_plugin_info_t * get_info(void * test_module,
   
   if(plugin->find_devices)
     new_info->devices = plugin->find_devices();
+
+  return new_info;
+  }
+
+static bg_plugin_info_t * get_info(void * test_module,
+                                   const char * filename,
+                                   const bg_plugin_registry_options_t * opt)
+  {
+  bg_plugin_info_t * new_info;
+  bg_plugin_common_t * plugin;
+  void * plugin_priv;
   
+  if(!check_plugin_version(test_module))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version", filename);
+    dlclose(test_module);
+    return (bg_plugin_info_t*)0;
+    }
+  plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));
+  if(!plugin)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No symbol the_plugin in %s", filename);
+    dlclose(test_module);
+    return (bg_plugin_info_t*)0;
+    }
+  if(!plugin->priority)
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Plugin %s has zero priority",
+           plugin->name);
+
+  if(opt->blacklist)
+    {
+    int i = 0;
+    while(opt->blacklist[i])
+      {
+      if(!strcmp(plugin->name, opt->blacklist[i]))
+        {
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Not loading %s (blacklisted)", plugin->name);
+        dlclose(test_module);
+        return (bg_plugin_info_t*)0;
+        }
+      i++;
+      }
+    }
+  
+  /* Get parameters */
+
+  plugin_priv = plugin->create();
+  new_info = bg_plugin_info_create(plugin, plugin_priv);
   plugin->destroy(plugin_priv);
   
   return new_info;
@@ -1206,7 +1193,7 @@ static void unload_plugin(bg_plugin_handle_t * h)
   {
   bg_cfg_section_t * section;
  
-  if(h->plugin->get_parameter)
+  if(h->plugin->get_parameter && h->plugin_reg)
     {
     section = bg_plugin_registry_get_section(h->plugin_reg, h->info->name);
     bg_cfg_section_get(section,
@@ -1382,17 +1369,24 @@ bg_plugin_registry_save_image(bg_plugin_registry_t * r,
   gavl_video_converter_destroy(cnv);
   }
 
+bg_plugin_handle_t * bg_plugin_handle_create()
+  {
+  bg_plugin_handle_t * ret;
+  ret = calloc(1, sizeof(*ret));
+  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  bg_plugin_ref(ret);
+  return ret;
+  }
 
 static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
-                                 const bg_plugin_info_t * info)
+                                        const bg_plugin_info_t * info)
   {
   bg_plugin_handle_t * ret;
 
   if(!info)
     return (bg_plugin_handle_t*)0;
   
-  ret = calloc(1, sizeof(*ret));
-
+  ret = bg_plugin_handle_create();
   ret->plugin_reg = reg;
   
   pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
@@ -1460,7 +1454,6 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
     ret->priv = bg_singlepic_encoder_create(reg);
     }
   ret->info = info;
-  bg_plugin_ref(ret);
   return ret;
 
 fail:
