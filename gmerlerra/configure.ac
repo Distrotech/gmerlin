@@ -111,6 +111,7 @@ icons/Makefile \
 lib/Makefile \
 lib/gtk/Makefile \
 plugins/Makefile \
+plugins/renderer/Makefile \
 m4/Makefile \
 tests/Makefile \
 ])

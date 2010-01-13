@@ -4,7 +4,9 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/pluginregistry.h>
+
 #include <renderer.h>
+
 
 struct bg_nle_renderer_s
   {
@@ -549,3 +551,21 @@ void bg_nle_close(void * priv)
   
   }
 #endif
+
+static const bg_input_plugin_t gmerlerra_plugin =
+  GMERLERRA_PLUGIN("i_gmerlerra_internal",
+                   TRS("Gmerlerra plugin (internal)"),
+                   NULL);
+
+bg_plugin_handle_t *
+bg_nle_plugin_load_internal(bg_nle_project_t * p,
+                            bg_plugin_registry_t * plugin_reg)
+  {
+  bg_plugin_handle_t * ret;
+
+  ret = bg_plugin_handle_create();
+  ret->plugin = &gmerlerra_plugin;
+  ret->priv = bg_nle_plugin_create(p, plugin_reg);
+  ret->info = bg_plugin_info_create(ret->plugin, ret->priv);
+  return ret;
+  }

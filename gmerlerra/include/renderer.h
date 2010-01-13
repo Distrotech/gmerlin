@@ -233,3 +233,39 @@ void bg_nle_plugin_destroy(void * priv);
 
 void * bg_nle_plugin_create(bg_nle_project_t * p,
                             bg_plugin_registry_t * plugin_reg);
+
+#define GMERLERRA_PLUGIN(arg_name, arg_long_name, create_func)  \
+  { \
+  .common = \
+    { \
+    BG_LOCALE, \
+    .name =           arg_name,  \
+    .long_name =      arg_long_name, \
+    .description =    TRS("Renderer for gmerlerra projects"), \
+    .type =           BG_PLUGIN_INPUT, \
+    .flags =          BG_PLUGIN_FILE, \
+    .priority =       BG_PLUGIN_PRIORITY_MIN, \
+    .create =         create_func, \
+    .destroy =        bg_nle_plugin_destroy, \
+    .get_parameters = bg_nle_plugin_get_parameters, \
+    .set_parameter =  bg_nle_plugin_set_parameter, \
+    }, \
+    .get_extensions = bg_nle_plugin_get_extensions, \
+    .open = bg_nle_plugin_open, \
+    .set_callbacks = bg_nle_plugin_set_callbacks, \
+    .get_num_tracks = bg_nle_plugin_get_num_tracks,     \
+    .get_track_info = bg_nle_plugin_get_track_info, \
+    .set_audio_stream =      bg_nle_plugin_set_audio_stream, \
+    .set_video_stream =      bg_nle_plugin_set_video_stream, \
+    .start =                 bg_nle_plugin_start, \
+    .read_audio =     bg_nle_plugin_read_audio, \
+    .read_video =      bg_nle_plugin_read_video, \
+    .skip_video =      bg_nle_plugin_skip_video, \
+    .seek = bg_nle_plugin_seek, \
+  }
+
+/* Create a plugin handle, which can be passed to the plugin
+   registry and unrefed properly after */
+bg_plugin_handle_t *
+bg_nle_plugin_load_internal(bg_nle_project_t * p,
+                            bg_plugin_registry_t * plugin_reg);

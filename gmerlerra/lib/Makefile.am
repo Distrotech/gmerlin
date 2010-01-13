@@ -1,5 +1,7 @@
 SUBDIRS = gtk
 
+AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
+
 noinst_LTLIBRARIES = libgmerlerra.la
 
 libgmerlerra_la_SOURCES = \
