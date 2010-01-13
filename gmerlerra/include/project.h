@@ -203,6 +203,9 @@ void bg_nle_project_edit(bg_nle_project_t * p,
 
 void bg_nle_project_create_sections(bg_nle_project_t * p);
 
+int bg_nle_project_num_outstreams(bg_nle_project_t * p,
+                                  bg_nle_track_type_t type);
+
 bg_nle_outstream_t * bg_nle_project_find_outstream(bg_nle_project_t * p,
                                                    bg_nle_track_type_t type,
                                                    int index);

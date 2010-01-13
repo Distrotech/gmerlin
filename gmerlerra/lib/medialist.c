@@ -4,7 +4,7 @@
 #include <config.h>
 
 #include <medialist.h>
-
+#include <project.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 

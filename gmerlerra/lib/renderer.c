@@ -490,25 +490,8 @@ int bg_nle_plugin_start(void * priv)
 gavl_frame_table_t *
 bg_nle_plugin_get_frame_table(void * priv, int stream)
   {
-  gavl_video_format_t * format;
-  bg_nle_renderer_t * r;
-  int64_t num_frames;
-  bg_nle_plugin_t * p;
-  bg_nle_outstream_t * os;
-  
-  p = priv;
-  r = p->renderer;
-  os = r->video_streams[stream].os;
-  format = &r->info.video_streams[stream].format;
-  
-  num_frames =
-    gavl_time_scale(format->timescale,
-                    bg_nle_outstream_duration(os) + 5) /
-    format->frame_duration;
-
-  
-  return gavl_frame_table_create_cfr(0, format->frame_duration,
-                                     num_frames, GAVL_TIMECODE_UNDEFINED);
+  bg_nle_plugin_t * p = priv;
+  return bg_nle_outstream_get_frame_table(p->renderer->video_streams[stream].os);
   }
 
 int bg_nle_plugin_read_audio(void * priv, gavl_audio_frame_t* frame, int stream,

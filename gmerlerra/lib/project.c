@@ -398,7 +398,8 @@ int bg_nle_project_num_outstreams(bg_nle_project_t * p,
 
   for(i = 0; i < p->num_outstreams; i++)
     {
-    if(
+    if(p->outstreams[i]->type == type)
+      ret++;
     }                                          
-  
+  return ret;
   }

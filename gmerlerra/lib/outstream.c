@@ -201,3 +201,21 @@ gavl_time_t bg_nle_outstream_duration(bg_nle_outstream_t * os)
     }
   return ret;
   }
+
+gavl_frame_table_t * bg_nle_outstream_get_frame_table(bg_nle_outstream_t * os)
+  {
+#if 0
+  format = &r->info.video_streams[stream].format;
+  
+  num_frames =
+    gavl_time_scale(format->timescale,
+                    bg_nle_outstream_duration(os) + 5) /
+    format->frame_duration;
+
+  
+  return gavl_frame_table_create_cfr(0, format->frame_duration,
+                                     num_frames, GAVL_TIMECODE_UNDEFINED);
+
+#endif
+  return NULL;
+  }
