@@ -389,3 +389,16 @@ bg_nle_track_t * bg_nle_project_find_track(bg_nle_project_t * p,
   return NULL;
   }
 
+
+int bg_nle_project_num_outstreams(bg_nle_project_t * p,
+                                  bg_nle_track_type_t type)
+  {
+  int i;
+  int ret = 0;
+
+  for(i = 0; i < p->num_outstreams; i++)
+    {
+    if(
+    }                                          
+  
+  }
