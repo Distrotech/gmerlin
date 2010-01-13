@@ -883,6 +883,7 @@ void bg_plugin_unref_nolock(bg_plugin_handle_t * h);
  *  \brief Create a plugin info from a plugin
  *  \param plugin A plugin
  *  \param plugin_priv Handle returned by the create() method
+ *  \param module_filename Module filename or NULL
  *  \returns A newly allocated plugin info
  *
  *  Use this function only if you create a plugin handle outside a plugin
@@ -890,7 +891,8 @@ void bg_plugin_unref_nolock(bg_plugin_handle_t * h);
  */
 
 bg_plugin_info_t * bg_plugin_info_create(bg_plugin_common_t * plugin,
-                                         void * plugin_priv);
+                                         void * plugin_priv,
+                                         const char * module_filename);
 
 /** \ingroup plugin_registry
  *  \brief Create an empty plugin handle

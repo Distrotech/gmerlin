@@ -394,17 +394,39 @@ static int check_plugin_version(void * handle)
   }
 
 bg_plugin_info_t * bg_plugin_info_create(bg_plugin_common_t * plugin,
-                                         void * plugin_priv)
+                                         void * plugin_priv,
+                                         const char * module_filename)
   {
   bg_plugin_info_t * new_info;
   const bg_parameter_info_t * parameter_info;
+
+  new_info = calloc(1, sizeof(*new_info));
+
+  new_info->name = bg_strdup(new_info->name, plugin->name); 	 
+	  	 
+  new_info->long_name =  bg_strdup(new_info->long_name, 	 
+                                   plugin->long_name); 	 
+	  	 
+  new_info->description = bg_strdup(new_info->description, 	 
+                                    plugin->description);
+	  	 
+  new_info->module_filename = bg_strdup(new_info->module_filename, 	 
+                                        module_filename);
+  
+  new_info->gettext_domain = bg_strdup(new_info->gettext_domain, 	 
+                                       plugin->gettext_domain); 	 
+  new_info->gettext_directory = bg_strdup(new_info->gettext_directory, 	 
+                                          plugin->gettext_directory); 	 
+  new_info->type        = plugin->type; 	 
+  new_info->flags       = plugin->flags; 	 
+  new_info->priority    = plugin->priority;
   
   if(plugin->get_parameters)
     {
     parameter_info = plugin->get_parameters(plugin_priv);
     new_info->parameters = bg_parameter_info_copy_array(parameter_info);
     }
-    
+  
   if(plugin->type & (BG_PLUGIN_ENCODER_AUDIO|
                      BG_PLUGIN_ENCODER_VIDEO|
                      BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
@@ -523,7 +545,7 @@ static bg_plugin_info_t * get_info(void * test_module,
   /* Get parameters */
 
   plugin_priv = plugin->create();
-  new_info = bg_plugin_info_create(plugin, plugin_priv);
+  new_info = bg_plugin_info_create(plugin, plugin_priv, filename);
   plugin->destroy(plugin_priv);
   
   return new_info;
@@ -1182,8 +1204,16 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
   bg_plugin_lock(h);
   h->refcount++;
 
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d",
-         h->plugin->name, h->refcount);
+  if(h->plugin)
+    {
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d",
+           h->plugin->name, h->refcount);
+    }
+  else
+    {
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref (null): %d",
+           h->refcount);
+    }
 
   bg_plugin_unlock(h);
   
@@ -1374,7 +1404,6 @@ bg_plugin_handle_t * bg_plugin_handle_create()
   bg_plugin_handle_t * ret;
   ret = calloc(1, sizeof(*ret));
   pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
-  bg_plugin_ref(ret);
   return ret;
   }
 
@@ -1454,6 +1483,7 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
     ret->priv = bg_singlepic_encoder_create(reg);
     }
   ret->info = info;
+  bg_plugin_ref(ret);
   return ret;
 
 fail:
