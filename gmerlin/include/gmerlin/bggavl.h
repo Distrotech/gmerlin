@@ -60,6 +60,7 @@ void bg_gavl_audio_options_set_format(const bg_gavl_audio_options_t *,
 typedef struct
   {
   gavl_video_options_t * opt;
+  gavl_pixelformat_t pixelformat;
   
   int framerate_mode;
   int frame_duration;
@@ -86,6 +87,14 @@ void bg_gavl_video_options_free(bg_gavl_video_options_t *);
 void bg_gavl_video_options_set_framerate(const bg_gavl_video_options_t *,
                                          const gavl_video_format_t * in_format,
                                          gavl_video_format_t * out_format);
+
+void bg_gavl_video_options_set_frame_size(const bg_gavl_video_options_t * opt,
+                                          const gavl_video_format_t * in_format,
+                                          gavl_video_format_t * out_format);
+
+void bg_gavl_video_options_set_pixelformat(const bg_gavl_video_options_t * opt,
+                                           const gavl_video_format_t * in_format,
+                                           gavl_video_format_t * out_format);
 
 void bg_gavl_video_options_set_format(const bg_gavl_video_options_t *,
                                       const gavl_video_format_t * in_format,

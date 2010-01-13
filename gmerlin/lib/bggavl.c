@@ -337,20 +337,19 @@ framerate_rates[NUM_FRAME_RATES] =
     { FRAME_RATE_60,            60,    1 },
   };
 
-static void set_frame_rate_mode(bg_gavl_video_options_t * opt,
-                                const bg_parameter_value_t * val)
+static int get_frame_rate_mode(const char * str)
   {
   int i;
   for(i = 0; i < NUM_FRAME_RATES; i++)
     {
-    if(!strcmp(val->val_str, framerate_strings[i].name))
+    if(!strcmp(str, framerate_strings[i].name))
       {
-      opt->framerate_mode = framerate_strings[i].rate;
-      return;
+      return framerate_strings[i].rate;
       }
     }
+  return FRAME_RATE_USER;
   }
-
+                
 
 #define SP_FLAG(s, flag) if(!strcmp(name, s)) {               \
   flags = gavl_video_options_get_conversion_flags(opt->opt);  \
@@ -492,9 +491,9 @@ static void set_frame_size_mode(bg_gavl_video_options_t * opt,
     }
   }
 
-static void set_frame_size(const bg_gavl_video_options_t * opt,
-                           const gavl_video_format_t * in_format,
-                           gavl_video_format_t * out_format)
+void bg_gavl_video_options_set_frame_size(const bg_gavl_video_options_t * opt,
+                                          const gavl_video_format_t * in_format,
+                                          gavl_video_format_t * out_format)
   {
   int i;
   
@@ -551,12 +550,17 @@ int bg_gavl_video_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "framerate"))
     {
-    set_frame_rate_mode(opt, val);
+    opt->framerate_mode = get_frame_rate_mode(val->val_str);
     return 1;
     }
   else if(!strcmp(name, "frame_size"))
     {
     set_frame_size_mode(opt, val);
+    return 1;
+    }
+  else if(!strcmp(name, "pixelformat"))
+    {
+    opt->pixelformat = gavl_string_to_pixelformat(val->val_str);
     return 1;
     }
 
@@ -691,6 +695,15 @@ static void set_interlace(const bg_gavl_video_options_t * opt,
     out_format->interlace_mode = in_format->interlace_mode;
   }
 
+void bg_gavl_video_options_set_pixelformat(const bg_gavl_video_options_t * opt,
+                                           const gavl_video_format_t * in_format,
+                                           gavl_video_format_t * out_format)
+  {
+  if(opt->pixelformat == GAVL_PIXELFORMAT_NONE)
+    out_format->pixelformat = in_format->pixelformat;
+  else
+    out_format->pixelformat = opt->pixelformat;
+  }
 
 void bg_gavl_video_options_set_format(const bg_gavl_video_options_t * opt,
                                       const gavl_video_format_t * in_format,
@@ -698,7 +711,7 @@ void bg_gavl_video_options_set_format(const bg_gavl_video_options_t * opt,
   {
   bg_gavl_video_options_set_framerate(opt, in_format, out_format);
   set_interlace(opt, in_format, out_format);
-  set_frame_size(opt, in_format, out_format);
+  bg_gavl_video_options_set_frame_size(opt, in_format, out_format);
   }
 
 

@@ -393,7 +393,7 @@ static int check_plugin_version(void * handle)
   return 1;
   }
 
-bg_plugin_info_t * bg_plugin_info_create(bg_plugin_common_t * plugin,
+bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin,
                                          void * plugin_priv,
                                          const char * module_filename)
   {
