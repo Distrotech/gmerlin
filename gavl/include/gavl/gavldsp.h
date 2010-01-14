@@ -255,8 +255,6 @@ typedef struct
    */
   void (*bswap_64)(void * ptr, int len);
   
-  /* TODO */
-  
   /** \brief Add 2 uint8_t vectors
    *  \param src1 Source 1
    *  \param src2 Source 2
@@ -266,7 +264,7 @@ typedef struct
    *  src1 and/or src2 can be identical to dst
    */
   
-  void (*add_u8)(const uint8_t * src1, const uint8_t * src2, uint8_t * dst, int num);
+  void (*add_u8)(const void * src1, const void * src2, void * dst, int num);
 
   /** \brief Add 2 uint8_t vectors (for audio stored as unsigned)
    *  \param src1 Source 1
@@ -276,7 +274,7 @@ typedef struct
    *
    *  src1 and/or src2 can be identical to dst
    */
-  void (*add_u8_s)(const uint8_t * src1, const uint8_t * src2, uint8_t * dst, int num);
+  void (*add_u8_s)(const void * src1, const void * src2, void * dst, int num);
 
   /** \brief Add 2 int8_t vectors
    *  \param src1 Source 1
@@ -286,7 +284,7 @@ typedef struct
    *
    *  src1 and/or src2 can be identical to dst
    */
-  void (*add_s8)(const int8_t * src1, const int8_t * src2, int8_t * dst, int num);
+  void (*add_s8)(const void * src1, const void * src2, void * dst, int num);
 
   /** \brief Add 2 uint16_t vectors
    *  \param src1 Source 1
@@ -296,7 +294,7 @@ typedef struct
    *
    *  src1 and/or src2 can be identical to dst
    */
-  void (*add_u16)(const uint16_t * src1, const uint16_t * src2, uint16_t * dst, int num);
+  void (*add_u16)(const void * src1, const void * src2, void * dst, int num);
 
   /** \brief Add 2 uint16_t vectors (for audio stored as unsigned)
    *  \param src1 Source 1
@@ -306,7 +304,7 @@ typedef struct
    *
    *  src1 and/or src2 can be identical to dst
    */
-  void (*add_u16_s)(const uint16_t * src1, const uint16_t * src2, uint16_t * dst, int num);
+  void (*add_u16_s)(const void * src1, const void * src2, void * dst, int num);
 
   /** \brief Add 2 int16_t vectors
    *  \param src1 Source 1
@@ -316,7 +314,7 @@ typedef struct
    *
    *  src1 and/or src2 can be identical to dst
    */
-  void (*add_s16)(const int16_t * src1, const int16_t * src2, int16_t * dst, int num);
+  void (*add_s16)(const void * src1, const void * src2, void * dst, int num);
 
   /** \brief Add 2 int32_t vectors
    *  \param src1 Source 1
@@ -326,7 +324,7 @@ typedef struct
    *
    *  src1 and/or src2 can be identical to dst
    */
-  void (*add_s32)(const int32_t * src1, const int32_t * src2, int32_t * dst, int num);
+  void (*add_s32)(const void * src1, const void * src2, void * dst, int num);
   
   /** \brief Add 2 float vectors
    *  \param src1 Source 1
@@ -336,7 +334,7 @@ typedef struct
    *
    *  src1 and/or src2 can be identical to dst
    */
-  void (*add_float)(const float * src1, const float * src2, float * dst, int num);
+  void (*add_float)(const void * src1, const void * src2, void * dst, int num);
   
   /** \brief Add 2 float vectors
    *  \param src1 Source 1
@@ -346,7 +344,99 @@ typedef struct
    *
    *  src1 and/or src2 can be identical to dst
    */
-  void (*add_double)(const double * src1, const double * src2, double * dst, int num);
+  void (*add_double)(const void * src1, const void * src2, void * dst, int num);
+
+  /** \brief Subtract 2 uint8_t vectors
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  
+  void (*sub_u8)(const void * src1, const void * src2, void * dst, int num);
+
+  /** \brief Subtract 2 uint8_t vectors (for audio stored as unsigned)
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  void (*sub_u8_s)(const void * src1, const void * src2, void * dst, int num);
+
+  /** \brief Subtract 2 int8_t vectors
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  void (*sub_s8)(const void * src1, const void * src2, void * dst, int num);
+
+  /** \brief Subtract 2 uint16_t vectors
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  void (*sub_u16)(const void * src1, const void * src2, void * dst, int num);
+
+  /** \brief Subtract 2 uint16_t vectors (for audio stored as unsigned)
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  void (*sub_u16_s)(const void * src1, const void * src2, void * dst, int num);
+
+  /** \brief Subtract 2 int16_t vectors
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  void (*sub_s16)(const void * src1, const void * src2, void * dst, int num);
+
+  /** \brief Subtract 2 int32_t vectors
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  void (*sub_s32)(const void * src1, const void * src2, void * dst, int num);
+  
+  /** \brief Subtract 2 float vectors
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  void (*sub_float)(const void * src1, const void * src2, void * dst, int num);
+  
+  /** \brief Subtract 2 float vectors
+   *  \param src1 Source 1
+   *  \param src2 Source 2
+   *  \param dst  Destination
+   *  \param num  Number of entries
+   *
+   *  src1 and/or src2 can be identical to dst
+   */
+  void (*sub_double)(const void * src1, const void * src2, void * dst, int num);
+
   
   } gavl_dsp_funcs_t;
 
