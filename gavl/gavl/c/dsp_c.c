@@ -425,7 +425,106 @@ static void bswap_64_c(void * data, int len)
     }
   }
 
+/* Add functions */
 
+#define GENERIC_CLIP(val, min, max) (val>max?max:(val<min?min:val))
+
+static void add_u8_c(const uint8_t * src1, const uint8_t * src2, uint8_t * dst, int num)
+  {
+  int i = num+1;
+  int32_t tmp;
+  while(--i)
+    {
+    tmp = *(src1++) + *(src2++);
+    *(dst++) = RECLIP_32_TO_8(tmp);
+    }
+  }
+
+static void add_s8_c(const int8_t * src1, const int8_t * src2, int8_t * dst, int num)
+  {
+  int i = num+1;
+  int tmp;
+  while(--i)
+    {
+    tmp = *(src1++) + *(src2++);
+    *(dst++) = GENERIC_CLIP(tmp,-128,127);
+    }
+  }
+
+static void add_u8_s_c(const uint8_t * src1, const uint8_t * src2, uint8_t * dst, int num)
+  {
+  int i = num+1;
+  int tmp;
+  while(--i)
+    {
+    tmp = *(src1++) + *(src2++) - 256;
+    *(dst++) = GENERIC_CLIP(tmp,-128,127) + 128;
+    }
+  }
+
+
+static void add_u16_c(const uint16_t * src1, const uint16_t * src2, uint16_t * dst, int num)
+  {
+  int i = num+1;
+  int32_t tmp;
+  while(--i)
+    {
+    tmp = *(src1++) + *(src2++);
+    *(dst++) = RECLIP_32_TO_16(tmp);
+    }
+
+  }
+
+static void add_s16_c(const int16_t * src1, const int16_t * src2, int16_t * dst, int num)
+  {
+  int i = num+1;
+  int tmp;
+  while(--i)
+    {
+    tmp = *(src1++) + *(src2++);
+    *(dst++) = GENERIC_CLIP(tmp,-32768,32767);
+    }
+  }
+
+static void add_u16_s_c(const uint16_t * src1, const uint16_t * src2, uint16_t * dst, int num)
+  {
+  int i = num+1;
+  int tmp;
+  while(--i)
+    {
+    tmp = *(src1++) + *(src2++) - 65536;
+    *(dst++) = GENERIC_CLIP(tmp,-32768,32767) + 32768;
+    }
+  }
+
+static void add_s32_c(const int32_t * src1, const int32_t * src2, int32_t * dst, int num)
+  {
+  int i = num+1;
+  int64_t tmp;
+  while(--i)
+    {
+    tmp = *(src1++) + *(src2++);
+    *(dst++) = GENERIC_CLIP(tmp,-2147483648,2147483647);
+    }
+  }
+
+static void add_float_c(const float * src1, const float * src2, float * dst, int num)
+  {
+  int i = num+1;
+  while(--i)
+    {
+    *(dst++) = *(src1++) + *(src2++);
+    }
+  }
+
+static void add_double_c(const double * src1, const double * src2, double * dst, int num)
+  {
+  int i = num+1;
+  while(--i)
+    {
+    *(dst++) = *(src1++) + *(src2++);
+    }
+  }
 
 void gavl_dsp_init_c(gavl_dsp_funcs_t * funcs, 
                      int quality)
@@ -451,5 +550,14 @@ void gavl_dsp_init_c(gavl_dsp_funcs_t * funcs,
   funcs->bswap_16          = bswap_16_c;
   funcs->bswap_32          = bswap_32_c;
   funcs->bswap_64          = bswap_64_c;
-  
+
+  funcs->add_u8            = add_u8_c;
+  funcs->add_s8            = add_s8_c;
+  funcs->add_u8_s          = add_u8_s_c;
+  funcs->add_u16           = add_u16_c;
+  funcs->add_s16           = add_s16_c;
+  funcs->add_u16_s         = add_u16_s_c;
+  funcs->add_s32           = add_s32_c;
+  funcs->add_float         = add_float_c;
+  funcs->add_double        = add_double_c;
   }
