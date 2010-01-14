@@ -1,7 +1,7 @@
 /*****************************************************************
  * gmerlin - a general purpose multimedia framework and applications
  *
- * Copyright (c) 2001 - 2008 Members of the Gmerlin project
+ * Copyright (c) 2001 - 2010 Members of the Gmerlin project
  * gmerlin-general@lists.sourceforge.net
  * http://gmerlin.sourceforge.net
  *
@@ -53,7 +53,7 @@ struct sem {
 #define _SEMAPHORE_H_
 
 /*
- * $Id: bgav_sem.h,v 1.2 2009-05-14 07:32:13 gmerlin Exp $
+ * $Id: bgav_sem.h,v 1.3 2010-01-14 18:37:07 gmerlin Exp $
  *
  * semaphore.h: POSIX 1003.1b semaphores
 */
