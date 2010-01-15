@@ -429,7 +429,8 @@ static void bswap_64_c(void * data, int len)
 
 /* Add functions */
 
-static void add_u8_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_u8_c(const void * _src1, const void * _src2,
+                     void * _dst, int num)
   {
   int32_t tmp;
   int i = num+1;
@@ -444,7 +445,8 @@ static void add_u8_c(const void * _src1, const void * _src2, void * _dst, int nu
     }
   }
 
-static void add_s8_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_s8_c(const void * _src1, const void * _src2,
+                     void * _dst, int num)
   {
   int tmp;
   int i = num+1;
@@ -459,7 +461,8 @@ static void add_s8_c(const void * _src1, const void * _src2, void * _dst, int nu
     }
   }
 
-static void add_u8_s_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_u8_s_c(const void * _src1, const void * _src2,
+                       void * _dst, int num)
   {
   int tmp;
   int i = num+1;
@@ -475,7 +478,8 @@ static void add_u8_s_c(const void * _src1, const void * _src2, void * _dst, int 
   }
 
 
-static void add_u16_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_u16_c(const void * _src1, const void * _src2,
+                      void * _dst, int num)
   {
   int32_t tmp;
   int i = num+1;
@@ -491,7 +495,8 @@ static void add_u16_c(const void * _src1, const void * _src2, void * _dst, int n
 
   }
 
-static void add_s16_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_s16_c(const void * _src1, const void * _src2,
+                      void * _dst, int num)
   {
   int tmp;
   int i = num+1;
@@ -506,7 +511,8 @@ static void add_s16_c(const void * _src1, const void * _src2, void * _dst, int n
     }
   }
 
-static void add_u16_s_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_u16_s_c(const void * _src1, const void * _src2,
+                        void * _dst, int num)
   {
   int tmp;
   int i = num+1;
@@ -521,7 +527,8 @@ static void add_u16_s_c(const void * _src1, const void * _src2, void * _dst, int
     }
   }
 
-static void add_s32_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_s32_c(const void * _src1, const void * _src2,
+                      void * _dst, int num)
   {
   int64_t tmp;
   int i = num+1;
@@ -536,7 +543,8 @@ static void add_s32_c(const void * _src1, const void * _src2, void * _dst, int n
     }
   }
 
-static void add_float_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_float_c(const void * _src1, const void * _src2,
+                        void * _dst, int num)
   {
   int i = num+1;
   const float * src1 = _src1;
@@ -549,7 +557,8 @@ static void add_float_c(const void * _src1, const void * _src2, void * _dst, int
     }
   }
 
-static void add_double_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void add_double_c(const void * _src1, const void * _src2,
+                         void * _dst, int num)
   {
   int i = num+1;
   const double * src1 = _src1;
@@ -564,7 +573,8 @@ static void add_double_c(const void * _src1, const void * _src2, void * _dst, in
 
 /* Subtract functions */
 
-static void sub_u8_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_u8_c(const void * _src1, const void * _src2,
+                     void * _dst, int num)
   {
   int32_t tmp;
   int i = num+1;
@@ -579,7 +589,8 @@ static void sub_u8_c(const void * _src1, const void * _src2, void * _dst, int nu
     }
   }
 
-static void sub_s8_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_s8_c(const void * _src1, const void * _src2,
+                     void * _dst, int num)
   {
   int tmp;
   int i = num+1;
@@ -594,7 +605,8 @@ static void sub_s8_c(const void * _src1, const void * _src2, void * _dst, int nu
     }
   }
 
-static void sub_u8_s_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_u8_s_c(const void * _src1, const void * _src2,
+                       void * _dst, int num)
   {
   int tmp;
   int i = num+1;
@@ -610,7 +622,8 @@ static void sub_u8_s_c(const void * _src1, const void * _src2, void * _dst, int 
   }
 
 
-static void sub_u16_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_u16_c(const void * _src1, const void * _src2,
+                      void * _dst, int num)
   {
   int32_t tmp;
   int i = num+1;
@@ -626,7 +639,8 @@ static void sub_u16_c(const void * _src1, const void * _src2, void * _dst, int n
 
   }
 
-static void sub_s16_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_s16_c(const void * _src1, const void * _src2,
+                      void * _dst, int num)
   {
   int tmp;
   int i = num+1;
@@ -641,7 +655,8 @@ static void sub_s16_c(const void * _src1, const void * _src2, void * _dst, int n
     }
   }
 
-static void sub_u16_s_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_u16_s_c(const void * _src1, const void * _src2,
+                        void * _dst, int num)
   {
   int tmp;
   int i = num+1;
@@ -656,7 +671,8 @@ static void sub_u16_s_c(const void * _src1, const void * _src2, void * _dst, int
     }
   }
 
-static void sub_s32_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_s32_c(const void * _src1, const void * _src2,
+                      void * _dst, int num)
   {
   int64_t tmp;
   int i = num+1;
@@ -671,7 +687,8 @@ static void sub_s32_c(const void * _src1, const void * _src2, void * _dst, int n
     }
   }
 
-static void sub_float_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_float_c(const void * _src1, const void * _src2,
+                        void * _dst, int num)
   {
   int i = num+1;
   const float * src1 = _src1;
@@ -684,7 +701,8 @@ static void sub_float_c(const void * _src1, const void * _src2, void * _dst, int
     }
   }
 
-static void sub_double_c(const void * _src1, const void * _src2, void * _dst, int num)
+static void sub_double_c(const void * _src1, const void * _src2,
+                         void * _dst, int num)
   {
   int i = num+1;
   const double * src1 = _src1;

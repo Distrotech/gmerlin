@@ -329,3 +329,38 @@ void gavl_audio_frame_null(gavl_audio_frame_t * f)
   {
   memset(f, 0, sizeof(*f));
   }
+
+GAVL_PUBLIC
+void gavl_audio_frame_get_subframe(const gavl_audio_format_t * format,
+                                   gavl_audio_frame_t * src,
+                                   gavl_audio_frame_t * dst,
+                                   int start, int len)
+  {
+  int i;
+  int bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
+
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_ALL:
+      dst->samples.s_8 = src->samples.s_8 +
+        bytes_per_sample * start * format->num_channels;
+      break;
+    case GAVL_INTERLEAVE_NONE:
+      for(i = 0; i < format->num_channels; i++)
+        dst->channels.s_8[i] =
+          src->channels.s_8[i] + bytes_per_sample * start;
+      break;
+    case GAVL_INTERLEAVE_2:
+      for(i = 0; i < format->num_channels/2; i++)
+        dst->channels.s_8[i*2] =
+          src->channels.s_8[i*2] + bytes_per_sample * start * 2;
+      if(format->num_channels & 1)
+        {
+        dst->channels.s_8[format->num_channels-1] =
+          src->channels.s_8[format->num_channels-1] +
+          bytes_per_sample * start;
+        }
+      break;
+    }
+  dst->valid_samples = len;
+  }

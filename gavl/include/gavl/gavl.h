@@ -651,6 +651,28 @@ void gavl_audio_frame_copy_ptrs(const gavl_audio_format_t * format,
                                 gavl_audio_frame_t * dst,
                                 const gavl_audio_frame_t * src);
 
+/*!
+  \ingroup audio_frame
+  \brief Set an audio frame to a subframe of another frame
+  \param format Format
+  \param src Source frame
+  \param dst Destination frame
+  \param start Start position in the source frame
+  \param len Length in samples
+
+  This sets all pointers and the valid_samples member in dst to a
+  subframe of src. dst should be created with a NULL format and
+  \ref gavl_audio_frame_null should be called before destroying it.
+
+  Since 1.1.2
+*/
+
+
+GAVL_PUBLIC
+void gavl_audio_frame_get_subframe(const gavl_audio_format_t * format,
+                                   gavl_audio_frame_t * src,
+                                   gavl_audio_frame_t * dst,
+                                   int start, int len);
   
 /** \defgroup audio_options Audio conversion options
     \ingroup audio
