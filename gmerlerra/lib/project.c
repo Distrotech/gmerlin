@@ -216,6 +216,14 @@ void bg_nle_project_set_edit_callback(bg_nle_project_t * p,
   p->edit_callback_data = callback_data;
   }
 
+void bg_nle_project_set_pre_edit_callback(bg_nle_project_t * p,
+                                          bg_nle_pre_edit_callback callback,
+                                          void * callback_data)
+  {
+  p->pre_edit_callback = callback;
+  p->pre_edit_callback_data = callback_data;
+  }
+
 void bg_nle_project_append_track(bg_nle_project_t * p,
                                      bg_nle_track_t * t)
   {

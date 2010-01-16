@@ -53,8 +53,10 @@ struct bg_nle_video_compositor_s
   };
 
 bg_nle_video_compositor_t *
-bg_nle_video_compositor_create(bg_nle_outstream_t * os, bg_gavl_video_options_t * opt,
-                               const gavl_video_format_t * format, float * bg_color)
+bg_nle_video_compositor_create(bg_nle_outstream_t * os,
+                               bg_gavl_video_options_t * opt,
+                               const gavl_video_format_t * format,
+                               float * bg_color)
   {
   bg_nle_video_compositor_t * ret = calloc(1, sizeof(*ret));
   ret->os = os;
@@ -105,9 +107,7 @@ static void composite_blend(stream_t * s, gavl_video_frame_t * dst)
     bg_nle_renderer_instream_video_read(s->s, s->frame_cnv, s->id);
     }
   s->ovl.frame = s->frame_cnv;
-  
   }
-
 
 void bg_nle_video_compositor_add_stream(bg_nle_video_compositor_t * c,
                                         bg_nle_renderer_instream_video_t * is,
@@ -218,12 +218,14 @@ int bg_nle_video_compositor_read(void * priv, gavl_video_frame_t* ret, int strea
       set_rectangle(s->projector, &tmp_rect, &c->format);
       gavl_rectangle_f_to_i(&s->dst_rect, &tmp_rect);
       
-      gavl_rectangle_crop_to_format_scale(&s->src_rect, &s->dst_rect, &s->composite_format, &c->format);
+      gavl_rectangle_crop_to_format_scale(&s->src_rect, &s->dst_rect,
+                                          &s->composite_format, &c->format);
 
       gavl_video_options_set_rectangles(gavl_video_converter_get_options(s->cnv),
                                         &s->src_rect, &s->dst_rect);
       
-      s->do_convert = gavl_video_converter_init(s->cnv, &s->src_format, &s->composite_format);
+      s->do_convert = gavl_video_converter_init(s->cnv, &s->src_format,
+                                                &s->composite_format);
       s->rect_changed = 0;
       }
     

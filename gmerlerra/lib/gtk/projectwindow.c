@@ -11,6 +11,7 @@
 #include <track.h>
 #include <project.h>
 #include <editops.h>
+#include <renderer.h>
 
 #include <gui_gtk/timerange.h>
 #include <gui_gtk/projectwindow.h>
@@ -372,6 +373,34 @@ static void enable_log_item(void * data, void * user_data)
 static void log_open_callback(void)
   {
   g_list_foreach(project_windows, enable_log_item, NULL);
+  }
+
+/* Set up file */
+
+static void set_project_file(bg_nle_project_window_t * win)
+  {
+  if(win->file)
+    bg_nle_file_destroy(win->file);
+  if(win->handle)
+    bg_plugin_unref(win->handle);
+
+  win->file = bg_nle_file_from_project(win->p);
+  win->handle = bg_nle_plugin_load_internal(win->p,
+                                            win->p->plugin_reg);
+  bg_nle_player_set_track(win->compositor,
+                          win->handle,
+                          win->file, win->p);
+  }
+
+/* Edit callback */
+
+static void pre_edit_callback(bg_nle_project_t * p,
+                              void * user_data)
+  {
+  bg_nle_project_window_t * win = user_data;
+  fprintf(stderr, "pre edit callback\n");
+
+  /* Stop the player */
   }
 
 static void edit_callback(bg_nle_project_t * p,
@@ -1066,6 +1095,7 @@ bg_nle_project_window_create(const char * project_file,
     }
 
   bg_nle_project_set_edit_callback(ret->p, edit_callback, ret);
+  bg_nle_project_set_pre_edit_callback(ret->p, pre_edit_callback, ret);
   
   project_windows = g_list_append(project_windows, ret);
   
@@ -1292,7 +1322,6 @@ bg_nle_project_window_init_global(bg_cfg_registry_t * cfg_reg1,
     oa_parameters = bg_nle_player_get_oa_parameters(plugin_reg);
   if(!ov_parameters)
     ov_parameters = bg_nle_player_get_ov_parameters(plugin_reg);
-  
   }
 
 static void
@@ -1368,5 +1397,5 @@ void bg_nle_project_window_show(bg_nle_project_window_t * w)
   bg_cfg_section_apply(ov_section, ov_parameters, set_ov_parameter, w);
   bg_cfg_section_apply(display_section, display_parameters, set_display_parameter, w);
   
-  
+  set_project_file(w);
   }

@@ -16,9 +16,7 @@ typedef struct
   {
   int timescale;
   gavl_frame_table_t * frametable;
-  
   gavl_timecode_format_t tc_format;
-
   } bg_nle_video_stream_t;
 
 typedef struct
@@ -69,6 +67,8 @@ bg_nle_file_t *
 bg_nle_media_list_load_file(bg_nle_media_list_t * list,
                             const char * file,
                             const char * plugin);
+
+bg_nle_file_t * bg_nle_file_from_project(bg_nle_project_t * p);
 
 bg_nle_file_t *
 bg_nle_media_list_find_file(bg_nle_media_list_t * list,

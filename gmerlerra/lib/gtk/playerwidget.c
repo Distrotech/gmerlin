@@ -426,6 +426,8 @@ static void load_output_plugins(bg_nle_player_widget_t * p)
   const bg_plugin_info_t * info;
   GdkDisplay * dpy;
 
+  fprintf(stderr, "Load output plugins\n");
+  
   /* Video */
   dpy = gdk_display_get_default();
   

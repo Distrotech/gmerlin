@@ -6,14 +6,12 @@ struct bg_nle_file_cache_s
   int cache_size;
   int cache_size_max;
   bg_nle_project_t * p;
-  gavl_timer_t * timer;
   };
 
 bg_nle_file_cache_t * bg_nle_file_cache_create(bg_nle_project_t * p)
   {
   bg_nle_file_cache_t * ret = calloc(1, sizeof(*ret));
-  ret->timer = gavl_timer_create();
-  gavl_timer_start(ret->timer);
+  ret->p = p;
   return ret;
   }
 

@@ -137,9 +137,7 @@ bg_nle_track_t * bg_nle_track_load(xmlDocPtr xml_doc, xmlNodePtr node)
             {
             ret->segments[i].file_id = strtol(tmp_string, (char**)0, 10);
             free(tmp_string);
-            
             }
-          
           i++;
           }
         grandchild = grandchild->next;
@@ -214,10 +212,10 @@ void bg_nle_track_save(bg_nle_track_t * t, xmlNodePtr parent)
       BG_XML_SET_PROP(grandchild, "len", tmp_string);
       free(tmp_string);
 
-      
+      tmp_string = bg_sprintf("%"PRId64, t->segments[i].file_id);
+      BG_XML_SET_PROP(grandchild, "file_id", tmp_string);
+      free(tmp_string);
       }
-    
     }
-
   }
 

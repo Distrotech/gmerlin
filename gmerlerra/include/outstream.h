@@ -41,15 +41,15 @@ void bg_nle_outstream_detach_track(bg_nle_outstream_t *,
 int bg_nle_outstream_has_track(bg_nle_outstream_t *,
                                bg_nle_track_t * t);
 
+void bg_nle_outstream_set_audio_stream(bg_nle_outstream_t * os,
+                                       bg_nle_audio_stream_t * s);
+
+void bg_nle_outstream_set_video_stream(bg_nle_outstream_t * os,
+                                       bg_nle_video_stream_t * s);
 
 extern const bg_parameter_info_t bg_nle_outstream_audio_parameters[];
 extern const bg_parameter_info_t bg_nle_outstream_video_parameters[];
 
-#if 0
-
-void bg_nle_outstream_set_parameter(void * data, const char * name,
-                                const bg_parameter_info_t * value);
-#endif
 /* outstream_xml.c */
 
 bg_nle_outstream_t *

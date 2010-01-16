@@ -15,6 +15,10 @@ static void edited(bg_nle_project_t * p,
                    void * op_data, int * id)
   {
   bg_nle_undo_data_t * data;
+
+  /* Stop player */
+  p->pre_edit_callback(p, p->pre_edit_callback_data);
+  
   data = calloc(1, sizeof(*data));
   data->op = op;
   data->data = op_data;

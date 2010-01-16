@@ -232,10 +232,10 @@ static gboolean scroll_callback(GtkWidget * w, GdkEventScroll * evt,
   return FALSE;
   }
 
-static GtkWidget * create_pixmap_toggle_button(bg_nle_timeline_t * w,
-                                               const char * filename,
-                                               const char * tooltip,
-                                               guint * id, GSList ** group)
+static GtkWidget * create_pixmap_radio_button(bg_nle_timeline_t * w,
+                                              const char * filename,
+                                              const char * tooltip,
+                                              guint * id, GSList ** group)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -347,12 +347,12 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
   //  ret->paned = gtk_hpaned_new();
   
   ret->edit_insert =
-    create_pixmap_toggle_button(ret, "gmerlerra/edit_insert.png",
+    create_pixmap_radio_button(ret, "gmerlerra/edit_insert.png",
                                 TRS("Insert mode"), &ret->edit_insert_id,
                                 &ret->edit_mode_group);
 
   ret->edit_overwrite =
-    create_pixmap_toggle_button(ret, "gmerlerra/edit_overwrite.png",
+    create_pixmap_radio_button(ret, "gmerlerra/edit_overwrite.png",
                                 TRS("Overwrite mode"), &ret->edit_overwrite_id,
                                 &ret->edit_mode_group);
   

@@ -58,6 +58,65 @@ void bg_nle_outstream_destroy(bg_nle_outstream_t * s)
   }, \
   BG_GAVL_PARAM_FRAMERATE_NOSOURCE
 
+#define PARAM_TIMECODE \
+  { \
+  .name = "timecode_sec", \
+  .long_name = TRS("Timecodes"), \
+  .type = BG_PARAMETER_SECTION, \
+  },                            \
+  { \
+  .name      = "int_framerate", \
+  .long_name = "Integer framerate", \
+  .type      = BG_PARAMETER_INT, \
+  .val_min     = { .val_i = 1 }, \
+  .val_max     = { .val_i = 999 }, \
+  .val_default = { .val_i = 25 }, \
+      .help_string = TRS("Set the integer framerate used when adding new timecodes"), \
+  }, \
+  {  \
+  .name      = "drop", \
+  .long_name = "Drop frame", \
+  .type  = BG_PARAMETER_CHECKBUTTON, \
+  .help_string = TRS("Set the if drop frame is used when adding new timecodes"),\
+  }, \
+  { \
+  .name      = "hours", \
+  .long_name = "Start hour", \
+  .type  = BG_PARAMETER_INT, \
+  .val_min = { .val_i = 0 }, \
+  .val_max = { .val_i = 23 }, \
+  .val_default = { .val_i = 0 }, \
+  .help_string = TRS("Set the start hours used when adding new timecodes"), \
+  }, \
+  { \
+  .name      = "minutes", \
+  .long_name = "Start minute", \
+  .type  = BG_PARAMETER_INT, \
+  .val_min = { .val_i = 0 }, \
+  .val_max     = { .val_i = 59 }, \
+  .val_default = { .val_i = 0 }, \
+  .help_string = TRS("Set the start minutes used when adding new timecodes"), \
+  }, \
+  { \
+  .name      = "seconds", \
+  .long_name = "Start second", \
+  .type  = BG_PARAMETER_INT, \
+  .val_min     = { .val_i = 0 }, \
+  .val_max     = { .val_i = 59 }, \
+  .val_default = { .val_i = 0 }, \
+  .help_string = TRS("Set the start seconds used when adding new timecodes"), \
+  }, \
+  { \
+  .name      = "frames", \
+  .long_name = "Start frames", \
+  .type      = BG_PARAMETER_INT, \
+  .val_min     = { .val_i = 0 }, \
+  .val_max     = { .val_i = 999 }, \
+  .val_default = { .val_i = 0 }, \
+  .help_string = TRS("Set the start frames used when adding new timecodes"), \
+  }
+
+
 #define PARAM_BGCOLOR \
   { \
   .name = "background", \
@@ -81,6 +140,7 @@ const bg_parameter_info_t bg_nle_outstream_video_parameters[] =
     PARAM_BGCOLOR,
     PARAM_SIZE,
     PARAM_FRAMERATE,
+    PARAM_TIMECODE,
     { /* End */ },
   };
 
@@ -100,6 +160,7 @@ static const bg_parameter_info_t video_parameters[] =
     PARAM_BGCOLOR,
     PARAM_SIZE,
     PARAM_FRAMERATE,
+    PARAM_TIMECODE,
     { /* End */ },
   };
 
@@ -202,20 +263,79 @@ gavl_time_t bg_nle_outstream_duration(bg_nle_outstream_t * os)
   return ret;
   }
 
-gavl_frame_table_t * bg_nle_outstream_get_frame_table(bg_nle_outstream_t * os)
+static void set_audio_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * val)
   {
-#if 0
-  format = &r->info.video_streams[stream].format;
+  bg_gavl_audio_set_parameter(data, name, val);
+  }
+
+static void get_audio_format(bg_nle_outstream_t * os,
+                             gavl_audio_format_t * format)
+  {
+  bg_gavl_audio_options_t opt;
+  memset(&opt, 0, sizeof(opt));
+  memset(format, 0, sizeof(*format));
+  
+  bg_gavl_audio_options_init(&opt);
+
+  bg_cfg_section_apply(os->section, bg_nle_outstream_audio_parameters,
+                       set_audio_parameter, &opt);
+  
+  bg_gavl_audio_options_set_format(&opt, NULL, format);
+  bg_gavl_audio_options_free(&opt);
+  }
+
+
+static void set_video_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * val)
+  {
+  bg_gavl_video_set_parameter(data, name, val);
+  }
+
+static void get_video_format(bg_nle_outstream_t * os,
+                             gavl_video_format_t * format)
+  {
+  bg_gavl_video_options_t opt;
+  memset(&opt, 0, sizeof(opt));
+  memset(format, 0, sizeof(*format));
+  
+  bg_gavl_video_options_init(&opt);
+
+  bg_cfg_section_apply(os->section, bg_nle_outstream_video_parameters,
+                       set_video_parameter, &opt);
+
+  bg_gavl_video_options_set_framerate(&opt, NULL, format);
+  bg_gavl_video_options_set_frame_size(&opt, NULL, format);
+  bg_gavl_video_options_set_pixelformat(&opt, NULL, format);
+  bg_gavl_video_options_free(&opt);
+  }
+
+void bg_nle_outstream_set_audio_stream(bg_nle_outstream_t * os,
+                                       bg_nle_audio_stream_t * s)
+  {
+  gavl_audio_format_t format;
+  get_audio_format(os, &format);
+  s->timescale = format.samplerate;
+  s->duration = 
+    gavl_time_scale(format.samplerate,
+                    bg_nle_outstream_duration(os) + 5);
+  }
+
+void bg_nle_outstream_set_video_stream(bg_nle_outstream_t * os,
+                                       bg_nle_video_stream_t * s)
+  {
+  gavl_video_format_t format;
+  int64_t num_frames;
+  get_video_format(os, &format);
   
   num_frames =
-    gavl_time_scale(format->timescale,
+    gavl_time_scale(format.timescale,
                     bg_nle_outstream_duration(os) + 5) /
-    format->frame_duration;
-
+    format.frame_duration;
   
-  return gavl_frame_table_create_cfr(0, format->frame_duration,
-                                     num_frames, GAVL_TIMECODE_UNDEFINED);
-
-#endif
-  return NULL;
+  s->timescale = format.timescale;
+  s->frametable =  gavl_frame_table_create_cfr(0, format.frame_duration,
+                                                num_frames,
+                                                GAVL_TIMECODE_UNDEFINED);
   }
+

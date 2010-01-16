@@ -16,6 +16,9 @@ typedef void (*bg_nle_edit_callback)(bg_nle_project_t*,
                                      void * op_data,
                                      void * user_data);
 
+typedef void (*bg_nle_pre_edit_callback)(bg_nle_project_t*,
+                                         void * user_data);
+
 struct bg_nle_project_s
   {
   int changed_flags;
@@ -59,6 +62,9 @@ struct bg_nle_project_s
   bg_nle_edit_callback edit_callback;
   void * edit_callback_data;
 
+  bg_nle_pre_edit_callback pre_edit_callback;
+  void * pre_edit_callback_data;
+  
   bg_nle_undo_data_t * undo;
   bg_nle_undo_data_t * redo;
   
@@ -74,6 +80,10 @@ void bg_nle_project_resolve_ids(bg_nle_project_t *);
 void bg_nle_project_set_edit_callback(bg_nle_project_t *,
                                       bg_nle_edit_callback callback,
                                       void * callback_data);
+
+void bg_nle_project_set_pre_edit_callback(bg_nle_project_t *,
+                                          bg_nle_pre_edit_callback callback,
+                                          void * callback_data);
 
 const bg_parameter_info_t * bg_nle_project_get_audio_parameters();
 const bg_parameter_info_t * bg_nle_project_get_video_parameters();

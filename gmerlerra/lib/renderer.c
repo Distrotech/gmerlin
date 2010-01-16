@@ -184,6 +184,10 @@ int bg_nle_renderer_set_audio_stream(bg_nle_renderer_t * r, int stream,
     r->audio_streams[stream].s =
       bg_nle_renderer_outstream_audio_create(r->p, os, r->aopt,
                                              &r->info.audio_streams[stream].format);
+
+    fprintf(stderr, "Renderer audio format:\n");
+    gavl_audio_format_dump(&r->info.audio_streams[stream].format);
+
     r->audio_streams[stream].os = os;
     }
   return 1;
@@ -202,6 +206,9 @@ int bg_nle_renderer_set_video_stream(bg_nle_renderer_t * r, int stream,
     r->video_streams[stream].s =
       bg_nle_renderer_outstream_video_create(r->p, os, r->vopt,
                                              &r->info.video_streams[stream].format);
+    fprintf(stderr, "Renderer video format:\n");
+    gavl_video_format_dump(&r->info.video_streams[stream].format);
+
     r->video_streams[stream].os = os;
     }
   return 1;
@@ -239,24 +246,30 @@ int bg_nle_renderer_start(bg_nle_renderer_t * r)
       }
     }
 
-  for(j = 0; j < r->video_streams[i].os->num_source_tracks; j++)
+  for(i = 0; i < r->num_video_streams; i++)
     {
-    for(k = 0; k < r->num_video_istreams; k++)
+    if(!r->video_streams[i].s)
+      continue;
+    
+    for(j = 0; j < r->video_streams[i].os->num_source_tracks; j++)
       {
-      if(r->video_istreams[k].t ==
-         r->video_streams[i].os->source_tracks[j])
+      for(k = 0; k < r->num_video_istreams; k++)
         {
-        if(!r->video_istreams[k].s && r->video_istreams[k].t->num_segments)
+        if(r->video_istreams[k].t ==
+           r->video_streams[i].os->source_tracks[j])
           {
-          r->video_istreams[k].s =
-            bg_nle_renderer_instream_video_create(r->p,
-                                                  r->video_istreams[k].t,
-                                                  r->vopt, r->file_cache);
+          if(!r->video_istreams[k].s && r->video_istreams[k].t->num_segments)
+            {
+            r->video_istreams[k].s =
+              bg_nle_renderer_instream_video_create(r->p,
+                                                    r->video_istreams[k].t,
+                                                    r->vopt, r->file_cache);
+            }
+          bg_nle_renderer_outstream_video_add_istream(r->video_streams[i].s,
+                                                      r->video_istreams[k].s,
+                                                      r->video_istreams[k].t);
+          break;
           }
-        bg_nle_renderer_outstream_video_add_istream(r->video_streams[i].s,
-                                                    r->video_istreams[k].s,
-                                                    r->video_istreams[k].t);
-        break;
         }
       }
     }
@@ -296,10 +309,15 @@ void bg_nle_renderer_seek(bg_nle_renderer_t * r, gavl_time_t time)
   int i;
 
   for(i = 0; i < r->num_audio_streams; i++)
-    bg_nle_renderer_outstream_audio_seek(r->audio_streams[i].s, time);
+    {
+    if(r->audio_streams[i].s)
+      bg_nle_renderer_outstream_audio_seek(r->audio_streams[i].s, time);
+    }
   for(i = 0; i < r->num_video_streams; i++)
-    bg_nle_renderer_outstream_video_seek(r->video_streams[i].s, time);
-  
+    {
+    if(r->video_streams[i].s)
+      bg_nle_renderer_outstream_video_seek(r->video_streams[i].s, time);
+    }
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -490,18 +508,24 @@ int bg_nle_plugin_start(void * priv)
 gavl_frame_table_t *
 bg_nle_plugin_get_frame_table(void * priv, int stream)
   {
+#if 0
   bg_nle_plugin_t * p = priv;
-  return bg_nle_outstream_get_frame_table(p->renderer->video_streams[stream].os);
+  return
+    bg_nle_outstream_get_frame_table(p->renderer->video_streams[stream].os);
+#endif
+  return NULL;
   }
 
 int bg_nle_plugin_read_audio(void * priv, gavl_audio_frame_t* frame, int stream,
                              int num_samples)
   {
   bg_nle_plugin_t * p = priv;
-  return bg_nle_renderer_read_audio(p->renderer, frame, stream, num_samples);
+  return bg_nle_renderer_read_audio(p->renderer, frame,
+                                    stream, num_samples);
   }
 
-int bg_nle_plugin_read_video(void * priv, gavl_video_frame_t* frame, int stream)
+int bg_nle_plugin_read_video(void * priv,
+                             gavl_video_frame_t* frame, int stream)
   {
   bg_nle_plugin_t * p = priv;
   return bg_nle_renderer_read_video(p->renderer, frame, stream);
@@ -547,8 +571,9 @@ bg_nle_plugin_load_internal(bg_nle_project_t * p,
   bg_plugin_handle_t * ret;
 
   ret = bg_plugin_handle_create();
-  ret->plugin = &gmerlerra_plugin;
+  ret->plugin = (const bg_plugin_common_t*)&gmerlerra_plugin;
   ret->priv = bg_nle_plugin_create(p, plugin_reg);
-  ret->info = bg_plugin_info_create(ret->plugin, ret->priv);
+  ret->info = bg_plugin_info_create(ret->plugin, ret->priv, NULL);
+  bg_plugin_ref(ret);
   return ret;
   }

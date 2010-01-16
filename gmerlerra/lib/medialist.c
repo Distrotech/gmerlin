@@ -61,9 +61,6 @@ bg_nle_file_t * bg_nle_file_from_project(bg_nle_project_t * p)
   int i;
   bg_nle_outstream_t * os;
   
-  int audio_index = 0;
-  int video_index = 0;
-
   bg_nle_file_t * ret = NULL;
   ret = calloc(1, sizeof(*ret));
 
@@ -74,29 +71,20 @@ bg_nle_file_t * bg_nle_file_from_project(bg_nle_project_t * p)
     bg_nle_project_num_outstreams(p,
                                   BG_NLE_TRACK_VIDEO);
 
-  ret->audio_streams = calloc(ret->num_audio_streams, sizeof(*ret->audio_streams));
-  ret->video_streams = calloc(ret->num_video_streams, sizeof(*ret->video_streams));
+  ret->audio_streams = calloc(ret->num_audio_streams,
+                              sizeof(*ret->audio_streams));
+  ret->video_streams = calloc(ret->num_video_streams,
+                              sizeof(*ret->video_streams));
 
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     os = bg_nle_project_find_outstream(p, BG_NLE_TRACK_AUDIO, i);
-    /* TODO: Initialize from outstream */
-#if 0
-    ret->audio_streams[i].timescale  = ti->audio_streams[i].format.samplerate;
-    ret->audio_streams[i].start_time = ti->audio_streams[i].pts_offset;
-    ret->audio_streams[i].duration   = ti->audio_streams[i].duration;
-#endif
+    bg_nle_outstream_set_audio_stream(os, &ret->audio_streams[i]);
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
     os = bg_nle_project_find_outstream(p, BG_NLE_TRACK_VIDEO, i);
-    /* TODO: Initialize from outstream */
-#if 0
-    ret->video_streams[i].timescale  = ti->video_streams[i].format.timescale;
-    gavl_timecode_format_copy(&ret->video_streams[i].tc_format,
-                              &ti->video_streams[i].format.timecode_format);
-    ret->video_streams[i].frametable = bg_nle_outstream_get_frame_table(os);
-#endif    
+    bg_nle_outstream_set_video_stream(os, &ret->video_streams[i]);
     }
   return ret;
   }

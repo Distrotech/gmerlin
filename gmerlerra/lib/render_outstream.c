@@ -38,7 +38,8 @@ struct bg_nle_renderer_outstream_video_s
   gavl_video_format_t format;
   };
 
-static void set_audio_parameter(void * data, const char * name, const bg_parameter_value_t * val)
+static void set_audio_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * val)
   {
   bg_nle_renderer_outstream_audio_t * s = data;
 
@@ -60,14 +61,17 @@ bg_nle_renderer_outstream_audio_create(bg_nle_project_t * p,
   
   bg_gavl_audio_options_init(&ret->opt);
   gavl_audio_options_copy(ret->opt.opt, opt);
-
+  
   bg_cfg_section_apply(s->section, bg_nle_outstream_audio_parameters,
                        set_audio_parameter, ret);
+  
+  bg_gavl_audio_options_set_format(&ret->opt, NULL, &ret->format);
   
   ret->ac = bg_nle_audio_compositor_create(s, &ret->opt, &ret->format);
   ret->fc = bg_audio_filter_chain_create(&ret->opt, p->plugin_reg);
 
-  bg_audio_filter_chain_connect_input(ret->fc, bg_nle_audio_compositor_read, ret->ac, 0);
+  bg_audio_filter_chain_connect_input(ret->fc,
+                                      bg_nle_audio_compositor_read, ret->ac, 0);
 
   bg_audio_filter_chain_init(ret->fc, &ret->format, out_format);
   
@@ -78,7 +82,8 @@ bg_nle_renderer_outstream_audio_create(bg_nle_project_t * p,
   return ret;
   }
 
-static void set_video_parameter(void * data, const char * name, const bg_parameter_value_t * val)
+static void set_video_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * val)
   {
   bg_nle_renderer_outstream_video_t * s = data;
 
@@ -113,6 +118,10 @@ bg_nle_renderer_outstream_video_create(bg_nle_project_t * p,
 
   bg_cfg_section_apply(s->section, bg_nle_outstream_video_parameters,
                        set_video_parameter, ret);
+
+  bg_gavl_video_options_set_framerate(&ret->opt, NULL, &ret->format);
+  bg_gavl_video_options_set_frame_size(&ret->opt, NULL, &ret->format);
+  bg_gavl_video_options_set_pixelformat(&ret->opt, NULL, &ret->format);
   
   ret->vc = bg_nle_video_compositor_create(s, &ret->opt, &ret->format, ret->bg_color);
   

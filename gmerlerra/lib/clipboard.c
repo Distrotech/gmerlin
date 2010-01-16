@@ -80,7 +80,7 @@ void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
         gavl_time_scale(c->tracks[index]->segments[0].scale, r->start + 5);
       c->tracks[index]->segments[0].dst_pos = 0;
       c->tracks[index]->segments[0].len = r->end - r->start;
-      
+      c->tracks[index]->segments[0].file_id = file->id;
       index++;
       }
     }
@@ -96,6 +96,7 @@ void bg_nle_clipboard_from_file(bg_nle_clipboard_t * c, bg_nle_file_t * file,
         gavl_time_scale(c->tracks[index]->segments[0].scale, r->start + 5);
       c->tracks[index]->segments[0].dst_pos = 0;
       c->tracks[index]->segments[0].len = r->end - r->start;
+      c->tracks[index]->segments[0].file_id = file->id;
       
       index++;
       }

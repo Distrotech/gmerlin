@@ -285,7 +285,8 @@ static const gavl_video_format_t default_video_format =
 bg_nle_renderer_instream_audio_t *
 bg_nle_renderer_instream_audio_create(bg_nle_project_t * p,
                                       bg_nle_track_t * t,
-                                      const gavl_audio_options_t * opt, bg_nle_file_cache_t * c)
+                                      const gavl_audio_options_t * opt,
+                                      bg_nle_file_cache_t * c)
   {
   bg_nle_renderer_instream_audio_t * ret;
   
@@ -305,7 +306,8 @@ bg_nle_renderer_instream_audio_create(bg_nle_project_t * p,
     {
     if(!load_file(&ret->com, BG_NLE_TRACK_AUDIO))
       return NULL;
-    ret->in_format = &ret->com.file->ti->audio_streams[ret->com.file->stream].format;
+    ret->in_format =
+      &ret->com.file->ti->audio_streams[ret->com.file->stream].format;
     bg_audio_filter_chain_init(ret->fc, ret->in_format, &ret->format);
     }
   else
