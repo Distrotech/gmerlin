@@ -549,6 +549,9 @@ static void redraw(bg_nle_time_ruler_t * r)
   PangoLayout * pl;
   cairo_t * c = gdk_cairo_create(r->wid->window);
 
+  fprintf(stderr, "Draw time ruler %d %ld %ld\n", r->tr->ti->mode, r->tr->media_time.start,
+          r->tr->media_time.end);
+  
   r->time_unit = r->tr->ti->mode;
   
   switch(r->tr->ti->mode)

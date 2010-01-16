@@ -85,8 +85,9 @@ struct bg_nle_player_widget_s
   bg_nle_time_ruler_t * ruler;
   bg_nle_time_ruler_t * ruler_priv;
 
-  bg_nle_timerange_widget_t tr;
-
+  bg_nle_timerange_widget_t tr_priv;
+  bg_nle_timerange_widget_t *tr;
+  
   int player_state;
   
   int time_changed;
@@ -108,6 +109,7 @@ struct bg_nle_player_widget_s
   bg_nle_project_t * p;
 
   bg_nle_clipboard_t clipboard;
+  
   };
 
 static void handle_player_message(bg_nle_player_widget_t * w,
@@ -227,12 +229,12 @@ static void copy_to_clipboard(bg_nle_player_widget_t * p)
   if(!p->file)
     return;
   
-  if(p->tr.selection.end > 0)
-    r = &p->tr.selection;
-  else if(p->tr.in_out.end > 0)
-    r = &p->tr.in_out;
+  if(p->tr->selection.end > 0)
+    r = &p->tr->selection;
+  else if(p->tr->in_out.end > 0)
+    r = &p->tr->in_out;
   else
-    r = &p->tr.media_time;
+    r = &p->tr->media_time;
   
   if(p->p)
     {
@@ -471,7 +473,7 @@ static void size_allocate_callback(GtkWidget     *widget,
                                    gpointer       user_data)
   {
   bg_nle_player_widget_t * w = user_data;
-  bg_nle_timerange_widget_set_width(&w->tr, allocation->width);
+  bg_nle_timerange_widget_set_width(w->tr, allocation->width);
   }
 
 static void stream_menu_callback(GtkWidget * wid, gpointer data)
@@ -616,15 +618,15 @@ static void handle_player_message(bg_nle_player_widget_t * w,
       else
         w->time_info.mode = w->time_unit;
 
-      if(w->tr.media_time.start >= 0)
-        bg_nle_timerange_widget_delete_label(&w->tr, w->tr.media_time.start);
+      if(w->tr->media_time.start >= 0)
+        bg_nle_timerange_widget_delete_label(w->tr, w->tr->media_time.start);
       
       if(w->last_frame_time >= 0)
-        bg_nle_timerange_widget_delete_label(&w->tr, w->last_frame_time);
+        bg_nle_timerange_widget_delete_label(w->tr, w->last_frame_time);
       
-      w->tr.media_time.end = gavl_time_unscale(w->time_info.scale,
+      w->tr->media_time.end = gavl_time_unscale(w->time_info.scale,
                                                gavl_frame_table_end_time(w->time_info.tab));
-      w->tr.media_time.start = gavl_time_unscale(w->time_info.scale,
+      w->tr->media_time.start = gavl_time_unscale(w->time_info.scale,
                                                  w->time_info.tab->offset);
 
       frame = gavl_frame_table_num_frames(w->time_info.tab)-1;
@@ -633,10 +635,10 @@ static void handle_player_message(bg_nle_player_widget_t * w,
                                              gavl_frame_table_frame_to_time(w->time_info.tab,
                                                                             frame, NULL));
       
-      if(w->tr.media_time.start >= 0)
-        bg_nle_timerange_widget_add_label(&w->tr, w->tr.media_time.start);
+      if(w->tr->media_time.start >= 0)
+        bg_nle_timerange_widget_add_label(w->tr, w->tr->media_time.start);
       if(w->last_frame_time)
-        bg_nle_timerange_widget_add_label(&w->tr, w->last_frame_time);
+        bg_nle_timerange_widget_add_label(w->tr, w->last_frame_time);
       
       bg_nle_time_ruler_update_mode(w->ruler);
       }
@@ -671,21 +673,29 @@ static void visibility_changed_callback(bg_nle_time_range_t * visible, void * da
   //  int i;
   bg_nle_player_widget_t * w = data;
   
-  // fprintf(stderr, "visibility changed %ld %ld\n", visible->start, visible->end);
-  // bg_nle_project_set_visible(w->p, visible);
-  bg_nle_time_range_copy(&w->tr.visible, visible);
-  bg_nle_time_ruler_update_visible(w->ruler);
+  if(w->p)
+    bg_nle_project_set_visible(w->p, visible);
+  else
+    {
+    bg_nle_time_range_copy(&w->tr->visible, visible);
+    bg_nle_time_ruler_update_visible(w->ruler);
+    }
   }
 
 static void zoom_changed_callback(bg_nle_time_range_t * visible, void * data)
   {
   //  int i;
   bg_nle_player_widget_t * w = data;
-  
-  //  fprintf(stderr, "zoom changed %ld %ld\n", visible->start, visible->end);
-  //  bg_nle_project_set_zoom(w->p, visible);
-  bg_nle_time_range_copy(&w->tr.visible, visible);
-  bg_nle_time_ruler_update_zoom(w->ruler);
+
+  if(w->p)
+    {
+    bg_nle_project_set_zoom(w->p, visible);
+    }
+  else
+    {
+    bg_nle_time_range_copy(&w->tr->visible, visible);
+    bg_nle_time_ruler_update_zoom(w->ruler);
+    }
   }
 
 static void
@@ -696,22 +706,26 @@ selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos, 
   //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
   //  bg_nle_project_set_selection(t->p, selection);
 
-  if(w->tr.selection.start >= 0)
-    bg_nle_timerange_widget_delete_label(&w->tr, w->tr.selection.start);
-  if(w->tr.selection.end >= 0)
-    bg_nle_timerange_widget_delete_label(&w->tr, w->tr.selection.end);
+  if(w->tr->selection.start >= 0)
+    bg_nle_timerange_widget_delete_label(w->tr, w->tr->selection.start);
+  if(w->tr->selection.end >= 0)
+    bg_nle_timerange_widget_delete_label(w->tr, w->tr->selection.end);
   
-  bg_nle_time_range_copy(&w->tr.selection, selection);
-  w->tr.cursor_pos = cursor_pos;
+  bg_nle_time_range_copy(&w->tr->selection, selection);
+  w->tr->cursor_pos = cursor_pos;
 
-  if(w->tr.selection.start >= 0)
-    bg_nle_timerange_widget_add_label(&w->tr, w->tr.selection.start);
-  if(w->tr.selection.end >= 0)
-    bg_nle_timerange_widget_add_label(&w->tr, w->tr.selection.end);
+  if(w->tr->selection.start >= 0)
+    bg_nle_timerange_widget_add_label(w->tr, w->tr->selection.start);
+  if(w->tr->selection.end >= 0)
+    bg_nle_timerange_widget_add_label(w->tr, w->tr->selection.end);
   
   bg_nle_time_ruler_update_selection(w->ruler);
 
-  if(w->file)
+  if(w->p)
+    {
+    bg_nle_project_set_selection(w->p, selection, cursor_pos);
+    }
+  else if(w->file)
     {
     pause_cmd(w, PAUSE_ON);
     bg_player_seek(w->player, cursor_pos+10, GAVL_TIME_SCALE);
@@ -725,38 +739,30 @@ static void in_out_changed_callback(bg_nle_time_range_t * in_out, void * data)
   //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
   //  bg_nle_project_set_selection(t->p, selection);
 
-  if(w->tr.in_out.start >= 0)
-    bg_nle_timerange_widget_delete_label(&w->tr, w->tr.in_out.start);
-  if(w->tr.in_out.end >= 0)
-    bg_nle_timerange_widget_delete_label(&w->tr, w->tr.in_out.end);
+  if(w->tr->in_out.start >= 0)
+    bg_nle_timerange_widget_delete_label(w->tr, w->tr->in_out.start);
+  if(w->tr->in_out.end >= 0)
+    bg_nle_timerange_widget_delete_label(w->tr, w->tr->in_out.end);
   
-  bg_nle_time_range_copy(&w->tr.in_out, in_out);
+  bg_nle_time_range_copy(&w->tr->in_out, in_out);
 
-  if(w->tr.in_out.start >= 0)
-    bg_nle_timerange_widget_add_label(&w->tr, w->tr.in_out.start);
-  if(w->tr.in_out.end >= 0)
-    bg_nle_timerange_widget_add_label(&w->tr, w->tr.in_out.end);
+  if(w->tr->in_out.start >= 0)
+    bg_nle_timerange_widget_add_label(w->tr, w->tr->in_out.start);
+  if(w->tr->in_out.end >= 0)
+    bg_nle_timerange_widget_add_label(w->tr, w->tr->in_out.end);
   
   bg_nle_time_ruler_update_in_out(w->ruler);
+
+  if(w->p)
+    bg_nle_project_set_in_out(w->p, in_out);
   }
 
 static void cursor_changed_callback(int64_t cursor_pos, void * data)
   {
   bg_nle_player_widget_t * w = data;
-  w->tr.cursor_pos = cursor_pos;
+  w->tr->cursor_pos = cursor_pos;
   bg_nle_time_ruler_update_cursor_pos(w->ruler);
   }
-
-#if 0
-static void timewidget_motion_callback(int64_t time, void * data)
-  {
-  bg_nle_player_widget_t * w = data;
-  
-  //  if(t->motion_callback)
-  //    t->motion_callback(time, t->motion_callback_data);
-  
-  }
-#endif
 
 bg_nle_player_widget_t *
 bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
@@ -774,39 +780,38 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   
   ret = calloc(1, sizeof(*ret));
   ret->plugin_reg = plugin_reg;
-
-  ret->tr.visible.start = 0;
-  ret->tr.visible.end = GAVL_TIME_SCALE * 10;
-
-  ret->tr.media_time.start  = GAVL_TIME_SCALE * 10;
-  ret->tr.media_time.end    = GAVL_TIME_SCALE * 10;
-  ret->last_frame_time      = GAVL_TIME_SCALE * 10;
-  bg_nle_timerange_widget_add_label(&ret->tr, ret->tr.media_time.start);
-  bg_nle_timerange_widget_add_label(&ret->tr, ret->last_frame_time);
-  
-  ret->tr.in_out.start = -1;
-  ret->tr.in_out.end   = -1;
-
-  
-  ret->tr.set_visible = visibility_changed_callback;
-  ret->tr.set_zoom = zoom_changed_callback;
-  ret->tr.set_selection = selection_changed_callback;
-  ret->tr.set_in_out = in_out_changed_callback;
-  ret->tr.set_cursor_pos = cursor_changed_callback;
-
-  ret->tr.callback_data = ret;
-  ret->tr.ti = &ret->time_info;
   
   if(!ruler)
     {
-    ret->ruler_priv = bg_nle_time_ruler_create(&ret->tr);
-    
+    ret->ruler_priv = bg_nle_time_ruler_create(&ret->tr_priv);
+    ret->tr = &ret->tr_priv;
     bg_nle_time_ruler_update_visible(ret->ruler_priv);
-    
     ret->ruler = ret->ruler_priv;
     }
   else
+    {
     ret->ruler = ruler;
+    ret->tr = bg_nle_time_ruler_get_tr(ret->ruler);
+    }
+
+  /* Initialize time ruler */
+  ret->tr->visible.start = 0;
+  ret->tr->visible.end = GAVL_TIME_SCALE * 10;
+  ret->tr->media_time.start  = 0;
+  ret->tr->media_time.end    = GAVL_TIME_SCALE * 10;
+  ret->last_frame_time      = GAVL_TIME_SCALE * 10;
+  bg_nle_timerange_widget_add_label(ret->tr, ret->tr->media_time.start);
+  bg_nle_timerange_widget_add_label(ret->tr, ret->last_frame_time);
+  ret->tr->in_out.start = -1;
+  ret->tr->in_out.end   = -1;
+  ret->tr->set_visible = visibility_changed_callback;
+  ret->tr->set_zoom = zoom_changed_callback;
+  ret->tr->set_selection = selection_changed_callback;
+  ret->tr->set_in_out = in_out_changed_callback;
+  ret->tr->set_cursor_pos = cursor_changed_callback;
+  ret->tr->callback_data = ret;
+  ret->tr->ti = &ret->time_info;
+
   
   /* Create buttons */  
   ret->play_button = create_pixmap_toggle_button(ret, "gmerlerra/play.png", TRS("Play"), &ret->play_id);
@@ -1117,8 +1122,6 @@ void bg_nle_player_realize(bg_nle_player_widget_t * w)
 
   if(!GTK_WIDGET_REALIZED(w->socket))
     gtk_widget_realize(w->socket);
-  
-  fprintf(stderr, "BG_PLAYER_REALIZE\n");
   
   /* Video */
   dpy = gdk_display_get_default();

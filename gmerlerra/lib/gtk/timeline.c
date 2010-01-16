@@ -145,47 +145,6 @@ void bg_nle_timeline_set_zoom(bg_nle_timeline_t * t,
   bg_nle_time_ruler_update_zoom(t->ruler);
   }
 
-static void
-selection_changed_callback(bg_nle_time_range_t * selection, int64_t cursor_pos,
-                           void * data)
-  {
-  
-  //  int i;
-  bg_nle_timeline_t * t = data;
-  
-  //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
-  bg_nle_project_set_selection(t->p, selection, cursor_pos);
-  }
-
-static void
-in_out_changed_callback(bg_nle_time_range_t * selection,
-                        void * data)
-  {
-  //  int i;
-  bg_nle_timeline_t * t = data;
-  
-  //  fprintf(stderr, "selection changed %ld %ld\n", selection->start, selection->end);
-  bg_nle_project_set_in_out(t->p, selection);
-  }
-
-static void visibility_changed_callback(bg_nle_time_range_t * visible, void * data)
-  {
-  //  int i;
-  bg_nle_timeline_t * t = data;
-
-  //  fprintf(stderr, "visibility changed %ld %ld\n", visible->start, visible->end);
-  bg_nle_project_set_visible(t->p, visible);
-  }
-
-static void zoom_changed_callback(bg_nle_time_range_t * visible, void * data)
-  {
-  //  int i;
-  bg_nle_timeline_t * t = data;
-
-  //  fprintf(stderr, "zoom changed %ld %ld\n", visible->start, visible->end);
-  bg_nle_project_set_zoom(t->p, visible);
-  }
-
 static void timewidget_motion_callback(int64_t time, void * data)
   {
   bg_nle_timeline_t * t = data;
@@ -334,12 +293,12 @@ bg_nle_timeline_t * bg_nle_timeline_create(bg_nle_project_t * p)
                          &p->in_out);
   ret->tr.cursor_pos = p->cursor_pos;
   
-  ret->tr.set_visible = visibility_changed_callback;
-  ret->tr.set_zoom = zoom_changed_callback;
-  ret->tr.set_selection = selection_changed_callback;
-  ret->tr.set_in_out = in_out_changed_callback;
+  //  ret->tr.set_visible = visibility_changed_callback;
+  //  ret->tr.set_zoom = zoom_changed_callback;
+  //  ret->tr.set_selection = selection_changed_callback;
+  //  ret->tr.set_in_out = in_out_changed_callback;
   ret->tr.motion_callback = timewidget_motion_callback;
-  ret->tr.callback_data = ret;
+  ret->tr.motion_callback_data = ret;
   ret->tr.ti = &ret->time_info;
     
   ret->ruler = bg_nle_time_ruler_create(&ret->tr);

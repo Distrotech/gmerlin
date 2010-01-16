@@ -187,7 +187,7 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
   int64_t time = bg_nle_pos_2_time(r, evt->x);
 
   if(r->motion_callback)
-    r->motion_callback(time, r->callback_data);
+    r->motion_callback(time, r->motion_callback_data);
   
   if(evt->state == GDK_BUTTON2_MASK)
     {
