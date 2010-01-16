@@ -160,12 +160,23 @@ int bg_nle_renderer_open(bg_nle_renderer_t * r, bg_nle_project_t * p)
                                   sizeof(*r->info.video_streams));
 
   r->info.duration = 0;
-  
-  for(i = 0; i < p->num_outstreams; i++)
+
+  /* Set up streams */
+  for(i = 0; i < r->num_audio_streams; i++)
     {
-    test_duration = bg_nle_outstream_duration(p->outstreams[i]);
+    test_duration = bg_nle_outstream_duration(r->audio_streams[i].os);
     if(test_duration > r->info.duration)
       r->info.duration = test_duration;
+    r->info.audio_streams[i].description = 
+      bg_strdup(NULL, bg_nle_outstream_get_name(r->audio_streams[i].os));
+    }
+  for(i = 0; i < r->num_video_streams; i++)
+    {
+    test_duration = bg_nle_outstream_duration(r->video_streams[i].os);
+    if(test_duration > r->info.duration)
+      r->info.duration = test_duration;
+    r->info.video_streams[i].description = 
+      bg_strdup(NULL, bg_nle_outstream_get_name(r->video_streams[i].os));
     }
   
   return 1;

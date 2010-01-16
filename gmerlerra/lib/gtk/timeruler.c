@@ -575,42 +575,41 @@ static void redraw(bg_nle_time_ruler_t * r)
   pl = pango_cairo_create_layout(c);
 
   if(r->tr->visible.end > r->tr->media_time.end)
-    pos_i = bg_nle_time_2_pos(r->tr, r->tr->media_time.end);
-  else
-    pos_i = r->tr->width;
-  
-  gtk_paint_box(gtk_widget_get_style(r->wid),
-                r->wid->window,
-                GTK_STATE_ACTIVE,
-                GTK_SHADOW_OUT,
-                (const GdkRectangle *)0,
-                r->wid,
-                (const gchar *)0,
-                0,
-                0,
-                pos_i,
-                RULER_HEIGHT);
-
-  if(pos_i < r->tr->width)
     {
-    gtk_paint_box(gtk_widget_get_style(r->wid),
-                  r->wid->window,
-                  GTK_STATE_NORMAL,
-                  GTK_SHADOW_OUT,
-                  (const GdkRectangle *)0,
-                  r->wid,
-                  (const gchar *)0,
-                  pos_i,
-                  0,
-                  r->tr->width - pos_i,
-                  RULER_HEIGHT);
+    start_pos = 0.0;
+    end_pos   = bg_nle_time_2_pos(r->tr, r->tr->media_time.end);
+
+    cairo_rectangle(c, start_pos, 0.0,
+                    end_pos - start_pos, RULER_HEIGHT);
+    cairo_set_source_rgba(c, 0.85, 0.85, 0.85, 1.0);
+    cairo_fill(c);
+    
+    start_pos = end_pos;
+    end_pos = r->tr->width;
+
+    cairo_rectangle(c, start_pos, 0.0,
+                    end_pos - start_pos, RULER_HEIGHT);
+    cairo_set_source_rgba(c, 0.25, 0.25, 0.25, 1.0);
+    cairo_fill(c);
+    }
+  else
+    {
+    start_pos = 0.0;
+    end_pos   = r->tr->width;
+
+    cairo_rectangle(c, start_pos, 0.0,
+                    end_pos - start_pos, RULER_HEIGHT);
+    cairo_set_source_rgba(c, 0.85, 0.85, 0.85, 1.0);
+    cairo_fill(c);
     }
   
   /* Draw tics */
 
   cairo_set_line_width(c, 1.0);
   pango_layout_set_font_description(pl, r->font_desc);
+  cairo_set_source_rgba(c, 0.0, 0.0, 0.0, 1.0);
 
+  
   switch(r->time_unit)
     {
     case BG_GTK_DISPLAY_MODE_HMSMS:
@@ -646,13 +645,8 @@ static void redraw(bg_nle_time_ruler_t * r)
     
       if(r->tr->selection.end >= 0)
         {
-        GdkRectangle r;
-        r.x = start_pos;
-        r.width = end_pos - start_pos;
-        r.y = RULER_HEIGHT/2;
-        r.height = RULER_HEIGHT/2;
-        gdk_cairo_rectangle(c, &r);
-
+        cairo_rectangle(c, start_pos, RULER_HEIGHT/2,
+                        end_pos - start_pos, RULER_HEIGHT/2);
         cairo_set_source_rgba(c, 1.0, 0.0, 0.0, 0.2);
         cairo_fill(c);
 
@@ -693,12 +687,8 @@ static void redraw(bg_nle_time_ruler_t * r)
     
     if((r->tr->in_out.start >= 0) && (r->tr->in_out.end >= 0))
       {
-      GdkRectangle r;
-      r.x = start_pos;
-      r.width = end_pos - start_pos;
-      r.y = RULER_HEIGHT/2;
-      r.height = RULER_HEIGHT/2;
-      gdk_cairo_rectangle(c, &r);
+      cairo_rectangle(c, start_pos, RULER_HEIGHT/2,
+                      end_pos - start_pos, RULER_HEIGHT/2);
       
       cairo_set_source_rgba(c, 0.0, 0.0, 1.0, 0.2);
       cairo_fill(c);
@@ -711,7 +701,7 @@ static void redraw(bg_nle_time_ruler_t * r)
 
   if((pos > -16.0) && (pos < r->tr->width + 16.0))
     {
-    cairo_set_source_rgba(c, 0.0, 0.6, 0.0, 5.0);
+    cairo_set_source_rgba(c, 0.0, 0.6, 0.0, 1.0);
     cairo_move_to(c, pos - RULER_HEIGHT/4, RULER_HEIGHT/4);
     cairo_line_to(c, pos + RULER_HEIGHT/4, RULER_HEIGHT/4);
     cairo_line_to(c, pos, RULER_HEIGHT/2);
@@ -779,6 +769,7 @@ static void realize_callback(GtkWidget *widget,
   gdk_window_set_cursor(r->wid->window, bg_nle_cursor_xterm);
   }
 
+
 bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr)
   {
   bg_nle_time_ruler_t * ret;
@@ -792,7 +783,7 @@ bg_nle_time_ruler_t * bg_nle_time_ruler_create(bg_nle_timerange_widget_t * tr)
   //  ret->spacing_minor = GAVL_TIME_SCALE / 10;
     
   ret->wid = gtk_drawing_area_new();
-
+  
   ret->font_desc = pango_font_description_from_string(FONT);
   
   gtk_widget_set_size_request(ret->wid, 100, RULER_HEIGHT);

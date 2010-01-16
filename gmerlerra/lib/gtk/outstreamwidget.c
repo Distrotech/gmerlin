@@ -462,13 +462,10 @@ void bg_nle_outstream_widget_redraw(bg_nle_outstream_widget_t * w)
     
       if(w->tr->selection.end >= 0)
         {
-        GdkRectangle r;
-        r.x = selection_start_pos;
-        r.width = selection_end_pos - selection_start_pos;
-        r.y = 0;
-        r.height = w->preview_height;
-        gdk_cairo_rectangle(c, &r);
-
+        cairo_rectangle(c, selection_start_pos,
+                        0, selection_end_pos - selection_start_pos,
+                        w->preview_height);
+        
         cairo_set_source_rgba(c, 1.0, 0.0, 0.0, 0.2);
         cairo_fill(c);
 

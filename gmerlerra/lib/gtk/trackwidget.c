@@ -289,7 +289,6 @@ expander_callback(GtkWidget *wid,
 static void draw_segment(bg_nle_track_widget_t * w, cairo_t * c, int i)
   {
   bg_nle_time_range_t r;
-  GdkRectangle rect;
   float x1, x2;
   
   r.start = w->segments[i].seg.dst_pos;
@@ -298,17 +297,18 @@ static void draw_segment(bg_nle_track_widget_t * w, cairo_t * c, int i)
   if(!bg_nle_time_range_intersect(&r, &w->tr->visible))
     return;
 
+  /* draw background */
   x1 = bg_nle_time_2_pos(w->tr, r.start);
   x2 = bg_nle_time_2_pos(w->tr, r.end);
   
-  rect.x = x1;
-  rect.width = x2 - x1;
-  rect.y = 0;
-  rect.height = w->preview_height;
-  gdk_cairo_rectangle(c, &rect);
-  
-  cairo_set_source_rgba(c, 1.0, 1.0, 1.0, 1.0);
+  cairo_rectangle(c, x1, 0.0, x2 - x1, w->preview_height);
+  cairo_set_source_rgba(c, 0.5, 0.5, 0.5, 1.0);
   cairo_fill(c);
+
+  /* Todo: draw preview */
+
+  /* Todo: draw info */
+  
   }
 
 void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
@@ -353,13 +353,8 @@ void bg_nle_track_widget_redraw(bg_nle_track_widget_t * w)
     
       if(w->tr->selection.end >= 0)
         {
-        GdkRectangle r;
-        r.x = x1;
-        r.width = x2 - x1;
-        r.y = 0;
-        r.height = w->preview_height;
-        gdk_cairo_rectangle(c, &r);
-
+        cairo_rectangle(c, x1, 0, x2 - x1, w->preview_height);
+        
         cairo_set_source_rgba(c, 1.0, 0.0, 0.0, 0.2);
         cairo_fill(c);
 
