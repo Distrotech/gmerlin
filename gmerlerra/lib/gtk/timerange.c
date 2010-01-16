@@ -109,6 +109,9 @@ int bg_nle_timerange_widget_handle_button_press(bg_nle_timerange_widget_t * r,
   int64_t t;
   int ret = 0;
 
+  /* Num lock */
+  evt->state &= ~GDK_MOD2_MASK;
+  
   if(r->snap_time)
     {
     t = *r->snap_time;
@@ -186,6 +189,9 @@ int bg_nle_timerange_widget_handle_motion(bg_nle_timerange_widget_t * r,
 
   int64_t time = bg_nle_pos_2_time(r, evt->x);
 
+  /* Num lock */
+  evt->state &= ~GDK_MOD2_MASK;
+    
   if(r->motion_callback)
     r->motion_callback(time, r->motion_callback_data);
   

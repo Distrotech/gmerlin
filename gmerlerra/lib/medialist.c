@@ -331,10 +331,10 @@ bg_nle_file_t * bg_nle_file_copy(const bg_nle_file_t * file)
     }
   if(ret->num_video_streams)
     {
-    ret->audio_streams = malloc(ret->num_audio_streams *
-                                sizeof(*ret->audio_streams));
-    memcpy(ret->audio_streams, file->audio_streams,
-           ret->num_audio_streams * sizeof(*ret->audio_streams));
+    ret->video_streams = malloc(ret->num_video_streams *
+                                sizeof(*ret->video_streams));
+    memcpy(ret->video_streams, file->video_streams,
+           ret->num_video_streams * sizeof(*ret->video_streams));
     for(i = 0; i < ret->num_video_streams; i++)
       {
       if(file->video_streams[i].frametable)
