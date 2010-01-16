@@ -440,3 +440,8 @@ void bg_nle_media_browser_set_display_parameter(void * data, const char * name,
   bg_nle_media_browser_t * b = data;
   bg_nle_player_set_display_parameter(b->player, name, val);
   }
+
+void bg_nle_media_browser_realize(bg_nle_media_browser_t * b)
+  {
+  bg_nle_player_realize(b->player);
+  }

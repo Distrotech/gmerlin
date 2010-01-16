@@ -34,6 +34,13 @@ static const GtkTargetEntry copy_paste_entries[] =
     { "STRING",                 0, DND_GMERLERRA_TEXT  },
   };
 
+static const GdkColor socket_bg =
+  {
+    0x00000000,
+    0x0000,
+    0x0000,
+    0x0000
+  };
 
 struct bg_nle_player_widget_s
   {
@@ -169,7 +176,7 @@ static void bg_nle_player_set_oa_plugin(bg_nle_player_widget_t * w,
   }
 
 static void bg_nle_player_set_ov_plugin(bg_nle_player_widget_t * w,
-                                 const bg_plugin_info_t * info)
+                                        const bg_plugin_info_t * info)
   {
   if(w->ov_handle)
     {
@@ -421,6 +428,7 @@ static GtkWidget * create_pixmap_toggle_button(bg_nle_player_widget_t * w,
 static float display_fg[] = { 0.0, 1.0, 0.0 };
 static float display_bg[] = { 0.0, 0.0, 0.0 };
 
+#if 0
 static void load_output_plugins(bg_nle_player_widget_t * p)
   {
   const bg_plugin_info_t * info;
@@ -438,6 +446,8 @@ static void load_output_plugins(bg_nle_player_widget_t * p)
     bg_sprintf("%s:%08lx:", gdk_display_get_name(dpy),
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(p->socket)));
 
+  fprintf(stderr, "Display string: %s\n", p->display_string);
+  
   bg_nle_player_set_ov_plugin(p, info);
 
   /* Audio */
@@ -454,6 +464,7 @@ static void socket_realize(GtkWidget * w, gpointer data)
   //  fprintf(stderr, "Socket realize\n");
   load_output_plugins(p);
   }
+#endif
 
 static void size_allocate_callback(GtkWidget     *widget,
                                    GtkAllocation *allocation,
@@ -836,9 +847,12 @@ bg_nle_player_widget_create(bg_plugin_registry_t * plugin_reg,
   /* Create socket */
   
   ret->socket = gtk_socket_new();
+  gtk_widget_modify_bg(ret->socket,
+                       GTK_STATE_NORMAL,
+                       &socket_bg);
 
-  g_signal_connect(G_OBJECT(ret->socket), "realize",
-                   G_CALLBACK(socket_realize), ret);
+  // g_signal_connect(G_OBJECT(ret->socket), "realize",
+  //                 G_CALLBACK(socket_realize), ret);
   
   gtk_widget_show(ret->socket);
   
@@ -1094,5 +1108,23 @@ void bg_nle_player_set_display_parameter(void * data,
     bg_nle_time_ruler_update_mode(w->ruler);
     return;
     }
+  
+  }
+
+void bg_nle_player_realize(bg_nle_player_widget_t * w)
+  {
+  GdkDisplay * dpy;
+
+  if(!GTK_WIDGET_REALIZED(w->socket))
+    gtk_widget_realize(w->socket);
+  
+  fprintf(stderr, "BG_PLAYER_REALIZE\n");
+  
+  /* Video */
+  dpy = gdk_display_get_default();
+  w->display_string =
+    bg_sprintf("%s:%08lx:", gdk_display_get_name(dpy),
+               (long unsigned int)gtk_socket_get_id(GTK_SOCKET(w->socket)));
+
   
   }

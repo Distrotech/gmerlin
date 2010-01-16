@@ -147,6 +147,7 @@ const bg_parameter_info_t bg_nle_outstream_video_parameters[] =
 const bg_parameter_info_t bg_nle_outstream_audio_parameters[] =
   {
     PARAM_GENERAL,
+    BG_GAVL_PARAM_SAMPLEFORMAT,
     BG_GAVL_PARAM_SAMPLERATE_NOSOURCE,
     PARAM_CHANNELS,
     { /* End */ },
@@ -168,6 +169,7 @@ static const bg_parameter_info_t audio_parameters[] =
   {
     PARAM_GENERAL,
     PARAM_NAME,
+    BG_GAVL_PARAM_SAMPLEFORMAT,
     BG_GAVL_PARAM_SAMPLERATE_NOSOURCE,
     PARAM_CHANNELS,
     { /* End */ },

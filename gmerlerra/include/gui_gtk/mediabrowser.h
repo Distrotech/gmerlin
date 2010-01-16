@@ -23,3 +23,5 @@ void bg_nle_media_browser_set_ov_parameter(void * data, const char * name,
 
 void bg_nle_media_browser_set_display_parameter(void * data, const char * name,
                                                 const bg_parameter_value_t * val);
+
+void bg_nle_media_browser_realize(bg_nle_media_browser_t * b);

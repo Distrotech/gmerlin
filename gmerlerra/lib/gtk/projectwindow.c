@@ -1391,11 +1391,17 @@ void bg_nle_project_window_show(bg_nle_project_window_t * w)
   {
   gtk_widget_show(w->win);
 
+  /* Realize player widgets */
+  bg_nle_player_realize(w->compositor);
+  bg_nle_media_browser_realize(w->media_browser);
+  
   /* Now we can assume everything is realized, so lets set up the plugins */
 
   bg_cfg_section_apply(oa_section, oa_parameters, set_oa_parameter, w);
   bg_cfg_section_apply(ov_section, ov_parameters, set_ov_parameter, w);
   bg_cfg_section_apply(display_section, display_parameters, set_display_parameter, w);
+
+  
   
   set_project_file(w);
   }
