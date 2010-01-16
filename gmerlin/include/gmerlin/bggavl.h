@@ -34,7 +34,7 @@ typedef struct
   int fixed_samplerate;
   int samplerate;
   int fixed_channel_setup;
-
+  
   gavl_sample_format_t force_format;
   
   int num_front_channels;
@@ -621,7 +621,7 @@ BG_GAVL_PARAM_CHANNEL_SETUP_NOSOURCE
 
 #define BG_GAVL_PARAM_FORCE_SAMPLEFORMAT \
     { \
-      .name =      "force_sampleformat", \
+      .name =      "sampleformat", \
       .long_name = TRS("Force sampleformat"), \
       .type =      BG_PARAMETER_STRINGLIST,\
       .flags =       BG_PARAMETER_SYNC, \
@@ -629,6 +629,18 @@ BG_GAVL_PARAM_CHANNEL_SETUP_NOSOURCE
       .multi_names  = (char const *[]){ "none", "8", "16", "32", "f", "d", (char*)0 },\
       .multi_labels = (char const *[]){ TRS("None"), TRS("8 bit"), TRS("16 bit"), TRS("32 bit"), TRS("Float"), TRS("Double"), (char*)0 }, \
       .help_string = TRS("Force a sampleformat to be used for processing. None means to take the input format.") \
+    }
+
+#define BG_GAVL_PARAM_SAMPLEFORMAT \
+    { \
+      .name =      "sampleformat", \
+      .long_name = TRS("Sampleformat"), \
+      .type =      BG_PARAMETER_STRINGLIST,\
+      .flags =       BG_PARAMETER_SYNC, \
+      .val_default = { .val_str = "f" },\
+      .multi_names  = (char const *[]){ "16", "32", "f", "d", (char*)0 },\
+      .multi_labels = (char const *[]){ TRS("16 bit"), TRS("32 bit"), TRS("Float"), TRS("Double"), (char*)0 }, \
+      .help_string = TRS("Sampleformat to be used for processing.") \
     }
 
 #define BG_GAVL_PARAM_AUDIO_DITHER_MODE \

@@ -61,7 +61,7 @@ int bg_gavl_audio_set_parameter(void * data, const char * name, const bg_paramet
     }
   SP_INT(fixed_samplerate);
 
-  if(!strcmp(name, "force_sampleformat"))
+  if(!strcmp(name, "sampleformat"))
     {
     gavl_sample_format_t force_format = GAVL_SAMPLE_NONE;
     if(!strcmp(val->val_str, "8"))
@@ -208,16 +208,19 @@ void bg_gavl_audio_options_set_format(const bg_gavl_audio_options_t * opt,
                                       gavl_audio_format_t * out_format)
   {
   int channel_index;
-  gavl_audio_format_copy(out_format, in_format);
 
-  if(opt->fixed_samplerate)
+  if(in_format)
+    gavl_audio_format_copy(out_format, in_format);
+
+  if(opt->fixed_samplerate || !in_format)
     {
     out_format->samplerate = opt->samplerate;
     }
-  if(opt->fixed_channel_setup)
+  if(opt->fixed_channel_setup || !in_format)
     {
-    out_format->num_channels = opt->num_front_channels + opt->num_rear_channels + opt->num_lfe_channels;
-
+    out_format->num_channels =
+      opt->num_front_channels + opt->num_rear_channels + opt->num_lfe_channels;
+    
     channel_index = 0;
     switch(opt->num_front_channels)
       {
