@@ -301,8 +301,8 @@ bgav_video_parser_set_format(bgav_video_parser_t * parser,
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   {
-  fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
-          parser->cache_size);
+  //  fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
+  //          parser->cache_size);
   /* Set size of last frame */
   parser->pos = parser->buf.size;
   bgav_video_parser_set_sequence_end(parser);
