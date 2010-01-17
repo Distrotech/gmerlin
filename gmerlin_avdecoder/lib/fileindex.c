@@ -387,22 +387,23 @@ static void set_has_file_index(bgav_t * b)
     {
     b->tt->tracks[i].has_file_index = 1;
     b->tt->tracks[i].sample_accurate = 1;
-
-    if(b->tt->tracks[i].duration == GAVL_TIME_UNDEFINED)
-      {
-      for(j= 0; j <b->tt->tracks[i].num_audio_streams; j++)
-        update_duration(&b->tt->tracks[i].audio_streams[j],
-                        b->tt->tracks[i].audio_streams[j].data.audio.format.samplerate,
-                        &b->tt->tracks[i].duration);
-      for(j= 0; j <b->tt->tracks[i].num_video_streams; j++)
-        update_duration(&b->tt->tracks[i].video_streams[j],
-                        b->tt->tracks[i].video_streams[j].data.video.format.timescale,
-                        &b->tt->tracks[i].duration);
-      for(j= 0; j <b->tt->tracks[i].num_subtitle_streams; j++)
-        update_duration(&b->tt->tracks[i].subtitle_streams[j],
-                        b->tt->tracks[i].subtitle_streams[j].timescale,
-                        &b->tt->tracks[i].duration);
-      }
+    b->tt->tracks[i].duration = GAVL_TIME_UNDEFINED;
+    
+    //    if(b->tt->tracks[i].duration == GAVL_TIME_UNDEFINED)
+    //      {
+    for(j= 0; j <b->tt->tracks[i].num_audio_streams; j++)
+      update_duration(&b->tt->tracks[i].audio_streams[j],
+                      b->tt->tracks[i].audio_streams[j].data.audio.format.samplerate,
+                      &b->tt->tracks[i].duration);
+    for(j= 0; j <b->tt->tracks[i].num_video_streams; j++)
+      update_duration(&b->tt->tracks[i].video_streams[j],
+                      b->tt->tracks[i].video_streams[j].data.video.format.timescale,
+                      &b->tt->tracks[i].duration);
+    for(j= 0; j <b->tt->tracks[i].num_subtitle_streams; j++)
+      update_duration(&b->tt->tracks[i].subtitle_streams[j],
+                      b->tt->tracks[i].subtitle_streams[j].timescale,
+                      &b->tt->tracks[i].duration);
+    // }
     }
   b->demuxer->flags |= BGAV_DEMUXER_CAN_SEEK;
   }

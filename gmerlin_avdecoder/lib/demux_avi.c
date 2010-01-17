@@ -199,6 +199,7 @@ static int is_keyframe_mpeg4(uint8_t * data)
   return 1;
   }
 
+
 /* Hardwired stream IDs for DV avi. This prevents us from
    decoding AVIs with muiltiple DV streams if they exist */
 
@@ -412,7 +413,7 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
                              int64_t offset, int size, int keyframe)
   {
   audio_priv_t * avi_as;
-  video_priv_t * avi_vs;
+  //  video_priv_t * avi_vs;
   int samplerate;
   
   if(stream->type == BGAV_STREAM_AUDIO)
@@ -488,7 +489,7 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
     }
   else if(stream->type == BGAV_STREAM_VIDEO)
     {
-    avi_vs = (video_priv_t*)(stream->priv);
+    //    avi_vs = (video_priv_t*)(stream->priv);
 
     /* Some AVIs can have zero packet size, which means, that
        the previous frame will be shown */
@@ -2124,14 +2125,19 @@ static int open_avi(bgav_demuxer_context_t * ctx)
   return 0;
   }
 
-#if 0
 /* Only called, when no superindex is present */
-static void select_track_avi(bgav_demuxer_context_t * ctx, int track)
+static int select_track_avi(bgav_demuxer_context_t * ctx, int track)
   {
-  avi_priv_t * priv;
-  priv = (avi_priv_t*)(ctx->priv);
+  int i;
+  /* Reset frame counters */
+  
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    video_priv_t * p = ctx->tt->cur->video_streams[i].priv;
+    p->frame_counter = 0;
+    }
+  return 1;
   }
-#endif
 
 
 static void close_avi(bgav_demuxer_context_t * ctx)
@@ -2233,7 +2239,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
         if(s->action == BGAV_STREAM_PARSE)
           s->duration = avi_vs->frame_counter * s->data.video.format.frame_duration;
         
-        if(avi_vs->is_keyframe && avi_vs->is_keyframe(p->data)) 
+        if(!avi_vs->is_keyframe || avi_vs->is_keyframe(p->data)) 
           PACKET_SET_KEYFRAME(p);
         }
       else if(s->type == BGAV_STREAM_AUDIO)
@@ -2300,9 +2306,10 @@ const const bgav_demuxer_t bgav_demuxer_avi =
   {
     .probe =       probe_avi,
     .open =        open_avi,
+    .select_track = select_track_avi,
     .next_packet = next_packet_avi,
     .seek =        seek_avi,
     .resync  =     resync_avi,
     .close =       close_avi
-
+    
   };

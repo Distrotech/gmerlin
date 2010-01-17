@@ -568,7 +568,8 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
     {
     if(!decode_picture(s))
       {
-      fprintf(stderr, "Got EOF while skipping\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Got EOF while skipping");
       return 0;
       }
 #if 0
@@ -614,23 +615,20 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   }
 
 #ifdef HAVE_VDPAU
-static AVCodec * find_decoder(enum CodecID id, uint32_t fourcc,
-                              const bgav_options_t * opt)
+static AVCodec * find_decoder(enum CodecID id, bgav_stream_t * s)
   {
   AVCodec * ret = NULL;
 
-  if(opt->vdpau)
-    {
-    if((id == CODEC_ID_H264) && (fourcc != BGAV_MK_FOURCC('a', 'v', 'c', '1')))
-      ret = avcodec_find_decoder_by_name("h264_vdpau");
-    }
+  if(s->opt->vdpau && (id == CODEC_ID_H264) && (s->fourcc != BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
+     s->ext_size)
+    ret = avcodec_find_decoder_by_name("h264_vdpau");
   
   if(!ret)
     ret = avcodec_find_decoder(id);
   return ret;
   }
 #else
-#define find_decoder(id, fourcc, opt) avcodec_find_decoder(id)
+#define find_decoder(id, s) avcodec_find_decoder(id)
 #endif
 
 #ifdef HAVE_VDPAU
@@ -755,7 +753,7 @@ static int init_ffmpeg(bgav_stream_t * s)
 
   priv->ctx = avcodec_alloc_context();
 
-  codec = find_decoder(priv->info->ffmpeg_id, s->fourcc, s->opt);
+  codec = find_decoder(priv->info->ffmpeg_id, s);
   
   /* Check for vdpau */
 #ifdef HAVE_VDPAU

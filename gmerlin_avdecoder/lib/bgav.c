@@ -207,7 +207,6 @@ int bgav_open(bgav_t * ret, const char * location)
       ret->demuxer &&
       !(ret->demuxer->flags & BGAV_DEMUXER_CAN_SEEK)))
     bgav_set_sample_accurate(ret);
-  
   return 1;
   fail:
 
@@ -295,6 +294,8 @@ int bgav_select_track(bgav_t * b, int track)
   int i;
   if((track < 0) || (track >= b->tt->num_tracks))
     return 0;
+
+  b->eof = 0;
   
   if(b->is_running)
     {
