@@ -40,6 +40,12 @@
 
 #define DELAY_TIME 100
 
+/* This is missing in the gtk headers */
+
+extern void
+gtk_decorated_window_move_resize_window(GtkWindow*, int, int, int, int);
+
+
 typedef struct
   {
   GtkWidget * win;
@@ -326,19 +332,6 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   }
 
-static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
-                                      gpointer * data)
-  {
-  bg_recorder_window_t * win = (bg_recorder_window_t *)data;
-  if(win->toolbar_hidden)
-    {
-    gtk_widget_show(win->toolbar);
-    win->toolbar_hidden = 0;
-    }
-  return TRUE;
-  }
-
-
 
 static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   {
@@ -522,6 +515,18 @@ static gboolean timeout_func(void * data)
                             win->noinput_context);
           }
         }
+      case BG_RECORDER_MSG_BUTTON_PRESS:
+        if(win->toolbar_hidden)
+          {
+          gtk_widget_show(win->toolbar);
+          win->toolbar_hidden = 0;
+          }
+        break;
+      case BG_RECORDER_MSG_BUTTON_RELEASE:
+        break;
+      case BG_RECORDER_MSG_MOTION:
+        break;
+
       }
     bg_msg_queue_unlock_read(win->msg_queue);
     }
@@ -545,12 +550,6 @@ static void window_init(bg_recorder_window_t * r, window_t * w, int fullscreen)
 
   /* Socket */
   w->socket = gtk_socket_new();
-  gtk_widget_set_events(w->socket,
-                        GDK_BUTTON_PRESS_MASK);
-
-  g_signal_connect(G_OBJECT(w->socket), "button-press-event",
-                   G_CALLBACK(button_press_callback),
-                   r);
   
   gtk_widget_show(w->socket);
   
@@ -566,9 +565,6 @@ static void window_init(bg_recorder_window_t * r, window_t * w, int fullscreen)
                    G_CALLBACK(delete_callback),
                    r);
   
-  g_signal_connect(G_OBJECT(w->socket), "button-press-event",
-                   G_CALLBACK(button_press_callback),
-                   r);
   gtk_widget_realize(w->socket);
   }
 

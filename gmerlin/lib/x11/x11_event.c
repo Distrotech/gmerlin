@@ -763,10 +763,10 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                       x_src, y_src, key_mask);
         }
       
+#if 0
       /* Send to parent */
       if(w->current->parent != w->root)
         {
-#if 0
         XMotionEvent motion_event;
         memset(&motion_event, 0, sizeof(motion_event));
         motion_event.type = MotionNotify;
@@ -791,8 +791,8 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                    False, NoEventMask,
                    evt);
         XSync(w->dpy, False);
-#endif
         }
+#endif
       break;
     case UnmapNotify:
       if(evt->xunmap.window == w->normal.win)

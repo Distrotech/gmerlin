@@ -54,17 +54,26 @@ void bg_recorder_set_display_string(bg_recorder_t*, const char * str);
 /* Messages */
 
 /* Framerate (arg0: float) */
-#define BG_RECORDER_MSG_FRAMERATE 0
+#define BG_RECORDER_MSG_FRAMERATE      0
 
 /* Audio level (arg0: float, arg1: float) */
-#define BG_RECORDER_MSG_AUDIOLEVEL 1
+#define BG_RECORDER_MSG_AUDIOLEVEL     1
 
 /* Recording (arg0: time) */
-#define BG_RECORDER_MSG_TIME       2
+#define BG_RECORDER_MSG_TIME           2
 
 /* Recording (arg0: audio (int), arg1: video (int) ) */
 
-#define BG_RECORDER_MSG_RUNNING    3
+#define BG_RECORDER_MSG_RUNNING        3
+
+/* Button press (arg0: x, arg1: y, arg2: button, arg3: mask) */
+#define BG_RECORDER_MSG_BUTTON_PRESS   4
+
+/* Button release (arg0: x, arg1: y, arg2: button, arg3: mask) */
+#define BG_RECORDER_MSG_BUTTON_RELEASE 5
+
+/* Button release (arg0: x, arg1: y, arg2: mask) */
+#define BG_RECORDER_MSG_MOTION         6
 
 /*
  *  Record = 1: Start recording

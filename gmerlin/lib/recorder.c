@@ -362,6 +362,82 @@ void bg_recorder_msg_running(bg_recorder_t * rec,
                          msg_running, &r);
   }
 
+typedef struct
+  {
+  int x;
+  int y;
+  int button;
+  int mask;
+  } button_t;
+
+static void msg_button_press(bg_msg_t * msg, const void * data)
+  {
+  const button_t * b = data;
+  bg_msg_set_id(msg, BG_RECORDER_MSG_BUTTON_PRESS);
+  bg_msg_set_arg_int(msg, 0, b->x);
+  bg_msg_set_arg_int(msg, 1, b->y);
+  bg_msg_set_arg_int(msg, 2, b->button);
+  bg_msg_set_arg_int(msg, 3, b->mask);
+  }
+
+void bg_recorder_msg_button_press(bg_recorder_t * rec,
+                                  int x, int y, int button, int mask)
+  {
+  button_t b;
+  b.x = x;
+  b.y = y;
+  b.button = button;
+  b.mask = mask;
+  
+  bg_msg_queue_list_send(rec->msg_queues,
+                         msg_button_press, &b);
+  }
+
+static void msg_button_release(bg_msg_t * msg, const void * data)
+  {
+  const button_t * b = data;
+  bg_msg_set_id(msg, BG_RECORDER_MSG_BUTTON_RELEASE);
+  bg_msg_set_arg_int(msg, 0, b->x);
+  bg_msg_set_arg_int(msg, 1, b->y);
+  bg_msg_set_arg_int(msg, 2, b->button);
+  bg_msg_set_arg_int(msg, 3, b->mask);
+  }
+
+
+void bg_recorder_msg_button_release(bg_recorder_t * rec,
+                                    int x, int y, int button, int mask)
+  {
+  button_t b;
+  b.x = x;
+  b.y = y;
+  b.button = button;
+  b.mask = mask;
+  
+  bg_msg_queue_list_send(rec->msg_queues,
+                         msg_button_release, &b);
+  }
+
+static void msg_motion(bg_msg_t * msg, const void * data)
+  {
+  const button_t * b = data;
+  bg_msg_set_id(msg, BG_RECORDER_MSG_MOTION);
+  bg_msg_set_arg_int(msg, 0, b->x);
+  bg_msg_set_arg_int(msg, 1, b->y);
+  bg_msg_set_arg_int(msg, 3, b->mask);
+  }
+
+
+void bg_recorder_msg_motion(bg_recorder_t * rec,
+                            int x, int y, int mask)
+  {
+  button_t b;
+  b.x = x;
+  b.y = y;
+  b.mask = mask;
+  
+  bg_msg_queue_list_send(rec->msg_queues,
+                         msg_motion, &b);
+  }
 
 
 /* Parameter stuff */

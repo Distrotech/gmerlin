@@ -56,6 +56,29 @@ static int create_snapshot_cb(void * data, const char * filename)
   return 1;
   }
 
+static int ov_button_callback(void * data, int x, int y, int button, int mask)
+  {
+  bg_recorder_t * rec = data;
+  bg_recorder_msg_button_press(rec, x, y, button, mask);
+  return 1;
+  }
+
+static int ov_button_release_callback(void * data, int x, int y,
+                                      int button, int mask)
+  {
+  bg_recorder_t * rec = data;
+  bg_recorder_msg_button_release(rec, x, y, button, mask);
+  return 1;
+  }
+  
+static int ov_motion_callback(void * data, int x, int y, int mask)
+  {
+  bg_recorder_t * rec = data;
+  bg_recorder_msg_motion(rec, x, y, mask);
+  return 1;
+  }
+
+
 void bg_recorder_create_video(bg_recorder_t * rec)
   {
   bg_recorder_video_stream_t * vs = &rec->vs;
@@ -74,6 +97,11 @@ void bg_recorder_create_video(bg_recorder_t * rec)
 
   vs->snapshot_cb.create_output_file = create_snapshot_cb;
   vs->snapshot_cb.data = rec;
+
+  vs->monitor_cb.button_callback = ov_button_callback;
+  vs->monitor_cb.button_release_callback = ov_button_release_callback;
+  vs->monitor_cb.motion_callback = ov_motion_callback;
+  vs->monitor_cb.data = rec;
   }
 
 void bg_recorder_destroy_video(bg_recorder_t * rec)
@@ -284,6 +312,10 @@ bg_recorder_set_video_monitor_parameter(void * data,
                                            rec->display_string);
     vs->monitor_plugin = (bg_ov_plugin_t*)(vs->monitor_handle->plugin);
 
+    if(vs->monitor_plugin->set_callbacks)
+      vs->monitor_plugin->set_callbacks(vs->monitor_handle->priv,
+                                        &vs->monitor_cb);
+    
     vs->monitor_plugin->show_window(vs->monitor_handle->priv, 1);
     
 

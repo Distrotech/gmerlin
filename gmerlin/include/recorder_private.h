@@ -105,6 +105,8 @@ typedef struct
   /* Monitor section */
   bg_plugin_handle_t     * monitor_handle;
   bg_ov_plugin_t         * monitor_plugin;
+
+  bg_ov_callbacks_t monitor_cb;
   
   int do_convert_monitor;
   int do_convert_enc;
@@ -253,3 +255,12 @@ void bg_recorder_msg_time(bg_recorder_t * rec, gavl_time_t t);
 
 void bg_recorder_msg_running(bg_recorder_t * rec,
                              int do_audio, int do_video);
+
+void bg_recorder_msg_button_press(bg_recorder_t * rec,
+                                  int x, int y, int button, int mask);
+
+void bg_recorder_msg_button_release(bg_recorder_t * rec,
+                                    int x, int y, int button, int mask);
+
+void bg_recorder_msg_motion(bg_recorder_t * rec,
+                            int x, int y, int mask);
