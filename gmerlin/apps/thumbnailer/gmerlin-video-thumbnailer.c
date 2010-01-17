@@ -300,25 +300,50 @@ int main(int argc, char ** argv)
         (gavl_time_t)((seek_percentage / 100.0) * (double)(info->duration)+0.5);
       }
     }
+
+  have_frame = 0;
   
   if(info->flags & BG_TRACK_SEEKABLE)
     {
     input_plugin->seek(input_handle->priv, &seek_time, GAVL_TIME_SCALE);
     have_frame = input_plugin->read_video(input_handle->priv, input_frame, 0);
-    }
-  else
-    {
-    while((have_frame = input_plugin->read_video(input_handle->priv, input_frame, 0)))
+
+    if(!have_frame) // Seeking failed, reset the stream and try without seeking
       {
+      if(input_plugin->set_track)
+        input_plugin->set_track(input_handle->priv, 0);
+      else
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot reset stream after failed seek");
+        return -1;
+        }
+      
+      /* Select first stream */
+      input_plugin->set_video_stream(input_handle->priv, 0,
+                                     BG_STREAM_ACTION_DECODE);
+      
+      /* Start playback */
+      if(input_plugin->start)
+        input_plugin->start(input_handle->priv);
+      }
+    }
+
+  if(!have_frame)
+    {
+    while(input_plugin->read_video(input_handle->priv, input_frame, 0))
+      {
+      have_frame = 1;
       if(gavl_time_unscale(input_format.timescale,
                            input_frame->timestamp) >= seek_time)
         break;
       }
     }
-
+  
   if(!have_frame)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't read frame");
     return -1;
-
+    }
   /* Extended metadata */
 
   tmp_string = bg_string_to_uri(in_file, -1);
