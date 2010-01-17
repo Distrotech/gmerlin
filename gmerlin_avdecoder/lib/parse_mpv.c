@@ -133,6 +133,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
             }
           break;
         case MPEG_CODE_PICTURE:
+
           if(!priv->has_picture_start)
             {
             if(!bgav_video_parser_set_picture_start(parser))
@@ -148,6 +149,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
             bgav_video_parser_extract_header(parser);
             return PARSER_HAVE_HEADER;
             }
+
+          
           break;
         case MPEG_CODE_PICTURE_EXT:
           /* Need picture extension */
@@ -194,6 +197,13 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
                                           &ph,
                                           parser->buf.buffer + parser->pos,
                                           parser->buf.size - parser->pos);
+
+      if(len < 0)
+        {
+        bgav_log(parser->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Bogus picture header or broken frame");
+        return PARSER_ERROR;
+        }
       if(!len)
         return PARSER_NEED_DATA;
       

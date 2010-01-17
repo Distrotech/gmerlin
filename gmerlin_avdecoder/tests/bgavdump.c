@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #ifndef _WIN32
 #include <termios.h> /* Ask passwords */
@@ -195,6 +196,9 @@ int main(int argc, char ** argv)
   file = bgav_create();
   opt = bgav_get_options(file);
 
+  /* Never delete cache entries */
+  bgav_options_set_cache_size(opt, INT_MAX);
+  
   arg_index = 1;
   while(arg_index < argc - 1)
     {
@@ -384,11 +388,19 @@ int main(int argc, char ** argv)
 
     if(global_seek)
       {
-      fprintf(stderr, "Doing global seek to %"PRId64"...\n", global_seek);
-      bgav_seek(file, &global_seek);
-      fprintf(stderr, "Time after seek: %"PRId64"\n", global_seek);
+      if(bgav_can_seek(file))
+        {
+        fprintf(stderr, "Doing global seek to %"PRId64"...\n", global_seek);
+        bgav_seek(file, &global_seek);
+        fprintf(stderr, "Time after seek: %"PRId64"\n", global_seek);
+        }
+      else
+        {
+        fprintf(stderr, "Global seek requested for non-seekable file\n");
+        return -1;
+        }
       }
-      
+    
     fprintf(stderr, "Dumping file contents...\n");
     bgav_dump(file);
     fprintf(stderr, "End of file contents\n");

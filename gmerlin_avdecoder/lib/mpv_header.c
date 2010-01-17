@@ -301,6 +301,8 @@ int bgav_mpv_picture_header_parse(const bgav_options_t * opt,
       ret->coding_type = BGAV_CODING_TYPE_B;
       break;
     default:
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Cannot read picture header: Invalid coding type %d", type);
       return -1; // Error
     }
   return 2;

@@ -38,7 +38,9 @@
 
 #define IS_START_CODE(h)  ((h&0xffffff00)==0x00000100)
 
-//#define NDEBUG
+// #define DUMP_PACK_HEADER
+// #define DUMP_PES_HEADER
+
 
 /* LPCM stuff */
 
@@ -136,6 +138,16 @@ typedef struct
   int version;
   } pack_header_t;
 
+#ifdef DUMP_PACK_HEADER
+static void pack_header_dump(pack_header_t * h)
+  {
+  bgav_dprintf(
+          "Pack header: MPEG-%d, SCR: %" PRId64 " (%f secs), Mux rate: %d bits/s\n",
+          h->version, h->scr, (float)(h->scr)/90000.0,
+          h->mux_rate * 400);
+  }
+#endif
+
 static int pack_header_read(bgav_input_context_t * input,
                             pack_header_t * ret)
   {
@@ -214,17 +226,14 @@ static int pack_header_read(bgav_input_context_t * input,
     bgav_input_skip(input, stuffing);
 
     }
+
+#ifdef DUMP_PACK_HEADER
+  pack_header_dump(ret);
+#endif
+  
   return 1;
   }
-#if 0
-static void pack_header_dump(pack_header_t * h)
-  {
-  bgav_dprintf(
-          "Pack header: MPEG-%d, SCR: %" PRId64 " (%f secs), Mux rate: %d bits/s\n",
-          h->version, h->scr, (float)(h->scr)/90000.0,
-          h->mux_rate * 400);
-  }
-#endif
+
 /* System header */
 
 typedef struct
@@ -276,6 +285,8 @@ typedef struct
   int find_streams;
   int do_sync;
 
+  int have_pts; /* Whether PTS are present at all */
+  
   int is_running;
   
   /* Headers */
@@ -477,6 +488,15 @@ static void cleanup_lpcm(bgav_stream_t * s)
   free(s->priv);
   }
 
+static void init_stream(bgav_stream_t * s, uint32_t fourcc,
+                        int stream_id)
+  {
+  s->timescale = 90000;
+  s->index_mode = INDEX_MODE_MPEG;
+  s->fourcc = fourcc;
+  s->stream_id = stream_id;
+  }
+
 /* Get one packet */
 
 static int next_packet(bgav_demuxer_context_t * ctx,
@@ -524,8 +544,12 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         {
         return 0;
         }
+#ifdef DUMP_PES_HEADER
+      bgav_pes_header_dump(&(priv->pes_header));
+#endif
 
-      //      bgav_pes_header_dump(&(priv->pes_header));
+      if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
+        priv->have_pts = 1;
       
       /* Private stream 1 (non MPEG audio, subpictures) */
       if(priv->pes_header.stream_id == 0xbd)
@@ -557,10 +581,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           if(!stream && priv->find_streams)
             {
             stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-            stream->timescale = 90000;
-            stream->index_mode = INDEX_MODE_MPEG;
-            stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
-            stream->stream_id = priv->pes_header.stream_id;
+
+            init_stream(stream, BGAV_MK_FOURCC('.', 'a', 'c', '3'),
+                        priv->pes_header.stream_id);
             /* Hack: This is set by the core later. We must set it here,
                because we buffer packets during initialization */
             stream->demuxer = ctx;
@@ -582,10 +605,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           if(!stream && priv->find_streams)
             {
             stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-            stream->index_mode = INDEX_MODE_MPEG;
-            stream->timescale = 90000;
-            stream->fourcc = BGAV_MK_FOURCC('d', 't', 's', ' ');
-            stream->stream_id = priv->pes_header.stream_id;
+            
+            init_stream(stream, BGAV_MK_FOURCC('d', 't', 's', ' '),
+                        priv->pes_header.stream_id);
             /* Hack: This is set by the core later. We must set it here,
                because we buffer packets during initialization */
             stream->demuxer = ctx;
@@ -632,8 +654,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             /* quant (2), freq(2), reserved(1), channels(3) */
             if(!bgav_input_read_data(input, &c, 1))
               return 0;
-                        
-            stream->data.audio.format.samplerate = lpcm_freq_tab[(c >> 4) & 0x03];
+            
+            stream->data.audio.format.samplerate =
+              lpcm_freq_tab[(c >> 4) & 0x03];
             stream->data.audio.format.num_channels = 1 + (c & 7);
             stream->data.audio.bits_per_sample = 16;
             stream->timescale = stream->data.audio.format.samplerate;
@@ -648,19 +671,28 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             switch(stream->data.audio.format.num_channels)
               {
               case 1:
-                stream->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+                stream->data.audio.format.channel_locations[0] =
+                  GAVL_CHID_FRONT_CENTER;
                 break;
               case 2:
-                stream->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
-                stream->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+                stream->data.audio.format.channel_locations[0] =
+                  GAVL_CHID_FRONT_LEFT;
+                stream->data.audio.format.channel_locations[1] =
+                  GAVL_CHID_FRONT_RIGHT;
                 break;
               case 6:
-                stream->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
-                stream->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_CENTER;
-                stream->data.audio.format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
-                stream->data.audio.format.channel_locations[3] = GAVL_CHID_REAR_LEFT;
-                stream->data.audio.format.channel_locations[4] = GAVL_CHID_REAR_RIGHT;
-                stream->data.audio.format.channel_locations[5] = GAVL_CHID_LFE;
+                stream->data.audio.format.channel_locations[0] =
+                  GAVL_CHID_FRONT_LEFT;
+                stream->data.audio.format.channel_locations[1] =
+                  GAVL_CHID_FRONT_CENTER;
+                stream->data.audio.format.channel_locations[2] =
+                  GAVL_CHID_FRONT_RIGHT;
+                stream->data.audio.format.channel_locations[3] =
+                  GAVL_CHID_REAR_LEFT;
+                stream->data.audio.format.channel_locations[4] =
+                  GAVL_CHID_REAR_RIGHT;
+                stream->data.audio.format.channel_locations[5] =
+                  GAVL_CHID_LFE;
                 break;
               }
             
@@ -695,10 +727,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         if(!stream && priv->find_streams)
           {
           stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-          stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
-          stream->index_mode = INDEX_MODE_MPEG;
-          stream->timescale = 90000;
-          stream->stream_id = priv->pes_header.stream_id;
+
+          init_stream(stream, BGAV_MK_FOURCC('.', 'm', 'p', '3'),
+                      priv->pes_header.stream_id);
           /* Hack: This is set by the core later. We must set it here,
              because we buffer packets during initialization */
           stream->demuxer = ctx;
@@ -715,17 +746,20 @@ static int next_packet(bgav_demuxer_context_t * ctx,
                                           priv->pes_header.stream_id);
         if(!stream && priv->find_streams)
           {
-          stream = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-          stream->stream_id = priv->pes_header.stream_id;
-          stream->timescale = 90000;
-          stream->index_mode = INDEX_MODE_MPEG;
+          uint32_t fourcc;
 
           if(!bgav_input_get_fourcc(ctx->input, &fourcc))
             return 0;
           if(fourcc == BGAV_MK_FOURCC(0x00, 0x00, 0x01, 0xb0))
-            stream->fourcc = BGAV_MK_FOURCC('C', 'A', 'V', 'S');
+            fourcc = BGAV_MK_FOURCC('C', 'A', 'V', 'S');
           else
-            stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+            fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+          
+          stream = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
+          
+          init_stream(stream, fourcc,
+                      priv->pes_header.stream_id);
+          
           /* Hack: This is set by the core later. We must set it here,
              because we buffer packets during initialization */
           stream->demuxer = ctx;
@@ -743,10 +777,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         if(!stream && priv->find_streams)
           {
           stream = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-          stream->index_mode = INDEX_MODE_MPEG;
-          stream->stream_id = priv->pes_header.stream_id;
-          stream->timescale = 90000;
-          stream->fourcc = BGAV_MK_FOURCC('V', 'C', '-', '1');
+
+          init_stream(stream, BGAV_MK_FOURCC('V', 'C', '-', '1'),
+                      priv->pes_header.stream_id);
           /* Hack: This is set by the core later. We must set it here,
              because we buffer packets during initialization */
           stream->demuxer = ctx;
@@ -760,6 +793,8 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         bgav_log(ctx->opt, BGAV_LOG_WARNING,
                  LOG_DOMAIN, "Unknown PES ID %02x",
                  priv->pes_header.stream_id);
+        fprintf(stderr, "Unknown PES ID %02x\n",
+                priv->pes_header.stream_id);
         }
 
       if(stream)
@@ -923,6 +958,7 @@ static void find_streams(bgav_demuxer_context_t * ctx)
   priv = (mpegps_priv_t*)(ctx->priv);
   priv->find_streams = 1;
   priv->do_sync = 1;
+  priv->have_pts = 0;
   
   if(!ctx->input->input->seek_byte)
     {
@@ -948,7 +984,6 @@ static void find_streams(bgav_demuxer_context_t * ctx)
     }
   else
     bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
-
   
   return;
   }
@@ -1004,14 +1039,20 @@ static int do_sync(bgav_demuxer_context_t * ctx)
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
   priv->do_sync = 1;
+
+  fprintf(stderr, "do sync...\n");
+
   while(!bgav_track_has_sync(ctx->tt->cur))
     {
     if(!next_packet_mpegps(ctx))
       {
+      fprintf(stderr, "do sync: EOF\n");
       priv->do_sync = 0;
       return 0;
       }
     }
+  fprintf(stderr, "do sync done\n");
+  
   priv->do_sync = 0;
   return 1;
   }
@@ -1158,7 +1199,9 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
   
   if(need_streams)
     find_streams(ctx);
- 
+  else
+    priv->have_pts = 1;
+  
   if(!priv->pack_header.mux_rate)
     {
     ctx->stream_description =
@@ -1175,7 +1218,7 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
                     "system" : "program"),
                    (float)priv->pack_header.mux_rate * 0.4);
 
-  if((ctx->input->input->seek_byte) ||
+  if(((ctx->input->input->seek_byte) && priv->have_pts) ||
      (ctx->input->input->seek_sector) ||
      (ctx->input->input->seek_time))
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;

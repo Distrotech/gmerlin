@@ -301,8 +301,8 @@ bgav_video_parser_set_format(bgav_video_parser_t * parser,
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   {
-  //  fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
-  //          parser->cache_size);
+  fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
+          parser->cache_size);
   /* Set size of last frame */
   parser->pos = parser->buf.size;
   bgav_video_parser_set_sequence_end(parser);
@@ -421,7 +421,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
   {
   cache_t * c;
 #ifdef DUMP_INPUT
-  bgav_dprintf("Add packet ");
+  bgav_dprintf("Add packet (c: %d) ", parser->cache_size);
   bgav_packet_dump(p);
   //  bgav_hexdump(p->data, 128, 16);
 #endif
@@ -585,7 +585,7 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   {
   cache_t * c;
   int i;
-
+  
   if(parser->cache_size >= PARSER_CACHE_MAX)
     {
     fprintf(stderr, "Picture cache full\n");

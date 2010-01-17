@@ -716,6 +716,9 @@ static bgav_packet_t * get_packet_read_vparse(bgav_demuxer_context_t * demuxer,
                                      s->parsed_packet);
         return s->parsed_packet;
         break;
+      case PARSER_ERROR:
+        return NULL;
+        
       }
     }
   return NULL;
@@ -842,6 +845,7 @@ static bgav_packet_t * peek_packet_vparse(bgav_demuxer_context_t * demuxer,
     switch(result)
       {
       case PARSER_EOF:
+      case PARSER_ERROR:
         return NULL;
         break;
       case PARSER_NEED_DATA:
