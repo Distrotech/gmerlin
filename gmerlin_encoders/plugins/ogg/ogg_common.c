@@ -337,7 +337,7 @@ int bg_ogg_encoder_close(void * data, int do_delete)
   
   e->close_callback(e->write_callback_data);
   e->write_callback_data = NULL;
-  if(do_delete)
+  if(do_delete && e->filename)
     remove(e->filename);
   return ret;
   }
