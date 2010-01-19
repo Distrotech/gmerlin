@@ -294,7 +294,7 @@ static int write_audio_frame_flacogg(void * data, gavl_audio_frame_t * frame)
 static int close_flacogg(void * data)
   {
   int ret = 1;
-  uint8_t buf[1];
+  uint8_t buf[1] = { 0x00 };
   flacogg_t * flacogg;
   flacogg = (flacogg_t*)data;
   

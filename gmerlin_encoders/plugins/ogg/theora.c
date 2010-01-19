@@ -36,8 +36,14 @@
 
 #include "ogg_common.h"
 
+/*
+ *  2-pass encoding was introduced in 1.1.0
+ *  However use the THEORA_1_1 macro for other things
+ *  introduced in that version
+ */
+
 #ifdef TH_ENCCTL_2PASS_IN
-#define HAVE_2_PASS
+#define THEORA_1_1
 #endif
 
 typedef struct
@@ -57,7 +63,6 @@ typedef struct
   int have_packet;
   int cbr;
   int max_keyframe_interval;
-  int rate_flags;
   
   th_ycbcr_buffer buf;
 
@@ -65,13 +70,14 @@ typedef struct
   
   int64_t frame_counter;
   
-#ifdef HAVE_2_PASS
+#ifdef THEORA_1_1
   int pass;
   FILE * stats_file;
   
   char * stats_buf;
   char * stats_ptr;
   int stats_size;
+  int rate_flags;
 #endif
   
   bg_encoder_framerate_t fr;
@@ -124,6 +130,7 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_i = 1000 },
       .val_default = { .val_i = 64   },
     },
+#ifdef THEORA_1_1
     {
       .name = "drop_frames",
       .long_name = TRS("Enable frame dropping"),
@@ -145,6 +152,7 @@ static const bg_parameter_info_t parameters[] =
       .val_default = { .val_i = 0 },
       .help_string = TRS("Ignore bitrate buffer underflows. If the encoder uses so many bits that the reservoir of available bits underflows, ignore the deficit. The encoder will not try to make up these extra bits in future frames. At low rates this may cause the result to be oversized; it should normally be disabled."),
     },
+#endif
     {
       .name =      "speed",
       .long_name = TRS("Encoding speed"),
@@ -183,6 +191,7 @@ static void set_parameter_theora(void * data, const char * name,
     theora->max_keyframe_interval = v->val_i;
   else if(!strcmp(name, "speed"))
     theora->speed = v->val_f;
+#ifdef THEORA_1_1
   else if(!strcmp(name, "drop_frames"))
     {
     if(v->val_i)
@@ -204,6 +213,7 @@ static void set_parameter_theora(void * data, const char * name,
     else
       theora->rate_flags &= ~TH_RATECTL_CAP_UNDERFLOW;
     }
+#endif
   }
 
 
@@ -245,11 +255,7 @@ static void build_comment(th_comment * vc, bg_metadata_t * metadata)
 static const gavl_pixelformat_t supported_pixelformats[] =
   {
     GAVL_YUV_420_P,
-
-    /* Of course 2-pass and 4:2:2/4:4:4 are completely unrelated.
-       But both appeared in libtheora 1.1.0 and we have no other
-       way to check the version at compile time */
-#ifdef HAVE_2_PASS
+#ifdef THEORA_1_1
     GAVL_YUV_422_P,
     GAVL_YUV_444_P,
 #endif
@@ -341,12 +347,13 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
                 TH_ENCCTL_SET_KEYFRAME_FREQUENCY_FORCE,
                 &theora->max_keyframe_interval, sizeof(theora->max_keyframe_interval));
 
+#ifdef THEORA_1_1  
   // Rate flags
 
   th_encode_ctl(theora->ts,
                 TH_ENCCTL_SET_RATE_FLAGS,
                 &theora->rate_flags,sizeof(theora->rate_flags));
-  
+#endif
   // Maximum speed
 
   if(th_encode_ctl(theora->ts,
@@ -401,7 +408,7 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   return 1;
   }
 
-#ifdef HAVE_2_PASS
+#ifdef THEORA_1_1
 
 static int set_video_pass_theora(void * data, int pass, int total_passes,
                                  const char * stats_file)
@@ -507,7 +514,7 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
     theora->buf[i].data   = frame->planes[i];
     }
 
-#ifdef HAVE_2_PASS
+#ifdef THEORA_1_1
   if(theora->pass == 2)
     {
     /* Input pass data */
@@ -539,7 +546,7 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   
   result = th_encode_ycbcr_in(theora->ts, theora->buf);
 
-#ifdef HAVE_2_PASS
+#ifdef THEORA_1_1
   /* Output pass data */
   if(theora->pass == 1)
     {
@@ -587,7 +594,7 @@ static int close_theora(void * data)
       }
     theora->have_packet = 0;
 
-#ifdef HAVE_2_PASS
+#ifdef THEORA_1_1
     /* Output pass data */
     if(theora->pass == 1)
       {
@@ -609,7 +616,7 @@ static int close_theora(void * data)
     
     }
 
-#ifdef HAVE_2_PASS
+#ifdef THEORA_1_1
   if(theora->stats_file)
     fclose(theora->stats_file);
   if(theora->stats_buf)
@@ -633,7 +640,7 @@ const bg_ogg_codec_t bg_theora_codec =
 
     .get_parameters = get_parameters_theora,
     .set_parameter =  set_parameter_theora,
-#ifdef HAVE_2_PASS
+#ifdef THEORA_1_1
     .set_video_pass = set_video_pass_theora,
 #endif    
     .init_video =     init_theora,
