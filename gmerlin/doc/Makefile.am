@@ -17,15 +17,15 @@ endif
 
 if HAVE_TEXINFO
 texinfo_output = userguide
-gmerlin_texi = gmerlin.texi
+gmerlin_texi = gmerlin.texi version.texi
 else
 texinfo_output = 
 gmerlin_texi =
 endif
 
-info_TEXINFOS=$(gmerlin_texi)
+# info_TEXINFOS=$(gmerlin_texi)
 
-gmerlin_TEXINFOS= $(info_TEXINFOS) version.texi
+gmerlin_TEXINFOS= $(gmerlin_texi)
 
 userguide: $(gmerlin_TEXINFOS)
 	ln -sf `pwd`"/$(top_srcdir)/doc/img" $(top_builddir)/img
