@@ -79,6 +79,7 @@ dnl Theora
 dnl
 
 GMERLIN_CHECK_THEORAENC
+GMERLIN_CHECK_THEORADEC
 
 dnl
 dnl Speex
