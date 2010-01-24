@@ -34,18 +34,22 @@ static void (FUNC_NAME)(gavl_transform_context_t * ctx, gavl_transform_pixel_t *
   * src_3,
 #endif
   *dst;
-    
+
+  gavl_transform_pixel_t * pixel;
+  
 #ifdef INIT
   INIT
 #endif
-  
+
+  pixel = pixels;    
+    
   for(i = 0; i < ctx->dst_width; i++)
     {
-    if(!pixels[i].outside)
+    if(!pixel->outside)
       {
       dst = (TYPE*)(dest_start);
-      src_0 = (TYPE*)(ctx->src + ctx->advance * pixels[i].index_x +
-                      ctx->src_stride * pixels[i].index_y);
+      src_0 = (TYPE*)(ctx->src + ctx->advance * pixel->index_x +
+                      ctx->src_stride * pixel->index_y);
 #if NUM_TAPS > 1
       src_1 = (TYPE*)((uint8_t*)(src_0) + ctx->src_stride);
 #endif
@@ -58,6 +62,7 @@ static void (FUNC_NAME)(gavl_transform_context_t * ctx, gavl_transform_pixel_t *
       TRANSFORM
       }
     dest_start += ctx->advance;
+    pixel++;
     }
   }
 

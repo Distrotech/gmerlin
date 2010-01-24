@@ -35,114 +35,114 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].r;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].r;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->r = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].g;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].g;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->g = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].b;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].b;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->b = tmp;
 
 #elif NUM_TAPS == 3
 #define TRANSFORM \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].r;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].r;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->r = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].g;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].g;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->g = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].b;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].b;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->b = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[3].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[3].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[3].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[3].r;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[3].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[3].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[3].r +  \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[3].r;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->r = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[3].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[3].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[3].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[3].g; \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[3].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[3].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[3].g +  \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[3].g; \
   tmp=DOWNSHIFT(tmp,16);\
   dst->g = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[3].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[3].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[3].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[3].b;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[3].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[3].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[3].b +  \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[3].b;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->b = tmp;
 #endif
@@ -157,116 +157,116 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].r;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].r;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->r = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].g;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].g;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->g = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].b;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].b;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->b = tmp;
 
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].r;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].r;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->r = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].g;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].g;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->g = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].b;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].b;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->b = tmp;
 
 
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[3].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[3].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[3].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[1].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[2].r +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[3].r;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[3].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[3].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[3].r +  \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0].r +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[1].r +  \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[2].r +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[3].r;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->r = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[3].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[3].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[3].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[1].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[2].g +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[3].g; \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[3].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[3].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[3].g +  \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0].g +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[1].g +  \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[2].g +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[3].g; \
   tmp=DOWNSHIFT(tmp,16);\
   dst->g = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[3].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[3].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[3].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[1].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[2].b +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[3].b;   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[3].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[3].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[3].b +  \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0].b +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[1].b +  \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[2].b +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[3].b;   \
   tmp=DOWNSHIFT(tmp,16);\
   dst->b = tmp;
 
@@ -282,44 +282,44 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2]; \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2]; \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[3];  \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[3];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 
@@ -336,44 +336,44 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[ctx->advance];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[ctx->advance];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2*ctx->advance]; \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2*ctx->advance]; \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[2*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[3*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[2*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[3*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[2*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[3*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[2*ctx->advance] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[3*ctx->advance];  \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[2*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[3*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[2*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[3*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[2*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[3*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[2*ctx->advance] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[3*ctx->advance];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 
@@ -390,78 +390,78 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[2];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[2];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[3];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[3];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[2] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[2] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[4];  \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[2] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[2] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[4];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[5];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[5];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[2] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[2] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[2] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[6];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[2] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[2] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[2] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[6];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[7] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[7];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[7] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[7];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp;
 #endif
@@ -476,113 +476,113 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[3];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[3];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[6];  \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[6];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[7] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[7];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[7] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[7];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[8];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[8];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[9] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[9] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[3] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[9];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[9] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[9] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[3] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[9];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[7] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[10] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[7] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[10] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[7] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[10];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[7] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[10] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[7] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[10] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[7] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[10];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[11] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[11] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[11] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[11];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[11] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[11] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[11] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[11];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 
@@ -598,113 +598,113 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[6];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[6];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[8];  \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[8];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[9] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[9];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[9] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[9];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[10] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[10];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[10] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[10];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[12] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[12] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[12] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[12];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[12] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[12] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[12] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[12];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[13] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[9] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[13] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[13] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[13];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[13] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[9] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[13] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[13] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[13];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[14] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[10] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[14] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[14] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[14];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[14] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[10] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[14] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[14] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[14];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 
@@ -720,148 +720,148 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[6];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[6];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[7] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[7];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[7] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[7];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[3] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[8];  \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[8];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[9] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[9];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[9] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[9];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[10] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[10];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[10] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[10];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[7] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[11] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[11] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[11];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[7] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[11] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[11] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[11];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[3] = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[12] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[12] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[12] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[4] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[8] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[12];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[12] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[12] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[12] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[4] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[8] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[12];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[13] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[9] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[13] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[13] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[1] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[5] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[9] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[13];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[13] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[9] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[13] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[13] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[1] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[5] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[9] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[13];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[14] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[10] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[14] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[14] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[2] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[6] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[10] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[14];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[14] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[10] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[14] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[14] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[2] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[6] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[10] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[14];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;\
-  tmp = (TMP_TYPE_8)pixels[i].factors_i[0][0] * src_0[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][1] * src_0[7] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][2] * src_0[11] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[0][3] * src_0[15] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][0] * src_1[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[1][1] * src_1[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][2] * src_1[11] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[1][3] * src_1[15] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][0] * src_2[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][1] * src_2[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[2][2] * src_2[11] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[2][3] * src_2[15] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][0] * src_3[3] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][1] * src_3[7] +   \
-        (TMP_TYPE_8)pixels[i].factors_i[3][2] * src_3[11] +  \
-        (TMP_TYPE_8)pixels[i].factors_i[3][3] * src_3[15];   \
+  tmp = (TMP_TYPE_8)pixel->factors_i[0][0] * src_0[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][1] * src_0[7] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][2] * src_0[11] +  \
+        (TMP_TYPE_8)pixel->factors_i[0][3] * src_0[15] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][0] * src_1[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[1][1] * src_1[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][2] * src_1[11] +   \
+        (TMP_TYPE_8)pixel->factors_i[1][3] * src_1[15] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][0] * src_2[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][1] * src_2[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[2][2] * src_2[11] +  \
+        (TMP_TYPE_8)pixel->factors_i[2][3] * src_2[15] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][0] * src_3[3] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][1] * src_3[7] +   \
+        (TMP_TYPE_8)pixel->factors_i[3][2] * src_3[11] +  \
+        (TMP_TYPE_8)pixel->factors_i[3][3] * src_3[15];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[3] = tmp;
 
@@ -879,44 +879,44 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[1];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[1];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[2]; \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[2]; \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[3];  \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[3];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;
 
@@ -934,78 +934,78 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[2];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[2];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[3];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[3];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[2] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[2] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[4];  \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[2] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[2] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[4];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[5];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[5];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[6] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[2] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[2] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[2] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[6];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[6] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[2] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[2] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[2] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[6];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[7] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[7];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[7] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[7];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp;
 #endif
@@ -1020,113 +1020,113 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[3];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[3];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[4];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[4];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[5];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[5];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[6] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[6];  \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[6] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[6];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[7] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[7];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[7] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[7];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[8];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[8];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[6] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[9] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[9] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[6] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[9] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[3] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[6] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[9];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[6] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[9] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[9] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[6] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[9] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[3] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[6] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[9];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[7] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[10] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[10] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[7] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[10] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[7] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[10];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[7] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[10] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[10] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[7] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[10] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[7] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[10];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[11] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[11] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[8] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[11] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[8] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[11];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[11] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[11] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[8] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[11] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[8] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[11];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 
@@ -1142,148 +1142,148 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[4];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[4];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[5];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[5];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[6];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[6];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp; \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[7] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[7];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[7] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[7];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[3] = tmp;
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[8];  \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[8];  \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[9] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[9] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[9];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[9] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[9] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[9];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[10] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[10] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[10];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[10] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[10] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[10];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp; \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[7] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[11] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[11] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[11];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[7] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[11] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[11] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[11];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[4] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[8] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[12] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[8] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[12] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[8] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[12] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[0] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[4] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[8] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[12];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[4] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[8] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[12] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[8] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[12] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[8] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[12] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[0] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[4] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[8] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[12];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[0] = tmp;                                                 \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[5] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[9] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[13] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[9] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[13] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[9] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[13] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[1] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[5] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[9] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[13];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[5] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[9] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[13] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[9] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[13] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[9] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[13] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[1] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[5] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[9] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[13];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[1] = tmp; \
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[6] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[10] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[14] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[10] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[14] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[10] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[14] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[2] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[6] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[10] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[14];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[6] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[10] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[14] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[10] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[14] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[10] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[14] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[2] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[6] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[10] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[14];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[2] = tmp;\
-  tmp = (TMP_TYPE_16)pixels[i].factors_i[0][0] * src_0[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][1] * src_0[7] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][2] * src_0[11] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[0][3] * src_0[15] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][0] * src_1[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[1][1] * src_1[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][2] * src_1[11] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[1][3] * src_1[15] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][0] * src_2[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][1] * src_2[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[2][2] * src_2[11] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[2][3] * src_2[15] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][0] * src_3[3] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][1] * src_3[7] +   \
-        (TMP_TYPE_16)pixels[i].factors_i[3][2] * src_3[11] +  \
-        (TMP_TYPE_16)pixels[i].factors_i[3][3] * src_3[15];   \
+  tmp = (TMP_TYPE_16)pixel->factors_i[0][0] * src_0[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][1] * src_0[7] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][2] * src_0[11] +  \
+        (TMP_TYPE_16)pixel->factors_i[0][3] * src_0[15] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][0] * src_1[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[1][1] * src_1[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][2] * src_1[11] +   \
+        (TMP_TYPE_16)pixel->factors_i[1][3] * src_1[15] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][0] * src_2[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][1] * src_2[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[2][2] * src_2[11] +  \
+        (TMP_TYPE_16)pixel->factors_i[2][3] * src_2[15] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][0] * src_3[3] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][1] * src_3[7] +   \
+        (TMP_TYPE_16)pixel->factors_i[3][2] * src_3[11] +  \
+        (TMP_TYPE_16)pixel->factors_i[3][3] * src_3[15];   \
   tmp=DOWNSHIFT(tmp,16);\
   dst[3] = tmp;
 #endif
@@ -1295,40 +1295,40 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[1] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[1];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[1] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[1];
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[1] +  \
-           pixels[i].factors[0][2] * src_0[2] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[1] +  \
-           pixels[i].factors[1][2] * src_1[2] +  \
-           pixels[i].factors[2][0] * src_2[0] +  \
-           pixels[i].factors[2][1] * src_2[1] +  \
-           pixels[i].factors[2][2] * src_2[2];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[1] +  \
+           pixel->factors[0][2] * src_0[2] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[1] +  \
+           pixel->factors[1][2] * src_1[2] +  \
+           pixel->factors[2][0] * src_2[0] +  \
+           pixel->factors[2][1] * src_2[1] +  \
+           pixel->factors[2][2] * src_2[2];
 
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[1] +  \
-           pixels[i].factors[0][2] * src_0[2] +  \
-           pixels[i].factors[0][3] * src_0[3] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[1] +  \
-           pixels[i].factors[1][2] * src_1[2] +  \
-           pixels[i].factors[1][3] * src_1[3] +  \
-           pixels[i].factors[2][0] * src_2[0] +  \
-           pixels[i].factors[2][1] * src_2[1] +  \
-           pixels[i].factors[2][2] * src_2[2] +  \
-           pixels[i].factors[2][3] * src_2[3] +  \
-           pixels[i].factors[3][0] * src_3[0] +  \
-           pixels[i].factors[3][1] * src_3[1] +  \
-           pixels[i].factors[3][2] * src_3[2] +  \
-           pixels[i].factors[3][3] * src_3[3];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[1] +  \
+           pixel->factors[0][2] * src_0[2] +  \
+           pixel->factors[0][3] * src_0[3] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[1] +  \
+           pixel->factors[1][2] * src_1[2] +  \
+           pixel->factors[1][3] * src_1[3] +  \
+           pixel->factors[2][0] * src_2[0] +  \
+           pixel->factors[2][1] * src_2[1] +  \
+           pixel->factors[2][2] * src_2[2] +  \
+           pixel->factors[2][3] * src_2[3] +  \
+           pixel->factors[3][0] * src_3[0] +  \
+           pixel->factors[3][1] * src_3[1] +  \
+           pixel->factors[3][2] * src_3[2] +  \
+           pixel->factors[3][3] * src_3[3];
 #endif
 
 #include "transform_c.h"
@@ -1338,68 +1338,68 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[2] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[2]; \
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[3] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[3];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[2] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[2]; \
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[3] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[3];
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[2] +  \
-           pixels[i].factors[0][2] * src_0[4] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[2] +  \
-           pixels[i].factors[1][2] * src_1[4] +  \
-           pixels[i].factors[2][0] * src_2[0] +  \
-           pixels[i].factors[2][1] * src_2[2] +  \
-           pixels[i].factors[2][2] * src_2[4];\
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[3] +  \
-           pixels[i].factors[0][2] * src_0[5] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[3] +  \
-           pixels[i].factors[1][2] * src_1[5] +  \
-           pixels[i].factors[2][0] * src_2[1] +  \
-           pixels[i].factors[2][1] * src_2[3] +  \
-           pixels[i].factors[2][2] * src_2[5];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[2] +  \
+           pixel->factors[0][2] * src_0[4] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[2] +  \
+           pixel->factors[1][2] * src_1[4] +  \
+           pixel->factors[2][0] * src_2[0] +  \
+           pixel->factors[2][1] * src_2[2] +  \
+           pixel->factors[2][2] * src_2[4];\
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[3] +  \
+           pixel->factors[0][2] * src_0[5] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[3] +  \
+           pixel->factors[1][2] * src_1[5] +  \
+           pixel->factors[2][0] * src_2[1] +  \
+           pixel->factors[2][1] * src_2[3] +  \
+           pixel->factors[2][2] * src_2[5];
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[2] +  \
-           pixels[i].factors[0][2] * src_0[4] +  \
-           pixels[i].factors[0][3] * src_0[6] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[2] +  \
-           pixels[i].factors[1][2] * src_1[4] +  \
-           pixels[i].factors[1][3] * src_1[6] +  \
-           pixels[i].factors[2][0] * src_2[0] +  \
-           pixels[i].factors[2][1] * src_2[2] +  \
-           pixels[i].factors[2][2] * src_2[4] +  \
-           pixels[i].factors[2][3] * src_2[6] +  \
-           pixels[i].factors[3][0] * src_3[0] +  \
-           pixels[i].factors[3][1] * src_3[2] +  \
-           pixels[i].factors[3][2] * src_3[4] +  \
-           pixels[i].factors[3][3] * src_3[6];\
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[3] +  \
-           pixels[i].factors[0][2] * src_0[5] +  \
-           pixels[i].factors[0][3] * src_0[7] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[3] +  \
-           pixels[i].factors[1][2] * src_1[5] +  \
-           pixels[i].factors[1][3] * src_1[7] +  \
-           pixels[i].factors[2][0] * src_2[1] +  \
-           pixels[i].factors[2][1] * src_2[3] +  \
-           pixels[i].factors[2][2] * src_2[5] +  \
-           pixels[i].factors[2][3] * src_2[7] +  \
-           pixels[i].factors[3][0] * src_3[1] +  \
-           pixels[i].factors[3][1] * src_3[3] +  \
-           pixels[i].factors[3][2] * src_3[5] +  \
-           pixels[i].factors[3][3] * src_3[7];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[2] +  \
+           pixel->factors[0][2] * src_0[4] +  \
+           pixel->factors[0][3] * src_0[6] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[2] +  \
+           pixel->factors[1][2] * src_1[4] +  \
+           pixel->factors[1][3] * src_1[6] +  \
+           pixel->factors[2][0] * src_2[0] +  \
+           pixel->factors[2][1] * src_2[2] +  \
+           pixel->factors[2][2] * src_2[4] +  \
+           pixel->factors[2][3] * src_2[6] +  \
+           pixel->factors[3][0] * src_3[0] +  \
+           pixel->factors[3][1] * src_3[2] +  \
+           pixel->factors[3][2] * src_3[4] +  \
+           pixel->factors[3][3] * src_3[6];\
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[3] +  \
+           pixel->factors[0][2] * src_0[5] +  \
+           pixel->factors[0][3] * src_0[7] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[3] +  \
+           pixel->factors[1][2] * src_1[5] +  \
+           pixel->factors[1][3] * src_1[7] +  \
+           pixel->factors[2][0] * src_2[1] +  \
+           pixel->factors[2][1] * src_2[3] +  \
+           pixel->factors[2][2] * src_2[5] +  \
+           pixel->factors[2][3] * src_2[7] +  \
+           pixel->factors[3][0] * src_3[1] +  \
+           pixel->factors[3][1] * src_3[3] +  \
+           pixel->factors[3][2] * src_3[5] +  \
+           pixel->factors[3][3] * src_3[7];
 #endif
 
 #include "transform_c.h"
@@ -1409,97 +1409,97 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[3] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[3]; \
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[4] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[4];\
-  dst[2] = pixels[i].factors[0][0] * src_0[2] +  \
-           pixels[i].factors[0][1] * src_0[5] +  \
-           pixels[i].factors[1][0] * src_1[2] +  \
-           pixels[i].factors[1][1] * src_1[5];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[3] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[3]; \
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[4] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[4];\
+  dst[2] = pixel->factors[0][0] * src_0[2] +  \
+           pixel->factors[0][1] * src_0[5] +  \
+           pixel->factors[1][0] * src_1[2] +  \
+           pixel->factors[1][1] * src_1[5];
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[3] +  \
-           pixels[i].factors[0][2] * src_0[6] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[3] +  \
-           pixels[i].factors[1][2] * src_1[6] +  \
-           pixels[i].factors[2][0] * src_2[0] +  \
-           pixels[i].factors[2][1] * src_2[3] +  \
-           pixels[i].factors[2][2] * src_2[6];\
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[4] +  \
-           pixels[i].factors[0][2] * src_0[7] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[4] +  \
-           pixels[i].factors[1][2] * src_1[7] +  \
-           pixels[i].factors[2][0] * src_2[1] +  \
-           pixels[i].factors[2][1] * src_2[4] +  \
-           pixels[i].factors[2][2] * src_2[7];\
-  dst[2] = pixels[i].factors[0][0] * src_0[2] +  \
-           pixels[i].factors[0][1] * src_0[5] +  \
-           pixels[i].factors[0][2] * src_0[8] +  \
-           pixels[i].factors[1][0] * src_1[2] +  \
-           pixels[i].factors[1][1] * src_1[5] +  \
-           pixels[i].factors[1][2] * src_1[8] +  \
-           pixels[i].factors[2][0] * src_2[2] +  \
-           pixels[i].factors[2][1] * src_2[5] +  \
-           pixels[i].factors[2][2] * src_2[8];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[3] +  \
+           pixel->factors[0][2] * src_0[6] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[3] +  \
+           pixel->factors[1][2] * src_1[6] +  \
+           pixel->factors[2][0] * src_2[0] +  \
+           pixel->factors[2][1] * src_2[3] +  \
+           pixel->factors[2][2] * src_2[6];\
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[4] +  \
+           pixel->factors[0][2] * src_0[7] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[4] +  \
+           pixel->factors[1][2] * src_1[7] +  \
+           pixel->factors[2][0] * src_2[1] +  \
+           pixel->factors[2][1] * src_2[4] +  \
+           pixel->factors[2][2] * src_2[7];\
+  dst[2] = pixel->factors[0][0] * src_0[2] +  \
+           pixel->factors[0][1] * src_0[5] +  \
+           pixel->factors[0][2] * src_0[8] +  \
+           pixel->factors[1][0] * src_1[2] +  \
+           pixel->factors[1][1] * src_1[5] +  \
+           pixel->factors[1][2] * src_1[8] +  \
+           pixel->factors[2][0] * src_2[2] +  \
+           pixel->factors[2][1] * src_2[5] +  \
+           pixel->factors[2][2] * src_2[8];
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[3] +  \
-           pixels[i].factors[0][2] * src_0[6] +  \
-           pixels[i].factors[0][3] * src_0[9] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[3] +  \
-           pixels[i].factors[1][2] * src_1[6] +  \
-           pixels[i].factors[1][3] * src_1[9] +  \
-           pixels[i].factors[2][0] * src_2[0] +  \
-           pixels[i].factors[2][1] * src_2[3] +  \
-           pixels[i].factors[2][2] * src_2[6] +  \
-           pixels[i].factors[2][3] * src_2[9] +  \
-           pixels[i].factors[3][0] * src_3[0] +  \
-           pixels[i].factors[3][1] * src_3[3] +  \
-           pixels[i].factors[3][2] * src_3[6] +  \
-           pixels[i].factors[3][3] * src_3[9];\
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[4] +  \
-           pixels[i].factors[0][2] * src_0[7] +  \
-           pixels[i].factors[0][3] * src_0[10] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[4] +  \
-           pixels[i].factors[1][2] * src_1[7] +  \
-           pixels[i].factors[1][3] * src_1[10] +  \
-           pixels[i].factors[2][0] * src_2[1] +  \
-           pixels[i].factors[2][1] * src_2[4] +  \
-           pixels[i].factors[2][2] * src_2[7] +  \
-           pixels[i].factors[2][3] * src_2[10] +  \
-           pixels[i].factors[3][0] * src_3[1] +  \
-           pixels[i].factors[3][1] * src_3[4] +  \
-           pixels[i].factors[3][2] * src_3[7] +  \
-           pixels[i].factors[3][3] * src_3[10];\
-  dst[2] = pixels[i].factors[0][0] * src_0[2] +  \
-           pixels[i].factors[0][1] * src_0[5] +  \
-           pixels[i].factors[0][2] * src_0[8] +  \
-           pixels[i].factors[0][3] * src_0[11] +  \
-           pixels[i].factors[1][0] * src_1[2] +  \
-           pixels[i].factors[1][1] * src_1[5] +  \
-           pixels[i].factors[1][2] * src_1[8] +  \
-           pixels[i].factors[1][3] * src_1[11] +  \
-           pixels[i].factors[2][0] * src_2[2] +  \
-           pixels[i].factors[2][1] * src_2[5] +  \
-           pixels[i].factors[2][2] * src_2[8] +  \
-           pixels[i].factors[2][3] * src_2[11] +  \
-           pixels[i].factors[3][0] * src_3[2] +  \
-           pixels[i].factors[3][1] * src_3[5] +  \
-           pixels[i].factors[3][2] * src_3[8] +  \
-           pixels[i].factors[3][3] * src_3[11];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[3] +  \
+           pixel->factors[0][2] * src_0[6] +  \
+           pixel->factors[0][3] * src_0[9] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[3] +  \
+           pixel->factors[1][2] * src_1[6] +  \
+           pixel->factors[1][3] * src_1[9] +  \
+           pixel->factors[2][0] * src_2[0] +  \
+           pixel->factors[2][1] * src_2[3] +  \
+           pixel->factors[2][2] * src_2[6] +  \
+           pixel->factors[2][3] * src_2[9] +  \
+           pixel->factors[3][0] * src_3[0] +  \
+           pixel->factors[3][1] * src_3[3] +  \
+           pixel->factors[3][2] * src_3[6] +  \
+           pixel->factors[3][3] * src_3[9];\
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[4] +  \
+           pixel->factors[0][2] * src_0[7] +  \
+           pixel->factors[0][3] * src_0[10] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[4] +  \
+           pixel->factors[1][2] * src_1[7] +  \
+           pixel->factors[1][3] * src_1[10] +  \
+           pixel->factors[2][0] * src_2[1] +  \
+           pixel->factors[2][1] * src_2[4] +  \
+           pixel->factors[2][2] * src_2[7] +  \
+           pixel->factors[2][3] * src_2[10] +  \
+           pixel->factors[3][0] * src_3[1] +  \
+           pixel->factors[3][1] * src_3[4] +  \
+           pixel->factors[3][2] * src_3[7] +  \
+           pixel->factors[3][3] * src_3[10];\
+  dst[2] = pixel->factors[0][0] * src_0[2] +  \
+           pixel->factors[0][1] * src_0[5] +  \
+           pixel->factors[0][2] * src_0[8] +  \
+           pixel->factors[0][3] * src_0[11] +  \
+           pixel->factors[1][0] * src_1[2] +  \
+           pixel->factors[1][1] * src_1[5] +  \
+           pixel->factors[1][2] * src_1[8] +  \
+           pixel->factors[1][3] * src_1[11] +  \
+           pixel->factors[2][0] * src_2[2] +  \
+           pixel->factors[2][1] * src_2[5] +  \
+           pixel->factors[2][2] * src_2[8] +  \
+           pixel->factors[2][3] * src_2[11] +  \
+           pixel->factors[3][0] * src_3[2] +  \
+           pixel->factors[3][1] * src_3[5] +  \
+           pixel->factors[3][2] * src_3[8] +  \
+           pixel->factors[3][3] * src_3[11];
 
 #endif
 
@@ -1510,117 +1510,117 @@
 
 #if NUM_TAPS == 2
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[4] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[4]; \
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[5] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[5];\
-  dst[2] = pixels[i].factors[0][0] * src_0[2] +  \
-           pixels[i].factors[0][1] * src_0[6] +  \
-           pixels[i].factors[1][0] * src_1[2] +  \
-           pixels[i].factors[1][1] * src_1[6];\
-  dst[3] = pixels[i].factors[0][0] * src_0[3] +  \
-           pixels[i].factors[0][1] * src_0[7] +  \
-           pixels[i].factors[1][0] * src_1[3] +  \
-           pixels[i].factors[1][1] * src_1[7];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[4] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[4]; \
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[5] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[5];\
+  dst[2] = pixel->factors[0][0] * src_0[2] +  \
+           pixel->factors[0][1] * src_0[6] +  \
+           pixel->factors[1][0] * src_1[2] +  \
+           pixel->factors[1][1] * src_1[6];\
+  dst[3] = pixel->factors[0][0] * src_0[3] +  \
+           pixel->factors[0][1] * src_0[7] +  \
+           pixel->factors[1][0] * src_1[3] +  \
+           pixel->factors[1][1] * src_1[7];
 #elif NUM_TAPS == 3
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[4] +  \
-           pixels[i].factors[0][2] * src_0[8] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[4] +  \
-           pixels[i].factors[1][2] * src_1[8] +  \
-           pixels[i].factors[2][0] * src_2[0] +  \
-           pixels[i].factors[2][1] * src_2[4] +  \
-           pixels[i].factors[2][2] * src_2[8];\
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[5] +  \
-           pixels[i].factors[0][2] * src_0[9] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[5] +  \
-           pixels[i].factors[1][2] * src_1[9] +  \
-           pixels[i].factors[2][0] * src_2[1] +  \
-           pixels[i].factors[2][1] * src_2[5] +  \
-           pixels[i].factors[2][2] * src_2[9];\
-  dst[2] = pixels[i].factors[0][0] * src_0[2] +  \
-           pixels[i].factors[0][1] * src_0[6] +  \
-           pixels[i].factors[0][2] * src_0[10] +  \
-           pixels[i].factors[1][0] * src_1[2] +  \
-           pixels[i].factors[1][1] * src_1[6] +  \
-           pixels[i].factors[1][2] * src_1[10] +  \
-           pixels[i].factors[2][0] * src_2[2] +  \
-           pixels[i].factors[2][1] * src_2[6] +  \
-           pixels[i].factors[2][2] * src_2[10];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[4] +  \
+           pixel->factors[0][2] * src_0[8] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[4] +  \
+           pixel->factors[1][2] * src_1[8] +  \
+           pixel->factors[2][0] * src_2[0] +  \
+           pixel->factors[2][1] * src_2[4] +  \
+           pixel->factors[2][2] * src_2[8];\
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[5] +  \
+           pixel->factors[0][2] * src_0[9] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[5] +  \
+           pixel->factors[1][2] * src_1[9] +  \
+           pixel->factors[2][0] * src_2[1] +  \
+           pixel->factors[2][1] * src_2[5] +  \
+           pixel->factors[2][2] * src_2[9];\
+  dst[2] = pixel->factors[0][0] * src_0[2] +  \
+           pixel->factors[0][1] * src_0[6] +  \
+           pixel->factors[0][2] * src_0[10] +  \
+           pixel->factors[1][0] * src_1[2] +  \
+           pixel->factors[1][1] * src_1[6] +  \
+           pixel->factors[1][2] * src_1[10] +  \
+           pixel->factors[2][0] * src_2[2] +  \
+           pixel->factors[2][1] * src_2[6] +  \
+           pixel->factors[2][2] * src_2[10];
 #elif NUM_TAPS == 4
 #define TRANSFORM                                               \
-  dst[0] = pixels[i].factors[0][0] * src_0[0] +  \
-           pixels[i].factors[0][1] * src_0[4] +  \
-           pixels[i].factors[0][2] * src_0[8] +  \
-           pixels[i].factors[0][3] * src_0[10] +  \
-           pixels[i].factors[1][0] * src_1[0] +  \
-           pixels[i].factors[1][1] * src_1[4] +  \
-           pixels[i].factors[1][2] * src_1[8] +  \
-           pixels[i].factors[1][3] * src_1[10] +  \
-           pixels[i].factors[2][0] * src_2[0] +  \
-           pixels[i].factors[2][1] * src_2[4] +  \
-           pixels[i].factors[2][2] * src_2[8] +  \
-           pixels[i].factors[2][3] * src_2[12] +  \
-           pixels[i].factors[3][0] * src_3[0] +  \
-           pixels[i].factors[3][1] * src_3[4] +  \
-           pixels[i].factors[3][2] * src_3[8] +  \
-           pixels[i].factors[3][3] * src_3[12];\
-  dst[1] = pixels[i].factors[0][0] * src_0[1] +  \
-           pixels[i].factors[0][1] * src_0[5] +  \
-           pixels[i].factors[0][2] * src_0[9] +  \
-           pixels[i].factors[0][3] * src_0[13] +  \
-           pixels[i].factors[1][0] * src_1[1] +  \
-           pixels[i].factors[1][1] * src_1[5] +  \
-           pixels[i].factors[1][2] * src_1[9] +  \
-           pixels[i].factors[1][3] * src_1[13] +  \
-           pixels[i].factors[2][0] * src_2[1] +  \
-           pixels[i].factors[2][1] * src_2[5] +  \
-           pixels[i].factors[2][2] * src_2[9] +  \
-           pixels[i].factors[2][3] * src_2[13] +  \
-           pixels[i].factors[3][0] * src_3[1] +  \
-           pixels[i].factors[3][1] * src_3[5] +  \
-           pixels[i].factors[3][2] * src_3[9] +  \
-           pixels[i].factors[3][3] * src_3[13];\
-  dst[2] = pixels[i].factors[0][0] * src_0[2] +  \
-           pixels[i].factors[0][1] * src_0[6] +  \
-           pixels[i].factors[0][2] * src_0[10] +  \
-           pixels[i].factors[0][3] * src_0[14] +  \
-           pixels[i].factors[1][0] * src_1[2] +  \
-           pixels[i].factors[1][1] * src_1[6] +  \
-           pixels[i].factors[1][2] * src_1[10] +  \
-           pixels[i].factors[1][3] * src_1[14] +  \
-           pixels[i].factors[2][0] * src_2[2] +  \
-           pixels[i].factors[2][1] * src_2[6] +  \
-           pixels[i].factors[2][2] * src_2[10] +  \
-           pixels[i].factors[2][3] * src_2[14] +  \
-           pixels[i].factors[3][0] * src_3[2] +  \
-           pixels[i].factors[3][1] * src_3[6] +  \
-           pixels[i].factors[3][2] * src_3[10] +  \
-           pixels[i].factors[3][3] * src_3[14];\
-  dst[3] = pixels[i].factors[0][0] * src_0[3] +  \
-           pixels[i].factors[0][1] * src_0[7] +  \
-           pixels[i].factors[0][2] * src_0[11] +  \
-           pixels[i].factors[0][3] * src_0[15] +  \
-           pixels[i].factors[1][0] * src_1[3] +  \
-           pixels[i].factors[1][1] * src_1[7] +  \
-           pixels[i].factors[1][2] * src_1[11] +  \
-           pixels[i].factors[1][3] * src_1[15] +  \
-           pixels[i].factors[2][0] * src_2[3] +  \
-           pixels[i].factors[2][1] * src_2[7] +  \
-           pixels[i].factors[2][2] * src_2[11] +  \
-           pixels[i].factors[2][3] * src_2[15] +  \
-           pixels[i].factors[3][0] * src_3[3] +  \
-           pixels[i].factors[3][1] * src_3[7] +  \
-           pixels[i].factors[3][2] * src_3[11] +  \
-           pixels[i].factors[3][3] * src_3[15];
+  dst[0] = pixel->factors[0][0] * src_0[0] +  \
+           pixel->factors[0][1] * src_0[4] +  \
+           pixel->factors[0][2] * src_0[8] +  \
+           pixel->factors[0][3] * src_0[10] +  \
+           pixel->factors[1][0] * src_1[0] +  \
+           pixel->factors[1][1] * src_1[4] +  \
+           pixel->factors[1][2] * src_1[8] +  \
+           pixel->factors[1][3] * src_1[10] +  \
+           pixel->factors[2][0] * src_2[0] +  \
+           pixel->factors[2][1] * src_2[4] +  \
+           pixel->factors[2][2] * src_2[8] +  \
+           pixel->factors[2][3] * src_2[12] +  \
+           pixel->factors[3][0] * src_3[0] +  \
+           pixel->factors[3][1] * src_3[4] +  \
+           pixel->factors[3][2] * src_3[8] +  \
+           pixel->factors[3][3] * src_3[12];\
+  dst[1] = pixel->factors[0][0] * src_0[1] +  \
+           pixel->factors[0][1] * src_0[5] +  \
+           pixel->factors[0][2] * src_0[9] +  \
+           pixel->factors[0][3] * src_0[13] +  \
+           pixel->factors[1][0] * src_1[1] +  \
+           pixel->factors[1][1] * src_1[5] +  \
+           pixel->factors[1][2] * src_1[9] +  \
+           pixel->factors[1][3] * src_1[13] +  \
+           pixel->factors[2][0] * src_2[1] +  \
+           pixel->factors[2][1] * src_2[5] +  \
+           pixel->factors[2][2] * src_2[9] +  \
+           pixel->factors[2][3] * src_2[13] +  \
+           pixel->factors[3][0] * src_3[1] +  \
+           pixel->factors[3][1] * src_3[5] +  \
+           pixel->factors[3][2] * src_3[9] +  \
+           pixel->factors[3][3] * src_3[13];\
+  dst[2] = pixel->factors[0][0] * src_0[2] +  \
+           pixel->factors[0][1] * src_0[6] +  \
+           pixel->factors[0][2] * src_0[10] +  \
+           pixel->factors[0][3] * src_0[14] +  \
+           pixel->factors[1][0] * src_1[2] +  \
+           pixel->factors[1][1] * src_1[6] +  \
+           pixel->factors[1][2] * src_1[10] +  \
+           pixel->factors[1][3] * src_1[14] +  \
+           pixel->factors[2][0] * src_2[2] +  \
+           pixel->factors[2][1] * src_2[6] +  \
+           pixel->factors[2][2] * src_2[10] +  \
+           pixel->factors[2][3] * src_2[14] +  \
+           pixel->factors[3][0] * src_3[2] +  \
+           pixel->factors[3][1] * src_3[6] +  \
+           pixel->factors[3][2] * src_3[10] +  \
+           pixel->factors[3][3] * src_3[14];\
+  dst[3] = pixel->factors[0][0] * src_0[3] +  \
+           pixel->factors[0][1] * src_0[7] +  \
+           pixel->factors[0][2] * src_0[11] +  \
+           pixel->factors[0][3] * src_0[15] +  \
+           pixel->factors[1][0] * src_1[3] +  \
+           pixel->factors[1][1] * src_1[7] +  \
+           pixel->factors[1][2] * src_1[11] +  \
+           pixel->factors[1][3] * src_1[15] +  \
+           pixel->factors[2][0] * src_2[3] +  \
+           pixel->factors[2][1] * src_2[7] +  \
+           pixel->factors[2][2] * src_2[11] +  \
+           pixel->factors[2][3] * src_2[15] +  \
+           pixel->factors[3][0] * src_3[3] +  \
+           pixel->factors[3][1] * src_3[7] +  \
+           pixel->factors[3][2] * src_3[11] +  \
+           pixel->factors[3][3] * src_3[15];
 
 #endif
 

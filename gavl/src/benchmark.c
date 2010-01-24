@@ -269,13 +269,13 @@ static void audio_convert_context_destroy(audio_convert_context_t * ctx)
 
 static void audio_convert_init(void * data)
   {
-  audio_convert_context_t * ctx = (audio_convert_context_t*)data;
+  audio_convert_context_t * ctx = data;
   ctx->in_frame->valid_samples = ctx->in_format.samples_per_frame;
   }
 
 static void audio_convert_func(void * data)
   {
-  audio_convert_context_t * ctx = (audio_convert_context_t*)data;
+  audio_convert_context_t * ctx = data;
   gavl_audio_convert(ctx->cnv, ctx->in_frame, ctx->out_frame);
   }
 
@@ -684,17 +684,16 @@ static void video_convert_context_destroy(video_convert_context_t * ctx)
 static void video_convert_init(void * data)
   {
   
-  video_convert_context_t * ctx = (video_convert_context_t*)data;
+  video_convert_context_t * ctx = data;
   /* Fill frame with random numbers */
   init_video_frame(&ctx->in_format, ctx->in_frame);
   }
 
 static void video_convert_func(void * data)
   {
-  video_convert_context_t * ctx = (video_convert_context_t*)data;
+  video_convert_context_t * ctx = data;
   gavl_video_convert(ctx->cnv, ctx->in_frame, ctx->out_frame);
   }
-
 
 static const struct
   {
@@ -703,13 +702,13 @@ static const struct
   }
 scale_modes[] =
   {
-    //    { GAVL_SCALE_NEAREST, "Nearest" },
+    { GAVL_SCALE_NEAREST, "Nearest" },
     { GAVL_SCALE_BILINEAR, "Linear"}, 
-    //    { GAVL_SCALE_QUADRATIC, "Quadratic" },
-    //    { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
-    //    { GAVL_SCALE_CUBIC_CATMULL, "Cubic Catmull-Rom" },
-    //    { GAVL_SCALE_CUBIC_MITCHELL, "Cubic Mitchell-Netravali" },
-    //    { GAVL_SCALE_SINC_LANCZOS, "Sinc" },
+    { GAVL_SCALE_QUADRATIC, "Quadratic" },
+    { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
+    { GAVL_SCALE_CUBIC_CATMULL, "Cubic Catmull-Rom" },
+    { GAVL_SCALE_CUBIC_MITCHELL, "Cubic Mitchell-Netravali" },
+    { GAVL_SCALE_SINC_LANCZOS, "Sinc" },
   };
 
 static void do_pixelformat(video_convert_context_t * ctx,
@@ -1339,8 +1338,6 @@ static void benchmark_deinterlace()
 
 /* Video DSP */
 
-/* Video converter */
-
 typedef struct
   {
   gavl_video_format_t format;
@@ -1382,7 +1379,7 @@ static void video_dsp_context_destroy(video_dsp_context_t * ctx)
 static void video_dsp_init(void * data)
   {
   int i;
-  video_dsp_context_t * ctx = (video_dsp_context_t*)data;
+  video_dsp_context_t * ctx = data;
   /* Fill frame with random numbers */
   for(i = 0; i < ctx->num_frames; i++)
     {
@@ -1390,18 +1387,9 @@ static void video_dsp_init(void * data)
     }
   }
 
-#if 0
-
-static void video_convert_func(void * data)
-  {
-  video_dsp_context_t * ctx = (video_dsp_context_t*)data;
-  gavl_video_convert(ctx->cnv, ctx->in_frame, ctx->out_frame);
-  }
-#endif
-
 static void interpolate_func(void * data)
   {
-  video_dsp_context_t * ctx = (video_dsp_context_t*)data;
+  video_dsp_context_t * ctx = data;
 
   gavl_dsp_interpolate_video_frame(ctx->ctx,
                                    &ctx->format,
@@ -1527,6 +1515,165 @@ static void benchmark_dsp_interpolate()
   
   }
 
+/* Image transformation */
+
+static const struct
+  {
+  gavl_scale_mode_t mode;
+  const char * name;
+  }
+transform_modes[] =
+  {
+    //    { GAVL_SCALE_NEAREST, "Nearest" },
+    { GAVL_SCALE_BILINEAR, "Linear"}, 
+    { GAVL_SCALE_QUADRATIC, "Quadratic" },
+    { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
+  };
+
+typedef struct
+  {
+  gavl_video_format_t format;
+  
+  gavl_image_transform_t * transform;
+  gavl_video_options_t * opt;
+  
+  gavl_video_frame_t * in_frame;
+  gavl_video_frame_t * out_frame;
+  } image_transform_context_t;
+
+static void image_transform_context_create(image_transform_context_t * ctx)
+  {
+  ctx->transform = gavl_image_transform_create();
+  ctx->opt = gavl_image_transform_get_options(ctx->transform);
+  }
+
+static void transform_func(void *priv, double xdst, double ydst, double *xsrc, double *ysrc)
+  {
+  *xsrc = xdst + 0.5;
+  *ysrc = ydst + 0.5;
+  }
+
+static void image_transform_context_init(image_transform_context_t * ctx)
+  {
+  ctx->in_frame = gavl_video_frame_create(&ctx->format);
+  ctx->out_frame = gavl_video_frame_create(&ctx->format);
+
+  gavl_image_transform_init(ctx->transform, &ctx->format, transform_func, NULL);
+  
+  return;
+  }
+
+static void image_transform_context_cleanup(image_transform_context_t * ctx)
+  {
+  gavl_video_frame_destroy(ctx->in_frame);
+  gavl_video_frame_destroy(ctx->out_frame);
+  }
+
+static void image_transform_context_destroy(image_transform_context_t * ctx)
+  {
+  gavl_image_transform_destroy(ctx->transform);
+  }
+
+static void image_transform_init(void * data)
+  {
+  image_transform_context_t * ctx = data;
+  /* Fill frame with random numbers */
+  init_video_frame(&ctx->format, ctx->in_frame);
+  }
+
+static void image_transform_func(void * data)
+  {
+  image_transform_context_t * ctx = data;
+
+  gavl_image_transform_transform(ctx->transform,
+                                 ctx->in_frame,
+                                 ctx->out_frame);
+  }
+
+
+static void benchmark_image_transform()
+  {
+  image_transform_context_t ctx;
+  gavl_benchmark_t b;
+  int num_pixelformats;
+  int i, j;
+  memset(&ctx, 0, sizeof(ctx));
+  memset(&b, 0, sizeof(b));
+  
+  b.init = image_transform_init;
+  b.func = image_transform_func;
+  b.data = &ctx;
+
+  ctx.format.image_width  = 720;
+  ctx.format.image_height = 576;
+  ctx.format.frame_width  = 720;
+  ctx.format.frame_height = 576;
+  ctx.format.pixel_width  = 1;
+  ctx.format.pixel_height = 1;
+
+  printf("Size: %d x %d\n",
+         ctx.format.image_width,
+         ctx.format.image_height);
+  
+  if(do_html)
+    {
+    printf("<p><table border=\"1\" width=\"100%%\"><tr><td>Format</td><td>Flavour</td>");
+    gavl_benchmark_print_header(&b);
+    printf("</tr>\n");
+    }
+  else
+    {
+    printf("Format                  Mode           Flavour ");
+    gavl_benchmark_print_header(&b);
+    printf("\n");
+    }
+  
+  image_transform_context_create(&ctx);
+  
+  /* Disable autoselection */
+  gavl_video_options_set_quality(ctx.opt, 0);
+
+  num_pixelformats = gavl_num_pixelformats();
+
+  for(j = 0; j < sizeof(transform_modes)/sizeof(transform_modes[0]); j++)
+    {
+    gavl_video_options_set_scale_mode(ctx.opt, transform_modes[j].mode);
+    
+    for(i = 0; i < num_pixelformats; i++)
+      {
+      ctx.format.pixelformat = gavl_get_pixelformat(i);
+      
+      /* C */
+
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C);
+
+      image_transform_context_init(&ctx);
+    
+      if(do_html)
+        printf("<tr><td>%s</td><td>%s</td><td>C</td>",
+               gavl_pixelformat_to_string(ctx.format.pixelformat), transform_modes[j].name);
+      else
+        printf("%-23s %-14s C       ",
+               gavl_pixelformat_to_string(ctx.format.pixelformat), transform_modes[j].name);
+    
+      gavl_benchmark_run(&b);
+      gavl_benchmark_print_results(&b);
+      if(do_html)
+        printf("</tr>");
+      printf("\n");
+      fflush(stdout);
+      image_transform_context_cleanup(&ctx);
+    
+      }
+    }
+  
+  image_transform_context_destroy(&ctx);
+  if(do_html)
+    printf("</table>\n");
+  
+  }
+
+
 
 #define BENCHMARK_SAMPLEFORMAT (1<<0)
 #define BENCHMARK_MIX          (1<<1)
@@ -1540,6 +1687,7 @@ static void benchmark_dsp_interpolate()
 #define BENCHMARK_DEINTERLACE  (1<<8)
 #define BENCHMARK_INTERPOLATE  (1<<9)
 #define BENCHMARK_SAD          (1<<10)
+#define BENCHMARK_TRANSFORM    (1<<11)
 
 static const struct
   {
@@ -1559,6 +1707,7 @@ benchmark_flags[] =
     { "-scale", "Scale",                   BENCHMARK_SCALE},
     { "-deint", "Deinterlacing",           BENCHMARK_DEINTERLACE},
     { "-ip", "Video frame interpolation",  BENCHMARK_INTERPOLATE},
+    { "-it", "Image transformation",  BENCHMARK_TRANSFORM},
     //    { "-sad", "SAD routines",              BENCHMARK_SAD},
   };
 
@@ -1709,6 +1858,8 @@ int main(int argc, char ** argv)
       printf("<a href=\"#deint\">Deinterlacing routines</a><br>\n");
     if(flags & BENCHMARK_INTERPOLATE)
       printf("<a href=\"#ip\">Video frame interpolation</a><br>\n");
+    if(flags & BENCHMARK_TRANSFORM)
+      printf("<a href=\"#it\">Video image transformation</a><br>\n");
     }
   else
     printf("Times are %s\n", gavl_benchmark_get_desc(gavl_accel_supported()));
@@ -1777,6 +1928,15 @@ int main(int argc, char ** argv)
       }
     print_header("Video frame interpolation");
     benchmark_dsp_interpolate();
+    }
+  if(flags & BENCHMARK_TRANSFORM)
+    {
+    if(do_html)
+      {
+      printf("<a name=\"it\"></a>");
+      }
+    print_header("Video image transformation");
+    benchmark_image_transform();
     }
   
   if(do_html)

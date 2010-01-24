@@ -61,6 +61,9 @@ typedef	union {
 
 #define	emms() __asm__ __volatile__ ("emms")
 
+/* Move a 32-bit value from memory op1 to MMX register op2, clearing the
+   upper 32 bits of op2 */
+
 #define	movd_m2r(var,reg)	mmx_m2r (movd, var, reg)
 #define	movd_r2m(reg,var)	mmx_r2m (movd, reg, var)
 #define	movd_v2r(var,reg)	__asm__ __volatile__ ("movd %0, %%" #reg \
@@ -70,40 +73,122 @@ typedef	union {
 						      : "=rm" (var) \
 						      : /* nothing */ )
 
+/* Move a 64-bit value from memory op1 to MMX register op2 */
+
 #define	movq_m2r(var,reg)	mmx_m2r (movq, var, reg)
 #define	movq_r2m(reg,var)	mmx_r2m (movq, reg, var)
 #define	movq_r2r(regs,regd)	mmx_r2r (movq, regs, regd)
 
-#define	packssdw_m2r(var,reg)	mmx_m2r (packssdw, var, reg)
-#define	packssdw_r2r(regs,regd) mmx_r2r (packssdw, regs, regd)
-#define	packsswb_m2r(var,reg)	mmx_m2r (packsswb, var, reg)
-#define	packsswb_r2r(regs,regd) mmx_r2r (packsswb, regs, regd)
 
-#define	packuswb_m2r(var,reg)	mmx_m2r (packuswb, var, reg)
-#define	packuswb_r2r(regs,regd) mmx_r2r (packuswb, regs, regd)
+/* Arithmetic functions */
+
+/* Store the parallel sum of op1 and op2 using signed wrap-around
+   addition in op2 (2x32, 4x16, 8x8) */
 
 #define	paddb_m2r(var,reg)	mmx_m2r (paddb, var, reg)
 #define	paddb_r2r(regs,regd)	mmx_r2r (paddb, regs, regd)
-#define	paddd_m2r(var,reg)	mmx_m2r (paddd, var, reg)
-#define	paddd_r2r(regs,regd)	mmx_r2r (paddd, regs, regd)
 #define	paddw_m2r(var,reg)	mmx_m2r (paddw, var, reg)
 #define	paddw_r2r(regs,regd)	mmx_r2r (paddw, regs, regd)
+#define	paddd_m2r(var,reg)	mmx_m2r (paddd, var, reg)
+#define	paddd_r2r(regs,regd)	mmx_r2r (paddd, regs, regd)
+
+/* Store the parallel sum of op1 and op2 using signed saturation
+   addition in op2 (4x16, 8x8): */
 
 #define	paddsb_m2r(var,reg)	mmx_m2r (paddsb, var, reg)
 #define	paddsb_r2r(regs,regd)	mmx_r2r (paddsb, regs, regd)
 #define	paddsw_m2r(var,reg)	mmx_m2r (paddsw, var, reg)
 #define	paddsw_r2r(regs,regd)	mmx_r2r (paddsw, regs, regd)
 
+
+/* Store the parallel sum of op1 and op2 using unsigned saturation
+   addition in op2 (4x16, 8x8) */
+
 #define	paddusb_m2r(var,reg)	mmx_m2r (paddusb, var, reg)
 #define	paddusb_r2r(regs,regd)	mmx_r2r (paddusb, regs, regd)
 #define	paddusw_m2r(var,reg)	mmx_m2r (paddusw, var, reg)
 #define	paddusw_r2r(regs,regd)	mmx_r2r (paddusw, regs, regd)
 
+/* Parallel subtract op1 from op2 using signed wrap-around subtraction
+   and store the difference in op2 (2x32, 4x16, 8x8) */
+
+#define	psubb_m2r(var,reg)	mmx_m2r (psubb, var, reg)
+#define	psubb_r2r(regs,regd)	mmx_r2r (psubb, regs, regd)
+#define	psubw_m2r(var,reg)	mmx_m2r (psubw, var, reg)
+#define	psubw_r2r(regs,regd)	mmx_r2r (psubw, regs, regd)
+#define	psubd_m2r(var,reg)	mmx_m2r (psubd, var, reg)
+#define	psubd_r2r(regs,regd)	mmx_r2r (psubd, regs, regd)
+
+/* Parallel subtract op1 from op2 using signed saturation subtraction
+   and store the difference in op2 (4x16, 8x8) */
+
+#define	psubsb_m2r(var,reg)	mmx_m2r (psubsb, var, reg)
+#define	psubsb_r2r(regs,regd)	mmx_r2r (psubsb, regs, regd)
+#define	psubsw_m2r(var,reg)	mmx_m2r (psubsw, var, reg)
+#define	psubsw_r2r(regs,regd)	mmx_r2r (psubsw, regs, regd)
+
+/* Parallel subtract op1 from op2 using unsigned saturation subtraction
+   and store the difference in op2 (4x16, 8x8) */
+
+#define	psubusb_m2r(var,reg)	mmx_m2r (psubusb, var, reg)
+#define	psubusb_r2r(regs,regd)	mmx_r2r (psubusb, regs, regd)
+#define	psubusw_m2r(var,reg)	mmx_m2r (psubusw, var, reg)
+#define	psubusw_r2r(regs,regd)	mmx_r2r (psubusw, regs, regd)
+
+/* Parallel multiply op1 and op2 using unsigned saturation multiplication
+   and store the low-order word of the result in op2 (4x16) */
+
+#define	pmullw_m2r(var,reg)	mmx_m2r (pmullw, var, reg)
+#define	pmullw_r2r(regs,regd)	mmx_r2r (pmullw, regs, regd)
+
+/* Parallel multiply op1 and op2 using unsigned saturation multiplication
+   and store the high-order word of the result in op2 (4x16) */
+
+#define	pmulhw_m2r(var,reg)	mmx_m2r (pmulhw, var, reg)
+#define	pmulhw_r2r(regs,regd)	mmx_r2r (pmulhw, regs, regd)
+
+/* Parallel multiply the words of op1 and op2 using signed multiplication
+   to form four signed doubleword intermediate results.  Parallel add the
+   intermediate results formed by the high-order doublewords of op1 and
+   op2 into the high-order doubleword of op2, and parallel add the
+   intermediate results formed by the low-order doublewords of op1 and op2
+   into the low-order doubleword of op2 (4x16) */
+
+#define	pmaddwd_m2r(var,reg)	mmx_m2r (pmaddwd, var, reg)
+#define	pmaddwd_r2r(regs,regd)	mmx_r2r (pmaddwd, regs, regd)
+
+
+/* Store the bitwise-AND of op1 and op2 in op2 */
+
 #define	pand_m2r(var,reg)	mmx_m2r (pand, var, reg)
 #define	pand_r2r(regs,regd)	mmx_r2r (pand, regs, regd)
 
+/* Store the bitwise-AND of op1 and the ones-compliment of op2 in op2 */
+
 #define	pandn_m2r(var,reg)	mmx_m2r (pandn, var, reg)
 #define	pandn_r2r(regs,regd)	mmx_r2r (pandn, regs, regd)
+
+/* Store the bitwise-OR of op1 and op2 in op2 */
+
+#define	por_m2r(var,reg)	mmx_m2r (por, var, reg)
+#define	por_r2r(regs,regd)	mmx_r2r (por, regs, regd)
+
+/* Store the bitwise-XOR of op1 and op2 in op2 */
+
+#define	pxor_m2r(var,reg)	mmx_m2r (pxor, var, reg)
+#define	pxor_r2r(regs,regd)	mmx_r2r (pxor, regs, regd)
+
+/*
+  The comparison functions:
+  These functions store an mmx value in op2 in which every bit of each
+  field for which the comparison is true set to '1', and every other bit
+  set to '0'.  For example, if op1 contains 0x01...005f33 and op2
+  contains 0x00...006f33, the result of mmx_pcmpeqb(op1,op2) would be
+  0x00...FF00FF, and the result of mmx_pcmpgtb(op1,op2) would be
+  0x00...00FF00.
+ */
+
+/* Set to true if op1 equals op2 (2x32, 4x16, 8x8) */
 
 #define	pcmpeqb_m2r(var,reg)	mmx_m2r (pcmpeqb, var, reg)
 #define	pcmpeqb_r2r(regs,regd)	mmx_r2r (pcmpeqb, regs, regd)
@@ -112,6 +197,8 @@ typedef	union {
 #define	pcmpeqw_m2r(var,reg)	mmx_m2r (pcmpeqw, var, reg)
 #define	pcmpeqw_r2r(regs,regd)	mmx_r2r (pcmpeqw, regs, regd)
 
+/* Set to true if op2 is greater than op1 (2x32, 4x16, 8x8) */
+
 #define	pcmpgtb_m2r(var,reg)	mmx_m2r (pcmpgtb, var, reg)
 #define	pcmpgtb_r2r(regs,regd)	mmx_r2r (pcmpgtb, regs, regd)
 #define	pcmpgtd_m2r(var,reg)	mmx_m2r (pcmpgtd, var, reg)
@@ -119,17 +206,15 @@ typedef	union {
 #define	pcmpgtw_m2r(var,reg)	mmx_m2r (pcmpgtw, var, reg)
 #define	pcmpgtw_r2r(regs,regd)	mmx_r2r (pcmpgtw, regs, regd)
 
-#define	pmaddwd_m2r(var,reg)	mmx_m2r (pmaddwd, var, reg)
-#define	pmaddwd_r2r(regs,regd)	mmx_r2r (pmaddwd, regs, regd)
+/* The bit shifting functions:
+   In these operations, if an MMX register is used as the shift count
+   (i.e. op1), the data in the register is taken as a single unsigned
+   64-bit value, and is used as the count for each of the fields of op2 */
 
-#define	pmulhw_m2r(var,reg)	mmx_m2r (pmulhw, var, reg)
-#define	pmulhw_r2r(regs,regd)	mmx_r2r (pmulhw, regs, regd)
-
-#define	pmullw_m2r(var,reg)	mmx_m2r (pmullw, var, reg)
-#define	pmullw_r2r(regs,regd)	mmx_r2r (pmullw, regs, regd)
-
-#define	por_m2r(var,reg)	mmx_m2r (por, var, reg)
-#define	por_r2r(regs,regd)	mmx_r2r (por, regs, regd)
+/* Parallel shift left logical each of the fields in op2 by the unsigned
+   number of bits in op1 (2x32, 4x16, 8x8).  In the _i2r forms, op1 is
+   an unsigned 64-bit immediate value, but only the lower 8 bits are used
+   by the instruction */
 
 #define	pslld_i2r(imm,reg)	mmx_i2r (pslld, imm, reg)
 #define	pslld_m2r(var,reg)	mmx_m2r (pslld, var, reg)
@@ -141,12 +226,11 @@ typedef	union {
 #define	psllw_m2r(var,reg)	mmx_m2r (psllw, var, reg)
 #define	psllw_r2r(regs,regd)	mmx_r2r (psllw, regs, regd)
 
-#define	psrad_i2r(imm,reg)	mmx_i2r (psrad, imm, reg)
-#define	psrad_m2r(var,reg)	mmx_m2r (psrad, var, reg)
-#define	psrad_r2r(regs,regd)	mmx_r2r (psrad, regs, regd)
-#define	psraw_i2r(imm,reg)	mmx_i2r (psraw, imm, reg)
-#define	psraw_m2r(var,reg)	mmx_m2r (psraw, var, reg)
-#define	psraw_r2r(regs,regd)	mmx_r2r (psraw, regs, regd)
+
+/* Parallel shift right logical each of the fields in op2 by the unsigned
+   number of bits in op1 (2x32, 4x16, 8x8).  In the _i2r forms, op1 is
+   an unsigned 64-bit immediate value, but only the lower 8 bits are used
+   by the instruction */
 
 #define	psrld_i2r(imm,reg)	mmx_i2r (psrld, imm, reg)
 #define	psrld_m2r(var,reg)	mmx_m2r (psrld, var, reg)
@@ -158,40 +242,78 @@ typedef	union {
 #define	psrlw_m2r(var,reg)	mmx_m2r (psrlw, var, reg)
 #define	psrlw_r2r(regs,regd)	mmx_r2r (psrlw, regs, regd)
 
-#define	psubb_m2r(var,reg)	mmx_m2r (psubb, var, reg)
-#define	psubb_r2r(regs,regd)	mmx_r2r (psubb, regs, regd)
-#define	psubd_m2r(var,reg)	mmx_m2r (psubd, var, reg)
-#define	psubd_r2r(regs,regd)	mmx_r2r (psubd, regs, regd)
-#define	psubw_m2r(var,reg)	mmx_m2r (psubw, var, reg)
-#define	psubw_r2r(regs,regd)	mmx_r2r (psubw, regs, regd)
+/* Parallel shift right arithmetic each of the fields in op2 by the
+   unsigned number of bits in op1 (4x16, 8x8).  In the _i2r forms, op1 is
+   an unsigned 64-bit immediate value, but only the lower 8 bits are used
+   by the instruction */
 
-#define	psubsb_m2r(var,reg)	mmx_m2r (psubsb, var, reg)
-#define	psubsb_r2r(regs,regd)	mmx_r2r (psubsb, regs, regd)
-#define	psubsw_m2r(var,reg)	mmx_m2r (psubsw, var, reg)
-#define	psubsw_r2r(regs,regd)	mmx_r2r (psubsw, regs, regd)
+#define	psrad_i2r(imm,reg)	mmx_i2r (psrad, imm, reg)
+#define	psrad_m2r(var,reg)	mmx_m2r (psrad, var, reg)
+#define	psrad_r2r(regs,regd)	mmx_r2r (psrad, regs, regd)
+#define	psraw_i2r(imm,reg)	mmx_i2r (psraw, imm, reg)
+#define	psraw_m2r(var,reg)	mmx_m2r (psraw, var, reg)
+#define	psraw_r2r(regs,regd)	mmx_r2r (psraw, regs, regd)
 
-#define	psubusb_m2r(var,reg)	mmx_m2r (psubusb, var, reg)
-#define	psubusb_r2r(regs,regd)	mmx_r2r (psubusb, regs, regd)
-#define	psubusw_m2r(var,reg)	mmx_m2r (psubusw, var, reg)
-#define	psubusw_r2r(regs,regd)	mmx_r2r (psubusw, regs, regd)
+/* The format conversion functions */
+
+/* Pack and saturate the signed doublewords of op2 into the low-order
+   words of the result, and pack and saturate the signed doublewords of
+   op1 into the high-order words of the result.  Copy the result to op2. */
+
+#define	packssdw_m2r(var,reg)	mmx_m2r (packssdw, var, reg)
+#define	packssdw_r2r(regs,regd) mmx_r2r (packssdw, regs, regd)
+
+/* Pack and saturate the signed words of op2 into the low-order bytes of
+   the result, and pack and saturate the signed words of op1 into the
+   high-order bytes of the result.  Copy the result to op2. */
+
+#define	packsswb_m2r(var,reg)	mmx_m2r (packsswb, var, reg)
+#define	packsswb_r2r(regs,regd) mmx_r2r (packsswb, regs, regd)
+
+/* Pack and saturate the signed words of op2 into the low-order bytes of
+   the result, and pack and saturate the signed words of op1 into the
+   high-order bytes of the result.  Copy the result to op2. */
+
+#define	packuswb_m2r(var,reg)	mmx_m2r (packuswb, var, reg)
+#define	packuswb_r2r(regs,regd) mmx_r2r (packuswb, regs, regd)
+
+/* Unpack and interleave the high-order bytes of op2 and op1 with the
+   highest-order byte of op1 becoming the highest order byte of the
+   result, the highest-order byte of op2 becoming the second highest byte
+   of the result, the second highest byte of op1 becoming the third
+   highest byte of the result, etc.  Copy the result to op2 */
 
 #define	punpckhbw_m2r(var,reg)		mmx_m2r (punpckhbw, var, reg)
 #define	punpckhbw_r2r(regs,regd)	mmx_r2r (punpckhbw, regs, regd)
-#define	punpckhdq_m2r(var,reg)		mmx_m2r (punpckhdq, var, reg)
-#define	punpckhdq_r2r(regs,regd)	mmx_r2r (punpckhdq, regs, regd)
+
+/* Same as above but with words */
+
 #define	punpckhwd_m2r(var,reg)		mmx_m2r (punpckhwd, var, reg)
 #define	punpckhwd_r2r(regs,regd)	mmx_r2r (punpckhwd, regs, regd)
 
+/* Same as above but with doublewords */
+
+#define	punpckhdq_m2r(var,reg)		mmx_m2r (punpckhdq, var, reg)
+#define	punpckhdq_r2r(regs,regd)	mmx_r2r (punpckhdq, regs, regd)
+
+/* Unpack and interleave the low-order bytes of op2 and op1 with the
+   lowest-order byte of op2 becoming the lowest order byte of the result,
+   the lowest-order byte of op1 becoming the second lowest byte of the
+   result, the second lowest byte of op2 becoming the third lowest byte of
+   the result, etc.  Copy the result to op2. */
+
 #define	punpcklbw_m2r(var,reg) 		mmx_m2r (punpcklbw, var, reg)
 #define	punpcklbw_r2r(regs,regd)	mmx_r2r (punpcklbw, regs, regd)
-#define	punpckldq_m2r(var,reg)		mmx_m2r (punpckldq, var, reg)
-#define	punpckldq_r2r(regs,regd)	mmx_r2r (punpckldq, regs, regd)
+
+/* Same as above but with words */
+
 #define	punpcklwd_m2r(var,reg)		mmx_m2r (punpcklwd, var, reg)
 #define	punpcklwd_r2r(regs,regd)	mmx_r2r (punpcklwd, regs, regd)
 
-#define	pxor_m2r(var,reg)	mmx_m2r (pxor, var, reg)
-#define	pxor_r2r(regs,regd)	mmx_r2r (pxor, regs, regd)
+/* Same as above but with doublewords */
 
+#define	punpckldq_m2r(var,reg)		mmx_m2r (punpckldq, var, reg)
+#define	punpckldq_r2r(regs,regd)	mmx_r2r (punpckldq, regs, regd)
 
 /* 3DNOW extensions */
 
@@ -218,10 +340,11 @@ typedef	union {
 			      : /* nothing */ \
 			      : "m" (mem))
 
-
 #define	maskmovq(regs,maskreg)		mmx_r2ri (maskmovq, regs, maskreg)
 
 #define	movntq_r2m(mmreg,var)		mmx_r2m (movntq, mmreg, var)
+
+
 
 #define	pavgb_m2r(var,reg)		mmx_m2r (pavgb, var, reg)
 #define	pavgb_r2r(regs,regd)		mmx_r2r (pavgb, regs, regd)
