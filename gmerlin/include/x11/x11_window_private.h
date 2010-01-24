@@ -112,6 +112,8 @@ extern const video_driver_t gl_driver;
 
 struct video_driver_s
   {
+  const char * name;
+  
   int can_scale;
   int (*init)(driver_data_t* data);
   int (*open)(driver_data_t* data);

@@ -146,6 +146,7 @@ static void destroy_frame_ximage(driver_data_t * d, gavl_video_frame_t * f)
 
 const video_driver_t ximage_driver =
   {
+    .name               = "XImage",
     .init               = init_ximage,
     .create_frame       = create_frame_ximage,
     .put_frame          = put_frame_ximage,

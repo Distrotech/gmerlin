@@ -485,6 +485,7 @@ static void cleanup_gl(driver_data_t * d)
 
 const video_driver_t gl_driver =
   {
+    .name               = "OpenGL",
     .can_scale          = 1,
     .init               = init_gl,
     .open               = open_gl,

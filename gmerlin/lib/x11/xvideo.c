@@ -40,7 +40,11 @@
 
 typedef struct
   {
-  XvPortID port;
+  XvPortID start_port;
+  XvPortID end_port;
+  XvPortID current_port;
+  
+  
   int * format_ids;
   int have_xv_colorkey;
   int xv_colorkey;  
@@ -70,7 +74,6 @@ static void check_xv(driver_data_t * d)
   unsigned int dummy;
   unsigned int adaptors;
   unsigned int i;
-  unsigned long j;
   XvAdaptorInfo * adaptorInfo;
   XvEncodingInfo * encodingInfo;
   XvImageFormatValues * formatValues;
@@ -91,61 +94,65 @@ static void check_xv(driver_data_t * d)
       (version < 2) || ((version == 2) && (release < 2)))
     return;
   XvQueryAdaptors (d->win->dpy, d->win->root, &adaptors, &adaptorInfo);
-  for (i = 0; i < adaptors; i++)
+  for(i = 0; i < adaptors; i++)
     {
-    if (adaptorInfo[i].type & XvImageMask)
+    /* Continue if this adaptor doesn't support XvPutImage */
+    if((adaptorInfo[i].type & (XvImageMask|XvInputMask)) != (XvImageMask|XvInputMask))
+      continue;
+    
+    /* Image formats are the same for each port of a given adaptor, it is
+       enough to list the image formats just for the base port */
+
+    formatValues =
+      XvListImageFormats(d->win->dpy,
+                         adaptorInfo[i].base_id,
+                         &formats);
+
+    
+    for (k = 0; k < formats; k++)
       {
-      for (j = 0; j < adaptorInfo[i].num_ports; j++)
+      if (formatValues[k].id == XV_ID_YV12)
         {
-        formatValues =
-          XvListImageFormats(d->win->dpy,
-                             adaptorInfo[i].base_id + j,
-                             &formats);
-        for (k = 0; k < formats; k++)
+        if(!have_420)
           {
-          if (formatValues[k].id == XV_ID_YV12)
-            {
-            if(!have_420)
-              {
-              d->pixelformats[format_index] = GAVL_YUV_420_P;
-              priv->format_ids[format_index++] = formatValues[k].id;
-              found = 1;
-              have_420 = 1;
-              }
-            }
-          else if(formatValues[k].id == XV_ID_I420)
-            {
-            if(!have_420)
-              {
-              d->pixelformats[format_index] = GAVL_YUV_420_P;
-              priv->format_ids[format_index++] = formatValues[k].id;
-              found = 1;
-              have_420 = 1;
-              }
-            }
-          else if(formatValues[k].id == XV_ID_YUY2)
-            {
-            d->pixelformats[format_index] = GAVL_YUY2;
-            priv->format_ids[format_index++] = formatValues[k].id;
-            found = 1;
-            }
-          else if(formatValues[k].id == XV_ID_UYVY)
-            {
-            d->pixelformats[format_index] = GAVL_UYVY;
-            priv->format_ids[format_index++] = formatValues[k].id;
-            found = 1;
-            }
-          }
-        XFree (formatValues);
-        if(found)
-          {
-          priv->port = adaptorInfo[i].base_id + j;
-          break;
+          d->pixelformats[format_index] = GAVL_YUV_420_P;
+          priv->format_ids[format_index++] = formatValues[k].id;
+          found = 1;
+          have_420 = 1;
           }
         }
+      else if(formatValues[k].id == XV_ID_I420)
+        {
+        if(!have_420)
+          {
+          d->pixelformats[format_index] = GAVL_YUV_420_P;
+          priv->format_ids[format_index++] = formatValues[k].id;
+          found = 1;
+          have_420 = 1;
+          }
+        }
+      else if(formatValues[k].id == XV_ID_YUY2)
+        {
+        d->pixelformats[format_index] = GAVL_YUY2;
+        priv->format_ids[format_index++] = formatValues[k].id;
+        found = 1;
+        }
+      else if(formatValues[k].id == XV_ID_UYVY)
+        {
+        d->pixelformats[format_index] = GAVL_UYVY;
+        priv->format_ids[format_index++] = formatValues[k].id;
+        found = 1;
+        }
       }
+    
+    XFree (formatValues);
+
     if(found)
+      {
+      priv->start_port = adaptorInfo[i].base_id;
+      priv->end_port = adaptorInfo[i].base_id + adaptorInfo[i].num_ports;
       break;
+      }
     }
   XvFreeAdaptorInfo (adaptorInfo);
   d->pixelformats[format_index] = GAVL_PIXELFORMAT_NONE;
@@ -154,7 +161,7 @@ static void check_xv(driver_data_t * d)
     {
     /* Check for attributes */
     priv->xv_attributes =
-      XvQueryPortAttributes(d->win->dpy, priv->port, &num);
+      XvQueryPortAttributes(d->win->dpy, priv->start_port, &num);
 
     for(i = 0; i < num; i++)
       {
@@ -182,7 +189,7 @@ static void check_xv(driver_data_t * d)
       }
     
     num = 0;
-    XvQueryEncodings(d->win->dpy, priv->port, &numu, &encodingInfo);
+    XvQueryEncodings(d->win->dpy, priv->start_port, &numu, &encodingInfo);
 
     for(i = 0; i < numu; i++)
       {
@@ -214,15 +221,21 @@ static int open_xv(driver_data_t * d)
   bg_x11_window_t * w;
   xv_priv_t * priv;
   int i;
+  int result;
   priv = (xv_priv_t *)(d->priv);
   w = d->win;
 
   /* Check agaist the maximum size */
   if(priv->max_width && (d->win->video_format.frame_width > priv->max_width))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Image width out of range");
     return 0;
+    }
   if(priv->max_height && (d->win->video_format.frame_height > priv->max_height))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Image height out of range");
     return 0;
-  
+    }
   /* Get the format */
   i = 0;
   while(d->pixelformats[i] != GAVL_PIXELFORMAT_NONE)
@@ -241,18 +254,55 @@ static int open_xv(driver_data_t * d)
     }
 
   if(d->pixelformats[i] == GAVL_PIXELFORMAT_NONE)
-    return 0;
-  
-  if(Success != XvGrabPort(w->dpy, priv->port, CurrentTime))
-    return 0;
-  else if(priv->have_xv_colorkey)
     {
-    XvGetPortAttribute(w->dpy, priv->port, priv->xv_colorkey_atom, 
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No suitable pixelformat");
+    return 0;
+    }
+
+  priv->current_port = priv->start_port;
+
+  while(priv->current_port < priv->end_port)
+    {
+    result = XvGrabPort(w->dpy, priv->current_port, CurrentTime);
+    
+    switch(result)
+      {
+      case Success:
+        break;
+      case XvAlreadyGrabbed:
+        bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Port %li already grabbed, trying next one",
+               priv->current_port);
+        priv->current_port++;
+        break;
+      case XvInvalidTime:
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Grabbing Port %li failed (invalid time), trying next one",
+               priv->current_port);
+        priv->current_port++;
+        break;
+      default:
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Grabbing Port %li failed (unknown error)", priv->current_port);
+        return 0;
+        break;
+      }
+
+    if(result == Success)
+      break;
+    }
+  
+  if(priv->current_port >= priv->end_port)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not find free port");
+    return 0;
+    }
+  
+  if(priv->have_xv_colorkey)
+    {
+    XvGetPortAttribute(w->dpy, priv->current_port, priv->xv_colorkey_atom, 
                        &(priv->xv_colorkey_orig));
     if(priv->xv_colorkey_settable)
       {
       priv->xv_colorkey = 0x00010100;
-      XvSetPortAttribute(w->dpy, priv->port, priv->xv_colorkey_atom, 
+      XvSetPortAttribute(w->dpy, priv->current_port, priv->xv_colorkey_atom, 
                          priv->xv_colorkey);
       
       XSetWindowBackground(w->dpy, w->normal.win, priv->xv_colorkey);
@@ -286,7 +336,7 @@ static gavl_video_frame_t * create_frame_xv(driver_data_t * d)
   if(w->have_shm)
     {
     frame->xv_image =
-      XvShmCreateImage(w->dpy, priv->port, priv->format, NULL,
+      XvShmCreateImage(w->dpy, priv->current_port, priv->format, NULL,
                        w->video_format.frame_width,
                        w->video_format.frame_height, &(frame->shminfo));
     if(!frame->xv_image)
@@ -309,7 +359,7 @@ static gavl_video_frame_t * create_frame_xv(driver_data_t * d)
     {
     ret = gavl_video_frame_create(&w->video_format);
     frame->xv_image =
-      XvCreateImage(w->dpy, priv->port,
+      XvCreateImage(w->dpy, priv->current_port,
                     priv->format, (char*)(ret->planes[0]),
                     w->video_format.frame_width,
                     w->video_format.frame_height);
@@ -369,7 +419,7 @@ static void put_frame_xv(driver_data_t * d, gavl_video_frame_t * f)
   if(w->have_shm)
     {
     XvShmPutImage(w->dpy,
-                  priv->port,
+                  priv->current_port,
                   w->current->win,
                   w->gc,
                   frame->xv_image,
@@ -387,7 +437,7 @@ static void put_frame_xv(driver_data_t * d, gavl_video_frame_t * f)
   else
     {
     XvPutImage(w->dpy,
-               priv->port,
+               priv->current_port,
                w->current->win,
                w->gc,
                frame->xv_image,
@@ -431,10 +481,10 @@ static void close_xv(driver_data_t * d)
   priv = (xv_priv_t *)(d->priv);
   w = d->win;
   
-  XvUngrabPort(w->dpy, priv->port, CurrentTime);
-  XvStopVideo(w->dpy, priv->port, w->current->win);
+  XvUngrabPort(w->dpy, priv->current_port, CurrentTime);
+  XvStopVideo(w->dpy, priv->current_port, w->current->win);
   if(priv->xv_colorkey_settable)
-    XvSetPortAttribute(w->dpy, priv->port, priv->xv_colorkey_atom, 
+    XvSetPortAttribute(w->dpy, priv->current_port, priv->xv_colorkey_atom, 
                        priv->xv_colorkey_orig);
   }
 
@@ -477,7 +527,7 @@ static void set_brightness_xv(driver_data_t* d,float val)
             BG_BRIGHTNESS_MIN,
             BG_BRIGHTNESS_MAX);
   
-  XvSetPortAttribute(d->win->dpy, priv->port,
+  XvSetPortAttribute(d->win->dpy, priv->current_port,
                      priv->attributes[XV_ATTR_BRIGHTNESS].atom, val_i);
   }
 
@@ -485,7 +535,7 @@ static void set_saturation_xv(driver_data_t* d,float val)
   {
   xv_priv_t * priv;
   priv = (xv_priv_t *)(d->priv);
-  XvSetPortAttribute(d->win->dpy, priv->port,
+  XvSetPortAttribute(d->win->dpy, priv->current_port,
                      priv->attributes[XV_ATTR_SATURATION].atom, 
                      rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_SATURATION].index],
                              val,
@@ -498,7 +548,7 @@ static void set_contrast_xv(driver_data_t* d,float val)
   {
   xv_priv_t * priv;
   priv = (xv_priv_t *)(d->priv);
-  XvSetPortAttribute(d->win->dpy, priv->port,
+  XvSetPortAttribute(d->win->dpy, priv->current_port,
                      priv->attributes[XV_ATTR_CONTRAST].atom, 
                      rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_CONTRAST].index],
                              val,
@@ -509,6 +559,7 @@ static void set_contrast_xv(driver_data_t* d,float val)
 
 const video_driver_t xv_driver =
   {
+    .name               = "XVideo",
     .can_scale          = 1,
     .init               = init_xv,
     .open               = open_xv,

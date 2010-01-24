@@ -23,6 +23,9 @@
 #include <x11/x11.h>
 #include <x11/x11_window_private.h>
 
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "x11_video"
+
 static video_driver_t const * const drivers[] =
   {
     &ximage_driver,
@@ -224,11 +227,20 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
       break;
       }
     /* Flag as unusable */
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Trying %s driver",
+           w->drivers[min_index].driver->name);
     if(!w->drivers[min_index].driver->open(&w->drivers[min_index]))
+      {
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening %s driver failed",
+             w->drivers[min_index].driver->name);
+      
       w->drivers[min_index].pixelformat = GAVL_PIXELFORMAT_NONE;
+      }
     else
       {
       w->current_driver = &w->drivers[min_index];
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening %s driver succeeded",
+             w->drivers[min_index].driver->name);
       break;
       }
     }
