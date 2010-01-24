@@ -101,7 +101,8 @@ static void check_xv(driver_data_t * d)
       continue;
     
     /* Image formats are the same for each port of a given adaptor, it is
-       enough to list the image formats just for the base port */
+       enough to list the image formats just for the base port. At least this
+       is what xvinfo does. */
 
     formatValues =
       XvListImageFormats(d->win->dpy,
