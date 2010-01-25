@@ -97,7 +97,8 @@ noinst_HEADERS = \
 csp_packed_packed.h  \
 csp_packed_planar.h  \
 csp_planar_packed.h  \
-csp_planar_planar.h
+csp_planar_planar.h \
+ssim_tab.h
 
 AM_LDFLAGS = -export-symbols-regex gavl -version-info \
 @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ \

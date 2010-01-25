@@ -71,3 +71,7 @@ timescale_test_SOURCES = timescale_test.c
 timescale_test_LDADD = ../gavl/libgavl.la
 
 noinst_HEADERS = pngutil.h timeutils.h
+
+EXTRA_DIST = \
+gen_colorspace_tables.c \
+gen_ssim_table.c
