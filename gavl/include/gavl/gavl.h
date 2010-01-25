@@ -2333,7 +2333,38 @@ void gavl_video_frame_psnr(double * psnr,
                            const gavl_video_frame_t * src2,
                            const gavl_video_format_t * format);
 
+/*!
+  \ingroup video_frame
+  \brief Calculate the SSIM of 2 source frames
+  \param src1 First source frame
+  \param src2 Second source frame
+  \param dst Will contain the SSIM index for each pixel
+  \param format Format of the data in the frame
+  \returns 1 if the SSIM could be computed, 0 else
+
+  This calculates the SSIM indices of each pixel for 2 source frames and
+  stores them into dst. The source frames must have the pixelformat
+  \ref GAVL_GRAY_FLOAT implying that only the luminance component is
+  considered. The destination also has the pixelformat \ref GAVL_GRAY_FLOAT.
+  If other pixelformats are passed to this function it will return 0 and
+  nothing is done.
+
+  The SSIM algorithm is taken from the paper "Image Quality Assessment:
+  From Error Visibility to Structural Similarity" by Z. Want et. al.
+  published in IEEE Transactions on image processing,
+  VOL. 13, NO. 4, APRIL 2004. Homepage of the author:
+  http://www.ece.uwaterloo.ca/~z70wang/research/ssim/
   
+  Since 1.1.2
+
+*/
+
+GAVL_PUBLIC
+int gavl_video_frame_ssim(const gavl_video_frame_t * src1,
+                          const gavl_video_frame_t * src2,
+                          gavl_video_frame_t * dst,
+                          const gavl_video_format_t * format);
+
 /*!
   \ingroup video_frame
   \brief Copy one video frame to another
