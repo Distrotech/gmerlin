@@ -42,6 +42,7 @@ $(gtk_programs)
 bin_PROGRAMS = gmerlin_imgconvert \
 gmerlin_imgdiff \
 gmerlin_psnr \
+gmerlin_ssim \
 gmerlin_vpsnr \
 gmerlin_visualize
 
@@ -71,6 +72,9 @@ gmerlin_imgconvert_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_psnr_SOURCES = gmerlin_psnr.c
 gmerlin_psnr_LDADD = ../lib/libgmerlin.la -ldl
+
+gmerlin_ssim_SOURCES = gmerlin_ssim.c
+gmerlin_ssim_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_vpsnr_SOURCES = gmerlin_vpsnr.c
 gmerlin_vpsnr_LDADD = ../lib/libgmerlin.la -ldl
