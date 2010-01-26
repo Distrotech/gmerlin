@@ -20,10 +20,13 @@
  * *****************************************************************/
 
 #include <math.h>
+#include <stdio.h>
 
 #include <gavl/gavl.h>
 
 #include "ssim_tab.h"
+
+
 
 /* Constants for suppressing instabilities for almost equal images */
 static const double K1 = 0.01;
@@ -40,8 +43,8 @@ typedef struct
   int start;
   int len;
   const double * w;
+  int coeffs_index;
   } range_t;
-
 
 /* Wang, eq. 14 */
 
@@ -54,7 +57,9 @@ static double get_mu(range_t * ri, range_t * rj,
   for(i = 0; i < ri->len; i++)
     {
     for(j = 0; j < rj->len; j++)
+      {
       ret += ri->w[i] * rj->w[j] * data[j];
+      }
     data += stride;
     }
   return ret;
@@ -106,20 +111,19 @@ static double get_sigma_xy(range_t * ri, range_t * rj,
 
 static void setup_range(range_t * r, int center, int size)
   {
-  int coeffs_index;
   int diff;
   
   r->start = center - SSIM_GAUSS_TAPS/2;
   r->len   = SSIM_GAUSS_TAPS;
   
-  coeffs_index = SSIM_GAUSS_TAPS/2;
+  r->coeffs_index = SSIM_GAUSS_TAPS/2;
   
   if(r->start < 0)
     {
     diff = -r->start;
 
     r->len -= diff;
-    coeffs_index -= diff;
+    r->coeffs_index -= diff;
     r->start = 0;
     }
   else if(r->start + r->len > size)
@@ -127,10 +131,10 @@ static void setup_range(range_t * r, int center, int size)
     diff = r->start + r->len - size;
     
     r->len -= diff;
-    coeffs_index += diff;
+    r->coeffs_index += diff;
     }
 
-  r->w = ssim_gauss_coeffs[coeffs_index];
+  r->w = ssim_gauss_coeffs[r->coeffs_index];
 
   }
 
@@ -153,6 +157,11 @@ int gavl_video_frame_ssim(const gavl_video_frame_t * x,
   /* Dynamic range is 1.0 for our grayscale images */
   const float C1 = K1 * K1;
   const float C2 = K2 * K2;
+
+  int stride_x, stride_y;
+
+  stride_x = x->strides[0] / sizeof(float);
+  stride_y = y->strides[0] / sizeof(float);
   
   if(format->pixelformat != GAVL_GRAY_FLOAT)
     return 0;
@@ -165,24 +174,24 @@ int gavl_video_frame_ssim(const gavl_video_frame_t * x,
     {
     dst_ptr = (float*)(dst->planes[0] + i * dst->strides[0]);
     setup_range(&ri, i, format->image_height);
-
+    
     data_start_x = (float*)(x->planes[0] + ri.start * x->strides[0]);
     data_start_y = (float*)(y->planes[0] + ri.start * y->strides[0]);
     
     for(j = 0; j < format->image_width; j++)
       {
       setup_range(&rj, j, format->image_width);
-      
+
       data_x = data_start_x + rj.start;
       data_y = data_start_y + rj.start;
       
-      mu_x = get_mu(&ri, &rj, data_x, x->strides[0]);
-      mu_y = get_mu(&ri, &rj, data_y, y->strides[0]);
-      sigma_x =  get_sigma(&ri, &rj, data_x, x->strides[0], mu_x);
-      sigma_y =  get_sigma(&ri, &rj, data_y, y->strides[0], mu_y);
+      mu_x = get_mu(&ri, &rj, data_x, stride_x);
+      mu_y = get_mu(&ri, &rj, data_y, stride_y);
+      sigma_x =  get_sigma(&ri, &rj, data_x, stride_x, mu_x);
+      sigma_y =  get_sigma(&ri, &rj, data_y, stride_y, mu_y);
       sigma_xy = get_sigma_xy(&ri, &rj,
-                              data_x, x->strides[0],
-                              data_y, y->strides[0],
+                              data_x, stride_x,
+                              data_y, stride_y,
                               mu_x, mu_y);
       
       /* Wang, eq. 13 */
