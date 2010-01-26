@@ -88,33 +88,45 @@ int main(int argc, char ** argv)
     
   gavl_video_frame_psnr(psnr, frame_1, frame_2, &format_1);
   index = 0;
-  fprintf(stderr, "PSNR: ");
+
+  printf("# PSNR [dB]\n# ");
   
   if(gavl_pixelformat_is_gray(format_1.pixelformat))
     {
-    fprintf(stderr, "Gray: %.2f dB", psnr[index]);
-    index++;
+    printf("Gray  ");
     }
   else if(gavl_pixelformat_is_yuv(format_1.pixelformat))
     {
-    fprintf(stderr, "Y': %.2f dB, ", psnr[index]);
-    fprintf(stderr, "Cb: %.2f dB, ", psnr[index+1]);
-    fprintf(stderr, "Cr: %.2f dB", psnr[index+2]);
-    index+=3;
+    printf("Y'  Cb    Cr   ");
     }
   else if(gavl_pixelformat_is_rgb(format_1.pixelformat))
     {
-    fprintf(stderr, "R: %.2f dB, ", psnr[index]);
-    fprintf(stderr, "G: %.2f dB, ", psnr[index+1]);
-    fprintf(stderr, "B: %.2f dB", psnr[index+2]);
+    printf("R   G     B    ");
+    }
+  if(gavl_pixelformat_has_alpha(format_1.pixelformat))
+    {
+    printf("A\n");
+    }
+  else
+    printf("\n");
+  
+  if(gavl_pixelformat_is_gray(format_1.pixelformat))
+    {
+    printf("%5.2f", psnr[index]);
+    index++;
+    }
+  else if(gavl_pixelformat_is_yuv(format_1.pixelformat) ||
+          gavl_pixelformat_is_rgb(format_1.pixelformat))
+    {
+    printf("%5.2f %5.2f %5.2f ", psnr[index], psnr[index+1], psnr[index+2]);
     index+=3;
     }
   if(gavl_pixelformat_has_alpha(format_1.pixelformat))
     {
-    fprintf(stderr, ", A: %.2f dB\n", psnr[index]);
+    printf("%5.2f\n", psnr[index]);
     }
   else
-    fprintf(stderr, "\n");
+    printf("\n");
   
   return 0;
   }

@@ -141,7 +141,7 @@ int main(int argc, char ** argv)
         }
       }
     ret /= (double)(format.image_height * format.image_width);
-    fprintf(stderr, "Mean SSIM: %.16f\n", ret);
+    printf("# Mean SSIM\n%.16f\n", ret);
     }
   
   //  fprintf(stderr, "Format:\n\n");
