@@ -38,6 +38,8 @@ typedef struct
   {
   gavl_video_format_t format;
   bg_f_io_t io;
+  bg_iw_callbacks_t * cb;
+  
   } gavl_t;
 
 /* GAVL writer */
@@ -50,6 +52,12 @@ static void * create_gavl()
   return ret;
   }
 
+static void set_callbacks_gavl(void * data, bg_iw_callbacks_t * cb)
+  {
+  gavl_t * e = data;
+  e->cb = cb;
+  }
+
 static void destroy_gavl(void* priv)
   {
   gavl_t * gavl = (gavl_t*)priv;
@@ -59,14 +67,25 @@ static void destroy_gavl(void* priv)
 
 
 static int write_header_gavl(void * priv, const char * filename,
-                             gavl_video_format_t * format, const bg_metadata_t * metadata)
+                             gavl_video_format_t * format,
+                             const bg_metadata_t * metadata)
   {
   bg_f_signature_t sig;
+  char * real_filename;
   gavl_t * gavl = (gavl_t*)priv;
+  
+  real_filename = bg_filename_ensure_extension(filename, "gavi");
 
-  if(!bg_f_io_open_stdio_write(&gavl->io, filename))
+  if(!bg_iw_cb_create_output_file(gavl->cb, real_filename))
+    {
+    free(real_filename);
     return 0;
-
+    }
+  
+  if(!bg_f_io_open_stdio_write(&gavl->io, real_filename))
+    return 0;
+  free(real_filename);
+  
   sig.type = SIG_TYPE_IMAGE;
   if(!bg_f_signature_write(&gavl->io, &sig))
     return 0;
