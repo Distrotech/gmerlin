@@ -122,27 +122,15 @@ fi
 AM_CONDITIONAL(HAVE_DOXYGEN, test "x$have_doxygen" = "xtrue")
 
 dnl
-dnl texinfo
+dnl texinfo (now a build requirement)
 dnl
 
-test_texinfo="true"
 have_texinfo="false"
 
-AC_ARG_WITH(texinfo,
-    AC_HELP_STRING([--without-texinfo],
-    [disable texinfo documentation generation]),
-    test_texinfo="false")
-
-if test "x$test_texinfo" = "xtrue"; then
-  AC_CHECK_PROG(TEXINFO, makeinfo, "makeinfo")
-  if test -z "$TEXINFO"; then
-    AC_MSG_ERROR([Texinfo not found, use --without-texinfo to disable documentation generation])
-  else
-    have_texinfo="true"
-  fi
+AC_CHECK_PROG(TEXINFO, makeinfo, "makeinfo")
+if test -z "$TEXINFO"; then
+  AC_MSG_ERROR([Texinfo not found])
 fi
-
-AM_CONDITIONAL(HAVE_TEXINFO, test "x$have_texinfo" = "xtrue")
 
 dnl
 dnl Check for Libraries

@@ -15,17 +15,10 @@ else
 doxygen_output = 
 endif
 
-if HAVE_TEXINFO
+info_TEXINFOS = gmerlin.texi
 texinfo_output = userguide
-gmerlin_texi = gmerlin.texi version.texi
-else
-texinfo_output = 
-gmerlin_texi =
-endif
 
-# info_TEXINFOS=$(gmerlin_texi)
-
-gmerlin_TEXINFOS= $(gmerlin_texi)
+gmerlin_TEXINFOS= $(info_TEXINFOS) version.texi
 
 userguide: $(gmerlin_TEXINFOS)
 	ln -sf `pwd`"/$(top_srcdir)/doc/img" $(top_builddir)/img
