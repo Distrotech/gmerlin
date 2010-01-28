@@ -57,6 +57,29 @@ AC_TRY_RUN([
     # program could not be run
     AC_MSG_RESULT(failed)
   ])
+
+have_avcodec_img_convert="false"
+
+if test "x$avcodec_ok" = "xtrue"; then
+
+avcodec_swscale_missing="false"
+
+AC_MSG_CHECKING(for img_convert)
+AC_TRY_LINK([#include <avcodec.h>],
+            [img_convert(NULL, 0, NULL, 0, 0, 0);
+             return 0;],
+            have_avcodec_img_convert=true
+            AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+
+if test "x$have_avcodec_img_convert" != "xtrue"; then
+  if test "x$have_libswscale" != xtrue; then
+    avcodec_swscale_missing="true"
+    avcodec_ok="false"
+  fi
+fi
+
+fi
+
 CFLAGS="$CFLAGS_save"
 LIBS="$LIBS_save"
 ])

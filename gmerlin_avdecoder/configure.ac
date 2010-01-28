@@ -209,6 +209,14 @@ AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
 AM_CONDITIONAL(HAVE_GMERLIN, test x$have_gmerlin = xtrue)
 
 dnl
+dnl libswscale 
+dnl Must come *before* GMERLIN_CHECK_AVCODEC, because the avcodec
+dnl check succeeds only if either img_convert or libswscale is present
+dnl
+
+GMERLIN_CHECK_LIBSWSCALE
+
+dnl
 dnl AVCodec
 dnl
 
@@ -219,12 +227,6 @@ dnl libpostproc
 dnl
 
 GMERLIN_CHECK_LIBPOSTPROC
-
-dnl
-dnl libswscale
-dnl
-
-GMERLIN_CHECK_LIBSWSCALE
 
 dnl
 dnl AVFormat
@@ -581,11 +583,13 @@ if test "x$have_avcodec" = "xtrue"; then
 echo "Found (CFLAGS=$AVCODEC_CFLAGS LIBS=$AVCODEC_LIBS)"
 elif test "x$test_avcodec" = "xfalse"; then
 echo "Disabled"
+elif test "x$avcodec_swscale_missing" = "xtrue"; then
+echo "Needs libswscale (Go to http://www.ffmpeg.org/)"
 else
 echo "Missing (Go to http://www.ffmpeg.org/)"
 fi
 
-echo -n "libpostproc (ffmpeg):    "
+echo -n "libpostproc (ffmpeg):   "
 if test "x$have_libpostproc" = "xtrue"; then
 echo "Found (CFLAGS=$LIBPOSTPROC_CFLAGS LIBS=$LIBPOSTPROC_LIBS)"
 elif test "x$test_libpostproc" = "xfalse"; then
@@ -603,7 +607,7 @@ else
 echo "Missing (Go to http://www.ffmpeg.org/)"
 fi
 
-echo -n "libavformat (ffmpeg):    "
+echo -n "libavformat (ffmpeg):   "
 if test "x$have_avformat" = "xtrue"; then
 echo "Found (CFLAGS=$AVFORMAT_CFLAGS LIBS=$AVFORMAT_LIBS)"
 elif test "x$test_avformat" = "xfalse"; then
@@ -612,7 +616,7 @@ else
 echo "Missing (Go to http://www.ffmpeg.org/)"
 fi
 
-echo -n "vdpau:                   "
+echo -n "vdpau:                  "
 if test "x$have_vdpau" = "xtrue"; then
 echo "Found (CFLAGS=$VDPAU_CFLAGS LIBS=$VDPAU_LIBS)"
 elif test "x$test_vdpau" = "xfalse"; then
