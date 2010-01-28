@@ -553,36 +553,6 @@ static void size_changed(void * data, int width, int height)
   if(priv->is_open)
     set_drawing_coords(priv);
   }
-#if 0
-/* For updating OSD */
-static void brightness_callback(void * data, float val)
-  {
-  x11_t * priv;
-  priv = (x11_t *)data;
-  if(priv->callbacks && priv->callbacks->brightness_callback)
-    priv->callbacks->brightness_callback(priv->callbacks->data,
-                                         val);
-  }
-
-static void saturation_callback(void * data, float val)
-  {
-  x11_t * priv;
-  priv = (x11_t *)data;
-  if(priv->callbacks && priv->callbacks->saturation_callback)
-    priv->callbacks->saturation_callback(priv->callbacks->data,
-                                         val);
- 
-  }
-
-static void contrast_callback(void * data, float val)
-  {
-  x11_t * priv;
-  priv = (x11_t *)data;
-  if(priv->callbacks && priv->callbacks->contrast_callback)
-    priv->callbacks->contrast_callback(priv->callbacks->data,
-                                       val);
-  }
-#endif
 
 static void * create_x11()
   {

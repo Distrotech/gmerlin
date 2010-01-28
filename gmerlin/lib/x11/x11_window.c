@@ -1340,6 +1340,7 @@ int bg_x11_window_realize(bg_x11_window_t * win)
     return 0;
   
 #ifdef HAVE_GLX
+// #if 0
   win->gl_vi = glXChooseVisual(win->dpy, win->screen, attr_list);
   
   if(!win->gl_vi)
@@ -1360,7 +1361,10 @@ int bg_x11_window_realize(bg_x11_window_t * win)
   win->visual = DefaultVisual(win->dpy, screen);
   win->depth = DefaultDepth(win->dpy, screen);
 #endif
-  
+
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got Visual 0x%lx depth %d",
+         win->visual->visualid, win->depth);
+
   ret = create_window(win, win->window_width, win->window_height);
   bg_x11_window_init_gl(win);
   return ret;

@@ -97,9 +97,30 @@ static void check_xv(driver_data_t * d)
   for(i = 0; i < adaptors; i++)
     {
     /* Continue if this adaptor doesn't support XvPutImage */
-    if((adaptorInfo[i].type & (XvImageMask|XvInputMask)) != (XvImageMask|XvInputMask))
+    if((adaptorInfo[i].type & (XvImageMask|XvInputMask)) != (XvImageMask|
+        XvInputMask))
       continue;
     
+    /* Our visual was probably selected using GLXChooseVisual.
+       Sometimes, XVideo adaptors don't support all visuals,
+       XVPutImage will trigger a BadMatch then. Difficult to
+       solve this in an elegant way. Here, we just disable XVideo
+       support in such cases */
+
+    for(k = 0; k < adaptorInfo[i].num_formats; k++)
+      {
+      if((adaptorInfo[i].formats[k].depth == d->win->depth) &&
+         (adaptorInfo[i].formats[k].visual_id == d->win->visual->visualid))
+        break;
+      }
+
+    if(k >= adaptorInfo[i].num_formats)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, 
+             "Visual and depth not supported by adaptor %d", i+1);
+      continue;
+      }
+
     /* Image formats are the same for each port of a given adaptor, it is
        enough to list the image formats just for the base port. At least this
        is what xvinfo does. */
