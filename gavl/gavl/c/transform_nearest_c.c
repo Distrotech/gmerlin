@@ -271,7 +271,10 @@ void gavl_init_transform_funcs_nearest_c(gavl_transform_funcs_t * tab,
   tab->bits_rgb_16 = 0;
   tab->bits_uint8_advance  = 0;
   tab->bits_uint8_noadvance  = 0;
-  tab->bits_uint16 = 0;
+  tab->bits_uint16_x_1 = 0;
+  tab->bits_uint16_x_2 = 0;
+  tab->bits_uint16_x_3 = 0;
+  tab->bits_uint16_x_4 = 0;
 
   
   }

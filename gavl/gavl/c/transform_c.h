@@ -66,8 +66,8 @@ static void (FUNC_NAME)(gavl_transform_context_t * ctx, gavl_transform_pixel_t *
     dest_start += ctx->advance;
     pixel++;
     }
-#ifdef CLEANUP
-  CLEANUP
+#ifdef FINISH
+  FINISH
 #endif
   }
 
@@ -75,8 +75,8 @@ static void (FUNC_NAME)(gavl_transform_context_t * ctx, gavl_transform_pixel_t *
 #undef INIT
 #endif
 
-#ifdef CLEANUP
-#undef CLEANUP
+#ifdef FINISH
+#undef FINISH
 #endif
 
 #undef FUNC_NAME

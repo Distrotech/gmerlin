@@ -61,7 +61,10 @@ typedef struct
   int bits_rgb_16;
   int bits_uint8_noadvance;
   int bits_uint8_advance;
-  int bits_uint16;
+  int bits_uint16_x_1;
+  int bits_uint16_x_2;
+  int bits_uint16_x_3;
+  int bits_uint16_x_4;
   } gavl_transform_funcs_t;
 
 void gavl_init_transform_funcs_nearest_c(gavl_transform_funcs_t * tab,
@@ -77,7 +80,18 @@ void gavl_init_transform_funcs_bicubic_c(gavl_transform_funcs_t * tab,
 void gavl_init_transform_funcs_bilinear_mmx(gavl_transform_funcs_t * tab,
                                             int advance);
 void gavl_init_transform_funcs_bilinear_mmxext(gavl_transform_funcs_t * tab,
-                                            int advance);
+                                               int advance);
+
+void gavl_init_transform_funcs_quadratic_mmx(gavl_transform_funcs_t * tab,
+                                             int advance);
+void gavl_init_transform_funcs_quadratic_mmxext(gavl_transform_funcs_t * tab,
+                                                int advance);
+
+void gavl_init_transform_funcs_bicubic_mmx(gavl_transform_funcs_t * tab,
+                                           int advance);
+void gavl_init_transform_funcs_bicubic_mmxext(gavl_transform_funcs_t * tab,
+                                              int advance);
+
 #endif
 
 

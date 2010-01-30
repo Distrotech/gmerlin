@@ -59,11 +59,11 @@ static gavl_transform_scanline_func get_func(gavl_transform_funcs_t * tab,
       return tab->transform_uint8_x_2;
       break;
     case GAVL_GRAY_16:
-      *bits = tab->bits_uint16;
+      *bits = tab->bits_uint16_x_1;
       return tab->transform_uint16_x_1;
       break;
     case GAVL_GRAYA_32:
-      *bits = tab->bits_uint16;
+      *bits = tab->bits_uint16_x_2;
       return tab->transform_uint16_x_2;
       break;
     case GAVL_YUVA_32:
@@ -93,16 +93,16 @@ static gavl_transform_scanline_func get_func(gavl_transform_funcs_t * tab,
       break;
     case GAVL_YUV_444_P_16:
     case GAVL_YUV_422_P_16:
-      *bits = tab->bits_uint16;
+      *bits = tab->bits_uint16_x_1;
       return tab->transform_uint16_x_1;
       break;
     case GAVL_RGB_48:
-      *bits = tab->bits_uint16;
+      *bits = tab->bits_uint16_x_3;
       return tab->transform_uint16_x_3;
       break;
     case GAVL_RGBA_64:
     case GAVL_YUVA_64:
-      *bits = tab->bits_uint16;
+      *bits = tab->bits_uint16_x_4;
       return tab->transform_uint16_x_4;
       break;
     case GAVL_GRAY_FLOAT:
@@ -149,18 +149,27 @@ static void init_func_tab(gavl_video_options_t * opt,
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
         gavl_init_transform_funcs_bilinear_mmxext(func_tab, ctx->advance);
       
-      //      if(opt->accel_flags & GAVL_ACCEL_MMXEXT)
-      //        gavl_init_transform_funcs_bilinear_mmx(tab, ctx->advance);
-      
 #endif
       break;
     case 3:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
         gavl_init_transform_funcs_quadratic_c(func_tab, ctx->advance);
+#ifdef HAVE_MMX
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        gavl_init_transform_funcs_quadratic_mmx(func_tab, ctx->advance);
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
+        gavl_init_transform_funcs_quadratic_mmxext(func_tab, ctx->advance);
+#endif
       break;
     case 4:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
         gavl_init_transform_funcs_bicubic_c(func_tab, ctx->advance);
+#ifdef HAVE_MMX
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        gavl_init_transform_funcs_bicubic_mmx(func_tab, ctx->advance);
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
+        gavl_init_transform_funcs_bicubic_mmxext(func_tab, ctx->advance);
+#endif
       break;
     default:
       fprintf(stderr, "BUG: Filter taps > 4 in image transform\n");

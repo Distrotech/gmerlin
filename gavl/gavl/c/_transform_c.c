@@ -1670,5 +1670,8 @@ void gavl_init_transform_funcs_bicubic_c(gavl_transform_funcs_t * tab,
   tab->bits_rgb_16 = 16;
   tab->bits_uint8_advance  = 16;
   tab->bits_uint8_noadvance  = 16;
-  tab->bits_uint16 = 16;
+  tab->bits_uint16_x_1 = 16;
+  tab->bits_uint16_x_2 = 16;
+  tab->bits_uint16_x_3 = 16;
+  tab->bits_uint16_x_4 = 16;
   }

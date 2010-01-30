@@ -1525,8 +1525,8 @@ static const struct
 transform_modes[] =
   {
     //    { GAVL_SCALE_NEAREST, "Nearest" },
-    { GAVL_SCALE_BILINEAR, "Linear"}, 
-    { GAVL_SCALE_QUADRATIC, "Quadratic" },
+    //    { GAVL_SCALE_BILINEAR, "Linear"}, 
+    //    { GAVL_SCALE_QUADRATIC, "Quadratic" },
     { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
   };
 
