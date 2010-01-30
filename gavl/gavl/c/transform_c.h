@@ -42,8 +42,10 @@ static void (FUNC_NAME)(gavl_transform_context_t * ctx, gavl_transform_pixel_t *
 #endif
 
   pixel = pixels;    
-    
-  for(i = 0; i < ctx->dst_width; i++)
+
+  i = ctx->dst_width+1;
+  
+  while(--i)
     {
     if(!pixel->outside)
       {
@@ -64,10 +66,17 @@ static void (FUNC_NAME)(gavl_transform_context_t * ctx, gavl_transform_pixel_t *
     dest_start += ctx->advance;
     pixel++;
     }
+#ifdef CLEANUP
+  CLEANUP
+#endif
   }
 
 #ifdef INIT
 #undef INIT
+#endif
+
+#ifdef CLEANUP
+#undef CLEANUP
 #endif
 
 #undef FUNC_NAME

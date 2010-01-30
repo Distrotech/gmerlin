@@ -73,6 +73,13 @@ void gavl_init_transform_funcs_quadratic_c(gavl_transform_funcs_t * tab,
 void gavl_init_transform_funcs_bicubic_c(gavl_transform_funcs_t * tab,
                                          int advance);
 
+#ifdef HAVE_MMX
+void gavl_init_transform_funcs_bilinear_mmx(gavl_transform_funcs_t * tab,
+                                            int advance);
+void gavl_init_transform_funcs_bilinear_mmxext(gavl_transform_funcs_t * tab,
+                                            int advance);
+#endif
+
 
 
 typedef struct 
@@ -115,9 +122,13 @@ struct gavl_transform_context_s
   gavl_video_options_t * opt;
 
   gavl_video_frame_t * dst_frame;
+#ifdef HAVE_MMX
+  int need_emms;
+#endif
+
   };
 
-void
+int
 gavl_transform_context_init(gavl_image_transform_t * t,
                             gavl_video_options_t * opt,
                             int field_index, int plane_index,

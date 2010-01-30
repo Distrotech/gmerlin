@@ -141,7 +141,7 @@ typedef	union {
 #define	pmullw_m2r(var,reg)	mmx_m2r (pmullw, var, reg)
 #define	pmullw_r2r(regs,regd)	mmx_r2r (pmullw, regs, regd)
 
-/* Parallel multiply op1 and op2 using unsigned saturation multiplication
+/* Parallel multiply op1 and op2 using signed saturation multiplication
    and store the high-order word of the result in op2 (4x16) */
 
 #define	pmulhw_m2r(var,reg)	mmx_m2r (pmulhw, var, reg)

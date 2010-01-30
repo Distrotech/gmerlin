@@ -57,7 +57,7 @@ static int opt_scaledir = 0;
 // #define INIT_RUNS 5
 // #define NUM_RUNS 10
 
-#define INIT_RUNS 100
+#define INIT_RUNS 10
 #define NUM_RUNS  200
 
 int do_html = 0;
@@ -1547,20 +1547,19 @@ static void image_transform_context_create(image_transform_context_t * ctx)
   ctx->opt = gavl_image_transform_get_options(ctx->transform);
   }
 
-static void transform_func(void *priv, double xdst, double ydst, double *xsrc, double *ysrc)
+static void transform_func(void *priv, double xdst,
+                           double ydst, double *xsrc, double *ysrc)
   {
   *xsrc = xdst + 0.5;
   *ysrc = ydst + 0.5;
   }
 
-static void image_transform_context_init(image_transform_context_t * ctx)
+static int image_transform_context_init(image_transform_context_t * ctx)
   {
   ctx->in_frame = gavl_video_frame_create(&ctx->format);
   ctx->out_frame = gavl_video_frame_create(&ctx->format);
 
-  gavl_image_transform_init(ctx->transform, &ctx->format, transform_func, NULL);
-  
-  return;
+  return gavl_image_transform_init(ctx->transform, &ctx->format, transform_func, NULL);
   }
 
 static void image_transform_context_cleanup(image_transform_context_t * ctx)
@@ -1648,7 +1647,7 @@ static void benchmark_image_transform()
       gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C);
 
       image_transform_context_init(&ctx);
-    
+      
       if(do_html)
         printf("<tr><td>%s</td><td>%s</td><td>C</td>",
                gavl_pixelformat_to_string(ctx.format.pixelformat), transform_modes[j].name);
@@ -1663,7 +1662,52 @@ static void benchmark_image_transform()
       printf("\n");
       fflush(stdout);
       image_transform_context_cleanup(&ctx);
-    
+
+      /* MMX */
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_MMX);
+      
+      if(image_transform_context_init(&ctx))
+        {
+        if(do_html)
+          printf("<tr><td>%s</td><td>%s</td><td>MMX</td>",
+                 gavl_pixelformat_to_string(ctx.format.pixelformat), transform_modes[j].name);
+        else
+          printf("%-23s %-14s MMX     ",
+                 gavl_pixelformat_to_string(ctx.format.pixelformat), transform_modes[j].name);
+        
+        gavl_benchmark_run(&b);
+        gavl_benchmark_print_results(&b);
+        if(do_html)
+          printf("</tr>");
+        printf("\n");
+        fflush(stdout);
+        image_transform_context_cleanup(&ctx);
+        }
+
+      /* MMXEXT */
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_MMXEXT);
+      
+      if(image_transform_context_init(&ctx))
+        {
+        if(do_html)
+          printf("<tr><td>%s</td><td>%s</td><td>MMXEXT</td>",
+                 gavl_pixelformat_to_string(ctx.format.pixelformat), transform_modes[j].name);
+        else
+          printf("%-23s %-14s MMXEXT  ",
+                 gavl_pixelformat_to_string(ctx.format.pixelformat), transform_modes[j].name);
+        
+        gavl_benchmark_run(&b);
+        gavl_benchmark_print_results(&b);
+        if(do_html)
+          printf("</tr>");
+        printf("\n");
+        fflush(stdout);
+        image_transform_context_cleanup(&ctx);
+        }
+
+      //      else
+      //        fprintf(stderr, "No MMX version\n");
+      
       }
     }
   

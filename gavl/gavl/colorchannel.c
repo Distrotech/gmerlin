@@ -856,7 +856,7 @@ static int get_channel_properties(gavl_pixelformat_t src_format,
                                   gavl_color_channel_t ch,
                                   channel_data_t * d)
   {
-  gavl_pixelformat_t dst_format;
+  gavl_pixelformat_t dst_format = GAVL_PIXELFORMAT_NONE;
   
   d->plane = 0;
   d->offset = 0;

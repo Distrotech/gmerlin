@@ -304,7 +304,7 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
 
   if(tc == GAVL_TIMECODE_UNDEFINED)
     {
-    sprintf(ptr, "--:--:--:--");
+    sprintf(str, "--:--:--:--");
     return;
     }
   

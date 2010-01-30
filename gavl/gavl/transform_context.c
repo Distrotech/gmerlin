@@ -23,6 +23,8 @@
 #include <video.h>
 #include <transform.h>
 #include <stdio.h>
+#include <accel.h>
+
 
 static gavl_transform_scanline_func get_func(gavl_transform_funcs_t * tab,
                                              gavl_pixelformat_t pixelformat,
@@ -130,19 +132,35 @@ static void init_func_tab(gavl_video_options_t * opt,
                           gavl_transform_context_t * ctx,
                           gavl_transform_funcs_t * func_tab)
   {
+  if(!opt->quality)
+    memset(func_tab, 0, sizeof(*func_tab));
+  
   switch(ctx->tab.factors_per_pixel)
     {
     case 1:
       gavl_init_transform_funcs_nearest_c(func_tab, ctx->advance);
       break;
     case 2:
-      gavl_init_transform_funcs_bilinear_c(func_tab, ctx->advance);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_transform_funcs_bilinear_c(func_tab, ctx->advance);
+#ifdef HAVE_MMX
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        gavl_init_transform_funcs_bilinear_mmx(func_tab, ctx->advance);
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
+        gavl_init_transform_funcs_bilinear_mmxext(func_tab, ctx->advance);
+      
+      //      if(opt->accel_flags & GAVL_ACCEL_MMXEXT)
+      //        gavl_init_transform_funcs_bilinear_mmx(tab, ctx->advance);
+      
+#endif
       break;
     case 3:
-      gavl_init_transform_funcs_quadratic_c(func_tab, ctx->advance);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_transform_funcs_quadratic_c(func_tab, ctx->advance);
       break;
     case 4:
-      gavl_init_transform_funcs_bicubic_c(func_tab, ctx->advance);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_transform_funcs_bicubic_c(func_tab, ctx->advance);
       break;
     default:
       fprintf(stderr, "BUG: Filter taps > 4 in image transform\n");
@@ -150,7 +168,7 @@ static void init_func_tab(gavl_video_options_t * opt,
     }
   }
 
-void
+int
 gavl_transform_context_init(gavl_image_transform_t * t,
                             gavl_video_options_t * opt,
                             int field_index, int plane_index,
@@ -251,11 +269,14 @@ gavl_transform_context_init(gavl_image_transform_t * t,
                        t->format.pixelformat,
                        &bits);
 
+  if(!ctx->func)
+    return 0;
+  
   /* Now we know the bits, convert to int */
   if(bits)
     gavl_transform_table_init_int(&ctx->tab,
                                   bits, ctx->dst_width, ctx->dst_height);
-  
+  return 1;
   }
 
 static void func_1(void* p, int start, int end)
@@ -278,9 +299,12 @@ static void func_1(void* p, int start, int end)
     ctx->func(ctx, ctx->tab.pixels[i], dst_save);
     dst_save += dst_stride;
     }
-  // #ifdef HAVE_MMX
-  //  __asm__ __volatile__ ("emms");
-  // #endif
+#ifdef HAVE_MMX
+  if(ctx->need_emms)
+    {
+    __asm__ __volatile__ ("emms");
+    }
+#endif
   }
 
 
@@ -340,7 +364,13 @@ void gavl_transform_context_transform(gavl_transform_context_t * ctx,
       ctx->func(ctx, ctx->tab.pixels[i], dst_save);
       dst_save += dst_stride;
       }
-
+#ifdef HAVE_MMX
+    if(ctx->need_emms)
+      {
+      __asm__ __volatile__ ("emms");
+      // fprintf(stderr, "emms");
+      }
+#endif
     }
   
   }

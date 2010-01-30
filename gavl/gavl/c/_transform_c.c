@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <stdio.h>
+// #include <stdio.h>
 #include <gavl/gavl.h>
 #include <video.h>
 #include <transform.h>

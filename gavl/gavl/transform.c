@@ -62,7 +62,7 @@ void gavl_image_transform_destroy(gavl_image_transform_t * t)
  *  \param priv The priv argument for func
  */
 
-void gavl_image_transform_init(gavl_image_transform_t * t,
+int gavl_image_transform_init(gavl_image_transform_t * t,
                                gavl_video_format_t * format,
                                gavl_image_transform_func func, void * priv)
   {
@@ -115,8 +115,11 @@ void gavl_image_transform_init(gavl_image_transform_t * t,
   
   for(i = 0; i < t->num_fields; i++)
     for(j = 0; j < t->num_planes; j++)
-      gavl_transform_context_init(t, &opt, i, j, func, priv);
-  
+      {
+      if(!gavl_transform_context_init(t, &opt, i, j, func, priv))
+        return 0;
+      }
+  return 1;
   }
 
 /** \brief Transform an image

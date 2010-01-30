@@ -7,6 +7,7 @@ scale_x_mmx.c \
 scale_y_mmx.c \
 deinterlace_blend_mmx.c \
 dsp_mmx.c \
+transform_mmx.c \
 rgb_rgb_mmx.c \
 rgb_yuv_mmx.c \
 yuv_rgb_mmx.c \

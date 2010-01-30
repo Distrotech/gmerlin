@@ -3580,19 +3580,23 @@ void gavl_image_transform_destroy(gavl_image_transform_t * t);
  *  \param format Format (can be changed)
  *  \param func Coordinate transform function
  *  \param priv The priv argument for func
- *
+ *  \returns 1 if the transform was sucessfully initialized, 0 else.
+ 
  * If you enabled multithreading support, func will be called
  * from multiple threads at the same time. Make sure, that it
  * doesn't access any global data.
+ *
+ * Return type was changed from void to in in version 1.1.2
+ * Under normal circumstances, this function always returns 1.
  *
  * Since 1.1.0.
  */
 
   
 GAVL_PUBLIC
-void gavl_image_transform_init(gavl_image_transform_t * t,
-                               gavl_video_format_t * format,
-                               gavl_image_transform_func func, void * priv);
+int gavl_image_transform_init(gavl_image_transform_t * t,
+                              gavl_video_format_t * format,
+                              gavl_image_transform_func func, void * priv);
 
 /** \brief Transform an image
  *  \param t A transformation engine
