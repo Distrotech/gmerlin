@@ -287,10 +287,6 @@ int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
                              priv->num_video_streams);
   
   st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
-  st->stream->codec->pix_fmt = PIX_FMT_YUV420P;
-  
-  /* Adjust format */
-  st->format.pixelformat    = GAVL_YUV_420_P;
   
   /* Set format for codec */
   st->stream->codec->width  = st->format.image_width;
@@ -371,11 +367,16 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
   AVCodec * codec;
   codec = avcodec_find_encoder(st->stream->codec->codec_id);
   if(!codec)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Audio codec not available in your libavcodec installation");
     return 0;
-  
-  if(avcodec_open(st->stream->codec, codec) < 0)
-    return 0;
+    }
 
+  if(avcodec_open(st->stream->codec, codec) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for audio");
+    return 0;
+    }
   if(st->stream->codec->frame_size <= 1)
     st->format.samples_per_frame = 1024; // Frame size for uncompressed codecs
   else
@@ -399,10 +400,14 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   {
   int stats_len;
   AVCodec * codec;
+  enum PixelFormat * pfmts;
+  
   codec = avcodec_find_encoder(st->stream->codec->codec_id);
   if(!codec)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Video codec not available in your libavcodec installation");
     return 0;
-
+    }
   /* Set up multipass encoding */
   
   if(st->total_passes)
@@ -430,6 +435,13 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
       }
     }
 
+  /* Set up pixelformat */
+  
+  pfmts = bg_ffmpeg_get_pixelformats(st->stream->codec->codec_id);
+
+  st->stream->codec->pix_fmt = pfmts[0];
+  st->format.pixelformat = bg_pixelformat_ffmpeg_2_gavl(st->stream->codec->pix_fmt);
+  
   /* Set up framerate */
 
   if(priv->format->flags & FLAG_CONSTANT_FRAMERATE)
@@ -454,8 +466,10 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
     }
   
   if(avcodec_open(st->stream->codec, codec) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for video");
     return 0;
-
+    }
   st->buffer_alloc = st->format.image_width * st->format.image_width * 4;
   st->buffer = malloc(st->buffer_alloc);
   st->frame = avcodec_alloc_frame();
@@ -467,7 +481,7 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
 int bg_ffmpeg_start(void * data)
   {
   ffmpeg_priv_t * priv;
-  int i, j;
+  int i;
   priv = (ffmpeg_priv_t *)data;
   
   /* set the output parameters (must be done even if no
@@ -770,3 +784,70 @@ const bg_encoder_framerate_t bg_ffmpeg_mpeg_framerates[] =
     {    60,    1 },
     { /* End of framerates */ }
   };
+
+static const struct
+  {
+  enum PixelFormat  ffmpeg_csp;
+  gavl_pixelformat_t gavl_csp;
+  }
+pixelformats[] =
+  {
+    { PIX_FMT_YUV420P,       GAVL_YUV_420_P },  ///< Planar YUV 4:2:0 (1 Cr & Cb sample per 2x2 Y samples)
+#if LIBAVUTIL_VERSION_INT < (50<<16)
+    { PIX_FMT_YUV422,        GAVL_YUY2      },
+#else
+    { PIX_FMT_YUYV422,       GAVL_YUY2      },
+#endif
+    { PIX_FMT_YUV422P,       GAVL_YUV_422_P },  ///< Planar YUV 4:2:2 (1 Cr & Cb sample per 2x1 Y samples)
+    { PIX_FMT_YUV444P,       GAVL_YUV_444_P }, ///< Planar YUV 4:4:4 (1 Cr & Cb sample per 1x1 Y samples)
+    { PIX_FMT_YUV411P,       GAVL_YUV_411_P }, ///< Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
+    { PIX_FMT_YUVJ420P,      GAVL_YUVJ_420_P }, ///< Planar YUV 4:2:0 full scale (jpeg)
+    { PIX_FMT_YUVJ422P,      GAVL_YUVJ_422_P }, ///< Planar YUV 4:2:2 full scale (jpeg)
+    { PIX_FMT_YUVJ444P,      GAVL_YUVJ_444_P }, ///< Planar YUV 4:4:4 full scale (jpeg)
+
+#if 0 // Not needed in the forseeable future    
+    { PIX_FMT_RGB24,         GAVL_RGB_24    },  ///< Packed pixel, 3 bytes per pixel, RGBRGB...
+    { PIX_FMT_BGR24,         GAVL_BGR_24    },  ///< Packed pixel, 3 bytes per pixel, BGRBGR...
+#if LIBAVUTIL_VERSION_INT < (50<<16)
+    { PIX_FMT_RGBA32,        GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
+#else
+    { PIX_FMT_RGB32,         GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
+#endif
+    { PIX_FMT_YUV410P,       GAVL_YUV_410_P }, ///< Planar YUV 4:1:0 (1 Cr & Cb sample per 4x4 Y samples)
+    { PIX_FMT_RGB565,        GAVL_RGB_16 }, ///< always stored in cpu endianness
+    { PIX_FMT_RGB555,        GAVL_RGB_15 }, ///< always stored in cpu endianness, most significant bit to 1
+    { PIX_FMT_GRAY8,         GAVL_PIXELFORMAT_NONE },
+    { PIX_FMT_MONOWHITE,     GAVL_PIXELFORMAT_NONE }, ///< 0 is white
+    { PIX_FMT_MONOBLACK,     GAVL_PIXELFORMAT_NONE }, ///< 0 is black
+    // { PIX_FMT_PAL8,          GAVL_RGB_24     }, ///< 8 bit with RGBA palette
+    { PIX_FMT_XVMC_MPEG2_MC, GAVL_PIXELFORMAT_NONE }, ///< XVideo Motion Acceleration via common packet passing(xvmc_render.h)
+    { PIX_FMT_XVMC_MPEG2_IDCT, GAVL_PIXELFORMAT_NONE },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
+    { PIX_FMT_YUVA420P,      GAVL_YUVA_32 },
+#endif
+    
+#endif // Not needed
+    { PIX_FMT_NB, GAVL_PIXELFORMAT_NONE }
+};
+
+gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p)
+  {
+  int i;
+  for(i = 0; i < sizeof(pixelformats)/sizeof(pixelformats[0]); i++)
+    {
+    if(pixelformats[i].ffmpeg_csp == p)
+      return pixelformats[i].gavl_csp;
+    }
+  return GAVL_PIXELFORMAT_NONE;
+  }
+
+enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p)
+  {
+  int i;
+  for(i = 0; i < sizeof(pixelformats)/sizeof(pixelformats[0]); i++)
+    {
+    if(pixelformats[i].gavl_csp == p)
+      return pixelformats[i].ffmpeg_csp;
+    }
+  return PIX_FMT_NB;
+  }

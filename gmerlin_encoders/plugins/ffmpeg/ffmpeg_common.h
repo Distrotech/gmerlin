@@ -32,6 +32,10 @@ typedef struct
   char * long_name;
   enum CodecID id;
   const bg_parameter_info_t * parameters;
+
+  /* Terminated with PIX_FMT_NB */
+  enum PixelFormat * pixelformats;
+  
   } ffmpeg_codec_info_t;
 
 typedef struct
@@ -161,6 +165,8 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
 void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
                                   const bg_parameter_value_t * v);
 
+enum PixelFormat * bg_ffmpeg_get_pixelformats(enum CodecID id);
+
 
 int bg_ffmpeg_set_video_pass(void * data, int stream, int pass,
                              int total_passes,
@@ -180,3 +186,6 @@ int bg_ffmpeg_write_video_frame(void * data,
                                 gavl_video_frame_t * frame, int stream);
 
 int bg_ffmpeg_close(void * data, int do_delete);
+
+gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p);
+enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p);
