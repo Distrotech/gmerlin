@@ -39,6 +39,7 @@ static const ffmpeg_format_info_t formats[] =
                                        CODEC_ID_PCM_MULAW,
                                        CODEC_ID_MP3,
                                        CODEC_ID_MP2,
+                                       CODEC_ID_AC3,
                                        CODEC_ID_NONE },
 
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG4,
