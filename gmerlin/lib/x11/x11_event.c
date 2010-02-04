@@ -683,10 +683,12 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
           bg_accelerator_map_clear(cur->child_accel_map);
         }
       break;
+#if 0
     case FocusIn:
       break;
     case FocusOut:
       break;
+#endif
     case ConfigureNotify:
       if(w->current->win == w->normal.win)
         {
@@ -814,10 +816,12 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
       evt->xkey.state &= STATE_IGNORE;
       
       if((evt->xkey.window == w->normal.win) ||
-         (evt->xkey.window == w->normal.focus_child))
+         (evt->xkey.window == w->normal.focus_child) ||
+         (evt->xkey.window == w->normal.subwin))
         cur = &w->normal;
       else if((evt->xkey.window == w->fullscreen.win) ||
-              (evt->xkey.window == w->fullscreen.focus_child))
+              (evt->xkey.window == w->fullscreen.focus_child) ||
+              (evt->xkey.window == w->fullscreen.subwin))
         cur = &w->fullscreen;
       else
         {
@@ -857,8 +861,8 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
           /* Here, we see why generic key callbacks are bad:
              One key callback is ok, but if we have more than one
              (i.e. in embedded or embedding windows), one might always
-             eat up all events. At lease callbacks should return zero
-             to signify, that the event should be propagated */
+             eat up all events. At least callbacks should return zero
+             to notify, that the event should be propagated */
 
           if(w->callbacks &&
              w->callbacks->key_callback &&
@@ -905,13 +909,15 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
     case ButtonPress:
     case ButtonRelease:
       
-      if(evt->xbutton.window == w->normal.win)
+      if((evt->xbutton.window == w->normal.win) ||
+         (evt->xbutton.window == w->normal.subwin))
         cur = &w->normal;
-      else if(evt->xbutton.window == w->fullscreen.win)
+      else if((evt->xbutton.window == w->fullscreen.win) ||
+              (evt->xbutton.window == w->fullscreen.subwin))
         cur = &w->fullscreen;
       else
         return;
-
+      
       if(cur->modality)
         return;
       

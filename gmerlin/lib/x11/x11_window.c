@@ -600,7 +600,6 @@ void bg_x11_window_embed_parent(bg_x11_window_t * win,
 void bg_x11_window_embed_child(bg_x11_window_t * win,
                                window_t * w)
   {
-  //  XDefineCursor(win->dpy, w->child, None);
   XSelectInput(win->dpy, w->child, FocusChangeMask | ExposureMask |
                PropertyChangeMask);
   
@@ -626,6 +625,7 @@ static void create_subwin(bg_x11_window_t * w,
     ButtonPressMask |
     ButtonReleaseMask |
     KeyPressMask |
+    PointerMotionMask |
     KeyReleaseMask;
   
   bg_x11_window_get_coords(w->dpy, win->win,
@@ -645,8 +645,10 @@ void bg_x11_window_create_subwins(bg_x11_window_t * w,
 
 void bg_x11_window_destroy_subwins(bg_x11_window_t * w)
   {
-  XDestroyWindow(w->dpy, w->normal.win);
-  XDestroyWindow(w->dpy, w->fullscreen.win);
+  XDestroyWindow(w->dpy, w->normal.subwin);
+  w->normal.subwin = None;
+  XDestroyWindow(w->dpy, w->fullscreen.subwin);
+  w->fullscreen.subwin = None;
   }
 
 static int create_window(bg_x11_window_t * w,
