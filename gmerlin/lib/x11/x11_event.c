@@ -705,6 +705,15 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                   (int*)0, (int*)0);
             }
           bg_x11_window_size_changed(w);
+
+          if(w->normal.subwin != None)
+            {
+            XResizeWindow(w->dpy,
+                          w->normal.subwin,
+                          evt->xconfigure.width,
+                          evt->xconfigure.height);
+            
+            }
           }
         else if(evt->xconfigure.window == w->normal.parent)
           {
@@ -721,6 +730,14 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
           w->window_width  = evt->xconfigure.width;
           w->window_height = evt->xconfigure.height;
           bg_x11_window_size_changed(w);
+
+          if(w->fullscreen.subwin != None)
+            {
+            XResizeWindow(w->dpy,
+                          w->fullscreen.subwin,
+                          evt->xconfigure.width,
+                          evt->xconfigure.height);
+            }
           }
         else if(evt->xconfigure.window == w->fullscreen.parent)
           {
