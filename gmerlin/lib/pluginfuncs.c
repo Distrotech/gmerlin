@@ -92,7 +92,7 @@ bg_encoder_set_framerate_nearest(const bg_encoder_framerate_t * rate_default,
                                  gavl_video_format_t * format)
   {
   int i, min_index = 0;
-  double diff = 0.0, diff_min;
+  double diff = 0.0, diff_min = 0.0;
   double rate_d;
   
   /* Set default is we don't already have one */

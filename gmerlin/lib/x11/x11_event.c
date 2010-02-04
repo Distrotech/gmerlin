@@ -653,37 +653,31 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         }
       break;
     case CreateNotify:
-      if((evt->xcreatewindow.parent == w->normal.win) &&
-         (evt->xcreatewindow.window != w->normal.focus_child))
+      if(evt->xcreatewindow.parent == w->normal.win)
+        cur = &w->normal;
+      else if(evt->xcreatewindow.parent == w->fullscreen.win)
+        cur = &w->fullscreen;
+      else
+        break;
+      
+      if((evt->xcreatewindow.window != cur->focus_child) &&
+         (evt->xcreatewindow.window != cur->subwin))
         {
-        w->normal.child = evt->xcreatewindow.window;
-        bg_x11_window_embed_child(w, &w->normal);
-        }
-      if(evt->xcreatewindow.parent == w->fullscreen.win &&
-         (evt->xcreatewindow.window != w->fullscreen.focus_child))
-        {
-        w->fullscreen.child = evt->xcreatewindow.window;
-        bg_x11_window_embed_child(w, &w->fullscreen);
+        cur->child = evt->xcreatewindow.window;
+        bg_x11_window_embed_child(w, cur);
         }
       break;
     case DestroyNotify:
       if(evt->xdestroywindow.event == w->normal.win)
-        {
-        w->normal.child = None;
-        w->normal.child_xembed = 0;
-        if(w->normal.child_accel_map)
-          bg_accelerator_map_clear(w->normal.child_accel_map);
-        // XDefineCursor(w->dpy, w->normal.win, w->fullscreen_cursor);
-        }
-      if(evt->xdestroywindow.event == w->fullscreen.win)
-        {
-        w->fullscreen.child = None;
-        w->fullscreen.child_xembed = 0;
-        if(w->fullscreen.child_accel_map)
-          bg_accelerator_map_clear(w->fullscreen.child_accel_map);
-        // XDefineCursor(w->dpy, w->fullscreen.win,
-        //              w->fullscreen_cursor);
-        }
+        cur = &w->normal;
+      else if(evt->xdestroywindow.event == w->fullscreen.win)
+        cur = &w->fullscreen;
+      else
+        break;
+      cur->child = None;
+      cur->child_xembed = 0;
+      if(cur->child_accel_map)
+        bg_accelerator_map_clear(cur->child_accel_map);
       break;
     case FocusIn:
       break;
@@ -734,7 +728,6 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
     case MotionNotify:
       
       w->idle_counter = 0;
-      
       if(w->pointer_hidden)
         {
         XDefineCursor(w->dpy, w->normal.win, None);
@@ -763,36 +756,6 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                       x_src, y_src, key_mask);
         }
       
-#if 0
-      /* Send to parent */
-      if(w->current->parent != w->root)
-        {
-        XMotionEvent motion_event;
-        memset(&motion_event, 0, sizeof(motion_event));
-        motion_event.type = MotionNotify;
-        motion_event.display = w->dpy;
-        motion_event.window = cur->parent;
-        motion_event.root = w->root;
-        motion_event.time = evt->xmotion.time;
-        motion_event.x = evt->xmotion.x;
-        motion_event.y = evt->xmotion.y;
-        motion_event.x_root = evt->xmotion.x_root;
-        motion_event.y_root = evt->xmotion.y_root;
-        motion_event.state  = evt->xmotion.state;
-        motion_event.same_screen = evt->xmotion.same_screen;
-        evt->xmotion.window = cur->parent;
-        evt->xmotion.subwindow = cur->win;
-        evt->xmotion.time = CurrentTime;
-        
-        XSendEvent(w->dpy,
-                   evt->xmotion.window,
-                   // w->current->parent,
-                   // True, PointerMotionMask,
-                   False, NoEventMask,
-                   evt);
-        XSync(w->dpy, False);
-        }
-#endif
       break;
     case UnmapNotify:
       if(evt->xunmap.window == w->normal.win)
@@ -812,6 +775,11 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                             CurrentTime,
                                             XEMBED_REQUEST_FOCUS,
                                             0, 0, 0);
+
+        XDefineCursor(w->dpy, w->normal.win, None);
+        w->idle_counter = 0;
+        w->pointer_hidden = 0;
+        
         }
       else if(evt->xmap.window == w->fullscreen.win)
         {
@@ -822,6 +790,11 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                             CurrentTime,
                                             XEMBED_REQUEST_FOCUS,
                                             0, 0, 0);
+
+        XDefineCursor(w->dpy, w->fullscreen.win, None);
+        w->idle_counter = 0;
+        w->pointer_hidden = 0;
+
         
         //        bg_x11_window_set_fullscreen_mapped(w, &w->fullscreen);
         }

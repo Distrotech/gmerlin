@@ -36,7 +36,7 @@ bg_cfg_item_t * bg_cfg_item_create_empty(const char * name)
 bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
                                    bg_parameter_value_t * value)
   {
-  bg_cfg_type_t type;
+  bg_cfg_type_t type = BG_PARAMETER_CHECKBUTTON; // kee gcc quiet
   bg_cfg_item_t * ret;
   switch(info->type)
     {

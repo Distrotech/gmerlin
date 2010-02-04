@@ -466,10 +466,10 @@ static bg_plugin_handle_t * get_stream_handle(bg_encoder_t * enc,
                                               int stream, int in_index)
   {
   bg_plugin_handle_t * ret;
-  const bg_plugin_info_t * info;
-  bg_cfg_section_t * section;
+  const bg_plugin_info_t * info = NULL;
+  bg_cfg_section_t * section = NULL;
   char * filename_base;
-  const char * type_string;
+  const char * type_string = NULL;
   
   if(enc->separate & type)
     {

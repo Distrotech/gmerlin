@@ -41,7 +41,8 @@ int bg_x11_window_init_gl(bg_x11_window_t * win)
 #endif
   }
 
-void bg_x11_window_set_gl_attribute(bg_x11_window_t * win, int attribute, int value)
+void bg_x11_window_set_gl_attribute(bg_x11_window_t * win,
+                                    int attribute, int value)
   {
   if((attribute < 0) || (attribute >= BG_GL_ATTRIBUTE_NUM))
     return;

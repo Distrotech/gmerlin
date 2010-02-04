@@ -147,10 +147,16 @@ struct video_driver_s
 
 typedef struct
   {
-  Window win;    /* Actual window */
-  Window parent; /* Parent (if non-root we are embedded) */
-  Window child;  /* Child window */
-  Window toplevel;
+  Window win;      /* Actual window */
+  Window parent;   /* Parent (if non-root we are embedded) */
+  Window child;    /* Child window */
+
+  /* Toplevel window we are inside (e.g. window manager decoration) */
+  Window toplevel; 
+  
+  /* Subwindow (created with another visual than the default) */
+  Window subwin; 
+  
   Window focus_child;  /* Focus proxy */
   int parent_xembed;
   int child_xembed;
