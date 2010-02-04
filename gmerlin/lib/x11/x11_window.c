@@ -611,11 +611,49 @@ void bg_x11_window_embed_child(bg_x11_window_t * win,
   bg_x11_window_check_embed_property(win, w);
   }
 
+static void create_subwin(bg_x11_window_t * w,
+                          window_t * win,
+                          int depth, Visual * v)
+  {
+  int width, height;
+  unsigned long attr_mask;
+  XSetWindowAttributes attr;
+  memset(&attr, 0, sizeof(attr));
+
+  attr_mask = CWEventMask;
+  attr.event_mask =
+    ExposureMask |
+    ButtonPressMask |
+    ButtonReleaseMask |
+    KeyPressMask |
+    KeyReleaseMask;
+  
+  bg_x11_window_get_coords(w->dpy, win->win,
+                           NULL, NULL, &width, &height);
+  win->subwin = XCreateWindow(w->dpy,
+                              win->win, 0, 0, width, height, 0,
+                              depth, InputOutput, v, attr_mask, &attr);
+  XMapWindow(w->dpy, win->subwin);
+  }
+
+void bg_x11_window_create_subwins(bg_x11_window_t * w,
+                                  int depth, Visual * v)
+  {
+  create_subwin(w, &w->normal, depth, v);
+  create_subwin(w, &w->fullscreen, depth, v);
+  }
+
+void bg_x11_window_destroy_subwins(bg_x11_window_t * w)
+  {
+  XDestroyWindow(w->dpy, w->normal.win);
+  XDestroyWindow(w->dpy, w->fullscreen.win);
+  }
+
 static int create_window(bg_x11_window_t * w,
                          int width, int height)
   {
   const char * display_name;
-  long event_mask;
+  unsigned long event_mask;
   XColor black;
   Atom wm_protocols[2];
   XWMHints * wmhints;

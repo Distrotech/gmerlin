@@ -369,6 +369,11 @@ void
 bg_x11_window_set_netwm_state(Display * dpy, Window win, Window root, int action, Atom state);
 
 
+void bg_x11_window_create_subwins(bg_x11_window_t * w,
+                                  int depth, Visual * v);
+
+void bg_x11_window_destroy_subwins(bg_x11_window_t * w);
+
 /* For OpenGL support */
 
 int bg_x11_window_init_gl(bg_x11_window_t *);

@@ -52,16 +52,18 @@ typedef struct
 static int has_extension(const char * extensions,
                          const char * name)
   {
-  char end;
-  char * pos;
-
-  if(!(pos = strstr(extensions, name)))
-    return 0;
+  int len;
+  const char * pos;
+  len = strlen(name);
+  while(1)
+    {
+    if(!(pos = strstr(extensions, name)))
+      return 0;
+    if((pos[len] == ' ') || (pos[len] == '\0'))
+      return 1;
+    extensions = pos + len;
+    }
   
-  end = pos[strlen(name)];
-  
-  if((end == ' ') || (end == '\0'))
-    return 1;
   return 0;
   }
 

@@ -674,10 +674,14 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         cur = &w->fullscreen;
       else
         break;
-      cur->child = None;
-      cur->child_xembed = 0;
-      if(cur->child_accel_map)
-        bg_accelerator_map_clear(cur->child_accel_map);
+
+      if(evt->xdestroywindow.window == cur->child)
+        {
+        cur->child = None;
+        cur->child_xembed = 0;
+        if(cur->child_accel_map)
+          bg_accelerator_map_clear(cur->child_accel_map);
+        }
       break;
     case FocusIn:
       break;
