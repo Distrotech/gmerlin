@@ -72,10 +72,8 @@ static void check_gl(bg_x11_window_t * win,
                      gl_priv_t * priv)
   {
   int format_index = 0;
-  
-  const char * extensions;
-
-  if(!win->gl_vi)
+    
+  if(!win->gl_fbconfigs)
     {
     formats_ret[0] = GAVL_PIXELFORMAT_NONE;
     return;
@@ -93,17 +91,8 @@ static void check_gl(bg_x11_window_t * win,
   formats_ret[format_index++] = GAVL_GRAYA_32;
   formats_ret[format_index++] = GAVL_GRAY_FLOAT;
   formats_ret[format_index++] = GAVL_GRAYA_FLOAT;
-  
-  bg_x11_window_set_gl(win);
-  
-  extensions = (const char *) glGetString(GL_EXTENSIONS);
-
-  if(has_extension(extensions, "GL_ARB_texture_non_power_of_two"))
-    priv->extensions |= texture_non_power_of_two;
-  
-  bg_x11_window_unset_gl(win);
-  
   formats_ret[format_index] = GAVL_PIXELFORMAT_NONE;
+  
   return;
   }
 
@@ -235,11 +224,19 @@ static int open_gl(driver_data_t * d)
   {
   bg_x11_window_t * w;
   gl_priv_t * priv;
+  const char * extensions;
   
   priv = (gl_priv_t *)(d->priv);
   w = d->win;
+  
+  bg_x11_window_start_gl(w);
   /* Get the format */
   bg_x11_window_set_gl(w);
+  
+  extensions = (const char *) glGetString(GL_EXTENSIONS);
+
+  if(has_extension(extensions, "GL_ARB_texture_non_power_of_two"))
+    priv->extensions |= texture_non_power_of_two;
   
   create_texture(priv,
                  &priv->video,
@@ -476,6 +473,7 @@ static void close_gl(driver_data_t * d)
     priv->overlays = NULL; 
     }
   bg_x11_window_unset_gl(w);
+  bg_x11_window_stop_gl(w);
   }
 
 static void cleanup_gl(driver_data_t * d)

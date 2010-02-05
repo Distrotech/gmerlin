@@ -91,7 +91,6 @@ int bg_x11_window_set_contrast(bg_x11_window_t * w, float val)
   return set_contrast(w);
   }
 
-
 static void init(bg_x11_window_t * w)
   {
   int num_drivers, i;
@@ -105,7 +104,11 @@ static void init(bg_x11_window_t * w)
       w->drivers[i].driver->init(&w->drivers[i]);
     }
   
-  /* TODO: Get screen resolution */
+  /*
+   *  Possible TODO: Get screen resolution
+   *  (maybe better if we don't care at all)
+   */
+  
   w->window_format.pixel_width = 1;
   w->window_format.pixel_height = 1;
   w->idle_counter = 0;

@@ -487,6 +487,7 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
     bg_x11_window_set_size(win, 640, 480);
     
     bg_x11_window_realize(win);
+    bg_x11_window_start_gl(win);
     bg_x11_window_set_gl(win);
     }
   else
@@ -506,6 +507,7 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
   if(win)
     {
     bg_x11_window_unset_gl(win);
+    bg_x11_window_stop_gl(win);
     bg_x11_window_destroy(win);
     }
   

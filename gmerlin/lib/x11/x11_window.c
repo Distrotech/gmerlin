@@ -612,14 +612,32 @@ void bg_x11_window_embed_child(bg_x11_window_t * win,
 
 static void create_subwin(bg_x11_window_t * w,
                           window_t * win,
-                          int depth, Visual * v)
+                          int depth, Visual * v, unsigned long attr_mask,
+                          XSetWindowAttributes * attr)
   {
   int width, height;
+  
+  bg_x11_window_get_coords(w->dpy, win->win,
+                           NULL, NULL, &width, &height);
+  win->subwin = XCreateWindow(w->dpy,
+                              win->win, 0, 0, width, height, 0,
+                              depth, InputOutput, v, attr_mask, attr);
+  XMapWindow(w->dpy, win->subwin);
+  }
+
+void bg_x11_window_create_subwins(bg_x11_window_t * w,
+                                  int depth, Visual * v)
+  {
   unsigned long attr_mask;
   XSetWindowAttributes attr;
+  
+  w->sub_colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
+                                    v, AllocNone);
+
   memset(&attr, 0, sizeof(attr));
 
-  attr_mask = CWEventMask;
+  attr_mask = CWEventMask | CWColormap;
+  
   attr.event_mask =
     ExposureMask |
     ButtonPressMask |
@@ -628,27 +646,28 @@ static void create_subwin(bg_x11_window_t * w,
     PointerMotionMask |
     KeyReleaseMask;
   
-  bg_x11_window_get_coords(w->dpy, win->win,
-                           NULL, NULL, &width, &height);
-  win->subwin = XCreateWindow(w->dpy,
-                              win->win, 0, 0, width, height, 0,
-                              depth, InputOutput, v, attr_mask, &attr);
-  XMapWindow(w->dpy, win->subwin);
+  attr.colormap = w->sub_colormap;
+  
+  create_subwin(w, &w->normal, depth, v, attr_mask, &attr);
+  create_subwin(w, &w->fullscreen, depth, v, attr_mask, &attr);
   }
 
-void bg_x11_window_create_subwins(bg_x11_window_t * w,
-                                  int depth, Visual * v)
+static void destroy_subwin(bg_x11_window_t * w,
+                           window_t * win)
   {
-  create_subwin(w, &w->normal, depth, v);
-  create_subwin(w, &w->fullscreen, depth, v);
+  if(win->subwin != None)
+    {
+    XDestroyWindow(w->dpy, win->subwin);
+    win->subwin = None;
+    }
   }
+                          
 
 void bg_x11_window_destroy_subwins(bg_x11_window_t * w)
   {
-  XDestroyWindow(w->dpy, w->normal.subwin);
-  w->normal.subwin = None;
-  XDestroyWindow(w->dpy, w->fullscreen.subwin);
-  w->fullscreen.subwin = None;
+  destroy_subwin(w, &w->normal);
+  destroy_subwin(w, &w->fullscreen);
+  
   }
 
 static int create_window(bg_x11_window_t * w,
@@ -675,8 +694,7 @@ static int create_window(bg_x11_window_t * w,
   wmhints->initial_state = NormalState;
   wmhints->flags |= InputHint|StateHint;
   
-  /* Not clear why this is needed. Not creating the colormap
-     results in a BadMatch error */
+  /* Creating windows without colormap results in a BadMatch error */
   w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
                                 w->visual,
                                 AllocNone);
@@ -1027,6 +1045,10 @@ void bg_x11_window_destroy(bg_x11_window_t * w)
   {
   bg_x11_window_cleanup_video(w);
   bg_x11_window_cleanup_gl(w);
+  bg_x11_window_destroy_subwins(w);
+  
+  if(w->colormap != None)
+    XFreeColormap(w->dpy, w->colormap);
   
   if(w->normal.win != None)
     XDestroyWindow(w->dpy, w->normal.win);
@@ -1050,9 +1072,12 @@ void bg_x11_window_destroy(bg_x11_window_t * w)
   if(w->xinerama)
     XFree(w->xinerama);
 #endif
-  if(w->gl_vi)
-    XFree(w->gl_vi);
-
+  
+#ifdef GAVE_GLX
+  if(w->gl_fbconfigs)
+    XFree(w->gl_fbconfigs);
+#endif
+  
   if(w->icon != None)
     XFreePixmap(w->dpy, w->icon);
   
@@ -1326,69 +1351,23 @@ void bg_x11_window_set_size(bg_x11_window_t * win, int width, int height)
   win->window_height = height;
   }
 
-#ifdef HAVE_GLX
-static const struct
-  {
-  int glx_attribute;
-  int is_boolean;
-  }
-gl_attribute_map[BG_GL_ATTRIBUTE_NUM] =
-  {
-    [BG_GL_ATTRIBUTE_BUFFER_SIZE]       = { GLX_BUFFER_SIZE,      0 },
-    [BG_GL_ATTRIBUTE_LEVEL]             = { GLX_LEVEL,            0 },
-    [BG_GL_ATTRIBUTE_RGBA]              = { GLX_RGBA,             1 },
-    [BG_GL_ATTRIBUTE_DOUBLEBUFFER]      = { GLX_DOUBLEBUFFER,     1 },
-    [BG_GL_ATTRIBUTE_STEREO]            = { GLX_STEREO,           1 },
-    [BG_GL_ATTRIBUTE_AUX_BUFFERS]       = { GLX_AUX_BUFFERS,      0 },
-    [BG_GL_ATTRIBUTE_RED_SIZE]          = { GLX_RED_SIZE,         0 },
-    [BG_GL_ATTRIBUTE_GREEN_SIZE]        = { GLX_GREEN_SIZE,       0 },
-    [BG_GL_ATTRIBUTE_BLUE_SIZE]         = { GLX_BLUE_SIZE,        0 },
-    [BG_GL_ATTRIBUTE_ALPHA_SIZE]        = { GLX_ALPHA_SIZE,       0 },
-    [BG_GL_ATTRIBUTE_DEPTH_SIZE]        = { GLX_DEPTH_SIZE,       0 },
-    [BG_GL_ATTRIBUTE_STENCIL_SIZE]      = { GLX_STENCIL_SIZE,     0 },
-    [BG_GL_ATTRIBUTE_ACCUM_RED_SIZE]    = { GLX_ACCUM_RED_SIZE,   0 },
-    [BG_GL_ATTRIBUTE_ACCUM_GREEN_SIZE]  = { GLX_ACCUM_GREEN_SIZE, 0 },
-    [BG_GL_ATTRIBUTE_ACCUM_BLUE_SIZE]   = { GLX_ACCUM_BLUE_SIZE,  0 },
-    [BG_GL_ATTRIBUTE_ACCUM_ALPHA_SIZE]  = { GLX_ACCUM_ALPHA_SIZE, 0 },
-  };
-#endif
 
 int bg_x11_window_realize(bg_x11_window_t * win)
   {
   int ret;
-  int screen;
-
-#ifdef HAVE_GLX
-  int attr_index = 0, i;
-  /* Attributes we need for video playback */
-
-  int attr_list[64];
-  for(i = 0; i < BG_GL_ATTRIBUTE_NUM; i++)
-    {
-    if(!win->gl_attributes[i].changed)
-      continue;
-    attr_list[attr_index++] = gl_attribute_map[i].glx_attribute;
-    
-    if(!gl_attribute_map[i].is_boolean)
-      attr_list[attr_index++] = win->gl_attributes[i].value;
-    }
-
-  attr_list[attr_index] = None;
-#endif
-
+  
   if(!win->dpy && !open_display(win))
     return 0;
   
-#ifdef HAVE_GLX
-// #if 0
+// #ifdef HAVE_GLX
+#if 0
   win->gl_vi = glXChooseVisual(win->dpy, win->screen, attr_list);
   
   if(!win->gl_vi)
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Could not get GL Visual");
-    screen = DefaultScreen(win->dpy);
-    win->visual = DefaultVisual(win->dpy, screen);
-    win->depth = DefaultDepth(win->dpy, screen);
+    win->visual = DefaultVisual(win->dpy, win->screen);
+    win->depth = DefaultDepth(win->dpy, win->screen);
     }
   else
     {
@@ -1396,12 +1375,11 @@ int bg_x11_window_realize(bg_x11_window_t * win)
     win->depth  = win->gl_vi->depth;
     }
 
-#else
-  screen = DefaultScreen(win->dpy);
-  win->visual = DefaultVisual(win->dpy, screen);
-  win->depth = DefaultDepth(win->dpy, screen);
 #endif
 
+  win->visual = DefaultVisual(win->dpy, win->screen);
+  win->depth = DefaultDepth(win->dpy, win->screen);
+  
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got Visual 0x%lx depth %d",
          win->visual->visualid, win->depth);
 

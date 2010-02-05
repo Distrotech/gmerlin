@@ -106,7 +106,9 @@ extern const video_driver_t ximage_driver;
 extern const video_driver_t xv_driver;
 #endif
 
+#ifdef HAVE_GLX
 extern const video_driver_t gl_driver;
+#endif
 
 #define MAX_DRIVERS 3
 
@@ -158,6 +160,9 @@ typedef struct
   Window subwin; 
   
   Window focus_child;  /* Focus proxy */
+#ifdef HAVE_GLX
+  GLXWindow glx_win;
+#endif
   int parent_xembed;
   int child_xembed;
   int mapped;
@@ -236,22 +241,25 @@ struct bg_x11_window_s
   int auto_resize;
   
   Colormap colormap;
-
+  Colormap sub_colormap;
+  
   bg_x11_window_callbacks_t * callbacks;
 
-  XVisualInfo * gl_vi;
   Visual * visual;
   int depth;
-  
+
+  /* OpenGL stuff */  
 #ifdef HAVE_GLX
   GLXContext glxcontext;
-#endif
-
+  
+  GLXFBConfig * gl_fbconfigs;
+  
   struct
     {
     int value;
     int changed;
     } gl_attributes[BG_GL_ATTRIBUTE_NUM];
+#endif
 
   /* XShm */
   
