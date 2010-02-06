@@ -29,6 +29,8 @@
 #include <mpv_header.h>
 #include <h264_header.h>
 
+// #define DUMP_AVCHD_SEI
+
 /* H.264 */
 
 #define H264_NEED_NAL_START 0
@@ -163,66 +165,82 @@ static void handle_sei(bgav_video_parser_t * parser)
         // fprintf(stderr, "Got SEI user_data_registered_itu_t_t35\n");
         break;
       case 5:
-        /* AVCHD Timecodes: Since every scene is written to a new file
-           it is sufficient to output just the start of the recording */
-        if(!parser->format.timecode_format.int_framerate &&
-           (sei_size >= 31) && !memcmp(ptr, avchd_mdpm, 20))
+        // fprintf(stderr, "Got SEI user_data_unregistered\n");
+        if(!memcmp(ptr, avchd_mdpm, 20))
           {
+          /* AVCHD Timecodes: Since every scene is written to a new file
+             it is sufficient to output just the start of the recording */
+          int tag, num_tags, i;
           int year = -1, month = -1, day = -1, hour = -1, minute = -1, second = -1;
-          
-          // fprintf(stderr, "Got AVCHD sei message\n");
+#ifdef DUMP_AVCHD_SEI
+          bgav_dprintf( "Got AVCHD SEI message\n");
+#endif
           // bgav_hexdump(ptr, sei_size, 16);
           
           /* Skip GUID + MDPM */
           ptr += 20;
           sei_size -= 20;
 
-          /* Get the timecode framerate */
-          parser->format.timecode_format.int_framerate =
-            parser->format.timescale / parser->format.frame_duration;
-          if(parser->format.timescale % parser->format.frame_duration)
-            parser->format.timecode_format.int_framerate++;
+          num_tags = *ptr; ptr++; sei_size--;
 
-          /* For NTSC framerate we make a drop frame timecode */
+          if(sei_size != num_tags * 5)
+            continue;
           
-          if((int64_t)parser->format.timescale * 1001 ==
-             (int64_t)parser->format.frame_duration * 30000)
-            parser->format.timecode_format.flags |= GAVL_TIMECODE_DROP_FRAME;
-          
-          // Now, check for the recording date and time 
-          
-          if(ptr[1] == 0x18)
+          for(i = 0; i < num_tags; i++)
             {
-            year  = BCD_2_INT(ptr[3])*100 + BCD_2_INT(ptr[4]);
-            month = BCD_2_INT(ptr[5]);
-            }
-          if(ptr[6] == 0x19)
-            {
-            day    = BCD_2_INT(ptr[7]);
-            hour   = BCD_2_INT(ptr[8]);
-            minute = BCD_2_INT(ptr[9]);
-            second = BCD_2_INT(ptr[10]);
-            }
+            tag = *ptr; ptr++;
 
+#ifdef DUMP_AVCHD_SEI
+            bgav_dprintf( "Tag: 0x%02x, Data: %02x %02x %02x %02x\n",
+                    tag, ptr[0], ptr[1], ptr[2], ptr[3]);
+#endif
+            switch(tag)
+              {
+              case 0x18:
+                year  = BCD_2_INT(ptr[1])*100 + BCD_2_INT(ptr[2]);
+                month = BCD_2_INT(ptr[3]);
+                break;
+              case 0x19:
+                day    = BCD_2_INT(ptr[0]);
+                hour   = BCD_2_INT(ptr[1]);
+                minute = BCD_2_INT(ptr[2]);
+                second = BCD_2_INT(ptr[3]);
+                break;
+              }
+            ptr += 4;
+            }
+          
           if((year >= 0) && (month >= 0) && (day >= 0) &&
              (hour >= 0) && (minute >= 0) && (second >= 0))
             {
-            // fprintf(stderr, "%04d-%02d-%02d %02d:%02d:%02d\n",
-            //      year, month, day, hour, minute, second);
+            if(!parser->format.timecode_format.int_framerate)
+              {
+              /* Get the timecode framerate */
+              parser->format.timecode_format.int_framerate =
+                parser->format.timescale / parser->format.frame_duration;
+              if(parser->format.timescale % parser->format.frame_duration)
+                parser->format.timecode_format.int_framerate++;
+              
+              /* For NTSC framerate we make a drop frame timecode */
+              
+              if((int64_t)parser->format.timescale * 1001 ==
+                 (int64_t)parser->format.frame_duration * 30000)
+                parser->format.timecode_format.flags |= GAVL_TIMECODE_DROP_FRAME;
+              
+              /* We output only the first timecode in the file since the rest is redundant */
+              gavl_timecode_from_hmsf(&parser->cache[parser->cache_size-1].tc,
+                                      hour,
+                                      minute,
+                                      second,
+                                      0);
+              gavl_timecode_from_ymd(&parser->cache[parser->cache_size-1].tc,
+                                     year,
+                                     month,
+                                     day);
+              }
             
-            gavl_timecode_from_hmsf(&parser->cache[parser->cache_size-1].tc,
-                                    hour,
-                                    minute,
-                                    second,
-                                    0);
-            gavl_timecode_from_ymd(&parser->cache[parser->cache_size-1].tc,
-                                   year,
-                                   month,
-                                   day);
             }
           }
-        
-        // fprintf(stderr, "Got SEI user_data_unregistered\n");
         break;
       case 6:
         if(!bgav_h264_decode_sei_recovery_point(ptr,

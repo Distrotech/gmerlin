@@ -1667,7 +1667,8 @@ AC_SEARCH_LIBS([glXCreateContext], [GL glx], [], [have_GLX="false"], [])
 if test "x$have_GL" = "xtrue"; then
 AC_TRY_RUN([
 #include <GL/glx.h>
-int main() { if(0) glXCreateContext(NULL, NULL, NULL, 0); return 0;}],[],[have_GLX="false"])
+int main() { if(0) glXChooseFBConfig(NULL, 0,
+	NULL, NULL); return 0;}],[],[have_GLX="false"])
 fi
 
 GLX_CFLAGS=$CFLAGS
