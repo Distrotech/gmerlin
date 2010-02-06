@@ -701,9 +701,8 @@ static void show_frame_lv(void * data)
   {
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
-  bg_x11_window_swap_gl(priv->win);
-  
   bg_x11_window_set_gl(priv->win);
+  bg_x11_window_swap_gl(priv->win);
   bg_x11_window_handle_events(priv->win, 0);
   bg_x11_window_unset_gl(priv->win);
   }
@@ -901,6 +900,7 @@ int bg_lv_load(bg_plugin_handle_t * ret,
     bg_x11_window_set_size(priv->win, 640, 480);
     
     bg_x11_window_realize(priv->win);
+    bg_x11_window_start_gl(priv->win);
     bg_x11_window_set_gl(priv->win);
     }
   visual_actor_realize(priv->actor);
@@ -931,6 +931,7 @@ void bg_lv_unload(bg_plugin_handle_t * h)
   if(priv->win)
     {
     bg_x11_window_unset_gl(priv->win);
+    bg_x11_window_stop_gl(priv->win);
     bg_x11_window_destroy(priv->win);
     }
   

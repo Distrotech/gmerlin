@@ -177,9 +177,7 @@ void bg_x11_window_unset_gl(bg_x11_window_t * win)
  */
 void bg_x11_window_swap_gl(bg_x11_window_t * win)
   {
-  bg_x11_window_set_gl(win);
   glXSwapBuffers(win->dpy, win->current->glx_win);
-  bg_x11_window_unset_gl(win);
   }
 
 void bg_x11_window_cleanup_gl(bg_x11_window_t * win)

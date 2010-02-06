@@ -314,7 +314,7 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   tex_x2 = (w->src_rect.x + w->src_rect.w) / priv->video.width;
   tex_y2 = (w->src_rect.y + w->src_rect.h) / priv->video.height;
   
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
   glBegin(GL_QUADS);
   glTexCoord2f(tex_x1,tex_y2); glVertex3f(0,             0,             0);
   glTexCoord2f(tex_x1,tex_y1); glVertex3f(0,             w->dst_rect.h, 0);
@@ -368,10 +368,9 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
       }
     glDisable(GL_BLEND);
     }
-  glDisable(GL_TEXTURE_2D);
-  
-  bg_x11_window_unset_gl(w);
   bg_x11_window_swap_gl(w);
+  glDisable(GL_TEXTURE_2D);
+  bg_x11_window_unset_gl(w);
   }
 
 static void destroy_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
