@@ -556,10 +556,7 @@ static int decode_picture(bgav_stream_t * s)
 
 static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
   {
-  bgav_packet_t * p;
   ffmpeg_video_priv * priv;
-  int ct;
-  enum AVDiscard disc;
   
   priv = s->data.video.decoder->priv;
   priv->skip_time = time;

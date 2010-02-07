@@ -319,7 +319,6 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
   //  gavl_time_t stream_time;
   int result;
   int64_t time_scaled;
-  int64_t next_key_frame;
   
   time_scaled =
     gavl_time_rescale(scale, s->data.video.format.timescale, *time);
@@ -519,6 +518,13 @@ static gavl_frame_table_t * create_frame_table_fi(bgav_stream_t * s)
 
   /* Flush last frame */
   gavl_frame_table_append_entry(ret, s->duration - last_time);
+
+  for(i = 0; i < fi->tt.num_entries; i++)
+    {
+    gavl_frame_table_append_timecode(ret,
+                                     fi->tt.entries[i].pts,
+                                     fi->tt.entries[i].timecode);
+    }
   
   return ret;
   }
@@ -553,6 +559,18 @@ create_frame_table_si(bgav_stream_t * s, bgav_superindex_t * si)
 
   if(last_non_b_index >= 0)
     gavl_frame_table_append_entry(ret, si->entries[last_non_b_index].duration);
+
+  /* Maybe we have timecodes in the timecode table */
+
+  if(s->timecode_table)
+    {
+    for(i = 0; i < s->timecode_table->num_entries; i++)
+      {
+      gavl_frame_table_append_timecode(ret,
+                                       s->timecode_table->entries[i].pts,
+                                       s->timecode_table->entries[i].timecode);
+      }
+    }
   
   return ret;
   }

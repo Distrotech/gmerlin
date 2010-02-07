@@ -41,7 +41,6 @@ static inline void fill_cache(bgav_bitstream_t * b)
     b->pos++;
     }
   b->bit_cache = bytes * 8;
-  return bytes;
   }
 
 void bgav_bitstream_init(bgav_bitstream_t * b, const uint8_t * pos, 

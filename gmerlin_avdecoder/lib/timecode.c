@@ -27,10 +27,34 @@ bgav_timecode_table_create(int num)
   {
   bgav_timecode_table_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->entries = calloc(num, sizeof(*ret->entries));
-  ret->num_entries = num;
+
+  if(num)
+    {
+    ret->entries = calloc(num, sizeof(*ret->entries));
+    ret->num_entries = num;
+    ret->entries_alloc = num;
+    }
   return ret;
   }
+
+void
+bgav_timecode_table_append_entry(bgav_timecode_table_t * tt,
+                                 int64_t pts,
+                                 gavl_timecode_t timecode)
+  {
+  if(tt->num_entries +1 > tt->entries_alloc)
+    {
+    tt->entries_alloc += 128;
+    tt->entries = realloc(tt->entries,
+                          tt->entries_alloc * sizeof(*tt->entries));
+    memset(tt->entries + tt->num_entries, 0,
+           (tt->entries_alloc - tt->num_entries) * sizeof(*tt->entries));
+    }
+  tt->entries[tt->num_entries].pts = pts;
+  tt->entries[tt->num_entries].timecode = timecode;
+  tt->num_entries++;
+  }
+
 
 void
 bgav_timecode_table_destroy(bgav_timecode_table_t * table)

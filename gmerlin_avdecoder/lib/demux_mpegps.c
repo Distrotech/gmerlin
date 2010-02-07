@@ -1040,18 +1040,18 @@ static int do_sync(bgav_demuxer_context_t * ctx)
   priv = (mpegps_priv_t*)(ctx->priv);
   priv->do_sync = 1;
 
-  fprintf(stderr, "do sync...\n");
+  //  fprintf(stderr, "do sync...\n");
 
   while(!bgav_track_has_sync(ctx->tt->cur))
     {
     if(!next_packet_mpegps(ctx))
       {
-      fprintf(stderr, "do sync: EOF\n");
+      //      fprintf(stderr, "do sync: EOF\n");
       priv->do_sync = 0;
       return 0;
       }
     }
-  fprintf(stderr, "do sync done\n");
+  //  fprintf(stderr, "do sync done\n");
   
   priv->do_sync = 0;
   return 1;

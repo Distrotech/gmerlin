@@ -1061,6 +1061,36 @@ void bgav_superindex_set_size(bgav_superindex_t * ret, int size);
 void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
                                      bgav_stream_t * s);
 
+/* timecode.c */
+
+typedef struct
+  {
+  int64_t pts;
+  gavl_timecode_t timecode;
+  } bgav_timecode_table_entry_t;
+
+struct bgav_timecode_table_s
+  {
+  int num_entries;
+  int entries_alloc;
+  bgav_timecode_table_entry_t * entries;
+  };
+
+bgav_timecode_table_t *
+bgav_timecode_table_create(int num);
+
+void
+bgav_timecode_table_append_entry(bgav_timecode_table_t *,
+                                 int64_t pts,
+                                 gavl_timecode_t timecode);
+
+void
+bgav_timecode_table_destroy(bgav_timecode_table_t *);
+
+gavl_timecode_t
+bgav_timecode_table_get_timecode(bgav_timecode_table_t * table,
+                                 int64_t pts);
+
 /*
  * File index
  *
@@ -1102,6 +1132,8 @@ struct bgav_file_index_s
   uint32_t num_entries;
   uint32_t entries_alloc;
   bgav_file_index_entry_t * entries;
+  
+  bgav_timecode_table_t tt;
   };
 
 bgav_file_index_t * bgav_file_index_create();
@@ -1117,7 +1149,7 @@ void
 bgav_file_index_append_packet(bgav_file_index_t * idx,
                               int64_t position,
                               int64_t time,
-                              int keyframe);
+                              int keyframe, gavl_timecode_t tc);
 
 int bgav_file_index_read_header(const char * filename,
                                 bgav_input_context_t * input,
@@ -1808,29 +1840,6 @@ void bgav_translation_init();
 /* For static strings */
 #define TRS(s) (s)
 
-/* timecode.c */
-
-typedef struct
-  {
-  int64_t pts;
-  gavl_timecode_t timecode;
-  } bgav_timecode_table_entry_t;
-
-struct bgav_timecode_table_s
-  {
-  int num_entries;
-  bgav_timecode_table_entry_t * entries;
-  };
-
-bgav_timecode_table_t *
-bgav_timecode_table_create(int num);
-
-void
-bgav_timecode_table_destroy(bgav_timecode_table_t *);
-
-gavl_timecode_t
-bgav_timecode_table_get_timecode(bgav_timecode_table_t * table,
-                                 int64_t pts);
 
 /* keyframetable.c */
 

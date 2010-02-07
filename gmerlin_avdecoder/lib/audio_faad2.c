@@ -296,14 +296,14 @@ static void parse_faad2(bgav_stream_t * s)
         bgav_file_index_append_packet(s->file_index,
                                       priv->last_position,
                                       s->duration,
-                                      PACKET_FLAG_KEY);
+                                      PACKET_FLAG_KEY, GAVL_TIMECODE_UNDEFINED);
         old_buffer_size = 0;
         }
       else
         bgav_file_index_append_packet(s->file_index,
                                       position,
                                       s->duration,
-                                      PACKET_FLAG_KEY);
+                                      PACKET_FLAG_KEY, GAVL_TIMECODE_UNDEFINED);
       
       s->duration += s->data.audio.frame->valid_samples;
       }

@@ -40,11 +40,13 @@
 
 /* Version must be increased each time the fileformat
    changes */
-#define INDEX_VERSION 3
+#define INDEX_VERSION 4
 
 static void dump_index(bgav_stream_t * s)
   {
   int i;
+  gavl_timecode_t tc;
+  
   if(s->type == BGAV_STREAM_VIDEO)
     {
     for(i = 0; i < s->file_index->num_entries; i++)
@@ -56,11 +58,29 @@ static void dump_index(bgav_stream_t * s)
                    s->file_index->entries[i].flags & 0xff);
       
       if(i < s->file_index->num_entries-1)
-        bgav_dprintf(" posdiff: %"PRId64"\n",
+        bgav_dprintf("posdiff: %"PRId64,
                      s->file_index->entries[i+1].position-s->file_index->entries[i].position
                      );
-      else
-        bgav_dprintf("\n");
+      
+      tc = bgav_timecode_table_get_timecode(&s->file_index->tt,
+                                            s->file_index->entries[i].pts);
+
+      if(tc != GAVL_TIME_UNDEFINED)
+        {
+        int year, month, day, hours, minutes, seconds, frames;
+
+        gavl_timecode_to_ymd(tc, &year, &month, &day);
+        gavl_timecode_to_hmsf(tc, &hours,
+                              &minutes, &seconds, &frames);
+
+        bgav_dprintf(" tc: ");
+        if(month && day)
+          bgav_dprintf("%04d-%02d-%02d ", year, month, day);
+        
+        bgav_dprintf("%02d:%02d:%02d:%02d", hours, minutes, seconds, frames);
+        }
+      
+      bgav_dprintf("\n");
       }
     }
   else
@@ -155,7 +175,7 @@ void
 bgav_file_index_append_packet(bgav_file_index_t * idx,
                               int64_t position,
                               int64_t time,
-                              int flags)
+                              int flags, gavl_timecode_t tc)
   {
   if(idx->num_entries >= idx->entries_alloc)
     {
@@ -171,6 +191,13 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
   idx->entries[idx->num_entries].pts     = time;
   idx->entries[idx->num_entries].flags    = flags;
   idx->num_entries++;
+
+  /* Timecode */
+  if(tc != GAVL_TIMECODE_UNDEFINED)
+    {
+    bgav_timecode_table_append_entry(&idx->tt,
+                                     time, tc);
+    }
   }
 
 /*
@@ -184,7 +211,7 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
  * 1. Signature "BGAVINDEX <version>\n"
  *    (Version is the INDEX_VERSION defined above)
  * 2. Filename terminated with \n
- * 3. File time (st_mtime returned by stat(2)) (64
+ * 3. File time (st_mtime returned by stat(2)) (64)
  * 4. Number of tracks (32)
  * 5. Tracks consising of
  *    5.1 Number of streams (32)
@@ -195,9 +222,14 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
  *        5.2.5 Duration (64)
  *        5.2.6 Number of entries (32)
  *        5.2.7 Index entries consiting of
- *              5.2.7.1 1 if frame is a keyframe, 0 else (8)
+ *              5.2.7.1 packet flags (32)
  *              5.2.7.2 position (64)
  *              5.2.7.3 time (64)
+ *        5.2.8 *only* for video streams: number of timecodes (32)
+ *        5.2.9 *only* for video streams: Timecodes consisting of
+ *              5.2.9.1 pts (64)
+ *              5.2.9.2 timecode (64)
+ *        
  */
 
 
@@ -333,6 +365,27 @@ file_index_read_stream(bgav_input_context_t * input, bgav_stream_t * s)
        !bgav_input_read_64_be(input, (uint64_t*)(&ret->entries[i].pts)))
       return NULL;
     }
+
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    if(!bgav_input_read_32_be(input, (uint32_t*)&ret->tt.num_entries))
+      return NULL;
+
+    if(ret->tt.num_entries)
+      {
+      ret->tt.entries_alloc = ret->tt.num_entries;
+      ret->tt.entries = calloc(ret->tt.num_entries, sizeof(*ret->tt.entries));
+
+      for(i = 0; i < ret->tt.num_entries; i++)
+        {
+        if(!bgav_input_read_64_be(input, (uint64_t*)&ret->tt.entries[i].pts) ||
+           !bgav_input_read_64_be(input, &ret->tt.entries[i].timecode))
+          return NULL;
+        }
+      }
+    
+    }
+  
   return ret;
   }
 
@@ -368,6 +421,17 @@ file_index_write_stream(FILE * output,
     write_32(output, idx->entries[i].flags);
     write_64(output, idx->entries[i].position);
     write_64(output, idx->entries[i].pts);
+    }
+
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    write_32(output, idx->tt.num_entries);
+    
+    for(i = 0; i < idx->tt.num_entries; i++)
+      {
+      write_64(output, idx->tt.entries[i].pts);
+      write_64(output, idx->tt.entries[i].timecode);
+      }
     }
   }
 
@@ -664,7 +728,7 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
     if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_file_index_append_packet(s->file_index,
-                                    p->position, t, p->flags);
+                                    p->position, t, p->flags, p->tc);
       if(t >= s->duration)
         s->duration = t + p->duration;
       }
@@ -681,7 +745,7 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
     if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_file_index_append_packet(s->file_index,
-                                    p->position, p->pts, p->flags);
+                                    p->position, p->pts, p->flags, p->tc);
       s->out_time = p->pts;
       if(p->pts > s->duration)
         s->duration = p->pts;
