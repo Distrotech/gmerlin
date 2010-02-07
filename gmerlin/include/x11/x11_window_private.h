@@ -259,6 +259,8 @@ struct bg_x11_window_s
     int value;
     int changed;
     } gl_attributes[BG_GL_ATTRIBUTE_NUM];
+  
+  float background_color[3];
 #endif
 
   /* XShm */

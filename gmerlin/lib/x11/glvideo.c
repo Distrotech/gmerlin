@@ -313,6 +313,11 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   
   tex_x2 = (w->src_rect.x + w->src_rect.w) / priv->video.width;
   tex_y2 = (w->src_rect.y + w->src_rect.h) / priv->video.height;
+
+  glColor4f(w->background_color[0], 
+            w->background_color[1], 
+            w->background_color[2],
+            1.0);
   
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
   glBegin(GL_QUADS);
@@ -325,6 +330,8 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   /* Draw overlays */
   if(w->num_overlay_streams)
     {
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     

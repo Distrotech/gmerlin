@@ -27,6 +27,7 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/pluginfuncs.h>
 
 #include <gavl/gavldsp.h>
 
@@ -122,6 +123,7 @@ const bg_image_writer_plugin_t the_plugin =
     .extensions = "gavi",
     .write_header =  write_header_gavl,
     .write_image =   write_image_gavl,
+    .set_callbacks = set_callbacks_gavl,
   };
 
 /* Include this into all plugin modules exactly once

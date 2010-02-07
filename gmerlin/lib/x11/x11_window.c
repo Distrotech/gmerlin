@@ -1160,6 +1160,16 @@ static const bg_parameter_info_t common_parameters[] =
       .help_string = TRS("Use hardware scaling even if it involves more CPU intensive pixelformat conversions"),
 
     },
+#ifdef HAVE_GLX
+    {
+      .name =        "background_color",
+      .long_name =   TRS("Background color"),
+      .type =        BG_PARAMETER_COLOR_RGB,
+      .flags =       BG_PARAMETER_SYNC,
+      .help_string = TRS("Specify the background color for videos with alpha channel. This is only used by the OpenGL driver."),
+
+    },
+#endif
     {
       .name =        "sw_scaler",
       .long_name =   TRS("Software scaler"),
@@ -1260,6 +1270,13 @@ bg_x11_window_set_parameter(void * data, const char * name,
     {
     win->disable_screensaver_fullscreen = val->val_i;
     }
+#ifdef HAVE_GLX
+  else if(!strcmp(name, "background_color"))
+    {
+    memcpy(win->background_color, val->val_color, 3 * sizeof(float));
+    }
+#endif
+  
   else if(!strcmp(name, "force_hw_scale"))
     {
     win->force_hw_scale = val->val_i;
