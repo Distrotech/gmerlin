@@ -1199,7 +1199,7 @@ struct bg_ov_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param frame Frame to display
    *  
-   *  This function is like put_video() with the diffderence, that
+   *  This function is like put_video() with the difference, that
    *  the frame will be remembered and redisplayed, when an expose event
    *  is received.
    */
