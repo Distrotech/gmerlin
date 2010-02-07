@@ -91,7 +91,8 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab,
   if(tab_h && tab_v)
     {
     if((tab_h->factors_per_pixel == 1) &&
-       (tab_v->factors_per_pixel == 1))
+       (tab_v->factors_per_pixel == 1) &&
+       ((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C)))
       gavl_init_scale_funcs_nearest_c(tab, src_advance, dst_advance);
     return;
     }
@@ -105,7 +106,8 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab,
   switch(scale_table->factors_per_pixel)
     {
     case 1:
-      gavl_init_scale_funcs_nearest_c(tab, src_advance, dst_advance);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_scale_funcs_nearest_c(tab, src_advance, dst_advance);
       break;
     case 2:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))

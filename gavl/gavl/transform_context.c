@@ -138,7 +138,8 @@ static void init_func_tab(gavl_video_options_t * opt,
   switch(ctx->tab.factors_per_pixel)
     {
     case 1:
-      gavl_init_transform_funcs_nearest_c(func_tab, ctx->advance);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_transform_funcs_nearest_c(func_tab, ctx->advance);
       break;
     case 2:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))

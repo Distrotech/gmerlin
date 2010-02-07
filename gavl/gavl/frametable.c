@@ -327,6 +327,8 @@ int64_t gavl_frame_table_end_time(const gavl_frame_table_t * t)
 void gavl_frame_table_dump(const gavl_frame_table_t * t)
   {
   int i;
+  char str[GAVL_TIMECODE_STRING_LEN];
+
   fprintf(stderr, "Entries: %"PRId64", total frames: %"PRId64", offset: %"PRId64"\n",
           t->num_entries, gavl_frame_table_num_frames(t), t->offset);
   
@@ -334,6 +336,14 @@ void gavl_frame_table_dump(const gavl_frame_table_t * t)
     {
     fprintf(stderr, "  Frames: %"PRId64", duration: %"PRId64"\n",
             t->entries[i].num_frames, t->entries[i].duration);
+    }
+
+  fprintf(stderr, "Timecodes: %d\n", t->num_timecodes);
+  for(i = 0; i < t->num_timecodes; i++)
+    {
+    gavl_timecode_prettyprint(NULL, t->timecodes[i].tc, str);
+    fprintf(stderr, "  PTS: %"PRId64" TC: %s\n",
+            t->timecodes[i].pts, str);
     }
   }
 

@@ -133,7 +133,6 @@ static mmx_t dump_tmp;
 
 #define NUM_TAPS 3
 
-
 /* transform_uint8_x_4_quadratic_mmx */
 
 #define FUNC_NAME transform_uint8_x_4_quadratic_mmx
@@ -180,6 +179,54 @@ static mmx_t dump_tmp;
   psrlw_i2r(6, mm2);        \
   packuswb_r2r(mm0, mm2); \
   movd_r2m(mm2, *dst);
+
+#include "../c/transform_c.h"
+
+/* transform_uint16_x_4_quadratic_mmx */
+
+#define FUNC_NAME transform_uint16_x_4_quadratic_mmx
+#define TYPE uint8_t
+#define INIT pxor_r2r(mm0, mm0);
+#define FINISH ctx->need_emms = 1;
+
+#define TRANSFORM \
+  LOAD_64(src_0, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[0][0], mm2); \
+  pmulhw_r2r(mm3,mm2);                          \
+  LOAD_64(src_0+8, mm3);                        \
+  LOAD_FACTOR_X_1(pixel->factors_i[0][1], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_0+16, mm3);                        \
+  LOAD_FACTOR_X_1(pixel->factors_i[0][2], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_1, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[1][0], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_1+8, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[1][1], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_1+16, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[1][2], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_2, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[2][0], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_2+8, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[2][1], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_2+16, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[2][2], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  psllw_i2r(2, mm2);        \
+  MOVQ_R2M(mm2, *dst);
 
 #include "../c/transform_c.h"
 
@@ -265,6 +312,83 @@ static mmx_t dump_tmp;
 #include "../c/transform_c.h"
 
 
+/* transform_uint16_x_4_bicubic_mmx */
+
+#define FUNC_NAME transform_uint16_x_4_bicubic_mmx
+#define TYPE uint8_t
+#define INIT pxor_r2r(mm0, mm0);
+#define FINISH ctx->need_emms = 1;
+
+#define TRANSFORM \
+  LOAD_64(src_0, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[0][0], mm2); \
+  pmulhw_r2r(mm3,mm2);                          \
+  LOAD_64(src_0+8, mm3);                        \
+  LOAD_FACTOR_X_1(pixel->factors_i[0][1], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_0+16, mm3);                        \
+  LOAD_FACTOR_X_1(pixel->factors_i[0][2], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_0+24, mm3);                        \
+  LOAD_FACTOR_X_1(pixel->factors_i[0][3], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_1, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[1][0], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_1+8, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[1][1], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_1+16, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[1][2], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_1+24, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[1][3], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_2, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[2][0], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_2+8, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[2][1], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_2+16, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[2][2], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_2+24, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[2][3], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_3, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[3][0], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);  \
+  LOAD_64(src_3+8, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[3][1], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_3+16, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[3][2], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  LOAD_64(src_3+24, mm3);                         \
+  LOAD_FACTOR_X_1(pixel->factors_i[3][3], mm4); \
+  pmulhw_r2r(mm3,mm4);                          \
+  paddusw_r2r(mm4,mm2);                    \
+  psllw_i2r(2, mm2);        \
+  MOVQ_R2M(mm2, *dst);
+
+#include "../c/transform_c.h"
+
+
 #ifdef MMXEXT
 void gavl_init_transform_funcs_bilinear_mmxext(gavl_transform_funcs_t * tab,
                                             int advance)
@@ -300,6 +424,11 @@ void gavl_init_transform_funcs_quadratic_mmx(gavl_transform_funcs_t * tab,
     tab->transform_uint8_x_3 =  transform_uint8_x_4_quadratic_mmx;
     tab->transform_uint8_x_4 =  transform_uint8_x_4_quadratic_mmx;
     tab->bits_uint8_noadvance  = 15;
+    }
+  if(advance == 8)
+    {
+    tab->transform_uint16_x_4 =  transform_uint16_x_4_quadratic_mmx;
+    tab->bits_uint16_x_4  = 15;
     // fprintf(stderr, "Using MMX transform\n");
     }
 
@@ -318,6 +447,12 @@ void gavl_init_transform_funcs_bicubic_mmx(gavl_transform_funcs_t * tab,
     tab->transform_uint8_x_3 =  transform_uint8_x_4_bicubic_mmx;
     tab->transform_uint8_x_4 =  transform_uint8_x_4_bicubic_mmx;
     tab->bits_uint8_noadvance  = 15;
+    // fprintf(stderr, "Using MMX transform\n");
+    }
+  if(advance == 8)
+    {
+    tab->transform_uint16_x_4 =  transform_uint16_x_4_bicubic_mmx;
+    tab->bits_uint16_x_4  = 15;
     // fprintf(stderr, "Using MMX transform\n");
     }
 

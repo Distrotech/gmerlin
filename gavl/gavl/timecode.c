@@ -327,7 +327,7 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
     ptr += strlen(ptr);
     }
 
-  if(tf->int_framerate < 100)
+  if(!tf || (tf->int_framerate < 100))
     sprintf(ptr, "%02d:%02d:%02d:%02d", hours, minutes, seconds, frames);
   else if(tf->int_framerate < 1000)
     sprintf(ptr, "%02d:%02d:%02d:%03d", hours, minutes, seconds, frames);

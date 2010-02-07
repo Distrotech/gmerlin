@@ -1524,10 +1524,39 @@ static const struct
   }
 transform_modes[] =
   {
-    //    { GAVL_SCALE_NEAREST, "Nearest" },
-    //    { GAVL_SCALE_BILINEAR, "Linear"}, 
-    //    { GAVL_SCALE_QUADRATIC, "Quadratic" },
+    { GAVL_SCALE_NEAREST, "Nearest" },
+    { GAVL_SCALE_BILINEAR, "Linear"}, 
+    { GAVL_SCALE_QUADRATIC, "Quadratic" },
     { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
+  };
+
+static const gavl_pixelformat_t transform_pixelformats[] =
+  {
+    GAVL_GRAY_8,
+    GAVL_GRAY_16,
+    GAVL_GRAY_FLOAT,
+    GAVL_GRAYA_16,
+    GAVL_GRAYA_32,
+    GAVL_GRAYA_FLOAT,
+    GAVL_RGB_15,
+    GAVL_RGB_16,
+    GAVL_RGB_24,
+    GAVL_RGB_32,
+    GAVL_RGBA_32,
+    GAVL_RGB_48,
+    GAVL_RGBA_64,
+    GAVL_RGB_FLOAT,
+    GAVL_RGBA_FLOAT,
+    GAVL_YUY2,
+    GAVL_UYVY,
+    GAVL_YUV_420_P,
+    GAVL_YUV_422_P,
+    GAVL_YUV_444_P,
+    GAVL_YUV_411_P,
+    GAVL_YUV_410_P,
+    GAVL_YUV_444_P_16,
+    GAVL_YUV_422_P_16,
+    GAVL_PIXELFORMAT_NONE,
   };
 
 typedef struct
@@ -1637,10 +1666,12 @@ static void benchmark_image_transform()
   for(j = 0; j < sizeof(transform_modes)/sizeof(transform_modes[0]); j++)
     {
     gavl_video_options_set_scale_mode(ctx.opt, transform_modes[j].mode);
+
+    i = 0;
     
-    for(i = 0; i < num_pixelformats; i++)
+    while(transform_pixelformats[i] != GAVL_PIXELFORMAT_NONE)
       {
-      ctx.format.pixelformat = gavl_get_pixelformat(i);
+      ctx.format.pixelformat = transform_pixelformats[i];
       
       /* C */
 
@@ -1708,6 +1739,7 @@ static void benchmark_image_transform()
       //      else
       //        fprintf(stderr, "No MMX version\n");
       
+      i++;
       }
     }
   
