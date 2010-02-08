@@ -23,6 +23,11 @@
 #include <x11/x11.h>
 #include <x11/x11_window_private.h>
 
+#include <gmerlin/translation.h>
+#include <gmerlin/log.h>
+
+#define LOG_DOMAIN "GL"
+
 
 /* For OpenGL support */
 
@@ -54,6 +59,7 @@ gl_attribute_map[BG_GL_ATTRIBUTE_NUM] =
 
 int bg_x11_window_init_gl(bg_x11_window_t * win)
   {
+  int version_major, version_minor;
   int rgba = 0;
   int num_fbconfigs;
   /* Build the attribute list */
@@ -62,6 +68,24 @@ int bg_x11_window_init_gl(bg_x11_window_t * win)
   /* Attributes we need for video playback */
 
   int attr_list[64];
+
+  /* Check glX presence and version */
+  if(!glXQueryVersion(win->dpy, &version_major, &version_minor))
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "GLX extension missing");
+    return 0;
+    }
+
+  if((version_major < 1) || (version_minor < 3))
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+           "GLX version too old: requested >= 1.3 but got %d.%d",
+           version_major, version_minor);
+    return 0;
+    }
+
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN,
+         "Got GLX version %d.%d", version_major, version_minor);
   
   for(i = 0; i < BG_GL_ATTRIBUTE_NUM; i++)
     {
@@ -91,6 +115,9 @@ int bg_x11_window_init_gl(bg_x11_window_t * win)
   // if(!win->gl_vi)
   //    return 0;
 
+  /* Check GLX version (need at least 1.3) */
+  
+  
   win->gl_fbconfigs = glXChooseFBConfig(win->dpy, win->screen,
                                         attr_list, &num_fbconfigs);
 

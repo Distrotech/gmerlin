@@ -364,14 +364,16 @@ static void filter_frame(bg_yadif_t * di, int parity,
       switch(di->cur->interlace_mode)
         {
         case GAVL_INTERLACE_NONE:
-          //          fprintf(stderr, "Progressive frame in mixed sequence\n");
+          fprintf(stderr, "Progressive frame in mixed sequence\n");
           gavl_video_frame_copy(&di->out_format, out, di->cur);
           return;
           break;
         case GAVL_INTERLACE_TOP_FIRST:
+          fprintf(stderr, "Top first\n");
           di->tff = 1;
           break;
         case GAVL_INTERLACE_BOTTOM_FIRST:
+          fprintf(stderr, "Bottom first\n");
           di->tff = 0;
           break;
         default:
