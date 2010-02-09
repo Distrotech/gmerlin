@@ -2,7 +2,7 @@ AC_INIT
 AC_CONFIG_SRCDIR(include/lemuria.h)
 AM_CONFIG_HEADER(include/config.h)
 
-AM_INIT_AUTOMAKE(lemuria, 2.0.0)
+AM_INIT_AUTOMAKE(lemuria, 2.1.0)
 
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
@@ -13,7 +13,7 @@ dnl
 
 have_gmerlin="false"
 
-GMERLIN_REQUIRED="0.3.7"
+GMERLIN_REQUIRED="0.4.2"
 
 AC_ARG_ENABLE(gmerlin,
 [AC_HELP_STRING([--disable-gmerlin],[Disable gmerlin plugins (default: autodetect)])],
