@@ -351,6 +351,20 @@ static int start_lqt(void * data)
       lqt_set_chapter_track(e->file, e->chapter_track_id);
       }
     }
+  else /* AVI case: Check if QT-only audio codecs were added */
+    {
+    for(i = 0; i < e->num_audio_streams; i++)
+      {
+      if(!e->audio_streams[i].codec_info[0]->wav_ids ||
+         // TODO: Make LQT_WAV_ID_NONE part of the public lqt API
+         (e->audio_streams[i].codec_info[0]->wav_ids[0] == -1)) 
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Audio codec %s cannot be written to AVI files",
+               e->audio_streams[i].codec_info[0]->name);
+        return 0;
+        }
+      }
+    }
   
   return 1;
   }
