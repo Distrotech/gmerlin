@@ -518,13 +518,6 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx,
       t->track_number[1] << 16 |
       t->track_number[2] <<  8 |
       t->track_number[3];
-#if 0        
-    bgav_stream_dump(s);
-    if(ms->stream_type == BGAV_STREAM_VIDEO)
-      bgav_video_dump(s);
-    else if(ms->stream_type == BGAV_STREAM_AUDIO)
-      bgav_audio_dump(s);
-#endif
     }
   return;
   }

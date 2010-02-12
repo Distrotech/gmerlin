@@ -390,8 +390,6 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   //  adts_header_dump(&adts);
 
   ctx->index_mode = INDEX_MODE_SIMPLE;
-  
-  //  bgav_stream_dump(s);
 
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
     {

@@ -118,9 +118,6 @@ int bgav_video_start(bgav_stream_t * s)
           
           header = bgav_video_parser_get_header(parser, &header_len);
           
-          //          fprintf(stderr, "Got extradata %d bytes\n", header_len);
-          //          bgav_hexdump(header, header_len, 16);
-          
           s->ext_size = header_len;
           s->ext_data = malloc(s->ext_size);
           

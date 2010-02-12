@@ -156,9 +156,6 @@ static int open_adif(bgav_demuxer_context_t * ctx)
       (ctx->tt->cur->audio_streams[0].container_bitrate);
     }
 
-  
-  //  bgav_stream_dump(s);
-
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
     {
     ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);

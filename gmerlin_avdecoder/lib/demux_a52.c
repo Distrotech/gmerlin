@@ -82,8 +82,6 @@ static int open_a52(bgav_demuxer_context_t * ctx)
 
   s->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
   
-  //  bgav_stream_dump(s);
-  
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
