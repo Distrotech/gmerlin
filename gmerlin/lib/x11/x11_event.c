@@ -759,9 +759,11 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         w->pointer_hidden = 0;
         }
 
-      if(evt->xmotion.window == w->normal.win)
+      if((evt->xmotion.window == w->normal.win) ||
+         (evt->xmotion.window == w->normal.subwin))
         cur = &w->normal;
-      else if(evt->xmotion.window == w->fullscreen.win)
+      else if((evt->xmotion.window == w->fullscreen.win) ||
+              (evt->xmotion.window == w->fullscreen.subwin))
         cur = &w->fullscreen;
       else
         return;
