@@ -106,6 +106,8 @@ typedef struct
   int total_passes;
   FILE * stats_file;
   bg_encoder_framerate_t fr;
+  
+  int64_t frames_written;
   } ffmpeg_video_stream_t;
 
 typedef struct
@@ -189,3 +191,5 @@ int bg_ffmpeg_close(void * data, int do_delete);
 
 gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p);
 enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p);
+
+gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p);

@@ -372,6 +372,9 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
     return 0;
     }
 
+  st->stream->codec->sample_fmt = codec->sample_fmts[0];
+  st->format.sample_format = bg_sample_format_ffmpeg_2_gavl(codec->sample_fmts[0]);
+  
   if(avcodec_open(st->stream->codec, codec) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for audio");
@@ -400,14 +403,15 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   {
   int stats_len;
   AVCodec * codec;
-  enum PixelFormat * pfmts;
   
   codec = avcodec_find_encoder(st->stream->codec->codec_id);
   if(!codec)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Video codec not available in your libavcodec installation");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Video codec not available in your libavcodec installation");
     return 0;
     }
+
   /* Set up multipass encoding */
   
   if(st->total_passes)
@@ -437,9 +441,7 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
 
   /* Set up pixelformat */
   
-  pfmts = bg_ffmpeg_get_pixelformats(st->stream->codec->codec_id);
-
-  st->stream->codec->pix_fmt = pfmts[0];
+  st->stream->codec->pix_fmt = codec->pix_fmts[0];
   st->format.pixelformat = bg_pixelformat_ffmpeg_2_gavl(st->stream->codec->pix_fmt);
   
   /* Set up framerate */
@@ -546,7 +548,6 @@ static int flush_audio(ffmpeg_priv_t * priv,
     out_size = st->stream->codec->block_align * st->frame->valid_samples;
   else
     out_size = st->buffer_alloc;
-
   
   bytes_encoded = avcodec_encode_audio(st->stream->codec, st->buffer,
                                        out_size,
@@ -630,15 +631,18 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
     pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
                           st->stream->codec->time_base,
                           st->stream->time_base);
+
+    /* HACK */
+    pkt.dts= pkt.pts;
     
     if(st->stream->codec->coded_frame->key_frame)
       pkt.flags |= PKT_FLAG_KEY;
     pkt.stream_index = st->stream->index;
     pkt.data = st->buffer;
     pkt.size = bytes_encoded;
-
     
-    if(av_write_frame(priv->ctx, &pkt) != 0)
+    if(av_write_frame(priv->ctx, &pkt) != 0) // av_write_frame results in messed up timestamps
+      // if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
       {
       priv->got_error = 1;
       return 0;
@@ -662,7 +666,12 @@ int bg_ffmpeg_write_video_frame(void * data,
   
   priv = (ffmpeg_priv_t *)data;
   st = &(priv->video_streams[stream]);
-  st->frame->pts = frame->timestamp;
+
+  if(st->stream->codec->time_base.num == 1) /* Variable */
+    st->frame->pts = frame->timestamp;
+  else
+    st->frame->pts = st->frames_written;
+  
   st->frame->data[0]     = frame->planes[0];
   st->frame->data[1]     = frame->planes[1];
   st->frame->data[2]     = frame->planes[2];
@@ -671,6 +680,8 @@ int bg_ffmpeg_write_video_frame(void * data,
   st->frame->linesize[2] = frame->strides[2];
   
   flush_video(priv, st, st->frame);
+
+  st->frames_written++;
   
   if(priv->got_error)
     return 0;
@@ -849,5 +860,31 @@ enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p)
     if(pixelformats[i].gavl_csp == p)
       return pixelformats[i].ffmpeg_csp;
     }
-  return PIX_FMT_NB;
+  return PIX_FMT_NONE;
+  }
+
+
+static const struct
+  {
+  enum SampleFormat  ffmpeg_fmt;
+  gavl_sample_format_t gavl_fmt;
+  }
+sampleformats[] =
+  {
+    { SAMPLE_FMT_U8,  GAVL_SAMPLE_U8 },
+    { SAMPLE_FMT_S16, GAVL_SAMPLE_S16 },    ///< signed 16 bits
+    { SAMPLE_FMT_S32, GAVL_SAMPLE_S32 },    ///< signed 32 bits
+    { SAMPLE_FMT_FLT, GAVL_SAMPLE_FLOAT },  ///< float
+    { SAMPLE_FMT_DBL, GAVL_SAMPLE_DOUBLE }, ///< double
+  };
+
+gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p)
+  {
+  int i;
+  for(i = 0; i < sizeof(sampleformats)/sizeof(sampleformats[0]); i++)
+    {
+    if(sampleformats[i].ffmpeg_fmt == p)
+      return sampleformats[i].gavl_fmt;
+    }
+  return GAVL_SAMPLE_NONE;
   }

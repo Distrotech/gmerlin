@@ -892,6 +892,7 @@ enum PixelFormat * bg_ffmpeg_get_pixelformats(enum CodecID id)
     {
     if(video_codecs[i].id == id)
       return video_codecs[i].pixelformats;
+    i++;
     }
   return NULL;
   }
