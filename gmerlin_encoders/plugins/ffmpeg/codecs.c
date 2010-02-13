@@ -593,7 +593,7 @@ bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format, const char * n
   if(!found)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Audio codec %s is not supported by format %s",
+           "Audio codec %s is not supported by %s",
            name, format->name);
     ret = CODEC_ID_NONE;
     }
@@ -631,7 +631,7 @@ bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format, const char * n
   if(!found)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Video codec %s is not supported by format %s",
+           "Video codec %s is not supported by %s",
            name, format->name);
     ret = CODEC_ID_NONE;
     }

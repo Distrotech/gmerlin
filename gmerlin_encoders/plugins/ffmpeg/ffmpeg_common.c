@@ -334,7 +334,8 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
   st = &priv->video_streams[stream];
   
   if(!strcmp(name, "codec"))
-    st->stream->codec->codec_id = bg_ffmpeg_find_video_encoder(priv->format, v->val_str);
+    st->stream->codec->codec_id =
+      bg_ffmpeg_find_video_encoder(priv->format, v->val_str);
   else if(bg_encoder_set_framerate_parameter(&st->fr, name, v))
     {
     return;
@@ -365,6 +366,10 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
                               ffmpeg_audio_stream_t * st)
   {
   AVCodec * codec;
+
+  if(st->stream->codec->codec_id == CODEC_ID_NONE)
+    return 0;
+  
   codec = avcodec_find_encoder(st->stream->codec->codec_id);
   if(!codec)
     {
@@ -403,7 +408,10 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   {
   int stats_len;
   AVCodec * codec;
-  
+
+  if(st->stream->codec->codec_id == CODEC_ID_NONE)
+    return 0;
+
   codec = avcodec_find_encoder(st->stream->codec->codec_id);
   if(!codec)
     {
