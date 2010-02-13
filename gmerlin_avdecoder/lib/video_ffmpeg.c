@@ -55,14 +55,6 @@
 
 #define LOG_DOMAIN "ffmpeg_video"
 
-/* We support either pts based or constant framerate. No support for libmpeg2 style
-   variable framerates.
-   
-   When we use a file index and extract extradata from the stream, we assume, that
-   the extradata is in the same packet as the beginning of the first keyframe.
-   This seems always be true for H.264.
-*/
-
 // #define DUMP_DECODE
 // #define DUMP_EXTRADATA
 // #define DUMP_PACKET
@@ -70,8 +62,6 @@
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 #define HAS_DELAY      (1<<0)
-// #define HAS_GET_BUFFER (1<<1)
-
 
 typedef struct
   {
@@ -1662,6 +1652,13 @@ static codec_info_t codec_infos[] =
       CODEC_ID_VB,
       (uint32_t[]){ BGAV_MK_FOURCC('V','B','V','1'), 0x00 } },
 #endif
+
+#if LIBAVCODEC_BUILD >= ((52<<16)+(53<<8)+0) 
+    { "FFmpeg Indeo 5 decoder", "Indeo 5", CODEC_ID_INDEO5,
+      (uint32_t[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'),
+                    0x00 } },
+#endif
+
     
   };
 

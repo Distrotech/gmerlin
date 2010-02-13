@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-// #define DUMP_SUPERINDEX    
+#define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 #include <parser.h>
 
@@ -351,7 +351,10 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
   while(i < ctx->tt->cur->num_audio_streams)
     {
     if(ctx->tt->cur->audio_streams[i].last_index_position < 0)
+      {
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Removing audio stream %d (no packets found)", i+1);
       bgav_track_remove_audio_stream(ctx->tt->cur, i);
+      }
     else
       {
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->audio_streams[i]);
@@ -363,7 +366,10 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
   while(i < ctx->tt->cur->num_video_streams)
     {
     if(ctx->tt->cur->video_streams[i].last_index_position < 0)
+      {
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Removing video stream %d (no packets found)", i+1);
       bgav_track_remove_video_stream(ctx->tt->cur, i);
+      }
     else
       {
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->video_streams[i]);
