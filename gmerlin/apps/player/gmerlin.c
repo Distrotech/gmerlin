@@ -564,9 +564,9 @@ void gmerlin_pause(gmerlin_t * g)
 
 void gmerlin_next_track(gmerlin_t * g)
   {
-  int result, keep_going, removable;
+  int result, keep_going, removable, num_tries = 0, num_entries;
   bg_album_t * album;
-
+  
   if(g->playback_flags & PLAYBACK_NOADVANCE)
     {
     bg_player_stop(g->player);
@@ -577,6 +577,8 @@ void gmerlin_next_track(gmerlin_t * g)
   if(!album)
     return;
 
+  num_entries = bg_album_get_num_entries(album);
+  
   removable = (bg_album_get_type(album) == BG_ALBUM_TYPE_REMOVABLE) ? 1 : 0;
 
   result = 1;
@@ -615,6 +617,13 @@ void gmerlin_next_track(gmerlin_t * g)
           result = gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
           if(result)
             keep_going = 0;
+          }
+        
+        num_tries++;
+        if(num_tries >= num_entries)
+          {
+          bg_player_stop(g->player);
+          keep_going = 0;
           }
         break;
       case  NUM_REPEAT_MODES:
