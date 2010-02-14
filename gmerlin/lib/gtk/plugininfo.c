@@ -67,6 +67,9 @@ pluginwindow_create(const char * title, const char * properties, const char * de
   ret = calloc(1, sizeof(*ret));
 
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_type_hint(GTK_WINDOW(ret->window),
+                           GDK_WINDOW_TYPE_HINT_DIALOG);
+  
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER_ON_PARENT);
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);

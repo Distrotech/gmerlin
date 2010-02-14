@@ -35,7 +35,7 @@
 
 #define S(s) (s?s:"(NULL)")
 
-void bg_gtk_album_enrty_show(const bg_album_entry_t * entry, GtkWidget * parent)
+void bg_gtk_album_entry_show(const bg_album_entry_t * entry, GtkWidget * parent)
   {
   char * text, * utf8_location;
   bg_gtk_textwindow_t * win;

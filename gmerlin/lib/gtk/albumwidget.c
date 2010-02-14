@@ -1308,7 +1308,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
   
   else if(w == widget->menu.selected_menu.info_item)
     {
-    bg_gtk_album_enrty_show(widget->selected_entry, widget->treeview);
+    bg_gtk_album_entry_show(widget->selected_entry, widget->treeview);
     }
   /* Cut */
   else if(w == widget->menu.edit_menu.cut_item)
@@ -2576,7 +2576,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
   
   else if(wid == w->info_button)
     {
-    bg_gtk_album_enrty_show(w->selected_entry, w->info_button);
+    bg_gtk_album_entry_show(w->selected_entry, w->info_button);
     }
   else if(wid == w->copy_to_favourites_button)
     {
