@@ -144,7 +144,8 @@ bg_accelerator_map_has_accel(const bg_accelerator_map_t * m,
   result = find_by_key(m, key, mask);
   if(result >= 0)
     {
-    if( id) *id = m->accels[result].id;
+    if( id)
+      *id = m->accels[result].id;
     return 1;
     }
   return 0;

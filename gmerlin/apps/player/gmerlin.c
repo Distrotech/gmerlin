@@ -45,7 +45,7 @@ static bg_accelerator_t accels[] =
     { BG_KEY_RIGHT,   BG_KEY_CONTROL_MASK,                     ACCEL_SEEK_FORWARD            },
     { BG_KEY_0,       0,                                       ACCEL_SEEK_START              },
     { BG_KEY_SPACE,   0,                                       ACCEL_PAUSE                   },
-    { BG_KEY_M,       0,                                       ACCEL_MUTE                    },
+    { BG_KEY_m,       BG_KEY_CONTROL_MASK,                     ACCEL_MUTE                    },
     { BG_KEY_PAGE_UP, BG_KEY_CONTROL_MASK|BG_KEY_SHIFT_MASK,   ACCEL_NEXT_CHAPTER            },
     { BG_KEY_PAGE_DOWN, BG_KEY_CONTROL_MASK|BG_KEY_SHIFT_MASK, ACCEL_PREV_CHAPTER            },
  
