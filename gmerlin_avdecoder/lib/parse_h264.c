@@ -30,6 +30,7 @@
 #include <h264_header.h>
 
 // #define DUMP_AVCHD_SEI
+// #define DUMP_SEI
 
 /* H.264 */
 
@@ -100,8 +101,10 @@ static void handle_sei(bgav_video_parser_t * parser)
     
     ptr = ptr_start;
 
-    //    fprintf(stderr, "Got SEI: %d\n", sei_type);
-    
+#ifdef DUMP_SEI
+    bgav_dprintf(stderr, "Got SEI: %d (%d bytes)\n", sei_type, sei_size);
+    bgav_hexdump(ptr, sei_size, 16);
+#endif    
     switch(sei_type)
       {
       case 0:
@@ -179,7 +182,6 @@ static void handle_sei(bgav_video_parser_t * parser)
 #ifdef DUMP_AVCHD_SEI
           bgav_dprintf( "Got AVCHD SEI message\n");
 #endif
-          //          bgav_hexdump(ptr, sei_size, 16);
           
           /* Skip GUID + MDPM */
           ptr += 20;
