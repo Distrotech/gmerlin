@@ -71,6 +71,10 @@ typedef struct
   int64_t end_pcr_test; /* For scanning the end timestamps */
   
   uint16_t pcr_pid;
+
+  /* AAUX and VAUX for HDV */
+  uint16_t aaux_pid;
+  uint16_t vaux_pid;
   
   pmt_section_t pmts;
   
@@ -654,6 +658,27 @@ static int init_psi(bgav_demuxer_context_t * ctx,
       priv->programs[program].initialized = 1;
       init_streams_priv(&priv->programs[program],
                         &ctx->tt->tracks[program]);
+
+      /* Get the AAUX and VAUX PIDs */
+      for(i = 0; i < priv->programs[program].pmts.num_streams; i++)
+        {
+        if(priv->programs[program].pmts.streams[i].type == 0xa0)
+          {
+          priv->programs[program].aaux_pid =
+            priv->programs[program].pmts.streams[i].pid;
+          fprintf(stderr, "Got AAUX PID: %04x\n",
+                  priv->programs[program].aaux_pid);
+          }
+        if(priv->programs[program].pmts.streams[i].type == 0xa1)
+          {
+          priv->programs[program].vaux_pid =
+            priv->programs[program].pmts.streams[i].pid;
+          fprintf(stderr, "Got VAUX PID: %04x\n",
+                  priv->programs[program].vaux_pid);
+          }
+        
+        }
+
       }
     }
   return 1;
@@ -1045,6 +1070,180 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
+/* Parse HDV AAUV/VAUX */
+
+typedef struct
+  {
+  int dummy;
+  } hdv_aaux_t;
+
+typedef struct
+  {
+  int dummy;
+  } hdv_vaux_t;
+
+static const uint32_t hdv_aux_header = BGAV_MK_FOURCC(0x00, 0x00, 0x01, 0xbf);
+
+static int parse_hdv_aux_header(uint8_t ** data, int * len)
+  {
+  uint32_t h;
+  int size;
+  uint8_t * ptr = *data;
+
+  h = BGAV_PTR_2_32BE(ptr); ptr += 4;
+  if(h != hdv_aux_header)
+    return 0;
+  
+  size = BGAV_PTR_2_16BE(ptr); ptr += 2;
+  if(size != *len - (ptr - *data))
+    return 0;
+
+  *data = ptr;
+  *len = size;
+  return 1;
+  }
+
+static int parse_hdv_aaux(uint8_t * data, int len, hdv_aaux_t * ret)
+  {
+  uint8_t tag;
+  int size;
+  uint8_t * end;
+  
+  if(!parse_hdv_aux_header(&data, &len))
+    return 0;
+
+  end = data + len;
+
+  while(data < end)
+    {
+    tag = *data; data++;
+
+    if(tag >= 0x40)
+      {
+      size = *data; data++;
+      }
+    else
+      size = 4;
+    
+    //    fprintf(stderr, "Got AAUX data %02x, len: %d\n", tag, size);
+    data += size;
+    }
+  return 1;
+  }
+
+#define BCD(c) ( ((((c) >> 4) & 0x0f) * 10) + ((c) & 0x0f) )
+
+static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
+  {
+  uint8_t tag;
+  int size;
+  uint8_t * end;
+  
+  if(!parse_hdv_aux_header(&data, &len))
+    return 0;
+
+  end = data + len;
+
+  while(data < end)
+    {
+    tag = *data; data++;
+
+    if(tag >= 0x40)
+      {
+      size = *data; data++;
+      }
+    else
+      size = 4;
+
+    //    fprintf(stderr, "Got VAUX data %02x, len: %d\n", tag, size);
+    //    bgav_hexdump(data, size, 16);
+    if((tag == 0x44) && (len >= 0x39))
+      {
+      if(data[28] & 0x01) /* Timecode valid */
+        {
+        uint8_t fr, sec, min, hr;
+        int bf, df;
+        
+        /* HD2 TTC
+         *      ---------------------------------
+         * 29   |BF |DF |Tens Fr|Units of Frames|
+         *      ---------------------------------
+         * 30   | 1 |Tens second|Units of Second|
+         *      ---------------------------------
+         * 31   | 1 |Tens minute|Units of Minute|
+         *      ---------------------------------
+         * 32   | 1 | 1 |Tens Hr|Units of Hours |
+         *      ---------------------------------
+         */
+        fr = BCD (data[29] & 0x3f);
+        sec = BCD (data[30] & 0x7f);
+        min = BCD (data[31] & 0x7f);
+        hr = BCD (data[32] & 0x3f);
+
+        fprintf(stderr, "Timecode: %02d:%02d:%02d:%02d\n",
+                hr, min, sec, fr);
+        }
+      if(data[28] & 0x02) /* Date valid */
+        {
+        int ds, tm;
+        uint8_t tz, day, dow, month;
+        int year;
+        
+        /* REC DATE
+         *      ---------------------------------
+         * 33   |DS |TM |Tens TZ|Units of TimeZn|
+         *      ---------------------------------
+         * 34   | 1 | 1 |Tens dy| Units of Days |
+         *      ---------------------------------
+         * 35   |   Week    |TMN|Units of Months|
+         *      ---------------------------------
+         * 36   | Tens of Years |Units of Years |
+         *      ---------------------------------
+         */
+        ds = data[33] >> 7;
+        tm = (data[33] >> 6) & 0x1;
+        tz = BCD (data[33] & 0x3f);
+        day = BCD (data[34] & 0x3f);
+        dow = data[35] >> 5;
+        month = BCD (data[35] & 0x1f);
+        year = BCD (data[36]);
+        year += 2000;
+        
+        fprintf(stderr, "Date: %d %02d/%02d/%04d\n", dow, day, month, year);
+        }
+      if(data[28] & 0x04) /* Time valid */
+        {
+        uint8_t fr, sec, min, hr;
+
+        /* REC TIME
+         *      ---------------------------------
+         * 37   | 1 | 1 |Tens Fr|Units of Frames|
+         *      ---------------------------------
+         * 38   | 1 |Tens second|Units of Second|
+         *      ---------------------------------
+         * 39   | 1 |Tens minute|Units of Minute|
+         *      ---------------------------------
+         * 40   | 1 | 1 |Tens Hr|Units of Hours |
+         *      ---------------------------------
+         */
+
+        fr = BCD (data[37] & 0x3f);
+        sec = BCD (data[38] & 0x7f);
+        min = BCD (data[39] & 0x7f);
+        hr = BCD (data[40] & 0x3f);
+
+        fprintf(stderr, "Time: %02d:%02d:%02d:%02d\n",
+                hr, min, sec, fr);
+        
+        }
+      }
+
+    data += size;
+    
+    }
+  return 1;
+  }
+
 #if 0
 static void predict_pcr_wrap(const bgav_options_t * opt, int64_t pcr)
   {
@@ -1062,15 +1261,13 @@ static void predict_pcr_wrap(const bgav_options_t * opt, int64_t pcr)
 
 static int process_packet(bgav_demuxer_context_t * ctx)
   {
-  int i; // int skip;
+  int i;
   bgav_stream_t * s;
   mpegts_t * priv;
   int num_packets;
   int bytes_to_copy;
   bgav_pes_header_t pes_header;
   int64_t position;
-  //  pat_section_t pats;
-  //  pmt_section_t pmts;
   priv = (mpegts_t*)(ctx->priv);
 
   if(!priv->packet_size)
@@ -1137,39 +1334,50 @@ static int process_packet(bgav_demuxer_context_t * ctx)
         }
       }
 #endif
-    if(!priv->packet.pid)
+    /* Skip PAT/PMT */
+    if(!priv->packet.pid ||
+       (priv->packet.pid == priv->programs[priv->current_program].program_map_pid))
       {
-#if 0
-      bgav_pat_section_read(priv->ptr, 188 - (priv->ptr - priv->packet_start),
-                            &pats);
-      bgav_pat_section_dump(&pats);
-#endif
       next_packet(priv);
       position += priv->packet_size;
       continue;
       }
-    else if(priv->packet.pid == priv->programs[priv->current_program].program_map_pid)
+
+    if(priv->packet.pid == priv->programs[priv->current_program].aaux_pid)
       {
-#if 0
-      skip = 1 + priv->ptr[0];
-      priv->ptr += skip;
-      
-      bgav_pmt_section_read(priv->ptr, 188 - (priv->ptr - priv->packet_start),
-                            &pmts);
-#ifdef DUMP_PMT_PAT
-      bgav_pmt_section_dump(&pmts);
-#endif
-#endif
+      hdv_aaux_t aaux;
+      /* Got AAUX packet */
+      //      fprintf(stderr, "Got AAUX packet\n");
+      // bgav_transport_packet_dump(&priv->packet);
+      // bgav_hexdump(priv->ptr, priv->packet.payload_size, 16);
+
+      parse_hdv_aaux(priv->ptr, priv->packet.payload_size, &aaux);
+
       next_packet(priv);
       position += priv->packet_size;
       continue;
+
+      }
+    else if(priv->packet.pid == priv->programs[priv->current_program].vaux_pid)
+      {
+      hdv_vaux_t vaux;
+      /* Got VAUX packet */
+      fprintf(stderr, "Got VAUX packet\n");
+      //      bgav_transport_packet_dump(&priv->packet);
+      //      bgav_hexdump(priv->ptr, priv->packet.payload_size, 16);
+      parse_hdv_vaux(priv->ptr, priv->packet.payload_size, &vaux);
+
+      next_packet(priv);
+      position += priv->packet_size;
+      continue;
+      
       }
     
     s = bgav_track_find_stream(ctx, priv->packet.pid);
     
     if(!s)
       {
-      //      fprintf(stderr, "No stream for PID %04x\n", priv->packet.pid);      
+      // fprintf(stderr, "No stream for PID %04x\n", priv->packet.pid);      
       //      bgav_hexdump(priv->packet_start, 188, 16);
       
       next_packet(priv);

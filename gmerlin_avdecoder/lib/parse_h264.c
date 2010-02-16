@@ -80,23 +80,27 @@ static const uint8_t avchd_mdpm[] =
 static void handle_sei(bgav_video_parser_t * parser)
   {
   int sei_type, sei_size;
-  uint8_t * ptr;
+  uint8_t * ptr, * ptr_start;
   int header_len;
   bgav_h264_sei_pic_timing_t pt;
   bgav_h264_sei_recovery_point_t rp;
   
   h264_priv_t * priv = parser->priv;
   
-  ptr = priv->rbsp;
-
-  while(ptr - priv->rbsp < priv->rbsp_len - 2)
+  ptr_start = priv->rbsp;
+  
+  while(ptr_start - priv->rbsp < priv->rbsp_len - 2)
     {
-    header_len = bgav_h264_decode_sei_message_header(ptr,
+    header_len = bgav_h264_decode_sei_message_header(ptr_start,
                                                      priv->rbsp_len -
                                                      (ptr - priv->rbsp),
                                                      &sei_type, &sei_size);
     
-    ptr += header_len;
+    ptr_start += header_len;
+    
+    ptr = ptr_start;
+
+    //    fprintf(stderr, "Got SEI: %d\n", sei_type);
     
     switch(sei_type)
       {
@@ -108,7 +112,7 @@ static void handle_sei(bgav_video_parser_t * parser)
                                         (ptr - priv->rbsp),
                                         &priv->sps,
                                         &pt);
-        // fprintf(stderr, "Got SEI pic_timing, pic_struct: %d\n", pic_struct);
+        // fprintf(stderr, "Got SEI pic_timing, pic_struct: %d\n", pt.pic_struct);
         
         switch(pt.pic_struct)
           {
@@ -175,15 +179,16 @@ static void handle_sei(bgav_video_parser_t * parser)
 #ifdef DUMP_AVCHD_SEI
           bgav_dprintf( "Got AVCHD SEI message\n");
 #endif
-          // bgav_hexdump(ptr, sei_size, 16);
+          //          bgav_hexdump(ptr, sei_size, 16);
           
           /* Skip GUID + MDPM */
           ptr += 20;
-          sei_size -= 20;
+          // sei_size -= 20;
 
-          num_tags = *ptr; ptr++; sei_size--;
-
-          if(sei_size != num_tags * 5)
+          num_tags = *ptr; ptr++;
+          
+          /* 16 bytes GUID + 4 bytes MDPR + 1 byte num_tags */
+          if((sei_size - 21) != num_tags * 5)
             continue;
           
           for(i = 0; i < num_tags; i++)
@@ -338,7 +343,7 @@ static void handle_sei(bgav_video_parser_t * parser)
 
       
       }
-    ptr += sei_size; 
+    ptr_start += sei_size; 
     }
   }
 

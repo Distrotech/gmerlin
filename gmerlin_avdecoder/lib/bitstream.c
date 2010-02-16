@@ -22,7 +22,7 @@
 #include <avdec_private.h>
 #include <bitstream.h>
 
-// #define OLD_BITSTREAM
+//#define OLD_BITSTREAM
 
 static inline void fill_cache(bgav_bitstream_t * b)
   {

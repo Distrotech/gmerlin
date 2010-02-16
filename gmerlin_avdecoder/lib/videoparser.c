@@ -169,15 +169,14 @@ void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type)
   {
   //  int i, start, end;
   
-  //  fprintf(stderr, "Set coding type %c %d\n", type,
-  //          parser->cache[parser->cache_size-1].skip);
-  
   if((parser->cache_size >= 2) &&
      !parser->cache[parser->cache_size-2].field_pic)
     {
-    //    fprintf(stderr, "Set pts %d %c\n",
-    //            parser->cache[parser->cache_size-2].duration,
-    //            parser->cache[parser->cache_size-2].coding_type);
+#if 0
+    fprintf(stderr, "Set pts %d %c\n",
+            parser->cache[parser->cache_size-2].duration,
+            parser->cache[parser->cache_size-2].coding_type);
+#endif
     /* Set timestamp of the previous frame */
     if(parser->cache[parser->cache_size-2].coding_type != BGAV_CODING_TYPE_B)
       {
@@ -203,11 +202,16 @@ void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type)
   else if(parser->non_b_count < 2)
     parser->cache[parser->cache_size-1].skip = 1;
   
-  
   }
 
 int bgav_video_parser_check_output(bgav_video_parser_t * parser)
   {
+#if 0
+  fprintf(stderr, "check output cs: %d fp: %d sz: %d pts: %lld skip: %d\n",
+          parser->cache_size, parser->cache[0].field_pic,
+          parser->cache[0].size, parser->cache[0].pts,
+          parser->cache[0].skip);
+#endif    
   if(parser->cache_size && !parser->cache[0].field_pic &&
      parser->cache[0].size &&
      ((parser->cache[0].pts != BGAV_TIMESTAMP_UNDEFINED) ||
