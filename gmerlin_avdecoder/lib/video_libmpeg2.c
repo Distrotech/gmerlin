@@ -57,19 +57,23 @@ void dump_sequence_header(const mpeg2_sequence_t * s)
   }
 #endif
 
+#define FLAG_INIT              (1<<0)
+#define FLAG_EOF               (1<<1)
+#define FLAG_HAS_GOP_TIMECODE  (1<<2)
+#define FLAG_NEED_SEQUENCE     (1<<3)
+#define FLAG_EXTERN_TIMECODES  (1<<4)
+#define FLAG_EXTERN_ASPECT     (1<<5)
+
 typedef struct
   {
   const mpeg2_info_t * info;
   mpeg2dec_t * dec;
   gavl_video_frame_t * frame;
   bgav_packet_t * p;
+  int flags;
   
-  gavl_time_t picture_duration;
-  gavl_time_t picture_timestamp;
-
-  int extern_aspect; /* Container sent us the aspect ratio already */
-  
-  int init;
+  int64_t picture_duration;
+  int64_t picture_timestamp;
 
   /*
    *  Specify how many non-B frames we saw since the
@@ -78,15 +82,12 @@ typedef struct
    */
   
   int non_b_count;
-  int eof;
   uint8_t sequence_end_code[4];
   
-  int has_gop_timecode;
   gavl_timecode_t gop_timecode;
 
   bgav_pts_cache_t pts_cache;
   
-  int need_sequence;
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)
@@ -98,7 +99,7 @@ static int get_data(bgav_stream_t*s)
   priv->p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
   if(!priv->p)
     {
-    if(!priv->eof)
+    if(!(priv->flags & FLAG_EOF))
       {
       /* Flush the last picture */
       priv->sequence_end_code[0] = 0x00;
@@ -109,7 +110,7 @@ static int get_data(bgav_stream_t*s)
       mpeg2_buffer(priv->dec,
                    &priv->sequence_end_code[0],
                    &priv->sequence_end_code[4]);
-      priv->eof = 1;
+      priv->flags |= FLAG_EOF;
       return 1;
       }
     else
@@ -119,10 +120,10 @@ static int get_data(bgav_stream_t*s)
   bgav_dprintf("Packet timestamp: %"PRId64"\n", priv->p->pts);
 #endif
 
-  if(priv->need_sequence)
+  if(priv->flags & FLAG_NEED_SEQUENCE)
     {
-    priv->need_sequence = 0;
-
+    priv->flags &= ~FLAG_NEED_SEQUENCE;
+    
     if((s->ext_size > 0) && (priv->p->data[3] != 0xb3))
       {
       mpeg2_buffer(priv->dec, s->ext_data, s->ext_data + s->ext_size);
@@ -133,7 +134,7 @@ static int get_data(bgav_stream_t*s)
   
   priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
   
-  priv->eof = 0;
+  priv->flags &= ~FLAG_EOF;
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
 
   //  fprintf(stderr, "mpeg2_buffer %d bytes\n", priv->p->data_size);
@@ -218,7 +219,7 @@ static void get_format(bgav_stream_t*s,
     ret->pixel_height = sequence->pixel_height;
     }
   else
-    priv->extern_aspect = 1;
+    priv->flags |= FLAG_EXTERN_ASPECT;
   
   if(sequence->chroma_height == sequence->height/2)
     {
@@ -276,7 +277,7 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
       continue;
       }
     
-    if(*state == STATE_GOP)
+    if((*state == STATE_GOP) && !(s->flags & FLAG_EXTERN_TIMECODES))
       {
       if(!s->data.video.format.timecode_format.int_framerate)
         {
@@ -293,7 +294,7 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
                               priv->info->gop->minutes,
                               priv->info->gop->seconds,
                               priv->info->gop->pictures);
-      priv->has_gop_timecode = 1;
+      priv->flags |= FLAG_HAS_GOP_TIMECODE;
       }
     return 1;
     }
@@ -321,7 +322,7 @@ static int decode_picture(bgav_stream_t*s)
       {
       if(state == STATE_END)
         {
-        priv->eof = 1;
+        priv->flags |= FLAG_EOF;
         if(priv->info->display_picture)
           done = 1;
         }
@@ -362,7 +363,7 @@ static int decode_picture(bgav_stream_t*s)
         bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                  "Detected change of image size, not handled yet");
 
-      if(!priv->extern_aspect)
+      if(!(priv->flags & FLAG_EXTERN_ASPECT))
         {
         if((s->data.video.format.pixel_width != new_format.pixel_width) ||
            (s->data.video.format.pixel_height != new_format.pixel_height))
@@ -386,7 +387,7 @@ static int decode_picture(bgav_stream_t*s)
 
     }
   
-  if((state == STATE_END) && priv->init)
+  if((state == STATE_END) && (priv->flags & FLAG_INIT))
     {
     /* If we have a sequence end code after the first frame,
        force still mode */
@@ -443,7 +444,7 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     s->flags |= STREAM_HAVE_PICTURE;
     }
   
-  if(priv->init)
+  if(priv->flags & FLAG_INIT)
     {
     s->out_time = priv->picture_timestamp;
     return 1;
@@ -470,11 +471,11 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   /* Set timecodes */  
   if(((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) ==
       PIC_FLAG_CODING_TYPE_I) &&
-     priv->has_gop_timecode)
+     (priv->flags & FLAG_HAS_GOP_TIMECODE))
     {
     s->codec_timecode = priv->gop_timecode;
     s->has_codec_timecode = 1;
-    priv->has_gop_timecode = 0;
+    priv->flags &= ~FLAG_HAS_GOP_TIMECODE;
     }
   return 1;
   }
@@ -489,10 +490,14 @@ static int init_mpeg2(bgav_stream_t*s)
   s->data.video.decoder->priv = priv;
   
   if(s->action == BGAV_STREAM_PARSE)
-    {
     return 1;
-    }
 
+  if(s->data.video.format.timecode_format.int_framerate)
+    {
+    s->flags |= FLAG_EXTERN_TIMECODES;
+    fprintf(stderr, "Extern timecodes\n");
+    }
+  
   priv->dec  = mpeg2_init();
   priv->info = mpeg2_info(priv->dec);
   priv->non_b_count = 0;
@@ -518,7 +523,7 @@ static int init_mpeg2(bgav_stream_t*s)
                  (priv->info->sequence->flags & SEQ_FLAG_MPEG2) ? 2 : 1,
                  (priv->info->sequence->byte_rate * 8) / 1000);
   s->codec_bitrate = priv->info->sequence->byte_rate * 8;
-  priv->need_sequence = 1;
+  priv->flags |= FLAG_NEED_SEQUENCE;
   
   if(!s->timescale)
     s->timescale = s->data.video.format.timescale;
@@ -533,9 +538,9 @@ static int init_mpeg2(bgav_stream_t*s)
   
   /* Decode first frame to check for still mode */
   
-  priv->init = 1;
+  priv->flags |= FLAG_INIT;
   decode_mpeg2(s, (gavl_video_frame_t*)0);
-  priv->init = 0;
+  priv->flags &= ~FLAG_INIT;
   s->out_time = priv->picture_timestamp;
   return 1;
   }
@@ -548,8 +553,8 @@ static void resync_mpeg2(bgav_stream_t*s)
   
   priv->p = (bgav_packet_t*)0;
   priv->non_b_count = 0;
-  priv->eof = 0;
-  priv->need_sequence = 1;
+  priv->flags &= ~FLAG_EOF;
+  priv->flags |= FLAG_NEED_SEQUENCE;
     
   bgav_pts_cache_clear(&priv->pts_cache);
 

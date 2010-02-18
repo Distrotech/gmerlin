@@ -66,11 +66,12 @@ typedef struct
 
 struct bgav_video_parser_s
   {
+  bgav_stream_t * s;
+
   int raw;
   bgav_bytebuffer_t buf;
   
   int flags;
-  int stream_flags;
   int pos;
   
   parse_func        parse;
@@ -92,9 +93,8 @@ struct bgav_video_parser_s
   int64_t raw_position;
   
   /* Timescales */
-  int in_scale;
-
-  gavl_video_format_t format;
+  
+  gavl_video_format_t * format;
   
   /* Cache */
   cache_t cache[PARSER_CACHE_MAX];

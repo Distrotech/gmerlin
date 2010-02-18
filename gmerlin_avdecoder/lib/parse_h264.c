@@ -220,19 +220,19 @@ static void handle_sei(bgav_video_parser_t * parser)
           if((year >= 0) && (month >= 0) && (day >= 0) &&
              (hour >= 0) && (minute >= 0) && (second >= 0))
             {
-            if(!parser->format.timecode_format.int_framerate)
+            if(!parser->format->timecode_format.int_framerate)
               {
               /* Get the timecode framerate */
-              parser->format.timecode_format.int_framerate =
-                parser->format.timescale / parser->format.frame_duration;
-              if(parser->format.timescale % parser->format.frame_duration)
-                parser->format.timecode_format.int_framerate++;
+              parser->format->timecode_format.int_framerate =
+                parser->format->timescale / parser->format->frame_duration;
+              if(parser->format->timescale % parser->format->frame_duration)
+                parser->format->timecode_format.int_framerate++;
               
               /* For NTSC framerate we make a drop frame timecode */
               
-              if((int64_t)parser->format.timescale * 1001 ==
-                 (int64_t)parser->format.frame_duration * 30000)
-                parser->format.timecode_format.flags |= GAVL_TIMECODE_DROP_FRAME;
+              if((int64_t)parser->format->timescale * 1001 ==
+                 (int64_t)parser->format->frame_duration * 30000)
+                parser->format->timecode_format.flags |= GAVL_TIMECODE_DROP_FRAME;
               
               /* We output only the first timecode in the file since the rest is redundant */
               gavl_timecode_from_hmsf(&parser->cache[parser->cache_size-1].tc,
@@ -471,7 +471,7 @@ static int handle_nal(bgav_video_parser_t * parser)
                                         priv->sps.vui.num_units_in_tick * 2);
 
         bgav_h264_sps_get_image_size(&priv->sps,
-                                     &parser->format);
+                                     parser->format);
         parser->max_ref_frames = priv->sps.num_ref_frames;
         }
       priv->have_sps = 1;

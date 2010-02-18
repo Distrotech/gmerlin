@@ -235,7 +235,6 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   const uint8_t * header;
   int header_len;
-  const gavl_video_format_t * format;
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -253,7 +252,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
 
   s->fourcc = detect_type(ctx->input);
   s->flags |= (STREAM_B_FRAMES|STREAM_PARSE_FULL);
-  priv->parser = bgav_video_parser_create(s->fourcc, 0, ctx->opt, s->flags);
+  priv->parser = bgav_video_parser_create(s);
   if(!priv->parser)
     return 0;
 
@@ -266,11 +265,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
 
   if(!parse(ctx, PARSER_HAVE_HEADER))
     return 0;
-
-  format = bgav_video_parser_get_format(priv->parser);
-
-  gavl_video_format_copy(&s->data.video.format, format);
-                         
+  
   s->timescale = s->data.video.format.timescale;
 
   header = bgav_video_parser_get_header(priv->parser, &header_len);

@@ -34,8 +34,7 @@
 /* Video parser */
 
 bgav_video_parser_t *
-bgav_video_parser_create(uint32_t fourcc, int timescale,
-                         const bgav_options_t * opt, int stream_flags);
+bgav_video_parser_create(bgav_stream_t * s);
 
 int bgav_video_parser_supported(uint32_t fourcc);
 
@@ -61,14 +60,7 @@ int bgav_video_parser_set_header(bgav_video_parser_t * parser,
 void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p);
 
-const gavl_video_format_t *
-bgav_video_parser_get_format(bgav_video_parser_t * parser);
-
 int bgav_video_parser_max_ref_frames(bgav_video_parser_t * parser);
-
-
-void
-bgav_video_parser_set_format(bgav_video_parser_t * parser, const gavl_video_format_t *);
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser);
 

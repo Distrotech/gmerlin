@@ -59,8 +59,7 @@ int bgav_video_parser_supported(uint32_t fourcc)
 
 
 bgav_video_parser_t *
-bgav_video_parser_create(uint32_t fourcc, int timescale,
-                         const bgav_options_t * opt, int stream_flags)
+bgav_video_parser_create(bgav_stream_t * s)
   {
   int i;
   bgav_video_parser_t * ret;
@@ -69,7 +68,7 @@ bgav_video_parser_create(uint32_t fourcc, int timescale,
   init_func func = NULL;
   for(i = 0; i < sizeof(parsers)/sizeof(parsers[0]); i++)
     {
-    if(parsers[i].fourcc == fourcc)
+    if(parsers[i].fourcc == s->fourcc)
       {
       func = parsers[i].func;
       break;
@@ -80,12 +79,13 @@ bgav_video_parser_create(uint32_t fourcc, int timescale,
     return NULL;
   
   ret = calloc(1, sizeof(*ret));
-  ret->in_scale = timescale;
   ret->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   ret->last_non_b_frame = -1;
   ret->raw_position = -1;
-  ret->stream_flags = stream_flags;
   ret->max_ref_frames = 2;
+  ret->format = &s->data.video.format;
+  ret->s = s;
+
   func(ret);
   return ret;
   }
@@ -155,8 +155,8 @@ static void update_previous_size(bgav_video_parser_t * parser)
   if(parser->timestamp == BGAV_TIMESTAMP_UNDEFINED) \
     { \
     if(parser->cache[index].in_pts != BGAV_TIMESTAMP_UNDEFINED) \
-      parser->timestamp = gavl_time_rescale(parser->in_scale, \
-                                            parser->format.timescale, \
+      parser->timestamp = gavl_time_rescale(parser->s->timescale, \
+                                            parser->format->timescale, \
                                             parser->cache[index].in_pts); \
     else \
       parser->timestamp = 0; \
@@ -243,7 +243,8 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t in_pts, int64
   parser->eof = 0;
 
   if(in_pts != BGAV_TIMESTAMP_UNDEFINED)
-    parser->timestamp = gavl_time_rescale(parser->in_scale, parser->format.timescale, in_pts);
+    parser->timestamp = gavl_time_rescale(parser->s->timescale,
+                                          parser->format->timescale, in_pts);
   else if(out_pts != BGAV_TIMESTAMP_UNDEFINED)
     parser->timestamp = out_pts;
   else
@@ -257,11 +258,6 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t in_pts, int64
     parser->reset(parser);
   }
 
-const gavl_video_format_t *
-bgav_video_parser_get_format(bgav_video_parser_t * parser)
-  {
-  return &parser->format;
-  }
 
 int bgav_video_parser_max_ref_frames(bgav_video_parser_t * parser)
   {
@@ -294,14 +290,6 @@ int bgav_video_parser_set_header(bgav_video_parser_t * parser,
     parser->parse_header(parser);
   return 1;
   }
-
-void
-bgav_video_parser_set_format(bgav_video_parser_t * parser,
-                             const gavl_video_format_t * f)
-  {
-  gavl_video_format_copy(&parser->format, f);
-  }
-
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   {
@@ -366,7 +354,7 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
   if(!parser->buf.size)
     return PARSER_NEED_DATA;
 
-  if(parser->stream_flags & STREAM_PARSE_FULL)
+  if(parser->s->flags & STREAM_PARSE_FULL)
     {
     while(1)
       {
@@ -385,7 +373,7 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
         }
       }
     }
-  else if(parser->stream_flags & STREAM_PARSE_FRAME)
+  else if(parser->s->flags & STREAM_PARSE_FRAME)
     {
     int type;
     /* Need a picture in cache without the coding type set */
@@ -431,7 +419,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
 #endif
   /* Update cache */
 
-  if(parser->stream_flags & STREAM_PARSE_FULL)
+  if(parser->s->flags & STREAM_PARSE_FULL)
     {
     if(parser->num_packets >= parser->packets_alloc)
       {
@@ -446,7 +434,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
     parser->packets[parser->num_packets].pts  = p->pts;
     parser->num_packets++;
     }
-  else if(parser->stream_flags & STREAM_PARSE_FRAME)
+  else if(parser->s->flags & STREAM_PARSE_FRAME)
     {
     /* Reserve cache entry */
     if(parser->cache_size >= PARSER_CACHE_MAX)
@@ -458,7 +446,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
     c = &parser->cache[parser->cache_size-1];
     memset(c, 0, sizeof(*c));
     c->pts = BGAV_TIMESTAMP_UNDEFINED;
-    c->duration = parser->format.frame_duration;
+    c->duration = parser->format->frame_duration;
     c->size = p->data_size;
     c->position = p->position;
     c->in_pts = p->pts;
@@ -571,16 +559,16 @@ void bgav_video_parser_set_framerate(bgav_video_parser_t * parser,
   {
   int i;
 
-  if(!parser->format.timescale || !parser->format.frame_duration)
+  if(!parser->format->timescale || !parser->format->frame_duration)
     {
-    parser->format.timescale = timescale;
-    parser->format.frame_duration = frame_duration;
+    parser->format->timescale = timescale;
+    parser->format->frame_duration = frame_duration;
     
     /* Frame duration is set by bgav_video_parser_set_picture_start(), which will
      * be before the global header for most formats (i.e. when frame duration isn't known yet).
      */
     for(i = 0; i < parser->cache_size ; i++)
-      parser->cache[i].duration = parser->format.frame_duration;
+      parser->cache[i].duration = parser->format->frame_duration;
     }
   
   }
@@ -605,7 +593,7 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   c->pts = BGAV_TIMESTAMP_UNDEFINED;
   c->tc = GAVL_TIMECODE_UNDEFINED;
   c->recovery_point = -1;
-  c->duration = parser->format.frame_duration;
+  c->duration = parser->format->frame_duration;
   
   /* Set picture position */
   if(parser->raw)

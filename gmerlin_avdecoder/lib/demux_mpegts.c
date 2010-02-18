@@ -53,6 +53,47 @@
 
 // #define DUMP_PMT_PAT
 
+// #define DUMP_HDV_AUX
+
+typedef struct
+  {
+  gavl_timecode_t tc; /* Timecode */
+  gavl_timecode_t rd; /* Recording date/time */
+  
+  int timescale;
+  int frame_duration;
+  int int_framerate;
+  } hdv_vaux_t;
+
+#ifdef DUMP_HDV_AUX
+static void dump_vaux(const hdv_vaux_t * vaux)
+  {
+  bgav_dprintf("HDV VAUX packet\n");
+
+  bgav_dprintf("  Timecode: ");
+  if(vaux->tc != GAVL_TIMECODE_UNDEFINED)
+    {
+    gavl_timecode_dump(NULL, vaux->tc);
+    bgav_dprintf("\n");
+    }
+  else
+    bgav_dprintf("None\n");
+
+  bgav_dprintf("  Date/Time: ");
+  if(vaux->rd != GAVL_TIMECODE_UNDEFINED)
+    {
+    gavl_timecode_dump(NULL, vaux->rd);
+    bgav_dprintf("\n");
+    }
+  else
+    bgav_dprintf("None\n");
+  
+  bgav_dprintf("  Framerate: %d/%d\n",
+               vaux->timescale, vaux->frame_duration); 
+  bgav_dprintf("  Timecode rate: %d\n", vaux->int_framerate);
+  }
+#endif
+
 typedef struct
   {
   int64_t last_pts;
@@ -1070,17 +1111,19 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-/* Parse HDV AAUV/VAUX */
+/*
+ * Parse HDV AAUV/VAUX
+ *
+ * Modeled after the gstreamer parser by Edward Hervey
+ * http://cgit.freedesktop.org/gstreamer/gst-plugins-bad/tree/gst/hdvparse/gsthdvparse.c
+ */
 
+#if 0
 typedef struct
   {
   int dummy;
   } hdv_aaux_t;
-
-typedef struct
-  {
-  int dummy;
-  } hdv_vaux_t;
+#endif
 
 static const uint32_t hdv_aux_header = BGAV_MK_FOURCC(0x00, 0x00, 0x01, 0xbf);
 
@@ -1103,6 +1146,7 @@ static int parse_hdv_aux_header(uint8_t ** data, int * len)
   return 1;
   }
 
+#if 0
 static int parse_hdv_aaux(uint8_t * data, int len, hdv_aaux_t * ret)
   {
   uint8_t tag;
@@ -1130,18 +1174,53 @@ static int parse_hdv_aaux(uint8_t * data, int len, hdv_aaux_t * ret)
     }
   return 1;
   }
+#endif
 
 #define BCD(c) ( ((((c) >> 4) & 0x0f) * 10) + ((c) & 0x0f) )
+
+static const struct
+  {
+  int timescale;
+  int frame_duration;
+  int int_framerate;
+  }
+vaux_framerates[] =
+  {
+    {  },
+    { 24000, 1,    24 },
+    {  },
+    { 25,    1,    25 },
+    { 30000, 1001, 30 },
+    {  },
+    {  },
+    {  },
+    {  },
+    {  },
+    {  },
+    {  },
+    {  },
+    {  },
+    {  },
+    {  },
+  };
 
 static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
   {
   uint8_t tag;
   int size;
   uint8_t * end;
+  int rate_index;
+  int have_date = 0;
+  int have_time = 0;
+
+  memset(ret, 0, sizeof(*ret));
   
   if(!parse_hdv_aux_header(&data, &len))
     return 0;
 
+  ret->tc = GAVL_TIMECODE_UNDEFINED;
+  ret->rd = GAVL_TIMECODE_UNDEFINED;
+  
   end = data + len;
 
   while(data < end)
@@ -1159,10 +1238,16 @@ static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
     //    bgav_hexdump(data, size, 16);
     if((tag == 0x44) && (len >= 0x39))
       {
+      rate_index = data[13] & 0x07;
+      
+      ret->timescale      = vaux_framerates[rate_index].timescale;
+      ret->frame_duration = vaux_framerates[rate_index].frame_duration;
+      ret->int_framerate  = vaux_framerates[rate_index].int_framerate;
+      
       if(data[28] & 0x01) /* Timecode valid */
         {
         uint8_t fr, sec, min, hr;
-        int bf, df;
+        //int bf, df;
         
         /* HD2 TTC
          *      ---------------------------------
@@ -1175,14 +1260,21 @@ static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
          * 32   | 1 | 1 |Tens Hr|Units of Hours |
          *      ---------------------------------
          */
+        // ret->drop = (data[29] >> 6) & 0x1;
+
         fr = BCD (data[29] & 0x3f);
         sec = BCD (data[30] & 0x7f);
         min = BCD (data[31] & 0x7f);
         hr = BCD (data[32] & 0x3f);
-
-        fprintf(stderr, "Timecode: %02d:%02d:%02d:%02d\n",
-                hr, min, sec, fr);
+        
+        // fprintf(stderr, "Timecode: %02d:%02d:%02d:%02d\n",
+        //         hr, min, sec, fr);
+        
+        gavl_timecode_from_hmsf(&ret->tc, hr, min, sec, fr);
         }
+      else
+        ret->tc = GAVL_TIMECODE_UNDEFINED;
+      
       if(data[28] & 0x02) /* Date valid */
         {
         int ds, tm;
@@ -1209,7 +1301,10 @@ static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
         year = BCD (data[36]);
         year += 2000;
         
-        fprintf(stderr, "Date: %d %02d/%02d/%04d\n", dow, day, month, year);
+        // fprintf(stderr, "Date: %d %02d/%02d/%04d\n", dow, day, month, year);
+        
+        gavl_timecode_from_ymd(&ret->rd, year, month, day);
+        have_date = 1;
         }
       if(data[28] & 0x04) /* Time valid */
         {
@@ -1226,18 +1321,23 @@ static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
          * 40   | 1 | 1 |Tens Hr|Units of Hours |
          *      ---------------------------------
          */
-
+        
+        // Always 0xff ?
+        //        fprintf(stderr, "data[37]: %02x\n", data[37]);
+        
         fr = BCD (data[37] & 0x3f);
         sec = BCD (data[38] & 0x7f);
         min = BCD (data[39] & 0x7f);
         hr = BCD (data[40] & 0x3f);
 
-        fprintf(stderr, "Time: %02d:%02d:%02d:%02d\n",
-                hr, min, sec, fr);
-        
+        //        fprintf(stderr, "Time: %02d:%02d:%02d:%02d\n",
+        //        hr, min, sec, fr);
+
+        gavl_timecode_from_hmsf(&ret->rd, hr, min, sec, 0);
+        have_time = 1;
         }
       }
-
+    
     data += size;
     
     }
@@ -1342,7 +1442,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       position += priv->packet_size;
       continue;
       }
-
+#if 0
     if(priv->packet.pid == priv->programs[priv->current_program].aaux_pid)
       {
       hdv_aaux_t aaux;
@@ -1358,20 +1458,40 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       continue;
 
       }
-    else if(priv->packet.pid == priv->programs[priv->current_program].vaux_pid)
-      {
-      hdv_vaux_t vaux;
-      /* Got VAUX packet */
-      fprintf(stderr, "Got VAUX packet\n");
-      //      bgav_transport_packet_dump(&priv->packet);
-      //      bgav_hexdump(priv->ptr, priv->packet.payload_size, 16);
-      parse_hdv_vaux(priv->ptr, priv->packet.payload_size, &vaux);
-
-      next_packet(priv);
-      position += priv->packet_size;
-      continue;
+    else
+#endif
+      if(priv->packet.pid == priv->programs[priv->current_program].vaux_pid)
+        {
+        hdv_vaux_t vaux;
+        gavl_video_format_t * fmt;
       
-      }
+        /* Got VAUX packet */
+        //      fprintf(stderr, "Got VAUX packet\n");
+        //      bgav_transport_packet_dump(&priv->packet);
+        //      bgav_hexdump(priv->ptr, priv->packet.payload_size, 16);
+        parse_hdv_vaux(priv->ptr, priv->packet.payload_size, &vaux);
+#ifdef DUMP_HDV_AUX
+        dump_vaux(&vaux);
+#endif
+      
+        if(ctx->tt->cur->video_streams)
+          {
+          fmt = &ctx->tt->cur->video_streams[0].data.video.format;
+        
+          if(!fmt->timecode_format.int_framerate)
+            {
+            fmt->timecode_format.int_framerate = vaux.int_framerate;
+            if(vaux.frame_duration == 1001)
+              fmt->timecode_format.flags =
+                GAVL_TIMECODE_DROP_FRAME;
+            }
+          }
+
+        next_packet(priv);
+        position += priv->packet_size;
+      
+        continue;
+        }
     
     s = bgav_track_find_stream(ctx, priv->packet.pid);
     

@@ -66,8 +66,7 @@ int bgav_video_start(bgav_stream_t * s)
     const uint8_t * header;
     int header_len;
     
-    parser = bgav_video_parser_create(s->fourcc, s->timescale,
-                                      s->opt, s->flags);
+    parser = bgav_video_parser_create(s);
     if(!parser)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -81,7 +80,7 @@ int bgav_video_start(bgav_stream_t * s)
       }
 
     /* Set the format, as far as known by the demuxer */
-    bgav_video_parser_set_format(parser, &s->data.video.format);
+    // bgav_video_parser_set_format(parser, &s->data.video.format);
     
     /* Very few formats pass the extradata out-of-band, but still need
        parsing */

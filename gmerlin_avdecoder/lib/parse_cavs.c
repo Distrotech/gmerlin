@@ -167,12 +167,12 @@ static int parse_cavs(bgav_video_parser_t * parser)
                                         timescale, frame_duration);
 
   
-        parser->format.image_width  = priv->seq.horizontal_size;
-        parser->format.image_height = priv->seq.vertical_size;
-        parser->format.frame_width  =
-          (parser->format.image_width + 15) & ~15;
-        parser->format.frame_height  =
-          (parser->format.image_height + 15) & ~15;
+        parser->format->image_width  = priv->seq.horizontal_size;
+        parser->format->image_height = priv->seq.vertical_size;
+        parser->format->frame_width  =
+          (parser->format->image_width + 15) & ~15;
+        parser->format->frame_height  =
+          (parser->format->image_height + 15) & ~15;
       
         priv->have_seq = 1;
         }

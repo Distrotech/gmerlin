@@ -247,12 +247,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         if(priv->sh.ext.progressive_sequence)
           {
           if(pe.top_field_first)
-            duration = parser->format.frame_duration * 2;
+            duration = parser->format->frame_duration * 2;
           else
-            duration = parser->format.frame_duration;
+            duration = parser->format->frame_duration;
           }
         else if(pe.progressive_frame)
-          duration = parser->format.frame_duration / 2;
+          duration = parser->format->frame_duration / 2;
         
         parser->cache[parser->cache_size-1].duration += duration;
         }
@@ -287,12 +287,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         bgav_video_parser_set_framerate(parser,
                                         timescale, frame_duration);
         
-        parser->format.image_width  = priv->sh.horizontal_size_value;
-        parser->format.image_height = priv->sh.vertical_size_value;
-        parser->format.frame_width  =
-          (parser->format.image_width + 15) & ~15;
-        parser->format.frame_height  =
-          (parser->format.image_height + 15) & ~15;
+        parser->format->image_width  = priv->sh.horizontal_size_value;
+        parser->format->image_height = priv->sh.vertical_size_value;
+        parser->format->frame_width  =
+          (parser->format->image_width + 15) & ~15;
+        parser->format->frame_height  =
+          (parser->format->image_height + 15) & ~15;
         
         priv->have_sh = 1;
         }
@@ -317,16 +317,16 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         priv->sh.mpeg2 = 1;
 
         bgav_video_parser_set_framerate(parser,
-                                        parser->format.timescale * (priv->sh.ext.timescale_ext+1) * 2,
-                                        parser->format.frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
+                                        parser->format->timescale * (priv->sh.ext.timescale_ext+1) * 2,
+                                        parser->format->frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
         
-        parser->format.image_width  += priv->sh.ext.horizontal_size_ext;
-        parser->format.image_height += priv->sh.ext.vertical_size_ext;
+        parser->format->image_width  += priv->sh.ext.horizontal_size_ext;
+        parser->format->image_height += priv->sh.ext.vertical_size_ext;
         
-        parser->format.frame_width  =
-          (parser->format.image_width + 15) & ~15;
-        parser->format.frame_height  =
-          (parser->format.image_height + 15) & ~15;
+        parser->format->frame_width  =
+          (parser->format->image_width + 15) & ~15;
+        parser->format->frame_height  =
+          (parser->format->image_height + 15) & ~15;
   
 
         parser->pos += len;
@@ -403,8 +403,8 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
           priv->sh.mpeg2 = 1;
 
           bgav_video_parser_set_framerate(parser,
-                                          parser->format.timescale * (priv->sh.ext.timescale_ext+1) * 2,
-                                          parser->format.frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
+                                          parser->format->timescale * (priv->sh.ext.timescale_ext+1) * 2,
+                                          parser->format->frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
           parser->pos += len;
           }
         else
@@ -420,7 +420,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
                                             &ph,
                                             parser->buf.buffer + parser->pos,
                                             parser->buf.size - parser->pos);
-        *duration = parser->format.frame_duration;
+        *duration = parser->format->frame_duration;
         if(!len)
           return PARSER_ERROR;
         
@@ -441,12 +441,12 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
           if(priv->sh.ext.progressive_sequence)
             {
             if(pe.top_field_first)
-              delta_d = parser->format.frame_duration * 2;
+              delta_d = parser->format->frame_duration * 2;
             else
-              delta_d = parser->format.frame_duration;
+              delta_d = parser->format->frame_duration;
             }
           else if(pe.progressive_frame)
-            delta_d = parser->format.frame_duration / 2;
+            delta_d = parser->format->frame_duration / 2;
           
           *duration += delta_d;
           }
