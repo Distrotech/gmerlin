@@ -53,8 +53,10 @@
 
 // #define DUMP_PMT_PAT
 
-// #define DUMP_HDV_AUX
 
+#if 0
+
+// #define DUMP_HDV_AUX
 typedef struct
   {
   gavl_timecode_t tc; /* Timecode */
@@ -94,6 +96,8 @@ static void dump_vaux(const hdv_vaux_t * vaux)
   }
 #endif
 
+#endif
+
 typedef struct
   {
   int64_t last_pts;
@@ -114,8 +118,8 @@ typedef struct
   uint16_t pcr_pid;
 
   /* AAUX and VAUX for HDV */
-  uint16_t aaux_pid;
-  uint16_t vaux_pid;
+  //  uint16_t aaux_pid;
+  //  uint16_t vaux_pid;
   
   pmt_section_t pmts;
   
@@ -699,7 +703,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
       priv->programs[program].initialized = 1;
       init_streams_priv(&priv->programs[program],
                         &ctx->tt->tracks[program]);
-
+#if 0
       /* Get the AAUX and VAUX PIDs */
       for(i = 0; i < priv->programs[program].pmts.num_streams; i++)
         {
@@ -719,7 +723,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
           }
         
         }
-
+#endif
       }
     }
   return 1;
@@ -1123,7 +1127,7 @@ typedef struct
   {
   int dummy;
   } hdv_aaux_t;
-#endif
+
 
 static const uint32_t hdv_aux_header = BGAV_MK_FOURCC(0x00, 0x00, 0x01, 0xbf);
 
@@ -1145,8 +1149,6 @@ static int parse_hdv_aux_header(uint8_t ** data, int * len)
   *len = size;
   return 1;
   }
-
-#if 0
 static int parse_hdv_aaux(uint8_t * data, int len, hdv_aaux_t * ret)
   {
   uint8_t tag;
@@ -1174,7 +1176,6 @@ static int parse_hdv_aaux(uint8_t * data, int len, hdv_aaux_t * ret)
     }
   return 1;
   }
-#endif
 
 #define BCD(c) ( ((((c) >> 4) & 0x0f) * 10) + ((c) & 0x0f) )
 
@@ -1234,8 +1235,8 @@ static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
     else
       size = 4;
 
-    //    fprintf(stderr, "Got VAUX data %02x, len: %d\n", tag, size);
-    //    bgav_hexdump(data, size, 16);
+    fprintf(stderr, "Got VAUX data %02x, len: %d\n", tag, size);
+    bgav_hexdump(data, size, 16);
     if((tag == 0x44) && (len >= 0x39))
       {
       rate_index = data[13] & 0x07;
@@ -1336,6 +1337,10 @@ static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
         gavl_timecode_from_hmsf(&ret->rd, hr, min, sec, 0);
         have_time = 1;
         }
+
+      if(!have_date || !have_time)
+        ret->rd = GAVL_TIMECODE_UNDEFINED;
+
       }
     
     data += size;
@@ -1343,6 +1348,7 @@ static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
     }
   return 1;
   }
+#endif
 
 #if 0
 static void predict_pcr_wrap(const bgav_options_t * opt, int64_t pcr)
@@ -1460,15 +1466,17 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       }
     else
 #endif
+
+#if 0
       if(priv->packet.pid == priv->programs[priv->current_program].vaux_pid)
         {
         hdv_vaux_t vaux;
         gavl_video_format_t * fmt;
       
         /* Got VAUX packet */
-        //      fprintf(stderr, "Got VAUX packet\n");
-        //      bgav_transport_packet_dump(&priv->packet);
-        //      bgav_hexdump(priv->ptr, priv->packet.payload_size, 16);
+        fprintf(stderr, "Got VAUX packet\n");
+        bgav_transport_packet_dump(&priv->packet);
+        bgav_hexdump(priv->ptr, priv->packet.payload_size, 16);
         parse_hdv_vaux(priv->ptr, priv->packet.payload_size, &vaux);
 #ifdef DUMP_HDV_AUX
         dump_vaux(&vaux);
@@ -1486,12 +1494,13 @@ static int process_packet(bgav_demuxer_context_t * ctx)
                 GAVL_TIMECODE_DROP_FRAME;
             }
           }
-
+        
         next_packet(priv);
         position += priv->packet_size;
       
         continue;
         }
+#endif
     
     s = bgav_track_find_stream(ctx, priv->packet.pid);
     
@@ -1504,7 +1513,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       position += priv->packet_size;
       continue;
       }
-
+    
     if(priv->packet.payload_start) /* New packet starts here */
       {
       bgav_input_reopen_memory(priv->input_mem, priv->ptr,
