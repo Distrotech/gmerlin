@@ -581,7 +581,8 @@ static int flush_audio(ffmpeg_priv_t * priv,
     pkt.data= st->buffer;
     
     /* write the compressed frame in the media file */
-    if(av_write_frame(priv->ctx, &pkt) != 0)
+    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
+      //    if(av_write_frame(priv->ctx, &pkt) != 0)
       {
       priv->got_error = 1;
       return 0;
@@ -644,9 +645,6 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
     pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
                           st->stream->codec->time_base,
                           st->stream->time_base);
-
-    /* HACK */
-    //    pkt.dts= pkt.pts;
     
     if(st->stream->codec->coded_frame->key_frame)
       pkt.flags |= PKT_FLAG_KEY;
@@ -654,8 +652,8 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
     pkt.data = st->buffer;
     pkt.size = bytes_encoded;
     
-    if(av_write_frame(priv->ctx, &pkt) != 0) 
-      //    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
+    //    if(av_write_frame(priv->ctx, &pkt) != 0) 
+    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
       {
       priv->got_error = 1;
       return 0;
