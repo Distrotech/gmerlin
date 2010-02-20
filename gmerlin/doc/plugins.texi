@@ -110,6 +110,15 @@ i_mikmod.so
 @item Description
 Simple wrapper, which calls the mikmod program
 @end table
+@subsection Gmerlerra plugin
+@table @i
+@item Internal name
+i_gmerlerra
+@item Module
+i_gmerlerra.so
+@item Description
+Renderer for gmerlerra projects
+@end table
 @node plugin_oa
 @section Audio output
 
@@ -130,6 +139,15 @@ oa_pulse
 oa_pulse.so
 @item Description
 PulseAudio output
+@end table
+@subsection Jack
+@table @i
+@item Internal name
+oa_jack
+@item Module
+oa_jack.so
+@item Description
+Jack output plugin
 @end table
 @subsection OSS
 @table @i
@@ -172,6 +190,15 @@ i_alsa
 i_alsa.so
 @item Description
 Alsa recorder
+@end table
+@subsection Jack
+@table @i
+@item Internal name
+i_jack
+@item Module
+i_jack.so
+@item Description
+Jack recorder
 @end table
 @subsection OSS
 @table @i
@@ -220,6 +247,15 @@ i_v4l
 i_v4l.so
 @item Description
 video4linux recording plugin. Supports only video and no tuner decives.
+@end table
+@subsection X11
+@table @i
+@item Internal name
+i_x11
+@item Module
+i_x11.so
+@item Description
+X11 grabber
 @end table
 @node plugin_ea
 @section Encoders for audio
@@ -389,6 +425,15 @@ e_theora.so
 @item Description
 Encoder for Theora files. Audio can be Vorbis, Flac or Speex.
 @end table
+@subsection Ogg Broadcaster
+@table @i
+@item Internal name
+b_ogg
+@item Module
+b_ogg.so
+@item Description
+Broadcaster for Ogg streams using libshout. Supports vorbis, theora and speex.
+@end table
 @subsection FFmpeg audio/video encoder
 @table @i
 @item Internal name
@@ -431,6 +476,15 @@ This is a frontend for generating (S)VCD images with the vcdimager tools (http:/
 @node plugin_ir
 @section Image readers
 
+@subsection GAVL image reader
+@table @i
+@item Internal name
+ir_gavl
+@item Module
+ir_gavl.so
+@item Description
+Reader for GAVL images
+@end table
 @subsection PNM reader
 @table @i
 @item Internal name
@@ -541,6 +595,15 @@ iw_tiff
 iw_tiff.so
 @item Description
 Writer for TIFF images
+@end table
+@subsection gavl image writer
+@table @i
+@item Internal name
+iw_gavl
+@item Module
+iw_gavl.so
+@item Description
+Writer for GAVL images
 @end table
 @node plugin_fa
 @section Audio filters
@@ -773,6 +836,15 @@ fv_flip.so
 @item Description
 Flip video images horizontally and/or vertically
 @end table
+@subsection Force framerate
+@table @i
+@item Internal name
+fv_framerate
+@item Module
+fv_framerate.so
+@item Description
+Forces a framerate as input for the next filter. Its mainly used for testing.
+@end table
 @subsection Force pixelformat
 @table @i
 @item Internal name
@@ -781,6 +853,15 @@ fv_pixelformat
 fv_pixelformat.so
 @item Description
 Forces a pixelformat as input for the next filter. Its mainly used for testing.
+@end table
+@subsection Interlace
+@table @i
+@item Internal name
+fv_interlace
+@item Module
+fv_interlace.so
+@item Description
+Interlace video images. Output has half the input framerate.
 @end table
 @subsection Invert RGBA
 @table @i

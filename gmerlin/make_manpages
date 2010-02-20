@@ -1,4 +1,5 @@
 #!/bin/sh
+export LANG="C"
 apps/cmdlineplayer/gmerlin_play -help-man > apps/cmdlineplayer/gmerlin_play.1
 apps/player/gmerlin -help-man > apps/player/gmerlin.1
 apps/player/gmerlin_remote -help-man > apps/player/gmerlin_remote.1

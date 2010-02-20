@@ -1,4 +1,4 @@
-.TH GMERLIN_PLAYER 1 "December 2008" Gmerlin "User Manuals"
+.TH GMERLIN_PLAYER 1 "February 2010" Gmerlin "User Manuals"
 .SH NAME
 gmerlin_player
 .SH SYNOPSIS
@@ -20,7 +20,7 @@ Set audio output options
 .RS 2
 .BR p "=option[{suboptions}]"
 .P
-Supported options: oa_alsa oa_pulse oa_oss oa_esd
+Supported options: oa_alsa oa_pulse oa_jack oa_oss oa_esd
 .P
 Default: oa_alsa
 .P
@@ -81,6 +81,18 @@ Buffer time
 Set the buffer time (in milliseconds). Larger values improve playback
 performance on slow systems under load. Smaller values decrease the
 latency of the volume control.
+
+.P
+.RE
+.B Suboptions for p=oa_jack
+
+.P
+.RS 2
+.BR connect_ports "=[1|0] (default: 1)"
+.P
+Connect ports
+.P
+Autoconnect ports
 
 .P
 .RE
@@ -167,6 +179,16 @@ Use hardware scaling even if it involves more CPU intensive pixelformat
 conversions
 
 .P
+.BR background_color "=<r>,<g>,<b> (default: 0.000,0.000,0.000)"
+.P
+<r>, <g> and <b> are in the range 0.0..1.0
+.P
+Background color
+.P
+Specify the background color for videos with alpha channel. This is only
+used by the OpenGL driver.
+
+.P
 .BR scale_mode "=<string>"
 .P
 Supported strings: auto nearest bilinear quadratic cubic_bspline cubic_mitchell cubic_catmull sinc_lanczos
@@ -209,7 +231,7 @@ Set and configure input plugin
 .RS 2
 .BR p "=option[{suboptions}]"
 .P
-Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_edl i_singlepic i_mikmod
+Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_edl i_singlepic i_mikmod i_gmerlerra
 .P
 Default: i_avdec
 .P
@@ -227,12 +249,12 @@ Enable dynamic range control for codecs, which support this (currently
 only A52 and DTS).
 
 .P
-.BR pp "=<number> (0..6, default: 1)"
+.BR pp "=<number> (0.00..1.00, default: 0.20)"
 .P
 Postprocessing level
 .P
 Set postprocessing (to remove compression artifacts). 0 means no
-postprocessing, 6 means maximum postprocessing.
+postprocessing, 1 means maximum postprocessing.
 
 .P
 .BR shrink "=<number> (0..3, default: 0)"
@@ -241,6 +263,13 @@ Shrink factor
 .P
 This enables downscaling of images while decoding. Currently only
 supported for JPEG-2000.
+
+.P
+.BR vdpau "=[1|0] (default: 1)"
+.P
+Use vdpau
+.P
+Use VDPAU
 
 .P
 .BR connect_timeout "=<number> (0..2000000, default: 5000)"
@@ -345,13 +374,18 @@ encoding is unknown. It must be a character set namerecognized by iconv.
 Type 'iconv -l' at the commandline for a list of supported encodings.
 
 .P
-.BR sample_accurate "=[1|0] (default: 0)"
+.BR sample_accuracy "=<string>"
+.P
+Supported strings: never always when_necessary
+.P
+Default: never
 .P
 Sample accurate
 .P
 Try sample accurate seeking. For most formats, this is not necessary,
-since normal seeking works fine. Some formats are only seekable with
-this option enabled.
+since normal seeking works fine. Some formats are only seekable in
+sample accurate mode. Choose "When necessary" to enable seeking for most
+formats with the smallest overhead.
 
 .P
 .BR cache_time "=<number> (default: 500)"
@@ -378,7 +412,7 @@ Export date and time as timecodes for DV
 
 .P
 .RS 2
-.BR trackname_template "=<string> (Default: 0x7f44bb52ca40 - %)"
+.BR trackname_template "=<string> (Default: %p - %t)"
 .P
 Trackname template
 .P
@@ -563,13 +597,14 @@ Sort and configure audio codecs
 .BR vc "={option[{suboptions}][:option[{suboptions}]...]}"
 .P
 Supported options: rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 
-png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 ffmpeg_msmpeg4v2 
-ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263 ffmpeg_h263 
-ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 ffmpeg_mjpg 
-ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS ffmpeg_indeo 
-ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv ffmpeg_rle 
-ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal ffmpeg_dv_avi ffmpeg_dv50_pal 
-ffmpeg_dv50_ntsc ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_dnxhd jpeg mjpa
+schroedinger png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 
+ffmpeg_msmpeg4v2 ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263_dec 
+ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 
+ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS 
+ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv 
+ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal ffmpeg_dv_avi 
+ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_dvcprohd ffmpeg_ffvhuff 
+ffmpeg_ffv1 ffmpeg_dnxhd jpeg mjpa ffmpeg_imx
 
 Video Codecs
 .P
@@ -630,7 +665,7 @@ Grayscale mode
 Grayscale mode
 .P
 .RE
-.B Suboptions for ffmpeg_h263
+.B Suboptions for ffmpeg_h263_dec
 
 .P
 .RS 2
@@ -783,7 +818,25 @@ Grayscale mode
 Grayscale mode
 .P
 .RE
+.B Suboptions for ffmpeg_ffv1
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
 .B Suboptions for ffmpeg_dnxhd
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_imx
 
 .P
 .RS 2
@@ -839,6 +892,15 @@ Force volume fade at the end of module
 Use interpolate mixing
 .P
 .RE
+.B Suboptions for p=i_gmerlerra
+
+.P
+.RS 2
+.BR render_quality "=[1|0] (default: 1)"
+.P
+Render quality
+.P
+.RE
 .RE
 
 .B -aud
@@ -848,7 +910,7 @@ Use interpolate mixing
 Set audio processing options
 .RE
 .RS 2
-.BR force_sampleformat "=<string>"
+.BR sampleformat "=<string>"
 .P
 Supported strings: none 8 16 32 f d
 .P
@@ -892,7 +954,7 @@ samplerate you specify below us used.
 .P
 Samplerate
 .P
-Fixed output samplerate
+Samplerate
 
 .P
 .BR resample_mode "=<string>"
@@ -1000,7 +1062,15 @@ placements are different. Usually, this is only done for qualities above 3.
 .P
 Still image framerate
 .P
-Set framerate width which still images will be redisplayed periodically
+Set framerate with which still images will be redisplayed periodically
+
+.P
+.BR threads "=<number> (1..1024, default: 1)"
+.P
+Number of threads
+.P
+Threads to launch for processing operations. Changing this requires program
+restart
 
 .P
 .RE
@@ -1012,21 +1082,20 @@ Set framerate width which still images will be redisplayed periodically
 Set generic input options
 .RE
 .RS 2
-.BR do_bypass "=[1|0] (default: 1)"
-.P
-Enable bypass mode
-.P
-Use input plugins in bypass mode if they support it (Currently only the
-audio CD player). This dramatically decreases CPU usage but doesn't work on
-all hardware setups.
-
-.P
 .BR still_framerate "=<number> (0..100, default: 10)"
 .P
 Still image repitition rate
 .P
 When showing still images, gmerlin repeats them periodically to make
 realtime filter tweaking work.
+
+.P
+.BR sync_offset "=<number> (-1000..1000, default: 0)"
+.P
+Sync offset [ms]
+.P
+Use this for playing buggy files, which have a constant offset between audio
+and video. Use positive values if the video is ahead of audio
 
 .P
 .RE

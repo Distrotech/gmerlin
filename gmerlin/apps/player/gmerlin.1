@@ -1,68 +1,68 @@
-.TH GMERLIN 1 "Dezember 2008" Gmerlin "User Manuals"
+.TH GMERLIN 1 "February 2010" Gmerlin "User Manuals"
 .SH NAME
 gmerlin
 .SH SYNOPSIS
 .B gmerlin 
-.I [Optionen]
-.I [gmls...]
+.I [options]
+.I [gmls
+.I ...]
 
 .SH DESCRIPTION
-Gmerlin GUI Spieler
+Gmerlin GUI Player
 .SH GENERIC OPTIONS
 The following generic options are available for all gmerlin applications
 
 .B -help
 
 .RS 2
-Gib diese Hilfe aus und beende
+Print this help message and exit
 .RE
 
 .B -help-man
 
 .RS 2
-Gib diese Hilfe als Manualpage aus und beende
+Print this help message as a manual page and exit
 .RE
 
 .B -help-texi
 
 .RS 2
-Gib diese Hilfe im texinfo-Format aus und beende
+Print this help message in texinfo format and exit
 .RE
 
 .B -version
 
 .RS 2
-Gib Version aus und beende
+Print version info and exit
 .RE
 
-.SH UMGEBUNGSVARIABLEN
+.SH ENVIRONMENT VARIABLES
 .B GMERLIN_PLAYER_REMOTE_PORT
 
 .RS 2
-Voreingestellter Port für die Fernbedienung
+Default port for the remote control
 .RE
-.SH DATEIEN
+.SH FILES
 .B ~/.gmerlin/plugins.xml
 
 .RS 2
-Zwischenspeicher für die Plugin-Registry (von allen Programmen gemeinsam
-benutzt)
+Cache of the plugin registry (shared by all applicatons)
 .RE
 
 .P
 .B ~/.gmerlin/player/config.xml
 
 .RS 2
-Wird für Konfigurationsdaten benutzt. Lösche diese Datein, wenn Du meinst
-was zerschossen zu haben.
+Used for configuration data. Delete this file if you think you goofed
+something up.
 .RE
 
 .P
 .B ~/.gmerlin/player/tree/tree.xml
 
 .RS 2
-Mediatree wird hier gespeichert. Alben werden als separate Dateien im gleichen
-Verzeichnis gespeichert
+Media tree is saved here. The albums are saved as separate files in the same
+directory.
 .RE
 
 .P

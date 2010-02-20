@@ -11,7 +11,7 @@ Commandline Multimedia player
 Set audio output options@*
 @table @r
 @item @b{p}=option[@{suboptions@}]@*@*
-Supported options: oa_alsa oa_pulse oa_oss oa_esd@*@*
+Supported options: oa_alsa oa_pulse oa_jack oa_oss oa_esd@*@*
 Default: oa_alsa@*@*
 Audio output plugin@*@*
 @b{Suboptions for p=oa_alsa}@*@*
@@ -46,6 +46,13 @@ Buffer time@*@*
 Set the buffer time (in milliseconds). Larger values improve playback
 performance on slow systems under load. Smaller values decrease the
 latency of the volume control.
+@*@*
+@end table
+@b{Suboptions for p=oa_jack}@*@*
+@table @r
+@item @b{connect_ports}=[1|0] (default: 1)@*@*
+Connect ports@*@*
+Autoconnect ports
 @*@*
 @end table
 @b{Suboptions for p=oa_oss}@*@*
@@ -92,6 +99,12 @@ Force hardware scaling@*@*
 Use hardware scaling even if it involves more CPU intensive pixelformat
 conversions
 @*@*
+@item @b{background_color}=<r>,<g>,<b> (default: 0.000,0.000,0.000)@*@*
+<r>, <g> and <b> are in the range 0.0..1.0
+Background color@*@*
+Specify the background color for videos with alpha channel. This is only
+used by the OpenGL driver.
+@*@*
 @item @b{scale_mode}=<string>@*@*
 Supported strings: auto nearest bilinear quadratic cubic_bspline cubic_mitchell cubic_catmull sinc_lanczos@*@*
 Default: auto@*@*
@@ -117,7 +130,7 @@ Set and configure input plugin@*
 @table @r
 @item @b{p}=option[@{suboptions@}]@*@*
 Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt 
-i_edl i_singlepic i_mikmod@*@*
+i_edl i_singlepic i_mikmod i_gmerlerra@*@*
 Default: i_avdec@*@*
 input plugin@*@*
 @b{Suboptions for p=i_avdec}@*@*
@@ -127,15 +140,19 @@ Dynamic range control@*@*
 Enable dynamic range control for codecs, which support this (currently
 only A52 and DTS).
 @*@*
-@item @b{pp}=<number> (0..6, default: 1)@*@*
+@item @b{pp}=<number> (0.00..1.00, default: 0.20)@*@*
 Postprocessing level@*@*
 Set postprocessing (to remove compression artifacts). 0 means no
-postprocessing, 6 means maximum postprocessing.
+postprocessing, 1 means maximum postprocessing.
 @*@*
 @item @b{shrink}=<number> (0..3, default: 0)@*@*
 Shrink factor@*@*
 This enables downscaling of images while decoding. Currently only
 supported for JPEG-2000.
+@*@*
+@item @b{vdpau}=[1|0] (default: 1)@*@*
+Use vdpau@*@*
+Use VDPAU
 @*@*
 @item @b{connect_timeout}=<number> (0..2000000, default: 5000)@*@*
 Connect timeout (milliseconds)@*@*
@@ -197,11 +214,14 @@ This sets the default encoding for text subtitles,when the original
 encoding is unknown. It must be a character set namerecognized by iconv.
 Type 'iconv -l' at the commandline for a list of supported encodings.
 @*@*
-@item @b{sample_accurate}=[1|0] (default: 0)@*@*
+@item @b{sample_accuracy}=<string>@*@*
+Supported strings: never always when_necessary@*@*
+Default: never@*@*
 Sample accurate@*@*
 Try sample accurate seeking. For most formats, this is not necessary,
-since normal seeking works fine. Some formats are only seekable with
-this option enabled.
+since normal seeking works fine. Some formats are only seekable in
+sample accurate mode. Choose "When necessary" to enable seeking for most
+formats with the smallest overhead.
 @*@*
 @item @b{cache_time}=<number> (default: 500)@*@*
 Cache time (milliseconds)@*@*
@@ -329,13 +349,14 @@ Sort and configure audio codecs
 @*@*
 @item @b{vc}=@{option[@{suboptions@}][:option[@{suboptions@}]...]@}@*@*
 Supported options: rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 
-png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 ffmpeg_msmpeg4v2 
-ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263 ffmpeg_h263 
-ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 ffmpeg_mjpg 
-ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS ffmpeg_indeo 
-ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv ffmpeg_rle 
-ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal ffmpeg_dv_avi ffmpeg_dv50_pal 
-ffmpeg_dv50_ntsc ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_dnxhd jpeg mjpa
+schroedinger png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 
+ffmpeg_msmpeg4v2 ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263_dec 
+ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 
+ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS 
+ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv 
+ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal ffmpeg_dv_avi 
+ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_dvcprohd ffmpeg_ffvhuff 
+ffmpeg_ffv1 ffmpeg_dnxhd jpeg mjpa ffmpeg_imx
 
 Video Codecs@*@*
 Sort and configure video codecs
@@ -370,7 +391,7 @@ Grayscale mode@*@*
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
 @end table
-@b{Suboptions for ffmpeg_h263}@*@*
+@b{Suboptions for ffmpeg_h263_dec}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
@@ -455,7 +476,17 @@ Grayscale mode@*@*
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
 @end table
+@b{Suboptions for ffmpeg_ffv1}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
 @b{Suboptions for ffmpeg_dnxhd}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
+@b{Suboptions for ffmpeg_imx}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
@@ -485,12 +516,17 @@ Force volume fade at the end of module@*@*
 @item @b{interpol}=[1|0] (default: 0)@*@*
 Use interpolate mixing@*@*
 @end table
+@b{Suboptions for p=i_gmerlerra}@*@*
+@table @r
+@item @b{render_quality}=[1|0] (default: 1)@*@*
+Render quality@*@*
+@end table
 @end table
 
 @item -aud <audio_options>
 Set audio processing options@*
 @table @r
-@item @b{force_sampleformat}=<string>@*@*
+@item @b{sampleformat}=<string>@*@*
 Supported strings: none 8 16 32 f d@*@*
 Default: none@*@*
 Force sampleformat@*@*
@@ -516,7 +552,7 @@ samplerate you specify below us used.
 @*@*
 @item @b{samplerate}=<number> (8000..192000, default: 44100)@*@*
 Samplerate@*@*
-Fixed output samplerate
+Samplerate
 @*@*
 @item @b{resample_mode}=<string>@*@*
 Supported strings: auto zoh linear sinc_fast sinc_medium sinc_best@*@*
@@ -578,23 +614,27 @@ placements are different. Usually, this is only done for qualities above 3.
 @*@*
 @item @b{still_framerate}=<number> (1.00..100.00, default: 10.00)@*@*
 Still image framerate@*@*
-Set framerate width which still images will be redisplayed periodically
+Set framerate with which still images will be redisplayed periodically
+@*@*
+@item @b{threads}=<number> (1..1024, default: 1)@*@*
+Number of threads@*@*
+Threads to launch for processing operations. Changing this requires program
+restart
 @*@*
 @end table
 
 @item -inopt <input_options>
 Set generic input options@*
 @table @r
-@item @b{do_bypass}=[1|0] (default: 1)@*@*
-Enable bypass mode@*@*
-Use input plugins in bypass mode if they support it (Currently only the
-audio CD player). This dramatically decreases CPU usage but doesn't work on
-all hardware setups.
-@*@*
 @item @b{still_framerate}=<number> (0..100, default: 10)@*@*
 Still image repitition rate@*@*
 When showing still images, gmerlin repeats them periodically to make
 realtime filter tweaking work.
+@*@*
+@item @b{sync_offset}=<number> (-1000..1000, default: 0)@*@*
+Sync offset [ms]@*@*
+Use this for playing buggy files, which have a constant offset between audio
+and video. Use positive values if the video is ahead of audio
 @*@*
 @end table
 
