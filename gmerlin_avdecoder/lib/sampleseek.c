@@ -113,7 +113,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   else if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
     frame_time = gavl_time_rescale(s->data.audio.format.samplerate,
-                                   s->timescale, frame_time);
+                                   s->timescale, sample);
     bgav_superindex_seek(bgav->demuxer->si, s,
                          &frame_time,
                          s->timescale);

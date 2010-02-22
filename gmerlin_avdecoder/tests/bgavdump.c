@@ -34,8 +34,8 @@
 
 // #define TRACK 6
 
-static int64_t audio_seek = 0;
-static int64_t video_seek = 0;
+static int64_t audio_seek = -1;
+static int64_t video_seek = -1;
 static gavl_time_t global_seek = 0;
 
 /* Callback based reading: We do a simple stdio mapping here */
@@ -412,7 +412,7 @@ int main(int argc, char ** argv)
         {
         audio_format = bgav_get_audio_format(file, i);
         af = gavl_audio_frame_create(audio_format);
-        if(sample_accurate && audio_seek)
+        if(sample_accurate && (audio_seek >= 0))
           bgav_seek_audio(file, i, audio_seek);
 
         for(j = 0; j < frames_to_read; j++)
@@ -438,7 +438,7 @@ int main(int argc, char ** argv)
 #if 1
         if(sample_accurate)
           {
-          if(video_seek)
+          if(video_seek >= 0)
             bgav_seek_video(file, i, video_seek);
           start_time = bgav_video_start_time(file, i);
           }
