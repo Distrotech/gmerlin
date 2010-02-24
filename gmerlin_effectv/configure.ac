@@ -2,7 +2,7 @@ AC_INIT
 AC_CONFIG_SRCDIR([include/gmerlin_effectv.h])
 
 AM_CONFIG_HEADER(include/config.h)
-AM_INIT_AUTOMAKE(gmerlin-effectv, 1.1.2pre1)
+AM_INIT_AUTOMAKE(gmerlin-effectv, 1.1.2)
 
 AC_DISABLE_STATIC
 
