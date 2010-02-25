@@ -854,9 +854,9 @@ bg_plugin_registry_t *
   
   env = getenv("LADSPA_PATH");
   if(env)
-    path = bg_sprintf("%s:/usr/lib/ladspa:/usr/local/lib/ladspa", env);
+    path = bg_sprintf("%s:/usr/lib64/ladspa:/usr/local/lib64/ladspa:/usr/lib/ladspa:/usr/local/lib/ladspa", env);
   else
-    path = bg_sprintf("/usr/lib/ladspa:/usr/local/lib/ladspa");
+    path = bg_sprintf("/usr/lib64/ladspa:/usr/local/lib64/ladspa:/usr/lib/ladspa:/usr/local/lib/ladspa");
 
   tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_LADSPA, opt);
   if(tmp_info)
@@ -865,7 +865,7 @@ bg_plugin_registry_t *
   free(path);
   
   /* Frei0r */
-  tmp_info = scan_multi("/usr/local/lib/frei0r-1", &file_info, 
+  tmp_info = scan_multi("/usr/lib64/frei0r-1:/usr/local/lib64/frei0r-1:/usr/lib/frei0r-1:/usr/local/lib/frei0r-1", &file_info, 
                         section, BG_PLUGIN_API_FREI0R, opt);
   if(tmp_info)
     ret->entries = append_to_list(ret->entries, tmp_info);

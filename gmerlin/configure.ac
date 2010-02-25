@@ -981,7 +981,13 @@ if test "x$exec_prefix" = xNONE; then
    exec_prefix="${prefix}"
 fi
 
-GMERLIN_PLUGIN_DIR="$exec_prefix/lib/$PACKAGE/plugins"
+AC_ARG_WITH(plugindir,
+  [  --with-plugindir       Directory where plugins get installed],
+  [ GMERLIN_PLUGIN_DIR="${withval}" ],
+  [ GMERLIN_PLUGIN_DIR="$exec_prefix/lib/$PACKAGE/plugins" ]
+)
+
+# GMERLIN_PLUGIN_DIR="$libdir/$PACKAGE"
 GMERLIN_DATA_DIR="$prefix/share/$PACKAGE"
 GMERLIN_DOC_DIR="$docdir"
 
