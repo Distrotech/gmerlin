@@ -1,11 +1,16 @@
 INCLUDES = -I$(top_srcdir)/include
 
-libdir=@GMERLIN_PLUGIN_DIR@
+plugindir=$(pkglibdir)/plugins
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
-AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
 
-lib_LTLIBRARIES = ir_tga.la iw_tga.la ir_bmp.la iw_bmp.la ir_pnm.la iw_pnm.la
+
+plugin_LTLIBRARIES = ir_tga.la iw_tga.la ir_bmp.la iw_bmp.la ir_pnm.la iw_pnm.la
 
 ir_tga_la_SOURCES = ir_tga.c targa.c
 ir_tga_la_LIBADD = @MODULE_LIBADD@

@@ -842,9 +842,9 @@ bg_plugin_registry_t *
   /* Native plugins */
   env = getenv("GMERLIN_PLUGIN_PATH");
   if(env)
-    path = bg_sprintf("%s:%s", env, GMERLIN_PLUGIN_DIR);
+    path = bg_sprintf("%s:%s", env, PLUGIN_DIR);
   else
-    path = bg_sprintf("%s", GMERLIN_PLUGIN_DIR);
+    path = bg_sprintf("%s", PLUGIN_DIR);
   
   tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_GMERLIN, opt);
   if(tmp_info)

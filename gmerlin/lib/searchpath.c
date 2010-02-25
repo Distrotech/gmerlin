@@ -64,7 +64,7 @@ char * bg_search_file_read(const char * directory, const char * file)
       }
     }
   /* Second step: Try Data directory */
-  sprintf(testpath, "%s/%s/%s", GMERLIN_DATA_DIR, directory, file);
+  sprintf(testpath, "%s/%s/%s", DATA_DIR, directory, file);
   testfile = fopen(testpath, "r");
   if(testfile)
     {
@@ -254,7 +254,7 @@ void bg_display_html_help(const char * path)
   if(!url_launcher)
     return;
   
-  complete_path = bg_sprintf("file://%s/%s", GMERLIN_DOC_DIR, path);
+  complete_path = bg_sprintf("file://%s/%s", DOC_DIR, path);
   command = bg_sprintf(url_launcher, complete_path);
   command = bg_strcat(command, " &");
   system(command);

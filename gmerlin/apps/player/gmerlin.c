@@ -784,7 +784,7 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   "Skin Directory",
       .type =        BG_PARAMETER_DIRECTORY,
       .flags =       BG_PARAMETER_HIDE_DIALOG,
-      .val_default = { .val_str = GMERLIN_DATA_DIR"/skins/Default" },
+      .val_default = { .val_str = DATA_DIR"/skins/Default" },
     },
     { /* End of Parameters */ }
   };

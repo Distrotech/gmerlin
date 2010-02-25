@@ -1,3 +1,4 @@
+plugindir=$(pkglibdir)/plugins
 INCLUDES = -I$(top_srcdir)/include
 
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
@@ -30,11 +31,12 @@ $(musicbrainz_cflags) \
 @CDIO_CFLAGS@ \
 @CDIO_CDDA_CFLAGS@ \
 @CDIO_PARANOIA_CFLAGS@ \
--DLOCALE_DIR=\"$(localedir)\"
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
 
-libdir = @GMERLIN_PLUGIN_DIR@
-
-lib_LTLIBRARIES = i_cdaudio.la
+plugin_LTLIBRARIES = i_cdaudio.la
 
 i_cdaudio_la_SOURCES = \
 i_cdaudio.c \

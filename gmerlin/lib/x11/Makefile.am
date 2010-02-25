@@ -1,6 +1,13 @@
+plugindir=$(pkglibdir)/plugins
 INCLUDES = -I$(top_srcdir)/include
 
-AM_CFLAGS = @X_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = \
+@X_CFLAGS@ \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
+
 
 if HAVE_XV
 xv_sources = xvideo.c

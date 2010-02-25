@@ -1,6 +1,13 @@
+plugindir=$(pkglibdir)/plugins
 INCLUDES = -I$(top_srcdir)/include
 
-AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = \
+@XML2_CFLAGS@ \
+@GTK_CFLAGS@ \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
 
 Desktopdir = $(datadir)/applications
 Desktop_DATA = gmerlin-player.desktop

@@ -1,11 +1,17 @@
 INCLUDES = -I$(top_srcdir)/include
 
-libdir=@GMERLIN_PLUGIN_DIR@
+plugindir=$(pkglibdir)/plugins
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
-AM_CFLAGS = @LQT_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = \
+@LQT_CFLAGS@ \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
 
-lib_LTLIBRARIES = e_lqt.la i_lqt.la
+
+plugin_LTLIBRARIES = e_lqt.la i_lqt.la
 
 e_lqt_la_SOURCES  = e_lqt.c lqt_common.c lqtgavl.c
 i_lqt_la_SOURCES  = i_lqt.c lqt_common.c lqtgavl.c

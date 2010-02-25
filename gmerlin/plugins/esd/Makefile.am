@@ -1,11 +1,17 @@
 INCLUDES = -I$(top_srcdir)/include
 
-libdir=@GMERLIN_PLUGIN_DIR@
+plugindir=$(pkglibdir)/plugins
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
-AM_CFLAGS = @ESD_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = \
+@ESD_CFLAGS@ \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
 
-lib_LTLIBRARIES = oa_esd.la i_esd.la
+
+plugin_LTLIBRARIES = oa_esd.la i_esd.la
 
 oa_esd_la_SOURCES = oa_esd.c
 i_esd_la_SOURCES  = i_esd.c

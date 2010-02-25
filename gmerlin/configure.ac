@@ -4,7 +4,7 @@ AC_CONFIG_SRCDIR([include/gmerlin/player.h])
 
 AM_CONFIG_HEADER(include/config.h)
 
-AM_INIT_AUTOMAKE(gmerlin, 0.4.2)
+AM_INIT_AUTOMAKE(gmerlin, 0.4.3)
 
 BG_VERSION=$VERSION
 
@@ -981,25 +981,7 @@ if test "x$exec_prefix" = xNONE; then
    exec_prefix="${prefix}"
 fi
 
-AC_ARG_WITH(plugindir,
-  [  --with-plugindir       Directory where plugins get installed],
-  [ GMERLIN_PLUGIN_DIR="${withval}" ],
-  [ GMERLIN_PLUGIN_DIR="$exec_prefix/lib/$PACKAGE/plugins" ]
-)
-
-# GMERLIN_PLUGIN_DIR="$libdir/$PACKAGE"
-GMERLIN_DATA_DIR="$prefix/share/$PACKAGE"
-GMERLIN_DOC_DIR="$docdir"
-
 AC_DEFINE_UNQUOTED(PREFIX, "$prefix", Installation prefix)
-
-
-AC_DEFINE_UNQUOTED(GMERLIN_DATA_DIR,   "$GMERLIN_DATA_DIR",   Directory for other data)
-AC_DEFINE_UNQUOTED(GMERLIN_PLUGIN_DIR, "$GMERLIN_PLUGIN_DIR", Directory for plugins)
-AC_DEFINE_UNQUOTED(GMERLIN_DOC_DIR,    "$GMERLIN_DOC_DIR",    Directory for Documentation)
-
-AC_SUBST(GMERLIN_DATA_DIR)
-AC_SUBST(GMERLIN_PLUGIN_DIR)
 
 INCLUDES='-I$(top_builddir)/include'
 AC_SUBST(INCLUDES)

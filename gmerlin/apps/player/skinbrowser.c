@@ -125,7 +125,7 @@ static skin_info_t * skin_info_create()
 
   skin_info_t * ret_end;
 
-  directory = bg_sprintf("%s/%s", GMERLIN_DATA_DIR, "skins");
+  directory = bg_sprintf("%s/%s", DATA_DIR, "skins");
 
   system_skins = scan_directory(directory);
   free(directory);

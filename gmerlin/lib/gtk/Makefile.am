@@ -1,6 +1,16 @@
+plugindir=$(pkglibdir)/plugins
 
 INCLUDES = -I$(top_srcdir)/include
-AM_CFLAGS = @GTK_CFLAGS@ @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@
+AM_CFLAGS = \
+@GTK_CFLAGS@ \
+@FREETYPE_CFLAGS@ \
+@FONTCONFIG_CFLAGS@ \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
+
+
 libgmerlin_gtk_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@
 
 lib_LTLIBRARIES = libgmerlin_gtk.la

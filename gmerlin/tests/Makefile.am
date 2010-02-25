@@ -1,6 +1,14 @@
+plugindir=$(pkglibdir)/plugins
 INCLUDES = -I$(top_srcdir)/include
 
-AM_CFLAGS = @GTK_CFLAGS@ @XML2_CFLAGS@
+AM_CFLAGS = \
+@GTK_CFLAGS@ \
+@XML2_CFLAGS@ \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
+
 
 if HAVE_GTK
 gtk_programs = \

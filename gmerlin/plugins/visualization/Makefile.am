@@ -1,11 +1,17 @@
 INCLUDES = -I$(top_srcdir)/include
 
-libdir=@GMERLIN_PLUGIN_DIR@
+plugindir=$(pkglibdir)/plugins
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
-AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
+
+
 LDADD = @MODULE_LIBADD@
-lib_LTLIBRARIES = \
+plugin_LTLIBRARIES = \
 vis_scope.la
 
 vis_scope_la_SOURCES  = vis_scope.c ../videofilters/colormatrix.c

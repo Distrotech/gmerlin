@@ -1,11 +1,16 @@
 INCLUDES = -I$(top_srcdir)/include
 
-libdir=@GMERLIN_PLUGIN_DIR@
+plugindir=$(pkglibdir)/plugins
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
-AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
 
-lib_LTLIBRARIES = e_pp_vcdimager.la e_pp_cdrdao.la
+
+plugin_LTLIBRARIES = e_pp_vcdimager.la e_pp_cdrdao.la
 
 e_pp_vcdimager_la_SOURCES  = e_pp_vcdimager.c cdrdao_common.c
 e_pp_vcdimager_la_LIBADD = @MODULE_LIBADD@

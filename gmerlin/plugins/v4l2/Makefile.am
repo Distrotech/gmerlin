@@ -1,10 +1,16 @@
 INCLUDES = -I$(top_srcdir)/include
 
-libdir=@GMERLIN_PLUGIN_DIR@
+plugindir=$(pkglibdir)/plugins
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
-AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
-lib_LTLIBRARIES = i_v4l2.la
+AM_CFLAGS = \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\" \
+-DDATA_DIR=\"$(pkgdatadir)\"
+
+
+plugin_LTLIBRARIES = i_v4l2.la
 
 if HAVE_V4LVCONVERT
 convert_sources = convert.c

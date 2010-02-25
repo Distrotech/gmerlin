@@ -1,3 +1,4 @@
+plugindir=$(pkglibdir)/plugins
 INCLUDES = -I$(top_srcdir)/include
 
 if HAVE_X11
@@ -32,7 +33,14 @@ endif
 
 SUBDIRS = $(gtk_subdirs) $(x11_subdirs)
 
-AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\" $(lv_cflags)
+AM_CFLAGS = \
+@FONTCONFIG_CFLAGS@ \
+@FREETYPE_CFLAGS@ \
+-DLOCALE_DIR=\"$(localedir)\" \
+-DPLUGIN_DIR=\"$(plugindir)\" \
+-DDOC_DIR=\"$(docdir)\"  \
+-DDATA_DIR=\"$(pkgdatadir)\" \
+$(lv_cflags)
 
 libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ -export-symbols-regex ^bg_
 
