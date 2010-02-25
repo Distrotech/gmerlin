@@ -20,7 +20,10 @@
  * *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
+
 #include <avdec_private.h>
+
 
 bgav_timecode_table_t *
 bgav_timecode_table_create(int num)
