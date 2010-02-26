@@ -116,6 +116,7 @@ install-data-hook:
 	ln -sf $(DESTDIR)$(pkgdatadir)/kbd_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-kbd.png
 	ln -sf $(DESTDIR)$(pkgdatadir)/plugincfg_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-plugincfg.png
 	ln -sf $(DESTDIR)$(pkgdatadir)/recorder_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-recorder.png
+	ln -sf $(DESTDIR)$(pkgdatadir)/visualizer_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-visualizer.png
 
 uninstall-local:
 	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-alsamixer.png
@@ -125,6 +126,7 @@ uninstall-local:
 	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-kbd.png
 	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-plugincfg.png
 	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-recorder.png
+	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-visualizer.png
 
 
 
