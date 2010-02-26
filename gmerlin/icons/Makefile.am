@@ -107,3 +107,23 @@ pkgdata_DATA = $(icons)
 
 dist_pkgdata_DATA = $(icons)
 
+install-data-hook:
+	ln -s $(pkgdatadir)/mixer_icon.png $(prefix)/share/pixmaps/gmerlin-alsamixer.png
+	ln -s $(pkgdatadir)/player_icon.png $(prefix)/share/pixmaps/gmerlin-player.png
+	ln -s $(pkgdatadir)/transcoder_icon.png $(prefix)/share/pixmaps/gmerlin-transcoder.png
+	ln -s $(pkgdatadir)/camelot_icon.png $(prefix)/share/pixmaps/gmerlin-camelot.png
+	ln -s $(pkgdatadir)/kbd_icon.png $(prefix)/share/pixmaps/gmerlin-kbd.png
+	ln -s $(pkgdatadir)/plugincfg_icon.png $(prefix)/share/pixmaps/gmerlin-plugincfg.png
+	ln -s $(pkgdatadir)/recorder_icon.png $(prefix)/share/pixmaps/gmerlin-recorder.png
+
+uninstall-local:
+	-rm -rf $(prefix)/share/pixmaps/gmerlin-alsamixer.png
+	-rm -rf $(prefix)/share/pixmaps/gmerlin-player.png
+	-rm -rf $(prefix)/share/pixmaps/gmerlin-transcoder.png
+	-rm -rf $(prefix)/share/pixmaps/gmerlin-camelot.png
+	-rm -rf $(prefix)/share/pixmaps/gmerlin-kbd.png
+	-rm -rf $(prefix)/share/pixmaps/gmerlin-plugincfg.png
+	-rm -rf $(prefix)/share/pixmaps/gmerlin-recorder.png
+
+
+
