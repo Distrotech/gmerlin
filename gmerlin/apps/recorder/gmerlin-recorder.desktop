@@ -5,7 +5,7 @@ Name[de]=Gmerlin recorder
 Comment=Audio/video recorder
 Comment[de]=Audio/video recorder
 Exec=gmerlin_recorder
-Icon=@GMERLIN_DATA_DIR@/icons/recorder_icon.png
+Icon=gmerlin-recorder.png
 Type=Application
 Categories=Application;AudioVideo;
 

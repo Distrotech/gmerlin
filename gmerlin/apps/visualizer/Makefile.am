@@ -19,3 +19,5 @@ gmerlin_visualizer_SOURCES = \
 gmerlin_visualizer.c
 
 gmerlin_visualizer_LDADD = $(top_builddir)/lib/libgmerlin.la $(top_builddir)/lib/gtk/libgmerlin_gtk.la
+
+EXTRA_DIST = gmerlin-visualizer.desktop

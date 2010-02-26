@@ -28,3 +28,5 @@ $(top_builddir)/lib/gtk/libgmerlin_gtk.la \
 $(top_builddir)/lib/libgmerlin.la
 
 noinst_HEADERS = webcam.h webcam_window.h webcam_priv.h vloopback.h
+
+EXTRA_DIST = gmerlin-camelot.desktop

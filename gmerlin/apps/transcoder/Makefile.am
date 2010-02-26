@@ -39,3 +39,5 @@ transcoder_remote.h \
 transcoder_window.h \
 tracklist.h \
 trackdialog.h
+
+EXTRA_DIST = gmerlin-transcoder.desktop

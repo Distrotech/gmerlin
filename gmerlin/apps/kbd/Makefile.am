@@ -36,4 +36,4 @@ kbd_remote.h
 gmerlin_kbd_LDADD = $(top_builddir)/lib/libgmerlin.la @X_LIBS@
 gmerlin_kbd_config_LDADD = $(top_builddir)/lib/libgmerlin.la $(top_builddir)/lib/gtk/libgmerlin_gtk.la
 
-
+EXTRA_DIST = gmerlin-kbd.desktop

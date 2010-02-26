@@ -23,3 +23,5 @@ $(top_builddir)/lib/gtk/libgmerlin_gtk.la \
 $(top_builddir)/lib/libgmerlin.la
 
 noinst_HEADERS = recorder_window.h
+
+EXTRA_DIST = gmerlin-recorder.desktop

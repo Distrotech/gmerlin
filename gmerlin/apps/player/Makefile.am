@@ -41,4 +41,4 @@ playerwindow.h
 gmerlin_LDADD = $(top_builddir)/lib/libgmerlin.la $(top_builddir)/lib/gtk/libgmerlin_gtk.la
 gmerlin_remote_LDADD = $(top_builddir)/lib/libgmerlin.la
 
-EXTRA_DIST = gmerlin_launcher
+EXTRA_DIST = gmerlin_launcher gmerlin-player.desktop
