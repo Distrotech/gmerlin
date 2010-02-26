@@ -46,13 +46,20 @@ static int jack_process(jack_nframes_t nframes, void *arg)
   
   //  fprintf(stderr, "Write jack %d\n", f->valid_samples);
 
-  write_space = jack_ringbuffer_write_space(priv->ports[i].buffer);
-  if(write_space < nframes * sizeof(float))
+  /* Check if there is enough space */
+  for(i = 0; i < priv->num_ports; i++)
     {
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Dropping %d samples", nframes);
+    if(!priv->ports[i].active)
+      continue;
 
-    pthread_mutex_unlock(&priv->active_mutex);
-    return 0;
+    write_space = jack_ringbuffer_write_space(priv->ports[i].buffer);
+    if(write_space < nframes * sizeof(float))
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Dropping %d samples", nframes);
+
+      pthread_mutex_unlock(&priv->active_mutex);
+      return 0;
+      }
     }
   
   for(i = 0; i < priv->num_ports; i++)
