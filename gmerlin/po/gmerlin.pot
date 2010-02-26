@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-02-26 16:05+0100\n"
+"POT-Creation-Date: 2010-02-26 17:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5923,16 +5923,16 @@ msgstr ""
 msgid "Writer for TGA images"
 msgstr ""
 
-#: plugins/jack/i_jack.c:52
+#: plugins/jack/i_jack.c:58
 #, c-format
 msgid "Dropping %d samples"
 msgstr ""
 
-#: plugins/jack/i_jack.c:182 plugins/jack/oa_jack.c:256
+#: plugins/jack/i_jack.c:189 plugins/jack/oa_jack.c:256
 msgid "Jack"
 msgstr ""
 
-#: plugins/jack/i_jack.c:183
+#: plugins/jack/i_jack.c:190
 msgid "Jack recorder"
 msgstr ""
 

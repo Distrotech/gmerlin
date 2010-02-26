@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-02-26 16:05+0100\n"
+"POT-Creation-Date: 2010-02-26 17:00+0100\n"
 "PO-Revision-Date: 2009-12-19 00:17+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -6276,17 +6276,17 @@ msgstr "TGA Exporteur"
 msgid "Writer for TGA images"
 msgstr "Exporteur für TGA Bilder"
 
-#: plugins/jack/i_jack.c:52
+#: plugins/jack/i_jack.c:58
 #, fuzzy, c-format
 msgid "Dropping %d samples"
 msgstr "Überspringe Abtastwerte"
 
-#: plugins/jack/i_jack.c:182 plugins/jack/oa_jack.c:256
+#: plugins/jack/i_jack.c:189 plugins/jack/oa_jack.c:256
 #, fuzzy
 msgid "Jack"
 msgstr "Track"
 
-#: plugins/jack/i_jack.c:183
+#: plugins/jack/i_jack.c:190
 #, fuzzy
 msgid "Jack recorder"
 msgstr "Alsa Aufnahme"
