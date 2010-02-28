@@ -37,10 +37,12 @@
 
 // #define DUMP_TIMESTAMS
 
+// #define DUMP_SEQUENCE_HEADER
+
 static const char picture_types[] = { "?IPB????" };
 
 /* Debug function */
-#if 0
+#ifdef DUMP_SEQUENCE_HEADER
 void dump_sequence_header(const mpeg2_sequence_t * s)
   {
   bgav_dprintf("Sequence header:\n");
@@ -87,7 +89,9 @@ typedef struct
   gavl_timecode_t gop_timecode;
 
   bgav_pts_cache_t pts_cache;
-  
+
+  int y_offset;
+  int sub_v;
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)
@@ -209,7 +213,17 @@ static void get_format(bgav_stream_t*s,
   
   ret->image_width  = sequence->picture_width;
   ret->image_height = sequence->picture_height;
-                                                                               
+
+  if((s->fourcc == BGAV_MK_FOURCC('m','x','3','p')) || // IMX PAL 30 MBps
+     (s->fourcc == BGAV_MK_FOURCC('m','x','4','p')) || // IMX PAL 40 MBps
+     (s->fourcc == BGAV_MK_FOURCC('m','x','5','p')) || // IMX PAL 50 MBps
+     (s->fourcc == BGAV_MK_FOURCC('m','x','3','n')) || // IMX NTSC 30 MBps
+     (s->fourcc == BGAV_MK_FOURCC('m','x','4','n')) || // IMX NTSC 40 MBps
+     (s->fourcc == BGAV_MK_FOURCC('m','x','5','n'))) // IMX NTSC 50 MBps
+    {
+    ret->image_height -= 32;
+    priv->y_offset = 32;
+    }
   ret->frame_width  = sequence->width;
   ret->frame_height = sequence->height;
 
@@ -226,11 +240,13 @@ static void get_format(bgav_stream_t*s,
     ret->pixelformat = GAVL_YUV_420_P;
     if(sequence->flags & SEQ_FLAG_MPEG2)
       ret->chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+    priv->sub_v = 2;
     }
-  
   else if(sequence->chroma_height == sequence->height)
+    {
     ret->pixelformat = GAVL_YUV_422_P;
-
+    priv->sub_v = 1;
+    }
   if(!container_time)
     {
     if(sequence->flags & SEQ_FLAG_MPEG2)
@@ -242,9 +258,10 @@ static void get_format(bgav_stream_t*s,
       s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
       }
     }
-
-  //  dump_sequence_header(sequence);
-
+#ifdef DUMP_SEQUENCE_HEADER
+  dump_sequence_header(sequence);
+#endif
+  
   // Get interlace mode
   if((sequence->flags & SEQ_FLAG_MPEG2) &&
      !(sequence->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE))
@@ -451,9 +468,9 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     }
   if(f)
     {
-    priv->frame->planes[0] = priv->info->display_fbuf->buf[0];
-    priv->frame->planes[1] = priv->info->display_fbuf->buf[1];
-    priv->frame->planes[2] = priv->info->display_fbuf->buf[2];
+    priv->frame->planes[0] = priv->info->display_fbuf->buf[0] + priv->y_offset * priv->frame->strides[0];
+    priv->frame->planes[1] = priv->info->display_fbuf->buf[1] + priv->y_offset/priv->sub_v * priv->frame->strides[1];
+    priv->frame->planes[2] = priv->info->display_fbuf->buf[2] + priv->y_offset/priv->sub_v * priv->frame->strides[2];
     gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
     if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
       {
@@ -654,6 +671,12 @@ static bgav_video_decoder_t decoder =
                              BGAV_MK_FOURCC('x','d','v','d'), // XDCAM EX 1080p24 VBR
                              BGAV_MK_FOURCC('x','d','v','e'), // XDCAM EX 1080p25 VBR
                              BGAV_MK_FOURCC('x','d','v','f'), // XDCAM EX 1080p30 VBR
+                             BGAV_MK_FOURCC('m','x','3','p'), // IMX PAL 30 MBps
+                             BGAV_MK_FOURCC('m','x','4','p'), // IMX PAL 40 MBps
+                             BGAV_MK_FOURCC('m','x','5','p'), // IMX PAL 50 MBps
+                             BGAV_MK_FOURCC('m','x','3','n'), // IMX NTSC 30 MBps
+                             BGAV_MK_FOURCC('m','x','4','n'), // IMX NTSC 40 MBps
+                             BGAV_MK_FOURCC('m','x','5','n'), // IMX NTSC 50 MBps
                              0x00 },
     .name =    "libmpeg2 decoder",
     .init =    init_mpeg2,
