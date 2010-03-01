@@ -35,7 +35,8 @@
 
 #define LOG_DOMAIN "audio_ffmpeg"
 
-//#define DUMP_DECODE
+// #define DUMP_DECODE
+#define DUMP_PACKET
 //#define DUMP_EXTRADATA
 
 /* Different decoding functions */
@@ -45,6 +46,35 @@
 #else
 #define DECODE_FUNC avcodec_decode_audio
 #endif
+
+/* Sample formats */
+
+static const struct
+  {
+  enum SampleFormat  ffmpeg_fmt;
+  gavl_sample_format_t gavl_fmt;
+  }
+sampleformats[] =
+  {
+    { SAMPLE_FMT_U8,  GAVL_SAMPLE_U8 },
+    { SAMPLE_FMT_S16, GAVL_SAMPLE_S16 },    ///< signed 16 bits
+    { SAMPLE_FMT_S32, GAVL_SAMPLE_S32 },    ///< signed 32 bits
+    { SAMPLE_FMT_FLT, GAVL_SAMPLE_FLOAT },  ///< float
+    { SAMPLE_FMT_DBL, GAVL_SAMPLE_DOUBLE }, ///< double
+  };
+
+static gavl_sample_format_t
+sample_format_ffmpeg_2_gavl(enum SampleFormat p)
+  {
+  int i;
+  for(i = 0; i < sizeof(sampleformats)/sizeof(sampleformats[0]); i++)
+    {
+    if(sampleformats[i].ffmpeg_fmt == p)
+      return sampleformats[i].gavl_fmt;
+    }
+  return GAVL_SAMPLE_NONE;
+  }
+
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
@@ -74,10 +104,10 @@ typedef struct
 #if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
   AVPacket pkt;
 #endif
+  int sample_size;
   } ffmpeg_audio_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s);
-
 
 static int decode_frame_ffmpeg(bgav_stream_t * s)
   {
@@ -97,7 +127,10 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!p)
       return 0;
-    
+#ifdef DUMP_PACKET
+    bgav_dprintf("Got packet\n");
+    bgav_packet_dump(p);
+#endif
     bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
@@ -109,8 +142,8 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   
 #ifdef DUMP_DECODE
   bgav_dprintf("decode_audio Size: %d, Frame size: %d\n",
-               priv->bytes_in_packet_buffer + FF_INPUT_BUFFER_PADDING_SIZE, frame_size);
-  bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
+               priv->buf.size, frame_size);
+  //  bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
 #endif
   
   if(priv->frame)
@@ -204,11 +237,16 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
     frame_size = AVCODEC_MAX_AUDIO_FRAME_SIZE*2;
     }
   
-  frame_size /= (2 * s->data.audio.format.num_channels);
+  frame_size /= (priv->sample_size * s->data.audio.format.num_channels);
   priv->frame->valid_samples = frame_size;
+
+#ifdef DUMP_DECODE
+  bgav_dprintf("Got %d samples\n", priv->frame->valid_samples);
+#endif
   
-  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
-    
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format,
+                             s->data.audio.frame, priv->frame);
+  
   return 1;
   }
 
@@ -275,7 +313,10 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   /* Set missing format values */
   
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+  s->data.audio.format.sample_format =
+    sample_format_ffmpeg_2_gavl(priv->ctx->sample_fmt);
+  priv->sample_size =
+    gavl_bytes_per_sample(s->data.audio.format.sample_format);
 
   /* Format already known */
   if(s->data.audio.format.num_channels && s->data.audio.format.samplerate)
@@ -284,14 +325,14 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
     s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
     priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
     priv->frame_alloc =
-      gavl_bytes_per_sample(s->data.audio.format.sample_format) *
+      priv->sample_size *
       s->data.audio.format.num_channels *
       s->data.audio.format.samples_per_frame;
     s->data.audio.format.samples_per_frame = 1024;
     }
   else /* Let ffmpeg find out the format */
     {
-    priv->frame_alloc = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
+    priv->frame_alloc = AVCODEC_MAX_AUDIO_FRAME_SIZE;
     if(!decode_frame_ffmpeg(s))
       return 0;
     }
@@ -657,6 +698,16 @@ static codec_info_t codec_infos[] =
                     0x00 },
       -1 },
 #endif
+
+    
+#if LIBAVCODEC_BUILD >= ((52<<16)+(55<<8)+0)
+    { "FFmpeg AMR NB decoder", "AMR Narrowband", CODEC_ID_AMR_NB,
+      (uint32_t[]){ BGAV_MK_FOURCC('s', 'a', 'm', 'r'),
+                    0x00 },
+      -1 },
+#endif
+
+    
     /*     CODEC_ID_MUSEPACK8, */
   };
 

@@ -1009,7 +1009,19 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       else
         bg_as->data.audio.endianess = BGAV_ENDIANESS_BIG;
-      
+
+      /* Fix channels and samplerate for AMR */
+
+      if(bg_as->fourcc == BGAV_MK_FOURCC('s','a','m','r'))
+        {
+        bg_as->data.audio.format.num_channels = 1;
+        bg_as->data.audio.format.samplerate = 8000;
+        }
+      else if(bg_as->fourcc == BGAV_MK_FOURCC('s','a','w','b'))
+        {
+        bg_as->data.audio.format.num_channels = 1;
+        bg_as->data.audio.format.samplerate = 16000;
+        }
       }
     /* Video stream */
     else if(trak->mdia.minf.has_vmhd)
