@@ -60,6 +60,7 @@ audiooptions.c \
 blend.c \
 colorchannel.c \
 colorspace.c \
+compression.c \
 cputest.c \
 deinterlace.c \
 deinterlace_blend.c \
