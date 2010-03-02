@@ -43,7 +43,7 @@ compression_ids[] =
     { GAVL_CODEC_ID_MP2,       "mp2", 0 },
     { GAVL_CODEC_ID_MP3_CBR,   "mp3", 0 },
     { GAVL_CODEC_ID_MP3_VBR,   "mp3", 0 },
-    { GAVL_CODEC_ID_AC3,       NULL,  0 },
+    { GAVL_CODEC_ID_AC3,       "ac3", 0 },
     { GAVL_CODEC_ID_AAC_RAW,   NULL,  0 },
     { GAVL_CODEC_ID_VORBIS,    NULL,  0 },
     
