@@ -22,6 +22,13 @@
 #ifndef GAVL_COMPRESSION_H_INCLUDED
 #define GAVL_COMPRESSION_H_INCLUDED
 
+#include <gavl/gavldefs.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #define GAVL_COMPRESSION_HAS_P_FRAMES (1<<0) // Not all frames are keyframes
 #define GAVL_COMPRESSION_HAS_B_FRAMES (1<<1) // Frames don't appear in presentation order 
 
@@ -61,7 +68,12 @@ typedef struct
   int global_header_len;
   } gavl_compression_info_t;
 
+GAVL_PUBLIC
 void gavl_compression_info_free(gavl_compression_info_t*);
+
+GAVL_PUBLIC
+const char * gavl_compression_get_extension(gavl_codec_id_t id, int * separate);
+
 
 #define GAVL_PACKET_TYPE_I 'I'
 #define GAVL_PACKET_TYPE_P 'P'
@@ -82,8 +94,15 @@ typedef struct
   int64_t dts;
   } gavl_packet_t;
 
+GAVL_PUBLIC
 void gavl_packet_alloc(gavl_packet_t * , int len);
+
+GAVL_PUBLIC
 void gavl_packet_free(gavl_packet_t *);
 
+#ifdef __cplusplus
+}
+#endif
+ 
 
 #endif // GAVL_COMPRESSION_H_INCLUDED
