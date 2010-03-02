@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <avdec_private.h>
 #include <parser.h>
@@ -354,5 +355,58 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
   return 1;
   }
 
+static uint32_t alaw_fourccs[] =
+  {
+  BGAV_MK_FOURCC('a', 'l', 'a', 'w'),
+  BGAV_MK_FOURCC('A', 'L', 'A', 'W'),
+  BGAV_WAVID_2_FOURCC(0x06),
+  0x00
+  };
 
- 
+static uint32_t ulaw_fourccs[] =
+  {
+  BGAV_MK_FOURCC('u', 'l', 'a', 'w'),
+  BGAV_MK_FOURCC('U', 'L', 'A', 'W'),
+  BGAV_WAVID_2_FOURCC(0x07),
+  0x00
+  };
+
+static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
+  {
+  int i = 0;
+  while(fourccs[i])
+    {
+    if(fourccs[i] == fourcc)
+      return 1;
+    else
+      i++;
+    }
+  return 0;
+  }
+
+int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
+                                    gavl_compression_info_t * info)
+  {
+  gavl_codec_id_t id;
+  bgav_stream_t * s = &(bgav->tt->cur->audio_streams[stream]);
+
+  if(check_fourcc(s->fourcc, alaw_fourccs))
+    {
+    id = GAVL_CODEC_ID_ALAW;
+    }
+  else if(check_fourcc(s->fourcc, ulaw_fourccs))
+    {
+    id = GAVL_CODEC_ID_ULAW;
+    }
+  else
+    return 0;
+  
+  info->id = id;
+
+  if(s->ext_size)
+    {
+    info->global_header = malloc(s->ext_size);
+    memcpy(info->global_header, s->ext_data, s->ext_size);
+    }
+  return 1;
+  }

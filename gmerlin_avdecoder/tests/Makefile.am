@@ -4,6 +4,7 @@ bin_PROGRAMS = bgavdump
 
 noinst_PROGRAMS = \
 bgavsave \
+bgavdemux \
 frametable \
 indexdump \
 indextest \
@@ -15,6 +16,9 @@ count_samples
 
 bgavdump_SOURCES = bgavdump.c
 bgavdump_LDADD = $(top_builddir)/lib/libgmerlin_avdec.la
+
+bgavdemux_SOURCES = bgavdemux.c
+bgavdemux_LDADD = $(top_builddir)/lib/libgmerlin_avdec.la
 
 frametable_SOURCES = frametable.c
 frametable_LDADD = $(top_builddir)/lib/libgmerlin_avdec.la

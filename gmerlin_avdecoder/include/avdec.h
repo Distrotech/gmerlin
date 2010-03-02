@@ -27,6 +27,7 @@
  */
 
 #include <gavl/gavl.h>
+#include <gavl/compression.h>
 #include "bgavdefs.h" // This is ugly, but works
 
 #ifdef __cplusplus
@@ -1371,11 +1372,41 @@ const char * bgav_get_subtitle_language(bgav_t * bgav, int stream);
 
 typedef enum
   {
-    BGAV_STREAM_MUTE = 0,  /*!< Stream is switched off */
-    BGAV_STREAM_DECODE = 1, /*!< Stream is switched on and will be decoded */
-    BGAV_STREAM_PARSE  = 2 /*!< Used internally when building indices */
+    BGAV_STREAM_MUTE    = 0,  /*!< Stream is switched off */
+    BGAV_STREAM_DECODE  = 1, /*!< Stream is switched on and will be decoded */
+    BGAV_STREAM_PARSE   = 2, /*!< Used internally when building indices */
+    BGAV_STREAM_READRAW = 3 /*!< Read compressed packets from the stream */
   }
 bgav_stream_action_t;
+
+/** \ingroup streams
+ *  \brief Get audio compression info
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \param info Returns the compression info
+ *  \returns 1 if a compression info was returned, 0 else
+ *
+ *  Free the returned compression info with \ref gavl_compression_info_free.
+ */
+
+BGAV_PUBLIC
+int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
+                                    gavl_compression_info_t * info);
+
+/** \ingroup streams
+ *  \brief Get video compression info
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \param info Returns the compression info
+ *  \returns 1 if a compression info was returned, 0 else
+ *
+ *  Free the returned compression info with \ref gavl_compression_info_free.
+ */
+
+BGAV_PUBLIC
+int bgav_get_video_compression_info(bgav_t * bgav, int stream,
+                                    gavl_compression_info_t * info);
+  
 
 /** \ingroup streams
  * \brief Select mode for an audio stream
