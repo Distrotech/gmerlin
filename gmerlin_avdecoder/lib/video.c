@@ -587,3 +587,9 @@ gavl_frame_table_t * bgav_get_frame_table(bgav_t * bgav, int stream)
   else
     return NULL;
   }
+
+int bgav_get_video_compression_info(bgav_t * bgav, int stream,
+                                    gavl_compression_info_t * info)
+  {
+  return 0;
+  }

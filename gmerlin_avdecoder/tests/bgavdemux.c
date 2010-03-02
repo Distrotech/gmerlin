@@ -31,17 +31,45 @@ typedef struct
   {
   int active;
   gavl_compression_info_t info;
+
+  int64_t time;
+  FILE * out;
   } stream_t;
+
+static void init_audio_stream(bgav_t * b, int index, stream_t * ret)
+  {
+  if(!bgav_get_audio_compression_info(b, index,
+                                      &ret->info))
+    fprintf(stderr, "Audio stream %d doesn't support compressed output\n",
+            index+1);
+  ret->active = 1;
+  }
+
+static void init_video_stream(bgav_t * b, int index, stream_t * ret)
+  {
+  if(!bgav_get_video_compression_info(b, index,
+                                      &ret->info))
+    fprintf(stderr, "Video stream %d doesn't support compressed output\n",
+            index+1);
+  ret->active = 1;
+  }
 
 int main(int argc, char ** argv)
   {
   bgav_t * file;
   bgav_options_t * opt;
 
-  int audio_index = -1;
-  int video_index = -1;
-  int track = -1;
+  int num_audio_streams;
+  int num_video_streams;
+
+  stream_t * audio_streams;
+  stream_t * video_streams;
   
+  int audio_stream = 0;
+  int video_stream = 0;
+  int track = -1;
+  int arg_index;
+  int i;
   file = bgav_create();
   opt = bgav_get_options(file);
 
@@ -49,18 +77,31 @@ int main(int argc, char ** argv)
     {
     fprintf(stderr, "Usage: bgavdemux [-t track] [-as <num>] [-vs <num>] <location>\n");
     
-    bgav_inputs_dump();
-    bgav_redirectors_dump();
-    
-    bgav_formats_dump();
-    
-    bgav_codecs_dump();
-
-    bgav_subreaders_dump();
-    
     return 0;
     }
 
+  arg_index = 1;
+  while(arg_index < argc - 1)
+    {
+    if(!strcmp(argv[arg_index], "-t"))
+      {
+      arg_index++;
+      track = atoi(argv[arg_index]);
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-as"))
+      {
+      arg_index++;
+      audio_stream = atoi(argv[arg_index]);
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-vs"))
+      {
+      arg_index++;
+      video_stream = atoi(argv[arg_index]);
+      arg_index++;
+      }
+    }
   
   if(!strncmp(argv[argc-1], "vcd://", 6))
     {
@@ -97,6 +138,37 @@ int main(int argc, char ** argv)
     return -1;
     }
 
+  if(track < 0)
+    track = 0;
+
+  /* Select track */
+  bgav_select_track(file, track);
+
+  num_audio_streams = bgav_num_audio_streams(file, track);
+  num_video_streams = bgav_num_video_streams(file, track);
+  
+  audio_streams = calloc(num_audio_streams, sizeof(*audio_streams));
+  video_streams = calloc(num_audio_streams, sizeof(*audio_streams));
+
+  if(!audio_stream && !video_stream)
+    {
+    for(i = 0; i < num_audio_streams; i++)
+      {
+      init_audio_stream(file, i, &audio_streams[i]);
+      }
+    for(i = 0; i < num_audio_streams; i++)
+      {
+      init_video_stream(file, i, &video_streams[i]);
+      }
+    }
+  else if(audio_stream >= 0)
+    {
+    init_audio_stream(file, audio_stream-1, &audio_streams[audio_stream-1]);
+    }
+  else if(video_stream >= 0)
+    {
+    init_video_stream(file, video_stream-1, &video_streams[video_stream-1]);
+    }
   
   
   return 0;

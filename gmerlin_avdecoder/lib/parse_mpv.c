@@ -381,7 +381,8 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
             return PARSER_ERROR;
           priv->have_sh = 1;
 
-          bgav_mpv_get_framerate(priv->sh.frame_rate_index, &timescale, &frame_duration);
+          bgav_mpv_get_framerate(priv->sh.frame_rate_index,
+                                 &timescale, &frame_duration);
           
           bgav_video_parser_set_framerate(parser,
                                           timescale, frame_duration);

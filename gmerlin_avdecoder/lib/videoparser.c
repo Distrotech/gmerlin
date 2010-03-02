@@ -564,9 +564,12 @@ void bgav_video_parser_set_framerate(bgav_video_parser_t * parser,
     parser->format->timescale = timescale;
     parser->format->frame_duration = frame_duration;
     
-    /* Frame duration is set by bgav_video_parser_set_picture_start(), which will
-     * be before the global header for most formats (i.e. when frame duration isn't known yet).
+    /*
+     *  Frame duration is set by bgav_video_parser_set_picture_start(),
+     *  which will be before the global header for most formats (i.e.
+     *  when frame duration isn't known yet).
      */
+    
     for(i = 0; i < parser->cache_size ; i++)
       parser->cache[i].duration = parser->format->frame_duration;
     }
@@ -626,4 +629,8 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
       }
     }
   return 1;
+  }
+
+void bgav_video_parser_set_header_end(bgav_video_parser_t * parser)
+  {
   }

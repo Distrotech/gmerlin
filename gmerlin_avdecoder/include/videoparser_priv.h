@@ -40,7 +40,12 @@ typedef struct
   int duration;
   int64_t pts;
   int64_t position;
-
+  
+  int parser_start_pos;
+  /* Repeated header before keyframe
+     (will be stripped off when packets are output) */
+  int header_size; 
+  
   int64_t in_pts;
   
   int skip;
@@ -137,6 +142,10 @@ int bgav_video_parser_check_output(bgav_video_parser_t * parser);
 
 /* Notify the parser of a new picture */
 int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser);
+
+/* Notify the parser of the end of a global header */
+void bgav_video_parser_set_header_end(bgav_video_parser_t * parser);
+
 
 /* Set the framerate, can be called multiple times before the first picture start code */
 void bgav_video_parser_set_framerate(bgav_video_parser_t * parser,

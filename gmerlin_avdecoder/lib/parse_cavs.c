@@ -106,6 +106,9 @@ static int parse_cavs(bgav_video_parser_t * parser)
             if(!bgav_video_parser_set_picture_start(parser))
               return PARSER_ERROR;
             }
+
+          bgav_video_parser_set_header_end(parser);
+          
           priv->has_picture_start = 0;
           
           /* Need the picture header */
