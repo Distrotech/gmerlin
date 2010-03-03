@@ -413,5 +413,22 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
 
 int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
-  return 0;
+  bgav_packet_t * bp;
+  bgav_stream_t * s = &(bgav->tt->cur->audio_streams[stream]);
+
+  bp = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!bp)
+    return 0;
+  
+  gavl_packet_alloc(p, bp->data_size);
+  memcpy(p->data, bp->data, bp->data_size);
+  p->data_len = bp->data_size;
+  p->pts = bp->pts;
+  p->duration = bp->duration;
+
+  p->flags = GAVL_PACKET_KEYFRAME;
+  
+  bgav_demuxer_done_packet_read(s->demuxer, bp);
+  
+  return 1;
   }

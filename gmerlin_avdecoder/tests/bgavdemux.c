@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 
 #include <avdec.h>
@@ -39,7 +40,7 @@ typedef struct
   FILE * out;
   
   const char * ext;
-  int64_t frame;
+  int frame;
   } stream_t;
 
 static char filename_base[1024];
@@ -65,6 +66,19 @@ static int init_audio_stream(bgav_t * b, int index, stream_t * ret)
     return 0;
     }
 
+  /* Open file */
+  sprintf(filename_buf, "%s_audio_%02d.%s",
+          filename_base, index+1, ret->ext);
+  ret->out = fopen(filename_buf, "wb");
+  
+  if(!ret->out)
+    {
+    fprintf(stderr, "Opening output file %s failed: %s\n",
+            filename_buf, strerror(errno));
+    return 0;
+    }
+
+  
   ret->active = 1;
   return 1;
   }
@@ -92,6 +106,16 @@ static int init_video_stream(bgav_t * b, int index, stream_t * ret)
   if(!ret->separate)
     {
     /* Open file */
+    sprintf(filename_buf, "%s_video_%02d.%s",
+            filename_base, index+1, ret->ext);
+    ret->out = fopen(filename_buf, "wb");
+
+    if(!ret->out)
+      {
+      fprintf(stderr, "Opening output file %s failed: %s\n",
+              filename_buf, strerror(errno));
+      return 0;
+      }
     }
   
   ret->active = 1;
@@ -100,12 +124,61 @@ static int init_video_stream(bgav_t * b, int index, stream_t * ret)
 
 static int write_audio(bgav_t * b, int index, stream_t * s, gavl_packet_t * p)
   {
-  return 0;
+  /* Get packet */
+  if(!bgav_read_video_packet(b, index, p))
+    return 0;
+
+  if(fwrite(p->data, 1, p->data_len, s->out) < p->data_len)
+    {
+    fprintf(stderr, "Writing data failed: %s\n",
+            strerror(errno));
+    return 0;
+    } 
+  s->time += p->duration;
+  return 1;
   }
 
 static int write_video(bgav_t * b, int index, stream_t * s, gavl_packet_t * p)
   {
-  return 0;
+  /* Get packet */
+  if(!bgav_read_video_packet(b, index, p))
+    return 0;
+  
+  s->frame++;
+  
+  if(s->separate)
+    {
+    /* Open file */
+    sprintf(filename_buf, "%s_video_%02d_%06d.%s",
+            filename_base, index+1, s->frame, s->ext);
+    s->out = fopen(filename_buf, "wb");
+    if(!s->out)
+      {
+      fprintf(stderr, "Opening output file %s failed: %s\n",
+              filename_buf, strerror(errno));
+      return 0;
+      }
+    }
+  
+
+  /* Write data */
+  
+  if(fwrite(p->data, 1, p->data_len, s->out) < p->data_len)
+    {
+    fprintf(stderr, "Writing data failed: %s\n",
+            strerror(errno));
+    return 0;
+    } 
+  
+  if(s->separate)
+    {
+    /* Close file */
+    fclose(s->out);
+    s->out = NULL;
+    }
+  s->time += p->duration;
+  
+  return 1;
   }
 
 int main(int argc, char ** argv)
@@ -228,7 +301,7 @@ int main(int argc, char ** argv)
   num_video_streams = bgav_num_video_streams(file, track);
   
   audio_streams = calloc(num_audio_streams, sizeof(*audio_streams));
-  video_streams = calloc(num_audio_streams, sizeof(*audio_streams));
+  video_streams = calloc(num_video_streams, sizeof(*audio_streams));
 
   if(!audio_stream && !video_stream)
     {
@@ -354,7 +427,7 @@ int main(int argc, char ** argv)
       }
     else
       {
-      if(!write_video(file, min_index, &audio_streams[min_index], &p))
+      if(!write_video(file, min_index, &video_streams[min_index], &p))
         {
         video_streams[min_index].active = 0;
         total_streams--;

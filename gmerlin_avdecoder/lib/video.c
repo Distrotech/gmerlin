@@ -644,7 +644,7 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     {
     id = GAVL_CODEC_ID_TIFF;
     }
-  else if(check_fourcc(s->fourcc, tiff_fourccs))
+  else if(check_fourcc(s->fourcc, tga_fourccs))
     {
     id = GAVL_CODEC_ID_TGA;
     }
@@ -663,5 +663,40 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
 
 int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
-  return 0;
+  bgav_packet_t * bp;
+  bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
+
+  bp = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!bp)
+    return 0;
+  
+  gavl_packet_alloc(p, bp->data_size);
+  memcpy(p->data, bp->data, bp->data_size);
+  p->data_len = bp->data_size;
+  p->pts = bp->pts;
+  p->dts = bp->dts;
+  p->duration = bp->duration;
+
+  /* Set flags */
+
+  p->flags = 0;
+  switch(bp->flags & 0xff)
+    {
+    case BGAV_CODING_TYPE_I:
+      p->flags |= GAVL_PACKET_TYPE_I;
+      break;
+    case BGAV_CODING_TYPE_P:
+      p->flags |= GAVL_PACKET_TYPE_P;
+      break;
+    case BGAV_CODING_TYPE_B:
+      p->flags |= GAVL_PACKET_TYPE_B;
+      break;
+    }
+
+  if(PACKET_GET_KEYFRAME(bp))
+    p->flags |= GAVL_PACKET_KEYFRAME;
+  
+  bgav_demuxer_done_packet_read(s->demuxer, bp);
+  
+  return 1;
   }
