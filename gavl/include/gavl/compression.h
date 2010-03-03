@@ -92,6 +92,7 @@ typedef struct
 
   int64_t pts;
   int64_t dts;
+  int64_t duration;
   } gavl_packet_t;
 
 GAVL_PUBLIC

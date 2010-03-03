@@ -51,7 +51,7 @@ compression_ids[] =
     { GAVL_CODEC_ID_JPEG,      "jpg", 1 },
     { GAVL_CODEC_ID_PNG,       "png", 1 },
     { GAVL_CODEC_ID_TIFF,      "tif", 1 },
-    { GAVL_CODEC_ID_TGA,       "tga", 0 },
+    { GAVL_CODEC_ID_TGA,       "tga", 1 },
     { GAVL_CODEC_ID_MPEG1,     "mpv", 0 },
     { GAVL_CODEC_ID_MPEG2,     "mpv", 0 },
     { GAVL_CODEC_ID_MPEG4_ASP, "m4v", 0 },
