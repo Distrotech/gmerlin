@@ -410,3 +410,8 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     }
   return 1;
   }
+
+int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
+  {
+  return 0;
+  }

@@ -588,8 +588,80 @@ gavl_frame_table_t * bgav_get_frame_table(bgav_t * bgav, int stream)
     return NULL;
   }
 
+static uint32_t png_fourccs[] =
+  {
+    BGAV_MK_FOURCC('p', 'n', 'g', ' '),
+    BGAV_MK_FOURCC('M', 'P', 'N', 'G'),
+    0x00
+  };
+
+static uint32_t jpeg_fourccs[] =
+  {
+    BGAV_MK_FOURCC('j', 'p', 'e', 'g'),
+    0x00
+  };
+
+static uint32_t tiff_fourccs[] =
+  {
+    BGAV_MK_FOURCC('t', 'i', 'f', 'f'),
+    0x00
+  };
+
+static uint32_t tga_fourccs[] =
+  {
+    BGAV_MK_FOURCC('t', 'g', 'a', ' '),
+    0x00
+  };
+
+static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
+  {
+  int i = 0;
+  while(fourccs[i])
+    {
+    if(fourccs[i] == fourcc)
+      return 1;
+    else
+      i++;
+    }
+  return 0;
+  }
+
 int bgav_get_video_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info)
+  {
+  gavl_codec_id_t id;
+  bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
+
+  if(check_fourcc(s->fourcc, png_fourccs))
+    {
+    id = GAVL_CODEC_ID_PNG;
+    }
+  else if(check_fourcc(s->fourcc, jpeg_fourccs))
+    {
+    id = GAVL_CODEC_ID_JPEG;
+    }
+  else if(check_fourcc(s->fourcc, tiff_fourccs))
+    {
+    id = GAVL_CODEC_ID_TIFF;
+    }
+  else if(check_fourcc(s->fourcc, tiff_fourccs))
+    {
+    id = GAVL_CODEC_ID_TGA;
+    }
+  else
+    return 0;
+
+  info->id = id;
+  
+  if(s->ext_size)
+    {
+    info->global_header = malloc(s->ext_size);
+    memcpy(info->global_header, s->ext_data, s->ext_size);
+    }
+  return 1;
+  }
+
+int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
   return 0;
   }

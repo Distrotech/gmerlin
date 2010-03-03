@@ -30,28 +30,82 @@
 typedef struct
   {
   int active;
+  int separate;
   gavl_compression_info_t info;
 
   int64_t time;
+  int timescale;
+
   FILE * out;
+  
+  const char * ext;
+  int64_t frame;
   } stream_t;
 
-static void init_audio_stream(bgav_t * b, int index, stream_t * ret)
+static char filename_base[1024];
+static char filename_buf[1024];
+
+static int init_audio_stream(bgav_t * b, int index, stream_t * ret)
   {
   if(!bgav_get_audio_compression_info(b, index,
                                       &ret->info))
+    {
     fprintf(stderr, "Audio stream %d doesn't support compressed output\n",
             index+1);
+    return 0;
+    }
+
+  /* Get the file extension */
+  ret->ext = gavl_compression_get_extension(ret->info.id, &ret->separate);
+
+  if(!ret->ext)
+    {
+    fprintf(stderr, "Audio stream %d has no supported raw format\n",
+            index+1);
+    return 0;
+    }
+
   ret->active = 1;
+  return 1;
   }
 
-static void init_video_stream(bgav_t * b, int index, stream_t * ret)
+static int init_video_stream(bgav_t * b, int index, stream_t * ret)
   {
   if(!bgav_get_video_compression_info(b, index,
                                       &ret->info))
+    {
     fprintf(stderr, "Video stream %d doesn't support compressed output\n",
             index+1);
+    return 0;
+    }
+
+  /* Get the file extension */
+  ret->ext = gavl_compression_get_extension(ret->info.id, &ret->separate);
+
+  if(!ret->ext)
+    {
+    fprintf(stderr, "Video stream %d has no supported raw format\n",
+            index+1);
+    return 0;
+    }
+
+  if(!ret->separate)
+    {
+    /* Open file */
+    }
+  
   ret->active = 1;
+  return 1;
+  }
+
+static int write_audio(bgav_t * b, int index, stream_t * s, gavl_packet_t * p)
+  {
+  return 0;
+  }
+
+static int write_video(bgav_t * b, int index, stream_t * s, gavl_packet_t * p)
+  {
+  return 0;
   }
 
 int main(int argc, char ** argv)
@@ -70,6 +124,14 @@ int main(int argc, char ** argv)
   int track = -1;
   int arg_index;
   int i;
+  int total_streams = 0;
+  char * pos;
+  gavl_packet_t p;
+  int do_audio, min_index;
+  
+  gavl_time_t test_time;
+  gavl_time_t min_time;
+  
   file = bgav_create();
   opt = bgav_get_options(file);
 
@@ -138,12 +200,30 @@ int main(int argc, char ** argv)
     return -1;
     }
 
+  /* Create output filename base */
+  pos = strrchr(argv[argc-1], '/');
+  if(pos)
+    pos++;
+  else
+    pos = argv[argc-1];
+
+  strcpy(filename_base, pos);
+
+  pos = strrchr(filename_base, '.');
+  if(pos)
+    *pos = '\0';
+
+  fprintf(stderr, "Filename base: %s\n", filename_base);
+  
+  /* Check track */
+  
   if(track < 0)
     track = 0;
 
   /* Select track */
   bgav_select_track(file, track);
 
+  /* Decide which streams to demultiplex */
   num_audio_streams = bgav_num_audio_streams(file, track);
   num_video_streams = bgav_num_video_streams(file, track);
   
@@ -154,22 +234,136 @@ int main(int argc, char ** argv)
     {
     for(i = 0; i < num_audio_streams; i++)
       {
-      init_audio_stream(file, i, &audio_streams[i]);
+      if(init_audio_stream(file, i, &audio_streams[i]))
+        total_streams++;
       }
+    for(i = 0; i < num_video_streams; i++)
+      {
+      if(init_video_stream(file, i, &video_streams[i]))
+        total_streams++;
+      }
+    }
+  else if(audio_stream > 0)
+    {
+    if(init_audio_stream(file, audio_stream-1, &audio_streams[audio_stream-1]))
+      total_streams++;
+    }
+  else if(video_stream > 0)
+    {
+    if(init_video_stream(file, video_stream-1, &video_streams[video_stream-1]))
+      total_streams++;
+    }
+
+  if(!total_streams)
+    {
+    fprintf(stderr, "No streams to demultiplex\n");
+    return 0;
+    }
+  /* Set up streams and start decoder */
+  for(i = 0; i < num_audio_streams; i++)
+    {
+    if(audio_streams[i].active)
+      bgav_set_audio_stream(file, i, BGAV_STREAM_READRAW);
+    }
+  for(i = 0; i < num_video_streams; i++)
+    {
+    if(video_streams[i].active)
+      bgav_set_video_stream(file, i, BGAV_STREAM_READRAW);
+    }
+  if(!bgav_start(file))
+    {
+    fprintf(stderr, "Starting decoder failed\n");
+    return -1;
+    }
+
+  /* Main loop */
+
+  for(i = 0; i < num_audio_streams; i++)
+    {
+    if(audio_streams[i].active)
+      {
+      const gavl_audio_format_t * fmt;
+      fmt = bgav_get_audio_format(file, i);
+      audio_streams[i].timescale = fmt->samplerate;
+      fprintf(stderr, "Audio stream %d, format:\n", i+1);
+      gavl_audio_format_dump(fmt);
+      }
+    }
+  for(i = 0; i < num_video_streams; i++)
+    {
+    if(video_streams[i].active)
+      {
+      const gavl_video_format_t * fmt;
+      fmt = bgav_get_video_format(file, i);
+      video_streams[i].timescale = fmt->timescale;
+      fprintf(stderr, "Video stream %d, format:\n", i+1);
+      gavl_video_format_dump(fmt);
+      }
+    }
+
+  memset(&p, 0, sizeof(p));
+  
+  while(total_streams)
+    {
+    /* Get the stream with the smallest time */
+    min_time = GAVL_TIME_UNDEFINED;
+    min_index = -1;
+    
+    do_audio = 0;
+    
     for(i = 0; i < num_audio_streams; i++)
       {
-      init_video_stream(file, i, &video_streams[i]);
+      if(audio_streams[i].active)
+        {
+        test_time = gavl_time_unscale(audio_streams[i].timescale,
+                                      audio_streams[i].time);
+        
+        if((min_index < 0) || (test_time < min_time))
+          {
+          min_index = i;
+          do_audio = 1;
+          min_time = test_time;
+          }
+        }
+      }
+    for(i = 0; i < num_video_streams; i++)
+      {
+      if(video_streams[i].active)
+        {
+        test_time = gavl_time_unscale(video_streams[i].timescale,
+                                      video_streams[i].time);
+        
+        if((min_index < 0) || (test_time < min_time))
+          {
+          min_index = i;
+          do_audio = 0;
+          min_time = test_time;
+          }
+        }
+      }
+    
+    /* Read packet */
+
+    if(do_audio)
+      {
+      if(!write_audio(file, min_index, &audio_streams[min_index], &p))
+        {
+        audio_streams[min_index].active = 0;
+        total_streams--;
+        }
+      }
+    else
+      {
+      if(!write_video(file, min_index, &audio_streams[min_index], &p))
+        {
+        video_streams[min_index].active = 0;
+        total_streams--;
+        }
+      
       }
     }
-  else if(audio_stream >= 0)
-    {
-    init_audio_stream(file, audio_stream-1, &audio_streams[audio_stream-1]);
-    }
-  else if(video_stream >= 0)
-    {
-    init_video_stream(file, video_stream-1, &video_streams[video_stream-1]);
-    }
-  
+
+  /* Clean up */
   
   return 0;
   }

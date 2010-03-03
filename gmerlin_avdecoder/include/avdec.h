@@ -1379,7 +1379,25 @@ typedef enum
   }
 bgav_stream_action_t;
 
-/** \ingroup streams
+/** \defgroup readraw Read compressed media packets
+ *  \ingroup decoding
+ *
+ *  This API layer allows you to read compressed media packets from the
+ *  stream bypassing the codecs. You can read some streams of a file
+ *  as compressed packets while decoding others. You can however not
+ *  mix read calls for compressed packets and decompressed frames in a
+ *  single stream. Reading compressed packets is supported only for a
+ *  subset of codecs, which are defined by the \ref gavl_codec_id_t.
+ *  If your application supports compressed packets, you can first get the
+ *  compression info with \ref bgav_get_audio_compression_info or
+ *  \ref bgav_get_video_compression_info. If you support this compression,
+ *  set the stream mode to \ref BGAV_STREAM_READRAW. Before reading you must
+ *  call \ref bgav_start. Packets are then read with \ref bgav_read_audio_packet
+ *  and \ref bgav_read_video_packet.
+ */
+
+  
+/** \ingroup readraw
  *  \brief Get audio compression info
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
@@ -1393,7 +1411,7 @@ BGAV_PUBLIC
 int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info);
 
-/** \ingroup streams
+/** \ingroup readraw
  *  \brief Get video compression info
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
@@ -1406,6 +1424,33 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
 BGAV_PUBLIC
 int bgav_get_video_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info);
+
+/** \ingroup readraw
+ *  \brief Read compressed audio packet
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \param info Returns the packet
+ *  \returns 1 if a packet was read, 0 else
+ *
+ *  Free the returned packet with \ref gavl_packet_free.
+ */
+
+BGAV_PUBLIC
+int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p);
+
+/** \ingroup readraw
+ *  \brief Read compressed video packet
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \param info Returns the packet
+ *  \returns 1 if a packet was read, 0 else
+ *
+ *  Free the returned packet with \ref gavl_packet_free.
+ */
+
+BGAV_PUBLIC
+int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p);
+
   
 
 /** \ingroup streams
