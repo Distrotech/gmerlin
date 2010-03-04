@@ -370,7 +370,6 @@ typedef struct
   indx_t indx;
   int has_indx;
 
-  int vbr;
   int64_t total_bytes;
   int64_t total_blocks;
   int64_t sample_counter;
@@ -1238,11 +1237,9 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         //        if(!bg_as->data.audio.bits_per_sample)
         //          bg_as->data.audio.bits_per_sample = strh->dwSampleSize * 8;          
         
-        /* Seek support */
+        /* Check for VBR audio */
         if(!strh->dwSampleSize)
-          {
-          avi_as->vbr = 1;
-          }
+          bg_as->container_bitrate = BGAV_BITRATE_VBR;
         free(buf);
         break;
       case ID_STRD:

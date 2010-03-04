@@ -27,6 +27,7 @@
 
 #include <avdec.h>
 
+static int dump_packets = 0;
 
 typedef struct
   {
@@ -55,7 +56,9 @@ static int init_audio_stream(bgav_t * b, int index, stream_t * ret)
             index+1);
     return 0;
     }
-
+  fprintf(stderr, "Audio stream %d compression\n", index+1);
+  gavl_compression_info_dump(&ret->info);
+  
   /* Get the file extension */
   ret->ext = gavl_compression_get_extension(ret->info.id, &ret->separate);
 
@@ -92,6 +95,8 @@ static int init_video_stream(bgav_t * b, int index, stream_t * ret)
             index+1);
     return 0;
     }
+  fprintf(stderr, "Video stream %d compression\n", index+1);
+  gavl_compression_info_dump(&ret->info);
 
   /* Get the file extension */
   ret->ext = gavl_compression_get_extension(ret->info.id, &ret->separate);
@@ -125,9 +130,15 @@ static int init_video_stream(bgav_t * b, int index, stream_t * ret)
 static int write_audio(bgav_t * b, int index, stream_t * s, gavl_packet_t * p)
   {
   /* Get packet */
-  if(!bgav_read_video_packet(b, index, p))
+  if(!bgav_read_audio_packet(b, index, p))
     return 0;
 
+  if(dump_packets)
+    {
+    fprintf(stderr, "Audio ");
+    gavl_packet_dump(p);
+    }
+  
   if(fwrite(p->data, 1, p->data_len, s->out) < p->data_len)
     {
     fprintf(stderr, "Writing data failed: %s\n",
@@ -143,6 +154,12 @@ static int write_video(bgav_t * b, int index, stream_t * s, gavl_packet_t * p)
   /* Get packet */
   if(!bgav_read_video_packet(b, index, p))
     return 0;
+
+  if(dump_packets)
+    {
+    fprintf(stderr, "Video ");
+    gavl_packet_dump(p);
+    }
   
   s->frame++;
   
@@ -210,7 +227,7 @@ int main(int argc, char ** argv)
 
   if(argc == 1)
     {
-    fprintf(stderr, "Usage: bgavdemux [-t track] [-as <num>] [-vs <num>] <location>\n");
+    fprintf(stderr, "Usage: bgavdemux [-dp] [-t track] [-as <num>] [-vs <num>] <location>\n");
     
     return 0;
     }
@@ -234,6 +251,11 @@ int main(int argc, char ** argv)
       {
       arg_index++;
       video_stream = atoi(argv[arg_index]);
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-dp"))
+      {
+      dump_packets = 1;
       arg_index++;
       }
     }

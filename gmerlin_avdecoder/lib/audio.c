@@ -116,6 +116,7 @@ int bgav_audio_start(bgav_stream_t * s)
       }
     s->data.audio.parser = parser;
     s->parsed_packet = bgav_packet_create();
+    s->parsed_packet->dts = BGAV_TIMESTAMP_UNDEFINED;
     s->index_mode = INDEX_MODE_SIMPLE;
     }
 
@@ -371,6 +372,16 @@ static uint32_t ulaw_fourccs[] =
   0x00
   };
 
+#if 0
+static uint32_t ac3_fourccs[] =
+  {
+    BGAV_WAVID_2_FOURCC(0x2000),
+    BGAV_MK_FOURCC('.', 'a', 'c', '3'),
+    BGAV_MK_FOURCC('d', 'n', 'e', 't'), 
+    0x00
+  };
+#endif
+
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
   int i = 0;
@@ -387,18 +398,29 @@ static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
 int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info)
   {
-  gavl_codec_id_t id;
+  int store_header = 1;
+  gavl_codec_id_t id = GAVL_CODEC_ID_NONE;
   bgav_stream_t * s = &(bgav->tt->cur->audio_streams[stream]);
 
   if(check_fourcc(s->fourcc, alaw_fourccs))
-    {
     id = GAVL_CODEC_ID_ALAW;
-    }
   else if(check_fourcc(s->fourcc, ulaw_fourccs))
-    {
     id = GAVL_CODEC_ID_ULAW;
+  else if(s->fourcc == BGAV_WAVID_2_FOURCC(0x2000))
+    {
+    if(s->container_bitrate)
+      id = GAVL_CODEC_ID_AC3;
     }
-  else
+  else if(s->fourcc == BGAV_WAVID_2_FOURCC(0x0055))
+    {
+    if(s->container_bitrate == BGAV_BITRATE_VBR)
+      id = GAVL_CODEC_ID_MP3_VBR;
+    else if(s->container_bitrate > 0)
+      id = GAVL_CODEC_ID_MP3_CBR;
+    store_header = 0;
+    }
+  
+  if(id == GAVL_CODEC_ID_NONE)
     return 0;
   
   info->id = id;
@@ -408,6 +430,10 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     info->global_header = malloc(s->ext_size);
     memcpy(info->global_header, s->ext_data, s->ext_size);
     }
+  
+  if(s->container_bitrate > 0)
+    info->bitrate = s->container_bitrate;
+  
   return 1;
   }
 
@@ -424,6 +450,7 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   memcpy(p->data, bp->data, bp->data_size);
   p->data_len = bp->data_size;
   p->pts = bp->pts;
+  p->dts = bp->dts;
   p->duration = bp->duration;
 
   p->flags = GAVL_PACKET_KEYFRAME;
