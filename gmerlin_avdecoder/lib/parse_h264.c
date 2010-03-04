@@ -102,7 +102,7 @@ static void handle_sei(bgav_video_parser_t * parser)
     ptr = ptr_start;
 
 #ifdef DUMP_SEI
-    bgav_dprintf(stderr, "Got SEI: %d (%d bytes)\n", sei_type, sei_size);
+    bgav_dprintf("Got SEI: %d (%d bytes)\n", sei_type, sei_size);
     bgav_hexdump(ptr, sei_size, 16);
 #endif    
     switch(sei_type)
@@ -220,6 +220,8 @@ static void handle_sei(bgav_video_parser_t * parser)
           if((year >= 0) && (month >= 0) && (day >= 0) &&
              (hour >= 0) && (minute >= 0) && (second >= 0))
             {
+//            fprintf(stderr, "%04d-%02d-%02d %02d:%02d:%02d\n", 
+//                    year, month, day, hour, minute, second);
             if(!parser->format->timecode_format.int_framerate)
               {
               /* Get the timecode framerate */
