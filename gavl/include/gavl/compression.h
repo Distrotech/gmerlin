@@ -66,11 +66,17 @@ typedef struct
   
   uint8_t * global_header;
   int global_header_len;
+  
+  int bitrate; // Needed by CBR codecs for packing into e.g. AVI
   } gavl_compression_info_t;
 
 GAVL_PUBLIC
 void gavl_compression_info_free(gavl_compression_info_t*);
 
+GAVL_PUBLIC
+void gavl_compression_info_dump(const gavl_compression_info_t*);
+
+  
 GAVL_PUBLIC
 const char * gavl_compression_get_extension(gavl_codec_id_t id, int * separate);
 
@@ -101,6 +107,10 @@ void gavl_packet_alloc(gavl_packet_t * , int len);
 GAVL_PUBLIC
 void gavl_packet_free(gavl_packet_t *);
 
+GAVL_PUBLIC
+void gavl_packet_dump(const gavl_packet_t*);
+
+  
 #ifdef __cplusplus
 }
 #endif
