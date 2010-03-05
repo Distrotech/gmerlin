@@ -42,7 +42,7 @@ static int parse_aac(bgav_audio_parser_t * parser)
   aac_priv_t * priv = parser->priv;
 
   if(!priv->frame)
-    priv->frame = bgav_aac_frame_create(parser->opt,
+    priv->frame = bgav_aac_frame_create(parser->s->opt,
                                         parser->header, parser->header_len);
 
   if(!priv->samples_per_frame) // No non-silent frame yet
@@ -114,7 +114,7 @@ static int parse_aac(bgav_audio_parser_t * parser)
 static int parse_header_aac(bgav_audio_parser_t * parser)
   {
   aac_priv_t * priv = parser->priv;
-  priv->frame = bgav_aac_frame_create(parser->opt,
+  priv->frame = bgav_aac_frame_create(parser->s->opt,
                                       parser->header, parser->header_len);
   return 1;
   }

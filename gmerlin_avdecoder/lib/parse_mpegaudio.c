@@ -43,6 +43,26 @@ static int parse_mpa(bgav_audio_parser_t * parser)
         {
         bgav_mpa_header_get_format(&h, &parser->format);
         parser->have_format = 1;
+
+        if(parser->s->fourcc == BGAV_MK_FOURCC('m', 'p', 'g', 'a'))
+          {
+          switch(h.layer)
+            {
+            case 1:
+              parser->s->fourcc = BGAV_MK_FOURCC('.','m','p','1');
+              break;
+            case 2:
+              parser->s->fourcc = BGAV_MK_FOURCC('.','m','p','2');
+              break;
+            case 3:
+              parser->s->fourcc = BGAV_MK_FOURCC('.','m','p','3');
+              break;
+            }
+          }
+        
+        if(!parser->s->container_bitrate)
+          parser->s->container_bitrate = h.bitrate;
+        
         return PARSER_HAVE_FORMAT;
         }
       bgav_audio_parser_set_frame(parser,

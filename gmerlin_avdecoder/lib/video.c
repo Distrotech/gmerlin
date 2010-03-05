@@ -58,7 +58,8 @@ int bgav_video_start(bgav_stream_t * s)
   if(!s->timescale && s->data.video.format.timescale)
     s->timescale = s->data.video.format.timescale;
   
-  if(s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME))
+  if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
+     !s->data.video.parser)
     {
     int result, done = 0;
     bgav_packet_t * p;
@@ -135,7 +136,7 @@ int bgav_video_start(bgav_stream_t * s)
     s->index_mode = INDEX_MODE_SIMPLE;
     }
 
-  if(s->flags & STREAM_START_TIME)
+  if(s->flags & STREAM_NEED_START_TIME)
     {
     bgav_packet_t * p;
     char tmp_string[128];
@@ -151,6 +152,7 @@ int bgav_video_start(bgav_stream_t * s)
     sprintf(tmp_string, "%" PRId64, s->out_time);
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial video timestamp: %s",
              tmp_string);
+    s->flags &= ~STREAM_NEED_START_TIME;
     }
   
   s->in_position = 0;
@@ -613,6 +615,18 @@ static uint32_t tga_fourccs[] =
     0x00
   };
 
+static uint32_t mpeg1_fourccs[] =
+  {
+    BGAV_MK_FOURCC('m', 'p', 'v', '1'),
+    0x00
+  };
+
+static uint32_t mpeg2_fourccs[] =
+  {
+    BGAV_MK_FOURCC('m', 'p', 'v', '2'),
+    0x00
+  };
+
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
   int i = 0;
@@ -648,9 +662,17 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     {
     id = GAVL_CODEC_ID_TGA;
     }
+  else if(check_fourcc(s->fourcc, mpeg1_fourccs))
+    {
+    id = GAVL_CODEC_ID_MPEG1;
+    }
+  else if(check_fourcc(s->fourcc, mpeg2_fourccs))
+    {
+    id = GAVL_CODEC_ID_MPEG2;
+    }
   else
     return 0;
-
+  
   info->id = id;
   
   if(s->ext_size)

@@ -47,12 +47,12 @@ struct bgav_audio_parser_s
   int raw;
   bgav_bytebuffer_t buf;
   
+  bgav_stream_t * s;
+  
   parse_func        parse;
   cleanup_func      cleanup;
   reset_func        reset;
   parse_header_func parse_header;
-
-  const bgav_options_t * opt;
   
   /* Private data for parsers */
   void * priv;

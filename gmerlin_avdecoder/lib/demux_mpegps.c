@@ -506,7 +506,6 @@ static int next_packet(bgav_demuxer_context_t * ctx,
   system_header_t system_header;
   int got_packet = 0;
   uint32_t start_code;
-  uint32_t fourcc;
   
   bgav_packet_t * p;
   mpegps_priv_t * priv;
@@ -728,8 +727,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           {
           stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
-          init_stream(stream, BGAV_MK_FOURCC('.', 'm', 'p', '3'),
+          init_stream(stream, BGAV_MK_FOURCC('m', 'p', 'g', 'a'),
                       priv->pes_header.stream_id);
+          stream->flags |= STREAM_NEED_EXACT_COMPRESSION;
           /* Hack: This is set by the core later. We must set it here,
              because we buffer packets during initialization */
           stream->demuxer = ctx;
@@ -759,7 +759,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           
           init_stream(stream, fourcc,
                       priv->pes_header.stream_id);
-          
+
+          if(fourcc == BGAV_MK_FOURCC('m', 'p', 'g', 'v'))
+            stream->flags |= STREAM_NEED_EXACT_COMPRESSION;
           /* Hack: This is set by the core later. We must set it here,
              because we buffer packets during initialization */
           stream->demuxer = ctx;
@@ -1118,7 +1120,7 @@ static int init_cdxa(bgav_demuxer_context_t * ctx)
   stream->timescale = 90000;
   
   stream =  bgav_track_add_video_stream(track, ctx->opt);
-  stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+  stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'v', '1');
   stream->index_mode = INDEX_MODE_MPEG;
   stream->stream_id = 0xe0;
   stream->timescale = 90000;
@@ -1235,15 +1237,15 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
       if(ctx->tt->tracks[i].audio_streams[j].fourcc != BGAV_MK_FOURCC('L', 'P', 'C', 'M'))
         ctx->tt->tracks[i].audio_streams[j].flags |= STREAM_PARSE_FULL;
 
-      ctx->tt->tracks[i].audio_streams[j].flags |= STREAM_START_TIME;
+      ctx->tt->tracks[i].audio_streams[j].flags |= STREAM_NEED_START_TIME;
       }
     for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
       {
-      ctx->tt->tracks[i].video_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
+      ctx->tt->tracks[i].video_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
       ctx->tt->tracks[i].video_streams[j].data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
       }
     for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
-      ctx->tt->tracks[i].subtitle_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
+      ctx->tt->tracks[i].subtitle_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
     }
 
   ctx->index_mode = INDEX_MODE_MIXED;

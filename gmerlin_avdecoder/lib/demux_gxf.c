@@ -249,11 +249,15 @@ static int parse_track(bgav_input_context_t * input,
       break;
     case 11:
     case 12:
-    case 22:
-    case 23:
     case 20:
       vs = bgav_track_add_video_stream(t, opt);
-      vs->fourcc = BGAV_MK_FOURCC('m','p','g','v');
+      vs->fourcc = BGAV_MK_FOURCC('m','p','v','2');
+      vs->flags |= STREAM_PARSE_FRAME;
+      break;
+    case 22:
+    case 23:
+      vs = bgav_track_add_video_stream(t, opt);
+      vs->fourcc = BGAV_MK_FOURCC('m','p','v','1');
       vs->flags |= STREAM_PARSE_FRAME;
       break;
     case 9:

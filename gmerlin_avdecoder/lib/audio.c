@@ -54,16 +54,14 @@ int bgav_audio_start(bgav_stream_t * s)
   bgav_audio_decoder_t * dec;
   bgav_audio_decoder_context_t * ctx;
 
-  if(s->flags & STREAM_PARSE_FULL)
+  if((s->flags & STREAM_PARSE_FULL) && !s->data.audio.parser)
     {
     int result, done = 0;
     bgav_packet_t * p;
     const gavl_audio_format_t * format;
     bgav_audio_parser_t * parser;
     
-    parser = bgav_audio_parser_create(s->fourcc,
-                                      s->timescale,
-                                      s->opt);
+    parser = bgav_audio_parser_create(s);
     if(!parser)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -84,8 +82,7 @@ int bgav_audio_start(bgav_stream_t * s)
                  "Audio parser doesn't support out-of-band header");
         }
       }
-
-    
+  
     /* Start the parser and extract the header */
 
     while(!done)
@@ -120,7 +117,7 @@ int bgav_audio_start(bgav_stream_t * s)
     s->index_mode = INDEX_MODE_SIMPLE;
     }
 
-  if(s->flags & STREAM_START_TIME)
+  if(s->flags & STREAM_NEED_START_TIME)
     {
     bgav_packet_t * p;
     char tmp_string[128];
@@ -136,6 +133,7 @@ int bgav_audio_start(bgav_stream_t * s)
     sprintf(tmp_string, "%" PRId64, s->out_time);
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
              tmp_string);
+    s->flags &= ~STREAM_NEED_START_TIME;
     }
 
   if(!s->timescale && s->data.audio.format.samplerate)
@@ -372,7 +370,20 @@ static uint32_t ulaw_fourccs[] =
   0x00
   };
 
-#if 0
+static uint32_t mp2_fourccs[] =
+  {
+  BGAV_MK_FOURCC('.', 'm', 'p', '2'),
+  BGAV_WAVID_2_FOURCC(0x0050),
+  0x00
+  };
+
+static uint32_t mp3_fourccs[] =
+  {
+  BGAV_MK_FOURCC('.', 'm', 'p', '3'),
+  BGAV_WAVID_2_FOURCC(0x0055),
+  0x00
+  };
+
 static uint32_t ac3_fourccs[] =
   {
     BGAV_WAVID_2_FOURCC(0x2000),
@@ -380,7 +391,6 @@ static uint32_t ac3_fourccs[] =
     BGAV_MK_FOURCC('d', 'n', 'e', 't'), 
     0x00
   };
-#endif
 
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
@@ -398,42 +408,74 @@ static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
 int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info)
   {
-  int store_header = 1;
+  int need_header = 0;
+  int need_bitrate = 1;
   gavl_codec_id_t id = GAVL_CODEC_ID_NONE;
   bgav_stream_t * s = &(bgav->tt->cur->audio_streams[stream]);
-
+  
   if(check_fourcc(s->fourcc, alaw_fourccs))
-    id = GAVL_CODEC_ID_ALAW;
-  else if(check_fourcc(s->fourcc, ulaw_fourccs))
-    id = GAVL_CODEC_ID_ULAW;
-  else if(s->fourcc == BGAV_WAVID_2_FOURCC(0x2000))
     {
-    if(s->container_bitrate)
-      id = GAVL_CODEC_ID_AC3;
+    id = GAVL_CODEC_ID_ALAW;
     }
-  else if(s->fourcc == BGAV_WAVID_2_FOURCC(0x0055))
+  else if(check_fourcc(s->fourcc, ulaw_fourccs))
+    {
+    id = GAVL_CODEC_ID_ULAW;
+    }
+  else if(check_fourcc(s->fourcc, ac3_fourccs))
+    {
+    id = GAVL_CODEC_ID_AC3;
+    }
+  else if(check_fourcc(s->fourcc, mp2_fourccs))
+    {
+    id = GAVL_CODEC_ID_MP2;
+    }
+  else if(check_fourcc(s->fourcc, mp3_fourccs))
     {
     if(s->container_bitrate == BGAV_BITRATE_VBR)
+      {
       id = GAVL_CODEC_ID_MP3_VBR;
+      need_bitrate = 0;
+      }
     else if(s->container_bitrate > 0)
       id = GAVL_CODEC_ID_MP3_CBR;
-    store_header = 0;
     }
   
   if(id == GAVL_CODEC_ID_NONE)
+    {
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Cannot output compressed audio stream %d: Unsupported codec",
+             stream+1);
     return 0;
-  
+    }
+  if(need_header && s->ext_size)
+    {
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Cannot output compressed audio stream %d: Global header missing",
+             stream+1);
+    return 0;
+    }
+  if(need_bitrate && !s->container_bitrate && !s->codec_bitrate)
+    {
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Cannot output compressed audio stream %d: No bitrate specified",
+             stream+1);
+    return 0;
+    }
   info->id = id;
 
-  if(s->ext_size)
+  if(need_header)
     {
     info->global_header = malloc(s->ext_size);
     memcpy(info->global_header, s->ext_data, s->ext_size);
     }
   
-  if(s->container_bitrate > 0)
-    info->bitrate = s->container_bitrate;
-  
+  if(need_bitrate)
+    {
+    if(s->container_bitrate > 0)
+      info->bitrate = s->container_bitrate;
+    else
+      info->bitrate = s->codec_bitrate;
+    }
   return 1;
   }
 

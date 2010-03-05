@@ -380,6 +380,7 @@ static int setup_track(bgav_input_context_t * ctx,
   s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
   s->stream_id = 0xE0;
   s->timescale = 90000;
+  s->flags  |= STREAM_NEED_EXACT_COMPRESSION;
   video_attr = &dvd->vts_ifo->vtsi_mat->vts_video_attr;
 
   video_height = 480;
@@ -441,7 +442,7 @@ static int setup_track(bgav_input_context_t * ctx,
         break;
       case 2:
         //        printf("mpeg1 ");
-        s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
+        s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '2');
         s->stream_id = 0xc0 + stream_position;
         audio_codec = "MPA";
         break;

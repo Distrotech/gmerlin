@@ -68,8 +68,7 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser);
 
 int bgav_audio_parser_supported(uint32_t fourcc);
 
-bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,
-                                               const bgav_options_t * opt);
+bgav_audio_parser_t * bgav_audio_parser_create(bgav_stream_t * s);
 
 int bgav_audio_parser_set_header(bgav_audio_parser_t * parser,
                                  const uint8_t * header, int len);

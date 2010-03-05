@@ -115,8 +115,12 @@ static void get_format(bgav_stream_t * s)
     MAD_NSBSAMPLES(&(priv->frame.header)) * 32;
 
   if(!s->codec_bitrate)
-    s->codec_bitrate = priv->frame.header.bitrate;
-    
+    {
+    if(s->container_bitrate == BGAV_BITRATE_VBR)
+      s->codec_bitrate == BGAV_BITRATE_VBR;
+    else
+      s->codec_bitrate = priv->frame.header.bitrate;
+    }
   gavl_set_channel_setup(&(s->data.audio.format));
 
   if(priv->frame.header.flags & MAD_FLAG_MPEG_2_5_EXT)
@@ -294,13 +298,16 @@ static void close_mad(bgav_stream_t * s)
 static bgav_audio_decoder_t decoder =
   {
     .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('.','m','p','3'),
-                           BGAV_MK_FOURCC('.','m','p','2'),
+                             BGAV_MK_FOURCC('m','p','g','a'),
+                             BGAV_MK_FOURCC('.','m','p','2'),
+                             BGAV_MK_FOURCC('.','m','p','1'),
                            BGAV_MK_FOURCC('m','s',0x00,0x55),
                            BGAV_MK_FOURCC('m','s',0x00,0x50),
                            BGAV_WAVID_2_FOURCC(0x50),
                            BGAV_WAVID_2_FOURCC(0x55),
                            BGAV_MK_FOURCC('M','P','3',' '), /* NSV */
                            BGAV_MK_FOURCC('L','A','M','E'), /* NUV */
+                           BGAV_MK_FOURCC('m','p','g','a'), /* Program-/Raw transport */
                            0x00 },
     .name   = "MPEG audio decoder (mad)",
     .init         = init_mad,

@@ -41,26 +41,26 @@ static const stream_type_t stream_types[] =
     {
       .ts_type =     STREAM_TYPE_VIDEO_MPEG1,
       .bgav_type =   BGAV_STREAM_VIDEO,
-      .fourcc =      BGAV_MK_FOURCC('m', 'p', 'g', 'v'),
+      .fourcc =      BGAV_MK_FOURCC('m', 'p', 'v', '1'),
       .description = "MPEG-1 Video",
     },
     {
       .ts_type =     STREAM_TYPE_VIDEO_MPEG2,
       .bgav_type =   BGAV_STREAM_VIDEO,
-      .fourcc =      BGAV_MK_FOURCC('m', 'p', 'g', 'v'),
+      .fourcc =      BGAV_MK_FOURCC('m', 'p', 'v', '2'),
       .description = "MPEG-2 Video",
     },
     {
       .ts_type =     STREAM_TYPE_AUDIO_MPEG1,
       .bgav_type =   BGAV_STREAM_AUDIO,
-      .fourcc =      BGAV_MK_FOURCC('.', 'm', 'p', '3'),
+      .fourcc =      BGAV_MK_FOURCC('.', 'm', 'p', '2'),
       .description = "MPEG-1 Audio",
     },
     {
       .ts_type =     STREAM_TYPE_AUDIO_MPEG2,
       .bgav_type =   BGAV_STREAM_AUDIO,
-      .fourcc =      BGAV_MK_FOURCC('.', 'm', 'p', '3'),
-      .description = "MPEG-1 Audio",
+      .fourcc =      BGAV_MK_FOURCC('m', 'p', 'g', 'a'),
+      .description = "MPEG-2 Audio",
     },
     {
       .ts_type =     STREAM_TYPE_AUDIO_AAC,
@@ -509,9 +509,9 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         }
 
       if(s->fourcc == BGAV_MK_FOURCC('d','r','a','c'))
-        s->flags |= (STREAM_PARSE_FRAME|STREAM_START_TIME);
+        s->flags |= (STREAM_PARSE_FRAME|STREAM_NEED_START_TIME);
       else
-        s->flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
+        s->flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
       s->timescale = 90000;
       s->stream_id = pmts->streams[i].pid;
       ret++;

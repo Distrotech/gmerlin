@@ -1404,6 +1404,8 @@ bgav_stream_action_t;
  *  \param info Returns the compression info
  *  \returns 1 if a compression info was returned, 0 else
  *
+ *  This function must be called after \ref bgav_select_track. Before
+ *  selecting the track the compression info might not be complete.
  *  Free the returned compression info with \ref gavl_compression_info_free.
  */
 
@@ -1418,6 +1420,8 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
  *  \param info Returns the compression info
  *  \returns 1 if a compression info was returned, 0 else
  *
+ *  This function must be called after \ref bgav_select_track. Before
+ *  selecting the track the compression info might not be complete.
  *  Free the returned compression info with \ref gavl_compression_info_free.
  */
 

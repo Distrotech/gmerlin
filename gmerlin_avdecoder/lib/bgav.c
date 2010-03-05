@@ -433,6 +433,21 @@ int bgav_select_track(bgav_t * b, int track)
     for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
       b->tt->cur->subtitle_streams[i].index_position = 0;
     }
+
+  /* We must first set the demuxer of *all* streams
+     before we initialize the parsers/decoders */
+  
+  for(i = 0; i < b->tt->cur->num_audio_streams; i++)
+    b->tt->cur->audio_streams[i].demuxer = b->demuxer;
+  for(i = 0; i < b->tt->cur->num_video_streams; i++)
+    b->tt->cur->video_streams[i].demuxer = b->demuxer;
+  for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
+    b->tt->cur->subtitle_streams[i].demuxer = b->demuxer;
+  
+  /* If there are tracks, which need a more precise format,
+     get it now */
+  bgav_track_get_compression(b->tt->cur);
+  
   return 1;
   }
 

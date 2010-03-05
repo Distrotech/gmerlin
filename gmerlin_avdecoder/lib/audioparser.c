@@ -39,7 +39,10 @@ parsers[] =
   {
     { BGAV_WAVID_2_FOURCC(0x0050), bgav_audio_parser_init_mpeg },
     { BGAV_WAVID_2_FOURCC(0x0055), bgav_audio_parser_init_mpeg },
+    { BGAV_MK_FOURCC('.','m','p','1'), bgav_audio_parser_init_mpeg },
+    { BGAV_MK_FOURCC('.','m','p','2'), bgav_audio_parser_init_mpeg },
     { BGAV_MK_FOURCC('.','m','p','3'), bgav_audio_parser_init_mpeg },
+    { BGAV_MK_FOURCC('m','p','g','a'), bgav_audio_parser_init_mpeg },
     { BGAV_MK_FOURCC('L','A','M','E'), bgav_audio_parser_init_mpeg },
     { BGAV_WAVID_2_FOURCC(0x2000), bgav_audio_parser_init_a52 },
     { BGAV_MK_FOURCC('.','a','c','3'), bgav_audio_parser_init_a52 },
@@ -62,9 +65,7 @@ int bgav_audio_parser_supported(uint32_t fourcc)
   return 0;
   }
 
-
-bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,
-                                               const bgav_options_t * opt)
+bgav_audio_parser_t * bgav_audio_parser_create(bgav_stream_t * s)
   {
   bgav_audio_parser_t * ret;
   int i;
@@ -72,7 +73,7 @@ bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,
   init_func func = NULL;
   for(i = 0; i < sizeof(parsers)/sizeof(parsers[0]); i++)
     {
-    if(parsers[i].fourcc == fourcc)
+    if(parsers[i].fourcc == s->fourcc)
       {
       func = parsers[i].func;
       break;
@@ -83,8 +84,8 @@ bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,
     return NULL;
   
   ret = calloc(1, sizeof(*ret));
-  ret->opt = opt;
-  ret->in_scale = timescale;
+  ret->s = s;
+  ret->in_scale = s->timescale;
   ret->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   ret->raw_position = -1;
   func(ret);

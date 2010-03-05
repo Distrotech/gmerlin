@@ -172,7 +172,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
 
   priv = (flv_priv_t*)(ctx->priv);
 
-  s->flags |= STREAM_START_TIME;
+  s->flags |= STREAM_NEED_START_TIME;
     
   if(!s->fourcc) /* Initialize */
     {
@@ -227,7 +227,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
       case 10:
         s->fourcc = FOURCC_AAC;
         //        s->index_mode = INDEX_MODE_MPEG;
-        s->flags |= STREAM_PARSE_FULL | STREAM_START_TIME;
+        s->flags |= STREAM_PARSE_FULL | STREAM_NEED_START_TIME;
         s->index_mode = INDEX_MODE_MPEG;
         // ctx->index_mode = 0;
         s->duration = 0;
@@ -251,7 +251,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   uint8_t header[1];
   priv = (flv_priv_t*)(ctx->priv);
 
-  s->flags |= STREAM_START_TIME;
+  s->flags |= STREAM_NEED_START_TIME;
   
   switch(flags & 0xF)
     {

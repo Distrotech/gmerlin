@@ -134,6 +134,15 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           break;
         case MPEG_CODE_PICTURE:
 
+          /* Adjust fourcc */
+          if((parser->s->fourcc == BGAV_MK_FOURCC('m','p','g','v')) &&
+             priv->have_sh)
+            {
+            if(priv->sh.mpeg2)
+              parser->s->fourcc = BGAV_MK_FOURCC('m','p','v','2');
+            else
+              parser->s->fourcc = BGAV_MK_FOURCC('m','p','v','1');
+            }
           if(!priv->has_picture_start)
             {
             if(!bgav_video_parser_set_picture_start(parser))

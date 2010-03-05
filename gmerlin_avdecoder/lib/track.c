@@ -217,16 +217,6 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
   int num_active_audio_streams = 0;
   int num_active_video_streams = 0;
   int num_active_subtitle_streams = 0;
-
-  /* We must first set the demuxer of *all* streams
-     before we initialize the decoders */
-  
-  for(i = 0; i < t->num_audio_streams; i++)
-    t->audio_streams[i].demuxer = demuxer;
-  for(i = 0; i < t->num_video_streams; i++)
-    t->video_streams[i].demuxer = demuxer;
-  for(i = 0; i < t->num_subtitle_streams; i++)
-    t->subtitle_streams[i].demuxer = demuxer;
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
@@ -758,4 +748,56 @@ int bgav_track_eof_d(bgav_track_t * t)
       return 0;
     }
   return 1;
+  }
+
+void bgav_track_get_compression(bgav_track_t * t)
+  {
+  int i;
+  bgav_stream_t * s;
+
+  /* Set all streams to read mode */
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    s = &t->audio_streams[i];
+    s->action = BGAV_STREAM_READRAW;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    s = &t->video_streams[i];
+    s->action = BGAV_STREAM_READRAW;
+    }
+
+  /* Get a first packet. This will complete the formats */
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    s = &t->audio_streams[i];
+    if(s->flags & STREAM_NEED_EXACT_COMPRESSION)
+      {
+      bgav_stream_start(s);
+      bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      }
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    s = &t->video_streams[i];
+    if(s->flags & STREAM_NEED_EXACT_COMPRESSION)
+      {
+      bgav_stream_start(s);
+      bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      }
+    }
+
+  /* Set all streams back to mute mode */
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    s = &t->audio_streams[i];
+    s->action = BGAV_STREAM_MUTE;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    s = &t->video_streams[i];
+    s->action = BGAV_STREAM_MUTE;
+    }
+  
+  
   }

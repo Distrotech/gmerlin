@@ -646,38 +646,41 @@ static int skipto_mpeg2(bgav_stream_t * s, int64_t time, int exact)
 static bgav_video_decoder_t decoder =
   {
     .flags = VCODEC_FLAG_DELAY,
-    .fourccs = (uint32_t[]){ /* Set by MPEG demuxers */
-                             BGAV_MK_FOURCC('m','p','g','v'),
-                             /* Quicktime fourccs */
-                             BGAV_MK_FOURCC('h','d','v','1'), // HDV 720p30
-                             BGAV_MK_FOURCC('h','d','v','2'), // 1080i60 25 Mbps CBR
-                             BGAV_MK_FOURCC('h','d','v','3'), // 1080i50 25 Mbps CBR
-                             BGAV_MK_FOURCC('h','d','v','5'), // HDV 720p25
-                             BGAV_MK_FOURCC('h','d','v','6'), // 1080p24 25 Mbps CBR
-                             BGAV_MK_FOURCC('h','d','v','7'), // 1080p25 25 Mbps CBR
-                             BGAV_MK_FOURCC('h','d','v','8'), // 1080p30 25 Mbps CBR
-                             BGAV_MK_FOURCC('x','d','v','1'), // XDCAM EX 720p30 VBR
-                             BGAV_MK_FOURCC('x','d','v','2'), // XDCAM HD 1080i60 VBR
-                             BGAV_MK_FOURCC('x','d','v','3'), // XDCAM HD 1080i50 VBR
-                             BGAV_MK_FOURCC('x','d','v','4'), // XDCAM EX 720p24 VBR
-                             BGAV_MK_FOURCC('x','d','v','5'), // XDCAM EX 720p25 VBR
-                             BGAV_MK_FOURCC('x','d','v','6'), // XDCAM HD 1080p24 VBR
-                             BGAV_MK_FOURCC('x','d','v','7'), // XDCAM HD 1080p25 VBR
-                             BGAV_MK_FOURCC('x','d','v','8'), // XDCAM HD 1080p30 VBR
-                             BGAV_MK_FOURCC('x','d','v','9'), // XDCAM EX 720p60 VBR
-                             BGAV_MK_FOURCC('x','d','v','a'), // XDCAM EX 720p50 VBR
-                             BGAV_MK_FOURCC('x','d','v','b'), // XDCAM EX 1080i60 VBR
-                             BGAV_MK_FOURCC('x','d','v','c'), // XDCAM EX 1080i50 VBR
-                             BGAV_MK_FOURCC('x','d','v','d'), // XDCAM EX 1080p24 VBR
-                             BGAV_MK_FOURCC('x','d','v','e'), // XDCAM EX 1080p25 VBR
-                             BGAV_MK_FOURCC('x','d','v','f'), // XDCAM EX 1080p30 VBR
-                             BGAV_MK_FOURCC('m','x','3','p'), // IMX PAL 30 MBps
-                             BGAV_MK_FOURCC('m','x','4','p'), // IMX PAL 40 MBps
-                             BGAV_MK_FOURCC('m','x','5','p'), // IMX PAL 50 MBps
-                             BGAV_MK_FOURCC('m','x','3','n'), // IMX NTSC 30 MBps
-                             BGAV_MK_FOURCC('m','x','4','n'), // IMX NTSC 40 MBps
-                             BGAV_MK_FOURCC('m','x','5','n'), // IMX NTSC 50 MBps
-                             0x00 },
+    .fourccs =
+    (uint32_t[]){ /* Set by MPEG demuxers */
+    BGAV_MK_FOURCC('m','p','v','1'), // MPEG-1
+    BGAV_MK_FOURCC('m','p','v','2'), // MPEG-2
+    BGAV_MK_FOURCC('m','p','g','v'), // MPEG-1/2
+    /* Quicktime fourccs */
+    BGAV_MK_FOURCC('h','d','v','1'), // HDV 720p30
+    BGAV_MK_FOURCC('h','d','v','2'), // 1080i60 25 Mbps CBR
+    BGAV_MK_FOURCC('h','d','v','3'), // 1080i50 25 Mbps CBR
+    BGAV_MK_FOURCC('h','d','v','5'), // HDV 720p25
+    BGAV_MK_FOURCC('h','d','v','6'), // 1080p24 25 Mbps CBR
+    BGAV_MK_FOURCC('h','d','v','7'), // 1080p25 25 Mbps CBR
+    BGAV_MK_FOURCC('h','d','v','8'), // 1080p30 25 Mbps CBR
+    BGAV_MK_FOURCC('x','d','v','1'), // XDCAM EX 720p30 VBR
+    BGAV_MK_FOURCC('x','d','v','2'), // XDCAM HD 1080i60 VBR
+    BGAV_MK_FOURCC('x','d','v','3'), // XDCAM HD 1080i50 VBR
+    BGAV_MK_FOURCC('x','d','v','4'), // XDCAM EX 720p24 VBR
+    BGAV_MK_FOURCC('x','d','v','5'), // XDCAM EX 720p25 VBR
+    BGAV_MK_FOURCC('x','d','v','6'), // XDCAM HD 1080p24 VBR
+    BGAV_MK_FOURCC('x','d','v','7'), // XDCAM HD 1080p25 VBR
+    BGAV_MK_FOURCC('x','d','v','8'), // XDCAM HD 1080p30 VBR
+    BGAV_MK_FOURCC('x','d','v','9'), // XDCAM EX 720p60 VBR
+    BGAV_MK_FOURCC('x','d','v','a'), // XDCAM EX 720p50 VBR
+    BGAV_MK_FOURCC('x','d','v','b'), // XDCAM EX 1080i60 VBR
+    BGAV_MK_FOURCC('x','d','v','c'), // XDCAM EX 1080i50 VBR
+    BGAV_MK_FOURCC('x','d','v','d'), // XDCAM EX 1080p24 VBR
+    BGAV_MK_FOURCC('x','d','v','e'), // XDCAM EX 1080p25 VBR
+    BGAV_MK_FOURCC('x','d','v','f'), // XDCAM EX 1080p30 VBR
+    BGAV_MK_FOURCC('m','x','3','p'), // IMX PAL 30 MBps
+    BGAV_MK_FOURCC('m','x','4','p'), // IMX PAL 40 MBps
+    BGAV_MK_FOURCC('m','x','5','p'), // IMX PAL 50 MBps
+    BGAV_MK_FOURCC('m','x','3','n'), // IMX NTSC 30 MBps
+    BGAV_MK_FOURCC('m','x','4','n'), // IMX NTSC 40 MBps
+    BGAV_MK_FOURCC('m','x','5','n'), // IMX NTSC 50 MBps
+    0x00 },
     .name =    "libmpeg2 decoder",
     .init =    init_mpeg2,
     .decode =  decode_mpeg2,

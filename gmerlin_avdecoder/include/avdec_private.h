@@ -336,7 +336,7 @@ typedef enum
 #define STREAM_EOF_C              (1<<9) /* End of file at codec */
 
 /* Stream can have a nonzero start time */
-#define STREAM_START_TIME         (1<<10)
+#define STREAM_NEED_START_TIME   (1<<10)
 
 /* Picture is available for immediate output */
 #define STREAM_HAVE_PICTURE       (1<<11)
@@ -344,6 +344,10 @@ typedef enum
 /* Already got the format from the parser */
 #define STREAM_PARSE_HAVE_FORMAT  (1<<12)
 
+/* Stream could not get exact compression info from the
+ * demuxer
+ */
+#define STREAM_NEED_EXACT_COMPRESSION (1<<12)
 
 #define STREAM_SET_SYNC(s, t)  s->sync_time = t
 #define STREAM_GET_SYNC(s)     s->sync_time
@@ -668,6 +672,9 @@ int64_t bgav_track_out_time(bgav_track_t * t, int scale);
 void bgav_track_set_eof_d(bgav_track_t * t);
 void bgav_track_clear_eof_d(bgav_track_t * t);
 int bgav_track_eof_d(bgav_track_t * t);
+
+void bgav_track_get_compression(bgav_track_t * t);
+
 
 /* Remove unsupported streams */
 

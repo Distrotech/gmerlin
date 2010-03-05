@@ -921,13 +921,15 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
         s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
         s->index_mode = INDEX_MODE_MPEG;
+        s->flags |= STREAM_NEED_EXACT_COMPRESSION;
         }
       /* MPEG Audio */
       else if((pes_header.stream_id & 0xe0) == 0xc0)
         {
         s = bgav_track_add_audio_stream(&ctx->tt->tracks[0], ctx->opt);
-        s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
+        s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'a');
         s->index_mode = INDEX_MODE_MPEG;
+        s->flags |= STREAM_NEED_EXACT_COMPRESSION;
         }
       else
         {
@@ -952,7 +954,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       {
       s->stream_id = priv->packet.pid;
       s->timescale = 90000;
-      s->flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
+      s->flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
       }
     if(!next_packet_scan(ctx->input, priv, input_can_seek))
         break;
