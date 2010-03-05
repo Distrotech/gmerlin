@@ -421,6 +421,15 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
 #endif
   /* Update cache */
 
+  if(parser->s->flags & STREAM_RAW_PACKETS)
+    {
+    parser->raw = 1;
+    bgav_bytebuffer_append_data(&parser->buf, p->data, p->data_size, 0);
+    if(parser->raw_position < 0)
+      parser->raw_position = p->position;
+    return;
+    }
+  
   if(parser->s->flags & STREAM_PARSE_FULL)
     {
     if(parser->num_packets >= parser->packets_alloc)
@@ -457,15 +466,6 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
     parser->packet_duration = p->duration;
     }
   bgav_bytebuffer_append_data(&parser->buf, p->data, p->data_size, 0);
-  }
-
-void bgav_video_parser_add_data(bgav_video_parser_t * parser,
-                                uint8_t * data, int len, int64_t position)
-  {
-  parser->raw = 1;
-  bgav_bytebuffer_append_data(&parser->buf, data, len, 0);
-  if(parser->raw_position < 0)
-    parser->raw_position = position;
   }
 
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes)
@@ -575,6 +575,9 @@ void bgav_video_parser_set_framerate(bgav_video_parser_t * parser,
     for(i = 0; i < parser->cache_size ; i++)
       parser->cache[i].duration = parser->format->frame_duration;
     }
+
+  if(!parser->s->timescale)
+    parser->s->timescale = timescale;
   
   }
 

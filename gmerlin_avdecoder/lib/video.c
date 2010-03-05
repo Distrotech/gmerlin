@@ -247,7 +247,7 @@ void bgav_video_stop(bgav_stream_t * s)
     {
     bgav_video_parser_destroy(s->data.video.parser);
     s->data.video.parser = NULL;
-
+    
     if(s->flags & STREAM_HEADER_FROM_PARSER)
       {
       free(s->ext_data);
@@ -263,10 +263,7 @@ void bgav_video_stop(bgav_stream_t * s)
     }
   /* Clear still mode flag (it will be set during reinit */
   s->flags &= ~(STREAM_STILL_MODE | STREAM_STILL_SHOWN  | STREAM_HAVE_PICTURE);
-
-  if(s->data.video.parser)
-    bgav_video_parser_destroy(s->data.video.parser);
-
+  
   if(s->data.video.kft)
     {
     bgav_keyframe_table_destroy(s->data.video.kft);

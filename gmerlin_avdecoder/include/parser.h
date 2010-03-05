@@ -48,9 +48,6 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser);
 void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p);
 
-void bgav_video_parser_add_data(bgav_video_parser_t * parser,
-                                uint8_t * data, int len, int64_t position);
-
 const uint8_t * bgav_video_parser_get_header(bgav_video_parser_t * parser,
                                              int * len);
 

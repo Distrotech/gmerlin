@@ -60,7 +60,8 @@ int bgav_stream_start(bgav_stream_t * stream)
 void bgav_stream_stop(bgav_stream_t * s)
   {
   if((s->action == BGAV_STREAM_DECODE) ||
-     (s->action == BGAV_STREAM_PARSE))
+     (s->action == BGAV_STREAM_PARSE) ||
+     (s->action == BGAV_STREAM_READRAW))
     {
     switch(s->type)
       {

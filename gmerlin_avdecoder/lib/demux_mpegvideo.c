@@ -37,10 +37,6 @@
 typedef struct
   {
   bgav_video_parser_t * parser;
-  uint8_t * buffer;
-  int buffer_alloc;
-  
-  int64_t last_position;
   int eof;
   } mpegvideo_priv_t;
 
@@ -89,6 +85,7 @@ static int probe_mpegvideo(bgav_input_context_t * input)
   return detect_type(input) ? 1 : 0;
   }
 
+#if 0
 static int parse(bgav_demuxer_context_t * ctx, int code)
   {
   int state;
@@ -140,7 +137,6 @@ static void next_packet_fi(bgav_demuxer_context_t * ctx)
   int64_t pos, end_pos;
   bgav_packet_t * p;
   bgav_stream_t * s;
-
   
   priv = (mpegvideo_priv_t *)(ctx->priv);
   s = ctx->tt->cur->video_streams;
@@ -200,12 +196,17 @@ static void next_packet_fi(bgav_demuxer_context_t * ctx)
   
   }
 
+#endif
+
 static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
   {
+  int ret;
   bgav_packet_t * p;
   bgav_stream_t * s;
   mpegvideo_priv_t * priv;
 
+  int bytes_to_read;
+  
   priv = (mpegvideo_priv_t *)(ctx->priv);
   
   s = ctx->tt->cur->video_streams;
@@ -214,27 +215,25 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
      packets as available */
   
   if(ctx->next_packet_pos)
-    {
-    next_packet_fi(ctx);
-    return 1;
-    }
-  
-  if(!parse(ctx, PARSER_HAVE_PACKET))
-    return 0;
+    bytes_to_read = ctx->next_packet_pos - ctx->input->position;
+  else
+    bytes_to_read = BUFFER_LEN;
   
   p = bgav_stream_get_packet_write(s);
-  bgav_video_parser_get_packet(priv->parser, p);
+
+  bgav_packet_alloc(p, bytes_to_read);
+  p->position = ctx->input->position;
+  p->data_size = bgav_input_read_data(ctx->input, p->data,
+                                      bytes_to_read);
+  ret = !!p->data_size;
   bgav_packet_done_write(p);
-  
-  return 1;
+  return ret;
   }
 
 static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   {
   mpegvideo_priv_t * priv;
   bgav_stream_t * s;
-  const uint8_t * header;
-  int header_len;
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -244,47 +243,23 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   ctx->tt = bgav_track_table_create(1);
   
   s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  
+  s->index_mode = INDEX_MODE_MPEG;
   /*
    *  We just set the fourcc, everything else will
    *  be set by the parser
    */
 
   s->fourcc = detect_type(ctx->input);
-  s->flags |= (STREAM_B_FRAMES|STREAM_PARSE_FULL);
-  priv->parser = bgav_video_parser_create(s);
-  if(!priv->parser)
-    return 0;
-
-  s->flags &= ~STREAM_PARSE_FULL;
+  s->flags |= (STREAM_B_FRAMES|STREAM_PARSE_FULL|STREAM_RAW_PACKETS);
   
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 
   s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
-
-  if(!parse(ctx, PARSER_HAVE_HEADER))
-    return 0;
-  
-  s->timescale = s->data.video.format.timescale;
-
-  header = bgav_video_parser_get_header(priv->parser, &header_len);
-
-  //  fprintf(stderr, "Got extradata %d bytes\n", header_len);
-  //  bgav_hexdump(header, header_len, 16);
-
-  s->ext_size = header_len;
-  s->ext_data = malloc(s->ext_size);
-  memcpy(s->ext_data, header, s->ext_size);
-
-  
   
   ctx->tt->cur->duration = GAVL_TIME_UNDEFINED;
-  
   ctx->stream_description = bgav_sprintf("Elementary video stream");
-
-
-  ctx->index_mode = INDEX_MODE_SIMPLE;
+  ctx->index_mode = INDEX_MODE_MIXED;
   
   return 1;
 
@@ -294,27 +269,28 @@ static void close_mpegvideo(bgav_demuxer_context_t * ctx)
   {
   mpegvideo_priv_t * priv;
   priv = (mpegvideo_priv_t *)(ctx->priv);
-  if(priv->buffer)
-    free(priv->buffer);
-  bgav_video_parser_destroy(priv->parser);
   free(priv);
   }
 
 static void resync_mpegvideo(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
+#if 0
   mpegvideo_priv_t * priv;
   priv = (mpegvideo_priv_t *)(ctx->priv);
   bgav_video_parser_reset(priv->parser, BGAV_TIMESTAMP_UNDEFINED, STREAM_GET_SYNC(s));
   //  fprintf(stderr, "resync: %ld\n", s->in_time);
   priv->eof = 0;
+#endif
   }
 
 static int select_track_mpegvideo(bgav_demuxer_context_t * ctx, int track)
   {
+#if 0
   mpegvideo_priv_t * priv;
   priv = (mpegvideo_priv_t *)(ctx->priv);
   bgav_video_parser_reset(priv->parser, BGAV_TIMESTAMP_UNDEFINED, 0);
   priv->eof = 0;
+#endif
   return 1;
   }
 

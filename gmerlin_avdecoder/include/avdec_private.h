@@ -344,6 +344,9 @@ typedef enum
 /* Already got the format from the parser */
 #define STREAM_PARSE_HAVE_FORMAT  (1<<12)
 
+#define STREAM_RAW_PACKETS        (1<<13)
+
+
 /* Stream could not get exact compression info from the
  * demuxer
  */

@@ -771,7 +771,7 @@ void bgav_track_get_compression(bgav_track_t * t)
   for(i = 0; i < t->num_audio_streams; i++)
     {
     s = &t->audio_streams[i];
-    if(s->flags & STREAM_NEED_EXACT_COMPRESSION)
+    if(s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME))
       {
       bgav_stream_start(s);
       bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
@@ -780,7 +780,7 @@ void bgav_track_get_compression(bgav_track_t * t)
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
-    if(s->flags & STREAM_NEED_EXACT_COMPRESSION)
+    if(s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME))
       {
       bgav_stream_start(s);
       bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
