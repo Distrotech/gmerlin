@@ -435,10 +435,9 @@ static int get_page(bgav_demuxer_context_t * ctx)
 
 static void append_extradata(bgav_stream_t * s, ogg_packet * op)
   {
-  s->ext_data = realloc(s->ext_data, s->ext_size + sizeof(*op) + op->bytes);
-  memcpy(s->ext_data + s->ext_size, op, sizeof(*op));
-  memcpy(s->ext_data + s->ext_size + sizeof(*op), op->packet, op->bytes);
-  s->ext_size += (sizeof(*op) + op->bytes);
+  s->ext_data = realloc(s->ext_data, s->ext_size + op->bytes);
+  memcpy(s->ext_data + s->ext_size, op->packet, op->bytes);
+  s->ext_size += op->bytes;
   }
 
 /* Get the fourcc from the identification packet */
@@ -569,6 +568,10 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         append_extradata(s, &priv->op);
         ogg_stream->header_packets_read = 1;
 
+        /* Get channels */
+        s->data.audio.format.num_channels =
+          priv->op.packet[11];
+
         /* Get samplerate */
         s->data.audio.format.samplerate =
           BGAV_PTR_2_32LE(priv->op.packet + 12);
@@ -586,7 +589,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s = bgav_track_add_video_stream(track, ctx->opt);
         s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_THEORA;
-        s->index_mode = INDEX_MODE_PTS;
+        s->index_mode = INDEX_MODE_SIMPLE;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
         s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
@@ -1816,7 +1819,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         
           p->pts = stream_priv->frame_counter *
             s->data.video.format.frame_duration;
-        
+          p->duration = s->data.video.format.frame_duration;
           stream_priv->frame_counter++;
         
           if(s->action == BGAV_STREAM_PARSE)

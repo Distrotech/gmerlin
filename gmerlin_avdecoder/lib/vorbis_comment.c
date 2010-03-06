@@ -83,7 +83,29 @@ int bgav_vorbis_comment_read(bgav_vorbis_comment_t * ret,
   return 1;
   }
 
- 
+uint8_t * bgav_vorbis_comment_skip(uint8_t * ptr, int len)
+  {
+  int num_comments, i, tmp;
+  // [vendor_length] = read an unsigned integer of 32 bits
+
+  tmp = BGAV_PTR_2_32LE(ptr); ptr+=4;
+  
+  // [vendor_string] = read a UTF-8 vector as [vendor_length] octets
+  ptr += tmp;
+  
+  // [user_comment_list_length] = read an unsigned integer of 32 bits
+  num_comments = BGAV_PTR_2_32LE(ptr); ptr+=4;
+
+  // iterate [user_comment_list_length] times
+  for(i = 0; i < num_comments; i++)
+    {
+    // [length] = read an unsigned integer of 32 bits
+    tmp = BGAV_PTR_2_32LE(ptr); ptr+=4;
+    ptr += tmp;
+    }
+  return ptr;
+  }
+
 static char const * const artist_key = "ARTIST";
 static char const * const author_key = "AUTHOR";
 static char const * const album_key = "ALBUM";

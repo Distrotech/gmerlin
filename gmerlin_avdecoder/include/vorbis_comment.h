@@ -39,3 +39,5 @@ void bgav_vorbis_comment_dump(bgav_vorbis_comment_t * ret);
 
 const char *
 bgav_vorbis_comment_get_field(bgav_vorbis_comment_t * vc, const char * key);
+
+uint8_t * bgav_vorbis_comment_skip(uint8_t * ptr, int len);

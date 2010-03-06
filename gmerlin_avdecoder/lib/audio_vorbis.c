@@ -28,6 +28,7 @@
 #include <config.h>
 #include <avdec_private.h>
 #include <codecs.h>
+#include <vorbis_comment.h>
 
 #include <stdio.h>
 
@@ -378,27 +379,46 @@ static int init_vorbis(bgav_stream_t * s)
     
   else if(s->fourcc == BGAV_VORBIS)
     {
+    ogg_packet op;
+    memset(&op, 0, sizeof(op));
+    
     if(!s->ext_data)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "No extradata found");
       return 0;
       }
+    
     ptr = s->ext_data;
-    ptr = parse_packet(&priv->dec_op, ptr);
 
+    op.packet = ptr;
+    op.bytes = 30; // Size of vorbis ID header
+    op.b_o_s = 1;
+    
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
-                                 &priv->dec_op) < 0)
+                                 &op) < 0)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "vorbis_synthesis_headerin: not a vorbis header");
       return 0;
       }
-    ptr = parse_packet(&priv->dec_op, ptr);
-    vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
-                              &priv->dec_op);
-    parse_packet(&priv->dec_op, ptr);
-    vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
-                              &priv->dec_op);
+    ptr += op.bytes;
+
+    op.packetno++;
+    op.b_o_s = 0;
+    op.packet = ptr;
+    ptr = bgav_vorbis_comment_skip(ptr+7, s->ext_size - 37);
+
+    ptr++; /* Framing bit */
+    
+    op.bytes = ptr - op.packet;
+    
+    vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc, &op);
+    
+    op.packetno++;
+    op.packet = ptr;
+    op.bytes = s->ext_size - (ptr - s->ext_data);
+    
+    vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc, &op);
     }
 
   
