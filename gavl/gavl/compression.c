@@ -123,6 +123,14 @@ void gavl_compression_info_dump(const gavl_compression_info_t * info)
   fprintf(stderr, "Compression info\n");
   fprintf(stderr, "  Codec:   %s\n", get_name(info->id));
   fprintf(stderr, "  Bitrate: %d bps\n", info->bitrate);
+
+  fprintf(stderr, "  Frame types: I");
+  if(info->flags & GAVL_COMPRESSION_HAS_P_FRAMES)
+    fprintf(stderr, ",P");
+  if(info->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
+    fprintf(stderr, ",B");
+  fprintf(stderr, "\n");
+  
   fprintf(stderr, "  Global header %d bytes", info->global_header_len);
   if(info->global_header_len)
     {

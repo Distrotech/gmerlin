@@ -87,6 +87,8 @@ const char * gavl_compression_get_extension(gavl_codec_id_t id, int * separate);
 #define GAVL_PACKET_TYPE_MASK 0xff
 
 #define GAVL_PACKET_KEYFRAME (1<<8)
+#define GAVL_PACKET_LAST     (1<<9) /* Lasst packet in stream
+                                       (for xome xiph codecs) */
 
 typedef struct
   {
