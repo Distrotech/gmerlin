@@ -624,6 +624,12 @@ static uint32_t mpeg2_fourccs[] =
     0x00
   };
 
+static uint32_t theora_fourccs[] =
+  {
+    BGAV_MK_FOURCC('T','H','R','A'),
+    0x00
+  };
+
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
   int i = 0;
@@ -642,6 +648,7 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   {
   gavl_codec_id_t id;
   bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
+  memset(info, 0, sizeof(*info));
 
   if(check_fourcc(s->fourcc, png_fourccs))
     {
@@ -667,6 +674,10 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     {
     id = GAVL_CODEC_ID_MPEG2;
     }
+  else if(check_fourcc(s->fourcc, theora_fourccs))
+    {
+    id = GAVL_CODEC_ID_THEORA;
+    }
   else
     return 0;
   
@@ -676,7 +687,14 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     {
     info->global_header = malloc(s->ext_size);
     memcpy(info->global_header, s->ext_data, s->ext_size);
+    info->global_header_len = s->ext_size;
     }
+
+  if(!(s->flags & STREAM_INTRA_ONLY))
+    info->flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
+  if(s->flags & STREAM_B_FRAMES)
+    info->flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+  
   return 1;
   }
 

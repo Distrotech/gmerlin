@@ -392,6 +392,12 @@ static uint32_t ac3_fourccs[] =
     0x00
   };
 
+static uint32_t vorbis_fourccs[] =
+  {
+    BGAV_MK_FOURCC('V','B','I','S'),
+    0x00
+  };
+
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
   int i = 0;
@@ -412,6 +418,8 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
   int need_bitrate = 1;
   gavl_codec_id_t id = GAVL_CODEC_ID_NONE;
   bgav_stream_t * s = &(bgav->tt->cur->audio_streams[stream]);
+  
+  memset(info, 0, sizeof(*info));
   
   if(check_fourcc(s->fourcc, alaw_fourccs))
     {
@@ -439,7 +447,12 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     else if(s->container_bitrate > 0)
       id = GAVL_CODEC_ID_MP3_CBR;
     }
-  
+  else if(check_fourcc(s->fourcc, vorbis_fourccs))
+    {
+    id = GAVL_CODEC_ID_VORBIS;
+    need_bitrate = 0;
+    need_header = 1;
+    }
   if(id == GAVL_CODEC_ID_NONE)
     {
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -447,7 +460,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
              stream+1);
     return 0;
     }
-  if(need_header && s->ext_size)
+  if(need_header && !s->ext_size)
     {
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Cannot output compressed audio stream %d: Global header missing",
@@ -467,6 +480,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     {
     info->global_header = malloc(s->ext_size);
     memcpy(info->global_header, s->ext_data, s->ext_size);
+    info->global_header_len = s->ext_size;
     }
   
   if(need_bitrate)
@@ -496,6 +510,9 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   p->duration = bp->duration;
 
   p->flags = GAVL_PACKET_KEYFRAME;
+
+  if(bp->flags & PACKET_FLAG_LAST)
+    p->flags |= GAVL_PACKET_LAST;
   
   bgav_demuxer_done_packet_read(s->demuxer, bp);
   

@@ -563,7 +563,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s = bgav_track_add_audio_stream(track, ctx->opt);
         s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_VORBIS;
-        s->index_mode = INDEX_MODE_PTS;
+        s->index_mode = INDEX_MODE_SIMPLE;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
 
@@ -602,11 +602,34 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         append_extradata(s, &priv->op);
         ogg_stream->header_packets_read = 1;
 
-        /* Get fps and keyframe shift */
-        s->data.video.format.timescale = BGAV_PTR_2_32BE(priv->op.packet+22);
+        /* Get picture dimensions, fps and keyframe shift */
+
+        s->data.video.format.frame_width =
+          BGAV_PTR_2_16BE(priv->op.packet+10);
+        s->data.video.format.frame_width *= 16;
+
+        s->data.video.format.frame_height =
+          BGAV_PTR_2_16BE(priv->op.packet+12);
+        s->data.video.format.frame_height *= 16;
+        
+        s->data.video.format.image_width =
+          BGAV_PTR_2_24BE(priv->op.packet+14);
+        s->data.video.format.image_height =
+          BGAV_PTR_2_24BE(priv->op.packet+17);
+        
+        s->data.video.format.timescale =
+          BGAV_PTR_2_32BE(priv->op.packet+22);
         s->data.video.format.frame_duration =
           BGAV_PTR_2_32BE(priv->op.packet+26);
 
+        s->data.video.format.pixel_width =
+          BGAV_PTR_2_24BE(priv->op.packet+30);
+        s->data.video.format.pixel_height =
+          BGAV_PTR_2_24BE(priv->op.packet+33);
+
+        // fprintf(stderr, "Got video format:\n");
+        // gavl_video_format_dump(&s->data.video.format);
+        
         ogg_stream->keyframe_granule_shift =
           (char) ((priv->op.packet[40] & 0x03) << 3);
 
@@ -1814,11 +1837,15 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             break;
         
           p = bgav_stream_get_packet_write(s);
+#if 0
           bgav_packet_alloc(p, sizeof(priv->op) + priv->op.bytes);
           memcpy(p->data, &priv->op, sizeof(priv->op));
           memcpy(p->data + sizeof(priv->op), priv->op.packet, priv->op.bytes);
           p->data_size = sizeof(priv->op) + priv->op.bytes;
-
+#else
+          bgav_packet_alloc(p, priv->op.bytes);
+          memcpy(p->data, priv->op.packet, priv->op.bytes);
+#endif
           if(!(priv->op.packet[0] & 0x40))
             PACKET_SET_KEYFRAME(p);
         
@@ -1826,11 +1853,12 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             s->data.video.format.frame_duration;
           p->duration = s->data.video.format.frame_duration;
           stream_priv->frame_counter++;
-        
-          if(s->action == BGAV_STREAM_PARSE)
-            s->duration = stream_priv->frame_counter *
-              s->data.video.format.frame_duration;
-        
+
+          if(priv->op.e_o_s)
+            p->flags |= PACKET_FLAG_LAST;
+          else
+            p->flags &= ~PACKET_FLAG_LAST;
+          
           set_packet_pos(priv, stream_priv, &page_continued, p);
           
           bgav_packet_done_write(p);

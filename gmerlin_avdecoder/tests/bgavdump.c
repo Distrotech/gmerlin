@@ -38,6 +38,8 @@ static int64_t audio_seek = -1;
 static int64_t video_seek = -1;
 static gavl_time_t global_seek = 0;
 
+static int dump_ci = 0;
+
 /* Callback based reading: We do a simple stdio mapping here */
 
 #ifdef _WIN32
@@ -172,8 +174,9 @@ int main(int argc, char ** argv)
   int64_t start_time;
   const gavl_audio_format_t * audio_format;
   const gavl_video_format_t * video_format;
-
   const bgav_edl_t * edl;
+
+  gavl_compression_info_t ci;
   
   setlocale(LC_MESSAGES, "");
   
@@ -242,6 +245,11 @@ int main(int argc, char ** argv)
       {
       global_seek = strtoll(argv[arg_index+1], (char**)0, 10);
       arg_index+=2;
+      }
+    else if(!strcmp(argv[arg_index], "-ci"))
+      {
+      dump_ci = 1;
+      arg_index++;
       }
     else
       arg_index++;
@@ -360,15 +368,50 @@ int main(int argc, char ** argv)
     num_audio_streams = bgav_num_audio_streams(file, track);
     num_video_streams = bgav_num_video_streams(file, track);
     num_subtitle_streams = bgav_num_subtitle_streams(file, track);
+    
     if(do_audio)
       {
       for(i = 0; i < num_audio_streams; i++)
+        {
+        if(dump_ci)
+          {
+          if(bgav_get_audio_compression_info(file, i, &ci))
+            {
+            fprintf(stderr, "Audio stream %d ", i+1);
+            gavl_compression_info_dump(&ci);
+            gavl_compression_info_free(&ci);
+            audio_format = bgav_get_audio_format(file, i);
+            fprintf(stderr, "Format (exported when reading compressed)\n");
+            gavl_audio_format_dump(audio_format);
+            }
+          else
+            fprintf(stderr, "Audio stream %d cannot output compressed packets\n",
+                    i+1);
+          }
         bgav_set_audio_stream(file, i, BGAV_STREAM_DECODE);
+        }
       }
     if(do_video)
       {
       for(i = 0; i < num_video_streams; i++)
+        {
+        if(dump_ci)
+          {
+          if(bgav_get_video_compression_info(file, i, &ci))
+            {
+            fprintf(stderr, "Video stream %d ", i+1);
+            gavl_compression_info_dump(&ci);
+            gavl_compression_info_free(&ci);
+            video_format = bgav_get_video_format(file, i);
+            fprintf(stderr, "Format (exported when reading compressed)\n");
+            gavl_video_format_dump(video_format);
+            }
+          else
+            fprintf(stderr, "Video stream %d cannot output compressed packets\n",
+                    i+1);
+          }
         bgav_set_video_stream(file, i, BGAV_STREAM_DECODE);
+        }
       }
     for(i = 0; i < num_subtitle_streams; i++)
       bgav_set_subtitle_stream(file, i, BGAV_STREAM_DECODE);

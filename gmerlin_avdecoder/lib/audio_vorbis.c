@@ -432,20 +432,15 @@ static int init_vorbis(bgav_stream_t * s)
       
       if(i)
         op.b_o_s = 0;
-
-      bgav_hexdump(ptr, 16, 16);
       
       op.bytes = BGAV_PTR_2_32BE(ptr); ptr+=4;
       op.packet = ptr;
-
-
-      fprintf(stderr, "Size: %ld\n", op.bytes);
-      bgav_hexdump(op.packet, 16, 16);
+      
       if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                    &op) < 0)
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "vorbis_synthesis_headerin: not a vorbis header");
+                 "Packet %d is not a vorbis header", i+1);
         return 0;
         }
       op.packetno++;
