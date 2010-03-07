@@ -182,6 +182,7 @@ struct bgav_subtitle_overlay_decoder_context_s
 
 #define PACKET_FLAG_KEY  (1<<8)
 #define PACKET_FLAG_SKIP (1<<9)
+#define PACKET_FLAG_LAST (1<<10)
 
 /* If these flags are changed, the flags of the superindex must be
    changed as well */
@@ -189,10 +190,12 @@ struct bgav_subtitle_overlay_decoder_context_s
 #define PACKET_SET_CODING_TYPE(p, t) p->flags |= t
 #define PACKET_SET_KEYFRAME(p)       p->flags |= PACKET_FLAG_KEY
 #define PACKET_SET_SKIP(p)           p->flags |= PACKET_FLAG_SKIP
+#define PACKET_SET_LAST(p)           p->flags |= PACKET_FLAG_LAST
 
 #define PACKET_GET_CODING_TYPE(p)    (p->flags & 0xff)
 #define PACKET_GET_KEYFRAME(p)       (p->flags & PACKET_FLAG_KEY)
 #define PACKET_GET_SKIP(p)           (p->flags & PACKET_FLAG_SKIP)
+#define PACKET_GET_LAST(p)           (p->flags & PACKET_FLAG_LAST)
 
 struct bgav_packet_s
   {
@@ -233,7 +236,8 @@ void bgav_packet_destroy(bgav_packet_t*);
 void bgav_packet_alloc(bgav_packet_t*, int size);
 void bgav_packet_dump(bgav_packet_t*);
 void bgav_packet_pad(bgav_packet_t * p);
-
+void bgav_packet_append_segment(bgav_packet_t * p,
+                                const uint8_t * seg, int len);
 
 void bgav_packet_done_write(bgav_packet_t *);
 

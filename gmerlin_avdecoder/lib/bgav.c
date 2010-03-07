@@ -286,6 +286,22 @@ void bgav_stop(bgav_t * b)
   b->is_running = 0;
   }
 
+static void set_stream_demuxers(bgav_track_t * t,
+                                bgav_demuxer_context_t * demuxer)
+  {
+  int i;
+  /* We must first set the demuxer of *all* streams
+     before we initialize the parsers/decoders */
+  
+  for(i = 0; i < t->num_audio_streams; i++)
+    t->audio_streams[i].demuxer = demuxer;
+  for(i = 0; i < t->num_video_streams; i++)
+    t->video_streams[i].demuxer = demuxer;
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    t->subtitle_streams[i].demuxer = demuxer;
+
+  }
+
 int bgav_select_track(bgav_t * b, int track)
   {
   int was_running = 0;
@@ -317,6 +333,9 @@ int bgav_select_track(bgav_t * b, int track)
 
     b->input->input->select_track(b->input, track);
     bgav_demuxer_start(b->demuxer, NULL);
+
+    set_stream_demuxers(b->tt->cur, b->demuxer);
+    
     return 1;
     }
 
@@ -434,15 +453,7 @@ int bgav_select_track(bgav_t * b, int track)
       b->tt->cur->subtitle_streams[i].index_position = 0;
     }
 
-  /* We must first set the demuxer of *all* streams
-     before we initialize the parsers/decoders */
-  
-  for(i = 0; i < b->tt->cur->num_audio_streams; i++)
-    b->tt->cur->audio_streams[i].demuxer = b->demuxer;
-  for(i = 0; i < b->tt->cur->num_video_streams; i++)
-    b->tt->cur->video_streams[i].demuxer = b->demuxer;
-  for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
-    b->tt->cur->subtitle_streams[i].demuxer = b->demuxer;
+  set_stream_demuxers(b->tt->cur, b->demuxer);
   
   /* If there are tracks, which need a more precise format,
      get it now */

@@ -61,6 +61,7 @@ static int init_theora(bgav_stream_t * s)
   {
   int sub_h, sub_v;
   int i;
+  uint32_t len;
   uint8_t * ptr;
   ogg_packet op;
   theora_priv_t * priv;
@@ -81,44 +82,26 @@ static int init_theora(bgav_stream_t * s)
   
   ptr = s->ext_data;
   memset(&op, 0, sizeof(op));
-
-  op.packet = ptr;
-  op.bytes = 42; // Size of Theora ID header
   op.b_o_s = 1;
-  
-  if(th_decode_headerin(&priv->ti, &priv->tc, &priv->ts, &op) <= 0)
+
+  for(i = 0; i < 3; i++)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Parsing header packet 1 failed");
-    return 0;
+    if(i)
+      op.b_o_s = 0;
+    len = BGAV_PTR_2_32BE(ptr); ptr += 4;
+    op.packet = ptr;
+    op.bytes  = len;
+
+    if(th_decode_headerin(&priv->ti, &priv->tc, &priv->ts, &op) <= 0)
+      {
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Parsing header packet %d failed", i+1);
+      return 0;
+      }
+    op.packetno++;
+    ptr += op.bytes;
     }
   
-  ptr += op.bytes;
-
-  op.packetno++;
-  op.b_o_s = 0;
-  op.packet = ptr;
-  ptr = bgav_vorbis_comment_skip(ptr+7, s->ext_size - 49);
-  op.bytes = ptr - op.packet;
-  
-  if(th_decode_headerin(&priv->ti, &priv->tc, &priv->ts, &op) <= 0)
-    {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Parsing header packet 2 failed");
-    return 0;
-    }
-  
-  op.packetno++;
-  op.packet = ptr;
-  op.bytes = s->ext_size - (ptr - s->ext_data);
-
-  if(th_decode_headerin(&priv->ti, &priv->tc, &priv->ts, &op) <= 0)
-    {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Parsing header packet 3 failed");
-    return 0;
-    }
-
   /* Initialize the decoder */
 
   priv->ctx = th_decode_alloc(&priv->ti, priv->ts);

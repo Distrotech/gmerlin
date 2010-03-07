@@ -435,9 +435,12 @@ static int get_page(bgav_demuxer_context_t * ctx)
 
 static void append_extradata(bgav_stream_t * s, ogg_packet * op)
   {
-  s->ext_data = realloc(s->ext_data, s->ext_size + op->bytes);
-  memcpy(s->ext_data + s->ext_size, op->packet, op->bytes);
-  s->ext_size += op->bytes;
+  uint8_t * ptr;
+  s->ext_data = realloc(s->ext_data, s->ext_size + op->bytes + 4);
+  ptr = s->ext_data + s->ext_size;
+  BGAV_32BE_2_PTR(op->bytes, ptr); ptr+=4;
+  memcpy(ptr, op->packet, op->bytes);
+  s->ext_size += op->bytes + 4;
   }
 
 /* Get the fourcc from the identification packet */
@@ -575,7 +578,9 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         /* Get samplerate */
         s->data.audio.format.samplerate =
           BGAV_PTR_2_32LE(priv->op.packet + 12);
-      
+
+        bgav_vorbis_set_channel_setup(&s->data.audio.format);
+        
         /* Read remaining header packets from this page */
         while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
           {
@@ -625,7 +630,6 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->stream_id = serialno;
         s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
         ogg_stream->header_packets_needed = 1;
-        //  append_extradata(s, &priv->op);
         ogg_stream->header_packets_read = 1;
 
         if(!bgav_dirac_sequence_header_parse(&dirac_header, 
@@ -1759,7 +1763,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
     if(granulepos == -1)
       {
-      if(!ctx->next_packet_pos || (ctx->input->position >= ctx->next_packet_pos))
+      if(!ctx->next_packet_pos ||
+         (ctx->input->position >= ctx->next_packet_pos))
         done = 1;
       continue;
       }
@@ -1827,7 +1832,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
               s->data.video.format.frame_duration;
         
           set_packet_pos(priv, stream_priv, &page_continued, p);
-
+          
           bgav_packet_done_write(p);
           break;
 
@@ -1947,23 +1952,39 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
           if(!check_header_packet(priv, s, &priv->op))
             break;
-        
-          p = bgav_stream_get_packet_write(s);
-          bgav_packet_alloc(p, sizeof(priv->op) + priv->op.bytes);
-          memcpy(p->data, &priv->op, sizeof(priv->op));
-          memcpy(p->data + sizeof(priv->op), priv->op.packet, priv->op.bytes);
-          p->data_size = sizeof(priv->op) + priv->op.bytes;
-        
-          if(stream_priv->prev_granulepos >= 0)
+
+          if(!s->packet)
             {
-            p->pts = stream_priv->prev_granulepos;
-            PACKET_SET_KEYFRAME(p);
+            s->packet = bgav_stream_get_packet_write(s);
+            set_packet_pos(priv, stream_priv, &page_continued, s->packet);
+            s->packet->data_size = 0;
+            PACKET_SET_KEYFRAME(s->packet);
+            s->packet->pts = stream_priv->prev_granulepos;
             }
-          if((s->action == BGAV_STREAM_PARSE) && (priv->op.granulepos >= 0))
-            s->duration = priv->op.granulepos;
-        
-          set_packet_pos(priv, stream_priv, &page_continued, p);
-          bgav_packet_done_write(p);
+          
+          bgav_packet_append_segment(s->packet, priv->op.packet,
+                                     priv->op.bytes);
+          
+          // fprintf(stderr, "priv->op.granulepos: %ld\n", priv->op.granulepos);
+
+          /* Check whether to close this packet */
+
+          if(priv->op.granulepos >= 0)
+            {
+            /* Close this packet */
+            if(priv->op.e_o_s)
+              s->packet->flags |= PACKET_FLAG_LAST;
+            else
+              s->packet->flags &= ~PACKET_FLAG_LAST;
+            s->packet->duration = priv->op.granulepos - s->packet->pts;
+
+            bgav_packet_done_write(s->packet);
+            s->packet = NULL;
+            
+            /* Not necessary? */
+            // if((s->action == BGAV_STREAM_PARSE) && (priv->op.granulepos >= 0))
+            //   s->duration = s->packet->pts + s->packet->duration;
+            }
           break;
         case FOURCC_FLAC:
         case FOURCC_FLAC_NEW:

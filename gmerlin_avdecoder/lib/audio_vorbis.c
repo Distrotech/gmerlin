@@ -50,6 +50,10 @@ typedef struct
   vorbis_dsp_state dec_vd; /* central working state for the packet->PCM decoder */
   vorbis_block     dec_vb; /* local working space for packet->PCM decode */
   int stream_initialized;
+
+  bgav_packet_t * p;
+  uint8_t * packet_ptr;
+  int64_t packetno;
   } vorbis_audio_priv;
 
 /*
@@ -59,15 +63,6 @@ typedef struct
  */
 
 static char * get_default_vorbis_header(bgav_stream_t * stream, int *len);
-
-static uint8_t * parse_packet(ogg_packet * op, uint8_t * str)
-  {
-  memcpy(op, str, sizeof(*op));
-  op->packet = str + sizeof(*op);
-//  fprintf(stderr, "Parse packet\n");
-//  bgav_hexdump(str, 64, 64);
-  return str + sizeof(*op) + op->bytes;
-  }
 
 /* Put raw streams into the sync engine */
 
@@ -128,16 +123,49 @@ static int next_packet(bgav_stream_t * s)
   bgav_packet_t * p;
 
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
-
-
+  
   if(s->fourcc == BGAV_VORBIS)
     {
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    if(!p)
-      return 0;
+    uint32_t len;
+
+    /* Last segment */
+    if(priv->p && (priv->packet_ptr >= priv->p->data + priv->p->data_size))
+      {
+      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+      priv->p = NULL;
+      }
     
-    parse_packet(&priv->dec_op, p->data); 
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    if(!priv->p)
+      {
+      priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+      // fprintf(stderr, "Got packet:\n");
+      // bgav_packet_dump(priv->p);
+      
+      if(!priv->p)
+        return 0;
+      priv->packet_ptr = priv->p->data;
+      }
+
+    len = BGAV_PTR_2_32BE(priv->packet_ptr); priv->packet_ptr+=4;
+
+    memset(&priv->dec_op, 0, sizeof(priv->dec_op));
+    priv->dec_op.bytes  = len;
+    priv->dec_op.packet = priv->packet_ptr;
+    priv->packet_ptr += len;
+
+    /* Last segment */
+    if(priv->packet_ptr >= priv->p->data + priv->p->data_size)
+      {
+      priv->dec_op.granulepos = priv->p->pts + priv->p->duration;
+      if(priv->p->flags & PACKET_FLAG_LAST)
+        priv->dec_op.e_o_s = 1;
+      }
+    else
+      priv->dec_op.granulepos = -1;
+
+    priv->dec_op.packetno = priv->packetno;
+    priv->packetno++;
     }
   else
     {
@@ -374,12 +402,13 @@ static int init_vorbis(bgav_stream_t * s)
       return 0;
     vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc, &priv->dec_op);
     }
-
-  /* BGAV Way: Header packets are in extradata in ogg PACKETS */
-    
+  
+  /* BGAV Way: Header packets are in extradata in a segemented packet */
+  
   else if(s->fourcc == BGAV_VORBIS)
     {
     ogg_packet op;
+    int i;
     memset(&op, 0, sizeof(op));
     
     if(!s->ext_data)
@@ -390,37 +419,39 @@ static int init_vorbis(bgav_stream_t * s)
     
     ptr = s->ext_data;
 
-    op.packet = ptr;
-    op.bytes = 30; // Size of vorbis ID header
     op.b_o_s = 1;
-    
-    if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
-                                 &op) < 0)
+
+    for(i = 0; i < 3; i++)
       {
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "vorbis_synthesis_headerin: not a vorbis header");
-      return 0;
+      if(ptr - s->ext_data > s->ext_size - 4)
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Truncated vorbis header %d", i+1);
+        return 0;
+        }
+      
+      if(i)
+        op.b_o_s = 0;
+
+      bgav_hexdump(ptr, 16, 16);
+      
+      op.bytes = BGAV_PTR_2_32BE(ptr); ptr+=4;
+      op.packet = ptr;
+
+
+      fprintf(stderr, "Size: %ld\n", op.bytes);
+      bgav_hexdump(op.packet, 16, 16);
+      if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
+                                   &op) < 0)
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "vorbis_synthesis_headerin: not a vorbis header");
+        return 0;
+        }
+      op.packetno++;
+      ptr += op.bytes;
       }
-    ptr += op.bytes;
-
-    op.packetno++;
-    op.b_o_s = 0;
-    op.packet = ptr;
-    ptr = bgav_vorbis_comment_skip(ptr+7, s->ext_size - 37);
-
-    ptr++; /* Framing bit */
-    
-    op.bytes = ptr - op.packet;
-    
-    vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc, &op);
-    
-    op.packetno++;
-    op.packet = ptr;
-    op.bytes = s->ext_size - (ptr - s->ext_data);
-    
-    vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc, &op);
     }
-
   
   vorbis_synthesis_init(&priv->dec_vd, &priv->dec_vi);
   vorbis_block_init(&priv->dec_vd, &priv->dec_vb);
@@ -437,21 +468,9 @@ static int init_vorbis(bgav_stream_t * s)
   s->data.audio.format.num_channels = priv->dec_vi.channels;
 
   /* Vorbis 5.1 mapping */
-
-  switch(s->data.audio.format.num_channels)
-    {
-    /* Ogg Vorbis internally has 6 channel as L + C + R + LFE + BL + BR */
-    case 6:
-      s->data.audio.format.channel_locations[0] =  GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[1] =  GAVL_CHID_FRONT_CENTER;
-      s->data.audio.format.channel_locations[2] =  GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[3] =  GAVL_CHID_LFE;
-      s->data.audio.format.channel_locations[4] =  GAVL_CHID_REAR_LEFT;
-      s->data.audio.format.channel_locations[5] =  GAVL_CHID_REAR_RIGHT;
-      break;
-    }
   
-  gavl_set_channel_setup(&(s->data.audio.format));
+  bgav_vorbis_set_channel_setup(&s->data.audio.format);
+  gavl_set_channel_setup(&s->data.audio.format);
   s->description = bgav_sprintf("Ogg Vorbis");
   return 1;
   }
@@ -494,7 +513,12 @@ static void resync_vorbis(bgav_stream_t * s)
   vorbis_audio_priv * priv;
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
 
-  if(s->fourcc != BGAV_VORBIS)
+  if(s->fourcc == BGAV_VORBIS)
+    {
+    priv->packetno = 0;
+    priv->p = NULL;
+    }
+  else
     {
     ogg_stream_clear(&priv->dec_os);
     ogg_sync_reset(&priv->dec_oy);

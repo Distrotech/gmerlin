@@ -123,6 +123,18 @@ void bgav_packet_dump(bgav_packet_t * p)
   //  bgav_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);
   }
 
+void bgav_packet_append_segment(bgav_packet_t * p, const uint8_t * seg,
+                                int32_t len)
+  {
+  uint8_t * ptr;
+  bgav_packet_alloc(p, p->data_size + len + 4);
+  ptr = p->data + p->data_size;
+  BGAV_32BE_2_PTR(len, ptr); ptr+=4;
+  memcpy(ptr, seg, len);
+  p->data_size += len + 4;
+  }
+
+
 #if 0
 void bgav_packet_get_text_subtitle(bgav_packet_t * p,
                                    char ** text,

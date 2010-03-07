@@ -83,29 +83,6 @@ int bgav_vorbis_comment_read(bgav_vorbis_comment_t * ret,
   return 1;
   }
 
-uint8_t * bgav_vorbis_comment_skip(uint8_t * ptr, int len)
-  {
-  int num_comments, i, tmp;
-  // [vendor_length] = read an unsigned integer of 32 bits
-
-  tmp = BGAV_PTR_2_32LE(ptr); ptr+=4;
-  
-  // [vendor_string] = read a UTF-8 vector as [vendor_length] octets
-  ptr += tmp;
-  
-  // [user_comment_list_length] = read an unsigned integer of 32 bits
-  num_comments = BGAV_PTR_2_32LE(ptr); ptr+=4;
-
-  // iterate [user_comment_list_length] times
-  for(i = 0; i < num_comments; i++)
-    {
-    // [length] = read an unsigned integer of 32 bits
-    tmp = BGAV_PTR_2_32LE(ptr); ptr+=4;
-    ptr += tmp;
-    }
-  return ptr;
-  }
-
 static char const * const artist_key = "ARTIST";
 static char const * const author_key = "AUTHOR";
 static char const * const album_key = "ALBUM";
@@ -188,3 +165,63 @@ void bgav_vorbis_comment_free(bgav_vorbis_comment_t * ret)
   MY_FREE(ret->user_comments);
   }
 
+void bgav_vorbis_set_channel_setup(gavl_audio_format_t * format)
+  {
+  switch(format->num_channels)
+    {
+    case 1:
+      format->channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+      break;
+    case 2:
+      format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      break;
+    case 3:
+      format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] = GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
+      break;
+    case 4:
+      format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[2] = GAVL_CHID_REAR_LEFT;
+      format->channel_locations[3] = GAVL_CHID_REAR_RIGHT;
+      break;
+    case 5:
+      format->channel_locations[0] =  GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] =  GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[2] =  GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[3] =  GAVL_CHID_REAR_LEFT;
+      format->channel_locations[4] =  GAVL_CHID_REAR_RIGHT;
+      break;
+    case 6:
+      format->channel_locations[0] =  GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] =  GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[2] =  GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[3] =  GAVL_CHID_REAR_LEFT;
+      format->channel_locations[4] =  GAVL_CHID_REAR_RIGHT;
+      format->channel_locations[5] =  GAVL_CHID_LFE;
+      break;
+    case 7:
+      format->channel_locations[0] =  GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] =  GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[2] =  GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[3] =  GAVL_CHID_SIDE_LEFT;
+      format->channel_locations[4] =  GAVL_CHID_SIDE_RIGHT;
+      format->channel_locations[5] =  GAVL_CHID_REAR_CENTER;
+      format->channel_locations[6] =  GAVL_CHID_LFE;
+      break;
+    case 8:
+      format->channel_locations[0] =  GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] =  GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[2] =  GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[3] =  GAVL_CHID_SIDE_LEFT;
+      format->channel_locations[4] =  GAVL_CHID_SIDE_RIGHT;
+      format->channel_locations[5] =  GAVL_CHID_REAR_LEFT;
+      format->channel_locations[6] =  GAVL_CHID_REAR_RIGHT;
+      format->channel_locations[7] =  GAVL_CHID_LFE;
+      break;
+      
+    }
+
+  }
