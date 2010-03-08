@@ -23,6 +23,7 @@
 #define __BG_PLUGIN_H_
 
 #include <gavl/gavl.h>
+#include <gavl/compression.h>
 #include <gmerlin/parameter.h>
 #include <gmerlin/streaminfo.h>
 #include <gmerlin/accelerator.h>
@@ -71,7 +72,8 @@
  *  input pluigns, recorders and filters to enable arbitrary chaining.
  */
 
-typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame, int stream,
+typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame,
+                                    int stream,
                                     int num_samples);
 
 /** \ingroup plugin
@@ -85,7 +87,8 @@ typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame, int 
  *  input pluigns, recorders and filters to enable arbitrary chaining.
  */
 
-typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int stream);
+typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame,
+                                    int stream);
 
 /** \defgroup plugin_flags Plugin flags
  *  \ingroup plugin
@@ -120,7 +123,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 /** @}
  */
 
-#define BG_PLUGIN_API_VERSION 23
+#define BG_PLUGIN_API_VERSION 24
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -148,16 +151,7 @@ typedef enum
   {
     BG_STREAM_ACTION_OFF = 0, //!< Stream is switched off and will be ignored
     BG_STREAM_ACTION_DECODE,  //!< Stream is switched on and will be decoded
-    
-    /*
-     */
-    
-    /*
-     *  Future support for compressed frames
-     *  must go here
-     */
-
-    /* BG_STREAM_ACTION_READRAW */
+    BG_STREAM_ACTION_READRAW, //!< Stream will be read in compressed form
     
   } bg_stream_action_t;
 
@@ -578,7 +572,33 @@ struct bg_input_plugin_s
    */
   
   int (*set_track)(void * priv, int track);
-    
+
+  /** \brief Get the compression info of an audio stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \param info Returns the compression info
+   *  \returns 1 if the compression info was returned, 0 if the stream cannot be output in compressed form
+   *
+   *  The returned compression info should be freed with
+   *  \ref gavl_compression_info_free
+   */
+
+  int (*get_audio_compression_info)(void * priv, int stream,
+                                    gavl_compression_info_t * info);
+
+  /** \brief Get the compression info of a video stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \param info Returns the compression info
+   *  \returns 1 if the compression info was returned, 0 if the stream cannot be output in compressed form
+   *
+   *  The returned compression info should be freed with
+   *  \ref gavl_compression_info_free
+   */
+
+  int (*get_video_compression_info)(void * priv, int stream,
+                                    gavl_compression_info_t * info);
+  
   /*
    *  These functions set the audio- video- and subpicture streams
    *  as well as programs (== DVD Angles). All these start with 0
@@ -677,6 +697,31 @@ struct bg_input_plugin_s
   
   bg_read_video_func_t read_video;
 
+  /** \brief Read compressed audio packet
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index (starting with 0)
+   *  \param p Returns the packet
+   *  \returns 1 if a packet was read, 0 else
+   *
+   *  You can pass the same packet multiple times to a read fuction.
+   *  Use \ref gavl_packet_free when it's no longer used.
+   */
+
+  int (*read_audio_packet)(void * priv, int stream, gavl_packet_t * p);
+
+  /** \brief Read compressed video packet
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index (starting with 0)
+   *  \param p Returns the packet
+   *  \returns 1 if a packet was read, 0 else
+   *
+   *  You can pass the same packet multiple times to a read fuction.
+   *  Use \ref gavl_packet_free when it's no longer used.
+   */
+
+  int (*read_video_packet)(void * priv, int stream, gavl_packet_t * p);
+
+  
   /** \brief Skip frames in a video stream
       \param stream Stream index (starting with 0)
       \param time The time to skip to (will be changed to the true time)

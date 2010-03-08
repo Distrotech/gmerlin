@@ -302,11 +302,11 @@ void lqt_gavl_add_video_track(quicktime_t * file,
                                lqt_codec_info_t * codec)
   {
   int track = quicktime_video_tracks(file);
-
   
-  lqt_add_video_track(file, format->image_width, format->image_height,
-                      format->frame_duration, format->timescale,
-                      codec);
+  if(!lqt_add_video_track(file, format->image_width, format->image_height,
+                          format->frame_duration, format->timescale,
+                          codec))
+    return;
   lqt_set_pixel_aspect(file, track, format->pixel_width, format->pixel_height);
   lqt_set_interlace_mode(file, track,
                          interlace_mode_gavl_2_lqt(format->interlace_mode));
