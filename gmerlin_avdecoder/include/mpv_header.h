@@ -56,6 +56,7 @@ typedef struct
   int timescale_ext;
   int frame_duration_ext;
   
+  int low_delay;
   } bgav_mpv_sequence_extension_t;
 
 typedef struct

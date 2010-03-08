@@ -132,6 +132,11 @@ const bg_input_plugin_t the_plugin =
 
     /* Set track */
     .set_track =             bg_avdec_set_track,
+
+    /* Get compression infos */
+    .get_audio_compression_info = bg_avdec_get_audio_compression_info,
+    .get_video_compression_info = bg_avdec_get_video_compression_info,
+    
     /* Set streams */
     .set_audio_stream =      bg_avdec_set_audio_stream,
     .set_video_stream =      bg_avdec_set_video_stream,
@@ -152,6 +157,9 @@ const bg_input_plugin_t the_plugin =
     .read_video =      bg_avdec_read_video,
     .skip_video =      bg_avdec_skip_video,
 
+    .read_audio_packet = bg_avdec_read_audio_packet,
+    .read_video_packet = bg_avdec_read_video_packet,
+    
     //    .has_subtitle =          bg_avdec_has_subtitle,
     //    .read_subtitle_overlay = bg_avdec_read_subtitle_overlay,
     

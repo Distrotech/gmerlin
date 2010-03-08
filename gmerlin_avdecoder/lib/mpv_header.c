@@ -275,6 +275,8 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
   ret->bitrate_ext          = ((buffer[2] & 0x1F)<<7) | (buffer[3]>>1);
   ret->timescale_ext        = (buffer[5] >> 5) & 3;
   ret->frame_duration_ext   = (buffer[5] & 0x1f);
+  ret->low_delay            = !!(buffer[5] & 0x80);
+  
   return 6;
   }
 

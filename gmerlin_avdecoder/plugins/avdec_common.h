@@ -102,6 +102,19 @@ int bg_avdec_set_track(void * priv, int track);
 void bg_avdec_set_callbacks(void * priv,
                             bg_input_callbacks_t * callbacks);
 
+int bg_avdec_get_audio_compression_info(void * priv, int stream,
+                                        gavl_compression_info_t * info);
+
+
+int bg_avdec_get_video_compression_info(void * priv, int stream,
+                                        gavl_compression_info_t * info);
+
+int bg_avdec_read_audio_packet(void * priv, int stream, gavl_packet_t * p);
+
+int bg_avdec_read_video_packet(void * priv, int stream, gavl_packet_t * p);
+
+
+
 bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
 
 /* Commonly used parameters */

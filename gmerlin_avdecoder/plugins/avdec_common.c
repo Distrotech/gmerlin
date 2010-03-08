@@ -136,6 +136,33 @@ void bg_avdec_close(void * priv)
     }
   }
 
+int bg_avdec_get_audio_compression_info(void * priv, int stream,
+                                        gavl_compression_info_t * info)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_get_audio_compression_info(avdec->dec, stream, info);
+  }
+
+
+int bg_avdec_get_video_compression_info(void * priv, int stream,
+                                        gavl_compression_info_t * info)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_get_video_compression_info(avdec->dec, stream, info);
+  }
+
+int bg_avdec_read_audio_packet(void * priv, int stream, gavl_packet_t * p)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_read_audio_packet(avdec->dec, stream, p);
+  }
+
+int bg_avdec_read_video_packet(void * priv, int stream, gavl_packet_t * p)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_read_video_packet(avdec->dec, stream, p);
+  }
+
 void bg_avdec_destroy(void * priv)
   {
   avdec_priv * avdec;

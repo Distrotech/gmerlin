@@ -1433,10 +1433,11 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
  *  \brief Read compressed audio packet
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
- *  \param info Returns the packet
+ *  \param p Returns the packet
  *  \returns 1 if a packet was read, 0 else
  *
- *  Free the returned packet with \ref gavl_packet_free.
+ *  You can pass the same packet multiple times to a read fuction.
+ *  Use \ref gavl_packet_free when it's no longer used.
  */
 
 BGAV_PUBLIC
@@ -1446,10 +1447,11 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p);
  *  \brief Read compressed video packet
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
- *  \param info Returns the packet
+ *  \param p Returns the packet
  *  \returns 1 if a packet was read, 0 else
  *
- *  Free the returned packet with \ref gavl_packet_free.
+ *  You can pass the same packet multiple times to a read fuction.
+ *  Use \ref gavl_packet_free when it's no longer used.
  */
 
 BGAV_PUBLIC
