@@ -825,13 +825,6 @@ static int open_encoder(void * data, const char * filename,
   return 1;
   }
 
-static const char * get_filename_encoder(void * data)
-  {
-  encoder_t * e;
-  e = (encoder_t *)data;
-  return e->first_filename;
-  }
-
 static int write_frame_header(encoder_t * e)
   {
   int ret;
@@ -979,7 +972,6 @@ const bg_encoder_plugin_t encoder_plugin =
     .set_callbacks =     set_callbacks_encoder,
     
     .open =              open_encoder,
-    .get_filename =      get_filename_encoder,
     
     .add_video_stream =  add_video_stream_encoder,
     

@@ -1389,16 +1389,6 @@ struct bg_encoder_plugin_s
               const bg_metadata_t * metadata,
               const bg_chapter_list_t * chapter_list);
   
-  /** \brief Return the filename, which can be passed to the player
-   *  \param priv The handle returned by the create() method
-   *
-   *  This must be implemented only if the plugin creates
-   *  files with names different from the the filename passed to
-   *  the open() function
-   */
-  
-  const char * (*get_filename)(void*);
-
   /* Return per stream parameters */
 
   /** \brief Get audio related parameters
@@ -1436,6 +1426,34 @@ struct bg_encoder_plugin_s
    */
 
   const bg_parameter_info_t * (*get_subtitle_overlay_parameters)(void * priv);
+
+  /** \brief Query for writing compressed audio packets
+   *  \param priv The handle returned by the create() method
+   *  \param format Format of the source
+   *  \param info Compression info
+   *  \returns 1 if stream compressed format can be written, 0 else
+   *  
+   *  Call this function after the output file was opened and all global
+   *  parameters are set.
+   */
+  
+  int (*writes_compressed_audio)(void * priv,
+                                 const gavl_audio_format_t * format,
+                                 const gavl_compression_info_t * info);
+  
+  /** \brief Query for writing compressed video packets
+   *  \param priv The handle returned by the create() method
+   *  \param format Format of the source
+   *  \param info Compression info
+   *  \returns 1 if stream compressed format can be written, 0 else
+   *  
+   *  Call this function after the output file was opened and all global
+   *  parameters are set.
+   */
+  
+  int (*writes_compressed_video)(void * priv,
+                                 const gavl_video_format_t * format,
+                                 const gavl_compression_info_t * info);
   
   /* Add streams. The formats can be changed, be sure to get the
    * final formats with get_[audio|video]_format after starting the plugin
@@ -1456,6 +1474,22 @@ struct bg_encoder_plugin_s
   int (*add_audio_stream)(void * priv, const char * language,
                           const gavl_audio_format_t * format);
 
+  /** \brief Add an audio stream fpr compressed writing
+   *  \param priv The handle returned by the create() method
+   *  \param language as ISO 639-2 code (3 characters+'\\0') or NULL
+   *  \param format Format of the source
+   *  \param info Compression info of the source
+   *  \returns Index of this stream (starting with 0)
+   *  
+   *  The format might be changed to the nearest format supported by
+   *  the plugin. Use \ref get_audio_format to get the actual format
+   *  needed by the plugin, after \ref start() was called.
+   */
+  
+  int (*add_audio_stream_compressed)(void * priv, const char * language,
+                                     const gavl_audio_format_t * format,
+                                     const gavl_compression_info_t * info);
+  
   /** \brief Add a video stream
    *  \param priv The handle returned by the create() method
    *  \param format Format of the source
@@ -1468,6 +1502,21 @@ struct bg_encoder_plugin_s
   
   int (*add_video_stream)(void * priv, const gavl_video_format_t * format);
 
+  /** \brief Add a video stream for compressed writing
+   *  \param priv The handle returned by the create() method
+   *  \param format Format of the source
+   *  \param info Compression info of the source
+   *  \returns Index of this stream (starting with 0)
+   *  
+   *  The format might be changed to the nearest format supported by
+   *  the plugin. Use \ref get_video_format to get the actual format
+   *  needed by the plugin, after \ref start() was called.
+   */
+  
+  int (*add_video_stream_compressed)(void * priv,
+                                     const gavl_video_format_t * format,
+                                     const gavl_compression_info_t * info);
+  
   /** \brief Add a text subtitle stream
    *  \param priv The handle returned by the create() method
    *  \param language as ISO 639-2 code (3 characters+'\\0') or NULL
@@ -1619,8 +1668,21 @@ struct bg_encoder_plugin_s
    *  the frame.
    */
   
-  int (*write_audio_frame)(void * data,gavl_audio_frame_t * frame, int stream);
+  int (*write_audio_frame)(void * data, gavl_audio_frame_t * frame, int stream);
 
+  /** \brief Write audio packet
+   *  \param priv The handle returned by the create() method
+   *  \param packet Packet with compressed data
+   *  \param stream Stream index (starting with 0)
+   *  \returns 1 is the data was successfully written, 0 else
+   *
+   *  The actual number of samples must be stored in the duration member of
+   *  the packet.
+   */
+  
+  int (*write_audio_packet)(void * data, gavl_packet_t * packet, int stream);
+
+  
   /** \brief Write video frame
    *  \param priv The handle returned by the create() method
    *  \param frame Frame
@@ -1628,8 +1690,17 @@ struct bg_encoder_plugin_s
    *  \returns 1 is the data was successfully written, 0 else
    */
 
-  int (*write_video_frame)(void * data,gavl_video_frame_t * frame, int stream);
+  int (*write_video_frame)(void * data, gavl_video_frame_t * frame, int stream);
 
+  /** \brief Write video packet
+   *  \param priv The handle returned by the create() method
+   *  \param packet Packet with compressed data
+   *  \param stream Stream index (starting with 0)
+   *  \returns 1 is the data was successfully written, 0 else
+   */
+  
+  int (*write_video_packet)(void * data, gavl_packet_t * packet, int stream);
+  
   /** \brief Write a text subtitle
    *  \param priv The handle returned by the create() method
    *  \param frame The text

@@ -60,10 +60,11 @@
 
 #define STREAM_ACTION_FORGET    0
 #define STREAM_ACTION_TRANSCODE 1
+#define STREAM_ACTION_COPY      2
 
 /* The followings are for subtitles only */
 
-#define STREAM_ACTION_BLEND           2
+#define STREAM_ACTION_BLEND           3
 /* The following is only for text subtitles and means, that they'll be
    converted to graphical overlays using the text renderer */
 #define STREAM_ACTION_TRANSCODE_OVERLAY  4
@@ -119,8 +120,8 @@ static int set_stream_parameters_general(stream_t * s,
     {
     if(!strcmp(val->val_str, "transcode"))
       s->action = STREAM_ACTION_TRANSCODE;
-    else if(!strcmp(val->val_str, "transcode"))
-      s->action = STREAM_ACTION_TRANSCODE;
+    else if(!strcmp(val->val_str, "copy"))
+      s->action = STREAM_ACTION_COPY;
     else if(!strcmp(val->val_str, "transcode_overlay"))
       s->action = STREAM_ACTION_TRANSCODE_OVERLAY;
     else if(!strcmp(val->val_str, "blend"))

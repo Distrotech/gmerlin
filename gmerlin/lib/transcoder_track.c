@@ -1312,9 +1312,13 @@ static const bg_parameter_info_t general_parameters_video[] =
       .name =        "action",
       .long_name =   TRS("Action"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char const *[]){ "transcode", "forget", (char*)0 },
-      .multi_labels =  (char const *[]){ TRS("Transcode"), TRS("Forget"), (char*)0 },
+      .multi_names = (char const *[]){ "transcode", "copy", "forget", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Transcode"),
+                                         TRS("Copy (if possible)"),
+                                         TRS("Forget"), (char*)0 },
       .val_default = { .val_str = "transcode" },
+      .help_string = TRS("Choose the desired action for the stream. If copying is not possible, the stream will be transcoded"),
+
     },
     {
       .name =       "twopass",
@@ -1337,9 +1341,13 @@ static const bg_parameter_info_t general_parameters_audio[] =
       .name =        "action",
       .long_name =   TRS("Action"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char const *[]){ "transcode", "forget", (char*)0 },
-      .multi_labels =  (char const *[]){ TRS("Transcode"), TRS("Forget"), (char*)0 },
+
+      .multi_names = (char const *[]){ "transcode", "copy", "forget", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Transcode"),
+                                         TRS("Copy (if possible)"),
+                                         TRS("Forget"), (char*)0 },
       .val_default = { .val_str = "transcode" },
+      .help_string = TRS("Choose the desired action for the stream. If copying is not possible, the stream will be transcoded"),
     },
     {
       .name =        "in_language",
