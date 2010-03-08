@@ -118,8 +118,12 @@ void bgav_packet_dump(bgav_packet_t * p)
     bgav_dprintf("pts: (none), ");
   else
     bgav_dprintf("pts: %"PRId64", ", p->pts);
-  bgav_dprintf("Len: %d, dur: %"PRId64"\n", p->data_size, p->duration);
-  
+  bgav_dprintf("Len: %d, dur: %"PRId64, p->data_size, p->duration);
+
+  if(p->header_size)
+    bgav_dprintf(" head: %d", p->header_size);
+
+  bgav_dprintf("\n");
   //  bgav_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);
   }
 

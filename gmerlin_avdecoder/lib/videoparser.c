@@ -536,6 +536,7 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   
   p->position = c->position;
   p->field2_offset = c->field2_offset;
+  p->header_size = c->header_size;
   p->valid = 1;
 
 #ifdef DUMP_OUTPUT
@@ -603,6 +604,9 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   c->recovery_point = -1;
   c->duration = parser->format->frame_duration;
   
+  c->parser_start_pos = parser->pos;
+  c->header_size = 0;
+  
   /* Set picture position */
   if(parser->raw)
     {
@@ -638,4 +642,8 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
 
 void bgav_video_parser_set_header_end(bgav_video_parser_t * parser)
   {
+  cache_t * c;
+  c = &parser->cache[parser->cache_size-1];
+  if(!c->header_size)
+    c->header_size = parser->pos - c->parser_start_pos;
   }

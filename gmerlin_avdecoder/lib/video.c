@@ -714,6 +714,9 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   p->dts = bp->dts;
   p->duration = bp->duration;
 
+  p->header_size   = bp->header_size;
+  p->field2_offset = bp->field2_offset;
+  
   /* Set flags */
 
   p->flags = 0;

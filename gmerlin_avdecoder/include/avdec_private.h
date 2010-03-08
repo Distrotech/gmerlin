@@ -211,6 +211,8 @@ struct bgav_packet_s
   
   int field2_offset; /* Offset of 2nd field if 2 field pictures are in the
                         packet (0 else) */
+
+  int header_size; /* Size of a repeated global header */
   
   int64_t pts; /* In stream timescale tics */
   int64_t dts; /* In stream timescale tics */

@@ -42,8 +42,7 @@ typedef struct
   int64_t position;
   
   int parser_start_pos;
-  /* Repeated header before keyframe
-     (will be stripped off when packets are output) */
+  /* Repeated header before keyframe */
   int header_size; 
   
   int64_t in_pts;

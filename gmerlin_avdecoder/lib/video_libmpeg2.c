@@ -39,6 +39,8 @@
 
 // #define DUMP_SEQUENCE_HEADER
 
+// #define DUMP_PACKETS
+
 static const char picture_types[] = { "?IPB????" };
 
 /* Debug function */
@@ -137,6 +139,11 @@ static int get_data(bgav_stream_t*s)
     }
   
   priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+#ifdef DUMP_PACKETS
+  fprintf(stderr, "Got packet\n");
+  bgav_packet_dump(priv->p);
+#endif
   
   priv->flags &= ~FLAG_EOF;
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);

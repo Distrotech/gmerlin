@@ -120,8 +120,7 @@ static int next_packet(bgav_stream_t * s)
   {
   int result = 0;
   vorbis_audio_priv * priv;
-  bgav_packet_t * p;
-
+  
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
   
   if(s->fourcc == BGAV_VORBIS)

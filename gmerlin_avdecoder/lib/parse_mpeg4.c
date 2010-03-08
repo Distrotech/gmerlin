@@ -160,6 +160,8 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
             }
           priv->has_picture_start = 0;
           
+          bgav_video_parser_set_header_end(parser);
+          
           /* Need the picture header */
           priv->state = MPEG4_HAS_VOP_CODE;
           
