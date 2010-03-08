@@ -101,6 +101,10 @@ typedef struct
   int64_t pts;
   int64_t dts;
   int64_t duration;
+
+  int field2_offset; /* Offset of field 2 for 2-field coding */
+  int header_size;   /* Size of a repeated global header (or 0) */
+
   } gavl_packet_t;
 
 GAVL_PUBLIC
