@@ -2035,10 +2035,13 @@ typedef enum
 
 typedef enum
   {
-    GAVL_INTERLACE_NONE = 0,    /*!< Progressive */
-    GAVL_INTERLACE_TOP_FIRST,   /*!< Top field first */
-    GAVL_INTERLACE_BOTTOM_FIRST,/*!< Bottom field first */
-    GAVL_INTERLACE_MIXED        /*!< Use interlace_mode of the frames */
+    GAVL_INTERLACE_UNKNOWN = -1, /*!< Unknown interlacing */
+    GAVL_INTERLACE_NONE = 0,     /*!< Progressive */
+    GAVL_INTERLACE_TOP_FIRST,    /*!< Top field first */
+    GAVL_INTERLACE_BOTTOM_FIRST, /*!< Bottom field first */
+    GAVL_INTERLACE_MIXED,        /*!< Use interlace_mode of the frames */
+    GAVL_INTERLACE_MIXED_TOP,    /*!< Progressive + top    */
+    GAVL_INTERLACE_MIXED_BOTTOM, /*!< Progressive + bottom */
   } gavl_interlace_mode_t;
 
 /*! \ingroup video_format

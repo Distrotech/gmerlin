@@ -118,10 +118,13 @@ typedef const struct
 
 interlace_mode_tab_t interlace_mode_tab[] =
   {
+    { GAVL_INTERLACE_UNKNOWN,      "Unknown" },
     { GAVL_INTERLACE_NONE,         "None (Progressive)" },
     { GAVL_INTERLACE_TOP_FIRST,    "Top field first" },
     { GAVL_INTERLACE_BOTTOM_FIRST, "Bottom field first" },
-    { GAVL_INTERLACE_MIXED,        "Mixed" }
+    { GAVL_INTERLACE_MIXED,        "Mixed" },
+    { GAVL_INTERLACE_MIXED_TOP,    "Top first + progressive" },
+    { GAVL_INTERLACE_MIXED_BOTTOM, "Bottom first + progressive" }
   };
 
 static const int num_interlace_modes = sizeof(interlace_mode_tab)/sizeof(interlace_mode_tab[0]);

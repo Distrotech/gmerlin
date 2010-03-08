@@ -69,7 +69,7 @@ struct gavl_video_deinterlacer_s
   int sub_h;
   int sub_v;
   
-  
+  int mixed;
   };
 
 /* Find conversion function */

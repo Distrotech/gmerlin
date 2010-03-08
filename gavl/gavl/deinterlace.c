@@ -66,6 +66,13 @@ int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * d,
   gavl_video_format_copy(&(d->format), src_format);
   gavl_video_format_copy(&(d->half_height_format), src_format);
 
+  if((d->format.interlace_mode == GAVL_INTERLACE_MIXED) ||
+     (d->format.interlace_mode == GAVL_INTERLACE_MIXED_TOP) ||
+     (d->format.interlace_mode == GAVL_INTERLACE_MIXED_BOTTOM))
+    d->mixed = 1;
+  else
+    d->mixed = 0;
+  
   d->half_height_format.image_height /= 2;
   d->half_height_format.frame_height /= 2;
 
@@ -94,7 +101,7 @@ void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * d,
                                          const gavl_video_frame_t * input_frame,
                                          gavl_video_frame_t * output_frame)
   {
-  if(d->format.interlace_mode == GAVL_INTERLACE_MIXED)
+  if(d->mixed)
     {
     if((input_frame->interlace_mode != GAVL_INTERLACE_NONE) ||
        (d->opt.conversion_flags & GAVL_FORCE_DEINTERLACE))
