@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <config.h>
 #include <gmerlin/translation.h>
@@ -38,6 +39,11 @@
 #include <config.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/singlepic.h>
+#include <gmerlin/log.h>
+
+#define LOG_DOMAIN_ENC "singlepicture-encoder"
+#define LOG_DOMAIN_DEC "singlepicture-decoder"
+
 
 #if 0
 char * bg_singlepic_ouput_name = "e_singlepic";
@@ -673,7 +679,7 @@ static const bg_parameter_info_t parameters_encoder[] =
 
 typedef struct
   {
-  char * first_filename;
+  char * filename_base;
   
   bg_plugin_handle_t * plugin_handle;
   bg_image_writer_plugin_t * image_writer;
@@ -687,8 +693,6 @@ typedef struct
   int frame_digits, frame_offset;
   int64_t frame_counter;
   
-  char * extension;
-  char * extension_mask;
   char * mask;
   char * filename_buffer;
   
@@ -699,6 +703,8 @@ typedef struct
   int have_header;
   
   bg_iw_callbacks_t iw_callbacks;
+  
+  const gavl_compression_info_t * ci;
   
   } encoder_t;
 
@@ -781,44 +787,31 @@ static void set_callbacks_encoder(void * data, bg_encoder_callbacks_t * cb)
   e->cb = cb;
   }
 
+static void create_mask(encoder_t * e, const char * ext)
+  {
+  char * tmp_string;
+  int filename_len;
+  e->mask = bg_strdup(e->mask, e->filename_base);
+  
+  tmp_string = bg_sprintf("-%%0%d"PRId64".%s", e->frame_digits, ext);
+  e->mask = bg_strcat(e->mask, tmp_string);
+  free(tmp_string);
+  
+  filename_len = strlen(e->filename_base + e->frame_digits + strlen(ext) + 16);
+  e->filename_buffer = malloc(filename_len);
+  }
+
 static int open_encoder(void * data, const char * filename,
                         const bg_metadata_t * metadata,
                         const bg_chapter_list_t * chapter_list)
   {
   encoder_t * e;
-  int filename_len;
   
   e = (encoder_t *)data;
-
-  /* Create the final mask */
-
-  e->mask = bg_strdup(e->mask, filename);
-
-  filename_len = strlen(filename);
-
-  if(!e->extension)
-    {
-    char ** extensions;
-
-    extensions = bg_strbreak(e->image_writer->extensions, ' ');
-    
-    /* Create extension */
-    
-    e->extension_mask = bg_sprintf("-%%0%d"PRId64".%s", e->frame_digits, extensions[0]);
-    e->extension      = bg_sprintf(e->extension_mask, (int64_t)e->frame_offset);
-    
-    bg_strbreak_free(extensions);
-    }
   
-  e->mask = bg_strcat(e->mask, e->extension_mask);
-
-
-  e->filename_buffer = malloc(filename_len+1);
-
   e->frame_counter = e->frame_offset;
-
-  e->first_filename = bg_sprintf(e->mask, e->frame_counter);
-
+  e->filename_base = bg_strdup(e->filename_base, filename);
+  
   if(metadata)
     bg_metadata_copy(&e->metadata, metadata);
   
@@ -852,17 +845,47 @@ static int start_encoder(void * data)
   e = (encoder_t *)data;
   return e->have_header;
   }
-     
+
+static int writes_compressed_video(void * priv,
+                                   const gavl_video_format_t * format,
+                                   const gavl_compression_info_t * info)
+  {
+  int separate = 0;
+  
+  if(gavl_compression_get_extension(info->id, &separate) &&
+     separate)
+    return 1;
+  return 0;
+  }
+
+
+
 static int add_video_stream_encoder(void * data, const gavl_video_format_t * format)
+  {
+  char ** extensions;
+  encoder_t * e = data;
+  
+  gavl_video_format_copy(&(e->format), format);
+
+  extensions = bg_strbreak(e->image_writer->extensions, ' ');
+  create_mask(e, extensions[0]);
+  bg_strbreak_free(extensions);
+  
+  /* Write image header so we know the format */
+  
+  write_frame_header(e);
+  return 0;
+  }
+
+static int
+add_video_stream_compressed_encoder(void * data, const gavl_video_format_t * format,
+                                    const gavl_compression_info_t * info)
   {
   encoder_t * e;
   e = (encoder_t *)data;
 
-  gavl_video_format_copy(&(e->format), format);
-
-  /* Write image header so we know the format */
+  e->ci = info;
   
-  write_frame_header(e);
   return 0;
   }
 
@@ -885,14 +908,39 @@ write_video_frame_encoder(void * data, gavl_video_frame_t * frame,
   e = (encoder_t *)data;
 
   if(!e->have_header)
-    {
     ret = write_frame_header(e);
-    }
   if(ret)
     ret = e->image_writer->write_image(e->plugin_handle->priv, frame);
   
   e->have_header = 0;
   return ret;
+  }
+
+static int write_video_packet_encoder(void * data, gavl_packet_t * packet,
+                                      int stream)
+  {
+  FILE * out;
+  encoder_t * e = data;
+  sprintf(e->filename_buffer, e->mask, e->frame_counter);
+
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename_buffer))
+    return 0;
+  out = fopen(e->filename_buffer, "wb");
+  if(!out)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_ENC, "Cannot open file %s: %s",
+           e->filename_buffer, strerror(errno));
+    return 0;
+    }
+  
+  if(fwrite(packet->data, 1, packet->data_len, out) < packet->data_len)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_ENC, "Couldn't write data to %s: %s",
+           e->filename_buffer, strerror(errno));
+    return 0;
+    }
+  fclose(out);
+  return 1;
   }
 
 #define STR_FREE(s) if(s){free(s);s=(char*)0;}
@@ -901,8 +949,7 @@ static int close_encoder(void * data, int do_delete)
   {
   int64_t i;
   
-  encoder_t * e;
-  e = (encoder_t *)data;
+  encoder_t * e = data;
 
   if(do_delete)
     {
@@ -913,11 +960,9 @@ static int close_encoder(void * data, int do_delete)
       }
     }
   
-  STR_FREE(e->extension);
-  STR_FREE(e->extension_mask);
   STR_FREE(e->mask);
   STR_FREE(e->filename_buffer);
-  STR_FREE(e->first_filename);
+  STR_FREE(e->filename_base);
   
   bg_metadata_free(&e->metadata);
   
@@ -972,14 +1017,19 @@ const bg_encoder_plugin_t encoder_plugin =
     .set_callbacks =     set_callbacks_encoder,
     
     .open =              open_encoder,
+
+    .writes_compressed_video = writes_compressed_video,
     
     .add_video_stream =  add_video_stream_encoder,
+    .add_video_stream_compressed =  add_video_stream_compressed_encoder,
     
     .get_video_format =  get_video_format_encoder,
 
     .start =             start_encoder,
     
     .write_video_frame = write_video_frame_encoder,
+    .write_video_packet = write_video_packet_encoder,
+    
     
     /* Close it */
 
