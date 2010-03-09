@@ -271,6 +271,9 @@ static bgav_stream_action_t get_stream_action(bg_stream_action_t action)
     case BG_STREAM_ACTION_DECODE:
       return BGAV_STREAM_DECODE;
       break;
+    case BG_STREAM_ACTION_READRAW:
+      return BGAV_STREAM_READRAW;
+      break;
     }
   return -1;
   }

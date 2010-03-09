@@ -415,7 +415,7 @@ const bg_input_plugin_t the_plugin =
 
     /* Get compression infos */
     .get_audio_compression_info = bg_avdec_get_audio_compression_info,
-    .get_video_compression_info = bg_avdec_get_video_compression_info,
+   .get_video_compression_info = bg_avdec_get_video_compression_info,
     
     /* Set streams */
     
