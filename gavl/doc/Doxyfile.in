@@ -424,7 +424,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT = @TOP_SRCDIR@/doc/mainpage.incl @TOP_SRCDIR@/include/gavl/timecode.h @TOP_SRCDIR@/include/gavl/gavl.h @TOP_SRCDIR@/include/gavl/gavltime.h @TOP_SRCDIR@/include/gavl/gavldsp.h
+INPUT = @TOP_SRCDIR@/doc/mainpage.incl @TOP_SRCDIR@/include/gavl/timecode.h @TOP_SRCDIR@/include/gavl/gavl.h @TOP_SRCDIR@/include/gavl/gavltime.h @TOP_SRCDIR@/include/gavl/gavldsp.h @TOP_SRCDIR@/include/gavl/compression.h
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
