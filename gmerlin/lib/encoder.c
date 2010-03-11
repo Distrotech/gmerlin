@@ -540,21 +540,26 @@ static int start_audio(bg_encoder_t * enc, int stream)
   s->priv = h->priv;
 
   /* Add stream */
-  
-  s->out_index = s->plugin->add_audio_stream(s->priv, s->language, &s->format);
-  
-  /* Apply parameters */ 
 
-  if(s->plugin->set_audio_parameter)
+  if(s->ci)
+    s->out_index = s->plugin->add_audio_stream_compressed(s->priv, s->language, &s->format, s->ci);
+  else
     {
-    st.func =  s->plugin->set_audio_parameter;
-    st.data =  s->priv;
-    st.index = s->out_index;
+    s->out_index = s->plugin->add_audio_stream(s->priv, s->language, &s->format);
+  
+    /* Apply parameters */ 
+
+    if(s->plugin->set_audio_parameter)
+      {
+      st.func =  s->plugin->set_audio_parameter;
+      st.data =  s->priv;
+      st.index = s->out_index;
     
-    bg_cfg_section_apply(s->section,
-                         s->parameters,
-                         set_stream_param,
-                         &st);
+      bg_cfg_section_apply(s->section,
+                           s->parameters,
+                           set_stream_param,
+                           &st);
+      }
     }
   
   return 1;
@@ -579,32 +584,37 @@ static int start_video(bg_encoder_t * enc, int stream)
 
   /* Add stream */
   
-  s->out_index = s->plugin->add_video_stream(s->priv, &s->format);
+  if(s->ci)
+    s->out_index = s->plugin->add_video_stream_compressed(s->priv, &s->format, s->ci);
+  else
+    {
+    s->out_index = s->plugin->add_video_stream(s->priv, &s->format);
   
-  /* Apply parameters */ 
-  if(s->plugin->set_video_parameter)
-    {
-    st.func =  s->plugin->set_video_parameter;
-    st.data =  s->priv;
-    st.index = s->out_index;
-    
-    bg_cfg_section_apply(s->section,
-                         s->parameters,
-                         set_stream_param,
-                         &st);
-    }
-
-  /* Set pass */
-
-  if(s->total_passes)
-    {
-    if(!s->plugin->set_video_pass ||
-       !s->plugin->set_video_pass(s->priv, s->out_index, s->pass, s->total_passes,
-                                  s->stats_file))
+    /* Apply parameters */ 
+    if(s->plugin->set_video_parameter)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Multipass encoding not supported by encoder plugin");
-      return 0;
+      st.func =  s->plugin->set_video_parameter;
+      st.data =  s->priv;
+      st.index = s->out_index;
+      
+      bg_cfg_section_apply(s->section,
+                           s->parameters,
+                           set_stream_param,
+                           &st);
+      }
+    
+    /* Set pass */
+    
+    if(s->total_passes)
+      {
+      if(!s->plugin->set_video_pass ||
+         !s->plugin->set_video_pass(s->priv, s->out_index, s->pass, s->total_passes,
+                                    s->stats_file))
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "Multipass encoding not supported by encoder plugin");
+        return 0;
+        }
       }
     }
   

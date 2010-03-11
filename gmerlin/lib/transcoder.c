@@ -113,7 +113,7 @@ typedef struct
   int do_copy;   /* Whether this stream should be copied */
   
   gavl_compression_info_t ci;
-  gavl_compression_info_t packet;
+  gavl_packet_t packet;
   
   } stream_t;
 
@@ -250,6 +250,9 @@ typedef struct
   /* Subtitle streams for blending */
   int num_subtitle_streams;
   subtitle_stream_t ** subtitle_streams;
+  
+  int b_frames_seen;
+  int flush_b_frames;
   
   } video_stream_t;
 
@@ -822,10 +825,14 @@ static void start_audio_stream_i(audio_stream_t * ret,
 
   if(ret->com.in_plugin->set_audio_stream)
     {
-    if(ret->com.action == STREAM_ACTION_TRANSCODE)
+    if(ret->com.do_decode)
       ret->com.in_plugin->set_audio_stream(ret->com.in_handle->priv,
                                               ret->com.in_index,
                                               BG_STREAM_ACTION_DECODE);
+    else if(ret->com.do_copy)
+      ret->com.in_plugin->set_audio_stream(ret->com.in_handle->priv,
+                                              ret->com.in_index,
+                                              BG_STREAM_ACTION_READRAW);
     else
       ret->com.in_plugin->set_audio_stream(ret->com.in_handle->priv,
                                               ret->com.in_index,
@@ -869,10 +876,14 @@ static void start_video_stream_i(video_stream_t * ret, bg_plugin_handle_t * in_h
   /* Set stream */
   if(ret->com.in_plugin->set_video_stream)
     {
-    if(ret->com.action == STREAM_ACTION_TRANSCODE)
+    if(ret->com.do_decode)
       ret->com.in_plugin->set_video_stream(ret->com.in_handle->priv,
-                                              ret->com.in_index,
-                                              BG_STREAM_ACTION_DECODE);
+                                           ret->com.in_index,
+                                           BG_STREAM_ACTION_DECODE);
+    else if(ret->com.do_copy)
+      ret->com.in_plugin->set_video_stream(ret->com.in_handle->priv,
+                                           ret->com.in_index,
+                                           BG_STREAM_ACTION_READRAW);
     else
       ret->com.in_plugin->set_video_stream(ret->com.in_handle->priv,
                                      ret->com.in_index,
@@ -1212,72 +1223,89 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
 
   if(s->com.do_copy)
     {
-    
-    }
-  
-  
-  if(s->samples_to_read &&
-     (s->samples_read + s->out_format.samples_per_frame > s->samples_to_read))
-    num_samples = s->samples_to_read - s->samples_read;
-  else
-    num_samples = s->out_format.samples_per_frame;
+    if(!s->com.in_plugin->read_audio_packet(s->com.in_handle->priv,
+                                            s->com.in_index,
+                                            &s->com.packet))
+      {
+      /* EOF */
+      s->com.status = STREAM_STATE_FINISHED;
+      return ret;
+      }
+    ret = bg_encoder_write_audio_packet(t->enc, &s->com.packet,
+                                        s->com.out_index); 
+    s->samples_read += s->com.packet.duration;
+    if(s->samples_to_read && (s->samples_to_read <= s->samples_read))
+      s->com.status = STREAM_STATE_FINISHED;
 
-  if(s->do_convert_out)
-    frame = s->pipe_frame;
+    s->com.time = gavl_samples_to_time(s->in_format.samplerate,
+                                       s->samples_read);
+    }
   else
-    frame = s->out_frame;
-  
-  samples_decoded = s->in_func(s->in_data, frame, s->in_stream,
-                                 num_samples);
-  /* Nothing more to transcode */
-  
-  if(!samples_decoded)
     {
-    s->com.status = STREAM_STATE_FINISHED;
-    return ret;
-    }
+    if(s->samples_to_read &&
+       (s->samples_read + s->out_format.samples_per_frame > s->samples_to_read))
+      num_samples = s->samples_to_read - s->samples_read;
+    else
+      num_samples = s->out_format.samples_per_frame;
 
-  s->samples_read += frame->valid_samples;
+    if(s->do_convert_out)
+      frame = s->pipe_frame;
+    else
+      frame = s->out_frame;
+  
+    samples_decoded = s->in_func(s->in_data, frame, s->in_stream,
+                                 num_samples);
+    /* Nothing more to transcode */
+  
+    if(!samples_decoded)
+      {
+      s->com.status = STREAM_STATE_FINISHED;
+      return ret;
+      }
+    
+    /* Volume normalization */
+    if(s->normalize)
+      {
+      if(t->pass == t->total_passes)
+        {
+        gavl_volume_control_apply(s->volume_control, frame);
+        }
+      else if((t->pass > 1) && (t->pass < t->total_passes))
+        frame = (gavl_audio_frame_t*)0;
+      }
+  
+    /* Output conversion */
+    if(s->do_convert_out)
+      {
+      gavl_audio_convert(s->cnv_out, s->pipe_frame, s->out_frame);
+      frame = s->out_frame;
+      }
+
+    /* Peak detection is done for the final frame */
+    if(s->normalize)
+      {
+      if(t->pass == 1)
+        {
+        gavl_peak_detector_update(s->peak_detector, frame);
+        frame = (gavl_audio_frame_t*)0;
+        }
+      }
+    if(frame)
+      ret = bg_encoder_write_audio_frame(t->enc,
+                                         frame,
+                                         s->com.out_index);
+    
+    s->samples_read += frame->valid_samples;
+
+    s->com.time = gavl_samples_to_time(s->out_format.samplerate,
+                                       s->samples_read);
+
+    }
   
   /* Last samples */
   
   if(s->samples_to_read && (s->samples_to_read <= s->samples_read))
     s->com.status = STREAM_STATE_FINISHED;
-  
-  s->com.time = gavl_samples_to_time(s->out_format.samplerate,
-                                     s->samples_read);
-  
-  /* Volume normalization */
-  if(s->normalize)
-    {
-    if(t->pass == t->total_passes)
-      {
-      gavl_volume_control_apply(s->volume_control, frame);
-      }
-    else if((t->pass > 1) && (t->pass < t->total_passes))
-      frame = (gavl_audio_frame_t*)0;
-    }
-  
-  /* Output conversion */
-  if(s->do_convert_out)
-    {
-    gavl_audio_convert(s->cnv_out, s->pipe_frame, s->out_frame);
-    frame = s->out_frame;
-    }
-
-  /* Peak detection is done for the final frame */
-  if(s->normalize)
-    {
-    if(t->pass == 1)
-      {
-      gavl_peak_detector_update(s->peak_detector, frame);
-      frame = (gavl_audio_frame_t*)0;
-      }
-    }
-  if(frame)
-    ret = bg_encoder_write_audio_frame(t->enc,
-                                       frame,
-                                       s->com.out_index);
   
   if(!ret)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding audio failed");
@@ -1509,42 +1537,90 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
       }
     s->initialized = 1;
     }
-  
-  result = s->in_func(s->in_data, s->frame, s->in_stream);
-  if(!result)
+
+  if(s->com.do_copy)
     {
-    s->com.status = STREAM_STATE_FINISHED;
-
-    /* Set this also for all attached subtitle streams */
-    for(i = 0; i < s->num_subtitle_streams; i++)
-      s->subtitle_streams[i]->com.status = STREAM_STATE_FINISHED;
-    return ret;
-    }
-
-  s->com.time = gavl_time_unscale(s->out_format.timescale,
-                                  s->frame->timestamp);
-
-  
-  //  if(check_video_blend(s, t, s->com.time))
-  if(check_video_blend(s, t, s->frame->timestamp))
-    {
-    for(i = 0; i < s->num_subtitle_streams; i++)
+    if(!s->com.in_plugin->read_video_packet(s->com.in_handle->priv,
+                                            s->com.in_index,
+                                            &s->com.packet))
       {
-      if(s->subtitle_streams[i]->do_blend)
+      /* EOF */
+      s->com.status = STREAM_STATE_FINISHED;
+      return ret;
+      }
+
+    if((s->com.packet.flags & GAVL_PACKET_TYPE_MASK) != GAVL_PACKET_TYPE_B)
+      {
+      if(s->flush_b_frames)
         {
-        gavl_overlay_blend(s->subtitle_streams[i]->blend_context,
-                           s->frame);
+        s->com.status = STREAM_STATE_FINISHED;
+        return ret;
+        }
+      s->com.time = gavl_time_unscale(s->in_format.timescale,
+                                      s->com.packet.pts + s->com.packet.duration);
+      
+      if((t->end_time != GAVL_TIME_UNDEFINED) &&
+         (s->com.time >= t->end_time))
+        {
+        if(s->b_frames_seen)
+          s->flush_b_frames = 1;
+        else
+          {
+          s->com.status = STREAM_STATE_FINISHED;
+          return ret;
+          }
         }
       }
+    else
+      {
+      s->b_frames_seen = 1;
+      }
+    
+    bg_encoder_write_video_packet(t->enc, &s->com.packet,
+                                  s->com.out_index); 
     }
+  else
+    {
+    result = s->in_func(s->in_data, s->frame, s->in_stream);
+    if(!result)
+      {
+      s->com.status = STREAM_STATE_FINISHED;
+
+      /* Set this also for all attached subtitle streams */
+      for(i = 0; i < s->num_subtitle_streams; i++)
+        s->subtitle_streams[i]->com.status = STREAM_STATE_FINISHED;
+      return ret;
+      }
+
+    s->com.time = gavl_time_unscale(s->out_format.timescale,
+                                    s->frame->timestamp + s->frame->duration);
+
+    if((t->end_time != GAVL_TIME_UNDEFINED) &&
+       (s->com.time >= t->end_time))
+      s->com.status = STREAM_STATE_FINISHED;
+    
+    //  if(check_video_blend(s, t, s->com.time))
+    if(check_video_blend(s, t, s->frame->timestamp))
+      {
+      for(i = 0; i < s->num_subtitle_streams; i++)
+        {
+        if(s->subtitle_streams[i]->do_blend)
+          {
+          gavl_overlay_blend(s->subtitle_streams[i]->blend_context,
+                             s->frame);
+          }
+        }
+      }
 
 #ifdef DUMP_VIDEO_TIMESTAMPS
-  bg_debug("Output timestamp: %"PRId64"\n", s->frame->timestamp);
+    bg_debug("Output timestamp: %"PRId64"\n", s->frame->timestamp);
 #endif
   
-  ret = bg_encoder_write_video_frame(t->enc,
-                                     s->frame,
-                                     s->com.out_index);
+    ret = bg_encoder_write_video_frame(t->enc,
+                                       s->frame,
+                                       s->com.out_index);
+    }
+  
   
   if(!ret)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding video failed");
@@ -2029,6 +2105,8 @@ static void check_compressed(bg_transcoder_t * ret)
       ret->audio_streams[i].com.action = STREAM_ACTION_TRANSCODE;
       continue;
       }
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Copying compressed audio stream %d", i+1);
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
@@ -2084,6 +2162,8 @@ static void check_compressed(bg_transcoder_t * ret)
       ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
       continue;
       }
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Copying compressed video stream %d", i+1);
     }
   }
 
@@ -2169,7 +2249,7 @@ static int start_input(bg_transcoder_t * ret)
   int i;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
-    if(ret->audio_streams[i].com.do_decode)
+    if(ret->audio_streams[i].com.do_decode || ret->audio_streams[i].com.do_copy)
       {
       start_audio_stream_i(&(ret->audio_streams[i]),
                            ret->in_handle);
@@ -2177,7 +2257,7 @@ static int start_input(bg_transcoder_t * ret)
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
-    if(ret->video_streams[i].com.do_decode)
+    if(ret->video_streams[i].com.do_decode || ret->video_streams[i].com.do_copy)
       {
       start_video_stream_i(&(ret->video_streams[i]),
                            ret->in_handle);
@@ -2879,6 +2959,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
 static void cleanup_stream(stream_t * s)
   {
+  gavl_compression_info_free(&s->ci);
+  gavl_packet_free(&s->packet);
   }
 
 static void cleanup_audio_stream(audio_stream_t * s)
@@ -2929,9 +3011,13 @@ static void cleanup_video_stream(video_stream_t * s)
 static void cleanup_subtitle_stream(subtitle_stream_t * s)
   {
   subtitle_text_stream_t * ts;
-  if(s->ovl1.frame) gavl_video_frame_destroy(s->ovl1.frame);
-  if(s->ovl2.frame) gavl_video_frame_destroy(s->ovl2.frame);
-  if(s->blend_context) gavl_overlay_blend_context_destroy(s->blend_context);
+  cleanup_stream(&(s->com));
+  if(s->ovl1.frame)
+    gavl_video_frame_destroy(s->ovl1.frame);
+  if(s->ovl2.frame)
+    gavl_video_frame_destroy(s->ovl2.frame);
+  if(s->blend_context)
+    gavl_overlay_blend_context_destroy(s->blend_context);
   if(s->com.type == STREAM_TYPE_SUBTITLE_TEXT)
     {
     ts = (subtitle_text_stream_t*)s;
@@ -3049,7 +3135,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    
+    /* Check for the most urgent audio/video stream */
     if(t->audio_streams[i].com.status != STREAM_STATE_ON)
       continue;
     done = 0;

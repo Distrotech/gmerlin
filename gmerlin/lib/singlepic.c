@@ -797,7 +797,7 @@ static void create_mask(encoder_t * e, const char * ext)
   e->mask = bg_strcat(e->mask, tmp_string);
   free(tmp_string);
   
-  filename_len = strlen(e->filename_base + e->frame_digits + strlen(ext) + 16);
+  filename_len = strlen(e->filename_base) + e->frame_digits + strlen(ext) + 16;
   e->filename_buffer = malloc(filename_len);
   }
 
@@ -843,7 +843,7 @@ static int start_encoder(void * data)
   {
   encoder_t * e;
   e = (encoder_t *)data;
-  return e->have_header;
+  return (e->have_header || e->ci) ? 1 : 0;
   }
 
 static int writes_compressed_video(void * priv,
@@ -883,9 +883,8 @@ add_video_stream_compressed_encoder(void * data, const gavl_video_format_t * for
   {
   encoder_t * e;
   e = (encoder_t *)data;
-
   e->ci = info;
-  
+  create_mask(e, gavl_compression_get_extension(e->ci->id, NULL));
   return 0;
   }
 
@@ -940,6 +939,7 @@ static int write_video_packet_encoder(void * data, gavl_packet_t * packet,
     return 0;
     }
   fclose(out);
+  e->frame_counter++;
   return 1;
   }
 
