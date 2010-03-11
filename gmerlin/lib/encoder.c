@@ -1016,23 +1016,10 @@ int bg_encoder_write_subtitle_overlay(bg_encoder_t * enc,
   return s->plugin->write_subtitle_overlay(s->priv, ovl, s->out_index);
   }
 
-typedef struct
-  {
-  char * outfile;
-  } dummy_cb_t;
-
-static int dummy_create_output_file(void * data, const char * filename)
-  {
-  dummy_cb_t * d = data;
-  d->outfile = bg_strdup(d->outfile, filename);
-  return 1;
-  }
-
 static bg_plugin_handle_t *
 open_dummy_encoder(bg_encoder_t * enc,
                    const bg_plugin_info_t * plugin_info,
-                   bg_cfg_section_t * plugin_section,
-                   bg_encoder_callbacks_t * cb)
+                   bg_cfg_section_t * plugin_section)
   {
   bg_encoder_plugin_t * plugin;
   bg_plugin_handle_t * ret;
@@ -1040,10 +1027,6 @@ open_dummy_encoder(bg_encoder_t * enc,
   
   plugin = (bg_encoder_plugin_t *)ret->plugin;
 
-  cb->create_output_file = dummy_create_output_file;
-  
-  if(plugin->set_callbacks)
-    plugin->set_callbacks(ret->priv, cb);
   
   if(plugin->common.set_parameter)
     bg_cfg_section_apply(plugin_section,
@@ -1062,8 +1045,6 @@ int bg_encoder_writes_compressed_audio(bg_encoder_t * enc,
   const bg_plugin_info_t * plugin_info;
   bg_plugin_handle_t * h;
   bg_cfg_section_t * plugin_section;
-  bg_encoder_callbacks_t cb;
-  dummy_cb_t cb_data;
   
   if(enc->audio_plugin.info)
     {
@@ -1077,12 +1058,8 @@ int bg_encoder_writes_compressed_audio(bg_encoder_t * enc,
     }
   else
     return 0;
-
-  memset(&cb_data, 0, sizeof(cb_data));
-  memset(&cb, 0, sizeof(cb));
-  cb.data = &cb_data;
-
-  h = open_dummy_encoder(enc, plugin_info, plugin_section, &cb);
+  
+  h = open_dummy_encoder(enc, plugin_info, plugin_section);
   plugin = (bg_encoder_plugin_t *)h->plugin;
 
   if(plugin->writes_compressed_audio)
@@ -1103,9 +1080,7 @@ int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
   const bg_plugin_info_t * plugin_info;
   bg_plugin_handle_t * h;
   const bg_cfg_section_t * plugin_section;
-  bg_encoder_callbacks_t cb;
-  dummy_cb_t cb_data;
-  
+
   if(enc->video_plugin.info)
     {
     plugin_info = enc->video_plugin.info;
@@ -1113,12 +1088,8 @@ int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
     }
   else
     return 0;
-
-  memset(&cb_data, 0, sizeof(cb_data));
-  memset(&cb, 0, sizeof(cb));
-  cb.data = &cb_data;
   
-  h = open_dummy_encoder(enc, plugin_info, plugin_section, &cb);
+  h = open_dummy_encoder(enc, plugin_info, plugin_section);
   plugin = (bg_encoder_plugin_t *)h->plugin;
   
   if(plugin->writes_compressed_video)

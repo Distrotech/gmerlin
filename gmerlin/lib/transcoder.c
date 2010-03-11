@@ -110,7 +110,8 @@ typedef struct
   
   int do_encode; /* Whether this stream should be really encoded */
   int do_decode; /* Whether this stream should be decoded */
-
+  int do_copy;   /* Whether this stream should be copied */
+  
   gavl_compression_info_t ci;
   gavl_compression_info_t packet;
   
@@ -958,15 +959,13 @@ static void set_input_formats(bg_transcoder_t * ret)
   int i;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
-    if(ret->audio_streams[i].com.do_decode)
-      {
+    if(ret->audio_streams[i].com.do_decode || ret->audio_streams[i].com.do_copy)
       gavl_audio_format_copy(&(ret->audio_streams[i].in_format),
                              &(ret->track_info->audio_streams[ret->audio_streams[i].com.in_index].format));
-      }
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
-    if(ret->video_streams[i].com.do_decode)
+    if(ret->video_streams[i].com.do_decode || ret->video_streams[i].com.do_copy)
       gavl_video_format_copy(&(ret->video_streams[i].in_format),
                              &(ret->track_info->video_streams[ret->video_streams[i].com.in_index].format));
     }
@@ -985,7 +984,6 @@ static void set_input_formats(bg_transcoder_t * ret)
   }
 
 static void add_audio_stream(audio_stream_t * ret,
-                             bg_transcoder_track_audio_t * s,
                              bg_transcoder_t * t)
   {
   char * language;
@@ -995,11 +993,9 @@ static void add_audio_stream(audio_stream_t * ret,
   ret->in_stream = ret->com.in_index;
   
   /* We set the frame size so we have roughly half second long audio chunks */
-#if 1
   ret->in_format.samples_per_frame = gavl_time_to_samples(ret->in_format.samplerate,
                                                           GAVL_TIME_SCALE/2);
-#endif
-
+  
   bg_audio_filter_chain_connect_input(ret->fc,
                                       ret->in_func,
                                       ret->in_data,
@@ -1030,6 +1026,27 @@ static void add_audio_stream(audio_stream_t * ret,
                                 &ret->out_format,
                                 ret->com.in_index);
   }
+
+static void add_audio_stream_compressed(audio_stream_t * ret,
+                                        bg_transcoder_t * t)
+  {
+  char * language;
+  /* Decide language */
+  language = get_language(ret->in_language,
+                          ret->out_language,
+                          ret->force_language);
+  
+  /* Add the audio stream */
+  
+  ret->com.out_index =
+    bg_encoder_add_audio_stream_compressed(t->enc,
+                                           language,
+                                           &ret->in_format,
+                                           &ret->com.ci,
+                                           ret->com.in_index);
+  
+  }
+
 
 static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
                                      bg_transcoder_track_subtitle_text_t * s,
@@ -1108,7 +1125,6 @@ static void add_subtitle_overlay_stream(subtitle_stream_t * ret,
   }
 
 static void add_video_stream(video_stream_t * ret,
-                             bg_transcoder_track_video_t * s,
                              bg_transcoder_t * t)
   {
   ret->in_func = decode_video_frame;
@@ -1130,6 +1146,18 @@ static void add_video_stream(video_stream_t * ret,
     bg_encoder_add_video_stream(t->enc,
                                 &ret->out_format,
                                 ret->com.in_index);
+  }
+
+static void add_video_stream_compressed(video_stream_t * ret,
+                                        bg_transcoder_t * t)
+  {
+  /* Add the video stream */
+
+  ret->com.out_index =
+    bg_encoder_add_video_stream_compressed(t->enc,
+                                           &ret->in_format,
+                                           &ret->com.ci,
+                                           ret->com.in_index);
   }
 
 static int set_video_pass(bg_transcoder_t * t, int i)
@@ -1182,6 +1210,12 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     s->initialized = 1;
     }
 
+  if(s->com.do_copy)
+    {
+    
+    }
+  
+  
   if(s->samples_to_read &&
      (s->samples_read + s->out_format.samples_per_frame > s->samples_to_read))
     num_samples = s->samples_to_read - s->samples_read;
@@ -1967,69 +2001,91 @@ static int open_input(bg_transcoder_t * ret)
   
   }
 
-static void check_compressed_input(bg_transcoder_t * ret)
+static void check_compressed(bg_transcoder_t * ret)
   {
   int i, j;
   
   for(i = 0; i < ret->num_audio_streams; i++)
     {
-    if(ret->audio_streams[i].com.action == STREAM_ACTION_COPY)
+    if(!(ret->audio_streams[i].com.action == STREAM_ACTION_COPY))
+      continue;
+
+    /* Check if we can read compressed data */
+    if(!ret->in_plugin->get_audio_compression_info ||
+       !ret->in_plugin->get_audio_compression_info(ret->in_handle->priv,
+                                                   i, &ret->audio_streams[i].com.ci))
       {
-      if(!ret->in_plugin->get_audio_compression_info ||
-         !ret->in_plugin->get_audio_compression_info(ret->in_handle->priv,
-                                                     i, &ret->audio_streams[i].com.ci))
-        {
-        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be read compressed", i+1);
-        ret->audio_streams[i].com.action = STREAM_ACTION_TRANSCODE;
-        }
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be read compressed", i+1);
+      ret->audio_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+      continue;
+      }
+
+    /* Check if we can write compressed data */
+    if(!bg_encoder_writes_compressed_audio(ret->enc,
+                                           &ret->track_info->audio_streams[i].format,
+                                           &ret->audio_streams[i].com.ci))
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be written compressed", i+1);
+      ret->audio_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+      continue;
       }
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
-    // Check if video can be read compressed at all
-    if(ret->video_streams[i].com.action == STREAM_ACTION_COPY)
+    if(ret->video_streams[i].com.action != STREAM_ACTION_COPY)
+      continue;
+    
+    /* Check if we can read compressed data */
+    if(!ret->in_plugin->get_video_compression_info ||
+       !ret->in_plugin->get_video_compression_info(ret->in_handle->priv,
+                                                   i, &ret->video_streams[i].com.ci))
       {
-      if(!ret->in_plugin->get_video_compression_info ||
-         !ret->in_plugin->get_video_compression_info(ret->in_handle->priv,
-                                                     i, &ret->video_streams[i].com.ci))
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Video stream %d cannot be read compressed", i+1);
+      ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+      continue;
+      }
+    
+    /* Check if we need to blend text subtitles */
+    for(j = 0; j < ret->num_subtitle_text_streams; j++)
+      {
+      if((ret->subtitle_text_streams[i].com.com.action == STREAM_ACTION_BLEND) &&
+         (ret->subtitle_text_streams[i].com.video_stream == i))
         {
-        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Video stream %d cannot be read compressed", i+1);
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+               "Not copying video stream %d: Will blend subtitles", i+1);
+        ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+        break;
+        }
+      }
+    if(ret->video_streams[i].com.action != STREAM_ACTION_COPY)
+      continue;
+    
+    /* Check if we need to blend overlay subtitles */
+    for(j = 0; j < ret->num_subtitle_overlay_streams; j++)
+      {
+      if((ret->subtitle_overlay_streams[i].com.action == STREAM_ACTION_BLEND) &&
+         (ret->subtitle_overlay_streams[i].video_stream == i))
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+               "Not copying video stream %d: Will blend subtitles", i+1);
         ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
         }
       }
-    
-    // Check if we need to blend text subtitles onto this video stream
-    if(ret->video_streams[i].com.action == STREAM_ACTION_COPY)
+    if(ret->video_streams[i].com.action != STREAM_ACTION_COPY)
+      continue;
+
+
+    /* Check if we can write compressed data */
+    if(!bg_encoder_writes_compressed_video(ret->enc,
+                                           &ret->track_info->video_streams[i].format,
+                                           &ret->video_streams[i].com.ci))
       {
-      for(j = 0; j < ret->num_subtitle_text_streams; j++)
-        {
-        if((ret->subtitle_text_streams[i].com.com.action == STREAM_ACTION_BLEND) &&
-           (ret->subtitle_text_streams[i].com.video_stream == i))
-          {
-          bg_log(BG_LOG_WARNING, LOG_DOMAIN,
-                 "Not copying video stream %d: Will blend subtitles", i+1);
-          ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
-          }
-        }
-      }
-    // Check if we need to blend overlay subtitles onto this video stream
-    if(ret->video_streams[i].com.action == STREAM_ACTION_COPY)
-      {
-      
-      for(j = 0; j < ret->num_subtitle_overlay_streams; j++)
-        {
-        if((ret->subtitle_overlay_streams[i].com.action == STREAM_ACTION_BLEND) &&
-             (ret->subtitle_overlay_streams[i].video_stream == i))
-          {
-          bg_log(BG_LOG_WARNING, LOG_DOMAIN,
-                 "Not copying video stream %d: Will blend subtitles", i+1);
-          ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
-          }
-        }
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Video stream %d cannot be written compressed", i+1);
+      ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+      continue;
       }
     }
   }
-
 
 static void create_streams(bg_transcoder_t * ret,
                            bg_transcoder_track_t * track)
@@ -2224,7 +2280,17 @@ static int setup_pass(bg_transcoder_t * ret)
     /* Reset the samples already decoded */
     ret->audio_streams[i].samples_read = 0;
 
-    if(ret->audio_streams[i].com.action != STREAM_ACTION_TRANSCODE)
+    if(ret->audio_streams[i].com.action == STREAM_ACTION_COPY)
+      {
+      if(ret->pass == ret->total_passes)
+        {
+        ret->audio_streams[i].com.do_copy = 1;
+        result = 1;
+        }
+      else
+        ret->audio_streams[i].com.do_copy = 0;
+      }
+    else if(ret->audio_streams[i].com.action != STREAM_ACTION_TRANSCODE)
       {
       ret->audio_streams[i].com.do_decode = 0;
       ret->audio_streams[i].com.do_encode = 0;
@@ -2246,16 +2312,27 @@ static int setup_pass(bg_transcoder_t * ret)
       ret->audio_streams[i].com.do_decode = 0;
       ret->audio_streams[i].com.do_encode = 0;
       }
-    if(!ret->audio_streams[i].com.do_decode)
-      ret->audio_streams[i].com.status = STREAM_STATE_OFF;
-    else
+    if(ret->audio_streams[i].com.do_decode ||
+       ret->audio_streams[i].com.do_copy)
       ret->audio_streams[i].com.status = STREAM_STATE_ON;
+    else
+      ret->audio_streams[i].com.status = STREAM_STATE_OFF;
 
     }
   
   for(i = 0; i < ret->num_video_streams; i++)
     {
-    if(ret->video_streams[i].com.action != STREAM_ACTION_TRANSCODE)
+    if(ret->video_streams[i].com.action == STREAM_ACTION_COPY)
+      {
+      if(ret->pass == ret->total_passes)
+        {
+        ret->video_streams[i].com.do_copy = 1;
+        result = 1;
+        }
+      else
+        ret->video_streams[i].com.do_copy = 0;
+      }
+    else if(ret->video_streams[i].com.action != STREAM_ACTION_TRANSCODE)
       {
       ret->video_streams[i].com.do_decode = 0;
       ret->video_streams[i].com.do_encode = 0;
@@ -2272,10 +2349,11 @@ static int setup_pass(bg_transcoder_t * ret)
       ret->video_streams[i].com.do_encode = 0;
       }
 
-    if(!ret->video_streams[i].com.do_decode)
-      ret->video_streams[i].com.status = STREAM_STATE_OFF;
-    else
+    if(ret->video_streams[i].com.do_decode ||
+       ret->video_streams[i].com.do_copy)
       ret->video_streams[i].com.status = STREAM_STATE_ON;
+    else
+      ret->video_streams[i].com.status = STREAM_STATE_OFF;
 
     }
   
@@ -2397,11 +2475,8 @@ static int create_output_file_cb(void * priv, const char * filename)
   return 1;
   }
 
-static int init_encoders(bg_transcoder_t * ret)
+static void create_encoder(bg_transcoder_t * ret)
   {
-  int i;
-  char * tmp_string;
-  
   ret->enc = bg_encoder_create(ret->plugin_reg,
                                NULL,
                                ret->transcoder_track,
@@ -2410,7 +2485,13 @@ static int init_encoders(bg_transcoder_t * ret)
                                BG_STREAM_SUBTITLE_TEXT |
                                BG_STREAM_SUBTITLE_OVERLAY,
                                BG_PLUGIN_FILE);
+  }
 
+static int init_encoder(bg_transcoder_t * ret)
+  {
+  int i;
+  char * tmp_string;
+  
   ret->cb.create_output_file = create_output_file_cb;
   ret->cb.data = ret;
   
@@ -2424,27 +2505,26 @@ static int init_encoders(bg_transcoder_t * ret)
   
   for(i = 0; i < ret->num_audio_streams; i++)
     {
-    if(!ret->audio_streams[i].com.do_decode) /* If we don't encode we still need to open the
+    if(ret->audio_streams[i].com.do_decode) /* If we don't encode we still need to open the
                                                 plugin to get the final output format */
-      continue;
-
-    add_audio_stream(&(ret->audio_streams[i]), &ret->transcoder_track->audio_streams[i],
-                     ret);
-    
+      add_audio_stream(&(ret->audio_streams[i]), ret);
+    else if(ret->audio_streams[i].com.do_copy)
+      add_audio_stream_compressed(&(ret->audio_streams[i]), ret);
     }
-
+  
   /* Video streams: Must be added before the subtitle streams, because we need to know
      the output format (at least the output size) of the stream */
   for(i = 0; i < ret->num_video_streams; i++)
     {
-    if(!ret->video_streams[i].com.do_decode)/* If we don't encode we still need to open the
+    if(ret->video_streams[i].com.do_decode)/* If we don't encode we still need to open the
                                                plugin to get the final output format */
-      continue;
-
-    add_video_stream(&(ret->video_streams[i]),
-                     &(ret->transcoder_track->video_streams[i]), ret);
+      {
+      add_video_stream(&(ret->video_streams[i]), ret);
+      set_video_pass(ret, i);
+      }
+    else if(ret->video_streams[i].com.do_copy)
+      add_video_stream_compressed(&(ret->video_streams[i]), ret);
     
-    set_video_pass(ret, i);
     }
     
   for(i = 0; i < ret->num_subtitle_text_streams; i++)
@@ -2729,15 +2809,18 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   /* Open input plugin */
   if(!open_input(ret))
     goto fail;
+
+  create_encoder(ret);
   
   create_streams(ret, track);
 
-  check_compressed_input(ret);
+  check_compressed(ret);
   
-  /* Set first transcoding pass */
+  /* Check how many passes we must do */
   check_passes(ret);
   ret->pass = 1;
 
+  /* Set up this pass */
   if(!setup_pass(ret))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No stream to encode");
@@ -2753,7 +2836,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   
   
   /* Set up the streams in the encoders */
-  if(!init_encoders(ret))
+  if(!init_encoder(ret))
     goto fail;
   
   /* Set formats */
@@ -2905,6 +2988,7 @@ static void next_pass(bg_transcoder_t * t)
   t->last_seconds = 0.0;
   
   open_input(t);
+  create_encoder(t);
   
   /* Decide, which stream will be en/decoded*/
   setup_pass(t);
@@ -2915,7 +2999,7 @@ static void next_pass(bg_transcoder_t * t)
   set_input_formats(t);
   
   /* Initialize encoding plugins */
-  init_encoders(t);
+  init_encoder(t);
 
   /* Set formats */
   init_converters(t);
