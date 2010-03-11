@@ -49,21 +49,40 @@ int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
                     const bg_metadata_t * metadata,
                     const bg_chapter_list_t * chapter_list);
 
+int bg_encoder_writes_compressed_audio(bg_encoder_t * enc,
+                                       const gavl_audio_format_t * format,
+                                       const gavl_compression_info_t * info);
+
+int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
+                                       const gavl_video_format_t * format,
+                                       const gavl_compression_info_t * info);
+
 /* Add streams */
 int bg_encoder_add_audio_stream(bg_encoder_t *, const char * language,
-                                gavl_audio_format_t * format,
+                                const gavl_audio_format_t * format,
                                 int index);
 
 int bg_encoder_add_video_stream(bg_encoder_t *,
-                                gavl_video_format_t * format,
+                                const gavl_video_format_t * format,
                                 int index);
+
+int bg_encoder_add_audio_stream_compressed(bg_encoder_t *, const char * language,
+                                           const gavl_audio_format_t * format,
+                                           const gavl_compression_info_t * info,
+                                           int index);
+
+int bg_encoder_add_video_stream_compressed(bg_encoder_t *,
+                                           const gavl_video_format_t * format,
+                                           const gavl_compression_info_t * info,
+                                           int index);
+
 
 int bg_encoder_add_subtitle_text_stream(bg_encoder_t *, const char * language,
                                         int timescale,
                                         int index);
 
 int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t *, const char * language,
-                                           gavl_video_format_t * format,
+                                           const gavl_video_format_t * format,
                                            int index, bg_stream_type_t source_format);
 
 
@@ -83,3 +102,6 @@ int bg_encoder_write_video_frame(bg_encoder_t *, gavl_video_frame_t * frame, int
 int bg_encoder_write_subtitle_text(bg_encoder_t *,const char * text,
                                    int64_t start, int64_t duration, int stream);
 int bg_encoder_write_subtitle_overlay(bg_encoder_t *, gavl_overlay_t * ovl, int stream);
+
+int bg_encoder_write_audio_packet(bg_encoder_t *, gavl_packet_t * p, int stream);
+int bg_encoder_write_video_packet(bg_encoder_t *, gavl_packet_t * p, int stream);

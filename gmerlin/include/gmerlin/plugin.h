@@ -1374,6 +1374,32 @@ struct bg_encoder_plugin_s
    */
   
   void (*set_callbacks)(void * priv, bg_encoder_callbacks_t * cb);
+
+  /** \brief Query for writing compressed audio packets
+   *  \param priv The handle returned by the create() method
+   *  \param format Format of the source
+   *  \param info Compression info
+   *  \returns 1 if stream compressed format can be written, 0 else
+   *  
+   *  Call this function after all global parameters are set.
+   */
+  
+  int (*writes_compressed_audio)(void * priv,
+                                 const gavl_audio_format_t * format,
+                                 const gavl_compression_info_t * info);
+  
+  /** \brief Query for writing compressed video packets
+   *  \param priv The handle returned by the create() method
+   *  \param format Format of the source
+   *  \param info Compression info
+   *  \returns 1 if stream compressed format can be written, 0 else
+   *  
+   *  Call this function after all global parameters are set.
+   */
+  
+  int (*writes_compressed_video)(void * priv,
+                                 const gavl_video_format_t * format,
+                                 const gavl_compression_info_t * info);
   
   /** \brief Open a file
    *  \param priv The handle returned by the create() method
@@ -1426,34 +1452,6 @@ struct bg_encoder_plugin_s
    */
 
   const bg_parameter_info_t * (*get_subtitle_overlay_parameters)(void * priv);
-
-  /** \brief Query for writing compressed audio packets
-   *  \param priv The handle returned by the create() method
-   *  \param format Format of the source
-   *  \param info Compression info
-   *  \returns 1 if stream compressed format can be written, 0 else
-   *  
-   *  Call this function after the output file was opened and all global
-   *  parameters are set.
-   */
-  
-  int (*writes_compressed_audio)(void * priv,
-                                 const gavl_audio_format_t * format,
-                                 const gavl_compression_info_t * info);
-  
-  /** \brief Query for writing compressed video packets
-   *  \param priv The handle returned by the create() method
-   *  \param format Format of the source
-   *  \param info Compression info
-   *  \returns 1 if stream compressed format can be written, 0 else
-   *  
-   *  Call this function after the output file was opened and all global
-   *  parameters are set.
-   */
-  
-  int (*writes_compressed_video)(void * priv,
-                                 const gavl_video_format_t * format,
-                                 const gavl_compression_info_t * info);
   
   /* Add streams. The formats can be changed, be sure to get the
    * final formats with get_[audio|video]_format after starting the plugin

@@ -110,6 +110,10 @@ typedef struct
   
   int do_encode; /* Whether this stream should be really encoded */
   int do_decode; /* Whether this stream should be decoded */
+
+  gavl_compression_info_t ci;
+  gavl_compression_info_t packet;
+  
   } stream_t;
 
 static int set_stream_parameters_general(stream_t * s,
@@ -1956,12 +1960,77 @@ static int open_input(bg_transcoder_t * ret)
 
   if(ret->in_plugin->set_track)
     ret->in_plugin->set_track(ret->in_handle->priv, ret->track);
+  
   return 1;
   fail:
   return 0;
   
   }
-                       
+
+static void check_compressed_input(bg_transcoder_t * ret)
+  {
+  int i, j;
+  
+  for(i = 0; i < ret->num_audio_streams; i++)
+    {
+    if(ret->audio_streams[i].com.action == STREAM_ACTION_COPY)
+      {
+      if(!ret->in_plugin->get_audio_compression_info ||
+         !ret->in_plugin->get_audio_compression_info(ret->in_handle->priv,
+                                                     i, &ret->audio_streams[i].com.ci))
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be read compressed", i+1);
+        ret->audio_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+        }
+      }
+    }
+  for(i = 0; i < ret->num_video_streams; i++)
+    {
+    // Check if video can be read compressed at all
+    if(ret->video_streams[i].com.action == STREAM_ACTION_COPY)
+      {
+      if(!ret->in_plugin->get_video_compression_info ||
+         !ret->in_plugin->get_video_compression_info(ret->in_handle->priv,
+                                                     i, &ret->video_streams[i].com.ci))
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Video stream %d cannot be read compressed", i+1);
+        ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+        }
+      }
+    
+    // Check if we need to blend text subtitles onto this video stream
+    if(ret->video_streams[i].com.action == STREAM_ACTION_COPY)
+      {
+      for(j = 0; j < ret->num_subtitle_text_streams; j++)
+        {
+        if((ret->subtitle_text_streams[i].com.com.action == STREAM_ACTION_BLEND) &&
+           (ret->subtitle_text_streams[i].com.video_stream == i))
+          {
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+                 "Not copying video stream %d: Will blend subtitles", i+1);
+          ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+          }
+        }
+      }
+    // Check if we need to blend overlay subtitles onto this video stream
+    if(ret->video_streams[i].com.action == STREAM_ACTION_COPY)
+      {
+      
+      for(j = 0; j < ret->num_subtitle_overlay_streams; j++)
+        {
+        if((ret->subtitle_overlay_streams[i].com.action == STREAM_ACTION_BLEND) &&
+             (ret->subtitle_overlay_streams[i].video_stream == i))
+          {
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+                 "Not copying video stream %d: Will blend subtitles", i+1);
+          ret->video_streams[i].com.action = STREAM_ACTION_TRANSCODE;
+          }
+        }
+      }
+    }
+  }
+
+
 static void create_streams(bg_transcoder_t * ret,
                            bg_transcoder_track_t * track)
   {
@@ -2663,6 +2732,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   
   create_streams(ret, track);
 
+  check_compressed_input(ret);
+  
   /* Set first transcoding pass */
   check_passes(ret);
   ret->pass = 1;
