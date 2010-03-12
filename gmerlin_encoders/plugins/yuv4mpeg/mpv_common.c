@@ -322,6 +322,14 @@ static const char * extension_mpeg2  = "m2v";
 
 const char * bg_mpv_get_extension(bg_mpv_common_t * mpv)
   {
+  if(mpv->ci)
+    {
+    if(mpv->ci->id == GAVL_CODEC_ID_MPEG2)
+      return extension_mpeg2;
+    else if(mpv->ci->id == GAVL_CODEC_ID_MPEG1)
+      return extension_mpeg1;
+    }
+  
   switch(mpv->format)
     {
     case FORMAT_MPEG1:
@@ -359,7 +367,7 @@ int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
       {
       return 0;
       }
-
+    
     com->mpeg2enc = bg_subprocess_create(commandline, 1, 0, 0);
     if(!com->mpeg2enc)
       {

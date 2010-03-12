@@ -40,9 +40,12 @@ typedef struct
   {
   bg_mpv_common_t mpv;
   char * filename;
+  char * filename_base;
 
   bg_encoder_callbacks_t * cb;
-  
+
+  gavl_video_format_t format;
+  const gavl_compression_info_t * ci;
   } e_mpv_t;
 
 static void * create_mpv()
@@ -62,19 +65,26 @@ static int open_mpv(void * data, const char * filename,
                     const bg_chapter_list_t * chapter_list)
   {
   e_mpv_t * e = data;
-  e->filename =
-    bg_filename_ensure_extension(filename, bg_mpv_get_extension(&(e->mpv)));
 
-  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
-    return 0;
+  e->filename_base = bg_strdup(e->filename_base, filename);
   
-  return bg_mpv_open(&e->mpv, e->filename);
+  return 1;
   }
 
 static int add_video_stream_mpv(void * data, const gavl_video_format_t* format)
   {
   e_mpv_t * e = data;
-  bg_mpv_set_format(&e->mpv, format);
+
+  gavl_video_format_copy(&e->format, format);
+  
+  return 0;
+  }
+
+static int add_video_stream_compressed_mpv(void * data, const gavl_video_format_t* format,
+                                           const gavl_compression_info_t* ci)
+  {
+  e_mpv_t * e = data;
+  e->ci = ci;
   return 0;
   }
 
@@ -82,13 +92,31 @@ static void get_video_format_mpv(void * data, int stream,
                                  gavl_video_format_t * ret)
   {
   e_mpv_t * e = data;
-  gavl_video_format_copy(ret, &(e->mpv.y4m.format));
+  gavl_video_format_copy(ret, &e->format);
   }
 
 static int start_mpv(void * data)
   {
   e_mpv_t * e = data;
-  return bg_mpv_start(&e->mpv);
+
+  if(e->ci)
+    bg_mpv_set_ci(&e->mpv, e->ci);
+  
+  e->filename =
+    bg_filename_ensure_extension(e->filename_base, bg_mpv_get_extension(&(e->mpv)));
+  
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+    return 0;
+  
+  bg_mpv_open(&(e->mpv), e->filename);
+  
+  if(!e->ci)
+    bg_mpv_set_format(&e->mpv, &e->format);
+  
+  if(!bg_mpv_start(&e->mpv))
+    return 0;
+  
+  return 1;
   }
 
 static int writes_compressed_video_mpv(void * priv,
@@ -113,6 +141,14 @@ static int write_video_frame_mpv(void * data,
   {
   e_mpv_t * e = data;
   return bg_mpv_write_video_frame(&(e->mpv), frame);
+  }
+
+static int write_video_packet_mpv(void * data,
+                                  gavl_packet_t* p,
+                                  int stream)
+  {
+  e_mpv_t * e = data;
+  return bg_mpv_write_video_packet(&(e->mpv), p);
   }
 
 static int close_mpv(void * data, int do_delete)
@@ -179,6 +215,8 @@ const bg_encoder_plugin_t the_plugin =
 
     .add_video_stream =     add_video_stream_mpv,
 
+    .add_video_stream_compressed = add_video_stream_compressed_mpv,
+    
     //    .set_video_parameter =  set_video_parameter_mpv,
 
     .get_video_format =     get_video_format_mpv,
@@ -186,6 +224,7 @@ const bg_encoder_plugin_t the_plugin =
     .start =                start_mpv,
 
     .write_video_frame = write_video_frame_mpv,
+    .write_video_packet = write_video_packet_mpv,
     .close =             close_mpv,
     
   };

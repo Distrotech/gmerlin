@@ -264,7 +264,9 @@ static const char * extension_layer2  = "mp2";
 
 const char * bg_mpa_get_extension(bg_mpa_common_t * mpa)
   {
-  if(mpa->layer == 1)
+  if(mpa->ci && (mpa->ci->id == GAVL_CODEC_ID_MP2))
+    return extension_layer2;
+  else if(mpa->layer == 1)
     return extension_layer1;
   else
     return extension_layer2;
