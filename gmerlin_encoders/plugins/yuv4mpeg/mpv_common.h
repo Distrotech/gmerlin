@@ -40,6 +40,8 @@ typedef struct
   sigset_t oldset;
   const gavl_compression_info_t * ci;
   FILE * out;
+
+  int sequence_end; // Whether the last packet contained a sequence end code
   
   bg_encoder_framerate_t fr;
   } bg_mpv_common_t;

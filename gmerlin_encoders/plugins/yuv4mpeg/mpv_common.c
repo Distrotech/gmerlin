@@ -410,6 +410,8 @@ int bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
   return bg_y4m_write_frame(&com->y4m, frame);
   }
 
+static const uint8_t sequence_end[4] = { 0x00, 0x00, 0x01, 0xb7 };
+
 int bg_mpv_close(bg_mpv_common_t * com)
   {
   int ret = 1;
@@ -417,15 +419,26 @@ int bg_mpv_close(bg_mpv_common_t * com)
     {
     if(bg_subprocess_close(com->mpeg2enc))
       ret = 0;
+    
+    pthread_sigmask(SIG_SETMASK, &com->oldset, NULL);
+    
+    bg_y4m_cleanup(&com->y4m);
+    if(com->user_options)
+      free(com->user_options);
+    if(com->quant_matrix)
+      free(com->quant_matrix);
     }
-
-  pthread_sigmask(SIG_SETMASK, &com->oldset, NULL);
+  if(com->out)
+    {
+    if(!com->sequence_end)
+      {
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Inserting sequence end code");
+      if(fwrite(sequence_end, 1, 4, com->out) < 4)
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Inserting sequence end code failed");
+      }
+    fclose(com->out);
+    }
   
-  bg_y4m_cleanup(&com->y4m);
-  if(com->user_options)
-    free(com->user_options);
-  if(com->quant_matrix)
-    free(com->quant_matrix);
   return ret;
   }
 
@@ -459,5 +472,10 @@ int bg_mpv_write_video_packet(bg_mpv_common_t * com,
   {
   if(fwrite(packet->data, 1, packet->data_len, com->out) < packet->data_len)
     return 0;
+  
+  if(packet->sequence_end_pos)
+    com->sequence_end = 1;
+  else
+    com->sequence_end = 0;
   return 1;
   }

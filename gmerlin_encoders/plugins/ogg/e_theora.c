@@ -136,7 +136,7 @@ open_theora(void * data, const char * file,
                              "ogv");
   }
 
-int writes_compressed_audio_theora(void* data,
+static int writes_compressed_audio_theora(void* data,
                                    const gavl_audio_format_t * format,
                                    const gavl_compression_info_t * ci)
   {
@@ -146,8 +146,8 @@ int writes_compressed_audio_theora(void* data,
     return 0;
   }
 
-int writes_compressed_video_theora(void * data,
-                                   const gavl_audio_format_t * format,
+static int writes_compressed_video_theora(void * data,
+                                   const gavl_video_format_t * format,
                                    const gavl_compression_info_t * ci)
   {
   if(ci->id == GAVL_CODEC_ID_THEORA)
@@ -188,6 +188,9 @@ const bg_encoder_plugin_t the_plugin =
 
     .add_audio_stream =        add_audio_stream_theora,
     .add_video_stream =        add_video_stream_theora,
+
+    .add_audio_stream_compressed = add_audio_stream_compressed_theora,
+    .add_video_stream_compressed = add_video_stream_compressed_theora,
     
     .set_audio_parameter =     set_audio_parameter_theora,
     .set_video_parameter =     bg_ogg_encoder_set_video_parameter,
