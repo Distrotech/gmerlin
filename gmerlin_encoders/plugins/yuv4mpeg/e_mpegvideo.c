@@ -91,6 +91,22 @@ static int start_mpv(void * data)
   return bg_mpv_start(&e->mpv);
   }
 
+static int writes_compressed_video_mpv(void * priv,
+                                       const gavl_video_format_t * format,
+                                       const gavl_compression_info_t * info)
+  {
+  switch(info->id)
+    {
+    case GAVL_CODEC_ID_MPEG1:
+    case GAVL_CODEC_ID_MPEG2:
+      return 1;
+    default:
+      break;
+    }
+  return 0;
+  }
+
+
 static int write_video_frame_mpv(void * data,
                                   gavl_video_frame_t* frame,
                                   int stream)
@@ -155,6 +171,8 @@ const bg_encoder_plugin_t the_plugin =
     .max_audio_streams =  0,
     .max_video_streams =  1,
 
+    .writes_compressed_video = writes_compressed_video_mpv,
+    
     .set_callbacks =        set_callbacks_mpv,
 
     .open =                 open_mpv,

@@ -342,33 +342,36 @@ int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
   char * commandline;
 
   sigset_t newset;
-  /* Block SIGPIPE */
-  sigemptyset(&newset);
-  sigaddset(&newset, SIGPIPE);
-  pthread_sigmask(SIG_BLOCK, &newset, &com->oldset);
-  
 
-  
-  commandline = bg_mpv_make_commandline(com, filename);
-  if(!commandline)
+  if(com->ci)
     {
-    return 0;
+    com->out = fopen(filename, "wb");
     }
-
-  com->mpeg2enc = bg_subprocess_create(commandline, 1, 0, 0);
-  if(!com->mpeg2enc)
+  else
     {
-    return 0;
+    /* Block SIGPIPE */
+    sigemptyset(&newset);
+    sigaddset(&newset, SIGPIPE);
+    pthread_sigmask(SIG_BLOCK, &newset, &com->oldset);
+    
+    commandline = bg_mpv_make_commandline(com, filename);
+    if(!commandline)
+      {
+      return 0;
+      }
+
+    com->mpeg2enc = bg_subprocess_create(commandline, 1, 0, 0);
+    if(!com->mpeg2enc)
+      {
+      return 0;
+      }
+
+
+    com->y4m.fd = com->mpeg2enc->stdin_fd;
+    
+    free(commandline);
     }
-
-
-  com->y4m.fd = com->mpeg2enc->stdin_fd;
-
-  free(commandline);
-  
-
   return 1;
-  
   }
 
 static const bg_encoder_framerate_t mpeg_framerates[] =
@@ -422,6 +425,9 @@ int bg_mpv_start(bg_mpv_common_t * com)
   {
   int result;
 
+  if(com->ci)
+    return 1;
+  
   com->y4m.chroma_mode = bg_mpv_get_chroma_mode(com);
 
   bg_encoder_set_framerate_nearest(&com->y4m.fr,
@@ -433,4 +439,17 @@ int bg_mpv_start(bg_mpv_common_t * com)
   
   result = bg_y4m_write_header(&com->y4m);
   return result;
+  }
+
+void bg_mpv_set_ci(bg_mpv_common_t * com, const gavl_compression_info_t * ci)
+  {
+  com->ci = ci;
+  }
+
+int bg_mpv_write_video_packet(bg_mpv_common_t * com,
+                              gavl_packet_t * packet)
+  {
+  if(fwrite(packet->data, 1, packet->data_len, com->out) < packet->data_len)
+    return 0;
+  return 1;
   }

@@ -31,6 +31,8 @@ typedef struct
   bg_subprocess_t * mp2enc;
   
   sigset_t oldset;
+  const gavl_compression_info_t * ci;
+  FILE * out;
   } bg_mpa_common_t;
 
 const bg_parameter_info_t * bg_mpa_get_parameters();
@@ -49,3 +51,8 @@ int bg_mpa_write_audio_frame(bg_mpa_common_t * com, gavl_audio_frame_t * frame);
 int bg_mpa_close(bg_mpa_common_t * com);
 
 const char * bg_mpa_get_extension(bg_mpa_common_t * mpa);
+
+void bg_mpa_set_ci(bg_mpa_common_t * com, const gavl_compression_info_t * ci);
+
+int bg_mpa_write_audio_packet(bg_mpa_common_t * com,
+                              gavl_packet_t * packet);

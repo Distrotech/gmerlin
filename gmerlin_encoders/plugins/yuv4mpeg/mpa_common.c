@@ -296,29 +296,36 @@ int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
   sigset_t newset;
   char * commandline;
 
-  /* Block SIGPIPE */
-  sigemptyset(&newset);
-  sigaddset(&newset, SIGPIPE);
-  pthread_sigmask(SIG_BLOCK, &newset, &com->oldset);
-  
-  /* Adjust Samplerate */
-  com->format.samplerate = get_samplerate(com->format.samplerate, com->vcd);
-    
-  /* Adjust bitrate */
-  
-  com->bitrate = get_bitrate(com->bitrate, com->layer,
-                             com->format.num_channels, com->vcd);
-
-  commandline = 
-    bg_mpa_make_commandline(com, filename);
-  if(!commandline)
+  if(com->ci)
     {
-    return 0;
+    com->out = fopen(filename, "wb");
     }
-  com->mp2enc = bg_subprocess_create(commandline, 1, 0, 0);
-  if(!com->mp2enc)
-    return 0;
-  free(commandline);
+  else
+    {
+    /* Block SIGPIPE */
+    sigemptyset(&newset);
+    sigaddset(&newset, SIGPIPE);
+    pthread_sigmask(SIG_BLOCK, &newset, &com->oldset);
+  
+    /* Adjust Samplerate */
+    com->format.samplerate = get_samplerate(com->format.samplerate, com->vcd);
+    
+    /* Adjust bitrate */
+  
+    com->bitrate = get_bitrate(com->bitrate, com->layer,
+                               com->format.num_channels, com->vcd);
+
+    commandline = 
+      bg_mpa_make_commandline(com, filename);
+    if(!commandline)
+      {
+      return 0;
+      }
+    com->mp2enc = bg_subprocess_create(commandline, 1, 0, 0);
+    if(!com->mp2enc)
+      return 0;
+    free(commandline);
+    }
   return 1;
   }
 
@@ -331,6 +338,14 @@ int bg_mpa_write_audio_frame(bg_mpa_common_t * com,
   return 1;
   }
 
+int bg_mpa_write_audio_packet(bg_mpa_common_t * com,
+                              gavl_packet_t * packet)
+  {
+  if(fwrite(packet->data, 1, packet->data_len, com->out) < packet->data_len)
+    return 0;
+  return 1;
+  }
+
 int bg_mpa_close(bg_mpa_common_t * com)
   {
   int ret = 1;
@@ -339,6 +354,13 @@ int bg_mpa_close(bg_mpa_common_t * com)
     if(bg_subprocess_close(com->mp2enc))
       ret = 0;
     }
+  if(com->out)
+    fclose(com->out);
   pthread_sigmask(SIG_SETMASK, &com->oldset, NULL);
   return ret;
+  }
+
+void bg_mpa_set_ci(bg_mpa_common_t * com, const gavl_compression_info_t * ci)
+  {
+  com->ci = ci;
   }

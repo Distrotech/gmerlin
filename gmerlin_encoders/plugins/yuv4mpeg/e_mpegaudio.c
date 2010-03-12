@@ -44,6 +44,7 @@ typedef struct
 
   bg_encoder_callbacks_t * cb;
 
+  const gavl_compression_info_t * ci;
   } e_mpa_t;
 
 static void * create_mpa()
@@ -117,7 +118,19 @@ static int start_mpa(void * data)
   return result;
   }
 
-
+static int writes_compressed_audio_mpa(void * priv,
+                                       const gavl_audio_format_t * format,
+                                       const gavl_compression_info_t * info)
+  {
+  switch(info->id)
+    {
+    case GAVL_CODEC_ID_MP2:
+      return 1;
+    default:
+      break;
+    }
+  return 0;
+  }
 
 static int write_audio_frame_mpa(void * data, gavl_audio_frame_t * frame,
                                   int stream)
@@ -181,9 +194,10 @@ const bg_encoder_plugin_t the_plugin =
     },
     .max_audio_streams =   1,
     .max_video_streams =   0,
-
+    
+    .writes_compressed_audio = writes_compressed_audio_mpa,
     .set_callbacks =       set_callbacks_mpa,
-
+    
     .open =                open_mpa,
     .add_audio_stream =    add_audio_stream_mpa,
     .get_audio_format =    get_audio_format_mpa,
