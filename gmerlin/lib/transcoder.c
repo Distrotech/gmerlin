@@ -1926,6 +1926,13 @@ static void send_init_messages(bg_transcoder_t * t)
                i+1, tmp_string);
         free(tmp_string);
         }
+      else if(t->audio_streams[i].com.do_copy)
+        {
+        tmp_string = bg_audio_format_to_string(&(t->audio_streams[i].in_format), 0);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream %d format:\n%s",
+               i+1, tmp_string);
+        free(tmp_string);
+        }
       }
     bg_transcoder_send_msg_num_video_streams(t->message_queues, t->num_video_streams);
     for(i = 0; i < t->num_video_streams; i++)
@@ -1941,6 +1948,13 @@ static void send_init_messages(bg_transcoder_t * t)
 
         tmp_string = bg_video_format_to_string(&(t->video_streams[i].out_format), 0);
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d output format:\n%s",
+               i+1, tmp_string);
+        free(tmp_string);
+        }
+      else if(t->video_streams[i].com.do_copy)
+        {
+        tmp_string = bg_video_format_to_string(&(t->video_streams[i].in_format), 0);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d format:\n%s",
                i+1, tmp_string);
         free(tmp_string);
         }
@@ -2095,7 +2109,7 @@ static void check_compressed(bg_transcoder_t * ret)
       ret->audio_streams[i].com.action = STREAM_ACTION_TRANSCODE;
       continue;
       }
-
+    
     /* Check if we can write compressed data */
     if(!bg_encoder_writes_compressed_audio(ret->enc,
                                            &ret->track_info->audio_streams[i].format,
@@ -2107,6 +2121,8 @@ static void check_compressed(bg_transcoder_t * ret)
       }
 
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Copying compressed audio stream %d", i+1);
+    bg_dprintf("Copying compressed audio stream %d\n");
+    gavl_compression_info_dump(&ret->audio_streams[i].com.ci);
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
@@ -2164,6 +2180,8 @@ static void check_compressed(bg_transcoder_t * ret)
       }
 
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Copying compressed video stream %d", i+1);
+    bg_dprintf("Copying compressed video stream %d\n");
+    gavl_compression_info_dump(&ret->video_streams[i].com.ci);
     }
   }
 
