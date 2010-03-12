@@ -71,6 +71,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   s = &(player->video_stream);
 
   s->skip = 0;
+  s->frames_read = 0;
   
   if(s->do_still)
     s->in_func = bg_player_input_read_video_still;

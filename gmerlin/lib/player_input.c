@@ -33,7 +33,7 @@
 
 #define DEBUG_COUNTER
 
-#if 1
+#if 0
 struct bg_player_input_context_s
   {
   /* Plugin stuff */
@@ -331,7 +331,9 @@ int bg_player_input_init(bg_player_t * p,
 
 void bg_player_input_cleanup(bg_player_t * p)
   {
-  
+#ifdef DEBUG_COUNTER
+  char tmp_string[128];
+#endif  
   bg_player_input_stop(p);
   if(p->input_handle)
     bg_plugin_unref(p->input_handle);
@@ -343,15 +345,14 @@ void bg_player_input_cleanup(bg_player_t * p)
     gavl_video_frame_destroy(p->video_stream.still_frame_in);
     p->video_stream.still_frame_in = (gavl_video_frame_t*)0;
     }
-  // #ifdef DEBUG_COUNTER
-#if 0
-  sprintf(tmp_string, "%" PRId64, ctx->audio_sample_counter);
+#ifdef DEBUG_COUNTER
+  sprintf(tmp_string, "%" PRId64, p->audio_stream.samples_read);
   
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Audio sample counter: %s",
          tmp_string);
 
-  sprintf(tmp_string, "%" PRId64, ctx->video_frame_counter);
-
+  sprintf(tmp_string, "%" PRId64, p->video_stream.frames_read);
+  
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Video frame counter: %s",
          tmp_string);
 #endif
@@ -492,6 +493,8 @@ bg_player_input_read_video(void * priv,
            gavl_time_unscale(vs->input_format.timescale,
                              frame->timestamp));
 #endif
+  p->video_stream.frames_read++;
+  
   //  if(!result)
   //    fprintf(stderr, "Read video failed\n");
   return result;
