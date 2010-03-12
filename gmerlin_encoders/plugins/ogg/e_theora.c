@@ -75,6 +75,16 @@ static int add_audio_stream_theora(void * data,
   return ret;
   }
 
+static int add_audio_stream_compressed_theora(void * data,
+                                              const char * language,
+                                              const gavl_audio_format_t * format,
+                                              const gavl_compression_info_t * ci)
+  {
+  int ret;
+  ret = bg_ogg_encoder_add_audio_stream_compressed(data, format, ci);
+  return ret;
+  }
+
 static int add_video_stream_theora(void * data, const gavl_video_format_t * format)
   {
   int ret;
@@ -82,6 +92,17 @@ static int add_video_stream_theora(void * data, const gavl_video_format_t * form
   bg_ogg_encoder_init_video_stream(data, ret, &bg_theora_codec);
   return ret;
   }
+
+static int add_video_stream_compressed_theora(void * data,
+                                              const gavl_video_format_t * format,
+                                              const gavl_compression_info_t * ci)
+  {
+  int ret;
+  ret = bg_ogg_encoder_add_video_stream_compressed(data, format, ci);
+  bg_ogg_encoder_init_video_stream(data, ret, &bg_theora_codec);
+  return ret;
+  }
+
 
 static void set_audio_parameter_theora(void * data, int stream,
                                        const char * name, const bg_parameter_value_t * val)
@@ -115,6 +136,25 @@ open_theora(void * data, const char * file,
                              "ogv");
   }
 
+int writes_compressed_audio_theora(void* data,
+                                   const gavl_audio_format_t * format,
+                                   const gavl_compression_info_t * ci)
+  {
+  if(ci->id == GAVL_CODEC_ID_VORBIS)
+    return 1;
+  else
+    return 0;
+  }
+
+int writes_compressed_video_theora(void * data,
+                                   const gavl_audio_format_t * format,
+                                   const gavl_compression_info_t * ci)
+  {
+  if(ci->id == GAVL_CODEC_ID_THEORA)
+    return 1;
+  else
+    return 0;
+  }
 
 const bg_encoder_plugin_t the_plugin =
   {
@@ -138,6 +178,9 @@ const bg_encoder_plugin_t the_plugin =
     .max_video_streams =   -1,
     
     .set_callbacks =       bg_ogg_encoder_set_callbacks,
+    .writes_compressed_audio = writes_compressed_audio_theora,
+    .writes_compressed_video = writes_compressed_video_theora,
+    
     .open =                open_theora,
     
     .get_audio_parameters =    get_audio_parameters_theora,

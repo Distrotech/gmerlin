@@ -176,6 +176,36 @@ int bg_ogg_encoder_add_video_stream(void * data, const gavl_video_format_t * for
   return e->num_video_streams-1;
   }
 
+int bg_ogg_encoder_add_audio_stream_compressed(void * data,
+                                               const gavl_audio_format_t * format,
+                                               const gavl_compression_info_t * ci)
+  {
+  bg_ogg_encoder_t * e = data;
+  e->audio_streams =
+    realloc(e->audio_streams, (e->num_audio_streams+1)*(sizeof(*e->audio_streams)));
+  memset(e->audio_streams + e->num_audio_streams, 0, sizeof(*e->audio_streams));
+  gavl_audio_format_copy(&e->audio_streams[e->num_audio_streams].format,
+                         format);
+  e->audio_streams[e->num_audio_streams].ci = ci;
+  e->num_audio_streams++;
+  return e->num_audio_streams-1;
+  }
+
+int bg_ogg_encoder_add_video_stream_compressed(void * data,
+                                               const gavl_video_format_t * format,
+                                               const gavl_compression_info_t * ci)
+  {
+  bg_ogg_encoder_t * e = data;
+  e->video_streams =
+    realloc(e->video_streams, (e->num_video_streams+1)*(sizeof(*e->video_streams)));
+  memset(e->video_streams + e->num_video_streams, 0, sizeof(*e->video_streams));
+  gavl_video_format_copy(&e->video_streams[e->num_video_streams].format,
+                         format);
+  e->video_streams[e->num_video_streams].ci = ci;
+  e->num_video_streams++;
+  return e->num_video_streams-1;
+  }
+
 void bg_ogg_encoder_init_audio_stream(void * data, int stream, const bg_ogg_codec_t * codec)
   {
   bg_ogg_encoder_t * e = data;
@@ -223,31 +253,49 @@ int bg_ogg_encoder_set_video_pass(void * data, int stream,
 
 static int start_audio(bg_ogg_encoder_t * e, int stream)
   {
-  if(!e->audio_streams[stream].codec->init_audio(e->audio_streams[stream].codec_priv,
-                                                 &(e->audio_streams[stream].format),
-                                                 &(e->metadata)))
-    return 0;
+  int result;
+  bg_ogg_audio_stream_t * s = &e->audio_streams[stream];
+
+  if(s->ci)
+    result =
+      s->codec->init_audio_compressed(s->codec_priv, &s->format, s->ci, &e->metadata);
+  else
+    result = s->codec->init_audio(s->codec_priv, &s->format, &e->metadata);
   return 1;
   }
 
 static int start_video(bg_ogg_encoder_t * e, int stream)
   {
-  if(!e->video_streams[stream].codec->init_video(e->video_streams[stream].codec_priv,
-                                                 &(e->video_streams[stream].format),
-                                                 &(e->metadata)))
-    return 0;
+  bg_ogg_video_stream_t * s = &e->video_streams[stream];
 
-  if(e->video_streams[stream].pass)
+  if(s->ci)
     {
-    if(!e->video_streams[stream].codec->set_video_pass)
+    if(!s->codec->init_video_compressed(s->codec_priv,
+                                        &s->format,
+                                        s->ci,
+                                        &e->metadata))
       return 0;
     
-    else 
-      if(!e->video_streams[stream].codec->set_video_pass(e->video_streams[stream].codec_priv,
-                                                         e->video_streams[stream].pass,
-                                                         e->video_streams[stream].total_passes,
-                                                         e->video_streams[stream].stats_file))
+    }
+  else
+    {
+    if(!s->codec->init_video(s->codec_priv,
+                             &(s->format),
+                             &(e->metadata)))
+      return 0;
+    
+    if(s->pass)
+      {
+      if(!s->codec->set_video_pass)
         return 0;
+      
+      else 
+        if(!s->codec->set_video_pass(s->codec_priv,
+                                     s->pass,
+                                     s->total_passes,
+                                     s->stats_file))
+          return 0;
+      }
     }
   
   return 1;
@@ -308,6 +356,22 @@ int bg_ogg_encoder_write_video_frame(void * data, gavl_video_frame_t*f,int strea
   return
     e->video_streams[stream].codec->encode_video(e->video_streams[stream].codec_priv, f);
   }
+
+int bg_ogg_encoder_write_audio_packet(void * data, gavl_packet_t*p,int stream)
+  {
+  bg_ogg_encoder_t * e = data;
+  return
+    e->audio_streams[stream].codec->write_packet(e->audio_streams[stream].codec_priv, p);
+  }
+
+int bg_ogg_encoder_write_video_packet(void * data, gavl_packet_t*p,int stream)
+  {
+  bg_ogg_encoder_t * e = data;
+  return
+    e->video_streams[stream].codec->write_packet(e->video_streams[stream].codec_priv, p);
+  
+  }
+
 
 int bg_ogg_encoder_close(void * data, int do_delete)
   {

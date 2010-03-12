@@ -79,7 +79,6 @@ static void * create_vorbis(bg_ogg_encoder_t * output, long serialno)
   ret = calloc(1, sizeof(*ret));
   ret->serialno = serialno;
   ret->output = output;
-  ret->frame = gavl_audio_frame_create(NULL);
   return ret;
   }
 
@@ -183,6 +182,138 @@ static void build_comment(vorbis_comment * vc, bg_metadata_t * metadata)
     vorbis_comment_add(vc, metadata->comment);
   }
 
+#define PTR_2_32BE(p) \
+  ((*(p) << 24) |     \
+   (*(p+1) << 16) |   \
+   (*(p+2) << 8) |    \
+   *(p+3))
+
+#define PTR_2_32LE(p) \
+  ((*(p+3) << 24) |     \
+   (*(p+2) << 16) |   \
+   (*(p+1) << 8) |    \
+   *(p))
+
+#define INT32LE_2_PTR(num, p) \
+(p)[0] = (num) & 0xff; \
+(p)[1] = ((num)>>8) & 0xff; \
+(p)[2] = ((num)>>16) & 0xff; \
+(p)[3] = ((num)>>24) & 0xff
+
+
+#define WRITE_STRING(s, p) string_len = strlen(s); \
+  INT32LE_2_PTR(string_len, p); p += 4; \
+  memcpy(p, s, string_len); \
+  p+=string_len;
+
+static const uint8_t comment_header[7] = { 0x03, 'v', 'o', 'r', 'b', 'i', 's' };
+
+static uint8_t * create_comment_packet(vorbis_comment * comment, int * len1)
+  {
+  int i;
+  uint8_t * ret, * ptr;
+  int string_len;
+  // comment_header + Vendor length + num_user_comments + framing bit
+  int len = 7 + 4 + 4 + 1 + strlen(comment->vendor); 
+  
+  for(i = 0; i < comment->comments; i++)
+    {
+    len += 4 + strlen(comment->user_comments[i]);
+    }
+  
+  ret = malloc(len);
+  ptr = ret;
+
+  /* Comment header */
+  memcpy(ptr, comment_header, 7);
+  ptr += 7;
+  
+  /* Vendor length + vendor */
+  WRITE_STRING(comment->vendor, ptr);
+
+  INT32LE_2_PTR(comment->comments, ptr); ptr += 4;
+
+  for(i = 0; i < comment->comments; i++)
+    {
+    WRITE_STRING(comment->user_comments[i], ptr);
+    }
+  *ptr = 0x01;
+  
+  *len1 = len;
+  return ret;
+  }
+
+static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
+                                  const gavl_compression_info_t * ci,
+                                  bg_metadata_t * metadata)
+  {
+  ogg_packet packet;
+  uint8_t * ptr;
+  uint32_t len;
+  vorbis_t * vorbis = (vorbis_t *)data;
+  uint32_t vendor_len;
+
+  uint8_t * comment_packet;
+  int comment_len;
+  
+  vorbis->format = format;
+  ogg_stream_init(&vorbis->enc_os, vorbis->serialno);
+
+  memset(&packet, 0, sizeof(packet));
+  
+  
+  /* Write ID packet */
+  ptr = ci->global_header;
+  
+  len = PTR_2_32BE(ptr); ptr += 4;
+
+  packet.packet = ptr;
+  packet.bytes  = len;
+  packet.b_o_s = 1;
+  
+  ogg_stream_packetin(&vorbis->enc_os,&packet);
+  if(!bg_ogg_flush_page(&vorbis->enc_os, vorbis->output, 1))
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Vorbis ID page");
+
+  ptr += len;
+  
+  /* Comment is more complicated: We need to copy the vendor field from the
+     original stream, because it didn't get compressed by our libvorbis */
+
+  /* Build comment (comments are UTF-8, good for us :-) */
+  len = PTR_2_32BE(ptr); ptr += 4;
+  
+  build_comment(&vorbis->enc_vc, metadata);
+  
+  /* Copy the vendor id */
+  vendor_len = PTR_2_32LE(ptr + 7);
+  vorbis->enc_vc.vendor = calloc(1, vendor_len + 1);
+  memcpy(vorbis->enc_vc.vendor, ptr + 11, vendor_len);
+  fprintf(stderr, "Got vendor %s\n", vorbis->enc_vc.vendor);
+  
+  comment_packet = create_comment_packet(&vorbis->enc_vc, &comment_len);
+  packet.packet = comment_packet;
+  packet.bytes  = comment_len;
+  packet.b_o_s = 0;
+
+  ogg_stream_packetin(&vorbis->enc_os,&packet);
+  
+  free(comment_packet);
+
+  free(vorbis->enc_vc.vendor);
+  vorbis->enc_vc.vendor = NULL;
+  
+  ptr += len;
+  
+  /* Codepages */
+  len = PTR_2_32BE(ptr); ptr += 4;
+  
+  packet.packet = ptr;
+  packet.bytes  = len;
+  
+  ogg_stream_packetin(&vorbis->enc_os,&packet);
+  return 1;
+  }
 
 static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t * metadata)
   {
@@ -194,6 +325,7 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   vorbis_t * vorbis = (vorbis_t *)data;
 
   vorbis->format = format;
+  vorbis->frame = gavl_audio_frame_create(NULL);
   
   vorbis->managed = 0;
   
@@ -246,7 +378,6 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   ogg_stream_init(&vorbis->enc_os, vorbis->serialno);
 
   /* Build comment (comments are UTF-8, good for us :-) */
-
   build_comment(&vorbis->enc_vc, metadata);
   
   /* Build the packets */
@@ -379,6 +510,48 @@ static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
   return 1;
   }
 
+static int write_packet_vorbis(void * data, gavl_packet_t * packet)
+  {
+  uint8_t * ptr;
+  int len;
+  ogg_packet op;
+  int keep_going;
+  int result;
+  
+  vorbis_t * vorbis = data;
+  
+  memset(&op, 0, sizeof(op));
+  ptr = packet->data;
+
+  keep_going = 1;
+  while(keep_going)
+    {
+    len = PTR_2_32BE(ptr); ptr += 4;
+    op.packet = ptr;
+    op.bytes = len;
+    
+    ptr += len;
+    
+    if((ptr - packet->data) >= packet->data_len - 4)
+      {
+      /* Last packet */
+      op.granulepos = packet->pts + packet->duration;
+
+      if(packet->flags & GAVL_PACKET_LAST)
+        op.e_o_s = 1;
+      keep_going = 0;
+      }
+    else
+      op.granulepos = -1;
+    ogg_stream_packetin(&vorbis->enc_os,&op);
+    }
+  
+  /* Flush pages if any */
+  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, 1)) <= 0)
+    return result;
+  return 1;
+  }
+
 static int close_vorbis(void * data)
   {
   int ret = 1;
@@ -400,7 +573,8 @@ static int close_vorbis(void * data)
   vorbis_comment_clear(&vorbis->enc_vc);
   vorbis_info_clear(&vorbis->enc_vi);
 
-  gavl_audio_frame_destroy(vorbis->frame);
+  if(vorbis->frame)
+    gavl_audio_frame_destroy(vorbis->frame);
   
   free(vorbis);
   return ret;
@@ -418,11 +592,14 @@ const bg_ogg_codec_t bg_vorbis_codec =
     .set_parameter =  set_parameter_vorbis,
     
     .init_audio =     init_vorbis,
+    .init_audio_compressed =     init_compressed_vorbis,
     
     //  int (*init_video)(void*, gavl_video_format_t * format);
   
     .flush_header_pages = flush_header_pages_vorbis,
     
     .encode_audio = write_audio_frame_vorbis,
+    .write_packet = write_packet_vorbis,
+    
     .close = close_vorbis,
   };

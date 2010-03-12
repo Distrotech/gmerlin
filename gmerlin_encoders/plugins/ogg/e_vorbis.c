@@ -57,6 +57,28 @@ open_vorbis(void * data, const char * file,
                              "ogg");
   }
 
+static int writes_compressed_audio_vorbis(void* data,
+                                          const gavl_audio_format_t * format,
+                                          const gavl_compression_info_t * ci)
+  {
+  if(ci->id == GAVL_CODEC_ID_VORBIS)
+    return 1;
+  else
+    return 0;
+  }
+
+static int add_audio_stream_compressed_vorbis(void * data,
+                                              const char * language,
+                                              const gavl_audio_format_t * format,
+                                              const gavl_compression_info_t * ci)
+  {
+  int ret;
+  ret = bg_ogg_encoder_add_audio_stream_compressed(data, format, ci);
+  bg_ogg_encoder_init_audio_stream(data, ret, &bg_vorbis_codec);
+  return ret;
+  }
+
+
 const bg_encoder_plugin_t the_plugin =
   {
     .common =
@@ -79,12 +101,13 @@ const bg_encoder_plugin_t the_plugin =
     .max_video_streams =   0,
 
     .set_callbacks =       bg_ogg_encoder_set_callbacks,
-
+    .writes_compressed_audio = writes_compressed_audio_vorbis,
     .open =                open_vorbis,
     
     .get_audio_parameters =    get_audio_parameters_vorbis,
 
     .add_audio_stream =        add_audio_stream_vorbis,
+    .add_audio_stream_compressed =        add_audio_stream_compressed_vorbis,
     
     .set_audio_parameter =     bg_ogg_encoder_set_audio_parameter,
 
@@ -93,6 +116,7 @@ const bg_encoder_plugin_t the_plugin =
     .get_audio_format =        bg_ogg_encoder_get_audio_format,
     
     .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
+    .write_audio_packet =   bg_ogg_encoder_write_audio_packet,
     .close =               bg_ogg_encoder_close,
   };
 
