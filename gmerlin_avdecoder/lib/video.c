@@ -702,7 +702,7 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
   bgav_packet_t * bp;
   bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
-
+  
   bp = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!bp)
     return 0;
@@ -716,6 +716,8 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
 
   p->header_size   = bp->header_size;
   p->field2_offset = bp->field2_offset;
+  
+  p->sequence_end_pos = bp->sequence_end_pos;
   
   /* Set flags */
 

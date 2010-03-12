@@ -569,6 +569,7 @@ typedef struct
 
   qt_stts_t stts;
   qt_stss_t stss;
+  int has_stss;
   
   qt_stsd_t stsd;
   qt_stsz_t stsz;

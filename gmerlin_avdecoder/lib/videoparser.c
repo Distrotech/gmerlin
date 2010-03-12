@@ -299,17 +299,24 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   //          parser->cache_size);
   /* Set size of last frame */
   parser->pos = parser->buf.size;
-  bgav_video_parser_set_sequence_end(parser);
+  bgav_video_parser_set_sequence_end(parser, 0);
+  parser->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   parser->eof = 1;
   }
 
-void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser)
+void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser, int code_len)
   {
   int i;
 
   //  fprintf(stderr, "Set Sequence end\n");
-
+  
   update_previous_size(parser);
+
+  if((code_len > 0) && parser->cache_size)
+    {
+    parser->cache[parser->cache_size-1].sequence_end_pos =
+      parser->cache[parser->cache_size-1].size - code_len;
+    }
 
   /* Remove incomplete cache entries */
   for(i = 0; i < parser->cache_size; i++)
@@ -339,7 +346,6 @@ void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser)
        BGAV_TIMESTAMP_UNDEFINED)
       SET_PTS(i);
     }
-  parser->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }
 
 
@@ -537,6 +543,7 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->position = c->position;
   p->field2_offset = c->field2_offset;
   p->header_size = c->header_size;
+  p->sequence_end_pos = c->sequence_end_pos;
   p->valid = 1;
 
 #ifdef DUMP_OUTPUT
@@ -606,6 +613,7 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   
   c->parser_start_pos = parser->pos;
   c->header_size = 0;
+  c->sequence_end_pos = 0;
   
   /* Set picture position */
   if(parser->raw)

@@ -184,10 +184,13 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           break;
         case MPEG_CODE_END:
           parser->pos += 4;
+          // fprintf(stderr, "Detected sequence end\n");
+          /* Set sequence end  */
+          bgav_video_parser_set_sequence_end(parser, 4);
 
-          /* Set sequence end for still mode */
+          /* Seset timestamp for for still mode */
           if(!priv->pb_count && (priv->i_count == 1))
-            bgav_video_parser_set_sequence_end(parser);
+            parser->timestamp = BGAV_TIMESTAMP_UNDEFINED;
           
           priv->pb_count = 0;
           priv->i_count = 0;

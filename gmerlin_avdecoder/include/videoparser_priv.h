@@ -51,6 +51,7 @@ typedef struct
   
   int field_pic;
   int field2_offset;
+  int sequence_end_pos;
   
   gavl_timecode_t tc;
   
@@ -135,7 +136,7 @@ void bgav_video_parser_init_dirac(bgav_video_parser_t * parser);
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes);
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser);
 void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type);
-void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser);
+void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser, int code_len);
 
 int bgav_video_parser_check_output(bgav_video_parser_t * parser);
 

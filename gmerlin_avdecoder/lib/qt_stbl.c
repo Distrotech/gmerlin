@@ -68,6 +68,7 @@ int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * input,
       case BGAV_MK_FOURCC('s', 't', 's', 's'):
         if(!bgav_qt_stss_read(&ch, input, &(ret->stss)))
           return 0;
+        ret->has_stss = 1;
         break;
       case BGAV_MK_FOURCC('s', 't', 'p', 's'):
         if(!bgav_qt_stss_read(&ch, input, &(ret->stps)))

@@ -213,6 +213,7 @@ struct bgav_packet_s
                         packet (0 else) */
 
   int header_size; /* Size of a repeated global header */
+  int sequence_end_pos; /* Position of sequence end code (if any) */
   
   int64_t pts; /* In stream timescale tics */
   int64_t dts; /* In stream timescale tics */
