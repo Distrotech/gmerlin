@@ -77,7 +77,7 @@ typedef enum
    *
    *  This defines parameters of the compression. The most important
    *  value is the \ref gavl_codec_id_t. Formats, which support a global
-   *  header, it is stored hewre as well.
+   *  header, store it here as well.
    *
    *  Usually there must be an associated audio or video format, because
    *  some containers need this as well.
@@ -162,6 +162,7 @@ typedef struct
 
   int field2_offset; //!< Offset of field 2 for field pictures
   int header_size;   //!< Size of a repeated global header (or 0)
+  int sequence_end_pos;    //!< Position of sequence end code if any
 
   } gavl_packet_t;
 
