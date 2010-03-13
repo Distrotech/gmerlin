@@ -1222,8 +1222,7 @@ static gavl_time_t granulepos_2_time(bgav_stream_t * s,
     case FOURCC_THEORA:
       stream_priv = (stream_priv_t*)(s->priv);
 
-      frames =
-        pos >> stream_priv->keyframe_granule_shift;
+      frames = pos >> stream_priv->keyframe_granule_shift;
       frames +=
         pos-(frames<<stream_priv->keyframe_granule_shift);
       return gavl_frames_to_time(s->data.video.format.timescale,
@@ -1845,10 +1844,18 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 #else
           bgav_packet_alloc(p, priv->op.bytes);
           memcpy(p->data, priv->op.packet, priv->op.bytes);
+          p->data_size = priv->op.bytes;
 #endif
           if(!(priv->op.packet[0] & 0x40))
+            {
             PACKET_SET_KEYFRAME(p);
-        
+            PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_I);
+            }
+          else
+            PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_P);
+
+          // fprintf(stderr, "Granulepos: %lld\n", priv->op.granulepos);
+          
           p->pts = stream_priv->frame_counter *
             s->data.video.format.frame_duration;
           p->duration = s->data.video.format.frame_duration;
