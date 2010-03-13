@@ -81,6 +81,10 @@ typedef struct
 #endif
   
   bg_encoder_framerate_t fr;
+  
+  int frames_since_keyframe;
+  int64_t last_keyframe;
+  int compressed;
   } theora_t;
 
 static void * create_theora(bg_ogg_encoder_t * output, long serialno)
@@ -262,7 +266,145 @@ static const gavl_pixelformat_t supported_pixelformats[] =
     GAVL_PIXELFORMAT_NONE,
   };
 
-static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t * metadata)
+#define PTR_2_32BE(p) \
+  ((*(p) << 24) |     \
+   (*(p+1) << 16) |   \
+   (*(p+2) << 8) |    \
+   *(p+3))
+
+#define PTR_2_32LE(p) \
+  ((*(p+3) << 24) |     \
+   (*(p+2) << 16) |   \
+   (*(p+1) << 8) |    \
+   *(p))
+
+#define INT32LE_2_PTR(num, p) \
+(p)[0] = (num) & 0xff; \
+(p)[1] = ((num)>>8) & 0xff; \
+(p)[2] = ((num)>>16) & 0xff; \
+(p)[3] = ((num)>>24) & 0xff
+
+
+#define WRITE_STRING(s, p) string_len = strlen(s); \
+  INT32LE_2_PTR(string_len, p); p += 4; \
+  memcpy(p, s, string_len); \
+  p+=string_len;
+
+static const uint8_t comment_header[7] = { 0x81, 't', 'h', 'e', 'o', 'r', 'a' };
+
+static uint8_t * create_comment_packet(th_comment * comment, int * len1)
+  {
+  int i;
+  uint8_t * ret, * ptr;
+  int string_len;
+  // comment_header + Vendor length + num_user_comments
+  int len = 7 + 4 + 4 + strlen(comment->vendor); 
+  
+  for(i = 0; i < comment->comments; i++)
+    {
+    len += 4 + strlen(comment->user_comments[i]);
+    }
+  
+  ret = malloc(len);
+  ptr = ret;
+
+  /* Comment header */
+  memcpy(ptr, comment_header, 7);
+  ptr += 7;
+  
+  /* Vendor length + vendor */
+  WRITE_STRING(comment->vendor, ptr);
+
+  INT32LE_2_PTR(comment->comments, ptr); ptr += 4;
+
+  for(i = 0; i < comment->comments; i++)
+    {
+    WRITE_STRING(comment->user_comments[i], ptr);
+    }
+  
+  *len1 = len;
+  return ret;
+  }
+
+
+static int init_compressed_theora(void * data,
+                                  gavl_video_format_t * format,
+                                  const gavl_compression_info_t * ci,
+                                  bg_metadata_t * metadata)
+  {
+  ogg_packet packet;
+  
+  theora_t * theora = data;
+  uint8_t * ptr;
+  uint32_t len;
+  uint8_t * comment_packet;
+  int comment_len;
+  int vendor_len;
+
+  theora->format = format;
+  theora->compressed = 1;
+  ogg_stream_init(&theora->os, theora->serialno);
+
+  memset(&packet, 0, sizeof(packet));
+
+  /* Write ID packet */
+  ptr = ci->global_header;
+  
+  len = PTR_2_32BE(ptr); ptr += 4;
+
+  packet.packet = ptr;
+  packet.bytes  = len;
+  packet.b_o_s = 1;
+
+  theora->ti.keyframe_granule_shift = 
+    (char) ((ptr[40] & 0x03) << 3);
+
+  theora->ti.keyframe_granule_shift |=
+    (ptr[41] & 0xe0) >> 5;
+  
+  ogg_stream_packetin(&theora->os,&packet);
+  if(!bg_ogg_flush_page(&theora->os, theora->output, 1))
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no theora ID page");
+  ptr += len;
+
+  /* Build comment (comments are UTF-8, good for us :-) */
+  len = PTR_2_32BE(ptr); ptr += 4;
+  
+  build_comment(&theora->tc, metadata);
+  
+  /* Copy the vendor id */
+  vendor_len = PTR_2_32LE(ptr + 7);
+  theora->tc.vendor = calloc(1, vendor_len + 1);
+  memcpy(theora->tc.vendor, ptr + 11, vendor_len);
+  fprintf(stderr, "Got vendor %s\n", theora->tc.vendor);
+  
+  comment_packet = create_comment_packet(&theora->tc, &comment_len);
+  packet.packet = comment_packet;
+  packet.bytes  = comment_len;
+  packet.b_o_s = 0;
+
+  ogg_stream_packetin(&theora->os,&packet);
+  
+  free(comment_packet);
+
+  free(theora->tc.vendor);
+  theora->tc.vendor = NULL;
+  
+  ptr += len;
+
+  /* Codepages */
+  len = PTR_2_32BE(ptr); ptr += 4;
+  
+  packet.packet = ptr;
+  packet.bytes  = len;
+  
+  ogg_stream_packetin(&theora->os,&packet);
+  return 1;
+  
+  }
+
+static int init_theora(void * data, gavl_video_format_t * format,
+                       bg_metadata_t * metadata)
   {
   int sub_h, sub_v;
   int arg_i1, arg_i2;
@@ -568,6 +710,47 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   return 1;
   }
 
+static int write_packet_theora(void * data, gavl_packet_t * packet)
+  {
+  ogg_packet op;
+  theora_t * theora;
+  int64_t frame_counter;
+  theora = data;
+  
+  memset(&op, 0, sizeof(op));
+
+  op.packet = packet->data;
+  op.bytes =  packet->data_len;
+
+  frame_counter = packet->pts / theora->format->frame_duration;
+  
+  if(packet->flags & GAVL_PACKET_KEYFRAME)
+    {
+    theora->frames_since_keyframe = 0;
+    theora->last_keyframe = frame_counter + 1;
+    }
+  else
+    {
+    theora->frames_since_keyframe++;
+    }
+
+  fprintf(stderr, "Encoding granulepos: %lld / %d\n",
+          theora->last_keyframe, theora->frames_since_keyframe);
+  
+  op.granulepos =
+    (theora->last_keyframe << theora->ti.keyframe_granule_shift) +
+    theora->frames_since_keyframe;
+  
+  ogg_stream_packetin(&theora->os,&op);
+  if(bg_ogg_flush(&theora->os, theora->output, 0) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Writing theora packet failed");
+    return 0;
+    }
+  return 1;
+  }
+
 static int close_theora(void * data)
   {
   int ret = 1;
@@ -615,7 +798,15 @@ static int close_theora(void * data)
 #endif
     
     }
-
+  else if(theora->compressed)
+    {
+    if(bg_ogg_flush(&theora->os, theora->output, 1) <= 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing packet failed");
+      ret = 0;
+      }
+    }
+  
 #ifdef THEORA_1_1
   if(theora->stats_file)
     fclose(theora->stats_file);
@@ -644,9 +835,11 @@ const bg_ogg_codec_t bg_theora_codec =
     .set_video_pass = set_video_pass_theora,
 #endif    
     .init_video =     init_theora,
+    .init_video_compressed =     init_compressed_theora,
     
     .flush_header_pages = flush_header_pages_theora,
     
     .encode_video = write_video_frame_theora,
+    .write_packet = write_packet_theora,
     .close = close_theora,
   };

@@ -261,7 +261,6 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
 
   memset(&packet, 0, sizeof(packet));
   
-  
   /* Write ID packet */
   ptr = ci->global_header;
   

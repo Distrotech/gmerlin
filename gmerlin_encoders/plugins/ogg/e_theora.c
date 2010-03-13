@@ -82,6 +82,8 @@ static int add_audio_stream_compressed_theora(void * data,
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream_compressed(data, format, ci);
+  if(ci->id == GAVL_CODEC_ID_VORBIS)
+    bg_ogg_encoder_init_audio_stream(data, ret, &bg_vorbis_codec);
   return ret;
   }
 
@@ -203,6 +205,10 @@ const bg_encoder_plugin_t the_plugin =
     
     .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
     .write_video_frame =   bg_ogg_encoder_write_video_frame,
+
+    .write_audio_packet =   bg_ogg_encoder_write_audio_packet,
+    .write_video_packet =   bg_ogg_encoder_write_video_packet,
+
     .close =               bg_ogg_encoder_close,
   };
 
