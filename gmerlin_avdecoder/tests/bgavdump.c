@@ -36,7 +36,7 @@
 
 static int64_t audio_seek = -1;
 static int64_t video_seek = -1;
-static gavl_time_t global_seek = 0;
+static gavl_time_t global_seek = -1;
 
 static int dump_ci = 0;
 
@@ -429,7 +429,7 @@ int main(int argc, char ** argv)
     else
       fprintf(stderr, "Starting decoders done\n");
 
-    if(global_seek)
+    if(global_seek >= 0)
       {
       if(bgav_can_seek(file))
         {

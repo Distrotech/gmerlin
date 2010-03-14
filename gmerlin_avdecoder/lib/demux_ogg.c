@@ -1800,16 +1800,20 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         case FOURCC_THEORA:
           if(stream_priv->do_sync)
             {
-            if(stream_priv->prev_granulepos == -1)
+            //            fprintf(stderr, "Resync theora %ld\n",
+            //                    stream_priv->prev_granulepos);
+            if((stream_priv->prev_granulepos == -1) &&
+               (stream_priv->frame_counter < 0))
               break;
             else
               {
-              if(priv->op.granulepos >= 0)
+              if((stream_priv->prev_granulepos >= 0) &&
+                 (stream_priv->frame_counter < 0))
                 {
                 iframes =
-                  priv->op.granulepos >> stream_priv->keyframe_granule_shift;
+                  stream_priv->prev_granulepos >> stream_priv->keyframe_granule_shift;
                 pframes =
-                  priv->op.granulepos-(iframes<<stream_priv->keyframe_granule_shift);
+                  stream_priv->prev_granulepos-(iframes<<stream_priv->keyframe_granule_shift);
 
                 stream_priv->frame_counter = pframes + iframes;
 
@@ -1822,6 +1826,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
                 if(!(priv->op.packet[0] & 0x40))
                   {
                   stream_priv->do_sync = 0;
+                  
                   }
                 else
                   {
@@ -1836,16 +1841,10 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             break;
         
           p = bgav_stream_get_packet_write(s);
-#if 0
-          bgav_packet_alloc(p, sizeof(priv->op) + priv->op.bytes);
-          memcpy(p->data, &priv->op, sizeof(priv->op));
-          memcpy(p->data + sizeof(priv->op), priv->op.packet, priv->op.bytes);
-          p->data_size = sizeof(priv->op) + priv->op.bytes;
-#else
           bgav_packet_alloc(p, priv->op.bytes);
           memcpy(p->data, priv->op.packet, priv->op.bytes);
           p->data_size = priv->op.bytes;
-#endif
+
           if(!(priv->op.packet[0] & 0x40))
             {
             PACKET_SET_KEYFRAME(p);
@@ -2183,6 +2182,8 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   track_priv_t * track_priv;
   stream_priv_t * stream_priv;
   int64_t filepos;
+
+  //  fprintf(stderr, "seek_ogg %ld %d\n", time, scale);
   
   /* Seek to the file position */
   track_priv = (track_priv_t*)(ctx->tt->cur->priv);
@@ -2210,7 +2211,9 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
       {
       filepos = find_last_page(ctx, track_priv->start_pos, filepos,
                                (int*)0, (int64_t*)0);
+      //      seek_byte(ctx, filepos);
       reset_track(ctx->tt->cur);
+      //      fprintf(stderr, "Reached EOF\n");
       }
     
     done = 1;

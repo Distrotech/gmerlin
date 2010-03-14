@@ -269,7 +269,7 @@ static void resync_theora(bgav_stream_t * s)
       break;
       }
     /* Skip this packet */
-    fprintf(stderr, "Skipping packet %c\n", PACKET_GET_CODING_TYPE(p));
+    //    fprintf(stderr, "Skipping packet %c\n", PACKET_GET_CODING_TYPE(p));
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
