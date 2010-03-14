@@ -399,6 +399,9 @@ static int init_compressed_theora(void * data,
   packet.bytes  = len;
   
   ogg_stream_packetin(&theora->os,&packet);
+
+  theora->frames_since_keyframe = -1;
+
   return 1;
   
   }
@@ -639,6 +642,11 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
              "Theora encoder produced no packet");
       return 0;
       }
+
+    fprintf(stderr, "Encoding granulepos: %lld %lld / %d\n",
+            op.granulepos,
+            op.granulepos >> theora->ti.keyframe_granule_shift,
+            op.granulepos & ((1<<theora->ti.keyframe_granule_shift)-1));
     
     ogg_stream_packetin(&theora->os,&op);
     if(bg_ogg_flush(&theora->os, theora->output, 0) < 0)
@@ -714,7 +722,6 @@ static int write_packet_theora(void * data, gavl_packet_t * packet)
   {
   ogg_packet op;
   theora_t * theora;
-  int64_t frame_counter;
   theora = data;
   
   memset(&op, 0, sizeof(op));
@@ -722,24 +729,34 @@ static int write_packet_theora(void * data, gavl_packet_t * packet)
   op.packet = packet->data;
   op.bytes =  packet->data_len;
 
-  frame_counter = packet->pts / theora->format->frame_duration;
-  
-  if(packet->flags & GAVL_PACKET_KEYFRAME)
+  if(theora->frames_since_keyframe < 0)
     {
+    if(!(packet->flags & GAVL_PACKET_KEYFRAME))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "First packet isn't a keyframe");
+      return 0;
+      }
     theora->frames_since_keyframe = 0;
-    theora->last_keyframe = frame_counter + 1;
+    theora->last_keyframe = packet->pts / theora->format->frame_duration + 1;
+    }
+  else if(packet->flags & GAVL_PACKET_KEYFRAME)
+    {
+    theora->last_keyframe += theora->frames_since_keyframe + 1;
+    theora->frames_since_keyframe = 0;
     }
   else
     {
     theora->frames_since_keyframe++;
     }
-
-  fprintf(stderr, "Encoding granulepos: %lld / %d\n",
-          theora->last_keyframe, theora->frames_since_keyframe);
   
   op.granulepos =
     (theora->last_keyframe << theora->ti.keyframe_granule_shift) +
     theora->frames_since_keyframe;
+
+  fprintf(stderr, "Encoding granulepos: %lld %lld / %d\n",
+          op.granulepos, 
+          theora->last_keyframe, theora->frames_since_keyframe);
   
   ogg_stream_packetin(&theora->os,&op);
   if(bg_ogg_flush(&theora->os, theora->output, 0) < 0)
