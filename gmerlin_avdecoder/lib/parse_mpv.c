@@ -153,7 +153,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
               parser->s->fourcc = BGAV_MK_FOURCC('m','p','v','2');
             else
               parser->s->fourcc = BGAV_MK_FOURCC('m','p','v','1');
+
+            if(!parser->format->pixel_width)
+              bgav_mpv_get_pixel_aspect(&priv->sh,
+                                        parser->format);
             }
+          
           if(!priv->has_picture_start)
             {
             if(!bgav_video_parser_set_picture_start(parser))
@@ -215,8 +220,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       
       break;
     case MPEG_HAS_PICTURE_CODE:
-      /* Try to get the picture header */
       
+      /* Try to get the picture header */
       len = bgav_mpv_picture_header_parse(parser->opt,
                                           &ph,
                                           parser->buf.buffer + parser->pos,

@@ -22,6 +22,7 @@
 #include <inttypes.h>
 #include <avdec_private.h>
 #include <mpv_header.h>
+#include <math.h>
 
 #define LOG_DOMAIN "mpv_header"
 
@@ -226,7 +227,8 @@ int bgav_mpv_sequence_display_extension_parse(const bgav_options_t * opt,
   ret->display_width = (buffer[1] << 6) | (buffer[2] >> 2);
   ret->display_height = ((buffer[2]& 1 ) << 13) | (buffer[3] << 5) | (buffer[4] >> 3);
 
-  fprintf(stderr, "Got display width: %d %d\n", ret->display_width, ret->display_height);
+  fprintf(stderr, "Got display width: %d %d\n",
+          ret->display_width, ret->display_height);
   
   return num;
   }
@@ -392,3 +394,93 @@ int bgav_mpv_gop_header_parse(const bgav_options_t * opt,
   
   return 1;
   }
+
+/* Aspect ratio stuff (taken from ffmpeg) */
+
+static const struct
+  {
+  int num;
+  int den;
+  }
+mpeg1_aspect[16] =
+  {
+    {   1,   1 }, // 0.0000
+    {   1,   1 }, // 1.0000
+    {  49,  33 }, // 0.6735
+    {  64,  45 }, // 0.7031
+    { 239, 182 }, // 0.7615
+    {  36,  29 }, // 0.8055
+    {  32,  27 }, // 0.8437
+    { 169, 151 }, // 0.8935
+    { 178, 163 }, // 0.9157
+    {  54,  53 }, // 0.9815
+    { 196, 201 }, // 1.0255
+    { 187, 200 }, // 1.0695
+    { 200, 219 }, // 1.0950
+    { 127, 147 }, // 1.1575
+    { 134, 161 }, // 1.2015
+    {   1,   1 }, // 
+  };
+
+static const struct
+  {
+  int num;
+  int den;
+  }
+mpeg2_aspect[16]=
+  {
+    {0,1},
+    {1,1},
+    {4,3},
+    {16,9},
+    {221,100},
+    {0,1},
+    {0,1},
+    {0,1},
+    {0,1},
+    {0,1},
+    {0,1},
+    {0,1},
+    {0,1},
+    {0,1},
+    {0,1},
+    {0,1},
+  };
+
+static int get_gcd(int a, int b)
+  {
+  if(b)
+    return get_gcd(b, a%b);
+  else
+    return a;
+  }
+
+void bgav_mpv_get_pixel_aspect(bgav_mpv_sequence_header_t * h,
+                               gavl_video_format_t * ret)
+  {
+  if(!h->mpeg2) /* MPEG-1 */
+    {
+    ret->pixel_width = mpeg1_aspect[h->aspect_ratio].num;
+    ret->pixel_height = mpeg1_aspect[h->aspect_ratio].den;
+    }
+  else /* MPEG-2 */
+    {
+    if(h->aspect_ratio > 1)
+      {
+      int gcd;
+      ret->pixel_width = mpeg2_aspect[h->aspect_ratio].num *
+        ret->image_height;
+      ret->pixel_height = mpeg2_aspect[h->aspect_ratio].den *
+        ret->image_width;
+      gcd = get_gcd(ret->pixel_width, ret->pixel_height);
+      ret->pixel_width  /= gcd;
+      ret->pixel_height /= gcd;
+      }
+    else
+      {
+      ret->pixel_width  = 1;
+      ret->pixel_height = 1;
+      }
+    }
+  }
+

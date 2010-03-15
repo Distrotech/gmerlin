@@ -19,7 +19,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-
 #define MPV_PROBE_SIZE 5 /* Sync code + extension type */
 
 #define MPEG_CODE_SEQUENCE             1
@@ -137,3 +136,8 @@ typedef struct
 int bgav_mpv_gop_header_parse(const bgav_options_t * opt,
                               bgav_mpv_gop_header_t *,
                               const uint8_t * buffer, int len);
+
+/* Getting the pixel aspect ratio is a bit messy... */
+
+void bgav_mpv_get_pixel_aspect(bgav_mpv_sequence_header_t * h,
+                               gavl_video_format_t * ret);

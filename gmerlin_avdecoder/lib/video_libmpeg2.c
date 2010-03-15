@@ -234,13 +234,13 @@ static void get_format(bgav_stream_t*s,
   ret->frame_width  = sequence->width;
   ret->frame_height = sequence->height;
 
-  if(!ret->pixel_width)
+  //  if(!ret->pixel_width)
     {
     ret->pixel_width  = sequence->pixel_width;
     ret->pixel_height = sequence->pixel_height;
     }
-  else
-    priv->flags |= FLAG_EXTERN_ASPECT;
+    //  else
+    //    priv->flags |= FLAG_EXTERN_ASPECT;
   
   if(sequence->chroma_height == sequence->height/2)
     {
