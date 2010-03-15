@@ -33,17 +33,16 @@
 
 /* MPEG-1/2 */
 
-#define MPEG_NEED_SYNC                   0
-#define MPEG_NEED_STARTCODE              1
-#define MPEG_HAS_PICTURE_CODE            2
-#define MPEG_HAS_PICTURE_HEADER          3
-#define MPEG_HAS_PICTURE_EXT_CODE        4
-#define MPEG_HAS_PICTURE_EXT_HEADER      5
-#define MPEG_HAS_GOP_CODE                6
-#define MPEG_HAS_SEQUENCE_CODE           7
-#define MPEG_HAS_SEQUENCE_HEADER         8
-#define MPEG_HAS_SEQUENCE_EXT_CODE       9
-#define MPEG_HAS_SEQUENCE_EXT_HEADER     10
+#define MPEG_NEED_SYNC                        0
+#define MPEG_NEED_STARTCODE                   1
+#define MPEG_HAS_PICTURE_CODE                 2
+#define MPEG_HAS_PICTURE_HEADER               3
+#define MPEG_HAS_PICTURE_EXT_CODE             4
+#define MPEG_HAS_PICTURE_EXT_HEADER           5
+#define MPEG_HAS_GOP_CODE                     6
+#define MPEG_HAS_SEQUENCE_CODE                7
+#define MPEG_HAS_SEQUENCE_EXT_CODE            8
+#define MPEG_HAS_SEQUENCE_DISPLAY_EXT_CODE    9
 
 typedef struct
   {
@@ -126,6 +125,18 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         case MPEG_CODE_SEQUENCE_EXT:
           if(priv->have_sh && !priv->sh.mpeg2)
             priv->state = MPEG_HAS_SEQUENCE_EXT_CODE;
+          else
+            {
+            priv->state = MPEG_NEED_STARTCODE;
+            parser->pos+=4;
+            }
+          break;
+        case MPEG_CODE_SEQUENCE_DISPLAY_EXT:
+          if(priv->have_sh && !priv->sh.has_dpy_ext)
+            {
+            priv->state = MPEG_HAS_SEQUENCE_DISPLAY_EXT_CODE;
+            fprintf(stderr, "Got sequence display extenstion\n");
+            }
           else
             {
             priv->state = MPEG_NEED_STARTCODE;
@@ -342,8 +353,10 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           (parser->format->image_width + 15) & ~15;
         parser->format->frame_height  =
           (parser->format->image_height + 15) & ~15;
-  
-
+        
+        if(priv->sh.ext.low_delay)
+          parser->s->flags &= ~STREAM_B_FRAMES;
+        
         parser->pos += len;
         
         }
@@ -352,6 +365,27 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       
       priv->state = MPEG_NEED_STARTCODE;
       break;
+    case MPEG_HAS_SEQUENCE_DISPLAY_EXT_CODE:
+      if(!priv->sh.has_dpy_ext)
+        {
+        /* Try to get the sequence extension */
+        len =
+          bgav_mpv_sequence_display_extension_parse(parser->opt,
+                                                    &priv->sh.dpy_ext,
+                                                    parser->buf.buffer + parser->pos,
+                                                    parser->buf.size - parser->pos);
+        if(!len)
+          return PARSER_NEED_DATA;
+        
+        priv->sh.has_dpy_ext = 1;
+        parser->pos += len;
+        }
+      else
+        parser->pos += 4;
+      
+      priv->state = MPEG_NEED_STARTCODE;
+      break;
+      
     }
   return PARSER_CONTINUE;
   }
@@ -402,6 +436,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
           bgav_video_parser_set_framerate(parser,
                                           timescale, frame_duration);
           parser->pos += len;
+          
           }
         else
           parser->pos += 4;
@@ -502,4 +537,8 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser)
   parser->parse_frame = parse_frame_mpeg12;
   parser->cleanup     = cleanup_mpeg12;
   parser->reset       = reset_mpeg12;
+
+  /* Set stream flags */
+  if(!(parser->s->flags & STREAM_INTRA_ONLY))
+    parser->s->flags |= STREAM_B_FRAMES;
   }

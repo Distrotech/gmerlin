@@ -22,13 +22,14 @@
 
 #define MPV_PROBE_SIZE 5 /* Sync code + extension type */
 
-#define MPEG_CODE_SEQUENCE     1
-#define MPEG_CODE_SEQUENCE_EXT 2
-#define MPEG_CODE_PICTURE      3
-#define MPEG_CODE_PICTURE_EXT  4
-#define MPEG_CODE_GOP          5
-#define MPEG_CODE_SLICE        6
-#define MPEG_CODE_END          7
+#define MPEG_CODE_SEQUENCE             1
+#define MPEG_CODE_SEQUENCE_EXT         2
+#define MPEG_CODE_PICTURE              3
+#define MPEG_CODE_PICTURE_EXT          4
+#define MPEG_CODE_GOP                  5
+#define MPEG_CODE_SLICE                6
+#define MPEG_CODE_END                  7
+#define MPEG_CODE_SEQUENCE_DISPLAY_EXT 8
 
 const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
                                          const uint8_t *end );
@@ -61,20 +62,41 @@ typedef struct
 
 typedef struct
   {
+  int video_format;
+  int has_color_description;
+
+  int color_primaries;
+  int transfer_characteristics;
+  int matrix_coefficients;
+
+  int display_width;
+  int display_height;
+  
+  } bgav_mpv_sequence_display_extension_t;
+
+typedef struct
+  {
   int mpeg2;
+  int has_dpy_ext;
+  
   uint32_t bitrate; /* In 400 bits per second */
 
   int horizontal_size_value;
   int vertical_size_value;
-
+  int aspect_ratio;
   int frame_rate_index;
   
   bgav_mpv_sequence_extension_t ext;
+  bgav_mpv_sequence_display_extension_t dpy_ext;
   } bgav_mpv_sequence_header_t;
 
 int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
                                    bgav_mpv_sequence_header_t *,
                                    const uint8_t * buffer, int len);
+
+int bgav_mpv_sequence_display_extension_parse(const bgav_options_t * opt,
+                                              bgav_mpv_sequence_display_extension_t *,
+                                              const uint8_t * buffer, int len);
 
 int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
                                       bgav_mpv_sequence_extension_t *,

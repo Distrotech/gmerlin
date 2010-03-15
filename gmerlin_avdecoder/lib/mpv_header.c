@@ -163,26 +163,73 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
 
 int bgav_mpv_get_start_code(const uint8_t * data)
   {
-  if(data[3] == 0xb3)
-    return MPEG_CODE_SEQUENCE;
-  else if(data[3] == 0xb5)
+  switch(data[3])
     {
-    if(data[4] >> 4 == 0x01)
-      return MPEG_CODE_SEQUENCE_EXT;
-    else if(data[4] >> 4 == 0x08)
-      return MPEG_CODE_PICTURE_EXT;
+    case 0xb3:
+      return MPEG_CODE_SEQUENCE;
+      break;
+    case 0xb5:
+      switch(data[4] >> 4)
+        {
+        case 0x01:
+          return MPEG_CODE_SEQUENCE_EXT;
+          break;
+        case 0x08:
+          return MPEG_CODE_PICTURE_EXT;
+          break;
+        case 0x02:
+          return MPEG_CODE_SEQUENCE_DISPLAY_EXT;
+          break;
+        }
+      break;
+    case 0x00:
+      return MPEG_CODE_PICTURE;
+      break;
+    case 0xb8:
+      return MPEG_CODE_GOP;
+      break;
+    case 0xb7:
+      return MPEG_CODE_END;
+      break;
     }
-  else if(data[3] == 0x00)
-    return MPEG_CODE_PICTURE;
-  else if(data[3] == 0xb8)
-    return MPEG_CODE_GOP;
-  else if(data[3] == 0xb7)
-    return MPEG_CODE_END;
-  else if((data[3] >= 0x01) && (data[3] <= 0xaf))
+  if((data[3] >= 0x01) && (data[3] <= 0xaf))
     return MPEG_CODE_SLICE;
   return 0;
   }
 
+int bgav_mpv_sequence_display_extension_parse(const bgav_options_t * opt,
+                                              bgav_mpv_sequence_display_extension_t * ret,
+                                              const uint8_t * buffer, int len)
+  {
+  int num = 4 + 4;
+  
+  buffer += 4;
+  len -= 4;
+
+  ret->video_format = (buffer[0] & 0x0f) >> 1;
+  
+  if(buffer[0] & 0x01)
+    {
+    if(len < 8)
+      return 0;
+
+    ret->has_color_description    = 1;
+    ret->color_primaries          = buffer[1];
+    ret->transfer_characteristics = buffer[2];
+    ret->matrix_coefficients      = buffer[3];
+    buffer += 3;
+    num += 3;
+    }
+  else if(len < 5)
+    return 0;
+
+  ret->display_width = (buffer[1] << 6) | (buffer[2] >> 2);
+  ret->display_height = ((buffer[2]& 1 ) << 13) | (buffer[3] << 5) | (buffer[4] >> 3);
+
+  fprintf(stderr, "Got display width: %d %d\n", ret->display_width, ret->display_height);
+  
+  return num;
+  }
 
 static const struct
   {
@@ -247,13 +294,12 @@ int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
   
   ret->horizontal_size_value = i >> 12;
   ret->vertical_size_value = i & 0xfff;
-    
+  ret->aspect_ratio = buffer[3] >> 4;
   ret->frame_rate_index = buffer[3] & 0xf;
 
   //  ret->timescale      = framerates[frame_rate_index].timescale;
   //  ret->frame_duration = framerates[frame_rate_index].frame_duration;
-  
-  
+ 
   ret->bitrate = (buffer[4]<<10)|(buffer[5]<<2)|(buffer[6]>>6);
   return 7;
   }
@@ -277,7 +323,7 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
   ret->frame_duration_ext   = (buffer[5] & 0x1f);
   ret->low_delay            = !!(buffer[5] & 0x80);
   
-  return 6;
+  return 10;
   }
 
 int bgav_mpv_picture_header_parse(const bgav_options_t * opt,
