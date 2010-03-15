@@ -125,6 +125,13 @@ void bgav_superindex_set_durations(bgav_superindex_t * idx,
   if(idx->entries[s->first_index_position].duration)
     return;
   
+  /* Special case if there is only one chunk */
+  if(s->first_index_position == s->last_index_position)
+    {
+    idx->entries[s->first_index_position].duration = s->duration;
+    return;
+    }
+  
   i = s->first_index_position+1;
   while(idx->entries[i].stream_id != s->stream_id)
     i++;

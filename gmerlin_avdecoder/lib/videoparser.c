@@ -28,8 +28,8 @@
 #include <videoparser_priv.h>
 #include <utils.h>
 
-// #define DUMP_INPUT
-// #define DUMP_OUTPUT
+#define DUMP_INPUT
+#define DUMP_OUTPUT
 
 static const struct
   {
