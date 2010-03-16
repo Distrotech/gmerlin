@@ -51,6 +51,7 @@ bin_PROGRAMS = gmerlin_imgconvert \
 gmerlin_imgdiff \
 gmerlin_psnr \
 gmerlin_ssim \
+gmerlin_vanalyze \
 gmerlin_vpsnr \
 gmerlin_visualize
 
@@ -86,6 +87,9 @@ gmerlin_ssim_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_vpsnr_SOURCES = gmerlin_vpsnr.c
 gmerlin_vpsnr_LDADD = ../lib/libgmerlin.la -ldl
+
+gmerlin_vanalyze_SOURCES = gmerlin_vanalyze.c
+gmerlin_vanalyze_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_visualize_SOURCES = gmerlin_visualize.c
 gmerlin_visualize_LDADD = ../lib/libgmerlin.la -ldl
