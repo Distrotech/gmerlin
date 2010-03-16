@@ -271,18 +271,18 @@ static double psnr_float(const uint8_t * src1, int src1_stride,
                          int w, int h, int advance)
   {
   int i, j;
-  const uint16_t *s1;
-  const uint16_t *s2;
+  const float *s1;
+  const float *s2;
   double ret = 0;
   double diff;
   for(i = 0; i < h; i++)
     {
-    s1 = (const uint16_t *)(src1 + i * src1_stride);
-    s2 = (const uint16_t *)(src2 + i * src2_stride);
+    s1 = (const float *)(src1 + i * src1_stride);
+    s2 = (const float *)(src2 + i * src2_stride);
     
     for(j = 0; j < w; j++)
       {
-      diff = *s1 - *s2;
+      diff = (*s1) - (*s2);
       diff *= diff;
       ret += diff;
       s1+= advance;

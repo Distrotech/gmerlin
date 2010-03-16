@@ -172,9 +172,9 @@ void gavl_packet_dump(const gavl_packet_t * p)
     fprintf(stderr, "dts: %"PRId64" ", p->dts);
   else
     fprintf(stderr, "dts: None ");
-  fprintf(stderr, "dur: %"PRId64"\n", p->duration);
+  fprintf(stderr, "dur: %"PRId64, p->duration);
 
-  fprintf(stderr, "  head: %d, f2: %d",
+  fprintf(stderr, " head: %d, f2: %d\n",
           p->header_size, p->field2_offset);
   
   hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16);
