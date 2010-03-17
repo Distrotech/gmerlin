@@ -240,7 +240,7 @@ static void get_format(bgav_stream_t*s,
     ret->pixel_height = sequence->pixel_height;
     }
     //  else
-    //    priv->flags |= FLAG_EXTERN_ASPECT;
+    priv->flags |= FLAG_EXTERN_ASPECT;
   
   if(sequence->chroma_height == sequence->height/2)
     {

@@ -440,7 +440,8 @@ static bgav_video_decoder_t decoder =
   {
     .name =   "Schroedinger decoder",
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('d', 'r', 'a', 'c'),
-                            0x00  },
+                              BGAV_MK_FOURCC('B', 'B', 'C', 'D'),
+                              0x00  },
     .init =   init_schroedinger,
     .decode = decode_schroedinger,
     .close =  close_schroedinger,

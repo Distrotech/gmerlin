@@ -61,7 +61,7 @@
 #define FOURCC_SPEEX     BGAV_MK_FOURCC('S','P','E','X')
 #define FOURCC_OGM_AUDIO BGAV_MK_FOURCC('O','G','M','A')
 #define FOURCC_OGM_VIDEO BGAV_MK_FOURCC('O','G','M','V')
-#define FOURCC_DIRAC     BGAV_MK_FOURCC('d','r','a','c')
+#define FOURCC_DIRAC     BGAV_MK_FOURCC('B','B','C','D')
 
 #define FOURCC_OGM_TEXT  BGAV_MK_FOURCC('T','E','X','T')
 

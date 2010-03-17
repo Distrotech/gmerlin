@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-// #define DUMP_SUPERINDEX    
+#define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 #include <parser.h>
 

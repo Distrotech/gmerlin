@@ -630,6 +630,12 @@ static uint32_t theora_fourccs[] =
     0x00
   };
 
+static uint32_t dirac_fourccs[] =
+  {
+    BGAV_MK_FOURCC('d','r','a','c'),
+    0x00
+  };
+
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
   int i = 0;
@@ -677,6 +683,10 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   else if(check_fourcc(s->fourcc, theora_fourccs))
     {
     id = GAVL_CODEC_ID_THEORA;
+    }
+  else if(check_fourcc(s->fourcc, dirac_fourccs))
+    {
+    id = GAVL_CODEC_ID_DIRAC;
     }
   else
     return 0;
