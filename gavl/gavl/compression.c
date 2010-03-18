@@ -168,10 +168,6 @@ void gavl_packet_dump(const gavl_packet_t * p)
   else
     fprintf(stderr, "pts: None ");
 
-  if(p->dts != GAVL_TIME_UNDEFINED)
-    fprintf(stderr, "dts: %"PRId64" ", p->dts);
-  else
-    fprintf(stderr, "dts: None ");
   fprintf(stderr, "dur: %"PRId64, p->duration);
 
   fprintf(stderr, " head: %d, f2: %d\n",

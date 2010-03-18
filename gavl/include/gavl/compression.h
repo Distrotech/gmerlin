@@ -157,7 +157,6 @@ typedef struct
   int flags;      //!< ORed combination of GAVL_PACKET_* flags
 
   int64_t pts;      //!< Presentation time
-  int64_t dts;      //!< Decoding time (only for streams with B-frames
   int64_t duration; //!< Duration of the contained frame
 
   int field2_offset; //!< Offset of field 2 for field pictures
