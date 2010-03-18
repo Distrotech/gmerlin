@@ -84,14 +84,6 @@ static int find_tag(bgav_demuxer_context_t * ctx, uint32_t tag)
   return -1;
   }
 
-
-static void cleanup_stream_wav(bgav_stream_t * s)
-  {
-  if(s->ext_data)
-    free(s->ext_data);
-  }
-
-
 static int open_wav(bgav_demuxer_context_t * ctx)
   {
   uint8_t * buf;
@@ -133,7 +125,6 @@ static int open_wav(bgav_demuxer_context_t * ctx)
     goto fail;
   
   s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-  s->cleanup = cleanup_stream_wav;
   s->stream_id = STREAM_ID;
   
   buf = malloc(format_size);

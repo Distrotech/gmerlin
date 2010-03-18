@@ -496,8 +496,6 @@ static void cleanup_stream_ogg(bgav_stream_t * s)
     bgav_metadata_free(&stream_priv->metadata);
     free(stream_priv);
     }
-  if(s->ext_data)
-    free(s->ext_data);
   }
 
 /* Set up a track, which starts at start position */

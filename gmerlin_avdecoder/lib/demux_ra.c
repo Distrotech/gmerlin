@@ -224,8 +224,9 @@ static int open_ra(bgav_demuxer_context_t * ctx)
       priv->ext_data[2] = 0;
       priv->ext_data[3] = 0x14;
       priv->ext_data[4] = 0;
-      s->ext_data = (uint8_t*)priv->ext_data;
       s->ext_size = 10;
+      s->ext_data = malloc(s->ext_size);
+      memcpy(s->ext_data, (uint8_t*)priv->ext_data, s->ext_size);
       break;
     case BGAV_MK_FOURCC('2', '8', '_', '8'):
       priv->ext_data[0]=0;
@@ -233,8 +234,10 @@ static int open_ra(bgav_demuxer_context_t * ctx)
       priv->ext_data[2]=codec_flavor;
       priv->ext_data[3]=coded_framesize;
       priv->ext_data[4]=0;
-      s->ext_data = (uint8_t*)priv->ext_data;
+
       s->ext_size = 10;
+      s->ext_data = malloc(s->ext_size);
+      memcpy(s->ext_data, (uint8_t*)priv->ext_data, s->ext_size);
       break;
     case BGAV_MK_FOURCC('d', 'n', 'e', 't'):
       priv->ext_data[0]=0;
@@ -242,11 +245,11 @@ static int open_ra(bgav_demuxer_context_t * ctx)
       priv->ext_data[2]=codec_flavor;
       priv->ext_data[3]=coded_framesize;
       priv->ext_data[4]=0;
-      s->ext_data = (uint8_t*)priv->ext_data;
       s->ext_size = 10;
+      s->ext_data = malloc(s->ext_size);
+      memcpy(s->ext_data, (uint8_t*)priv->ext_data, s->ext_size);
       break;
     }
-
   
   ctx->stream_description = bgav_sprintf("Real audio Version %d", version);
   return 1;

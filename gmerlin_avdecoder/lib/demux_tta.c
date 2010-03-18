@@ -88,11 +88,6 @@ static int probe_tta(bgav_input_context_t * input)
   return 0;
   }
 
-static void cleanup_stream_tta(bgav_stream_t * s)
-  {
-  if(s->ext_data)
-    free(s->ext_data);
-  }
 
 static int open_tta(bgav_demuxer_context_t * ctx)
   {
@@ -112,7 +107,6 @@ static int open_tta(bgav_demuxer_context_t * ctx)
   /* Set up generic stuff */
   ctx->tt = bgav_track_table_create(1);
   s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-  s->cleanup = cleanup_stream_tta;
   s->data.audio.format.num_channels = h.num_channels;
   s->data.audio.format.samplerate = h.samplerate;
   s->fourcc = BGAV_MK_FOURCC('T','T','A','1');

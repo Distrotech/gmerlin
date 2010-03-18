@@ -281,10 +281,7 @@ static void cleanup_stream_asf(bgav_stream_t * s)
   if(s->type == BGAV_STREAM_AUDIO)
     {
     as = (asf_audio_stream_t*)s->priv;
-
-    if(s->ext_data)
-      free(s->ext_data);
-
+    
     if(as->scramble_buffer)
       free(as->scramble_buffer);
     if(s->priv)
@@ -292,8 +289,6 @@ static void cleanup_stream_asf(bgav_stream_t * s)
     }
   else
     {
-    if(s->ext_data)
-      free(s->ext_data);
     if(s->priv)
       free(s->priv);
     }

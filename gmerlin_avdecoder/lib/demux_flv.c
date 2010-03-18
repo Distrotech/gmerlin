@@ -138,18 +138,12 @@ static void flv_tag_dump(flv_tag * t)
   }
 #endif
 
-static void cleanup_stream_flv(bgav_stream_t * s)
-  {
-  if(s->ext_data) free(s->ext_data);
-  }
-
 static void add_audio_stream(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * as = (bgav_stream_t*)0;
   as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   as->stream_id = AUDIO_ID;
   as->timescale = 1000;
-  as->cleanup = cleanup_stream_flv;
   }
 
 static void add_video_stream(bgav_demuxer_context_t * ctx)
@@ -160,7 +154,6 @@ static void add_video_stream(bgav_demuxer_context_t * ctx)
   
   vs->stream_id = VIDEO_ID;
   vs->timescale = 1000;
-  vs->cleanup = cleanup_stream_flv;
   }
 
 static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s, 

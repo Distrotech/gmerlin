@@ -40,9 +40,10 @@ typedef struct bgav_redirector_s         bgav_redirector_t;
 typedef struct bgav_redirector_context_s bgav_redirector_context_t;
 
 typedef struct bgav_packet_s          bgav_packet_t;
-typedef struct bgav_file_index_s          bgav_file_index_t;
-typedef struct bgav_video_parser_s         bgav_video_parser_t;
-typedef struct bgav_audio_parser_s         bgav_audio_parser_t;
+typedef struct bgav_file_index_s      bgav_file_index_t;
+typedef struct bgav_video_parser_s    bgav_video_parser_t;
+typedef struct bgav_audio_parser_s    bgav_audio_parser_t;
+typedef struct bgav_bsf_s             bgav_bsf_t;
 
 typedef struct bgav_input_s                    bgav_input_t;
 typedef struct bgav_input_context_s            bgav_input_context_t;

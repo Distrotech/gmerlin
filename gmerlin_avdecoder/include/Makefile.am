@@ -11,6 +11,8 @@ bgav_dca.h \
 bgav_sem.h \
 bgav_vdpau.h \
 bitstream.h \
+bsf.h \
+bsf_private.h \
 bswap.h \
 cavs_header.h \
 codecs.h \

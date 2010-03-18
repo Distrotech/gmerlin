@@ -82,7 +82,6 @@ static uint32_t seek_indx(bgav_rmff_indx_t * indx, uint32_t millisecs,
 static void cleanup_stream_rm(bgav_stream_t * s)
   {
   if(s->priv) free(s->priv);
-  if(s->ext_data) free(s->ext_data);
   }
 
 /* Get position for multirate files */

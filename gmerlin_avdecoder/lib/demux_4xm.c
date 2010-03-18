@@ -219,7 +219,8 @@ static int setup_video_stream(bgav_demuxer_context_t * ctx,
         if(bgav_input_read_data(ctx->input, priv->video_tag, 4) < 4)
           return 0;
 
-        s->ext_data = priv->video_tag;
+        s->ext_data = malloc(4);
+        memcpy(s->ext_data, priv->video_tag, 4);
         s->ext_size = 4;
         
         bgav_input_skip(ctx->input, 16); // bytes 8-35   unknown

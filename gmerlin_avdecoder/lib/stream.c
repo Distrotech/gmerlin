@@ -123,6 +123,10 @@ void bgav_stream_free(bgav_stream_t * s)
      members are still functional */
   if(s->cleanup)
     s->cleanup(s);
+  
+  if(s->ext_data)
+    free(s->ext_data);
+  
   if(s->description)
     free(s->description);
   if(s->info)

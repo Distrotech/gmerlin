@@ -482,7 +482,8 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   s->data.audio.format.num_channels = codec->channels;
   s->data.audio.format.samplerate = codec->sample_rate;
   s->ext_size = codec->extradata_size;
-  s->ext_data = codec->extradata;
+  s->ext_data = malloc(s->ext_size);
+  memcpy(s->ext_data, codec->extradata, codec->extradata_size);
   s->container_bitrate = codec->bit_rate;
   s->stream_id = index;
   
@@ -552,7 +553,9 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   s->data.video.depth = codec->bits_per_coded_sample;
 #endif
   s->ext_size = codec->extradata_size;
-  s->ext_data = codec->extradata;
+  s->ext_data = malloc(s->ext_size);
+  memcpy(s->ext_data, codec->extradata, codec->extradata_size);
+  
   s->container_bitrate = codec->bit_rate;
   s->stream_id = index;
 

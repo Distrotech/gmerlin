@@ -137,9 +137,11 @@ static int open_vmd(bgav_demuxer_context_t * ctx)
   vs->data.video.format.frame_height = vs->data.video.format.image_height;
   vs->data.video.format.pixel_width  = 1;
   vs->data.video.format.pixel_height = 1;
-  vs->ext_data = priv->header;
   vs->ext_size = VMD_HEADER_SIZE;
 
+  vs->ext_data = malloc(vs->ext_size);
+  memcpy(vs->ext_data, priv->header, vs->ext_size);
+  
   /* Initialize audio stream */
   samplerate = BGAV_PTR_2_16LE(&priv->header[804]);
 

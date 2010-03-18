@@ -386,6 +386,8 @@ asmrp.c \
 base64.c \
 bgav.c \
 bitstream.c \
+bsf.c \
+bsf_avcc.c \
 bytebuffer.c \
 chapterlist.c \
 charset.c \

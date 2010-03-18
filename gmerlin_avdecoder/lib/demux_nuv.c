@@ -53,11 +53,6 @@ static int probe_nuv(bgav_input_context_t * input)
   return 0;
   }
 
-static void cleanup_stream_nuv(bgav_stream_t * s)
-  {
-  if(s->ext_data)
-    free(s->ext_data);
-  }
 
 static int open_nuv(bgav_demuxer_context_t * ctx)
   {
@@ -113,7 +108,6 @@ static int open_nuv(bgav_demuxer_context_t * ctx)
   if(v_packs)
     {
     vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-    vs->cleanup = cleanup_stream_nuv;
     vs->stream_id = VIDEO_ID;
     vs->fourcc = BGAV_MK_FOURCC('N', 'U', 'V', ' ');
     vs->timescale = 1000;

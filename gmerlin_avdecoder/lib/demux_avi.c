@@ -1171,8 +1171,6 @@ static void cleanup_stream_avi(bgav_stream_t * s)
   if(s->type == BGAV_STREAM_AUDIO)
     {
     audio_priv_t * avi_as;
-    if(s->ext_data)
-      free(s->ext_data);
     avi_as = (audio_priv_t*)(s->priv);
     if(avi_as)
       {
@@ -1186,8 +1184,6 @@ static void cleanup_stream_avi(bgav_stream_t * s)
     video_priv_t * avi_vs;
     if(s->data.video.palette_size)
       free(s->data.video.palette);
-    if(s->ext_data)
-      free(s->ext_data);
 
     avi_vs = (video_priv_t*)(s->priv);
 

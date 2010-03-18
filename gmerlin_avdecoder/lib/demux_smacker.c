@@ -115,12 +115,6 @@ static int read_header(bgav_input_context_t * input,
   return 1;
   }
 
-
-static void cleanup_stream_smacker(bgav_stream_t * s)
-  {
-  if(s->ext_data) free(s->ext_data);
-  }
-
 #if 0
 static void dump_header(smacker_header_t * h)
   {
@@ -202,7 +196,6 @@ static int open_smacker(bgav_demuxer_context_t * ctx)
   s = bgav_track_add_video_stream(ctx->tt->cur,
                                   ctx->opt);
   s->fourcc = priv->h.Signature;
-  s->cleanup = cleanup_stream_smacker;
   s->stream_id = VIDEO_ID;
   
   s->data.video.format.image_width  = priv->h.Width;
@@ -240,7 +233,6 @@ static int open_smacker(bgav_demuxer_context_t * ctx)
       {
       s = bgav_track_add_audio_stream(ctx->tt->cur,
                                       ctx->opt);
-      s->cleanup = cleanup_stream_smacker;
       if(priv->h.AudioRate[i] & SMK_AUD_PACKED)
         s->fourcc = BGAV_MK_FOURCC('S','M','K','A');
       else

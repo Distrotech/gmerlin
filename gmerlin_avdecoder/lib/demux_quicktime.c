@@ -929,8 +929,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       if(desc->has_esds)
         {
+        bg_as->ext_data = malloc(desc->esds.decoderConfigLen);
+        memcpy(bg_as->ext_data, desc->esds.decoderConfig,
+               desc->esds.decoderConfigLen);
         bg_as->ext_size = desc->esds.decoderConfigLen;
-        bg_as->ext_data = desc->esds.decoderConfig;
         
         /* Check for mp3on4 */
         if((desc->esds.objectTypeId == 64) &&
@@ -949,9 +951,13 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       else if(bg_as->fourcc == BGAV_MK_FOURCC('l', 'p', 'c', 'm'))
         {
-        /* Quicktime 7 lpcm: extradata contains formatSpecificFlags in native byte order */
-        bg_as->ext_data = (uint8_t*)(&(desc->format.audio.formatSpecificFlags));
+        /* Quicktime 7 lpcm: extradata contains formatSpecificFlags
+           in native byte order */
         bg_as->ext_size = sizeof(desc->format.audio.formatSpecificFlags);
+
+        bg_as->ext_data = malloc(bg_as->ext_size);
+        memcpy(bg_as->ext_data, &desc->format.audio.formatSpecificFlags,
+               bg_as->ext_size);
         }
       else if(desc->format.audio.has_wave)
         {
@@ -959,7 +965,11 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
            (desc->format.audio.wave.esds.decoderConfigLen))
           {
           bg_as->ext_size = desc->format.audio.wave.esds.decoderConfigLen;
-          bg_as->ext_data = desc->format.audio.wave.esds.decoderConfig;
+
+          bg_as->ext_data = malloc(bg_as->ext_size);
+          memcpy(bg_as->ext_data,
+                 desc->format.audio.wave.esds.decoderConfig,
+                 bg_as->ext_size);
           }
         else if(desc->format.audio.wave.num_user_atoms)
           {
@@ -973,8 +983,14 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
               case BGAV_MK_FOURCC('O','V','H','S'):
               case BGAV_MK_FOURCC('a','l','a','c'):
               case BGAV_MK_FOURCC('g','l','b','l'):
+                
                 bg_as->ext_size = atom_size;
-                bg_as->ext_data = desc->format.audio.wave.user_atoms[j];
+
+                bg_as->ext_data = malloc(bg_as->ext_size);
+                
+                memcpy(bg_as->ext_data,
+                       desc->format.audio.wave.user_atoms[j],
+                       bg_as->ext_size);
                 break;
               default:
                 break;
@@ -987,14 +1003,19 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         if(!bg_as->ext_size)
           {
           /* Raw wave atom needed by win32 decoders (QDM2) */
-          bg_as->ext_data = desc->format.audio.wave.raw;
           bg_as->ext_size = desc->format.audio.wave.raw_size;
+
+          bg_as->ext_data = malloc(bg_as->ext_size);
+          memcpy(bg_as->ext_data, desc->format.audio.wave.raw,
+                 bg_as->ext_size);
           }
         }
       else if(desc->has_glbl)
         {
-        bg_as->ext_data = desc->glbl.data;
         bg_as->ext_size = desc->glbl.size;
+        
+        bg_as->ext_data = malloc(bg_as->ext_size);
+        memcpy(bg_as->ext_data, desc->glbl.data, bg_as->ext_size);
         }
       
       bg_as->stream_id = i;
@@ -1138,15 +1159,22 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         if(stsd->entries[skip_first_frame].desc.format.video.has_SMI)
           {
           bg_vs->ext_size = stsd->entries[0].data_size;
-          bg_vs->ext_data = stsd->entries[0].data;
+          bg_vs->ext_data = malloc(bg_vs->ext_size);
+          memcpy(bg_vs->ext_data, stsd->entries[0].data, bg_vs->ext_size);
           }
         }
       else if((bg_vs->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
               (stsd->entries[0].desc.format.video.avcC_offset))
         {
-        bg_vs->ext_data = stsd->entries[skip_first_frame].data +
-          stsd->entries[0].desc.format.video.avcC_offset;
-        bg_vs->ext_size = stsd->entries[skip_first_frame].desc.format.video.avcC_size;
+        bg_vs->ext_size =
+          stsd->entries[skip_first_frame].desc.format.video.avcC_size;
+        
+        bg_vs->ext_data = malloc(bg_vs->ext_size);
+
+        memcpy(bg_vs->ext_data, 
+               stsd->entries[skip_first_frame].data +
+               stsd->entries[0].desc.format.video.avcC_offset,
+               bg_vs->ext_size);
         }
       
       /* Set mp4 extradata */
@@ -1156,13 +1184,16 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         {
         bg_vs->ext_size =
           stsd->entries[skip_first_frame].desc.esds.decoderConfigLen;
-        bg_vs->ext_data =
-          stsd->entries[skip_first_frame].desc.esds.decoderConfig;
+        bg_vs->ext_data = malloc(bg_vs->ext_size);
+        memcpy(bg_vs->ext_data,
+               stsd->entries[skip_first_frame].desc.esds.decoderConfig,
+               bg_vs->ext_size);
         }
       else if(desc->has_glbl)
         {
-        bg_vs->ext_data = desc->glbl.data;
         bg_vs->ext_size = desc->glbl.size;
+        bg_vs->ext_data = malloc(bg_vs->ext_size);
+        memcpy(bg_vs->ext_data, desc->glbl.data, bg_vs->ext_size);
         }
       bg_vs->stream_id = i;
 
