@@ -506,7 +506,6 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   memcpy(p->data, bp->data, bp->data_size);
   p->data_len = bp->data_size;
   p->pts = bp->pts;
-  p->dts = bp->dts;
   p->duration = bp->duration;
 
   p->flags = GAVL_PACKET_KEYFRAME;

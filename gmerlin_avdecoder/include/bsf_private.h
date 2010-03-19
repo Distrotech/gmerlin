@@ -25,6 +25,9 @@ struct bgav_bsf_s
   void (*filter)(bgav_bsf_t*, bgav_packet_t * in, bgav_packet_t * out);
   bgav_stream_t * s;
   void * priv;
+
+  uint8_t * ext_data;
+  int ext_size;
   };
 
 void bgav_bsf_init_avcC(bgav_bsf_t*);

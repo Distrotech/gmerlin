@@ -25,6 +25,7 @@
 
 #include <avdec_private.h>
 #include <parser.h>
+#include <bsf.h>
 
 // #define DUMP_TIMESTAMPS
 
@@ -636,6 +637,19 @@ static uint32_t dirac_fourccs[] =
     0x00
   };
 
+static uint32_t h264_fourccs[] =
+  {
+    BGAV_MK_FOURCC('H','2','6','4'),
+    0x00
+  };
+
+static uint32_t avc1_fourccs[] =
+  {
+    BGAV_MK_FOURCC('a','v','c','1'),
+    0x00
+  };
+
+
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
   int i = 0;
@@ -655,73 +669,69 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   gavl_codec_id_t id;
   bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
   memset(info, 0, sizeof(*info));
-
+  
   if(check_fourcc(s->fourcc, png_fourccs))
-    {
     id = GAVL_CODEC_ID_PNG;
-    }
   else if(check_fourcc(s->fourcc, jpeg_fourccs))
-    {
     id = GAVL_CODEC_ID_JPEG;
-    }
   else if(check_fourcc(s->fourcc, tiff_fourccs))
-    {
     id = GAVL_CODEC_ID_TIFF;
-    }
   else if(check_fourcc(s->fourcc, tga_fourccs))
-    {
     id = GAVL_CODEC_ID_TGA;
-    }
   else if(check_fourcc(s->fourcc, mpeg1_fourccs))
-    {
     id = GAVL_CODEC_ID_MPEG1;
-    }
   else if(check_fourcc(s->fourcc, mpeg2_fourccs))
-    {
     id = GAVL_CODEC_ID_MPEG2;
-    }
   else if(check_fourcc(s->fourcc, theora_fourccs))
-    {
     id = GAVL_CODEC_ID_THEORA;
-    }
   else if(check_fourcc(s->fourcc, dirac_fourccs))
-    {
     id = GAVL_CODEC_ID_DIRAC;
+  else if(check_fourcc(s->fourcc, h264_fourccs))
+    id = GAVL_CODEC_ID_H264;
+  else if(check_fourcc(s->fourcc, avc1_fourccs))
+    {
+    id = GAVL_CODEC_ID_H264;
+    s->flags |= STREAM_FILTER_PACKETS;
     }
   else
     return 0;
   
   info->id = id;
-  
-  if(s->ext_size)
+
+  if(s->flags & STREAM_FILTER_PACKETS)
+    {
+    const uint8_t * header;
+    int header_size;
+    s->bsf = bgav_bsf_create(s);
+    header = bgav_bsf_get_header(s->bsf, &header_size);
+
+    if(header)
+      {
+      info->global_header = malloc(header_size);
+      memcpy(info->global_header, header, header_size);
+      info->global_header_len = header_size;
+      }
+    }
+  else if(s->ext_size)
     {
     info->global_header = malloc(s->ext_size);
     memcpy(info->global_header, s->ext_data, s->ext_size);
     info->global_header_len = s->ext_size;
     }
-
+  
   if(!(s->flags & STREAM_INTRA_ONLY))
     info->flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
   if(s->flags & STREAM_B_FRAMES)
     info->flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+  if(s->flags & STREAM_FIELD_PICTURES)
+    info->flags |= GAVL_COMPRESSION_HAS_FIELD_PICTURES;
   
   return 1;
   }
 
-int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
+static void copy_packet_fields(gavl_packet_t * p, bgav_packet_t * bp)
   {
-  bgav_packet_t * bp;
-  bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
-  
-  bp = bgav_demuxer_get_packet_read(s->demuxer, s);
-  if(!bp)
-    return 0;
-  
-  gavl_packet_alloc(p, bp->data_size);
-  memcpy(p->data, bp->data, bp->data_size);
-  p->data_len = bp->data_size;
   p->pts = bp->pts;
-  p->dts = bp->dts;
   p->duration = bp->duration;
 
   p->header_size   = bp->header_size;
@@ -747,6 +757,41 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
 
   if(PACKET_GET_KEYFRAME(bp))
     p->flags |= GAVL_PACKET_KEYFRAME;
+
+  }
+
+int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
+  {
+  bgav_packet_t * bp;
+  bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
+  
+  bp = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!bp)
+    return 0;
+
+  if(s->flags & STREAM_FILTER_PACKETS)
+    {
+    bgav_packet_t tmp_packet;
+    memset(&tmp_packet, 0, sizeof(tmp_packet));
+
+    tmp_packet.data = p->data;
+    tmp_packet.data_alloc = p->data_alloc;
+    bgav_bsf_run(s->bsf, bp, &tmp_packet);
+
+    p->data = tmp_packet.data;
+    p->data_alloc = tmp_packet.data_alloc;
+    p->data_len  = tmp_packet.data_size;
+
+    copy_packet_fields(p, &tmp_packet);
+    }
+  else
+    {
+    gavl_packet_alloc(p, bp->data_size);
+    memcpy(p->data, bp->data, bp->data_size);
+    p->data_len = bp->data_size;
+
+    copy_packet_fields(p, bp);
+    }
   
   bgav_demuxer_done_packet_read(s->demuxer, bp);
   

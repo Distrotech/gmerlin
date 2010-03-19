@@ -353,6 +353,8 @@ typedef enum
 #define STREAM_PARSE_HAVE_FORMAT  (1<<12)
 
 #define STREAM_RAW_PACKETS        (1<<13)
+#define STREAM_FIELD_PICTURES     (1<<14)
+#define STREAM_FILTER_PACKETS     (1<<15)
 
 
 /* Stream could not get exact compression info from the
@@ -477,6 +479,7 @@ struct bgav_stream_s
   gavl_timecode_t codec_timecode;
 
   bgav_packet_t * parsed_packet;
+  bgav_bsf_t * bsf;
   
   union
     {

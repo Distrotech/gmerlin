@@ -1,10 +1,10 @@
 INCLUDES = -I$(top_srcdir)/include
 
-bin_PROGRAMS = bgavdump
+bin_PROGRAMS = bgavdump \
+bgavdemux
 
 noinst_PROGRAMS = \
 bgavsave \
-bgavdemux \
 frametable \
 indexdump \
 indextest \

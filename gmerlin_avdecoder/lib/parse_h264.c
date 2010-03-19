@@ -475,6 +475,9 @@ static int handle_nal(bgav_video_parser_t * parser)
         bgav_h264_sps_get_image_size(&priv->sps,
                                      parser->format);
         parser->max_ref_frames = priv->sps.num_ref_frames;
+        
+        if(!priv->sps.frame_mbs_only_flag)
+          parser->s->flags |= STREAM_FIELD_PICTURES;
         }
       priv->have_sps = 1;
 

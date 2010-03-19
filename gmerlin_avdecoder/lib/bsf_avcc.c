@@ -42,15 +42,15 @@ static void append_data(bgav_packet_t * p, uint8_t * data, int len,
   switch(header_len)
     {
     case 0:
-      bgav_packet_alloc(p, p->data_size);
+      bgav_packet_alloc(p, p->data_size + len);
       break;
     case 3:
-      bgav_packet_alloc(p, p->data_size + 3);
+      bgav_packet_alloc(p, p->data_size + 3 + len);
       memcpy(p->data + p->data_size, &nal_header[1], 3);
       p->data_size += 3;
       break;
     case 4:
-      bgav_packet_alloc(p, p->data_size + 4);
+      bgav_packet_alloc(p, p->data_size + 4 + len);
       memcpy(p->data + p->data_size, nal_header, 4);
       p->data_size += 4;
       break;
@@ -74,7 +74,9 @@ filter_avcc(bgav_bsf_t* bsf, bgav_packet_t * in, bgav_packet_t * out)
 
   if(!priv->header_sent)
     {
-    append_data(out, bsf->s->ext_data, bsf->s->ext_size, 0);
+    append_data(out, bsf->ext_data, bsf->ext_size, 0);
+    priv->header_sent = 1;
+    out->header_size = bsf->ext_size;
     }
   
   while(ptr < end - priv->nal_size_length)
@@ -108,14 +110,14 @@ cleanup_avcc(bgav_bsf_t * bsf)
   free(bsf->priv);
   }
 
-static void append_extradata(bgav_stream_t * s, uint8_t * data,
+static void append_extradata(bgav_bsf_t * bsf, uint8_t * data,
                              int len)
   {
-  s->ext_data = realloc(s->ext_data, s->ext_size + len + 4);
-  memcpy(s->ext_data + s->ext_size, nal_header, 4);
-  s->ext_size += 4;
-  memcpy(s->ext_data + s->ext_size, data, len);
-  s->ext_size += len;
+  bsf->ext_data = realloc(bsf->ext_data, bsf->ext_size + len + 4);
+  memcpy(bsf->ext_data + bsf->ext_size, nal_header, 4);
+  bsf->ext_size += 4;
+  memcpy(bsf->ext_data + bsf->ext_size, data, len);
+  bsf->ext_size += len;
   }
 
 void
@@ -123,8 +125,6 @@ bgav_bsf_init_avcC(bgav_bsf_t * bsf)
   {
   uint8_t * ptr;
   avcc_t * priv;
-  uint8_t * old_ext_data;
-  int old_ext_size;
   int num_units;
   int i;
   int len;
@@ -134,15 +134,8 @@ bgav_bsf_init_avcC(bgav_bsf_t * bsf)
   priv = calloc(1, sizeof(*priv));
   bsf->priv = priv;
 
-  /* Parse and replace extradata */
-  old_ext_data = bsf->s->ext_data;
-  old_ext_size = bsf->s->ext_size;
-
-  bsf->s->ext_data = NULL;
-  bsf->s->ext_size = 0;
-  
+  /* Parse extradata */
   ptr = bsf->s->ext_data;
-
   
   ptr += 4; // Version, profile, profile compat, level
   priv->nal_size_length = (*ptr & 0x3) + 1;
@@ -153,7 +146,7 @@ bgav_bsf_init_avcC(bgav_bsf_t * bsf)
   for(i = 0; i < num_units; i++)
     {
     len = BGAV_PTR_2_16BE(ptr); ptr += 2;
-    append_extradata(bsf->s, ptr, len);
+    append_extradata(bsf, ptr, len);
     ptr += len;
     }
 
@@ -162,7 +155,7 @@ bgav_bsf_init_avcC(bgav_bsf_t * bsf)
   for(i = 0; i < num_units; i++)
     {
     len = BGAV_PTR_2_16BE(ptr); ptr += 2;
-    append_extradata(bsf->s, ptr, len);
+    append_extradata(bsf, ptr, len);
     ptr += len;
     }
   

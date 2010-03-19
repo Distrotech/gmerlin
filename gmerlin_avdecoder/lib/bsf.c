@@ -35,7 +35,7 @@ static const struct
   }
 parsers[] =
   {
-    { BGAV_MK_FOURCC('a', 'v', 'c', 'C'), bgav_bsf_init_avcC },
+    { BGAV_MK_FOURCC('a', 'v', 'c', '1'), bgav_bsf_init_avcC },
   };
 
 bgav_bsf_t * bgav_bsf_create(bgav_stream_t * s)
@@ -47,7 +47,7 @@ bgav_bsf_t * bgav_bsf_create(bgav_stream_t * s)
     {
     if(s->fourcc == parsers[i].fourcc)
       {
-      ret = calloc(1, sizeof(ret));
+      ret = calloc(1, sizeof(*ret));
       ret->s = s;
       parsers[i].init_func(ret);
       return ret;
@@ -58,6 +58,14 @@ bgav_bsf_t * bgav_bsf_create(bgav_stream_t * s)
 
 void bgav_bsf_run(bgav_bsf_t * bsf, bgav_packet_t * in, bgav_packet_t * out)
   {
+  /* Set packet fields now, so the filter has a chance
+     to overwrite them */
+  
+  out->flags = in->flags;
+  out->pts = in->pts;
+  out->dts = in->dts;
+  out->duration = in->duration;
+    
   bsf->filter(bsf, in, out);
   }
 
@@ -65,5 +73,14 @@ void bgav_bsf_destroy(bgav_bsf_t * bsf)
   {
   if(bsf->cleanup)
     bsf->cleanup(bsf);
+  if(bsf->ext_data)
+    free(bsf->ext_data);
   free(bsf);
   }
+
+const uint8_t * bgav_bsf_get_header(bgav_bsf_t * bsf, int * size)
+  {
+  *size = bsf->ext_size;
+  return bsf->ext_data;
+  }
+  
