@@ -44,6 +44,7 @@ extern "C" {
 
 #define GAVL_COMPRESSION_HAS_P_FRAMES (1<<0) //!< Not all frames are keyframes
 #define GAVL_COMPRESSION_HAS_B_FRAMES (1<<1) //!< Frames don't appear in presentation order 
+#define GAVL_COMPRESSION_HAS_FIELD_PICTURES (1<<2) //!< Packets can consist of 2 consecutive fields
 
 typedef enum
   {
@@ -66,8 +67,7 @@ typedef enum
     GAVL_CODEC_ID_MPEG1,          //!< MPEG-1 video
     GAVL_CODEC_ID_MPEG2,          //!< MPEG-2 video
     GAVL_CODEC_ID_MPEG4_ASP,      //!< MPEG-4 ASP (a.k.a. Divx4)
-    GAVL_CODEC_ID_H264,           //!< H.264
-    GAVL_CODEC_ID_H264_ISOM,      //!< H.264 (mp4/mov variant)
+    GAVL_CODEC_ID_H264,           //!< H.264 (Annex B)
     GAVL_CODEC_ID_THEORA,         //!< Theora (segmented extradata
     GAVL_CODEC_ID_DIRAC,          //!< Complete DIRAC frames, sequence end code appended to last packet
     
