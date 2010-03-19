@@ -25,6 +25,8 @@
 
 #define PACKET_CACHE_MAX 16
 
+// #define DUMP_COMPRESSED
+
 static int load_file(bg_plugin_registry_t * plugin_reg,
                      bg_plugin_handle_t ** input_handle,
                      bg_input_plugin_t ** input_plugin,
@@ -109,6 +111,9 @@ static int load_file_compressed(bg_plugin_registry_t * plugin_reg,
     return 0;
     }
   
+#ifdef DUMP_COMPRESSED
+  gavl_compression_info_dump(ci);
+#endif  
   /* Select first stream */
   (*input_plugin)->set_video_stream((*input_handle)->priv, 0,
                                     BG_STREAM_ACTION_READRAW);
@@ -313,6 +318,10 @@ int main(int argc, char ** argv)
       if(!input_plugin_cmp->read_video_packet(input_handle_cmp->priv,
                                               0, &packet))
         break;
+#ifdef DUMP_COMPRESSED
+      gavl_packet_dump(&packet);
+#endif
+      
       packet_cache[packet_cache_size].pts = packet.pts;
       packet_cache[packet_cache_size].frame_bytes = packet.data_len;
       packet_cache_size++;
@@ -345,10 +354,10 @@ int main(int argc, char ** argv)
       return -1;
       }
     
-    //    gavl_packet_dump(&packet);
-    
     printf("%d %d %.6f %.6f\n", frame++, frame_bytes, psnr[0], ssim);
 
+    fflush(stdout);
+    
     frame_bytes_sum += frame_bytes;
     psnr_sum += psnr[0];
     ssim_sum += ssim;
