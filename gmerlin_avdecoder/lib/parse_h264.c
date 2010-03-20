@@ -462,7 +462,7 @@ static int handle_nal(bgav_video_parser_t * parser)
         bgav_h264_sps_parse(parser->opt,
                             &priv->sps,
                             priv->rbsp, priv->rbsp_len);
-        //        bgav_h264_sps_dump(&priv->sps);
+        bgav_h264_sps_dump(&priv->sps);
               
         priv->sps_len = priv->nal_len;
         priv->sps_buffer = malloc(priv->sps_len);
@@ -478,6 +478,9 @@ static int handle_nal(bgav_video_parser_t * parser)
         
         if(!priv->sps.frame_mbs_only_flag)
           parser->s->flags |= STREAM_FIELD_PICTURES;
+        if((priv->sps.vui.bitstream_restriction_flag) &&
+           (!priv->sps.vui.num_reorder_frames))
+          parser->s->flags &= ~STREAM_B_FRAMES;
         }
       priv->have_sps = 1;
 

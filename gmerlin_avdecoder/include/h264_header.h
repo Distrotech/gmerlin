@@ -107,6 +107,16 @@ typedef struct
   
   int low_delay_hrd_flag;
   int pic_struct_present_flag;
+  int bitstream_restriction_flag;
+  // if( bitstream_restriction_flag ) {
+  int motion_vectors_over_pic_boundaries_flag;
+  int max_bytes_per_pic_denom;
+  int max_bits_per_mb_denom;
+  int log2_max_mv_length_horizontal;
+  int log2_max_mv_length_vertical;
+  int num_reorder_frames;
+  int max_dec_frame_buffering;
+  // }
   
   } bgav_h264_vui_t;
 
