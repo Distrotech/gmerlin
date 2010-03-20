@@ -660,7 +660,6 @@ static void target_received_func(GtkClipboard *clipboard,
       return;
     else if(!strcmp(atom_name, cp_tracks_name))
       {
-      fprintf(stderr, "Paste tracks\n");
       gtk_clipboard_request_contents(clipboard,
                                      atoms[i],
                                      clipboard_received_func_tracks,
