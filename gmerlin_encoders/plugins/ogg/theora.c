@@ -642,12 +642,12 @@ static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
              "Theora encoder produced no packet");
       return 0;
       }
-
+#if 0
     fprintf(stderr, "Encoding granulepos: %lld %lld / %d\n",
             op.granulepos,
             op.granulepos >> theora->ti.keyframe_granule_shift,
             op.granulepos & ((1<<theora->ti.keyframe_granule_shift)-1));
-    
+#endif    
     ogg_stream_packetin(&theora->os,&op);
     if(bg_ogg_flush(&theora->os, theora->output, 0) < 0)
       {
@@ -753,11 +753,11 @@ static int write_packet_theora(void * data, gavl_packet_t * packet)
   op.granulepos =
     (theora->last_keyframe << theora->ti.keyframe_granule_shift) +
     theora->frames_since_keyframe;
-
+#if 0
   fprintf(stderr, "Encoding granulepos: %lld %lld / %d\n",
           op.granulepos, 
           theora->last_keyframe, theora->frames_since_keyframe);
-  
+#endif
   ogg_stream_packetin(&theora->os,&op);
   if(bg_ogg_flush(&theora->os, theora->output, 0) < 0)
     {

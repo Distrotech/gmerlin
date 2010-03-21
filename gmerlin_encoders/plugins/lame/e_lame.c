@@ -35,6 +35,8 @@
 
 #include <lame/lame.h>
 
+#include <xing.h>
+
 /* Supported samplerates for MPEG-1/2/2.5 */
 
 static const int samplerates[] =
@@ -179,6 +181,10 @@ typedef struct
   
   int64_t samples_read;
   bg_encoder_callbacks_t * cb;
+
+  const gavl_compression_info_t * ci;
+  bg_xing_t * xing;
+  uint32_t xing_pos;
   
   } lame_priv_t;
 
@@ -554,6 +560,28 @@ static int open_lame(void * data, const char * filename,
   return ret;
   }
 
+static int writes_compressed_audio_lame(void * data, const gavl_audio_format_t * format,
+                                       const gavl_compression_info_t * ci)
+  {
+  if((ci->id == GAVL_CODEC_ID_MP3_CBR) ||
+     (ci->id == GAVL_CODEC_ID_MP3_VBR))
+    return 1;
+  else
+    return 0;
+  }
+
+static int add_audio_stream_compressed_lame(void * data,
+                                            const char * language,
+                                            const gavl_audio_format_t * format,
+                                            const gavl_compression_info_t * ci)
+  {
+  lame_priv_t * lame;
+  
+  lame = (lame_priv_t*)data;
+  lame->ci = ci;
+  return 0;
+  }
+
 static int add_audio_stream_lame(void * data, const char * language,
                                  const gavl_audio_format_t * format)
   {
@@ -588,6 +616,29 @@ static int add_audio_stream_lame(void * data, const char * language,
   //  lame_set_out_samplerate(lame->lame, lame->format.samplerate);
   
   return 0;
+  }
+
+static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
+  {
+  lame_priv_t * lame;
+  
+  lame = (lame_priv_t*)data;
+
+  if((lame->ci->id == GAVL_CODEC_ID_MP3_VBR) &&
+     !lame->xing)
+    {
+    lame->xing = bg_xing_create(p->data, p->data_len);
+    lame->xing_pos = ftell(lame->output);
+    
+    if(!bg_xing_write(lame->xing, lame->output))
+      return 0;
+    }
+
+  bg_xing_update(lame->xing, p->data_len);
+  
+  if(fwrite(p->data, 1, p->data_len, lame->output) < p->data_len)
+    return 0;
+  return 1;
   }
 
 static int write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,
@@ -638,7 +689,7 @@ static int close_lame(void * data, int do_delete)
   lame = (lame_priv_t*)data;
 
   /* 1. Flush the buffer */
-
+  
   if(lame->samples_read)
     {
     if(lame->output_buffer_alloc < 7200)
@@ -658,6 +709,15 @@ static int close_lame(void * data, int do_delete)
       {
       lame_mp3_tags_fid(lame->lame, lame->output);
       }
+    }
+
+  /* Write xing tag if we wrote compressed stream */  
+  if(lame->xing)
+    {
+    uint64_t pos = ftell(lame->output);
+    fseek(lame->output, lame->xing_pos, SEEK_SET);
+    bg_xing_write(lame->xing, lame->output);
+    fseek(lame->output, pos, SEEK_SET);
     }
   
   /* 3. Write ID3V1 tag */
@@ -725,16 +785,18 @@ const bg_encoder_plugin_t the_plugin =
     .set_callbacks =       set_callbacks_lame,
     
     .open =                open_lame,
-    
+    .writes_compressed_audio = writes_compressed_audio_lame,
     .get_audio_parameters =    get_audio_parameters_lame,
 
     .add_audio_stream =        add_audio_stream_lame,
+    .add_audio_stream_compressed =        add_audio_stream_compressed_lame,
     
     .set_audio_parameter =     set_audio_parameter_lame,
 
     .get_audio_format =        get_audio_format_lame,
     
     .write_audio_frame =   write_audio_frame_lame,
+    .write_audio_packet =   write_audio_packet_lame,
     .close =               close_lame
   };
 
