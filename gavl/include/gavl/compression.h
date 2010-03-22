@@ -53,8 +53,7 @@ typedef enum
     GAVL_CODEC_ID_ALAW  = 1, //!< alaw 2:1
     GAVL_CODEC_ID_ULAW,      //!< mu-law 2:1
     GAVL_CODEC_ID_MP2,       //!< MPEG-1 audio layer II
-    GAVL_CODEC_ID_MP3_CBR,   //!< MPEG-1/2 audio layer 3 CBR
-    GAVL_CODEC_ID_MP3_VBR,   //!< MPEG-1/2 audio layer 3 VBR
+    GAVL_CODEC_ID_MP3,       //!< MPEG-1/2 audio layer 3 CBR/VBR
     GAVL_CODEC_ID_AC3,       //!< AC3
     GAVL_CODEC_ID_AAC_RAW,   //!< AAC as stored in quicktime/mp4
     GAVL_CODEC_ID_VORBIS,    //!< Vorbis (segmented extradata and packets)
