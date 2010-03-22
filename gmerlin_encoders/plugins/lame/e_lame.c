@@ -563,8 +563,7 @@ static int open_lame(void * data, const char * filename,
 static int writes_compressed_audio_lame(void * data, const gavl_audio_format_t * format,
                                        const gavl_compression_info_t * ci)
   {
-  if((ci->id == GAVL_CODEC_ID_MP3_CBR) ||
-     (ci->id == GAVL_CODEC_ID_MP3_VBR))
+  if(ci->id == GAVL_CODEC_ID_MP3)
     return 1;
   else
     return 0;
@@ -624,7 +623,7 @@ static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
   
   lame = (lame_priv_t*)data;
 
-  if((lame->ci->id == GAVL_CODEC_ID_MP3_VBR) &&
+  if((lame->ci->bitrate < 0) &&
      !lame->xing)
     {
     lame->xing = bg_xing_create(p->data, p->data_len);
