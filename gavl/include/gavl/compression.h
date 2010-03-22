@@ -90,7 +90,7 @@ typedef struct
   uint8_t * global_header; //!< Global header
   int global_header_len;   //!< Length of global header
   
-  int bitrate;             //!< Needed by some CBR codecs for packing into e.g. AVI
+  int bitrate;             //!< Needed by some codecs, negative values mean VBR
   } gavl_compression_info_t;
 
 /** \brief Free all dynamically allocated memory of a compression info
