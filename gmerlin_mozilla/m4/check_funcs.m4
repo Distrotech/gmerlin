@@ -237,7 +237,7 @@ esac],[test_theoradec=true])
 
 if test x$test_theoradec = xtrue; then
 
-PKG_CHECK_MODULES(THEORADEC, theoradec >= $THEORADEC_REQUIRED, have_theoradec="true", have_theoradec="false")
+PKG_CHECK_MODULES(THEORADEC, theoradec, have_theoradec="true", have_theoradec="false")
 fi
 
 AC_SUBST(THEORADEC_REQUIRED)
@@ -274,7 +274,7 @@ esac],[test_theoraenc=true])
 
 if test x$test_theoraenc = xtrue; then
 
-PKG_CHECK_MODULES(THEORAENC, theoraenc >= $THEORAENC_REQUIRED, have_theoraenc="true", have_theoraenc="false")
+PKG_CHECK_MODULES(THEORAENC, theoraenc, have_theoraenc="true", have_theoraenc="false")
 fi
 
 AC_SUBST(THEORAENC_REQUIRED)
@@ -1323,6 +1323,16 @@ if test "x$have_dca" != "xtrue"; then
 PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dts="true", have_dts="false")
 
 dnl
+dnl Check for old dts.h header
+dnl
+
+OLD_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CFLAGS $GMERLIN_DEP_CFLAGS $DCA_CFLAGS"
+AC_CHECK_HEADERS([dts.h])
+CPPFLAGS=$OLD_CPPFLAGS
+
+
+dnl
 dnl Some systems need -ldts_pic
 dnl
 
@@ -1657,7 +1667,8 @@ AC_SEARCH_LIBS([glXCreateContext], [GL glx], [], [have_GLX="false"], [])
 if test "x$have_GL" = "xtrue"; then
 AC_TRY_RUN([
 #include <GL/glx.h>
-int main() { if(0) glXCreateContext(NULL, NULL, NULL, 0); return 0;}],[],[have_GLX="false"])
+int main() { if(0) glXChooseFBConfig(NULL, 0,
+	NULL, NULL); return 0;}],[],[have_GLX="false"])
 fi
 
 GLX_CFLAGS=$CFLAGS

@@ -46,6 +46,7 @@ static void set_audio_output(const bg_plugin_info_t * info, void * data)
   bg_mozilla_t * m = data;
   bg_plugin_registry_set_default(m->plugin_reg,
                                  BG_PLUGIN_OUTPUT_AUDIO,
+                                 BG_PLUGIN_PLAYBACK,
                                  info->name);
   gmerlin_mozilla_set_oa_plugin(m, info);
   }
@@ -55,6 +56,7 @@ static void set_video_output(const bg_plugin_info_t * info, void * data)
   bg_mozilla_t * m = data;
   bg_plugin_registry_set_default(m->plugin_reg,
                                  BG_PLUGIN_OUTPUT_VIDEO,
+                                 BG_PLUGIN_PLAYBACK,
                                  info->name);
   gmerlin_mozilla_set_ov_plugin(m, info);
   }
@@ -64,6 +66,7 @@ static void set_visualization(const bg_plugin_info_t * info, void * data)
   bg_mozilla_t * m = data;
   bg_plugin_registry_set_default(m->plugin_reg,
                                  BG_PLUGIN_VISUALIZATION,
+                                 BG_PLUGIN_VISUALIZE_FRAME | BG_PLUGIN_VISUALIZE_GL,
                                  info->name);
   gmerlin_mozilla_set_vis_plugin(m, info);
   }
