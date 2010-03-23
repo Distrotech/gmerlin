@@ -112,6 +112,7 @@ void gavl_compression_info_dump(const gavl_compression_info_t * info);
 /** \brief Get the file extension of the corresponding raw format
  *  \param id A codec ID
  *  \param separate If non-null returns 1 if each packet should be in a separate file
+ *  \returns The file extension of the raw file or NULL
  *
  *  This function can be used for writing elementary streams to files.
  *  It returns a suitable file extension. If separate is 1, each packet should be
@@ -126,6 +127,19 @@ void gavl_compression_info_dump(const gavl_compression_info_t * info);
 GAVL_PUBLIC
 const char * gavl_compression_get_extension(gavl_codec_id_t id, int * separate);
 
+/** \brief Check if the compression supports multiple pixelformats
+ *  \param id A codec ID
+ *  \returns 1 if the compression ID must be associated with a pixelformat, 0 else
+ *
+ *  This function can be used by decoding libraries to check if the compresison ID
+ *  is sufficient or if the pixelformat must be valid in the associated video format.
+ *
+ */
+  
+GAVL_PUBLIC
+int gavl_compression_need_pixelformat(gavl_codec_id_t id);
+
+  
 #define GAVL_PACKET_TYPE_I 'I'      //!< Packet is an I-frame
 #define GAVL_PACKET_TYPE_P 'P'      //!< Packet is a P-frame
 #define GAVL_PACKET_TYPE_B 'B'      //!< Packet is a B-frame

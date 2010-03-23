@@ -57,34 +57,38 @@ void gavl_compression_info_free(gavl_compression_info_t * info)
     free(info->global_header);
   }
 
+#define FLAG_SEPARATE          (1<<0)
+#define FLAG_NEEDS_PIXELFORMAT (1<<1)
+
 struct
   {
   gavl_codec_id_t id;
   const char * extension;
-  int separate;
   const char * name;
+  int flags;
   }
 compression_ids[] =
   {
-    { GAVL_CODEC_ID_ALAW,      NULL,  0, "alaw"              },
-    { GAVL_CODEC_ID_ULAW,      NULL,  0, "ulaw"              },
-    { GAVL_CODEC_ID_MP2,       "mp2", 0, "MPEG layer 2"      },
-    { GAVL_CODEC_ID_MP3,       "mp3", 0, "MPEG layer 3"      },
-    { GAVL_CODEC_ID_AC3,       "ac3", 0, "AC3"               },
-    { GAVL_CODEC_ID_AAC_RAW,   NULL,  0, "AAC"               },
-    { GAVL_CODEC_ID_VORBIS,    NULL,  0, "Vorbis"            },
+    /* Audio */
+    { GAVL_CODEC_ID_ALAW,      NULL,  "alaw"         },
+    { GAVL_CODEC_ID_ULAW,      NULL,  "ulaw"         },
+    { GAVL_CODEC_ID_MP2,       "mp2", "MPEG layer 2" },
+    { GAVL_CODEC_ID_MP3,       "mp3", "MPEG layer 3" },
+    { GAVL_CODEC_ID_AC3,       "ac3", "AC3"          },
+    { GAVL_CODEC_ID_AAC_RAW,   NULL,  "AAC"          },
+    { GAVL_CODEC_ID_VORBIS,    NULL,  "Vorbis"       },
     
     /* Video */
-    { GAVL_CODEC_ID_JPEG,      "jpg", 1, "JPEG image"        },
-    { GAVL_CODEC_ID_PNG,       "png", 1, "PNG image"         },
-    { GAVL_CODEC_ID_TIFF,      "tif", 1, "TIFF image"        },
-    { GAVL_CODEC_ID_TGA,       "tga", 1, "TGA image"         },
-    { GAVL_CODEC_ID_MPEG1,     "mpv", 0, "MPEG-1"            },
-    { GAVL_CODEC_ID_MPEG2,     "mpv", 0, "MPEG-2"            },
-    { GAVL_CODEC_ID_MPEG4_ASP, "m4v", 0, "MPEG-4 ASP"        },
-    { GAVL_CODEC_ID_H264,      "h264",0, "H.264"             },
-    { GAVL_CODEC_ID_THEORA,    NULL,  0, "Theora"            },
-    { GAVL_CODEC_ID_DIRAC,     NULL,  0, "Dirac"             },
+    { GAVL_CODEC_ID_JPEG,      "jpg", "JPEG image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_PNG,       "png", "PNG image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_TIFF,      "tif", "TIFF image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_TGA,       "tga", "TGA image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_MPEG1,     "mpv", "MPEG-1"       },
+    { GAVL_CODEC_ID_MPEG2,     "mpv", "MPEG-2",      FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_MPEG4_ASP, "m4v", "MPEG-4 ASP"   },
+    { GAVL_CODEC_ID_H264,      "h264","H.264"        },
+    { GAVL_CODEC_ID_THEORA,    NULL,  "Theora"       },
+    { GAVL_CODEC_ID_DIRAC,     NULL,  "Dirac"        },
     
   };
 
@@ -96,12 +100,24 @@ const char * gavl_compression_get_extension(gavl_codec_id_t id, int * separate)
     if(compression_ids[i].id == id)
       {
       if(separate)
-        *separate = compression_ids[i].separate;
+        *separate = !!(compression_ids[i].flags & FLAG_SEPARATE);
       return compression_ids[i].extension;
       }
     }
   return NULL;
   }
+
+int gavl_compression_need_pixelformat(gavl_codec_id_t id)
+  {
+  int i;
+  for(i = 0; i < sizeof(compression_ids)/sizeof(compression_ids[0]); i++)
+    {
+    if(compression_ids[i].id == id)
+      return !!(compression_ids[i].flags & FLAG_NEEDS_PIXELFORMAT);
+    }
+  return 0;
+  }
+
 
 static const char *
 get_name(gavl_codec_id_t id)
