@@ -145,10 +145,14 @@ void bg_x11_window_set_gl_attribute(bg_x11_window_t * win,
   win->gl_attributes[attribute].changed = 1;
   }
 
-void bg_x11_window_start_gl(bg_x11_window_t * win)
+int bg_x11_window_start_gl(bg_x11_window_t * win)
   {
-  XVisualInfo * vi =
-    glXGetVisualFromFBConfig(win->dpy, win->gl_fbconfigs[0]);
+  XVisualInfo * vi;
+
+  if(!win->gl_fbconfigs)
+    return 0;
+  
+  vi = glXGetVisualFromFBConfig(win->dpy, win->gl_fbconfigs[0]);
   
   /* Create subwindows */
   bg_x11_window_create_subwins(win, vi->depth, vi->visual);
@@ -161,6 +165,7 @@ void bg_x11_window_start_gl(bg_x11_window_t * win)
                                             win->gl_fbconfigs[0],
                                             win->fullscreen.subwin, NULL);
   XFree(vi);
+  return 1;
   }
 
 void bg_x11_window_stop_gl(bg_x11_window_t * win)
@@ -222,9 +227,9 @@ int bg_x11_window_init_gl(bg_x11_window_t * win)
   return 0;
   }
 
-void bg_x11_window_start_gl(bg_x11_window_t * win)
+int bg_x11_window_start_gl(bg_x11_window_t * win)
   {
-  
+  return 0;
   }
 
 void bg_x11_window_stop_gl(bg_x11_window_t * win)

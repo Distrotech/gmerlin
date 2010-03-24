@@ -487,8 +487,12 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
     bg_x11_window_set_size(win, 640, 480);
     
     bg_x11_window_realize(win);
-    bg_x11_window_start_gl(win);
-    bg_x11_window_set_gl(win);
+    if(!bg_x11_window_start_gl(win))
+      {
+      ret->flags |=  BG_PLUGIN_UNSUPPORTED;
+      }
+    else
+      bg_x11_window_set_gl(win);
     }
   else
     {
@@ -498,11 +502,15 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
   ret->priority = 1;
 
   /* Must realize the actor to get the parameters */
-  visual_actor_realize(actor);
+
+  if(!(ret->flags & BG_PLUGIN_UNSUPPORTED))
+    {
+    visual_actor_realize(actor);
+    ret->parameters =
+      create_parameters(actor, (VisUIWidget***)0, (VisParamEntry***)0);
+    visual_object_unref(VISUAL_OBJECT(actor));
+    }
   
-  ret->parameters = create_parameters(actor, (VisUIWidget***)0, (VisParamEntry***)0);
-  
-  visual_object_unref(VISUAL_OBJECT(actor));
   
   if(win)
     {

@@ -128,7 +128,7 @@ void bg_x11_window_get_size(bg_x11_window_t * win, int * width, int * height);
 void bg_x11_window_set_gl(bg_x11_window_t *);
 void bg_x11_window_unset_gl(bg_x11_window_t *);
 
-void bg_x11_window_start_gl(bg_x11_window_t * win);
+int bg_x11_window_start_gl(bg_x11_window_t * win);
 void bg_x11_window_stop_gl(bg_x11_window_t * win);
 
 
