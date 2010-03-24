@@ -439,13 +439,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     }
   else if(check_fourcc(s->fourcc, mp3_fourccs))
     {
-    if(s->container_bitrate == BGAV_BITRATE_VBR)
-      {
-      id = GAVL_CODEC_ID_MP3_VBR;
-      need_bitrate = 0;
-      }
-    else if(s->container_bitrate > 0)
-      id = GAVL_CODEC_ID_MP3_CBR;
+    id = GAVL_CODEC_ID_MP3;
     }
   else if(check_fourcc(s->fourcc, vorbis_fourccs))
     {
@@ -485,7 +479,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
   
   if(need_bitrate)
     {
-    if(s->container_bitrate > 0)
+    if(s->container_bitrate)
       info->bitrate = s->container_bitrate;
     else
       info->bitrate = s->codec_bitrate;

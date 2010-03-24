@@ -158,6 +158,11 @@ int bgav_mpa_header_decode(bgav_mpa_header_t * h, uint8_t * ptr)
   if(!header_check(header))
     return 0;
 
+  if(!(header & MPEG_PROTECTION))
+    h->has_crc = 1;
+  else
+    h->has_crc = 0;
+  
   index = (header & MPEG_MODE_MASK) >> 6;
   switch(index)
     {
@@ -273,6 +278,23 @@ int bgav_mpa_header_decode(bgav_mpa_header_t * h, uint8_t * ptr)
 
   if(h->version != MPEG_VERSION_1)
     h->samples_per_frame /= 2;
+
+  /* Side info len */
+
+  if((header & MPEG_ID_MASK) == MPEG_MPEG1)
+    {
+    if(h->channel_mode == CHANNEL_MONO)
+      h->side_info_size = 0x11;
+    else
+      h->side_info_size = 0x20;
+    }
+  else
+    {
+    if(h->channel_mode == CHANNEL_MONO)
+      h->side_info_size = 0x09;
+    else
+      h->side_info_size = 0x11;
+    }
   
   //  dump_header(h);
   return 1;

@@ -289,12 +289,14 @@ static gavl_time_t get_duration(bgav_demuxer_context_t * ctx,
     ret = gavl_samples_to_time(priv->header.samplerate,
                                (int64_t)(priv->xing.frames) *
                                priv->header.samples_per_frame);
+    return ret;
     }
-  else if(end_offset > start_offset)
+  else if(bgav_mp3_info_header_probe(frame))
     {
-    ret = (GAVL_TIME_SCALE * (end_offset - start_offset) * 8) /
-      (priv->header.bitrate);
+    start_offset += priv->header.frame_bytes;
     }
+  ret = (GAVL_TIME_SCALE * (end_offset - start_offset) * 8) /
+    (priv->header.bitrate);
   return ret;
   }
 
@@ -320,6 +322,11 @@ static int set_stream(bgav_demuxer_context_t * ctx)
   if(bgav_xing_header_read(&(priv->xing), frame))
     {
     priv->have_xing = 1;
+    bgav_input_skip(ctx->input, priv->header.frame_bytes);
+    priv->data_start += priv->header.frame_bytes;
+    }
+  else if(bgav_mp3_info_header_probe(frame))
+    {
     bgav_input_skip(ctx->input, priv->header.frame_bytes);
     priv->data_start += priv->header.frame_bytes;
     }
@@ -380,9 +387,6 @@ static int set_stream(bgav_demuxer_context_t * ctx)
                  priv->header.layer, bitrate_string);
   free(bitrate_string);
 
-  /* Get stream duration */
-
-  ctx->tt->cur->duration = ctx->tt->cur->duration;
   return 1;
   }
 

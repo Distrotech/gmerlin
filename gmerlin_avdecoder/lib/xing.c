@@ -24,41 +24,62 @@
 #include <avdec_private.h>
 #include <stdio.h>
 #include <xing.h>
+#include <mpa_header.h>
 
 #define GET_INT32BE(b) \
 (i = (b[0] << 24) | (b[1] << 16) | b[2] << 8 | b[3], b += 4, i)
+
+int bgav_xing_header_probe(unsigned char *buf)
+  {
+  bgav_mpa_header_t h;
+  uint8_t * ptr;
+
+  memset(&h, 0, sizeof(h));
+  
+  if(!bgav_mpa_header_decode(&h, buf))
+    return 0;
+  
+  ptr = buf + 4 + (h.has_crc * 2) + h.side_info_size;
+
+  if(!memcmp(ptr, "Xing", 4))
+    return 1;
+  return 0;
+  }
+
+int bgav_mp3_info_header_probe(unsigned char *buf)
+  {
+  bgav_mpa_header_t h;
+  uint8_t * ptr;
+
+  memset(&h, 0, sizeof(h));
+
+  if(!bgav_mpa_header_decode(&h, buf))
+    return 0;
+
+  ptr = buf + 4 + (h.has_crc * 2) + h.side_info_size;
+  if(!memcmp(ptr, "Info", 4))
+    return 1;
+  return 0;
+  }
 
 
 int bgav_xing_header_read(bgav_xing_header_t * xing, unsigned char *buf)
   {
   int i;
   int id, mode;
+  uint8_t * ptr;
+
+  bgav_mpa_header_t h;
   
   memset(xing, 0, sizeof(*xing));
+
+  memset(&h, 0, sizeof(h));
   
-  /* get selected MPEG header data */
-  id = (buf[1] >> 3) & 1;
-  mode = (buf[3] >> 6) & 3;
-  buf += 4;
+  if(!bgav_mpa_header_decode(&h, buf))
+    return 0;
 
-  /* Skip the sub band data */
-  if (id)
-    {
-    /* mpeg1 */
-    if (mode != 3)
-      buf += 32;
-    else
-      buf += 17;
-    }
-  else
-    {
-    /* mpeg2 */
-    if (mode != 3)
-      buf += 17;
-    else
-      buf += 9;
-    }
-
+  buf += 4 + (h.has_crc * 2) + h.side_info_size;
+  
   if (strncmp((char*)buf, "Xing", 4))
     return 0;
   buf += 4;

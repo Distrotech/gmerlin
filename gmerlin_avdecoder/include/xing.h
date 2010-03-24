@@ -42,3 +42,8 @@ int bgav_xing_header_read(bgav_xing_header_t * xing, unsigned char *buf);
 int64_t bgav_xing_get_seek_position(bgav_xing_header_t * xing, float percent);
 
 void bgav_xing_header_dump(bgav_xing_header_t * xing);
+
+int bgav_xing_header_probe(unsigned char *buf);
+
+int bgav_mp3_info_header_probe(unsigned char *buf);
+

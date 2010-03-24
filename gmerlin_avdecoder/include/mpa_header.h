@@ -42,6 +42,10 @@ typedef struct
   int channel_mode;
   int mode;
   int samples_per_frame;
+
+  int has_crc;
+  int side_info_size;
+  
   } bgav_mpa_header_t;
 
 int bgav_mpa_header_equal(bgav_mpa_header_t * h1, bgav_mpa_header_t * h2);
