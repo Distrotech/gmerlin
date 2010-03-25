@@ -122,6 +122,12 @@ struct bgav_video_decoder_s
   uint32_t * fourccs;
   const char * name;
   int flags;
+
+  /*
+   *  Get the format without initializing the decoder. This is
+   *  needed for compressed reading of some streams
+   */
+  int (*get_format)(bgav_stream_t*, bgav_packet_t * p);
   
   int (*init)(bgav_stream_t*);
   /*

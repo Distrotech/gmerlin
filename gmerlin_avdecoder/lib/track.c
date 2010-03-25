@@ -754,7 +754,10 @@ void bgav_track_get_compression(bgav_track_t * t)
   {
   int i;
   bgav_stream_t * s;
-
+  bgav_packet_t * p;
+  bgav_video_decoder_t * vdec;
+  
+  
   /* Set all streams to read mode */
   for(i = 0; i < t->num_audio_streams; i++)
     {
@@ -780,10 +783,19 @@ void bgav_track_get_compression(bgav_track_t * t)
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
-    if(s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME))
+
+    vdec = bgav_find_video_decoder(s);
+    
+    if(vdec && !vdec->get_format)
+      vdec = NULL;
+    
+    if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) || vdec)
       {
       bgav_stream_start(s);
-      bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+
+      if(vdec)
+        vdec->get_format(s, p);
       }
     }
 

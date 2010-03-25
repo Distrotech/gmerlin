@@ -695,6 +695,14 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     }
   else
     return 0;
+
+  if(gavl_compression_need_pixelformat(id) &&
+     s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
+    {
+    bgav_log(&bgav->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Video compression format needs pixelformat for compressed output");
+    return 0;
+    }
   
   info->id = id;
 

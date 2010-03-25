@@ -60,7 +60,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     
     if(!bgav_png_reader_read_header(priv->png_reader,
                                     priv->p->data, priv->p->data_size,
-                                    &(s->data.video.format), &error_msg))
+                                    &s->data.video.format, &error_msg))
       {
       if(error_msg)
         {
@@ -137,12 +137,37 @@ static void resync_png(bgav_stream_t * s)
   priv->have_header = 0;
   }
 
+static int get_format_png(bgav_stream_t * s, bgav_packet_t * p)
+  {
+  int ret = 1;
+  char * error_msg = (char*)0;
+
+  bgav_png_reader_t * png = bgav_png_reader_create(s->data.video.depth);
+  
+  if(!bgav_png_reader_read_header(png,
+                                  p->data, p->data_size,
+                                  &s->data.video.format, &error_msg))
+    {
+    if(error_msg)
+      {
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s", error_msg);
+      free(error_msg);
+      }
+    else
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading png header failed");
+    ret = 0;
+    }
+  bgav_png_reader_destroy(png);
+  return ret;
+  }
+
 static bgav_video_decoder_t decoder =
   {
     .name =   "PNG video decoder",
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('p', 'n', 'g', ' '),
                             BGAV_MK_FOURCC('M', 'P', 'N', 'G'),
                             0x00  },
+    .get_format = get_format_png,
     .init =   init_png,
     .decode = decode_png,
     .resync = resync_png,
