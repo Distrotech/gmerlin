@@ -2435,8 +2435,8 @@ static int get_format_jpeg(bgav_stream_t * s, bgav_packet_t * p)
   int sub_h[3];
   int sub_v[3];
   
-  fprintf(stderr, "get_format_jpeg\n");
-  bgav_hexdump(p->data, 16, 16);
+  //  fprintf(stderr, "get_format_jpeg\n");
+  //  bgav_hexdump(p->data, 16, 16);
   
   while(1)
     {
@@ -2445,7 +2445,7 @@ static int get_format_jpeg(bgav_stream_t * s, bgav_packet_t * p)
     switch(marker)
       {
       case 0xFFD8:
-        fprintf(stderr, "Got SOI\n");
+        //        fprintf(stderr, "Got SOI\n");
         break;
       case 0xFFC0:
       case 0xFFC1:
@@ -2463,36 +2463,60 @@ static int get_format_jpeg(bgav_stream_t * s, bgav_packet_t * p)
       case 0xFFCf:
         {
         int tmp, i;
-
-        bgav_hexdump(ptr, 16, 16);
+        int num_components;
+        //        bgav_hexdump(ptr, 16, 16);
       
         len = BGAV_PTR_2_16BE(ptr); ptr+=2;
-        fprintf(stderr, "Got SOF %d\n", len-2);
-
-      
-        tmp = *ptr; ptr++;
-
-        fprintf(stderr, "Bits: %d\n", tmp);
-      
-        tmp = BGAV_PTR_2_16BE(ptr); ptr+=2;
-        fprintf(stderr, "Height: %d\n", tmp);
-
-        tmp = BGAV_PTR_2_16BE(ptr); ptr+=2;
-        fprintf(stderr, "Width: %d\n", tmp);
+        //        fprintf(stderr, "Got SOF %d\n", len-2);
         
         tmp = *ptr; ptr++;
-        fprintf(stderr, "Components: %d\n", tmp);
+
+        //        fprintf(stderr, "Bits: %d\n", tmp);
+      
+        tmp = BGAV_PTR_2_16BE(ptr); ptr+=2;
+        //        fprintf(stderr, "Height: %d\n", tmp);
+
+        tmp = BGAV_PTR_2_16BE(ptr); ptr+=2;
+        //        fprintf(stderr, "Width: %d\n", tmp);
+        
+        num_components = *ptr; ptr++;
+        //        fprintf(stderr, "Components: %d\n", tmp);
                 
-        for(i = 0; i < tmp; i++)
+        for(i = 0; i < num_components; i++)
           {
           components[i] = *ptr; ptr++;
           sub_h[i]      = (*ptr) >> 4;
           sub_v[i]      = (*ptr) & 0xF;
           ptr += 2; /* Skip huffman table */
-          fprintf(stderr, "Component: ID: %d, sub_h: %d, sub_v: %d\n",
-                  components[i], sub_h[i], sub_v[i]);
+          //          fprintf(stderr, "Component: ID: %d, sub_h: %d, sub_v: %d\n",
+          //                  components[i], sub_h[i], sub_v[i]);
           }
         
+        if((num_components != 3) ||
+           (components[0] != 1) ||
+           (components[1] != 2) ||
+           (components[2] != 3) ||
+           (sub_h[1] != sub_h[2]) ||
+           (sub_v[1] != sub_v[2]))
+          {
+          return 0;
+          }
+
+        if((sub_h[0] == 1) &&
+           (sub_v[0] == 1) &&
+           (sub_h[1] == 1) &&
+           (sub_v[1] == 1))
+          s->data.video.format.pixelformat = GAVL_YUVJ_444_P;
+        else if((sub_h[0] == 2) &&
+                (sub_v[0] == 2) &&
+                (sub_h[1] == 1) &&
+                (sub_v[1] == 1))
+          s->data.video.format.pixelformat = GAVL_YUVJ_420_P;
+        else if((sub_h[0] == 2) &&
+                (sub_v[0] == 1) &&
+                (sub_h[1] == 1) &&
+                (sub_v[1] == 1))
+          s->data.video.format.pixelformat = GAVL_YUVJ_422_P;
         return 1;
         }
         break;
@@ -2501,7 +2525,7 @@ static int get_format_jpeg(bgav_stream_t * s, bgav_packet_t * p)
         break;
       default:
         len = BGAV_PTR_2_16BE(ptr); ptr+=2;
-        fprintf(stderr, "Got %04x %d\n", marker, len-2);
+        //        fprintf(stderr, "Got %04x %d\n", marker, len-2);
         ptr+=len-2;
         break;
       }
