@@ -44,13 +44,6 @@
 #define LOG_DOMAIN_ENC "singlepicture-encoder"
 #define LOG_DOMAIN_DEC "singlepicture-decoder"
 
-
-#if 0
-char * bg_singlepic_ouput_name = "e_singlepic";
-char * bg_singlepic_input_name = "i_singlepic";
-char * bg_singlepic_stills_input_name = "i_singlepic_stills";
-#endif
-
 static char * get_extensions(bg_plugin_registry_t * reg,
                              uint32_t type_mask, uint32_t flag_mask)
   {
@@ -151,7 +144,7 @@ static const bg_parameter_info_t * get_parameters_input_still(void * priv)
 static void set_parameter_input(void * priv, const char * name,
                                 const bg_parameter_value_t * val)
   {
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
 
   if(!name)
     return;
@@ -176,17 +169,16 @@ static void set_parameter_input(void * priv, const char * name,
 static int open_input(void * priv, const char * filename)
   {
   const bg_plugin_info_t * info;
-  struct stat stat_buf;
   char * tmp_string;
   const char * pos;
   const char * pos_start;
   const char * pos_end;
   
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   
   /* Check if the first file exists */
   
-  if(stat(filename, &stat_buf))
+  if(access(filename, R_OK))
     return 0;
   
   /* Load plugin */
@@ -248,7 +240,7 @@ static int open_input(void * priv, const char * filename)
   while(1)
     {
     sprintf(inp->filename_buffer, inp->template, inp->frame_end);
-    if(stat(inp->filename_buffer, &stat_buf))
+    if(access(inp->filename_buffer, R_OK))
       break;
     inp->frame_end++;
     }
@@ -258,6 +250,9 @@ static int open_input(void * priv, const char * filename)
   inp->track_info.num_video_streams = 1;
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
+
+  inp->track_info.video_streams[0].description =
+    bg_strdup(NULL, "Single images");
   
   inp->track_info.duration = gavl_frames_to_time(inp->timescale,
                                                  inp->frame_duration,
@@ -266,21 +261,37 @@ static int open_input(void * priv, const char * filename)
   
   /* Get track name */
 
-  bg_set_track_name_default(&(inp->track_info), filename);
+  bg_set_track_name_default(&inp->track_info, filename);
   
   inp->track_info.flags |= (BG_TRACK_SEEKABLE|BG_TRACK_PAUSABLE);
+
+  inp->current_frame = inp->frame_start;
+
+  sprintf(inp->filename_buffer, inp->template, inp->current_frame);
+
+  if(!inp->image_reader->read_header(inp->handle->priv,
+                                     inp->filename_buffer,
+                                     &(inp->track_info.video_streams[0].format)))
+    return 0;
+  inp->track_info.video_streams[0].format.timescale =
+    inp->timescale;
+  inp->track_info.video_streams[0].format.frame_duration =
+    inp->frame_duration;
+  inp->track_info.video_streams[0].format.framerate_mode =
+    GAVL_FRAMERATE_CONSTANT;
+  inp->header_read = 1;
+  
   return 1;
   }
 
 static int open_stills_input(void * priv, const char * filename)
   {
   const bg_plugin_info_t * info;
-  struct stat stat_buf;
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   
   /* Check if the first file exists */
   
-  if(stat(filename, &stat_buf))
+  if(access(filename, R_OK))
     return 0;
   
   /* First of all, check if there is a plugin for this format */
@@ -299,6 +310,9 @@ static int open_stills_input(void * priv, const char * filename)
   inp->track_info.num_video_streams = 1;
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
+
+  inp->track_info.video_streams[0].description =
+    bg_strdup(NULL, "Still Image");
   
   inp->track_info.video_streams[0].format.framerate_mode =
     GAVL_FRAMERATE_STILL;
@@ -310,69 +324,65 @@ static int open_stills_input(void * priv, const char * filename)
   bg_set_track_name_default(&(inp->track_info), filename);
 
   inp->filename_buffer = bg_strdup(inp->filename_buffer, filename);
+
+  if(!inp->image_reader->read_header(inp->handle->priv,
+                                     inp->filename_buffer,
+                                       &(inp->track_info.video_streams[0].format)))
+    return 0;
+  inp->track_info.video_streams[0].format.timescale = GAVL_TIME_SCALE;
+  inp->track_info.video_streams[0].format.frame_duration = 0;
+  inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL;
+  inp->header_read = 1;
+
   return 1;
 
   }
 
 static bg_track_info_t * get_track_info_input(void * priv, int track)
   {
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   return &(inp->track_info);
   }
 
 static int set_video_stream_input(void * priv, int stream,
                                   bg_stream_action_t action)
   {
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   inp->action = action;
+
+  /* Close image reader */
+  if(inp->action == BG_STREAM_ACTION_READRAW)
+    {
+    /* Unload the plugin */
+    if(inp->handle)
+      bg_plugin_unref(inp->handle);
+    inp->handle = NULL;
+    inp->image_reader = NULL;
+    }
+  
   return 1;
+  }
+
+static int get_compression_info_input(void * priv, int stream,
+                                      gavl_compression_info_t * ci)
+  {
+  int ret;
+  input_t * inp = priv;
+  if(!inp->image_reader || inp->image_reader->get_compression_info)
+    return 0;
+  ret = inp->image_reader->get_compression_info(inp->handle->priv, ci);
+
+  if(ret)
+    {
+    if(gavl_compression_need_pixelformat(ci->id) &&
+       (inp->track_info.video_streams[0].format.pixelformat == GAVL_PIXELFORMAT_NONE))
+      return 0;
+    }
+  return ret;
   }
 
 static int start_input(void * priv)
   {
-  input_t * inp = (input_t *)priv;
-
-  if(inp->action != BG_STREAM_ACTION_DECODE)
-    return 1;
-
-  inp->current_frame = inp->frame_start;
-  
-  if(inp->do_still)
-    {
-    inp->track_info.video_streams[0].description =
-      bg_strdup(NULL, "Still Image");
-    }
-  else
-    {
-    inp->track_info.video_streams[0].description =
-      bg_strdup(NULL, "Single images");
-    sprintf(inp->filename_buffer, inp->template, inp->current_frame);
-    }
-  
-  if(inp->do_still)
-    {
-    if(!inp->image_reader->read_header(inp->handle->priv,
-                                       inp->filename_buffer,
-                                       &(inp->track_info.video_streams[0].format)))
-      return 0;
-    inp->track_info.video_streams[0].format.timescale = GAVL_TIME_SCALE;
-    inp->track_info.video_streams[0].format.frame_duration = 0;
-    inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL;
-    }
-  else
-    {
-    if(!inp->image_reader->read_header(inp->handle->priv,
-                                       inp->filename_buffer,
-                                       &(inp->track_info.video_streams[0].format)))
-      return 0;
-    inp->track_info.video_streams[0].format.timescale =
-      inp->timescale;
-    inp->track_info.video_streams[0].format.frame_duration =
-      inp->frame_duration;
-    inp->track_info.video_streams[0].format.framerate_mode =
-      GAVL_FRAMERATE_CONSTANT;
-    }
-  inp->header_read = 1;
   return 1;
   }
 
@@ -385,7 +395,7 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
                                   int stream)
   {
   gavl_video_format_t format;
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   
   if(inp->do_still)
     {
@@ -397,7 +407,8 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   
   if(!inp->header_read)
     {
-    sprintf(inp->filename_buffer, inp->template, inp->current_frame);
+    if(!inp->do_still)
+      sprintf(inp->filename_buffer, inp->template, inp->current_frame);
     
     if(!inp->image_reader->read_header(inp->handle->priv,
                                        inp->filename_buffer,
@@ -411,6 +422,9 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   if(f)
     {
     f->timestamp = (inp->current_frame - inp->frame_start) * inp->frame_duration;
+
+    if(!inp->do_still)
+      f->duration = inp->frame_duration;
     }
   inp->header_read = 0;
   inp->current_frame++;
@@ -418,9 +432,53 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   return 1;
   }
 
+static int read_video_packet_input(void * priv, gavl_packet_t* p,
+                                   int stream)
+  {
+  FILE * in;
+  int64_t size;
+  input_t * inp = priv;
+  
+  sprintf(inp->filename_buffer, inp->template, inp->current_frame);
+  
+  if(inp->do_still)
+    {
+    if(inp->current_frame)
+      return 0;
+    }
+  else if(inp->current_frame == inp->frame_end)
+    return 0;
+  
+  in = fopen(inp->filename_buffer, "rb");
+  if(!in)
+    return 0;
+
+  fseek(in, 0, SEEK_END);
+  size = ftell(in);
+  fseek(in, 0, SEEK_SET);
+
+  gavl_packet_alloc(p, size);
+
+  p->data_len = fread(p->data, 1, size, in);
+  
+  fclose(in);
+  
+  if(p->data_len < size)
+    return 0;
+
+  p->pts = (inp->current_frame - inp->frame_start) * inp->frame_duration;
+  
+  if(!inp->do_still)
+    p->duration = inp->frame_duration;
+
+  inp->current_frame++;
+  
+  return 1;
+  }
+
 static int set_track_input_stills(void * priv, int track)
   {
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   
   /* Reset image reader */
   inp->current_frame = 0;
@@ -435,7 +493,7 @@ static int set_track_input_stills(void * priv, int track)
 
 static void seek_input(void * priv, int64_t * time, int scale)
   {
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   int64_t time_scaled = gavl_time_rescale(scale, inp->timescale, *time);
   
   inp->current_frame = inp->frame_start + time_scaled / inp->frame_duration;
@@ -447,14 +505,14 @@ static void seek_input(void * priv, int64_t * time, int scale)
 
 static void stop_input(void * priv)
   {
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   if(inp->action != BG_STREAM_ACTION_DECODE)
     return;
   }
 
 static void close_input(void * priv)
   {
-  input_t * inp = (input_t *)priv;
+  input_t * inp = priv;
   if(inp->template)
     {
     free(inp->template);
@@ -501,6 +559,7 @@ static const bg_input_plugin_t input_plugin =
     //    .get_num_tracks = bg_avdec_get_num_tracks,
 
     .get_track_info = get_track_info_input,
+    .get_video_compression_info = get_compression_info_input,
     /* Set streams */
     .set_video_stream =      set_video_stream_input,
     /*
@@ -512,6 +571,7 @@ static const bg_input_plugin_t input_plugin =
     .start =                 start_input,
     /* Read one video frame (returns FALSE on EOF) */
     .read_video =      read_video_frame_input,
+    .read_video_packet = read_video_packet_input,
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this

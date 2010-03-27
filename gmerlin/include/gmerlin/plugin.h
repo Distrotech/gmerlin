@@ -1889,16 +1889,21 @@ struct bg_image_reader_plugin_s
   
   int (*read_header)(void * priv, const char * filename,
                      gavl_video_format_t * format);
-  
-  const bg_metadata_t * (*get_metadata)(void * priv);
-  
-  /** \brief Get file infos
+
+  /** \brief Get metadata
    *  \param priv The handle returned by the create() method
-   *  \returns 
+   *  \returns Metadata for the image or NULL
    */
   
+  const bg_metadata_t * (*get_metadata)(void * priv);
+
+  /** \brief Get compression info
+   *  \param priv The handle returned by the create() method
+   *  \param ci Returns the compression info
+   *  \returns 1 if the compression info could be returned, 0 else
+   */
   
-  char ** (*get_info)(void * priv);
+  int (*get_compression_info)(void * priv, gavl_compression_info_t * ci);
   
   /** \brief Read the image
    *  \param priv The handle returned by the create() method

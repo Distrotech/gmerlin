@@ -289,7 +289,9 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   uint8_t * frame_ptr_start;
   pnm_t *p = (pnm_t*)priv;
   uint8_t pixels_8, mask;
-  
+
+  if(!frame)
+    return 1;
 
   /* PBM ascii */
   if(p->is_pnm == PBMascii)

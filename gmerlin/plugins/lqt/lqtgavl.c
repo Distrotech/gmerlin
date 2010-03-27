@@ -303,7 +303,7 @@ void lqt_gavl_add_video_track(quicktime_t * file,
   {
   int track = quicktime_video_tracks(file);
   
-  if(!lqt_add_video_track(file, format->image_width, format->image_height,
+  if(lqt_add_video_track(file, format->image_width, format->image_height,
                           format->frame_duration, format->timescale,
                           codec))
     return;

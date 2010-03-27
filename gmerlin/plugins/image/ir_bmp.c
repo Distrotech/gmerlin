@@ -365,6 +365,12 @@ static int read_image_bmp(void *priv, gavl_video_frame_t *frame)
   unsigned short x, y, i, width, skip;
 
   /* read file to header */
+
+  if(!frame)
+    {
+    fclose(p->bmp_file);
+    return 1;
+    }
   
   fseek(p->bmp_file, p->offset, SEEK_SET);
 

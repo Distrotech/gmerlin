@@ -788,6 +788,12 @@ static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
   tdata_t buf;
   int num_planes;
 
+  if(!frame)
+    {
+    TIFFClose( p->tiff );
+    return 1;
+    }
+  
   num_planes = p->is_planar ? p->SamplesPerPixel : 1;
   
   p->buffer_position =0;

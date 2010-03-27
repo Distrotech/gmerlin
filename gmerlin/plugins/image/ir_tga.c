@@ -68,6 +68,10 @@ static gavl_pixelformat_t get_pixelformat(int depth, int * bytes_per_pixel)
   {
   switch(depth)
     {
+    case 8:
+      *bytes_per_pixel = 1;
+      return GAVL_GRAY_8;
+      break;
     case 16:
       *bytes_per_pixel = 2;
       return GAVL_BGR_15;
@@ -86,7 +90,7 @@ static gavl_pixelformat_t get_pixelformat(int depth, int * bytes_per_pixel)
   }
 
 static int read_header_tga(void * priv, const char * filename,
-                    gavl_video_format_t * format)
+                           gavl_video_format_t * format)
   {
   tga_t * tga = (tga_t*)priv;
   
@@ -129,55 +133,70 @@ static int read_header_tga(void * priv, const char * filename,
 
   }
 
+static int get_compression_info_tga(void * priv, gavl_compression_info_t * ci)
+  {
+  tga_t * tga = (tga_t*)priv;
+
+  if((tga->tga.image_type == TGA_IMAGE_TYPE_COLORMAP) ||
+     (tga->tga.image_type == TGA_IMAGE_TYPE_COLORMAP_RLE))
+    ci->palette_size = tga->tga.color_map_length;
+  
+  ci->id = GAVL_CODEC_ID_TGA;
+  return 1;
+  }
+
 static int read_image_tga(void * priv, gavl_video_frame_t * frame)
   {
   int ret;
   tga_t * tga = (tga_t*)priv;
 
   ret = 0;
-  
-  switch(tga->tga.image_type)
-    {
-    case TGA_IMAGE_TYPE_COLORMAP:
-    case TGA_IMAGE_TYPE_COLORMAP_RLE:
-      if(tga_color_unmap(&tga->tga) != TGA_NOERR)
-        goto fail;
-      break;
-    default:
-      break;
-    }
 
-  if(tga->format.pixelformat == GAVL_RGBA_32)
-    tga_swap_red_blue(&(tga->tga));
-  
-  tga->frame->strides[0] = tga->bytes_per_pixel * tga->format.image_width;
-  tga->frame->planes[0] = tga->tga.image_data;
-  
-  /* Figure out the copy function */
-
-  if(tga->tga.image_descriptor & TGA_R_TO_L_BIT)
+  if(frame)
     {
-    if(tga->tga.image_descriptor & TGA_T_TO_B_BIT)
+    switch(tga->tga.image_type)
       {
-      gavl_video_frame_copy_flip_x(&(tga->format), frame, tga->frame);
+      case TGA_IMAGE_TYPE_COLORMAP:
+      case TGA_IMAGE_TYPE_COLORMAP_RLE:
+        if(tga_color_unmap(&tga->tga) != TGA_NOERR)
+          goto fail;
+        break;
+      default:
+        break;
+      }
+
+    if(tga->format.pixelformat == GAVL_RGBA_32)
+      tga_swap_red_blue(&(tga->tga));
+  
+    tga->frame->strides[0] = tga->bytes_per_pixel * tga->format.image_width;
+    tga->frame->planes[0] = tga->tga.image_data;
+  
+    /* Figure out the copy function */
+
+    if(tga->tga.image_descriptor & TGA_R_TO_L_BIT)
+      {
+      if(tga->tga.image_descriptor & TGA_T_TO_B_BIT)
+        {
+        gavl_video_frame_copy_flip_x(&(tga->format), frame, tga->frame);
+        }
+      else
+        {
+        gavl_video_frame_copy_flip_xy(&(tga->format), frame, tga->frame);
+        }
       }
     else
       {
-      gavl_video_frame_copy_flip_xy(&(tga->format), frame, tga->frame);
+      if(tga->tga.image_descriptor & TGA_T_TO_B_BIT)
+        {
+        gavl_video_frame_copy(&(tga->format), frame, tga->frame);
+        }
+      else
+        {
+        gavl_video_frame_copy_flip_y(&(tga->format), frame, tga->frame);
+        }
       }
     }
-  else
-    {
-    if(tga->tga.image_descriptor & TGA_T_TO_B_BIT)
-      {
-      gavl_video_frame_copy(&(tga->format), frame, tga->frame);
-      }
-    else
-      {
-      gavl_video_frame_copy_flip_y(&(tga->format), frame, tga->frame);
-      }
-    }
-
+  
   ret = 1;
   fail:
 
@@ -204,6 +223,7 @@ const bg_image_reader_plugin_t the_plugin =
     },
     .extensions =    "tga",
     .read_header = read_header_tga,
+    .get_compression_info = get_compression_info_tga,
     .read_image =  read_image_tga,
   };
 

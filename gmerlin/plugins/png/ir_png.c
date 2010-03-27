@@ -243,6 +243,12 @@ static int read_header_png(void * priv, const char * filename,
 
   }
 
+static int get_compression_info_png(void * priv, gavl_compression_info_t * ci)
+  {
+  ci->id = GAVL_CODEC_ID_PNG;
+  }
+
+
 static const bg_metadata_t * get_metadata_png(void * priv)
   {
   png_t * png = (png_t*)priv;
@@ -290,6 +296,7 @@ const bg_image_reader_plugin_t the_plugin =
     .extensions =    "png",
     .read_header = read_header_png,
     .get_metadata = get_metadata_png,
+    .get_compression_info = get_compression_info_png,
     .read_image =  read_image_png,
   };
 
