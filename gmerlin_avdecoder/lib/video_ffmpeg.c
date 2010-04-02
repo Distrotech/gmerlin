@@ -920,7 +920,7 @@ static int init_ffmpeg(bgav_stream_t * s)
                      s->data.video.format.image_width,
                      s->data.video.format.image_height,
                      priv->dst_format,
-                     0, (SwsFilter*)0,
+                     SWS_FAST_BILINEAR, (SwsFilter*)0,
                      (SwsFilter*)0,
                      (double*)0);
 #endif
