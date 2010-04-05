@@ -20,6 +20,8 @@
  * *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
+
 #include <lqtgavl.h>
 #include <colormodels.h>
 #include <lqt_version.h>
@@ -652,4 +654,310 @@ gavl_time_t lqt_gavl_duration(quicktime_t * file)
       ret = time;
     }
   return ret;
+  }
+
+/* Compression support */
+
+static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
+                                       const gavl_audio_format_t * afmt,
+                                       const gavl_video_format_t * vfmt,
+                                       lqt_compression_info_t * lci)
+  {
+  int is_audio = 0;
+  int is_video = 0;
+  
+  memset(lci, 0, sizeof(*lci));
+
+  /* Field pictures are not supported */
+  if(gci->flags & GAVL_COMPRESSION_HAS_FIELD_PICTURES)
+    return 0;
+  
+  switch(gci->id)
+    {
+    case GAVL_CODEC_ID_NONE: //!< Unknown/unsupported compression format
+      break;
+    /* Audio */
+    case GAVL_CODEC_ID_ALAW: //!< alaw 2:1
+      lci->id = LQT_COMPRESSION_ALAW;
+      is_audio = 1;
+      break;
+    case GAVL_CODEC_ID_ULAW:    //!< mu-law 2:1
+      lci->id = LQT_COMPRESSION_ULAW;
+      is_audio = 1;
+      break;
+    case GAVL_CODEC_ID_MP2:       //!< MPEG-1 audio layer II
+      lci->id = LQT_COMPRESSION_MP2;
+      is_audio = 1;
+      break;
+    case GAVL_CODEC_ID_MP3:       //!< MPEG-1/2 audio layer 3 CBR/VBR
+      lci->id = LQT_COMPRESSION_MP3;
+      is_audio = 1;
+      break;
+    case GAVL_CODEC_ID_AC3:       //!< AC3
+      lci->id = LQT_COMPRESSION_AC3;
+      is_audio = 1;
+      break;
+    case GAVL_CODEC_ID_AAC_RAW:   //!< AAC as stored in quicktime/mp4
+      lci->id = LQT_COMPRESSION_AAC;
+      is_audio = 1;
+      break;
+    case GAVL_CODEC_ID_VORBIS:    //!< Vorbis (segmented extradata and packets)
+      break;
+    
+    /* Video */
+    case GAVL_CODEC_ID_JPEG:      //!< JPEG image
+      lci->id = LQT_COMPRESSION_JPEG;
+      is_video = 1;
+      break;
+    case GAVL_CODEC_ID_PNG:       //!< PNG image
+      lci->id = LQT_COMPRESSION_PNG;
+      is_video = 1;
+      break;
+    case GAVL_CODEC_ID_TIFF:      //!< TIFF image
+      lci->id = LQT_COMPRESSION_TIFF;
+      is_video = 1;
+      break;
+    case GAVL_CODEC_ID_TGA:       //!< TGA image
+      lci->id = LQT_COMPRESSION_TGA;
+      is_video = 1;
+      break;
+    case GAVL_CODEC_ID_MPEG1:     //!< MPEG-1 video
+      break;
+    case GAVL_CODEC_ID_MPEG2:     //!< MPEG-2 video
+      /* Check for D10 */
+
+      if(!(gci->flags & (GAVL_COMPRESSION_HAS_P_FRAMES|GAVL_COMPRESSION_HAS_B_FRAMES)) &&
+         ((gci->bitrate == 30000000) ||
+          (gci->bitrate == 40000000) ||
+          (gci->bitrate == 50000000)) &&
+         vfmt &&
+         (vfmt->pixelformat == GAVL_YUV_422_P) &&
+         (vfmt->image_width == 720) &&
+         ((vfmt->image_height == 576) ||
+          (vfmt->image_height == 608) ||
+          (vfmt->image_height == 486) ||
+          (vfmt->image_height == 512)))
+        {
+        lci->id = LQT_COMPRESSION_D10;
+        is_video = 1;
+        }
+      
+      break;
+    case GAVL_CODEC_ID_MPEG4_ASP: //!< MPEG-4 ASP (a.k.a. Divx4)
+      break;
+    case GAVL_CODEC_ID_H264:      //!< H.264 (Annex B)
+      break;
+    case GAVL_CODEC_ID_THEORA:    //!< Theora (segmented extradata
+      break;
+    case GAVL_CODEC_ID_DIRAC:     //!< Complete DIRAC frames, sequence end code 
+      break;
+    }
+
+  if(lci->id == LQT_COMPRESSION_NONE)
+    return 0;
+
+  /* Set audio/video specific stuff */
+  if(is_audio)
+    {
+    if(!afmt)
+      return 0;
+
+    lci->samplerate = afmt->samplerate;
+    lci->num_channels = afmt->num_channels;
+    
+    }
+  else if(is_video)
+    {
+    if(!vfmt)
+      return 0;
+    lci->width  = vfmt->image_width;
+    lci->height = vfmt->image_height;
+    lci->pixel_width  = vfmt->pixel_width;
+    lci->pixel_height = vfmt->pixel_height;
+    lci->colormodel  =  pixelformat_gavl_2_lqt(vfmt->pixelformat);
+    }
+  /* Set generic stuff */
+  lci->bitrate = gci->bitrate;
+
+  if(gci->flags & GAVL_COMPRESSION_HAS_P_FRAMES)
+    lci->flags |= LQT_COMPRESSION_HAS_P_FRAMES;
+  if(gci->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
+    lci->flags |= LQT_COMPRESSION_HAS_B_FRAMES;
+
+  lci->global_header = gci->global_header;
+  lci->global_header_len = gci->global_header_len;
+  
+  return 1;
+  }
+                                       
+
+int lqt_gavl_get_audio_compression_info(quicktime_t * file, int track,
+                                        gavl_compression_info_t * ci)
+  {
+  return 0;
+  }
+
+
+int lqt_gavl_get_video_compression_info(quicktime_t * file, int track,
+                                        gavl_compression_info_t * ci)
+  {
+  return 0;
+  }
+
+static void packet_lqt_2_gavl(lqt_packet_t * lp, gavl_packet_t * gp)
+  {
+  gavl_packet_alloc(gp, lp->data_len);
+  memcpy(gp->data, lp->data, lp->data_len);
+  gp->data_len = lp->data_len;
+  
+  gp->pts = lp->timestamp;
+  gp->duration = lp->duration;
+  gp->header_size = lp->header_size;
+
+  if(lp->flags & LQT_PACKET_KEYFRAME)
+    gp->flags |= GAVL_PACKET_KEYFRAME;
+
+  }
+
+int lqt_gavl_read_audio_packet(quicktime_t * file, int track, gavl_packet_t * p)
+  {
+  lqt_packet_t lp;
+  memset(&lp, 0, sizeof(lp));
+  if(!lqt_read_audio_packet(file, &lp, track))
+    return 0;
+  packet_lqt_2_gavl(&lp, p);
+  return 1;
+  }
+
+int lqt_gavl_read_video_packet(quicktime_t * file, int track, gavl_packet_t * p)
+  {
+  lqt_packet_t lp;
+  memset(&lp, 0, sizeof(lp));
+  if(!lqt_read_video_packet(file, &lp, track))
+    return 0;
+  packet_lqt_2_gavl(&lp, p);
+  return 1;
+  }
+
+static lqt_codec_info_t * find_encoder(lqt_codec_info_t ** infos,
+                                       lqt_compression_id_t id)
+  {
+  int i = 0;
+
+  while(infos[i])
+    {
+    if(infos[i]->compression_id == id)
+      return infos[i];
+    i++;
+    }
+  return NULL;
+  }
+
+
+int lqt_gavl_writes_compressed_audio(quicktime_t * file,
+                                     const gavl_audio_format_t * format,
+                                     const gavl_compression_info_t * ci)
+  {
+  int ret = 0;
+  lqt_compression_info_t lci;
+  lqt_codec_info_t ** infos;
+  lqt_codec_info_t * info;
+  
+  if(!compression_info_gavl_2_lqt(ci, format, NULL, &lci))
+    return 0;
+
+  infos = lqt_query_registry(1, 0, 1, 0);
+  info = find_encoder(infos, lci.id);
+
+  if(info)
+    ret = lqt_writes_compressed(file, &lci, info);
+  
+  lqt_destroy_codec_info(infos);
+
+  return ret;
+  }
+
+int lqt_gavl_writes_compressed_video(quicktime_t * file,
+                                      const gavl_video_format_t * format,
+                                      const gavl_compression_info_t * ci)
+  {
+  int ret = 0;
+  lqt_compression_info_t lci;
+  lqt_codec_info_t ** infos;
+  lqt_codec_info_t * info;
+  
+  if(!compression_info_gavl_2_lqt(ci, NULL, format, &lci))
+    return 0;
+  
+  infos = lqt_query_registry(0, 1, 1, 0);
+  info = find_encoder(infos, lci.id);
+
+  if(info)
+    ret = lqt_writes_compressed(file, &lci, info);
+  
+  lqt_destroy_codec_info(infos);
+
+  return ret;
+  }
+
+int lqt_gavl_add_audio_track_compressed(quicktime_t * file,
+                                        const gavl_audio_format_t * format,
+                                        const gavl_compression_info_t * ci)
+  {
+  lqt_codec_info_t ** infos;
+  lqt_codec_info_t * info;
+  lqt_compression_info_t lci;
+
+  compression_info_gavl_2_lqt(ci, format, NULL, &lci);
+  infos = lqt_query_registry(1, 0, 1, 0);
+  info = find_encoder(infos, lci.id);
+  lqt_add_audio_track_compressed(file, &lci, info);
+  lqt_destroy_codec_info(infos);
+  
+  return 1;
+  }
+
+
+int lqt_gavl_add_video_track_compressed(quicktime_t * file,
+                                        const gavl_video_format_t * format,
+                                        const gavl_compression_info_t * ci)
+  {
+  lqt_codec_info_t ** infos;
+  lqt_codec_info_t * info;
+  lqt_compression_info_t lci;
+
+  compression_info_gavl_2_lqt(ci, NULL, format, &lci);
+  infos = lqt_query_registry(0, 1, 1, 0);
+  info = find_encoder(infos, lci.id);
+  lqt_add_video_track_compressed(file, &lci, info);
+  lqt_destroy_codec_info(infos);
+  
+  return 1;
+  }
+
+static void packet_gavl_2_lqt(gavl_packet_t * gp, lqt_packet_t * lp)
+  {
+  memset(lp, 0, sizeof(*lp));
+  lp->data_len = gp->data_len;
+  lp->data = gp->data;
+  lp->timestamp = gp->pts;
+  lp->duration = gp->duration;
+  lp->header_size = gp->header_size;
+
+  if(gp->flags & GAVL_PACKET_KEYFRAME)
+    lp->flags |= LQT_PACKET_KEYFRAME;
+  }
+
+int lqt_gavl_write_audio_packet(quicktime_t * file, int track, gavl_packet_t * p)
+  {
+  lqt_packet_t lp;
+  packet_gavl_2_lqt(p, &lp);
+  return lqt_write_audio_packet(file, &lp, track);
+  }
+
+int lqt_gavl_write_video_packet(quicktime_t * file, int track, gavl_packet_t * p)
+  {
+  lqt_packet_t lp;
+  packet_gavl_2_lqt(p, &lp);
+  return lqt_write_video_packet(file, &lp, track);
   }

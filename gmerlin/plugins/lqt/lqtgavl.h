@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include <gavl/gavl.h>
+#include <gavl/compression.h>
 #include <lqt.h>
 
 /*! \mainpage
@@ -231,3 +232,118 @@ void lqt_gavl_seek_scaled(quicktime_t * file, gavl_time_t * time, int scale);
  **/
 
 gavl_time_t lqt_gavl_duration(quicktime_t * file);
+
+/** \defgroup compression Functions for compressed frame I/O
+ */
+
+/** \ingroup compression
+ *  \brief Get audio compression info
+ *  \param file A quicktime handle
+ *  \param track Track index (starting with 0)
+ *  \param ci Returns compression info
+ *  \returns 1 if a compression info was returned, 0 else
+ *
+ *  Free the returned info structure with \ref gavl_compression_info_free
+ */
+
+int lqt_gavl_get_audio_compression_info(quicktime_t * file, int track,
+                                        gavl_compression_info_t * ci);
+
+/** \ingroup compression
+ *  \brief Get video compression info
+ *  \param file A quicktime handle
+ *  \param track Track index (starting with 0)
+ *  \param ci Returns compression info
+ *  \returns 1 if a compression info was returned, 0 else
+ *
+ *  Free the returned info structure with \ref gavl_compression_info_free
+ */
+
+int lqt_gavl_get_video_compression_info(quicktime_t * file, int track,
+                                        gavl_compression_info_t * ci);
+
+/** \ingroup compression
+ *  \brief Read an audio packet
+ *  \param file A quicktime handle
+ *  \param track Track index (starting with 0)
+ *  \param p Packet
+ *  \returns 1 if a packet was read, 0 else
+ *
+ */
+
+int lqt_gavl_read_audio_packet(quicktime_t * file, int track, gavl_packet_t * p);
+
+/** \ingroup compression
+ *  \brief Read a video packet
+ *  \param file A quicktime handle
+ *  \param track Track index (starting with 0)
+ *  \param p Packet
+ *  \returns 1 if a packet was read, 0 else
+ *
+ */
+
+int lqt_gavl_read_video_packet(quicktime_t * file, int track, gavl_packet_t * p);
+
+/** \ingroup compression
+ *  \brief Check if a compressed audio stream is supported 
+ *  \param file A quicktime handle
+ *  \param format Audio format
+ *  \param ci Compression info
+ *  \returns 1 if writing compressed packets is supported, 0 else
+ */
+
+int lqt_gavl_writes_compressed_audio(quicktime_t * file,
+                                     const gavl_audio_format_t * format,
+                                     const gavl_compression_info_t * ci);
+
+/** \ingroup compression
+ *  \brief Check if a compressed video stream is supported 
+ *  \param file A quicktime handle
+ *  \param format Video format
+ *  \param ci Compression info
+ *  \returns 1 if writing compressed packets is supported, 0 else
+ */
+
+int lqt_gavl_writes_compressed_video(quicktime_t * file,
+                                     const gavl_video_format_t * format,
+                                     const gavl_compression_info_t * ci);
+
+/** \ingroup compression
+ *  \brief Add an audio stream for compressed writing 
+ *  \param file A quicktime handle
+ *  \param format Audio format
+ *  \param ci Compression info
+ */
+
+int lqt_gavl_add_audio_track_compressed(quicktime_t * file,
+                                        const gavl_audio_format_t * format,
+                                        const gavl_compression_info_t * ci);
+
+/** \ingroup compression
+ *  \brief Add a video stream for compressed writing 
+ *  \param file A quicktime handle
+ *  \param format Video format
+ *  \param ci Compression info
+ */
+
+int lqt_gavl_add_video_track_compressed(quicktime_t * file,
+                                        const gavl_video_format_t * format,
+                                        const gavl_compression_info_t * ci);
+
+/** \ingroup compression
+ *  \brief Write an audio packet 
+ *  \param file A quicktime handle
+ *  \param track Track index (starting with 0)
+ *  \param p Packet
+ */
+
+int lqt_gavl_write_audio_packet(quicktime_t * file, int track, gavl_packet_t * p);
+
+/** \ingroup compression
+ *  \brief Write a video packet 
+ *  \param file A quicktime handle
+ *  \param track Track index (starting with 0)
+ *  \param p Packet
+ */
+
+int lqt_gavl_write_video_packet(quicktime_t * file, int track, gavl_packet_t * p);

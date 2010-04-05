@@ -85,6 +85,7 @@ typedef struct
     lqt_codec_info_t ** codec_info;
     char language[4];
     int64_t samples_written;
+    const gavl_compression_info_t * ci;
     } * audio_streams;
   
   struct
@@ -93,6 +94,7 @@ typedef struct
     uint8_t ** rows;
     lqt_codec_info_t ** codec_info;
     bg_encoder_framerate_t fr;
+    const gavl_compression_info_t * ci;
     } * video_streams;
   
   struct
@@ -219,6 +221,24 @@ static int open_lqt(void * data, const char * filename,
   return 1;
   }
 
+static int writes_compressed_audio_lqt(void * data,
+                                       const gavl_audio_format_t * format,
+                                       const gavl_compression_info_t * ci)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+  return lqt_gavl_writes_compressed_audio(e->file, format, ci);
+  }
+
+static int writes_compressed_video_lqt(void * data,
+                                       const gavl_video_format_t * format,
+                                       const gavl_compression_info_t * ci)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+  return lqt_gavl_writes_compressed_video(e->file, format, ci);
+  }
+
+
+
 static int add_audio_stream_lqt(void * data, const char * language,
                                 const gavl_audio_format_t * format)
   {
@@ -237,6 +257,17 @@ static int add_audio_stream_lqt(void * data, const char * language,
   
   e->num_audio_streams++;
   return e->num_audio_streams-1;
+  }
+
+static int add_audio_stream_compressed_lqt(void * data, const char * language,
+                                           const gavl_audio_format_t * format,
+                                           const gavl_compression_info_t * ci)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+  int index = add_audio_stream_lqt(data, language,
+                                   format);
+  e->audio_streams[index].ci = ci;
+  return index;
   }
 
 static int add_subtitle_text_stream_lqt(void * data, const char * language, int * timescale)
@@ -276,6 +307,16 @@ static int add_video_stream_lqt(void * data,
   
   e->num_video_streams++;
   return e->num_video_streams-1;
+  }
+
+static int add_video_stream_compressed_lqt(void * data,
+                                           const gavl_video_format_t* format,
+                                           const gavl_compression_info_t * ci)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+  int index = add_video_stream_lqt(data, format);
+  e->video_streams[index].ci = ci;
+  return index;
   }
 
 static void get_audio_format_lqt(void * data, int stream,
@@ -671,7 +712,6 @@ static void set_audio_parameter_lqt(void * data, int stream, const char * name,
     }
   else
     {
-
     bg_lqt_set_audio_parameter(e->file,
                                stream,
                                name,
@@ -851,11 +891,16 @@ like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and t
 
     .open =                 open_lqt,
 
+    .writes_compressed_audio = writes_compressed_audio_lqt,
+    .writes_compressed_video = writes_compressed_video_lqt,
+    
     .add_audio_stream =     add_audio_stream_lqt,
+    .add_audio_stream_compressed =     add_audio_stream_compressed_lqt,
     
     .add_subtitle_text_stream = add_subtitle_text_stream_lqt,
 
     .add_video_stream =     add_video_stream_lqt,
+    .add_video_stream_compressed =     add_video_stream_compressed_lqt,
     .set_video_pass =       set_video_pass_lqt,
     
     .set_audio_parameter =          set_audio_parameter_lqt,
