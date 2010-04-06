@@ -133,7 +133,7 @@ static int open_lqt(void * data, const char * arg)
   int num_audio_streams = 0;
   int num_video_streams = 0;
   int num_text_streams = 0;
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
 
   lqt_codec_info_t ** codec_info;
 
@@ -289,7 +289,7 @@ static int get_num_tracks_lqt(void * data)
 
 static bg_track_info_t * get_track_info_lqt(void * data, int track)
   {
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
   return &(e->track_info);
   }
 
@@ -298,7 +298,7 @@ static
 int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
                           int num_samples)
   {
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
 
   lqt_gavl_decode_audio(e->file, e->audio_streams[stream].quicktime_index,
                         f, num_samples);
@@ -316,7 +316,7 @@ static int read_subtitle_text_lqt(void * priv,
                                   int64_t * start_time,
                                   int64_t * duration, int stream)
   {
-  i_lqt_t * e = (i_lqt_t*)priv;
+  i_lqt_t * e = priv;
   return lqt_read_text(e->file, stream, text, text_alloc,
                        start_time, duration);
   }
@@ -325,7 +325,7 @@ static int read_subtitle_text_lqt(void * priv,
 static
 int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
   {
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
   return lqt_gavl_decode_video(e->file,
                                e->video_streams[stream].quicktime_index,
                                f, e->video_streams[stream].rows);
@@ -335,7 +335,7 @@ int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
 static void close_lqt(void * data)
   {
   int i;
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
   
   if(e->file)
     {
@@ -362,13 +362,13 @@ static void close_lqt(void * data)
 
 static void seek_lqt(void * data, gavl_time_t * time, int scale)
   {
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
   lqt_gavl_seek_scaled(e->file, time, scale);
   }
 
 static void destroy_lqt(void * data)
   {
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
   close_lqt(data);
 
   if(e->parameters)
@@ -399,7 +399,7 @@ static void create_parameters(i_lqt_t * e)
 
 static const bg_parameter_info_t * get_parameters_lqt(void * data)
   {
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
   
   if(!e->parameters)
     create_parameters(e);
@@ -410,7 +410,7 @@ static const bg_parameter_info_t * get_parameters_lqt(void * data)
 static void set_parameter_lqt(void * data, const char * name,
                               const bg_parameter_value_t * val)
   {
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
   char * pos;
   char * tmp_string;
   if(!name)
@@ -456,10 +456,36 @@ static void set_parameter_lqt(void * data, const char * name,
     }
   }
 
+static int get_audio_compression_info_lqt(void * data,
+                                          int stream, gavl_compression_info_t * ci)
+  {
+  i_lqt_t * e = data;
+  return lqt_gavl_get_audio_compression_info(e->file, stream, ci);
+  }
+
+static int get_video_compression_info_lqt(void * data,
+                                          int stream, gavl_compression_info_t * ci)
+  {
+  i_lqt_t * e = data;
+  return lqt_gavl_get_video_compression_info(e->file, stream, ci);
+  }
+
+static int read_audio_packet_lqt(void * data, int stream, gavl_packet_t * p)
+  {
+  i_lqt_t * e = data;
+  return lqt_gavl_read_audio_packet(e->file, stream, p);
+  }
+
+static int read_video_packet_lqt(void * data, int stream, gavl_packet_t * p)
+  {
+  i_lqt_t * e = data;
+  return lqt_gavl_read_video_packet(e->file, stream, p);
+  }
+
 static int start_lqt(void * data)
   {
   int i;
-  i_lqt_t * e = (i_lqt_t*)data;
+  i_lqt_t * e = data;
 
   for(i = 0; i < e->track_info.num_audio_streams; i++)
     {
@@ -506,6 +532,10 @@ const bg_input_plugin_t the_plugin =
     .get_track_info =    get_track_info_lqt,
     //    .set_audio_stream =  set_audio_stream_lqt,
     //    .set_video_stream =  set_audio_stream_lqt,
+
+    .get_audio_compression_info = get_audio_compression_info_lqt,
+    .get_video_compression_info = get_video_compression_info_lqt,
+
     .start =             start_lqt,
 
     .read_audio = read_audio_samples_lqt,
@@ -513,6 +543,9 @@ const bg_input_plugin_t the_plugin =
 
     .has_subtitle =       has_subtitle_lqt,
     .read_subtitle_text = read_subtitle_text_lqt,
+
+    .read_audio_packet = read_audio_packet_lqt,
+    .read_video_packet = read_video_packet_lqt,
     
     .seek =               seek_lqt,
     //    .stop =               stop_lqt,

@@ -789,11 +789,89 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
   
   return 1;
   }
-                                       
 
+static int compression_info_lqt_2_gavl(const lqt_compression_info_t * lci,
+                                       gavl_compression_info_t * gci)
+  {
+  switch(lci->id)
+    {
+    case LQT_COMPRESSION_ALAW:
+      gci->id = GAVL_CODEC_ID_ALAW;
+      break;
+    case LQT_COMPRESSION_ULAW:
+      gci->id = GAVL_CODEC_ID_ULAW;
+      break;
+    case LQT_COMPRESSION_MP2:
+      gci->id = GAVL_CODEC_ID_MP2;
+      break;
+    case LQT_COMPRESSION_MP3:
+      gci->id = GAVL_CODEC_ID_MP3;
+      break;
+    case LQT_COMPRESSION_AC3:
+      gci->id = GAVL_CODEC_ID_AC3;
+      break;
+    case LQT_COMPRESSION_AAC:
+      gci->id = GAVL_CODEC_ID_AAC_RAW;
+      break;
+
+    /* Video */
+    case LQT_COMPRESSION_JPEG: //!< JPEG image
+      gci->id = GAVL_CODEC_ID_JPEG;
+      break;
+    case LQT_COMPRESSION_PNG:            //!< PNG image
+      gci->id = GAVL_CODEC_ID_PNG;
+      break;
+    case LQT_COMPRESSION_TIFF:           //!< TIFF image
+      gci->id = GAVL_CODEC_ID_TIFF;
+      break;
+    case LQT_COMPRESSION_TGA:            //!< TGA image
+      gci->id = GAVL_CODEC_ID_TGA;
+      break;
+    case LQT_COMPRESSION_MPEG4_ASP:      //!< MPEG-4 ASP (a.k.a. Divx4)
+      gci->id = GAVL_CODEC_ID_MPEG4_ASP;
+      break;
+    case LQT_COMPRESSION_H264:           //!< H.264 (Annex B)
+      gci->id = GAVL_CODEC_ID_H264;
+      break;
+    case LQT_COMPRESSION_DIRAC:          //!< Complete DIRAC frames
+      gci->id = GAVL_CODEC_ID_DIRAC;
+      break;
+    case LQT_COMPRESSION_D10:            //!< D10 according to SMPTE 356M-2001
+      gci->id = GAVL_CODEC_ID_MPEG2;
+      break;
+    case LQT_COMPRESSION_NONE:
+      break;
+    }
+
+  if(gci->id == GAVL_CODEC_ID_NONE)
+    return 0;
+  
+  gci->bitrate = lci->bitrate;
+  gci->global_header_len = lci->global_header_len;
+
+  if(gci->global_header_len)
+    {
+    gci->global_header = malloc(gci->global_header_len);
+    memcpy(gci->global_header, lci->global_header, gci->global_header_len);
+    }
+  
+  if(lci->flags & LQT_COMPRESSION_HAS_P_FRAMES)
+    gci->flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
+  if(lci->flags & LQT_COMPRESSION_HAS_B_FRAMES)
+    gci->flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+
+  return 1;
+  }
+  
 int lqt_gavl_get_audio_compression_info(quicktime_t * file, int track,
                                         gavl_compression_info_t * ci)
   {
+  const lqt_compression_info_t * lci;
+  lci = lqt_get_audio_compression_info(file, track);
+  if(lci)
+    {
+    return compression_info_lqt_2_gavl(lci, ci);
+    }
   return 0;
   }
 
@@ -801,6 +879,12 @@ int lqt_gavl_get_audio_compression_info(quicktime_t * file, int track,
 int lqt_gavl_get_video_compression_info(quicktime_t * file, int track,
                                         gavl_compression_info_t * ci)
   {
+  const lqt_compression_info_t * lci;
+  lci = lqt_get_video_compression_info(file, track);
+  if(lci)
+    {
+    return compression_info_lqt_2_gavl(lci, ci);
+    }
   return 0;
   }
 
