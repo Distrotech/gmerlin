@@ -608,6 +608,7 @@ int bg_avdec_get_num_tracks(void * p)
 
 int bg_avdec_set_track(void * priv, int track)
   {
+  int i;
   const char * str;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
@@ -621,7 +622,16 @@ int bg_avdec_set_track(void * priv, int track)
     avdec->track_info[track].description =
       bg_strdup(avdec->track_info[track].description, str);
 
+  /* Get formats (need them for compressed output */
+  for(i = 0; i < avdec->current_track->num_audio_streams; i++)
+    gavl_audio_format_copy(&(avdec->current_track->audio_streams[i].format),
+                           bgav_get_audio_format(avdec->dec, i));
 
+  for(i = 0; i < avdec->current_track->num_video_streams; i++)
+    gavl_video_format_copy(&(avdec->current_track->video_streams[i].format),
+                           bgav_get_video_format(avdec->dec, i));
+
+  
   return 1;
   }
 
