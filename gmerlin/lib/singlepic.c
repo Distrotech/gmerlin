@@ -467,6 +467,8 @@ static int read_video_packet_input(void * priv, int stream, gavl_packet_t* p)
 
   p->pts = (inp->current_frame - inp->frame_start) * inp->frame_duration;
   
+  p->flags = GAVL_PACKET_KEYFRAME;
+  
   if(!inp->do_still)
     p->duration = inp->frame_duration;
 
