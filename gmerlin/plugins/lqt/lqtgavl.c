@@ -257,19 +257,17 @@ static uint32_t timecode_flags_gavl_2_lqt(int gavl)
 
 /* Audio encoding */
 
-void lqt_gavl_add_audio_track(quicktime_t * file,
-                               gavl_audio_format_t * format,
-                               lqt_codec_info_t * codec)
+void lqt_gavl_set_audio_codec(quicktime_t * file,
+                              int track,
+                              gavl_audio_format_t * format,
+                              lqt_codec_info_t * codec)
   {
   int i;
   const lqt_channel_t * chans_1;
   lqt_channel_t * chans_2;
-  
-  int track = quicktime_audio_tracks(file);
-  
-  lqt_add_audio_track(file, format->num_channels, format->samplerate,
-                      16, codec);
 
+  lqt_set_audio_codec(file, track, codec);
+  
   format->sample_format =
     sampleformat_lqt_2_gavl(lqt_get_sample_format(file, track));
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
@@ -299,20 +297,28 @@ void lqt_gavl_add_audio_track(quicktime_t * file,
     }
   }
 
-void lqt_gavl_add_video_track(quicktime_t * file,
-                               gavl_video_format_t * format,
+
+void lqt_gavl_add_audio_track(quicktime_t * file,
+                               gavl_audio_format_t * format,
                                lqt_codec_info_t * codec)
   {
-  int track = quicktime_video_tracks(file);
   
-  if(lqt_add_video_track(file, format->image_width, format->image_height,
-                          format->frame_duration, format->timescale,
-                          codec))
-    return;
-  lqt_set_pixel_aspect(file, track, format->pixel_width, format->pixel_height);
-  lqt_set_interlace_mode(file, track,
-                         interlace_mode_gavl_2_lqt(format->interlace_mode));
+  int track = quicktime_audio_tracks(file);
+  
+  lqt_add_audio_track(file, format->num_channels, format->samplerate,
+                      16, NULL);
 
+  if(codec)
+    lqt_gavl_set_audio_codec(file, track, format, codec);
+  }
+
+void lqt_gavl_set_video_codec(quicktime_t * file,
+                              int track,
+                              gavl_video_format_t * format,
+                              lqt_codec_info_t * codec)
+  {
+  lqt_set_video_codec(file, track, codec);
+  
 #if LQT_BUILD < LQT_MAKE_BUILD(1,1,2)
   format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
 #else
@@ -339,13 +345,33 @@ void lqt_gavl_add_video_track(quicktime_t * file,
   else
     format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
 #endif
+  }
+
+void lqt_gavl_add_video_track(quicktime_t * file,
+                              gavl_video_format_t * format,
+                              lqt_codec_info_t * codec)
+  {
+  int track = quicktime_video_tracks(file);
   
+  if(lqt_add_video_track(file, format->image_width, format->image_height,
+                          format->frame_duration, format->timescale,
+                          NULL))
+    return;
+  lqt_set_pixel_aspect(file, track, format->pixel_width, format->pixel_height);
+  lqt_set_interlace_mode(file, track,
+                         interlace_mode_gavl_2_lqt(format->interlace_mode));
+
+  /* Add timecode track */
   if(format->timecode_format.int_framerate > 0)
     {
     lqt_add_timecode_track(file, track,
                            timecode_flags_gavl_2_lqt(format->timecode_format.flags),
                            format->timecode_format.int_framerate);
     }
+
+  if(codec)
+    lqt_gavl_set_video_codec(file, track, format, codec);
+  
   }
 
 int lqt_gavl_encode_video(quicktime_t * file, int track,
@@ -369,7 +395,6 @@ int lqt_gavl_encode_video(quicktime_t * file, int track,
                        gavl_timecode_to_framecount(&f, frame->timecode));
     
     }
-                       
   
   if(lqt_colormodel_is_planar(lqt_get_cmodel(file, track)))
     {
@@ -770,11 +795,12 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
     {
     if(!vfmt)
       return 0;
-    lci->width  = vfmt->image_width;
-    lci->height = vfmt->image_height;
-    lci->pixel_width  = vfmt->pixel_width;
-    lci->pixel_height = vfmt->pixel_height;
-    lci->colormodel  =  pixelformat_gavl_2_lqt(vfmt->pixelformat);
+    lci->width           = vfmt->image_width;
+    lci->height          = vfmt->image_height;
+    lci->pixel_width     = vfmt->pixel_width;
+    lci->pixel_height    = vfmt->pixel_height;
+    lci->colormodel      = pixelformat_gavl_2_lqt(vfmt->pixelformat);
+    lci->video_timescale = vfmt->timescale;
     }
   /* Set generic stuff */
   lci->bitrate = gci->bitrate;
@@ -938,7 +964,7 @@ static lqt_codec_info_t * find_encoder(lqt_codec_info_t ** infos,
   }
 
 
-int lqt_gavl_writes_compressed_audio(quicktime_t * file,
+int lqt_gavl_writes_compressed_audio(lqt_file_type_t type,
                                      const gavl_audio_format_t * format,
                                      const gavl_compression_info_t * ci)
   {
@@ -954,16 +980,16 @@ int lqt_gavl_writes_compressed_audio(quicktime_t * file,
   info = find_encoder(infos, lci.id);
 
   if(info)
-    ret = lqt_writes_compressed(file, &lci, info);
+    ret = lqt_writes_compressed(type, &lci, info);
   
   lqt_destroy_codec_info(infos);
 
   return ret;
   }
 
-int lqt_gavl_writes_compressed_video(quicktime_t * file,
-                                      const gavl_video_format_t * format,
-                                      const gavl_compression_info_t * ci)
+int lqt_gavl_writes_compressed_video(lqt_file_type_t type,
+                                     const gavl_video_format_t * format,
+                                     const gavl_compression_info_t * ci)
   {
   int ret = 0;
   lqt_compression_info_t lci;
@@ -977,7 +1003,7 @@ int lqt_gavl_writes_compressed_video(quicktime_t * file,
   info = find_encoder(infos, lci.id);
 
   if(info)
-    ret = lqt_writes_compressed(file, &lci, info);
+    ret = lqt_writes_compressed(type, &lci, info);
   
   lqt_destroy_codec_info(infos);
 

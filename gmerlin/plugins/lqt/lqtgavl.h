@@ -79,12 +79,29 @@ void lqt_gavl_rows_destroy(uint8_t** rows);
  * This function will change the format parameter according to
  * what you must pass to the encode calls. If the format is different
  * from the source format, you need a \ref gavl_audio_converter_t.
+ *
+ * You can pass NULL for the codec. In this case you must call
+ * \ref lqt_gavl_set_audio_codec later on.
+ * 
  */
-
 
 void lqt_gavl_add_audio_track(quicktime_t * file,
                                gavl_audio_format_t * format,
                                lqt_codec_info_t * codec);
+
+/** \ingroup encode
+ *  \brief Set up an audio stream for encoding
+ *  \param file A quicktime handle
+ *  \param track Track index (starting with 0)
+ *  \param format Audio format
+ *  \param codec The codec to use
+ */
+
+void lqt_gavl_set_audio_codec(quicktime_t * file,
+                              int track,
+                              gavl_audio_format_t * format,
+                              lqt_codec_info_t * codec);
+
 
 /** \ingroup encode
  *  \brief Set up a video stream for encoding
@@ -100,11 +117,28 @@ void lqt_gavl_add_audio_track(quicktime_t * file,
  * If the video format contains a valid timecode format, a timecode track
  * will be added and attached to the video stream. If you don't like this,
  * set format->timecode_format.int_framerate to 0 before calling this function.
+ *
+ * You can pass NULL for the codec. In this case you must call
+ * \ref lqt_gavl_set_video_codec later on.
  */
 
 void lqt_gavl_add_video_track(quicktime_t * file,
                               gavl_video_format_t * format,
                               lqt_codec_info_t * codec);
+
+/** \ingroup encode
+ *  \brief Set up a video stream for encoding
+ *  \param file A quicktime handle
+ *  \param track Track index (starting with 0)
+ *  \param format Video format (will be updated according to codec)
+ *  \param codec The codec to use
+ */
+
+void lqt_gavl_set_video_codec(quicktime_t * file,
+                              int track,
+                              gavl_video_format_t * format,
+                              lqt_codec_info_t * codec);
+
 
 /* Encode audio/video */
 
@@ -286,25 +320,25 @@ int lqt_gavl_read_video_packet(quicktime_t * file, int track, gavl_packet_t * p)
 
 /** \ingroup compression
  *  \brief Check if a compressed audio stream is supported 
- *  \param file A quicktime handle
+ *  \param type File type
  *  \param format Audio format
  *  \param ci Compression info
  *  \returns 1 if writing compressed packets is supported, 0 else
  */
 
-int lqt_gavl_writes_compressed_audio(quicktime_t * file,
+int lqt_gavl_writes_compressed_audio(lqt_file_type_t type,
                                      const gavl_audio_format_t * format,
                                      const gavl_compression_info_t * ci);
 
 /** \ingroup compression
  *  \brief Check if a compressed video stream is supported 
- *  \param file A quicktime handle
+ *  \param type File type
  *  \param format Video format
  *  \param ci Compression info
  *  \returns 1 if writing compressed packets is supported, 0 else
  */
 
-int lqt_gavl_writes_compressed_video(quicktime_t * file,
+int lqt_gavl_writes_compressed_video(lqt_file_type_t type,
                                      const gavl_video_format_t * format,
                                      const gavl_compression_info_t * ci);
 

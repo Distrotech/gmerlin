@@ -444,7 +444,7 @@ dnl
 dnl Libquicktime
 dnl
 
-LQT_REQUIRED="1.1.2"
+LQT_REQUIRED="1.2.0"
 have_lqt=false
 AC_ARG_ENABLE(lqt,
               AC_HELP_STRING(--disable-lqt, [Disable Libquicktime support (default: autodetect)]),
