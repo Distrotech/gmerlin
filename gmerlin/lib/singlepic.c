@@ -368,7 +368,7 @@ static int get_compression_info_input(void * priv, int stream,
   {
   int ret;
   input_t * inp = priv;
-  if(!inp->image_reader || inp->image_reader->get_compression_info)
+  if(!inp->image_reader || !inp->image_reader->get_compression_info)
     return 0;
   ret = inp->image_reader->get_compression_info(inp->handle->priv, ci);
 
@@ -432,8 +432,7 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   return 1;
   }
 
-static int read_video_packet_input(void * priv, gavl_packet_t* p,
-                                   int stream)
+static int read_video_packet_input(void * priv, int stream, gavl_packet_t* p)
   {
   FILE * in;
   int64_t size;

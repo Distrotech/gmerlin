@@ -52,7 +52,7 @@ static void * create_png()
 
 static void destroy_png(void* priv)
   {
-  png_t * png = (png_t*)priv;
+  png_t * png = priv;
 
   free(png);
   }
@@ -69,7 +69,7 @@ static int read_header_png(void * priv, const char * filename,
   int num_text;
   
   png_byte signature[8];
-  png_t * png = (png_t*)priv;
+  png_t * png = priv;
 
   int bits = 8;
   
@@ -251,29 +251,34 @@ static int get_compression_info_png(void * priv, gavl_compression_info_t * ci)
 
 static const bg_metadata_t * get_metadata_png(void * priv)
   {
-  png_t * png = (png_t*)priv;
+  png_t * png = priv;
   return(&png->metadata);
   }
 
 static int read_image_png(void * priv, gavl_video_frame_t * frame)
   {
   int i;
-  unsigned char ** rows;
-  png_t * png = (png_t*)priv;
+  unsigned char ** rows = NULL;
+  png_t * png = priv;
 
-  setjmp(png_jmpbuf(png->png_ptr));
+
+  if(frame)
+    {
+    setjmp(png_jmpbuf(png->png_ptr));
+    rows = malloc(png->format.frame_height * sizeof(*rows));
+    for(i = 0; i < png->format.frame_height; i++)
+      rows[i] = frame->planes[0] + i * frame->strides[0];
+    
+    png_read_image(png->png_ptr, rows);
+    png_read_end(png->png_ptr, png->end_info);
+    }
   
-  rows = malloc(png->format.frame_height * sizeof(*rows));
-  for(i = 0; i < png->format.frame_height; i++)
-    rows[i] = frame->planes[0] + i * frame->strides[0];
-
-  png_read_image(png->png_ptr, rows);
-  png_read_end(png->png_ptr, png->end_info);
-
   png_destroy_read_struct(&(png->png_ptr), &(png->info_ptr),
                           &(png->end_info));
   fclose(png->file);
-  free(rows);
+
+  if(rows)
+    free(rows);
   bg_metadata_free(&png->metadata);
   return 1;
   }
