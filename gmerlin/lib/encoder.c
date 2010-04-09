@@ -1089,7 +1089,7 @@ int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
   bg_encoder_plugin_t * plugin;
   const bg_plugin_info_t * plugin_info;
   bg_plugin_handle_t * h;
-  const bg_cfg_section_t * plugin_section;
+  bg_cfg_section_t * plugin_section;
 
   if(enc->video_plugin.info)
     {

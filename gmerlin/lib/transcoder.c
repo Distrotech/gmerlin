@@ -2121,7 +2121,7 @@ static void check_compressed(bg_transcoder_t * ret)
       }
 
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Copying compressed audio stream %d", i+1);
-    bg_dprintf("Copying compressed audio stream %d\n");
+    bg_dprintf("Copying compressed audio stream %d\n", i+1);
     gavl_compression_info_dump(&ret->audio_streams[i].com.ci);
     }
   for(i = 0; i < ret->num_video_streams; i++)
@@ -2180,7 +2180,7 @@ static void check_compressed(bg_transcoder_t * ret)
       }
 
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Copying compressed video stream %d", i+1);
-    bg_dprintf("Copying compressed video stream %d\n");
+    bg_dprintf("Copying compressed video stream %d\n", i+1);
     gavl_compression_info_dump(&ret->video_streams[i].com.ci);
     }
   }

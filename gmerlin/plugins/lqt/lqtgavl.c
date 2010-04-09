@@ -722,7 +722,7 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
       lci->id = LQT_COMPRESSION_AC3;
       is_audio = 1;
       break;
-    case GAVL_CODEC_ID_AAC_RAW:   //!< AAC as stored in quicktime/mp4
+    case GAVL_CODEC_ID_AAC:      //!< AAC as stored in quicktime/mp4
       lci->id = LQT_COMPRESSION_AAC;
       is_audio = 1;
       break;
@@ -809,7 +809,9 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
     lci->flags |= LQT_COMPRESSION_HAS_P_FRAMES;
   if(gci->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
     lci->flags |= LQT_COMPRESSION_HAS_B_FRAMES;
-
+  if(gci->flags & GAVL_COMPRESSION_SBR)
+    lci->flags |= LQT_COMPRESSION_SBR;
+  
   lci->global_header = gci->global_header;
   lci->global_header_len = gci->global_header_len;
   
@@ -837,7 +839,7 @@ static int compression_info_lqt_2_gavl(const lqt_compression_info_t * lci,
       gci->id = GAVL_CODEC_ID_AC3;
       break;
     case LQT_COMPRESSION_AAC:
-      gci->id = GAVL_CODEC_ID_AAC_RAW;
+      gci->id = GAVL_CODEC_ID_AAC;
       break;
 
     /* Video */
@@ -885,7 +887,9 @@ static int compression_info_lqt_2_gavl(const lqt_compression_info_t * lci,
     gci->flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
   if(lci->flags & LQT_COMPRESSION_HAS_B_FRAMES)
     gci->flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
-
+  if(lci->flags & LQT_COMPRESSION_SBR)
+    gci->flags |= GAVL_COMPRESSION_SBR;
+  
   return 1;
   }
   
