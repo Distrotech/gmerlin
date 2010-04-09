@@ -75,7 +75,7 @@ compression_ids[] =
     { GAVL_CODEC_ID_MP2,       "mp2", "MPEG layer 2" },
     { GAVL_CODEC_ID_MP3,       "mp3", "MPEG layer 3" },
     { GAVL_CODEC_ID_AC3,       "ac3", "AC3"          },
-    { GAVL_CODEC_ID_AAC_RAW,   NULL,  "AAC"          },
+    { GAVL_CODEC_ID_AAC,       NULL,  "AAC"          },
     { GAVL_CODEC_ID_VORBIS,    NULL,  "Vorbis"       },
     
     /* Video */
@@ -136,15 +136,24 @@ get_name(gavl_codec_id_t id)
 void gavl_compression_info_dump(const gavl_compression_info_t * info)
   {
   fprintf(stderr, "Compression info\n");
-  fprintf(stderr, "  Codec:   %s\n", get_name(info->id));
-  fprintf(stderr, "  Bitrate: %d bps\n", info->bitrate);
+  fprintf(stderr, "  Codec:        %s\n", get_name(info->id));
+  fprintf(stderr, "  Bitrate:      %d bps\n", info->bitrate);
 
-  fprintf(stderr, "  Frame types: I");
-  if(info->flags & GAVL_COMPRESSION_HAS_P_FRAMES)
-    fprintf(stderr, ",P");
-  if(info->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
-    fprintf(stderr, ",B");
-  fprintf(stderr, "\n");
+  if(info->id >= 0x10000)
+    {
+    fprintf(stderr, "  Palette size: %d bps\n", info->bitrate);
+    fprintf(stderr, "  Frame types:  I");
+    if(info->flags & GAVL_COMPRESSION_HAS_P_FRAMES)
+      fprintf(stderr, ",P");
+    if(info->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
+      fprintf(stderr, ",B");
+    fprintf(stderr, "\n");
+    }
+  else
+    {
+    fprintf(stderr, "  SBR:          %s\n",
+            (info->flags & GAVL_COMPRESSION_SBR ? "Yes" : "No"));
+    }
   
   fprintf(stderr, "  Global header %d bytes", info->global_header_len);
   if(info->global_header_len)

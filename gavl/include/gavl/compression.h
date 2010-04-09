@@ -45,6 +45,7 @@ extern "C" {
 #define GAVL_COMPRESSION_HAS_P_FRAMES (1<<0) //!< Not all frames are keyframes
 #define GAVL_COMPRESSION_HAS_B_FRAMES (1<<1) //!< Frames don't appear in presentation order 
 #define GAVL_COMPRESSION_HAS_FIELD_PICTURES (1<<2) //!< Packets can consist of 2 consecutive fields
+#define GAVL_COMPRESSION_SBR                (1<<3) //!< Samplerate got doubled by decoder, format and sample counts are for the upsampled rate
 
 typedef enum
   {
@@ -55,7 +56,7 @@ typedef enum
     GAVL_CODEC_ID_MP2,       //!< MPEG-1 audio layer II
     GAVL_CODEC_ID_MP3,       //!< MPEG-1/2 audio layer 3 CBR/VBR
     GAVL_CODEC_ID_AC3,       //!< AC3
-    GAVL_CODEC_ID_AAC_RAW,   //!< AAC as stored in quicktime/mp4
+    GAVL_CODEC_ID_AAC,       //!< AAC as stored in quicktime/mp4
     GAVL_CODEC_ID_VORBIS,    //!< Vorbis (segmented extradata and packets)
     
     /* Video */
@@ -91,6 +92,7 @@ typedef struct
   int global_header_len;   //!< Length of global header
   
   int bitrate;             //!< Needed by some codecs, negative values mean VBR
+  int palette_size;        //!< Size of the embedded palette for image codecs
   } gavl_compression_info_t;
 
 /** \brief Free all dynamically allocated memory of a compression info
