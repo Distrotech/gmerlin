@@ -227,6 +227,7 @@ static void check_he_aac(bgav_demuxer_context_t * ctx,
         bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Detected HE-AAC");
         s->data.audio.format.samplerate *= 2;
         priv->block_samples *= 2;
+        s->flags |= STREAM_SBR;
         }
       else
         {

@@ -361,6 +361,7 @@ typedef enum
 #define STREAM_RAW_PACKETS        (1<<13)
 #define STREAM_FIELD_PICTURES     (1<<14)
 #define STREAM_FILTER_PACKETS     (1<<15)
+#define STREAM_SBR                (1<<16)
 
 
 /* Stream could not get exact compression info from the

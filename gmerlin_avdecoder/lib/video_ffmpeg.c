@@ -2318,7 +2318,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
     sws_scale(priv->swsContext,
               priv->frame->data, priv->frame->linesize,
               0, s->data.video.format.image_height,
-              f->planes, f->strides);
+              (const uint8_t * const *)f->planes, f->strides);
 
 #else
     ffmpeg_frame.data[0]     = f->planes[0];

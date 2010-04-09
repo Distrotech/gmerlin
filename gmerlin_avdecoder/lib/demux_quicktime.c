@@ -1487,6 +1487,7 @@ static void check_he_aac(bgav_demuxer_context_t * ctx,
         bgav_superindex_set_sbr(ctx->si, s);
         bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Detected HE-AAC");
         s->data.audio.format.samples_per_frame = 2048;
+        s->flags |= STREAM_SBR;
         }
       else
         {

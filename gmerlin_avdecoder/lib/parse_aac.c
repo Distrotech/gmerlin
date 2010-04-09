@@ -66,6 +66,9 @@ static int parse_aac(bgav_audio_parser_t * parser)
         {
         if(samples)
           {
+          if(samples == 2048)
+            parser->s->flags |= STREAM_SBR;
+          
           priv->samples_per_frame = samples;
           priv->scan_pos = 0;
           break;

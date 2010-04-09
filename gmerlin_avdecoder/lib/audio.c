@@ -398,6 +398,12 @@ static uint32_t vorbis_fourccs[] =
     0x00
   };
 
+static uint32_t aac_fourccs[] =
+  {
+    BGAV_MK_FOURCC('m','p','4','a'),
+    0x00
+  };
+
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
   int i = 0;
@@ -441,6 +447,12 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     {
     id = GAVL_CODEC_ID_MP3;
     }
+  else if(check_fourcc(s->fourcc, aac_fourccs))
+    {
+    id = GAVL_CODEC_ID_AAC;
+    need_header = 1;
+    }
+
   else if(check_fourcc(s->fourcc, vorbis_fourccs))
     {
     id = GAVL_CODEC_ID_VORBIS;
@@ -470,6 +482,9 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     }
   info->id = id;
 
+  if(s->flags & STREAM_SBR)
+    info->flags |= GAVL_COMPRESSION_SBR;
+  
   if(need_header)
     {
     info->global_header = malloc(s->ext_size);
