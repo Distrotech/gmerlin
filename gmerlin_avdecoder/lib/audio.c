@@ -451,6 +451,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     {
     id = GAVL_CODEC_ID_AAC;
     need_header = 1;
+    need_bitrate = 0;
     }
 
   else if(check_fourcc(s->fourcc, vorbis_fourccs))
