@@ -70,25 +70,28 @@ struct
 compression_ids[] =
   {
     /* Audio */
-    { GAVL_CODEC_ID_ALAW,      NULL,  "alaw"         },
-    { GAVL_CODEC_ID_ULAW,      NULL,  "ulaw"         },
-    { GAVL_CODEC_ID_MP2,       "mp2", "MPEG layer 2" },
-    { GAVL_CODEC_ID_MP3,       "mp3", "MPEG layer 3" },
-    { GAVL_CODEC_ID_AC3,       "ac3", "AC3"          },
-    { GAVL_CODEC_ID_AAC,       NULL,  "AAC"          },
-    { GAVL_CODEC_ID_VORBIS,    NULL,  "Vorbis"       },
+    { GAVL_CODEC_ID_ALAW,      NULL,       "alaw"         },
+    { GAVL_CODEC_ID_ULAW,      NULL,       "ulaw"         },
+    { GAVL_CODEC_ID_MP2,       "mp2",      "MPEG layer 2" },
+    { GAVL_CODEC_ID_MP3,       "mp3",      "MPEG layer 3" },
+    { GAVL_CODEC_ID_AC3,       "ac3",      "AC3"          },
+    { GAVL_CODEC_ID_AAC,       NULL,       "AAC"          },
+    { GAVL_CODEC_ID_VORBIS,    NULL,       "Vorbis"       },
     
     /* Video */
-    { GAVL_CODEC_ID_JPEG,      "jpg", "JPEG image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_PNG,       "png", "PNG image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_TIFF,      "tif", "TIFF image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_TGA,       "tga", "TGA image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_MPEG1,     "mpv", "MPEG-1"       },
-    { GAVL_CODEC_ID_MPEG2,     "mpv", "MPEG-2",      FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_MPEG4_ASP, "m4v", "MPEG-4 ASP"   },
-    { GAVL_CODEC_ID_H264,      "h264","H.264"        },
-    { GAVL_CODEC_ID_THEORA,    NULL,  "Theora"       },
-    { GAVL_CODEC_ID_DIRAC,     NULL,  "Dirac"        },
+    { GAVL_CODEC_ID_JPEG,      "jpg",      "JPEG image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_PNG,       "png",      "PNG image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_TIFF,      "tif",      "TIFF image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_TGA,       "tga",      "TGA image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_MPEG1,     "mpv",      "MPEG-1"       },
+    { GAVL_CODEC_ID_MPEG2,     "mpv",      "MPEG-2",      FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_MPEG4_ASP, "m4v",      "MPEG-4 ASP"   },
+    { GAVL_CODEC_ID_H264,      "h264",     "H.264"        },
+    { GAVL_CODEC_ID_THEORA,    NULL,       "Theora"       },
+    { GAVL_CODEC_ID_DIRAC,     NULL,       "Dirac"        },
+    { GAVL_CODEC_ID_DV,        "dv",       "DV"           },
+    { GAVL_CODEC_ID_DVCPRO50,  "dv",       "DVCPRO50"     },
+    { GAVL_CODEC_ID_DVCPROHD,  "dv",       "DVCPROHD"     },
     
   };
 
