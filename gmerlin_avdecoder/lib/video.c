@@ -649,6 +649,23 @@ static uint32_t avc1_fourccs[] =
     0x00
   };
 
+static uint32_t mpeg4_fourccs[] =
+  {
+    BGAV_MK_FOURCC('m','p','4','v'),
+    0x00
+  };
+
+static uint32_t d10_fourccs[] =
+  {
+    BGAV_MK_FOURCC('m', 'x', '5', 'p'),
+    BGAV_MK_FOURCC('m', 'x', '4', 'p'),
+    BGAV_MK_FOURCC('m', 'x', '3', 'p'),
+    BGAV_MK_FOURCC('m', 'x', '5', 'n'),
+    BGAV_MK_FOURCC('m', 'x', '4', 'n'),
+    BGAV_MK_FOURCC('m', 'x', '3', 'n'),
+    0x00,
+  };
+
 
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
@@ -688,10 +705,17 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     id = GAVL_CODEC_ID_DIRAC;
   else if(check_fourcc(s->fourcc, h264_fourccs))
     id = GAVL_CODEC_ID_H264;
+  else if(check_fourcc(s->fourcc, mpeg4_fourccs))
+    id = GAVL_CODEC_ID_MPEG4_ASP;
   else if(check_fourcc(s->fourcc, avc1_fourccs))
     {
     id = GAVL_CODEC_ID_H264;
     s->flags |= STREAM_FILTER_PACKETS;
+    }
+  else if(check_fourcc(s->fourcc, d10_fourccs))
+    {
+    id = GAVL_CODEC_ID_MPEG2;
+    s->data.video.format.pixelformat = GAVL_YUV_422_P;
     }
   else
     return 0;
@@ -777,6 +801,9 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   if(!bp)
     return 0;
 
+  //  fprintf(stderr, "bgav_read_video_packet\n");
+  //  bgav_packet_dump(bp);
+  
   if(s->flags & STREAM_FILTER_PACKETS)
     {
     bgav_packet_t tmp_packet;

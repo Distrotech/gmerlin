@@ -221,16 +221,24 @@ static void get_format(bgav_stream_t*s,
   ret->image_width  = sequence->picture_width;
   ret->image_height = sequence->picture_height;
 
+  /* Handle D-10 */
   if((s->fourcc == BGAV_MK_FOURCC('m','x','3','p')) || // IMX PAL 30 MBps
      (s->fourcc == BGAV_MK_FOURCC('m','x','4','p')) || // IMX PAL 40 MBps
-     (s->fourcc == BGAV_MK_FOURCC('m','x','5','p')) || // IMX PAL 50 MBps
-     (s->fourcc == BGAV_MK_FOURCC('m','x','3','n')) || // IMX NTSC 30 MBps
-     (s->fourcc == BGAV_MK_FOURCC('m','x','4','n')) || // IMX NTSC 40 MBps
-     (s->fourcc == BGAV_MK_FOURCC('m','x','5','n'))) // IMX NTSC 50 MBps
+     (s->fourcc == BGAV_MK_FOURCC('m','x','5','p'))) // IMX PAL 50 MBps
     {
-    ret->image_height -= 32;
+    if(ret->image_height == 608)
+      ret->image_height = 576;
     priv->y_offset = 32;
     }
+  else if((s->fourcc == BGAV_MK_FOURCC('m','x','3','n')) || // IMX NTSC 30 MBps
+          (s->fourcc == BGAV_MK_FOURCC('m','x','4','n')) || // IMX NTSC 40 MBps
+          (s->fourcc == BGAV_MK_FOURCC('m','x','5','n'))) // IMX NTSC 50 MBps
+    {
+    if(ret->image_height == 512)
+      ret->image_height = 486;
+    priv->y_offset = 26;
+    }
+  
   ret->frame_width  = sequence->width;
   ret->frame_height = sequence->height;
 

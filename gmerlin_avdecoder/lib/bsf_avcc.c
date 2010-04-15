@@ -33,7 +33,6 @@ static const uint8_t nal_header[4] = { 0x00, 0x00, 0x00, 0x01 };
 typedef struct
   {
   int nal_size_length;
-  int header_sent;
   } avcc_t;
 
 static void append_data(bgav_packet_t * p, uint8_t * data, int len,
@@ -41,9 +40,6 @@ static void append_data(bgav_packet_t * p, uint8_t * data, int len,
   {
   switch(header_len)
     {
-    case 0:
-      bgav_packet_alloc(p, p->data_size + len);
-      break;
     case 3:
       bgav_packet_alloc(p, p->data_size + 3 + len);
       memcpy(p->data + p->data_size, &nal_header[1], 3);
@@ -71,14 +67,7 @@ filter_avcc(bgav_bsf_t* bsf, bgav_packet_t * in, bgav_packet_t * out)
   end = in->data + in->data_size;
 
   out->data_size = 0;
-
-  if(!priv->header_sent)
-    {
-    append_data(out, bsf->ext_data, bsf->ext_size, 0);
-    priv->header_sent = 1;
-    out->header_size = bsf->ext_size;
-    }
-  
+    
   while(ptr < end - priv->nal_size_length)
     {
     switch(priv->nal_size_length)

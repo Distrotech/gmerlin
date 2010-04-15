@@ -36,7 +36,7 @@
 #define LOG_DOMAIN "audio_ffmpeg"
 
 // #define DUMP_DECODE
-#define DUMP_PACKET
+// #define DUMP_PACKET
 //#define DUMP_EXTRADATA
 
 /* Different decoding functions */
