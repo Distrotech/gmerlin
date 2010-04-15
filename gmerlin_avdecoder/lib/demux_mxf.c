@@ -403,7 +403,13 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   init_stream_common(ctx, s, st, sd, fourcc);
   priv = (stream_priv_t *)s->priv;
   
-  if(s->fourcc == BGAV_MK_FOURCC('m','p','g','v'))
+  if((s->fourcc == BGAV_MK_FOURCC('m','p','g','v')) ||
+     (s->fourcc == BGAV_MK_FOURCC('m','x','5','p')) ||
+     (s->fourcc == BGAV_MK_FOURCC('m','x','4','p')) ||
+     (s->fourcc == BGAV_MK_FOURCC('m','x','3','p')) ||
+     (s->fourcc == BGAV_MK_FOURCC('m','x','5','n')) ||
+     (s->fourcc == BGAV_MK_FOURCC('m','x','4','n')) ||
+     (s->fourcc == BGAV_MK_FOURCC('m','x','3','n')))
     {
     s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
     s->index_mode = INDEX_MODE_MPEG;

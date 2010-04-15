@@ -468,7 +468,16 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
       }
     else if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
        !bgav_video_parser_supported(s->fourcc))
+      {
       bgav_track_remove_video_stream(track, i);
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No parser found for fourcc %c%c%c%c (0x%08x)",
+               (s->fourcc & 0xFF000000) >> 24,
+               (s->fourcc & 0x00FF0000) >> 16,
+               (s->fourcc & 0x0000FF00) >> 8,
+               (s->fourcc & 0x000000FF),
+               s->fourcc);
+      }
     else
       i++;
     }

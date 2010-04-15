@@ -715,7 +715,6 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   else if(check_fourcc(s->fourcc, d10_fourccs))
     {
     id = GAVL_CODEC_ID_MPEG2;
-    s->data.video.format.pixelformat = GAVL_YUV_422_P;
     }
   else
     return 0;
