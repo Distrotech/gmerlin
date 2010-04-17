@@ -685,6 +685,7 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   {
   gavl_codec_id_t id;
   bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
+  int need_bitrate = 0;
   memset(info, 0, sizeof(*info));
   
   if(check_fourcc(s->fourcc, png_fourccs))
@@ -715,6 +716,7 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   else if(check_fourcc(s->fourcc, d10_fourccs))
     {
     id = GAVL_CODEC_ID_MPEG2;
+    need_bitrate = 1;
     }
   else
     return 0;
@@ -748,6 +750,20 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     info->global_header = malloc(s->ext_size);
     memcpy(info->global_header, s->ext_data, s->ext_size);
     info->global_header_len = s->ext_size;
+    }
+
+  if(need_bitrate)
+    {
+    if(s->codec_bitrate)
+      info->bitrate = s->codec_bitrate;
+    else if(s->container_bitrate)
+      info->bitrate = s->container_bitrate;
+    else
+      {
+      bgav_log(&bgav->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Video compression format needs bitrate for compressed output");
+      return 0;
+      }
     }
   
   if(!(s->flags & STREAM_INTRA_ONLY))

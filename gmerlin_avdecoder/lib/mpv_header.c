@@ -317,6 +317,8 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
     return 0;
   ret->progressive_sequence = buffer[1] & (1 << 3);
   
+  ret->chroma_format = (buffer[1] & 0x06) >> 1;
+  
   ret->horizontal_size_ext = ((buffer[1] << 13) | (buffer[2] << 5)) & 0x3000;
   ret->vertical_size_ext   = (buffer[2] << 7) & 0x3000;
   
@@ -324,8 +326,10 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
   ret->timescale_ext        = (buffer[5] >> 5) & 3;
   ret->frame_duration_ext   = (buffer[5] & 0x1f);
   ret->low_delay            = !!(buffer[5] & 0x80);
+
   
-  return 10;
+  
+  return 1;
   }
 
 int bgav_mpv_picture_header_parse(const bgav_options_t * opt,
@@ -484,3 +488,35 @@ void bgav_mpv_get_pixel_aspect(bgav_mpv_sequence_header_t * h,
     }
   }
 
+gavl_pixelformat_t bgav_mpv_get_pixelformat(bgav_mpv_sequence_header_t * h)
+  {
+  gavl_pixelformat_t ret;
+
+  ret = GAVL_YUV_420_P;
+  
+  if(h->mpeg2)
+    {
+    if(h->ext.chroma_format == 2)
+      ret = GAVL_YUV_422_P;
+    else if(h->ext.chroma_format == 3)
+      ret = GAVL_YUV_422_P;
+    }
+  return ret;
+  }
+
+void bgav_mpv_get_size(bgav_mpv_sequence_header_t * h,
+                       gavl_video_format_t * ret)
+  {
+  ret->image_width = h->horizontal_size_value;
+  ret->image_height = h->vertical_size_value;
+  
+  if(h->mpeg2)
+    {
+    ret->image_width  += h->ext.horizontal_size_ext << 12;
+    ret->image_height += h->ext.vertical_size_ext << 12;
+    }
+
+  ret->frame_width  = ((ret->image_width  + 15) / 16) * 16;
+  ret->frame_height = ((ret->image_height + 15) / 16) * 16;
+  
+  }

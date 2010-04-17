@@ -48,7 +48,8 @@ void bgav_mpv_get_framerate(int code, int * timescale, int *frame_duration);
 typedef struct
   {
   int progressive_sequence;
-
+  int chroma_format;
+  
   int horizontal_size_ext;
   int vertical_size_ext;
   
@@ -141,3 +142,8 @@ int bgav_mpv_gop_header_parse(const bgav_options_t * opt,
 
 void bgav_mpv_get_pixel_aspect(bgav_mpv_sequence_header_t * h,
                                gavl_video_format_t * ret);
+
+gavl_pixelformat_t bgav_mpv_get_pixelformat(bgav_mpv_sequence_header_t * h);
+
+void bgav_mpv_get_size(bgav_mpv_sequence_header_t * h,
+                       gavl_video_format_t * ret);

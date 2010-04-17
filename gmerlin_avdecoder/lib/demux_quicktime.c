@@ -1563,6 +1563,15 @@ static void fix_index(bgav_demuxer_context_t * ctx)
         s->flags |= STREAM_PARSE_FRAME;
         }
       }
+    else if((s->fourcc == BGAV_MK_FOURCC('m', 'x', '5', 'p')) ||
+            (s->fourcc == BGAV_MK_FOURCC('m', 'x', '4', 'p')) ||
+            (s->fourcc == BGAV_MK_FOURCC('m', 'x', '3', 'p')) ||
+            (s->fourcc == BGAV_MK_FOURCC('m', 'x', '5', 'n')) ||
+            (s->fourcc == BGAV_MK_FOURCC('m', 'x', '4', 'n')) ||
+            (s->fourcc == BGAV_MK_FOURCC('m', 'x', '3', 'n')))
+      {
+      s->flags |= STREAM_PARSE_FRAME;
+      }
     }
   
   }

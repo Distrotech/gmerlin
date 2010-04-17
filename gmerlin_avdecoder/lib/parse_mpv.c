@@ -59,6 +59,8 @@ typedef struct
      (for MPEG still images) */
   int pb_count;
   int i_count;
+
+  int d10; // Special handling for D10 */
   } mpeg12_priv_t;
 
 static void reset_mpeg12(bgav_video_parser_t * parser)
@@ -395,7 +397,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
   return PARSER_CONTINUE;
   }
 
-static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, int * duration)
+static int parse_frame_mpeg12(bgav_video_parser_t * parser,
+                              int * coding_type, int * duration)
   {
   const uint8_t * sc;
   mpeg12_priv_t * priv = parser->priv;
@@ -441,7 +444,6 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
           bgav_video_parser_set_framerate(parser,
                                           timescale, frame_duration);
           parser->pos += len;
-          
           }
         else
           parser->pos += 4;
@@ -461,6 +463,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
           bgav_video_parser_set_framerate(parser,
                                           parser->format->timescale * (priv->sh.ext.timescale_ext+1) * 2,
                                           parser->format->frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
+          
           parser->pos += len;
           }
         else
@@ -482,6 +485,25 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
         
         *coding_type = ph.coding_type;
         parser->pos += len;
+
+        if(parser->s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
+          {
+          parser->s->data.video.format.pixelformat =
+            bgav_mpv_get_pixelformat(&priv->sh);
+
+          bgav_mpv_get_size(&priv->sh,
+                            &parser->s->data.video.format);
+
+          /* Special handling for D10 */
+          if(priv->d10)
+            {
+            if(parser->s->data.video.format.image_height == 608)
+              parser->s->data.video.format.image_height = 576;
+            else if(parser->s->data.video.format.image_height == 512)
+              parser->s->data.video.format.image_height = 486;
+            }
+            
+          }
         break;
       case MPEG_CODE_PICTURE_EXT:
         len = bgav_mpv_picture_extension_parse(parser->opt,
@@ -542,8 +564,23 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser)
   parser->parse_frame = parse_frame_mpeg12;
   parser->cleanup     = cleanup_mpeg12;
   parser->reset       = reset_mpeg12;
+  
+  if((parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '5', 'p')) ||
+     (parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '4', 'p')) ||
+     (parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '3', 'p')) ||
+     (parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '5', 'n')) ||
+     (parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '4', 'n')) ||
+     (parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '3', 'n')))
+    {
+    parser->s->codec_bitrate =
+      (((parser->s->fourcc & 0x0000FF00) >> 8) - '0') * 1000000;
+    priv->d10 = 1;
+    parser->s->flags |= STREAM_INTRA_ONLY;
+    parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+    }
 
   /* Set stream flags */
   if(!(parser->s->flags & STREAM_INTRA_ONLY))
     parser->s->flags |= STREAM_B_FRAMES;
+
   }
