@@ -144,7 +144,7 @@ void gavl_compression_info_dump(const gavl_compression_info_t * info)
 
   if(info->id >= 0x10000)
     {
-    fprintf(stderr, "  Palette size: %d bps\n", info->bitrate);
+    fprintf(stderr, "  Palette size: %d\n", info->palette_size);
     fprintf(stderr, "  Frame types:  I");
     if(info->flags & GAVL_COMPRESSION_HAS_P_FRAMES)
       fprintf(stderr, ",P");
