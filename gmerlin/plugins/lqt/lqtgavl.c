@@ -688,9 +688,6 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
                                        const gavl_video_format_t * vfmt,
                                        lqt_compression_info_t * lci)
   {
-  int is_audio = 0;
-  int is_video = 0;
-  
   memset(lci, 0, sizeof(*lci));
 
   /* Field pictures are not supported */
@@ -704,27 +701,21 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
     /* Audio */
     case GAVL_CODEC_ID_ALAW: //!< alaw 2:1
       lci->id = LQT_COMPRESSION_ALAW;
-      is_audio = 1;
       break;
     case GAVL_CODEC_ID_ULAW:    //!< mu-law 2:1
       lci->id = LQT_COMPRESSION_ULAW;
-      is_audio = 1;
       break;
     case GAVL_CODEC_ID_MP2:       //!< MPEG-1 audio layer II
       lci->id = LQT_COMPRESSION_MP2;
-      is_audio = 1;
       break;
     case GAVL_CODEC_ID_MP3:       //!< MPEG-1/2 audio layer 3 CBR/VBR
       lci->id = LQT_COMPRESSION_MP3;
-      is_audio = 1;
       break;
     case GAVL_CODEC_ID_AC3:       //!< AC3
       lci->id = LQT_COMPRESSION_AC3;
-      is_audio = 1;
       break;
     case GAVL_CODEC_ID_AAC:      //!< AAC as stored in quicktime/mp4
       lci->id = LQT_COMPRESSION_AAC;
-      is_audio = 1;
       break;
     case GAVL_CODEC_ID_VORBIS:    //!< Vorbis (segmented extradata and packets)
       break;
@@ -732,19 +723,15 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
     /* Video */
     case GAVL_CODEC_ID_JPEG:      //!< JPEG image
       lci->id = LQT_COMPRESSION_JPEG;
-      is_video = 1;
       break;
     case GAVL_CODEC_ID_PNG:       //!< PNG image
       lci->id = LQT_COMPRESSION_PNG;
-      is_video = 1;
       break;
     case GAVL_CODEC_ID_TIFF:      //!< TIFF image
       lci->id = LQT_COMPRESSION_TIFF;
-      is_video = 1;
       break;
     case GAVL_CODEC_ID_TGA:       //!< TGA image
       lci->id = LQT_COMPRESSION_TGA;
-      is_video = 1;
       break;
     case GAVL_CODEC_ID_MPEG1:     //!< MPEG-1 video
       break;
@@ -764,17 +751,19 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
           (vfmt->image_height == 512)))
         {
         lci->id = LQT_COMPRESSION_D10;
-        is_video = 1;
         }
       
       break;
     case GAVL_CODEC_ID_MPEG4_ASP: //!< MPEG-4 ASP (a.k.a. Divx4)
+      lci->id = LQT_COMPRESSION_MPEG4_ASP;
       break;
     case GAVL_CODEC_ID_H264:      //!< H.264 (Annex B)
+      lci->id = LQT_COMPRESSION_H264;
       break;
     case GAVL_CODEC_ID_THEORA:    //!< Theora (segmented extradata
       break;
     case GAVL_CODEC_ID_DIRAC:     //!< Complete DIRAC frames, sequence end code 
+      lci->id = LQT_COMPRESSION_DIRAC;
       break;
     }
 
@@ -782,7 +771,7 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
     return 0;
 
   /* Set audio/video specific stuff */
-  if(is_audio)
+  if(lci->id < 0x10000)
     {
     if(!afmt)
       return 0;
@@ -791,7 +780,7 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
     lci->num_channels = afmt->num_channels;
     
     }
-  else if(is_video)
+  else
     {
     if(!vfmt)
       return 0;
