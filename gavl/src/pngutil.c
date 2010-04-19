@@ -21,6 +21,7 @@
 #include <png.h>
 #include <stdio.h>
 #include <gavl.h>
+#include <gavl_version.h>
 #include <pngutil.h>
 #include <stdlib.h>
 
@@ -173,7 +174,11 @@ gavl_video_frame_t * read_png(const char * filename,
     {
     case PNG_COLOR_TYPE_GRAY:       /*  (bit depths 1, 2, 4, 8, 16) */
       if(bit_depth < 8)
+#if GAVL_MAKE_BUILD(PNG_LIBPNG_VER_MAJOR, PNG_LIBPNG_VER_MINOR, PNG_LIBPNG_VER_RELEASE) < GAVL_MAKE_BUILD(1,2,9)
         png_set_gray_1_2_4_to_8(png_ptr);
+#else
+      png_set_expand_gray_1_2_4_to_8(png_ptr);
+#endif
       if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
         {
         png_set_tRNS_to_alpha(png_ptr);
