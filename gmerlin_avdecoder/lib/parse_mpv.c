@@ -573,7 +573,7 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser)
      (parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '3', 'n')))
     {
     parser->s->codec_bitrate =
-      (((parser->s->fourcc & 0x0000FF00) >> 8) - '0') * 1000000;
+      (((parser->s->fourcc & 0x0000FF00) >> 8) - '0') * 10000000;
     priv->d10 = 1;
     parser->s->flags |= STREAM_INTRA_ONLY;
     parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;

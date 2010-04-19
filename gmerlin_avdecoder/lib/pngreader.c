@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <bgav_version.h>
 
 #include <avdec_private.h>
 #include <pngreader.h>
@@ -139,7 +140,11 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
         bits = 16;
         }
       if(bit_depth < 8)
+#if BGAV_MAKE_BUILD(PNG_LIBPNG_VER_MAJOR, PNG_LIBPNG_VER_MINOR, PNG_LIBPNG_VER_RELEASE) < BGAV_MAKE_BUILD(1,2,9)
         png_set_gray_1_2_4_to_8(png->png_ptr);
+#else
+      png_set_expand_gray_1_2_4_to_8(png->png_ptr);
+#endif
       if (png_get_valid(png->png_ptr, png->info_ptr, PNG_INFO_tRNS))
         {
         png_set_tRNS_to_alpha(png->png_ptr);
