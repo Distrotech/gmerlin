@@ -188,6 +188,9 @@ int write_header_jpeg(void * priv, const char * filename,
     }
 
   /* Set compression parameters */
+#if JPEG_LIB_VERSION >= 70
+  jpeg->cinfo.do_fancy_downsampling = FALSE;
+#endif
 
   jpeg_set_quality(&jpeg->cinfo, jpeg->quality, TRUE);
   jpeg_start_compress(&jpeg->cinfo, TRUE);
