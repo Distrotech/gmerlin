@@ -23,6 +23,7 @@
 #include <stdio.h>
 
 #include <config.h>
+#include <gmerlin/bg_version.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
@@ -126,6 +127,12 @@ static int read_header_png(void * priv, const char * filename,
         bits = 16;
         }
       if(bit_depth < 8)
+#if BG_MAKE_BUILD(PNG_LIBPNG_VER_MAJOR, PNG_LIBPNG_VER_MINOR, PNG_LIBPNG_VER_RELEASE) < BG_MAKE_BUILD(1,2,9)
+        png_set_gray_1_2_4_to_8(png->png_ptr);
+#else
+      png_set_expand_gray_1_2_4_to_8(png->png_ptr);
+#endif
+
         png_set_gray_1_2_4_to_8(png->png_ptr);
       if (png_get_valid(png->png_ptr, png->info_ptr, PNG_INFO_tRNS))
         {
