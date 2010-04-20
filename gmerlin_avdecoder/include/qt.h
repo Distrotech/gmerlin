@@ -150,6 +150,10 @@ int bgav_qt_stts_read(qt_atom_header_t * h,
                       bgav_input_context_t * ctx, qt_stts_t * ret);
 void bgav_qt_stts_free(qt_stts_t * c);
 void bgav_qt_stts_dump(int indent, qt_stts_t * c);
+
+int64_t bgav_qt_stts_num_samples(qt_stts_t * c);
+
+
 void bgav_qt_ctts_shift(qt_stts_t * ctts);
 
 /*

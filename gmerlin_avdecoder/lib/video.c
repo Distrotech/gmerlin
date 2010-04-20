@@ -666,6 +666,30 @@ static uint32_t d10_fourccs[] =
     0x00,
   };
 
+static uint32_t dv_fourccs[] =
+  {
+    BGAV_MK_FOURCC('d', 'v', 's', 'd'), 
+    BGAV_MK_FOURCC('D', 'V', 'S', 'D'), 
+    BGAV_MK_FOURCC('d', 'v', 'h', 'd'), 
+    BGAV_MK_FOURCC('d', 'v', 's', 'l'), 
+    BGAV_MK_FOURCC('d', 'v', '2', '5'),
+    /* Generic DV */
+    BGAV_MK_FOURCC('D', 'V', ' ', ' '),
+
+    BGAV_MK_FOURCC('d', 'v', 'c', 'p') , /* DV PAL */
+    BGAV_MK_FOURCC('d', 'v', 'c', ' ') , /* DV NTSC */
+    BGAV_MK_FOURCC('d', 'v', 'p', 'p') , /* DVCPRO PAL produced by FCP */
+    BGAV_MK_FOURCC('d', 'v', '5', 'p') , /* DVCPRO50 PAL produced by FCP */
+    BGAV_MK_FOURCC('d', 'v', '5', 'n') , /* DVCPRO50 NTSC produced by FCP */
+    BGAV_MK_FOURCC('A', 'V', 'd', 'v') , /* AVID DV */
+    BGAV_MK_FOURCC('A', 'V', 'd', '1') , /* AVID DV */
+    BGAV_MK_FOURCC('d', 'v', 'h', 'q') , /* DVCPRO HD 720p50 */
+    BGAV_MK_FOURCC('d', 'v', 'h', 'p') , /* DVCPRO HD 720p60 */
+    BGAV_MK_FOURCC('d', 'v', 'h', '5') , /* DVCPRO HD 50i produced by FCP */
+    BGAV_MK_FOURCC('d', 'v', 'h', '6') , /* DVCPRO HD 60i produced by FCP */
+    BGAV_MK_FOURCC('d', 'v', 'h', '3') , /* DVCPRO HD 30p produced by FCP */
+    0x00,
+  };
 
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
@@ -708,6 +732,8 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     id = GAVL_CODEC_ID_H264;
   else if(check_fourcc(s->fourcc, mpeg4_fourccs))
     id = GAVL_CODEC_ID_MPEG4_ASP;
+  else if(check_fourcc(s->fourcc, dv_fourccs))
+    id = GAVL_CODEC_ID_DV;
   else if(check_fourcc(s->fourcc, avc1_fourccs))
     {
     id = GAVL_CODEC_ID_H264;

@@ -52,7 +52,13 @@ void bgav_dv_dec_set_frame(bgav_dv_dec_t*, uint8_t * data);
 
 /* ffmpeg is not able to tell the right pixel aspect ratio for DV streams */
 
-void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t*, int * pixel_width, int * pixel_height);
+void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t*, int * pixel_width,
+                                  int * pixel_height);
+
+void bgav_dv_dec_get_image_size(bgav_dv_dec_t*, int * width,
+                                int * height);
+
+gavl_pixelformat_t bgav_dv_dec_get_pixelformat(bgav_dv_dec_t*);
 
 
 void bgav_dv_dec_get_timecode_format(bgav_dv_dec_t * d,

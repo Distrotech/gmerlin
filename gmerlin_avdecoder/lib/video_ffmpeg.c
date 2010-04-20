@@ -64,6 +64,7 @@
 #define HAS_DELAY      (1<<0)
 
 static int get_format_jpeg(bgav_stream_t*, bgav_packet_t * p);
+static int get_format_dv(bgav_stream_t*, bgav_packet_t * p);
 
 typedef struct
   {
@@ -1233,7 +1234,9 @@ static codec_info_t codec_infos[] =
                     BGAV_MK_FOURCC('d', 'v', 'h', '6') , /* DVCPRO HD 60i produced by FCP */
                     BGAV_MK_FOURCC('d', 'v', 'h', '3') , /* DVCPRO HD 30p produced by FCP */
                     
-               0x00 } },
+                    0x00 },
+      get_format_dv,
+    },
     
     { "FFmpeg DVCPRO50 decoder", "DVCPRO50 Video", CODEC_ID_DVVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'v', '5', 'n'),
@@ -2316,9 +2319,9 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
     // (but not as long as it makes no sense)
 #ifdef HAVE_LIBSWSCALE
     sws_scale(priv->swsContext,
-              priv->frame->data, priv->frame->linesize,
+              (const uint8_t * const *)priv->frame->data, priv->frame->linesize,
               0, s->data.video.format.image_height,
-              (const uint8_t * const *)f->planes, f->strides);
+              f->planes, f->strides);
 
 #else
     ffmpeg_frame.data[0]     = f->planes[0];
@@ -2534,3 +2537,21 @@ static int get_format_jpeg(bgav_stream_t * s, bgav_packet_t * p)
   return 0;
   }
 
+static int get_format_dv(bgav_stream_t * s, bgav_packet_t * p)
+  {
+  bgav_dv_dec_t * dvdec;
+
+  dvdec = bgav_dv_dec_create();
+  bgav_dv_dec_set_header(dvdec, p->data);
+  bgav_dv_dec_set_frame(dvdec, p->data);
+  
+  bgav_dv_dec_get_pixel_aspect(dvdec,
+                               &s->data.video.format.pixel_width,
+                               &s->data.video.format.pixel_height);
+
+  s->data.video.format.pixelformat = 
+    bgav_dv_dec_get_pixelformat(dvdec);
+  
+  bgav_dv_dec_destroy(dvdec);
+  return 1;
+  }

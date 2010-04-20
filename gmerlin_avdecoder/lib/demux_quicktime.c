@@ -1097,8 +1097,12 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs->data.video.format.frame_width = desc->format.video.width;
       bg_vs->data.video.format.frame_height = desc->format.video.height;
 
-      if(!trak->mdia.minf.stbl.has_stss)
+      if(!trak->mdia.minf.stbl.has_stss ||
+         (bgav_qt_stts_num_samples(&trak->mdia.minf.stbl.stts) ==
+          trak->mdia.minf.stbl.stss.num_entries))
+        {
         bg_vs->flags |= STREAM_INTRA_ONLY;
+        }
       else if(trak->mdia.minf.stbl.has_ctts)
         bg_vs->flags |= STREAM_B_FRAMES;
       

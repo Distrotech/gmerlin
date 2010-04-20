@@ -501,7 +501,7 @@ void bgav_dv_dec_init_video(bgav_dv_dec_t * d, bgav_stream_t * s)
     s->data.video.format.frame_duration = d->profile->frame_rate_base;
     s->data.video.format.timescale      = d->profile->frame_rate;
     }
-  gavl_video_format_copy(&(d->video_format), &(s->data.video.format));
+  gavl_video_format_copy(&d->video_format, &s->data.video.format);
   }
 
 void bgav_dv_dec_set_frame_counter(bgav_dv_dec_t * d, int64_t frames)
@@ -779,3 +779,16 @@ int bgav_dv_dec_get_timecode(bgav_dv_dec_t * d,
                           frame);
   return 1;
   }
+
+void bgav_dv_dec_get_image_size(bgav_dv_dec_t * d, int * width,
+                                int * height)
+  {
+  *width  = d->profile->width;
+  *height = d->profile->height;
+  }
+
+gavl_pixelformat_t bgav_dv_dec_get_pixelformat(bgav_dv_dec_t * d)
+  {
+  return d->profile->pix_fmt;
+  }
+    

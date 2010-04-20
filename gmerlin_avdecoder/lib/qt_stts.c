@@ -102,3 +102,12 @@ void bgav_qt_ctts_shift(qt_stts_t * c)
     c->entries[i].duration = (uint32_t)diff;
     }
   }
+
+int64_t bgav_qt_stts_num_samples(qt_stts_t * c)
+  {
+  int i;
+  int64_t ret = 0;
+  for(i = 0; i < c->num_entries; i++)
+    ret += c->entries[i].count;
+  return ret;
+  }
