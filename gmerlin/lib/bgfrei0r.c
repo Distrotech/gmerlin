@@ -47,6 +47,9 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
   f0r_instance_t (*construct) (unsigned int width, unsigned int height);
   f0r_instance_t (*destruct) (f0r_instance_t);
   f0r_instance_t instance;
+
+  int (*init)();
+  void (*deinit)();
   
   void (*get_param_info) (f0r_param_info_t *info, int param_index);
   void (*get_param_value) (f0r_instance_t instance,
@@ -87,6 +90,12 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
            "Cannot load frei0r plugin: %s", dlerror());
     return (bg_parameter_info_t *)0;
     }
+  
+  init = dlsym(dll_handle, "f0r_init");
+  deinit = dlsym(dll_handle, "f0r_deinit");
+
+  if(init)
+    init();
 
   /* Need to create an instance so we get the default values */
   instance = construct(32, 32);
@@ -151,6 +160,10 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
       }
     }
   destruct(instance);
+
+  if(deinit)
+    deinit();
+
   return ret;
   }
 

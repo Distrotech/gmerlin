@@ -1204,17 +1204,8 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
   bg_plugin_lock(h);
   h->refcount++;
 
-  if(h->plugin)
-    {
-    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d",
-           h->plugin->name, h->refcount);
-    }
-  else
-    {
-    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref (null): %d",
-           h->refcount);
-    }
-
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d",
+         h->info->name, h->refcount);
   bg_plugin_unlock(h);
   
   }
