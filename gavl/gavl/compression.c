@@ -89,9 +89,7 @@ compression_ids[] =
     { GAVL_CODEC_ID_H264,      "h264",     "H.264"        },
     { GAVL_CODEC_ID_THEORA,    NULL,       "Theora"       },
     { GAVL_CODEC_ID_DIRAC,     NULL,       "Dirac"        },
-    { GAVL_CODEC_ID_DV,        "dv",       "DV"           },
-    { GAVL_CODEC_ID_DVCPRO50,  "dv",       "DVCPRO50"     },
-    { GAVL_CODEC_ID_DVCPROHD,  "dv",       "DVCPROHD"     },
+    { GAVL_CODEC_ID_DV,        "dv",       "DV",          FLAG_NEEDS_PIXELFORMAT },
     
   };
 

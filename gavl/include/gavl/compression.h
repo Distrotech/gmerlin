@@ -70,9 +70,7 @@ typedef enum
     GAVL_CODEC_ID_H264,           //!< H.264 (Annex B)
     GAVL_CODEC_ID_THEORA,         //!< Theora (segmented extradata
     GAVL_CODEC_ID_DIRAC,          //!< Complete DIRAC frames, sequence end code appended to last packet
-    GAVL_CODEC_ID_DV,             //!< DV single definition
-    GAVL_CODEC_ID_DVCPRO50,       //!< DVCPRO50
-    GAVL_CODEC_ID_DVCPROHD,       //!< DVCPROHD
+    GAVL_CODEC_ID_DV,             //!< DV (several variants)
   } gavl_codec_id_t;
 
   /** \brief Compression format

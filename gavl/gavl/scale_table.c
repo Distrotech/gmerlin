@@ -113,6 +113,9 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
 
   widen = 0;
 
+  if(!dst_size)
+    return;
+  
   if(scale_factor < 1.0)
     {
     switch(opt->downscale_filter)
@@ -590,8 +593,17 @@ void gavl_video_scale_table_cleanup(gavl_video_scale_table_t * tab)
 void gavl_video_scale_table_get_src_indices(gavl_video_scale_table_t * tab,
                                             int * start, int * size)
   {
-  *start = tab->pixels[0].index;
-  *size = tab->pixels[tab->num_pixels-1].index + tab->factors_per_pixel - *start;
+  if(!tab->pixels)
+    {
+    *start = 0;
+    *size = 0;
+    }
+  else
+    {
+    *start = tab->pixels[0].index;
+    *size = tab->pixels[tab->num_pixels-1].index + tab->factors_per_pixel -
+      *start;
+    }
   }
 
 void gavl_video_scale_table_shift_indices(gavl_video_scale_table_t * tab,
