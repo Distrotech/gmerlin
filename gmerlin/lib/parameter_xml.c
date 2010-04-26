@@ -487,7 +487,8 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
 
 /* */
 
-void bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parameters)
+void bg_parameters_2_xml(const bg_parameter_info_t * info,
+                         xmlNodePtr xml_parameters)
   {
   int multi_num, i;
   xmlNodePtr xml_info;

@@ -125,6 +125,15 @@ void bg_display_html_help(const char * path);
 
 char * bg_create_unique_filename(char * format);
 
+/** \brief Get the canonical filename
+ *  \param name Filename
+ *  \returns A newly allocated filename
+ *
+ *  On Glibc systems, this calls canonicalize_file_name(3)
+ */
+
+char * bg_canonical_filename(const char * name);
+
 /** \brief Ensure a file extension
  *  \param filename Filename (with or without extension)
  *  \param extension Extension to look for

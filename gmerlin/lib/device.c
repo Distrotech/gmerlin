@@ -33,71 +33,37 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 
-static void dereference_link(const char * _src, char dst[FILENAME_MAX])
-  {
-  char * pos;
-  int len;
-  struct stat st;
-
-  char src[FILENAME_MAX];
-
-  strcpy(src, _src);
-
-  while(1)
-    {
-    if(lstat(src, &st) || !S_ISLNK(st.st_mode))
-      {
-      strcpy(dst, src);
-      return;
-      }
-
-    /* Read symbolic link and copy to source */
-
-    len = readlink(src, dst, FILENAME_MAX);
-    dst[len] = '\0';
-    if(*dst == '/')
-      {
-      strcpy(src, dst);
-      }
-    else /* Relative link */
-      {
-      pos = strrchr(src, '/');
-      pos++;
-      strcpy(pos, dst);
-      }
-    }
-  }
-
 bg_device_info_t * bg_device_info_append(bg_device_info_t * arr,
                                          const char * device,
                                          const char * name)
   {
   int i, size = 0;
-  char real_device[FILENAME_MAX];
+  char * real_device;
 
-  
   if(arr)
     {
     while(arr[size].device)
       size++;
     }
 
-  dereference_link(device, real_device);
-
+  real_device = bg_canonical_filename(device);
+  
   for(i = 0; i < size; i++)
     {
     if(!strcmp(arr[i].device, real_device))
+      {
+      free(real_device);
       return arr;
+      }
     }
-
   
   size++;
 
   arr = realloc(arr, (size+1) * sizeof(*arr));
 
-  arr[size-1].device = bg_strdup(NULL, real_device);
+  arr[size-1].device = real_device;
   arr[size-1].name = bg_strdup(NULL, name);
-
+  
   /* Zero terminate */
   
   memset(&(arr[size]), 0, sizeof(arr[size]));

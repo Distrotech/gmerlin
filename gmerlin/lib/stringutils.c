@@ -32,6 +32,7 @@
 #include <language_table.h>
 #include <wctype.h>
 #include <errno.h>
+#include <limits.h>
 
 /* stat stuff */
 #include <sys/types.h>
@@ -587,4 +588,15 @@ char * bg_get_stream_label(int index, const char * info, const char * language)
   else
     label = bg_sprintf(TR("Stream %d"), index+1);
   return label;
+  }
+
+char * bg_canonical_filename(const char * name)
+  {
+#ifdef HAVE_CANONICALIZE_FILE_NAME
+  return canonicalize_file_name(name);
+#else
+  char * ret = malloc(PATH_MAX);
+  realpath(name, ret);
+  return ret;
+#endif
   }

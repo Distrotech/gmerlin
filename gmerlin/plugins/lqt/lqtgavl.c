@@ -733,6 +733,9 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
     case GAVL_CODEC_ID_TGA:       //!< TGA image
       lci->id = LQT_COMPRESSION_TGA;
       break;
+    case GAVL_CODEC_ID_DV:       //!< DV
+      lci->id = LQT_COMPRESSION_DV;
+      break;
     case GAVL_CODEC_ID_MPEG1:     //!< MPEG-1 video
       break;
     case GAVL_CODEC_ID_MPEG2:     //!< MPEG-2 video

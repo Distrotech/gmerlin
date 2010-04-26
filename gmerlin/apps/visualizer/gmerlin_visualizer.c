@@ -556,7 +556,7 @@ static void plugin_window_init(plugin_window_t * win, visualizer_t * v)
   gtk_container_add(GTK_CONTAINER(win->window),  table);
   }
 
-static int motion_callback(void * data, int x, int y)
+static int motion_callback(void * data, int x, int y, int mask)
   {
   visualizer_t * v = (visualizer_t*)data;
   if(v->toolbar_trigger & TOOLBAR_TRIGGER_MOUSE)

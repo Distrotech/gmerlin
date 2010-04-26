@@ -66,6 +66,8 @@ struct bg_plugin_registry_s
 
 void bg_plugin_info_destroy(bg_plugin_info_t * info)
   {
+  fprintf(stderr, "Destroy_plugin %s\n", info->name);
+  
   if(info->gettext_domain)
     free(info->gettext_domain);
   if(info->gettext_directory)
@@ -770,37 +772,61 @@ static bg_plugin_info_t * scan_multi(const char * path,
                                      bg_plugin_api_t api, const bg_plugin_registry_options_t * opt)
   {
   char ** paths;
+  char ** real_paths;
+  int num;
+  
   bg_plugin_info_t * ret = (bg_plugin_info_t *)0;
   bg_plugin_info_t * tmp_info;
   int do_scan;
-  int index, i;
+  int i, j;
   paths = bg_strbreak(path, ':');
-  if(paths)
+  if(!paths)
+    return ret;
+
+  num = 0;
+  i = 0;
+  while(paths[i++])
+    num++;
+  
+  real_paths = calloc(num, sizeof(*real_paths));
+
+  for(i = 0; i < num; i++)
+    real_paths[i] = bg_canonical_filename(paths[i]);
+  
+  for(i = 0; i < num; i++)
     {
-    index = 0;
-    while(paths[index])
+    if(!real_paths[i])
+      continue;
+
+    do_scan = 1;
+    
+    for(j = 0; j < i; j++)
       {
-      do_scan = 1;
-      for(i = 0; i < index; i++)
+      if(real_paths[j] && !strcmp(real_paths[j], real_paths[i]))
         {
-        if(!strcmp(paths[index], paths[i]))
-          {
-          do_scan = 0; /* Path already scanned */
-          break;
-          }
+        do_scan = 0; /* Path already scanned */
+        break;
         }
-      if(do_scan)
-        {
-        tmp_info = scan_directory(paths[index],
-                                  _file_info, 
-                                  section, api, opt);
-        if(tmp_info)
-          ret = append_to_list(ret, tmp_info);
-        }
-      index++;
       }
-    bg_strbreak_free(paths);
+    
+    if(do_scan)
+      {
+      tmp_info = scan_directory(real_paths[i],
+                                _file_info, 
+                                section, api, opt);
+      if(tmp_info)
+        ret = append_to_list(ret, tmp_info);
+      }
     }
+  bg_strbreak_free(paths);
+
+  for(i = 0; i < num; i++)
+    {
+    if(real_paths[i])
+      free(real_paths[i]);
+    }
+  free(real_paths);
+  
   return ret;
   }
 

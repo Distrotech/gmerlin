@@ -674,6 +674,10 @@ int main(int argc, char ** argv)
   if(config_path)
     free(config_path);
 
+  bg_cfg_registry_destroy(cfg_reg);
+  bg_plugin_registry_destroy(reg);
+  
+  
   
   return 0;
   }
