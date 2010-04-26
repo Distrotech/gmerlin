@@ -233,7 +233,6 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     if(!BG_XML_STRCMP(cur->name, name_key))
       {
       ret->name = bg_strdup(ret->name, tmp_string);
-      fprintf(stderr, "Load_plugin %s\n", ret->name);
       }
     else if(!BG_XML_STRCMP(cur->name, long_name_key))
       {
