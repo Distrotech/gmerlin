@@ -66,7 +66,6 @@ struct bg_plugin_registry_s
 
 void bg_plugin_info_destroy(bg_plugin_info_t * info)
   {
-  fprintf(stderr, "Destroy_plugin %s\n", info->name);
   
   if(info->gettext_domain)
     free(info->gettext_domain);
