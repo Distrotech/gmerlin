@@ -103,7 +103,7 @@ static const uint16_t dv_audio_shuffle625[12][9] = {
 };
 
 static const DVprofile dv_profiles[] = {
-  /* DV PAL SD */
+  /* DV NTSC SD */
   { .dsf = 0,
     .video_stype = 0x0,
     .frame_size = 120000,        /* IEC 61834, SMPTE-314M - 525/60 (NTSC) */
@@ -124,7 +124,7 @@ static const DVprofile dv_profiles[] = {
     .audio_samples_dist = { 1600, 1602, 1602, 1602, 1602 }, /* per SMPTE-314M */
     .audio_shuffle = dv_audio_shuffle525,
   },
-  /* DV NTSC SD */
+  /* DV PAL SD */
   { .dsf = 1,
     .video_stype = 0x0,
     .frame_size = 144000,        /* IEC 61834 - 625/50 (PAL) */

@@ -179,10 +179,11 @@ static void close_a52(bgav_stream_t * s)
 static bgav_audio_decoder_t decoder =
   {
     .fourccs = (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2000),
-                           BGAV_MK_FOURCC('.', 'a', 'c', '3'),
+                             BGAV_MK_FOURCC('.', 'a', 'c', '3'),
                            /* Will be swapped to AC3 by the demuxer */
-                           BGAV_MK_FOURCC('d', 'n', 'e', 't'), 
-                           0x00 },
+                             BGAV_MK_FOURCC('d', 'n', 'e', 't'), 
+                             BGAV_MK_FOURCC('a', 'c', '-', '3'), // mp4, mov
+                             0x00 },
     .name = "liba52 based decoder",
 
     .init   = init_a52,
