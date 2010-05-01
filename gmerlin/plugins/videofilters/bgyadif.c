@@ -353,6 +353,7 @@ static void filter_frame(bg_yadif_t * di, int parity,
   switch(di->in_format.interlace_mode)
     {
     case GAVL_INTERLACE_NONE:
+    case GAVL_INTERLACE_UNKNOWN:
     case GAVL_INTERLACE_TOP_FIRST:
       di->tff = 1;
       break;
@@ -360,6 +361,8 @@ static void filter_frame(bg_yadif_t * di, int parity,
       di->tff = 0;
       break;
     case GAVL_INTERLACE_MIXED:
+    case GAVL_INTERLACE_MIXED_TOP:
+    case GAVL_INTERLACE_MIXED_BOTTOM:
 
       switch(di->cur->interlace_mode)
         {

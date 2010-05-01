@@ -254,6 +254,7 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
 static int get_compression_info_jpeg(void * priv, gavl_compression_info_t * ci)
   {
   ci->id = GAVL_CODEC_ID_JPEG;
+  return 1;
   }
 
 const bg_image_reader_plugin_t the_plugin =

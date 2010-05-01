@@ -253,6 +253,7 @@ static int read_header_png(void * priv, const char * filename,
 static int get_compression_info_png(void * priv, gavl_compression_info_t * ci)
   {
   ci->id = GAVL_CODEC_ID_PNG;
+  return 1;
   }
 
 

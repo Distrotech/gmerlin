@@ -859,6 +859,9 @@ static int compression_info_lqt_2_gavl(const lqt_compression_info_t * lci,
     case LQT_COMPRESSION_D10:            //!< D10 according to SMPTE 356M-2001
       gci->id = GAVL_CODEC_ID_MPEG2;
       break;
+    case LQT_COMPRESSION_DV:            //!< DV (multiple variants)
+      gci->id = GAVL_CODEC_ID_DV;
+      break;
     case LQT_COMPRESSION_NONE:
       break;
     }
