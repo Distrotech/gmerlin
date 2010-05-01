@@ -42,7 +42,7 @@ int bgav_set_subtitle_stream(bgav_t * b, int stream, bgav_stream_action_t action
 
 const gavl_video_format_t * bgav_get_subtitle_format(bgav_t * bgav, int stream)
   {
-  return &(bgav->tt->cur->subtitle_streams[stream].data.subtitle.format);
+  return &bgav->tt->cur->subtitle_streams[stream].data.subtitle.format;
   }
 
 int bgav_subtitle_is_text(bgav_t * bgav, int stream)
@@ -62,7 +62,7 @@ const char * bgav_get_subtitle_language(bgav_t * b, int s)
 
 int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
   {
-  bgav_stream_t * s = &(b->tt->cur->subtitle_streams[stream]);
+  bgav_stream_t * s = &b->tt->cur->subtitle_streams[stream];
 
   if(bgav_has_subtitle(b, stream))
     {
@@ -102,7 +102,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   {
   int out_len;
   bgav_packet_t * p = (bgav_packet_t*)0;
-  bgav_stream_t * s = &(b->tt->cur->subtitle_streams[stream]);
+  bgav_stream_t * s = &b->tt->cur->subtitle_streams[stream];
 
   if(bgav_has_subtitle(b, stream))
     {
@@ -162,7 +162,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
 
 int bgav_has_subtitle(bgav_t * b, int stream)
   {
-  bgav_stream_t * s = &(b->tt->cur->subtitle_streams[stream]);
+  bgav_stream_t * s = &b->tt->cur->subtitle_streams[stream];
   int force;
   
   if(s->packet_buffer)
@@ -216,7 +216,7 @@ void bgav_subtitle_dump(bgav_stream_t * s)
     bgav_dprintf( "  Character set:     %s\n", s->data.subtitle.charset);
     }
   bgav_dprintf( "  Format:\n");
-  gavl_video_format_dump(&(s->data.subtitle.format));
+  gavl_video_format_dump(&s->data.subtitle.format);
   }
 
 int bgav_subtitle_start(bgav_stream_t * s)

@@ -106,7 +106,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
   memcpy(audio_header, file_header, RA_FILE_HEADER_PREV_SIZE);
            
   if(bgav_input_read_data(ctx->input,
-                          &(audio_header[RA_FILE_HEADER_PREV_SIZE]),
+                          &audio_header[RA_FILE_HEADER_PREV_SIZE],
                             hdr_size - RA_FILE_HEADER_PREV_SIZE) < hdr_size - RA_FILE_HEADER_PREV_SIZE)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unable to read header");
@@ -278,7 +278,7 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
   int len;
   priv = (ra_priv_t *)ctx->priv;
   
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
 
   len = s->data.audio.block_align * priv->sub_packet_h;

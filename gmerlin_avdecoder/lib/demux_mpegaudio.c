@@ -138,7 +138,7 @@ static bgav_albw_t * bgav_albw_read(bgav_input_context_t * input)
     if(strncmp(pos, "[][]", 4))
       goto fail;
     pos += 4;
-    rest = &(buffer[500]);
+    rest = &buffer[500];
     while(isspace(*rest))
       rest--;
     rest++;
@@ -212,7 +212,7 @@ static int probe_mpegaudio(bgav_input_context_t * input)
   if(bgav_input_get_data(input, probe_data, h1.frame_bytes + 4) < h1.frame_bytes + 4)
     return 0;
 
-  if(!bgav_mpa_header_decode(&h2, &(probe_data[h1.frame_bytes])))
+  if(!bgav_mpa_header_decode(&h2, &probe_data[h1.frame_bytes]))
     return 0;
 
   if(!bgav_mpa_header_equal(&h1, &h2))
@@ -234,7 +234,7 @@ static int resync(bgav_demuxer_context_t * ctx, int check_next)
     {
     if(bgav_input_get_data(ctx->input, buffer, 4) < 4)
       return 0;
-    if(bgav_mpa_header_decode(&(priv->header), buffer))
+    if(bgav_mpa_header_decode(&priv->header, buffer))
       {
       if(priv->header.frame_bytes > MAX_FRAME_BYTES) /* Prevent possible security hole */
         return 0;
@@ -247,7 +247,7 @@ static int resync(bgav_demuxer_context_t * ctx, int check_next)
         break;
 
       /* Read the next header and check if it's equal to this one */
-      if(bgav_mpa_header_decode(&next_header, &(buffer[priv->header.frame_bytes])) && 
+      if(bgav_mpa_header_decode(&next_header, &buffer[priv->header.frame_bytes]) && 
          bgav_mpa_header_equal(&priv->header, &next_header))
         break;
       }
@@ -268,7 +268,7 @@ static gavl_time_t get_duration(bgav_demuxer_context_t * ctx,
   uint8_t frame[MAX_FRAME_BYTES]; /* Max possible mpeg audio frame size */
   mpegaudio_priv_t * priv;
 
-  //  memset(&(priv->xing), 0, sizeof(xing));
+  //  memset(&priv->xing, 0, sizeof(xing));
 
   if(!(ctx->input->input->seek_byte))
     return GAVL_TIME_UNDEFINED;
@@ -283,9 +283,9 @@ static gavl_time_t get_duration(bgav_demuxer_context_t * ctx,
                          priv->header.frame_bytes) < priv->header.frame_bytes)
     return 0;
   
-  if(bgav_xing_header_read(&(priv->xing), frame))
+  if(bgav_xing_header_read(&priv->xing, frame))
     {
-    //    bgav_xing_header_dump(&(priv->xing));
+    //    bgav_xing_header_dump(&priv->xing);
     ret = gavl_samples_to_time(priv->header.samplerate,
                                (int64_t)(priv->xing.frames) *
                                priv->header.samples_per_frame);
@@ -319,7 +319,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
                          priv->header.frame_bytes) < priv->header.frame_bytes)
     return 0;
   
-  if(bgav_xing_header_read(&(priv->xing), frame))
+  if(bgav_xing_header_read(&priv->xing, frame))
     {
     priv->have_xing = 1;
     bgav_input_skip(ctx->input, priv->header.frame_bytes);
@@ -401,8 +401,8 @@ static void get_metadata_albw(bgav_input_context_t* input,
   bgav_id3v1_tag_t * id3v1 = NULL;
   bgav_id3v2_tag_t * id3v2 = NULL;
 
-  memset(&(metadata_v1), 0, sizeof(metadata_v1));
-  memset(&(metadata_v2), 0, sizeof(metadata_v2));
+  memset(&metadata_v1, 0, sizeof(metadata_v1));
+  memset(&metadata_v2, 0, sizeof(metadata_v2));
 
   bgav_input_seek(input, *start_position, SEEK_SET);
   
@@ -412,7 +412,7 @@ static void get_metadata_albw(bgav_input_context_t* input,
     if(id3v2)
       {
       *start_position += bgav_id3v2_total_bytes(id3v2);
-      bgav_id3v2_2_metadata(id3v2, &(metadata_v2));
+      bgav_id3v2_2_metadata(id3v2, &metadata_v2);
       }
     }
   
@@ -424,7 +424,7 @@ static void get_metadata_albw(bgav_input_context_t* input,
     if(id3v1)
       {
       *end_position -= 128;
-      bgav_id3v1_2_metadata(id3v1, &(metadata_v1));
+      bgav_id3v1_2_metadata(id3v1, &metadata_v1);
       }
     }
   bgav_metadata_merge(metadata, &metadata_v2, &metadata_v1);
@@ -448,7 +448,7 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
   bgav_stream_t * s;
   bgav_metadata_t track_metadata;
 
-  memset(&(track_metadata), 0, sizeof(track_metadata));
+  memset(&track_metadata, 0, sizeof(track_metadata));
     
   if(!ctx->input->input->seek_byte)
     {
@@ -459,16 +459,16 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
   
   for(i = 0; i < albw->num_tracks; i++)
     {
-    s = bgav_track_add_audio_stream(&(ret->tracks[i]), ctx->opt);
+    s = bgav_track_add_audio_stream(&ret->tracks[i], ctx->opt);
     s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
     end_pos = strrchr(albw->tracks[i].filename, '.');
     ret->tracks[i].name = bgav_strndup(albw->tracks[i].filename, end_pos);
 
     get_metadata_albw(ctx->input,
-                      &(albw->tracks[i].start_pos),
-                      &(albw->tracks[i].end_pos),
+                      &albw->tracks[i].start_pos,
+                      &albw->tracks[i].end_pos,
                       &track_metadata);
-    bgav_metadata_merge(&(ret->tracks[i].metadata),
+    bgav_metadata_merge(&ret->tracks[i].metadata,
                         &track_metadata, global_metadata);
     bgav_metadata_free(&track_metadata);
     
@@ -493,15 +493,15 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
   mpegaudio_priv_t * priv;
   int64_t oldpos;
     
-  memset(&(metadata_v1), 0, sizeof(metadata_v1));
-  memset(&(metadata_v2), 0, sizeof(metadata_v2));
+  memset(&metadata_v1, 0, sizeof(metadata_v1));
+  memset(&metadata_v2, 0, sizeof(metadata_v2));
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;    
   priv->data_start = ctx->input->position;
   if(ctx->input->id3v2)
     {
-    bgav_id3v2_2_metadata(ctx->input->id3v2, &(metadata_v2));
+    bgav_id3v2_2_metadata(ctx->input->id3v2, &metadata_v2);
     
     /* Check for ALBW, but only on a seekable source! */
     if(ctx->input->input->seek_byte &&
@@ -521,15 +521,15 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
       {
       id3v1 = bgav_id3v1_read(ctx->input);
       if(id3v1)
-        bgav_id3v1_2_metadata(id3v1, &(metadata_v1));
+        bgav_id3v1_2_metadata(id3v1, &metadata_v1);
       }
     bgav_input_seek(ctx->input, oldpos, SEEK_SET);
     }
-  bgav_metadata_merge(&(priv->metadata), &(metadata_v2), &(metadata_v1));
+  bgav_metadata_merge(&priv->metadata, &metadata_v2, &metadata_v1);
   
   if(priv->albw)
     {
-    ctx->tt = albw_2_track(ctx, priv->albw, &(priv->metadata));
+    ctx->tt = albw_2_track(ctx, priv->albw, &priv->metadata);
     }
   else /* We know the start and end offsets right now */
     {
@@ -548,7 +548,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
     ctx->tt->tracks[0].duration = get_duration(ctx,
                                                priv->data_start,
                                                priv->data_end);
-    bgav_metadata_merge(&(ctx->tt->tracks[0].metadata),
+    bgav_metadata_merge(&ctx->tt->tracks[0].metadata,
                         &metadata_v2, &metadata_v1);
     }
 
@@ -638,7 +638,7 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
   if(priv->have_xing) /* VBR */
     {
     pos =
-      bgav_xing_get_seek_position(&(priv->xing),
+      bgav_xing_get_seek_position(&priv->xing,
                                   100.0 *
                                   (float)gavl_time_unscale(scale, time) /
                                   (float)(ctx->tt->cur->duration));
@@ -662,7 +662,7 @@ static void close_mpegaudio(bgav_demuxer_context_t * ctx)
   mpegaudio_priv_t * priv;
   priv = (mpegaudio_priv_t*)(ctx->priv);
   
-  bgav_metadata_free(&(priv->metadata));
+  bgav_metadata_free(&priv->metadata);
   
   if(priv->albw)
     bgav_albw_destroy(priv->albw);

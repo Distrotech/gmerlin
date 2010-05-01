@@ -85,49 +85,49 @@ int bgav_qt_tkhd_read(qt_atom_header_t * h, bgav_input_context_t * input,
   uint32_t i_tmp;
   
   READ_VERSION_AND_FLAGS;
-  memcpy(&(ret->h), h, sizeof(*h));
+  memcpy(&ret->h, h, sizeof(*h));
 
   if(version == 0)
     {
-    if(!bgav_input_read_32_be(input, &(i_tmp)))
+    if(!bgav_input_read_32_be(input, &i_tmp))
       return 0;
     ret->creation_time = i_tmp;
 
-    if(!bgav_input_read_32_be(input, &(i_tmp)))
+    if(!bgav_input_read_32_be(input, &i_tmp))
       return 0;
     ret->modification_time = i_tmp;
     
-    if(!bgav_input_read_32_be(input, &(ret->track_id)) ||
-       !bgav_input_read_32_be(input, &(ret->reserved1)))
+    if(!bgav_input_read_32_be(input, &ret->track_id) ||
+       !bgav_input_read_32_be(input, &ret->reserved1))
       return 0;
 
-    if(!bgav_input_read_32_be(input, &(i_tmp)))
+    if(!bgav_input_read_32_be(input, &i_tmp))
       return 0;
     ret->duration = i_tmp;
     }
   else if(version == 1)
     {
-    if(!bgav_input_read_64_be(input, &(ret->creation_time)) ||
-       !bgav_input_read_64_be(input, &(ret->modification_time)) ||
-       !bgav_input_read_32_be(input, &(ret->track_id)) ||
-       !bgav_input_read_32_be(input, &(ret->reserved1)) ||
-       !bgav_input_read_64_be(input, &(ret->duration)))
+    if(!bgav_input_read_64_be(input, &ret->creation_time) ||
+       !bgav_input_read_64_be(input, &ret->modification_time) ||
+       !bgav_input_read_32_be(input, &ret->track_id) ||
+       !bgav_input_read_32_be(input, &ret->reserved1) ||
+       !bgav_input_read_64_be(input, &ret->duration))
       return 0;
     }
 
   if((bgav_input_read_data(input, ret->reserved2, 8) < 8) ||
-     !bgav_input_read_16_be(input, &(ret->layer)) ||
-     !bgav_input_read_16_be(input, &(ret->alternate_group)) ||
-     !bgav_qt_read_fixed16(input, &(ret->volume)) ||
-     !bgav_input_read_16_be(input, &(ret->reserved3)))
+     !bgav_input_read_16_be(input, &ret->layer) ||
+     !bgav_input_read_16_be(input, &ret->alternate_group) ||
+     !bgav_qt_read_fixed16(input, &ret->volume) ||
+     !bgav_input_read_16_be(input, &ret->reserved3))
     return 0;
   
   for(i = 0; i < 9; i++)
-    if(!bgav_qt_read_fixed32(input, &(ret->matrix[i])))
+    if(!bgav_qt_read_fixed32(input, &ret->matrix[i]))
       return 0;
 
-  if(!bgav_qt_read_fixed32(input, &(ret->track_width)) ||
-     !bgav_qt_read_fixed32(input, &(ret->track_height)))
+  if(!bgav_qt_read_fixed32(input, &ret->track_width) ||
+     !bgav_qt_read_fixed32(input, &ret->track_height))
     return 0;
 
   //  bgav_qt_tkhd_dump(ret);

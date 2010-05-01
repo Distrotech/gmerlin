@@ -45,7 +45,7 @@ int bgav_qt_mdia_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_mdia_t * ret)
   {
   qt_atom_header_t ch; /* Child header */
-  memcpy(&(ret->h), h, sizeof(*h));
+  memcpy(&ret->h, h, sizeof(*h));
 
   while(input->position < h->start_position + h->size)
     {
@@ -54,15 +54,15 @@ int bgav_qt_mdia_read(qt_atom_header_t * h, bgav_input_context_t * input,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('m', 'd', 'h', 'd'):
-        if(!bgav_qt_mdhd_read(&ch, input, &(ret->mdhd)))
+        if(!bgav_qt_mdhd_read(&ch, input, &ret->mdhd))
           return 0;
         break;
       case BGAV_MK_FOURCC('h', 'd', 'l', 'r'):
-        if(!bgav_qt_hdlr_read(&ch, input, &(ret->hdlr)))
+        if(!bgav_qt_hdlr_read(&ch, input, &ret->hdlr))
           return 0;
         break;
       case BGAV_MK_FOURCC('m', 'i', 'n', 'f'):
-        if(!bgav_qt_minf_read(&ch, input, &(ret->minf)))
+        if(!bgav_qt_minf_read(&ch, input, &ret->minf))
           return 0;
         break;
       default:
@@ -76,16 +76,16 @@ int bgav_qt_mdia_read(qt_atom_header_t * h, bgav_input_context_t * input,
 
 void bgav_qt_mdia_free(qt_mdia_t * c)
   {
-  bgav_qt_mdhd_free(&(c->mdhd));
-  bgav_qt_hdlr_free(&(c->hdlr));
-  bgav_qt_minf_free(&(c->minf));
+  bgav_qt_mdhd_free(&c->mdhd);
+  bgav_qt_hdlr_free(&c->hdlr);
+  bgav_qt_minf_free(&c->minf);
   }
 
 void bgav_qt_mdia_dump(int indent, qt_mdia_t * c)
   {
   bgav_diprintf(indent, "mdia\n");
-  bgav_qt_mdhd_dump(indent+2, &(c->mdhd));
-  bgav_qt_hdlr_dump(indent+2, &(c->hdlr));
-  bgav_qt_minf_dump(indent+2, &(c->minf));
+  bgav_qt_mdhd_dump(indent+2, &c->mdhd);
+  bgav_qt_hdlr_dump(indent+2, &c->hdlr);
+  bgav_qt_minf_dump(indent+2, &c->minf);
   bgav_diprintf(indent, "end of mdia\n");
   }

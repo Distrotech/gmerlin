@@ -92,7 +92,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx)
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
-  y4m_init_stream_info(&(priv->si));
+  y4m_init_stream_info(&priv->si);
 
   /* Set up the reader */
 
@@ -101,7 +101,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx)
 
   /* Read the stream header */
 
-  if((result = y4m_read_stream_header_cb(&(priv->reader),  &(priv->si))) != Y4M_OK)
+  if((result = y4m_read_stream_header_cb(&priv->reader,  &priv->si)) != Y4M_OK)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading stream header failed %d", result);
     return 0;
@@ -198,7 +198,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx)
   s->fourcc = BGAV_MK_FOURCC('g','a','v','l');
 
   /* Initialize frame info (will be needed for reading later on) */
-  y4m_init_frame_info(&(priv->fi));
+  y4m_init_frame_info(&priv->fi);
 
   ctx->stream_description = bgav_sprintf("yuv4mpeg");
   ctx->index_mode = INDEX_MODE_SIMPLE;
@@ -286,16 +286,16 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   p->position = ctx->input->position;
   if(!p->video_frame)
     {
-    p->video_frame = gavl_video_frame_create_nopad(&(s->data.video.format));
+    p->video_frame = gavl_video_frame_create_nopad(&s->data.video.format);
     
     /* For monochrome format also need to clear the chroma planes */
-    gavl_video_frame_clear(p->video_frame, &(s->data.video.format));
+    gavl_video_frame_clear(p->video_frame, &s->data.video.format);
     }
   
   if(s->data.video.format.pixelformat == GAVL_YUVA_32)
     {
-    if(y4m_read_frame_cb(&(priv->reader), &(priv->si),
-                         &(priv->fi), priv->tmp_planes) != Y4M_OK)
+    if(y4m_read_frame_cb(&priv->reader, &priv->si,
+                         &priv->fi, priv->tmp_planes) != Y4M_OK)
       return 0;
     convert_yuva4444(p->video_frame->planes, priv->tmp_planes,
                      s->data.video.format.image_width * 
@@ -303,8 +303,8 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
     }
   else
     {
-    if(y4m_read_frame_cb(&(priv->reader), &(priv->si),
-                         &(priv->fi), p->video_frame->planes) != Y4M_OK)
+    if(y4m_read_frame_cb(&priv->reader, &priv->si,
+                         &priv->fi, p->video_frame->planes) != Y4M_OK)
       return 0;
     }
   
@@ -371,8 +371,8 @@ static void close_y4m(bgav_demuxer_context_t * ctx)
   {
   y4m_t * priv;
   priv = (y4m_t *)(ctx->priv);
-  y4m_fini_stream_info(&(priv->si));
-  y4m_fini_frame_info(&(priv->fi));
+  y4m_fini_stream_info(&priv->si);
+  y4m_fini_frame_info(&priv->fi);
   if(priv->tmp_planes[0])
     free(priv->tmp_planes[0]);
   free(priv);

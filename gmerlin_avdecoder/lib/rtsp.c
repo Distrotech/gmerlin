@@ -206,10 +206,10 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected)
 
   buf[content_length] = '\0';
   
-  if(!bgav_sdp_parse(rtsp->opt, buf, &(rtsp->sdp)))
+  if(!bgav_sdp_parse(rtsp->opt, buf, &rtsp->sdp))
     goto fail;
 
-  //  bgav_sdp_dump(&(rtsp->sdp));
+  //  bgav_sdp_dump(&rtsp->sdp);
   
   
   free(buf);
@@ -321,7 +321,7 @@ int bgav_rtsp_reopen(bgav_rtsp_t * rtsp)
 
 bgav_sdp_t * bgav_rtsp_get_sdp(bgav_rtsp_t * r)
   {
-  return &(r->sdp);
+  return &r->sdp;
   }
 
 void bgav_rtsp_close(bgav_rtsp_t * r, int teardown)
@@ -331,7 +331,7 @@ void bgav_rtsp_close(bgav_rtsp_t * r, int teardown)
   
   bgav_http_header_destroy(r->answers);
   bgav_http_header_destroy(r->request_fields);
-  bgav_sdp_free(&(r->sdp));
+  bgav_sdp_free(&r->sdp);
   if(r->url) free(r->url);
   if(r->session) free(r->session);
 

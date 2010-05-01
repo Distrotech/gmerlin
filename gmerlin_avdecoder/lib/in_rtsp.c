@@ -140,7 +140,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         return 0;
       else if(bytes_read < 8)
         {
-        if(bgav_read_data_fd(fd, &(header[bytes_read]), 8 - bytes_read,
+        if(bgav_read_data_fd(fd, &header[bytes_read], 8 - bytes_read,
                              ctx->opt->read_timeout) < 8 - bytes_read)
           return 0;
         
@@ -159,7 +159,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         {
         char * ptr = (char*)priv->packet;
         if(!bgav_read_line_fd(fd, &ptr,
-                              &(priv->packet_alloc),
+                              &priv->packet_alloc,
                               ctx->opt->read_timeout))
           return 0;
         priv->packet = (uint8_t*)ptr;
@@ -182,11 +182,11 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       }
     else if(header[0] == '$')
       {
-      size = BGAV_PTR_2_24BE(&(header[1]));
+      size = BGAV_PTR_2_24BE(&header[1]);
     
       flags1 = header[4];
 
-      if ((flags1!=0x40)&&(flags1!=0x42))
+      if ((flags1!=0x40) && (flags1!=0x42))
         {
         if(header[6] == 0x06)
           {
@@ -197,10 +197,10 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         header[1]=header[6];
         header[2]=header[7];
 
-        if(bgav_read_data_fd(fd, &(header[3]), 5, ctx->opt->read_timeout) < 5)
+        if(bgav_read_data_fd(fd, &header[3], 5, ctx->opt->read_timeout) < 5)
           return 0;
 
-        if(bgav_read_data_fd(fd, &(header[4]), 4, ctx->opt->read_timeout) < 4)
+        if(bgav_read_data_fd(fd, &header[4], 4, ctx->opt->read_timeout) < 4)
           return 0;
         flags1 = header[4];
         size-=9;

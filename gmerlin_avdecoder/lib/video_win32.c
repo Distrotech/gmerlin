@@ -409,7 +409,7 @@ static int init_std(bgav_win32_thread_t * thread)
              "ICDecompressBegin failed");
     return 0;
     }
-  priv->frame = gavl_video_frame_create(&(s->data.video.format));
+  priv->frame = gavl_video_frame_create(&s->data.video.format);
 
   s->description = bgav_strdup(info->format_name);
 
@@ -510,16 +510,16 @@ static int init_ds(bgav_win32_thread_t*t)
   pack_bih(&priv->bih_in, &bih_in);
 
   if(!s->ext_size)
-    priv->ds_dec = DS_VideoDecoder_Open(info->dll_name, &(info->guid),
+    priv->ds_dec = DS_VideoDecoder_Open(info->dll_name, &info->guid,
                                           &priv->bih_in, 0 /* flipped */, 0);
   else
     {
     priv->bih_in.biSize = 40 + s->ext_size;
     init_data = malloc(40 + s->ext_size);
     memcpy(init_data, &priv->bih_in, 40);
-    memcpy(&(init_data[40]), s->ext_data, s->ext_size);
+    memcpy(&init_data[40], s->ext_data, s->ext_size);
 
-    priv->ds_dec = DS_VideoDecoder_Open(info->dll_name, &(info->guid),
+    priv->ds_dec = DS_VideoDecoder_Open(info->dll_name, &info->guid,
                                           (BITMAPINFOHEADER*)init_data, 0 /* flipped */, 0);
     free(init_data);
     }
@@ -542,7 +542,7 @@ static int init_ds(bgav_win32_thread_t*t)
     s->data.video.format.pixelformat = GAVL_RGB_24;
     }
   DS_VideoDecoder_StartInternal(priv->ds_dec);
-  priv->frame = gavl_video_frame_create(&(s->data.video.format));
+  priv->frame = gavl_video_frame_create(&s->data.video.format);
   s->description = bgav_strdup(info->format_name);
 
   return 1;
@@ -612,16 +612,16 @@ static int init_dmo(bgav_win32_thread_t*t)
   pack_bih(&priv->bih_in, &bih_in);
 
   if(!s->ext_size)
-    priv->dmo_dec = DMO_VideoDecoder_Open(info->dll_name, &(info->guid),
+    priv->dmo_dec = DMO_VideoDecoder_Open(info->dll_name, &info->guid,
                                           &priv->bih_in, 0 /* flipped */, 0);
   else
     {
     priv->bih_in.biSize = 40 + s->ext_size;
     init_data = malloc(40 + s->ext_size);
     memcpy(init_data, &priv->bih_in, 40);
-    memcpy(&(init_data[40]), s->ext_data, s->ext_size);
+    memcpy(&init_data[40], s->ext_data, s->ext_size);
 
-    priv->dmo_dec = DMO_VideoDecoder_Open(info->dll_name, &(info->guid),
+    priv->dmo_dec = DMO_VideoDecoder_Open(info->dll_name, &info->guid,
                                           (BITMAPINFOHEADER*)init_data, 0 /* flipped */, 0);
     free(init_data);
     }
@@ -643,7 +643,7 @@ static int init_dmo(bgav_win32_thread_t*t)
     s->data.video.format.pixelformat = GAVL_RGB_24;
     }
   DMO_VideoDecoder_StartInternal(priv->dmo_dec);
-  priv->frame = gavl_video_frame_create(&(s->data.video.format));
+  priv->frame = gavl_video_frame_create(&s->data.video.format);
   s->description = bgav_strdup(info->format_name);
   return 1;
   }

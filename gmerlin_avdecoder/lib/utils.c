@@ -525,7 +525,7 @@ char * bgav_search_file_write(const bgav_options_t * opt,
    *  doesn't exist
    */
   
-  pos1 = &(testpath[strlen(home_dir)+1]);
+  pos1 = &testpath[strlen(home_dir)+1];
   
   while(1)
     {

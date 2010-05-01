@@ -145,7 +145,7 @@ void bgav_WAVEFORMAT_read(bgav_WAVEFORMAT_t * ret, uint8_t * data, int len)
         ret->type = BGAV_WAVEFORMAT_WAVEFORMATEXTENSIBLE;
         ret->f.WAVEFORMATEXTENSIBLE.Samples.wValidBitsPerSample = BGAV_PTR_2_16LE(ptr);ptr+=2;
         ret->f.WAVEFORMATEXTENSIBLE.dwChannelMask = BGAV_PTR_2_32LE(ptr);ptr+=4;
-        bgav_GUID_from_ptr(&(ret->f.WAVEFORMATEXTENSIBLE.SubFormat), ptr);ptr+=16;
+        bgav_GUID_from_ptr(&ret->f.WAVEFORMATEXTENSIBLE.SubFormat, ptr);ptr+=16;
 
         if((ret->f.WAVEFORMATEX.cbSize > 22) && (len >= (int)(ptr - data) + ret->f.WAVEFORMATEX.cbSize - 22))
           {
@@ -209,7 +209,7 @@ static uint32_t guid_2_fourcc(bgav_GUID_t * g)
     }
   for(i = 0; i < sizeof(wav_guids)/sizeof(wav_guids[0]); i++)
     {
-    if(bgav_GUID_equal(g, &(wav_guids[i].guid)))
+    if(bgav_GUID_equal(g, &wav_guids[i].guid))
       return wav_guids[i].fourcc;
     }
   return 0;
@@ -233,11 +233,11 @@ void bgav_WAVEFORMAT_get_format(bgav_WAVEFORMAT_t * wf,
     {
     case BGAV_WAVEFORMAT_WAVEFORMAT:
       s->data.audio.bits_per_sample     = 8;
-      gavl_set_channel_setup(&(s->data.audio.format));
+      gavl_set_channel_setup(&s->data.audio.format);
       break;
     case BGAV_WAVEFORMAT_PCMWAVEFORMAT:
       s->data.audio.bits_per_sample     = wf->f.PCMWAVEFORMAT.wBitsPerSample;
-      gavl_set_channel_setup(&(s->data.audio.format));
+      gavl_set_channel_setup(&s->data.audio.format);
       break;
     case BGAV_WAVEFORMAT_WAVEFORMATEX:
       s->data.audio.bits_per_sample     = wf->f.PCMWAVEFORMAT.wBitsPerSample;
@@ -249,12 +249,13 @@ void bgav_WAVEFORMAT_get_format(bgav_WAVEFORMAT_t * wf,
         memcpy(s->ext_data, wf->f.WAVEFORMATEX.ext_data, s->ext_size);
         }
       
-      gavl_set_channel_setup(&(s->data.audio.format));
+      gavl_set_channel_setup(&s->data.audio.format);
       break;
     case BGAV_WAVEFORMAT_WAVEFORMATEXTENSIBLE:
       s->data.audio.bits_per_sample     = wf->f.PCMWAVEFORMAT.wBitsPerSample;
-      s->fourcc = guid_2_fourcc(&(wf->f.WAVEFORMATEXTENSIBLE.SubFormat));
-      channel_mask_2_format(wf->f.WAVEFORMATEXTENSIBLE.dwChannelMask, &(s->data.audio.format));
+      s->fourcc = guid_2_fourcc(&wf->f.WAVEFORMATEXTENSIBLE.SubFormat);
+      channel_mask_2_format(wf->f.WAVEFORMATEXTENSIBLE.dwChannelMask,
+                            &s->data.audio.format);
 
       if(wf->f.WAVEFORMATEX.ext_size)
         {
@@ -329,7 +330,7 @@ void bgav_WAVEFORMAT_dump(bgav_WAVEFORMAT_t * ret)
       bgav_dprintf( "  wValidBitsPerSample: %d\n", ret->f.WAVEFORMATEXTENSIBLE.Samples.wValidBitsPerSample);
       bgav_dprintf( "  dwChannelMask:       %08x\n", ret->f.WAVEFORMATEXTENSIBLE.dwChannelMask);
       bgav_dprintf( "  SubFormat:           ");
-      bgav_GUID_dump(&(ret->f.WAVEFORMATEXTENSIBLE.SubFormat));
+      bgav_GUID_dump(&ret->f.WAVEFORMATEXTENSIBLE.SubFormat);
       if(ret->f.WAVEFORMATEX.ext_size)
         {
         bgav_dprintf( "Extradata %d bytes, hexdump follows\n", ret->f.WAVEFORMATEX.ext_size);
@@ -659,9 +660,9 @@ int bgav_GUID_equal(const bgav_GUID_t * g1, const bgav_GUID_t * g2)
 
 int bgav_GUID_read(bgav_GUID_t * ret, bgav_input_context_t * input)
   {
-  return bgav_input_read_32_le(input, &(ret->v1)) &&
-    bgav_input_read_16_le(input, &(ret->v2)) &&
-    bgav_input_read_16_le(input, &(ret->v3)) &&
+  return bgav_input_read_32_le(input, &ret->v1) &&
+    bgav_input_read_16_le(input, &ret->v2) &&
+    bgav_input_read_16_le(input, &ret->v3) &&
     (bgav_input_read_data(input, ret->v4, 8) == 8);
   }
 

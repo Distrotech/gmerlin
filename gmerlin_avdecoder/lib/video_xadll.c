@@ -417,7 +417,7 @@ static int decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
     return 0;
     
   priv->frame = frame;
-  ret = priv->dec_func((uint8_t*)s, p->data, p->data_size, &(priv->decinfo));
+  ret = priv->dec_func((uint8_t*)s, p->data, p->data_size, &priv->decinfo);
 
   if(frame)
     {

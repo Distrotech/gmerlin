@@ -55,7 +55,7 @@ bgav_track_t * bgav_track_table_append_track(bgav_track_table_t * t)
 
   t->cur = t->tracks + track_index;
   
-  return &(t->tracks[t->num_tracks-1]);
+  return &t->tracks[t->num_tracks-1];
   }
 
 void bgav_track_table_ref(bgav_track_table_t * t)
@@ -71,7 +71,7 @@ void bgav_track_table_unref(bgav_track_table_t * t)
     return;
   for(i = 0; i < t->num_tracks; i++)
     {
-    bgav_track_free(&(t->tracks[i]));
+    bgav_track_free(&t->tracks[i]);
     }
   free(t->tracks);
   free(t);
@@ -79,7 +79,7 @@ void bgav_track_table_unref(bgav_track_table_t * t)
 
 void bgav_track_table_select_track(bgav_track_table_t * t, int track)
   {
-  t->cur = &(t->tracks[track]);
+  t->cur = &t->tracks[track];
   bgav_track_mute(t->cur);
   }
 
@@ -93,7 +93,7 @@ void bgav_track_table_merge_metadata(bgav_track_table_t*t,
   int i;
   for(i = 0; i < t->num_tracks; i++)
     {
-    bgav_metadata_merge2(&(t->tracks[i].metadata), m);
+    bgav_metadata_merge2(&t->tracks[i].metadata, m);
     }
   }
 
@@ -102,6 +102,6 @@ void bgav_track_table_remove_unsupported(bgav_track_table_t * t)
   int i;
   for(i = 0; i < t->num_tracks; i++)
     {
-    bgav_track_remove_unsupported(&(t->tracks[i]));
+    bgav_track_remove_unsupported(&t->tracks[i]);
     }
   }

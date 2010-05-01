@@ -124,7 +124,7 @@ static int RTjpeg_b2s(int16_t *data, int8_t *strm, uint8_t bt8)
    do
    {
     ci++;
-   } while((ci<64)&&(data[RTjpeg_ZZ[ci]]==0));
+   } while((ci<64) && (data[RTjpeg_ZZ[ci]]==0));
 
    strm[co++]=(int8_t)(63+(ci-tmp));
    ci--;
@@ -2268,7 +2268,7 @@ static mmx_t fix_108n184	= (mmx_t)(int64_t)0xcf04cf04cf04cf04LL;
 
   wsptr = rtj->ws;
   for (ctr = 0; ctr < 8; ctr++) {
-    outptr = &(odata[ctr*rskip]);
+    outptr = &odata[ctr*rskip];
 
     tmp10 = wsptr[0] + wsptr[4];
     tmp11 = wsptr[0] - wsptr[4];
@@ -3473,9 +3473,9 @@ int RTjpeg_compress(RTjpeg_t *rtj, uint8_t *sp, uint8_t **planes)
  { 
   switch(rtj->f)
   {
-   case RTJ_YUV420: ds = RTjpeg_compressYUV420(rtj, &(fh->data), planes); break;
-   case RTJ_YUV422: ds = RTjpeg_compressYUV422(rtj, &(fh->data), planes); break;
-   case RTJ_RGB8: ds = RTjpeg_compress8(rtj, &(fh->data), planes); break;
+   case RTJ_YUV420: ds = RTjpeg_compressYUV420(rtj, &fh->data, planes); break;
+   case RTJ_YUV422: ds = RTjpeg_compressYUV422(rtj, &fh->data, planes); break;
+   case RTJ_RGB8: ds = RTjpeg_compress8(rtj, &fh->data, planes); break;
   }
   fh->key = 0;
  } else
@@ -3484,9 +3484,9 @@ int RTjpeg_compress(RTjpeg_t *rtj, uint8_t *sp, uint8_t **planes)
    bzero(rtj->old, ((4*rtj->width*rtj->height)));
   switch(rtj->f)
   {
-   case RTJ_YUV420: ds = RTjpeg_mcompressYUV420(rtj, &(fh->data), planes); break;
-   case RTJ_YUV422: ds = RTjpeg_mcompressYUV422(rtj, &(fh->data), planes); break;
-   case RTJ_RGB8: ds = RTjpeg_mcompress8(rtj, &(fh->data), planes); break;
+   case RTJ_YUV420: ds = RTjpeg_mcompressYUV420(rtj, &fh->data, planes); break;
+   case RTJ_YUV422: ds = RTjpeg_mcompressYUV422(rtj, &fh->data, planes); break;
+   case RTJ_RGB8: ds = RTjpeg_mcompress8(rtj, &fh->data, planes); break;
   }
   fh->key = rtj->key_count;
   if(++rtj->key_count > rtj->key_rate)
@@ -3511,9 +3511,9 @@ static int RTjpeg_nullcompress(RTjpeg_t *rtj, int8_t *sp)
  { 
   switch(rtj->f)
   {
-   case RTJ_YUV420: ds = RTjpeg_nullcompressYUV420(rtj, &(fh->data)); break;
-   case RTJ_YUV422: ds = RTjpeg_nullcompressYUV422(rtj, &(fh->data)); break;
-   case RTJ_RGB8: ds = RTjpeg_nullcompress8(rtj, &(fh->data)); break;
+   case RTJ_YUV420: ds = RTjpeg_nullcompressYUV420(rtj, &fh->data); break;
+   case RTJ_YUV422: ds = RTjpeg_nullcompressYUV422(rtj, &fh->data); break;
+   case RTJ_RGB8: ds = RTjpeg_nullcompress8(rtj, &fh->data); break;
   }
   fh->key = 0;
  } else
@@ -3522,9 +3522,9 @@ static int RTjpeg_nullcompress(RTjpeg_t *rtj, int8_t *sp)
    bzero(rtj->old, ((4*rtj->width*rtj->height)));
   switch(rtj->f)
   {
-   case RTJ_YUV420: ds = RTjpeg_nullcompressYUV420(rtj, &(fh->data)); break;
-   case RTJ_YUV422: ds = RTjpeg_nullcompressYUV422(rtj, &(fh->data)); break;
-   case RTJ_RGB8: ds = RTjpeg_nullcompress8(rtj, &(fh->data)); break;
+   case RTJ_YUV420: ds = RTjpeg_nullcompressYUV420(rtj, &fh->data); break;
+   case RTJ_YUV422: ds = RTjpeg_nullcompressYUV422(rtj, &fh->data); break;
+   case RTJ_RGB8: ds = RTjpeg_nullcompress8(rtj, &fh->data); break;
   }
   fh->key = rtj->key_count;
   if(++rtj->key_count > rtj->key_rate)
@@ -3558,8 +3558,8 @@ void RTjpeg_decompress(RTjpeg_t *rtj, uint8_t *sp, uint8_t **planes)
  }
  switch(rtj->f)
  {
-  case RTJ_YUV420: RTjpeg_decompressYUV420(rtj, &(fh->data), planes); break;
-  case RTJ_YUV422: RTjpeg_decompressYUV422(rtj, &(fh->data), planes); break;
-  case RTJ_RGB8: RTjpeg_decompress8(rtj, &(fh->data), planes); break;
+  case RTJ_YUV420: RTjpeg_decompressYUV420(rtj, &fh->data, planes); break;
+  case RTJ_YUV422: RTjpeg_decompressYUV422(rtj, &fh->data, planes); break;
+  case RTJ_RGB8: RTjpeg_decompress8(rtj, &fh->data, planes); break;
  }
 }

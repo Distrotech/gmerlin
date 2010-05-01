@@ -79,7 +79,7 @@ static int init_speex(bgav_stream_t * s)
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   gavl_set_channel_setup(&s->data.audio.format);
 
-  speex_decoder_ctl(priv->dec_state, SPEEX_GET_FRAME_SIZE, &(priv->frame_size));
+  speex_decoder_ctl(priv->dec_state, SPEEX_GET_FRAME_SIZE, &priv->frame_size);
   s->data.audio.format.samples_per_frame = priv->frame_size * priv->header->frames_per_packet;
 
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
@@ -88,7 +88,7 @@ static int init_speex(bgav_stream_t * s)
 
   if(priv->header->nb_channels > 1)
     {
-    memcpy(&(priv->stereo), &__stereo, sizeof(__stereo));
+    memcpy(&priv->stereo, &__stereo, sizeof(__stereo));
     
     callback.callback_id = SPEEX_INBAND_STEREO;
     callback.func = speex_std_stereo_request_handler;
@@ -110,17 +110,17 @@ static int decode_frame_speex(bgav_stream_t * s)
   if(!p)
     return 0;
 
-  speex_bits_read_from(&(priv->bits), (char*)p->data, p->data_size);
+  speex_bits_read_from(&priv->bits, (char*)p->data, p->data_size);
   
   for(i = 0; i < priv->header->frames_per_packet; i++)
     {
-    speex_decode(priv->dec_state, &(priv->bits),
+    speex_decode(priv->dec_state, &priv->bits,
                  priv->frame->samples.f + i * priv->frame_size * s->data.audio.format.num_channels);
     if(s->data.audio.format.num_channels > 1)
       {
       speex_decode_stereo(priv->frame->samples.f +
                           i * priv->frame_size * s->data.audio.format.num_channels,
-                          priv->frame_size, &(priv->stereo));
+                          priv->frame_size, &priv->stereo);
       }
     }
   

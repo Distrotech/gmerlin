@@ -722,7 +722,7 @@ static const bgav_subtitle_reader_t * find_subtitle_reader(const char * filename
       {
       if(subtitle_readers[i].probe(line))
         {
-        ret = &(subtitle_readers[i]);
+        ret = &subtitle_readers[i];
         break;
         }
       i++;
@@ -976,7 +976,7 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t * s, gavl_overlay_t * ovl)
   if(ctx->has_subtitle)
     {
     ctx->has_subtitle = 0;
-    gavl_video_format_copy(&copy_format, &(s->data.subtitle.format));
+    gavl_video_format_copy(&copy_format, &s->data.subtitle.format);
     copy_format.image_width = ctx->ovl.ovl_rect.w;
     copy_format.frame_width = ctx->ovl.ovl_rect.w;
 
@@ -987,7 +987,7 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t * s, gavl_overlay_t * ovl)
     ovl->frame->duration = ctx->ovl.frame->duration;
     ovl->dst_x = ctx->ovl.dst_x;
     ovl->dst_y = ctx->ovl.dst_y;
-    gavl_rectangle_i_copy(&(ovl->ovl_rect), &(ctx->ovl.ovl_rect));
+    gavl_rectangle_i_copy(&ovl->ovl_rect, &ctx->ovl.ovl_rect);
     return 1;
     }
   else

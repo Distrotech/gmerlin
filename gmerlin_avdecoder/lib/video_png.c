@@ -81,7 +81,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!priv->have_header &&
        !bgav_png_reader_read_header(priv->png_reader,
                                     priv->p->data, priv->p->data_size,
-                                    &(s->data.video.format), (char**)0))
+                                    &s->data.video.format, (char**)0))
       return 0;
     if(!bgav_png_reader_read_image(priv->png_reader, frame))
       return 0;

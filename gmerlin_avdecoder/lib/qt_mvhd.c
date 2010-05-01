@@ -56,48 +56,48 @@ int bgav_qt_mvhd_read(qt_atom_header_t * h, bgav_input_context_t * input,
   int i;
   uint32_t i_tmp;
   READ_VERSION_AND_FLAGS;
-  memcpy(&(ret->h), h, sizeof(*h));
+  memcpy(&ret->h, h, sizeof(*h));
 
   if(version == 0)
     {
-    if(!bgav_input_read_32_be(input, &(i_tmp)))
+    if(!bgav_input_read_32_be(input, &i_tmp))
       return 0;
     ret->creation_time = i_tmp;
     
-    if(!bgav_input_read_32_be(input, &(i_tmp)))
+    if(!bgav_input_read_32_be(input, &i_tmp))
       return 0;
     ret->modification_time = i_tmp;
-    if(!bgav_input_read_32_be(input, &(ret->time_scale)))
+    if(!bgav_input_read_32_be(input, &ret->time_scale))
       return 0;
-    if(!bgav_input_read_32_be(input, &(i_tmp)))
+    if(!bgav_input_read_32_be(input, &i_tmp))
       return 0;
     ret->duration = i_tmp;
     }
   else if(version == 1)
     {
-    if(!bgav_input_read_64_be(input, &(ret->creation_time)) ||
-       !bgav_input_read_64_be(input, &(ret->modification_time)) ||
-       !bgav_input_read_32_be(input, &(ret->time_scale)) ||
-       !bgav_input_read_64_be(input, &(ret->duration)))
+    if(!bgav_input_read_64_be(input, &ret->creation_time) ||
+       !bgav_input_read_64_be(input, &ret->modification_time) ||
+       !bgav_input_read_32_be(input, &ret->time_scale) ||
+       !bgav_input_read_64_be(input, &ret->duration))
       return 0;
     }
 
-  if(!bgav_qt_read_fixed32(input, &(ret->preferred_rate)) ||
-     !bgav_qt_read_fixed16(input, &(ret->preferred_volume)) ||
+  if(!bgav_qt_read_fixed32(input, &ret->preferred_rate) ||
+     !bgav_qt_read_fixed16(input, &ret->preferred_volume) ||
      !(bgav_input_read_data(input, ret->reserved, 10) == 10))
     return 0;
   
   for(i = 0; i < 9; i++)
-    if(!bgav_qt_read_fixed32(input, &(ret->matrix[i])))
+    if(!bgav_qt_read_fixed32(input, &ret->matrix[i]))
       return 0;
 
-  return(bgav_input_read_32_be(input, &(ret->preview_time)) &&
-         bgav_input_read_32_be(input, &(ret->preview_duration)) &&
-         bgav_input_read_32_be(input, &(ret->poster_time)) &&
-         bgav_input_read_32_be(input, &(ret->selection_time)) &&
-         bgav_input_read_32_be(input, &(ret->selection_duration)) &&
-         bgav_input_read_32_be(input, &(ret->current_time)) &&
-         bgav_input_read_32_be(input, &(ret->next_track_id)));
+  return(bgav_input_read_32_be(input, &ret->preview_time) &&
+         bgav_input_read_32_be(input, &ret->preview_duration) &&
+         bgav_input_read_32_be(input, &ret->poster_time) &&
+         bgav_input_read_32_be(input, &ret->selection_time) &&
+         bgav_input_read_32_be(input, &ret->selection_duration) &&
+         bgav_input_read_32_be(input, &ret->current_time) &&
+         bgav_input_read_32_be(input, &ret->next_track_id));
   }
 
 void bgav_qt_mvhd_free(qt_mvhd_t * c)

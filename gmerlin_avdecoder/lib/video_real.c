@@ -195,7 +195,7 @@ static int init_real(bgav_stream_t * s)
 
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
-    if(&(real_codecs[i].decoder) == s->data.video.decoder->decoder)
+    if(&real_codecs[i].decoder == s->data.video.decoder->decoder)
       {
       info = &real_codecs[i];
       break;
@@ -256,7 +256,7 @@ static int init_real(bgav_stream_t * s)
   init_data.unk5 = 1;
   init_data.format = extradata[1];
 
-  if(priv->rvyuv_init(&init_data, &(priv->real_context)))
+  if(priv->rvyuv_init(&init_data, &priv->real_context))
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Init codec failed");
     return 0;
@@ -283,7 +283,7 @@ static int init_real(bgav_stream_t * s)
     
     cmsg_data.data1 = 0x24;
     cmsg_data.data2 = 1+((extradata[0]>>16)&7);
-    cmsg_data.dimensions = &(cmsg24[0]);
+    cmsg_data.dimensions = &cmsg24[0];
     if(priv->rvyuv_custom_message(&cmsg_data,priv->real_context))
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "rvyuv_custom_message failed");
@@ -340,7 +340,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
     }
   if(f)
     {
-    gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
+    gavl_video_frame_copy(&s->data.video.format, f, priv->gavl_frame);
     f->timestamp = p->pts;
     f->duration = p->duration;
     }

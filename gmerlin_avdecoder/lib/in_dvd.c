@@ -170,7 +170,7 @@ static gavl_time_t get_duration(pgc_t * pgc, int start_cell, int end_cell, int a
     {
     if(pgc->cell_playback[i].block_type == BLOCK_TYPE_ANGLE_BLOCK)
       {
-      ret += convert_time(&(pgc->cell_playback[i+angle].playback_time));
+      ret += convert_time(&pgc->cell_playback[i+angle].playback_time);
 
       while(pgc->cell_playback[i].block_mode != BLOCK_MODE_LAST_CELL)
         i++;
@@ -179,7 +179,7 @@ static gavl_time_t get_duration(pgc_t * pgc, int start_cell, int end_cell, int a
       }
     else
       {
-      ret += convert_time(&(pgc->cell_playback[i].playback_time));
+      ret += convert_time(&pgc->cell_playback[i].playback_time);
       i++;
       }
     }
@@ -1015,7 +1015,7 @@ static void seek_time_dvd(bgav_input_context_t * ctx, int64_t t1, int scale)
     if(dvd->pgc->cell_playback[dvd->cell].block_type == BLOCK_TYPE_ANGLE_BLOCK ) 
       dvd->cell += dvd->current_track_priv->angle;
     
-    diff_time = convert_time(&(dvd->pgc->cell_playback[dvd->cell].playback_time));
+    diff_time = convert_time(&dvd->pgc->cell_playback[dvd->cell].playback_time);
 
     if(cell_start_time + diff_time > t)
       break;
@@ -1069,7 +1069,7 @@ static void seek_time_dvd(bgav_input_context_t * ctx, int64_t t1, int scale)
     printf("PCI:\n");
     navPrint_PCI(&pci_pack);
 #endif
-    time = cell_start_time + convert_time(&(pci_pack.pci_gi.e_eltm));
+    time = cell_start_time + convert_time(&pci_pack.pci_gi.e_eltm);
 
     /* Now, decide on the next VOBU to go to. We don't use the .5 second steps */
     

@@ -301,17 +301,17 @@ static int open_adts(bgav_demuxer_context_t * ctx)
     bgav_id3v2_2_metadata(ctx->input->id3v2, &id3v2_metadata);
     //    bgav_metadata_dump(&id3v2_metadata);
 
-    bgav_metadata_merge(&(ctx->tt->cur->metadata),
+    bgav_metadata_merge(&ctx->tt->cur->metadata,
                         &id3v2_metadata, &id3v1_metadata);
     bgav_metadata_free(&id3v1_metadata);
     bgav_metadata_free(&id3v2_metadata);
     }
   else if(ctx->input->id3v2)
     bgav_id3v2_2_metadata(ctx->input->id3v2,
-                          &(ctx->tt->cur->metadata));
+                          &ctx->tt->cur->metadata);
   else if(id3v1)
     bgav_id3v1_2_metadata(id3v1,
-                          &(ctx->tt->cur->metadata));
+                          &ctx->tt->cur->metadata);
 
   if(ctx->input->total_bytes)
     priv->data_size = ctx->input->total_bytes - ctx->data_start;

@@ -36,8 +36,8 @@ typedef struct
 static int read_chunk_header(bgav_input_context_t * input,
                              chunk_header_t * ch)
   {
-  return bgav_input_read_fourcc(input, &(ch->fourcc)) &&
-    bgav_input_read_32_be(input, &(ch->size));
+  return bgav_input_read_fourcc(input, &ch->fourcc) &&
+    bgav_input_read_32_be(input, &ch->size);
   }
 
 typedef struct
@@ -87,15 +87,15 @@ static int comm_chunk_read(chunk_header_t * h,
 
   start_pos = input->position;
 
-  if(!bgav_input_read_16_be(input, &(ret->num_channels)) ||
-     !bgav_input_read_32_be(input, &(ret->num_sample_frames)) ||
-     !bgav_input_read_16_be(input, &(ret->num_bits)) ||
-     !read_float_80(input, &(ret->samplerate)))
+  if(!bgav_input_read_16_be(input, &ret->num_channels) ||
+     !bgav_input_read_32_be(input, &ret->num_sample_frames) ||
+     !bgav_input_read_16_be(input, &ret->num_bits) ||
+     !read_float_80(input, &ret->samplerate))
     return 0;
 
   if(is_aifc)
     {
-    if(!bgav_input_read_fourcc(input, &(ret->compression_type)) ||
+    if(!bgav_input_read_fourcc(input, &ret->compression_type) ||
        !bgav_input_read_string_pascal(input, ret->compression_name))
       return 0;
     }
@@ -120,7 +120,7 @@ static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
   {
   aiff_priv_t * priv;
   bgav_stream_t * s;
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   priv = (aiff_priv_t*)(ctx->priv);
   
   return ((pos - ctx->data_start)/s->data.audio.block_align) *
@@ -133,7 +133,7 @@ static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
 
   bgav_stream_t * s;
   priv = (aiff_priv_t*)(ctx->priv);
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   
   return ctx->data_start + (time/priv->samples_per_block)
     * s->data.audio.block_align;
@@ -410,7 +410,7 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   priv = (aiff_priv_t *)ctx->priv;
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
   
   bytes_to_read =

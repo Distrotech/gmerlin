@@ -38,7 +38,7 @@ int bgav_num_video_streams(bgav_t *  bgav, int track)
 
 const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream)
   {
-  return &(bgav->tt->cur->video_streams[stream].data.video.format);
+  return &bgav->tt->cur->video_streams[stream].data.video.format;
   }
 
 int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
@@ -232,14 +232,14 @@ int bgav_read_video(bgav_t * b, gavl_video_frame_t * frame, int s)
   {
   if(b->eof)
     return 0;
-  return bgav_video_decode(&(b->tt->cur->video_streams[s]), frame);
+  return bgav_video_decode(&b->tt->cur->video_streams[s], frame);
   }
 
 void bgav_video_dump(bgav_stream_t * s)
   {
   bgav_dprintf("  Depth:             %d\n", s->data.video.depth);
   bgav_dprintf("Format:\n");
-  gavl_video_format_dump(&(s->data.video.format));
+  gavl_video_format_dump(&s->data.video.format);
   }
 
 void bgav_video_stop(bgav_stream_t * s)
@@ -708,7 +708,7 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info)
   {
   gavl_codec_id_t id;
-  bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
+  bgav_stream_t * s = &bgav->tt->cur->video_streams[stream];
   int need_bitrate = 0;
   memset(info, 0, sizeof(*info));
   
@@ -836,7 +836,7 @@ static void copy_packet_fields(gavl_packet_t * p, bgav_packet_t * bp)
 int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
   bgav_packet_t * bp;
-  bgav_stream_t * s = &(bgav->tt->cur->video_streams[stream]);
+  bgav_stream_t * s = &bgav->tt->cur->video_streams[stream];
   
   bp = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!bp)

@@ -168,7 +168,7 @@ static int next_packet_wavpack(bgav_demuxer_context_t * ctx)
   if(bgav_input_read_data(ctx->input, header, HEADER_SIZE) < HEADER_SIZE)
     return 0; // EOF
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
 
   /* The last 12 bytes of the header must be copied to the
@@ -207,7 +207,7 @@ static void seek_wavpack(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   uint8_t header[HEADER_SIZE];
   wvpk_header_t h;
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
 
   current_pos = 0;
   time_scaled = gavl_time_rescale(scale, s->timescale, time);

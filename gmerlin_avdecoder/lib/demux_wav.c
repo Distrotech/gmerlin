@@ -164,7 +164,7 @@ static int open_wav(bgav_demuxer_context_t * ctx)
 
   if(priv->info)
     {
-    bgav_RIFFINFO_get_metadata(priv->info, &(ctx->tt->cur->metadata));
+    bgav_RIFFINFO_get_metadata(priv->info, &ctx->tt->cur->metadata);
     }
 
   /* Packet size will be at least 1024 bytes */

@@ -62,8 +62,8 @@ int bgav_rmff_file_header_read(bgav_rmff_chunk_t * c,
                                bgav_input_context_t * input,
                                bgav_rmff_file_header_t * ret)
   {
-  return bgav_input_read_32_be(input, &(ret->file_version)) &&
-    bgav_input_read_32_be(input, &(ret->num_headers));
+  return bgav_input_read_32_be(input, &ret->file_version) &&
+    bgav_input_read_32_be(input, &ret->num_headers);
   }
 
 
@@ -72,9 +72,9 @@ int bgav_rmff_file_header_read(bgav_rmff_chunk_t * c,
 int bgav_rmff_chunk_header_read(bgav_rmff_chunk_t * c, bgav_input_context_t * input)
   {
   c->start_position = input->position;
-  return bgav_input_read_fourcc(input, &(c->id)) &&
-    bgav_input_read_32_be(input, &(c->size))&&
-    bgav_input_read_16_be(input, &(c->version));
+  return bgav_input_read_fourcc(input, &c->id) &&
+    bgav_input_read_32_be(input, &c->size)&&
+    bgav_input_read_16_be(input, &c->version);
   }
 
 
@@ -103,17 +103,17 @@ int bgav_rmff_prop_read(bgav_rmff_chunk_t * c,
   {
   int result;
   result =
-    bgav_input_read_32_be(input, &(ret->max_bit_rate)) &&
-    bgav_input_read_32_be(input, &(ret->avg_bit_rate)) &&
-    bgav_input_read_32_be(input, &(ret->max_packet_size)) &&
-    bgav_input_read_32_be(input, &(ret->avg_packet_size)) &&
-    bgav_input_read_32_be(input, &(ret->num_packets)) &&
-    bgav_input_read_32_be(input, &(ret->duration)) &&
-    bgav_input_read_32_be(input, &(ret->preroll)) &&
-    bgav_input_read_32_be(input, &(ret->index_offset)) &&
-    bgav_input_read_32_be(input, &(ret->data_offset)) &&
-    bgav_input_read_16_be(input, &(ret->num_streams)) &&
-    bgav_input_read_16_be(input, &(ret->flags));
+    bgav_input_read_32_be(input, &ret->max_bit_rate) &&
+    bgav_input_read_32_be(input, &ret->avg_bit_rate) &&
+    bgav_input_read_32_be(input, &ret->max_packet_size) &&
+    bgav_input_read_32_be(input, &ret->avg_packet_size) &&
+    bgav_input_read_32_be(input, &ret->num_packets) &&
+    bgav_input_read_32_be(input, &ret->duration) &&
+    bgav_input_read_32_be(input, &ret->preroll) &&
+    bgav_input_read_32_be(input, &ret->index_offset) &&
+    bgav_input_read_32_be(input, &ret->data_offset) &&
+    bgav_input_read_16_be(input, &ret->num_streams) &&
+    bgav_input_read_16_be(input, &ret->flags);
   //  dump_prop(ret);
   return result;
   }
@@ -127,7 +127,7 @@ int bgav_rmff_logical_stream_read(bgav_input_context_t * input,
   uint32_t * ptr_32;
   uint16_t * ptr_16;
   
-  if(!bgav_input_read_16_be(input, &(ret->num_physical_streams)))
+  if(!bgav_input_read_16_be(input, &ret->num_physical_streams))
     return 0;
 
   ret->physical_stream_numbers = malloc(ret->num_physical_streams *
@@ -151,7 +151,7 @@ int bgav_rmff_logical_stream_read(bgav_input_context_t * input,
     ptr_32++;
     }
   
-  if(!bgav_input_read_16_be(input, &(ret->num_rules)))
+  if(!bgav_input_read_16_be(input, &ret->num_rules))
     return 0;
 
   ret->rule_to_physical_stream_number_map =
@@ -166,7 +166,7 @@ int bgav_rmff_logical_stream_read(bgav_input_context_t * input,
     ptr_16++;
     }
 
-  if(!bgav_input_read_16_be(input, &(ret->num_properties)))
+  if(!bgav_input_read_16_be(input, &ret->num_properties))
     return 0;
 
   ret->properties = malloc(ret->num_properties * sizeof(*ret->properties));
@@ -287,29 +287,29 @@ int bgav_rmff_mdpr_read(bgav_rmff_chunk_t * c,
   {
   bgav_input_context_t * input_mem;
   
-  if(!bgav_input_read_16_be(input, &(ret->stream_number)) ||
-     !bgav_input_read_32_be(input, &(ret->max_bit_rate)) ||
-     !bgav_input_read_32_be(input, &(ret->avg_bit_rate)) ||
-     !bgav_input_read_32_be(input, &(ret->max_packet_size)) ||
-     !bgav_input_read_32_be(input, &(ret->avg_packet_size)) ||
-     !bgav_input_read_32_be(input, &(ret->start_time)) ||
-     !bgav_input_read_32_be(input, &(ret->preroll)) ||
-     !bgav_input_read_32_be(input, &(ret->duration)) ||
-     !bgav_input_read_8(input, &(ret->stream_name_size)))
+  if(!bgav_input_read_16_be(input, &ret->stream_number) ||
+     !bgav_input_read_32_be(input, &ret->max_bit_rate) ||
+     !bgav_input_read_32_be(input, &ret->avg_bit_rate) ||
+     !bgav_input_read_32_be(input, &ret->max_packet_size) ||
+     !bgav_input_read_32_be(input, &ret->avg_packet_size) ||
+     !bgav_input_read_32_be(input, &ret->start_time) ||
+     !bgav_input_read_32_be(input, &ret->preroll) ||
+     !bgav_input_read_32_be(input, &ret->duration) ||
+     !bgav_input_read_8(input, &ret->stream_name_size))
     return 0;
 
   ret->stream_name = read_data(input, ret->stream_name_size);
   if(!ret->stream_name)
     return 0;
 
-  if(!bgav_input_read_8(input, &(ret->mime_type_size)))
+  if(!bgav_input_read_8(input, &ret->mime_type_size))
     return 0;
 
   ret->mime_type = read_data(input, ret->mime_type_size);
   if(!ret->mime_type)
     return 0;
 
-  if(!bgav_input_read_32_be(input, &(ret->type_specific_len)))
+  if(!bgav_input_read_32_be(input, &ret->type_specific_len))
     return 0;
 
   if(!ret->type_specific_len)
@@ -364,7 +364,7 @@ void bgav_rmff_mdpr_free(bgav_rmff_mdpr_t * m)
  */
 
 #define READ_STRING(dst, dst_len)                 \
-  if(!bgav_input_read_16_be(input, &(dst_len)))   \
+  if(!bgav_input_read_16_be(input, &dst_len))   \
     return 0;\
   if(dst_len) \
     { \
@@ -418,26 +418,26 @@ int bgav_rmff_index_record_read(bgav_input_context_t * input,
                                 bgav_rmff_index_record_t * ret)
   {
   return
-    bgav_input_read_16_be(input, &(ret->version)) &&
-    bgav_input_read_32_be(input, &(ret->timestamp)) &&
-    bgav_input_read_32_be(input, &(ret->offset)) &&
-    bgav_input_read_32_be(input, &(ret->packet_count_for_this_packet));
+    bgav_input_read_16_be(input, &ret->version) &&
+    bgav_input_read_32_be(input, &ret->timestamp) &&
+    bgav_input_read_32_be(input, &ret->offset) &&
+    bgav_input_read_32_be(input, &ret->packet_count_for_this_packet);
   }
 
 int bgav_rmff_indx_read(bgav_input_context_t * input,
                         bgav_rmff_indx_t * ret)
   {
   int i;
-  if(!bgav_input_read_32_be(input, &(ret->num_indices)) ||
-     !bgav_input_read_16_be(input, &(ret->stream_number)) ||
-     !bgav_input_read_32_be(input, &(ret->next_index_header)))
+  if(!bgav_input_read_32_be(input, &ret->num_indices) ||
+     !bgav_input_read_16_be(input, &ret->stream_number) ||
+     !bgav_input_read_32_be(input, &ret->next_index_header))
     goto fail;
   if(ret->num_indices)
     {
     ret->records = malloc(ret->num_indices * sizeof(*(ret->records)));
     for(i = 0; i < ret->num_indices; i++)
       {
-      if(!bgav_rmff_index_record_read(input, &(ret->records[i])))
+      if(!bgav_rmff_index_record_read(input, &ret->records[i]))
         goto fail;
       }
     }
@@ -482,8 +482,8 @@ void bgav_rmff_indx_dump(bgav_rmff_indx_t * indx)
 int bgav_rmff_data_header_read(bgav_input_context_t * input,
                                bgav_rmff_data_header_t * data)
   {
-  return bgav_input_read_32_be(input, &(data->num_packets)) &&
-    bgav_input_read_32_be(input, &(data->next_data_header));
+  return bgav_input_read_32_be(input, &data->num_packets) &&
+    bgav_input_read_32_be(input, &data->next_data_header);
   }
 
 
@@ -493,14 +493,14 @@ void bgav_rmff_header_dump(bgav_rmff_header_t * header)
   {
   int i;
   bgav_dprintf( "rmff_header:\n");
-  bgav_rmff_prop_dump(&(header->prop));
-  bgav_rmff_cont_dump(&(header->cont));
+  bgav_rmff_prop_dump(&header->prop);
+  bgav_rmff_cont_dump(&header->cont);
 
   bgav_dprintf( "Number of streams: %d\n", header->num_streams);
   
   for(i = 0; i < header->num_streams; i++)
     {
-    bgav_rmff_mdpr_dump(&(header->streams[i].mdpr));
+    bgav_rmff_mdpr_dump(&header->streams[i].mdpr);
     }
   }
 
@@ -520,7 +520,7 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
   if(chunk.id != FILE_ID)
     return 0;
 
-  if(!bgav_rmff_file_header_read(&chunk, ctx, &(ret->file_header)))
+  if(!bgav_rmff_file_header_read(&chunk, ctx, &ret->file_header))
     return 0;
 
   while(keep_going)
@@ -530,11 +530,11 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
     switch(chunk.id)
       {
       case PROP_ID:
-        if(!bgav_rmff_prop_read(&chunk,ctx, &(ret->prop)))
+        if(!bgav_rmff_prop_read(&chunk,ctx, &ret->prop))
           goto fail;
         break;
       case CONT_ID:
-        if(!bgav_rmff_cont_read(&chunk,ctx,&(ret->cont)))
+        if(!bgav_rmff_cont_read(&chunk,ctx,&ret->cont))
           goto fail;
         break;
       case MDPR_ID:
@@ -543,13 +543,13 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
 
         memset(ret->streams + ret->num_streams, 0, sizeof(*(ret->streams)));
         
-        if(!bgav_rmff_mdpr_read(&chunk,ctx,&(ret->streams[ret->num_streams].mdpr)))
+        if(!bgav_rmff_mdpr_read(&chunk,ctx,&ret->streams[ret->num_streams].mdpr))
           goto fail;
         ret->num_streams++;
         break;
       case DATA_ID:
         /* Read data chunk header */
-        if(!bgav_rmff_data_header_read(ctx, &(ret->data_header)))
+        if(!bgav_rmff_data_header_read(ctx, &ret->data_header))
           goto fail;
         
         /* We reached the data section. Now check if the file is seekabkle
@@ -588,7 +588,7 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
               {
               if(ret->streams[i].mdpr.stream_number == indx.stream_number)
                 {
-                memcpy(&(ret->streams[i].indx), &indx, sizeof(indx));
+                memcpy(&ret->streams[i].indx, &indx, sizeof(indx));
                 memset(&indx, 0, sizeof(indx));
                 ret->streams[i].has_indx = 1;
                 break;
@@ -640,12 +640,12 @@ void bgav_rmff_header_destroy(bgav_rmff_header_t * h)
     {
     for(i = 0; i < h->num_streams; i++)
       {
-      bgav_rmff_indx_free(&(h->streams[i].indx));
-      bgav_rmff_mdpr_free(&(h->streams[i].mdpr));
+      bgav_rmff_indx_free(&h->streams[i].indx);
+      bgav_rmff_mdpr_free(&h->streams[i].mdpr);
       }
     free(h->streams);
     }
-  bgav_rmff_cont_free(&(h->cont));
+  bgav_rmff_cont_free(&h->cont);
   free(h);
   }
 
@@ -734,7 +734,7 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
     }
 
 #define GET_ATTR_DATA(attrs, num_attrs, name, dst, dst_len)  \
-  if(bgav_sdp_get_attr_data(attrs, num_attrs, name, &buffer, &(i_tmp)) \
+  if(bgav_sdp_get_attr_data(attrs, num_attrs, name, &buffer, &i_tmp) \
      && i_tmp)       \
     { \
     dst_len = i_tmp; \
@@ -874,7 +874,7 @@ bgav_rmff_header_create_from_sdp(const bgav_options_t * opt, bgav_sdp_t * sdp,
 
     ret->streams[i].mdpr.type_specific_len =
       select_mlti_data(opaque_data, opaque_data_len, matches[0],
-                       &(ret->streams[i].mdpr.type_specific_data));
+                       &ret->streams[i].mdpr.type_specific_data);
 
     if(ret->prop.duration < ret->streams[i].mdpr.duration)
       ret->prop.duration = ret->streams[i].mdpr.duration;
@@ -893,27 +893,27 @@ bgav_rmff_header_create_from_sdp(const bgav_options_t * opt, bgav_sdp_t * sdp,
 int bgav_rmff_packet_header_read(bgav_input_context_t * input,
                                  bgav_rmff_packet_header_t * ret)
   {
-  if(!bgav_input_read_16_be(input, &(ret->object_version)))
+  if(!bgav_input_read_16_be(input, &ret->object_version))
     return 0;
 
   if((ret->object_version == 0) || (ret->object_version == 1))
     {
-    if(!bgav_input_read_16_be(input, &(ret->length)) ||
-       !bgav_input_read_16_be(input, &(ret->stream_number)) ||
-       !bgav_input_read_32_be(input, &(ret->timestamp)))
+    if(!bgav_input_read_16_be(input, &ret->length) ||
+       !bgav_input_read_16_be(input, &ret->stream_number) ||
+       !bgav_input_read_32_be(input, &ret->timestamp))
       return 0;
 
     if(ret->object_version == 0)
       {
-      if(!bgav_input_read_8(input, &(ret->packet_group)) ||
-         !bgav_input_read_8(input, &(ret->flags)))
+      if(!bgav_input_read_8(input, &ret->packet_group) ||
+         !bgav_input_read_8(input, &ret->flags))
         return 0;
       
       }
     else if(ret->object_version == 1)
       {
-      if(!bgav_input_read_16_be(input, &(ret->asm_rule)) ||
-         !bgav_input_read_8(input, &(ret->asm_flags)))
+      if(!bgav_input_read_16_be(input, &ret->asm_rule) ||
+         !bgav_input_read_8(input, &ret->asm_flags))
         return 0;
       }
     else

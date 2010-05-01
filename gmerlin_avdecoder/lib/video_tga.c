@@ -134,7 +134,8 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     priv->pts = p->pts;
     priv->duration = p->duration;
     
-    result = tga_read_from_memory(&(priv->tga), p->data, p->data_size, priv->ctab, priv->ctab_size);
+    result = tga_read_from_memory(&priv->tga, p->data,
+                                  p->data_size, priv->ctab, priv->ctab_size);
     if(result != TGA_NOERR)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -165,13 +166,13 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       case TGA_IMAGE_TYPE_COLORMAP:
       case TGA_IMAGE_TYPE_COLORMAP_RLE:
         s->data.video.format.pixelformat = get_pixelformat(priv->tga.color_map_depth,
-                                                         &(priv->bytes_per_pixel),
-                                                         &(priv->is_mono));
+                                                         &priv->bytes_per_pixel,
+                                                         &priv->is_mono);
         break;
       default:
         s->data.video.format.pixelformat = get_pixelformat(priv->tga.pixel_depth,
-                                                         &(priv->bytes_per_pixel),
-                                                         &(priv->is_mono));
+                                                         &priv->bytes_per_pixel,
+                                                         &priv->is_mono);
         break;
       }
     if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
@@ -181,7 +182,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       return 0;
       }
     if(priv->is_mono)
-      priv->frame = gavl_video_frame_create(&(s->data.video.format));
+      priv->frame = gavl_video_frame_create(&s->data.video.format);
     else
       priv->frame = gavl_video_frame_create(NULL);
     return 1;
@@ -205,11 +206,11 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
         break;
       }
     if(s->data.video.format.pixelformat == GAVL_RGBA_32)
-      tga_swap_red_blue(&(priv->tga));
+      tga_swap_red_blue(&priv->tga);
 
     if(priv->is_mono)
       {
-      gray_2_rgb(&(priv->tga), priv->frame);
+      gray_2_rgb(&priv->tga, priv->frame);
       }
     else
       {
@@ -223,22 +224,22 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       {
       if(priv->tga.image_descriptor & TGA_T_TO_B_BIT)
         {
-        gavl_video_frame_copy_flip_x(&(s->data.video.format), frame, priv->frame);
+        gavl_video_frame_copy_flip_x(&s->data.video.format, frame, priv->frame);
         }
       else
         {
-        gavl_video_frame_copy_flip_xy(&(s->data.video.format), frame, priv->frame);
+        gavl_video_frame_copy_flip_xy(&s->data.video.format, frame, priv->frame);
         }
       }
     else
       {
       if(priv->tga.image_descriptor & TGA_T_TO_B_BIT)
         {
-        gavl_video_frame_copy(&(s->data.video.format), frame, priv->frame);
+        gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
         }
       else
         {
-        gavl_video_frame_copy_flip_y(&(s->data.video.format), frame, priv->frame);
+        gavl_video_frame_copy_flip_y(&s->data.video.format, frame, priv->frame);
         }
       }
     frame->timestamp = priv->pts;

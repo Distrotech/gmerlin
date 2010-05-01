@@ -102,14 +102,14 @@ static int read_header(bgav_input_context_t * input,
   ret->frame_sizes = malloc(ret->Frames * sizeof(*ret->frame_sizes));
   for(i = 0; i < ret->Frames; i++)
     {
-    if(!bgav_input_read_32_le(input, &(ret->frame_sizes[i])))
+    if(!bgav_input_read_32_le(input, &ret->frame_sizes[i]))
       return 0;
     }
 
   ret->frame_flags = malloc(ret->Frames * sizeof(*ret->frame_flags));
   for(i = 0; i < ret->Frames; i++)
     {
-    if(!bgav_input_read_data(input, &(ret->frame_flags[i]), 1))
+    if(!bgav_input_read_data(input, &ret->frame_flags[i], 1))
       return 0;
     }
   return 1;
@@ -297,7 +297,7 @@ static int read_palette(bgav_demuxer_context_t * ctx)
       if(!bgav_input_read_data(ctx->input, &offs, 1))
         return 0;
 
-      memcpy(&(priv->pal[dst_index]), &(old_pal[offs*3]), ((tmp_8 & 0x3f) + 1) * 3);
+      memcpy(&priv->pal[dst_index], &old_pal[offs*3], ((tmp_8 & 0x3f) + 1) * 3);
       dst_index += ((tmp_8 & 0x3f) + 1) * 3;
       }
 

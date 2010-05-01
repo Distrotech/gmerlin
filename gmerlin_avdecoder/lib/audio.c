@@ -38,7 +38,7 @@ int bgav_num_audio_streams(bgav_t * bgav, int track)
 
 const gavl_audio_format_t * bgav_get_audio_format(bgav_t *  bgav, int stream)
   {
-  return &(bgav->tt->cur->audio_streams[stream].data.audio.format);
+  return &bgav->tt->cur->audio_streams[stream].data.audio.format;
   }
 
 int bgav_set_audio_stream(bgav_t * b, int stream, bgav_stream_action_t action)
@@ -236,7 +236,7 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
       s->data.audio.frame_samples = s->data.audio.frame->valid_samples;
       }
     samples_copied =
-      gavl_audio_frame_copy(&(s->data.audio.format),
+      gavl_audio_frame_copy(&s->data.audio.format,
                             frame,
                             s->data.audio.frame,
                             samples_decoded, /* out_pos */
@@ -264,7 +264,7 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
 int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
                     int stream, int num_samples)
   {
-  bgav_stream_t * s = &(b->tt->cur->audio_streams[stream]);
+  bgav_stream_t * s = &b->tt->cur->audio_streams[stream];
 
   if(b->eof)
     return 0;
@@ -277,7 +277,7 @@ void bgav_audio_dump(bgav_stream_t * s)
   bgav_dprintf("  Bits per sample:   %d\n", s->data.audio.bits_per_sample);
   bgav_dprintf("  Block align:       %d\n", s->data.audio.block_align);
   bgav_dprintf("Format:\n");
-  gavl_audio_format_dump(&(s->data.audio.format));
+  gavl_audio_format_dump(&s->data.audio.format);
   }
 
 
@@ -423,7 +423,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
   int need_header = 0;
   int need_bitrate = 1;
   gavl_codec_id_t id = GAVL_CODEC_ID_NONE;
-  bgav_stream_t * s = &(bgav->tt->cur->audio_streams[stream]);
+  bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
   
   memset(info, 0, sizeof(*info));
   
@@ -506,7 +506,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
 int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
   bgav_packet_t * bp;
-  bgav_stream_t * s = &(bgav->tt->cur->audio_streams[stream]);
+  bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
 
   bp = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!bp)

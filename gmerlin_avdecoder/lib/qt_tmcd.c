@@ -38,7 +38,7 @@ int bgav_qt_tmcd_read(qt_atom_header_t * h, bgav_input_context_t * input,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('t', 'c', 'm', 'i'):
-        if(!bgav_qt_tcmi_read(&ch, input, &(ret->tcmi)))
+        if(!bgav_qt_tcmi_read(&ch, input, &ret->tcmi))
           return 0;
         break;
       default:
@@ -52,12 +52,12 @@ int bgav_qt_tmcd_read(qt_atom_header_t * h, bgav_input_context_t * input,
 
 void bgav_qt_tmcd_free(qt_tmcd_t * g)
   {
-  bgav_qt_tcmi_free(&(g->tcmi));
+  bgav_qt_tcmi_free(&g->tcmi);
   }
 
 void bgav_qt_tmcd_dump(int indent, qt_tmcd_t * c)
   {
   bgav_diprintf(indent, "tmcd\n");
-  bgav_qt_tcmi_dump(indent+2, &(c->tcmi));
+  bgav_qt_tcmi_dump(indent+2, &c->tcmi);
   bgav_diprintf(indent, "end of tmcd\n");
   }

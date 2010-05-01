@@ -820,7 +820,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
 
   for(i = 0; i < h->num_streams; i++)
     {
-    mdpr = &(h->streams[i].mdpr);
+    mdpr = &h->streams[i].mdpr;
 
     if(mdpr->is_logical_stream)
       {
@@ -854,17 +854,17 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
         }
       if(header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd))
         {
-        init_audio_stream(ctx, &(h->streams[i]), pos);
+        init_audio_stream(ctx, &h->streams[i], pos);
         }
       else if(header == BGAV_MK_FOURCC('V', 'I', 'D', 'O'))
         {
-        init_video_stream(ctx, &(h->streams[i]), pos,
+        init_video_stream(ctx, &h->streams[i], pos,
                           mdpr->type_specific_len - (int)(pos - mdpr->type_specific_data));
         }
       }
     else if(!strcmp(mdpr->mime_type, "audio/X-MP3-draft-00"))
       {
-      init_audio_stream_mp3(ctx, &(h->streams[i]));
+      init_audio_stream_mp3(ctx, &h->streams[i]);
       }
     
     }
@@ -1007,7 +1007,7 @@ fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp, bgav_pack
       {
       // P/B frame, merge timestamps:
       int tmp=timestamp-priv->kf_base;
-      kf|=tmp&(~0x1fff);        // combine with packet timestamp
+      kf|=tmp & (~0x1fff);        // combine with packet timestamp
       if(kf<tmp-4096) kf+=8192; else // workaround wrap-around problems
       if(kf>tmp+4096) kf-=8192;
       kf+=priv->kf_base;
@@ -1481,7 +1481,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       /* Find the first stream with empty packetbuffer */
       for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
         {
-        stream = &(ctx->tt->cur->audio_streams[i]);
+        stream = &ctx->tt->cur->audio_streams[i];
         rs = (rm_stream_t*)(stream->priv);
         
         if((stream->action == BGAV_STREAM_MUTE) ||
@@ -1500,7 +1500,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
         {
         for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
           {
-          stream = &(ctx->tt->cur->video_streams[i]);
+          stream = &ctx->tt->cur->video_streams[i];
           rs = (rm_stream_t*)(stream->priv);
           
           if((stream->action == BGAV_STREAM_MUTE) ||
@@ -1614,9 +1614,9 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   
   for(i = 0; i < track->num_video_streams; i++)
     {
-    stream = &(track->video_streams[i]);
+    stream = &track->video_streams[i];
     vs = (rm_video_stream_t*)(stream->priv);
-    vs->com.index_record = seek_indx(&(vs->com.stream->indx), real_time,
+    vs->com.index_record = seek_indx(&vs->com.stream->indx, real_time,
                                  &position, &start_packet, &end_packet);
     STREAM_SET_SYNC(stream, vs->com.stream->indx.records[vs->com.index_record].timestamp);
     // vs->kf_pts = vs->com.stream->indx.records[vs->com.index_record].timestamp;
@@ -1625,9 +1625,9 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     }
   for(i = 0; i < track->num_audio_streams; i++)
     {
-    stream = &(track->audio_streams[i]);
+    stream = &track->audio_streams[i];
     rs = (rm_stream_t*)(stream->priv);
-    rs->index_record = seek_indx(&(rs->stream->indx), real_time,
+    rs->index_record = seek_indx(&rs->stream->indx, real_time,
                                  &position, &start_packet, &end_packet);
     STREAM_SET_SYNC(stream, rs->stream->indx.records[rs->index_record].timestamp);
     rs->data_pos = rs->stream->indx.records[rs->index_record].offset;

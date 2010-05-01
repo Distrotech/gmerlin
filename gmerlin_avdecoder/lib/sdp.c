@@ -212,7 +212,7 @@ static int parse_key_desc(const char * line, bgav_sdp_key_desc_t * ret)
   const char * pos;
   pos = strchr(line, ':');
   if(!pos)
-    pos = &(line[strlen(pos)]);
+    pos = &line[strlen(pos)];
 
   if(strncmp(line, "clear", (int)(pos - line)))
     {
@@ -284,7 +284,7 @@ static int parse_attr(const char * line,
   pos1 = line + 2;
   pos2 = strchr(pos1, ':');
   if(!pos2)
-    pos2 = &(pos1[strlen(pos1)]);
+    pos2 = &pos1[strlen(pos1)];
 
   ret->name = bgav_strndup(pos1, pos2);
 
@@ -389,7 +389,7 @@ static int parse_attributes(char ** lines, bgav_sdp_attr_t ** ret,
   for(i = 0; i < num_lines; i++)
     {
     parse_attr(lines[i],
-               &(attributes[num_attr + i]));
+               &attributes[num_attr + i]);
     }
   *ret = attributes;
   return num_lines;
@@ -550,17 +550,17 @@ static int parse_media(const bgav_options_t * opt,
         line_index++;
         break;
       case 'b': //  b=* (bandwidth information)
-        if(!parse_bandwidth_desc(lines[line_index] + 2, &(ret->bandwidth)))
+        if(!parse_bandwidth_desc(lines[line_index] + 2, &ret->bandwidth))
           goto fail;
         line_index++;
         break;
       case 'k': //  k=* (encryption key)
-        if(!parse_key_desc(lines[line_index] + 2, &(ret->key)))
+        if(!parse_key_desc(lines[line_index] + 2, &ret->key))
           goto fail;
         line_index++;
         break;
       case 'a': //  a=* (zero or more session attribute lines)
-        i_tmp = parse_attributes(&(lines[line_index]), &(ret->attributes),
+        i_tmp = parse_attributes(&lines[line_index], &ret->attributes,
                                  ret->num_attributes);
         line_index += i_tmp;
         ret->num_attributes += i_tmp;
@@ -597,9 +597,9 @@ static void dump_media(bgav_sdp_media_desc_t * m)
 
   print_string("  Title", m->media_title);                    /* i=* (media title) */
 
-  dump_connection_desc(&(m->connection));
-  dump_bandwidth_desc(&(m->bandwidth));
-  dump_key_desc(&(m->key));
+  dump_connection_desc(&m->connection);
+  dump_bandwidth_desc(&m->bandwidth);
+  dump_key_desc(&m->key);
   
   /* a= */
 
@@ -620,10 +620,10 @@ static void free_media(bgav_sdp_media_desc_t * m)
   /* Additional stuff */
 
   MY_FREE(m->media_title);               /* i=* (media title) */
-  free_connection_desc(&(m->connection));
-  free_bandwidth_desc(&(m->bandwidth));
-  free_key_desc(&(m->key));
-  free_attributes(&(m->attributes));
+  free_connection_desc(&m->connection);
+  free_bandwidth_desc(&m->bandwidth);
+  free_key_desc(&m->key);
+  free_attributes(&m->attributes);
   }
 
 /* Parse everything */
@@ -715,7 +715,7 @@ int bgav_sdp_parse(const bgav_options_t * opt,
         line_index++;
         break;
       case 'o': //  o=  (owner/creator and session identifier).
-        if(!parse_origin(lines[line_index] + 2, &(ret->origin)))
+        if(!parse_origin(lines[line_index] + 2, &ret->origin))
           goto fail;
         line_index++;
         break;
@@ -743,7 +743,7 @@ int bgav_sdp_parse(const bgav_options_t * opt,
         line_index++;
         break;
       case 'b': //  b=* (bandwidth information)
-        if(!parse_bandwidth_desc(lines[line_index] + 2, &(ret->bandwidth)))
+        if(!parse_bandwidth_desc(lines[line_index] + 2, &ret->bandwidth))
           goto fail;
         line_index++;
         break;
@@ -754,12 +754,12 @@ int bgav_sdp_parse(const bgav_options_t * opt,
         line_index++;
         break;
       case 'k': //  k=* (encryption key)
-        if(!parse_key_desc(lines[line_index] + 2, &(ret->key)))
+        if(!parse_key_desc(lines[line_index] + 2, &ret->key))
           goto fail;
         line_index++;
         break;
       case 'a': //  a=* (zero or more session attribute lines)
-        i_tmp = parse_attributes(&(lines[line_index]), &(ret->attributes),
+        i_tmp = parse_attributes(&lines[line_index], &ret->attributes,
                                  ret->num_attributes);
         line_index += i_tmp;
         ret->num_attributes = i_tmp;
@@ -767,7 +767,7 @@ int bgav_sdp_parse(const bgav_options_t * opt,
       case 'm': //  Zero or more media descriptions (see below)
         ret->num_media++;
         ret->media = realloc(ret->media, ret->num_media * sizeof(*(ret->media)));
-        line_index += parse_media(opt, &(lines[line_index]), &(ret->media[ret->num_media-1]));
+        line_index += parse_media(opt, &lines[line_index], &ret->media[ret->num_media-1]);
         break;
       default: //  Zero or more media descriptions (see below)
         bgav_log(opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
@@ -792,7 +792,7 @@ int bgav_sdp_parse(const bgav_options_t * opt,
 void bgav_sdp_free(bgav_sdp_t * s)
   {
   int i;
-  free_origin(&(s->origin));
+  free_origin(&s->origin);
 
   MY_FREE(s->session_name);                   /* s= */
   MY_FREE(s->session_description);            /* i= */
@@ -800,13 +800,13 @@ void bgav_sdp_free(bgav_sdp_t * s)
   MY_FREE(s->email);                          /* e= */
   MY_FREE(s->phone);                          /* p= */
 
-  free_connection_desc(&(s->connection));
-  free_bandwidth_desc(&(s->bandwidth));
-  free_key_desc(&(s->key));
-  free_attributes(&(s->attributes));
+  free_connection_desc(&s->connection);
+  free_bandwidth_desc(&s->bandwidth);
+  free_key_desc(&s->key);
+  free_attributes(&s->attributes);
 
   for(i = 0; i < s->num_media; i++)
-    free_media(&(s->media[i]));
+    free_media(&s->media[i]);
   MY_FREE(s->media);
   }
   
@@ -831,11 +831,11 @@ void bgav_sdp_dump(bgav_sdp_t * s)
   print_string("  phone", s->phone);                             /* p= */
   //  bgav_sdp_connection_desc_t connection; /* c= */
 
-  dump_bandwidth_desc(&(s->bandwidth));
+  dump_bandwidth_desc(&s->bandwidth);
 
   /* TODO: Time, repeat, zone */
   
-  dump_key_desc(&(s->key));
+  dump_key_desc(&s->key);
 
   dump_attributes(s->attributes);
   
@@ -845,7 +845,7 @@ void bgav_sdp_dump(bgav_sdp_t * s)
   
   for(i = 0; i < s->num_media; i++)
     {
-    dump_media(&(s->media[i]));
+    dump_media(&s->media[i]);
     }
   
   }

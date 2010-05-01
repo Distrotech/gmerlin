@@ -406,7 +406,7 @@ static int probe_vivo(bgav_input_context_t * input)
 
   for(i = 0; i < 32-13; i++)
     {
-    if(!strncmp((char*)(&(probe_data[i])), "Version:Vivo/", 13))
+    if(!strncmp((char*)(&probe_data[i]), "Version:Vivo/", 13))
       return 1;
     }
   return 0;
@@ -424,7 +424,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx)
   
   /* Read header */
 
-  if(!vivo_header_read(&(priv->header), ctx->input))
+  if(!vivo_header_read(&priv->header, ctx->input))
     goto fail;
 
   /* Create track */
@@ -643,7 +643,7 @@ static void close_vivo(bgav_demuxer_context_t * ctx)
   vivo_priv_t * priv;
   priv = (vivo_priv_t *)(ctx->priv);
   
-  vivo_header_free(&(priv->header));
+  vivo_header_free(&priv->header);
   free(priv);
   }
 

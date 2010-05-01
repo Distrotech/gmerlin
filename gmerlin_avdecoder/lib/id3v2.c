@@ -198,7 +198,7 @@ void bgav_id3v2_dump(bgav_id3v2_tag_t * t)
   for(i = 0; i < t->num_frames; i++)
     {
     bgav_dprintf( "========== Frame %d ==========\n", i+1);
-    dump_frame(&(t->frames[i]));
+    dump_frame(&t->frames[i]);
     }
   }
 
@@ -360,8 +360,8 @@ static int read_frame(bgav_input_context_t * input,
                               ((uint32_t)probe_data[1] << 16) |
                               ((uint32_t)probe_data[2] << 8) |
                               ((uint32_t)buf[0]));
-        if(!bgav_input_read_32_be(input, &(ret->header.size)) ||
-           !bgav_input_read_16_be(input, &(ret->header.flags)))
+        if(!bgav_input_read_32_be(input, &ret->header.size) ||
+           !bgav_input_read_16_be(input, &ret->header.flags))
            
           return 0;
         break;       
@@ -376,8 +376,8 @@ static int read_frame(bgav_input_context_t * input,
                           ((uint32_t)probe_data[2] << 8) |
                           ((uint32_t)buf[0]));
     
-    if(!read_32_syncsave(input, &(ret->header.size)) ||
-       !bgav_input_read_16_be(input, &(ret->header.flags)))
+    if(!read_32_syncsave(input, &ret->header.size) ||
+       !bgav_input_read_16_be(input, &ret->header.flags))
       return 0;
     }
   if(ret->header.size > input->total_bytes - input->position)
@@ -430,10 +430,10 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   ret->opt = input->opt;
   /* Read header */
   
-  if(!bgav_input_read_data(input, &(ret->header.major_version), 1) ||
-     !bgav_input_read_data(input, &(ret->header.minor_version), 1) ||
-     !bgav_input_read_data(input, &(ret->header.flags), 1) ||
-     !read_32_syncsave(input, &(ret->header.size)))
+  if(!bgav_input_read_data(input, &ret->header.major_version, 1) ||
+     !bgav_input_read_data(input, &ret->header.minor_version, 1) ||
+     !bgav_input_read_data(input, &ret->header.flags, 1) ||
+     !read_32_syncsave(input, &ret->header.size))
     goto fail;
 
   tag_start_pos = input->position;
@@ -444,7 +444,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
     {
     start_pos = input->position;
 
-    if(!read_32_syncsave(input, &(ret->extended_header.size)))
+    if(!read_32_syncsave(input, &ret->extended_header.size))
       goto fail;
     bgav_input_skip(input, ret->extended_header.size-4);
     }
@@ -485,11 +485,11 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
       }
     
     if(!read_frame(input_mem,
-                   &(ret->frames[ret->num_frames]),
+                   &ret->frames[ret->num_frames],
                    probe_data,
                    ret->header.major_version))
       {
-      free_frame(&(ret->frames[ret->num_frames]));
+      free_frame(&ret->frames[ret->num_frames]);
       break;
       }
     ret->num_frames++;
@@ -535,7 +535,7 @@ static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
       
       if(t->frames[i].header.fourcc == fourcc[j])
         {
-        return &(t->frames[i]);
+        return &t->frames[i];
         }
       j++;
       }
@@ -729,7 +729,7 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
     {
     if((frame->strings[0][0] == '(') && isdigit(frame->strings[0][1]))
       {
-      i_tmp = atoi(&(frame->strings[0][1]));
+      i_tmp = atoi(&frame->strings[0][1]);
       m->genre = bgav_strdup(bgav_id3v1_get_genre(i_tmp));
       }
     else
@@ -752,7 +752,7 @@ void bgav_id3v2_destroy(bgav_id3v2_tag_t * t)
   int i;
   for(i = 0; i < t->num_frames; i++)
     {
-    free_frame(&(t->frames[i]));
+    free_frame(&t->frames[i]);
     }
   free(t->frames);
   free(t);

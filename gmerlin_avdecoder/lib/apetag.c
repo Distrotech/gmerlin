@@ -55,11 +55,11 @@ int bgav_ape_tag_probe(bgav_input_context_t * input, int * tag_size)
 
   /* Now, compute the size */ 
 
-  ptr = &(probe_data[12]);
+  ptr = &probe_data[12];
   
   size = BGAV_PTR_2_32LE(ptr);
 
-  ptr = &(probe_data[20]);
+  ptr = &probe_data[20];
   
   flags = BGAV_PTR_2_32LE(ptr);
 

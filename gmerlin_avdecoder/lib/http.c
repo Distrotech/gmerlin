@@ -159,7 +159,7 @@ const char * bgav_http_header_get_var(bgav_http_header_t * h,
     if(!strncasecmp(h->lines[i].line, name, name_len) &&
        h->lines[i].line[name_len] == ':')
       {
-      ret = &(h->lines[i].line[name_len+1]);
+      ret = &h->lines[i].line[name_len+1];
       while(isspace(*ret))
         ret++;
       return ret;

@@ -467,7 +467,7 @@ int DMO_VideoDecoder_SetDestFmt(DMO_VideoDecoder *this, int bits, unsigned int c
         }
     }
     this->m_sDestType.lSampleSize = this->iv.m_obh.biSizeImage;
-    memcpy(&(this->m_sVhdr2->bmiHeader), &this->iv.m_obh, sizeof(this->iv.m_obh));
+    memcpy(&this->m_sVhdr2->bmiHeader, &this->iv.m_obh, sizeof(this->iv.m_obh));
     this->m_sVhdr2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     if (this->m_sVhdr2->bmiHeader.biCompression == 3)
         this->m_sDestType.cbFormat = sizeof(VIDEOINFOHEADER) + 12;
@@ -528,7 +528,7 @@ int DMO_VideoDecoder_SetDestFmt(DMO_VideoDecoder *this, int bits, unsigned int c
 	    printf("Warning: unsupported bit depth\n");
 
 	this->m_sDestType.lSampleSize = this->iv.m_decoder.biSizeImage;
-	memcpy(&(this->m_sVhdr2->bmiHeader), &this->iv.m_decoder, sizeof(this->iv.m_decoder));
+	memcpy(&this->m_sVhdr2->bmiHeader, &this->iv.m_decoder, sizeof(this->iv.m_decoder));
 	this->m_sVhdr2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	if (this->m_sVhdr2->bmiHeader.biCompression == 3)
     	    this->m_sDestType.cbFormat = sizeof(VIDEOINFOHEADER) + 12;

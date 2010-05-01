@@ -106,12 +106,12 @@ static int open_au(bgav_demuxer_context_t * ctx)
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
   
-  if(!bgav_input_read_fourcc(ctx->input, &(hdr.magic)) ||
-     !bgav_input_read_32_be(ctx->input, &(hdr.hdr_size)) ||
-     !bgav_input_read_32_be(ctx->input, &(hdr.data_size)) ||
-     !bgav_input_read_32_be(ctx->input, &(hdr.encoding)) ||
-     !bgav_input_read_32_be(ctx->input, &(hdr.sample_rate)) ||
-     !bgav_input_read_32_be(ctx->input, &(hdr.channels)))
+  if(!bgav_input_read_fourcc(ctx->input, &hdr.magic) ||
+     !bgav_input_read_32_be(ctx->input, &hdr.hdr_size) ||
+     !bgav_input_read_32_be(ctx->input, &hdr.data_size) ||
+     !bgav_input_read_32_be(ctx->input, &hdr.encoding) ||
+     !bgav_input_read_32_be(ctx->input, &hdr.sample_rate) ||
+     !bgav_input_read_32_be(ctx->input, &hdr.channels))
     return 0;
 
   /* Get codec */
@@ -217,7 +217,7 @@ static int next_packet_au(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   int bytes_read;
   au_priv_t * priv;
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
 
   priv = (au_priv_t*)(ctx->priv);
@@ -240,7 +240,7 @@ static void seek_au(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   bgav_stream_t * s;
   int64_t position;
   au_priv_t * priv;
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   priv = (au_priv_t*)(ctx->priv);
   
   position = time_2_pos(ctx, gavl_time_rescale(scale, s->timescale, time));

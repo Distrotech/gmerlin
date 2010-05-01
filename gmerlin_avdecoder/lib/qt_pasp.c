@@ -28,9 +28,9 @@
 int bgav_qt_pasp_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_pasp_t * ret)
   {
-  memcpy(&(ret->h), h, sizeof(*h));
-  if(!bgav_input_read_32_be(ctx, &(ret->hSpacing)) ||
-     !bgav_input_read_32_be(ctx, &(ret->vSpacing)))
+  memcpy(&ret->h, h, sizeof(*h));
+  if(!bgav_input_read_32_be(ctx, &ret->hSpacing) ||
+     !bgav_input_read_32_be(ctx, &ret->vSpacing))
     return 0;
   //  bgav_qt_pasp_dump(ret);
   return 1;

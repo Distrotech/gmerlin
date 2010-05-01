@@ -30,9 +30,9 @@
 int bgav_qt_fiel_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_fiel_t * ret)
   {
-  memcpy(&(ret->h), h, sizeof(*h));
-  if(!bgav_input_read_data(ctx, &(ret->fields), 1) ||
-     !bgav_input_read_data(ctx, &(ret->detail), 1))
+  memcpy(&ret->h, h, sizeof(*h));
+  if(!bgav_input_read_data(ctx, &ret->fields, 1) ||
+     !bgav_input_read_data(ctx, &ret->detail, 1))
     return 0;
   //  bgav_qt_fiel_dump(ret);
   return 1;

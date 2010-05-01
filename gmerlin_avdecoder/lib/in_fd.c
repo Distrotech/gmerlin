@@ -57,7 +57,7 @@ bgav_input_context_t * bgav_input_open_fd(int fd, int64_t total_bytes, const cha
   ret = calloc(1, sizeof(*ret));
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;
-  ret->input = &(bgav_input_fd);
+  ret->input = &bgav_input_fd;
 
   priv->fd     = fd;
   ret->total_bytes = total_bytes;

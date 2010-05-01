@@ -77,7 +77,7 @@ read_callback(const FLAC__StreamDecoder *decoder,
         (s->ext_size - (priv->header_ptr - s->ext_data));
       if(bytes_to_copy > *bytes - bytes_read)
         bytes_to_copy = *bytes - bytes_read;
-      memcpy(&(buffer[bytes_read]), priv->header_ptr, bytes_to_copy);
+      memcpy(&buffer[bytes_read], priv->header_ptr, bytes_to_copy);
       bytes_read += bytes_to_copy;
       priv->header_ptr += bytes_to_copy;
 
@@ -96,7 +96,7 @@ read_callback(const FLAC__StreamDecoder *decoder,
     if(bytes_to_copy > *bytes - bytes_read)
       bytes_to_copy = *bytes - bytes_read;
 
-    memcpy(&(buffer[bytes_read]), priv->data_ptr, bytes_to_copy);
+    memcpy(&buffer[bytes_read], priv->data_ptr, bytes_to_copy);
 
     bytes_read += bytes_to_copy;
     priv->data_ptr += bytes_to_copy;
@@ -253,7 +253,7 @@ static int init_flac(bgav_stream_t * s)
   
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   
-  gavl_set_channel_setup(&(s->data.audio.format));
+  gavl_set_channel_setup(&s->data.audio.format);
   s->data.audio.format.samples_per_frame = 1024;
 
   
@@ -278,8 +278,8 @@ static int init_flac(bgav_stream_t * s)
     priv->copy_samples = copy_samples_32;
     }
   
-  gavl_audio_format_copy(&(frame_format),
-                         &(s->data.audio.format));
+  gavl_audio_format_copy(&frame_format,
+                         &s->data.audio.format);
 
   frame_format.samples_per_frame = MAX_FRAME_SAMPLES;
   priv->frame = gavl_audio_frame_create(&frame_format);

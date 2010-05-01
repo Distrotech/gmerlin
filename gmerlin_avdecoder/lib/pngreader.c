@@ -250,8 +250,8 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
 void bgav_png_reader_reset(bgav_png_reader_t * png)
   {
   if(png->png_ptr || png->info_ptr || png->end_info)
-    png_destroy_read_struct(&(png->png_ptr), &(png->info_ptr),
-                            &(png->end_info));
+    png_destroy_read_struct(&png->png_ptr, &png->info_ptr,
+                            &png->end_info);
   
   png->png_ptr = NULL;
   png->info_ptr = NULL;

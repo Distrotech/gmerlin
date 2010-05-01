@@ -388,7 +388,7 @@ static int decode_picture(bgav_stream_t*s)
 #endif
       {
       memset(&new_format, 0, sizeof(new_format));
-      get_format(s, &(new_format), priv->info->sequence);
+      get_format(s, &new_format, priv->info->sequence);
       
       if((new_format.image_width != s->data.video.format.image_width) ||
          (new_format.image_height != s->data.video.format.image_height))
@@ -486,7 +486,7 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     priv->frame->planes[0] = priv->info->display_fbuf->buf[0] + priv->y_offset * priv->frame->strides[0];
     priv->frame->planes[1] = priv->info->display_fbuf->buf[1] + priv->y_offset/priv->sub_v * priv->frame->strides[1];
     priv->frame->planes[2] = priv->info->display_fbuf->buf[2] + priv->y_offset/priv->sub_v * priv->frame->strides[2];
-    gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
+    gavl_video_frame_copy(&s->data.video.format, f, priv->frame);
     if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
       {
       if(priv->info->display_picture->flags & PIC_FLAG_PROGRESSIVE_FRAME)

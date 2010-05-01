@@ -347,7 +347,7 @@ static int init_w32(bgav_stream_t * s)
   if(codec_index == -1)
     goto fail;
   
-  info = &(codec_infos[codec_index]);
+  info = &codec_infos[codec_index];
 
   priv = calloc(1, sizeof(*priv));
 
@@ -401,7 +401,7 @@ static int init_w32(bgav_stream_t * s)
       dump_wf(in_format);
       dump_wf(&out_format);
 #endif
-      result=acmStreamOpen(&(priv->acmstream),(HACMDRIVER)NULL,
+      result=acmStreamOpen(&priv->acmstream,(HACMDRIVER)NULL,
                            in_format,
                            &out_format,
                            NULL,0,0,0);
@@ -431,7 +431,7 @@ static int init_w32(bgav_stream_t * s)
       s->data.audio.format.samples_per_frame = SAMPLES_PER_FRAME;
       
       priv->ds_dec=DS_AudioDecoder_Open(info->dll_name,
-                                        &(info->guid),
+                                        &info->guid,
                                         in_format);
       if(!priv->ds_dec)
         {
@@ -462,9 +462,9 @@ static int init_w32(bgav_stream_t * s)
       break;
     }
 
-  gavl_set_channel_setup(&(s->data.audio.format));
+  gavl_set_channel_setup(&s->data.audio.format);
   
-  priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+  priv->frame = gavl_audio_frame_create(&s->data.audio.format);
 
   if(in_fmt_buffer)
     free(in_fmt_buffer);

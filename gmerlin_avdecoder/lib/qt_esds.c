@@ -53,7 +53,7 @@
 void bgav_qt_esds_dump(int indent, qt_esds_t * e)
   {
   bgav_diprintf(indent, "esds:\n");
-  bgav_qt_atom_dump_header(indent+2, &(e->h));
+  bgav_qt_atom_dump_header(indent+2, &e->h);
   bgav_diprintf(indent+2, "Version:          %d\n", e->version);
   bgav_diprintf(indent+2, "Flags:            0x%0x06x\n", e->flags);
   bgav_diprintf(indent+2, "objectTypeId:     %d\n", e->objectTypeId);
@@ -90,7 +90,7 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   int len;
   
   READ_VERSION_AND_FLAGS;
-  memcpy(&(ret->h), h, sizeof(*h));
+  memcpy(&ret->h, h, sizeof(*h));
   
   if(!bgav_input_read_8(input, &tag))
     return 0;
@@ -121,11 +121,11 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
     return 0;
     }
   
-  if(!bgav_input_read_8(input, &(ret->objectTypeId)) ||
-     !bgav_input_read_8(input, &(ret->streamType)) ||
-     !bgav_input_read_24_be(input, &(ret->bufferSizeDB)) ||
-     !bgav_input_read_32_be(input, &(ret->maxBitrate)) ||
-     !bgav_input_read_32_be(input, &(ret->avgBitrate)))
+  if(!bgav_input_read_8(input, &ret->objectTypeId) ||
+     !bgav_input_read_8(input, &ret->streamType) ||
+     !bgav_input_read_24_be(input, &ret->bufferSizeDB) ||
+     !bgav_input_read_32_be(input, &ret->maxBitrate) ||
+     !bgav_input_read_32_be(input, &ret->avgBitrate))
     return 0;
 
   if(len >= 15)

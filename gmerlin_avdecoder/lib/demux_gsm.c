@@ -88,7 +88,7 @@ static int next_packet_gsm(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   int bytes_read;
   
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, s->data.audio.block_align);
@@ -112,7 +112,7 @@ static void seek_gsm(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int64_t position;
   int64_t sample;
   
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   
   sample = gavl_time_rescale(scale, s->data.audio.format.samplerate, time); 
   sample /= GSM_FRAME_SIZE;

@@ -189,14 +189,14 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
 
     memcpy(buffer, ctx->buffer, bytes_to_copy);
     if(bytes_to_copy < ctx->buffer_size)
-      memmove(ctx->buffer, &(ctx->buffer[bytes_to_copy]),
+      memmove(ctx->buffer, &ctx->buffer[bytes_to_copy],
               ctx->buffer_size - bytes_to_copy);
     ctx->buffer_size -= bytes_to_copy; 
     }
   if(len > bytes_to_copy)
     {
     result =
-      ctx->input->read(ctx, &(buffer[bytes_to_copy]), len - bytes_to_copy);
+      ctx->input->read(ctx, &buffer[bytes_to_copy], len - bytes_to_copy);
     if(result < 0)
       result = 0;
     ret = bytes_to_copy + result;
@@ -225,7 +225,7 @@ void bgav_input_ensure_buffer_size(bgav_input_context_t * ctx, int len)
       ctx->buffer = realloc(ctx->buffer, ctx->buffer_alloc);
       }
     result =
-      ctx->input->read(ctx, &(ctx->buffer[ctx->buffer_size]),
+      ctx->input->read(ctx, &ctx->buffer[ctx->buffer_size],
                       len - ctx->buffer_size);
     if(result < 0)
       result = 0;
@@ -863,7 +863,7 @@ void bgav_input_close(bgav_input_context_t * ctx)
   if(ctx->tt)
     bgav_track_table_unref(ctx->tt);
     
-  bgav_metadata_free(&(ctx->metadata));
+  bgav_metadata_free(&ctx->metadata);
   //  free(ctx);
   
   opt = ctx->opt;
@@ -893,8 +893,8 @@ void bgav_input_skip(bgav_input_context_t * ctx, int64_t bytes)
       {
       ctx->buffer_size -= bytes;
       if(ctx->buffer_size)
-        memmove(ctx->buffer, &(ctx->buffer[bytes]),
-                                   ctx->buffer_size);
+        memmove(ctx->buffer, &ctx->buffer[bytes],
+                ctx->buffer_size);
       ctx->position += bytes;
       if(ctx->do_buffer)
         {

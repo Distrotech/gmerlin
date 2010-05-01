@@ -65,7 +65,7 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
   for(j = 0; j < track->num_video_streams; j++)
     {
     seek_time = time;
-    bgav_superindex_seek(ctx->si, &(track->video_streams[j]), &seek_time, scale);
+    bgav_superindex_seek(ctx->si, &track->video_streams[j], &seek_time, scale);
     /* Synchronize time to the video stream */
     if(!j)
       {
@@ -75,13 +75,14 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
   for(j = 0; j < track->num_audio_streams; j++)
     {
     seek_time = time;
-    bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), &seek_time, scale);
+    bgav_superindex_seek(ctx->si, &track->audio_streams[j], &seek_time, scale);
     }
   for(j = 0; j < track->num_subtitle_streams; j++)
     {
     seek_time = time;
     if(!track->subtitle_streams[j].data.subtitle.subreader)
-      bgav_superindex_seek(ctx->si, &(track->subtitle_streams[j]), &seek_time, scale);
+      bgav_superindex_seek(ctx->si, &track->subtitle_streams[j],
+                           &seek_time, scale);
     }
   
   /* Find the start and end packet */

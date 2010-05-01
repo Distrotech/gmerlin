@@ -101,7 +101,7 @@ static const stream_type_t * get_stream_type(int ts_type)
   for(i = 0; i < sizeof(stream_types)/sizeof(stream_types[0]); i++)
     {
     if(stream_types[i].ts_type == ts_type)
-      return &(stream_types[i]);
+      return &stream_types[i];
     }
   return (stream_type_t*)0;
   }

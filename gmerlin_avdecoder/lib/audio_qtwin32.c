@@ -311,7 +311,7 @@ static int init_qtaudio(bgav_stream_t * s)
   priv->out_buffer = malloc(1024*1024);
   priv->frame->samples.s_16 = priv->out_buffer;
 
-  gavl_set_channel_setup(&(s->data.audio.format));
+  gavl_set_channel_setup(&s->data.audio.format);
   //  Restore_LDT_Keeper(priv->ldt_fs);
   bgav_windll_unlock();
 

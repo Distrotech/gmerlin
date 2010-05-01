@@ -415,13 +415,13 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   index = 0;
   
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-    streams[index++] = &(ctx->tt->cur->audio_streams[i]);
+    streams[index++] = &ctx->tt->cur->audio_streams[i];
 
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    streams[index++] = &(ctx->tt->cur->video_streams[i]);
+    streams[index++] = &ctx->tt->cur->video_streams[i];
   
   for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
-    streams[index++] = &(ctx->tt->cur->subtitle_streams[i]);
+    streams[index++] = &ctx->tt->cur->subtitle_streams[i];
   
   /* If sample accurate decoding was requested, use non-interleaved mode */
   if((ctx->opt->sample_accurate == 1) || (ctx->flags & BGAV_DEMUXER_BUILD_INDEX))

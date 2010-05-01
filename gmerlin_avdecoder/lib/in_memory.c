@@ -79,7 +79,7 @@ bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
   ret = bgav_input_create(opt);
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;
-  ret->input = &(input_mem);
+  ret->input = &input_mem;
 
   priv->data     = data;
   priv->data_ptr = data;
@@ -141,7 +141,7 @@ bgav_input_context_t * bgav_input_open_as_buffer(bgav_input_context_t * input)
   ret = bgav_input_create(input->opt);
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;
-  ret->input = &(input_buffer);
+  ret->input = &input_buffer;
 
   priv->input    = input;
   priv->data     = input->buffer;

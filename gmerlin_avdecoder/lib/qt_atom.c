@@ -51,12 +51,12 @@ int bgav_qt_atom_read_header(bgav_input_context_t * input,
 
   h->size = tmp_32;
 
-  if(!bgav_input_read_fourcc(input, &(h->fourcc)))
+  if(!bgav_input_read_fourcc(input, &h->fourcc))
     return 0;
   
   if(tmp_32 == 1) /* 64 bit atom */
     {
-    if(!bgav_input_read_64_be(input, &(h->size)))
+    if(!bgav_input_read_64_be(input, &h->size))
       return 0;
     }
   return 1;

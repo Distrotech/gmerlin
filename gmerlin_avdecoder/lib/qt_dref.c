@@ -62,7 +62,7 @@ static int read_dref_table(bgav_input_context_t * input,
     return 0;
 
   if(!bgav_input_read_8(input, &version) || 
-     !bgav_input_read_24_be(input, &(ret->flags)))
+     !bgav_input_read_24_be(input, &ret->flags))
     return 0;
   ret->version = version;
   
@@ -90,7 +90,7 @@ int bgav_qt_dref_read(qt_atom_header_t * h, bgav_input_context_t * input,
     
   for(i = 0; i < ret->table_size; i++)
     {
-    if(!read_dref_table(input, &(ret->table[i])))
+    if(!read_dref_table(input, &ret->table[i]))
       return 0;
     }
   return 1;

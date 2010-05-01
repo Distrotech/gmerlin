@@ -164,7 +164,7 @@ static int next_packet_tta(bgav_demuxer_context_t * ctx)
   if(priv->current_frame >= priv->total_frames)
     return 0; // EOF
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, priv->seek_table[priv->current_frame]);
@@ -188,7 +188,7 @@ static void seek_tta(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   tta_priv_t * priv;
   priv = (tta_priv_t *)(ctx->priv);
   
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   time_scaled = gavl_time_rescale(scale, s->timescale, time);
 
   priv->current_frame = time_scaled / priv->samples_per_frame;

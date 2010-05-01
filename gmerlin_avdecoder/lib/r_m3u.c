@@ -95,7 +95,7 @@ static char * strip_spaces(char * buffer)
   ret = buffer;
   while(isspace(*ret))
     ret++;
-  end = &(ret[strlen(ret)-1]);
+  end = &ret[strlen(ret)-1];
   while(isspace(*end) && (end > ret))
     end--;
   end++;

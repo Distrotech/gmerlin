@@ -406,7 +406,7 @@ INT WINAPI LoadMessageA( HMODULE instance, UINT id, WORD lang,
     
     mrd = (PMESSAGE_RESOURCE_DATA)LockResource(hmem);
     mre = NULL;
-    mrb = &(mrd->Blocks[0]);
+    mrb = &mrd->Blocks[0];
     for (i=mrd->NumberOfBlocks;i--;) {
     	if ((id>=mrb->LowId) && (id<=mrb->HighId)) {
 	    mre = (PMESSAGE_RESOURCE_ENTRY)(((char*)mrd)+mrb->OffsetToEntries);

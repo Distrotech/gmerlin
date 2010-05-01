@@ -54,13 +54,13 @@ typedef struct
 static int read_chunk_header(bgav_input_context_t * input,
                              chunk_header_t * ret)
   {
-  if(!bgav_input_read_data(input, &(ret->type), 1))
+  if(!bgav_input_read_data(input, &ret->type, 1))
     return 0;
 
   if(ret->type == VOC_TYPE_EOF)
     return 0; /* EOF */
 
-  if(!bgav_input_read_24_le(input, &(ret->len)))
+  if(!bgav_input_read_24_le(input, &ret->len))
     return 0;
 
   return 1;
@@ -250,7 +250,7 @@ static int next_packet_voc(bgav_demuxer_context_t * ctx)
 
   priv = (voc_priv_t*)(ctx->priv);
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   
   while(!priv->remaining_bytes)
     {

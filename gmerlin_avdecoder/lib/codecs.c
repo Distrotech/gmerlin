@@ -160,15 +160,15 @@ static void codecs_lock()
   {
   if(!mutex_initialized)
     {
-    pthread_mutex_init(&(codec_mutex),(pthread_mutexattr_t *)0);
+    pthread_mutex_init(&codec_mutex,(pthread_mutexattr_t *)0);
     mutex_initialized = 1;
     }
-  pthread_mutex_lock(&(codec_mutex));
+  pthread_mutex_lock(&codec_mutex);
   }
 
 static void codecs_unlock()
   {
-  pthread_mutex_unlock(&(codec_mutex));
+  pthread_mutex_unlock(&codec_mutex);
   }
 
 

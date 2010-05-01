@@ -75,7 +75,7 @@ static void MODULE_RemoveFromList(WINE_MODREF *mod)
 	return;
     if(mod==0)
 	return;
-    if((list->prev==NULL)&&(list->next==NULL))
+    if((list->prev==NULL) && (list->next==NULL))
     {
 	free(list);
 	local_wm=NULL;
@@ -851,7 +851,8 @@ static int report_func(void *stack_base, int stack_size, reg386_t *reg, u_int32_
       printf("FUNC: GetGWorldPixMap(gworld=%p)\n",((u_int32_t *)stack_base)[1]);
       break;
   case 0x00110001:
-      printf("FUNC: Gestalt(fourcc=%.4s, &ret=%p)\n",&(((u_int32_t *)stack_base)[1]),((u_int32_t *)stack_base)[2]);
+      printf("FUNC: Gestalt(fourcc=%.4s, &ret=%p)\n",
+             &(((u_int32_t *)stack_base)[1]),((u_int32_t *)stack_base)[2]);
       break;
   default: {
       int i;

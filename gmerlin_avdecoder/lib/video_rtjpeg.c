@@ -50,7 +50,7 @@ static int init_rtjpeg(bgav_stream_t * s)
   s->data.video.format.frame_height = PADD(s->data.video.format.image_height);
   s->data.video.format.pixelformat = GAVL_YUV_420_P;
   
-  priv->frame = gavl_video_frame_create(&(s->data.video.format));
+  priv->frame = gavl_video_frame_create(&s->data.video.format);
 
   s->description = bgav_sprintf("RTjpeg");
   
@@ -77,7 +77,7 @@ static int decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
     }
 
   RTjpeg_decompress(priv->rtjpeg, p->data, priv->frame->planes);  
-  gavl_video_frame_copy(&(s->data.video.format),
+  gavl_video_frame_copy(&s->data.video.format,
                         f, priv->frame);
 
   f->timestamp = p->pts;

@@ -53,17 +53,17 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('e', 's', 'd', 's'):
-        if(!bgav_qt_esds_read(&ch, input_mem, &(ret->esds)))
+        if(!bgav_qt_esds_read(&ch, input_mem, &ret->esds))
           return 0;
         ret->has_esds = 1;
         break;
       case BGAV_MK_FOURCC('f', 'r', 'm', 'a'):
-        if(!bgav_qt_frma_read(&ch, input_mem, &(ret->frma)))
+        if(!bgav_qt_frma_read(&ch, input_mem, &ret->frma))
           return 0;
         ret->has_frma = 1;
         break;
       case BGAV_MK_FOURCC('e', 'n', 'd', 'a'):
-        if(!bgav_qt_enda_read(&ch, input_mem, &(ret->enda)))
+        if(!bgav_qt_enda_read(&ch, input_mem, &ret->enda))
           return 0;
         ret->has_enda = 1;
         break;

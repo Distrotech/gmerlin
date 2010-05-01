@@ -248,7 +248,7 @@ static int init_tiff(bgav_stream_t * s)
   
   /* We support RGBA for streams with a depth of 32 */
 
-  if(!read_header_tiff(s, &(s->data.video.format)))
+  if(!read_header_tiff(s, &s->data.video.format))
     return 0;
     
   if(s->data.video.depth == 32)

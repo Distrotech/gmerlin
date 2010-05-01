@@ -264,7 +264,7 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
 
   for(i = 0; i < ctx->tt->num_tracks; i++)
     {
-    track = &(ctx->tt->tracks[i]);
+    track = &ctx->tt->tracks[i];
     track_priv = (track_priv_t*)(track->priv);
     bgav_dprintf( "Track %d, start_pos: %" PRId64 ", end_pos: %" PRId64 "\n",
             i+1, track_priv->start_pos, track_priv->end_pos);
@@ -352,8 +352,8 @@ static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
 static void seek_byte(bgav_demuxer_context_t * ctx, int64_t pos)
   {
   ogg_t * priv = (ogg_t*)(ctx->priv);
-  ogg_sync_reset(&(priv->oy));
-  //  ogg_page_clear(&(priv->os));
+  ogg_sync_reset(&priv->oy);
+  //  ogg_page_clear(&priv->os);
   bgav_input_seek(ctx->input, pos, SEEK_SET);
   priv->page_valid = 0;
   }
@@ -376,11 +376,11 @@ static int get_data(bgav_demuxer_context_t * ctx)
     if(bytes_to_read <= 0)
       return 0;
     }
-  buf = ogg_sync_buffer(&(priv->oy), bytes_to_read);
+  buf = ogg_sync_buffer(&priv->oy, bytes_to_read);
   result = bgav_input_read_data(ctx->input, (uint8_t*)buf, bytes_to_read);
 
   
-  ogg_sync_wrote(&(priv->oy), result);
+  ogg_sync_wrote(&priv->oy, result);
   return result;
   }
 
@@ -415,15 +415,15 @@ static int get_page(bgav_demuxer_context_t * ctx)
   for(i = 0; i < nsegs; i++)
     page_size += header[PAGE_HEADER_BYTES+i];
 
-  buf = ogg_sync_buffer(&(priv->oy), page_size);
+  buf = ogg_sync_buffer(&priv->oy, page_size);
 
   priv->current_page_pos = ctx->input->position;
 
   result = bgav_input_read_data(ctx->input, (uint8_t*)buf, page_size);
   
-  ogg_sync_wrote(&(priv->oy), result);
+  ogg_sync_wrote(&priv->oy, result);
   
-  if(ogg_sync_pageout(&(priv->oy), &(priv->current_page)) != 1)
+  if(ogg_sync_pageout(&priv->oy, &priv->current_page) != 1)
     {
     return 0;
     }
@@ -533,18 +533,18 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "EOF while setting up track");
       return 0;
       }
-    if(!ogg_page_bos(&(priv->current_page)))
+    if(!ogg_page_bos(&priv->current_page))
       {
       priv->page_valid = 1;
       break;
       }
     /* Setup stream */
-    serialno = ogg_page_serialno(&(priv->current_page));
+    serialno = ogg_page_serialno(&priv->current_page);
     ogg_stream = calloc(1, sizeof(*ogg_stream));
     ogg_stream->last_granulepos = -1;
 
     ogg_stream_init(&ogg_stream->os, serialno);
-    ogg_stream_pagein(&ogg_stream->os, &(priv->current_page));
+    ogg_stream_pagein(&ogg_stream->os, &priv->current_page);
     priv->page_valid = 0;
     header_bytes +=
       priv->current_page.header_len + priv->current_page.body_len;
@@ -843,12 +843,12 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
   done = 0;
   while(!done)
     {
-    s = bgav_track_find_stream_all(track, ogg_page_serialno(&(priv->current_page)));
+    s = bgav_track_find_stream_all(track, ogg_page_serialno(&priv->current_page));
 
     if(s)
       {
       ogg_stream = (stream_priv_t*)(s->priv);
-      ogg_stream_pagein(&(ogg_stream->os), &(priv->current_page));
+      ogg_stream_pagein(&ogg_stream->os, &priv->current_page);
       priv->page_valid = 0;
       header_bytes +=
         priv->current_page.header_len + priv->current_page.body_len;
@@ -1028,9 +1028,9 @@ find_first_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_t pos2,
         return -1;
       
       if(serialno)
-        *serialno = ogg_page_serialno(&(priv->current_page));
+        *serialno = ogg_page_serialno(&priv->current_page);
       if(granulepos)
-        *granulepos = ogg_page_granulepos(&(priv->current_page));
+        *granulepos = ogg_page_granulepos(&priv->current_page);
       return ret;
       }
     else if(result < 0) /* Skipped -result bytes */
@@ -1342,7 +1342,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
   
-  ogg_sync_init(&(priv->oy));
+  ogg_sync_init(&priv->oy);
 
   ctx->tt = bgav_track_table_create(1);
   
@@ -1382,7 +1382,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
     result = ctx->data_start;
     while(1)
       {
-      last_track = &(ctx->tt->tracks[ctx->tt->num_tracks-1]);
+      last_track = &ctx->tt->tracks[ctx->tt->num_tracks-1];
 
       if(track_has_serialno(last_track, priv->last_page_serialno, &s))
         {
@@ -1419,7 +1419,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
        yet */
 
     for(i = 0; i < ctx->tt->num_tracks; i++)
-      get_last_granulepos(ctx, &(ctx->tt->tracks[i]));
+      get_last_granulepos(ctx, &ctx->tt->tracks[i]);
 
     /* Get the duration and reset all streams */
 
@@ -1531,10 +1531,10 @@ static int new_streaming_track(bgav_demuxer_context_t * ctx)
   /* Get the identification headers of the streams */
   while(ogg_page_bos(&priv->current_page))
     {
-    serialno = ogg_page_serialno(&(priv->current_page));
+    serialno = ogg_page_serialno(&priv->current_page);
     
     ogg_stream_init(&os, serialno);
-    ogg_stream_pagein(&os, &(priv->current_page));
+    ogg_stream_pagein(&os, &priv->current_page);
     priv->page_valid = 0;
 
 
@@ -1592,7 +1592,7 @@ static void metadata_changed(bgav_demuxer_context_t * ctx)
   if(ctx->opt->metadata_change_callback || ctx->opt->name_change_callback)
     {
     get_metadata(ctx->tt->cur);
-    bgav_metadata_merge2(&ctx->tt->cur->metadata, &(ctx->input->metadata));
+    bgav_metadata_merge2(&ctx->tt->cur->metadata, &ctx->input->metadata);
     }
   
   if(ctx->opt->metadata_change_callback)
@@ -1739,22 +1739,22 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
     ret = 1;
     
-    serialno   = ogg_page_serialno(&(priv->current_page));
-    granulepos = ogg_page_granulepos(&(priv->current_page));
+    serialno   = ogg_page_serialno(&priv->current_page);
+    granulepos = ogg_page_granulepos(&priv->current_page);
     
-    if(ogg_page_bos(&(priv->current_page)))
+    if(ogg_page_bos(&priv->current_page))
       {
       if(!ctx->input->input->seek_byte && priv->nonbos_seen)
         {
         if(!new_streaming_track(ctx))
           return 0;
         else
-          serialno = ogg_page_serialno(&(priv->current_page));
+          serialno = ogg_page_serialno(&priv->current_page);
         }
       }
     else
       {
-      serialno = ogg_page_serialno(&(priv->current_page));
+      serialno = ogg_page_serialno(&priv->current_page);
       priv->nonbos_seen = 1;
       }
   
@@ -1774,7 +1774,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     
     page_continued = ogg_page_continued(&priv->current_page);
   
-    ogg_stream_pagein(&stream_priv->os, &(priv->current_page));
+    ogg_stream_pagein(&stream_priv->os, &priv->current_page);
     priv->page_valid = 0;
     
     // http://xiph.org/ogg/doc/framing.html

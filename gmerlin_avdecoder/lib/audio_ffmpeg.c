@@ -185,13 +185,13 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
     s->data.audio.format.num_channels = priv->ctx->channels;
     s->data.audio.format.samplerate   = priv->ctx->sample_rate;
 
-    gavl_set_channel_setup(&(s->data.audio.format));
+    gavl_set_channel_setup(&s->data.audio.format);
 
     s->data.audio.format.samples_per_frame =
       priv->frame_alloc / (gavl_bytes_per_sample(s->data.audio.format.sample_format) *
                            s->data.audio.format.num_channels);
     
-    priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    priv->frame = gavl_audio_frame_create(&s->data.audio.format);
     s->data.audio.format.samples_per_frame = 1024;
 
     memcpy(priv->frame->samples.s_16, tmp_buf, frame_size);
@@ -321,9 +321,9 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   /* Format already known */
   if(s->data.audio.format.num_channels && s->data.audio.format.samplerate)
     {
-    gavl_set_channel_setup(&(s->data.audio.format));
+    gavl_set_channel_setup(&s->data.audio.format);
     s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
-    priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    priv->frame = gavl_audio_frame_create(&s->data.audio.format);
     priv->frame_alloc =
       priv->sample_size *
       s->data.audio.format.num_channels *
@@ -729,7 +729,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
   
   for(i = 0; i < real_num_codecs; i++)
     {
-    if(s->data.audio.decoder->decoder == &(codecs[i].decoder))
+    if(s->data.audio.decoder->decoder == &codecs[i].decoder)
       return codecs[i].info;
     }
   return (codec_info_t*)0;
@@ -747,7 +747,7 @@ bgav_init_audio_decoders_ffmpeg(bgav_options_t * opt)
     {
     if(avcodec_find_decoder(codec_infos[i].ffmpeg_id))
       {
-      codecs[real_num_codecs].info = &(codec_infos[i]);
+      codecs[real_num_codecs].info = &codec_infos[i];
       codecs[real_num_codecs].decoder.name =
         codecs[real_num_codecs].info->decoder_name;
       codecs[real_num_codecs].decoder.fourccs =

@@ -147,11 +147,11 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   /* Get Metadata */
 
   set_metadata_string(header,
-                      title_vars, &(ctx->metadata.title));
+                      title_vars, &ctx->metadata.title);
   set_metadata_string(header,
-                      genre_vars, &(ctx->metadata.genre));
+                      genre_vars, &ctx->metadata.genre);
   set_metadata_string(header,
-                      comment_vars, &(ctx->metadata.comment));
+                      comment_vars, &ctx->metadata.comment);
 
   /* If we have chunked encoding, skip the chunk size and assume, that
      the whole data is in one chunk */
@@ -199,7 +199,7 @@ static int read_chunk(bgav_input_context_t* ctx)
 
   /* Read Chunk size */
   
-  if(!bgav_read_line_fd(fd, &(p->chunk_buffer), &(p->chunk_buffer_alloc),
+  if(!bgav_read_line_fd(fd, &p->chunk_buffer, &p->chunk_buffer_alloc,
                         ctx->opt->read_timeout))
     return 0;
 

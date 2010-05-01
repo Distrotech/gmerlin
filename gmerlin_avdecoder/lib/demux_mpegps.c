@@ -245,7 +245,7 @@ static int system_header_read(bgav_input_context_t * input,
                               system_header_t * ret)
   {
   bgav_input_skip(input, 4); /* Skip start code */  
-  if(!bgav_input_read_16_be(input, &(ret->size)))
+  if(!bgav_input_read_16_be(input, &ret->size))
     return 0;
   bgav_input_skip(input, ret->size);
   return 1;
@@ -427,11 +427,11 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
   
   /* Read first scr */
   
-  if(!pack_header_read(priv->input_mem, &(priv->pack_header)))
+  if(!pack_header_read(priv->input_mem, &priv->pack_header))
     {
     return;
     }
-  //  pack_header_dump(&(priv->pack_header));
+  //  pack_header_dump(&priv->pack_header);
 
   if(priv->goto_sector)
     {
@@ -462,11 +462,11 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
       priv->total_sectors--;
       }
     
-    if(!pack_header_read(priv->input_mem, &(priv->pack_header)))
+    if(!pack_header_read(priv->input_mem, &priv->pack_header))
       {
       return;
       }
-    //  pack_header_dump(&(priv->pack_header));
+    //  pack_header_dump(&priv->pack_header);
     scr_end = priv->pack_header.scr;
     
     
@@ -524,11 +524,11 @@ static int next_packet(bgav_demuxer_context_t * ctx,
       }
     else if(start_code == PACK_HEADER)
       {
-      if(!pack_header_read(input, &(priv->pack_header)))
+      if(!pack_header_read(input, &priv->pack_header))
         {
         return 0;
         }
-      //      pack_header_dump(&(priv->pack_header));
+      //      pack_header_dump(&priv->pack_header);
       }
 
     else /* PES Packet */
@@ -539,12 +539,12 @@ static int next_packet(bgav_demuxer_context_t * ctx,
          (priv->position >= ctx->next_packet_pos))
         return 1;
       
-      if(!bgav_pes_header_read(input, &(priv->pes_header)))
+      if(!bgav_pes_header_read(input, &priv->pes_header))
         {
         return 0;
         }
 #ifdef DUMP_PES_HEADER
-      bgav_pes_header_dump(&(priv->pes_header));
+      bgav_pes_header_dump(&priv->pes_header);
 #endif
 
       if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
@@ -1016,7 +1016,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
       }
     
     
-    if(!pack_header_read(ctx->input, &(priv->pack_header)))
+    if(!pack_header_read(ctx->input, &priv->pack_header))
       {
       return;
       }
@@ -1147,7 +1147,7 @@ static int init_mpegps(bgav_demuxer_context_t * ctx)
     priv->data_size = ctx->input->total_bytes - ctx->data_start;
 
 
-  if(!pack_header_read(ctx->input, &(priv->pack_header)))
+  if(!pack_header_read(ctx->input, &priv->pack_header))
     return 0;
   
   //  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
@@ -1187,7 +1187,7 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
   else if(!init_mpegps(ctx))
     return 0;
   
-  //  if(!pack_header_read(ctx->input, &(priv->pack_header)))
+  //  if(!pack_header_read(ctx->input, &priv->pack_header))
   //    return 0;
   
   if(!ctx->tt)

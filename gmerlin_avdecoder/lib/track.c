@@ -34,12 +34,12 @@ bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt)
   t->num_audio_streams++;
   t->audio_streams = realloc(t->audio_streams, t->num_audio_streams * 
                              sizeof(*(t->audio_streams)));
-  bgav_stream_init(&(t->audio_streams[t->num_audio_streams-1]), opt);
-  bgav_stream_create_packet_buffer(&(t->audio_streams[t->num_audio_streams-1]));
+  bgav_stream_init(&t->audio_streams[t->num_audio_streams-1], opt);
+  bgav_stream_create_packet_buffer(&t->audio_streams[t->num_audio_streams-1]);
   t->audio_streams[t->num_audio_streams-1].data.audio.bits_per_sample = 16;
   t->audio_streams[t->num_audio_streams-1].type = BGAV_STREAM_AUDIO;
   t->audio_streams[t->num_audio_streams-1].track = t;
-  return &(t->audio_streams[t->num_audio_streams-1]);
+  return &t->audio_streams[t->num_audio_streams-1];
   }
 
 bgav_stream_t *
@@ -48,12 +48,12 @@ bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
   t->num_video_streams++;
   t->video_streams = realloc(t->video_streams, t->num_video_streams * 
                              sizeof(*(t->video_streams)));
-  bgav_stream_init(&(t->video_streams[t->num_video_streams-1]), opt);
-  bgav_stream_create_packet_buffer(&(t->video_streams[t->num_video_streams-1]));
+  bgav_stream_init(&t->video_streams[t->num_video_streams-1], opt);
+  bgav_stream_create_packet_buffer(&t->video_streams[t->num_video_streams-1]);
   t->video_streams[t->num_video_streams-1].type = BGAV_STREAM_VIDEO;
   t->video_streams[t->num_video_streams-1].opt = opt;
   t->video_streams[t->num_video_streams-1].track = t;
-  return &(t->video_streams[t->num_video_streams-1]);
+  return &t->video_streams[t->num_video_streams-1];
   }
 
 static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
@@ -126,18 +126,18 @@ bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
   for(i = 0; i < t->num_audio_streams; i++)
     {
     if(t->audio_streams[i].stream_id == stream_id)
-      return &(t->audio_streams[i]);
+      return &t->audio_streams[i];
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     if(t->video_streams[i].stream_id == stream_id)
-      return &(t->video_streams[i]);
+      return &t->video_streams[i];
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
     {
     if((t->subtitle_streams[i].stream_id == stream_id) &&
        (!t->subtitle_streams[i].data.subtitle.subreader))
-      return &(t->subtitle_streams[i]);
+      return &t->subtitle_streams[i];
     }
   return (bgav_stream_t *)0;
   }
@@ -160,7 +160,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_
     if(t->audio_streams[i].stream_id == stream_id)
       {
       if(t->audio_streams[i].action != BGAV_STREAM_MUTE)
-        return &(t->audio_streams[i]);
+        return &t->audio_streams[i];
       else
         return (bgav_stream_t *)0;
       }
@@ -170,7 +170,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_
     if(t->video_streams[i].stream_id == stream_id)
       {
       if(t->video_streams[i].action != BGAV_STREAM_MUTE)
-        return &(t->video_streams[i]);
+        return &t->video_streams[i];
       else
         return (bgav_stream_t *)0;
       }
@@ -181,7 +181,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_
        (!t->subtitle_streams[i].data.subtitle.subreader))
       {
       if(t->subtitle_streams[i].action != BGAV_STREAM_MUTE)
-        return &(t->subtitle_streams[i]);
+        return &t->subtitle_streams[i];
       else
         return (bgav_stream_t *)0;
       }
@@ -197,15 +197,15 @@ void bgav_track_stop(bgav_track_t * t)
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    bgav_stream_stop(&(t->audio_streams[i]));
+    bgav_stream_stop(&t->audio_streams[i]);
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
-    bgav_stream_stop(&(t->video_streams[i]));
+    bgav_stream_stop(&t->video_streams[i]);
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
     {
-    bgav_stream_stop(&(t->subtitle_streams[i]));
+    bgav_stream_stop(&t->subtitle_streams[i]);
     }
   }
 
@@ -223,7 +223,7 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     if(t->audio_streams[i].action == BGAV_STREAM_MUTE)
       continue;
     num_active_audio_streams++;
-    if(!bgav_stream_start(&(t->audio_streams[i])))
+    if(!bgav_stream_start(&t->audio_streams[i]))
       {
       bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Starting audio decoder for stream %d failed", i+1);
@@ -235,7 +235,7 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     if(t->video_streams[i].action == BGAV_STREAM_MUTE)
       continue;
     num_active_video_streams++;
-    if(!bgav_stream_start(&(t->video_streams[i])))
+    if(!bgav_stream_start(&t->video_streams[i]))
       {
       bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Starting video decoder for stream %d failed", i+1);
@@ -288,10 +288,11 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     
     if(t->subtitle_streams[i].type == BGAV_STREAM_SUBTITLE_TEXT)
       {
-      gavl_video_format_copy(&(t->subtitle_streams[i].data.subtitle.format), video_format);
+      gavl_video_format_copy(&t->subtitle_streams[i].data.subtitle.format,
+                             video_format);
       }
     
-    if(!bgav_stream_start(&(t->subtitle_streams[i])))
+    if(!bgav_stream_start(&t->subtitle_streams[i]))
       {
       bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Starting subtitle decoder for stream %d failed", i+1);
@@ -335,25 +336,25 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
     bgav_dprintf( "Not specified (maybe live)\n");
 
   
-  bgav_metadata_dump(&(t->metadata));
+  bgav_metadata_dump(&t->metadata);
 
   if(t->chapter_list)
     bgav_chapter_list_dump(t->chapter_list);
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    bgav_stream_dump(&(t->audio_streams[i]));
-    bgav_audio_dump(&(t->audio_streams[i]));
+    bgav_stream_dump(&t->audio_streams[i]);
+    bgav_audio_dump(&t->audio_streams[i]);
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
-    bgav_stream_dump(&(t->video_streams[i]));
-    bgav_video_dump(&(t->video_streams[i]));
+    bgav_stream_dump(&t->video_streams[i]);
+    bgav_video_dump(&t->video_streams[i]);
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
     {
-    bgav_stream_dump(&(t->subtitle_streams[i]));
-    bgav_subtitle_dump(&(t->subtitle_streams[i]));
+    bgav_stream_dump(&t->subtitle_streams[i]);
+    bgav_subtitle_dump(&t->subtitle_streams[i]);
     }
   
   }
@@ -362,26 +363,26 @@ void bgav_track_free(bgav_track_t * t)
   {
   int i;
   
-  bgav_metadata_free(&(t->metadata));
+  bgav_metadata_free(&t->metadata);
   if(t->chapter_list)
     bgav_chapter_list_destroy(t->chapter_list);
   
   if(t->audio_streams)
     {
     for(i = 0; i < t->num_audio_streams; i++)
-      bgav_stream_free(&(t->audio_streams[i]));
+      bgav_stream_free(&t->audio_streams[i]);
     free(t->audio_streams);
     }
   if(t->video_streams)
     {
     for(i = 0; i < t->num_video_streams; i++)
-      bgav_stream_free(&(t->video_streams[i]));
+      bgav_stream_free(&t->video_streams[i]);
     free(t->video_streams);
     }
   if(t->subtitle_streams)
     {
     for(i = 0; i < t->num_subtitle_streams; i++)
-      bgav_stream_free(&(t->subtitle_streams[i]));
+      bgav_stream_free(&t->subtitle_streams[i]);
     free(t->subtitle_streams);
     }
   if(t->name)
@@ -394,8 +395,8 @@ static void remove_stream(bgav_stream_t * stream_array, int index, int num)
   bgav_stream_free(&stream_array[index]);
   if(index < num - 1)
     {
-    memmove(&(stream_array[index]),
-            &(stream_array[index+1]),
+    memmove(&stream_array[index],
+            &stream_array[index+1],
             sizeof(*stream_array) * (num - 1 - index));
     }
   }
@@ -426,7 +427,7 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
   i = 0;
   while(i < track->num_audio_streams)
     {
-    s = &(track->audio_streams[i]);
+    s = &track->audio_streams[i];
     if(!bgav_find_audio_decoder(s))
       {
       bgav_track_remove_audio_stream(track, i);
@@ -453,7 +454,7 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
   i = 0;
   while(i < track->num_video_streams)
     {
-    s = &(track->video_streams[i]);
+    s = &track->video_streams[i];
     if(!bgav_find_video_decoder(s))
       {
       bgav_track_remove_video_stream(track, i);
@@ -487,11 +488,11 @@ void bgav_track_clear(bgav_track_t * track)
   {
   int i;
   for(i = 0; i < track->num_audio_streams; i++)
-    bgav_stream_clear(&(track->audio_streams[i]));
+    bgav_stream_clear(&track->audio_streams[i]);
   for(i = 0; i < track->num_video_streams; i++)
-    bgav_stream_clear(&(track->video_streams[i]));
+    bgav_stream_clear(&track->video_streams[i]);
   for(i = 0; i < track->num_subtitle_streams; i++)
-    bgav_stream_clear(&(track->subtitle_streams[i]));
+    bgav_stream_clear(&track->subtitle_streams[i]);
   }
 
 void bgav_track_resync(bgav_track_t * track)
@@ -501,7 +502,7 @@ void bgav_track_resync(bgav_track_t * track)
   
   for(i = 0; i < track->num_audio_streams; i++)
     {
-    s = &(track->audio_streams[i]);
+    s = &track->audio_streams[i];
 
     if(s->action != BGAV_STREAM_DECODE)
       continue;
@@ -509,7 +510,7 @@ void bgav_track_resync(bgav_track_t * track)
     }
   for(i = 0; i < track->num_video_streams; i++)
     {
-    s = &(track->video_streams[i]);
+    s = &track->video_streams[i];
 
     if(s->action != BGAV_STREAM_DECODE)
       continue;
@@ -528,7 +529,7 @@ int bgav_track_skipto(bgav_track_t * track, int64_t * time, int scale)
   for(i = 0; i < track->num_video_streams; i++)
     {
     t = *time;
-    s = &(track->video_streams[i]);
+    s = &track->video_streams[i];
     
     if(!bgav_stream_skipto(s, &t, scale))
       {
@@ -539,7 +540,7 @@ int bgav_track_skipto(bgav_track_t * track, int64_t * time, int scale)
     }
   for(i = 0; i < track->num_audio_streams; i++)
     {
-    s = &(track->audio_streams[i]);
+    s = &track->audio_streams[i];
 
     if(!bgav_stream_skipto(s, time, scale))
       {

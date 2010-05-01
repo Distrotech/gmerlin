@@ -123,7 +123,7 @@ bgav_hostbyname(const bgav_options_t * opt,
   
   /* prevent DNS lookup for numeric IP addresses */
   
-  if(hostname && bgav_inet_aton(hostname, &(ipv4_addr)))
+  if(hostname && bgav_inet_aton(hostname, &ipv4_addr))
     hints.ai_flags |= AI_NUMERICHOST;
   
   if(!hostname)

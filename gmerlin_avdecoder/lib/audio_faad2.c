@@ -136,7 +136,7 @@ static int decode_frame_faad2(bgav_stream_t * s)
   if(s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
     {
     bgav_faad_set_channel_setup(&frame_info,
-                                &(s->data.audio.format));
+                                &s->data.audio.format);
     }
   if(!s->description)
     {

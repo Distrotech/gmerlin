@@ -1365,7 +1365,7 @@ static void WINAPI expEnterCriticalSection(CRITICAL_SECTION* c)
 	    cs->locked++;
 	    return;
 	}
-    pthread_mutex_lock(&(cs->mutex));
+    pthread_mutex_lock(&cs->mutex);
     cs->locked=1;
     cs->id=pthread_self();
     return;
@@ -1390,7 +1390,7 @@ static void WINAPI expLeaveCriticalSection(CRITICAL_SECTION* c)
     {
 	cs->locked--;
 	if( !cs->locked )
-	    pthread_mutex_unlock(&(cs->mutex));
+	    pthread_mutex_unlock(&cs->mutex);
     }
     return;
 }
@@ -1408,8 +1408,8 @@ static void WINAPI expDeleteCriticalSection(CRITICAL_SECTION *c)
 
     /* xine: mutex must be unlocked on entrance of pthread_mutex_destroy */
     if( cs->locked )
-	pthread_mutex_unlock(&(cs->mutex));
-    pthread_mutex_destroy(&(cs->mutex));
+	pthread_mutex_unlock(&cs->mutex);
+    pthread_mutex_destroy(&cs->mutex);
     // released by GarbageCollector in my_relase otherwise
 #endif
     my_release(cs);

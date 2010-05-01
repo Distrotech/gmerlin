@@ -117,7 +117,7 @@ static int get_urls(bgav_yml_node_t * n,
     {
     if(!sc(n->name, "Entry"))
       {
-      get_url(n->children, &(r->urls[*index]), title, index);
+      get_url(n->children, &r->urls[*index], title, index);
       }
     else if(!sc(n->name, "Repeat"))
       {

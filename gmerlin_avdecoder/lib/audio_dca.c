@@ -129,9 +129,9 @@ static int decode_frame_dts(bgav_stream_t * s)
       s->codec_bitrate = bit_rate;
       s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   
-      bgav_dca_flags_2_channel_setup(flags, &(s->data.audio.format));
+      bgav_dca_flags_2_channel_setup(flags, &s->data.audio.format);
   
-      priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+      priv->frame = gavl_audio_frame_create(&s->data.audio.format);
       s->description =
         bgav_sprintf("DTS %d kb/sec", bit_rate/1000);
       }
@@ -154,7 +154,7 @@ static int decode_frame_dts(bgav_stream_t * s)
     
 #else
     memcpy(priv->frame->channels.f[j],
-           &(priv->samples[j * 256]),
+           &priv->samples[j * 256],
            256 * sizeof(float));
 #endif
     }
@@ -184,7 +184,7 @@ static int init_dts(bgav_stream_t * s)
   
   s->data.audio.decoder->priv = priv;
 
-  //  dts_header_dump(&(priv->header));
+  //  dts_header_dump(&priv->header);
     
   /* Get format */
 

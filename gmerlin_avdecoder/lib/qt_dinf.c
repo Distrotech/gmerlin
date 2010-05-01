@@ -39,7 +39,7 @@ int bgav_qt_dinf_read(qt_atom_header_t * h, bgav_input_context_t * input,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('d', 'r', 'e', 'f'):
-        if(!bgav_qt_dref_read(&ch, input, &(ret->dref)))
+        if(!bgav_qt_dref_read(&ch, input, &ret->dref))
           return 0;
         ret->has_dref = 1;
         break;

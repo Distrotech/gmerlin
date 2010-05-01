@@ -26,12 +26,12 @@ int bgav_qt_gmin_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_gmin_t * ret)
   {
   READ_VERSION_AND_FLAGS;
-  return bgav_input_read_16_be(input, &(ret->graphics_mode)) &&
-    bgav_input_read_16_be(input, &(ret->opcolor[0])) &&
-    bgav_input_read_16_be(input, &(ret->opcolor[1])) &&
-    bgav_input_read_16_be(input, &(ret->opcolor[2])) &&
-    bgav_input_read_16_be(input, &(ret->balance)) &&
-    bgav_input_read_16_be(input, &(ret->reserved));
+  return bgav_input_read_16_be(input, &ret->graphics_mode) &&
+    bgav_input_read_16_be(input, &ret->opcolor[0]) &&
+    bgav_input_read_16_be(input, &ret->opcolor[1]) &&
+    bgav_input_read_16_be(input, &ret->opcolor[2]) &&
+    bgav_input_read_16_be(input, &ret->balance) &&
+    bgav_input_read_16_be(input, &ret->reserved);
   }
 
 void bgav_qt_gmin_free(qt_gmin_t * g)

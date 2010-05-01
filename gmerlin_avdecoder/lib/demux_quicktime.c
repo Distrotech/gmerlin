@@ -102,7 +102,7 @@ typedef struct
 static void stream_init(stream_priv_t * s, qt_trak_t * trak)
   {
   s->trak = trak;
-  s->stbl = &(trak->mdia.minf.stbl);
+  s->stbl = &trak->mdia.minf.stbl;
 
   s->stts_pos = (s->stbl->stts.num_entries > 1) ? 0 : -1;
   s->ctts_pos = (s->stbl->has_ctts) ? 0 : -1;
@@ -574,7 +574,7 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
   bgav_charset_converter_t * cnv = (bgav_charset_converter_t *)0;
   
   priv = (qt_priv_t*)(ctx->priv);
-  moov = &(priv->moov);
+  moov = &priv->moov;
 
   if(!moov->udta.have_ilst)
     cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", "UTF-8");
@@ -866,7 +866,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   int skip_first_frame = 0;
   int skip_last_frame = 0;
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
-  qt_moov_t * moov = &(priv->moov);
+  qt_moov_t * moov = &priv->moov;
 
   qt_trak_t * trak;
   qt_stsd_t * stsd;
@@ -898,10 +898,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
                                 bg_as->language);
       
-      desc = &(stsd->entries[0].desc);
+      desc = &stsd->entries[0].desc;
 
-      stream_priv = &(priv->streams[i]);
-      stream_init(stream_priv, &(moov->tracks[i]));
+      stream_priv = &priv->streams[i];
+      stream_init(stream_priv, &moov->tracks[i]);
       
       bg_as->priv = stream_priv;
       
@@ -921,8 +921,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
 
       if(desc->format.audio.has_chan)
         {
-        bgav_qt_chan_get(&(desc->format.audio.chan),
-                         &(bg_as->data.audio.format));
+        bgav_qt_chan_get(&desc->format.audio.chan,
+                         &bg_as->data.audio.format);
         }
       
       /* Set mp4 extradata */
@@ -1079,10 +1079,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       if(trak->edts.elst.num_entries > 1)
         priv->has_edl = 1;
             
-      desc = &(stsd->entries[skip_first_frame].desc);
-      stream_priv = &(priv->streams[i]);
+      desc = &stsd->entries[skip_first_frame].desc;
+      stream_priv = &priv->streams[i];
       
-      stream_init(stream_priv, &(moov->tracks[i]));
+      stream_init(stream_priv, &moov->tracks[i]);
 
       if(skip_first_frame)
         stream_priv->skip_first_frame = 1;
@@ -1235,8 +1235,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss->timescale = trak->mdia.mdhd.time_scale;
         bg_ss->stream_id = i;
         
-        stream_priv = &(priv->streams[i]);
-        stream_init(stream_priv, &(moov->tracks[i]));
+        stream_priv = &priv->streams[i];
+        stream_init(stream_priv, &moov->tracks[i]);
         bg_ss->priv = stream_priv;
         bg_ss->process_packet = process_packet_subtitle_qt;
         }
@@ -1265,8 +1265,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss->timescale = trak->mdia.mdhd.time_scale;
         bg_ss->stream_id = i;
 
-        stream_priv = &(priv->streams[i]);
-        stream_init(stream_priv, &(moov->tracks[i]));
+        stream_priv = &priv->streams[i];
+        stream_init(stream_priv, &moov->tracks[i]);
         bg_ss->priv = stream_priv;
         bg_ss->process_packet = process_packet_subtitle_tx3g;
         }
@@ -1610,7 +1610,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
         have_mdat = 1;
 
         priv->mdats = realloc(priv->mdats, (priv->num_mdats+1)*sizeof(*(priv->mdats)));
-        memset(&(priv->mdats[priv->num_mdats]), 0, sizeof(*(priv->mdats)));
+        memset(&priv->mdats[priv->num_mdats], 0, sizeof(*(priv->mdats)));
 
         priv->mdats[priv->num_mdats].start = ctx->input->position;
         priv->mdats[priv->num_mdats].size  = h.size - (ctx->input->position - h.start_position);
@@ -1631,7 +1631,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
         
         break;
       case BGAV_MK_FOURCC('m','o','o','v'):
-        if(!bgav_qt_moov_read(&h, ctx->input, &(priv->moov)))
+        if(!bgav_qt_moov_read(&h, ctx->input, &priv->moov))
           {
           bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                    "Reading moov atom failed");
@@ -1640,7 +1640,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
         have_moov = 1;
         bgav_qt_atom_skip(ctx->input, &h);
 #ifdef DUMP_MOOV
-        bgav_qt_moov_dump(0, &(priv->moov));
+        bgav_qt_moov_dump(0, &priv->moov);
 #endif
 
         break;
@@ -1748,7 +1748,7 @@ static void close_quicktime(bgav_demuxer_context_t * ctx)
     
   if(priv->mdats)
     free(priv->mdats);
-  bgav_qt_moov_free(&(priv->moov));
+  bgav_qt_moov_free(&priv->moov);
   free(ctx->priv);
   }
 

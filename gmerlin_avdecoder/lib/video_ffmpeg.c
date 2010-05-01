@@ -830,7 +830,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   /* Build the palette from the stream info */
   
   if(s->data.video.palette_size)
-    priv->ctx->palctrl = &(priv->palette);
+    priv->ctx->palctrl = &priv->palette;
   
   //  bgav_hexdump(s->ext_data, s->ext_size, 16);
   
@@ -929,8 +929,8 @@ static int init_ffmpeg(bgav_stream_t * s)
 
   if(priv->swap_fields)
     {
-    gavl_video_format_copy(&(priv->field_format),
-                           &(s->data.video.format));
+    gavl_video_format_copy(&priv->field_format,
+                           &s->data.video.format);
     priv->field_format.frame_height /= 2;
     priv->field_format.image_height /= 2;
     }
@@ -1686,7 +1686,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
   int i;
   for(i = 0; i < real_num_codecs; i++)
     {
-    if(s->data.video.decoder->decoder == &(codecs[i].decoder))
+    if(s->data.video.decoder->decoder == &codecs[i].decoder)
       return codecs[i].info;
     }
   return (codec_info_t *)0;
@@ -1702,7 +1702,7 @@ void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)
     {
     if((c = avcodec_find_decoder(codec_infos[i].ffmpeg_id)))
       {
-      codecs[real_num_codecs].info = &(codec_infos[i]);
+      codecs[real_num_codecs].info = &codec_infos[i];
       codecs[real_num_codecs].decoder.name = codecs[real_num_codecs].info->decoder_name;
       
       if(c->capabilities & CODEC_CAP_DELAY) 
@@ -2256,7 +2256,8 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
                        priv->frame->qscale_table, priv->frame->qstride,
                        priv->pp_mode, priv->pp_context,
                        priv->frame->pict_type);
-        gavl_video_frame_copy_flip_y(&(s->data.video.format), f, priv->flip_frame);
+        gavl_video_frame_copy_flip_y(&s->data.video.format,
+                                     f, priv->flip_frame);
         }
       else
         pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
@@ -2279,7 +2280,8 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->gavl_frame->strides[2] = priv->frame->linesize[2];
 
       if(s->data.video.flip_y)
-        gavl_video_frame_copy_flip_y(&(s->data.video.format), f, priv->gavl_frame);
+        gavl_video_frame_copy_flip_y(&s->data.video.format,
+                                     f, priv->gavl_frame);
       else if(priv->swap_fields)
         {
         /* src field (top) -> dst field (bottom) */
@@ -2308,7 +2310,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
         gavl_video_frame_copy(&priv->field_format, priv->dst_field, priv->src_field);
         }
       else
-        gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
+        gavl_video_frame_copy(&s->data.video.format, f, priv->gavl_frame);
 #ifdef HAVE_LIBPOSTPROC
       }
 #endif

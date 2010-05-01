@@ -213,7 +213,7 @@ static int next_packet_smaf(bgav_demuxer_context_t * ctx)
   if(bytes_to_read > MAX_BYTES)
     bytes_to_read = MAX_BYTES;
   
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, bytes_to_read);

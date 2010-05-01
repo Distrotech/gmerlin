@@ -33,20 +33,20 @@ int bgav_qt_chan_read(qt_atom_header_t * h, bgav_input_context_t * input,
   {
   int i;
   READ_VERSION_AND_FLAGS;
-  memcpy(&(ret->h), h, sizeof(*h));
+  memcpy(&ret->h, h, sizeof(*h));
 
-  if(!bgav_input_read_32_be(input, &(ret->mChannelLayoutTag)) ||
-     !bgav_input_read_32_be(input, &(ret->mChannelBitmap)) ||
-     !bgav_input_read_32_be(input, &(ret->mNumberChannelDescriptions)))
+  if(!bgav_input_read_32_be(input, &ret->mChannelLayoutTag) ||
+     !bgav_input_read_32_be(input, &ret->mChannelBitmap) ||
+     !bgav_input_read_32_be(input, &ret->mNumberChannelDescriptions))
     return 0;
 
   for(i = 0; i < ret->mNumberChannelDescriptions; i++)
     {
-    if(!bgav_input_read_32_be(input, &(ret->ChannelDescriptions[i].mChannelLabel)) ||
-       !bgav_input_read_32_be(input, &(ret->ChannelDescriptions[i].mChannelFlags)) ||
-       !bgav_input_read_float_32_be(input, &(ret->ChannelDescriptions[i].mCoordinates[0])) ||
-       !bgav_input_read_float_32_be(input, &(ret->ChannelDescriptions[i].mCoordinates[1])) ||
-       !bgav_input_read_float_32_be(input, &(ret->ChannelDescriptions[i].mCoordinates[2])))
+    if(!bgav_input_read_32_be(input, &ret->ChannelDescriptions[i].mChannelLabel) ||
+       !bgav_input_read_32_be(input, &ret->ChannelDescriptions[i].mChannelFlags) ||
+       !bgav_input_read_float_32_be(input, &ret->ChannelDescriptions[i].mCoordinates[0]) ||
+       !bgav_input_read_float_32_be(input, &ret->ChannelDescriptions[i].mCoordinates[1]) ||
+       !bgav_input_read_float_32_be(input, &ret->ChannelDescriptions[i].mCoordinates[2]))
       return 0;
     }
   return 1;

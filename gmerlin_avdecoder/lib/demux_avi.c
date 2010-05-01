@@ -390,8 +390,8 @@ typedef struct
 static int read_chunk_header(bgav_input_context_t * input,
                              chunk_header_t * chunk)
   {
-  return bgav_input_read_fourcc(input, &(chunk->ckID)) &&
-    bgav_input_read_32_le(input, &(chunk->ckSize));
+  return bgav_input_read_fourcc(input, &chunk->ckID) &&
+    bgav_input_read_32_le(input, &chunk->ckSize);
   }
 
 #ifdef DUMP_HEADERS
@@ -518,9 +518,9 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
 static int read_riff_header(bgav_input_context_t * input,
                             riff_header_t * chunk)
   {
-  return bgav_input_read_fourcc(input, &(chunk->ckID)) &&
-    bgav_input_read_32_le(input, &(chunk->ckSize)) &&
-    bgav_input_read_fourcc(input, &(chunk->fccType));
+  return bgav_input_read_fourcc(input, &chunk->ckID) &&
+    bgav_input_read_32_le(input, &chunk->ckSize) &&
+    bgav_input_read_fourcc(input, &chunk->fccType);
   }
 
 
@@ -552,23 +552,22 @@ static int read_avih(bgav_input_context_t* input,
   
   start_pos = input->position;
   
-  result = bgav_input_read_32_le(input, &(ret->dwMicroSecPerFrame)) &&
-    bgav_input_read_32_le(input, &(ret->dwMaxBytesPerSec)) &&
-    bgav_input_read_32_le(input, &(ret->dwReserved1)) &&
-    bgav_input_read_32_le(input, &(ret->dwFlags)) &&
-    bgav_input_read_32_le(input, &(ret->dwTotalFrames)) &&
-    bgav_input_read_32_le(input, &(ret->dwInitialFrames)) &&
-    bgav_input_read_32_le(input, &(ret->dwStreams)) &&
-    bgav_input_read_32_le(input, &(ret->dwSuggestedBufferSize)) &&
-    bgav_input_read_32_le(input, &(ret->dwWidth)) &&
-    bgav_input_read_32_le(input, &(ret->dwHeight)) &&
-    bgav_input_read_32_le(input, &(ret->dwScale)) &&
-    bgav_input_read_32_le(input, &(ret->dwRate)) &&
-    bgav_input_read_32_le(input, &(ret->dwLength));
+  result = bgav_input_read_32_le(input, &ret->dwMicroSecPerFrame) &&
+    bgav_input_read_32_le(input, &ret->dwMaxBytesPerSec) &&
+    bgav_input_read_32_le(input, &ret->dwReserved1) &&
+    bgav_input_read_32_le(input, &ret->dwFlags) &&
+    bgav_input_read_32_le(input, &ret->dwTotalFrames) &&
+    bgav_input_read_32_le(input, &ret->dwInitialFrames) &&
+    bgav_input_read_32_le(input, &ret->dwStreams) &&
+    bgav_input_read_32_le(input, &ret->dwSuggestedBufferSize) &&
+    bgav_input_read_32_le(input, &ret->dwWidth) &&
+    bgav_input_read_32_le(input, &ret->dwHeight) &&
+    bgav_input_read_32_le(input, &ret->dwScale) &&
+    bgav_input_read_32_le(input, &ret->dwRate) &&
+    bgav_input_read_32_le(input, &ret->dwLength);
 
   if(input->position - start_pos < ch->ckSize)
     {
-    
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
 #ifdef DUMP_HEADERS
@@ -624,10 +623,10 @@ static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
   ret->entries = calloc(ret->num_entries, sizeof(*ret->entries));
   for(i = 0; i < ret->num_entries; i++)
     {
-    if(!bgav_input_read_fourcc(input, &(ret->entries[i].ckid)) ||
-       !bgav_input_read_32_le(input, &(ret->entries[i].dwFlags)) ||
-       !bgav_input_read_32_le(input, &(ret->entries[i].dwChunkOffset)) ||
-       !bgav_input_read_32_le(input, &(ret->entries[i].dwChunkLength)))
+    if(!bgav_input_read_fourcc(input, &ret->entries[i].ckid) ||
+       !bgav_input_read_32_le(input, &ret->entries[i].dwFlags) ||
+       !bgav_input_read_32_le(input, &ret->entries[i].dwChunkOffset) ||
+       !bgav_input_read_32_le(input, &ret->entries[i].dwChunkLength))
       return 0;
     }
   return 1;
@@ -670,18 +669,18 @@ static int read_strh(bgav_input_context_t * input, strh_t * ret,
   start_pos = input->position;
   
   result = 
-    bgav_input_read_fourcc(input, &(ret->fccType)) &&
-    bgav_input_read_fourcc(input, &(ret->fccHandler)) &&
-    bgav_input_read_32_le(input, &(ret->dwFlags)) &&
-    bgav_input_read_32_le(input, &(ret->dwReserved1)) &&
-    bgav_input_read_32_le(input, &(ret->dwInitialFrames)) &&
-    bgav_input_read_32_le(input, &(ret->dwScale)) &&
-    bgav_input_read_32_le(input, &(ret->dwRate)) &&
-    bgav_input_read_32_le(input, &(ret->dwStart)) &&
-    bgav_input_read_32_le(input, &(ret->dwLength)) &&
-    bgav_input_read_32_le(input, &(ret->dwSuggestedBufferSize)) &&
-    bgav_input_read_32_le(input, &(ret->dwQuality)) &&
-    bgav_input_read_32_le(input, &(ret->dwSampleSize));
+    bgav_input_read_fourcc(input, &ret->fccType) &&
+    bgav_input_read_fourcc(input, &ret->fccHandler) &&
+    bgav_input_read_32_le(input, &ret->dwFlags) &&
+    bgav_input_read_32_le(input, &ret->dwReserved1) &&
+    bgav_input_read_32_le(input, &ret->dwInitialFrames) &&
+    bgav_input_read_32_le(input, &ret->dwScale) &&
+    bgav_input_read_32_le(input, &ret->dwRate) &&
+    bgav_input_read_32_le(input, &ret->dwStart) &&
+    bgav_input_read_32_le(input, &ret->dwLength) &&
+    bgav_input_read_32_le(input, &ret->dwSuggestedBufferSize) &&
+    bgav_input_read_32_le(input, &ret->dwQuality) &&
+    bgav_input_read_32_le(input, &ret->dwSampleSize);
 
   if(input->position - start_pos < ch->ckSize)
     {
@@ -712,7 +711,7 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
   int64_t start_pos;
 
   start_pos = input->position;
-  if(!bgav_input_read_32_le(input, &(ret->dwTotalFrames)))
+  if(!bgav_input_read_32_le(input, &ret->dwTotalFrames))
     return 0;
 
   if(input->position - start_pos < ch->ckSize)
@@ -728,7 +727,7 @@ static void dump_odml(odml_t * odml)
   {
   bgav_dprintf("odml:\n");
   if(odml->has_dmlh)
-    dump_dmlh(&(odml->dmlh));
+    dump_dmlh(&odml->dmlh);
   }
 #endif
 
@@ -751,9 +750,9 @@ static int read_odml(bgav_input_context_t * input, odml_t * ret,
     switch(ch1.ckID)
       {
       case ID_DMLH:
-        if(!read_dmlh(input, &(ret->dmlh), &ch1))
+        if(!read_dmlh(input, &ret->dmlh, &ch1))
           return 0;
-        //        dump_dmlh(&(ret->dmlh));
+        //        dump_dmlh(&ret->dmlh);
         ret->has_dmlh = 1;
         break;
       default:
@@ -785,27 +784,27 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
 
   //  dump_chunk_header(ch);
   pos = input->position;
-  if(!bgav_input_read_16_le(input, &(ret->wLongsPerEntry)) ||
-     !bgav_input_read_8(input, &(ret->bIndexSubType)) ||
-     !bgav_input_read_8(input, &(ret->bIndexType)) ||
-     !bgav_input_read_32_le(input, &(ret->nEntriesInUse)) ||
-     !bgav_input_read_fourcc(input, &(ret->dwChunkID)))
+  if(!bgav_input_read_16_le(input, &ret->wLongsPerEntry) ||
+     !bgav_input_read_8(input, &ret->bIndexSubType) ||
+     !bgav_input_read_8(input, &ret->bIndexType) ||
+     !bgav_input_read_32_le(input, &ret->nEntriesInUse) ||
+     !bgav_input_read_fourcc(input, &ret->dwChunkID))
     return 0;
   
   switch(ret->bIndexType)
     {
     case AVI_INDEX_OF_INDEXES:
-      if(!bgav_input_read_32_le(input, &(ret->i.index.dwReserved[0])) ||
-         !bgav_input_read_32_le(input, &(ret->i.index.dwReserved[1])) ||
-         !bgav_input_read_32_le(input, &(ret->i.index.dwReserved[2])))
+      if(!bgav_input_read_32_le(input, &ret->i.index.dwReserved[0]) ||
+         !bgav_input_read_32_le(input, &ret->i.index.dwReserved[1]) ||
+         !bgav_input_read_32_le(input, &ret->i.index.dwReserved[2]))
         return 0;
       ret->i.index.entries =
         calloc(ret->nEntriesInUse, sizeof(*(ret->i.index.entries)));
       for(i = 0; i < ret->nEntriesInUse; i++)
         {
-        if(!bgav_input_read_64_le(input, &(ret->i.index.entries[i].qwOffset)) ||
-           !bgav_input_read_32_le(input, &(ret->i.index.entries[i].dwSize)) ||
-           !bgav_input_read_32_le(input, &(ret->i.index.entries[i].dwDuration)))
+        if(!bgav_input_read_64_le(input, &ret->i.index.entries[i].qwOffset) ||
+           !bgav_input_read_32_le(input, &ret->i.index.entries[i].dwSize) ||
+           !bgav_input_read_32_le(input, &ret->i.index.entries[i].dwDuration))
           return 0;
         }
       break;
@@ -813,32 +812,32 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
       
       if(ret->bIndexSubType == AVI_INDEX_2FIELD)
         {
-        if(!bgav_input_read_64_le(input, &(ret->i.field_chunk.qwBaseOffset)) ||
-           !bgav_input_read_32_le(input, &(ret->i.field_chunk.dwReserved3)))
+        if(!bgav_input_read_64_le(input, &ret->i.field_chunk.qwBaseOffset) ||
+           !bgav_input_read_32_le(input, &ret->i.field_chunk.dwReserved3))
           return 0;
         ret->i.field_chunk.entries =
           malloc(ret->nEntriesInUse * sizeof(*(ret->i.field_chunk.entries)));
 
         for(i = 0; i < ret->nEntriesInUse; i++)
           {
-          if(!bgav_input_read_32_le(input, &(ret->i.field_chunk.entries[i].dwOffset)) ||
-             !bgav_input_read_32_le(input, &(ret->i.field_chunk.entries[i].dwSize)) ||
-             !bgav_input_read_32_le(input, &(ret->i.field_chunk.entries[i].dwOffsetField2)))
+          if(!bgav_input_read_32_le(input, &ret->i.field_chunk.entries[i].dwOffset) ||
+             !bgav_input_read_32_le(input, &ret->i.field_chunk.entries[i].dwSize) ||
+             !bgav_input_read_32_le(input, &ret->i.field_chunk.entries[i].dwOffsetField2))
             return 0;
           }
         }
       else
         {
-        if(!bgav_input_read_64_le(input, &(ret->i.chunk.qwBaseOffset)) ||
-           !bgav_input_read_32_le(input, &(ret->i.chunk.dwReserved3)))
+        if(!bgav_input_read_64_le(input, &ret->i.chunk.qwBaseOffset) ||
+           !bgav_input_read_32_le(input, &ret->i.chunk.dwReserved3))
           return 0;
         ret->i.chunk.entries =
           malloc(ret->nEntriesInUse * sizeof(*(ret->i.chunk.entries)));
         
         for(i = 0; i < ret->nEntriesInUse; i++)
           {
-          if(!bgav_input_read_32_le(input, &(ret->i.chunk.entries[i].dwOffset)) ||
-             !bgav_input_read_32_le(input, &(ret->i.chunk.entries[i].dwSize)))
+          if(!bgav_input_read_32_le(input, &ret->i.chunk.entries[i].dwOffset) ||
+             !bgav_input_read_32_le(input, &ret->i.chunk.entries[i].dwSize))
             return 0;
           }
         }
@@ -1032,11 +1031,11 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
 
   for(i = 0; i < num_audio_streams; i++)
     {
-    streams[i].s = &(ctx->tt->cur->audio_streams[i]);
+    streams[i].s = &ctx->tt->cur->audio_streams[i];
     
     avi_as = (audio_priv_t *)(streams[i].s->priv);
 
-    streams[i].indx = &(avi_as->indx);
+    streams[i].indx = &avi_as->indx;
     
     if(avi_as->indx.bIndexType == AVI_INDEX_OF_INDEXES)
       {
@@ -1048,7 +1047,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
     else
       {
       num_entries += avi_as->indx.nEntriesInUse;
-      streams[i].indx_cur = &(avi_as->indx);
+      streams[i].indx_cur = &avi_as->indx;
       streams[i].index_index = -1;
       }
     }
@@ -1056,11 +1055,11 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
   for(i = num_audio_streams;
       i < ctx->tt->cur->num_video_streams + num_audio_streams; i++)
     {
-    streams[i].s = &(ctx->tt->cur->video_streams[i-num_audio_streams]);
+    streams[i].s = &ctx->tt->cur->video_streams[i-num_audio_streams];
 
     avi_vs = (video_priv_t *)(streams[i].s->priv);
 
-    streams[i].indx = &(avi_vs->indx);
+    streams[i].indx = &avi_vs->indx;
     
     if(avi_vs->indx.bIndexType == AVI_INDEX_OF_INDEXES)
       {
@@ -1072,7 +1071,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
     else
       {
       num_entries += avi_vs->indx.nEntriesInUse;
-      streams[i].indx_cur = &(avi_vs->indx);
+      streams[i].indx_cur = &avi_vs->indx;
       streams[i].index_index = -1;
       }
     }
@@ -1175,7 +1174,7 @@ static void cleanup_stream_avi(bgav_stream_t * s)
     if(avi_as)
       {
       if(avi_as->has_indx)
-        free_indx(&(avi_as->indx));
+        free_indx(&avi_as->indx);
       free(avi_as);
       }
     }
@@ -1190,7 +1189,7 @@ static void cleanup_stream_avi(bgav_stream_t * s)
     if(avi_vs)
       {
       if(avi_vs->has_indx)
-        free_indx(&(avi_vs->indx));
+        free_indx(&avi_vs->indx);
       free(avi_vs);
       }
     
@@ -1211,7 +1210,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
   avi_as = calloc(1, sizeof(*avi_as));
   bg_as->priv = avi_as;
   bg_as->cleanup = cleanup_stream_avi;
-  memcpy(&(avi_as->strh), strh, sizeof(*strh));
+  memcpy(&avi_as->strh, strh, sizeof(*strh));
   
   while(keep_going)
     {
@@ -1287,7 +1286,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
 
   avi_vs = calloc(1, sizeof(*avi_vs));
 
-  memcpy(&(avi_vs->strh), strh, sizeof(*strh));
+  memcpy(&avi_vs->strh, strh, sizeof(*strh));
   
   bg_vs->priv = avi_vs;
   while(keep_going)
@@ -1862,8 +1861,8 @@ static int open_avi(bgav_demuxer_context_t * ctx)
 
   p = calloc(1, sizeof(*p));
   ctx->priv = p;
-  read_avih(ctx->input, &(p->avih), &ch);
-  //  dump_avih(&(p->avih));
+  read_avih(ctx->input, &p->avih, &ch);
+  //  dump_avih(&p->avih);
       
   /* Streams */
 
@@ -1924,11 +1923,11 @@ static int open_avi(bgav_demuxer_context_t * ctx)
         break;
       case ID_ODML:
 
-        if(!read_odml(ctx->input, &(p->odml), &ch))
+        if(!read_odml(ctx->input, &p->odml, &ch))
           goto fail;
         p->has_odml = 1;
 
-        //        dump_odml(&(p->odml));
+        //        dump_odml(&p->odml);
         
         //        bgav_input_skip(ctx->input, ch.ckSize-4);
         break;
@@ -1965,11 +1964,11 @@ static int open_avi(bgav_demuxer_context_t * ctx)
     {
     bgav_input_seek(ctx->input, ctx->data_start + p->movi_size, SEEK_SET);
 
-    if(probe_idx1(ctx->input) && read_idx1(ctx->input, &(p->idx1)))
+    if(probe_idx1(ctx->input) && read_idx1(ctx->input, &p->idx1))
       {
       p->has_idx1 = 1;
 #ifdef DUMP_INDICES
-      dump_idx1(&(p->idx1));
+      dump_idx1(&p->idx1);
 #endif
       }
     bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
@@ -2109,7 +2108,7 @@ static int open_avi(bgav_demuxer_context_t * ctx)
   /* Build metadata */
 
   if(p->info)
-    bgav_RIFFINFO_get_metadata(p->info, &(ctx->tt->cur->metadata));
+    bgav_RIFFINFO_get_metadata(p->info, &ctx->tt->cur->metadata);
   
   ctx->stream_description = bgav_sprintf("AVI");
   
@@ -2142,7 +2141,7 @@ static void close_avi(bgav_demuxer_context_t * ctx)
   if(priv)
     {
     if(priv->has_idx1)
-      free_idx1(&(priv->idx1));
+      free_idx1(&priv->idx1);
         
     if(priv->info)
       bgav_RIFFINFO_destroy(priv->info);

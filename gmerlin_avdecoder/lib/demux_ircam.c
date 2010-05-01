@@ -375,7 +375,7 @@ static int next_packet_ircam(bgav_demuxer_context_t * ctx)
   int bytes_read;
   int bytes_to_read;
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
 
   bytes_to_read = samples_to_bytes(s, SAMPLES2READ);
@@ -406,7 +406,7 @@ static void seek_ircam(bgav_demuxer_context_t * ctx, int64_t time,
   int64_t position;
   int64_t sample;
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
 
   sample = gavl_time_rescale(scale, s->data.audio.format.samplerate, time);
     

@@ -421,7 +421,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
 
     if(fourcc == NSV_FILE_HEADER)
       {
-      if(!nsv_file_header_read(ctx->input, &(p->fh)))
+      if(!nsv_file_header_read(ctx->input, &p->fh))
         return 0;
       else
         {

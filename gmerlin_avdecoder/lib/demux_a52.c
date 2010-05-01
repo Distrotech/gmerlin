@@ -67,7 +67,7 @@ static int open_a52(bgav_demuxer_context_t * ctx)
   if(bgav_input_get_data(ctx->input, test_data, 7) < 7)
     return 0;
 
-  if(!a52_syncinfo(test_data, &dummy_flags, &(priv->samplerate),
+  if(!a52_syncinfo(test_data, &dummy_flags, &priv->samplerate,
                    &bitrate))
     goto fail;
   

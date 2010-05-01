@@ -54,7 +54,7 @@ bgav_device_info_t * bgav_device_info_append(bgav_device_info_t * arr,
 
   /* Zero terminate */
   
-  memset(&(arr[size]), 0, sizeof(arr[size]));
+  memset(&arr[size], 0, sizeof(arr[size]));
 
   return arr;
   }

@@ -348,7 +348,7 @@ static int read_bitrate_properties(bgav_demuxer_context_t * ctx)
   for(i = 0; i < asf->num_stream_bitrates; i++)
     {
     if(!bgav_input_read_16_le(ctx->input, &i_tmp) ||
-       !bgav_input_read_32_le(ctx->input, &(asf->stream_bitrates[i].bitrate)))
+       !bgav_input_read_32_le(ctx->input, &asf->stream_bitrates[i].bitrate))
       return 0;
     asf->stream_bitrates[i].stream_id = i_tmp;
     
@@ -517,17 +517,17 @@ static int open_asf(bgav_demuxer_context_t * ctx)
     if(bgav_GUID_equal(&guid, &guid_file_properties))
       {
       if(!bgav_GUID_read(&asf->hdr.guid, ctx->input) ||
-         !bgav_input_read_64_le(ctx->input, &(asf->hdr.file_size)) ||
-         !bgav_input_read_64_le(ctx->input, &(asf->hdr.create_time)) ||
-         !bgav_input_read_64_le(ctx->input, &(asf->hdr.packets_count)) ||
-         !bgav_input_read_64_le(ctx->input, &(asf->hdr.play_time)) ||
-         !bgav_input_read_64_le(ctx->input, &(asf->hdr.send_time)) ||
-         !bgav_input_read_32_le(ctx->input, &(asf->hdr.preroll)) ||
-         !bgav_input_read_32_le(ctx->input, &(asf->hdr.ignore)) ||
-         !bgav_input_read_32_le(ctx->input, &(asf->hdr.flags)) ||
-         !bgav_input_read_32_le(ctx->input, &(asf->hdr.min_pktsize)) ||
-         !bgav_input_read_32_le(ctx->input, &(asf->hdr.max_pktsize)) ||
-         !bgav_input_read_32_le(ctx->input, &(asf->hdr.max_bitrate)))
+         !bgav_input_read_64_le(ctx->input, &asf->hdr.file_size) ||
+         !bgav_input_read_64_le(ctx->input, &asf->hdr.create_time) ||
+         !bgav_input_read_64_le(ctx->input, &asf->hdr.packets_count) ||
+         !bgav_input_read_64_le(ctx->input, &asf->hdr.play_time) ||
+         !bgav_input_read_64_le(ctx->input, &asf->hdr.send_time) ||
+         !bgav_input_read_32_le(ctx->input, &asf->hdr.preroll) ||
+         !bgav_input_read_32_le(ctx->input, &asf->hdr.ignore) ||
+         !bgav_input_read_32_le(ctx->input, &asf->hdr.flags) ||
+         !bgav_input_read_32_le(ctx->input, &asf->hdr.min_pktsize) ||
+         !bgav_input_read_32_le(ctx->input, &asf->hdr.max_pktsize) ||
+         !bgav_input_read_32_le(ctx->input, &asf->hdr.max_bitrate))
         goto fail;
 
       if(asf->hdr.send_time)
@@ -662,7 +662,7 @@ static int open_asf(bgav_demuxer_context_t * ctx)
         bgav_vs->data.video.format.timescale = 1000;
         bgav_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
         
-        //        gavl_video_format_dump(&(bgav_vs->format));
+        //        gavl_video_format_dump(&bgav_vs->format);
         if(pos - buf < type_specific_size)
           {
           bgav_vs->ext_size = type_specific_size - (pos - buf);
@@ -1027,7 +1027,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
                 s->packet->data_size, offs);
       bgav_packet_alloc(s->packet,
                         s->packet->data_size + len);
-      memcpy(&(s->packet->data[s->packet->data_size]), data, len);
+      memcpy(&s->packet->data[s->packet->data_size], data, len);
       s->packet->data_size += len;
       return;
       }

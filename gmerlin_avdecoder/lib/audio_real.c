@@ -193,7 +193,7 @@ static int init_real(bgav_stream_t * s)
   
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
-    if(&(real_codecs[i].decoder) == s->data.audio.decoder->decoder)
+    if(&real_codecs[i].decoder == s->data.audio.decoder->decoder)
       {
       info = &real_codecs[i];
       break;
@@ -257,7 +257,7 @@ static int init_real(bgav_stream_t * s)
 
   if(priv->raOpenCodec2)
     {
-    if(priv->raOpenCodec2(&(priv->real_handle),&(path[10])))
+    if(priv->raOpenCodec2(&priv->real_handle,&path[10]))
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "raOpenCodec2 failed");
       return 0;
@@ -319,10 +319,10 @@ static int init_real(bgav_stream_t * s)
   
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.sample_format   = GAVL_SAMPLE_S16;
-  gavl_set_channel_setup(&(s->data.audio.format));
+  gavl_set_channel_setup(&s->data.audio.format);
 
   s->data.audio.format.samples_per_frame = 10240;
-  priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+  priv->frame = gavl_audio_frame_create(&s->data.audio.format);
   s->data.audio.format.samples_per_frame = 1024;
   
   return 1;

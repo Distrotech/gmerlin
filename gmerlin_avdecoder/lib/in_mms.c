@@ -138,7 +138,7 @@ static int do_read(bgav_input_context_t* ctx,
     {
     if(!priv->buffer_size)
       {
-      priv->buffer = bgav_mms_read_data(priv->mms, &(priv->buffer_size), block);
+      priv->buffer = bgav_mms_read_data(priv->mms, &priv->buffer_size, block);
       if(!priv->buffer)
         return bytes_read;
       priv->buffer_ptr = priv->buffer;

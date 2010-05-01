@@ -35,7 +35,7 @@ int bgav_qt_gmhd_read(qt_atom_header_t * h, bgav_input_context_t * input,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('g', 'm', 'i', 'n'):
-        if(!bgav_qt_gmin_read(&ch, input, &(ret->gmin)))
+        if(!bgav_qt_gmin_read(&ch, input, &ret->gmin))
           return 0;
         ret->has_gmin = 1;
         break;

@@ -32,7 +32,7 @@ typedef struct qt_trak_s qt_trak_t;
 #define READ_VERSION_AND_FLAGS \
 uint8_t version; \
 if(!bgav_input_read_8(input, &version) || \
-   !bgav_input_read_24_be(input, &(ret->flags))) \
+   !bgav_input_read_24_be(input, &ret->flags)) \
   return 0;\
 ret->version = version
 

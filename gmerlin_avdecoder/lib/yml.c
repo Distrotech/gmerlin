@@ -76,7 +76,7 @@ static int more_data(parser_t * p)
   int bytes_read = 0;
   while(1)
     {
-    if(!bgav_input_read_line(p->input, &(p->buffer), &(p->buffer_alloc),
+    if(!bgav_input_read_line(p->input, &p->buffer, &p->buffer_alloc,
                              p->buffer_size, (int*)0))
       {
       return bytes_read;

@@ -1185,7 +1185,7 @@ static int init_pcm(bgav_stream_t * s)
     }
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.samples_per_frame = FRAME_SAMPLES;
-  gavl_set_channel_setup(&(s->data.audio.format));
+  gavl_set_channel_setup(&s->data.audio.format);
   
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
   if(!priv->block_align)

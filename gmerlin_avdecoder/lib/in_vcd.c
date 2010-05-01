@@ -196,7 +196,7 @@ static void toc_2_tt(bgav_input_context_t * ctx)
     if(priv->tracks[i].mode == TRACK_OTHER)
       continue;
     
-    track = &(ctx->tt->tracks[index]);
+    track = &ctx->tt->tracks[index];
 
     stream =  bgav_track_add_audio_stream(track, ctx->opt);
     stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '2');
@@ -276,7 +276,7 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url, char ** r)
   
   /* Read TOC */
   
-  if(!read_toc(priv, &(ctx->disc_name)))
+  if(!read_toc(priv, &ctx->disc_name))
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "read_toc failed for %s", url);
@@ -538,7 +538,7 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device,
 int bgav_open_vcd(bgav_t * b, const char * device)
   {
   bgav_codecs_init(&b->opt);
-  b->input = bgav_input_open_vcd(device, &(b->opt));
+  b->input = bgav_input_open_vcd(device, &b->opt);
   if(!b->input)
     return 0;
   if(!bgav_init(b))

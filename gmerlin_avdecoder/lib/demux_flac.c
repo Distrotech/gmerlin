@@ -58,11 +58,11 @@ static int streaminfo_read(bgav_input_context_t * ctx,
   {
   uint64_t tmp_1;
   
-  if(!bgav_input_read_16_be(ctx, &(ret->min_blocksize)) ||
-     !bgav_input_read_16_be(ctx, &(ret->max_blocksize)) ||
-     !bgav_input_read_24_be(ctx, &(ret->min_framesize)) ||
-     !bgav_input_read_24_be(ctx, &(ret->max_framesize)) ||
-     !bgav_input_read_64_be(ctx, &(tmp_1)))
+  if(!bgav_input_read_16_be(ctx, &ret->min_blocksize) ||
+     !bgav_input_read_16_be(ctx, &ret->max_blocksize) ||
+     !bgav_input_read_24_be(ctx, &ret->min_framesize) ||
+     !bgav_input_read_24_be(ctx, &ret->max_framesize) ||
+     !bgav_input_read_64_be(ctx, &tmp_1))
     return 0;
 
   ret->samplerate      =   tmp_1 >> 44;
@@ -112,9 +112,9 @@ static int seektable_read(bgav_input_context_t * input,
 
   for(i = 0; i < ret->num_entries; i++)
     {
-    if(!bgav_input_read_64_be(input, &(ret->entries[i].sample_number)) ||
-       !bgav_input_read_64_be(input, &(ret->entries[i].offset)) ||
-       !bgav_input_read_16_be(input, &(ret->entries[i].num_samples)))
+    if(!bgav_input_read_64_be(input, &ret->entries[i].sample_number) ||
+       !bgav_input_read_64_be(input, &ret->entries[i].offset) ||
+       !bgav_input_read_16_be(input, &ret->entries[i].num_samples))
       return 0;
     }
   return 1;
@@ -228,11 +228,11 @@ static int open_flac(bgav_demuxer_context_t * ctx)
           bgav_input_open_memory(s->ext_data + 8, STREAMINFO_SIZE - 4,
                                  ctx->opt);
         
-        if(!streaminfo_read(input_mem, &(priv->streaminfo)))
+        if(!streaminfo_read(input_mem, &priv->streaminfo))
           goto fail;
         bgav_input_close(input_mem);
         bgav_input_destroy(input_mem);
-        //        streaminfo_dump(&(priv->streaminfo));
+        //        streaminfo_dump(&priv->streaminfo);
         
         s->data.audio.format.num_channels = priv->streaminfo.num_channels;
         s->data.audio.format.samplerate   = priv->streaminfo.samplerate;
@@ -253,9 +253,9 @@ static int open_flac(bgav_demuxer_context_t * ctx)
         bgav_input_skip(ctx->input, size);
         break;
       case 3: // SEEKTABLE
-        if(!seektable_read(ctx->input, &(priv->seektable), size))
+        if(!seektable_read(ctx->input, &priv->seektable, size))
           goto fail;
-        //        seektable_dump(&(priv->seektable));
+        //        seektable_dump(&priv->seektable);
         //        bgav_input_skip(ctx->input, size);
         break;
       case 4: // VORBIS_COMMENT
@@ -271,7 +271,7 @@ static int open_flac(bgav_demuxer_context_t * ctx)
         if(bgav_vorbis_comment_read(&vc, input_mem))
           {
           bgav_vorbis_comment_2_metadata(&vc,
-                                         &(ctx->tt->cur->metadata));
+                                         &ctx->tt->cur->metadata);
           }
         //        bgav_hexdump(comment_buffer, size, 16);
         bgav_vorbis_comment_free(&vc);

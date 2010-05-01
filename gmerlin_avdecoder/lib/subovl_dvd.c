@@ -47,9 +47,9 @@ static int init_dvdsub(bgav_stream_t * s)
   s->data.subtitle.decoder->priv = priv;
 
   /* Initialize format */
-  video_stream_format = &(s->data.subtitle.video_stream->data.video.format);
+  video_stream_format = &s->data.subtitle.video_stream->data.video.format;
 
-  gavl_video_format_copy(&(s->data.subtitle.format), video_stream_format);
+  gavl_video_format_copy(&s->data.subtitle.format, video_stream_format);
   s->data.subtitle.format.pixelformat = GAVL_YUVA_32;
   return 1;
   }

@@ -189,7 +189,7 @@ static void decode_2vuy(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   priv = (yuv_priv_t *)(s->data.video.decoder->priv);
 
   priv->frame->planes[0] = p->data;
-  gavl_video_frame_copy(&(s->data.video.format),
+  gavl_video_frame_copy(&s->data.video.format,
                         f, priv->frame);
   }
 
@@ -219,7 +219,7 @@ static void decode_VYUY(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   priv = (yuv_priv_t *)(s->data.video.decoder->priv);
 
   priv->frame->planes[0] = p->data;
-  gavl_video_frame_copy(&(s->data.video.format),
+  gavl_video_frame_copy(&s->data.video.format,
                         f, priv->frame);
   }
 
@@ -313,7 +313,7 @@ static void decode_YVU9(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   priv->frame->planes[2] = priv->frame->planes[0] + s->data.video.format.image_height * priv->frame->strides[0];
   priv->frame->planes[1] = priv->frame->planes[2] + (s->data.video.format.image_height)/4 * priv->frame->strides[1];
 
-  gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
+  gavl_video_frame_copy(&s->data.video.format, f, priv->frame);
   }
 
 

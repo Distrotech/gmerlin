@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: pnm.c,v 1.9 2009-05-14 07:32:13 gmerlin Exp $
+ * $Id: pnm.c,v 1.10 2010-05-01 23:53:59 gmerlin Exp $
  *
  * pnm protocol implementation 
  * based upon code from joschka
@@ -591,7 +591,7 @@ static int pnm_calc_stream(pnm_t *p) {
     case 2: /* both types or none possible, not so good */
       /* try to figure out by second index */
       if (  (p->seq_current[1] == p->seq_num[1])
-          &&(p->seq_current[1] != p->seq_num[3]))
+          && (p->seq_current[1] != p->seq_num[3]))
       {
         /* ok, only stream0 matches */
         p->seq_num[0]=p->seq_current[0]+1;
@@ -599,7 +599,7 @@ static int pnm_calc_stream(pnm_t *p) {
         return 0;
       }
       if (  (p->seq_current[1] == p->seq_num[3])
-          &&(p->seq_current[1] != p->seq_num[1]))
+          && (p->seq_current[1] != p->seq_num[1]))
       {
         /* ok, only stream1 matches */
         p->seq_num[2]=p->seq_current[0]+1;

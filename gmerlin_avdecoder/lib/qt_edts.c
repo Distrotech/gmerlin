@@ -34,7 +34,7 @@ int bgav_qt_edts_read(qt_atom_header_t * h, bgav_input_context_t * input,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('e', 'l', 's', 't'):
-        if(!bgav_qt_elst_read(&ch, input, &(ret->elst)))
+        if(!bgav_qt_elst_read(&ch, input, &ret->elst))
           return 0;
         ret->has_elst = 1;
         break;

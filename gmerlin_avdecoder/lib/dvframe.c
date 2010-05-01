@@ -444,10 +444,10 @@ void bgav_dv_dec_init_audio(bgav_dv_dec_t * d, bgav_stream_t * s)
   
   s->data.audio.format.samples_per_frame = d->profile->audio_min_samples[freq] + 0x3f;
   
-  gavl_set_channel_setup(&(s->data.audio.format));
+  gavl_set_channel_setup(&s->data.audio.format);
   s->fourcc = BGAV_MK_FOURCC('g', 'a', 'v', 'l');
   
-  gavl_audio_format_copy(&(d->audio_format), &(s->data.audio.format));
+  gavl_audio_format_copy(&d->audio_format, &s->data.audio.format);
   }
 
 void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t * d, int * pixel_width, int * pixel_height)
@@ -636,7 +636,7 @@ int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
   if(p)
     {
     if(!p->audio_frame)
-      p->audio_frame = gavl_audio_frame_create(&(d->audio_format));
+      p->audio_frame = gavl_audio_frame_create(&d->audio_format);
 
     for(i = 0; i < d->ach; i++)
       pcm[i] = p->audio_frame->channels.u_8[i*2];

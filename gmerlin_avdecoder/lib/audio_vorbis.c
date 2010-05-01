@@ -481,7 +481,7 @@ static int decode_frame_vorbis(bgav_stream_t * s)
   /* Decode stuff */
   
   while((samples_decoded =
-         vorbis_synthesis_pcmout(&priv->dec_vd, &(channels))) < 1)
+         vorbis_synthesis_pcmout(&priv->dec_vd, &channels)) < 1)
     {
     if(!next_packet(s))
       return 0;

@@ -278,7 +278,7 @@ static int get_urls(bgav_yml_node_t * n,
     {
     if(!sc(n->name, "audio") || !sc(n->name, "video"))
       {
-      get_url(n, &(r->urls[*index]), title, url_base, index);
+      get_url(n, &r->urls[*index], title, url_base, index);
       }
     else if(n->children)
       {

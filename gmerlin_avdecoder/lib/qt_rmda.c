@@ -32,7 +32,7 @@ int bgav_qt_rmda_read(qt_atom_header_t * h,
                       bgav_input_context_t * input, qt_rmda_t * ret)
   {
   qt_atom_header_t ch;
-  memcpy(&(ret->h), h, sizeof(*h));
+  memcpy(&ret->h, h, sizeof(*h));
 
   while(input->position < h->start_position + h->size)
     {
@@ -45,7 +45,7 @@ int bgav_qt_rmda_read(qt_atom_header_t * h,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('r', 'd', 'r', 'f'):
-        if(!bgav_qt_rdrf_read(&ch, input, &(ret->rdrf)))
+        if(!bgav_qt_rdrf_read(&ch, input, &ret->rdrf))
           return 0;
         ret->has_rdrf = 1;
         break;
@@ -72,7 +72,7 @@ int bgav_qt_rmda_read(qt_atom_header_t * h,
 
 void bgav_qt_rmda_free(qt_rmda_t * r)
   {
-  bgav_qt_rdrf_free(&(r->rdrf));
+  bgav_qt_rdrf_free(&r->rdrf);
   }
 
 void bgav_qt_rmda_dump(int indent, qt_rmda_t * r)

@@ -75,12 +75,12 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h,
   int name_len;
   uint8_t tmp_8;
   READ_VERSION_AND_FLAGS;
-  memcpy(&(ret->h), h, sizeof(*h));
-  if (!bgav_input_read_fourcc(input, &(ret->component_type)) ||
-      !bgav_input_read_fourcc(input, &(ret->component_subtype)) ||
-      !bgav_input_read_fourcc(input, &(ret->component_manufacturer)) ||
-      !bgav_input_read_32_be(input, &(ret->component_flags)) ||
-      !bgav_input_read_32_be(input, &(ret->component_flag_mask)))
+  memcpy(&ret->h, h, sizeof(*h));
+  if (!bgav_input_read_fourcc(input, &ret->component_type) ||
+      !bgav_input_read_fourcc(input, &ret->component_subtype) ||
+      !bgav_input_read_fourcc(input, &ret->component_manufacturer) ||
+      !bgav_input_read_32_be(input, &ret->component_flags) ||
+      !bgav_input_read_32_be(input, &ret->component_flag_mask))
     return 0;
   if(!ret->component_type) /* mp4 case:
                                Read everything until the end of the atom */

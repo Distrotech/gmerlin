@@ -136,7 +136,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
   priv->reader.get_size = mpc_get_size;
   priv->reader.canseek  = mpc_canseek;
 
-  priv->reader.data     = &(priv->rs);
+  priv->reader.data     = &priv->rs;
 
   /* Set up track table */
   
@@ -184,7 +184,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
     else if(apetag)
       bgav_ape_tag_2_metadata(apetag, &end_metadata);
     
-    bgav_metadata_merge(&(ctx->tt->cur->metadata),
+    bgav_metadata_merge(&ctx->tt->cur->metadata,
                         &start_metadata, &end_metadata);
     bgav_metadata_free(&start_metadata);
     bgav_metadata_free(&end_metadata);
@@ -192,13 +192,13 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
   
   else if(ctx->input->id3v2)
     bgav_id3v2_2_metadata(ctx->input->id3v2,
-                          &(ctx->tt->cur->metadata));
+                          &ctx->tt->cur->metadata);
   else if(id3v1)
     bgav_id3v1_2_metadata(id3v1,
-                          &(ctx->tt->cur->metadata));
+                          &ctx->tt->cur->metadata);
   else if(apetag)
     bgav_ape_tag_2_metadata(apetag,
-                            &(ctx->tt->cur->metadata));
+                            &ctx->tt->cur->metadata);
   
   if(id3v1)
     bgav_id3v1_destroy(id3v1);
@@ -207,15 +207,15 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
   
   /* Get stream info */
   
-  mpc_streaminfo_init(&(priv->si));
+  mpc_streaminfo_init(&priv->si);
   
-  if(mpc_streaminfo_read(&(priv->si), &(priv->reader)) != ERROR_CODE_OK)
+  if(mpc_streaminfo_read(&priv->si, &priv->reader) != ERROR_CODE_OK)
     return 0;
   
   /* Fire up decoder and set up stream */
   
-  mpc_decoder_setup(&(priv->dec), &(priv->reader));
-  if(!mpc_decoder_initialize(&(priv->dec), &(priv->si)))
+  mpc_decoder_setup(&priv->dec, &priv->reader);
+  if(!mpc_decoder_initialize(&priv->dec, &priv->si))
     return 0;
   
   s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
@@ -225,7 +225,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.samples_per_frame = MPC_FRAME_LENGTH;
-  gavl_set_channel_setup(&(s->data.audio.format));
+  gavl_set_channel_setup(&s->data.audio.format);
   
   s->fourcc = BGAV_MK_FOURCC('g', 'a', 'v', 'l');
 
@@ -235,7 +235,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
   
   ctx->tt->cur->duration =
     gavl_samples_to_time(s->data.audio.format.samplerate,
-                         mpc_streaminfo_get_length_samples(&(priv->si)));
+                         mpc_streaminfo_get_length_samples(&priv->si));
 
   ctx->stream_description = bgav_sprintf("Musepack Format");
 
@@ -253,16 +253,16 @@ static int next_packet_mpc(bgav_demuxer_context_t * ctx)
   mpc_priv_t * priv;
   priv = (mpc_priv_t *)(ctx->priv);
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
 
   p = bgav_stream_get_packet_write(s);
 
   //  bgav_packet_alloc(p, MPC_DECODER_BUFFER_LENGTH * sizeof(float));
 
   if(!p->audio_frame)
-    p->audio_frame = gavl_audio_frame_create(&(s->data.audio.format));
+    p->audio_frame = gavl_audio_frame_create(&s->data.audio.format);
   
-  result = mpc_decoder_decode(&(priv->dec),
+  result = mpc_decoder_decode(&priv->dec,
                               p->audio_frame->samples.f, 0, 0);
   
   if(!result || (result == (unsigned int)(-1)))
@@ -282,10 +282,10 @@ static void seek_mpc(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   mpc_priv_t * priv;
   priv = (mpc_priv_t *)(ctx->priv);
 
-  s = &(ctx->tt->cur->audio_streams[0]);
+  s = &ctx->tt->cur->audio_streams[0];
 
   STREAM_SET_SYNC(s, gavl_time_rescale(scale, s->timescale, time));
-  mpc_decoder_seek_sample(&(priv->dec), STREAM_GET_SYNC(s));
+  mpc_decoder_seek_sample(&priv->dec, STREAM_GET_SYNC(s));
   }
 
 static void close_mpc(bgav_demuxer_context_t * ctx)

@@ -210,12 +210,12 @@ static void stsd_dump_timecode(int indent, qt_sample_description_t * d)
 static int stsd_read_common(bgav_input_context_t * input,
                             qt_sample_description_t * ret)
   {
-  return (bgav_input_read_fourcc(input, &(ret->fourcc)) &&
+  return (bgav_input_read_fourcc(input, &ret->fourcc) &&
           (bgav_input_read_data(input, ret->reserved, 6) == 6) &&
-          bgav_input_read_16_be(input, &(ret->data_reference_index)) &&
-          bgav_input_read_16_be(input, &(ret->version)) &&
-          bgav_input_read_16_be(input, &(ret->revision_level)) &&
-          bgav_input_read_32_be(input, &(ret->vendor)));
+          bgav_input_read_16_be(input, &ret->data_reference_index) &&
+          bgav_input_read_16_be(input, &ret->version) &&
+          bgav_input_read_16_be(input, &ret->revision_level) &&
+          bgav_input_read_32_be(input, &ret->vendor));
   }
 
 
@@ -249,7 +249,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
       return 0;
     ret->format.audio.samplerate = (int)(tmp_d + 0.5);
 
-    if(!bgav_input_read_32_be(input, &(ret->format.audio.num_channels)))
+    if(!bgav_input_read_32_be(input, &ret->format.audio.num_channels))
       return 0;
 
     /*
@@ -260,10 +260,10 @@ static int stsd_read_audio(bgav_input_context_t * input,
     /* 
      *  UInt32     constBitsPerChannel;
      */
-    if(!bgav_input_read_32_be(input, &(ret->format.audio.bits_per_sample)))
+    if(!bgav_input_read_32_be(input, &ret->format.audio.bits_per_sample))
       return 0;
 
-    if(!bgav_input_read_32_be(input, &(ret->format.audio.formatSpecificFlags)))
+    if(!bgav_input_read_32_be(input, &ret->format.audio.formatSpecificFlags))
       return 0;
 
     /*
@@ -274,7 +274,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
     }
   else
     {
-    if(!bgav_input_read_16_be(input, &(tmp_16)))
+    if(!bgav_input_read_16_be(input, &tmp_16))
       return 0;
     ret->format.audio.num_channels = tmp_16;
 
@@ -283,8 +283,8 @@ static int stsd_read_audio(bgav_input_context_t * input,
 
     ret->format.audio.bits_per_sample = tmp_16;
     
-    if(!bgav_input_read_16_be(input, &(ret->format.audio.compression_id)) ||
-       !bgav_input_read_16_be(input, &(ret->format.audio.packet_size)) ||
+    if(!bgav_input_read_16_be(input, &ret->format.audio.compression_id) ||
+       !bgav_input_read_16_be(input, &ret->format.audio.packet_size) ||
        !bgav_input_read_32_be(input, &tmp_32))
       return 0;
     
@@ -292,10 +292,10 @@ static int stsd_read_audio(bgav_input_context_t * input,
     
     if(ret->version > 0)
       {
-      if(!bgav_input_read_32_be(input, &(ret->format.audio.samples_per_packet)) ||
-         !bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_packet)) ||
-         !bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_frame)) ||
-         !bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_sample)))
+      if(!bgav_input_read_32_be(input, &ret->format.audio.samples_per_packet) ||
+         !bgav_input_read_32_be(input, &ret->format.audio.bytes_per_packet) ||
+         !bgav_input_read_32_be(input, &ret->format.audio.bytes_per_frame) ||
+         !bgav_input_read_32_be(input, &ret->format.audio.bytes_per_sample))
         return 0;
       }
     }
@@ -309,25 +309,25 @@ static int stsd_read_audio(bgav_input_context_t * input,
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('w', 'a', 'v', 'e'):
-        if(!bgav_qt_wave_read(&h, input, &(ret->format.audio.wave)))
+        if(!bgav_qt_wave_read(&h, input, &ret->format.audio.wave))
           {
           return 0;
           }
         ret->format.audio.has_wave = 1;
         break;
       case BGAV_MK_FOURCC('e', 's', 'd', 's'):
-        if(!bgav_qt_esds_read(&h, input, &(ret->esds)))
+        if(!bgav_qt_esds_read(&h, input, &ret->esds))
           return 0;
         ret->has_esds = 1;
         
         break;
       case BGAV_MK_FOURCC('c', 'h', 'a', 'n'):
-        if(!bgav_qt_chan_read(&h, input, &(ret->format.audio.chan)))
+        if(!bgav_qt_chan_read(&h, input, &ret->format.audio.chan))
           return 0;
         ret->format.audio.has_chan = 1;
         break;
       case BGAV_MK_FOURCC('g', 'l', 'b', 'l'):
-        if(!bgav_qt_glbl_read(&h, input, &(ret->glbl)))
+        if(!bgav_qt_glbl_read(&h, input, &ret->glbl))
           return 0;
         ret->has_glbl = 1;
         break;
@@ -353,19 +353,19 @@ static int stsd_read_video(bgav_input_context_t * input,
     return 0;
   
   ret->type = BGAV_STREAM_VIDEO;
-  if(!bgav_input_read_32_be(input, &(ret->format.video.temporal_quality)) ||
-     !bgav_input_read_32_be(input, &(ret->format.video.spatial_quality)) ||
-     !bgav_input_read_16_be(input, &(ret->format.video.width)) ||
-     !bgav_input_read_16_be(input, &(ret->format.video.height)) ||
-     !bgav_qt_read_fixed32(input, &(ret->format.video.horizontal_resolution)) ||
-     !bgav_qt_read_fixed32(input, &(ret->format.video.vertical_resolution)) ||
-     !bgav_input_read_32_be(input, &(ret->format.video.data_size)) ||
-     !bgav_input_read_16_be(input, &(ret->format.video.frame_count)) ||
+  if(!bgav_input_read_32_be(input, &ret->format.video.temporal_quality) ||
+     !bgav_input_read_32_be(input, &ret->format.video.spatial_quality) ||
+     !bgav_input_read_16_be(input, &ret->format.video.width) ||
+     !bgav_input_read_16_be(input, &ret->format.video.height) ||
+     !bgav_qt_read_fixed32(input, &ret->format.video.horizontal_resolution) ||
+     !bgav_qt_read_fixed32(input, &ret->format.video.vertical_resolution) ||
+     !bgav_input_read_32_be(input, &ret->format.video.data_size) ||
+     !bgav_input_read_16_be(input, &ret->format.video.frame_count) ||
      !bgav_input_read_8(input, &len) ||
      (bgav_input_read_data(input,
                            (uint8_t*)(ret->format.video.compressor_name), 31) < 31) ||
-     !bgav_input_read_16_be(input, &(ret->format.video.depth)) ||
-     !bgav_input_read_16_be(input, &(ret->format.video.ctab_id)))
+     !bgav_input_read_16_be(input, &ret->format.video.depth) ||
+     !bgav_input_read_16_be(input, &ret->format.video.ctab_id))
     return 0;
   if(len < 31)
     ret->format.video.compressor_name[len] = '\0';
@@ -381,17 +381,17 @@ static int stsd_read_video(bgav_input_context_t * input,
       {
       bgav_input_skip(input, 4); /* Seed */
       bgav_input_skip(input, 2); /* Flags */
-      if(!bgav_input_read_16_be(input, &(ret->format.video.ctab_size)))
+      if(!bgav_input_read_16_be(input, &ret->format.video.ctab_size))
         return 0;
       ret->format.video.ctab_size++;
       ret->format.video.ctab =
         malloc(ret->format.video.ctab_size * sizeof(*(ret->format.video.ctab)));
       for(i = 0; i < ret->format.video.ctab_size; i++)
         {
-        if(!bgav_input_read_16_be(input, &(ret->format.video.ctab[i].a)) ||
-           !bgav_input_read_16_be(input, &(ret->format.video.ctab[i].r)) ||
-           !bgav_input_read_16_be(input, &(ret->format.video.ctab[i].g)) ||
-           !bgav_input_read_16_be(input, &(ret->format.video.ctab[i].b)))
+        if(!bgav_input_read_16_be(input, &ret->format.video.ctab[i].a) ||
+           !bgav_input_read_16_be(input, &ret->format.video.ctab[i].r) ||
+           !bgav_input_read_16_be(input, &ret->format.video.ctab[i].g) ||
+           !bgav_input_read_16_be(input, &ret->format.video.ctab[i].b))
           return 0;
         }
       }
@@ -439,7 +439,7 @@ static int stsd_read_video(bgav_input_context_t * input,
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('e', 's', 'd', 's'):
-        if(!bgav_qt_esds_read(&h, input, &(ret->esds)))
+        if(!bgav_qt_esds_read(&h, input, &ret->esds))
           return 0;
         ret->has_esds = 1;
         break;
@@ -453,19 +453,19 @@ static int stsd_read_video(bgav_input_context_t * input,
         bgav_qt_atom_skip(input, &h);
         break;
       case BGAV_MK_FOURCC('p', 'a', 's', 'p'):
-        if(!bgav_qt_pasp_read(&h, input, &(ret->format.video.pasp)))
+        if(!bgav_qt_pasp_read(&h, input, &ret->format.video.pasp))
           return 0;
         else
           ret->format.video.has_pasp = 1;
         break;
       case BGAV_MK_FOURCC('f', 'i', 'e', 'l'):
-        if(!bgav_qt_fiel_read(&h, input, &(ret->format.video.fiel)))
+        if(!bgav_qt_fiel_read(&h, input, &ret->format.video.fiel))
           return 0;
         else
           ret->format.video.has_fiel = 1;
         break;
       case BGAV_MK_FOURCC('g', 'l', 'b', 'l'):
-        if(!bgav_qt_glbl_read(&h, input, &(ret->glbl)))
+        if(!bgav_qt_glbl_read(&h, input, &ret->glbl))
           return 0;
         ret->has_glbl = 1;
         break;
@@ -565,7 +565,7 @@ static int stsd_read_subtitle_tx3g(bgav_input_context_t * input,
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('f', 't', 'a', 'b'):
-        if(!bgav_qt_ftab_read(&h, input, &(ret->format.subtitle_tx3g.ftab)))
+        if(!bgav_qt_ftab_read(&h, input, &ret->format.subtitle_tx3g.ftab))
           return 0;
         else
           ret->format.subtitle_tx3g.has_ftab = 1;
@@ -601,16 +601,16 @@ int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * input,
   {
   uint32_t i;
   READ_VERSION_AND_FLAGS;
-  memcpy(&(ret->h), h, sizeof(*h));
+  memcpy(&ret->h, h, sizeof(*h));
   
-  if(!bgav_input_read_32_be(input, &(ret->num_entries)))
+  if(!bgav_input_read_32_be(input, &ret->num_entries))
     return 0;
 
   ret->entries = calloc(ret->num_entries, sizeof(*(ret->entries)));
   
   for(i = 0; i < ret->num_entries; i++)
     {
-    if(!bgav_input_read_32_be(input, &(ret->entries[i].data_size)))
+    if(!bgav_input_read_32_be(input, &ret->entries[i].data_size))
       return 0;
     ret->entries[i].data_size -= 4;
     ret->entries[i].data = malloc(ret->entries[i].data_size);
@@ -640,7 +640,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
                                          c->entries[i].data_size,
                                          opt);
       
-      result = stsd_read_video(input_mem, &(c->entries[i].desc));
+      result = stsd_read_video(input_mem, &c->entries[i].desc);
 
       if(!c->entries[i].desc.format.video.width)
         {
@@ -660,7 +660,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size, opt);
       
-      result = stsd_read_audio(input_mem, &(c->entries[i].desc));
+      result = stsd_read_audio(input_mem, &c->entries[i].desc);
       bgav_input_destroy(input_mem);
       if(!result)
         return 0;
@@ -672,7 +672,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size, opt);
       
-      result = stsd_read_subtitle_qt(input_mem, &(c->entries[i].desc));
+      result = stsd_read_subtitle_qt(input_mem, &c->entries[i].desc);
       bgav_input_destroy(input_mem);
       if(!result)
         return 0;
@@ -684,7 +684,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size, opt);
       
-      result = stsd_read_subtitle_tx3g(input_mem, &(c->entries[i].desc));
+      result = stsd_read_subtitle_tx3g(input_mem, &c->entries[i].desc);
       bgav_input_destroy(input_mem);
       if(!result)
         return 0;
@@ -696,7 +696,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size, opt);
       
-      result = stsd_read_timecode(input_mem, &(c->entries[i].desc));
+      result = stsd_read_timecode(input_mem, &c->entries[i].desc);
       bgav_input_destroy(input_mem);
       if(!result)
         return 0;
@@ -716,9 +716,9 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
     if(c->entries[i].desc.type == BGAV_STREAM_AUDIO)
       {
       if(c->entries[i].desc.format.audio.has_wave)
-        bgav_qt_wave_free(&(c->entries[i].desc.format.audio.wave));
+        bgav_qt_wave_free(&c->entries[i].desc.format.audio.wave);
       if(c->entries[i].desc.format.audio.has_chan)
-        bgav_qt_chan_free(&(c->entries[i].desc.format.audio.chan));
+        bgav_qt_chan_free(&c->entries[i].desc.format.audio.chan);
       
       }
     else if(c->entries[i].desc.type == BGAV_STREAM_VIDEO)
@@ -730,12 +730,12 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
              BGAV_MK_FOURCC('t','x','3','g')) &&
             c->entries[i].desc.format.subtitle_tx3g.has_ftab)
       {
-      bgav_qt_ftab_free(&(c->entries[i].desc.format.subtitle_tx3g.ftab));
+      bgav_qt_ftab_free(&c->entries[i].desc.format.subtitle_tx3g.ftab);
       }
     if(c->entries[i].desc.has_esds)
-      bgav_qt_esds_free(&(c->entries[i].desc.esds));
+      bgav_qt_esds_free(&c->entries[i].desc.esds);
     if(c->entries[i].desc.has_glbl)
-      bgav_qt_glbl_free(&(c->entries[i].desc.glbl));
+      bgav_qt_glbl_free(&c->entries[i].desc.glbl);
     }
 
   

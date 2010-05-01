@@ -95,7 +95,7 @@ static int decode_frame_a52(bgav_stream_t * s)
     s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
     s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE; 
     bgav_a52_header_get_format(&h, &s->data.audio.format);
-    priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    priv->frame = gavl_audio_frame_create(&s->data.audio.format);
     }
   
   /* Now, decode this */
@@ -126,8 +126,8 @@ static int decode_frame_a52(bgav_stream_t * s)
         priv->frame->channels.f[i][k][i*256] = priv->samples[j*256 + k];
         
 #else
-      memcpy(&(priv->frame->channels.f[j][i*256]),
-             &(priv->samples[j * 256]),
+      memcpy(&priv->frame->channels.f[j][i*256],
+             &priv->samples[j * 256],
              256 * sizeof(float));
 #endif
       }
@@ -148,7 +148,7 @@ static int init_a52(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
   
-  //  a52_header_dump(&(priv->header));
+  //  a52_header_dump(&priv->header);
     
   /* Get format */
 
