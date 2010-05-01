@@ -156,9 +156,16 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
             else
               parser->s->fourcc = BGAV_MK_FOURCC('m','p','v','1');
 
-            if(!parser->format->pixel_width)
-              bgav_mpv_get_pixel_aspect(&priv->sh,
-                                        parser->format);
+            }
+
+          if(!parser->format->pixel_width)
+            bgav_mpv_get_pixel_aspect(&priv->sh,
+                                      parser->format);
+
+          if(parser->s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
+            {
+            parser->s->data.video.format.pixelformat =
+              bgav_mpv_get_pixelformat(&priv->sh);
             }
           
           if(!priv->has_picture_start)
