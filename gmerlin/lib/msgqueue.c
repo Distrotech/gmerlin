@@ -89,7 +89,7 @@ void bg_msg_set_id(bg_msg_t * msg, int id)
 
   /* Zero everything */
 
-  memset(&(msg->args), 0, sizeof(msg->args));
+  memset(&msg->args, 0, sizeof(msg->args));
   
   }
 
@@ -514,15 +514,15 @@ void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
   
   pos = ptr;
 
-  pos = get_str(pos, &(m->artist));
-  pos = get_str(pos, &(m->title));
-  pos = get_str(pos, &(m->album));
-  pos = get_str(pos, &(m->date));
-  pos = get_str(pos, &(m->genre));
-  pos = get_str(pos, &(m->comment));
-  pos = get_str(pos, &(m->author));
-  pos = get_str(pos, &(m->copyright));
-  pos = get_32(pos,  &(tmp));
+  pos = get_str(pos, &m->artist);
+  pos = get_str(pos, &m->title);
+  pos = get_str(pos, &m->album);
+  pos = get_str(pos, &m->date);
+  pos = get_str(pos, &m->genre);
+  pos = get_str(pos, &m->comment);
+  pos = get_str(pos, &m->author);
+  pos = get_str(pos, &m->copyright);
+  pos = get_32(pos,  &tmp);
   m->track = tmp;
   
   free(ptr);
@@ -533,7 +533,7 @@ bg_msg_t * bg_msg_create()
   bg_msg_t * ret;
   ret = calloc(1, sizeof(*ret));
   
-  sem_init(&(ret->produced), 0, 0);
+  sem_init(&ret->produced, 0, 0);
     
   return ret;
   }
@@ -555,7 +555,7 @@ void bg_msg_free(bg_msg_t * m)
 void bg_msg_destroy(bg_msg_t * m)
   {
   bg_msg_free(m);
-  sem_destroy(&(m->produced));
+  sem_destroy(&m->produced);
   free(m);
   }
 
@@ -752,8 +752,8 @@ bg_msg_queue_t * bg_msg_queue_create()
   
   /* Initialize chain mutex */
 
-  pthread_mutex_init(&(ret->chain_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->write_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->chain_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->write_mutex,(pthread_mutexattr_t *)0);
   
   return ret;
   }
@@ -774,7 +774,7 @@ void bg_msg_queue_destroy(bg_msg_queue_t * m)
 
 bg_msg_t * bg_msg_queue_lock_read(bg_msg_queue_t * m)
   {
-  while(sem_wait(&(m->msg_output->produced)) == -1)
+  while(sem_wait(&m->msg_output->produced) == -1)
     {
     if(errno != EINTR)
       return (void*)0;
@@ -786,7 +786,7 @@ bg_msg_t * bg_msg_queue_lock_read(bg_msg_queue_t * m)
 
 bg_msg_t * bg_msg_queue_try_lock_read(bg_msg_queue_t * m)
   {
-  if(!sem_trywait(&(m->msg_output->produced)))
+  if(!sem_trywait(&m->msg_output->produced))
     return m->msg_output;
   else
     return (bg_msg_t*)0;
@@ -795,7 +795,7 @@ bg_msg_t * bg_msg_queue_try_lock_read(bg_msg_queue_t * m)
 int bg_msg_queue_peek(bg_msg_queue_t * m, uint32_t * id)
   {
   int sem_val;
-  sem_getvalue(&(m->msg_output->produced), &sem_val);
+  sem_getvalue(&m->msg_output->produced, &sem_val);
   if(sem_val)
     {
     if(id)
@@ -811,7 +811,7 @@ void bg_msg_queue_unlock_read(bg_msg_queue_t * m)
 
   bg_msg_t * old_out_message;
 
-  pthread_mutex_lock(&(m->chain_mutex));
+  pthread_mutex_lock(&m->chain_mutex);
   old_out_message = m->msg_output;
   
   bg_msg_free(old_out_message);
@@ -821,7 +821,7 @@ void bg_msg_queue_unlock_read(bg_msg_queue_t * m)
   m->msg_last = m->msg_last->next;
   m->msg_last->next = (bg_msg_t*)0;
 
-  pthread_mutex_unlock(&(m->chain_mutex));
+  pthread_mutex_unlock(&m->chain_mutex);
   }
 
 /*
@@ -830,7 +830,7 @@ void bg_msg_queue_unlock_read(bg_msg_queue_t * m)
 
 bg_msg_t * bg_msg_queue_lock_write(bg_msg_queue_t * m)
   {
-  pthread_mutex_lock(&(m->write_mutex));
+  pthread_mutex_lock(&m->write_mutex);
   return m->msg_input;
   }
 
@@ -838,7 +838,7 @@ void bg_msg_queue_unlock_write(bg_msg_queue_t * m)
   {
   bg_msg_t * message = m->msg_input;
     
-  pthread_mutex_lock(&(m->chain_mutex));
+  pthread_mutex_lock(&m->chain_mutex);
   if(!m->msg_input->next)
     {
     m->msg_input->next = bg_msg_create();
@@ -846,9 +846,9 @@ void bg_msg_queue_unlock_write(bg_msg_queue_t * m)
     }
   
   m->msg_input = m->msg_input->next;
-  sem_post(&(message->produced));
-  pthread_mutex_unlock(&(m->chain_mutex));
-  pthread_mutex_unlock(&(m->write_mutex));
+  sem_post(&message->produced);
+  pthread_mutex_unlock(&m->chain_mutex);
+  pthread_mutex_unlock(&m->write_mutex);
 
   }
 
@@ -868,7 +868,7 @@ struct bg_msg_queue_list_s
 bg_msg_queue_list_t * bg_msg_queue_list_create()
   {
   bg_msg_queue_list_t * ret = calloc(1, sizeof(*ret));
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
   return ret;
   }
 
@@ -894,7 +894,7 @@ bg_msg_queue_list_send(bg_msg_queue_list_t * l,
   bg_msg_t * msg;
   list_entry_t * entry;
   
-  pthread_mutex_lock(&(l->mutex));
+  pthread_mutex_lock(&l->mutex);
   entry = l->entries;
   
   while(entry)
@@ -904,7 +904,7 @@ bg_msg_queue_list_send(bg_msg_queue_list_t * l,
     bg_msg_queue_unlock_write(entry->q);
     entry = entry->next;
     }
-  pthread_mutex_unlock(&(l->mutex));
+  pthread_mutex_unlock(&l->mutex);
   }
 
 void bg_msg_queue_list_add(bg_msg_queue_list_t * list,
@@ -914,13 +914,13 @@ void bg_msg_queue_list_add(bg_msg_queue_list_t * list,
 
   new_entry = calloc(1, sizeof(*new_entry));
   
-  pthread_mutex_lock(&(list->mutex));
+  pthread_mutex_lock(&list->mutex);
 
   new_entry->next = list->entries;
   new_entry->q = queue;
   list->entries = new_entry;
   
-  pthread_mutex_unlock(&(list->mutex));
+  pthread_mutex_unlock(&list->mutex);
   }
 
 void bg_msg_queue_list_remove(bg_msg_queue_list_t * list,
@@ -929,7 +929,7 @@ void bg_msg_queue_list_remove(bg_msg_queue_list_t * list,
   list_entry_t * tmp_entry;
   list_entry_t * entry_before;
   
-  pthread_mutex_lock(&(list->mutex));
+  pthread_mutex_lock(&list->mutex);
 
   if(list->entries->q == queue)
     {
@@ -948,7 +948,7 @@ void bg_msg_queue_list_remove(bg_msg_queue_list_t * list,
     entry_before->next = tmp_entry->next;
     free(tmp_entry);
     }
-  pthread_mutex_unlock(&(list->mutex));
+  pthread_mutex_unlock(&list->mutex);
   }
 
 /*
@@ -1330,7 +1330,7 @@ int bg_msg_write(bg_msg_t * msg, bg_msg_write_callback_t cb,
 
   for(i = 0; i < msg->num_args; i++)
     {
-    cb(cb_data, &(msg->args[i].type), 1);
+    cb(cb_data, &msg->args[i].type, 1);
 
     switch(msg->args[i].type)
       {
@@ -1347,7 +1347,7 @@ int bg_msg_write(bg_msg_t * msg, bg_msg_write_callback_t cb,
           return 0;
         break;
       case TYPE_POINTER:
-        if(!write_uint32(&(msg->args[i].size), cb, cb_data))
+        if(!write_uint32(&msg->args[i].size, cb, cb_data))
           return 0;
         if(cb(cb_data, msg->args[i].value.val_ptr, msg->args[i].size) <
            msg->args[i].size)

@@ -87,9 +87,9 @@ void bg_recorder_create_video(bg_recorder_t * rec)
   vs->enc_cnv = gavl_video_converter_create();
   vs->snapshot_cnv = gavl_video_converter_create();
   
-  bg_gavl_video_options_init(&(vs->opt));
+  bg_gavl_video_options_init(&vs->opt);
   
-  vs->fc = bg_video_filter_chain_create(&(vs->opt), rec->plugin_reg);
+  vs->fc = bg_video_filter_chain_create(&vs->opt, rec->plugin_reg);
 
   vs->th = bg_player_thread_create(rec->tc);
   vs->timer = gavl_timer_create();
@@ -124,7 +124,7 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   if(vs->snapshot_handle)
     bg_plugin_unref(vs->snapshot_handle);
   
-  bg_gavl_video_options_free(&(vs->opt));
+  bg_gavl_video_options_free(&vs->opt);
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -776,7 +776,7 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   vs->in_data = vs->fc;
   vs->in_stream = 0;
   
-  bg_video_filter_chain_init(vs->fc, &(vs->input_format), &(vs->pipe_format));
+  bg_video_filter_chain_init(vs->fc, &vs->input_format, &vs->pipe_format);
   
   /* Set up monitoring */
 

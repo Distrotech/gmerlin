@@ -132,7 +132,7 @@ card_widget_t * card_widget_create(alsa_card_t * c, bg_cfg_section_t * section)
     subsection = bg_cfg_section_find_subsection(section, c->groups[i].label);
     
     ret->controls[ret->num_controls] =
-      control_widget_create(&(c->groups[i]), subsection, ret);
+      control_widget_create(&c->groups[i], subsection, ret);
     
     if(ret->controls[ret->num_controls])
       {
@@ -468,8 +468,8 @@ void card_widget_get_window_coords(card_widget_t * w)
   while(item)
     {
     win = (own_window_t*)(item->data);
-    gtk_window_get_position(GTK_WINDOW(win->window), &(x), &(y));
-    gtk_window_get_size(GTK_WINDOW(win->window), &(width), &(height));
+    gtk_window_get_position(GTK_WINDOW(win->window), &x, &y);
+    gtk_window_get_size(GTK_WINDOW(win->window), &width, &height);
     control_widget_set_coords(win->control, x, y, width, height);
     
     item = item->next;
@@ -492,8 +492,8 @@ static void unmap_callback(GtkWidget * w, gpointer data)
   int x, y, width, height;
 
   win = (own_window_t*)data;
-  gtk_window_get_position(GTK_WINDOW(win->window), &(x), &(y));
-  gtk_window_get_size(GTK_WINDOW(win->window), &(width), &(height));
+  gtk_window_get_position(GTK_WINDOW(win->window), &x, &y);
+  gtk_window_get_size(GTK_WINDOW(win->window), &width, &height);
 
   
   control_widget_set_coords(win->control, x, y, width, height);

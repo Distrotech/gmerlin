@@ -116,32 +116,32 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
       }
     else if(!BG_XML_STRCMP(node->name, "DURATION"))
       {
-      sscanf(tmp_string, "%" PRId64, &(ret->duration));
+      sscanf(tmp_string, "%" PRId64, &ret->duration);
       }
     else if(!BG_XML_STRCMP(node->name, "ASTREAMS"))
       {
-      sscanf(tmp_string, "%d", &(ret->num_audio_streams));
+      sscanf(tmp_string, "%d", &ret->num_audio_streams);
       }
     else if(!BG_XML_STRCMP(node->name, "STSTREAMS"))
       {
-      sscanf(tmp_string, "%d", &(ret->num_still_streams));
+      sscanf(tmp_string, "%d", &ret->num_still_streams);
       }
     else if(!BG_XML_STRCMP(node->name, "VSTREAMS"))
       {
-      sscanf(tmp_string, "%d", &(ret->num_video_streams));
+      sscanf(tmp_string, "%d", &ret->num_video_streams);
       }
     else if(!BG_XML_STRCMP(node->name, "INDEX"))
       {
-      sscanf(tmp_string, "%d", &(ret->index));
+      sscanf(tmp_string, "%d", &ret->index);
       }
     else if(!BG_XML_STRCMP(node->name, "TOTAL_TRACKS"))
       {
-      sscanf(tmp_string, "%d", &(ret->total_tracks));
+      sscanf(tmp_string, "%d", &ret->total_tracks);
       }
     else if(!BG_XML_STRCMP(node->name, "MTIME"))
       {
       int64_t mtime;
-      sscanf(tmp_string, "%"PRId64"", &(mtime));
+      sscanf(tmp_string, "%"PRId64"", &mtime);
       ret->mtime = mtime;
       }
     
@@ -605,7 +605,7 @@ static int xml_write_callback(void * context, const char * buffer,
       o->bytes_allocated += BLOCK_SIZE;
     o->buffer = realloc(o->buffer, o->bytes_allocated);
     }
-  memcpy(&(o->buffer[o->bytes_written]), buffer, len);
+  memcpy(&o->buffer[o->bytes_written], buffer, len);
   o->bytes_written += len;
   return len;
   }

@@ -133,7 +133,7 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
                bits, color_type, PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
   
-  gavl_video_format_copy(&(png->format), format);
+  gavl_video_format_copy(&png->format, format);
 
   /* Set metadata */
   

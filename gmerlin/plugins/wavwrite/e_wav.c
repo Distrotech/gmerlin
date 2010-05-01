@@ -475,7 +475,7 @@ static int open_wav(void * data, const char * filename,
     result = 1;
 
   if(metadata)
-    bg_metadata_copy(&(wav->metadata), metadata);
+    bg_metadata_copy(&wav->metadata, metadata);
   
   return result;
   }
@@ -488,7 +488,7 @@ static int add_audio_stream_wav(void * data, const char * language,
   
   wav = (wav_t*)data;
 
-  gavl_audio_format_copy(&(wav->format), format);
+  gavl_audio_format_copy(&wav->format, format);
 
   
   wav->format.interleave_mode = GAVL_INTERLEAVE_ALL;
@@ -530,7 +530,7 @@ static void get_audio_format_wav(void * data, int stream,
   {
   wav_t * wav;
   wav = (wav_t*)data;
-  gavl_audio_format_copy(ret, &(wav->format));
+  gavl_audio_format_copy(ret, &wav->format);
   }
 
 static int start_wav(void * data)
@@ -615,7 +615,7 @@ static int close_wav(void * data, int do_delete)
     if(wav->write_info_chunk)
       {
       fseek(wav->output, total_bytes, SEEK_SET);
-      ret = write_info_chunk(wav->output, &(wav->metadata));
+      ret = write_info_chunk(wav->output, &wav->metadata);
       total_bytes = ftell(wav->output);
       }
     }
@@ -625,7 +625,7 @@ static int close_wav(void * data, int do_delete)
   if(do_delete)
     remove(wav->filename);
 
-  bg_metadata_free(&(wav->metadata));
+  bg_metadata_free(&wav->metadata);
   
   wav->output = NULL;
   return ret;

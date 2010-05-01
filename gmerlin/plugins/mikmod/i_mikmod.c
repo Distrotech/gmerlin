@@ -146,7 +146,7 @@ static int open_mikmod(void * data, const char * arg)
   mik->track_info.audio_streams[0].description = bg_strdup(NULL, "mikmod audio");
   mik->track_info.audio_streams[0].format.samples_per_frame = 1024;
   
-  gavl_set_channel_setup(&(mik->track_info.audio_streams[0].format));
+  gavl_set_channel_setup(&mik->track_info.audio_streams[0].format);
 
   command = bg_sprintf("mikmod -q --playmode 0 --noloops --exitafter -f %d -d stdout", mik->frequency);
     
@@ -218,7 +218,7 @@ static int get_num_tracks_mikmod(void * data)
 static bg_track_info_t * get_track_info_mikmod(void * data, int track)
   {
   i_mikmod_t * e = (i_mikmod_t*)data;
-  return &(e->track_info);
+  return &e->track_info;
   }
 
 
@@ -232,7 +232,7 @@ static void close_mikmod(void * data)
     bg_subprocess_close(e->proc);
     e->proc = (bg_subprocess_t*)0;
     }
-  bg_track_info_free(&(e->track_info));
+  bg_track_info_free(&e->track_info);
   }
 
 static void destroy_mikmod(void * data)

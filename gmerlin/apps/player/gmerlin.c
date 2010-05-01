@@ -345,7 +345,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     
   player_window_create(ret);
   
-  //  gmerlin_skin_load(&(ret->skin), "Default");
+  //  gmerlin_skin_load(&ret->skin, "Default");
   //  gmerlin_skin_set(ret);
 
   /* Create subwindows */
@@ -441,7 +441,7 @@ void gmerlin_destroy(gmerlin_t * g)
   bg_plugin_registry_destroy(g->plugin_reg);
 
   
-  gmerlin_skin_destroy(&(g->skin));
+  gmerlin_skin_destroy(&g->skin);
   
   free(g->skin_dir);
   
@@ -507,7 +507,7 @@ void gmerlin_skin_destroy(gmerlin_skin_t * s)
   {
   if(s->directory)
     free(s->directory);
-  player_window_skin_destroy(&(s->playerwindow));
+  player_window_skin_destroy(&s->playerwindow);
   
   }
 
@@ -867,7 +867,7 @@ void gmerlin_set_parameter(void * data, const char * name,
   else if(!strcmp(name, "skin_dir"))
     {
     g->skin_dir = bg_strdup(g->skin_dir, val->val_str);
-    g->skin_dir = gmerlin_skin_load(&(g->skin), g->skin_dir);
+    g->skin_dir = gmerlin_skin_load(&g->skin, g->skin_dir);
     gmerlin_skin_set(g);
     }
   }

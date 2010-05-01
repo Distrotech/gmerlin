@@ -416,8 +416,8 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                              ret, "Camelot");
   
   gmerlin_webcam_get_message_queues(ret->cam,
-                                    &(ret->cmd_queue),
-                                    &(ret->msg_queue));
+                                    &ret->cmd_queue,
+                                    &ret->msg_queue);
   
   ret->plugin_reg = reg;
   

@@ -137,7 +137,7 @@ static void set_bg_color(bg_gtk_time_display_t * d)
     (bg.green >> 8) << 8  |
     (bg.blue >> 8);
   gdk_color_alloc(gdk_window_get_colormap(d->widget->window),
-                  &(bg));
+                  &bg);
 
   gtk_widget_modify_bg(d->widget, GTK_STATE_NORMAL, &bg);
   
@@ -293,7 +293,7 @@ void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
       break;
     }
   
-  pos = &(buf[strlen(buf)]);
+  pos = &buf[strlen(buf)];
  
   pos_i = 0;
   

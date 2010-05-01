@@ -68,11 +68,11 @@ gmerlin_webcam_t * gmerlin_webcam_create(bg_plugin_registry_t * plugin_reg)
   gmerlin_webcam_t * ret;
 
   ret = calloc(1, sizeof(*ret));
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
 
   ret->plugin_reg = plugin_reg;
 
-  bg_gavl_video_options_init(&(ret->opt));
+  bg_gavl_video_options_init(&ret->opt);
   
   ret->fc = bg_video_filter_chain_create(&ret->opt, ret->plugin_reg);
   
@@ -86,7 +86,7 @@ gmerlin_webcam_t * gmerlin_webcam_create(bg_plugin_registry_t * plugin_reg)
 
 #ifdef HAVE_V4L
   ret->vloopback = bg_vloopback_create();
-  pthread_mutex_init(&(ret->vloopback_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->vloopback_mutex,(pthread_mutexattr_t *)0);
 #endif
   
   return ret;
@@ -567,7 +567,7 @@ static void * thread_func(void * data)
         if(w->do_convert_monitor)
           gavl_video_convert(w->monitor_cnv, w->input_frame, w->monitor_frame);
         else
-          gavl_video_frame_copy(&(w->input_format),
+          gavl_video_frame_copy(&w->input_format,
                                 w->monitor_frame, w->input_frame);
         bg_plugin_lock(w->monitor_handle);
         w->monitor->put_video(w->monitor_handle->priv, w->monitor_frame);
@@ -630,7 +630,7 @@ static void * thread_func(void * data)
 
 void gmerlin_webcam_run(gmerlin_webcam_t * w)
   {
-  pthread_create(&(w->thread), (pthread_attr_t*)0,
+  pthread_create(&w->thread, (pthread_attr_t*)0,
                  thread_func, w);
   w->running = 1;
   }
@@ -663,9 +663,9 @@ void gmerlin_webcam_set_filter_parameter(void * data, const char * name,
   //  fprintf(stderr, "Set filter parameter %s\n",
   //          name);
   
-  //  pthread_mutex_lock(&(p->video_stream.config_mutex));
+  //  pthread_mutex_lock(&p->video_stream.config_mutex);
   //  is_interrupted = p->video_stream.interrupted;
-  //  pthread_mutex_unlock(&(p->video_stream.config_mutex));
+  //  pthread_mutex_unlock(&p->video_stream.config_mutex);
   
   bg_video_filter_chain_lock(w->fc);
   bg_video_filter_chain_set_parameter(w->fc, name, val);

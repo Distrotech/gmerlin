@@ -1435,7 +1435,7 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     
   //  ret->plugin_reg = reg;
   ret->plugin = (bg_plugin_common_t*)(&edl_plugin);
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
 
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;

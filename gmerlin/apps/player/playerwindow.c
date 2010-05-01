@@ -109,43 +109,43 @@ void player_window_set_skin(player_window_t * win,
 
   /* Apply the button skins */
 
-  bg_gtk_button_set_skin(win->play_button, &(s->play_button), directory);
+  bg_gtk_button_set_skin(win->play_button, &s->play_button, directory);
   bg_gtk_button_get_coords(win->play_button, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                   bg_gtk_button_get_widget(win->play_button),
                   x, y);
 
-  bg_gtk_button_set_skin(win->stop_button, &(s->stop_button), directory);
+  bg_gtk_button_set_skin(win->stop_button, &s->stop_button, directory);
   bg_gtk_button_get_coords(win->stop_button, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                  bg_gtk_button_get_widget(win->stop_button),
                  x, y);
 
-  bg_gtk_button_set_skin(win->pause_button, &(s->pause_button), directory);
+  bg_gtk_button_set_skin(win->pause_button, &s->pause_button, directory);
   bg_gtk_button_get_coords(win->pause_button, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                  bg_gtk_button_get_widget(win->pause_button),
                  x, y);
   
-  bg_gtk_button_set_skin(win->next_button, &(s->next_button), directory);
+  bg_gtk_button_set_skin(win->next_button, &s->next_button, directory);
   bg_gtk_button_get_coords(win->next_button, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                  bg_gtk_button_get_widget(win->next_button),
                  x, y);
   
-  bg_gtk_button_set_skin(win->prev_button, &(s->prev_button), directory);
+  bg_gtk_button_set_skin(win->prev_button, &s->prev_button, directory);
   bg_gtk_button_get_coords(win->prev_button, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                  bg_gtk_button_get_widget(win->prev_button),
                  x, y);
 
-  bg_gtk_button_set_skin(win->close_button, &(s->close_button), directory);
+  bg_gtk_button_set_skin(win->close_button, &s->close_button, directory);
   bg_gtk_button_get_coords(win->close_button, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                  bg_gtk_button_get_widget(win->close_button),
                  x, y);
 
-  bg_gtk_button_set_skin(win->menu_button, &(s->menu_button), directory);
+  bg_gtk_button_set_skin(win->menu_button, &s->menu_button, directory);
   bg_gtk_button_get_coords(win->menu_button, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                  bg_gtk_button_get_widget(win->menu_button),
@@ -153,13 +153,13 @@ void player_window_set_skin(player_window_t * win,
 
   /* Apply slider skins */
   
-  bg_gtk_slider_set_skin(win->seek_slider, &(s->seek_slider), directory);
+  bg_gtk_slider_set_skin(win->seek_slider, &s->seek_slider, directory);
   bg_gtk_slider_get_coords(win->seek_slider, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                  bg_gtk_slider_get_widget(win->seek_slider),
                  x, y);
 
-  bg_gtk_slider_set_skin(win->volume_slider, &(s->volume_slider), directory);
+  bg_gtk_slider_set_skin(win->volume_slider, &s->volume_slider, directory);
   bg_gtk_slider_get_coords(win->volume_slider, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                   bg_gtk_slider_get_widget(win->volume_slider),
@@ -167,7 +167,7 @@ void player_window_set_skin(player_window_t * win,
 
   /* Apply display skin */
   
-  display_set_skin(win->display, &(s->display));
+  display_set_skin(win->display, &s->display);
   display_get_coords(win->display, &x, &y);
   
   gtk_layout_move(GTK_LAYOUT(win->layout),
@@ -899,27 +899,27 @@ void player_window_skin_load(player_window_skin_t * s,
       }
 
     else if(!BG_XML_STRCMP(child->name, "DISPLAY"))
-      display_skin_load(&(s->display), doc, child);
+      display_skin_load(&s->display, doc, child);
     else if(!BG_XML_STRCMP(child->name, "PLAYBUTTON"))
-      bg_gtk_button_skin_load(&(s->play_button), doc, child);
+      bg_gtk_button_skin_load(&s->play_button, doc, child);
     else if(!BG_XML_STRCMP(child->name, "PAUSEBUTTON"))
-      bg_gtk_button_skin_load(&(s->pause_button), doc, child);
+      bg_gtk_button_skin_load(&s->pause_button, doc, child);
     else if(!BG_XML_STRCMP(child->name, "NEXTBUTTON"))
-      bg_gtk_button_skin_load(&(s->next_button), doc, child);
+      bg_gtk_button_skin_load(&s->next_button, doc, child);
     else if(!BG_XML_STRCMP(child->name, "PREVBUTTON"))
-      bg_gtk_button_skin_load(&(s->prev_button), doc, child);
+      bg_gtk_button_skin_load(&s->prev_button, doc, child);
     else if(!BG_XML_STRCMP(child->name, "STOPBUTTON"))
-      bg_gtk_button_skin_load(&(s->stop_button), doc, child);
+      bg_gtk_button_skin_load(&s->stop_button, doc, child);
     else if(!BG_XML_STRCMP(child->name, "MENUBUTTON"))
-      bg_gtk_button_skin_load(&(s->menu_button), doc, child);
+      bg_gtk_button_skin_load(&s->menu_button, doc, child);
     else if(!BG_XML_STRCMP(child->name, "CLOSEBUTTON"))
-      bg_gtk_button_skin_load(&(s->close_button), doc, child);
+      bg_gtk_button_skin_load(&s->close_button, doc, child);
     else if(!BG_XML_STRCMP(child->name, "SEEKSLIDER"))
-      bg_gtk_slider_skin_load(&(s->seek_slider), doc, child);
+      bg_gtk_slider_skin_load(&s->seek_slider, doc, child);
     else if(!BG_XML_STRCMP(child->name, "VOLUMESLIDER"))
-      bg_gtk_slider_skin_load(&(s->volume_slider), doc, child);
+      bg_gtk_slider_skin_load(&s->volume_slider, doc, child);
     else if(!BG_XML_STRCMP(child->name, "DISPLAY"))
-      display_skin_load(&(s->display), doc, child);
+      display_skin_load(&s->display, doc, child);
     child = child->next;
     }
   }
@@ -931,14 +931,14 @@ void player_window_skin_destroy(player_window_skin_t * s)
   if(s->background_highlight)
     free(s->background_highlight);
   
-  bg_gtk_button_skin_free(&(s->play_button));
-  bg_gtk_button_skin_free(&(s->stop_button));
-  bg_gtk_button_skin_free(&(s->pause_button));
-  bg_gtk_button_skin_free(&(s->next_button));
-  bg_gtk_button_skin_free(&(s->prev_button));
-  bg_gtk_button_skin_free(&(s->close_button));
-  bg_gtk_button_skin_free(&(s->menu_button));
-  bg_gtk_slider_skin_free(&(s->seek_slider));
-  bg_gtk_slider_skin_free(&(s->volume_slider));
+  bg_gtk_button_skin_free(&s->play_button);
+  bg_gtk_button_skin_free(&s->stop_button);
+  bg_gtk_button_skin_free(&s->pause_button);
+  bg_gtk_button_skin_free(&s->next_button);
+  bg_gtk_button_skin_free(&s->prev_button);
+  bg_gtk_button_skin_free(&s->close_button);
+  bg_gtk_button_skin_free(&s->menu_button);
+  bg_gtk_slider_skin_free(&s->seek_slider);
+  bg_gtk_slider_skin_free(&s->volume_slider);
   
   }

@@ -155,11 +155,11 @@ void bg_player_input_select_streams(bg_player_t * p)
     
     p->flags |= PLAYER_DO_SUBTITLE_ONLY;
     
-    pthread_mutex_lock(&(p->video_stream.config_mutex));
+    pthread_mutex_lock(&p->video_stream.config_mutex);
     /* Get background color */
     gavl_video_options_get_background_color(p->video_stream.options.opt,
                                             vs->bg_color);
-    pthread_mutex_unlock(&(p->video_stream.config_mutex));
+    pthread_mutex_unlock(&p->video_stream.config_mutex);
     
     vs->bg_color[3] = 1.0;
     }
@@ -285,7 +285,7 @@ int bg_player_input_init(bg_player_t * p,
   if(p->input_plugin->set_callbacks)
     {
     p->input_plugin->set_callbacks(p->input_priv,
-                                   &(p->input_callbacks));
+                                   &p->input_callbacks);
     }
   
   p->track_info = p->input_plugin->get_track_info(p->input_priv,
@@ -360,15 +360,15 @@ void bg_player_input_cleanup(bg_player_t * p)
 
 int bg_player_input_get_audio_format(bg_player_t * p)
   {
-  gavl_audio_format_copy(&(p->audio_stream.input_format),
-                         &(p->track_info->audio_streams[p->current_audio_stream].format));
+  gavl_audio_format_copy(&p->audio_stream.input_format,
+                         &p->track_info->audio_streams[p->current_audio_stream].format);
   return 1;
   }
 
 int bg_player_input_get_video_format(bg_player_t * p)
   {
-  gavl_video_format_copy(&(p->video_stream.input_format),
-                         &(p->track_info->video_streams[p->current_video_stream].format));
+  gavl_video_format_copy(&p->video_stream.input_format,
+                         &p->track_info->video_streams[p->current_video_stream].format);
 
   if(p->video_stream.do_still)
     {
@@ -385,8 +385,8 @@ int bg_player_input_get_video_format(bg_player_t * p)
 int
 bg_player_input_get_subtitle_format(bg_player_t * p)
   {
-  gavl_video_format_copy(&(p->subtitle_stream.input_format),
-                         &(p->track_info->subtitle_streams[p->current_subtitle_stream].format));
+  gavl_video_format_copy(&p->subtitle_stream.input_format,
+                         &p->track_info->subtitle_streams[p->current_subtitle_stream].format);
   return 1;
   }
 
@@ -607,13 +607,13 @@ void bg_player_set_input_parameter(void * data, const char * name,
   if(!name)
     return;
 
-  pthread_mutex_lock(&(player->config_mutex));
+  pthread_mutex_lock(&player->config_mutex);
   if(!strcmp(name, "still_framerate"))
     player->still_framerate = val->val_f;
   else if(!strcmp(name, "sync_offset"))
     player->sync_offset = gavl_time_unscale(1000, val->val_i);
 
-  pthread_mutex_unlock(&(player->config_mutex));
+  pthread_mutex_unlock(&player->config_mutex);
   }
 
 struct msg_input_data

@@ -159,7 +159,7 @@ int bg_transcoder_pp_init(bg_transcoder_pp_t* p, bg_plugin_handle_t * plugin)
   p->pp_plugin = (bg_encoder_pp_plugin_t*)(p->plugin->plugin);
 
   if(p->pp_plugin->set_callbacks)
-    p->pp_plugin->set_callbacks(p->plugin->priv, &(p->callbacks));
+    p->pp_plugin->set_callbacks(p->plugin->priv, &p->callbacks);
   
   if(!p->pp_plugin->init(p->plugin->priv))
     return 0;
@@ -246,7 +246,7 @@ void bg_transcoder_pp_stop(bg_transcoder_pp_t * p)
 
 void bg_transcoder_pp_run(bg_transcoder_pp_t * p)
   {
-  pthread_create(&(p->thread),
+  pthread_create(&p->thread,
                  (pthread_attr_t*)0, thread_func, p);
   }
 

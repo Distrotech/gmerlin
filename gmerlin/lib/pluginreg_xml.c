@@ -268,15 +268,15 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       }
     else if(!BG_XML_STRCMP(cur->name, module_time_key))
       {
-      sscanf(tmp_string, "%ld", &(ret->module_time));
+      sscanf(tmp_string, "%ld", &ret->module_time);
       }
     else if(!BG_XML_STRCMP(cur->name, priority_key))
       {
-      sscanf(tmp_string, "%d", &(ret->priority));
+      sscanf(tmp_string, "%d", &ret->priority);
       }
     else if(!BG_XML_STRCMP(cur->name, index_key))
       {
-      sscanf(tmp_string, "%d", &(ret->index));
+      sscanf(tmp_string, "%d", &ret->index);
       }
     else if(!BG_XML_STRCMP(cur->name, type_key))
       {
@@ -314,7 +314,7 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
         
         end_ptr = strchr(start_ptr, '|');
         if(!end_ptr)
-          end_ptr = &(start_ptr[strlen(start_ptr)]);
+          end_ptr = &start_ptr[strlen(start_ptr)];
 
         index = 0;
         while(flag_names[index].name)

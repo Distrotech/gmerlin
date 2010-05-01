@@ -934,7 +934,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                                      &track_duration, &track_duration_total);
 
     
-    bg_gtk_chapter_dialog_show(&(t->selected_track->chapter_list),
+    bg_gtk_chapter_dialog_show(&t->selected_track->chapter_list,
                                track_duration, t->treeview);
     }
   else if((w == t->encoder_button) ||

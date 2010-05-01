@@ -213,7 +213,7 @@ char * bg_strncat(char * old_string, const char * start, const char * end)
   old_len = strlen(old_string);
   
   old_string = realloc(old_string, old_len + end - start + 1);
-  strncpy(&(old_string[old_len]), start, end - start);
+  strncpy(&old_string[old_len], start, end - start);
   old_string[old_len + end - start] = '\0';
   return old_string;
   }

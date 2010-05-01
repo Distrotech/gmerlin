@@ -230,7 +230,7 @@ encoder_pp_window_t * encoder_pp_window_create(bg_plugin_registry_t * plugin_reg
   gtk_widget_show(ret->apply_button);
   gtk_widget_show(ret->ok_button);
   
-  encoder_pp_widget_init(&(ret->encoder_pp_widget), plugin_reg);
+  encoder_pp_widget_init(&ret->encoder_pp_widget, plugin_reg);
 
   /* Pack */
 

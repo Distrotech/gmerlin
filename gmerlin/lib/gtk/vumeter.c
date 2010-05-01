@@ -845,7 +845,7 @@ bg_gtk_vumeter_create(int num_channels, int vertical)
   
   ret->max_peak_age = 44100;
   
-  pthread_mutex_init(&(ret->analysis_mutex), (pthread_mutexattr_t*)0);
+  pthread_mutex_init(&ret->analysis_mutex, (pthread_mutexattr_t*)0);
   return ret;
   }
 
@@ -915,9 +915,9 @@ void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
 
 void bg_gtk_vumeter_draw(bg_gtk_vumeter_t * m)
   {
-  pthread_mutex_lock(&(m->analysis_mutex));
+  pthread_mutex_lock(&m->analysis_mutex);
   draw_dynamic(m);
-  pthread_mutex_unlock(&(m->analysis_mutex));
+  pthread_mutex_unlock(&m->analysis_mutex);
   flash(m);
   }
 

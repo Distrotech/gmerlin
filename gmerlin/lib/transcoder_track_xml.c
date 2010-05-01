@@ -216,7 +216,7 @@ static void track_2_xml(bg_transcoder_track_t * track,
       stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
 
-      audio_stream_2_xml(stream_node, &(track->audio_streams[i]));
+      audio_stream_2_xml(stream_node, &track->audio_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       }
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
@@ -232,7 +232,7 @@ static void track_2_xml(bg_transcoder_track_t * track,
       {
       stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
-      video_stream_2_xml(stream_node, &(track->video_streams[i]));
+      video_stream_2_xml(stream_node, &track->video_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       }
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
@@ -246,7 +246,7 @@ static void track_2_xml(bg_transcoder_track_t * track,
       {
       stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
-      subtitle_text_stream_2_xml(stream_node, &(track->subtitle_text_streams[i]));
+      subtitle_text_stream_2_xml(stream_node, &track->subtitle_text_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       }
     }
@@ -259,7 +259,7 @@ static void track_2_xml(bg_transcoder_track_t * track,
       {
       stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
-      subtitle_overlay_stream_2_xml(stream_node, &(track->subtitle_overlay_streams[i]));
+      subtitle_overlay_stream_2_xml(stream_node, &track->subtitle_overlay_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       }
     }
@@ -649,7 +649,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
         {
         if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           {
-          xml_2_audio(&(t->audio_streams[i]), xml_doc, child_node);
+          xml_2_audio(&t->audio_streams[i], xml_doc, child_node);
           i++;
           }
         child_node = child_node->next;
@@ -685,7 +685,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
         {
         if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           {
-          xml_2_video(&(t->video_streams[i]), xml_doc, child_node);
+          xml_2_video(&t->video_streams[i], xml_doc, child_node);
           i++;
           }
         child_node = child_node->next;
@@ -723,7 +723,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
         {
         if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           {
-          xml_2_subtitle_text(&(t->subtitle_text_streams[i]), xml_doc, child_node);
+          xml_2_subtitle_text(&t->subtitle_text_streams[i], xml_doc, child_node);
           i++;
           }
         child_node = child_node->next;
@@ -760,7 +760,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
         {
         if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           {
-          xml_2_subtitle_overlay(&(t->subtitle_overlay_streams[i]), xml_doc, child_node);
+          xml_2_subtitle_overlay(&t->subtitle_overlay_streams[i], xml_doc, child_node);
           i++;
           }
         child_node = child_node->next;

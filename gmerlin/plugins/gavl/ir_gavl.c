@@ -89,7 +89,7 @@ static int read_header_gavl(void * priv, const char * filename,
   if(!bg_f_video_format_read(&gavl->io, &ch, format, &gavl->big_endian))
     return 0;
   
-  gavl_video_format_copy(&(gavl->format), format);
+  gavl_video_format_copy(&gavl->format, format);
   return 1;
   
   }

@@ -408,7 +408,7 @@ static const bg_parameter_info_t * find_parameter(const bg_parameter_info_t * ar
     
     if(!strcmp(arr[i].name, name))
       {
-      return &(arr[i]);
+      return &arr[i];
       break;
       }
     else if(arr[i].multi_parameters)

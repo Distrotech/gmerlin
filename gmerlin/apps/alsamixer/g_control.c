@@ -198,18 +198,18 @@ static int hctl_enum_callback(snd_hctl_elem_t *elem, unsigned int mask)
       {
       value = snd_ctl_elem_value_get_enumerated(arr->control->val, i);
 #ifdef GTK_2_4
-      widget_block(&(arr->widgets[i]));
+      widget_block(&arr->widgets[i]);
       gtk_combo_box_set_active(GTK_COMBO_BOX(arr->widgets[i].w), value);
-      widget_unblock(&(arr->widgets[i]));
+      widget_unblock(&arr->widgets[i]);
 #else
       
       val_str = g_list_nth_data(arr->popdown_strings, value);
 
       
-      widget_block(&(arr->widgets[i]));
+      widget_block(&arr->widgets[i]);
       gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(arr->widgets[i].w)->entry),
                          val_str);
-      widget_unblock(&(arr->widgets[i]));
+      widget_unblock(&arr->widgets[i]);
 #endif
       }
     }
@@ -234,9 +234,9 @@ static void int_callback(GtkWidget * w, gpointer data)
     }
   value = (int)(gtk_range_get_value(GTK_RANGE(arr->widgets[index].w)));
 
-  widget_block(&(arr->widgets[index]));
+  widget_block(&arr->widgets[index]);
   gtk_range_set_value(GTK_RANGE(arr->widgets[index].w), (float)value);
-  widget_unblock(&(arr->widgets[index]));
+  widget_unblock(&arr->widgets[index]);
   
   /* Transfer value */
 
@@ -248,9 +248,9 @@ static void int_callback(GtkWidget * w, gpointer data)
       {
       if(i == index)
         continue;
-      widget_block(&(arr->widgets[i]));
+      widget_block(&arr->widgets[i]);
       gtk_range_set_value(GTK_RANGE(arr->widgets[i].w), (float)value);
-      widget_unblock(&(arr->widgets[i]));
+      widget_unblock(&arr->widgets[i]);
       snd_ctl_elem_value_set_integer(arr->control->val, i, value);
       }
     }
@@ -273,9 +273,9 @@ static int hctl_int_callback(snd_hctl_elem_t *elem, unsigned int mask)
       {
       value = snd_ctl_elem_value_get_integer(arr->control->val, i);
       
-      widget_block(&(arr->widgets[i]));
+      widget_block(&arr->widgets[i]);
       gtk_range_set_value(GTK_RANGE(arr->widgets[i].w), (float)value);
-      widget_unblock(&(arr->widgets[i]));
+      widget_unblock(&arr->widgets[i]);
       }
     }
   return 0;
@@ -309,9 +309,9 @@ static void int64_callback(GtkWidget * w, gpointer data)
       {
       if(i == index)
         continue;
-      widget_block(&(arr->widgets[i]));
+      widget_block(&arr->widgets[i]);
       gtk_range_set_value(GTK_RANGE(arr->widgets[i].w), (float)value);
-      widget_unblock(&(arr->widgets[i]));
+      widget_unblock(&arr->widgets[i]);
       snd_ctl_elem_value_set_integer64(arr->control->val, i, value);
       }
     }
@@ -332,9 +332,9 @@ static int hctl_int64_callback(snd_hctl_elem_t *elem, unsigned int mask)
     for(i = 0; i < arr->num; i++)
       {
       value = snd_ctl_elem_value_get_integer64(arr->control->val, i);
-      widget_block(&(arr->widgets[i]));
+      widget_block(&arr->widgets[i]);
       gtk_range_set_value(GTK_RANGE(arr->widgets[i].w), (float)value);
-      widget_unblock(&(arr->widgets[i]));
+      widget_unblock(&arr->widgets[i]);
       }
     }
   return 0;
@@ -380,9 +380,9 @@ static int hctl_bool_callback(snd_hctl_elem_t *elem, unsigned int mask)
       {
       value = snd_ctl_elem_value_get_boolean(arr->control->val, i);
 
-      widget_block(&(arr->widgets[i]));
+      widget_block(&arr->widgets[i]);
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(arr->widgets[i].w), value);
-      widget_unblock(&(arr->widgets[i]));
+      widget_unblock(&arr->widgets[i]);
 
       }
 
@@ -833,7 +833,7 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
   if(c->tone_switch)
     {
     num_rows++;
-    init_array(&(w->priv.tone.switches), c->tone_switch,
+    init_array(&w->priv.tone.switches, c->tone_switch,
                NULL, 0);
     if(w->priv.tone.switches.num > num_cols)
       num_cols = w->priv.tone.switches.num;
@@ -841,7 +841,7 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
   if(c->tone_bass)
     {
     num_rows+=2;
-    init_array(&(w->priv.tone.bass), c->tone_bass,
+    init_array(&w->priv.tone.bass, c->tone_bass,
                NULL, 1);
 
     if(w->priv.tone.bass.num > num_cols)
@@ -852,7 +852,7 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
   if(c->tone_treble)
     {
     num_rows+=2;
-    init_array(&(w->priv.tone.treble), c->tone_treble,
+    init_array(&w->priv.tone.treble, c->tone_treble,
                NULL, 1);
     if(w->priv.tone.treble.num > num_cols)
       num_cols = w->priv.tone.treble.num;
@@ -966,22 +966,22 @@ static void init_volume(control_widget_t * w, alsa_mixer_group_t * c)
   
   if(c->playback_switch)
     {
-    init_array(&(w->priv.volume.playback_switches), c->playback_switch,
+    init_array(&w->priv.volume.playback_switches, c->playback_switch,
                NULL, 0);
     }
   if(c->playback_volume)
     {
-    init_array(&(w->priv.volume.playback_sliders), c->playback_volume,
+    init_array(&w->priv.volume.playback_sliders, c->playback_volume,
                NULL, 1);
     }
   if(c->capture_volume)
     {
-    init_array(&(w->priv.volume.capture_sliders), c->capture_volume,
+    init_array(&w->priv.volume.capture_sliders, c->capture_volume,
                NULL, 1);
     }
   if(c->capture_switch)
     {
-    init_array(&(w->priv.volume.capture_switches), c->capture_switch,
+    init_array(&w->priv.volume.capture_switches, c->capture_switch,
                NULL, 0);
     }
   
@@ -1121,10 +1121,10 @@ static int hctl_singlebool_callback(snd_hctl_elem_t *elem, unsigned int mask)
 
     value = snd_ctl_elem_value_get_boolean(c->priv.singlebool.control->val, 0);
 
-    widget_block(&(c->priv.singlebool.checkbutton));
+    widget_block(&c->priv.singlebool.checkbutton);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(c->priv.singlebool.checkbutton.w),
                                  value);
-    widget_unblock(&(c->priv.singlebool.checkbutton));
+    widget_unblock(&c->priv.singlebool.checkbutton);
     }
   return 0;
   }
@@ -1173,7 +1173,7 @@ static void init_integer(control_widget_t * w, alsa_mixer_group_t * c,
   int i;
   GtkWidget * label;
   
-  init_array(&(w->priv.integer.sliders), c->ctl,
+  init_array(&w->priv.integer.sliders, c->ctl,
              info, 0);
   
   w->w = gtk_table_new(2, w->priv.integer.sliders.num,
@@ -1203,7 +1203,7 @@ static void init_bool(control_widget_t * w, alsa_mixer_group_t * c,
   int i;
   GtkWidget * label;
 
-  init_array(&(w->priv.bool.buttons), c->ctl,
+  init_array(&w->priv.bool.buttons, c->ctl,
              info, 0);
   
   w->w = gtk_table_new(w->priv.bool.buttons.num + 1,
@@ -1215,7 +1215,7 @@ static void init_bool(control_widget_t * w, alsa_mixer_group_t * c,
   gtk_table_attach(GTK_TABLE(w->w), label, 0, 1, 0, 1,
                    GTK_FILL, GTK_FILL, 0, 0);
 
-  init_array(&(w->priv.bool.buttons), c->ctl,
+  init_array(&w->priv.bool.buttons, c->ctl,
              info, 0);
   
   for(i = 0; i < w->priv.bool.buttons.num; i++)
@@ -1234,7 +1234,7 @@ static void init_enumerated(control_widget_t * w, alsa_mixer_group_t * c,
   {
   GtkWidget * label;
   int i;
-  init_array(&(w->priv.enumerated.combos), c->ctl,
+  init_array(&w->priv.enumerated.combos, c->ctl,
              info, 0);
   w->w = gtk_table_new(w->priv.enumerated.combos.num + 1,
                        1, 0);
@@ -1258,7 +1258,7 @@ static void init_singleenumerated(control_widget_t * w, alsa_mixer_group_t * c,
                                   snd_ctl_elem_info_t * info)
   {
   GtkWidget * label;
-  init_array(&(w->priv.enumerated.combos), c->ctl,
+  init_array(&w->priv.enumerated.combos, c->ctl,
              info, 0);
   w->w = gtk_table_new(1, 2, 0);
     
@@ -1543,7 +1543,7 @@ static void create_parameters(control_widget_t * w)
     {
     for(j = 0; j < 7; j++)
       {
-      bg_parameter_info_copy(&w->parameters[i], &(upper_params[j]));
+      bg_parameter_info_copy(&w->parameters[i], &upper_params[j]);
       i++;
       }
     }

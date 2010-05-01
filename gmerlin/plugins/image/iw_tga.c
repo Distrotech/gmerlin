@@ -77,7 +77,7 @@ static int write_header_tga(void * priv, const char * filename,
   else
     format->pixelformat = GAVL_BGR_24;
 
-  gavl_video_format_copy(&(tga->format), format);
+  gavl_video_format_copy(&tga->format, format);
 
   tga->filename = bg_filename_ensure_extension(filename, "tga");
   
@@ -98,7 +98,7 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
   if(tga->format.pixelformat == GAVL_RGBA_32)
     {
     tmp_frame = gavl_video_frame_create(&tga->format);
-    gavl_video_frame_copy(&(tga->format), tmp_frame, frame);
+    gavl_video_frame_copy(&tga->format, tmp_frame, frame);
     if(tga->rle)
       {
       result = tga_write_rgb(tga->filename, tmp_frame->planes[0],

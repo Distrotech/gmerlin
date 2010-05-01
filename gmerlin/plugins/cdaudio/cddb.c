@@ -152,7 +152,7 @@ int bg_cdaudio_get_metadata_cddb(bg_cdaudio_index_t * idx,
     if(!idx->tracks[i].is_audio)
       continue;
 
-    m = &(info[idx->tracks[i].index].metadata);
+    m = &info[idx->tracks[i].index].metadata;
     track = cddb_disc_get_track(disc, i);
 
     m->artist = bg_strdup(m->artist, cddb_track_get_artist(track));

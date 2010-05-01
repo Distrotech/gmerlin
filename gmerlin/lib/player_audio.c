@@ -33,7 +33,7 @@ void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   {
   bg_player_audio_stream_t * s = &p->audio_stream;
   
-  bg_gavl_audio_options_init(&(s->options));
+  bg_gavl_audio_options_init(&s->options);
 
   s->th = bg_player_thread_create(p->thread_common);
   
@@ -46,11 +46,11 @@ void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   s->volume = gavl_volume_control_create();
   s->peak_detector = gavl_peak_detector_create();
   
-  pthread_mutex_init(&(s->volume_mutex),NULL);
-  pthread_mutex_init(&(s->config_mutex),NULL);
-  pthread_mutex_init(&(s->time_mutex),NULL);
-  pthread_mutex_init(&(s->mute_mutex), NULL);
-  pthread_mutex_init(&(s->eof_mutex),NULL);
+  pthread_mutex_init(&s->volume_mutex,NULL);
+  pthread_mutex_init(&s->config_mutex,NULL);
+  pthread_mutex_init(&s->time_mutex,NULL);
+  pthread_mutex_init(&s->mute_mutex, NULL);
+  pthread_mutex_init(&s->eof_mutex,NULL);
   
   s->timer = gavl_timer_create();
   }
@@ -59,15 +59,15 @@ void bg_player_audio_destroy(bg_player_t * p)
   {
   bg_player_audio_stream_t * s = &p->audio_stream;
   gavl_audio_converter_destroy(s->cnv_out);
-  bg_gavl_audio_options_free(&(s->options));
+  bg_gavl_audio_options_free(&s->options);
   bg_audio_filter_chain_destroy(s->fc);
   
   gavl_volume_control_destroy(s->volume);
   gavl_peak_detector_destroy(s->peak_detector);
-  pthread_mutex_destroy(&(s->volume_mutex));
-  pthread_mutex_destroy(&(s->eof_mutex));
+  pthread_mutex_destroy(&s->volume_mutex);
+  pthread_mutex_destroy(&s->eof_mutex);
 
-  pthread_mutex_destroy(&(s->time_mutex));
+  pthread_mutex_destroy(&s->time_mutex);
   gavl_timer_destroy(s->timer);
   
   if(s->plugin_handle)
@@ -106,41 +106,41 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   s->in_data = s->fc;
   s->in_stream = 0;
   
-  pthread_mutex_lock(&(s->config_mutex));
+  pthread_mutex_lock(&s->config_mutex);
   force_format = s->options.force_format;
-  bg_audio_filter_chain_init(s->fc, &(s->input_format), &(s->fifo_format));
-  pthread_mutex_unlock(&(s->config_mutex));
+  bg_audio_filter_chain_init(s->fc, &s->input_format, &s->fifo_format);
+  pthread_mutex_unlock(&s->config_mutex);
   
   
-  gavl_audio_format_copy(&(s->output_format),
-                           &(s->fifo_format));
+  gavl_audio_format_copy(&s->output_format,
+                         &s->fifo_format);
 
   if(!bg_player_oa_init(s))
     return 0;
 
-  gavl_audio_format_copy(&(s->fifo_format),
-                         &(s->output_format));
+  gavl_audio_format_copy(&s->fifo_format,
+                         &s->output_format);
   
   if(force_format != GAVL_SAMPLE_NONE)
     s->fifo_format.sample_format = force_format;
 
-  bg_audio_filter_chain_set_out_format(s->fc, &(s->fifo_format));
+  bg_audio_filter_chain_set_out_format(s->fc, &s->fifo_format);
   
   /* Volume control */
   gavl_volume_control_set_format(s->volume,
-                                 &(s->fifo_format));
+                                 &s->fifo_format);
   gavl_peak_detector_set_format(s->peak_detector,
-                                &(s->fifo_format));
+                                &s->fifo_format);
 
   /* Output conversion */
   opt = gavl_audio_converter_get_options(s->cnv_out);
   gavl_audio_options_copy(opt, s->options.opt);
 
-  s->fifo_frame = gavl_audio_frame_create(&(s->output_format));
+  s->fifo_frame = gavl_audio_frame_create(&s->output_format);
   
   if(!gavl_audio_converter_init(s->cnv_out,
-                                &(s->fifo_format),
-                                &(s->output_format)))
+                                &s->fifo_format,
+                                &s->output_format))
     {
     s->do_convert_out = 0;
     s->output_frame = s->fifo_frame;
@@ -149,7 +149,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
     {
     s->do_convert_out = 1;
     s->output_frame =
-      gavl_audio_frame_create(&(s->output_format));
+      gavl_audio_frame_create(&s->output_format);
     }
   return 1;
   }
@@ -215,11 +215,11 @@ void bg_player_set_audio_parameter(void * data, const char * name,
   
   do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
   
-  pthread_mutex_lock(&(p->audio_stream.config_mutex));
+  pthread_mutex_lock(&p->audio_stream.config_mutex);
 
   is_interrupted = p->audio_stream.interrupted;
   
-  bg_gavl_audio_set_parameter(&(p->audio_stream.options),
+  bg_gavl_audio_set_parameter(&p->audio_stream.options,
                               name, val);
 
   if(!do_init && !is_interrupted)
@@ -230,7 +230,7 @@ void bg_player_set_audio_parameter(void * data, const char * name,
   if(check_restart)
     need_restart = p->audio_stream.options.options_changed;
   
-  pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+  pthread_mutex_unlock(&p->audio_stream.config_mutex);
 
   if(!need_restart && check_restart)
     {
@@ -246,17 +246,17 @@ void bg_player_set_audio_parameter(void * data, const char * name,
            "Restarting playback due to changed audio options");
     bg_player_interrupt(p);
     
-    pthread_mutex_lock(&(p->audio_stream.config_mutex));
+    pthread_mutex_lock(&p->audio_stream.config_mutex);
     p->audio_stream.interrupted = 1;
-    pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+    pthread_mutex_unlock(&p->audio_stream.config_mutex);
     }
   
   if(!name && is_interrupted)
     {
     bg_player_interrupt_resume(p);
-    pthread_mutex_lock(&(p->audio_stream.config_mutex));
+    pthread_mutex_lock(&p->audio_stream.config_mutex);
     p->audio_stream.interrupted = 0;
-    pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+    pthread_mutex_unlock(&p->audio_stream.config_mutex);
     }
   }
 
@@ -270,9 +270,9 @@ void bg_player_set_audio_filter_parameter(void * data, const char * name,
 
   do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
 
-  pthread_mutex_lock(&(p->audio_stream.config_mutex));
+  pthread_mutex_lock(&p->audio_stream.config_mutex);
   is_interrupted = p->audio_stream.interrupted;
-  pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+  pthread_mutex_unlock(&p->audio_stream.config_mutex);
     
   bg_audio_filter_chain_lock(p->audio_stream.fc);
   bg_audio_filter_chain_set_parameter(p->audio_stream.fc, name, val);
@@ -290,17 +290,17 @@ void bg_player_set_audio_filter_parameter(void * data, const char * name,
            "Restarting playback due to changed audio filters");
     bg_player_interrupt(p);
     
-    pthread_mutex_lock(&(p->audio_stream.config_mutex));
+    pthread_mutex_lock(&p->audio_stream.config_mutex);
     p->audio_stream.interrupted = 1;
-    pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+    pthread_mutex_unlock(&p->audio_stream.config_mutex);
     }
   
   if(!name && is_interrupted)
     {
     bg_player_interrupt_resume(p);
-    pthread_mutex_lock(&(p->audio_stream.config_mutex));
+    pthread_mutex_lock(&p->audio_stream.config_mutex);
     p->audio_stream.interrupted = 0;
-    pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+    pthread_mutex_unlock(&p->audio_stream.config_mutex);
     }
 
   

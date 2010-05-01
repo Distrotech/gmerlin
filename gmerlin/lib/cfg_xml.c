@@ -97,13 +97,13 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
   switch(item->type)
     {
     case BG_CFG_INT:
-      sscanf(tmp_string, "%d", &(item->value.val_i));
+      sscanf(tmp_string, "%d", &item->value.val_i);
       break;
     case BG_CFG_TIME:
-      sscanf(tmp_string, "%" PRId64, &(item->value.val_time));
+      sscanf(tmp_string, "%" PRId64, &item->value.val_time);
       break;
     case BG_CFG_FLOAT:
-      sscanf(tmp_string, "%lf", &(item->value.val_f));
+      sscanf(tmp_string, "%lf", &item->value.val_f);
       break;
     case BG_CFG_STRING:
       item->value.val_str = bg_strdup(item->value.val_str,
@@ -122,16 +122,16 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
     case BG_CFG_COLOR:
       start = tmp_string;
       sscanf(tmp_string, "%f %f %f %f",
-             &(item->value.val_color[0]),
-             &(item->value.val_color[1]),
-             &(item->value.val_color[2]),
-             &(item->value.val_color[3]));
+             &item->value.val_color[0],
+             &item->value.val_color[1],
+             &item->value.val_color[2],
+             &item->value.val_color[3]);
       break;
     case BG_CFG_POSITION:
       start = tmp_string;
       sscanf(tmp_string, "%lf %lf",
-             &(item->value.val_pos[0]),
-             &(item->value.val_pos[1]));
+             &item->value.val_pos[0],
+             &item->value.val_pos[1]);
       break;
     }
   if(tmp_string)

@@ -124,7 +124,7 @@ static gavl_video_frame_t * create_frame(bg_player_video_stream_t * s)
   else
     ret = gavl_video_frame_create(&s->output_format);
 
-  gavl_video_frame_clear(ret, &(s->output_format));
+  gavl_video_frame_clear(ret, &s->output_format);
   
   return (void*)ret;
   }
@@ -159,18 +159,18 @@ static gavl_overlay_t * create_overlay(bg_player_video_stream_t * vs,
 
     if(id == vs->subtitle_id)
       ret->frame =
-        gavl_video_frame_create(&(vs->ss->output_format));
+        gavl_video_frame_create(&vs->ss->output_format);
     else
       ret->frame =
-        gavl_video_frame_create(&(vs->osd_format));
+        gavl_video_frame_create(&vs->osd_format);
     }
 
   if(id == vs->subtitle_id)
     gavl_video_frame_clear(ret->frame,
-                           &(vs->ss->output_format));
+                           &vs->ss->output_format);
   else
     gavl_video_frame_clear(ret->frame,
-                           &(vs->osd_format));
+                           &vs->osd_format);
     
   
   return ret;
@@ -253,7 +253,7 @@ void bg_player_ov_set_plugin(bg_player_t * player, bg_plugin_handle_t * handle)
     
     bg_plugin_lock(ctx->plugin_handle);
     if(ctx->plugin->set_callbacks)
-      ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
+      ctx->plugin->set_callbacks(ctx->priv, &ctx->callbacks);
     bg_plugin_unlock(ctx->plugin_handle);
     }
   }
@@ -272,7 +272,7 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   
   bg_plugin_lock(vs->plugin_handle);
   result = vs->plugin->open(vs->priv,
-                             &(vs->output_format), 1);
+                             &vs->output_format, 1);
   
   vs->plugin->set_window_title(vs->priv, "Video output");
   
@@ -281,9 +281,9 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   else if(!result)
     return result;
   
-  memset(&(vs->osd_format), 0, sizeof(vs->osd_format));
+  memset(&vs->osd_format, 0, sizeof(vs->osd_format));
   
-  bg_osd_init(vs->osd, &(vs->output_format),
+  bg_osd_init(vs->osd, &vs->output_format,
               &vs->osd_format);
   /* Fixme: Lets just hope, that the OSD format doesn't get changed
      by this call. Otherwise, we would need a gavl_video_converter */

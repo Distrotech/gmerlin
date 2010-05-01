@@ -57,7 +57,7 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
   tmp_string = BG_XML_GET_PROP(node, "incoming");
   if(tmp_string)
     {
-    ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_INCOMING, parent);
+    ret = bg_album_create(&tree->com, BG_ALBUM_TYPE_INCOMING, parent);
     xmlFree(tmp_string);
     }
 
@@ -66,7 +66,7 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
     tmp_string = BG_XML_GET_PROP(node, "favourites");
     if(tmp_string)
       {
-      ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_FAVOURITES, parent);
+      ret = bg_album_create(&tree->com, BG_ALBUM_TYPE_FAVOURITES, parent);
       xmlFree(tmp_string);
       }
     }
@@ -75,7 +75,7 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
     tmp_string = BG_XML_GET_PROP(node, "plugin");
     if(tmp_string)
       {
-      ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_PLUGIN, parent);
+      ret = bg_album_create(&tree->com, BG_ALBUM_TYPE_PLUGIN, parent);
       xmlFree(tmp_string);
       }
     }
@@ -84,14 +84,14 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
     tmp_string = BG_XML_GET_PROP(node, "tuner");
     if(tmp_string)
       {
-      ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_TUNER, parent);
+      ret = bg_album_create(&tree->com, BG_ALBUM_TYPE_TUNER, parent);
       xmlFree(tmp_string);
       }
     }
   
   if(!ret)
     {
-    ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_REGULAR, parent);
+    ret = bg_album_create(&tree->com, BG_ALBUM_TYPE_REGULAR, parent);
     }
   
   child = node->children;

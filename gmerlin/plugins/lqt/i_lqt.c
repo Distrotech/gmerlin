@@ -146,7 +146,7 @@ static int open_lqt(void * data, const char * arg)
   if(!e->file)
     return 0;
 
-  bg_set_track_name_default(&(e->track_info), arg);
+  bg_set_track_name_default(&e->track_info, arg);
 
   /* Set metadata */
 
@@ -290,7 +290,7 @@ static int get_num_tracks_lqt(void * data)
 static bg_track_info_t * get_track_info_lqt(void * data, int track)
   {
   i_lqt_t * e = data;
-  return &(e->track_info);
+  return &e->track_info;
   }
 
 /* Read one audio frame (returns FALSE on EOF) */
@@ -357,7 +357,7 @@ static void close_lqt(void * data)
     free(e->video_streams);
     e->video_streams = NULL;
     }
-  bg_track_info_free(&(e->track_info));  
+  bg_track_info_free(&e->track_info);  
   }
 
 static void seek_lqt(void * data, gavl_time_t * time, int scale)
@@ -389,9 +389,9 @@ static void create_parameters(i_lqt_t * e)
 
   e->parameters = bg_parameter_info_copy_array(parameters);
     
-  bg_lqt_create_codec_info(&(e->parameters[PARAM_AUDIO]),
+  bg_lqt_create_codec_info(&e->parameters[PARAM_AUDIO],
                            1, 0, 0, 1);
-  bg_lqt_create_codec_info(&(e->parameters[PARAM_VIDEO]),
+  bg_lqt_create_codec_info(&e->parameters[PARAM_VIDEO],
                            0, 1, 0, 1);
 
   
@@ -420,8 +420,8 @@ static void set_parameter_lqt(void * data, const char * name,
   if(!e->parameters)
     create_parameters(e);
 #if 0
-  if(bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_AUDIO])) ||
-     bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_VIDEO])))
+  if(bg_lqt_set_parameter(name, val, &e->parameters[PARAM_AUDIO]) ||
+     bg_lqt_set_parameter(name, val, &e->parameters[PARAM_VIDEO]))
     return;
 #endif
   if(!strcmp(name, "audio_codecs"))
@@ -491,13 +491,13 @@ static int start_lqt(void * data)
     {
     lqt_gavl_get_audio_format(e->file,
                               e->audio_streams[i].quicktime_index,
-                              &(e->track_info.audio_streams[i].format));
+                              &e->track_info.audio_streams[i].format);
     }
   for(i = 0; i < e->track_info.num_video_streams; i++)
     {
     lqt_gavl_get_video_format(e->file,
                               e->video_streams[i].quicktime_index,
-                              &(e->track_info.video_streams[i].format), 0);
+                              &e->track_info.video_streams[i].format, 0);
     }
   return 1;
   }

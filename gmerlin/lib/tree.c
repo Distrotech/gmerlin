@@ -335,7 +335,7 @@ static void add_device_plugins(bg_media_tree_t * ret,
 
     if(!(plugin_album = find_by_plugin(ret->children, info->name)))
       {
-      plugin_album = bg_album_create(&(ret->com), BG_ALBUM_TYPE_PLUGIN, NULL);
+      plugin_album = bg_album_create(&ret->com, BG_ALBUM_TYPE_PLUGIN, NULL);
 
       bg_bindtextdomain(info->gettext_domain,
                      info->gettext_directory);
@@ -361,7 +361,7 @@ static void add_device_plugins(bg_media_tree_t * ret,
              find_by_device(plugin_album->children,
                             info->devices[j].device)))
           {
-          device_album = bg_album_create(&(ret->com), type, plugin_album);
+          device_album = bg_album_create(&ret->com, type, plugin_album);
           device_album->device = bg_strdup(device_album->device,
                                            info->devices[j].device);
           if(info->devices[j].name)
@@ -405,7 +405,7 @@ bg_media_tree_create(const char * filename,
   ret->com.set_current_callback_data = ret;
 
   ret->com.input_callbacks.user_pass = get_user_pass;
-  ret->com.input_callbacks.data      = &(ret->com);
+  ret->com.input_callbacks.data      = &ret->com;
 
 #ifdef HAVE_INOTIFY
   ret->com.inotify_fd = inotify_init();
@@ -431,7 +431,7 @@ void bg_media_tree_init(bg_media_tree_t * ret)
 
   if(!ret->incoming)
     {
-    ret->incoming = bg_album_create(&(ret->com), BG_ALBUM_TYPE_INCOMING, NULL);
+    ret->incoming = bg_album_create(&ret->com, BG_ALBUM_TYPE_INCOMING, NULL);
     ret->incoming->name  = bg_strdup(ret->incoming->name, TR("Incoming"));
     ret->incoming->xml_file  = bg_strdup(ret->incoming->xml_file,
                                          "incoming.xml");
@@ -439,7 +439,7 @@ void bg_media_tree_init(bg_media_tree_t * ret)
     }
   if(!ret->com.favourites)
     {
-    ret->com.favourites = bg_album_create(&(ret->com), BG_ALBUM_TYPE_FAVOURITES, NULL);
+    ret->com.favourites = bg_album_create(&ret->com, BG_ALBUM_TYPE_FAVOURITES, NULL);
     ret->com.favourites->name  = bg_strdup(ret->com.favourites->name, TR("Favourites"));
     ret->com.favourites->xml_file  = bg_strdup(ret->com.favourites->xml_file, "favourites.xml");
     ret->children = append_album(ret->children, ret->com.favourites);
@@ -493,7 +493,7 @@ bg_album_t * bg_media_tree_append_album(bg_media_tree_t * tree,
   bg_album_t * album_after;
   
   bg_album_t * new_album =
-    bg_album_create(&(tree->com), BG_ALBUM_TYPE_REGULAR, parent);
+    bg_album_create(&tree->com, BG_ALBUM_TYPE_REGULAR, parent);
     
   if(parent)
     {
@@ -1108,7 +1108,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     bg_album_common_prepare_callbacks(&t->com, t->com.current_entry);
     if(!bg_input_plugin_load(t->com.plugin_reg,
                              t->com.current_entry->location, info,
-                             &(ret), &t->com.input_callbacks,
+                             &ret, &t->com.input_callbacks,
                              !!(t->com.current_entry->flags & BG_ALBUM_ENTRY_EDL)))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed",
@@ -1128,7 +1128,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     }
   bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info, 1);
 
-  bg_album_common_set_auth_info(&(t->com), t->com.current_entry);
+  bg_album_common_set_auth_info(&t->com, t->com.current_entry);
   
   //  bg_album_changed(t->com.current_album);
     
@@ -1320,7 +1320,7 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
   urls[0] = filename;
   urls[1] = (char*)0;
   
-  while(!readdir_r(dir, &(dent.d), &dent_ptr))
+  while(!readdir_r(dir, &dent.d, &dent_ptr))
     {
     if(!dent_ptr)
       break;
@@ -1419,7 +1419,7 @@ void bg_media_tree_purge_directory(bg_media_tree_t * t)
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Purging %s", t->com.directory);
   
   
-  while(!readdir_r(dir, &(dent.d), &dent_ptr))
+  while(!readdir_r(dir, &dent.d, &dent_ptr))
     {
     if(!dent_ptr)
       break;

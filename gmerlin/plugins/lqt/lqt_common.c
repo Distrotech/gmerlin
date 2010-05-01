@@ -240,7 +240,7 @@ static const void * get_value(lqt_parameter_info_t * lqt_parameter_info,
       switch(lqt_parameter_info[index].type)
         {
         case LQT_PARAMETER_INT:
-          return &(val->val_i);
+          return &val->val_i;
           break;
         case LQT_PARAMETER_FLOAT:
           *dummy_f = val->val_f;

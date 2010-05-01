@@ -243,7 +243,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   /* Samplerate */
   i_tmp = format->samplerate;
   if(snd_pcm_hw_params_set_rate_near(ret, hw_params,
-                                     &(i_tmp),
+                                     &i_tmp,
                                      0) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_rate_near failed");

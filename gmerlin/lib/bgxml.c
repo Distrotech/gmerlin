@@ -50,7 +50,7 @@ int bg_xml_write_callback(void * context, const char * buffer,
       o->bytes_allocated += BLOCK_SIZE;
     o->buffer = realloc(o->buffer, o->bytes_allocated);
     }
-  memcpy(&(o->buffer[o->bytes_written]), buffer, len);
+  memcpy(&o->buffer[o->bytes_written], buffer, len);
   o->bytes_written += len;
   return len;
   }

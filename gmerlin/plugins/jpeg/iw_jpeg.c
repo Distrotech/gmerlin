@@ -67,8 +67,8 @@ static void * create_jpeg()
   {
   jpeg_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->cinfo.err = jpeg_std_error(&(ret->jerr));
-  jpeg_create_compress(&(ret->cinfo));
+  ret->cinfo.err = jpeg_std_error(&ret->jerr);
+  jpeg_create_compress(&ret->cinfo);
 
   ret->yuv_rows[0] = ret->rows_0;
   ret->yuv_rows[1] = ret->rows_1;
@@ -86,7 +86,7 @@ static void set_callbacks_jpeg(void * data, bg_iw_callbacks_t * cb)
 static void destroy_jpeg(void * priv)
   {
   jpeg_t * jpeg = priv;
-  jpeg_destroy_compress(&(jpeg->cinfo));
+  jpeg_destroy_compress(&jpeg->cinfo);
   free(jpeg);
   }
 
@@ -115,7 +115,7 @@ int write_header_jpeg(void * priv, const char * filename,
            filename, strerror(errno));
     return 0;
     }
-  jpeg_stdio_dest(&(jpeg->cinfo), jpeg->output);
+  jpeg_stdio_dest(&jpeg->cinfo, jpeg->output);
 
   jpeg->cinfo.image_width  = format->image_width;
   jpeg->cinfo.image_height = format->image_height;
@@ -126,13 +126,13 @@ int write_header_jpeg(void * priv, const char * filename,
 
   /* Set defaults */
 
-  jpeg_set_defaults(&(jpeg->cinfo));
+  jpeg_set_defaults(&jpeg->cinfo);
   
   /* Adjust pixelformats */
 
   format->pixelformat = jpeg->pixelformat;
 
-  jpeg_set_colorspace(&(jpeg->cinfo), JCS_YCbCr);
+  jpeg_set_colorspace(&jpeg->cinfo, JCS_YCbCr);
   jpeg->cinfo.raw_data_in = TRUE;
 
   format->chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
@@ -225,7 +225,7 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
         num_lines = jpeg->cinfo.image_height - jpeg->cinfo.next_scanline;
         if(num_lines > 16)
           num_lines = 16;
-        jpeg_write_raw_data(&(jpeg->cinfo), jpeg->yuv_rows, 16);
+        jpeg_write_raw_data(&jpeg->cinfo, jpeg->yuv_rows, 16);
         }
       break;
     case GAVL_YUVJ_422_P:
@@ -244,13 +244,13 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
         num_lines = jpeg->cinfo.image_height - jpeg->cinfo.next_scanline;
         if(num_lines > 8)
           num_lines = 8;
-        jpeg_write_raw_data(&(jpeg->cinfo), jpeg->yuv_rows, 8);
+        jpeg_write_raw_data(&jpeg->cinfo, jpeg->yuv_rows, 8);
         }
       break;
     default:
       return 0;
     }
-  jpeg_finish_compress(&(jpeg->cinfo));
+  jpeg_finish_compress(&jpeg->cinfo);
   fclose(jpeg->output);
   return 1;
   }

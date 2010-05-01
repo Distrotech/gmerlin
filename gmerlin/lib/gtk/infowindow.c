@@ -672,7 +672,7 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
   win->y = event->y;
   win->width = event->width;
   win->height = event->height;
-  gdk_window_get_root_origin(win->window->window, &(win->x), &(win->y));
+  gdk_window_get_root_origin(win->window->window, &win->x, &win->y);
   return FALSE;
   }
 

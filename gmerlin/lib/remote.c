@@ -120,7 +120,7 @@ static server_connection_t * add_connection(bg_remote_server_t * s,
 
   server_connection_t * ret = (server_connection_t *)0;
   
-  if(!bg_socket_read_line(fd, &(buffer),
+  if(!bg_socket_read_line(fd, &buffer,
                           &buffer_alloc, 1))
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN_SERVER, "Reading hello line failed");
@@ -418,7 +418,7 @@ int bg_remote_client_init(bg_remote_client_t * c,
     }
   /* Read welcome message */
   
-  if(!bg_socket_read_line(c->fd, &(buffer),
+  if(!bg_socket_read_line(c->fd, &buffer,
                           &buffer_alloc, c->milliseconds))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Reading welcome line failed");

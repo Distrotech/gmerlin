@@ -261,7 +261,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     return;
 
   b->g->skin_dir = bg_strdup(b->g->skin_dir, skin->directory);
-  gmerlin_skin_load(&(b->g->skin), b->g->skin_dir);
+  gmerlin_skin_load(&b->g->skin, b->g->skin_dir);
   gmerlin_skin_set(b->g);
  
   }

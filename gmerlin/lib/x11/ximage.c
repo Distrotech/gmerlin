@@ -51,7 +51,7 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
     /* Create Shm Image */
     frame->x11_image = XShmCreateImage(w->dpy, w->visual,
                                        w->depth, ZPixmap,
-                                       NULL, &(frame->shminfo),
+                                       NULL, &frame->shminfo,
                                        w->window_format.frame_width,
                                        w->window_format.frame_height);
     if(!frame->x11_image)

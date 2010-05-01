@@ -43,7 +43,7 @@ int bg_x11_window_add_overlay_stream(bg_x11_window_t * w,
     {
     w->overlay_streams[w->num_overlay_streams].ctx = gavl_overlay_blend_context_create();
     gavl_overlay_blend_context_init(w->overlay_streams[w->num_overlay_streams].ctx,
-                                    &(w->video_format),
+                                    &w->video_format,
                                     &w->overlay_streams[w->num_overlay_streams].format);
     }
   

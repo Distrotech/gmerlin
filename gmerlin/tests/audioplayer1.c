@@ -147,7 +147,7 @@ int main(int argc, char ** argv)
   
   /* Get audio format */
 
-  gavl_audio_format_copy(&audio_format, &(info->audio_streams[0].format));
+  gavl_audio_format_copy(&audio_format, &info->audio_streams[0].format);
   
   /* Initialize output plugin */
   
@@ -161,7 +161,7 @@ int main(int argc, char ** argv)
   fprintf(stderr, "gavl_audio_converter_init...");
   
   do_convert = gavl_audio_converter_init(audio_converter,
-                                         &(info->audio_streams[0].format),
+                                         &info->audio_streams[0].format,
                                          &audio_format);
   fprintf(stderr, "done\n");
   
@@ -170,7 +170,7 @@ int main(int argc, char ** argv)
   /*
   
   fprintf(stderr, "Input format:\n");
-  dump_format(&(info->audio_streams[0].format));
+  dump_format(&info->audio_streams[0].format);
   fprintf(stderr, "Output format:\n");
   dump_format(&audio_format);
   
@@ -180,7 +180,7 @@ int main(int argc, char ** argv)
 
   info->audio_streams[0].format.samples_per_frame = audio_format.samples_per_frame;
   
-  input_frame = gavl_audio_frame_create(&(info->audio_streams[0].format));
+  input_frame = gavl_audio_frame_create(&info->audio_streams[0].format);
 
   if(do_convert)
     output_frame = gavl_audio_frame_create(&audio_format);

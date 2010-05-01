@@ -320,7 +320,7 @@ static int open_xv(driver_data_t * d)
   if(priv->have_xv_colorkey)
     {
     XvGetPortAttribute(w->dpy, priv->current_port, priv->xv_colorkey_atom, 
-                       &(priv->xv_colorkey_orig));
+                       &priv->xv_colorkey_orig);
     if(priv->xv_colorkey_settable)
       {
       priv->xv_colorkey = 0x00010100;
@@ -360,12 +360,12 @@ static gavl_video_frame_t * create_frame_xv(driver_data_t * d)
     frame->xv_image =
       XvShmCreateImage(w->dpy, priv->current_port, priv->format, NULL,
                        w->video_format.frame_width,
-                       w->video_format.frame_height, &(frame->shminfo));
+                       w->video_format.frame_height, &frame->shminfo);
     if(!frame->xv_image)
       w->have_shm = 0;
     else
       {
-      if(!bg_x11_window_create_shm(w, &(frame->shminfo),
+      if(!bg_x11_window_create_shm(w, &frame->shminfo,
                                 frame->xv_image->data_size))
         {
         XFree(frame->xv_image);

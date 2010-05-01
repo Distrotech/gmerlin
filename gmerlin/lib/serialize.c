@@ -268,20 +268,20 @@ bg_deserialize_video_format(gavl_video_format_t * format,
   uint32_t tmp;
   uint32_t version;
   pos = get_16(pos, &version);
-  pos = get_32(pos, &(tmp)); format->frame_width                   = tmp;
-  pos = get_32(pos, &(tmp)); format->frame_height                  = tmp;
-  pos = get_32(pos, &(tmp)); format->image_width                   = tmp;
-  pos = get_32(pos, &(tmp)); format->image_height                  = tmp;
-  pos = get_32(pos, &(tmp)); format->pixel_width                   = tmp;
-  pos = get_32(pos, &(tmp)); format->pixel_height                  = tmp;
-  pos = get_32(pos, &(tmp)); format->pixelformat                   = tmp;
-  pos = get_32(pos, &(tmp)); format->timescale                     = tmp;
-  pos = get_32(pos, &(tmp)); format->frame_duration                = tmp;
-  pos = get_8(pos,  &(tmp)); format->framerate_mode                = tmp;
-  pos = get_8(pos,  &(tmp)); format->interlace_mode                = tmp;
-  pos = get_8(pos,  &(tmp)); format->chroma_placement              = tmp;
-  pos = get_32(pos, &(tmp)); format->timecode_format.int_framerate = tmp;
-  pos = get_32(pos, &(tmp)); format->timecode_format.flags         = tmp;
+  pos = get_32(pos, &tmp); format->frame_width                   = tmp;
+  pos = get_32(pos, &tmp); format->frame_height                  = tmp;
+  pos = get_32(pos, &tmp); format->image_width                   = tmp;
+  pos = get_32(pos, &tmp); format->image_height                  = tmp;
+  pos = get_32(pos, &tmp); format->pixel_width                   = tmp;
+  pos = get_32(pos, &tmp); format->pixel_height                  = tmp;
+  pos = get_32(pos, &tmp); format->pixelformat                   = tmp;
+  pos = get_32(pos, &tmp); format->timescale                     = tmp;
+  pos = get_32(pos, &tmp); format->frame_duration                = tmp;
+  pos = get_8(pos,  &tmp); format->framerate_mode                = tmp;
+  pos = get_8(pos,  &tmp); format->interlace_mode                = tmp;
+  pos = get_8(pos,  &tmp); format->chroma_placement              = tmp;
+  pos = get_32(pos, &tmp); format->timecode_format.int_framerate = tmp;
+  pos = get_32(pos, &tmp); format->timecode_format.flags         = tmp;
   return 1;
   }
 

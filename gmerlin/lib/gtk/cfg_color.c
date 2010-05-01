@@ -91,27 +91,27 @@ static void set_button(color_t * c)
       (c->gdk_color_2.green >> 8) << 8 | (c->gdk_color_2.blue >> 8);
 
     gdk_color_alloc(gdk_window_get_colormap(c->drawingarea->window),
-                    &(c->gdk_color_1));
+                    &c->gdk_color_1);
     gdk_color_alloc(gdk_window_get_colormap(c->drawingarea->window),
-                    &(c->gdk_color_2));
+                    &c->gdk_color_2);
 
-    gdk_gc_set_foreground(c->gc, &(c->gdk_color_1));
+    gdk_gc_set_foreground(c->gc, &c->gdk_color_1);
     gdk_draw_rectangle(c->background_pixmap, c->gc, 1, 0, 0, 16, 16);
     gdk_draw_rectangle(c->background_pixmap, c->gc, 1, 16, 16, 16, 16);
 
-    gdk_gc_set_foreground(c->gc, &(c->gdk_color_2));
+    gdk_gc_set_foreground(c->gc, &c->gdk_color_2);
     gdk_draw_rectangle(c->background_pixmap, c->gc, 1, 16, 0, 16, 16);
     gdk_draw_rectangle(c->background_pixmap, c->gc, 1, 0, 16, 16, 16);
     }
   else
     {
     gdk_color_alloc(gdk_window_get_colormap(c->drawingarea->window),
-                    &(c->color));
+                    &c->color);
 
-    gdk_gc_set_foreground(c->gc, &(c->color));
+    gdk_gc_set_foreground(c->gc, &c->color);
     gdk_draw_rectangle(c->background_pixmap, c->gc, 1, 0, 0, 32, 32);
 
-    gdk_window_set_background(c->drawingarea->window, &(c->color));
+    gdk_window_set_background(c->drawingarea->window, &c->color);
     }
 
   gdk_window_get_geometry(c->drawingarea->window,
@@ -207,7 +207,7 @@ static void changed_callback(GtkWidget * w, gpointer data)
   bg_gtk_widget_t * wid = (bg_gtk_widget_t*)data;
   color_t * priv = (color_t*)wid->priv;
   
-  gtk_color_selection_get_current_color(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel), &(priv->color));
+  gtk_color_selection_get_current_color(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel), &priv->color);
   priv->alpha = gtk_color_selection_get_current_alpha(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel));
   
   bg_gtk_change_callback((GtkWidget*)0, wid);
@@ -266,7 +266,7 @@ static void button_callback(GtkWidget * w, gpointer data)
       }
 
     gtk_color_selection_set_current_color(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel),
-                                          &(priv->color));
+                                          &priv->color);
     if(priv->has_alpha)
       gtk_color_selection_set_current_alpha(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel),
                                             priv->alpha);
@@ -280,7 +280,7 @@ static void button_callback(GtkWidget * w, gpointer data)
       {
       gtk_main_quit();
       gtk_widget_hide(priv->colorsel);
-      gtk_color_selection_get_current_color(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel), &(priv->color));
+      gtk_color_selection_get_current_color(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel), &priv->color);
       priv->alpha = gtk_color_selection_get_current_alpha(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel));
       set_button(priv);
       }
@@ -298,7 +298,7 @@ static void button_callback(GtkWidget * w, gpointer data)
         wid->funcs->set_value(wid);
         if(wid->change_callback)
           wid->change_callback(wid->change_callback_data,
-                               wid->info->name, &(wid->value));
+                               wid->info->name, &wid->value);
         set_button(priv);
         }
 

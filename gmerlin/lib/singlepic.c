@@ -271,7 +271,7 @@ static int open_input(void * priv, const char * filename)
 
   if(!inp->image_reader->read_header(inp->handle->priv,
                                      inp->filename_buffer,
-                                     &(inp->track_info.video_streams[0].format)))
+                                     &inp->track_info.video_streams[0].format))
     return 0;
   inp->track_info.video_streams[0].format.timescale =
     inp->timescale;
@@ -321,13 +321,13 @@ static int open_stills_input(void * priv, const char * filename)
   
   /* Get track name */
 
-  bg_set_track_name_default(&(inp->track_info), filename);
+  bg_set_track_name_default(&inp->track_info, filename);
 
   inp->filename_buffer = bg_strdup(inp->filename_buffer, filename);
 
   if(!inp->image_reader->read_header(inp->handle->priv,
                                      inp->filename_buffer,
-                                       &(inp->track_info.video_streams[0].format)))
+                                     &inp->track_info.video_streams[0].format))
     return 0;
   inp->track_info.video_streams[0].format.timescale = GAVL_TIME_SCALE;
   inp->track_info.video_streams[0].format.frame_duration = 0;
@@ -341,7 +341,7 @@ static int open_stills_input(void * priv, const char * filename)
 static bg_track_info_t * get_track_info_input(void * priv, int track)
   {
   input_t * inp = priv;
-  return &(inp->track_info);
+  return &inp->track_info;
   }
 
 static int set_video_stream_input(void * priv, int stream,
@@ -524,7 +524,7 @@ static void close_input(void * priv)
     free(inp->filename_buffer);
     inp->filename_buffer = (char*)0;
     }
-  bg_track_info_free(&(inp->track_info));
+  bg_track_info_free(&inp->track_info);
   
   /* Unload the plugin */
   if(inp->handle)
@@ -890,7 +890,7 @@ static int write_frame_header(encoder_t * e)
   
   ret = e->image_writer->write_header(e->plugin_handle->priv,
                                       e->filename_buffer,
-                                      &(e->format), &e->metadata);
+                                      &e->format, &e->metadata);
   
   if(!ret)
     {
@@ -926,7 +926,7 @@ static int add_video_stream_encoder(void * data, const gavl_video_format_t * for
   char ** extensions;
   encoder_t * e = data;
   
-  gavl_video_format_copy(&(e->format), format);
+  gavl_video_format_copy(&e->format, format);
 
   extensions = bg_strbreak(e->image_writer->extensions, ' ');
   create_mask(e, extensions[0]);
@@ -955,7 +955,7 @@ static void get_video_format_encoder(void * data, int stream,
   encoder_t * e;
 
   e = (encoder_t *)data;
-  gavl_video_format_copy(format, &(e->format));
+  gavl_video_format_copy(format, &e->format);
   }
 
 static int

@@ -434,7 +434,7 @@ static int open_display(bg_x11_window_t * w)
   if (XineramaQueryExtension(w->dpy,&foo,&bar) &&
       XineramaIsActive(w->dpy))
     {
-    w->xinerama = XineramaQueryScreens(w->dpy,&(w->nxinerama));
+    w->xinerama = XineramaQueryScreens(w->dpy,&w->nxinerama);
     }
 #endif
 

@@ -1419,7 +1419,7 @@ bg_plugin_handle_t * bg_plugin_handle_create()
   {
   bg_plugin_handle_t * ret;
   ret = calloc(1, sizeof(*ret));
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
   return ret;
   }
 
@@ -1434,7 +1434,7 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
   ret = bg_plugin_handle_create();
   ret->plugin_reg = reg;
   
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
 
   if(info->module_filename)
     {
@@ -1503,7 +1503,7 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
   return ret;
 
 fail:
-  pthread_mutex_destroy(&(ret->mutex));
+  pthread_mutex_destroy(&ret->mutex);
   if(ret->dll_handle)
     dlclose(ret->dll_handle);
   free(ret);
@@ -1574,12 +1574,12 @@ bg_plugin_handle_t * bg_ov_plugin_load(bg_plugin_registry_t * reg,
 
 void bg_plugin_lock(bg_plugin_handle_t * h)
   {
-  pthread_mutex_lock(&(h->mutex));
+  pthread_mutex_lock(&h->mutex);
   }
 
 void bg_plugin_unlock(bg_plugin_handle_t * h)
   {
-  pthread_mutex_unlock(&(h->mutex));
+  pthread_mutex_unlock(&h->mutex);
   }
 
 void bg_plugin_registry_add_device(bg_plugin_registry_t * reg,
@@ -1660,7 +1660,7 @@ void bg_plugin_registry_remove_device(bg_plugin_registry_t * reg,
 
 
   if(index != -1)
-    memmove(&(info->devices[index]), &(info->devices[index+1]),
+    memmove(&info->devices[index], &info->devices[index+1],
             sizeof(*(info->devices)) * (num_devices - index));
     
   bg_plugin_registry_save(reg->entries);

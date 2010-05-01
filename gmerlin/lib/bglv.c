@@ -145,7 +145,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
     case VISUAL_WIDGET_TYPE_BOX:         /**< Box widget: \a VisUIBox. */
       /* Get children */
       list_entry = (VisListEntry*)0;
-      while(visual_list_next(&(VISUAL_UI_BOX(w)->childs), &list_entry))
+      while(visual_list_next(&VISUAL_UI_BOX(w)->childs, &list_entry))
         {
         if((ret = check_widget(list_entry->data, name, info)))
           return ret;
@@ -154,7 +154,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
     case VISUAL_WIDGET_TYPE_TABLE:       /**< Table widget: \a VisUITable. */
       /* Get children */
       list_entry = (VisListEntry*)0;
-      while(visual_list_next(&(VISUAL_UI_TABLE(w)->childs), &list_entry))
+      while(visual_list_next(&VISUAL_UI_TABLE(w)->childs, &list_entry))
         {
         if((ret = check_widget(((VisUITableEntry*)list_entry->data)->widget, name, info)))
           {
@@ -166,7 +166,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       /* Get children */
       /* Get children */
       list_entry = (VisListEntry*)0;
-      while(visual_list_next(&(VISUAL_UI_NOTEBOOK(w)->childs), &list_entry))
+      while(visual_list_next(&VISUAL_UI_NOTEBOOK(w)->childs, &list_entry))
         {
         if((ret = check_widget(list_entry->data, name, info)))
           return ret;
@@ -242,13 +242,13 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       info->flags |= BG_PARAMETER_SYNC;
       num_items = 0;
       list_entry = (VisListEntry*)0;
-      while(visual_list_next(&(VISUAL_UI_CHOICE(w)->choices.choices), &list_entry))
+      while(visual_list_next(&VISUAL_UI_CHOICE(w)->choices.choices, &list_entry))
         num_items++;
       info->multi_names_nc = calloc(num_items+1, sizeof(info->multi_names_nc));
       list_entry = (VisListEntry*)0;
       for(i = 0; i < num_items; i++)
         {
-        visual_list_next(&(VISUAL_UI_CHOICE(w)->choices.choices), &list_entry);
+        visual_list_next(&VISUAL_UI_CHOICE(w)->choices.choices, &list_entry);
         info->multi_names_nc[i] = bg_strdup((char*)0, ((VisUIChoiceEntry*)(list_entry->data))->name);
 
         /* Check if this is the current value */
@@ -759,7 +759,7 @@ static void set_parameter_lv(void * data, const char * name,
     /* Get the selected index */
     supported = 0;
     list_entry = (VisListEntry*)0;
-    while(visual_list_next(&(VISUAL_UI_CHOICE(priv->widgets[index])->choices.choices),
+    while(visual_list_next(&VISUAL_UI_CHOICE(priv->widgets[index])->choices.choices,
                            &list_entry))
       {
       if(!strcmp(((VisUIChoiceEntry*)(list_entry->data))->name, val->val_str))

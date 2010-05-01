@@ -79,9 +79,9 @@ static void msg_audio_stream(bg_msg_t * msg,
   bg_msg_set_id(msg, BG_PLAYER_MSG_AUDIO_STREAM);
   bg_msg_set_arg_int(msg, 0, player->current_audio_stream);
   bg_msg_set_arg_audio_format(msg, 1,
-                              &(player->audio_stream.input_format));
+                              &player->audio_stream.input_format);
   bg_msg_set_arg_audio_format(msg, 2,
-                              &(player->audio_stream.output_format));
+                              &player->audio_stream.output_format);
   
   }
 
@@ -94,9 +94,9 @@ static void msg_video_stream(bg_msg_t * msg,
   bg_msg_set_id(msg, BG_PLAYER_MSG_VIDEO_STREAM);
   bg_msg_set_arg_int(msg, 0, player->current_video_stream);
   bg_msg_set_arg_video_format(msg, 1,
-                              &(player->video_stream.input_format));
+                              &player->video_stream.input_format);
   bg_msg_set_arg_video_format(msg, 2,
-                              &(player->video_stream.output_format));
+                              &player->video_stream.output_format);
   
   }
 
@@ -111,9 +111,9 @@ static void msg_subtitle_stream(bg_msg_t * msg,
   bg_msg_set_arg_int(msg, 1, !!DO_SUBTITLE_TEXT(player->flags));
   
   bg_msg_set_arg_video_format(msg, 2,
-                              &(player->subtitle_stream.input_format));
+                              &player->subtitle_stream.input_format);
   bg_msg_set_arg_video_format(msg, 3,
-                              &(player->subtitle_stream.output_format));
+                              &player->subtitle_stream.output_format);
   
 
   }
@@ -474,7 +474,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
 
   bg_msg_queue_list_send(p->message_queues,
                          msg_metadata,
-                         &(p->track_info->metadata));
+                         &p->track_info->metadata);
 
 
   bg_player_set_duration(p, p->track_info->duration, p->can_seek);
@@ -497,13 +497,13 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
       {
       bg_msg_queue_list_send(p->message_queues,
                              msg_chapter_info,
-                             &(ci));
+                             &ci);
       }
 
     p->current_chapter = 0;
     bg_msg_queue_list_send(p->message_queues,
                            msg_chapter_changed,
-                           &(p->current_chapter));
+                           &p->current_chapter);
     }
   
   /* Send infos about the streams we have */
@@ -839,7 +839,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
       player->current_chapter = new_chapter;
       bg_msg_queue_list_send(player->message_queues,
                              msg_chapter_changed,
-                             &(player->current_chapter));
+                             &player->current_chapter);
       }
     }
   
@@ -1136,7 +1136,7 @@ static int process_commands(bg_player_t * player)
 
         bg_msg_queue_list_send(player->message_queues,
                                msg_volume_changed,
-                               &(player->volume));
+                               &player->volume);
 
         break;
       case BG_PLAYER_CMD_SET_VOLUME_REL:
@@ -1152,7 +1152,7 @@ static int process_commands(bg_player_t * player)
 
         bg_msg_queue_list_send(player->message_queues,
                                msg_volume_changed,
-                               &(player->volume));
+                               &player->volume);
         break;
       case BG_PLAYER_CMD_SETSTATE:
         arg_i1 = bg_msg_get_arg_int(command, 0);
@@ -1181,8 +1181,8 @@ static int process_commands(bg_player_t * player)
           case BG_PLAYER_STATE_FINISHING_PAUSE:
             bg_player_set_state(player, BG_PLAYER_STATE_FINISHING_PAUSE, NULL, NULL);
             
-            pthread_mutex_lock(&(player->stop_mutex));
-            pthread_cond_wait(&(player->stop_cond), &(player->stop_mutex));
+            pthread_mutex_lock(&player->stop_mutex);
+            pthread_cond_wait(&player->stop_cond, &player->stop_mutex);
             pthread_mutex_unlock(&player->stop_mutex);
             bg_player_time_stop(player);
 
@@ -1318,7 +1318,7 @@ static void * player_thread(void * data)
           {
           bg_msg_queue_list_send(player->message_queues,
                                  msg_chapter_changed,
-                                 &(player->current_chapter));
+                                 &player->current_chapter);
           }
         
         break;
@@ -1338,7 +1338,7 @@ void bg_player_broadcast_time(bg_player_t * player, gavl_time_t time)
 
 void bg_player_run(bg_player_t * player)
   {
-  pthread_create(&(player->player_thread),
+  pthread_create(&player->player_thread,
                  (pthread_attr_t*)0,
                  player_thread, player);
 

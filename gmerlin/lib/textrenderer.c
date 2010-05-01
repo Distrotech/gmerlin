@@ -911,7 +911,7 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
     index = r->cache_size;
     r->cache_size++;
     }
-  entry = &(r->cache[index]);
+  entry = &r->cache[index];
   
   /* Load the glyph */
   if(FT_Load_Char(r->face, unicode, FT_LOAD_DEFAULT))
@@ -919,19 +919,19 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
     return (cache_entry_t*)0;
     }
   /* extract glyph image */
-  if(FT_Get_Glyph(r->face->glyph, &(entry->glyph)))
+  if(FT_Get_Glyph(r->face->glyph, &entry->glyph))
     {
     return (cache_entry_t*)0;
     }
 #ifdef FT_STROKER_H
   /* Stroke glyph */
   entry->glyph_stroke = entry->glyph;
-  FT_Glyph_StrokeBorder(&(entry->glyph_stroke), r->stroker, 0, 0);
-  //  FT_Glyph_StrokeBorder(&(entry->glyph_stroke), r->stroker, 1, 0);
+  FT_Glyph_StrokeBorder(&entry->glyph_stroke, r->stroker, 0, 0);
+  //  FT_Glyph_StrokeBorder(&entry->glyph_stroke, r->stroker, 1, 0);
 #endif
   
   /* Render glyph */
-  if(FT_Glyph_To_Bitmap( &(entry->glyph),
+  if(FT_Glyph_To_Bitmap( &entry->glyph,
                          FT_RENDER_MODE_NORMAL,
                          (FT_Vector*)0, 1 ))
     return (cache_entry_t*)0;
@@ -942,7 +942,7 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
   
   
 #ifdef FT_STROKER_H
-  if(FT_Glyph_To_Bitmap( &(entry->glyph_stroke),
+  if(FT_Glyph_To_Bitmap( &entry->glyph_stroke,
                          FT_RENDER_MODE_NORMAL,
                          (FT_Vector*)0, 1 ))
     return (cache_entry_t*)0;
@@ -1048,7 +1048,7 @@ static int load_font(bg_text_renderer_t * r)
     // s doesn't need to be freed according to fontconfig docs
     
     FcPatternGetString(fc_pattern_1, FC_FILE, 0, &filename);
-    FcPatternGetDouble(fc_pattern_1, FC_SIZE, 0, &(r->font_size));
+    FcPatternGetDouble(fc_pattern_1, FC_SIZE, 0, &r->font_size);
     }
   else
     {
@@ -1087,9 +1087,9 @@ static int load_font(bg_text_renderer_t * r)
   /* Create stroker */
 
 #if (FREETYPE_MAJOR > 2) || ((FREETYPE_MAJOR == 2) && (FREETYPE_MINOR > 1))  
-  FT_Stroker_New(r->library, &(r->stroker));
+  FT_Stroker_New(r->library, &r->stroker);
 #else
-  FT_Stroker_New(r->face->memory, &(r->stroker));
+  FT_Stroker_New(r->face->memory, &r->stroker);
 #endif
 
   FT_Stroker_Set(r->stroker, (int)(r->border_width * 32.0 + 0.5), 
@@ -1131,7 +1131,7 @@ bg_text_renderer_t * bg_text_renderer_create()
 #else
   ret->cnv = bg_charset_converter_create("UTF-8", "UCS-4BE");
 #endif
-  pthread_mutex_init(&(ret->config_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->config_mutex,(pthread_mutexattr_t *)0);
   /* Initialize freetype */
   FT_Init_FreeType(&ret->library);
 
@@ -1153,7 +1153,7 @@ void bg_text_renderer_destroy(bg_text_renderer_t * r)
     free(r->font_file);
   
   FT_Done_FreeType(r->library);
-  pthread_mutex_destroy(&(r->config_mutex));
+  pthread_mutex_destroy(&r->config_mutex);
   free(r);
   }
 
@@ -1171,7 +1171,7 @@ void bg_text_renderer_set_parameter(void * data, const char * name,
   if(!name)
     return;
 
-  pthread_mutex_lock(&(r->config_mutex));
+  pthread_mutex_lock(&r->config_mutex);
 
   /* General text renderer */
   if(!strcmp(name, "font"))
@@ -1284,7 +1284,7 @@ void bg_text_renderer_set_parameter(void * data, const char * name,
       r->default_csp = GAVL_YUV_444_P;
     }
   r->config_changed = 1;
-  pthread_mutex_unlock(&(r->config_mutex));
+  pthread_mutex_unlock(&r->config_mutex);
   }
 
 /* Copied from gavl */
@@ -1547,12 +1547,12 @@ void init_nolock(bg_text_renderer_t * r)
   
   /* */
   
-  gavl_rectangle_i_set_all(&(r->max_bbox), &(r->overlay_format));
+  gavl_rectangle_i_set_all(&r->max_bbox, &r->overlay_format);
 
-  gavl_rectangle_i_crop_left(&(r->max_bbox), r->border_left);
-  gavl_rectangle_i_crop_right(&(r->max_bbox), r->border_right);
-  gavl_rectangle_i_crop_top(&(r->max_bbox), r->border_top);
-  gavl_rectangle_i_crop_bottom(&(r->max_bbox), r->border_bottom);
+  gavl_rectangle_i_crop_left(&r->max_bbox, r->border_left);
+  gavl_rectangle_i_crop_right(&r->max_bbox, r->border_right);
+  gavl_rectangle_i_crop_top(&r->max_bbox, r->border_top);
+  gavl_rectangle_i_crop_bottom(&r->max_bbox, r->border_bottom);
   
   }
 
@@ -1569,11 +1569,11 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
     
   if(frame_format)
     {
-    gavl_video_format_copy(&(r->frame_format), frame_format);
+    gavl_video_format_copy(&r->frame_format, frame_format);
     }
   else
     {
-    memset(&(r->frame_format), 0, sizeof(r->frame_format));
+    memset(&r->frame_format, 0, sizeof(r->frame_format));
     r->frame_format.image_width  = r->default_width;
     r->frame_format.image_height = r->default_height;
 
@@ -1593,7 +1593,7 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
   r->overlay_format.timescale      = timescale;
   r->overlay_format.frame_duration = frame_duration;
 
-  gavl_video_format_copy(overlay_format, &(r->overlay_format));
+  gavl_video_format_copy(overlay_format, &r->overlay_format);
 
   r->config_changed = 0;
 
@@ -1682,9 +1682,9 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   r->bbox.ymax = 0;
 
 #ifdef FT_STROKER_H
-  gavl_video_frame_fill(ovl->frame, &(r->overlay_format), r->color_stroke);
+  gavl_video_frame_fill(ovl->frame, &r->overlay_format, r->color_stroke);
 #else
-  gavl_video_frame_fill(ovl->frame, &(r->overlay_format), r->color);
+  gavl_video_frame_fill(ovl->frame, &r->overlay_format, r->color);
 #endif
   
   /* Convert string */

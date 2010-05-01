@@ -44,10 +44,10 @@ void bg_player_time_start(bg_player_t * player)
 
   if(ctx->sync_mode == SYNC_SOFTWARE)
     {
-    pthread_mutex_lock(&(ctx->time_mutex));
+    pthread_mutex_lock(&ctx->time_mutex);
     gavl_timer_set(ctx->timer, ctx->current_time);
     gavl_timer_start(ctx->timer);
-    pthread_mutex_unlock(&(ctx->time_mutex));
+    pthread_mutex_unlock(&ctx->time_mutex);
     }
   }
 
@@ -57,9 +57,9 @@ void bg_player_time_stop(bg_player_t * player)
 
   if(ctx->sync_mode == SYNC_SOFTWARE)
     {
-    pthread_mutex_lock(&(ctx->time_mutex));
+    pthread_mutex_lock(&ctx->time_mutex);
     gavl_timer_stop(ctx->timer);
-    pthread_mutex_unlock(&(ctx->time_mutex));
+    pthread_mutex_unlock(&ctx->time_mutex);
     }
   }
 
@@ -68,16 +68,16 @@ void bg_player_time_reset(bg_player_t * player)
   bg_player_audio_stream_t * ctx = &player->audio_stream;
   if(ctx->sync_mode == SYNC_SOFTWARE)
     {
-    pthread_mutex_lock(&(ctx->time_mutex));
+    pthread_mutex_lock(&ctx->time_mutex);
     gavl_timer_stop(ctx->timer);
     ctx->current_time = 0;
-    pthread_mutex_unlock(&(ctx->time_mutex));
+    pthread_mutex_unlock(&ctx->time_mutex);
     }
   else
     {
-    pthread_mutex_lock(&(ctx->time_mutex));
+    pthread_mutex_lock(&ctx->time_mutex);
     ctx->current_time = 0;
-    pthread_mutex_unlock(&(ctx->time_mutex));
+    pthread_mutex_unlock(&ctx->time_mutex);
     }
   }
 
@@ -92,18 +92,18 @@ void bg_player_time_get(bg_player_t * player, int exact,
   
   if(!exact)
     {
-    pthread_mutex_lock(&(ctx->time_mutex));
+    pthread_mutex_lock(&ctx->time_mutex);
     *ret = ctx->current_time;
-    pthread_mutex_unlock(&(ctx->time_mutex));
+    pthread_mutex_unlock(&ctx->time_mutex);
     }
   else
     {
     if(ctx->sync_mode == SYNC_SOFTWARE)
       {
-      pthread_mutex_lock(&(ctx->time_mutex));
+      pthread_mutex_lock(&ctx->time_mutex);
       ctx->current_time = gavl_timer_get(ctx->timer);
       *ret = ctx->current_time;
-      pthread_mutex_unlock(&(ctx->time_mutex));
+      pthread_mutex_unlock(&ctx->time_mutex);
       }
     else
       {
@@ -113,7 +113,7 @@ void bg_player_time_get(bg_player_t * player, int exact,
         samples_in_soundcard = ctx->plugin->get_delay(ctx->priv);
       bg_plugin_unlock(ctx->plugin_handle);
 
-      pthread_mutex_lock(&(ctx->time_mutex));
+      pthread_mutex_lock(&ctx->time_mutex);
       ctx->current_time =
         gavl_samples_to_time(ctx->output_format.samplerate,
                              ctx->samples_written-samples_in_soundcard);
@@ -123,7 +123,7 @@ void bg_player_time_get(bg_player_t * player, int exact,
       // ctx->current_time /= ctx->player->audio_stream.input_format.samplerate;
       
       *ret = ctx->current_time;
-      pthread_mutex_unlock(&(ctx->time_mutex));
+      pthread_mutex_unlock(&ctx->time_mutex);
       }
     }
 
@@ -133,7 +133,7 @@ void bg_player_time_set(bg_player_t * player, gavl_time_t time)
   {
   bg_player_audio_stream_t * ctx = &player->audio_stream;
  
-  pthread_mutex_lock(&(ctx->time_mutex));
+  pthread_mutex_lock(&ctx->time_mutex);
 
   if(ctx->sync_mode == SYNC_SOFTWARE)
     gavl_timer_set(ctx->timer, time);
@@ -146,5 +146,5 @@ void bg_player_time_set(bg_player_t * player, gavl_time_t time)
     ctx->has_first_timestamp_o = 1;
     }
   ctx->current_time = time;
-  pthread_mutex_unlock(&(ctx->time_mutex));
+  pthread_mutex_unlock(&ctx->time_mutex);
   }

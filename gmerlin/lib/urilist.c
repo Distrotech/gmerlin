@@ -117,7 +117,7 @@ char * bg_uri_to_string(const char * pos1, int len)
     if(pos1[6] != '/')
       {
       /* KDE Case */
-      start = &(pos1[5]);
+      start = &pos1[5];
       }
     else if(pos1[7] != '/') /* RFC .... (text/uri-list) */
       {
@@ -127,12 +127,12 @@ char * bg_uri_to_string(const char * pos1, int len)
       if((len - 7) < hostname_len)
         return (char*)0;
       
-      if(strncmp(&(pos1[7]), hostname, strlen(hostname)))
+      if(strncmp(&pos1[7], hostname, strlen(hostname)))
         return (char *)0;
-      start = &(pos1[7+hostname_len]);
+      start = &pos1[7+hostname_len];
       }
     else /* Gnome Case */
-      start = &(pos1[7]);
+      start = &pos1[7];
     }
   else
     start = pos1;
@@ -146,7 +146,7 @@ char * bg_uri_to_string(const char * pos1, int len)
     if(*start == '%')
       {
       if((len - (start - pos1) < 3) ||
-         (!sscanf(&(start[1]), "%02x", &real_char)))
+         (!sscanf(&start[1], "%02x", &real_char)))
         {
         free(ret);
         return (char*)0;

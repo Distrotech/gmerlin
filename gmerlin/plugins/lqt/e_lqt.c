@@ -248,7 +248,7 @@ static int add_audio_stream_lqt(void * data, const char * language,
   e->audio_streams =
     realloc(e->audio_streams,
             (e->num_audio_streams+1)*sizeof(*(e->audio_streams)));
-  memset(&(e->audio_streams[e->num_audio_streams]), 0,
+  memset(&e->audio_streams[e->num_audio_streams], 0,
          sizeof(*(e->audio_streams)));
   gavl_audio_format_copy(&e->audio_streams[e->num_audio_streams].format,
                          format);
@@ -270,7 +270,7 @@ static int add_audio_stream_compressed_lqt(void * data, const char * language,
   e->audio_streams =
     realloc(e->audio_streams,
             (e->num_audio_streams+1)*sizeof(*(e->audio_streams)));
-  memset(&(e->audio_streams[e->num_audio_streams]), 0,
+  memset(&e->audio_streams[e->num_audio_streams], 0,
          sizeof(*(e->audio_streams)));
   lqt_gavl_add_audio_track_compressed(e->file, format, ci);
   e->num_audio_streams++;
@@ -286,7 +286,7 @@ static int add_subtitle_text_stream_lqt(void * data, const char * language, int 
             (e->num_subtitle_text_streams+1)*
             sizeof(*(e->subtitle_text_streams)));
 
-  memset(&(e->subtitle_text_streams[e->num_subtitle_text_streams]), 0,
+  memset(&e->subtitle_text_streams[e->num_subtitle_text_streams], 0,
          sizeof(*(e->subtitle_text_streams)));
 
   strncpy(e->subtitle_text_streams[e->num_subtitle_text_streams].language,
@@ -306,7 +306,7 @@ static int add_video_stream_lqt(void * data,
   e->video_streams =
     realloc(e->video_streams,
             (e->num_video_streams+1)*sizeof(*(e->video_streams)));
-  memset(&(e->video_streams[e->num_video_streams]), 0,
+  memset(&e->video_streams[e->num_video_streams], 0,
          sizeof(*(e->video_streams)));
   
   gavl_video_format_copy(&e->video_streams[e->num_video_streams].format,
@@ -328,7 +328,7 @@ static int add_video_stream_compressed_lqt(void * data,
   e->video_streams =
     realloc(e->video_streams,
             (e->num_video_streams+1)*sizeof(*(e->video_streams)));
-  memset(&(e->video_streams[e->num_video_streams]), 0,
+  memset(&e->video_streams[e->num_video_streams], 0,
          sizeof(*(e->video_streams)));
   
   lqt_gavl_add_video_track_compressed(e->file, format, ci);
@@ -342,7 +342,7 @@ static void get_audio_format_lqt(void * data, int stream,
   {
   e_lqt_t * e = data;
 
-  gavl_audio_format_copy(ret, &(e->audio_streams[stream].format));
+  gavl_audio_format_copy(ret, &e->audio_streams[stream].format);
   
   }
   
@@ -350,7 +350,7 @@ static void get_video_format_lqt(void * data, int stream,
                                  gavl_video_format_t * ret)
   {
   e_lqt_t * e = data;
-  gavl_video_format_copy(ret, &(e->video_streams[stream].format));
+  gavl_video_format_copy(ret, &e->video_streams[stream].format);
   }
 
 static int start_lqt(void * data)
@@ -364,14 +364,14 @@ static int start_lqt(void * data)
     tmp = e->audio_streams[i].format.samples_per_frame;
     lqt_gavl_get_audio_format(e->file,
                               i,
-                              &(e->audio_streams[i].format));
+                              &e->audio_streams[i].format);
     e->audio_streams[i].format.samples_per_frame = tmp;
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
     lqt_gavl_get_video_format(e->file,
                               i,
-                              &(e->video_streams[i].format), 1);
+                              &e->video_streams[i].format, 1);
     }
 
   if(!(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
@@ -619,9 +619,9 @@ static void create_parameters(e_lqt_t * e)
   e->audio_parameters = bg_parameter_info_copy_array(audio_parameters);
   e->video_parameters = bg_parameter_info_copy_array(video_parameters);
   
-  bg_lqt_create_codec_info(&(e->audio_parameters[0]),
+  bg_lqt_create_codec_info(&e->audio_parameters[0],
                            1, 0, 1, 0);
-  bg_lqt_create_codec_info(&(e->video_parameters[2]),
+  bg_lqt_create_codec_info(&e->video_parameters[2],
                            0, 1, 1, 0);
   
   }

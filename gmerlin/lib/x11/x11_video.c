@@ -344,17 +344,17 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
       }
     
     /* Clear window */
-    gavl_video_frame_clear(w->window_frame, &(w->window_format));
+    gavl_video_frame_clear(w->window_frame, &w->window_format);
     
     /* Reinitialize scaler */
     
     opt = gavl_video_scaler_get_options(w->scaler);
-    gavl_video_options_set_rectangles(opt, &(w->src_rect),
-                                      &(w->dst_rect));
+    gavl_video_options_set_rectangles(opt, &w->src_rect,
+                                      &w->dst_rect);
     
     gavl_video_scaler_init(w->scaler,
-                           &(w->video_format),
-                           &(w->window_format)); 
+                           &w->video_format,
+                           &w->window_format); 
     }
   bg_x11_window_clear(w);
   }

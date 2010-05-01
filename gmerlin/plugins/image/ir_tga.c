@@ -94,7 +94,7 @@ static int read_header_tga(void * priv, const char * filename,
   {
   tga_t * tga = (tga_t*)priv;
   
-  if(tga_read(&(tga->tga), filename) != TGA_NOERR)
+  if(tga_read(&tga->tga, filename) != TGA_NOERR)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read tga failed");
     return 0;
@@ -114,18 +114,18 @@ static int read_header_tga(void * priv, const char * filename,
     case TGA_IMAGE_TYPE_COLORMAP:
     case TGA_IMAGE_TYPE_COLORMAP_RLE:
       format->pixelformat = get_pixelformat(tga->tga.color_map_depth,
-                                          &(tga->bytes_per_pixel));
+                                          &tga->bytes_per_pixel);
       break;
     default:
       format->pixelformat = get_pixelformat(tga->tga.pixel_depth,
-                                          &(tga->bytes_per_pixel));
+                                          &tga->bytes_per_pixel);
       break;
     }
 
   if(format->pixelformat == GAVL_PIXELFORMAT_NONE)
     goto fail;
 
-  gavl_video_format_copy(&(tga->format), format);
+  gavl_video_format_copy(&tga->format, format);
   
   return 1;
   fail:
@@ -166,7 +166,7 @@ static int read_image_tga(void * priv, gavl_video_frame_t * frame)
       }
 
     if(tga->format.pixelformat == GAVL_RGBA_32)
-      tga_swap_red_blue(&(tga->tga));
+      tga_swap_red_blue(&tga->tga);
   
     tga->frame->strides[0] = tga->bytes_per_pixel * tga->format.image_width;
     tga->frame->planes[0] = tga->tga.image_data;
@@ -177,22 +177,22 @@ static int read_image_tga(void * priv, gavl_video_frame_t * frame)
       {
       if(tga->tga.image_descriptor & TGA_T_TO_B_BIT)
         {
-        gavl_video_frame_copy_flip_x(&(tga->format), frame, tga->frame);
+        gavl_video_frame_copy_flip_x(&tga->format, frame, tga->frame);
         }
       else
         {
-        gavl_video_frame_copy_flip_xy(&(tga->format), frame, tga->frame);
+        gavl_video_frame_copy_flip_xy(&tga->format, frame, tga->frame);
         }
       }
     else
       {
       if(tga->tga.image_descriptor & TGA_T_TO_B_BIT)
         {
-        gavl_video_frame_copy(&(tga->format), frame, tga->frame);
+        gavl_video_frame_copy(&tga->format, frame, tga->frame);
         }
       else
         {
-        gavl_video_frame_copy_flip_y(&(tga->format), frame, tga->frame);
+        gavl_video_frame_copy_flip_y(&tga->format, frame, tga->frame);
         }
       }
     }

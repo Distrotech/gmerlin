@@ -171,7 +171,7 @@ static void * create_alsa()
   
   for(i = 0; i < num_global_parameters; i++)
     {
-    bg_parameter_info_copy(&(ret->parameters[i+1]), &global_parameters[i]);
+    bg_parameter_info_copy(&ret->parameters[i+1], &global_parameters[i]);
     }
   
   return ret;
@@ -325,7 +325,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   
   if(!priv->pcm)
     return 0;
-  gavl_audio_format_copy(&(priv->format), format);
+  gavl_audio_format_copy(&priv->format, format);
   return 1;
   }
 

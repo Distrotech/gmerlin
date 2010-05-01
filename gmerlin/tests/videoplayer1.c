@@ -135,7 +135,7 @@ int main(int argc, char ** argv)
   
   /* Get video format */
 
-  memcpy(&video_format, &(info->video_streams[0].format),
+  memcpy(&video_format, &info->video_streams[0].format,
          sizeof(gavl_video_format_t));
 
   /* Initialize output plugin */
@@ -155,7 +155,7 @@ int main(int argc, char ** argv)
 
   
   do_convert = gavl_video_converter_init(video_converter,
-                                         &(info->video_streams[0].format),
+                                         &info->video_streams[0].format,
                                          &video_format);
   
   if(do_convert)
@@ -164,14 +164,14 @@ int main(int argc, char ** argv)
     fprintf(stderr, "No Video conversion\n");
 
   fprintf(stderr, "Input format:\n");
-  gavl_video_format_dump(&(info->video_streams[0].format));
+  gavl_video_format_dump(&info->video_streams[0].format);
   fprintf(stderr, "Output format:\n");
   gavl_video_format_dump(&video_format);
   
   /* Allocate frames */
 
   if(do_convert)
-    input_frame = gavl_video_frame_create(&(info->video_streams[0].format));
+    input_frame = gavl_video_frame_create(&info->video_streams[0].format);
   
   if(output_plugin->create_frame)
     output_frame = output_plugin->create_frame(output_handle->priv);

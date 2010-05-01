@@ -826,7 +826,7 @@ static void stream_menu_set_num(gmerlin_t * g, stream_menu_t * s, int num)
     s->ids = realloc(s->ids, num * sizeof(*s->ids));
 
     for(i = s->streams_alloc; i < num; i++)
-      s->stream_items[i] = create_stream_item(g, s, &(s->ids[i]));
+      s->stream_items[i] = create_stream_item(g, s, &s->ids[i]);
     s->streams_alloc = num;
     }
   for(i = 0; i < num; i++)
@@ -868,7 +868,7 @@ static void chapter_menu_set_num(gmerlin_t * g, chapter_menu_t * s,
     s->ids = realloc(s->ids, num * sizeof(*s->ids));
 
     for(i = s->chapters_alloc; i < num; i++)
-      s->chapter_items[i] = create_chapter_item(g, s, &(s->ids[i]));
+      s->chapter_items[i] = create_chapter_item(g, s, &s->ids[i]);
     s->chapters_alloc = num;
     }
   s->timescale = timescale;

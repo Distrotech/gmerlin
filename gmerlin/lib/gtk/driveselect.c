@@ -102,7 +102,7 @@ static void button_callback(GtkWidget * w, gpointer data)
 
   if(w == f->add_button)
     {
-    //    plugin = menu_get_current(&(f->plugins));
+    //    plugin = menu_get_current(&f->plugins);
     
     drives[0] = f->plugin_info->devices[gtk_combo_box_get_active(GTK_COMBO_BOX(f->drive_menu))].device;
     drives[1] = NULL;

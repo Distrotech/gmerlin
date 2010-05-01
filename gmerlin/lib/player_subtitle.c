@@ -32,14 +32,14 @@ void bg_player_subtitle_create(bg_player_t * p)
   {
   p->subtitle_stream.cnv = gavl_video_converter_create();
   p->subtitle_stream.renderer = bg_text_renderer_create();
-  pthread_mutex_init(&(p->subtitle_stream.config_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&p->subtitle_stream.config_mutex,(pthread_mutexattr_t *)0);
 
   }
 
 void bg_player_subtitle_destroy(bg_player_t * p)
   {
   gavl_video_converter_destroy(p->subtitle_stream.cnv);
-  pthread_mutex_destroy(&(p->subtitle_stream.config_mutex));
+  pthread_mutex_destroy(&p->subtitle_stream.config_mutex);
   bg_text_renderer_destroy(p->subtitle_stream.renderer);
   }
 
@@ -50,40 +50,40 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   if(!DO_SUBTITLE(player->flags))
     return 1;
   
-  s = &(player->subtitle_stream);
+  s = &player->subtitle_stream;
 
   bg_player_input_get_subtitle_format(player);
   
   if(DO_SUBTITLE_TEXT(player->flags))
     {
-    pthread_mutex_lock(&(s->config_mutex));
+    pthread_mutex_lock(&s->config_mutex);
     if(DO_SUBTITLE_ONLY(player->flags))
       {
       bg_text_renderer_init(s->renderer,
                             (gavl_video_format_t*)0,
-                            &(player->subtitle_stream.input_format));
+                            &player->subtitle_stream.input_format);
       
       bg_text_renderer_get_frame_format(player->subtitle_stream.renderer,
-                                        &(player->video_stream.input_format));
-      gavl_video_format_copy(&(player->video_stream.output_format),
-                             &(player->video_stream.input_format));
+                                        &player->video_stream.input_format);
+      gavl_video_format_copy(&player->video_stream.output_format,
+                             &player->video_stream.input_format);
       }
     else
       {
       bg_text_renderer_init(player->subtitle_stream.renderer,
-                            &(player->video_stream.output_format),
-                            &(player->subtitle_stream.input_format));
+                            &player->video_stream.output_format,
+                            &player->subtitle_stream.input_format);
       }
-    pthread_mutex_unlock(&(player->subtitle_stream.config_mutex));
+    pthread_mutex_unlock(&player->subtitle_stream.config_mutex);
     }
   else
     {
     if(DO_SUBTITLE_ONLY(player->flags))
       {
-      gavl_video_format_copy(&(player->video_stream.input_format),
+      gavl_video_format_copy(&player->video_stream.input_format,
                              &player->subtitle_stream.input_format);
-      gavl_video_format_copy(&(player->video_stream.output_format),
-                             &(player->video_stream.input_format));
+      gavl_video_format_copy(&player->video_stream.output_format,
+                             &player->video_stream.input_format);
       }
     }
   
@@ -122,12 +122,12 @@ void bg_player_set_subtitle_parameter(void * data, const char * name,
   if(!name)
     return;
   
-  pthread_mutex_lock(&(player->subtitle_stream.config_mutex));
+  pthread_mutex_lock(&player->subtitle_stream.config_mutex);
   
   bg_text_renderer_set_parameter(player->subtitle_stream.renderer,
                                  name, val);
   
-  pthread_mutex_unlock(&(player->subtitle_stream.config_mutex));
+  pthread_mutex_unlock(&player->subtitle_stream.config_mutex);
   }
 
 void bg_player_subtitle_init_converter(bg_player_t * player)

@@ -68,7 +68,7 @@ void bg_player_video_destroy(bg_player_t * p)
 int bg_player_video_init(bg_player_t * player, int video_stream)
   {
   bg_player_video_stream_t * s;
-  s = &(player->video_stream);
+  s = &player->video_stream;
 
   s->skip = 0;
   s->frames_read = 0;
@@ -102,7 +102,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     return 0;
 
   if(!DO_SUBTITLE_ONLY(player->flags))
-    bg_video_filter_chain_set_out_format(s->fc, &(s->output_format));
+    bg_video_filter_chain_set_out_format(s->fc, &s->output_format);
   
   if(DO_SUBTITLE_ONLY(player->flags))
     {
@@ -168,11 +168,11 @@ void bg_player_set_video_parameter(void * data, const char * name,
   
   do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
   
-  pthread_mutex_lock(&(p->video_stream.config_mutex));
+  pthread_mutex_lock(&p->video_stream.config_mutex);
 
   is_interrupted = p->video_stream.interrupted;
   
-  bg_gavl_video_set_parameter(&(p->video_stream.options),
+  bg_gavl_video_set_parameter(&p->video_stream.options,
                               name, val);
 
   if(!do_init && !is_interrupted)
@@ -183,7 +183,7 @@ void bg_player_set_video_parameter(void * data, const char * name,
   if(check_restart)
     need_restart = p->video_stream.options.options_changed;
   
-  pthread_mutex_unlock(&(p->video_stream.config_mutex));
+  pthread_mutex_unlock(&p->video_stream.config_mutex);
 
   if(!need_restart && check_restart)
     {
@@ -199,17 +199,17 @@ void bg_player_set_video_parameter(void * data, const char * name,
            "Restarting playback due to changed video options");
     bg_player_interrupt(p);
     
-    pthread_mutex_lock(&(p->video_stream.config_mutex));
+    pthread_mutex_lock(&p->video_stream.config_mutex);
     p->video_stream.interrupted = 1;
-    pthread_mutex_unlock(&(p->video_stream.config_mutex));
+    pthread_mutex_unlock(&p->video_stream.config_mutex);
     }
   
   if(!name && is_interrupted)
     {
     bg_player_interrupt_resume(p);
-    pthread_mutex_lock(&(p->video_stream.config_mutex));
+    pthread_mutex_lock(&p->video_stream.config_mutex);
     p->video_stream.interrupted = 0;
-    pthread_mutex_unlock(&(p->video_stream.config_mutex));
+    pthread_mutex_unlock(&p->video_stream.config_mutex);
     }
   }
 
@@ -231,9 +231,9 @@ void bg_player_set_video_filter_parameter(void * data, const char * name,
   
   do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
   
-  pthread_mutex_lock(&(p->video_stream.config_mutex));
+  pthread_mutex_lock(&p->video_stream.config_mutex);
   is_interrupted = p->video_stream.interrupted;
-  pthread_mutex_unlock(&(p->video_stream.config_mutex));
+  pthread_mutex_unlock(&p->video_stream.config_mutex);
   
   bg_video_filter_chain_lock(p->video_stream.fc);
   bg_video_filter_chain_set_parameter(p->video_stream.fc, name, val);
@@ -251,16 +251,16 @@ void bg_player_set_video_filter_parameter(void * data, const char * name,
            "Restarting playback due to changed video filters");
     bg_player_interrupt(p);
     
-    pthread_mutex_lock(&(p->video_stream.config_mutex));
+    pthread_mutex_lock(&p->video_stream.config_mutex);
     p->video_stream.interrupted = 1;
-    pthread_mutex_unlock(&(p->video_stream.config_mutex));
+    pthread_mutex_unlock(&p->video_stream.config_mutex);
     }
   if(!name && is_interrupted)
     {
     bg_player_interrupt_resume(p);
-    pthread_mutex_lock(&(p->video_stream.config_mutex));
+    pthread_mutex_lock(&p->video_stream.config_mutex);
     p->video_stream.interrupted = 0;
-    pthread_mutex_unlock(&(p->video_stream.config_mutex));
+    pthread_mutex_unlock(&p->video_stream.config_mutex);
     }
 
   

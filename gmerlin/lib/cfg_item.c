@@ -198,7 +198,7 @@ void bg_cfg_item_transfer(bg_cfg_item_t * src, bg_cfg_item_t * dst)
   {
   bg_parameter_info_t info;
   bg_cfg_item_to_parameter(src, &info);
-  bg_parameter_value_copy(&(dst->value), &(src->value), &info);
+  bg_parameter_value_copy(&dst->value, &src->value, &info);
   }
 
 bg_cfg_item_t * bg_cfg_item_copy(bg_cfg_item_t * src)

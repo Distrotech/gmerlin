@@ -146,7 +146,7 @@ static void entry_from_track_info(bg_album_common_t * com,
     
     if(com && com->use_metadata && com->metadata_format)
       {
-      entry->name = bg_create_track_name(&(track_info->metadata),
+      entry->name = bg_create_track_name(&track_info->metadata,
                                          com->metadata_format);
       if(entry->name)
         name_set = 1;
@@ -645,7 +645,7 @@ static void sync_with_dir(bg_album_t * a)
   if(!dir)
     return;
 
-  while(!readdir_r(dir, &(dent.d), &dent_ptr))
+  while(!readdir_r(dir, &dent.d, &dent_ptr))
     {
     if(!dent_ptr)
       break;
@@ -2114,7 +2114,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            url, info,
-                           &(album->com->load_handle), &(album->com->input_callbacks), album->com->prefer_edl))
+                           &album->com->load_handle, &album->com->input_callbacks, album->com->prefer_edl))
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Loading %s failed", url);
     return (bg_album_entry_t*)0;
@@ -2197,7 +2197,7 @@ static int refresh_entry(bg_album_t * album,
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            entry->location,
                            info,
-                           &(album->com->load_handle), &(album->com->input_callbacks),
+                           &album->com->load_handle, &album->com->input_callbacks,
                            !!(entry->flags & BG_ALBUM_ENTRY_EDL)))
     {
     entry->flags |= BG_ALBUM_ENTRY_ERROR;

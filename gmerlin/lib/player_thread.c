@@ -156,7 +156,7 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
     if(th[i]->func)
       {
       // fprintf(stderr, "Starting thread...\n");
-      pthread_create(&(th[i]->thread), NULL, th[i]->func, th[i]->arg);
+      pthread_create(&th[i]->thread, NULL, th[i]->func, th[i]->arg);
       // fprintf(stderr, "Starting thread done\n");
       }
     }
@@ -166,7 +166,7 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
     if(th[i]->func)
       {
       // fprintf(stderr, "Sem wait...");
-      bin_sem_wait(&(th[i]->sem));
+      bin_sem_wait(&th[i]->sem);
       // fprintf(stderr, "done ret: %d, val: %d\n", ret, val);
       }
     }

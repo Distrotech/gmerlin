@@ -287,7 +287,7 @@ bg_parameter_info_copy_array(const bg_parameter_info_t * src)
   ret = calloc(num_parameters + 1, sizeof(bg_parameter_info_t));
   
   for(i = 0; i < num_parameters; i++)
-    bg_parameter_info_copy(&(ret[i]), &(src[i]));
+    bg_parameter_info_copy(&ret[i], &src[i]);
   
   return ret;
   }
@@ -407,7 +407,7 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t const ** srcs)
     
     while(srcs[i][j].name)
       {
-      bg_parameter_info_copy(&(ret[dst]), &(srcs[i][j]));
+      bg_parameter_info_copy(&ret[dst], &srcs[i][j]);
       dst++;
       j++;
       }

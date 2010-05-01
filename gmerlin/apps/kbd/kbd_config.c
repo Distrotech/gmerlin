@@ -89,7 +89,7 @@ static void grab_key(edit_dialog_t * dlg)
     if(evt.type != KeyPress)
       continue;
 
-    XLookupString(&(evt.xkey), &key_char, 1, &keysym, NULL);
+    XLookupString(&evt.xkey, &key_char, 1, &keysym, NULL);
     
     switch(keysym)
       {

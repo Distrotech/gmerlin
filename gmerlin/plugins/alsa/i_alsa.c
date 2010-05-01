@@ -124,7 +124,7 @@ get_parameters_alsa(void * p)
     
     for(i = 0; i < num_static_parameters; i++)
       {
-      bg_parameter_info_copy(&(priv->parameters[i+1]), &static_parameters[i]);
+      bg_parameter_info_copy(&priv->parameters[i+1], &static_parameters[i]);
       }
     }
   return priv->parameters;
@@ -213,9 +213,9 @@ static int open_alsa(void * data,
   
   if(!priv->pcm)
     return 0;
-  gavl_audio_format_copy(&(priv->format), format);
+  gavl_audio_format_copy(&priv->format, format);
 
-  priv->f = gavl_audio_frame_create(&(priv->format));
+  priv->f = gavl_audio_frame_create(&priv->format);
     
   if(snd_pcm_prepare(priv->pcm) < 0)
     return 0;

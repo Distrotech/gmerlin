@@ -438,7 +438,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
         end_c = str;
         if(*end_c == '{')
           end_c++;
-        end_c += gavl_time_parse(end_c, &(item->value.val_time));
+        end_c += gavl_time_parse(end_c, &item->value.val_time);
         if(*end_c == '}')
           end_c++;
         str = end_c;
@@ -751,7 +751,7 @@ static void do_apply(bg_cfg_section_t * section,
 
   while(infos[num].name)
     {
-    item = bg_cfg_section_find_item(section, &(infos[num]));
+    item = bg_cfg_section_find_item(section, &infos[num]);
 
     if(!item)
       {
@@ -761,11 +761,11 @@ static void do_apply(bg_cfg_section_t * section,
     if(prefix)
       {
       tmp_string = bg_sprintf("%s.%s", prefix, item->name);
-      func(callback_data, tmp_string, &(item->value));
+      func(callback_data, tmp_string, &item->value);
       free(tmp_string);
       }
     else
-      func(callback_data, item->name, &(item->value));
+      func(callback_data, item->name, &item->value);
 
     /* If this was a menu, apply children */ 
 
@@ -901,9 +901,9 @@ void bg_cfg_section_get(bg_cfg_section_t * section,
 
   while(infos[num].name)
     {
-    item = bg_cfg_section_find_item(section, &(infos[num]));
+    item = bg_cfg_section_find_item(section, &infos[num]);
     if(item)
-      func(callback_data, item->name, &(item->value));
+      func(callback_data, item->name, &item->value);
     num++;
     }
   }
@@ -1131,7 +1131,7 @@ void bg_cfg_section_transfer(bg_cfg_section_t * src, bg_cfg_section_t * dst)
   while(src_item)
     {
     bg_cfg_item_to_parameter(src_item, &info);
-    bg_cfg_section_set_parameter(dst, &info, &(src_item->value));
+    bg_cfg_section_set_parameter(dst, &info, &src_item->value);
     src_item = src_item->next;
     }
   
@@ -1227,7 +1227,7 @@ static void create_items(bg_cfg_section_t * section,
       //      fprintf(stderr, "Section: %s, parameter: %s\n",
       //            section->name, info[i].name);
       
-      bg_cfg_section_find_item(section, &(info[i]));
+      bg_cfg_section_find_item(section, &info[i]);
     
       if(info[i].multi_parameters)
         {

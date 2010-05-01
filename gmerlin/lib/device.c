@@ -66,7 +66,7 @@ bg_device_info_t * bg_device_info_append(bg_device_info_t * arr,
   
   /* Zero terminate */
   
-  memset(&(arr[size]), 0, sizeof(arr[size]));
+  memset(&arr[size], 0, sizeof(arr[size]));
   return arr;
   }
 

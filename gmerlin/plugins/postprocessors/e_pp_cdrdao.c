@@ -58,7 +58,7 @@ static void free_tracks(cdrdao_t * c)
     {
     for(i = 0; i < c->num_tracks; i++)
       {
-      bg_metadata_free(&(c->tracks[i].metadata));
+      bg_metadata_free(&c->tracks[i].metadata);
       if(c->tracks[i].filename)
         free(c->tracks[i].filename);
       }
@@ -247,7 +247,7 @@ static void add_track_cdrdao(void * data, const char * filename,
 
   memset(cdrdao->tracks + cdrdao->num_tracks, 0, sizeof(*cdrdao->tracks));
 
-  bg_metadata_copy(&(cdrdao->tracks[cdrdao->num_tracks].metadata),
+  bg_metadata_copy(&cdrdao->tracks[cdrdao->num_tracks].metadata,
                    metadata);
   cdrdao->tracks[cdrdao->num_tracks].filename = bg_strdup((char*)0, filename);
   cdrdao->tracks[cdrdao->num_tracks].pp_only = pp_only;

@@ -221,10 +221,10 @@ void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
   if(w->window && w->window->window)
     {
     gdk_window_get_geometry(w->window->window,
-                            (gint *)0, (gint *)0, &(w->width), &(w->height),
+                            (gint *)0, (gint *)0, &w->width, &w->height,
                             (gint *)0);
 
-    gdk_window_get_root_origin(w->window->window, &(w->x), &(w->y));
+    gdk_window_get_root_origin(w->window->window, &w->x, &w->y);
 
     bg_cfg_section_get(w->cfg_section, parameters, get_parameter, w);
     }

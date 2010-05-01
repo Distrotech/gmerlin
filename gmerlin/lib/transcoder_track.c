@@ -69,7 +69,8 @@ static void create_sections(bg_transcoder_track_t * t,
   i = 0;
   while(t->general_parameters[i].name)
     {
-    bg_cfg_section_get_parameter(t->general_section, &(t->general_parameters[i]),
+    bg_cfg_section_get_parameter(t->general_section,
+                                 &t->general_parameters[i],
                                  (bg_parameter_value_t*)0);
     i++;
     }
@@ -657,7 +658,7 @@ static void set_track(bg_transcoder_track_t * track,
   /* Metadata */
     
   track->metadata_parameters =
-    bg_metadata_get_parameters(&(track_info->metadata));
+    bg_metadata_get_parameters(&track_info->metadata);
 
   /* Chapter list */
   if(track_info->chapter_list)

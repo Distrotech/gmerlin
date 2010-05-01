@@ -52,7 +52,7 @@ int bg_cdaudio_load(bg_track_info_t * tracks, const char * filename)
     if(node->name && !BG_XML_STRCMP(node->name, "TRACK"))
       {
       bg_xml_2_metadata(xml_doc, node,
-                        &(tracks[index].metadata));
+                        &tracks[index].metadata);
       index++;
       }
     node = node->next;
@@ -80,7 +80,7 @@ void bg_cdaudio_save(bg_track_info_t * tracks, int num_tracks,
     child = xmlNewTextChild(xml_cd, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
     xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
     bg_metadata_2_xml(child,
-                      &(tracks[i].metadata));
+                      &tracks[i].metadata);
     xmlAddChild(xml_cd, BG_XML_NEW_TEXT("\n"));
     }
 

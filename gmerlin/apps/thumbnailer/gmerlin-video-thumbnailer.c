@@ -224,7 +224,7 @@ int main(int argc, char ** argv)
     input_plugin->start(input_handle->priv);
 
   /* Get video format */
-  memcpy(&input_format, &(info->video_streams[0].format),
+  memcpy(&input_format, &info->video_streams[0].format,
          sizeof(input_format));
 
   /* Get the output format */

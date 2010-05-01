@@ -105,8 +105,8 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   ret->threads[0] = ret->audio_stream.th;
   ret->threads[1] = ret->video_stream.th;
   
-  pthread_mutex_init(&(ret->state_mutex), (pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->config_mutex), (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->state_mutex, (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->config_mutex, (pthread_mutexattr_t *)0);
 
   
   
@@ -136,8 +136,8 @@ void bg_player_destroy(bg_player_t * player)
  
   bg_msg_queue_list_destroy(player->message_queues);
   
-  pthread_mutex_destroy(&(player->state_mutex));
-  pthread_mutex_destroy(&(player->config_mutex));
+  pthread_mutex_destroy(&player->state_mutex);
+  pthread_mutex_destroy(&player->config_mutex);
 
   bg_player_thread_common_destroy(player->thread_common);
   
@@ -160,9 +160,9 @@ void bg_player_delete_message_queue(bg_player_t * player,
 int  bg_player_get_state(bg_player_t * player)
   {
   int ret;
-  pthread_mutex_lock(&(player->state_mutex));
+  pthread_mutex_lock(&player->state_mutex);
   ret = player->state;
-  pthread_mutex_unlock(&(player->state_mutex));
+  pthread_mutex_unlock(&player->state_mutex);
   return ret;
   }
 
@@ -202,9 +202,9 @@ void bg_player_set_state(bg_player_t * player, int state,
                          const void * arg1, const void * arg2)
   {
   struct state_struct s;
-  pthread_mutex_lock(&(player->state_mutex));
+  pthread_mutex_lock(&player->state_mutex);
   player->state = state;
-  pthread_mutex_unlock(&(player->state_mutex));
+  pthread_mutex_unlock(&player->state_mutex);
 
   /* Broadcast this message */
  

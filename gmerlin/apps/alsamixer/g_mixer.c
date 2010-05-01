@@ -140,8 +140,8 @@ static gboolean delete_callback(GtkWidget * wid, GdkEventAny * evt,
   section =
     bg_cfg_registry_find_section(w->cfg_reg, "General");
 
-  gtk_window_get_position(GTK_WINDOW(w->main_win), &(w->x), &(w->y));
-  gtk_window_get_size(GTK_WINDOW(w->main_win), &(w->width), &(w->height));
+  gtk_window_get_position(GTK_WINDOW(w->main_win), &w->x, &w->y);
+  gtk_window_get_size(GTK_WINDOW(w->main_win), &w->width, &w->height);
   bg_cfg_section_get(section, parameters, get_parameter, w);
 
   for(i = 0; i < w->num_cards; i++)

@@ -261,7 +261,7 @@ void * bg_pwc_get_parameters(int fd, bg_parameter_info_t ** parameters)
   for(i = 0; i < num_pwc_parameters; i++)
     {
     bg_parameter_info_copy(p + (num_generic_parameters + i),
-                           &(pwc_parameters[i]));
+                           &pwc_parameters[i]);
     }
   *parameters = p;
 
@@ -290,7 +290,7 @@ void bg_pwc_set_parameter(int fd, void * priv,
     
   if(!name)
     {
-    ioctl(fd, VIDIOCPWCSLED, &(p->led));
+    ioctl(fd, VIDIOCPWCSLED, &p->led);
     return;
     }
   else if(!strcmp(name, "pwc_framerate"))
@@ -317,23 +317,23 @@ void bg_pwc_set_parameter(int fd, void * priv,
     }
   else if(!strcmp(name, "pwc_gain"))
     {
-    ioctl(fd, VIDIOCPWCSAGC, &(val->val_i));
+    ioctl(fd, VIDIOCPWCSAGC, &val->val_i);
     }
   else if(!strcmp(name, "pwc_shutterspeed"))
     {
-    ioctl(fd, VIDIOCPWCSSHUTTER, &(val->val_i));
+    ioctl(fd, VIDIOCPWCSSHUTTER, &val->val_i);
     }
   else if(!strcmp(name, "pwc_sharpness"))
     {
-    ioctl(fd, VIDIOCPWCSCONTOUR, &(val->val_i));
+    ioctl(fd, VIDIOCPWCSCONTOUR, &val->val_i);
     }
   else if(!strcmp(name, "pwc_backlight"))
     {
-    ioctl(fd, VIDIOCPWCSBACKLIGHT, &(val->val_i));
+    ioctl(fd, VIDIOCPWCSBACKLIGHT, &val->val_i);
     }
   else if(!strcmp(name, "pwc_flicker"))
     {
-    ioctl(fd, VIDIOCPWCSFLICKER, &(val->val_i));
+    ioctl(fd, VIDIOCPWCSFLICKER, &val->val_i);
     }
   else if(!strcmp(name, "pwc_whitebalance"))
     {

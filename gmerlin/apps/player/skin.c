@@ -79,7 +79,7 @@ char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
     /* Main window */
         
     if(!BG_XML_STRCMP(node->name, "PLAYERWIN"))
-      player_window_skin_load(&(s->playerwindow), doc, node);
+      player_window_skin_load(&s->playerwindow, doc, node);
     
     node = node->next;
     }
@@ -95,7 +95,7 @@ char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
 void gmerlin_skin_set(gmerlin_t * g)
   {
   player_window_set_skin(g->player_window,
-                         &(g->skin.playerwindow),
+                         &g->skin.playerwindow,
                          g->skin.directory);
   }
 

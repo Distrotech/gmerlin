@@ -379,11 +379,11 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             case BG_PARAMETER_SLIDER_INT:
             case BG_PARAMETER_CHECKBUTTON:
             case BG_PARAMETER_INT:
-              sscanf(tmp_string, "%d", &(ret[index].val_default.val_i));
+              sscanf(tmp_string, "%d", &ret[index].val_default.val_i);
               break;
             case BG_PARAMETER_FLOAT:
             case BG_PARAMETER_SLIDER_FLOAT:
-              sscanf(tmp_string, "%lf", &(ret[index].val_default.val_f));
+              sscanf(tmp_string, "%lf", &ret[index].val_default.val_f);
               break;
             case BG_PARAMETER_STRING:
             case BG_PARAMETER_STRINGLIST:
@@ -399,24 +399,24 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
               break;
             case BG_PARAMETER_COLOR_RGB:
               sscanf(tmp_string, "%f %f %f",
-                     &(ret[index].val_default.val_color[0]),
-                     &(ret[index].val_default.val_color[1]),
-                     &(ret[index].val_default.val_color[2]));
+                     &ret[index].val_default.val_color[0],
+                     &ret[index].val_default.val_color[1],
+                     &ret[index].val_default.val_color[2]);
               break;
             case BG_PARAMETER_COLOR_RGBA:
               sscanf(tmp_string, "%f %f %f %f",
-                     &(ret[index].val_default.val_color[0]),
-                     &(ret[index].val_default.val_color[1]),
-                     &(ret[index].val_default.val_color[2]),
-                     &(ret[index].val_default.val_color[3]));
+                     &ret[index].val_default.val_color[0],
+                     &ret[index].val_default.val_color[1],
+                     &ret[index].val_default.val_color[2],
+                     &ret[index].val_default.val_color[3]);
               break;
             case BG_PARAMETER_POSITION:
               sscanf(tmp_string, "%lf %lf",
-                     &(ret[index].val_default.val_pos[0]),
-                     &(ret[index].val_default.val_pos[1]));
+                     &ret[index].val_default.val_pos[0],
+                     &ret[index].val_default.val_pos[1]);
               break;
             case BG_PARAMETER_TIME:
-              sscanf(tmp_string, "%" PRId64, &(ret[index].val_default.val_time));
+              sscanf(tmp_string, "%" PRId64, &ret[index].val_default.val_time);
               break;
             }
           free(tmp_string);
@@ -447,19 +447,19 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             case BG_PARAMETER_SLIDER_INT:
             case BG_PARAMETER_INT:
               sscanf(tmp_string, "%d %d",
-                     &(ret[index].val_min.val_i),
-                     &(ret[index].val_max.val_i));
+                     &ret[index].val_min.val_i,
+                     &ret[index].val_max.val_i);
               break;
             case BG_PARAMETER_FLOAT:
             case BG_PARAMETER_SLIDER_FLOAT:
               sscanf(tmp_string, "%lf %lf",
-                     &(ret[index].val_min.val_f),
-                     &(ret[index].val_max.val_f));
+                     &ret[index].val_min.val_f,
+                     &ret[index].val_max.val_f);
               break;
             case BG_PARAMETER_TIME:
               sscanf(tmp_string, "%" PRId64 " %" PRId64,
-                     &(ret[index].val_min.val_time),
-                     &(ret[index].val_max.val_time));
+                     &ret[index].val_min.val_time,
+                     &ret[index].val_max.val_time);
               break;
             }
           free(tmp_string);
@@ -468,7 +468,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
         else if(!BG_XML_STRCMP(child->name, num_digits_key))
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
-          sscanf(tmp_string, "%d", &(ret[index].num_digits));
+          sscanf(tmp_string, "%d", &ret[index].num_digits);
           free(tmp_string);
           }
         

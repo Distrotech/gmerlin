@@ -60,8 +60,8 @@ void * create_jpeg()
   {
   jpeg_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->cinfo.err = jpeg_std_error(&(ret->jerr));
-  jpeg_create_decompress(&(ret->cinfo));
+  ret->cinfo.err = jpeg_std_error(&ret->jerr);
+  jpeg_create_decompress(&ret->cinfo);
 
   ret->yuv_rows[0] = ret->rows_0;
   ret->yuv_rows[1] = ret->rows_1;
@@ -73,7 +73,7 @@ void * create_jpeg()
 static void destroy_jpeg(void* priv)
   {
   jpeg_t * jpeg = (jpeg_t*)priv;
-  jpeg_destroy_decompress(&(jpeg->cinfo));
+  jpeg_destroy_decompress(&jpeg->cinfo);
   free(jpeg);
   }
 
@@ -99,9 +99,9 @@ int read_header_jpeg(void * priv, const char * filename,
   if(!jpeg->input)
     return 0;
   
-  jpeg_stdio_src(&(jpeg->cinfo), jpeg->input);
+  jpeg_stdio_src(&jpeg->cinfo, jpeg->input);
 
-  if(jpeg_read_header(&(jpeg->cinfo), TRUE) != JPEG_HEADER_OK)
+  if(jpeg_read_header(&jpeg->cinfo, TRUE) != JPEG_HEADER_OK)
     return 0;
 
   format->image_width = jpeg->cinfo.image_width;
@@ -162,7 +162,7 @@ int read_header_jpeg(void * priv, const char * filename,
     default:
       format->pixelformat = GAVL_RGB_24;
     }
-  gavl_video_format_copy(&(jpeg->format), format);
+  gavl_video_format_copy(&jpeg->format, format);
   return 1;
   }
 
@@ -197,7 +197,7 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
         num_lines = jpeg->cinfo.output_height - jpeg->cinfo.output_scanline;
         if(num_lines > 16)
           num_lines = 16;
-        jpeg_read_scanlines(&(jpeg->cinfo),
+        jpeg_read_scanlines(&jpeg->cinfo,
                             (JSAMPLE**)(jpeg->rows_0), num_lines);
         }
       break;
@@ -219,7 +219,7 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
         num_lines = jpeg->cinfo.output_height - jpeg->cinfo.output_scanline;
         if(num_lines > 16)
           num_lines = 16;
-        jpeg_read_raw_data(&(jpeg->cinfo), jpeg->yuv_rows, 16);
+        jpeg_read_raw_data(&jpeg->cinfo, jpeg->yuv_rows, 16);
         }
       break;
     case GAVL_YUVJ_422_P:
@@ -238,14 +238,14 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
         num_lines = jpeg->cinfo.output_height - jpeg->cinfo.output_scanline;
         if(num_lines > 8)
           num_lines = 8;
-        jpeg_read_raw_data(&(jpeg->cinfo), jpeg->yuv_rows, 8);
+        jpeg_read_raw_data(&jpeg->cinfo, jpeg->yuv_rows, 8);
         }
       break;
     default:
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Illegal pixelformat");
       return 0;
     }
-  jpeg_finish_decompress(&(jpeg->cinfo));
+  jpeg_finish_decompress(&jpeg->cinfo);
   fclose(jpeg->input);
   
   return 1;

@@ -410,7 +410,7 @@ static int open_oss(void * data, gavl_audio_format_t * format)
     format->samples_per_frame = 1024;
     priv->bytes_per_sample =
       gavl_bytes_per_sample(format->sample_format);
-    gavl_audio_format_copy(&(priv->format), format);
+    gavl_audio_format_copy(&priv->format, format);
     }
   return ret;
   }
@@ -447,7 +447,7 @@ static int start_oss(void * data)
 
   if((priv->fd_front == -1) && (priv->fd_rear == -1)
      && (priv->fd_center_lfe == -1))
-    return open_devices(priv, &(priv->format));
+    return open_devices(priv, &priv->format);
   else
     return 1;
   }

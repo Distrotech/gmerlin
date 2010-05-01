@@ -831,7 +831,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
       break;
     case KeyPress:
     case KeyRelease:
-      XLookupString(&(evt->xkey), &key_char, 1, &keysym, NULL);
+      XLookupString(&evt->xkey, &key_char, 1, &keysym, NULL);
       evt->xkey.state &= STATE_IGNORE;
       
       if((evt->xkey.window == w->normal.win) ||

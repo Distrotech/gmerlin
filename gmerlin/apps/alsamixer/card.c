@@ -57,7 +57,7 @@ static alsa_mixer_group_t * get_group(alsa_card_t * c, const char * label)
     {
     if(!strcmp(c->groups[i].label, label))
       {
-      return &(c->groups[i]);
+      return &c->groups[i];
       }
     }
   c->num_groups++;
@@ -65,7 +65,7 @@ static alsa_mixer_group_t * get_group(alsa_card_t * c, const char * label)
   memset(c->groups + (c->num_groups-1), 0, sizeof(*(c->groups)));
   c->groups[c->num_groups-1].label =
     bg_strdup(c->groups[c->num_groups-1].label, label);
-  return &(c->groups[c->num_groups-1]);
+  return &c->groups[c->num_groups-1];
   }
 
 static alsa_mixer_control_t * create_control(snd_hctl_elem_t * hctl_elem)
@@ -73,7 +73,7 @@ static alsa_mixer_control_t * create_control(snd_hctl_elem_t * hctl_elem)
   alsa_mixer_control_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->hctl = hctl_elem;
-  snd_ctl_elem_value_malloc(&(ret->val));
+  snd_ctl_elem_value_malloc(&ret->val);
   alsa_mixer_control_read(ret);
   return ret;
   }
@@ -112,7 +112,7 @@ alsa_card_t * alsa_card_create(int index)
   
   card = calloc(1, sizeof(*card));
   
-  if((err = snd_hctl_open(&(card->hctl), name, 0)))
+  if((err = snd_hctl_open(&card->hctl, name, 0)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_open failed");
     goto fail;
@@ -125,7 +125,7 @@ alsa_card_t * alsa_card_create(int index)
 
   ctl = snd_hctl_ctl(card->hctl);
   
-  if(snd_ctl_card_info_malloc(&(card_info)))
+  if(snd_ctl_card_info_malloc(&card_info))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_ctl_card_info_malloc failed");
     goto fail;
@@ -398,7 +398,7 @@ void alsa_card_dump(alsa_card_t * c)
   for(i = 0; i < c->num_groups; i++)
     {
     fprintf(out, "Group %d: %s\n", i+1, c->groups[i].label);
-    dump_group(&(c->groups[i]));
+    dump_group(&c->groups[i]);
     }
   
   }

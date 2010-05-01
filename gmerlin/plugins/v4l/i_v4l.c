@@ -216,7 +216,7 @@ static int open_v4l(void * priv,
   
   /* Set Picture */
   
-  if(ioctl(v4l->fd, VIDIOCGPICT, &(v4l->pic)))
+  if(ioctl(v4l->fd, VIDIOCGPICT, &v4l->pic))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCGPICT failed: %s",
            strerror(errno));
@@ -238,9 +238,9 @@ static int open_v4l(void * priv,
   v4l->pic.whiteness  = v4l->cfg_pic.whiteness;      /* Black and white only */
 #endif
 
-  //  dump_video_picture(&(v4l->pic));
+  //  dump_video_picture(&v4l->pic);
   
-  if(ioctl(v4l->fd, VIDIOCSPICT, &(v4l->pic)))
+  if(ioctl(v4l->fd, VIDIOCSPICT, &v4l->pic))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCSPICT failed: %s",
                                     strerror(errno));
@@ -250,7 +250,7 @@ static int open_v4l(void * priv,
   
   /* Set window */
 
-  if(ioctl(v4l->fd, VIDIOCGWIN, &(v4l->win)))
+  if(ioctl(v4l->fd, VIDIOCGWIN, &v4l->win))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCGWIN failed: %s",
            strerror(errno));
@@ -263,7 +263,7 @@ static int open_v4l(void * priv,
   v4l->win.height = v4l->cfg_win.height;
   v4l->win.flags = 0;
   
-  if(ioctl(v4l->fd, VIDIOCSWIN, &(v4l->win)))
+  if(ioctl(v4l->fd, VIDIOCSWIN, &v4l->win))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCSWIN failed: %s (invalaid picture dimensions?)",
            strerror(errno));
@@ -293,7 +293,7 @@ static int open_v4l(void * priv,
   
   /* Setup mmap */
   
-  if(ioctl(v4l->fd, VIDIOCGMBUF, &(v4l->mbuf)))
+  if(ioctl(v4l->fd, VIDIOCGMBUF, &v4l->mbuf))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCGMBUF failed: %s",
            strerror(errno));
@@ -312,7 +312,7 @@ static int open_v4l(void * priv,
 
   v4l->frame_index = 0;
 
-  gavl_video_format_copy(&(v4l->format), format);
+  gavl_video_format_copy(&v4l->format, format);
   
   return 1;
   fail:
@@ -346,7 +346,7 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
 
   v4l->mmap_struct.frame = v4l->frame_index;
   
-  if(ioctl(v4l->fd, VIDIOCMCAPTURE, &(v4l->mmap_struct)))
+  if(ioctl(v4l->fd, VIDIOCMCAPTURE, &v4l->mmap_struct))
     return 0;
 
   if(ioctl(v4l->fd,VIDIOCSYNC, &v4l->frame_index))
@@ -356,8 +356,8 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
                               &v4l->format,
                               &v4l->mmap_buf[v4l->mbuf.offsets[v4l->frame_index]]);
   
-  gavl_video_frame_copy(&(v4l->format), frame, v4l->frame);
-  //  if(ioctl(v4l->fd,VIDIOCSYNC, &(v4l->mmap[v4l->frame_index])))
+  gavl_video_frame_copy(&v4l->format, frame, v4l->frame);
+  //  if(ioctl(v4l->fd,VIDIOCSYNC, &v4l->mmap[v4l->frame_index]))
   
   v4l->frame_index++;
   if(v4l->frame_index >= v4l->mbuf.frames)
@@ -526,7 +526,7 @@ static void create_parameters(v4l_t * v4l)
   
   if(v4l->have_pwc)
     {
-    v4l->pwc_priv = bg_pwc_get_parameters(v4l->fd, &(v4l->parameters));
+    v4l->pwc_priv = bg_pwc_get_parameters(v4l->fd, &v4l->parameters);
     v4l->have_pwc_parameters = 1;
     }
   }
@@ -629,10 +629,10 @@ static void set_parameter_v4l(void * priv, const char * name,
 
     if(v4l->fd > 0)
       {
-      if(ioctl(v4l->fd, VIDIOCGPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCGPICT, &v4l->pic))
         return;
       v4l->pic.brightness = val->val_i;
-      if(ioctl(v4l->fd, VIDIOCSPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCSPICT, &v4l->pic))
         return;
       }
     }
@@ -641,10 +641,10 @@ static void set_parameter_v4l(void * priv, const char * name,
     v4l->cfg_pic.hue = val->val_i;
     if(v4l->fd > 0)
       {
-      if(ioctl(v4l->fd, VIDIOCGPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCGPICT, &v4l->pic))
         return;
       v4l->pic.hue = val->val_i;
-      if(ioctl(v4l->fd, VIDIOCSPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCSPICT, &v4l->pic))
         return;
       }
     }
@@ -653,10 +653,10 @@ static void set_parameter_v4l(void * priv, const char * name,
     v4l->cfg_pic.colour = val->val_i;
     if(v4l->fd > 0)
       {
-      if(ioctl(v4l->fd, VIDIOCGPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCGPICT, &v4l->pic))
         return;
       v4l->pic.colour = val->val_i;
-      if(ioctl(v4l->fd, VIDIOCSPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCSPICT, &v4l->pic))
         return;
       }
     }
@@ -665,10 +665,10 @@ static void set_parameter_v4l(void * priv, const char * name,
     v4l->cfg_pic.contrast = val->val_i;
     if(v4l->fd > 0)
       {
-      if(ioctl(v4l->fd, VIDIOCGPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCGPICT, &v4l->pic))
         return;
       v4l->pic.contrast = val->val_i;
-      if(ioctl(v4l->fd, VIDIOCSPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCSPICT, &v4l->pic))
         return;
       }
 
@@ -678,10 +678,10 @@ static void set_parameter_v4l(void * priv, const char * name,
     v4l->cfg_pic.whiteness = val->val_i;
     if(v4l->fd > 0)
       {
-      if(ioctl(v4l->fd, VIDIOCGPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCGPICT, &v4l->pic))
         return;
       v4l->pic.whiteness = val->val_i;
-      if(ioctl(v4l->fd, VIDIOCSPICT, &(v4l->pic)))
+      if(ioctl(v4l->fd, VIDIOCSPICT, &v4l->pic))
         return;
       }
     }

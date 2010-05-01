@@ -243,7 +243,7 @@ static int read_header_png(void * priv, const char * filename,
       }
     }
   
-  gavl_video_format_copy(&(png->format), format);
+  gavl_video_format_copy(&png->format, format);
   return 1;
   fail:
   return 0;
@@ -281,8 +281,8 @@ static int read_image_png(void * priv, gavl_video_frame_t * frame)
     png_read_end(png->png_ptr, png->end_info);
     }
   
-  png_destroy_read_struct(&(png->png_ptr), &(png->info_ptr),
-                          &(png->end_info));
+  png_destroy_read_struct(&png->png_ptr, &png->info_ptr,
+                          &png->end_info);
   fclose(png->file);
 
   if(rows)

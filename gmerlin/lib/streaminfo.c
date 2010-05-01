@@ -61,24 +61,24 @@ void bg_track_info_free(bg_track_info_t * info)
   if(info->audio_streams)
     {
     for(i = 0; i < info->num_audio_streams; i++)
-      bg_audio_info_free(&(info->audio_streams[i]));
+      bg_audio_info_free(&info->audio_streams[i]);
     MY_FREE(info->audio_streams);
     }
 
   if(info->video_streams)
     {
     for(i = 0; i < info->num_video_streams; i++)
-      bg_video_info_free(&(info->video_streams[i]));
+      bg_video_info_free(&info->video_streams[i]);
     MY_FREE(info->video_streams);
     }
   if(info->subtitle_streams)
     {
     for(i = 0; i < info->num_subtitle_streams; i++)
-      bg_subtitle_info_free(&(info->subtitle_streams[i]));
+      bg_subtitle_info_free(&info->subtitle_streams[i]);
     MY_FREE(info->subtitle_streams);
     }
 
-  bg_metadata_free(&(info->metadata));
+  bg_metadata_free(&info->metadata);
 
   if(info->chapter_list)
     bg_chapter_list_destroy(info->chapter_list);
@@ -108,7 +108,7 @@ void bg_set_track_name_default(bg_track_info_t * info,
     start_pos = location;
   end_pos = strrchr(start_pos, '.');
   if(!end_pos)
-    end_pos = &(start_pos[strlen(start_pos)]);
+    end_pos = &start_pos[strlen(start_pos)];
   info->name = bg_strndup(info->name, start_pos, end_pos);
   
   }
@@ -132,7 +132,7 @@ char * bg_get_track_name_default(const char * location, int track, int num_track
       start_pos = location;
     end_pos = strrchr(start_pos, '.');
     if(!end_pos)
-      end_pos = &(start_pos[strlen(start_pos)]);
+      end_pos = &start_pos[strlen(start_pos)];
     tmp_string = bg_system_to_utf8(start_pos, end_pos - start_pos);
     }
   if(num_tracks < 2)

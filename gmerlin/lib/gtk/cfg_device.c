@@ -130,7 +130,7 @@ static void set_value(bg_gtk_widget_t * w)
     {
     gtk_tree_model_get(model, &iter,
                        COLUMN_DEVICE,
-                       &(strings[i]),
+                       &strings[i],
                        -1);
     if(gtk_tree_selection_iter_is_selected(selection,
                                            &iter))

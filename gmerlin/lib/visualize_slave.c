@@ -72,8 +72,8 @@ static audio_buffer_t * audio_buffer_create()
   audio_buffer_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->cnv = gavl_audio_converter_create();
-  pthread_mutex_init(&(ret->in_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->gain_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->in_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->gain_mutex,(pthread_mutexattr_t *)0);
   
   ret->gain_control = gavl_volume_control_create();
   
@@ -448,11 +448,11 @@ bg_visualizer_slave_create(int argc, char ** argv)
   
   ret->cb_queue = bg_msg_queue_create();
   
-  pthread_mutex_init(&(ret->stop_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->running_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->vis_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->ov_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->fps_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->stop_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->running_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->vis_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->ov_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->fps_mutex,(pthread_mutexattr_t *)0);
   
   ret->timer = gavl_timer_create();
 
@@ -519,7 +519,7 @@ static void uload_plugin(bg_plugin_handle_t * h, bg_plugin_api_t api)
 
 static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
   {
-  pthread_mutex_destroy(&(v->stop_mutex));
+  pthread_mutex_destroy(&v->stop_mutex);
 
   if(v->video_cnv)
     gavl_video_converter_destroy(v->video_cnv);
@@ -529,11 +529,11 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
 
   bg_msg_queue_destroy(v->cb_queue);
   
-  pthread_mutex_destroy(&(v->running_mutex));
-  pthread_mutex_destroy(&(v->fps_mutex));
-  pthread_mutex_destroy(&(v->stop_mutex));
-  pthread_mutex_destroy(&(v->ov_mutex));
-  pthread_mutex_destroy(&(v->vis_mutex));
+  pthread_mutex_destroy(&v->running_mutex);
+  pthread_mutex_destroy(&v->fps_mutex);
+  pthread_mutex_destroy(&v->stop_mutex);
+  pthread_mutex_destroy(&v->ov_mutex);
+  pthread_mutex_destroy(&v->vis_mutex);
 
   /* Close vis plugin */
   v->vis_plugin->close(v->vis_handle->priv);
@@ -694,7 +694,7 @@ static int bg_visualizer_slave_start(bg_visualizer_slave_t * v)
   gavl_timer_set(v->timer, 0);
   gavl_timer_start(v->timer);
   
-  pthread_create(&(v->video_thread), (pthread_attr_t*)0, video_thread_func, v);
+  pthread_create(&v->video_thread, (pthread_attr_t*)0, video_thread_func, v);
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started thread");
   return 1;
   }

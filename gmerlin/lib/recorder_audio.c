@@ -38,9 +38,9 @@ void bg_recorder_create_audio(bg_recorder_t * rec)
   as->output_cnv = gavl_audio_converter_create();
   as->enc_cnv = gavl_audio_converter_create();
 
-  bg_gavl_audio_options_init(&(as->opt));
+  bg_gavl_audio_options_init(&as->opt);
   
-  as->fc = bg_audio_filter_chain_create(&(as->opt), rec->plugin_reg);
+  as->fc = bg_audio_filter_chain_create(&as->opt, rec->plugin_reg);
   as->th = bg_player_thread_create(rec->tc);
 
   as->pd = gavl_peak_detector_create();

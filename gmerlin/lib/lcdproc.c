@@ -147,8 +147,8 @@ bg_lcdproc_t * bg_lcdproc_create(bg_player_t * player)
   ret = calloc(1, sizeof(*ret));
   ret->fd = -1;
   ret->queue = bg_msg_queue_create();
-  pthread_mutex_init(&(ret->config_mutex), (pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->state_mutex), (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->config_mutex, (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->state_mutex, (pthread_mutexattr_t *)0);
   ret->player = player;
   return ret;
   }
@@ -171,7 +171,7 @@ static int send_command(bg_lcdproc_t * l, char * command)
 
   while(1)
     {
-    if(!bg_socket_read_line(l->fd, &(l->answer), &(l->answer_alloc), 0))
+    if(!bg_socket_read_line(l->fd, &l->answer, &l->answer_alloc, 0))
       {
       //      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading answer failed");
       //      return 0;
@@ -229,7 +229,7 @@ static int do_connect(bg_lcdproc_t* l)
     goto fail;
     }
   
-  if(!bg_socket_read_line(l->fd, &(l->answer), &(l->answer_alloc), 1000))
+  if(!bg_socket_read_line(l->fd, &l->answer, &l->answer_alloc, 1000))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not get server welcome line");
     goto fail;
@@ -683,17 +683,17 @@ static void * thread_func(void * data)
     {
     /* Check if we must stop the thread */
 
-    pthread_mutex_lock(&(l->state_mutex));
+    pthread_mutex_lock(&l->state_mutex);
     if(l->do_stop)
       {
-      pthread_mutex_unlock(&(l->state_mutex));
+      pthread_mutex_unlock(&l->state_mutex);
       break;
       }
-    pthread_mutex_unlock(&(l->state_mutex));
+    pthread_mutex_unlock(&l->state_mutex);
     
     /* Check whether to process a message */
 
-    pthread_mutex_lock(&(l->config_mutex));
+    pthread_mutex_lock(&l->config_mutex);
     while((msg = bg_msg_queue_try_lock_read(l->queue)))
       {
       if(l->fd < 0)
@@ -767,21 +767,21 @@ static void * thread_func(void * data)
         case BG_PLAYER_MSG_AUDIO_STREAM:
           if(l->have_formats)
             {
-            bg_msg_get_arg_audio_format(msg, 1, &(audio_format), NULL);
-            result = set_audio_format(l, &(audio_format));
+            bg_msg_get_arg_audio_format(msg, 1, &audio_format, NULL);
+            result = set_audio_format(l, &audio_format);
             }
           break;
         case BG_PLAYER_MSG_VIDEO_STREAM:
           if(l->have_formats)
             {
-            bg_msg_get_arg_video_format(msg, 1, &(video_format), NULL);
-            result = set_video_format(l, &(video_format));
+            bg_msg_get_arg_video_format(msg, 1, &video_format, NULL);
+            result = set_video_format(l, &video_format);
             }
           break;
         }
       bg_msg_queue_unlock_read(l->queue);
       }
-    pthread_mutex_unlock(&(l->config_mutex));
+    pthread_mutex_unlock(&l->config_mutex);
     
     /* Sleep */
     gavl_time_delay(&delay_time);
@@ -803,34 +803,34 @@ static void * thread_func(void * data)
 
 static void start_thread(bg_lcdproc_t * l)
   {
-  pthread_mutex_lock(&(l->state_mutex));
+  pthread_mutex_lock(&l->state_mutex);
 
-  pthread_create(&(l->thread), (pthread_attr_t*)0,
+  pthread_create(&l->thread, (pthread_attr_t*)0,
                  thread_func, l);
 
   l->is_running = 1;
-  pthread_mutex_unlock(&(l->state_mutex));
+  pthread_mutex_unlock(&l->state_mutex);
   }
 
 static void stop_thread(bg_lcdproc_t * l)
   {
-  pthread_mutex_lock(&(l->state_mutex));
+  pthread_mutex_lock(&l->state_mutex);
   l->do_stop = 1;
 
   if(!l->is_running)
     {
-    pthread_mutex_unlock(&(l->state_mutex));
+    pthread_mutex_unlock(&l->state_mutex);
     return;
     }
 
-  pthread_mutex_unlock(&(l->state_mutex));
+  pthread_mutex_unlock(&l->state_mutex);
 
   pthread_join(l->thread, (void**)0);
 
-  pthread_mutex_lock(&(l->state_mutex));
+  pthread_mutex_lock(&l->state_mutex);
   l->do_stop = 0;
   l->is_running = 0;
-  pthread_mutex_unlock(&(l->state_mutex));
+  pthread_mutex_unlock(&l->state_mutex);
   }
 
 #define FREE(p) if(l->p) free(l->p);
@@ -843,8 +843,8 @@ void bg_lcdproc_destroy(bg_lcdproc_t* l)
   FREE(hostname_cfg);
   bg_msg_queue_destroy(l->queue);
 
-  pthread_mutex_destroy(&(l->config_mutex));
-  pthread_mutex_destroy(&(l->state_mutex));
+  pthread_mutex_destroy(&l->config_mutex);
+  pthread_mutex_destroy(&l->state_mutex);
   free(l);
   }
 
@@ -941,9 +941,9 @@ void bg_lcdproc_set_parameter(void * data, const char * name,
     l->port_cfg = val->val_i;
     }
 
-  pthread_mutex_lock(&(l->config_mutex));
+  pthread_mutex_lock(&l->config_mutex);
   IPARAM(display_name_time);
   IPARAM(display_formats);
   IPARAM(display_descriptions);
-  pthread_mutex_unlock(&(l->config_mutex));
+  pthread_mutex_unlock(&l->config_mutex);
   }

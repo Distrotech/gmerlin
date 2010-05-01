@@ -122,18 +122,18 @@ static void process_frame(bg_player_t * p, gavl_audio_frame_t * frame)
              "Got initial audio timestamp: %s",
              tmp_string);
       
-      pthread_mutex_lock(&(s->time_mutex));
+      pthread_mutex_lock(&s->time_mutex);
       s->samples_written += frame->timestamp;
-      pthread_mutex_unlock(&(s->time_mutex));
+      pthread_mutex_unlock(&s->time_mutex);
       }
     s->has_first_timestamp_o = 1;
     }
 
   if(frame->valid_samples)
     {
-    pthread_mutex_lock(&(s->mute_mutex));
+    pthread_mutex_lock(&s->mute_mutex);
     do_mute = s->mute;
-    pthread_mutex_unlock(&(s->mute_mutex));
+    pthread_mutex_unlock(&s->mute_mutex);
     
     if(DO_VISUALIZE(p->flags))
       bg_visualizer_update(p->visualizer, frame);
@@ -144,15 +144,15 @@ static void process_frame(bg_player_t * p, gavl_audio_frame_t * frame)
     if(do_mute)
       {
       gavl_audio_frame_mute(frame,
-                            &(s->fifo_format));
+                            &s->fifo_format);
       }
     else
       {
-      pthread_mutex_lock(&(s->volume_mutex));
+      pthread_mutex_lock(&s->volume_mutex);
       gavl_volume_control_apply(s->volume,
                                 frame);
       
-      pthread_mutex_unlock(&(s->volume_mutex));
+      pthread_mutex_unlock(&s->volume_mutex);
       }
     }
   
@@ -175,7 +175,7 @@ void * bg_player_oa_thread(void * data)
 
   bg_player_t * p = data;
   
-  s = &(p->audio_stream);
+  s = &p->audio_stream;
   
   /* Wait for playback */
 
@@ -224,9 +224,9 @@ void * bg_player_oa_thread(void * data)
         bg_plugin_unlock(s->plugin_handle);
         }
       
-      pthread_mutex_lock(&(s->time_mutex));
+      pthread_mutex_lock(&s->time_mutex);
       s->samples_written += s->fifo_frame->valid_samples;
-      pthread_mutex_unlock(&(s->time_mutex));
+      pthread_mutex_unlock(&s->time_mutex);
       
       /* Now, wait a while to give other threads a chance to access the
          player time */
@@ -246,7 +246,7 @@ int bg_player_oa_init(bg_player_audio_stream_t * ctx)
   int result;
   bg_plugin_lock(ctx->plugin_handle);
   result =
-    ctx->plugin->open(ctx->priv, &(ctx->output_format));
+    ctx->plugin->open(ctx->priv, &ctx->output_format);
   if(result)
     ctx->output_open = 1;
   else
@@ -294,9 +294,9 @@ void bg_player_oa_stop(bg_player_audio_stream_t * ctx)
 void bg_player_oa_set_volume(bg_player_audio_stream_t * ctx,
                              float volume)
   {
-  pthread_mutex_lock(&(ctx->volume_mutex));
+  pthread_mutex_lock(&ctx->volume_mutex);
   gavl_volume_control_set_volume(ctx->volume, volume);
-  pthread_mutex_unlock(&(ctx->volume_mutex));
+  pthread_mutex_unlock(&ctx->volume_mutex);
   }
 
 int bg_player_oa_get_latency(bg_player_audio_stream_t * ctx)
@@ -333,7 +333,7 @@ void bg_player_oa_set_plugin(bg_player_t * player,
 #if 0  
     bg_plugin_lock(ctx->plugin_handle);
     if(ctx->plugin->set_callbacks)
-      ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
+      ctx->plugin->set_callbacks(ctx->priv, &ctx->callbacks);
     bg_plugin_unlock(ctx->plugin_handle);
 #endif
     }
