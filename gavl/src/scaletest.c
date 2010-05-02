@@ -264,8 +264,8 @@ static gavl_video_frame_t * read_png(const char * filename,
   png_read_image(png_ptr, rows);
   png_read_end(png_ptr, end_info);
 
-  png_destroy_read_struct(&(png_ptr), &(info_ptr),
-                          &(end_info));
+  png_destroy_read_struct(&png_ptr, &info_ptr,
+                          &end_info);
   fclose(file);
   free(rows);
   
