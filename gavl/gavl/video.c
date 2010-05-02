@@ -77,11 +77,11 @@ add_context(gavl_video_converter_t * cnv,
   {
   gavl_video_convert_context_t * ctx;
   ctx = calloc(1, sizeof(*ctx));
-  ctx->options = &(cnv->options);
-  gavl_video_format_copy(&(ctx->input_format),
+  ctx->options = &cnv->options;
+  gavl_video_format_copy(&ctx->input_format,
                          input_format);
   
-  gavl_video_format_copy(&(ctx->output_format),
+  gavl_video_format_copy(&ctx->output_format,
                          output_format);
   
   if(cnv->last_context)
@@ -105,7 +105,7 @@ static int add_context_csp(gavl_video_converter_t * cnv,
   gavl_video_convert_context_t * ctx;
   ctx = add_context(cnv, input_format, output_format);
 
-  ctx->func = gavl_find_pixelformat_converter(&(cnv->options),
+  ctx->func = gavl_find_pixelformat_converter(&cnv->options,
                                              input_format->pixelformat,
                                              output_format->pixelformat,
                                              input_format->frame_width,
@@ -149,7 +149,7 @@ static int add_context_scale(gavl_video_converter_t * cnv,
 
   scaler_options = gavl_video_scaler_get_options(ctx->scaler);
 
-  gavl_video_options_copy(scaler_options, &(cnv->options));
+  gavl_video_options_copy(scaler_options, &cnv->options);
 #if 0
   fprintf(stderr, "gavl_video_scaler_init:\n");
   fprintf(stderr, "src_format:\n");
@@ -158,11 +158,11 @@ static int add_context_scale(gavl_video_converter_t * cnv,
   gavl_video_format_dump(output_format);
 
   fprintf(stderr, "src_rectangle: ");
-  gavl_rectangle_f_dump(&(cnv->options.src_rect));
+  gavl_rectangle_f_dump(&cnv->options.src_rect);
   fprintf(stderr, "\n");
 
   fprintf(stderr, "dst_rectangle: ");
-  gavl_rectangle_i_dump(&(cnv->options.dst_rect));
+  gavl_rectangle_i_dump(&cnv->options.dst_rect);
   fprintf(stderr, "\n");
 #endif
   
@@ -194,7 +194,7 @@ static int add_context_deinterlace(gavl_video_converter_t * cnv,
 
   ctx->deinterlacer = gavl_video_deinterlacer_create();
   deinterlacer_options = gavl_video_deinterlacer_get_options(ctx->deinterlacer);
-  gavl_video_options_copy(deinterlacer_options, &(cnv->options));
+  gavl_video_options_copy(deinterlacer_options, &cnv->options);
   
   if(!gavl_video_deinterlacer_init(ctx->deinterlacer,
                                    in_format))
@@ -465,8 +465,8 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
   while(tmp_ctx && tmp_ctx->next)
     {
     tmp_ctx->output_frame =
-      gavl_video_frame_create(&(tmp_ctx->output_format));
-    gavl_video_frame_clear(tmp_ctx->output_frame, &(tmp_ctx->output_format));
+      gavl_video_frame_create(&tmp_ctx->output_format);
+    gavl_video_frame_clear(tmp_ctx->output_frame, &tmp_ctx->output_format);
     
     
     tmp_ctx->next->input_frame = tmp_ctx->output_frame;
@@ -488,7 +488,7 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
 gavl_video_options_t *
 gavl_video_converter_get_options(gavl_video_converter_t * cnv)
   {
-  return &(cnv->options);
+  return &cnv->options;
   }
 
 /***************************************************

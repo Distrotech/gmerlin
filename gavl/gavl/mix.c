@@ -66,7 +66,7 @@ static void output_channel_dump(gavl_mix_output_channel_t * c)
   
   for(i = 0; i < c->num_inputs; i++)
     {
-    input_channel_dump(&(c->inputs[i]));
+    input_channel_dump(&c->inputs[i]);
     }
   }
 #endif
@@ -77,13 +77,13 @@ void gavl_mix_audio(gavl_audio_convert_context_t * ctx)
   for(i = 0; i < ctx->output_format.num_channels; i++)
     {
     if(ctx->mix_matrix->output_channels[i].func)
-      ctx->mix_matrix->output_channels[i].func(&(ctx->mix_matrix->output_channels[i]),
+      ctx->mix_matrix->output_channels[i].func(&ctx->mix_matrix->output_channels[i],
                                                 ctx->input_frame,
                                                 ctx->output_frame);
     else
       /* This happens, if channels in the output are muted */
       gavl_audio_frame_mute_channel(ctx->output_frame,
-                                    &(ctx->output_format), i);
+                                    &ctx->output_format, i);
     }
   }
 
@@ -778,7 +778,7 @@ static void init_context(gavl_mix_matrix_t * ctx,
       
       if(matrix[i][j] != 0.0)
         {
-        set_factor(&(ctx->output_channels[i].inputs[num_inputs]),
+        set_factor(&ctx->output_channels[i].inputs[num_inputs],
                    matrix[i][j], in_format->sample_format);
         ctx->output_channels[i].inputs[num_inputs].index = j;
         num_inputs++;
@@ -832,7 +832,7 @@ static void init_context(gavl_mix_matrix_t * ctx,
         }
       }
 #ifdef DUMP_MATRIX
-    output_channel_dump(&(ctx->output_channels[i]));
+    output_channel_dump(&ctx->output_channels[i]);
 #endif
     }
   
@@ -889,8 +889,8 @@ gavl_mix_context_create(gavl_audio_options_t * opt,
          out_format->channel_locations,
          GAVL_MAX_CHANNELS * sizeof(out_format->channel_locations[0]));
   ret->mix_matrix = gavl_create_mix_matrix(opt,
-                                            &(ret->input_format),
-                                            &(ret->output_format));
+                                            &ret->input_format,
+                                            &ret->output_format);
   ret->func = gavl_mix_audio;
   
   return ret;

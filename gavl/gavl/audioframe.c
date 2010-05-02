@@ -63,7 +63,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
         memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
 
       for(i = 0; i < format->num_channels; i++)
-        ret->channels.u_8[i] = &(ret->samples.u_8[i*num_samples]);
+        ret->channels.u_8[i] = &ret->samples.u_8[i*num_samples];
 
       break;
     case GAVL_SAMPLE_S8:
@@ -72,7 +72,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
         memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
 
       for(i = 0; i < format->num_channels; i++)
-        ret->channels.s_8[i] = &(ret->samples.s_8[i*num_samples]);
+        ret->channels.s_8[i] = &ret->samples.s_8[i*num_samples];
 
       break;
     case GAVL_SAMPLE_U16:
@@ -80,7 +80,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
       ret->samples.u_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
-        ret->channels.u_16[i] = &(ret->samples.u_16[i*num_samples]);
+        ret->channels.u_16[i] = &ret->samples.u_16[i*num_samples];
 
       break;
     case GAVL_SAMPLE_S16:
@@ -88,7 +88,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
       ret->samples.s_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
-        ret->channels.s_16[i] = &(ret->samples.s_16[i*num_samples]);
+        ret->channels.s_16[i] = &ret->samples.s_16[i*num_samples];
 
       break;
 
@@ -97,7 +97,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
       ret->samples.s_32 =
         memalign(ALIGNMENT_BYTES, 4 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
-        ret->channels.s_32[i] = &(ret->samples.s_32[i*num_samples]);
+        ret->channels.s_32[i] = &ret->samples.s_32[i*num_samples];
 
       break;
 
@@ -107,7 +107,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
         memalign(ALIGNMENT_BYTES, sizeof(float) * num_samples * format->num_channels);
 
       for(i = 0; i < format->num_channels; i++)
-        ret->channels.f[i] = &(ret->samples.f[i*num_samples]);
+        ret->channels.f[i] = &ret->samples.f[i*num_samples];
 
       break;
     case GAVL_SAMPLE_DOUBLE:
@@ -116,7 +116,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
         memalign(ALIGNMENT_BYTES, sizeof(double) * num_samples * format->num_channels);
 
       for(i = 0; i < format->num_channels; i++)
-        ret->channels.d[i] = &(ret->samples.d[i*num_samples]);
+        ret->channels.d[i] = &ret->samples.d[i*num_samples];
 
       break;
     case GAVL_SAMPLE_NONE:
@@ -296,29 +296,29 @@ int gavl_audio_frame_copy(const gavl_audio_format_t * format,
     case GAVL_INTERLEAVE_NONE:
       for(i = 0; i < format->num_channels; i++)
         {
-        gavl_memcpy(&(dst->channels.s_8[i][out_pos * bytes_per_sample]),
-                    &(src->channels.s_8[i][in_pos * bytes_per_sample]),
+        gavl_memcpy(&dst->channels.s_8[i][out_pos * bytes_per_sample],
+                    &src->channels.s_8[i][in_pos * bytes_per_sample],
                     samples_to_copy * bytes_per_sample);
         }
       break;
     case GAVL_INTERLEAVE_2:
       for(i = 0; i < format->num_channels/2; i++)
         {
-        gavl_memcpy(&(dst->channels.s_8[i*2][2 * out_pos * bytes_per_sample]),
-                    &(src->channels.s_8[i*2][2 * in_pos * bytes_per_sample]),
+        gavl_memcpy(&dst->channels.s_8[i*2][2 * out_pos * bytes_per_sample],
+                    &src->channels.s_8[i*2][2 * in_pos * bytes_per_sample],
                     2*samples_to_copy * bytes_per_sample);
         }
       /* Last channel is not interleaved */
       if(format->num_channels & 1)
         {
-        gavl_memcpy(&(dst->channels.s_8[format->num_channels-1][2 * out_pos * bytes_per_sample]),
-                    &(src->channels.s_8[format->num_channels-1][2 * in_pos * bytes_per_sample]),
+        gavl_memcpy(&dst->channels.s_8[format->num_channels-1][2 * out_pos * bytes_per_sample],
+                    &src->channels.s_8[format->num_channels-1][2 * in_pos * bytes_per_sample],
                     2*samples_to_copy * bytes_per_sample);
         }
       break;
     case GAVL_INTERLEAVE_ALL:
-      gavl_memcpy(&(dst->samples.s_8[format->num_channels * out_pos * bytes_per_sample]),
-                  &(src->samples.s_8[format->num_channels * in_pos * bytes_per_sample]),
+      gavl_memcpy(&dst->samples.s_8[format->num_channels * out_pos * bytes_per_sample],
+                  &src->samples.s_8[format->num_channels * in_pos * bytes_per_sample],
                   format->num_channels * samples_to_copy * bytes_per_sample);
       break;
     }

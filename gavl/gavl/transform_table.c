@@ -312,7 +312,7 @@ void gavl_transform_table_init(gavl_transform_table_t * tab,
   
   /* Get factors per pixel and filter_func */
   sd.weight_func =
-    gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
+    gavl_video_scale_get_weight_func(opt, &tab->factors_per_pixel);
   
   if(tab->factors_per_pixel > MAX_TRANSFORM_FILTER)
     {

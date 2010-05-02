@@ -116,8 +116,8 @@ void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
     opt->have_rectangles = 0;
     return;
     }
-  gavl_rectangle_f_copy(&(opt->src_rect), src_rect);
-  gavl_rectangle_i_copy(&(opt->dst_rect), dst_rect);
+  gavl_rectangle_f_copy(&opt->src_rect, src_rect);
+  gavl_rectangle_i_copy(&opt->dst_rect, dst_rect);
   opt->have_rectangles = 1;
   }
 
@@ -125,8 +125,8 @@ void gavl_video_options_get_rectangles(gavl_video_options_t * opt,
                                        gavl_rectangle_f_t * src_rect,
                                        gavl_rectangle_i_t * dst_rect)
   {
-  gavl_rectangle_f_copy(src_rect, &(opt->src_rect));
-  gavl_rectangle_i_copy(dst_rect, &(opt->dst_rect));
+  gavl_rectangle_f_copy(src_rect, &opt->src_rect);
+  gavl_rectangle_i_copy(dst_rect, &opt->dst_rect);
   }
 
 #define SET_INT(p) opt->p = p

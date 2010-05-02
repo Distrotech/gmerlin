@@ -151,7 +151,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   /* Get the kernel generator */
 
   weight_func =
-    gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
+    gavl_video_scale_get_weight_func(opt, &tab->factors_per_pixel);
 
   num_tmp_factors = tab->factors_per_pixel;
   
@@ -194,7 +194,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
         break;
       }
     weight_func =
-      gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
+      gavl_video_scale_get_weight_func(opt, &tab->factors_per_pixel);
     }
   
   //  fprintf(stderr, "gavl_video_scale_table_init: %f %f %d %d\n", 

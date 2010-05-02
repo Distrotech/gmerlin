@@ -111,7 +111,7 @@ void gavl_volume_control_set_format(gavl_volume_control_t * v,
   {
   gavl_volume_funcs_t * funcs;
 
-  gavl_audio_format_copy(&(v->format), format);
+  gavl_audio_format_copy(&v->format, format);
   
   funcs = gavl_volume_funcs_create();
   

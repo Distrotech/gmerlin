@@ -215,7 +215,7 @@ static void * sse_memcpy(void * to, const void * from, size_t len)
   {
     register unsigned long int delta;
     /* Align destinition to MMREG_SIZE -boundary */
-    delta = ((unsigned long int)to)&(SSE_MMREG_SIZE-1);
+    delta = ((unsigned long int)to) & (SSE_MMREG_SIZE-1);
     if(delta)
     {
       delta=SSE_MMREG_SIZE-delta;
@@ -292,7 +292,7 @@ static void * mmx_memcpy(void * to, const void * from, size_t len)
   {
     register unsigned long int delta;
     /* Align destinition to MMREG_SIZE -boundary */
-    delta = ((unsigned long int)to)&(MMX_MMREG_SIZE-1);
+    delta = ((unsigned long int)to) & (MMX_MMREG_SIZE-1);
     if(delta)
     {
       delta=MMX_MMREG_SIZE-delta;
@@ -357,7 +357,7 @@ static void * mmx2_memcpy(void * to, const void * from, size_t len)
   {
     register unsigned long int delta;
     /* Align destinition to MMREG_SIZE -boundary */
-    delta = ((unsigned long int)to)&(MMX_MMREG_SIZE-1);
+    delta = ((unsigned long int)to) & (MMX_MMREG_SIZE-1);
     if(delta)
     {
       delta=MMX_MMREG_SIZE-delta;

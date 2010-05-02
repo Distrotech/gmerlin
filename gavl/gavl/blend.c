@@ -57,7 +57,7 @@ void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t * ctx)
 gavl_video_options_t *
 gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx)
   {
-  return &(ctx->opt);
+  return &ctx->opt;
   }
 
 int
@@ -81,22 +81,22 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
     return 0;
   
   /* Copy formats */
-  gavl_video_format_copy(&(ctx->dst_format), dst_format);
-  gavl_video_format_copy(&(ctx->ovl_format), ovl_format);
+  gavl_video_format_copy(&ctx->dst_format, dst_format);
+  gavl_video_format_copy(&ctx->ovl_format, ovl_format);
 
   /* Get chroma subsampling of the destination */
   gavl_pixelformat_chroma_sub(dst_format->pixelformat,
-                              &(ctx->dst_sub_h), &(ctx->dst_sub_v));
+                              &ctx->dst_sub_h, &ctx->dst_sub_v);
 
   /* Get blend function */
 
   ctx->func = 
     gavl_find_blend_func_c(ctx,
                            dst_format->pixelformat,
-                           &(ctx->ovl_format.pixelformat));
+                           &ctx->ovl_format.pixelformat);
   
   ctx->ovl_win = gavl_video_frame_create((gavl_video_format_t*)0);
-  gavl_video_format_copy(ovl_format, &(ctx->ovl_format));
+  gavl_video_format_copy(ovl_format, &ctx->ovl_format);
   return 1;
   }
 
@@ -180,7 +180,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
   gavl_video_frame_get_subframe(ctx->ovl_format.pixelformat,
                                 ovl->frame,
                                 ctx->ovl_win,
-                                &(ctx->ovl.ovl_rect));
+                                &ctx->ovl.ovl_rect);
   }
 
 void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
@@ -193,7 +193,7 @@ void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
   gavl_video_frame_get_subframe(ctx->dst_format.pixelformat,
                                 dst_frame,
                                 ctx->dst_win,
-                                &(ctx->dst_rect));
+                                &ctx->dst_rect);
   /* Fire up blender */
 
   ctx->func(ctx, ctx->dst_win, ctx->ovl_win);

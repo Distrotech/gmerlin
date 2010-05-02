@@ -191,7 +191,7 @@ gavl_transform_context_init(gavl_image_transform_t * t,
   float scale_x, scale_y;
   int sub_h, sub_v;
   gavl_transform_context_t * ctx;
-  ctx = &(t->contexts[field_index][plane_index]);
+  ctx = &t->contexts[field_index][plane_index];
   
   if(field_index == 1)
     {

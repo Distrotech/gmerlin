@@ -273,8 +273,8 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
     
     
     ret->func =
-      gavl_find_sampleformat_converter(table, &(ret->input_format),
-                                       &(ret->output_format));
+      gavl_find_sampleformat_converter(table, &ret->input_format,
+                                       &ret->output_format);
     /*   if(!ret->func) */
     /*     fprintf(stderr, "No function found\n"); */
     gavl_destroy_sampleformat_table(table);
@@ -364,9 +364,9 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
       default:
         fprintf(stderr, "BUG: Invalid dither initialization\n");
         fprintf(stderr, "Input format\n");
-        gavl_audio_format_dump(&(ret->input_format));
+        gavl_audio_format_dump(&ret->input_format);
         fprintf(stderr, "Output format\n");
-        gavl_audio_format_dump(&(ret->output_format));
+        gavl_audio_format_dump(&ret->output_format);
         return NULL;
       }
     

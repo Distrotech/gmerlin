@@ -235,8 +235,8 @@ gavl_interleave_context_create(gavl_audio_options_t * opt,
 
   table = gavl_create_interleave_table(opt);
   ret->func =
-    gavl_find_interleave_converter(table, &(ret->input_format),
-                                   &(ret->output_format));
+    gavl_find_interleave_converter(table, &ret->input_format,
+                                   &ret->output_format);
   
   gavl_destroy_interleave_table(table);
   return ret;

@@ -652,7 +652,7 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
       {
       //      fprintf(stderr, "Scale %d, %p\n", i, &s->contexts[0][i]);
       //      fprintf(stderr, "Field: 0 (progressive), plane: %d\n", i);
-      gavl_video_scale_context_scale(&(s->contexts[0][i]), src, s->dst);
+      gavl_video_scale_context_scale(&s->contexts[0][i], src, s->dst);
       }
     }
   }

@@ -148,10 +148,10 @@ void gavl_rectangle_crop_to_format_scale(gavl_rectangle_f_t * src_rect,
                                          const gavl_video_format_t * src_format,
                                          const gavl_video_format_t * dst_format)
   {
-  crop_dimension_scale(&(src_rect->x), &(src_rect->w), src_format->image_width,
-                       &(dst_rect->x), &(dst_rect->w), dst_format->image_width);
-  crop_dimension_scale(&(src_rect->y), &(src_rect->h), src_format->image_height,
-                       &(dst_rect->y), &(dst_rect->h), dst_format->image_height);
+  crop_dimension_scale(&src_rect->x, &src_rect->w, src_format->image_width,
+                       &dst_rect->x, &dst_rect->w, dst_format->image_width);
+  crop_dimension_scale(&src_rect->y, &src_rect->h, src_format->image_height,
+                       &dst_rect->y, &dst_rect->h, dst_format->image_height);
   }
 
 

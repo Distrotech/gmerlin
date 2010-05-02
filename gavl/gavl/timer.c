@@ -71,7 +71,7 @@ void gavl_timer_destroy(gavl_timer_t * t)
 
 void gavl_timer_start(gavl_timer_t * t)
   {
-  get_time(&(t->start_time_real));
+  get_time(&t->start_time_real);
   t->is_running = 1;
   }
 

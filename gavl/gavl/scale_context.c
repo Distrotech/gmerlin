@@ -459,8 +459,8 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   fprintf(stderr, "scale_context_init: src_field: %d, dst_field: %d plane: %d\n",
           src_field, dst_field, plane);
 #endif  
-  gavl_rectangle_f_copy(&(ctx->src_rect), &(opt->src_rect));
-  gavl_rectangle_i_copy(&(ctx->dst_rect), &(opt->dst_rect));
+  gavl_rectangle_f_copy(&ctx->src_rect, &opt->src_rect);
+  gavl_rectangle_i_copy(&ctx->dst_rect, &opt->dst_rect);
   
   scale_factor_x = (float)ctx->dst_rect.w / ctx->src_rect.w;
   scale_factor_y = (float)ctx->dst_rect.h / ctx->src_rect.h;
@@ -511,9 +511,9 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   
 #if 0
   fprintf(stderr, "gavl_video_scale_context_init\n");
-  gavl_rectangle_f_dump(&(ctx->src_rect));
+  gavl_rectangle_f_dump(&ctx->src_rect);
   fprintf(stderr, "\n");
-  gavl_rectangle_i_dump(&(ctx->dst_rect));
+  gavl_rectangle_i_dump(&ctx->dst_rect);
   fprintf(stderr, "\n");
 #endif
   
@@ -591,7 +591,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 
     /* We set this once here */
 
-    ctx->offset = &(ctx->offset1);
+    ctx->offset = &ctx->offset1;
     ctx->dst_size = ctx->dst_rect.w;
     }
   else if(ctx->num_directions == 2)
@@ -630,7 +630,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 
     /* We set this once here */
 
-    ctx->offset = &(ctx->offset1);
+    ctx->offset = &ctx->offset1;
     ctx->dst_size = ctx->dst_rect.w;
 
     ctx->num_directions = 1;
@@ -641,7 +641,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     {
     // fprintf(stderr, "Initializing x table %f\n", ctx->src_rect.x + offset_x);
     gavl_video_options_copy(&tmp_opt, opt);
-    gavl_video_scale_table_init(&(ctx->table_h), &tmp_opt,
+    gavl_video_scale_table_init(&ctx->table_h, &tmp_opt,
                                 offset_x,
                                 ctx->src_rect.w, ctx->dst_rect.w, src_width);
     //    fprintf(stderr, "Initializing x table done\n");
@@ -649,7 +649,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     //    fprintf(stderr, "Initializing y table %f\n",
     //            ctx->src_rect.y + offset_y);
     gavl_video_options_copy(&tmp_opt_y, opt);
-    gavl_video_scale_table_init(&(ctx->table_v), &tmp_opt_y,
+    gavl_video_scale_table_init(&ctx->table_v, &tmp_opt_y,
                                 offset_y,
                                 ctx->src_rect.h, ctx->dst_rect.h, src_height);
     
@@ -661,8 +661,9 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
        (tmp_opt.scale_order == tmp_opt_y.scale_order))
       {
       gavl_init_scale_funcs(&funcs, &tmp_opt, ctx->offset1.src_advance,
-                            ctx->offset2.dst_advance, &(ctx->table_h), &(ctx->table_v));
-      ctx->func1 = get_func(&(funcs.funcs_xy), src_format->pixelformat, &bits_h);
+                            ctx->offset2.dst_advance, &ctx->table_h,
+                            &ctx->table_v);
+      ctx->func1 = get_func(&funcs.funcs_xy, src_format->pixelformat, &bits_h);
       //      fprintf(stderr, "X AND Y %d\n");
       }
     
@@ -671,11 +672,11 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
       ctx->num_directions = 1;
       if(bits_h)
         {
-        gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+        gavl_video_scale_table_init_int(&ctx->table_h, bits_h);
       /* Must be bits_h since we have only one function (and thus one accuracy) */
-        gavl_video_scale_table_init_int(&(ctx->table_v), bits_h);
+        gavl_video_scale_table_init_int(&ctx->table_v, bits_h);
         }
-      ctx->offset = &(ctx->offset1);
+      ctx->offset = &ctx->offset1;
       ctx->dst_size = ctx->dst_rect.w;
       
       /* Switch offsets back */
@@ -684,9 +685,9 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
       }
     else
       {
-      gavl_video_scale_table_get_src_indices(&(ctx->table_h),
+      gavl_video_scale_table_get_src_indices(&ctx->table_h,
                                              &src_rect_i.x, &src_rect_i.w);
-      gavl_video_scale_table_get_src_indices(&(ctx->table_v),
+      gavl_video_scale_table_get_src_indices(&ctx->table_v,
                                              &src_rect_i.y, &src_rect_i.h);
 
       /* Decide the scale order depending on whats computationally less expensive */
@@ -707,26 +708,26 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
         ctx->buffer_width  = ctx->dst_rect.w;
         ctx->buffer_height = src_rect_i.h;
         
-        gavl_video_scale_table_shift_indices(&(ctx->table_v), -src_rect_i.y);
+        gavl_video_scale_table_shift_indices(&ctx->table_v, -src_rect_i.y);
         ctx->first_scanline = src_rect_i.y;
         
             gavl_init_scale_funcs(&funcs, &tmp_opt,
                               ctx->offset1.src_advance,
                               ctx->offset1.dst_advance,
-                              &(ctx->table_h), NULL);
+                              &ctx->table_h, NULL);
         ctx->func1 = get_func(&funcs.funcs_x, src_format->pixelformat, &bits_h);
         if(bits_h)
-          gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+          gavl_video_scale_table_init_int(&ctx->table_h, bits_h);
         
         gavl_init_scale_funcs(&funcs, &tmp_opt_y,
                               ctx->offset2.src_advance,
                               ctx->offset2.dst_advance,
-                              NULL, &(ctx->table_v));
+                              NULL, &ctx->table_v);
         ctx->func2 = get_func(&funcs.funcs_y,
                               src_format->pixelformat, &bits_v);
 
         if(bits_v)
-          gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
+          gavl_video_scale_table_init_int(&ctx->table_v, bits_v);
         }
       else
         {
@@ -738,25 +739,25 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
         
         ctx->offset1.src_offset += src_rect_i.x * ctx->offset1.src_advance;
         
-        gavl_video_scale_table_shift_indices(&(ctx->table_h), -src_rect_i.x);
+        gavl_video_scale_table_shift_indices(&ctx->table_h, -src_rect_i.x);
 
         gavl_init_scale_funcs(&funcs, &tmp_opt_y,
                               ctx->offset1.src_advance,
                               ctx->offset1.dst_advance,
-                              NULL, &(ctx->table_v));
+                              NULL, &ctx->table_v);
         ctx->func1 = get_func(&funcs.funcs_y, src_format->pixelformat, &bits_v);
 
         if(bits_v)
-          gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
+          gavl_video_scale_table_init_int(&ctx->table_v, bits_v);
 
         gavl_init_scale_funcs(&funcs, &tmp_opt,
                               ctx->offset2.src_advance,
                               ctx->offset2.dst_advance,
-                              &(ctx->table_h), NULL);
-        ctx->func2 = get_func(&(funcs.funcs_x),
+                              &ctx->table_h, NULL);
+        ctx->func2 = get_func(&funcs.funcs_x,
                               src_format->pixelformat, &bits_h);
         if(bits_h)
-          gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+          gavl_video_scale_table_init_int(&ctx->table_h, bits_h);
         }
       
       /* Allocate temporary buffer */
@@ -766,7 +767,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   else if(scale_x)
     {
     gavl_video_options_copy(&tmp_opt, opt);
-    gavl_video_scale_table_init(&(ctx->table_h), &tmp_opt,
+    gavl_video_scale_table_init(&ctx->table_h, &tmp_opt,
                                 offset_x,
                                 ctx->src_rect.w, ctx->dst_rect.w, src_width);
     //    fprintf(stderr, "Initializing x table done\n");
@@ -774,28 +775,28 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     gavl_init_scale_funcs(&funcs, &tmp_opt,
                           ctx->offset1.src_advance,
                           ctx->offset1.dst_advance,
-                          &(ctx->table_h), NULL);
-    ctx->func1 = get_func(&(funcs.funcs_x), src_format->pixelformat, &bits_h);
+                          &ctx->table_h, NULL);
+    ctx->func1 = get_func(&funcs.funcs_x, src_format->pixelformat, &bits_h);
 
     if(bits_h)
-      gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+      gavl_video_scale_table_init_int(&ctx->table_h, bits_h);
     }
   else if(scale_y)
     {
     //    fprintf(stderr, "Initializing y table\n");
     gavl_video_options_copy(&tmp_opt, opt);
 
-    gavl_video_scale_table_init(&(ctx->table_v), &tmp_opt, offset_y,
+    gavl_video_scale_table_init(&ctx->table_v, &tmp_opt, offset_y,
                                 ctx->src_rect.h, ctx->dst_rect.h, src_height);
     //    fprintf(stderr, "Initializing y table done\n");
     gavl_init_scale_funcs(&funcs, &tmp_opt,
                           ctx->offset1.src_advance,
                           ctx->offset1.dst_advance,
-                          NULL, &(ctx->table_v));
-    ctx->func1 = get_func(&(funcs.funcs_y), src_format->pixelformat, &bits_v);
+                          NULL, &ctx->table_v);
+    ctx->func1 = get_func(&funcs.funcs_y, src_format->pixelformat, &bits_v);
     
     if(bits_v)
-      gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
+      gavl_video_scale_table_init_int(&ctx->table_v, bits_v);
     }
 
   if(!ctx->func1 || ((ctx->num_directions == 2) && !ctx->func2))
@@ -808,9 +809,9 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 #if 0  
   /* Dump final scale tables */
   fprintf(stderr, "Horizontal table:\n");
-  gavl_video_scale_table_dump(&(ctx->table_h));
+  gavl_video_scale_table_dump(&ctx->table_h);
   fprintf(stderr, "Vertical table:\n");
-  gavl_video_scale_table_dump(&(ctx->table_v));
+  gavl_video_scale_table_dump(&ctx->table_v);
 #endif
   
   get_minmax(src_format->pixelformat, ctx->min_values_h,
@@ -938,8 +939,8 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
           src_field, dst_field, plane);
 #endif  
 
-  gavl_rectangle_f_set_all(&(ctx->src_rect), format);
-  gavl_rectangle_i_set_all(&(ctx->dst_rect), format);
+  gavl_rectangle_f_set_all(&ctx->src_rect, format);
+  gavl_rectangle_i_set_all(&ctx->dst_rect, format);
 
   ctx->first_scanline = 0;
   
@@ -977,9 +978,9 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
   
 #if 0
   fprintf(stderr, "gavl_video_scale_context_init\n");
-  gavl_rectangle_f_dump(&(ctx->src_rect));
+  gavl_rectangle_f_dump(&ctx->src_rect);
   fprintf(stderr, "\n");
-  gavl_rectangle_i_dump(&(ctx->dst_rect));
+  gavl_rectangle_i_dump(&ctx->dst_rect);
   fprintf(stderr, "\n");
 #endif
   
@@ -1069,7 +1070,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
 
     /* We set this once here */
 
-    ctx->offset = &(ctx->offset1);
+    ctx->offset = &ctx->offset1;
     ctx->dst_size = ctx->dst_rect.w;
     }
   else if(ctx->num_directions == 2)
@@ -1111,7 +1112,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
 
     /* We set this once here */
 
-    ctx->offset = &(ctx->offset1);
+    ctx->offset = &ctx->offset1;
     ctx->dst_size = ctx->dst_rect.w;
 
     ctx->num_directions = 1;
@@ -1123,7 +1124,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     //    fprintf(stderr, "Initializing x table\n");
     gavl_video_options_copy(&tmp_opt, opt);
     tmp_opt.scale_mode = GAVL_SCALE_NONE;
-    gavl_video_scale_table_init_convolve(&(ctx->table_h),
+    gavl_video_scale_table_init_convolve(&ctx->table_h,
                                          &tmp_opt,
                                          h_radius, h_coeffs,
                                          src_width);
@@ -1132,7 +1133,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     //    fprintf(stderr, "Initializing y table\n");
     gavl_video_options_copy(&tmp_opt_y, opt);
     tmp_opt_y.scale_mode = GAVL_SCALE_NONE;
-    gavl_video_scale_table_init_convolve(&(ctx->table_v),
+    gavl_video_scale_table_init_convolve(&ctx->table_v,
                                          &tmp_opt_y,
                                          v_radius, v_coeffs,
                                          src_height);
@@ -1147,8 +1148,8 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
       gavl_init_scale_funcs(&funcs, &tmp_opt,
                             ctx->offset1.src_advance,
                             ctx->offset2.dst_advance,
-                            &(ctx->table_h), &(ctx->table_v));
-      ctx->func1 = get_func(&(funcs.funcs_xy), format->pixelformat, &bits_h);
+                            &ctx->table_h, &ctx->table_v);
+      ctx->func1 = get_func(&funcs.funcs_xy, format->pixelformat, &bits_h);
       //      fprintf(stderr, "X AND Y\n");
       }
     
@@ -1156,16 +1157,16 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
       {
       ctx->num_directions = 1;
             
-      gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
-      gavl_video_scale_table_init_int(&(ctx->table_v), bits_h);
+      gavl_video_scale_table_init_int(&ctx->table_h, bits_h);
+      gavl_video_scale_table_init_int(&ctx->table_v, bits_h);
       }
     else
       {
-      gavl_video_scale_table_get_src_indices(&(ctx->table_h),
+      gavl_video_scale_table_get_src_indices(&ctx->table_h,
                                              &src_rect_i.x,
                                              &src_rect_i.w);
       
-      gavl_video_scale_table_get_src_indices(&(ctx->table_v),
+      gavl_video_scale_table_get_src_indices(&ctx->table_v,
                                              &src_rect_i.y,
                                              &src_rect_i.h);
       
@@ -1175,24 +1176,24 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
       ctx->buffer_width  = ctx->dst_rect.w;
       ctx->buffer_height = src_rect_i.h;
         
-      gavl_video_scale_table_shift_indices(&(ctx->table_v),
+      gavl_video_scale_table_shift_indices(&ctx->table_v,
                                            -src_rect_i.y);
         gavl_init_scale_funcs(&funcs, &tmp_opt,
                             ctx->offset1.src_advance,
                             ctx->offset1.dst_advance,
-                            &(ctx->table_h), NULL);
+                            &ctx->table_h, NULL);
       ctx->func1 = get_func(&funcs.funcs_x, format->pixelformat, &bits_h);
 
-      gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+      gavl_video_scale_table_init_int(&ctx->table_h, bits_h);
 
         gavl_init_scale_funcs(&funcs, &tmp_opt_y,
                             ctx->offset2.src_advance,
                             ctx->offset2.dst_advance,
-                            NULL, &(ctx->table_v));
+                            NULL, &ctx->table_v);
       ctx->func2 = get_func(&funcs.funcs_y, format->pixelformat, &bits_v);
 
 
-      gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
+      gavl_video_scale_table_init_int(&ctx->table_v, bits_v);
      
       /* Allocate temporary buffer */
       alloc_temp(ctx, format->pixelformat);
@@ -1204,7 +1205,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     gavl_video_options_copy(&tmp_opt, opt);
     tmp_opt.scale_mode = GAVL_SCALE_NONE;
 
-    gavl_video_scale_table_init_convolve(&(ctx->table_h),
+    gavl_video_scale_table_init_convolve(&ctx->table_h,
                                          &tmp_opt,
                                          h_radius, h_coeffs,
                                          src_width);
@@ -1212,17 +1213,17 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     gavl_init_scale_funcs(&funcs, &tmp_opt,
                           ctx->offset1.src_advance,
                           ctx->offset1.dst_advance,
-                          &(ctx->table_h), NULL);
-    ctx->func1 = get_func(&(funcs.funcs_x), format->pixelformat, &bits_h);
+                          &ctx->table_h, NULL);
+    ctx->func1 = get_func(&funcs.funcs_x, format->pixelformat, &bits_h);
     
-    gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+    gavl_video_scale_table_init_int(&ctx->table_h, bits_h);
     }
   else if(scale_y)
     {
     //    fprintf(stderr, "Initializing y table\n");
     gavl_video_options_copy(&tmp_opt, opt);
     tmp_opt.scale_mode = GAVL_SCALE_NONE;
-    gavl_video_scale_table_init_convolve(&(ctx->table_v),
+    gavl_video_scale_table_init_convolve(&ctx->table_v,
                                          &tmp_opt,
                                          v_radius, v_coeffs,
                                          src_height);
@@ -1231,18 +1232,18 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     gavl_init_scale_funcs(&funcs, &tmp_opt,
                           ctx->offset1.src_advance,
                           ctx->offset1.dst_advance,
-                          NULL, &(ctx->table_v));
-    ctx->func1 = get_func(&(funcs.funcs_y), format->pixelformat, &bits_v);
+                          NULL, &ctx->table_v);
+    ctx->func1 = get_func(&funcs.funcs_y, format->pixelformat, &bits_v);
     
-    gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
+    gavl_video_scale_table_init_int(&ctx->table_v, bits_v);
     }
   
 #if 0
   /* Dump final scale tables */
   fprintf(stderr, "Horizontal table:\n");
-  gavl_video_scale_table_dump(&(ctx->table_h));
+  gavl_video_scale_table_dump(&ctx->table_h);
   fprintf(stderr, "Vertical table:\n");
-  gavl_video_scale_table_dump(&(ctx->table_v));
+  gavl_video_scale_table_dump(&ctx->table_v);
 #endif
 
   
@@ -1257,8 +1258,8 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
 
 void gavl_video_scale_context_cleanup(gavl_video_scale_context_t * ctx)
   {
-  gavl_video_scale_table_cleanup(&(ctx->table_h));
-  gavl_video_scale_table_cleanup(&(ctx->table_v));
+  gavl_video_scale_table_cleanup(&ctx->table_h);
+  gavl_video_scale_table_cleanup(&ctx->table_v);
   if(ctx->buffer)
     free(ctx->buffer);
   }
@@ -1358,7 +1359,7 @@ static void scale_context_scale_mt(gavl_video_scale_context_t * ctx,
       break;
     case 2:
       /* First step */
-      ctx->offset = &(ctx->offset1);
+      ctx->offset = &ctx->offset1;
       
       ctx->src = src->planes[ctx->src_frame_plane] +
         ctx->offset->src_offset +
@@ -1394,7 +1395,7 @@ static void scale_context_scale_mt(gavl_video_scale_context_t * ctx,
       //      fprintf(stderr, "done\n");
 
       /* Second step */
-      ctx->offset = &(ctx->offset2);
+      ctx->offset = &ctx->offset2;
 #if 0
       fprintf(stderr, "Second direction\n");
       dump_offset(ctx->offset);
@@ -1461,7 +1462,7 @@ void gavl_video_scale_context_scale(gavl_video_scale_context_t * ctx,
       break;
     case 2:
       /* First step */
-      ctx->offset = &(ctx->offset1);
+      ctx->offset = &ctx->offset1;
       
       ctx->src = src->planes[ctx->src_frame_plane] +
         ctx->offset->src_offset +
@@ -1484,7 +1485,7 @@ void gavl_video_scale_context_scale(gavl_video_scale_context_t * ctx,
       //      fprintf(stderr, "done\n");
 
       /* Second step */
-      ctx->offset = &(ctx->offset2);
+      ctx->offset = &ctx->offset2;
 #if 0
       fprintf(stderr, "Second direction\n");
       dump_offset(ctx->offset);

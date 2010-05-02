@@ -55,7 +55,7 @@ void gavl_video_deinterlacer_destroy(gavl_video_deinterlacer_t * d)
 gavl_video_options_t *
 gavl_video_deinterlacer_get_options(gavl_video_deinterlacer_t * d)
   {
-  return &(d->opt);
+  return &d->opt;
   }
 
 
@@ -63,8 +63,8 @@ int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * d,
                                  const gavl_video_format_t * src_format)
   {
   
-  gavl_video_format_copy(&(d->format), src_format);
-  gavl_video_format_copy(&(d->half_height_format), src_format);
+  gavl_video_format_copy(&d->format, src_format);
+  gavl_video_format_copy(&d->half_height_format, src_format);
 
   if((d->format.interlace_mode == GAVL_INTERLACE_MIXED) ||
      (d->format.interlace_mode == GAVL_INTERLACE_MIXED_TOP) ||

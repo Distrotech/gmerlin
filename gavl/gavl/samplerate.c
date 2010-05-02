@@ -89,7 +89,7 @@ static void resample_interleave_none_f(gavl_audio_convert_context_t * ctx)
     ctx->samplerate_converter->data.data_in_f  = ctx->input_frame->channels.f[i];
     ctx->samplerate_converter->data.data_out_f = ctx->output_frame->channels.f[i];
     result = gavl_src_process(ctx->samplerate_converter->resamplers[i],
-                         &(ctx->samplerate_converter->data));
+                         &ctx->samplerate_converter->data);
     if(result)
       {
       fprintf(stderr, "gavl_src_process returned %s (%p)\n", gavl_src_strerror(result), ctx->output_frame->samples.f);
@@ -116,7 +116,7 @@ static void resample_interleave_2_f(gavl_audio_convert_context_t * ctx)
     ctx->samplerate_converter->data.data_out_f =
       ctx->output_frame->channels.f[2*i];
     gavl_src_process(ctx->samplerate_converter->resamplers[i],
-                &(ctx->samplerate_converter->data));
+                &ctx->samplerate_converter->data);
     }
   ctx->output_frame->valid_samples =
     ctx->samplerate_converter->data.output_frames_gen;
@@ -133,7 +133,7 @@ static void resample_interleave_all_f(gavl_audio_convert_context_t * ctx)
   ctx->samplerate_converter->data.data_in_f  = ctx->input_frame->samples.f;
   ctx->samplerate_converter->data.data_out_f = ctx->output_frame->samples.f;
   gavl_src_process(ctx->samplerate_converter->resamplers[0],
-              &(ctx->samplerate_converter->data));
+              &ctx->samplerate_converter->data);
   ctx->output_frame->valid_samples =
     ctx->samplerate_converter->data.output_frames_gen;
   }
@@ -150,7 +150,7 @@ static void resample_interleave_none_d(gavl_audio_convert_context_t * ctx)
     ctx->samplerate_converter->data.data_in_d  = ctx->input_frame->channels.d[i];
     ctx->samplerate_converter->data.data_out_d = ctx->output_frame->channels.d[i];
     result = gavl_src_process(ctx->samplerate_converter->resamplers[i],
-                         &(ctx->samplerate_converter->data));
+                         &ctx->samplerate_converter->data);
     if(result)
       {
       fprintf(stderr, "gavl_src_process returned %s (%p)\n", gavl_src_strerror(result), ctx->output_frame->samples.f);
@@ -177,7 +177,7 @@ static void resample_interleave_2_d(gavl_audio_convert_context_t * ctx)
     ctx->samplerate_converter->data.data_out_d =
       ctx->output_frame->channels.d[2*i];
     gavl_src_process(ctx->samplerate_converter->resamplers[i],
-                &(ctx->samplerate_converter->data));
+                &ctx->samplerate_converter->data);
     }
   ctx->output_frame->valid_samples =
     ctx->samplerate_converter->data.output_frames_gen;
@@ -194,7 +194,7 @@ static void resample_interleave_all_d(gavl_audio_convert_context_t * ctx)
   ctx->samplerate_converter->data.data_in_d  = ctx->input_frame->samples.d;
   ctx->samplerate_converter->data.data_out_d = ctx->output_frame->samples.d;
   gavl_src_process(ctx->samplerate_converter->resamplers[0],
-              &(ctx->samplerate_converter->data));
+              &ctx->samplerate_converter->data);
   ctx->output_frame->valid_samples =
     ctx->samplerate_converter->data.output_frames_gen;
   }
