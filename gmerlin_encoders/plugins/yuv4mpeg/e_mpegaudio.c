@@ -78,7 +78,7 @@ static void set_parameter_mpa(void * data, const char * name,
     {
     return;
     }
-  bg_mpa_set_parameter(&(mpa->com), name, v);
+  bg_mpa_set_parameter(&mpa->com, name, v);
   }
 
 static int open_mpa(void * data, const char * filename,

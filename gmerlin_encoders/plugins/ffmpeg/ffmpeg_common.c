@@ -676,7 +676,7 @@ int bg_ffmpeg_write_video_frame(void * data,
   ffmpeg_video_stream_t * st;
   
   priv = (ffmpeg_priv_t *)data;
-  st = &(priv->video_streams[stream]);
+  st = &priv->video_streams[stream];
 
   if(st->stream->codec->time_base.num == 1) /* Variable */
     st->frame->pts = frame->timestamp;

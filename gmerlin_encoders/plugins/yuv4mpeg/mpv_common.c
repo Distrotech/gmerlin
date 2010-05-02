@@ -397,12 +397,12 @@ static const bg_encoder_framerate_t mpeg_framerates[] =
 
 void bg_mpv_set_format(bg_mpv_common_t * com, const gavl_video_format_t * format)
   {
-  gavl_video_format_copy(&(com->y4m.format), format);
+  gavl_video_format_copy(&com->y4m.format, format);
   }
 
 void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format)
   {
-  gavl_video_format_copy(format, &(com->y4m.format));
+  gavl_video_format_copy(format, &com->y4m.format);
   }
 
 int bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
@@ -453,9 +453,9 @@ int bg_mpv_start(bg_mpv_common_t * com)
 
   bg_encoder_set_framerate_nearest(&com->y4m.fr,
                                    mpeg_framerates,
-                                   &(com->y4m.format));
+                                   &com->y4m.format);
   
-  bg_mpv_adjust_interlacing(&(com->y4m.format), com->format);
+  bg_mpv_adjust_interlacing(&com->y4m.format, com->format);
   bg_y4m_set_pixelformat(&com->y4m);
   
   result = bg_y4m_write_header(&com->y4m);

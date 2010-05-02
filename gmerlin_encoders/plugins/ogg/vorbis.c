@@ -460,7 +460,7 @@ static int flush_data(vorbis_t * vorbis, int force)
     if(vorbis->managed)
       {
       /* Do the main analysis, creating a packet */
-      vorbis_analysis(&(vorbis->enc_vb), NULL);
+      vorbis_analysis(&vorbis->enc_vb, NULL);
       vorbis_bitrate_addblock(&vorbis->enc_vb);
       
       while(vorbis_bitrate_flushpacket(&vorbis->enc_vd, &op))
@@ -472,7 +472,7 @@ static int flush_data(vorbis_t * vorbis, int force)
       }
     else
       {
-      vorbis_analysis(&(vorbis->enc_vb), &op);
+      vorbis_analysis(&vorbis->enc_vb, &op);
       /* Add packet to bitstream */
       ogg_stream_packetin(&vorbis->enc_os,&op);
       }
@@ -491,7 +491,7 @@ static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
      
   vorbis = (vorbis_t*)data;
 
-  buffer = vorbis_analysis_buffer(&(vorbis->enc_vd), frame->valid_samples);
+  buffer = vorbis_analysis_buffer(&vorbis->enc_vd, frame->valid_samples);
 
   for(i = 0; i < vorbis->format->num_channels; i++)
     {
@@ -501,7 +501,7 @@ static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
                         vorbis->frame,
                         frame,
                         0, 0, frame->valid_samples, frame->valid_samples);
-  vorbis_analysis_wrote(&(vorbis->enc_vd), frame->valid_samples);
+  vorbis_analysis_wrote(&vorbis->enc_vd, frame->valid_samples);
   if(flush_data(vorbis, 0) < 0)
     return 0;
 
@@ -560,7 +560,7 @@ static int close_vorbis(void * data)
 
   if(vorbis->samples_read)
     {
-    vorbis_analysis_wrote(&(vorbis->enc_vd), 0);
+    vorbis_analysis_wrote(&vorbis->enc_vd, 0);
     result = flush_data(vorbis, 1);
     if(result < 0)
       ret = 0;

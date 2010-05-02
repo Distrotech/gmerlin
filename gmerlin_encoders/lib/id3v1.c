@@ -137,9 +137,9 @@ bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t * m)
 
   cnv = bg_charset_converter_create("UTF-8", "ISO-8859-1");
 
-  set_string(&(ret->data[TITLE_POS]),  m->title,  TITLE_LEN, cnv);
-  set_string(&(ret->data[ARTIST_POS]), m->artist, ARTIST_LEN, cnv);
-  set_string(&(ret->data[ALBUM_POS]),  m->album,  ALBUM_LEN, cnv);
+  set_string(&ret->data[TITLE_POS],  m->title,  TITLE_LEN, cnv);
+  set_string(&ret->data[ARTIST_POS], m->artist, ARTIST_LEN, cnv);
+  set_string(&ret->data[ALBUM_POS],  m->album,  ALBUM_LEN, cnv);
 
   /* Year */
     
@@ -149,14 +149,14 @@ bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t * m)
     tmp_string = bg_sprintf("%d", year);
     if(strlen(tmp_string) == 4)
       {
-      memcpy(&(ret->data[YEAR_POS]), tmp_string, 4);
+      memcpy(&ret->data[YEAR_POS], tmp_string, 4);
       }
     free(tmp_string);
     }
 
   /* Comment */
 
-  set_string(&(ret->data[COMMENT_POS]),  m->comment,  COMMENT_LEN, cnv);
+  set_string(&ret->data[COMMENT_POS],  m->comment,  COMMENT_LEN, cnv);
 
   /* Track */
 

@@ -590,7 +590,7 @@ static int add_audio_stream_lame(void * data, const char * language,
   
   /* Copy and adjust format */
     
-  gavl_audio_format_copy(&(lame->format), format);
+  gavl_audio_format_copy(&lame->format, format);
 
   lame->format.sample_format = GAVL_SAMPLE_FLOAT;
   lame->format.interleave_mode = GAVL_INTERLEAVE_NONE;
@@ -600,7 +600,7 @@ static int add_audio_stream_lame(void * data, const char * language,
     {
     lame->format.num_channels = 2;
     lame->format.channel_locations[0] = GAVL_CHID_NONE;
-    gavl_set_channel_setup(&(lame->format));
+    gavl_set_channel_setup(&lame->format);
     }
 
   if(lame_set_in_samplerate(lame->lame, lame->format.samplerate))
@@ -676,7 +676,7 @@ static void get_audio_format_lame(void * data, int stream,
   {
   lame_priv_t * lame;
   lame = (lame_priv_t*)data;
-  gavl_audio_format_copy(ret, &(lame->format));
+  gavl_audio_format_copy(ret, &lame->format);
   
   }
 

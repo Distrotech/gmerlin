@@ -187,8 +187,8 @@ static int add_audio_stream_flac(void * data,
 
   /* Copy and adjust format */
 
-  gavl_audio_format_copy(&(flac->format), format);
-  flac->com.format = &(flac->format);
+  gavl_audio_format_copy(&flac->format, format);
+  flac->com.format = &flac->format;
   
   return 0;
   }
@@ -245,7 +245,7 @@ static void get_audio_format_flac(void * data, int stream,
   {
   flac_t * flac;
   flac = (flac_t*)data;
-  gavl_audio_format_copy(ret, &(flac->format));
+  gavl_audio_format_copy(ret, &flac->format);
   
   }
 
@@ -303,7 +303,7 @@ seektable_write_callback(const FLAC__FileDecoder *decoder,
     }
 
   FLAC__file_decoder_get_decode_position(decoder,
-                                         &(cd->byte_position));
+                                         &cd->byte_position);
   cd->sample_position += frame->header.blocksize;
   
   return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
@@ -469,7 +469,7 @@ static void set_audio_parameter_flac(void * data, int stream,
   {
   flac_t * flac;
   flac = (flac_t*)data;
-  bg_flac_set_parameter(&(flac->com), name, val);
+  bg_flac_set_parameter(&flac->com, name, val);
   }
 
 const bg_encoder_plugin_t the_plugin =

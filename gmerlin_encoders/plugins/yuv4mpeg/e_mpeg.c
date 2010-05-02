@@ -135,10 +135,10 @@ static int add_audio_stream_mpeg(void * data,
   e->audio_streams =
     realloc(e->audio_streams,
             (e->num_audio_streams+1)*sizeof(*(e->audio_streams)));
-  memset(&(e->audio_streams[e->num_audio_streams]), 0,
+  memset(&e->audio_streams[e->num_audio_streams], 0,
          sizeof(*(e->audio_streams)));
 
-  gavl_audio_format_copy(&(e->audio_streams[e->num_audio_streams].format),
+  gavl_audio_format_copy(&e->audio_streams[e->num_audio_streams].format,
                          format);
   
   e->num_audio_streams++;
@@ -155,7 +155,7 @@ static int add_audio_stream_compressed_mpeg(void * data,
   e->audio_streams =
     realloc(e->audio_streams,
             (e->num_audio_streams+1)*sizeof(*(e->audio_streams)));
-  memset(&(e->audio_streams[e->num_audio_streams]), 0,
+  memset(&e->audio_streams[e->num_audio_streams], 0,
          sizeof(*(e->audio_streams)));
   e->audio_streams[e->num_audio_streams].ci = ci;
   e->num_audio_streams++;
@@ -170,10 +170,10 @@ static int add_video_stream_mpeg(void * data, const gavl_video_format_t* format)
   e->video_streams =
     realloc(e->video_streams,
             (e->num_video_streams+1)*sizeof(*(e->video_streams)));
-  memset(&(e->video_streams[e->num_video_streams]), 0,
+  memset(&e->video_streams[e->num_video_streams], 0,
          sizeof(*(e->video_streams)));
   
-  gavl_video_format_copy(&(e->video_streams[e->num_video_streams].format),
+  gavl_video_format_copy(&e->video_streams[e->num_video_streams].format,
                          format);
   e->num_video_streams++;
   return (e->num_video_streams - 1);
@@ -188,7 +188,7 @@ static int add_video_stream_compressed_mpeg(void * data,
   e->video_streams =
     realloc(e->video_streams,
             (e->num_video_streams+1)*sizeof(*(e->video_streams)));
-  memset(&(e->video_streams[e->num_video_streams]), 0,
+  memset(&e->video_streams[e->num_video_streams], 0,
          sizeof(*(e->video_streams)));
   
   e->video_streams[e->num_video_streams].ci = ci;
@@ -299,14 +299,14 @@ static void get_audio_format_mpeg(void * data, int stream,
                                   gavl_audio_format_t * ret)
   {
   e_mpeg_t * e = data;
-  bg_mpa_get_format(&(e->audio_streams[stream].mpa), ret);
+  bg_mpa_get_format(&e->audio_streams[stream].mpa, ret);
   }
 
 static void get_video_format_mpeg(void * data, int stream,
                                   gavl_video_format_t * ret)
   {
   e_mpeg_t * e = data;
-  bg_mpv_get_format(&(e->video_streams[stream].mpv), ret);
+  bg_mpv_get_format(&e->video_streams[stream].mpv, ret);
   }
 
 static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
@@ -364,35 +364,35 @@ static int start_mpeg(void * data)
   for(i = 0; i < e->num_audio_streams; i++)
     {
     e->audio_streams[i].filename =
-      get_filename(e, bg_mpa_get_extension(&(e->audio_streams[i].mpa)), 1);
+      get_filename(e, bg_mpa_get_extension(&e->audio_streams[i].mpa), 1);
 
     if(!e->audio_streams[i].filename)
       return 0;
 
     if(e->audio_streams[i].ci)
-      bg_mpa_set_ci(&(e->audio_streams[i].mpa), e->audio_streams[i].ci);
+      bg_mpa_set_ci(&e->audio_streams[i].mpa, e->audio_streams[i].ci);
     else
-      bg_mpa_set_format(&(e->audio_streams[i].mpa), &(e->audio_streams[i].format));
-    if(!bg_mpa_start(&(e->audio_streams[i].mpa), e->audio_streams[i].filename))
+      bg_mpa_set_format(&e->audio_streams[i].mpa, &e->audio_streams[i].format);
+    if(!bg_mpa_start(&e->audio_streams[i].mpa, e->audio_streams[i].filename))
       return 0;
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
     e->video_streams[i].filename =
-      get_filename(e, bg_mpv_get_extension(&(e->video_streams[i].mpv)), 0);
+      get_filename(e, bg_mpv_get_extension(&e->video_streams[i].mpv), 0);
 
     if(!e->video_streams[i].filename)
       return 0;
 
     if(e->video_streams[i].ci)
-      bg_mpv_set_ci(&(e->video_streams[i].mpv), e->video_streams[i].ci);
+      bg_mpv_set_ci(&e->video_streams[i].mpv, e->video_streams[i].ci);
     
-    bg_mpv_open(&(e->video_streams[i].mpv), e->video_streams[i].filename);
+    bg_mpv_open(&e->video_streams[i].mpv, e->video_streams[i].filename);
 
     if(!e->video_streams[i].ci)
-      bg_mpv_set_format(&(e->video_streams[i].mpv), &(e->video_streams[i].format));
+      bg_mpv_set_format(&e->video_streams[i].mpv, &e->video_streams[i].format);
     
-    if(!bg_mpv_start(&(e->video_streams[i].mpv)))
+    if(!bg_mpv_start(&e->video_streams[i].mpv))
       return 0;
     }
   return 1;

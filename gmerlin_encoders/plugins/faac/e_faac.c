@@ -350,7 +350,7 @@ static int add_audio_stream_faac(void * data,
   
   /* Copy and adjust format */
 
-  gavl_audio_format_copy(&(faac->format), format);
+  gavl_audio_format_copy(&faac->format, format);
 
   faac->format.interleave_mode = GAVL_INTERLEAVE_ALL;
   faac->format.sample_format   = GAVL_SAMPLE_FLOAT;
@@ -395,7 +395,7 @@ static int add_audio_stream_faac(void * data,
     }
 
   
-  faac->frame = gavl_audio_frame_create(&(faac->format));
+  faac->frame = gavl_audio_frame_create(&faac->format);
   
   faac->output_buffer = malloc(output_bytes);
   faac->output_buffer_size = output_bytes;
@@ -448,7 +448,7 @@ static int write_audio_frame_faac(void * data, gavl_audio_frame_t * frame,
     /* Copy frame into our buffer */
     
     samples_copied =
-      gavl_audio_frame_copy(&(faac->format),
+      gavl_audio_frame_copy(&faac->format,
                             faac->frame,                                                 /* dst */
                             frame,                                                       /* src */
                             faac->frame->valid_samples,                                  /* dst_pos */
@@ -477,7 +477,7 @@ static void get_audio_format_faac(void * data, int stream,
   {
   faac_t * faac;
   faac = (faac_t*)data;
-  gavl_audio_format_copy(ret, &(faac->format));
+  gavl_audio_format_copy(ret, &faac->format);
   }
 
 

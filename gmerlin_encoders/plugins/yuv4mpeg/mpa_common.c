@@ -275,7 +275,7 @@ const char * bg_mpa_get_extension(bg_mpa_common_t * mpa)
 void bg_mpa_set_format(bg_mpa_common_t * com,
                        const gavl_audio_format_t * format)
   {
-  gavl_audio_format_copy(&(com->format), format);
+  gavl_audio_format_copy(&com->format, format);
 
   com->format.sample_format = GAVL_SAMPLE_S16;
   com->format.interleave_mode = GAVL_INTERLEAVE_ALL;
@@ -290,7 +290,7 @@ void bg_mpa_set_format(bg_mpa_common_t * com,
 
 void bg_mpa_get_format(bg_mpa_common_t * com, gavl_audio_format_t * format)
   {
-  gavl_audio_format_copy(format, &(com->format));
+  gavl_audio_format_copy(format, &com->format);
   }
 
 int bg_mpa_start(bg_mpa_common_t * com, const char * filename)

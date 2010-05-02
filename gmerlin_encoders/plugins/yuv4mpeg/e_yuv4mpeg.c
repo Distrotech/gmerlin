@@ -80,7 +80,7 @@ static int open_y4m(void * data, const char * filename,
 static int add_video_stream_y4m(void * data, const gavl_video_format_t* format)
   {
   e_y4m_t * e = (e_y4m_t*)data;
-  gavl_video_format_copy(&(e->com.format), format);
+  gavl_video_format_copy(&e->com.format, format);
   return 0;
   }
 
@@ -89,7 +89,7 @@ static void get_video_format_y4m(void * data, int stream,
   {
   e_y4m_t * e = (e_y4m_t*)data;
 
-  gavl_video_format_copy(ret, &(e->com.format));
+  gavl_video_format_copy(ret, &e->com.format);
   }
 
 static int start_y4m(void * data)
@@ -109,7 +109,7 @@ static int write_video_frame_y4m(void * data,
                                   int stream)
   {
   e_y4m_t * e = (e_y4m_t*)data;
-  return bg_y4m_write_frame(&(e->com), frame);
+  return bg_y4m_write_frame(&e->com, frame);
   }
 
 static int close_y4m(void * data, int do_delete)

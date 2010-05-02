@@ -115,7 +115,7 @@ bg_ogg_encoder_open(void * data, const char * file,
   
   e->serialno = rand();
   if(metadata)
-    bg_metadata_copy(&(e->metadata), metadata);
+    bg_metadata_copy(&e->metadata, metadata);
   return 1;
   }
 
@@ -280,8 +280,8 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
   else
     {
     if(!s->codec->init_video(s->codec_priv,
-                             &(s->format),
-                             &(e->metadata)))
+                             &s->format,
+                             &e->metadata))
       return 0;
     
     if(s->pass)

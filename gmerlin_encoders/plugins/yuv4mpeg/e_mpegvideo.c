@@ -103,12 +103,12 @@ static int start_mpv(void * data)
     bg_mpv_set_ci(&e->mpv, e->ci);
   
   e->filename =
-    bg_filename_ensure_extension(e->filename_base, bg_mpv_get_extension(&(e->mpv)));
+    bg_filename_ensure_extension(e->filename_base, bg_mpv_get_extension(&e->mpv));
   
   if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
     return 0;
   
-  bg_mpv_open(&(e->mpv), e->filename);
+  bg_mpv_open(&e->mpv, e->filename);
   
   if(!e->ci)
     bg_mpv_set_format(&e->mpv, &e->format);
@@ -140,7 +140,7 @@ static int write_video_frame_mpv(void * data,
                                   int stream)
   {
   e_mpv_t * e = data;
-  return bg_mpv_write_video_frame(&(e->mpv), frame);
+  return bg_mpv_write_video_frame(&e->mpv, frame);
   }
 
 static int write_video_packet_mpv(void * data,
@@ -148,7 +148,7 @@ static int write_video_packet_mpv(void * data,
                                   int stream)
   {
   e_mpv_t * e = data;
-  return bg_mpv_write_video_packet(&(e->mpv), p);
+  return bg_mpv_write_video_packet(&e->mpv, p);
   }
 
 static int close_mpv(void * data, int do_delete)
