@@ -167,6 +167,8 @@ static const char * const multi_parameter_key  = "MULTI_PARAMETER";
 static const char * const gettext_domain_key     = "GETTEXT_DOMAIN";
 static const char * const gettext_directory_key  = "GETTEXT_DIRECTORY";
 
+static const char * const preset_path_key  = "PRESET_PATH";
+
 /* */
 
 bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
@@ -249,6 +251,12 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
           ret[index].gettext_directory = bg_strdup(ret[index].gettext_directory, tmp_string);
+          free(tmp_string);
+          }
+        else if(!BG_XML_STRCMP(child->name, preset_path_key))
+          {
+          tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
+          ret[index].preset_path = bg_strdup(ret[index].preset_path, tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, multi_names_key))
@@ -545,6 +553,12 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       {
       child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)gettext_directory_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].gettext_directory));
+      xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
+      }
+    if(info[num_parameters].preset_path)
+      {
+      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)preset_path_key, NULL);
+      xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].preset_path));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
     

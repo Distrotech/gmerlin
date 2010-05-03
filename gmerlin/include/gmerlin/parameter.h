@@ -166,7 +166,9 @@ struct bg_parameter_info_s
   int num_digits; //!< Number of digits for floating point parameters
   
   char * help_string; //!< Help strings for tooltips or --help option 
-  
+
+  char * preset_path; //!< Path for storing configuration presets
+
   char ** multi_names_nc; //!< When allocating dynamically, use this instead of multi_names and call \ref bg_parameter_info_set_const_ptrs at the end
 
   char ** multi_labels_nc; //!< When allocating dynamically, use this instead of multi_labels and call \ref bg_parameter_info_set_const_ptrs at the end

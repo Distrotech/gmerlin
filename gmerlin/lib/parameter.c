@@ -160,6 +160,7 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
 
   dst->gettext_domain    = bg_strdup(dst->gettext_domain,    src->gettext_domain);
   dst->gettext_directory = bg_strdup(dst->gettext_directory, src->gettext_directory);
+  dst->preset_path = bg_strdup(dst->preset_path, src->preset_path);
   
   switch(dst->type)
     {
@@ -309,6 +310,8 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
       free(info[index].gettext_domain);
     if(info[index].gettext_directory)
       free(info[index].gettext_directory);
+    if(info[index].preset_path)
+      free(info[index].preset_path);
     switch(info[index].type)
       {
       case BG_PARAMETER_STRINGLIST:
