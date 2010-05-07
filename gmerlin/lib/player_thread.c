@@ -175,12 +175,25 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
 
 void bg_player_threads_start(bg_player_thread_t ** th, int num)
   {
+  int i;
   /* Lock the global mutex. This will succeed after all
      threads wait for the start condition */
   
   pthread_mutex_lock(&th[0]->com->start_mutex);
   pthread_cond_broadcast(&th[0]->com->start_cond);
   pthread_mutex_unlock(&th[0]->com->start_mutex);
+
+  /* Wait until all threads woke up */
+  for(i = 0; i < num; i++)
+    {
+    if(th[i]->func)
+      {
+      // fprintf(stderr, "Sem wait...");
+      bin_sem_wait(&th[i]->sem);
+      // fprintf(stderr, "done ret: %d, val: %d\n", ret, val);
+      }
+    }
+
   }
 
 void bg_player_threads_pause(bg_player_thread_t ** th, int num)
@@ -246,9 +259,7 @@ int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   bin_sem_post(&th->sem);
   // fprintf(stderr, "Sem post done\n");
   
-  // fprintf(stderr, "Wait for start...\n");
   pthread_cond_wait(&th->com->start_cond, &th->com->start_mutex);
-  // fprintf(stderr, "Wait for start done\n");
   pthread_mutex_unlock(&th->com->start_mutex);
 
   pthread_mutex_lock(&th->mutex);
@@ -259,6 +270,8 @@ int bg_player_thread_wait_for_start(bg_player_thread_t * th)
     return 0;
     }
   pthread_mutex_unlock(&th->mutex);
+
+  bin_sem_post(&th->sem);
   return 1;
   }
 
@@ -270,6 +283,7 @@ int bg_player_thread_check(bg_player_thread_t * th)
   if(th->do_stop)
     {
     pthread_mutex_unlock(&th->mutex);
+    bin_sem_post(&th->sem);
     return 0;
     }
   do_pause = th->do_pause;

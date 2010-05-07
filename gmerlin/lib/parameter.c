@@ -386,7 +386,6 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t const ** srcs)
   while(srcs[i])
     {
     j = 0;
-
     while(srcs[i][j].name)
       {
       num_parameters++;
@@ -407,7 +406,6 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t const ** srcs)
   while(srcs[i])
     {
     j = 0;
-    
     while(srcs[i][j].name)
       {
       bg_parameter_info_copy(&ret[dst], &srcs[i][j]);
@@ -416,15 +414,12 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t const ** srcs)
       }
     i++;
     }
-
-  
   return ret;
   }
 
 int bg_parameter_get_selected(const bg_parameter_info_t * info,
                               const char * val)
   {
-  
   int ret = -1, i;
 
   if(val)
@@ -498,6 +493,7 @@ void bg_parameter_info_set_const_ptrs(bg_parameter_info_t * ret)
   ret->multi_names = (char const **)ret->multi_names_nc;
   ret->multi_labels = (char const **)ret->multi_labels_nc;
   ret->multi_descriptions = (char const **)ret->multi_descriptions_nc;
-  ret->multi_parameters = (bg_parameter_info_t const * const *)ret->multi_parameters_nc;
+  ret->multi_parameters =
+    (bg_parameter_info_t const * const *)ret->multi_parameters_nc;
   }
   

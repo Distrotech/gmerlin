@@ -59,3 +59,5 @@ GtkWidget * bg_gtk_get_toplevel(GtkWidget * w);
 #define bg_gtk_box_pack_start_defaults(b, c) \
   gtk_box_pack_start(b, c, TRUE, TRUE, 0)
 
+int bg_gtk_widget_is_realized(GtkWidget * w);
+int bg_gtk_widget_is_toplevel(GtkWidget * w);

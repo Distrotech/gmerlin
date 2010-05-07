@@ -1094,11 +1094,9 @@ static int process_commands(bg_player_t * player)
 
         state = bg_player_get_state(player);
 
-        
         if((state != BG_PLAYER_STATE_PLAYING) &&
            (state != BG_PLAYER_STATE_PAUSED))
           break;           
-        
         time = bg_msg_get_arg_time(command, 0);
 
         bg_msg_queue_unlock_read(player->command_queue);
@@ -1128,6 +1126,7 @@ static int process_commands(bg_player_t * player)
           }
         else
           seek_cmd(player, time, GAVL_TIME_SCALE);
+
         break;
       case BG_PLAYER_CMD_SET_VOLUME:
         arg_f1 = bg_msg_get_arg_float(command, 0);

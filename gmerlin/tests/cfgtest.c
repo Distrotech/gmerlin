@@ -256,8 +256,14 @@ static const bg_parameter_info_t info_1[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =     PARAMETER_FLAGS,
       .val_default = { .val_str = "option_2" },
-      .multi_names =  (char const *[]){ "option_1", "option_2", "option_3", NULL },
-      .multi_labels = (char const *[]){ "Option 1", "Option 2", "Option 3", NULL },
+      .multi_names =  (char const *[]){ "option_1",
+                                        "option_2",
+                                        "option_3",
+                                        NULL },
+      .multi_labels = (char const *[]){ "Option 1",
+                                        "Option 2",
+                                        "Option 3",
+                                        NULL },
       .help_string =   "Stringlist help"
     },
     { /* End of parameters */ }

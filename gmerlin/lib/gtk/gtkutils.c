@@ -465,7 +465,7 @@ GtkWidget * bg_gtk_get_toplevel(GtkWidget * w)
     return (GtkWidget*)0;
   
   toplevel = gtk_widget_get_toplevel(w);
-  if(!GTK_WIDGET_TOPLEVEL (toplevel))
+  if(!bg_gtk_widget_is_toplevel(toplevel))
     toplevel = (GtkWidget*)0;
   return toplevel;
   }
@@ -508,3 +508,22 @@ GdkPixbuf * bg_gtk_pixbuf_from_frame(gavl_video_format_t * format,
   else
     return NULL;
   }
+
+int bg_gtk_widget_is_realized(GtkWidget * w)
+  {
+#if GTK_CHECK_VERSION(2,20,0)
+  return gtk_widget_get_realized(w);
+#else
+  return GTK_WIDGET_REALIZED(w);
+#endif
+  }
+
+int bg_gtk_widget_is_toplevel(GtkWidget * w)
+  {
+#if GTK_CHECK_VERSION(2,18,0)
+  return gtk_widget_is_toplevel(w);
+#else
+  return GTK_WIDGET_TOPLEVEL(w);
+#endif
+  }
+

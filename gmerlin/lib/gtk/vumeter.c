@@ -687,7 +687,8 @@ static void draw_dynamic(bg_gtk_vumeter_t * m)
   {
   int i;
 
-  if(!GTK_WIDGET_REALIZED(m->layout) || !m->pixmap_width || !m->pixmap_height)
+  if(!bg_gtk_widget_is_realized(m->layout) ||
+     !m->pixmap_width || !m->pixmap_height)
     return;
   
   if(!m->pixmaps_valid)
