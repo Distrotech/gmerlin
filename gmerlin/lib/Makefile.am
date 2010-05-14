@@ -104,6 +104,8 @@ playercmd.c \
 pluginfuncs.c \
 pluginregistry.c \
 pluginreg_xml.c \
+preset.c \
+preset_xml.c \
 recorder.c \
 recorder_audio.c \
 recorder_video.c \

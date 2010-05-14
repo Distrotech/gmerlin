@@ -24,6 +24,7 @@ playermsg.h \
 plugin.h \
 pluginfuncs.h \
 pluginregistry.h \
+preset.h \
 recorder.h \
 remote.h \
 serialize.h \
