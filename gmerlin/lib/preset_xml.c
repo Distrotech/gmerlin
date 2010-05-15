@@ -25,11 +25,41 @@
 
 bg_cfg_section_t * bg_preset_load(bg_preset_t * p)
   {
+  xmlNodePtr node;
+  xmlDocPtr xml_doc;
+  bg_cfg_section_t * ret;
   
+  xml_doc = bg_xml_parse_file(p->file);
+
+  if(!xml_doc)
+    return NULL;
+  
+  node = xml_doc->children;
+  
+  if(BG_XML_STRCMP(node->name, "PRESET"))
+    {
+    xmlFreeDoc(xml_doc);
+    return (bg_cfg_section_t *)0;
+    }
+  
+  ret = bg_cfg_section_create((char*)0);
+  bg_cfg_xml_2_section(xml_doc, node, ret);
+  xmlFreeDoc(xml_doc);
+  return ret;
   }
 
 void bg_preset_save(bg_preset_t * p, bg_cfg_section_t * s)
   {
+  xmlDocPtr  xml_doc;
+  xmlNodePtr node;
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  node = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"PRESET", NULL);
+  
+  xmlDocSetRootElement(xml_doc, node);
+
+  bg_cfg_section_2_xml(s, node);
+  xmlSaveFile(p->file, xml_doc);
+  xmlFreeDoc(xml_doc);
   
   }
 
