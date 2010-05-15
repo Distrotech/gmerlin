@@ -27,11 +27,23 @@
 #include <limits.h>
 #include <string.h>
 
+#include <config.h>
 #include <gmerlin/cfg_registry.h>
 #include <gmerlin/preset.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "preset"
 
-static bg_preset_t * append_to_list(bg_preset_t * list, bg_preset_t * p)
+static int compare_func(const void * p1, const void * p2)
+  {
+  const bg_preset_t * preset1 = p1;
+  const bg_preset_t * preset2 = p2;
+  return strcmp(preset1->name, preset2->name);
+  }
+
+static bg_preset_t *
+append_to_list(bg_preset_t * list, bg_preset_t * p)
   {
   if(list)
     {
@@ -47,8 +59,22 @@ static bg_preset_t * append_to_list(bg_preset_t * list, bg_preset_t * p)
   return list;
   }
 
+static bg_preset_t * insert_to_list(bg_preset_t * list,
+                                    bg_preset_t * p)
+  {
+  bg_preset_t * before;
+  bg_preset_t * after;
+
+  if(!list)
+    {
+    p->next = NULL;
+    return p;
+    }
+  
+  }
+
 static bg_preset_t *
-load_presets(const char * directory)
+load_presets(const char * directory, bg_preset_t * ret, int private)
   {
   DIR * dir;
   struct dirent * dent_ptr;
@@ -56,14 +82,13 @@ load_presets(const char * directory)
   char * filename;
   bg_preset_t * p;
   char * pos;
+  char * name;
   
   struct
     {
     struct dirent d;
     char b[NAME_MAX]; /* Make sure there is enough memory */
     } dent;
-  bg_preset_t * ret = NULL;
-
   dir = opendir(directory);
   if(!dir)
     return NULL;
@@ -91,19 +116,91 @@ load_presets(const char * directory)
     p->file = filename;
 
     /* Preset name is basename of the file */
-    pos = strrchr(p->file, '/');
+    pos = strrchr(filename, '/');
     if(pos)
       {
       pos++;
-      p->name = bg_strdup(p->name, pos);
+      name = bg_strdup(NULL, pos);
       }
     else
-      p->name = bg_strdup(p->name, p->file);
+      name = bg_strdup(NULL, filename);
+
+    /* Check, if a preset with that name aready exists */
+    
+    p = ret;
+    while(p)
+      {
+      if(!strcmp(name, p->name))
+        break;
+      p = p->next;
+      }
+
+    if(p)
+      {
+      free(name);
+      free(filename);
+      continue;
+      }
+
+    p = calloc(1, sizeof(*p));
+    p->name = name;
+    p->file = filename;
+    if(private)
+      p->flags |= BG_PRESET_PRIVATE;
     ret = append_to_list(ret, p);
     }
   closedir(dir);
   
   return ret;
+  }
+
+
+
+static bg_preset_t * sort_presets(bg_preset_t * p)
+  {
+  int i, num = 0;
+  bg_preset_t ** arr;
+  bg_preset_t * tmp;
+  bg_preset_t * ret;
+  
+  /* Count presets */
+  tmp = p;
+  while(tmp)
+    {
+    num++;
+    tmp = tmp->next;
+    }
+
+  if(!num)
+    return NULL;
+
+  /* Create array */
+  arr = malloc(num * sizeof(*arr));
+  tmp = p;
+  for(i = 0; i < num; i++)
+    {
+    arr[i] = tmp;
+    tmp = tmp->next;
+    }
+
+  /* Sort */
+  qsort(arr, num, sizeof(*arr), compare_func);
+
+  /* Array -> chain */
+
+  ret = arr[0];
+  tmp = ret;
+
+  for(i = 1; i < num; i++)
+    {
+    tmp->next = arr[i];
+    tmp = tmp->next;
+    }
+  tmp->next = NULL;
+
+  free(arr);
+  return ret;
+  
   }
 
 bg_preset_t * bg_presets_load(const char * preset_path)
@@ -119,28 +216,44 @@ bg_preset_t * bg_presets_load(const char * preset_path)
     directory = bg_sprintf("%s/.gmerlin/presets/%s",
                            home_dir, preset_path);
     if(!access(directory, R_OK|W_OK|X_OK))
-      ret = load_presets(directory);
+      ret = load_presets(directory, ret, 1);
     free(directory);
     }
+
+  /* Second option: system wide directory. We only
+     load presets, which are not available in $HOME */
   
-  if(!ret)
-    {
-    directory = bg_sprintf("%s/presets/%s",
-                           DATA_DIR, preset_path);
-    if(!access(directory, R_OK|W_OK|X_OK))
-      ret = load_presets(directory);
-    free(directory);
-    }
-  
-  return ret;
+  directory = bg_sprintf("%s/presets/%s",
+                         DATA_DIR, preset_path);
+  if(!access(directory, R_OK|W_OK|X_OK))
+    ret = load_presets(directory, ret, 0);
+  free(directory);
+
+  return sort_presets(ret);
   }
 
-bg_preset_t * bg_preset_append(bg_preset_t * p,
-                               const char * preset_path,
-                               char * name)
+bg_preset_t * bg_preset_add(bg_preset_t * presets,
+                            const char * preset_path,
+                            const char * name,
+                            const bg_cfg_section_t * s)
   {
-  return NULL;
-  
+  char * home_dir;
+  bg_preset_t * p;
+
+  home_dir = getenv("HOME");
+  if(!home_dir)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot make new preset: No home directory");
+    return presets;
+    }
+  p = calloc(1, sizeof(*p));
+  p->name = bg_strdup(p->name, name);
+  p->file = bg_sprintf("%s/.gmerlin/presets/%s", home_dir,
+                       preset_path);
+  p->section = bg_cfg_section_copy(s);
+  bg_preset_save(p);
+
   }
 
 void bg_presets_destroy(bg_preset_t * p)

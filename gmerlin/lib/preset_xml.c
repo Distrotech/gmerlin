@@ -19,36 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <string.h>
+
 #include <gmerlin/cfg_registry.h>
 #include <gmerlin/preset.h>
 #include <gmerlin/xmlutils.h>
 
-bg_cfg_section_t * bg_preset_load(bg_preset_t * p)
+void bg_preset_load(bg_preset_t * p)
   {
   xmlNodePtr node;
   xmlDocPtr xml_doc;
-  bg_cfg_section_t * ret;
   
   xml_doc = bg_xml_parse_file(p->file);
 
   if(!xml_doc)
-    return NULL;
+    return;
   
   node = xml_doc->children;
   
   if(BG_XML_STRCMP(node->name, "PRESET"))
     {
     xmlFreeDoc(xml_doc);
-    return (bg_cfg_section_t *)0;
     }
   
-  ret = bg_cfg_section_create((char*)0);
-  bg_cfg_xml_2_section(xml_doc, node, ret);
+  p->section = bg_cfg_section_create((char*)0);
+  bg_cfg_xml_2_section(xml_doc, node, p->section);
   xmlFreeDoc(xml_doc);
-  return ret;
   }
 
-void bg_preset_save(bg_preset_t * p, bg_cfg_section_t * s)
+void bg_preset_save(bg_preset_t * p)
   {
   xmlDocPtr  xml_doc;
   xmlNodePtr node;
@@ -57,7 +56,7 @@ void bg_preset_save(bg_preset_t * p, bg_cfg_section_t * s)
   
   xmlDocSetRootElement(xml_doc, node);
 
-  bg_cfg_section_2_xml(s, node);
+  bg_cfg_section_2_xml(p->section, node);
   xmlSaveFile(p->file, xml_doc);
   xmlFreeDoc(xml_doc);
   

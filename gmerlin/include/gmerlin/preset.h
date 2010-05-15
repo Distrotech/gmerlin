@@ -19,21 +19,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#define BG_PRESET_PRIVATE (1<<0) // Preset is private (can be deleted)
+
 typedef struct bg_preset_s
   {
   char * file;
   char * name;
   struct bg_preset_s * next;
+  int flags;
+  bg_cfg_section_t * section;
   } bg_preset_t;
 
 bg_preset_t * bg_presets_load(const char * preset_path);
 
-bg_preset_t * bg_preset_append(bg_preset_t *,
-                               const char * preset_path,
-                               char * name);
+bg_preset_t * bg_preset_add(bg_preset_t * presets,
+                            const char * preset_path,
+                            const char * name,
+                            const bg_cfg_section_t * s);
 
 void bg_presets_destroy(bg_preset_t *);
 
-bg_cfg_section_t * bg_preset_load(bg_preset_t * p);
+void bg_preset_load(bg_preset_t * p);
 
-void bg_preset_save(bg_preset_t * p, bg_cfg_section_t * s);
+void bg_preset_save(bg_preset_t * p);
