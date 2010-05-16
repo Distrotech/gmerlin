@@ -52,7 +52,7 @@ typedef struct dialog_section_s
   bg_cfg_section_t * cfg_section;
 
   /* Dialog sections can be nested */
-  struct dialog_section_s * children;
+  struct dialog_section_s ** children;
   int num_children;
     
   struct dialog_section_s * parent;
@@ -90,7 +90,7 @@ static int parent_index(dialog_section_t * s)
 
   for(i = 0; i < s->parent->num_children; i++)
     {
-    if(&s->parent->children[i] == s)
+    if(s->parent->children[i] == s)
       return i;
     }
   return -1;
@@ -168,13 +168,13 @@ static dialog_section_t * iter_2_section(bg_dialog_t * d,
 
   indices = gtk_tree_path_get_indices(path);
 
-  ret = &d->root_section.children[indices[0]];
+  ret = d->root_section.children[indices[0]];
 
   depth = gtk_tree_path_get_depth(path);
   
   for(i = 1; i < depth; i++)
     {
-    ret = &ret->children[indices[i]];
+    ret = ret->children[indices[i]];
     }
   
   gtk_tree_path_free(path);
@@ -243,8 +243,64 @@ static void reset_section(dialog_section_t * s)
     s->set_param(s->callback_data, NULL, NULL);
   
   for(i = 0; i < s->num_children; i++)
-    reset_section(&s->children[i]);
+    reset_section(s->children[i]);
   }
+
+static void restore_section(dialog_section_t * s)
+  {
+  int i;
+  bg_parameter_value_t val;
+  char * pos;
+  int set_param = 0;
+  
+  for(i = 0; i < s->num_widgets; i++)
+    {
+    if(!s->widgets[i].funcs->get_value)
+      continue;
+    
+    bg_parameter_value_copy(&s->widgets[i].value, &s->widgets[i].info->val_default,
+                            s->widgets[i].info);
+    
+    s->widgets[i].funcs->get_value(&s->widgets[i]);
+    
+    if(s->cfg_section)
+      {
+      if(s->widgets[i].info->flags & BG_PARAMETER_SYNC)
+        bg_cfg_section_set_parameter(s->cfg_section,
+                                     s->widgets[i].info,
+                                      &s->widgets[i].value);
+      }
+    
+    if(s->set_param && (s->widgets[i].info->flags & BG_PARAMETER_SYNC))
+      {
+      set_param = 1;
+      if((s->widgets[i].info->type == BG_PARAMETER_DEVICE) &&
+         (s->widgets[i].value.val_str) &&
+         strchr(s->widgets[i].value.val_str, ':'))
+        {
+        val.val_str = bg_strdup((char*)0, s->widgets[i].value.val_str);
+        pos = strchr(val.val_str, ':');
+        if(pos)
+          *pos = '\0';
+        s->set_param(s->callback_data, s->widgets[i].info->name,
+                     &val);
+        free(val.val_str);
+        }
+      else
+        s->set_param(s->callback_data, s->widgets[i].info->name,
+                     &s->widgets[i].value);
+      }
+    }
+  
+  if(set_param)
+    s->set_param(s->callback_data, NULL, NULL);
+  
+  for(i = 0; i < s->num_children; i++)
+    restore_section(s->children[i]);
+  }
+
+
+
 
 static void apply_section(dialog_section_t * s)
   {
@@ -306,7 +362,7 @@ static void apply_section(dialog_section_t * s)
     s->set_param(s->callback_data, NULL, NULL);
 
   for(i = 0; i < s->num_children; i++)
-    apply_section(&s->children[i]);
+    apply_section(s->children[i]);
   
   }
 
@@ -493,6 +549,44 @@ static bg_dialog_t * create_dialog(const char * title)
   return ret;
   }
 
+static void restore_button_callback(GtkWidget * w, gpointer data)
+  {
+  dialog_section_t * section = data;
+  fprintf(stderr, "Restore factory defaults %p\n", section);
+  restore_section(section);
+  }
+
+static GtkWidget * create_restore_button(dialog_section_t * section)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", "refresh_16.png");
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  fprintf(stderr, "Create restore button: %p\n", section);
+  
+  g_signal_connect(G_OBJECT(button), "clicked",
+                   G_CALLBACK(restore_button_callback), section);
+
+  gtk_widget_show(button);
+
+  bg_gtk_tooltips_set_tip(button, "Restore factory defaults", PACKAGE);
+  
+  return button;
+  }
+
+
 static GtkWidget * create_section(dialog_section_t * section,
                                   const bg_parameter_info_t * info,
                                   bg_cfg_section_t * s,
@@ -508,6 +602,9 @@ static GtkWidget * create_section(dialog_section_t * section,
   
   GtkWidget * table;
   GtkWidget * label;
+  GtkWidget * action_box;
+  GtkWidget * vbox;
+  GtkWidget * restore_button;
   
   /* If info == NULL, we create a label, which
      tell the user, that there is nothing to do */
@@ -732,6 +829,24 @@ static GtkWidget * create_section(dialog_section_t * section,
     i++;
     count++;
     }
+
+  /* Create action box */
+  gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
+
+  restore_button = create_restore_button(section);
+  
+  action_box = gtk_hbox_new(FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(action_box), restore_button, FALSE, FALSE, 0);
+  gtk_widget_show(action_box);
+
+  vbox = gtk_vbox_new(FALSE, 0);
+  gtk_box_pack_end(GTK_BOX(vbox), action_box, FALSE, FALSE, 0);
+  gtk_widget_show(vbox);
+  
+  
+  gtk_table_attach_defaults(GTK_TABLE(table), vbox, 0, num_columns-1, row, row+1);
+  
+  
   gtk_widget_show(table);
   return table;
   }
@@ -781,12 +896,14 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
     {
     ret->root_section.num_children = num_sections;
     ret->root_section.children =
-      calloc(ret->root_section.num_children, sizeof(dialog_section_t));
+      calloc(ret->root_section.num_children, sizeof(*ret->root_section.children));
     
     index = 0;
 
     for(i = 0; i < ret->root_section.num_children; i++)
       {
+      ret->root_section.children[i] = calloc(1, sizeof(*ret->root_section.children[i]));
+      
       if(info[index].gettext_domain)
         translation_domain = info[i].gettext_domain;
       if(info[index].gettext_directory)
@@ -800,15 +917,15 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
       gtk_tree_store_set(GTK_TREE_STORE(model), &root_iter, COLUMN_NAME,
                          TR_DOM(info[index].long_name), -1);
       
-      table = create_section(&ret->root_section.children[i], &info[index],
+      table = create_section(ret->root_section.children[i], &info[index],
                              section, set_param, get_param, callback_data,
                              translation_domain, ret->plugin_reg);
       
-      ret->root_section.children[i].notebook_index =
+      ret->root_section.children[i]->notebook_index =
         gtk_notebook_get_n_pages(GTK_NOTEBOOK(ret->notebook));
       gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
 
-      ret->root_section.children[i].parent = &ret->root_section;
+      ret->root_section.children[i]->parent = &ret->root_section;
 
       while(info[index].type == BG_PARAMETER_SECTION)
         index++;
@@ -827,8 +944,9 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
     ret->root_section.num_children = 1;
     ret->root_section.children = calloc(ret->root_section.num_children,
                                         sizeof(*ret->root_section.children));
+    ret->root_section.children[0] = calloc(1, sizeof(*ret->root_section.children[0]));
     table =
-      create_section(ret->root_section.children, info, section, set_param, get_param,
+      create_section(*ret->root_section.children, info, section, set_param, get_param,
                      callback_data, (const char *)0, ret->plugin_reg);
     gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
     gtk_notebook_set_current_page(GTK_NOTEBOOK(ret->notebook), 1);
@@ -880,17 +998,17 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
   if(!num_sections)
     {
     parent->children = realloc(parent->children,
-                            (parent->num_children+1)*sizeof(dialog_section_t));
-    memset(&parent->children[parent->num_children],0,
-           sizeof(parent->children[parent->num_children]));
+                            (parent->num_children+1)*sizeof(*parent->children));
+    parent->children[parent->num_children] =
+      calloc(1, sizeof(*parent->children[parent->num_children]));
     
-    table = create_section(&parent->children[parent->num_children],
+    table = create_section(parent->children[parent->num_children],
                            info, section, set_param, get_param, callback_data,
                            (const char*)0, d->plugin_reg);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
 
-    parent->children[parent->num_children].notebook_index =
+    parent->children[parent->num_children]->notebook_index =
       gtk_notebook_get_n_pages(GTK_NOTEBOOK(d->notebook));
 
     gtk_notebook_append_page(GTK_NOTEBOOK(d->notebook),
@@ -909,7 +1027,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
     gtk_tree_store_set(GTK_TREE_STORE(model), &iter, COLUMN_NAME,
                        name, -1);
     
-    parent->children[parent->num_children].parent = parent;
+    parent->children[parent->num_children]->parent = parent;
     
     parent->num_children++;
     }
@@ -918,14 +1036,12 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
     parent->children = realloc(parent->children,
                                (parent->num_children+num_sections)*
                                sizeof(dialog_section_t));
-
-    memset(&parent->children[parent->num_children],0,
-           sizeof(parent->children[parent->num_children]) * num_sections);
-    
     item_index = 0;
     section_index = parent->num_children;
     for(i = 0; i < num_sections; i++)
       {
+      parent->children[section_index] = calloc(1, sizeof(*parent->children[section_index]));
+      
       if(info[item_index].gettext_domain)
         translation_domain = info[item_index].gettext_domain;
       if(info[item_index].gettext_directory)
@@ -948,14 +1064,14 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       gtk_tree_store_set(GTK_TREE_STORE(model), &iter, COLUMN_NAME,
                          info[item_index].long_name, -1);
       
-      table = create_section(&parent->children[section_index],
+      table = create_section(parent->children[section_index],
                              &info[item_index],
                              section, set_param, get_param, callback_data,
                              translation_domain, d->plugin_reg);
       
-      parent->children[section_index].parent = parent;
+      parent->children[section_index]->parent = parent;
 
-      parent->children[section_index].notebook_index =
+      parent->children[section_index]->notebook_index =
         gtk_notebook_get_n_pages(GTK_NOTEBOOK(d->notebook));
       
       gtk_notebook_append_page(GTK_NOTEBOOK(d->notebook),
@@ -1030,7 +1146,8 @@ static void destroy_section(dialog_section_t * s)
     {
     for(i = 0; i < s->num_children; i++)
       {
-      destroy_section(&s->children[i]);
+      destroy_section(s->children[i]);
+      free(s->children[i]);
       }
     free(s->children);
     }
@@ -1104,13 +1221,11 @@ void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
   parent->children = realloc(parent->children,
                              sizeof(*(parent->children))*(parent->num_children+1));
 
-  memset(&parent->children[parent->num_children],0,
-         sizeof(parent->children[parent->num_children]));
-
-  parent->children[parent->num_children].parent = parent;
+  parent->children[parent->num_children] = calloc(1, sizeof(*parent->children[parent->num_children]));
+  parent->children[parent->num_children]->parent = parent;
   
   parent->num_children++;
-  return &parent->children[parent->num_children-1];
+  return parent->children[parent->num_children-1];
   }
 
 void bg_dialog_set_plugin_registry(bg_dialog_t * d, bg_plugin_registry_t * plugin_reg)

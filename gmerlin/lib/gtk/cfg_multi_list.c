@@ -485,10 +485,12 @@ static void attach(void * p, GtkWidget * table,
   {
   list_priv_t * e = (list_priv_t*)(p);
 
-  int num_rows = 6;
+  int num_rows = 2;
   if(e->is_chain)
     num_rows += 2;
-    
+  if(e->top_button)
+    num_rows+=4;
+  
   if(*num_columns < 3)
     *num_columns = 3;
 
