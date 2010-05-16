@@ -47,26 +47,27 @@ typedef struct
 static void
 destroy(bg_gtk_widget_t * w)
   {
-  spinbutton_t * s = (spinbutton_t*)(w->priv);
+  spinbutton_t * s = w->priv;
   free(s);
   }
 
 static void
 get_value(bg_gtk_widget_t * w)
   {
-  spinbutton_t * s = (spinbutton_t*)(w->priv);
+  spinbutton_t * s = w->priv;
+  float tmp = w->value.val_pos[1];
   
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->spinbutton_x),
                             w->value.val_pos[0]);
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->spinbutton_y),
-                            w->value.val_pos[1]);
-  
+                            tmp);
+          
   }
 
 static void
 set_value(bg_gtk_widget_t * w)
   {
-  spinbutton_t * s = (spinbutton_t*)(w->priv);
+  spinbutton_t * s = w->priv;
 
   w->value.val_pos[0] =
     gtk_spin_button_get_value(GTK_SPIN_BUTTON(s->spinbutton_x));
@@ -77,7 +78,7 @@ set_value(bg_gtk_widget_t * w)
 static void
 attach(void * priv, GtkWidget * table, int * row, int * num_columns)
   {
-  spinbutton_t * s = (spinbutton_t*)priv;
+  spinbutton_t * s = priv;
 
   if(*num_columns < 2)
     *num_columns = 2;
