@@ -55,7 +55,9 @@ static void
 get_value(bg_gtk_widget_t * w)
   {
   spinbutton_t * s = w->priv;
-  float tmp = w->value.val_pos[1];
+  // Need to save this because the callback of the x coordinate
+  // will change w->value
+  float tmp = w->value.val_pos[1]; 
   
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->spinbutton_x),
                             w->value.val_pos[0]);

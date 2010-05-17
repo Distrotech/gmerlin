@@ -54,6 +54,10 @@ static int has_extension(const char * extensions,
   {
   int len;
   const char * pos;
+
+  if(!extensions)
+    return 0;
+  
   len = strlen(name);
   while(1)
     {
