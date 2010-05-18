@@ -177,7 +177,6 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
 
   for(i = 0; i < num_drivers; i++)
     {
-    
     w->drivers[i].pixelformat =
       gavl_pixelformat_get_best(format->pixelformat, w->drivers[i].pixelformats,
                                 &w->drivers[i].penalty);

@@ -71,16 +71,16 @@ static int has_extension(const char * extensions,
   return 0;
   }
 
-static void check_gl(bg_x11_window_t * win,
-                     gavl_pixelformat_t * formats_ret,
-                     gl_priv_t * priv)
+static int check_gl(bg_x11_window_t * win,
+                    gavl_pixelformat_t * formats_ret,
+                    gl_priv_t * priv)
   {
   int format_index = 0;
     
   if(!win->gl_fbconfigs)
     {
     formats_ret[0] = GAVL_PIXELFORMAT_NONE;
-    return;
+    return 0;
     }
   formats_ret[format_index++] = GAVL_RGB_24;
   formats_ret[format_index++] = GAVL_RGBA_32;
@@ -97,7 +97,7 @@ static void check_gl(bg_x11_window_t * win,
   formats_ret[format_index++] = GAVL_GRAYA_FLOAT;
   formats_ret[format_index] = GAVL_PIXELFORMAT_NONE;
   
-  return;
+  return 1;
   }
 
 static int init_gl(driver_data_t * d)
@@ -107,9 +107,8 @@ static int init_gl(driver_data_t * d)
   d->priv = priv;
   
   d->pixelformats = malloc(13*sizeof(*d->pixelformats));
-  check_gl(d->win, d->pixelformats, priv);
   
-  return 1;
+  return check_gl(d->win, d->pixelformats, priv);
   }
 
 static void create_texture(gl_priv_t * priv,
