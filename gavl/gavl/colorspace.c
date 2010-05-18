@@ -4409,6 +4409,9 @@ gavl_pixelformat_get_best(gavl_pixelformat_t src,
   int min_penalty;
   int min_index;
   int i, test;
+
+  if(!dst_supported || (dst_supported[0] == GAVL_PIXELFORMAT_NONE))
+    return GAVL_PIXELFORMAT_NONE;
   
   min_penalty =
     gavl_pixelformat_conversion_penalty(src,
