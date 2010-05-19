@@ -466,56 +466,60 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
   gavl_time_t duration = GAVL_TIME_UNDEFINED;
   int i;
   int flags = 0;
-  
-  track->general_parameters = bg_parameter_info_copy_array(parameters_general);
 
-  bg_cfg_section_get_parameter_time(track->general_section,
-                                    "duration", &duration);
-  bg_cfg_section_get_parameter_int(track->general_section,
-                                   "flags", &flags);
-
-  if(duration != GAVL_TIME_UNDEFINED)
+  if(!track->general_parameters)
     {
-    i = 0;
+    track->general_parameters = bg_parameter_info_copy_array(parameters_general);
 
-    while(track->general_parameters[i].name)
-      {
-      if(!strcmp(track->general_parameters[i].name, "start_time") ||
-         !strcmp(track->general_parameters[i].name, "end_time"))
-        track->general_parameters[i].val_max.val_time = duration;
-      i++;
-      }
-
-
-    if(flags & BG_TRACK_SEEKABLE)
+    bg_cfg_section_get_parameter_time(track->general_section,
+                                      "duration", &duration);
+    bg_cfg_section_get_parameter_int(track->general_section,
+                                     "flags", &flags);
+    
+    if(duration != GAVL_TIME_UNDEFINED)
       {
       i = 0;
+      
       while(track->general_parameters[i].name)
         {
         if(!strcmp(track->general_parameters[i].name, "start_time") ||
-           !strcmp(track->general_parameters[i].name, "set_start_time"))
-          track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
+           !strcmp(track->general_parameters[i].name, "end_time"))
+          track->general_parameters[i].val_max.val_time = duration;
         i++;
         }
+
+      
+      if(flags & BG_TRACK_SEEKABLE)
+        {
+        i = 0;
+        while(track->general_parameters[i].name)
+          {
+          if(!strcmp(track->general_parameters[i].name, "start_time") ||
+             !strcmp(track->general_parameters[i].name, "set_start_time"))
+            track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
+          i++;
+          }
+        }
+      }
+    
+    i = 0;
+    
+    while(track->general_parameters[i].name)
+      {
+      if(!strcmp(track->general_parameters[i].name, "name") ||
+         !strcmp(track->general_parameters[i].name, "set_end_time") ||
+         !strcmp(track->general_parameters[i].name, "end_time"))
+        track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
+    
+      if(!strcmp(track->general_parameters[i].name, "prefer_edl"))
+        track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
+    
+      i++;
       }
     }
-  
-  i = 0;
-  
-  while(track->general_parameters[i].name)
-    {
-    if(!strcmp(track->general_parameters[i].name, "name") ||
-       !strcmp(track->general_parameters[i].name, "set_end_time") ||
-       !strcmp(track->general_parameters[i].name, "end_time"))
-      track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
-    
-    if(!strcmp(track->general_parameters[i].name, "prefer_edl"))
-      track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
-    
-    i++;
-    }
-  
-  track->metadata_parameters = bg_metadata_get_parameters((bg_metadata_t*)0);
+
+  if(!track->metadata_parameters)
+    track->metadata_parameters = bg_metadata_get_parameters((bg_metadata_t*)0);
   
   create_subtitle_parameters(track);
 
@@ -549,6 +553,7 @@ static void set_track(bg_transcoder_track_t * track,
   
   /* General parameters */
 
+  
   track->general_parameters = bg_parameter_info_copy_array(parameters_general);
 
   i = 0;
@@ -649,14 +654,14 @@ static void set_track(bg_transcoder_track_t * track,
       }
     i++;
     }
-
+  
   /* Stop here for redirectors */
 
   if(track->url)
     return;
   
   /* Metadata */
-    
+  
   track->metadata_parameters =
     bg_metadata_get_parameters(&track_info->metadata);
 

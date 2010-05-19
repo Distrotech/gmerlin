@@ -159,11 +159,18 @@ static void track_2_xml(bg_transcoder_track_t * track,
   section_2_xml(track->general_section, node);
   xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
 
-
+  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"GENERAL_PARAMS", NULL);
+  bg_parameters_2_xml(track->general_parameters, node);
+  xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
+  
   node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"METADATA", NULL);
   section_2_xml(track->metadata_section, node);
   xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
 
+  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"METADATA_PARAMS", NULL);
+  bg_parameters_2_xml(track->metadata_parameters, node);
+  xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
+  
   if(track->chapter_list)
     {
     node =
@@ -590,37 +597,25 @@ static int xml_2_track(bg_transcoder_track_t * t,
       continue;
       }
     if(!BG_XML_STRCMP(node->name, "GENERAL"))
-      {
       t->general_section = xml_2_section(xml_doc, node);
-      }
+    else if(!BG_XML_STRCMP(node->name, "GENERAL_PARAMS"))
+      t->general_parameters = bg_xml_2_parameters(xml_doc, node);
     else if(!BG_XML_STRCMP(node->name, "METADATA"))
-      {
       t->metadata_section = xml_2_section(xml_doc, node);
-      }
+    else if(!BG_XML_STRCMP(node->name, "METADATA_PARAMS"))
+      t->metadata_parameters = bg_xml_2_parameters(xml_doc, node);
     else if(!BG_XML_STRCMP(node->name, "CHAPTERS"))
-      {
       t->chapter_list = bg_xml_2_chapter_list(xml_doc, node);
-      }
     else if(!BG_XML_STRCMP(node->name, "INPUT"))
-      {
       t->input_section = xml_2_section(xml_doc, node);
-      }
     else if(!BG_XML_STRCMP(node->name, "AUDIO_ENCODER"))
-      {
       t->audio_encoder_section = xml_2_section(xml_doc, node);
-      }
     else if(!BG_XML_STRCMP(node->name, "VIDEO_ENCODER"))
-      {
       t->video_encoder_section = xml_2_section(xml_doc, node);
-      }
     else if(!BG_XML_STRCMP(node->name, "SUBTITLE_TEXT_ENCODER"))
-      {
       t->subtitle_text_encoder_section = xml_2_section(xml_doc, node);
-      }
     else if(!BG_XML_STRCMP(node->name, "SUBTITLE_OVERLAY_ENCODER"))
-      {
       t->subtitle_overlay_encoder_section = xml_2_section(xml_doc, node);
-      }
     else if(!BG_XML_STRCMP(node->name, "AUDIO_STREAMS"))
       {
       /* Count streams */

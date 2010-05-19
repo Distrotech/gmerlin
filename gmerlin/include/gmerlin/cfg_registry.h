@@ -533,4 +533,14 @@ void bg_cfg_section_get(bg_cfg_section_t * section,
 int bg_cfg_section_has_subsection(bg_cfg_section_t * section,
                                   const char * name);
 
+/** \ingroup cfg_section
+ *  \brief Restore default values of a section
+ *  \param section The configuration section
+ *  \param info Parameter info
+ */ 
+
+void bg_cfg_section_restore_defaults(bg_cfg_section_t * s,
+                                     const bg_parameter_info_t * info);
+
+
 #endif /* __BG_CFG_REGISTRY_H_ */

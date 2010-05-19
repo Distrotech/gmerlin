@@ -252,24 +252,24 @@ static void restore_section(dialog_section_t * s)
   bg_parameter_value_t val;
   char * pos;
   int set_param = 0;
+
+  if(!s->cfg_section)
+    return;
   
   for(i = 0; i < s->num_widgets; i++)
     {
     if(!s->widgets[i].funcs->get_value)
       continue;
+
+    bg_cfg_section_get_parameter(s->cfg_section,
+                                 s->widgets[i].info,
+                                 &s->widgets[i].value);
     
-    bg_parameter_value_copy(&s->widgets[i].value, &s->widgets[i].info->val_default,
+    bg_parameter_value_copy(&s->widgets[i].value,
+                            &s->widgets[i].info->val_default,
                             s->widgets[i].info);
     
     s->widgets[i].funcs->get_value(&s->widgets[i]);
-    
-    if(s->cfg_section)
-      {
-      if(s->widgets[i].info->flags & BG_PARAMETER_SYNC)
-        bg_cfg_section_set_parameter(s->cfg_section,
-                                     s->widgets[i].info,
-                                      &s->widgets[i].value);
-      }
     
     if(s->set_param && (s->widgets[i].info->flags & BG_PARAMETER_SYNC))
       {
@@ -294,9 +294,6 @@ static void restore_section(dialog_section_t * s)
   
   if(set_param)
     s->set_param(s->callback_data, NULL, NULL);
-  
-  for(i = 0; i < s->num_children; i++)
-    restore_section(s->children[i]);
   }
 
 
@@ -552,7 +549,11 @@ static bg_dialog_t * create_dialog(const char * title)
 static void restore_button_callback(GtkWidget * w, gpointer data)
   {
   dialog_section_t * section = data;
-  fprintf(stderr, "Restore factory defaults %p\n", section);
+  //  fprintf(stderr, "Restore factory defaults %p\n", section);
+  
+  bg_cfg_section_restore_defaults(section->cfg_section,
+                                  section->widgets[0].info);
+                                  
   restore_section(section);
   }
 
@@ -573,8 +574,6 @@ static GtkWidget * create_restore_button(dialog_section_t * section)
   gtk_widget_show(image);
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
-
-  fprintf(stderr, "Create restore button: %p\n", section);
   
   g_signal_connect(G_OBJECT(button), "clicked",
                    G_CALLBACK(restore_button_callback), section);
@@ -830,22 +829,24 @@ static GtkWidget * create_section(dialog_section_t * section,
     count++;
     }
 
-  /* Create action box */
-  gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
+  if(section->cfg_section)
+    {
+    /* Create action box */
+    gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
 
-  restore_button = create_restore_button(section);
+    restore_button = create_restore_button(section);
   
-  action_box = gtk_hbox_new(FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(action_box), restore_button, FALSE, FALSE, 0);
-  gtk_widget_show(action_box);
+    action_box = gtk_hbox_new(FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(action_box), restore_button, FALSE, FALSE, 0);
+    gtk_widget_show(action_box);
 
-  vbox = gtk_vbox_new(FALSE, 0);
-  gtk_box_pack_end(GTK_BOX(vbox), action_box, FALSE, FALSE, 0);
-  gtk_widget_show(vbox);
+    vbox = gtk_vbox_new(FALSE, 0);
+    gtk_box_pack_end(GTK_BOX(vbox), action_box, FALSE, FALSE, 0);
+    gtk_widget_show(vbox);
   
   
-  gtk_table_attach_defaults(GTK_TABLE(table), vbox, 0, num_columns-1, row, row+1);
-  
+    gtk_table_attach_defaults(GTK_TABLE(table), vbox, 0, num_columns-1, row, row+1);
+    }
   
   gtk_widget_show(table);
   return table;
