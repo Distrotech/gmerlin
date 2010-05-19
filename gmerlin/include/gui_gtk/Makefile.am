@@ -17,6 +17,7 @@ infowindow.h \
 logwindow.h \
 message.h \
 plugin.h \
+presetmenu.h \
 question.h \
 scrolltext.h \
 slider.h \

@@ -52,6 +52,7 @@ plugininfo.c \
 plugin_multi.c \
 plugin_single.c \
 pluginmenu.c \
+presetmenu.c \
 question.c \
 slider.c \
 scrolltext.c \
