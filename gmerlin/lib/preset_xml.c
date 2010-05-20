@@ -25,15 +25,16 @@
 #include <gmerlin/preset.h>
 #include <gmerlin/xmlutils.h>
 
-void bg_preset_load(bg_preset_t * p)
+bg_cfg_section_t * bg_preset_load(bg_preset_t * p)
   {
   xmlNodePtr node;
   xmlDocPtr xml_doc;
+  bg_cfg_section_t * ret;
   
   xml_doc = bg_xml_parse_file(p->file);
 
   if(!xml_doc)
-    return;
+    return NULL;
   
   node = xml_doc->children;
   
@@ -42,12 +43,13 @@ void bg_preset_load(bg_preset_t * p)
     xmlFreeDoc(xml_doc);
     }
   
-  p->section = bg_cfg_section_create((char*)0);
-  bg_cfg_xml_2_section(xml_doc, node, p->section);
+  ret = bg_cfg_section_create((char*)0);
+  bg_cfg_xml_2_section(xml_doc, node, ret);
   xmlFreeDoc(xml_doc);
+  return ret;
   }
 
-void bg_preset_save(bg_preset_t * p)
+void bg_preset_save(bg_preset_t * p, const bg_cfg_section_t * s)
   {
   xmlDocPtr  xml_doc;
   xmlNodePtr node;
@@ -56,7 +58,7 @@ void bg_preset_save(bg_preset_t * p)
   
   xmlDocSetRootElement(xml_doc, node);
 
-  bg_cfg_section_2_xml(p->section, node);
+  bg_cfg_section_2_xml(s, node);
   xmlSaveFile(p->file, xml_doc);
   xmlFreeDoc(xml_doc);
   

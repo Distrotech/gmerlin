@@ -60,7 +60,7 @@ int num_album_widgets = 0;
 
 /* Static stuff for deleting drag data */
 
-// static bg_gtk_album_widget_t * drag_source = (bg_gtk_album_widget_t*)0;
+// static bg_gtk_album_widget_t * drag_source = NULL;
 // static int drag_do_delete = 0;
 
 static GtkTargetList * target_list = (GtkTargetList *)0;
@@ -679,7 +679,7 @@ static gboolean setup_drag_dest(gpointer data)
   const GtkTargetEntry * dst_targets;
   int num_dst_targets;
 
-  w = (bg_gtk_album_widget_t*)data;
+  w = data;
 
   if(bg_album_get_type(w->album) == BG_ALBUM_TYPE_REMOVABLE)
     {
@@ -938,7 +938,7 @@ static void clipboard_get_func(GtkClipboard *clipboard,
                                gpointer data)
   {
   GdkAtom type_atom;
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
 
   
   type_atom = gdk_atom_intern("STRING", FALSE);
@@ -953,7 +953,7 @@ static void clipboard_get_func(GtkClipboard *clipboard,
 static void clipboard_clear_func(GtkClipboard *clipboard,
                                  gpointer data)
   {
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
   if(w->clipboard)
     {
     free(w->clipboard);
@@ -966,7 +966,7 @@ static void clipboard_received_func(GtkClipboard *clipboard,
                                     gpointer data)
   {
   bg_album_entry_t * entry;
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
   
   if(selection_data->length <= 0)
     {
@@ -1029,7 +1029,7 @@ static void add_file_callback(char ** files, const char * plugin,
                                  void * data)
   {
   bg_album_entry_t * entry;
-  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * widget = data;
 
   gtk_widget_set_sensitive(widget->treeview, 0);
 
@@ -1047,7 +1047,7 @@ static void add_urls_callback(char ** urls, const char * plugin,
                                  void * data)
   {
   bg_album_entry_t * entry;
-  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * widget = data;
 
 
   gtk_widget_set_sensitive(widget->treeview, 0);
@@ -1061,7 +1061,7 @@ static void add_albums_callback(char ** files, const char * plugin,
                                    void * data)
   {
   bg_album_entry_t * entry;
-  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * widget = data;
 
 
   entry = bg_album_get_entry(widget->album, widget->cursor_pos);
@@ -1070,7 +1070,7 @@ static void add_albums_callback(char ** files, const char * plugin,
 
 static void filesel_close_callback(bg_gtk_filesel_t * f, void * data)
   {
-  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * widget = data;
 
   if(f == widget->add_albums_filesel)
     {
@@ -1086,7 +1086,7 @@ static void filesel_close_callback(bg_gtk_filesel_t * f, void * data)
 
 static void urlsel_close_callback(bg_gtk_urlsel_t * f, void * data)
   {
-  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * widget = data;
   widget->add_urls_urlsel = (bg_gtk_urlsel_t*)0;
 
   gtk_widget_set_sensitive(widget->add_urls_button, 1);
@@ -1100,7 +1100,7 @@ static void set_name(void * data, const char * name,
   bg_gtk_album_widget_t * w;
   if(!name)
     return;
-  w = (bg_gtk_album_widget_t*)data;
+  w = data;
   if(!strcmp(name, "track_name") && w->selected_entry)
     {
     bg_album_rename_track(w->album,
@@ -1236,7 +1236,7 @@ static void transcode_selected(bg_gtk_album_widget_t * w)
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   char * tmp_string;
-  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * widget = data;
 
   /* Add files */
   
@@ -2397,7 +2397,7 @@ static void column_resize_callback(GtkTreeViewColumn * col,
 
 static void change_callback(bg_album_t * a, void * data)
   {
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
   bg_gtk_album_widget_update(w);
   
   /* This is also called during loading of huge amounts of
@@ -2410,7 +2410,7 @@ static void change_callback(bg_album_t * a, void * data)
 static void entry_change_callback(bg_album_t * a, const bg_album_entry_t * e, void * data)
   {
   GtkTreeIter iter;
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
 
   if(entry_2_iter(w, e, &iter))
     {
@@ -2428,7 +2428,7 @@ static void entry_change_callback(bg_album_t * a, const bg_album_entry_t * e, vo
 
 static void current_change_callback(bg_album_t * a, const bg_album_entry_t * current_entry, void * data)
   {
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
   GtkTreeIter iter;
   GtkTreeModel * model;
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
@@ -2471,7 +2471,7 @@ static void delete_callback(bg_album_t * a,
                             int * indices, void * data)
   {
   int i;
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
   GtkTreeIter iter;
   GtkTreeSelection * selection;
   GtkTreeModel * model;
@@ -2531,7 +2531,7 @@ static void insert_callback(bg_album_t * a,
   GtkTreeIter iter;
   //  GtkTreeSelection * selection;
   GtkTreeModel * model;
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
 
@@ -2559,7 +2559,7 @@ static void insert_callback(bg_album_t * a,
 static void button_callback(GtkWidget * wid, gpointer data)
   {
   
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  bg_gtk_album_widget_t * w = data;
   
   if(wid == w->add_files_button)
     {
@@ -3105,7 +3105,7 @@ static void find_widget_button_callback(GtkWidget * wid, gpointer data)
   bg_album_entry_t * e = (bg_album_entry_t*)0;
   int index;
   GtkTreePath * p;
-  w = (bg_gtk_album_widget_t*)data;
+  w = data;
   
   if(wid == w->find_widget.up_button)
     {

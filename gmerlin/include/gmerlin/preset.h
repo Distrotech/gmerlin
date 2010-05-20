@@ -27,7 +27,6 @@ typedef struct bg_preset_s
   char * name;
   struct bg_preset_s * next;
   int flags;
-  bg_cfg_section_t * section;
   } bg_preset_t;
 
 bg_preset_t * bg_presets_load(const char * preset_path);
@@ -39,6 +38,6 @@ bg_preset_t * bg_preset_add(bg_preset_t * presets,
 
 void bg_presets_destroy(bg_preset_t *);
 
-void bg_preset_load(bg_preset_t * p);
+bg_cfg_section_t * bg_preset_load(bg_preset_t * p);
 
-void bg_preset_save(bg_preset_t * p);
+void bg_preset_save(bg_preset_t * p, const bg_cfg_section_t * s);

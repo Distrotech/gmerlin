@@ -26,6 +26,7 @@
 #include <string.h>
 #include "gtk_dialog.h"
 #include <gui_gtk/gtkutils.h>
+#include <gui_gtk/presetmenu.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "cfg_dialog"
@@ -59,6 +60,8 @@ typedef struct dialog_section_s
   
   /* Index in global notebook */
   int notebook_index;
+
+  bg_gtk_preset_menu_t * preset_menu;
   } dialog_section_t;
 
 struct bg_dialog_s
@@ -585,6 +588,10 @@ static GtkWidget * create_restore_button(dialog_section_t * section)
   return button;
   }
 
+static void preset_callback(void * data)
+  {
+  fprintf(stderr, "Preset callback");
+  }
 
 static GtkWidget * create_section(dialog_section_t * section,
                                   const bg_parameter_info_t * info,
@@ -838,14 +845,25 @@ static GtkWidget * create_section(dialog_section_t * section,
   
     action_box = gtk_hbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(action_box), restore_button, FALSE, FALSE, 0);
+
+    if(info[0].preset_path)
+      {
+      section->preset_menu = bg_gtk_preset_menu_create(info[0].preset_path,
+                                                       section->cfg_section,
+                                                       preset_callback,
+                                                       section);
+      gtk_box_pack_start(GTK_BOX(action_box),
+                         bg_gtk_preset_menu_get_widget(section->preset_menu),
+                                                       FALSE, FALSE, 0);
+      }
     gtk_widget_show(action_box);
 
     vbox = gtk_vbox_new(FALSE, 0);
     gtk_box_pack_end(GTK_BOX(vbox), action_box, FALSE, FALSE, 0);
     gtk_widget_show(vbox);
   
-  
-    gtk_table_attach_defaults(GTK_TABLE(table), vbox, 0, num_columns-1, row, row+1);
+    gtk_table_attach_defaults(GTK_TABLE(table), vbox, 0,
+                              num_columns-1, row, row+1);
     }
   
   gtk_widget_show(table);

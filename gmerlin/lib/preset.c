@@ -59,20 +59,6 @@ append_to_list(bg_preset_t * list, bg_preset_t * p)
   return list;
   }
 
-static bg_preset_t * insert_to_list(bg_preset_t * list,
-                                    bg_preset_t * p)
-  {
-  bg_preset_t * before;
-  bg_preset_t * after;
-
-  if(!list)
-    {
-    p->next = NULL;
-    return p;
-    }
-  
-  }
-
 static bg_preset_t *
 load_presets(const char * directory, bg_preset_t * ret, int private)
   {
@@ -171,9 +157,9 @@ static bg_preset_t * sort_presets(bg_preset_t * p)
     tmp = tmp->next;
     }
 
-  if(!num)
-    return NULL;
-
+  if(num < 2)
+    return p;
+  
   /* Create array */
   arr = malloc(num * sizeof(*arr));
   tmp = p;
@@ -238,6 +224,7 @@ bg_preset_t * bg_preset_add(bg_preset_t * presets,
                             const bg_cfg_section_t * s)
   {
   char * home_dir;
+  char * dir;
   bg_preset_t * p;
 
   home_dir = getenv("HOME");
@@ -249,11 +236,21 @@ bg_preset_t * bg_preset_add(bg_preset_t * presets,
     }
   p = calloc(1, sizeof(*p));
   p->name = bg_strdup(p->name, name);
-  p->file = bg_sprintf("%s/.gmerlin/presets/%s", home_dir,
-                       preset_path);
-  p->section = bg_cfg_section_copy(s);
-  bg_preset_save(p);
 
+  dir = bg_sprintf("%s/.gmerlin/presets/%s", home_dir,
+                   preset_path);
+
+  if(bg_ensure_directory(dir))
+    {
+    p->file = bg_sprintf("%s/%s", dir, name);
+    bg_preset_save(p, s);
+    }
+  free(dir);
+
+  p->next = presets;
+  presets = p;
+  
+  return sort_presets(presets);
   }
 
 void bg_presets_destroy(bg_preset_t * p)

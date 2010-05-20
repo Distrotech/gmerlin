@@ -175,7 +175,8 @@ static const bg_parameter_info_t info_1[] =
       .type =        BG_PARAMETER_CHECKBUTTON,
       .flags =     PARAMETER_FLAGS,
       .val_default = { .val_i = 1 },
-      .help_string = "Checkbutton help"
+      .help_string = "Checkbutton help",
+      .preset_path = "test1",
     },
     {
       .name =        "button",
@@ -285,6 +286,7 @@ static const bg_parameter_info_t info_2[] =
       .flags =     PARAMETER_FLAGS,
       .val_default = { .val_color = { 0.0, 1.0, 0.0 } },
       .help_string =   "Color RGB help",
+      .preset_path = "test2",
     },
     {
       .name =      "color_rgba",
@@ -359,6 +361,7 @@ static const bg_parameter_info_t info_3[] =
       .multi_descriptions = (char const *[]){ "Multimenu 1", "Multimenu 2", NULL },
       .multi_parameters =   multimenu_parameters,
       .help_string =   "Multimenu help",
+      .preset_path = "test3",
     },
 #if 1
     {
@@ -389,6 +392,7 @@ static const bg_parameter_info_t info_4[] =
       .multi_descriptions = (char const *[]){ "Multichain 1", "Multichain 2", NULL },
       .multi_parameters =   multichain_parameters,
       .help_string =   "Multichain help",
+      .preset_path = "test4",
     },
     { /* End of parameters */ }
   };
