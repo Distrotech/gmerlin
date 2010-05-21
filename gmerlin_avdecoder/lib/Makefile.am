@@ -415,6 +415,7 @@ demux_gsm.c \
 demux_gxf.c \
 demux_ircam.c \
 demux_sphere.c \
+demux_matroska.c \
 demux_mpegaudio.c \
 demux_mpegps.c \
 demux_mpegts.c \
@@ -471,6 +472,7 @@ input.c \
 keyframetable.c \
 languages.c \
 log.c \
+matroska.c \
 md5.c \
 metadata.c \
 mpa_header.c \

@@ -79,6 +79,7 @@ extern const bgav_demuxer_t bgav_demuxer_gxf;
 extern const bgav_demuxer_t bgav_demuxer_dxa;
 extern const bgav_demuxer_t bgav_demuxer_thp;
 extern const bgav_demuxer_t bgav_demuxer_r3d;
+extern const bgav_demuxer_t bgav_demuxer_matroska;
 
 #ifdef HAVE_VORBIS
 extern const bgav_demuxer_t bgav_demuxer_ogg;
@@ -151,6 +152,7 @@ static const demuxer_t demuxers[] =
     { &bgav_demuxer_dxa,       "DXA" },
     { &bgav_demuxer_thp,       "THP" },
     { &bgav_demuxer_r3d,       "R3D" },
+    { &bgav_demuxer_matroska,  "Matroska" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif

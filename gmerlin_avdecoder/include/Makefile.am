@@ -23,6 +23,7 @@ h264_header.h \
 http.h \
 id3.h \
 language_table.h \
+matroska.h \
 md5.h \
 mms.h \
 mpa_header.h \
