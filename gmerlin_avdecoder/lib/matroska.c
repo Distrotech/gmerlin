@@ -749,7 +749,12 @@ void  bgav_mkv_track_dump(const bgav_mkv_track_t * t)
 
 void  bgav_mkv_track_free(bgav_mkv_track_t * t)
   {
-  
+  MY_FREE(t->Name);
+  MY_FREE(t->Language);
+  MY_FREE(t->CodecID);
+  MY_FREE(t->CodecPrivate);
+  MY_FREE(t->CodecName);
+  MY_FREE(t->video.ColourSpace);
   }
 
 int bgav_mkv_tracks_read(bgav_input_context_t * ctx,

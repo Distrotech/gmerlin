@@ -54,7 +54,8 @@ static int probe_matroska(bgav_input_context_t * input)
 static int open_matroska(bgav_demuxer_context_t * ctx)
   {
   bgav_mkv_element_t e;
-
+  int done;
+  int64_t pos;
   mkv_t * p;
 
   p = calloc(1, sizeof(*p));
@@ -78,9 +79,10 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     else
       bgav_input_skip(ctx->input, e.size);
     }
-
-  while(1)
+  done = 0;
+  while(!done)
     {
+    pos = ctx->input->position;
     if(!bgav_mkv_element_read(ctx->input, &e))
       return 0;
     switch(e.id)
@@ -93,6 +95,11 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
       case MKV_ID_Tracks:
         if(!bgav_mkv_tracks_read(ctx->input, &p->tracks, &p->num_tracks, &e))
           return 0;
+        break;
+      case MKV_ID_Cluster:
+        done = 1;
+        ctx->data_start = pos;
+        ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
         break;
       default:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -111,6 +118,21 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   return 0;
   }
 
+static void close_matroska(bgav_demuxer_context_t * ctx)
+  {
+  int i;
+  mkv_t * priv = ctx->priv;
+
+  bgav_mkv_ebml_header_free(&priv->ebml_header);  
+  bgav_mkv_segment_info_free(&priv->segment_info);
+
+  for(i = 0; i < priv->num_tracks; i++)
+    bgav_mkv_track_free(&priv->tracks[i]);
+  if(priv->tracks)
+    free(priv->tracks);
+  free(priv);
+  }
+
 const const bgav_demuxer_t bgav_demuxer_matroska =
   {
     .probe =       probe_matroska,
@@ -119,5 +141,5 @@ const const bgav_demuxer_t bgav_demuxer_matroska =
     // .next_packet = next_packet_matroska,
     // .seek =        seek_matroska,
     // .resync  =     resync_matroska,
-    // .close =       close_matroska
+    .close =       close_matroska
   };
