@@ -46,20 +46,226 @@ typedef struct
   } bgav_mkv_ebml_header_t;
 
 int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx, bgav_mkv_ebml_header_t * ret);
-void bgav_mkv_ebml_header_dump(const bgav_mkv_ebml_header_t * ret);
+void bgav_mkv_ebml_header_dump(const bgav_mkv_ebml_header_t * h);
+void bgav_mkv_ebml_header_free(bgav_mkv_ebml_header_t * h);
+
+
+typedef struct
+  {
+  uint8_t SegmentUID[8];
+  char *SegmentFilename;
+  uint8_t PrevUID[8];
+  char * PrevFilename;
+  uint8_t NextUID[8];
+  char * NextFilename;
+  uint8_t SegmentFamily[8];
+
+  /* TODO: Chapter translate */
+  
+  uint64_t TimecodeScale;
+  double Duration;
+  int64_t DateUTC;
+
+  char * Title;
+  char * MuxingApp;
+  char * WritingApp;
+  
+  } bgav_mkv_segment_info_t;
+
+int bgav_mkv_segment_info_read(bgav_input_context_t * ctx,
+                               bgav_mkv_segment_info_t * ret,
+                               bgav_mkv_element_t * parent);
+
+void  bgav_mkv_segment_info_dump(const bgav_mkv_segment_info_t * si);
+void  bgav_mkv_segment_info_free(bgav_mkv_segment_info_t * si);
+
+/* Track */
+
+#define MKV_FlagInterlaced (1<<0)
+
+typedef struct
+  {
+  int flags;
+  int StereoMode;
+  int PixelWidth;
+  int PixelHeight;
+  int PixelCropBottom;
+  int PixelCropTop;
+  int PixelCropLeft;
+  int PixelCropRight;
+  int DisplayWidth;
+  int DisplayHeight;
+  int DisplayUnit;
+  int AspectRatioType;
+  uint8_t * ColourSpace;
+  int ColourSpaceLen;
+  double FrameRate;
+  } bgav_mkv_track_video_t;
+
+typedef struct
+  {
+  double SamplingFrequency;
+  double OutputSamplingFrequency;
+  int Channels;
+  int BitDepth;
+  } bgav_mkv_track_audio_t;
+
+#define MKV_FlagEnabled (1<<0)
+#define MKV_FlagDefault (1<<1)
+#define MKV_FlagForced  (1<<2)
+#define MKV_FlagLacing  (1<<3)
+
+#define MKV_TRACK_VIDEO   1
+#define MKV_TRACK_AUDIO   2
+#define MKV_TRACK_COMPLEX 3
+#define MKV_TRACK_LOGO     0x10
+#define MKV_TRACK_SUBTITLE 0x11
+#define MKV_TRACK_BUTTONS  0x12
+#define MKV_TRACK_CONTROL  0x20
+
+typedef struct
+  {
+  uint64_t TrackNumber;
+  uint64_t TrackUID;
+  int TrackType;
+  int flags;
+  uint64_t MinCache;
+  uint64_t MaxCache;
+  uint64_t DefaultDuration;
+  double   TrackTimecodeScale;
+  uint64_t MaxBlockAdditionID;
+  char * Name;
+  char * Language;
+  char * CodecID;
+  uint8_t * CodecPrivate;
+  int CodecPrivateLen;
+  char * CodecName;
+  uint64_t AttachmentLink;
+  int CodecDecodeAll;
+  uint64_t TrackOverlay;
+  /* TODO: TrackTranslate */
+
+  bgav_mkv_track_video_t video;
+  bgav_mkv_track_audio_t audio;
+  
+  /* TODO: Content encodings */
+  
+  } bgav_mkv_track_t;
+
+int bgav_mkv_track_read(bgav_input_context_t * ctx,
+                        bgav_mkv_track_t * ret,
+                        bgav_mkv_element_t * parent);
+
+void  bgav_mkv_track_dump(const bgav_mkv_track_t * t);
+void  bgav_mkv_track_free(bgav_mkv_track_t * t);
+
+int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
+                         bgav_mkv_track_t ** ret1,
+                         int * ret_num1,
+                         bgav_mkv_element_t * parent);
 
 
 /* Known IDs */
-#define MKV_ID_EBML                 0x1a45dfa3
-#define MKV_ID_EBML_VERSION         0x4286
-#define MKV_ID_EBML_READ_VERSION    0x42F7
-#define MKV_ID_EBML_MAX_ID_LENGTH   0x42F2
-#define MKV_ID_EBML_MAX_SIZE_LENGTH 0x42F3
-#define MKV_ID_DOC_TYPE             0x4282
-#define MKV_ID_DOC_VERSION          0x4287
-#define MKV_ID_DOC_READ_VERSION     0x4285
+#define MKV_ID_EBML                   0x1a45dfa3
+#define MKV_ID_EBMLVersion            0x4286
+#define MKV_ID_EBMLReadVersion        0x42f7
+#define MKV_ID_EBMLMaxIDLength        0x42f2
+#define MKV_ID_EBMLMaxSizeLength      0x42f3
+#define MKV_ID_DocType                0x4282
+#define MKV_ID_DocTypeVersion         0x4287
+#define MKV_ID_DocTypeReadVersion     0x4285
 
-#define MKV_ID_CRC32                0xbf
-#define MKV_ID_VOID                 0xec
+#define MKV_ID_CRC32                  0xbf
+#define MKV_ID_Void                   0xec
 
-#define MKV_ID_SEGMENT              0x18538067
+/* Segment */
+#define MKV_ID_Segment                    0x18538067
+#define MKV_ID_Info                       0x1549a966
+#define MKV_ID_SegmentUID                 0x73a4
+#define MKV_ID_SegmentFilename            0x7384
+#define MKV_ID_PrevUID                    0x3cb923
+#define MKV_ID_PrevFilename               0x3c83ab
+#define MKV_ID_NextUID                    0x3eb923
+#define MKV_ID_NextFilename               0x3c83bb
+#define MKV_ID_SegmentFamily              0x4444
+#define MKV_ID_ChapterTranslate           0x6924
+#define MKV_ID_ChapterTranslateEditionUID 0x69fc
+#define MKV_ID_ChapterTranslateCodec      0x69bf
+#define MKV_ID_ChapterTranslateID         0x69a5
+#define MKV_ID_TimecodeScale              0x2ad7b1
+#define MKV_ID_Duration                   0x4489
+#define MKV_ID_DateUTC                    0x4461
+#define MKV_ID_Title                      0x7ba9
+#define MKV_ID_MuxingApp                  0x4d80
+#define MKV_ID_WritingApp                 0x5741
+
+/* Cluster */
+#define MKV_ID_Cluster                    0x1f43b675
+#define MKV_ID_Timecode                   0xe7
+#define MKV_ID_SilentTracks               0x5854
+#define MKV_ID_SilentTrackNumber          0x58d7
+#define MKV_ID_Position                   0xa7
+#define MKV_ID_PrevSize                   0xab
+#define MKV_ID_BlockGroup                 0xa0
+#define MKV_ID_Block                      0xa1
+
+#define MKV_ID_Tracks                   0x1654AE6B
+#define MKV_ID_TrackEntry               0xae
+#define MKV_ID_TrackNumber              0xd7
+#define MKV_ID_TrackUID                 0x73c5
+#define MKV_ID_TrackType                0x83
+#define MKV_ID_FlagEnabled              0xb9
+#define MKV_ID_FlagDefault              0x88
+#define MKV_ID_FlagForced               0x55aa
+#define MKV_ID_FlagLacing               0x9c
+#define MKV_ID_MinCache                 0x6de7
+#define MKV_ID_MaxCache                 0x6df8
+#define MKV_ID_DefaultDuration          0x23e383
+#define MKV_ID_TrackTimecodeScale       0x23314f
+#define MKV_ID_MaxBlockAdditionID       0x55ee
+#define MKV_ID_Name                     0x536e
+#define MKV_ID_Language                 0x22b59c
+#define MKV_ID_CodecID                  0x86
+#define MKV_ID_CodecPrivate             0x63a2
+#define MKV_ID_CodecName                0x258688
+#define MKV_ID_AttachmentLink           0x7446
+#define MKV_ID_CodecDecodeAll           0xaa
+#define MKV_ID_TrackOverlay             0x6fab
+#define MKV_ID_TrackTranslate           0x6624
+#define MKV_ID_TrackTranslateEditionUID 0x66fc
+#define MKV_ID_TrackTranslateCodec      0x66bf
+#define MKV_ID_TrackTranslateTrackID    0x66a5
+
+/* Video specific */
+#define MKV_ID_Video           0xe0
+#define MKV_ID_FlagInterlaced  0x9a
+#define MKV_ID_StereoMode      0x53b8
+#define MKV_ID_PixelWidth      0xb0
+#define MKV_ID_PixelHeight     0xba
+#define MKV_ID_PixelCropBottom 0x54aa
+#define MKV_ID_PixelCropTop    0x54bb
+#define MKV_ID_PixelCropLeft   0x54cc
+#define MKV_ID_PixelCropRight  0x54dd
+#define MKV_ID_DisplayWidth    0x54b0
+#define MKV_ID_DisplayHeight   0x54ba
+#define MKV_ID_DisplayUnit     0x54b2
+#define MKV_ID_AspectRatioType 0x54b3
+#define MKV_ID_ColourSpace     0x2EB524
+#define MKV_ID_FrameRate       0x2383E3
+
+/* Audio specific */
+#define MKV_ID_Audio                   0xe1
+#define MKV_ID_SamplingFrequency       0xb5
+#define MKV_ID_OutputSamplingFrequency 0x78b5
+#define MKV_ID_Channels                0x9f
+#define MKV_ID_BitDepth                0x6264
+
+#if 0
+#define MKV_ID_ 0x
+#define MKV_ID_ 0x
+#define MKV_ID_ 0x
+#define MKV_ID_ 0x
+#define MKV_ID_ 0x
+#define MKV_ID_ 0x
+#define MKV_ID_ 0x
+#endif

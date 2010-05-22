@@ -20,10 +20,18 @@
  * *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <avdec_private.h>
 #include <matroska.h>
-  
+
+#define LOG_DOMAIN "matroska"
+
+#define MY_FREE(ptr) \
+  if(ptr) \
+    free(ptr);
+
+
 static int mkv_read_num(bgav_input_context_t * ctx, int64_t * ret, int do_mask)
   {
   int shift = 0;
@@ -75,6 +83,27 @@ static int mkv_read_uint(bgav_input_context_t * ctx, uint64_t * ret, int bytes)
   return 1;
   }
 
+static int mkv_read_uint_small(bgav_input_context_t * ctx, int * ret, int bytes)
+  {
+  uint64_t val;
+  if(!mkv_read_uint(ctx, &val, bytes))
+    return 0;
+  *ret = val;
+  return 1;
+  }
+
+static int mkv_read_flag(bgav_input_context_t * ctx, int * ret, int flag, int bytes)
+  {
+  uint64_t val;
+  if(!mkv_read_uint(ctx, &val, bytes))
+    return 0;
+
+  if(val)
+    *ret |= flag;
+
+  return 1;
+  }
+  
 static int mkv_read_string(bgav_input_context_t * ctx, char ** ret, int bytes)
   {
   *ret = calloc(bytes+1, 1);
@@ -82,7 +111,58 @@ static int mkv_read_string(bgav_input_context_t * ctx, char ** ret, int bytes)
     return 0;
   return 1;
   }
+
+static int mkv_read_binary(bgav_input_context_t * ctx, uint8_t ** ret,
+                           int * ret_len, int bytes)
+  {
+  *ret = malloc(bytes);
+  if(bgav_input_read_data(ctx, *ret, bytes) < bytes)
+    return 0;
+  *ret_len = bytes;
+  return 1;
+  }
+
+
+static int mkv_read_uid(bgav_input_context_t * ctx, uint8_t * ret, int bytes)
+  {
+  int bytes_to_read = bytes < 8 ? bytes : 8;
   
+  if(bgav_input_read_data(ctx, ret, bytes_to_read) < bytes_to_read)
+    return 0;
+
+  if(bytes > bytes_to_read)
+    bgav_input_skip(ctx, bytes - bytes_to_read);
+  
+  return 1;
+  }
+
+static int mkv_read_float(bgav_input_context_t * ctx, double * ret, int bytes)
+  {
+  int result;
+  float flt;
+  
+  switch(bytes)
+    {
+    case 4:
+      result = bgav_input_read_float_32_be(ctx, &flt);
+      if(result)
+        *ret = flt;
+      return result;
+      break;
+    case 8:
+      return bgav_input_read_double_64_be(ctx, ret);
+      break;
+    }
+  return 0;
+  }
+
+static void mkv_dump_uid(const uint8_t * uid)
+  {
+  bgav_dprintf("%02x %02x %02x %02x %02x %02x %02x %02x",
+               uid[0], uid[1], uid[2], uid[3],
+               uid[4], uid[5], uid[6], uid[7]);
+  }
+
 int bgav_mkv_read_size(bgav_input_context_t * ctx, int64_t * ret)
   {
   return mkv_read_num(ctx, ret, 1);
@@ -147,36 +227,36 @@ int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
 
     switch(e1.id)
       {
-      case MKV_ID_EBML_VERSION:
+      case MKV_ID_EBMLVersion:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
         ret->version = tmp_64;
         break;
-      case MKV_ID_EBML_READ_VERSION:
+      case MKV_ID_EBMLReadVersion:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
         ret->read_version = tmp_64;
         break;
-      case MKV_ID_EBML_MAX_ID_LENGTH:
+      case MKV_ID_EBMLMaxIDLength:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
         ret->max_id_length = tmp_64;
         break;
-      case MKV_ID_EBML_MAX_SIZE_LENGTH:
+      case MKV_ID_EBMLMaxSizeLength:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
         ret->max_size_length = tmp_64;
         break;
-      case MKV_ID_DOC_TYPE:
+      case MKV_ID_DocType:
         if(!mkv_read_string(ctx, &ret->doc_type, e1.size)) 
           return 0;
         break;
-      case MKV_ID_DOC_VERSION:
+      case MKV_ID_DocTypeVersion:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
         ret->doc_type_version = tmp_64;
         break;
-      case MKV_ID_DOC_READ_VERSION:
+      case MKV_ID_DocTypeReadVersion:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
         ret->doc_type_read_version = tmp_64;
@@ -199,4 +279,512 @@ void bgav_mkv_ebml_header_dump(const bgav_mkv_ebml_header_t * ret)
   bgav_dprintf("  DocTypeVersion:     %d\n", ret->doc_type_version);
   bgav_dprintf("  DocTypeReadVersion: %d\n", ret->doc_type_read_version);
   
+  }
+
+void bgav_mkv_ebml_header_free(bgav_mkv_ebml_header_t * h)
+  {
+  MY_FREE(h->doc_type);
+  }
+
+int bgav_mkv_segment_info_read(bgav_input_context_t * ctx,
+                               bgav_mkv_segment_info_t * ret,
+                               bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_SegmentUID:
+        if(!mkv_read_uid(ctx, ret->SegmentUID, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_SegmentFilename:
+        if(!mkv_read_string(ctx, &ret->SegmentFilename, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_PrevUID:
+        if(!mkv_read_uid(ctx, ret->PrevUID, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_PrevFilename:
+        if(!mkv_read_string(ctx, &ret->PrevFilename, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_NextUID:
+        if(!mkv_read_uid(ctx, ret->NextUID, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_NextFilename:
+        if(!mkv_read_string(ctx, &ret->NextFilename, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_SegmentFamily:
+        if(!mkv_read_uid(ctx, ret->SegmentFamily, e.size)) 
+          return 0;
+        break;
+#if 0
+      case MKV_ID_ChapterTranslate:
+        break;
+      case MKV_ID_ChapterTranslateEditionUID:
+        break;
+      case MKV_ID_ChapterTranslateCodec:
+        break;
+      case MKV_ID_ChapterTranslateID:
+        break;
+#endif
+      case MKV_ID_TimecodeScale:
+        if(!mkv_read_uint(ctx, &ret->TimecodeScale, e.size))
+          return 0;
+        break;
+      case MKV_ID_Duration:
+        if(!mkv_read_float(ctx, &ret->Duration, e.size))
+          return 0;
+        break;
+      case MKV_ID_DateUTC:
+        if(!bgav_input_read_64_be(ctx, (uint64_t*)(&ret->DateUTC)))
+          return 0;
+        break;
+      case MKV_ID_Title:
+        if(!mkv_read_string(ctx, &ret->Title, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_MuxingApp:
+        if(!mkv_read_string(ctx, &ret->MuxingApp, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_WritingApp:
+        if(!mkv_read_string(ctx, &ret->WritingApp, e.size)) 
+          return 0;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x\n", e.size, e.id);
+        bgav_input_skip(ctx, e.size);
+        break;
+      }
+    }
+  return 1;
+  }
+
+void  bgav_mkv_segment_info_dump(const bgav_mkv_segment_info_t * si)
+  {
+  bgav_dprintf("SegmentInfo:\n");
+
+  bgav_dprintf("  SegmentUID:      ");
+  mkv_dump_uid(si->SegmentUID);
+  bgav_dprintf("\n");
+
+  bgav_dprintf("  SegmentFilename: %s\n", si->SegmentFilename);
+
+  bgav_dprintf("  PrevUID:         ");
+  mkv_dump_uid(si->PrevUID);
+  bgav_dprintf("\n");
+  bgav_dprintf("  PrevFilename:    %s\n", si->PrevFilename);
+  
+  bgav_dprintf("  NextUID:         ");
+  mkv_dump_uid(si->NextUID);
+  bgav_dprintf("\n");
+  bgav_dprintf("  NextFilename:    %s\n", si->NextFilename);
+
+  bgav_dprintf("  SegmentFamily:   ");
+  mkv_dump_uid(si->SegmentFamily);
+  bgav_dprintf("\n");
+  
+  /* TODO: Chapter translate */
+
+  bgav_dprintf("  TimecodeScale:   %"PRId64"\n", si->TimecodeScale);
+  bgav_dprintf("  Duration:        %f\n", si->Duration);
+  bgav_dprintf("  DateUTC:         %"PRId64"\n", si->DateUTC);
+  bgav_dprintf("  Title:           %s\n", si->Title);
+  bgav_dprintf("  MuxingApp:       %s\n", si->MuxingApp);
+  bgav_dprintf("  WritingApp:      %s\n", si->WritingApp);
+  }
+
+void  bgav_mkv_segment_info_free(bgav_mkv_segment_info_t * si)
+  {
+  MY_FREE(si->SegmentFilename);
+  MY_FREE(si->PrevFilename);
+  MY_FREE(si->NextFilename);
+  MY_FREE(si->Title);
+  MY_FREE(si->MuxingApp);
+  MY_FREE(si->WritingApp);
+  }
+
+
+/* Track */
+
+static int track_read_video(bgav_input_context_t * ctx,
+                            bgav_mkv_track_video_t * ret,
+                            bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_FlagInterlaced:
+        if(!mkv_read_flag(ctx, &ret->flags, MKV_FlagInterlaced, e.size))
+          return 0;
+        break;
+      case MKV_ID_StereoMode:
+        if(!mkv_read_uint_small(ctx, &ret->StereoMode, e.size))
+          return 0;
+        break;
+      case MKV_ID_PixelWidth:
+        if(!mkv_read_uint_small(ctx, &ret->PixelWidth, e.size))
+          return 0;
+        break;
+      case MKV_ID_PixelHeight:
+        if(!mkv_read_uint_small(ctx, &ret->PixelHeight, e.size))
+          return 0;
+        break;
+      case MKV_ID_PixelCropBottom:
+        if(!mkv_read_uint_small(ctx, &ret->PixelCropBottom, e.size))
+          return 0;
+        break;
+      case MKV_ID_PixelCropTop:
+        if(!mkv_read_uint_small(ctx, &ret->PixelCropTop, e.size))
+          return 0;
+        break;
+      case MKV_ID_PixelCropLeft:
+        if(!mkv_read_uint_small(ctx, &ret->PixelCropLeft, e.size))
+          return 0;
+        break;
+      case MKV_ID_PixelCropRight:
+        if(!mkv_read_uint_small(ctx, &ret->PixelCropRight, e.size))
+          return 0;
+        break;
+      case MKV_ID_DisplayWidth:
+        if(!mkv_read_uint_small(ctx, &ret->DisplayWidth, e.size))
+          return 0;
+        break;
+      case MKV_ID_DisplayHeight:
+        if(!mkv_read_uint_small(ctx, &ret->DisplayHeight, e.size))
+          return 0;
+        break;
+      case MKV_ID_DisplayUnit:
+        if(!mkv_read_uint_small(ctx, &ret->DisplayUnit, e.size))
+          return 0;
+        break;
+      case MKV_ID_AspectRatioType:
+        if(!mkv_read_uint_small(ctx, &ret->AspectRatioType, e.size))
+          return 0;
+        break;
+      case MKV_ID_ColourSpace:
+        if(!mkv_read_binary(ctx, &ret->ColourSpace, &ret->ColourSpaceLen, e.size))
+          return 0;
+        break;
+      case MKV_ID_FrameRate:
+        if(!mkv_read_float(ctx, &ret->FrameRate, e.size))
+          return 0;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x in video\n", e.size, e.id);
+        bgav_input_skip(ctx, e.size);
+        break;
+      }
+    }
+  return 1;
+  }
+
+static int track_read_audio(bgav_input_context_t * ctx,
+                            bgav_mkv_track_audio_t * ret,
+                            bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_SamplingFrequency:
+        if(!mkv_read_float(ctx, &ret->SamplingFrequency, e.size))
+          return 0;
+        break;
+      case MKV_ID_OutputSamplingFrequency:
+        if(!mkv_read_float(ctx, &ret->OutputSamplingFrequency, e.size))
+          return 0;
+        break;
+      case MKV_ID_Channels:
+        if(!mkv_read_uint_small(ctx, &ret->Channels, e.size))
+          return 0;
+        break;
+      case MKV_ID_BitDepth:
+        if(!mkv_read_uint_small(ctx, &ret->BitDepth, e.size))
+          return 0;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x in audio\n", e.size, e.id);
+        bgav_input_skip(ctx, e.size);
+        break;
+      }
+    }
+  return 1;
+  }
+
+
+int bgav_mkv_track_read(bgav_input_context_t * ctx,
+                        bgav_mkv_track_t * ret,
+                        bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_TrackNumber:
+        if(!mkv_read_uint(ctx, &ret->TrackNumber, e.size))
+          return 0;
+        break;
+      case MKV_ID_TrackUID:
+        if(!mkv_read_uint(ctx, &ret->TrackUID, e.size))
+          return 0;
+        break;
+      case MKV_ID_TrackType:
+        if(!mkv_read_uint_small(ctx, &ret->TrackType, e.size))
+          return 0;
+        break;
+      case MKV_ID_FlagEnabled:
+        if(!mkv_read_flag(ctx, &ret->flags, MKV_FlagEnabled, e.size))
+          return 0;
+        break;
+      case MKV_ID_FlagDefault:
+        if(!mkv_read_flag(ctx, &ret->flags, MKV_FlagDefault, e.size))
+          return 0;
+        break;
+      case MKV_ID_FlagForced:
+        if(!mkv_read_flag(ctx, &ret->flags, MKV_FlagForced, e.size))
+          return 0;
+        break;
+      case MKV_ID_FlagLacing:
+        if(!mkv_read_flag(ctx, &ret->flags, MKV_FlagLacing, e.size))
+          return 0;
+        break;
+      case MKV_ID_MinCache:
+        if(!mkv_read_uint(ctx, &ret->MinCache, e.size))
+          return 0;
+        break;
+      case MKV_ID_MaxCache:
+        if(!mkv_read_uint(ctx, &ret->MaxCache, e.size))
+          return 0;
+        break;
+      case MKV_ID_DefaultDuration:
+        if(!mkv_read_uint(ctx, &ret->DefaultDuration, e.size))
+          return 0;
+        break;
+      case MKV_ID_TrackTimecodeScale:
+        if(!mkv_read_float(ctx, &ret->TrackTimecodeScale, e.size))
+          return 0;
+        break;
+      case MKV_ID_MaxBlockAdditionID:
+        if(!mkv_read_uint(ctx, &ret->MaxBlockAdditionID, e.size))
+          return 0;
+        break;
+      case MKV_ID_Name:
+        if(!mkv_read_string(ctx, &ret->Name, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_Language:
+        if(!mkv_read_string(ctx, &ret->Language, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_CodecID:
+        if(!mkv_read_string(ctx, &ret->CodecID, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_CodecPrivate:
+        if(!mkv_read_binary(ctx, &ret->CodecPrivate, &ret->CodecPrivateLen, e.size))
+          return 0;
+        break;
+      case MKV_ID_CodecName:
+        if(!mkv_read_string(ctx, &ret->CodecName, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_AttachmentLink:
+        if(!mkv_read_uint(ctx, &ret->AttachmentLink, e.size))
+          return 0;
+        break;
+      case MKV_ID_CodecDecodeAll:
+        if(!mkv_read_uint_small(ctx, &ret->CodecDecodeAll, e.size))
+          return 0;
+        break;
+      case MKV_ID_TrackOverlay:
+        if(!mkv_read_uint(ctx, &ret->TrackOverlay, e.size))
+          return 0;
+        break;
+#if 0
+      case MKV_ID_TrackTranslate:
+        break;
+      case MKV_ID_TrackTranslateEditionUID:
+        break;
+      case MKV_ID_TrackTranslateCodec:
+        break;
+      case MKV_ID_TrackTranslateTrackID:
+        break;
+#endif
+      case MKV_ID_Video:
+        if(!track_read_video(ctx, &ret->video, &e))
+          return 0;
+        break;
+      case MKV_ID_Audio:
+        if(!track_read_audio(ctx, &ret->audio, &e))
+          return 0;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x in track\n", e.size, e.id);
+        bgav_input_skip(ctx, e.size);
+        break;
+      
+      }
+    }
+  return 1;
+  }
+
+static void track_dump_audio(const bgav_mkv_track_audio_t * a)
+  {
+  bgav_dprintf("  Audio\n");
+  bgav_dprintf("    SamplingFrequency:       %f\n", a->SamplingFrequency);
+  bgav_dprintf("    OutputSamplingFrequency: %f\n", a->OutputSamplingFrequency);
+  bgav_dprintf("    Channels:                %d\n", a->Channels);
+  bgav_dprintf("    BitDepth:                %d\n", a->BitDepth);
+  }
+
+static void track_dump_video(const bgav_mkv_track_video_t * v)
+  {
+  bgav_dprintf("  Video\n");
+  bgav_dprintf("    flags:           %d\n", v->flags);
+  bgav_dprintf("    StereoMode:      %d\n", v->StereoMode);
+  bgav_dprintf("    PixelWidth:      %d\n", v->PixelWidth);
+  bgav_dprintf("    PixelHeight:     %d\n", v->PixelHeight );
+  bgav_dprintf("    PixelCropBottom: %d\n", v->PixelCropBottom);
+  bgav_dprintf("    PixelCropTop:    %d\n", v->PixelCropTop );
+  bgav_dprintf("    PixelCropLeft:   %d\n", v->PixelCropLeft );
+  bgav_dprintf("    PixelCropRight:  %d\n", v->PixelCropRight );
+  bgav_dprintf("    DisplayWidth:    %d\n", v->DisplayWidth );
+  bgav_dprintf("    DisplayHeight:   %d\n", v->DisplayHeight );
+  bgav_dprintf("    DisplayUnit:     %d\n", v->DisplayUnit );
+  bgav_dprintf("    AspectRatioType: %d\n", v->AspectRatioType );
+  bgav_dprintf("    ColourSpace:     %d bytes\n", v->ColourSpaceLen );
+  bgav_dprintf("    FrameRate:       %f\n", v->FrameRate);
+  }
+
+void  bgav_mkv_track_dump(const bgav_mkv_track_t * t)
+  {
+  bgav_dprintf("Matroska track\n");
+  bgav_dprintf("  TrackNumber:        %"PRId64"\n", t->TrackNumber);
+  bgav_dprintf("  TrackUID:           %"PRId64"\n", t->TrackUID);
+  bgav_dprintf("  TrackType:          %d ",        t->TrackType);
+  switch(t->TrackType)
+    {
+    case MKV_TRACK_VIDEO:
+      bgav_dprintf("(video)\n");
+      break;
+    case MKV_TRACK_AUDIO:
+      bgav_dprintf("(audio)\n");
+      break;
+    case MKV_TRACK_COMPLEX:
+      bgav_dprintf("(complex)\n");
+      break;
+    case MKV_TRACK_LOGO:
+      bgav_dprintf("(logo)\n");
+      break;
+    case MKV_TRACK_SUBTITLE:
+      bgav_dprintf("(subtitle)\n");
+      break;
+    case MKV_TRACK_BUTTONS:
+      bgav_dprintf("(buttons)\n");
+      break;
+    case MKV_TRACK_CONTROL:
+      bgav_dprintf("(control)\n");
+      break;
+    default:
+      bgav_dprintf("(unknown)\n");
+      break;
+    }
+  
+  bgav_dprintf("  flags:              %x\n", t->flags);
+  bgav_dprintf("  MinCache:           %"PRId64"\n", t->MinCache);
+  bgav_dprintf("  MaxCache:           %"PRId64"\n", t->MaxCache);
+  bgav_dprintf("  DefaultDuration:    %"PRId64"\n", t->DefaultDuration);
+  bgav_dprintf("  TrackTimecodeScale: %f\n", t->TrackTimecodeScale);
+  bgav_dprintf("  MaxBlockAdditionID: %"PRId64"\n", t->MaxBlockAdditionID);
+  bgav_dprintf("  Name:               %s\n", t->Name);
+  bgav_dprintf("  Language:           %s\n", t->Language);
+  bgav_dprintf("  CodecID:            %s\n", t->CodecID);
+  bgav_dprintf("  CodecPrivate        %d bytes\n", t->CodecPrivateLen);
+  bgav_dprintf("  CodecName:          %s\n", t->CodecName);
+  bgav_dprintf("  AttachmentLink:     %"PRId64"\n", t->AttachmentLink);
+  bgav_dprintf("  CodecDecodeAll:     %d\n", t->CodecDecodeAll);
+  bgav_dprintf("  TrackOverlay:       %"PRId64"\n", t->TrackOverlay);
+
+  switch(t->TrackType)
+    {
+    case MKV_TRACK_VIDEO:
+      track_dump_video(&t->video);
+      break;
+    case MKV_TRACK_AUDIO:
+      track_dump_audio(&t->audio);
+      break;
+    case MKV_TRACK_COMPLEX:
+      track_dump_audio(&t->audio);
+      track_dump_video(&t->video);
+      break;
+    }
+  }
+
+void  bgav_mkv_track_free(bgav_mkv_track_t * t)
+  {
+  
+  }
+
+int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
+                         bgav_mkv_track_t ** ret1,
+                         int * ret_num1,
+                         bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_track_t * ret = NULL;
+  int ret_num = 0;
+  
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_TrackEntry:
+        ret = realloc(ret, (ret_num+1)*sizeof(*ret));
+        memset(ret + ret_num, 0, sizeof(*ret));
+        if(!bgav_mkv_track_read(ctx, ret + ret_num, &e))
+          return 0;
+
+        bgav_mkv_track_dump(ret + ret_num);
+        ret_num++;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x in tracks\n", e.size, e.id);
+        bgav_input_skip(ctx, e.size);
+        break;
+      }
+    }
+  *ret1 = ret;
+  *ret_num1 = ret_num;
+  return 1;
   }

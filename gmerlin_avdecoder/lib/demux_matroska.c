@@ -28,6 +28,16 @@
 
 #define LOG_DOMAIN "demux_matroska"
 
+typedef struct
+  {
+  bgav_mkv_ebml_header_t ebml_header;
+  bgav_mkv_segment_info_t segment_info;
+
+  bgav_mkv_track_t * tracks;
+  int num_tracks;
+  
+  } mkv_t;
+ 
 static int probe_matroska(bgav_input_context_t * input)
   {
   uint32_t header;
@@ -45,12 +55,15 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   {
   bgav_mkv_element_t e;
 
-  bgav_mkv_ebml_header_t h;
+  mkv_t * p;
 
-  if(!bgav_mkv_ebml_header_read(ctx->input, &h))
+  p = calloc(1, sizeof(*p));
+  ctx->priv = p;
+  
+  if(!bgav_mkv_ebml_header_read(ctx->input, &p->ebml_header))
     return 0;
 
-  bgav_mkv_ebml_header_dump(&h);
+  bgav_mkv_ebml_header_dump(&p->ebml_header);
   
   /* Get the first segment */
   
@@ -59,18 +72,41 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     if(!bgav_mkv_element_read(ctx->input, &e))
       return 0;
 
-    if(e.id == MKV_ID_SEGMENT)
+    if(e.id == MKV_ID_Segment)
       break;
 
     else
       bgav_input_skip(ctx->input, e.size);
     }
 
-  /* Check next */
+  while(1)
+    {
+    if(!bgav_mkv_element_read(ctx->input, &e))
+      return 0;
+    switch(e.id)
+      {
+      case MKV_ID_Info:
+        if(!bgav_mkv_segment_info_read(ctx->input, &p->segment_info, &e))
+          return 0;
+        bgav_mkv_segment_info_dump(&p->segment_info);
+        break;
+      case MKV_ID_Tracks:
+        if(!bgav_mkv_tracks_read(ctx->input, &p->tracks, &p->num_tracks, &e))
+          return 0;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x\n", e.size, e.id);
+        bgav_input_skip(ctx->input, e.size);
+      }
+    }
+#if 0  
+  /* Get segment information */
+  
   if(!bgav_mkv_element_read(ctx->input, &e))
     return 0;
   bgav_mkv_element_dump(&e);
-      
+#endif
   
   return 0;
   }

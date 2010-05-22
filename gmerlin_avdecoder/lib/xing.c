@@ -66,9 +66,7 @@ int bgav_mp3_info_header_probe(unsigned char *buf)
 int bgav_xing_header_read(bgav_xing_header_t * xing, unsigned char *buf)
   {
   int i;
-  int id, mode;
-  uint8_t * ptr;
-
+  
   bgav_mpa_header_t h;
   
   memset(xing, 0, sizeof(*xing));
