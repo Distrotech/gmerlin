@@ -45,10 +45,30 @@ typedef struct
   int doc_type_read_version;
   } bgav_mkv_ebml_header_t;
 
-int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx, bgav_mkv_ebml_header_t * ret);
+int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
+                              bgav_mkv_ebml_header_t * ret);
 void bgav_mkv_ebml_header_dump(const bgav_mkv_ebml_header_t * h);
 void bgav_mkv_ebml_header_free(bgav_mkv_ebml_header_t * h);
 
+typedef struct
+  {
+  int num_entries;
+  int entries_alloc;
+  
+  struct
+    {
+    int SeekID;
+    uint64_t SeekPosition;
+    } * entries;
+  } bgav_mkv_meta_seek_info_t;
+
+int bgav_mkv_meta_seek_info_read(bgav_input_context_t * ctx,
+                                 bgav_mkv_meta_seek_info_t * info,
+                                 bgav_mkv_element_t * parent);
+
+void bgav_mkv_meta_seek_info_dump(const bgav_mkv_meta_seek_info_t * info);
+void bgav_mkv_meta_seek_info_free(bgav_mkv_meta_seek_info_t * info);
+  
 
 typedef struct
   {
@@ -164,6 +184,44 @@ int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
                          int * ret_num1,
                          bgav_mkv_element_t * parent);
 
+/* Cue points */
+
+typedef struct
+  {
+  uint64_t CueRefTime;
+  } bgav_mkv_cue_reference_t;
+  
+typedef struct
+  {
+  uint64_t CueClusterPosition;
+  uint64_t CueBlockNumber;
+  uint64_t CueCodecState;
+
+  int num_references;
+  bgav_mkv_cue_reference_t * references;
+  } bgav_mkv_cue_track_t;
+
+typedef struct
+  {
+  uint64_t CueTime;
+
+  int num_tracks;
+  bgav_mkv_cue_track_t * tracks;
+  
+  } bgav_mkv_cue_point_t;
+
+typedef struct
+  {
+  int num_points;
+  bgav_mkv_cue_point_t * points;
+  } bgav_mkv_cues_t;
+
+int bgav_mkv_cues_read(bgav_input_context_t * ctx,
+                       bgav_mkv_cues_t * ret);
+
+void bgav_mkv_cues_dump(const bgav_mkv_cues_t * cues);
+void bgav_mkv_cues_free(bgav_mkv_cues_t * cues);
+
 
 /* Known IDs */
 #define MKV_ID_EBML                   0x1a45dfa3
@@ -180,6 +238,16 @@ int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
 
 /* Segment */
 #define MKV_ID_Segment                    0x18538067
+
+/* Meta seek information */
+
+#define MKV_ID_SeekHead                   0x114d9b74
+#define MKV_ID_Seek                       0x4dbb
+#define MKV_ID_SeekID                     0x53ab
+#define MKV_ID_SeekPosition               0x53ac
+
+/* Segment Info */
+
 #define MKV_ID_Info                       0x1549a966
 #define MKV_ID_SegmentUID                 0x73a4
 #define MKV_ID_SegmentFilename            0x7384
@@ -259,6 +327,20 @@ int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
 #define MKV_ID_OutputSamplingFrequency 0x78b5
 #define MKV_ID_Channels                0x9f
 #define MKV_ID_BitDepth                0x6264
+
+/* Cueing Data */
+
+#define MKV_ID_Cues               0x1C53BB6B
+#define MKV_ID_CuePoint           0xbb
+#define MKV_ID_CueTime            0xb3
+#define MKV_ID_CueTrackPositions  0xb7
+#define MKV_ID_CueTrack           0xf7
+#define MKV_ID_CueClusterPosition 0xf1
+#define MKV_ID_CueBlockNumber     0x5378
+#define MKV_ID_CueCodecState      0xea
+#define MKV_ID_CueReference       0xdb
+#define MKV_ID_CueRefTime         0x96
+
 
 #if 0
 #define MKV_ID_ 0x

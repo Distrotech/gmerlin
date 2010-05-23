@@ -286,6 +286,81 @@ void bgav_mkv_ebml_header_free(bgav_mkv_ebml_header_t * h)
   MY_FREE(h->doc_type);
   }
 
+/* Meta seek info */
+
+int bgav_mkv_meta_seek_info_read(bgav_input_context_t * ctx,
+                                 bgav_mkv_meta_seek_info_t * info,
+                                 bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  bgav_mkv_element_t e1;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_Seek:
+        if(info->num_entries+1 > info->entries_alloc)
+          {
+          info->entries_alloc = info->num_entries + 10;
+          info->entries = realloc(info->entries,
+                                 sizeof(*info->entries) * info->entries_alloc);
+          memset(info->entries + info->num_entries, 0,
+                 (info->entries_alloc - info->num_entries) * sizeof(*info->entries));
+          }
+        while(ctx->position < e.end)
+          {
+          if(!bgav_mkv_element_read(ctx, &e1))
+            return 0;
+          
+          switch(e1.id)
+            {
+            case MKV_ID_SeekID:
+              if(!bgav_mkv_read_id(ctx, &info->entries[info->num_entries].SeekID))
+                return 0;
+              break;
+            case MKV_ID_SeekPosition:
+              if(!mkv_read_uint(ctx, &info->entries[info->num_entries].SeekPosition, e1.size))
+                return 0;
+              break;
+            default:
+              bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                       "Skipping %"PRId64" bytes of element %x in meta seek\n", e1.size, e1.id);
+              bgav_input_skip(ctx, e1.size);
+            }
+          }
+        info->num_entries++;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x in meta seek\n", e.size, e.id);
+        bgav_input_skip(ctx, e.size);
+      }
+    }
+  return 1;
+  }
+
+void bgav_mkv_meta_seek_info_dump(const bgav_mkv_meta_seek_info_t * info)
+  {
+  int i;
+  bgav_dprintf("Meta seek information (%d entries)\n", info->num_entries);
+  for(i = 0; i < info->num_entries; i++)
+    {
+    bgav_dprintf("  Entry:\n");
+    bgav_dprintf("    ID: %x\n", info->entries[i].SeekID);
+    bgav_dprintf("    Position: %"PRId64"\n", info->entries[i].SeekPosition);
+    }
+  }
+
+void bgav_mkv_meta_seek_info_free(bgav_mkv_meta_seek_info_t * info)
+  {
+  MY_FREE(info->entries);
+  }
+
+/* Segment info */
+
 int bgav_mkv_segment_info_read(bgav_input_context_t * ctx,
                                bgav_mkv_segment_info_t * ret,
                                bgav_mkv_element_t * parent)
@@ -525,7 +600,8 @@ static int track_read_audio(bgav_input_context_t * ctx,
         break;
       default:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in audio\n", e.size, e.id);
+                 "Skipping %"PRId64" bytes of element %x in audio\n",
+                 e.size, e.id);
         bgav_input_skip(ctx, e.size);
         break;
       }

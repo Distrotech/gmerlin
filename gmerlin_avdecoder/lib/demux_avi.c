@@ -2131,7 +2131,6 @@ static int select_track_avi(bgav_demuxer_context_t * ctx, int track)
   return 1;
   }
 
-
 static void close_avi(bgav_demuxer_context_t * ctx)
   {
   avi_priv_t * priv;

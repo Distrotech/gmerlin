@@ -151,7 +151,7 @@ typedef struct
   uint32_t codec_tag;
   } audio_codec_map_t;
 
-audio_codec_map_t audio_codecs[] =
+static audio_codec_map_t audio_codecs[] =
   {
     /* various PCM "codecs" */
     { CODEC_ID_PCM_S16LE, BGAV_WAVID_2_FOURCC(0x0001), 16 },
@@ -285,7 +285,7 @@ typedef struct
   uint32_t fourcc;
   } video_codec_map_t;
 
-video_codec_map_t video_codecs[] =
+static video_codec_map_t video_codecs[] =
   {
 
     { CODEC_ID_MPEG1VIDEO, BGAV_MK_FOURCC('m','p','g','v') },

@@ -25,16 +25,23 @@
 
 #include <avdec_private.h>
 #include <matroska.h>
+#include <nanosoft.h>
 
 #define LOG_DOMAIN "demux_matroska"
 
 typedef struct
   {
   bgav_mkv_ebml_header_t ebml_header;
+  bgav_mkv_meta_seek_info_t meta_seek_info;
+  
   bgav_mkv_segment_info_t segment_info;
 
+  
+  
   bgav_mkv_track_t * tracks;
   int num_tracks;
+
+  int64_t segment_start;
   
   } mkv_t;
  
@@ -51,13 +58,183 @@ static int probe_matroska(bgav_input_context_t * input)
   return 0;
   }
 
+#define CODEC_FLAG_INCOMPLETE (1<<0)
+
+typedef struct
+  {
+  const char * id;
+  uint32_t fourcc;
+  void (*init_func)(bgav_stream_t * s);
+  int flags;
+  } codec_info_t;
+
+static void init_vfw(bgav_stream_t * s)
+  {
+  uint8_t * data;
+  uint8_t * end;
+  
+  bgav_BITMAPINFOHEADER_t bh;
+  bgav_mkv_track_t * p = s->priv;
+  
+  data = p->CodecPrivate;
+  end = data + p->CodecPrivateLen;
+  bgav_BITMAPINFOHEADER_read(&bh, &data);
+  s->fourcc = bgav_BITMAPINFOHEADER_get_fourcc(&bh);
+
+  if(data < end)
+    {
+    s->ext_size = end - data;
+    s->ext_data = malloc(s->ext_size);
+    memcpy(s->ext_data, data, s->ext_size);
+    }
+  }
+
+static const codec_info_t video_codecs[] =
+  {
+    { "V_MS/VFW/FOURCC", 0x00,                            init_vfw, 0 },
+    { "V_MPEG4/ISO/SP",  BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
+    { "V_MPEG4/ISO/ASP", BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
+    { "V_MPEG4/ISO/AP",  BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
+    { "V_MPEG4/MS/V1",   BGAV_MK_FOURCC('M','P','G','4'), NULL,     0 },
+    { "V_MPEG4/MS/V2",   BGAV_MK_FOURCC('M','P','4','2'), NULL,     0 },
+    { "V_MPEG4/MS/V3",   BGAV_MK_FOURCC('M','P','4','3'), NULL,     0 },
+    { "V_REAL/RV10",     BGAV_MK_FOURCC('R','V','1','0'), NULL,     0 },
+    { "V_REAL/RV20",     BGAV_MK_FOURCC('R','V','2','0'), NULL,     0 },
+    { "V_REAL/RV30",     BGAV_MK_FOURCC('R','V','3','0'), NULL,     0 },
+    { "V_REAL/RV40",     BGAV_MK_FOURCC('R','V','4','0'), NULL,     0 },
+    { /* End */ }
+  };
+
+static void init_acm(bgav_stream_t * s)
+  {
+  bgav_WAVEFORMAT_t wf;
+  bgav_mkv_track_t * p = s->priv;
+  
+  bgav_WAVEFORMAT_read(&wf, p->CodecPrivate, p->CodecPrivateLen);
+  bgav_WAVEFORMAT_get_format(&wf, s);
+  bgav_WAVEFORMAT_free(&wf);
+  }
+
+static const codec_info_t audio_codecs[] =
+  {
+    { "A_MS/ACM",        0x00,                            init_acm, 0 },
+    { /* End */ }
+  };
+
+static void init_stream_common(bgav_stream_t * s,
+                               bgav_mkv_track_t * track,
+                               const codec_info_t * codecs)
+  {
+  int i = 0;
+  const codec_info_t * info = NULL;
+  
+  s->priv = track;
+
+  while(codecs[i].id)
+    {
+    if(((codecs[i].flags & CODEC_FLAG_INCOMPLETE) &&
+        !strncmp(codecs[i].id, track->CodecID, strlen(codecs[i].id))) ||
+       !strcmp(codecs[i].id, track->CodecID))
+      {
+      info = &codecs[i];
+      break;
+      }
+    i++;
+    }
+
+  if(info)
+    {
+    s->fourcc = info->fourcc;
+    if(info->init_func)
+      info->init_func(s);
+    else if(track->CodecPrivateLen)
+      {
+      s->ext_data = malloc(track->CodecPrivateLen);
+      memcpy(s->ext_data, track->CodecPrivate, track->CodecPrivateLen);
+      s->ext_size = track->CodecPrivateLen;
+      }
+    }
+  
+  }
+
+static int init_audio(bgav_demuxer_context_t * ctx,
+                      bgav_mkv_track_t * track)
+  {
+  bgav_stream_t * s;
+  bgav_mkv_track_audio_t * a;
+  gavl_audio_format_t * fmt;
+
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
+  init_stream_common(s, track, audio_codecs);
+
+  fmt = &s->data.audio.format;
+  a = &track->audio;
+
+  if(a->SamplingFrequency > 0.0)
+    {
+    fmt->samplerate = (int)a->SamplingFrequency;
+
+    if(a->OutputSamplingFrequency > a->SamplingFrequency)
+      {
+      fmt->samplerate = (int)a->OutputSamplingFrequency;
+      s->flags |= STREAM_SBR;
+      }
+    }
+  if(a->Channels > 0)
+    fmt->num_channels = a->Channels;
+  if(a->BitDepth > 0)
+    s->data.audio.bits_per_sample = a->BitDepth;
+  return 1;
+  }
+
+static int init_video(bgav_demuxer_context_t * ctx,
+                      bgav_mkv_track_t * track)
+  {
+  bgav_stream_t * s;
+  bgav_mkv_track_video_t * v;
+  gavl_video_format_t * fmt;
+
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
+  init_stream_common(s, track, video_codecs);
+
+  fmt = &s->data.video.format;
+  v = &track->video;
+  
+  if(v->PixelWidth)
+    fmt->image_width = v->PixelWidth;
+  if(v->PixelHeight)
+    fmt->image_height = v->PixelHeight;
+
+#if 0  
+  if(v->DisplayWidth && v->DisplayHeight &&
+     ((v->DisplayWidth != v->PixelWidth) ||
+      (v->DisplayHeight != v->PixelHeight)))
+    {
+    fmt->pixel_width = 
+    }
+#else
+  fmt->pixel_width = 1;
+  fmt->pixel_height = 1;
+#endif
+  
+  return 1;
+  }
+
+static int read_index(bgav_demuxer_context_t * ctx)
+  {
+  mkv_t * p = ctx->priv;
+
+  
+  }
+
 static int open_matroska(bgav_demuxer_context_t * ctx)
   {
   bgav_mkv_element_t e;
   int done;
   int64_t pos;
   mkv_t * p;
-
+  int i;
+  
   p = calloc(1, sizeof(*p));
   ctx->priv = p;
   
@@ -70,12 +247,15 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   
   while(1)
     {
+    
     if(!bgav_mkv_element_read(ctx->input, &e))
       return 0;
 
     if(e.id == MKV_ID_Segment)
+      {
+      p->segment_start = ctx->input->position;
       break;
-
+      }
     else
       bgav_input_skip(ctx->input, e.size);
     }
@@ -87,6 +267,13 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
       return 0;
     switch(e.id)
       {
+      case MKV_ID_SeekHead:
+        if(!bgav_mkv_meta_seek_info_read(ctx->input,
+                                         &p->meta_seek_info,
+                                         &e))
+          return 0;
+        bgav_mkv_meta_seek_info_dump(&p->meta_seek_info);
+        break;
       case MKV_ID_Info:
         if(!bgav_mkv_segment_info_read(ctx->input, &p->segment_info, &e))
           return 0;
@@ -107,6 +294,58 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         bgav_input_skip(ctx->input, e.size);
       }
     }
+
+  /* Create track table */
+  ctx->tt = bgav_track_table_create(1);
+  
+  for(i = 0; i < p->num_tracks; i++)
+    {
+    switch(p->tracks[i].TrackType)
+      {
+      case MKV_TRACK_VIDEO:
+        if(!init_video(ctx, &p->tracks[i]))
+          return 0;
+        break;
+      case MKV_TRACK_AUDIO:
+        if(!init_audio(ctx, &p->tracks[i]))
+          return 0;
+        break;
+      case MKV_TRACK_COMPLEX:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Complex tracks not supported yet\n");
+        break;
+      case MKV_TRACK_LOGO:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Logo tracks not supported yet\n");
+        break;
+      case MKV_TRACK_SUBTITLE:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Subtitle tracks not supported yet\n");
+        break;
+      case MKV_TRACK_BUTTONS:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Button tracks not supported yet\n");
+        break;
+      case MKV_TRACK_CONTROL:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Control tracks not supported yet\n");
+        break;
+      }
+    }
+
+  /* Look for file index (cues) */
+  if(p->meta_seek_info.num_entries && ctx->input->input->seek_byte)
+    {
+    for(i = 0; i < p->meta_seek_info.num_entries; i++)
+      {
+      if(p->meta_seek_info.entries[i].SeekID == MKV_ID_Cues)
+        {
+        fprintf(stderr, "Found index at %"PRId64"\n",
+                p->meta_seek_info.entries[i].SeekPosition);
+        }
+      }
+    }
+    
 #if 0  
   /* Get segment information */
   
@@ -130,6 +369,7 @@ static void close_matroska(bgav_demuxer_context_t * ctx)
     bgav_mkv_track_free(&priv->tracks[i]);
   if(priv->tracks)
     free(priv->tracks);
+  bgav_mkv_meta_seek_info_free(&priv->meta_seek_info);
   free(priv);
   }
 

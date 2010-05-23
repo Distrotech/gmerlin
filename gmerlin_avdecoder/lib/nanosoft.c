@@ -365,6 +365,12 @@ void bgav_BITMAPINFOHEADER_read(bgav_BITMAPINFOHEADER_t * ret, uint8_t ** data)
   *data += 40;
   }
 
+uint32_t bgav_BITMAPINFOHEADER_get_fourcc(bgav_BITMAPINFOHEADER_t * bh)
+  {
+  return swap_endian(bh->biCompression);
+  }
+
+
 void bgav_BITMAPINFOHEADER_get_format(bgav_BITMAPINFOHEADER_t * bh,
                                       bgav_stream_t * s)
   {
@@ -380,8 +386,8 @@ void bgav_BITMAPINFOHEADER_get_format(bgav_BITMAPINFOHEADER_t * bh,
   s->data.video.image_size          = bh->biSizeImage;
   s->data.video.planes              = bh->biPlanes;
   
-  s->fourcc =                        swap_endian(bh->biCompression);
-
+  s->fourcc = bgav_BITMAPINFOHEADER_get_fourcc(bh);
+  
   /* Introduce a fourcc for RGB */
   
   if(!s->fourcc)

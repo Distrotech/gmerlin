@@ -63,6 +63,8 @@ void bgav_BITMAPINFOHEADER_get_format(bgav_BITMAPINFOHEADER_t * bh,
                                       bgav_stream_t * f);
 void bgav_BITMAPINFOHEADER_set_format(bgav_BITMAPINFOHEADER_t * bh,
                                       bgav_stream_t * f);
+uint32_t bgav_BITMAPINFOHEADER_get_fourcc(bgav_BITMAPINFOHEADER_t * bh);
+
 
 /* Waveformat (resembles the evolution of nanosoft speficifications) */
 
