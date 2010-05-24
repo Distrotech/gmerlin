@@ -184,7 +184,7 @@ int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
                          int * ret_num1,
                          bgav_mkv_element_t * parent);
 
-/* Cue points */
+/* Cue points (== Packet index) */
 
 typedef struct
   {
@@ -193,11 +193,13 @@ typedef struct
   
 typedef struct
   {
+  uint64_t CueTrack;
   uint64_t CueClusterPosition;
   uint64_t CueBlockNumber;
   uint64_t CueCodecState;
-
+  
   int num_references;
+  int references_alloc;
   bgav_mkv_cue_reference_t * references;
   } bgav_mkv_cue_track_t;
 
@@ -213,11 +215,12 @@ typedef struct
 typedef struct
   {
   int num_points;
+  int points_alloc;
   bgav_mkv_cue_point_t * points;
   } bgav_mkv_cues_t;
 
 int bgav_mkv_cues_read(bgav_input_context_t * ctx,
-                       bgav_mkv_cues_t * ret);
+                       bgav_mkv_cues_t * ret, int num_tracks);
 
 void bgav_mkv_cues_dump(const bgav_mkv_cues_t * cues);
 void bgav_mkv_cues_free(bgav_mkv_cues_t * cues);

@@ -35,8 +35,8 @@ typedef struct
   bgav_mkv_meta_seek_info_t meta_seek_info;
   
   bgav_mkv_segment_info_t segment_info;
-
-  
+  bgav_mkv_cues_t cues;
+  int have_cues;
   
   bgav_mkv_track_t * tracks;
   int num_tracks;
@@ -220,13 +220,6 @@ static int init_video(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static int read_index(bgav_demuxer_context_t * ctx)
-  {
-  mkv_t * p = ctx->priv;
-
-  
-  }
-
 static int open_matroska(bgav_demuxer_context_t * ctx)
   {
   bgav_mkv_element_t e;
@@ -342,6 +335,17 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         {
         fprintf(stderr, "Found index at %"PRId64"\n",
                 p->meta_seek_info.entries[i].SeekPosition);
+
+        pos = ctx->input->position;
+
+        bgav_input_seek(ctx->input,
+                        p->segment_start +
+                        p->meta_seek_info.entries[i].SeekPosition, SEEK_SET);
+        
+        if(bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))
+          p->have_cues = 1;
+
+        bgav_input_seek(ctx->input, pos, SEEK_SET);
         }
       }
     }
@@ -370,6 +374,8 @@ static void close_matroska(bgav_demuxer_context_t * ctx)
   if(priv->tracks)
     free(priv->tracks);
   bgav_mkv_meta_seek_info_free(&priv->meta_seek_info);
+
+  bgav_mkv_cues_free(&priv->cues);
   free(priv);
   }
 

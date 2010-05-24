@@ -869,3 +869,164 @@ int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
   *ret_num1 = ret_num;
   return 1;
   }
+
+/* Cue points */
+
+static int mkv_cue_track_read(bgav_input_context_t * ctx,
+                              bgav_mkv_cue_track_t * ret,
+                              bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_CueTrack:
+        if(!mkv_read_uint(ctx, &ret->CueTrack, e.size))
+          return 0;
+        break;
+      case MKV_ID_CueClusterPosition:
+        if(!mkv_read_uint(ctx, &ret->CueClusterPosition, e.size))
+          return 0;
+        break;
+      case MKV_ID_CueBlockNumber:
+        if(!mkv_read_uint(ctx, &ret->CueBlockNumber, e.size))
+          return 0;
+        break;
+      case MKV_ID_CueCodecState:
+        if(!mkv_read_uint(ctx, &ret->CueCodecState, e.size))
+          return 0;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x in cue track\n",
+                 e.size, e.id);
+        bgav_input_skip(ctx, e.size);
+        
+      }
+    
+    }
+  return 1;
+  }
+                                        
+
+static int mkv_cue_point_read(bgav_input_context_t * ctx,
+                              bgav_mkv_cue_point_t * ret,
+                              int num_tracks, bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+    switch(e.id)
+      {
+      case MKV_ID_CueTime:
+        if(!mkv_read_uint(ctx, &ret->CueTime, e.size))
+          return 0;
+        break;
+      case MKV_ID_CueTrackPositions:
+        ret->tracks = realloc(ret->tracks,
+                              (ret->num_tracks+1)*sizeof(*ret->tracks));
+        memset(ret->tracks + ret->num_tracks, 0, sizeof(*ret->tracks));
+        if(!mkv_cue_track_read(ctx, ret->tracks + ret->num_tracks, &e))
+          return 0;
+        ret->num_tracks++;
+        break;
+      default:
+        bgav_input_skip(ctx, e.size);
+        break;
+      }
+    }
+  return 1;
+  }
+
+int bgav_mkv_cues_read(bgav_input_context_t * ctx,
+                       bgav_mkv_cues_t * ret, int num_tracks)
+  {
+  bgav_mkv_element_t e;
+  bgav_mkv_element_t e1;
+  if(!bgav_mkv_element_read(ctx, &e))
+    {
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Couldn't read header element for cues (truncated file?)");
+    return 0;
+    }
+  if(e.id != MKV_ID_Cues)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Didn't find cues where I exepected them (truncated file?)");
+    return 0;
+    }
+  while(ctx->position < e.end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e1))
+      return 0;
+
+    switch(e1.id)
+      {
+      case MKV_ID_CuePoint:
+        /* Realloc */
+        if(ret->num_points + 1 >= ret->points_alloc)
+          {
+          ret->points_alloc = ret->num_points + 1024;
+          ret->points = realloc(ret->points,
+                                ret->points_alloc * sizeof(*ret->points));
+          memset(ret->points + ret->num_points, 0,
+                 (ret->points_alloc - ret->num_points) * sizeof(*ret->points));
+          }
+
+        if(!mkv_cue_point_read(ctx, ret->points + ret->num_points,
+                               num_tracks, &e1))
+          return 0;
+        ret->num_points++;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Skipping %"PRId64" bytes of element %x in cues\n",
+                 e1.size, e1.id);
+        bgav_input_skip(ctx, e1.size);
+        break;
+      }
+    }
+  bgav_mkv_cues_dump(ret);
+  return 1;
+  }
+
+void bgav_mkv_cues_dump(const bgav_mkv_cues_t * cues)
+  {
+  int i, j;
+  bgav_dprintf("Cues\n");
+  for(i = 0; i < cues->num_points; i++)
+    {
+    bgav_dprintf("  Cue point, time: %"PRId64"\n", cues->points[i].CueTime);
+    
+    for(j = 0; j < cues->points[i].num_tracks; j++)
+      {
+      bgav_dprintf("    Track: %"PRId64"\n", cues->points[i].tracks[j].CueTrack);
+      bgav_dprintf("      CueClusterPosition: %"PRId64"\n",
+                   cues->points[i].tracks[j].CueClusterPosition);
+      bgav_dprintf("      CueBlockNumber:     %"PRId64"\n",
+                   cues->points[i].tracks[j].CueBlockNumber);
+      bgav_dprintf("      CueCodecState:      %"PRId64"\n",
+                   cues->points[i].tracks[j].CueCodecState);
+      }
+    }
+  }
+
+void bgav_mkv_cues_free(bgav_mkv_cues_t * cues)
+  {
+  int i, j;
+
+  for(i = 0; i < cues->num_points; i++)
+    {
+    for(j = 0; j < cues->points[i].num_tracks; j++)
+      MY_FREE(cues->points[i].tracks[j].references);
+    MY_FREE(cues->points[i].tracks);
+    }
+  MY_FREE(cues->points);
+  }
