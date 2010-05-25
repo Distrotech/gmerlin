@@ -225,6 +225,26 @@ int bgav_mkv_cues_read(bgav_input_context_t * ctx,
 void bgav_mkv_cues_dump(const bgav_mkv_cues_t * cues);
 void bgav_mkv_cues_free(bgav_mkv_cues_t * cues);
 
+/* Cluster */
+
+typedef struct
+  {
+  uint64_t Timecode;
+
+  int num_silent_tracks;
+  uint64_t * silent_tracks;
+
+  uint64_t Position;
+  uint64_t PrevSize;
+  } bgav_mkv_cluster_t;
+
+int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
+                          bgav_mkv_cluster_t * ret,
+                          bgav_mkv_element_t * e);
+
+void bgav_mkv_cluster_dump(const bgav_mkv_cluster_t * cluster);
+void bgav_mkv_cluster_free(bgav_mkv_cluster_t * cluster);
+
 
 /* Known IDs */
 #define MKV_ID_EBML                   0x1a45dfa3
@@ -270,15 +290,7 @@ void bgav_mkv_cues_free(bgav_mkv_cues_t * cues);
 #define MKV_ID_MuxingApp                  0x4d80
 #define MKV_ID_WritingApp                 0x5741
 
-/* Cluster */
-#define MKV_ID_Cluster                    0x1f43b675
-#define MKV_ID_Timecode                   0xe7
-#define MKV_ID_SilentTracks               0x5854
-#define MKV_ID_SilentTrackNumber          0x58d7
-#define MKV_ID_Position                   0xa7
-#define MKV_ID_PrevSize                   0xab
-#define MKV_ID_BlockGroup                 0xa0
-#define MKV_ID_Block                      0xa1
+/* Tracks */
 
 #define MKV_ID_Tracks                   0x1654AE6B
 #define MKV_ID_TrackEntry               0xae
@@ -344,13 +356,33 @@ void bgav_mkv_cues_free(bgav_mkv_cues_t * cues);
 #define MKV_ID_CueReference       0xdb
 #define MKV_ID_CueRefTime         0x96
 
+/* Cluster */
+
+#define MKV_ID_Cluster           0x1f43b675
+#define MKV_ID_Timecode          0xe7
+#define MKV_ID_SilentTracks      0x5854
+#define MKV_ID_SilentTrackNumber 0x58d7
+#define MKV_ID_Position          0xa7
+#define MKV_ID_PrevSize          0xab
+#define MKV_ID_BlockGroup        0xa0
+
+
+/* Block */
+
+#define MKV_ID_Block             0xa1
+#define MKV_ID_BlockAdditions    0x75A1
+#define MKV_ID_BlockMore         0xa6
+#define MKV_ID_BlockAddID        0xee
+#define MKV_ID_BlockAdditional   0xa5
+#define MKV_ID_BlockDuration     0x9b
+#define MKV_ID_ReferencePriority 0xfa
+#define MKV_ID_ReferenceBlock    0xfb
+#define MKV_ID_CodecState        0xa4
+#define MKV_ID_Slices            0x8e
+#define MKV_ID_TimeSlice         0xe8
+#define MKV_ID_LaceNumber        0xcc
+#define MKV_ID_SimpleBlock       0xa3
 
 #if 0
-#define MKV_ID_ 0x
-#define MKV_ID_ 0x
-#define MKV_ID_ 0x
-#define MKV_ID_ 0x
-#define MKV_ID_ 0x
-#define MKV_ID_ 0x
 #define MKV_ID_ 0x
 #endif

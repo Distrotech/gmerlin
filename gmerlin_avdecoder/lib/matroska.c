@@ -437,7 +437,8 @@ int bgav_mkv_segment_info_read(bgav_input_context_t * ctx,
         break;
       default:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x\n", e.size, e.id);
+                 "Skipping %"PRId64" bytes of element %x in segment info\n",
+                 e.size, e.id);
         bgav_input_skip(ctx, e.size);
         break;
       }
@@ -1029,4 +1030,71 @@ void bgav_mkv_cues_free(bgav_mkv_cues_t * cues)
     MY_FREE(cues->points[i].tracks);
     }
   MY_FREE(cues->points);
+  }
+
+/* Cluster */
+
+int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
+                          bgav_mkv_cluster_t * ret,
+                          bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  int done = 0;
+  
+  while((ctx->position < parent->end) && !done)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+    switch(e.id)
+      {
+      case MKV_ID_Timecode:
+        if(!mkv_read_uint(ctx, &ret->Timecode, e.size))
+          return 0;
+        break;
+#if 0
+      case MKV_ID_SilentTracks:
+        break;
+      case MKV_ID_SilentTrackNumber:
+        break;
+#endif
+      case MKV_ID_Position:
+        if(!mkv_read_uint(ctx, &ret->Position, e.size))
+          return 0;
+        break;
+      case MKV_ID_PrevSize:
+        if(!mkv_read_uint(ctx, &ret->PrevSize, e.size))
+          return 0;
+        break;
+      case MKV_ID_BlockGroup:
+        fprintf(stderr, "Got block group\n");
+        done = 1;
+        break;
+      case MKV_ID_Block:
+        fprintf(stderr, "Got block\n");
+        done = 1;
+        break;
+      case MKV_ID_SimpleBlock:
+        fprintf(stderr, "Got simple block\n");
+        done = 1;
+        break;
+      }
+    }
+  return 1;
+  }
+
+void bgav_mkv_cluster_dump(const bgav_mkv_cluster_t * c)
+  {
+  int i;
+  bgav_dprintf("Cluster\n");
+  bgav_dprintf("  Timecode: %"PRId64"\n", c->Timecode);
+  bgav_dprintf("  PrevSize: %"PRId64"\n", c->PrevSize);
+  bgav_dprintf("  Position: %"PRId64"\n", c->Position);
+  bgav_dprintf("  SilentTracks: %d tracks\n", c->num_silent_tracks);
+  for(i = 0; i < c->num_silent_tracks; i++)
+    bgav_dprintf("    SilentTrack: %"PRId64"\n", c->silent_tracks[i]);
+  }
+
+void bgav_mkv_cluster_free(bgav_mkv_cluster_t * c)
+  {
+  MY_FREE(c->silent_tracks);
   }
