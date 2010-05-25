@@ -240,7 +240,8 @@ typedef struct
 
 int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
                           bgav_mkv_cluster_t * ret,
-                          bgav_mkv_element_t * e);
+                          bgav_mkv_element_t * parent,
+                          bgav_mkv_element_t * block);
 
 void bgav_mkv_cluster_dump(const bgav_mkv_cluster_t * cluster);
 void bgav_mkv_cluster_free(bgav_mkv_cluster_t * cluster);

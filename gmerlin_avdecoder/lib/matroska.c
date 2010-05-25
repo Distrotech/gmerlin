@@ -1036,19 +1036,19 @@ void bgav_mkv_cues_free(bgav_mkv_cues_t * cues)
 
 int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
                           bgav_mkv_cluster_t * ret,
-                          bgav_mkv_element_t * parent)
+                          bgav_mkv_element_t * parent,
+                          bgav_mkv_element_t * e)
   {
-  bgav_mkv_element_t e;
   int done = 0;
   
   while((ctx->position < parent->end) && !done)
     {
-    if(!bgav_mkv_element_read(ctx, &e))
+    if(!bgav_mkv_element_read(ctx, e))
       return 0;
-    switch(e.id)
+    switch(e->id)
       {
       case MKV_ID_Timecode:
-        if(!mkv_read_uint(ctx, &ret->Timecode, e.size))
+        if(!mkv_read_uint(ctx, &ret->Timecode, e->size))
           return 0;
         break;
 #if 0
@@ -1058,11 +1058,11 @@ int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
         break;
 #endif
       case MKV_ID_Position:
-        if(!mkv_read_uint(ctx, &ret->Position, e.size))
+        if(!mkv_read_uint(ctx, &ret->Position, e->size))
           return 0;
         break;
       case MKV_ID_PrevSize:
-        if(!mkv_read_uint(ctx, &ret->PrevSize, e.size))
+        if(!mkv_read_uint(ctx, &ret->PrevSize, e->size))
           return 0;
         break;
       case MKV_ID_BlockGroup:

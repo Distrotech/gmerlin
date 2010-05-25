@@ -452,6 +452,7 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
 static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   {
   bgav_mkv_element_t e;
+  bgav_mkv_element_t e1;
   mkv_t * priv = ctx->priv;
   fprintf(stderr, "next_packet_matroska\n");
   
@@ -461,9 +462,12 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   if(e.id != MKV_ID_Cluster)
     return 0;
   
-  if(!bgav_mkv_cluster_read(ctx->input, &priv->cluster, &e))
+  if(!bgav_mkv_cluster_read(ctx->input, &priv->cluster, &e, &e1))
     return 0;
   bgav_mkv_cluster_dump(&priv->cluster);
+
+  
+  
   return 0;
   }
 
