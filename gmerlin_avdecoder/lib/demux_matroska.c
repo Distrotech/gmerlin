@@ -203,6 +203,7 @@ static void init_vorbis(bgav_stream_t * s)
   append_vorbis_extradata(s, ptr, len3);
   
   s->fourcc = BGAV_MK_FOURCC('V','B','I','S');
+  s->flags |= STREAM_LACING;
   }
 
 
@@ -466,7 +467,6 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         
         if(bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))
           p->have_cues = 1;
-
         bgav_input_seek(ctx->input, pos, SEEK_SET);
         }
       }
@@ -474,19 +474,60 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
+
 static int process_block(bgav_demuxer_context_t * ctx,
                          bgav_mkv_element_t * parent)
   {
   bgav_mkv_block_t b;
+  bgav_stream_t * s;
+  bgav_packet_t * p;
+  
   if(!bgav_mkv_block_read(ctx->input, &b, parent))
     return 0;
   
   bgav_mkv_block_dump(&b);
+  
+  s = bgav_track_find_stream(ctx, b.track);
 
-  /* TODO: Read data */
-  bgav_input_skip(ctx->input, b.data_size);
+  if(!s)
+    {
+    bgav_input_skip(ctx->input, b.data_size);
+    return 1;
+    }
+
+  switch(b.flags & MKV_LACING_MASK)
+    {
+    case MKV_LACING_NONE:
+      p = bgav_stream_get_packet_write(s);
+      p->data_size = 0;
+
+      if(!(s->flags & STREAM_LACING))
+        {
+        bgav_packet_alloc(p, b.data_size);
+        if(bgav_input_read_data(ctx->input, p->data, b.data_size) <
+           b.data_size)
+          return 0;
+        p->data_size = b.data_size;
+        }
+      else
+        {
+        if(!bgav_packet_read_segment(p, ctx->input, b.data_size))
+          return 0;
+        }
+      bgav_packet_done_write(p);
+      break;
+    default:
+      fprintf(stderr, "Lacing not supported yet\n");
+      bgav_input_skip(ctx->input, b.data_size);
+      break;
+      
+    }
+  
+  
   return 1;
   }
+
+/* next packet: Processes a whole cluster at once */
 
 static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   {
@@ -536,7 +577,7 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
     else
       break;
     }
-  return 0;
+  return 1;
   }
 
 

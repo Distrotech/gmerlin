@@ -564,7 +564,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->index_mode = INDEX_MODE_SIMPLE;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
-
+        s->flags |= STREAM_LACING;
+        
         ogg_stream->header_packets_needed = 3;
         append_extradata(s, &priv->op);
         ogg_stream->header_packets_read = 1;

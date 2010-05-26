@@ -138,6 +138,21 @@ void bgav_packet_append_segment(bgav_packet_t * p, const uint8_t * seg,
   p->data_size += len + 4;
   }
 
+int bgav_packet_read_segment(bgav_packet_t * p,
+                              bgav_input_context_t * ctx,
+                              int32_t len)
+  {
+  uint8_t * ptr;
+  bgav_packet_alloc(p, p->data_size + len + 4);
+  ptr = p->data + p->data_size;
+  BGAV_32BE_2_PTR(len, ptr); ptr+=4;
+
+  if(bgav_input_read_data(ctx, ptr, len) < len)
+    return 0;
+  p->data_size += len + 4;
+  }
+
+
 
 #if 0
 void bgav_packet_get_text_subtitle(bgav_packet_t * p,

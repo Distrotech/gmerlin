@@ -248,6 +248,10 @@ void bgav_packet_dump(bgav_packet_t*);
 void bgav_packet_pad(bgav_packet_t * p);
 void bgav_packet_append_segment(bgav_packet_t * p,
                                 const uint8_t * seg, int len);
+int bgav_packet_read_segment(bgav_packet_t * p,
+                             bgav_input_context_t * ctx,
+                             int32_t len);
+
 
 void bgav_packet_done_write(bgav_packet_t *);
 
@@ -362,6 +366,7 @@ typedef enum
 #define STREAM_FIELD_PICTURES     (1<<14)
 #define STREAM_FILTER_PACKETS     (1<<15)
 #define STREAM_SBR                (1<<16)
+#define STREAM_LACING             (1<<17)
 
 
 /* Stream could not get exact compression info from the
