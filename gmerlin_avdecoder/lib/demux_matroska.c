@@ -128,6 +128,7 @@ static const codec_info_t video_codecs[] =
     { "V_REAL/RV20",     BGAV_MK_FOURCC('R','V','2','0'), NULL,     0 },
     { "V_REAL/RV30",     BGAV_MK_FOURCC('R','V','3','0'), NULL,     0 },
     { "V_REAL/RV40",     BGAV_MK_FOURCC('R','V','4','0'), NULL,     0 },
+    { "V_VP8",           BGAV_MK_FOURCC('V','P','8','0'), NULL,     0 },
     { /* End */ }
   };
 
@@ -214,7 +215,8 @@ static const codec_info_t audio_codecs[] =
     { /* End */ }
   };
 
-static void init_stream_common(bgav_stream_t * s,
+static void init_stream_common(mkv_t * m,
+                               bgav_stream_t * s,
                                bgav_mkv_track_t * track,
                                const codec_info_t * codecs)
   {
@@ -248,6 +250,7 @@ static void init_stream_common(bgav_stream_t * s,
       }
     }
   s->stream_id = track->TrackNumber;
+  s->timescale = 1000000000 / m->segment_info.TimecodeScale;
   }
 
 static int init_audio(bgav_demuxer_context_t * ctx,
@@ -256,9 +259,10 @@ static int init_audio(bgav_demuxer_context_t * ctx,
   bgav_stream_t * s;
   bgav_mkv_track_audio_t * a;
   gavl_audio_format_t * fmt;
-
+  mkv_t * m = ctx->priv;
+  
   s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-  init_stream_common(s, track, audio_codecs);
+  init_stream_common(m, s, track, audio_codecs);
 
   fmt = &s->data.audio.format;
   a = &track->audio;
@@ -286,9 +290,10 @@ static int init_video(bgav_demuxer_context_t * ctx,
   bgav_stream_t * s;
   bgav_mkv_track_video_t * v;
   gavl_video_format_t * fmt;
-
+  mkv_t * m = ctx->priv;
+  
   s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  init_stream_common(s, track, video_codecs);
+  init_stream_common(m, s, track, video_codecs);
 
   fmt = &s->data.video.format;
   v = &track->video;
@@ -309,6 +314,11 @@ static int init_video(bgav_demuxer_context_t * ctx,
   fmt->pixel_width = 1;
   fmt->pixel_height = 1;
 #endif
+
+  fmt->frame_width = fmt->image_width;
+  fmt->frame_height = fmt->image_height;
+  fmt->timescale = s->timescale;
+  fmt->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   
   return 1;
   }
@@ -481,11 +491,12 @@ static int process_block(bgav_demuxer_context_t * ctx,
   bgav_mkv_block_t b;
   bgav_stream_t * s;
   bgav_packet_t * p;
+  mkv_t * m = ctx->priv;
   
   if(!bgav_mkv_block_read(ctx->input, &b, parent))
     return 0;
   
-  bgav_mkv_block_dump(&b);
+  //  bgav_mkv_block_dump(&b);
   
   s = bgav_track_find_stream(ctx, b.track);
 
@@ -508,6 +519,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
            b.data_size)
           return 0;
         p->data_size = b.data_size;
+        p->pts = b.timecode + m->cluster.Timecode;
         }
       else
         {
@@ -519,6 +531,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
     default:
       fprintf(stderr, "Lacing not supported yet\n");
       bgav_input_skip(ctx->input, b.data_size);
+      return 0;
       break;
       
     }
@@ -559,7 +572,7 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
             (e1.id == MKV_ID_SimpleBlock))
       {
       if(!process_block(ctx, &e1))
-        return !!num_blocks;
+        return 0;
       num_blocks++;
       }
     else

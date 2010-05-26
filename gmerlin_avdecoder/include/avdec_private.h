@@ -799,6 +799,7 @@ struct bgav_options_s
   int shrink;
 
   int vdpau;
+  int threads;
   
   /* Callbacks */
 

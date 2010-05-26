@@ -561,6 +561,17 @@ BGAV_PUBLIC
 void bgav_options_set_postprocessing_level(bgav_options_t* opt,
                                            float pp_level);
 
+/** \ingroup options
+ *  \brief Set number of threads
+ *  \param opt Option container
+ *  \param threads Number of threads to use
+ *
+ *   Not all codecs support this
+ */
+
+BGAV_PUBLIC
+void bgav_options_set_threads(bgav_options_t * opt, int threads);
+
   
 /** \ingroup options
  *  \brief Set DVB channels file

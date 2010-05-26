@@ -206,6 +206,11 @@ void bgav_options_set_vdpau(bgav_options_t* opt,
   opt->vdpau = vdpau;
   }
 
+void bgav_options_set_threads(bgav_options_t * opt, int threads)
+  {
+  opt->threads = threads;
+  }
+
 #define FREE(ptr) if(ptr) free(ptr)
 
 void bgav_options_free(bgav_options_t*opt)
@@ -229,6 +234,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->cache_time = 500;
   b->cache_size = 20;
   b->vdpau = 1;
+  b->threads = 1;
   // Test
   //  b->rtp_try_tcp = 1;
   }
@@ -310,6 +316,7 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_INT(shrink);
 
   CP_INT(vdpau);
+  CP_INT(threads);
 
   /* Callbacks */
   
