@@ -36,13 +36,13 @@ void bgav_mkv_element_dump(const bgav_mkv_element_t * ret);
 
 typedef struct
   {
-  int version;
-  int read_version;
-  int max_id_length;
-  int max_size_length;
-  char * doc_type;
-  int doc_type_version;
-  int doc_type_read_version;
+  int EBMLVersion;
+  int EBMLReadVersion;
+  int EBMLMaxIDLength;
+  int EBMLMaxSizeLength;
+  char * DocType;
+  int DocTypeVersion;
+  int DocTypeReadVersion;
   } bgav_mkv_ebml_header_t;
 
 int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
@@ -246,6 +246,34 @@ int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
 void bgav_mkv_cluster_dump(const bgav_mkv_cluster_t * cluster);
 void bgav_mkv_cluster_free(bgav_mkv_cluster_t * cluster);
 
+/* Block */
+
+#define MKV_LACING_MASK  0x06
+#define MKV_LACING_NONE  0x00
+#define MKV_LACING_XIPH  0x02
+#define MKV_LACING_EBML  0x06
+#define MKV_LACING_FIXED 0x04
+#define MKV_INVISIBLE    0x10
+#define MKV_KEYFRAME     0x80
+#define MKV_DISCARDABLE  0x01
+
+#define MKV_LACING_MASK  0x06
+
+typedef struct
+  {
+  int flags;
+  int16_t timecode;
+  int64_t track;
+  int num_laces;
+  int data_size;
+  } bgav_mkv_block_t;
+
+int bgav_mkv_block_read(bgav_input_context_t * ctx,
+                         bgav_mkv_block_t * ret,
+                         bgav_mkv_element_t * parent);
+
+void bgav_mkv_block_dump(bgav_mkv_block_t * b);
+                          
 
 /* Known IDs */
 #define MKV_ID_EBML                   0x1a45dfa3

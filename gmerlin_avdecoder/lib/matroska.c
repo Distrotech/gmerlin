@@ -202,13 +202,13 @@ int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
   uint64_t tmp_64;
 
   // Set defaults
-  ret->version      = 1;
-  ret->read_version = 1;
-  ret->max_id_length     = 4;
-  ret->max_size_length   = 8;
+  ret->EBMLVersion      = 1;
+  ret->EBMLReadVersion = 1;
+  ret->EBMLMaxIDLength     = 4;
+  ret->EBMLMaxSizeLength   = 8;
   
-  ret->doc_type_version      = 1;
-  ret->doc_type_read_version = 1;
+  ret->DocTypeVersion      = 1;
+  ret->DocTypeReadVersion = 1;
 
   /* Read stuff */
 
@@ -218,7 +218,7 @@ int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
   if(e.id != MKV_ID_EBML)
     return 0;
 
-  bgav_mkv_element_dump(&e);
+  //  bgav_mkv_element_dump(&e);
 
   while(ctx->position < e.end)
     {
@@ -230,36 +230,36 @@ int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
       case MKV_ID_EBMLVersion:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
-        ret->version = tmp_64;
+        ret->EBMLVersion = tmp_64;
         break;
       case MKV_ID_EBMLReadVersion:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
-        ret->read_version = tmp_64;
+        ret->EBMLReadVersion = tmp_64;
         break;
       case MKV_ID_EBMLMaxIDLength:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
-        ret->max_id_length = tmp_64;
+        ret->EBMLMaxIDLength = tmp_64;
         break;
       case MKV_ID_EBMLMaxSizeLength:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
-        ret->max_size_length = tmp_64;
+        ret->EBMLMaxSizeLength = tmp_64;
         break;
       case MKV_ID_DocType:
-        if(!mkv_read_string(ctx, &ret->doc_type, e1.size)) 
+        if(!mkv_read_string(ctx, &ret->DocType, e1.size)) 
           return 0;
         break;
       case MKV_ID_DocTypeVersion:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
-        ret->doc_type_version = tmp_64;
+        ret->DocTypeVersion = tmp_64;
         break;
       case MKV_ID_DocTypeReadVersion:
         if(!mkv_read_uint(ctx, &tmp_64, e1.size))
           return 0;
-        ret->doc_type_read_version = tmp_64;
+        ret->DocTypeReadVersion = tmp_64;
         break;
       default:
         bgav_input_skip(ctx, e1.size);
@@ -271,19 +271,19 @@ int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
 void bgav_mkv_ebml_header_dump(const bgav_mkv_ebml_header_t * ret)
   {
   bgav_dprintf("EBML Header\n");
-  bgav_dprintf("  EBMLVersion:        %d\n", ret->version);
-  bgav_dprintf("  EBMLReadVersion:    %d\n", ret->read_version);
-  bgav_dprintf("  EBMLMaxIDLength:    %d\n", ret->max_id_length);
-  bgav_dprintf("  EBMLMaxSizeLength:  %d\n", ret->max_size_length);
-  bgav_dprintf("  DocType:            %s\n", ret->doc_type);
-  bgav_dprintf("  DocTypeVersion:     %d\n", ret->doc_type_version);
-  bgav_dprintf("  DocTypeReadVersion: %d\n", ret->doc_type_read_version);
+  bgav_dprintf("  EBMLVersion:        %d\n", ret->EBMLVersion);
+  bgav_dprintf("  EBMLReadVersion:    %d\n", ret->EBMLReadVersion);
+  bgav_dprintf("  EBMLMaxIDLength:    %d\n", ret->EBMLMaxIDLength);
+  bgav_dprintf("  EBMLMaxSizeLength:  %d\n", ret->EBMLMaxSizeLength);
+  bgav_dprintf("  DocType:            %s\n", ret->DocType);
+  bgav_dprintf("  DocTypeVersion:     %d\n", ret->DocTypeVersion);
+  bgav_dprintf("  DocTypeReadVersion: %d\n", ret->DocTypeReadVersion);
   
   }
 
 void bgav_mkv_ebml_header_free(bgav_mkv_ebml_header_t * h)
   {
-  MY_FREE(h->doc_type);
+  MY_FREE(h->DocType);
   }
 
 /* Meta seek info */
@@ -994,7 +994,7 @@ int bgav_mkv_cues_read(bgav_input_context_t * ctx,
         break;
       }
     }
-  bgav_mkv_cues_dump(ret);
+  //  bgav_mkv_cues_dump(ret);
   return 1;
   }
 
@@ -1097,4 +1097,48 @@ void bgav_mkv_cluster_dump(const bgav_mkv_cluster_t * c)
 void bgav_mkv_cluster_free(bgav_mkv_cluster_t * c)
   {
   MY_FREE(c->silent_tracks);
+  }
+
+/* Block */
+
+int bgav_mkv_block_read(bgav_input_context_t * ctx,
+                         bgav_mkv_block_t * ret,
+                         bgav_mkv_element_t * parent)
+  {
+  uint8_t tmp_8;
+  int64_t pos = ctx->position;
+
+  memset(ret, 0, sizeof(*ret));
+  
+  /* It's no size but has the same encoding */
+  if(!bgav_mkv_read_size(ctx, &ret->track) ||
+     !bgav_input_read_16_be(ctx, (uint16_t*)(&ret->timecode)) ||
+     !bgav_input_read_8(ctx, &tmp_8))
+    return 0;
+
+  ret->flags = tmp_8;
+
+  if(parent->id == MKV_ID_Block)
+    ret->flags &= ~(MKV_DISCARDABLE|MKV_KEYFRAME);
+
+  if((ret->flags & MKV_LACING_MASK) != MKV_LACING_NONE)
+    {
+    if(!bgav_input_read_8(ctx, &tmp_8))
+      return 0;
+    ret->num_laces = tmp_8 + 1;
+    }
+
+  ret->data_size = parent->size - (ctx->position - pos);
+  
+  return 1;
+  }
+
+void bgav_mkv_block_dump(bgav_mkv_block_t * b)
+  {
+  bgav_dprintf("Block\n");
+  bgav_dprintf("  Timecode: %d\n", b->timecode);
+  bgav_dprintf("  Track:    %"PRId64"\n", b->track);
+  bgav_dprintf("  Flags:    %02x\n", b->flags);
+  bgav_dprintf("  NumLaces: %d\n", b->num_laces);
+  bgav_dprintf("  DataSize: %d\n", b->data_size);
   }

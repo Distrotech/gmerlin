@@ -48,14 +48,39 @@ typedef struct
  
 static int probe_matroska(bgav_input_context_t * input)
   {
-  uint32_t header;
-
-  if(!bgav_input_get_32_be(input, &header))
+  bgav_mkv_ebml_header_t h;
+  bgav_input_context_t * input_mem;
+  
+  /* We want a complete EBML header in the first 64 bits
+   * with DocType either "matroska" or "webm"
+   */
+  uint8_t header[64];
+  
+  if(bgav_input_get_data(input, header, 64) < 64)
     return 0;
 
-  if(header == 0x1a45dfa3) // EBML signature
+  if((header[0] != 0x1a) ||
+     (header[1] != 0x45) ||
+     (header[2] != 0xdf) ||
+     (header[3] != 0xa3)) // No EBML signature
+    return 0; 
+
+  input_mem = bgav_input_open_memory(header, 64, input->opt);
+
+  if(!bgav_mkv_ebml_header_read(input_mem, &h))
+    return 0;
+
+  if(!h.DocType)
+    return 0;
+
+  if(!strcmp(h.DocType, "matroska") ||
+     !strcmp(h.DocType, "webm"))
+    {
+    bgav_mkv_ebml_header_free(&h);
     return 1;
+    }
   
+  bgav_mkv_ebml_header_free(&h);
   return 0;
   }
 
@@ -221,7 +246,7 @@ static void init_stream_common(bgav_stream_t * s,
       s->ext_size = track->CodecPrivateLen;
       }
     }
-  
+  s->stream_id = track->TrackNumber;
   }
 
 static int init_audio(bgav_demuxer_context_t * ctx,
@@ -310,7 +335,7 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   if(!bgav_mkv_ebml_header_read(ctx->input, &p->ebml_header))
     return 0;
 
-  bgav_mkv_ebml_header_dump(&p->ebml_header);
+  //  bgav_mkv_ebml_header_dump(&p->ebml_header);
   
   /* Get the first segment */
   
@@ -344,9 +369,9 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
       return 0;
     head_len = input_mem->position;
 
-    fprintf(stderr, "Got element (%d header bytes)\n",
-            head_len);
-    bgav_mkv_element_dump(&e);
+    //    fprintf(stderr, "Got element (%d header bytes)\n",
+    //            head_len);
+    //    bgav_mkv_element_dump(&e);
     
     switch(e.id)
       {
@@ -357,14 +382,14 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
                                          &p->meta_seek_info,
                                          &e))
           return 0;
-        bgav_mkv_meta_seek_info_dump(&p->meta_seek_info);
+        // bgav_mkv_meta_seek_info_dump(&p->meta_seek_info);
         break;
       case MKV_ID_Info:
         bgav_input_skip(ctx->input, head_len);
         e.end += pos;
         if(!bgav_mkv_segment_info_read(ctx->input, &p->segment_info, &e))
           return 0;
-        bgav_mkv_segment_info_dump(&p->segment_info);
+        //  bgav_mkv_segment_info_dump(&p->segment_info);
         break;
       case MKV_ID_Tracks:
         bgav_input_skip(ctx->input, head_len);
@@ -449,8 +474,23 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
+static int process_block(bgav_demuxer_context_t * ctx,
+                         bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_block_t b;
+  if(!bgav_mkv_block_read(ctx->input, &b, parent))
+    return 0;
+  
+  bgav_mkv_block_dump(&b);
+
+  /* TODO: Read data */
+  bgav_input_skip(ctx->input, b.data_size);
+  return 1;
+  }
+
 static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   {
+  int num_blocks = 0;
   bgav_mkv_element_t e;
   bgav_mkv_element_t e1;
   mkv_t * priv = ctx->priv;
@@ -466,8 +506,36 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
     return 0;
   bgav_mkv_cluster_dump(&priv->cluster);
 
-  
-  
+  while(1)
+    {
+    if(e1.id == MKV_ID_BlockGroup)
+      {
+      fprintf(stderr, "Block group not supported");
+      return 0;
+      }
+
+    else if((e1.id == MKV_ID_Block) ||
+            (e1.id == MKV_ID_SimpleBlock))
+      {
+      if(!process_block(ctx, &e1))
+        return !!num_blocks;
+      num_blocks++;
+      }
+    else
+      {
+      fprintf(stderr, "Unknown element %x in cluster\n", e1.id);
+      return 0;
+      }
+    
+    
+    if(ctx->input->position < e.end)
+      {
+      if(!bgav_mkv_element_read(ctx->input, &e1))
+        return !!num_blocks;
+      }
+    else
+      break;
+    }
   return 0;
   }
 
