@@ -96,6 +96,7 @@ typedef struct
   uint32_t fourcc;
   void (*init_func)(bgav_stream_t * s);
   int flags;
+  int frame_granularity;
   } codec_info_t;
 
 static void init_vfw(bgav_stream_t * s)
@@ -211,11 +212,19 @@ static void init_vorbis(bgav_stream_t * s)
   s->flags |= STREAM_LACING;
   }
 
+static void init_aac(bgav_stream_t * s)
+  {
+  
+  }
 
 static const codec_info_t audio_codecs[] =
   {
-    { "A_MS/ACM",        0x00,                            init_acm,    0 },
-    { "A_VORBIS",        0x00,                            init_vorbis, 0 },
+    { "A_MS/ACM",        0x00,                            init_acm,    0       },
+    { "A_VORBIS",        0x00,                            init_vorbis, 0, 128  },
+    { "A_MPEG/L3",       BGAV_MK_FOURCC('.','m','p','3'), NULL,        0, 576  },
+    { "A_MPEG/L2",       BGAV_MK_FOURCC('.','m','p','2'), NULL,        0, 1152 },
+    { "A_MPEG/L1",       BGAV_MK_FOURCC('.','m','p','1'), NULL,        0, 576  },
+    { "A_AAC/",          BGAV_MK_FOURCC('m','p','4','a'), init_aac,    0, 1024 },
     { /* End */ }
   };
 
@@ -516,7 +525,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
   if(!bgav_mkv_block_read(ctx->input, &b, parent))
     return 0;
   
-  //  bgav_mkv_block_dump(&b);
+  bgav_mkv_block_dump(&b);
   
   s = bgav_track_find_stream(ctx, b.track);
 

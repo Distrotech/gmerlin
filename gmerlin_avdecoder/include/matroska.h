@@ -170,6 +170,8 @@ typedef struct
   
   /* TODO: Content encodings */
   
+  /* Secondary variables (not set by parser, needed to make audio PTSes sample accurate) */
+  int granularity; 
   } bgav_mkv_track_t;
 
 int bgav_mkv_track_read(bgav_input_context_t * ctx,
