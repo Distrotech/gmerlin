@@ -44,6 +44,9 @@ typedef struct
   int64_t segment_start;
 
   bgav_mkv_cluster_t cluster;
+
+  int64_t pts_offset;
+  
   } mkv_t;
  
 static int probe_matroska(bgav_input_context_t * input)
@@ -342,6 +345,7 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     
   p = calloc(1, sizeof(*p));
   ctx->priv = p;
+  p->pts_offset = BGAV_TIMESTAMP_UNDEFINED;
   
   if(!bgav_mkv_ebml_header_read(ctx->input, &p->ebml_header))
     return 0;
@@ -400,7 +404,7 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         e.end += pos;
         if(!bgav_mkv_segment_info_read(ctx->input, &p->segment_info, &e))
           return 0;
-        //  bgav_mkv_segment_info_dump(&p->segment_info);
+        bgav_mkv_segment_info_dump(&p->segment_info);
         break;
       case MKV_ID_Tracks:
         bgav_input_skip(ctx->input, head_len);
@@ -408,11 +412,19 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         if(!bgav_mkv_tracks_read(ctx->input, &p->tracks, &p->num_tracks, &e))
           return 0;
         break;
+      case MKV_ID_Cues:
+        if(!bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))
+          return 0;
+        fprintf(stderr, "Got cues before clusters\n");
+        p->have_cues = 1;
+        break;
       case MKV_ID_Cluster:
         done = 1;
         ctx->data_start = pos;
         ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
         break;
+
+        
       default:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                  "Skipping %"PRId64" bytes of element %x in segment\n",
@@ -460,7 +472,8 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     }
 
   /* Look for file index (cues) */
-  if(p->meta_seek_info.num_entries && ctx->input->input->seek_byte)
+  if(p->meta_seek_info.num_entries && ctx->input->input->seek_byte &&
+     !p->have_cues)
     {
     for(i = 0; i < p->meta_seek_info.num_entries; i++)
       {
@@ -481,6 +494,12 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         }
       }
     }
+
+  /* get duration */
+  if(p->segment_info.Duration > 0.0)
+    ctx->tt->cur->duration =
+      gavl_seconds_to_time(p->segment_info.Duration * 
+                           p->segment_info.TimecodeScale * 1.0e-9);
   return 1;
   }
 
@@ -519,7 +538,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
            b.data_size)
           return 0;
         p->data_size = b.data_size;
-        p->pts = b.timecode + m->cluster.Timecode;
+        p->pts = b.timecode + m->cluster.Timecode - m->pts_offset;
         }
       else
         {
@@ -535,8 +554,6 @@ static int process_block(bgav_demuxer_context_t * ctx,
       break;
       
     }
-  
-  
   return 1;
   }
 
@@ -560,12 +577,18 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
     return 0;
   bgav_mkv_cluster_dump(&priv->cluster);
 
+  if(priv->pts_offset == BGAV_TIMESTAMP_UNDEFINED)
+    priv->pts_offset = priv->cluster.Timecode;
+  
   while(1)
     {
     if(e1.id == MKV_ID_BlockGroup)
       {
-      fprintf(stderr, "Block group not supported");
-      return 0;
+      fprintf(stderr, "Got Block group\n");
+
+      if(!bgav_mkv_element_read(ctx->input, &e1))
+        return 0;
+      continue;
       }
 
     else if((e1.id == MKV_ID_Block) ||
