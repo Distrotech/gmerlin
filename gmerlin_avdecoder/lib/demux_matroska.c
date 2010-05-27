@@ -84,6 +84,7 @@ static int probe_matroska(bgav_input_context_t * input)
     }
   
   bgav_mkv_ebml_header_free(&h);
+  bgav_input_close(input_mem);
   return ret;
   }
 
