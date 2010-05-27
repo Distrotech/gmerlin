@@ -53,6 +53,7 @@ static int probe_matroska(bgav_input_context_t * input)
   {
   bgav_mkv_ebml_header_t h;
   bgav_input_context_t * input_mem;
+  int ret = 0;
   
   /* We want a complete EBML header in the first 64 bits
    * with DocType either "matroska" or "webm"
@@ -79,12 +80,11 @@ static int probe_matroska(bgav_input_context_t * input)
   if(!strcmp(h.DocType, "matroska") ||
      !strcmp(h.DocType, "webm"))
     {
-    bgav_mkv_ebml_header_free(&h);
-    return 1;
+    ret = 1;
     }
   
   bgav_mkv_ebml_header_free(&h);
-  return 0;
+  return ret;
   }
 
 #define CODEC_FLAG_INCOMPLETE (1<<0)
