@@ -12,6 +12,7 @@ AM_CFLAGS = \
 
 
 plugin_LTLIBRARIES = \
+fv_bitshift.la \
 fv_blur.la \
 fv_cropscale.la \
 fv_colorbalance.la \
