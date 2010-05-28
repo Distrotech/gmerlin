@@ -97,9 +97,11 @@ static int decode_vpx(bgav_stream_t * s, gavl_video_frame_t * f)
     const char *error  = vpx_codec_error(&priv->decoder);
     const char *detail = vpx_codec_error_detail(&priv->decoder);
     
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Failed to decode frame: %s", error);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Failed to decode frame: %s", error);
     if (detail)
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "  Additional information: %s\n",
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "  Additional information: %s\n",
                detail);
     return 0;
     }

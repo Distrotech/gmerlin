@@ -1130,16 +1130,81 @@ int bgav_mkv_block_read(bgav_input_context_t * ctx,
     }
 
   ret->data_size = parent->size - (ctx->position - pos);
+
+  if(ret->data_alloc < ret->data_size)
+    {
+    ret->data_alloc = ret->data_size + 1024;
+    ret->data = realloc(ret->data, ret->data_alloc);
+    }
   
+  if(bgav_input_read_data(ctx, ret->data, ret->data_size) < ret->data_size)
+    return 0;
   return 1;
   }
 
-void bgav_mkv_block_dump(bgav_mkv_block_t * b)
+void bgav_mkv_block_dump(int indent, bgav_mkv_block_t * b)
   {
-  bgav_dprintf("Block\n");
-  bgav_dprintf("  Timecode: %d\n", b->timecode);
-  bgav_dprintf("  Track:    %"PRId64"\n", b->track);
-  bgav_dprintf("  Flags:    %02x\n", b->flags);
-  bgav_dprintf("  NumLaces: %d\n", b->num_laces);
-  bgav_dprintf("  DataSize: %d\n", b->data_size);
+  bgav_diprintf(indent, "Block\n");
+  bgav_diprintf(indent, "  Timecode: %d\n", b->timecode);
+  bgav_diprintf(indent, "  Track:    %"PRId64"\n", b->track);
+  bgav_diprintf(indent, "  Flags:    %02x\n", b->flags);
+  bgav_diprintf(indent, "  NumLaces: %d\n", b->num_laces);
+  bgav_diprintf(indent, "  DataSize: %d\n", b->data_size);
+  }
+
+void bgav_mkv_block_free(bgav_mkv_block_t * b)
+  {
+  MY_FREE(b->data);
+  }
+
+/* Block group */
+
+int bgav_mkv_block_group_read(bgav_input_context_t * ctx,
+                              bgav_mkv_block_group_t * ret,
+                              bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  ret->block.data_size = 0;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+    switch(e.id)
+      {
+      case MKV_ID_BlockDuration:
+        if(!mkv_read_uint(ctx, &ret->BlockDuration, e.size))
+          return 0;
+        break;
+      case MKV_ID_ReferencePriority:
+        if(!mkv_read_uint_small(ctx, &ret->ReferencePriority,
+                                e.size))
+          return 0;
+        break;
+      case MKV_ID_Block:
+      case MKV_ID_SimpleBlock:
+        if(!bgav_mkv_block_read(ctx, &ret->block, &e))
+          return 0;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Skipping %"PRId64" bytes of element %x in block group\n",
+               e.size, e.id);
+        bgav_input_skip(ctx, e.size);
+        break;
+      }
+    }
+  return 1;
+  }
+
+void bgav_block_group_dump(bgav_mkv_block_group_t * g)
+  {
+  bgav_dprintf("BlockGroup\n");
+  bgav_dprintf("  BlockDuration:     %"PRId64"\n", g->BlockDuration);
+  bgav_dprintf("  ReferencePriority: %d\n", g->ReferencePriority);
+  bgav_mkv_block_dump(2, &g->block);
+  }
+
+void bgav_block_group_free(bgav_mkv_block_group_t * g)
+  {
+  bgav_mkv_block_free(&g->block);
   }

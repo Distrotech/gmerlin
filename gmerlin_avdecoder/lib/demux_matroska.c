@@ -46,6 +46,8 @@ typedef struct
   bgav_mkv_cluster_t cluster;
 
   int64_t pts_offset;
+
+  bgav_mkv_block_group_t bg;
   
   } mkv_t;
  
@@ -515,27 +517,21 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
 
 
 static int process_block(bgav_demuxer_context_t * ctx,
-                         bgav_mkv_element_t * parent)
+                         bgav_mkv_block_t * b,
+                         bgav_mkv_block_group_t * bg)
   {
-  bgav_mkv_block_t b;
   bgav_stream_t * s;
   bgav_packet_t * p;
   mkv_t * m = ctx->priv;
   
-  if(!bgav_mkv_block_read(ctx->input, &b, parent))
-    return 0;
+  bgav_mkv_block_dump(0, b);
   
-  bgav_mkv_block_dump(&b);
-  
-  s = bgav_track_find_stream(ctx, b.track);
+  s = bgav_track_find_stream(ctx, b->track);
 
   if(!s)
-    {
-    bgav_input_skip(ctx->input, b.data_size);
     return 1;
-    }
-
-  switch(b.flags & MKV_LACING_MASK)
+  
+  switch(b->flags & MKV_LACING_MASK)
     {
     case MKV_LACING_NONE:
       p = bgav_stream_get_packet_write(s);
@@ -543,29 +539,34 @@ static int process_block(bgav_demuxer_context_t * ctx,
 
       if(!(s->flags & STREAM_LACING))
         {
-        bgav_packet_alloc(p, b.data_size);
-        if(bgav_input_read_data(ctx->input, p->data, b.data_size) <
-           b.data_size)
-          return 0;
-        p->data_size = b.data_size;
-        p->pts = b.timecode + m->cluster.Timecode - m->pts_offset;
+        bgav_packet_alloc(p, b->data_size);
+        memcpy(p->data, b->data, b->data_size);
+        p->data_size = b->data_size;
+        p->pts = b->timecode + m->cluster.Timecode - m->pts_offset;
         }
       else
         {
-        if(!bgav_packet_read_segment(p, ctx->input, b.data_size))
-          return 0;
+        bgav_packet_append_segment(p, b->data, b->data_size);
         }
       bgav_packet_done_write(p);
       break;
     default:
       fprintf(stderr, "Lacing not supported yet\n");
-      bgav_input_skip(ctx->input, b.data_size);
+      bgav_input_skip(ctx->input, b->data_size);
       return 0;
       break;
       
     }
   return 1;
   }
+
+#if 0
+static int process_block_group(bgav_demuxer_context_t * ctx,
+                               bgav_mkv_element_t * parent)
+  {
+  
+  }
+#endif
 
 /* next packet: Processes a whole cluster at once */
 
@@ -592,29 +593,25 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   
   while(1)
     {
-    if(e1.id == MKV_ID_BlockGroup)
+    switch(e1.id)
       {
-      fprintf(stderr, "Got Block group\n");
-
-      if(!bgav_mkv_element_read(ctx->input, &e1))
-        return 0;
-      continue;
+      case MKV_ID_BlockGroup:
+        fprintf(stderr, "Got Block group\n");
+        if(!bgav_mkv_block_group_read(ctx->input, &priv->bg, &e1))
+          return 0;
+        if(!process_block(ctx, &priv->bg.block, &priv->bg))
+          return 0;
+        break;
+      case MKV_ID_Block:
+      case MKV_ID_SimpleBlock:
+        fprintf(stderr, "Got Block\n");
+        if(!bgav_mkv_block_read(ctx->input, &priv->bg.block, &e1))
+          return 0;
+        
+        if(!process_block(ctx, &priv->bg.block, NULL))
+          return 0;
+        break;
       }
-
-    else if((e1.id == MKV_ID_Block) ||
-            (e1.id == MKV_ID_SimpleBlock))
-      {
-      if(!process_block(ctx, &e1))
-        return 0;
-      num_blocks++;
-      }
-    else
-      {
-      fprintf(stderr, "Unknown element %x in cluster\n", e1.id);
-      return 0;
-      }
-    
-    
     if(ctx->input->position < e.end)
       {
       if(!bgav_mkv_element_read(ctx->input, &e1))

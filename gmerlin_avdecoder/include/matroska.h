@@ -267,15 +267,36 @@ typedef struct
   int16_t timecode;
   int64_t track;
   int num_laces;
+  
   int data_size;
+  uint8_t * data;
+  int data_alloc;
   } bgav_mkv_block_t;
 
 int bgav_mkv_block_read(bgav_input_context_t * ctx,
-                         bgav_mkv_block_t * ret,
-                         bgav_mkv_element_t * parent);
+                        bgav_mkv_block_t * ret,
+                        bgav_mkv_element_t * parent);
 
-void bgav_mkv_block_dump(bgav_mkv_block_t * b);
-                          
+void bgav_mkv_block_dump(int indent, bgav_mkv_block_t * b);
+void bgav_mkv_block_free(bgav_mkv_block_t * b);
+
+/* Block group */
+
+typedef struct
+  {
+  uint64_t BlockDuration;
+  int ReferencePriority;
+  
+  bgav_mkv_block_t block;
+  } bgav_mkv_block_group_t;
+
+int bgav_mkv_block_group_read(bgav_input_context_t * ctx,
+                              bgav_mkv_block_group_t * ret,
+                              bgav_mkv_element_t * parent);
+
+void bgav_block_group_dump(bgav_mkv_block_group_t * g);
+void bgav_block_group_free(bgav_mkv_block_group_t * g);
+
 
 /* Known IDs */
 #define MKV_ID_EBML                   0x1a45dfa3
