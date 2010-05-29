@@ -318,18 +318,21 @@ static int init_video(bgav_demuxer_context_t * ctx,
   if(v->PixelHeight)
     fmt->image_height = v->PixelHeight;
 
-#if 0  
+  fmt->pixel_width = 1;
+  fmt->pixel_height = 1;
+  
   if(v->DisplayWidth && v->DisplayHeight &&
      ((v->DisplayWidth != v->PixelWidth) ||
       (v->DisplayHeight != v->PixelHeight)))
     {
-    fmt->pixel_width = 
-    }
-#else
-  fmt->pixel_width = 1;
-  fmt->pixel_height = 1;
-#endif
+    if(v->PixelHeight == v->DisplayHeight)
+      {
+      fmt->pixel_width  = v->DisplayWidth;
+      fmt->pixel_height = v->PixelWidth;
+      }
 
+    }
+  
   fmt->frame_width = fmt->image_width;
   fmt->frame_height = fmt->image_height;
   fmt->timescale = s->timescale;
@@ -524,8 +527,6 @@ static int process_block(bgav_demuxer_context_t * ctx,
   bgav_packet_t * p;
   mkv_t * m = ctx->priv;
   
-  bgav_mkv_block_dump(0, b);
-  
   s = bgav_track_find_stream(ctx, b->track);
 
   if(!s)
@@ -574,51 +575,51 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   {
   int num_blocks = 0;
   bgav_mkv_element_t e;
-  bgav_mkv_element_t e1;
   mkv_t * priv = ctx->priv;
-  fprintf(stderr, "next_packet_matroska\n");
+  //  fprintf(stderr, "next_packet_matroska\n");
   
-  if(!bgav_mkv_element_read(ctx->input, &e))
-    return 0;
-
-  if(e.id != MKV_ID_Cluster)
-    return 0;
-  
-  if(!bgav_mkv_cluster_read(ctx->input, &priv->cluster, &e, &e1))
-    return 0;
-  bgav_mkv_cluster_dump(&priv->cluster);
-
-  if(priv->pts_offset == BGAV_TIMESTAMP_UNDEFINED)
-    priv->pts_offset = priv->cluster.Timecode;
-  
-  while(1)
+  while(!num_blocks)
     {
-    switch(e1.id)
+    if(!bgav_mkv_element_read(ctx->input, &e))
+      return 0;
+    //  bgav_mkv_element_dump(&e);
+    
+    switch(e.id)
       {
+      case MKV_ID_Cluster:
+        //        fprintf(stderr, "Got Cluster\n");
+        if(!bgav_mkv_cluster_read(ctx->input, &priv->cluster, &e))
+          return 0;
+        //        bgav_mkv_cluster_dump(&priv->cluster);
+
+        if(priv->pts_offset == BGAV_TIMESTAMP_UNDEFINED)
+          priv->pts_offset = priv->cluster.Timecode;
+        break;
       case MKV_ID_BlockGroup:
-        fprintf(stderr, "Got Block group\n");
-        if(!bgav_mkv_block_group_read(ctx->input, &priv->bg, &e1))
+        //        fprintf(stderr, "Got Block group\n");
+        //        bgav_mkv_block_group_dump(&priv->bg);
+        if(!bgav_mkv_block_group_read(ctx->input, &priv->bg, &e))
           return 0;
         if(!process_block(ctx, &priv->bg.block, &priv->bg))
           return 0;
+        num_blocks++;
         break;
       case MKV_ID_Block:
       case MKV_ID_SimpleBlock:
-        fprintf(stderr, "Got Block\n");
-        if(!bgav_mkv_block_read(ctx->input, &priv->bg.block, &e1))
+        //        fprintf(stderr, "Got Block\n");
+        //        bgav_mkv_block_dump(0, &priv->bg.block);
+
+        if(!bgav_mkv_block_read(ctx->input, &priv->bg.block, &e))
           return 0;
         
         if(!process_block(ctx, &priv->bg.block, NULL))
           return 0;
+        num_blocks++;
         break;
+      default:
+        /* Probably reached end of file */
+        return 0;
       }
-    if(ctx->input->position < e.end)
-      {
-      if(!bgav_mkv_element_read(ctx->input, &e1))
-        return !!num_blocks;
-      }
-    else
-      break;
     }
   return 1;
   }

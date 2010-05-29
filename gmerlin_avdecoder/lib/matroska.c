@@ -1037,20 +1037,38 @@ void bgav_mkv_cues_free(bgav_mkv_cues_t * cues)
 
 int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
                           bgav_mkv_cluster_t * ret,
-                          bgav_mkv_element_t * parent,
-                          bgav_mkv_element_t * e)
+                          bgav_mkv_element_t * parent)
   {
   int done = 0;
+  bgav_mkv_element_t e;
+  bgav_input_context_t * input_mem;
+  uint8_t buf[64];
+  int buf_len;
+  
+  input_mem = bgav_input_open_memory(NULL, 0, ctx->opt);
   
   while((ctx->position < parent->end) && !done)
     {
-    if(!bgav_mkv_element_read(ctx, e))
+    buf_len = bgav_input_get_data(ctx, buf, 64);
+    if(!buf_len)
       return 0;
-    switch(e->id)
+    
+    bgav_input_reopen_memory(input_mem, buf, buf_len);
+    
+    if(!bgav_mkv_element_read(input_mem, &e))
+      {
+      bgav_input_close(input_mem);
+      return 0;
+      }
+    switch(e.id)
       {
       case MKV_ID_Timecode:
-        if(!mkv_read_uint(ctx, &ret->Timecode, e->size))
+        bgav_input_skip(ctx, input_mem->position);
+        if(!mkv_read_uint(ctx, &ret->Timecode, e.size))
+          {
+          bgav_input_close(input_mem);
           return 0;
+          }
         break;
 #if 0
       case MKV_ID_SilentTracks:
@@ -1059,27 +1077,36 @@ int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
         break;
 #endif
       case MKV_ID_Position:
-        if(!mkv_read_uint(ctx, &ret->Position, e->size))
+        bgav_input_skip(ctx, input_mem->position);
+        if(!mkv_read_uint(ctx, &ret->Position, e.size))
+          {
+          bgav_input_close(input_mem);
           return 0;
+          }
         break;
       case MKV_ID_PrevSize:
-        if(!mkv_read_uint(ctx, &ret->PrevSize, e->size))
+        bgav_input_skip(ctx, input_mem->position);
+        if(!mkv_read_uint(ctx, &ret->PrevSize, e.size))
+          {
+          bgav_input_close(input_mem);
           return 0;
+          }
         break;
       case MKV_ID_BlockGroup:
-        fprintf(stderr, "Got block group\n");
+        //        fprintf(stderr, "Got block group\n");
         done = 1;
         break;
       case MKV_ID_Block:
-        fprintf(stderr, "Got block\n");
+        //        fprintf(stderr, "Got block\n");
         done = 1;
         break;
       case MKV_ID_SimpleBlock:
-        fprintf(stderr, "Got simple block\n");
+        //        fprintf(stderr, "Got simple block\n");
         done = 1;
         break;
       }
     }
+  bgav_input_close(input_mem);
   return 1;
   }
 
@@ -1196,7 +1223,7 @@ int bgav_mkv_block_group_read(bgav_input_context_t * ctx,
   return 1;
   }
 
-void bgav_block_group_dump(bgav_mkv_block_group_t * g)
+void bgav_mkv_block_group_dump(bgav_mkv_block_group_t * g)
   {
   bgav_dprintf("BlockGroup\n");
   bgav_dprintf("  BlockDuration:     %"PRId64"\n", g->BlockDuration);
@@ -1204,7 +1231,7 @@ void bgav_block_group_dump(bgav_mkv_block_group_t * g)
   bgav_mkv_block_dump(2, &g->block);
   }
 
-void bgav_block_group_free(bgav_mkv_block_group_t * g)
+void bgav_mkv_block_group_free(bgav_mkv_block_group_t * g)
   {
   bgav_mkv_block_free(&g->block);
   }
