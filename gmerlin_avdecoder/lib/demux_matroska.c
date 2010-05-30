@@ -210,6 +210,7 @@ static const codec_info_t video_codecs[] =
     { "V_REAL/RV40",     BGAV_MK_FOURCC('R','V','4','0'), NULL,     0 },
     { "V_VP8",           BGAV_MK_FOURCC('V','P','8','0'), NULL,     0 },
     { "V_THEORA",        0x00,                            init_theora, 0 },
+    { "V_MPEG4/ISO/AVC", BGAV_MK_FOURCC('a','v','c','1'), NULL,     0 },
     { /* End */ }
   };
 

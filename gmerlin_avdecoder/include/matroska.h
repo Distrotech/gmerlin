@@ -287,6 +287,10 @@ typedef struct
   int ReferencePriority;
   
   bgav_mkv_block_t block;
+  
+  int64_t * reference_blocks;
+  int reference_blocks_alloc;
+  int num_reference_blocks;
   } bgav_mkv_block_group_t;
 
 int bgav_mkv_block_group_read(bgav_input_context_t * ctx,

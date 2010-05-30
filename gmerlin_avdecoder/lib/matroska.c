@@ -83,6 +83,28 @@ static int mkv_read_uint(bgav_input_context_t * ctx, uint64_t * ret, int bytes)
   return 1;
   }
 
+int64_t vsint_subtr [] =
+  {
+    0x3F,
+    0x1FFF,
+    0x0FFFFF,
+    0x07FFFFFF,
+    0x03FFFFFFFF,
+    0x01FFFFFFFFFF,
+    0x00FFFFFFFFFFFF,
+    0x007FFFFFFFFFFFFF
+  };
+
+static int mkv_read_int(bgav_input_context_t * ctx, int64_t * ret, int bytes)
+  {
+  uint64_t ret_u;
+  if(!mkv_read_uint(ctx, &ret_u, bytes))
+    return 0;
+  *ret -= vsint_subtr[bytes-1];
+  return 1;
+  }
+
+
 static int mkv_read_uint_small(bgav_input_context_t * ctx, int * ret, int bytes)
   {
   uint64_t val;
@@ -1192,6 +1214,8 @@ int bgav_mkv_block_group_read(bgav_input_context_t * ctx,
   {
   bgav_mkv_element_t e;
   ret->block.data_size = 0;
+  ret->num_reference_blocks = 0;
+  
   while(ctx->position < parent->end)
     {
     if(!bgav_mkv_element_read(ctx, &e))
@@ -1206,6 +1230,20 @@ int bgav_mkv_block_group_read(bgav_input_context_t * ctx,
         if(!mkv_read_uint_small(ctx, &ret->ReferencePriority,
                                 e.size))
           return 0;
+        break;
+      case MKV_ID_ReferenceBlock:
+        if(ret->num_reference_blocks + 1 > ret->reference_blocks_alloc)
+          {
+          ret->reference_blocks_alloc = ret->num_reference_blocks + 1;
+          ret->reference_blocks = realloc(ret->reference_blocks,
+                                          ret->reference_blocks_alloc *
+                                          sizeof(*ret->reference_blocks));
+          }
+
+        if(!mkv_read_int(ctx, &ret->reference_blocks[ret->num_reference_blocks],
+                         e.size))
+          return 0;
+        ret->num_reference_blocks++;
         break;
       case MKV_ID_Block:
       case MKV_ID_SimpleBlock:
@@ -1234,4 +1272,5 @@ void bgav_mkv_block_group_dump(bgav_mkv_block_group_t * g)
 void bgav_mkv_block_group_free(bgav_mkv_block_group_t * g)
   {
   bgav_mkv_block_free(&g->block);
+  MY_FREE(g->reference_blocks);
   }
