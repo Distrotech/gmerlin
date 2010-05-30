@@ -49,6 +49,9 @@ typedef struct
 
   bgav_mkv_block_group_t bg;
   
+  uint64_t * lace_sizes;
+  int lace_sizes_alloc;
+  
   } mkv_t;
  
 static int probe_matroska(bgav_input_context_t * input)
@@ -214,9 +217,66 @@ static void init_vorbis(bgav_stream_t * s)
   s->flags |= STREAM_LACING;
   }
 
+/* AAC Initialization inspired by ffmpeg (matroskadec.c) */
+static int aac_profile(const char *codec_id)
+
+  {
+  static const char * const aac_profiles[] = { "MAIN", "LC", "SSR" };
+  int profile;
+  for (profile=0; profile<sizeof(aac_profiles)/sizeof(aac_profiles[0]); profile++)
+    {
+    if(strstr(codec_id, aac_profiles[profile]))
+      break;
+    }
+  return profile + 1;
+  }
+
+static int aac_sri(double r)
+  {
+  int sri;
+  int samplerate= (int)(r+0.5);
+  const int sample_rates[16] = {
+    96000, 88200, 64000, 48000, 44100, 32000,
+    24000, 22050, 16000, 12000, 11025, 8000, 7350
+  };
+  
+  for (sri=0; sri < sizeof(sample_rates)/sizeof(sample_rates[0]); sri++)
+    {
+    if(sample_rates[sri] == samplerate)
+      break;
+    }
+  return sri;
+  }
+
 static void init_aac(bgav_stream_t * s)
   {
-  
+  bgav_mkv_track_t * p = s->priv;
+  if(p->CodecPrivate)
+    {
+    s->ext_data = malloc(p->CodecPrivateLen);
+    memcpy(s->ext_data, p->CodecPrivate, p->CodecPrivateLen);
+    s->ext_size = p->CodecPrivateLen;
+    }
+  else
+    {
+    int profile, sri;
+    s->ext_data = malloc(5);
+    profile = aac_profile(p->CodecID);
+    sri = aac_sri(p->audio.SamplingFrequency);
+    s->ext_data[0] = (profile << 3) | ((sri&0x0E) >> 1);
+    s->ext_data[1] = ((sri&0x01) << 7) | (p->audio.Channels<<3);
+    if(strstr(p->CodecID, "SBR"))
+      {
+      sri = aac_sri(p->audio.OutputSamplingFrequency);
+      s->ext_data[2] = 0x56;
+      s->ext_data[3] = 0xE5;
+      s->ext_data[4] = 0x80 | (sri<<3);
+      s->ext_size = 5;
+      }
+    else
+      s->ext_size = 2;
+    }
+  s->fourcc = BGAV_MK_FOURCC('m','p','4','a');
   }
 
 static const codec_info_t audio_codecs[] =
@@ -226,7 +286,7 @@ static const codec_info_t audio_codecs[] =
     { "A_MPEG/L3",       BGAV_MK_FOURCC('.','m','p','3'), NULL,        0, 576  },
     { "A_MPEG/L2",       BGAV_MK_FOURCC('.','m','p','2'), NULL,        0, 1152 },
     { "A_MPEG/L1",       BGAV_MK_FOURCC('.','m','p','1'), NULL,        0, 576  },
-    { "A_AAC/",          BGAV_MK_FOURCC('m','p','4','a'), init_aac,    0, 1024 },
+    { "A_AAC/",          BGAV_MK_FOURCC('m','p','4','a'), init_aac,    CODEC_FLAG_INCOMPLETE, 1024 },
     { /* End */ }
   };
 
@@ -517,7 +577,61 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
                            p->segment_info.TimecodeScale * 1.0e-9);
   return 1;
   }
+  
+static int get_ebml_frame_size_uint(uint8_t * ptr, int size, int64_t * ret)
+  {
+  uint8_t mask = 0x80;
+  int len = 1;
+  int i;
+  while(!(mask & (*ptr)) && mask)
+    {
+    mask >>= 1;
+    len++;
+    }
 
+  if(!mask)
+    return 0;
+  
+  *ret = *ptr & (0xff >> len);
+  
+  ptr++;
+
+  for(i = 1; i < len; i++)
+    {
+    *ret <<= 8;
+    *ret |= *ptr;
+    ptr++;
+    }
+  return len;
+  }
+
+static int get_ebml_frame_size_int(uint8_t * ptr1, int size, int64_t * ret)
+  {
+  int64_t offset;
+  int bytes = get_ebml_frame_size_uint(ptr1, size, ret);
+
+  offset = (1 << (bytes * 7 - 1)) - 1;
+  
+  *ret -= offset;
+  return bytes;
+  }
+
+static void append_packet_data(bgav_stream_t * s,
+                               bgav_packet_t * p,
+                               const uint8_t * data,
+                               int len)
+  {
+  if(!(s->flags & STREAM_LACING))
+    {
+    bgav_packet_alloc(p, len);
+    memcpy(p->data, data, len);
+    p->data_size = len;
+    }
+  else
+    {
+    bgav_packet_append_segment(p, data, len);
+    }
+  }
 
 static int process_block(bgav_demuxer_context_t * ctx,
                          bgav_mkv_block_t * b,
@@ -537,26 +651,86 @@ static int process_block(bgav_demuxer_context_t * ctx,
     case MKV_LACING_NONE:
       p = bgav_stream_get_packet_write(s);
       p->data_size = 0;
-
-      if(!(s->flags & STREAM_LACING))
-        {
-        bgav_packet_alloc(p, b->data_size);
-        memcpy(p->data, b->data, b->data_size);
-        p->data_size = b->data_size;
-        p->pts = b->timecode + m->cluster.Timecode - m->pts_offset;
-        }
-      else
-        {
-        bgav_packet_append_segment(p, b->data, b->data_size);
-        }
+      append_packet_data(s, p, b->data, b->data_size);
+      
+      p->pts = b->timecode + m->cluster.Timecode - m->pts_offset;
+      
       bgav_packet_done_write(p);
       break;
+    case MKV_LACING_EBML:
+      {
+      int i;
+      uint8_t * ptr;
+      int bytes;
+      int64_t frame_size;
+      int64_t frame_size_diff;
+      
+      //      fprintf(stderr, "MKV_LACING_EBML\n");
+      //      bgav_hexdump(ptr, 32, 16);
+
+      if(m->lace_sizes_alloc < b->num_laces)
+        {
+        m->lace_sizes_alloc = b->num_laces + 16;
+        m->lace_sizes = realloc(m->lace_sizes,
+                                m->lace_sizes_alloc *
+                                sizeof(m->lace_sizes));
+        }
+      /* First lace */
+      ptr = b->data;
+      
+      bytes = get_ebml_frame_size_uint(ptr,
+                                       b->data_size - (ptr - b->data),
+                                       &frame_size);
+      if(!bytes)
+        return 0;
+      
+      m->lace_sizes[0] = frame_size;
+      ptr += bytes;
+      
+      /* Intermediate laces */
+      for(i = 1; i < b->num_laces-1; i++)
+        {
+        bytes = get_ebml_frame_size_int(ptr,
+                                        b->data_size - (ptr - b->data),
+                                        &frame_size_diff);
+        ptr += bytes;
+        frame_size += frame_size_diff;
+        m->lace_sizes[i] = frame_size;
+        }
+      /* Last lace */
+      m->lace_sizes[b->num_laces-1] =
+        b->data_size - (ptr - b->data);
+      for(i = 0; i < b->num_laces-1; i++)
+        m->lace_sizes[b->num_laces-1] -= m->lace_sizes[i];
+
+      /* Send all laces as different packets */
+      for(i = 0; i < b->num_laces; i++)
+        {
+        p = bgav_stream_get_packet_write(s);
+        p->data_size = 0;
+        append_packet_data(s, p, ptr, m->lace_sizes[i]);
+        ptr += m->lace_sizes[i];
+        bgav_packet_done_write(p);
+        }
+      
+      }
+      break;
+    case MKV_LACING_XIPH:
+      fprintf(stderr, "Xiph lacing not supported yet\n");
+      bgav_mkv_block_dump(0, b);
+      bgav_input_skip(ctx->input, b->data_size);
+      return 0;
+    case MKV_LACING_FIXED:
+      fprintf(stderr, "Fixed lacing not supported yet\n");
+      bgav_mkv_block_dump(0, b);
+      bgav_input_skip(ctx->input, b->data_size);
+      return 0;
     default:
-      fprintf(stderr, "Lacing not supported yet\n");
+      fprintf(stderr, "Unknown lacing type\n");
+      bgav_mkv_block_dump(0, b);
       bgav_input_skip(ctx->input, b->data_size);
       return 0;
       break;
-      
     }
   return 1;
   }
