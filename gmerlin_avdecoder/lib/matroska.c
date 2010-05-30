@@ -1159,6 +1159,9 @@ int bgav_mkv_block_read(bgav_input_context_t * ctx,
   int64_t pos = ctx->position;
 
   memset(ret, 0, sizeof(*ret));
+
+  //  fprintf(stderr, "Read block\n");
+  //  bgav_mkv_element_dump(parent);
   
   /* It's no size but has the same encoding */
   if(!bgav_mkv_read_size(ctx, &ret->track) ||
@@ -1215,6 +1218,9 @@ int bgav_mkv_block_group_read(bgav_input_context_t * ctx,
   bgav_mkv_element_t e;
   ret->block.data_size = 0;
   ret->num_reference_blocks = 0;
+
+  //  fprintf(stderr, "Read block group\n");
+  //  bgav_mkv_element_dump(parent);
   
   while(ctx->position < parent->end)
     {

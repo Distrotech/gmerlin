@@ -661,8 +661,8 @@ static int process_block(bgav_demuxer_context_t * ctx,
   if(!s)
     return 1;
 
-  if(s->type == BGAV_STREAM_AUDIO)
-    fprintf(stderr, "Audio stream\n");
+  //  if(s->type == BGAV_STREAM_AUDIO)
+  //    fprintf(stderr, "Audio stream\n");
   
   switch(b->flags & MKV_LACING_MASK)
     {
@@ -734,10 +734,52 @@ static int process_block(bgav_demuxer_context_t * ctx,
       }
       break;
     case MKV_LACING_XIPH:
-      fprintf(stderr, "Xiph lacing not supported yet\n");
-      bgav_mkv_block_dump(0, b);
-      bgav_input_skip(ctx->input, b->data_size);
-      return 0;
+      {
+      uint8_t * ptr;
+      int i;
+      // fprintf(stderr, "Xiph lacing not supported yet %p\n", bg);
+      // bgav_mkv_block_dump(0, b);
+      // bgav_hexdump(b->data, b->data_size, 16);
+      if(m->lace_sizes_alloc < b->num_laces)
+        {
+        m->lace_sizes_alloc = b->num_laces + 16;
+        m->lace_sizes = realloc(m->lace_sizes,
+                                m->lace_sizes_alloc *
+                                sizeof(m->lace_sizes));
+        }
+
+      ptr = b->data;
+      for(i = 0; i < b->num_laces-1; i++)
+        {
+        m->lace_sizes[i] = 0;
+        while(*ptr == 255)
+          {
+          m->lace_sizes[i] += *ptr;
+          ptr++;
+          }
+        m->lace_sizes[i] += *ptr;
+        ptr++;
+        }
+      /* Last lace */
+      m->lace_sizes[b->num_laces-1] =
+        b->data_size - (ptr - b->data);
+      for(i = 0; i < b->num_laces-1; i++)
+        m->lace_sizes[b->num_laces-1] -= m->lace_sizes[i];
+
+      /* Send all laces as different packets */
+      for(i = 0; i < b->num_laces; i++)
+        {
+        p = bgav_stream_get_packet_write(s);
+        p->data_size = 0;
+        append_packet_data(s, p, ptr, m->lace_sizes[i]);
+        ptr += m->lace_sizes[i];
+        bgav_packet_done_write(p);
+        }
+      
+      // bgav_input_skip_dump(ctx->input, b->data_size);
+      //      return 0;
+      }
+      break;
     case MKV_LACING_FIXED:
       {
       int i;
@@ -759,7 +801,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
     default:
       fprintf(stderr, "Unknown lacing type\n");
       bgav_mkv_block_dump(0, b);
-      bgav_input_skip(ctx->input, b->data_size);
+      //      bgav_input_skip(ctx->input, b->data_size);
       return 0;
       break;
     }
@@ -774,7 +816,7 @@ static int process_block_group(bgav_demuxer_context_t * ctx,
   }
 #endif
 
-/* next packet: Processes a whole cluster at once */
+/* next packet */
 
 static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   {
@@ -801,21 +843,23 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
           priv->pts_offset = priv->cluster.Timecode;
         break;
       case MKV_ID_BlockGroup:
-        //        fprintf(stderr, "Got Block group\n");
-        //        bgav_mkv_block_group_dump(&priv->bg);
         if(!bgav_mkv_block_group_read(ctx->input, &priv->bg, &e))
           return 0;
+        
+        //        fprintf(stderr, "Got Block group\n");
+        //        bgav_mkv_block_group_dump(&priv->bg);
+        
         if(!process_block(ctx, &priv->bg.block, &priv->bg))
           return 0;
         num_blocks++;
         break;
       case MKV_ID_Block:
       case MKV_ID_SimpleBlock:
-        //        fprintf(stderr, "Got Block\n");
-        //        bgav_mkv_block_dump(0, &priv->bg.block);
-
         if(!bgav_mkv_block_read(ctx->input, &priv->bg.block, &e))
           return 0;
+
+        //        fprintf(stderr, "Got Block\n");
+        //        bgav_mkv_block_dump(0, &priv->bg.block);
         
         if(!process_block(ctx, &priv->bg.block, NULL))
           return 0;
