@@ -104,56 +104,8 @@ typedef struct
   int frame_granularity;
   } codec_info_t;
 
-static void init_vfw(bgav_stream_t * s)
-  {
-  uint8_t * data;
-  uint8_t * end;
-  
-  bgav_BITMAPINFOHEADER_t bh;
-  bgav_mkv_track_t * p = s->priv;
-  
-  data = p->CodecPrivate;
-  end = data + p->CodecPrivateLen;
-  bgav_BITMAPINFOHEADER_read(&bh, &data);
-  s->fourcc = bgav_BITMAPINFOHEADER_get_fourcc(&bh);
-
-  if(data < end)
-    {
-    s->ext_size = end - data;
-    s->ext_data = malloc(s->ext_size);
-    memcpy(s->ext_data, data, s->ext_size);
-    }
-  }
-
-static const codec_info_t video_codecs[] =
-  {
-    { "V_MS/VFW/FOURCC", 0x00,                            init_vfw, 0 },
-    { "V_MPEG4/ISO/SP",  BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
-    { "V_MPEG4/ISO/ASP", BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
-    { "V_MPEG4/ISO/AP",  BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
-    { "V_MPEG4/MS/V1",   BGAV_MK_FOURCC('M','P','G','4'), NULL,     0 },
-    { "V_MPEG4/MS/V2",   BGAV_MK_FOURCC('M','P','4','2'), NULL,     0 },
-    { "V_MPEG4/MS/V3",   BGAV_MK_FOURCC('M','P','4','3'), NULL,     0 },
-    { "V_REAL/RV10",     BGAV_MK_FOURCC('R','V','1','0'), NULL,     0 },
-    { "V_REAL/RV20",     BGAV_MK_FOURCC('R','V','2','0'), NULL,     0 },
-    { "V_REAL/RV30",     BGAV_MK_FOURCC('R','V','3','0'), NULL,     0 },
-    { "V_REAL/RV40",     BGAV_MK_FOURCC('R','V','4','0'), NULL,     0 },
-    { "V_VP8",           BGAV_MK_FOURCC('V','P','8','0'), NULL,     0 },
-    { /* End */ }
-  };
-
-static void init_acm(bgav_stream_t * s)
-  {
-  bgav_WAVEFORMAT_t wf;
-  bgav_mkv_track_t * p = s->priv;
-  
-  bgav_WAVEFORMAT_read(&wf, p->CodecPrivate, p->CodecPrivateLen);
-  bgav_WAVEFORMAT_get_format(&wf, s);
-  bgav_WAVEFORMAT_free(&wf);
-  }
-
-static void append_vorbis_extradata(bgav_stream_t * s,
-                                    uint8_t * data, int len)
+static void append_ogg_extradata(bgav_stream_t * s,
+                                 uint8_t * data, int len)
   {
   uint8_t * ptr;
   s->ext_data = realloc(s->ext_data, s->ext_size + len + 4);
@@ -163,7 +115,7 @@ static void append_vorbis_extradata(bgav_stream_t * s,
   s->ext_size += len + 4;
   }
 
-static void init_vorbis(bgav_stream_t * s)
+static void setup_ogg_extradata(bgav_stream_t * s)
   {
   uint8_t * ptr;
   int len1;
@@ -176,7 +128,7 @@ static void init_vorbis(bgav_stream_t * s)
   if(*ptr != 0x02)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Vorbis extradata must start with 0x02n");
+             "Ogg extradata must start with 0x02n");
     return;
     }
   ptr++;
@@ -205,14 +157,75 @@ static void init_vorbis(bgav_stream_t * s)
   len3 = p->CodecPrivateLen - (ptr - p->CodecPrivate) - len1 - len2;
 
   /* Append header packets */
-  append_vorbis_extradata(s, ptr, len1);
+  append_ogg_extradata(s, ptr, len1);
   ptr += len1;
   
-  append_vorbis_extradata(s, ptr, len2);
+  append_ogg_extradata(s, ptr, len2);
   ptr += len2;
 
-  append_vorbis_extradata(s, ptr, len3);
+  append_ogg_extradata(s, ptr, len3);
   
+  }
+
+
+static void init_vfw(bgav_stream_t * s)
+  {
+  uint8_t * data;
+  uint8_t * end;
+  
+  bgav_BITMAPINFOHEADER_t bh;
+  bgav_mkv_track_t * p = s->priv;
+  
+  data = p->CodecPrivate;
+  end = data + p->CodecPrivateLen;
+  bgav_BITMAPINFOHEADER_read(&bh, &data);
+  s->fourcc = bgav_BITMAPINFOHEADER_get_fourcc(&bh);
+
+  if(data < end)
+    {
+    s->ext_size = end - data;
+    s->ext_data = malloc(s->ext_size);
+    memcpy(s->ext_data, data, s->ext_size);
+    }
+  }
+
+static void init_theora(bgav_stream_t * s)
+  {
+  setup_ogg_extradata(s);
+  s->fourcc = BGAV_MK_FOURCC('T', 'H', 'R', 'A');
+  }
+
+static const codec_info_t video_codecs[] =
+  {
+    { "V_MS/VFW/FOURCC", 0x00,                            init_vfw, 0 },
+    { "V_MPEG4/ISO/SP",  BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
+    { "V_MPEG4/ISO/ASP", BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
+    { "V_MPEG4/ISO/AP",  BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
+    { "V_MPEG4/MS/V1",   BGAV_MK_FOURCC('M','P','G','4'), NULL,     0 },
+    { "V_MPEG4/MS/V2",   BGAV_MK_FOURCC('M','P','4','2'), NULL,     0 },
+    { "V_MPEG4/MS/V3",   BGAV_MK_FOURCC('M','P','4','3'), NULL,     0 },
+    { "V_REAL/RV10",     BGAV_MK_FOURCC('R','V','1','0'), NULL,     0 },
+    { "V_REAL/RV20",     BGAV_MK_FOURCC('R','V','2','0'), NULL,     0 },
+    { "V_REAL/RV30",     BGAV_MK_FOURCC('R','V','3','0'), NULL,     0 },
+    { "V_REAL/RV40",     BGAV_MK_FOURCC('R','V','4','0'), NULL,     0 },
+    { "V_VP8",           BGAV_MK_FOURCC('V','P','8','0'), NULL,     0 },
+    { "V_THEORA",        0x00,                            init_theora, 0 },
+    { /* End */ }
+  };
+
+static void init_acm(bgav_stream_t * s)
+  {
+  bgav_WAVEFORMAT_t wf;
+  bgav_mkv_track_t * p = s->priv;
+  
+  bgav_WAVEFORMAT_read(&wf, p->CodecPrivate, p->CodecPrivateLen);
+  bgav_WAVEFORMAT_get_format(&wf, s);
+  bgav_WAVEFORMAT_free(&wf);
+  }
+
+static void init_vorbis(bgav_stream_t * s)
+  {
+  setup_ogg_extradata(s);
   s->fourcc = BGAV_MK_FOURCC('V','B','I','S');
   s->flags |= STREAM_LACING;
   }
@@ -817,6 +830,9 @@ static void close_matroska(bgav_demuxer_context_t * ctx)
 
   bgav_mkv_cluster_free(&priv->cluster);
 
+  if(priv->lace_sizes)
+    free(priv->lace_sizes);
+  
   free(priv);
   }
 
