@@ -301,6 +301,7 @@ static const codec_info_t audio_codecs[] =
     { "A_MPEG/L2",       BGAV_MK_FOURCC('.','m','p','2'), NULL,        0, 1152 },
     { "A_MPEG/L1",       BGAV_MK_FOURCC('.','m','p','1'), NULL,        0, 576  },
     { "A_AAC/",          BGAV_MK_FOURCC('m','p','4','a'), init_aac,    CODEC_FLAG_INCOMPLETE, 1024 },
+    { "A_AC3",           BGAV_MK_FOURCC('.','a','c','3'), NULL,        0, 1536 },
     { /* End */ }
   };
 
@@ -659,6 +660,9 @@ static int process_block(bgav_demuxer_context_t * ctx,
 
   if(!s)
     return 1;
+
+  if(s->type == BGAV_STREAM_AUDIO)
+    fprintf(stderr, "Audio stream\n");
   
   switch(b->flags & MKV_LACING_MASK)
     {
@@ -735,10 +739,23 @@ static int process_block(bgav_demuxer_context_t * ctx,
       bgav_input_skip(ctx->input, b->data_size);
       return 0;
     case MKV_LACING_FIXED:
-      fprintf(stderr, "Fixed lacing not supported yet\n");
-      bgav_mkv_block_dump(0, b);
-      bgav_input_skip(ctx->input, b->data_size);
-      return 0;
+      {
+      int i;
+      uint8_t * ptr;
+      int frame_size = b->data_size / b->num_laces;
+
+      ptr = b->data;
+      
+      for(i = 0; i < b->num_laces; i++)
+        {
+        p = bgav_stream_get_packet_write(s);
+        p->data_size = 0;
+        append_packet_data(s, p, ptr, frame_size);
+        ptr += frame_size;
+        bgav_packet_done_write(p);
+        }
+      }
+      break;
     default:
       fprintf(stderr, "Unknown lacing type\n");
       bgav_mkv_block_dump(0, b);
