@@ -442,7 +442,7 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   if(!bgav_mkv_ebml_header_read(ctx->input, &p->ebml_header))
     return 0;
 
-  bgav_mkv_ebml_header_dump(&p->ebml_header);
+  //  bgav_mkv_ebml_header_dump(&p->ebml_header);
   
   /* Get the first segment */
   
@@ -496,7 +496,7 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         e.end += pos;
         if(!bgav_mkv_segment_info_read(ctx->input, &p->segment_info, &e))
           return 0;
-        bgav_mkv_segment_info_dump(&p->segment_info);
+        //        bgav_mkv_segment_info_dump(&p->segment_info);
         break;
       case MKV_ID_Tracks:
         bgav_input_skip(ctx->input, head_len);
@@ -686,9 +686,25 @@ static int process_block(bgav_demuxer_context_t * ctx,
   bgav_packet_t * p;
   mkv_t * m = ctx->priv;
   int64_t pts = b->timecode + m->cluster.Timecode - m->pts_offset;
+  bgav_mkv_track_t * t;
+  int duration;
   
   s = bgav_track_find_stream(ctx, b->track);
+  if(!s)
+    return 1;
+  
+  t = s->priv;
 
+  if(bg && bg->BlockDuration)
+    duration = bg->BlockDuration;
+  else if(t->DefaultDuration)
+    duration = t->DefaultDuration;
+  else
+    duration = 0;
+
+  if(duration)
+    fprintf(stderr, "Duration: %d\n", duration);
+  
   if(bg)
     {
     if(!bg->num_reference_blocks)
@@ -699,9 +715,6 @@ static int process_block(bgav_demuxer_context_t * ctx,
     keyframe = 1;
     }
   
-  if(!s)
-    return 1;
-
   //  if(s->type == BGAV_STREAM_AUDIO)
   //    fprintf(stderr, "Audio stream\n");
   
