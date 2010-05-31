@@ -51,6 +51,8 @@ typedef struct
   
   uint64_t * lace_sizes;
   int lace_sizes_alloc;
+
+  int do_sync;
   
   } mkv_t;
  
@@ -440,7 +442,7 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   if(!bgav_mkv_ebml_header_read(ctx->input, &p->ebml_header))
     return 0;
 
-  //  bgav_mkv_ebml_header_dump(&p->ebml_header);
+  bgav_mkv_ebml_header_dump(&p->ebml_header);
   
   /* Get the first segment */
   
@@ -505,7 +507,6 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
       case MKV_ID_Cues:
         if(!bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))
           return 0;
-        fprintf(stderr, "Got cues before clusters\n");
         p->have_cues = 1;
         break;
       case MKV_ID_Cluster:
@@ -590,6 +591,16 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     ctx->tt->cur->duration =
       gavl_seconds_to_time(p->segment_info.Duration * 
                            p->segment_info.TimecodeScale * 1.0e-9);
+
+  /* Set seekable flag */
+  if(p->have_cues && ctx->input->input->seek_byte)
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
+
+  if(!strcmp(p->ebml_header.DocType, "matroska"))
+    ctx->stream_description = bgav_sprintf("Matroska (version %d)", p->ebml_header.DocTypeVersion);
+  else if(!strcmp(p->ebml_header.DocType, "webm"))
+    ctx->stream_description = bgav_sprintf("Matroska (webm)");
+  
   return 1;
   }
   
@@ -648,16 +659,46 @@ static void append_packet_data(bgav_stream_t * s,
     }
   }
 
+static void setup_packet(mkv_t * m, bgav_stream_t * s,
+                         bgav_packet_t * p, int64_t pts, int keyframe, int index)
+  {
+  if(!index)
+    {
+    p->pts = pts;
+    if(m->do_sync && !STREAM_HAS_SYNC(s))
+      STREAM_SET_SYNC(s, p->pts);
+    if(keyframe)
+      {
+      if(s->type == BGAV_STREAM_VIDEO)
+        fprintf(stderr, "Video Keyframe\n");
+      PACKET_SET_KEYFRAME(p);
+      }
+    }
+  }
+
+
 static int process_block(bgav_demuxer_context_t * ctx,
                          bgav_mkv_block_t * b,
                          bgav_mkv_block_group_t * bg)
   {
+  int keyframe = 0;
   bgav_stream_t * s;
   bgav_packet_t * p;
   mkv_t * m = ctx->priv;
+  int64_t pts = b->timecode + m->cluster.Timecode - m->pts_offset;
   
   s = bgav_track_find_stream(ctx, b->track);
 
+  if(bg)
+    {
+    if(!bg->num_reference_blocks)
+      keyframe = 1;
+    }
+  else if(b->flags & MKV_KEYFRAME)
+    {
+    keyframe = 1;
+    }
+  
   if(!s)
     return 1;
 
@@ -670,9 +711,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
       p = bgav_stream_get_packet_write(s);
       p->data_size = 0;
       append_packet_data(s, p, b->data, b->data_size);
-      
-      p->pts = b->timecode + m->cluster.Timecode - m->pts_offset;
-      
+      setup_packet(m, s, p, pts, keyframe, 0);
       bgav_packet_done_write(p);
       break;
     case MKV_LACING_EBML:
@@ -728,6 +767,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         p->data_size = 0;
         append_packet_data(s, p, ptr, m->lace_sizes[i]);
         ptr += m->lace_sizes[i];
+        setup_packet(m, s, p, pts, keyframe, i);
         bgav_packet_done_write(p);
         }
       
@@ -773,6 +813,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         p->data_size = 0;
         append_packet_data(s, p, ptr, m->lace_sizes[i]);
         ptr += m->lace_sizes[i];
+        setup_packet(m, s, p, pts, keyframe, i);
         bgav_packet_done_write(p);
         }
       
@@ -794,6 +835,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         p->data_size = 0;
         append_packet_data(s, p, ptr, frame_size);
         ptr += frame_size;
+        setup_packet(m, s, p, pts, keyframe, i);
         bgav_packet_done_write(p);
         }
       }
@@ -898,13 +940,44 @@ static void close_matroska(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
+static void
+seek_matroska(bgav_demuxer_context_t * ctx, int64_t time, int scale)
+  {
+  int64_t time_scaled;
+  int i;
+  mkv_t * priv = ctx->priv;
+  
+  time_scaled = gavl_time_rescale(scale, priv->segment_info.TimecodeScale/1000, time);
+
+  for(i = priv->cues.num_points - 1; i >= 0; i--)
+    {
+    if(priv->cues.points[i].CueTime <= time_scaled)
+      break;
+    }
+  if(i < 0)
+    i = 0;
+  
+  bgav_input_seek(ctx->input,
+                  priv->cues.points[i].tracks[0].CueClusterPosition +
+                  priv->segment_start, SEEK_SET);
+
+  /* Resync */
+
+  priv->do_sync = 1;
+  
+  while(!bgav_track_has_sync(ctx->tt->cur))
+    next_packet_matroska(ctx);
+
+  priv->do_sync = 0;
+  }
+  
 const const bgav_demuxer_t bgav_demuxer_matroska =
   {
     .probe =       probe_matroska,
     .open =        open_matroska,
     // .select_track = select_track_matroska,
     .next_packet = next_packet_matroska,
-    // .seek =        seek_matroska,
+    .seek =        seek_matroska,
     // .resync  =     resync_matroska,
     .close =       close_matroska
   };

@@ -253,6 +253,7 @@ static void close_theora(bgav_stream_t * s)
   free(priv);
   }
 
+#if 0
 static void resync_theora(bgav_stream_t * s)
   {
   bgav_packet_t * p;
@@ -273,9 +274,8 @@ static void resync_theora(bgav_stream_t * s)
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
-
-  
   }
+#endif
 
 static bgav_video_decoder_t decoder =
   {
@@ -285,7 +285,7 @@ static bgav_video_decoder_t decoder =
     .init =   init_theora,
     .decode = decode_theora,
     .close =  close_theora,
-    .resync = resync_theora,
+    //    .resync = resync_theora,
   };
 
 void bgav_init_video_decoders_theora()

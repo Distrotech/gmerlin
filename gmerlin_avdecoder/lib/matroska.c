@@ -901,6 +901,8 @@ static int mkv_cue_track_read(bgav_input_context_t * ctx,
                               bgav_mkv_element_t * parent)
   {
   bgav_mkv_element_t e;
+  ret->CueBlockNumber = 1;
+  
   while(ctx->position < parent->end)
     {
     if(!bgav_mkv_element_read(ctx, &e))
