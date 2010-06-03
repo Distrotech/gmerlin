@@ -264,8 +264,7 @@ typedef struct
   uint16_t sub_packet_size;
   int sub_packet_cnt;
   uint16_t audiopk_size;
-  
-  
+    
   //  uint8_t * extradata;
   //  int bytes_to_read;
   

@@ -52,6 +52,10 @@ parsers[] =
 #ifdef HAVE_FAAD2
     { BGAV_MK_FOURCC('m','p','4','a'), bgav_audio_parser_init_aac },
 #endif
+#ifdef HAVE_VORBIS
+    { BGAV_MK_FOURCC('V','B','I','S'), bgav_audio_parser_init_vorbis },
+#endif
+
   };
 
 int bgav_audio_parser_supported(uint32_t fourcc)

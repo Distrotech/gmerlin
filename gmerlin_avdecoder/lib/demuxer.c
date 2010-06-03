@@ -676,309 +676,13 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   return ret;
   }
 
-static bgav_packet_t * get_packet_read_vparse(bgav_demuxer_context_t * demuxer,
-                                              bgav_stream_t * s)
-  {
-  int result;
-  bgav_packet_t * p;
-  if(s->parsed_packet->valid)
-    return s->parsed_packet;
-
-  while(1)
-    {
-    result = bgav_video_parser_parse(s->data.video.parser);
-
-    switch(result)
-      {
-      case PARSER_EOF:
-        return NULL;
-        break;
-      case PARSER_NEED_DATA:
-        demuxer->request_stream = s; 
-        while(!(p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
-          {
-          if(!bgav_demuxer_next_packet(demuxer))
-            {
-            bgav_video_parser_set_eof(s->data.video.parser);
-            break;
-            }
-          }
-        if(p)
-          {
-          bgav_video_parser_add_packet(s->data.video.parser, p);
-          p->valid = 0;
-          }
-        break;
-      case PARSER_HAVE_PACKET:
-        if(!(s->flags & STREAM_PARSE_HAVE_FORMAT))
-          s->flags |= STREAM_PARSE_HAVE_FORMAT;
-        
-        s->parsed_packet->tc = GAVL_TIMECODE_UNDEFINED;
-        
-        bgav_video_parser_get_packet(s->data.video.parser,
-                                     s->parsed_packet);
-        return s->parsed_packet;
-        break;
-      case PARSER_ERROR:
-        return NULL;
-        
-      }
-    }
-  return NULL;
-  }
-
-static bgav_packet_t * get_packet_read_aparse(bgav_demuxer_context_t * demuxer,
-                                              bgav_stream_t * s)
-  {
-  int result;
-  bgav_packet_t * p;
-  if(s->parsed_packet->valid)
-    return s->parsed_packet;
-
-  while(1)
-    {
-    result = bgav_audio_parser_parse(s->data.audio.parser);
-
-    switch(result)
-      {
-      case PARSER_EOF:
-        return NULL;
-        break;
-      case PARSER_NEED_DATA:
-        demuxer->request_stream = s; 
-        while(!(p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
-          {
-          if(!bgav_demuxer_next_packet(demuxer))
-            {
-            bgav_audio_parser_set_eof(s->data.audio.parser);
-            break;
-            }
-          }
-        if(p)
-          {
-          bgav_audio_parser_add_packet(s->data.audio.parser, p);
-          p->valid = 0;
-          }
-        break;
-      case PARSER_HAVE_PACKET:
-        bgav_audio_parser_get_packet(s->data.audio.parser,
-                                     s->parsed_packet);
-        return s->parsed_packet;
-        break;
-      }
-    }
-  return NULL;
-  }
-
 
 bgav_packet_t *
-bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
-                             bgav_stream_t * s)
-  {
-  int get_duration = 0;
-  bgav_packet_t * ret = (bgav_packet_t*)0;
-  
-  if(!s->packet_buffer)
-    return NULL;
-
-  if((s->type == BGAV_STREAM_VIDEO) && s->data.video.parser)
-    {
-    if(!(ret = get_packet_read_vparse(demuxer, s)))
-      return NULL;
-    }
-  else if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.parser)
-    {
-    if(!(ret = get_packet_read_aparse(demuxer, s)))
-      return NULL;
-    }
-  else
-    {
-    if((s->type == BGAV_STREAM_VIDEO) &&
-       ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
-        (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
-      get_duration = 1;
-  
-    demuxer->request_stream = s; 
-    while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
-      {
-      if(!bgav_demuxer_next_packet(demuxer))
-        {
-        if(get_duration)
-          {
-          ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
-          if(!ret)
-            return (bgav_packet_t*)0;
-
-          if(s->duration)
-            ret->duration = s->duration - ret->pts;
-          else
-            ret->duration = 0;
-          break;
-          }
-        else
-          return (bgav_packet_t*)0;
-        }
-      }
-
-    }
-
-  /* Hack: If we got the duration from pts only and the stream
-   * has B-frames, the durations are invalid and set as such
-   */
-#if 1
-  if(get_duration && (ret->dts == BGAV_TIMESTAMP_UNDEFINED) &&
-     (s->flags & STREAM_B_FRAMES))
-    ret->duration = -1;
-#endif
-  demuxer->request_stream = (bgav_stream_t*)0;
-  return ret;
-  }
-
-static bgav_packet_t * peek_packet_vparse(bgav_demuxer_context_t * demuxer,
-                                          bgav_stream_t * s, int force)
-  {
-  bgav_packet_t * p;
-  int result;
-  if(s->parsed_packet->valid)
-    return s->parsed_packet;
-
-  while(1)
-    {
-    result = bgav_video_parser_parse(s->data.video.parser);
-    switch(result)
-      {
-      case PARSER_EOF:
-      case PARSER_ERROR:
-        return NULL;
-        break;
-      case PARSER_NEED_DATA:
-        if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
-          {
-          demuxer->request_stream = s; 
-          while(!(p =
-                  bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
-            {
-            if(!bgav_demuxer_next_packet(demuxer))
-              {
-              bgav_video_parser_set_eof(s->data.video.parser);
-              break;
-              }
-            }
-          if(p)
-            {
-            bgav_video_parser_add_packet(s->data.video.parser, p);
-            p->valid = 0;
-            }
-          }
-        else
-          {
-          if((p =
-              bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0)))
-            {
-            p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
-            bgav_video_parser_add_packet(s->data.video.parser, p);
-            p->valid = 0;
-            }
-          else if(s->flags & STREAM_EOF_D)
-            {
-            bgav_video_parser_set_eof(s->data.video.parser);
-            }
-          else
-            return NULL;
-          }
-        break;
-      case PARSER_HAVE_PACKET:
-        if(!(s->flags & STREAM_PARSE_HAVE_FORMAT))
-          {
-          s->flags |= STREAM_PARSE_HAVE_FORMAT;
-          }
-        bgav_video_parser_get_packet(s->data.video.parser,
-                                     s->parsed_packet);
-        return s->parsed_packet;
-        break;
-          
-      }
-    }
-  return NULL;
-  }
-
-static bgav_packet_t * peek_packet_aparse(bgav_demuxer_context_t * demuxer,
-                                          bgav_stream_t * s, int force)
-  {
-  bgav_packet_t * p;
-  int result;
-  if(s->parsed_packet->valid)
-    return s->parsed_packet;
-
-  while(1)
-    {
-    result = bgav_audio_parser_parse(s->data.audio.parser);
-    switch(result)
-      {
-      case PARSER_EOF:
-        return NULL;
-        break;
-      case PARSER_NEED_DATA:
-        if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
-          {
-          demuxer->request_stream = s; 
-          while(!(p =
-                  bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
-            {
-            if(!bgav_demuxer_next_packet(demuxer))
-              {
-              bgav_audio_parser_set_eof(s->data.audio.parser);
-              break;
-              }
-            }
-          if(p)
-            {
-            bgav_audio_parser_add_packet(s->data.audio.parser, p);
-            p->valid = 0;
-            }
-          }
-        else
-          {
-          if((p =
-              bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0)))
-            {
-            p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
-            bgav_audio_parser_add_packet(s->data.audio.parser, p);
-            p->valid = 0;
-            }
-          else if(s->flags & STREAM_EOF_D)
-            {
-            bgav_audio_parser_set_eof(s->data.audio.parser);
-            }
-          else
-            return NULL;
-          }
-        break;
-      case PARSER_HAVE_PACKET:
-        bgav_audio_parser_get_packet(s->data.audio.parser,
-                                     s->parsed_packet);
-        return s->parsed_packet;
-        break;
-          
-      }
-    }
-  return NULL;
-  }
-
-
-bgav_packet_t *
-bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
-                              bgav_stream_t * s, int force)
+bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
+                                      bgav_stream_t * s, int force)
   {
   bgav_packet_t * ret;
   int get_duration = 0;
-  if(!s->packet_buffer)
-    return NULL;
-
-  if((s->type == BGAV_STREAM_VIDEO) && s->data.video.parser)
-    return peek_packet_vparse(demuxer, s, force);
-  else if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.parser)
-    return peek_packet_aparse(demuxer, s, force);
   
   if((s->type == BGAV_STREAM_VIDEO) &&
      ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
@@ -1017,6 +721,100 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
     }
   else
     return bgav_packet_buffer_peek_packet_read(s->packet_buffer, get_duration);
+  }
+
+bgav_packet_t *
+bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
+                                     bgav_stream_t * s)
+  {
+  int get_duration = 0;
+  bgav_packet_t * ret;
+  
+  if((s->type == BGAV_STREAM_VIDEO) &&
+     ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
+      (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
+    get_duration = 1;
+  
+  while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
+    {
+    if(!bgav_demuxer_next_packet(demuxer))
+      {
+      if(get_duration)
+        {
+        ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
+        if(!ret)
+          return (bgav_packet_t*)0;
+
+        if(s->duration)
+          ret->duration = s->duration - ret->pts;
+        else
+          ret->duration = 0;
+        break;
+        }
+      else
+        return (bgav_packet_t*)0;
+      }
+    }
+  /* Hack: If we got the duration from pts only and the stream
+   * has B-frames, the durations are invalid and set as such
+   */
+#if 1
+  if(get_duration && (ret->dts == BGAV_TIMESTAMP_UNDEFINED) &&
+     (s->flags & STREAM_B_FRAMES))
+    ret->duration = -1;
+#endif
+  return ret;
+  }
+
+bgav_packet_t *
+bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
+                             bgav_stream_t * s)
+  {
+  bgav_packet_t * ret = (bgav_packet_t*)0;
+  demuxer->request_stream = s;
+  
+  if(!s->packet_buffer)
+    return NULL;
+
+  ret = s->get_packet(demuxer, s);
+
+#if 0  
+  if((s->type == BGAV_STREAM_VIDEO) && s->data.video.parser)
+    {
+    if(!(ret = get_packet_read_vparse(demuxer, s)))
+      return NULL;
+    }
+  else if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.parser)
+    {
+    if(!(ret = get_packet_read_aparse(demuxer, s)))
+      return NULL;
+    }
+  else
+    {
+    
+    }
+#endif
+  
+  demuxer->request_stream = (bgav_stream_t*)0;
+  return ret;
+  }
+
+
+
+
+bgav_packet_t *
+bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
+                              bgav_stream_t * s, int force)
+  {
+  bgav_packet_t * ret;
+  
+  if(!s->packet_buffer)
+    return NULL;
+
+  demuxer->request_stream = s;
+  ret = s->peek_packet(demuxer, s, force);
+  demuxer->request_stream = NULL;
+  return ret;
   }
 
 

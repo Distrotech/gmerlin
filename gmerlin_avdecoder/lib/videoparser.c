@@ -387,6 +387,7 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
         }
       }
     }
+#if 0
   else if(parser->s->flags & STREAM_PARSE_FRAME)
     {
     int type;
@@ -416,11 +417,18 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
     else
       return PARSER_NEED_DATA;
     }
-  
+#endif  
   /* Never get here */
   return PARSER_ERROR;
   }
 
+int bgav_video_parser_parse_frame(bgav_video_parser_t * parser,
+                                  bgav_packet_t * p)
+  {
+  if(!parser->parse_frame)
+    return PARSER_ERROR;
+  return parser->parse_frame(parser, p);
+  }
 
 void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p)

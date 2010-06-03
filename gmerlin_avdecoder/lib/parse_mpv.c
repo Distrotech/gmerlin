@@ -404,8 +404,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
   return PARSER_CONTINUE;
   }
 
-static int parse_frame_mpeg12(bgav_video_parser_t * parser,
-                              int * coding_type, int * duration)
+static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
   const uint8_t * sc;
   mpeg12_priv_t * priv = parser->priv;
@@ -418,19 +417,21 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser,
   int timescale;
   int frame_duration;
 
+  const uint8_t * start =   p->data;
+  const uint8_t * end = p->data + p->data_size;
+  
   int ret = PARSER_CONTINUE;
   
   while(1)
     {
-    sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
-                                 parser->buf.buffer + parser->buf.size);
+    sc = bgav_mpv_find_startcode(start, end);
     if(!sc)
       return PARSER_NEED_DATA;
     
     start_code = bgav_mpv_get_start_code(sc);
 
     /* Update position */
-    parser->pos = sc - parser->buf.buffer;
+    start = sc;
     
     switch(start_code)
       {
@@ -439,30 +440,26 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser,
           {
           len = bgav_mpv_sequence_header_parse(parser->opt,
                                                &priv->sh,
-                                               parser->buf.buffer + parser->pos,
-                                               parser->buf.size - parser->pos);
+                                               start, end - start);
           if(!len)
             return PARSER_ERROR;
           priv->have_sh = 1;
-
+          
           bgav_mpv_get_framerate(priv->sh.frame_rate_index,
                                  &timescale, &frame_duration);
           
           bgav_video_parser_set_framerate(parser,
                                           timescale, frame_duration);
-          parser->pos += len;
+          start += len;
           }
         else
-          parser->pos += 4;
+          start += 4;
         break;
       case MPEG_CODE_SEQUENCE_EXT:
         if(priv->have_sh && !priv->sh.mpeg2)
           {
           len =
-            bgav_mpv_sequence_extension_parse(parser->opt,
-                                              &priv->sh.ext,
-                                              parser->buf.buffer + parser->pos,
-                                              parser->buf.size - parser->pos);
+            bgav_mpv_sequence_extension_parse(parser->opt, &priv->sh.ext, start, end - start);
           if(!len)
             return PARSER_ERROR;
           priv->sh.mpeg2 = 1;
@@ -471,10 +468,10 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser,
                                           parser->format->timescale * (priv->sh.ext.timescale_ext+1) * 2,
                                           parser->format->frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
           
-          parser->pos += len;
+          start += len;
           }
         else
-          parser->pos += 4;
+          start += 4;
         break;
       case MPEG_CODE_PICTURE:
         if(!parser->header && priv->have_sh)
@@ -483,16 +480,17 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser,
           ret = PARSER_HAVE_HEADER;
           }
         len = bgav_mpv_picture_header_parse(parser->opt,
-                                            &ph,
-                                            parser->buf.buffer + parser->pos,
-                                            parser->buf.size - parser->pos);
-        *duration = parser->format->frame_duration;
+                                            &ph, start, end - start);
+        p->duration = parser->format->frame_duration;
         if(!len)
           return PARSER_ERROR;
-        
-        *coding_type = ph.coding_type;
-        parser->pos += len;
 
+        PACKET_SET_CODING_TYPE(p, ph.coding_type);
+        if(ph.coding_type == BGAV_CODING_TYPE_I)
+          PACKET_SET_KEYFRAME(p);
+        
+        start += len;
+        
         if(parser->s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
           {
           parser->s->data.video.format.pixelformat =
@@ -514,9 +512,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser,
         break;
       case MPEG_CODE_PICTURE_EXT:
         len = bgav_mpv_picture_extension_parse(parser->opt,
-                                               &pe,
-                                               parser->buf.buffer + parser->pos,
-                                               parser->buf.size - parser->pos);
+                                               &pe, start, end - start);
         if(!len)
           return PARSER_ERROR;
 
@@ -533,10 +529,9 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser,
           else if(pe.progressive_frame)
             delta_d = parser->format->frame_duration / 2;
           
-          *duration += delta_d;
+          p->duration += delta_d;
           }
-        
-        parser->pos += len;
+        start += len;
         break;
       case MPEG_CODE_GOP:
         if(!parser->header && priv->have_sh)
@@ -545,17 +540,15 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser,
           ret = PARSER_HAVE_HEADER;
           }
         
-        parser->pos += 4;
+        start += 4;
         break;
       case MPEG_CODE_SLICE:
         return ret;
       default:
-        parser->pos += 4;
-        
+        start += 4;
       }
     }
   }
-
 
 static void cleanup_mpeg12(bgav_video_parser_t * parser)
   {

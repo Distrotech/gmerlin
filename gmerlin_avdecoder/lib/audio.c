@@ -49,6 +49,113 @@ int bgav_set_audio_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   return 1;
   }
 
+static bgav_packet_t * get_packet_read_aparse(bgav_demuxer_context_t * demuxer,
+                                              bgav_stream_t * s)
+  {
+  int result;
+  bgav_packet_t * p;
+  if(s->parsed_packet->valid)
+    return s->parsed_packet;
+
+  while(1)
+    {
+    result = bgav_audio_parser_parse(s->data.audio.parser);
+
+    switch(result)
+      {
+      case PARSER_EOF:
+        return NULL;
+        break;
+      case PARSER_NEED_DATA:
+        demuxer->request_stream = s; 
+        while(!(p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
+          {
+          if(!bgav_demuxer_next_packet(demuxer))
+            {
+            bgav_audio_parser_set_eof(s->data.audio.parser);
+            break;
+            }
+          }
+        if(p)
+          {
+          bgav_audio_parser_add_packet(s->data.audio.parser, p);
+          p->valid = 0;
+          }
+        break;
+      case PARSER_HAVE_PACKET:
+        bgav_audio_parser_get_packet(s->data.audio.parser,
+                                     s->parsed_packet);
+        return s->parsed_packet;
+        break;
+      }
+    }
+  return NULL;
+  }
+
+static bgav_packet_t * peek_packet_aparse(bgav_demuxer_context_t * demuxer,
+                                          bgav_stream_t * s, int force)
+  {
+  bgav_packet_t * p;
+  int result;
+  if(s->parsed_packet->valid)
+    return s->parsed_packet;
+
+  while(1)
+    {
+    result = bgav_audio_parser_parse(s->data.audio.parser);
+    switch(result)
+      {
+      case PARSER_EOF:
+        return NULL;
+        break;
+      case PARSER_NEED_DATA:
+        if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
+          {
+          demuxer->request_stream = s; 
+          while(!(p =
+                  bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
+            {
+            if(!bgav_demuxer_next_packet(demuxer))
+              {
+              bgav_audio_parser_set_eof(s->data.audio.parser);
+              break;
+              }
+            }
+          if(p)
+            {
+            bgav_audio_parser_add_packet(s->data.audio.parser, p);
+            p->valid = 0;
+            }
+          }
+        else
+          {
+          if((p =
+              bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0)))
+            {
+            p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
+            bgav_audio_parser_add_packet(s->data.audio.parser, p);
+            p->valid = 0;
+            }
+          else if(s->flags & STREAM_EOF_D)
+            {
+            bgav_audio_parser_set_eof(s->data.audio.parser);
+            }
+          else
+            return NULL;
+          }
+        break;
+      case PARSER_HAVE_PACKET:
+        bgav_audio_parser_get_packet(s->data.audio.parser,
+                                     s->parsed_packet);
+        return s->parsed_packet;
+        break;
+          
+      }
+    }
+  return NULL;
+  }
+
+
 int bgav_audio_start(bgav_stream_t * s)
   {
   bgav_audio_decoder_t * dec;
@@ -74,6 +181,11 @@ int bgav_audio_start(bgav_stream_t * s)
       return 0;
       }
 
+    if(s->flags & STREAM_PARSE_FULL)
+      {
+      s->get_packet = get_packet_read_aparse;
+      s->peek_packet = peek_packet_aparse;
+      }
     if(s->ext_data)
       {
       if(!bgav_audio_parser_set_header(parser, s->ext_data, s->ext_size))

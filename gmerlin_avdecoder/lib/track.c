@@ -31,29 +31,41 @@
 bgav_stream_t *
 bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt)
   {
+  bgav_stream_t * ret;
   t->num_audio_streams++;
   t->audio_streams = realloc(t->audio_streams, t->num_audio_streams * 
                              sizeof(*(t->audio_streams)));
-  bgav_stream_init(&t->audio_streams[t->num_audio_streams-1], opt);
-  bgav_stream_create_packet_buffer(&t->audio_streams[t->num_audio_streams-1]);
-  t->audio_streams[t->num_audio_streams-1].data.audio.bits_per_sample = 16;
-  t->audio_streams[t->num_audio_streams-1].type = BGAV_STREAM_AUDIO;
-  t->audio_streams[t->num_audio_streams-1].track = t;
-  return &t->audio_streams[t->num_audio_streams-1];
+
+  ret = &t->audio_streams[t->num_audio_streams-1];
+  
+  bgav_stream_init(ret, opt);
+  bgav_stream_create_packet_buffer(ret);
+  ret->data.audio.bits_per_sample = 16;
+  ret->type = BGAV_STREAM_AUDIO;
+  ret->track = t;
+  ret->get_packet = bgav_demuxer_get_packet_read_generic;
+  ret->peek_packet = bgav_demuxer_peek_packet_read_generic;
+  
+  return ret;
   }
 
 bgav_stream_t *
 bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
   {
+  bgav_stream_t * ret;
   t->num_video_streams++;
   t->video_streams = realloc(t->video_streams, t->num_video_streams * 
                              sizeof(*(t->video_streams)));
-  bgav_stream_init(&t->video_streams[t->num_video_streams-1], opt);
-  bgav_stream_create_packet_buffer(&t->video_streams[t->num_video_streams-1]);
-  t->video_streams[t->num_video_streams-1].type = BGAV_STREAM_VIDEO;
-  t->video_streams[t->num_video_streams-1].opt = opt;
-  t->video_streams[t->num_video_streams-1].track = t;
-  return &t->video_streams[t->num_video_streams-1];
+  
+  ret = &t->video_streams[t->num_video_streams-1];
+  bgav_stream_init(ret, opt);
+  bgav_stream_create_packet_buffer(ret);
+  ret->type = BGAV_STREAM_VIDEO;
+  ret->opt = opt;
+  ret->track = t;
+  ret->get_packet = bgav_demuxer_get_packet_read_generic;
+  ret->peek_packet = bgav_demuxer_peek_packet_read_generic;
+  return ret;
   }
 
 static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
@@ -79,14 +91,14 @@ static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
     {
     ret->type = BGAV_STREAM_SUBTITLE_TEXT;
     if(charset)
-      t->subtitle_streams[t->num_subtitle_streams-1].data.subtitle.charset =
-        bgav_strdup(charset);
+      ret->data.subtitle.charset = bgav_strdup(charset);
     }
   else
-    t->subtitle_streams[t->num_subtitle_streams-1].type =
-      BGAV_STREAM_SUBTITLE_OVERLAY;
+    ret->type = BGAV_STREAM_SUBTITLE_OVERLAY;
 
-  t->subtitle_streams[t->num_subtitle_streams-1].track = t;
+  ret->track = t;
+  ret->get_packet = bgav_demuxer_get_packet_read_generic;
+  ret->peek_packet = bgav_demuxer_peek_packet_read_generic;
   
   return ret;
   }

@@ -51,12 +51,12 @@ static void reset_dirac(bgav_video_parser_t * parser)
   }
 
 static int parse_frame_dirac(bgav_video_parser_t * parser,
-                             int * coding_type, int * duration)
+                             bgav_packet_t * p)
   {
   int code, len;
   dirac_priv_t * priv;
-  uint8_t * start =   parser->buf.buffer + parser->pos;
-  uint8_t * end = parser->buf.buffer + parser->buf.size;
+  uint8_t * start =   p->data;
+  uint8_t * end = p->data + p->data_size;
   bgav_dirac_picture_header_t ph;
   int ret = PARSER_CONTINUE;
   priv = parser->priv;
@@ -79,7 +79,7 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
             return PARSER_ERROR;
           //          bgav_dirac_sequence_header_dump(&priv->sh);
           priv->have_sh = 1;
-
+          
           parser->header = malloc(len);
           memcpy(parser->header, start, len);
           parser->header_len = len;
@@ -99,22 +99,22 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
 
         if(ph.num_refs == 0)
           {
-          *coding_type = BGAV_CODING_TYPE_I;
+          PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_I);
+          PACKET_SET_KEYFRAME(p);
           priv->pic_num_max = ph.pic_num;
           }
         else if((priv->pic_num_max >= 0) &&
            (ph.pic_num < priv->pic_num_max))
           {
-          *coding_type = BGAV_CODING_TYPE_B;
+          PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_B);
           }
         else
           {
+          PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_P);
           priv->pic_num_max = ph.pic_num;
-          *coding_type = BGAV_CODING_TYPE_P;
           }
-        
-        *duration    = parser->packet_duration ? parser->packet_duration :
-          priv->sh.frame_duration;
+        if(!p->duration)
+          p->duration = priv->sh.frame_duration;
         
         return ret;        
         break;

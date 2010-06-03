@@ -50,6 +50,126 @@ int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   return 1;
   }
 
+static bgav_packet_t * get_packet_read_vparse(bgav_demuxer_context_t * demuxer,
+                                              bgav_stream_t * s)
+  {
+  int result;
+  bgav_packet_t * p;
+  if(s->parsed_packet->valid)
+    return s->parsed_packet;
+
+  while(1)
+    {
+    result = bgav_video_parser_parse(s->data.video.parser);
+
+    switch(result)
+      {
+      case PARSER_EOF:
+        return NULL;
+        break;
+      case PARSER_NEED_DATA:
+        demuxer->request_stream = s; 
+        while(!(p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
+          {
+          if(!bgav_demuxer_next_packet(demuxer))
+            {
+            bgav_video_parser_set_eof(s->data.video.parser);
+            break;
+            }
+          }
+        if(p)
+          {
+          bgav_video_parser_add_packet(s->data.video.parser, p);
+          p->valid = 0;
+          }
+        break;
+      case PARSER_HAVE_PACKET:
+        if(!(s->flags & STREAM_PARSE_HAVE_FORMAT))
+          s->flags |= STREAM_PARSE_HAVE_FORMAT;
+        
+        s->parsed_packet->tc = GAVL_TIMECODE_UNDEFINED;
+        
+        bgav_video_parser_get_packet(s->data.video.parser,
+                                     s->parsed_packet);
+        return s->parsed_packet;
+        break;
+      case PARSER_ERROR:
+        return NULL;
+        
+      }
+    }
+  return NULL;
+  }
+
+
+static bgav_packet_t * peek_packet_vparse(bgav_demuxer_context_t * demuxer,
+                                          bgav_stream_t * s, int force)
+  {
+  bgav_packet_t * p;
+  int result;
+  if(s->parsed_packet->valid)
+    return s->parsed_packet;
+
+  while(1)
+    {
+    result = bgav_video_parser_parse(s->data.video.parser);
+    switch(result)
+      {
+      case PARSER_EOF:
+      case PARSER_ERROR:
+        return NULL;
+        break;
+      case PARSER_NEED_DATA:
+        if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
+          {
+          demuxer->request_stream = s; 
+          while(!(p =
+                  bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
+            {
+            if(!bgav_demuxer_next_packet(demuxer))
+              {
+              bgav_video_parser_set_eof(s->data.video.parser);
+              break;
+              }
+            }
+          if(p)
+            {
+            bgav_video_parser_add_packet(s->data.video.parser, p);
+            p->valid = 0;
+            }
+          }
+        else
+          {
+          if((p =
+              bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0)))
+            {
+            p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
+            bgav_video_parser_add_packet(s->data.video.parser, p);
+            p->valid = 0;
+            }
+          else if(s->flags & STREAM_EOF_D)
+            {
+            bgav_video_parser_set_eof(s->data.video.parser);
+            }
+          else
+            return NULL;
+          }
+        break;
+      case PARSER_HAVE_PACKET:
+        if(!(s->flags & STREAM_PARSE_HAVE_FORMAT))
+          {
+          s->flags |= STREAM_PARSE_HAVE_FORMAT;
+          }
+        bgav_video_parser_get_packet(s->data.video.parser,
+                                     s->parsed_packet);
+        return s->parsed_packet;
+        break;
+          
+      }
+    }
+  return NULL;
+  }
+
 int bgav_video_start(bgav_stream_t * s)
   {
   int result;
@@ -81,6 +201,11 @@ int bgav_video_start(bgav_stream_t * s)
       return 0;
       }
 
+    if(s->flags & STREAM_PARSE_FULL)
+      {
+      s->get_packet = get_packet_read_vparse;
+      s->peek_packet = peek_packet_vparse;
+      }
     /* Set the format, as far as known by the demuxer */
     // bgav_video_parser_set_format(parser, &s->data.video.format);
     

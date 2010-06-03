@@ -18,7 +18,7 @@ endif
 if HAVE_VORBIS
 vorbis_cflags = @VORBIS_CFLAGS@
 vorbis_libs =   @VORBIS_LIBS@ @VORBISENC_LIBS@
-vorbis_sources = audio_vorbis.c
+vorbis_sources = audio_vorbis.c parse_vorbis.c
 else
 vorbis_cflags =
 vorbis_libs =

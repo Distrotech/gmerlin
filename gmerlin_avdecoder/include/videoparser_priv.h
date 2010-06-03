@@ -31,7 +31,7 @@ typedef void (*cleanup_func)(bgav_video_parser_t*);
 typedef void (*reset_func)(bgav_video_parser_t*);
 typedef int (*parse_header_func)(bgav_video_parser_t*);
 
-typedef int (*parse_frame_func)(bgav_video_parser_t*, int * coding_type, int * duration);
+typedef int (*parse_frame_func)(bgav_video_parser_t*, bgav_packet_t * p);
 
 typedef struct
   {

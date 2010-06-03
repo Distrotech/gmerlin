@@ -492,6 +492,11 @@ struct bgav_stream_s
 
   bgav_packet_t * parsed_packet;
   bgav_bsf_t * bsf;
+
+  bgav_packet_t * (*get_packet)(bgav_demuxer_context_t * demuxer,
+                                bgav_stream_t * s);
+  bgav_packet_t * (*peek_packet)(bgav_demuxer_context_t * demuxer,
+                                 bgav_stream_t * s, int force);
   
   union
     {
@@ -1351,6 +1356,18 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
 bgav_packet_t *
 bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_stream_t * s, int force);
+
+/* Generic get/peek functions */
+
+
+
+bgav_packet_t *
+bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
+                                      bgav_stream_t * s, int force);
+bgav_packet_t *
+bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
+                                     bgav_stream_t * s);
+
 
 void 
 bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,

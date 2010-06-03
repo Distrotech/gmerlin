@@ -45,6 +45,9 @@ void bgav_video_parser_reset(bgav_video_parser_t *, int64_t in_pts, int64_t out_
 
 int bgav_video_parser_parse(bgav_video_parser_t * parser);
 
+int bgav_video_parser_parse_frame(bgav_video_parser_t * parser,
+                                  bgav_packet_t * p);
+
 void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p);
 
@@ -72,9 +75,13 @@ int bgav_audio_parser_set_header(bgav_audio_parser_t * parser,
 
 void bgav_audio_parser_destroy(bgav_audio_parser_t *);
 
-void bgav_audio_parser_reset(bgav_audio_parser_t *, int64_t in_pts, int64_t out_pts);
+void bgav_audio_parser_reset(bgav_audio_parser_t *,
+                             int64_t in_pts, int64_t out_pts);
 
 int bgav_audio_parser_parse(bgav_audio_parser_t * parser);
+
+int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
+                                  bgav_packet_t * p);
 
 void bgav_audio_parser_add_packet(bgav_audio_parser_t * parser,
                                   bgav_packet_t * p);
