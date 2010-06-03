@@ -140,11 +140,11 @@ static int parse_vc1(bgav_video_parser_t * parser)
           break;
         case VC1_CODE_PICTURE:
           /* Extract extradata */
-          if(!parser->header)
+          if(!parser->s->ext_data)
             {
             bgav_video_parser_extract_header(parser);
             //            bgav_video_parser_flush(parser, parser->header_len);
-            return PARSER_HAVE_HEADER;
+            return PARSER_CONTINUE;
             }
 
           /* Set picture start */

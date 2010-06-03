@@ -41,7 +41,7 @@ static int parse_a52(bgav_audio_parser_t * parser)
       {
       if(!parser->have_format)
         {
-        bgav_a52_header_get_format(&h, &parser->format);
+        bgav_a52_header_get_format(&h, &parser->s->data.audio.format);
         parser->have_format = 1;
         return PARSER_HAVE_FORMAT;
         }

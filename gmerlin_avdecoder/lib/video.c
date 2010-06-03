@@ -170,6 +170,27 @@ static bgav_packet_t * peek_packet_vparse(bgav_demuxer_context_t * demuxer,
   return NULL;
   }
 
+static bgav_packet_t * get_packet_read_vparse_frame(bgav_demuxer_context_t * demuxer,
+                                                    bgav_stream_t * s)
+  {
+  bgav_packet_t * p;
+  p = bgav_demuxer_get_packet_read_generic(demuxer, s);
+  if(p)
+    bgav_video_parser_parse_frame(s->data.video.parser, p);
+  return p;
+  }
+
+static bgav_packet_t * peek_packet_vparse_frame(bgav_demuxer_context_t * demuxer,
+                                                bgav_stream_t * s, int force)
+  {
+  bgav_packet_t * p;
+  p = bgav_demuxer_peek_packet_read_generic(demuxer, s, force);
+  if(p)
+    bgav_video_parser_parse_frame(s->data.video.parser, p);
+  return p;
+  
+  }
+
 int bgav_video_start(bgav_stream_t * s)
   {
   int result;
@@ -182,14 +203,9 @@ int bgav_video_start(bgav_stream_t * s)
   if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
      !s->data.video.parser)
     {
-    int result, done = 0;
-    bgav_packet_t * p;
-    bgav_video_parser_t * parser;
-    const uint8_t * header;
-    int header_len;
     
-    parser = bgav_video_parser_create(s);
-    if(!parser)
+    s->data.video.parser = bgav_video_parser_create(s);
+    if(!s->data.video.parser)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "No video parser found for fourcc %c%c%c%c (0x%08x)",
@@ -206,62 +222,26 @@ int bgav_video_start(bgav_stream_t * s)
       s->get_packet = get_packet_read_vparse;
       s->peek_packet = peek_packet_vparse;
       }
+    else
+      {
+      s->get_packet = get_packet_read_vparse_frame;
+      s->peek_packet = peek_packet_vparse_frame;
+      }
     /* Set the format, as far as known by the demuxer */
     // bgav_video_parser_set_format(parser, &s->data.video.format);
     
-    /* Very few formats pass the extradata out-of-band, but still need
-       parsing */
-    if(s->ext_data)
-      {
-      if(!bgav_video_parser_set_header(parser, s->ext_data, s->ext_size))
-        {
-        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Video parser doesn't support out-of-band header");
-        }
-      }
-    
-    /* Start the parser and extract the header */
-    
-    while(!s->ext_data)
-      {
-      result = bgav_video_parser_parse(parser);
-      switch(result)
-        {
-        case PARSER_NEED_DATA:
-          p = bgav_demuxer_get_packet_read(s->demuxer, s);
-
-          if(!p)
-            {
-            bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                     "EOF while initializing video parser");
-            return 0;
-            }
-          bgav_video_parser_add_packet(parser, p);
-          bgav_demuxer_done_packet_read(s->demuxer, p);
-          break;
-        case PARSER_HAVE_HEADER:
-          done = 1;
-          
-          header = bgav_video_parser_get_header(parser, &header_len);
-          
-          s->ext_size = header_len;
-          s->ext_data = malloc(s->ext_size);
-          
-          memcpy(s->ext_data, header, s->ext_size);
-
-          s->flags |= STREAM_HEADER_FROM_PARSER;
-          
-          break;
-        }
-      }
-    
-    s->data.video.max_ref_frames = bgav_video_parser_max_ref_frames(parser);
-    
-    s->data.video.parser = parser;
     s->parsed_packet = bgav_packet_create();
+
+    /* Get the first packet to garantuee that the parser is fully initialized */
+    if(!bgav_demuxer_peek_packet_read(s->demuxer, s, 1))
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "EOF while initializing video parser");
+      return 0;
+      }
     s->index_mode = INDEX_MODE_SIMPLE;
     }
-
+  
   if(s->flags & STREAM_NEED_START_TIME)
     {
     bgav_packet_t * p;
@@ -373,12 +353,6 @@ void bgav_video_stop(bgav_stream_t * s)
     {
     bgav_video_parser_destroy(s->data.video.parser);
     s->data.video.parser = NULL;
-    
-    if(s->flags & STREAM_HEADER_FROM_PARSER)
-      {
-      free(s->ext_data);
-      s->ext_data = NULL;
-      }
     }
   
   if(s->data.video.decoder)

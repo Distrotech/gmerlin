@@ -180,10 +180,10 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           /* Need the picture header */
           priv->state = MPEG_HAS_PICTURE_CODE;
           
-          if(!parser->header && priv->have_sh)
+          if(!parser->s->ext_data && priv->have_sh)
             {
             bgav_video_parser_extract_header(parser);
-            return PARSER_HAVE_HEADER;
+            return PARSER_CONTINUE;
             }
 
           
@@ -201,10 +201,10 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
             }
           bgav_video_parser_set_header_end(parser);
           priv->state = MPEG_HAS_GOP_CODE;
-          if(!parser->header)
+          if(!parser->s->ext_data)
             {
             bgav_video_parser_extract_header(parser);
-            return PARSER_HAVE_HEADER;
+            return PARSER_CONTINUE;
             }
           break;
         case MPEG_CODE_END:
@@ -474,10 +474,10 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
           start += 4;
         break;
       case MPEG_CODE_PICTURE:
-        if(!parser->header && priv->have_sh)
+        if(!parser->s->ext_data && priv->have_sh)
           {
           bgav_video_parser_extract_header(parser);
-          ret = PARSER_HAVE_HEADER;
+          ret = PARSER_CONTINUE;
           }
         len = bgav_mpv_picture_header_parse(parser->opt,
                                             &ph, start, end - start);
@@ -534,10 +534,10 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
         start += len;
         break;
       case MPEG_CODE_GOP:
-        if(!parser->header && priv->have_sh)
+        if(!parser->s->ext_data && priv->have_sh)
           {
           bgav_video_parser_extract_header(parser);
-          ret = PARSER_HAVE_HEADER;
+          ret = PARSER_CONTINUE;
           }
         
         start += 4;

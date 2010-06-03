@@ -114,10 +114,10 @@ static int parse_cavs(bgav_video_parser_t * parser)
           /* Need the picture header */
           priv->state = CAVS_HAS_PIC_CODE;
           
-          if(!parser->header)
+          if(!parser->s->ext_data)
             {
             bgav_video_parser_extract_header(parser);
-            return PARSER_HAVE_HEADER;
+            return PARSER_CONTINUE;
             }
           break;
         default:

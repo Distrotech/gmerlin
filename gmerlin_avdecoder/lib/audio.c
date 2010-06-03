@@ -155,21 +155,38 @@ static bgav_packet_t * peek_packet_aparse(bgav_demuxer_context_t * demuxer,
   return NULL;
   }
 
+static bgav_packet_t * get_packet_read_aparse_frame(bgav_demuxer_context_t * demuxer,
+                                                    bgav_stream_t * s)
+  {
+  bgav_packet_t * p;
+  p = bgav_demuxer_get_packet_read_generic(demuxer, s);
+  if(p)
+    bgav_audio_parser_parse_frame(s->data.audio.parser, p);
+  return p;
+  }
+
+static bgav_packet_t * peek_packet_aparse_frame(bgav_demuxer_context_t * demuxer,
+                                                bgav_stream_t * s, int force)
+  {
+  bgav_packet_t * p;
+  p = bgav_demuxer_peek_packet_read_generic(demuxer, s, force);
+  if(p)
+    bgav_audio_parser_parse_frame(s->data.audio.parser, p);
+  return p;
+  
+  }
+
 
 int bgav_audio_start(bgav_stream_t * s)
   {
   bgav_audio_decoder_t * dec;
   bgav_audio_decoder_context_t * ctx;
 
-  if((s->flags & STREAM_PARSE_FULL) && !s->data.audio.parser)
+  if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
+     !s->data.audio.parser)
     {
-    int result, done = 0;
-    bgav_packet_t * p;
-    const gavl_audio_format_t * format;
-    bgav_audio_parser_t * parser;
-    
-    parser = bgav_audio_parser_create(s);
-    if(!parser)
+    s->data.audio.parser = bgav_audio_parser_create(s);
+    if(!s->data.audio.parser)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "No audio parser found for fourcc %c%c%c%c (0x%08x)",
@@ -186,46 +203,23 @@ int bgav_audio_start(bgav_stream_t * s)
       s->get_packet = get_packet_read_aparse;
       s->peek_packet = peek_packet_aparse;
       }
-    if(s->ext_data)
+    else
       {
-      if(!bgav_audio_parser_set_header(parser, s->ext_data, s->ext_size))
-        {
-        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Audio parser doesn't support out-of-band header");
-        }
+      s->get_packet = get_packet_read_aparse_frame;
+      s->peek_packet = peek_packet_aparse_frame;
       }
-  
-    /* Start the parser and extract the header */
-
-    while(!done)
-      {
-      result = bgav_audio_parser_parse(parser);
-      switch(result)
-        {
-        case PARSER_NEED_DATA:
-          p = bgav_demuxer_get_packet_read(s->demuxer, s);
-
-          if(!p)
-            {
-            bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                     "EOF while initializing audio parser");
-            return 0;
-            }
-          bgav_audio_parser_add_packet(parser, p);
-          bgav_demuxer_done_packet_read(s->demuxer, p);
-          break;
-        case PARSER_HAVE_FORMAT:
-          done = 1;
-
-          format = bgav_audio_parser_get_format(parser);
-          gavl_audio_format_copy(&s->data.audio.format, format);
-          
-          break;
-        }
-      }
-    s->data.audio.parser = parser;
     s->parsed_packet = bgav_packet_create();
     s->parsed_packet->dts = BGAV_TIMESTAMP_UNDEFINED;
+    
+    /* Start the parser */
+    
+    if(!bgav_demuxer_peek_packet_read(s->demuxer, s, 1))
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "EOF while initializing audio parser");
+      return 0;
+      }
+    
     s->index_mode = INDEX_MODE_SIMPLE;
     }
 

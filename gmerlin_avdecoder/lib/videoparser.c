@@ -90,7 +90,7 @@ bgav_video_parser_create(bgav_stream_t * s)
   ret->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   ret->last_non_b_frame = -1;
   ret->raw_position = -1;
-  ret->max_ref_frames = 2;
+  ret->s->data.video.max_ref_frames = 2;
   ret->format = &s->data.video.format;
   ret->s = s;
 
@@ -100,9 +100,9 @@ bgav_video_parser_create(bgav_stream_t * s)
 
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser)
   {
-  parser->header_len = parser->pos;
-  parser->header = malloc(parser->header_len);
-  memcpy(parser->header, parser->buf.buffer, parser->header_len);
+  parser->s->ext_size = parser->pos;
+  parser->s->ext_data = malloc(parser->s->ext_size);
+  memcpy(parser->s->ext_data, parser->buf.buffer, parser->s->ext_size);
   }
 
 static void update_previous_size(bgav_video_parser_t * parser)
@@ -121,7 +121,7 @@ static void update_previous_size(bgav_video_parser_t * parser)
     }
 
   /* If we don't have a header yet, drop the cached pictures */
-  if(!parser->header)
+  if(!parser->s->ext_data)
     {
     i = parser->cache_size;
     for(i = 0; i < parser->cache_size; i++)
@@ -232,8 +232,6 @@ void bgav_video_parser_destroy(bgav_video_parser_t * parser)
   {
   if(parser->cleanup)
     parser->cleanup(parser);
-  if(parser->header)
-    free(parser->header);
   if(parser->packets)
     free(parser->packets);
 
@@ -264,39 +262,6 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t in_pts, int64
   
   if(parser->reset)
     parser->reset(parser);
-  }
-
-
-int bgav_video_parser_max_ref_frames(bgav_video_parser_t * parser)
-  {
-  return parser->max_ref_frames;
-  }
-
-
-const uint8_t *
-bgav_video_parser_get_header(bgav_video_parser_t * parser,
-                             int * header_len)
-  {
-  *header_len = parser->header_len;
-  return parser->header;
-  }
-
-int bgav_video_parser_set_header(bgav_video_parser_t * parser,
-                                 const uint8_t * header, int len)
-  {
-  //  fprintf(stderr, "Got header %d bytes\n", len);
-  //  bgav_hexdump(header, len, 16);
-  
-  if(!parser->parse_header)
-    return 0;
-  
-  parser->header = malloc(len);
-  memcpy(parser->header, header, len);
-  parser->header_len = len;
-  
-  if(parser->parse_header)
-    parser->parse_header(parser);
-  return 1;
   }
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
@@ -377,7 +342,6 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
         {
         case PARSER_NEED_DATA:
         case PARSER_ERROR:
-        case PARSER_HAVE_HEADER:
           return result;
           break;
         case PARSER_CONTINUE:
@@ -387,37 +351,6 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
         }
       }
     }
-#if 0
-  else if(parser->s->flags & STREAM_PARSE_FRAME)
-    {
-    int type;
-    /* Need a picture in cache without the coding type set */
-    if(parser->cache[parser->cache_size-1].coding_type)
-      return PARSER_NEED_DATA;
-
-    result =
-      parser->parse_frame(parser, &type,
-                          &parser->cache[parser->cache_size-1].duration);
-
-    //    fprintf(stderr, "Coding type: %c\n", type);
-
-    if(result != PARSER_DISCARD)
-      bgav_video_parser_set_coding_type(parser, type);
-    
-    if(result == PARSER_HAVE_HEADER)
-      return result;
-    else if(result == PARSER_DISCARD)
-      {
-      parser->cache_size--;
-      bgav_bytebuffer_flush(&parser->buf);
-      return PARSER_NEED_DATA;
-      }
-    else if(bgav_video_parser_check_output(parser))
-      return PARSER_HAVE_PACKET;
-    else
-      return PARSER_NEED_DATA;
-    }
-#endif  
   /* Never get here */
   return PARSER_ERROR;
   }

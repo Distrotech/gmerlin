@@ -79,14 +79,16 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
             return PARSER_ERROR;
           //          bgav_dirac_sequence_header_dump(&priv->sh);
           priv->have_sh = 1;
-          
+
+#if 0          
           parser->header = malloc(len);
           memcpy(parser->header, start, len);
           parser->header_len = len;
           bgav_video_parser_set_framerate(parser,
                                           priv->sh.timescale,
                                           priv->sh.frame_duration);
-          ret = PARSER_HAVE_HEADER;
+#endif
+          ret = PARSER_CONTINUE;
           }
         break;
       case DIRAC_CODE_PICTURE:

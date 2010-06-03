@@ -28,7 +28,7 @@ typedef void (*init_func)(bgav_audio_parser_t*);
 typedef int (*parse_func)(bgav_audio_parser_t*);
 typedef void (*cleanup_func)(bgav_audio_parser_t*);
 typedef void (*reset_func)(bgav_audio_parser_t*);
-typedef int (*parse_header_func)(bgav_audio_parser_t*);
+// typedef int (*parse_header_func)(bgav_audio_parser_t*);
 typedef int (*parse_frame_func)(bgav_audio_parser_t*, bgav_packet_t*);
 
 #define STATE_NEED_START 0
@@ -53,7 +53,7 @@ struct bgav_audio_parser_s
   parse_func        parse;
   cleanup_func      cleanup;
   reset_func        reset;
-  parse_header_func parse_header;
+  //  parse_header_func parse_header;
   parse_frame_func  parse_frame;
   
   /* Private data for parsers */
@@ -65,9 +65,7 @@ struct bgav_audio_parser_s
   /* Timescales */
   int in_scale;
 
-  gavl_audio_format_t format;
   int have_format;
-  int format_signaled;
   
   /* Packets */
   packet_t * packets;

@@ -474,7 +474,7 @@ static int handle_nal(bgav_video_parser_t * parser)
 
         bgav_h264_sps_get_image_size(&priv->sps,
                                      parser->format);
-        parser->max_ref_frames = priv->sps.num_ref_frames;
+        parser->s->data.video.max_ref_frames = priv->sps.num_ref_frames;
         
         if(!priv->sps.frame_mbs_only_flag)
           parser->s->flags |= STREAM_FIELD_PICTURES;
@@ -542,13 +542,13 @@ static int handle_nal(bgav_video_parser_t * parser)
   parser->pos += priv->nal_len;
   priv->state = H264_NEED_NAL_END;
 
-  if(!parser->header && priv->pps_buffer && priv->sps_buffer)
+  if(!parser->s->ext_data && priv->pps_buffer && priv->sps_buffer)
     {
-    parser->header_len = priv->sps_len + priv->pps_len;
-    parser->header = malloc(parser->header_len);
-    memcpy(parser->header, priv->sps_buffer, priv->sps_len);
-    memcpy(parser->header + priv->sps_len, priv->pps_buffer, priv->pps_len);
-    return PARSER_HAVE_HEADER;
+    parser->s->ext_size = priv->sps_len + priv->pps_len;
+    parser->s->ext_data = malloc(parser->s->ext_size);
+    memcpy(parser->s->ext_data, priv->sps_buffer, priv->sps_len);
+    memcpy(parser->s->ext_data + priv->sps_len, priv->pps_buffer, priv->pps_len);
+    return PARSER_CONTINUE;
     }
   
   return PARSER_CONTINUE;

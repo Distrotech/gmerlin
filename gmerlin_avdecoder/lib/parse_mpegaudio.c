@@ -41,7 +41,7 @@ static int parse_mpa(bgav_audio_parser_t * parser)
       {
       if(!parser->have_format)
         {
-        bgav_mpa_header_get_format(&h, &parser->format);
+        bgav_mpa_header_get_format(&h, &parser->s->data.audio.format);
         parser->have_format = 1;
 
         if(parser->s->fourcc == BGAV_MK_FOURCC('m', 'p', 'g', 'a'))
@@ -85,16 +85,8 @@ void reset_mpa(bgav_audio_parser_t * parser)
   }
 #endif
 
-/* This function is here to silence warnings for
-   (completely unneccesary) MP3 headers in AVI */
-static int parse_header_mpa(bgav_audio_parser_t* p)
-  {
-  return 1;
-  }
-
 void bgav_audio_parser_init_mpeg(bgav_audio_parser_t * parser)
   {
   parser->parse = parse_mpa;
-  parser->parse_header = parse_header_mpa;
   
   }

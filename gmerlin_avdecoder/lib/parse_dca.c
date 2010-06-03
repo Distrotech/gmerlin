@@ -58,8 +58,8 @@ static int parse_dca(bgav_audio_parser_t * parser)
 
       if(!parser->have_format)
         {
-        parser->format.samplerate = sample_rate;
-        bgav_dca_flags_2_channel_setup(flags, &parser->format);
+        parser->s->data.audio.format.samplerate = sample_rate;
+        bgav_dca_flags_2_channel_setup(flags, &parser->s->data.audio.format);
         parser->have_format = 1;
         return PARSER_HAVE_FORMAT;
         }

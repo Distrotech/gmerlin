@@ -69,6 +69,14 @@ int bgav_audio_parser_supported(uint32_t fourcc)
   return 0;
   }
 
+int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
+                                  bgav_packet_t * p)
+  {
+  if(!parser->parse_frame)
+    return PARSER_ERROR;
+  return parser->parse_frame(parser, p);
+  }
+
 bgav_audio_parser_t * bgav_audio_parser_create(bgav_stream_t * s)
   {
   bgav_audio_parser_t * ret;
@@ -119,7 +127,7 @@ void bgav_audio_parser_reset(bgav_audio_parser_t * parser,
   
   if(in_pts != BGAV_TIMESTAMP_UNDEFINED)
     parser->timestamp = gavl_time_rescale(parser->in_scale,
-                                          parser->format.samplerate,
+                                          parser->s->data.audio.format.samplerate,
                                           in_pts);
   else if(out_pts != BGAV_TIMESTAMP_UNDEFINED)
     parser->timestamp = out_pts;
@@ -236,12 +244,6 @@ void bgav_audio_parser_get_packet(bgav_audio_parser_t * parser,
 
   }
 
-const gavl_audio_format_t *
-bgav_audio_parser_get_format(bgav_audio_parser_t * parser)
-  {
-  return &parser->format;
-  }
-
 void bgav_audio_parser_set_eof(bgav_audio_parser_t * parser)
   {
   //  fprintf(stderr, "Audio parser EOF\n");
@@ -309,7 +311,7 @@ void bgav_audio_parser_set_frame(bgav_audio_parser_t * parser,
 
         if(parser->packets[i].pts != BGAV_TIMESTAMP_UNDEFINED) 
           parser->frame_pts      = gavl_time_rescale(parser->in_scale,
-                                                     parser->format.samplerate,
+                                                     parser->s->data.audio.format.samplerate,
                                                      parser->packets[i].pts);
         else
           parser->frame_pts      = BGAV_TIMESTAMP_UNDEFINED;
@@ -321,18 +323,3 @@ void bgav_audio_parser_set_frame(bgav_audio_parser_t * parser,
   parser->frame_bytes   = len;
   }
 
-int bgav_audio_parser_set_header(bgav_audio_parser_t * parser,
-                                 const uint8_t * header, int len)
-  {
-  //  fprintf(stderr, "Got header %d bytes\n", len);
-  //  bgav_hexdump(header, len, 16);
-  
-  if(!parser->parse_header)
-    return 0;
-  
-  parser->header = malloc(len);
-  memcpy(parser->header, header, len);
-  parser->header_len = len;
-  parser->parse_header(parser);
-  return 1;
-  }

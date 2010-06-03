@@ -29,7 +29,7 @@ typedef void (*init_func)(bgav_video_parser_t*);
 typedef int (*parse_func)(bgav_video_parser_t*);
 typedef void (*cleanup_func)(bgav_video_parser_t*);
 typedef void (*reset_func)(bgav_video_parser_t*);
-typedef int (*parse_header_func)(bgav_video_parser_t*);
+// typedef int (*parse_header_func)(bgav_video_parser_t*);
 
 typedef int (*parse_frame_func)(bgav_video_parser_t*, bgav_packet_t * p);
 
@@ -80,7 +80,7 @@ struct bgav_video_parser_s
   int pos;
   
   parse_func        parse;
-  parse_header_func parse_header;
+  //  parse_header_func parse_header;
   cleanup_func      cleanup;
   reset_func        reset;
   parse_frame_func  parse_frame;
@@ -88,8 +88,8 @@ struct bgav_video_parser_s
   const bgav_options_t * opt;
   
   /* Extradata */
-  uint8_t * header;
-  int header_len;
+  //  uint8_t * header;
+  //  int header_len;
   
   /* Private data for parsers */
   void * priv;
@@ -122,8 +122,6 @@ struct bgav_video_parser_s
   int packet_duration;
   //  int64_t packet_timestamp;
 
-  /* Needed by the vdpau decoder */
-  int max_ref_frames;
   };
 
 void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser);

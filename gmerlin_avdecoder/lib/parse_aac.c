@@ -99,7 +99,7 @@ static int parse_aac(bgav_audio_parser_t * parser)
   if(!parser->have_format)
     {
     parser->have_format = 1;
-    bgav_aac_frame_get_audio_format(priv->frame, &parser->format);
+    bgav_aac_frame_get_audio_format(priv->frame, &parser->s->data.audio.format);
     return PARSER_HAVE_FORMAT;
     }
   
@@ -112,14 +112,6 @@ static int parse_aac(bgav_audio_parser_t * parser)
     }
   
   return PARSER_ERROR;
-  }
-
-static int parse_header_aac(bgav_audio_parser_t * parser)
-  {
-  aac_priv_t * priv = parser->priv;
-  priv->frame = bgav_aac_frame_create(parser->s->opt,
-                                      parser->header, parser->header_len);
-  return 1;
   }
 
 static void cleanup_aac(bgav_audio_parser_t * parser)
@@ -141,8 +133,11 @@ void bgav_audio_parser_init_aac(bgav_audio_parser_t * parser)
   aac_priv_t * priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
 
+  priv->frame = bgav_aac_frame_create(parser->s->opt,
+                                      parser->s->ext_data, parser->s->ext_size);
+
+  
   parser->parse = parse_aac;
-  parser->parse_header = parse_header_aac;
   parser->cleanup = cleanup_aac;
   parser->reset = reset_aac;
   }
