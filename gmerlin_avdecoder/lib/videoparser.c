@@ -87,12 +87,13 @@ bgav_video_parser_create(bgav_stream_t * s)
     return NULL;
   
   ret = calloc(1, sizeof(*ret));
+  ret->s = s;
+  
   ret->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   ret->last_non_b_frame = -1;
   ret->raw_position = -1;
   ret->s->data.video.max_ref_frames = 2;
   ret->format = &s->data.video.format;
-  ret->s = s;
 
   func(ret);
   return ret;
