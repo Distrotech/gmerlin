@@ -125,46 +125,24 @@ static int next_packet(bgav_stream_t * s)
   
   if(s->fourcc == BGAV_VORBIS)
     {
-    uint32_t len;
+    bgav_packet_t * p;
 
-    /* Last segment */
-    if(priv->p && (priv->packet_ptr >= priv->p->data + priv->p->data_size))
-      {
-      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
-      priv->p = NULL;
-      }
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    // bgav_packet_dump(p);
+    if(!p)
+      return 0;
     
-    if(!priv->p)
-      {
-      priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
-
-      // fprintf(stderr, "Got packet:\n");
-      // bgav_packet_dump(priv->p);
-      
-      if(!priv->p)
-        return 0;
-      priv->packet_ptr = priv->p->data;
-      }
-
-    len = BGAV_PTR_2_32BE(priv->packet_ptr); priv->packet_ptr+=4;
-
     memset(&priv->dec_op, 0, sizeof(priv->dec_op));
-    priv->dec_op.bytes  = len;
-    priv->dec_op.packet = priv->packet_ptr;
-    priv->packet_ptr += len;
-
-    /* Last segment */
-    if(priv->packet_ptr >= priv->p->data + priv->p->data_size)
-      {
-      priv->dec_op.granulepos = priv->p->pts + priv->p->duration;
-      if(priv->p->flags & PACKET_FLAG_LAST)
-        priv->dec_op.e_o_s = 1;
-      }
-    else
-      priv->dec_op.granulepos = -1;
-
+    priv->dec_op.bytes  = p->data_size;
+    priv->dec_op.packet = p->data;
+    
+    priv->dec_op.granulepos = p->pts + p->duration;
+    if(p->flags & PACKET_FLAG_LAST)
+      priv->dec_op.e_o_s = 1;
+    
     priv->dec_op.packetno = priv->packetno;
     priv->packetno++;
+    bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   else
     {
@@ -498,6 +476,8 @@ static int decode_frame_vorbis(bgav_stream_t * s)
   
   s->data.audio.frame->valid_samples = samples_decoded;
   vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
+
+  fprintf(stderr, "Samples decoded: %d\n", samples_decoded);
   
   return 1;
   }

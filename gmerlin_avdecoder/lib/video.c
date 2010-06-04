@@ -68,7 +68,6 @@ static bgav_packet_t * get_packet_read_vparse(bgav_demuxer_context_t * demuxer,
         return NULL;
         break;
       case PARSER_NEED_DATA:
-        demuxer->request_stream = s; 
         while(!(p = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
           {
           if(!bgav_demuxer_next_packet(demuxer))
@@ -122,7 +121,6 @@ static bgav_packet_t * peek_packet_vparse(bgav_demuxer_context_t * demuxer,
       case PARSER_NEED_DATA:
         if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
           {
-          demuxer->request_stream = s; 
           while(!(p =
                   bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
             {

@@ -216,6 +216,19 @@ void bgav_mkv_element_dump(const bgav_mkv_element_t * ret)
   bgav_dprintf("  End:  %"PRId64"\n", ret->end);
   }
 
+void bgav_mkv_element_skip(bgav_input_context_t * ctx,
+                           const bgav_mkv_element_t * el, const char * parent_name)
+  {
+  if((el->id != MKV_ID_Void) &&
+     (el->id != MKV_ID_CRC32))
+    {
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Skipping %"PRId64" bytes of element %x in %s\n",
+             el->size, el->id, parent_name);
+    }
+  bgav_input_skip(ctx, el->size);
+  }
+
 int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
                               bgav_mkv_ebml_header_t * ret)
   {
@@ -284,7 +297,8 @@ int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
         ret->DocTypeReadVersion = tmp_64;
         break;
       default:
-        bgav_input_skip(ctx, e1.size);
+        bgav_mkv_element_skip(ctx, &e1, "ebml_header");
+        break;
       }
     }
   return 1;
@@ -348,17 +362,14 @@ int bgav_mkv_meta_seek_info_read(bgav_input_context_t * ctx,
                 return 0;
               break;
             default:
-              bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                       "Skipping %"PRId64" bytes of element %x in meta seek\n", e1.size, e1.id);
-              bgav_input_skip(ctx, e1.size);
+              bgav_mkv_element_skip(ctx, &e1, "meta_seek");
+              break;
             }
           }
         info->num_entries++;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in meta seek\n", e.size, e.id);
-        bgav_input_skip(ctx, e.size);
+        bgav_mkv_element_skip(ctx, &e, "meta_seek");
       }
     }
   return 1;
@@ -459,10 +470,7 @@ int bgav_mkv_segment_info_read(bgav_input_context_t * ctx,
           return 0;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in segment info\n",
-                 e.size, e.id);
-        bgav_input_skip(ctx, e.size);
+        bgav_mkv_element_skip(ctx, &e, "segment_info");
         break;
       }
     }
@@ -585,9 +593,7 @@ static int track_read_video(bgav_input_context_t * ctx,
           return 0;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in video\n", e.size, e.id);
-        bgav_input_skip(ctx, e.size);
+        bgav_mkv_element_skip(ctx, &e, "video");
         break;
       }
     }
@@ -623,10 +629,7 @@ static int track_read_audio(bgav_input_context_t * ctx,
           return 0;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in audio\n",
-                 e.size, e.id);
-        bgav_input_skip(ctx, e.size);
+        bgav_mkv_element_skip(ctx, &e, "audio");
         break;
       }
     }
@@ -745,9 +748,7 @@ int bgav_mkv_track_read(bgav_input_context_t * ctx,
           return 0;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in track\n", e.size, e.id);
-        bgav_input_skip(ctx, e.size);
+        bgav_mkv_element_skip(ctx, &e, "track");
         break;
       
       }
@@ -883,9 +884,7 @@ int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
         ret_num++;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in tracks\n", e.size, e.id);
-        bgav_input_skip(ctx, e.size);
+        bgav_mkv_element_skip(ctx, &e, "tracks");
         break;
       }
     }
@@ -927,13 +926,9 @@ static int mkv_cue_track_read(bgav_input_context_t * ctx,
           return 0;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in cue track\n",
-                 e.size, e.id);
-        bgav_input_skip(ctx, e.size);
-        
+        bgav_mkv_element_skip(ctx, &e, "cue track");
+        break;
       }
-    
     }
   return 1;
   }
@@ -964,7 +959,7 @@ static int mkv_cue_point_read(bgav_input_context_t * ctx,
         ret->num_tracks++;
         break;
       default:
-        bgav_input_skip(ctx, e.size);
+        bgav_mkv_element_skip(ctx, &e, "cue point");
         break;
       }
     }
@@ -1012,10 +1007,7 @@ int bgav_mkv_cues_read(bgav_input_context_t * ctx,
         ret->num_points++;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in cues\n",
-                 e1.size, e1.id);
-        bgav_input_skip(ctx, e1.size);
+        bgav_mkv_element_skip(ctx, &e1, "cues");
         break;
       }
     }
@@ -1259,10 +1251,7 @@ int bgav_mkv_block_group_read(bgav_input_context_t * ctx,
           return 0;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-               "Skipping %"PRId64" bytes of element %x in block group\n",
-               e.size, e.id);
-        bgav_input_skip(ctx, e.size);
+        bgav_mkv_element_skip(ctx, &e, "block group");
         break;
       }
     }

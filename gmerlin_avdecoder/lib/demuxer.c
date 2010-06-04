@@ -685,10 +685,9 @@ bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
   int get_duration = 0;
   
   if((s->type == BGAV_STREAM_VIDEO) &&
-     ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
-      (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
+     (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS))
     get_duration = 1;
-
+  
   //  fprintf(stderr, "bgav_demuxer_peek_packet_read: %d %d\n",
   //          force, get_duration);
   
@@ -731,8 +730,7 @@ bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
   bgav_packet_t * ret;
   
   if((s->type == BGAV_STREAM_VIDEO) &&
-     ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
-      (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
+     (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS))
     get_duration = 1;
   
   while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
@@ -775,26 +773,8 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   
   if(!s->packet_buffer)
     return NULL;
-
-  ret = s->get_packet(demuxer, s);
-
-#if 0  
-  if((s->type == BGAV_STREAM_VIDEO) && s->data.video.parser)
-    {
-    if(!(ret = get_packet_read_vparse(demuxer, s)))
-      return NULL;
-    }
-  else if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.parser)
-    {
-    if(!(ret = get_packet_read_aparse(demuxer, s)))
-      return NULL;
-    }
-  else
-    {
-    
-    }
-#endif
   
+  ret = s->get_packet(demuxer, s);
   demuxer->request_stream = (bgav_stream_t*)0;
   return ret;
   }

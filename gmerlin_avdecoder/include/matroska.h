@@ -33,6 +33,8 @@ typedef struct
 
 int bgav_mkv_element_read(bgav_input_context_t * ctx, bgav_mkv_element_t * ret);
 void bgav_mkv_element_dump(const bgav_mkv_element_t * ret);
+void bgav_mkv_element_skip(bgav_input_context_t * ctx,
+                           const bgav_mkv_element_t * el, const char * parent_name);
 
 typedef struct
   {
@@ -170,8 +172,11 @@ typedef struct
   
   /* TODO: Content encodings */
   
-  /* Secondary variables (not set by parser, needed to make audio PTSes sample accurate) */
-  int granularity; 
+  /* For codecs with constant framesizes set this to enable sample
+     accurate positioning */
+  int frame_samples;
+  
+  int64_t pts; /* If we do our own pts calculation */
   } bgav_mkv_track_t;
 
 int bgav_mkv_track_read(bgav_input_context_t * ctx,

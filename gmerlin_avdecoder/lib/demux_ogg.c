@@ -561,10 +561,10 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s = bgav_track_add_audio_stream(track, ctx->opt);
         s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_VORBIS;
-        s->index_mode = INDEX_MODE_SIMPLE;
+        s->index_mode = INDEX_MODE_MPEG;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
-        s->flags |= STREAM_LACING;
+        s->flags |= STREAM_PARSE_FRAME;
         
         ogg_stream->header_packets_needed = 3;
         append_extradata(s, &priv->op);
@@ -577,7 +577,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         /* Get samplerate */
         s->data.audio.format.samplerate =
           BGAV_PTR_2_32LE(priv->op.packet + 12);
-
+        s->timescale = s->data.audio.format.samplerate;
         bgav_vorbis_set_channel_setup(&s->data.audio.format);
         
         /* Read remaining header packets from this page */
@@ -1982,42 +1982,31 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
               STREAM_SET_SYNC(s, stream_priv->prev_granulepos);
               }
             }
-
+          
           if(!check_header_packet(priv, s, &priv->op))
             break;
-
-          if(!s->packet)
-            {
-            s->packet = bgav_stream_get_packet_write(s);
-            set_packet_pos(priv, stream_priv, &page_continued, s->packet);
-            s->packet->data_size = 0;
-            PACKET_SET_KEYFRAME(s->packet);
-            s->packet->pts = stream_priv->prev_granulepos;
-            }
           
-          bgav_packet_append_segment(s->packet, priv->op.packet,
-                                     priv->op.bytes);
+          p = bgav_stream_get_packet_write(s);
+          set_packet_pos(priv, stream_priv, &page_continued, p);
+          PACKET_SET_KEYFRAME(p);
+          // s->packet->pts = stream_priv->prev_granulepos;
+          
+          bgav_packet_alloc(p, priv->op.bytes);
+          memcpy(p->data, priv->op.packet, priv->op.bytes);
+          p->data_size = priv->op.bytes;
           
           // fprintf(stderr, "priv->op.granulepos: %ld\n", priv->op.granulepos);
 
           /* Check whether to close this packet */
 
-          if(priv->op.granulepos >= 0)
-            {
-            /* Close this packet */
-            if(priv->op.e_o_s)
-              s->packet->flags |= PACKET_FLAG_LAST;
-            else
-              s->packet->flags &= ~PACKET_FLAG_LAST;
-            s->packet->duration = priv->op.granulepos - s->packet->pts;
-
-            bgav_packet_done_write(s->packet);
-            s->packet = NULL;
-            
-            /* Not necessary? */
-            // if((s->action == BGAV_STREAM_PARSE) && (priv->op.granulepos >= 0))
-            //   s->duration = s->packet->pts + s->packet->duration;
-            }
+          /* Close this packet */
+          if(priv->op.e_o_s)
+            p->flags |= PACKET_FLAG_LAST;
+          else
+            p->flags &= ~PACKET_FLAG_LAST;
+          
+          bgav_packet_done_write(p);
+          
           break;
         case FOURCC_FLAC:
         case FOURCC_FLAC_NEW:

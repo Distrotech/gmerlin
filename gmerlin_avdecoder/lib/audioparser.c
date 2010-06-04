@@ -74,7 +74,23 @@ int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
   {
   if(!parser->parse_frame)
     return PARSER_ERROR;
-  return parser->parse_frame(parser, p);
+  
+  /* Don't parse packets twice (happens when peeking) */
+  if(p->flags & PACKET_FLAG_PARSED)
+    return PARSER_HAVE_PACKET;
+  
+  if(parser->timestamp == BGAV_TIMESTAMP_UNDEFINED)
+    parser->timestamp = gavl_time_rescale(parser->in_scale,
+                                          parser->s->data.audio.format.samplerate,
+                                          p->pts);
+  
+  parser->parse_frame(parser, p);
+  
+  p->pts = parser->timestamp;
+  
+  parser->timestamp += p->duration;
+  p->flags |= PACKET_FLAG_PARSED;
+  return PARSER_HAVE_PACKET;
   }
 
 bgav_audio_parser_t * bgav_audio_parser_create(bgav_stream_t * s)

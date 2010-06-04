@@ -361,7 +361,13 @@ int bgav_video_parser_parse_frame(bgav_video_parser_t * parser,
   {
   if(!parser->parse_frame)
     return PARSER_ERROR;
-  return parser->parse_frame(parser, p);
+
+  if(p->flags & PACKET_FLAG_PARSED)
+    return PARSER_HAVE_PACKET;
+  parser->parse_frame(parser, p);
+
+  p->flags |= PACKET_FLAG_PARSED;
+  return PARSER_HAVE_PACKET;
   }
 
 void bgav_video_parser_add_packet(bgav_video_parser_t * parser,

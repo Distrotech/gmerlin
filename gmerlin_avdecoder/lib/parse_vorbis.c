@@ -54,7 +54,11 @@ static int parse_frame_vorbis(bgav_audio_parser_t * parser, bgav_packet_t * p)
 
   if(priv->last_blocksize)
     p->duration = (priv->last_blocksize + blocksize) / 4;
+  else
+    p->duration = 0;
 
+  fprintf(stderr, "Parse vorbis: %ld\n", p->duration);
+  
   priv->last_blocksize = blocksize;
   
   return 1;
@@ -76,7 +80,7 @@ void bgav_audio_parser_init_vorbis(bgav_audio_parser_t * parser)
   uint8_t * ptr;
   
   priv = calloc(1, sizeof(*priv));
-  
+  parser->priv = priv;
   /* Get extradata and initialize codec */
   vorbis_info_init(&priv->vi);
   vorbis_comment_init(&priv->vc);

@@ -54,6 +54,8 @@ typedef struct
 
   int do_sync;
   
+  int64_t cluster_pos; // Start position of last cluster
+  
   } mkv_t;
  
 static int probe_matroska(bgav_input_context_t * input)
@@ -103,7 +105,6 @@ typedef struct
   uint32_t fourcc;
   void (*init_func)(bgav_stream_t * s);
   int flags;
-  int frame_granularity;
   } codec_info_t;
 
 static void append_ogg_extradata(bgav_stream_t * s,
@@ -230,7 +231,8 @@ static void init_vorbis(bgav_stream_t * s)
   {
   setup_ogg_extradata(s);
   s->fourcc = BGAV_MK_FOURCC('V','B','I','S');
-  s->flags |= STREAM_LACING;
+  s->flags |= STREAM_PARSE_FRAME;
+  s->index_mode = INDEX_MODE_MPEG;
   }
 
 /* AAC Initialization inspired by ffmpeg (matroskadec.c) */
@@ -288,22 +290,60 @@ static void init_aac(bgav_stream_t * s)
       s->ext_data[3] = 0xE5;
       s->ext_data[4] = 0x80 | (sri<<3);
       s->ext_size = 5;
+      p->frame_samples = 2048;
       }
     else
+      {
+      p->frame_samples = 1024;
       s->ext_size = 2;
+      }
     }
   s->fourcc = BGAV_MK_FOURCC('m','p','4','a');
   }
 
+static void init_mpa(bgav_stream_t * s)
+  {
+  bgav_mkv_track_t * p = s->priv;
+  char * str;
+  /* Get Layer */
+  str = p->CodecID + 7;
+
+  if(!strcmp(str, "L1"))
+    {
+    s->fourcc = BGAV_MK_FOURCC('.','m','p','1');
+    p->frame_samples = 384;
+    }
+  else if(!strcmp(str, "L2"))
+    {
+    s->fourcc = BGAV_MK_FOURCC('.','m','p','2');
+    p->frame_samples = 1152;
+    }
+  else if(!strcmp(str, "L3"))
+    {
+    s->fourcc = BGAV_MK_FOURCC('.','m','p','3');
+    p->frame_samples = 1152;
+    }
+  else
+    return;
+
+  if((int)p->audio.SamplingFrequency < 32000)
+    p->frame_samples /= 2;
+  
+  }
+
+static void init_ac3(bgav_stream_t * s)
+  {
+  bgav_mkv_track_t * p = s->priv;
+  p->frame_samples = 1536;
+  }
+
 static const codec_info_t audio_codecs[] =
   {
-    { "A_MS/ACM",        0x00,                            init_acm,    0       },
-    { "A_VORBIS",        0x00,                            init_vorbis, 0, 128  },
-    { "A_MPEG/L3",       BGAV_MK_FOURCC('.','m','p','3'), NULL,        0, 576  },
-    { "A_MPEG/L2",       BGAV_MK_FOURCC('.','m','p','2'), NULL,        0, 1152 },
-    { "A_MPEG/L1",       BGAV_MK_FOURCC('.','m','p','1'), NULL,        0, 576  },
-    { "A_AAC/",          BGAV_MK_FOURCC('m','p','4','a'), init_aac,    CODEC_FLAG_INCOMPLETE, 1024 },
-    { "A_AC3",           BGAV_MK_FOURCC('.','a','c','3'), NULL,        0, 1536 },
+    { "A_MS/ACM",        0x00,                            init_acm,    0  },
+    { "A_VORBIS",        0x00,                            init_vorbis, 0  },
+    { "A_MPEG/",         0x00,                            init_mpa,    CODEC_FLAG_INCOMPLETE },
+    { "A_AAC/",          BGAV_MK_FOURCC('m','p','4','a'), init_aac,    CODEC_FLAG_INCOMPLETE },
+    { "A_AC3",           BGAV_MK_FOURCC('.','a','c','3'), init_ac3,    0 },
     { /* End */ }
   };
 
@@ -373,6 +413,18 @@ static int init_audio(bgav_demuxer_context_t * ctx,
     fmt->num_channels = a->Channels;
   if(a->BitDepth > 0)
     s->data.audio.bits_per_sample = a->BitDepth;
+
+  if(track->frame_samples)
+    {
+    s->timescale = fmt->samplerate;
+    s->index_mode = INDEX_MODE_SIMPLE;
+    }
+
+  if(track->frame_samples || (s->flags & STREAM_PARSE_FRAME))
+    s->index_mode = INDEX_MODE_SIMPLE;
+  else
+    ctx->index_mode = INDEX_MODE_NONE;
+  
   return 1;
   }
 
@@ -415,6 +467,8 @@ static int init_video(bgav_demuxer_context_t * ctx,
   fmt->timescale = s->timescale;
   fmt->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   
+  s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
+  
   return 1;
   }
 
@@ -438,6 +492,8 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
   p = calloc(1, sizeof(*p));
   ctx->priv = p;
   p->pts_offset = BGAV_TIMESTAMP_UNDEFINED;
+
+  ctx->index_mode = INDEX_MODE_MIXED;
   
   if(!bgav_mkv_ebml_header_read(ctx->input, &p->ebml_header))
     return 0;
@@ -517,10 +573,8 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
 
         
       default:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Skipping %"PRId64" bytes of element %x in segment\n",
-                 e.size, e.id);
-        bgav_input_skip(ctx->input, head_len + e.size);
+        bgav_input_skip(ctx->input, head_len);
+        bgav_mkv_element_skip(ctx->input, &e, "segment");
       }
     }
 
@@ -647,32 +701,37 @@ static void append_packet_data(bgav_stream_t * s,
                                const uint8_t * data,
                                int len)
   {
-  if(!(s->flags & STREAM_LACING))
-    {
-    bgav_packet_alloc(p, len);
-    memcpy(p->data, data, len);
-    p->data_size = len;
-    }
-  else
-    {
-    bgav_packet_append_segment(p, data, len);
-    }
+  bgav_packet_alloc(p, len);
+  memcpy(p->data, data, len);
+  p->data_size = len;
   }
 
 static void setup_packet(mkv_t * m, bgav_stream_t * s,
                          bgav_packet_t * p, int64_t pts, int keyframe, int index)
   {
+  bgav_mkv_track_t * t;
+  
+  p->position = m->cluster_pos;
+  t = s->priv;
+#if 0
+  if(s->frame_samples)
+    {
+    if(m->do_sync && !STREAM_HAS_SYNC(s))
+      {
+      int64_t time_scaled = gavl_time_rescale(
+      STREAM_SET_SYNC(s, p->pts);
+      }
+    }
+#endif
   if(!index)
     {
+    if(s->type == BGAV_STREAM_VIDEO)
+      fprintf(stderr, "Video PTS: %ld\n", pts);
     p->pts = pts;
     if(m->do_sync && !STREAM_HAS_SYNC(s))
       STREAM_SET_SYNC(s, p->pts);
     if(keyframe)
-      {
-      if(s->type == BGAV_STREAM_VIDEO)
-        fprintf(stderr, "Video Keyframe\n");
       PACKET_SET_KEYFRAME(p);
-      }
     }
   }
 
@@ -790,9 +849,6 @@ static int process_block(bgav_demuxer_context_t * ctx,
       {
       uint8_t * ptr;
       int i;
-      // fprintf(stderr, "Xiph lacing not supported yet %p\n", bg);
-      // bgav_mkv_block_dump(0, b);
-      // bgav_hexdump(b->data, b->data_size, 16);
       if(m->lace_sizes_alloc < b->num_laces)
         {
         m->lace_sizes_alloc = b->num_laces + 16;
@@ -800,7 +856,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
                                 m->lace_sizes_alloc *
                                 sizeof(m->lace_sizes));
         }
-
+      
       ptr = b->data;
       for(i = 0; i < b->num_laces-1; i++)
         {
@@ -877,11 +933,14 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   {
   int num_blocks = 0;
   bgav_mkv_element_t e;
+  int64_t pos;
   mkv_t * priv = ctx->priv;
+  
   //  fprintf(stderr, "next_packet_matroska\n");
   
   while(!num_blocks)
     {
+    pos = ctx->input->position;
     if(!bgav_mkv_element_read(ctx->input, &e))
       return 0;
     //  bgav_mkv_element_dump(&e);
@@ -896,6 +955,7 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
 
         if(priv->pts_offset == BGAV_TIMESTAMP_UNDEFINED)
           priv->pts_offset = priv->cluster.Timecode;
+        priv->cluster_pos = pos;
         break;
       case MKV_ID_BlockGroup:
         if(!bgav_mkv_block_group_read(ctx->input, &priv->bg, &e))

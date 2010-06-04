@@ -116,7 +116,6 @@ void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   stream->opt = opt;
   }
 
-
 void bgav_stream_free(bgav_stream_t * s)
   {
   /* Cleanup must be called as long as the other
