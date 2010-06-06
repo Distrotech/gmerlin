@@ -298,7 +298,7 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
     
     if(priv->p)
       {
-      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+      bgav_packet_done_read(priv->p);
       priv->p = NULL;
       }
     
@@ -428,7 +428,7 @@ static int decode_picture(bgav_stream_t*s)
     // s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
     if(priv->p)
       {
-      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+      bgav_packet_done_read(priv->p);
       priv->p = NULL;
       }
     s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
@@ -613,7 +613,7 @@ static void resync_mpeg2(bgav_stream_t*s)
         }
       /* Skip this packet */
       p = bgav_demuxer_get_packet_read(s->demuxer, s);
-      bgav_demuxer_done_packet_read(s->demuxer, p);
+      bgav_packet_done_read(p);
       }
     }
   //  mpeg2_skip(priv->dec, 0);

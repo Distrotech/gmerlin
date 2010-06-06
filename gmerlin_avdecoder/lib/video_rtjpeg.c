@@ -72,7 +72,7 @@ static int decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   /* Skip frame */
   if(!f)
     {
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     return 1;
     }
 
@@ -83,7 +83,7 @@ static int decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   f->timestamp = p->pts;
   f->duration = p->duration;
 
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   return 1;
   }
 

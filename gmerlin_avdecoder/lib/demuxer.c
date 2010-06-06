@@ -798,12 +798,6 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
   }
 
 
-void 
-bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
-                              bgav_packet_t * p)
-  {
-  p->valid = 0;
-  }
 
 void bgav_formats_dump()
   {

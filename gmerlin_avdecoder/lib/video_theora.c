@@ -210,7 +210,7 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     
     if(!th_packet_isheader(&op))
       break;
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
   
   th_decode_packetin(priv->ctx, &op, NULL);
@@ -233,7 +233,7 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     frame->timestamp = p->pts;
     frame->duration = p->duration;
     }
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   return 1;
   }
 
@@ -272,7 +272,7 @@ static void resync_theora(bgav_stream_t * s)
     /* Skip this packet */
     //    fprintf(stderr, "Skipping packet %c\n", PACKET_GET_CODING_TYPE(p));
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
   }
 #endif

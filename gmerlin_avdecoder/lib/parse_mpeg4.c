@@ -36,6 +36,7 @@
 #define MPEG4_HAS_VOL_HEADER              3
 #define MPEG4_HAS_VOP_CODE                4
 #define MPEG4_HAS_VOP_HEADER              5
+#define MPEG4_HAS_USER_DATA_CODE          6
 
 typedef struct
   {
@@ -44,6 +45,9 @@ typedef struct
   int have_vol;
   int has_picture_start;
   int state;
+
+  char * user_data;
+  int user_data_size;
   } mpeg4_priv_t;
 
 static void set_format(bgav_video_parser_t * parser)
@@ -53,14 +57,14 @@ static void set_format(bgav_video_parser_t * parser)
                                   priv->vol.vop_time_increment_resolution,
                                   priv->vol.fixed_vop_time_increment);
   
-#if 0        
+#if 0
   parser->format.image_width  = priv->sh.horizontal_size_value;
   parser->format.image_height = priv->sh.vertical_size_value;
   parser->format.frame_width  =
     (parser->format.image_width + 15) & ~15;
   parser->format.frame_height  =
     (parser->format.image_height + 15) & ~15;
-#endif        
+#endif
   }
 
 static void reset_mpeg4(bgav_video_parser_t * parser)
@@ -74,18 +78,36 @@ static int parse_header_mpeg4(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv = parser->priv;
   const uint8_t * pos = parser->s->ext_data;
+  const uint8_t * pos1;
   while(1)
     {
     switch(bgav_mpeg4_get_start_code(pos))
       {
       case MPEG4_CODE_VOL_START:
-        if(!bgav_mpeg4_vol_header_read(parser->opt, &priv->vol, pos,
-                                       parser->s->ext_size - (pos - parser->s->ext_data)))
+        if(!bgav_mpeg4_vol_header_read(parser->opt,
+                                       &priv->vol, pos,
+                                       parser->s->ext_size -
+                                       (pos - parser->s->ext_data)))
           return 0;
         priv->have_vol = 1;
         //        bgav_mpeg4_vol_header_dump(&priv->vol);
         set_format(parser);
         return 1;
+        break;
+      case MPEG4_CODE_USER_DATA:
+        pos1 = pos+4;
+        pos1 = bgav_mpv_find_startcode(pos1, parser->s->ext_data +
+                                       parser->s->ext_size);
+        if(pos1)
+          priv->user_data_size = pos1 - (pos + 4);
+        else
+          priv->user_data_size =
+            (parser->s->ext_data + parser->s->ext_size) -
+            (pos + 4);
+        
+        priv->user_data = calloc(1, priv->user_data_size+1);
+        memcpy(priv->user_data, pos+4, priv->user_data_size);
+          
         break;
       default:
         pos += 4;
@@ -104,10 +126,8 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
   const uint8_t * sc;
   int len;
   mpeg4_priv_t * priv = parser->priv;
-  //  cache_t * c;
   bgav_mpeg4_vop_header_t vh;
-
-  //  int duration;
+  const uint8_t * end_pos;
   int start_code;
   
   switch(priv->state)
@@ -143,6 +163,12 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
           parser->pos+=4;
           break;
         case MPEG4_CODE_VOL_START:
+          if(!priv->has_picture_start)
+            {
+            if(!bgav_video_parser_set_picture_start(parser))
+              return PARSER_ERROR;
+            priv->has_picture_start = 1;
+            }
           if(!priv->have_vol)
             priv->state = MPEG4_HAS_VOL_CODE;
           else
@@ -172,6 +198,16 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
             return PARSER_CONTINUE;
             }
           break;
+        case MPEG4_CODE_USER_DATA:
+          if(!priv->user_data)
+            priv->state = MPEG4_HAS_USER_DATA_CODE;
+          else
+            {
+            /* Ignore repeated user data */
+            parser->pos += 4;
+            priv->state = MPEG4_NEED_STARTCODE;
+            }
+          break;
         default:
           parser->pos += 4;
           priv->state = MPEG4_NEED_STARTCODE;
@@ -189,7 +225,7 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
       if(!len)
         return PARSER_NEED_DATA;
 
-      //      bgav_mpeg4_vop_header_dump(&vh);
+      bgav_mpeg4_vop_header_dump(&vh);
       
       bgav_video_parser_set_coding_type(parser, vh.coding_type);
       
@@ -226,12 +262,31 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
       priv->state = MPEG4_NEED_STARTCODE;
       
       break;
+    case MPEG4_HAS_USER_DATA_CODE:
+      end_pos =
+        bgav_mpv_find_startcode(parser->buf.buffer + parser->pos + 4,
+                                parser->buf.buffer + parser->buf.size - 4);
+      if(!end_pos)
+        return PARSER_NEED_DATA;
+
+      priv->user_data_size =
+        end_pos - (parser->buf.buffer + parser->pos + 4);
+      priv->user_data = calloc(1, priv->user_data_size+1);
+      memcpy(priv->user_data, parser->buf.buffer + parser->pos + 4,
+             priv->user_data_size);
+      parser->pos += (4 + priv->user_data_size);
+      priv->state = MPEG4_NEED_STARTCODE;
+      
+      break;
     }
   return PARSER_CONTINUE;
   }
 
 static void cleanup_mpeg4(bgav_video_parser_t * parser)
   {
+  mpeg4_priv_t * priv = parser->priv;
+  if(priv->user_data)
+    free(priv->user_data);
   free(parser->priv);
   }
 

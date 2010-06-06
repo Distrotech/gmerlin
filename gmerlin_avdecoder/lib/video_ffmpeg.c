@@ -270,7 +270,7 @@ static int get_data(bgav_stream_t * s)
   
   if(priv->packet)
     {
-    bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+    bgav_packet_done_read(priv->packet);
     priv->packet = NULL;
     }
 
@@ -524,7 +524,7 @@ static int decode_picture(bgav_stream_t * s)
 
     if(priv->packet)
       {
-      bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+      bgav_packet_done_read(priv->packet);
       priv->packet = NULL;
       }
     
@@ -976,7 +976,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
     /* Skip this packet */
     bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Skipping packet %c", PACKET_GET_CODING_TYPE(p));
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
   // decode_picture(s);
   }

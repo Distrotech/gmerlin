@@ -338,7 +338,7 @@ static int read_data(bgav_stream_t * s)
     }
   memcpy(priv->in_buffer + priv->in_buffer_size, p->data, p->data_size);
   priv->in_buffer_size += p->data_size;
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   return 1;
   }
 

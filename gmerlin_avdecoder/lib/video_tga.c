@@ -147,7 +147,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
 
     s->flags |= STREAM_HAVE_PICTURE;
     
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
   if(priv->do_init)
     {

@@ -115,7 +115,8 @@ static int decode_frame_speex(bgav_stream_t * s)
   for(i = 0; i < priv->header->frames_per_packet; i++)
     {
     speex_decode(priv->dec_state, &priv->bits,
-                 priv->frame->samples.f + i * priv->frame_size * s->data.audio.format.num_channels);
+                 priv->frame->samples.f +
+                 i * priv->frame_size * s->data.audio.format.num_channels);
     if(s->data.audio.format.num_channels > 1)
       {
       speex_decode_stereo(priv->frame->samples.f +
@@ -132,7 +133,7 @@ static int decode_frame_speex(bgav_stream_t * s)
     {
     priv->frame->samples.f[i] /= 32768.0;
     }
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
 
   priv->frame->valid_samples = priv->frame_size * priv->header->frames_per_packet;
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);

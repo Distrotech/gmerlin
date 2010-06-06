@@ -154,3 +154,9 @@ void bgav_packet_get_text_subtitle(bgav_packet_t * p,
   
   }
 #endif
+
+void 
+bgav_packet_done_read(bgav_packet_t * p)
+  {
+  p->valid = 0;
+  }

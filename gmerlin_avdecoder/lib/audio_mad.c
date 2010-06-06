@@ -87,7 +87,7 @@ static int get_data(bgav_stream_t * s)
 
   bgav_bytebuffer_append(&priv->buf, p, MAD_BUFFER_GUARD);
   
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   return 1;
   }
 

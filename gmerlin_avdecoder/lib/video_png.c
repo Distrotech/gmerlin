@@ -90,7 +90,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     frame->timestamp = priv->p->pts;
     frame->duration = priv->p->duration;
     }
-  bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+  bgav_packet_done_read(priv->p);
   priv->p = (bgav_packet_t*)0;
   return 1;
   }

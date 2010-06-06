@@ -737,7 +737,7 @@ static int decode_win32(bgav_stream_t * s, gavl_video_frame_t * f)
     f->duration = p->duration;
     }
   
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   
   return result;
   }

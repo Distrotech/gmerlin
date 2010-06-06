@@ -41,7 +41,7 @@ static int decode_gavl(bgav_stream_t * s, gavl_video_frame_t * frame)
     gavl_video_frame_copy(&s->data.video.format, frame, p->video_frame);
     gavl_video_frame_copy_metadata(frame, p->video_frame);
     }
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   return 1;
   }
 

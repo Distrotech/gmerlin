@@ -187,7 +187,7 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
     
     }
   if(p)
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
   
   return 1;
   }

@@ -360,7 +360,7 @@ static int fill_buffer(bgav_stream_t * s)
 
 
   memcpy(priv->read_buffer, p->data, p->data_size);
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
 
   priv->read_buffer_size = p->data_size;
   priv->read_buffer_ptr  = priv->read_buffer;
@@ -445,7 +445,7 @@ static int fill_buffer(bgav_stream_t * s)
         idx++;
         }
     }
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
 
 #endif
   return 1;

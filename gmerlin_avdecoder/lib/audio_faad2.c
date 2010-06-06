@@ -62,7 +62,7 @@ static int get_data(bgav_stream_t * s)
     bgav_bytebuffer_flush(&priv->buf);
   
   bgav_bytebuffer_append(&priv->buf, p, 0);
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   
   return 1;
   }
@@ -282,7 +282,7 @@ static void parse_faad2(bgav_stream_t * s)
 
     bgav_bytebuffer_append(&priv->buf, p, 0);
     position = p->position;
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     
     while(priv->buf.size >= FAAD_MIN_STREAMSIZE)
       {

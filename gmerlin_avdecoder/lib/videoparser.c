@@ -49,6 +49,15 @@ parsers[] =
     { BGAV_MK_FOURCC('m', 'x', '4', 'n'), bgav_video_parser_init_mpeg12 },
     { BGAV_MK_FOURCC('m', 'x', '5', 'n'), bgav_video_parser_init_mpeg12 },
     { BGAV_MK_FOURCC('m', 'p', '4', 'v'), bgav_video_parser_init_mpeg4 },
+    /* DivX Variants */
+    { BGAV_MK_FOURCC('D', 'I', 'V', 'X'), bgav_video_parser_init_mpeg4 },
+    { BGAV_MK_FOURCC('d', 'i', 'v', 'x'), bgav_video_parser_init_mpeg4 },
+    { BGAV_MK_FOURCC('D', 'X', '5', '0'), bgav_video_parser_init_mpeg4 },
+    { BGAV_MK_FOURCC('X', 'V', 'I', 'D'), bgav_video_parser_init_mpeg4 },
+    { BGAV_MK_FOURCC('x', 'v', 'i', 'd'), bgav_video_parser_init_mpeg4 },
+    { BGAV_MK_FOURCC('F', 'M', 'P', '4'), bgav_video_parser_init_mpeg4 },
+    { BGAV_MK_FOURCC('f', 'm', 'p', '4'), bgav_video_parser_init_mpeg4 },
+    /* */
     { BGAV_MK_FOURCC('C', 'A', 'V', 'S'), bgav_video_parser_init_cavs },
     { BGAV_MK_FOURCC('V', 'C', '-', '1'), bgav_video_parser_init_vc1 },
     { BGAV_MK_FOURCC('d', 'r', 'a', 'c'), bgav_video_parser_init_dirac },

@@ -132,7 +132,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
     bgav_packet_dump(p);
 #endif
     bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
 #if LIBAVCODEC_BUILD >= 3349760
   frame_size = priv->frame_alloc;

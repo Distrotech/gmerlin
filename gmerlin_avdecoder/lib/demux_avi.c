@@ -1373,6 +1373,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
     }
   else
     {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Could not get video framerate, assuming 25 fps");
     bg_vs->data.video.format.timescale = 25;
     bg_vs->data.video.format.frame_duration = 1;
     }
@@ -1381,9 +1383,15 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   bg_vs->stream_id = (ctx->tt->cur->num_audio_streams +
                       ctx->tt->cur->num_video_streams) - 1;
 
-  if(check_codec(bg_vs->fourcc, video_codecs_mpeg4) ||
-     check_codec(bg_vs->fourcc, video_codecs_h264))
+  if(check_codec(bg_vs->fourcc, video_codecs_mpeg4))
+    {
+    bg_vs->flags |=
+      (STREAM_WRONG_B_TIMESTAMPS | STREAM_B_FRAMES | STREAM_PARSE_FULL);
+    }
+  else if(check_codec(bg_vs->fourcc, video_codecs_h264))
+    {
     bg_vs->flags |= (STREAM_WRONG_B_TIMESTAMPS | STREAM_B_FRAMES);
+    }
   
   return 1;
   }
@@ -2066,13 +2074,17 @@ static int open_avi(bgav_demuxer_context_t * ctx)
     for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
       {
       avi_vs = (video_priv_t*)(ctx->tt->cur->video_streams[i].priv);
-      if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_msmpeg4v1))
+      if(check_codec(ctx->tt->cur->video_streams[i].fourcc,
+                     video_codecs_msmpeg4v1))
         avi_vs->is_keyframe = is_keyframe_msmpeg4v1;
-      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_msmpeg4v3))
+      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc,
+                          video_codecs_msmpeg4v3))
         avi_vs->is_keyframe = is_keyframe_msmpeg4v3;
-      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_mpeg4))
+      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc,
+                          video_codecs_mpeg4))
         avi_vs->is_keyframe = is_keyframe_mpeg4;
-      else if(!check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_intra))
+      else if(!check_codec(ctx->tt->cur->video_streams[i].fourcc,
+                           video_codecs_intra))
         ctx->index_mode = 0;
       
       ctx->tt->cur->video_streams[i].index_mode = INDEX_MODE_PTS;

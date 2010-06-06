@@ -89,7 +89,7 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
       priv->pts = p->pts;
       }
     priv->buffer_size += p->data_size;
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
 
     }
   

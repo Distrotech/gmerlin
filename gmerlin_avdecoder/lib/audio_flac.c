@@ -103,7 +103,7 @@ read_callback(const FLAC__StreamDecoder *decoder,
 
     if(priv->data_ptr - priv->p->data == priv->p->data_size)
       {
-      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+      bgav_packet_done_read(priv->p);
       priv->p = (bgav_packet_t*)0;
       }
     

@@ -150,7 +150,7 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
       return 0;
     if(!p->data_size)
       {
-      bgav_demuxer_done_packet_read(s->demuxer, p);
+      bgav_packet_done_read(p);
       }
     else
       break;
@@ -173,7 +173,7 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
     f->duration = p->duration;
     }
   
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   
   return 1;
   }

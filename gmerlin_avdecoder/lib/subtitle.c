@@ -153,7 +153,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
     
   if(s->packet_buffer)
     {
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
 
   

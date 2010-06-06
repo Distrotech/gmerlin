@@ -627,7 +627,7 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   if(bp->flags & PACKET_FLAG_LAST)
     p->flags |= GAVL_PACKET_LAST;
   
-  bgav_demuxer_done_packet_read(s->demuxer, bp);
+  bgav_packet_done_read(bp);
   
   return 1;
   }

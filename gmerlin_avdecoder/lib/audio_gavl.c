@@ -37,7 +37,7 @@ static int decode_frame_gavl(bgav_stream_t * s)
 
   if(priv->p)
     {
-    bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+    bgav_packet_done_read(priv->p);
     priv->p = (bgav_packet_t*)0;
     }
   priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);

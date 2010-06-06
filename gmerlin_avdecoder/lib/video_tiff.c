@@ -232,7 +232,7 @@ static int read_image_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   
   TIFFClose( p->tiff );
   p->tiff = (TIFF*)0;
-  bgav_demuxer_done_packet_read(s->demuxer, p->packet);
+  bgav_packet_done_read(p->packet);
   p->packet = (bgav_packet_t*)0;
   
   return 1;
@@ -283,7 +283,7 @@ static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
     priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!priv->packet)
       return 0;
-    bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+    bgav_packet_done_read(priv->packet);
     priv->packet = (bgav_packet_t*)0;
     }
   return 1;

@@ -81,7 +81,7 @@ static int read_data(bgav_stream_t * s)
   buffer = ogg_sync_buffer(&priv->dec_oy, p->data_size);
   memcpy(buffer, p->data, p->data_size);
   ogg_sync_wrote(&priv->dec_oy, p->data_size);
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   return 1;
   }
 
@@ -142,7 +142,7 @@ static int next_packet(bgav_stream_t * s)
     
     priv->dec_op.packetno = priv->packetno;
     priv->packetno++;
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
   else
     {

@@ -455,7 +455,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
         return 1;
         }
       p = bgav_demuxer_get_packet_read(s->demuxer, s);
-      bgav_demuxer_done_packet_read(s->demuxer, p);
+      bgav_packet_done_read(p);
       }
     *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
     return 1;
@@ -489,7 +489,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
         // fprintf(stderr, "Skipping to next keyframe %ld %ld\n", p->pts, next_key_frame);
         
         p = bgav_demuxer_get_packet_read(s->demuxer, s);
-        bgav_demuxer_done_packet_read(s->demuxer, p);
+        bgav_packet_done_read(p);
         }
       s->data.video.decoder->decoder->resync(s);
       }
@@ -966,7 +966,7 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
     copy_packet_fields(p, bp);
     }
   
-  bgav_demuxer_done_packet_read(s->demuxer, bp);
+  bgav_packet_done_read(bp);
   
   return 1;
   }

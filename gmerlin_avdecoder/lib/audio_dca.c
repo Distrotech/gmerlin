@@ -104,7 +104,7 @@ static int decode_frame_dts(bgav_stream_t * s)
   if(!priv->blocks_left)
     {
     if(priv->packet)
-      bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+      bgav_packet_done_read(priv->packet);
     
     priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
 
@@ -161,7 +161,7 @@ static int decode_frame_dts(bgav_stream_t * s)
   priv->blocks_left--;
   if(!priv->blocks_left)
     {
-    bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+    bgav_packet_done_read(priv->packet);
     priv->packet = NULL;
     }
   

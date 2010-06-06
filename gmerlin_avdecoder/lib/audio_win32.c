@@ -228,7 +228,7 @@ static int get_data(bgav_stream_t * s)
 
   memcpy(priv->buffer + priv->buffer_size, p->data, p->data_size);
   priv->buffer_size += p->data_size;
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_packet_done_read(p);
   return 1;
   }
 

@@ -22,6 +22,7 @@
 #define MPEG4_CODE_VO_START  1
 #define MPEG4_CODE_VOL_START 2
 #define MPEG4_CODE_VOP_START 3
+#define MPEG4_CODE_USER_DATA 4
 
 int bgav_mpeg4_get_start_code(const uint8_t * data);
 

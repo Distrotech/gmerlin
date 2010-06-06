@@ -250,6 +250,7 @@ void bgav_packet_pad(bgav_packet_t * p);
 
 
 void bgav_packet_done_write(bgav_packet_t *);
+void bgav_packet_done_read(bgav_packet_t *);
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,
                                    const char * text,
@@ -1362,12 +1363,6 @@ bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
 bgav_packet_t *
 bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
                                      bgav_stream_t * s);
-
-
-void 
-bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
-                              bgav_packet_t *);
-
 
 void
 bgav_demuxer_seek(bgav_demuxer_context_t * demuxer,

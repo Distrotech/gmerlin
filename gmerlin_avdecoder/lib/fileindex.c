@@ -732,7 +732,7 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
       if(t >= s->duration)
         s->duration = t + p->duration;
       }
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
   }
 
@@ -750,7 +750,7 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
       if(p->pts > s->duration)
         s->duration = p->pts;
       }
-    bgav_demuxer_done_packet_read(s->demuxer, p);
+    bgav_packet_done_read(p);
     }
   }
 
