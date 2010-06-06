@@ -624,8 +624,8 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
       {
       if(p->meta_seek_info.entries[i].SeekID == MKV_ID_Cues)
         {
-        fprintf(stderr, "Found index at %"PRId64"\n",
-                p->meta_seek_info.entries[i].SeekPosition);
+        // fprintf(stderr, "Found index at %"PRId64"\n",
+        //         p->meta_seek_info.entries[i].SeekPosition);
 
         pos = ctx->input->position;
 

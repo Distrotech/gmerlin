@@ -89,7 +89,8 @@ static int parse_header_mpeg4(bgav_video_parser_t * parser)
         break;
       default:
         pos += 4;
-        pos = bgav_mpv_find_startcode(pos, parser->s->ext_data + parser->s->ext_size);
+        pos = bgav_mpv_find_startcode(pos, parser->s->ext_data +
+                                      parser->s->ext_size);
         if(!pos)
           return 0;
         break;
