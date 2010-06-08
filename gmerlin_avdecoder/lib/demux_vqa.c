@@ -254,7 +254,7 @@ static int next_packet_vqa(bgav_demuxer_context_t * ctx)
   
   if(s->type == BGAV_STREAM_VIDEO)
     p->pts = s->in_position;
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   
   return 1;
   }

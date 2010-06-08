@@ -339,7 +339,7 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
   p->duration = frame_duration;
   priv->video_pts += frame_duration;
   
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   return 1;
   }
 

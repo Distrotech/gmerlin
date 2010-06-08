@@ -152,8 +152,10 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
     return 0;
   
   bgav_dv_dec_get_video_packet(priv->d, vp);
-  if(ap) bgav_packet_done_write(ap);
-  if(vp) bgav_packet_done_write(vp);
+  if(ap)
+    bgav_stream_done_packet_write(as, ap);
+  if(vp)
+    bgav_stream_done_packet_write(vs, vp);
   return 1;
   }
 

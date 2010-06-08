@@ -81,7 +81,7 @@ static int next_packet_daud(bgav_demuxer_context_t * ctx)
     p->data_size = bgav_input_read_data(ctx->input, p->data, size);
     if(!p->data_size)
       return 0;
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   else
     bgav_input_skip(ctx->input, size);

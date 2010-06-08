@@ -1108,7 +1108,7 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
     /* Single AU: Can be one fragment or one packet */
     if(s->packet && (s->packet->pts != h->timestamp))
       {
-      bgav_packet_done_write(s->packet);
+      bgav_stream_done_packet_write(s, s->packet);
       s->packet = (bgav_packet_t*)0;
       }
     if(!s->packet)
@@ -1131,7 +1131,7 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
     int packet_size = 0;
     if(s->packet)
       {
-      bgav_packet_done_write(s->packet);
+      bgav_stream_done_packet_write(s, s->packet);
       s->packet = (bgav_packet_t*)0;
       }
     for(i = 0; i < sp->priv.mpeg4_generic.num_aus; i++)
@@ -1149,7 +1149,7 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
     bgav_packet_alloc(s->packet, packet_size);
     memcpy(s->packet->data, data, packet_size);
     s->packet->data_size = packet_size;
-    bgav_packet_done_write(s->packet);
+    bgav_stream_done_packet_write(s, s->packet);
     s->packet = (bgav_packet_t*)0;
     }
   
@@ -1257,7 +1257,7 @@ static void send_nal(bgav_stream_t * s, uint8_t * nal, int len,
   
   if(s->packet && (s->packet->pts != time))
     {
-    bgav_packet_done_write(s->packet);
+    bgav_stream_done_packet_write(s, s->packet);
     s->packet = (bgav_packet_t*)0;
     }
   
@@ -1413,7 +1413,7 @@ process_mpa(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   p->pts      = h->timestamp;
   memcpy(p->data, data + 4, len - 4);
   p->data_size = len - 4;
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   return 1;
   }
 
@@ -1454,7 +1454,7 @@ process_mpv(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   p->pts      = h->timestamp;
   memcpy(p->data, data, len);
   p->data_size = len;
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   return 1;
   }
 
@@ -1493,7 +1493,7 @@ static int process_mp4v_es(bgav_stream_t * s,
       memcpy(s->packet->data + s->packet->data_size, data, len);
       s->packet->data_size += len;
       //      bgav_hexdump(s->packet->data, 16, 16);
-      bgav_packet_done_write(s->packet);
+      bgav_stream_done_packet_write(s, s->packet);
       s->packet = (bgav_packet_t*)0;
       }
     else
@@ -1504,7 +1504,7 @@ static int process_mp4v_es(bgav_stream_t * s,
       memcpy(p->data, data, len);
       //      bgav_hexdump(p->data, 16, 16);
       p->data_size = len;
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       }
     }
 #else
@@ -1515,7 +1515,7 @@ static int process_mp4v_es(bgav_stream_t * s,
   //  bgav_hexdump(p->data, 16, 16);
   p->data_size = len;
   p->pts = h->timestamp;
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
 #endif
   
   return 1;
@@ -1596,7 +1596,7 @@ static int process_h263_1998(bgav_stream_t * s,
   
   if(h->marker)
     {
-    bgav_packet_done_write(s->packet);
+    bgav_stream_done_packet_write(s, s->packet);
     s->packet = (bgav_packet_t*)0;
     }
   return 1;
@@ -1642,7 +1642,7 @@ static void append_packet_ogg(bgav_stream_t * s, uint8_t * data, int len)
 static void end_packet_ogg(bgav_stream_t * s)
   {
   //  fprintf(stderr, "Done packet %d bytes\n", s->packet->data_size);
-  bgav_packet_done_write(s->packet);
+  bgav_stream_done_packet_write(s, s->packet);
   s->packet = (bgav_packet_t*)0;
   }
 

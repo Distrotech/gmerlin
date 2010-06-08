@@ -270,7 +270,7 @@ static int next_packet_dxa(bgav_demuxer_context_t * ctx)
     if(p->data_size < bytes_to_read)
       return 0;
     
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
 
     priv->audio_position = ctx->input->position;
     }
@@ -301,7 +301,7 @@ static int next_packet_dxa(bgav_demuxer_context_t * ctx)
           p->data_size = 4 + pal_size;
           p->pts = s->data.video.format.frame_duration * priv->current_frame;
           
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(s, p);
           
           priv->current_frame++;
           break;
@@ -329,7 +329,7 @@ static int next_packet_dxa(bgav_demuxer_context_t * ctx)
           p->data_size = size + DXA_EXTRA_SIZE + pal_size;
           p->pts = s->data.video.format.frame_duration * priv->current_frame;
           
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(s, p);
 
           priv->current_frame++;
           break;

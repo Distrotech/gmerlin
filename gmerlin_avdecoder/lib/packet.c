@@ -24,7 +24,6 @@
 
 #include <avdec_private.h>
 
-#define PACKET_PADDING 32
 
 bgav_packet_t * bgav_packet_create()
   {
@@ -59,6 +58,7 @@ void bgav_packet_pad(bgav_packet_t * p)
   memset(p->data + p->data_size, 0, PACKET_PADDING);
   }
 
+#if 0
 void bgav_packet_done_write(bgav_packet_t * p)
   {
   p->valid = 1;
@@ -77,6 +77,7 @@ void bgav_packet_done_write(bgav_packet_t * p)
     memset(p->data + p->data_size, 0, PACKET_PADDING);
 
   }
+#endif
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,
                                    const char * text,
@@ -102,7 +103,7 @@ void bgav_packet_dump(bgav_packet_t * p)
   {
   int type;
   
-  bgav_dprintf("pos: %ld, K: %d, ", p->position, !!PACKET_GET_KEYFRAME(p));
+  bgav_dprintf("pos: %"PRId64", K: %d, ", p->position, !!PACKET_GET_KEYFRAME(p));
 
   if(p->field2_offset)
     bgav_dprintf("f2: %d, ", p->field2_offset);
@@ -159,4 +160,13 @@ void
 bgav_packet_done_read(bgav_packet_t * p)
   {
   p->valid = 0;
+  }
+
+void bgav_packet_reset(bgav_packet_t * p)
+  {
+  p->pts = BGAV_TIMESTAMP_UNDEFINED;
+  p->dts = BGAV_TIMESTAMP_UNDEFINED;
+  p->tc = GAVL_TIMECODE_UNDEFINED;
+  p->flags = 0;
+  p->data_size = 0;
   }

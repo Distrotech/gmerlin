@@ -229,7 +229,7 @@ static int next_packet_au(bgav_demuxer_context_t * ctx)
   bytes_read = bgav_input_read_data(ctx->input, p->data,
                                     s->data.audio.block_align * BLOCKS_PER_PACKET);
   p->data_size = bytes_read;
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   if(!bytes_read)
     return 0;
   return 1;

@@ -272,7 +272,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
         }
       p->data_size = video_size + palette_size + 1;
       p->pts = priv->video_pts;
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       }
     }
 
@@ -291,7 +291,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
       bgav_packet_alloc(p, SEQ_AUDIO_BUFFER_SIZE);
       memcpy(p->data, buf + fh.sound_data_offset, SEQ_AUDIO_BUFFER_SIZE);
       p->data_size = SEQ_AUDIO_BUFFER_SIZE;
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       }
     priv->video_pts++;
     }

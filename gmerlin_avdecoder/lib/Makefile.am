@@ -498,6 +498,7 @@ nanosoft.c \
 options.c \
 os.c \
 packetbuffer.c \
+packetpool.c \
 packet.c \
 parse_a52.c \
 parse_cavs.c \

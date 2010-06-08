@@ -154,7 +154,8 @@ bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
   return (bgav_stream_t *)0;
   }
 
-bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_id)
+bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx,
+                                       int stream_id)
   {
   int i;
   bgav_track_t * t;
@@ -163,7 +164,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_
     if(ctx->request_stream && (stream_id == ctx->request_stream->stream_id))
       return ctx->request_stream;
     else
-      return (bgav_stream_t*)0;
+      return NULL;
     }
   t = ctx->tt->cur;
   
@@ -174,7 +175,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_
       if(t->audio_streams[i].action != BGAV_STREAM_MUTE)
         return &t->audio_streams[i];
       else
-        return (bgav_stream_t *)0;
+        return NULL;
       }
     }
   for(i = 0; i < t->num_video_streams; i++)
@@ -184,7 +185,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_
       if(t->video_streams[i].action != BGAV_STREAM_MUTE)
         return &t->video_streams[i];
       else
-        return (bgav_stream_t *)0;
+        return NULL;
       }
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
@@ -195,10 +196,10 @@ bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_
       if(t->subtitle_streams[i].action != BGAV_STREAM_MUTE)
         return &t->subtitle_streams[i];
       else
-        return (bgav_stream_t *)0;
+        return NULL;
       }
     }
-  return (bgav_stream_t *)0;
+  return NULL;
   }
 
 #define FREE(ptr) if(ptr){free(ptr);ptr=NULL;}
@@ -208,17 +209,11 @@ void bgav_track_stop(bgav_track_t * t)
   int i;
   
   for(i = 0; i < t->num_audio_streams; i++)
-    {
     bgav_stream_stop(&t->audio_streams[i]);
-    }
   for(i = 0; i < t->num_video_streams; i++)
-    {
     bgav_stream_stop(&t->video_streams[i]);
-    }
   for(i = 0; i < t->num_subtitle_streams; i++)
-    {
     bgav_stream_stop(&t->subtitle_streams[i]);
-    }
   }
 
 int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
@@ -336,7 +331,8 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
   
   bgav_dprintf( "Format:   %s\n", (description ? description : 
                                    "Not specified"));
-  bgav_dprintf( "Seekable: %s\n", ((b->demuxer->flags & BGAV_DEMUXER_CAN_SEEK) ? "Yes" : "No"));
+  bgav_dprintf( "Seekable: %s\n",
+                ((b->demuxer->flags & BGAV_DEMUXER_CAN_SEEK) ? "Yes" : "No"));
 
   bgav_dprintf( "Duration: ");
   if(t->duration != GAVL_TIME_UNDEFINED)
@@ -667,7 +663,8 @@ int64_t bgav_track_sync_time(bgav_track_t * t, int scale)
   return ret;
   }
 
-static int check_out_time(bgav_stream_t * s, int64_t * t, int scale, int stream_scale)
+static int check_out_time(bgav_stream_t * s, int64_t * t, int scale,
+                          int stream_scale)
   {
   int64_t tt;
   if((s->action == BGAV_STREAM_MUTE) ||
@@ -832,6 +829,4 @@ void bgav_track_get_compression(bgav_track_t * t)
     s = &t->video_streams[i];
     s->action = BGAV_STREAM_MUTE;
     }
-  
-  
   }

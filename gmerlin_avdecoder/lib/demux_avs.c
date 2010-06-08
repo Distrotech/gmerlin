@@ -154,7 +154,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
           return 0;
         vs->packet->data_size += (block_size - 4);
         vs->packet->pts = vs->in_position;
-        bgav_packet_done_write(vs->packet);
+        bgav_stream_done_packet_write(vs, vs->packet);
         vs->packet = (bgav_packet_t*)0;
         break;
       case 0x03: /* Palette data */
@@ -252,7 +252,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
           
           if(!priv->audio_bytes_remaining && as->packet)
             {
-            bgav_packet_done_write(as->packet);
+            bgav_stream_done_packet_write(as, as->packet);
             as->packet = (bgav_packet_t*)0;
             }
           }

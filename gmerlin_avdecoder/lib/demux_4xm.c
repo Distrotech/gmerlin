@@ -440,7 +440,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
                 
         p->pts = priv->video_pts;
         
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(s, p);
 
 
         done = 1;
@@ -467,7 +467,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
 
         if(p->data_size < size-8)
           return 0;
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(s, p);
         done = 1;
         break;
       default:

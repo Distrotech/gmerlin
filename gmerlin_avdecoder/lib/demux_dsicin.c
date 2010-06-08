@@ -206,7 +206,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
     p->data_size = pkt_size + 4;
     p->pts = s->in_position;
     
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   else
     bgav_input_skip(ctx->input, pkt_size);
@@ -225,7 +225,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
     if(bgav_input_read_data(ctx->input, p->data, frame_header.audio_size) < frame_header.audio_size)
       return 0;
     p->data_size = frame_header.audio_size;
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   else
     bgav_input_skip(ctx->input, frame_header.audio_size);

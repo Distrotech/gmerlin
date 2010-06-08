@@ -773,7 +773,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     if(keyframe)
       PACKET_SET_KEYFRAME(p);
     
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   else
     bgav_input_skip(ctx->input, packet_size);

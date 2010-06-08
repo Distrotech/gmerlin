@@ -1469,9 +1469,10 @@ static int process_packet_iavs(bgav_demuxer_context_t * ctx, int64_t position)
                                                          vs->in_position *
                                                          vs->data.video.format.frame_duration));
 #endif
-  if(ap) bgav_packet_done_write(ap);
+  if(ap)
+    bgav_stream_done_packet_write(as, ap);
   if(vp)
-    bgav_packet_done_write(vp);
+    bgav_stream_done_packet_write(vs, vp);
   
   return 1;
   }
@@ -2257,7 +2258,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
           PACKET_SET_KEYFRAME(p);
           }
         }
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       }
     if(ch.ckSize & 1)
       bgav_input_skip(ctx->input, 1);

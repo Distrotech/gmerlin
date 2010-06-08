@@ -199,7 +199,7 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
       p->pts = s->in_position * s->data.video.format.frame_duration;
       p->data_size = size;
       
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       return 1;
       }
     else

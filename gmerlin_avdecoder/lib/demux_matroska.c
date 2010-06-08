@@ -726,7 +726,7 @@ static void setup_packet(mkv_t * m, bgav_stream_t * s,
   if(!index)
     {
     if(s->type == BGAV_STREAM_VIDEO)
-      fprintf(stderr, "Video PTS: %ld\n", pts);
+      fprintf(stderr, "Video PTS: %"PRId64"\n", pts);
     p->pts = pts;
     if(m->do_sync && !STREAM_HAS_SYNC(s))
       STREAM_SET_SYNC(s, p->pts);
@@ -784,7 +784,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
       p->data_size = 0;
       append_packet_data(s, p, b->data, b->data_size);
       setup_packet(m, s, p, pts, keyframe, 0);
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       break;
     case MKV_LACING_EBML:
       {
@@ -840,7 +840,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         append_packet_data(s, p, ptr, m->lace_sizes[i]);
         ptr += m->lace_sizes[i];
         setup_packet(m, s, p, pts, keyframe, i);
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(s, p);
         }
       
       }
@@ -883,7 +883,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         append_packet_data(s, p, ptr, m->lace_sizes[i]);
         ptr += m->lace_sizes[i];
         setup_packet(m, s, p, pts, keyframe, i);
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(s, p);
         }
       
       // bgav_input_skip_dump(ctx->input, b->data_size);
@@ -905,7 +905,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         append_packet_data(s, p, ptr, frame_size);
         ptr += frame_size;
         setup_packet(m, s, p, pts, keyframe, i);
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(s, p);
         }
       }
       break;

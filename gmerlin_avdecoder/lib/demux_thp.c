@@ -273,7 +273,7 @@ static int next_packet_thp(bgav_demuxer_context_t * ctx)
 
     p->pts = priv->next_frame * s->data.video.format.frame_duration;
     
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   else
     bgav_input_skip(ctx->input, video_size);
@@ -294,7 +294,7 @@ static int next_packet_thp(bgav_demuxer_context_t * ctx)
     if(p->data_size < audio_size)
       return 0;
     
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   else
     bgav_input_skip(ctx->input, audio_size);

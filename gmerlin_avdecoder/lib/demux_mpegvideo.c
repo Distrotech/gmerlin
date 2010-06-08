@@ -169,7 +169,7 @@ static void next_packet_fi(bgav_demuxer_context_t * ctx)
       {
       p = bgav_stream_get_packet_write(s);
       bgav_video_parser_get_packet(priv->parser, p);
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       }
     else if(state == PARSER_NEED_DATA)
       break;
@@ -187,7 +187,7 @@ static void next_packet_fi(bgav_demuxer_context_t * ctx)
         {
         p = bgav_stream_get_packet_write(s);
         bgav_video_parser_get_packet(priv->parser, p);
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(s, p);
         }
       else if(state == PARSER_EOF)
         break;
@@ -226,7 +226,7 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
   p->data_size = bgav_input_read_data(ctx->input, p->data,
                                       bytes_to_read);
   ret = !!p->data_size;
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   return ret;
   }
 

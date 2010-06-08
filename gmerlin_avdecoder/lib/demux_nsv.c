@@ -708,7 +708,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
           PACKET_SET_KEYFRAME(p);
         }
       
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       }
     else
       bgav_input_skip(ctx->input, video_len);
@@ -742,7 +742,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
         if(bgav_input_read_data(ctx->input, p->data, audio_len) < audio_len)
           return 0;
         p->data_size = audio_len;
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(s, p);
         }
       }
     else

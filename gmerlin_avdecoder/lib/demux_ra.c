@@ -292,7 +292,7 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
     swap_bytes_dnet(p->data, p->data_size);
   
   PACKET_SET_KEYFRAME(p);
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   return 1;
   }
 

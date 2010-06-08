@@ -741,7 +741,7 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   
   if(pkt.flags&PKT_FLAG_KEY)
     PACKET_SET_KEYFRAME(p);
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   
   av_free_packet(&pkt);
   

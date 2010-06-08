@@ -85,14 +85,14 @@ static int mkv_read_uint(bgav_input_context_t * ctx, uint64_t * ret, int bytes)
 
 int64_t vsint_subtr [] =
   {
-    0x3F,
-    0x1FFF,
-    0x0FFFFF,
-    0x07FFFFFF,
-    0x03FFFFFFFF,
-    0x01FFFFFFFFFF,
-    0x00FFFFFFFFFFFF,
-    0x007FFFFFFFFFFFFF
+    0x3FLL,
+    0x1FFFLL,
+    0x0FFFFFLL,
+    0x07FFFFFFLL,
+    0x03FFFFFFFFLL,
+    0x01FFFFFFFFFFLL,
+    0x00FFFFFFFFFFFFLL,
+    0x007FFFFFFFFFFFFFLL
   };
 
 static int mkv_read_int(bgav_input_context_t * ctx, int64_t * ret, int bytes)

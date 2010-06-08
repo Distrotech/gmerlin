@@ -239,6 +239,25 @@ bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s)
   return bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   }
 
+void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
+  {
+  p->valid = 1;
+  s->in_position++;
+
+  /* If the stream has a constant framerate, all packets have the same
+     duration */
+  if((s->type == BGAV_STREAM_VIDEO) && 
+     (s->data.video.format.frame_duration) &&
+     (s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT) &&
+     !p->duration)
+    p->duration = s->data.video.format.frame_duration;
+
+  /* Padding (if fourcc != gavl) */
+  if(p->data)
+    memset(p->data + p->data_size, 0, PACKET_PADDING);
+
+  }
+
 int bgav_stream_get_index(bgav_stream_t * s)
   {
   switch(s->type)

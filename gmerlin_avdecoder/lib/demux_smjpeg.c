@@ -181,7 +181,7 @@ static int next_packet_smjpeg(bgav_demuxer_context_t * ctx)
 
     p->data_size = length;
     p->pts = timestamp;
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   return 1;
   }

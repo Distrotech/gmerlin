@@ -103,7 +103,8 @@ static void bgav_set_dll_path_xanim()
     {
     free(bgav_dll_path_xanim);
     }
-  bgav_dll_path_xanim = bgav_strdup(find_directory(xanim_dirs, env_name_xanim));
+  bgav_dll_path_xanim =
+    bgav_strdup(find_directory((const char * const*)xanim_dirs, env_name_xanim));
   }
 #endif
 

@@ -355,7 +355,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
 
   priv->pts += p->duration;
   
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   
   return 1;
   }

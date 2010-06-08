@@ -446,7 +446,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   if(p->data_size < adts.frame_bytes)
     return 0;
   
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
 
   priv->sample_count += priv->block_samples * adts.num_blocks;
   

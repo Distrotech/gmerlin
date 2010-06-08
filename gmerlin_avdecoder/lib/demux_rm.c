@@ -1163,7 +1163,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       int packet_size, frame_size;
       
       if(s->packet)
-        bgav_packet_done_write(s->packet);
+        bgav_stream_done_packet_write(s, s->packet);
       s->packet = bgav_stream_get_packet_write(s);
 
       if(!num_chunks)
@@ -1201,7 +1201,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       if(sp->pic_num != pic_num) /* New picture started */
         {
         if(s->packet)
-          bgav_packet_done_write(s->packet);
+          bgav_stream_done_packet_write(s, s->packet);
         s->packet = bgav_stream_get_packet_write(s);
 
         if(!num_chunks)
@@ -1360,7 +1360,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
         memcpy(p->data, as->audio_buf + x * apk_usize, apk_usize);
         if(!x)
           PACKET_SET_KEYFRAME(p);
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(stream, p);
         }
       }
     }
@@ -1380,7 +1380,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
       }
     
     p->data_size = packet_size;
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(stream, p);
     }
   else if((stream->fourcc == BGAV_MK_FOURCC('r', 'a', 'a', 'c')) ||
           (stream->fourcc == BGAV_MK_FOURCC('r', 'a', 'c', 'p')))
@@ -1401,7 +1401,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
       
       bgav_input_read_data(ctx->input, p->data, aac_packet_lengths[x]);
       p->data_size = aac_packet_lengths[x];
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(stream, p);
       }
     }
   else /* No reordering needed */
@@ -1411,7 +1411,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
     
     bgav_input_read_data(ctx->input, p->data, packet_size);
     p->data_size = packet_size;
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(stream, p);
 
     
     }

@@ -690,7 +690,6 @@ static int input_open(bgav_input_context_t * ctx,
   const char * pos;
   char * protocol = (char*)0;
   char * tmp_url;
-  char * tmp_pos;
   
   tmp_url = bgav_strdup(url);
   

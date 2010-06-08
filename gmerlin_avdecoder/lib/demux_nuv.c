@@ -281,7 +281,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
       
       p->data_size = HDRSIZE + size;
       p->pts = pts;
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       break;
     case NUV_AUDIO:
       s = bgav_track_find_stream(ctx,
@@ -302,7 +302,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
       p->data_size = size;
       p->pts = pts;
       
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       break;
     case NUV_SEEKP:
       // contains no data, size value is invalid

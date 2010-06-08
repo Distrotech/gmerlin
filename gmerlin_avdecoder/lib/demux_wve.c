@@ -214,7 +214,7 @@ static int next_packet_wve(bgav_demuxer_context_t * ctx)
           return 0;
 
         p->data_size = chunk_size;
-        bgav_packet_done_write(p);
+        bgav_stream_done_packet_write(s, p);
         }
       break;
     case SCEl_TAG: // Ending tag

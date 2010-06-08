@@ -595,7 +595,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
 
   if(stream->packet && (stream->packet_seq != seq))
     {
-    bgav_packet_done_write(stream->packet);
+    bgav_stream_done_packet_write(stream, stream->packet);
 
     if(do_video)
       {

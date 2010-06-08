@@ -331,7 +331,7 @@ static int next_packet_sphere(bgav_demuxer_context_t * ctx)
   if(bytes_read < s->data.audio.block_align)
     return 0;
   
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   return 1;
   }
 

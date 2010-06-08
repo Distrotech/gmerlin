@@ -29,6 +29,8 @@
 
 #include <os.h>
 
+#define PACKET_PADDING 32
+
 #define BGAV_MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 
 // typedef struct bgav_edl_dec_s bgav_edl_dec_t;
@@ -68,6 +70,8 @@ typedef struct bgav_track_s bgav_track_t;
 
 typedef struct bgav_timecode_table_s bgav_timecode_table_t;
 typedef struct bgav_keyframe_table_s bgav_keyframe_table_t;
+
+typedef struct bgav_packet_pool_s bgav_packet_pool_t;
 
 #include <id3.h>
 #include <yml.h>
@@ -227,7 +231,7 @@ struct bgav_packet_s
   int64_t dts; /* In stream timescale tics */
   
   int64_t duration;
-  bgav_stream_t * stream; /* The stream this packet belongs to */
+  //  bgav_stream_t * stream; /* The stream this packet belongs to */
 
   gavl_audio_frame_t * audio_frame; /* For demuxers, which deliver audio
                                        frames directly */
@@ -238,6 +242,8 @@ struct bgav_packet_s
   struct bgav_packet_s * next;
 
   uint32_t flags;
+
+  bgav_packet_pool_t * pp;
   };
 
 /* packet.c */
@@ -247,9 +253,9 @@ void bgav_packet_destroy(bgav_packet_t*);
 void bgav_packet_alloc(bgav_packet_t*, int size);
 void bgav_packet_dump(bgav_packet_t*);
 void bgav_packet_pad(bgav_packet_t * p);
+void bgav_packet_reset(bgav_packet_t * p);
 
-
-void bgav_packet_done_write(bgav_packet_t *);
+// void bgav_packet_done_write(bgav_packet_t *);
 void bgav_packet_done_read(bgav_packet_t *);
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,
@@ -289,7 +295,16 @@ void bgav_packet_buffer_clear(bgav_packet_buffer_t*);
 
 int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b);
 
-int bgav_packet_buffer_total_bytes(bgav_packet_buffer_t * b);
+/* packetpool.c */
+
+bgav_packet_pool_t * bgav_packet_pool_create();
+
+bgav_packet_t * bgav_packet_pool_get(bgav_packet_pool_t *);
+void bgav_packet_pool_put(bgav_packet_pool_t * pp,
+                          bgav_packet_t * p);
+
+void bgav_packet_pool_destroy(bgav_packet_pool_t*);
+
 
 /* Palette support */
 
@@ -581,6 +596,8 @@ void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
 
 bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s);
+void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p);
+
 
 int bgav_stream_get_index(bgav_stream_t * s);
 

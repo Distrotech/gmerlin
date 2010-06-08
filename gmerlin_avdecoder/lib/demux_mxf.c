@@ -156,7 +156,7 @@ static int next_packet_clip_wrapped_const(bgav_demuxer_context_t * ctx, bgav_str
     return 0;
   
   set_pts(s, sp, p);
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   return 1;
   }
 
@@ -252,7 +252,7 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
     //    if(s->type == BGAV_STREAM_VIDEO)
     //      fprintf(stderr, "Got video packet\n");
 #endif
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   return 1;
   }

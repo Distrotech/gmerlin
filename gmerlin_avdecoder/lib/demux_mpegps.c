@@ -822,7 +822,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
                                   priv->pes_header.payload_size) <
              priv->pes_header.payload_size)
             {
-            bgav_packet_done_write(p);
+            bgav_stream_done_packet_write(stream, p);
             return 0;
             }
           p->data_size = priv->pes_header.payload_size;
@@ -886,7 +886,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             
             lp->out_pts += p->duration;
             }
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(stream, p);
           }
         else
           {

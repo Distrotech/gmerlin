@@ -256,7 +256,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
 
         video_packet->data_size += h.size;
         video_packet->pts = s->in_position;
-        bgav_packet_done_write(video_packet);
+        bgav_stream_done_packet_write(s, video_packet);
         video_packet = (bgav_packet_t*)0;
         done = 1;
         break;
@@ -279,8 +279,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
           return 0;
         audio_packet->data_size = h.size + PREAMBLE_SIZE;
 
-
-        bgav_packet_done_write(audio_packet);
+        bgav_stream_done_packet_write(s, audio_packet);
         done = 1;
         break;
       default:

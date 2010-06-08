@@ -1531,7 +1531,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       
       if(s->packet)
         {
-        bgav_packet_done_write(s->packet);
+        bgav_stream_done_packet_write(s, s->packet);
         s->packet = (bgav_packet_t*)0;
         }
 
@@ -1638,7 +1638,8 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         {
         if(ctx->request_stream && ctx->request_stream->packet)
           {
-          bgav_packet_done_write(ctx->request_stream->packet);
+          bgav_stream_done_packet_write(ctx->request_stream,
+                                        ctx->request_stream->packet);
           ctx->request_stream->packet = (bgav_packet_t*)0;
           }
         return ret;
@@ -1652,7 +1653,8 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
            finished, we can do it now */
         if(ctx->request_stream && ctx->request_stream->packet)
           {
-          bgav_packet_done_write(ctx->request_stream->packet);
+          bgav_stream_done_packet_write(ctx->request_stream,
+                                        ctx->request_stream->packet);
           ctx->request_stream->packet = (bgav_packet_t*)0;
           }
         return ret;

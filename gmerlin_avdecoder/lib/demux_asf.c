@@ -1015,7 +1015,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
         bgav_packet_dump(s->packet);
         }
 #endif
-      bgav_packet_done_write(s->packet);
+      bgav_stream_done_packet_write(s, s->packet);
       s->packet = (bgav_packet_t*)0;
       }
     else

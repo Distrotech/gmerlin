@@ -176,7 +176,7 @@ static int next_packet_tta(bgav_demuxer_context_t * ctx)
 
   p->data_size = priv->seek_table[priv->current_frame];
   priv->current_frame++;
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   return 1;
   }
 

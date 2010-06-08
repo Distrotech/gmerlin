@@ -148,7 +148,7 @@ static int next_packet_sol(bgav_demuxer_context_t * ctx)
 
   if(!p->data_size)
     return 0;
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
 
 
   return 1;

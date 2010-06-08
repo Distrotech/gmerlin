@@ -291,7 +291,7 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
       bgav_packet_dump(p);
       }
 #endif
-    bgav_packet_done_write(p);
+    bgav_stream_done_packet_write(s, p);
     }
   priv->current_frame++;
   return 1;

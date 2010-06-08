@@ -565,7 +565,7 @@ int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx)
   if(stream->process_packet)
     stream->process_packet(stream, p);
   
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(stream, p);
   
   ctx->si->current_position++;
   return 1;
@@ -608,7 +608,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   if(s->process_packet)
     s->process_packet(s, p);
   
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   
   s->index_position++;
   return 1;
@@ -654,7 +654,8 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
           {
           if(demuxer->tt->cur->audio_streams[i].packet)
             {
-            bgav_packet_done_write(demuxer->tt->cur->audio_streams[i].packet);
+            bgav_stream_done_packet_write(&demuxer->tt->cur->audio_streams[i],
+                                          demuxer->tt->cur->audio_streams[i].packet);
             demuxer->tt->cur->audio_streams[i].packet = (bgav_packet_t*)0;
             ret = 1;
             }
@@ -663,7 +664,8 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
           {
           if(demuxer->tt->cur->video_streams[i].packet)
             {
-            bgav_packet_done_write(demuxer->tt->cur->video_streams[i].packet);
+            bgav_stream_done_packet_write(&demuxer->tt->cur->video_streams[i],
+                                          demuxer->tt->cur->video_streams[i].packet);
             demuxer->tt->cur->video_streams[i].packet = (bgav_packet_t*)0;
             ret = 1;
             }

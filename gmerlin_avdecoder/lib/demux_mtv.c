@@ -204,7 +204,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
           return 0;
         p->data_size += MTV_ASUBCHUNK_DATA_SIZE;
         }
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       }
     priv->do_audio = 0;
     }
@@ -227,7 +227,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
         return 0;
       p->data_size = priv->h.img_segment_size;
       p->pts = s->in_position;
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       }
     priv->do_audio = 1;
     }

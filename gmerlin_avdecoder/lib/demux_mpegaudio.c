@@ -606,7 +606,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   p->pts = priv->frames * (int64_t)priv->header.samples_per_frame;
   p->duration = priv->header.samples_per_frame;
   
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
 
   priv->frames++;
   return 1;

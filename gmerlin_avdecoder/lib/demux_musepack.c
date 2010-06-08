@@ -270,7 +270,7 @@ static int next_packet_mpc(bgav_demuxer_context_t * ctx)
   
   p->audio_frame->valid_samples = result;
   
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
   
   return 1;
   }

@@ -224,7 +224,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
       if(current_sector == sector_count-1)
         {
         s->packet->pts = s->in_position;
-        bgav_packet_done_write(s->packet);
+        bgav_stream_done_packet_write(s, s->packet);
         s->packet = (bgav_packet_t*)0;
         }
       break;
@@ -239,7 +239,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
 
       memcpy(p->data, sector + 24, RAW_CD_SECTOR_DATA_SIZE);
       p->data_size = RAW_CD_SECTOR_DATA_SIZE;
-      bgav_packet_done_write(p);
+      bgav_stream_done_packet_write(s, p);
       
       break;
       

@@ -126,7 +126,7 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Audio stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->data.audio.format.samplerate,
                    s->start_time);
-      bgav_dprintf("   Duration: %ld, entries: %d\n",
+      bgav_dprintf("   Duration: %"PRId64", entries: %d\n",
                    b->tt->tracks[i].audio_streams[j].duration,
                    s->file_index->num_entries);
       dump_index(&b->tt->tracks[i].audio_streams[j]);
@@ -139,7 +139,7 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Video stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->data.video.format.timescale,
                    s->start_time);
-      bgav_dprintf("   Duration: %ld, entries: %d\n",
+      bgav_dprintf("   Duration: %"PRId64", entries: %d\n",
                    b->tt->tracks[i].video_streams[j].duration,
                    s->file_index->num_entries);
       dump_index(&b->tt->tracks[i].video_streams[j]);
@@ -152,7 +152,7 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Subtitle stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->timescale,
                    s->start_time);
-      bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].subtitle_streams[j].duration);
+      bgav_dprintf("   Duration: %"PRId64"\n", b->tt->tracks[i].subtitle_streams[j].duration);
       dump_index(&b->tt->tracks[i].subtitle_streams[j]);
       }
     }

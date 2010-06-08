@@ -1866,7 +1866,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           
           set_packet_pos(priv, stream_priv, &page_continued, p);
           
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(s, p);
           break;
 
         case FOURCC_DIRAC:
@@ -1911,7 +1911,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           
           set_packet_pos(priv, stream_priv, &page_continued, p);
           
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(s, p);
           break;
         case FOURCC_OGM_VIDEO:
           if(stream_priv->do_sync)
@@ -1968,7 +1968,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             s->duration = s->data.video.format.frame_duration * stream_priv->frame_counter;
         
           set_packet_pos(priv, stream_priv, &page_continued, p);
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(s, p);
           break;
         case FOURCC_VORBIS:
           /* Resync if necessary */
@@ -2005,7 +2005,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           else
             p->flags &= ~PACKET_FLAG_LAST;
           
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(s, p);
           
           break;
         case FOURCC_FLAC:
@@ -2042,7 +2042,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             s->duration = priv->op.granulepos;
 
           set_packet_pos(priv, stream_priv, &page_continued, p);
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(s, p);
           break;
         case FOURCC_OGM_TEXT:
           if(priv->op.packet[0] & 0x01) /* Header is already read -> skip it */
@@ -2076,7 +2076,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           if(s->action == BGAV_STREAM_PARSE)
             s->duration = granulepos + subtitle_duration;
         
-          bgav_packet_done_write(p);
+          bgav_stream_done_packet_write(s, p);
           break;
         }
       if(stream_priv)

@@ -287,7 +287,7 @@ static int next_packet_voc(bgav_demuxer_context_t * ctx)
   bgav_packet_alloc(p, bytes_to_read);
 
   p->data_size = bgav_input_read_data(ctx->input, p->data, bytes_to_read);
-  bgav_packet_done_write(p);
+  bgav_stream_done_packet_write(s, p);
 
   if(!p->data_size)
     return 0;
