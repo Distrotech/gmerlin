@@ -511,42 +511,24 @@ static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
 
 static int write_packet_vorbis(void * data, gavl_packet_t * packet)
   {
-  uint8_t * ptr;
-  int len;
   ogg_packet op;
-  int keep_going;
   int result;
   
   vorbis_t * vorbis = data;
   
   memset(&op, 0, sizeof(op));
-  ptr = packet->data;
 
-  keep_going = 1;
-  while(keep_going)
-    {
-    len = PTR_2_32BE(ptr); ptr += 4;
-    op.packet = ptr;
-    op.bytes = len;
-    
-    ptr += len;
-    
-    if((ptr - packet->data) >= packet->data_len - 4)
-      {
-      /* Last packet */
-      op.granulepos = packet->pts + packet->duration;
+  op.packet = packet->data;
+  op.bytes = packet->data_len;
+  op.granulepos = packet->pts + packet->duration;
+  if(packet->flags & GAVL_PACKET_LAST)
+    op.e_o_s = 1;
+  
 
-      if(packet->flags & GAVL_PACKET_LAST)
-        op.e_o_s = 1;
-      keep_going = 0;
-      }
-    else
-      op.granulepos = -1;
-    ogg_stream_packetin(&vorbis->enc_os,&op);
-    }
+  ogg_stream_packetin(&vorbis->enc_os,&op);
   
   /* Flush pages if any */
-  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, 1)) <= 0)
+  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, 0)) <= 0)
     return result;
   return 1;
   }
