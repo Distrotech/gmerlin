@@ -143,13 +143,13 @@ static SchroBuffer * get_data(bgav_stream_t * s)
   if(priv->buffer_size < 13)
     {
     if(priv->p)
-      bgav_packet_done_read(priv->p);
+      bgav_stream_done_packet_read(s, priv->p);
     while(1)
       {
-      priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+      priv->p = bgav_stream_get_packet_read(s);
       if(!priv->p || !(priv->p->flags & PACKET_FLAG_SKIP))
         break;
-      bgav_packet_done_read(priv->p);
+      bgav_stream_done_packet_read(s, priv->p);
       }
     if(!priv->p)
       {

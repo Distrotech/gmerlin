@@ -618,3 +618,143 @@ void bgav_video_parser_set_header_end(bgav_video_parser_t * parser)
   if(!c->header_size)
     c->header_size = parser->pos - c->parser_start_pos;
   }
+
+/* New (generic) API */
+
+bgav_packet_t *
+bgav_video_parser_get_packet_parse_full(void * parser1)
+  {
+  int result;
+
+  bgav_video_parser_t * parser = parser1;
+  bgav_packet_t * ret;
+  bgav_packet_t * p;
+  
+  if(parser->out_packet)
+    {
+    ret = parser->out_packet;
+    parser->out_packet = NULL;
+    return ret;
+    }
+
+  while(1)
+    {
+    result = bgav_video_parser_parse(parser);
+    switch(result)
+      {
+      case PARSER_EOF:
+        return NULL;
+        break;
+      case PARSER_NEED_DATA:
+        p = parser->src.get_func(parser->src.data);
+        if(!p)
+          {
+          bgav_video_parser_set_eof(parser);
+          continue;
+          }
+        else
+          {
+          bgav_video_parser_add_packet(parser, p);
+          bgav_packet_pool_put(parser->s->pp, p);
+          }
+        break;
+      case PARSER_HAVE_PACKET:
+        ret = bgav_packet_pool_get(parser->s->pp);
+        bgav_video_parser_get_packet(parser, ret);
+        return ret;
+        break;
+      case PARSER_ERROR:
+        return NULL;
+      }
+    }
+  return NULL;
+  }
+
+
+  
+bgav_packet_t *
+bgav_video_parser_peek_packet_parse_full(void * parser1, int force)
+  {
+  int result;
+  bgav_packet_t * p;
+  bgav_video_parser_t * parser = parser1;
+  if(parser->out_packet)
+    return parser->out_packet;
+
+  while(1)
+    {
+    result = bgav_video_parser_parse(parser);
+
+    switch(result)
+      {
+      case PARSER_EOF:
+        return NULL;
+        break;
+      case PARSER_NEED_DATA:
+        p = parser->src.peek_func(parser->src.data, force);
+        if(!p)
+          {
+          if(force)
+            {
+            bgav_video_parser_set_eof(parser);
+            continue;
+            }
+          else
+            return NULL;
+          }
+        else
+          {
+          bgav_video_parser_add_packet(parser, p);
+          bgav_packet_pool_put(parser->s->pp, p);
+          }
+        break;
+      case PARSER_HAVE_PACKET:
+        parser->out_packet = bgav_packet_pool_get(parser->s->pp);
+        bgav_video_parser_get_packet(parser, parser->out_packet);
+        return parser->out_packet;
+        break;
+      case PARSER_ERROR:
+        return NULL;
+      }
+
+    
+    }
+  
+  
+  }
+
+bgav_packet_t *
+bgav_video_parser_get_packet_parse_frame(void * parser1)
+  {
+  bgav_packet_t * ret;
+  bgav_video_parser_t * parser = parser1;
+  if(parser->out_packet)
+    {
+    ret = parser->out_packet;
+    parser->out_packet = NULL;
+    return ret;
+    }
+  ret = parser->src.get_func(parser->src.data);
+  if(!ret)
+    return NULL;
+  bgav_video_parser_parse_frame(parser, ret);
+  return ret;
+  
+  }
+
+bgav_packet_t *
+bgav_video_parser_peek_packet_parse_frame(void * parser1, int force)
+  {
+  bgav_video_parser_t * parser = parser1;
+  
+  if(parser->out_packet)
+    return parser->out_packet;
+
+  parser->out_packet =
+    parser->src.peek_func(parser->src.data, force);
+  if(!parser->out_packet)
+    return NULL;
+  bgav_video_parser_parse_frame(parser, parser->out_packet);
+  return parser->out_packet;
+
+  }

@@ -270,11 +270,11 @@ static int get_data(bgav_stream_t * s)
   
   if(priv->packet)
     {
-    bgav_packet_done_read(priv->packet);
+    bgav_stream_done_packet_read(s, priv->packet);
     priv->packet = NULL;
     }
 
-  priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
+  priv->packet = bgav_stream_get_packet_read(s);
 
 #ifdef DUMP_PACKET
   fprintf(stderr, "Got packet\n");
@@ -524,7 +524,7 @@ static int decode_picture(bgav_stream_t * s)
 
     if(priv->packet)
       {
-      bgav_packet_done_read(priv->packet);
+      bgav_stream_done_packet_read(s, priv->packet);
       priv->packet = NULL;
       }
     
@@ -963,7 +963,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   while(1)
     {
     /* Skip pictures until we have the next keyframe */
-    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+    p = bgav_stream_peek_packet_read(s, 1);
 
     if(!p)
       return;
@@ -975,8 +975,8 @@ static void resync_ffmpeg(bgav_stream_t * s)
       }
     /* Skip this packet */
     bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Skipping packet %c", PACKET_GET_CODING_TYPE(p));
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    bgav_packet_done_read(p);
+    p = bgav_stream_get_packet_read(s);
+    bgav_stream_done_packet_read(s, p);
     }
   // decode_picture(s);
   }

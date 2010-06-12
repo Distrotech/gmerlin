@@ -719,9 +719,9 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
   {
   bgav_packet_t * p;
   int64_t t;
-  while(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
+  while(bgav_stream_peek_packet_read(s, force))
     {
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    p = bgav_stream_get_packet_read(s);
     
     t = p->pts - s->start_time;
     
@@ -732,16 +732,16 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
       if(t >= s->duration)
         s->duration = t + p->duration;
       }
-    bgav_packet_done_read(p);
+    bgav_stream_done_packet_read(s, p);
     }
   }
 
 static void flush_stream_pts(bgav_stream_t * s, int force)
   {
   bgav_packet_t * p;
-  while(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
+  while(bgav_stream_peek_packet_read(s, force))
     {
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    p = bgav_stream_get_packet_read(s);
     if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_file_index_append_packet(s->file_index,
@@ -750,7 +750,7 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
       if(p->pts > s->duration)
         s->duration = p->pts;
       }
-    bgav_packet_done_read(p);
+    bgav_stream_done_packet_read(s, p);
     }
   }
 

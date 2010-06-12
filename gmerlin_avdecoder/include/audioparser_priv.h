@@ -84,9 +84,11 @@ struct bgav_audio_parser_s
   int64_t frame_pts;
   
   int last_state;
+  
+  bgav_packet_t * out_packet;
 
-  uint8_t * header;
-  int header_len;
+  /* Where to get packets */
+  bgav_packet_source_t src;
   
   };
 

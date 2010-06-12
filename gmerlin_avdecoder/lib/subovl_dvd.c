@@ -69,11 +69,10 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
     if(priv->packet_size && (priv->buffer_size >= priv->packet_size))
       return 1;
 
-    if(!bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
-      {
+    if(!bgav_stream_peek_packet_read(s, 0))
       return 0;
-      }
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    
+    p = bgav_stream_get_packet_read(s);
 
     /* Append data */
     if(priv->buffer_size + p->data_size > priv->buffer_alloc)
@@ -89,7 +88,7 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
       priv->pts = p->pts;
       }
     priv->buffer_size += p->data_size;
-    bgav_packet_done_read(p);
+    bgav_stream_done_packet_read(s, p);
 
     }
   

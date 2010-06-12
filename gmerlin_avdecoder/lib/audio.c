@@ -153,8 +153,9 @@ static bgav_packet_t * peek_packet_aparse(bgav_demuxer_context_t * demuxer,
   return NULL;
   }
 
-static bgav_packet_t * get_packet_read_aparse_frame(bgav_demuxer_context_t * demuxer,
-                                                    bgav_stream_t * s)
+static bgav_packet_t *
+get_packet_read_aparse_frame(bgav_demuxer_context_t * demuxer,
+                             bgav_stream_t * s)
   {
   bgav_packet_t * p;
   p = bgav_demuxer_get_packet_read_generic(demuxer, s);
@@ -163,8 +164,9 @@ static bgav_packet_t * get_packet_read_aparse_frame(bgav_demuxer_context_t * dem
   return p;
   }
 
-static bgav_packet_t * peek_packet_aparse_frame(bgav_demuxer_context_t * demuxer,
-                                                bgav_stream_t * s, int force)
+static bgav_packet_t *
+peek_packet_aparse_frame(bgav_demuxer_context_t * demuxer,
+                         bgav_stream_t * s, int force)
   {
   bgav_packet_t * p;
   p = bgav_demuxer_peek_packet_read_generic(demuxer, s, force);
@@ -211,7 +213,7 @@ int bgav_audio_start(bgav_stream_t * s)
     
     /* Start the parser */
     
-    if(!bgav_demuxer_peek_packet_read(s->demuxer, s, 1))
+    if(!bgav_stream_peek_packet_read(s, 1))
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while initializing audio parser");
@@ -225,7 +227,7 @@ int bgav_audio_start(bgav_stream_t * s)
     {
     bgav_packet_t * p;
     char tmp_string[128];
-    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+    p = bgav_stream_peek_packet_read(s, 1);
     if(!p)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -612,7 +614,7 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   bgav_packet_t * bp;
   bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
 
-  bp = bgav_demuxer_get_packet_read(s->demuxer, s);
+  bp = bgav_stream_get_packet_read(s);
   if(!bp)
     return 0;
   
@@ -627,7 +629,7 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   if(bp->flags & PACKET_FLAG_LAST)
     p->flags |= GAVL_PACKET_LAST;
   
-  bgav_packet_done_read(bp);
+  bgav_stream_done_packet_read(s, bp);
   
   return 1;
   }

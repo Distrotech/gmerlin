@@ -114,7 +114,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   
   if(s->packet_buffer)
     {
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    p = bgav_stream_get_packet_read(s);
     // bgav_packet_get_text_subtitle(p, ret, ret_alloc, start_time, duration);
     }
   else if(s->data.subtitle.subreader)
@@ -152,10 +152,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   remove_cr(*ret);
     
   if(s->packet_buffer)
-    {
-    bgav_packet_done_read(p);
-    }
-
+    bgav_stream_done_packet_read(s, p);
   
   return 1;
   }
@@ -174,7 +171,7 @@ int bgav_has_subtitle(bgav_t * b, int stream)
       else
         force = 0;
       
-      if(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
+      if(bgav_stream_peek_packet_read(s, force))
         return 1;
       else
         {

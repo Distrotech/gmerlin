@@ -781,7 +781,7 @@ static int get_packet(bgav_stream_t * s)
   pcm_t * priv;
   priv = (pcm_t*)(s->data.audio.decoder->priv);
 
-  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  priv->p = bgav_stream_get_packet_read(s);
   
   /* EOF */
   
@@ -1081,7 +1081,7 @@ static int init_pcm(bgav_stream_t * s)
       if(s->ext_size < sizeof(formatSpecificFlags))
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "extradata too small (%d < %ld)", s->ext_size,
+                 "extradata too small (%d < %zd)", s->ext_size,
                  sizeof(formatSpecificFlags));
         return 0;
         }
@@ -1211,7 +1211,7 @@ static int decode_frame_pcm(bgav_stream_t * s)
   
   if(!priv->bytes_in_packet)
     {
-    bgav_packet_done_read(priv->p);
+    bgav_stream_done_packet_read(s, priv->p);
     priv->p = (bgav_packet_t*)0;
     }
   return 1;

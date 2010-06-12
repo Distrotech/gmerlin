@@ -74,7 +74,7 @@ static int decode_frame_a52(bgav_stream_t * s)
   a52_priv * priv;
   priv = s->data.audio.decoder->priv;
 
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  p = bgav_stream_get_packet_read(s);
   if(!p)
     return 0;
   
@@ -136,7 +136,7 @@ static int decode_frame_a52(bgav_stream_t * s)
   priv->frame->valid_samples = FRAME_SAMPLES;
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
 
-  bgav_packet_done_read(p);
+  bgav_stream_done_packet_read(s, p);
 
   return 1;
   }

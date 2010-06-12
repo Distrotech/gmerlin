@@ -114,6 +114,7 @@ void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   stream->last_index_position = -1; 
   stream->index_position = -1;
   stream->opt = opt;
+  stream->pp = bgav_packet_pool_create();
   }
 
 void bgav_stream_free(bgav_stream_t * s)
@@ -143,6 +144,8 @@ void bgav_stream_free(bgav_stream_t * s)
 
   if(s->timecode_table)
     bgav_timecode_table_destroy(s->timecode_table);
+  if(s->pp)
+    bgav_packet_pool_destroy(s->pp);
   }
 
 void bgav_stream_dump(bgav_stream_t * s)
@@ -276,4 +279,37 @@ int bgav_stream_get_index(bgav_stream_t * s)
       break;
     }
   return -1;
+  }
+
+bgav_packet_t *
+bgav_stream_get_packet_read(bgav_stream_t * s)
+  {
+  bgav_packet_t * ret = (bgav_packet_t*)0;
+  s->demuxer->request_stream = s;
+  
+  if(!s->packet_buffer)
+    return NULL;
+  
+  ret = s->get_packet(s->demuxer, s);
+  s->demuxer->request_stream = (bgav_stream_t*)0;
+  return ret;
+  }
+
+bgav_packet_t *
+bgav_stream_peek_packet_read(bgav_stream_t * s, int force)
+  {
+  bgav_packet_t * ret;
+  
+  if(!s->packet_buffer)
+    return NULL;
+
+  s->demuxer->request_stream = s;
+  ret = s->peek_packet(s->demuxer, s, force);
+  s->demuxer->request_stream = NULL;
+  return ret;
+  }
+
+void bgav_stream_done_packet_read(bgav_stream_t * s, bgav_packet_t * p)
+  {
+  p->valid = 0;
   }

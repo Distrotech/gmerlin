@@ -81,6 +81,24 @@ typedef struct bgav_packet_pool_s bgav_packet_pool_t;
 #define BGAV_CODING_TYPE_B 'B'
 #define BGAV_CODING_TYPE_D 'D' /* Unsupported */
 
+/* subsequent calls of read() or peek() will return the next packet */
+typedef bgav_packet_t * (*bgav_get_packet_callback)(void * data);
+
+/* Subsequent calls of read() or peek() will return the same packet */
+typedef bgav_packet_t * (*bgav_peek_packet_callback)(void * data, int force);
+
+typedef struct
+  {
+  bgav_peek_packet_callback peek_func; /* Peek for a packet */
+  bgav_get_packet_callback  get_func;  /* Get a packet */
+  void * data;                         /* Private data for callbacks */
+  } bgav_packet_source_t;
+
+void bgav_packet_source_copy(bgav_packet_source_t * dst,
+                             const bgav_packet_source_t * src);
+
+/* Metadata */
+
 struct bgav_metadata_s
   {
   char * author;
@@ -242,8 +260,6 @@ struct bgav_packet_s
   struct bgav_packet_s * next;
 
   uint32_t flags;
-
-  bgav_packet_pool_t * pp;
   };
 
 /* packet.c */
@@ -256,7 +272,7 @@ void bgav_packet_pad(bgav_packet_t * p);
 void bgav_packet_reset(bgav_packet_t * p);
 
 // void bgav_packet_done_write(bgav_packet_t *);
-void bgav_packet_done_read(bgav_packet_t *);
+// void bgav_packet_done_read(bgav_packet_t *);
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,
                                    const char * text,
@@ -508,6 +524,11 @@ struct bgav_stream_s
                                 bgav_stream_t * s);
   bgav_packet_t * (*peek_packet)(bgav_demuxer_context_t * demuxer,
                                  bgav_stream_t * s, int force);
+
+  bgav_packet_source_t src; /* Where to get packets */
+  
+  bgav_packet_pool_t * pp;  /* Where to put consumed
+                               packets for later use */
   
   union
     {
@@ -595,8 +616,14 @@ void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt);
 void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
 
+/* Top level packet functions */
 bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s);
 void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p);
+
+/* TODO */
+bgav_packet_t * bgav_stream_get_packet_read(bgav_stream_t * s);
+bgav_packet_t * bgav_stream_peek_packet_read(bgav_stream_t * s, int force);
+void bgav_stream_done_packet_read(bgav_stream_t * s, bgav_packet_t * p);
 
 
 int bgav_stream_get_index(bgav_stream_t * s);
@@ -1361,6 +1388,7 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
 void bgav_demuxer_create_buffers(bgav_demuxer_context_t * demuxer);
 void bgav_demuxer_destroy(bgav_demuxer_context_t * demuxer);
 
+#if 0
 bgav_packet_t *
 bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
                              bgav_stream_t * s);
@@ -1369,6 +1397,7 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
 bgav_packet_t *
 bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_stream_t * s, int force);
+#endif
 
 /* Generic get/peek functions */
 

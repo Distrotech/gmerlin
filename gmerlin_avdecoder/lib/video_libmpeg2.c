@@ -102,7 +102,7 @@ static int get_data(bgav_stream_t*s)
   int cache_index;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   
-  priv->p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+  priv->p = bgav_stream_peek_packet_read(s, 1);
   if(!priv->p)
     {
     if(!(priv->flags & FLAG_EOF))
@@ -138,7 +138,7 @@ static int get_data(bgav_stream_t*s)
       }
     }
   
-  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  priv->p = bgav_stream_get_packet_read(s);
 
 #ifdef DUMP_PACKETS
   fprintf(stderr, "Got packet\n");
@@ -298,7 +298,7 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
     
     if(priv->p)
       {
-      bgav_packet_done_read(priv->p);
+      bgav_stream_done_packet_read(s, priv->p);
       priv->p = NULL;
       }
     
@@ -428,7 +428,7 @@ static int decode_picture(bgav_stream_t*s)
     // s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
     if(priv->p)
       {
-      bgav_packet_done_read(priv->p);
+      bgav_stream_done_packet_read(s, priv->p);
       priv->p = NULL;
       }
     s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
@@ -602,7 +602,7 @@ static void resync_mpeg2(bgav_stream_t*s)
     while(1)
       {
       /* Skip pictures until we have the next keyframe */
-      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      p = bgav_stream_peek_packet_read(s, 1);
       if(!p)
         return;
 
@@ -612,8 +612,8 @@ static void resync_mpeg2(bgav_stream_t*s)
         break;
         }
       /* Skip this packet */
-      p = bgav_demuxer_get_packet_read(s->demuxer, s);
-      bgav_packet_done_read(p);
+      p = bgav_stream_get_packet_read(s);
+      bgav_stream_done_packet_read(s, p);
       }
     }
   //  mpeg2_skip(priv->dec, 0);

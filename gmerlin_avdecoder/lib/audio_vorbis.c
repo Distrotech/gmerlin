@@ -72,7 +72,7 @@ static int read_data(bgav_stream_t * s)
   bgav_packet_t * p;
   vorbis_audio_priv * priv;
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  p = bgav_stream_get_packet_read(s);
   if(!p)
     {
     return 0;
@@ -81,7 +81,7 @@ static int read_data(bgav_stream_t * s)
   buffer = ogg_sync_buffer(&priv->dec_oy, p->data_size);
   memcpy(buffer, p->data, p->data_size);
   ogg_sync_wrote(&priv->dec_oy, p->data_size);
-  bgav_packet_done_read(p);
+  bgav_stream_done_packet_read(s, p);
   return 1;
   }
 
@@ -127,7 +127,7 @@ static int next_packet(bgav_stream_t * s)
     {
     bgav_packet_t * p;
 
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    p = bgav_stream_get_packet_read(s);
     // bgav_packet_dump(p);
     if(!p)
       return 0;
@@ -142,7 +142,7 @@ static int next_packet(bgav_stream_t * s)
     
     priv->dec_op.packetno = priv->packetno;
     priv->packetno++;
-    bgav_packet_done_read(p);
+    bgav_stream_done_packet_read(s, p);
     }
   else
     {

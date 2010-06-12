@@ -156,11 +156,6 @@ void bgav_packet_get_text_subtitle(bgav_packet_t * p,
   }
 #endif
 
-void 
-bgav_packet_done_read(bgav_packet_t * p)
-  {
-  p->valid = 0;
-  }
 
 void bgav_packet_reset(bgav_packet_t * p)
   {
@@ -169,4 +164,10 @@ void bgav_packet_reset(bgav_packet_t * p)
   p->tc = GAVL_TIMECODE_UNDEFINED;
   p->flags = 0;
   p->data_size = 0;
+  }
+
+void bgav_packet_source_copy(bgav_packet_source_t * dst,
+                             const bgav_packet_source_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
   }

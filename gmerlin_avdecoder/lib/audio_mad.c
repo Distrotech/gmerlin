@@ -65,7 +65,7 @@ static int get_data(bgav_stream_t * s)
   
   priv = s->data.audio.decoder->priv;
   
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  p = bgav_stream_get_packet_read(s);
   if(!p)
     {
     if(!priv->eof)
@@ -87,7 +87,7 @@ static int get_data(bgav_stream_t * s)
 
   bgav_bytebuffer_append(&priv->buf, p, MAD_BUFFER_GUARD);
   
-  bgav_packet_done_read(p);
+  bgav_stream_done_packet_read(s, p);
   return 1;
   }
 

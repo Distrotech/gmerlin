@@ -43,7 +43,8 @@ static int parse_aac(bgav_audio_parser_t * parser)
 
   if(!priv->frame)
     priv->frame = bgav_aac_frame_create(parser->s->opt,
-                                        parser->header, parser->header_len);
+                                        parser->s->ext_data,
+                                        parser->s->ext_size);
 
   if(!priv->samples_per_frame) // No non-silent frame yet
     {

@@ -121,6 +121,9 @@ struct bgav_video_parser_s
 
   int packet_duration;
   //  int64_t packet_timestamp;
+  
+  bgav_packet_t * out_packet;
+  bgav_packet_source_t src;
 
   };
 

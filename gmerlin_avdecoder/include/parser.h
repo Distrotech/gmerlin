@@ -63,6 +63,20 @@ int bgav_video_parser_max_ref_frames(bgav_video_parser_t * parser);
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser);
 
+/* TODO: Implement this and remove other API */
+bgav_packet_t *
+bgav_video_parser_get_packet_parse_full(void * parser);
+
+bgav_packet_t *
+bgav_video_parser_peek_packet_parse_full(void * parser, int force);
+
+bgav_packet_t *
+bgav_video_parser_get_packet_parse_frame(void * parser);
+
+bgav_packet_t *
+bgav_video_parser_peek_packet_parse_frame(void * parser, int force);
+
+
 /* Audio parser */
 
 int bgav_audio_parser_supported(uint32_t fourcc);
@@ -92,3 +106,16 @@ void bgav_audio_parser_get_packet(bgav_audio_parser_t * parser,
                                   bgav_packet_t * p);
 
 void bgav_audio_parser_set_eof(bgav_audio_parser_t * parser);
+
+/* TODO: Implement this and remove other API */
+bgav_packet_t *
+bgav_audio_parser_get_packet_parse_full(void * parser);
+
+bgav_packet_t *
+bgav_audio_parser_peek_packet_parse_full(void * parser, int force);
+
+bgav_packet_t *
+bgav_audio_parser_get_packet_parse_frame(void * parser);
+
+bgav_packet_t *
+bgav_audio_parser_peek_packet_parse_frame(void * parser, int force);

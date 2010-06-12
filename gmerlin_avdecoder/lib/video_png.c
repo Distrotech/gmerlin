@@ -48,7 +48,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   if(!priv->have_header)
     {
-    priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    priv->p = bgav_stream_get_packet_read(s);
     if(!priv->p)
       {
       bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "EOF");
@@ -90,7 +90,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     frame->timestamp = priv->p->pts;
     frame->duration = priv->p->duration;
     }
-  bgav_packet_done_read(priv->p);
+  bgav_stream_done_packet_read(s, priv->p);
   priv->p = (bgav_packet_t*)0;
   return 1;
   }

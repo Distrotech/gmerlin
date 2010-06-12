@@ -37,10 +37,10 @@ static int decode_frame_gavl(bgav_stream_t * s)
 
   if(priv->p)
     {
-    bgav_packet_done_read(priv->p);
+    bgav_stream_done_packet_read(s, priv->p);
     priv->p = (bgav_packet_t*)0;
     }
-  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  priv->p = bgav_stream_get_packet_read(s);
   if(!priv->p || !priv->p->audio_frame)
     return 0;
   
@@ -61,7 +61,7 @@ static int init_gavl(bgav_stream_t * s)
   /* Need to get the first packet because the dv avi decoder
      won't know the format before */
 #if 1
-  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  priv->p = bgav_stream_get_packet_read(s);
   if(!priv->p || !priv->p->audio_frame)
     return 0;
 #endif

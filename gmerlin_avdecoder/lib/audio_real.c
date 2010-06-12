@@ -344,7 +344,7 @@ static int fill_buffer(bgav_stream_t * s)
 
 #if 1 /* Reordering made by the demuxer */
   priv = (real_priv_t*)(s->data.audio.decoder->priv);
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  p = bgav_stream_get_packet_read(s);
 
   if(!p)
     {
@@ -360,7 +360,7 @@ static int fill_buffer(bgav_stream_t * s)
 
 
   memcpy(priv->read_buffer, p->data, p->data_size);
-  bgav_packet_done_read(p);
+  bgav_stream_done_packet_read(s, p);
 
   priv->read_buffer_size = p->data_size;
   priv->read_buffer_ptr  = priv->read_buffer;
@@ -372,7 +372,7 @@ static int fill_buffer(bgav_stream_t * s)
   int cfs=((short*)(s->ext_data))[3];
   priv = (real_priv_t*)(s->data.audio.decoder->priv);
 
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  p = bgav_stream_get_packet_read(s);
 
   if(!p)
     {
@@ -445,7 +445,7 @@ static int fill_buffer(bgav_stream_t * s)
         idx++;
         }
     }
-  bgav_packet_done_read(p);
+  bgav_stream_done_packet_read(s, p);
 
 #endif
   return 1;

@@ -597,7 +597,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   
   /* We assume one frame per packet */
   
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  p = bgav_stream_get_packet_read(s);
   if(!p)
     return 0;
 
@@ -607,7 +607,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   /* Skip frame */
   if(!f)
     {
-    bgav_packet_done_read(p);
+    bgav_stream_done_packet_read(s, p);
     return 1;
     }
 
@@ -619,7 +619,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     f->duration = p->duration;
     }
 
-  bgav_packet_done_read(p);
+  bgav_stream_done_packet_read(s, p);
   return 1;
   }
 

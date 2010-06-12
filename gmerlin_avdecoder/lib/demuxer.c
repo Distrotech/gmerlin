@@ -690,7 +690,7 @@ bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
      (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS))
     get_duration = 1;
   
-  //  fprintf(stderr, "bgav_demuxer_peek_packet_read: %d %d\n",
+  //  fprintf(stderr, "bgav_stream_peek_packet_read: %d %d\n",
   //          force, get_duration);
   
   if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
@@ -735,7 +735,8 @@ bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
      (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS))
     get_duration = 1;
   
-  while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
+  while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer,
+                                                   get_duration)))
     {
     if(!bgav_demuxer_next_packet(demuxer))
       {
@@ -766,6 +767,7 @@ bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
   return ret;
   }
 
+#if 0
 bgav_packet_t *
 bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
                              bgav_stream_t * s)
@@ -781,9 +783,6 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   return ret;
   }
 
-
-
-
 bgav_packet_t *
 bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_stream_t * s, int force)
@@ -798,8 +797,7 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
   demuxer->request_stream = NULL;
   return ret;
   }
-
-
+#endif
 
 void bgav_formats_dump()
   {

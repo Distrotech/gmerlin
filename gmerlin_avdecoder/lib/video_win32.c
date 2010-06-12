@@ -724,7 +724,7 @@ static int decode_win32(bgav_stream_t * s, gavl_video_frame_t * f)
 
   t = (bgav_win32_thread_t*)(s->data.video.decoder->priv);
   
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  p = bgav_stream_get_packet_read(s);
   if(!p)
     return 0;
   
@@ -737,7 +737,7 @@ static int decode_win32(bgav_stream_t * s, gavl_video_frame_t * f)
     f->duration = p->duration;
     }
   
-  bgav_packet_done_read(p);
+  bgav_stream_done_packet_read(s, p);
   
   return result;
   }

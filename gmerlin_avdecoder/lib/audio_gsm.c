@@ -107,7 +107,7 @@ static int decode_frame_gsm(bgav_stream_t * s)
   
   if(!priv->packet)
     {
-    priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
+    priv->packet = bgav_stream_get_packet_read(s);
     if(!priv->packet)
       return 0;
     priv->packet_ptr = priv->packet->data;
@@ -116,8 +116,8 @@ static int decode_frame_gsm(bgav_stream_t * s)
           GSM_BLOCK_SIZE + priv->ms * (GSM_BLOCK_SIZE-1) // Next packet
           > priv->packet->data_size)
     {
-    bgav_packet_done_read(priv->packet);
-    priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
+    bgav_stream_done_packet_read(s, priv->packet);
+    priv->packet = bgav_stream_get_packet_read(s);
     if(!priv->packet)
       return 0;
     priv->packet_ptr = priv->packet->data;

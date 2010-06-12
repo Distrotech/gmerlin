@@ -231,7 +231,7 @@ int bgav_video_start(bgav_stream_t * s)
     s->parsed_packet = bgav_packet_create();
 
     /* Get the first packet to garantuee that the parser is fully initialized */
-    if(!bgav_demuxer_peek_packet_read(s->demuxer, s, 1))
+    if(!bgav_stream_peek_packet_read(s, 1))
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while initializing video parser");
@@ -244,7 +244,7 @@ int bgav_video_start(bgav_stream_t * s)
     {
     bgav_packet_t * p;
     char tmp_string[128];
-    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+    p = bgav_stream_peek_packet_read(s, 1);
     if(!p)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -399,7 +399,7 @@ void bgav_video_resync(bgav_stream_t * s)
 
    2. For codecs with keyframes but without delay, we call the decode
       method until the next packet (as seen by
-      bgav_demuxer_peek_packet_read()) is the right one.
+      bgav_stream_peek_packet_read()) is the right one.
 
    3. Codecs with delay (i.e. with B-frames) must have a skipto method
       we'll call
@@ -444,7 +444,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
     {
     while(1)
       {
-      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      p = bgav_stream_peek_packet_read(s, 1);
 
       if(!p)
         return 0;
@@ -454,8 +454,8 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
         s->out_time = p->pts;
         return 1;
         }
-      p = bgav_demuxer_get_packet_read(s->demuxer, s);
-      bgav_packet_done_read(p);
+      p = bgav_stream_get_packet_read(s);
+      bgav_stream_done_packet_read(s, p);
       }
     *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
     return 1;
@@ -481,15 +481,15 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
       {
       while(1)
         {
-        p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+        p = bgav_stream_peek_packet_read(s, 1);
         
         if(p->pts >= next_key_frame)
           break;
 
         // fprintf(stderr, "Skipping to next keyframe %ld %ld\n", p->pts, next_key_frame);
         
-        p = bgav_demuxer_get_packet_read(s->demuxer, s);
-        bgav_packet_done_read(p);
+        p = bgav_stream_get_packet_read(s);
+        bgav_stream_done_packet_read(s, p);
         }
       s->data.video.decoder->decoder->resync(s);
       }
@@ -505,7 +505,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
     {
     while(1)
       {
-      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      p = bgav_stream_peek_packet_read(s, 1);
       
       if(!p)
         {
@@ -935,7 +935,7 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   bgav_packet_t * bp;
   bgav_stream_t * s = &bgav->tt->cur->video_streams[stream];
   
-  bp = bgav_demuxer_get_packet_read(s->demuxer, s);
+  bp = bgav_stream_get_packet_read(s);
   if(!bp)
     return 0;
 
@@ -966,7 +966,7 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
     copy_packet_fields(p, bp);
     }
   
-  bgav_packet_done_read(bp);
+  bgav_stream_done_packet_read(s, bp);
   
   return 1;
   }
