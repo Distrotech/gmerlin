@@ -92,16 +92,11 @@ void bgav_stream_stop(bgav_stream_t * s)
   
   STREAM_UNSET_SYNC(s);
   
-  if(s->parsed_packet)
-    {
-    bgav_packet_destroy(s->parsed_packet);
-    s->parsed_packet = (bgav_packet_t*)0;
-    }
   }
 
 void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
   {
-  stream->packet_buffer = bgav_packet_buffer_create();
+  stream->packet_buffer = bgav_packet_buffer_create(stream->pp);
   }
 
 void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
@@ -239,12 +234,11 @@ int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)
 
 bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s)
   {
-  return bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  return bgav_packet_pool_get(s->pp);
   }
 
 void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
   {
-  p->valid = 1;
   s->in_position++;
 
   /* If the stream has a constant framerate, all packets have the same
@@ -258,7 +252,8 @@ void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
   /* Padding (if fourcc != gavl) */
   if(p->data)
     memset(p->data + p->data_size, 0, PACKET_PADDING);
-
+  
+  bgav_packet_buffer_append(s->packet_buffer, p);
   }
 
 int bgav_stream_get_index(bgav_stream_t * s)
@@ -284,32 +279,16 @@ int bgav_stream_get_index(bgav_stream_t * s)
 bgav_packet_t *
 bgav_stream_get_packet_read(bgav_stream_t * s)
   {
-  bgav_packet_t * ret = (bgav_packet_t*)0;
-  s->demuxer->request_stream = s;
-  
-  if(!s->packet_buffer)
-    return NULL;
-  
-  ret = s->get_packet(s->demuxer, s);
-  s->demuxer->request_stream = (bgav_stream_t*)0;
-  return ret;
+  return s->src.get_func(s->src.data);
   }
 
 bgav_packet_t *
 bgav_stream_peek_packet_read(bgav_stream_t * s, int force)
   {
-  bgav_packet_t * ret;
-  
-  if(!s->packet_buffer)
-    return NULL;
-
-  s->demuxer->request_stream = s;
-  ret = s->peek_packet(s->demuxer, s, force);
-  s->demuxer->request_stream = NULL;
-  return ret;
+  return s->src.peek_func(s->src.data, force);
   }
 
 void bgav_stream_done_packet_read(bgav_stream_t * s, bgav_packet_t * p)
   {
-  p->valid = 0;
+  bgav_packet_pool_put(s->pp, p);
   }

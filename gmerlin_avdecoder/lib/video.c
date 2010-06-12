@@ -50,6 +50,7 @@ int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   return 1;
   }
 
+#if 0
 static bgav_packet_t * get_packet_read_vparse(bgav_demuxer_context_t * demuxer,
                                               bgav_stream_t * s)
   {
@@ -188,6 +189,7 @@ static bgav_packet_t * peek_packet_vparse_frame(bgav_demuxer_context_t * demuxer
   return p;
   
   }
+#endif
 
 int bgav_video_start(bgav_stream_t * s)
   {
@@ -214,22 +216,10 @@ int bgav_video_start(bgav_stream_t * s)
                s->fourcc);
       return 0;
       }
-
-    if(s->flags & STREAM_PARSE_FULL)
-      {
-      s->get_packet = get_packet_read_vparse;
-      s->peek_packet = peek_packet_vparse;
-      }
-    else
-      {
-      s->get_packet = get_packet_read_vparse_frame;
-      s->peek_packet = peek_packet_vparse_frame;
-      }
+    
     /* Set the format, as far as known by the demuxer */
     // bgav_video_parser_set_format(parser, &s->data.video.format);
     
-    s->parsed_packet = bgav_packet_create();
-
     /* Get the first packet to garantuee that the parser is fully initialized */
     if(!bgav_stream_peek_packet_read(s, 1))
       {
@@ -383,8 +373,6 @@ void bgav_video_resync(bgav_stream_t * s)
   
   if(s->data.video.parser)
     {
-    if(s->parsed_packet)
-      s->parsed_packet->valid = 0;
     bgav_video_parser_reset(s->data.video.parser,
                             BGAV_TIMESTAMP_UNDEFINED, s->out_time);
     }
@@ -551,7 +539,7 @@ int bgav_video_has_still(bgav_t * bgav, int stream)
 
   if(s->flags & STREAM_HAVE_PICTURE)
     return 1;
-  if(bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0))
+  if(bgav_stream_peek_packet_read(s, 0))
     return 1;
   else if(s->flags & STREAM_EOF_D)
     return 1;

@@ -43,8 +43,6 @@ bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt)
   ret->data.audio.bits_per_sample = 16;
   ret->type = BGAV_STREAM_AUDIO;
   ret->track = t;
-  ret->get_packet = bgav_demuxer_get_packet_read_generic;
-  ret->peek_packet = bgav_demuxer_peek_packet_read_generic;
   
   return ret;
   }
@@ -63,8 +61,6 @@ bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
   ret->type = BGAV_STREAM_VIDEO;
   ret->opt = opt;
   ret->track = t;
-  ret->get_packet = bgav_demuxer_get_packet_read_generic;
-  ret->peek_packet = bgav_demuxer_peek_packet_read_generic;
   return ret;
   }
 
@@ -97,8 +93,6 @@ static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
     ret->type = BGAV_STREAM_SUBTITLE_OVERLAY;
 
   ret->track = t;
-  ret->get_packet = bgav_demuxer_get_packet_read_generic;
-  ret->peek_packet = bgav_demuxer_peek_packet_read_generic;
   
   return ret;
   }

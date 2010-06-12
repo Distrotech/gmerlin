@@ -23,7 +23,85 @@
 
 #include <avdec_private.h>
 
+struct bgav_packet_buffer_s
+  {
+  bgav_packet_t * packets;
+  bgav_packet_t * packets_end;
+  bgav_packet_pool_t * pp;
+  };
 
+bgav_packet_buffer_t * bgav_packet_buffer_create(bgav_packet_pool_t * pp)
+  {
+  bgav_packet_buffer_t * ret;
+  ret = calloc(1, sizeof(*ret));
+  ret->pp = pp;
+  return ret;
+  }
+
+void bgav_packet_buffer_destroy(bgav_packet_buffer_t * b)
+  {
+  bgav_packet_t * tmp;
+  while(b->packets)
+    {
+    tmp = b->packets->next;
+    bgav_packet_destroy(b->packets);
+    b->packets = tmp;
+    }
+  }
+
+bgav_packet_t *
+bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t* b)
+  {
+  bgav_packet_t * ret;
+  if(b->packets)
+    {
+    ret = b->packets;
+    b->packets = b->packets->next;
+    return ret;
+    }
+  else
+    return NULL;
+  }
+
+bgav_packet_t *
+bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b)
+  {
+  return b->packets;
+  }
+
+void bgav_packet_buffer_clear(bgav_packet_buffer_t * b)
+  {
+  bgav_packet_t * tmp;
+  while(b->packets)
+    {
+    tmp = b->packets->next;
+    bgav_packet_pool_put(b->pp, b->packets);
+    b->packets = tmp;
+    }
+  }
+
+int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b)
+  {
+  return b->packets ? 1 : 0;
+  }
+
+void bgav_packet_buffer_append(bgav_packet_buffer_t * b,
+                               bgav_packet_t * p)
+  {
+  p->next = NULL;
+  if(!b->packets)
+    {
+    b->packets = p;
+    b->packets_end = p;
+    }
+  else
+    {
+    b->packets_end->next = p;
+    b->packets_end = b->packets_end->next;
+    }
+  }
+
+#if 0
 bgav_packet_buffer_t * bgav_packet_buffer_create()
   {
   bgav_packet_buffer_t * ret;
@@ -131,3 +209,4 @@ int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b)
     return 1;
   return 0;
   }
+#endif

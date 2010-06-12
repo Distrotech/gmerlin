@@ -678,7 +678,7 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   return ret;
   }
 
-
+#if 0
 bgav_packet_t *
 bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
                                       bgav_stream_t * s, int force)
@@ -766,38 +766,52 @@ bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
 #endif
   return ret;
   }
+#endif
 
-#if 0
 bgav_packet_t *
-bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
-                             bgav_stream_t * s)
+bgav_demuxer_get_packet_read(void * stream1)
   {
-  bgav_packet_t * ret = (bgav_packet_t*)0;
+  bgav_stream_t * s = stream1;
+  bgav_demuxer_context_t * demuxer = s->demuxer;
   demuxer->request_stream = s;
   
-  if(!s->packet_buffer)
-    return NULL;
+  while(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
+    {
+    if(!bgav_demuxer_next_packet(demuxer))
+      return NULL;
+    }
   
-  ret = s->get_packet(demuxer, s);
-  demuxer->request_stream = (bgav_stream_t*)0;
-  return ret;
+  demuxer->request_stream = NULL;
+  return bgav_packet_buffer_get_packet_read(s->packet_buffer);
   }
 
 bgav_packet_t *
-bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
-                              bgav_stream_t * s, int force)
+bgav_demuxer_peek_packet_read(void * stream1, int force)
   {
   bgav_packet_t * ret;
+  bgav_stream_t * s = stream1;
+  bgav_demuxer_context_t * demuxer = s->demuxer;
   
-  if(!s->packet_buffer)
+  if(demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ)
+    force = 1;
+
+  ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer);
+
+  if(ret)
+    return ret;
+
+  if(!force)
     return NULL;
 
   demuxer->request_stream = s;
-  ret = s->peek_packet(demuxer, s, force);
+  while(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
+    {
+    if(!bgav_demuxer_next_packet(demuxer))
+      return NULL;
+    }
   demuxer->request_stream = NULL;
-  return ret;
+  return bgav_packet_buffer_peek_packet_read(s->packet_buffer);
   }
-#endif
 
 void bgav_formats_dump()
   {

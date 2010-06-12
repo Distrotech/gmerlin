@@ -104,6 +104,21 @@ bgav_video_parser_create(bgav_stream_t * s)
   ret->s->data.video.max_ref_frames = 2;
   ret->format = &s->data.video.format;
 
+  bgav_packet_source_copy(&ret->src, &s->src);
+
+  if(s->flags & STREAM_PARSE_FULL)
+    {
+    s->src.get_func = bgav_video_parser_get_packet_parse_full;
+    s->src.peek_func = bgav_video_parser_peek_packet_parse_full;
+    }
+  else if(s->flags & STREAM_PARSE_FULL)
+    {
+    s->src.get_func = bgav_video_parser_get_packet_parse_frame;
+    s->src.peek_func = bgav_video_parser_peek_packet_parse_frame;
+    }
+  s->src.data = ret;
+
+  
   func(ret);
   return ret;
   }
@@ -258,6 +273,12 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t in_pts, int64
   parser->num_packets = 0;
   parser->eof = 0;
 
+  if(parser->out_packet)
+    {
+    bgav_packet_pool_put(parser->s->pp, parser->out_packet);
+    parser->out_packet = NULL;
+    }
+  
   if(in_pts != BGAV_TIMESTAMP_UNDEFINED)
     parser->timestamp = gavl_time_rescale(parser->s->timescale,
                                           parser->format->timescale, in_pts);
@@ -507,7 +528,6 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->field2_offset = c->field2_offset;
   p->header_size = c->header_size;
   p->sequence_end_pos = c->sequence_end_pos;
-  p->valid = 1;
 
 #ifdef DUMP_OUTPUT
   bgav_dprintf("Get packet ");

@@ -49,6 +49,7 @@ int bgav_set_audio_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   return 1;
   }
 
+#if 0
 static bgav_packet_t * get_packet_read_aparse(bgav_demuxer_context_t * demuxer,
                                               bgav_stream_t * s)
   {
@@ -175,7 +176,7 @@ peek_packet_aparse_frame(bgav_demuxer_context_t * demuxer,
   return p;
   
   }
-
+#endif
 
 int bgav_audio_start(bgav_stream_t * s)
   {
@@ -197,19 +198,6 @@ int bgav_audio_start(bgav_stream_t * s)
                s->fourcc);
       return 0;
       }
-
-    if(s->flags & STREAM_PARSE_FULL)
-      {
-      s->get_packet = get_packet_read_aparse;
-      s->peek_packet = peek_packet_aparse;
-      }
-    else
-      {
-      s->get_packet = get_packet_read_aparse_frame;
-      s->peek_packet = peek_packet_aparse_frame;
-      }
-    s->parsed_packet = bgav_packet_create();
-    s->parsed_packet->dts = BGAV_TIMESTAMP_UNDEFINED;
     
     /* Start the parser */
     
@@ -401,9 +389,8 @@ void bgav_audio_resync(bgav_stream_t * s)
   
   if(s->data.audio.parser)
     {
-    if(s->parsed_packet)
-      s->parsed_packet->valid = 0;
-    bgav_audio_parser_reset(s->data.audio.parser, BGAV_TIMESTAMP_UNDEFINED, s->out_time);
+    bgav_audio_parser_reset(s->data.audio.parser,
+                            BGAV_TIMESTAMP_UNDEFINED, s->out_time);
     }
   if(s->data.audio.decoder &&
      s->data.audio.decoder->decoder->resync)

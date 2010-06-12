@@ -98,6 +98,7 @@ typedef struct
   enum PixelFormat dst_format;
 
   /* Real video ugliness */
+
   uint32_t rv_extradata[2+FF_INPUT_BUFFER_PADDING_SIZE/4];
   AVPaletteControl palette;
 

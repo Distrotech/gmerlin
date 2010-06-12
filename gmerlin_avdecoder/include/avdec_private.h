@@ -232,7 +232,6 @@ struct bgav_packet_s
   /* For superindex files, it's the index position, for all other files,
      it's the file position */
   int64_t position;
-  int valid;    /* Used only inside the packetbuffer */
   int data_size;
   int data_alloc;
   uint8_t * data;
@@ -289,23 +288,17 @@ void bgav_packet_get_text_subtitle(bgav_packet_t * p,
 
 /* packetbuffer.c */
 
-struct bgav_packet_buffer_s
-  {
-  bgav_packet_t * packets;
-  bgav_packet_t * read_packet;
-  bgav_packet_t * write_packet;
-  };
-
-bgav_packet_buffer_t * bgav_packet_buffer_create();
+bgav_packet_buffer_t * bgav_packet_buffer_create(bgav_packet_pool_t * pp);
 void bgav_packet_buffer_destroy(bgav_packet_buffer_t*);
 
 bgav_packet_t *
-bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t*, int get_duration);
-bgav_packet_t *
-bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t*, int get_duration);
+bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t*);
 
 bgav_packet_t *
-bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t*, bgav_stream_t * s);
+bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t*);
+
+void bgav_packet_buffer_append(bgav_packet_buffer_t * b,
+                               bgav_packet_t * p);
 
 void bgav_packet_buffer_clear(bgav_packet_buffer_t*);
 
@@ -517,18 +510,16 @@ struct bgav_stream_s
   int has_codec_timecode;
   gavl_timecode_t codec_timecode;
 
-  bgav_packet_t * parsed_packet;
   bgav_bsf_t * bsf;
-
-  bgav_packet_t * (*get_packet)(bgav_demuxer_context_t * demuxer,
-                                bgav_stream_t * s);
-  bgav_packet_t * (*peek_packet)(bgav_demuxer_context_t * demuxer,
-                                 bgav_stream_t * s, int force);
-
+  
   bgav_packet_source_t src; /* Where to get packets */
   
   bgav_packet_pool_t * pp;  /* Where to put consumed
                                packets for later use */
+
+  /* Packet queue */
+  bgav_packet_t * queue;
+  bgav_packet_t * queue_end;
   
   union
     {
@@ -1388,16 +1379,11 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
 void bgav_demuxer_create_buffers(bgav_demuxer_context_t * demuxer);
 void bgav_demuxer_destroy(bgav_demuxer_context_t * demuxer);
 
-#if 0
 bgav_packet_t *
-bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
-                             bgav_stream_t * s);
-
+bgav_demuxer_get_packet_read(void * stream);
 
 bgav_packet_t *
-bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
-                              bgav_stream_t * s, int force);
-#endif
+bgav_demuxer_peek_packet_read(void * stream, int force);
 
 /* Generic get/peek functions */
 
