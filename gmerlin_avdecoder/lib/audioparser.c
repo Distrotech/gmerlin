@@ -426,8 +426,7 @@ bgav_audio_parser_peek_packet_parse_full(void * parser1, int force)
       case PARSER_EOF:
         return NULL;
       case PARSER_NEED_DATA:
-        p = parser->src.peek_func(parser->src.data, force);
-        if(!p)
+        if(!parser->src.peek_func(parser->src.data, force))
           {
           if(force)
             {
@@ -439,6 +438,7 @@ bgav_audio_parser_peek_packet_parse_full(void * parser1, int force)
           }
         else
           {
+          p = parser->src.get_func(parser->src.data);
           bgav_audio_parser_add_packet(parser, p);
           bgav_packet_pool_put(parser->s->pp, p);
           }
@@ -481,10 +481,11 @@ bgav_audio_parser_peek_packet_parse_frame(void * parser1, int force)
   if(parser->out_packet)
     return parser->out_packet;
 
-  parser->out_packet =
-    parser->src.peek_func(parser->src.data, force);
-  if(!parser->out_packet)
+  if(!parser->src.peek_func(parser->src.data, force))
     return NULL;
+
+  parser->out_packet =
+    parser->src.get_func(parser->src.data);
   bgav_audio_parser_parse_frame(parser, parser->out_packet);
   return parser->out_packet;
   }

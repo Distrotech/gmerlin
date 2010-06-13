@@ -33,6 +33,7 @@ mpv_header.h \
 mxf.h \
 nanosoft.h \
 os.h \
+packettimer.h \
 parser.h \
 pes_header.h \
 pngreader.h \

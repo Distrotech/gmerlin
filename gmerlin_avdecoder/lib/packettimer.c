@@ -20,52 +20,63 @@
  * *****************************************************************/
 
 #include <stdlib.h>
-
 #include <avdec_private.h>
 
-struct bgav_packet_pool_s
+#define MAX_PACKETS 16
+
+struct bgav_packet_timer_s
   {
-  bgav_packet_t * packets;
+  bgav_packet_t * packets[MAX_PACKETS];
+  int num_packets;
+  bgav_stream_t * s;
+
+  bgav_packet_source_t src;
+
+  int eof;
+  int64_t last_duration;
+  
+  bgav_packet_t * out_packet;
   };
 
-bgav_packet_pool_t * bgav_packet_pool_create()
+/* Simple: No B-frames */
+static void peek_simple(void * pt1, int force)
   {
-  bgav_packet_pool_t * ret;
-  ret = calloc(1, sizeof(*ret));
+  
+  }
+
+static void get_simple(void * pt1)
+  {
+  
+  }
+
+bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s)
+  {
+  bgav_packet_timer_t * ret = calloc(1, sizeof(*ret));
+  ret->s = s;
+
+  bgav_packet_source_copy(&ret->src, &s->src);
+  
   return ret;
   }
 
-bgav_packet_t * bgav_packet_pool_get(bgav_packet_pool_t * pp)
+void bgav_packet_timer_destroy(bgav_packet_timer_t * pt)
   {
-  bgav_packet_t * ret;
-  if(pp->packets)
-    {
-    ret = pp->packets;
-    pp->packets = pp->packets->next;
-    }
-  else
-    ret = bgav_packet_create();
-
-  ret->next = NULL;
-  bgav_packet_reset(ret);
-  return ret;
+  free(pt);
   }
 
-void bgav_packet_pool_put(bgav_packet_pool_t * pp,
-                          bgav_packet_t * p)
+bgav_packet_t * bgav_packet_timer_get(void * pt1)
   {
-  p->next = pp->packets;
-  pp->packets = p;
+  bgav_packet_timer_t * pt = pt1;
+  
   }
 
-void bgav_packet_pool_destroy(bgav_packet_pool_t * pp)
+bgav_packet_t * bgav_packet_timer_peek(void * pt1, int force)
   {
-  bgav_packet_t * tmp;
-  while(pp->packets)
-    {
-    tmp = pp->packets->next;
-    bgav_packet_destroy(pp->packets);
-    pp->packets = tmp;
-    }
-  free(pp);
+  bgav_packet_timer_t * pt = pt1;
+  
+  }
+
+void bgav_packet_timer_reset(bgav_packet_timer_t * pt)
+  {
+  
   }

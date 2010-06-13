@@ -19,53 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <stdlib.h>
+typedef struct bgav_packet_timer_s bgav_packet_timer_t;
 
-#include <avdec_private.h>
+bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s);
 
-struct bgav_packet_pool_s
-  {
-  bgav_packet_t * packets;
-  };
+void bgav_packet_timer_destroy(bgav_packet_timer_t *);
 
-bgav_packet_pool_t * bgav_packet_pool_create()
-  {
-  bgav_packet_pool_t * ret;
-  ret = calloc(1, sizeof(*ret));
-  return ret;
-  }
+bgav_packet_t * bgav_packet_timer_get(void * timer);
+bgav_packet_t * bgav_packet_timer_peek(void * timer, int force);
 
-bgav_packet_t * bgav_packet_pool_get(bgav_packet_pool_t * pp)
-  {
-  bgav_packet_t * ret;
-  if(pp->packets)
-    {
-    ret = pp->packets;
-    pp->packets = pp->packets->next;
-    }
-  else
-    ret = bgav_packet_create();
-
-  ret->next = NULL;
-  bgav_packet_reset(ret);
-  return ret;
-  }
-
-void bgav_packet_pool_put(bgav_packet_pool_t * pp,
-                          bgav_packet_t * p)
-  {
-  p->next = pp->packets;
-  pp->packets = p;
-  }
-
-void bgav_packet_pool_destroy(bgav_packet_pool_t * pp)
-  {
-  bgav_packet_t * tmp;
-  while(pp->packets)
-    {
-    tmp = pp->packets->next;
-    bgav_packet_destroy(pp->packets);
-    pp->packets = tmp;
-    }
-  free(pp);
-  }
+void bgav_packet_timer_reset(bgav_packet_timer_t *);

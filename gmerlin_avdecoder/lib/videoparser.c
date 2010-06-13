@@ -689,8 +689,6 @@ bgav_video_parser_get_packet_parse_full(void * parser1)
     }
   return NULL;
   }
-
-
   
 bgav_packet_t *
 bgav_video_parser_peek_packet_parse_full(void * parser1, int force)
@@ -724,6 +722,7 @@ bgav_video_parser_peek_packet_parse_full(void * parser1, int force)
           }
         else
           {
+          p = parser->src.get_func(parser->src.data);
           bgav_video_parser_add_packet(parser, p);
           bgav_packet_pool_put(parser->s->pp, p);
           }
@@ -770,11 +769,9 @@ bgav_video_parser_peek_packet_parse_frame(void * parser1, int force)
   if(parser->out_packet)
     return parser->out_packet;
 
-  parser->out_packet =
-    parser->src.peek_func(parser->src.data, force);
-  if(!parser->out_packet)
+  if(parser->src.peek_func(parser->src.data, force))
     return NULL;
+  parser->out_packet = parser->src.get_func(parser->src.data);
   bgav_video_parser_parse_frame(parser, parser->out_packet);
   return parser->out_packet;
-
   }

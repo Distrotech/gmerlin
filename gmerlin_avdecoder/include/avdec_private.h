@@ -75,6 +75,7 @@ typedef struct bgav_packet_pool_s bgav_packet_pool_t;
 
 #include <id3.h>
 #include <yml.h>
+#include <packettimer.h>
 
 #define BGAV_CODING_TYPE_I 'I'
 #define BGAV_CODING_TYPE_P 'P'

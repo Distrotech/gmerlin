@@ -57,7 +57,7 @@ static int parse_frame_vorbis(bgav_audio_parser_t * parser, bgav_packet_t * p)
   else
     p->duration = 0;
 
-  fprintf(stderr, "Parse vorbis: %lld\n", p->duration);
+  fprintf(stderr, "Parse vorbis: %"PRId64"\n", p->duration);
   
   priv->last_blocksize = blocksize;
   

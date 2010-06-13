@@ -290,7 +290,7 @@ static void set_stream_demuxer(bgav_stream_t * s,
                                bgav_demuxer_context_t * demuxer)
   {
   s->demuxer = demuxer;
-  s->src.data = demuxer;
+  s->src.data = s;
   s->src.get_func = bgav_demuxer_get_packet_read;
   s->src.peek_func = bgav_demuxer_peek_packet_read;
   }

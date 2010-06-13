@@ -30,6 +30,8 @@
 #include <mpeg4_header.h>
 #include <mpv_header.h>
 
+#define DUMP_HEADERS
+
 #define MPEG4_NEED_SYNC                   0
 #define MPEG4_NEED_STARTCODE              1
 #define MPEG4_HAS_VOL_CODE                2
@@ -90,7 +92,9 @@ static int parse_header_mpeg4(bgav_video_parser_t * parser)
                                        (pos - parser->s->ext_data)))
           return 0;
         priv->have_vol = 1;
-        //        bgav_mpeg4_vol_header_dump(&priv->vol);
+#ifdef DUMP_HEADERS
+        bgav_mpeg4_vol_header_dump(&priv->vol);
+#endif
         set_format(parser);
         return 1;
         break;
@@ -224,9 +228,9 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
                                         parser->buf.size - parser->pos, &priv->vol);
       if(!len)
         return PARSER_NEED_DATA;
-
+#ifdef DUMP_HEADERS
       bgav_mpeg4_vop_header_dump(&vh);
-      
+#endif      
       bgav_video_parser_set_coding_type(parser, vh.coding_type);
       
       //        fprintf(stderr, "Pic type: %c\n", ph.coding_type);
@@ -247,9 +251,9 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
                                          parser->buf.size - parser->pos);
         if(!len)
           return PARSER_NEED_DATA;
-
+#ifdef DUMP_HEADERS
         bgav_mpeg4_vol_header_dump(&priv->vol);
-        
+#endif        
         parser->pos += len;
 
         set_format(parser);
