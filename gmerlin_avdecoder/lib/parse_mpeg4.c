@@ -67,6 +67,8 @@ static void set_format(bgav_video_parser_t * parser)
   parser->format.frame_height  =
     (parser->format.image_height + 15) & ~15;
 #endif
+  if(priv->vol.low_delay)
+    parser->s->flags &= ~(STREAM_B_FRAMES|STREAM_WRONG_B_TIMESTAMPS);
   }
 
 static void reset_mpeg4(bgav_video_parser_t * parser)

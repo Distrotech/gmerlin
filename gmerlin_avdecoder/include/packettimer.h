@@ -24,8 +24,4 @@ typedef struct bgav_packet_timer_s bgav_packet_timer_t;
 bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s);
 
 void bgav_packet_timer_destroy(bgav_packet_timer_t *);
-
-bgav_packet_t * bgav_packet_timer_get(void * timer);
-bgav_packet_t * bgav_packet_timer_peek(void * timer, int force);
-
 void bgav_packet_timer_reset(bgav_packet_timer_t *);
