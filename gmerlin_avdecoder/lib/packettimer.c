@@ -50,10 +50,18 @@ struct bgav_packet_timer_s
  * - wrong B-timestamps (also calculates durations)
  */
 
+static void set_duration(bgav_packet_timer_t * pt,
+                         int index, int64_t duration)
+  {
+  pt->packets[index]->duration = duration;
+  pt->last_duration = duration;
+  }
+
 static int get_packet(bgav_packet_timer_t * pt, int force)
   {
   bgav_packet_t * p;
   int got_eof = 0;
+  int i;
   
   if(force)
     {
@@ -75,7 +83,36 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
   /* Flush final packets */
   if(got_eof)
     {
-    
+    if(pt->s->flags & STREAM_WRONG_B_TIMESTAMPS)
+      {
+
+      }
+    else if(pt->s->flags & STREAM_B_FRAMES)
+      {
+      if(pt->num_packets && pt->num_ip_frames &&
+         (PACKET_GET_CODING_TYPE(pt->packets[pt->num_packets-1]) == BGAV_CODING_TYPE_B))
+        {
+        for(i = pt->num_packets-1; i >= 0; i--)
+          {
+          if(PACKET_GET_CODING_TYPE(pt->packets[i]) != BGAV_CODING_TYPE_B)
+            {
+            /* Set the duration of the last B frame */
+            set_duration(pt, pt->num_packets-1,
+                         pt->packets[i]->pts - pt->packets[pt->num_packets-1]->pts);
+            /* Set the duration of the last I/P frame */
+            set_duration(pt, i, pt->last_duration);
+            break;
+            }
+          }
+        }
+      }
+    else
+      {
+      /* Simple case */
+      if(pt->num_packets)
+        set_duration(pt, pt->num_packets-1, pt->last_duration);
+      }
+    return 0;
     }
   
   /* Insert packet */
@@ -94,11 +131,12 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
     if(pt->num_packets)
       {
       /* Duration is the dts difference */
-      pt->packets[pt->num_packets-1]->duration =
-        pt->packets[pt->num_packets]->dts -
-        pt->packets[pt->num_packets-1]->dts;
-      pt->last_duration = pt->packets[pt->num_packets-1]->duration;
+      set_duration(pt, pt->num_packets-1,
+                   pt->packets[pt->num_packets]->dts -
+                   pt->packets[pt->num_packets-1]->dts);
       }
+    
+    /* Durations are ok, just need the PTS */
     
     switch(PACKET_GET_CODING_TYPE(p))
       {
@@ -114,16 +152,17 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
     }
   else if(pt->s->flags & STREAM_B_FRAMES)
     {
+    /* PTS are ok, just need the durations */
+    
     if(pt->num_packets)
       {
       if((pt->packets[pt->num_packets]->dts != BGAV_TIMESTAMP_UNDEFINED) &&
          (pt->packets[pt->num_packets-1]->dts != BGAV_TIMESTAMP_UNDEFINED))
         {
         /* Duration is the dts difference (if dts is set) */
-        pt->packets[pt->num_packets-1]->duration =
-          pt->packets[pt->num_packets]->dts -
-          pt->packets[pt->num_packets-1]->dts;
-        pt->last_duration = pt->packets[pt->num_packets-1]->duration;
+        set_duration(pt, pt->num_packets-1,
+                     pt->packets[pt->num_packets]->dts -
+                     pt->packets[pt->num_packets-1]->dts);
         }
       }
     
@@ -131,9 +170,64 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
       {
       case BGAV_CODING_TYPE_I:
       case BGAV_CODING_TYPE_P:
+        if(pt->num_packets)
+          {
+          /* P/I frame after B-frame: Set duration of previous B-frame from
+             previous P-frame */
+          if(PACKET_GET_CODING_TYPE(pt->packets[pt->num_packets-1]) ==
+             BGAV_CODING_TYPE_B)
+            {
+            i = pt->num_packets-2;
+            while((i >= 0) &&
+                  (PACKET_GET_CODING_TYPE(pt->packets[i]) == BGAV_CODING_TYPE_B))
+              i--;
+            if(i >= 0)
+              {
+              set_duration(pt, pt->num_packets-1,
+                           pt->packets[i]->pts - pt->packets[pt->num_packets-1]->pts);
+              }
+            }
+          else
+            {
+            /* P/I frame after P/I frame: If no B-frames are there yet,
+               set the duration for all P/I frames except the last 2 */
+            if(!pt->num_b_frames && (pt->num_ip_frames > 2))
+              {
+              for(i = 0; i < pt->num_packets-2; i++)
+                {
+                if(pt->packets[i]->duration <= 0)
+                  set_duration(pt, i, 
+                               pt->packets[i+1]->pts - pt->packets[i]->pts);
+                }
+              }
+            }
+          }
+
         pt->num_ip_frames++;
         break;
       case BGAV_CODING_TYPE_B:
+        /* Not enough reference frames: Skip this B-frame */
+        if(pt->num_ip_frames < 2)
+          PACKET_SET_SKIP(p);
+
+        /* B-frame after B-frame: Set duration of previous Frame */
+        else if(PACKET_GET_CODING_TYPE(pt->packets[pt->num_packets-1]) ==
+                BGAV_CODING_TYPE_B)
+          {
+          set_duration(pt, pt->num_packets-1,
+                       p->pts - pt->packets[pt->num_packets-1]->pts);
+          }
+        /* B-frame after P/I frame: Set duration of 2nd previous P/I-frame */
+        else
+          {
+          i = pt->num_packets-2;
+          while((i >= 0) &&
+                (PACKET_GET_CODING_TYPE(pt->packets[pt->num_packets-1]) ==
+                 BGAV_CODING_TYPE_B))
+            i--;
+          if(i >= 0)
+            set_duration(pt, i, p->pts - pt->packets[i]->pts);
+          }
         pt->num_b_frames++;
         break;
       }
@@ -142,10 +236,9 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
     {
     if(pt->num_packets)
       {
-      pt->packets[pt->num_packets-1]->duration =
-        pt->packets[pt->num_packets]->pts -
-        pt->packets[pt->num_packets-1]->pts;
-      pt->last_duration = pt->packets[pt->num_packets-1]->duration;
+      set_duration(pt, pt->num_packets-1,
+                   pt->packets[pt->num_packets]->pts -
+                   pt->packets[pt->num_packets-1]->pts);
       }
     }
   
@@ -171,6 +264,17 @@ static bgav_packet_t * remove_packet(bgav_packet_timer_t * pt)
   pt->num_packets--;
   if(pt->num_packets)
     memmove(pt->packets, pt->packets+1, sizeof(*pt->packets)*pt->num_packets);
+
+  switch(PACKET_GET_CODING_TYPE(ret))
+    {
+    case BGAV_CODING_TYPE_I:
+    case BGAV_CODING_TYPE_P:
+      pt->num_ip_frames--;
+      break;
+    case BGAV_CODING_TYPE_B:
+      pt->num_b_frames--;
+      break;
+    }
   
   return ret;
   }
@@ -254,7 +358,7 @@ void bgav_packet_timer_reset(bgav_packet_timer_t * pt)
 
   pt->num_b_frames = 0;
   pt->num_ip_frames = 0;
-  pt->eof;
+  pt->eof = 0;
 
   for(i = 0; i < pt->num_packets; i++)
     bgav_packet_pool_put(pt->s->pp, pt->packets[i]);
