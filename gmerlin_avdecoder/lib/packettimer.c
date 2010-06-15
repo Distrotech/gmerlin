@@ -85,7 +85,7 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
     {
     if(pt->s->flags & STREAM_WRONG_B_TIMESTAMPS)
       {
-
+      
       }
     else if(pt->s->flags & STREAM_B_FRAMES)
       {
@@ -249,8 +249,9 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
 static int have_frame(bgav_packet_timer_t * pt)
   {
   if(pt->num_packets &&
-     (pt->packets[pt->num_packets-1]->pts != BGAV_TIMESTAMP_UNDEFINED) &&
-     (pt->packets[pt->num_packets-1]->duration >= 0))
+     ((pt->packets[0]->pts != BGAV_TIMESTAMP_UNDEFINED) &&
+      (pt->packets[0]->duration >= 0)) ||
+     PACKET_GET_SKIP(pt->packets[0]->flags))
     return 1;
   else
     return 0;
