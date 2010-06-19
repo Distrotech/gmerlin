@@ -782,6 +782,10 @@ bgav_video_parser_get_packet_parse_frame(void * parser1)
   ret = parser->src.get_func(parser->src.data);
   if(!ret)
     return NULL;
+  
+  if(bgav_video_parser_parse_frame(parser, ret) == PARSER_ERROR)
+    return NULL;
+  
   bgav_video_parser_parse_frame(parser, ret);
   return ret;
   
@@ -798,6 +802,7 @@ bgav_video_parser_peek_packet_parse_frame(void * parser1, int force)
   if(!parser->src.peek_func(parser->src.data, force))
     return NULL;
   parser->out_packet = parser->src.get_func(parser->src.data);
-  bgav_video_parser_parse_frame(parser, parser->out_packet);
+  if(bgav_video_parser_parse_frame(parser, parser->out_packet) == PARSER_ERROR)
+    return NULL;
   return parser->out_packet;
   }

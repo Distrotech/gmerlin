@@ -1388,7 +1388,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   if(bgav_video_is_divx4(bg_vs->fourcc))
     {
     bg_vs->flags |=
-      (STREAM_WRONG_B_TIMESTAMPS | STREAM_B_FRAMES | STREAM_PARSE_FULL);
+      (STREAM_WRONG_B_TIMESTAMPS | STREAM_B_FRAMES | STREAM_PARSE_FRAME);
     }
   else if(check_codec(bg_vs->fourcc, video_codecs_h264))
     {
