@@ -32,7 +32,7 @@
 
 #define LOG_DOMAIN "parse_mpeg4"
 
-#define DUMP_HEADERS
+// #define DUMP_HEADERS
 
 #define MPEG4_NEED_SYNC                   0
 #define MPEG4_NEED_STARTCODE              1
@@ -86,6 +86,7 @@ static void reset_mpeg4(bgav_video_parser_t * parser)
   mpeg4_priv_t * priv = parser->priv;
   priv->state = MPEG4_NEED_SYNC;
   priv->has_picture_start = 0;
+  priv->saved_frame_size = 0;
   }
 
 static int extract_user_data(bgav_video_parser_t * parser,
@@ -358,6 +359,11 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
             return PARSER_ERROR;
           set_format(parser);
           data += result;
+
+#ifdef DUMP_HEADERS
+          bgav_mpeg4_vol_header_dump(&priv->vol);
+#endif
+
           }
         else
           data += 4;

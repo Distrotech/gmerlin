@@ -25,6 +25,10 @@
 
 #define MAX_PACKETS 16
 
+// #define DUMP_INPUT
+// #define DUMP_OUTPUT
+
+
 struct bgav_packet_timer_s
   {
   bgav_packet_t * packets[MAX_PACKETS];
@@ -202,8 +206,11 @@ static void insert_duration_from_pts(bgav_packet_timer_t * pt)
     last_packet = NULL;
 
   if(!last_packet)
+    {
+    if(PACKET_GET_CODING_TYPE(packet) != BGAV_CODING_TYPE_B)
+      pt->last_ip_frame_1 = packet;
     return;
-  
+    }
   if(PACKET_GET_CODING_TYPE(packet) == BGAV_CODING_TYPE_B)
     {
     if(PACKET_GET_CODING_TYPE(last_packet) == BGAV_CODING_TYPE_B)
@@ -228,9 +235,12 @@ static void insert_duration_from_pts(bgav_packet_timer_t * pt)
     }
   else
     {
-    if(pt->last_ip_frame_2)
-      set_duration(pt, pt->last_ip_frame_2, packet->pts - last_packet->pts);
-    
+    if(PACKET_GET_CODING_TYPE(last_packet) == BGAV_CODING_TYPE_B)
+      {
+      /* IP-frame after B-frame */
+      set_duration(pt, last_packet,
+                   pt->last_ip_frame_1->pts - last_packet->pts);
+      }
     pt->last_ip_frame_2 = pt->last_ip_frame_1;
     pt->last_ip_frame_1 = packet;
     }
@@ -258,7 +268,11 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
       return 0;
     p = pt->src.get_func(pt->src.data);
     }
-
+#ifdef DUMP_INPUT
+  bgav_dprintf("packet_timer in:  ");
+  bgav_packet_dump(p);
+#endif
+  
   /* Flush final packets */
   if(got_eof)
     {
@@ -309,10 +323,10 @@ static bgav_packet_t * remove_packet(bgav_packet_timer_t * pt)
   pt->num_packets--;
   if(pt->num_packets)
     memmove(pt->packets, pt->packets+1, sizeof(*pt->packets)*pt->num_packets);
-
-  fprintf(stderr, "Output from packet timer:\n");
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("packet_timer out: ");
   bgav_packet_dump(ret);
-  
+#endif
   return ret;
   }
 
