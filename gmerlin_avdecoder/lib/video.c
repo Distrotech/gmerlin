@@ -215,14 +215,18 @@ void bgav_video_stop(bgav_stream_t * s)
     bgav_video_parser_destroy(s->data.video.parser);
     s->data.video.parser = NULL;
     }
-  
+  if(s->pt)
+    {
+    bgav_packet_timer_destroy(s->pt);
+    s->pt = NULL;
+    }
   if(s->data.video.decoder)
     {
     s->data.video.decoder->decoder->close(s);
     free(s->data.video.decoder);
     s->data.video.decoder = (bgav_video_decoder_context_t*)0;
     }
-  /* Clear still mode flag (it will be set during reinit */
+  /* Clear still mode flag (it will be set during reinit) */
   s->flags &= ~(STREAM_STILL_MODE | STREAM_STILL_SHOWN  | STREAM_HAVE_PICTURE);
   
   if(s->data.video.kft)
@@ -708,6 +712,8 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     id = GAVL_CODEC_ID_MPEG2;
     need_bitrate = 1;
     }
+  else if(bgav_video_is_divx4(s->fourcc))
+    id = GAVL_CODEC_ID_MPEG4_ASP;
   else
     return 0;
 

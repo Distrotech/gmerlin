@@ -321,6 +321,21 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
   return PARSER_CONTINUE;
   }
 
+static void set_header_end(bgav_video_parser_t * parser, bgav_packet_t * p,
+                           int pos)
+  {
+  if(p->header_size)
+    return;
+  
+  if(!parser->s->ext_data)
+    {
+    parser->s->ext_size = pos;
+    parser->s->ext_data = malloc(parser->s->ext_size);
+    memcpy(parser->s->ext_data, p->data, parser->s->ext_size);
+    }
+  p->header_size = pos;
+  }
+
 static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
   mpeg4_priv_t * priv = parser->priv;
@@ -369,7 +384,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           data += 4;
         break;
       case MPEG4_CODE_VOP_START:
-        
+        set_header_end(parser, p, data - p->data);
         result = bgav_mpeg4_vop_header_read(parser->opt,
                                             &vh, data, data_end-data,
                                             &priv->vol);
@@ -416,6 +431,10 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           if(!priv->packed_b_frames || (num_pictures == 2))
             done = 1;
           }
+        break;
+      case MPEG4_CODE_GOV_START:
+        set_header_end(parser, p, data - p->data);
+        data += 4;
         break;
       case MPEG4_CODE_USER_DATA:
         result = extract_user_data(parser, data, data_end);

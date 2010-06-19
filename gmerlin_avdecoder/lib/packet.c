@@ -164,6 +164,7 @@ void bgav_packet_reset(bgav_packet_t * p)
   p->tc = GAVL_TIMECODE_UNDEFINED;
   p->flags = 0;
   p->data_size = 0;
+  p->header_size = 0;
   }
 
 void bgav_packet_source_copy(bgav_packet_source_t * dst,

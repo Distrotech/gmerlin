@@ -65,6 +65,8 @@ int bgav_mpeg4_get_start_code(const uint8_t * data)
     return MPEG4_CODE_VOP_START;
   else if(data[3] == 0xb2)
     return MPEG4_CODE_USER_DATA;
+  else if(data[3] == 0xb3)
+    return MPEG4_CODE_GOV_START; // Group of VOPs
   return 0;
   }
 
