@@ -468,6 +468,7 @@ static int init_video(bgav_demuxer_context_t * ctx,
   fmt->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   
   s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
+  s->flags |= STREAM_NO_DURATIONS;
   
   return 1;
   }

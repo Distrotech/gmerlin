@@ -630,8 +630,9 @@ static int open_asf(bgav_demuxer_context_t * ctx)
         bgav_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
         bgav_vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
         bgav_vs->cleanup = cleanup_stream_asf;
-        
         bgav_vs->stream_id = stream_number;
+
+        bgav_vs->flags |= STREAM_NO_DURATIONS;
         
         //        asf_vs  = calloc(1, sizeof(*asf_vs));
         

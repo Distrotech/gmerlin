@@ -388,7 +388,8 @@ typedef enum
 #define STREAM_FIELD_PICTURES     (1<<14)
 #define STREAM_FILTER_PACKETS     (1<<15)
 #define STREAM_SBR                (1<<16)
-
+#define STREAM_NO_DURATIONS       (1<<17)
+#define STREAM_HAS_DTS            (1<<18)
 
 /* Stream could not get exact compression info from the
  * demuxer
@@ -518,9 +519,7 @@ struct bgav_stream_s
   bgav_packet_pool_t * pp;  /* Where to put consumed
                                packets for later use */
 
-  /* Packet queue */
-  bgav_packet_t * queue;
-  bgav_packet_t * queue_end;
+  bgav_packet_timer_t * pt; /* Correct timestamps from broken containers */
   
   union
     {
@@ -1947,6 +1946,9 @@ int bgav_keyframe_table_seek(bgav_keyframe_table_t *,
 #ifdef HAVE_DCA
 void bgav_dca_flags_2_channel_setup(int flags, gavl_audio_format_t * format);
 #endif
+
+/* videoparser.c */
+int bgav_video_is_divx4(uint32_t fourcc);
 
 /* Global locking around avcodec_[open|close]()
    Defined in video_ffmpeg.c, used from audio_ffmpeg.c as well

@@ -172,6 +172,7 @@ static int is_keyframe_msmpeg4v3(uint8_t * data)
   return 1;
   }
 
+#if 0
 static const uint32_t video_codecs_mpeg4[] =
   {
     BGAV_MK_FOURCC('D', 'I', 'V', 'X'),
@@ -183,6 +184,7 @@ static const uint32_t video_codecs_mpeg4[] =
     BGAV_MK_FOURCC('f', 'm', 'p', '4'),    
     0x00,
   };
+#endif
 
 static const uint32_t video_codecs_h264[] =
   {
@@ -1383,7 +1385,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   bg_vs->stream_id = (ctx->tt->cur->num_audio_streams +
                       ctx->tt->cur->num_video_streams) - 1;
 
-  if(check_codec(bg_vs->fourcc, video_codecs_mpeg4))
+  if(bgav_video_is_divx4(bg_vs->fourcc))
     {
     bg_vs->flags |=
       (STREAM_WRONG_B_TIMESTAMPS | STREAM_B_FRAMES | STREAM_PARSE_FULL);
@@ -2081,8 +2083,7 @@ static int open_avi(bgav_demuxer_context_t * ctx)
       else if(check_codec(ctx->tt->cur->video_streams[i].fourcc,
                           video_codecs_msmpeg4v3))
         avi_vs->is_keyframe = is_keyframe_msmpeg4v3;
-      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc,
-                          video_codecs_mpeg4))
+      else if(bgav_video_is_divx4(ctx->tt->cur->video_streams[i].fourcc))
         avi_vs->is_keyframe = is_keyframe_mpeg4;
       else if(!check_codec(ctx->tt->cur->video_streams[i].fourcc,
                            video_codecs_intra))

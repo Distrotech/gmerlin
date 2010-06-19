@@ -525,6 +525,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   bg_vs->cleanup = cleanup_stream_rm;
 
   bg_vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
+  bg_vs->flags |= STREAM_NO_DURATIONS;
   
   rm_vs = calloc(1, sizeof(*rm_vs));
 

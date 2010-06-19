@@ -449,7 +449,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
     {
     s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
     s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
-    
+    s->flags |= STREAM_NO_DURATIONS;
     s->fourcc = sh.vidfmt;
     
     s->data.video.format.image_width  = sh.width;

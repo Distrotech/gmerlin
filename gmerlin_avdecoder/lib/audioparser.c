@@ -124,7 +124,7 @@ bgav_audio_parser_t * bgav_audio_parser_create(bgav_stream_t * s)
     s->src.get_func = bgav_audio_parser_get_packet_parse_full;
     s->src.peek_func = bgav_audio_parser_peek_packet_parse_full;
     }
-  else if(s->flags & STREAM_PARSE_FULL)
+  else if(s->flags & STREAM_PARSE_FRAME)
     {
     s->src.get_func = bgav_audio_parser_get_packet_parse_frame;
     s->src.peek_func = bgav_audio_parser_peek_packet_parse_frame;

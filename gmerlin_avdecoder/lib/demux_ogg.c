@@ -753,6 +753,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->index_mode = INDEX_MODE_PTS;
         s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
         s->flags |= (STREAM_B_FRAMES | STREAM_WRONG_B_TIMESTAMPS);
+        
         input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1, s->opt);
 
         if(!ogm_header_read(input_mem, &ogm_header))
@@ -784,6 +785,12 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         //        gavl_video_format_dump(&s->data.video.format);
       
         s->fourcc = ogm_header.subtype;
+
+        if(bgav_video_is_divx4(s->fourcc))
+          s->flags |= STREAM_PARSE_FRAME;
+          
+          
+
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
         break;
@@ -1962,10 +1969,12 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             PACKET_SET_KEYFRAME(p);
           p->pts =
             s->data.video.format.frame_duration * stream_priv->frame_counter;
+          
           stream_priv->frame_counter++;
 
           if(s->action == BGAV_STREAM_PARSE)
-            s->duration = s->data.video.format.frame_duration * stream_priv->frame_counter;
+            s->duration =
+              s->data.video.format.frame_duration * stream_priv->frame_counter;
         
           set_packet_pos(priv, stream_priv, &page_continued, p);
           bgav_stream_done_packet_write(s, p);

@@ -343,6 +343,7 @@ int bgav_select_track(bgav_t * b, int track)
     bgav_demuxer_start(b->demuxer, NULL);
 
     set_stream_demuxers(b->tt->cur, b->demuxer);
+    bgav_track_get_compression(b->tt->cur);
     
     return 1;
     }

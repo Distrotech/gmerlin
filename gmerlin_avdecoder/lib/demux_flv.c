@@ -151,7 +151,8 @@ static void add_video_stream(bgav_demuxer_context_t * ctx)
   bgav_stream_t * vs = (bgav_stream_t*)0;
   vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
-  
+  vs->flags |= STREAM_NO_DURATIONS;
+
   vs->stream_id = VIDEO_ID;
   vs->timescale = 1000;
   }
@@ -276,7 +277,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
     case 7:
       s->fourcc = FOURCC_H264;
       priv->need_video_extradata = 1;
-      s->flags |= STREAM_B_FRAMES;
+      s->flags |= (STREAM_B_FRAMES | STREAM_HAS_DTS);
+      
       //          s->data.video.wrong_b_timestamps = 1;
       break;
     default: /* Set some nonsense so we can finish initializing */

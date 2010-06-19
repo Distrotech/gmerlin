@@ -31,6 +31,32 @@
 // #define DUMP_INPUT
 // #define DUMP_OUTPUT
 
+/* DIVX (maybe with B-frames) requires special attention */
+
+static const uint32_t video_codecs_divx[] =
+  {
+    BGAV_MK_FOURCC('D', 'I', 'V', 'X'),
+    BGAV_MK_FOURCC('d', 'i', 'v', 'x'),
+    BGAV_MK_FOURCC('D', 'X', '5', '0'),
+    BGAV_MK_FOURCC('X', 'V', 'I', 'D'),
+    BGAV_MK_FOURCC('x', 'v', 'i', 'd'),
+    BGAV_MK_FOURCC('F', 'M', 'P', '4'),
+    BGAV_MK_FOURCC('f', 'm', 'p', '4'),    
+    0x00,
+  };
+
+int bgav_video_is_divx4(uint32_t fourcc)
+  {
+  int i = 0;
+  while(video_codecs_divx[i])
+    {
+    if(video_codecs_divx[i] == fourcc)
+      return 1;
+    i++;
+    }
+  return 0;
+  }
+
 static const struct
   {
   uint32_t fourcc;
@@ -111,7 +137,7 @@ bgav_video_parser_create(bgav_stream_t * s)
     s->src.get_func = bgav_video_parser_get_packet_parse_full;
     s->src.peek_func = bgav_video_parser_peek_packet_parse_full;
     }
-  else if(s->flags & STREAM_PARSE_FULL)
+  else if(s->flags & STREAM_PARSE_FRAME)
     {
     s->src.get_func = bgav_video_parser_get_packet_parse_frame;
     s->src.peek_func = bgav_video_parser_peek_packet_parse_frame;
@@ -769,7 +795,7 @@ bgav_video_parser_peek_packet_parse_frame(void * parser1, int force)
   if(parser->out_packet)
     return parser->out_packet;
 
-  if(parser->src.peek_func(parser->src.data, force))
+  if(!parser->src.peek_func(parser->src.data, force))
     return NULL;
   parser->out_packet = parser->src.get_func(parser->src.data);
   bgav_video_parser_parse_frame(parser, parser->out_packet);
