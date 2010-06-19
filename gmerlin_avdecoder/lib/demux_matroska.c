@@ -726,8 +726,8 @@ static void setup_packet(mkv_t * m, bgav_stream_t * s,
 #endif
   if(!index)
     {
-    if(s->type == BGAV_STREAM_VIDEO)
-      fprintf(stderr, "Video PTS: %"PRId64"\n", pts);
+    //    if(s->type == BGAV_STREAM_VIDEO)
+    //      fprintf(stderr, "Video PTS: %"PRId64"\n", pts);
     p->pts = pts;
     if(m->do_sync && !STREAM_HAS_SYNC(s))
       STREAM_SET_SYNC(s, p->pts);
@@ -747,14 +747,14 @@ static int process_block(bgav_demuxer_context_t * ctx,
   mkv_t * m = ctx->priv;
   int64_t pts = b->timecode + m->cluster.Timecode - m->pts_offset;
   bgav_mkv_track_t * t;
-  int duration;
+  //  int duration;
   
   s = bgav_track_find_stream(ctx, b->track);
   if(!s)
     return 1;
   
   t = s->priv;
-
+#if 0
   if(bg && bg->BlockDuration)
     duration = bg->BlockDuration;
   else if(t->DefaultDuration)
@@ -764,7 +764,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
 
   if(duration)
     fprintf(stderr, "Duration: %d\n", duration);
-  
+#endif  
   if(bg)
     {
     if(!bg->num_reference_blocks)
