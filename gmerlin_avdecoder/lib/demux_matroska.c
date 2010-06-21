@@ -190,6 +190,9 @@ static void init_vfw(bgav_stream_t * s)
     s->ext_data = malloc(s->ext_size);
     memcpy(s->ext_data, data, s->ext_size);
     }
+
+  if(bgav_video_is_divx4(s->fourcc))
+    s->flags |= (STREAM_B_FRAMES|STREAM_PARSE_FRAME);
   }
 
 static void init_theora(bgav_stream_t * s)
@@ -747,24 +750,12 @@ static int process_block(bgav_demuxer_context_t * ctx,
   mkv_t * m = ctx->priv;
   int64_t pts = b->timecode + m->cluster.Timecode - m->pts_offset;
   bgav_mkv_track_t * t;
-  //  int duration;
   
   s = bgav_track_find_stream(ctx, b->track);
   if(!s)
     return 1;
   
   t = s->priv;
-#if 0
-  if(bg && bg->BlockDuration)
-    duration = bg->BlockDuration;
-  else if(t->DefaultDuration)
-    duration = t->DefaultDuration;
-  else
-    duration = 0;
-
-  if(duration)
-    fprintf(stderr, "Duration: %d\n", duration);
-#endif  
   if(bg)
     {
     if(!bg->num_reference_blocks)

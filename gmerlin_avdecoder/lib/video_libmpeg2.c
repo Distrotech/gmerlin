@@ -39,7 +39,7 @@
 
 // #define DUMP_SEQUENCE_HEADER
 
-// #define DUMP_PACKETS
+#define DUMP_PACKETS
 
 static const char picture_types[] = { "?IPB????" };
 
@@ -101,6 +101,12 @@ static int get_data(bgav_stream_t*s)
   mpeg2_priv_t * priv;
   int cache_index;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+
+  if(priv->p)
+    {
+    bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
   
   priv->p = bgav_stream_peek_packet_read(s, 1);
   if(!priv->p)
@@ -141,7 +147,7 @@ static int get_data(bgav_stream_t*s)
   priv->p = bgav_stream_get_packet_read(s);
 
 #ifdef DUMP_PACKETS
-  fprintf(stderr, "Got packet\n");
+  fprintf(stderr, "Got packet ");
   bgav_packet_dump(priv->p);
 #endif
   
@@ -295,12 +301,6 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
     *state = mpeg2_parse(priv->dec);
 
     //    fprintf(stderr, "mpeg2_parse %d\n", *state);
-    
-    if(priv->p)
-      {
-      bgav_stream_done_packet_read(s, priv->p);
-      priv->p = NULL;
-      }
     
     if(*state == STATE_BUFFER)
       {

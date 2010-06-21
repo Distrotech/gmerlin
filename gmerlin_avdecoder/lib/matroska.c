@@ -828,6 +828,10 @@ void  bgav_mkv_track_dump(const bgav_mkv_track_t * t)
   bgav_dprintf("  Language:           %s\n", t->Language);
   bgav_dprintf("  CodecID:            %s\n", t->CodecID);
   bgav_dprintf("  CodecPrivate        %d bytes\n", t->CodecPrivateLen);
+
+  if(t->CodecPrivateLen)
+    bgav_hexdump(t->CodecPrivate, t->CodecPrivateLen, 16);
+
   bgav_dprintf("  CodecName:          %s\n", t->CodecName);
   bgav_dprintf("  AttachmentLink:     %"PRId64"\n", t->AttachmentLink);
   bgav_dprintf("  CodecDecodeAll:     %d\n", t->CodecDecodeAll);

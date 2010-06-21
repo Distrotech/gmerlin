@@ -28,8 +28,8 @@
 #include <videoparser_priv.h>
 #include <utils.h>
 
-// #define DUMP_INPUT
-// #define DUMP_OUTPUT
+#define DUMP_INPUT
+#define DUMP_OUTPUT
 
 /* DIVX (maybe with B-frames) requires special attention */
 
@@ -555,11 +555,6 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->header_size = c->header_size;
   p->sequence_end_pos = c->sequence_end_pos;
 
-#ifdef DUMP_OUTPUT
-  bgav_dprintf("Get packet ");
-  bgav_packet_dump(p);
-  //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
-#endif
   bgav_packet_pad(p);
   
   //  fprintf(stderr, "Get packet %c %ld\n", c->coding_type, p->pts);
@@ -680,6 +675,11 @@ bgav_video_parser_get_packet_parse_full(void * parser1)
     {
     ret = parser->out_packet;
     parser->out_packet = NULL;
+#ifdef DUMP_OUTPUT
+    bgav_dprintf("Get packet ");
+    bgav_packet_dump(ret);
+    //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
+#endif
     return ret;
     }
 
@@ -707,6 +707,11 @@ bgav_video_parser_get_packet_parse_full(void * parser1)
       case PARSER_HAVE_PACKET:
         ret = bgav_packet_pool_get(parser->s->pp);
         bgav_video_parser_get_packet(parser, ret);
+#ifdef DUMP_OUTPUT
+    bgav_dprintf("Get packet ");
+    bgav_packet_dump(ret);
+    //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
+#endif
         return ret;
         break;
       case PARSER_ERROR:
@@ -723,8 +728,14 @@ bgav_video_parser_peek_packet_parse_full(void * parser1, int force)
   bgav_packet_t * p;
   bgav_video_parser_t * parser = parser1;
   if(parser->out_packet)
+    {
+#ifdef DUMP_OUTPUT
+    bgav_dprintf("Peek packet ");
+    bgav_packet_dump(parser->out_packet);
+    //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
+#endif
     return parser->out_packet;
-
+    }
   while(1)
     {
     result = bgav_video_parser_parse(parser);
@@ -756,16 +767,17 @@ bgav_video_parser_peek_packet_parse_full(void * parser1, int force)
       case PARSER_HAVE_PACKET:
         parser->out_packet = bgav_packet_pool_get(parser->s->pp);
         bgav_video_parser_get_packet(parser, parser->out_packet);
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Peek packet ");
+  bgav_packet_dump(parser->out_packet);
+  //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
+#endif
         return parser->out_packet;
         break;
       case PARSER_ERROR:
         return NULL;
       }
-
-    
     }
-  
-  
   }
 
 bgav_packet_t *

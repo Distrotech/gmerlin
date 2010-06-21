@@ -460,11 +460,12 @@ void bgav_video_parser_init_mpeg4(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
+  
+  parser->priv = priv;
 
   if(parser->s->ext_data)
     parse_header_mpeg4(parser);
   
-  parser->priv = priv;
   parser->parse = parse_mpeg4;
   parser->parse_frame = parse_frame_mpeg4;
   parser->cleanup = cleanup_mpeg4;
