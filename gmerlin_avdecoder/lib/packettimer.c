@@ -23,6 +23,8 @@
 #include <string.h>
 #include <avdec_private.h>
 
+#define LOG_DOMAIN "packettimer"
+
 #define MAX_PACKETS 16
 
 // #define DUMP_INPUT
@@ -110,7 +112,6 @@ static void set_pts(bgav_packet_timer_t * pt,
 
 static void flush_pts_from_dts(bgav_packet_timer_t * pt)
   {
-  
   // TODO
   if(pt->num_packets)
     {
@@ -129,7 +130,10 @@ static void insert_pts_from_dts(bgav_packet_timer_t * pt)
   {
   bgav_packet_t * packet;
   bgav_packet_t * last_packet;
-
+  
+  //  fprintf(stderr, "insert_pts_from_dts %d\n",
+  //          pt->num_packets);
+  
   packet = pt->packets[pt->num_packets-1];
   if(pt->num_packets >= 2)
     last_packet = pt->packets[pt->num_packets-2];
@@ -251,6 +255,13 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
   {
   bgav_packet_t * p;
   int got_eof = 0;
+
+  if(pt->num_packets >= MAX_PACKETS)
+    {
+    bgav_log(pt->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Packet cache full");
+    return 0;
+    }
   
   if(force)
     {
@@ -427,10 +438,15 @@ void bgav_packet_timer_reset(bgav_packet_timer_t * pt)
   {
   int i;
 
+  //  fprintf(stderr, "bgav_packet_timer_reset %d\n",
+  //          pt->num_packets);
+  
   pt->num_b_frames = 0;
   pt->num_ip_frames = 0;
   pt->eof = 0;
   pt->current_pts = BGAV_TIMESTAMP_UNDEFINED;
+  pt->last_ip_frame_1 = NULL;
+  pt->last_ip_frame_2 = NULL;
   
   for(i = 0; i < pt->num_packets; i++)
     bgav_packet_pool_put(pt->s->pp, pt->packets[i]);
