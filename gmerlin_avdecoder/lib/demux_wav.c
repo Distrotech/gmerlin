@@ -229,7 +229,7 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   
   bgav_packet_alloc(p, priv->packet_size);
     
-  p->data_size = bgav_input_read_data(ctx->input, p->data, priv->packet_size);
+  p->data_size = bgav_input_read_data(ctx->input, p->data, bytes_to_read);
 
   PACKET_SET_KEYFRAME(p);
   
