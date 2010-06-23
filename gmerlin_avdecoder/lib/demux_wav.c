@@ -201,6 +201,8 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   wav_priv_t * priv;
+  int bytes_to_read;
+  
   priv = (wav_priv_t *)(ctx->priv);
   
   s = bgav_track_find_stream(ctx, STREAM_ID);
@@ -208,6 +210,17 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   if(!s)
     return 1;
 
+  bytes_to_read = priv->packet_size;
+  if(ctx->input->position + bytes_to_read >=
+     priv->data_start + priv->data_size)
+    {
+    bytes_to_read = priv->data_start + priv->data_size -
+      ctx->input->position;
+    }
+  
+  if(bytes_to_read <= 0)
+    return 0; // EOF
+  
   p = bgav_stream_get_packet_write(s);
   
   p->pts =
