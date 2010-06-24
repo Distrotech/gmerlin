@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DUMP_ITERATIVE
+
 static void skip_to(bgav_t * b, bgav_track_t * track, int64_t * time, int scale)
   {
   //  fprintf(stderr, "Skip to: %ld\n", *time);
@@ -223,13 +225,14 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
   int final_seek = 0;
   
   seek_time = *time;
-
-  //  fprintf(stderr, "****** Seek iterative ***********\n");
-  
+#ifdef DUMP_ITERATIVE
+  bgav_dprintf("****** Seek iterative ***********\n");
+#endif
   while(1)
     {
-    //    fprintf(stderr, "Seek time: %ld\n", seek_time);
-    
+#ifdef DUMP_ITERATIVE
+    bgav_dprintf("Seek time: %ld\n", seek_time);
+#endif
     bgav_track_clear(track);
     b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
     num_seek++;
@@ -242,14 +245,16 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
       return;
       }
     
-    //    fprintf(stderr, "Sync time: %ld\n", sync_time);
-    
+#ifdef DUMP_ITERATIVE
+    bgav_dprintf("Sync time: %ld\n", sync_time);
+#endif    
     diff_time = *time - sync_time;
 
     if(sync_time > *time) /* Sync time too late */
       {
+#ifdef DUMP_ITERATIVE
       //      fprintf(stderr, "Sync time too late\n");
-
+#endif
       if((sync_time_upper == BGAV_TIMESTAMP_UNDEFINED) ||
          (sync_time_upper > sync_time))
         {
@@ -295,17 +300,22 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
 
       out_time = bgav_track_out_time(track, scale);
 
-      //      fprintf(stderr, "Out time: %ld\n", out_time);
-
+#ifdef DUMP_ITERATIVE
+      bgav_dprintf("Out time: %ld\n", out_time);
+#endif
       if(out_time > *time) /* Out time too late */
         {
-        //        fprintf(stderr, "Out time too late\n");
+#ifdef DUMP_ITERATIVE
+        bgav_dprintf("Out time too late\n");
+#endif
         seek_time -= ((3*(out_time - *time))/2 + one_second);
         continue;
         }
       else
         {
-        //        fprintf(stderr, "Out time too early\n");
+#ifdef DUMP_ITERATIVE
+        bgav_dprintf("Out time too early\n");
+#endif
         /* If difference is less than half a second, exit here */
         if(*time - out_time < one_second / 2)
           break;
@@ -336,7 +346,9 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
   if(final_seek)
     {
     bgav_track_clear(track);
-    //    fprintf(stderr, "Final seek %ld\n", seek_time);
+#ifdef DUMP_ITERATIVE
+    bgav_dprintf("Final seek %ld\n", seek_time);
+#endif
     b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
     num_seek++;
     bgav_track_resync(track);
@@ -351,8 +363,9 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
     *time = out_time;
     }
 
-  //  fprintf(stderr, "Seeks: %d, resyncs: %d\n", num_seek, num_resync);
-  
+#ifdef DUMP_ITERATIVE
+  bgav_dprintf("Seeks: %d, resyncs: %d\n", num_seek, num_resync);
+#endif  
   }
 
 void

@@ -190,7 +190,8 @@ static void flush_duration_from_pts(bgav_packet_timer_t * pt)
     {
     if(pt->last_ip_frame_1)
       {
-      set_duration(pt, last_packet, pt->last_ip_frame_1->pts - last_packet->pts);
+      set_duration(pt, last_packet,
+                   pt->last_ip_frame_1->pts - last_packet->pts);
       set_duration(pt, pt->last_ip_frame_1, pt->last_duration);
       }
     }
