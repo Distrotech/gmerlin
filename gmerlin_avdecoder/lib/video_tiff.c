@@ -299,6 +299,16 @@ static void close_tiff(bgav_stream_t * s)
   free(priv);
   }
 
+static void resync_tiff(bgav_stream_t * s)
+  {
+  tiff_t *p = (tiff_t*)(s->data.video.decoder->priv);
+  
+  if(p->packet)
+    {
+    bgav_stream_done_packet_read(s, p->packet);
+    p->packet = NULL;
+    }
+  }
 
 static bgav_video_decoder_t decoder =
   {
@@ -308,7 +318,7 @@ static bgav_video_decoder_t decoder =
     .init =   init_tiff,
     .decode = decode_tiff,
     .close =  close_tiff,
-    .resync = NULL,
+    .resync = resync_tiff,
   };
 
 void bgav_init_video_decoders_tiff()

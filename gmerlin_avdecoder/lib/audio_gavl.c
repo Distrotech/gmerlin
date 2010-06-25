@@ -81,7 +81,13 @@ static void resync_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
   priv = (gavl_t*)(s->data.audio.decoder->priv);
-  priv->p = (bgav_packet_t*)0;
+
+  if(priv->p)
+    {
+    bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
+
   }
 
 static bgav_audio_decoder_t decoder =

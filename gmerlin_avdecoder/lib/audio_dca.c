@@ -82,7 +82,13 @@ static void resync_dts(bgav_stream_t * s)
   {
   dts_priv * priv = s->data.audio.decoder->priv;
   priv->blocks_left = 0;
-  priv->packet = NULL;
+
+  if(priv->packet)
+    {
+    bgav_stream_done_packet_read(s, priv->packet);
+    priv->packet = NULL;
+    }
+
   }
 
 static int decode_frame_dts(bgav_stream_t * s)

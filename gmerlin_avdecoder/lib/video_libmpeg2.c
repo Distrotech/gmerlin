@@ -139,7 +139,7 @@ static int get_data(bgav_stream_t*s)
     if((s->ext_size > 0) && (priv->p->data[3] != 0xb3))
       {
       mpeg2_buffer(priv->dec, s->ext_data, s->ext_data + s->ext_size);
-      priv->p = NULL;
+      // priv->p = NULL;
       return 1;
       }
     }
@@ -582,8 +582,12 @@ static void resync_mpeg2(bgav_stream_t*s)
   mpeg2_priv_t * priv;
   bgav_packet_t * p;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
-  
-  priv->p = (bgav_packet_t*)0;
+
+  if(priv->p)
+    {
+    bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
   priv->non_b_count = 0;
   priv->flags &= ~FLAG_EOF;
   priv->flags |= FLAG_NEED_SEQUENCE;

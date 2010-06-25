@@ -37,19 +37,20 @@ typedef struct
   bgav_png_reader_t * png_reader;
   int have_header;
   int need_header;
-  bgav_packet_t * p;
   } png_priv_t;
 
 static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   char * error_msg = (char*)0;
   png_priv_t * priv;
+  bgav_packet_t * p;
+  
   priv = (png_priv_t*)(s->data.video.decoder->priv);
-
+  
   if(!priv->have_header)
     {
-    priv->p = bgav_stream_get_packet_read(s);
-    if(!priv->p)
+    p = bgav_stream_get_packet_read(s);
+    if(!p)
       {
       bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "EOF");
       return 0;
@@ -59,7 +60,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     {
     
     if(!bgav_png_reader_read_header(priv->png_reader,
-                                    priv->p->data, priv->p->data_size,
+                                    p->data, p->data_size,
                                     &s->data.video.format, &error_msg))
       {
       if(error_msg)
@@ -80,18 +81,17 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     {
     if(!priv->have_header &&
        !bgav_png_reader_read_header(priv->png_reader,
-                                    priv->p->data, priv->p->data_size,
+                                    p->data, p->data_size,
                                     &s->data.video.format, (char**)0))
       return 0;
     if(!bgav_png_reader_read_image(priv->png_reader, frame))
       return 0;
     priv->have_header = 0;
 
-    frame->timestamp = priv->p->pts;
-    frame->duration = priv->p->duration;
+    frame->timestamp = p->pts;
+    frame->duration = p->duration;
     }
-  bgav_stream_done_packet_read(s, priv->p);
-  priv->p = (bgav_packet_t*)0;
+  bgav_stream_done_packet_read(s, p);
   return 1;
   }
 

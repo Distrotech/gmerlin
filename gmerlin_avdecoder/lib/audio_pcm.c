@@ -1232,7 +1232,13 @@ static void resync_pcm(bgav_stream_t * s)
   pcm_t * priv;
   priv = (pcm_t*)(s->data.audio.decoder->priv);
   priv->frame->valid_samples = 0;
-  priv->p = (bgav_packet_t*)0;
+
+  if(priv->p)
+    {
+    bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
+
   }
 
 static bgav_audio_decoder_t decoder =

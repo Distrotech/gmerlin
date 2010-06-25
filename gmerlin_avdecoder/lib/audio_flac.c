@@ -331,7 +331,12 @@ static void resync_flac(bgav_stream_t * s)
   
   FLAC__stream_decoder_flush(priv->dec);
   priv->frame->valid_samples = 0;
-  priv->p = 0;
+
+  if(priv->p)
+    {
+    bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
   }
 
 
