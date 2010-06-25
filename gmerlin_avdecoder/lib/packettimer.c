@@ -454,5 +454,8 @@ void bgav_packet_timer_reset(bgav_packet_timer_t * pt)
   pt->num_packets = 0;
 
   if(pt->out_packet)
+    {
     bgav_packet_pool_put(pt->s->pp, pt->out_packet);
+    pt->out_packet = NULL;
+    }
   }

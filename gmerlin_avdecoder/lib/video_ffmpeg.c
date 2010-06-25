@@ -952,9 +952,12 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv->ip_age[0] = 256*256*256*64;
   priv->ip_age[1] = 256*256*256*64;
   priv->b_age = 256*256*256*64;
-  
-  priv->packet = NULL;
 
+  if(priv->packet)
+    {
+    bgav_stream_done_packet_read(s, priv->packet);
+    priv->packet = NULL;
+    }
   priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
 
   bgav_pts_cache_clear(&priv->pts_cache);

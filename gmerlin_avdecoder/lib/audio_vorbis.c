@@ -487,10 +487,15 @@ static void resync_vorbis(bgav_stream_t * s)
   vorbis_audio_priv * priv;
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
 
+  if(priv->p)
+    {
+    bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
+  
   if(s->fourcc == BGAV_VORBIS)
     {
     priv->packetno = 0;
-    priv->p = NULL;
     }
   else
     {

@@ -74,17 +74,17 @@ bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b)
 void bgav_packet_buffer_clear(bgav_packet_buffer_t * b)
   {
   bgav_packet_t * tmp;
-  fprintf(stderr, "bgav_packet_buffer_clear()...\n");
+  //  fprintf(stderr, "bgav_packet_buffer_clear()...\n");
   while(b->packets)
     {
     tmp = b->packets->next;
     bgav_packet_pool_put(b->pp, b->packets);
-    fprintf(stderr, "bgav_packet_buffer_clear %p %p\n", b->packets, tmp);
+    //    fprintf(stderr, "bgav_packet_buffer_clear %p %p\n", b->packets, tmp);
 
     b->packets = tmp;
     }
   b->packets_end = NULL;
-  fprintf(stderr, "bgav_packet_buffer_clear()...done\n");
+  //  fprintf(stderr, "bgav_packet_buffer_clear()...done\n");
   }
 
 int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b)

@@ -54,8 +54,27 @@ bgav_packet_t * bgav_packet_pool_get(bgav_packet_pool_t * pp)
 void bgav_packet_pool_put(bgav_packet_pool_t * pp,
                           bgav_packet_t * p)
   {
+#if 0
+  bgav_packet_t * tmp;
+  tmp = pp->packets;
+
+  fprintf(stderr, "bgav_packet_pool_put: %p\n", p);
+  
+  while(tmp)
+    {
+    if(tmp == p)
+      {
+      fprintf(stderr, "bgav_packet_pool_put: Packet %p is already in pool\n",
+              p);
+      }
+    tmp = tmp->next;
+    }
+#endif
+  
   p->next = pp->packets;
   pp->packets = p;
+
+
   }
 
 void bgav_packet_pool_destroy(bgav_packet_pool_t * pp)
