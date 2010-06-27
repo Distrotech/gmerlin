@@ -30,8 +30,9 @@
 #include <vpx/vpx_codec.h>
 #include <vpx/vp8dx.h>
 
-
 #define LOG_DOMAIN "vpx"
+
+//#define DUMP_DECODE
 
 typedef struct
   {
@@ -39,18 +40,16 @@ typedef struct
   gavl_video_frame_t * frame;
   } vpx_t;
 
-static int init_vpx(bgav_stream_t * s)
+static int create_decoder(bgav_stream_t * s)
   {
   vpx_t * priv;
-  const struct vpx_codec_iface *iface;
-
   struct vpx_codec_dec_cfg deccfg;
+  const struct vpx_codec_iface *iface;
 
   memset(&deccfg, 0, sizeof(deccfg));
   deccfg.threads = s->opt->threads;
-  
-  priv = calloc(1, sizeof(*priv));
-  s->data.video.decoder->priv = priv;
+    
+  priv = s->data.video.decoder->priv;
 
   iface = &vpx_codec_vp8_dx_algo;
 
@@ -61,6 +60,19 @@ static int init_vpx(bgav_stream_t * s)
              error);
     return 0;
     }
+  return 1; 
+  }
+
+
+static int init_vpx(bgav_stream_t * s)
+  {
+  vpx_t * priv;
+  
+  priv = calloc(1, sizeof(*priv));
+  s->data.video.decoder->priv = priv;
+
+  if(!create_decoder(s))
+    return 0;
   
   s->data.video.format.pixelformat = GAVL_YUV_420_P;
   priv->frame = gavl_video_frame_create(NULL);
@@ -84,6 +96,10 @@ static int decode_vpx(bgav_stream_t * s, gavl_video_frame_t * f)
   if(!p)
     return 0;
 
+#ifdef DUMP_DECODE
+  bgav_packet_dump(p);
+#endif
+  
   /* Skip frame */
   if(!f)
     {
@@ -125,10 +141,11 @@ static int decode_vpx(bgav_stream_t * s, gavl_video_frame_t * f)
   f->timestamp = p->pts;
   f->duration = p->duration;
 
-  vpx_img_free (img);
+  //  vpx_img_free (img);
 
   while((img = vpx_codec_get_frame(&priv->decoder, &iter)))
-    vpx_img_free (img);
+    // vpx_img_free (img);
+    ;
   
   bgav_stream_done_packet_read(s, p);
   return 1;
@@ -149,6 +166,17 @@ static void close_vpx(bgav_stream_t * s)
   free(priv);
   }
 
+static void resync_vpx(bgav_stream_t * s)
+  {
+#if 0
+  vpx_t * priv;
+  priv = s->data.video.decoder->priv;
+  /* Recreate decoder */
+  vpx_codec_destroy(&priv->decoder);
+  create_decoder(s);
+#endif
+  //  fprintf(stderr, "resync_vpx");
+  }
 
 static bgav_video_decoder_t vpx_decoder =
   {
@@ -156,6 +184,7 @@ static bgav_video_decoder_t vpx_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '8', '0'), 0x00  },
     .init =   init_vpx,
     .decode = decode_vpx,
+    .resync = resync_vpx,
     .close =  close_vpx,
   };
 

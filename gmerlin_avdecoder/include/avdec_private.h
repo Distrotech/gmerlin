@@ -1287,7 +1287,7 @@ struct bgav_demuxer_s
 /* Packets have precise timestamps and durations and are adjacent in the file */
 #define INDEX_MODE_SIMPLE 1
 /* Packets have precise timestamps (but no durations) and are adjacent in the file */
-#define INDEX_MODE_PTS    2
+// #define INDEX_MODE_PTS    2
 /* MPEG Program/transport stream: Needs complete parsing */
 #define INDEX_MODE_MPEG   3
 /* For PCM soundfiles: Sample accuracy is already there */

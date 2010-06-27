@@ -39,7 +39,7 @@
 
 // #define DUMP_SEQUENCE_HEADER
 
-#define DUMP_PACKETS
+// #define DUMP_PACKETS
 
 static const char picture_types[] = { "?IPB????" };
 

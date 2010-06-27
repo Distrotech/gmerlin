@@ -680,8 +680,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_FLAC;
         s->priv   = ogg_stream;
-        s->index_mode = INDEX_MODE_PTS;
-
+        s->index_mode = INDEX_MODE_SIMPLE;
+        s->flags |= STREAM_NO_DURATIONS;
         ogg_stream->fourcc_priv = FOURCC_FLAC_NEW;
         s->ext_data = malloc(priv->op.bytes - 9);
         memcpy(s->ext_data, priv->op.packet + 9, priv->op.bytes - 9);
@@ -704,7 +704,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s = bgav_track_add_audio_stream(track, ctx->opt);
         s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_FLAC;
-        s->index_mode = INDEX_MODE_PTS;
+        s->index_mode = INDEX_MODE_SIMPLE;
+        s->flags |= STREAM_NO_DURATIONS;
         ogg_stream->fourcc_priv = FOURCC_FLAC;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
@@ -720,7 +721,9 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s = bgav_track_add_audio_stream(track, ctx->opt);
         s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_SPEEX;
-        s->index_mode = INDEX_MODE_PTS;
+        s->index_mode = INDEX_MODE_SIMPLE;
+        s->flags |= STREAM_NO_DURATIONS;
+
         s->priv   = ogg_stream;
         s->stream_id = serialno;
 
@@ -750,7 +753,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       
         s->priv   = ogg_stream;
         s->stream_id = serialno;
-        s->index_mode = INDEX_MODE_PTS;
+        s->index_mode = INDEX_MODE_SIMPLE;
+        
         s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
         s->flags |= (STREAM_B_FRAMES | STREAM_WRONG_B_TIMESTAMPS);
         
@@ -788,9 +792,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
 
         if(bgav_video_is_divx4(s->fourcc))
           s->flags |= STREAM_PARSE_FRAME;
-          
-          
-
+        
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
         break;
@@ -2180,7 +2182,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   stream_priv_t * stream_priv;
   int64_t filepos;
 
-  //  fprintf(stderr, "seek_ogg %ld %d\n", time, scale);
+  fprintf(stderr, "seek_ogg %ld %d\n", time, scale);
   
   /* Seek to the file position */
   track_priv = (track_priv_t*)(ctx->tt->cur->priv);

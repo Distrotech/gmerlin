@@ -259,6 +259,31 @@ void bgav_video_resync(bgav_stream_t * s)
     bgav_packet_timer_reset(s->pt);
     }
 
+  /* If the stream has keyframes, skip until the next one */
+
+  if(!(s->flags & (STREAM_INTRA_ONLY|STREAM_STILL_MODE)))
+    {
+    bgav_packet_t * p;
+    while(1)
+      {
+      /* Skip pictures until we have the next keyframe */
+      p = bgav_stream_peek_packet_read(s, 1);
+
+      if(!p)
+        return;
+
+      if(PACKET_GET_KEYFRAME(p))
+        {
+        s->out_time = p->pts;
+        break;
+        }
+      /* Skip this packet */
+      bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Skipping packet while waiting for keyframe");
+      p = bgav_stream_get_packet_read(s);
+      bgav_stream_done_packet_read(s, p);
+      }
+    }
+  
   if(s->data.video.decoder->decoder->resync)
     s->data.video.decoder->decoder->resync(s);
   }

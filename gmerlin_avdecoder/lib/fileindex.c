@@ -736,24 +736,6 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
     }
   }
 
-static void flush_stream_pts(bgav_stream_t * s, int force)
-  {
-  bgav_packet_t * p;
-  while(bgav_stream_peek_packet_read(s, force))
-    {
-    p = bgav_stream_get_packet_read(s);
-    if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
-      {
-      bgav_file_index_append_packet(s->file_index,
-                                    p->position, p->pts, p->flags, p->tc);
-      s->out_time = p->pts;
-      if(p->pts > s->duration)
-        s->duration = p->pts;
-      }
-    bgav_stream_done_packet_read(s, p);
-    }
-  }
-
 static int build_file_index_simple(bgav_t * b)
   {
   int j;
@@ -884,9 +866,6 @@ static int build_file_index_mixed(bgav_t * b)
         case INDEX_MODE_SIMPLE:
           flush_stream_simple(&b->tt->cur->audio_streams[j], 0);
           break;
-        case INDEX_MODE_PTS:
-          flush_stream_pts(&b->tt->cur->audio_streams[j], 0);
-          break;
         }
       
       }
@@ -900,9 +879,6 @@ static int build_file_index_mixed(bgav_t * b)
           break;
         case INDEX_MODE_SIMPLE:
           flush_stream_simple(&b->tt->cur->video_streams[j], 0);
-          break;
-        case INDEX_MODE_PTS:
-          flush_stream_pts(&b->tt->cur->video_streams[j], 0);
           break;
         }
       }
@@ -919,9 +895,6 @@ static int build_file_index_mixed(bgav_t * b)
           case INDEX_MODE_SIMPLE:
             flush_stream_simple(&b->tt->cur->subtitle_streams[j], 0);
             break;
-          case INDEX_MODE_PTS:
-            flush_stream_pts(&b->tt->cur->subtitle_streams[j], 0);
-            break;
           }
         }
       }
@@ -937,9 +910,6 @@ static int build_file_index_mixed(bgav_t * b)
     {
     switch(b->tt->cur->audio_streams[j].index_mode)
       {
-      case INDEX_MODE_PTS:
-        flush_stream_pts(&b->tt->cur->audio_streams[j], 1);
-        break;
       case INDEX_MODE_SIMPLE:
         flush_stream_simple(&b->tt->cur->audio_streams[j], 1);
         break;
@@ -950,9 +920,6 @@ static int build_file_index_mixed(bgav_t * b)
     {
     switch(b->tt->cur->video_streams[j].index_mode)
       {
-      case INDEX_MODE_PTS:
-        flush_stream_pts(&b->tt->cur->video_streams[j], 1);
-        break;
       case INDEX_MODE_SIMPLE:
         flush_stream_simple(&b->tt->cur->video_streams[j], 1);
         break;
@@ -967,9 +934,6 @@ static int build_file_index_mixed(bgav_t * b)
       {
       switch(b->tt->cur->subtitle_streams[j].index_mode)
         {
-        case INDEX_MODE_PTS:
-          flush_stream_pts(&b->tt->cur->subtitle_streams[j], 1);
-          break;
         case INDEX_MODE_SIMPLE:
           flush_stream_simple(&b->tt->cur->subtitle_streams[j], 1);
           break;

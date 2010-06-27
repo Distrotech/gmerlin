@@ -144,6 +144,7 @@ static void add_audio_stream(bgav_demuxer_context_t * ctx)
   as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   as->stream_id = AUDIO_ID;
   as->timescale = 1000;
+  as->flags |= STREAM_NO_DURATIONS;
   }
 
 static void add_video_stream(bgav_demuxer_context_t * ctx)
@@ -973,7 +974,7 @@ static int open_flv(bgav_demuxer_context_t * ctx)
     {
     if(ctx->tt->cur->duration != GAVL_TIME_UNDEFINED)
       {
-      ctx->tt->cur->video_streams->index_mode = INDEX_MODE_PTS;
+      ctx->tt->cur->video_streams->index_mode = INDEX_MODE_SIMPLE;
       ctx->tt->cur->video_streams->duration = 0;
       }
     else

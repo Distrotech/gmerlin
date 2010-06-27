@@ -31,9 +31,7 @@ int bgav_stream_start(bgav_stream_t * stream)
 
   if(!(stream->demuxer->flags & BGAV_DEMUXER_BUILD_INDEX) ||
      ((stream->demuxer->index_mode != INDEX_MODE_SIMPLE) &&
-      (stream->demuxer->index_mode != INDEX_MODE_PTS) &&
-      (stream->index_mode != INDEX_MODE_SIMPLE) &&
-      (stream->index_mode != INDEX_MODE_PTS)))
+      (stream->index_mode != INDEX_MODE_SIMPLE)))
     {
     switch(stream->type)
       {

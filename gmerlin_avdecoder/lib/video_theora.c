@@ -253,29 +253,6 @@ static void close_theora(bgav_stream_t * s)
   free(priv);
   }
 
-#if 0
-static void resync_theora(bgav_stream_t * s)
-  {
-  bgav_packet_t * p;
-  theora_priv_t * priv;
-  priv = (theora_priv_t*)(s->data.video.decoder->priv);
-
-  while(1)
-    {
-    /* Skip pictures until we have the next keyframe */
-    p = bgav_stream_peek_packet_read(s, 1);
-    if(PACKET_GET_KEYFRAME(p))
-      {
-      s->out_time = p->pts;
-      break;
-      }
-    /* Skip this packet */
-    //    fprintf(stderr, "Skipping packet %c\n", PACKET_GET_CODING_TYPE(p));
-    p = bgav_stream_get_packet_read(s);
-    bgav_stream_done_packet_read(s, p);
-    }
-  }
-#endif
 
 static bgav_video_decoder_t decoder =
   {
@@ -285,7 +262,6 @@ static bgav_video_decoder_t decoder =
     .init =   init_theora,
     .decode = decode_theora,
     .close =  close_theora,
-    //    .resync = resync_theora,
   };
 
 void bgav_init_video_decoders_theora()

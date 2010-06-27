@@ -944,7 +944,6 @@ static int init_ffmpeg(bgav_stream_t * s)
 
 static void resync_ffmpeg(bgav_stream_t * s)
   {
-  bgav_packet_t * p;
   ffmpeg_video_priv * priv;
   priv = s->data.video.decoder->priv;
   avcodec_flush_buffers(priv->ctx);
@@ -961,28 +960,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
 
   bgav_pts_cache_clear(&priv->pts_cache);
-
-  /* get pictures until we have a keyframe */
-
-  while(1)
-    {
-    /* Skip pictures until we have the next keyframe */
-    p = bgav_stream_peek_packet_read(s, 1);
-
-    if(!p)
-      return;
-
-    if(PACKET_GET_KEYFRAME(p))
-      {
-      s->out_time = p->pts;
-      break;
-      }
-    /* Skip this packet */
-    bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Skipping packet %c", PACKET_GET_CODING_TYPE(p));
-    p = bgav_stream_get_packet_read(s);
-    bgav_stream_done_packet_read(s, p);
-    }
-  // decode_picture(s);
+  
   }
 
 static void close_ffmpeg(bgav_stream_t * s)

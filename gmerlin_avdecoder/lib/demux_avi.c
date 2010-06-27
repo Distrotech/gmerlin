@@ -2088,8 +2088,9 @@ static int open_avi(bgav_demuxer_context_t * ctx)
       else if(!check_codec(ctx->tt->cur->video_streams[i].fourcc,
                            video_codecs_intra))
         ctx->index_mode = 0;
-      
-      ctx->tt->cur->video_streams[i].index_mode = INDEX_MODE_PTS;
+
+      ctx->tt->cur->video_streams[i].flags |= STREAM_NO_DURATIONS;
+      ctx->tt->cur->video_streams[i].index_mode = INDEX_MODE_SIMPLE;
       }
         
     for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
