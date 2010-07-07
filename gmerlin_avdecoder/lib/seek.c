@@ -231,7 +231,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
   while(1)
     {
 #ifdef DUMP_ITERATIVE
-    bgav_dprintf("Seek time: %ld\n", seek_time);
+    bgav_dprintf("Seek time: %"PRId64"\n", seek_time);
 #endif
     bgav_track_clear(track);
     b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
@@ -246,7 +246,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
       }
     
 #ifdef DUMP_ITERATIVE
-    bgav_dprintf("Sync time: %ld\n", sync_time);
+    bgav_dprintf("Sync time: %"PRId64"\n", sync_time);
 #endif    
     diff_time = *time - sync_time;
 
@@ -301,7 +301,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
       out_time = bgav_track_out_time(track, scale);
 
 #ifdef DUMP_ITERATIVE
-      bgav_dprintf("Out time: %ld\n", out_time);
+      bgav_dprintf("Out time: %"PRId64"\n", out_time);
 #endif
       if(out_time > *time) /* Out time too late */
         {
@@ -347,7 +347,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
     {
     bgav_track_clear(track);
 #ifdef DUMP_ITERATIVE
-    bgav_dprintf("Final seek %ld\n", seek_time);
+    bgav_dprintf("Final seek %"PRId64"\n", seek_time);
 #endif
     b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
     num_seek++;

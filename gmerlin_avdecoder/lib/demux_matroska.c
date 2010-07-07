@@ -711,23 +711,31 @@ static void append_packet_data(bgav_stream_t * s,
   }
 
 static void setup_packet(mkv_t * m, bgav_stream_t * s,
-                         bgav_packet_t * p, int64_t pts, int keyframe, int index)
+                         bgav_packet_t * p, int64_t pts,
+                         int keyframe, int index)
   {
   bgav_mkv_track_t * t;
   
   p->position = m->cluster_pos;
   t = s->priv;
-#if 0
-  if(s->frame_samples)
+  if(t->frame_samples)
     {
     if(m->do_sync && !STREAM_HAS_SYNC(s))
       {
-      int64_t time_scaled = gavl_time_rescale(
+      p->pts =
+        gavl_time_rescale(m->segment_info.TimecodeScale/1000,
+                          s->data.audio.format.samplerate,
+                          pts);
       STREAM_SET_SYNC(s, p->pts);
+      t->pts = p->pts + t->frame_samples;
+      }
+    else
+      {
+      p->pts = t->pts;
+      t->pts += t->frame_samples;
       }
     }
-#endif
-  if(!index)
+  else if(!index)
     {
     //    if(s->type == BGAV_STREAM_VIDEO)
     //      fprintf(stderr, "Video PTS: %"PRId64"\n", pts);
@@ -911,14 +919,6 @@ static int process_block(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-#if 0
-static int process_block_group(bgav_demuxer_context_t * ctx,
-                               bgav_mkv_element_t * parent)
-  {
-  
-  }
-#endif
-
 /* next packet */
 
 static int next_packet_matroska(bgav_demuxer_context_t * ctx)
@@ -1012,7 +1012,8 @@ seek_matroska(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int i;
   mkv_t * priv = ctx->priv;
   
-  time_scaled = gavl_time_rescale(scale, priv->segment_info.TimecodeScale/1000, time);
+  time_scaled = gavl_time_rescale(scale,
+                                  priv->segment_info.TimecodeScale/1000, time);
 
   for(i = priv->cues.num_points - 1; i >= 0; i--)
     {
@@ -1035,7 +1036,15 @@ seek_matroska(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 
   priv->do_sync = 0;
   }
-  
+
+static void resync_matroska(bgav_demuxer_context_t * ctx,
+                            bgav_stream_t * s)
+  {
+  bgav_mkv_track_t * t;
+  t = s->priv;
+  t->pts = STREAM_GET_SYNC(s);
+  }
+
 const const bgav_demuxer_t bgav_demuxer_matroska =
   {
     .probe =       probe_matroska,
@@ -1043,6 +1052,6 @@ const const bgav_demuxer_t bgav_demuxer_matroska =
     // .select_track = select_track_matroska,
     .next_packet = next_packet_matroska,
     .seek =        seek_matroska,
-    // .resync  =     resync_matroska,
+    .resync  =     resync_matroska,
     .close =       close_matroska
   };

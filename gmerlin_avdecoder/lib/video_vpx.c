@@ -32,7 +32,7 @@
 
 #define LOG_DOMAIN "vpx"
 
-//#define DUMP_DECODE
+// #define DUMP_DECODE
 
 typedef struct
   {
@@ -48,9 +48,9 @@ static int create_decoder(bgav_stream_t * s)
 
   memset(&deccfg, 0, sizeof(deccfg));
   deccfg.threads = s->opt->threads;
-    
+  
   priv = s->data.video.decoder->priv;
-
+  
   iface = &vpx_codec_vp8_dx_algo;
 
   if(vpx_codec_dec_init(&priv->decoder, iface, &deccfg, 0) != VPX_CODEC_OK)
@@ -100,13 +100,6 @@ static int decode_vpx(bgav_stream_t * s, gavl_video_frame_t * f)
   bgav_packet_dump(p);
 #endif
   
-  /* Skip frame */
-  if(!f)
-    {
-    bgav_stream_done_packet_read(s, p);
-    return 1;
-    }
-
   if(vpx_codec_decode(&priv->decoder, p->data, p->data_size, NULL, 0) !=
      VPX_CODEC_OK)
     {
@@ -126,26 +119,33 @@ static int decode_vpx(bgav_stream_t * s, gavl_video_frame_t * f)
 
   if(!img)
     return 0;
-
-  priv->frame->planes[0] = img->planes[0];
-  priv->frame->planes[1] = img->planes[1];
-  priv->frame->planes[2] = img->planes[2];
-
-  priv->frame->strides[0] = img->stride[0];
-  priv->frame->strides[1] = img->stride[1];
-  priv->frame->strides[2] = img->stride[2];
   
-  gavl_video_frame_copy(&s->data.video.format,
-                        f, priv->frame);
-  
-  f->timestamp = p->pts;
-  f->duration = p->duration;
+  /* Skip frame */
+  if(f)
+    {
+    priv->frame->planes[0] = img->planes[0];
+    priv->frame->planes[1] = img->planes[1];
+    priv->frame->planes[2] = img->planes[2];
+    
+    priv->frame->strides[0] = img->stride[0];
+    priv->frame->strides[1] = img->stride[1];
+    priv->frame->strides[2] = img->stride[2];
+    
+    gavl_video_frame_copy(&s->data.video.format,
+                          f, priv->frame);
+    
+    f->timestamp = p->pts;
+    f->duration = p->duration;
+    }
 
   //  vpx_img_free (img);
 
+  /* Should never happen */
   while((img = vpx_codec_get_frame(&priv->decoder, &iter)))
-    // vpx_img_free (img);
-    ;
+    {
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Ignoring additional frame\n");
+    }
   
   bgav_stream_done_packet_read(s, p);
   return 1;
