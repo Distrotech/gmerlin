@@ -287,7 +287,6 @@ void bgav_codecs_init(bgav_options_t * opt)
 #ifdef HAVE_LIBVPX
   bgav_init_video_decoders_vpx();
 #endif
-
   
 #ifdef HAVE_XADLL
 

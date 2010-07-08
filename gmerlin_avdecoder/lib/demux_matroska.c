@@ -235,7 +235,7 @@ static void init_vorbis(bgav_stream_t * s)
   setup_ogg_extradata(s);
   s->fourcc = BGAV_MK_FOURCC('V','B','I','S');
   s->flags |= STREAM_PARSE_FRAME;
-  s->index_mode = INDEX_MODE_MPEG;
+  s->index_mode = INDEX_MODE_SIMPLE;
   }
 
 /* AAC Initialization inspired by ffmpeg (matroskadec.c) */

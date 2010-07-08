@@ -396,12 +396,12 @@ typedef enum
  */
 #define STREAM_NEED_EXACT_COMPRESSION (1<<12)
 
-#define STREAM_SET_SYNC(s, t)  s->sync_time = t
-#define STREAM_GET_SYNC(s)     s->sync_time
+#define STREAM_SET_SYNC(s, t)  (s)->sync_time = t
+#define STREAM_GET_SYNC(s)     (s)->sync_time
 
-#define STREAM_UNSET_SYNC(s)   s->sync_time = BGAV_TIMESTAMP_UNDEFINED
+#define STREAM_UNSET_SYNC(s)   (s)->sync_time = BGAV_TIMESTAMP_UNDEFINED
 
-#define STREAM_HAS_SYNC(s)     (s->sync_time != BGAV_TIMESTAMP_UNDEFINED)
+#define STREAM_HAS_SYNC(s)     ((s)->sync_time != BGAV_TIMESTAMP_UNDEFINED)
 
 struct bgav_stream_s
   {

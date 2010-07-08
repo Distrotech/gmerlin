@@ -58,6 +58,7 @@ typedef struct
   int saved_frame_alloc;
   int saved_frame_size;
   int saved_frame_type;
+  int saved_frame_pos;
   
   int packed_b_frames;
   } mpeg4_priv_t;
@@ -408,6 +409,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           memcpy(priv->saved_frame, data,
                  priv->saved_frame_size);
           priv->saved_frame_type = vh.coding_type;
+          priv->saved_frame_pos = p->position;
           done = 1;
           }
         else if(priv->packed_b_frames && !vh.vop_coded &&
@@ -419,6 +421,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           p->data_size = priv->saved_frame_size;
           priv->saved_frame_size = 0;
           PACKET_SET_CODING_TYPE(p, priv->saved_frame_type);
+          p->position = priv->saved_frame_pos;
           done = 1;
           }
         else

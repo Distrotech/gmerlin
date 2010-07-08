@@ -2108,19 +2108,24 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   return ret;
   }
 
-static void reset_track(bgav_track_t * track)
+static void reset_track(bgav_track_t * track, int bos)
   {
   stream_priv_t * stream_priv;
   int i;
+  int position = bos ? 0 : -1;
+  int do_sync = bos ? 0 : 1;
   
   for(i = 0; i < track->num_audio_streams; i++)
     {
     stream_priv =
       (stream_priv_t*)(track->audio_streams[i].priv);
-    stream_priv->prev_granulepos = -1;
-    stream_priv->frame_counter = -1;
-    stream_priv->do_sync = 1;
+    stream_priv->prev_granulepos = position;
+    stream_priv->frame_counter = position;
+    stream_priv->do_sync = do_sync;
     ogg_stream_reset(&stream_priv->os);
+
+    if(bos)
+      STREAM_SET_SYNC(&track->audio_streams[i], 0);
     }
 
   for(i = 0; i < track->num_video_streams; i++)
@@ -2128,11 +2133,13 @@ static void reset_track(bgav_track_t * track)
     stream_priv =
       (stream_priv_t*)(track->video_streams[i].priv);
 
-    stream_priv->prev_granulepos = -1;
-    stream_priv->frame_counter = -1;
-    stream_priv->do_sync = 1;
-    
+    stream_priv->prev_granulepos = position;
+    stream_priv->frame_counter = position;
+    stream_priv->do_sync = do_sync;
     ogg_stream_reset(&stream_priv->os);
+    if(bos)
+      STREAM_SET_SYNC(&track->video_streams[i], 0);
+
     }
   
   for(i = 0; i < track->num_subtitle_streams; i++)
@@ -2142,6 +2149,8 @@ static void reset_track(bgav_track_t * track)
     stream_priv =
       (stream_priv_t*)(track->subtitle_streams[i].priv);
     ogg_stream_reset(&stream_priv->os);
+    if(bos)
+      STREAM_SET_SYNC(&track->subtitle_streams[i], 0);
     }
   }
 
@@ -2183,6 +2192,16 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int64_t filepos;
 
   fprintf(stderr, "seek_ogg %ld %d\n", time, scale);
+
+  // Seeking to 0 is handled specially:
+  // It happens if we want to seek into the first pages
+  // (when prev_granulepos is not set yet)
+  if(!time) 
+    {
+    seek_byte(ctx, 0);
+    reset_track(ctx->tt->cur, 1);
+    return;
+    }
   
   /* Seek to the file position */
   track_priv = (track_priv_t*)(ctx->tt->cur->priv);
@@ -2199,7 +2218,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   seek_byte(ctx, filepos);
 
   /* Reset all the streams and set the stream times to -1 */
-  reset_track(ctx->tt->cur);
+  reset_track(ctx->tt->cur, 0);
   
   /* Now, resync the streams (probably skipping lots of pages) */
 
@@ -2211,7 +2230,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
       filepos = find_last_page(ctx, track_priv->start_pos, filepos,
                                (int*)0, (int64_t*)0);
       //      seek_byte(ctx, filepos);
-      reset_track(ctx->tt->cur);
+      reset_track(ctx->tt->cur, 0);
       //      fprintf(stderr, "Reached EOF\n");
       }
     
