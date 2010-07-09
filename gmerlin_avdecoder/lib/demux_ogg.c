@@ -151,6 +151,9 @@ typedef struct
   
   /* Set to 1 to prevent new streamint tracks */
   int nonbos_seen;
+
+  int is_ogm;
+
   } ogg_t;
 
 /* Special header for OGM files */
@@ -795,6 +798,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
+        priv->is_ogm = 1;
+
         break;
       case FOURCC_OGM_TEXT:
         s = bgav_track_add_subtitle_stream(track, ctx->opt, 1,
@@ -828,6 +833,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->description = bgav_sprintf("OGM subtitles");
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
+        priv->is_ogm = 1;
         break;
       default:
         bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -2304,11 +2310,9 @@ static void init_track(bgav_track_t * track)
     {
     stream_priv =
       (stream_priv_t*)(track->video_streams[i].priv);
-
     stream_priv->prev_granulepos = 0;
     stream_priv->frame_counter = 0;
     stream_priv->do_sync = 0;
-    
     ogg_stream_reset(&stream_priv->os);
     }
   
