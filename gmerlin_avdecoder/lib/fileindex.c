@@ -1170,8 +1170,6 @@ int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx)
     {
     new_pos++;
     }
-  s->index_position = new_pos;
-
   /* Tell the demuxer where to stop */
 
   if(new_pos >= s->file_index->num_entries)
@@ -1181,6 +1179,8 @@ int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx)
 
   if(!ctx->demuxer->next_packet(ctx))
     return 0;
+
+  s->index_position = new_pos;
   
   return 1;
   }

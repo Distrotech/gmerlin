@@ -250,6 +250,20 @@ void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
   /* Padding (if fourcc != gavl) */
   if(p->data)
     memset(p->data + p->data_size, 0, PACKET_PADDING);
+
+  /* Set timestamps from file index because the
+     demuxer might have them messed up */
+  if((s->type == BGAV_STREAM_AUDIO) && s->file_index)
+    {
+    p->pts      = s->file_index->entries[s->index_position].pts;
+    
+    if(s->index_position < s->file_index->num_entries - 1)
+      {
+      p->duration =
+        s->file_index->entries[s->index_position+1].pts -
+        s->file_index->entries[s->index_position].pts;
+      }
+    }
   
   bgav_packet_buffer_append(s->packet_buffer, p);
   }

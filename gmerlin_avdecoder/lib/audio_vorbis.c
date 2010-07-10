@@ -137,12 +137,13 @@ static int next_packet(bgav_stream_t * s)
     priv->dec_op.packet = p->data;
     
     priv->dec_op.granulepos = p->pts + p->duration;
-    if(p->flags & PACKET_FLAG_LAST)
-      priv->dec_op.e_o_s = 1;
     
     priv->dec_op.packetno = priv->packetno;
     priv->packetno++;
     bgav_stream_done_packet_read(s, p);
+    
+    if(!bgav_stream_peek_packet_read(s, 1))
+      priv->dec_op.e_o_s = 1;
     }
   else
     {
@@ -444,6 +445,15 @@ static int init_vorbis(bgav_stream_t * s)
   bgav_vorbis_set_channel_setup(&s->data.audio.format);
   gavl_set_channel_setup(&s->data.audio.format);
   s->description = bgav_sprintf("Ogg Vorbis");
+
+  /* Preroll */
+
+  /* Samples of packet N is (blocksize[n-1]+blocksize[n])/4
+     Largest Block size: bz[1]
+     Largest Packet size: (bz[1]+bz[1])/4 = bz[1]/2
+     2 packets: bz[1]
+   */
+  s->data.audio.preroll = vorbis_info_blocksize(&priv->dec_vi, 1);
   return 1;
   }
 
@@ -476,8 +486,9 @@ static int decode_frame_vorbis(bgav_stream_t * s)
   
   s->data.audio.frame->valid_samples = samples_decoded;
   vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
-
-  //  fprintf(stderr, "Samples decoded: %d\n", samples_decoded);
+  
+  fprintf(stderr, "Vorbis samples decoded: %d\n",
+          samples_decoded);
   
   return 1;
   }
@@ -515,6 +526,26 @@ static void resync_vorbis(bgav_stream_t * s)
   vorbis_synthesis_init(&priv->dec_vd, &priv->dec_vi);
   vorbis_block_init(&priv->dec_vd, &priv->dec_vb);
 #endif  
+
+  /* Skip until we can cleanly decode */
+
+  if(s->fourcc == BGAV_VORBIS)
+    {
+    bgav_packet_t * p;
+    if(!next_packet(s))
+      return;
+    
+    if(vorbis_synthesis(&priv->dec_vb, &priv->dec_op) == 0)
+      {
+      // fprintf(stderr, "Resync: blockin\n");
+      vorbis_synthesis_blockin(&priv->dec_vd,
+                               &priv->dec_vb);
+      }
+    p = bgav_stream_peek_packet_read(s, 1);
+    if(p)
+      s->out_time = p->pts;
+    }
+  
   }
 
 static void close_vorbis(bgav_stream_t * s)
@@ -535,14 +566,14 @@ static void close_vorbis(bgav_stream_t * s)
 static bgav_audio_decoder_t decoder =
   {
     .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('O','g', 'g', 'S'),
-                           BGAV_MK_FOURCC('O','g', 'g', 'V'),
-                           BGAV_VORBIS,
-                           BGAV_MK_FOURCC('V', 'O', 'R', 'B'),
-                           BGAV_WAVID_2_FOURCC(0x674f), // Mode 1  (header in first packet)
-                           BGAV_WAVID_2_FOURCC(0x676f), // Mode 1+
-                           BGAV_WAVID_2_FOURCC(0x6750), // Mode 2  (header in extradata)
-                           BGAV_WAVID_2_FOURCC(0x6770), // Mode 2+
-                           //                           BGAV_WAVID_2_FOURCC(0x6751), // Mode 3  (no header)
+                             BGAV_MK_FOURCC('O','g', 'g', 'V'),
+                             BGAV_VORBIS,
+                             BGAV_MK_FOURCC('V', 'O', 'R', 'B'),
+                             BGAV_WAVID_2_FOURCC(0x674f), // Mode 1  (header in first packet)
+                             BGAV_WAVID_2_FOURCC(0x676f), // Mode 1+
+                             BGAV_WAVID_2_FOURCC(0x6750), // Mode 2  (header in extradata)
+                             BGAV_WAVID_2_FOURCC(0x6770), // Mode 2+
+                             //                           BGAV_WAVID_2_FOURCC(0x6751), // Mode 3  (no header)
                            //                           BGAV_WAVID_2_FOURCC(0x6771), // Mode 3+
                            0x00 },
     .name = "Ogg vorbis audio decoder",
