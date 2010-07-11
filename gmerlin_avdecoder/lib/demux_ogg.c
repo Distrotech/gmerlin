@@ -564,7 +564,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s = bgav_track_add_audio_stream(track, ctx->opt);
         s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_VORBIS;
-        s->index_mode = INDEX_MODE_MPEG;
+        s->index_mode = INDEX_MODE_SIMPLE;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
         s->flags |= STREAM_PARSE_FRAME;
@@ -2070,7 +2070,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             p->pts = stream_priv->prev_granulepos;
             }
           
-          if((s->action == BGAV_STREAM_PARSE) && (priv->op.granulepos))
+          if((s->action == BGAV_STREAM_PARSE) && (priv->op.granulepos > 0))
             s->duration = priv->op.granulepos;
 
           set_packet_pos(priv, stream_priv, &page_continued, p);

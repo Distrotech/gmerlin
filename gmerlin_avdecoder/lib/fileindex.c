@@ -719,17 +719,24 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
   {
   bgav_packet_t * p;
   int64_t t;
+
   while(bgav_stream_peek_packet_read(s, force))
     {
     p = bgav_stream_get_packet_read(s);
     
     t = p->pts - s->start_time;
-    
+#if 0
+    if(s->stream_id == 1)
+      {
+      fprintf(stderr, "flush_stream_simple ");
+      bgav_packet_dump(p);
+      }
+#endif
     if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_file_index_append_packet(s->file_index,
                                     p->position, t, p->flags, p->tc);
-      if(t >= s->duration)
+      if(t + p->duration >= s->duration)
         s->duration = t + p->duration;
       }
     bgav_stream_done_packet_read(s, p);

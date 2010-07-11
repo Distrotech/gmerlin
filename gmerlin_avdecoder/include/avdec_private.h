@@ -213,7 +213,6 @@ struct bgav_subtitle_overlay_decoder_context_s
 #define PACKET_FLAG_KEY    (1<<8)
 #define PACKET_FLAG_SKIP   (1<<9)
 #define PACKET_FLAG_LAST   (1<<10)
-#define PACKET_FLAG_PARSED (1<<11)
 
 /* If these flags are changed, the flags of the superindex must be
    changed as well */

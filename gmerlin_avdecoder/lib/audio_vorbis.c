@@ -36,6 +36,9 @@
 
 #define LOG_DOMAIN "vorbis"
 
+// #define DUMP_OUTPUT
+// #define DUMP_PACKET
+
 typedef struct
   {
   ogg_sync_state   dec_oy; /* sync and verify incoming physical bitstream */
@@ -128,7 +131,10 @@ static int next_packet(bgav_stream_t * s)
     bgav_packet_t * p;
 
     p = bgav_stream_get_packet_read(s);
-    // bgav_packet_dump(p);
+#ifdef DUMP_PACKET
+    bgav_dprintf("Got packet: ");
+    bgav_packet_dump(p);
+#endif    
     if(!p)
       return 0;
     
@@ -471,6 +477,8 @@ static int decode_frame_vorbis(bgav_stream_t * s)
   while((samples_decoded =
          vorbis_synthesis_pcmout(&priv->dec_vd, &channels)) < 1)
     {
+    // fprintf(stderr, "decode_frame_vorbis\n");
+    
     if(!next_packet(s))
       return 0;
 
@@ -486,10 +494,11 @@ static int decode_frame_vorbis(bgav_stream_t * s)
   
   s->data.audio.frame->valid_samples = samples_decoded;
   vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
-  
-  //  fprintf(stderr, "Vorbis samples decoded: %d\n",
-  //          samples_decoded);
-  
+
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Vorbis samples decoded: %d\n",
+               samples_decoded);
+#endif
   return 1;
   }
 

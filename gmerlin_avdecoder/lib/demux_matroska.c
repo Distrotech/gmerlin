@@ -927,10 +927,8 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
   bgav_mkv_element_t e;
   int64_t pos;
   mkv_t * priv = ctx->priv;
-  
   //  fprintf(stderr, "next_packet_matroska\n");
-  
-  while(!num_blocks)
+  while(1)
     {
     pos = ctx->input->position;
     if(!bgav_mkv_element_read(ctx->input, &e))
@@ -976,6 +974,15 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
         /* Probably reached end of file */
         return 0;
       }
+
+    /* Check whether to exit */
+    if(ctx->next_packet_pos)
+      {
+      if(ctx->input->position >= ctx->next_packet_pos)
+        break;
+      }
+    else if(num_blocks)
+      break;
     }
   return 1;
   }

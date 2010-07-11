@@ -72,6 +72,12 @@ static void cleanup_vorbis(bgav_audio_parser_t * parser)
   free(priv);
   }
 
+static void reset_vorbis(bgav_audio_parser_t * parser)
+  {
+  vorbis_priv_t * priv = parser->priv;
+  priv->last_blocksize = 0;
+  }
+
 void bgav_audio_parser_init_vorbis(bgav_audio_parser_t * parser)
   {
   vorbis_priv_t * priv;
@@ -125,4 +131,5 @@ void bgav_audio_parser_init_vorbis(bgav_audio_parser_t * parser)
   
   parser->parse_frame = parse_frame_vorbis;
   parser->cleanup = cleanup_vorbis;
+  parser->reset = reset_vorbis;
   }

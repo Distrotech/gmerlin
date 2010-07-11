@@ -74,22 +74,36 @@ int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
   {
   if(!parser->parse_frame)
     return PARSER_ERROR;
-  
-  /* Don't parse packets twice (happens when peeking) */
-  if(p->flags & PACKET_FLAG_PARSED)
-    return PARSER_HAVE_PACKET;
-  
+
+#ifdef DUMP_INPUT  
+  if(parser->s->stream_id == 1)
+    {
+    bgav_dprintf("Add packet ");
+    bgav_packet_dump(p);
+    }
+#endif
+ 
   if(parser->timestamp == BGAV_TIMESTAMP_UNDEFINED)
-    parser->timestamp = gavl_time_rescale(parser->in_scale,
-                                          parser->s->data.audio.format.samplerate,
-                                          p->pts);
-  
+    {
+    if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
+      parser->timestamp = gavl_time_rescale(parser->in_scale,
+                                            parser->s->data.audio.format.samplerate,
+                                            p->pts);
+    else
+      parser->timestamp = 0;
+    }
   parser->parse_frame(parser, p);
   
   p->pts = parser->timestamp;
-  
   parser->timestamp += p->duration;
-  p->flags |= PACKET_FLAG_PARSED;
+#ifdef DUMP_OUTPUT  
+  if(parser->s->stream_id == 1)
+    {
+    bgav_dprintf("Get packet ");
+    bgav_packet_dump(p);
+    }
+#endif
+
   return PARSER_HAVE_PACKET;
   }
 
@@ -473,8 +487,8 @@ bgav_audio_parser_get_packet_parse_frame(void * parser1)
   if(ret->duration <= 0)
     {
     bgav_audio_parser_parse_frame(parser, ret);
-    ret->pts = parser->timestamp;
-    parser->timestamp += ret->duration;
+    // ret->pts = parser->timestamp;
+    // parser->timestamp += ret->duration;
     }
   return ret;
   }
@@ -496,8 +510,6 @@ bgav_audio_parser_peek_packet_parse_frame(void * parser1, int force)
   if(parser->out_packet->duration <= 0)
     {
     bgav_audio_parser_parse_frame(parser, parser->out_packet);
-    parser->out_packet->pts = parser->timestamp;
-    parser->timestamp += parser->out_packet->duration;
     }
   return parser->out_packet;
   }
