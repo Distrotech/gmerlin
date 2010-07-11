@@ -128,6 +128,7 @@ static int parse_header_mpeg4(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv = parser->priv;
   const uint8_t * pos = parser->s->ext_data;
+  int len;
   while(1)
     {
     pos = bgav_mpv_find_startcode(pos, parser->s->ext_data +
@@ -138,16 +139,18 @@ static int parse_header_mpeg4(bgav_video_parser_t * parser)
     switch(bgav_mpeg4_get_start_code(pos))
       {
       case MPEG4_CODE_VOL_START:
-        if(!bgav_mpeg4_vol_header_read(parser->opt,
-                                       &priv->vol, pos,
-                                       parser->s->ext_size -
-                                       (pos - parser->s->ext_data)))
+        len = bgav_mpeg4_vol_header_read(parser->opt,
+                                         &priv->vol, pos,
+                                         parser->s->ext_size -
+                                         (pos - parser->s->ext_data));
+        if(!len)
           return 0;
         priv->have_vol = 1;
 #ifdef DUMP_HEADERS
         bgav_mpeg4_vol_header_dump(&priv->vol);
 #endif
         set_format(parser);
+        pos += len;
         break;
       case MPEG4_CODE_USER_DATA:
         pos += extract_user_data(parser, pos, parser->s->ext_data +
