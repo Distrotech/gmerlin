@@ -27,7 +27,7 @@ static int get_min_index(bgav_pts_cache_t * c)
   {
   int i;
   int ret = -1;
-  int min;
+  int64_t min;
   for(i = 0; i < PTS_CACHE_SIZE; i++)
     {
     if(c->entries[i].used)

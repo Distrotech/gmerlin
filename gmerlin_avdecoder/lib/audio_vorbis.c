@@ -487,8 +487,8 @@ static int decode_frame_vorbis(bgav_stream_t * s)
   s->data.audio.frame->valid_samples = samples_decoded;
   vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
   
-  fprintf(stderr, "Vorbis samples decoded: %d\n",
-          samples_decoded);
+  //  fprintf(stderr, "Vorbis samples decoded: %d\n",
+  //          samples_decoded);
   
   return 1;
   }

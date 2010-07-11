@@ -469,7 +469,13 @@ bgav_audio_parser_get_packet_parse_frame(void * parser1)
   ret = parser->src.get_func(parser->src.data);
   if(!ret)
     return NULL;
-  bgav_audio_parser_parse_frame(parser, ret);
+
+  if(ret->duration <= 0)
+    {
+    bgav_audio_parser_parse_frame(parser, ret);
+    ret->pts = parser->timestamp;
+    parser->timestamp += ret->duration;
+    }
   return ret;
   }
 
@@ -486,6 +492,12 @@ bgav_audio_parser_peek_packet_parse_frame(void * parser1, int force)
 
   parser->out_packet =
     parser->src.get_func(parser->src.data);
-  bgav_audio_parser_parse_frame(parser, parser->out_packet);
+
+  if(parser->out_packet->duration <= 0)
+    {
+    bgav_audio_parser_parse_frame(parser, parser->out_packet);
+    parser->out_packet->pts = parser->timestamp;
+    parser->timestamp += parser->out_packet->duration;
+    }
   return parser->out_packet;
   }

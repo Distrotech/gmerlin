@@ -759,7 +759,6 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->index_mode = INDEX_MODE_SIMPLE;
         
         s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
-        s->flags |= (STREAM_B_FRAMES | STREAM_WRONG_B_TIMESTAMPS);
         
         input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1, s->opt);
 
@@ -794,8 +793,11 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->fourcc = ogm_header.subtype;
 
         if(bgav_video_is_divx4(s->fourcc))
-          s->flags |= STREAM_PARSE_FRAME;
-        
+          {
+          s->flags |= (STREAM_B_FRAMES |
+                       STREAM_WRONG_B_TIMESTAMPS |
+                       STREAM_PARSE_FRAME);
+          }
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
         priv->is_ogm = 1;
@@ -1991,6 +1993,17 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           /* Resync if necessary */
           if(stream_priv->do_sync)
             {
+#if 0
+            if(priv->is_ogm)
+              {
+              if(priv->op.granulepos < 0)
+                break;
+              stream_priv->do_sync = 0;
+              STREAM_SET_SYNC(s, priv->op.granulepos);
+              // fprintf(stderr, "set_sync_ogm: %ld\n", priv->op.granulepos);
+              }
+            else
+#endif
             if(stream_priv->prev_granulepos == -1)
               break;
             else
@@ -2002,6 +2015,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           
           if(!check_header_packet(priv, s, &priv->op))
             break;
+
+          //          fprintf(stderr, "ogm granulepos: %ld\n", priv->op.granulepos);
           
           p = bgav_stream_get_packet_write(s);
           set_packet_pos(priv, stream_priv, &page_continued, p);

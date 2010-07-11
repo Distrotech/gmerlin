@@ -30,7 +30,6 @@
 // #define DUMP_INPUT
 // #define DUMP_OUTPUT
 
-
 struct bgav_packet_timer_s
   {
   bgav_packet_t * packets[MAX_PACKETS];
