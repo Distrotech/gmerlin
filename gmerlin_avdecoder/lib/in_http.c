@@ -103,7 +103,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
 
   header = bgav_http_header_create();
     
-  bgav_http_header_add_line(header, "User-Agent: gmerlin/0.3.3");
+  bgav_http_header_add_line(header, "User-Agent: "PACKAGE"/"VERSION);
   bgav_http_header_add_line(header, "Accept: */*");
     
   if(ctx->opt->http_shoutcast_metadata)
@@ -114,6 +114,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   if(!p->h)
     {
     free(p);
+    bgav_http_header_destroy(header);
     return 0;
     }
   

@@ -396,9 +396,16 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
       {
       *redirect_url = bgav_strdup(location);
       }
-    bgav_http_header_destroy(ret->header);
-    free(ret);
     
+    if(host)
+      free(host);
+    if(path)
+      free(path);
+    if(protocol)
+      free(protocol);
+    if(request_header)
+      bgav_http_header_destroy(request_header);
+    bgav_http_close(ret);
     return (bgav_http_t*)0;
     }
   else if(status < 200)  /* Error */
@@ -416,6 +423,8 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     free(host);
   if(path)
     free(path);
+  if(protocol)
+    free(protocol);
   
   return ret;
   
@@ -434,7 +443,11 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     free(host);
   if(path)
     free(path);
-
+  if(protocol)
+    free(protocol);
+  if(request_header)
+    bgav_http_header_destroy(request_header);
+  
   if(ret)
     {
     if(ret->header)

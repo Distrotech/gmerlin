@@ -496,6 +496,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
     }
   bgav_input_close(input_mem);
   bgav_input_destroy(input_mem);
+  free(data);
   
   ret->total_bytes = ret->header.size + 10;
   /* Read footer */

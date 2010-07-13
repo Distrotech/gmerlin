@@ -525,10 +525,7 @@ static int init_mpeg2(bgav_stream_t*s)
     return 1;
 
   if(s->data.video.format.timecode_format.int_framerate)
-    {
     s->flags |= FLAG_EXTERN_TIMECODES;
-    fprintf(stderr, "Extern timecodes\n");
-    }
   
   priv->dec  = mpeg2_init();
   priv->info = mpeg2_info(priv->dec);

@@ -107,6 +107,7 @@ int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * input,
 
 void bgav_qt_stbl_free(qt_stbl_t * c)
   {
+  bgav_qt_stts_free(&c->ctts);
   bgav_qt_stts_free(&c->stts);
   bgav_qt_stss_free(&c->stss);
   bgav_qt_stss_free(&c->stps);
