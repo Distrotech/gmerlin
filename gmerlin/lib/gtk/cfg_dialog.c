@@ -252,7 +252,7 @@ static void reset_section(dialog_section_t * s)
 
 static void restore_section(dialog_section_t * s, bg_cfg_section_t * cfg_section)
   {
-  int i, j;
+  int i;
   bg_parameter_value_t val;
   char * pos;
   int set_param = 0;
@@ -295,29 +295,11 @@ static void restore_section(dialog_section_t * s, bg_cfg_section_t * cfg_section
 
     if(s->widgets[i].info->multi_parameters)
       {
-      bg_cfg_section_t * src1, * src2;
-      bg_cfg_section_t * dst1, * dst2;
-      
+      bg_cfg_section_t * src1, * dst1;
       dst1 = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
       src1 = bg_cfg_section_find_subsection(cfg_section, s->widgets[i].info->name);
-
-      j = 0;
-
-      while(s->widgets[i].info->multi_names[j])
-        {
-        if(!s->widgets[i].info->multi_parameters[j])
-          {
-          j++;
-          continue;
-          }
-        src2 = bg_cfg_section_find_subsection(src1, s->widgets[i].info->multi_names[j]);
-        dst2 = bg_cfg_section_find_subsection(dst1, s->widgets[i].info->multi_names[j]);
-        bg_cfg_section_transfer(src2, dst2);
-        j++;
-        }
+      bg_cfg_section_transfer_children(src1, dst1);
       }
-
-    
     }
   
   if(set_param)
@@ -621,18 +603,14 @@ static GtkWidget * create_restore_button(dialog_section_t * section)
 static void preset_load_callback(void * data)
   {
   dialog_section_t * s = data;
-  fprintf(stderr, "Preset load callback\n");
   restore_section(s, s->preset_section);
   }
 
 static void preset_save_callback(void * data)
   {
+  int i;
   dialog_section_t * s = data;
-  int i, j;
   
-  fprintf(stderr, "Preset save callback\n");
-  //  restore_section(section);
-
   for(i = 0; i < s->num_widgets; i++)
     {
     if(!s->widgets[i].funcs->set_value)
@@ -646,26 +624,14 @@ static void preset_save_callback(void * data)
 
     if(s->widgets[i].info->multi_parameters)
       {
-      bg_cfg_section_t * src1, * src2;
-      bg_cfg_section_t * dst1, * dst2;
+      bg_cfg_section_t * src1;
+      bg_cfg_section_t * dst1;
       
       src1 = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
       dst1 = bg_cfg_section_find_subsection(s->preset_section, s->widgets[i].info->name);
 
-      j = 0;
-
-      while(s->widgets[i].info->multi_names[j])
-        {
-        if(!s->widgets[i].info->multi_parameters[j])
-          {
-          j++;
-          continue;
-          }
-        src2 = bg_cfg_section_find_subsection(src1, s->widgets[i].info->multi_names[j]);
-        dst2 = bg_cfg_section_find_subsection(dst1, s->widgets[i].info->multi_names[j]);
-        bg_cfg_section_transfer(src2, dst2);
-        j++;
-        }
+      bg_cfg_section_transfer_children(src1, dst1);
+      
       }
     }
   }

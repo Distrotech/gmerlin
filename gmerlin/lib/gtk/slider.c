@@ -432,8 +432,6 @@ static void size_allocate_callback(GtkWidget * w, GtkAllocation * evt,
   else
     old_pos = 0.0;
   
-  //  fprintf(stderr, "Slider size: %d %d\n", evt->width, evt->height);
-  
   s->width = evt->width;
   s->height = evt->height;
   
@@ -619,13 +617,7 @@ static GdkPixbuf * make_pixbuf(GdkPixbuf * old,
   
   if(old)
     g_object_unref(G_OBJECT(old));
-  
   ret = gdk_pixbuf_new_from_file(filename, NULL);
-  if(!ret)
-    {
-    fprintf(stderr, "Couldn't load pixbuf %s\n", filename);
-    }
-  
   return ret;
   }
 

@@ -149,17 +149,11 @@ static void menu_callback(GtkWidget * w, gpointer data)
                            TR("Save preset"));
     if(bg_dialog_show(dlg, menu->menubar))
       {
-      fprintf(stderr, "Saving preset %s\n", menu->preset_name);
-
       menu->presets = bg_preset_add(menu->presets,
                                     menu->path,
                                     menu->preset_name,
                                     menu->section);
       update_menu(menu);
-      }
-    else
-      {
-      fprintf(stderr, "Not saving preset %s\n", menu->preset_name);
       }
     }
   else
@@ -184,8 +178,6 @@ static void menu_callback(GtkWidget * w, gpointer data)
     
     for(i = 0; i < index; i++)
       p = p->next;
-
-    fprintf(stderr, "Loading preset %s\n", p->name);
 
     preset_section = bg_preset_load(p);
     

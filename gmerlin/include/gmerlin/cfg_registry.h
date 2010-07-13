@@ -277,6 +277,14 @@ bg_cfg_section_t * bg_cfg_section_copy(const bg_cfg_section_t * src);
 void bg_cfg_section_transfer(bg_cfg_section_t * src, bg_cfg_section_t * dst);
 
 /** \ingroup cfg_section
+ *  \brief Like \ref bg_cfg_section_transfer but acts only on the subsections
+ *  \param src Source section
+ *  \param dst Destination section
+ */
+
+void bg_cfg_section_transfer_children(bg_cfg_section_t * src, bg_cfg_section_t * dst);
+
+/** \ingroup cfg_section
  *  \brief Insert a reference to a section as child
  *  \param src s
  *  \param dst Child section to be added as reference
