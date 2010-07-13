@@ -23,7 +23,9 @@ typedef struct bg_gtk_preset_menu_s bg_gtk_preset_menu_t;
 
 bg_gtk_preset_menu_t * bg_gtk_preset_menu_create(const char * preset_path,
                                                  bg_cfg_section_t * s,
-                                                 void (*cb)(void *), void * cb_data);
+                                                 void (*load_cb)(void *),
+                                                 void (*save_cb)(void *), 
+                                                 void * cb_data);
 
 void bg_gtk_preset_menu_destroy(bg_gtk_preset_menu_t *);
 

@@ -35,13 +35,6 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "preset"
 
-static int compare_func(const void * p1, const void * p2)
-  {
-  const bg_preset_t * preset1 = p1;
-  const bg_preset_t * preset2 = p2;
-  return strcmp(preset1->name, preset2->name);
-  }
-
 static bg_preset_t *
 append_to_list(bg_preset_t * list, bg_preset_t * p)
   {
@@ -140,7 +133,12 @@ load_presets(const char * directory, bg_preset_t * ret, int private)
   return ret;
   }
 
-
+static int compare_func(const void * p1, const void * p2)
+  {
+  const bg_preset_t ** preset1 = p1;
+  const bg_preset_t ** preset2 = p2;
+  return strcmp((*preset1)->name, (*preset2)->name);
+  }
 
 static bg_preset_t * sort_presets(bg_preset_t * p)
   {

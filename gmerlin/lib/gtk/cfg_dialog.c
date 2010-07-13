@@ -51,7 +51,7 @@ typedef struct dialog_section_s
 
   const bg_parameter_info_t * infos;
   bg_cfg_section_t * cfg_section;
-
+  
   /* Dialog sections can be nested */
   struct dialog_section_s ** children;
   int num_children;
@@ -62,6 +62,7 @@ typedef struct dialog_section_s
   int notebook_index;
 
   bg_gtk_preset_menu_t * preset_menu;
+  bg_cfg_section_t * preset_section;
   } dialog_section_t;
 
 struct bg_dialog_s
@@ -249,14 +250,14 @@ static void reset_section(dialog_section_t * s)
     reset_section(s->children[i]);
   }
 
-static void restore_section(dialog_section_t * s)
+static void restore_section(dialog_section_t * s, bg_cfg_section_t * cfg_section)
   {
   int i;
   bg_parameter_value_t val;
   char * pos;
   int set_param = 0;
 
-  if(!s->cfg_section)
+  if(!cfg_section)
     return;
   
   for(i = 0; i < s->num_widgets; i++)
@@ -264,13 +265,9 @@ static void restore_section(dialog_section_t * s)
     if(!s->widgets[i].funcs->get_value)
       continue;
 
-    bg_cfg_section_get_parameter(s->cfg_section,
+    bg_cfg_section_get_parameter(cfg_section,
                                  s->widgets[i].info,
                                  &s->widgets[i].value);
-    
-    bg_parameter_value_copy(&s->widgets[i].value,
-                            &s->widgets[i].info->val_default,
-                            s->widgets[i].info);
     
     s->widgets[i].funcs->get_value(&s->widgets[i]);
     
@@ -552,12 +549,17 @@ static bg_dialog_t * create_dialog(const char * title)
 static void restore_button_callback(GtkWidget * w, gpointer data)
   {
   dialog_section_t * section = data;
+  bg_cfg_section_t * tmp_section;
+
   //  fprintf(stderr, "Restore factory defaults %p\n", section);
+
+  tmp_section = bg_cfg_section_copy(section->cfg_section);
   
-  bg_cfg_section_restore_defaults(section->cfg_section,
+  bg_cfg_section_restore_defaults(tmp_section,
                                   section->widgets[0].info);
-                                  
-  restore_section(section);
+  
+  restore_section(section, tmp_section);
+  bg_cfg_section_destroy(tmp_section);
   }
 
 static GtkWidget * create_restore_button(dialog_section_t * section)
@@ -588,9 +590,54 @@ static GtkWidget * create_restore_button(dialog_section_t * section)
   return button;
   }
 
-static void preset_callback(void * data)
+static void preset_load_callback(void * data)
   {
-  fprintf(stderr, "Preset callback");
+  dialog_section_t * s = data;
+  fprintf(stderr, "Preset load callback\n");
+  restore_section(s, s->preset_section);
+  }
+
+static void preset_save_callback(void * data)
+  {
+  dialog_section_t * s = data;
+  int i, j;
+  
+  fprintf(stderr, "Preset save callback\n");
+  //  restore_section(section);
+
+  for(i = 0; i < s->num_widgets; i++)
+    {
+    if(!s->widgets[i].funcs->set_value)
+      continue;
+    
+    s->widgets[i].funcs->set_value(&s->widgets[i]);
+    
+    bg_cfg_section_set_parameter(s->preset_section,
+                                 s->widgets[i].info,
+                                 &s->widgets[i].value);
+
+    if(s->widgets[i].info->multi_parameters)
+      {
+      bg_cfg_section_t * src1, * src2;
+      bg_cfg_section_t * dst1, * dst2;
+      
+      src1 = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
+      dst1 = bg_cfg_section_find_subsection(s->preset_section, s->widgets[i].info->name);
+
+      j = 0;
+
+      while(s->widgets[i].info->multi_names[j])
+        {
+        if(!s->widgets[i].info->multi_parameters[j])
+          continue;
+          
+        src2 = bg_cfg_section_find_subsection(src1, s->widgets[i].info->multi_names[j]);
+        dst2 = bg_cfg_section_find_subsection(dst1, s->widgets[i].info->multi_names[j]);
+        bg_cfg_section_transfer(src2, dst2);
+        j++;
+        }
+      }
+    }
   }
 
 static GtkWidget * create_section(dialog_section_t * section,
@@ -846,11 +893,13 @@ static GtkWidget * create_section(dialog_section_t * section,
     action_box = gtk_hbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(action_box), restore_button, FALSE, FALSE, 0);
 
-    if(info[0].preset_path)
+    if(info[0].preset_path && section->cfg_section)
       {
+      section->preset_section = bg_cfg_section_copy(section->cfg_section);
       section->preset_menu = bg_gtk_preset_menu_create(info[0].preset_path,
-                                                       section->cfg_section,
-                                                       preset_callback,
+                                                       section->preset_section,
+                                                       preset_load_callback,
+                                                       preset_save_callback,
                                                        section);
       gtk_box_pack_start(GTK_BOX(action_box),
                          bg_gtk_preset_menu_get_widget(section->preset_menu),
@@ -1170,6 +1219,11 @@ static void destroy_section(dialog_section_t * s)
       }
     free(s->children);
     }
+
+  if(s->preset_menu)
+    bg_gtk_preset_menu_destroy(s->preset_menu);
+  if(s->preset_section)
+    bg_cfg_section_destroy(s->preset_section);
   }
 
 void bg_dialog_destroy(bg_dialog_t * d)

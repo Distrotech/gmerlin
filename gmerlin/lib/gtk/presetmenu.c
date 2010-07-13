@@ -48,8 +48,9 @@ struct bg_gtk_preset_menu_s
   bg_preset_t * presets;
   char * path;
 
-  void (*callback)(void*);
-  void * callback_data;
+  void (*load_cb)(void*);
+  void (*save_cb)(void*);
+  void * cb_data;
 
   char * preset_name;
 
@@ -130,12 +131,16 @@ static void menu_callback(GtkWidget * w, gpointer data)
     bg_parameter_info_t pi[2];
     bg_dialog_t * dlg;
     
+    if(menu->save_cb)
+      menu->save_cb(menu->cb_data);
+    
     memset(pi, 0, sizeof(pi));
     pi[0].name = "name";
     pi[0].long_name = TR("Name");
     pi[0].type = BG_PARAMETER_STRING;
     pi[0].val_default.val_str = TR("New preset");
 
+    
     dlg = bg_dialog_create(NULL,
                            set_name_parameter,
                            NULL,
@@ -156,6 +161,39 @@ static void menu_callback(GtkWidget * w, gpointer data)
       {
       fprintf(stderr, "Not saving preset %s\n", menu->preset_name);
       }
+    }
+  else
+    {
+    int index = -1, i;
+    bg_preset_t * p;
+    bg_cfg_section_t * preset_section;
+    
+    for(i = 0; i < menu->num_preset_items; i++)
+      {
+      if(w == menu->preset_items[i])
+        {
+        index = i;
+        break;
+        }
+      }
+
+    if(index < 0)
+      return;
+    
+    p = menu->presets;
+    
+    for(i = 0; i < index; i++)
+      p = p->next;
+
+    fprintf(stderr, "Loading preset %s\n", p->name);
+
+    preset_section = bg_preset_load(p);
+    
+    bg_cfg_section_transfer(preset_section, menu->section);
+    if(menu->load_cb)
+      menu->load_cb(menu->cb_data);
+
+    bg_cfg_section_destroy(preset_section);
     }
   }
 
@@ -195,12 +233,18 @@ create_item(bg_gtk_preset_menu_t * w, GtkWidget * parent,
 bg_gtk_preset_menu_t *
 bg_gtk_preset_menu_create(const char * preset_path,
                           bg_cfg_section_t * s,
-                          void (*cb)(void *), void * cb_data)
+                          void (*load_cb)(void *),
+                          void (*save_cb)(void *), 
+                          void * cb_data)
   {
   GtkWidget * item;
   
   bg_gtk_preset_menu_t * ret = calloc(1, sizeof(*ret));
 
+  ret->load_cb = load_cb;
+  ret->save_cb = save_cb;
+  ret->cb_data = cb_data;
+  
   ret->path = bg_strdup(ret->path, preset_path);
   ret->presets = bg_presets_load(ret->path);
   ret->section = s;
@@ -231,6 +275,10 @@ void bg_gtk_preset_menu_destroy(bg_gtk_preset_menu_t * m)
   {
   if(m->preset_items)
     free(m->preset_items);
+  if(m->preset_name)
+    free(m->preset_name);
+  if(m->path)
+    free(m->path);
   free(m);
   }
 
