@@ -252,7 +252,7 @@ static void reset_section(dialog_section_t * s)
 
 static void restore_section(dialog_section_t * s, bg_cfg_section_t * cfg_section)
   {
-  int i;
+  int i, j;
   bg_parameter_value_t val;
   char * pos;
   int set_param = 0;
@@ -290,6 +290,34 @@ static void restore_section(dialog_section_t * s, bg_cfg_section_t * cfg_section
         s->set_param(s->callback_data, s->widgets[i].info->name,
                      &s->widgets[i].value);
       }
+
+    /* Copy subsections */
+
+    if(s->widgets[i].info->multi_parameters)
+      {
+      bg_cfg_section_t * src1, * src2;
+      bg_cfg_section_t * dst1, * dst2;
+      
+      dst1 = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
+      src1 = bg_cfg_section_find_subsection(cfg_section, s->widgets[i].info->name);
+
+      j = 0;
+
+      while(s->widgets[i].info->multi_names[j])
+        {
+        if(!s->widgets[i].info->multi_parameters[j])
+          {
+          j++;
+          continue;
+          }
+        src2 = bg_cfg_section_find_subsection(src1, s->widgets[i].info->multi_names[j]);
+        dst2 = bg_cfg_section_find_subsection(dst1, s->widgets[i].info->multi_names[j]);
+        bg_cfg_section_transfer(src2, dst2);
+        j++;
+        }
+      }
+
+    
     }
   
   if(set_param)
@@ -629,8 +657,10 @@ static void preset_save_callback(void * data)
       while(s->widgets[i].info->multi_names[j])
         {
         if(!s->widgets[i].info->multi_parameters[j])
+          {
+          j++;
           continue;
-          
+          }
         src2 = bg_cfg_section_find_subsection(src1, s->widgets[i].info->multi_names[j]);
         dst2 = bg_cfg_section_find_subsection(dst1, s->widgets[i].info->multi_names[j]);
         bg_cfg_section_transfer(src2, dst2);
@@ -893,7 +923,7 @@ static GtkWidget * create_section(dialog_section_t * section,
     action_box = gtk_hbox_new(FALSE, 0);
     gtk_box_pack_start(GTK_BOX(action_box), restore_button, FALSE, FALSE, 0);
 
-    if(info[0].preset_path && section->cfg_section)
+    if(info[0].preset_path || (section->num_widgets && section->widgets[0].info->preset_path))
       {
       section->preset_section = bg_cfg_section_copy(section->cfg_section);
       section->preset_menu = bg_gtk_preset_menu_create(info[0].preset_path,

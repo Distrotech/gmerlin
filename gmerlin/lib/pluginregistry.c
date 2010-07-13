@@ -1991,9 +1991,9 @@ int bg_plugin_registry_get_encode_pp(bg_plugin_registry_t * reg)
 
 static const bg_parameter_info_t encoder_section_general =
   {
-    .name      = "$general",
-    .long_name = TRS("General"),
-    .type      = BG_PARAMETER_SECTION,
+    .name        = "$general",
+    .long_name   = TRS("General"),
+    .type        = BG_PARAMETER_SECTION,
   };
 
 static const bg_parameter_info_t encoder_section_audio =
@@ -2566,6 +2566,11 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
 
     i++;
     }
+
+  /* Set preset path */
+  
+  ret[0].preset_path = bg_strdup(NULL, "encoders");
+  
   return ret;
   }
 

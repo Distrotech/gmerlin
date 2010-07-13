@@ -195,6 +195,7 @@ static void create_audio_parameters(bg_audio_filter_chain_t * ch)
   ch->parameters = calloc(2, sizeof(*ch->parameters));
   ch->parameters->name      = bg_strdup(NULL, "audio_filters");
   ch->parameters->long_name = bg_strdup(NULL, TRS("Audio Filters"));
+  ch->parameters->preset_path = bg_strdup(NULL, "audiofilters");
   ch->parameters->gettext_domain = bg_strdup(NULL, PACKAGE);
   ch->parameters->gettext_directory = bg_strdup(NULL, LOCALE_DIR);
   ch->parameters->type = BG_PARAMETER_MULTI_CHAIN;
@@ -622,6 +623,7 @@ static void create_video_parameters(bg_video_filter_chain_t * ch)
   ch->parameters = calloc(2, sizeof(*ch->parameters));
   ch->parameters->name      = bg_strdup(NULL, "video_filters");
   ch->parameters->long_name = bg_strdup(NULL, TRS("Video Filters"));
+  ch->parameters->preset_path = bg_strdup(NULL, "videofilters");
   ch->parameters->gettext_domain = bg_strdup(NULL, PACKAGE);
   ch->parameters->gettext_directory = bg_strdup(NULL, LOCALE_DIR);
   ch->parameters->type = BG_PARAMETER_MULTI_CHAIN;
