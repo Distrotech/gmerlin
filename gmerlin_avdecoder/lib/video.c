@@ -76,9 +76,6 @@ int bgav_video_start(bgav_stream_t * s)
       return 0;
       }
     
-    /* Set the format, as far as known by the demuxer */
-    // bgav_video_parser_set_format(parser, &s->data.video.format);
-    
     /* Get the first packet to garantuee that the parser is fully initialized */
     if(!bgav_stream_peek_packet_read(s, 1))
       {

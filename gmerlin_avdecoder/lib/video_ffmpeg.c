@@ -1018,6 +1018,9 @@ static void close_ffmpeg(bgav_stream_t * s)
   if(priv->swsContext)
     sws_freeContext(priv->swsContext);
 #endif
+  if(priv->packet)
+    bgav_stream_done_packet_read(s, priv->packet);
+  
   free(priv->frame);
   free(priv);
   }
@@ -1655,7 +1658,6 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '8', '0'),
                     0x00 } },
 #endif
-
     
   };
 

@@ -1127,6 +1127,7 @@ int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
       }
     }
   bgav_input_close(input_mem);
+  bgav_input_destroy(input_mem);
   return 1;
   }
 
@@ -1154,11 +1155,18 @@ int bgav_mkv_block_read(bgav_input_context_t * ctx,
                          bgav_mkv_element_t * parent)
   {
   uint8_t tmp_8;
+  int data_alloc_save;
+  uint8_t * data_save;
   int64_t pos = ctx->position;
 
+  data_alloc_save = ret->data_alloc;
+  data_save = ret->data;
+  
   memset(ret, 0, sizeof(*ret));
 
-  //  fprintf(stderr, "Read block\n");
+  ret->data_alloc = data_alloc_save;
+  ret->data       = data_save;
+  
   //  bgav_mkv_element_dump(parent);
   
   /* It's no size but has the same encoding */

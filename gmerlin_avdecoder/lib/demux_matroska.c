@@ -94,6 +94,7 @@ static int probe_matroska(bgav_input_context_t * input)
   
   bgav_mkv_ebml_header_free(&h);
   bgav_input_close(input_mem);
+  bgav_input_destroy(input_mem);
   return ret;
   }
 
@@ -658,6 +659,9 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     ctx->stream_description = bgav_sprintf("Matroska (version %d)", p->ebml_header.DocTypeVersion);
   else if(!strcmp(p->ebml_header.DocType, "webm"))
     ctx->stream_description = bgav_sprintf("Matroska (webm)");
+
+  bgav_input_close(input_mem);
+  bgav_input_destroy(input_mem);
   
   return 1;
   }
@@ -802,7 +806,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         m->lace_sizes_alloc = b->num_laces + 16;
         m->lace_sizes = realloc(m->lace_sizes,
                                 m->lace_sizes_alloc *
-                                sizeof(m->lace_sizes));
+                                sizeof(*m->lace_sizes));
         }
       /* First lace */
       ptr = b->data;
@@ -854,7 +858,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         m->lace_sizes_alloc = b->num_laces + 16;
         m->lace_sizes = realloc(m->lace_sizes,
                                 m->lace_sizes_alloc *
-                                sizeof(m->lace_sizes));
+                                sizeof(*m->lace_sizes));
         }
       
       ptr = b->data;
@@ -1006,6 +1010,8 @@ static void close_matroska(bgav_demuxer_context_t * ctx)
 
   bgav_mkv_cluster_free(&priv->cluster);
 
+  bgav_mkv_block_group_free(&priv->bg);
+  
   if(priv->lace_sizes)
     free(priv->lace_sizes);
   

@@ -111,7 +111,6 @@ static void set_pts(bgav_packet_timer_t * pt,
 
 static void flush_pts_from_dts(bgav_packet_timer_t * pt)
   {
-  // TODO
   if(pt->num_packets)
     {
     bgav_packet_t * last_packet = pt->packets[pt->num_packets-1];
@@ -346,8 +345,10 @@ static bgav_packet_t * peek_func(void * pt1, int force)
   bgav_packet_timer_t * pt = pt1;
   
   if(pt->out_packet)
+    {
+    fprintf(stderr, "peek func %p\n", pt->out_packet);
     return pt->out_packet;
-  
+    }
   while(!have_frame(pt))
     {
     if(!get_packet(pt, force))
@@ -358,6 +359,9 @@ static bgav_packet_t * peek_func(void * pt1, int force)
     return NULL;
   
   pt->out_packet = remove_packet(pt);
+
+  fprintf(stderr, "peek func %p\n", pt->out_packet);
+
   return pt->out_packet;
   }
 
@@ -431,6 +435,13 @@ bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s)
 
 void bgav_packet_timer_destroy(bgav_packet_timer_t * pt)
   {
+  int i;
+  for(i = 0; i < pt->num_packets; i++)
+    bgav_packet_pool_put(pt->s->pp, pt->packets[i]);
+
+  if(pt->out_packet)
+    bgav_packet_pool_put(pt->s->pp, pt->out_packet);
+  
   free(pt);
   }
 

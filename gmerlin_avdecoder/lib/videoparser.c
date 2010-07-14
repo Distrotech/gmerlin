@@ -285,7 +285,9 @@ void bgav_video_parser_destroy(bgav_video_parser_t * parser)
     parser->cleanup(parser);
   if(parser->packets)
     free(parser->packets);
-
+  if(parser->out_packet)
+    bgav_packet_pool_put(parser->s->pp, parser->out_packet);
+    
   bgav_bytebuffer_free(&parser->buf);
   free(parser);
   }

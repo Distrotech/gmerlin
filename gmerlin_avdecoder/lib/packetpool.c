@@ -58,7 +58,6 @@ void bgav_packet_pool_put(bgav_packet_pool_t * pp,
   bgav_packet_t * tmp;
   tmp = pp->packets;
 
-  fprintf(stderr, "bgav_packet_pool_put: %p\n", p);
   
   while(tmp)
     {

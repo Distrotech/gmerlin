@@ -817,10 +817,12 @@ void bgav_track_get_compression(bgav_track_t * t)
     {
     s = &t->audio_streams[i];
     s->action = BGAV_STREAM_MUTE;
+    bgav_stream_stop(s);
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
     s->action = BGAV_STREAM_MUTE;
+    bgav_stream_stop(s);
     }
   }
