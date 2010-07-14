@@ -175,6 +175,8 @@ bg_recorder_set_audio_filter_parameter(void * data,
       bg_recorder_resume(rec);
     return;
     }
+  bg_recorder_interrupt(rec);
+  
   bg_audio_filter_chain_lock(as->fc);
   bg_audio_filter_chain_set_parameter(as->fc, name, val);
   
@@ -185,10 +187,6 @@ bg_recorder_set_audio_filter_parameter(void * data,
     need_restart = 0;
 
   bg_audio_filter_chain_unlock(as->fc);
-
-  if(need_restart)
-    bg_recorder_interrupt(rec);
-  
   }
 
 void * bg_recorder_audio_thread(void * data)
