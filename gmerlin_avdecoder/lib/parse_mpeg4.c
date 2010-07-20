@@ -452,7 +452,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           PACKET_SET_CODING_TYPE(p, vh.coding_type);
           data += result;
           
-          if(priv->packed_b_frames && p->header_size)
+          if(p->header_size && priv->packed_b_frames)
             bgav_mpeg4_remove_packed_flag(p->data, &p->data_size, &p->header_size);
           num_pictures++;
           }
