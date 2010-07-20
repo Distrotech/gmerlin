@@ -364,3 +364,50 @@ void gavl_audio_frame_get_subframe(const gavl_audio_format_t * format,
     }
   dst->valid_samples = len;
   }
+
+int gavl_audio_frames_equal(const gavl_audio_format_t * format,
+                            const gavl_audio_frame_t * f1,
+                            const gavl_audio_frame_t * f2)
+  {
+  int i;
+  int bytes;
+
+  if(f1->valid_samples != f2->valid_samples)
+    return 0;
+  
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_ALL:
+      bytes = f1->valid_samples * format->num_channels *
+        gavl_bytes_per_sample(format->sample_format);
+      if(memcmp(f1->samples.s_8, f2->samples.s_8, bytes))
+        return 0;
+      break;
+    case GAVL_INTERLEAVE_2:
+      bytes = f1->valid_samples * 2 *
+        gavl_bytes_per_sample(format->sample_format);
+
+      for(i = 0; i < format->num_channels/2; i++)
+        {
+        if(memcmp(f1->channels.s_8[i*2], f2->channels.s_8[i*2], bytes))
+          return 0;
+        }
+      if(format->num_channels % 2)
+        {
+        if(memcmp(f1->channels.s_8[format->num_channels-1],
+                  f2->channels.s_8[format->num_channels-1], bytes/2))
+          return 0;
+        }
+      break;
+    case GAVL_INTERLEAVE_NONE:
+      bytes = f1->valid_samples *
+        gavl_bytes_per_sample(format->sample_format);
+      for(i = 0; i < format->num_channels/2; i++)
+        {
+        if(memcmp(f1->channels.s_8[i], f2->channels.s_8[i], bytes))
+          return 0;
+        }
+      break;
+    }
+  return 1;
+  }

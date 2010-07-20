@@ -1760,3 +1760,39 @@ void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
     }
   
   }
+
+int gavl_video_frames_equal(const gavl_video_format_t * format,
+                            const gavl_video_frame_t * f1,
+                            const gavl_video_frame_t * f2)
+  {
+  int i, j;
+  int height;
+  int bytes_per_line;
+  int sub_h, sub_v;
+  int planes;
+  
+  planes = gavl_pixelformat_num_planes(format->pixelformat);
+  height = format->image_height;
+    
+  bytes_per_line = gavl_pixelformat_is_planar(format->pixelformat) ?
+    format->image_width * gavl_pixelformat_bytes_per_component(format->pixelformat) :
+    format->image_width * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
+  
+  for(i = 0; i < planes; i++)
+    {
+    if(i == 1)
+      {
+      gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+      bytes_per_line /= sub_h;
+      height /= sub_v;
+      }
+
+    for(j = 0; j < height; j++)
+      {
+      if(memcmp(f1->planes[i] + j * f1->strides[i],
+                f2->planes[i] + j * f2->strides[i], bytes_per_line))
+        return 0;
+      }
+    }
+  return 1;
+  }

@@ -673,6 +673,23 @@ void gavl_audio_frame_get_subframe(const gavl_audio_format_t * format,
                                    gavl_audio_frame_t * src,
                                    gavl_audio_frame_t * dst,
                                    int start, int len);
+
+/*!
+  \ingroup audio_frame
+  \brief Check if 2 audio frames are bit-identical
+  \param format Format
+  \param f1 First frame
+  \param f2 Second frame
+  \returns 1 if the frames are equal, 0 else
+  
+  Since 1.2.0
+*/
+
+  
+GAVL_PUBLIC
+int gavl_audio_frames_equal(const gavl_audio_format_t * format,
+                            const gavl_audio_frame_t * f1,
+                            const gavl_audio_frame_t * f2);
   
 /** \defgroup audio_options Audio conversion options
     \ingroup audio
@@ -2604,6 +2621,21 @@ int gavl_video_frame_insert_channel(const gavl_video_format_t * format,
                                     gavl_video_frame_t * dst);
   
   
+/*!
+  \ingroup video_frame
+  \brief Check if 2 video frames are bit-identical
+  \param format Format
+  \param f1 First frame
+  \param f2 Second frame
+  \returns 1 if the frames are equal, 0 else
+  
+  Since 1.2.0
+*/
+
+GAVL_PUBLIC
+int gavl_video_frames_equal(const gavl_video_format_t * format,
+                             const gavl_video_frame_t * f1,
+                             const gavl_video_frame_t * f2);
 
   
 /*****************************
