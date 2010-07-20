@@ -419,7 +419,19 @@ int bgav_video_parser_parse_frame(bgav_video_parser_t * parser,
   {
   if(!parser->parse_frame)
     return PARSER_ERROR;
+
+#ifdef DUMP_INPUT
+  bgav_dprintf("Parse frame input :");
+  bgav_packet_dump(p);
+#endif
+  
   parser->parse_frame(parser, p);
+
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Parse frame output:");
+  bgav_packet_dump(p);
+#endif
+  
   return PARSER_HAVE_PACKET;
   }
 
@@ -794,10 +806,7 @@ bgav_video_parser_get_packet_parse_frame(void * parser1)
   
   if(bgav_video_parser_parse_frame(parser, ret) == PARSER_ERROR)
     return NULL;
-  
-  bgav_video_parser_parse_frame(parser, ret);
   return ret;
-  
   }
 
 bgav_packet_t *

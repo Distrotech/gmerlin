@@ -128,6 +128,29 @@ void bgav_packet_dump(bgav_packet_t * p)
   //  bgav_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);
   }
 
+void bgav_packet_dump_data(bgav_packet_t * p, int bytes)
+  {
+  if(bytes > p->data_size)
+    bytes = p->data_size;
+  bgav_hexdump(p->data, bytes, 16);
+  }
+
+#define SWAP(n1, n2) \
+  swp = n1; n1 = n2; n2 = swp;
+
+void bgav_packet_swap_data(bgav_packet_t * p1, bgav_packet_t * p2)
+  {
+  uint8_t * swp_ptr;
+  int64_t swp;
+  
+  swp_ptr = p1->data;
+  p1->data = p2->data;
+  p2->data = swp_ptr;
+  
+  SWAP(p1->data_size, p2->data_size);
+  SWAP(p1->data_alloc, p2->data_alloc);
+  }
+
 #if 0
 void bgav_packet_get_text_subtitle(bgav_packet_t * p,
                                    char ** text,

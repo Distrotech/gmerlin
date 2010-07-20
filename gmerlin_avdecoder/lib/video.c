@@ -26,6 +26,7 @@
 #include <avdec_private.h>
 #include <parser.h>
 #include <bsf.h>
+#include <mpeg4_header.h>
 
 // #define DUMP_TIMESTAMPS
 
@@ -768,6 +769,10 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     info->global_header = malloc(s->ext_size);
     memcpy(info->global_header, s->ext_data, s->ext_size);
     info->global_header_len = s->ext_size;
+    if(bgav_video_is_divx4(s->fourcc))
+      bgav_mpeg4_remove_packed_flag(info->global_header,
+                                    &info->global_header_len,
+                                    &info->global_header_len);
     }
 
   if(need_bitrate)

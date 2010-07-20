@@ -23,6 +23,7 @@
 
 #include <avdec_private.h>
 #include <mpeg4_header.h>
+#include <mpv_header.h>
 #include <bitstream.h>
 
 /* log2 ripped from ffmpeg (maybe move to central place?) */
@@ -274,5 +275,60 @@ void bgav_mpeg4_vop_header_dump(bgav_mpeg4_vop_header_t * h)
   bgav_dprintf("  modulo_time_base: %d\n", h->modulo_time_base); 
   bgav_dprintf("  time_increment:   %d\n", h->time_increment);
   bgav_dprintf("  vop_coded:        %d\n", h->vop_coded);
+  
+  }
+
+static void remove_byte(uint8_t * data, int byte, int * len, int * header_end)
+  {
+  /* Byte if the last one */
+  if(byte < *len - 1)
+    memmove(data + byte, data + byte + 1, *len - 1 - byte);
+  
+  (*len)--;
+
+  if(len != header_end)
+    (*header_end)--;
+  }
+
+void bgav_mpeg4_remove_packed_flag(uint8_t * data, int * len, int * header_len)
+  {
+  const uint8_t * sc2;
+  uint8_t * hend = data + *header_len;
+  uint8_t * dend = data + *len;
+  const uint8_t * pos = data;
+  int userdata_size;
+  
+  while(pos < hend)
+    {
+    pos = bgav_mpv_find_startcode(pos, dend);
+    if(!pos)
+      break;
+    
+    switch(bgav_mpeg4_get_start_code(pos))
+      {
+      case MPEG4_CODE_USER_DATA:
+        pos += 4;
+        sc2 = bgav_mpv_find_startcode(pos, dend);
+        if(sc2)
+          userdata_size = sc2 - pos;
+        else
+          userdata_size = dend - pos;
+
+        if(userdata_size < 4)
+          break;
+        
+        if(strncasecmp((char*)pos, "divx", 4))
+          break;
+
+        if(pos[userdata_size-1] == 'p')
+          remove_byte(data, pos - data + userdata_size - 1, len, header_len);
+        pos += userdata_size - 1;
+        break;
+      default:
+        pos += 4;
+        break;
+      }
+      
+    }
   
   }

@@ -267,6 +267,9 @@ bgav_packet_t * bgav_packet_create();
 void bgav_packet_destroy(bgav_packet_t*);
 void bgav_packet_alloc(bgav_packet_t*, int size);
 void bgav_packet_dump(bgav_packet_t*);
+void bgav_packet_dump_data(bgav_packet_t * p, int bytes);
+void bgav_packet_swap_data(bgav_packet_t * p1, bgav_packet_t * p2);
+
 void bgav_packet_pad(bgav_packet_t * p);
 void bgav_packet_reset(bgav_packet_t * p);
 

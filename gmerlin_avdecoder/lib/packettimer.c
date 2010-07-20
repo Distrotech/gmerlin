@@ -346,7 +346,6 @@ static bgav_packet_t * peek_func(void * pt1, int force)
   
   if(pt->out_packet)
     {
-    fprintf(stderr, "peek func %p\n", pt->out_packet);
     return pt->out_packet;
     }
   while(!have_frame(pt))
@@ -359,9 +358,6 @@ static bgav_packet_t * peek_func(void * pt1, int force)
     return NULL;
   
   pt->out_packet = remove_packet(pt);
-
-  fprintf(stderr, "peek func %p\n", pt->out_packet);
-
   return pt->out_packet;
   }
 

@@ -44,6 +44,7 @@
 #endif
 
 #include <dvframe.h>
+#include <mpeg4_header.h>
 
 #ifdef HAVE_LIBPOSTPROC
 #include POSTPROC_HEADER
@@ -808,6 +809,9 @@ static int init_ffmpeg(bgav_stream_t * s)
     memcpy(priv->extradata, s->ext_data, s->ext_size);
     priv->extradata_size = s->ext_size;
 
+    if(bgav_video_is_divx4(s->fourcc))
+      bgav_mpeg4_remove_packed_flag(priv->extradata, &priv->extradata_size, &priv->extradata_size);
+    
     priv->ctx->extradata      = priv->extradata;
     priv->ctx->extradata_size = priv->extradata_size;
     

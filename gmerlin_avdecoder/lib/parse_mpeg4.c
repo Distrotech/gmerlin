@@ -54,12 +54,16 @@ typedef struct
   int user_data_size;
 
   /* Save frames for packed B-frames */
+
+  bgav_packet_t * saved_packet;
+
+#if 0  
   uint8_t * saved_frame;
   int saved_frame_alloc;
   int saved_frame_size;
   int saved_frame_type;
   int saved_frame_pos;
-  
+#endif
   int packed_b_frames;
   } mpeg4_priv_t;
 
@@ -87,7 +91,7 @@ static void reset_mpeg4(bgav_video_parser_t * parser)
   mpeg4_priv_t * priv = parser->priv;
   priv->state = MPEG4_NEED_SYNC;
   priv->has_picture_start = 0;
-  priv->saved_frame_size = 0;
+  priv->saved_packet->data_size = 0;
   }
 
 static int extract_user_data(bgav_video_parser_t * parser,
@@ -340,6 +344,9 @@ static void set_header_end(bgav_video_parser_t * parser, bgav_packet_t * p,
   p->header_size = pos;
   }
 
+#define SWAP(n1, n2) \
+  swp = n1; n1 = n2; n2 = swp;
+
 static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
   mpeg4_priv_t * priv = parser->priv;
@@ -388,7 +395,6 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           data += 4;
         break;
       case MPEG4_CODE_VOP_START:
-        set_header_end(parser, p, data - p->data);
         result = bgav_mpeg4_vop_header_read(parser->opt,
                                             &vh, data, data_end-data,
                                             &priv->vol);
@@ -398,45 +404,60 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
         bgav_mpeg4_vop_header_dump(&vh);
 #endif
 
-        /* save this frame for later use */
-        if(priv->packed_b_frames && (num_pictures == 1))
+        /* Check whether to copy a saved frame back */
+        if(priv->saved_packet->data_size)
           {
-          priv->saved_frame_size = data_end - data;
-          
-          if(priv->saved_frame_alloc < priv->saved_frame_size)
+          if(!vh.vop_coded)
             {
-            priv->saved_frame_alloc = priv->saved_frame_size + 128;
-            priv->saved_frame = realloc(priv->saved_frame,
-                                        priv->saved_frame_alloc);
+            /* Copy stuff back, overwriting the packet */
+            bgav_packet_alloc(p, priv->saved_packet->data_size);
+            memcpy(p->data, priv->saved_packet->data,
+                   priv->saved_packet->data_size);
+            p->data_size = priv->saved_packet->data_size;
+            priv->saved_packet->data_size = 0;
+            p->flags = priv->saved_packet->flags;
+            p->position = priv->saved_packet->position;
             }
-          memcpy(priv->saved_frame, data,
-                 priv->saved_frame_size);
-          priv->saved_frame_type = vh.coding_type;
-          priv->saved_frame_pos = p->position;
+          else
+            {
+            int64_t swp;
+            /* Output saved frame but save this one */
+            bgav_packet_swap_data(priv->saved_packet, p);
+            p->flags = priv->saved_packet->flags;
+            SWAP(priv->saved_packet->position, p->position);
+            PACKET_SET_CODING_TYPE(priv->saved_packet, vh.coding_type);
+            
+            }
           done = 1;
           }
-        else if(priv->packed_b_frames && !vh.vop_coded &&
-                priv->saved_frame_size)
+        /* save this frame for later use */
+        else if(priv->packed_b_frames && (num_pictures == 1))
           {
-          /* Copy saved frame back */
-          bgav_packet_alloc(p, priv->saved_frame_size);
-          memcpy(p->data, priv->saved_frame, priv->saved_frame_size);
-          p->data_size = priv->saved_frame_size;
-          priv->saved_frame_size = 0;
-          PACKET_SET_CODING_TYPE(p, priv->saved_frame_type);
-          p->position = priv->saved_frame_pos;
+          bgav_packet_reset(priv->saved_packet);
+          priv->saved_packet->data_size = data_end - data;
+          bgav_packet_alloc(priv->saved_packet,
+                            priv->saved_packet->data_size);
+          memcpy(priv->saved_packet->data, data,
+                 priv->saved_packet->data_size);
+          PACKET_SET_CODING_TYPE(priv->saved_packet, vh.coding_type);
+          priv->saved_packet->position = p->position;
+          p->data_size -= priv->saved_packet->data_size;
           done = 1;
+          num_pictures++;
           }
         else
           {
+          set_header_end(parser, p, data - p->data);
+          
           PACKET_SET_CODING_TYPE(p, vh.coding_type);
           data += result;
-
+          
+          if(priv->packed_b_frames && p->header_size)
+            bgav_mpeg4_remove_packed_flag(p->data, &p->data_size, &p->header_size);
           num_pictures++;
-
-          if(!priv->packed_b_frames || (num_pictures == 2))
-            done = 1;
           }
+        if(!priv->packed_b_frames || (num_pictures == 2))
+          done = 1;
         break;
       case MPEG4_CODE_GOV_START:
         set_header_end(parser, p, data - p->data);
@@ -445,6 +466,9 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
       case MPEG4_CODE_USER_DATA:
         result = extract_user_data(parser, data, data_end);
         data += result;
+        break;
+      default:
+        data += 4;
         break;
       }
     }
@@ -456,8 +480,8 @@ static void cleanup_mpeg4(bgav_video_parser_t * parser)
   mpeg4_priv_t * priv = parser->priv;
   if(priv->user_data)
     free(priv->user_data);
-  if(priv->saved_frame)
-    free(priv->saved_frame);
+  if(priv->saved_packet)
+    bgav_packet_destroy(priv->saved_packet);
   free(parser->priv);
   }
 
@@ -468,7 +492,8 @@ void bgav_video_parser_init_mpeg4(bgav_video_parser_t * parser)
   priv = calloc(1, sizeof(*priv));
   
   parser->priv = priv;
-
+  priv->saved_packet = bgav_packet_create();
+  
   if(parser->s->ext_data)
     parse_header_mpeg4(parser);
   
