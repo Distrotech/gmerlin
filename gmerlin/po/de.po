@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-02-26 21:32+0100\n"
+"POT-Creation-Date: 2010-07-20 18:04+0200\n"
 "PO-Revision-Date: 2009-12-19 00:17+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -89,8 +89,8 @@ msgstr "Bits"
 msgid "Samplerate [Hz]"
 msgstr "Abtastrate [Hz]"
 
-#: plugins/pulseaudio/i_pulse.c:93 plugins/cdaudio/i_cdaudio.c:583
-#: plugins/cdaudio/i_cdaudio.c:625
+#: plugins/pulseaudio/i_pulse.c:93 plugins/cdaudio/i_cdaudio.c:584
+#: plugins/cdaudio/i_cdaudio.c:626
 msgid "Server"
 msgstr "Server"
 
@@ -117,7 +117,7 @@ msgstr ""
 "herbekommen."
 
 #: plugins/subwriters/e_subtext.c:243 plugins/image/iw_pnm.c:166
-#: plugins/postprocessors/e_pp_vcdimager.c:110 plugins/lqt/e_lqt.c:574
+#: plugins/postprocessors/e_pp_vcdimager.c:110 plugins/lqt/e_lqt.c:633
 #: lib/gtk/infowindow.c:695
 msgid "Format"
 msgstr "Format"
@@ -175,8 +175,7 @@ msgid "PWC General"
 msgstr "PWC allgemein"
 
 #: plugins/v4l/pwc.c:75 include/gmerlin/bggavl.h:186
-#: include/gmerlin/bggavl.h:204 Temp/usr/local/include/gmerlin/bggavl.h:186
-#: Temp/usr/local/include/gmerlin/bggavl.h:204 lib/visualize.c:346
+#: include/gmerlin/bggavl.h:204 lib/visualize.c:346
 msgid "Framerate"
 msgstr "Bildwiederholrate"
 
@@ -187,10 +186,7 @@ msgstr "Kompression"
 #: plugins/v4l/pwc.c:87 plugins/videofilters/fv_deinterlace.c:146
 #: plugins/tiff/iw_tiff.c:167 include/gmerlin/bggavl.h:229
 #: include/gmerlin/bggavl.h:324 include/gmerlin/bggavl.h:630
-#: include/gmerlin/bggavl.h:654 Temp/usr/local/include/gmerlin/bggavl.h:229
-#: Temp/usr/local/include/gmerlin/bggavl.h:324
-#: Temp/usr/local/include/gmerlin/bggavl.h:630
-#: Temp/usr/local/include/gmerlin/bggavl.h:654
+#: include/gmerlin/bggavl.h:654
 msgid "None"
 msgstr "Kein(s)"
 
@@ -254,11 +250,7 @@ msgstr "Manuell"
 #: plugins/cdaudio/cdparanoia.c:195 include/gmerlin/bggavl.h:289
 #: include/gmerlin/bggavl.h:308 include/gmerlin/bggavl.h:323
 #: include/gmerlin/bggavl.h:654 include/gmerlin/bggavl.h:667
-#: Temp/usr/local/include/gmerlin/bggavl.h:289
-#: Temp/usr/local/include/gmerlin/bggavl.h:308
-#: Temp/usr/local/include/gmerlin/bggavl.h:323
-#: Temp/usr/local/include/gmerlin/bggavl.h:654
-#: Temp/usr/local/include/gmerlin/bggavl.h:667 lib/x11/x11_window.c:1191
+#: lib/x11/x11_window.c:1191
 msgid "Auto"
 msgstr "Automatisch"
 
@@ -376,20 +368,19 @@ msgstr "VGA (640x480)"
 
 #: plugins/v4l/i_v4l.c:439 plugins/videofilters/fv_cropscale.c:227
 #: plugins/v4l2/i_v4l2.c:966 include/gmerlin/bggavl.h:171
-#: include/gmerlin/bggavl.h:461 Temp/usr/local/include/gmerlin/bggavl.h:171
-#: Temp/usr/local/include/gmerlin/bggavl.h:461 apps/camelot/vloopback.c:763
+#: include/gmerlin/bggavl.h:461 apps/camelot/vloopback.c:763
 msgid "User defined"
 msgstr "Benutzerdefiniert"
 
 #: plugins/v4l/i_v4l.c:444 plugins/videofilters/fv_cropscale.c:259
 #: plugins/v4l2/i_v4l2.c:971 include/gmerlin/bggavl.h:387
-#: Temp/usr/local/include/gmerlin/bggavl.h:387 apps/camelot/vloopback.c:769
+#: apps/camelot/vloopback.c:769
 msgid "User defined width"
 msgstr "Benutzerdefinierte Breite"
 
 #: plugins/v4l/i_v4l.c:452 plugins/videofilters/fv_cropscale.c:270
 #: plugins/v4l2/i_v4l2.c:979 include/gmerlin/bggavl.h:398
-#: Temp/usr/local/include/gmerlin/bggavl.h:398 apps/camelot/vloopback.c:778
+#: apps/camelot/vloopback.c:778
 msgid "User defined height"
 msgstr "Benutzerdefinierte Höhe"
 
@@ -426,19 +417,19 @@ msgid "video4linux recording plugin. Supports only video and no tuner decives."
 msgstr ""
 "video4linux Aufnahmeplugin. Unterstützt nur Video und keine Tunergeräte."
 
-#: plugins/image/ir_tga.c:95
+#: plugins/image/ir_tga.c:99
 msgid "Read tga failed"
 msgstr "TGA lesen fehlgeschlagen"
 
-#: plugins/image/ir_tga.c:197
+#: plugins/image/ir_tga.c:216
 msgid "TGA reader"
 msgstr "TGA Importeur"
 
-#: plugins/image/ir_tga.c:198
+#: plugins/image/ir_tga.c:217
 msgid "Reader for TGA images"
 msgstr "Importeur für TGA bilder"
 
-#: plugins/image/ir_bmp.c:226 plugins/image/ir_pnm.c:104
+#: plugins/image/ir_bmp.c:226 plugins/image/ir_pnm.c:104 lib/singlepic.c:991
 #, c-format
 msgid "Cannot open file %s: %s"
 msgstr "Kann Datei %s nicht öffnen: %s"
@@ -460,11 +451,11 @@ msgstr "Kann Bildgröße nicht ermitteln"
 msgid "Depth %d not supported"
 msgstr "Tiefe %d nicht unterstützt"
 
-#: plugins/image/ir_bmp.c:739
+#: plugins/image/ir_bmp.c:745
 msgid "BMP reader"
 msgstr "BMP Importeur"
 
-#: plugins/image/ir_bmp.c:740
+#: plugins/image/ir_bmp.c:746
 msgid "Reader for BMP images"
 msgstr "Importeur für BMP Bilder"
 
@@ -514,47 +505,47 @@ msgstr "Kann Maxval nicht lesen"
 msgid "PAM format not suported"
 msgstr "PAM format nicht unterstützt"
 
-#: plugins/image/ir_pnm.c:298
+#: plugins/image/ir_pnm.c:300
 msgid "PBMascii"
 msgstr "PBMascii"
 
-#: plugins/image/ir_pnm.c:332
+#: plugins/image/ir_pnm.c:334
 msgid "PBMbin"
 msgstr "PBMbin"
 
-#: plugins/image/ir_pnm.c:370
+#: plugins/image/ir_pnm.c:372
 msgid "PGMascii"
 msgstr "PGMascii"
 
-#: plugins/image/ir_pnm.c:397
+#: plugins/image/ir_pnm.c:399
 msgid "PGMascii_16"
 msgstr "PGMascii_16"
 
-#: plugins/image/ir_pnm.c:426
+#: plugins/image/ir_pnm.c:428
 msgid "PGMbin"
 msgstr "PGMbin"
 
-#: plugins/image/ir_pnm.c:449
+#: plugins/image/ir_pnm.c:451
 msgid "PGMbin_16"
 msgstr "PGMbin_16"
 
-#: plugins/image/ir_pnm.c:474
+#: plugins/image/ir_pnm.c:476
 msgid "PPMascii"
 msgstr "PPMascii"
 
-#: plugins/image/ir_pnm.c:517
+#: plugins/image/ir_pnm.c:519
 msgid "PPMascii_16"
 msgstr "PPMascii_16"
 
-#: plugins/image/ir_pnm.c:595
+#: plugins/image/ir_pnm.c:597
 msgid "PPMbin_16"
 msgstr "PPMbin_16"
 
-#: plugins/image/ir_pnm.c:636
+#: plugins/image/ir_pnm.c:638
 msgid "PNM reader"
 msgstr "PNM Importeur"
 
-#: plugins/image/ir_pnm.c:637
+#: plugins/image/ir_pnm.c:639
 msgid "Reader for PBM/PGM/PPM images"
 msgstr "Importeur für PBM/PGM/PPM Bilder"
 
@@ -706,12 +697,10 @@ msgid "Scope plugin"
 msgstr "Oszi Plugin"
 
 #: plugins/audiofilters/fa_sampleformat.c:70 include/gmerlin/bggavl.h:637
-#: Temp/usr/local/include/gmerlin/bggavl.h:637
 msgid "Sampleformat"
 msgstr "Zahlenformat"
 
 #: plugins/audiofilters/fa_sampleformat.c:200 include/gmerlin/bggavl.h:625
-#: Temp/usr/local/include/gmerlin/bggavl.h:625
 msgid "Force sampleformat"
 msgstr "Erzwinge Zahlenformat"
 
@@ -1316,7 +1305,6 @@ msgid "yadif (fast mode)"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:165 include/gmerlin/bggavl.h:244
-#: Temp/usr/local/include/gmerlin/bggavl.h:244
 msgid "Force deinterlacing"
 msgstr "Erzwinge Deinterlacing"
 
@@ -1365,7 +1353,7 @@ msgid "Deinterlace with various algorithms"
 msgstr "Deinterlacer mit verschiedenen Methoden"
 
 #: plugins/videofilters/fv_transform.c:166
-#: plugins/videofilters/fv_tcdisplay.c:81 plugins/cdaudio/i_cdaudio.c:536
+#: plugins/videofilters/fv_tcdisplay.c:81 plugins/cdaudio/i_cdaudio.c:537
 #: apps/player/cfgdialog.c:104 apps/transcoder/transcoder_window.c:1280
 #: apps/transcoder/transcoder_window.c:1307
 #: apps/transcoder/transcoder_window.c:1330 apps/transcoder/trackdialog.c:87
@@ -1373,8 +1361,8 @@ msgstr "Deinterlacer mit verschiedenen Methoden"
 #: apps/transcoder/trackdialog.c:382 apps/transcoder/trackdialog.c:450
 #: apps/visualizer/gmerlin_visualizer.c:873
 #: apps/recorder/recorder_window.c:716 apps/recorder/recorder_window.c:735
-#: lib/pluginregistry.c:1979 lib/x11/x11_window.c:1108
-#: lib/transcoder_track.c:1308
+#: lib/pluginregistry.c:1995 lib/x11/x11_window.c:1108
+#: lib/transcoder_track.c:1314
 msgid "General"
 msgstr "Generell"
 
@@ -1428,8 +1416,8 @@ msgstr ""
 "langsamsten."
 
 #: plugins/videofilters/fv_transform.c:201 plugins/videofilters/fv_zoom.c:160
-#: plugins/lqt/e_lqt.c:777 include/gmerlin/bggavl.h:377
-#: Temp/usr/local/include/gmerlin/bggavl.h:377 lib/x11/x11_window.c:1166
+#: plugins/lqt/e_lqt.c:850 include/gmerlin/bggavl.h:377
+#: lib/x11/x11_window.c:1166
 msgid "Background color"
 msgstr "Hintergrundfarbe"
 
@@ -1594,145 +1582,117 @@ msgstr "Schneide so viele Pixel vom unteren Rand der Quellbilder."
 
 #: plugins/videofilters/fv_cropscale.c:189
 #: plugins/videofilters/fv_cropscale.c:194 include/gmerlin/bggavl.h:492
-#: include/gmerlin/bggavl.h:509 Temp/usr/local/include/gmerlin/bggavl.h:492
-#: Temp/usr/local/include/gmerlin/bggavl.h:509
+#: include/gmerlin/bggavl.h:509
 msgid "Image size"
 msgstr "Bildgröße"
 
 #: plugins/videofilters/fv_cropscale.c:226
 #: plugins/videofilters/fv_cropscale.c:408 include/gmerlin/bggavl.h:193
-#: Temp/usr/local/include/gmerlin/bggavl.h:193
 msgid "From Source"
 msgstr "Wie Quelle"
 
 #: plugins/videofilters/fv_cropscale.c:228 include/gmerlin/bggavl.h:462
-#: Temp/usr/local/include/gmerlin/bggavl.h:462
 msgid "PAL DVD D1 4:3 (720 x 576)"
 msgstr "PAL DVD D1 4:3 (720 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:229 include/gmerlin/bggavl.h:463
-#: Temp/usr/local/include/gmerlin/bggavl.h:463
 msgid "PAL DVD D1 16:9 (720 x 576)"
 msgstr "PAL DVD D1 16:9 (720 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:230 include/gmerlin/bggavl.h:464
-#: Temp/usr/local/include/gmerlin/bggavl.h:464
 msgid "PAL DV 4:3 (720 x 576)"
 msgstr "PAL DV 4:3 (720 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:231 include/gmerlin/bggavl.h:465
-#: Temp/usr/local/include/gmerlin/bggavl.h:465
 msgid "PAL DV 16:9 (720 x 576)"
 msgstr "PAL DV 16:9 (720 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:232 include/gmerlin/bggavl.h:466
-#: Temp/usr/local/include/gmerlin/bggavl.h:466
 msgid "PAL CVD (352 x 576)"
 msgstr "PAL CVD (352 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:233 include/gmerlin/bggavl.h:467
-#: Temp/usr/local/include/gmerlin/bggavl.h:467
 msgid "PAL VCD (352 x 288)"
 msgstr "PAL VCD (352 x 288)"
 
 #: plugins/videofilters/fv_cropscale.c:234 include/gmerlin/bggavl.h:468
-#: Temp/usr/local/include/gmerlin/bggavl.h:468
 msgid "PAL SVCD 4:3 (480 x 576)"
 msgstr "PAL SVCD 4:3 (480 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:235 include/gmerlin/bggavl.h:469
-#: Temp/usr/local/include/gmerlin/bggavl.h:469
 msgid "PAL SVCD 16:9 (480 x 576)"
 msgstr "PAL SVCD 16:9 (480 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:236 include/gmerlin/bggavl.h:470
-#: Temp/usr/local/include/gmerlin/bggavl.h:470
 msgid "NTSC DVD D1 4:3 (720 x 480)"
 msgstr "NTSC DVD D1 4:3 (720 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:237 include/gmerlin/bggavl.h:471
-#: Temp/usr/local/include/gmerlin/bggavl.h:471
 msgid "NTSC DVD D1 16:9 (720 x 480)"
 msgstr "NTSC DVD D1 16:9 (720 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:238 include/gmerlin/bggavl.h:472
-#: Temp/usr/local/include/gmerlin/bggavl.h:472
 msgid "NTSC DV 4:3 (720 x 480)"
 msgstr "NTSC DV 4:3 (720 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:239 include/gmerlin/bggavl.h:473
-#: Temp/usr/local/include/gmerlin/bggavl.h:473
 msgid "NTSC DV 16:9 (720 x 480)"
 msgstr "NTSC DV 16:9 (720 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:240 include/gmerlin/bggavl.h:474
-#: Temp/usr/local/include/gmerlin/bggavl.h:474
 msgid "NTSC CVD (352 x 480)"
 msgstr "NTSC CVD (352 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:241 include/gmerlin/bggavl.h:475
-#: Temp/usr/local/include/gmerlin/bggavl.h:475
 msgid "NTSC VCD (352 x 240)"
 msgstr "NTSC VCD (352 x 240)"
 
 #: plugins/videofilters/fv_cropscale.c:242 include/gmerlin/bggavl.h:476
-#: Temp/usr/local/include/gmerlin/bggavl.h:476
 msgid "NTSC SVCD 4:3 (480 x 480)"
 msgstr "NTSC SVCD 4:3 (480 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:243 include/gmerlin/bggavl.h:477
-#: Temp/usr/local/include/gmerlin/bggavl.h:477
 msgid "NTSC SVCD 16:9 (480 x 480)"
 msgstr "NTSC SVCD 16:9 (480 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:244 include/gmerlin/bggavl.h:478
-#: Temp/usr/local/include/gmerlin/bggavl.h:478
 msgid "HD 720p/i (1280x720)"
 msgstr "HD 720p/i (1280x720)"
 
 #: plugins/videofilters/fv_cropscale.c:245 include/gmerlin/bggavl.h:479
-#: Temp/usr/local/include/gmerlin/bggavl.h:479
 msgid "HD 1080p/i (1920x1080)"
 msgstr "HD 1080p/i (1920x1080)"
 
 #: plugins/videofilters/fv_cropscale.c:246 include/gmerlin/bggavl.h:480
-#: Temp/usr/local/include/gmerlin/bggavl.h:480
 msgid "VGA (640 x 480)"
 msgstr "VGA (640 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:247 include/gmerlin/bggavl.h:481
-#: Temp/usr/local/include/gmerlin/bggavl.h:481
 msgid "QVGA (320 x 240)"
 msgstr "QVGA (320 x 240)"
 
 #: plugins/videofilters/fv_cropscale.c:248 include/gmerlin/bggavl.h:482
-#: Temp/usr/local/include/gmerlin/bggavl.h:482
 msgid "SQCIF (128 × 96)"
 msgstr "SQCIF (128 × 96)"
 
 #: plugins/videofilters/fv_cropscale.c:249 include/gmerlin/bggavl.h:483
-#: Temp/usr/local/include/gmerlin/bggavl.h:483
 msgid "QCIF (176 × 144)"
 msgstr "QCIF (176 × 144)"
 
 #: plugins/videofilters/fv_cropscale.c:250 include/gmerlin/bggavl.h:484
-#: Temp/usr/local/include/gmerlin/bggavl.h:484
 msgid "CIF (352 × 288)"
 msgstr "CIF (352 × 288)"
 
 #: plugins/videofilters/fv_cropscale.c:251 include/gmerlin/bggavl.h:485
-#: Temp/usr/local/include/gmerlin/bggavl.h:485
 msgid "4CIF (704 × 576)"
 msgstr "4CIF (704 × 576)"
 
 #: plugins/videofilters/fv_cropscale.c:252 include/gmerlin/bggavl.h:486
-#: Temp/usr/local/include/gmerlin/bggavl.h:486
 msgid "16CIF (1408 × 1152)"
 msgstr "16CIF (1408 × 1152)"
 
 #: plugins/videofilters/fv_cropscale.c:255 include/gmerlin/bggavl.h:502
-#: include/gmerlin/bggavl.h:521 Temp/usr/local/include/gmerlin/bggavl.h:502
-#: Temp/usr/local/include/gmerlin/bggavl.h:521
+#: include/gmerlin/bggavl.h:521
 msgid ""
 "Set the output image size. For a user defined size, you must specify the "
 "width and height as well as the pixel width and pixel height."
@@ -1741,7 +1701,6 @@ msgstr ""
 "Breite, Höhe, Pixelbreite und Pixelhöhe unten angeben."
 
 #: plugins/videofilters/fv_cropscale.c:266 include/gmerlin/bggavl.h:394
-#: Temp/usr/local/include/gmerlin/bggavl.h:394
 msgid ""
 "User defined width in pixels. Only meaningful if you selected \"User defined"
 "\" for the image size."
@@ -1750,7 +1709,6 @@ msgstr ""
 "\"Benutzerdefiniert\" für die Bildgröße gewählt wurde."
 
 #: plugins/videofilters/fv_cropscale.c:277 include/gmerlin/bggavl.h:405
-#: Temp/usr/local/include/gmerlin/bggavl.h:405
 msgid ""
 "User defined height in pixels. Only meaningful if you selected \"User defined"
 "\" for the image size."
@@ -1759,12 +1717,10 @@ msgstr ""
 "\"Benutzerdefiniert\" für die Bildgröße gewählt wurde."
 
 #: plugins/videofilters/fv_cropscale.c:281 include/gmerlin/bggavl.h:409
-#: Temp/usr/local/include/gmerlin/bggavl.h:409
 msgid "User defined pixel width"
 msgstr "Benutzerdefinierte Pixelbreite"
 
 #: plugins/videofilters/fv_cropscale.c:288 include/gmerlin/bggavl.h:416
-#: Temp/usr/local/include/gmerlin/bggavl.h:416
 msgid ""
 "User defined pixel width. Only meaningful if you selected \"User defined\" "
 "for the image size."
@@ -1773,12 +1729,10 @@ msgstr ""
 "\" für die Bildgröße gewählt wurde."
 
 #: plugins/videofilters/fv_cropscale.c:292 include/gmerlin/bggavl.h:420
-#: Temp/usr/local/include/gmerlin/bggavl.h:420
 msgid "User defined pixel height"
 msgstr "Benutzerdefinierte Pixelhöhe"
 
 #: plugins/videofilters/fv_cropscale.c:299 include/gmerlin/bggavl.h:427
-#: Temp/usr/local/include/gmerlin/bggavl.h:427
 msgid ""
 "User defined pixel height. Only meaningful if you selected \"User defined\" "
 "for the image size."
@@ -1813,14 +1767,12 @@ msgstr "Farbe für die Bildränder"
 
 #: plugins/videofilters/fv_cropscale.c:346
 #: plugins/videofilters/fv_cropscale.c:351 plugins/videofilters/fv_zoom.c:106
-#: include/gmerlin/bggavl.h:332 Temp/usr/local/include/gmerlin/bggavl.h:332
-#: lib/x11/x11_window.c:1180
+#: include/gmerlin/bggavl.h:332 lib/x11/x11_window.c:1180
 msgid "Scale mode"
 msgstr "Skaliermethode"
 
 #: plugins/videofilters/fv_cropscale.c:358 plugins/videofilters/fv_zoom.c:113
-#: include/gmerlin/bggavl.h:339 Temp/usr/local/include/gmerlin/bggavl.h:339
-#: lib/x11/x11_window.c:1201
+#: include/gmerlin/bggavl.h:339 lib/x11/x11_window.c:1201
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest."
@@ -1830,14 +1782,12 @@ msgstr ""
 "langsamsten."
 
 #: plugins/videofilters/fv_cropscale.c:362 plugins/videofilters/fv_zoom.c:117
-#: include/gmerlin/bggavl.h:343 Temp/usr/local/include/gmerlin/bggavl.h:343
-#: lib/x11/x11_window.c:1205
+#: include/gmerlin/bggavl.h:343 lib/x11/x11_window.c:1205
 msgid "Scale order"
 msgstr "Skalierordnung"
 
 #: plugins/videofilters/fv_cropscale.c:369 plugins/videofilters/fv_zoom.c:124
-#: include/gmerlin/bggavl.h:350 Temp/usr/local/include/gmerlin/bggavl.h:350
-#: lib/x11/x11_window.c:1210
+#: include/gmerlin/bggavl.h:350 lib/x11/x11_window.c:1210
 msgid "Order for sinc scaling"
 msgstr "Ordnung für sinc Skalierung"
 
@@ -1907,17 +1857,14 @@ msgid "Always"
 msgstr "Immer"
 
 #: plugins/videofilters/fv_cropscale.c:441 include/gmerlin/bggavl.h:239
-#: Temp/usr/local/include/gmerlin/bggavl.h:239
 msgid "Drop top field"
 msgstr "Lasse oberes Feld weg"
 
 #: plugins/videofilters/fv_cropscale.c:441 include/gmerlin/bggavl.h:239
-#: Temp/usr/local/include/gmerlin/bggavl.h:239
 msgid "Drop bottom field"
 msgstr "Lasse unteres Feld weg"
 
 #: plugins/videofilters/fv_cropscale.c:442 include/gmerlin/bggavl.h:240
-#: Temp/usr/local/include/gmerlin/bggavl.h:240
 msgid "Specifies which field the deinterlacer should drop."
 msgstr "Wählt, welches Feld der Deinterlacer weglassen soll."
 
@@ -1935,7 +1882,7 @@ msgstr ""
 "einfaches Deinterlacing durchführen."
 
 #: plugins/videofilters/fv_pixelformat.c:70 include/gmerlin/bggavl.h:254
-#: Temp/usr/local/include/gmerlin/bggavl.h:254 apps/camelot/vloopback.c:787
+#: apps/camelot/vloopback.c:787
 msgid "Pixelformat"
 msgstr "Pixelformat"
 
@@ -1963,7 +1910,7 @@ msgstr "Interpoliere fehlende Timecodes"
 msgid "Render options"
 msgstr "Renderoptionen"
 
-#: plugins/videofilters/fv_tcdisplay.c:99 plugins/lqt/e_lqt.c:771
+#: plugins/videofilters/fv_tcdisplay.c:99 plugins/lqt/e_lqt.c:844
 #: lib/textrenderer.c:65
 msgid "Text color"
 msgstr "Textfarbe"
@@ -2099,7 +2046,7 @@ msgid "Zoom vertically"
 msgstr "Zoome vertikal"
 
 #: plugins/videofilters/fv_zoom.c:151 plugins/videofilters/fv_tlp.c:91
-#: plugins/jpeg/iw_jpeg.c:261
+#: plugins/jpeg/iw_jpeg.c:264
 msgid "Quality"
 msgstr "Qualität"
 
@@ -2436,12 +2383,10 @@ msgid "Gauss"
 msgstr "Gauß"
 
 #: plugins/videofilters/fv_blur.c:236 include/gmerlin/bggavl.h:655
-#: Temp/usr/local/include/gmerlin/bggavl.h:655
 msgid "Triangular"
 msgstr "Dreieck"
 
 #: plugins/videofilters/fv_blur.c:237 include/gmerlin/bggavl.h:654
-#: Temp/usr/local/include/gmerlin/bggavl.h:654
 msgid "Rectangular"
 msgstr "Rechteck"
 
@@ -2489,6 +2434,19 @@ msgid ""
 msgstr ""
 "Invertiere einzelne Farbkanäle. RGB(A) Formate werden direkt verarbeitet. "
 "Y'CbCr(A) werden mit der Farbmatrix verarbeitet."
+
+#: plugins/videofilters/fv_bitshift.c:67
+msgid "Bits to shift"
+msgstr ""
+
+#: plugins/videofilters/fv_bitshift.c:184
+#, fuzzy
+msgid "Shift image"
+msgstr "Standbild\n"
+
+#: plugins/videofilters/fv_bitshift.c:185
+msgid "Upshift 16 bit images, where only some lower bits are used"
+msgstr ""
 
 #: plugins/videofilters/fv_equalizer.c:446
 msgid "Saturation"
@@ -2558,8 +2516,7 @@ msgid "Stereo 16bit"
 msgstr "Stereo 16bit"
 
 #: plugins/mikmod/i_mikmod.c:260 include/gmerlin/bggavl.h:528
-#: include/gmerlin/bggavl.h:534 Temp/usr/local/include/gmerlin/bggavl.h:528
-#: Temp/usr/local/include/gmerlin/bggavl.h:534
+#: include/gmerlin/bggavl.h:534
 msgid "Samplerate"
 msgstr "Abtastrate"
 
@@ -2678,11 +2635,11 @@ msgstr "Metadaten von CDDB erhalten (%s)"
 msgid "Audio CD track %02d"
 msgstr "Audio CD track %02d"
 
-#: plugins/cdaudio/i_cdaudio.c:541
+#: plugins/cdaudio/i_cdaudio.c:542
 msgid "Trackname template"
 msgstr "Trackname Maske"
 
-#: plugins/cdaudio/i_cdaudio.c:544
+#: plugins/cdaudio/i_cdaudio.c:545
 msgid ""
 "Template for track name generation from metadata\n"
 "%p:    Artist\n"
@@ -2702,19 +2659,19 @@ msgstr ""
 "%y:    Jahr\n"
 "%c:    Kommentar"
 
-#: plugins/cdaudio/i_cdaudio.c:555
+#: plugins/cdaudio/i_cdaudio.c:556
 msgid "Use CD-Text"
 msgstr "Benutze CD-Text"
 
-#: plugins/cdaudio/i_cdaudio.c:558
+#: plugins/cdaudio/i_cdaudio.c:559
 msgid "Try to get CD metadata from CD-Text"
 msgstr "Versuche, CD Metadaten von CD-Text zu erhalten"
 
-#: plugins/cdaudio/i_cdaudio.c:562
+#: plugins/cdaudio/i_cdaudio.c:563
 msgid "Use locally saved metadata"
 msgstr "Benutze lokal gespeicherte Metadaten"
 
-#: plugins/cdaudio/i_cdaudio.c:565
+#: plugins/cdaudio/i_cdaudio.c:566
 msgid ""
 "Whenever we obtain CD metadata from the internet, we save them into $HOME/."
 "gmerlin/cdaudio_metadata. If you got wrong metadata for a CD, disabling this "
@@ -2725,49 +2682,49 @@ msgstr ""
 "bekommen hast, kannst Du diese Option abschalten und die Metadaten werden "
 "erneut geholt und die gespeicherten überschrieben."
 
-#: plugins/cdaudio/i_cdaudio.c:572
+#: plugins/cdaudio/i_cdaudio.c:573
 msgid "Musicbrainz"
 msgstr "Musicbrainz"
 
-#: plugins/cdaudio/i_cdaudio.c:577
+#: plugins/cdaudio/i_cdaudio.c:578
 msgid "Use Musicbrainz"
 msgstr "Benutze Musicbrainz"
 
-#: plugins/cdaudio/i_cdaudio.c:589 plugins/cdaudio/i_cdaudio.c:631
+#: plugins/cdaudio/i_cdaudio.c:590 plugins/cdaudio/i_cdaudio.c:632
 #: lib/lcdproc.c:115
 msgid "Port"
 msgstr "Port"
 
-#: plugins/cdaudio/i_cdaudio.c:597 plugins/cdaudio/i_cdaudio.c:645
+#: plugins/cdaudio/i_cdaudio.c:598 plugins/cdaudio/i_cdaudio.c:646
 msgid "Proxy"
 msgstr "Proxy"
 
-#: plugins/cdaudio/i_cdaudio.c:599 plugins/cdaudio/i_cdaudio.c:647
+#: plugins/cdaudio/i_cdaudio.c:600 plugins/cdaudio/i_cdaudio.c:648
 msgid "Proxy server (leave empty for direct connection)"
 msgstr "Proxy server (leerlassen für Direktverbindung)"
 
-#: plugins/cdaudio/i_cdaudio.c:603 plugins/cdaudio/i_cdaudio.c:608
-#: plugins/cdaudio/i_cdaudio.c:651 plugins/cdaudio/i_cdaudio.c:656
+#: plugins/cdaudio/i_cdaudio.c:604 plugins/cdaudio/i_cdaudio.c:609
+#: plugins/cdaudio/i_cdaudio.c:652 plugins/cdaudio/i_cdaudio.c:657
 msgid "Proxy port"
 msgstr "Proxy port"
 
-#: plugins/cdaudio/i_cdaudio.c:614
+#: plugins/cdaudio/i_cdaudio.c:615
 msgid "Cddb"
 msgstr "Cddb"
 
-#: plugins/cdaudio/i_cdaudio.c:619
+#: plugins/cdaudio/i_cdaudio.c:620
 msgid "Use Cddb"
 msgstr "Benutze Cddb"
 
-#: plugins/cdaudio/i_cdaudio.c:639
+#: plugins/cdaudio/i_cdaudio.c:640
 msgid "Path"
 msgstr "Pfad"
 
-#: plugins/cdaudio/i_cdaudio.c:660
+#: plugins/cdaudio/i_cdaudio.c:661
 msgid "Proxy username"
 msgstr "Proxy Benutzername"
 
-#: plugins/cdaudio/i_cdaudio.c:662
+#: plugins/cdaudio/i_cdaudio.c:663
 msgid ""
 "User name for proxy (leave empty for poxies, which don't require "
 "authentication)"
@@ -2775,36 +2732,36 @@ msgstr ""
 "Benutzername für den Proxy. Leerlassen, wenn der Proxy keine "
 "Authentifizierung erfordert."
 
-#: plugins/cdaudio/i_cdaudio.c:666
+#: plugins/cdaudio/i_cdaudio.c:667
 msgid "Proxy password"
 msgstr "Proxy Passwort"
 
-#: plugins/cdaudio/i_cdaudio.c:668
+#: plugins/cdaudio/i_cdaudio.c:669
 msgid "Password for proxy"
 msgstr "Password für den Proxy"
 
-#: plugins/cdaudio/i_cdaudio.c:672
+#: plugins/cdaudio/i_cdaudio.c:673
 msgid "Timeout"
 msgstr "Maximalzeit"
 
-#: plugins/cdaudio/i_cdaudio.c:677
+#: plugins/cdaudio/i_cdaudio.c:678
 msgid "Timeout (in seconds) for connections to the CDDB server"
 msgstr "Maximale Verbindungszeit (in Sekunden) für CDDB Server"
 
-#: plugins/cdaudio/i_cdaudio.c:761
+#: plugins/cdaudio/i_cdaudio.c:762
 #, c-format
 msgid "Ejecting disk failed: %s"
 msgstr "Disk Auswerfen fehlgeschlagen: %s"
 
-#: plugins/cdaudio/i_cdaudio.c:763
+#: plugins/cdaudio/i_cdaudio.c:764
 msgid "Ejecting disk failed"
 msgstr "Disk Auswerfen fehlgeschlagen"
 
-#: plugins/cdaudio/i_cdaudio.c:787
+#: plugins/cdaudio/i_cdaudio.c:788
 msgid "Audio CD player/ripper"
 msgstr "Audio CD Spieler/Ripper"
 
-#: plugins/cdaudio/i_cdaudio.c:788
+#: plugins/cdaudio/i_cdaudio.c:789
 msgid ""
 "Plugin for audio CDs. Supports both playing with direct connection from the "
 "CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained "
@@ -2832,11 +2789,11 @@ msgstr ""
 "Exportiert Overlay Untertitel im Format von spumux (http://dvdauthor."
 "sourceforge.net)"
 
-#: plugins/png/ir_png.c:282
+#: plugins/png/ir_png.c:301
 msgid "PNG reader"
 msgstr "PNG Importeur"
 
-#: plugins/png/ir_png.c:283
+#: plugins/png/ir_png.c:302
 msgid "Reader for PNG images"
 msgstr "Importeur für PNG Bilder"
 
@@ -2972,7 +2929,7 @@ msgstr ""
 
 #: plugins/lqt/i_lqt.c:44 apps/plugincfg/gmerlin_plugincfg.c:281
 #: apps/transcoder/trackdialog.c:217 apps/recorder/recorder_window.c:714
-#: lib/pluginregistry.c:1986 lib/pluginregistry.c:2436 lib/player_audio.c:181
+#: lib/pluginregistry.c:2002 lib/pluginregistry.c:2452 lib/player_audio.c:181
 #: lib/gtk/infowindow.c:704
 msgid "Audio"
 msgstr "Audio"
@@ -2986,8 +2943,8 @@ msgid "Sort and configure audio codecs"
 msgstr "Sortiere und konfiguriere Audio Codecs"
 
 #: plugins/lqt/i_lqt.c:55 apps/transcoder/trackdialog.c:288
-#: apps/recorder/recorder_window.c:732 lib/player_video.c:133
-#: lib/pluginregistry.c:1994 lib/pluginregistry.c:2443
+#: apps/recorder/recorder_window.c:732 lib/player_video.c:134
+#: lib/pluginregistry.c:2010 lib/pluginregistry.c:2459
 #: lib/gtk/infowindow.c:722
 msgid "Video"
 msgstr "Video"
@@ -3004,11 +2961,11 @@ msgstr "Sortiere und konfiguriere Video Codecs"
 msgid "More than one chapter track found, using first one"
 msgstr "Mehr als ein Kapiteltrack gefunden, nehme ersten."
 
-#: plugins/lqt/i_lqt.c:492
+#: plugins/lqt/i_lqt.c:518
 msgid "libquicktime input plugin"
 msgstr "Libquicktime Quellenplugin"
 
-#: plugins/lqt/i_lqt.c:493
+#: plugins/lqt/i_lqt.c:519
 msgid "Input plugin based on libquicktime"
 msgstr "Quellenplugin basierend auf libquicktime"
 
@@ -3021,71 +2978,71 @@ msgstr "%s kompatibel mit"
 msgid "Codec"
 msgstr "Codec"
 
-#: plugins/lqt/e_lqt.c:183
+#: plugins/lqt/e_lqt.c:182
 #, c-format
 msgid "Cannot open file %s"
 msgstr "Kann Datei %s nicht öffnen"
 
-#: plugins/lqt/e_lqt.c:362
+#: plugins/lqt/e_lqt.c:421
 #, c-format
 msgid "Audio codec %s cannot be written to AVI files"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:413
+#: plugins/lqt/e_lqt.c:472
 #, fuzzy
 msgid "AVI subtitles not supported"
 msgstr "PAM format nicht unterstützt"
 
-#: plugins/lqt/e_lqt.c:461
+#: plugins/lqt/e_lqt.c:520
 #, c-format
 msgid "Omitting chapter %d: time (%f) > duration (%f)"
 msgstr "Lasse Kapitel %d weg: Startzeit (%f) > Dauer (%f)"
 
-#: plugins/lqt/e_lqt.c:500
+#: plugins/lqt/e_lqt.c:559
 msgid "Making streamable...."
 msgstr "Mache streamfähig..."
 
-#: plugins/lqt/e_lqt.c:502
+#: plugins/lqt/e_lqt.c:561
 msgid "Making streamable....done"
 msgstr "Mache streamfähig...fertig"
 
-#: plugins/lqt/e_lqt.c:577
+#: plugins/lqt/e_lqt.c:636
 msgid "Quicktime"
 msgstr "Quicktime"
 
-#: plugins/lqt/e_lqt.c:577
+#: plugins/lqt/e_lqt.c:636
 msgid "AVI"
 msgstr "AVI"
 
-#: plugins/lqt/e_lqt.c:577
+#: plugins/lqt/e_lqt.c:636
 msgid "AVI (Opendml)"
 msgstr "AVI (Opendml)"
 
-#: plugins/lqt/e_lqt.c:578
+#: plugins/lqt/e_lqt.c:637
 msgid "MP4"
 msgstr "MP4"
 
-#: plugins/lqt/e_lqt.c:578
+#: plugins/lqt/e_lqt.c:637
 msgid "M4A"
 msgstr "M4A"
 
-#: plugins/lqt/e_lqt.c:578
+#: plugins/lqt/e_lqt.c:637
 msgid "3GP"
 msgstr "3GP"
 
-#: plugins/lqt/e_lqt.c:583
+#: plugins/lqt/e_lqt.c:642
 msgid "Make streamable"
 msgstr "Make streamable"
 
-#: plugins/lqt/e_lqt.c:585
+#: plugins/lqt/e_lqt.c:644
 msgid "Make the file streamable afterwards (uses twice the diskspace)"
 msgstr "Mache die Datei streamfähig (benötigt doppelten Festplattenplatz)"
 
-#: plugins/lqt/e_lqt.c:589
+#: plugins/lqt/e_lqt.c:648
 msgid "Maximum RIFF size"
 msgstr "Maximum RIFF size"
 
-#: plugins/lqt/e_lqt.c:594
+#: plugins/lqt/e_lqt.c:653
 msgid ""
 "Maximum RIFF size (in MB) for OpenDML AVIs. The default (1GB) is reasonable "
 "and should only be changed by people who know what they do."
@@ -3093,27 +3050,27 @@ msgstr ""
 "Maximale RIFF-Größe (in MB) für OpenDML AVIs. Die Voreinstellung (1GB) ist "
 "vernünftig und sollte nur von denen geändert werden, die wissen was sie tun."
 
-#: plugins/lqt/e_lqt.c:743
+#: plugins/lqt/e_lqt.c:816
 msgid "Text box (top)"
 msgstr "Text Box (open)"
 
-#: plugins/lqt/e_lqt.c:750
+#: plugins/lqt/e_lqt.c:823
 msgid "Text box (left)"
 msgstr "Text box (links)"
 
-#: plugins/lqt/e_lqt.c:757
+#: plugins/lqt/e_lqt.c:830
 msgid "Text box (bottom)"
 msgstr "Text box (unten)"
 
-#: plugins/lqt/e_lqt.c:764
+#: plugins/lqt/e_lqt.c:837
 msgid "Text box (right)"
 msgstr "Text box (rechts)"
 
-#: plugins/lqt/e_lqt.c:828
+#: plugins/lqt/e_lqt.c:901
 msgid "Quicktime encoder"
 msgstr "Quicktime Enkoder"
 
-#: plugins/lqt/e_lqt.c:829
+#: plugins/lqt/e_lqt.c:902
 msgid ""
 "Encoder based on libquicktime (http://libquicktime.sourceforge.net) Writes "
 "Quicktime, AVI (optionally ODML), MP4, M4A and 3GPP. Supported codecs range "
@@ -3204,15 +3161,15 @@ msgstr "Nicht unterstütztes Zahlenformat"
 msgid "Unknown sampleformat %d"
 msgstr "Unbekanntes Zahlenformat: %d"
 
-#: plugins/tiff/ir_tiff.c:856
+#: plugins/tiff/ir_tiff.c:862
 msgid "BUG!!! convert_func == 0x0"
 msgstr "BUG!!! convert_func == 0x0"
 
-#: plugins/tiff/ir_tiff.c:886
+#: plugins/tiff/ir_tiff.c:892
 msgid "TIFF reader"
 msgstr "TIFF Importeur"
 
-#: plugins/tiff/ir_tiff.c:887
+#: plugins/tiff/ir_tiff.c:893
 msgid "Reader for TIFF images"
 msgstr "Importeur für TIFF Bilder"
 
@@ -3221,15 +3178,15 @@ msgstr "Importeur für TIFF Bilder"
 msgid "Illegal pixelformat: %s"
 msgstr "Illegales Pixelformat: %s"
 
-#: plugins/jpeg/iw_jpeg.c:269
+#: plugins/jpeg/iw_jpeg.c:272
 msgid "Chroma sampling"
 msgstr "Farbabtastung"
 
-#: plugins/jpeg/iw_jpeg.c:321
+#: plugins/jpeg/iw_jpeg.c:324
 msgid "JPEG writer"
 msgstr "JPEG Exporteur"
 
-#: plugins/jpeg/iw_jpeg.c:322
+#: plugins/jpeg/iw_jpeg.c:325
 msgid "Writer for JPEG images"
 msgstr "Exporteur für JPEG Bilder"
 
@@ -3237,11 +3194,11 @@ msgstr "Exporteur für JPEG Bilder"
 msgid "Illegal pixelformat"
 msgstr "Illegales Pixelformat"
 
-#: plugins/jpeg/ir_jpeg.c:260
+#: plugins/jpeg/ir_jpeg.c:266
 msgid "JPEG reader"
 msgstr "JPEG Importeur"
 
-#: plugins/jpeg/ir_jpeg.c:261
+#: plugins/jpeg/ir_jpeg.c:267
 msgid "Reader for JPEG images"
 msgstr "Importeur für JPEG-Bilder"
 
@@ -3279,11 +3236,11 @@ msgstr ""
 "Dieses Plugin liest eine XML Datei und exportiert eine EDL, die vom "
 "eingebauten EDL Dekoder gespielt werden kann."
 
-#: include/gmerlin/bggavl.h:128 Temp/usr/local/include/gmerlin/bggavl.h:128
+#: include/gmerlin/bggavl.h:128
 msgid "Conversion Quality"
 msgstr "Umrechnungsqualität"
 
-#: include/gmerlin/bggavl.h:135 Temp/usr/local/include/gmerlin/bggavl.h:135
+#: include/gmerlin/bggavl.h:135
 msgid ""
 "Set the conversion quality for format conversions. Lower quality means more "
 "speed. Values above 3 enable slow high quality calculations."
@@ -3292,12 +3249,11 @@ msgstr ""
 "Geschwindigkeit. Werte über 3 schalten langsame, hochqualitative "
 "Berechnungen ein."
 
-#: include/gmerlin/bggavl.h:142 Temp/usr/local/include/gmerlin/bggavl.h:142
-#: lib/singlepic.c:76
+#: include/gmerlin/bggavl.h:142 lib/singlepic.c:75
 msgid "Timescale"
 msgstr "Zeitskala"
 
-#: include/gmerlin/bggavl.h:147 Temp/usr/local/include/gmerlin/bggavl.h:147
+#: include/gmerlin/bggavl.h:147
 msgid ""
 "Timescale for user defined output framerate (Framerate = timescale / frame "
 "duration)."
@@ -3305,12 +3261,11 @@ msgstr ""
 "Zeitskala für benutzerdefinierte Bildwiederholfrequenz "
 "(Bildwiederholfrequenz = Zeitskala / Bilddauer)"
 
-#: include/gmerlin/bggavl.h:151 Temp/usr/local/include/gmerlin/bggavl.h:151
-#: lib/singlepic.c:84
+#: include/gmerlin/bggavl.h:151 lib/singlepic.c:83
 msgid "Frame duration"
 msgstr "Bilddauer"
 
-#: include/gmerlin/bggavl.h:156 Temp/usr/local/include/gmerlin/bggavl.h:156
+#: include/gmerlin/bggavl.h:156
 msgid ""
 "Frame duration for user defined output framerate (Framerate = timescale / "
 "frame duration)."
@@ -3318,41 +3273,39 @@ msgstr ""
 "Zeitskala für benutzerdefinierte Bildwiederholfrequenz "
 "(Bildwiederholfrequenz = Zeitskala / Bilddauer)"
 
-#: include/gmerlin/bggavl.h:172 Temp/usr/local/include/gmerlin/bggavl.h:172
+#: include/gmerlin/bggavl.h:172
 msgid "23.976 (NTSC encapsulated film rate)"
 msgstr "23.976 (in NTSC einbetette Filmrate)"
 
-#: include/gmerlin/bggavl.h:173 Temp/usr/local/include/gmerlin/bggavl.h:173
+#: include/gmerlin/bggavl.h:173
 msgid "24 (Standard international cinema film rate)"
 msgstr "24 (Internationale standard Kinofilmrate)"
 
-#: include/gmerlin/bggavl.h:174 Temp/usr/local/include/gmerlin/bggavl.h:174
+#: include/gmerlin/bggavl.h:174
 msgid "25 (PAL [625/50] video frame rate)"
 msgstr "25 PAL [625/50] Videorate"
 
-#: include/gmerlin/bggavl.h:175 Temp/usr/local/include/gmerlin/bggavl.h:175
+#: include/gmerlin/bggavl.h:175
 msgid "29.970 (NTSC video frame rate)"
 msgstr "29.970 (NTSC Videorate)"
 
-#: include/gmerlin/bggavl.h:176 Temp/usr/local/include/gmerlin/bggavl.h:176
+#: include/gmerlin/bggavl.h:176
 msgid "30 (NTSC drop-frame [525/60] video frame rate)"
 msgstr "30 (NTSC drop-frame [525/60] Videorate)"
 
-#: include/gmerlin/bggavl.h:177 Temp/usr/local/include/gmerlin/bggavl.h:177
+#: include/gmerlin/bggavl.h:177
 msgid "50 (Double frame rate / progressive PAL)"
 msgstr "50 (doppelte progressive PAL-Rate)"
 
-#: include/gmerlin/bggavl.h:178 Temp/usr/local/include/gmerlin/bggavl.h:178
+#: include/gmerlin/bggavl.h:178
 msgid "59.940 (Double frame rate NTSC)"
 msgstr "59.940 (doppelte progressive NTSC-Rate)"
 
-#: include/gmerlin/bggavl.h:179 Temp/usr/local/include/gmerlin/bggavl.h:179
+#: include/gmerlin/bggavl.h:179
 msgid "60 (Double frame rate drop-frame NTSC)"
 msgstr "60 (doppelte drop-frame NTSC-Rate)"
 
 #: include/gmerlin/bggavl.h:196 include/gmerlin/bggavl.h:214
-#: Temp/usr/local/include/gmerlin/bggavl.h:196
-#: Temp/usr/local/include/gmerlin/bggavl.h:214
 msgid ""
 "Output framerate. For user defined framerate, enter the timescale and frame "
 "duration below (framerate = timescale / frame duration)."
@@ -3361,23 +3314,21 @@ msgstr ""
 "Bildwiederholfrequenz, gib unten die Zeitskala und Bilddauer an "
 "(Bildwiederholfrequenz = Zeitskala / Bilddauer)"
 
-#: include/gmerlin/bggavl.h:224 Temp/usr/local/include/gmerlin/bggavl.h:224
+#: include/gmerlin/bggavl.h:224
 msgid "Deinterlace mode"
 msgstr "Deinterlacemethode"
 
 #: include/gmerlin/bggavl.h:229 include/gmerlin/bggavl.h:586
-#: Temp/usr/local/include/gmerlin/bggavl.h:229
-#: Temp/usr/local/include/gmerlin/bggavl.h:586
-#: apps/transcoder/tracklist.c:1029 lib/gtk/albumwidget.c:1504
+#: apps/transcoder/tracklist.c:1028 lib/gtk/albumwidget.c:1504
 #: lib/gtk/albumwidget.c:2902
 msgid "Copy"
 msgstr "Kopieren"
 
-#: include/gmerlin/bggavl.h:229 Temp/usr/local/include/gmerlin/bggavl.h:229
+#: include/gmerlin/bggavl.h:229
 msgid "Scale"
 msgstr "Skalieren"
 
-#: include/gmerlin/bggavl.h:248 Temp/usr/local/include/gmerlin/bggavl.h:248
+#: include/gmerlin/bggavl.h:248
 msgid ""
 "Force deinterlacing if you want progressive output and the input format "
 "pretends to be progressive also."
@@ -3385,121 +3336,114 @@ msgstr ""
 "Erzwinge Deinterlacing wenn Du progressive Ausgabe willst und das "
 "Quellenformat behauptet, ebenfalls progressiv zu sein."
 
-#: include/gmerlin/bggavl.h:267 Temp/usr/local/include/gmerlin/bggavl.h:267
+#: include/gmerlin/bggavl.h:267
 msgid "Y'CbCr 8 bit"
 msgstr ""
 
-#: include/gmerlin/bggavl.h:267 Temp/usr/local/include/gmerlin/bggavl.h:267
+#: include/gmerlin/bggavl.h:267
 msgid "Y'CbCrA 8 bit"
 msgstr ""
 
-#: include/gmerlin/bggavl.h:268 Temp/usr/local/include/gmerlin/bggavl.h:268
+#: include/gmerlin/bggavl.h:268
 #, fuzzy
 msgid "Y'CbCr 16 bit"
 msgstr "16 bit"
 
-#: include/gmerlin/bggavl.h:268 Temp/usr/local/include/gmerlin/bggavl.h:268
+#: include/gmerlin/bggavl.h:268
 #, fuzzy
 msgid "Y'CbCrA 16 bit"
 msgstr "16 bit"
 
-#: include/gmerlin/bggavl.h:269 Temp/usr/local/include/gmerlin/bggavl.h:269
+#: include/gmerlin/bggavl.h:269
 #, fuzzy
 msgid "Y'CbCr float"
 msgstr "Y'CbCr(A) Farbmatrix"
 
-#: include/gmerlin/bggavl.h:269 Temp/usr/local/include/gmerlin/bggavl.h:269
+#: include/gmerlin/bggavl.h:269
 #, fuzzy
 msgid "Y'CbCrA float"
 msgstr "Y'CbCr(A) Farbmatrix"
 
-#: include/gmerlin/bggavl.h:270 Temp/usr/local/include/gmerlin/bggavl.h:270
+#: include/gmerlin/bggavl.h:270
 #, fuzzy
 msgid "RGB 8 bit"
 msgstr "8 bit"
 
-#: include/gmerlin/bggavl.h:270 Temp/usr/local/include/gmerlin/bggavl.h:270
+#: include/gmerlin/bggavl.h:270
 #, fuzzy
 msgid "RGBA 8 bit"
 msgstr "8 bit"
 
-#: include/gmerlin/bggavl.h:271 Temp/usr/local/include/gmerlin/bggavl.h:271
+#: include/gmerlin/bggavl.h:271
 #, fuzzy
 msgid "RGB 16 bit"
 msgstr "16 bit"
 
-#: include/gmerlin/bggavl.h:271 Temp/usr/local/include/gmerlin/bggavl.h:271
+#: include/gmerlin/bggavl.h:271
 #, fuzzy
 msgid "RGBA 16 bit"
 msgstr "16 bit"
 
-#: include/gmerlin/bggavl.h:272 Temp/usr/local/include/gmerlin/bggavl.h:272
+#: include/gmerlin/bggavl.h:272
 #, fuzzy
 msgid "RGB float"
 msgstr "RGB Farbmatrix"
 
-#: include/gmerlin/bggavl.h:272 Temp/usr/local/include/gmerlin/bggavl.h:272
+#: include/gmerlin/bggavl.h:272
 #, fuzzy
 msgid "RGBA float"
 msgstr "RGB Farbmatrix"
 
-#: include/gmerlin/bggavl.h:274 Temp/usr/local/include/gmerlin/bggavl.h:274
+#: include/gmerlin/bggavl.h:274
 #, fuzzy
 msgid "Specify the pixelformat"
 msgstr "Pixelformat erzwingen"
 
 #: include/gmerlin/bggavl.h:290 include/gmerlin/bggavl.h:309
-#: Temp/usr/local/include/gmerlin/bggavl.h:290
-#: Temp/usr/local/include/gmerlin/bggavl.h:309 lib/x11/x11_window.c:1192
+#: lib/x11/x11_window.c:1192
 msgid "Nearest"
 msgstr "Nächstes Pixel"
 
 #: include/gmerlin/bggavl.h:291 include/gmerlin/bggavl.h:310
-#: Temp/usr/local/include/gmerlin/bggavl.h:291
-#: Temp/usr/local/include/gmerlin/bggavl.h:310 lib/x11/x11_window.c:1193
+#: lib/x11/x11_window.c:1193
 msgid "Bilinear"
 msgstr "Bilinear"
 
 #: include/gmerlin/bggavl.h:292 include/gmerlin/bggavl.h:311
-#: Temp/usr/local/include/gmerlin/bggavl.h:292
-#: Temp/usr/local/include/gmerlin/bggavl.h:311 lib/x11/x11_window.c:1194
+#: lib/x11/x11_window.c:1194
 msgid "Quadratic"
 msgstr "Quadratisch"
 
 #: include/gmerlin/bggavl.h:293 include/gmerlin/bggavl.h:312
-#: Temp/usr/local/include/gmerlin/bggavl.h:293
-#: Temp/usr/local/include/gmerlin/bggavl.h:312 lib/x11/x11_window.c:1195
+#: lib/x11/x11_window.c:1195
 msgid "Cubic B-Spline"
 msgstr "Kubisch B-Spline"
 
-#: include/gmerlin/bggavl.h:294 Temp/usr/local/include/gmerlin/bggavl.h:294
-#: lib/x11/x11_window.c:1196
+#: include/gmerlin/bggavl.h:294 lib/x11/x11_window.c:1196
 msgid "Cubic Mitchell-Netravali"
 msgstr "Kubisch Mitchell-Netravali"
 
-#: include/gmerlin/bggavl.h:295 Temp/usr/local/include/gmerlin/bggavl.h:295
-#: lib/x11/x11_window.c:1197
+#: include/gmerlin/bggavl.h:295 lib/x11/x11_window.c:1197
 msgid "Cubic Catmull-Rom"
 msgstr "Kubisch Catmull-Rom"
 
-#: include/gmerlin/bggavl.h:296 Temp/usr/local/include/gmerlin/bggavl.h:296
-#: lib/x11/x11_window.c:1198
+#: include/gmerlin/bggavl.h:296 lib/x11/x11_window.c:1198
 msgid "Sinc with Lanczos window"
 msgstr "sin(x)/x mit Lanczos Fenster"
 
-#: include/gmerlin/bggavl.h:325 Temp/usr/local/include/gmerlin/bggavl.h:325
+#: include/gmerlin/bggavl.h:325
 msgid "Widening"
 msgstr "Verbreiterung"
 
-#: include/gmerlin/bggavl.h:326 Temp/usr/local/include/gmerlin/bggavl.h:326
+#: include/gmerlin/bggavl.h:326
 msgid "Gaussian preblur"
 msgstr "Gauß'scher Vorweichzeichner"
 
-#: include/gmerlin/bggavl.h:356 Temp/usr/local/include/gmerlin/bggavl.h:356
+#: include/gmerlin/bggavl.h:356
 msgid "Resample chroma"
 msgstr "Farbebenen resamplen."
 
-#: include/gmerlin/bggavl.h:360 Temp/usr/local/include/gmerlin/bggavl.h:360
+#: include/gmerlin/bggavl.h:360
 msgid ""
 "Always perform chroma resampling if chroma subsampling factors or chroma "
 "placements are different. Usually, this is only done for qualities above 3."
@@ -3507,19 +3451,19 @@ msgstr ""
 "Mache immer Farbenebenen-Resampling, wenn die Farbplazierungen verschieden "
 "sind. Normalerweise wird dies nur für Qualitätsstufen über 3 gemacht."
 
-#: include/gmerlin/bggavl.h:367 Temp/usr/local/include/gmerlin/bggavl.h:367
+#: include/gmerlin/bggavl.h:367
 msgid "Alpha mode"
 msgstr "Transparenzmodus"
 
-#: include/gmerlin/bggavl.h:372 Temp/usr/local/include/gmerlin/bggavl.h:372
+#: include/gmerlin/bggavl.h:372
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: include/gmerlin/bggavl.h:372 Temp/usr/local/include/gmerlin/bggavl.h:372
+#: include/gmerlin/bggavl.h:372
 msgid "Blend background color"
 msgstr "Hintergrundfarbe einblenden"
 
-#: include/gmerlin/bggavl.h:373 Temp/usr/local/include/gmerlin/bggavl.h:373
+#: include/gmerlin/bggavl.h:373
 msgid ""
 "This option is used if the source has an alpha (=transparency) channel, but "
 "the output supports no transparency. Either, the transparency is ignored, or "
@@ -3530,23 +3474,23 @@ msgstr ""
 "Transparenz ignoriert, oder eine Hintergrundfarbe, die Du unten angibst, "
 "wird eingeblendet."
 
-#: include/gmerlin/bggavl.h:381 Temp/usr/local/include/gmerlin/bggavl.h:381
+#: include/gmerlin/bggavl.h:381
 msgid ""
 "Background color to use, when alpha mode above is \"Blend background color\"."
 msgstr ""
 "Hintergrundfarbe, die verwendet wird, wenn der Transparenzmodus oben auf "
 "\"Hintergrundfarbe einblenden\" steht."
 
-#: include/gmerlin/bggavl.h:517 Temp/usr/local/include/gmerlin/bggavl.h:517
+#: include/gmerlin/bggavl.h:517
 #, fuzzy
 msgid "From source"
 msgstr "Wie Quelle"
 
-#: include/gmerlin/bggavl.h:541 Temp/usr/local/include/gmerlin/bggavl.h:541
+#: include/gmerlin/bggavl.h:541
 msgid "Fixed samplerate"
 msgstr "Feste Abtastrate"
 
-#: include/gmerlin/bggavl.h:545 Temp/usr/local/include/gmerlin/bggavl.h:545
+#: include/gmerlin/bggavl.h:545
 msgid ""
 "If disabled, the output samplerate is taken from the source. If enabled, the "
 "samplerate you specify below us used."
@@ -3555,61 +3499,60 @@ msgstr ""
 "übernommen. Wenn eingeschaltet, wird die Abtastrate, die Du unten angibst, "
 "genommen."
 
-#: include/gmerlin/bggavl.h:552 Temp/usr/local/include/gmerlin/bggavl.h:552
+#: include/gmerlin/bggavl.h:552
 msgid "Front channels"
 msgstr "Frontkanäle"
 
-#: include/gmerlin/bggavl.h:561 Temp/usr/local/include/gmerlin/bggavl.h:561
+#: include/gmerlin/bggavl.h:561
 msgid "Rear channels"
 msgstr "Hinterkanäle"
 
-#: include/gmerlin/bggavl.h:570 Temp/usr/local/include/gmerlin/bggavl.h:570
-#: lib/formats.c:195
+#: include/gmerlin/bggavl.h:570 lib/formats.c:195
 msgid "LFE"
 msgstr "Subwoofer"
 
-#: include/gmerlin/bggavl.h:577 Temp/usr/local/include/gmerlin/bggavl.h:577
+#: include/gmerlin/bggavl.h:577
 msgid "Front to rear mode"
 msgstr "Vorne nach hinten modus"
 
-#: include/gmerlin/bggavl.h:585 Temp/usr/local/include/gmerlin/bggavl.h:585
+#: include/gmerlin/bggavl.h:585
 msgid "Mute"
 msgstr "Stumm"
 
-#: include/gmerlin/bggavl.h:587 Temp/usr/local/include/gmerlin/bggavl.h:587
+#: include/gmerlin/bggavl.h:587
 msgid "Diff"
 msgstr "Differenz"
 
-#: include/gmerlin/bggavl.h:589 Temp/usr/local/include/gmerlin/bggavl.h:589
+#: include/gmerlin/bggavl.h:589
 msgid ""
 "Mix mode when the output format has rear channels, but the source doesn't."
 msgstr "Mischmodus wenn die Ausgabe Hinterkanäle hat, aber die Quelle nicht."
 
-#: include/gmerlin/bggavl.h:594 Temp/usr/local/include/gmerlin/bggavl.h:594
+#: include/gmerlin/bggavl.h:594
 msgid "Stereo to mono mode"
 msgstr "Stereo nach Mono Mode"
 
-#: include/gmerlin/bggavl.h:602 Temp/usr/local/include/gmerlin/bggavl.h:602
+#: include/gmerlin/bggavl.h:602
 msgid "Choose left"
 msgstr "Nehme Links"
 
-#: include/gmerlin/bggavl.h:603 Temp/usr/local/include/gmerlin/bggavl.h:603
+#: include/gmerlin/bggavl.h:603
 msgid "Choose right"
 msgstr "Nehme Rechts"
 
-#: include/gmerlin/bggavl.h:604 Temp/usr/local/include/gmerlin/bggavl.h:604
+#: include/gmerlin/bggavl.h:604
 msgid "Mix"
 msgstr "Mischen"
 
-#: include/gmerlin/bggavl.h:606 Temp/usr/local/include/gmerlin/bggavl.h:606
+#: include/gmerlin/bggavl.h:606
 msgid "Mix mode when downmixing Stereo to Mono."
 msgstr "Mischmethode zum Heruntermischen von Stereo auf Mono."
 
-#: include/gmerlin/bggavl.h:613 Temp/usr/local/include/gmerlin/bggavl.h:613
+#: include/gmerlin/bggavl.h:613
 msgid "Fixed channel setup"
 msgstr "Feste Kanalkonfiguration"
 
-#: include/gmerlin/bggavl.h:617 Temp/usr/local/include/gmerlin/bggavl.h:617
+#: include/gmerlin/bggavl.h:617
 msgid ""
 "If disabled, the output channel configuration is taken from the source. If "
 "enabled, the setup you specify below us used."
@@ -3617,35 +3560,27 @@ msgstr ""
 "Wenn ausgeschaltet, wird die Kanalkonfiguration von der Quelle übernommen. "
 "Wenn eingeschaltet, wird die Konfiguration, die Du unten angibst, verwendet."
 
-#: include/gmerlin/bggavl.h:630 Temp/usr/local/include/gmerlin/bggavl.h:630
+#: include/gmerlin/bggavl.h:630
 msgid "8 bit"
 msgstr "8 bit"
 
 #: include/gmerlin/bggavl.h:630 include/gmerlin/bggavl.h:642
-#: Temp/usr/local/include/gmerlin/bggavl.h:630
-#: Temp/usr/local/include/gmerlin/bggavl.h:642
 msgid "16 bit"
 msgstr "16 bit"
 
 #: include/gmerlin/bggavl.h:630 include/gmerlin/bggavl.h:642
-#: Temp/usr/local/include/gmerlin/bggavl.h:630
-#: Temp/usr/local/include/gmerlin/bggavl.h:642
 msgid "32 bit"
 msgstr "32 bit"
 
 #: include/gmerlin/bggavl.h:630 include/gmerlin/bggavl.h:642
-#: Temp/usr/local/include/gmerlin/bggavl.h:630
-#: Temp/usr/local/include/gmerlin/bggavl.h:642
 msgid "Float"
 msgstr "Fließkomma"
 
 #: include/gmerlin/bggavl.h:630 include/gmerlin/bggavl.h:642
-#: Temp/usr/local/include/gmerlin/bggavl.h:630
-#: Temp/usr/local/include/gmerlin/bggavl.h:642
 msgid "Double"
 msgstr "Fließkomma (doppelt)"
 
-#: include/gmerlin/bggavl.h:631 Temp/usr/local/include/gmerlin/bggavl.h:631
+#: include/gmerlin/bggavl.h:631
 msgid ""
 "Force a sampleformat to be used for processing. None means to take the input "
 "format."
@@ -3653,22 +3588,22 @@ msgstr ""
 "Erzwinge Zahlenformat für die Verarbeitung. Kein(s) bedeutet nehme das "
 "Quellenformat."
 
-#: include/gmerlin/bggavl.h:643 Temp/usr/local/include/gmerlin/bggavl.h:643
+#: include/gmerlin/bggavl.h:643
 #, fuzzy
 msgid "Sampleformat to be used for processing."
 msgstr ""
 "Erzwinge Zahlenformat für die Verarbeitung. Kein(s) bedeutet nehme das "
 "Quellenformat."
 
-#: include/gmerlin/bggavl.h:649 Temp/usr/local/include/gmerlin/bggavl.h:649
+#: include/gmerlin/bggavl.h:649
 msgid "Dither mode"
 msgstr "Dithermodus"
 
-#: include/gmerlin/bggavl.h:655 Temp/usr/local/include/gmerlin/bggavl.h:655
+#: include/gmerlin/bggavl.h:655
 msgid "Shaped"
 msgstr "Geformt"
 
-#: include/gmerlin/bggavl.h:656 Temp/usr/local/include/gmerlin/bggavl.h:656
+#: include/gmerlin/bggavl.h:656
 msgid ""
 "Dither mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
@@ -3677,31 +3612,31 @@ msgstr ""
 "Optionen sind nach aufsteigender Qualität (absteigender Geschwindigkeit) "
 "geordnet."
 
-#: include/gmerlin/bggavl.h:662 Temp/usr/local/include/gmerlin/bggavl.h:662
+#: include/gmerlin/bggavl.h:662
 msgid "Resample mode"
 msgstr "Resamplemodus"
 
-#: include/gmerlin/bggavl.h:667 Temp/usr/local/include/gmerlin/bggavl.h:667
+#: include/gmerlin/bggavl.h:667
 msgid "Zero order hold"
 msgstr "0. Ordnung halten"
 
-#: include/gmerlin/bggavl.h:667 Temp/usr/local/include/gmerlin/bggavl.h:667
+#: include/gmerlin/bggavl.h:667
 msgid "Linear"
 msgstr "Linear"
 
-#: include/gmerlin/bggavl.h:668 Temp/usr/local/include/gmerlin/bggavl.h:668
+#: include/gmerlin/bggavl.h:668
 msgid "Sinc fast"
 msgstr "Sinc (schnellste Berechnung)"
 
-#: include/gmerlin/bggavl.h:668 Temp/usr/local/include/gmerlin/bggavl.h:668
+#: include/gmerlin/bggavl.h:668
 msgid "Sinc medium"
 msgstr "Sinc (mittel)"
 
-#: include/gmerlin/bggavl.h:668 Temp/usr/local/include/gmerlin/bggavl.h:668
+#: include/gmerlin/bggavl.h:668
 msgid "Sinc best"
 msgstr "Sinc (beste Qualität)"
 
-#: include/gmerlin/bggavl.h:669 Temp/usr/local/include/gmerlin/bggavl.h:669
+#: include/gmerlin/bggavl.h:669
 msgid ""
 "Resample mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
@@ -3710,58 +3645,38 @@ msgstr ""
 "Optionen sind nach aufsteigender Qualität (absteigender Geschwindigkeit) "
 "geordnet."
 
-#: include/gmerlin/bggavl.h:675 Temp/usr/local/include/gmerlin/bggavl.h:675
+#: include/gmerlin/bggavl.h:675
 #, fuzzy
 msgid "Number of threads"
 msgstr "Zahl der Meldungen"
 
-#: include/gmerlin/bggavl.h:680 Temp/usr/local/include/gmerlin/bggavl.h:680
+#: include/gmerlin/bggavl.h:680
 msgid ""
 "Threads to launch for processing operations. Changing this requires program "
 "restart"
 msgstr ""
 
 #: include/gmerlin/pluginfuncs.h:40
-#: Temp/usr/local/include/gmerlin/pluginfuncs.h:40
 #, fuzzy
 msgid "Default timescale"
 msgstr "Voreingestellte Bildwiederholrate"
 
 #: include/gmerlin/pluginfuncs.h:43
-#: Temp/usr/local/include/gmerlin/pluginfuncs.h:43
 msgid ""
 "For formats, which support only constant framerates, set the default "
 "timescale here"
 msgstr ""
 
 #: include/gmerlin/pluginfuncs.h:47
-#: Temp/usr/local/include/gmerlin/pluginfuncs.h:47
 #, fuzzy
 msgid "Default frame duration"
 msgstr "Voreingestellte Bildwiederholrate"
 
 #: include/gmerlin/pluginfuncs.h:50
-#: Temp/usr/local/include/gmerlin/pluginfuncs.h:50
 msgid ""
 "For formats, which support only constant framerates, set the default frame "
 "duration here"
 msgstr ""
-
-#: apps/player/pluginwindow.c:74 apps/player/cfgdialog.c:122
-#: apps/plugincfg/gmerlin_plugincfg.c:273
-#: apps/transcoder/transcoder_window.c:1367
-msgid "Input plugins"
-msgstr "Quellenplugins"
-
-#: apps/player/pluginwindow.c:115
-msgid "Inputs"
-msgstr "Quellen"
-
-#: apps/player/pluginwindow.c:127 apps/player/cfgdialog.c:130
-#: apps/plugincfg/gmerlin_plugincfg.c:574
-#: apps/transcoder/transcoder_window.c:1375
-msgid "Image readers"
-msgstr "Bilderimporteure"
 
 #: apps/player/skinbrowser.c:315
 #, c-format
@@ -3879,8 +3794,8 @@ msgstr "Untertiteloptionen"
 msgid "Visualization"
 msgstr "Visualisierung"
 
-#: apps/player/cfgdialog.c:86 lib/pluginregistry.c:2010
-#: lib/pluginregistry.c:2450
+#: apps/player/cfgdialog.c:86 lib/pluginregistry.c:2026
+#: lib/pluginregistry.c:2466
 msgid "Text subtitles"
 msgstr "Text Untertitel"
 
@@ -3897,6 +3812,16 @@ msgstr "Gmerlin Konfiuration"
 #: lib/gtk/plugininfo.c:154
 msgid "Input"
 msgstr "Quelle"
+
+#: apps/player/cfgdialog.c:122 apps/plugincfg/gmerlin_plugincfg.c:273
+#: apps/transcoder/transcoder_window.c:1367
+msgid "Input plugins"
+msgstr "Quellenplugins"
+
+#: apps/player/cfgdialog.c:130 apps/plugincfg/gmerlin_plugincfg.c:574
+#: apps/transcoder/transcoder_window.c:1375
+msgid "Image readers"
+msgstr "Bilderimporteure"
 
 #: apps/player/cfgdialog.c:140
 msgid "OSD"
@@ -3952,13 +3877,13 @@ msgid "Chapter %d [%s]"
 msgstr "Kapitel %d [%s]"
 
 #: apps/player/mainmenu.c:984 apps/player/mainmenu.c:1007
-#: lib/stringutils.c:586
+#: lib/stringutils.c:587
 #, c-format
 msgid "Stream %d [%s]"
 msgstr "Stream %d [%s]"
 
 #: apps/player/mainmenu.c:987 apps/player/mainmenu.c:1010
-#: lib/stringutils.c:588
+#: lib/stringutils.c:589
 #, c-format
 msgid "Stream %d"
 msgstr "Stream %d"
@@ -4337,7 +4262,7 @@ msgstr "Öffnen des Monitorplugins fehlgeschlagen"
 msgid "Initializing %s failed, check settings"
 msgstr "Initialisierung von %s fehlgeschlagen, überprüfe Einstellungen"
 
-#: apps/camelot/webcam.c:683 lib/player_video.c:250
+#: apps/camelot/webcam.c:683 lib/player_video.c:251
 msgid "Restarting playback due to changed video filters"
 msgstr "Starte Abspielen neu wegen geänderter Videofilter"
 
@@ -4556,8 +4481,8 @@ msgstr "Bildwiederholrate: %.2f fps"
 
 #: apps/camelot/webcam_window.c:434 apps/camelot/webcam_window.c:456
 #: apps/camelot/webcam_window.c:494 lib/recorder_video.c:140
-#: lib/recorder_video.c:247 lib/recorder_video.c:352 lib/singlepic.c:653
-#: lib/transcoder_track.c:172 lib/recorder_audio.c:72
+#: lib/recorder_video.c:247 lib/recorder_video.c:352 lib/singlepic.c:720
+#: lib/transcoder_track.c:173 lib/recorder_audio.c:72
 msgid "Plugin"
 msgstr "Plugin"
 
@@ -4787,7 +4712,7 @@ msgstr "Datei"
 #: apps/transcoder/transcoder_window.c:987 apps/transcoder/main.c:70
 #: apps/cmdlineplayer/gmerlin_play.c:848
 #: apps/thumbnailer/gmerlin-video-thumbnailer.c:94 tests/imgconvert.c:97
-#: tests/fvtest.c:175 tests/cfgtest.c:614 tests/visualization.c:78
+#: tests/fvtest.c:175 tests/cfgtest.c:624 tests/visualization.c:78
 #: tests/gmerlin_visualize.c:344
 msgid "Options"
 msgstr "Optionen"
@@ -4869,120 +4794,120 @@ msgstr "Fernbedienung für den GTK Multimediatranscoder\n"
 msgid "Cannot launch transcoder process"
 msgstr "Kann Transkoderprozess nicht starten"
 
-#: apps/transcoder/tracklist.c:822
+#: apps/transcoder/tracklist.c:821
 #, fuzzy
 msgid "Encoder configuration"
 msgstr "Transkoderkonfiguration"
 
-#: apps/transcoder/tracklist.c:876 lib/gtk/albumwidget.c:2895
+#: apps/transcoder/tracklist.c:875 lib/gtk/albumwidget.c:2895
 msgid "Add files"
 msgstr "Dateien hinzufügen"
 
-#: apps/transcoder/tracklist.c:995 lib/gtk/albumwidget.c:1449
+#: apps/transcoder/tracklist.c:994 lib/gtk/albumwidget.c:1449
 msgid "Files..."
 msgstr "Dateien..."
 
-#: apps/transcoder/tracklist.c:997
+#: apps/transcoder/tracklist.c:996
 msgid "Urls..."
 msgstr "Urls..."
 
-#: apps/transcoder/tracklist.c:999
+#: apps/transcoder/tracklist.c:998
 msgid "Drives..."
 msgstr "Laufwerke..."
 
-#: apps/transcoder/tracklist.c:1007
+#: apps/transcoder/tracklist.c:1006
 msgid "Move Up"
 msgstr "Verschiebe hoch"
 
-#: apps/transcoder/tracklist.c:1009
+#: apps/transcoder/tracklist.c:1008
 msgid "Move Down"
 msgstr "Verschiebe nach unten"
 
-#: apps/transcoder/tracklist.c:1011 lib/gtk/treewidget.c:1382
+#: apps/transcoder/tracklist.c:1010 lib/gtk/treewidget.c:1382
 #: lib/gtk/albumwidget.c:1490
 msgid "Remove"
 msgstr "Löschen"
 
-#: apps/transcoder/tracklist.c:1013
+#: apps/transcoder/tracklist.c:1012
 msgid "Configure..."
 msgstr "Konfigurieren..."
 
-#: apps/transcoder/tracklist.c:1015
+#: apps/transcoder/tracklist.c:1014
 msgid "Edit chapters..."
 msgstr "Kapitel bearbeiten"
 
-#: apps/transcoder/tracklist.c:1017
+#: apps/transcoder/tracklist.c:1016
 msgid "Change encoders..."
 msgstr "Wechsele Enkoder..."
 
-#: apps/transcoder/tracklist.c:1024 lib/gtk/albumwidget.c:1497
+#: apps/transcoder/tracklist.c:1023 lib/gtk/albumwidget.c:1497
 #: lib/gtk/albumwidget.c:2900
 msgid "Cut"
 msgstr "Auschneiden"
 
-#: apps/transcoder/tracklist.c:1033 lib/gtk/albumwidget.c:1511
+#: apps/transcoder/tracklist.c:1032 lib/gtk/albumwidget.c:1511
 #: lib/gtk/albumwidget.c:2904
 msgid "Paste"
 msgstr "Einfügen"
 
-#: apps/transcoder/tracklist.c:1044 lib/gtk/albumwidget.c:1577
+#: apps/transcoder/tracklist.c:1043 lib/gtk/albumwidget.c:1577
 #: lib/gtk/cfg_device.c:339
 msgid "Add..."
 msgstr "Hinzufügen..."
 
-#: apps/transcoder/tracklist.c:1050 lib/gtk/albumwidget.c:1591
+#: apps/transcoder/tracklist.c:1049 lib/gtk/albumwidget.c:1591
 msgid "Selected..."
 msgstr "Ausgewählte..."
 
-#: apps/transcoder/tracklist.c:1056 lib/gtk/albumwidget.c:1584
+#: apps/transcoder/tracklist.c:1055 lib/gtk/albumwidget.c:1584
 msgid "Edit..."
 msgstr "Bearbeiten..."
 
-#: apps/transcoder/tracklist.c:1062
+#: apps/transcoder/tracklist.c:1061
 msgid "Postprocess..."
 msgstr "Weiterverarbeitung..."
 
-#: apps/transcoder/tracklist.c:1273 lib/gtk/albumwidget.c:2930
+#: apps/transcoder/tracklist.c:1272 lib/gtk/albumwidget.c:2930
 msgid "Total playback time"
 msgstr "Gesamtspielzeit"
 
-#: apps/transcoder/tracklist.c:1282
+#: apps/transcoder/tracklist.c:1281
 msgid "Append files to the task list"
 msgstr "Füge Dateien an die Aufgabenliste an"
 
-#: apps/transcoder/tracklist.c:1287
+#: apps/transcoder/tracklist.c:1286
 msgid "Append URLs to the task list"
 msgstr "Füge URLs an die Aufgabenliste an"
 
-#: apps/transcoder/tracklist.c:1292
+#: apps/transcoder/tracklist.c:1291
 msgid "Append removable media to the task list"
 msgstr "Füge Wechselmedien an die Aufgabenliste an"
 
-#: apps/transcoder/tracklist.c:1297
+#: apps/transcoder/tracklist.c:1296
 msgid "Delete selected tracks"
 msgstr "Lösche ausgewählte Tracks"
 
-#: apps/transcoder/tracklist.c:1302
+#: apps/transcoder/tracklist.c:1301
 msgid "Configure selected track"
 msgstr "Konfiguriere ausgewählten Track"
 
-#: apps/transcoder/tracklist.c:1307 lib/gtk/chapterdialog.c:341
+#: apps/transcoder/tracklist.c:1306 lib/gtk/chapterdialog.c:341
 msgid "Edit chapters"
 msgstr "Bearbeite Kapitel"
 
-#: apps/transcoder/tracklist.c:1312
+#: apps/transcoder/tracklist.c:1311
 msgid "Change encoder plugins for selected tracks"
 msgstr "Ändere Enkoderplugins für ausgewählte Tracks"
 
-#: apps/transcoder/tracklist.c:1317
+#: apps/transcoder/tracklist.c:1316
 msgid "Copy selected tracks to clipboard"
 msgstr "Kopiere ausgewählte Tracks in die Zwischenablage"
 
-#: apps/transcoder/tracklist.c:1321
+#: apps/transcoder/tracklist.c:1320
 msgid "Cut selected tracks to clipboard"
 msgstr "Verschiebe ausgewählte Tracks in die Zwischenablage"
 
-#: apps/transcoder/tracklist.c:1326
+#: apps/transcoder/tracklist.c:1325
 msgid "Paste tracks from clipboard"
 msgstr "Füge Tracks von der Zwischenablage ein"
 
@@ -5446,7 +5371,7 @@ msgid "No plugin for %s"
 msgstr "Kein Plugin gefunden für Bild %s"
 
 #: apps/thumbnailer/gmerlin-video-thumbnailer.c:274 lib/tree.c:1114
-#: lib/transcoder_track.c:824 lib/album.c:2119
+#: lib/transcoder_track.c:830 lib/album.c:2119
 #, c-format
 msgid "Loading %s failed"
 msgstr "Laden von %s fehlgeschlagen"
@@ -5494,11 +5419,11 @@ msgstr "[-co options] quellbild ausgabebild\n"
 msgid "Test tool for video filters\n"
 msgstr ""
 
-#: tests/cfgtest.c:612
+#: tests/cfgtest.c:622
 msgid "[Options]"
 msgstr "[Optionen]"
 
-#: tests/cfgtest.c:613
+#: tests/cfgtest.c:623
 msgid "Configure test\n"
 msgstr "Konfigurationstest\n"
 
@@ -5632,22 +5557,27 @@ msgstr "Plane %s für Weiterverarbeitung ein"
 msgid "Skipping postprocessing (no suitable files found)"
 msgstr "Überspringe Weiterverabreitung (keine geeigneten Dateien defunden)"
 
-#: lib/player_video.c:142
+#: lib/player_video.c:143
 msgid "Still image framerate"
 msgstr "Wiederholrate für Standbilder"
 
-#: lib/player_video.c:148
+#: lib/player_video.c:149
 #, fuzzy
 msgid "Set framerate with which still images will be redisplayed periodically"
 msgstr "Setze die Wiederholrate mit der Stanbilder neu angezeigt werden"
 
-#: lib/player_video.c:198
+#: lib/player_video.c:199
 msgid "Restarting playback due to changed video options"
 msgstr "Starte Abspielen neu wegen geänderter Videoeinstellungen"
 
-#: lib/player_video.c:279 lib/player_loop.c:1164 lib/player_audio.c:322
+#: lib/player_video.c:280 lib/player_loop.c:1163 lib/player_audio.c:322
 msgid "Detected EOF"
 msgstr ""
+
+#: lib/preset.c:232
+#, fuzzy
+msgid "Cannot make new preset: No home directory"
+msgstr "Verzeichnis erstellt: %s"
 
 #: lib/bgladspa.c:196
 msgid "Add effect to input data"
@@ -5691,116 +5621,111 @@ msgstr "Mische zu Stereo für Filter %s"
 msgid "Creating directory %s failed: %s"
 msgstr "Starten eines Prozesses fehlgeschlagen: %s"
 
-#: lib/searchpath.c:148 lib/transcoder.c:1719
+#: lib/searchpath.c:148 lib/transcoder.c:1834
 #, c-format
 msgid "Created directory %s"
 msgstr "Verzeichnis erstellt: %s"
 
-#: lib/pluginregistry.c:515 lib/pluginregistry.c:1442
+#: lib/pluginregistry.c:516 lib/pluginregistry.c:1458
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr "Plugin %s hat keine oder eine falsche Version"
 
-#: lib/pluginregistry.c:522
+#: lib/pluginregistry.c:523
 #, c-format
 msgid "No symbol the_plugin in %s"
 msgstr "Kein Symbol \"the_plugin\" in %s"
 
-#: lib/pluginregistry.c:527
+#: lib/pluginregistry.c:528
 #, c-format
 msgid "Plugin %s has zero priority"
 msgstr "Plugin %s hat Null als Priorität"
 
-#: lib/pluginregistry.c:537
+#: lib/pluginregistry.c:538
 #, fuzzy, c-format
 msgid "Not loading %s (blacklisted)"
 msgstr "Laden von %s fehlgeschlagen"
 
-#: lib/pluginregistry.c:641 lib/pluginregistry.c:1431
+#: lib/pluginregistry.c:642 lib/pluginregistry.c:1447
 #, c-format
 msgid "dlopen failed for %s: %s"
 msgstr "dlopen fehlgeschlagen für %s: %s"
 
-#: lib/pluginregistry.c:1209
+#: lib/pluginregistry.c:1232
 #, c-format
 msgid "bg_plugin_ref %s: %d"
 msgstr "bg_plugin_ref %s: %d"
 
-#: lib/pluginregistry.c:1214
-#, fuzzy, c-format
-msgid "bg_plugin_ref (null): %d"
-msgstr "bg_plugin_ref %s: %d"
-
-#: lib/pluginregistry.c:1280
+#: lib/pluginregistry.c:1296
 #, c-format
 msgid "bg_plugin_unref_nolock %s: %d"
 msgstr "bg_plugin_unref_nolock %s: %d"
 
-#: lib/pluginregistry.c:1291
+#: lib/pluginregistry.c:1307
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr "bg_plugin_unref %s: %d"
 
-#: lib/pluginregistry.c:1315 lib/pluginregistry.c:1368
+#: lib/pluginregistry.c:1331 lib/pluginregistry.c:1384
 #, c-format
 msgid "No plugin found for image %s"
 msgstr "Kein Plugin gefunden für Bild %s"
 
-#: lib/pluginregistry.c:1536
+#: lib/pluginregistry.c:1552
 msgid "Invalid plugin type for video output"
 msgstr "Ungültiger Plugintyp für Videoausgabe"
 
-#: lib/pluginregistry.c:1542
+#: lib/pluginregistry.c:1558
 #, c-format
 msgid "Plugin %s doesn't support embedded windows"
 msgstr "Plugin %s unterstützt keine eingebetteten Fenster"
 
-#: lib/pluginregistry.c:1789
+#: lib/pluginregistry.c:1805
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr "Laden von Plugin \"%s\" fehlgeschlagen"
 
-#: lib/pluginregistry.c:1801 lib/pluginregistry.c:1838
+#: lib/pluginregistry.c:1817 lib/pluginregistry.c:1854
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr "Öffnen von %s mit \"%s\" fehlgeschlagen"
 
-#: lib/pluginregistry.c:2002 lib/pluginregistry.c:2457
+#: lib/pluginregistry.c:2018 lib/pluginregistry.c:2473
 #, fuzzy
 msgid "Overlay subtitles"
 msgstr "Overlay Unrertitel Voreinstellungen"
 
-#: lib/pluginregistry.c:2138
+#: lib/pluginregistry.c:2154
 msgid "Registry settings"
 msgstr ""
 
-#: lib/pluginregistry.c:2145
+#: lib/pluginregistry.c:2161
 #, fuzzy
 msgid "Plugin settings"
 msgstr "Pluginoptionen"
 
-#: lib/pluginregistry.c:2152 lib/gtk/plugin_multi.c:402
+#: lib/pluginregistry.c:2168 lib/gtk/plugin_multi.c:402
 msgid "Extensions"
 msgstr "Erweiterungen"
 
-#: lib/pluginregistry.c:2159 lib/gtk/plugin_multi.c:394
+#: lib/pluginregistry.c:2175 lib/gtk/plugin_multi.c:394
 msgid "Protocols"
 msgstr "Protokolle"
 
-#: lib/pluginregistry.c:2166 lib/gtk/plugin_multi.c:384
+#: lib/pluginregistry.c:2182 lib/gtk/plugin_multi.c:384
 msgid "Priority"
 msgstr "Priorität"
 
-#: lib/pluginregistry.c:2415
+#: lib/pluginregistry.c:2431
 msgid "Write audio stream to video file if possible"
 msgstr ""
 
-#: lib/pluginregistry.c:2422
+#: lib/pluginregistry.c:2438
 #, fuzzy
 msgid "Write text subtitles to video file if possible"
 msgstr "Schreibe Textuntertitel in die Videodatei"
 
-#: lib/pluginregistry.c:2429
+#: lib/pluginregistry.c:2445
 #, fuzzy
 msgid "Write overlay subtitles to video file if possible"
 msgstr "Schreibe Oberlayuntertitel in die Videodatei"
@@ -6539,7 +6464,7 @@ msgstr "Serververbindung beendet"
 msgid "Cannot pause live stream"
 msgstr "Kann Datei %s nicht öffnen"
 
-#: lib/player_loop.c:1241
+#: lib/player_loop.c:1240
 msgid "Ignoring command while playback is interrupted"
 msgstr "Ignoriere Befehl während das Absplielen unterbrochen ist"
 
@@ -6551,20 +6476,20 @@ msgstr "Ungültige Multibyte-Sequenz"
 msgid "Incomplete Multibyte sequence"
 msgstr "Unvollständige Multibyte-Sequenz"
 
-#: lib/transcoder.c:477
+#: lib/transcoder.c:486
 #, c-format
 msgid "Transcoding took %s (%.2f %% of realtime duration)"
 msgstr ""
 
-#: lib/transcoder.c:487
+#: lib/transcoder.c:496
 msgid "Output Directory"
 msgstr "Ausgabeverzeichnis"
 
-#: lib/transcoder.c:493
+#: lib/transcoder.c:502
 msgid "Delete incomplete output files"
 msgstr "Lösche unvollständige Ausgabedateien"
 
-#: lib/transcoder.c:496
+#: lib/transcoder.c:505
 msgid ""
 "Delete the encoded files if you hit the stop button. This option will "
 "automatically be disabled, when the track is an URL"
@@ -6572,56 +6497,56 @@ msgstr ""
 "Lösche enkodierte Dateien wenn Du den \"Stop\"-Button drückst. Diese Option "
 "wird automatisch deaktiviert, wenn der Track eine URL ist."
 
-#: lib/transcoder.c:501
+#: lib/transcoder.c:510
 msgid "Clean up after postprocessing"
 msgstr "Aufräumen nach der Weiterverarbeitung"
 
-#: lib/transcoder.c:503
+#: lib/transcoder.c:512
 msgid "Clean up all encoded files, which were postprocessed"
 msgstr "Lösche alle enkodierten Dateien, die weiterverarbeitet wurden"
 
-#: lib/transcoder.c:507
+#: lib/transcoder.c:516
 msgid "Send finished files to player"
 msgstr "Schicke fertige Dateien zum Player"
 
-#: lib/transcoder.c:1141
+#: lib/transcoder.c:1185
 #, c-format
 msgid "Using statistics file: %s"
 msgstr "Benutze Statistikdatei: %s"
 
-#: lib/transcoder.c:1244
+#: lib/transcoder.c:1311
 msgid "Encoding audio failed"
 msgstr "Ton Enkodieren fehlgeschlagen"
 
-#: lib/transcoder.c:1511
+#: lib/transcoder.c:1626
 msgid "Encoding video failed"
 msgstr "Bild Enkodieren fehlgeschlagen"
 
-#: lib/transcoder.c:1596 lib/transcoder.c:1646
+#: lib/transcoder.c:1711 lib/transcoder.c:1761
 msgid "Encoding subtitles failed"
 msgstr "Untertitel Enkodieren fehlgeschlagen"
 
-#: lib/transcoder.c:1713
+#: lib/transcoder.c:1828
 #, c-format
 msgid "Cannot create directory %s: %s, using default"
 msgstr "Kann Verzeichnis %s nicht erstellen: %s, nehme Voreinstellung"
 
-#: lib/transcoder.c:1770
+#: lib/transcoder.c:1885
 #, c-format
 msgid "Postprocessing %s"
 msgstr "Weiterverarbeitung von %s"
 
-#: lib/transcoder.c:1774 lib/transcoder.c:2855
+#: lib/transcoder.c:1889 lib/transcoder.c:3123
 #, c-format
 msgid "Transcoding %s [Track %d, Pass %d/%d]"
 msgstr "Transkodiere %s [Track %d, Durchgang %d/%d]"
 
-#: lib/transcoder.c:1779
+#: lib/transcoder.c:1894
 #, c-format
 msgid "Transcoding %s [Track %d]"
 msgstr "Transkodiere %s [Track %d]"
 
-#: lib/transcoder.c:1790
+#: lib/transcoder.c:1905
 #, c-format
 msgid ""
 "Metadata:\n"
@@ -6630,7 +6555,7 @@ msgstr ""
 "Metadaten:\n"
 "%s"
 
-#: lib/transcoder.c:1805
+#: lib/transcoder.c:1922
 #, c-format
 msgid ""
 "Audio stream %d input format:\n"
@@ -6639,7 +6564,7 @@ msgstr ""
 "Audiostream %d, Quellformat:\n"
 "%s"
 
-#: lib/transcoder.c:1810
+#: lib/transcoder.c:1928
 #, c-format
 msgid ""
 "Audio stream %d output format:\n"
@@ -6648,7 +6573,16 @@ msgstr ""
 "Audiostream %d, Ausgabeformat:\n"
 "%s"
 
-#: lib/transcoder.c:1823
+#: lib/transcoder.c:1936
+#, fuzzy, c-format
+msgid ""
+"Audio stream %d format:\n"
+"%s"
+msgstr ""
+"Audiostream %d, Quellformat:\n"
+"%s"
+
+#: lib/transcoder.c:1951
 #, c-format
 msgid ""
 "Video stream %d input format:\n"
@@ -6657,7 +6591,7 @@ msgstr ""
 "Videostream %d, Quellformat:\n"
 "%s"
 
-#: lib/transcoder.c:1828
+#: lib/transcoder.c:1956
 #, c-format
 msgid ""
 "Video stream %d output format:\n"
@@ -6666,75 +6600,119 @@ msgstr ""
 "Videostream %d, Ausgabeformat:\n"
 "%s"
 
-#: lib/transcoder.c:1840 lib/transcoder.c:1859
+#: lib/transcoder.c:1963
+#, fuzzy, c-format
+msgid ""
+"Video stream %d format:\n"
+"%s"
+msgstr ""
+"Videostream %d, Quellformat:\n"
+"%s"
+
+#: lib/transcoder.c:1975 lib/transcoder.c:1994
 #, c-format
 msgid "Text subtitle stream %d: Blending onto video stream %d"
 msgstr "Text-Untertitelstream %d: Mische auf Videostream %d"
 
-#: lib/transcoder.c:1845 lib/transcoder.c:1864
+#: lib/transcoder.c:1980 lib/transcoder.c:1999
 #, c-format
 msgid "Text subtitle stream %d: Exporting to file"
 msgstr "Text-Untertitelstream %d: Exportiere in Datei"
 
-#: lib/transcoder.c:1909
+#: lib/transcoder.c:2044
 #, c-format
 msgid "Cannot find plugin %s"
 msgstr "Kann Plugin %s nicht finden"
 
-#: lib/transcoder.c:1916
+#: lib/transcoder.c:2051
 #, c-format
 msgid "Cannot open plugin %s"
 msgstr "Kann Plugin %s nicht öffnen"
 
-#: lib/transcoder.c:1933
+#: lib/transcoder.c:2068
 #, c-format
 msgid "Cannot open %s with plugin %s"
 msgstr "Kann %s nicht mit Plugin %s öffnen"
 
-#: lib/transcoder.c:1949
+#: lib/transcoder.c:2084
 #, c-format
 msgid "Invalid track number %d"
 msgstr "Ungültige Tracknummer %d"
 
-#: lib/transcoder.c:2081 lib/player_input.c:219
+#: lib/transcoder.c:2114
+#, fuzzy, c-format
+msgid "Audio stream %d cannot be read compressed"
+msgstr "Audiostream %d: %s Abtastwerte transkodiert"
+
+#: lib/transcoder.c:2124
+#, fuzzy, c-format
+msgid "Audio stream %d cannot be written compressed"
+msgstr "Audiostream %d: %s Abtastwerte transkodiert"
+
+#: lib/transcoder.c:2129
+#, c-format
+msgid "Copying compressed audio stream %d"
+msgstr ""
+
+#: lib/transcoder.c:2143
+#, fuzzy, c-format
+msgid "Video stream %d cannot be read compressed"
+msgstr "Videostream %d: %s Bilder transkodiert"
+
+#: lib/transcoder.c:2155 lib/transcoder.c:2170
+#, c-format
+msgid "Not copying video stream %d: Will blend subtitles"
+msgstr ""
+
+#: lib/transcoder.c:2183
+#, fuzzy, c-format
+msgid "Video stream %d cannot be written compressed"
+msgstr "Videostream %d: %s Bilder transkodiert"
+
+#: lib/transcoder.c:2188
+#, c-format
+msgid "Copying compressed video stream %d"
+msgstr ""
+
+#: lib/transcoder.c:2311 lib/player_input.c:219
 msgid "Starting input plugin failed"
 msgstr "Starten des Quellplugins fehlgeschlagen"
 
-#: lib/transcoder.c:2091 lib/transcoder.c:2100
+#: lib/transcoder.c:2321 lib/transcoder.c:2330
 msgid "Cannot seek to start point"
 msgstr "Kann nicht zum Startpunkt suchen"
 
-#: lib/transcoder.c:2111
+#: lib/transcoder.c:2341
 msgid "End time if before start time"
 msgstr "Endzeit vor Anfangszeit"
 
-#: lib/transcoder.c:2251 lib/transcoder.c:2299
+#: lib/transcoder.c:2503 lib/transcoder.c:2551
 msgid "Subtitle stream cannot be handled"
 msgstr "Untertitelstream kann nicht verarbeitet werden"
 
-#: lib/transcoder.c:2320
+#: lib/transcoder.c:2572
 msgid "Input and output are the same file"
 msgstr "Quelle und Ausgabe sind die gleiche Datei"
 
-#: lib/transcoder.c:2611
+#: lib/transcoder.c:2867
 msgid "Zero peaks detected (silent file?). Disabling normalization."
 msgstr "Null Spitzenwerte detektiert (stumme Datei?). Deaktiviere Normierung"
 
-#: lib/transcoder.c:2617
+#: lib/transcoder.c:2873
 #, c-format
 msgid "Correcting volume by %.2f dB"
 msgstr "Korrigiere Lautstärke um %.2f dB"
 
-#: lib/transcoder.c:2671
+#: lib/transcoder.c:2932
 msgid "No stream to encode"
 msgstr "Kein Stream zum Enkodieren"
 
-#: lib/transcoder.c:3059
+#: lib/transcoder.c:3327
 #, c-format
 msgid "Video stream %d: Transcoded %s frames"
 msgstr "Videostream %d: %s Bilder transkodiert"
 
-#: lib/transcoder.c:3070
+#: lib/transcoder.c:3338
 #, c-format
 msgid "Audio stream %d: Transcoded %s samples"
 msgstr "Audiostream %d: %s Abtastwerte transkodiert"
@@ -6784,17 +6762,17 @@ msgstr ""
 msgid "Could not find free port"
 msgstr "Kann Socket nicht binden"
 
-#: lib/x11/x11_video.c:233
+#: lib/x11/x11_video.c:232
 #, c-format
 msgid "Trying %s driver"
 msgstr ""
 
-#: lib/x11/x11_video.c:237
+#: lib/x11/x11_video.c:236
 #, fuzzy, c-format
 msgid "Opening %s driver failed"
 msgstr "Speichern von %s fehlgeschlagen"
 
-#: lib/x11/x11_video.c:245
+#: lib/x11/x11_video.c:244
 #, fuzzy, c-format
 msgid "Opening %s driver succeeded"
 msgstr "Speichern von %s fehlgeschlagen"
@@ -6996,7 +6974,7 @@ msgid ""
 "unused album files) at program exit"
 msgstr "Reinige Verzeichnis (d.h. lösche unbenutzte Albumdateien) beim Beenden"
 
-#: lib/tree.c:1193 lib/transcoder_track.c:178
+#: lib/tree.c:1193 lib/transcoder_track.c:179
 msgid "Prefer EDL"
 msgstr "EDl bevorzugen"
 
@@ -7028,20 +7006,20 @@ msgstr "Bereinige %s"
 msgid "No current track for copying to favourites"
 msgstr "Kein aktueller Track zum Kopieren zu Favoriten"
 
-#: lib/singlepic.c:97
+#: lib/singlepic.c:96
 msgid "Display time"
 msgstr "Anzeigedauer"
 
-#: lib/singlepic.c:102
+#: lib/singlepic.c:101
 msgid "Time to pass until the next track will be selected. 0 means infinite."
 msgstr ""
 "Zeit, die vergeht, bis der nächste Track gewählt wird. 0 heißt unendlich."
 
-#: lib/singlepic.c:483
+#: lib/singlepic.c:548
 msgid "Image video input plugin"
 msgstr "Bilder als Video"
 
-#: lib/singlepic.c:484
+#: lib/singlepic.c:549
 msgid ""
 "This plugin reads series of images as a video. It uses the installed image "
 "readers."
@@ -7049,21 +7027,26 @@ msgstr ""
 "Dieses Plugin liest eine Reihe Bilder als Video. Es benutzt die "
 "installierten Bildimporteure."
 
-#: lib/singlepic.c:528
+#: lib/singlepic.c:595
 msgid ""
 "This plugin reads images as stills. It uses the installed image readers."
 msgstr ""
 "Dieses Plugin liest Standbilder. Es benutzt die installierten Bildimporteure."
 
-#: lib/singlepic.c:658
+#: lib/singlepic.c:725
 msgid "Framenumber digits"
 msgstr "Dezimalstellen für Bildnummer"
 
-#: lib/singlepic.c:666
+#: lib/singlepic.c:733
 msgid "Framenumber offset"
 msgstr "Offset für Bildnummer"
 
-#: lib/singlepic.c:960
+#: lib/singlepic.c:998
+#, fuzzy, c-format
+msgid "Couldn't write data to %s: %s"
+msgstr "Kann Verzeichnis %s nicht erstellen: %s"
+
+#: lib/singlepic.c:1059
 msgid ""
 "This plugin encodes a video as a series of images. It uses the installed "
 "image writers."
@@ -7083,7 +7066,7 @@ msgstr "Titel"
 msgid "Album"
 msgstr "Album"
 
-#: lib/metadata.c:123 lib/transcoder_track.c:184 lib/gtk/infowindow.c:786
+#: lib/metadata.c:123 lib/transcoder_track.c:185 lib/gtk/infowindow.c:786
 msgid "Track"
 msgstr "Track"
 
@@ -7160,16 +7143,17 @@ msgstr "Starte Abspielen neu wegen geänderter Audioeinstellungen"
 msgid "Restarting playback due to changed audio filters"
 msgstr "Starte Abspielen neu wegen geänderter Audiofilter"
 
-#: lib/transcoder_track.c:160 lib/gtk/infowindow.c:771
+#: lib/transcoder_track.c:161 lib/gtk/infowindow.c:771
 #: lib/gtk/treewidget.c:1119 lib/gtk/chapterdialog.c:184
+#: lib/gtk/presetmenu.c:139
 msgid "Name"
 msgstr "Name"
 
-#: lib/transcoder_track.c:166 lib/gtk/infowindow.c:781
+#: lib/transcoder_track.c:167 lib/gtk/infowindow.c:781
 msgid "Location"
 msgstr "Ort"
 
-#: lib/transcoder_track.c:180
+#: lib/transcoder_track.c:181
 msgid ""
 "For files, which contain edit decision lists and raw streams, this option "
 "selects which one to decode."
@@ -7177,19 +7161,19 @@ msgstr ""
 "Für Dateien, die EDLs und Rohstreams enthalten, letg diese Option fest, "
 "welche von beiden abgespielt werden soll."
 
-#: lib/transcoder_track.c:190
+#: lib/transcoder_track.c:191
 msgid "Subdirectory"
 msgstr "Unterverzeichnis"
 
-#: lib/transcoder_track.c:192
+#: lib/transcoder_track.c:193
 msgid "Subdirectory, where this track will be written to"
 msgstr "Unterverzeichnis, in das die Tracks geschrieben werden"
 
-#: lib/transcoder_track.c:232
+#: lib/transcoder_track.c:233
 msgid "Postprocess only"
 msgstr "Nur Weiterverarbeiten"
 
-#: lib/transcoder_track.c:234
+#: lib/transcoder_track.c:235
 msgid ""
 "Skip transcoding of this track and send the file directly to the "
 "postprocessor."
@@ -7197,11 +7181,11 @@ msgstr ""
 "Überspringe Transkodieren dieses Tracks und schicke die Datei direkt zum "
 "Weiterverarbeiten"
 
-#: lib/transcoder_track.c:238
+#: lib/transcoder_track.c:239
 msgid "Set start time"
 msgstr "Setze die Startzeit"
 
-#: lib/transcoder_track.c:242
+#: lib/transcoder_track.c:243
 msgid ""
 "Specify a start time below. This time will be slightly wrong if the input "
 "format doesn't support sample accurate seeking."
@@ -7209,76 +7193,76 @@ msgstr ""
 "Gib unten eine Startzeit an. Diese Zeit wird geringfügig falsch sein, wenn "
 "die Quelle kein exaktes Suchen unterstützt."
 
-#: lib/transcoder_track.c:247
+#: lib/transcoder_track.c:248
 msgid "Start time"
 msgstr "Startzeit"
 
-#: lib/transcoder_track.c:254
+#: lib/transcoder_track.c:255
 msgid "Set end time"
 msgstr "Setzte Endzeit"
 
-#: lib/transcoder_track.c:258
+#: lib/transcoder_track.c:259
 msgid "Specify an end time below."
 msgstr "Gib unten eine Endzeit an"
 
-#: lib/transcoder_track.c:262
+#: lib/transcoder_track.c:263
 msgid "End time"
 msgstr "Endzeit"
 
-#: lib/transcoder_track.c:276 lib/transcoder_track.c:332
-#: lib/transcoder_track.c:1313 lib/transcoder_track.c:1338
+#: lib/transcoder_track.c:277 lib/transcoder_track.c:333
+#: lib/transcoder_track.c:1319 lib/transcoder_track.c:1348
 msgid "Action"
 msgstr "Aktion"
 
-#: lib/transcoder_track.c:284 lib/transcoder_track.c:338
-#: lib/transcoder_track.c:1316 lib/transcoder_track.c:1341
+#: lib/transcoder_track.c:285 lib/transcoder_track.c:339
+#: lib/transcoder_track.c:1324 lib/transcoder_track.c:1354
 msgid "Forget"
 msgstr "Vergessen"
 
-#: lib/transcoder_track.c:285
+#: lib/transcoder_track.c:286
 msgid "Transcode as text"
 msgstr "Transkodiere als Text"
 
-#: lib/transcoder_track.c:286
+#: lib/transcoder_track.c:287
 msgid "Transcode as overlay"
 msgstr "Transkodiere als Overlay"
 
-#: lib/transcoder_track.c:287 lib/transcoder_track.c:340
+#: lib/transcoder_track.c:288 lib/transcoder_track.c:341
 msgid "Blend onto video"
 msgstr "Mische aufs Video"
 
-#: lib/transcoder_track.c:289
+#: lib/transcoder_track.c:290
 msgid "Select action for this subtitle stream."
 msgstr "Wähle Aktion für diesen Untertitelstream"
 
-#: lib/transcoder_track.c:293 lib/transcoder_track.c:346
-#: lib/transcoder_track.c:1346
+#: lib/transcoder_track.c:294 lib/transcoder_track.c:347
+#: lib/transcoder_track.c:1360
 msgid "Input Language"
 msgstr "Ursprüngliche Sprache"
 
-#: lib/transcoder_track.c:299 lib/transcoder_track.c:352
-#: lib/transcoder_track.c:1352 lib/recorder_audio.c:78
+#: lib/transcoder_track.c:300 lib/transcoder_track.c:353
+#: lib/transcoder_track.c:1366 lib/recorder_audio.c:78
 msgid "Language"
 msgstr "Sprache"
 
-#: lib/transcoder_track.c:307 lib/transcoder_track.c:360
-#: lib/transcoder_track.c:1360
+#: lib/transcoder_track.c:308 lib/transcoder_track.c:361
+#: lib/transcoder_track.c:1374
 msgid "Force language"
 msgstr "Erzwinge Sprache"
 
-#: lib/transcoder_track.c:310 lib/transcoder_track.c:363
-#: lib/transcoder_track.c:1363
+#: lib/transcoder_track.c:311 lib/transcoder_track.c:364
+#: lib/transcoder_track.c:1377
 msgid ""
 "Force the given language even if the input has the language set differently."
 msgstr ""
 "Erzwinge die angegebene Sprache, selbst wenn die Quelle was anderes "
 "behautpet."
 
-#: lib/transcoder_track.c:314
+#: lib/transcoder_track.c:315
 msgid "Video stream"
 msgstr "Videostream"
 
-#: lib/transcoder_track.c:319
+#: lib/transcoder_track.c:320
 msgid ""
 "Attach subtitle stream to this video stream. For blending, this video stream "
 "will get the subtitles. For encoding, take frame dimensions and framerate "
@@ -7289,20 +7273,30 @@ msgstr ""
 "Für das Enkodieren werden Bildwiederholrate und -größe von diesem "
 "Videostream genommen, da diese manchmal von Enkodern gebraucht werden."
 
-#: lib/transcoder_track.c:339 lib/transcoder_track.c:1316
-#: lib/transcoder_track.c:1341 lib/gtk/albumwidget.c:1539
+#: lib/transcoder_track.c:340 lib/transcoder_track.c:1322
+#: lib/transcoder_track.c:1352 lib/gtk/albumwidget.c:1539
 msgid "Transcode"
 msgstr "Transkodieren"
 
-#: lib/transcoder_track.c:367
+#: lib/transcoder_track.c:368
 msgid "Video stream to blend onto"
 msgstr "Videostream zum draufmischen"
 
-#: lib/transcoder_track.c:1321
+#: lib/transcoder_track.c:1323 lib/transcoder_track.c:1353
+msgid "Copy (if possible)"
+msgstr ""
+
+#: lib/transcoder_track.c:1326 lib/transcoder_track.c:1356
+msgid ""
+"Choose the desired action for the stream. If copying is not possible, the "
+"stream will be transcoded"
+msgstr ""
+
+#: lib/transcoder_track.c:1331
 msgid "Enable 2-pass encoding"
 msgstr "Aktiviere 2-Pass Enkodierung"
 
-#: lib/transcoder_track.c:1323
+#: lib/transcoder_track.c:1333
 msgid ""
 "Encode this stream in 2 passes, i.e. analyze it first and do the final "
 "transcoding in the second pass. This enables higher quality within the given "
@@ -7312,11 +7306,11 @@ msgstr ""
 "enkodiere ihn endgütlig im zweiten Durchlauf. Dies bringt bessere Qualität "
 "für eine gegebene Bitrate aber verdoppelt in etwa die Enkodierzeit."
 
-#: lib/transcoder_track.c:1367
+#: lib/transcoder_track.c:1381
 msgid "Normalize audio"
 msgstr "Normiere Audio"
 
-#: lib/transcoder_track.c:1369
+#: lib/transcoder_track.c:1383
 msgid ""
 "This will enable 2 pass transcoding. In the first pass, the peak volume is "
 "detected. In the second pass, the stream is transcoded with normalized "
@@ -7409,17 +7403,17 @@ msgstr "Kann Track nicht auswählen, überspringe"
 msgid "Track has neither audio nor video, skipping"
 msgstr "Track hat weder Audio noch Video, überspringe ihn."
 
-#: lib/player_input.c:350
+#: lib/player_input.c:351
 #, c-format
 msgid "Audio sample counter: %s"
 msgstr "Audiosamplezähler: %s"
 
-#: lib/player_input.c:355
+#: lib/player_input.c:356
 #, c-format
 msgid "Video frame counter: %s"
 msgstr "Bilderzähler: %s"
 
-#: lib/player_input.c:578
+#: lib/player_input.c:581
 msgid ""
 "When showing still images, gmerlin repeats them periodically to make "
 "realtime filter tweaking work."
@@ -7427,7 +7421,7 @@ msgstr ""
 "Wenn Standbilder gezeigt werden, wiederholt Gmerlin sie periodisch. Dies "
 "ermöglicht Herumspielen an den Filtereinstellungen in Echtzeit. "
 
-#: lib/player_input.c:588
+#: lib/player_input.c:591
 msgid ""
 "Use this for playing buggy files, which have a constant offset between audio "
 "and video. Use positive values if the video is ahead of audio"
@@ -7438,7 +7432,7 @@ msgstr ""
 msgid "Chapter %d"
 msgstr "Kapitel %d"
 
-#: lib/stringutils.c:178
+#: lib/stringutils.c:179
 #, c-format
 msgid "Cannot open file \"%s\" for writing"
 msgstr "Kann Datei \"%s\" nicht zum Schreiben öffnen"
@@ -7522,17 +7516,17 @@ msgstr "Erster Audiozeitstempel erhalten: %s"
 msgid "Couldn't open album file %s"
 msgstr "Konnte Albumdatei %s nicht öffnen"
 
-#: lib/encoder.c:174
+#: lib/encoder.c:177
 #, fuzzy, c-format
 msgid "Created output file %s"
 msgstr "Kann Ausgabedatei %s nicht öffnen"
 
-#: lib/encoder.c:190
+#: lib/encoder.c:193
 #, fuzzy, c-format
 msgid "Created temp file %s\n"
 msgstr "Kann Datei %s nicht öffnen"
 
-#: lib/encoder.c:603
+#: lib/encoder.c:615
 msgid "Multipass encoding not supported by encoder plugin"
 msgstr "Multipassenkodierung wird vom Enkoderplugin nicht unterstützt"
 
@@ -7831,6 +7825,26 @@ msgstr "Automatisch"
 msgid "Plugin: "
 msgstr "Plugin: "
 
+#: lib/gtk/presetmenu.c:141
+#, fuzzy
+msgid "New preset"
+msgstr "Nächstes Pixel"
+
+#: lib/gtk/presetmenu.c:149
+#, fuzzy
+msgid "Save preset"
+msgstr "Speichere Profil"
+
+#: lib/gtk/presetmenu.c:245
+#, fuzzy
+msgid "Save..."
+msgstr "Speichern unter..."
+
+#: lib/gtk/presetmenu.c:255
+#, fuzzy
+msgid "Preset"
+msgstr "Nächstes Pixel"
+
 #: lib/gtk/urlselect.c:177
 msgid "URL:"
 msgstr "URL:"
@@ -8000,7 +8014,7 @@ msgstr ""
 msgid "Gmerlin Media Tree"
 msgstr "Gmerlin Media Tree"
 
-#: lib/gtk/cfg_multi_list.c:861
+#: lib/gtk/cfg_multi_list.c:863
 #, c-format
 msgid "Add %s"
 msgstr "%s hinzufügen"
@@ -8022,11 +8036,11 @@ msgstr "Nicht verfügbar"
 msgid "Drive:"
 msgstr "Laufwerk:"
 
-#: lib/gtk/cfg_dialog.c:428
+#: lib/gtk/cfg_dialog.c:491
 msgid "No options here, choose subcategory"
 msgstr "Keine Optionen hier, gehe zu Unterkategorie"
 
-#: lib/gtk/cfg_dialog.c:518
+#: lib/gtk/cfg_dialog.c:664
 msgid "No options available"
 msgstr "Keine Optionen verfügbar"
 
@@ -8055,11 +8069,11 @@ msgstr ""
 msgid "Auto detect"
 msgstr "Automatisch"
 
-#: lib/gtk/cfg_position.c:147
+#: lib/gtk/cfg_position.c:150
 msgid "X"
 msgstr "X"
 
-#: lib/gtk/cfg_position.c:152
+#: lib/gtk/cfg_position.c:155
 msgid "Y"
 msgstr "Y"
 
@@ -8258,14 +8272,14 @@ msgstr ""
 msgid "Record audio"
 msgstr "Kein Audio"
 
-#: lib/bgfrei0r.c:65 lib/bgfrei0r.c:73 lib/bgfrei0r.c:80 lib/bgfrei0r.c:87
-#: lib/bgfrei0r.c:170 lib/bgfrei0r.c:462 lib/bgfrei0r.c:477 lib/bgfrei0r.c:483
-#: lib/bgfrei0r.c:489 lib/bgfrei0r.c:495
+#: lib/bgfrei0r.c:68 lib/bgfrei0r.c:76 lib/bgfrei0r.c:83 lib/bgfrei0r.c:90
+#: lib/bgfrei0r.c:183 lib/bgfrei0r.c:475 lib/bgfrei0r.c:490 lib/bgfrei0r.c:496
+#: lib/bgfrei0r.c:502 lib/bgfrei0r.c:508
 #, c-format
 msgid "Cannot load frei0r plugin: %s"
 msgstr "Kann frei0r Plugin %s nicht laden"
 
-#: lib/bgfrei0r.c:194
+#: lib/bgfrei0r.c:207
 #, c-format
 msgid ""
 "Author: %s\n"
@@ -8363,16 +8377,16 @@ msgstr "Dieses Metaplugin dekodiert eine EDL als wäre sie eine einzige Datei"
 msgid "Audio Filters"
 msgstr "Audiofilter"
 
-#: lib/filters.c:349
+#: lib/filters.c:350
 #, c-format
 msgid "Initialized audio filter %s"
 msgstr "Initialisierte Audiofilter %s"
 
-#: lib/filters.c:624
+#: lib/filters.c:625
 msgid "Video Filters"
 msgstr "Videofilter"
 
-#: lib/filters.c:769
+#: lib/filters.c:771
 #, c-format
 msgid "Initialized video filter %s"
 msgstr "Initialisierte Videofilter %s"
@@ -8425,6 +8439,13 @@ msgid ""
 msgstr ""
 "\n"
 "Lizenz: %s"
+
+#~ msgid "Inputs"
+#~ msgstr "Quellen"
+
+#, fuzzy
+#~ msgid "bg_plugin_ref (null): %d"
+#~ msgstr "bg_plugin_ref %s: %d"
 
 #, fuzzy
 #~ msgid "vloopback open failed: %s"
@@ -8542,9 +8563,6 @@ msgstr ""
 
 #~ msgid "No known address space"
 #~ msgstr "Unbekannter Adressraum"
-
-#~ msgid "Could not create directory %s: %s"
-#~ msgstr "Kann Verzeichnis %s nicht erstellen: %s"
 
 #~ msgid "Multipass encoding not supported by codec"
 #~ msgstr "Multipassenkodierung wird vom Codec nicht unterstützt"
