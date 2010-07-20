@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-02-25 22:13+0100\n"
+"POT-Creation-Date: 2010-07-20 17:57+0200\n"
 "PO-Revision-Date: 2008-08-29 22:47+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -308,11 +308,11 @@ msgstr "DVD Spieler"
 msgid "Plugin for playing DVDs. Based on Gmerlin avdecoder."
 msgstr "Plugin zum Abspielen von DVDs. Basiert auf Gmerlin avdecoder."
 
-#: plugins/avdec_common.h:112
+#: plugins/avdec_common.h:125
 msgid "Dynamic range control"
 msgstr "Dynamikregelung"
 
-#: plugins/avdec_common.h:115
+#: plugins/avdec_common.h:128
 msgid ""
 "Enable dynamic range control for codecs, which support this (currently only "
 "A52 and DTS)."
@@ -320,11 +320,11 @@ msgstr ""
 "Benutze Dynamikregelung für Codecs, die dies unterstützen (momentan nur A52 "
 "und DTS)."
 
-#: plugins/avdec_common.h:121
+#: plugins/avdec_common.h:134
 msgid "Postprocessing level"
 msgstr "Nachbearbeitung"
 
-#: plugins/avdec_common.h:128
+#: plugins/avdec_common.h:141
 #, fuzzy
 msgid ""
 "Set postprocessing (to remove compression artifacts). 0 means no "
@@ -379,15 +379,28 @@ msgstr "Parsen der SMIL Struktur fehlgeschlagen"
 msgid "Cannot detect stream type"
 msgstr "Kann Format nicht ermittln"
 
-#: lib/bgav.c:383
+#: lib/bgav.c:411
 msgid "Reopening input due to track reset"
 msgstr "Öffne Quelle neu (Track wurde zurückgesetzt)"
+
+#: lib/matroska.c:226
+#, fuzzy, c-format
+msgid "Skipping %<PRId64> bytes of element %x in %s\n"
+msgstr "Überspringe %d bytes des Chunks vom typ %02x"
+
+#: lib/matroska.c:981
+msgid "Couldn't read header element for cues (truncated file?)"
+msgstr ""
+
+#: lib/matroska.c:987
+msgid "Didn't find cues where I exepected them (truncated file?)"
+msgstr ""
 
 #: lib/audio_gsm.c:63
 msgid "Multichannel GSM not supported"
 msgstr "Mehrkanal GSM ist nicht unterstützt"
 
-#: lib/audio_ffmpeg.c:713
+#: lib/audio_ffmpeg.c:764
 #, c-format
 msgid "Codec not found: %s"
 msgstr "Codec nicht gefunden: %s"
@@ -396,6 +409,25 @@ msgstr "Codec nicht gefunden: %s"
 #, c-format
 msgid "Detected %s redirector"
 msgstr "Weiterleitungsdatei: %s"
+
+#: lib/video_vpx.c:59
+#, fuzzy, c-format
+msgid "Failed to initialize decoder: %s"
+msgstr "Konnte %s nicht initialisieren"
+
+#: lib/video_vpx.c:110
+#, fuzzy, c-format
+msgid "Failed to decode frame: %s"
+msgstr "Lesen vom PNG-Header fehlgeschlagen: %s"
+
+#: lib/video_vpx.c:113
+#, c-format
+msgid "  Additional information: %s\n"
+msgstr ""
+
+#: lib/video_vpx.c:147
+msgid "Ignoring additional frame\n"
+msgstr ""
 
 #: lib/in_smb.c:99
 #, c-format
@@ -440,21 +472,21 @@ msgstr "Ungültige Zeile %d: %s"
 msgid "Unknown specifier: %c"
 msgstr "Unbekanntes Symbol: %c"
 
-#: lib/input.c:732
+#: lib/input.c:731
 #, c-format
 msgid "Unknown protocol: %s"
 msgstr "Unbekanntes Protokoll: %s"
 
-#: lib/input.c:804
+#: lib/input.c:805
 #, c-format
 msgid "Got redirected to %s"
 msgstr "Weiterleitung nach %s"
 
-#: lib/input.c:831
+#: lib/input.c:832
 msgid "mms connection failed, trying http"
 msgstr ""
 
-#: lib/input.c:1075
+#: lib/input.c:1076
 #, c-format
 msgid "Reopening %s failed"
 msgstr "Neuöffnen von %s fehlgeschlagen"
@@ -476,7 +508,8 @@ msgid "Lost sync"
 msgstr "Synchronisation verloren."
 
 #: lib/rtsp.c:153 lib/video_openjpeg.c:42 lib/video_openjpeg.c:48
-#: lib/video_openjpeg.c:54 lib/video_png.c:67 lib/http.c:381 lib/http.c:407
+#: lib/video_openjpeg.c:54 lib/video_png.c:68 lib/video_png.c:153
+#: lib/http.c:381 lib/http.c:414
 #, c-format
 msgid "%s"
 msgstr ""
@@ -484,6 +517,11 @@ msgstr ""
 #: lib/rtsp.c:203
 msgid "Reading session description failed"
 msgstr "Session description konnte nicht gelesen werden."
+
+#: lib/parse_mpeg4.c:125
+#, fuzzy
+msgid "Detected packed B-frames"
+msgstr "Intra slice refresh entdeckt"
 
 #: lib/demux_quicktime.c:274
 msgid "No packets in movie"
@@ -505,31 +543,31 @@ msgstr "Unbekannter Zeichensatz für Kapitelnamen"
 msgid "Read error while setting up chapter list"
 msgstr "Lesefehler während der Initialisierung der Kapitelliste"
 
-#: lib/demux_quicktime.c:943
+#: lib/demux_quicktime.c:945
 msgid "Invalid mp3on4 channel configuration"
 msgstr "Ungültige mp3on4 Kanalkonfiguration"
 
-#: lib/demux_quicktime.c:1231
+#: lib/demux_quicktime.c:1280
 msgid "More than one timecode track, ignoring them all"
 msgstr "Mehr als ein Timecodetrack, ignoriere alle"
 
-#: lib/demux_quicktime.c:1443 lib/demux_adts.c:227
+#: lib/demux_quicktime.c:1492 lib/demux_adts.c:227
 msgid "Detected HE-AAC"
 msgstr ""
 
-#: lib/demux_quicktime.c:1448 lib/demux_adts.c:233
+#: lib/demux_quicktime.c:1498 lib/demux_adts.c:234
 msgid "Detected no HE-AAC"
 msgstr ""
 
-#: lib/demux_quicktime.c:1514
+#: lib/demux_quicktime.c:1564
 msgid "Dirac stream has no ctts"
 msgstr ""
 
-#: lib/demux_quicktime.c:1569
+#: lib/demux_quicktime.c:1628
 msgid "Non streamable file on non seekable source"
 msgstr "Nicht streambare Datei von nicht suchbarer Quelle"
 
-#: lib/demux_quicktime.c:1578
+#: lib/demux_quicktime.c:1637
 msgid "Reading moov atom failed"
 msgstr "Lesen des moov Atoms fehlgeschlagen"
 
@@ -538,7 +576,7 @@ msgstr "Lesen des moov Atoms fehlgeschlagen"
 msgid "Skipped %d bytes in MPEG audio stream"
 msgstr "%d Bytes in MPEG Audio stream übersprungen"
 
-#: lib/subtitle.c:260
+#: lib/subtitle.c:257
 #, c-format
 msgid "No subtitle decoder found for fourcc %c%c%c%c (0x%08x)"
 msgstr "Kein Untertiteldekoder gefunden für fourcc %c%c%c%c (0x%08x)"
@@ -581,12 +619,12 @@ msgstr "Nicht unterstützte Header version: %d"
 msgid "length of MP4DecConfigDescrTag too short: %d < 13"
 msgstr "Länge vom MP4DecConfigDescrTag zu kurz: %d < 13"
 
-#: lib/in_vcd.c:254 lib/in_dvd.c:662
+#: lib/in_vcd.c:254 lib/in_dvd.c:666
 #, c-format
 msgid "cdio_close_tray failed: %s"
 msgstr "cdio_close_tray fehlgeschlagen: %s"
 
-#: lib/in_vcd.c:258 lib/in_dvd.c:666
+#: lib/in_vcd.c:258 lib/in_dvd.c:670
 msgid "cdio_close_tray failed"
 msgstr "cdio_close_tray fehlgeschlagen"
 
@@ -621,37 +659,71 @@ msgstr "Fehler"
 msgid "Info"
 msgstr "Info"
 
-#: lib/demux_ogg.c:221
+#: lib/demux_ogg.c:224
 #, c-format
 msgid "Unknown stream type \"%.8s\" in OGM header"
 msgstr "Unbekannter Streamtyp \\\"%.8s\\\" in OGM header"
 
-#: lib/demux_ogg.c:533 lib/demux_ogg.c:959
+#: lib/demux_ogg.c:536 lib/demux_ogg.c:1005
 msgid "EOF while setting up track"
 msgstr "Dateiende während der Trackinitialisierung"
 
-#: lib/demux_ogg.c:635
+#: lib/demux_ogg.c:667
 msgid "Dirac header contains no framerate, assuming 24 fps"
 msgstr ""
 
-#: lib/demux_ogg.c:731 lib/demux_ogg.c:775
+#: lib/demux_ogg.c:767 lib/demux_ogg.c:820
 msgid "Reading OGM header failed"
 msgstr "Lesen des OGM Headers fehlgeschlagen"
 
-#: lib/demux_ogg.c:796
+#: lib/demux_ogg.c:842
 #, c-format
 msgid "Unsupported stream (serialno: %d)"
 msgstr "Nicht unterstützter Stream (Seriennummer: %d)"
 
-#: lib/demux_ogg.c:1151
+#: lib/demux_ogg.c:1197
 msgid "Page has no BOS marker"
 msgstr "Seite hat keine BOS Markierung"
 
-#: lib/demux_ogg.c:1159
+#: lib/demux_ogg.c:1205
 msgid "Setting up track failed"
 msgstr "Trackinitialisierung fehlgeschlagen"
 
-#: lib/demux_avi.c:1904
+#: lib/demux_matroska.c:135
+msgid "Ogg extradata must start with 0x02n"
+msgstr ""
+
+#: lib/demux_matroska.c:603
+#, fuzzy
+msgid "Complex tracks not supported yet\n"
+msgstr "Codec nicht unterstützt"
+
+#: lib/demux_matroska.c:607
+#, fuzzy
+msgid "Logo tracks not supported yet\n"
+msgstr "Protokoll nicht unterstützt"
+
+#: lib/demux_matroska.c:611
+#, fuzzy
+msgid "Subtitle tracks not supported yet\n"
+msgstr "%d Bit AIFF wird nicht unterstützt"
+
+#: lib/demux_matroska.c:615
+#, fuzzy
+msgid "Button tracks not supported yet\n"
+msgstr "Codec nicht unterstützt"
+
+#: lib/demux_matroska.c:619
+#, fuzzy
+msgid "Control tracks not supported yet\n"
+msgstr "Protokoll nicht unterstützt"
+
+#: lib/demux_avi.c:1379
+#, fuzzy
+msgid "Could not get video framerate, assuming 25 fps"
+msgstr "Konnte Spieldauern der Programme nicht ermitteln, Suchen deaktiviert"
+
+#: lib/demux_avi.c:1907
 #, c-format
 msgid "Unknown stream type: %c%c%c%c"
 msgstr "Unbekannter Streamtyp: %c%c%c%c"
@@ -729,22 +801,22 @@ msgstr "Unbekanntes Kompressionsverfahren: %c%c%c%c"
 msgid "Uncompression failed"
 msgstr "Entkomprimieren fehlgeschlagen"
 
-#: lib/track.c:239
+#: lib/track.c:230
 #, c-format
 msgid "Starting audio decoder for stream %d failed"
 msgstr "Starten des Audiodekoders für Stream %d fehlgeschlagen"
 
-#: lib/track.c:251
+#: lib/track.c:242
 #, c-format
 msgid "Starting video decoder for stream %d failed"
 msgstr "Starten des Videodekoders für Stream %d fehlgeschlagen"
 
-#: lib/track.c:267
+#: lib/track.c:258
 #, c-format
 msgid "Cannot decode subtitles from stream %d (no video)"
 msgstr "Kann Untertitel von Stream %d nicht dekodieren (kein Video)"
 
-#: lib/track.c:292
+#: lib/track.c:283
 #, c-format
 msgid ""
 "Starting subtitle decoder for stream %d failed (cannot get video format)"
@@ -752,25 +824,30 @@ msgstr ""
 "Starten des Untertiteldekoders für Stream %d fehlgeschlagen (kann "
 "Videoformat nicht ermitteln)"
 
-#: lib/track.c:307
+#: lib/track.c:299
 #, c-format
 msgid "Starting subtitle decoder for stream %d failed"
 msgstr "Starten des Untertiteldekoders für Stream %d fehlgeschlagen"
 
-#: lib/track.c:446
+#: lib/track.c:439
 #, c-format
 msgid "No audio decoder found for WAVId 0x%04x"
 msgstr "Kein Audiodecoder für WAV-Kennung 0x%04x gefunden"
 
-#: lib/track.c:450 lib/audio.c:152
+#: lib/track.c:443 lib/audio.c:246
 #, c-format
 msgid "No audio decoder found for fourcc %c%c%c%c (0x%08x)"
 msgstr "Kein Audio Dekoder gefunden für fourcc %c%c%c%c (0x%08x)"
 
-#: lib/track.c:472 lib/video.c:164
+#: lib/track.c:465 lib/video.c:131
 #, c-format
 msgid "No video decoder found for fourcc %c%c%c%c (0x%08x)"
 msgstr "Kein Videodekoder gefunden für Kennung %c%c%c%c (0x%08x)"
+
+#: lib/track.c:477
+#, fuzzy, c-format
+msgid "No parser found for fourcc %c%c%c%c (0x%08x)"
+msgstr "Kein Audio Dekoder gefunden für fourcc %c%c%c%c (0x%08x)"
 
 #: lib/charset.c:153
 msgid "Invalid multibyte sequence"
@@ -812,21 +889,21 @@ msgstr "Kanaldatei %s konnte nicht geöffnet werden: %s"
 msgid "Unsupported encoding %d"
 msgstr "Nicht unterstützter Zeichensatz %d"
 
-#: lib/demux_rm.c:669
+#: lib/demux_rm.c:668
 #, c-format
 msgid "Video extradata too short: %d"
 msgstr "Video Extradaten zu kurz: %d"
 
-#: lib/demux_rm.c:677
+#: lib/demux_rm.c:676
 #, c-format
 msgid "Video extradata too long: %d"
 msgstr "Video Extradaten zu lang: %d"
 
-#: lib/demux_rm.c:831
+#: lib/demux_rm.c:830
 msgid "Cannot play multirate real from non seekable source"
 msgstr "Kann Multirate-Real nur von suchbaren Quellen spielen"
 
-#: lib/demux_rm.c:838
+#: lib/demux_rm.c:837
 msgid "Detected multirate real"
 msgstr "Multirate-Real erkannt"
 
@@ -847,7 +924,7 @@ msgstr "Ungültige fourcc Größe %d"
 msgid "Cannot open VMD file from nonseekable source"
 msgstr "Kann keine VMD Dateien von nicht suchbarer Quelle spielen"
 
-#: lib/demux_vmd.c:202
+#: lib/demux_vmd.c:204
 #, c-format
 msgid "Unexpected end of file %d %d"
 msgstr "Unerwartetes Dateiende %d %d"
@@ -879,39 +956,39 @@ msgstr "Decode fehlgeschlagen"
 msgid "DMO_VideoDecoder_Open failed %d"
 msgstr "DMO_VideoDecoder_Open fehlgeschlagen %d"
 
-#: lib/demux_flv.c:238
+#: lib/demux_flv.c:233
 #, c-format
 msgid "Unknown audio codec tag: %d"
 msgstr "Unbekannter audio codec tag: %d"
 
-#: lib/demux_flv.c:291
+#: lib/demux_flv.c:287
 #, c-format
 msgid "Unknown video codec tag: %d"
 msgstr "Unbekannter video codec tag: %d"
 
-#: lib/demux_flv.c:466
+#: lib/demux_flv.c:462
 #, c-format
 msgid "Unknown type %d for metadata object %s"
 msgstr "Unbekannter Typ %d for Metadatenobjekt %s"
 
-#: lib/demux_flv.c:692 lib/demux_flv.c:733
+#: lib/demux_flv.c:688 lib/demux_flv.c:729
 #, fuzzy, c-format
 msgid "Packet size is %d (somethings wrong?)"
 msgstr "Bekam Null als Paketgröße (irgendwas stimmt nicht)"
 
-#: lib/demux_flv.c:915
+#: lib/demux_flv.c:911
 msgid "Zero flags detected, assuming audio and video (might fail)"
 msgstr "Flags sind 0, nehme Audio und Video an (kann in die Hose gehen)"
 
-#: lib/demux_flv.c:1006
+#: lib/demux_flv.c:1002
 msgid "Getting duration from last timestamp failed"
 msgstr "Ermitteln der Spieldaur vom letzten Zeitstempel fehlgeschlagen"
 
-#: lib/video_png.c:54
+#: lib/video_png.c:55
 msgid "EOF"
 msgstr "Dateiende"
 
-#: lib/video_png.c:71 lib/subread.c:431
+#: lib/video_png.c:72 lib/video_png.c:157 lib/subread.c:431
 msgid "Reading png header failed"
 msgstr "Lesen des PNG Headers fehlgeschlagen"
 
@@ -919,29 +996,24 @@ msgstr "Lesen des PNG Headers fehlgeschlagen"
 msgid "Decode png failed"
 msgstr "Dekodieren des PNGs fehlgeschlagen"
 
-#: lib/video_ffmpeg.c:559
+#: lib/video_ffmpeg.c:566
 msgid "Got EOF while skipping"
 msgstr ""
 
-#: lib/video_ffmpeg.c:759
+#: lib/video_ffmpeg.c:766
 msgid "Using VDPAU for decoding"
 msgstr ""
 
-#: lib/video_ffmpeg.c:885
+#: lib/video_ffmpeg.c:895
 msgid "Could not get initial frame"
 msgstr "Konnte kein erstes Bild bekommen"
 
-#: lib/video_ffmpeg.c:972
-#, c-format
-msgid "Skipping packet %c"
-msgstr ""
-
-#: lib/video_ffmpeg.c:1716
+#: lib/video_ffmpeg.c:1722
 #, c-format
 msgid "Cannot find %s"
 msgstr "Kann %s nicht finden"
 
-#: lib/video_ffmpeg.c:2148
+#: lib/video_ffmpeg.c:2154
 msgid "Unsupported pixelformat for postprocessing"
 msgstr "Nicht unterstütztes Pixelformat für Nachbearbeitung"
 
@@ -970,60 +1042,71 @@ msgstr "Nicht Unterstützte Farbtiefe: %d"
 msgid "Skipping remainder of broken wave atom"
 msgstr "Überspringe Schrott in udta-Atom"
 
-#: lib/audio.c:69
+#: lib/audio.c:193
 #, fuzzy, c-format
 msgid "No audio parser found for fourcc %c%c%c%c (0x%08x)"
 msgstr "Kein Audio Dekoder gefunden für fourcc %c%c%c%c (0x%08x)"
 
-#: lib/audio.c:83
-msgid "Audio parser doesn't support out-of-band header"
-msgstr ""
-
-#: lib/audio.c:101
+#: lib/audio.c:207
 msgid "EOF while initializing audio parser"
 msgstr ""
 
-#: lib/audio.c:129 lib/video.c:146
+#: lib/audio.c:222 lib/video.c:112
 #, fuzzy
 msgid "EOF while getting start time"
 msgstr "Dateiende beim Lesen des Timecodes"
 
-#: lib/audio.c:135
+#: lib/audio.c:228
 #, c-format
 msgid "Got initial audio timestamp: %s"
 msgstr "Erster Audio Zeitstempel gelesen: %s"
 
-#: lib/audio.c:149
+#: lib/audio.c:243
 #, c-format
 msgid "No audio decoder found for WAV ID 0x%04x"
 msgstr "Kein Audio Dekoder gefunden für WAV ID 0x%04x"
 
-#: lib/audio.c:334 lib/video.c:339
+#: lib/audio.c:427 lib/video.c:330
 #, c-format
 msgid "Cannot skip backwards: Stream time: %s skip time: %s difference: %s"
 msgstr ""
 "Kann nicht rückwärts springen: Streamzeit: %s, Zielzeit: %s, Differenz: %s"
 
-#: lib/audio.c:345
+#: lib/audio.c:438
 #, c-format
 msgid "Skipping %s samples"
 msgstr "Überspringe %s Abtastwerte"
+
+#: lib/audio.c:559
+#, c-format
+msgid "Cannot output compressed audio stream %d: Unsupported codec"
+msgstr ""
+
+#: lib/audio.c:566
+#, c-format
+msgid "Cannot output compressed audio stream %d: Global header missing"
+msgstr ""
+
+#: lib/audio.c:573
+#, c-format
+msgid "Cannot output compressed audio stream %d: No bitrate specified"
+msgstr ""
 
 #: lib/demux_thp.c:145 lib/demux_dxa.c:88
 msgid "Cannot decode from nonseekable source"
 msgstr "Kann dieses Format nur von suchbaren Quellen spielen"
 
-#: lib/video_tga.c:141
+#: lib/video_tga.c:142
 #, c-format
 msgid "tga_read_from_memory failed: %s (%d bytes)"
 msgstr "tga_read_from_memory fehlgeschlagen: %s (%d bytes)"
 
-#: lib/video_tga.c:180
+#: lib/video_tga.c:181
 #, c-format
 msgid "Cannot detect image type: %d"
 msgstr "Kann Bildtyp nicht erkennen: %d"
 
-#: lib/video_tga.c:276
+#: lib/video_tga.c:277
 #, c-format
 msgid "Setting palette %d entries"
 msgstr "Setze Palette: %d Einträge"
@@ -1038,38 +1121,38 @@ msgstr "Öffnen von vts %d fehlgeschlagen"
 msgid "Opening IFO for vts %d failed"
 msgstr "Öffnen des IFO für VTS %d schlug fehl."
 
-#: lib/in_dvd.c:417
+#: lib/in_dvd.c:418
 msgid "Detected still cell"
 msgstr "Still cell gefunden"
 
-#: lib/in_dvd.c:674
+#: lib/in_dvd.c:678
 msgid "DVDOpen failed"
 msgstr "DVDOpen fehlgeschlagen"
 
-#: lib/in_dvd.c:690
+#: lib/in_dvd.c:694
 msgid "ifoOpen failed"
 msgstr "ifoOpen fehlgeschlagen"
 
-#: lib/in_dvd.c:789 lib/in_dvd.c:1051
+#: lib/in_dvd.c:793 lib/in_dvd.c:1055
 #, c-format
 msgid "Reading NAV packet at sector %d failed"
 msgstr "Lesen des NAV packet in Sektor %d fehlgeschlagen"
 
-#: lib/in_dvd.c:882
+#: lib/in_dvd.c:886
 #, c-format
 msgid "Reading blocks at %d failed"
 msgstr "Lesen von Blocks ab Sektor %d schlug fehl."
 
-#: lib/in_dvd.c:1225
+#: lib/in_dvd.c:1229
 #, c-format
 msgid "Cannot open DVD Device %s"
 msgstr "Kann DVD Gerät %s nicht öffnen"
 
-#: lib/mpv_header.c:242
+#: lib/mpv_header.c:291
 msgid "Cannot read sequence header: missing marker bit"
 msgstr "Kann Sequence header nicht lesen: Fehlendes Marker Bit"
 
-#: lib/mpv_header.c:305
+#: lib/mpv_header.c:359
 #, fuzzy, c-format
 msgid "Cannot read picture header: Invalid coding type %d"
 msgstr "Kann Sequence header nicht lesen: Fehlendes Marker Bit"
@@ -1148,56 +1231,69 @@ msgstr "Unbekannter Roq chunk %04x"
 msgid "No CODEBOOK chunk before VQ chunk"
 msgstr "Kein CODEBOOK chunk vor VQ chunk"
 
-#: lib/demux_roq.c:288
+#: lib/demux_roq.c:287
 #, c-format
 msgid "Unknown chunk %04x"
 msgstr "Unbekannter chunk %04x"
 
-#: lib/parse_mpv.c:204
+#: lib/parse_mpv.c:242
 msgid "Bogus picture header or broken frame"
 msgstr ""
 
-#: lib/parse_mpv.c:220
+#: lib/parse_mpv.c:258
 msgid "Detected Intra slice refresh"
 msgstr "Intra slice refresh entdeckt"
 
-#: lib/video_theora.c:78
+#: lib/video_theora.c:70
 msgid "Theora codec requires extradata"
 msgstr "Theora braucht Extradaten"
 
 #: lib/video_theora.c:89
-#, fuzzy
-msgid "Parsing header packets failed"
+#, fuzzy, c-format
+msgid "Parsing header packet %d failed"
 msgstr "Lesen des OGM Headers fehlgeschlagen"
 
-#: lib/video_theora.c:156
+#: lib/video_theora.c:161
 #, c-format
 msgid "Unknown pixelformat %d"
 msgstr "Unbekanntes Pixelformat %d"
 
-#: lib/subovl_dvd.c:242
+#: lib/subovl_dvd.c:241
 #, c-format
 msgid "Unknown command %02x, decoding is doomed to failure"
 msgstr "Unbekannter Befehl %02x, dekodieren ist zum Scheitern verurteilt"
 
-#: lib/video.c:73
+#: lib/video.c:71
 #, fuzzy, c-format
 msgid "No video parser found for fourcc %c%c%c%c (0x%08x)"
 msgstr "Kein Videodekoder gefunden für Kennung %c%c%c%c (0x%08x)"
 
-#: lib/video.c:92
-msgid "Video parser doesn't support out-of-band header"
-msgstr ""
-
-#: lib/video.c:109
+#: lib/video.c:84
 #, fuzzy
 msgid "EOF while initializing video parser"
 msgstr "Dateiende beim Lesen des Timecodes"
 
-#: lib/video.c:152
+#: lib/video.c:98
+#, fuzzy
+msgid "EOF while initializing packet timer"
+msgstr "Dateiende beim Lesen des Timecodes"
+
+#: lib/video.c:118
 #, fuzzy, c-format
 msgid "Got initial video timestamp: %s"
 msgstr "Erster Audio Zeitstempel gelesen: %s"
+
+#: lib/video.c:279
+msgid "Skipping packet while waiting for keyframe"
+msgstr ""
+
+#: lib/video.c:747
+msgid "Video compression format needs pixelformat for compressed output"
+msgstr ""
+
+#: lib/video.c:787
+msgid "Video compression format needs bitrate for compressed output"
+msgstr ""
 
 #: lib/utils.c:553
 #, c-format
@@ -1295,41 +1391,41 @@ msgstr "Unkekannte Kennung"
 msgid "Rounding fractional audio samplerate"
 msgstr "Runde gebrochene Audioabtastrate"
 
-#: lib/demux_mxf.c:595
+#: lib/demux_mxf.c:602
 #, c-format
 msgid "Couldn't find partition for source package %d"
 msgstr "Konnte keine Partition für \"Source package\" %d finden"
 
-#: lib/demux_mxf.c:621
+#: lib/demux_mxf.c:628
 msgid "Parsing MXF file failed, please report"
 msgstr "Parsen der MXF-Datei fehlgeschlagen, bitte berichten"
 
-#: lib/demux_mxf.c:636
+#: lib/demux_mxf.c:643
 msgid "Unsupported MXF type, please report"
 msgstr "Unbekannter MXF-Typ, bitte berichten"
 
-#: lib/demuxer.c:242 lib/demuxer.c:252 lib/demuxer.c:265
+#: lib/demuxer.c:244 lib/demuxer.c:254 lib/demuxer.c:267
 #: lib/demux_ffmpeg.c:137
 #, c-format
 msgid "Detected %s format"
 msgstr "Format erkannt: %s"
 
-#: lib/demuxer.c:287
+#: lib/demuxer.c:289
 #, c-format
 msgid "Detected %s format after skipping %d bytes"
 msgstr "Format erkannt: %s (nach Überspringen von %d Bytes)"
 
-#: lib/demuxer.c:355
+#: lib/demuxer.c:357
 #, c-format
 msgid "Removing audio stream %d (no packets found)"
 msgstr ""
 
-#: lib/demuxer.c:370
+#: lib/demuxer.c:372
 #, c-format
 msgid "Removing video stream %d (no packets found)"
 msgstr ""
 
-#: lib/demuxer.c:476
+#: lib/demuxer.c:478
 msgid "Non interleaved file from non seekable source"
 msgstr "Nicht interleavte Datei von nicht suchbarer Quelle"
 
@@ -1343,7 +1439,7 @@ msgstr "Unbekanner erweiterter Header: %s"
 msgid "Unknown timestamp type: %s"
 msgstr "Unbekanner Typ für Zeitstempel: %s"
 
-#: lib/demux_vivo.c:578
+#: lib/demux_vivo.c:579
 msgid "Unknown packet type"
 msgstr "Unbekannter Pakettyp"
 
@@ -1352,11 +1448,11 @@ msgstr "Unbekannter Pakettyp"
 msgid "Removing %s to keep maximum cache size"
 msgstr "Lösche %s um maximale Zwischenspeichergröße zu erhalten"
 
-#: lib/fileindex.c:1171
+#: lib/fileindex.c:1142
 msgid "Building file index failed"
 msgstr "Erstellen des Dateiindex fehlgeschlagen"
 
-#: lib/fileindex.c:1177
+#: lib/fileindex.c:1148
 #, c-format
 msgid "Built file index in %.2f seconds"
 msgstr "Dateiindex in %.2f Sekunden erstellt"
@@ -1384,26 +1480,26 @@ msgstr "Kompression %c%c%c%c nicht unterstützt"
 msgid "Skipping garbage in udta atom"
 msgstr "Überspringe Schrott in udta-Atom"
 
-#: lib/demux_mpegps.c:714
+#: lib/demux_mpegps.c:713
 #, c-format
 msgid "Unknown ID %02x in private stream 1"
 msgstr "Unbekannte Kennung %02x in Private Stream 1"
 
-#: lib/demux_mpegps.c:794
+#: lib/demux_mpegps.c:796
 #, c-format
 msgid "Unknown PES ID %02x"
 msgstr "Unbekannte PES ID %02x"
 
-#: lib/video_libmpeg2.c:364
+#: lib/video_libmpeg2.c:396
 msgid "Detected change of image size, not handled yet"
 msgstr "Wechselnde Bildgröße entdeckt (wird noch nicht unterstützt)"
 
-#: lib/video_libmpeg2.c:372
+#: lib/video_libmpeg2.c:404
 #, c-format
 msgid "Detected change of pixel aspect ratio: %dx%d"
 msgstr "Geändertes Aspektverhältnis gefunden: %dx%d"
 
-#: lib/video_libmpeg2.c:394
+#: lib/video_libmpeg2.c:426
 msgid "Detected MPEG still image"
 msgstr "MPEG Standbild gefunden"
 
@@ -1470,15 +1566,15 @@ msgstr "Lesen von Metadaten schlug fehl."
 msgid "Speex needs extradata"
 msgstr "Speex braucht Extradaten"
 
-#: lib/demux_ffmpeg.c:609
+#: lib/demux_ffmpeg.c:612
 msgid "av_open_input_stream failed"
 msgstr "av_open_input_stream fehlgeschlagen"
 
-#: lib/demux_ffmpeg.c:619
+#: lib/demux_ffmpeg.c:622
 msgid "av_find_stream_info failed"
 msgstr "av_find_stream_info fehlgeschlagen"
 
-#: lib/demux_4xm.c:474
+#: lib/demux_4xm.c:475
 #, c-format
 msgid "Unknown Chunk %c%c%c%c"
 msgstr "Unbekannter chunk %c%c%c%c"
@@ -1593,6 +1689,20 @@ msgstr "Ungütlige Antwort 4"
 msgid "Read header failed"
 msgstr "Lesen des Kopfes fehlgeschlagen"
 
+#: lib/parse_vorbis.c:98 lib/audio_vorbis.c:400
+msgid "No extradata found"
+msgstr "Keine Extradaten gefunden"
+
+#: lib/parse_vorbis.c:111 lib/audio_vorbis.c:413
+#, c-format
+msgid "Truncated vorbis header %d"
+msgstr ""
+
+#: lib/parse_vorbis.c:125 lib/audio_vorbis.c:427
+#, c-format
+msgid "Packet %d is not a vorbis header"
+msgstr ""
+
 #: lib/demux_mpegts.c:197
 #, c-format
 msgid "Detected pts wrap (%s < %s)"
@@ -1630,20 +1740,20 @@ msgstr "PMT section erstreckt sich über mehrere Pakete, bitte berichten"
 msgid "PMT has multiple sections, please report"
 msgstr "PMT hat mehrere Sections, bitte berichten"
 
-#: lib/demux_mpegts.c:992
+#: lib/demux_mpegts.c:994
 msgid "Cannot get packet size"
 msgstr "Kann Paketgröße nicht ermitteln"
 
-#: lib/demux_mpegts.c:996
+#: lib/demux_mpegts.c:998
 #, c-format
 msgid "Packet size: %d"
 msgstr "Paketgröße: %d"
 
-#: lib/demux_mpegts.c:1108
+#: lib/demux_mpegts.c:1110
 msgid "Could not get program durations, seeking disabled"
 msgstr "Konnte Spieldauern der Programme nicht ermitteln, Suchen deaktiviert"
 
-#: lib/demux_mpegts.c:1362
+#: lib/demux_mpegts.c:1364
 #, c-format
 msgid "Next PCR wrap in %s"
 msgstr "Nächster Zeitrückprung in %s"
@@ -1778,32 +1888,23 @@ msgstr "Kann nur von suchbaren Quellen spielen"
 msgid "Bytes per sample is zero"
 msgstr "Bytes pro Abtastwert ist Null"
 
-#: lib/audio_vorbis.c:196 lib/audio_vorbis.c:235 lib/audio_vorbis.c:279
-#: lib/audio_vorbis.c:315 lib/audio_vorbis.c:365
+#: lib/audio_vorbis.c:209 lib/audio_vorbis.c:248 lib/audio_vorbis.c:292
+#: lib/audio_vorbis.c:328 lib/audio_vorbis.c:378
 msgid "decode: vorbis_synthesis_headerin: not a vorbis header"
 msgstr "decode: vorbis_synthesis_headerin: Kein Vorbiskopf"
 
-#: lib/audio_vorbis.c:218
+#: lib/audio_vorbis.c:231
 #, c-format
 msgid "Vorbis decoder: Init data too small (%d bytes)"
 msgstr "Initialisierungsdaten zu klein (%d Bytes)"
 
-#: lib/audio_vorbis.c:264
+#: lib/audio_vorbis.c:277
 msgid "ext size too small"
 msgstr "ext size zu klein"
 
-#: lib/audio_vorbis.c:346
+#: lib/audio_vorbis.c:359
 msgid "No OVHS Atom found"
 msgstr "Kein OVHS Atom gefunden"
-
-#: lib/audio_vorbis.c:383
-msgid "No extradata found"
-msgstr "Keine Extradaten gefunden"
-
-#: lib/audio_vorbis.c:393
-#, fuzzy
-msgid "vorbis_synthesis_headerin: not a vorbis header"
-msgstr "decode: vorbis_synthesis_headerin: Kein Vorbiskopf"
 
 #: lib/qt_atom.c:79
 #, c-format
@@ -1815,6 +1916,11 @@ msgstr "Unbekanntes Atom [%c%c%c%c] auf oberster Ebene"
 msgid "Unknown atom inside [%c%c%c%c] (fourcc: [%c%c%c%c], size: %s)"
 msgstr "Unbekanntes Atom innerhalb [%c%c%c%c] (fourcc: [%c%c%c%c], Größe: %s)"
 
+#: lib/packettimer.c:261
+#, fuzzy
+msgid "Packet cache full"
+msgstr "PTS Speicher voll"
+
 #: lib/audio_pcm.c:852 lib/audio_pcm.c:935 lib/audio_pcm.c:975
 #, c-format
 msgid "%d audio bits not supported."
@@ -1825,8 +1931,8 @@ msgid "Could not get initial packet"
 msgstr "Konnte kein anfängliches Paket bekommen"
 
 #: lib/audio_pcm.c:1084
-#, c-format
-msgid "extradata too small (%d < %ld)"
+#, fuzzy, c-format
+msgid "extradata too small (%d < %zd)"
 msgstr "Extradaten zu klein (%d < %ld)"
 
 #: lib/audio_pcm.c:1183
@@ -2031,15 +2137,19 @@ msgstr "SoundConverterConvertBuffer fehlgeschlagen"
 msgid "DLL %s not found"
 msgstr "DLL %s nicht gefunden"
 
-#: lib/demux_asf.c:945
+#: lib/demux_asf.c:941
 #, c-format
 msgid "unknown segment type (rlen): 0x%02X"
 msgstr "Unbekannter Segmenttyp (rlen): 0x%02X"
 
-#: lib/demux_asf.c:1031
+#: lib/demux_asf.c:1027
 #, c-format
 msgid "data_size %d, Offset: %d"
 msgstr "data_size %d, Offset: %d"
+
+#, fuzzy
+#~ msgid "vorbis_synthesis_headerin: not a vorbis header"
+#~ msgstr "decode: vorbis_synthesis_headerin: Kein Vorbiskopf"
 
 #~ msgid "Lost sync during parsing"
 #~ msgstr "Synchronisation während des Einlesens verloren"
@@ -2056,9 +2166,6 @@ msgstr "data_size %d, Offset: %d"
 
 #~ msgid "Cannot read sequence extension: missing marker bit"
 #~ msgstr "Kann Sequence extension nicht lesen: Fehlendes Marker Bit"
-
-#~ msgid "PTS cache full"
-#~ msgstr "PTS Speicher voll"
 
 #~ msgid "Ran out of data during extradata scanning"
 #~ msgstr "Datenende während des Lesens der Extradaten"

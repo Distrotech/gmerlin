@@ -66,6 +66,8 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
   
   for(j = 0; j < track->num_video_streams; j++)
     {
+    if(track->video_streams[j].action == BGAV_STREAM_MUTE)
+      continue;
     seek_time = time;
     bgav_superindex_seek(ctx->si, &track->video_streams[j], &seek_time, scale);
     /* Synchronize time to the video stream */
@@ -76,11 +78,16 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
     }
   for(j = 0; j < track->num_audio_streams; j++)
     {
+    if(track->audio_streams[j].action == BGAV_STREAM_MUTE)
+      continue;
+
     seek_time = time;
     bgav_superindex_seek(ctx->si, &track->audio_streams[j], &seek_time, scale);
     }
   for(j = 0; j < track->num_subtitle_streams; j++)
     {
+    if(track->subtitle_streams[j].action == BGAV_STREAM_MUTE)
+      continue;
     seek_time = time;
     if(!track->subtitle_streams[j].data.subtitle.subreader)
       bgav_superindex_seek(ctx->si, &track->subtitle_streams[j],
@@ -96,6 +103,9 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
     
     for(j = 0; j < track->num_audio_streams; j++)
       {
+      if(track->audio_streams[j].action == BGAV_STREAM_MUTE)
+        continue;
+      
       if(start_packet > track->audio_streams[j].index_position)
         start_packet = track->audio_streams[j].index_position;
       if(end_packet < track->audio_streams[j].index_position)
@@ -103,12 +113,14 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
       }
     for(j = 0; j < track->num_video_streams; j++)
       {
+      if(track->video_streams[j].action == BGAV_STREAM_MUTE)
+        continue;
       if(start_packet > track->video_streams[j].index_position)
         start_packet = track->video_streams[j].index_position;
       if(end_packet < track->video_streams[j].index_position)
         end_packet = track->video_streams[j].index_position;
       }
-
+    
     /* Do the seek */
     ctx->si->current_position = start_packet;
     bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
@@ -421,8 +433,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
                                 *time, scale);
       }
     }
-
-
+  
   //  fprintf(stderr, "bgav_seeked to: %f\n",
   //          gavl_time_to_seconds(gavl_time_unscale(scale, *time)));
 
