@@ -1326,10 +1326,10 @@ dnl
 dnl Check for old dts.h header
 dnl
 
-OLD_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS $DCA_CFLAGS"
+OLD_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CFLAGS $GMERLIN_DEP_CFLAGS $DCA_CFLAGS"
 AC_CHECK_HEADERS([dts.h])
-CFLAGS=$OLD_CFLAGS
+CPPFLAGS=$OLD_CPPFLAGS
 
 
 dnl
@@ -1667,7 +1667,8 @@ AC_SEARCH_LIBS([glXCreateContext], [GL glx], [], [have_GLX="false"], [])
 if test "x$have_GL" = "xtrue"; then
 AC_TRY_RUN([
 #include <GL/glx.h>
-int main() { if(0) glXCreateContext(NULL, NULL, NULL, 0); return 0;}],[],[have_GLX="false"])
+int main() { if(0) glXChooseFBConfig(NULL, 0,
+	NULL, NULL); return 0;}],[],[have_GLX="false"])
 fi
 
 GLX_CFLAGS=$CFLAGS
