@@ -489,7 +489,7 @@ bgav_audio_parser_get_packet_parse_frame(void * parser1)
   if(!ret)
     return NULL;
 
-  if(ret->duration <= 0)
+  if(ret->duration < 0)
     {
     bgav_audio_parser_parse_frame(parser, ret);
     // ret->pts = parser->timestamp;

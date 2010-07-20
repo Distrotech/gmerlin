@@ -27,8 +27,8 @@
 
 #define MAX_PACKETS 16
 
-// #define DUMP_INPUT
-// #define DUMP_OUTPUT
+#define DUMP_INPUT
+#define DUMP_OUTPUT
 
 struct bgav_packet_timer_s
   {
@@ -279,8 +279,11 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
     p = pt->src.get_func(pt->src.data);
     }
 #ifdef DUMP_INPUT
-  bgav_dprintf("packet_timer in:  ");
-  bgav_packet_dump(p);
+  if(p)
+    {
+    bgav_dprintf("packet_timer in:  ");
+    bgav_packet_dump(p);
+    }
 #endif
   
   /* Flush final packets */

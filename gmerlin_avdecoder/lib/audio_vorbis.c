@@ -37,7 +37,7 @@
 #define LOG_DOMAIN "vorbis"
 
 // #define DUMP_OUTPUT
-// #define DUMP_PACKET
+#define DUMP_PACKET
 
 typedef struct
   {
@@ -128,25 +128,25 @@ static int next_packet(bgav_stream_t * s)
   
   if(s->fourcc == BGAV_VORBIS)
     {
-    bgav_packet_t * p;
-
-    p = bgav_stream_get_packet_read(s);
+    if(priv->p)
+      bgav_stream_done_packet_read(s, priv->p);
+    
+    priv->p = bgav_stream_get_packet_read(s);
+    if(!priv->p)
+      return 0;
 #ifdef DUMP_PACKET
     bgav_dprintf("Got packet: ");
-    bgav_packet_dump(p);
+    bgav_packet_dump(priv->p);
 #endif    
-    if(!p)
-      return 0;
     
     memset(&priv->dec_op, 0, sizeof(priv->dec_op));
-    priv->dec_op.bytes  = p->data_size;
-    priv->dec_op.packet = p->data;
+    priv->dec_op.bytes  = priv->p->data_size;
+    priv->dec_op.packet = priv->p->data;
     
-    priv->dec_op.granulepos = p->pts + p->duration;
+    priv->dec_op.granulepos = priv->p->pts + priv->p->duration;
     
     priv->dec_op.packetno = priv->packetno;
     priv->packetno++;
-    bgav_stream_done_packet_read(s, p);
     
     if(!bgav_stream_peek_packet_read(s, 1))
       priv->dec_op.e_o_s = 1;

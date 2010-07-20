@@ -444,9 +444,19 @@ static void update_duration(bgav_stream_t * s, int scale, gavl_time_t * duration
     *duration = duration1;
   }
 
+static void set_has_file_index_s(bgav_stream_t * s, bgav_demuxer_context_t * demuxer)
+  {
+  if(!s->file_index || demuxer->si)
+    return;
+  s->first_index_position = 0;
+  s->last_index_position = s->file_index->num_entries-1;
+  }
+
 static void set_has_file_index(bgav_t * b)
   {
   int i, j;
+  bgav_stream_t * s;
+  
   for(i = 0; i < b->tt->num_tracks; i++)
     {
     b->tt->tracks[i].has_file_index = 1;
@@ -456,17 +466,27 @@ static void set_has_file_index(bgav_t * b)
     //    if(b->tt->tracks[i].duration == GAVL_TIME_UNDEFINED)
     //      {
     for(j= 0; j <b->tt->tracks[i].num_audio_streams; j++)
-      update_duration(&b->tt->tracks[i].audio_streams[j],
-                      b->tt->tracks[i].audio_streams[j].data.audio.format.samplerate,
+      {
+      s = &b->tt->tracks[i].audio_streams[j];
+      update_duration(s, s->data.audio.format.samplerate,
                       &b->tt->tracks[i].duration);
+      set_has_file_index_s(s, b->demuxer);
+      }
     for(j= 0; j <b->tt->tracks[i].num_video_streams; j++)
-      update_duration(&b->tt->tracks[i].video_streams[j],
-                      b->tt->tracks[i].video_streams[j].data.video.format.timescale,
+      {
+      s = &b->tt->tracks[i].video_streams[j];
+      update_duration(s,
+                      s->data.video.format.timescale,
                       &b->tt->tracks[i].duration);
+      set_has_file_index_s(s, b->demuxer);
+      }
     for(j= 0; j <b->tt->tracks[i].num_subtitle_streams; j++)
-      update_duration(&b->tt->tracks[i].subtitle_streams[j],
-                      b->tt->tracks[i].subtitle_streams[j].timescale,
+      {
+      s = &b->tt->tracks[i].subtitle_streams[j];
+      update_duration(s, s->timescale,
                       &b->tt->tracks[i].duration);
+      set_has_file_index_s(s, b->demuxer);
+      }
     // }
     }
   b->demuxer->flags |= BGAV_DEMUXER_CAN_SEEK;
@@ -913,6 +933,7 @@ static int build_file_index_mixed(bgav_t * b)
     callback_count++;
     }
 
+  /* Flush */
   for(j = 0; j < b->tt->cur->num_audio_streams; j++)
     {
     switch(b->tt->cur->audio_streams[j].index_mode)

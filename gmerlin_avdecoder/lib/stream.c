@@ -237,6 +237,9 @@ bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s)
 
 void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
   {
+  //  fprintf(stderr, "bgav_stream_done_packet_write\n");
+  //  bgav_packet_dump(p);
+  
   s->in_position++;
 
   /* If the stream has a constant framerate, all packets have the same

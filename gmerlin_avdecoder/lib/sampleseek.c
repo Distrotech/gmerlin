@@ -51,6 +51,9 @@ static int file_index_seek(bgav_file_index_t * idx, int64_t time)
   
   while((idx->entries[pos2].pts > time) && pos2)
     pos2--;
+
+  while(pos2 && (idx->entries[pos2-1].pts == idx->entries[pos2].pts))
+    pos2--;
   
   return pos2;
   }
