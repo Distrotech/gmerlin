@@ -435,7 +435,8 @@ file_index_write_stream(FILE * output,
     }
   }
 
-static void update_duration(bgav_stream_t * s, int scale, gavl_time_t * duration)
+static void update_duration(bgav_stream_t * s, int scale,
+                            gavl_time_t * duration)
   {
   gavl_time_t duration1;
   
@@ -444,7 +445,8 @@ static void update_duration(bgav_stream_t * s, int scale, gavl_time_t * duration
     *duration = duration1;
   }
 
-static void set_has_file_index_s(bgav_stream_t * s, bgav_demuxer_context_t * demuxer)
+static void set_has_file_index_s(bgav_stream_t * s,
+                                 bgav_demuxer_context_t * demuxer)
   {
   if(!s->file_index || demuxer->si)
     return;

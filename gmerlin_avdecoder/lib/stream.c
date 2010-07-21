@@ -25,10 +25,13 @@
 #include <string.h>
 #include <limits.h>
 
+// #define DUMP_WRITE
+
+
 int bgav_stream_start(bgav_stream_t * stream)
   {
   int result = 1;
-
+  
   if(!(stream->demuxer->flags & BGAV_DEMUXER_BUILD_INDEX) ||
      ((stream->demuxer->index_mode != INDEX_MODE_SIMPLE) &&
       (stream->index_mode != INDEX_MODE_SIMPLE)))
@@ -237,9 +240,10 @@ bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s)
 
 void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
   {
-  fprintf(stderr, "bgav_stream_done_packet_write\n");
+#ifdef DUMP_WRITE
+  bgav_dprintf(stderr, "bgav_stream_done_packet_write ");
   bgav_packet_dump(p);
-  
+#endif
   s->in_position++;
 
   /* If the stream has a constant framerate, all packets have the same
@@ -267,6 +271,7 @@ void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
         s->file_index->entries[s->index_position+1].pts -
         s->file_index->entries[s->index_position].pts;
       }
+    s->index_position++;
     }
   
   bgav_packet_buffer_append(s->packet_buffer, p);

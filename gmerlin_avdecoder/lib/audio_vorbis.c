@@ -37,7 +37,7 @@
 #define LOG_DOMAIN "vorbis"
 
 // #define DUMP_OUTPUT
-#define DUMP_PACKET
+// #define DUMP_PACKET
 
 typedef struct
   {
@@ -129,14 +129,20 @@ static int next_packet(bgav_stream_t * s)
   if(s->fourcc == BGAV_VORBIS)
     {
     if(priv->p)
+      {
       bgav_stream_done_packet_read(s, priv->p);
-    
+      priv->p = NULL;
+      }
     priv->p = bgav_stream_get_packet_read(s);
     if(!priv->p)
       return 0;
 #ifdef DUMP_PACKET
-    bgav_dprintf("Got packet: ");
+    bgav_dprintf("vorbis: Got packet: %p ", priv->p);
     bgav_packet_dump(priv->p);
+    if(priv->p->data_size == 30)
+      {
+      bgav_hexdump(priv->p->data, priv->p->data_size, 16);
+      }
 #endif    
     
     memset(&priv->dec_op, 0, sizeof(priv->dec_op));
@@ -474,9 +480,14 @@ static int decode_frame_vorbis(bgav_stream_t * s)
     
   /* Decode stuff */
   
-  while((samples_decoded =
-         vorbis_synthesis_pcmout(&priv->dec_vd, &channels)) < 1)
+  while(1)
     {
+    samples_decoded =
+      vorbis_synthesis_pcmout(&priv->dec_vd, &channels);
+
+    if(samples_decoded > 0)
+      break;
+    
     // fprintf(stderr, "decode_frame_vorbis\n");
     
     if(!next_packet(s))
@@ -489,16 +500,17 @@ static int decode_frame_vorbis(bgav_stream_t * s)
       }
     }
   
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Vorbis samples decoded: %d\n",
+               samples_decoded);
+#endif
+  
   for(i = 0; i < s->data.audio.format.num_channels; i++)
     s->data.audio.frame->channels.f[i] = channels[i];
   
   s->data.audio.frame->valid_samples = samples_decoded;
   vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
-
-#ifdef DUMP_OUTPUT
-  bgav_dprintf("Vorbis samples decoded: %d\n",
-               samples_decoded);
-#endif
+  
   return 1;
   }
 
@@ -541,6 +553,9 @@ static void resync_vorbis(bgav_stream_t * s)
   if(s->fourcc == BGAV_VORBIS)
     {
     bgav_packet_t * p;
+    int samples_decoded;
+    float ** channels;
+    
     if(!next_packet(s))
       return;
     
@@ -550,6 +565,14 @@ static void resync_vorbis(bgav_stream_t * s)
       vorbis_synthesis_blockin(&priv->dec_vd,
                                &priv->dec_vb);
       }
+
+    samples_decoded =
+      vorbis_synthesis_pcmout(&priv->dec_vd, &channels);
+    // fprintf(stderr, "Samples decoded after resync %d\n", samples_decoded);
+
+    vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
+    
+    /* Synchronize output time to the next packet */
     p = bgav_stream_peek_packet_read(s, 1);
     if(p)
       s->out_time = p->pts;

@@ -27,8 +27,8 @@
 #include <parser.h>
 #include <audioparser_priv.h>
 
-// #define DUMP_INPUT
-// #define DUMP_OUTPUT
+#define DUMP_INPUT
+#define DUMP_OUTPUT
 
 static const struct
   {
@@ -76,11 +76,8 @@ int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
     return PARSER_ERROR;
 
 #ifdef DUMP_INPUT  
-  if(parser->s->stream_id == 1)
-    {
-    bgav_dprintf("Add packet ");
-    bgav_packet_dump(p);
-    }
+  bgav_dprintf("Add packet ");
+  bgav_packet_dump(p);
 #endif
  
   if(parser->timestamp == BGAV_TIMESTAMP_UNDEFINED)
@@ -97,11 +94,8 @@ int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
   p->pts = parser->timestamp;
   parser->timestamp += p->duration;
 #ifdef DUMP_OUTPUT  
-  if(parser->s->stream_id == 1)
-    {
-    bgav_dprintf("Get packet ");
-    bgav_packet_dump(p);
-    }
+  bgav_dprintf("Get packet ");
+  bgav_packet_dump(p);
 #endif
 
   return PARSER_HAVE_PACKET;
@@ -512,7 +506,7 @@ bgav_audio_parser_peek_packet_parse_frame(void * parser1, int force)
   parser->out_packet =
     parser->src.get_func(parser->src.data);
 
-  if(parser->out_packet->duration <= 0)
+  if(parser->out_packet->duration < 0)
     {
     bgav_audio_parser_parse_frame(parser, parser->out_packet);
     }
