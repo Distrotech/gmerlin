@@ -2212,7 +2212,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   stream_priv_t * stream_priv;
   int64_t filepos;
 
-  fprintf(stderr, "seek_ogg %ld %d\n", time, scale);
+  //  fprintf(stderr, "seek_ogg %ld %d\n", time, scale);
 
   // Seeking to 0 is handled specially:
   // It happens if we want to seek into the first pages

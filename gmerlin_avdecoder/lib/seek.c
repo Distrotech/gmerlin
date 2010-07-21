@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DUMP_ITERATIVE
+// #define DUMP_ITERATIVE
 
 static void skip_to(bgav_t * b, bgav_track_t * track, int64_t * time, int scale)
   {
