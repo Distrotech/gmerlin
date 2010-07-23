@@ -203,7 +203,7 @@ static const int num_yml_demuxers = sizeof(yml_demuxers)/sizeof(yml_demuxers[0])
 
 static const int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
 
-int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer);
+// int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer);
 
 
 #define SYNC_BYTES (32*1024)
@@ -618,7 +618,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
 int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   {
   int ret = 0, i;
-  
+  //   fprintf(stderr, "bgav_demuxer_next_packet\n");
   switch(demuxer->demux_mode)
     {
     case DEMUX_MODE_SI_I:

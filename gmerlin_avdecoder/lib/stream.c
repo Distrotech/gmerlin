@@ -32,25 +32,20 @@ int bgav_stream_start(bgav_stream_t * stream)
   {
   int result = 1;
   
-  if(!(stream->demuxer->flags & BGAV_DEMUXER_BUILD_INDEX) ||
-     ((stream->demuxer->index_mode != INDEX_MODE_SIMPLE) &&
-      (stream->index_mode != INDEX_MODE_SIMPLE)))
+  switch(stream->type)
     {
-    switch(stream->type)
-      {
-      case BGAV_STREAM_VIDEO:
-        result = bgav_video_start(stream);
-        break;
-      case BGAV_STREAM_AUDIO:
-        result = bgav_audio_start(stream);
-        break;
-      case BGAV_STREAM_SUBTITLE_OVERLAY:
-      case BGAV_STREAM_SUBTITLE_TEXT:
-        result = bgav_subtitle_start(stream);
-        break;
-      default:
-        break;
-      }
+    case BGAV_STREAM_VIDEO:
+      result = bgav_video_start(stream);
+      break;
+    case BGAV_STREAM_AUDIO:
+      result = bgav_audio_start(stream);
+      break;
+    case BGAV_STREAM_SUBTITLE_OVERLAY:
+    case BGAV_STREAM_SUBTITLE_TEXT:
+      result = bgav_subtitle_start(stream);
+      break;
+    default:
+      break;
     }
   
   if(result)

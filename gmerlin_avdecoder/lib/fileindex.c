@@ -747,12 +747,11 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
     p = bgav_stream_get_packet_read(s);
     
     t = p->pts - s->start_time;
-#if 0
-    if(s->stream_id == 1)
-      {
-      fprintf(stderr, "flush_stream_simple ");
-      bgav_packet_dump(p);
-      }
+    // fprintf(stderr, "flush_stream_simple ");
+    
+#if 1
+    fprintf(stderr, "flush_stream_simple ");
+    bgav_packet_dump(p);
 #endif
     if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
       {
