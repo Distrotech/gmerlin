@@ -30,7 +30,7 @@
 #endif
 #include <sys/time.h>
 
-#include <gavltime.h>
+#include <gavl.h>
 
 #ifdef HAVE_CLOCK_MONOTONIC
 
@@ -141,10 +141,9 @@ uint64_t gavl_benchmark_get_time(int config_flags)
 #endif
   }
 
-const char * gavl_benchmark_get_desc(int flags)
+const char * gavl_benchmark_get_desc(int config_flags)
   {
 #ifdef ARCH_X86
-  uint64_t x;
   /* that should prevent us from trying cpuid with old cpus */
   if( config_flags & GAVL_ACCEL_MMX )
     {
@@ -153,7 +152,7 @@ const char * gavl_benchmark_get_desc(int flags)
   else
     {
 #endif
-    return "microseconds returned by gettimeofday"
+    return "microseconds returned by gettimeofday";
 #ifdef ARCH_X86
     }
 #endif
