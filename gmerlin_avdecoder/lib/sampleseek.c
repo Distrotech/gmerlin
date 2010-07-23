@@ -60,7 +60,7 @@ static int file_index_seek(bgav_file_index_t * idx, int64_t time)
 
 int bgav_can_seek_sample(bgav_t * bgav)
   {
-  return bgav->tt->cur->sample_accurate;
+  return !!(bgav->tt->cur->flags & TRACK_SAMPLE_ACCURATE);
   }
 
 int64_t bgav_audio_duration(bgav_t * bgav, int stream)
@@ -383,7 +383,7 @@ int bgav_set_sample_accurate(bgav_t * b)
         return 0;
       /* Format is already sample accurate */
       for(i = 0; i < b->tt->num_tracks; i++)
-        b->tt->tracks[i].sample_accurate = 1;
+        b->tt->tracks[i].flags |= TRACK_SAMPLE_ACCURATE;
       return 1;
       break;
     case INDEX_MODE_MPEG:

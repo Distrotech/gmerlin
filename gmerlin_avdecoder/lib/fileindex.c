@@ -107,7 +107,7 @@ void bgav_file_index_dump(bgav_t * b)
   {
   int i, j;
   bgav_stream_t * s;
-  if(!b->tt->tracks[0].has_file_index)
+  if(!(b->tt->tracks[0].flags & TRACK_HAS_FILE_INDEX))
     {
     bgav_dprintf("No index available\n");
     return;
@@ -461,8 +461,7 @@ static void set_has_file_index(bgav_t * b)
   
   for(i = 0; i < b->tt->num_tracks; i++)
     {
-    b->tt->tracks[i].has_file_index = 1;
-    b->tt->tracks[i].sample_accurate = 1;
+    b->tt->tracks[i].flags |= (TRACK_HAS_FILE_INDEX|TRACK_SAMPLE_ACCURATE);
     b->tt->tracks[i].duration = GAVL_TIME_UNDEFINED;
     
     //    if(b->tt->tracks[i].duration == GAVL_TIME_UNDEFINED)

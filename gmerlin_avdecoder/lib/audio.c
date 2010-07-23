@@ -515,6 +515,8 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
   int need_bitrate = 1;
   gavl_codec_id_t id = GAVL_CODEC_ID_NONE;
   bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
+
+  bgav_track_get_compression(bgav->tt->cur);
   
   memset(info, 0, sizeof(*info));
   

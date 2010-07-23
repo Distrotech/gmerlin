@@ -120,8 +120,6 @@ int bgav_video_start(bgav_stream_t * s)
     s->flags &= ~STREAM_NEED_START_TIME;
     }
   
-  s->in_position = 0;
-  
   if(s->action == BGAV_STREAM_DECODE)
     {
     dec = bgav_find_video_decoder(s);
@@ -222,7 +220,7 @@ void bgav_video_stop(bgav_stream_t * s)
     {
     s->data.video.decoder->decoder->close(s);
     free(s->data.video.decoder);
-    s->data.video.decoder = (bgav_video_decoder_context_t*)0;
+    s->data.video.decoder = NULL;
     }
   /* Clear still mode flag (it will be set during reinit) */
   s->flags &= ~(STREAM_STILL_MODE | STREAM_STILL_SHOWN  | STREAM_HAVE_PICTURE);
@@ -701,6 +699,9 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   gavl_codec_id_t id;
   bgav_stream_t * s = &bgav->tt->cur->video_streams[stream];
   int need_bitrate = 0;
+  
+  bgav_track_get_compression(bgav->tt->cur);
+  
   memset(info, 0, sizeof(*info));
   
   if(check_fourcc(s->fourcc, png_fourccs))

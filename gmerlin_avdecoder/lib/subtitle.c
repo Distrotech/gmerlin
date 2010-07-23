@@ -166,7 +166,7 @@ int bgav_has_subtitle(bgav_t * b, int stream)
     {
     if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
       {
-      if(b->tt->cur->sample_accurate)
+      if(b->tt->cur->flags & TRACK_SAMPLE_ACCURATE)
         force = 1;
       else
         force = 0;

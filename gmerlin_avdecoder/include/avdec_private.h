@@ -656,6 +656,10 @@ bgav_chapter_list_t * bgav_chapter_list_create(int timescale,
 void bgav_chapter_list_dump(bgav_chapter_list_t * list);
 void bgav_chapter_list_destroy(bgav_chapter_list_t * list);
 
+#define TRACK_SAMPLE_ACCURATE (1<<0)
+#define TRACK_HAS_FILE_INDEX  (1<<1)
+#define TRACK_HAS_COMPRESSION (1<<2)
+
 struct bgav_track_s
   {
   char * name;
@@ -673,9 +677,8 @@ struct bgav_track_s
   bgav_chapter_list_t * chapter_list;
   
   void * priv; /* For storing private data */  
-  
-  int has_file_index;
-  int sample_accurate;
+
+  int flags;
   };
 
 /* track.c */

@@ -406,7 +406,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
     seek_si(b, b->demuxer, *time, scale);
     }
   /* Seek with sample accuracy */
-  else if(b->tt->cur->sample_accurate)
+  else if(b->tt->cur->flags & TRACK_SAMPLE_ACCURATE)
     {
     seek_sa(b, time, scale);    
     }

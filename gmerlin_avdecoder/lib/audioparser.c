@@ -27,8 +27,8 @@
 #include <parser.h>
 #include <audioparser_priv.h>
 
-#define DUMP_INPUT
-#define DUMP_OUTPUT
+// #define DUMP_INPUT
+// #define DUMP_OUTPUT
 
 static const struct
   {

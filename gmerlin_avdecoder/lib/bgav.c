@@ -343,8 +343,6 @@ int bgav_select_track(bgav_t * b, int track)
     bgav_demuxer_start(b->demuxer, NULL);
 
     set_stream_demuxers(b->tt->cur, b->demuxer);
-    bgav_track_get_compression(b->tt->cur);
-    set_stream_demuxers(b->tt->cur, b->demuxer);
     
     return 1;
     }
@@ -450,7 +448,7 @@ int bgav_select_track(bgav_t * b, int track)
   /* If we have a file index for this track, switch to
      file index mode */
 
-  if(b->tt->cur->has_file_index && !b->demuxer->si)
+  if((b->tt->cur->flags & TRACK_HAS_FILE_INDEX) && !b->demuxer->si)
     {
     b->demuxer->demux_mode = DEMUX_MODE_FI;
 
@@ -463,10 +461,6 @@ int bgav_select_track(bgav_t * b, int track)
       b->tt->cur->subtitle_streams[i].index_position = 0;
     }
   
-  set_stream_demuxers(b->tt->cur, b->demuxer);
-  /* If there are tracks, which need a more precise format,
-     get it now */
-  bgav_track_get_compression(b->tt->cur);
   set_stream_demuxers(b->tt->cur, b->demuxer);
   
   return 1;
