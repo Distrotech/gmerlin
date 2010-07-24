@@ -140,15 +140,16 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
       s->index_position--;
     
     s->out_time = s->file_index->entries[s->index_position].pts + s->start_time;
+    sample += s->start_time;
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
   
   bgav_audio_resync(s);
+ 
   bgav_audio_skipto(s, &sample, s->data.audio.format.samplerate);
     
-  s->out_time += s->start_time;
   }
 
 void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
