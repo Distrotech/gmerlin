@@ -235,6 +235,7 @@ static void get_format(bgav_stream_t*s,
     if(ret->image_height == 608)
       ret->image_height = 576;
     priv->y_offset = 32;
+    ret->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
     }
   else if((s->fourcc == BGAV_MK_FOURCC('m','x','3','n')) || // IMX NTSC 30 MBps
           (s->fourcc == BGAV_MK_FOURCC('m','x','4','n')) || // IMX NTSC 40 MBps
@@ -243,6 +244,7 @@ static void get_format(bgav_stream_t*s,
     if(ret->image_height == 512)
       ret->image_height = 486;
     priv->y_offset = 26;
+    ret->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
     }
   
   ret->frame_width  = sequence->width;
@@ -284,11 +286,15 @@ static void get_format(bgav_stream_t*s,
 #endif
   
   // Get interlace mode
-  if((sequence->flags & SEQ_FLAG_MPEG2) &&
-     !(sequence->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE))
-    ret->interlace_mode = GAVL_INTERLACE_MIXED;
-  else
-    ret->interlace_mode = GAVL_INTERLACE_NONE;
+
+  if(ret->interlace_mode == GAVL_INTERLACE_UNKNOWN)
+    {
+    if((sequence->flags & SEQ_FLAG_MPEG2) &&
+       !(sequence->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE))
+      ret->interlace_mode = GAVL_INTERLACE_MIXED;
+    else
+      ret->interlace_mode = GAVL_INTERLACE_NONE;
+    }
   }
 
 static int parse(bgav_stream_t*s, mpeg2_state_t * state)

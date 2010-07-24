@@ -119,6 +119,13 @@ int bgav_video_start(bgav_stream_t * s)
              tmp_string);
     s->flags &= ~STREAM_NEED_START_TIME;
     }
+
+  if((s->action == BGAV_STREAM_PARSE) &&
+     ((s->data.video.format.framerate_mode == GAVL_FRAMERATE_VARIABLE) ||
+      (s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)))
+    {
+    s->data.video.ft = bgav_video_format_tracker_create(s);
+    }
   
   if(s->action == BGAV_STREAM_DECODE)
     {
@@ -142,7 +149,9 @@ int bgav_video_start(bgav_stream_t * s)
     if(!result)
       return 0;
     }
-  
+
+  if(s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
+    s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
   return 1;
   }
 
@@ -215,6 +224,11 @@ void bgav_video_stop(bgav_stream_t * s)
     {
     bgav_packet_timer_destroy(s->pt);
     s->pt = NULL;
+    }
+  if(s->data.video.ft)
+    {
+    bgav_video_format_tracker_destroy(s->data.video.ft);
+    s->data.video.ft = NULL;
     }
   if(s->data.video.decoder)
     {

@@ -73,6 +73,8 @@ typedef struct bgav_keyframe_table_s bgav_keyframe_table_t;
 
 typedef struct bgav_packet_pool_s bgav_packet_pool_t;
 
+typedef struct bgav_video_format_tracker_s bgav_video_format_tracker_t;
+
 #include <id3.h>
 #include <yml.h>
 #include <packettimer.h>
@@ -237,6 +239,8 @@ struct bgav_packet_s
   uint8_t * data;
 
   gavl_timecode_t tc;
+  
+  gavl_interlace_mode_t ilace;
   
   int field2_offset; /* Offset of 2nd field if 2 field pictures are in the
                         packet (0 else) */
@@ -579,6 +583,8 @@ struct bgav_stream_s
       bgav_keyframe_table_t * kft;
       
       int max_ref_frames; /* Needed for VDPAU */
+      
+      bgav_video_format_tracker_t * ft;
       } video;
     struct
       {
@@ -1941,6 +1947,15 @@ bgav_keyframe_table_t * bgav_keyframe_table_create_si(bgav_superindex_t * si,
                                                       bgav_stream_t * s);
 
 void bgav_keyframe_table_destroy(bgav_keyframe_table_t *);
+
+/* formattracker.c */
+
+bgav_video_format_tracker_t *
+bgav_video_format_tracker_create(bgav_stream_t * s);
+
+void bgav_video_format_tracker_destroy(bgav_video_format_tracker_t *);
+
+
 
 /* Returns the index position */
 int bgav_keyframe_table_seek(bgav_keyframe_table_t *,

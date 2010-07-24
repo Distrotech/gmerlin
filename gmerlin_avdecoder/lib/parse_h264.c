@@ -120,14 +120,21 @@ static void handle_sei(bgav_video_parser_t * parser)
         switch(pt.pic_struct)
           {
           case 0: // frame
+            parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_NONE;
             break;
           case 1: // top field
+            parser->cache[parser->cache_size-1].field_pic = 1;
+            parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_TOP_FIRST;
+            break;
           case 2: // bottom field
             parser->cache[parser->cache_size-1].field_pic = 1;
+            parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_BOTTOM_FIRST;
             break;
           case 3: // top field, bottom field, in that order 
+            parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_TOP_FIRST;
             break;
           case 4: // bottom field, top field, in that order 
+            parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_BOTTOM_FIRST;
             break;
           case 5: // top field, bottom field, top field repeated, in that order
             break;

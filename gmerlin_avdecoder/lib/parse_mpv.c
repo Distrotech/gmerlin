@@ -279,21 +279,46 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
                                              parser->buf.size - parser->pos);
       if(!len)
         return PARSER_NEED_DATA;
-      if(pe.repeat_first_field)
+
+      /* Set interlacing stuff */
+      switch(pe.picture_structure)
         {
-        duration = 0;
-        if(priv->sh.ext.progressive_sequence)
-          {
-          if(pe.top_field_first)
-            duration = parser->format->frame_duration * 2;
-          else
-            duration = parser->format->frame_duration;
-          }
-        else if(pe.progressive_frame)
-          duration = parser->format->frame_duration / 2;
+        case MPEG_PICTURE_TOP_FIELD:
+          parser->cache[parser->cache_size-1].field_pic = 1;
+          parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_TOP_FIRST;
+          break;
+        case MPEG_PICTURE_BOTTOM_FIELD:
+          parser->cache[parser->cache_size-1].field_pic = 1;
+          parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_BOTTOM_FIRST;
+          break;
+        case  MPEG_PICTURE_FRAME:
+          if(pe.repeat_first_field)
+            {
+            duration = 0;
+            if(priv->sh.ext.progressive_sequence)
+              {
+              if(pe.top_field_first)
+                duration = parser->format->frame_duration * 2;
+              else
+                duration = parser->format->frame_duration;
+              }
+            else if(pe.progressive_frame)
+              duration = parser->format->frame_duration / 2;
         
-        parser->cache[parser->cache_size-1].duration += duration;
+            parser->cache[parser->cache_size-1].duration += duration;
+            }
+          else if(!priv->sh.ext.progressive_sequence)
+            {
+            if(pe.progressive_frame)
+              parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_NONE;
+            else if(pe.top_field_first)
+              parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_TOP_FIRST;
+            else
+              parser->cache[parser->cache_size-1].ilace = GAVL_INTERLACE_BOTTOM_FIRST;
+            }
+          break;
         }
+      
       parser->pos += len;
       priv->state = MPEG_NEED_STARTCODE;
       break;
@@ -345,6 +370,11 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
     case MPEG_HAS_SEQUENCE_EXT_CODE:
       if(!priv->sh.mpeg2)
         {
+        if(parser->s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
+          parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
+        
+        parser->s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+        
         /* Try to get the sequence extension */
         len =
           bgav_mpv_sequence_extension_parse(parser->opt,

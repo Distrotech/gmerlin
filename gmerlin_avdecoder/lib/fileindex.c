@@ -40,7 +40,7 @@
 
 /* Version must be increased each time the fileformat
    changes */
-#define INDEX_VERSION 4
+#define INDEX_VERSION 5
 
 static void dump_index(bgav_stream_t * s)
   {
@@ -748,7 +748,7 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
     t = p->pts - s->start_time;
     // fprintf(stderr, "flush_stream_simple ");
     
-#if 1
+#if 0
     fprintf(stderr, "flush_stream_simple ");
     bgav_packet_dump(p);
 #endif

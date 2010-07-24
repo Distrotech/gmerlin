@@ -371,7 +371,7 @@ int bgav_mpv_picture_extension_parse(const bgav_options_t * opt,
 
   if(len < 5)
     return 0;
-  
+  ret->picture_structure  = buffer[2] & 0x03;
   ret->top_field_first    = buffer[3] & (1 << 7);
   ret->repeat_first_field = buffer[3] & (1 << 1);
   ret->progressive_frame  = buffer[4] & (1 << 7);

@@ -56,6 +56,8 @@ typedef struct
   gavl_timecode_t tc;
   
   int recovery_point;
+  
+  gavl_interlace_mode_t ilace;
   } cache_t;
 
 typedef struct

@@ -464,6 +464,7 @@ dirac_header.c \
 dvframe.c \
 edl.c \
 fileindex.c \
+formattracker.c \
 h264_header.c \
 http.c \
 id3v1.c \

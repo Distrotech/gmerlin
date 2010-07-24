@@ -61,6 +61,7 @@ bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
   ret->type = BGAV_STREAM_VIDEO;
   ret->opt = opt;
   ret->track = t;
+  ret->data.video.format.interlace_mode = GAVL_INTERLACE_UNKNOWN;
   return ret;
   }
 

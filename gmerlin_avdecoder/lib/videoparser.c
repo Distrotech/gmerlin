@@ -29,7 +29,7 @@
 #include <utils.h>
 
 // #define DUMP_INPUT
-// #define DUMP_OUTPUT
+#define DUMP_OUTPUT
 
 /* DIVX (maybe with B-frames) requires special attention */
 
@@ -196,6 +196,12 @@ static void update_previous_size(bgav_video_parser_t * parser)
       parser->cache[parser->cache_size-1].size;
     parser->cache[parser->cache_size-2].field_pic = 0;
 
+    if((parser->cache[parser->cache_size-2].ilace == GAVL_INTERLACE_BOTTOM_FIRST) &&
+       (parser->cache[parser->cache_size-1].ilace == GAVL_INTERLACE_TOP_FIRST))
+      parser->cache[parser->cache_size-2].ilace = GAVL_INTERLACE_BOTTOM_FIRST;
+    else
+      parser->cache[parser->cache_size-2].ilace = GAVL_INTERLACE_TOP_FIRST;
+    
     if(parser->cache[parser->cache_size-1].coding_type !=
        BGAV_CODING_TYPE_B)
       parser->non_b_count--;
@@ -563,7 +569,8 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->field2_offset = c->field2_offset;
   p->header_size = c->header_size;
   p->sequence_end_pos = c->sequence_end_pos;
-
+  p->ilace = c->ilace;
+  
   bgav_packet_pad(p);
   
   //  fprintf(stderr, "Get packet %c %ld\n", c->coding_type, p->pts);
@@ -623,6 +630,7 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   c->tc = GAVL_TIMECODE_UNDEFINED;
   c->recovery_point = -1;
   c->duration = parser->format->frame_duration;
+  c->ilace = GAVL_INTERLACE_NONE;
   
   c->parser_start_pos = parser->pos;
   c->header_size = 0;

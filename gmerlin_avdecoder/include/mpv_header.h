@@ -30,6 +30,10 @@
 #define MPEG_CODE_END                  7
 #define MPEG_CODE_SEQUENCE_DISPLAY_EXT 8
 
+#define MPEG_PICTURE_TOP_FIELD    1
+#define MPEG_PICTURE_BOTTOM_FIELD 2
+#define MPEG_PICTURE_FRAME        3
+
 const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
                                          const uint8_t *end );
 
@@ -107,6 +111,7 @@ typedef struct
   int top_field_first;
   int repeat_first_field;
   int progressive_frame;
+  int picture_structure;
   } bgav_mpv_picture_extension_t;
 
 typedef struct

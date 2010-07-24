@@ -122,8 +122,13 @@ void bgav_packet_dump(bgav_packet_t * p)
   bgav_dprintf("Len: %d, dur: %"PRId64, p->data_size, p->duration);
 
   if(p->header_size)
-    bgav_dprintf(" head: %d", p->header_size);
+    bgav_dprintf(", head: %d", p->header_size);
 
+  if(p->ilace == GAVL_INTERLACE_TOP_FIRST)
+    bgav_dprintf(", il: t");
+  else if(p->ilace == GAVL_INTERLACE_BOTTOM_FIRST)
+    bgav_dprintf(", il: b");
+  
   bgav_dprintf("\n");
   //  bgav_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);
   }
