@@ -254,6 +254,7 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
 
 int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   {
+  int ret = 1;
   pthread_mutex_lock(&th->com->start_mutex);
   // fprintf(stderr, "Sem post...\n");
   bin_sem_post(&th->sem);
@@ -265,14 +266,11 @@ int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   pthread_mutex_lock(&th->mutex);
   th->do_pause = 0;
   if(th->do_stop)
-    {
-    pthread_mutex_unlock(&th->mutex);
-    return 0;
-    }
+    ret = 0;
+  
   pthread_mutex_unlock(&th->mutex);
-
   bin_sem_post(&th->sem);
-  return 1;
+  return ret;
   }
 
 int bg_player_thread_check(bg_player_thread_t * th)

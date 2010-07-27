@@ -1004,7 +1004,7 @@ static int process_commands(bg_player_t * player)
           }
         else
           play_cmd(player, arg_ptr1, arg_i1, arg_str1, play_flags);
-
+        
         if(arg_str1)
           free(arg_str1);
       
