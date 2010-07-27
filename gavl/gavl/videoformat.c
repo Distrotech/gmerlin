@@ -140,6 +140,36 @@ const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode)
   return (const char*)0;
   }
 
+typedef const struct
+  {
+  gavl_framerate_mode_t mode;
+  char * name;
+  } framerate_mode_tab_t;
+
+framerate_mode_tab_t framerate_mode_tab[] =
+  {
+    { GAVL_FRAMERATE_UNKNOWN,      "Unknown" },
+    { GAVL_FRAMERATE_CONSTANT,     "Constant" },
+    { GAVL_FRAMERATE_VARIABLE,     "Variable" },
+    { GAVL_FRAMERATE_STILL,        "Still" },
+  };
+
+static const int num_framerate_modes = sizeof(framerate_mode_tab)/sizeof(framerate_mode_tab[0]);
+
+
+const char * gavl_framerate_mode_to_string(gavl_framerate_mode_t mode)
+  {
+  int i;
+  for(i = 0; i < num_framerate_modes; i++)
+    {
+    if(framerate_mode_tab[i].mode == mode)
+      return framerate_mode_tab[i].name;
+    }
+  return (const char*)0;
+  
+  }
+
+
 
 typedef struct
   {

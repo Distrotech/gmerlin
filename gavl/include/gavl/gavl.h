@@ -2038,27 +2038,41 @@ const char * gavl_chroma_placement_to_string(gavl_chroma_placement_t mode);
 /*! \ingroup video_format
  * \brief Framerate mode
  */
-  
+
+/* Changing the values alters the gmerlin-avdecoder index format */
+
 typedef enum
   {
-    GAVL_FRAMERATE_CONSTANT    = 0, /*!< Constant framerate */
-    GAVL_FRAMERATE_VARIABLE    = 1, /*!< Variable framerate */
-    GAVL_FRAMERATE_STILL       = 2, /*!< Still image */
+    GAVL_FRAMERATE_UNKNOWN     = -1, /*!< Unknown (never use in public APIs) */
+    GAVL_FRAMERATE_CONSTANT    = 0,  /*!< Constant framerate */
+    GAVL_FRAMERATE_VARIABLE    = 1,  /*!< Variable framerate */
+    GAVL_FRAMERATE_STILL       = 2,  /*!< Still image */
   } gavl_framerate_mode_t;
 
+/*! \ingroup video_format
+ * \brief Translate a framerate mode into a human readable string
+ * \param mode A framerate mode
+ * \returns A string describing the framerate mode
+ */
+
+GAVL_PUBLIC
+const char * gavl_framerate_mode_to_string(gavl_framerate_mode_t mode);
+  
 /*! \ingroup video_format
  * \brief Interlace mode
  */
 
+/* Changing the values alters the gmerlin-avdecoder index format */
+  
 typedef enum
   {
-    GAVL_INTERLACE_UNKNOWN = -1, /*!< Unknown interlacing */
-    GAVL_INTERLACE_NONE = 0,     /*!< Progressive */
-    GAVL_INTERLACE_TOP_FIRST,    /*!< Top field first */
-    GAVL_INTERLACE_BOTTOM_FIRST, /*!< Bottom field first */
-    GAVL_INTERLACE_MIXED,        /*!< Use interlace_mode of the frames */
-    GAVL_INTERLACE_MIXED_TOP,    /*!< Progressive + top    */
-    GAVL_INTERLACE_MIXED_BOTTOM, /*!< Progressive + bottom */
+    GAVL_INTERLACE_UNKNOWN       = -1,/*!< Unknown interlacing (never use in public APIs) */
+    GAVL_INTERLACE_NONE          = 0, /*!< Progressive */
+    GAVL_INTERLACE_TOP_FIRST     = 1, /*!< Top field first */
+    GAVL_INTERLACE_BOTTOM_FIRST  = 2, /*!< Bottom field first */
+    GAVL_INTERLACE_MIXED         = 3, /*!< Use interlace_mode of the frames */
+    GAVL_INTERLACE_MIXED_TOP     = 4, /*!< Progressive + top    */
+    GAVL_INTERLACE_MIXED_BOTTOM  = 5, /*!< Progressive + bottom */
   } gavl_interlace_mode_t;
 
 /*! \ingroup video_format

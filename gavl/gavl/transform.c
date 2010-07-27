@@ -93,6 +93,7 @@ int gavl_image_transform_init(gavl_image_transform_t * t,
   switch(format->interlace_mode)
     {
     case GAVL_INTERLACE_NONE:
+    case GAVL_INTERLACE_UNKNOWN:
       t->num_fields = 1;
       break; 
     case GAVL_INTERLACE_TOP_FIRST:
@@ -100,6 +101,8 @@ int gavl_image_transform_init(gavl_image_transform_t * t,
       t->num_fields = 2;
       break; 
     case GAVL_INTERLACE_MIXED:
+    case GAVL_INTERLACE_MIXED_TOP:
+    case GAVL_INTERLACE_MIXED_BOTTOM:
       t->num_fields = 3;
       break;
     }
