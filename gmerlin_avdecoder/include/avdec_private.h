@@ -350,15 +350,16 @@ dst[2] = pal.r >> 8;\
 dst[1] = pal.g >> 8;\
 dst[0] = pal.b >> 8;
 
-/* Stream types */
+/* Stream types
+   (changing numeric values alters the index file format) */
 
 typedef enum
   {
     BGAV_STREAM_UNKNOWN = 0,
-    BGAV_STREAM_AUDIO,
-    BGAV_STREAM_VIDEO,
-    BGAV_STREAM_SUBTITLE_TEXT,
-    BGAV_STREAM_SUBTITLE_OVERLAY,
+    BGAV_STREAM_AUDIO   = 1,
+    BGAV_STREAM_VIDEO   = 2,
+    BGAV_STREAM_SUBTITLE_TEXT   = 3,
+    BGAV_STREAM_SUBTITLE_OVERLAY   = 4,
   } bgav_stream_type_t;
 
 
@@ -1208,8 +1209,19 @@ typedef struct
   
   } bgav_file_index_entry_t;
 
+/* Per stream structure */
+
 struct bgav_file_index_s
   {
+  /* Infos stored to speed up loading */
+  uint32_t stream_id;
+  uint32_t fourcc;
+
+  /* Video infos stored by the format tracker */
+
+  uint32_t interlace_mode;
+  uint32_t framerate_mode;
+  
   uint32_t num_entries;
   uint32_t entries_alloc;
   bgav_file_index_entry_t * entries;

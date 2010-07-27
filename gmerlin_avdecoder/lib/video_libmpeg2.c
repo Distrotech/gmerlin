@@ -272,7 +272,7 @@ static void get_format(bgav_stream_t*s,
     }
   if(!container_time)
     {
-    if(sequence->flags & SEQ_FLAG_MPEG2)
+    if((sequence->flags & SEQ_FLAG_MPEG2) && (ret->framerate_mode == GAVL_FRAMERATE_UNKNOWN))
       ret->framerate_mode = GAVL_FRAMERATE_VARIABLE;
     else /* MPEG-1 is always constant framerate */
       {

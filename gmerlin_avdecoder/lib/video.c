@@ -152,6 +152,8 @@ int bgav_video_start(bgav_stream_t * s)
 
   if(s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
     s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
+  if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
+    s->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
   return 1;
   }
 

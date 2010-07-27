@@ -53,8 +53,9 @@ static void set_eof(bgav_video_format_tracker_t * ft)
 
   if(ft->do_track & TRACK_FRAMERATE)
     {
-    ft->s->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
-    ft->s->data.video.format.frame_duration = ft->last_frame_duration;
+    ft->s->data.video.format.framerate_mode = ft->fps_mode;
+    if(ft->fps_mode == GAVL_FRAMERATE_CONSTANT)
+      ft->s->data.video.format.frame_duration = ft->last_frame_duration;
     }
   
   if(ft->do_track & TRACK_INTERLACING)
@@ -101,7 +102,6 @@ static void set_eof(bgav_video_format_tracker_t * ft)
           {
           /* !progressive + top + !bottom  */
           ft->s->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
-          fprintf(stderr, "Blupp\n");
           }
         }
       else /* !ft->have_top */

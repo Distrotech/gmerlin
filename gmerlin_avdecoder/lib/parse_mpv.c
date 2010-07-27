@@ -229,6 +229,11 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       
       break;
     case MPEG_HAS_PICTURE_CODE:
+
+      /* Now we know for sure that we have MPEG-1 */
+      if(priv->have_sh &&
+         !priv->sh.mpeg2 && (parser->s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN))
+        parser->s->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
       
       /* Try to get the picture header */
       len = bgav_mpv_picture_header_parse(parser->opt,
@@ -372,8 +377,9 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         {
         if(parser->s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
           parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
-        
-        parser->s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+
+        if(parser->s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
+          parser->s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
         
         /* Try to get the sequence extension */
         len =

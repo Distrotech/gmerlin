@@ -40,7 +40,7 @@
 
 /* Version must be increased each time the fileformat
    changes */
-#define INDEX_VERSION 5
+#define INDEX_VERSION 6
 
 static void dump_index(bgav_stream_t * s)
   {
@@ -129,6 +129,7 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Duration: %"PRId64", entries: %d\n",
                    b->tt->tracks[i].audio_streams[j].duration,
                    s->file_index->num_entries);
+      
       dump_index(&b->tt->tracks[i].audio_streams[j]);
       }
     for(j = 0; j < b->tt->tracks[i].num_video_streams; j++)
@@ -139,6 +140,13 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Video stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->data.video.format.timescale,
                    s->start_time);
+      bgav_dprintf("   Interlace mode: %s\n",
+                   gavl_interlace_mode_to_string(s->data.video.format.interlace_mode));
+      bgav_dprintf("   Framerate mode: %s\n",
+                   gavl_framerate_mode_to_string(s->data.video.format.framerate_mode));
+      if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
+        bgav_dprintf("   Frame Duration: %d\n", s->data.video.format.frame_duration);
+      
       bgav_dprintf("   Duration: %"PRId64", entries: %d\n",
                    b->tt->tracks[i].video_streams[j].duration,
                    s->file_index->num_entries);
@@ -208,27 +216,35 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
  * All multibyte numbers are big endian
  * (network byte order)
  *
- * 1. Signature "BGAVINDEX <version>\n"
+ * - Signature "BGAVINDEX <version>\n"
  *    (Version is the INDEX_VERSION defined above)
- * 2. Filename terminated with \n
- * 3. File time (st_mtime returned by stat(2)) (64)
- * 4. Number of tracks (32)
- * 5. Tracks consising of
- *    5.1 Number of streams (32)
- *    5.2 Stream entries consisting of
- *        5.2.2 Stream ID (32)
- *        5.2.3 Timescale (32)
- *        5.2.4 Timestamp offset (64)
- *        5.2.5 Duration (64)
- *        5.2.6 Number of entries (32)
- *        5.2.7 Index entries consiting of
- *              5.2.7.1 packet flags (32)
- *              5.2.7.2 position (64)
- *              5.2.7.3 time (64)
- *        5.2.8 *only* for video streams: number of timecodes (32)
- *        5.2.9 *only* for video streams: Timecodes consisting of
- *              5.2.9.1 pts (64)
- *              5.2.9.2 timecode (64)
+ * - Filename terminated with \n
+ * - File time (st_mtime returned by stat(2)) (64)
+ * - Number of tracks (32)
+ * - Tracks consising of
+ *    - Number of streams (32)
+ *    - Stream entries consisting of
+ *        - Stream ID (32)
+ *        - StreamType (32)
+ *        - Fourcc     (32)
+ *        - Timescale (32)
+ *        if(StreamType == BGAV_STREAM_VIDEO)
+ *          - InterlaceMode (32)
+ *          - FramerateMode (32)
+ *          if(FramerateMode == GAVL_FRAMERATE_CONSTANT)
+ *            - FrameDuration (32)
+ *        - Timestamp offset (64)
+ *        - Duration (64)
+ *        - Number of entries (32)
+ *          - Index entries consiting of
+ *            - packet flags (32)
+ *            - position (64)
+ *            - time (64)
+ *        if(StreamType == BGAV_STREAM_VIDEO)
+ *          - number of timecodes (32)
+ *          - Timecodes consisting of
+ *            - pts (64)
+ *            - timecode (64)
  *        
  */
 
@@ -328,18 +344,36 @@ static bgav_file_index_t *
 file_index_read_stream(bgav_input_context_t * input, bgav_stream_t * s)
   {
   int i;
-
+  uint32_t tmp_32;
   bgav_file_index_t * ret = calloc(1, sizeof(*ret));
 
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
-      if(!bgav_input_read_32_be(input, (uint32_t*)&s->data.audio.format.samplerate))
+      if(!bgav_input_read_32_be(input, &tmp_32))
         return NULL;
+      s->data.audio.format.samplerate = tmp_32;
       break;
     case BGAV_STREAM_VIDEO:
-      if(!bgav_input_read_32_be(input, (uint32_t*)&s->data.video.format.timescale))
+      if(!bgav_input_read_32_be(input, &tmp_32))
         return NULL;
+      s->data.video.format.timescale = tmp_32;
+      
+      if(!bgav_input_read_32_be(input, &tmp_32))
+        return NULL;
+      s->data.video.format.interlace_mode = tmp_32;
+      
+      if(!bgav_input_read_32_be(input, &tmp_32))
+        return NULL;
+      s->data.video.format.framerate_mode = tmp_32;
+
+      if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
+        {
+        if(!bgav_input_read_32_be(input, &tmp_32))
+          return NULL;
+        s->data.video.format.frame_duration = tmp_32;
+        }
+      
       break;
     case BGAV_STREAM_SUBTITLE_TEXT:
     case BGAV_STREAM_SUBTITLE_OVERLAY:
@@ -396,7 +430,9 @@ file_index_write_stream(FILE * output,
   int i;
   
   write_32(output, s->stream_id);
-
+  write_32(output, s->type);
+  write_32(output, s->fourcc);
+  
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
@@ -404,6 +440,10 @@ file_index_write_stream(FILE * output,
       break;
     case BGAV_STREAM_VIDEO:
       write_32(output, s->data.video.format.timescale);
+      write_32(output, s->data.video.format.interlace_mode);
+      write_32(output, s->data.video.format.framerate_mode);
+      if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
+        write_32(output, s->data.video.format.frame_duration);
       break;
     case BGAV_STREAM_SUBTITLE_TEXT:
     case BGAV_STREAM_SUBTITLE_OVERLAY:
@@ -499,9 +539,16 @@ int bgav_read_file_index(bgav_t * b)
   bgav_input_context_t * input = (bgav_input_context_t*)0;
   int num_tracks;
   uint32_t num_streams;
-  int stream_id;
+  uint32_t stream_id;
+  uint32_t stream_type;
   char * filename;
   bgav_stream_t * s;
+
+  /* Check if we already have a file index */
+
+  if(!b->tt->tracks || (b->tt->tracks->flags & TRACK_HAS_FILE_INDEX))
+    return 1;
+  
   /* Check if the input provided an index filename */
   if(!b->input->index_file || !b->input->filename)
     return 0;
@@ -530,19 +577,48 @@ int bgav_read_file_index(bgav_t * b)
     
     for(j = 0; j < num_streams; j++)
       {
-      if(!bgav_input_read_32_be(input, (uint32_t*)&stream_id))
+      if(!bgav_input_read_32_be(input, &stream_id))
         goto fail;
       s = bgav_track_find_stream_all(&b->tt->tracks[i], stream_id);
       if(!s)
-        goto fail;
+        {
+        /* Create stream */
+        if(!bgav_input_read_32_be(input, &stream_type))
+          goto fail;
+        
+        switch(stream_type)
+          {
+          case BGAV_STREAM_AUDIO:
+            s = bgav_track_add_audio_stream(&b->tt->tracks[i], &b->opt);
+            break;
+          case BGAV_STREAM_VIDEO:
+            s = bgav_track_add_video_stream(&b->tt->tracks[i], &b->opt);
+            break;
+            /* Passing (char*)0 as encoding might break when we have MPEG-like formats with
+               text subtitles */
+          case BGAV_STREAM_SUBTITLE_TEXT:
+            s = bgav_track_add_subtitle_stream(&b->tt->tracks[i], &b->opt, 1, (char*)0);
+            break;
+          case BGAV_STREAM_SUBTITLE_OVERLAY:
+            s = bgav_track_add_subtitle_stream(&b->tt->tracks[i], &b->opt, 0, (char*)0);
+            break;
+          }
+        
+        /* Fourcc */
+        if(!bgav_input_read_32_be(input, &s->fourcc))
+          goto fail;
+        s->stream_id = stream_id;
+        }
+      else
+        {
+        bgav_input_skip(input, 8); /* Stream type + fourcc */
+        }
       s->file_index = file_index_read_stream(input, s);
-      
       if(!s->file_index)
         {
         goto fail;
         }
       }
-        
     }
   bgav_input_destroy(input);
   set_has_file_index(b);
