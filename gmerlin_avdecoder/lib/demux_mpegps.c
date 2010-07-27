@@ -34,10 +34,6 @@
 #define CDXA_SECTOR_SIZE     2324
 #define CDXA_HEADER_SIZE       24
 
-/* Synchronization routines */
-
-#define IS_START_CODE(h)  ((h&0xffffff00)==0x00000100)
-
 // #define DUMP_PACK_HEADER
 // #define DUMP_PES_HEADER
 
@@ -54,6 +50,10 @@ typedef struct
 #define SYNC_SIZE (1024*1024)
 
 #define LOG_DOMAIN "mpegps"
+
+/* Synchronization routines */
+
+#define IS_START_CODE(h)  ((h&0xffffff00)==0x00000100)
 
 static uint32_t next_start_code(bgav_input_context_t * ctx)
   {

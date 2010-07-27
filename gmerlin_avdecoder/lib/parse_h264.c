@@ -469,7 +469,7 @@ static int handle_nal(bgav_video_parser_t * parser)
         bgav_h264_sps_parse(parser->opt,
                             &priv->sps,
                             priv->rbsp, priv->rbsp_len);
-        bgav_h264_sps_dump(&priv->sps);
+        // bgav_h264_sps_dump(&priv->sps);
               
         priv->sps_len = priv->nal_len;
         priv->sps_buffer = malloc(priv->sps_len);
@@ -623,5 +623,6 @@ void bgav_video_parser_init_h264(bgav_video_parser_t * parser)
   parser->parse = parse_h264;
   parser->cleanup = cleanup_h264;
   parser->reset = reset_h264;
-  
+  if(parser->s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
+    parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
   }

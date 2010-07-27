@@ -240,7 +240,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
                                           &ph,
                                           parser->buf.buffer + parser->pos,
                                           parser->buf.size - parser->pos);
-
+      
       if(len < 0)
         {
         bgav_log(parser->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
