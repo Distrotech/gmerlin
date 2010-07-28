@@ -66,6 +66,9 @@ void bgav_log(const bgav_options_t * opt,
   va_list argp; /* arg ptr */
   int len;
 
+  if(opt && !(level & opt->log_level))
+    return;
+  
   format = TRD(format);
     
   va_start( argp, format);

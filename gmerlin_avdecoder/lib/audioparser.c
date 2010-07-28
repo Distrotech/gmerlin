@@ -175,12 +175,12 @@ void bgav_audio_parser_reset(bgav_audio_parser_t * parser,
     parser->out_packet = NULL;
     }
   
-  if(in_pts != BGAV_TIMESTAMP_UNDEFINED)
+  if(out_pts != BGAV_TIMESTAMP_UNDEFINED)
+    parser->timestamp = out_pts;
+  else if(in_pts != BGAV_TIMESTAMP_UNDEFINED)
     parser->timestamp = gavl_time_rescale(parser->in_scale,
                                           parser->s->data.audio.format.samplerate,
                                           in_pts);
-  else if(out_pts != BGAV_TIMESTAMP_UNDEFINED)
-    parser->timestamp = out_pts;
   else
     parser->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }

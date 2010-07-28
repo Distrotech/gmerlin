@@ -419,6 +419,7 @@ static int handle_nal(bgav_video_parser_t * parser)
               break;
             default: /* Assume the worst */
               fprintf(stderr, "Unknown slice type %d\n", sh.slice_type);
+              break;
                     
             }
 

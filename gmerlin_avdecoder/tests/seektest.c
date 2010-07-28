@@ -23,28 +23,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-int track = 0;
-int audio_stream = 0;
-int video_stream = 0;
-int sample_accurate = 0;
+static int track = 0;
+static int audio_stream = 0;
+static int video_stream = 0;
 
-int64_t audio_position = -1;
-int64_t video_position = -1;
+static int64_t audio_position = -1;
+static int64_t video_position = -1;
+
+static int sample_accurate = 0;
+
+bgav_options_t * opt;
 
 static bgav_t * open_common(const char * filename)
   {
   bgav_t * b;
-  bgav_options_t * opt;
+  bgav_options_t * opt1;
   int num_tracks;
   
   b = bgav_create();
-  opt = bgav_get_options(b);
-  bgav_options_set_sample_accurate(opt, sample_accurate);
+  opt1 = bgav_get_options(b);
+
+  bgav_options_copy(opt1, opt);
   
   if(!bgav_open(b, filename))
     goto fail;
-    
-  if(sample_accurate && !bgav_can_seek_sample(b))
+  
+  if(sample_accurate &&
+     !bgav_can_seek_sample(b))
     {
     fprintf(stderr, "%s supports no sample accuracy\n", filename);
     goto fail;
@@ -140,9 +145,18 @@ static int test_audio(const char * filename)
   f2 = gavl_audio_frame_create(&format);
   
   /* Skip to the requested sample */
+  
+  samples_to_skip = audio_position -
+    bgav_audio_start_time(b, audio_stream);
 
-  samples_to_skip =  audio_position;
-
+  if(samples_to_skip < 0)
+    {
+    fprintf(stderr, "Audio position must be larger than %"PRId64"\n",
+            bgav_audio_start_time(b, audio_stream));
+    goto fail;
+    }
+  
+  
   while(samples_to_skip)
     {
     samples_to_read = SAMPLES_TO_READ;
@@ -150,7 +164,7 @@ static int test_audio(const char * filename)
       samples_to_read = samples_to_skip;
     
     result = bgav_read_audio(b, f1, audio_stream, samples_to_read);
-
+    
     if(!result)
       {
       fprintf(stderr, "EOF while skipping to sample position\n");
@@ -159,10 +173,11 @@ static int test_audio(const char * filename)
     samples_to_skip -= result;
     }
   /* Read first frame */
+  fprintf(stderr, "Decoding frame 1\n");
   result = bgav_read_audio(b, f1, audio_stream, SAMPLES_TO_READ);
   fprintf(stderr, "Decoded frame 1: %d samples, pts: %" PRId64 "\n",
           result, f1->timestamp);
-
+  
   /* Close */
   bgav_close(b);
 
@@ -176,19 +191,24 @@ static int test_audio(const char * filename)
 
   bgav_seek_scaled(b, &samples_to_skip, format.samplerate);
   
+  fprintf(stderr, "Decoding frame 2\n");
   result = bgav_read_audio(b, f2, audio_stream, SAMPLES_TO_READ);
   fprintf(stderr, "Decoded frame 2: %d samples, pts: %" PRId64 "\n",
           result, f2->timestamp);
 
-  fprintf(stderr, "Testing if frames are equal: ");
+  fprintf(stderr, "Testing if audio timestamps are equal:   ");
 
-  if(gavl_audio_frames_equal(&format, f1, f2))
-    {
-    fprintf(stderr, ":)\n");
-    ret = 1;
-    }
+  if(f1->timestamp == f2->timestamp)
+    fprintf(stderr, "[  ok  ]\n");
   else
-    fprintf(stderr, ":(\n");
+    fprintf(stderr, "[ fail ]\n");
+  
+  fprintf(stderr, "Testing if audio frames are equal:       ");
+  
+  if(gavl_audio_frames_equal(&format, f1, f2))
+    fprintf(stderr, "[  ok  ]\n");
+  else
+    fprintf(stderr, "[ fail ]\n");
   
   fail:
   if(b)
@@ -256,7 +276,8 @@ static int test_video(const char * filename)
   video_time = f1->timestamp;
   
   bgav_seek_scaled(b, &video_time, format.timescale);
-  
+
+  /* Read second frame */
   result = bgav_read_video(b, f2, video_stream);
 
   if(!result)
@@ -267,16 +288,20 @@ static int test_video(const char * filename)
   
   fprintf(stderr, "Decoded frame 2: pts: %" PRId64 ", duration: %" PRId64 "\n",
           f2->timestamp, f2->duration);
+
+  fprintf(stderr, "Testing if video timestamps are equal:   ");
+
+  if(f1->timestamp == f2->timestamp)
+    fprintf(stderr, "[  ok  ]\n");
+  else
+    fprintf(stderr, "[ fail ]\n");
   
-  fprintf(stderr, "Testing if frames are equal: ");
+  fprintf(stderr, "Testing if video are equal:              ");
 
   if(gavl_video_frames_equal(&format, f1, f2))
-    {
-    fprintf(stderr, ":)\n");
-    ret = 1;
-    }
+    fprintf(stderr, "[  ok  ]\n");
   else
-    fprintf(stderr, ":(\n");
+    fprintf(stderr, "[ fail ]\n");
   
   fail:
   if(b)
@@ -301,6 +326,8 @@ int main(int argc, char ** argv)
   int i;
   char * filename = NULL;
   
+  opt = bgav_options_create();
+  
   i = 1;
   while(i < argc)
     {
@@ -316,6 +343,7 @@ int main(int argc, char ** argv)
       }
     else if(!strcmp(argv[i], "-sa"))
       {
+      bgav_options_set_sample_accurate(opt, 1);
       sample_accurate = 1;
       }
     else if(!strcmp(argv[i], "-as"))
@@ -331,6 +359,23 @@ int main(int argc, char ** argv)
     else if(!strcmp(argv[i], "-t"))
       {
       track = atoi(argv[i+1])-1;
+      i++;
+      }
+    else if(!strcmp(argv[i], "-v"))
+      {
+      int level_int;
+      int level_flags = 0;
+      level_int = atoi(argv[i+1]);
+
+      if(level_int > 0)
+        level_flags |= BGAV_LOG_ERROR;
+      if(level_int > 1)
+        level_flags |= BGAV_LOG_WARNING;
+      if(level_int > 2)
+        level_flags |= BGAV_LOG_INFO;
+      if(level_int > 3)
+        level_flags |= BGAV_LOG_DEBUG;
+      bgav_options_set_log_level(opt, level_flags);
       i++;
       }
     else
@@ -351,5 +396,8 @@ int main(int argc, char ** argv)
 
   if(video_position >= 0)
     test_video(filename);
+
+  bgav_options_destroy(opt);
+
   return 0;
   }

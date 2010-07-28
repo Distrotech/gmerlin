@@ -173,7 +173,7 @@ static void seek_sa(bgav_t * b, int64_t * time, int scale)
       s = &b->tt->cur->audio_streams[i];
       bgav_seek_audio(b, i,
                       gavl_time_rescale(scale, s->data.audio.format.samplerate,
-                                        *time) + s->start_time);
+                                        *time) - s->start_time);
       if(s->flags & STREAM_EOF_C)
         {
         b->eof = 1;
@@ -238,7 +238,8 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
   
   seek_time = *time;
 #ifdef DUMP_ITERATIVE
-  bgav_dprintf("****** Seek iterative ***********\n");
+  bgav_dprintf("****** Seek iterative %"PRId64", %d ***********\n",
+               *time, scale);
 #endif
   while(1)
     {
@@ -264,6 +265,14 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
 
     if(sync_time > *time) /* Sync time too late */
       {
+      /* Exit if we are already at position zero */
+      if(seek_time == 0)
+        {
+        bgav_track_resync(track);
+        num_resync++;
+        break;
+        }
+      
 #ifdef DUMP_ITERATIVE
       //      fprintf(stderr, "Sync time too late\n");
 #endif
@@ -323,7 +332,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
         seek_time -= ((3*(out_time - *time))/2 + one_second);
         continue;
         }
-      else
+      else if(out_time < *time)
         {
 #ifdef DUMP_ITERATIVE
         bgav_dprintf("Out time too early\n");
@@ -352,6 +361,8 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
           break;
           }
         }
+      else
+        break;
       }
     }
 

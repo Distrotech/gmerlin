@@ -258,7 +258,7 @@ void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
   if((s->action != BGAV_STREAM_PARSE) &&
      (s->type == BGAV_STREAM_AUDIO) && s->file_index)
     {
-    p->pts      = s->file_index->entries[s->index_position].pts;
+    // p->pts = s->file_index->entries[s->index_position].pts + s->start_time;
     
     if(s->index_position < s->file_index->num_entries - 1)
       {

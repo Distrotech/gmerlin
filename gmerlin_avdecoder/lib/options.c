@@ -235,6 +235,11 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->cache_size = 20;
   b->vdpau = 1;
   b->threads = 1;
+  b->log_level =
+    BGAV_LOG_INFO | \
+    BGAV_LOG_ERROR | \
+    BGAV_LOG_WARNING;
+  
   // Test
   //  b->rtp_try_tcp = 1;
   }
@@ -325,7 +330,9 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 
   CP_INT(log_callback);
   CP_INT(log_callback_data);
-    
+
+  CP_INT(log_level);
+  
   CP_INT(metadata_change_callback);
   CP_INT(metadata_change_callback_data);
 
@@ -389,6 +396,13 @@ bgav_options_set_log_callback(bgav_options_t * opt,
   {
   opt->log_callback      = callback;
   opt->log_callback_data = data;
+  }
+
+void
+bgav_options_set_log_level(bgav_options_t * opt,
+                           int level)
+  {
+  opt->log_level      = level;
   }
 
 void

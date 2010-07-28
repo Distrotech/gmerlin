@@ -339,6 +339,8 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
                             num_samples - samples_decoded, /* out_size, */
                             s->data.audio.frame->valid_samples /* in_size */);
 
+    //    fprintf(stderr, "Copied %d samples\n", samples_copied);
+    
     s->data.audio.frame->valid_samples -= samples_copied;
     samples_decoded += samples_copied;
     }

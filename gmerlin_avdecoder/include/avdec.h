@@ -648,10 +648,10 @@ void bgav_options_set_vdpau(bgav_options_t* opt,
 
 typedef enum
   {
-    BGAV_LOG_DEBUG,
-    BGAV_LOG_WARNING,
-    BGAV_LOG_ERROR,
-    BGAV_LOG_INFO
+    BGAV_LOG_DEBUG   = (1<<0),
+    BGAV_LOG_WARNING = (1<<1),
+    BGAV_LOG_ERROR   = (1<<2),
+    BGAV_LOG_INFO    = (1<<3)
   } bgav_log_level_t;
 
 /** \ingroup options
@@ -678,6 +678,19 @@ bgav_options_set_log_callback(bgav_options_t* opt,
                               bgav_log_callback callback,
                               void * data);
 
+/** \ingroup options
+ *  \brief Set the verbosity for log messages
+ *  \param opt Option container
+ *  \param level ORed flags of type bgav_log_level_t
+ *
+ *  Since 1.1.0
+ */
+
+BGAV_PUBLIC void
+bgav_options_set_log_level(bgav_options_t* opt,
+                           int level);
+  
+  
 
 /* Set callbacks */
 

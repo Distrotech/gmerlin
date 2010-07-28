@@ -848,6 +848,8 @@ struct bgav_options_s
 
   int vdpau;
   int threads;
+
+  int log_level;
   
   /* Callbacks */
 
