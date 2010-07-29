@@ -411,3 +411,120 @@ int gavl_audio_frames_equal(const gavl_audio_format_t * format,
     }
   return 1;
   }
+
+static void do_plot(const gavl_audio_format_t * format,
+                    const gavl_audio_frame_t * frame,
+                    FILE * out)
+  {
+  int i, j;
+  for(j = 0; j < frame->valid_samples; j++)
+    {
+    fprintf(out, "%d", j);
+    switch(format->sample_format)
+      {
+      case GAVL_SAMPLE_U8:
+        for(i = 0; i < format->num_channels; i++)
+          fprintf(out, " %d", frame->channels.u_8[i][j]);
+        break;
+      case GAVL_SAMPLE_S8:
+        for(i = 0; i < format->num_channels; i++)
+          fprintf(out, " %d", frame->channels.s_8[i][j]);
+
+        break;
+      case GAVL_SAMPLE_U16:
+        for(i = 0; i < format->num_channels; i++)
+          fprintf(out, " %d", frame->channels.u_16[i][j]);
+
+        break;
+      case GAVL_SAMPLE_S16:
+        for(i = 0; i < format->num_channels; i++)
+          fprintf(out, " %d", frame->channels.s_16[i][j]);
+
+        break;
+
+      case GAVL_SAMPLE_S32:
+        for(i = 0; i < format->num_channels; i++)
+          fprintf(out, " %d", frame->channels.s_32[i][j]);
+
+        break;
+
+      case GAVL_SAMPLE_FLOAT:
+        for(i = 0; i < format->num_channels; i++)
+          fprintf(out, " %f", frame->channels.f[i][j]);
+
+        break;
+      case GAVL_SAMPLE_DOUBLE:
+        for(i = 0; i < format->num_channels; i++)
+          fprintf(out, " %f", frame->channels.d[i][j]);
+
+        break;
+      case GAVL_SAMPLE_NONE:
+        break;
+      }
+    fprintf(out, "\n");
+    }
+  }
+
+
+int gavl_audio_frame_plot(const gavl_audio_format_t * format,
+                          const gavl_audio_frame_t * frame,
+                          const char * name_base)
+  {
+  int i;
+  gavl_audio_converter_t * cnv;
+  gavl_audio_format_t plot_format;
+  int do_convert;
+  FILE * out;
+  char * filename = malloc(strlen(name_base) + 5);
+
+  /* Write data file */
+  strcpy(filename, name_base);
+  strcat(filename, ".dat");
+  out = fopen(filename, "w");
+  if(!out)
+    return 0;
+
+  cnv = gavl_audio_converter_create();
+  gavl_audio_format_copy(&plot_format, 
+                         format);
+  plot_format.interleave_mode = GAVL_INTERLEAVE_NONE;
+
+  plot_format.samples_per_frame = frame->valid_samples;
+  
+  do_convert =
+    gavl_audio_converter_init(cnv, format, &plot_format);
+  
+  if(do_convert)
+    {
+    gavl_audio_frame_t * plot_frame = gavl_audio_frame_create(&plot_format);
+    gavl_audio_convert(cnv, frame, plot_frame);
+    
+    do_plot(&plot_format, plot_frame, out);
+    gavl_audio_frame_destroy(plot_frame);
+    }
+  else
+    do_plot(format, frame, out);
+
+  fclose(out);
+
+  /* Write gnuplot file */
+  strcpy(filename, name_base);
+  strcat(filename, ".gnu");
+  out = fopen(filename, "w");
+  if(!out)
+    return 0;
+  
+  fprintf(out, "plot ");
+
+  for(i = 0; i < format->num_channels; i++)
+    {
+    if(i)
+      fprintf(out, ", ");
+    fprintf(out, "\"%s.dat\" using 1:%d title \"%s\"",
+            name_base, i+2,
+            gavl_channel_id_to_string(format->channel_locations[i]));
+    }
+  fprintf(out, "\n");
+  fclose(out);
+  return 1;
+  }

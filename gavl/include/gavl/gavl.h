@@ -690,6 +690,31 @@ GAVL_PUBLIC
 int gavl_audio_frames_equal(const gavl_audio_format_t * format,
                             const gavl_audio_frame_t * f1,
                             const gavl_audio_frame_t * f2);
+
+/*!
+  \ingroup audio_frame
+  \brief Plot an audio frame to an ASCII file
+  \param format Format
+  \param frame An audio frame
+  \param name_base Filename base
+  \returns 1 in success, 0 in failure
+
+  Plots an audio frame into an ascii file with one line per
+  sample in the format:
+  <sample_number> <channel1> <channel2> ...
+
+  In addition, a file for making a plot with gnuplot is generated.
+  name_base is used for generating the filenames. For the data file,
+  the extension ".dat" is appended. For the gnuplot file it's ".gnu"
+  
+  Since 1.2.0
+*/
+
+GAVL_PUBLIC
+int gavl_audio_frame_plot(const gavl_audio_format_t * format,
+                          const gavl_audio_frame_t * frame,
+                          const char * name_base);
+
   
 /** \defgroup audio_options Audio conversion options
     \ingroup audio
