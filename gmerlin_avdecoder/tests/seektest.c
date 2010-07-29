@@ -155,8 +155,6 @@ static int test_audio(const char * filename)
             bgav_audio_start_time(b, audio_stream));
     goto fail;
     }
-  
-  
   while(samples_to_skip)
     {
     samples_to_read = SAMPLES_TO_READ;
@@ -208,8 +206,13 @@ static int test_audio(const char * filename)
   if(gavl_audio_frames_equal(&format, f1, f2))
     fprintf(stderr, "[  ok  ]\n");
   else
+    {
     fprintf(stderr, "[ fail ]\n");
-  
+    fprintf(stderr, "Saving frames...");
+    gavl_audio_frame_plot(&format, f1, "frame_1");
+    gavl_audio_frame_plot(&format, f2, "frame_2");
+    fprintf(stderr, "Done\n");
+    }
   fail:
   if(b)
     bgav_close(b);
@@ -301,8 +304,9 @@ static int test_video(const char * filename)
   if(gavl_video_frames_equal(&format, f1, f2))
     fprintf(stderr, "[  ok  ]\n");
   else
+    {
     fprintf(stderr, "[ fail ]\n");
-  
+    }
   fail:
   if(b)
     bgav_close(b);
