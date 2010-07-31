@@ -89,7 +89,23 @@ int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
     else
       parser->timestamp = 0;
     }
-  parser->parse_frame(parser, p);
+
+  if((parser->s->action != BGAV_STREAM_PARSE) &&
+     parser->s->file_index)
+    {
+    if(p->position == parser->s->file_index->num_entries-1)
+      {
+      p->duration = parser->s->duration -
+        parser->s->file_index->entries[parser->s->file_index->num_entries-1].pts;
+      }
+    else
+      p->duration =
+        parser->s->file_index->entries[p->position+1].pts -
+        parser->s->file_index->entries[p->position].pts;
+        
+    }
+  else
+    parser->parse_frame(parser, p);
   
   p->pts = parser->timestamp;
   parser->timestamp += p->duration;

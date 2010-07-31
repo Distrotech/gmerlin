@@ -575,7 +575,10 @@ static void resync_vorbis(bgav_stream_t * s)
     /* Synchronize output time to the next packet */
     p = bgav_stream_peek_packet_read(s, 1);
     if(p)
+      {
       s->out_time = p->pts;
+      fprintf(stderr, "Vorbis resync PTS: %"PRId64"\n", p->pts);
+      }
     }
   
   }

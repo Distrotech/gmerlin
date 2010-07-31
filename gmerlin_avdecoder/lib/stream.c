@@ -255,18 +255,9 @@ void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
 
   /* Set timestamps from file index because the
      demuxer might have them messed up */
-  if((s->action != BGAV_STREAM_PARSE) &&
-     (s->type == BGAV_STREAM_AUDIO) && s->file_index)
+  if((s->action != BGAV_STREAM_PARSE) && s->file_index)
     {
-    // p->pts = s->file_index->entries[s->index_position].pts + s->start_time;
-    
-    if(s->index_position < s->file_index->num_entries - 1)
-      {
-      p->duration =
-        s->file_index->entries[s->index_position+1].pts -
-        s->file_index->entries[s->index_position].pts;
-      }
-    s->index_position++;
+    p->position = s->index_position++;
     }
   
   bgav_packet_buffer_append(s->packet_buffer, p);
