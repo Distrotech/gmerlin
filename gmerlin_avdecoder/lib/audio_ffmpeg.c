@@ -85,6 +85,7 @@ typedef struct
   enum CodecID ffmpeg_id;
   uint32_t * fourccs;
   int codec_tag;
+  int preroll;
   } codec_info_t;
 
 typedef struct
@@ -315,6 +316,9 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.sample_format =
     sample_format_ffmpeg_2_gavl(priv->ctx->sample_fmt);
+
+  s->data.audio.preroll = priv->info->preroll;
+
   priv->sample_size =
     gavl_bytes_per_sample(s->data.audio.format.sample_format);
 
@@ -608,7 +612,7 @@ static codec_info_t codec_infos[] =
     { "FFmpeg mp3on4 decoder", "MP3on4", CODEC_ID_MP3ON4,
       (uint32_t[]){ BGAV_MK_FOURCC('m', '4', 'a', 29),
                     0x00 },
-      -1 },
+      -1, 1152*32 },
     /*     CODEC_ID_SHORTEN, */
     { "FFmpeg Shorten decoder", "Shorten", CODEC_ID_SHORTEN,
       (uint32_t[]){ BGAV_MK_FOURCC('.','s','h','n'),

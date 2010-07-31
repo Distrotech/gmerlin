@@ -577,7 +577,7 @@ static void resync_vorbis(bgav_stream_t * s)
     if(p)
       {
       s->out_time = p->pts;
-      fprintf(stderr, "Vorbis resync PTS: %"PRId64"\n", p->pts);
+      //      fprintf(stderr, "Vorbis resync PTS: %"PRId64"\n", p->pts);
       }
     }
   

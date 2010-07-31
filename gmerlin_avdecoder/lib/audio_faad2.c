@@ -220,6 +220,9 @@ static int init_faad2(bgav_stream_t * s)
     //    fprintf(stderr, "Detected NO HE-AAC\n");
     //    bgav_hexdump(s->ext_data, s->ext_size, 16);
     }
+
+  //  s->data.audio.preroll = s->data.audio.format.samples_per_frame;
+  
   s->data.audio.format.samplerate = samplerate;
   
   s->data.audio.format.num_channels = channels;

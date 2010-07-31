@@ -331,6 +331,9 @@ int main(int argc, char ** argv)
   char * filename = NULL;
   
   opt = bgav_options_create();
+
+  /* Disable dynamic range control, which destroys bit-exactness */
+  bgav_options_set_audio_dynrange(opt, 0);
   
   i = 1;
   while(i < argc)
