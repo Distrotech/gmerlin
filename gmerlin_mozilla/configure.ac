@@ -63,6 +63,11 @@ fi
 
 if test "$MOZPLUG_CFLAGS" = ""; then
     AC_MSG_ERROR([Unable to find mozilla or firefox development files])
+else
+OLD_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $MOZPLUG_CFLAGS"
+AC_CHECK_HEADERS(npupp.h)
+CPPFLAGS=$OLD_CFLAGS
 fi
 
 AC_SUBST(MOZILLA_HOME)

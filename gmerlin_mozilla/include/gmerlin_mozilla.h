@@ -20,9 +20,15 @@
  * *****************************************************************/
 
 
-#include <npupp.h>
-#include <npapi.h>
 #include <config.h>
+
+#ifdef HAVE_NPUPP_H
+#include <npupp.h>
+#else
+#include <npfunctions.h>
+#endif
+
+#include <npapi.h>
 
 #include <pthread.h>
 
