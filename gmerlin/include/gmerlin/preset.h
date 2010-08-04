@@ -36,6 +36,16 @@ bg_preset_t * bg_preset_add(bg_preset_t * presets,
                             const char * name,
                             const bg_cfg_section_t * s);
 
+bg_preset_t * bg_preset_find_by_name(bg_preset_t * presets,
+                                     const char * name);
+
+bg_preset_t * bg_preset_find_by_file(bg_preset_t * presets,
+                                     const char * file);
+
+bg_preset_t * bg_preset_delete(bg_preset_t * presets,
+                               bg_preset_t * preset);
+
+
 void bg_presets_destroy(bg_preset_t *);
 
 bg_cfg_section_t * bg_preset_load(bg_preset_t * p);

@@ -32,20 +32,27 @@
 #include <gmerlin/cfg_dialog.h>
 
 #include <gui_gtk/presetmenu.h>
+#include <gui_gtk/question.h>
+
+typedef struct
+  {
+  GtkWidget * menu;
+  GtkWidget ** preset_items;
+  
+  int num_preset_items;
+  int preset_items_alloc;
+  } preset_menu_t;
 
 struct bg_gtk_preset_menu_s
   {
   GtkWidget * menubar;
   GtkWidget * menu;
   
-  GtkWidget ** preset_items;
-
   GtkWidget * save_item;
+  GtkWidget * load_item;
+  GtkWidget * delete_item;
+  GtkWidget * save_to_item;
   
-  int num_preset_items;
-  int preset_items_alloc;
-
-  bg_preset_t * presets;
   char * path;
 
   void (*load_cb)(void*);
@@ -54,7 +61,12 @@ struct bg_gtk_preset_menu_s
 
   char * preset_name;
 
+  preset_menu_t load_menu;
+  preset_menu_t save_to_menu;
+  preset_menu_t delete_menu;
+  
   bg_cfg_section_t * section;
+  bg_preset_t * presets;
   
   };
 
@@ -72,7 +84,7 @@ static void set_name_parameter(void * data, const char * name,
     menu->preset_name = bg_strdup(menu->preset_name, val->val_str);
   }
 
-static void update_menu(bg_gtk_preset_menu_t * menu)
+static void do_update_menu(preset_menu_t * menu, bg_preset_t * presets, void * callback_data)
   {
   bg_preset_t * tmp;
   int i;
@@ -80,7 +92,7 @@ static void update_menu(bg_gtk_preset_menu_t * menu)
   
   menu->num_preset_items = 0;
   
-  tmp = menu->presets;
+  tmp = presets;
   while(tmp)
     {
     menu->num_preset_items++;
@@ -102,13 +114,13 @@ static void update_menu(bg_gtk_preset_menu_t * menu)
       menu->preset_items[i] = gtk_menu_item_new_with_label("");
       g_signal_connect(G_OBJECT(menu->preset_items[i]),
                        "activate", G_CALLBACK(menu_callback),
-                       (gpointer)menu);
+                       (gpointer)callback_data);
       gtk_menu_shell_append(GTK_MENU_SHELL(menu->menu),
                             menu->preset_items[i]);
       }
     }
 
-  tmp = menu->presets;
+  tmp = presets;
   for(i = 0; i < menu->num_preset_items; i++)
     {
     gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(menu->preset_items[i]))), tmp->name);
@@ -122,9 +134,39 @@ static void update_menu(bg_gtk_preset_menu_t * menu)
   }
 
 
+
+static void update_menu(bg_gtk_preset_menu_t * menu)
+  {
+  do_update_menu(&menu->load_menu, menu->presets, menu);
+  do_update_menu(&menu->save_to_menu, menu->presets, menu);
+  do_update_menu(&menu->delete_menu, menu->presets, menu);
+  }
+
+static bg_preset_t * has_preset_widget(preset_menu_t * menu, GtkWidget * w, bg_preset_t * presets)
+  {
+  int i, index;
+  bg_preset_t * ret;
+  
+  for(i = 0; i < menu->num_preset_items; i++)
+    {
+    if(w == menu->preset_items[i])
+      break;
+    }
+
+  if(i >= menu->num_preset_items)
+    return NULL;
+
+  index = i;
+  ret = presets;
+  for(i = 0; i < index; i++)
+    ret = ret->next;
+  return ret;
+  }
+
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_preset_menu_t * menu = data;
+  bg_preset_t * p;
   
   if(w == menu->save_item)
     {
@@ -139,7 +181,6 @@ static void menu_callback(GtkWidget * w, gpointer data)
     pi[0].long_name = TR("Name");
     pi[0].type = BG_PARAMETER_STRING;
     pi[0].val_default.val_str = TR("New preset");
-
     
     dlg = bg_dialog_create(NULL,
                            set_name_parameter,
@@ -147,38 +188,33 @@ static void menu_callback(GtkWidget * w, gpointer data)
                            menu,
                            pi,
                            TR("Save preset"));
-    if(bg_dialog_show(dlg, menu->menubar))
-      {
-      menu->presets = bg_preset_add(menu->presets,
-                                    menu->path,
-                                    menu->preset_name,
-                                    menu->section);
-      update_menu(menu);
-      }
-    }
-  else
-    {
-    int index = -1, i;
-    bg_preset_t * p;
-    bg_cfg_section_t * preset_section;
-    
-    for(i = 0; i < menu->num_preset_items; i++)
-      {
-      if(w == menu->preset_items[i])
-        {
-        index = i;
-        break;
-        }
-      }
 
-    if(index < 0)
+    if(!bg_dialog_show(dlg, menu->menubar))
+      return;
+
+    if(!menu->preset_name)
       return;
     
-    p = menu->presets;
-    
-    for(i = 0; i < index; i++)
-      p = p->next;
+    if(bg_preset_find_by_name(menu->presets, menu->preset_name))
+      {
+      char * question = bg_sprintf("Overwrite preset %s?", menu->preset_name);
+      if(!bg_gtk_question(question, menu->menubar))
+        {
+        free(question);
+        return;
+        }
+      free(question);
+      }
 
+    menu->presets = bg_preset_add(menu->presets,
+                                  menu->path,
+                                  menu->preset_name,
+                                  menu->section);
+    update_menu(menu);
+    }
+  else if ((p = has_preset_widget(&menu->load_menu, w, menu->presets)))
+    {
+    bg_cfg_section_t * preset_section;
     preset_section = bg_preset_load(p);
     
     bg_cfg_section_transfer(preset_section, menu->section);
@@ -186,6 +222,34 @@ static void menu_callback(GtkWidget * w, gpointer data)
       menu->load_cb(menu->cb_data);
 
     bg_cfg_section_destroy(preset_section);
+    }
+  else if ((p = has_preset_widget(&menu->delete_menu, w, menu->presets)))
+    {
+    char * question = bg_sprintf("Delete preset %s?", p->name);
+    if(!bg_gtk_question(question, menu->menubar))
+      {
+      free(question);
+      return;
+      }
+    free(question);
+    
+    menu->presets = bg_preset_delete(menu->presets, p);
+    update_menu(menu);
+    }
+  else if ((p = has_preset_widget(&menu->save_to_menu, w, menu->presets)))
+    {
+    char * question = bg_sprintf("Overwrite preset %s?", p->name);
+    if(!bg_gtk_question(question, menu->menubar))
+      {
+      free(question);
+      return;
+      }
+    free(question);
+    
+    menu->presets = bg_preset_add(menu->presets,
+                                  menu->path,
+                                  p->name,
+                                  menu->section);
     }
   }
 
@@ -222,6 +286,12 @@ create_item(bg_gtk_preset_menu_t * w, GtkWidget * parent,
   return ret;
   }
 
+static void init_preset_menu(preset_menu_t * menu)
+  {
+  menu->menu = gtk_menu_new();
+  gtk_widget_show(menu->menu);
+  }
+
 bg_gtk_preset_menu_t *
 bg_gtk_preset_menu_create(const char * preset_path,
                           bg_cfg_section_t * s,
@@ -242,14 +312,34 @@ bg_gtk_preset_menu_create(const char * preset_path,
   ret->section = s;
   ret->menu = gtk_menu_new();
 
-  ret->save_item = create_item(ret, ret->menu, TR("Save..."),
-                               "save_16.png");
+  init_preset_menu(&ret->load_menu);
+  init_preset_menu(&ret->save_to_menu);
+  init_preset_menu(&ret->delete_menu);
 
+  ret->save_item = create_item(ret, ret->menu, TR("Save new..."),
+                               "save_16.png");
+  
+  ret->load_item = create_item(ret, ret->menu, TR("Load..."),
+                               "folder_open_16.png");
+
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(ret->load_item),
+                            ret->load_menu.menu);
+  
+  ret->save_to_item = create_item(ret, ret->menu, TR("Save to..."),
+                                  "save_16.png");
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(ret->save_to_item),
+                            ret->save_to_menu.menu);
+
+  
+  ret->delete_item = create_item(ret, ret->menu, TR("Delete..."),
+                                 "trash_16.png");
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(ret->delete_item),
+                            ret->delete_menu.menu);
+  
   item = gtk_separator_menu_item_new();
   gtk_widget_show(item);
   gtk_menu_shell_append(GTK_MENU_SHELL(ret->menu), item);
-  
-  
+    
   ret->menubar = gtk_menu_bar_new();
 
   item = gtk_menu_item_new_with_label(TR("Preset"));
@@ -263,10 +353,18 @@ bg_gtk_preset_menu_create(const char * preset_path,
   return ret;  
   }
 
-void bg_gtk_preset_menu_destroy(bg_gtk_preset_menu_t * m)
+static void free_preset_menu(preset_menu_t * m)
   {
   if(m->preset_items)
     free(m->preset_items);
+  }
+
+void bg_gtk_preset_menu_destroy(bg_gtk_preset_menu_t * m)
+  {
+  free_preset_menu(&m->load_menu);
+  free_preset_menu(&m->save_to_menu);
+  free_preset_menu(&m->delete_menu);
+  
   if(m->preset_name)
     free(m->preset_name);
   if(m->path)

@@ -135,8 +135,8 @@ load_presets(const char * directory, bg_preset_t * ret, int private)
 
 static int compare_func(const void * p1, const void * p2)
   {
-  const bg_preset_t ** preset1 = p1;
-  const bg_preset_t ** preset2 = p2;
+  const bg_preset_t * const * preset1 = p1;
+  const bg_preset_t * const * preset2 = p2;
   return strcmp((*preset1)->name, (*preset2)->name);
   }
 
@@ -216,13 +216,65 @@ bg_preset_t * bg_presets_load(const char * preset_path)
   return sort_presets(ret);
   }
 
+bg_preset_t * bg_preset_find_by_file(bg_preset_t * presets,
+                                     const char * file)
+  {
+  while(presets)
+    {
+    if(!strcmp(presets->file, file))
+      return presets;
+    presets = presets->next;
+    }
+  return NULL;
+  }
+
+bg_preset_t * bg_preset_find_by_name(bg_preset_t * presets,
+                                     const char * name)
+  {
+  while(presets)
+    {
+    if(!strcmp(presets->name, name))
+      return presets;
+    presets = presets->next;
+    }
+  return NULL;
+  }
+
+bg_preset_t * bg_preset_delete(bg_preset_t * presets,
+                               bg_preset_t * preset)
+  {
+  bg_preset_t * p;
+  bg_preset_t * ret = NULL;
+  
+  /* First (or only) preset */
+  if(presets == preset)
+    {
+    ret = preset->next;
+    }
+  /* Later preset */
+  else
+    {
+    p = presets;
+    while(1)
+      {
+      if(p->next == preset)
+        break;
+      p = p->next;
+      }
+    if(p)
+      p->next = preset->next;
+    ret = presets;
+    }
+  
+  return ret;
+  }
+
 bg_preset_t * bg_preset_add(bg_preset_t * presets,
                             const char * preset_path,
                             const char * name,
                             const bg_cfg_section_t * s)
   {
   char * home_dir;
-  char * dir;
   bg_preset_t * p;
 
   home_dir = getenv("HOME");
@@ -232,21 +284,33 @@ bg_preset_t * bg_preset_add(bg_preset_t * presets,
            "Cannot make new preset: No home directory");
     return presets;
     }
-  p = calloc(1, sizeof(*p));
-  p->name = bg_strdup(p->name, name);
+  
+  /* Check if the preset already exists */
+  
+  p = bg_preset_find_by_name(presets, name);
 
-  dir = bg_sprintf("%s/.gmerlin/presets/%s", home_dir,
-                   preset_path);
-
-  if(bg_ensure_directory(dir))
+  if(!p)
     {
-    p->file = bg_sprintf("%s/%s", dir, name);
-    bg_preset_save(p, s);
-    }
-  free(dir);
+    char * dir;
+    dir = bg_sprintf("%s/.gmerlin/presets/%s", home_dir,
+                     preset_path);
 
-  p->next = presets;
-  presets = p;
+    if(!bg_ensure_directory(dir))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Could not create directory: %s", dir);
+      free(dir);
+      return presets;
+      }
+    p = calloc(1, sizeof(*p));
+    p->name = bg_strdup(p->name, name);
+    p->file = bg_sprintf("%s/%s", dir, name);
+    p->next = presets;
+    presets = p;
+    free(dir);
+    }
+  
+  bg_preset_save(p, s);
   
   return sort_presets(presets);
   }
