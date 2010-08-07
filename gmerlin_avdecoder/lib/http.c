@@ -429,10 +429,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   return ret;
   
   fail:
-
-  if(request_header)
-    bgav_http_header_destroy(request_header);
-
   if(*redirect_url)
     {
     free(*redirect_url);
