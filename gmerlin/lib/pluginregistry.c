@@ -394,15 +394,25 @@ static int check_plugin_version(void * handle)
   return 1;
   }
 
+static void set_preset_path(bg_parameter_info_t * info, const char * prefix)
+  {
+  int i;
+  
+  if(info->type == BG_PARAMETER_SECTION)
+    info->flags |= BG_PARAMETER_GLOBAL_PRESET;
+  info->preset_path = bg_strdup(info->preset_path, prefix);
+  }
+
 bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin,
                                          void * plugin_priv,
                                          const char * module_filename)
   {
+  char * prefix;
   bg_plugin_info_t * new_info;
   const bg_parameter_info_t * parameter_info;
 
   new_info = calloc(1, sizeof(*new_info));
-
+  
   new_info->name = bg_strdup(new_info->name, plugin->name); 	 
 	  	 
   new_info->long_name =  bg_strdup(new_info->long_name, 	 
@@ -426,6 +436,12 @@ bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin,
     {
     parameter_info = plugin->get_parameters(plugin_priv);
     new_info->parameters = bg_parameter_info_copy_array(parameter_info);
+    if(new_info->parameters)
+      {
+      prefix = bg_sprintf("plugins/%s", new_info->name);
+      set_preset_path(new_info->parameters, prefix);
+      free(prefix);
+      }
     }
   
   if(plugin->type & (BG_PLUGIN_ENCODER_AUDIO|
@@ -445,23 +461,47 @@ bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin,
       {
       parameter_info = encoder->get_audio_parameters(plugin_priv);
       new_info->audio_parameters = bg_parameter_info_copy_array(parameter_info);
+      if(new_info->audio_parameters)
+        {
+        prefix = bg_sprintf("plugins/%s/audio", new_info->name);
+        set_preset_path(new_info->audio_parameters, prefix);
+        free(prefix);
+        }
       }
     
     if(encoder->get_video_parameters)
       {
       parameter_info = encoder->get_video_parameters(plugin_priv);
       new_info->video_parameters = bg_parameter_info_copy_array(parameter_info);
+      if(new_info->video_parameters)
+        {
+        prefix = bg_sprintf("plugins/%s/video", new_info->name);
+        set_preset_path(new_info->video_parameters, prefix);
+        free(prefix);
+        }
       }
     if(encoder->get_subtitle_text_parameters)
       {
       parameter_info = encoder->get_subtitle_text_parameters(plugin_priv);
       new_info->subtitle_text_parameters = bg_parameter_info_copy_array(parameter_info);
+      if(new_info->subtitle_text_parameters)
+        {
+        prefix = bg_sprintf("plugins/%s/subtitle_text", new_info->name);
+        set_preset_path(new_info->subtitle_text_parameters, prefix);
+        free(prefix);
+        }
       }
     if(encoder->get_subtitle_overlay_parameters)
       {
       parameter_info = encoder->get_subtitle_overlay_parameters(plugin_priv);
       new_info->subtitle_overlay_parameters =
         bg_parameter_info_copy_array(parameter_info);
+      if(new_info->subtitle_overlay_parameters)
+        {
+        prefix = bg_sprintf("plugins/%s/subtitle_overlay", new_info->name);
+        set_preset_path(new_info->subtitle_overlay_parameters, prefix);
+        free(prefix);
+        }
       }
     }
   if(plugin->type & BG_PLUGIN_INPUT)
@@ -1994,6 +2034,7 @@ static const bg_parameter_info_t encoder_section_general =
     .name        = "$general",
     .long_name   = TRS("General"),
     .type        = BG_PARAMETER_SECTION,
+    .flags       = BG_PARAMETER_OWN_SECTION,
   };
 
 static const bg_parameter_info_t encoder_section_audio =
@@ -2086,12 +2127,16 @@ create_encoder_parameters(const bg_plugin_info_t * info)
     
     src[i] = NULL;
     ret = bg_parameter_info_concat_arrays(src);
-
-    return ret;
     }
   else
-    return bg_parameter_info_copy_array(info->parameters);
-  
+    ret = bg_parameter_info_copy_array(info->parameters);
+
+  if(ret)
+    {
+    ret->flags |= BG_PARAMETER_GLOBAL_PRESET;
+    ret->preset_path = bg_sprintf("plugins/%s", info->name);
+    }
+  return ret;
   }
 
 void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,

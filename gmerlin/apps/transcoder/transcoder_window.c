@@ -1193,6 +1193,7 @@ static const bg_parameter_info_t input_plugin_parameters[] =
     {
       .name = "input_plugins",
       .long_name = "Input plugins",
+      .flags = BG_PARAMETER_PLUGIN,
     },
     { /* */ },
   };
@@ -1202,6 +1203,7 @@ static const bg_parameter_info_t image_reader_parameters[] =
     {
       .name = "image_readers",
       .long_name = "Image readers",
+      .flags = BG_PARAMETER_PLUGIN,
     },
     { /* */ },
   };

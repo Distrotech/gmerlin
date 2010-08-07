@@ -120,6 +120,9 @@ typedef union
  *  \brief Typedef for parmeter description
  */
 
+#define BG_PARAMETER_GLOBAL_PRESET (1<<5) //!< For parameters of the type BG_PARAMETER_SECTION: There should be one preset for all following sections
+
+
 typedef struct bg_parameter_info_s bg_parameter_info_t;
 
 /** \ingroup parameter

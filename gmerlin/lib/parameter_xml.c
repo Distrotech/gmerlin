@@ -88,11 +88,12 @@ static const struct
   }
 flag_names[] =
   {
-    { "sync",        BG_PARAMETER_SYNC        },
-    { "hide_dialog", BG_PARAMETER_HIDE_DIALOG },
-    { "no_sort",     BG_PARAMETER_NO_SORT     },
-    { "plugin",      BG_PARAMETER_PLUGIN      },
-    { "own_section", BG_PARAMETER_OWN_SECTION },
+    { "sync",          BG_PARAMETER_SYNC          },
+    { "hide_dialog",   BG_PARAMETER_HIDE_DIALOG   },
+    { "no_sort",       BG_PARAMETER_NO_SORT       },
+    { "plugin",        BG_PARAMETER_PLUGIN        },
+    { "own_section",   BG_PARAMETER_OWN_SECTION   },
+    { "global_preset", BG_PARAMETER_GLOBAL_PRESET },
   };
 
 static int string_to_flags(const char * str)

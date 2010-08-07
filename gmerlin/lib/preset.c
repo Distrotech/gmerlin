@@ -265,7 +265,13 @@ bg_preset_t * bg_preset_delete(bg_preset_t * presets,
       p->next = preset->next;
     ret = presets;
     }
-  
+
+  remove(preset->file);
+  if(preset->name)
+    free(preset->name);
+  if(preset->file)
+    free(preset->file);
+  free(preset);
   return ret;
   }
 
