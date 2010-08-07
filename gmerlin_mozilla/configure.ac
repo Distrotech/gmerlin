@@ -66,7 +66,32 @@ if test "$MOZPLUG_CFLAGS" = ""; then
 else
 OLD_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS $MOZPLUG_CFLAGS"
-AC_CHECK_HEADERS(npupp.h)
+AC_CHECK_HEADERS(npfunctions.h)
+AC_CHECK_HEADERS(prtypes.h)
+
+dnl
+dnl Mozilla converted some struct members to uppercase
+dnl for no apparent reason
+dnl
+
+AH_TEMPLATE([UTF8_LOWERCASE],
+            [Members of NPString lowercase?])
+
+AC_MSG_CHECKING(If struct members are lowecase)
+AC_TRY_COMPILE([
+#ifdef HAVE_PRTYPES_H
+#include <prtypes.h>
+#endif
+#ifdef HAVE_NPFUNCTIONS_H
+#include <npfunctions.h>
+#else
+#include <npupp.h>
+#endif
+
+#include <npapi.h>
+],[NPString s = { .utf8Length = 0 } ], [AC_DEFINE(UTF8_LOWERCASE) AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)])
+
+
 CPPFLAGS=$OLD_CFLAGS
 fi
 

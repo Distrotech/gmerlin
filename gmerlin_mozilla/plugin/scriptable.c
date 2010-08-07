@@ -181,10 +181,17 @@ static void set_variant_string(NPVariant * result,
                                const char * str)
   {
   char * string;
+#ifdef UTF8_LOWERCASE
   result->value.stringValue.utf8length = strlen(str);
   string = bg_NPN_MemAlloc(result->value.stringValue.utf8length+1);
   strcpy(string, str);
   result->value.stringValue.utf8characters = string;
+#else
+  result->value.stringValue.UTF8Length = strlen(str);
+  string = bg_NPN_MemAlloc(result->value.stringValue.UTF8Length+1);
+  strcpy(string, str);
+  result->value.stringValue.UTF8Characters = string;
+#endif
   result->type = NPVariantType_String;
   }
 

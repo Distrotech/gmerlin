@@ -22,10 +22,14 @@
 
 #include <config.h>
 
-#ifdef HAVE_NPUPP_H
-#include <npupp.h>
-#else
+
+#ifdef HAVE_PRTYPES_H
+#include <prtypes.h>
+#endif
+#ifdef HAVE_NPFUNCTIONS_H
 #include <npfunctions.h>
+#else
+#include <npupp.h>
 #endif
 
 #include <npapi.h>
@@ -354,7 +358,7 @@ NPError bg_NPN_DestroyStream(NPP     instance,
                           NPStream* stream, 
                              NPError   reason);
 
-void *bg_NPN_MemAlloc (uint32 size);
+void *bg_NPN_MemAlloc (uint32_t size);
 
 void bg_NPN_MemFree(void* ptr);
 
