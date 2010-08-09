@@ -976,7 +976,7 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
         break;
       default:
         /* Probably reached end of file */
-        return 0;
+        return num_blocks;
       }
 
     /* Check whether to exit */

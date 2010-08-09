@@ -1124,6 +1124,9 @@ int bgav_mkv_cluster_read(bgav_input_context_t * ctx,
         //        fprintf(stderr, "Got simple block\n");
         done = 1;
         break;
+      default:
+        bgav_input_skip(ctx, input_mem->position + e.size);
+        break;
       }
     }
   bgav_input_close(input_mem);

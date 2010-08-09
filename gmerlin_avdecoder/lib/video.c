@@ -385,7 +385,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
        ((next_key_frame <= time_scaled) ||
         (!exact &&
          (gavl_time_unscale(s->data.video.format.timescale, next_key_frame - time_scaled) <
-          GAVL_TIME_SCALE/20))))
+          GAVL_TIME_SCALE/5))))
       {
       while(1)
         {
