@@ -89,7 +89,7 @@ AC_TRY_COMPILE([
 #endif
 
 #include <npapi.h>
-],[NPString s = { .utf8Length = 0 } ], [AC_DEFINE(UTF8_LOWERCASE) AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)])
+],[NPString s = { .utf8length = 0 } ], [AC_DEFINE(UTF8_LOWERCASE) AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)])
 
 
 CPPFLAGS=$OLD_CFLAGS
