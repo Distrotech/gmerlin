@@ -259,19 +259,21 @@ static void cleanup_stream_rtp(bgav_stream_t * s)
   {
   rtp_stream_priv_t * priv = s->priv;
   int i;
-  
-  for(i = 0; i < priv->rtp_priv->num_streams; i++)
+
+  if(!priv) return;
+
+  if(s->demuxer && s->demuxer->priv)
     {
-    if(priv->rtp_priv->streams[i].s == s)
+    for(i = 0; i < priv->rtp_priv->num_streams; i++)
       {
-      priv->rtp_priv->streams[i].s = NULL;
-      bgav_rtp_packet_buffer_set_eof(priv->rtp_priv->streams[i].buf);
-      break;
+      if(priv->rtp_priv->streams[i].s == s)
+        {
+        priv->rtp_priv->streams[i].s = NULL;
+        bgav_rtp_packet_buffer_set_eof(priv->rtp_priv->streams[i].buf);
+        break;
+        }
       }
     }
-  
-  if(s->ext_data)
-    free(s->ext_data);
   
   if(!priv) return;
   
@@ -800,6 +802,10 @@ static void close_rtp(bgav_demuxer_context_t * ctx)
   pthread_mutex_destroy(&priv->mutex);
   
   free(priv);
+
+  /* Hack: The cleanup routine for the streams might access free()d data,
+     let's prevent this here */
+  ctx->priv = NULL;
   }
 
 void bgav_rtp_set_tcp(bgav_demuxer_context_t * ctx)
