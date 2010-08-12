@@ -295,7 +295,11 @@ open_lemuria(void * priv, gavl_audio_format_t * audio_format,
   
   bg_x11_window_realize(vp->w);
 
-  bg_x11_window_start_gl(vp->w);
+  if(!bg_x11_window_start_gl(vp->w))
+    {
+    fprintf(stderr, "Setting up OpenGL failed\n");
+    return 0;
+    }
   
   bg_x11_window_set_gl(vp->w);
   vp->e = lemuria_create();
@@ -329,10 +333,14 @@ static void close_lemuria(void * priv)
   {
   lemuria_priv_t * vp;
   vp = (lemuria_priv_t *)priv;
-  bg_x11_window_set_gl(vp->w);
-  lemuria_destroy(vp->e);
-  bg_x11_window_unset_gl(vp->w);
-  bg_x11_window_stop_gl(vp->w);
+
+  if(vp->e)
+    {
+    bg_x11_window_set_gl(vp->w);
+    lemuria_destroy(vp->e);
+    bg_x11_window_unset_gl(vp->w);
+    bg_x11_window_stop_gl(vp->w);
+    }
   }
 
 static void show_frame_lemuria(void * priv)
