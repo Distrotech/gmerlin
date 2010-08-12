@@ -761,7 +761,6 @@ static int init_plugin(bg_visualizer_slave_t * v)
     }
   else
     {
-    return 0;
     if(!v->vis_plugin->open_win(v->vis_handle->priv, &v->audio_format_out,
                                 v->window_id))
       return 0;
