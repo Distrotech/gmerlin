@@ -147,6 +147,7 @@ static void audio_buffer_put(audio_buffer_t * b,
                              const gavl_audio_frame_t * f)
   {
   pthread_mutex_lock(&b->in_mutex);
+  
   b->in_frame_1->valid_samples =
     gavl_audio_frame_copy(&b->in_format,
                           b->in_frame_1,
@@ -281,7 +282,7 @@ typedef struct
   
   } bg_visualizer_slave_t;
 
-static void init_plugin(bg_visualizer_slave_t * v);
+static int init_plugin(bg_visualizer_slave_t * v);
 
 static bg_plugin_handle_t *
 load_plugin_gmerlin(const char * filename)
@@ -720,7 +721,7 @@ static void cleanup_plugin(bg_visualizer_slave_t * v)
   {
   }
 
-static void init_plugin(bg_visualizer_slave_t * v)
+static int init_plugin(bg_visualizer_slave_t * v)
   {
   gavl_audio_format_copy(&v->audio_format_out, &v->audio_format_in);
 
@@ -741,7 +742,8 @@ static void init_plugin(bg_visualizer_slave_t * v)
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in_real);
     
     /* Open OV Plugin */
-    v->ov_plugin->open(v->ov_handle->priv, &v->video_format_out, 0);
+    if(!v->ov_plugin->open(v->ov_handle->priv, &v->video_format_out, 0))
+      return 0;
     
     /* Initialize video converter */
     
@@ -759,14 +761,15 @@ static void init_plugin(bg_visualizer_slave_t * v)
     }
   else
     {
-    v->vis_plugin->open_win(v->vis_handle->priv, &v->audio_format_out,
-                            v->window_id);
-    
+    return 0;
+    if(!v->vis_plugin->open_win(v->vis_handle->priv, &v->audio_format_out,
+                                v->window_id))
+      return 0;
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in);
     }
   
   audio_buffer_init(v->audio_buffer, &v->audio_format_in, &v->audio_format_out);
-
+  return 1;
   }
 
 
@@ -851,8 +854,15 @@ int main(int argc, char ** argv)
                                 audio_frame,
                                 msg_read_callback,
                                 (void*)0, big_endian);
-        audio_buffer_put(s->audio_buffer,
-                         audio_frame);
+        
+        if(!pthread_mutex_trylock(&s->running_mutex))
+          {
+          pthread_mutex_unlock(&s->running_mutex);
+          break;
+          }
+        else
+          audio_buffer_put(s->audio_buffer,
+                           audio_frame);
         break;
       case BG_VIS_MSG_VIS_PARAM:
         bg_msg_get_parameter(msg,
@@ -915,8 +925,10 @@ int main(int argc, char ** argv)
           s->video_format_in.image_height;
         break;
       case BG_VIS_MSG_START:
-        init_plugin(s);
-        bg_visualizer_slave_start(s);
+        if(!init_plugin(s))
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting visualization failed");
+        else
+          bg_visualizer_slave_start(s);
         break;
       case BG_VIS_MSG_QUIT:
         keep_going = 0;

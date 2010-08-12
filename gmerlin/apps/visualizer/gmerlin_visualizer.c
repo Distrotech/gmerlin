@@ -593,6 +593,16 @@ static gboolean key_callback(GtkWidget * w,
   return FALSE;
   }
 
+static gboolean window_motion_callback(GtkWidget      *widget,
+                                       GdkEventMotion *event,
+                                       gpointer        data)
+  {
+  visualizer_t * v = (visualizer_t*)data;
+  if(v->toolbar_trigger & TOOLBAR_TRIGGER_MOUSE)
+    show_toolbar(v);
+  return FALSE;
+  }
+
 static void window_init(visualizer_t * v,
                         window_t * w, int fullscreen)
   {
@@ -616,10 +626,13 @@ static void window_init(visualizer_t * v,
                             0, 1, 0, 1);
   
   gtk_widget_show(table);
-  
+
+  gtk_widget_set_events(w->window,
+                        GDK_POINTER_MOTION_MASK);
+    
   gtk_widget_set_events(w->socket,
                         GDK_KEY_PRESS_MASK |
-                        GDK_BUTTON_PRESS_MASK);
+                        GDK_BUTTON_PRESS_MASK );
   
   //  gtk_window_set_focus_on_map(w->window, 0);
   
@@ -643,6 +656,10 @@ static void window_init(visualizer_t * v,
   
   g_signal_connect(G_OBJECT(w->socket), "key-press-event",
                    G_CALLBACK(key_callback),
+                   v);
+
+  g_signal_connect(G_OBJECT(w->window), "motion-notify-event",
+                   G_CALLBACK(window_motion_callback),
                    v);
   
   gtk_widget_show(w->socket);
