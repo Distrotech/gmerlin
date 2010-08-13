@@ -1254,19 +1254,24 @@ int bgav_open_dvd(bgav_t * b, const char * device)
 
 #if defined(__GNUC__) && defined(__ELF__)
 
+#ifdef HAVE_DVDFINISH
 static void __cleanup() __attribute__ ((destructor));
  
 static void __cleanup()
   {
   DVDFinish();
   }
+#endif
 
+#ifdef HAVE_DVDINIT
 static void __init() __attribute__ ((constructor));
  
 static void __init()
   {
   DVDInit();
   }
+#endif
+
 
 #endif
 
