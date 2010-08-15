@@ -23,6 +23,9 @@
 
 #include <avdec_private.h>
 
+#define DEBUG_PP
+
+
 struct bgav_packet_pool_s
   {
   bgav_packet_t * packets;
@@ -54,6 +57,18 @@ bgav_packet_t * bgav_packet_pool_get(bgav_packet_pool_t * pp)
 void bgav_packet_pool_put(bgav_packet_pool_t * pp,
                           bgav_packet_t * p)
   {
+#ifdef DEBUG_PP
+  bgav_packet_t * tmp = pp->packets;
+  while(tmp)
+    {
+    if(tmp == p)
+      {
+      fprintf(stderr, "Error: Duplicate packet %p\n", p);
+      }
+    tmp = tmp->next;
+    }
+#endif
+
   p->next = pp->packets;
   pp->packets = p;
   }

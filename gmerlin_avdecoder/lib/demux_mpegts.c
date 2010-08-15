@@ -1532,7 +1532,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       if(s->packet)
         {
         bgav_stream_done_packet_write(s, s->packet);
-        s->packet = (bgav_packet_t*)0;
+        s->packet = NULL;
         }
 
       /* Get start pts */
@@ -1640,7 +1640,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
           {
           bgav_stream_done_packet_write(ctx->request_stream,
                                         ctx->request_stream->packet);
-          ctx->request_stream->packet = (bgav_packet_t*)0;
+          ctx->request_stream->packet = NULL;
           }
         return ret;
         }
@@ -1655,7 +1655,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
           {
           bgav_stream_done_packet_write(ctx->request_stream,
                                         ctx->request_stream->packet);
-          ctx->request_stream->packet = (bgav_packet_t*)0;
+          ctx->request_stream->packet = NULL;
           }
         return ret;
         }

@@ -108,8 +108,7 @@ static int get_data(bgav_stream_t*s)
     priv->p = NULL;
     }
   
-  priv->p = bgav_stream_peek_packet_read(s, 1);
-  if(!priv->p)
+  if(!bgav_stream_peek_packet_read(s, 1))
     {
     if(!(priv->flags & FLAG_EOF))
       {
@@ -134,12 +133,14 @@ static int get_data(bgav_stream_t*s)
 
   if(priv->flags & FLAG_NEED_SEQUENCE)
     {
+    bgav_packet_t * tmp;
     priv->flags &= ~FLAG_NEED_SEQUENCE;
+
+    tmp = bgav_stream_peek_packet_read(s, 1);
     
-    if((s->ext_size > 0) && (priv->p->data[3] != 0xb3))
+    if((s->ext_size > 0) && (tmp->data[3] != 0xb3))
       {
       mpeg2_buffer(priv->dec, s->ext_data, s->ext_data + s->ext_size);
-      // priv->p = NULL;
       return 1;
       }
     }

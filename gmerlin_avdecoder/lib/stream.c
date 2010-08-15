@@ -78,7 +78,12 @@ void bgav_stream_stop(bgav_stream_t * s)
     bgav_packet_buffer_clear(s->packet_buffer);
 
   /* Clear eventually stored packets */
-  s->packet = (bgav_packet_t*)0;
+  if(s->packet)
+    {
+    bgav_packet_pool_put(s->pp, s->packet);
+    s->packet = NULL;
+    }
+  
   s->index_position = s->first_index_position;
   s->in_position = 0;
   s->out_time = 0;
@@ -198,7 +203,11 @@ void bgav_stream_clear(bgav_stream_t * s)
   {
   if(s->packet_buffer)
     bgav_packet_buffer_clear(s->packet_buffer);
-  s->packet = (bgav_packet_t*)0;
+  if(s->packet)
+    {
+    bgav_packet_pool_put(s->pp, s->packet);
+    s->packet = NULL;
+    }
   s->in_position  = 0;
   s->out_time = BGAV_TIMESTAMP_UNDEFINED;
   STREAM_UNSET_SYNC(s);
