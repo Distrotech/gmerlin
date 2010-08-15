@@ -23,7 +23,7 @@
 
 #include <avdec_private.h>
 
-#define DEBUG_PP
+// #define DEBUG_PP
 
 
 struct bgav_packet_pool_s
