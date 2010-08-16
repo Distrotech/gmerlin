@@ -420,6 +420,7 @@ esac],[test_w32dll=true])
 enable_w32dll="false"
 
 if test "x$test_w32dll" = "true"; then
+if test "x$have_posix_semaphores" = "xtrue"; then
 
 if test x"$GCC" = x"yes"; then
  case "$host_cpu" in
@@ -427,6 +428,7 @@ if test x"$GCC" = x"yes"; then
  esac
 fi
 
+fi
 fi
 
 if test "x$enable_w32dll" = "xtrue"; then

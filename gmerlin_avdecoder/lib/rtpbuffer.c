@@ -23,7 +23,6 @@
 #include <pthread.h>
 #include <rtp.h>
 #include <stdlib.h>
-#include <bgav_sem.h>
 #define LOG_DOMAIN "rtpstack"
 
 // #define MAX_PACKETS 10
@@ -47,9 +46,6 @@ struct bgav_rtp_packet_buffer_s
   
   rtp_packet_t * write_packets;
   rtp_packet_t * write_packet;
-
-  sem_t read_sem;
-
   pthread_mutex_t read_mutex;
   pthread_mutex_t write_mutex;
   
@@ -190,7 +186,6 @@ bgav_rtp_packet_buffer_create(const bgav_options_t * opt, int timescale)
   pthread_mutex_init(&ret->read_mutex, NULL);
   pthread_mutex_init(&ret->write_mutex, NULL);
   pthread_mutex_init(&ret->eof_mutex, NULL);
-  sem_init(&ret->read_sem, 0, 0);
   ret->stats.timer = gavl_timer_create();
   
   return ret;
@@ -213,7 +208,6 @@ void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t * b)
   pthread_mutex_destroy(&b->read_mutex);
   pthread_mutex_destroy(&b->write_mutex);
   pthread_mutex_destroy(&b->eof_mutex);
-  sem_destroy(&b->read_sem);
   if(b->stats.timer) gavl_timer_destroy(b->stats.timer);
   free_packets(b->read_packets);
   free_packets(b->write_packets);

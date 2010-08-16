@@ -303,6 +303,7 @@ gsm_subdirs =
 gsm_libs = 
 endif  
 
+
 SUBDIRS = $(win32_subdirs) $(gsm_subdirs)
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@

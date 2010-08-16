@@ -1838,8 +1838,8 @@ AC_MSG_CHECKING([for POSIX unnamed semaphores]);
     sem_t s;
     result = sem_init(&s, 0, 0);
     if(result)
-      return -1;
-    return 0;
+      return 0;
+    return -1;
     }
   ],
   [
