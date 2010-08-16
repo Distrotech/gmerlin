@@ -508,6 +508,7 @@ mxf.c \
 nanosoft.c \
 options.c \
 os.c \
+os_inet_aton.c \
 packetbuffer.c \
 packetpool.c \
 packettimer.c \

@@ -9,6 +9,7 @@ audioparser_priv.h \
 avdec_private.h \
 bgav_dca.h \
 bgav_sem.h \
+bgav_sem_bsd.h \
 bgav_vdpau.h \
 bitstream.h \
 bsf.h \

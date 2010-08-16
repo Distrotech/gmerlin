@@ -16,24 +16,21 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *      This product includes software developed by the Computer Science
- *      Department at University College London
- * 4. Neither the name of the University nor of the Department may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * 3. Neither the names of the copyright holders nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS
+ * IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
  * Copyright (c) 1991 Bell Communications Research, Inc. (Bellcore)
  * 
@@ -52,19 +49,17 @@
 
 /* Taken from mpeg4ip CVS and changed to fit into this library */
 
+/* 2010-08-16 [IOhannes m zmoelnig]: rebased the code on
+ * http://mediatools.cs.ucl.ac.uk/nets/mmedia/browser/common/trunk/src/base64.c
+ * (revision:4412), which is released under the 3-clause BSD style license (with
+ * explicit permission of the copyright holders) - thus it is now GPL compatible
+ */
+
 #define ASSERT(cond) \
 if(!(cond)) return 0
 
 #include <avdec_private.h>
 
-#if 0 /* gmerlin_avdecoder */
-#include "config_unix.h"
-#include "config_win32.h"
-#include "debug.h"
-#include "base64.h"
-#endif
-
-#if 1 /* gmerlin_avdecoder */
 static const unsigned char basis_64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 int bgav_base64encode(const unsigned char *input, int input_length, unsigned char *output, int output_length)
@@ -98,7 +93,6 @@ int bgav_base64encode(const unsigned char *input, int input_length, unsigned cha
   return j;
   }
 
-#endif
 
 /* This assumes that an unsigned char is exactly 8 bits. Not portable code! :-) */
 static const unsigned char index_64[128] = {
