@@ -496,6 +496,23 @@ fi
 AC_SUBST(XADLL_LIBS)
 AM_CONDITIONAL(HAVE_XADLL, test x"$enable_xadll" = "xtrue")
 
+dnl
+dnl Option for disabling libgsm
+dnl
+
+AH_TEMPLATE([HAVE_LIBGSM], [ libgsm enabled ])
+have_libgsm="true"
+
+AC_ARG_WITH(GSM610,
+    AC_HELP_STRING([--without-GSM610],
+    [disable libgsm]),
+    have_libgsm="false", have_libgsm="true")
+
+if test "x$have_libgsm" = "xtrue"; then
+AC_DEFINE([HAVE_LIBGSM])
+fi
+
+AM_CONDITIONAL(HAVE_LIBGSM, test "x$have_libgsm" = "xtrue")
 
 dnl
 dnl Build optimization flags

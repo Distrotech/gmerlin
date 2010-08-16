@@ -101,7 +101,10 @@ extern char * win32_def_path;
 
 void bgav_init_audio_decoders_gavl();
 void bgav_init_audio_decoders_pcm();
+
+#ifdef HAVE_LIBGSM
 void bgav_init_audio_decoders_gsm();
+#endif
 
 void bgav_init_video_decoders_aviraw();
 void bgav_init_video_decoders_qtraw();

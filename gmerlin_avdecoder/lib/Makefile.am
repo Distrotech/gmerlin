@@ -293,7 +293,17 @@ else
 dvb_sources = 	 
 endif	
 
-SUBDIRS = $(win32_subdirs) GSM610
+if HAVE_LIBGSM
+gsm_sources = audio_gsm.c
+gsm_subdirs = GSM610
+gsm_libs = $(top_builddir)/lib/GSM610/libgsm.la
+else
+gsm_sources =
+gsm_subdirs =
+gsm_libs = 
+endif  
+
+SUBDIRS = $(win32_subdirs) $(gsm_subdirs)
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@
 
@@ -327,7 +337,7 @@ $(speex_libs) \
 $(libpostproc_libs) \
 $(libswscale_libs) \
 $(vdpau_libs) \
-$(top_builddir)/lib/GSM610/libgsm.la \
+$(gsm_libs) \
 @ICONV_LIBS@ \
 @LIBINTL@ \
 -lm
@@ -387,12 +397,12 @@ $(schroedinger_sources) \
 $(speex_sources) \
 $(dvb_sources) \
 $(vdpau_sources) \
+$(gsm_sources) \
 RTjpeg.c \
 a52_header.c \
 apetag.c \
 audio.c \
 audio_gavl.c \
-audio_gsm.c \
 audio_pcm.c \
 audioparser.c \
 asmrp.c \
