@@ -122,8 +122,11 @@ int bg_x11_window_init_gl(bg_x11_window_t * win)
                                         attr_list, &num_fbconfigs);
 
   if(!win->gl_fbconfigs)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "No framebuffer configs found (insufficient driver or hardware)");
     return 0;
-  
+    }
   /* Create context */
   
   win->glxcontext =
