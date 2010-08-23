@@ -112,13 +112,13 @@ screensaver_ping(bg_x11_screensaver_t * scr, int force)
         {
         XTestFakeKeyEvent(scr->dpy, scr->fake_keycode, False, CurrentTime);
         scr->was_pressed = 0;
-        //        fprintf(stderr, "Sent fake key release event\n");
+        // fprintf(stderr, "Sent fake key release event\n");
         }
       else if(check_ping(scr, force, 40))
         {
         XTestFakeKeyEvent(scr->dpy, scr->fake_keycode, True, CurrentTime);
         scr->was_pressed = 1;
-        //        fprintf(stderr, "Sent fake key press event\n");
+        // fprintf(stderr, "Sent fake key press event\n");
         }
       break;
 #endif

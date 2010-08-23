@@ -1017,6 +1017,7 @@ static int process_commands(bg_player_t * player)
           case BG_PLAYER_STATE_PLAYING:
           case BG_PLAYER_STATE_PAUSED:
           case BG_PLAYER_STATE_CHANGING:
+          case BG_PLAYER_STATE_EOF:
             stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
             break;
           }
