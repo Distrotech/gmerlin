@@ -27,6 +27,8 @@
 
 #define NUM_ALLOC 1024
 
+#define LOG_DOMAIN "superindex"
+
 bgav_superindex_t * bgav_superindex_create(int size)
   {
   bgav_superindex_t * ret;
@@ -151,35 +153,164 @@ void bgav_superindex_set_durations(bgav_superindex_t * idx,
     idx->entries[s->last_index_position].pts;
   }
 
+typedef struct
+  {
+  int index;
+  int64_t pts;
+  int duration;
+  int type;
+  int done;
+  } fix_b_entries;
+
+static int find_min(fix_b_entries * e, int start, int end)
+  {
+  int i, ret = -1;
+  int64_t min_pts = 0;
+
+  for(i = start; i < end; i++)
+    {
+    if(!e[i].done)
+      {
+      if((ret == -1) || (e[i].pts < min_pts))
+        {
+        ret = i;
+        min_pts = e[i].pts;
+        }
+      }
+    }
+  return ret;
+  }
+
+static void fix_b_pyramid(bgav_superindex_t * idx,
+                          bgav_stream_t * s, int num_entries)
+  {
+  int i, index, min_index;
+  int next_ip_frame;
+  fix_b_entries * entries;
+  int64_t pts;
+  
+  /* Set up array */
+  entries = malloc(num_entries * sizeof(*entries));
+  index = 0;
+  for(i = 0; i  < idx->num_entries; i++)
+    {
+    if(idx->entries[i].stream_id == s->stream_id)
+      {
+      entries[index].index = i;
+      entries[index].pts = idx->entries[i].pts;
+      entries[index].duration = idx->entries[i].duration;
+      entries[index].type = idx->entries[i].flags & 0xff;
+      entries[index].done = 0;
+      index++;
+      }
+    }
+  
+  /* Get timestamps from durations */
+
+  pts = entries[0].pts;
+  pts += entries[0].duration;
+  entries[0].done = 1;
+  
+  index = 1;
+  
+  while(1)
+    {
+    next_ip_frame = index+1;
+
+    while((next_ip_frame < num_entries) &&
+          (entries[next_ip_frame].type == BGAV_CODING_TYPE_B))
+      {
+      next_ip_frame++;
+      }
+    
+    /* index         -> ipframe before b-frames */
+    /* next_ip_frame -> ipframe after b-frames  */
+
+    if(next_ip_frame == index + 1)
+      {
+      entries[index].pts = pts;
+      pts += entries[index].duration;
+      }
+    else
+      {
+      for(i = index; i < next_ip_frame; i++)
+        {
+        min_index = find_min(entries, index, next_ip_frame);
+        if(min_index < 0)
+          break;
+        entries[min_index].pts = pts;
+        entries[min_index].done = 1;
+        pts += entries[min_index].duration;
+        }
+      }
+    
+    if(next_ip_frame >= num_entries)
+      break;
+    index = next_ip_frame;
+    }
+
+  /* Copy fixed timestamps back */
+  for(i = 0; i < num_entries; i++)
+    idx->entries[entries[i].index].pts = entries[i].pts;
+  
+  free(entries);
+  }
+
 void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
                                       bgav_stream_t * s)
   {
   int i;
   int64_t max_time = BGAV_TIMESTAMP_UNDEFINED;
+  int last_coding_type = 0;
+  int64_t last_pts = 0;
+  int b_pyramid = 0;
+  int num_entries = 0;
+  
   for(i = 0; i < idx->num_entries; i++)
     {
-    if(idx->entries[i].stream_id == s->stream_id)
+    if(idx->entries[i].stream_id != s->stream_id)
+      continue;
+
+    num_entries++;
+    
+    if(max_time == BGAV_TIMESTAMP_UNDEFINED)
       {
-      if(max_time == BGAV_TIMESTAMP_UNDEFINED)
-        {
-        if(idx->entries[i].flags & PACKET_FLAG_KEY)
-          idx->entries[i].flags |= BGAV_CODING_TYPE_I;
-        else
-          idx->entries[i].flags |= BGAV_CODING_TYPE_P;
-        max_time = idx->entries[i].pts;
-        }
-      else if(idx->entries[i].pts > max_time)
-        {
-        if(idx->entries[i].flags & PACKET_FLAG_KEY)
-          idx->entries[i].flags |= BGAV_CODING_TYPE_I;
-        else
-          idx->entries[i].flags |= BGAV_CODING_TYPE_P;
-        max_time = idx->entries[i].pts;
-        }
+      if(idx->entries[i].flags & PACKET_FLAG_KEY)
+        idx->entries[i].flags |= BGAV_CODING_TYPE_I;
       else
-        idx->entries[i].flags |= BGAV_CODING_TYPE_B;
+        idx->entries[i].flags |= BGAV_CODING_TYPE_P;
+      max_time = idx->entries[i].pts;
       }
+    else if(idx->entries[i].pts > max_time)
+      {
+      if(idx->entries[i].flags & PACKET_FLAG_KEY)
+        idx->entries[i].flags |= BGAV_CODING_TYPE_I;
+      else
+        idx->entries[i].flags |= BGAV_CODING_TYPE_P;
+      max_time = idx->entries[i].pts;
+      }
+    else
+      {
+      idx->entries[i].flags |= BGAV_CODING_TYPE_B;
+      if(!b_pyramid &&
+         (last_coding_type == BGAV_CODING_TYPE_B) &&
+         (idx->entries[i].pts < last_pts))
+        {
+        b_pyramid = 1;
+        }
+      }
+    
+    last_pts = idx->entries[i].pts;
+    last_coding_type = idx->entries[i].flags & 0xff;
     }
+  
+  if(b_pyramid)
+    {
+    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+             "Detected B-pyramid, fixing possibly broken timestamps");
+    fix_b_pyramid(idx, s, num_entries);
+    }
+  
   }
 
 void bgav_superindex_seek(bgav_superindex_t * idx,
