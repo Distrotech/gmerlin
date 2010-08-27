@@ -397,6 +397,8 @@ typedef enum
 #define STREAM_SBR                (1<<16)
 #define STREAM_NO_DURATIONS       (1<<17)
 #define STREAM_HAS_DTS            (1<<18)
+#define STREAM_B_PYRAMID          (1<<19)
+
 
 /* Stream could not get exact compression info from the
  * demuxer

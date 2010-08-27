@@ -308,6 +308,7 @@ void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
     {
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
              "Detected B-pyramid, fixing possibly broken timestamps");
+    s->flags |= STREAM_B_PYRAMID;
     fix_b_pyramid(idx, s, num_entries);
     }
   

@@ -42,6 +42,25 @@ static int get_min_index(bgav_pts_cache_t * c)
   return ret;
   }
 
+static int get_max_index(bgav_pts_cache_t * c)
+  {
+  int i;
+  int ret = -1;
+  int64_t max;
+  for(i = 0; i < PTS_CACHE_SIZE; i++)
+    {
+    if(c->entries[i].used)
+      {
+      if((ret < 0) || (c->entries[i].pts > max))
+        {
+        ret = i;
+        max = c->entries[i].pts;
+        }
+      }
+    }
+  return ret;
+  }
+
 void bgav_pts_cache_push(bgav_pts_cache_t * c,
                          int64_t pts,
                          int duration,
@@ -90,6 +109,19 @@ int64_t bgav_pts_cache_get_first(bgav_pts_cache_t * c, int * duration,
     *duration = c->entries[i].duration;
     if(tc)
       *tc = c->entries[i].tc;
+    return c->entries[i].pts;
+    }
+  }
+
+int64_t bgav_pts_cache_peek_last(bgav_pts_cache_t * c, int * duration)
+  {
+  int i = get_max_index(c);
+
+  if(i < 0)
+    return BGAV_TIMESTAMP_UNDEFINED;
+  else
+    {
+    *duration = c->entries[i].duration;
     return c->entries[i].pts;
     }
   }

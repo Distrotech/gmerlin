@@ -279,7 +279,7 @@ static int get_data(bgav_stream_t * s)
   priv->packet = bgav_stream_get_packet_read(s);
 
 #ifdef DUMP_PACKET
-  fprintf(stderr, "Got packet\n");
+  fprintf(stderr, "Got packet ");
   bgav_packet_dump(priv->packet);
 #endif
                    
@@ -341,40 +341,51 @@ static int decode_picture(bgav_stream_t * s)
     else /* Got packet */
       {
       /* Skip non-reference frames */
-
+      
+      priv->ctx->skip_frame = AVDISCARD_DEFAULT;
+      
       if(priv->packet->pts == BGAV_TIMESTAMP_UNDEFINED)
         {
         priv->ctx->skip_frame = AVDISCARD_NONREF;
         }
       else if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
         {
-        if((PACKET_GET_CODING_TYPE(priv->packet) == BGAV_CODING_TYPE_B) &&
-           (priv->packet->pts + priv->packet->duration < priv->skip_time))
+        if(PACKET_GET_CODING_TYPE(priv->packet) == BGAV_CODING_TYPE_B)
           {
-          priv->ctx->skip_frame = AVDISCARD_NONREF;
-          // fprintf(stderr, "Skip frame %c\n", priv->packet->flags & 0xff);
-          }
-        else
-          {
-          priv->ctx->skip_frame = AVDISCARD_DEFAULT;
-          bgav_pts_cache_push(&priv->pts_cache,
-                              priv->packet->pts,
-                              priv->packet->duration,
-                              priv->packet->tc,
-                              (int*)0, &e);
+          /* Special handling for B-Pyramid */
+          if(s->flags & STREAM_B_PYRAMID)
+            {
+#if 0
+            int last_duration;
+            int64_t last_pts;
+            last_pts = bgav_pts_cache_peek_last(&priv->pts_cache, &last_duration);
+            if(last_pts == BGAV_TIMESTAMP_UNDEFINED)
+              {
+              fprintf(stderr, "Oops\n");
+              }
+            
+            fprintf(stderr, "Last pts: %lld, %d\n", last_pts, last_duration);
+            if((last_pts != BGAV_TIMESTAMP_UNDEFINED) &&
+               (last_pts + last_duration < priv->skip_time))
+              priv->ctx->skip_frame = AVDISCARD_NONREF;
+#endif
+            }
+          else if(priv->packet->pts + priv->packet->duration < priv->skip_time)
+            {
+            priv->ctx->skip_frame = AVDISCARD_NONREF;
+            }
           }
         }
-      else
+      
+      if(priv->ctx->skip_frame == AVDISCARD_DEFAULT)
         {
-        priv->ctx->skip_frame = AVDISCARD_DEFAULT;
         bgav_pts_cache_push(&priv->pts_cache,
                             priv->packet->pts,
                             priv->packet->duration,
                             priv->packet->tc,
                             (int*)0, &e);
-      
         }
-    
+      
       priv->frame_buffer = priv->packet->data;
 
       if(priv->packet->field2_offset)
@@ -567,7 +578,7 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
       return 0;
       }
 #if 0
-    fprintf(stderr, "Skipto ffmpeg %ld %ld %d\n",
+    fprintf(stderr, "Skipto ffmpeg %"PRId64" %"PRId64" %d\n",
             priv->picture_timestamp, time, exact);
 #endif
 
