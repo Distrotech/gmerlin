@@ -385,12 +385,6 @@ dnl
 GMERLIN_CHECK_DCA
 
 dnl
-dnl libvpx
-dnl
-
-GMERLIN_CHECK_LIBVPX
-
-dnl
 dnl CDrom support
 dnl
 
@@ -783,15 +777,6 @@ elif test "x$test_cdio" = "xfalse"; then
 echo "Disabled"
 else
 echo "Missing (Go to http://www.gnu.org/software/libcdio/)"
-fi
-
-echo -n "libvpx:                 "
-if test "x$have_libvpx" = "xtrue"; then
-echo "Found (CFLAGS=$LIBVPX_CFLAGS LIBS=$LIBVPX_LIBS)"
-elif test "x$test_libvpx" = "xfalse"; then
-echo "Disabled"
-else
-echo "Missing (Go to http://www.webmproject.org)"
 fi
 
 echo -n "mjpegtools:             "

@@ -80,10 +80,6 @@ int bgav_init_video_decoders_xadll(bgav_options_t * opt);
 extern char * bgav_dll_path_xanim;
 #endif
 
-#ifdef HAVE_LIBVPX
-void bgav_init_video_decoders_vpx();
-#endif
-
 #ifdef HAVE_REALDLL
 int bgav_init_video_decoders_real(bgav_options_t * opt);
 int bgav_init_audio_decoders_real(bgav_options_t * opt);

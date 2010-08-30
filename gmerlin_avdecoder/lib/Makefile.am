@@ -35,15 +35,6 @@ a52_libs =
 a52_sources =
 endif
 
-if HAVE_LIBVPX
-vpx_cflags = @LIBVPX_CFLAGS@
-vpx_libs =   @LIBVPX_LIBS@
-vpx_sources = video_vpx.c
-else
-vpx_cflags =
-vpx_libs =
-vpx_sources =
-endif
 
 if HAVE_FAAD2
 faad2_cflags = @FAAD2_CFLAGS@
@@ -325,7 +316,6 @@ $(dca_libs) \
 $(musepack_libs) \
 $(avformat_libs) \
 $(a52_libs) \
-$(vpx_libs) \
 $(avcodec_libs) \
 $(real_libs) \
 $(xadll_libs) \
@@ -357,7 +347,6 @@ $(faad2_cflags) \
 $(flac_cflags) \
 $(libmpeg2_cflags) \
 $(a52_cflags) \
-$(vpx_cflags) \
 $(dca_cflags) \
 $(musepack_cflags) \
 $(avformat_cflags) \
@@ -385,7 +374,6 @@ $(mad_sources) \
 $(musepack_sources) \
 $(avformat_sources) \
 $(a52_sources) \
-$(vpx_sources) \
 $(dca_sources) \
 $(flac_sources) \
 $(avcodec_sources) \
