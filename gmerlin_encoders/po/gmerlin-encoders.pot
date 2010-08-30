@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-07-31 19:53+0200\n"
+"POT-Creation-Date: 2010-08-30 23:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -727,16 +727,16 @@ msgid ""
 "net)."
 msgstr ""
 
-#: plugins/yuv4mpeg/mpv_common.c:58 plugins/yuv4mpeg/e_mpeg.c:584
+#: plugins/yuv4mpeg/mpv_common.c:58 plugins/yuv4mpeg/e_mpeg.c:657
 #: plugins/ffmpeg/ffmpeg_common.c:43
 msgid "Format"
 msgstr ""
 
-#: plugins/yuv4mpeg/mpv_common.c:62 plugins/yuv4mpeg/e_mpeg.c:588
+#: plugins/yuv4mpeg/mpv_common.c:62 plugins/yuv4mpeg/e_mpeg.c:661
 msgid "MPEG-1 (generic)"
 msgstr ""
 
-#: plugins/yuv4mpeg/mpv_common.c:62 plugins/yuv4mpeg/e_mpeg.c:589
+#: plugins/yuv4mpeg/mpv_common.c:62 plugins/yuv4mpeg/e_mpeg.c:662
 msgid "MPEG-2 (generic)"
 msgstr ""
 
@@ -852,7 +852,7 @@ msgid "Cannot find mp2enc executable"
 msgstr ""
 
 #: plugins/yuv4mpeg/e_mpegaudio.c:182 plugins/yuv4mpeg/e_mpegvideo.c:161
-#: plugins/yuv4mpeg/e_mpeg.c:533 plugins/yuv4mpeg/e_mpeg.c:547
+#: plugins/yuv4mpeg/e_mpeg.c:606 plugins/yuv4mpeg/e_mpeg.c:620
 #, c-format
 msgid "Removing %s"
 msgstr ""
@@ -882,73 +882,78 @@ msgid ""
 "mjpeg.sourceforge.net)."
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:113
+#: plugins/yuv4mpeg/e_mpeg.c:119
 msgid "Cannot find mpeg2enc exectuable"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:118
+#: plugins/yuv4mpeg/e_mpeg.c:124
 msgid "Cannot find mp2enc exectuable"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:123 plugins/yuv4mpeg/e_mpeg.c:468
+#: plugins/yuv4mpeg/e_mpeg.c:129 plugins/yuv4mpeg/e_mpeg.c:532
 msgid "Cannot find mplex exectuable"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:588
+#: plugins/yuv4mpeg/e_mpeg.c:544
+#, c-format
+msgid "Video sync offset: %<PRId64>"
+msgstr ""
+
+#: plugins/yuv4mpeg/e_mpeg.c:661
 msgid "MPEG-1 (VCD)"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:589
+#: plugins/yuv4mpeg/e_mpeg.c:662
 msgid "MPEG-2 (SVCD)"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:590
+#: plugins/yuv4mpeg/e_mpeg.c:663
 msgid "DVD (NAV)"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:590
+#: plugins/yuv4mpeg/e_mpeg.c:663
 msgid "DVD"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:591
+#: plugins/yuv4mpeg/e_mpeg.c:664
 msgid ""
 "Output format. Note that for some output formats (e.g. VCD), you MUST use "
 "proper settings for the audio and video streams also, since this isn't done "
 "automatically"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:595
+#: plugins/yuv4mpeg/e_mpeg.c:668
 msgid "Directory for temporary files"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:597
+#: plugins/yuv4mpeg/e_mpeg.c:670
 msgid "Leave empty to use the same directory as the final output file"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:601
+#: plugins/yuv4mpeg/e_mpeg.c:674
 msgid "Additional stream 1"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:603 plugins/yuv4mpeg/e_mpeg.c:610
-#: plugins/yuv4mpeg/e_mpeg.c:617
+#: plugins/yuv4mpeg/e_mpeg.c:676 plugins/yuv4mpeg/e_mpeg.c:683
+#: plugins/yuv4mpeg/e_mpeg.c:690
 msgid ""
 "Additional stream to multiplex into the final output file. Use this if you "
 "want e.g. create mp3 or AC3 audio with some other encoder"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:608
+#: plugins/yuv4mpeg/e_mpeg.c:681
 msgid "Additional stream 2"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:615
+#: plugins/yuv4mpeg/e_mpeg.c:688
 msgid "Additional stream 3"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:696
+#: plugins/yuv4mpeg/e_mpeg.c:769
 msgid "MPEG 1/2 program/system stream encoder"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:697
+#: plugins/yuv4mpeg/e_mpeg.c:770
 msgid ""
 "Encoder for regular .mpg files as well as VCD and DVD streams. Based on "
 "mjpegtools (http://mjpeg.sourceforge.net)"

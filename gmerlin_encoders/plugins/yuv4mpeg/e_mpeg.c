@@ -47,6 +47,26 @@
 
 typedef struct
   {
+  bg_mpa_common_t mpa;
+  char * filename;
+  gavl_audio_format_t format;
+  const gavl_compression_info_t * ci;
+    
+  int64_t start_pts;
+  } audio_stream_t;
+
+typedef struct
+  {
+  bg_mpv_common_t mpv;
+  char * filename;
+  gavl_video_format_t format;
+  const gavl_compression_info_t * ci;
+    
+  int64_t start_pts;
+  } video_stream_t;
+
+typedef struct
+  {
   int is_open;
   char * filename;
   
@@ -57,21 +77,8 @@ typedef struct
   int num_video_streams;
   int num_audio_streams;
 
-  struct
-    {
-    bg_mpa_common_t mpa;
-    char * filename;
-    gavl_audio_format_t format;
-    const gavl_compression_info_t * ci;
-    } * audio_streams;
-
-  struct
-    {
-    bg_mpv_common_t mpv;
-    char * filename;
-    gavl_video_format_t format;
-    const gavl_compression_info_t * ci;
-    } * video_streams;
+  audio_stream_t * audio_streams;
+  video_stream_t * video_streams;
   
   char * tmp_dir;
   char * aux_stream_1;
@@ -79,8 +86,6 @@ typedef struct
   char * aux_stream_3;
   
   bg_encoder_callbacks_t * cb;
-
-  
   } e_mpeg_t;
 
 static void * create_mpeg()
@@ -105,9 +110,10 @@ static int open_mpeg(void * data, const char * filename,
 
   if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
     return 0;
+ 
+  /* To make sure this will work, we check for the execuables of
+     mpeg2enc, mplex and mp2enc */
 
-  
-  /* To make sure this will work, we check for the execuables of mpeg2enc, mplex and mp2enc */
   if(!bg_search_file_exec("mpeg2enc", (char**)0))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mpeg2enc exectuable");
@@ -140,9 +146,12 @@ static int add_audio_stream_mpeg(void * data,
 
   gavl_audio_format_copy(&e->audio_streams[e->num_audio_streams].format,
                          format);
+
+  e->audio_streams[e->num_audio_streams].start_pts =
+    GAVL_TIME_UNDEFINED;
   
   e->num_audio_streams++;
-  return (e->num_audio_streams - 1);
+  return e->num_audio_streams - 1;
   }
 
 static int add_audio_stream_compressed_mpeg(void * data,
@@ -157,9 +166,15 @@ static int add_audio_stream_compressed_mpeg(void * data,
             (e->num_audio_streams+1)*sizeof(*(e->audio_streams)));
   memset(&e->audio_streams[e->num_audio_streams], 0,
          sizeof(*(e->audio_streams)));
+  gavl_audio_format_copy(&e->audio_streams[e->num_audio_streams].format,
+                         format);
   e->audio_streams[e->num_audio_streams].ci = ci;
+
+  e->audio_streams[e->num_audio_streams].start_pts =
+    GAVL_TIME_UNDEFINED;
+
   e->num_audio_streams++;
-  return (e->num_audio_streams - 1);
+  return e->num_audio_streams - 1;
   }
 
 
@@ -175,6 +190,8 @@ static int add_video_stream_mpeg(void * data, const gavl_video_format_t* format)
   
   gavl_video_format_copy(&e->video_streams[e->num_video_streams].format,
                          format);
+  e->video_streams[e->num_video_streams].start_pts =
+    GAVL_TIME_UNDEFINED;
   e->num_video_streams++;
   return (e->num_video_streams - 1);
   }
@@ -190,8 +207,12 @@ static int add_video_stream_compressed_mpeg(void * data,
             (e->num_video_streams+1)*sizeof(*(e->video_streams)));
   memset(&e->video_streams[e->num_video_streams], 0,
          sizeof(*(e->video_streams)));
-  
+
+  gavl_video_format_copy(&e->video_streams[e->num_video_streams].format,
+                         format);
   e->video_streams[e->num_video_streams].ci = ci;
+  e->video_streams[e->num_video_streams].start_pts =
+    GAVL_TIME_UNDEFINED;
   e->num_video_streams++;
   return (e->num_video_streams - 1);
   }
@@ -209,6 +230,7 @@ static int writes_compressed_video_mpeg(void * priv,
         case FORMAT_MPEG1:
           return 1;
           break;
+        /* TODO: Check for valid MPEG-1 resolutions on VCDs */
         case FORMAT_VCD:
           return 1;
           break;
@@ -401,31 +423,46 @@ static int start_mpeg(void * data)
 static int write_audio_frame_mpeg(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {
+  audio_stream_t * s;
   e_mpeg_t * e = data;
-  return bg_mpa_write_audio_frame(&e->audio_streams[stream].mpa, frame);
+  s = &e->audio_streams[stream];
+  if(s->start_pts == GAVL_TIME_UNDEFINED)
+    s->start_pts = frame->timestamp;
+  return bg_mpa_write_audio_frame(&s->mpa, frame);
   }
 
 static int write_video_frame_mpeg(void * data, gavl_video_frame_t* frame,
                                   int stream)
   {
+  video_stream_t * s;
   e_mpeg_t * e = data;
-  return bg_mpv_write_video_frame(&e->video_streams[stream].mpv, frame);
+  s = &e->video_streams[stream];
+  if(s->start_pts == GAVL_TIME_UNDEFINED)
+    s->start_pts = frame->timestamp;
+  return bg_mpv_write_video_frame(&s->mpv, frame);
   }
 
 static int write_audio_packet_mpeg(void * data, gavl_packet_t* p,
                                    int stream)
   {
+  audio_stream_t * s;
   e_mpeg_t * e = data;
-  return bg_mpa_write_audio_packet(&e->audio_streams[stream].mpa, p);
+  s = &e->audio_streams[stream];
+  if(s->start_pts == GAVL_TIME_UNDEFINED)
+    s->start_pts = p->pts;
+  return bg_mpa_write_audio_packet(&s->mpa, p);
   }
 
 static int write_video_packet_mpeg(void * data, gavl_packet_t* p,
                                    int stream)
   {
+  video_stream_t * s;
   e_mpeg_t * e = data;
-  return bg_mpv_write_video_packet(&e->video_streams[stream].mpv, p);
+  s = &e->video_streams[stream];
+  if(s->start_pts == GAVL_TIME_UNDEFINED)
+    s->start_pts = p->pts;
+  return bg_mpv_write_video_packet(&s->mpv, p);
   }
-
 
 static int close_mpeg(void * data, int do_delete)
   {
@@ -436,6 +473,9 @@ static int close_mpeg(void * data, int do_delete)
   int i;
   e_mpeg_t * e = data;
 
+  int64_t sync_offset   = 0;
+  int64_t audio_pts_max = 0, audio_pts_min = 0, pts;
+  
   if(!e->is_open)
     return 1;
   e->is_open = 0;
@@ -449,6 +489,22 @@ static int close_mpeg(void * data, int do_delete)
       ret = 0;
       break;
       }
+
+    pts = gavl_time_rescale(e->audio_streams[i].format.samplerate,
+                            90000, e->audio_streams[i].start_pts);
+
+    if(!i)
+      {
+      audio_pts_min = pts;
+      audio_pts_max = pts;
+      }
+    else
+      {
+      if(audio_pts_min > pts)
+        audio_pts_min = pts;
+      if(audio_pts_max < pts)
+        audio_pts_max = pts;
+      }
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
@@ -458,6 +514,14 @@ static int close_mpeg(void * data, int do_delete)
       break;
       }
     } 
+
+  /* Get the pts offset between audio and video */
+  if((e->num_video_streams == 1) && (e->num_audio_streams))
+    {
+    sync_offset = gavl_time_rescale(e->video_streams[0].format.timescale,
+                                    90000, e->video_streams[0].start_pts) -
+      (audio_pts_max - audio_pts_min) / 2; // Minimize maximum error
+    }
   
   if(!do_delete && ret)
     {
@@ -473,10 +537,19 @@ static int close_mpeg(void * data, int do_delete)
     tmp_string = bg_sprintf(" -f %d", e->format);
     commandline = bg_strcat(commandline, tmp_string);
     free(tmp_string);
+
+    if(sync_offset)
+      {
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN,
+             "Video sync offset: %"PRId64, sync_offset);
+
+      tmp_string = bg_sprintf(" --sync-offset %"PRId64"mpt", sync_offset);
+      commandline = bg_strcat(commandline, tmp_string);
+      free(tmp_string);
+      }
     
     commandline = bg_strcat(commandline, " -v 0 -o \"");
-
-
+    
     commandline = bg_strcat(commandline, e->filename);
     commandline = bg_strcat(commandline, "\"");
     
