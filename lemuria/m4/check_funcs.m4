@@ -964,6 +964,10 @@ AC_MSG_CHECKING(for libdvdread >= 0.9.5)
     AC_MSG_RESULT(no)
 )
 
+if test "x$have_dvdread" = "xtrue"; then
+AC_CHECK_FUNCS(DVDInit DVDFinish)
+fi
+
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
