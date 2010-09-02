@@ -54,8 +54,7 @@ typedef struct
   int saved_timeout;
   int64_t last_ping_time;
 
-  KeyCode fake_keycode; /* Which key to press */
-  int was_pressed;
+  int fake_motion;
   
   gavl_timer_t * timer;
 

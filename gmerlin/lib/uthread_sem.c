@@ -1,5 +1,5 @@
 /*
- * $Id: uthread_sem.c,v 1.1 2008-04-16 22:06:12 gmerlin Exp $
+ * $Id: uthread_sem.c,v 1.2 2010-09-02 13:07:13 gmerlin Exp $
  *
  * Copyright (C) 2000 Jason Evans <jasone@freebsd.org>.
  * All rights reserved.
@@ -35,7 +35,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <inttypes.h>
-#include <bg_sem.h>
+#include <gmerlin/bg_sem.h>
 // #include "pthread_private.h"
 
 #define _SEM_CHECK_VALIDITY(sem)                \

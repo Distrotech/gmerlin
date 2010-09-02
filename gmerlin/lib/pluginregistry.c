@@ -396,7 +396,7 @@ static int check_plugin_version(void * handle)
 
 static void set_preset_path(bg_parameter_info_t * info, const char * prefix)
   {
-  int i;
+  //  int i;
   
   if(info->type == BG_PARAMETER_SECTION)
     info->flags |= BG_PARAMETER_GLOBAL_PRESET;

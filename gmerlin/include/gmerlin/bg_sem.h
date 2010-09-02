@@ -26,6 +26,8 @@
 #include <semaphore.h>
 
 #else // Use BSD Implementation
+
+#include <inttypes.h>
 /* See original copyright below. */
 /* NOTE: On systems, which have non-working versions
    of these functions in their libc, only the -export-symbols-regex
@@ -52,7 +54,7 @@ struct sem {
 #define _SEMAPHORE_H_
 
 /*
- * $Id: bg_sem.h,v 1.2 2010-01-14 18:35:05 gmerlin Exp $
+ * $Id: bg_sem.h,v 1.3 2010-09-02 13:06:38 gmerlin Exp $
  *
  * semaphore.h: POSIX 1003.1b semaphores
 */

@@ -49,7 +49,7 @@ bg_x11_screensaver_init(bg_x11_screensaver_t * scr, Display * dpy)
                          &dummy, &dummy, &dummy, &dummy))
     {
     scr->mode = SCREENSAVER_MODE_XTEST;
-    scr->fake_keycode = XKeysymToKeycode(scr->dpy, XK_Shift_L);
+    //    scr->fake_keycode = XKeysymToKeycode(scr->dpy, XK_Shift_L);
     //    fprintf(stderr, "Xtest detected\n");
     return;
     }
@@ -108,17 +108,12 @@ screensaver_ping(bg_x11_screensaver_t * scr, int force)
       break;
 #ifdef HAVE_XTEST
     case SCREENSAVER_MODE_XTEST:
-      if(scr->was_pressed)
+      if(check_ping(scr, force, 40))
         {
-        XTestFakeKeyEvent(scr->dpy, scr->fake_keycode, False, CurrentTime);
-        scr->was_pressed = 0;
-        // fprintf(stderr, "Sent fake key release event\n");
-        }
-      else if(check_ping(scr, force, 40))
-        {
-        XTestFakeKeyEvent(scr->dpy, scr->fake_keycode, True, CurrentTime);
-        scr->was_pressed = 1;
-        // fprintf(stderr, "Sent fake key press event\n");
+        XTestFakeRelativeMotionEvent(scr->dpy,
+                                     1, 1, CurrentTime);
+        scr->fake_motion++;
+        // fprintf(stderr, "Sent fake motion event\n");
         }
       break;
 #endif
@@ -178,15 +173,6 @@ bg_x11_screensaver_enable(bg_x11_screensaver_t * scr)
       break;
     case SCREENSAVER_MODE_KDE:
       break;
-#ifdef HAVE_XTEST
-    case SCREENSAVER_MODE_XTEST:
-      if(scr->was_pressed)
-        {
-        XTestFakeKeyEvent(scr->dpy, scr->fake_keycode, False, CurrentTime);
-        scr->was_pressed = 0;
-        }
-      break;
-#endif
     }
   }
 
@@ -234,7 +220,7 @@ bg_x11_screensaver_disable(bg_x11_screensaver_t * scr)
     case SCREENSAVER_MODE_GNOME:
       break;
     case SCREENSAVER_MODE_XTEST:
-      scr->was_pressed = 0;
+      scr->fake_motion = 0;
       break;
     case SCREENSAVER_MODE_KDE:
       scr->was_enabled =
