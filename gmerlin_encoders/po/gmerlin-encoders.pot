@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-08-30 23:07+0200\n"
+"POT-Creation-Date: 2010-09-18 16:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -501,7 +501,7 @@ msgstr ""
 msgid "Got no Vorbis ID page"
 msgstr ""
 
-#: plugins/ogg/vorbis.c:587 plugins/ogg/e_vorbis.c:88
+#: plugins/ogg/vorbis.c:569 plugins/ogg/e_vorbis.c:88
 msgid "Vorbis encoder"
 msgstr ""
 
