@@ -35,7 +35,7 @@
 #define CDXA_HEADER_SIZE       24
 
 // #define DUMP_PACK_HEADER
-#define DUMP_PES_HEADER
+// #define DUMP_PES_HEADER
 
 
 /* LPCM stuff */

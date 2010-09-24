@@ -890,7 +890,7 @@ void bgav_input_skip(bgav_input_context_t * ctx, int64_t bytes)
   //  old_pos = ctx->position;
 
   if(bytes < 0)
-    fprintf(stderr, "Bytes < 0!!!!");
+    fprintf(stderr, "Bytes < 0 in bgav_input_skip. That's most likely a bug\n");
 
   if(ctx->buffer_size)
     {
