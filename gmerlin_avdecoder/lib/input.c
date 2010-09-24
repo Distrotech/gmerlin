@@ -888,6 +888,10 @@ void bgav_input_skip(bgav_input_context_t * ctx, int64_t bytes)
 
   //  ctx->position += bytes;
   //  old_pos = ctx->position;
+
+  if(bytes < 0)
+    fprintf(stderr, "Bytes < 0!!!!");
+
   if(ctx->buffer_size)
     {
     if(ctx->buffer_size >= bytes)

@@ -400,15 +400,33 @@ static int get_page(bgav_demuxer_context_t * ctx)
   int nsegs, i, result;
   int page_size;
   char * buf;
-  
+  int bytes_skipped = 0;
   ogg_t * priv = (ogg_t*)(ctx->priv);
 
   if(priv->page_valid)
     return 1;
 
+  /* Skip random garbage */
+  while(1)
+    {
+    if(bgav_input_get_data(ctx->input, header, 4) < 4)
+      return 0;
+    if((header[0] == 'O') &&
+       (header[1] == 'g') &&
+       (header[2] == 'g') &&
+       (header[3] == 'S'))
+      break;
+    bgav_input_skip(ctx->input, 1);
+    bytes_skipped++;
+    }
+  if(bytes_skipped)
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Skipped %d bytes of random garbage", bytes_skipped);
+
+
   if(bgav_input_get_data(ctx->input, header, PAGE_HEADER_BYTES) < PAGE_HEADER_BYTES)
     return 0;
-  
+ 
   nsegs = header[PAGE_HEADER_BYTES-1];
 
   if(bgav_input_get_data(ctx->input, header, PAGE_HEADER_BYTES+nsegs) < PAGE_HEADER_BYTES+nsegs)
@@ -425,7 +443,7 @@ static int get_page(bgav_demuxer_context_t * ctx)
   result = bgav_input_read_data(ctx->input, (uint8_t*)buf, page_size);
   
   ogg_sync_wrote(&priv->oy, result);
-  
+
   if(ogg_sync_pageout(&priv->oy, &priv->current_page) != 1)
     {
     return 0;

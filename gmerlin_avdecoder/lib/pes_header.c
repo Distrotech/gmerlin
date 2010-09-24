@@ -220,6 +220,8 @@ int bgav_pes_header_read(bgav_input_context_t * input,
       }
     }
   ret->payload_size = len - (input->position - pos);
+  if(ret->payload_size < 0)
+    fprintf(stderr, "payload size < 0, len was %d\n", len);
   //  bgav_pes_header_dump(ret);
   return 1;
   }

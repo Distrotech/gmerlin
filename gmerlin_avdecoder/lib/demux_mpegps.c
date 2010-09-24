@@ -35,7 +35,7 @@
 #define CDXA_HEADER_SIZE       24
 
 // #define DUMP_PACK_HEADER
-// #define DUMP_PES_HEADER
+#define DUMP_PES_HEADER
 
 
 /* LPCM stuff */
@@ -795,8 +795,8 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         bgav_log(ctx->opt, BGAV_LOG_WARNING,
                  LOG_DOMAIN, "Unknown PES ID %02x",
                  priv->pes_header.stream_id);
-        fprintf(stderr, "Unknown PES ID %02x\n",
-                priv->pes_header.stream_id);
+//        fprintf(stderr, "Unknown PES ID %02x\n",
+//                priv->pes_header.stream_id);
         }
 
       if(stream)
@@ -997,11 +997,10 @@ static void get_duration(bgav_demuxer_context_t * ctx)
   
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
-
   
   if(!ctx->input->total_bytes && !ctx->input->total_sectors)
-    return;
-  
+    return; 
+ 
   if(ctx->input->input->seek_byte)
     {
     /* We already have the first pack header */
@@ -1012,10 +1011,12 @@ static void get_duration(bgav_demuxer_context_t * ctx)
 
     while(start_code != PACK_HEADER)
       {
+      /* Some files only have one pack header at the beginning */
+      if(ctx->input->position < ctx->input->total_bytes - 1024*1024)
+        break;
       start_code = previous_start_code(ctx->input);
       }
-    
-    
+        
     if(!pack_header_read(ctx->input, &priv->pack_header))
       {
       return;
