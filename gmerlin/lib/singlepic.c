@@ -678,7 +678,8 @@ bg_plugin_info_t * bg_singlepic_input_info(bg_plugin_registry_t * reg)
   {
   bg_plugin_info_t * ret;
   ret = get_input_info(reg, &input_plugin);
-  ret->parameters = bg_parameter_info_copy_array(parameters_input);
+  if(ret)
+    ret->parameters = bg_parameter_info_copy_array(parameters_input);
   return ret;
   }
 
@@ -686,7 +687,8 @@ bg_plugin_info_t * bg_singlepic_stills_input_info(bg_plugin_registry_t * reg)
   {
   bg_plugin_info_t * ret;
   ret = get_input_info(reg, &input_plugin_stills);
-  ret->parameters = bg_parameter_info_copy_array(parameters_input_still);
+  if(ret)
+    ret->parameters = bg_parameter_info_copy_array(parameters_input_still);
   return ret;
   }
 
