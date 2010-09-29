@@ -31,6 +31,8 @@
 #define FRAME_SAMPLES 1024
 #define LOG_DOMAIN "pcm"
 
+// #define DUMP_PACKETS
+
 typedef struct
   {
   void (*decode_func)(bgav_stream_t * s);
@@ -75,6 +77,8 @@ static void decode_s_16(bgav_stream_t * s)
   
   if(num_samples > FRAME_SAMPLES)
     num_samples = FRAME_SAMPLES;
+
+//  fprintf(stderr, "Bytes: %d, Samples: %d\n", priv->bytes_in_packet, num_samples);
 
   num_bytes   = num_samples * 2 * s->data.audio.format.num_channels;
 
@@ -782,16 +786,21 @@ static int get_packet(bgav_stream_t * s)
   priv = (pcm_t*)(s->data.audio.decoder->priv);
 
   priv->p = bgav_stream_get_packet_read(s);
-  
+
   /* EOF */
   
   if(!priv->p)
     {
     return 0;
     }
+
+#ifdef DUMP_PACKETS
+  bgav_packet_dump(priv->p);
+#endif
+
   priv->bytes_in_packet = priv->p->data_size;
   
-  if(priv->p->duration && (priv->p->duration * priv->block_align <
+  if((priv->p->duration > 0) && (priv->p->duration * priv->block_align <
                            priv->bytes_in_packet))
     priv->bytes_in_packet = priv->p->duration * priv->block_align;
   priv->packet_ptr = priv->p->data;
