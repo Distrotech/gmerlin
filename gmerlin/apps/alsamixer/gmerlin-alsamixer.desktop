@@ -1,11 +1,9 @@
 [Desktop Entry]
-Encoding=UTF-8
 Name=Gmerlin mixer
 Name[de]=Gmerlin mixer
 Comment=Alsa mixer
 Comment[de]=Alsa mixer
 Exec=gmerlin_alsamixer
-Icon=gmerlin-alsamixer.png
+Icon=gmerlin-alsamixer
 Type=Application
-Categories=Application;AudioVideo;
-
+Categories=AudioVideo;Audio;Mixer;

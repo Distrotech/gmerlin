@@ -748,9 +748,8 @@ static int create_window(bg_x11_window_t * w,
       set_min_size(w, w->normal.win, w->min_width, w->min_height);
 
     w->normal.toplevel = w->normal.win;
-    
-    w->normal.focus_child =
-      w->normal.focus_child = XCreateSimpleWindow(w->dpy, w->normal.win,
+
+    w->normal.focus_child = XCreateSimpleWindow(w->dpy, w->normal.win,
                                                   -1, -1, 1, 1, 0,
                                                   0, 0);
     XSelectInput(w->dpy, w->normal.focus_child,

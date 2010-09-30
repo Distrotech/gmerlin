@@ -17,4 +17,4 @@ pkgdata_DATA = plugin.sym
 dist_pkgdata_DATA = plugin.sym
 
 
-EXTRA_DIST= config.rpath gmerlin.spec.in gmerlin.pc.in autogen.sh cvs_clean.sh cpuinfo.sh make_potfiles 
+EXTRA_DIST= config.rpath gmerlin.spec.in gmerlin.pc.in autogen.sh cvs_clean.sh cpuinfo.sh make_potfiles plugin.sym
