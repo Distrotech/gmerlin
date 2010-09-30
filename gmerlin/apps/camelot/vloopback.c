@@ -660,7 +660,7 @@ static void put_frame_ioctl(bg_vloopback_t * v, gavl_video_frame_t * frame)
     
     v->output_open = 1;
     
-    ioctl_nr = *(unsigned long*)(buffer);
+    memcpy(&ioctl_nr, buffer, sizeof(ioctl_nr));
     arg = &buffer[sizeof(unsigned long)];
 
     if(!ioctl_nr)
