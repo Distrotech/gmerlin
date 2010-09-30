@@ -785,12 +785,6 @@ dnl
 GMERLIN_CHECK_LIBTIFF
 
 dnl
-dnl mjpegtools (for videofilters)
-dnl
-
-GMERLIN_CHECK_MJPEGTOOLS
-
-dnl
 dnl inotify
 dnl
 
