@@ -6,7 +6,7 @@ includedir=@includedir@
 Name: Gmerlin
 Description: Gmerlin libraries
 Version: @VERSION@
-Requires: libxml-2.0 gavl
+Requires.private: libxml-2.0 gavl
 Libs: -L${libdir} -lgmerlin
 Cflags: -I${includedir}
 
