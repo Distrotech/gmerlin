@@ -3,6 +3,12 @@
 @setfilename gmerlin.info
 @include version.texi
 @settitle Gmerlin @value{VERSION}
+@dircategory Gmerlin
+@direntry
+* Gmerlin: (gmerlin).           Gmerlin multimedia applications
+@end direntry
+
+
 @syncodeindex pg cp
 @comment %**end of header
 @copying
