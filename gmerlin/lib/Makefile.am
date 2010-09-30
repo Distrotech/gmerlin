@@ -31,7 +31,7 @@ else
 sem_sources = uthread_sem.c
 endif
 
-SUBDIRS = $(gtk_subdirs) $(x11_subdirs)
+SUBDIRS = $(x11_subdirs) . $(gtk_subdirs)
 
 AM_CFLAGS = \
 @FONTCONFIG_CFLAGS@ \

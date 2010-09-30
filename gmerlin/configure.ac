@@ -238,11 +238,9 @@ if test x$have_x = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-OLD_LDFLAGS=$LDFLAGS
-                                                                               
+
 CFLAGS=$X_FLAGS
-LDFLAGS="$X_LIBS $LDFLAGS -lXinerama"
-LIBS=$X_LIBS
+LIBS="$X_LIBS -lXinerama"
 
 AC_MSG_CHECKING(for xinerama)
 AC_TRY_LINK([#include <X11/Xlib.h>
@@ -262,7 +260,6 @@ fi
 AC_SUBST(XINERAMA_LIBS)
 
 CFLAGS=$OLD_CFLAGS
-LDFLAGS=$OLD_LDFLAGS
 LIBS=$OLD_LIBS
 
 fi
@@ -281,11 +278,9 @@ if test x$have_x = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-OLD_LDFLAGS=$LDFLAGS
                                                                                
 CFLAGS=$X_FLAGS
-LDFLAGS="$X_LIBS $LDFLAGS -lXtst"
-LIBS=$X_LIBS
+LIBS="$X_LIBS -lXtst"
 
 AC_MSG_CHECKING(for xtest)
 AC_TRY_LINK([#include <X11/Xlib.h>
@@ -305,7 +300,6 @@ fi
 AC_SUBST(XTEST_LIBS)
 
 CFLAGS=$OLD_CFLAGS
-LDFLAGS=$OLD_LDFLAGS
 LIBS=$OLD_LIBS
 
 fi
@@ -326,10 +320,8 @@ if test x$have_x = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-OLD_LDFLAGS=$LDFLAGS                                                                               
 CFLAGS=$X_FLAGS
-LIBS=$X_LIBS
-LDFLAGS="$X_LIBS $LDFLAGS -lXv"
+LIBS="$X_LIBS -lXv"
 
 AC_MSG_CHECKING(for xv)
 AC_TRY_LINK([#include <X11/Xlib.h>
@@ -350,7 +342,6 @@ AC_SUBST(XV_LIBS)
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
-LDFLAGS=$OLD_LDFLAGS
 
 fi
 
@@ -370,10 +361,8 @@ if test x$have_x = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-OLD_LDFLAGS=$LDFLAGS                                                                               
 CFLAGS=$X_FLAGS
-LIBS=$X_LIBS
-LDFLAGS="$X_LIBS $LDFLAGS -lXext"
+LIBS="$X_LIBS -lXext"
 
 AC_MSG_CHECKING(for x11 dpms)
 AC_TRY_LINK([#include <X11/Xlib.h>
@@ -394,7 +383,6 @@ AC_SUBST(XDPMS_LIBS)
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
-LDFLAGS=$OLD_LDFLAGS
 
 fi
 
@@ -412,10 +400,8 @@ if test x$have_x = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-OLD_LDFLAGS=$LDFLAGS                                                                               
 CFLAGS=$X_FLAGS
-LIBS=$X_LIBS
-LDFLAGS="$X_LIBS $LDFLAGS -lXfixes"
+LIBS="$X_LIBS -lXfixes"
 
 AC_MSG_CHECKING(for x11 dpms)
 AC_TRY_LINK([#include <X11/Xlib.h>
@@ -436,7 +422,6 @@ AC_SUBST(XFIXES_LIBS)
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
-LDFLAGS=$OLD_LDFLAGS
 
 fi
 

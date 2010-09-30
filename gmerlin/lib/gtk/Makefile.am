@@ -64,5 +64,5 @@ urllink.c \
 urlselect.c \
 vumeter.c
 
-libgmerlin_gtk_la_LIBADD = @GTK_LIBS@
+libgmerlin_gtk_la_LIBADD = @GTK_LIBS@ $(top_builddir)/lib/libgmerlin.la
 
