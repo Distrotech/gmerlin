@@ -108,25 +108,25 @@ pkgdata_DATA = $(icons)
 dist_pkgdata_DATA = $(icons)
 
 install-data-hook:
-	test -z $(DESTDIR)$(prefix)/share/pixmaps || $(mkdir_p) $(DESTDIR)$(prefix)/share/pixmaps
-	ln -sf $(DESTDIR)$(pkgdatadir)/mixer_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-alsamixer.png
-	ln -sf $(DESTDIR)$(pkgdatadir)/player_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-player.png
-	ln -sf $(DESTDIR)$(pkgdatadir)/transcoder_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-transcoder.png
-	ln -sf $(DESTDIR)$(pkgdatadir)/camelot_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-camelot.png
-	ln -sf $(DESTDIR)$(pkgdatadir)/kbd_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-kbd.png
-	ln -sf $(DESTDIR)$(pkgdatadir)/plugincfg_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-plugincfg.png
-	ln -sf $(DESTDIR)$(pkgdatadir)/recorder_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-recorder.png
-	ln -sf $(DESTDIR)$(pkgdatadir)/visualizer_icon.png $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-visualizer.png
+	test -z $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps || $(mkdir_p) $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps
+	ln -sf ../../../../../..$(pkgdatadir)/mixer_icon.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-alsamixer.png
+	ln -sf ../../../../../..$(pkgdatadir)/player_icon.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-player.png
+	ln -sf ../../../../../..$(pkgdatadir)/transcoder_icon.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-transcoder.png
+	ln -sf ../../../../../..$(pkgdatadir)/camelot_icon.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-camelot.png
+	ln -sf ../../../../../..$(pkgdatadir)/kbd_icon.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-kbd.png
+	ln -sf ../../../../../..$(pkgdatadir)/plugincfg_icon.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-plugincfg.png
+	ln -sf ../../../../../..$(pkgdatadir)/recorder_icon.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-recorder.png
+	ln -sf ../../../../../..$(pkgdatadir)/visualizer_icon.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-visualizer.png
 
 uninstall-local:
-	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-alsamixer.png
-	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-player.png
-	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-transcoder.png
-	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-camelot.png
-	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-kbd.png
-	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-plugincfg.png
-	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-recorder.png
-	-rm -rf $(DESTDIR)$(prefix)/share/pixmaps/gmerlin-visualizer.png
+	-rm -rf $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-alsamixer.png
+	-rm -rf $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-player.png
+	-rm -rf $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-transcoder.png
+	-rm -rf $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-camelot.png
+	-rm -rf $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-kbd.png
+	-rm -rf $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-plugincfg.png
+	-rm -rf $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-recorder.png
+	-rm -rf $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/gmerlin-visualizer.png
 
 
 
