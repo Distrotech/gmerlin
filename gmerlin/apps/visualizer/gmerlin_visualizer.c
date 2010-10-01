@@ -387,7 +387,7 @@ static void grab_notify_callback(GtkWidget *widget,
   visualizer_t * win = (visualizer_t*)data;
   if(!was_grabbed)
     {
-    GTK_WIDGET_SET_FLAGS(win->current_window->socket, GTK_CAN_FOCUS);
+    bg_gtk_widget_set_can_focus(win->current_window->socket, TRUE);
     gtk_widget_grab_focus(win->current_window->socket);
     }
   }
@@ -457,7 +457,7 @@ static void plug_added_callback(GtkWidget * w, gpointer data)
   gtk_widget_hide(v->toolbar);
   
   /* Seems that this is switched off, when an earlier client exited */
-  GTK_WIDGET_SET_FLAGS(w, GTK_CAN_FOCUS);
+  bg_gtk_widget_set_can_focus(w, TRUE);
   gtk_widget_grab_focus(w);
   }
 

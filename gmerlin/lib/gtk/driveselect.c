@@ -192,8 +192,8 @@ bg_gtk_drivesel_create(const char * title,
   ret->add_button = gtk_button_new_from_stock(GTK_STOCK_ADD);
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
 
-  GTK_WIDGET_SET_FLAGS(ret->close_button, GTK_CAN_DEFAULT);
-  GTK_WIDGET_SET_FLAGS(ret->add_button, GTK_CAN_DEFAULT);
+  bg_gtk_widget_set_can_default(ret->close_button, TRUE);
+  bg_gtk_widget_set_can_default(ret->add_button, TRUE);
   
   /* Set callbacks */
 

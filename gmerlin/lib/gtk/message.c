@@ -86,7 +86,7 @@ void bg_gtk_message(const char * message, int type, GtkWidget * parent)
   gtk_window_set_modal(GTK_WINDOW(q->window), 1);
   gtk_window_set_title(GTK_WINDOW(q->window), TR("Message"));
   gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER_ON_PARENT);
-  GTK_WIDGET_SET_FLAGS (q->ok_button, GTK_CAN_DEFAULT);
+  bg_gtk_widget_set_can_default(q->ok_button, TRUE);
 
   gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_CENTER);
   

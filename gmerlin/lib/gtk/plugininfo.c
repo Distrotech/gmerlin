@@ -79,7 +79,7 @@ pluginwindow_create(const char * title, const char * properties, const char * de
   /* Create close button */
 
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
-  GTK_WIDGET_SET_FLAGS(ret->close_button, GTK_CAN_DEFAULT);
+  bg_gtk_widget_set_can_default(ret->close_button, TRUE);
 
   g_signal_connect(G_OBJECT(ret->close_button), "clicked",
                    G_CALLBACK(button_callback), (gpointer)ret);

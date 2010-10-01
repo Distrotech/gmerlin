@@ -527,3 +527,26 @@ int bg_gtk_widget_is_toplevel(GtkWidget * w)
 #endif
   }
 
+void bg_gtk_widget_set_can_default(GtkWidget *w, gboolean can_default)
+  {
+#if GTK_CHECK_VERSION(2,18,0)
+  gtk_widget_set_can_default(w, can_default);
+#else
+  if(can_default)
+    GTK_WIDGET_SET_FLAGS(w, GTK_CAN_DEFAULT);
+  else
+    GTK_WIDGET_UNSET_FLAGS(w, GTK_CAN_DEFAULT);
+#endif
+  }
+
+void bg_gtk_widget_set_can_focus(GtkWidget *w, gboolean can_focus)
+  {
+#if GTK_CHECK_VERSION(2,18,0)
+  gtk_widget_set_can_focus(w, can_focus);
+#else
+  if(can_focus)
+    GTK_WIDGET_SET_FLAGS(w, GTK_CAN_FOCUS);
+  else
+    GTK_WIDGET_UNSET_FLAGS(w, GTK_CAN_FOCUS);
+#endif
+  }

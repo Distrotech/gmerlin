@@ -80,8 +80,8 @@ static userpass_win * userpass_win_create(const char * resource)
   ret->ok_button = gtk_button_new_from_stock(GTK_STOCK_OK);
   ret->cancel_button = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
 
-  GTK_WIDGET_SET_FLAGS(ret->ok_button, GTK_CAN_DEFAULT);
-  GTK_WIDGET_SET_FLAGS(ret->cancel_button, GTK_CAN_DEFAULT);
+  bg_gtk_widget_set_can_default(ret->ok_button, TRUE);
+  bg_gtk_widget_set_can_default(ret->cancel_button, TRUE);
   
   g_signal_connect(G_OBJECT(ret->ok_button),
                    "clicked", G_CALLBACK(button_callback), ret);

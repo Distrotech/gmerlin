@@ -467,9 +467,9 @@ static bg_dialog_t * create_dialog(const char * title)
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
   ret->ok_button    = gtk_button_new_from_stock(GTK_STOCK_OK);
 
-  GTK_WIDGET_SET_FLAGS(ret->apply_button, GTK_CAN_DEFAULT);
-  GTK_WIDGET_SET_FLAGS(ret->close_button, GTK_CAN_DEFAULT);
-  GTK_WIDGET_SET_FLAGS(ret->ok_button, GTK_CAN_DEFAULT);
+  bg_gtk_widget_set_can_default(ret->apply_button, TRUE);
+  bg_gtk_widget_set_can_default(ret->close_button, TRUE);
+  bg_gtk_widget_set_can_default(ret->ok_button, TRUE);
   
   gtk_window_set_modal(GTK_WINDOW(ret->window), TRUE);
   
@@ -482,9 +482,9 @@ static bg_dialog_t * create_dialog(const char * title)
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                      G_CALLBACK(delete_callback), (gpointer)ret);
 
-  GTK_WIDGET_SET_FLAGS (ret->close_button, GTK_CAN_DEFAULT);
-  GTK_WIDGET_SET_FLAGS (ret->apply_button, GTK_CAN_DEFAULT);
-  GTK_WIDGET_SET_FLAGS (ret->ok_button, GTK_CAN_DEFAULT);
+  bg_gtk_widget_set_can_default(ret->close_button, TRUE);
+  bg_gtk_widget_set_can_default(ret->apply_button, TRUE);
+  bg_gtk_widget_set_can_default(ret->ok_button, TRUE);
   
   gtk_widget_show(ret->apply_button);
   gtk_widget_show(ret->close_button);

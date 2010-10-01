@@ -1853,7 +1853,11 @@ static void tree_changed_callback(bg_media_tree_t * t, void * data)
 
   }
 
+#if GTK_CHECK_VERSION(2, 21, 6)
+static void notebook_change_page(GtkWidget * widget, gpointer page, int num, gpointer data)
+#else
 static void notebook_change_page(GtkWidget * widget, GtkNotebookPage *page, int num, gpointer data)
+#endif
   {
   bg_gtk_tree_widget_t * wid;
   bg_gtk_album_window_t * win;
