@@ -115,6 +115,9 @@ static int start_mpv(void * data)
   
   if(!bg_mpv_start(&e->mpv))
     return 0;
+
+  if(!e->ci)
+    bg_mpv_get_format(&e->mpv, &e->format);
   
   return 1;
   }
