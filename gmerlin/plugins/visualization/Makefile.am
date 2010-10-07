@@ -10,7 +10,7 @@ AM_CFLAGS = \
 -DDATA_DIR=\"$(pkgdatadir)\"
 
 
-LDADD = @MODULE_LIBADD@
+vis_scope_la_LIBADD = @MODULE_LIBADD@ -lm
 plugin_LTLIBRARIES = \
 vis_scope.la
 
