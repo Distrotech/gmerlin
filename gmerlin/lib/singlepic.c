@@ -235,7 +235,7 @@ static int open_input(void * priv, const char * filename)
   inp->frame_start = strtoll(pos_start, NULL, 10);
   inp->frame_end = inp->frame_start+1;
 
-  inp->filename_buffer = malloc(strlen(filename)+1);
+  inp->filename_buffer = malloc(strlen(filename)+100);
 
   while(1)
     {
