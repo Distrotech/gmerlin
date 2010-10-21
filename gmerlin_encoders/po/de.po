@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-09-18 16:24+0200\n"
+"POT-Creation-Date: 2010-10-21 23:05+0200\n"
 "PO-Revision-Date: 2007-11-18 22:25+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -919,7 +919,7 @@ msgstr "Initialisierung des Kodierers fehlgeschlagen"
 msgid "Cannot find mp2enc executable"
 msgstr "Kann ausführbare Datei mp2enc nicht finden"
 
-#: plugins/yuv4mpeg/e_mpegaudio.c:182 plugins/yuv4mpeg/e_mpegvideo.c:161
+#: plugins/yuv4mpeg/e_mpegaudio.c:182 plugins/yuv4mpeg/e_mpegvideo.c:164
 #: plugins/yuv4mpeg/e_mpeg.c:606 plugins/yuv4mpeg/e_mpeg.c:620
 #, c-format
 msgid "Removing %s"
@@ -942,11 +942,11 @@ msgstr ""
 msgid "Writing stream header failed: %s"
 msgstr "Schreiben des Kopfes fehlgeschlagen"
 
-#: plugins/yuv4mpeg/e_mpegvideo.c:195
+#: plugins/yuv4mpeg/e_mpegvideo.c:198
 msgid "MPEG-1/2 video encoder"
 msgstr "MPEG-1/2 Video Kodierer"
 
-#: plugins/yuv4mpeg/e_mpegvideo.c:196
+#: plugins/yuv4mpeg/e_mpegvideo.c:199
 msgid ""
 "Encoder for elementary MPEG-1/2 video streams. Based on mjpegtools (http://"
 "mjpeg.sourceforge.net)."
