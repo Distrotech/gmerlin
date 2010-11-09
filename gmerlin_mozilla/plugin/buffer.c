@@ -25,9 +25,11 @@
 #include <stdlib.h>
 #include <sys/inotify.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <gmerlin/utils.h>
-
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "buffer"
 
 struct bg_mozilla_buffer_s
   {
@@ -40,10 +42,16 @@ struct bg_mozilla_buffer_s
   
   int inotify_fd;
   int inotify_wd;
+
+  pthread_mutex_t download_mutex;
+  int download;
+  char * download_dir;
+  char * save_filename;
   };
 
-bg_mozilla_buffer_t * bg_mozilla_buffer_create()
+bg_mozilla_buffer_t * bg_mozilla_buffer_create(const char * url)
   {
+  const char * pos;
   bg_mozilla_buffer_t * ret = calloc(1, sizeof(*ret));
   ret->filename = bg_create_unique_filename("/tmp/gmerlin_mozilla_%05x");
   ret->write_file = fopen(ret->filename, "w");
@@ -52,27 +60,81 @@ bg_mozilla_buffer_t * bg_mozilla_buffer_create()
   
   ret->inotify_fd = inotify_init();
   ret->inotify_wd = inotify_add_watch(ret->inotify_fd,
-                                      ret->filename, IN_MODIFY  | IN_CLOSE_WRITE);
+                                      ret->filename,
+                                      IN_MODIFY  | IN_CLOSE_WRITE);
+
+  pthread_mutex_init(&ret->download_mutex, NULL);
+
+  pos = strrchr(url, '/');
+  if(pos)
+    pos++;
+  else
+    pos = url;
+  
+  ret->save_filename = bg_strdup(NULL, pos);
+  
   return ret;
+  }
+
+void bg_mozilla_buffer_set_download(bg_mozilla_buffer_t * b,
+                                    int download, char * dir)
+  {
+  pthread_mutex_lock(&b->download_mutex);
+
+  b->download = download;
+  b->download_dir = bg_strdup(b->download_dir, dir);
+  
+  pthread_mutex_unlock(&b->download_mutex);
   }
 
 void bg_mozilla_buffer_destroy(bg_mozilla_buffer_t * b)
   {
-  if(b->filename)
-    {
-    remove(b->filename);
-    free(b->filename);
-    }
   if(b->write_file)
     fclose(b->write_file);
   if(b->read_file)
     fclose(b->read_file);
+  
+  if(b->filename)
+    {
+    pthread_mutex_lock(&b->download_mutex);
+
+    if(b->download && b->download_dir)
+      {
+      char * tmp_string =
+        bg_sprintf("mv %s %s/%s", b->filename,
+                   b->download_dir, b->save_filename);
+
+      bg_log(BG_LOG_INFO, "Copying stream to %s/%s",
+             b->download_dir, b->save_filename);
+      
+      if(system(tmp_string))
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Renaming failed: %s",
+               strerror(errno));
+        }
+      free(tmp_string);
+      }
+    else
+      remove(b->filename);
+    
+    
+    pthread_mutex_unlock(&b->download_mutex);
+
+    remove(b->filename);
+    free(b->filename);
+    }
 
   if(b->inotify_fd >= 0)
     {
     inotify_rm_watch(b->inotify_fd, b->inotify_wd);
     close(b->inotify_fd);
     }
+  
+  pthread_mutex_destroy(&b->download_mutex);
+  if(b->save_filename)
+    free(b->save_filename);
+  if(b->download_dir)
+    free(b->download_dir);
   
   free(b);
   }

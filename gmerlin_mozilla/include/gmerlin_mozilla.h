@@ -170,6 +170,8 @@ struct bg_mozilla_s
   /* Filled by browser interface (plugin.c) */
   void * instance;
   void * scriptable;
+
+  char * download_dir;
   };
 
 plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m);
@@ -238,6 +240,8 @@ typedef struct
   GtkWidget * windowed;
   
   GtkWidget * config_item;
+
+  GtkWidget * save_item;
   
   } main_menu_t;
 
@@ -339,8 +343,11 @@ void bg_mozilla_widget_set_error(bg_mozilla_widget_t * m);
 
 /* Buffer (passes data from the Browser to the player */
 
-bg_mozilla_buffer_t * bg_mozilla_buffer_create( );
+bg_mozilla_buffer_t * bg_mozilla_buffer_create(const char * url);
 void bg_mozilla_buffer_destroy(bg_mozilla_buffer_t *);
+void bg_mozilla_buffer_set_download(bg_mozilla_buffer_t * b,
+                                    int download, char * dir);
+
 
 /* A final call with 0 len signals EOF */
 int bg_mozilla_buffer_write(bg_mozilla_buffer_t *,
@@ -422,3 +429,7 @@ void bg_mozilla_init_browser_funcs(NPNetscapeFuncs * funcs);
 void bg_mozilla_play(bg_mozilla_t * m);
 void bg_mozilla_stop(bg_mozilla_t * m);
 void bg_mozilla_pause(bg_mozilla_t * m);
+
+void bg_mozilla_set_download(bg_mozilla_t * m, int download);
+void bg_mozilla_set_download_dir(bg_mozilla_t * m,
+                                 const char * download_dir);

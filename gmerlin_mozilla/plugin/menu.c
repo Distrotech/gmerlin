@@ -25,13 +25,13 @@
 #include <gmerlin/translation.h>
 #include <gdk/gdkkeysyms.h>
 
-#define DND_GMERLIN_TRACKS   1
+// #define DND_GMERLIN_TRACKS   1
 #define DND_TEXT_URI_LIST    2
 #define DND_TEXT_PLAIN       3
 
 static const GtkTargetEntry copy_entries[] = 
   {
-    {bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
+    //    {bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
     {"text/uri-list",          0, DND_TEXT_URI_LIST  },
     {"STRING",                 0, DND_TEXT_PLAIN  },
     {"text/plain",             0, DND_TEXT_URI_LIST  },
@@ -54,12 +54,14 @@ static void clipboard_get_func(GtkClipboard *clipboard,
   
   switch(info)
     {
+#if 0
     case DND_GMERLIN_TRACKS:
       str = bg_album_entries_save_to_memory(w->clipboard);
       gtk_selection_data_set(selection_data, type_atom, 8, (uint8_t*)str,
                              strlen(str)+1);
       free(str);
       break;
+#endif
     case DND_TEXT_URI_LIST:
       e = w->clipboard;
       str = (char*)0;
@@ -160,13 +162,13 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(w == widget->menu.url_menu.copy)
     do_copy(widget->m);
   else if(w == widget->menu.fullscreen)
-    {
     bg_mozilla_widget_toggle_fullscreen(widget->m->widget);
-    }
   else if(w == widget->menu.windowed)
-    {
     bg_mozilla_widget_toggle_fullscreen(widget->m->widget);
-    }
+  else if(w == widget->menu.save_item)
+    bg_mozilla_set_download(widget->m,
+                            gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w)));
+  
   }
 
 static GtkWidget *
@@ -219,10 +221,9 @@ static GtkWidget * create_item(const char * label,
   return ret;
   }
 
-#if 0
 static GtkWidget * create_toggle_item(const char * label,
                                       bg_mozilla_widget_t * m,
-                                      GtkWidget * menu, guint * id)
+                                      GtkWidget * menu)
   {
   guint32 handler_id;
   GtkWidget * ret;
@@ -230,13 +231,10 @@ static GtkWidget * create_toggle_item(const char * label,
   handler_id = g_signal_connect(G_OBJECT(ret), "toggled",
                    G_CALLBACK(menu_callback),
                    m);
-  if(id)
-    *id = handler_id;
   gtk_widget_show(ret);
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), ret);
   return ret;
   }
-#endif
 
 static GtkWidget * create_submenu_item(const char * label,
                                        GtkWidget * child_menu,
@@ -289,13 +287,16 @@ void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m)
                                           m, m->menu.menu);
   m->menu.windowed = create_pixmap_item(TR("Windowed"), "windowed_16.png",
                                         m, m->menu.menu);
-
+  
   gtk_widget_add_accelerator(m->menu.windowed,
                              "activate",
                              m->accel_group,
                              GDK_Escape, 0, GTK_ACCEL_VISIBLE);
 
-  
+  m->menu.save_item = 
+    create_toggle_item(TR("Download this stream"),
+                       m, m->menu.menu);
+    
   gtk_widget_hide(m->menu.windowed);
   gtk_widget_show(m->menu.menu);
   }

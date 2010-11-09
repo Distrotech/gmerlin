@@ -29,8 +29,8 @@
 void gmerlin_mozilla_create_dialog(bg_mozilla_t * g)
   {
   const bg_parameter_info_t * parameters;
-  g->cfg_dialog = bg_dialog_create_multi(TR("Gmerlin confiuration"));
-
+  g->cfg_dialog = bg_dialog_create_multi(TR("Gmerlin mozilla plugin"));
+  
   parameters = bg_mozilla_widget_get_parameters(g->widget);
 
   bg_dialog_add(g->cfg_dialog,
@@ -73,15 +73,25 @@ void gmerlin_mozilla_create_dialog(bg_mozilla_t * g)
   
   /* This gets no widget */
   parameters = bg_gtk_info_window_get_parameters(g->info_window);
+
   bg_cfg_section_apply(g->infowindow_section, parameters,
                        bg_gtk_info_window_set_parameter, (void*)(g->info_window));
-
+  
   parameters = gmerlin_mozilla_get_parameters(g);
+
+  bg_dialog_add(g->cfg_dialog,
+                TR("General"),
+                g->general_section,
+                gmerlin_mozilla_set_parameter,
+                gmerlin_mozilla_get_parameter,
+                (void*)(g),
+                parameters);
+  
   bg_cfg_section_apply(g->general_section, parameters,
                        gmerlin_mozilla_set_parameter,
                        (void*)(g));
 
-  parameters = bg_player_get_input_parameters(g);
+  parameters = bg_player_get_input_parameters(g->player);
   bg_cfg_section_apply(g->input_section, parameters,
                        bg_player_set_input_parameter,
                        (void*)(g->player));

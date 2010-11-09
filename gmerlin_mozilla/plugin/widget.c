@@ -515,6 +515,7 @@ void bg_mozilla_handle_message(bg_mozilla_t * m,
           break;
         case BG_PLAYER_STATE_STOPPED:
         case BG_PLAYER_STATE_CHANGING:
+        case BG_PLAYER_STATE_EOF:
           if(w->m->player_state != BG_PLAYER_STATE_STOPPED)
             {
             if(w->m->buffer)

@@ -25,6 +25,7 @@
 
 #include <gmerlin_mozilla.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/translation.h>
 
 #define LOG_DOMAIN "gmerlin_mozilla"
 #include <gmerlin/log.h>
@@ -167,6 +168,9 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   
   bg_mozilla_widget_destroy(m->widget);
   bg_mozilla_embed_info_free(&m->ei);
+  if(m->buffer)
+    bg_mozilla_buffer_destroy(m->buffer); 
+  
   free(m);
   }
 
@@ -237,7 +241,7 @@ int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
   else
     {
     m->url_mode = URL_MODE_STREAM;
-    m->buffer = bg_mozilla_buffer_create();
+    m->buffer = bg_mozilla_buffer_create(m->url);
     }
 
   if(m->state == STATE_PLAYING)
@@ -441,12 +445,18 @@ static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "volume",
-      .long_name =   "Volume",
+      .long_name =   TRS("Volume"),
       .type =        BG_PARAMETER_FLOAT,
       .flags =       BG_PARAMETER_HIDE_DIALOG,
       .val_min =     { .val_f = BG_PLAYER_VOLUME_MIN },
       .val_max =     { .val_f = 0.0 },
       .val_default = { .val_f = 0.0 },
+    },
+    {
+      .name =        "download_dir",
+      .long_name =   TRS("Download directory"),
+      .type =        BG_PARAMETER_DIRECTORY,
+      .val_default = { .val_str = "." },
     },
 #if 0
     {
@@ -476,6 +486,8 @@ void gmerlin_mozilla_set_parameter(void * data, const char * name,
     bg_player_set_volume(g->player, val->val_f);
     g->volume = val->val_f;
     }
+  else if(!strcmp(name, "download_dir"))
+    g->download_dir = bg_strdup(g->download_dir, val->val_str);
   }
 
 int gmerlin_mozilla_get_parameter(void * data,
@@ -490,4 +502,17 @@ int gmerlin_mozilla_get_parameter(void * data,
     val->val_f = g->volume;
     }
   return 0;
+  }
+
+void bg_mozilla_set_download(bg_mozilla_t * g, int download)
+  {
+  if(g->buffer)
+    bg_mozilla_buffer_set_download(g->buffer,
+                                   download, g->download_dir);
+  }
+
+void bg_mozilla_set_download_dir(bg_mozilla_t * g,
+                                 const char * download_dir)
+  {
+  g->download_dir = bg_strdup(g->download_dir, download_dir);
   }
