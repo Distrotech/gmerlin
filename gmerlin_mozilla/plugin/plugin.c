@@ -45,6 +45,7 @@ static const char * general_mime_description =
 "application/x-nsv-vp3-mp3:nsv:NullSoft video;" \
 "video/flv:flv:Flash-Video;" \
 "video/mp4:mp4,m4v:MPEG-4 Video;" \
+"video/divx:DivX Video;" \
 ;
 
 static const char * vlc_mime_description =
