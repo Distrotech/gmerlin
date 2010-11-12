@@ -430,12 +430,8 @@ int bg_mpv_close(bg_mpv_common_t * com)
     }
   if(com->out)
     {
-    if(!com->sequence_end)
-      {
-      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Inserting sequence end code");
-      if(fwrite(sequence_end, 1, 4, com->out) < 4)
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Inserting sequence end code failed");
-      }
+    if(fwrite(sequence_end, 1, 4, com->out) < 4)
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Inserting sequence end code failed");
     fclose(com->out);
     }
   
@@ -470,12 +466,10 @@ void bg_mpv_set_ci(bg_mpv_common_t * com, const gavl_compression_info_t * ci)
 int bg_mpv_write_video_packet(bg_mpv_common_t * com,
                               gavl_packet_t * packet)
   {
-  if(fwrite(packet->data, 1, packet->data_len, com->out) < packet->data_len)
+  int len = packet->data_len;
+  if(packet->sequence_end_pos > 0)
+    len = packet->sequence_end_pos;
+  if(fwrite(packet->data, 1, len, com->out) < len)
     return 0;
-  
-  if(packet->sequence_end_pos)
-    com->sequence_end = 1;
-  else
-    com->sequence_end = 0;
   return 1;
   }
