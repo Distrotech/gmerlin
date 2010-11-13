@@ -193,13 +193,11 @@ int bg_subprocess_close(bg_subprocess_t*p)
 
   if(priv->stdin_fd.use)
     {
-    //    fflush(p->stdin);
     my_close(&p->stdin_fd);
     }
   /* Some programs might rely on EOF in stdin */
 
-
-  //  bg_subprocess_kill(p, SIGHUP);
+  bg_subprocess_kill(p, SIGHUP);
   
   waitpid(priv->pid, &status, 0);
 

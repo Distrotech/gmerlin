@@ -92,12 +92,17 @@ static int proc_read_func(void * data, uint8_t * ptr, int len)
 
 static void write_message(bg_visualizer_t * v)
   {
+  int result;
   if(!v->proc)
     {
     bg_msg_free(v->msg);
     return;
     }
-  if(!bg_msg_write(v->msg, proc_write_func, v))
+  fprintf(stderr, "Write message master...\n");
+  result = bg_msg_write(v->msg, proc_write_func, v);
+  fprintf(stderr, "Write message master done %d\n", result);
+
+  if(!result)
     {
     bg_subprocess_close(v->proc);
     v->proc = (bg_subprocess_t*)0;
@@ -109,10 +114,15 @@ static void write_message(bg_visualizer_t * v)
 
 static int read_message(bg_visualizer_t * v)
   {
+  int result;
   if(!v->proc)
     return 0;
-  
-  if(!bg_msg_read(v->msg, proc_read_func, v))
+
+  fprintf(stderr, "Read message master...\n");
+  result = bg_msg_read(v->msg, proc_read_func, v);  
+  fprintf(stderr, "Read message master done %d\n", result);
+
+  if(!result)
     {
     bg_subprocess_close(v->proc);
     v->proc = (bg_subprocess_t*)0;
@@ -616,8 +626,10 @@ void bg_visualizer_close(bg_visualizer_t * v)
   pthread_mutex_lock(&v->mutex);
   
   if(!v->proc)
+    {
     pthread_mutex_unlock(&v->mutex);
-  
+    return;
+    }
   /* Stop process */
   bg_msg_set_id(v->msg, BG_VIS_MSG_QUIT);
   write_message(v);

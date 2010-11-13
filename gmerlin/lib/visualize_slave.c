@@ -782,12 +782,21 @@ static int msg_write_callback(void * priv, const uint8_t * data, int len)
   return write(STDOUT_FILENO, data, len);
   }
 
+static int write_message(msg)
+  {
+  int result;
+  fprintf(stderr, "Write message slave...\n");
+  result = bg_msg_write(msg, msg_write_callback, NULL);
+  fprintf(stderr, "Write message slave done %d\n", result);
+  return result;
+  }
+
 static void flush_queue(bg_msg_queue_t * queue)
   {
   bg_msg_t * msg;
   while((msg = bg_msg_queue_try_lock_read(queue)))
     {
-    bg_msg_write(msg, msg_write_callback, NULL);
+    write_message(msg);
     bg_msg_queue_unlock_read(queue);
     }
   }
@@ -810,7 +819,8 @@ int main(int argc, char ** argv)
   bg_parameter_type_t parameter_type;
   gavl_dsp_context_t * ctx;
   int big_endian;
-  
+  int result;
+
   ctx = gavl_dsp_context_create();
   
   memset(&parameter_value, 0, sizeof(parameter_value));
@@ -832,8 +842,10 @@ int main(int argc, char ** argv)
   
   while(keep_going)
     {
-    
-    if(!bg_msg_read(msg, msg_read_callback, (void*)0))
+    fprintf(stderr, "Read message slave...\n"); 
+    result = bg_msg_read(msg, msg_read_callback, (void*)0);
+    fprintf(stderr, "Read message slave done %d\n", result);
+    if(!result)
       break;
     
     switch(bg_msg_get_id(msg))
@@ -943,15 +955,13 @@ int main(int argc, char ** argv)
           pthread_mutex_lock(&s->fps_mutex);
           bg_msg_set_arg_float(msg, 0, s->fps);
           pthread_mutex_unlock(&s->fps_mutex);
-          bg_msg_write(msg, msg_write_callback,
-                       NULL);
+          write_message(msg);
           bg_msg_free(msg);
           
           }
         counter++;
         bg_msg_set_id(msg, BG_VIS_SLAVE_MSG_END);
-        bg_msg_write(msg, msg_write_callback,
-                     NULL);
+        write_message(msg);
         bg_msg_free(msg);
         break;
       }
