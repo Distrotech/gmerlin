@@ -37,6 +37,7 @@
 #include "mpa_common.h"
 #include "mpv_common.h"
 
+// #define DEBUG_MPLEX
 
 #define FORMAT_MPEG1   0
 #define FORMAT_VCD     1
@@ -466,7 +467,9 @@ static int write_video_packet_mpeg(void * data, gavl_packet_t* p,
 
 static int close_mpeg(void * data, int do_delete)
   {
+#ifndef DEBUG_MPLEX
   bg_subprocess_t * proc;
+#endif
   char * commandline;
   char * tmp_string;
   int ret = 1;
@@ -587,11 +590,13 @@ static int close_mpeg(void * data, int do_delete)
       }
     
     /* 3. Step: Execute mplex */
-
+#ifndef DEBUG_MPLEX
     proc = bg_subprocess_create(commandline, 0, 0, 0);
     if(bg_subprocess_close(proc))
       ret = 0;
-    
+#else
+    bg_dprintf("Mplex command: %s", commandline);
+#endif
     free(commandline);
     }
   /* 4. Step: Clean up */
@@ -604,7 +609,9 @@ static int close_mpeg(void * data, int do_delete)
         {
         bg_log(BG_LOG_INFO, LOG_DOMAIN,
                "Removing %s", e->audio_streams[i].filename);
+#ifndef DEBUG_MPLEX
         remove(e->audio_streams[i].filename);
+#endif
         free(e->audio_streams[i].filename);
         }
       }
@@ -618,7 +625,9 @@ static int close_mpeg(void * data, int do_delete)
         {
         bg_log(BG_LOG_INFO, LOG_DOMAIN,
                "Removing %s", e->video_streams[i].filename);
+#ifndef DEBUG_MPLEX
         remove(e->video_streams[i].filename);
+#endif
         free(e->video_streams[i].filename);
         }
       }
