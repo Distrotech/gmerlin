@@ -197,7 +197,7 @@ int bg_subprocess_close(bg_subprocess_t*p)
     }
   /* Some programs might rely on EOF in stdin */
 
-  bg_subprocess_kill(p, SIGHUP);
+  //  bg_subprocess_kill(p, SIGHUP);
   
   waitpid(priv->pid, &status, 0);
 
