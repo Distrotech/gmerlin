@@ -579,7 +579,16 @@ static void about_window_close_callback(bg_gtk_about_window_t * w,
 void transcoder_window_load_profile(transcoder_window_t * win,
                                     const char * file)
   {
+  bg_cfg_section_t * s;
   bg_cfg_registry_load(win->cfg_reg, file);
+  
+  s =
+    bg_encoder_section_get_from_registry(win->plugin_reg,
+                                         win->encoder_parameters,
+                                         stream_flags, plugin_flags);
+  
+  bg_cfg_section_transfer(s, win->encoder_section);
+  bg_cfg_section_destroy(s);
   }
 
 static void button_callback(GtkWidget * w, gpointer data)
