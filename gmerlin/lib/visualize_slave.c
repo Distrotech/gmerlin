@@ -785,9 +785,9 @@ static int msg_write_callback(void * priv, const uint8_t * data, int len)
 static int write_message(msg)
   {
   int result;
-  fprintf(stderr, "Write message slave...\n");
+//  fprintf(stderr, "Write message slave...\n");
   result = bg_msg_write(msg, msg_write_callback, NULL);
-  fprintf(stderr, "Write message slave done %d\n", result);
+//  fprintf(stderr, "Write message slave done %d\n", result);
   return result;
   }
 
@@ -842,9 +842,9 @@ int main(int argc, char ** argv)
   
   while(keep_going)
     {
-    fprintf(stderr, "Read message slave...\n"); 
+//    fprintf(stderr, "Read message slave...\n"); 
     result = bg_msg_read(msg, msg_read_callback, (void*)0);
-    fprintf(stderr, "Read message slave done %d\n", result);
+//    fprintf(stderr, "Read message slave done %d\n", result);
     if(!result)
       break;
     

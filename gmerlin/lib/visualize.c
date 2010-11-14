@@ -98,9 +98,9 @@ static void write_message(bg_visualizer_t * v)
     bg_msg_free(v->msg);
     return;
     }
-  fprintf(stderr, "Write message master...\n");
+  //fprintf(stderr, "Write message master...\n");
   result = bg_msg_write(v->msg, proc_write_func, v);
-  fprintf(stderr, "Write message master done %d\n", result);
+  //fprintf(stderr, "Write message master done %d\n", result);
 
   if(!result)
     {
@@ -118,9 +118,9 @@ static int read_message(bg_visualizer_t * v)
   if(!v->proc)
     return 0;
 
-  fprintf(stderr, "Read message master...\n");
+  //fprintf(stderr, "Read message master...\n");
   result = bg_msg_read(v->msg, proc_read_func, v);  
-  fprintf(stderr, "Read message master done %d\n", result);
+  //fprintf(stderr, "Read message master done %d\n", result);
 
   if(!result)
     {
