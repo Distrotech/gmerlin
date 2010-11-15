@@ -1,5 +1,5 @@
 #!/bin/sh
-MODULE=@PKGLIBDIR@/libgmerlin-mozilla.so
+MODULES="@PKGLIBDIR@/libgmerlin-mozilla.so @PKGLIBDIR@/libgmerlin-mozilla-divx.so"
 
 if test "x$HOME" = "x"; then
   echo HOME unset, exiting
@@ -13,5 +13,7 @@ if test ! -d $DIR; then
   mkdir -p $DIR
 fi
 
-ln -s $MODULE $DIR
+for i in $MODULES; do
+  ln -s $i $DIR
+done
   

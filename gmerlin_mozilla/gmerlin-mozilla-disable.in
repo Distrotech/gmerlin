@@ -5,8 +5,10 @@ if test "x$HOME" = "x"; then
   exit 1
 fi
 
-MODULE="$HOME/.mozilla/plugins/libgmerlin-mozilla.so"
+MODULES="$HOME/.mozilla/plugins/libgmerlin-mozilla.so $HOME/.mozilla/plugins/libgmerlin-mozilla-divx.so"
 
-if test -h $MODULE; then
-  rm -f $MODULE
-fi
+for i in $MODULES; do
+  if test -h $i; then
+    rm -f $i
+  fi
+done

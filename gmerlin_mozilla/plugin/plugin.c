@@ -45,7 +45,7 @@ static const char * general_mime_description =
 "application/x-nsv-vp3-mp3:nsv:NullSoft video;" \
 "video/flv:flv:Flash-Video;" \
 "video/mp4:mp4,m4v:MPEG-4 Video;" \
-"video/divx:DivX Video;" \
+"video/divx:divx:DivX Video;" \
 ;
 
 static const char * vlc_mime_description =
@@ -99,7 +99,6 @@ static const char * real_mime_description =
   "audio/x-pn-realaudio-plugin:rpm:RealAudio;" \
 "application/smil:smil:SMIL;";
 
-#define GMERLIN
 
 static int check_mime_type(const char * types, const char * type)
   {
@@ -126,10 +125,13 @@ static int check_mime_type(const char * types, const char * type)
 /* Browser entry types */
 
 #ifdef GMERLIN
-
 #define PLUGIN_NAME "Gmerlin web plugin"
-// #define PLUGIN_NAME "Windows Media Player Plug-in"
+#define PLUGIN_VERSION "<a href=\"http://gmerlin.sourceforge.net/\">Gmerlin</a> browser plugin "VERSION
+#endif
 
+#ifdef DIVX
+#define PLUGIN_NAME "DivX\xc2\xae Web Player"
+#define PLUGIN_VERSION "DivX Web Player version 1.4.0.233"
 #endif
 
 #include <gmerlin/log.h>
@@ -159,9 +161,7 @@ NPError NP_GetValue(void *instance,
       *((const char **) aValue) = PLUGIN_NAME;
       break;
     case NPPVpluginDescriptionString:
-      *((const char **) aValue) =
-        "<a href=\"http://gmerlin.sourceforge.net/\">Gmerlin</a> browser plugin "
-        VERSION;
+      *((const char **) aValue) = PLUGIN_VERSION;
       break;
     case NPPVpluginNeedsXEmbed:
       //      *((PRBool *) aValue) = PR_FALSE;
