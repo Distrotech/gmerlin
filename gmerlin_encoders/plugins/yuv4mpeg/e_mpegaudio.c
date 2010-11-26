@@ -125,7 +125,8 @@ static int start_mpa(void * data)
   int result;
   e_mpa_t * e = (e_mpa_t*)data;
   result = bg_mpa_start(&e->com, e->filename);
-  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mp2enc executable");
+  if(!result)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mp2enc executable");
   return result;
   }
 
