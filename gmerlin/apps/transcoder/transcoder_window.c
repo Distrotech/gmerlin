@@ -591,6 +591,16 @@ void transcoder_window_load_profile(transcoder_window_t * win,
   bg_cfg_section_destroy(s);
   }
 
+static void transcoder_window_save_profile(transcoder_window_t * win,
+                                           const char * file)
+  {
+  bg_encoder_section_store_in_registry(win->plugin_reg,
+                                       win->encoder_section,
+                                       win->encoder_parameters,
+                                       stream_flags, plugin_flags);
+  bg_cfg_registry_save(win->cfg_reg, file);
+  }
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_cfg_section_t * cfg_section;
@@ -681,7 +691,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                                            &win->profile_path, 1, win->win);
     if(tmp_string)
       {
-      bg_cfg_registry_save(win->cfg_reg, tmp_string);
+      transcoder_window_save_profile(win, tmp_string);
       free(tmp_string);
       }
     }
