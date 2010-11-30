@@ -2029,44 +2029,59 @@ int bg_plugin_registry_get_encode_pp(bg_plugin_registry_t * reg)
   return ret;
   }
 
-static const bg_parameter_info_t encoder_section_general =
+static const bg_parameter_info_t encoder_section_general[] =
   {
-    .name        = "$general",
-    .long_name   = TRS("General"),
-    .type        = BG_PARAMETER_SECTION,
-    .flags       = BG_PARAMETER_OWN_SECTION,
+    {
+      .name        = "$general",
+      .long_name   = TRS("General"),
+      .type        = BG_PARAMETER_SECTION,
+      //      .flags       = BG_PARAMETER_OWN_SECTION,
+    },
+    { } // End
+  };
+    
+static const bg_parameter_info_t encoder_section_audio[] =
+  {
+    {
+      .name      = "$audio",
+      .long_name = TRS("Audio"),
+      .type      = BG_PARAMETER_SECTION,
+      .flags     = BG_PARAMETER_OWN_SECTION,
+    },
+    { } // End
   };
 
-static const bg_parameter_info_t encoder_section_audio =
+static const bg_parameter_info_t encoder_section_video[] =
   {
-    .name      = "$audio",
-    .long_name = TRS("Audio"),
-    .type      = BG_PARAMETER_SECTION,
-    .flags     = BG_PARAMETER_OWN_SECTION,
+    {
+      .name      = "$video",
+      .long_name = TRS("Video"),
+      .type      = BG_PARAMETER_SECTION,
+      .flags     = BG_PARAMETER_OWN_SECTION,
+    },
+    { } // End
   };
 
-static const bg_parameter_info_t encoder_section_video =
+static const bg_parameter_info_t encoder_section_subtitle_overlay[] =
   {
-    .name      = "$video",
-    .long_name = TRS("Video"),
-    .type      = BG_PARAMETER_SECTION,
-    .flags     = BG_PARAMETER_OWN_SECTION,
+    {
+      .name      = "$subtitle_overlay",
+      .long_name = TRS("Overlay subtitles"),
+      .type      = BG_PARAMETER_SECTION,
+      .flags     = BG_PARAMETER_OWN_SECTION,
+    },
+    { } // End
   };
 
-static const bg_parameter_info_t encoder_section_subtitle_overlay =
+static const bg_parameter_info_t encoder_section_subtitle_text[] =
   {
-    .name      = "$subtitle_overlay",
-    .long_name = TRS("Overlay subtitles"),
-    .type      = BG_PARAMETER_SECTION,
-    .flags     = BG_PARAMETER_OWN_SECTION,
-  };
-
-static const bg_parameter_info_t encoder_section_subtitle_text =
-  {
-    .name      = "$subtitle_text",
-    .long_name = TRS("Text subtitles"),
-    .type      = BG_PARAMETER_SECTION,
-    .flags     = BG_PARAMETER_OWN_SECTION,
+    {
+      .name      = "$subtitle_text",
+      .long_name = TRS("Text subtitles"),
+      .type      = BG_PARAMETER_SECTION,
+      .flags     = BG_PARAMETER_OWN_SECTION,
+    },
+    { } // End
   };
 
 static bg_parameter_info_t *
@@ -2076,6 +2091,9 @@ create_encoder_parameters(const bg_plugin_info_t * info)
   bg_parameter_info_t * ret;
   
   const bg_parameter_info_t * src[11];
+
+  //  if(!strcmp(info->name, "e_mpeg"))
+  //    fprintf(stderr, "e_mpeg\n");
   
   if(info->audio_parameters ||
      info->video_parameters ||
@@ -2086,7 +2104,7 @@ create_encoder_parameters(const bg_plugin_info_t * info)
       {
       if(info->parameters[0].type != BG_PARAMETER_SECTION)
         {
-        src[i] = &encoder_section_general;
+        src[i] = encoder_section_general;
         i++;
         }
       src[i] = info->parameters;
@@ -2095,7 +2113,7 @@ create_encoder_parameters(const bg_plugin_info_t * info)
     
     if(info->audio_parameters)
       {
-      src[i] = &encoder_section_audio;
+      src[i] = encoder_section_audio;
       i++;
       src[i] = info->audio_parameters;
       i++;
@@ -2103,7 +2121,7 @@ create_encoder_parameters(const bg_plugin_info_t * info)
 
     if(info->subtitle_text_parameters)
       {
-      src[i] = &encoder_section_subtitle_text;
+      src[i] = encoder_section_subtitle_text;
       i++;
       src[i] = info->subtitle_text_parameters;
       i++;
@@ -2111,7 +2129,7 @@ create_encoder_parameters(const bg_plugin_info_t * info)
 
     if(info->subtitle_overlay_parameters)
       {
-      src[i] = &encoder_section_subtitle_overlay;
+      src[i] = encoder_section_subtitle_overlay;
       i++;
       src[i] = info->subtitle_overlay_parameters;
       i++;
@@ -2119,7 +2137,7 @@ create_encoder_parameters(const bg_plugin_info_t * info)
 
     if(info->video_parameters)
       {
-      src[i] = &encoder_section_video;
+      src[i] = encoder_section_video;
       i++;
       src[i] = info->video_parameters;
       i++;
@@ -2136,6 +2154,10 @@ create_encoder_parameters(const bg_plugin_info_t * info)
     ret->flags |= BG_PARAMETER_GLOBAL_PRESET;
     ret->preset_path = bg_sprintf("plugins/%s", info->name);
     }
+
+  //  if(!strcmp(info->name, "e_mpeg"))
+  //    bg_parameters_dump(ret, "encoder_parameters");
+    
   return ret;
   }
 
@@ -2886,7 +2908,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
 
   /* Create section */
   ret = bg_cfg_section_create_from_parameters("encoders", parameters);
-
+  //  bg_cfg_section_dump(ret, "encoder_section_1.xml");
+  
   /* Get the plugin defaults */
 
   if(type_mask & BG_STREAM_AUDIO)
@@ -2989,6 +3012,8 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
   if(parameters_priv)
     bg_parameter_info_destroy_array(parameters_priv);
 
+  //  bg_cfg_section_dump(ret, "encoder_section_2.xml");
+  
   return ret;
   }
                                    

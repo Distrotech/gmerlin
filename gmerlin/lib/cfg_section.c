@@ -1223,6 +1223,9 @@ static void create_items(bg_cfg_section_t * section,
 
   i = 0;
 
+  //  if(section->name && !strcmp(section->name, "e_mpeg"))
+  //    fprintf(stderr, "e_mpeg\n");
+  
   while(info[i].name)
     {
     if((info[i].type == BG_PARAMETER_SECTION) &&
