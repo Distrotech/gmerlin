@@ -60,7 +60,9 @@ sampleformats[] =
     { SAMPLE_FMT_S16, GAVL_SAMPLE_S16 },    ///< signed 16 bits
     { SAMPLE_FMT_S32, GAVL_SAMPLE_S32 },    ///< signed 32 bits
     { SAMPLE_FMT_FLT, GAVL_SAMPLE_FLOAT },  ///< float
+#if LIBAVCODEC_BUILD >= ((51<<16)+(65<<8)+0)
     { SAMPLE_FMT_DBL, GAVL_SAMPLE_DOUBLE }, ///< double
+#endif
   };
 
 static gavl_sample_format_t
