@@ -1930,8 +1930,8 @@ void bg_transcoder_track_set_encoders(bg_transcoder_track_t * t,
     t->audio_encoder_section = bg_cfg_section_copy(s);
     clean_section(t->audio_encoder_section);
     }
-  else
-    fprintf(stderr, "Got no audio encoder section\n");
+  //  else
+  //    fprintf(stderr, "Got no audio encoder section\n");
 
   bg_encoder_section_get_stream_config(plugin_reg,
                                        encoder_section,
@@ -1965,10 +1965,10 @@ void bg_transcoder_track_set_encoders(bg_transcoder_track_t * t,
     {
     t->video_encoder_section = bg_cfg_section_copy(s);
     clean_section(t->video_encoder_section);
-    fprintf(stderr, "Got video encoder section\n");
+    //    fprintf(stderr, "Got video encoder section\n");
     }
-  else
-    fprintf(stderr, "Got no video encoder section\n");
+  //  else
+  //    fprintf(stderr, "Got no video encoder section\n");
 
   bg_encoder_section_get_stream_config(plugin_reg,
                                        encoder_section,
