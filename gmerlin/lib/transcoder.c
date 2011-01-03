@@ -1281,6 +1281,11 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
       frame = s->out_frame;
       }
 
+    /* Update sample counter before the frame is set to NULL
+       after peak-detection */
+    
+    s->samples_read += frame->valid_samples;
+        
     /* Peak detection is done for the final frame */
     if(s->normalize)
       {
@@ -1295,7 +1300,6 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
                                          frame,
                                          s->com.out_index);
     
-    s->samples_read += frame->valid_samples;
 
     s->com.time = gavl_samples_to_time(s->out_format.samplerate,
                                        s->samples_read);
