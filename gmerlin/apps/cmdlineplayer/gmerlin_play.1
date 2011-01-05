@@ -1,4 +1,4 @@
-.TH GMERLIN_PLAYER 1 "February 2010" Gmerlin "User Manuals"
+.TH GMERLIN_PLAYER 1 "January 2011" Gmerlin "User Manuals"
 .SH NAME
 gmerlin_player
 .SH SYNOPSIS
@@ -596,15 +596,14 @@ Sort and configure audio codecs
 .P
 .BR vc "={option[{suboptions}][:option[{suboptions}]...]}"
 .P
-Supported options: rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 
-schroedinger png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 
+Supported options: jpeg rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy 
+v210 schroedinger png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 
 ffmpeg_msmpeg4v2 ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263_dec 
 ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 
 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS 
 ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv 
-ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal ffmpeg_dv_avi 
-ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_dvcprohd ffmpeg_ffvhuff 
-ffmpeg_ffv1 ffmpeg_dnxhd jpeg mjpa ffmpeg_imx
+ffmpeg_rle ffmpeg_wrle ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_ffv1 
+ffmpeg_dnxhd mjpa ffmpeg_imx ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50
 
 Video Codecs
 .P
@@ -755,51 +754,6 @@ Grayscale mode
 Grayscale mode
 .P
 .RE
-.B Suboptions for ffmpeg_dv_ntsc
-
-.P
-.RS 2
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.RE
-.B Suboptions for ffmpeg_dv_pal
-
-.P
-.RS 2
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.RE
-.B Suboptions for ffmpeg_dv_avi
-
-.P
-.RS 2
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.RE
-.B Suboptions for ffmpeg_dv50_pal
-
-.P
-.RS 2
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.RE
-.B Suboptions for ffmpeg_dv50_ntsc
-
-.P
-.RS 2
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.RE
 .B Suboptions for ffmpeg_dvcprohd
 
 .P
@@ -837,6 +791,33 @@ Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_imx
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_dv
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_dvcpro
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_dv50
 
 .P
 .RS 2

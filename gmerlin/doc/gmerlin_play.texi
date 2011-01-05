@@ -348,15 +348,14 @@ Audio Codecs@*@*
 Sort and configure audio codecs
 @*@*
 @item @b{vc}=@{option[@{suboptions@}][:option[@{suboptions@}]...]@}@*@*
-Supported options: rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 
-schroedinger png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 
+Supported options: jpeg rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy 
+v210 schroedinger png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 
 ffmpeg_msmpeg4v2 ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263_dec 
 ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 
 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS 
 ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv 
-ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal ffmpeg_dv_avi 
-ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_dvcprohd ffmpeg_ffvhuff 
-ffmpeg_ffv1 ffmpeg_dnxhd jpeg mjpa ffmpeg_imx
+ffmpeg_rle ffmpeg_wrle ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_ffv1 
+ffmpeg_dnxhd mjpa ffmpeg_imx ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50
 
 Video Codecs@*@*
 Sort and configure video codecs
@@ -441,31 +440,6 @@ Grayscale mode@*@*
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
 @end table
-@b{Suboptions for ffmpeg_dv_ntsc}@*@*
-@table @r
-@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
-@end table
-@b{Suboptions for ffmpeg_dv_pal}@*@*
-@table @r
-@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
-@end table
-@b{Suboptions for ffmpeg_dv_avi}@*@*
-@table @r
-@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
-@end table
-@b{Suboptions for ffmpeg_dv50_pal}@*@*
-@table @r
-@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
-@end table
-@b{Suboptions for ffmpeg_dv50_ntsc}@*@*
-@table @r
-@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
-@end table
 @b{Suboptions for ffmpeg_dvcprohd}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
@@ -487,6 +461,21 @@ Grayscale mode@*@*
 Grayscale mode@*@*
 @end table
 @b{Suboptions for ffmpeg_imx}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
+@b{Suboptions for ffmpeg_dv}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
+@b{Suboptions for ffmpeg_dvcpro}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
+@b{Suboptions for ffmpeg_dv50}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*

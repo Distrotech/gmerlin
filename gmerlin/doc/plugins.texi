@@ -1025,6 +1025,15 @@ fv_shagadelictv.so
 @item Description
 Oh behave, ShagedelicTV makes images shagadelic! Ported from EffecTV (http://effectv.sourceforge.net).
 @end table
+@subsection Shift image
+@table @i
+@item Internal name
+fv_shift
+@item Module
+fv_bitshift.so
+@item Description
+Upshift 16 bit images, where only some lower bits are used
+@end table
 @subsection SimuraTV
 @table @i
 @item Internal name
