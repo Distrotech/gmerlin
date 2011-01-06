@@ -195,8 +195,6 @@ static void close_a52(bgav_stream_t * s)
 static void resync_a52(bgav_stream_t * s)
   {
   a52_priv * priv;
-  int first_packet;
-  bgav_packet_t * p;
   
   priv = s->data.audio.decoder->priv;
   if(!priv->state)

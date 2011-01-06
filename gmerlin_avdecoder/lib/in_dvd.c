@@ -28,10 +28,13 @@
 
 #define LOG_DOMAIN "in_dvd"
 
-#if defined HAVE_CDIO && defined HAVE_DVDREAD
+#ifdef HAVE_DVDREAD
 
+#ifdef HAVE_CDIO
 #include <cdio/cdio.h>
 #include <cdio/device.h>
+#endif
+
 #include <dvdread/dvd_reader.h>
 #include <dvdread/ifo_read.h>
 #include <dvdread/nav_read.h>
@@ -46,6 +49,11 @@
 #endif
 
 extern bgav_demuxer_t bgav_demuxer_mpegps;
+
+static
+bgav_input_context_t * bgav_input_open_dvd(const char * device,
+                                           bgav_options_t * opt);
+
 
 typedef struct
   {
@@ -658,6 +666,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
   /* Close the tray, hope it will be harmless if it's already
      closed */
 
+#ifdef HAVE_CDIO
   if(!is_image)
     {
     if((err = cdio_close_tray(url, NULL)))
@@ -668,7 +677,11 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
 #else
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "cdio_close_tray failed");
-#endif  
+#endif
+
+#else
+    return 0;
+#endif
     }
   
   /* Try to open dvd */
@@ -1131,6 +1144,7 @@ const bgav_input_t bgav_input_dvd =
     .select_track =  select_track_dvd,
   };
 
+#ifdef HAVE_CDIO
 static char * get_device_name(CdIo_t * cdio,
                               cdio_drive_read_cap_t  read_cap,
                               cdio_drive_write_cap_t write_cap,
@@ -1217,6 +1231,22 @@ bgav_device_info_t * bgav_find_devices_dvd()
 
   }
 
+int bgav_open_dvd(bgav_t * b, const char * device)
+  {
+  bgav_codecs_init(&b->opt);
+  b->input = bgav_input_open_dvd(device, &b->opt);
+  if(!b->input)
+    return 0;
+  if(!bgav_init(b))
+    goto fail;
+  return 1;
+  fail:
+  return 0;
+  
+  }
+
+#endif
+
 static
 bgav_input_context_t * bgav_input_open_dvd(const char * device,
                                            bgav_options_t * opt)
@@ -1236,19 +1266,6 @@ bgav_input_context_t * bgav_input_open_dvd(const char * device,
   return (bgav_input_context_t *)0;
   }
 
-int bgav_open_dvd(bgav_t * b, const char * device)
-  {
-  bgav_codecs_init(&b->opt);
-  b->input = bgav_input_open_dvd(device, &b->opt);
-  if(!b->input)
-    return 0;
-  if(!bgav_init(b))
-    goto fail;
-  return 1;
-  fail:
-  return 0;
-  
-  }
 
 #if DVDREAD_VERSION >= 905
 
@@ -1278,8 +1295,10 @@ static void __init()
 
 #endif
 
+#endif // HAVE_DVDREAD
 
-#else /* No DVD support */
+/* No DVD or no libcdio */
+#if !defined HAVE_DVDREAD || !defined HAVE_CDIO
 
 int bgav_check_device_dvd(const char * device, char ** name)
   {
