@@ -740,8 +740,11 @@ static int input_open(bgav_input_context_t * ctx,
     /* Check for VCD image */
     if(pos && !strcasecmp(pos, ".cue"))
       ctx->input = &bgav_input_vcd;
+    else
+#endif
+
 #ifdef HAVE_DVDREAD
-    else if(strlen(url) >= DVD_PATH_LEN)
+    if(strlen(url) >= DVD_PATH_LEN)
       {
       char * tmp_pos;
       pos = url + strlen(url) - DVD_PATH_LEN;
@@ -754,7 +757,6 @@ static int input_open(bgav_input_context_t * ctx,
           *tmp_pos = '\0';
         }
       }
-#endif
     else
 #endif
       if(!strcmp(url, "-"))
