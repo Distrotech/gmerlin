@@ -169,18 +169,15 @@ endif
 if HAVE_CDIO
 cdio_cflags =  @CDIO_CFLAGS@
 cdio_libs =    @CDIO_LIBS@
+else
+cdio_cflags =
+cdio_libs =
+endif
 
 if HAVE_DVDREAD
 dvdread_cflags  = @DVDREAD_CFLAGS@
 dvdread_libs    = @DVDREAD_LIBS@
 else
-dvdread_cflags  =
-dvdread_libs    =
-endif
-
-else
-cdio_cflags =
-cdio_libs =
 dvdread_cflags  =
 dvdread_libs    =
 endif
