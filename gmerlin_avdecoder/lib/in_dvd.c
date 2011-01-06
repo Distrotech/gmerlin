@@ -50,9 +50,9 @@
 
 extern bgav_demuxer_t bgav_demuxer_mpegps;
 
-static
-bgav_input_context_t * bgav_input_open_dvd(const char * device,
-                                           bgav_options_t * opt);
+// static
+// bgav_input_context_t * bgav_input_open_dvd(const char * device,
+//                                            bgav_options_t * opt);
 
 
 typedef struct
@@ -1233,22 +1233,6 @@ bgav_device_info_t * bgav_find_devices_dvd()
 
   }
 
-int bgav_open_dvd(bgav_t * b, const char * device)
-  {
-  bgav_codecs_init(&b->opt);
-  b->input = bgav_input_open_dvd(device, &b->opt);
-  if(!b->input)
-    return 0;
-  if(!bgav_init(b))
-    goto fail;
-  return 1;
-  fail:
-  return 0;
-  
-  }
-
-#endif
-
 static
 bgav_input_context_t * bgav_input_open_dvd(const char * device,
                                            bgav_options_t * opt)
@@ -1267,6 +1251,23 @@ bgav_input_context_t * bgav_input_open_dvd(const char * device,
     free(ret);
   return (bgav_input_context_t *)0;
   }
+
+int bgav_open_dvd(bgav_t * b, const char * device)
+  {
+  bgav_codecs_init(&b->opt);
+  b->input = bgav_input_open_dvd(device, &b->opt);
+  if(!b->input)
+    return 0;
+  if(!bgav_init(b))
+    goto fail;
+  return 1;
+  fail:
+  return 0;
+  
+  }
+
+#endif
+
 
 
 #if DVDREAD_VERSION >= 905
