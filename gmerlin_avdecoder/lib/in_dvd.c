@@ -650,7 +650,9 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
   tt_srpt_t *ttsrpt;
   char volid[32];
   unsigned char volsetid[128];
+#ifdef HAVE_CDIO
   driver_return_code_t err;
+#endif
   int is_image = 0;
   
   const char * pos;
@@ -666,9 +668,9 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
   /* Close the tray, hope it will be harmless if it's already
      closed */
 
-#ifdef HAVE_CDIO
   if(!is_image)
     {
+#ifdef HAVE_CDIO
     if((err = cdio_close_tray(url, NULL)))
 #if LIBCDIO_VERSION_NUM >= 77
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
