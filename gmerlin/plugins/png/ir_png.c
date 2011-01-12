@@ -130,10 +130,8 @@ static int read_header_png(void * priv, const char * filename,
 #if BG_MAKE_BUILD(PNG_LIBPNG_VER_MAJOR, PNG_LIBPNG_VER_MINOR, PNG_LIBPNG_VER_RELEASE) < BG_MAKE_BUILD(1,2,9)
         png_set_gray_1_2_4_to_8(png->png_ptr);
 #else
-      png_set_expand_gray_1_2_4_to_8(png->png_ptr);
+        png_set_expand_gray_1_2_4_to_8(png->png_ptr);
 #endif
-
-        png_set_gray_1_2_4_to_8(png->png_ptr);
       if (png_get_valid(png->png_ptr, png->info_ptr, PNG_INFO_tRNS))
         {
         png_set_tRNS_to_alpha(png->png_ptr);
