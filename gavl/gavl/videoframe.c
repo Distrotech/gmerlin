@@ -1510,7 +1510,7 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
   uint16_t packed_16;
   uint8_t  packed_32[4];
   uint16_t packed_64[4];
-  float color_float[2];
+  float color_float[4];
 
   gavl_init_memcpy();
   
