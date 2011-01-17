@@ -216,7 +216,8 @@ static bg_plugin_info_t * sort_by_priority(bg_plugin_info_t * list)
 
   for(i = 0; i < num_plugins-1; i++)
     arr[i]->next = arr[i+1];
-  arr[num_plugins-1]->next = (bg_plugin_info_t*)0;
+  if(num_plugins>0)
+    arr[num_plugins-1]->next = (bg_plugin_info_t*)0;
   list = arr[0];
   /* Free array */
   free(arr);
