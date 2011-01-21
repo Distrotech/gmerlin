@@ -139,6 +139,8 @@ dnl
 
 dnl Required
 
+LT_LIB_M
+
 XML2_REQUIRED="2.4.0"
 PKG_CHECK_MODULES(XML2, libxml-2.0 >= $XML2_REQUIRED, , AC_MSG_ERROR("libxml2 not found"))
 AC_SUBST(XML2_REQUIRED)
