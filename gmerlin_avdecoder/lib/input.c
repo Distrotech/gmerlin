@@ -617,12 +617,12 @@ extern const bgav_input_t bgav_input_mmsh;
 
 #ifdef HAVE_CDIO
 extern const bgav_input_t bgav_input_vcd;
+#endif // HAVE_CDIO
 
 #ifdef HAVE_DVDREAD
 extern const bgav_input_t bgav_input_dvd;
 #endif
 
-#endif // HAVE_CDIO
 
 #ifdef HAVE_LINUXDVB
 extern const bgav_input_t bgav_input_dvb;
