@@ -26,10 +26,10 @@
 #include <aac_frame.h>
 #include <stdlib.h>
 
+#define LOG_DOMAIN "aac_frame"
+
 #ifdef HAVE_NEAACDEC_H
 #include <neaacdec.h>
-
-#define LOG_DOMAIN "aac_frame"
 
 /*
  *  Backwards compatibility names (currently in neaacdec.h,
