@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-07-20 18:04+0200\n"
+"POT-Creation-Date: 2011-02-12 00:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -163,7 +163,7 @@ msgid "PWC General"
 msgstr ""
 
 #: plugins/v4l/pwc.c:75 include/gmerlin/bggavl.h:186
-#: include/gmerlin/bggavl.h:204 lib/visualize.c:346
+#: include/gmerlin/bggavl.h:204 lib/visualize.c:356
 msgid "Framerate"
 msgstr ""
 
@@ -238,7 +238,7 @@ msgstr ""
 #: plugins/cdaudio/cdparanoia.c:195 include/gmerlin/bggavl.h:289
 #: include/gmerlin/bggavl.h:308 include/gmerlin/bggavl.h:323
 #: include/gmerlin/bggavl.h:654 include/gmerlin/bggavl.h:667
-#: lib/x11/x11_window.c:1191
+#: lib/x11/x11_window.c:1190
 msgid "Auto"
 msgstr ""
 
@@ -416,7 +416,7 @@ msgstr ""
 msgid "Reader for TGA images"
 msgstr ""
 
-#: plugins/image/ir_bmp.c:226 plugins/image/ir_pnm.c:104 lib/singlepic.c:991
+#: plugins/image/ir_bmp.c:226 plugins/image/ir_pnm.c:104 lib/singlepic.c:993
 #, c-format
 msgid "Cannot open file %s: %s"
 msgstr ""
@@ -1293,14 +1293,14 @@ msgstr ""
 
 #: plugins/videofilters/fv_transform.c:166
 #: plugins/videofilters/fv_tcdisplay.c:81 plugins/cdaudio/i_cdaudio.c:537
-#: apps/player/cfgdialog.c:104 apps/transcoder/transcoder_window.c:1280
-#: apps/transcoder/transcoder_window.c:1307
-#: apps/transcoder/transcoder_window.c:1330 apps/transcoder/trackdialog.c:87
+#: apps/player/cfgdialog.c:104 apps/transcoder/transcoder_window.c:1301
+#: apps/transcoder/transcoder_window.c:1328
+#: apps/transcoder/transcoder_window.c:1351 apps/transcoder/trackdialog.c:87
 #: apps/transcoder/trackdialog.c:226 apps/transcoder/trackdialog.c:296
 #: apps/transcoder/trackdialog.c:382 apps/transcoder/trackdialog.c:450
-#: apps/visualizer/gmerlin_visualizer.c:873
+#: apps/visualizer/gmerlin_visualizer.c:890
 #: apps/recorder/recorder_window.c:716 apps/recorder/recorder_window.c:735
-#: lib/pluginregistry.c:1995 lib/x11/x11_window.c:1108
+#: lib/pluginregistry.c:2037 lib/x11/x11_window.c:1107
 #: lib/transcoder_track.c:1314
 msgid "General"
 msgstr ""
@@ -1351,7 +1351,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_transform.c:201 plugins/videofilters/fv_zoom.c:160
 #: plugins/lqt/e_lqt.c:850 include/gmerlin/bggavl.h:377
-#: lib/x11/x11_window.c:1166
+#: lib/x11/x11_window.c:1165
 msgid "Background color"
 msgstr ""
 
@@ -1689,24 +1689,24 @@ msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:346
 #: plugins/videofilters/fv_cropscale.c:351 plugins/videofilters/fv_zoom.c:106
-#: include/gmerlin/bggavl.h:332 lib/x11/x11_window.c:1180
+#: include/gmerlin/bggavl.h:332 lib/x11/x11_window.c:1179
 msgid "Scale mode"
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:358 plugins/videofilters/fv_zoom.c:113
-#: include/gmerlin/bggavl.h:339 lib/x11/x11_window.c:1201
+#: include/gmerlin/bggavl.h:339 lib/x11/x11_window.c:1200
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest."
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:362 plugins/videofilters/fv_zoom.c:117
-#: include/gmerlin/bggavl.h:343 lib/x11/x11_window.c:1205
+#: include/gmerlin/bggavl.h:343 lib/x11/x11_window.c:1204
 msgid "Scale order"
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:369 plugins/videofilters/fv_zoom.c:124
-#: include/gmerlin/bggavl.h:350 lib/x11/x11_window.c:1210
+#: include/gmerlin/bggavl.h:350 lib/x11/x11_window.c:1209
 msgid "Order for sinc scaling"
 msgstr ""
 
@@ -2639,11 +2639,11 @@ msgid ""
 "sourceforge.net)"
 msgstr ""
 
-#: plugins/png/ir_png.c:301
+#: plugins/png/ir_png.c:299
 msgid "PNG reader"
 msgstr ""
 
-#: plugins/png/ir_png.c:302
+#: plugins/png/ir_png.c:300
 msgid "Reader for PNG images"
 msgstr ""
 
@@ -2767,7 +2767,7 @@ msgstr ""
 
 #: plugins/lqt/i_lqt.c:44 apps/plugincfg/gmerlin_plugincfg.c:281
 #: apps/transcoder/trackdialog.c:217 apps/recorder/recorder_window.c:714
-#: lib/pluginregistry.c:2002 lib/pluginregistry.c:2452 lib/player_audio.c:181
+#: lib/pluginregistry.c:2048 lib/pluginregistry.c:2520 lib/player_audio.c:181
 #: lib/gtk/infowindow.c:704
 msgid "Audio"
 msgstr ""
@@ -2782,7 +2782,7 @@ msgstr ""
 
 #: plugins/lqt/i_lqt.c:55 apps/transcoder/trackdialog.c:288
 #: apps/recorder/recorder_window.c:732 lib/player_video.c:134
-#: lib/pluginregistry.c:2010 lib/pluginregistry.c:2459
+#: lib/pluginregistry.c:2059 lib/pluginregistry.c:2527
 #: lib/gtk/infowindow.c:722
 msgid "Video"
 msgstr ""
@@ -3202,34 +3202,34 @@ msgid "Specify the pixelformat"
 msgstr ""
 
 #: include/gmerlin/bggavl.h:290 include/gmerlin/bggavl.h:309
-#: lib/x11/x11_window.c:1192
+#: lib/x11/x11_window.c:1191
 msgid "Nearest"
 msgstr ""
 
 #: include/gmerlin/bggavl.h:291 include/gmerlin/bggavl.h:310
-#: lib/x11/x11_window.c:1193
+#: lib/x11/x11_window.c:1192
 msgid "Bilinear"
 msgstr ""
 
 #: include/gmerlin/bggavl.h:292 include/gmerlin/bggavl.h:311
-#: lib/x11/x11_window.c:1194
+#: lib/x11/x11_window.c:1193
 msgid "Quadratic"
 msgstr ""
 
 #: include/gmerlin/bggavl.h:293 include/gmerlin/bggavl.h:312
-#: lib/x11/x11_window.c:1195
+#: lib/x11/x11_window.c:1194
 msgid "Cubic B-Spline"
 msgstr ""
 
-#: include/gmerlin/bggavl.h:294 lib/x11/x11_window.c:1196
+#: include/gmerlin/bggavl.h:294 lib/x11/x11_window.c:1195
 msgid "Cubic Mitchell-Netravali"
 msgstr ""
 
-#: include/gmerlin/bggavl.h:295 lib/x11/x11_window.c:1197
+#: include/gmerlin/bggavl.h:295 lib/x11/x11_window.c:1196
 msgid "Cubic Catmull-Rom"
 msgstr ""
 
-#: include/gmerlin/bggavl.h:296 lib/x11/x11_window.c:1198
+#: include/gmerlin/bggavl.h:296 lib/x11/x11_window.c:1197
 msgid "Sinc with Lanczos window"
 msgstr ""
 
@@ -3464,43 +3464,43 @@ msgstr ""
 msgid "Skin browser"
 msgstr ""
 
-#: apps/player/gmerlin.c:303
+#: apps/player/gmerlin.c:305
 msgid "Gmerlin player"
 msgstr ""
 
-#: apps/player/gmerlin.c:701
+#: apps/player/gmerlin.c:703
 msgid "General Options"
 msgstr ""
 
-#: apps/player/gmerlin.c:707
+#: apps/player/gmerlin.c:709
 msgid "Skip error tracks"
 msgstr ""
 
-#: apps/player/gmerlin.c:710
+#: apps/player/gmerlin.c:712
 msgid "If a track cannot be opened, switch to the next one"
 msgstr ""
 
-#: apps/player/gmerlin.c:714
+#: apps/player/gmerlin.c:716
 msgid "Don't advance"
 msgstr ""
 
-#: apps/player/gmerlin.c:720
+#: apps/player/gmerlin.c:722
 msgid "Shuffle mode"
 msgstr ""
 
-#: apps/player/gmerlin.c:726 apps/player/mainmenu.c:748
+#: apps/player/gmerlin.c:728 apps/player/mainmenu.c:748
 msgid "Off"
 msgstr ""
 
-#: apps/player/gmerlin.c:727
+#: apps/player/gmerlin.c:729
 msgid "Current album"
 msgstr ""
 
-#: apps/player/gmerlin.c:728
+#: apps/player/gmerlin.c:730
 msgid "All open albums"
 msgstr ""
 
-#: apps/player/gmerlin.c:734
+#: apps/player/gmerlin.c:736
 msgid "Show tooltips"
 msgstr ""
 
@@ -3554,13 +3554,13 @@ msgstr ""
 msgid "Subtitle options"
 msgstr ""
 
-#: apps/player/cfgdialog.c:83 apps/visualizer/gmerlin_visualizer.c:1093
+#: apps/player/cfgdialog.c:83 apps/visualizer/gmerlin_visualizer.c:1110
 #: lib/gtk/plugininfo.c:169
 msgid "Visualization"
 msgstr ""
 
-#: apps/player/cfgdialog.c:86 lib/pluginregistry.c:2026
-#: lib/pluginregistry.c:2466
+#: apps/player/cfgdialog.c:86 lib/pluginregistry.c:2081
+#: lib/pluginregistry.c:2534
 msgid "Text subtitles"
 msgstr ""
 
@@ -3579,12 +3579,12 @@ msgid "Input"
 msgstr ""
 
 #: apps/player/cfgdialog.c:122 apps/plugincfg/gmerlin_plugincfg.c:273
-#: apps/transcoder/transcoder_window.c:1367
+#: apps/transcoder/transcoder_window.c:1388
 msgid "Input plugins"
 msgstr ""
 
 #: apps/player/cfgdialog.c:130 apps/plugincfg/gmerlin_plugincfg.c:574
-#: apps/transcoder/transcoder_window.c:1375
+#: apps/transcoder/transcoder_window.c:1396
 msgid "Image readers"
 msgstr ""
 
@@ -3605,8 +3605,8 @@ msgid "Remote control"
 msgstr ""
 
 #: apps/player/cfgdialog.c:181 apps/player/mainmenu.c:1034
-#: apps/camelot/webcam_window.c:803 apps/transcoder/transcoder_window.c:1408
-#: apps/visualizer/gmerlin_visualizer.c:891
+#: apps/camelot/webcam_window.c:803 apps/transcoder/transcoder_window.c:1429
+#: apps/visualizer/gmerlin_visualizer.c:908
 #: apps/recorder/recorder_window.c:795
 msgid "Log window"
 msgstr ""
@@ -3657,15 +3657,15 @@ msgstr ""
 msgid "Info window"
 msgstr ""
 
-#: apps/player/mainmenu.c:1041 apps/transcoder/transcoder_window.c:843
+#: apps/player/mainmenu.c:1041 apps/transcoder/transcoder_window.c:862
 msgid "About..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1043 apps/transcoder/transcoder_window.c:844
+#: apps/player/mainmenu.c:1043 apps/transcoder/transcoder_window.c:863
 msgid "Userguide"
 msgstr ""
 
-#: apps/player/mainmenu.c:1064 apps/transcoder/transcoder_window.c:828
+#: apps/player/mainmenu.c:1064 apps/transcoder/transcoder_window.c:847
 msgid "Preferences..."
 msgstr ""
 
@@ -3714,7 +3714,7 @@ msgid "Previous chapter"
 msgstr ""
 
 #: apps/player/mainmenu.c:1135 lib/gtk/treewidget.c:1332
-#: lib/gtk/treewidget.c:2038
+#: lib/gtk/treewidget.c:2042
 msgid "Goto current track"
 msgstr ""
 
@@ -3738,7 +3738,7 @@ msgstr ""
 msgid "Transcoder"
 msgstr ""
 
-#: apps/player/mainmenu.c:1175 apps/visualizer/gmerlin_visualizer.c:882
+#: apps/player/mainmenu.c:1175 apps/visualizer/gmerlin_visualizer.c:899
 msgid "Visualizer"
 msgstr ""
 
@@ -3987,7 +3987,7 @@ msgid "Output"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:536
-#: apps/transcoder/transcoder_window.c:1359
+#: apps/transcoder/transcoder_window.c:1380
 #: apps/recorder/recorder_window.c:769
 msgid "Encoders"
 msgstr ""
@@ -4229,7 +4229,7 @@ msgstr ""
 
 #: apps/camelot/webcam_window.c:434 apps/camelot/webcam_window.c:456
 #: apps/camelot/webcam_window.c:494 lib/recorder_video.c:140
-#: lib/recorder_video.c:247 lib/recorder_video.c:352 lib/singlepic.c:720
+#: lib/recorder_video.c:247 lib/recorder_video.c:352 lib/singlepic.c:722
 #: lib/transcoder_track.c:173 lib/recorder_audio.c:72
 msgid "Plugin"
 msgstr ""
@@ -4262,8 +4262,8 @@ msgstr ""
 msgid "Set"
 msgstr ""
 
-#: apps/camelot/webcam_window.c:567 apps/transcoder/transcoder_window.c:1291
-#: apps/transcoder/transcoder_window.c:1317 apps/transcoder/trackdialog.c:234
+#: apps/camelot/webcam_window.c:567 apps/transcoder/transcoder_window.c:1312
+#: apps/transcoder/transcoder_window.c:1338 apps/transcoder/trackdialog.c:234
 #: apps/transcoder/trackdialog.c:304 apps/recorder/recorder_window.c:724
 #: apps/recorder/recorder_window.c:743
 msgid "Filters"
@@ -4310,7 +4310,7 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: apps/camelot/webcam_window.c:738 apps/transcoder/transcoder_window.c:839
+#: apps/camelot/webcam_window.c:738 apps/transcoder/transcoder_window.c:858
 #: apps/recorder/recorder_window.c:608
 msgid "Log messages"
 msgstr ""
@@ -4381,72 +4381,72 @@ msgstr ""
 msgid "Show Tooltips"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:640
-#: apps/transcoder/transcoder_window.c:949
+#: apps/transcoder/transcoder_window.c:659
+#: apps/transcoder/transcoder_window.c:968
 msgid "Load task list"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:650
-#: apps/transcoder/transcoder_window.c:951
+#: apps/transcoder/transcoder_window.c:669
+#: apps/transcoder/transcoder_window.c:970
 msgid "Save task list"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:661
+#: apps/transcoder/transcoder_window.c:680
 msgid "Load profile"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:671
+#: apps/transcoder/transcoder_window.c:690
 msgid "Save profile"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:822
+#: apps/transcoder/transcoder_window.c:841
 msgid "Load tasklist..."
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:823
+#: apps/transcoder/transcoder_window.c:842
 msgid "Save tasklist..."
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:824
-#: apps/visualizer/gmerlin_visualizer.c:1033
+#: apps/transcoder/transcoder_window.c:843
+#: apps/visualizer/gmerlin_visualizer.c:1050
 msgid "Quit"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:829
+#: apps/transcoder/transcoder_window.c:848
 msgid "Load profile..."
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:830
+#: apps/transcoder/transcoder_window.c:849
 msgid "Save profile..."
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:834
-#: apps/transcoder/transcoder_window.c:939
+#: apps/transcoder/transcoder_window.c:853
+#: apps/transcoder/transcoder_window.c:958
 msgid "Start transcoding"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:835
-#: apps/transcoder/transcoder_window.c:942
+#: apps/transcoder/transcoder_window.c:854
+#: apps/transcoder/transcoder_window.c:961
 msgid "Stop transcoding"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:931
+#: apps/transcoder/transcoder_window.c:950
 msgid "Gmerlin transcoder"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:945
+#: apps/transcoder/transcoder_window.c:964
 msgid "Set global options and track defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:947
+#: apps/transcoder/transcoder_window.c:966
 msgid "Quit program"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:982 lib/gtk/plugininfo.c:182
+#: apps/transcoder/transcoder_window.c:1001 lib/gtk/plugininfo.c:182
 msgid "File"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:987 apps/transcoder/main.c:70
+#: apps/transcoder/transcoder_window.c:1006 apps/transcoder/main.c:70
 #: apps/cmdlineplayer/gmerlin_play.c:848
 #: apps/thumbnailer/gmerlin-video-thumbnailer.c:94 tests/imgconvert.c:97
 #: tests/fvtest.c:175 tests/cfgtest.c:624 tests/visualization.c:78
@@ -4454,60 +4454,60 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:992
+#: apps/transcoder/transcoder_window.c:1011
 msgid "Actions"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:997
-#: apps/transcoder/transcoder_window.c:1056
+#: apps/transcoder/transcoder_window.c:1016
+#: apps/transcoder/transcoder_window.c:1075
 msgid "Tasklist"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1002
+#: apps/transcoder/transcoder_window.c:1021
 msgid "Windows"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1007
+#: apps/transcoder/transcoder_window.c:1026
 msgid "Help"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1250
+#: apps/transcoder/transcoder_window.c:1271
 msgid "Transcoder configuration"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1255
+#: apps/transcoder/transcoder_window.c:1276
 msgid "Output options"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1266
+#: apps/transcoder/transcoder_window.c:1287
 msgid "Track defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1275
+#: apps/transcoder/transcoder_window.c:1296
 msgid "Audio defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1304
+#: apps/transcoder/transcoder_window.c:1325
 msgid "Video defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1325
+#: apps/transcoder/transcoder_window.c:1346
 msgid "Text subtitle defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1340 apps/transcoder/trackdialog.c:390
+#: apps/transcoder/transcoder_window.c:1361 apps/transcoder/trackdialog.c:390
 msgid "Textrenderer"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1351
+#: apps/transcoder/transcoder_window.c:1372
 msgid "Overlay subtitle defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1386
+#: apps/transcoder/transcoder_window.c:1407
 msgid "Window"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1397
+#: apps/transcoder/transcoder_window.c:1418
 msgid "Remote"
 msgstr ""
 
@@ -4737,45 +4737,45 @@ msgstr ""
 msgid "Video output"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:870
+#: apps/visualizer/gmerlin_visualizer.c:887
 msgid "Visualizer configuration"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1024
+#: apps/visualizer/gmerlin_visualizer.c:1041
 msgid "Gmerlin visualizer"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1027
+#: apps/visualizer/gmerlin_visualizer.c:1044
 msgid "Configure"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1029
+#: apps/visualizer/gmerlin_visualizer.c:1046
 msgid "Recording and display plugins"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1031
+#: apps/visualizer/gmerlin_visualizer.c:1048
 msgid "Restart visualization"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1035
+#: apps/visualizer/gmerlin_visualizer.c:1052
 #: apps/recorder/recorder_window.c:619
 msgid "Fullscreen mode"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1037
+#: apps/visualizer/gmerlin_visualizer.c:1054
 #: apps/recorder/recorder_window.c:621
 msgid "Leave fullscreen mode"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1041
+#: apps/visualizer/gmerlin_visualizer.c:1058
 msgid "Show log window"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1044
+#: apps/visualizer/gmerlin_visualizer.c:1061
 msgid "About Gmerlin visualizer"
 msgstr ""
 
-#: apps/visualizer/gmerlin_visualizer.c:1047
+#: apps/visualizer/gmerlin_visualizer.c:1064
 msgid "Launch help in a webwroswer"
 msgstr ""
 
@@ -5263,12 +5263,17 @@ msgstr ""
 msgid "Restarting playback due to changed video options"
 msgstr ""
 
-#: lib/player_video.c:280 lib/player_loop.c:1163 lib/player_audio.c:322
+#: lib/player_video.c:280 lib/player_loop.c:1164 lib/player_audio.c:322
 msgid "Detected EOF"
 msgstr ""
 
-#: lib/preset.c:232
+#: lib/preset.c:290
 msgid "Cannot make new preset: No home directory"
+msgstr ""
+
+#: lib/preset.c:307
+#, c-format
+msgid "Could not create directory: %s"
 msgstr ""
 
 #: lib/bgladspa.c:196
@@ -5308,182 +5313,186 @@ msgstr ""
 msgid "Creating directory %s failed: %s"
 msgstr ""
 
-#: lib/searchpath.c:148 lib/transcoder.c:1834
+#: lib/searchpath.c:148 lib/transcoder.c:1838
 #, c-format
 msgid "Created directory %s"
 msgstr ""
 
-#: lib/pluginregistry.c:516 lib/pluginregistry.c:1458
+#: lib/pluginregistry.c:557 lib/pluginregistry.c:1499
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr ""
 
-#: lib/pluginregistry.c:523
+#: lib/pluginregistry.c:564
 #, c-format
 msgid "No symbol the_plugin in %s"
 msgstr ""
 
-#: lib/pluginregistry.c:528
+#: lib/pluginregistry.c:569
 #, c-format
 msgid "Plugin %s has zero priority"
 msgstr ""
 
-#: lib/pluginregistry.c:538
+#: lib/pluginregistry.c:579
 #, c-format
 msgid "Not loading %s (blacklisted)"
 msgstr ""
 
-#: lib/pluginregistry.c:642 lib/pluginregistry.c:1447
+#: lib/pluginregistry.c:683 lib/pluginregistry.c:1488
 #, c-format
 msgid "dlopen failed for %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1232
+#: lib/pluginregistry.c:1273
 #, c-format
 msgid "bg_plugin_ref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1296
+#: lib/pluginregistry.c:1337
 #, c-format
 msgid "bg_plugin_unref_nolock %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1307
+#: lib/pluginregistry.c:1348
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1331 lib/pluginregistry.c:1384
+#: lib/pluginregistry.c:1372 lib/pluginregistry.c:1425
 #, c-format
 msgid "No plugin found for image %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1552
+#: lib/pluginregistry.c:1593
 msgid "Invalid plugin type for video output"
 msgstr ""
 
-#: lib/pluginregistry.c:1558
+#: lib/pluginregistry.c:1599
 #, c-format
 msgid "Plugin %s doesn't support embedded windows"
 msgstr ""
 
-#: lib/pluginregistry.c:1805
+#: lib/pluginregistry.c:1846
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:1817 lib/pluginregistry.c:1854
+#: lib/pluginregistry.c:1858 lib/pluginregistry.c:1895
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:2018 lib/pluginregistry.c:2473
+#: lib/pluginregistry.c:2070 lib/pluginregistry.c:2541
 msgid "Overlay subtitles"
 msgstr ""
 
-#: lib/pluginregistry.c:2154
+#: lib/pluginregistry.c:2222
 msgid "Registry settings"
 msgstr ""
 
-#: lib/pluginregistry.c:2161
+#: lib/pluginregistry.c:2229
 msgid "Plugin settings"
 msgstr ""
 
-#: lib/pluginregistry.c:2168 lib/gtk/plugin_multi.c:402
+#: lib/pluginregistry.c:2236 lib/gtk/plugin_multi.c:402
 msgid "Extensions"
 msgstr ""
 
-#: lib/pluginregistry.c:2175 lib/gtk/plugin_multi.c:394
+#: lib/pluginregistry.c:2243 lib/gtk/plugin_multi.c:394
 msgid "Protocols"
 msgstr ""
 
-#: lib/pluginregistry.c:2182 lib/gtk/plugin_multi.c:384
+#: lib/pluginregistry.c:2250 lib/gtk/plugin_multi.c:384
 msgid "Priority"
 msgstr ""
 
-#: lib/pluginregistry.c:2431
+#: lib/pluginregistry.c:2499
 msgid "Write audio stream to video file if possible"
 msgstr ""
 
-#: lib/pluginregistry.c:2438
+#: lib/pluginregistry.c:2506
 msgid "Write text subtitles to video file if possible"
 msgstr ""
 
-#: lib/pluginregistry.c:2445
+#: lib/pluginregistry.c:2513
 msgid "Write overlay subtitles to video file if possible"
 msgstr ""
 
-#: lib/visualize_slave.c:297
+#: lib/visualize_slave.c:298
 #, c-format
 msgid "Cannot dlopen plugin module %s: %s"
 msgstr ""
 
-#: lib/visualize_slave.c:306
+#: lib/visualize_slave.c:307
 #, c-format
 msgid "cannot get API version: %s"
 msgstr ""
 
-#: lib/visualize_slave.c:312
+#: lib/visualize_slave.c:313
 #, c-format
 msgid "Wrong API version: Got %d expected %d"
 msgstr ""
 
-#: lib/visualize_slave.c:320
+#: lib/visualize_slave.c:321
 #, c-format
 msgid "No symbol the_plugin: %s"
 msgstr ""
 
-#: lib/visualize_slave.c:430
+#: lib/visualize_slave.c:431
 msgid "No window ID given"
 msgstr ""
 
-#: lib/visualize_slave.c:435
+#: lib/visualize_slave.c:436
 msgid "No plugin given"
 msgstr ""
 
-#: lib/visualize_slave.c:679
+#: lib/visualize_slave.c:680
 msgid "Joined thread"
 msgstr ""
 
-#: lib/visualize_slave.c:698
+#: lib/visualize_slave.c:699
 msgid "Started thread"
 msgstr ""
 
-#: lib/visualize.c:105 lib/visualize.c:120 lib/visualize.c:587
+#: lib/visualize_slave.c:940
+msgid "Starting visualization failed"
+msgstr ""
+
+#: lib/visualize.c:110 lib/visualize.c:130 lib/visualize.c:597
 msgid "Visualization process crashed, restart to try again"
 msgstr ""
 
-#: lib/visualize.c:326
+#: lib/visualize.c:336
 msgid "Width"
 msgstr ""
 
-#: lib/visualize.c:332
+#: lib/visualize.c:342
 msgid ""
 "Desired image with, the visualization plugin might override this for no "
 "apparent reason"
 msgstr ""
 
-#: lib/visualize.c:336
+#: lib/visualize.c:346
 msgid "Height"
 msgstr ""
 
-#: lib/visualize.c:342
+#: lib/visualize.c:352
 msgid ""
 "Desired image height, the visualization plugin might override this for no "
 "apparent reason"
 msgstr ""
 
-#: lib/visualize.c:356
+#: lib/visualize.c:366
 msgid "Gain"
 msgstr ""
 
-#: lib/visualize.c:363
+#: lib/visualize.c:373
 msgid ""
 "Gain (in dB) to apply to the audio samples before it is sent to the "
 "visualization plugin"
 msgstr ""
 
-#: lib/visualize.c:382
+#: lib/visualize.c:392
 #, c-format
 msgid "Got visualization plugin %s"
 msgstr ""
@@ -6095,7 +6104,7 @@ msgstr ""
 msgid "Cannot pause live stream"
 msgstr ""
 
-#: lib/player_loop.c:1240
+#: lib/player_loop.c:1241
 msgid "Ignoring command while playback is interrupted"
 msgstr ""
 
@@ -6143,191 +6152,191 @@ msgstr ""
 msgid "Using statistics file: %s"
 msgstr ""
 
-#: lib/transcoder.c:1311
+#: lib/transcoder.c:1315
 msgid "Encoding audio failed"
 msgstr ""
 
-#: lib/transcoder.c:1626
+#: lib/transcoder.c:1630
 msgid "Encoding video failed"
 msgstr ""
 
-#: lib/transcoder.c:1711 lib/transcoder.c:1761
+#: lib/transcoder.c:1715 lib/transcoder.c:1765
 msgid "Encoding subtitles failed"
 msgstr ""
 
-#: lib/transcoder.c:1828
+#: lib/transcoder.c:1832
 #, c-format
 msgid "Cannot create directory %s: %s, using default"
 msgstr ""
 
-#: lib/transcoder.c:1885
+#: lib/transcoder.c:1889
 #, c-format
 msgid "Postprocessing %s"
 msgstr ""
 
-#: lib/transcoder.c:1889 lib/transcoder.c:3123
+#: lib/transcoder.c:1893 lib/transcoder.c:3127
 #, c-format
 msgid "Transcoding %s [Track %d, Pass %d/%d]"
 msgstr ""
 
-#: lib/transcoder.c:1894
+#: lib/transcoder.c:1898
 #, c-format
 msgid "Transcoding %s [Track %d]"
 msgstr ""
 
-#: lib/transcoder.c:1905
+#: lib/transcoder.c:1909
 #, c-format
 msgid ""
 "Metadata:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1922
+#: lib/transcoder.c:1926
 #, c-format
 msgid ""
 "Audio stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1928
+#: lib/transcoder.c:1932
 #, c-format
 msgid ""
 "Audio stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1936
+#: lib/transcoder.c:1940
 #, c-format
 msgid ""
 "Audio stream %d format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1951
+#: lib/transcoder.c:1955
 #, c-format
 msgid ""
 "Video stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1956
+#: lib/transcoder.c:1960
 #, c-format
 msgid ""
 "Video stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1963
+#: lib/transcoder.c:1967
 #, c-format
 msgid ""
 "Video stream %d format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1975 lib/transcoder.c:1994
+#: lib/transcoder.c:1979 lib/transcoder.c:1998
 #, c-format
 msgid "Text subtitle stream %d: Blending onto video stream %d"
 msgstr ""
 
-#: lib/transcoder.c:1980 lib/transcoder.c:1999
+#: lib/transcoder.c:1984 lib/transcoder.c:2003
 #, c-format
 msgid "Text subtitle stream %d: Exporting to file"
 msgstr ""
 
-#: lib/transcoder.c:2044
+#: lib/transcoder.c:2048
 #, c-format
 msgid "Cannot find plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2051
+#: lib/transcoder.c:2055
 #, c-format
 msgid "Cannot open plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2068
+#: lib/transcoder.c:2072
 #, c-format
 msgid "Cannot open %s with plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2084
+#: lib/transcoder.c:2088
 #, c-format
 msgid "Invalid track number %d"
 msgstr ""
 
-#: lib/transcoder.c:2114
+#: lib/transcoder.c:2118
 #, c-format
 msgid "Audio stream %d cannot be read compressed"
 msgstr ""
 
-#: lib/transcoder.c:2124
+#: lib/transcoder.c:2128
 #, c-format
 msgid "Audio stream %d cannot be written compressed"
 msgstr ""
 
-#: lib/transcoder.c:2129
+#: lib/transcoder.c:2133
 #, c-format
 msgid "Copying compressed audio stream %d"
 msgstr ""
 
-#: lib/transcoder.c:2143
+#: lib/transcoder.c:2147
 #, c-format
 msgid "Video stream %d cannot be read compressed"
 msgstr ""
 
-#: lib/transcoder.c:2155 lib/transcoder.c:2170
+#: lib/transcoder.c:2159 lib/transcoder.c:2174
 #, c-format
 msgid "Not copying video stream %d: Will blend subtitles"
 msgstr ""
 
-#: lib/transcoder.c:2183
+#: lib/transcoder.c:2187
 #, c-format
 msgid "Video stream %d cannot be written compressed"
 msgstr ""
 
-#: lib/transcoder.c:2188
+#: lib/transcoder.c:2192
 #, c-format
 msgid "Copying compressed video stream %d"
 msgstr ""
 
-#: lib/transcoder.c:2311 lib/player_input.c:219
+#: lib/transcoder.c:2315 lib/player_input.c:219
 msgid "Starting input plugin failed"
 msgstr ""
 
-#: lib/transcoder.c:2321 lib/transcoder.c:2330
+#: lib/transcoder.c:2325 lib/transcoder.c:2334
 msgid "Cannot seek to start point"
 msgstr ""
 
-#: lib/transcoder.c:2341
+#: lib/transcoder.c:2345
 msgid "End time if before start time"
 msgstr ""
 
-#: lib/transcoder.c:2503 lib/transcoder.c:2551
+#: lib/transcoder.c:2507 lib/transcoder.c:2555
 msgid "Subtitle stream cannot be handled"
 msgstr ""
 
-#: lib/transcoder.c:2572
+#: lib/transcoder.c:2576
 msgid "Input and output are the same file"
 msgstr ""
 
-#: lib/transcoder.c:2867
+#: lib/transcoder.c:2871
 msgid "Zero peaks detected (silent file?). Disabling normalization."
 msgstr ""
 
-#: lib/transcoder.c:2873
+#: lib/transcoder.c:2877
 #, c-format
 msgid "Correcting volume by %.2f dB"
 msgstr ""
 
-#: lib/transcoder.c:2932
+#: lib/transcoder.c:2936
 msgid "No stream to encode"
 msgstr ""
 
-#: lib/transcoder.c:3327
+#: lib/transcoder.c:3331
 #, c-format
 msgid "Video stream %d: Transcoded %s frames"
 msgstr ""
 
-#: lib/transcoder.c:3338
+#: lib/transcoder.c:3342
 #, c-format
 msgid "Audio stream %d: Transcoded %s samples"
 msgstr ""
@@ -6388,47 +6397,47 @@ msgstr ""
 msgid "Opening %s driver succeeded"
 msgstr ""
 
-#: lib/x11/x11_window.c:1112
+#: lib/x11/x11_window.c:1111
 msgid "Auto resize window"
 msgstr ""
 
-#: lib/x11/x11_window.c:1146
+#: lib/x11/x11_window.c:1145
 msgid "Disable Screensaver for normal playback"
 msgstr ""
 
-#: lib/x11/x11_window.c:1152
+#: lib/x11/x11_window.c:1151
 msgid "Disable Screensaver for fullscreen playback"
 msgstr ""
 
-#: lib/x11/x11_window.c:1158
+#: lib/x11/x11_window.c:1157
 msgid "Force hardware scaling"
 msgstr ""
 
-#: lib/x11/x11_window.c:1160
+#: lib/x11/x11_window.c:1159
 msgid ""
 "Use hardware scaling even if it involves more CPU intensive pixelformat "
 "conversions"
 msgstr ""
 
-#: lib/x11/x11_window.c:1169
+#: lib/x11/x11_window.c:1168
 msgid ""
 "Specify the background color for videos with alpha channel. This is only "
 "used by the OpenGL driver."
 msgstr ""
 
-#: lib/x11/x11_window.c:1175
+#: lib/x11/x11_window.c:1174
 msgid "Software scaler"
 msgstr ""
 
-#: lib/x11/x11_window.c:1214 lib/x11/x11_window.c:1219
+#: lib/x11/x11_window.c:1213 lib/x11/x11_window.c:1218
 msgid "Scale quality"
 msgstr ""
 
-#: lib/x11/x11_window.c:1385
+#: lib/x11/x11_window.c:1384
 msgid "Could not get GL Visual"
 msgstr ""
 
-#: lib/x11/x11_window.c:1400
+#: lib/x11/x11_window.c:1399
 #, c-format
 msgid "Got Visual 0x%lx depth %d"
 msgstr ""
@@ -6445,6 +6454,10 @@ msgstr ""
 #: lib/x11/x11_gl.c:88
 #, c-format
 msgid "Got GLX version %d.%d"
+msgstr ""
+
+#: lib/x11/x11_gl.c:127
+msgid "No framebuffer configs found (insufficient driver or hardware)"
 msgstr ""
 
 #: lib/x11/grab.c:57
@@ -6623,20 +6636,20 @@ msgid ""
 "This plugin reads images as stills. It uses the installed image readers."
 msgstr ""
 
-#: lib/singlepic.c:725
+#: lib/singlepic.c:727
 msgid "Framenumber digits"
 msgstr ""
 
-#: lib/singlepic.c:733
+#: lib/singlepic.c:735
 msgid "Framenumber offset"
 msgstr ""
 
-#: lib/singlepic.c:998
+#: lib/singlepic.c:1000
 #, c-format
 msgid "Couldn't write data to %s: %s"
 msgstr ""
 
-#: lib/singlepic.c:1059
+#: lib/singlepic.c:1061
 msgid ""
 "This plugin encodes a video as a series of images. It uses the installed "
 "image writers."
@@ -6733,7 +6746,7 @@ msgstr ""
 
 #: lib/transcoder_track.c:161 lib/gtk/infowindow.c:771
 #: lib/gtk/treewidget.c:1119 lib/gtk/chapterdialog.c:184
-#: lib/gtk/presetmenu.c:139
+#: lib/gtk/presetmenu.c:181
 msgid "Name"
 msgstr ""
 
@@ -7167,7 +7180,7 @@ msgstr ""
 msgid "Album name"
 msgstr ""
 
-#: lib/gtk/treewidget.c:966 lib/gtk/treewidget.c:2035
+#: lib/gtk/treewidget.c:966 lib/gtk/treewidget.c:2039
 msgid "Rename album"
 msgstr ""
 
@@ -7227,11 +7240,11 @@ msgstr ""
 msgid "Tree..."
 msgstr ""
 
-#: lib/gtk/treewidget.c:2033
+#: lib/gtk/treewidget.c:2037
 msgid "Delete album"
 msgstr ""
 
-#: lib/gtk/treewidget.c:2042
+#: lib/gtk/treewidget.c:2046
 msgid "New album"
 msgstr ""
 
@@ -7388,19 +7401,31 @@ msgstr ""
 msgid "Plugin: "
 msgstr ""
 
-#: lib/gtk/presetmenu.c:141
+#: lib/gtk/presetmenu.c:183
 msgid "New preset"
 msgstr ""
 
-#: lib/gtk/presetmenu.c:149
+#: lib/gtk/presetmenu.c:190
 msgid "Save preset"
 msgstr ""
 
-#: lib/gtk/presetmenu.c:245
-msgid "Save..."
+#: lib/gtk/presetmenu.c:319
+msgid "Save new..."
 msgstr ""
 
-#: lib/gtk/presetmenu.c:255
+#: lib/gtk/presetmenu.c:322
+msgid "Load..."
+msgstr ""
+
+#: lib/gtk/presetmenu.c:328
+msgid "Save to..."
+msgstr ""
+
+#: lib/gtk/presetmenu.c:334
+msgid "Delete..."
+msgstr ""
+
+#: lib/gtk/presetmenu.c:345
 msgid "Preset"
 msgstr ""
 
@@ -7585,11 +7610,11 @@ msgstr ""
 msgid "Drive:"
 msgstr ""
 
-#: lib/gtk/cfg_dialog.c:491
+#: lib/gtk/cfg_dialog.c:497
 msgid "No options here, choose subcategory"
 msgstr ""
 
-#: lib/gtk/cfg_dialog.c:664
+#: lib/gtk/cfg_dialog.c:676
 msgid "No options available"
 msgstr ""
 
@@ -7758,7 +7783,7 @@ msgstr ""
 msgid "Creating process failed: %s"
 msgstr ""
 
-#: lib/subprocess.c:208
+#: lib/subprocess.c:206
 #, c-format
 msgid "Finished process [%d] return value: %d"
 msgstr ""

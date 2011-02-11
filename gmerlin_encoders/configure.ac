@@ -2,7 +2,7 @@ AC_INIT
 AC_CONFIG_SRCDIR([include/gmerlin_encoders.h])
 
 AM_CONFIG_HEADER(include/config.h)
-AM_INIT_AUTOMAKE(gmerlin-encoders, 1.0.0)
+AM_INIT_AUTOMAKE(gmerlin-encoders, 1.0.1pre1)
 
 SAVE_CFLAGS=$CFLAGS
 AC_DISABLE_STATIC
