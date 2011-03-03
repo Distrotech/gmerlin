@@ -4,7 +4,7 @@ AC_INIT(include/gavl/gavl.h)
 
 AM_CONFIG_HEADER(include/gavl/config.h)
 
-AM_INIT_AUTOMAKE(gavl, 1.2.0)
+AM_INIT_AUTOMAKE(gavl, 1.2.1pre1)
 
 GAVL_VERSION=$VERSION
 
