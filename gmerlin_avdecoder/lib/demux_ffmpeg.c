@@ -33,6 +33,25 @@
 #define NEW_IO_API
 #endif
 
+#if LIBAVFORMAT_VERSION_MAJOR >= 53
+#define NEW_METADATA
+#endif
+
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define CodecType AVMediaType
+#define CODEC_TYPE_UNKNOWN    AVMEDIA_TYPE_UNKNOWN
+#define CODEC_TYPE_VIDEO      AVMEDIA_TYPE_VIDEO
+#define CODEC_TYPE_AUDIO      AVMEDIA_TYPE_AUDIO
+#define CODEC_TYPE_DATA       AVMEDIA_TYPE_DATA
+#define CODEC_TYPE_SUBTITLE   AVMEDIA_TYPE_SUBTITLE
+#define CODEC_TYPE_ATTACHMENT AVMEDIA_TYPE_ATTACHMENT
+#define CODEC_TYPE_NB         AVMEDIA_TYPE_NB
+#endif
+
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define PKT_FLAG_KEY AV_PKT_FLAG_KEY
+#endif
+
 static void cleanup_stream_ffmpeg(bgav_stream_t * s)
   {
   if(s->type == BGAV_STREAM_VIDEO)
@@ -605,6 +624,10 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
   AVFormatContext *avfc;
   AVFormatParameters ap;
   char * tmp_filename;
+#ifdef NEW_METADATA
+  AVMetadataTag * tag;
+#endif
+
   memset(&ap, 0, sizeof(ap));
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -612,6 +635,8 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
   /* With the current implementation in ffmpeg, this can be
      called multiple times */
 
+  tmp_filename = bgav_sprintf("bgav:%s", ctx->input->filename);
+  
 #ifdef NEW_IO_API
   // TODO
   priv->buffer = malloc(BUFFER_SIZE);
@@ -630,8 +655,6 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
 #else
   av_register_protocol(&bgav_protocol);
 #endif
-  
-  tmp_filename = bgav_sprintf("bgav:%s", ctx->input->filename);
 
   url_fopen(&priv->pb, tmp_filename, URL_RDONLY);
 
@@ -702,6 +725,31 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
   ctx->stream_description = bgav_sprintf(TRD("%s (via ffmpeg)"),
                                          priv->avfc->iformat->long_name);
 
+#ifdef NEW_METADATA
+#define GET_METADATA_STRING(val, name) \
+  tag = av_metadata_get(avfc->metadata, name, NULL, \
+                        AV_METADATA_IGNORE_SUFFIX); \
+  if(tag) \
+    ctx->tt->cur->metadata.val = bgav_strdup(tag->value);
+
+#define GET_METADATA_INT(val, name) \
+  tag = av_metadata_get(avfc->metadata, name, NULL, \
+                        AV_METADATA_IGNORE_SUFFIX); \
+  if(tag) \
+    ctx->tt->cur->metadata.val = atoi(tag->value);
+  
+  if(avfc->metadata)
+    {
+    GET_METADATA_STRING(title,     "title");
+    GET_METADATA_STRING(author,    "author");
+    GET_METADATA_STRING(copyright, "copyright");
+    GET_METADATA_STRING(genre,     "genre");
+    GET_METADATA_STRING(album,     "album");
+    GET_METADATA_INT(track,        "track");
+    }
+
+#else
+  
   /* Metadata */
   if(avfc->title[0])
     ctx->tt->cur->metadata.title = bgav_strdup(avfc->title);
@@ -713,6 +761,8 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
     ctx->tt->cur->metadata.album = bgav_strdup(avfc->album);
   if(avfc->genre[0])
     ctx->tt->cur->metadata.genre = bgav_strdup(avfc->genre);
+
+#endif
   
   return 1;
   }

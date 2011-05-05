@@ -54,6 +54,14 @@
 #include SWSCALE_HEADER
 #endif
 
+/* Legacy stuff */
+
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define CodecType AVMediaType
+#define CODEC_TYPE_VIDEO      AVMEDIA_TYPE_VIDEO
+#endif
+
+
 #define LOG_DOMAIN "ffmpeg_video"
 
 // #define DUMP_DECODE
