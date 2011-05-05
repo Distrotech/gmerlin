@@ -1811,6 +1811,7 @@ AC_ARG_ENABLE(vdpau,
 esac],[test_vdpau=true])
 
 if test x$test_vdpau = xtrue; then
+if test x$have_x = xtrue; then
    
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
@@ -1838,6 +1839,7 @@ esac
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
+fi
 fi
 
 AC_SUBST(VDPAU_CFLAGS)

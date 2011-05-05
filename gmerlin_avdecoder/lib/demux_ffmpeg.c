@@ -29,6 +29,10 @@
 
 #define PROBE_SIZE 2048 /* Same as in MPlayer */
 
+#if LIBAVFORMAT_VERSION_MAJOR >= 53
+#define NEW_IO_API
+#endif
+
 static void cleanup_stream_ffmpeg(bgav_stream_t * s)
   {
   if(s->type == BGAV_STREAM_VIDEO)
@@ -42,14 +46,39 @@ typedef struct
   {
   AVInputFormat *avif;
   AVFormatContext *avfc;
+#ifdef NEW_IO_API
+#define BUFFER_SIZE 1024 * 4
+  AVIOContext * pb;
+  unsigned char * buffer;
+#else  
 #if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
   ByteIOContext pb;
 #else
   ByteIOContext * pb;
 #endif
+
+#endif // OLD_IO_API  
   } ffmpeg_priv_t;
 
 /* Callbacks for URLProtocol */
+
+#ifdef NEW_IO_API
+// TODO
+static int lavf_read(void * opaque, uint8_t *buf, int buf_size)
+  {
+  return bgav_input_read_data(opaque, buf, buf_size);
+  }
+
+static int64_t lavf_seek(void *opaque, int64_t offset, int whence)
+  {
+  bgav_input_context_t * input = opaque;
+  if(whence == AVSEEK_SIZE)
+    return input->total_bytes;
+  bgav_input_seek(input, offset, whence);
+  return input->position;
+  }
+  
+#else
 
 static int lavf_open(URLContext *h, const char *filename, int flags)
   {
@@ -68,7 +97,7 @@ static int lavf_read(URLContext *h, unsigned char *buf, int size)
   return result;
   }
 
-static int lavf_write(URLContext *h, unsigned char *buf, int size)
+static int lavf_write(URLContext *h, const unsigned char *buf, int size)
   {
   return -1;
   }
@@ -103,6 +132,8 @@ static URLProtocol bgav_protocol = {
     lavf_seek,
     lavf_close,
 };
+
+#endif
 
 /* Demuxer functions */
 
@@ -580,26 +611,44 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
 
   /* With the current implementation in ffmpeg, this can be
      called multiple times */
+
+#ifdef NEW_IO_API
+  // TODO
+  priv->buffer = malloc(BUFFER_SIZE);
+  priv->pb =
+    avio_alloc_context(priv->buffer,
+                       BUFFER_SIZE,
+                       0,
+                       ctx->input,
+                       lavf_read,
+                       NULL,
+                       ctx->input->input->seek_byte ? lavf_seek : NULL);
+#else
+  
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 29, 0)
   register_protocol(&bgav_protocol);
 #else
   av_register_protocol(&bgav_protocol);
 #endif
   
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 26, 0)
-  avfc = av_alloc_format_context();
-#else
-  avfc = avformat_alloc_context();
-#endif
-  
   tmp_filename = bgav_sprintf("bgav:%s", ctx->input->filename);
 
   url_fopen(&priv->pb, tmp_filename, URL_RDONLY);
+
 #if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
   ((URLContext*)(priv->pb.opaque))->priv_data= ctx->input;
 #else
   ((URLContext*)(priv->pb->opaque))->priv_data= ctx->input;
 #endif
+
+#endif // !NEW_IO_API
+
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 26, 0)
+  avfc = av_alloc_format_context();
+#else
+  avfc = avformat_alloc_context();
+#endif
+
   priv->avif = get_format(ctx->input);
   
 #if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
@@ -675,6 +724,10 @@ static void close_ffmpeg(bgav_demuxer_context_t * ctx)
   priv = (ffmpeg_priv_t*)ctx->priv;
 
   av_close_input_file(priv->avfc);
+#ifdef NEW_IO
+  if(priv->buffer)
+    free(priv->buffer);
+#endif
   if(priv)
     free(priv);
   }

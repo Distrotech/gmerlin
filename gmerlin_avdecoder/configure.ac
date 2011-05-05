@@ -267,14 +267,13 @@ fi
 
 if test x$have_x = xtrue; then
   X_LIBS="$X_LIBS -lXext"
+fi
 
 dnl
 dnl VDPAU
 dnl
 
 GMERLIN_CHECK_VDPAU
-
-fi
 
 dnl
 dnl Check for theora
