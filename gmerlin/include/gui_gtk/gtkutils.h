@@ -61,3 +61,7 @@ GtkWidget * bg_gtk_get_toplevel(GtkWidget * w);
 
 int bg_gtk_widget_is_realized(GtkWidget * w);
 int bg_gtk_widget_is_toplevel(GtkWidget * w);
+
+void bg_gtk_widget_set_can_default(GtkWidget *w, gboolean can_default);
+void bg_gtk_widget_set_can_focus(GtkWidget *w, gboolean can_focus);
+
