@@ -90,4 +90,13 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
 
 int bg_subprocess_read_data(int fd, uint8_t * ret, int len);
 
+/** \brief Run a command as a subprocess
+ *  \param command Command to run
+ *  \return Return code of the program
+ *
+ *  This is pretty much the same as the system() function
+ */
+
+int bg_system(const char * command);
+
 /** @} */

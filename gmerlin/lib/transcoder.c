@@ -45,6 +45,8 @@
 #include <gmerlin/filters.h>
 #include <gmerlin/encoder.h>
 
+#include <gmerlin/subprocess.h>
+
 // #define DUMP_VIDEO_TIMESTAMPS
 
 #define LOG_DOMAIN "transcoder"
@@ -2019,7 +2021,7 @@ static void send_file(const char * name)
   command = bg_sprintf("gmerlin_remote -add \"%s\"\n", name);
 
 
-  system(command);
+  bg_system(command);
   free(command);
   }
 

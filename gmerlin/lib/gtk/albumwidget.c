@@ -31,6 +31,7 @@
 
 #include <gmerlin/tree.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "gtk_albumwidget"
@@ -1226,7 +1227,7 @@ static void transcode_selected(bg_gtk_album_widget_t * w)
   
   command = bg_sprintf("gmerlin_transcoder_remote -launch -addalbum %s",
                        filename);
-  system(command);
+  bg_system(command);
   remove(filename);
   free(filename);
   free(str);

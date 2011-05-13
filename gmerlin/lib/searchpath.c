@@ -257,7 +257,7 @@ void bg_display_html_help(const char * path)
   complete_path = bg_sprintf("file://%s/%s", DOC_DIR, path);
   command = bg_sprintf(url_launcher, complete_path);
   command = bg_strcat(command, " &");
-  system(command);
+  bg_system(command);
   free(command);
   free(url_launcher);
   free(complete_path);

@@ -23,8 +23,11 @@
 #include <string.h>
 
 #include <gmerlin/translation.h>
+
 #include "gmerlin.h"
 #include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
+
 #include <gdk/gdkkeysyms.h>
 
 #include <gui_gtk/aboutwindow.h>
@@ -410,7 +413,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu->options_menu.kbd)
     {
-    system("gmerlin_kbd_config &");
+    bg_system("gmerlin_kbd_config &");
     }
   else if(w == the_menu->windows_menu.infowindow)
     {
@@ -466,15 +469,15 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu->accessories_menu.visualizer)
     {
-    system("gmerlin_visualizer &");
+    bg_system("gmerlin_visualizer &");
     }
   else if(w == the_menu->accessories_menu.mixer)
     {
-    system("gmerlin_alsamixer &");
+    bg_system("gmerlin_alsamixer &");
     }
   else if(w == the_menu->accessories_menu.transcoder)
     {
-    system("gmerlin_transcoder_remote -launch");
+    bg_system("gmerlin_transcoder_remote -launch");
     }
   /* Commands (== accelerators) */
   else if(w == the_menu->command_menu.inc_volume)

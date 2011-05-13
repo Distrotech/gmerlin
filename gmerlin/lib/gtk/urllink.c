@@ -23,6 +23,8 @@
 #include <stdlib.h>
 
 #include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
+
 #include <gui_gtk/urllink.h>
 
 struct bg_gtk_urllink_s
@@ -49,7 +51,7 @@ static void button_callback(GtkWidget * w, GdkEventButton * evt,
   u = (bg_gtk_urllink_t *)data;
   command = bg_sprintf(u->browser_command, u->url);
   command = bg_strcat(command, " &");
-  system(command);
+  bg_system(command);
   }
 
 bg_gtk_urllink_t * bg_gtk_urllink_create(const char * text, const char * url)

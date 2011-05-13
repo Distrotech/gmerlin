@@ -205,7 +205,6 @@ int bg_subprocess_close(bg_subprocess_t*p)
   
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Finished process [%d] return value: %d",
          priv->pid, ret);
-
   
   if(priv->stdout_fd.use)
     my_close(&p->stdout_fd);
@@ -215,6 +214,14 @@ int bg_subprocess_close(bg_subprocess_t*p)
   free(priv);
   free(p);
   return ret;
+  }
+
+int bg_system(const char * command)
+  {
+  bg_subprocess_t * sp = bg_subprocess_create(command, 0, 0, 0);
+  if(!sp)
+    return -1;
+  return bg_subprocess_close(sp);
   }
 
 /* Read line without trailing '\r' or '\n' */

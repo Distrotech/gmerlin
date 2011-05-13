@@ -31,6 +31,8 @@
 
 #include <X11/keysym.h>
 
+#include <gmerlin/subprocess.h>
+
 void
 bg_x11_screensaver_init(bg_x11_screensaver_t * scr, Display * dpy)
   {
@@ -102,7 +104,7 @@ screensaver_ping(bg_x11_screensaver_t * scr, int force)
       break;
     case SCREENSAVER_MODE_GNOME:
       if(check_ping(scr, force, 40))
-        system("gnome-screensaver-command --poke > /dev/null 2> /dev/null");
+        bg_system("gnome-screensaver-command --poke > /dev/null 2> /dev/null");
       break;
     case SCREENSAVER_MODE_KDE:
       break;
@@ -224,12 +226,12 @@ bg_x11_screensaver_disable(bg_x11_screensaver_t * scr)
       break;
     case SCREENSAVER_MODE_KDE:
       scr->was_enabled =
-        (system
+        (bg_system
              ("dcop kdesktop KScreensaverIface isEnabled 2>/dev/null | sed 's/1/true/g' | grep true 2>/dev/null >/dev/null")
          == 0);
       
       if(scr->was_enabled)
-        system("dcop kdesktop KScreensaverIface enable false > /dev/null");
+        bg_system("dcop kdesktop KScreensaverIface enable false > /dev/null");
       break;
     }
   scr->disabled = 1;
