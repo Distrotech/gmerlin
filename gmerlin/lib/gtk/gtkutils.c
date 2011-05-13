@@ -550,3 +550,43 @@ void bg_gtk_widget_set_can_focus(GtkWidget *w, gboolean can_focus)
     GTK_WIDGET_UNSET_FLAGS(w, GTK_CAN_FOCUS);
 #endif
   }
+
+
+GtkWidget * bg_gtk_combo_box_new_text()
+  {
+#if GTK_CHECK_VERSION(2,24,0)
+  return gtk_combo_box_text_new();
+#else
+  return gtk_combo_box_new_text();
+#endif
+  }
+
+void bg_gtk_combo_box_append_text(GtkWidget *combo_box, const gchar *text)
+  {
+#if GTK_CHECK_VERSION(2,24,0)
+  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combo_box), text);
+#else
+  gtk_combo_box_append_text(GTK_COMBO_BOX(combo_box), text);
+#endif
+  }
+
+void bg_gtk_combo_box_remove_text(GtkWidget * b, int index)
+  {
+#if GTK_CHECK_VERSION(2,24,0)
+  int i;
+  GtkTreeIter it;
+  GtkTreeModel * model;
+  model = gtk_combo_box_get_model(GTK_COMBO_BOX(b));
+
+  if(!gtk_tree_model_get_iter_first(model, &it))
+    return;
+  for(i = 0; i < index; i++)
+    {
+    if(!gtk_tree_model_iter_next(model, &it))
+      return;
+    }
+  gtk_list_store_remove(GTK_LIST_STORE(model), &it);
+#else
+  gtk_combo_box_remove_text(GTK_COMBO_BOX(b), index);
+#endif
+  }

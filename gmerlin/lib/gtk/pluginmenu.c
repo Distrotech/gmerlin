@@ -69,14 +69,14 @@ bg_gtk_plugin_menu_create(int auto_supported,
   ret = calloc(1, sizeof(*ret));
   ret->auto_supported = auto_supported;
 
-  ret->combo = gtk_combo_box_new_text();
+  ret->combo = bg_gtk_combo_box_new_text();
 
   g_signal_connect(G_OBJECT(ret->combo),
                    "changed", G_CALLBACK(change_callback),
                    (gpointer)ret);
   
   if(auto_supported)
-    gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo), TR(auto_string));
+    bg_gtk_combo_box_append_text(ret->combo, TR(auto_string));
 
   ret->plugin_reg = plugin_reg;
   ret->type_mask = type_mask;
@@ -94,7 +94,7 @@ bg_gtk_plugin_menu_create(int auto_supported,
     
     bg_bindtextdomain(plugin_info->gettext_domain,
                       plugin_info->gettext_directory);
-    gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo),
+    bg_gtk_combo_box_append_text(ret->combo,
                               TRD(plugin_info->long_name,
                                   plugin_info->gettext_domain));
     }

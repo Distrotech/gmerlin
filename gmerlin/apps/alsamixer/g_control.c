@@ -29,7 +29,7 @@
 #define LOG_DOMAIN "g_control"
 
 #include <gui_gtk/aboutwindow.h>
-
+#include <gui_gtk/gtkutils.h>
 
 #if GTK_MINOR_VERSION >= 4
 #define GTK_2_4
@@ -457,8 +457,6 @@ static void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
         gtk_widget_set_size_request(ret->widgets[i].w, req_width, SLIDER_HEIGHT);
                 
         gtk_range_set_inverted(GTK_RANGE(ret->widgets[i].w), TRUE);
-        gtk_range_set_update_policy(GTK_RANGE(ret->widgets[i].w),
-                                    GTK_UPDATE_CONTINUOUS);
         
         ret->widgets[i].id = g_signal_connect(G_OBJECT(ret->widgets[i].w),
                                               "value_changed",
@@ -493,8 +491,6 @@ static void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
         gtk_widget_set_size_request(ret->widgets[i].w, req_width, SLIDER_HEIGHT);
         
         gtk_range_set_inverted(GTK_RANGE(ret->widgets[i].w), TRUE);
-        gtk_range_set_update_policy(GTK_RANGE(ret->widgets[i].w),
-                                    GTK_UPDATE_CONTINUOUS);
         
         ret->widgets[i].id = g_signal_connect(G_OBJECT(ret->widgets[i].w),
                                               "value_changed",
@@ -529,14 +525,14 @@ static void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
       for(i = 0; i < ret->num; i++)
         {
 #ifdef GTK_2_4
-        ret->widgets[i].w = gtk_combo_box_new_text();
+        ret->widgets[i].w = bg_gtk_combo_box_new_text();
         ret->widgets[i].handler_widget = ret->widgets[i].w;
         
         for(j = 0; j < num_items; j++)
           {
           snd_ctl_elem_info_set_item(info,j);
           snd_hctl_elem_info(hctl,info);
-          gtk_combo_box_append_text(GTK_COMBO_BOX(ret->widgets[i].w),
+          bg_gtk_combo_box_append_text(ret->widgets[i].w,
                                     snd_ctl_elem_info_get_item_name(info));
           }
         ret->widgets[i].id =

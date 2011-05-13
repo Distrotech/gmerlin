@@ -65,3 +65,6 @@ int bg_gtk_widget_is_toplevel(GtkWidget * w);
 void bg_gtk_widget_set_can_default(GtkWidget *w, gboolean can_default);
 void bg_gtk_widget_set_can_focus(GtkWidget *w, gboolean can_focus);
 
+GtkWidget * bg_gtk_combo_box_new_text();
+void bg_gtk_combo_box_append_text(GtkWidget *combo_box, const gchar *text);
+void bg_gtk_combo_box_remove_text(GtkWidget * b, int index);

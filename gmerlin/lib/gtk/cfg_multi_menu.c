@@ -226,7 +226,7 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
   gtk_widget_show(priv->config_button);
   gtk_widget_show(priv->info_button);
 
-  priv->combo = gtk_combo_box_new_text();
+  priv->combo = bg_gtk_combo_box_new_text();
 
   if(w->info->help_string)
     {
@@ -241,10 +241,10 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
     while(w->info->multi_names[i])
       {
       if(w->info->multi_labels && w->info->multi_labels[i])
-        gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
+        bg_gtk_combo_box_append_text(priv->combo,
                                   TR_DOM(w->info->multi_labels[i]));
       else
-        gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
+        bg_gtk_combo_box_append_text(priv->combo,
                                   w->info->multi_names[i]);
       i++;
       }

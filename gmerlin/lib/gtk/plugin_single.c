@@ -398,14 +398,14 @@ bg_gtk_plugin_widget_single_create(char * label,
   
   /* Make combo */
   default_index = -1;
-  ret->combo = gtk_combo_box_new_text();
+  ret->combo = bg_gtk_combo_box_new_text();
   g_signal_connect(G_OBJECT(ret->combo),
                    "changed", G_CALLBACK(change_callback),
                    (gpointer)ret);
   for(i = 0; i < num_plugins; i++)
     {
     info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
-    gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo), info->long_name);
+    bg_gtk_combo_box_append_text(ret->combo, info->long_name);
 
     if(info == default_info)
       default_index = i;

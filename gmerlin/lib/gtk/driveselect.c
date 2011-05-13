@@ -67,7 +67,7 @@ static void plugin_change_callback(bg_gtk_plugin_menu_t * m, void * data)
   ds = (bg_gtk_drivesel_t*)data;
   
   for(i = 0; i < ds->num_drives; i++)
-    gtk_combo_box_remove_text(GTK_COMBO_BOX(ds->drive_menu), 0);
+    bg_gtk_combo_box_remove_text(ds->drive_menu, 0);
 
   
   
@@ -80,11 +80,11 @@ static void plugin_change_callback(bg_gtk_plugin_menu_t * m, void * data)
   while(devices[ds->num_drives].device)
     {
     if(devices[ds->num_drives].name)
-      gtk_combo_box_append_text(GTK_COMBO_BOX(ds->drive_menu),
-                                devices[ds->num_drives].name);
+      bg_gtk_combo_box_append_text(ds->drive_menu,
+                                   devices[ds->num_drives].name);
     else
-      gtk_combo_box_append_text(GTK_COMBO_BOX(ds->drive_menu),
-                                devices[ds->num_drives].device);
+      bg_gtk_combo_box_append_text(ds->drive_menu,
+                                   devices[ds->num_drives].device);
     ds->num_drives++;
     }
   /* Select first entry */
@@ -176,7 +176,7 @@ bg_gtk_drivesel_create(const char * title,
 
   /* Create device menu */
 
-  ret->drive_menu = gtk_combo_box_new_text();
+  ret->drive_menu = bg_gtk_combo_box_new_text();
   gtk_widget_show(ret->drive_menu);
   
   /* Create plugin menu */

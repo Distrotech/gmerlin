@@ -339,9 +339,13 @@ void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), bg_gtk_album_widget_get_widget(w->widget),
                            w->tab_widget);
   gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page_num);
-  
+
+#if GTK_CHECK_VERSION(2,20,0) 
+  g_object_set(notebook, "tab-fill", FALSE, NULL);
+#else 
   gtk_notebook_set_tab_label_packing(GTK_NOTEBOOK(notebook), bg_gtk_album_widget_get_widget(w->widget),
                                      FALSE, FALSE, GTK_PACK_START);
+#endif
   
   gtk_notebook_set_menu_label_text(GTK_NOTEBOOK(notebook),
                                    bg_gtk_album_widget_get_widget(w->widget),

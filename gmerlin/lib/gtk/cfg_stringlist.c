@@ -144,7 +144,7 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
   
   priv->translation_domain = translation_domain;
   
-  priv->combo = gtk_combo_box_new_text();
+  priv->combo = bg_gtk_combo_box_new_text();
   i = 0;
 
   if(w->info->help_string)
@@ -157,8 +157,8 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
     {
     while(w->info->multi_labels[i])
       {
-      gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                TR_DOM(w->info->multi_labels[i]));
+      bg_gtk_combo_box_append_text(priv->combo,
+                                   TR_DOM(w->info->multi_labels[i]));
       i++;
       }
     }
@@ -166,8 +166,8 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
     {
     while(w->info->multi_names[i])
       {
-      gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                w->info->multi_names[i]);
+      bg_gtk_combo_box_append_text(priv->combo,
+                                   w->info->multi_names[i]);
       i++;
       }
     }
