@@ -539,7 +539,7 @@ static void add_s32_c(const void * _src1, const void * _src2,
   while(--i)
     {
     tmp = *(src1++) + *(src2++);
-    *(dst++) = GENERIC_CLIP(tmp,-2147483648,2147483647);
+    *(dst++) = GENERIC_CLIP(tmp,-2147483648LL,2147483647LL);
     }
   }
 
@@ -683,7 +683,7 @@ static void sub_s32_c(const void * _src1, const void * _src2,
   while(--i)
     {
     tmp = *(src1++) - *(src2++);
-    *(dst++) = GENERIC_CLIP(tmp,-2147483648,2147483647);
+    *(dst++) = GENERIC_CLIP(tmp,-2147483648LL,2147483647LL);
     }
   }
 
