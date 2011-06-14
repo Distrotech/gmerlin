@@ -109,7 +109,14 @@ void gavl_timer_set(gavl_timer_t * t, gavl_time_t v)
 uint64_t gavl_benchmark_get_time(int config_flags)
   {
   struct timespec ts;
+#if defined(CLOCK_PROCESS_CPUTIME_ID)
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+#elif defined(CLOCK_PROF)
+  clock_gettime(CLOCK_PROF, &ts);
+#else
+  clockgettime(CLOCK_REALTIME, &ts);
+#endif
+
   return (uint64_t)(ts.tv_sec) * 1000000000 + ts.tv_nsec;
   }
 
