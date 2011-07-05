@@ -31,6 +31,37 @@
 
 #define LOG_DOMAIN "ffmpeg"
 
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define CodecType AVMediaType
+#define CODEC_TYPE_UNKNOWN    AVMEDIA_TYPE_UNKNOWN
+#define CODEC_TYPE_VIDEO      AVMEDIA_TYPE_VIDEO
+#define CODEC_TYPE_AUDIO      AVMEDIA_TYPE_AUDIO
+#define CODEC_TYPE_DATA       AVMEDIA_TYPE_DATA
+#define CODEC_TYPE_SUBTITLE   AVMEDIA_TYPE_SUBTITLE
+#define CODEC_TYPE_ATTACHMENT AVMEDIA_TYPE_ATTACHMENT
+#define CODEC_TYPE_NB         AVMEDIA_TYPE_NB
+#endif
+
+
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define PKT_FLAG_KEY AV_PKT_FLAG_KEY
+#endif
+
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define guess_format(a, b, c) av_guess_format(a, b, c)
+#endif
+
+#if LIBAVFORMAT_VERSION_MAJOR >= 53
+#define NEW_METADATA
+#endif
+
+#ifdef NEW_METADATA
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51,5,0)
+/* metadata -> dictionary */
+#define av_metadata_set2(a,b,c,d) av_dict_set(a,b,c,d)
+#endif
+#endif
+
 static bg_parameter_info_t *
 create_format_parameters(const ffmpeg_format_info_t * formats)
   {
@@ -158,6 +189,74 @@ void bg_ffmpeg_set_parameter(void * data, const char * name,
   
   }
 
+#ifdef NEW_METADATA
+static void set_metadata(ffmpeg_priv_t * priv,
+                         const bg_metadata_t * m)
+  {
+  if(m->title)
+    av_metadata_set2(&priv->ctx->metadata, "title", m->title, 0);
+  
+  if(m->author)
+    av_metadata_set2(&priv->ctx->metadata, "composer", m->author, 0);
+  
+  if(m->album)
+    av_metadata_set2(&priv->ctx->metadata, "album", m->album, 0);
+
+  if(m->copyright)
+    av_metadata_set2(&priv->ctx->metadata, "copyright", m->copyright, 0);
+
+  if(m->comment)
+    av_metadata_set2(&priv->ctx->metadata, "comment", m->comment, 0);
+  
+  if(m->genre)
+    av_metadata_set2(&priv->ctx->metadata, "genre", m->genre, 0);
+    
+  if(m->date)
+    av_metadata_set2(&priv->ctx->metadata, "date", m->date, 0);
+
+  if(m->track)
+    {
+    char * str = bg_sprintf("%d", m->track);
+    av_metadata_set2(&priv->ctx->metadata, "track", str, 0);
+    free(str);
+    }
+  }
+#else
+static void set_metadata(ffmpeg_priv_t * priv,
+                         const bg_metadata_t * metadata)
+  {
+  if(metadata->title)
+    strncpy(priv->ctx->title, metadata->title,
+            sizeof(priv->ctx->title)-1);
+
+  if(metadata->author)
+    strncpy(priv->ctx->author, metadata->author,
+            sizeof(priv->ctx->author)-1);
+
+  if(metadata->album)
+    strncpy(priv->ctx->album, metadata->album,
+            sizeof(priv->ctx->album)-1);
+
+  if(metadata->copyright)
+    strncpy(priv->ctx->copyright, metadata->copyright,
+            sizeof(priv->ctx->copyright)-1);
+
+  if(metadata->comment)
+    strncpy(priv->ctx->comment, metadata->comment,
+            sizeof(priv->ctx->comment)-1);
+    
+  if(metadata->genre)
+    strncpy(priv->ctx->genre, metadata->genre,
+            sizeof(priv->ctx->genre)-1);
+
+  if(metadata->date)
+    priv->ctx->year = bg_metadata_get_year(metadata);
+    
+  priv->ctx->track = metadata->track;
+  
+  }
+#endif
+
 int bg_ffmpeg_open(void * data, const char * filename,
                    const bg_metadata_t * metadata,
                    const bg_chapter_list_t * chapter_list)
@@ -200,34 +299,7 @@ int bg_ffmpeg_open(void * data, const char * filename,
 
   if(metadata)
     {
-    if(metadata->title)
-      strncpy(priv->ctx->title, metadata->title,
-              sizeof(priv->ctx->title)-1);
-
-    if(metadata->author)
-      strncpy(priv->ctx->author, metadata->author,
-              sizeof(priv->ctx->author)-1);
-
-    if(metadata->album)
-      strncpy(priv->ctx->album, metadata->album,
-              sizeof(priv->ctx->album)-1);
-
-    if(metadata->copyright)
-      strncpy(priv->ctx->copyright, metadata->copyright,
-              sizeof(priv->ctx->copyright)-1);
-
-    if(metadata->comment)
-      strncpy(priv->ctx->comment, metadata->comment,
-              sizeof(priv->ctx->comment)-1);
-    
-    if(metadata->genre)
-      strncpy(priv->ctx->genre, metadata->genre,
-              sizeof(priv->ctx->genre)-1);
-
-    if(metadata->date)
-      priv->ctx->year = bg_metadata_get_year(metadata);
-    
-    priv->ctx->track = metadata->track;
+    set_metadata(priv, metadata);
     }
   
   return 1;

@@ -819,8 +819,6 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
   PARAM_FLOAT("ff_p_masking",p_masking);
   PARAM_FLOAT("ff_dark_masking",dark_masking);
   PARAM_ENUM("ff_prediction_method",prediction_method,prediction_method);
-  PARAM_INT("ff_mb_qmin",mb_qmin);
-  PARAM_INT("ff_mb_qmax",mb_qmax);
   PARAM_ENUM("ff_me_cmp",me_cmp,compare_func);
   PARAM_CMP_CHROMA("ff_me_cmp_chroma",me_cmp);
   PARAM_ENUM("ff_me_sub_cmp",me_sub_cmp,compare_func);
