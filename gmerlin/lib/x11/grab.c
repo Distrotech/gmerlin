@@ -518,10 +518,11 @@ void bg_x11_grab_window_destroy(bg_x11_grab_window_t * win)
   {
   if(win->win != None)
     XDestroyWindow(win->dpy, win->win);
+  
+  bg_x11_screensaver_cleanup(&win->scr);
+  
   if(win->dpy)
     XCloseDisplay(win->dpy);
-
-  bg_x11_screensaver_cleanup(&win->scr);
   
   gavl_timer_destroy(win->timer);
   gavl_overlay_blend_context_destroy(win->blend);

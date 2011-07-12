@@ -146,6 +146,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   int force_hw_scale;
   
   int min_penalty, min_index;
+
   w->do_sw_scale = 0;
   w->current_driver = (driver_data_t*)0;  
   if(!w->drivers_initialized)
@@ -266,6 +267,9 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   set_contrast(w);
   set_saturation(w);
   set_brightness(w);
+
+  XSync(w->dpy, False);
+  bg_x11_window_handle_events(w, 0);
   
   return 1;
   }
@@ -413,7 +417,7 @@ void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)
 void bg_x11_window_close_video(bg_x11_window_t * w)
   {
   int i;
-  
+
   if(w->window_frame)
     {
     if(w->current_driver->driver->destroy_frame)
@@ -449,5 +453,8 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
     w->current_driver->driver->close(w->current_driver);
   
   w->video_open = 0;
+
+  XSync(w->dpy, False);
+  bg_x11_window_handle_events(w, 0);
   }
 
