@@ -216,11 +216,6 @@ static void set_callbacks_lame(void * data, bg_encoder_callbacks_t * cb)
 static const bg_parameter_info_t audio_parameters[] =
   {
     {
-      .name =        "lame_general",
-      .long_name =   TRS("General"),
-      .type =        BG_PARAMETER_SECTION
-    },
-    {
       .name =        "bitrate_mode",
       .long_name =   TRS("Bitrate mode"),
       .type =        BG_PARAMETER_STRINGLIST,
@@ -262,11 +257,6 @@ Auto (recommended): Select one of the above depending on quality or bitrate sett
 9: Fastest encoding, worst quality")
     },
     {
-      .name =        "lame_cbr_options",
-      .long_name =   TRS("CBR options"),
-      .type =        BG_PARAMETER_SECTION
-    },
-    {
       .name =        "cbr_bitrate",
       .long_name =   TRS("Bitrate (kbps)"),
       .type =        BG_PARAMETER_INT,
@@ -275,11 +265,6 @@ Auto (recommended): Select one of the above depending on quality or bitrate sett
       .val_default = { .val_i = 128 },
       .help_string = TRS("Bitrate in kbps. If your selection is no \
 valid mp3 bitrate, we'll choose the closest value.")
-    },
-    {
-      .name =        "lame_vbr_abr_options",
-      .long_name =   TRS("VBR/ABR options"),
-      .type =        BG_PARAMETER_SECTION
     },
     {
       .name =        "vbr_quality",
