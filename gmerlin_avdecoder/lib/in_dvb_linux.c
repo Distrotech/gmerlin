@@ -1405,7 +1405,7 @@ static int setup_filters(bgav_input_context_t * ctx,
   
   }
 
-static void select_track_dvb(bgav_input_context_t * ctx, int track)
+static int select_track_dvb(bgav_input_context_t * ctx, int track)
   {
   dvb_priv_t * priv;
   fd_set rset;
@@ -1419,10 +1419,10 @@ static void select_track_dvb(bgav_input_context_t * ctx, int track)
     priv->dvr_fd = -1;
     }
   if(!tune_in(ctx, &priv->channels[track]))
-    return;
+    return 0;
   
   if(!setup_filters(ctx, &priv->channels[track], ctx->tt->cur))
-    return;
+    return 0;
   
   priv->dvr_fd = open(priv->dvr_filename, O_RDONLY | O_NONBLOCK);
   ctx->sync_id = priv->channels[track].pcr_pid;
@@ -1439,6 +1439,7 @@ static void select_track_dvb(bgav_input_context_t * ctx, int track)
 
   /* Clear metadata so they are reread */
   bgav_metadata_free(&ctx->tt->cur->metadata);
+  return 1;
   }
 
 const bgav_input_t bgav_input_dvb =

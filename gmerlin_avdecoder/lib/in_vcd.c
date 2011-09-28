@@ -72,7 +72,7 @@ typedef struct
     
   } vcd_priv;
 
-static void select_track_vcd(bgav_input_context_t * ctx, int track)
+static int select_track_vcd(bgav_input_context_t * ctx, int track)
   {
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
@@ -93,7 +93,7 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
   /* Data should be read after next call */
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
 #endif
-
+  return 1;
   }
 
 static int read_toc(vcd_priv * priv, char ** iso_label)

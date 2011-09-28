@@ -339,7 +339,8 @@ int bgav_select_track(bgav_t * b, int track)
     /* Clear buffer */
     b->input->buffer_size = 0;
 
-    b->input->input->select_track(b->input, track);
+    if(!b->input->input->select_track(b->input, track))
+      return 0;
     bgav_demuxer_start(b->demuxer, NULL);
 
     set_stream_demuxers(b->tt->cur, b->demuxer);

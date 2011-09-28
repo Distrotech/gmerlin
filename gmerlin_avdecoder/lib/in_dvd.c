@@ -956,7 +956,7 @@ static void    close_dvd(bgav_input_context_t * ctx)
   return;
   }
 
-static void select_track_dvd(bgav_input_context_t * ctx, int track)
+static int select_track_dvd(bgav_input_context_t * ctx, int track)
   {
   dvd_t * dvd;
   int ttn, pgn;
@@ -1002,6 +1002,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
     ctx->tt->cur->subtitle_streams[i].ext_data = (uint8_t*)(dvd->pgc->palette);
     ctx->tt->cur->subtitle_streams[i].ext_size = sizeof(dvd->pgc->palette);
     }
+  return 1;
   }
 
 static void seek_time_dvd(bgav_input_context_t * ctx, int64_t t1, int scale)

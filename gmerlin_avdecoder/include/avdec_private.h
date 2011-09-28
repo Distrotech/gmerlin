@@ -900,7 +900,7 @@ struct bgav_input_s
 
   /* Some inputs support multiple tracks */
 
-  void    (*select_track)(bgav_input_context_t*, int);
+  int    (*select_track)(bgav_input_context_t*, int);
 
   /* Alternate API: Sector based read and seek access */
 

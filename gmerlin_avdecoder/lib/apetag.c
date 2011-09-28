@@ -113,7 +113,7 @@ bgav_ape_tag_t * bgav_ape_tag_read(bgav_input_context_t * input, int tag_size)
       ptr += item_value_size;
       }
     }
-  bgav_ape_tag_dump(ret);
+  //  bgav_ape_tag_dump(ret);
   return ret;
   }
 
