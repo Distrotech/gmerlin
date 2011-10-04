@@ -43,7 +43,7 @@ static char * read_data(bgav_input_context_t * input, int len)
   if(bgav_input_read_data(input, (uint8_t*)ret, len) < len)
     {
     free(ret);
-    return (char*)0;
+    return NULL;
     }
   ret[len] = '\0';
   return ret;
@@ -372,7 +372,7 @@ void bgav_rmff_mdpr_free(bgav_rmff_mdpr_t * m)
     if(bgav_input_read_data(input, (uint8_t*)(ret->dst), dst_len) < dst_len) \
       { \
       free(ret->dst); \
-      ret->dst = (char*)0; \
+      ret->dst = NULL; \
       return 0; \
       } \
     }
@@ -619,7 +619,7 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
   return ret;
   fail:
   bgav_rmff_header_destroy(ret);
-  return (bgav_rmff_header_t *)0;
+  return NULL;
   }
 
 bgav_rmff_header_t * bgav_rmff_header_create(int num_streams)
@@ -887,7 +887,7 @@ bgav_rmff_header_create_from_sdp(const bgav_options_t * opt, bgav_sdp_t * sdp,
 
   fail:
   bgav_rmff_header_destroy(ret);
-  return (bgav_rmff_header_t*)0;
+  return NULL;
   }
 
 int bgav_rmff_packet_header_read(bgav_input_context_t * input,

@@ -79,38 +79,38 @@ static char * parse_address(const char * server_msg, int * port)
     pos--;
 
   if(*pos != '(')
-    return (char*)0;
+    return NULL;
 
   pos++;
 
   ip[0] = strtol(pos, &rest, 10);
   if((pos == rest) || (*rest != ','))
-    return (char*)0;
+    return NULL;
   pos = rest+1;
 
   ip[1] = strtol(pos, &rest, 10);
   if((pos == rest) || (*rest != ','))
-    return (char*)0;
+    return NULL;
   pos = rest+1;
 
   ip[2] = strtol(pos, &rest, 10);
   if((pos == rest) || (*rest != ','))
-    return (char*)0;
+    return NULL;
   pos = rest+1;
 
   ip[3] = strtol(pos, &rest, 10);
   if((pos == rest) || (*rest != ','))
-    return (char*)0;
+    return NULL;
   pos = rest+1;
 
   po[0] = strtol(pos, &rest, 10);
   if((pos == rest) || (*rest != ','))
-    return (char*)0;
+    return NULL;
   pos = rest+1;
 
   po[1] = strtol(pos, &rest, 10);
   if((pos == rest) || (*rest != ')'))
-    return (char*)0;
+    return NULL;
   pos = rest+1;
 
   *port = (po[0] << 8) | po[1];
@@ -131,28 +131,28 @@ static char * parse_address(const char * server_msg, int * port)
  *  331   Login password
  */
 
-#define FREE(ptr) if(ptr) { free(ptr); ptr = (char*)0; }
+#define FREE(ptr) if(ptr) { free(ptr); ptr = NULL; }
 
 static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   int port = -1;
   int server_msg_alloc = 0;
   int data_port = -1;
-  char * data_ip = (char*)0;
-  char * server_msg = (char*)0;
-  char * server_cmd = (char*)0;
-  char * host = (char*)0;
-  char * path = (char*)0;
+  char * data_ip = NULL;
+  char * server_msg = NULL;
+  char * server_cmd = NULL;
+  char * host = NULL;
+  char * path = NULL;
   char *file_name;
   char * pos;
-  char * user = (char*)0;
-  char * pass = (char*)0;
+  char * user = NULL;
+  char * pass = NULL;
   
   ftp_priv_t * p;
   int ret = 0;
   
   if(!bgav_url_split(url,
-                     (char**)0, /* Protocol */
+                     NULL, /* Protocol */
                      &user, /* User */
                      &pass, /* Pass */
                      &host,

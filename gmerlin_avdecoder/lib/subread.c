@@ -383,7 +383,7 @@ static int read_spumux(bgav_stream_t * s)
   const char * filename;
   const char * start_time;
   const char * tmp;
-  char * error_msg = (char*)0;
+  char * error_msg = NULL;
   
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
@@ -674,7 +674,7 @@ static char const * const extensions[] =
     "srt",
     "sub",
     "xml",
-    (char*)0
+    NULL
   };
 
 static const bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
@@ -683,15 +683,15 @@ static const bgav_subtitle_reader_t * find_subtitle_reader(const char * filename
   int i;
   bgav_input_context_t * input;
   const char * extension;
-  const bgav_subtitle_reader_t* ret = (const bgav_subtitle_reader_t*)0;
+  const bgav_subtitle_reader_t* ret = NULL;
   
-  char * line = (char*)0;
+  char * line = NULL;
   int line_alloc = 0;
   int line_len;
   /* 1. Check if we have a supported extension */
   extension = strrchr(filename, '.');
   if(!extension)
-    return (bgav_subtitle_reader_t*)0;
+    return NULL;
 
   extension++;
   i = 0;
@@ -702,14 +702,14 @@ static const bgav_subtitle_reader_t * find_subtitle_reader(const char * filename
     i++;
     }
   if(!extensions[i])
-    return (bgav_subtitle_reader_t*)0;
+    return NULL;
 
   /* 2. Open the file and do autodetection */
   input = bgav_input_create(opt);
   if(!bgav_input_open(input, filename))
     {
     bgav_input_destroy(input);
-    return (bgav_subtitle_reader_t*)0;
+    return NULL;
     }
 
   bgav_input_detect_charset(input);
@@ -747,14 +747,14 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   struct dirent * res;
   const bgav_subtitle_reader_t * r;
   char * subtitle_filename;
-  bgav_subtitle_reader_context_t * ret = (bgav_subtitle_reader_context_t *)0;
-  bgav_subtitle_reader_context_t * end = (bgav_subtitle_reader_context_t *)0;
+  bgav_subtitle_reader_context_t * ret = NULL;
+  bgav_subtitle_reader_context_t * end = NULL;
   bgav_subtitle_reader_context_t *new;
   
   /* Check if input is a regular file */
   if((input_ctx->input != &bgav_input_file) || !input_ctx->filename)
     {
-    return (bgav_subtitle_reader_context_t*)0;
+    return NULL;
     }
 
   /* Get directory name and open directory */
@@ -763,7 +763,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   if(!pos)
     {
     free(directory);
-    return (bgav_subtitle_reader_context_t*)0;
+    return NULL;
     }
   *pos = '\0';
 
@@ -777,7 +777,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   dir = opendir(directory);
   if(!dir)
     {
-    return (bgav_subtitle_reader_context_t*)0;
+    return NULL;
     }
 
   while( (res=readdir(dir)) )
@@ -843,7 +843,7 @@ void bgav_subtitle_reader_stop(bgav_stream_t * s)
   if(ctx->ovl.frame)
     {
     gavl_video_frame_destroy(ctx->ovl.frame);
-    ctx->ovl.frame = (gavl_video_frame_t*)0;
+    ctx->ovl.frame = NULL;
     }
   
   if(ctx->input)
@@ -892,7 +892,7 @@ bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t * s)
     return s->data.subtitle.subreader->p;
     }
   else
-    return (bgav_packet_t *)0;
+    return NULL;
   }
 
 int bgav_subtitle_reader_start(bgav_stream_t * s)

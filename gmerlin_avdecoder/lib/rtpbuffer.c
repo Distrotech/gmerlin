@@ -352,7 +352,7 @@ bgav_rtp_packet_buffer_try_lock_read(bgav_rtp_packet_buffer_t * b)
   if(!b->read_packets)
     {
     pthread_mutex_unlock(&b->read_mutex);
-    return (rtp_packet_t *)0;
+    return NULL;
     }
   /* Waiting for packet */
   if((b->last_seq != -1) &&
@@ -360,7 +360,7 @@ bgav_rtp_packet_buffer_try_lock_read(bgav_rtp_packet_buffer_t * b)
      (b->num < MAX_MISORDER))
     {
     pthread_mutex_unlock(&b->read_mutex);
-    return (rtp_packet_t *)0;
+    return NULL;
     }
   
   b->read_packet = b->read_packets;

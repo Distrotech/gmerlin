@@ -140,7 +140,7 @@ static void flv_tag_dump(flv_tag * t)
 
 static void add_audio_stream(bgav_demuxer_context_t * ctx)
   {
-  bgav_stream_t * as = (bgav_stream_t*)0;
+  bgav_stream_t * as = NULL;
   as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   as->stream_id = AUDIO_ID;
   as->timescale = 1000;
@@ -149,7 +149,7 @@ static void add_audio_stream(bgav_demuxer_context_t * ctx)
 
 static void add_video_stream(bgav_demuxer_context_t * ctx)
   {
-  bgav_stream_t * vs = (bgav_stream_t*)0;
+  bgav_stream_t * vs = NULL;
   vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   vs->flags |= STREAM_NO_DURATIONS;
@@ -501,7 +501,7 @@ static meta_object_t * meta_object_find(meta_object_t * obj, int num, const char
     if(obj[i].name && !strcasecmp(obj[i].name, name))
       return &obj[i];
     }
-  return (meta_object_t*)0;
+  return NULL;
   }
 
 static int
@@ -886,7 +886,7 @@ static int open_flv(bgav_demuxer_context_t * ctx)
   int64_t pos;
   uint8_t flags;
   uint32_t data_offset, tmp;
-  bgav_input_context_t * input_save = (bgav_input_context_t*)0;
+  bgav_input_context_t * input_save = NULL;
   flv_priv_t * priv;
   flv_tag t;
   

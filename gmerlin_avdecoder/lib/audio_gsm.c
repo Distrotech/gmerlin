@@ -154,7 +154,7 @@ static void resync_gsm(bgav_stream_t * s)
     bgav_stream_done_packet_read(s, priv->packet);
     priv->packet = NULL;
     }
-  priv->packet_ptr = (uint8_t*)0;
+  priv->packet_ptr = NULL;
   }
 
 static bgav_audio_decoder_t decoder =

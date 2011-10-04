@@ -138,7 +138,7 @@ int bgav_input_read_convert_line(bgav_input_context_t * input,
                                  int * len)
   {
   int line_alloc = 0;
-  char * line = (char*)0;
+  char * line = NULL;
   int in_len, out_len;
   int64_t old_pos = input->position;
   
@@ -688,18 +688,18 @@ static int input_open(bgav_input_context_t * ctx,
   {
   int ret = 0;
   const char * pos;
-  char * protocol = (char*)0;
+  char * protocol = NULL;
   char * tmp_url;
   
   tmp_url = bgav_strdup(url);
   
   if(bgav_url_split(tmp_url,
                     &protocol,
-                    (char**)0, /* User */
-                    (char**)0, /* Pass */
-                    (char**)0,
-                    (int*)0,
-                    (char**)0))
+                    NULL, /* User */
+                    NULL, /* Pass */
+                    NULL,
+                    NULL,
+                    NULL))
     {
     if(!strcasecmp(protocol, "rtsp"))
       ctx->input = &bgav_input_rtsp;
@@ -789,7 +789,7 @@ static int do_open(bgav_input_context_t * ctx,
                     const char *url)
   {
   int ret = 0;
-  char * r = (char*)0;
+  char * r = NULL;
   int i;
   char * tmp_url;
   tmp_url = bgav_strdup(url);
@@ -805,7 +805,7 @@ static int do_open(bgav_input_context_t * ctx,
     free(tmp_url);
     tmp_url = r;
     bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got redirected to %s", r);
-    r = (char*)0;
+    r = NULL;
     }
   
   free(tmp_url);
@@ -1055,7 +1055,7 @@ int bgav_input_reopen(bgav_input_context_t * ctx)
   {
   gavl_time_t delay_time = GAVL_TIME_SCALE / 2;
   const bgav_input_t * input;
-  char * url = (char*)0;
+  char * url = NULL;
   int ret = 0;
   char * redir;
   const bgav_options_t * opt;
@@ -1065,7 +1065,7 @@ int bgav_input_reopen(bgav_input_context_t * ctx)
     input = ctx->input;
     opt = ctx->opt;
     
-    ctx->url = (char*)0;
+    ctx->url = NULL;
     
     bgav_input_close(ctx);
     

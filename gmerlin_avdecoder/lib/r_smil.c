@@ -143,7 +143,7 @@ static const char * get_language(const char * code)
     if(!strcmp(languages[i].code, code))
       return languages[i].language;
     }
-  return (const char*)0;
+  return NULL;
   }
 
 static int probe_smil(bgav_input_context_t * input)
@@ -294,8 +294,8 @@ static int xml_2_smil(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   int index;
   bgav_yml_node_t * node;
   bgav_yml_node_t * child_node;
-  char * url_base = (char*)0;
-  const char * title = (const char*)0;
+  char * url_base = NULL;
+  const char * title = NULL;
   char * pos;
   r->num_urls = 0;
 

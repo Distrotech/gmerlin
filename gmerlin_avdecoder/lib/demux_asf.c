@@ -378,11 +378,10 @@ static void update_stream_bitrates(bgav_demuxer_context_t * ctx)
 
 static int read_metadata(bgav_demuxer_context_t * ctx)
   {
-  char * str = (char*)0;
+  char * str = NULL;
   uint16_t len1, len2, len3, len4, len5;
   int str_len;
-  bgav_charset_converter_t * cnv =
-    (bgav_charset_converter_t*)0;
+  bgav_charset_converter_t * cnv = NULL;
   
   if(!bgav_input_read_16_le(ctx->input, &len1) ||
      !bgav_input_read_16_le(ctx->input, &len2) ||
@@ -469,7 +468,7 @@ static int open_asf(bgav_demuxer_context_t * ctx)
   
   bgav_BITMAPINFOHEADER_t bh;
   bgav_WAVEFORMAT_t     wf;
-  uint8_t * buf = (uint8_t*)0;
+  uint8_t * buf = NULL;
   uint8_t * pos;
   uint16_t stream_number;
   int buf_size = 0;
@@ -1017,7 +1016,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
         }
 #endif
       bgav_stream_done_packet_write(s, s->packet);
-      s->packet = (bgav_packet_t*)0;
+      s->packet = NULL;
       }
     else
       {

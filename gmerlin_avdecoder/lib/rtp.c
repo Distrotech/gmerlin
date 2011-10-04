@@ -415,14 +415,14 @@ init_stream(bgav_demuxer_context_t * ctx,
     {
     return 0;
     }
-  tmp_string = (char*)0;
+  tmp_string = NULL;
   if(bgav_url_split(control,
                     &tmp_string,
-                    (char**)0,
-                    (char**)0,
-                    (char**)0,
-                    (int *)0,
-                    (char **)0))
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL))
     {
     if(tmp_string) /* Complete URL */
       sp->control_url = bgav_strdup(control);
@@ -953,12 +953,12 @@ void bgav_demuxer_rtp_start(bgav_demuxer_context_t * ctx)
   
   if(priv->tcp)
     {
-    pthread_create(&priv->read_thread, (pthread_attr_t*)0, tcp_thread, ctx);
+    pthread_create(&priv->read_thread, NULL, tcp_thread, ctx);
     }
   else
     {
     init_pollfds(ctx);
-    pthread_create(&priv->read_thread, (pthread_attr_t*)0, udp_thread, ctx);
+    pthread_create(&priv->read_thread, NULL, udp_thread, ctx);
     }
   }
 
@@ -970,7 +970,7 @@ void bgav_demuxer_rtp_stop(bgav_demuxer_context_t * ctx)
   bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN,
            "Joining RTP thread...");
 
-  pthread_join(priv->read_thread, (void*)0);
+  pthread_join(priv->read_thread, NULL);
   bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN,
            "Joined RTP thread");
   }
@@ -1028,7 +1028,7 @@ static char * find_fmtp(char ** fmtp, char * key)
       }
     i++;
     }
-  return (char*)0;
+  return NULL;
   }
 
 
@@ -1115,7 +1115,7 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
     if(s->packet && (s->packet->pts != h->timestamp))
       {
       bgav_stream_done_packet_write(s, s->packet);
-      s->packet = (bgav_packet_t*)0;
+      s->packet = NULL;
       }
     if(!s->packet)
       {
@@ -1138,7 +1138,7 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
     if(s->packet)
       {
       bgav_stream_done_packet_write(s, s->packet);
-      s->packet = (bgav_packet_t*)0;
+      s->packet = NULL;
       }
     for(i = 0; i < sp->priv.mpeg4_generic.num_aus; i++)
       {
@@ -1156,7 +1156,7 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
     memcpy(s->packet->data, data, packet_size);
     s->packet->data_size = packet_size;
     bgav_stream_done_packet_write(s, s->packet);
-    s->packet = (bgav_packet_t*)0;
+    s->packet = NULL;
     }
   
   return 1;
@@ -1264,7 +1264,7 @@ static void send_nal(bgav_stream_t * s, uint8_t * nal, int len,
   if(s->packet && (s->packet->pts != time))
     {
     bgav_stream_done_packet_write(s, s->packet);
-    s->packet = (bgav_packet_t*)0;
+    s->packet = NULL;
     }
   
   if(!s->packet)
@@ -1501,7 +1501,7 @@ static int process_mp4v_es(bgav_stream_t * s,
       s->packet->data_size += len;
       //      bgav_hexdump(s->packet->data, 16, 16);
       bgav_stream_done_packet_write(s, s->packet);
-      s->packet = (bgav_packet_t*)0;
+      s->packet = NULL;
       }
     else
       {
@@ -1604,7 +1604,7 @@ static int process_h263_1998(bgav_stream_t * s,
   if(h->marker)
     {
     bgav_stream_done_packet_write(s, s->packet);
-    s->packet = (bgav_packet_t*)0;
+    s->packet = NULL;
     }
   return 1;
   }
@@ -1650,7 +1650,7 @@ static void end_packet_ogg(bgav_stream_t * s)
   {
   //  fprintf(stderr, "Done packet %d bytes\n", s->packet->data_size);
   bgav_stream_done_packet_write(s, s->packet);
-  s->packet = (bgav_packet_t*)0;
+  s->packet = NULL;
   }
 
 static int process_ogg(bgav_stream_t * s,

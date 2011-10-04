@@ -233,13 +233,13 @@ static const bg_parameter_info_t parameters[] =
       .name =        "http_proxy_user",
       .long_name =   TRS("Proxy username"),
       .type =        BG_PARAMETER_STRING,
-      .val_default = { .val_str = (char*)0 },
+      .val_default = { .val_str = NULL },
     },
     {
       .name =        "http_proxy_pass",
       .long_name =   TRS("Proxy password"),
       .type =        BG_PARAMETER_STRING_HIDDEN,
-      .val_default = { .val_str = (char*)0 },
+      .val_default = { .val_str = NULL },
     },
     {
       .name =       "rtsp_options",
@@ -289,11 +289,11 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Seek external subtitles"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default =  { .val_str = "never" },
-      .multi_names =  (char const *[]){ "never", "video", "always", (char*)0 },
+      .multi_names =  (char const *[]){ "never", "video", "always", NULL },
       .multi_labels = (char const *[]){ TRS("Never"),
                                TRS("For video files only"),
                                TRS("Always"),
-                               (char*)0 },
+                               NULL },
       .help_string =  TRS("If the input is a regular file, gmerlin_avdecoder can scan the\
  directory for matching subtitle files. For a file movie.mpg, possible\
  subtitle files are e.g. movie_english.srt, movie_german.srt. The\

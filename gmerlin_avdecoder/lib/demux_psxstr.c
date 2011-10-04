@@ -86,7 +86,7 @@ static int open_psxstr(bgav_demuxer_context_t * ctx)
   int i;
   int ret = 0;
   uint32_t fourcc;
-  uint8_t * buffer = (uint8_t*)0;
+  uint8_t * buffer = NULL;
   uint8_t * sector;
   int channel;
   bgav_stream_t * s;
@@ -225,7 +225,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
         {
         s->packet->pts = s->in_position;
         bgav_stream_done_packet_write(s, s->packet);
-        s->packet = (bgav_packet_t*)0;
+        s->packet = NULL;
         }
       break;
     case CDXA_TYPE_AUDIO:

@@ -449,8 +449,8 @@ static int load_channel_cache(bgav_input_context_t * ctx)
   {
   bgav_input_context_t * input;
   char * filename;
-  bgav_yml_node_t * yml = (bgav_yml_node_t*)0;
-  bgav_yml_node_t * yml_root = (bgav_yml_node_t*)0;
+  bgav_yml_node_t * yml = NULL;
+  bgav_yml_node_t * yml_root = NULL;
   bgav_yml_node_t * channel_node;
   bgav_yml_node_t * channel_child;
   bgav_yml_node_t * stream_node;
@@ -516,7 +516,7 @@ static int load_channel_cache(bgav_input_context_t * ctx)
       {
       if(stat(priv->channels_conf_file, &st))
         goto fail;
-      file_time = strtol(channel_node->children->str, (char**)0, 10);
+      file_time = strtol(channel_node->children->str, NULL, 10);
       if(file_time != st.st_mtime)
         {
         bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -531,7 +531,7 @@ static int load_channel_cache(bgav_input_context_t * ctx)
       attr = bgav_yml_get_attribute(channel_node, "pcr_pid");
       if(!attr)
         goto fail;
-      priv->channels[channel_index].pcr_pid = strtol(attr, (char**)0, 16);
+      priv->channels[channel_index].pcr_pid = strtol(attr, NULL, 16);
 
       attr = bgav_yml_get_attribute(channel_node, "extra_pcr_pid");
       if(!attr)
@@ -578,9 +578,9 @@ static int load_channel_cache(bgav_input_context_t * ctx)
                   }
 
                 if(!strcmp(stream_child->name, "pid"))
-                  s->stream_id = strtol(stream_child->children->str, (char**)0, 16);
+                  s->stream_id = strtol(stream_child->children->str, NULL, 16);
                 else if(!strcmp(stream_child->name, "fourcc"))
-                  s->fourcc = strtol(stream_child->children->str, (char**)0, 16);
+                  s->fourcc = strtol(stream_child->children->str, NULL, 16);
 
                 else if(!strcmp(stream_child->name, "language"))
                   sscanf(stream_child->children->str, "%3s", s->language);
@@ -624,9 +624,9 @@ static int load_channel_cache(bgav_input_context_t * ctx)
                   }
 
                 if(!strcmp(stream_child->name, "pid"))
-                  s->stream_id = strtol(stream_child->children->str, (char**)0, 16);
+                  s->stream_id = strtol(stream_child->children->str, NULL, 16);
                 else if(!strcmp(stream_child->name, "fourcc"))
-                  s->fourcc = strtol(stream_child->children->str, (char**)0, 16);
+                  s->fourcc = strtol(stream_child->children->str, NULL, 16);
                 
                 stream_child = stream_child->next;
                 }
@@ -659,9 +659,9 @@ static int load_channel_cache(bgav_input_context_t * ctx)
 
 static void save_channel_cache(bgav_input_context_t * ctx)
   {
-  FILE * output = (FILE*)0;
+  FILE * output = NULL;
   char * filename;
-  char * path = (char*)0;
+  char * path = NULL;
   dvb_priv_t * priv;
   int i, j;
   struct stat st;
@@ -881,10 +881,10 @@ static char * decode_eit_string(const bgav_options_t * opt,
   {
   char * ret;
   int i;
-  const char * charset = (const char*)0;
+  const char * charset = NULL;
   bgav_charset_converter_t * cnv;
   if(!(*pos))
-    return (char*)0;
+    return NULL;
   
   /* Detect charset */
   if(*pos >= 0x20)
@@ -909,11 +909,11 @@ static char * decode_eit_string(const bgav_options_t * opt,
     }
   if(!charset)
     {
-    return (char*)0;
+    return NULL;
     }
 
   cnv = bgav_charset_converter_create(opt, charset, "UTF-8");
-  ret = bgav_convert_string(cnv, (char*)pos, len, (int *)0);
+  ret = bgav_convert_string(cnv, (char*)pos, len, NULL);
   bgav_charset_converter_destroy(cnv);
   return ret;
   }
@@ -1455,7 +1455,7 @@ static
 bgav_input_context_t * bgav_input_open_dvb(const char * device,
                                            bgav_options_t * opt)
   {
-  bgav_input_context_t * ret = (bgav_input_context_t *)0;
+  bgav_input_context_t * ret = NULL;
   ret = bgav_input_create(opt);
   ret->input = &bgav_input_dvb;
 
@@ -1467,7 +1467,7 @@ bgav_input_context_t * bgav_input_open_dvb(const char * device,
   fail:
   if(ret)
     free(ret);
-  return (bgav_input_context_t *)0;
+  return NULL;
   }
 
 int bgav_open_dvb(bgav_t * b, const char * device)
@@ -1514,11 +1514,11 @@ bgav_device_info_t * bgav_find_devices_dvb()
   char * device_name;
   char * directory;
   
-  bgav_device_info_t * ret = (bgav_device_info_t *)0;
+  bgav_device_info_t * ret = NULL;
   
   for(i = 0; i < 8; i++)
     {
-    device_name = (char*)0;
+    device_name = NULL;
     
     directory = bgav_sprintf("/dev/dvb/adapter%d", i);
     
@@ -1547,7 +1547,7 @@ int bgav_check_device_dvb(const char * device, char ** name)
 
 bgav_device_info_t * bgav_find_devices_dvb()
   {
-  return (bgav_device_info_t*)0;
+  return NULL;
   }
 
 int bgav_open_dvb(bgav_t * b, const char * device)

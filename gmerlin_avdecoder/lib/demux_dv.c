@@ -120,7 +120,7 @@ static int open_dv(bgav_demuxer_context_t * ctx)
 
 static int next_packet_dv(bgav_demuxer_context_t * ctx)
   {
-  bgav_packet_t *ap = (bgav_packet_t *)0, *vp = (bgav_packet_t *)0;
+  bgav_packet_t *ap = NULL, *vp = NULL;
   bgav_stream_t *as, *vs;
   dv_priv_t * priv;
   priv = (dv_priv_t *)(ctx->priv);

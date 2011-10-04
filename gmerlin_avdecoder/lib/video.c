@@ -429,7 +429,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
         s->out_time = p->pts;
         return 1;
         }
-      result = bgav_video_decode(s, (gavl_video_frame_t*)0);
+      result = bgav_video_decode(s, NULL);
       if(!result)
         {
         s->out_time = BGAV_TIMESTAMP_UNDEFINED;

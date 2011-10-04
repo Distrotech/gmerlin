@@ -273,13 +273,13 @@ static uint32_t * read_index(bgav_input_context_t * ctx,
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Wrong index tag (broken file)");
-    return (uint32_t*)0;
+    return NULL;
     }
   if(ch.len - 8 < num_packets / 4)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Index chunk too small");
-    return (uint32_t*)0;
+    return NULL;
     }
   ret = malloc(num_packets * sizeof(*ret));
   for(i = 0; i < num_packets; i++)
@@ -289,7 +289,7 @@ static uint32_t * read_index(bgav_input_context_t * ctx,
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Unexpected EOF in index");
       free(ret);
-      return (uint32_t*)0;
+      return NULL;
       }
     }
   return ret;

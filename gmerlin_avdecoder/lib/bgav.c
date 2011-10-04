@@ -48,8 +48,8 @@ create_demuxer(bgav_t * b, const bgav_demuxer_t * demuxer)
 
 int bgav_init(bgav_t * ret)
   {
-  const bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
-  const bgav_redirector_t * redirector = (bgav_redirector_t*)0;
+  const bgav_demuxer_t * demuxer = NULL;
+  const bgav_redirector_t * redirector = NULL;
   
   bgav_subtitle_reader_context_t * subreader, * subreaders;
   
@@ -159,12 +159,12 @@ int bgav_init(bgav_t * ret)
   if(ret->demuxer)
     {
     bgav_demuxer_destroy(ret->demuxer);
-    ret->demuxer = (bgav_demuxer_context_t*)0;
+    ret->demuxer = NULL;
     }
   if(ret->redirector)
     {
     bgav_redirector_destroy(ret->redirector);
-    ret->redirector = (bgav_redirector_context_t*)0;
+    ret->redirector = NULL;
     }
   return 0;
   }
@@ -214,7 +214,7 @@ int bgav_open(bgav_t * ret, const char * location)
     {
     bgav_input_close(ret->input);
     free(ret->input);
-    ret->input = (bgav_input_context_t*)0;
+    ret->input = NULL;
     }
   return 0;
   }
@@ -415,12 +415,12 @@ int bgav_select_track(bgav_t * b, int track)
         if(b->tt)
           {
           bgav_track_table_unref(b->tt);
-          b->tt = (bgav_track_table_t*)0;
+          b->tt = NULL;
           }
         if(b->demuxer && b->demuxer->tt)
           {
           bgav_track_table_unref(b->demuxer->tt);
-          b->demuxer->tt = (bgav_track_table_t*)0;
+          b->demuxer->tt = NULL;
           }
         bgav_demuxer_stop(b->demuxer);
         }
@@ -503,8 +503,7 @@ const char * bgav_get_disc_name(bgav_t * bgav)
   {
   if(bgav->input)
     return bgav->input->disc_name;
-  return
-    (const char*)0;
+  return NULL;
   }
 
 bgav_edl_t * bgav_get_edl(bgav_t * bgav)
@@ -512,7 +511,7 @@ bgav_edl_t * bgav_get_edl(bgav_t * bgav)
   if(bgav->demuxer && bgav->demuxer->edl)
     return bgav->demuxer->edl;
   else
-    return (bgav_edl_t*)0;
+    return NULL;
   }
 
 int bgav_can_pause(bgav_t * bgav)

@@ -1423,10 +1423,10 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
 static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   {
   //  bgav_packet_t * p;
-  bgav_stream_t * stream = (bgav_stream_t*)0;
+  bgav_stream_t * stream = NULL;
   rm_private_t * rm;
   bgav_rmff_packet_header_t h;
-  rm_stream_t * rs = (rm_stream_t*)0;
+  rm_stream_t * rs = NULL;
   int result = 0;
   uint32_t stream_pos = 0;
   int i;
@@ -1488,7 +1488,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
            !bgav_packet_buffer_is_empty(stream->packet_buffer) ||
            rs->data_pos >= rs->data_end)
           {
-          stream = (bgav_stream_t*)0;
+          stream = NULL;
           }
         else
           {
@@ -1507,7 +1507,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
              !bgav_packet_buffer_is_empty(stream->packet_buffer) ||
              rs->data_pos >= rs->data_end)
             {
-            stream = (bgav_stream_t*)0;
+            stream = NULL;
             }
           else
             {

@@ -144,7 +144,7 @@ static int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   node = n->children;
   r->num_urls = 0;
   
-  title = (char*)0;
+  title = NULL;
 
   /* Try to fetch a title */
     

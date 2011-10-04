@@ -40,7 +40,7 @@
 #include <codecs.h>
 #define LOG_DOMAIN "video_xadll"
 
-char * bgav_dll_path_xanim = (char*)0;
+char * bgav_dll_path_xanim = NULL;
 
 typedef struct
 {

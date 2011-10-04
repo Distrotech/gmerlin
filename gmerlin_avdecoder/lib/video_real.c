@@ -38,7 +38,7 @@
 
 // static char codec_path[PATH_MAX];
 
-char * bgav_dll_path_real = (char*)0;
+char * bgav_dll_path_real = NULL;
 
 static int init_real(bgav_stream_t * s);
 static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f);
@@ -183,7 +183,7 @@ static int init_real(bgav_stream_t * s)
   
   char codec_filename[PATH_MAX];
   rv_init_t init_data;
-  const codec_info_t * info = (const codec_info_t*)0;
+  const codec_info_t * info = NULL;
   real_priv_t * priv;
 
   uint32_t version;

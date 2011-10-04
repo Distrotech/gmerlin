@@ -186,7 +186,7 @@ static int init_real(bgav_stream_t * s)
   char * path;
   int len;
   void * prop;
-  const codec_info_t * info = (codec_info_t*)0;
+  const codec_info_t * info = NULL;
     
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;

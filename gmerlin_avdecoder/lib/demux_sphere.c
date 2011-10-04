@@ -123,18 +123,18 @@ static int find_num(const char * buf)
 
 static int sphere_header_read(bgav_input_context_t * input, sphere_header_t * ret)
   {
-  char * buffer = (char*)0;
+  char * buffer = NULL;
   int buffer_alloc = 0;
 
   memset(ret, 0, sizeof(*ret));
     
   while(1)
     {
-    if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, (int*)0))
+    if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, NULL))
       return 0;
     if(check_key(buffer, "NIST_1A"))
       {
-      if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, (int*)0))
+      if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, NULL))
         return 0;
       ret->HeaderSize = atoi(buffer);
       }

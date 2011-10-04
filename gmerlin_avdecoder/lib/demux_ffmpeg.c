@@ -489,7 +489,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   {
   bgav_stream_t * s;
   int i;
-  audio_codec_map_t * map = (audio_codec_map_t *)0;
+  audio_codec_map_t * map = NULL;
   AVCodecContext *codec= st->codec;
   
   /* Get fourcc */
@@ -543,7 +543,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
                               AVStream * st, int index)
   {
   bgav_stream_t * s;
-  video_codec_map_t * map = (video_codec_map_t *)0;
+  video_codec_map_t * map = NULL;
   int i;
   uint32_t tag;
   AVCodecContext *codec= st->codec;

@@ -255,7 +255,7 @@ int bgav_file_index_read_header(const char * filename,
   {
   int ret = 0;
   uint64_t file_time;
-  char * line = (char *)0;
+  char * line = NULL;
   int line_alloc = 0;
   uint32_t ntracks;
   struct stat stat_buf;
@@ -536,7 +536,7 @@ static void set_has_file_index(bgav_t * b)
 int bgav_read_file_index(bgav_t * b)
   {
   int i, j;
-  bgav_input_context_t * input = (bgav_input_context_t*)0;
+  bgav_input_context_t * input = NULL;
   int num_tracks;
   uint32_t num_streams;
   uint32_t stream_id;
@@ -594,13 +594,13 @@ int bgav_read_file_index(bgav_t * b)
           case BGAV_STREAM_VIDEO:
             s = bgav_track_add_video_stream(&b->tt->tracks[i], &b->opt);
             break;
-            /* Passing (char*)0 as encoding might break when we have MPEG-like formats with
+            /* Passing NULL as encoding might break when we have MPEG-like formats with
                text subtitles */
           case BGAV_STREAM_SUBTITLE_TEXT:
-            s = bgav_track_add_subtitle_stream(&b->tt->tracks[i], &b->opt, 1, (char*)0);
+            s = bgav_track_add_subtitle_stream(&b->tt->tracks[i], &b->opt, 1, NULL);
             break;
           case BGAV_STREAM_SUBTITLE_OVERLAY:
-            s = bgav_track_add_subtitle_stream(&b->tt->tracks[i], &b->opt, 0, (char*)0);
+            s = bgav_track_add_subtitle_stream(&b->tt->tracks[i], &b->opt, 0, NULL);
             break;
           }
         
@@ -646,7 +646,7 @@ static void purge_cache(const char * filename,
   {
   int num_files;
   int files_alloc;
-  index_file_t * files = (index_file_t *)0;
+  index_file_t * files = NULL;
   int64_t total_size;
   int64_t max_total_size;
   time_t time_min;

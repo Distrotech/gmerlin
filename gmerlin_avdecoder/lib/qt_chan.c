@@ -200,7 +200,7 @@ static const char * get_channel_name(channel_label_t label)
     if(channel_label_names[i].label == label)
       return channel_label_names[i].name;
     }
-  return (char*)0;
+  return NULL;
   }
 
 typedef enum
@@ -736,7 +736,7 @@ static const channel_label_t * get_channel_locations(uint32_t layout, int * num_
       return channel_locations[i].channels;
       }
     }
-  return (channel_label_t*)0;
+  return NULL;
   }
 
 void bgav_qt_chan_dump(int indent, qt_chan_t * chan)

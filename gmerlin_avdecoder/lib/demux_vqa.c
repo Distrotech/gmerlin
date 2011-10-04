@@ -216,7 +216,7 @@ static int open_vqa(bgav_demuxer_context_t * ctx)
 
 static int next_packet_vqa(bgav_demuxer_context_t * ctx)
   {
-  bgav_stream_t * s = (bgav_stream_t*)0;
+  bgav_stream_t * s = NULL;
   bgav_packet_t * p;
   uint32_t type;
   uint32_t size;

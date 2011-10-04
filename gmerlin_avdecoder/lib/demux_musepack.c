@@ -108,8 +108,8 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
   int ape_tag_size;
   bgav_metadata_t start_metadata, end_metadata;
 
-  bgav_id3v1_tag_t * id3v1  = (bgav_id3v1_tag_t*)0;
-  bgav_ape_tag_t   * apetag = (bgav_ape_tag_t*)0;
+  bgav_id3v1_tag_t * id3v1  = NULL;
+  bgav_ape_tag_t   * apetag = NULL;
     
   bgav_stream_t * s;
   mpc_priv_t * priv;

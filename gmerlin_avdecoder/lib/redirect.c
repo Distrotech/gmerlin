@@ -93,7 +93,7 @@ const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input,
     {
     *yml = bgav_yml_parse(input);
     if(!(*yml))
-      return (bgav_redirector_t*)0;
+      return NULL;
 
 #if 1
     
@@ -109,7 +109,7 @@ const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input,
       }
 #endif
     }
-  return (bgav_redirector_t*)0;
+  return NULL;
   }
 
 static bgav_redirector_context_t * get_redir(bgav_t * b)
@@ -119,7 +119,7 @@ static bgav_redirector_context_t * get_redir(bgav_t * b)
   else if(b->demuxer)
     return b->demuxer->redirector;
   else
-    return (bgav_redirector_context_t*)0;
+    return NULL;
   }
 
 int bgav_is_redirector(bgav_t * b)
@@ -146,7 +146,7 @@ const char * bgav_redirector_get_url(bgav_t * b, int index)
   bgav_redirector_context_t * r;
   r = get_redir(b);
   if(!r)
-    return (const char*)0;
+    return NULL;
   return r->urls[index].url;
   }
 
@@ -155,7 +155,7 @@ const char * bgav_redirector_get_name(bgav_t * b, int index)
   bgav_redirector_context_t * r;
   r = get_redir(b);
   if(!r)
-    return (const char*)0;
+    return NULL;
   return r->urls[index].name;
   }
 

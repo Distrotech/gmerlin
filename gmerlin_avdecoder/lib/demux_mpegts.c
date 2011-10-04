@@ -697,7 +697,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
     {
     if(bgav_pmt_section_setup_track(&priv->programs[program].pmts,
                                     &ctx->tt->tracks[program],
-                                    ctx->opt, -1, -1, -1, (int*)0, (int*)0))
+                                    ctx->opt, -1, -1, -1, NULL, NULL))
       {
       priv->programs[program].pcr_pid = priv->programs[program].pmts.pcr_pid;
       priv->programs[program].initialized = 1;
@@ -834,10 +834,10 @@ static bgav_stream_t *
 test_streams_detect(test_streams_t * s, bgav_track_t * track,
                     const bgav_options_t * opt)
   {
-  bgav_stream_t * ret = (bgav_stream_t*)0;
+  bgav_stream_t * ret = NULL;
   test_stream_t * st;
   if(s->last_added < 0)
-    return (bgav_stream_t *)0;
+    return NULL;
 
   st = s->streams + s->last_added;
   
@@ -946,7 +946,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       test_streams_append_packet(&ts, priv->ptr,
                                  priv->packet.payload_size,
                                  priv->packet.pid,
-                                 (bgav_pes_header_t*)0);
+                                 NULL);
       s = test_streams_detect(&ts, &ctx->tt->tracks[0], ctx->opt);
       }
     
@@ -1002,7 +1002,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
 
   
   priv->input_mem =
-    bgav_input_open_memory((uint8_t*)0, 0, ctx->opt);
+    bgav_input_open_memory(NULL, 0, ctx->opt);
   
   priv->ptr = priv->buffer;
   priv->packet_start = priv->buffer;

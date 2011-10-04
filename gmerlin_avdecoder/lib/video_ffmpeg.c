@@ -341,7 +341,7 @@ static int decode_picture(bgav_stream_t * s)
       if(priv->flags & HAS_DELAY)
         {
         priv->frame_buffer_len = 0;
-        priv->frame_buffer = (uint8_t*)0;
+        priv->frame_buffer = NULL;
         }
       else
         return 0;
@@ -391,7 +391,7 @@ static int decode_picture(bgav_stream_t * s)
                             priv->packet->pts,
                             priv->packet->duration,
                             priv->packet->tc,
-                            (int*)0, &e);
+                            NULL, &e);
         }
       
       priv->frame_buffer = priv->packet->data;
@@ -945,9 +945,9 @@ static int init_ffmpeg(bgav_stream_t * s)
                      s->data.video.format.image_width,
                      s->data.video.format.image_height,
                      priv->dst_format,
-                     SWS_FAST_BILINEAR, (SwsFilter*)0,
-                     (SwsFilter*)0,
-                     (double*)0);
+                     SWS_FAST_BILINEAR, NULL,
+                     NULL,
+                     NULL);
 #endif
     }
 
@@ -1702,7 +1702,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
     if(s->data.video.decoder->decoder == &codecs[i].decoder)
       return codecs[i].info;
     }
-  return (codec_info_t *)0;
+  return NULL;
   }
 
 void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)

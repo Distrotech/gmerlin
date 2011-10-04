@@ -66,7 +66,7 @@ static int open_adif(bgav_demuxer_context_t * ctx)
   {
   aac_priv_t * priv;
   bgav_stream_t * s;
-  bgav_id3v1_tag_t * id3v1 = (bgav_id3v1_tag_t*)0;
+  bgav_id3v1_tag_t * id3v1 = NULL;
   bgav_metadata_t id3v1_metadata, id3v2_metadata;
 
   uint8_t buf[ADIF_SIZE];

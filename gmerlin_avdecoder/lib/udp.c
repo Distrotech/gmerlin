@@ -47,7 +47,7 @@ int bgav_udp_open(const bgav_options_t * opt, int port)
   int ret;
   size_t tmp = 0;
   struct addrinfo * addr;
-  addr = bgav_hostbyname(opt, (const char *)0, port, SOCK_DGRAM, AI_PASSIVE);
+  addr = bgav_hostbyname(opt, NULL, port, SOCK_DGRAM, AI_PASSIVE);
 
   /* Create the socket */
   if((ret = socket(PF_INET, SOCK_DGRAM, 0)) < 0)

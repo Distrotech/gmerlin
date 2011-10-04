@@ -253,11 +253,11 @@ static char ** read_string_list(const bgav_options_t * opt,
   int num_strings;
   char ** ret;
   bgav_charset_converter_t * cnv;
-  cnv = (bgav_charset_converter_t*)0;
+  cnv = NULL;
   encoding = *data;
 
   if(data_size == 1)
-    return (char**)0;
+    return NULL;
   
   switch(encoding)
     {
@@ -285,7 +285,7 @@ static char ** read_string_list(const bgav_options_t * opt,
       pos = ((char*)data) + 1;
       break;
     default:
-      return (char **)0;
+      return NULL;
     }
   
   end_pos = pos;
@@ -416,7 +416,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   uint8_t * data;
   int data_size;
       
-  bgav_id3v2_tag_t * ret = (bgav_id3v2_tag_t *)0;
+  bgav_id3v2_tag_t * ret = NULL;
   
   if(bgav_input_read_data(input, probe_data, 3) < 3)
     goto fail;
@@ -519,7 +519,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   fail:
   if(ret)
     bgav_id3v2_destroy(ret);
-  return (bgav_id3v2_tag_t *)0;
+  return NULL;
   }
 
 static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
@@ -541,7 +541,7 @@ static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
       j++;
       }
     }
-  return (bgav_id3v2_frame_t*)0;
+  return NULL;
   }
 
 static const uint32_t title_tags[] =
@@ -618,11 +618,10 @@ static char * get_comment(const bgav_options_t * opt,
   uint8_t encoding;
   uint8_t * pos;
   int bytes_per_char;
-  bgav_charset_converter_t * cnv =
-    (bgav_charset_converter_t*)0;
+  bgav_charset_converter_t * cnv = NULL;
   
   if(!frame->data)
-    return (char*)0;
+    return NULL;
   
   encoding = *frame->data;
     
@@ -652,7 +651,7 @@ static char * get_comment(const bgav_options_t * opt,
       pos = frame->data + 4;
       break;
     default:
-      return (char *)0;
+      return NULL;
     }
   
   pos = frame->data + 4; /* Skip encoding and language */

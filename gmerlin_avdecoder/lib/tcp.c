@@ -112,7 +112,7 @@ bgav_hostbyname(const bgav_options_t * opt,
   
   struct addrinfo hints;
   struct addrinfo * ret;
-  char * service = (char*)0;
+  char * service = NULL;
   
   memset(&hints, 0, sizeof(hints));
   //  hints.ai_family   = AF_UNSPEC;
@@ -138,7 +138,7 @@ bgav_hostbyname(const bgav_options_t * opt,
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Cannot resolve address of %s: %s",
              hostname, gai_strerror(err));
-    return (struct addrinfo *)0;
+    return NULL;
     }
 
   if(hostname)
@@ -192,7 +192,7 @@ static int socket_connect_inet(const bgav_options_t * opt, struct addrinfo * add
       timeout.tv_usec = 1000 * (opt->connect_timeout % 1000);
       FD_ZERO (&write_fds);
       FD_SET (ret, &write_fds);
-      if(!select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout))
+      if(!select(ret+1, NULL, &write_fds,NULL,&timeout))
         {
         bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
         return -1;

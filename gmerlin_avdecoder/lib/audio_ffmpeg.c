@@ -738,7 +738,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
     if(s->data.audio.decoder->decoder == &codecs[i].decoder)
       return codecs[i].info;
     }
-  return (codec_info_t*)0;
+  return NULL;
   }
 
 void

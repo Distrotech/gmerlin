@@ -103,7 +103,7 @@ static int next_packet_clip_wrapped_const(bgav_demuxer_context_t * ctx, bgav_str
   {
   int bytes_to_read;
   mxf_klv_t klv;
-  bgav_stream_t * tmp_stream = (bgav_stream_t *)0;
+  bgav_stream_t * tmp_stream = NULL;
   stream_priv_t * sp;
   bgav_packet_t * p;
   mxf_t * priv;
@@ -459,7 +459,7 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx,
   mxf_source_clip_t * sc;
   mxf_t * priv;
   uint32_t fourcc;
-  bgav_stream_t * s = (bgav_stream_t*)0;
+  bgav_stream_t * s = NULL;
   
   priv = (mxf_t*)ctx->priv;
   
@@ -557,7 +557,7 @@ static partition_t * get_body_partition(mxf_file_t * f, mxf_package_t * p)
   int i;
   uint32_t body_sid;
   if(!get_body_sid(f, p, &body_sid))
-    return (partition_t *)0;
+    return NULL;
   if(f->header.p.body_sid == body_sid)
     return &f->header;
 
@@ -566,7 +566,7 @@ static partition_t * get_body_partition(mxf_file_t * f, mxf_package_t * p)
     if(f->body_partitions[i].p.body_sid == body_sid)
       return &f->body_partitions[i];
     }
-  return (partition_t *)0;
+  return NULL;
   }
 
 /* Simple initialization */
@@ -574,7 +574,7 @@ static int init_simple(bgav_demuxer_context_t * ctx)
   {
   mxf_t * priv;
   int i, j, num_tracks = 0;
-  mxf_package_t * sp = (mxf_package_t *)0;
+  mxf_package_t * sp = NULL;
   int index = 0;
   
   priv = (mxf_t*)ctx->priv;
@@ -693,7 +693,7 @@ static bgav_stream_t * next_stream(bgav_stream_t * s, int num)
         return s + i;
       }
     }
-  return (bgav_stream_t*)0;
+  return NULL;
   }
 
 static int next_packet_mxf(bgav_demuxer_context_t * ctx)
@@ -705,7 +705,7 @@ static int next_packet_mxf(bgav_demuxer_context_t * ctx)
   if(s)
     sp = (stream_priv_t*)s->priv;
   else
-    sp = (stream_priv_t*)0;
+    sp = NULL;
   
   while(!s || !sp->next_packet(ctx, s))
     {
@@ -878,7 +878,7 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
   mxf_sequence_t * ss;
   mxf_source_clip_t * sc;
   mxf_t * priv;
-  bgav_edl_stream_t * es = (bgav_edl_stream_t*)0;
+  bgav_edl_stream_t * es = NULL;
   int track_index, stream_index = 0;
   bgav_edl_segment_t * seg;
   int64_t duration = 0;
@@ -907,7 +907,7 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
        (ss->structural_components[0]->type != MXF_TYPE_SOURCE_CLIP))
       return;
 
-    es = (bgav_edl_stream_t*)0;
+    es = NULL;
     
     switch(ss->stream_type)
       {
@@ -960,7 +960,7 @@ static void build_edl_mxf(bgav_demuxer_context_t * ctx)
   {
   mxf_t * priv;
   int i, j;
-  mxf_package_t * sp = (mxf_package_t *)0;
+  mxf_package_t * sp = NULL;
   bgav_edl_track_t * t;
   priv = (mxf_t*)ctx->priv;
 

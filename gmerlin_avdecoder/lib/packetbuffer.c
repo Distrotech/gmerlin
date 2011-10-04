@@ -162,7 +162,7 @@ bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b,
   if(get_duration)
     {
     if(!b->read_packet->valid || !b->read_packet->next->valid)
-      return (bgav_packet_t*)0; 
+      return NULL; 
     if((b->read_packet->dts != BGAV_TIMESTAMP_UNDEFINED) &&
        (b->read_packet->next->dts != BGAV_TIMESTAMP_UNDEFINED))
       b->read_packet->duration =
@@ -173,7 +173,7 @@ bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b,
       
     }
   else if(!b->read_packet->valid)
-    return (bgav_packet_t*)0;
+    return NULL;
   
   return b->read_packet;
   }

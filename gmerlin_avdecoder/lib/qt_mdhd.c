@@ -59,7 +59,7 @@ void bgav_qt_mdhd_dump(int indent, qt_mdhd_t * m)
   {
   char lang_code[4];
   const char * language;
-  const char * charset = (char*)0;
+  const char * charset = NULL;
   memset(lang_code, 0, 4);
 
   bgav_qt_mdhd_get_language(m, lang_code);

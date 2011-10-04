@@ -57,7 +57,7 @@ static const char * find_directory(char const* const* dirs, const char * env_nam
   if((env_dir = getenv(env_name)) && !stat(env_dir, &st) && S_ISDIR(st.st_mode))
     return env_dir;
     
-  return (char*)0;
+  return NULL;
   }
 #endif
 
@@ -71,7 +71,7 @@ static char const * const real_dirs[] =
     "/usr/lib/codecdlls",
     "/usr/lib/win32",
     "/usr/local/lib/win32",
-    (char*)0
+    NULL
   };
 
 static void bgav_set_dll_path_real()
@@ -94,7 +94,7 @@ static char * xanim_dirs[] =
     "/usr/lib/codecdlls",
     "/usr/lib/win32",
     "/usr/local/lib/win32",
-    (char*)0
+    NULL
   };
 
 static void bgav_set_dll_path_xanim()
@@ -118,7 +118,7 @@ static char * win32_dirs[] =
     "/usr/lib/codecdlls",
     "/usr/lib/win32",
     "/usr/local/lib/win32",
-    (char*)0
+    NULL
   };
   
 static int win_path_needs_delete = 0;
@@ -142,10 +142,9 @@ static void bgav_set_dll_path_win32()
  *  this stays quite simple
  */
 
-static bgav_audio_decoder_t * audio_decoders = (bgav_audio_decoder_t*)0;
-static bgav_video_decoder_t * video_decoders = (bgav_video_decoder_t*)0;
-static bgav_subtitle_overlay_decoder_t * subtitle_overlay_decoders =
-  (bgav_subtitle_overlay_decoder_t*)0;
+static bgav_audio_decoder_t * audio_decoders = NULL;
+static bgav_video_decoder_t * video_decoders = NULL;
+static bgav_subtitle_overlay_decoder_t * subtitle_overlay_decoders = NULL;
 
 static int codecs_initialized = 0;
 
@@ -161,7 +160,7 @@ static void codecs_lock()
   {
   if(!mutex_initialized)
     {
-    pthread_mutex_init(&codec_mutex,(pthread_mutexattr_t *)0);
+    pthread_mutex_init(&codec_mutex, NULL);
     mutex_initialized = 1;
     }
   pthread_mutex_lock(&codec_mutex);
@@ -348,7 +347,7 @@ void bgav_audio_decoder_register(bgav_audio_decoder_t * dec)
       before = before->next;
     before->next = dec;
     }
-  dec->next = (bgav_audio_decoder_t*)0;
+  dec->next = NULL;
   num_audio_codecs++;
   }
 
@@ -364,7 +363,7 @@ void bgav_video_decoder_register(bgav_video_decoder_t * dec)
       before = before->next;
     before->next = dec;
     }
-  dec->next = (bgav_video_decoder_t*)0;
+  dec->next = NULL;
   num_video_codecs++;
   }
 
@@ -380,7 +379,7 @@ void bgav_subtitle_overlay_decoder_register(bgav_subtitle_overlay_decoder_t * de
       before = before->next;
     before->next = dec;
     }
-  dec->next = (bgav_subtitle_overlay_decoder_t*)0;
+  dec->next = NULL;
   num_subtitle_overlay_codecs++;
   
   }
@@ -411,7 +410,7 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
     cur = cur->next;
     }
   codecs_unlock();
-  return (bgav_audio_decoder_t*)0;
+  return NULL;
   }
 
 bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
@@ -441,7 +440,7 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
     cur = cur->next;
     }
   codecs_unlock();
-  return (bgav_video_decoder_t*)0;
+  return NULL;
   }
 
 bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream_t * s)
@@ -471,7 +470,7 @@ bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream
     cur = cur->next;
     }
   codecs_unlock();
-  return (bgav_subtitle_overlay_decoder_t*)0;
+  return NULL;
   }
 
 

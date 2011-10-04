@@ -39,11 +39,11 @@ static int probe_ref(bgav_input_context_t * input)
 
 static int parse_ref(bgav_redirector_context_t * r)
   {
-  char * buffer = (char *)0;
+  char * buffer = NULL;
   int buffer_alloc = 0;
   char * pos;
     
-  if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
+  if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, NULL))
     return 0;
 
   if(strncasecmp(buffer, "[Reference]", 11))
@@ -51,7 +51,7 @@ static int parse_ref(bgav_redirector_context_t * r)
   
   while(1)
     {
-    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
+    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, NULL))
       break;
 
     if(!strncasecmp(buffer, "ref", 3) && isdigit(buffer[3]))

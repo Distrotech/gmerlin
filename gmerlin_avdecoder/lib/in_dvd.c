@@ -242,7 +242,7 @@ static int setup_track(bgav_input_context_t * ctx,
                         int title, int chapter, int angle)
   {
   int video_width = 0, video_height;
-  const char * audio_codec = (const char *)0;
+  const char * audio_codec = NULL;
   audio_attr_t * audio_attr;
   video_attr_t * video_attr;
   subp_attr_t *  subp_attr;
@@ -251,7 +251,7 @@ static int setup_track(bgav_input_context_t * ctx,
   bgav_stream_t * s;
   bgav_track_t * new_track;
   tt_srpt_t *ttsrpt;
-  pgc_t * pgc = (pgc_t*)0;
+  pgc_t * pgc = NULL;
   vts_ptt_srpt_t *vts_ptt_srpt;
   int ttn, pgn;
   int pgc_id;
@@ -524,7 +524,7 @@ static int setup_track(bgav_input_context_t * ctx,
     if(!(pgc->subp_control[i] & 0x80000000))
       continue;
 
-    s = bgav_track_add_subtitle_stream(new_track, ctx->opt, 0, (char*)0);
+    s = bgav_track_add_subtitle_stream(new_track, ctx->opt, 0, NULL);
     s->fourcc = BGAV_MK_FOURCC('D', 'V', 'D', 'S');
 
     /*  there are several streams for one spu */
@@ -1208,7 +1208,7 @@ bgav_device_info_t * bgav_find_devices_dvd()
   int i;
   char * device_name;
   char ** devices;
-  bgav_device_info_t * ret = (bgav_device_info_t *)0;
+  bgav_device_info_t * ret = NULL;
 
   devices = cdio_get_devices(DRIVER_DEVICE);
 
@@ -1218,7 +1218,7 @@ bgav_device_info_t * bgav_find_devices_dvd()
   i = 0;
   while(devices[i])
     {
-    device_name = (char*)0;
+    device_name = NULL;
     if(bgav_check_device_dvd(devices[i], &device_name))
       {
       ret = bgav_device_info_append(ret,
@@ -1238,7 +1238,7 @@ static
 bgav_input_context_t * bgav_input_open_dvd(const char * device,
                                            bgav_options_t * opt)
   {
-  bgav_input_context_t * ret = (bgav_input_context_t *)0;
+  bgav_input_context_t * ret = NULL;
   ret = bgav_input_create(opt);
   ret->input = &bgav_input_dvd;
   if(!ret->input->open(ret, device, NULL))
@@ -1250,7 +1250,7 @@ bgav_input_context_t * bgav_input_open_dvd(const char * device,
   fail:
   if(ret)
     free(ret);
-  return (bgav_input_context_t *)0;
+  return NULL;
   }
 
 int bgav_open_dvd(bgav_t * b, const char * device)
@@ -1311,7 +1311,7 @@ int bgav_check_device_dvd(const char * device, char ** name)
 
 bgav_device_info_t * bgav_find_devices_dvd()
   {
-  return (bgav_device_info_t*)0;
+  return NULL;
   
   }
 

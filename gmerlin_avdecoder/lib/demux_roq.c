@@ -194,8 +194,8 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
   uint8_t preamble[PREAMBLE_SIZE];
   chunk_header_t h;
   int done = 0;
-  bgav_packet_t * video_packet = (bgav_packet_t *)0;
-  bgav_packet_t * audio_packet = (bgav_packet_t *)0;
+  bgav_packet_t * video_packet = NULL;
+  bgav_packet_t * audio_packet = NULL;
   
 
   while(!done)
@@ -257,7 +257,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         video_packet->data_size += h.size;
         video_packet->pts = s->in_position;
         bgav_stream_done_packet_write(s, video_packet);
-        video_packet = (bgav_packet_t*)0;
+        video_packet = NULL;
         done = 1;
         break;
       case RoQ_SOUND_MONO:

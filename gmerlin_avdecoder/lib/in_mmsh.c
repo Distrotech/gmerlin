@@ -104,7 +104,7 @@ static int open_mmsh(bgav_input_context_t * ctx, const char * url, char ** r)
   mmsh_priv * p;
   //  stream_chunck_t sc;
   
-  bgav_http_header_t * header = (bgav_http_header_t*)0;
+  bgav_http_header_t * header = NULL;
   
   p = calloc(1, sizeof(*p));
 

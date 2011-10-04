@@ -175,7 +175,7 @@ static int init_theora(bgav_stream_t * s)
   priv->offset_y_uv = priv->ti.pic_y / sub_v;
   
   /* Create frame */
-  priv->frame = gavl_video_frame_create((gavl_video_format_t*)0);
+  priv->frame = gavl_video_frame_create(NULL);
   s->description = bgav_sprintf("Theora (Version %d.%d.%d)",
                                 priv->ti.version_major, priv->ti.version_minor,
                                 priv->ti.version_subminor); 

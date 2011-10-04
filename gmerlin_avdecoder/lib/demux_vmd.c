@@ -91,11 +91,11 @@ static int probe_vmd(bgav_input_context_t * input)
 static int open_vmd(bgav_demuxer_context_t * ctx)
   {
   vmd_priv_t * priv;
-  bgav_stream_t * vs = (bgav_stream_t *)0;
-  bgav_stream_t * as = (bgav_stream_t *)0;
+  bgav_stream_t * vs = NULL;
+  bgav_stream_t * as = NULL;
   int samplerate;
   uint32_t toc_offset;
-  uint8_t * raw_frame_table = (uint8_t*)0;
+  uint8_t * raw_frame_table = NULL;
   int raw_frame_table_size;
   int ret = 0;
   int i, j;

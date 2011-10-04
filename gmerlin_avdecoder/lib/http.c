@@ -105,7 +105,7 @@ int bgav_http_header_revc(const bgav_options_t * opt,
                           bgav_http_header_t * h, int fd)
   {
   int ret = 0;
-  char * answer = (char*)0;
+  char * answer = NULL;
   int answer_alloc = 0;
   
   while(bgav_read_line_fd(fd, &answer, &answer_alloc, opt->connect_timeout))
@@ -142,7 +142,7 @@ int bgav_http_header_status_code(bgav_http_header_t * h)
 const char * bgav_http_header_status_line(bgav_http_header_t * h)
   {
   if(!h->num_lines)
-    return (const char*)0;
+    return NULL;
   return h->lines[0].line;
   }
 
@@ -165,7 +165,7 @@ const char * bgav_http_header_get_var(bgav_http_header_t * h,
       return ret;
       }
     }
-  return (const char*)0;
+  return NULL;
   }
 
 void bgav_http_header_dump(bgav_http_header_t*h)
@@ -190,7 +190,7 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
                                 bgav_http_header_t * request_header,
                                 bgav_http_header_t * extra_header)
   {
-  bgav_http_t * ret = (bgav_http_t *)0;
+  bgav_http_t * ret = NULL;
   
   ret = calloc(1, sizeof(*ret));
   ret->opt = opt;
@@ -222,7 +222,7 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
   
   if(ret)
     bgav_http_close(ret);
-  return (bgav_http_t*)0;
+  return NULL;
   }
 
 static char * encode_user_pass(const char * user, const char * pass)
@@ -256,18 +256,18 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
 
   char * userpass_enc;
     
-  char * host     = (char*)0;
-  char * path     = (char*)0;
-  char * line     = (char*)0;
-  char * user     = (char*)0;
-  char * pass     = (char*)0;
-  char * protocol = (char*)0;
+  char * host     = NULL;
+  char * path     = NULL;
+  char * line     = NULL;
+  char * user     = NULL;
+  char * pass     = NULL;
+  char * protocol = NULL;
   
   const char * real_host;
   int real_port;
   
-  bgav_http_header_t * request_header = (bgav_http_header_t*)0;
-  bgav_http_t * ret = (bgav_http_t *)0;
+  bgav_http_header_t * request_header = NULL;
+  bgav_http_t * ret = NULL;
   int mhttp; /* Different header fields for Windows media server :) */
   
   port = -1;
@@ -285,7 +285,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   if(path && !strcmp(path, ";stream.nsv"))
     {
     free(path);
-    path = (char*)0;
+    path = NULL;
     }
   if(port == -1)
     port = 80;
@@ -346,12 +346,12 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     {
     /* Ok, they won't let us in, try to get a username and/or password */
     bgav_http_close(ret);
-    ret = (bgav_http_t*)0;
+    ret = NULL;
     
     if((!user || !pass) && opt->user_pass_callback)
       {
-      if(user) { free(user); user = (char*)0; }
-      if(pass) { free(pass); pass = (char*)0; }
+      if(user) { free(user); user = NULL; }
+      if(pass) { free(pass); pass = NULL; }
       
       if(!opt->user_pass_callback(opt->user_pass_callback_data, host, &user, &pass))
         goto fail;
@@ -388,7 +388,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     if(*redirect_url)
       {
       free(*redirect_url);
-      *redirect_url = (char*)0;
+      *redirect_url = NULL;
       }
     location = bgav_http_header_get_var(ret->header, "Location");
 
@@ -406,7 +406,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     if(request_header)
       bgav_http_header_destroy(request_header);
     bgav_http_close(ret);
-    return (bgav_http_t*)0;
+    return NULL;
     }
   else if(status < 200)  /* Error */
     {
@@ -432,7 +432,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   if(*redirect_url)
     {
     free(*redirect_url);
-    *redirect_url = (char*)0;
+    *redirect_url = NULL;
     }
   
   if(host)
@@ -450,7 +450,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
       bgav_http_header_destroy(ret->header);
     free(ret);
     }
-  return (bgav_http_t*)0;
+  return NULL;
   }
 
 void bgav_http_close(bgav_http_t * h)

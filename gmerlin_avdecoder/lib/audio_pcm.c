@@ -1221,7 +1221,7 @@ static int decode_frame_pcm(bgav_stream_t * s)
   if(!priv->bytes_in_packet)
     {
     bgav_stream_done_packet_read(s, priv->p);
-    priv->p = (bgav_packet_t*)0;
+    priv->p = NULL;
     }
   return 1;
   }

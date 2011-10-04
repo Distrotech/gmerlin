@@ -88,16 +88,16 @@ static mxf_ul_t * read_refs(bgav_input_context_t * input, uint32_t * num)
   {
   mxf_ul_t * ret;
   if(!bgav_input_read_32_be(input, num))
-    return (mxf_ul_t*)0;
+    return NULL;
   /* Skip size */
   bgav_input_skip(input, 4);
   if(!num)
-    return (mxf_ul_t *)0;
+    return NULL;
   ret = malloc(sizeof(*ret) * *num);
   if(bgav_input_read_data(input, (uint8_t*)ret, sizeof(*ret) * *num) < sizeof(*ret) * *num)
     {
     free(ret);
-    return (mxf_ul_t*)0;
+    return NULL;
     }
   return ret;
   }
@@ -114,7 +114,7 @@ resolve_strong_ref(partition_t * ret, mxf_ul_t u, mxf_metadata_type_t type)
        (type & ret->metadata[i]->type))
       return ret->metadata[i];
     }
-  return (mxf_metadata_t*)0;
+  return NULL;
   }
 
 static mxf_metadata_t *
@@ -131,7 +131,7 @@ package_by_ul(partition_t * ret, mxf_ul_t u)
     if((mp->common.type == MXF_TYPE_SOURCE_PACKAGE) && !memcmp(u, mp->package_ul, 16))
       return (mxf_metadata_t*)mp;
     }
-  return (mxf_metadata_t*)0;
+  return NULL;
   }
 
 static mxf_metadata_t **
@@ -141,7 +141,7 @@ resolve_strong_refs(partition_t * p, mxf_ul_t * u, int num, mxf_metadata_type_t 
   mxf_metadata_t ** ret;
 
   if(!num)
-    return (mxf_metadata_t**)0;
+    return NULL;
 
   ret = calloc(num, sizeof(*ret));
   
@@ -417,7 +417,7 @@ static const stream_entry_t * match_stream(const stream_entry_t * se, const mxf_
       return &se[i];
     i++;
     }
-  return (stream_entry_t*)0;
+  return NULL;
   }
 
 typedef struct
@@ -537,7 +537,7 @@ static const codec_entry_t * match_codec(const codec_entry_t * ce, const mxf_ul_
       return &ce[i];
     i++;
     }
-  return (codec_entry_t*)0;
+  return NULL;
   }
 
 static char * read_utf16_string(bgav_input_context_t * input, int len)
@@ -548,16 +548,16 @@ static char * read_utf16_string(bgav_input_context_t * input, int len)
   if(!cnv)
     {
     bgav_input_skip(input, len);
-    return (char*)0;
+    return NULL;
     }
   str = malloc(len);
   if(bgav_input_read_data(input, (uint8_t*)str, len) < len)
     {
     bgav_charset_converter_destroy(cnv);
-    return (char*)0;
+    return NULL;
     }
 
-  ret = bgav_convert_string(cnv, str, len, (int *)0);
+  ret = bgav_convert_string(cnv, str, len, NULL);
   bgav_charset_converter_destroy(cnv);
   free(str);
   return ret;
@@ -731,7 +731,7 @@ read_header_metadata(bgav_input_context_t * input,
     m->type = type;
     }
   else
-    m = (mxf_metadata_t *)0;
+    m = NULL;
   
   while(input->position < klv->endpos)
     {
@@ -2473,7 +2473,7 @@ static int read_partition(bgav_input_context_t * input,
     if(!bgav_mxf_klv_read(input, &klv))
       break;
 
-    m = (mxf_metadata_t*)0;
+    m = NULL;
     
     if(UL_MATCH_MOD_REGVER(klv.key, mxf_filler_key))
       {
@@ -2873,11 +2873,11 @@ bgav_stream_t * bgav_mxf_find_stream(mxf_file_t * f, bgav_demuxer_context_t * t,
   {
   uint32_t stream_id;
   if(!UL_MATCH(ul, mxf_essence_element_key))
-    return (bgav_stream_t *)0;
+    return NULL;
 
   if(((mxf_preface_t*)(f->header.preface))->operational_pattern == MXF_OP_ATOM)
     {
-    bgav_stream_t * ret = (bgav_stream_t *)0;
+    bgav_stream_t * ret = NULL;
     if(t->tt->cur->num_audio_streams)
       ret = t->tt->cur->audio_streams;
     if(t->tt->cur->num_video_streams)
@@ -2885,7 +2885,7 @@ bgav_stream_t * bgav_mxf_find_stream(mxf_file_t * f, bgav_demuxer_context_t * t,
     if(t->tt->cur->num_subtitle_streams)
       ret = t->tt->cur->subtitle_streams;
     if(ret && ret->action == BGAV_STREAM_MUTE)
-      return (bgav_stream_t *)0;
+      return NULL;
     return ret;
     }
 
@@ -2913,7 +2913,7 @@ mxf_descriptor_t * bgav_mxf_get_source_descriptor(mxf_file_t * file, mxf_package
           return (mxf_descriptor_t *)(file->header.metadata[i]);
         }
       }
-    return (mxf_descriptor_t *)0;
+    return NULL;
     }
   if(p->descriptor->type == MXF_TYPE_DESCRIPTOR)
     return (mxf_descriptor_t *)p->descriptor;
@@ -2927,5 +2927,5 @@ mxf_descriptor_t * bgav_mxf_get_source_descriptor(mxf_file_t * file, mxf_package
         return sub_desc;
       } 
     }
-  return (mxf_descriptor_t*)0;
+  return NULL;
   }

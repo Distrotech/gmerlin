@@ -97,7 +97,7 @@ char * bgav_sprintf(const char * format,...)
   va_start( argp, format);
 
 #ifndef HAVE_VASPRINTF
-  len = vsnprintf((char*)0, 0, format, argp);
+  len = vsnprintf(NULL, 0, format, argp);
   ret = malloc(len+1);
   vsnprintf(ret, len+1, format, argp);
 #else
@@ -135,7 +135,7 @@ char * bgav_strndup(const char * start, const char * end)
   int len;
 
   if(!start)
-    return (char*)0;
+    return NULL;
 
   len = (end) ? (end - start) : strlen(start);
   ret = malloc(len+1);
@@ -146,7 +146,7 @@ char * bgav_strndup(const char * start, const char * end)
 
 char * bgav_strdup(const char * str)
   {
-  return (bgav_strndup(str, (char*)0));
+  return (bgav_strndup(str, NULL));
   }
 
 char * bgav_strncat(char * old, const char * start, const char * end)
@@ -288,7 +288,7 @@ int bgav_url_split(const char * url,
     if(pos1 != pos2)
       *path = bgav_strndup(pos1, pos2);
     else
-      *path = (char*)0;
+      *path = NULL;
     }
 
   /* Fix whitespaces in path */
@@ -409,7 +409,7 @@ char ** bgav_stringbreak(const char * str, char sep)
   if(!len)
     {
     num = 0;
-    return (char**)0;
+    return NULL;
     }
   
   num = 1;
@@ -497,7 +497,7 @@ char * bgav_search_file_write(const bgav_options_t * opt,
   FILE * testfile;
 
   if(!file)
-    return (char*)0;
+    return NULL;
   
   testpath = malloc((PATH_MAX+1) * sizeof(char));
   
@@ -517,7 +517,7 @@ char * bgav_search_file_write(const bgav_options_t * opt,
   if(errno != ENOENT)
     {
     free(testpath);
-    return (char*)0;
+    return NULL;
     }
 
   /*
@@ -567,7 +567,7 @@ char * bgav_search_file_write(const bgav_options_t * opt,
     return testpath;
     }
   free(testpath);
-  return (char*)0;
+  return NULL;
   }
 
 char * bgav_search_file_read(const bgav_options_t * opt,
@@ -586,7 +586,7 @@ char * bgav_search_file_read(const bgav_options_t * opt,
     return test_path;
 
   free(test_path);
-  return (char*)0;
+  return NULL;
   }
 
 int bgav_match_regexp(const char * str, const char * regexp)

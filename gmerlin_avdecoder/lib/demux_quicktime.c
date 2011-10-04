@@ -537,7 +537,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
     else
       {
       /* Fill in dummy packet */
-      add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, stream_id, -1, 0, 0, 0);
+      add_packet(ctx, priv, NULL, i, chunk_offset, stream_id, -1, 0, 0, 0);
       i++;
       priv->streams[stream_id].stco_pos++;
       }
@@ -571,7 +571,7 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
   qt_priv_t * priv;
   qt_moov_t * moov;
   
-  bgav_charset_converter_t * cnv = (bgav_charset_converter_t *)0;
+  bgav_charset_converter_t * cnv = NULL;
   
   priv = (qt_priv_t*)(ctx->priv);
   moov = &priv->moov;
@@ -733,7 +733,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
   {
   int64_t old_pos;
   int64_t pos;
-  uint8_t * buffer = (uint8_t *)0;
+  uint8_t * buffer = NULL;
   int buffer_alloc = 0;
   
   int total_chapters;
@@ -777,7 +777,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
     cnv = bgav_charset_converter_create(ctx->opt, charset, "UTF-8");
   else
     {
-    cnv = (bgav_charset_converter_t*)0;
+    cnv = NULL;
     bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Unknown encoding for chapter names");
     }
@@ -831,7 +831,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
     if(len)
       {
       ctx->tt->cur->chapter_list->chapters[i].name =
-        bgav_convert_string(cnv, (char*)(buffer+2), len, (int*)0);
+        bgav_convert_string(cnv, (char*)(buffer+2), len, NULL);
       }
     /* Increase file position */
     pos += stsz->entries[i];
@@ -1278,7 +1278,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         {
         bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                  "More than one timecode track, ignoring them all");
-        priv->timecode_track = (qt_trak_t*)0;
+        priv->timecode_track = NULL;
         }
       else
         priv->timecode_track = trak;
@@ -1298,7 +1298,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
 
 static int handle_rmra(bgav_demuxer_context_t * ctx)
   {
-  char * basename = (char*)0, *pos;
+  char * basename = NULL, *pos;
   
   int i, index;
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
@@ -1351,7 +1351,7 @@ static int handle_rmra(bgav_demuxer_context_t * ctx)
         ctx->redirector->urls[index].url =
           bgav_strncat(ctx->redirector->urls[index].url,
                        (char*)priv->moov.rmra.rmda[i].rdrf.data_ref,
-                       (char*)0);
+                       NULL);
         }
       index++;
       }
@@ -1584,7 +1584,7 @@ static void fix_index(bgav_demuxer_context_t * ctx)
 static int open_quicktime(bgav_demuxer_context_t * ctx)
   {
   qt_atom_header_t h;
-  qt_priv_t * priv = (qt_priv_t*)0;
+  qt_priv_t * priv = NULL;
   int have_moov = 0;
   int have_mdat = 0;
   int done = 0;

@@ -83,7 +83,7 @@ bgav_ape_tag_t * bgav_ape_tag_read(bgav_input_context_t * input, int tag_size)
   
   buffer = malloc(tag_size);
   if(bgav_input_read_data(input, buffer, tag_size) < tag_size)
-    return (bgav_ape_tag_t *)0;
+    return NULL;
 
   /* Go to start of footer */
   ptr = buffer + (tag_size - 16);

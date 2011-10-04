@@ -93,7 +93,7 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
     goto fail;
     }
   png->png_ptr = png_create_read_struct
-    (PNG_LIBPNG_VER_STRING, (png_voidp)0,
+    (PNG_LIBPNG_VER_STRING, NULL,
      NULL, NULL);
 
   setjmp(png_jmpbuf(png->png_ptr));

@@ -339,7 +339,7 @@ static int init_w32(bgav_stream_t * s)
 
   WAVEFORMATEX * in_format;
   bgav_WAVEFORMAT_t _in_format;
-  uint8_t * in_fmt_buffer = (uint8_t*)0;
+  uint8_t * in_fmt_buffer = NULL;
 
   WAVEFORMATEX out_format;
 

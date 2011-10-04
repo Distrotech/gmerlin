@@ -108,7 +108,7 @@ bgav_vorbis_comment_get_field(bgav_vorbis_comment_t * vc, const char * key)
         vc->user_comments[i][key_len] == '=')
       return vc->user_comments[i] + key_len + 1;
     }
-  return (const char*)0;
+  return NULL;
   }
 
 void bgav_vorbis_comment_2_metadata(bgav_vorbis_comment_t * comment,

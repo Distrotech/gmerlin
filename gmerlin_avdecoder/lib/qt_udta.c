@@ -110,7 +110,7 @@ static char * read_string(qt_atom_header_t * h,
       bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "Skipping garbage in udta atom");
       bgav_qt_atom_skip(ctx, h);
-      return (char*)0;
+      return NULL;
       }
     
     ret = malloc(size + 1);
@@ -315,7 +315,7 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * input,
   return 1;
   }
 
-#define FREE(s) if(s){free(s);s=(char*)0;}
+#define FREE(s) if(s){free(s);s=NULL;}
 
 void bgav_qt_udta_free(qt_udta_t * udta)
   {

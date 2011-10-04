@@ -477,7 +477,7 @@ bgav_RIFFINFO_t * bgav_RIFFINFO_read_without_header(bgav_input_context_t * input
   if(bgav_input_read_data(input, ptr, size) < size)
     {
     free(buf);
-    return (bgav_RIFFINFO_t*)0;
+    return NULL;
     }
   end_ptr = ptr + size;
 
@@ -580,7 +580,7 @@ void bgav_RIFFINFO_dump(bgav_RIFFINFO_t * info)
 
 /* FS = free_string */
 
-#define FS(tag) if(info->tag) { free(info->tag); info->tag = (char*)0; }
+#define FS(tag) if(info->tag) { free(info->tag); info->tag = NULL; }
 
 void bgav_RIFFINFO_destroy(bgav_RIFFINFO_t * info)
   {

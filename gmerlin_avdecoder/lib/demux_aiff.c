@@ -166,7 +166,7 @@ static char * read_meta_string(char * old, bgav_input_context_t * input,
   if(bgav_input_read_data(input, (uint8_t*)old, h->size) < h->size)
     {
     free(old);
-    return (char*)0;
+    return NULL;
     }
   if(h->size & 1)
     bgav_input_skip(input, 1);
@@ -179,7 +179,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx)
   comm_chunk_t comm;
 
   uint32_t fourcc;
-  bgav_stream_t * s = (bgav_stream_t *)0;
+  bgav_stream_t * s = NULL;
   aiff_priv_t * priv;
   int keep_going = 1;
   bgav_track_t * track;

@@ -56,7 +56,7 @@ static char const * const title_vars[] =
     "icy-name",
     "ice-name",
     "x-audiocast-name",
-    (char*)0
+    NULL
   };
 
 static char const * const genre_vars[] =
@@ -64,14 +64,14 @@ static char const * const genre_vars[] =
     "x-audiocast-genre",
     "icy-genre",
     "ice-genre",
-    (char*)0
+    NULL
   };
 
 static char const * const comment_vars[] =
   {
     "ice-description",
     "x-audiocast-description",
-    (char*)0
+    NULL
   };
 
 static void set_metadata_string(bgav_http_header_t * header,
@@ -97,7 +97,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   const char * var;
   http_priv * p;
   
-  bgav_http_header_t * header = (bgav_http_header_t*)0;
+  bgav_http_header_t * header = NULL;
   
   p = calloc(1, sizeof(*p));
 
@@ -318,7 +318,7 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
         pos++;
         if(pos - meta_buffer >= meta_bytes)
           {
-          pos = (char*)0;
+          pos = NULL;
           break;
           }
         }
@@ -333,7 +333,7 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
           {
           meta_name = bgav_convert_string(priv->charset_cnv ,
                                           pos, end_pos - pos,
-                                          (int*)0);
+                                          NULL);
         
           ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
                                          meta_name);

@@ -823,7 +823,7 @@ static char * get_default_vorbis_header(bgav_stream_t * stream, int * len)
   {
   int bitrate;
 
-  char * ret = (char*)0;
+  char * ret = NULL;
   int ret_len = 0;
 
   vorbis_info vi;

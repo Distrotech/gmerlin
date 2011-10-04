@@ -113,7 +113,7 @@ void * bg_avdec_create()
   {
   avdec_priv * ret = calloc(1, sizeof(*ret));
   ret->opt = bgav_options_create();
-  bgav_options_set_log_callback(ret->opt, log_callback, (void*)0);
+  bgav_options_set_log_callback(ret->opt, log_callback, NULL);
   return ret;
   }
 
@@ -125,14 +125,14 @@ void bg_avdec_close(void * priv)
   if(avdec->dec)
     {
     bgav_close(avdec->dec);
-    avdec->dec = (bgav_t*)0;
+    avdec->dec = NULL;
     }
   if(avdec->track_info)
     {
     for(i = 0; i < avdec->num_tracks; i++)
       bg_track_info_free(&(avdec->track_info[i]));
     free(avdec->track_info);
-    avdec->track_info = (bg_track_info_t*)0;
+    avdec->track_info = NULL;
     }
   }
 
@@ -187,7 +187,7 @@ bg_track_info_t * bg_avdec_get_track_info(void * priv, int track)
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
   if((track < 0) || (track >= avdec->num_tracks))
-    return (bg_track_info_t*)0;
+    return NULL;
   return &(avdec->track_info[track]);
   }
 
@@ -707,7 +707,7 @@ void bg_avdec_set_callbacks(void * priv,
 bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
   {
   int i = 0;
-  bg_device_info_t * ret = (bg_device_info_t *)0;
+  bg_device_info_t * ret = NULL;
 
   if(!info)
     return ret;
@@ -728,7 +728,7 @@ const char * bg_avdec_get_disc_name(void * priv)
   avdec = (avdec_priv*)(priv);
   if(avdec->dec)
     return bgav_get_disc_name(avdec->dec);
-  return (const char *)0;
+  return NULL;
   }
 
 static bg_edl_segment_t * copy_segments(const bgav_edl_segment_t * src, int len)

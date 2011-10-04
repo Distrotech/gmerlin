@@ -43,7 +43,7 @@ level_names[] =
     { BGAV_LOG_WARNING, TRS("Warning") },
     { BGAV_LOG_ERROR,   TRS("Error") },
     { BGAV_LOG_INFO,    TRS("Info") },
-    { 0,              (char*)0 }
+    { 0,                NULL }
   };
   
 static const char * log_level_to_string(bgav_log_level_t level)
@@ -55,7 +55,7 @@ static const char * log_level_to_string(bgav_log_level_t level)
       return level_names[index].name;
     index++;
     }
-  return (char*)0;
+  return NULL;
   }
 
 
@@ -74,7 +74,7 @@ void bgav_log(const bgav_options_t * opt,
   va_start( argp, format);
 
 #ifndef HAVE_VASPRINTF
-  len = vsnprintf((char*)0, 0, format, argp);
+  len = vsnprintf(NULL, 0, format, argp);
   msg_string = malloc(len+1);
   vsnprintf(msg_string, len+1, format, argp);
 #else

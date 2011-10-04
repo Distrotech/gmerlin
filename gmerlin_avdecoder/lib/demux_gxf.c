@@ -211,8 +211,8 @@ framerate_table[] =
 static int parse_track(bgav_input_context_t * input,
                        bgav_track_t * t, const bgav_options_t * opt)
   {
-  bgav_stream_t * as = (bgav_stream_t *)0;
-  bgav_stream_t * vs = (bgav_stream_t *)0;
+  bgav_stream_t * as = NULL;
+  bgav_stream_t * vs = NULL;
   uint32_t val_32;
   uint8_t tag;
   uint8_t value_length;

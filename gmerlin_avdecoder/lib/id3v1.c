@@ -51,10 +51,10 @@ static char * get_string(bgav_charset_converter_t * cnv, char * ptr, int max_siz
     end--;
     }
   if(end == ptr)
-    return (char*)0;
+    return NULL;
   end++;
 
-  return bgav_convert_string(cnv, ptr, end - ptr, (int*)0);
+  return bgav_convert_string(cnv, ptr, end - ptr, NULL);
   //  return bgav_strndup(ptr, end);
   }
 
@@ -68,7 +68,7 @@ bgav_id3v1_tag_t * bgav_id3v1_read(bgav_input_context_t * input)
   bgav_charset_converter_t * cnv;
   
   if(bgav_input_read_data(input, (uint8_t*)buffer, 128) < 128)
-    return (bgav_id3v1_tag_t *)0;
+    return NULL;
 
   cnv = bgav_charset_converter_create(input->opt, "ISO-8859-1", "UTF-8");
   
@@ -194,7 +194,7 @@ const char * bgav_id3v1_get_genre(int id)
   {
   if(id < GENRE_MAX)
     return id3_genres[id];
-  return (const char*)0;
+  return NULL;
   }
 
 void bgav_id3v1_2_metadata(bgav_id3v1_tag_t * t, bgav_metadata_t * m)

@@ -443,7 +443,7 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
     if(ctx->tt->cur->duration != GAVL_TIME_UNDEFINED)
       {
       priv->goto_sector(ctx, 0);
-      bgav_input_reopen_memory(priv->input_mem, (uint8_t*)0, 0);
+      bgav_input_reopen_memory(priv->input_mem, NULL, 0);
       return;
       }
     
@@ -475,7 +475,7 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
     
     priv->goto_sector(ctx, 0);
     
-    bgav_input_reopen_memory(priv->input_mem, (uint8_t*)0, 0);
+    bgav_input_reopen_memory(priv->input_mem, NULL, 0);
     }
   else
     return;
@@ -509,7 +509,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
   
   bgav_packet_t * p;
   mpegps_priv_t * priv;
-  bgav_stream_t * stream = (bgav_stream_t*)0;
+  bgav_stream_t * stream = NULL;
 
   priv = (mpegps_priv_t*)(ctx->priv);
   while(!got_packet)
@@ -955,7 +955,7 @@ static void find_streams(bgav_demuxer_context_t * ctx)
   int i;
   mpegps_priv_t * priv;
   
-  bgav_input_context_t * input_save = (bgav_input_context_t*)0;
+  bgav_input_context_t * input_save = NULL;
   
   priv = (mpegps_priv_t*)(ctx->priv);
   priv->find_streams = 1;

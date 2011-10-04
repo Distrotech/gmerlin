@@ -77,7 +77,7 @@ static int more_data(parser_t * p)
   while(1)
     {
     if(!bgav_input_read_line(p->input, &p->buffer, &p->buffer_alloc,
-                             p->buffer_size, (int*)0))
+                             p->buffer_size, NULL))
       {
       return bytes_read;
       }
@@ -105,7 +105,7 @@ static void advance(parser_t * p, int bytes)
 
 static char * find_chars(parser_t * p, const char * chars)
   {
-  char * pos = (char*)0;
+  char * pos = NULL;
   while(1)
     {
     pos = strpbrk(p->buffer, chars);
@@ -114,7 +114,7 @@ static char * find_chars(parser_t * p, const char * chars)
     if(!more_data(p))
       break;
     }
-  return (char*)0;
+  return NULL;
   }
 
 static int skip_space(parser_t * p)
@@ -142,7 +142,7 @@ static char * parse_tag_name(parser_t * p)
   char  * ret;
   pos = find_chars(p, "> /?");
   if(!pos)
-    return (char*)0;
+    return NULL;
   ret = bgav_strndup(p->buffer, pos);
   advance(p, pos - p->buffer);
   return ret;
@@ -154,7 +154,7 @@ static char * parse_attribute_name(parser_t * p)
   char * ret;
   pos = find_chars(p, "= ");
   if(!pos)
-    return (char*)0;
+    return NULL;
   ret = bgav_strndup(p->buffer, pos);
   advance(p, pos - p->buffer);
   return ret;
@@ -163,13 +163,13 @@ static char * parse_attribute_name(parser_t * p)
 static char * parse_attribute_value(parser_t * p)
   {
   char * ret;
-  char * end = (char*)0;
+  char * end = NULL;
   char close_seq[3];
   
   if(!p->buffer_size)
     {
     if(!more_data(p))
-      return (char*)0;
+      return NULL;
     }
   if((p->buffer[0] == '\\') && (p->buffer[1] == '"'))
     {
@@ -183,7 +183,7 @@ static char * parse_attribute_value(parser_t * p)
     close_seq[0] = *(p->buffer);
     close_seq[1] = '\0';
     if((close_seq[0] != '\'') && (close_seq[0] != '"'))
-      return (char*)0;
+      return NULL;
     advance(p, 1);
     }
 
@@ -199,7 +199,7 @@ static char * parse_attribute_value(parser_t * p)
   
 
   if(!end)
-    return(char*)0;
+    return NULL;
   ret = bgav_strndup(p->buffer, end);
   
   advance(p, (int)(end - p->buffer) + strlen(close_seq));
@@ -264,7 +264,7 @@ static int parse_attributes(parser_t * p, bgav_yml_attr_t ** ret)
 static int parse_children(parser_t * p, bgav_yml_node_t * ret)
   {
   int is_comment;
-  bgav_yml_node_t * child_end = (bgav_yml_node_t*)0;
+  bgav_yml_node_t * child_end = NULL;
   bgav_yml_node_t * new_node;
   while(1)
     {
@@ -502,7 +502,7 @@ static bgav_yml_node_t * parse_node(parser_t * p, int * is_comment)
   return ret;
   fail:
   bgav_yml_free(ret);
-  return (bgav_yml_node_t*)0;
+  return NULL;
   
   }
 
@@ -511,8 +511,8 @@ bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
   char c;
   parser_t parser;
   int is_comment = 1;
-  bgav_yml_node_t * ret = (bgav_yml_node_t *)0;
-  bgav_yml_node_t * ret_end = (bgav_yml_node_t *)0;
+  bgav_yml_node_t * ret = NULL;
+  bgav_yml_node_t * ret_end = NULL;
   
   memset(&parser, 0, sizeof(parser));
   parser.input = input;
@@ -522,7 +522,7 @@ bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
   while(1)
     {
     if(!bgav_input_get_data(input, (uint8_t*)(&c), 1))
-      return (bgav_yml_node_t *)0;
+      return NULL;
     if(isspace(c))
       bgav_input_skip(input, 1);
     else
@@ -668,7 +668,7 @@ const char * bgav_yml_get_attribute(bgav_yml_node_t * n, const char * name)
       return attr->value;
     attr = attr->next;
     }
-  return (const char*)0;
+  return NULL;
   }
 
 const char * bgav_yml_get_attribute_i(bgav_yml_node_t * n, const char * name)
@@ -681,7 +681,7 @@ const char * bgav_yml_get_attribute_i(bgav_yml_node_t * n, const char * name)
       return attr->value;
     attr = attr->next;
     }
-  return (const char*)0;
+  return NULL;
   
   }
 
@@ -693,7 +693,7 @@ bgav_yml_node_t * bgav_yml_find_by_name(bgav_yml_node_t * yml, const char * name
       return yml;
     yml = yml->next;
     }
-  return (bgav_yml_node_t *)0;
+  return NULL;
   }
 
 bgav_yml_node_t * bgav_yml_find_by_pi(bgav_yml_node_t * yml, const char * pi)
@@ -704,6 +704,6 @@ bgav_yml_node_t * bgav_yml_find_by_pi(bgav_yml_node_t * yml, const char * pi)
       return yml;
     yml = yml->next;
     }
-  return (bgav_yml_node_t *)0;
+  return NULL;
   
   }

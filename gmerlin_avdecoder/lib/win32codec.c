@@ -104,7 +104,7 @@ int bgav_win32_codec_thread_init(bgav_win32_thread_t * t,bgav_stream_t*s)
   sem_init(&t->input_ready, 0, 0);
   sem_init(&t->output_ready, 0, 0);
 
-  pthread_create(&t->thread, (pthread_attr_t*)0, win32_thread, t);
+  pthread_create(&t->thread, NULL, win32_thread, t);
 
   /* Wait until we have the stream format */
 
@@ -155,6 +155,6 @@ void bgav_win32_codec_thread_cleanup(bgav_win32_thread_t * t)
   {
   t->state = STATE_QUIT;
   
-  pthread_join(t->thread, (void**)0);
+  pthread_join(t->thread, NULL);
   
   }

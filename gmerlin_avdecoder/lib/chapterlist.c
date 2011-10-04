@@ -87,7 +87,7 @@ bgav_get_chapter_name(bgav_t * bgav, int track, int chapter)
   bgav_chapter_list_t * list;
   list = get_chapter_list(bgav, track);
   if(!list || (chapter < 0) || (chapter >= list->num_chapters))
-    return (char*)0;
+    return NULL;
   return list->chapters[chapter].name;
   }
 

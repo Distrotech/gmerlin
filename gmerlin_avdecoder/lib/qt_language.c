@@ -26,45 +26,45 @@
 #include <qt.h>
 
 /* Definitions for charsets. These are mappings from Macintosh charset
-   symbols to iconv charsets. The ones, which are set to (char*)0
+   symbols to iconv charsets. The ones, which are set to NULL
    are not available in iconv (replacements??) */
 
 #define smRoman            "MACINTOSH"
-#define smHebrew           (char*)0
-#define smJapanese         (char*)0
-#define smArabic           (char*)0
-#define smExtArabic        (char*)0
-#define smGreek            (char*)0
-#define smCentralEuroRoman (char*)0
+#define smHebrew           NULL
+#define smJapanese         NULL
+#define smArabic           NULL
+#define smExtArabic        NULL
+#define smGreek            NULL
+#define smCentralEuroRoman NULL
 #define smIcelandic        "MAC-IS"
-#define smTradChinese      (char*)0
-#define smDevanagari       (char*)0
-#define smThai             (char*)0
-#define smKorean           (char*)0
+#define smTradChinese      NULL
+#define smDevanagari       NULL
+#define smThai             NULL
+#define smKorean           NULL
 #define smSami             "MAC-SAMI"
 #define smCyrillic         "MAC-CYRILLIC"
-#define smSimpChinese      (char*)0
-#define smCeltic           (char*)0
-#define smRomanian         (char*)0
+#define smSimpChinese      NULL
+#define smCeltic           NULL
+#define smRomanian         NULL
 #define smUkrainian        "MAC-UK"
-#define smArmenian         (char*)0
-#define smGeorgian         (char*)0
-#define smMongolian        (char*)0
-#define smTibetan          (char*)0
-#define smBengali          (char*)0
-#define smGuriati          (char*)0
-#define smGurmukhi         (char*)0
-#define smOriya            (char*)0
-#define smMalayalam        (char*)0
-#define smKannada          (char*)0
-#define smTamil            (char*)0
-#define smTelugu           (char*)0
-#define smSinhalese        (char*)0
-#define smBurmese          (char*)0
-#define smKhmer            (char*)0
-#define smLaotian          (char*)0
-#define smVietnamese       (char*)0
-#define smEthiopic         (char*)0
+#define smArmenian         NULL
+#define smGeorgian         NULL
+#define smMongolian        NULL
+#define smTibetan          NULL
+#define smBengali          NULL
+#define smGuriati          NULL
+#define smGurmukhi         NULL
+#define smOriya            NULL
+#define smMalayalam        NULL
+#define smKannada          NULL
+#define smTamil            NULL
+#define smTelugu           NULL
+#define smSinhalese        NULL
+#define smBurmese          NULL
+#define smKhmer            NULL
+#define smLaotian          NULL
+#define smVietnamese       NULL
+#define smEthiopic         NULL
 
 /* Language / character set codecs */
 
@@ -210,5 +210,5 @@ const char * bgav_qt_get_charset(int mac_code)
       return mac_languages[i].charset;
       }
     }
-  return (char*)0;
+  return NULL;
   }

@@ -79,8 +79,8 @@ static int open_dxa(bgav_demuxer_context_t * ctx)
   uint8_t * buf;
   bgav_WAVEFORMAT_t wf;
     
-  bgav_stream_t * as = (bgav_stream_t *)0;
-  bgav_stream_t * vs = (bgav_stream_t *)0;
+  bgav_stream_t * as = NULL;
+  bgav_stream_t * vs = NULL;
 
   if(!ctx->input->input->seek_byte)
     {
@@ -226,8 +226,8 @@ static int open_dxa(bgav_demuxer_context_t * ctx)
 static int next_packet_dxa(bgav_demuxer_context_t * ctx)
   {
   dxa_t * priv;
-  bgav_stream_t * s = (bgav_stream_t*)0;
-  bgav_packet_t * p = (bgav_packet_t *)0;
+  bgav_stream_t * s = NULL;
+  bgav_packet_t * p = NULL;
   
   priv = (dxa_t*)(ctx->priv);
   

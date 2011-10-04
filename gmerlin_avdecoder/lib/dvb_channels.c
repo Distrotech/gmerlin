@@ -124,7 +124,7 @@ char *
 bgav_dvb_channels_seek(const bgav_options_t * opt,
                        fe_type_t type)
   {
-  char * filename = (char*)0;
+  char * filename = NULL;
   char * home_dir;
   /* Look for the file */
 
@@ -157,7 +157,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
       if(!bgav_check_file_read(filename))
         {
         free(filename);
-        filename = (char*)0;
+        filename = NULL;
         }
       }
     else if(type == FE_OFDM)
@@ -167,7 +167,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
       if(!bgav_check_file_read(filename))
         {
         free(filename);
-        filename = (char*)0;
+        filename = NULL;
         }
       }
     else if(type == FE_QAM)
@@ -177,7 +177,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
       if(!bgav_check_file_read(filename))
         {
         free(filename);
-        filename = (char*)0;
+        filename = NULL;
         }
       }
     else if(type == FE_ATSC)
@@ -187,7 +187,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
       if(!bgav_check_file_read(filename))
         {
         free(filename);
-        filename = (char*)0;
+        filename = NULL;
         }
       }
     
@@ -197,7 +197,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
       if(!bgav_check_file_read(filename))
         {
         free(filename);
-        filename = (char*)0;
+        filename = NULL;
         }
       }
 
@@ -207,7 +207,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
       if(!bgav_check_file_read(filename))
         {
         free(filename);
-        filename = (char*)0;
+        filename = NULL;
         }
       }
     }
@@ -215,7 +215,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
   
   fail:
   if(filename) free(filename);
-  return (char*)0;
+  return NULL;
   }
 
 bgav_dvb_channel_info_t *
@@ -226,11 +226,11 @@ bgav_dvb_channels_load(const bgav_options_t * opt,
   unsigned long freq;
   int is_open = 0;
   
-  char * line = (char*)0;
+  char * line = NULL;
   int line_alloc = 0;
   char ** entries;
   
-  bgav_dvb_channel_info_t * ret = (bgav_dvb_channel_info_t*)0;
+  bgav_dvb_channel_info_t * ret = NULL;
   bgav_dvb_channel_info_t * channel;
   
   bgav_input_context_t * input;
@@ -258,7 +258,7 @@ bgav_dvb_channels_load(const bgav_options_t * opt,
   while(1)
     {
     i = 0;
-    if(!bgav_input_read_line(input, &line, &line_alloc, 0, (int*)0))
+    if(!bgav_input_read_line(input, &line, &line_alloc, 0, NULL))
       break;
     
     entries = bgav_stringbreak(line, ':');

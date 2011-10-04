@@ -110,7 +110,7 @@ bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt,
                              opt,
                              text,
                              encoding,
-                             (bgav_subtitle_reader_context_t*)0);
+                             NULL);
   }
 
 bgav_stream_t *
@@ -121,7 +121,7 @@ bgav_track_attach_subtitle_reader(bgav_track_t * t,
   bgav_stream_t * ret;
   ret = add_subtitle_stream(t, opt,
                             r->reader->read_subtitle_text ? 1 : 0,
-                            (char*)0, r);
+                            NULL, r);
   if(r->info)
     ret->info = bgav_strdup(r->info);
   return ret;
@@ -147,7 +147,7 @@ bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
        (!t->subtitle_streams[i].data.subtitle.subreader))
       return &t->subtitle_streams[i];
     }
-  return (bgav_stream_t *)0;
+  return NULL;
   }
 
 bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx,

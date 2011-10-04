@@ -304,7 +304,7 @@ const char * bgav_get_audio_info(bgav_t * b, int s)
 const char * bgav_get_audio_language(bgav_t * b, int s)
   {
   return (b->tt->cur->audio_streams[s].language[0] != '\0') ?
-    b->tt->cur->audio_streams[s].language : (char*)0;
+    b->tt->cur->audio_streams[s].language : NULL;
   }
 
 static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
@@ -437,7 +437,7 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
       bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
                "Skipping %s samples", str1);
       
-      samples_skipped = read_audio(s, (gavl_audio_frame_t*)0, num_samples);
+      samples_skipped = read_audio(s, NULL, num_samples);
       }
     }
   if(samples_skipped < num_samples)

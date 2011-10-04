@@ -231,9 +231,9 @@ static int read_image_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   frame->duration = p->packet->duration;
   
   TIFFClose( p->tiff );
-  p->tiff = (TIFF*)0;
+  p->tiff = NULL;
   bgav_stream_done_packet_read(s, p->packet);
-  p->packet = (bgav_packet_t*)0;
+  p->packet = NULL;
   
   return 1;
   
@@ -274,7 +274,7 @@ static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   if(frame)
     {
-    if(!priv->packet && !read_header_tiff(s, (gavl_video_format_t*)0))
+    if(!priv->packet && !read_header_tiff(s, NULL))
       return 0;
     read_image_tiff(s, frame);
     }
@@ -284,7 +284,7 @@ static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!priv->packet)
       return 0;
     bgav_stream_done_packet_read(s, priv->packet);
-    priv->packet = (bgav_packet_t*)0;
+    priv->packet = NULL;
     }
   return 1;
   }

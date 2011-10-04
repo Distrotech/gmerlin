@@ -1402,8 +1402,8 @@ static int process_packet_iavs(bgav_demuxer_context_t * ctx, int64_t position)
   {
   int do_init = 0;
   bgav_stream_t * as, *vs;
-  bgav_packet_t * ap = (bgav_packet_t *)0;
-  bgav_packet_t * vp = (bgav_packet_t *)0;
+  bgav_packet_t * ap = NULL;
+  bgav_packet_t * vp = NULL;
   uint8_t header[DV_HEADER_SIZE];
   avi_priv_t * priv;
   
@@ -2171,7 +2171,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   {
   chunk_header_t ch;
   bgav_packet_t * p;
-  bgav_stream_t * s = (bgav_stream_t*)0;
+  bgav_stream_t * s = NULL;
   uint32_t fourcc;
   int stream_id;
   avi_priv_t * priv;

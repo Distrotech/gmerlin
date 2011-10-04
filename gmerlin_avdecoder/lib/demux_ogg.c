@@ -823,7 +823,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_OGM_TEXT:
         s = bgav_track_add_subtitle_stream(track, ctx->opt, 1,
-                                           (const char*)0);
+                                           NULL);
         s->cleanup = cleanup_stream_ogg;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
@@ -1152,7 +1152,7 @@ static int track_has_serialno(bgav_track_t * track,
     }
 
   if(s)
-    *s = (bgav_stream_t*)0;
+    *s = NULL;
   
   track_priv = (track_priv_t*)(track->priv);
 
@@ -1198,11 +1198,11 @@ static int64_t find_next_track(bgav_demuxer_context_t * ctx,
 
     page_pos_2 = find_first_page(ctx, test_pos,
                                  ctx->input->total_bytes, &serialno_2,
-                                 (int64_t*)0);
+                                 NULL);
     if(page_pos_2 < 0)
       return -1;
     
-    if(track_has_serialno(last_track, serialno_2, (bgav_stream_t**)0))
+    if(track_has_serialno(last_track, serialno_2, NULL))
       {
       //      pos1 = test_pos;
       pos1 = page_pos_2;
@@ -1328,7 +1328,7 @@ static void get_last_granulepos(bgav_demuxer_context_t * ctx,
     if(pos < 0) /* Should never happen */
       break;
 
-    s = (bgav_stream_t*)0;
+    s = NULL;
     if(track_has_serialno(track, serialno, &s) && s)
       {
       stream_priv = (stream_priv_t*)(s->priv);
@@ -1371,7 +1371,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   stream_priv_t * stream_priv;
   int64_t result, last_granulepos;
-  bgav_input_context_t * input_save = (bgav_input_context_t*)0;
+  bgav_input_context_t * input_save = NULL;
   
   ogg_t * priv;
   
@@ -1617,7 +1617,7 @@ static char * get_name(bgav_metadata_t * m)
     return bgav_sprintf("%s - %s", m->artist, m->title);
   else if(m->title)
     return bgav_sprintf("%s", m->title);
-  return (char*)0;
+  return NULL;
   }
 
 static void metadata_changed(bgav_demuxer_context_t * ctx)
@@ -1757,10 +1757,10 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   int64_t iframes;
   int64_t pframes;
   int serialno;
-  bgav_packet_t * p = (bgav_packet_t *)0;
+  bgav_packet_t * p = NULL;
   bgav_stream_t * s;
   int64_t granulepos;
-  stream_priv_t * stream_priv = (stream_priv_t*)0;
+  stream_priv_t * stream_priv = NULL;
   ogg_t * priv = (ogg_t*)(ctx->priv);
   int subtitle_duration;
   int page_continued;
@@ -2250,10 +2250,10 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
               (track_priv->end_pos - track_priv->start_pos));
   if(filepos <= track_priv->start_pos)
     filepos = find_first_page(ctx, track_priv->start_pos, track_priv->end_pos,
-                              (int*)0, (int64_t*)0);
+                              NULL, NULL);
   else
     filepos = find_last_page(ctx, track_priv->start_pos, filepos,
-                             (int*)0, (int64_t*)0);
+                             NULL, NULL);
   seek_byte(ctx, filepos);
 
   /* Reset all the streams and set the stream times to -1 */
@@ -2267,7 +2267,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     if(!next_packet_ogg(ctx)) 
       {
       filepos = find_last_page(ctx, track_priv->start_pos, filepos,
-                               (int*)0, (int64_t*)0);
+                               NULL, NULL);
       //      seek_byte(ctx, filepos);
       reset_track(ctx->tt->cur, 0);
       //      fprintf(stderr, "Reached EOF\n");

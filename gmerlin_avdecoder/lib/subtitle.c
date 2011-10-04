@@ -57,7 +57,7 @@ int bgav_subtitle_is_text(bgav_t * bgav, int stream)
 const char * bgav_get_subtitle_language(bgav_t * b, int s)
   {
   return (b->tt->cur->subtitle_streams[s].language[0] != '\0') ?
-    b->tt->cur->subtitle_streams[s].language : (char*)0;
+    b->tt->cur->subtitle_streams[s].language : NULL;
   }
 
 int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
@@ -101,7 +101,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
                             int stream)
   {
   int out_len;
-  bgav_packet_t * p = (bgav_packet_t*)0;
+  bgav_packet_t * p = NULL;
   bgav_stream_t * s = &b->tt->cur->subtitle_streams[stream];
 
   if(bgav_has_subtitle(b, stream))

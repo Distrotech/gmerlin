@@ -185,7 +185,7 @@ char * bgav_convert_string(bgav_charset_converter_t * cnv,
                            int * out_len)
   {
   int result;
-  char * ret = (char*)0;
+  char * ret = NULL;
   int ret_alloc = 0;
   char * tmp_string;
 
@@ -200,9 +200,9 @@ char * bgav_convert_string(bgav_charset_converter_t * cnv,
   
   if(!result)
     {
-    return (char*)0;
     if(ret)
       free(ret);
+    return NULL;
     }
   return ret;
   }
@@ -275,7 +275,7 @@ static int utf8_validate(const uint8_t * str)
 
 void bgav_input_detect_charset(bgav_input_context_t * ctx)
   {
-  char * line = (char*)0;
+  char * line = NULL;
   int line_alloc = 0;
   
   int64_t old_position;
@@ -306,7 +306,7 @@ void bgav_input_detect_charset(bgav_input_context_t * ctx)
     }
   else
     {
-    while(bgav_input_read_line(ctx, &line, &line_alloc, 0, (int*)0))
+    while(bgav_input_read_line(ctx, &line, &line_alloc, 0, NULL))
       {
       if(!utf8_validate((uint8_t*)line))
         {

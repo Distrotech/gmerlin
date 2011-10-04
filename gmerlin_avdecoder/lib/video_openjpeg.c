@@ -128,7 +128,7 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
       return 0;
     }
   else
-    p = (bgav_packet_t*)0;
+    p = NULL;
   
   if(f || priv->need_format)
     {
@@ -235,7 +235,7 @@ static int init_openjpeg(bgav_stream_t * s)
   opj_setup_decoder(priv->dinfo, &priv->parameters);
 
   priv->need_format = 1;
-  decode_openjpeg(s, (gavl_video_frame_t*)0);
+  decode_openjpeg(s, NULL);
   priv->need_format = 0;
   
   s->description = bgav_sprintf("JPEG-2000"); 

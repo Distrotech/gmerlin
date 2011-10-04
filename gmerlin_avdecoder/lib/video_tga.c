@@ -117,7 +117,7 @@ static void gray_2_rgb(tga_image * tga, gavl_video_frame_t * f)
 static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   int result;
-  bgav_packet_t * p = (bgav_packet_t *)0;
+  bgav_packet_t * p = NULL;
   tga_priv_t * priv;
   
   priv = (tga_priv_t*)(s->data.video.decoder->priv);
@@ -282,7 +282,7 @@ static int init_tga(bgav_stream_t * s)
 
   priv->do_init = 1;
   
-  if(!decode_tga(s, (gavl_video_frame_t *)0))
+  if(!decode_tga(s, NULL))
     return 0;
   
   priv->do_init = 0;

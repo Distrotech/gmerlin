@@ -231,7 +231,7 @@ static codec_info_t * find_decoder(bgav_video_decoder_t * dec)
     if(codecs[i].name && !strcmp(codecs[i].name, dec->name))
       return  &codec_infos[i];
     }
-  return (codec_info_t *)0;
+  return NULL;
   }
 
 typedef struct

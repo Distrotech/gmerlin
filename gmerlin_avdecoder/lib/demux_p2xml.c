@@ -48,7 +48,7 @@ static char * find_file_nocase(const char * dir, const char * file)
       }
     }
   closedir(d);
-  return (char*)0;
+  return NULL;
   }
 
 static char * find_audio_file(const char * dir, const char * name_root, int stream)
@@ -82,7 +82,7 @@ static char * find_audio_file(const char * dir, const char * name_root, int stre
       }
     }
   closedir(d);
-  return (char*)0;
+  return NULL;
   
   }
 
@@ -114,14 +114,14 @@ static void init_stream(bgav_yml_node_t * node,
 static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   {
   int ret = 0;
-  char * audio_directory = (char *)0;
-  char * video_directory = (char *)0;
-  char * directory_parent = (char *)0;
+  char * audio_directory = NULL;
+  char * video_directory = NULL;
+  char * directory_parent = NULL;
   char * ptr;
   bgav_yml_node_t * node;
-  bgav_edl_track_t * t = (bgav_edl_track_t *)0;
+  bgav_edl_track_t * t = NULL;
   bgav_edl_stream_t * s;
-  const char * root_name = (const char*)0;
+  const char * root_name = NULL;
   char * filename;
   char * tmp_string;
   const char * attr;

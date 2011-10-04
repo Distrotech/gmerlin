@@ -80,11 +80,11 @@ static uint8_t * parse_metadata(uint8_t * buf,
   while(isspace(*buf) && (*buf != '\0'))
     buf++;
   if(*buf == '\0')
-    return (uint8_t*)0;
+    return NULL;
   start = (char*)buf;
   end = strchr(start, '=');
   if(!end)
-    return (uint8_t*)0;
+    return NULL;
   *name = bgav_strndup(start, end);
   start = end;
   start++; /* Start now points to the delimiter */
@@ -92,7 +92,7 @@ static uint8_t * parse_metadata(uint8_t * buf,
   start++;
   end = strchr(start, delim);
   if(!end)
-    return (uint8_t*)0;
+    return NULL;
   *value = bgav_strndup(start, end);
   end++;
   start = end;
@@ -130,8 +130,8 @@ static int nsv_file_header_read(bgav_input_context_t * ctx,
   pos = buf;
   while(pos && (pos - buf < ret->metadata_len))
     {
-    meta_name  = (char*)0;
-    meta_value = (char*)0;
+    meta_name  = NULL;
+    meta_value = NULL;
     pos = parse_metadata(pos, &meta_name, &meta_value);
 
     if(!pos)
@@ -399,7 +399,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
   nsv_sync_header_t sh;
   uint32_t fourcc;
   int done = 0;
-  bgav_input_context_t * input_save = (bgav_input_context_t*)0;
+  bgav_input_context_t * input_save = NULL;
   
   //  test_framerate();
   

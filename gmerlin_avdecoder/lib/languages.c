@@ -34,7 +34,7 @@ const char * bgav_lang_from_name(const char * name)
     if(!strcmp(name, language_codes[i].name))
       return language_codes[i].iso_639_b;
     }
-  return (char*)0;
+  return NULL;
   }
 
 const char * bgav_lang_from_twocc(const char * twocc)
@@ -48,7 +48,7 @@ const char * bgav_lang_from_twocc(const char * twocc)
        (language_codes[i].iso_639_2[1] == twocc[1]))
       return language_codes[i].iso_639_b;
     }
-  return (char*)0;
+  return NULL;
   }
 
 const char * bgav_lang_name(const char * lang)
@@ -63,7 +63,7 @@ const char * bgav_lang_name(const char * lang)
        (language_codes[i].iso_639_b[2] == lang[2]))
       return language_codes[i].name;
     }
-  return (char*)0;
+  return NULL;
   }
 
 void bgav_correct_language(char * lang)

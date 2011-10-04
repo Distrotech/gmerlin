@@ -68,8 +68,8 @@ static int open_nuv(bgav_demuxer_context_t * ctx)
 
   uint32_t size;
   
-  bgav_stream_t * as = (bgav_stream_t*)0;
-  bgav_stream_t * vs = (bgav_stream_t*)0;
+  bgav_stream_t * as = NULL;
+  bgav_stream_t * vs = NULL;
   
   ctx->tt = bgav_track_table_create(1);
   

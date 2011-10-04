@@ -65,7 +65,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   {
   const char * var;
   int status;
-  char * line = (char*)0;
+  char * line = NULL;
   char * request;
   int i;
   
@@ -80,26 +80,26 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   for(i = 0; i < rtsp->request_fields->num_lines; i++)
     {
     request = bgav_strncat(request, rtsp->request_fields->lines[i].line,
-                           (char*)0);
+                           NULL);
     request = bgav_strncat(request, "\r\n",
-                           (char*)0);
+                           NULL);
     }
 
   if(rtsp->session)
     {
     line = bgav_sprintf("Session: %s\r\n", rtsp->session);
     request = bgav_strncat(request, line,
-                           (char*)0);
+                           NULL);
     free(line);
     }
   
   line = bgav_sprintf("CSeq: %u\r\n", rtsp->cseq);
   request = bgav_strncat(request, line,
-                           (char*)0);
+                           NULL);
   free(line);
 
   request = bgav_strncat(request, "\r\n",
-                           (char*)0);
+                           NULL);
 
 #ifdef DUMP_REQUESTS
   bgav_dprintf("Sending request:\n%s", request);
@@ -133,7 +133,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     if(rtsp->session)
       {
       free(rtsp->session);
-      rtsp->session = (char*)0;
+      rtsp->session = NULL;
       }
 #endif
     return 1;
@@ -176,7 +176,7 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected)
   {
   int content_length;
   const char * var;
-  char * buf = (char*)0;
+  char * buf = NULL;
 
   /* Send the "DESCRIBE" request */
   
@@ -250,15 +250,15 @@ static int do_connect(bgav_rtsp_t * rtsp,
                       int * got_redirected, int get_options)
   {
   int port = -1;
-  char * host = (char*)0;
-  char * protocol = (char*)0;
+  char * host = NULL;
+  char * protocol = NULL;
   int ret = 0;
   if(!bgav_url_split(rtsp->url,
                      &protocol,
-                     (char**)0, /* User */
-                     (char**)0, /* Pass */
+                     NULL, /* User */
+                     NULL, /* Pass */
                      &host,
-                     &port, (char**)0))
+                     &port, NULL))
     goto done;
   
   if(strcmp(protocol, "rtsp"))
@@ -294,7 +294,7 @@ static int do_connect(bgav_rtsp_t * rtsp,
 
 bgav_rtsp_t * bgav_rtsp_create(const bgav_options_t * opt)
   {
-  bgav_rtsp_t * ret = (bgav_rtsp_t*)0;
+  bgav_rtsp_t * ret = NULL;
   ret = calloc(1, sizeof(*ret));
   ret->opt = opt;
   ret->answers = bgav_http_header_create();

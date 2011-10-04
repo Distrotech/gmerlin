@@ -59,12 +59,12 @@ int main(int argc, char ** argv)
       }
     else if(!strcmp(argv[arg_index], "-as"))
       {
-      stream = strtol(argv[arg_index+1], (char**)0, 10);
+      stream = strtol(argv[arg_index+1], NULL, 10);
       arg_index+=2;
       }
     else if(!strcmp(argv[arg_index], "-t"))
       {
-      track = strtol(argv[arg_index+1], (char**)0, 10);
+      track = strtol(argv[arg_index+1], NULL, 10);
       arg_index+=2;
       }
     else

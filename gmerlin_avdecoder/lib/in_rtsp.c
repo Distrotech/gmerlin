@@ -281,7 +281,7 @@ static const char * get_answer_var(const char * str, const char * name,
   
   pos1 = strstr(str, name);
   if(!pos1)
-    return (char*)0;
+    return NULL;
   pos2 = strchr(pos1, ';');
   if(!pos2)
     pos2 = pos1 + strlen(pos1);
@@ -412,7 +412,7 @@ static int is_real_smil(bgav_sdp_t * s)
 static int init_real(bgav_input_context_t * ctx, bgav_sdp_t * sdp, char * session_id)
   {
   rtsp_priv_t * priv;
-  char * stream_rules = (char*)0;
+  char * stream_rules = NULL;
   char challenge2[64];
   char checksum[34];
   char * field;
@@ -588,7 +588,7 @@ static int handle_stream_transport(bgav_stream_t * s,
   
 
   if((var = get_answer_var(transport, "ssrc=", &var_len)))
-    sp->server_ssrc = strtoul(var, (char**)0, 16);
+    sp->server_ssrc = strtoul(var, NULL, 16);
 
   bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "ssrc: %08x\n",
            sp->server_ssrc);
@@ -692,7 +692,7 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
     else
       pos1 = var;
     
-    s = (bgav_stream_t*)0;
+    s = NULL;
     /* Search for the bgav stream */
     for(j = 0; j < ctx->demuxer->tt->cur->num_video_streams; j++)
       {
@@ -734,14 +734,14 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
         {
         return 0;
         }
-      sp->first_rtptime = strtoul(var, (char**)0, 10);
+      sp->first_rtptime = strtoul(var, NULL, 10);
 
       
       var = get_answer_var(streams[i], "seq=", &var_len);
       if(!var)
         return 0;
       
-      sp->first_seq = strtoul(var, (char**)0, 10);
+      sp->first_seq = strtoul(var, NULL, 10);
       }
     
     i++;
@@ -757,7 +757,7 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp, int tcp)
   bgav_stream_t * s;
   int i;
   int port;
-  char * session_id = (char *)0;
+  char * session_id = NULL;
   char * field;
   const char * var;
   priv = ctx->priv;
@@ -836,7 +836,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   rtsp_priv_t * priv;
   bgav_sdp_t * sdp;
   const char * var;
-  char * session_id = (char*)0;
+  char * session_id = NULL;
   int num_redirections = 0;
   int got_redirected = 0;
   priv = calloc(1, sizeof(*priv));
@@ -920,12 +920,12 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   if(priv->challenge1)
     {
     free(priv->challenge1);
-    priv->challenge1 = (char*)0;
+    priv->challenge1 = NULL;
     }
   if(session_id)
     free(session_id);
   free(priv);
-  ctx->priv = (void*)0;
+  ctx->priv = NULL;
   return 0;
   }
 

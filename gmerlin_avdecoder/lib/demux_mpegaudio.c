@@ -103,7 +103,7 @@ static bgav_albw_t * bgav_albw_read(bgav_input_context_t * input)
   char buffer[512];
   int64_t diff;
 
-  bgav_albw_t * ret = (bgav_albw_t *)0;
+  bgav_albw_t * ret = NULL;
   
   if(bgav_input_read_data(input, (uint8_t*)buffer, 12) < 12)
     goto fail;
@@ -160,7 +160,7 @@ static bgav_albw_t * bgav_albw_read(bgav_input_context_t * input)
   fail:
   if(ret)
     bgav_albw_destroy(ret);
-  return (bgav_albw_t*)0;
+  return NULL;
   }
 
 /* This is the actual demuxer */
@@ -452,7 +452,7 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
     
   if(!ctx->input->input->seek_byte)
     {
-    return (bgav_track_table_t *)0;
+    return NULL;
     }
   
   ret = bgav_track_table_create(albw->num_tracks);

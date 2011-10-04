@@ -41,7 +41,7 @@ typedef struct
 
 static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
-  char * error_msg = (char*)0;
+  char * error_msg = NULL;
   png_priv_t * priv;
   bgav_packet_t * p;
   
@@ -82,7 +82,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!priv->have_header &&
        !bgav_png_reader_read_header(priv->png_reader,
                                     p->data, p->data_size,
-                                    &s->data.video.format, (char**)0))
+                                    &s->data.video.format, NULL))
       return 0;
     if(!bgav_png_reader_read_image(priv->png_reader, frame))
       return 0;
@@ -104,7 +104,7 @@ static int init_png(bgav_stream_t * s)
   
   priv->png_reader = bgav_png_reader_create(s->data.video.depth);
   priv->need_header = 1;
-  if(!decode_png(s, (gavl_video_frame_t*)0))
+  if(!decode_png(s, NULL))
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Decode png failed");
@@ -140,7 +140,7 @@ static void resync_png(bgav_stream_t * s)
 static int get_format_png(bgav_stream_t * s, bgav_packet_t * p)
   {
   int ret = 1;
-  char * error_msg = (char*)0;
+  char * error_msg = NULL;
 
   bgav_png_reader_t * png = bgav_png_reader_create(s->data.video.depth);
   

@@ -120,7 +120,7 @@ static int user_pass_func(void * data, const char * resource, char ** user, char
     *pos = '\0';
   if(buf[0] == '\0')
     return 0;
-  *user = bgav_strndup(buf, (char*)0);
+  *user = bgav_strndup(buf, NULL);
     
   fprintf(stderr, "Password: ");
   echo_off();
@@ -133,7 +133,7 @@ static int user_pass_func(void * data, const char * resource, char ** user, char
     *pos = '\0';
   if(buf[0] == '\0')
     return 0;
-  *pass = bgav_strndup(buf, (char*)0);
+  *pass = bgav_strndup(buf, NULL);
   return 1;
   }
 #endif
@@ -150,7 +150,7 @@ static int do_video          = 1;
 
 int main(int argc, char ** argv)
   {
-  FILE * cb_file = (FILE *)0;
+  FILE * cb_file = NULL;
   
   int i, j;
   int num_audio_streams;
@@ -160,7 +160,7 @@ int main(int argc, char ** argv)
   int num_tracks;
   int track;
   int arg_index;
-  char * sub_text = (char *)0;
+  char * sub_text = NULL;
   int sub_text_alloc = 0;
   gavl_time_t sub_time;
   gavl_time_t sub_duration;
@@ -230,22 +230,22 @@ int main(int argc, char ** argv)
       }
     else if(!strcmp(argv[arg_index], "-nf"))
       {
-      frames_to_read = strtoll(argv[arg_index+1], (char**)0, 10);
+      frames_to_read = strtoll(argv[arg_index+1], NULL, 10);
       arg_index+=2;
       }
     else if(!strcmp(argv[arg_index], "-aseek"))
       {
-      audio_seek = strtoll(argv[arg_index+1], (char**)0, 10);
+      audio_seek = strtoll(argv[arg_index+1], NULL, 10);
       arg_index+=2;
       }
     else if(!strcmp(argv[arg_index], "-vseek"))
       {
-      video_seek = strtoll(argv[arg_index+1], (char**)0, 10);
+      video_seek = strtoll(argv[arg_index+1], NULL, 10);
       arg_index+=2;
       }
     else if(!strcmp(argv[arg_index], "-seek"))
       {
-      global_seek = strtoll(argv[arg_index+1], (char**)0, 10);
+      global_seek = strtoll(argv[arg_index+1], NULL, 10);
       arg_index+=2;
       }
     else if(!strcmp(argv[arg_index], "-ci"))
@@ -272,7 +272,7 @@ int main(int argc, char ** argv)
   bgav_options_set_vdpau(opt, vdpau);
   
 #ifndef _WIN32 
-  bgav_options_set_user_pass_callback(opt, user_pass_func, (void*)0);
+  bgav_options_set_user_pass_callback(opt, user_pass_func, NULL);
 #endif
   
   if(!strncmp(argv[argc-1], "vcd://", 6))
@@ -315,7 +315,7 @@ int main(int argc, char ** argv)
                             read_callback,
                             seek_callback,
                             cb_file,
-                            argv[argc-1] + 5, (const char *)0, 0))
+                            argv[argc-1] + 5, NULL, 0))
       {
       fprintf(stderr, "Could not open file %s via callbacks\n",
               argv[argc-1] + 5);

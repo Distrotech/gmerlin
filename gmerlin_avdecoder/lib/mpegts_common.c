@@ -103,7 +103,7 @@ static const stream_type_t * get_stream_type(int ts_type)
     if(stream_types[i].ts_type == ts_type)
       return &stream_types[i];
     }
-  return (stream_type_t*)0;
+  return NULL;
   }
 
 
@@ -390,7 +390,7 @@ static uint8_t * find_descriptor(uint8_t * data, int len,
       }
     ptr += ptr[1] + 2;
     }
-  return (uint8_t*)0;
+  return NULL;
   }
 
 int bgav_pmt_section_setup_track(pmt_section_t * pmts,
@@ -458,7 +458,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         }
       else
         {
-        s = (bgav_stream_t*)0;
+        s = NULL;
         if(extra_pcr_pid && (pmts->streams[i].pid == pmts->pcr_pid))
           *extra_pcr_pid = 1;
         }
@@ -479,7 +479,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         }
       else
         {
-        s = (bgav_stream_t*)0;
+        s = NULL;
         if(extra_pcr_pid && (pmts->streams[i].pid == pmts->pcr_pid))
           *extra_pcr_pid = 1;
         }
@@ -487,7 +487,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
     else
       {
       /* No usable stream, but can carry the PCR! */
-      s = (bgav_stream_t*)0;
+      s = NULL;
       if(extra_pcr_pid && (pmts->streams[i].pid == pmts->pcr_pid))
         *extra_pcr_pid = 1;
       }

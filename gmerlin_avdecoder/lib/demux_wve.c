@@ -72,7 +72,7 @@ static int read_arbitrary(bgav_input_context_t * input, uint32_t * ret)
 
 static int open_wve(bgav_demuxer_context_t * ctx)
   {
-  bgav_stream_t * as = (bgav_stream_t*)0;
+  bgav_stream_t * as = NULL;
   uint32_t header_size, fourcc, arbitrary;
   int in_header;
   int in_subheader;

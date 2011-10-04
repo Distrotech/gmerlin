@@ -490,7 +490,7 @@ bgav_device_info_t * bgav_find_devices_vcd()
   int i;
   char * device_name;
   char ** devices;
-  bgav_device_info_t * ret = (bgav_device_info_t *)0;
+  bgav_device_info_t * ret = NULL;
 
   devices = cdio_get_devices(DRIVER_DEVICE);
 
@@ -500,7 +500,7 @@ bgav_device_info_t * bgav_find_devices_vcd()
   i = 0;
   while(devices[i])
     {
-    device_name = (char*)0;
+    device_name = NULL;
     if(bgav_check_device_vcd(devices[i], &device_name))
       {
       ret = bgav_device_info_append(ret,
@@ -520,7 +520,7 @@ static
 bgav_input_context_t * bgav_input_open_vcd(const char * device,
                                            bgav_options_t * opt)
   {
-  bgav_input_context_t * ret = (bgav_input_context_t *)0;
+  bgav_input_context_t * ret = NULL;
   ret = bgav_input_create(opt);
   ret->input = &bgav_input_vcd;
 
@@ -532,7 +532,7 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device,
   fail:
   if(ret)
     free(ret);
-  return (bgav_input_context_t *)0;
+  return NULL;
   }
 
 int bgav_open_vcd(bgav_t * b, const char * device)
@@ -573,7 +573,7 @@ int bgav_check_device_vcd(const char * device, char ** name)
 
 bgav_device_info_t * bgav_find_devices_vcd()
   {
-  return (bgav_device_info_t*)0;
+  return NULL;
   }
 
 int bgav_open_vcd(bgav_t * b, const char * device)

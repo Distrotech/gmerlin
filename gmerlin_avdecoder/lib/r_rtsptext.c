@@ -49,11 +49,11 @@ static void add_url(bgav_redirector_context_t * r)
 
 static int parse_rtsptext(bgav_redirector_context_t * r)
   {
-  char * buffer = (char*)0;
+  char * buffer = NULL;
   int buffer_alloc = 0;
   char * pos;
   
-  if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
+  if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, NULL))
     return 0;
 
   pos = buffer + 8;
@@ -68,7 +68,7 @@ static int parse_rtsptext(bgav_redirector_context_t * r)
     }
   else
     {
-    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
+    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, NULL))
       return 0;
     add_url(r);
     r->urls[r->num_urls-1].url = bgav_strdup(buffer);

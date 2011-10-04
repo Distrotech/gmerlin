@@ -167,7 +167,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
     {
     track->metadata.title = bgav_convert_string(charset_cnv,
                                                 (char*)(audio_header +offset+1), len,
-                                                (int*)0);
+                                                NULL);
     offset += len+1;
     }
   else
@@ -179,7 +179,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
     {
     track->metadata.author = bgav_convert_string(charset_cnv,
                                                 (char*)(audio_header +offset+1), len,
-                                                (int*)0);
+                                                NULL);
     offset += len+1;
     }
   else
@@ -191,7 +191,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
     {
     track->metadata.copyright = bgav_convert_string(charset_cnv,
                                                     (char*)(audio_header +offset+1), len,
-                                                    (int*)0);
+                                                    NULL);
     offset += len+1;
     }
   else

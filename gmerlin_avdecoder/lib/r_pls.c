@@ -52,7 +52,7 @@ static int probe_pls(bgav_input_context_t * input)
 
 static int parse_pls(bgav_redirector_context_t * r)
   {
-  char * buffer = (char*)0;
+  char * buffer = NULL;
   int buffer_alloc = 0;
   int index;
   char * pos;
@@ -61,7 +61,7 @@ static int parse_pls(bgav_redirector_context_t * r)
   /* Get the first nonempty line */
   while(1)
     {
-    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
+    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, NULL))
       goto fail;
     pos = buffer;
     while(isspace(*pos))
@@ -77,7 +77,7 @@ static int parse_pls(bgav_redirector_context_t * r)
   
   while(1)
     {
-    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
+    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, NULL))
       break;
 
     if(!strncasecmp(buffer, "Title", 5))

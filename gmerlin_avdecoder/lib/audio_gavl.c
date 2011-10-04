@@ -38,7 +38,7 @@ static int decode_frame_gavl(bgav_stream_t * s)
   if(priv->p)
     {
     bgav_stream_done_packet_read(s, priv->p);
-    priv->p = (bgav_packet_t*)0;
+    priv->p = NULL;
     }
   priv->p = bgav_stream_get_packet_read(s);
   if(!priv->p || !priv->p->audio_frame)

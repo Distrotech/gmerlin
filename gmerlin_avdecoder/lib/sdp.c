@@ -471,7 +471,7 @@ static int parse_media(const bgav_options_t * opt,
                        bgav_sdp_media_desc_t * ret)
   {
   int num_lines, line_index, i, i_tmp;
-  char ** strings = (char**)0;
+  char ** strings = NULL;
   char * pos;
   memset(ret, 0, sizeof(*ret));
   
@@ -525,7 +525,7 @@ static int parse_media(const bgav_options_t * opt,
     goto fail;
   
   bgav_stringbreak_free(strings);
-  strings = (char**)0;
+  strings = NULL;
   line_index++;
 
   /* 3. Parse the rest */
@@ -637,8 +637,8 @@ static void free_media(bgav_sdp_media_desc_t * m)
 int bgav_sdp_parse(const bgav_options_t * opt,
                    const char * data, bgav_sdp_t * ret)
   {
-  char *  buf = (char*)0;
-  char ** lines = (char**)0;
+  char *  buf = NULL;
+  char ** lines = NULL;
   char * pos;
   int num_lines;
   int line_index;

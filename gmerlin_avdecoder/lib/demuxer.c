@@ -279,7 +279,7 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
     {
     bytes_skipped++;
     if(!bgav_input_read_data(input, &skip, 1))
-      return (bgav_demuxer_t *)0;
+      return NULL;
 
     for(i = 0; i < num_sync_demuxers; i++)
       {
@@ -303,7 +303,7 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
     }
 #endif
   
-  return (bgav_demuxer_t *)0;
+  return NULL;
   }
 
 bgav_demuxer_context_t *
@@ -489,7 +489,7 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
 void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   {
   ctx->demuxer->close(ctx);
-  ctx->priv = (void*)0;
+  ctx->priv = NULL;
   FREE(ctx->stream_description);
   
   /* Reset global variables */
@@ -500,7 +500,7 @@ void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   if(ctx->si)
     {
     bgav_superindex_destroy(ctx->si);
-    ctx->si = (bgav_superindex_t*)0;
+    ctx->si = NULL;
     }
   
   }
@@ -574,7 +574,7 @@ int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx)
 static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   {
   bgav_packet_t * p;
-  bgav_stream_t * s = (bgav_stream_t*)0;
+  bgav_stream_t * s = NULL;
 
   s = ctx->request_stream;
   
@@ -656,7 +656,7 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
             {
             bgav_stream_done_packet_write(&demuxer->tt->cur->audio_streams[i],
                                           demuxer->tt->cur->audio_streams[i].packet);
-            demuxer->tt->cur->audio_streams[i].packet = (bgav_packet_t*)0;
+            demuxer->tt->cur->audio_streams[i].packet = NULL;
             ret = 1;
             }
           }
@@ -666,7 +666,7 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
             {
             bgav_stream_done_packet_write(&demuxer->tt->cur->video_streams[i],
                                           demuxer->tt->cur->video_streams[i].packet);
-            demuxer->tt->cur->video_streams[i].packet = (bgav_packet_t*)0;
+            demuxer->tt->cur->video_streams[i].packet = NULL;
             ret = 1;
             }
           }
@@ -705,7 +705,7 @@ bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
           {
           ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0);
           if(!ret)
-            return (bgav_packet_t*)0;
+            return NULL;
 
           if(s->duration)
             ret->duration = s->duration - ret->pts;
@@ -714,10 +714,10 @@ bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
           break;
           }
         else
-          return (bgav_packet_t*)0;
+          return NULL;
         }
       }
-    demuxer->request_stream = (bgav_stream_t*)0;
+    demuxer->request_stream = NULL;
     return ret;
     }
   else
@@ -744,7 +744,7 @@ bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
         {
         ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
         if(!ret)
-          return (bgav_packet_t*)0;
+          return NULL;
 
         if(s->duration)
           ret->duration = s->duration - ret->pts;
@@ -753,7 +753,7 @@ bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
         break;
         }
       else
-        return (bgav_packet_t*)0;
+        return NULL;
       }
     }
   /* Hack: If we got the duration from pts only and the stream

@@ -162,7 +162,7 @@ static int get_data(bgav_stream_t*s)
                       priv->p->pts, priv->p->duration,
                       priv->p->tc,
                       &cache_index,
-                      (bgav_pts_cache_entry_t**)0);
+                      NULL);
   
   mpeg2_tag_picture(priv->dec, cache_index, 0);
   
@@ -575,7 +575,7 @@ static int init_mpeg2(bgav_stream_t*s)
   /* Decode first frame to check for still mode */
   
   priv->flags |= FLAG_INIT;
-  decode_mpeg2(s, (gavl_video_frame_t*)0);
+  decode_mpeg2(s, NULL);
   priv->flags &= ~FLAG_INIT;
   s->out_time = priv->picture_timestamp;
   return 1;

@@ -52,8 +52,8 @@ static void resync_a52(bgav_stream_t * s)
   a52_priv * priv;
   priv = s->data.audio.decoder->priv;
 
-  priv->packet = (bgav_packet_t*)0;
-  priv->packet_ptr = (uint8_t*)0;
+  priv->packet = NULL;
+  priv->packet_ptr = NULL;
   priv->bytes_in_buffer = 0;
   do_resync(s);
   }

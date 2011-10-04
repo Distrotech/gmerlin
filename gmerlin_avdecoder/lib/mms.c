@@ -402,9 +402,9 @@ static void mms_gen_guid(char guid[])
 bgav_mms_t * bgav_mms_open(const bgav_options_t * opt,
                            const char * url)
   {
-  char * host     = (char*)0;
-  char * protocol = (char*)0;
-  char * path     = (char*)0;
+  char * host     = NULL;
+  char * protocol = NULL;
+  char * path     = NULL;
   int port = -1;
   char guid[37];
   char * buf;
@@ -419,7 +419,7 @@ bgav_mms_t * bgav_mms_open(const bgav_options_t * opt,
 
   bgav_charset_converter_t * ascii_2_utf16;
   bgav_charset_converter_t * utf16_2_utf8;
-  bgav_mms_t * ret = (bgav_mms_t *)0;
+  bgav_mms_t * ret = NULL;
 
   ascii_2_utf16 = bgav_charset_converter_create(opt, "ASCII", "UTF-16LE");
   utf16_2_utf8  = bgav_charset_converter_create(opt, "UTF-16LE", "UTF-8");
@@ -427,8 +427,8 @@ bgav_mms_t * bgav_mms_open(const bgav_options_t * opt,
   
   if(!bgav_url_split(url,
                      &protocol,
-                     (char**)0, /* User */
-                     (char**)0, /* Pass */
+                     NULL, /* User */
+                     NULL, /* Pass */
                      &host,
                      &port,
                      &path))
@@ -722,7 +722,7 @@ bgav_mms_t * bgav_mms_open(const bgav_options_t * opt,
     free(path);
   if(ret)
     free(ret);
-  return (bgav_mms_t *)0;
+  return NULL;
   }
 
 #define FREE(ptr) if(ptr)free(ptr);
@@ -804,12 +804,12 @@ uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block)
   {
   mms->got_data = 0;
   if(!next_packet(mms, block))
-    return (uint8_t*)0;
+    return NULL;
 
   if(mms->packet_buffer && mms->got_data)
     {
     *len = mms->packet_len;
     return mms->packet_buffer;
     }
-  return (uint8_t*)0;
+  return NULL;
   }

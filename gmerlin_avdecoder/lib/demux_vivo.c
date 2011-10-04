@@ -200,8 +200,8 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
   uint8_t c;
   int len;
   int64_t header_start;
-  char * buffer = (char*)0;
-  char * pos = (char*)0;
+  char * buffer = NULL;
+  char * pos = NULL;
   int result = 0;
   int record_type;
     
@@ -223,7 +223,7 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
   
   while(input->position < header_start + len)
     {
-    if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, (int*)0))
+    if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, NULL))
       goto fail;
 
     if(check_key(buffer, "Version", &pos))
@@ -291,7 +291,7 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
     record_type = -1;
     while(input->position < header_start + len)
       {
-      if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, (int*)0))
+      if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, NULL))
         goto fail;
 
       /* Skip empty lines */
@@ -316,7 +316,7 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
       case 2:
         while(input->position < header_start + len)
           {
-          if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, (int*)0))
+          if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, NULL))
             goto fail;
 
           if(check_key(buffer, "TimestampType", &pos))
@@ -341,7 +341,7 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
       case 4:
         while(input->position < header_start + len)
           {
-          if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, (int*)0))
+          if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, NULL))
             goto fail;
 
           if(check_key(buffer, "Length", &pos))
@@ -416,8 +416,8 @@ static int open_vivo(bgav_demuxer_context_t * ctx)
   {
   
   vivo_priv_t * priv;
-  bgav_stream_t * audio_stream = (bgav_stream_t*)0;
-  bgav_stream_t * video_stream = (bgav_stream_t*)0;
+  bgav_stream_t * audio_stream = NULL;
+  bgav_stream_t * video_stream = NULL;
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -517,7 +517,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
   int prefix = 0;
   int len;
   int seq;
-  bgav_stream_t * stream = (bgav_stream_t*)0;
+  bgav_stream_t * stream = NULL;
   vivo_priv_t * priv;
   int do_audio = 0;
   int do_video = 0;
@@ -604,7 +604,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
         ctx->tt->cur->audio_streams[0].container_bitrate;
       }
 
-    stream->packet = (bgav_packet_t*)0;
+    stream->packet = NULL;
     }
 
   /* Get new packet */
