@@ -98,7 +98,7 @@ static char * bg_mpa_make_commandline(bg_mpa_common_t * com,
   if(!bg_search_file_exec("mp2enc", &mp2enc_path))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mp2enc executable");
-    return (char*)0;
+    return NULL;
     }
 
   /* path & audio format and verbosity */

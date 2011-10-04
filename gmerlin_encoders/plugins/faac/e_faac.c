@@ -101,13 +101,13 @@ static const bg_parameter_info_t audio_parameters[] =
                               "mpeg4_main",
                               "mpeg4_lc",
                               "mpeg4_ltp",
-                              (char*)0 },
+                              NULL },
       .multi_labels = (char const *[]){ TRS("MPEG-2 Main profile"),
                                TRS("MPEG-2 Low Complexity profile (LC)"),
                                TRS("MPEG-4 Main profile"),
                                TRS("MPEG-4 Low Complexity profile (LC)"),
                                TRS("MPEG-4 Long Term Prediction (LTP)"),
-                               (char*)0 },
+                               NULL },
     },
     {
       .name =        "bitrate",
@@ -139,11 +139,11 @@ static const bg_parameter_info_t audio_parameters[] =
       .multi_names = (char const *[]){ "Both",
                               "No short",
                               "No long",
-                              (char*)0 },
+                              NULL },
       .multi_labels = (char const *[]){ TRS("Both"),
                                TRS("No short"),
                                TRS("No long"),
-                               (char*)0 },
+                               NULL },
     },
     {
       .name =        "tns",
@@ -263,9 +263,9 @@ static const bg_parameter_info_t parameters[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "3" },
       .multi_names = (char const *[]){ "0", "1",
-                               "2", "3", (char*)0 },
+                               "2", "3", NULL },
       .multi_labels = (char const *[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
-                               TRS("UTF-16 BE"), TRS("UTF-8"), (char*)0 },
+                               TRS("UTF-16 BE"), TRS("UTF-8"), NULL },
     },
     { /* End of parameters */ }
   };
@@ -505,7 +505,7 @@ static int close_faac(void * data, int do_delete)
   if(faac->enc)
     {
     faacEncClose(faac->enc);
-    faac->enc = (faacEncHandle)0;
+    faac->enc = NULL;
     }
   
   if(faac->output)
@@ -516,10 +516,10 @@ static int close_faac(void * data, int do_delete)
       if(ret)
         ret = bgen_id3v1_write(faac->output, faac->id3v1);
       bgen_id3v1_destroy(faac->id3v1);
-      faac->id3v1 = (bgen_id3v1_t*)0;    
+      faac->id3v1 = NULL;    
       }
     fclose(faac->output);
-    faac->output = (FILE*)0;
+    faac->output = NULL;
     }
   
   if(faac->filename)
@@ -527,7 +527,7 @@ static int close_faac(void * data, int do_delete)
     if(do_delete)
       remove(faac->filename);
     free(faac->filename);
-    faac->filename = (char*)0;
+    faac->filename = NULL;
     }
   return ret;
   }

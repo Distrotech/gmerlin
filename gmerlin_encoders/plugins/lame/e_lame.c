@@ -223,11 +223,11 @@ static const bg_parameter_info_t audio_parameters[] =
       .multi_names = (char const *[]){ "CBR",
                               "ABR",
                               "VBR",
-                              (char*)0 },
+                              NULL },
       .multi_labels = (char const *[]){ TRS("Constant"),
                                TRS("Average"),
                                TRS("Variable"),
-                               (char*)0 },
+                               NULL },
     },
     {
       .name =        "stereo_mode",
@@ -237,11 +237,11 @@ static const bg_parameter_info_t audio_parameters[] =
       .multi_names = (char const *[]){ "Stereo",
                               "Joint stereo",
                               "Auto",
-                              (char*)0 },
+                              NULL },
       .multi_labels = (char const *[]){ TRS("Stereo"),
                                TRS("Joint stereo"),
                                TRS("Auto"),
-                              (char*)0 },
+                              NULL },
       .help_string = TRS("Stereo: Completely independent channels\n\
 Joint stereo: Improve quality (save bits) by using similarities of the channels\n\
 Auto (recommended): Select one of the above depending on quality or bitrate setting")
@@ -473,9 +473,9 @@ static const bg_parameter_info_t parameters[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "3" },
       .multi_names = (char const *[]){ "0", "1",
-                               "2", "3", (char*)0 },
+                               "2", "3", NULL },
       .multi_labels = (char const *[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
-                               TRS("UTF-16 BE"), TRS("UTF-8"), (char*)0 },
+                               TRS("UTF-16 BE"), TRS("UTF-8"), NULL },
     },
     { /* End of parameters */ }
   };
@@ -714,20 +714,20 @@ static int close_lame(void * data, int do_delete)
       if(!bgen_id3v1_write(lame->output, lame->id3v1))
         ret = 0;
       bgen_id3v1_destroy(lame->id3v1);
-      lame->id3v1 = (bgen_id3v1_t*)0;
+      lame->id3v1 = NULL;
       }
     
     /* 4. Close output file */
     
     fclose(lame->output);
-    lame->output = (FILE*)0;
+    lame->output = NULL;
     }
   
   /* Clean up */
   if(lame->lame)
     {
     lame_close(lame->lame);
-    lame->lame = (lame_t)0;
+    lame->lame = NULL;
     }
 
   if(lame->filename)
@@ -736,13 +736,13 @@ static int close_lame(void * data, int do_delete)
     if(do_delete)
       remove(lame->filename);
     free(lame->filename);
-    lame->filename = (char*)0;
+    lame->filename = NULL;
     }
 
   if(lame->output_buffer)
     {
     free(lame->output_buffer);
-    lame->output_buffer = (uint8_t*)0;
+    lame->output_buffer = NULL;
     }
   return 1;
   }

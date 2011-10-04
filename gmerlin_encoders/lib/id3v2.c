@@ -219,7 +219,7 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
           return 0;
         }
       cnv = bg_charset_converter_create("UTF-8", "ISO-8859-1");
-      str = bg_convert_string(cnv, frame->str, -1, (int*)0);
+      str = bg_convert_string(cnv, frame->str, -1, NULL );
       len = strlen(str)+1;
       if(fwrite(str, 1, len, output) < len)
         return 0;

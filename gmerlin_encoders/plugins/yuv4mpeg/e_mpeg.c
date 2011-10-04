@@ -115,17 +115,17 @@ static int open_mpeg(void * data, const char * filename,
   /* To make sure this will work, we check for the execuables of
      mpeg2enc, mplex and mp2enc */
 
-  if(!bg_search_file_exec("mpeg2enc", (char**)0))
+  if(!bg_search_file_exec("mpeg2enc", NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mpeg2enc exectuable");
     return 0;
     }
-  if(!bg_search_file_exec("mp2enc", (char**)0))
+  if(!bg_search_file_exec("mp2enc", NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mp2enc exectuable");
     return 0;
     }
-  if(!bg_search_file_exec("mplex", (char**)0))
+  if(!bg_search_file_exec("mplex", NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mplex exectuable");
     return 0;
@@ -345,7 +345,7 @@ static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
       {
       end = start + strlen(start);
       }
-    template = bg_strndup((char*)0, start, end);
+    template = bg_strndup(NULL, start, end);
     }
   else
     {
@@ -666,10 +666,10 @@ static const bg_parameter_info_t common_parameters[] =
       .long_name = TRS("Format"),
       .type =      BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "mpeg1" },
-      .multi_names =    (char const *[]) { "mpeg1",            "vcd",          "mpeg2",            "svcd",         "dvd_nav",   "dvd", (char*)0 },
+      .multi_names =    (char const *[]) { "mpeg1",            "vcd",          "mpeg2",            "svcd",         "dvd_nav",   "dvd", NULL },
       .multi_labels =   (char const *[]) { TRS("MPEG-1 (generic)"), TRS("MPEG-1 (VCD)"),
                                   TRS("MPEG-2 (generic)"), TRS("MPEG-2 (SVCD)"),
-                                  TRS("DVD (NAV)"), TRS("DVD"), (char*)0 },
+                                  TRS("DVD (NAV)"), TRS("DVD"), NULL },
       .help_string = TRS("Output format. Note that for some output formats (e.g. VCD), you MUST use proper settings for the audio and video streams also, since this isn't done automatically")
     },
     {

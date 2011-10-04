@@ -89,8 +89,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Bitrate mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "VBR" },
-      .multi_names = (char const *[]){ "vbr", "vbr_bitrate", "managed", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("VBR"), TRS("VBR (bitrate)"), TRS("Managed"), (char*)0 },
+      .multi_names = (char const *[]){ "vbr", "vbr_bitrate", "managed", NULL },
+      .multi_labels = (char const *[]){ TRS("VBR"), TRS("VBR (bitrate)"), TRS("Managed"), NULL },
       .help_string = TRS("Bitrate mode:\n\
 VBR: You specify a quality and (optionally) a minimum and maximum bitrate\n\
 VBR (bitrate): The specified nominal bitrate will be used for selecting the encoder mode.\n\

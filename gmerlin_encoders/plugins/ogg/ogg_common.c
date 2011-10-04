@@ -439,9 +439,9 @@ bg_ogg_encoder_get_audio_parameters(bg_ogg_encoder_t * e,
     for(i = 0; i < num_audio_codecs; i++)
       {
       e->audio_parameters[0].multi_names_nc[i]  =
-        bg_strdup((char*)0, audio_codecs[i]->name);
+        bg_strdup(NULL, audio_codecs[i]->name);
       e->audio_parameters[0].multi_labels_nc[i] =
-        bg_strdup((char*)0, audio_codecs[i]->long_name);
+        bg_strdup(NULL, audio_codecs[i]->long_name);
       
       if(audio_codecs[i]->get_parameters)
         e->audio_parameters[0].multi_parameters_nc[i] =

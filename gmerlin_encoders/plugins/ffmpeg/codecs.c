@@ -37,7 +37,7 @@
     .val_default = { .val_str = "128" },       \
     .multi_names = (char const *[]){ "32",  "48", "56", "64", "80", "96", "112", \
                    "128", "160", "192", "224", "256", "320", "384",\
-                   (char*)0 } \
+                   NULL } \
   },
 
 #define ENCODE_PARAM_MP3                 \
@@ -48,7 +48,7 @@
     .val_default = { .val_str = "128" },       \
     .multi_names = (char const *[]){ "32", "40", "48", "56", "64", "80", "96", \
                    "112", "128", "160", "192", "224", "256", "320",\
-                   (char*)0 } \
+                   NULL } \
   },
 
 #define ENCODE_PARAM_AC3 \
@@ -59,7 +59,7 @@
     .val_default = { .val_str = "128" },       \
     .multi_names = (char const *[]){ "32", "40", "48", "56", "64", "80", "96", "112", "128", \
                    "160", "192", "224", "256", "320", "384", "448", "512", \
-                   "576", "640", (char*)0 } \
+                   "576", "640", NULL } \
   },
 
 #define ENCODE_PARAM_WMA \
@@ -68,7 +68,7 @@
     .long_name = TRS("Bit rate (kbps)"),        \
     .type =      BG_PARAMETER_STRINGLIST, \
     .val_default = { .val_str = "128" },       \
-    .multi_names = (char const *[]){ "24", "48", "64", "96", "128", (char*)0 } \
+    .multi_names = (char const *[]){ "24", "48", "64", "96", "128", NULL } \
   },
     
     
@@ -406,7 +406,7 @@ add_codec_info(const ffmpeg_codec_info_t ** info, enum CodecID id, int * num)
 
   info = realloc(info, ((*num)+1) * sizeof(*info));
   
-  info[*num] = (ffmpeg_codec_info_t *)0;
+  info[*num] = NULL;
 
   i = 0;
   while(audio_codecs[i].name)
@@ -492,7 +492,7 @@ bg_ffmpeg_create_audio_parameters(const ffmpeg_format_info_t * format_info)
   {
   int i, j, num_infos = 0;
   bg_parameter_info_t * ret;
-  const ffmpeg_codec_info_t ** infos = (const ffmpeg_codec_info_t**)0;
+  const ffmpeg_codec_info_t ** infos = NULL;
   
   /* Create codec array */
   i = 0;
@@ -514,7 +514,7 @@ bg_ffmpeg_create_audio_parameters(const ffmpeg_format_info_t * format_info)
     }
 
   if(!infos)
-    return (bg_parameter_info_t*)0;
+    return NULL;
   
   /* Create parameters */
   ret = bg_parameter_info_copy_array(audio_parameters);
@@ -529,7 +529,7 @@ bg_ffmpeg_create_video_parameters(const ffmpeg_format_info_t * format_info)
   {
   int i, j, num_infos = 0;
   bg_parameter_info_t * ret;
-  const ffmpeg_codec_info_t ** infos = (const ffmpeg_codec_info_t**)0;
+  const ffmpeg_codec_info_t ** infos = NULL;
 
   /* Create codec array */
   i = 0;
@@ -551,7 +551,7 @@ bg_ffmpeg_create_video_parameters(const ffmpeg_format_info_t * format_info)
     }
 
   if(!infos)
-    return (bg_parameter_info_t*)0;
+    return NULL;
   
   /* Create parameters */
 

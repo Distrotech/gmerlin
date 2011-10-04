@@ -270,7 +270,7 @@ int bg_ffmpeg_open(void * data, const char * filename,
     return 0;
 
   /* Initialize format context */
-  fmt = guess_format(priv->format->short_name, (char*)0, (char*)0);
+  fmt = guess_format(priv->format->short_name, NULL, NULL);
   if(!fmt)
     return 0;
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 26, 0)
@@ -509,11 +509,16 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
       fseek(st->stats_file, 0, SEEK_SET);
       
       st->stream->codec->stats_in = av_malloc(stats_len + 1);
-      fread(st->stream->codec->stats_in, stats_len, 1, st->stats_file);
-      st->stream->codec->stats_in[stats_len] = '\0';
+      if(fread(st->stream->codec->stats_in, 1, stats_len, st->stats_file) < stats_len)
+        {
+        av_free(st->stream->codec->stats_in);
+        st->stream->codec->stats_in = NULL;
+        }
+      else
+        st->stream->codec->stats_in[stats_len] = '\0';
       
       fclose(st->stats_file);
-      st->stats_file = (FILE*)0;
+      st->stats_file = NULL;
       
       st->stream->codec->flags |= CODEC_FLAG_PASS2;
       }

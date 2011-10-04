@@ -58,10 +58,10 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Format"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "mpeg1" },
-      .multi_names =  (char const *[]){ "mpeg1",          "mpeg2",          "vcd", "svcd", "dvd", (char*)0 },
+      .multi_names =  (char const *[]){ "mpeg1",          "mpeg2",          "vcd", "svcd", "dvd", NULL },
       .multi_labels = (char const *[]){ TRS("MPEG-1 (generic)"), TRS("MPEG-2 (generic)"),
                                TRS("VCD"), TRS("SVCD"), TRS("DVD (for dvdauthor)"),
-                               (char*)0  },
+                               NULL  },
       .help_string =  TRS("Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST provide valid\
  frame sizes"),
     },
@@ -70,8 +70,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Bitrate Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "auto" },
-      .multi_names =  (char const *[]){ "auto", "vbr", "cbr", (char*)0  },
-      .multi_labels = (char const *[]){ TRS("Auto"), TRS("Variable"), TRS("Constant"), (char*)0  },
+      .multi_names =  (char const *[]){ "auto", "vbr", "cbr",NULL  },
+      .multi_labels = (char const *[]){ TRS("Auto"), TRS("Variable"), TRS("Constant"), NULL  },
       .help_string = TRS("Specify constant or variable bitrate. For \"Auto\", constant bitrate will be \
 used for MPEG-1, variable bitrate will be used for MPEG-2. For formats, which require CBR, this option \
 is ignored"),
@@ -101,10 +101,10 @@ fixed bitrate (e.g. VCD) this option is ignored"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "default" },
       .multi_names = (char const *[]){ "default", "kvcd", "tmpgenc",
-                              "hi-res", (char*)0 },
+                              "hi-res", NULL },
       .multi_labels = (char const *[]){ TRS("Default"), TRS("KVCD"),
                                TRS("tmpegenc"), TRS("Hi-Res"),
-                               (char*)0 },
+                               NULL },
     },
     {
       .name =        "bframes",
@@ -192,7 +192,7 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
   if(!bg_search_file_exec("mpeg2enc", &mpeg2enc_path))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mpeg2enc executable");
-    return (char*)0;
+    return NULL;
     }
 
   /* Check if we have MPEG-1 */
@@ -341,7 +341,7 @@ const char * bg_mpv_get_extension(bg_mpv_common_t * mpv)
     case FORMAT_DVD:
       return extension_mpeg2;
     }
-  return (char*)0;
+  return NULL;
   }
 
 

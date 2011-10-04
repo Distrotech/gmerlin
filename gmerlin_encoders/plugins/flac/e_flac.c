@@ -206,7 +206,7 @@ static int start_flac(void * data)
   if(FLAC__file_encoder_init(flac->enc) != FLAC__FILE_ENCODER_OK)
 #else
   if(FLAC__stream_encoder_init_file(flac->enc, flac->filename,
-                                    (FLAC__StreamEncoderProgressCallback)0,
+                                    NULL,
                                     flac) != FLAC__STREAM_ENCODER_OK)
 #endif
     {
@@ -444,7 +444,7 @@ static int close_flac(void * data, int do_delete)
     finalize_seektable(flac);
   
   free(flac->filename);
-  flac->filename = (char*)0;
+  flac->filename = NULL;
   
   if(flac->seektable)
     {

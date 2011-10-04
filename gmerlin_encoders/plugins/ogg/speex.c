@@ -146,9 +146,9 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Speex mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "auto" },
-      .multi_names =  (char const *[]){ "auto", "nb",         "wb",       "uwb",            (char*)0 },
+      .multi_names =  (char const *[]){ "auto", "nb",         "wb",       "uwb",            NULL },
       .multi_labels = (char const *[]){ TRS("Auto"), TRS("Narrowband"), TRS("Wideband"),
-                               TRS("Ultra-wideband"), (char*)0 },
+                               TRS("Ultra-wideband"), NULL },
       .help_string = TRS("Encoding mode. If you select Auto, the mode will be taken from the samplerate.")
     },
     {
@@ -311,13 +311,13 @@ static void build_comment(char ** comments, int * comments_len, bg_metadata_t * 
     }
 
   if(metadata->comment)
-    comment_add(comments, comments_len, (char*)0, metadata->comment);
+    comment_add(comments, comments_len, NULL, metadata->comment);
   }
 
 static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t * metadata)
   {
   float quality_f;
-  char *comments = (char *)0;
+  char *comments = NULL;
   int comments_length = 0;
   const SpeexMode *mode=NULL;
   SpeexHeader header;

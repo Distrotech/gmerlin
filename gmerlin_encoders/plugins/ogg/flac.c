@@ -254,8 +254,8 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
 #else
   if(FLAC__stream_encoder_init_stream(flacogg->enc,
                                       write_callback,
-                                      (FLAC__StreamEncoderSeekCallback)0,
-                                      (FLAC__StreamEncoderTellCallback)0,
+                                      NULL,
+                                      NULL,
                                       metadata_callback,
                                       flacogg) != FLAC__STREAM_ENCODER_OK)
   {
@@ -320,7 +320,7 @@ static int close_flacogg(void * data)
   if(flacogg->frame)
     {
     free(flacogg->frame);
-    flacogg->frame = (uint8_t*)0;
+    flacogg->frame = NULL;
     }
   free(flacogg);
   return ret;

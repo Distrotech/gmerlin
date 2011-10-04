@@ -150,7 +150,7 @@ static const bg_parameter_info_t video_parameters[] =
                               "411",
                               "mono",
                               "yuva4444",
-                              (char*)0 },
+                              NULL },
       .multi_labels = (char const *[]){ TRS("Auto"),
                                TRS("4:2:0 (MPEG-1/JPEG)"),
                                TRS("4:2:0 (MPEG-2)"),
@@ -160,7 +160,7 @@ static const bg_parameter_info_t video_parameters[] =
                                TRS("4:1:1"),
                                TRS("Greyscale"),
                                TRS("4:4:4:4 (YUVA)"),
-                               (char*)0 },
+                               NULL },
       .help_string = TRS("Set the chroma mode of the output file. Auto means to take the format most similar to the source.")
     },
     BG_ENCODER_FRAMERATE_PARAMS,
