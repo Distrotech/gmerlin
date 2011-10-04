@@ -731,7 +731,7 @@ static void set_message_error(bg_msg_t * msg, const void * data)
 
 void bg_transcoder_send_msg_error(bg_msg_queue_list_t * l)
   {
-  bg_msg_queue_list_send(l, set_message_error, (void*)0);
+  bg_msg_queue_list_send(l, set_message_error, NULL);
   }
 
 
@@ -1273,7 +1273,7 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
         gavl_volume_control_apply(s->volume_control, frame);
         }
       else if((t->pass > 1) && (t->pass < t->total_passes))
-        frame = (gavl_audio_frame_t*)0;
+        frame = NULL;
       }
   
     /* Output conversion */
@@ -1294,7 +1294,7 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
       if(t->pass == 1)
         {
         gavl_peak_detector_update(s->peak_detector, frame);
-        frame = (gavl_audio_frame_t*)0;
+        frame = NULL;
         }
       }
     if(frame)
@@ -1877,7 +1877,7 @@ bg_transcoder_t * bg_transcoder_create()
   ret = calloc(1, sizeof(*ret));
   ret->timer = gavl_timer_create();
   ret->message_queues = bg_msg_queue_list_create();
-  pthread_mutex_init(&ret->stop_mutex,  (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->stop_mutex,  NULL);
   return ret;
   }
 
@@ -2801,7 +2801,7 @@ static int init_converters(bg_transcoder_t * ret)
     if(ret->video_streams[i].subtitle_streams)
       {
       free(ret->video_streams[i].subtitle_streams);
-      ret->video_streams[i].subtitle_streams = (subtitle_stream_t**)0;
+      ret->video_streams[i].subtitle_streams = NULL;
       ret->video_streams[i].num_subtitle_streams = 0;
       }
     }
@@ -2866,7 +2866,7 @@ static void init_normalize(bg_transcoder_t * ret)
                                      &ret->audio_streams[i].pipe_format);
       /* Set the volume */
       gavl_peak_detector_get_peak(ret->audio_streams[i].peak_detector,
-                                  (double*)0, (double*)0, &absolute);
+                                  NULL, NULL, &absolute);
       if(absolute == 0.0)
         {
         gavl_volume_control_set_volume(ret->audio_streams[i].volume_control, volume_dB);
@@ -3082,7 +3082,7 @@ static void close_input(bg_transcoder_t * t)
 
   t->in_plugin->close(t->in_handle->priv);
   bg_plugin_unref(t->in_handle);
-  t->in_handle = (bg_plugin_handle_t*)0;
+  t->in_handle = NULL;
   }
 
 /* Switch to next pass */
@@ -3143,7 +3143,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   {
   int i;
   gavl_time_t time;
-  stream_t * stream = (stream_t*)0;
+  stream_t * stream = NULL;
 
   gavl_time_t real_time;
   double real_seconds;
@@ -3412,7 +3412,7 @@ static void * thread_func(void * data)
 
 void bg_transcoder_run(bg_transcoder_t * t)
   {
-  pthread_create(&t->thread, (pthread_attr_t*)0, thread_func, t);
+  pthread_create(&t->thread, NULL, thread_func, t);
   }
 
 void bg_transcoder_stop(bg_transcoder_t * t)

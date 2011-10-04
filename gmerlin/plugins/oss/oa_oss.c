@@ -56,11 +56,11 @@ static const bg_parameter_info_t parameters[] =
       .multi_names =    (char const *[]){  "none",
                               "multidev",
                               "creative",
-                              (char*)0 },
+                              NULL },
       .multi_labels =    (char const *[]){  TRS("None (Downmix)"),
                               TRS("Multiple devices"),
                               TRS("Creative Multichannel"),
-                              (char*)0 },
+                              NULL },
     },
     {
       .name =        "device",

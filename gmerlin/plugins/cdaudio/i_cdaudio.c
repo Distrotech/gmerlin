@@ -108,12 +108,12 @@ static void destroy_cd_data(cdaudio_t* cd)
     for(i = 0; i < cd->index->num_audio_tracks; i++)
       bg_track_info_free(&cd->track_info[i]);
     free(cd->track_info);
-    cd->track_info = (bg_track_info_t*)0;
+    cd->track_info = NULL;
     }
   if(cd->index)
     {
     bg_cdaudio_index_destroy(cd->index);
-    cd->index = (bg_cdaudio_index_t*)0;
+    cd->index = NULL;
     }
 
   }
@@ -414,10 +414,10 @@ static void stop_cdaudio(void * priv)
     if(cd->frame)
       {
       gavl_audio_frame_destroy(cd->frame);
-      cd->frame = (gavl_audio_frame_t*)0;
+      cd->frame = NULL;
       }
     }
-  cd->cdio = (CdIo_t*)0;
+  cd->cdio = NULL;
   }
 
 static void read_frame(cdaudio_t * cd)
@@ -525,7 +525,7 @@ static void close_cdaudio(void * priv)
     {
     bg_cdaudio_close(cd->cdio);
     }
-  cd->cdio = (CdIo_t*)0;
+  cd->cdio = NULL;
   }
 
 /* Configuration stuff */
@@ -690,7 +690,7 @@ static const bg_parameter_info_t * get_parameters_cdaudio(void * data)
     {
     srcs[0] = parameters;
     srcs[1] = bg_cdaudio_rip_get_parameters();
-    srcs[2] = (bg_parameter_info_t*)0;
+    srcs[2] = NULL;
     cd->parameters = bg_parameter_info_concat_arrays(srcs);
     }
     

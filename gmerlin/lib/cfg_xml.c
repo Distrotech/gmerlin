@@ -113,7 +113,7 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
       if(item->value.val_str)
         {
         free(item->value.val_str);
-        item->value.val_str = (char*)0;
+        item->value.val_str = NULL;
         }
       if(tmp_string && (*tmp_string != '\0'))
         item->value.val_str = bg_descramble_string(tmp_string);
@@ -237,7 +237,7 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
   xmlFreeDoc(xml_doc);
   }
 
-void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
+void bg_cfg_section_2_xml(const bg_cfg_section_t * section, xmlNodePtr xml_section)
   {
   char * tmp_string;
   bg_cfg_item_t    * item;
@@ -260,7 +260,7 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
 
   while(item)
     {
-    xml_item = xmlNewTextChild(xml_section, (xmlNsPtr)0, (xmlChar*)"ITEM", NULL);
+    xml_item = xmlNewTextChild(xml_section, NULL, (xmlChar*)"ITEM", NULL);
     BG_XML_SET_PROP(xml_item, "name", item->name);
     
     switch(item->type)
@@ -323,7 +323,7 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
   tmp_section = section->children;
   while(tmp_section)
     {
-    xml_child = xmlNewTextChild(xml_section, (xmlNsPtr)0, (xmlChar*)"SECTION", NULL);
+    xml_child = xmlNewTextChild(xml_section, NULL, (xmlChar*)"SECTION", NULL);
     BG_XML_SET_PROP(xml_child, "name", tmp_section->name);
 
     bg_cfg_section_2_xml(tmp_section, xml_child);
@@ -351,7 +351,7 @@ void bg_cfg_registry_save(bg_cfg_registry_t * r, const char * filename)
   tmp_section = r->sections;
   while(tmp_section)
     {
-    xml_section = xmlNewTextChild(xml_registry, (xmlNsPtr)0, (xmlChar*)"SECTION", NULL);
+    xml_section = xmlNewTextChild(xml_registry, NULL, (xmlChar*)"SECTION", NULL);
     BG_XML_SET_PROP(xml_section, "name", tmp_section->name);
     
     bg_cfg_section_2_xml(tmp_section, xml_section);

@@ -80,7 +80,7 @@ bg_thread_pool_t * bg_thread_pool_create(int num_threads)
     sem_init(&ret->threads[i].run_sem, 0, 0);
     sem_init(&ret->threads[i].done_sem, 0, 0);
     pthread_create(&ret->threads[i].t,
-                   (pthread_attr_t*)0,
+                   NULL,
                    thread_func, &ret->threads[i]);
     }
   return ret;

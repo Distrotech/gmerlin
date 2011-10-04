@@ -38,9 +38,9 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   {
   unsigned int i_tmp;
   int dir, err;
-  snd_pcm_hw_params_t *hw_params = (snd_pcm_hw_params_t *)0;
-  //  snd_pcm_sw_params_t *sw_params = (snd_pcm_sw_params_t *)0;
-  snd_pcm_t *ret                 = (snd_pcm_t *)0;
+  snd_pcm_hw_params_t *hw_params = NULL;
+  //  snd_pcm_sw_params_t *sw_params = NULL;
+  snd_pcm_t *ret                 = NULL;
   
   snd_pcm_uframes_t buffer_size;
   snd_pcm_uframes_t period_size;
@@ -58,7 +58,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                          SND_PCM_NONBLOCK  //   SND_PCM_ASYNC
                          ) < 0))
     {
-    ret = (snd_pcm_t *)0;
+    ret = NULL;
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_open failed for device %s (%s)",
            card, snd_strerror(err));
     goto fail;
@@ -320,7 +320,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     snd_pcm_close(ret);
   if(hw_params)
     snd_pcm_hw_params_free(hw_params);
-  return (snd_pcm_t *)0;
+  return NULL;
   }
 
 snd_pcm_t * bg_alsa_open_read(const char * card,
@@ -359,8 +359,8 @@ static void append_card(bg_parameter_info_t * ret,
   ret->multi_names_nc[num]  = name;
   ret->multi_labels_nc[num] = label;
 
-  ret->multi_names_nc[num+1] = (char*)0;
-  ret->multi_labels_nc[num+1] = (char*)0;
+  ret->multi_names_nc[num+1] = NULL;
+  ret->multi_labels_nc[num+1] = NULL;
 
   bg_parameter_info_set_const_ptrs(ret);
   }
@@ -377,8 +377,8 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
 
   stream = record ? SND_PCM_STREAM_CAPTURE : SND_PCM_STREAM_PLAYBACK;
   
-  ret->name      = bg_strdup((char*)0, "card");
-  ret->long_name = bg_strdup((char*)0, TRS("Card"));
+  ret->name      = bg_strdup(NULL, "card");
+  ret->long_name = bg_strdup(NULL, TRS("Card"));
   ret->type = BG_PARAMETER_STRINGLIST;
 
   snd_ctl_card_info_malloc(&info);
@@ -391,9 +391,9 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
     }
   
   /* Default is always supported */
-  ret->val_default.val_str = bg_strdup((char*)0, "default");
-  append_card(ret, bg_strdup((char*)0, "default"),
-              bg_strdup((char*)0, TRS("Default")));
+  ret->val_default.val_str = bg_strdup(NULL, "default");
+  append_card(ret, bg_strdup(NULL, "default"),
+              bg_strdup(NULL, TRS("Default")));
   
   while (card >= 0)
     {
@@ -444,7 +444,7 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
         continue;
         }
       name = bg_sprintf("hw:%d,%d", card, dev);
-      label = bg_strdup((char*)0, snd_pcm_info_get_name(pcminfo));
+      label = bg_strdup(NULL, snd_pcm_info_get_name(pcminfo));
       append_card(ret, name, label);
       snd_pcm_info_free(pcminfo);
       }

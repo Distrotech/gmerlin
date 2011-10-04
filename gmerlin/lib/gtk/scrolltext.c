@@ -193,7 +193,7 @@ static gboolean timeout_func(gpointer data)
     gdk_draw_drawable(st->pixmap_da, st->gc, st->pixmap_string,
                       st->offset, 0, 0, 0, st->width, st->height);
     }
-  expose_callback(st->drawingarea, (GdkEventExpose*)0,
+  expose_callback(st->drawingarea, NULL,
                   st);
   return TRUE;
   }
@@ -301,7 +301,7 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
     }
   g_object_unref(layout);
   
-  expose_callback(st->drawingarea, (GdkEventExpose*)0,
+  expose_callback(st->drawingarea, NULL,
                   st);
   
   }

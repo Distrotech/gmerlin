@@ -79,12 +79,12 @@ static int load_input_file(bg_plugin_registry_t * plugin_reg,
                            gavl_audio_format_t * format)
   {
   bg_track_info_t * ti;
-  *input_handle = (bg_plugin_handle_t*)0;
+  *input_handle = NULL;
   if(!bg_input_plugin_load(plugin_reg,
                            file,
-                           (const bg_plugin_info_t*)0,
+                           NULL,
                            input_handle,
-                           (bg_input_callbacks_t*)0, 0))
+                           NULL, 0))
     {
     fprintf(stderr, "Cannot open %s\n", file);
     return 0;
@@ -296,7 +296,7 @@ static void opt_vis(void * data, int * argc, char *** _argv, int arg)
     }
   if(!bg_cmdline_apply_options(vis_section,
                                set_vis_parameter,
-                               (void*)0,
+                               NULL,
                                vis_parameters,
                                (*_argv)[arg]))
     exit(-1);

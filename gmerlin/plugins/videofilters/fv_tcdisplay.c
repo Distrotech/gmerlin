@@ -128,8 +128,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =  TRS("Horizontal justify"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "right" },
-      .multi_names =  (char const *[]){ "center", "left", "right", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
+      .multi_names =  (char const *[]){ "center", "left", "right", NULL },
+      .multi_labels = (char const *[]){ TRS("Center"), TRS("Left"), TRS("Right"), NULL  },
             
     },
     {
@@ -137,8 +137,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =  TRS("Vertical justify"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "top" },
-      .multi_names =  (char const *[]){ "center", "top", "bottom", (char*)0  },
-      .multi_labels = (char const *[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), (char*)0 },
+      .multi_names =  (char const *[]){ "center", "top", "bottom", NULL  },
+      .multi_labels = (char const *[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), NULL },
     },
     {
       .name =        "cache_size",
@@ -218,8 +218,8 @@ static const bg_parameter_info_t parameters[] =
       .type =       BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_HIDE_DIALOG,
       .val_default =  { .val_str = "yuv" },
-      .multi_names =  (char const *[]){ "yuv", "rgb", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("YCrCb"), TRS("RGB"), (char*)0 },
+      .multi_names =  (char const *[]){ "yuv", "rgb", NULL },
+      .multi_labels = (char const *[]){ TRS("YCrCb"), TRS("RGB"), NULL },
     },
     {
       .name =       "default_framerate",

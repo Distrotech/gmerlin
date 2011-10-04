@@ -28,8 +28,8 @@
 /* Font stuff */
 
 
-static GtkTextTag      * text_tag  = (GtkTextTag *)0;
-static GtkTextTagTable * tag_table = (GtkTextTagTable *)0;
+static GtkTextTag      * text_tag  = NULL;
+static GtkTextTagTable * tag_table = NULL;
 
 struct bg_gtk_textview_s
   {

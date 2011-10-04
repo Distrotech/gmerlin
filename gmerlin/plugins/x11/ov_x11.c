@@ -663,7 +663,7 @@ static void create_parameters(x11_t * priv)
   ensure_window(priv);
   parameters[0] = bg_x11_window_get_parameters(priv->win);
   parameters[1] = common_parameters;
-  parameters[2] = (bg_parameter_info_t *)0;
+  parameters[2] = NULL;
 
   priv->parameters = bg_parameter_info_concat_arrays(parameters);
   }

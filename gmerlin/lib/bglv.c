@@ -108,10 +108,10 @@ static void check_init()
   visual_init(&argc, &argvp);
   
   /* Set the log callbacks */
-  visual_log_set_info_handler(log_info, (void*)0);
-  visual_log_set_warning_handler(log_warning, (void*)0);
-  visual_log_set_critical_handler(log_warning, (void*)0);
-  visual_log_set_error_handler(log_error, (void*)0);
+  visual_log_set_info_handler(log_info, NULL);
+  visual_log_set_warning_handler(log_warning, NULL);
+  visual_log_set_critical_handler(log_warning, NULL);
+  visual_log_set_error_handler(log_error, NULL);
   
   lv_initialized = 1;
   pthread_mutex_unlock(&lv_initialized_mutex);
@@ -120,7 +120,7 @@ static void check_init()
 static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
                                   bg_parameter_info_t * info)
   {
-  VisUIWidget * ret = (VisUIWidget*)0;
+  VisUIWidget * ret = NULL;
   int i;
   int num_items;
   VisListEntry * list_entry;
@@ -144,7 +144,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       break;
     case VISUAL_WIDGET_TYPE_BOX:         /**< Box widget: \a VisUIBox. */
       /* Get children */
-      list_entry = (VisListEntry*)0;
+      list_entry = NULL;
       while(visual_list_next(&VISUAL_UI_BOX(w)->childs, &list_entry))
         {
         if((ret = check_widget(list_entry->data, name, info)))
@@ -153,7 +153,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       break;
     case VISUAL_WIDGET_TYPE_TABLE:       /**< Table widget: \a VisUITable. */
       /* Get children */
-      list_entry = (VisListEntry*)0;
+      list_entry = NULL;
       while(visual_list_next(&VISUAL_UI_TABLE(w)->childs, &list_entry))
         {
         if((ret = check_widget(((VisUITableEntry*)list_entry->data)->widget, name, info)))
@@ -165,7 +165,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
     case VISUAL_WIDGET_TYPE_NOTEBOOK:    /**< Notebook widget: \a VisUINotebook. */
       /* Get children */
       /* Get children */
-      list_entry = (VisListEntry*)0;
+      list_entry = NULL;
       while(visual_list_next(&VISUAL_UI_NOTEBOOK(w)->childs, &list_entry))
         {
         if((ret = check_widget(list_entry->data, name, info)))
@@ -241,22 +241,22 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       info->type = BG_PARAMETER_STRINGLIST;
       info->flags |= BG_PARAMETER_SYNC;
       num_items = 0;
-      list_entry = (VisListEntry*)0;
+      list_entry = NULL;
       while(visual_list_next(&VISUAL_UI_CHOICE(w)->choices.choices, &list_entry))
         num_items++;
       info->multi_names_nc = calloc(num_items+1, sizeof(info->multi_names_nc));
-      list_entry = (VisListEntry*)0;
+      list_entry = NULL;
       for(i = 0; i < num_items; i++)
         {
         visual_list_next(&VISUAL_UI_CHOICE(w)->choices.choices, &list_entry);
-        info->multi_names_nc[i] = bg_strdup((char*)0, ((VisUIChoiceEntry*)(list_entry->data))->name);
+        info->multi_names_nc[i] = bg_strdup(NULL, ((VisUIChoiceEntry*)(list_entry->data))->name);
 
         /* Check if this is the current value */
         //        visual_param_entry_compare(((VisUIChoiceEntry*)(list_entry->data))->value,
         //                                       VISUAL_UI_MUTATOR(w)->param)
         if(!i)
           {
-          info->val_default.val_str = bg_strdup((char*)0, info->multi_names_nc[i]);
+          info->val_default.val_str = bg_strdup(NULL, info->multi_names_nc[i]);
           }
         }
       ret = w;
@@ -293,14 +293,14 @@ create_parameters(VisActor * actor, VisUIWidget *** widgets,
   /* Count parameters */
   num_parameters = 0;
   
-  list_entry = (VisListEntry*)0;
+  list_entry = NULL;
 
   while(visual_list_next(&params->entries,
                          &list_entry))
     num_parameters++;
 
   if(!num_parameters)
-    return (bg_parameter_info_t*)0;
+    return NULL;
   /* Create parameters */
   ret = calloc(num_parameters+1, sizeof(*ret));
 
@@ -310,7 +310,7 @@ create_parameters(VisActor * actor, VisUIWidget *** widgets,
   if(params_ret)
     *params_ret = calloc(num_parameters, sizeof(**params_ret));
   
-  list_entry = (VisListEntry*)0;
+  list_entry = NULL;
   index = 0;
 
   widget = visual_plugin_get_userinterface(visual_actor_get_plugin(actor));
@@ -329,7 +329,7 @@ create_parameters(VisActor * actor, VisUIWidget *** widgets,
     if(widget)
       param_widget = check_widget(widget, param_entry->name, &ret[index]);
     else
-      param_widget = (VisUIWidget*)0;
+      param_widget = NULL;
     
     if(!param_widget)
       {
@@ -380,8 +380,8 @@ create_parameters(VisActor * actor, VisUIWidget *** widgets,
     if(!supported)
       continue;
     
-    ret[index].name = bg_strdup((char*)0, param_entry->name);
-    ret[index].long_name = bg_strdup((char*)0, param_entry->name);
+    ret[index].name = bg_strdup(NULL, param_entry->name);
+    ret[index].long_name = bg_strdup(NULL, param_entry->name);
     index++;
     }
   return ret;
@@ -398,7 +398,7 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
   VisActor * actor;
   VisPluginInfo * info;
   char * tmp_string;
-  const char * actor_name = (const char*)0;
+  const char * actor_name = NULL;
   check_init();
   
   list = visual_plugin_get_registry();
@@ -410,12 +410,12 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
       break;
     }
   if(!actor_name)
-    return (bg_plugin_info_t *)0;
+    return NULL;
   
   actor = visual_actor_new(actor_name);
   
   if(!actor)
-    return (bg_plugin_info_t *)0;
+    return NULL;
 
   ret = calloc(1, sizeof(*ret));
 
@@ -423,11 +423,11 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
     
   
   ret->name        = bg_sprintf("vis_lv_%s", actor_name);
-  ret->long_name   = bg_strdup((char*)0, info->name);
+  ret->long_name   = bg_strdup(NULL, info->name);
   ret->type        = BG_PLUGIN_VISUALIZATION;
   ret->api         = BG_PLUGIN_API_LV;
   ret->description = bg_sprintf(TR("libvisual plugin"));
-  ret->module_filename = bg_strdup((char*)0, filename);
+  ret->module_filename = bg_strdup(NULL, filename);
   /* Optional info */
   if(info->author && *info->author)
     {
@@ -497,7 +497,7 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
   else
     {
     ret->flags |=  BG_PLUGIN_VISUALIZE_FRAME;
-    win = (bg_x11_window_t*)0;
+    win = NULL;
     }
   ret->priority = 1;
 
@@ -507,7 +507,7 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
     {
     visual_actor_realize(actor);
     ret->parameters =
-      create_parameters(actor, (VisUIWidget***)0, (VisParamEntry***)0);
+      create_parameters(actor, NULL, NULL);
     visual_object_unref(VISUAL_OBJECT(actor));
     }
   
@@ -748,7 +748,7 @@ static void set_parameter_lv(void * data, const char * name,
   /* This would crash if multi_parameters were supported */
   index = info - priv->parameters;
 
-  tmp_string = bg_strdup((char*)0, name);
+  tmp_string = bg_strdup(NULL, name);
   param = visual_param_entry_new(tmp_string);
   free(tmp_string);
   /* Menus have to be treated specially */
@@ -758,7 +758,7 @@ static void set_parameter_lv(void * data, const char * name,
       return;
     /* Get the selected index */
     supported = 0;
-    list_entry = (VisListEntry*)0;
+    list_entry = NULL;
     while(visual_list_next(&VISUAL_UI_CHOICE(priv->widgets[index])->choices.choices,
                            &list_entry))
       {

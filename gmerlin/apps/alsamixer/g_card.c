@@ -183,8 +183,7 @@ card_widget_t * card_widget_create(alsa_card_t * c, bg_cfg_section_t * section)
   if(ret->num_upper_controls)
     {
     scrolledwin =
-      gtk_scrolled_window_new((GtkAdjustment*)0,
-                              (GtkAdjustment*)0);
+      gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC,
                                    GTK_POLICY_NEVER);
@@ -219,8 +218,7 @@ card_widget_t * card_widget_create(alsa_card_t * c, bg_cfg_section_t * section)
     {
     lower_cols = ((ret->num_lower_controls+LOWER_ROWS-1)/LOWER_ROWS);
     scrolledwin =
-      gtk_scrolled_window_new((GtkAdjustment*)0,
-                              (GtkAdjustment*)0);
+      gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwin),
                                    GTK_POLICY_AUTOMATIC,
                                    GTK_POLICY_NEVER);
@@ -544,7 +542,7 @@ void card_widget_tearoff_control(card_widget_t * c, control_widget_t * w)
 
 void card_widget_tearon_control(card_widget_t * c, control_widget_t * w)
   {
-  own_window_t * win = (own_window_t *)0;
+  own_window_t * win = NULL;
   GList * item;
   int index;
   
@@ -676,7 +674,7 @@ void card_widget_configure(card_widget_t * c)
                    G_CALLBACK(config_button_callback), win);
   gtk_widget_show(win->close_button);
   
-  scrolledwindow = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
+  scrolledwindow = gtk_scrolled_window_new(NULL, NULL);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwindow),
                                  GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
 

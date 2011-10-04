@@ -52,8 +52,8 @@ typedef struct skin_info_s
 
 static skin_info_t * scan_directory(const char * directory)
   {
-  skin_info_t * ret = (skin_info_t*)0;
-  skin_info_t * ret_end = (skin_info_t*)0;
+  skin_info_t * ret = NULL;
+  skin_info_t * ret_end = NULL;
   skin_info_t * new_info;
   const char * start;
     
@@ -66,7 +66,7 @@ static skin_info_t * scan_directory(const char * directory)
   dir = opendir(directory);
 
   if(!dir)
-    return (skin_info_t*)0;
+    return NULL;
 
   while((entry = readdir(dir)))
     {
@@ -121,7 +121,7 @@ static skin_info_t * skin_info_create()
   char * directory;
   
   skin_info_t * system_skins;
-  skin_info_t * home_skins = (skin_info_t*)0;
+  skin_info_t * home_skins = NULL;
 
   skin_info_t * ret_end;
 
@@ -151,7 +151,7 @@ static skin_info_t * skin_info_create()
   else if(home_skins)
     return system_skins;
   else
-    return (skin_info_t*)0;
+    return NULL;
   }
 
 static void skin_info_destroy(skin_info_t * info)
@@ -365,7 +365,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                                     add_file_callback,
                                     filesel_close_callback,
                                     b, b->window /* parent */,
-                                    (bg_plugin_registry_t*)0, 0, 0);
+                                    NULL, 0, 0);
 
     gtk_widget_set_sensitive(b->new_button, 0);
     bg_gtk_filesel_run(filesel, 0);     

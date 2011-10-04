@@ -70,15 +70,15 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Channel Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "stereo" },
-      .multi_names =   (char const *[]){ "mono", "stereo", (char*)0 },
-      .multi_labels =  (char const *[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
+      .multi_names =   (char const *[]){ "mono", "stereo", NULL },
+      .multi_labels =  (char const *[]){ TRS("Mono"), TRS("Stereo"), NULL },
     },
     {
       .name =        "bits",
       .long_name =   TRS("Bits"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "16" },
-      .multi_names =     (char const *[]){ "8", "16", (char*)0 },
+      .multi_names =     (char const *[]){ "8", "16", NULL },
     },
     {
       .name =        "samplerate",

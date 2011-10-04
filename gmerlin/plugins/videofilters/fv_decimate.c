@@ -241,7 +241,7 @@ set_input_format_decimate(void * priv,
     if(vp->frame)
       {
       gavl_video_frame_destroy(vp->frame);
-      vp->frame = (gavl_video_frame_t*)0;
+      vp->frame = NULL;
       }
     gavl_pixelformat_chroma_sub(vp->format.pixelformat,
                                 &vp->sub_h, &vp->sub_v);

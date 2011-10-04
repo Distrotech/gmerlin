@@ -72,9 +72,9 @@ static char * new_filename(bg_album_t * album)
    *  Album filenames are constructed like "aXXXXXXXX.xml",
    *  where XXXXXXXX is a hexadecimal unique identifier
    */
-  char * template = (char*)0;
-  char * path = (char*)0;
-  char * ret = (char*)0;
+  char * template = NULL;
+  char * path = NULL;
+  char * ret = NULL;
   char * pos;
   
   template = bg_sprintf("%s/a%%08x.xml", album->com->directory);
@@ -87,7 +87,7 @@ static char * new_filename(bg_album_t * album)
   pos = strrchr(path, '/');
 
   pos++;
-  ret = bg_strdup((char*)0, pos);
+  ret = bg_strdup(NULL, pos);
   free(path);
     
   fail:
@@ -132,13 +132,13 @@ static void entry_from_track_info(bg_album_common_t * com,
     if(entry->name)
       {
       free(entry->name);
-      entry->name = (char*)0;
+      entry->name = NULL;
       }
 
     if(entry->name_w)
       {
       free(entry->name_w);
-      entry->name_w = (wchar_t*)0;
+      entry->name_w = NULL;
       entry->len_w = 0;
       }
 
@@ -239,7 +239,7 @@ bg_album_entry_t * bg_album_get_entry(bg_album_t * a, int i)
   while(i--)
     {
     if(!ret)
-      return (bg_album_entry_t*)0;
+      return NULL;
     ret = ret->next;
     }
   return ret;
@@ -434,7 +434,7 @@ void bg_album_insert_urilist_after(bg_album_t * a, const char * str,
   if(!uri_list)
     return;
 
-  bg_album_insert_urls_after(a, uri_list, (const char*)0, before);
+  bg_album_insert_urls_after(a, uri_list, NULL, before);
 
   bg_urilist_free(uri_list);
   }
@@ -449,7 +449,7 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
   if(!uri_list)
     return;
 
-  bg_album_insert_urls_before(a, uri_list, (const char*)0, after);
+  bg_album_insert_urls_before(a, uri_list, NULL, after);
   
   bg_urilist_free(uri_list);
   }
@@ -501,8 +501,8 @@ static int open_device(bg_album_t * a)
 
     new_entry->index = i;
     new_entry->total_tracks = num_tracks;
-    new_entry->name   = bg_strdup((char*)0, track_info->name);
-    new_entry->plugin = bg_strdup((char*)0, a->handle->info->name);
+    new_entry->name   = bg_strdup(NULL, track_info->name);
+    new_entry->plugin = bg_strdup(NULL, a->handle->info->name);
     
     new_entry->location = bg_strdup(new_entry->location,
                                       a->device);
@@ -522,7 +522,7 @@ static int open_device(bg_album_t * a)
       track_info->num_subtitle_streams;
     new_entry->duration = track_info->duration;
 
-    bg_album_insert_entries_before(a, new_entry, (bg_album_entry_t*)0);
+    bg_album_insert_entries_before(a, new_entry, NULL);
     }
   bg_plugin_unlock(a->handle);
   return 1;
@@ -553,8 +553,8 @@ static void sync_dir_add(bg_album_t * a, char * filename, time_t mtime)
   {
   bg_album_insert_file_before(a,
                               filename,
-                              (const char*)0,
-                              (bg_album_entry_t*)0,
+                              NULL,
+                              NULL,
                               mtime);
   }
 
@@ -663,7 +663,7 @@ static void sync_with_dir(bg_album_t * a)
       continue;
     else if(S_ISREG(stat_buf.st_mode))
       {
-      e = find_next_with_location(a, filename, (bg_album_entry_t *)0);
+      e = find_next_with_location(a, filename, NULL);
       
       if(e)
         {
@@ -705,7 +705,7 @@ int bg_album_open(bg_album_t * a)
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening album %s", a->name);
   
   
-  a->cfg_section = bg_cfg_section_create((char*)0);
+  a->cfg_section = bg_cfg_section_create(NULL);
   
   switch(a->type)
     {
@@ -857,8 +857,7 @@ void bg_album_close(bg_album_t *a )
   if((a == a->com->current_album) && a->com->set_current_callback)
     {
     a->com->set_current_callback(a->com->set_current_callback_data,
-                                 (bg_album_t*)0,
-                                 (const bg_album_entry_t*)0);
+                                 NULL, NULL);
     }
   switch(a->type)
     {
@@ -866,11 +865,11 @@ void bg_album_close(bg_album_t *a )
     case BG_ALBUM_TYPE_TUNER:
       a->flags &= ~BG_ALBUM_CAN_EJECT;
       bg_plugin_unref(a->handle);
-      a->handle = (bg_plugin_handle_t*)0;
+      a->handle = NULL;
       if(a->disc_name)
         {
         free(a->disc_name);
-        a->disc_name = (char*)0;
+        a->disc_name = NULL;
         }
       if(a->type == BG_ALBUM_TYPE_TUNER)
         bg_album_save(a, NULL);
@@ -887,7 +886,7 @@ void bg_album_close(bg_album_t *a )
   /* Delete entries */
 
   bg_album_entries_destroy(a->entries);
-  a->entries = (bg_album_entry_t*)0;
+  a->entries = NULL;
 
   /* Delete shuffle list */
 
@@ -897,7 +896,7 @@ void bg_album_close(bg_album_t *a )
   if(a->cfg_section)
     {
     bg_cfg_section_destroy(a->cfg_section);
-    a->cfg_section = (bg_cfg_section_t*)0;
+    a->cfg_section = NULL;
     }
 
 #ifdef HAVE_INOTIFY
@@ -942,7 +941,7 @@ void bg_album_destroy(bg_album_t * a)
 
   if(a->open_count)
     {
-    bg_album_save(a, (const char*)0);
+    bg_album_save(a, NULL);
     }
   if(a->name)
     free(a->name);
@@ -979,10 +978,10 @@ void bg_album_delete_selected(bg_album_t * album)
   int num_selected = 0;
   bg_album_entry_t * cur;
   bg_album_entry_t * cur_next;
-  bg_album_entry_t * new_entries_end = (bg_album_entry_t *)0;
+  bg_album_entry_t * new_entries_end = NULL;
   bg_album_entry_t * new_entries;
   int index, i;
-  int * indices = (int*)0;
+  int * indices = NULL;
   
   if(!album->entries)
     return;
@@ -1000,7 +999,7 @@ void bg_album_delete_selected(bg_album_t * album)
     }
   
   cur = album->entries;
-  new_entries = (bg_album_entry_t*)0;
+  new_entries = NULL;
   index = 0;
   i = 0;
   
@@ -1012,8 +1011,8 @@ void bg_album_delete_selected(bg_album_t * album)
       {
       if(cur == album->com->current_entry)
         {
-        album->com->current_entry = (bg_album_entry_t*)0;
-        album->com->current_album = (bg_album_t*)0;
+        album->com->current_entry = NULL;
+        album->com->current_album = NULL;
         }
       bg_album_entry_destroy(cur);
       if(indices)
@@ -1037,7 +1036,7 @@ void bg_album_delete_selected(bg_album_t * album)
     index++;
     }
   if(new_entries)
-    new_entries_end->next = (bg_album_entry_t*)0;
+    new_entries_end->next = NULL;
   album->entries = new_entries;
   
   delete_shuffle_list(album);
@@ -1056,10 +1055,10 @@ void bg_album_delete_unsync(bg_album_t * album)
   int num_selected = 0;
   bg_album_entry_t * cur;
   bg_album_entry_t * cur_next;
-  bg_album_entry_t * new_entries_end = (bg_album_entry_t *)0;
+  bg_album_entry_t * new_entries_end = NULL;
   bg_album_entry_t * new_entries;
   int index, i;
-  int * indices = (int*)0;
+  int * indices = NULL;
   
   if(!album->entries)
     return;
@@ -1077,7 +1076,7 @@ void bg_album_delete_unsync(bg_album_t * album)
     }
   
   cur = album->entries;
-  new_entries = (bg_album_entry_t*)0;
+  new_entries = NULL;
   index = 0;
   i = 0;
   
@@ -1089,8 +1088,8 @@ void bg_album_delete_unsync(bg_album_t * album)
       {
       if(cur == album->com->current_entry)
         {
-        album->com->current_entry = (bg_album_entry_t*)0;
-        album->com->current_album = (bg_album_t*)0;
+        album->com->current_entry = NULL;
+        album->com->current_album = NULL;
         }
       bg_album_entry_destroy(cur);
       if(indices)
@@ -1114,7 +1113,7 @@ void bg_album_delete_unsync(bg_album_t * album)
     index++;
     }
   if(new_entries)
-    new_entries_end->next = (bg_album_entry_t*)0;
+    new_entries_end->next = NULL;
   album->entries = new_entries;
   
   delete_shuffle_list(album);
@@ -1133,10 +1132,10 @@ void bg_album_delete_with_file(bg_album_t * album, const char * filename)
   {
   bg_album_entry_t * cur;
   bg_album_entry_t * cur_next;
-  bg_album_entry_t * new_entries_end = (bg_album_entry_t *)0;
+  bg_album_entry_t * new_entries_end = NULL;
   bg_album_entry_t * new_entries;
   int index, i;
-  int * indices = (int*)0;
+  int * indices = NULL;
   
   if(!album->entries)
     return;
@@ -1144,7 +1143,7 @@ void bg_album_delete_with_file(bg_album_t * album, const char * filename)
   cur = album->entries;
     
   cur = album->entries;
-  new_entries = (bg_album_entry_t*)0;
+  new_entries = NULL;
   index = 0;
   i = 0;
   
@@ -1156,8 +1155,8 @@ void bg_album_delete_with_file(bg_album_t * album, const char * filename)
       {
       if(cur == album->com->current_entry)
         {
-        album->com->current_entry = (bg_album_entry_t*)0;
-        album->com->current_album = (bg_album_t*)0;
+        album->com->current_entry = NULL;
+        album->com->current_album = NULL;
         }
       bg_album_entry_destroy(cur);
       if(album->delete_callback)
@@ -1184,7 +1183,7 @@ void bg_album_delete_with_file(bg_album_t * album, const char * filename)
     index++;
     }
   if(new_entries)
-    new_entries_end->next = (bg_album_entry_t*)0;
+    new_entries_end->next = NULL;
   album->entries = new_entries;
   
   delete_shuffle_list(album);
@@ -1218,8 +1217,8 @@ void bg_album_select_error_tracks(bg_album_t * album)
 
 static bg_album_entry_t * copy_selected(bg_album_t * album)
   {
-  bg_album_entry_t * ret     = (bg_album_entry_t*)0;
-  bg_album_entry_t * ret_end = (bg_album_entry_t*)0;
+  bg_album_entry_t * ret     = NULL;
+  bg_album_entry_t * ret_end = NULL;
   bg_album_entry_t * tmp_entry;
 
   tmp_entry = album->entries;
@@ -1246,12 +1245,12 @@ static bg_album_entry_t * copy_selected(bg_album_t * album)
 
 static bg_album_entry_t * extract_selected(bg_album_t * album)
   {
-  bg_album_entry_t * selected_end = (bg_album_entry_t *)0;
-  bg_album_entry_t * other_end = (bg_album_entry_t *)0;
+  bg_album_entry_t * selected_end = NULL;
+  bg_album_entry_t * other_end = NULL;
   bg_album_entry_t * tmp_entry;
   
-  bg_album_entry_t * other    = (bg_album_entry_t*)0;
-  bg_album_entry_t * selected = (bg_album_entry_t*)0;
+  bg_album_entry_t * other    = NULL;
+  bg_album_entry_t * selected = NULL;
   
   while(album->entries)
     {
@@ -1269,7 +1268,7 @@ static bg_album_entry_t * extract_selected(bg_album_t * album)
         selected_end->next = album->entries;
         selected_end = selected_end->next;
         }
-      selected_end->next = (bg_album_entry_t*)0;
+      selected_end->next = NULL;
       }
     else
       {
@@ -1283,7 +1282,7 @@ static bg_album_entry_t * extract_selected(bg_album_t * album)
         other_end->next = album->entries;
         other_end = other_end->next;
         }
-      other_end->next = (bg_album_entry_t*)0;
+      other_end->next = NULL;
       }
     album->entries = tmp_entry;
     }
@@ -1298,7 +1297,7 @@ void bg_album_move_selected_up(bg_album_t * album)
 
   bg_album_insert_entries_after(album,
                                 selected,
-                                (bg_album_entry_t*)0);
+                                NULL);
   bg_album_changed(album);
   }
 
@@ -1309,7 +1308,7 @@ void bg_album_move_selected_down(bg_album_t * album)
 
   bg_album_insert_entries_before(album,
                                  selected,
-                                 (bg_album_entry_t*)0);
+                                 NULL);
   bg_album_changed(album);
   }
 
@@ -1362,7 +1361,7 @@ void bg_album_sort_entries(bg_album_t * album)
     tmp_string = bg_utf8_to_system(tmp_entry->name,
                                    strlen(tmp_entry->name));
 
-    sort_string_len = strxfrm((char*)0, tmp_string, 0);
+    sort_string_len = strxfrm(NULL, tmp_string, 0);
     s[i]->sort_string = malloc(sort_string_len+1);
     strxfrm(s[i]->sort_string, tmp_string, sort_string_len+1);
 
@@ -1401,7 +1400,7 @@ void bg_album_sort_entries(bg_album_t * album)
     s[i]->entry->next = s[i+1]->entry;
     }
   
-  s[num_entries-1]->entry->next = (bg_album_entry_t*)0;
+  s[num_entries-1]->entry->next = NULL;
   
   /* Free everything */
 
@@ -1463,7 +1462,7 @@ void bg_album_sort_children(bg_album_t * album)
     tmp_string = bg_utf8_to_system(tmp_child->name,
                                    strlen(tmp_child->name));
 
-    sort_string_len = strxfrm((char*)0, tmp_string, 0);
+    sort_string_len = strxfrm(NULL, tmp_string, 0);
     s[i]->sort_string = malloc(sort_string_len+1);
     strxfrm(s[i]->sort_string, tmp_string, sort_string_len+1);
 
@@ -1502,7 +1501,7 @@ void bg_album_sort_children(bg_album_t * album)
     s[i]->child->next = s[i+1]->child;
     }
   
-  s[num_children-1]->child->next = (bg_album_t*)0;
+  s[num_children-1]->child->next = NULL;
   
   /* Free everything */
 
@@ -1536,7 +1535,7 @@ void bg_album_rename_track(bg_album_t * album,
   if(entry->name_w)
     {
     free(entry->name_w);
-    entry->name_w = (wchar_t*)0;
+    entry->name_w = NULL;
     entry->len_w = 0;
     }
   bg_album_entry_changed(album, entry);
@@ -1976,7 +1975,6 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
   {
   bg_album_entry_t * before;
   bg_album_entry_t * e;
-  //  bg_album_entry_t * ret_end = (bg_album_entry_t*)0;
   bg_album_entry_t * new_entry, * end_entry;
   int done = 0;
   const bg_plugin_info_t * info;
@@ -1998,7 +1996,7 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
         name = info->name;
         }
       else
-        name = (const char*)0;
+        name = NULL;
         
       new_entry = bg_album_load_url(album,
                                     e->location,
@@ -2043,7 +2041,7 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
         else
           {
           entries = e->next;
-          before = (bg_album_entry_t*)0;
+          before = NULL;
           }
         bg_album_entry_destroy(e);
         e = (before) ? before->next : entries;
@@ -2082,8 +2080,8 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   int i, num_entries;
   
   bg_album_entry_t * new_entry;
-  bg_album_entry_t * end_entry = (bg_album_entry_t*)0;
-  bg_album_entry_t * ret       = (bg_album_entry_t*)0;
+  bg_album_entry_t * end_entry = NULL;
+  bg_album_entry_t * ret       = NULL;
   
   //  char * system_location;
 
@@ -2108,16 +2106,16 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                   plugin_name);
     }
   else
-    info = (bg_plugin_info_t*)0;
+    info = NULL;
 
-  bg_album_common_prepare_callbacks(album->com, (bg_album_entry_t*)0);
+  bg_album_common_prepare_callbacks(album->com, NULL);
   
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            url, info,
                            &album->com->load_handle, &album->com->input_callbacks, album->com->prefer_edl))
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Loading %s failed", url);
-    return (bg_album_entry_t*)0;
+    return NULL;
     }
   plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
   
@@ -2189,7 +2187,7 @@ static int refresh_entry(bg_album_t * album,
     info = bg_plugin_find_by_name(album->com->plugin_reg, entry->plugin);
     }
   else
-    info = (bg_plugin_info_t*)0;
+    info = NULL;
 
   // system_location = bg_utf8_to_system(entry->location,
   //                                     strlen(entry->location));
@@ -2255,7 +2253,7 @@ void bg_album_refresh_selected(bg_album_t * album)
   while(cur)
     {
     if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
-      refresh_entry(album, cur, (bg_edl_t *)0);
+      refresh_entry(album, cur, NULL);
     cur = cur->next;
     }
   }
@@ -2291,7 +2289,7 @@ void bg_album_copy_selected_to_favourites(bg_album_t * a)
     }
   was_open = 1;
   
-  bg_album_insert_entries_before(a->com->favourites, sel, (bg_album_entry_t*)0);
+  bg_album_insert_entries_before(a->com->favourites, sel, NULL);
   
   if(!was_open)
     bg_album_close(a->com->favourites);
@@ -2310,7 +2308,7 @@ void bg_album_move_selected_to_favourites(bg_album_t * a)
     }
   was_open = 1;
   
-  bg_album_insert_entries_before(a->com->favourites, sel, (bg_album_entry_t*)0);
+  bg_album_insert_entries_before(a->com->favourites, sel, NULL);
   
   if(!was_open)
     bg_album_close(a->com->favourites);
@@ -2351,7 +2349,7 @@ char * bg_album_selected_to_string(bg_album_t * a)
   {
   char time_string[GAVL_TIME_STRING_LEN];
   bg_album_entry_t * entry;
-  char * ret = (char*)0;
+  char * ret = NULL;
   char * tmp_string;
   int index = 1;
   entry = a->entries;
@@ -2557,7 +2555,7 @@ static void update_seek_data(bg_album_seek_data_t * d)
   {
   int i;
   char ** substrings;
-  char ** substrings_d = (char**)0;
+  char ** substrings_d = NULL;
   
   char * substrings_s[2];
 
@@ -2566,7 +2564,7 @@ static void update_seek_data(bg_album_seek_data_t * d)
     {
     d->num_substrings = 1;
     substrings_s[0] = d->str;
-    substrings_s[1] = (char*)0;
+    substrings_s[1] = NULL;
     substrings = substrings_s;
     }
   else
@@ -2676,7 +2674,7 @@ bg_album_entry_t * bg_album_seek_entry_before(bg_album_t * a,
   {
   bg_album_entry_t * cur;
   
-  bg_album_entry_t * match = (bg_album_entry_t*)0;
+  bg_album_entry_t * match = NULL;
   
   if(!e)
     {
@@ -2703,7 +2701,7 @@ bg_album_entry_t * bg_album_seek_entry_before(bg_album_t * a,
     if(!cur)
       break;
     }
-  return (bg_album_entry_t*)0;
+  return NULL;
   }
 
 void bg_album_seek_data_destroy(bg_album_seek_data_t * d)

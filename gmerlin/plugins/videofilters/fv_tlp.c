@@ -142,12 +142,12 @@ static void set_input_format_tlp(void * priv, gavl_video_format_t * format, int 
   if(vp->frame_1)
     {
     gavl_video_frame_destroy(vp->frame_1);
-    vp->frame_1 = (gavl_video_frame_t*)0;
+    vp->frame_1 = NULL;
     }
   if(vp->frame_2)
     {
     gavl_video_frame_destroy(vp->frame_2);
-    vp->frame_2 = (gavl_video_frame_t*)0;
+    vp->frame_2 = NULL;
     }
   vp->init = 1;
   }

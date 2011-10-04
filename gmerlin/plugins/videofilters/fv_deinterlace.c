@@ -90,7 +90,7 @@ static void * create_deinterlace()
   ret->opt = gavl_video_deinterlacer_get_options(ret->deint);
   ret->yadif = bg_yadif_create();
   
-  ret->src_field_1 = gavl_video_frame_create((gavl_video_format_t*)0);
+  ret->src_field_1 = gavl_video_frame_create(NULL);
   ret->global_opt = gavl_video_options_create();
   return ret;
   }
@@ -141,7 +141,7 @@ static const bg_parameter_info_t parameters[] =
                                "blend",
                                "yadif",
                                "yadif_fast",
-                               (char*)0 },
+                               NULL },
       
       .multi_labels = (char const *[]){ TRS("None"),
                                TRS("Scanline doubler"),
@@ -150,7 +150,7 @@ static const bg_parameter_info_t parameters[] =
                                TRS("Blend"),
                                TRS("Yadif"),
                                TRS("Yadif (fast)"),
-                               (char*)0 },
+                               NULL },
       .multi_descriptions = (char const *[]){ TRS("Do nothing"),
                                      TRS("Simply double all scanlines. Very fast but \
 low image quality"), 
@@ -158,7 +158,7 @@ low image quality"),
                                      TRS("Drop one field and scale the image to the original height"),
                                      TRS("yadif"),
                                      TRS("yadif (fast mode)"),
-                                     (char*)0 },
+                                     NULL },
     },
     {
       .name = "force",
@@ -174,13 +174,13 @@ low image quality"),
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "top" },
       .help_string = TRS("Specify which field to output. Outputting both fields is not always supported."),
-      .multi_names = (char const *[]){ "top", "bottom", "first", "second", "both", (char*)0 },
+      .multi_names = (char const *[]){ "top", "bottom", "first", "second", "both", NULL },
       .multi_labels = (char const *[]){ TRS("Top field"),
                                         TRS("Bottom field"),
                                         TRS("First field"),
                                         TRS("Second field"),
                                         TRS("Both fields"),
-                                        (char*)0 },
+                                        NULL },
     },
     BG_GAVL_PARAM_SCALE_MODE,
     { /* End of parameters */ },
@@ -405,7 +405,7 @@ set_input_format_deinterlace(void * priv,
     if(vp->frame)
       {
       gavl_video_frame_destroy(vp->frame);
-      vp->frame = (gavl_video_frame_t*)0;
+      vp->frame = NULL;
       }
     transfer_global_options(vp->opt, vp->global_opt);
     
@@ -459,7 +459,7 @@ set_input_format_deinterlace(void * priv,
   if(vp->frame)
     {
     gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
+    vp->frame = NULL;
     }
   }
 

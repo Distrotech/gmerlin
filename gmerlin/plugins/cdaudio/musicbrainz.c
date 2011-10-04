@@ -96,7 +96,7 @@ int bg_cdaudio_get_metadata_musicbrainz(bg_cdaudio_index_t * idx,
   //  test_cdindex();
     
   args[0] = disc_id;
-  args[1] = (char*)0;
+  args[1] = NULL;
   
   result =  mb_QueryWithArgs(m, MBQ_GetCDInfoFromCDIndexId, args);
 

@@ -96,7 +96,7 @@ static bg_edl_segment_t * copy_segments(const bg_edl_segment_t * src, int len)
   for(i = 0; i < len; i++)
     {
     /* Copy pointers */
-    ret[i].url = bg_strdup((char*)0, src[i].url);
+    ret[i].url = bg_strdup(NULL, src[i].url);
     }
   return ret;
   }
@@ -132,7 +132,7 @@ static bg_edl_track_t * copy_tracks(const bg_edl_track_t * src, int len)
     {
     /* Copy pointers */
 
-    ret[i].name = bg_strdup((char*)0, src[i].name);
+    ret[i].name = bg_strdup(NULL, src[i].name);
     
     ret[i].audio_streams = copy_streams(src[i].audio_streams,
                                         src[i].num_audio_streams);
@@ -156,7 +156,7 @@ bg_edl_t * bg_edl_copy(const bg_edl_t * e)
   
   /* Copy pointers */
   ret->tracks = copy_tracks(e->tracks, e->num_tracks);
-  ret->url = bg_strdup((char*)0, e->url);
+  ret->url = bg_strdup(NULL, e->url);
   return ret;
   }
 
@@ -304,7 +304,7 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
       seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, info->duration);
     seg->speed_num = 1;
     seg->speed_den = 1;
-    seg->url = bg_strdup((char*)0, url);
+    seg->url = bg_strdup(NULL, url);
     seg->track = index;
     seg->stream = i;
     }
@@ -321,7 +321,7 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
       seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, info->duration);
     seg->speed_num = 1;
     seg->speed_den = 1;
-    seg->url = bg_strdup((char*)0, url);
+    seg->url = bg_strdup(NULL, url);
     seg->track = index;
     seg->stream = i;
     }
@@ -343,7 +343,7 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
                                             info->duration);
     seg->speed_num = 1;
     seg->speed_den = 1;
-    seg->url = bg_strdup((char*)0, url);
+    seg->url = bg_strdup(NULL, url);
     seg->track = index;
     seg->stream = i;
     }

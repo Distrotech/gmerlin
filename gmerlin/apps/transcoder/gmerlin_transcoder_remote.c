@@ -60,7 +60,11 @@ static void cmd_addalbum(void * data, int * argc, char *** _argv, int arg)
   len = ftell(file);
   fseek(file, 0, SEEK_SET);
   xml_string = malloc(len + 1);
-  fread(xml_string, 1, len, file);
+  if(fread(xml_string, 1, len, file) < len)
+    {
+    fclose(file);
+    return;
+    }
   xml_string[len] = '\0';
   fclose(file);
     
@@ -117,7 +121,7 @@ bg_cmdline_arg_t commands[] =
     { /* End of options */ }
   };
 
-char * host = (char *)0;
+char * host = NULL;
 int port = TRANSCODER_REMOTE_PORT;
 int launch = 0;
 

@@ -317,12 +317,12 @@ static void finish_transcoding(transcoder_window_t * win)
     {
     bg_transcoder_finish(win->transcoder);
     bg_transcoder_destroy(win->transcoder);
-    win->transcoder = (bg_transcoder_t*)0;
+    win->transcoder = NULL;
     
     if(win->transcoder_track)
       {
       bg_transcoder_track_destroy(win->transcoder_track);
-      win->transcoder_track = (bg_transcoder_track_t*)0;
+      win->transcoder_track = NULL;
       }
     if(win->pp)
       bg_transcoder_pp_update(win->pp);
@@ -331,7 +331,7 @@ static void finish_transcoding(transcoder_window_t * win)
     {
     bg_transcoder_pp_finish(win->pp);
     bg_transcoder_pp_destroy(win->pp);
-    win->pp = (bg_transcoder_pp_t*)0;
+    win->pp = NULL;
     }
   /* Flush message queue */
   while(bg_msg_queue_try_lock_read(win->msg_queue))
@@ -413,7 +413,7 @@ static gboolean idle_callback(gpointer data)
         if(win->transcoder_track)
           {
           track_list_prepend_track(win->tracklist, win->transcoder_track);
-          win->transcoder_track = (bg_transcoder_track_t*)0;
+          win->transcoder_track = NULL;
           }
 
         finish_transcoding(win);
@@ -423,7 +423,7 @@ static gboolean idle_callback(gpointer data)
                                    BG_GTK_DISPLAY_MODE_HMS);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
         
-        win->transcoder = (bg_transcoder_t*)0;
+        win->transcoder = NULL;
         
         gtk_widget_set_sensitive(win->run_button, 1);
         gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
@@ -488,10 +488,10 @@ static int start_transcode(transcoder_window_t * win)
     
     if(win->transcoder_track)
       track_list_prepend_track(win->tracklist, win->transcoder_track);
-    win->transcoder_track = (bg_transcoder_track_t*)0;
+    win->transcoder_track = NULL;
 
     bg_transcoder_destroy(win->transcoder);
-    win->transcoder = (bg_transcoder_t*)0;
+    win->transcoder = NULL;
     return 0;
     }
   
@@ -518,7 +518,7 @@ static void filesel_button_callback(GtkWidget * w, gpointer * data)
 
   if(w == filesel->ok_button)
     {
-    win->filesel_file = bg_strdup((char*)0,
+    win->filesel_file = bg_strdup(NULL,
                                    gtk_file_selection_get_filename(filesel));
     gtk_widget_hide(win->filesel);
 
@@ -622,7 +622,7 @@ static void button_callback(GtkWidget * w, gpointer data)
       if(!bg_transcoder_pp_init(win->pp, win->pp_plugin))
         {
         bg_transcoder_pp_destroy(win->pp);
-        win->pp = (bg_transcoder_pp_t*)0;
+        win->pp = NULL;
         }
       }
     
@@ -632,7 +632,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     if(win->transcoder_track)
       track_list_prepend_track(win->tracklist, win->transcoder_track);
-    win->transcoder_track = (bg_transcoder_track_t*)0;
+    win->transcoder_track = NULL;
     if(win->transcoder)
       bg_transcoder_stop(win->transcoder);
     else if(win->pp)

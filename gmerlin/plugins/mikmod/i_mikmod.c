@@ -119,7 +119,7 @@ static int open_mikmod(void * data, const char * arg)
   gavl_audio_frame_t * test_frame;
   
   // if no mikmod installed 
-  if(!bg_search_file_exec("mikmod", (char**)0))
+  if(!bg_search_file_exec("mikmod", NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mikmod executable");
     return 0;
@@ -197,7 +197,7 @@ static int open_mikmod(void * data, const char * arg)
   else
     {
     bg_subprocess_close(mik->proc);
-    mik->proc = (bg_subprocess_t*)0;
+    mik->proc = NULL;
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unrecognized fileformat");
     }
 
@@ -230,7 +230,7 @@ static void close_mikmod(void * data)
     if(!e->eof)
       bg_subprocess_kill(e->proc, SIGKILL);
     bg_subprocess_close(e->proc);
-    e->proc = (bg_subprocess_t*)0;
+    e->proc = NULL;
     }
   bg_track_info_free(&e->track_info);
   }
@@ -250,8 +250,8 @@ static const bg_parameter_info_t parameters[] =
       .name =        "output",
       .long_name =   TRS("Output format"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char const *[]){ "mono8", "stereo8", "mono16", "stereo16", (char*)0 },
-      .multi_labels =  (char const *[]){ TRS("Mono 8bit"), TRS("Stereo 8bit"), TRS("Mono 16bit"), TRS("Stereo 16bit"), (char*)0 },
+      .multi_names = (char const *[]){ "mono8", "stereo8", "mono16", "stereo16", NULL },
+      .multi_labels =  (char const *[]){ TRS("Mono 8bit"), TRS("Stereo 8bit"), TRS("Mono 16bit"), TRS("Stereo 16bit"), NULL },
       
       .val_default = { .val_str = "stereo16" },
     },

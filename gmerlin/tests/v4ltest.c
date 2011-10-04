@@ -49,8 +49,8 @@ int main(int argc, char ** argv)
   bg_ov_plugin_t     * output;
   
   const bg_plugin_info_t * info;
-  gavl_video_frame_t * frame = (gavl_video_frame_t*)0;
-  gavl_video_frame_t * input_frame = (gavl_video_frame_t*)0;
+  gavl_video_frame_t * frame = NULL;
+  gavl_video_frame_t * input_frame = NULL;
 
   /* Create config registry */
   

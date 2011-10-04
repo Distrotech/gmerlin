@@ -41,7 +41,7 @@ kbd_table_t * kbd_table_load(const char * filename, int * len)
   {
   char * tmp_string;
   
-  kbd_table_t * ret = (kbd_table_t *)0;
+  kbd_table_t * ret = NULL;
   xmlDocPtr xml_doc;
   xmlNodePtr node;
   xmlNodePtr child;
@@ -127,10 +127,10 @@ void kbd_table_save(const char * filename, kbd_table_t * keys, int len)
   
   for(i = 0; i < len; i++)
     {
-    xml_key = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)key_name, NULL);
+    xml_key = xmlNewTextChild(node, NULL, (xmlChar*)key_name, NULL);
     
     xml_child =
-      xmlNewTextChild(xml_key, (xmlNsPtr)0, (xmlChar*)scancode_name, NULL);
+      xmlNewTextChild(xml_key, NULL, (xmlChar*)scancode_name, NULL);
     tmp_string = bg_sprintf("%d", keys[i].scancode);
     xmlAddChild(xml_child, BG_XML_NEW_TEXT(tmp_string));
     free(tmp_string);
@@ -138,13 +138,13 @@ void kbd_table_save(const char * filename, kbd_table_t * keys, int len)
     if(keys[i].modifiers)
       {
       xml_child =
-        xmlNewTextChild(xml_key, (xmlNsPtr)0, (xmlChar*)modifiers_name, NULL);
+        xmlNewTextChild(xml_key, NULL, (xmlChar*)modifiers_name, NULL);
       xmlAddChild(xml_child, BG_XML_NEW_TEXT(keys[i].modifiers));
       }
     if(keys[i].command)
       {
       xml_child =
-        xmlNewTextChild(xml_key, (xmlNsPtr)0, (xmlChar*)command_name, NULL);
+        xmlNewTextChild(xml_key, NULL, (xmlChar*)command_name, NULL);
       xmlAddChild(xml_child, BG_XML_NEW_TEXT(keys[i].command));
       }
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));

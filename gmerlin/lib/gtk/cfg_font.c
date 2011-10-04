@@ -65,7 +65,7 @@ static void set_value(bg_gtk_widget_t * w)
   if(w->value.val_str)
     {
     free(w->value.val_str);
-    w->value.val_str = (char*)0;
+    w->value.val_str = NULL;
     }
   
   if(*font != '\0')

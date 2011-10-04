@@ -66,7 +66,7 @@ static const char * type_2_name(bg_parameter_type_t type)
     if(type_names[i].type == type)
       return type_names[i].name;
     }
-  return (char*)0;
+  return NULL;
   }
 
 static bg_parameter_type_t name_2_type(const char * name)
@@ -130,7 +130,7 @@ static char * flags_to_string(int flags)
   {
   int num = 0;
   int i;
-  char * ret = (char*)0;
+  char * ret = NULL;
 
   for(i = 0; i < sizeof(flag_names)/sizeof(flag_names[0]); i++)
     {
@@ -180,7 +180,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
   int multi_index, multi_num;
   int num_parameters;
   char * tmp_string;
-  bg_parameter_info_t * ret = (bg_parameter_info_t *)0;
+  bg_parameter_info_t * ret = NULL;
   
   tmp_string = BG_XML_GET_PROP(xml_parameters, num_key);
   num_parameters = atoi(tmp_string);
@@ -508,28 +508,28 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
   xmlAddChild(xml_parameters, BG_XML_NEW_TEXT("\n"));
   while(info[num_parameters].name)
     {
-    xml_info = xmlNewTextChild(xml_parameters, (xmlNsPtr)0, (xmlChar*)parameter_key, NULL);
+    xml_info = xmlNewTextChild(xml_parameters, NULL, (xmlChar*)parameter_key, NULL);
     BG_XML_SET_PROP(xml_info, name_key, info[num_parameters].name);
     BG_XML_SET_PROP(xml_info, type_key, type_2_name(info[num_parameters].type));
     xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
 
     if(info[num_parameters].long_name)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)long_name_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)long_name_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].long_name));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
     
     if(info[num_parameters].opt)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)opt_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)opt_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].opt));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
 
     if(info[num_parameters].flags)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)flags_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)flags_key, NULL);
 
       tmp_string = flags_to_string(info[num_parameters].flags);
       xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
@@ -540,25 +540,25 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
 
     if(info[num_parameters].help_string)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)help_string_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)help_string_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].help_string));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
     if(info[num_parameters].gettext_domain)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)gettext_domain_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)gettext_domain_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].gettext_domain));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
     if(info[num_parameters].gettext_directory)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)gettext_directory_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)gettext_directory_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].gettext_directory));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
     if(info[num_parameters].preset_path)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)preset_path_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)preset_path_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].preset_path));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
@@ -569,7 +569,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       while(info[num_parameters].multi_names[multi_num])
         multi_num++;
 
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)multi_names_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)multi_names_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
       
       tmp_string = bg_sprintf("%d", multi_num);
@@ -579,7 +579,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
 
       for(i = 0; i < multi_num; i++)
         {
-        grandchild = xmlNewTextChild(child, (xmlNsPtr)0, (xmlChar*)multi_name_key, NULL);
+        grandchild = xmlNewTextChild(child, NULL, (xmlChar*)multi_name_key, NULL);
         xmlAddChild(grandchild, BG_XML_NEW_TEXT(info[num_parameters].multi_names[i]));
         xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
         }
@@ -588,7 +588,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
 
     if(info[num_parameters].multi_labels)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)multi_labels_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)multi_labels_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
       
       tmp_string = bg_sprintf("%d", multi_num);
@@ -597,7 +597,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       
       for(i = 0; i < multi_num; i++)
         {
-        grandchild = xmlNewTextChild(child, (xmlNsPtr)0, (xmlChar*)multi_label_key, NULL);
+        grandchild = xmlNewTextChild(child, NULL, (xmlChar*)multi_label_key, NULL);
         xmlAddChild(grandchild, BG_XML_NEW_TEXT(info[num_parameters].multi_labels[i]));
         xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
         }
@@ -606,7 +606,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
 
     if(info[num_parameters].multi_descriptions)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)multi_descs_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)multi_descs_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
       
       tmp_string = bg_sprintf("%d", multi_num);
@@ -615,7 +615,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       
       for(i = 0; i < multi_num; i++)
         {
-        grandchild = xmlNewTextChild(child, (xmlNsPtr)0, (xmlChar*)multi_desc_key, NULL);
+        grandchild = xmlNewTextChild(child, NULL, (xmlChar*)multi_desc_key, NULL);
         xmlAddChild(grandchild, BG_XML_NEW_TEXT(info[num_parameters].multi_descriptions[i]));
         xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
         }
@@ -624,7 +624,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
     
     if(info[num_parameters].multi_parameters)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)multi_parameters_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)multi_parameters_key, NULL);
       xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
       
       tmp_string = bg_sprintf("%d", multi_num);
@@ -635,7 +635,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
         {
         if(info[num_parameters].multi_parameters[i])
           {
-          grandchild = xmlNewTextChild(child, (xmlNsPtr)0, (xmlChar*)multi_parameter_key, NULL);
+          grandchild = xmlNewTextChild(child, NULL, (xmlChar*)multi_parameter_key, NULL);
 
           tmp_string = bg_sprintf("%d", i);
           BG_XML_SET_PROP(grandchild, index_key, tmp_string);
@@ -657,7 +657,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       case BG_PARAMETER_CHECKBUTTON:
         if(info[num_parameters].val_default.val_i)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)default_key, NULL);
           xmlAddChild(child, BG_XML_NEW_TEXT("1"));
           xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
           }
@@ -666,7 +666,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       case BG_PARAMETER_SLIDER_INT:
         if(info[num_parameters].val_default.val_i)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)default_key, NULL);
 
           tmp_string = bg_sprintf("%d", info[num_parameters].val_default.val_i);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
@@ -676,7 +676,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
           }
         if(info[num_parameters].val_min.val_i < info[num_parameters].val_max.val_i)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)range_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)range_key, NULL);
 
           tmp_string = bg_sprintf("%d %d",
                                   info[num_parameters].val_min.val_i,
@@ -693,7 +693,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       case BG_PARAMETER_SLIDER_FLOAT:
         if(info[num_parameters].val_default.val_f != 0.0)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)default_key, NULL);
 
           tmp_string = bg_sprintf("%f", info[num_parameters].val_default.val_f);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
@@ -704,7 +704,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
         if(info[num_parameters].val_min.val_f <
            info[num_parameters].val_max.val_f)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0,
+          child = xmlNewTextChild(xml_info, NULL,
                                   (xmlChar*)range_key, NULL);
 
           tmp_string = bg_sprintf("%f %f",
@@ -719,7 +719,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       case BG_PARAMETER_TIME:
         if(info[num_parameters].val_default.val_time)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)default_key, NULL);
 
           tmp_string = bg_sprintf("%d", info[num_parameters].val_default.val_i);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
@@ -730,7 +730,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
         if(info[num_parameters].val_min.val_time <
            info[num_parameters].val_max.val_time)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)range_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)range_key, NULL);
 
           tmp_string = bg_sprintf("%" PRId64 " %" PRId64, info[num_parameters].val_min.val_time,
                                   info[num_parameters].val_max.val_time);
@@ -751,7 +751,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       case BG_PARAMETER_STRINGLIST:
         if(info[num_parameters].val_default.val_str)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)default_key, NULL);
 
           xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].val_default.val_str));
           
@@ -765,7 +765,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       case BG_PARAMETER_COLOR_RGB:
         if(info[num_parameters].val_default.val_color)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)default_key, NULL);
 
           tmp_string = bg_sprintf("%f %f %f",
                                   info[num_parameters].val_default.val_color[0],
@@ -781,7 +781,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
       case BG_PARAMETER_COLOR_RGBA:
         if(info[num_parameters].val_default.val_color)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)default_key, NULL);
 
           tmp_string = bg_sprintf("%f %f %f %f",
                                   info[num_parameters].val_default.val_color[0],
@@ -798,7 +798,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
         if((info[num_parameters].val_default.val_pos[0] != 0.0) ||
            (info[num_parameters].val_default.val_pos[1] != 0.0))
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+          child = xmlNewTextChild(xml_info, NULL, (xmlChar*)default_key, NULL);
 
           tmp_string = bg_sprintf("%f %f",
                                   info[num_parameters].val_default.val_pos[0],
@@ -813,7 +813,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info,
 
     if(info[num_parameters].num_digits)
       {
-      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)num_digits_key, NULL);
+      child = xmlNewTextChild(xml_info, NULL, (xmlChar*)num_digits_key, NULL);
       
       tmp_string = bg_sprintf("%d", info[num_parameters].num_digits);
       xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));

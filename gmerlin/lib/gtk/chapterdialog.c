@@ -213,7 +213,7 @@ static int edit_chapter(bg_gtk_chapter_dialog_t * win)
         chapter_parameters[1].val_min.val_time;
     }
 
-  dialog = bg_dialog_create((bg_cfg_section_t*)0,
+  dialog = bg_dialog_create(NULL,
                             set_parameter,
                             NULL,
                             win,
@@ -254,7 +254,7 @@ static void button_callback(GtkWidget * w, gpointer data)
       win->edited = win->selected + 1;
     
     bg_chapter_list_insert(win->cl, win->edited,
-                           0, (const char *)0);
+                           0,NULL);
     win->is_ok = 0;
     edit_chapter(win);
     

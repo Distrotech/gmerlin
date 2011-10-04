@@ -82,7 +82,7 @@ static void translate_labels(bg_gtk_widget_t * w)
   while(w->info->multi_labels[i])
     {
     priv->multi_labels[i] =
-      bg_strdup((char*)0,
+      bg_strdup(NULL,
                 TRD(w->info->multi_labels[i], priv->translation_domain));
     i++;
     }
@@ -103,7 +103,7 @@ static void set_sub_param(void * priv, const char * name,
     return;
   
   if(!name)
-    tmp_string = (char*)0;
+    tmp_string = NULL;
   else if(list->is_chain)
     tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->selected,
                             name);
@@ -133,7 +133,7 @@ static int get_sub_param(void * priv, const char * name,
     return 0;
   
   if(!name)
-    tmp_string = (char*)0;
+    tmp_string = NULL;
   else if(list->is_chain)
     tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->selected,
                             name);
@@ -209,7 +209,7 @@ static void do_apply_sub_params(bg_gtk_widget_t * w)
 /* Return the string corresponding to the current list */
 static char * get_list_string(bg_gtk_widget_t * w)
   {
-  char * ret = (char*)0;
+  char * ret = NULL;
   GtkTreeModel * model;
   GtkTreeIter iter;
   char * name;
@@ -219,7 +219,7 @@ static char * get_list_string(bg_gtk_widget_t * w)
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(priv->treeview));
   if(!gtk_tree_model_get_iter_first(model, &iter))
     {
-    return (char*)0;
+    return NULL;
     }
 
   while(1)
@@ -246,7 +246,7 @@ static int get_selected_index(bg_gtk_widget_t * w)
 
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(priv->treeview));
   if(!gtk_tree_model_iter_nth_child(model, &iter,
-                                    (GtkTreeIter *)0,
+                                    NULL,
                                     priv->selected))
     {
     return 0;
@@ -407,7 +407,7 @@ static void get_value(bg_gtk_widget_t * w)
     bg_strbreak_free(names);
   
   if(w->info->flags & BG_PARAMETER_SYNC)
-    bg_gtk_change_callback((GtkWidget*)0, w);
+    bg_gtk_change_callback(NULL, w);
   }
 
 static void add_func(void * priv, const char * name,
@@ -474,7 +474,7 @@ static void add_func(void * priv, const char * name,
     
     if(w->info->flags & BG_PARAMETER_SYNC)
       {
-      bg_gtk_change_callback((GtkWidget*)0, w);
+      bg_gtk_change_callback(NULL, w);
       }
     }
   }
@@ -693,7 +693,7 @@ static void move_selected(bg_gtk_widget_t * w, int new_pos)
     {
     gtk_list_store_move_after(GTK_LIST_STORE(model),
                               &iter,
-                              (GtkTreeIter*)0);
+                              NULL);
 
     }
   else
@@ -715,7 +715,7 @@ static void move_selected(bg_gtk_widget_t * w, int new_pos)
   path = gtk_tree_model_get_path(model, &iter);
   gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(priv->treeview),
                                path,
-                               (GtkTreeViewColumn *)0,
+                               NULL,
                                0, 0.0, 0.0);
   gtk_tree_path_free(path);
 
@@ -734,7 +734,7 @@ static void move_selected(bg_gtk_widget_t * w, int new_pos)
   /* Apply parameter and subsections. It's easier to do it here. */
 
   if(w->info->flags & BG_PARAMETER_SYNC)
-    bg_gtk_change_callback((GtkWidget*)0, w);
+    bg_gtk_change_callback(NULL, w);
   
   priv->selected = new_pos;
   
@@ -891,7 +891,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     priv->num--;
     if(w->info->flags & BG_PARAMETER_SYNC)
       {
-      bg_gtk_change_callback((GtkWidget*)0, w);
+      bg_gtk_change_callback(NULL, w);
       }
     }
   

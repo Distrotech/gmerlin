@@ -68,7 +68,7 @@ gmerlin_webcam_t * gmerlin_webcam_create(bg_plugin_registry_t * plugin_reg)
   gmerlin_webcam_t * ret;
 
   ret = calloc(1, sizeof(*ret));
-  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex, NULL);
 
   ret->plugin_reg = plugin_reg;
 
@@ -86,7 +86,7 @@ gmerlin_webcam_t * gmerlin_webcam_create(bg_plugin_registry_t * plugin_reg)
 
 #ifdef HAVE_V4L
   ret->vloopback = bg_vloopback_create();
-  pthread_mutex_init(&ret->vloopback_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->vloopback_mutex, NULL);
 #endif
   
   return ret;
@@ -231,7 +231,7 @@ static char * create_filename(gmerlin_webcam_t * cam)
 static void do_capture(gmerlin_webcam_t * cam)
   {
   bg_msg_t * msg;
-  char * filename = (char*)0;
+  char * filename = NULL;
 
   //   char * capture_directory;
   //   char * capture_namebase;
@@ -630,7 +630,7 @@ static void * thread_func(void * data)
 
 void gmerlin_webcam_run(gmerlin_webcam_t * w)
   {
-  pthread_create(&w->thread, (pthread_attr_t*)0,
+  pthread_create(&w->thread, NULL,
                  thread_func, w);
   w->running = 1;
   }

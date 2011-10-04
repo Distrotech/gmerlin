@@ -1325,7 +1325,7 @@ static void * player_thread(void * data)
       }
     gavl_time_delay(&player->wait_time);
     }
-  return (void*)0;
+  return NULL;
   }
 
 void bg_player_broadcast_time(bg_player_t * player, gavl_time_t time)
@@ -1339,7 +1339,7 @@ void bg_player_broadcast_time(bg_player_t * player, gavl_time_t time)
 void bg_player_run(bg_player_t * player)
   {
   pthread_create(&player->player_thread,
-                 (pthread_attr_t*)0,
+                 NULL,
                  player_thread, player);
 
   }
@@ -1352,5 +1352,5 @@ void bg_player_quit(bg_player_t *player)
   bg_msg_queue_unlock_write(player->command_queue);
   
   //  pthread_cancel(player->player_thread);
-  pthread_join(player->player_thread, (void**)0);
+  pthread_join(player->player_thread, NULL);
   }

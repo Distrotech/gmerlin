@@ -64,7 +64,7 @@ char * internal_name = "Internal plugin";
 static const char * get_filename(const char * filename)
   {
   const char * pos;
-  const char * ret = (char*)0;
+  const char * ret = NULL;
 
   if(!filename)
     return  internal_name;

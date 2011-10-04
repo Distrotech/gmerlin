@@ -87,7 +87,7 @@ void bg_player_input_select_streams(bg_player_t * p)
   if(vs->still_frame_in)
     {
     gavl_video_frame_destroy(vs->still_frame_in);
-    vs->still_frame_in = (gavl_video_frame_t*)0;
+    vs->still_frame_in = NULL;
     }
   
   /* Adjust stream indices */
@@ -343,7 +343,7 @@ void bg_player_input_cleanup(bg_player_t * p)
   if(p->video_stream.still_frame_in)
     {
     gavl_video_frame_destroy(p->video_stream.still_frame_in);
-    p->video_stream.still_frame_in = (gavl_video_frame_t*)0;
+    p->video_stream.still_frame_in = NULL;
     }
 #ifdef DEBUG_COUNTER
   sprintf(tmp_string, "%" PRId64, p->audio_stream.samples_read);

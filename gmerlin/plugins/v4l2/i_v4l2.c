@@ -212,7 +212,7 @@ static struct v4l2_queryctrl * create_card_controls(int fd, int * num)
   {
   int i;
   struct v4l2_queryctrl ctrl;
-  struct v4l2_queryctrl * ret = (struct v4l2_queryctrl *)0;
+  struct v4l2_queryctrl * ret = NULL;
   *num = 0;
   
   for(i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++)
@@ -956,7 +956,7 @@ static const bg_parameter_info_t parameters[] =
                               "CIF (352x288)", 
                               "VGA (640x480)", 
                               "User defined",
-                              (char*)0 },
+                              NULL },
       .multi_labels =     (char const *[]){ TRS("QSIF (160x112)"),
                                    TRS("QCIF (176x144)"), 
                                    TRS("QVGA (320x240)"), 
@@ -964,7 +964,7 @@ static const bg_parameter_info_t parameters[] =
                                    TRS("CIF (352x288)"), 
                                    TRS("VGA (640x480)"), 
                                    TRS("User defined"),
-                                   (char*)0 },
+                                   NULL },
     },
     {
       .name =        "user_width",
@@ -1032,13 +1032,13 @@ static void create_parameters(v4l2_t * v4l)
                                      sizeof(*info->multi_parameters));
     
     info->multi_names_nc[num_cards] = bg_strdup(NULL, tmp_string);
-    info->multi_names_nc[num_cards+1] = (char*)0;
+    info->multi_names_nc[num_cards+1] = NULL;
 
     info->multi_labels_nc[num_cards] = bg_strdup(NULL, (char*)cap.card);
-    info->multi_labels_nc[num_cards+1] = (char*)0;
+    info->multi_labels_nc[num_cards+1] = NULL;
 
     info->multi_parameters_nc[num_cards] = create_card_parameters(fd);
-    info->multi_parameters_nc[num_cards+1] = (bg_parameter_info_t*)0;
+    info->multi_parameters_nc[num_cards+1] = NULL;
 
     bg_parameter_info_set_const_ptrs(info);
 

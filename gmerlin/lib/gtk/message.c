@@ -56,7 +56,7 @@ void bg_gtk_message(const char * message, int type, GtkWidget * parent)
 
   GtkWidget * mainbox;
   GtkWidget * hbox;
-  GtkWidget * image = (GtkWidget *)0;
+  GtkWidget * image = NULL;
     
   q = calloc(1, sizeof(*q));
     

@@ -51,7 +51,7 @@ type_names[] =
     { "AudioFilter",             BG_PLUGIN_FILTER_AUDIO },
     { "VideoFilter",             BG_PLUGIN_FILTER_VIDEO },
     { "Visualization",           BG_PLUGIN_VISUALIZATION },
-    { (char*)0,                  BG_PLUGIN_NONE }
+    { NULL,                  BG_PLUGIN_NONE }
   };
 
 static const struct
@@ -65,7 +65,7 @@ api_names[] =
     { "ladspa",                  BG_PLUGIN_API_LADSPA  },
     { "lv",                      BG_PLUGIN_API_LV  },
     { "frei0r",                  BG_PLUGIN_API_FREI0R },
-    { (char*)0,                  BG_PLUGIN_NONE }
+    { NULL,                  BG_PLUGIN_NONE }
   };
 
 static const struct
@@ -91,7 +91,7 @@ flag_names[] =
     { "Broadcast",      BG_PLUGIN_BROADCAST },
     { "Devparam",       BG_PLUGIN_DEVPARAM },
     { "Unsupported",    BG_PLUGIN_UNSUPPORTED   },
-    { (char*)0,    0                           },
+    { NULL,    0                           },
   };
 
 static const char * const plugin_key            = "PLUGIN";
@@ -132,8 +132,8 @@ load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
   {
   char * tmp_string;
   xmlNodePtr cur;
-  char * device = (char*)0;
-  char * name = (char*)0;
+  char * device = NULL;
+  char * name = NULL;
   
   cur = node->children;
   while(cur)
@@ -148,12 +148,12 @@ load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
     if(!BG_XML_STRCMP(cur->name, name_key))
       {
       name = tmp_string;
-      tmp_string = (char*)0;
+      tmp_string = NULL;
       }
     else if(!BG_XML_STRCMP(cur->name, device_key))
       {
       device = tmp_string;
-      tmp_string = (char*)0;
+      tmp_string = NULL;
       }
     if(tmp_string)
       free(tmp_string);
@@ -380,18 +380,18 @@ static void save_devices(xmlNodePtr parent, const bg_device_info_t * info)
     {
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     
-    xml_device = xmlNewTextChild(parent, (xmlNsPtr)0,
+    xml_device = xmlNewTextChild(parent, NULL,
                                  (xmlChar*)device_info_key, NULL);
         
     xmlAddChild(xml_device, BG_XML_NEW_TEXT("\n"));
     
-    xml_item = xmlNewTextChild(xml_device, (xmlNsPtr)0, (xmlChar*)device_key, NULL);
+    xml_item = xmlNewTextChild(xml_device, NULL, (xmlChar*)device_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info[i].device));
     xmlAddChild(xml_device, BG_XML_NEW_TEXT("\n"));
 
     if(info[i].name)
       {
-      xml_item = xmlNewTextChild(xml_device, (xmlNsPtr)0, (xmlChar*)name_key, NULL);
+      xml_item = xmlNewTextChild(xml_device, NULL, (xmlChar*)name_key, NULL);
       xmlAddChild(xml_item, BG_XML_NEW_TEXT(info[i].name));
       xmlAddChild(xml_device, BG_XML_NEW_TEXT("\n"));
       }
@@ -414,65 +414,65 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     
-  xml_plugin = xmlNewTextChild(parent, (xmlNsPtr)0,
+  xml_plugin = xmlNewTextChild(parent, NULL,
                                (xmlChar*)plugin_key, NULL);
   xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)name_key, NULL);
+  xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)name_key, NULL);
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->name));
   xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)long_name_key, NULL);
+  xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)long_name_key, NULL);
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->long_name));
   xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)description_key, NULL);
+  xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)description_key, NULL);
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->description));
   xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
   
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_filename_key,
+  xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)module_filename_key,
                              NULL);
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->module_filename));
   xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
   
   if(info->extensions)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)extensions_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)extensions_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->extensions));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->protocols)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)protocols_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)protocols_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->protocols));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->mimetypes)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)mimetypes_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)mimetypes_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->mimetypes));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
 
   if(info->gettext_domain)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)gettext_domain_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)gettext_domain_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->gettext_domain));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->gettext_directory)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)gettext_directory_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)gettext_directory_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->gettext_directory));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_time_key, NULL);
+  xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)module_time_key, NULL);
   sprintf(buffer, "%ld", info->module_time);
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
   xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)priority_key, NULL);
+  xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)priority_key, NULL);
   sprintf(buffer, "%d", info->priority);
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
   xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
@@ -481,31 +481,31 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   
   if(info->parameters)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)parameters_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)parameters_key, NULL);
     bg_parameters_2_xml(info->parameters, xml_item);
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->audio_parameters)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)audio_parameters_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)audio_parameters_key, NULL);
     bg_parameters_2_xml(info->audio_parameters, xml_item);
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->video_parameters)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)video_parameters_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)video_parameters_key, NULL);
     bg_parameters_2_xml(info->video_parameters, xml_item);
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->subtitle_text_parameters)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)subtitle_text_parameters_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)subtitle_text_parameters_key, NULL);
     bg_parameters_2_xml(info->subtitle_text_parameters, xml_item);
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->subtitle_overlay_parameters)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)subtitle_overlay_parameters_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)subtitle_overlay_parameters_key, NULL);
     bg_parameters_2_xml(info->subtitle_overlay_parameters, xml_item);
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
@@ -516,22 +516,22 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
                    BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
                    BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY))
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)max_audio_streams_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_audio_streams_key, NULL);
     sprintf(buffer, "%d", info->max_audio_streams);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)max_video_streams_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_video_streams_key, NULL);
     sprintf(buffer, "%d", info->max_video_streams);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)max_subtitle_text_streams_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_subtitle_text_streams_key, NULL);
     sprintf(buffer, "%d", info->max_subtitle_text_streams);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)max_subtitle_overlay_streams_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_subtitle_overlay_streams_key, NULL);
     sprintf(buffer, "%d", info->max_subtitle_overlay_streams);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
@@ -543,7 +543,7 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     {
     if(info->type == type_names[index].type)
       {
-      xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)type_key, NULL);
+      xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)type_key, NULL);
       xmlAddChild(xml_item, BG_XML_NEW_TEXT(type_names[index].name));
       xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
       break;
@@ -558,7 +558,7 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
       {
       if(info->api == api_names[index].api)
         {
-        xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)api_key, NULL);
+        xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)api_key, NULL);
         xmlAddChild(xml_item, BG_XML_NEW_TEXT(api_names[index].name));
         xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
         break;
@@ -566,7 +566,7 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
       index++;
       }
 
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)index_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)index_key, NULL);
     sprintf(buffer, "%d", info->index);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
@@ -599,7 +599,7 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
         strcat(buffer, "|");
       index++;
       }
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)flags_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)flags_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
@@ -616,22 +616,22 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
 
   xmlDocPtr xml_doc;
   xmlNodePtr node;
-  ret = (bg_plugin_info_t *)0;
-  end = (bg_plugin_info_t *)0;
+  ret = NULL;
+  end = NULL;
 
   
   
   xml_doc = bg_xml_parse_file(filename);
 
   if(!xml_doc)
-    return (bg_plugin_info_t*)0;
+    return NULL;
 
   node = xml_doc->children;
 
   if(BG_XML_STRCMP(node->name, plugin_registry_key))
     {
     xmlFreeDoc(xml_doc);
-    return (bg_plugin_info_t*)0;
+    return NULL;
     }
 
   node = node->children;

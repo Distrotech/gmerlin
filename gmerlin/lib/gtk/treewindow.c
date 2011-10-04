@@ -211,8 +211,8 @@ void bg_gtk_tree_window_hide(bg_gtk_tree_window_t* w)
   if(w->window->window)
     {
     gdk_window_get_geometry(w->window->window,
-                            (gint *)0, (gint *)0, &w->width, &w->height,
-                            (gint *)0);
+                            NULL, NULL, &w->width, &w->height,
+                            NULL);
 
     gdk_window_get_root_origin(w->window->window, &w->x, &w->y);
 

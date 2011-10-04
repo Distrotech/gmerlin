@@ -143,21 +143,21 @@ static const bg_parameter_info_t * multilist_parameters[] =
   {
     multilist_1_info,
     multilist_2_info,
-    (bg_parameter_info_t *)0
+    NULL
   };
 
 static const bg_parameter_info_t * multimenu_parameters[] =
   {
     multimenu_1_info,
     multimenu_2_info,
-    (bg_parameter_info_t *)0
+    NULL
   };
 
 static const bg_parameter_info_t * multichain_parameters[] =
   {
     multichain_1_info,
     multichain_2_info,
-    (bg_parameter_info_t *)0
+    NULL
   };
 
 static const bg_parameter_info_t info_1[] =
@@ -437,7 +437,7 @@ static const bg_parameter_info_t * find_parameter(const bg_parameter_info_t * ar
       }
     i++;
     }
-  return (bg_parameter_info_t*)0;
+  return NULL;
   }
 
 static void set_parameter(void * data, const char * name,
@@ -447,7 +447,7 @@ static void set_parameter(void * data, const char * name,
   int i;
   char time_buf[GAVL_TIME_STRING_LEN];
 
-  tmp_info = (const bg_parameter_info_t *)0;
+  tmp_info = NULL;
 
   if(!name)
     {
@@ -529,7 +529,7 @@ static void opt_opt1(void * data, int * argc, char *** _argv, int arg)
     }
   if(!bg_cmdline_apply_options(section_1,
                                set_parameter,
-                               (void*)0,
+                               NULL,
                                info_1,
                                (*_argv)[arg]))
     exit(-1);
@@ -545,7 +545,7 @@ static void opt_opt2(void * data, int * argc, char *** _argv, int arg)
     }
   if(!bg_cmdline_apply_options(section_2,
                                set_parameter,
-                               (void*)0,
+                               NULL,
                                info_2,
                                (*_argv)[arg]))
     exit(-1);
@@ -561,7 +561,7 @@ static void opt_opt3(void * data, int * argc, char *** _argv, int arg)
     }
   if(!bg_cmdline_apply_options(section_3,
                                set_parameter,
-                               (void*)0,
+                               NULL,
                                info_3,
                                (*_argv)[arg]))
     exit(-1);
@@ -577,7 +577,7 @@ static void opt_opt4(void * data, int * argc, char *** _argv, int arg)
     }
   if(!bg_cmdline_apply_options(section_4,
                                set_parameter,
-                               (void*)0,
+                               NULL,
                                info_4,
                                (*_argv)[arg]))
     exit(-1);
@@ -649,19 +649,19 @@ int main(int argc, char ** argv)
 
   test_dialog = bg_dialog_create_multi("Test dialog");
 
-  bg_dialog_add(test_dialog, "Section 1", section_1,set_parameter,NULL,(void *)0,info_1);
-  bg_dialog_add(test_dialog, "Section 2", section_2,set_parameter,NULL,(void *)0,info_2);
-  bg_dialog_add(test_dialog, "Section 3", section_3,set_parameter,NULL,(void *)0,info_3);
-  bg_dialog_add(test_dialog, "Section 4", section_4,set_parameter,NULL,(void *)0,info_4);
+  bg_dialog_add(test_dialog, "Section 1", section_1,set_parameter,NULL,NULL,info_1);
+  bg_dialog_add(test_dialog, "Section 2", section_2,set_parameter,NULL,NULL,info_2);
+  bg_dialog_add(test_dialog, "Section 3", section_3,set_parameter,NULL,NULL,info_3);
+  bg_dialog_add(test_dialog, "Section 4", section_4,set_parameter,NULL,NULL,info_4);
   
   bg_dialog_show(test_dialog, NULL);
 
   /* Apply sections */
   fprintf(stderr, "*** Applying section ***\n");  
-  bg_cfg_section_apply(section_1,info_1,set_parameter,(void *)0);
-  bg_cfg_section_apply(section_2,info_2,set_parameter,(void *)0);
-  bg_cfg_section_apply(section_3,info_3,set_parameter,(void *)0);
-  bg_cfg_section_apply(section_4,info_4,set_parameter,(void *)0);
+  bg_cfg_section_apply(section_1,info_1,set_parameter,NULL);
+  bg_cfg_section_apply(section_2,info_2,set_parameter,NULL);
+  bg_cfg_section_apply(section_3,info_3,set_parameter,NULL);
+  bg_cfg_section_apply(section_4,info_4,set_parameter,NULL);
   
   bg_cfg_registry_save(registry, "config.xml");
 

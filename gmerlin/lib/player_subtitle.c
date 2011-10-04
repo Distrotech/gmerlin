@@ -32,7 +32,7 @@ void bg_player_subtitle_create(bg_player_t * p)
   {
   p->subtitle_stream.cnv = gavl_video_converter_create();
   p->subtitle_stream.renderer = bg_text_renderer_create();
-  pthread_mutex_init(&p->subtitle_stream.config_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&p->subtitle_stream.config_mutex, NULL);
 
   }
 
@@ -60,7 +60,7 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
     if(DO_SUBTITLE_ONLY(player->flags))
       {
       bg_text_renderer_init(s->renderer,
-                            (gavl_video_format_t*)0,
+                            NULL,
                             &player->subtitle_stream.input_format);
       
       bg_text_renderer_get_frame_format(player->subtitle_stream.renderer,

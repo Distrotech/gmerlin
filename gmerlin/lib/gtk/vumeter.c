@@ -313,9 +313,9 @@ static void draw_static_horizontal(bg_gtk_vumeter_t * m)
       gtk_paint_vline(style,
                       GTK_LAYOUT(m->layout)->bin_window,
                       GTK_STATE_NORMAL,
-                      (GdkRectangle *)0,
+                      NULL,
                       m->layout,
-                      (const gchar *)0,
+                      NULL,
                       m->meters[j].coords.y - TIC_LENGTH,
                       m->meters[j].coords.y,
                       label_x);
@@ -368,9 +368,9 @@ static void draw_static_vertical(bg_gtk_vumeter_t * m)
       gtk_paint_hline(style,
                       GTK_LAYOUT(m->layout)->bin_window,
                       GTK_STATE_NORMAL,
-                      (GdkRectangle *)0,
+                      NULL,
                       m->layout,
-                      (const gchar *)0,
+                      NULL,
                       m->meters[j].coords.x - TIC_LENGTH,
                       m->meters[j].coords.x,
                       label_y);
@@ -772,12 +772,12 @@ static void size_allocate_callback(GtkWidget * w,
     if(v->pixbuf_on)
       {
       gdk_pixbuf_unref(v->pixbuf_on);
-      v->pixbuf_on = (GdkPixbuf*)0;
+      v->pixbuf_on = NULL;
       }
     if(v->pixbuf_off)
       {
       gdk_pixbuf_unref(v->pixbuf_off);
-      v->pixbuf_off = (GdkPixbuf*)0;
+      v->pixbuf_off = NULL;
       }
     
     for(i = 0; i < GAVL_MAX_CHANNELS; i++)
@@ -785,7 +785,7 @@ static void size_allocate_callback(GtkWidget * w,
       if(!v->meters[i].pixmap)
         break;
       g_object_unref(v->meters[i].pixmap);
-      v->meters[i].pixmap = (GdkPixmap*)0;
+      v->meters[i].pixmap = NULL;
       }
     v->pixmaps_valid = 0;
     }
@@ -846,7 +846,7 @@ bg_gtk_vumeter_create(int num_channels, int vertical)
   
   ret->max_peak_age = 44100;
   
-  pthread_mutex_init(&ret->analysis_mutex, (pthread_mutexattr_t*)0);
+  pthread_mutex_init(&ret->analysis_mutex, NULL);
   return ret;
   }
 
@@ -910,7 +910,7 @@ void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
   double ampl[GAVL_MAX_CHANNELS];
   gavl_peak_detector_reset(m->pd);
   gavl_peak_detector_update(m->pd, frame);
-  gavl_peak_detector_get_peaks(m->pd, (double*)0, (double*)0, ampl);
+  gavl_peak_detector_get_peaks(m->pd, NULL, NULL, ampl);
   bg_gtk_vumeter_update_peak(m, ampl, frame->valid_samples);
   }
 

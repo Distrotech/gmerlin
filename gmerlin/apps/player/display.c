@@ -315,7 +315,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
   if(w == d->state_area)
     {
     gdk_draw_pixbuf(d->state_area->window,
-                    (GdkGC*)0,
+                    NULL,
                     d->state_pixbufs[d->state_index],
                     0, // gint src_x,
                     0, // gint src_y,
@@ -331,7 +331,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
   if(w == d->repeat_area)
     {
     gdk_draw_pixbuf(d->repeat_area->window,
-                    (GdkGC*)0,
+                    NULL,
                     d->repeat_pixbufs[d->repeat_mode],
                     0, // gint src_x,
                     0, // gint src_y,
@@ -347,7 +347,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
   if(w == d->display_area)
     {
     gdk_draw_pixbuf(d->display_area->window,
-                    (GdkGC*)0,
+                    NULL,
                     d->display_pixbufs[d->display_mode],
                     0, // gint src_x,
                     0, // gint src_y,
@@ -367,7 +367,7 @@ static void set_display_mode(display_t * d)
   {
   if(d->display_mode == NUM_DISPLAY_MODES)
     d->display_mode = 0;
-  expose_callback(d->display_area, (GdkEventExpose*)0,
+  expose_callback(d->display_area, NULL,
                   d);
   display_set_time(d, d->last_time);
   }
@@ -376,7 +376,7 @@ static void set_repeat_mode(display_t * d)
   {
   if(d->repeat_mode == NUM_REPEAT_MODES)
     d->repeat_mode = 0;
-  expose_callback(d->repeat_area, (GdkEventExpose*)0,
+  expose_callback(d->repeat_area, NULL,
                   d);
   d->gmerlin->repeat_mode = d->repeat_mode;
   }
@@ -493,7 +493,7 @@ display_t * display_create(gmerlin_t * gmerlin)
   /* Create objects */
   ret->gmerlin = gmerlin;
   
-  ret->widget = gtk_layout_new((GtkAdjustment*)0, (GtkAdjustment*)0);
+  ret->widget = gtk_layout_new(NULL, NULL);
   g_signal_connect(G_OBJECT(ret->widget),
                    "expose_event", G_CALLBACK(expose_callback),
                    (gpointer)ret);
@@ -736,7 +736,7 @@ static void update_state(display_t * d)
         d->state_index = STATE_PLAYING;
       break;
     }
-  expose_callback(d->state_area, (GdkEventExpose*)0, d);
+  expose_callback(d->state_area, NULL, d);
   }
 
 void display_set_state(display_t * d, int state,

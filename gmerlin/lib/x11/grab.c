@@ -399,7 +399,7 @@ static void create_window(bg_x11_grab_window_t * ret)
                           ret->win,
                           ShapeBounding,
                           0, 0,
-                          (XRectangle *)0,
+                          NULL,
                           0,
                           ShapeSet,
                           YXBanded); 
@@ -476,7 +476,7 @@ static int realize_window(bg_x11_grab_window_t * ret)
     create_cursor_static(ret);
   
   bg_x11_window_get_coords(ret->dpy, ret->root,
-                           (int*)0, (int*)0,
+                           NULL, NULL,
                            &ret->root_width, &ret->root_height);
   
   ret->pixelformat =

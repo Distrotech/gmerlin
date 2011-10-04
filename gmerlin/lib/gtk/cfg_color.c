@@ -210,7 +210,7 @@ static void changed_callback(GtkWidget * w, gpointer data)
   gtk_color_selection_get_current_color(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel), &priv->color);
   priv->alpha = gtk_color_selection_get_current_alpha(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel));
   
-  bg_gtk_change_callback((GtkWidget*)0, wid);
+  bg_gtk_change_callback(NULL, wid);
   set_button(priv);
   }
 

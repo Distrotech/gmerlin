@@ -275,7 +275,7 @@ static const bg_parameter_info_t parameters[] =
       .multi_names = (char const *[]) { "4:2:0",
                            "4:2:2",
                            "4:4:4",
-                           (char*)0 },
+                           NULL },
       
     },
     { /* End of parameters */ }

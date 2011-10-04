@@ -40,23 +40,23 @@
 static void set_tabbed_mode(bg_gtk_tree_widget_t * w);
 static void set_windowed_mode(bg_gtk_tree_widget_t * w);
 
-static GdkPixbuf * root_pixbuf = (GdkPixbuf *)0;
-static GdkPixbuf * folder_closed_pixbuf = (GdkPixbuf *)0;
-static GdkPixbuf * folder_open_pixbuf   = (GdkPixbuf *)0;
+static GdkPixbuf * root_pixbuf = NULL;
+static GdkPixbuf * folder_closed_pixbuf = NULL;
+static GdkPixbuf * folder_open_pixbuf   = NULL;
 
-static GdkPixbuf * favourites_closed_pixbuf = (GdkPixbuf *)0;
-static GdkPixbuf * favourites_open_pixbuf   = (GdkPixbuf *)0;
+static GdkPixbuf * favourites_closed_pixbuf = NULL;
+static GdkPixbuf * favourites_open_pixbuf   = NULL;
 
-static GdkPixbuf * incoming_closed_pixbuf = (GdkPixbuf *)0;
-static GdkPixbuf * incoming_open_pixbuf   = (GdkPixbuf *)0;
+static GdkPixbuf * incoming_closed_pixbuf = NULL;
+static GdkPixbuf * incoming_open_pixbuf   = NULL;
 
-static GdkPixbuf * removable_closed_pixbuf = (GdkPixbuf *)0;
-static GdkPixbuf * removable_open_pixbuf = (GdkPixbuf *)0;
-static GdkPixbuf * error_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * removable_closed_pixbuf = NULL;
+static GdkPixbuf * removable_open_pixbuf = NULL;
+static GdkPixbuf * error_pixbuf = NULL;
 
-static GdkPixbuf * hardware_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * hardware_pixbuf = NULL;
 
-static GdkPixbuf * tuner_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * tuner_pixbuf = NULL;
 
 
 static int num_tree_widgets = 0;
@@ -220,16 +220,16 @@ static void unload_pixmaps()
   g_object_unref(hardware_pixbuf);
   g_object_unref(tuner_pixbuf);
     
-  root_pixbuf = (GdkPixbuf *)0;
-  folder_closed_pixbuf = (GdkPixbuf *)0;
-  folder_open_pixbuf   = (GdkPixbuf *)0;
+  root_pixbuf = NULL;
+  folder_closed_pixbuf = NULL;
+  folder_open_pixbuf   = NULL;
   
-  removable_closed_pixbuf = (GdkPixbuf *)0;
-  removable_open_pixbuf = (GdkPixbuf *)0;
-  error_pixbuf = (GdkPixbuf *)0;
+  removable_closed_pixbuf = NULL;
+  removable_open_pixbuf = NULL;
+  error_pixbuf = NULL;
   
-  hardware_pixbuf = (GdkPixbuf *)0;
-  tuner_pixbuf = (GdkPixbuf *)0;
+  hardware_pixbuf = NULL;
+  tuner_pixbuf = NULL;
   }
 #endif
 enum
@@ -391,7 +391,7 @@ album_is_open(bg_gtk_tree_widget_t * widget,
                                 is_window_of);
   if(tmp_list)
     return tmp_list->data;
-  return (bg_gtk_album_window_t*)0;
+  return NULL;
   }
 
 /* Update the menu */
@@ -577,7 +577,7 @@ static bg_album_t * path_2_album(bg_gtk_tree_widget_t * w,
   depth = gtk_tree_path_get_depth(path);
   
   if(depth < 2)
-    return (bg_album_t*)0;
+    return NULL;
 
   indices = gtk_tree_path_get_indices(path);
   
@@ -959,7 +959,7 @@ static void rename_selected_album(bg_gtk_tree_widget_t * w)
   info[0].type                = BG_PARAMETER_STRING;
   info[0].val_default.val_str = bg_album_get_name(w->selected_album);
 
-  dialog = bg_dialog_create((bg_cfg_section_t*)0,
+  dialog = bg_dialog_create(NULL,
                             set_parameter_rename_album,
                             NULL,
                             w,
@@ -1001,7 +1001,7 @@ static void add_directory(bg_gtk_tree_widget_t * w)
                          add_dir_callback,
                          add_dir_close_notify,
                          w,
-                         (GtkWidget*)0 /* parent_window */,
+                         NULL /* parent_window */,
                          bg_media_tree_get_plugin_registry(w->tree),
                          BG_PLUGIN_INPUT,
                          BG_PLUGIN_FILE);
@@ -1028,7 +1028,7 @@ static void create_new_album(bg_gtk_tree_widget_t * w)
   if(!bg_album_get_name(w->selected_album))
     {
     bg_media_tree_remove_album(w->tree, w->selected_album);
-    w->selected_album = (bg_album_t*)0;
+    w->selected_album = NULL;
     bg_gtk_tree_widget_update(w, 0);
     }
   else
@@ -1063,7 +1063,7 @@ static void remove_album(bg_gtk_tree_widget_t * w, bg_album_t * a)
     bg_gtk_album_window_destroy(album_window, 1);
     }
   if(a == w->selected_album)
-    w->selected_album = (bg_album_t*)0;
+    w->selected_album = NULL;
   bg_media_tree_remove_album(w->tree, a);
   update_menu(w);
   }
@@ -1119,7 +1119,7 @@ static void add_device(bg_gtk_tree_widget_t * w)
   info[1].long_name           = TRS("Name");
   info[1].type                = BG_PARAMETER_STRING;
 
-  dialog = bg_dialog_create((bg_cfg_section_t*)0,
+  dialog = bg_dialog_create(NULL,
                             set_parameter_add_device,
                             NULL,
                             &s,
@@ -1208,7 +1208,7 @@ static void set_windowed_mode(bg_gtk_tree_widget_t * w)
   if(w->album_accel_group)
     {
     gtk_window_remove_accel_group(GTK_WINDOW(w->toplevel_window), w->album_accel_group);
-    w->album_accel_group = (GtkAccelGroup*)0;
+    w->album_accel_group = NULL;
     }
   }
 
@@ -1477,11 +1477,11 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
     {
     if(!gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(tw->treeview),
                                       evt->x, evt->y, &path,
-                                      (GtkTreeViewColumn **)0,
-                                      (gint *)0,
-                                      (gint*)0))
+                                      NULL,
+                                      NULL,
+                                      NULL))
       {
-      path = (GtkTreePath *)0;
+      path = NULL;
       /* Didn't click any entry, return here */
       //    return TRUE;
       }
@@ -1493,10 +1493,10 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
       gtk_tree_selection_select_iter(selection, &clicked_iter);
       }
     gtk_menu_popup(GTK_MENU(tw->menu.menu),
-                   (GtkWidget *)0,
-                   (GtkWidget *)0,
-                   (GtkMenuPositionFunc)0,
-                   (gpointer)0,
+                   NULL,
+                   NULL,
+                   NULL,
+                   NULL,
                    3, evt->time);
     if(path)
       gtk_tree_path_free(path);
@@ -1525,7 +1525,7 @@ static void select_row_callback(GtkTreeSelection * sel,
                                       &model,
                                       &iter))
     {
-    w->selected_album = (bg_album_t*)0;
+    w->selected_album = NULL;
     }
   else
     {
@@ -1708,14 +1708,14 @@ static void drag_received_callback(GtkWidget *widget,
        !strcmp(atom_name, "text/plain"))
       {
       bg_album_insert_urilist_before(dest_album, (char*)(data->data), data->length,
-                                     (bg_album_entry_t*)0);
+                                     NULL);
       
       
       }
     else if(!strcmp(atom_name, bg_gtk_atom_entries_name))
       {
       bg_album_insert_xml_before(dest_album, (char*)(data->data),
-                                 (bg_album_entry_t*)0);
+                                 NULL);
       if(drag_context->action == GDK_ACTION_MOVE)
         do_delete = 1;
       }

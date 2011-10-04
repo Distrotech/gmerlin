@@ -418,7 +418,7 @@ void bg_player_ov_cleanup(bg_player_video_stream_t * s)
   if(s->osd_ovl)
     {
     destroy_overlay(s, s->osd_id, s->osd_ovl);
-    s->osd_ovl = (gavl_overlay_t*)0;
+    s->osd_ovl = NULL;
     }
 
   destroy_frame(s, s->frame);
@@ -583,7 +583,7 @@ void * bg_player_ov_thread(void * data)
     if(bg_osd_overlay_valid(s->osd, s->frame_time))
       s->plugin->set_overlay(s->priv, s->osd_id, s->osd_ovl);
     else
-      s->plugin->set_overlay(s->priv, s->osd_id, (gavl_overlay_t*)0);
+      s->plugin->set_overlay(s->priv, s->osd_id, NULL);
     
     /* Check Timing */
     bg_player_time_get(p, 1, &current_time);

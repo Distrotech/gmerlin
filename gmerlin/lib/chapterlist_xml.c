@@ -45,7 +45,7 @@ void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list)
   
   for(i = 0; i < list->num_chapters; i++)
     {
-    xml_chapter = xmlNewTextChild(xml_list, (xmlNsPtr)0,
+    xml_chapter = xmlNewTextChild(xml_list, NULL,
                                   (xmlChar*)CHAPTER_KEY, NULL);
     
     if(list->chapters[i].name)
@@ -125,14 +125,14 @@ bg_chapter_list_t * bg_chapter_list_load(const char * filename)
   xml_doc = bg_xml_parse_file(filename);
 
   if(!xml_doc)
-    return (bg_chapter_list_t *)0;
+    return NULL;
 
   node = xml_doc->children;
 
   if(BG_XML_STRCMP(node->name, CHAPTERS_KEY))
     {
     xmlFreeDoc(xml_doc);
-    return (bg_chapter_list_t *)0;
+    return NULL;
     }
 
   ret = bg_xml_2_chapter_list(xml_doc, node);

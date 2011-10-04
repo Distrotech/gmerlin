@@ -216,7 +216,7 @@ alsa_card_t * alsa_card_create(int index)
 
     if(num_strings)
       {
-      label = (char*)0;
+      label = NULL;
       for(i = 0; i < num_strings; i++)
         {
         label = bg_strcat(label, strings[i]);
@@ -274,7 +274,7 @@ alsa_card_t * alsa_card_create(int index)
   return card;
   fail:
   alsa_card_destroy(card);
-  return (alsa_card_t *)0;
+  return NULL;
   }
 
 void alsa_card_destroy(alsa_card_t * c)

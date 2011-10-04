@@ -251,14 +251,14 @@ find_same_source(const bg_edl_segment_t * segments,
       }
     return segments;
     }
-  return (bg_edl_segment_t *)0;
+  return NULL;
   }
                            
 static void add_audio_segment(edl_dec_t * dec, int track, int stream,
                               const bg_edl_segment_t * seg)
   {
   int i;
-  audio_source_t * source = (audio_source_t*)0;
+  audio_source_t * source = NULL;
   const bg_edl_segment_t * same_source_seg;
   
   bg_audio_info_t * ai;
@@ -317,7 +317,7 @@ static int add_video_segment(edl_dec_t * dec, int track, int stream,
                              const bg_edl_segment_t * seg)
   {
   int i;
-  video_source_t * source = (video_source_t*)0;
+  video_source_t * source = NULL;
   const bg_edl_segment_t * same_source_seg;
   
   bg_video_info_t * vi;
@@ -377,7 +377,7 @@ static int add_subtitle_overlay_segment(edl_dec_t * dec, int track, int stream,
                                         const bg_edl_segment_t * seg)
   {
   int i;
-  subtitle_source_t * source = (subtitle_source_t*)0;
+  subtitle_source_t * source = NULL;
   const bg_edl_segment_t * same_source_seg;
   
   bg_subtitle_info_t * vi;
@@ -427,7 +427,7 @@ static int add_subtitle_text_segment(edl_dec_t * dec, int track, int stream,
                                      const bg_edl_segment_t * seg)
   {
   int i;
-  subtitle_source_t * source = (subtitle_source_t*)0;
+  subtitle_source_t * source = NULL;
   const bg_edl_segment_t * same_source_seg;
   
   bg_subtitle_info_t * vi;
@@ -1333,7 +1333,7 @@ static void close_edl(void * priv)
   if(dec->tracks)
     {
     free(dec->tracks);
-    dec->tracks = (track_t*)0;
+    dec->tracks = NULL;
     }
   if(dec->track_info)
     {
@@ -1342,7 +1342,7 @@ static void close_edl(void * priv)
       bg_track_info_free(&dec->track_info[i]);
       }
     free(dec->track_info);
-    dec->track_info = (bg_track_info_t*)0;
+    dec->track_info = NULL;
     
     }
   
@@ -1435,7 +1435,7 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     
   //  ret->plugin_reg = reg;
   ret->plugin = (bg_plugin_common_t*)(&edl_plugin);
-  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex, NULL);
 
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;

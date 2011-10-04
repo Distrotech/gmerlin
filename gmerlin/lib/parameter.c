@@ -118,7 +118,7 @@ static char ** copy_string_array(char const * const * arr)
   int i, num;
   char ** ret;
   if(!arr)
-    return (char**)0;
+    return NULL;
 
   num = 0;
   while(arr[num])
@@ -485,7 +485,7 @@ bg_parameter_find(const bg_parameter_info_t * info,
       }
     i++;
     }
-  return (bg_parameter_info_t*)0;
+  return NULL;
   }
 
 void bg_parameter_info_set_const_ptrs(bg_parameter_info_t * ret)

@@ -311,7 +311,7 @@ static void open_audio(visualizer_t * v)
     {
     gavl_audio_frame_destroy(v->audio_frame);
     v->ra_plugin->close(v->ra_handle->priv);
-    v->audio_frame = (gavl_audio_frame_t*)0;
+    v->audio_frame = NULL;
     bg_plugin_unref(v->ra_handle);
     was_open = 1;
     }
@@ -839,18 +839,18 @@ bg_parameter_info_t parameters[] =
       .type =       BG_PARAMETER_STRINGLIST,
       .flags =      BG_PARAMETER_SYNC,
       .val_default = { .val_str = "top" },
-      .multi_names = (char const *[]){ "top", "bottom", (char*)0 },
-      .multi_labels = (char const *[]){ "Top", "Bottom", (char*)0 },
+      .multi_names = (char const *[]){ "top", "bottom", NULL },
+      .multi_labels = (char const *[]){ "Top", "Bottom", NULL },
     },
     {
       .name =       "toolbar_trigger",
       .long_name =  "Toolbar trigger",
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "mousekey" },
-      .multi_names = (char const *[]){ "mouse", "key", "mousekey", (char*)0 },
+      .multi_names = (char const *[]){ "mouse", "key", "mousekey", NULL },
       .multi_labels = (char const *[]){ "Mouse motion",
                                "Menu key", "Mouse motion & Menu key",
-                               (char*)0 },
+                               NULL },
     },
     {
       .name =       "x",

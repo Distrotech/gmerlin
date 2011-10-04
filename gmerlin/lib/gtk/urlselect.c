@@ -57,7 +57,7 @@ struct bg_gtk_urlsel_s
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_urlsel_t * f;
-  const char * plugin = (const char*)0;
+  const char * plugin = NULL;
 
   char * urls[2];
   

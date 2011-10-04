@@ -134,7 +134,7 @@ bg_plugin_info_t * encoder_pp_window_get_plugin(encoder_pp_window_t * win)
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->encoder_pp_widget.pp)))
     return bg_gtk_plugin_widget_single_get_plugin(win->encoder_pp_widget.plugins);
   else
-    return (const bg_plugin_info_t *)0;
+    return NULL;
   }
 
 static void encoder_pp_window_get(encoder_pp_window_t * win)

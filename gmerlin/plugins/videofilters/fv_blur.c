@@ -136,7 +136,7 @@ static float * get_coeffs(float radius, int * r_i, int mode)
   int i;
   float (*get_coeff)(float);
   if(radius == 0.0)
-    return (float*)0;
+    return NULL;
   switch(mode)
     {
     case MODE_GAUSS:
@@ -152,7 +152,7 @@ static float * get_coeffs(float radius, int * r_i, int mode)
       *r_i = (int)(radius + 0.4999);
       break;
     default:
-      return (float*)0;
+      return NULL;
     }
   if(*r_i < 1)
     return (float*)(0);
@@ -176,8 +176,8 @@ static float * get_coeffs(float radius, int * r_i, int mode)
 
 static void init_scaler(blur_priv_t * vp)
   {
-  float * coeffs_h = (float*)0;
-  float * coeffs_v = (float*)0;
+  float * coeffs_h = NULL;
+  float * coeffs_v = NULL;
   int num_coeffs_h = 0;
   int num_coeffs_v = 0;
   float radius_h;
@@ -231,11 +231,11 @@ static const bg_parameter_info_t parameters[] =
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "gauss" },
       .multi_names = (char const *[]){ "gauss", "triangular", "box", 
-                              (char*)0 },
+                              NULL },
       .multi_labels = (char const *[]){ TRS("Gauss"), 
                                TRS("Triangular"), 
                                TRS("Rectangular"),
-                              (char*)0 },
+                              NULL },
     },
     {
       .name = "radius_h",
@@ -380,7 +380,7 @@ static int read_video_blur(void * priv, gavl_video_frame_t * frame, int stream)
       if(vp->frame)
         {
         gavl_video_frame_destroy(vp->frame);
-        vp->frame = (gavl_video_frame_t*)0;
+        vp->frame = NULL;
         }
       }
     if(!vp->frame)

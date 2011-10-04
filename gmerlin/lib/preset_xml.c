@@ -43,7 +43,7 @@ bg_cfg_section_t * bg_preset_load(bg_preset_t * p)
     xmlFreeDoc(xml_doc);
     }
   
-  ret = bg_cfg_section_create((char*)0);
+  ret = bg_cfg_section_create(NULL);
   bg_cfg_xml_2_section(xml_doc, node, ret);
   xmlFreeDoc(xml_doc);
   return ret;

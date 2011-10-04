@@ -243,8 +243,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =    TRS("Format"),
       .type =         BG_PARAMETER_STRINGLIST,
       .val_default =  { .val_str = "srt" },
-      .multi_names =  (char const *[]){ "srt",           "mpsub",         (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Subrip (.srt)"), TRS("MPlayer mpsub"), (char*)0 },
+      .multi_names =  (char const *[]){ "srt",           "mpsub", NULL },
+      .multi_labels = (char const *[]){ TRS("Subrip (.srt)"), TRS("MPlayer mpsub"), NULL },
       
     },
     { /* End of parameters */ }

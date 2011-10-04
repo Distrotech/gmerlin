@@ -286,7 +286,7 @@ static void set_background(bg_gtk_slider_t * s)
 
       /* Draw top */
       gdk_draw_pixbuf(pixmap,
-                      (GdkGC*)0,
+                      NULL,
                       s->pixbuf_background_l,
                       0,
                       0,
@@ -306,7 +306,7 @@ static void set_background(bg_gtk_slider_t * s)
         if(dest_y + height > dest_y_end)
           height = dest_y_end - dest_y;
         gdk_draw_pixbuf(pixmap,
-                        (GdkGC*)0,
+                        NULL,
                         s->pixbuf_background,
                         0,
                         0,
@@ -319,7 +319,7 @@ static void set_background(bg_gtk_slider_t * s)
         dest_y += height;
         }
       gdk_draw_pixbuf(pixmap,
-                      (GdkGC*)0,
+                      NULL,
                       s->pixbuf_background_r,
                       0,
                       0,
@@ -337,7 +337,7 @@ static void set_background(bg_gtk_slider_t * s)
 
       width = gdk_pixbuf_get_width(s->pixbuf_background_l);
       gdk_draw_pixbuf(pixmap,
-                      (GdkGC *)0,
+                      NULL,
                       s->pixbuf_background_l,
                       0,
                       0,
@@ -358,7 +358,7 @@ static void set_background(bg_gtk_slider_t * s)
           width = dest_x_end - dest_x;
         
         gdk_draw_pixbuf(pixmap,
-                        (GdkGC*)0,
+                        NULL,
                         s->pixbuf_background,
                         0,
                         0,
@@ -371,7 +371,7 @@ static void set_background(bg_gtk_slider_t * s)
         dest_x += width;
         }
       gdk_draw_pixbuf(pixmap,
-                      (GdkGC*)0,
+                      NULL,
                       s->pixbuf_background_r,
                       0,
                       0,
@@ -455,12 +455,12 @@ bg_gtk_slider_t * bg_gtk_slider_create()
 
   /* Create objects */
 
-  ret->background_layout = gtk_layout_new((GtkAdjustment*)0,
-                                          (GtkAdjustment*)0);
+  ret->background_layout = gtk_layout_new(NULL,
+                                          NULL);
 
   ret->slider_eventbox = gtk_event_box_new();
 
-  ret->slider_image  = gtk_image_new_from_pixbuf((GdkPixbuf*)0);
+  ret->slider_image  = gtk_image_new_from_pixbuf(NULL);
     
   /* Set Attributes */
 
@@ -625,7 +625,7 @@ void bg_gtk_slider_set_skin(bg_gtk_slider_t * s,
                             bg_gtk_slider_skin_t * skin,
                             const char * directory)
   {
-  char * tmp_string = (char*)0;
+  char * tmp_string = NULL;
   
   s->x = skin->x;
   s->y = skin->y;

@@ -501,7 +501,7 @@ static void window_button_callback(GtkWidget * w, gpointer data)
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->kbd_button)))
       {
       /* Start daemon */
-      daemon_path = (char*)0;
+      daemon_path = NULL;
       if(!bg_search_file_exec("gmerlin_kbd", &daemon_path))
         {
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Keyboard daemon not found");

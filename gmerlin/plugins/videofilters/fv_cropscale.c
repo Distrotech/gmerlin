@@ -222,7 +222,7 @@ static const bg_parameter_info_t parameters[] =
                               "cif",
                               "4cif",
                               "16cif",
-                              (char*)0 },
+                              NULL },
       .multi_labels =  (char const *[]){ TRS("From Source"),
                                 TRS("User defined"),
                                 TRS("PAL DVD D1 4:3 (720 x 576)"),
@@ -250,7 +250,7 @@ static const bg_parameter_info_t parameters[] =
                                 TRS("CIF (352 × 288)"),
                                 TRS("4CIF (704 × 576)"),
                                 TRS("16CIF (1408 × 1152)"),
-                                (char*)0 },
+                                NULL },
       .val_default = { .val_str = "from_input" },
       .help_string = TRS("Set the output image size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height."),
     },
@@ -403,7 +403,7 @@ static const bg_parameter_info_t parameters[] =
                         "420mpeg2",
                         "420paldv",
                         "411",
-                        (char*)0 },
+                        NULL },
       .multi_labels =
       (char const *[]){ TRS("From Source"),
                         TRS("4:4:4"),
@@ -412,7 +412,7 @@ static const bg_parameter_info_t parameters[] =
                         TRS("4:2:0 (MPEG-2)"),
                         TRS("4:2:0 (DV PAL)"),
                         TRS("4:1:1"),
-                        (char*)0 },
+                        NULL },
       .val_default = { .val_str = "from_input" },
       .help_string = TRS("Set the output chroma format to that of the destination. This can save one chroma scaling operation at a later stage. It only works if the input pixelformat is otherwise compatible to the output."),
     },
@@ -427,8 +427,8 @@ static const bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
       .val_default = { .val_str = "never" },
-      .multi_names = (char const *[]){ "never", "auto", "always", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Never"), TRS("Auto"), TRS("Always"), (char*)0 },
+      .multi_names = (char const *[]){ "never", "auto", "always", NULL },
+      .multi_labels = (char const *[]){ TRS("Never"), TRS("Auto"), TRS("Always"), NULL },
     },
     {
       .name =      "deinterlace_drop_mode",
@@ -437,8 +437,8 @@ static const bg_parameter_info_t parameters[] =
       .type =      BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
       .val_default = { .val_str = "top" },
-      .multi_names =   (char const *[]){ "top", "bottom", (char*)0 },
-      .multi_labels =  (char const *[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },
+      .multi_names =   (char const *[]){ "top", "bottom", NULL },
+      .multi_labels =  (char const *[]){ TRS("Drop top field"), TRS("Drop bottom field"), NULL },
       .help_string = TRS("Specifies which field the deinterlacer should drop.")
     },
     { /* End of parameters */ },
@@ -1190,7 +1190,7 @@ static void set_input_format_cropscale(void * priv, gavl_video_format_t * format
   if(vp->frame)
     {
     gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
+    vp->frame = NULL;
     }
   }
 

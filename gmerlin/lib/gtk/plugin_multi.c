@@ -123,7 +123,7 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
   if(win->info->parameters)
     win->parameters = win->info->parameters;
   else
-    win->parameters = (bg_parameter_info_t*)0;
+    win->parameters = NULL;
   
   win->section = bg_plugin_registry_get_section(win->reg, win->info->name);
   

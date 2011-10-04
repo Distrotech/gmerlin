@@ -72,8 +72,8 @@ static audio_buffer_t * audio_buffer_create()
   audio_buffer_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->cnv = gavl_audio_converter_create();
-  pthread_mutex_init(&ret->in_mutex,(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&ret->gain_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->in_mutex, NULL);
+  pthread_mutex_init(&ret->gain_mutex, NULL);
   
   ret->gain_control = gavl_volume_control_create();
   
@@ -85,17 +85,17 @@ static void audio_buffer_cleanup(audio_buffer_t * b)
   if(b->in_frame_1)
     {
     gavl_audio_frame_destroy(b->in_frame_1);
-    b->in_frame_1 = (gavl_audio_frame_t*)0;
+    b->in_frame_1 = NULL;
     }
   if(b->in_frame_2)
     {
     gavl_audio_frame_destroy(b->in_frame_2);
-    b->in_frame_2 = (gavl_audio_frame_t*)0;
+    b->in_frame_2 = NULL;
     }
   if(b->out_frame)
     {
     gavl_audio_frame_destroy(b->out_frame);
-    b->out_frame = (gavl_audio_frame_t*)0;
+    b->out_frame = NULL;
     }
   b->last_samples_read = 0;
   b->frame_done = 0;
@@ -224,7 +224,7 @@ static gavl_audio_frame_t * audio_buffer_get(audio_buffer_t * b)
     b->frame_done = 1;
     return b->out_frame;
     }
-  return (gavl_audio_frame_t*)0;
+  return NULL;
   }
 
 typedef struct
@@ -325,7 +325,7 @@ load_plugin_gmerlin(const char * filename)
   ret->priv = ret->plugin->create();
   return ret;
   fail:
-  return (bg_plugin_handle_t *)0;
+  return NULL;
   }
 
 #ifdef HAVE_LV
@@ -337,7 +337,7 @@ load_plugin_lv(const char * name, int plugin_flags, const char * window_id)
   if(!bg_lv_load(ret, name, plugin_flags, window_id))
     {
     free(ret);
-    return (bg_plugin_handle_t*)0;
+    return NULL;
     }
   return ret;
   }
@@ -400,9 +400,9 @@ bg_visualizer_slave_create(int argc, char ** argv)
   {
   int i;
   bg_visualizer_slave_t * ret;
-  char * window_id = (char*)0;
-  char * plugin_module = (char*)0;
-  char * ov_module = (char*)0;
+  char * window_id = NULL;
+  char * plugin_module = NULL;
+  char * ov_module = NULL;
   
   /* Handle arguments and load plugins */
   i = 1;
@@ -429,12 +429,12 @@ bg_visualizer_slave_create(int argc, char ** argv)
   if(!window_id)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No window ID given");
-    return (bg_visualizer_slave_t *)0;
+    return NULL;
     }
   if(!plugin_module)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin given");
-    return (bg_visualizer_slave_t *)0;
+    return NULL;
     }
   
   ret = calloc(1, sizeof(*ret));
@@ -449,11 +449,11 @@ bg_visualizer_slave_create(int argc, char ** argv)
   
   ret->cb_queue = bg_msg_queue_create();
   
-  pthread_mutex_init(&ret->stop_mutex,(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&ret->running_mutex,(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&ret->vis_mutex,(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&ret->ov_mutex,(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&ret->fps_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->stop_mutex, NULL);
+  pthread_mutex_init(&ret->running_mutex, NULL);
+  pthread_mutex_init(&ret->vis_mutex, NULL);
+  pthread_mutex_init(&ret->ov_mutex, NULL);
+  pthread_mutex_init(&ret->fps_mutex, NULL);
   
   ret->timer = gavl_timer_create();
 
@@ -465,7 +465,7 @@ bg_visualizer_slave_create(int argc, char ** argv)
     
     ret->ov_handle = load_plugin_gmerlin(ov_module);
     if(!ret->ov_handle)
-      return (bg_visualizer_slave_t*)0;
+      return NULL;
     
     ret->ov_plugin = (bg_ov_plugin_t*)ret->ov_handle->plugin;
     
@@ -493,7 +493,7 @@ bg_visualizer_slave_create(int argc, char ** argv)
       load_plugin_gmerlin(plugin_module);
 
   if(!ret->vis_handle)
-    return (bg_visualizer_slave_t*)0;
+    return NULL;
   
   ret->vis_plugin = (bg_visualization_plugin_t*)(ret->vis_handle->plugin);
   
@@ -550,12 +550,12 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
                                  v->video_frame_out);
       else
         gavl_video_frame_destroy(v->video_frame_out);
-      v->video_frame_out = (gavl_video_frame_t*)0;
+      v->video_frame_out = NULL;
       }
     if(v->video_frame_in)
       {
       gavl_video_frame_destroy(v->video_frame_in);
-      v->video_frame_in = (gavl_video_frame_t*)0;
+      v->video_frame_in = NULL;
       }
     v->ov_plugin->close(v->ov_handle->priv);
     uload_plugin(v->ov_handle, BG_PLUGIN_API_GMERLIN);
@@ -598,7 +598,7 @@ static void * video_thread_func(void * data)
     
     if(!(v->do_ov))
       v->vis_plugin->draw_frame(v->vis_handle->priv,
-                                (gavl_video_frame_t*)0);
+                                NULL);
     else if(v->do_convert_video)
       {
       v->vis_plugin->draw_frame(v->vis_handle->priv, v->video_frame_in);
@@ -659,7 +659,7 @@ static void * video_thread_func(void * data)
     v->last_frame_time = frame_time;
     }
   pthread_mutex_unlock(&v->running_mutex);
-  return (void*)0;
+  return NULL;
   }
 
 static int bg_visualizer_slave_stop(bg_visualizer_slave_t * v)
@@ -676,7 +676,7 @@ static int bg_visualizer_slave_stop(bg_visualizer_slave_t * v)
   v->do_stop = 1;
   pthread_mutex_unlock(&v->stop_mutex);
   
-  pthread_join(v->video_thread, (void**)0);
+  pthread_join(v->video_thread, NULL);
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joined thread");
   gavl_timer_stop(v->timer);
   return 1;
@@ -695,7 +695,7 @@ static int bg_visualizer_slave_start(bg_visualizer_slave_t * v)
   gavl_timer_set(v->timer, 0);
   gavl_timer_start(v->timer);
   
-  pthread_create(&v->video_thread, (pthread_attr_t*)0, video_thread_func, v);
+  pthread_create(&v->video_thread, NULL, video_thread_func, v);
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started thread");
   return 1;
   }
@@ -805,14 +805,14 @@ static void flush_queue(bg_msg_queue_t * queue)
 int main(int argc, char ** argv)
   {
   gavl_audio_format_t audio_format;
-  gavl_audio_frame_t * audio_frame = (gavl_audio_frame_t *)0;
+  gavl_audio_frame_t * audio_frame = NULL;
   float arg_f;
   
   int keep_going;
   bg_visualizer_slave_t * s;
   bg_msg_t * msg;
 
-  char * parameter_name = (char*)0;
+  char * parameter_name = NULL;
   bg_parameter_value_t parameter_value;
   bg_msg_queue_t * log_queue;
   int counter = 0.0;
@@ -843,7 +843,7 @@ int main(int argc, char ** argv)
   while(keep_going)
     {
 //    fprintf(stderr, "Read message slave...\n"); 
-    result = bg_msg_read(msg, msg_read_callback, (void*)0);
+    result = bg_msg_read(msg, msg_read_callback, NULL);
 //    fprintf(stderr, "Read message slave done %d\n", result);
     if(!result)
       break;
@@ -864,7 +864,7 @@ int main(int argc, char ** argv)
                                 &audio_format,
                                 audio_frame,
                                 msg_read_callback,
-                                (void*)0, big_endian);
+                                NULL, big_endian);
         
         if(!pthread_mutex_trylock(&s->running_mutex))
           {
@@ -889,7 +889,7 @@ int main(int argc, char ** argv)
         if(parameter_name)
           {
           free(parameter_name);
-          parameter_name = (char*)0;
+          parameter_name = NULL;
           bg_parameter_value_free(&parameter_value,
                                   parameter_type);
           }
@@ -910,7 +910,7 @@ int main(int argc, char ** argv)
         if(parameter_name)
           {
           free(parameter_name);
-          parameter_name = (char*)0;
+          parameter_name = NULL;
           bg_parameter_value_free(&parameter_value,
                                   parameter_type);
           }

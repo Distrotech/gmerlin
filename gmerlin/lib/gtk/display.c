@@ -57,8 +57,8 @@ static GdkPixbuf * digit_pixbufs[NUM_PIXBUFS];
 
 static void load_pixbufs()
   {
-  char * c_tmp1 = (char*)0;
-  char * c_tmp2 = (char*)0;
+  char * c_tmp1 = NULL;
+  char * c_tmp2 = NULL;
   int i;
 
   if(num_time_displays)
@@ -100,7 +100,7 @@ static void unload_pixbufs()
     for(i = 0; i < NUM_PIXBUFS; i++)
       {
       g_object_unref(digit_pixbufs[i]);
-      digit_pixbufs[i] = (GdkPixbuf*)0;
+      digit_pixbufs[i] = NULL;
       }
     }
   }
@@ -210,7 +210,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
       {
       x -= d->colon_width;
       gdk_draw_pixbuf(d->widget->window,
-                      (GdkGC *)0,
+                      NULL,
                       d->pixbufs[d->indices[pos_i]],
                       0, // gint src_x,
                       0, // gint src_y,
@@ -225,7 +225,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
       {
       x -= d->digit_width;
       gdk_draw_pixbuf(d->widget->window,
-                      (GdkGC *)0,
+                      NULL,
                       d->pixbufs[d->indices[pos_i]],
                       0, // gint src_x,
                       0, // gint src_y,
@@ -266,7 +266,7 @@ void bg_gtk_time_display_set_colors(bg_gtk_time_display_t * d,
 
   set_bg_color(d);
   
-  expose_callback(d->widget, (GdkEventExpose*)0, d);
+  expose_callback(d->widget, NULL, d);
   }
 
 
@@ -315,7 +315,7 @@ void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
     d->indices[pos_i] = -1;
     pos_i++;
     }
-  expose_callback(d->widget, (GdkEventExpose*)0, d);
+  expose_callback(d->widget, NULL, d);
   }
 
 bg_gtk_time_display_t *

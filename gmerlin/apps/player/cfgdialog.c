@@ -83,7 +83,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                                              TR("Visualization"));
   
 #if 0
-  parent = bg_dialog_add_parent(g->subtitle_dialog, (void*)0, TR("Text subtitles"));
+  parent = bg_dialog_add_parent(g->subtitle_dialog, NULL, TR("Text subtitles"));
   
   bg_dialog_add_child(g->cfg_dialog, parent,
                       TR("Subtitles"),

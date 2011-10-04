@@ -398,12 +398,12 @@ static int open_display(bg_x11_window_t * w)
       return 0;
       }
     
-    w->normal.parent = strtoul(normal_id, (char **)0, 16);
+    w->normal.parent = strtoul(normal_id, NULL, 16);
     
     if(!(*fullscreen_id))
       w->fullscreen.parent = None;
     else
-      w->fullscreen.parent = strtoul(fullscreen_id, (char **)0, 16);
+      w->fullscreen.parent = strtoul(fullscreen_id, NULL, 16);
 
     //    fprintf(stderr, "Initialized windows: %ld %ld\n",
     //            w->normal.parent, w->fullscreen.parent);
@@ -547,14 +547,14 @@ void bg_x11_window_init(bg_x11_window_t * w)
     //    fprintf(stderr, "bg_x11_window_init %ld %ld\n", w->current->win,
     //            w->current->parent);
     bg_x11_window_get_coords(w->dpy, w->current->parent,
-                      (int*)0, (int*)0,
+                      NULL, NULL,
                       &w->window_width, &w->window_height);
     XMoveResizeWindow(w->dpy, w->current->win, 0, 0,
                       w->window_width, w->window_height);
     }
   else
     bg_x11_window_get_coords(w->dpy, w->current->win,
-                      (int*)0, (int*)0,
+                      NULL, NULL,
                       &w->window_width, &w->window_height);
 #endif
   //  fprintf(stderr, "Window size: %dx%d\n", w->window_width, w->window_height);
@@ -1186,7 +1186,7 @@ static const bg_parameter_info_t common_parameters[] =
                                "cubic_mitchell",
                                "cubic_catmull",
                                "sinc_lanczos",
-                               (char*)0 },
+                               NULL },
       .multi_labels = (char const*[]){ TRS("Auto"),
                                TRS("Nearest"),
                                TRS("Bilinear"),
@@ -1195,7 +1195,7 @@ static const bg_parameter_info_t common_parameters[] =
                                TRS("Cubic Mitchell-Netravali"),
                                TRS("Cubic Catmull-Rom"),
                                TRS("Sinc with Lanczos window"),
-                               (char*)0 },
+                               NULL },
       .val_default = { .val_str = "auto" },
       .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."),
     },

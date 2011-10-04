@@ -105,7 +105,7 @@ static void write_message(bg_visualizer_t * v)
   if(!result)
     {
     bg_subprocess_close(v->proc);
-    v->proc = (bg_subprocess_t*)0;
+    v->proc = NULL;
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Visualization process crashed, restart to try again");
     }
@@ -125,7 +125,7 @@ static int read_message(bg_visualizer_t * v)
   if(!result)
     {
     bg_subprocess_close(v->proc);
-    v->proc = (bg_subprocess_t*)0;
+    v->proc = NULL;
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Visualization process crashed, restart to try again");
     return 0;
@@ -314,7 +314,7 @@ bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
 
   ret->plugin_reg = plugin_reg;
 
-  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex, NULL);
   
   ret->msg = bg_msg_create();
   return ret;
@@ -503,8 +503,8 @@ void bg_visualizer_open_id(bg_visualizer_t * v,
   gavl_audio_format_copy(&v->audio_format, format);
   
   /* Set ov plugin */
-  v->ov_handle = (bg_plugin_handle_t*)0;
-  v->ov_plugin = (bg_ov_plugin_t*)0;
+  v->ov_handle = NULL;
+  v->ov_plugin = NULL;
   
   v->ov_info = ov_info;
   v->display_string = display_name;
@@ -592,7 +592,7 @@ void bg_visualizer_update(bg_visualizer_t * v,
                                  proc_write_func, v))
       {
       bg_subprocess_close(v->proc);
-      v->proc = (bg_subprocess_t*)0;
+      v->proc = NULL;
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
              "Visualization process crashed, restart to try again");
       }
@@ -635,7 +635,7 @@ void bg_visualizer_close(bg_visualizer_t * v)
   write_message(v);
 
   bg_subprocess_close(v->proc);
-  v->proc = (bg_subprocess_t*)0;
+  v->proc = NULL;
 
   /* Restore signal mask */
   pthread_sigmask(SIG_SETMASK, &v->oldset, NULL);

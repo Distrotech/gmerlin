@@ -162,13 +162,13 @@ void bg_player_audio_cleanup(bg_player_t * player)
   if(s->fifo_frame)
     {
     gavl_audio_frame_destroy(s->fifo_frame);
-    s->fifo_frame = (gavl_audio_frame_t*)0;
+    s->fifo_frame = NULL;
     }
   if(s->output_frame && s->do_convert_out)
     {
     gavl_audio_frame_destroy(s->output_frame);
     }
-  s->output_frame = (gavl_audio_frame_t*)0;
+  s->output_frame = NULL;
   }
 
 /* Configuration stuff */

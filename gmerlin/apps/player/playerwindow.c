@@ -687,8 +687,7 @@ void player_window_create(gmerlin_t * g)
   gtk_window_add_accel_group (GTK_WINDOW(ret->window), ret->gmerlin->accel_group);
   gtk_window_add_accel_group (GTK_WINDOW(ret->window), ret->accel_group);
   
-  ret->layout = gtk_layout_new((GtkAdjustment*)0,
-                               (GtkAdjustment*)0);
+  ret->layout = gtk_layout_new(NULL, NULL);
   
   /* Set attributes */
 

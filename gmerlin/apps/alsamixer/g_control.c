@@ -49,12 +49,12 @@
 #define TYPE_VOLUME     16
 #define TYPE_TONE       17
 
-static bg_gtk_about_window_t * about_window = (bg_gtk_about_window_t*)0;
+static bg_gtk_about_window_t * about_window = NULL;
 
 static void about_window_close_callback(bg_gtk_about_window_t * w,
                                         void * data)
   {
-  about_window = (bg_gtk_about_window_t*)0;
+  about_window = NULL;
   }
 
 static GtkWidget * create_pixmap_toggle_button(const char * filename)
@@ -698,7 +698,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
                                               VERSION,
                                               "mixer_icon.png",
                                               about_window_close_callback,
-                                              (void*)0);
+                                              NULL);
     }
   else if(w == wid->menu.help)
     bg_display_html_help("userguide/Alsamixer.html");
@@ -1286,10 +1286,7 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
     else
       gtk_widget_set_sensitive(wid->menu.about, 1);
     gtk_menu_popup(GTK_MENU(wid->menu.menu),
-                   (GtkWidget *)0,
-                   (GtkWidget *)0,
-                   (GtkMenuPositionFunc)0,
-                   (gpointer)0,
+                   NULL, NULL, NULL, NULL,
                    3, evt->time);
     return TRUE;
     }
@@ -1317,7 +1314,7 @@ control_widget_t * control_widget_create(alsa_mixer_group_t * c,
   {
   snd_ctl_elem_info_t * info;
   
-  control_widget_t * ret = (control_widget_t *)0;
+  control_widget_t * ret = NULL;
   snd_ctl_elem_type_t type;
 
   /* Check for volume controls */

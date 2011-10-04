@@ -77,7 +77,7 @@ bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
       break;
     case BG_PARAMETER_SECTION:
     case BG_PARAMETER_BUTTON:
-      return (bg_cfg_item_t *)0;
+      return NULL;
       break;
     }
   

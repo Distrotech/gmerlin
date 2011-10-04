@@ -83,11 +83,11 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
       codec_info[i]->num_decoding_parameters;
     
     if(!info->val_default.val_str)
-      info->val_default.val_str = bg_strdup((char*)0,
+      info->val_default.val_str = bg_strdup(NULL,
                                             codec_info[i]->name);
     
-    info->multi_names_nc[index] = bg_strdup((char*)0, codec_info[i]->name);
-    info->multi_labels_nc[index] = bg_strdup((char*)0, codec_info[i]->long_name);
+    info->multi_names_nc[index] = bg_strdup(NULL, codec_info[i]->name);
+    info->multi_labels_nc[index] = bg_strdup(NULL, codec_info[i]->long_name);
 
     if(encode)
       {
@@ -134,12 +134,12 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
         //          bg_sprintf("%s.%s", info->multi_names[i], lqt_parameter_info[j].name);
 
       info->multi_parameters_nc[index][j].long_name = 
-        bg_strdup((char*)0, lqt_parameter_info[j].real_name);
+        bg_strdup(NULL, lqt_parameter_info[j].real_name);
 
       if(lqt_parameter_info[j].help_string)
         {
         info->multi_parameters_nc[index][j].help_string = 
-          bg_strdup((char*)0, lqt_parameter_info[j].help_string);
+          bg_strdup(NULL, lqt_parameter_info[j].help_string);
         
         }
       
@@ -193,14 +193,14 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
         case LQT_PARAMETER_STRING:
           info->multi_parameters_nc[index][j].type = BG_PARAMETER_STRING;
           info->multi_parameters_nc[index][j].val_default.val_str =
-            bg_strdup((char*)0,
+            bg_strdup(NULL,
                       lqt_parameter_info[j].val_default.val_string);
           
           break;
         case LQT_PARAMETER_STRINGLIST:
           info->multi_parameters_nc[index][j].type = BG_PARAMETER_STRINGLIST;
           info->multi_parameters_nc[index][j].val_default.val_str =
-            bg_strdup((char*)0,
+            bg_strdup(NULL,
                       lqt_parameter_info[j].val_default.val_string);
 
           info->multi_parameters_nc[index][j].multi_names_nc =
@@ -210,7 +210,7 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
           for(k = 0; k < lqt_parameter_info[j].num_stringlist_options; k++)
             {
             info->multi_parameters_nc[index][j].multi_names_nc[k] =
-              bg_strdup((char*)0, lqt_parameter_info[j].stringlist_options[k]);
+              bg_strdup(NULL, lqt_parameter_info[j].stringlist_options[k]);
             }
           bg_parameter_info_set_const_ptrs(&info->multi_parameters_nc[index][j]);
           break;
@@ -251,13 +251,13 @@ static const void * get_value(lqt_parameter_info_t * lqt_parameter_info,
           return val->val_str;
           break;
         case LQT_PARAMETER_SECTION:
-          return (void*)0;
+          return NULL;
         }
       break;
       }
     index++;
     }
-  return (void*)0;
+  return NULL;
   }
                         
 void bg_lqt_set_audio_parameter(quicktime_t * file,
@@ -297,11 +297,10 @@ static void set_decoder_parameter(const char * codec_name,
                                   lqt_codec_info_t ** codec_info_arr)
   {
   int i;
-  lqt_codec_info_t *  codec_info = (lqt_codec_info_t*)0;
+  lqt_codec_info_t *  codec_info = NULL;
 
   lqt_parameter_value_t lqt_val;
-  lqt_parameter_info_t * lqt_parameter_info =
-    (lqt_parameter_info_t*)0;
+  lqt_parameter_info_t * lqt_parameter_info = NULL;
   
   /* This code stores the values in the lqt plugin
      registry, which is also not good.

@@ -163,9 +163,9 @@ static const bg_parameter_info_t parameters[] =
       .name =        "compression",
       .long_name =   TRS("Compression"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char const *[]){ "none", "packbits", "deflate", "jpeg", (char*)0 },
+      .multi_names = (char const *[]){ "none", "packbits", "deflate", "jpeg", NULL },
       .multi_labels =  (char const *[]){ TRS("None"), TRS("Packbits"), TRS("Deflate"), TRS("JPEG"),
-                                (char*)0 },
+                                NULL },
 
       .val_default = { .val_str = "none" },
     },

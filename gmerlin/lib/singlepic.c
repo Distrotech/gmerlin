@@ -48,12 +48,12 @@ static char * get_extensions(bg_plugin_registry_t * reg,
                              uint32_t type_mask, uint32_t flag_mask)
   {
   int num, i;
-  char * ret = (char*)0;
+  char * ret = NULL;
   const bg_plugin_info_t * info;
   
   num = bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
   if(!num)
-    return (char*)0;
+    return NULL;
 
   for(i = 0; i < num; i++)
     {
@@ -486,7 +486,7 @@ static int set_track_input_stills(void * priv, int track)
   if(inp->header_read)
     {
     inp->image_reader->read_image(inp->handle->priv,
-                                  (gavl_video_frame_t*)0);
+                                  NULL);
     inp->header_read = 0;
     }
   return 1;
@@ -517,12 +517,12 @@ static void close_input(void * priv)
   if(inp->template)
     {
     free(inp->template);
-    inp->template = (char*)0;
+    inp->template = NULL;
     }
   if(inp->filename_buffer)
     {
     free(inp->filename_buffer);
-    inp->filename_buffer = (char*)0;
+    inp->filename_buffer = NULL;
     }
   bg_track_info_free(&inp->track_info);
   
@@ -652,7 +652,7 @@ static bg_plugin_info_t * get_input_info(bg_plugin_registry_t * reg,
   
   if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_READER,
                                          BG_PLUGIN_FILE))
-    return (bg_plugin_info_t *)0;
+    return NULL;
   
   ret = calloc(1, sizeof(*ret));
 
@@ -817,7 +817,7 @@ static void set_parameter_encoder(void * priv, const char * name,
       if(e->plugin_handle)
         {
         bg_plugin_unref(e->plugin_handle);
-        e->plugin_handle = (bg_plugin_handle_t*)0;
+        e->plugin_handle = NULL;
         }
       info = bg_plugin_find_by_name(e->plugin_reg, val->val_str);
       e->plugin_handle = bg_plugin_load(e->plugin_reg, info);
@@ -1006,7 +1006,7 @@ static int write_video_packet_encoder(void * data, gavl_packet_t * packet,
   return 1;
   }
 
-#define STR_FREE(s) if(s){free(s);s=(char*)0;}
+#define STR_FREE(s) if(s){free(s);s=NULL;}
 
 static int close_encoder(void * data, int do_delete)
   {
@@ -1032,7 +1032,7 @@ static int close_encoder(void * data, int do_delete)
   if(e->plugin_handle)
     {
     bg_plugin_unref(e->plugin_handle);
-    e->plugin_handle = (bg_plugin_handle_t*)0;
+    e->plugin_handle = NULL;
     }
   return 1;
   }
@@ -1110,7 +1110,7 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   
   if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_WRITER,
                                          BG_PLUGIN_FILE))
-    return (bg_plugin_info_t *)0;
+    return NULL;
   
   ret = calloc(1, sizeof(*ret));
 

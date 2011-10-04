@@ -196,7 +196,7 @@ bg_cdaudio_index_t * bg_cdaudio_get_index(CdIo_t * cdio)
 
   num_tracks = cdio_get_last_track_num(cdio);
   if(num_tracks == CDIO_INVALID_TRACK)
-    return (bg_cdaudio_index_t*)0;
+    return NULL;
   
   ret = calloc(1, sizeof(*ret));
   ret->num_tracks = num_tracks;
@@ -221,7 +221,7 @@ bg_cdaudio_index_t * bg_cdaudio_get_index(CdIo_t * cdio)
     {
     free(ret->tracks);
     free(ret);
-    return (bg_cdaudio_index_t*)0;
+    return NULL;
     }
 
   return ret;
@@ -292,7 +292,7 @@ bg_device_info_t * bg_cdaudio_find_devices()
   int i;
   char * device_name;
   char ** devices;
-  bg_device_info_t * ret = (bg_device_info_t *)0;
+  bg_device_info_t * ret = NULL;
 
   devices = cdio_get_devices(DRIVER_DEVICE);
 
@@ -302,7 +302,7 @@ bg_device_info_t * bg_cdaudio_find_devices()
   i = 0;
   while(devices[i])
     {
-    device_name = (char*)0;
+    device_name = NULL;
     if(bg_cdaudio_check_device(devices[i], &device_name))
       {
       ret = bg_device_info_append(ret,

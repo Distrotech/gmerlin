@@ -149,7 +149,7 @@ bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
       fcntl (i, F_SETFD, FD_CLOEXEC);
     
     /* Exec */
-    execl("/bin/sh", "sh", "-c", command, (char*)0);
+    execl("/bin/sh", "sh", "-c", command, NULL);
     /* Never get here */
     _exit(1);
     }
@@ -175,7 +175,7 @@ bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
   
   free(ret_priv);
   free(ret);
-  return (bg_subprocess_t*)0;
+  return NULL;
   }
 
 

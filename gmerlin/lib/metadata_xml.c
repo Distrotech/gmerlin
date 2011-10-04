@@ -100,7 +100,7 @@ void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
 #define STRING_2_XML(key)                                             \
   if(m->key)                                                          \
     {                                                                 \
-    child = xmlNewTextChild(xml_metadata, (xmlNsPtr)0, (xmlChar*)#key, NULL); \
+    child = xmlNewTextChild(xml_metadata, NULL, (xmlChar*)#key, NULL); \
     xmlAddChild(child, BG_XML_NEW_TEXT(m->key));                           \
     xmlAddChild(xml_metadata, BG_XML_NEW_TEXT("\n"));                      \
     }
@@ -109,7 +109,7 @@ void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
   if(m->key)                                   \
     { \
     tmp_string = bg_sprintf("%d", m->key); \
-    child = xmlNewTextChild(xml_metadata, (xmlNsPtr)0, (xmlChar*)#key, NULL); \
+    child = xmlNewTextChild(xml_metadata, NULL, (xmlChar*)#key, NULL); \
     xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));                       \
     free(tmp_string);                                                 \
     xmlAddChild(xml_metadata, BG_XML_NEW_TEXT("\n"));                      \

@@ -87,7 +87,7 @@ uint32_t kbd_modifiers_from_string(const char * str)
 char * kbd_modifiers_to_string(uint32_t state)
   {
   int i;
-  char * ret = (char*)0;
+  char * ret = NULL;
   
   for(i = 0; i < sizeof(modifiers)/sizeof(modifiers[0]); i++)
     {

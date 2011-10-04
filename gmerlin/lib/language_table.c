@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <stdlib.h>
+#include <language_table.h>
+
 char const * const bg_language_codes[] =
   {
  "aar",
@@ -454,7 +457,7 @@ char const * const bg_language_codes[] =
  "znd",
  "zul",
  "zun",
- (char*)0,
+ NULL,
   };
 char const * const bg_language_labels[] =
   {
@@ -891,5 +894,5 @@ char const * const bg_language_labels[] =
  "Zande",
  "Zulu",
  "Zuni",
- (char*)0,
+ NULL,
   };

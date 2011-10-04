@@ -127,7 +127,7 @@ void bg_msg_set_arg_time(bg_msg_t * msg, int arg, gavl_time_t value)
 void * bg_msg_set_arg_ptr(bg_msg_t * msg, int arg, int len)
   {
   if(!check_arg(arg))
-    return (char*)0;
+    return NULL;
   
   msg->args[arg].value.val_ptr = calloc(1, len);
   msg->args[arg].size = len;
@@ -269,10 +269,10 @@ void * bg_msg_get_arg_ptr(bg_msg_t * msg, int arg, int * length)
   void * ret;
   
   if(!check_arg(arg))
-    return (void*)0;
+    return NULL;
 
   ret = msg->args[arg].value.val_ptr;
-  msg->args[arg].value.val_ptr = (void*)0;
+  msg->args[arg].value.val_ptr = NULL;
   if(length)
     *length = msg->args[arg].size;
   return ret;
@@ -289,9 +289,9 @@ char * bg_msg_get_arg_string(bg_msg_t * msg, int arg)
   {
   char * ret;
   if(!check_arg(arg))
-    return (char *)0;
+    return NULL;
   ret = msg->args[arg].value.val_ptr;
-  msg->args[arg].value.val_ptr = (char*)0;
+  msg->args[arg].value.val_ptr = NULL;
   return ret;
   }
 
@@ -547,7 +547,7 @@ void bg_msg_free(bg_msg_t * m)
        (m->args[i].value.val_ptr))
       {
       free(m->args[i].value.val_ptr);
-      m->args[i].value.val_ptr = (void*)0;
+      m->args[i].value.val_ptr = NULL;
       }
     }
   }
@@ -752,8 +752,8 @@ bg_msg_queue_t * bg_msg_queue_create()
   
   /* Initialize chain mutex */
 
-  pthread_mutex_init(&ret->chain_mutex,(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&ret->write_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->chain_mutex, NULL);
+  pthread_mutex_init(&ret->write_mutex, NULL);
   
   return ret;
   }
@@ -777,7 +777,7 @@ bg_msg_t * bg_msg_queue_lock_read(bg_msg_queue_t * m)
   while(sem_wait(&m->msg_output->produced) == -1)
     {
     if(errno != EINTR)
-      return (void*)0;
+      return NULL;
     }
   return m->msg_output;
   
@@ -789,7 +789,7 @@ bg_msg_t * bg_msg_queue_try_lock_read(bg_msg_queue_t * m)
   if(!sem_trywait(&m->msg_output->produced))
     return m->msg_output;
   else
-    return (bg_msg_t*)0;
+    return NULL;
   }
 
 int bg_msg_queue_peek(bg_msg_queue_t * m, uint32_t * id)
@@ -819,7 +819,7 @@ void bg_msg_queue_unlock_read(bg_msg_queue_t * m)
   m->msg_output = m->msg_output->next;
   m->msg_last->next = old_out_message;
   m->msg_last = m->msg_last->next;
-  m->msg_last->next = (bg_msg_t*)0;
+  m->msg_last->next = NULL;
 
   pthread_mutex_unlock(&m->chain_mutex);
   }
@@ -868,7 +868,7 @@ struct bg_msg_queue_list_s
 bg_msg_queue_list_t * bg_msg_queue_list_create()
   {
   bg_msg_queue_list_t * ret = calloc(1, sizeof(*ret));
-  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex, NULL);
   return ret;
   }
 

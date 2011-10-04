@@ -69,7 +69,7 @@ static void add_files(bg_gtk_filesel_t * f)
   GSList * file_list;
   GSList * tmp;
 
-  const char * plugin = (const char*)0;
+  const char * plugin = NULL;
   int num, i;
 
   if(f->plugins)
@@ -104,7 +104,7 @@ static void add_files(bg_gtk_filesel_t * f)
 
 static void add_dir(bg_gtk_filesel_t * f)
   {
-  const char * plugin = (const char*)0;
+  const char * plugin = NULL;
   char * tmp =
     gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(f->filesel));
   
@@ -186,7 +186,7 @@ filesel_create(const char * title,
   {
   bg_gtk_filesel_t * ret;
   
-  GtkWidget * extra = (GtkWidget*)0;
+  GtkWidget * extra = NULL;
   
   ret = calloc(1, sizeof(*ret));
   
@@ -410,7 +410,7 @@ char * bg_gtk_get_filename_write(const char * title,
   char * tmp_string;
   filesel_write_struct f;
 
-  ret = (char*)0;
+  ret = NULL;
   
   parent = bg_gtk_get_toplevel(parent);
   
@@ -456,11 +456,11 @@ char * bg_gtk_get_filename_write(const char * title,
   if(!f.answer)
     {
     gtk_widget_destroy(f.w);
-    return (char*)0;
+    return NULL;
     }
   
   tmp_string = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(f.w));
-  ret = bg_strdup((char*)0, tmp_string);
+  ret = bg_strdup(NULL, tmp_string);
   g_free(tmp_string);
   
   /* Update current directory */
@@ -482,7 +482,7 @@ char * bg_gtk_get_filename_read(const char * title,
   char * tmp_string;
   filesel_write_struct f;
 
-  ret = (char*)0;
+  ret = NULL;
 
   parent = bg_gtk_get_toplevel(parent);
   
@@ -525,11 +525,11 @@ char * bg_gtk_get_filename_read(const char * title,
   if(!f.answer)
     {
     gtk_widget_destroy(f.w);
-    return (char*)0;
+    return NULL;
     }
   
   tmp_string = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(f.w));
-  ret = bg_strdup((char*)0, tmp_string);
+  ret = bg_strdup(NULL, tmp_string);
   g_free(tmp_string);
   
   /* Update current directory */

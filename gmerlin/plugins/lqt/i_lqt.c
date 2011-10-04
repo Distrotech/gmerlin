@@ -105,7 +105,7 @@ static void setup_chapters(i_lqt_t * e, int track)
   {
   int i, num;
   int64_t timestamp, duration;
-  char * text = (char*)0;
+  char * text = NULL;
   int text_alloc = 0;
   
   e->track_info.chapter_list = bg_chapter_list_create(0);
@@ -139,7 +139,7 @@ static int open_lqt(void * data, const char * arg)
 
   
   /* We want to keep the thing const-clean */
-  filename = bg_strdup((char*)0, arg);
+  filename = bg_strdup(NULL, arg);
   e->file = quicktime_open(filename, 1, 0);
   free(filename);
 
@@ -151,24 +151,24 @@ static int open_lqt(void * data, const char * arg)
   /* Set metadata */
 
   e->track_info.metadata.title =
-    bg_strdup((char*)0, quicktime_get_name(e->file));
+    bg_strdup(NULL, quicktime_get_name(e->file));
   e->track_info.metadata.copyright =
-    bg_strdup((char*)0, quicktime_get_copyright(e->file));
+    bg_strdup(NULL, quicktime_get_copyright(e->file));
 
   e->track_info.metadata.comment =
-    bg_strdup((char*)0, lqt_get_comment(e->file));
+    bg_strdup(NULL, lqt_get_comment(e->file));
   if(!e->track_info.metadata.comment)
     e->track_info.metadata.comment =
-      bg_strdup((char*)0, quicktime_get_info(e->file));
+      bg_strdup(NULL, quicktime_get_info(e->file));
 
   tmp_string = lqt_get_track(e->file);
   if(tmp_string && isdigit(*tmp_string))
     e->track_info.metadata.track = atoi(tmp_string);
 
-  e->track_info.metadata.artist = bg_strdup((char*)0, lqt_get_artist(e->file));
-  e->track_info.metadata.album  = bg_strdup((char*)0, lqt_get_album(e->file));
-  e->track_info.metadata.genre  = bg_strdup((char*)0, lqt_get_genre(e->file));
-  e->track_info.metadata.author  = bg_strdup((char*)0, lqt_get_author(e->file));
+  e->track_info.metadata.artist = bg_strdup(NULL, lqt_get_artist(e->file));
+  e->track_info.metadata.album  = bg_strdup(NULL, lqt_get_album(e->file));
+  e->track_info.metadata.genre  = bg_strdup(NULL, lqt_get_genre(e->file));
+  e->track_info.metadata.author  = bg_strdup(NULL, lqt_get_author(e->file));
   
   /* Query streams */
 
@@ -340,7 +340,7 @@ static void close_lqt(void * data)
   if(e->file)
     {
     quicktime_close(e->file);
-    e->file = (quicktime_t*)0;
+    e->file = NULL;
     }
   if(e->audio_streams)
     {

@@ -167,7 +167,7 @@ type_names[] =
     { TRS("Audio filter"),   BG_PLUGIN_FILTER_AUDIO  },
     { TRS("Video filter"),   BG_PLUGIN_FILTER_VIDEO  },
     { TRS("Visualization"),   BG_PLUGIN_VISUALIZATION  },
-    { (char*)0,         BG_PLUGIN_NONE }
+    { NULL,         BG_PLUGIN_NONE }
   };
 
 static const struct
@@ -186,7 +186,7 @@ flag_names[] =
     { TRS("Filter with 1 input"),  BG_PLUGIN_FILTER_1 },
     { TRS("Renders via gmerlin"),  BG_PLUGIN_VISUALIZE_FRAME },
     { TRS("Renders via OpenGL"),  BG_PLUGIN_VISUALIZE_GL },
-    { (char*)0,      0                        },
+    { NULL,      0                        },
   };
 
 static char * get_flag_string(uint32_t flags)
@@ -244,7 +244,7 @@ static const char * get_type_string(bg_plugin_type_t type)
       return TR(type_names[i].name);
     i++;
     }
-  return (char*)0;
+  return NULL;
   }
 
 void bg_gtk_plugin_info_show(const bg_plugin_info_t * info, GtkWidget * parent)

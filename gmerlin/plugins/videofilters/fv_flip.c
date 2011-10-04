@@ -127,7 +127,7 @@ static void set_input_format_flip(void * priv, gavl_video_format_t * format, int
   if(vp->frame)
     {
     gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
+    vp->frame = NULL;
     }
   }
 

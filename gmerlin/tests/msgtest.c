@@ -148,7 +148,7 @@ int main(int argc, char ** argv)
   queue = bg_msg_queue_create();
 
   pthread_create(&read_thread,
-                 (pthread_attr_t*)0,
+                 NULL,
                  thread1_func, queue);
 
   while(1)
@@ -157,7 +157,7 @@ int main(int argc, char ** argv)
       break;
     }
 
-  pthread_join(read_thread, (void**)0);
+  pthread_join(read_thread,NULL);
   
   
   return 0;

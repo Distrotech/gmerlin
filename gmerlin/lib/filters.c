@@ -146,7 +146,7 @@ static void destroy_audio_chain(bg_audio_filter_chain_t * ch)
   if(ch->filters)
     {
     free(ch->filters);
-    ch->filters = (audio_filter_t*)0;
+    ch->filters = NULL;
     }
   ch->num_filters = 0;
   }
@@ -186,7 +186,7 @@ bg_audio_filter_chain_create(const bg_gavl_audio_options_t * opt,
   ret->plugin_reg = plugin_reg;
   ret->cnv_out = bg_audio_converter_create(opt->opt);
   
-  pthread_mutex_init(&ret->mutex, (pthread_mutexattr_t*)0);
+  pthread_mutex_init(&ret->mutex, NULL);
   return ret;
   }
 
@@ -574,7 +574,7 @@ static void destroy_video_chain(bg_video_filter_chain_t * ch)
   if(ch->filters)
     {
     free(ch->filters);
-    ch->filters = (video_filter_t*)0;
+    ch->filters = NULL;
     }
   ch->num_filters = 0;
   }
@@ -614,7 +614,7 @@ bg_video_filter_chain_create(const bg_gavl_video_options_t * opt,
 
   ret->cnv_out = bg_video_converter_create(opt->opt);
 
-  pthread_mutex_init(&ret->mutex, (pthread_mutexattr_t*)0);
+  pthread_mutex_init(&ret->mutex, NULL);
   return ret;
   }
 

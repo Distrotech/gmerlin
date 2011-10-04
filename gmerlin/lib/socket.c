@@ -143,12 +143,12 @@ static struct addrinfo * hostbyname(const char * hostname, int port, int socktyp
 
   if(inet_aton(hostname, &ipv4_addr))
     hints.ai_flags |= AI_NUMERICHOST;
-  if((err = getaddrinfo(hostname, (char*)0 /* service */,
+  if((err = getaddrinfo(hostname, NULL /* service */,
                         &hints, &ret)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot resolve address of %s: %s",
            hostname, gai_strerror(err));
-    return (struct addrinfo *)0;
+    return NULL;
     }
 #if 0
   if(ret[0].ai_addr->sa_family == AF_INET)
@@ -209,7 +209,7 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
       FD_ZERO (&write_fds);
       FD_SET (ret, &write_fds);
 
-      err = select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout);
+      err = select(ret+1, NULL, &write_fds, NULL,&timeout);
       
       if(!err)
         {
@@ -299,7 +299,7 @@ static int have_ipv6()
   hints.ai_protocol = 0; // 0
   hints.ai_flags    = 0;
 
-  if((err = getaddrinfo("localhost", (char*)0 /* service */,
+  if((err = getaddrinfo("localhost", NULL /* service */,
                         &hints, &ret)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot resolve address of localhost: %s",

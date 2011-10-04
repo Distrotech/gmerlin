@@ -98,7 +98,7 @@ static void changed_callback(gpointer       data)
   {
   bg_gtk_log_window_t * w;
   GtkTextIter iter;
-  GtkTextMark * mark = (GtkTextMark *)0;
+  GtkTextMark * mark = NULL;
   w = (bg_gtk_log_window_t *)data;
 
   
@@ -122,7 +122,7 @@ static gboolean idle_callback(gpointer data)
   const char * level_name;
   char * domain;
   char * message;
-  GtkTextTag * tag = (GtkTextTag *)0;
+  GtkTextTag * tag = NULL;
   char * str;
   GtkTextIter iter;
   int i;
@@ -253,10 +253,10 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
 
   /* Create tag table */
   ret->tag_table   = gtk_text_tag_table_new();
-  ret->info_tag    = gtk_text_tag_new((char*)0);
-  ret->debug_tag   = gtk_text_tag_new((char*)0);
-  ret->error_tag   = gtk_text_tag_new((char*)0);
-  ret->warning_tag = gtk_text_tag_new((char*)0);
+  ret->info_tag    = gtk_text_tag_new(NULL);
+  ret->debug_tag   = gtk_text_tag_new(NULL);
+  ret->error_tag   = gtk_text_tag_new(NULL);
+  ret->warning_tag = gtk_text_tag_new(NULL);
 
   gtk_text_tag_table_add(ret->tag_table, ret->info_tag);
   gtk_text_tag_table_add(ret->tag_table, ret->debug_tag);
@@ -277,7 +277,7 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
   gtk_widget_show(ret->textview);
 
   /* Create scrolledwindow */
-  ret->scrolledwindow = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
+  ret->scrolledwindow = gtk_scrolled_window_new(NULL, NULL);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->scrolledwindow),
                                  GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
   

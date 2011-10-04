@@ -121,7 +121,7 @@ char * bg_get_track_name_default(const char * location, int track, int num_track
   
   if(bg_string_is_url(location))
     {
-    tmp_string = bg_strdup((char*)0, location);
+    tmp_string = bg_strdup(NULL, location);
     }
   else
     {

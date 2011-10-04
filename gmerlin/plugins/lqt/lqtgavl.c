@@ -637,7 +637,7 @@ uint8_t ** lqt_gavl_rows_create(quicktime_t * file, int track)
   uint8_t ** ret;
 
   if(lqt_colormodel_is_planar(lqt_get_cmodel(file, track)))
-    return (uint8_t**)0;
+    return NULL;
   
   ret = malloc(sizeof(*ret) * quicktime_video_height(file, track));
   return ret;

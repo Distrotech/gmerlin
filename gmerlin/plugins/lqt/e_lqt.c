@@ -549,7 +549,7 @@ static int close_lqt(void * data, int do_delete)
     }
   
   quicktime_close(e->file);
-  e->file = (quicktime_t*)0;
+  e->file = NULL;
   
   if(do_delete)
     remove(e->filename);
@@ -565,12 +565,12 @@ static int close_lqt(void * data, int do_delete)
   if(e->filename)
     {
     free(e->filename);
-    e->filename = (char*)0;
+    e->filename = NULL;
     }
   if(e->filename_tmp)
     {
     free(e->filename_tmp);
-    e->filename_tmp = (char*)0;
+    e->filename_tmp = NULL;
     }
   if(e->audio_streams)
     {
@@ -632,9 +632,9 @@ static const bg_parameter_info_t common_parameters[] =
       .name =      "format",
       .long_name = TRS("Format"),
       .type =      BG_PARAMETER_STRINGLIST,
-      .multi_names =    (char const *[]) { "quicktime", "avi", "avi_opendml",   "mp4", "m4a", "3gp", (char*)0 },
+      .multi_names =    (char const *[]) { "quicktime", "avi", "avi_opendml",   "mp4", "m4a", "3gp", NULL },
       .multi_labels =   (char const *[]) { TRS("Quicktime"), TRS("AVI"), TRS("AVI (Opendml)"),
-                                  TRS("MP4"), TRS("M4A"), TRS("3GP"), (char*)0 },
+                                  TRS("MP4"), TRS("M4A"), TRS("3GP"), NULL },
       .val_default = { .val_str = "quicktime" },
     },
     {

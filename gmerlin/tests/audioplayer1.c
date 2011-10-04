@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
   /* Frames */
   
   gavl_audio_frame_t * input_frame;
-  gavl_audio_frame_t * output_frame = (gavl_audio_frame_t*)0;
+  gavl_audio_frame_t * output_frame = NULL;
 
   /* Converter */
 

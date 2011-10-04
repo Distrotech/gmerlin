@@ -105,8 +105,8 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   ret->threads[0] = ret->audio_stream.th;
   ret->threads[1] = ret->video_stream.th;
   
-  pthread_mutex_init(&ret->state_mutex, (pthread_mutexattr_t *)0);
-  pthread_mutex_init(&ret->config_mutex, (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->state_mutex, NULL);
+  pthread_mutex_init(&ret->config_mutex, NULL);
 
   
   

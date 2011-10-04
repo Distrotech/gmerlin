@@ -110,8 +110,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name = TRS("Format"),
       .type = BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "vcd2" },
-      .multi_names = (char const *[]){ "vcd11", "vcd2", "svcd", "hqsvcd", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("VCD 1.1"), TRS("VCD 2.0"), TRS("SVCD"), TRS("HQSVCD"), (char*)0 },
+      .multi_names = (char const *[]){ "vcd11", "vcd2", "svcd", "hqsvcd", NULL },
+      .multi_labels = (char const *[]){ TRS("VCD 1.1"), TRS("VCD 2.0"), TRS("SVCD"), TRS("HQSVCD"), NULL },
     },
     {
       .name = "volume_label",
@@ -176,9 +176,9 @@ static int init_vcdimager(void * data)
   vcdimager_t * vcdimager;
   vcdimager = (vcdimager_t*)data;
 #if 0
-  if(!bg_search_file_exec("cdrdao", (char**)0) ||
-     !bg_search_file_exec("vcdxgen", (char**)0) ||
-     !bg_search_file_exec("vcdxbuild", (char**)0))
+  if(!bg_search_file_exec("cdrdao", NULL) ||
+     !bg_search_file_exec("vcdxgen", NULL) ||
+     !bg_search_file_exec("vcdxbuild", NULL))
     return 0;
 #endif
   free_tracks(vcdimager);
@@ -193,7 +193,7 @@ static void add_track_vcdimager(void * data, const char * filename,
   vcdimager = (vcdimager_t*)data;
   vcdimager->files = realloc(vcdimager->files,
                              sizeof(*(vcdimager->files)) * (vcdimager->num_files+1));
-  vcdimager->files[vcdimager->num_files].name = bg_strdup((char*)0, filename);
+  vcdimager->files[vcdimager->num_files].name = bg_strdup(NULL, filename);
   vcdimager->files[vcdimager->num_files].pp_only = pp_only;
   vcdimager->num_files++;
   }
@@ -276,13 +276,13 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   vcdimager_t * vcdimager;
   bg_subprocess_t * proc;
   char * str;
-  char * commandline = (char*)0;
+  char * commandline = NULL;
   int i;
-  char * line = (char*)0;
+  char * line = NULL;
   int line_alloc = 0;
-  char * bin_file = (char*)0;
-  char * cue_file = (char*)0;
-  char * xml_file = (char*)0;
+  char * bin_file = NULL;
+  char * cue_file = NULL;
+  char * xml_file = NULL;
   vcdimager = (vcdimager_t*)data;
   
   /* Build vcdxgen commandline */
@@ -312,7 +312,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   
   proc = bg_subprocess_create(commandline, 0, 0, 1);
   free(commandline);
-  commandline = (char*)0;
+  commandline = NULL;
   
   while(bg_subprocess_read_line(proc->stderr_fd, &line, &line_alloc, -1))
     {

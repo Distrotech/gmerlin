@@ -80,8 +80,8 @@ static void do_peak(bg_player_t * p, gavl_audio_frame_t * frame)
                             frame);
 
   gavl_peak_detector_get_peaks(s->peak_detector,
-                               (double*)0,
-                               (double*)0,
+                               NULL,
+                               NULL,
                                peak);
   
   /* Collect channels and merge into 2 */

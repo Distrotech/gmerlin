@@ -56,19 +56,19 @@ bg_player_t * player;
 bg_plugin_registry_t * plugin_reg;
 bg_cfg_registry_t * cfg_reg;
 
-bg_plugin_handle_t * input_handle = (bg_plugin_handle_t*)0;
+bg_plugin_handle_t * input_handle = NULL;
 int display_time = 1;
 
-bg_plugin_handle_t * oa_handle = (bg_plugin_handle_t*)0;
-bg_plugin_handle_t * ov_handle = (bg_plugin_handle_t*)0;
+bg_plugin_handle_t * oa_handle = NULL;
+bg_plugin_handle_t * ov_handle = NULL;
 
-char ** gmls = (char **)0;
+char ** gmls = NULL;
 int gml_index = 0;
 
 /* Sections from the plugin registry */
-bg_cfg_section_t * oa_section = (bg_cfg_section_t*)0;
-bg_cfg_section_t * ov_section = (bg_cfg_section_t*)0;
-bg_cfg_section_t * i_section = (bg_cfg_section_t*)0;
+bg_cfg_section_t * oa_section = NULL;
+bg_cfg_section_t * ov_section = NULL;
+bg_cfg_section_t * i_section = NULL;
 
 /* Sections from the player */
 bg_cfg_section_t * audio_section;
@@ -76,10 +76,10 @@ bg_cfg_section_t * video_section;
 bg_cfg_section_t * osd_section;
 bg_cfg_section_t * input_section;
 
-char * input_plugin_name = (char*)0;
+char * input_plugin_name = NULL;
 
-const bg_plugin_info_t * ov_info = (const bg_plugin_info_t*)0;
-char * window_id = (char*)0;
+const bg_plugin_info_t * ov_info = NULL;
+char * window_id = NULL;
 
 /* Set up by registry */
 static bg_parameter_info_t oa_parameters[] =
@@ -129,7 +129,7 @@ const bg_parameter_info_t * video_parameters;
 const bg_parameter_info_t * input_parameters;
 
 
-char * track_spec = (char*)0;
+char * track_spec = NULL;
 char * track_spec_ptr;
 
 /*
@@ -167,7 +167,7 @@ static void opt_oa(void * data, int * argc, char *** _argv, int arg)
   
   if(!bg_cmdline_apply_options(oa_section,
                                set_oa_parameter,
-                               (void*)0,
+                               NULL,
                                oa_parameters,
                                (*_argv)[arg]))
     exit(-1);
@@ -212,7 +212,7 @@ static void opt_ov(void * data, int * argc, char *** _argv, int arg)
     }
   if(!bg_cmdline_apply_options(ov_section,
                                set_ov_parameter,
-                               (void*)0,
+                               NULL,
                                ov_parameters,
                                (*_argv)[arg]))
     exit(-1);
@@ -236,7 +236,7 @@ static void opt_i(void * data, int * argc, char *** _argv, int arg)
   
   if(!bg_cmdline_apply_options(i_section,
                                set_i_parameter,
-                               (void*)0,
+                               NULL,
                                i_parameters,
                                (*_argv)[arg]))
     exit(-1);
@@ -334,7 +334,7 @@ static void opt_vol(void * data, int * argc, char *** _argv, int arg)
     fprintf(stderr, "Option -vol requires an argument\n");
     exit(-1);
     }
-  bg_player_set_volume(player, strtod((*_argv[arg]), (char**)0));
+  bg_player_set_volume(player, strtod((*_argv[arg]), NULL));
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -513,7 +513,7 @@ static int set_track_from_spec()
 static int play_track(bg_player_t * player, const char * gml,
                       const char * plugin_name)
   {
-  const bg_plugin_info_t * info = (const bg_plugin_info_t *)0;
+  const bg_plugin_info_t * info = NULL;
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
 
@@ -535,11 +535,11 @@ static int play_track(bg_player_t * player, const char * gml,
     if(input_handle)
       {
       bg_plugin_unref(input_handle);
-      input_handle = (bg_plugin_handle_t*)0;
+      input_handle = NULL;
       }
     if(!bg_input_plugin_load(plugin_reg, gml, info,
                              &input_handle,
-                             (bg_input_callbacks_t*)0, 0))
+                             NULL, 0))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s", gml);
       return 0;
@@ -595,15 +595,15 @@ static int play_track(bg_player_t * player, const char * gml,
     
   if(track_info->url)
     {
-    redir_url    = bg_strdup((char*)0, track_info->url);
-    redir_plugin = bg_strdup((char*)0, input_handle->info->name);
+    redir_url    = bg_strdup(NULL, track_info->url);
+    redir_plugin = bg_strdup(NULL, input_handle->info->name);
 
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got redirector %s (%d/%d)",
             redir_url, current_track+1, num_tracks);
 
     
     bg_plugin_unref(input_handle);
-    input_handle = (bg_plugin_handle_t*)0;
+    input_handle = NULL;
     
     result = play_track(player, redir_url, redir_plugin);
     free(redir_url);

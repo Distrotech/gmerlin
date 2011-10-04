@@ -111,14 +111,14 @@ static server_connection_t * add_connection(bg_remote_server_t * s,
                                             int fd)
   {
   int len;
-  char ** strings = (char **)0;
+  char ** strings = NULL;
   
-  char * welcome_msg = (char *)0;
+  char * welcome_msg = NULL;
 
-  char * buffer = (char *)0;
+  char * buffer = NULL;
   int buffer_alloc = 0;
 
-  server_connection_t * ret = (server_connection_t *)0;
+  server_connection_t * ret = NULL;
   
   if(!bg_socket_read_line(fd, &buffer,
                           &buffer_alloc, 1))
@@ -228,7 +228,7 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
   check_connections(s);
 
   if(!s->connections)
-    return (bg_msg_t *)0;
+    return NULL;
 
   conn = s->connections;
     
@@ -257,7 +257,7 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
       conn = conn->next;
     }
   
-  return (bg_msg_t *)0;
+  return NULL;
   }
 
 void bg_remote_server_wait_close(bg_remote_server_t * s)
@@ -388,9 +388,9 @@ int bg_remote_client_init(bg_remote_client_t * c,
                           int milliseconds)
   {
   int ret = 0;
-  char ** strings = (char**)0;
+  char ** strings = NULL;
   int buffer_alloc = 0;
-  char * buffer = (char*)0;
+  char * buffer = NULL;
   int len;
   
   char * answer_message;
@@ -467,6 +467,6 @@ int bg_remote_client_done_msg_write(bg_remote_client_t * c)
 
 bg_msg_t * bg_remote_client_get_msg_read(bg_remote_client_t * c)
   {
-  return (bg_msg_t*)0;
+  return NULL;
   }
 

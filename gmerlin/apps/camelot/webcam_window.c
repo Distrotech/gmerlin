@@ -156,7 +156,7 @@ static void set_monitor_plugin(const bg_plugin_info_t * info, void *  data)
         bg_plugin_registry_load_image(w->plugin_reg,
                                       icon_path,
                                       &icon_format,
-                                      (bg_metadata_t*)0);
+                                      NULL);
        }
     p->set_window_options(h->priv, WINDOW_NAME, WINDOW_CLASS, 
                           icon, &icon_format);
@@ -510,7 +510,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create output file stuff */
 
   ret->output_dir = bg_gtk_file_entry_create(1, filename_changed_callback, ret,
-                                             (char*)0, (char*)0);
+                                             NULL, NULL);
   ret->output_filename_base = gtk_entry_new();
   g_signal_connect(ret->output_filename_base, "changed", G_CALLBACK(button_callback),
                    ret);

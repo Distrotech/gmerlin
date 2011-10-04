@@ -92,7 +92,7 @@ GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
   return ret;
   }
 
-static GdkPixbuf * window_pixbuf = (GdkPixbuf*)0;
+static GdkPixbuf * window_pixbuf = NULL;
 
 static char * default_window_name = NULL;
 static char * default_window_class = NULL;
@@ -163,7 +163,7 @@ void bg_gdk_pixbuf_render_pixmap_and_mask(GdkPixbuf *pixbuf,
     mask_data = malloc(width * height);
     memset(mask_data, 0xff, width * height);
     
-    *mask_return = gdk_bitmap_create_from_data((GdkDrawable*)0,
+    *mask_return = gdk_bitmap_create_from_data(NULL,
                                                mask_data, width, height);
 
     free(mask_data);
@@ -311,12 +311,12 @@ char * bg_gtk_convert_font_name_from_pango(const char * name)
   while(!isspace(*pos))
     {
     if(pos == name)
-      return (char*)0;
+      return NULL;
     pos--;
     }
   pos++;
   if(isdigit(*pos) || (*pos == '.'))
-    size = strtod(pos, (char**)0);
+    size = strtod(pos, NULL);
   else
     size = 12.0;
   
@@ -341,7 +341,7 @@ char * bg_gtk_convert_font_name_to_pango(const char * name)
   description = pango_fc_font_description_from_pattern(pattern, TRUE);
 
   tmp = pango_font_description_to_string(description);
-  ret = bg_strdup((char*)0, tmp);
+  ret = bg_strdup(NULL, tmp);
   g_free(tmp);
   FcPatternDestroy(pattern);
   pango_font_description_free(description);
@@ -357,7 +357,7 @@ static int show_tooltips = 1;
 
 
 #if GTK_MINOR_VERSION < 12
-static GtkTooltips * tooltips = (GtkTooltips *)0;
+static GtkTooltips * tooltips = NULL;
 
 void bg_gtk_tooltips_set_tip(GtkWidget * w, const char * str,
                              const char * translation_domain)
@@ -440,7 +440,7 @@ void bg_gtk_tooltips_set_tip(GtkWidget * w, const char * str,
   g_object_set_property(G_OBJECT(w), "has-tooltip", &val);
   g_signal_connect(G_OBJECT(w), "query-tooltip",
                    G_CALLBACK(tooltip_callback),
-                   (gpointer)0);
+                   NULL);
   }
 
 void bg_gtk_set_tooltips(int enable)
@@ -462,11 +462,11 @@ GtkWidget * bg_gtk_get_toplevel(GtkWidget * w)
   GtkWidget * toplevel;
 
   if(!w)
-    return (GtkWidget*)0;
+    return NULL;
   
   toplevel = gtk_widget_get_toplevel(w);
   if(!bg_gtk_widget_is_toplevel(toplevel))
-    toplevel = (GtkWidget*)0;
+    toplevel = NULL;
   return toplevel;
   }
 

@@ -71,7 +71,7 @@ static void create_sections(bg_transcoder_track_t * t,
     {
     bg_cfg_section_get_parameter(t->general_section,
                                  &t->general_parameters[i],
-                                 (bg_parameter_value_t*)0);
+                                 NULL);
     i++;
     }
   
@@ -281,12 +281,12 @@ static const bg_parameter_info_t general_parameters_subtitle_text[] =
                                         "transcode",
                                         "transcode_overlay",
                                         "blend",
-                                        (char*)0 },
+                                        NULL },
       .multi_labels = (char const *[]){ TRS("Forget"),
                                         TRS("Transcode as text"),
                                         TRS("Transcode as overlay"),
                                         TRS("Blend onto video"),
-                                        (char*)0 },
+                                        NULL },
       .help_string = TRS("Select action for this subtitle stream.")
     },
     {
@@ -335,11 +335,11 @@ static const bg_parameter_info_t general_parameters_subtitle_overlay[] =
       .multi_names =  (char const *[]){ "forget",
                                         "transcode",
                                         "blend",
-                                        (char*)0 },
+                                        NULL },
       .multi_labels = (char const *[]){ TRS("Forget"),
                                         TRS("Transcode"),
                                         TRS("Blend onto video"),
-                                        (char*)0 },
+                                        NULL },
       .val_default = { .val_str = "forget" },
     },
     {
@@ -519,7 +519,7 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
     }
 
   if(!track->metadata_parameters)
-    track->metadata_parameters = bg_metadata_get_parameters((bg_metadata_t*)0);
+    track->metadata_parameters = bg_metadata_get_parameters(NULL);
   
   create_subtitle_parameters(track);
 
@@ -531,11 +531,11 @@ static char * create_stream_label(const char * info, const char * language)
   if(language && *language && info)
     return bg_sprintf("%s [%s]", info, bg_get_language_name(language));
   else if(language && *language)
-    return bg_strdup((char*)0, bg_get_language_name(language));
+    return bg_strdup(NULL, bg_get_language_name(language));
   else if(info)
-    return bg_strdup((char*)0, info);
+    return bg_strdup(NULL, info);
   else
-    return (char*)0;
+    return NULL;
   }
 
 static void set_track(bg_transcoder_track_t * track,
@@ -562,7 +562,7 @@ static void set_track(bg_transcoder_track_t * track,
     if(!strcmp(track->general_parameters[i].name, "name"))
       {
       if(track_info->name)
-        track->general_parameters[i].val_default.val_str = bg_strdup((char*)0,
+        track->general_parameters[i].val_default.val_str = bg_strdup(NULL,
                                                                      track_info->name);
       else
         track->general_parameters[i].val_default.val_str =
@@ -574,34 +574,34 @@ static void set_track(bg_transcoder_track_t * track,
       {
       if(encoder_info->audio_info)
         track->general_parameters[i].val_default.val_str =
-          bg_strdup((char*)0, encoder_info->audio_info->name);
+          bg_strdup(NULL, encoder_info->audio_info->name);
       else
         track->general_parameters[i].val_default.val_str =
-          bg_strdup((char*)0, encoder_info->video_info->name);
+          bg_strdup(NULL, encoder_info->video_info->name);
       }
     else if(!strcmp(track->general_parameters[i].name, "subtitle_text_encoder"))
       {
       if(encoder_info->subtitle_text_info)
         track->general_parameters[i].val_default.val_str =
-          bg_strdup((char*)0, encoder_info->subtitle_text_info->name);
+          bg_strdup(NULL, encoder_info->subtitle_text_info->name);
       else
         track->general_parameters[i].val_default.val_str =
-          bg_strdup((char*)0, encoder_info->video_info->name);
+          bg_strdup(NULL, encoder_info->video_info->name);
       }
     else if(!strcmp(track->general_parameters[i].name, "subtitle_overlay_encoder"))
       {
       if(encoder_info->subtitle_overlay_info)
         track->general_parameters[i].val_default.val_str =
-          bg_strdup((char*)0, encoder_info->subtitle_overlay_info->name);
+          bg_strdup(NULL, encoder_info->subtitle_overlay_info->name);
       else
         track->general_parameters[i].val_default.val_str =
-          bg_strdup((char*)0, encoder_info->video_info->name);
+          bg_strdup(NULL, encoder_info->video_info->name);
       }
 
     
     else if(!strcmp(track->general_parameters[i].name, "video_encoder"))
       track->general_parameters[i].val_default.val_str =
-        bg_strdup((char*)0, encoder_info->video_info->name);
+        bg_strdup(NULL, encoder_info->video_info->name);
 #endif
     
     else if(!strcmp(track->general_parameters[i].name, "duration"))
@@ -618,10 +618,10 @@ static void set_track(bg_transcoder_track_t * track,
       track->general_parameters[i].val_default.val_i = track_info->flags;
       }
     else if(!strcmp(track->general_parameters[i].name, "location"))
-      track->general_parameters[i].val_default.val_str = bg_strdup((char*)0, location);
+      track->general_parameters[i].val_default.val_str = bg_strdup(NULL, location);
 
     else if(!strcmp(track->general_parameters[i].name, "plugin"))
-      track->general_parameters[i].val_default.val_str = bg_strdup((char*)0, input_plugin->info->name);
+      track->general_parameters[i].val_default.val_str = bg_strdup(NULL, input_plugin->info->name);
 
     else if(!strcmp(track->general_parameters[i].name, "track"))
       track->general_parameters[i].val_default.val_i = track_index;
@@ -807,13 +807,13 @@ bg_transcoder_track_create(const char * url,
   {
   int i;
 
-  bg_transcoder_track_t * ret = (bg_transcoder_track_t *)0;
-  bg_transcoder_track_t * new_track = (bg_transcoder_track_t *)0;
-  bg_transcoder_track_t * end_track = (bg_transcoder_track_t *)0;
+  bg_transcoder_track_t * ret = NULL;
+  bg_transcoder_track_t * new_track = NULL;
+  bg_transcoder_track_t * end_track = NULL;
   
   bg_input_plugin_t      * input;
   bg_track_info_t        * track_info;
-  bg_plugin_handle_t     * plugin_handle = (bg_plugin_handle_t*)0;
+  bg_plugin_handle_t     * plugin_handle = NULL;
   int num_tracks;
   int streams_enabled = 0;
   int prefer_edl;
@@ -825,10 +825,10 @@ bg_transcoder_track_create(const char * url,
   bg_cfg_section_get_parameter_int(track_defaults_section, "prefer_edl", &prefer_edl);
   
   if(!bg_input_plugin_load(plugin_reg, url,
-                           input_info, &plugin_handle, (bg_input_callbacks_t*)0, prefer_edl))
+                           input_info, &plugin_handle, NULL, prefer_edl))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", url);
-    return (bg_transcoder_track_t*)0;
+    return NULL;
     }
   if(plugin_handle->edl)
     bg_cfg_section_set_parameter_int(track_defaults_section, "prefer_edl", 1);
@@ -943,10 +943,9 @@ static bg_transcoder_track_t * remove_redirectors(bg_transcoder_track_t * entrie
                                                   bg_cfg_section_t * encoder_section)
   {
   bg_transcoder_track_t * before, * e;
-  //  bg_album_entry_t * ret_end = (bg_album_entry_t*)0;
   bg_transcoder_track_t * new_entry, * end_entry;
   int done = 0;
-  const char * plugin_name = (const char*)0;
+  const char * plugin_name = NULL;
   const bg_plugin_info_t * info;
   
   done = 1;
@@ -962,7 +961,7 @@ static bg_transcoder_track_t * remove_redirectors(bg_transcoder_track_t * entrie
       if(plugin_name)
         info = bg_plugin_find_by_name(plugin_reg, plugin_name);
       else
-        info = (const bg_plugin_info_t*)0;
+        info = NULL;
 
       /* Load "real" url */
       
@@ -970,7 +969,7 @@ static bg_transcoder_track_t * remove_redirectors(bg_transcoder_track_t * entrie
                                              info,
                                              -1, plugin_reg,
                                              track_defaults_section, encoder_section,
-                                             (char*)0);
+                                             NULL);
       
       if(new_entry)
         {
@@ -1008,7 +1007,7 @@ static bg_transcoder_track_t * remove_redirectors(bg_transcoder_track_t * entrie
         else
           {
           entries = e->next;
-          before = (bg_transcoder_track_t*)0;
+          before = NULL;
           }
         bg_transcoder_track_destroy(e);
         e = (before) ? before->next : entries;
@@ -1032,13 +1031,13 @@ bg_transcoder_track_create_from_urilist(const char * list,
   {
   int i;
   char ** uri_list;
-  bg_transcoder_track_t * ret_last = (bg_transcoder_track_t*)0;
-  bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
+  bg_transcoder_track_t * ret_last = NULL;
+  bg_transcoder_track_t * ret = NULL;
   
   uri_list = bg_urilist_decode(list, len);
 
   if(!uri_list)
-    return (bg_transcoder_track_t*)0;
+    return NULL;
 
   i = 0;
 
@@ -1047,10 +1046,10 @@ bg_transcoder_track_create_from_urilist(const char * list,
     if(!ret)
       {
       ret = bg_transcoder_track_create(uri_list[i],
-                                       (const bg_plugin_info_t*)0,
+                                       NULL,
                                        -1,
                                        plugin_reg,
-                                       track_defaults_section, encoder_section, (char*)0);
+                                       track_defaults_section, encoder_section, NULL);
       if(ret)
         {
         ret_last = ret;
@@ -1061,11 +1060,11 @@ bg_transcoder_track_create_from_urilist(const char * list,
     else
       {
       ret_last->next = bg_transcoder_track_create(uri_list[i],
-                                                  (const bg_plugin_info_t*)0,
+                                                  NULL,
                                                   -1,
                                                   plugin_reg,
                                                   track_defaults_section, encoder_section,
-                                                  (char*)0);
+                                                  NULL);
       if(ret)
         {
         while(ret_last->next)
@@ -1091,8 +1090,8 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
                                              bg_cfg_section_t * encoder_section)
   {
   bg_album_entry_t * new_entries, *entry;
-  bg_transcoder_track_t * ret_last = (bg_transcoder_track_t*)0;
-  bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
+  bg_transcoder_track_t * ret_last =NULL;
+  bg_transcoder_track_t * ret =NULL;
   const bg_plugin_info_t * plugin_info;
 
   new_entries = bg_album_entries_new_from_xml(xml_string);
@@ -1104,7 +1103,7 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
     if(entry->plugin)
       plugin_info = bg_plugin_find_by_name(plugin_reg, entry->plugin);
     else
-      plugin_info = (const bg_plugin_info_t*)0;
+      plugin_info = NULL;
     if(!ret)
       {
         
@@ -1318,10 +1317,10 @@ static const bg_parameter_info_t general_parameters_video[] =
       .name =        "action",
       .long_name =   TRS("Action"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char const *[]){ "transcode", "copy", "forget", (char*)0 },
+      .multi_names = (char const *[]){ "transcode", "copy", "forget", NULL },
       .multi_labels =  (char const *[]){ TRS("Transcode"),
                                          TRS("Copy (if possible)"),
-                                         TRS("Forget"), (char*)0 },
+                                         TRS("Forget"), NULL },
       .val_default = { .val_str = "transcode" },
       .help_string = TRS("Choose the desired action for the stream. If copying is not possible, the stream will be transcoded"),
 
@@ -1348,10 +1347,10 @@ static const bg_parameter_info_t general_parameters_audio[] =
       .long_name =   TRS("Action"),
       .type =        BG_PARAMETER_STRINGLIST,
 
-      .multi_names = (char const *[]){ "transcode", "copy", "forget", (char*)0 },
+      .multi_names = (char const *[]){ "transcode", "copy", "forget", NULL },
       .multi_labels =  (char const *[]){ TRS("Transcode"),
                                          TRS("Copy (if possible)"),
-                                         TRS("Forget"), (char*)0 },
+                                         TRS("Forget"), NULL },
       .val_default = { .val_str = "transcode" },
       .help_string = TRS("Choose the desired action for the stream. If copying is not possible, the stream will be transcoded"),
     },
@@ -1593,7 +1592,7 @@ bg_transcoder_track_global_from_reg(bg_transcoder_track_global_t * g,
   if(bg_plugin_registry_get_encode_pp(plugin_reg))
     {
     plugin_info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_PP, BG_PLUGIN_PP);
-    g->pp_plugin = bg_strdup((char*)0, plugin_info->name);
+    g->pp_plugin = bg_strdup(NULL, plugin_info->name);
     plugin_section = bg_plugin_registry_get_section(plugin_reg, plugin_info->name);
     g->pp_section = bg_cfg_section_copy(plugin_section);
     }
@@ -1605,12 +1604,12 @@ bg_transcoder_track_global_free(bg_transcoder_track_global_t * g)
   if(g->pp_plugin)
     {
     free(g->pp_plugin);
-    g->pp_plugin = (char*)0;
+    g->pp_plugin = NULL;
     }
   if(g->pp_section)
     {
     bg_cfg_section_destroy(g->pp_section);
-    g->pp_section = (bg_cfg_section_t*)0;
+    g->pp_section = NULL;
     }
 
   }
@@ -1623,10 +1622,8 @@ bg_transcoder_track_t *
 bg_transcoder_tracks_delete_selected(bg_transcoder_track_t * t)
   {
   bg_transcoder_track_t * track, *tmp_track;
-  bg_transcoder_track_t * new_tracks =
-    (bg_transcoder_track_t*)0;
-  bg_transcoder_track_t * end_track =
-    (bg_transcoder_track_t*)0;
+  bg_transcoder_track_t * new_tracks = NULL;
+  bg_transcoder_track_t * end_track = NULL;
 
   track = t;
   
@@ -1653,7 +1650,7 @@ bg_transcoder_tracks_delete_selected(bg_transcoder_track_t * t)
         end_track = end_track->next;
         }
       track = track->next;
-      end_track->next = (bg_transcoder_track_t*)0;
+      end_track->next = NULL;
       }
     }
   return new_tracks;
@@ -1683,11 +1680,11 @@ bg_transcoder_tracks_extract_selected(bg_transcoder_track_t ** t)
   {
     bg_transcoder_track_t * track;
   
-  bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
-  bg_transcoder_track_t * ret_end = (bg_transcoder_track_t*)0;
+  bg_transcoder_track_t * ret = NULL;
+  bg_transcoder_track_t * ret_end = NULL;
 
-  bg_transcoder_track_t * new_tracks  = (bg_transcoder_track_t*)0;
-  bg_transcoder_track_t * new_tracks_end = (bg_transcoder_track_t*)0;
+  bg_transcoder_track_t * new_tracks  = NULL;
+  bg_transcoder_track_t * new_tracks_end = NULL;
 
   track = *t;
   
@@ -1725,9 +1722,9 @@ bg_transcoder_tracks_extract_selected(bg_transcoder_track_t ** t)
   /* Zero terminate */
 
   if(ret_end)
-    ret_end->next = (bg_transcoder_track_t*)0;
+    ret_end->next = NULL;
   if(new_tracks_end)  
-    new_tracks_end->next = (bg_transcoder_track_t*)0;
+    new_tracks_end->next = NULL;
   *t = new_tracks;
   return ret;
   }

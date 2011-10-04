@@ -245,7 +245,7 @@ static void print_help(const bg_cmdline_arg_t* args, bg_help_format_t format)
           print_italic(out, args[i].help_arg, format);
           }
         fprintf(out, "\n");
-        dump_string_term(out, args[i].help_string, 0, (const char*)0, format);
+        dump_string_term(out, args[i].help_string, 0, NULL, format);
     
         break;
       case BG_HELP_FORMAT_TEXI:
@@ -265,7 +265,7 @@ static void print_help(const bg_cmdline_arg_t* args, bg_help_format_t format)
           print_italic(out, args[i].help_arg, format);
         fprintf(out, "\n");
         fprintf(out, ".RS 2\n");
-        dump_string_term(out, args[i].help_string, 0, (const char*)0, format);
+        dump_string_term(out, args[i].help_string, 0, NULL, format);
         fprintf(out, ".RE\n");
 
         break;
@@ -342,7 +342,7 @@ void bg_cmdline_print_help(char * argv0, bg_help_format_t format)
           print_bold(stdout, app_data->env[i].name, format);
           printf("\n");
           dump_string_term(stdout, app_data->env[i].desc,
-                           0, (const char*)0, format);
+                           0, NULL, format);
           i++;
           print_linebreak(stdout, format);
           }
@@ -356,7 +356,7 @@ void bg_cmdline_print_help(char * argv0, bg_help_format_t format)
           print_bold(stdout, app_data->files[i].name, format);
           printf("\n");
           dump_string_term(stdout, app_data->files[i].desc,
-                           0, (const char*)0, format);
+                           0, NULL, format);
           print_linebreak(stdout, format);
           i++;
           }
@@ -421,7 +421,7 @@ void bg_cmdline_print_help(char * argv0, bg_help_format_t format)
           printf("\n");
           printf(".RS 2\n");
           dump_string_term(stdout, app_data->env[i].desc,
-                           0, (const char*)0, format);
+                           0, NULL, format);
           printf(".RE\n");
           i++;
           }
@@ -436,7 +436,7 @@ void bg_cmdline_print_help(char * argv0, bg_help_format_t format)
           printf("\n");
           printf(".RS 2\n");
           dump_string_term(stdout, app_data->files[i].desc,
-                           0, (const char*)0, format);
+                           0, NULL, format);
           printf(".RE\n");
           print_linebreak(stdout, format);
           i++;
@@ -622,7 +622,7 @@ char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
     }
 
   if(!num_locations)
-    return (char**)0;
+    return NULL;
   
   /* Allocate return value */
 
@@ -684,7 +684,7 @@ static void print_help_parameters(int indent,
   char time_string[GAVL_TIME_STRING_LEN];
   char * tmp_string;
 
-  const char * translation_domain = (const char *)0;
+  const char * translation_domain = NULL;
 
   indent += 2;
   if(format == BG_HELP_FORMAT_MAN)

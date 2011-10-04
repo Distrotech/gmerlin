@@ -121,7 +121,7 @@ int bg_cfg_registry_has_section(bg_cfg_registry_t * r, const char * name);
  *  See the libxml2 documentation for more infos
  */
 
-void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section);
+void bg_cfg_section_2_xml(const bg_cfg_section_t * section, xmlNodePtr xml_section);
 
 /** \ingroup cfg_section
  *  \brief Convert libxml2 node into a configuration section

@@ -34,10 +34,10 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "visualization"
 
-static bg_visualizer_t * visualizer = (bg_visualizer_t*)0;
+static bg_visualizer_t * visualizer = NULL;
 
-static bg_cfg_section_t * vis_section = (bg_cfg_section_t*)0;
-static bg_parameter_info_t const * vis_parameters = (bg_parameter_info_t*)0;
+static bg_cfg_section_t * vis_section = NULL;
+static bg_parameter_info_t const * vis_parameters = NULL;
 
 
 static void opt_visualizer(void * data, int * argc,

@@ -94,8 +94,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =  TRS("Horizontal justify"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "center" },
-      .multi_names =  (char const *[]){ "center", "left", "right", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
+      .multi_names =  (char const *[]){ "center", "left", "right", NULL },
+      .multi_labels = (char const *[]){ TRS("Center"), TRS("Left"), TRS("Right"), NULL  },
             
     },
     {
@@ -103,8 +103,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =  TRS("Vertical justify"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "bottom" },
-      .multi_names =  (char const *[]){ "center", "top", "bottom", (char*)0  },
-      .multi_labels = (char const *[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), (char*)0 },
+      .multi_names =  (char const *[]){ "center", "top", "bottom",NULL  },
+      .multi_labels = (char const *[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), NULL },
     },
     {
       .name =        "cache_size",
@@ -184,8 +184,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =  TRS("Default Colorspace"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default =  { .val_str = "yuv" },
-      .multi_names =  (char const *[]){ "yuv", "rgb", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("YCrCb"), TRS("RGB"), (char*)0 },
+      .multi_names =  (char const *[]){ "yuv", "rgb", NULL },
+      .multi_labels = (char const *[]){ TRS("YCrCb"), TRS("RGB"), NULL },
     },
     {
       .name =       "default_framerate",
@@ -916,12 +916,12 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
   /* Load the glyph */
   if(FT_Load_Char(r->face, unicode, FT_LOAD_DEFAULT))
     {
-    return (cache_entry_t*)0;
+    return NULL;
     }
   /* extract glyph image */
   if(FT_Get_Glyph(r->face->glyph, &entry->glyph))
     {
-    return (cache_entry_t*)0;
+    return NULL;
     }
 #ifdef FT_STROKER_H
   /* Stroke glyph */
@@ -933,8 +933,8 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
   /* Render glyph */
   if(FT_Glyph_To_Bitmap( &entry->glyph,
                          FT_RENDER_MODE_NORMAL,
-                         (FT_Vector*)0, 1 ))
-    return (cache_entry_t*)0;
+                         NULL, 1 ))
+    return NULL;
 
   entry->advance_x = r->face->glyph->advance.x >> 6;
   // entry->advance_y = r->face->glyph->metrics.vertAdvance >> 6;
@@ -944,8 +944,8 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
 #ifdef FT_STROKER_H
   if(FT_Glyph_To_Bitmap( &entry->glyph_stroke,
                          FT_RENDER_MODE_NORMAL,
-                         (FT_Vector*)0, 1 ))
-    return (cache_entry_t*)0;
+                         NULL, 1 ))
+    return NULL;
 #endif
 
   /* Get bounding box and advances */
@@ -995,7 +995,7 @@ static void unload_font(bg_text_renderer_t * r)
 
   clear_glyph_cache(r);
   FT_Done_Face(r->face);
-  r->face = (FT_Face)0;
+  r->face = NULL;
   r->font_loaded = 0;
   }
 
@@ -1006,8 +1006,8 @@ static int load_font(bg_text_renderer_t * r)
   int err;
   FT_Matrix matrix;
 
-  FcPattern *fc_pattern = (FcPattern *)0;
-  FcPattern *fc_pattern_1 = (FcPattern *)0;
+  FcPattern *fc_pattern = NULL;
+  FcPattern *fc_pattern_1 = NULL;
   FcChar8 *filename;
   FcBool scalable;
   float sar, font_size_scaled;
@@ -1030,7 +1030,7 @@ static int load_font(bg_text_renderer_t * r)
     
     //  FcPatternPrint(fc_pattern);
     
-    fc_pattern_1 = FcFontMatch((FcConfig*)0, fc_pattern, 0);
+    fc_pattern_1 = FcFontMatch(NULL, fc_pattern, 0);
     
     //  FcPatternPrint(fc_pattern);
     
@@ -1116,7 +1116,7 @@ static int load_font(bg_text_renderer_t * r)
 
   FT_Set_Transform(r->face,
                    &matrix,
-                   (FT_Vector*)0);
+                   NULL);
   
   clear_glyph_cache(r);
   r->font_loaded = 1;
@@ -1131,7 +1131,7 @@ bg_text_renderer_t * bg_text_renderer_create()
 #else
   ret->cnv = bg_charset_converter_create("UTF-8", "UCS-4BE");
 #endif
-  pthread_mutex_init(&ret->config_mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->config_mutex,NULL);
   /* Initialize freetype */
   FT_Init_FreeType(&ret->library);
 
@@ -1661,8 +1661,8 @@ static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
 void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
                              gavl_overlay_t * ovl)
   {
-  cache_entry_t ** glyphs = (cache_entry_t **)0;
-  uint32_t * string_unicode = (uint32_t *)0;
+  cache_entry_t ** glyphs = NULL;
+  uint32_t * string_unicode = NULL;
   int len, i;
   int pos_x, pos_y;
   int line_start, line_end;

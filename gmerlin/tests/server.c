@@ -72,19 +72,19 @@ static connection_t * remove_connection(connection_t * list, connection_t * c)
 
 int main(int argc, char ** argv)
   {
-  connection_t * connections = (connection_t *)0;
+  connection_t * connections = NULL;
   connection_t * con_ptr;
   connection_t * con_tmp;
   int new_fd;
   int i;
-  struct pollfd * pollfds = (struct pollfd *)0;
+  struct pollfd * pollfds = NULL;
   int num_pollfds = 0;
   int num_connections = 0;
   int unix_socket;
   int tcp_socket;
   int result;
 
-  char * buffer = (char *)0;
+  char * buffer = NULL;
   int buffer_size = 0;
   int keep_going = 1;
   

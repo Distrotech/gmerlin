@@ -135,7 +135,7 @@ static const bg_parameter_info_t parameters[] =
         "bw",
         "tech1",
         "tech2",
-        (char*)0
+        NULL
       },
       .multi_labels =
       (char const *[])
@@ -143,7 +143,7 @@ static const bg_parameter_info_t parameters[] =
         "B/W",
         "Technicolor 2-Stripe",
         "Technicolor 3-Stripe",
-        (char*)0
+        NULL
       },
     },
     {

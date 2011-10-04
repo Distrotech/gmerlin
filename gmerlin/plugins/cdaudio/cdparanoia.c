@@ -64,7 +64,7 @@ void * bg_cdaudio_rip_create()
 int bg_cdaudio_rip_init(void * data,
                         CdIo_t *cdio, int start_sector)
   {
-  char * msg = (char*)0;
+  char * msg = NULL;
   int paranoia_mode;
   cdparanoia_priv_t * priv;
   priv = (cdparanoia_priv_t *)data;
@@ -197,7 +197,7 @@ static const bg_parameter_info_t parameters[] =
                               "8",
                               "16",
                               "32",
-                              (char*)0 },
+                              NULL },
     },
     {
       .name =        "cdparanoia_max_retries",

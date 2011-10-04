@@ -30,7 +30,7 @@
 static char * get_dB(float val)
   {
   if(val == 0.0)
-    return bg_strdup((char*)0, TR("Zero"));
+    return bg_strdup(NULL, TR("Zero"));
   else
     return bg_sprintf("%02f dB", val);
   }
@@ -38,7 +38,7 @@ static char * get_dB(float val)
 char * bg_audio_format_to_string(gavl_audio_format_t * f, int use_tabs)
   {
   const char * format;
-  char * channel_order = (char*)0;
+  char * channel_order = NULL;
   
   char * center_level;
   char * rear_level;

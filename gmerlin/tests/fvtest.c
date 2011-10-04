@@ -32,8 +32,8 @@
 bg_video_filter_chain_t * fc;
 
 const bg_parameter_info_t * fv_parameters;
-bg_cfg_section_t * fv_section = (bg_cfg_section_t*)0;
-bg_cfg_section_t * opt_section = (bg_cfg_section_t*)0;
+bg_cfg_section_t * fv_section = NULL;
+bg_cfg_section_t * opt_section = NULL;
 
 bg_gavl_video_options_t opt;
 
@@ -201,14 +201,14 @@ int main(int argc, char ** argv)
   bg_plugin_handle_t * input_handle = NULL;
 
   /* Frames */
-  gavl_video_frame_t * frame = (gavl_video_frame_t *)0;
+  gavl_video_frame_t * frame = NULL;
   gavl_video_format_t in_format;
   gavl_video_format_t out_format;
   
   /* Filter chain */
   /* Create registries */
   
-  char ** gmls = (char **)0;
+  char ** gmls = NULL;
 
   bg_read_video_func_t read_func;
   void * read_priv;
@@ -260,9 +260,9 @@ int main(int argc, char ** argv)
   /* Load input plugin */
   if(!bg_input_plugin_load(plugin_reg,
                            gmls[0],
-                           (const bg_plugin_info_t*)0,
+                           NULL,
                            &input_handle,
-                           (bg_input_callbacks_t*)0, 0))
+                           NULL, 0))
     {
     fprintf(stderr, "Cannot open %s\n", gmls[0]);
     return -1;

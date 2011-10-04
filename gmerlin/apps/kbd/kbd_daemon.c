@@ -221,7 +221,7 @@ static kbd_daemon_t * kbd_daemon_create()
   if(!bg_remote_server_init(ret->remote))
     {
     kbd_daemon_destroy(ret);
-    return (kbd_daemon_t*)0;
+    return NULL;
     }
   grab_keys(ret);
   flush_log_queue(ret);
@@ -279,7 +279,7 @@ static void kbd_loop(kbd_daemon_t * d)
         case KBD_CMD_RELOAD:
           ungrab_keys(d);
           kbd_table_destroy(d->keys, d->num_keys);
-          d->keys = (kbd_table_t*)0;
+          d->keys = NULL;
           d->num_keys = 0;
 
           filename = bg_search_file_read("kbd", "keys.xml");

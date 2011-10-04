@@ -260,7 +260,7 @@ static int x11_window_next_event(bg_x11_window_t * w,
 
     timeout.tv_sec = milliseconds / 1000;
     timeout.tv_usec = 1000 * (milliseconds % 1000);
-    if(!select(fd+1, &read_fds, (fd_set*)0,(fd_set*)0,&timeout))
+    if(!select(fd+1, &read_fds, NULL,NULL,&timeout))
       return 0;
     else
       {
@@ -707,7 +707,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
             bg_x11_window_get_coords(w->dpy,
                                   w->normal.win,
                                   &w->window_x, &w->window_y,
-                                  (int*)0, (int*)0);
+                                  NULL, NULL);
             }
           bg_x11_window_size_changed(w);
 
@@ -1035,7 +1035,7 @@ void bg_x11_window_handle_events(bg_x11_window_t * win, int milliseconds)
       if(!x11_window_next_event(win, &evt, milliseconds))
         {
         /* Still need to hide the mouse cursor and ping the screensaver */
-        bg_x11_window_handle_event(win, (XEvent*)0);
+        bg_x11_window_handle_event(win, NULL);
         return;
         }
       bg_x11_window_handle_event(win, &evt);

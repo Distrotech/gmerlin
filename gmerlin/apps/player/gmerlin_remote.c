@@ -389,7 +389,7 @@ bg_cmdline_arg_t commands[] =
     { /* End of options */ }
   };
 
-char * host = (char *)0;
+char * host = NULL;
 int port;
 int launch = 0;
 

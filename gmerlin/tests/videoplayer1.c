@@ -64,8 +64,8 @@ int main(int argc, char ** argv)
 
   /* Frames */
   
-  gavl_video_frame_t * input_frame = (gavl_video_frame_t *)0;
-  gavl_video_frame_t * output_frame = (gavl_video_frame_t *)0;
+  gavl_video_frame_t * input_frame = NULL;
+  gavl_video_frame_t * output_frame = NULL;
 
   /* Converter */
 
@@ -90,12 +90,12 @@ int main(int argc, char ** argv)
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
   /* Load input plugin */
-  input_handle = (bg_plugin_handle_t*)0;
+  input_handle = NULL;
   if(!bg_input_plugin_load(plugin_reg,
                            argv[1],
-                           (const bg_plugin_info_t*)0,
+                           NULL,
                            &input_handle,
-                           (bg_input_callbacks_t*)0, 0))
+                           NULL, 0))
     {
     fprintf(stderr, "Cannot open %s\n", argv[1]);
     return -1;

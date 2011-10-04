@@ -174,7 +174,7 @@ int bg_pa_open(bg_pa_t * p, int record)
                         stream_name,
                         &ss,
                         &map,
-                        (const pa_buffer_attr *)0,
+                        NULL,
                         &error);
 
   free(app_name);

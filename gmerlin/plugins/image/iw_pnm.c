@@ -165,8 +165,8 @@ static const bg_parameter_info_t parameters[] =
       .name =        "format",
       .long_name =   TRS("Format"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char const *[]){ "binary", "ascii", (char*)0 },
-      .multi_labels =  (char const *[]){ TRS("Binary"), TRS("ASCII"), (char*)0 },
+      .multi_names = (char const *[]){ "binary", "ascii", NULL },
+      .multi_labels =  (char const *[]){ TRS("Binary"), TRS("ASCII"), NULL },
 
       .val_default = { .val_str = "binary" },
     },

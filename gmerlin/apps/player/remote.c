@@ -56,7 +56,7 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
     case PLAYER_COMMAND_ADD_LOCATION:
       arg_str = bg_msg_get_arg_string(msg, 0);
       locations[0] = arg_str;
-      locations[1] = (char*)0;
+      locations[1] = NULL;
       gmerlin_add_locations(g, locations);
       free(arg_str);
       
@@ -65,7 +65,7 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
     case PLAYER_COMMAND_PLAY_LOCATION:
       arg_str = bg_msg_get_arg_string(msg, 0);
       locations[0] = arg_str;
-      locations[1] = (char*)0;
+      locations[1] = NULL;
       gmerlin_play_locations(g, locations);
       free(arg_str);
       break;

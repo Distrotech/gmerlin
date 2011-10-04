@@ -51,8 +51,8 @@
 
 static void track_list_update(track_list_t * w);
 
-static GdkPixbuf * has_audio_pixbuf = (GdkPixbuf *)0;
-static GdkPixbuf * has_video_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * has_audio_pixbuf = NULL;
+static GdkPixbuf * has_video_pixbuf = NULL;
 
 #define cp_tracks_name "gmerlin_transcoder_tracks"
 
@@ -283,7 +283,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     {
     gtk_widget_set_sensitive(w->config_button, 0);
     gtk_widget_set_sensitive(w->encoder_button, 0);
-    w->selected_track = (bg_transcoder_track_t*)0;
+    w->selected_track = NULL;
     //    gtk_widget_set_sensitive(w->up_button, 0);
     //    gtk_widget_set_sensitive(w->down_button, 0);
     gtk_widget_set_sensitive(w->delete_button, 0);
@@ -346,7 +346,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     {
     gtk_widget_set_sensitive(w->config_button, 0);
     gtk_widget_set_sensitive(w->encoder_button, 0);
-    w->selected_track = (bg_transcoder_track_t*)0;
+    w->selected_track = NULL;
     //    gtk_widget_set_sensitive(w->up_button, 0);
     //    gtk_widget_set_sensitive(w->down_button, 0);
     gtk_widget_set_sensitive(w->delete_button, 0);
@@ -367,7 +367,7 @@ static void select_row_callback(GtkTreeSelection * sel,
   else
     {
     gtk_widget_set_sensitive(w->config_button, 0);
-    w->selected_track = (bg_transcoder_track_t*)0;
+    w->selected_track = NULL;
     gtk_widget_set_sensitive(w->encoder_button, 1);
     //    gtk_widget_set_sensitive(w->up_button, 1);
     //    gtk_widget_set_sensitive(w->down_button, 1);
@@ -579,7 +579,7 @@ static void clipboard_clear_func(GtkClipboard *clipboard,
   if(w->clipboard)
     {
     free(w->clipboard);
-    w->clipboard = (char*)0;
+    w->clipboard = NULL;
     }
   }
 
@@ -723,14 +723,14 @@ static void add_file_callback(char ** files, const char * plugin,
   if(plugin)
     plugin_info = bg_plugin_find_by_name(l->plugin_reg, plugin);
   else
-    plugin_info = (const bg_plugin_info_t*)0;
+    plugin_info = NULL;
   while(files[i])
     {
     
     new_track =
       bg_transcoder_track_create(files[i], plugin_info,
                                  -1, l->plugin_reg,
-                                 l->track_defaults_section, l->encoder_section, (char*)0);
+                                 l->track_defaults_section, l->encoder_section, NULL);
     add_track(l, new_track);
     track_list_update(l);
     i++;
@@ -746,7 +746,7 @@ static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
   track_list_t * t;
   t = (track_list_t*)data;
   gtk_widget_set_sensitive(t->add_file_button, 1);
-  t->filesel = (bg_gtk_filesel_t *)0;
+  t->filesel = NULL;
   }
 
 static void urlsel_close_callback(bg_gtk_urlsel_t * f , void * data)
@@ -1040,25 +1040,25 @@ static void init_menu(track_list_t * t)
   t->menu.menu = gtk_menu_new();
   
   t->menu.add_item =
-    create_item(t, t->menu.menu, TR("Add..."), (char*)0);
+    create_item(t, t->menu.menu, TR("Add..."), NULL);
   
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.add_item),
                             t->menu.add_menu.menu);
 
   t->menu.selected_item =
-    create_item(t, t->menu.menu, TR("Selected..."), (char*)0);
+    create_item(t, t->menu.menu, TR("Selected..."), NULL);
 
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.selected_item),
                             t->menu.selected_menu.menu);
 
   t->menu.edit_item =
-    create_item(t, t->menu.menu, TR("Edit..."), (char*)0);
+    create_item(t, t->menu.menu, TR("Edit..."), NULL);
 
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.edit_item),
                             t->menu.edit_menu.menu);
   
   t->menu.pp_item =
-    create_item(t, t->menu.menu, TR("Postprocess..."), (char*)0);
+    create_item(t, t->menu.menu, TR("Postprocess..."), NULL);
 
   gtk_widget_set_sensitive(t->menu.selected_menu.move_up_item, 0);
   gtk_widget_set_sensitive(t->menu.selected_menu.move_down_item, 0);
@@ -1084,10 +1084,10 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
   if(evt->button == 3)
     {
     gtk_menu_popup(GTK_MENU(t->menu.menu),
-                   (GtkWidget *)0,
-                   (GtkWidget *)0,
-                   (GtkMenuPositionFunc)0,
-                   (gpointer)0,
+                   NULL,
+                   NULL,
+                   NULL,
+                   NULL,
                    3, evt->time);
     return TRUE;
     }
@@ -1109,11 +1109,11 @@ static void column_resize_callback(GtkTreeViewColumn * col,
   width = col->width;
   
   gtk_tree_view_column_cell_get_size(col,
-                                     (GdkRectangle*)0,
-                                     (gint *)0,
-                                     (gint *)0,
+                                     NULL,
+                                     NULL,
+                                     NULL,
                                      &width_needed,
-                                     (gint *)0);
+                                     NULL);
   name_width = gtk_tree_view_column_get_fixed_width (w->col_name);
   
   if(width > width_needed)
@@ -1145,9 +1145,10 @@ void track_list_add_url(track_list_t * l, char * url)
   bg_transcoder_track_t * new_tracks;
   new_tracks =
     bg_transcoder_track_create(url,
-                               (const bg_plugin_info_t *)0,
+                               NULL,
                                -1, l->plugin_reg,
-                               l->track_defaults_section, l->encoder_section, (char*)0);
+                               l->track_defaults_section, l->encoder_section,
+                               NULL);
   add_track(l, new_tracks);
   track_list_update(l);  
   }
@@ -1590,7 +1591,7 @@ bg_transcoder_track_t * track_list_get_track(track_list_t * t)
   {
   bg_transcoder_track_t * ret;
   if(!t->tracks)
-    return (bg_transcoder_track_t*)0;
+    return NULL;
   ret = t->tracks;
   t->tracks = t->tracks->next;
   track_list_update(t);

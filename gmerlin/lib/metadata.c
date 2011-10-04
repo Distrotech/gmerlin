@@ -298,7 +298,7 @@ char * bg_create_track_name(const bg_metadata_t * metadata,
   char * buf;
   const char * end;
   const char * f;
-  char * ret = (char*)0;
+  char * ret = NULL;
   char track_format[5];
   f = format;
 
@@ -411,14 +411,14 @@ char * bg_create_track_name(const bg_metadata_t * metadata,
   fail:
   if(ret)
     free(ret);
-  return (char*)0;
+  return NULL;
   }
 
 #define META_STRCAT() ret = bg_strcat(ret, tmp); free(tmp)
 
 char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs)
   {
-  char * ret = (char*)0;
+  char * ret = NULL;
   char * tmp;
 
   if(m->author)

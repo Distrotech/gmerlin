@@ -69,10 +69,10 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
   if(b->menu)
     {
     gtk_menu_popup(GTK_MENU(b->menu),
-                   (GtkWidget *)0,
-                   (GtkWidget *)0,
-                   (GtkMenuPositionFunc)0,
-                   (gpointer)0,
+                   NULL,
+                   NULL,
+                   NULL,
+                   NULL,
                    evt->button, evt->time);
 
     }
@@ -132,9 +132,9 @@ static gboolean leave_notify_callback(GtkWidget *widget,
 
 static void set_shape(bg_gtk_button_t * b)
   {
-  GdkBitmap * mask = (GdkBitmap*)0;
+  GdkBitmap * mask = NULL;
   bg_gdk_pixbuf_render_pixmap_and_mask(b->pixbuf_normal,
-                                       (GdkPixmap**)0,
+                                       NULL,
                                        &mask);
   gtk_widget_shape_combine_mask(b->widget, mask, 0, 0);
   
@@ -163,7 +163,7 @@ bg_gtk_button_t * bg_gtk_button_create()
   /* Create objects */
   
   ret->widget = gtk_event_box_new();
-  ret->image  = gtk_image_new_from_pixbuf((GdkPixbuf*)0);
+  ret->image  = gtk_image_new_from_pixbuf(NULL);
 
   /* Set attributes */
 
@@ -240,7 +240,7 @@ void bg_gtk_button_set_skin(bg_gtk_button_t * b,
                             bg_gtk_button_skin_t * s,
                             const char * directory)
   {
-  char * tmp_string = (char*)0;
+  char * tmp_string = NULL;
   
   b->x = s->x;
   b->y = s->y;

@@ -200,7 +200,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   int num_front_channels;
   int num_rear_channels;
   int num_lfe_channels;
-  const char * card = (char*)0;
+  const char * card = NULL;
   alsa_t * priv = (alsa_t*)(data);
 
   //  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening");

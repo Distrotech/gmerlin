@@ -63,7 +63,7 @@ create_parameters(const LADSPA_Descriptor * desc)
     num_parameters++;
   
   if(!num_parameters)
-    return (bg_parameter_info_t*)0;
+    return NULL;
 
   
   index = 0;
@@ -257,7 +257,7 @@ static bg_plugin_info_t * get_info(const LADSPA_Descriptor * desc)
   ret = calloc(1, sizeof(*ret));
 
   ret->name        = bg_sprintf("fa_ladspa_%s", desc->Label);
-  ret->long_name   = bg_strdup((char*)0, desc->Name);
+  ret->long_name   = bg_strdup(NULL, desc->Name);
   ret->type        = BG_PLUGIN_FILTER_AUDIO;
   ret->api         = BG_PLUGIN_API_LADSPA;
   ret->flags       = BG_PLUGIN_FILTER_1;
@@ -281,9 +281,9 @@ static bg_plugin_info_t * get_info(const LADSPA_Descriptor * desc)
 
 bg_plugin_info_t * bg_ladspa_get_info(void * dll_handle, const char * filename)
   {
-  bg_plugin_info_t * ret = (bg_plugin_info_t*)0;
-  bg_plugin_info_t * end = (bg_plugin_info_t*)0;
-  bg_plugin_info_t * new = (bg_plugin_info_t*)0;
+  bg_plugin_info_t * ret = NULL;
+  bg_plugin_info_t * end = NULL;
+  bg_plugin_info_t * new = NULL;
   int index;
   
   const LADSPA_Descriptor * desc;
@@ -294,14 +294,14 @@ bg_plugin_info_t * bg_ladspa_get_info(void * dll_handle, const char * filename)
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "No symbol \"ladspa_descriptor\" found: %s",
             dlerror());
-    return (bg_plugin_info_t *)0;
+    return NULL;
     }
   index = 0;
   while((desc = desc_func(index)))
     {
     new = get_info(desc);
     new->index = index;
-    new->module_filename = bg_strdup((char*)0, filename);
+    new->module_filename = bg_strdup(NULL, filename);
     if(ret)
       {
       end->next = new;
@@ -369,7 +369,7 @@ static void cleanup_ladspa(ladspa_priv_t * lp)
   if(lp->frame)
     {
     gavl_audio_frame_destroy(lp->frame);
-    lp->frame = (gavl_audio_frame_t*)0;
+    lp->frame = NULL;
     }
   }
 
@@ -515,7 +515,7 @@ static int read_audio_ladspa(void * priv,
      (num_samples > lp->format.samples_per_frame))
     {
     gavl_audio_frame_destroy(lp->frame);
-    lp->frame = (gavl_audio_frame_t*)0;
+    lp->frame = NULL;
     }
   
   if(!lp->frame && lp->inplace_broken)

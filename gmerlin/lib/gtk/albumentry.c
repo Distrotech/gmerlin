@@ -46,7 +46,7 @@ void bg_gtk_album_entry_show(const bg_album_entry_t * entry, GtkWidget * parent)
   if(entry->location)
     utf8_location = bg_system_to_utf8(entry->location, -1);
   else
-    utf8_location = (char*)0;
+    utf8_location = NULL;
   
   text = bg_sprintf(TR("Name:\t %s\nLocation:\t %s\nTrack:\t %d/%d%s\nPlugin:\t %s\nDuration:\t %s\nAudio Streams:\t %d\nVideo Streams:\t %d\nSubtitle Streams:\t %d"),
                     S(entry->name), S(utf8_location),

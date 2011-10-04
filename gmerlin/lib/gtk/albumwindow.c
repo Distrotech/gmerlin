@@ -221,8 +221,8 @@ void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
   if(w->window && w->window->window)
     {
     gdk_window_get_geometry(w->window->window,
-                            (gint *)0, (gint *)0, &w->width, &w->height,
-                            (gint *)0);
+                            NULL, NULL, &w->width, &w->height,
+                            NULL);
 
     gdk_window_get_root_origin(w->window->window, &w->x, &w->y);
 
@@ -316,7 +316,7 @@ void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
     {
     gtk_container_remove(GTK_CONTAINER(w->window), bg_gtk_album_widget_get_widget(w->widget));
     gtk_widget_destroy(w->window);
-    w->window = (GtkWidget*)0;
+    w->window = NULL;
     }
   /* Attach stuff to notebook */
 
@@ -368,7 +368,7 @@ void bg_gtk_album_window_detach(bg_gtk_album_window_t * w)
     {
     page_num = gtk_notebook_page_num(GTK_NOTEBOOK(w->notebook), bg_gtk_album_widget_get_widget(w->widget));
     gtk_notebook_remove_page(GTK_NOTEBOOK(w->notebook), page_num);
-    w->notebook = (GtkWidget*)0;
+    w->notebook = NULL;
     }
   
   w->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);

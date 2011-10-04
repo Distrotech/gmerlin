@@ -47,7 +47,7 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
                                bg_media_tree_t * tree, xmlNodePtr node,
                                bg_album_t * parent)
   {
-  bg_album_t * ret = (bg_album_t *)0;
+  bg_album_t * ret = NULL;
   bg_album_t * child_album;
   char * tmp_string;
   xmlNodePtr child;
@@ -223,7 +223,7 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
   
   /* Create XML album */
       
-  xml_album = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ALBUM", NULL);
+  xml_album = xmlNewTextChild(parent, NULL, (xmlChar*)"ALBUM", NULL);
 
   if(bg_album_is_open(album))
     BG_XML_SET_PROP(xml_album, "open", "1");
@@ -240,29 +240,29 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
   else if(album->type == BG_ALBUM_TYPE_TUNER)
     BG_XML_SET_PROP(xml_album, "tuner", "1");
   
-  node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"NAME", NULL);
+  node = xmlNewTextChild(xml_album, NULL, (xmlChar*)"NAME", NULL);
   xmlAddChild(node, BG_XML_NEW_TEXT(album->name));
   
   if(album->xml_file)
     {
-    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"LOCATION", NULL);
+    node = xmlNewTextChild(xml_album, NULL, (xmlChar*)"LOCATION", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(album->xml_file));
     }
   if(album->device)
     {
-    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"DEVICE", NULL);
+    node = xmlNewTextChild(xml_album, NULL, (xmlChar*)"DEVICE", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(album->device));
     }
   if(album->watch_dir)
     {
-    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"WATCH_DIR", NULL);
+    node = xmlNewTextChild(xml_album, NULL, (xmlChar*)"WATCH_DIR", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(album->watch_dir));
     }
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
   if(album->plugin_info)
     {
-    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"PLUGIN", NULL);
+    node = xmlNewTextChild(xml_album, NULL, (xmlChar*)"PLUGIN", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(album->plugin_info->name));
     }
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
@@ -293,7 +293,7 @@ void bg_media_tree_save(bg_media_tree_t * tree)
 
   if(tree->cfg_section)
     {
-    node = xmlNewTextChild(xml_mediatree, (xmlNsPtr)0, (xmlChar*)"CFG_SECTION", NULL);
+    node = xmlNewTextChild(xml_mediatree, NULL, (xmlChar*)"CFG_SECTION", NULL);
     bg_cfg_section_2_xml(tree->cfg_section, node);
     xmlAddChild(xml_mediatree, BG_XML_NEW_TEXT("\n"));
     }

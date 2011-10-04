@@ -41,21 +41,21 @@ static void audio_stream_2_xml(xmlNodePtr parent,
   if(s->label)
     BG_XML_SET_PROP(parent, "label", s->label);
 
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
+  node = xmlNewTextChild(parent, NULL, (xmlChar*)"GENERAL", NULL);
   section_2_xml(s->general_section, node);
   
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
   if(s->filter_section)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"FILTER", NULL);
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"FILTER", NULL);
     section_2_xml(s->filter_section, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
 
   if(s->encoder_section)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER", NULL);
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"ENCODER", NULL);
     section_2_xml(s->encoder_section, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
@@ -68,21 +68,21 @@ static void video_stream_2_xml(xmlNodePtr parent,
   if(s->label)
     BG_XML_SET_PROP(parent, "label", s->label);
 
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
+  node = xmlNewTextChild(parent, NULL, (xmlChar*)"GENERAL", NULL);
   section_2_xml(s->general_section, node);
 
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
   if(s->filter_section)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"FILTER", NULL);
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"FILTER", NULL);
     section_2_xml(s->filter_section, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
   
   if(s->encoder_section)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER", NULL);
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"ENCODER", NULL);
     section_2_xml(s->encoder_section, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
@@ -100,24 +100,24 @@ static void subtitle_text_stream_2_xml(xmlNodePtr parent,
   if(s->label)
     BG_XML_SET_PROP(parent, "label", s->label);
 
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
+  node = xmlNewTextChild(parent, NULL, (xmlChar*)"GENERAL", NULL);
   section_2_xml(s->general_section, node);
 
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"TEXTRENDERER", NULL);
+  node = xmlNewTextChild(parent, NULL, (xmlChar*)"TEXTRENDERER", NULL);
   section_2_xml(s->textrenderer_section, node);
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
   if(s->encoder_section_text)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER_TEXT", NULL);
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"ENCODER_TEXT", NULL);
     section_2_xml(s->encoder_section_text, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
   if(s->encoder_section_overlay)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER_OVERLAY", NULL);
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"ENCODER_OVERLAY", NULL);
     section_2_xml(s->encoder_section_overlay, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
@@ -135,12 +135,12 @@ static void subtitle_overlay_stream_2_xml(xmlNodePtr parent,
   if(s->label)
     BG_XML_SET_PROP(parent, "label", s->label);
 
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
+  node = xmlNewTextChild(parent, NULL, (xmlChar*)"GENERAL", NULL);
   section_2_xml(s->general_section, node);
 
   if(s->encoder_section)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER", NULL);
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"ENCODER", NULL);
     section_2_xml(s->encoder_section, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
@@ -155,72 +155,72 @@ static void track_2_xml(bg_transcoder_track_t * track,
   
   xmlNodePtr node, stream_node;
 
-  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
+  node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"GENERAL", NULL);
   section_2_xml(track->general_section, node);
   xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
 
-  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"GENERAL_PARAMS", NULL);
+  node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"GENERAL_PARAMS", NULL);
   bg_parameters_2_xml(track->general_parameters, node);
   xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
   
-  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"METADATA", NULL);
+  node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"METADATA", NULL);
   section_2_xml(track->metadata_section, node);
   xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
 
-  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"METADATA_PARAMS", NULL);
+  node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"METADATA_PARAMS", NULL);
   bg_parameters_2_xml(track->metadata_parameters, node);
   xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
   
   if(track->chapter_list)
     {
     node =
-      xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"CHAPTERS", NULL);
+      xmlNewTextChild(xml_track, NULL, (xmlChar*)"CHAPTERS", NULL);
     bg_chapter_list_2_xml(track->chapter_list, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
   
   if(track->input_section)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"INPUT", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"INPUT", NULL);
     section_2_xml(track->input_section, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
   if(track->audio_encoder_section)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"AUDIO_ENCODER", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"AUDIO_ENCODER", NULL);
     section_2_xml(track->audio_encoder_section, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
 
   if(track->video_encoder_section)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"VIDEO_ENCODER", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"VIDEO_ENCODER", NULL);
     section_2_xml(track->video_encoder_section, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
 
   if(track->subtitle_text_encoder_section)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"SUBTITLE_TEXT_ENCODER", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"SUBTITLE_TEXT_ENCODER", NULL);
     section_2_xml(track->subtitle_text_encoder_section, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
 
   if(track->subtitle_overlay_encoder_section)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"SUBTITLE_OVERLAY_ENCODER", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"SUBTITLE_OVERLAY_ENCODER", NULL);
     section_2_xml(track->subtitle_overlay_encoder_section, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
   
   if(track->num_audio_streams)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"AUDIO_STREAMS", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"AUDIO_STREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
 
     for(i = 0; i < track->num_audio_streams; i++)
       {
-      stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
+      stream_node = xmlNewTextChild(node, NULL, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
 
       audio_stream_2_xml(stream_node, &track->audio_streams[i]);
@@ -232,12 +232,12 @@ static void track_2_xml(bg_transcoder_track_t * track,
   
   if(track->num_video_streams)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"VIDEO_STREAMS", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"VIDEO_STREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     
     for(i = 0; i < track->num_video_streams; i++)
       {
-      stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
+      stream_node = xmlNewTextChild(node, NULL, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
       video_stream_2_xml(stream_node, &track->video_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
@@ -246,12 +246,12 @@ static void track_2_xml(bg_transcoder_track_t * track,
     }
   if(track->num_subtitle_text_streams)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"SUBTITLE_TEXT_STREAMS", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"SUBTITLE_TEXT_STREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     
     for(i = 0; i < track->num_subtitle_text_streams; i++)
       {
-      stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
+      stream_node = xmlNewTextChild(node, NULL, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
       subtitle_text_stream_2_xml(stream_node, &track->subtitle_text_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
@@ -259,12 +259,12 @@ static void track_2_xml(bg_transcoder_track_t * track,
     }
   if(track->num_subtitle_overlay_streams)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"SUBTITLE_OVERLAY_STREAMS", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"SUBTITLE_OVERLAY_STREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     
     for(i = 0; i < track->num_subtitle_overlay_streams; i++)
       {
-      stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
+      stream_node = xmlNewTextChild(node, NULL, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
       subtitle_overlay_stream_2_xml(stream_node, &track->subtitle_overlay_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
@@ -280,11 +280,11 @@ static void global_2_xml(bg_transcoder_track_global_t * g,
   xmlNodePtr node;
   if(g->pp_plugin)
     {
-    node = xmlNewTextChild(xml_global, (xmlNsPtr)0, (xmlChar*)"PP_PLUGIN", NULL);
+    node = xmlNewTextChild(xml_global, NULL, (xmlChar*)"PP_PLUGIN", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(g->pp_plugin));
     xmlAddChild(xml_global, BG_XML_NEW_TEXT("\n"));
     
-    node = xmlNewTextChild(xml_global, (xmlNsPtr)0, (xmlChar*)"PP_SECTION", NULL);
+    node = xmlNewTextChild(xml_global, NULL, (xmlChar*)"PP_SECTION", NULL);
     section_2_xml(g->pp_section, node);
     xmlAddChild(xml_global, BG_XML_NEW_TEXT("\n"));
     }
@@ -307,7 +307,7 @@ transcoder_tracks_2_xml(bg_transcoder_track_t * t,
 
   if(g)
     {
-    node = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"GLOBAL", NULL);
+    node = xmlNewTextChild(root_node, NULL, (xmlChar*)"GLOBAL", NULL);
     global_2_xml(g, node);
     xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
     }
@@ -318,7 +318,7 @@ transcoder_tracks_2_xml(bg_transcoder_track_t * t,
     {
     if(tmp->selected || !selected_only)
       {
-      node = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
+      node = xmlNewTextChild(root_node, NULL, (xmlChar*)"TRACK", NULL);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       track_2_xml(tmp, node);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
@@ -348,16 +348,15 @@ bg_transcoder_tracks_selected_to_xml(bg_transcoder_track_t * t)
   xmlOutputBufferPtr b;
   
   xmlDocPtr xml_doc;
-  xml_doc = transcoder_tracks_2_xml(t, (bg_transcoder_track_global_t *)0, 1);
+  xml_doc = transcoder_tracks_2_xml(t, NULL, 1);
 
   memset(&ctx, 0, sizeof(ctx));
 
   b = xmlOutputBufferCreateIO(bg_xml_write_callback,
                               bg_xml_close_callback,
-                              &ctx,
-                              (xmlCharEncodingHandlerPtr)0);
+                              &ctx, NULL);
   
-  xmlSaveFileTo(b, xml_doc, (const char*)0);
+  xmlSaveFileTo(b, xml_doc, NULL);
   
   xmlFreeDoc(xml_doc);
   return ctx.buffer;
@@ -818,16 +817,16 @@ transcoder_tracks_load(xmlDocPtr xml_doc,
   {
   xmlNodePtr node;
 
-  bg_transcoder_track_t * ret = (bg_transcoder_track_t *)0;
-  bg_transcoder_track_t * end = (bg_transcoder_track_t *)0;
+  bg_transcoder_track_t * ret = NULL;
+  bg_transcoder_track_t * end = NULL;
   
   if(!xml_doc)
-    return (bg_transcoder_track_t*)0;
+    return NULL;
 
   node = xml_doc->children;
 
   if(BG_XML_STRCMP(node->name, "TRANSCODER_TRACKS"))
-    return (bg_transcoder_track_t*)0;
+    return NULL;
 
   node = node->children;
   
@@ -873,7 +872,7 @@ bg_transcoder_tracks_load(const char * filename,
   xmlDocPtr xml_doc;
   bg_transcoder_track_t * ret;
   if(!filename)
-    return (bg_transcoder_track_t*)0;
+    return NULL;
   
   xml_doc = bg_xml_parse_file(filename);
   
@@ -894,7 +893,7 @@ bg_transcoder_tracks_from_xml(char * str, bg_plugin_registry_t * plugin_reg)
   xml_doc = xmlParseMemory(str, strlen(str));
   
   ret = transcoder_tracks_load(xml_doc,
-                               (bg_transcoder_track_global_t*)0,
+                               NULL,
                                plugin_reg);
   
   xmlFreeDoc(xml_doc);

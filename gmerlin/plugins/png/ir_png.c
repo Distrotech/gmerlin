@@ -86,8 +86,7 @@ static int read_header_png(void * priv, const char * filename,
     goto fail;
 
   png->png_ptr = png_create_read_struct
-    (PNG_LIBPNG_VER_STRING, (png_voidp)0,
-     NULL, NULL);
+    (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
   setjmp(png_jmpbuf(png->png_ptr));
 

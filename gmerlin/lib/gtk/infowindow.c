@@ -678,7 +678,7 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
 
 
 
-#define FREE(str) if(str) free(str);str=(char*)0;
+#define FREE(str) if(str) free(str);str=NULL;
 
 
 static void reset_tree(bg_gtk_info_window_t * w)
@@ -766,35 +766,35 @@ static void init_tree(bg_gtk_info_window_t * w)
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
 
   /* Name */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_NAME] = gtk_tree_model_get_path(model, &iter);
   set_line(w, &iter, TR("Name"), 0);
 
   /* Plugin */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_INPUT_PLUGIN] = gtk_tree_model_get_path(model, &iter);
   set_line(w, &iter, TR("Input plugin"), 0);
     
   /* Location */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_LOCATION] = gtk_tree_model_get_path(model, &iter);
   set_line(w, &iter, TR("Location"), 0);
   
   /* Track */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_TRACK] = gtk_tree_model_get_path(model, &iter);
   set_line(w, &iter, TR("Track"), 0);
   
   /* Format */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_FORMAT] = gtk_tree_model_get_path(model, &iter);
   
   /* Metadata */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_METADATA] = gtk_tree_model_get_path(model, &iter);
   
   /* Audio */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_AUDIO] = gtk_tree_model_get_path(model, &iter);
 
   /* Audio -> desc */
@@ -810,7 +810,7 @@ static void init_tree(bg_gtk_info_window_t * w)
   w->paths[PATH_AUDIO_FORMAT_O] = gtk_tree_model_get_path(model, &child);
     
   /* Video */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_VIDEO] = gtk_tree_model_get_path(model, &iter);
 
   /* Video -> desc */
@@ -827,7 +827,7 @@ static void init_tree(bg_gtk_info_window_t * w)
   
   
   /* Subtitle */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_SUBTITLE] = gtk_tree_model_get_path(model, &iter);
 
   /* Subtitle -> desc */
@@ -923,7 +923,7 @@ static void clipboard_clear_func(GtkClipboard *clipboard,
     {
     free(w->clipboard);
     w->clipboard_len = 0;
-    w->clipboard = (char*)0;
+    w->clipboard = NULL;
     }
   }
 
@@ -953,10 +953,10 @@ static void copy_selected(bg_gtk_info_window_t * w)
     free(w->clipboard);
 
   gtk_tree_selection_get_selected(selection,
-                                  (GtkTreeModel**)0,
+                                  NULL,
                                   &iter);
   
-  w->clipboard = iter_to_string(w, (char*)0, 0, &iter, 1);
+  w->clipboard = iter_to_string(w, NULL, 0, &iter, 1);
 
   if(w->clipboard)
     {
@@ -985,7 +985,7 @@ static void copy_all(bg_gtk_info_window_t * w)
   
   if(w->clipboard)
     free(w->clipboard);
-  w->clipboard = iter_to_string(w, (char*)0, 0, (GtkTreeIter*)0, 1);
+  w->clipboard = iter_to_string(w, NULL, 0, NULL, 1);
 
   if(w->clipboard)
     {
@@ -1059,10 +1059,10 @@ static gboolean button_press_callback(GtkWidget * wid, GdkEventButton * evt,
   if(evt->button == 3)
     {
     gtk_menu_popup(GTK_MENU(w->menu.menu),
-                   (GtkWidget *)0,
-                   (GtkWidget *)0,
-                   (GtkMenuPositionFunc)0,
-                   (gpointer)0,
+                   NULL,
+                   NULL,
+                   NULL,
+                   NULL,
                    3, evt->time);
     return  FALSE;
     }
@@ -1160,7 +1160,7 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   /* pack objects */
   
-  scrolledwin = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
+  scrolledwin = gtk_scrolled_window_new(NULL, NULL);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwin),
                                  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   

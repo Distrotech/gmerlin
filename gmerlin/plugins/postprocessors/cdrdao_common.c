@@ -51,7 +51,7 @@ bg_cdrdao_t * bg_cdrdao_create()
   {
   bg_cdrdao_t * ret;
   ret = calloc(1, sizeof(*ret));
-  pthread_mutex_init(&ret->stop_mutex, (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->stop_mutex, NULL);
   return ret;
   }
 
@@ -99,9 +99,9 @@ int bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   {
   bg_subprocess_t * cdrdao;
   char * str;
-  char * commandline = (char*)0;
+  char * commandline = NULL;
 
-  char * line = (char*)0;
+  char * line = NULL;
   int line_alloc = 0;
   
   int mb_written, mb_total;

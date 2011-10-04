@@ -49,15 +49,15 @@ static const bg_parameter_info_t static_parameters[] =
       .long_name =   TRS("Channel Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "stereo" },
-      .multi_names =   (char const *[]){ "mono", "stereo", (char*)0 },
-      .multi_labels =  (char const *[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
+      .multi_names =   (char const *[]){ "mono", "stereo", NULL },
+      .multi_labels =  (char const *[]){ TRS("Mono"), TRS("Stereo"), NULL },
     },
     {
       .name =        "bits",
       .long_name =   TRS("Bits"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "16" },
-      .multi_names =     (char const *[]){ "8", "16", (char*)0 },
+      .multi_names =     (char const *[]){ "8", "16",NULL },
     },
     {
       .name =        "samplerate",
@@ -185,7 +185,7 @@ static int open_alsa(void * data,
                      gavl_audio_format_t * format,
                      gavl_video_format_t * video_format)
   {
-  const char * card = (char*)0;
+  const char * card = NULL;
   alsa_t * priv = (alsa_t*)(data);
   
   if(priv->user_device)
@@ -235,7 +235,7 @@ static void close_alsa(void * p)
   if(priv->f)
     {
     gavl_audio_frame_destroy(priv->f);
-    priv->f = (gavl_audio_frame_t*)0;
+    priv->f = NULL;
     }
   }
 

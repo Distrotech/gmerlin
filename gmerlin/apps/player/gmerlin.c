@@ -389,7 +389,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   return ret;
   fail:
   gmerlin_destroy(ret);
-  return (gmerlin_t*)0;
+  return NULL;
   }
 
 void gmerlin_destroy(gmerlin_t * g)
@@ -724,11 +724,11 @@ static const bg_parameter_info_t parameters[] =
       .multi_names = (char const *[]){"off",
                              "current",
                              "all",
-                             (char*)0 },
+                             NULL },
       .multi_labels = (char const *[]){TRS("Off"),
                               TRS("Current album"),
                               TRS("All open albums"),
-                              (char*)0 },
+                              NULL },
       .val_default = { .val_str = "Off" }
     },
     {
@@ -939,10 +939,8 @@ void gmerlin_add_locations(gmerlin_t * g, char ** locations)
     bg_album_open(incoming);
     }
 
-  bg_album_insert_urls_before(incoming,
-                              locations,
-                              (const char *)0,
-                              (bg_album_entry_t *)0);
+  bg_album_insert_urls_before(incoming, locations,
+                              NULL, NULL);
 
   if(!was_open)
     bg_album_close(incoming);

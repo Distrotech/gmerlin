@@ -237,7 +237,7 @@ static void change_callback(GtkWidget * w, gpointer data)
   if(widget->handle)
     {
     bg_plugin_unref(widget->handle);
-    widget->handle = (bg_plugin_handle_t*)0;
+    widget->handle = NULL;
     }
   update_sensitive(widget);
 
@@ -266,7 +266,7 @@ static void change_callback(GtkWidget * w, gpointer data)
       widget->audio_section =
         bg_cfg_section_find_subsection(widget->section, "$audio");
     else
-      widget->audio_section = (bg_cfg_section_t*)0;
+      widget->audio_section = NULL;
 
     if(widget->video_section_priv)
       {
@@ -278,7 +278,7 @@ static void change_callback(GtkWidget * w, gpointer data)
       widget->video_section =
         bg_cfg_section_find_subsection(widget->section, "$video");
     else
-      widget->video_section = (bg_cfg_section_t*)0;
+      widget->video_section = NULL;
 
     if(widget->subtitle_text_section_priv)
       {
@@ -290,7 +290,7 @@ static void change_callback(GtkWidget * w, gpointer data)
       widget->subtitle_text_section =
         bg_cfg_section_find_subsection(widget->section, "$subtitle_text");
     else
-      widget->subtitle_text_section = (bg_cfg_section_t*)0;
+      widget->subtitle_text_section = NULL;
 
     if(widget->subtitle_overlay_section_priv)
       {
@@ -302,7 +302,7 @@ static void change_callback(GtkWidget * w, gpointer data)
       widget->subtitle_overlay_section =
         bg_cfg_section_find_subsection(widget->section, "$subtitle_overlay");
     else
-      widget->subtitle_overlay_section = (bg_cfg_section_t*)0;
+      widget->subtitle_overlay_section = NULL;
 
     }
   

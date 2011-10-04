@@ -61,7 +61,7 @@ static int thumbnail_up_to_date(const char * thumbnail_file,
       {
       if(!strcmp(metadata.ext[i].key, "Thumb::MTime"))
         {
-        test_mtime = strtoll(metadata.ext[i].value, (char**)0, 10);
+        test_mtime = strtoll(metadata.ext[i].value, NULL, 10);
         if(mtime == test_mtime)
           ret = 1;
         break;
@@ -226,7 +226,7 @@ int bg_get_thumbnail(const char * gml,
       *frame_ret = bg_plugin_registry_load_image(plugin_reg,
                                                 thumb_filename_normal,
                                                 format_ret,
-                                                (bg_metadata_t*)0);
+                                                NULL);
       }
     if(thumbnail_filename_ret)
       {

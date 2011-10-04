@@ -94,9 +94,9 @@ static bg_parameter_info_t * create_parameters()
     f = gavl_get_pixelformat(i);
     if(f != GAVL_PIXELFORMAT_NONE)
       {
-      ret->multi_names_nc[index] = bg_strdup((char*)0,
+      ret->multi_names_nc[index] = bg_strdup(NULL,
                                           gavl_pixelformat_to_string(f));
-      ret->multi_labels_nc[index] = bg_strdup((char*)0,
+      ret->multi_labels_nc[index] = bg_strdup(NULL,
                                            gavl_pixelformat_to_string(f));
       index++;
       }

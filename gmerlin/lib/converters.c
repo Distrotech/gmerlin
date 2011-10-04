@@ -114,7 +114,7 @@ static int audio_converter_read_noresample(bg_audio_converter_t * cnv,
     if(cnv->in_frame)
       {
       gavl_audio_frame_destroy(cnv->in_frame);
-      cnv->in_frame = (gavl_audio_frame_t*)0;
+      cnv->in_frame = NULL;
       }
     cnv->in_format.samples_per_frame = num_samples + 1024;
     }
@@ -176,12 +176,12 @@ int bg_audio_converter_init(bg_audio_converter_t * cnv,
   if(cnv->in_frame)
     {
     gavl_audio_frame_destroy(cnv->in_frame);
-    cnv->in_frame = (gavl_audio_frame_t*)0;
+    cnv->in_frame = NULL;
     }
   if(cnv->out_frame)
     {
     gavl_audio_frame_destroy(cnv->out_frame);
-    cnv->out_frame = (gavl_audio_frame_t*)0;
+    cnv->out_frame = NULL;
     }
   /* Set options */
   cnv_opt = gavl_audio_converter_get_options(cnv->cnv);
@@ -297,12 +297,12 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
   if(cnv->frame)
     {
     gavl_video_frame_destroy(cnv->frame);
-    cnv->frame = (gavl_video_frame_t*)0;
+    cnv->frame = NULL;
     }
   if(cnv->next_frame)
     {
     gavl_video_frame_destroy(cnv->next_frame);
-    cnv->next_frame = (gavl_video_frame_t*)0;
+    cnv->next_frame = NULL;
     }
 
   /* Copy format */

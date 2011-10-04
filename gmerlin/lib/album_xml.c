@@ -160,19 +160,19 @@ static bg_album_entry_t * xml_2_album(bg_album_t * album,
   {
   xmlNodePtr node;
   int is_current;
-  bg_album_entry_t * ret = (bg_album_entry_t*)0;
-  bg_album_entry_t * end_ptr = (bg_album_entry_t*)0;
+  bg_album_entry_t * ret = NULL;
+  bg_album_entry_t * end_ptr = NULL;
   bg_album_entry_t * new_entry;
 
   if(current)
-    *current = (bg_album_entry_t*)0;
+    *current = NULL;
   
   node = xml_doc->children;
 
   if(BG_XML_STRCMP(node->name, "ALBUM"))
     {
     xmlFreeDoc(xml_doc);
-    return (bg_album_entry_t *)0;
+    return NULL;
     }
 
   node = node->children;
@@ -230,7 +230,7 @@ static bg_album_entry_t * load_album_file(bg_album_t * album,
   if(!xml_doc)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't open album file %s", filename);
-    return (bg_album_entry_t*)0;
+    return NULL;
     }
   ret = xml_2_album(album, xml_doc, last, current, load_globals);
   
@@ -261,8 +261,8 @@ bg_album_entries_new_from_xml(const char * xml_string)
   xmlDocPtr xml_doc;
   xml_doc = xmlParseMemory(xml_string, strlen(xml_string));
 
-  ret = xml_2_album((bg_album_t*)0, xml_doc,
-                    (bg_album_entry_t**)0, (bg_album_entry_t**)0, 0);
+  ret = xml_2_album(NULL, xml_doc,
+                    NULL, NULL, 0);
   
   xmlFreeDoc(xml_doc);
   return ret;
@@ -280,7 +280,7 @@ void bg_album_insert_xml_after(bg_album_t * a,
   bg_album_entry_t * current_entry;
   new_entries = load_album_xml(a,
                                xml_string,
-                               (bg_album_entry_t**)0, &current_entry, 0);
+                               NULL, &current_entry, 0);
   bg_album_insert_entries_after(a, new_entries, before);
 
   if(current_entry)
@@ -298,7 +298,7 @@ void bg_album_insert_xml_before(bg_album_t * a,
   bg_album_entry_t * current_entry;
   
   new_entries = load_album_xml(a,
-                               xml_string, (bg_album_entry_t**)0, &current_entry, 0);
+                               xml_string, NULL, &current_entry, 0);
   bg_album_insert_entries_before(a, new_entries, after);
 
   if(current_entry)
@@ -316,10 +316,10 @@ static bg_album_entry_t * load_albums(bg_album_t * album,
   {
   int i = 0;
   bg_album_entry_t * ret;
-  bg_album_entry_t * end = (bg_album_entry_t *)0;
+  bg_album_entry_t * end = NULL;
   bg_album_entry_t * tmp_end;
 
-  ret = (bg_album_entry_t*)0;
+  ret = NULL;
   
   while(filenames[i])
     {
@@ -346,7 +346,7 @@ void bg_album_insert_albums_before(bg_album_t * a,
                                    bg_album_entry_t * after)
   {
   bg_album_entry_t * new_entries;
-  new_entries = load_albums(a, locations, (bg_album_entry_t **)0, NULL);
+  new_entries = load_albums(a, locations, NULL, NULL);
   bg_album_insert_entries_before(a, new_entries, after);
   bg_album_changed(a);
   }
@@ -356,7 +356,7 @@ void bg_album_insert_albums_after(bg_album_t * a,
                                   bg_album_entry_t * before)
   {
   bg_album_entry_t * new_entries;
-  new_entries = load_albums(a, locations, (bg_album_entry_t **)0, NULL);
+  new_entries = load_albums(a, locations, NULL, NULL);
   bg_album_insert_entries_after(a, new_entries, before);
   bg_album_changed(a);
   }
@@ -364,10 +364,10 @@ void bg_album_insert_albums_after(bg_album_t * a,
 void bg_album_load(bg_album_t * a, const char * filename)
   {
   bg_album_entry_t * current;
-  current = (bg_album_entry_t*)0;
+  current = NULL;
 
 
-  a->entries = load_album_file(a, filename, (bg_album_entry_t**)0, &current, 1);
+  a->entries = load_album_file(a, filename, NULL, &current, 1);
   if(current)
     {
     bg_album_set_current(a, current);
@@ -382,7 +382,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   xmlNodePtr node;
   char * c_tmp;
   
-  xml_entry = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENTRY", NULL);
+  xml_entry = xmlNewTextChild(parent, NULL, (xmlChar*)"ENTRY", NULL);
 
   if(a && bg_album_entry_is_current(a, entry) && preserve_current)
     {
@@ -410,7 +410,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
 
   /* Name */
 
-  node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"NAME", NULL);
+  node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"NAME", NULL);
   xmlAddChild(node, BG_XML_NEW_TEXT(entry->name));
   xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
   
@@ -418,7 +418,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
 
   if(entry->location)
     {
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"LOCATION", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"LOCATION", NULL);
     c_tmp = bg_string_to_uri((char*)(entry->location), -1);
     xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
     free(c_tmp);
@@ -428,7 +428,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   /* Mtime */
   if(entry->mtime)
     {
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"MTIME", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"MTIME", NULL);
     c_tmp = bg_sprintf("%"PRId64, (int64_t)(entry->mtime));
     xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
     free(c_tmp);
@@ -440,13 +440,13 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   if((entry->flags & BG_ALBUM_ENTRY_SAVE_AUTH) && entry->username && entry->password)
     {
     /* Username */
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"USER", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"USER", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(entry->username));
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
 
     /* Password */
     c_tmp = bg_scramble_string(entry->password);
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"PASS", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"PASS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
     free(c_tmp);
@@ -456,7 +456,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
 
   if(entry->plugin)
     {
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"PLUGIN", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"PLUGIN", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(entry->plugin));
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
     }
@@ -466,7 +466,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   if(entry->num_audio_streams)
     {
     c_tmp = bg_sprintf("%d", entry->num_audio_streams);
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"ASTREAMS", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"ASTREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
     free(c_tmp);
@@ -477,7 +477,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   if(entry->num_still_streams)
     {
     c_tmp = bg_sprintf("%d", entry->num_still_streams);
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"STSTREAMS", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"STSTREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
     free(c_tmp);
@@ -488,7 +488,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   if(entry->num_video_streams)
     {
     c_tmp = bg_sprintf("%d", entry->num_video_streams);
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"VSTREAMS", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"VSTREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
     free(c_tmp);
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
@@ -499,13 +499,13 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   if(entry->total_tracks > 1)
     {
     c_tmp = bg_sprintf("%d", entry->index);
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"INDEX", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"INDEX", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
     free(c_tmp);
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
 
     c_tmp = bg_sprintf("%d", entry->total_tracks);
-    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"TOTAL_TRACKS", NULL);
+    node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"TOTAL_TRACKS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
     free(c_tmp);
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
@@ -514,7 +514,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   /* Duration */
 
   c_tmp = bg_sprintf("%" PRId64, entry->duration);
-  node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"DURATION", NULL);
+  node = xmlNewTextChild(xml_entry, NULL, (xmlChar*)"DURATION", NULL);
   xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
   free(c_tmp);
   xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
@@ -540,7 +540,7 @@ static xmlDocPtr album_2_xml(bg_album_t * a)
 
   if(a->cfg_section)
     {
-    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"CFG_SECTION", NULL);
+    node = xmlNewTextChild(xml_album, NULL, (xmlChar*)"CFG_SECTION", NULL);
     bg_cfg_section_2_xml(a->cfg_section, node);
     xmlAddChild(xml_album, BG_XML_NEW_TEXT("\n"));
     }
@@ -636,9 +636,9 @@ char * bg_album_save_to_memory(bg_album_t * a)
   b = xmlOutputBufferCreateIO (bg_xml_write_callback,
                                bg_xml_close_callback,
                                &ctx,
-                               (xmlCharEncodingHandlerPtr)0);
+                               NULL);
   
-  xmlSaveFileTo(b, xml_doc, (const char*)0);
+  xmlSaveFileTo(b, xml_doc, NULL);
   xmlFreeDoc(xml_doc);
   return ctx.buffer;
   }
@@ -656,11 +656,11 @@ char * bg_album_save_selected_to_memory(bg_album_t * a, int preserve_current)
   b = xmlOutputBufferCreateIO(bg_xml_write_callback,
                               bg_xml_close_callback,
                               &ctx,
-                              (xmlCharEncodingHandlerPtr)0);
+                              NULL);
   
   xmlSaveFileTo(b,
                 xml_doc,
-                (const char*)0);
+                NULL);
   xmlFreeDoc(xml_doc);
   return ctx.buffer;
   }

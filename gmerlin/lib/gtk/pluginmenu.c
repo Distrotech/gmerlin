@@ -121,7 +121,7 @@ const char * bg_gtk_plugin_menu_get_plugin(bg_gtk_plugin_menu_t * m)
   if(m->auto_supported)
     {
     if(!selected)
-      return (const char*)0;
+      return NULL;
     else
       {
       plugin_info = bg_plugin_find_by_index(m->plugin_reg, selected-1,

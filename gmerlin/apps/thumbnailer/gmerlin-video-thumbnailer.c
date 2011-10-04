@@ -105,7 +105,7 @@ const bg_cmdline_app_data_t app_data =
 
 int main(int argc, char ** argv)
   {
-  char ** files = (char **)0;
+  char ** files = NULL;
   
   char * in_file = NULL;
   char * out_file = NULL;
@@ -135,8 +135,8 @@ int main(int argc, char ** argv)
   
   /* Frames */
   
-  gavl_video_frame_t * input_frame = (gavl_video_frame_t *)0;
-  gavl_video_frame_t * output_frame = (gavl_video_frame_t *)0;
+  gavl_video_frame_t * input_frame = NULL;
+  gavl_video_frame_t * output_frame = NULL;
 
   /* Converter */
   
@@ -182,12 +182,12 @@ int main(int argc, char ** argv)
   plugin_reg = bg_plugin_registry_create(cfg_section);
   
   /* Load input plugin */
-  input_handle = (bg_plugin_handle_t*)0;
+  input_handle = NULL;
   if(!bg_input_plugin_load(plugin_reg,
                            in_file,
-                           (const bg_plugin_info_t*)0,
+                           NULL,
                            &input_handle,
-                           (bg_input_callbacks_t*)0, 0))
+                           NULL, 0))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s", in_file);
     return -1;

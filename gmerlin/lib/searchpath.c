@@ -45,7 +45,7 @@ char * bg_search_file_read(const char * directory, const char * file)
   FILE * testfile;
 
   if(!file)
-    return (char*)0;
+    return NULL;
   
   testpath = malloc(FILENAME_MAX * sizeof(char));
   
@@ -72,7 +72,7 @@ char * bg_search_file_read(const char * directory, const char * file)
     return testpath;
     }
   free(testpath);
-  return (char*)0;
+  return NULL;
   }
 
 char * bg_search_file_write(const char * directory, const char * file)
@@ -84,7 +84,7 @@ char * bg_search_file_write(const char * directory, const char * file)
   FILE * testfile;
 
   if(!file)
-    return (char*)0;
+    return NULL;
   
   home_dir = getenv("HOME");
 
@@ -111,14 +111,14 @@ char * bg_search_file_write(const char * directory, const char * file)
     {
     free(testpath);
     free(testdir);
-    return (char*)0;
+    return NULL;
     }
   }
 
 int bg_ensure_directory(const char * dir)
   {
   char ** directories;
-  char * subpath = (char*)0;
+  char * subpath = NULL;
   int i, ret;
   
   /* Return early */
@@ -215,12 +215,12 @@ webbrowsers[] =
 char * bg_find_url_launcher()
   {
   int i;
-  char * ret = (char*)0;
+  char * ret = NULL;
   int ret_alloc = 0;
   bg_subprocess_t * proc;
   /* Try to get the default url handler from gnome */
   
-  if(bg_search_file_exec("gconftool-2", (char**)0))
+  if(bg_search_file_exec("gconftool-2", NULL))
     {
     proc =
       bg_subprocess_create("gconftool-2 -g /desktop/gnome/url-handlers/http/command",
@@ -237,12 +237,12 @@ char * bg_find_url_launcher()
     }
   for(i = 0; i < sizeof(webbrowsers)/sizeof(webbrowsers[0]); i++)
     {
-    if(bg_search_file_exec(webbrowsers[i].command, (char**)0))
+    if(bg_search_file_exec(webbrowsers[i].command, NULL))
       {
-      return bg_strdup((char*)0, webbrowsers[i].template);
+      return bg_strdup(NULL, webbrowsers[i].template);
       }
     }
-  return (char*)0;
+  return NULL;
   }
 
 void bg_display_html_help(const char * path)

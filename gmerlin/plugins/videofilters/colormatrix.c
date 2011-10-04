@@ -1425,11 +1425,11 @@ void bg_colormatrix_init(bg_colormatrix_t * m,
   if(flags & BG_COLORMATRIX_FORCE_ALPHA)
     format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
                                                     pixelformats_alpha,
-                                                    (int*)0);
+                                                    NULL);
   else
     format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
                                                     pixelformats,
-                                                    (int*)0);
+                                                    NULL);
   
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Pixelformat: %s",
          TRD(gavl_pixelformat_to_string(format->pixelformat), NULL));

@@ -36,7 +36,7 @@
 
 static int log_mask = BG_LOG_ERROR | BG_LOG_WARNING | BG_LOG_INFO;
 
-static char * last_error = (char*)0;
+static char * last_error = NULL;
 pthread_mutex_t last_error_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static const struct
@@ -50,7 +50,7 @@ level_names[] =
     { BG_LOG_WARNING, "Warning" },
     { BG_LOG_ERROR,   "Error" },
     { BG_LOG_INFO,    "Info" },
-    { 0,              (char*)0 }
+    { 0,              NULL }
   };
   
 const char * bg_log_level_to_string(bg_log_level_t level)
@@ -62,12 +62,12 @@ const char * bg_log_level_to_string(bg_log_level_t level)
       return level_names[index].name;
     index++;
     }
-  return (char*)0;
+  return NULL;
   }
 
 
 
-static bg_msg_queue_t * log_queue = (bg_msg_queue_t*)0;
+static bg_msg_queue_t * log_queue = NULL;
 
 static void logs_internal(bg_log_level_t level, const char * domain,
                           const char * msg_string)
@@ -116,7 +116,7 @@ static void log_internal(bg_log_level_t level, const char * domain,
 
 #ifndef HAVE_VASPRINTF
   int len;
-  len = vsnprintf((char*)0, 0, format, argp);
+  len = vsnprintf(NULL, 0, format, argp);
   msg_string = malloc(len+1);
   vsnprintf(msg_string, len+1, format, argp);
 #else

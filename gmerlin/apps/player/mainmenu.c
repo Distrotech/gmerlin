@@ -264,7 +264,7 @@ plugin_menu_set_plugin(plugin_menu_t * s, int index)
   if(s->plugin_handle)
     {
     bg_plugin_unref(s->plugin_handle);
-    s->plugin_handle = (bg_plugin_handle_t*)0;
+    s->plugin_handle = NULL;
     }
   if(s->plugin_info->parameters)
     gtk_widget_set_sensitive(s->options, 1);
@@ -298,7 +298,7 @@ plugin_menu_set_plugin(plugin_menu_t * s, int index)
           bg_plugin_registry_load_image(s->g->plugin_reg,
                                         icon_path,
                                         &icon_format,
-                                        (bg_metadata_t*)0);
+                                        NULL);
         }
       plugin->set_window_options(s->plugin_handle->priv,
                                  WINDOW_NAME, WINDOW_CLASS,
@@ -680,7 +680,7 @@ static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
   const bg_plugin_info_t * info;
   
   GtkWidget * w;
-  GSList * group = (GSList*)0;
+  GSList * group = NULL;
 
   m->type = plugin_type;
   m->flags = flags;
@@ -748,7 +748,7 @@ static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin,
   {
   GtkWidget * separator;
   s->menu = create_menu();
-  s->off_item = gtk_radio_menu_item_new_with_label((GSList*)0, TR("Off"));
+  s->off_item = gtk_radio_menu_item_new_with_label(NULL, TR("Off"));
   
   s->off_id = g_signal_connect(G_OBJECT(s->off_item), "activate",
                                G_CALLBACK(menu_callback),
@@ -796,7 +796,7 @@ static void visualization_menu_init(visualization_menu_t * s, gmerlin_t * gmerli
   s->enable =
     create_toggle_item(TR("Enable visualizations"),
                        gmerlin,
-                       s->menu, (guint *)0);
+                       s->menu, NULL);
   gtk_widget_show(s->enable);
 
   s->options = create_pixmap_item(TR("Options..."), "config_16.png",
@@ -1169,15 +1169,15 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 
   ret->accessories_menu.menu = create_menu();
 
-  if(bg_search_file_exec("gmerlin_transcoder", (char**)0))
+  if(bg_search_file_exec("gmerlin_transcoder", NULL))
     ret->accessories_menu.transcoder =
       create_item(TR("Transcoder"), gmerlin, ret->accessories_menu.menu);
 
-  if(bg_search_file_exec("gmerlin_visualizer", (char**)0))
+  if(bg_search_file_exec("gmerlin_visualizer", NULL))
     ret->accessories_menu.visualizer =
       create_item(TR("Visualizer"), gmerlin, ret->accessories_menu.menu);
 
-  if(bg_search_file_exec("gmerlin_alsamixer", (char**)0))
+  if(bg_search_file_exec("gmerlin_alsamixer", NULL))
     ret->accessories_menu.mixer =
       create_item(TR("Mixer"), gmerlin, ret->accessories_menu.menu);
 

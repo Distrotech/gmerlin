@@ -63,7 +63,7 @@ static void callback(GtkWidget * w, gpointer data)
   bg_gtk_widget_t * wid = data;
   if(wid->change_callback)
     wid->change_callback(wid->change_callback_data,
-                         wid->info->name, (bg_parameter_value_t*)0);
+                         wid->info->name, NULL);
   }
 
 void bg_gtk_create_button(bg_gtk_widget_t * w,

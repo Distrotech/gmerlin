@@ -151,7 +151,7 @@ static int init_cdrdao(void * data)
   cdrdao = (cdrdao_t*)data;
   free_tracks(cdrdao);
   /* Check for cdrdao */
-  if(!bg_search_file_exec("cdrdao", (char**)0))
+  if(!bg_search_file_exec("cdrdao", NULL))
     return 0;
   return 1;
   }
@@ -249,7 +249,7 @@ static void add_track_cdrdao(void * data, const char * filename,
 
   bg_metadata_copy(&cdrdao->tracks[cdrdao->num_tracks].metadata,
                    metadata);
-  cdrdao->tracks[cdrdao->num_tracks].filename = bg_strdup((char*)0, filename);
+  cdrdao->tracks[cdrdao->num_tracks].filename = bg_strdup(NULL, filename);
   cdrdao->tracks[cdrdao->num_tracks].pp_only = pp_only;
   
   if(cdrdao->pregap > 0)

@@ -26,8 +26,8 @@
 
 int main(int argc, char ** argv)
   {
-  char * user = (char*)0;
-  char * pass = (char*)0;
+  char * user = NULL;
+  char * pass = NULL;
   int save_auth = 0;
   bg_gtk_init(&argc, &argv, NULL, NULL, NULL);
 

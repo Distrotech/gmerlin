@@ -193,7 +193,7 @@ void bg_yadif_init(bg_yadif_t * di,
   
   format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
                                                   pixelformats,
-                                                  (int*)0);
+                                                  NULL);
 
 #ifdef HAVE_MMX
   di->mmx = 0;

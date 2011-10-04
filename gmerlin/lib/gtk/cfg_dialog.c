@@ -235,7 +235,7 @@ static void reset_section(dialog_section_t * s)
          (s->widgets[i].value.val_str) &&
          strchr(s->widgets[i].value.val_str, ':'))
         {
-        val.val_str = bg_strdup((char*)0, s->widgets[i].value.val_str);
+        val.val_str = bg_strdup(NULL, s->widgets[i].value.val_str);
         pos = strchr(val.val_str, ':');
         if(pos)
           *pos = '\0';
@@ -284,7 +284,7 @@ static void restore_section(dialog_section_t * s, bg_cfg_section_t * cfg_section
          (s->widgets[i].value.val_str) &&
          strchr(s->widgets[i].value.val_str, ':'))
         {
-        val.val_str = bg_strdup((char*)0, s->widgets[i].value.val_str);
+        val.val_str = bg_strdup(NULL, s->widgets[i].value.val_str);
         pos = strchr(val.val_str, ':');
         if(pos)
           *pos = '\0';
@@ -993,7 +993,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
   
   GtkTreeIter root_iter;
   GtkTreeModel * model;
-  const char * translation_domain = (const char *)0;
+  const char * translation_domain = NULL;
   bg_dialog_t * ret = create_dialog(title);
 
   //  fprintf(stderr, "bg_dialog_create\n");
@@ -1077,7 +1077,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
     ret->root_section.children[0] = calloc(1, sizeof(*ret->root_section.children[0]));
     table =
       create_section(*ret->root_section.children, info, section, set_param, get_param,
-                     callback_data, (const char *)0, ret->plugin_reg, NULL);
+                     callback_data, NULL, ret->plugin_reg, NULL);
     gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
     gtk_notebook_set_current_page(GTK_NOTEBOOK(ret->notebook), 1);
     gtk_widget_hide(ret->scrolledwindow);
@@ -1106,7 +1106,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
   GtkWidget * tab_label;
   int i, item_index, section_index;
   GtkTreeModel *model;
-  const char * translation_domain = (const char *)0;
+  const char * translation_domain = NULL;
   dialog_section_t * parent = (dialog_section_t*)_parent;
 
   //  fprintf(stderr, "bg_dialog_add_child %s %p\n", info->name, section);
@@ -1136,7 +1136,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
     
     table = create_section(parent->children[parent->num_children],
                            info, section, set_param, get_param, callback_data,
-                           (const char*)0, d->plugin_reg, NULL);
+                           NULL, d->plugin_reg, NULL);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
 

@@ -34,12 +34,12 @@ static int load_file(bg_plugin_registry_t * plugin_reg,
                      gavl_video_format_t * format)
   {
   bg_track_info_t * ti;
-  *input_handle = (bg_plugin_handle_t*)0;
+  *input_handle = NULL;
   if(!bg_input_plugin_load(plugin_reg,
                            file,
-                           (const bg_plugin_info_t*)0,
+                           NULL,
                            input_handle,
-                           (bg_input_callbacks_t*)0, 0))
+                           NULL, 0))
     {
     fprintf(stderr, "Cannot open %s\n", file);
     return 0;
@@ -80,12 +80,12 @@ static int load_file_compressed(bg_plugin_registry_t * plugin_reg,
                                 gavl_compression_info_t * ci)
   {
   bg_track_info_t * ti;
-  *input_handle = (bg_plugin_handle_t*)0;
+  *input_handle = NULL;
   if(!bg_input_plugin_load(plugin_reg,
                            file,
-                           (const bg_plugin_info_t*)0,
+                           NULL,
                            input_handle,
-                           (bg_input_callbacks_t*)0, 0))
+                           NULL, 0))
     {
     fprintf(stderr, "Cannot open %s\n", file);
     return 0;
@@ -140,8 +140,8 @@ int main(int argc, char ** argv)
 
   gavl_video_frame_t * frame_o;
   gavl_video_frame_t * frame_c;
-  gavl_video_frame_t * frame_ssim_o;
-  gavl_video_frame_t * frame_ssim_c;
+  gavl_video_frame_t * frame_ssim_o = NULL;
+  gavl_video_frame_t * frame_ssim_c = NULL;
   gavl_video_frame_t * frame_ssim_res;
   
   gavl_video_frame_t * frame_1;
@@ -183,7 +183,7 @@ int main(int argc, char ** argv)
   packet_cache[PACKET_CACHE_MAX];
   int packet_cache_size = 0;
 
-  int frame_bytes;
+  int frame_bytes = 0;
 
   int64_t frame_bytes_sum = 0;
   double psnr_sum = 0.0;

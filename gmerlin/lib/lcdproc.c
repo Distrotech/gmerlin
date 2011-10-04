@@ -147,8 +147,8 @@ bg_lcdproc_t * bg_lcdproc_create(bg_player_t * player)
   ret = calloc(1, sizeof(*ret));
   ret->fd = -1;
   ret->queue = bg_msg_queue_create();
-  pthread_mutex_init(&ret->config_mutex, (pthread_mutexattr_t *)0);
-  pthread_mutex_init(&ret->state_mutex, (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->config_mutex, NULL);
+  pthread_mutex_init(&ret->state_mutex, NULL);
   ret->player = player;
   return ret;
   }
@@ -202,7 +202,7 @@ static int do_connect(bg_lcdproc_t* l)
   {
   int i;
   char ** answer_args;
-  char * cmd = (char*)0;
+  char * cmd = NULL;
   
   bg_host_address_t * addr = bg_host_address_create();
 
@@ -805,7 +805,7 @@ static void start_thread(bg_lcdproc_t * l)
   {
   pthread_mutex_lock(&l->state_mutex);
 
-  pthread_create(&l->thread, (pthread_attr_t*)0,
+  pthread_create(&l->thread, NULL,
                  thread_func, l);
 
   l->is_running = 1;
@@ -825,7 +825,7 @@ static void stop_thread(bg_lcdproc_t * l)
 
   pthread_mutex_unlock(&l->state_mutex);
 
-  pthread_join(l->thread, (void**)0);
+  pthread_join(l->thread, NULL);
 
   pthread_mutex_lock(&l->state_mutex);
   l->do_stop = 0;

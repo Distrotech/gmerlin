@@ -46,7 +46,7 @@ bg_chapter_list_t * bg_chapter_list_copy(const bg_chapter_list_t * list)
   bg_chapter_list_t * ret;
 
   if(!list || !list->num_chapters)
-    return (bg_chapter_list_t*)0;
+    return NULL;
   
   ret = bg_chapter_list_create(list->num_chapters);
   for(i = 0; i < ret->num_chapters; i++)
@@ -98,7 +98,7 @@ void bg_chapter_list_insert(bg_chapter_list_t * list, int index,
     memmove(list->chapters + index + 1, list->chapters + index,
             (list->num_chapters - index) * sizeof(*list->chapters));
 
-    list->chapters[index].name = bg_strdup((char*)0, name);
+    list->chapters[index].name = bg_strdup(NULL, name);
     list->chapters[index].time = time;
     list->num_chapters++;
     }

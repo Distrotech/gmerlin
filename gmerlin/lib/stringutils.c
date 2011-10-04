@@ -64,7 +64,7 @@ char * bg_fix_path(char * path)
   if(!len)
     {
     free(path);
-    return (char*)0;
+    return NULL;
     }
   if(path[len-1] != '/')
     {
@@ -88,7 +88,7 @@ char * bg_strdup(char * old_string, const char * new_string)
     {
     if(old_string)
       free(old_string);
-    return (char*)0;
+    return NULL;
     }
 
   if(old_string)
@@ -114,7 +114,7 @@ char * bg_strndup(char * old_string,
     {
     if(old_string)
       free(old_string);
-    return (char*)0;
+    return NULL;
     }
 
   if(old_string)
@@ -141,7 +141,7 @@ char * bg_sprintf(const char * format,...)
   va_start( argp, format);
 
 #ifndef HAVE_VASPRINTF
-  len = vsnprintf((char*)0, 0, format, argp);
+  len = vsnprintf(NULL, 0, format, argp);
   ret = malloc(len+1);
   vsnprintf(ret, len+1, format, argp);
 #else
@@ -183,7 +183,7 @@ char * bg_create_unique_filename(char * template)
       if(err)
         {
         free(filename);
-        return (char*)0;
+        return NULL;
         }
       else
         return filename;
@@ -196,7 +196,7 @@ char * bg_create_unique_filename(char * template)
 char * bg_strcat(char * old_string, const char * tail)
   {
   if(!old_string)
-    return bg_strdup((char*)0, tail);
+    return bg_strdup(NULL, tail);
 
   old_string = realloc(old_string, strlen(old_string) + strlen(tail) + 1);
   strcat(old_string, tail);
@@ -208,7 +208,7 @@ char * bg_strncat(char * old_string, const char * start, const char * end)
   int old_len;
   
   if(!old_string)
-    return bg_strndup((char*)0, start, end);
+    return bg_strndup(NULL, start, end);
 
   old_len = strlen(old_string);
   
@@ -226,7 +226,7 @@ char ** bg_strbreak(const char * str, char delim)
   char ** ret;
   int i;
   if(!str || (*str == '\0'))
-    return (char**)0;
+    return NULL;
     
   pos_c = str;
   
@@ -238,7 +238,7 @@ char ** bg_strbreak(const char * str, char delim)
     }
   ret = calloc(num_entries+1, sizeof(char*));
 
-  ret[0] = bg_strdup((char*)0, str);
+  ret[0] = bg_strdup(NULL, str);
   pos = ret[0];
   for(i = 0; i < num_entries; i++)
     {
@@ -307,7 +307,7 @@ int bg_url_split(const char * url,
   /* Protocol */
     
   if(protocol)
-    *protocol = bg_strndup((char*)0, pos1, pos2);
+    *protocol = bg_strndup(NULL, pos1, pos2);
 
   pos2 += 3;
   pos1 = pos2;
@@ -323,10 +323,10 @@ int bg_url_split(const char * url,
      (at_pos < slash_pos))
     {
     if(user)
-      *user = bg_strndup((char*)0, pos1, colon_pos);
+      *user = bg_strndup(NULL, pos1, colon_pos);
     pos1 = colon_pos + 1;
     if(password)
-      *password = bg_strndup((char*)0, pos1, at_pos);
+      *password = bg_strndup(NULL, pos1, at_pos);
     pos1 = at_pos + 1;
     pos2 = pos1;
     }
@@ -337,7 +337,7 @@ int bg_url_split(const char * url,
     pos2++;
 
   if(hostname)
-    *hostname = bg_strndup((char*)0, pos1, pos2);
+    *hostname = bg_strndup(NULL, pos1, pos2);
 
   switch(*pos2)
     {
@@ -365,9 +365,9 @@ int bg_url_split(const char * url,
     pos1 = pos2;
     pos2 = pos1 + strlen(pos1);
     if(pos1 != pos2)
-      *path = bg_strndup((char*)0, pos1, pos2);
+      *path = bg_strndup(NULL, pos1, pos2);
     else
-      *path = (char*)0;
+      *path = NULL;
     }
   return 1;
   }
@@ -403,7 +403,7 @@ char * bg_descramble_string(const char *str)
   int error;
   
   if (*str != '$')
-    return (bg_strdup ((char*)0, str));
+    return (bg_strdup (NULL, str));
   
   strpos = str + 1;
   newstr = malloc (strlen (strpos) / 2 + 1);
@@ -428,7 +428,7 @@ char * bg_descramble_string(const char *str)
   if(error)
     {
     free (newstr);
-    return (bg_strdup((char*)0, str));
+    return (bg_strdup(NULL, str));
     }
   
   *newpos = '\0';
@@ -446,7 +446,7 @@ const char * bg_get_language_name(const char * iso)
       return bg_language_labels[i];
     i++;
     }
-  return (char*)0;
+  return NULL;
   }
 
 int bg_string_match(const char * key,
@@ -518,7 +518,7 @@ char * bg_toupper(const char * str)
     }
   *pos_2 = 0;
 
-  ret = bg_convert_string(cnv2, tmp_string_2, len, (int*)0);
+  ret = bg_convert_string(cnv2, tmp_string_2, len, NULL);
 
   free(tmp_string_1);
   free(tmp_string_2);

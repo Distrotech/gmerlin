@@ -45,7 +45,7 @@ static void close_edl(void * data)
   if(e->edl)
     {
     bg_edl_destroy(e->edl);
-    e->edl = (bg_edl_t*)0;
+    e->edl = NULL;
     }
   }
 

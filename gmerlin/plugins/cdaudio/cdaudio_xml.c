@@ -77,7 +77,7 @@ void bg_cdaudio_save(bg_track_info_t * tracks, int num_tracks,
 
   for(i = 0; i < num_tracks; i++)
     {
-    child = xmlNewTextChild(xml_cd, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
+    child = xmlNewTextChild(xml_cd, NULL, (xmlChar*)"TRACK", NULL);
     xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
     bg_metadata_2_xml(child,
                       &tracks[i].metadata);

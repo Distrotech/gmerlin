@@ -125,10 +125,10 @@ char * bg_uri_to_string(const char * pos1, int len)
       hostname_len = strlen(hostname);
 
       if((len - 7) < hostname_len)
-        return (char*)0;
+        return NULL;
       
       if(strncmp(&pos1[7], hostname, strlen(hostname)))
-        return (char *)0;
+        return NULL;
       start = &pos1[7+hostname_len];
       }
     else /* Gnome Case */
@@ -149,7 +149,7 @@ char * bg_uri_to_string(const char * pos1, int len)
          (!sscanf(&start[1], "%02x", &real_char)))
         {
         free(ret);
-        return (char*)0;
+        return NULL;
         }
       start += 3;
       *ret_pos = real_char;

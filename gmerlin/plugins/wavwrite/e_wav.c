@@ -315,7 +315,7 @@ static const bg_parameter_info_t audio_parameters[] =
       .long_name =   TRS("Bits per sample"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "16" },
-      .multi_names =     (char const *[]){ "8", "16", "24", "32", (char*)0 },
+      .multi_names =     (char const *[]){ "8", "16", "24", "32", NULL },
     },
     { /* End of parameters */ }
   };

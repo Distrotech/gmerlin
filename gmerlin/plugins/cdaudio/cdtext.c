@@ -51,11 +51,11 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
     
   /* Global information */
 
-  char * artist  = (char*)0;
-  char * author  = (char*)0;
-  char * album   = (char*)0;
-  char * genre   = (char*)0;
-  char * comment = (char*)0;
+  char * artist  = NULL;
+  char * author  = NULL;
+  char * album   = NULL;
+  char * genre   = NULL;
+  char * comment = NULL;
   const cdtext_t * cdtext;
 
   /* Get information for the whole disc */

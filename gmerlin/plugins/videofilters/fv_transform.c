@@ -174,13 +174,13 @@ static const bg_parameter_info_t parameters[] =
       .flags = BG_PARAMETER_SYNC,
       .multi_names = (const char*[]){ "rotate", "affine", "perspective",
                                       "lens_effect", "whirl",
-                                      (char*)0 },
+                                      NULL },
       .multi_labels = (const char*[]){ TRS("Rotate"),
                                        TRS("Generic affine"),
                                        TRS("Perspective"),
                                        TRS("Lens effect"),
                                        TRS("Pinch/whirl"),
-                                       (char*)0 },
+                                       NULL },
       .val_default = { .val_str = "rotate" },
       .help_string = TRS("Choose Transformation method. Each method can be configured in it's section."),
       
@@ -644,7 +644,7 @@ static void set_input_format_transform(void * priv,
     if(vp->frame)
       {
       gavl_video_frame_destroy(vp->frame);
-      vp->frame = (gavl_video_frame_t*)0;
+      vp->frame = NULL;
       }
     vp->sar = (double)format->pixel_width / (double)format->pixel_height;
     vp->changed = 1;

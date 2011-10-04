@@ -176,7 +176,7 @@ void bg_transcoder_pp_connect(bg_transcoder_pp_t * p, bg_transcoder_t * t)
 void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
   {
   bg_msg_t *msg;
-  char * str = (char*)0;
+  char * str = NULL;
   char * ext;
   int pp_only = 0;
 
@@ -208,7 +208,7 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
           {
           bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Not adding %s: Unsupported filename", str);
           free(str);
-          str = (char*)0;
+          str = NULL;
           }
         }
       if(str)
@@ -217,7 +217,7 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
         p->num_tracks++;
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scheduling %s for postprocessing", str);
         free(str);
-        str = (char*)0;
+        str = NULL;
         }
       }
     bg_msg_queue_unlock_read(p->msg_in);
@@ -247,7 +247,7 @@ void bg_transcoder_pp_stop(bg_transcoder_pp_t * p)
 void bg_transcoder_pp_run(bg_transcoder_pp_t * p)
   {
   pthread_create(&p->thread,
-                 (pthread_attr_t*)0, thread_func, p);
+                 NULL, thread_func, p);
   }
 
 void bg_transcoder_pp_finish(bg_transcoder_pp_t * p)

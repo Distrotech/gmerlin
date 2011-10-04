@@ -229,14 +229,14 @@ bg_edl_t * bg_edl_load(const char * filename)
   xml_doc = bg_xml_parse_file(filename);
 
   if(!xml_doc)
-    return (bg_edl_t*)0;
+    return NULL;
 
   node = xml_doc->children;
 
   if(BG_XML_STRCMP(node->name, edl_key))
     {
     xmlFreeDoc(xml_doc);
-    return (bg_edl_t*)0;
+    return NULL;
     }
 
   node = node->children;
@@ -295,7 +295,7 @@ static void save_streams(xmlNodePtr parent, const bg_edl_stream_t * s, int num)
 
   for(i = 0; i < num; i++)
     {
-    stream_node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)stream_key, NULL);
+    stream_node = xmlNewTextChild(parent, NULL, (xmlChar*)stream_key, NULL);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
     xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
@@ -304,7 +304,7 @@ static void save_streams(xmlNodePtr parent, const bg_edl_stream_t * s, int num)
     BG_XML_SET_PROP(stream_node, "scale", tmp_string);
     free(tmp_string);
     
-    segments_node = xmlNewTextChild(stream_node, (xmlNsPtr)0, (xmlChar*)segments_key, NULL);
+    segments_node = xmlNewTextChild(stream_node, NULL, (xmlChar*)segments_key, NULL);
 
     xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
 
@@ -316,7 +316,7 @@ static void save_streams(xmlNodePtr parent, const bg_edl_stream_t * s, int num)
 
     for(j = 0; j < s[i].num_segments; j++)
       {
-      segment_node = xmlNewTextChild(segments_node, (xmlNsPtr)0, (xmlChar*)segment_key, NULL);
+      segment_node = xmlNewTextChild(segments_node, NULL, (xmlChar*)segment_key, NULL);
 
       
       tmp_string = bg_sprintf("%d", s[i].segments[j].timescale);
@@ -327,42 +327,42 @@ static void save_streams(xmlNodePtr parent, const bg_edl_stream_t * s, int num)
 
       if(s[i].segments[j].url)
         {
-        node = xmlNewTextChild(segment_node, (xmlNsPtr)0, (xmlChar*)url_key, NULL);
+        node = xmlNewTextChild(segment_node, NULL, (xmlChar*)url_key, NULL);
         xmlAddChild(node, BG_XML_NEW_TEXT(s[i].segments[j].url));
         xmlAddChild(segment_node, BG_XML_NEW_TEXT("\n"));
         }
 
-      node = xmlNewTextChild(segment_node, (xmlNsPtr)0, (xmlChar*)track_index_key, NULL);
+      node = xmlNewTextChild(segment_node, NULL, (xmlChar*)track_index_key, NULL);
       tmp_string = bg_sprintf("%d", s[i].segments[j].track);
       xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
       xmlAddChild(segment_node, BG_XML_NEW_TEXT("\n"));
       free(tmp_string);
       
-      node = xmlNewTextChild(segment_node, (xmlNsPtr)0, (xmlChar*)stream_index_key, NULL);
+      node = xmlNewTextChild(segment_node, NULL, (xmlChar*)stream_index_key, NULL);
       tmp_string = bg_sprintf("%d", s[i].segments[j].stream);
       xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
       xmlAddChild(segment_node, BG_XML_NEW_TEXT("\n"));
       free(tmp_string);
 
-      node = xmlNewTextChild(segment_node, (xmlNsPtr)0, (xmlChar*)src_time_key, NULL);
+      node = xmlNewTextChild(segment_node, NULL, (xmlChar*)src_time_key, NULL);
       tmp_string = bg_sprintf("%"PRId64, s[i].segments[j].src_time);
       xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
       xmlAddChild(segment_node, BG_XML_NEW_TEXT("\n"));
       free(tmp_string);
 
-      node = xmlNewTextChild(segment_node, (xmlNsPtr)0, (xmlChar*)dst_time_key, NULL);
+      node = xmlNewTextChild(segment_node, NULL, (xmlChar*)dst_time_key, NULL);
       tmp_string = bg_sprintf("%"PRId64, s[i].segments[j].dst_time);
       xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
       xmlAddChild(segment_node, BG_XML_NEW_TEXT("\n"));
       free(tmp_string);
 
-      node = xmlNewTextChild(segment_node, (xmlNsPtr)0, (xmlChar*)dst_duration_key, NULL);
+      node = xmlNewTextChild(segment_node, NULL, (xmlChar*)dst_duration_key, NULL);
       tmp_string = bg_sprintf("%"PRId64, s[i].segments[j].dst_duration);
       xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
       xmlAddChild(segment_node, BG_XML_NEW_TEXT("\n"));
       free(tmp_string);
 
-      node = xmlNewTextChild(segment_node, (xmlNsPtr)0, (xmlChar*)speed_key, NULL);
+      node = xmlNewTextChild(segment_node, NULL, (xmlChar*)speed_key, NULL);
       tmp_string = bg_sprintf("%d:%d", s[i].segments[j].speed_num, s[i].segments[j].speed_den);
       xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
       xmlAddChild(segment_node, BG_XML_NEW_TEXT("\n"));
@@ -393,18 +393,18 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
 
   if(edl->url)
     {
-    node = xmlNewTextChild(xml_edl, (xmlNsPtr)0, (xmlChar*)url_key, NULL);
+    node = xmlNewTextChild(xml_edl, NULL, (xmlChar*)url_key, NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(edl->url));
     xmlAddChild(xml_edl, BG_XML_NEW_TEXT("\n"));
     }
   
   if(edl->num_tracks)
     {
-    node = xmlNewTextChild(xml_edl, (xmlNsPtr)0, (xmlChar*)tracks_key, NULL);
+    node = xmlNewTextChild(xml_edl, NULL, (xmlChar*)tracks_key, NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     for(i = 0; i < edl->num_tracks; i++)
       {
-      child_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)track_key, NULL);
+      child_node = xmlNewTextChild(node, NULL, (xmlChar*)track_key, NULL);
       xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
 
@@ -413,7 +413,7 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
       
       if(edl->tracks[i].num_audio_streams)
         {
-        streams_node = xmlNewTextChild(child_node, (xmlNsPtr)0, (xmlChar*)audio_streams_key, NULL);
+        streams_node = xmlNewTextChild(child_node, NULL, (xmlChar*)audio_streams_key, NULL);
         xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
 
@@ -422,7 +422,7 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
         }
       if(edl->tracks[i].num_video_streams)
         {
-        streams_node = xmlNewTextChild(child_node, (xmlNsPtr)0, (xmlChar*)video_streams_key, NULL);
+        streams_node = xmlNewTextChild(child_node, NULL, (xmlChar*)video_streams_key, NULL);
         xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
 
@@ -432,7 +432,7 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
         }
       if(edl->tracks[i].num_subtitle_text_streams)
         {
-        streams_node = xmlNewTextChild(child_node, (xmlNsPtr)0, (xmlChar*)subtitle_text_streams_key, NULL);
+        streams_node = xmlNewTextChild(child_node, NULL, (xmlChar*)subtitle_text_streams_key, NULL);
         xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
 
@@ -442,7 +442,7 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
         }
       if(edl->tracks[i].num_subtitle_overlay_streams)
         {
-        streams_node = xmlNewTextChild(child_node, (xmlNsPtr)0, (xmlChar*)subtitle_overlay_streams_key, NULL);
+        streams_node = xmlNewTextChild(child_node, NULL, (xmlChar*)subtitle_overlay_streams_key, NULL);
         xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
 

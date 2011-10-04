@@ -63,8 +63,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Input Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "record" },
-      .multi_names =     (char const *[]){ "record", "monitor", (char*)0 },
-      .multi_labels =    (char const *[]){ TRS("Record"), TRS("Monitor"), (char*)0 },
+      .multi_names =     (char const *[]){ "record", "monitor", NULL },
+      .multi_labels =    (char const *[]){ TRS("Record"), TRS("Monitor"), NULL },
     },
     { /* End of parameters */ }
   };
@@ -142,7 +142,7 @@ static int open_esd(void * data,
     
   if(!e->hostname || (*(e->hostname) == '\0'))
     {
-    esd_host = (const char*)0;
+    esd_host = NULL;
     }
   else
     esd_host = e->hostname;

@@ -276,7 +276,7 @@ static void set_input_format_zoom(void * priv,
   if(vp->frame)
     {
     gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
+    vp->frame = NULL;
     }
   vp->changed = 1;
   }

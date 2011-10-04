@@ -94,7 +94,7 @@ static void plugin_change_callback(bg_gtk_plugin_menu_t * m, void * data)
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_drivesel_t * f;
-  const char * plugin = (const char*)0;
+  const char * plugin = NULL;
 
   char * drives[2];
   

@@ -36,8 +36,8 @@ char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
   xmlNodePtr node;
   xmlNodePtr child;
   
-  char * filename = (char*)0;
-  xmlDocPtr doc = (xmlDocPtr)0;
+  char * filename = NULL;
+  xmlDocPtr doc = NULL;
   
   filename = bg_sprintf("%s/skin.xml", directory);
   doc = xmlParseFile(filename);

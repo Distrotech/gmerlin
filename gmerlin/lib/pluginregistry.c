@@ -129,7 +129,7 @@ static void make_cmp_name(bg_plugin_info_t * i)
   tmp_string =
     bg_utf8_to_system(TRD(i->long_name, i->gettext_domain), -1);
   
-  len = strxfrm((char*)0, tmp_string, 0);
+  len = strxfrm(NULL, tmp_string, 0);
   i->cmp_name = malloc(len+1);
   strxfrm(i->cmp_name, tmp_string, len+1);
   free(tmp_string);
@@ -217,7 +217,7 @@ static bg_plugin_info_t * sort_by_priority(bg_plugin_info_t * list)
   for(i = 0; i < num_plugins-1; i++)
     arr[i]->next = arr[i+1];
   if(num_plugins>0)
-    arr[num_plugins-1]->next = (bg_plugin_info_t*)0;
+    arr[num_plugins-1]->next = NULL;
   list = arr[0];
   /* Free array */
   free(arr);
@@ -234,7 +234,7 @@ find_by_dll(bg_plugin_info_t * info, const char * filename)
       return info;
     info = info->next;
     }
-  return (bg_plugin_info_t*)0;
+  return NULL;
   }
 
 static bg_plugin_info_t *
@@ -246,7 +246,7 @@ find_by_name(bg_plugin_info_t * info, const char * name)
       return info;
     info = info->next;
     }
-  return (bg_plugin_info_t*)0;
+  return NULL;
   }
 
 const bg_plugin_info_t * bg_plugin_find_by_name(bg_plugin_registry_t * reg,
@@ -265,7 +265,7 @@ const bg_plugin_info_t * bg_plugin_find_by_protocol(bg_plugin_registry_t * reg,
       return info;
     info = info->next;
     }
-  return (bg_plugin_info_t*)0;
+  return NULL;
   }
 
 
@@ -275,11 +275,11 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
                                                     int typemask)
   {
   char * extension;
-  bg_plugin_info_t * info, *ret = (bg_plugin_info_t*)0;
+  bg_plugin_info_t * info, *ret = NULL;
   int max_priority = BG_PLUGIN_PRIORITY_MIN - 1;
 
   if(!filename)
-    return (const bg_plugin_info_t*)0;
+    return NULL;
   
   
   info = reg->entries;
@@ -287,7 +287,7 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
 
   if(!extension)
     {
-    return (const bg_plugin_info_t *)0;
+    return NULL;
     }
   extension++;
   
@@ -322,7 +322,7 @@ static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
   if(info == list)
     {
     list = list->next;
-    info->next = (bg_plugin_info_t*)0;
+    info->next = NULL;
     return list;
     }
 
@@ -332,7 +332,7 @@ static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
     before = before->next;
     
   before->next = info->next;
-  info->next = (bg_plugin_info_t*)0;
+  info->next = NULL;
   return list;
   }
 
@@ -556,14 +556,14 @@ static bg_plugin_info_t * get_info(void * test_module,
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version", filename);
     dlclose(test_module);
-    return (bg_plugin_info_t*)0;
+    return NULL;
     }
   plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));
   if(!plugin)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No symbol the_plugin in %s", filename);
     dlclose(test_module);
-    return (bg_plugin_info_t*)0;
+    return NULL;
     }
   if(!plugin->priority)
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Plugin %s has zero priority",
@@ -578,7 +578,7 @@ static bg_plugin_info_t * get_info(void * test_module,
         {
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Not loading %s (blacklisted)", plugin->name);
         dlclose(test_module);
-        return (bg_plugin_info_t*)0;
+        return NULL;
         }
       i++;
       }
@@ -601,7 +601,6 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
                         const bg_plugin_registry_options_t * opt)
   {
   bg_plugin_info_t * ret;
-  //  bg_plugin_info_t * end = (bg_plugin_info_t *)0;
   DIR * dir;
   struct dirent * entry;
   char filename[FILENAME_MAX];
@@ -618,14 +617,14 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
   if(_file_info)
     file_info = *_file_info;
   else
-    file_info = (bg_plugin_info_t *)0;
+    file_info = NULL;
   
-  ret = (bg_plugin_info_t *)0;
+  ret = NULL;
     
   dir = opendir(directory);
   
   if(!dir)
-    return (bg_plugin_info_t*)0;
+    return NULL;
 
   while((entry = readdir(dir)))
     {
@@ -780,7 +779,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   
   while(file_info)
     {
-    tmp_string = bg_strdup((char*)0, file_info->module_filename);
+    tmp_string = bg_strdup(NULL, file_info->module_filename);
     pos = strrchr(tmp_string, '/');
     if(pos) *pos = '\0';
     
@@ -815,7 +814,7 @@ static bg_plugin_info_t * scan_multi(const char * path,
   char ** real_paths;
   int num;
   
-  bg_plugin_info_t * ret = (bg_plugin_info_t *)0;
+  bg_plugin_info_t * ret = NULL;
   bg_plugin_info_t * tmp_info;
   int do_scan;
   int i, j;
@@ -896,7 +895,7 @@ bg_plugin_registry_t *
 
   /* Load registry file */
 
-  file_info = (bg_plugin_info_t*)0; 
+  file_info = NULL; 
   
   filename = bg_search_file_read("", "plugins.xml");
   if(filename)
@@ -1033,14 +1032,14 @@ static bg_plugin_info_t * find_by_index(bg_plugin_info_t * info,
       }
     test_info = test_info->next;
     }
-  return (bg_plugin_info_t*)0;
+  return NULL;
   }
 
 static bg_plugin_info_t * find_by_priority(bg_plugin_info_t * info,
                                            uint32_t type_mask,
                                            uint32_t flag_mask)
   {
-  bg_plugin_info_t * test_info, *ret = (bg_plugin_info_t*)0;
+  bg_plugin_info_t * test_info, *ret = NULL;
   int priority_max = BG_PLUGIN_PRIORITY_MIN - 1;
   
   test_info = info;
@@ -1223,7 +1222,7 @@ static const char * get_default_key(bg_plugin_type_t type, uint32_t flag_mask)
     i++;
     }
   
-  return (const char*)0;
+  return NULL;
   }
 
 void bg_plugin_registry_set_default(bg_plugin_registry_t * r,
@@ -1243,7 +1242,7 @@ bg_plugin_registry_get_default(bg_plugin_registry_t * r,
                                bg_plugin_type_t type, uint32_t flag_mask)
   {
   const char * key;
-  const char * name = (const char*)0;
+  const char * name = NULL;
   const bg_plugin_info_t * ret;
   
   key = get_default_key(type, flag_mask);
@@ -1362,8 +1361,8 @@ bg_plugin_registry_load_image(bg_plugin_registry_t * r,
   const bg_plugin_info_t * info;
   
   bg_image_reader_plugin_t * ir;
-  bg_plugin_handle_t * handle = (bg_plugin_handle_t *)0;
-  gavl_video_frame_t * ret = (gavl_video_frame_t*)0;
+  bg_plugin_handle_t * handle = NULL;
+  gavl_video_frame_t * ret = NULL;
   
   info = bg_plugin_find_by_filename(r, filename, BG_PLUGIN_IMAGE_READER);
 
@@ -1400,7 +1399,7 @@ bg_plugin_registry_load_image(bg_plugin_registry_t * r,
   fail:
   if(ret)
     gavl_video_frame_destroy(ret);
-  return (gavl_video_frame_t*)0;
+  return NULL;
   }
 
 void
@@ -1413,8 +1412,8 @@ bg_plugin_registry_save_image(bg_plugin_registry_t * r,
   gavl_video_format_t tmp_format;
   gavl_video_converter_t * cnv;
   bg_image_writer_plugin_t * iw;
-  bg_plugin_handle_t * handle = (bg_plugin_handle_t *)0;
-  gavl_video_frame_t * tmp_frame = (gavl_video_frame_t*)0;
+  bg_plugin_handle_t * handle = NULL;
+  gavl_video_frame_t * tmp_frame = NULL;
   
   info = bg_plugin_find_by_filename(r, filename, BG_PLUGIN_IMAGE_WRITER);
 
@@ -1460,7 +1459,7 @@ bg_plugin_handle_t * bg_plugin_handle_create()
   {
   bg_plugin_handle_t * ret;
   ret = calloc(1, sizeof(*ret));
-  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex, NULL);
   return ret;
   }
 
@@ -1470,12 +1469,12 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
   bg_plugin_handle_t * ret;
 
   if(!info)
-    return (bg_plugin_handle_t*)0;
+    return NULL;
   
   ret = bg_plugin_handle_create();
   ret->plugin_reg = reg;
   
-  pthread_mutex_init(&ret->mutex,(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&ret->mutex, NULL);
 
   if(info->module_filename)
     {
@@ -1515,7 +1514,7 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
         break;
 #ifdef HAVE_LV
       case BG_PLUGIN_API_LV:
-        if(!bg_lv_load(ret, info->name, info->flags, (char*)0))
+        if(!bg_lv_load(ret, info->name, info->flags, NULL))
           goto fail;
         break;
 #endif
@@ -1548,7 +1547,7 @@ fail:
   if(ret->dll_handle)
     dlclose(ret->dll_handle);
   free(ret);
-  return (bg_plugin_handle_t*)0;
+  return NULL;
   }
 
 static void apply_parameters(bg_plugin_registry_t * reg,
@@ -1591,13 +1590,13 @@ bg_plugin_handle_t * bg_ov_plugin_load(bg_plugin_registry_t * reg,
   if(info->type != BG_PLUGIN_OUTPUT_VIDEO)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid plugin type for video output");
-    return (bg_plugin_handle_t *)0;
+    return NULL;
     }
   if(!(info->flags & BG_PLUGIN_EMBED_WINDOW) && window_id)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Plugin %s doesn't support embedded windows", info->name);
-    return (bg_plugin_handle_t *)0;
+    return NULL;
     }
   
   ret = load_plugin(reg, info);
@@ -1720,7 +1719,7 @@ void bg_plugin_registry_find_devices(bg_plugin_registry_t * reg,
   handle = bg_plugin_load(reg, info);
     
   bg_device_info_destroy(info->devices);
-  info->devices = (bg_device_info_t*)0;
+  info->devices = NULL;
   
   if(!handle || !handle->plugin->find_devices)
     return;
@@ -1772,7 +1771,7 @@ static void load_input_plugin(bg_plugin_registry_t * reg,
     if(*ret)
       {
       bg_plugin_unref(*ret);
-      *ret = (bg_plugin_handle_t*)0;
+      *ret = NULL;
       }
     *ret = bg_plugin_load(reg, info);
     }
@@ -1785,13 +1784,13 @@ static int input_plugin_load(bg_plugin_registry_t * reg,
                              bg_input_callbacks_t * callbacks)
   {
   const char * real_location;
-  char * protocol = (char*)0, * path = (char*)0;
+  char * protocol = NULL, * path = NULL;
   
   int num_plugins, i;
   uint32_t flags;
   bg_input_plugin_t * plugin;
   int try_and_error = 1;
-  const bg_plugin_info_t * first_plugin = (const bg_plugin_info_t*)0;
+  const bg_plugin_info_t * first_plugin = NULL;
   
   if(!location)
     return 0;
@@ -1807,10 +1806,10 @@ static int input_plugin_load(bg_plugin_registry_t * reg,
       {
       if(bg_url_split(location,
                       &protocol,
-                      (char **)0, // user,
-                      (char **)0, // password,
-                      (char **)0, // hostname,
-                      (int *)0,   //  port,
+                      NULL, // user,
+                      NULL, // password,
+                      NULL, // hostname,
+                      NULL,   //  port,
                       &path))
         {
         info = bg_plugin_find_by_protocol(reg, protocol);

@@ -94,7 +94,7 @@ static char const * const try_charsets[] =
   {
     "ISO8859-1",
     "UTF-8",
-    (char*)0,
+    NULL,
   };
   
 char * bg_system_to_utf8(const char * str, int len)

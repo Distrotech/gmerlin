@@ -55,7 +55,7 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
   void (*get_param_value) (f0r_instance_t instance,
                            f0r_param_t param, int param_index);
   
-  bg_parameter_info_t * ret = (bg_parameter_info_t *)0;
+  bg_parameter_info_t * ret = NULL;
   f0r_param_info_t  param_info;
   
   if(!plugin_info->num_params)
@@ -66,7 +66,7 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Cannot load frei0r plugin: %s", dlerror());
-    return (bg_parameter_info_t *)0;
+    return NULL;
     }
   
   construct = dlsym(dll_handle, "f0r_construct");
@@ -74,21 +74,21 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Cannot load frei0r plugin: %s", dlerror());
-    return (bg_parameter_info_t *)0;
+    return NULL;
     }
   destruct = dlsym(dll_handle, "f0r_destruct");
   if(!destruct)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Cannot load frei0r plugin: %s", dlerror());
-    return (bg_parameter_info_t *)0;
+    return NULL;
     }
   get_param_value = dlsym(dll_handle, "f0r_get_param_value");
   if(!get_param_value)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Cannot load frei0r plugin: %s", dlerror());
-    return (bg_parameter_info_t *)0;
+    return NULL;
     }
   
   init = dlsym(dll_handle, "f0r_init");
@@ -107,10 +107,10 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
     memset(&param_info, 0, sizeof(param_info));
     get_param_info(&param_info, i);
 
-    ret[i].name = bg_strdup((char*)0, param_info.name);
-    ret[i].long_name = bg_strdup((char*)0, param_info.name);
+    ret[i].name = bg_strdup(NULL, param_info.name);
+    ret[i].long_name = bg_strdup(NULL, param_info.name);
     ret[i].flags = BG_PARAMETER_SYNC;
-    ret[i].help_string = bg_strdup((char*)0,
+    ret[i].help_string = bg_strdup(NULL,
                                        param_info.explanation);
     switch(param_info.type)
       {
@@ -170,7 +170,7 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
 bg_plugin_info_t *
 bg_frei0r_get_info(void * dll_handle, const char * filename)
   {
-  bg_plugin_info_t * ret = (bg_plugin_info_t *)0;
+  bg_plugin_info_t * ret = NULL;
 
   f0r_plugin_info_t plugin_info;
   
@@ -193,7 +193,7 @@ bg_frei0r_get_info(void * dll_handle, const char * filename)
   ret->type        = BG_PLUGIN_FILTER_VIDEO;
   ret->api         = BG_PLUGIN_API_FREI0R;
   ret->flags       = BG_PLUGIN_FILTER_1;
-  ret->module_filename = bg_strdup((char*)0, filename);
+  ret->module_filename = bg_strdup(NULL, filename);
 
   // fprintf(stderr, "Loading %s\n", ret->name);
   
@@ -373,7 +373,7 @@ static void set_input_format_frei0r(void *priv, gavl_video_format_t *format, int
     case F0R_COLOR_MODEL_PACKED32:
       format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
                                                       packed32_formats,
-                                                      (int*)0);
+                                                      NULL);
       break;
     }
   /* Frei0r demands image sizes to be a multiple of 8. We fake this by making a larger
@@ -404,7 +404,7 @@ static void set_input_format_frei0r(void *priv, gavl_video_format_t *format, int
   if(vp->out_frame)
     {
     gavl_video_frame_destroy(vp->out_frame);
-    vp->out_frame = (gavl_video_frame_t*)0;
+    vp->out_frame = NULL;
     }
   }
 

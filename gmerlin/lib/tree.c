@@ -140,7 +140,7 @@ static bg_album_t * insert_album_after(bg_album_t * list,
   {
   if(!list)
     {
-    new_album->next = (bg_album_t*)0;
+    new_album->next = NULL;
     return new_album;
     }
   if(!sibling)
@@ -162,7 +162,7 @@ static bg_album_t * insert_album_before(bg_album_t * list,
   
   if(!list)
     {
-    new_album->next = (bg_album_t*)0;
+    new_album->next = NULL;
     return new_album;
     }
   
@@ -298,7 +298,7 @@ static bg_album_t * find_by_plugin(bg_album_t * albums,
       return albums;
     albums = albums->next;
     }
-  return (bg_album_t *)0;
+  return NULL;
   }
 
 static bg_album_t * find_by_device(bg_album_t * albums,
@@ -310,7 +310,7 @@ static bg_album_t * find_by_device(bg_album_t * albums,
       return albums;
     albums = albums->next;
     }
-  return (bg_album_t *)0;
+  return NULL;
   
   }
 
@@ -398,7 +398,7 @@ bg_media_tree_create(const char * filename,
   
   ret = calloc(1, sizeof(*ret));
 
-  ret->cfg_section = bg_cfg_section_create((char*)0);
+  ret->cfg_section = bg_cfg_section_create(NULL);
   
   ret->com.plugin_reg = plugin_reg;
   ret->com.set_current_callback = bg_media_tree_set_current;
@@ -533,7 +533,7 @@ bg_album_t * bg_media_tree_append_album(bg_media_tree_t * tree,
 void bg_media_tree_remove_album(bg_media_tree_t * tree,
                                 bg_album_t * album)
   {
-  char * tmp_path = (char *)0;
+  char * tmp_path = NULL;
 
   if(album->parent)
     bg_album_remove_from_parent(album);
@@ -659,7 +659,7 @@ void bg_media_tree_move_album_before(bg_media_tree_t * t,
   else
     {
     t->children = insert_album_before(t->children, album, after);
-    album->parent = (bg_album_t*)0;
+    album->parent = NULL;
     }
   }
 
@@ -693,7 +693,7 @@ void bg_media_tree_move_album_after(bg_media_tree_t * t,
   else
     {
     t->children = insert_album_after(t->children, album, before);
-    album->parent = (bg_album_t*)0;
+    album->parent = NULL;
     }
 
   
@@ -754,13 +754,13 @@ void bg_media_tree_move_album(bg_media_tree_t * t,
 
   if(!parent)
     {
-    t->children = insert_album_before(t->children, album, (bg_album_t*)0);
-    album->parent = (bg_album_t*)0;
+    t->children = insert_album_before(t->children, album, NULL);
+    album->parent = NULL;
     }
   else
     {
     parent->children = insert_album_before(parent->children,
-                                           album, (bg_album_t*)0);
+                                           album, NULL);
     album->parent = parent;
     }
   }
@@ -797,7 +797,7 @@ void bg_media_tree_set_current(void * data,
     }
   else
     {
-    t->com.current_entry = (bg_album_entry_t*)0;
+    t->com.current_entry = NULL;
     }
 
   if(last_current_album &&
@@ -871,8 +871,8 @@ static void create_shuffle_list(bg_media_tree_t * tree, bg_shuffle_mode_t shuffl
     
   /* 1. Create the list */
   
-  list       = (bg_shuffle_list_t*)0;
-  tmp_entry  = (bg_shuffle_list_t*)0;
+  list       = NULL;
+  tmp_entry  = NULL;
 
   if(shuffle_mode == BG_SHUFFLE_MODE_ALL)
     {
@@ -1073,8 +1073,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   bg_input_plugin_t * input_plugin;
-  bg_plugin_handle_t * ret = (bg_plugin_handle_t *)0;
-  //  char * system_location = (char*)0;
+  bg_plugin_handle_t * ret = NULL;
+
   if(!t->com.current_entry || !t->com.current_album)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Doubleclick on a track first");
@@ -1138,7 +1138,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   
   fail:
   bg_media_tree_mark_error(t, 1);
-  return (bg_plugin_handle_t *)0;
+  return NULL;
   }
 
 bg_album_t * bg_media_tree_get_current_album(bg_media_tree_t * t)
@@ -1149,7 +1149,7 @@ bg_album_t * bg_media_tree_get_current_album(bg_media_tree_t * t)
 const char * bg_media_tree_get_current_track_name(bg_media_tree_t * t)
   {
   if(!t->com.current_album || !t->com.current_entry)
-    return (const char *)0;
+    return NULL;
   return t->com.current_entry->name;
   }
 
@@ -1318,7 +1318,7 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
     return;
 
   urls[0] = filename;
-  urls[1] = (char*)0;
+  urls[1] = NULL;
   
   while(!readdir_r(dir, &dent.d, &dent_ptr))
     {
@@ -1346,12 +1346,12 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
       if(watch)
         bg_album_insert_file_before(a, filename,
                                     plugin,
-                                    (bg_album_entry_t *)0,
+                                    NULL,
                                     stat_buf.st_mtime);
       else
         bg_album_insert_file_before(a, filename,
                                     plugin,
-                                    (bg_album_entry_t *)0,
+                                    NULL,
                                     0);
       }
     if(t->change_callback)
@@ -1453,8 +1453,8 @@ void bg_album_common_prepare_callbacks(bg_album_common_t * com, bg_album_entry_t
   {
   if(!entry)
     {
-    if(com->username) { free(com->username); com->username = (char*)0; }
-    if(com->password) { free(com->password); com->password = (char*)0; }
+    if(com->username) { free(com->username); com->username = NULL; }
+    if(com->password) { free(com->password); com->password = NULL; }
     com->save_auth = 0;
     }
   else
@@ -1484,19 +1484,19 @@ void bg_album_common_set_auth_info(bg_album_common_t * com, bg_album_entry_t * e
 
 bg_album_t * bg_media_tree_get_device_album(bg_media_tree_t * t, const char * gml)
   {
-  bg_album_t * ret = (bg_album_t *)0;
+  bg_album_t * ret = NULL;
   const bg_plugin_info_t * plugin_info;
-  char * protocol = (char *)0;
-  char * path = (char *)0;
+  char * protocol = NULL;
+  char * path = NULL;
   
   if(!bg_url_split(gml,
                    &protocol,
-                   (char **)0, // user,
-                   (char **)0, //  password,
-                   (char **)0, //  hostname,
-                   (int*)0, //  port,
+                   NULL, // user,
+                   NULL, //  password,
+                   NULL, //  hostname,
+                   NULL, //  port,
                    &path)) //  path)
-    return (bg_album_t*)0;
+    return NULL;
 
   /* 1. Seek the plugin */
   plugin_info = bg_plugin_find_by_protocol(t->com.plugin_reg, protocol);
@@ -1546,7 +1546,7 @@ void bg_media_tree_copy_current_to_favourites(bg_media_tree_t * t)
   bg_album_insert_entries_before(t->com.favourites,
                                  bg_album_entry_copy(t->com.current_album,
                                                      t->com.current_entry),
-                                 (bg_album_entry_t*)0);
+                                 NULL);
   
   if(!was_open)
     bg_album_close(t->com.favourites);
@@ -1572,7 +1572,7 @@ void bg_media_tree_check_sync(bg_media_tree_t * t)
   FD_ZERO(&read_fds);
   FD_SET(t->com.inotify_fd, &read_fds);
   if(!select(t->com.inotify_fd+1,
-             &read_fds, (fd_set*)0, (fd_set*)0,&timeout))
+             &read_fds, NULL, NULL,&timeout))
     return;
 
   result = read(t->com.inotify_fd, buffer, BUF_LEN);

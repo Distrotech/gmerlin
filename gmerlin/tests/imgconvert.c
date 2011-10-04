@@ -37,7 +37,7 @@ bg_parameter_info_t conversion_parameters[] =
     { /* End of parameters */ }
   };
 
-bg_cfg_section_t * conversion_section = (bg_cfg_section_t *)0;
+bg_cfg_section_t * conversion_section = NULL;
 bg_gavl_video_options_t vopt;
 
 static void set_video_parameter(void * data, const char * name,

@@ -391,7 +391,7 @@ static void  destroy_v4l(void * priv)
   if(v4l->pwc_priv)
     {
     bg_pwc_destroy(v4l->pwc_priv);
-    v4l->pwc_priv = (void*)0;
+    v4l->pwc_priv = NULL;
     }
     free(v4l);
   
@@ -429,7 +429,7 @@ static const bg_parameter_info_t parameters[] =
                               "CIF (352x288)", 
                               "VGA (640x480)", 
                               "User defined",
-                              (char*)0 },
+                              NULL },
       .multi_labels =     (char const *[]){ TRS("QSIF (160x112)"),
                                    TRS("QCIF (176x144)"), 
                                    TRS("QVGA (320x240)"), 
@@ -437,7 +437,7 @@ static const bg_parameter_info_t parameters[] =
                                    TRS("CIF (352x288)"), 
                                    TRS("VGA (640x480)"), 
                                    TRS("User defined"),
-                                   (char*)0 },
+                                   NULL },
     },
     {
       .name =        "user_width",

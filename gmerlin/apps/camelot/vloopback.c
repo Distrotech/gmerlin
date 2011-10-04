@@ -577,7 +577,7 @@ int bg_vloopback_open(bg_vloopback_t * v)
     {
     v->mmap_len = MAX_FRAMESIZE * NUM_FRAMES;
   
-    v->mmap = mmap((void*)0, v->mmap_len, PROT_READ | PROT_WRITE /* required */,
+    v->mmap = mmap(NULL, v->mmap_len, PROT_READ | PROT_WRITE /* required */,
                    MAP_SHARED /* recommended */, v->fd, 0);
   
     if(MAP_FAILED == v->mmap)
@@ -736,8 +736,8 @@ static const bg_parameter_info_t parameters[] =
       .long_name    = TRS("Mode"),
       .type         = BG_PARAMETER_STRINGLIST,
       .val_default  = { .val_str = "ioctl" },
-      .multi_names  = (char const *[]){ "write", "ioctl", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Write"), TRS("ioctl"),  (char*)0 },
+      .multi_names  = (char const *[]){ "write", "ioctl", NULL },
+      .multi_labels = (char const *[]){ TRS("Write"), TRS("ioctl"),NULL },
       .help_string = TRS("Set the operating mode. Ioctl is more flexible on the clients side but doesn't work with all applications. Write works with more applications but has a larger overhead"),
       
     },
@@ -753,7 +753,7 @@ static const bg_parameter_info_t parameters[] =
                               "CIF (352x288)", 
                               "VGA (640x480)", 
                               "User defined",
-                              (char*)0 },
+                              NULL },
       .multi_labels =     (char const *[]){ TRS("QSIF (160x112)"),
                                    TRS("QCIF (176x144)"), 
                                    TRS("QVGA (320x240)"), 
@@ -761,7 +761,7 @@ static const bg_parameter_info_t parameters[] =
                                    TRS("CIF (352x288)"), 
                                    TRS("VGA (640x480)"), 
                                    TRS("User defined"),
-                                   (char*)0 },
+                                   NULL },
       .help_string = TRS("Fixed resolution for write mode"),
     },
     {
@@ -788,10 +788,10 @@ static const bg_parameter_info_t parameters[] =
       .type =      BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "yuv420p" },
       .multi_names =     (char const *[]){ "yuv420p", "rgb24",
-                                           (char*)0 },
+                                          NULL },
       .multi_labels =     (char const *[]){ TRS("Y'CbCr 4:2:0"),
                                             TRS("RGB (24 bit)"), 
-                                            (char*)0 },
+                                            NULL },
       .help_string = TRS("Pixelformat for write mode"),
       
     },
