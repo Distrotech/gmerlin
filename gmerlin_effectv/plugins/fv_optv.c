@@ -192,10 +192,10 @@ static const bg_parameter_info_t parameters[] =
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "maelstrom" },
       .multi_names = (char const *[]){ "maelstrom", "radiation", "perspective",
-                                       "vertical", (char*)0 },
+                                       "vertical", NULL },
       .multi_labels = (char const *[]){ TRS("Maelstrom"), TRS("Radiation"),
                                         TRS("Perspective horizontal stripes"), 
-                                        TRS("Vertical stripes"), (char*)0 },
+                                        TRS("Vertical stripes"), NULL },
     },
     {
       .name =      "speed",

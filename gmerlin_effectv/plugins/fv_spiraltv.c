@@ -297,7 +297,7 @@ static char const * const g_wave_names[] = { TRS("Concentric A"),
                                              TRS("Sinusoidal"),
                                              TRS("Concentric B"),
                                              TRS("Lens"),
-                                             TRS("Flat"), (char*)0 };
+                                             TRS("Flat"), NULL };
 
 
 static const bg_parameter_info_t parameters[] =

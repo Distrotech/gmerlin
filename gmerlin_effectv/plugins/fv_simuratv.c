@@ -259,8 +259,8 @@ static const bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "no" },
-      .multi_names = (char const *[]){ "no", "l", "r", "d", "dl", "dr", "u", "ul", "ur", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("None"), TRS("Left"), TRS("Right"), TRS("Down"), TRS("Down left"), TRS("Down right"), TRS("Upper"), TRS("Upper left"), TRS("Upper right"), (char*)0 },
+      .multi_names = (char const *[]){ "no", "l", "r", "d", "dl", "dr", "u", "ul", "ur", NULL },
+      .multi_labels = (char const *[]){ TRS("None"), TRS("Left"), TRS("Right"), TRS("Down"), TRS("Down left"), TRS("Down right"), TRS("Upper"), TRS("Upper left"), TRS("Upper right"), NULL },
     },
     { /* End of parameters */ },
   };

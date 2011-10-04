@@ -61,7 +61,7 @@ void bg_effectv_set_input_format(void * priv, gavl_video_format_t * format, int 
   if(vp->flags & BG_EFFECTV_COLOR_AGNOSTIC)
     {
     format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
-                                                    agn_formats, (int*)0);
+                                                    agn_formats, NULL);
     }
   else
     {
@@ -86,12 +86,12 @@ void bg_effectv_set_input_format(void * priv, gavl_video_format_t * format, int 
   if(vp->in_frame)
     {
     gavl_video_frame_destroy(vp->in_frame);
-    vp->in_frame = (gavl_video_frame_t*)0;
+    vp->in_frame = NULL;
     }
   if(vp->out_frame)
     {
     gavl_video_frame_destroy(vp->out_frame);
-    vp->out_frame = (gavl_video_frame_t*)0;
+    vp->out_frame = NULL;
     }
   }
 

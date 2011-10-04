@@ -455,8 +455,8 @@ static const bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "motion" },
-      .multi_names = (char const *[]){ "motion", "rain", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Motion"), TRS("Rain"), (char*)0 },
+      .multi_names = (char const *[]){ "motion", "rain", NULL },
+      .multi_labels = (char const *[]){ TRS("Motion"), TRS("Rain"), NULL },
     },
     {
       .name =      "loopnum",

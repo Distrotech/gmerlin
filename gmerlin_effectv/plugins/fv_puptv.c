@@ -278,14 +278,14 @@ static const bg_parameter_info_t parameters[] =
                                        "diagonal",
                                        "dissolution",
                                        "random",
-                                       "raster", (char*)0 },
+                                       "raster", NULL },
       
       .multi_labels = (char const *[]){ TRS("Horizontal"),
                                         TRS("Vertical"),
                                         TRS("Diagonal"),
                                         TRS("Dissolution"),
                                         TRS("Random"),
-                                        TRS("Raster"), (char*)0 },
+                                        TRS("Raster"), NULL },
     },
     {
       .name =      "strength",

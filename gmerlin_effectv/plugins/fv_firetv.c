@@ -188,12 +188,12 @@ static const bg_parameter_info_t parameters[] =
       .multi_names = (char const *[]){ "fg",
                                        "light",
                                        "dark",
-                                       (char*)0 },
+                                       NULL },
       
       .multi_labels = (char const *[]){ TRS("Foreground"),
                                         TRS("Light parts"),
                                         TRS("Dark parts"),
-                                        (char*)0 },
+                                        NULL },
     },
     { /* */ },
   };

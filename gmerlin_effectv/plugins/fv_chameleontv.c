@@ -229,10 +229,10 @@ static const bg_parameter_info_t parameters[] =
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "disapp" },
       .multi_names = (char const *[]){ "app", "disapp",
-                                       (char*)0 },
+                                       NULL },
       .multi_labels = (char const *[]){ TRS("Appear"),
                                         TRS("Disappear"),
-                                        (char*)0 },
+                                        NULL },
     },
     { /* */ },
   };
