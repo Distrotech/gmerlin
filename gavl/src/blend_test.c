@@ -48,7 +48,7 @@ write_png(char * filename, gavl_video_format_t * format, gavl_video_frame_t * fr
   gavl_video_converter_t * cnv;
     
   gavl_video_format_t format_1;
-  gavl_video_frame_t * frame_1 = (gavl_video_frame_t*)0;
+  gavl_video_frame_t * frame_1 = NULL;
 
   
   if((format->pixelformat != GAVL_RGB_24) && (format->pixelformat != GAVL_RGBA_32))
@@ -153,7 +153,7 @@ static gavl_video_frame_t * read_png(const char * filename,
     }
   
   png_ptr = png_create_read_struct
-    (PNG_LIBPNG_VER_STRING, (png_voidp)0,
+    (PNG_LIBPNG_VER_STRING, NULL,
      NULL, NULL);
   
   setjmp(png_jmpbuf(png_ptr));
@@ -261,7 +261,7 @@ static gavl_video_frame_t * read_png(const char * filename,
     format->pixelformat = pixelformat;
     }
   else
-    frame_1 = (gavl_video_frame_t*)0;
+    frame_1 = NULL;
 
   if(frame_1)
     {

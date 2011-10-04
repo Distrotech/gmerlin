@@ -300,7 +300,7 @@ static void video_frame_free(gavl_video_frame_t * frame)
   {
   if(frame->planes[0])
     free(frame->planes[0]);
-  frame->planes[0] = (uint8_t*)0;
+  frame->planes[0] = NULL;
   }
 
 gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t * format)
@@ -330,7 +330,7 @@ void gavl_video_frame_destroy(gavl_video_frame_t * frame)
 
 void gavl_video_frame_null(gavl_video_frame_t* frame)
   {
-  frame->planes[0] = (uint8_t*)0;
+  frame->planes[0] = NULL;
   }
 
 void gavl_video_frame_clear_mask(gavl_video_frame_t * frame,
@@ -1038,7 +1038,7 @@ static flip_scanline_func find_flip_scanline_func(gavl_pixelformat_t csp)
     case GAVL_PIXELFORMAT_NONE:
       break;
     }
-  return (flip_scanline_func)0;
+  return NULL;
   }
 
 void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,

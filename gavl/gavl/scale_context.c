@@ -182,7 +182,7 @@ static gavl_video_scale_scanline_func get_func(gavl_scale_func_tab_t * tab,
       return tab->scale_float_x_4;
       break;
     }
-  return (gavl_video_scale_scanline_func)0;
+  return NULL;
   }
 
 static void get_minmax(gavl_pixelformat_t pixelformat,
@@ -925,10 +925,10 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
 
   int h_radius_real;
   const float * h_coeffs_real;
-  float *h_c = (float*)0;
+  float *h_c = NULL;
   int v_radius_real;
   const float * v_coeffs_real;
-  float *v_c = (float*)0;
+  float *v_c = NULL;
 
   int src_width, src_height; /* Needed for generating the scale table */
  

@@ -72,7 +72,7 @@ static void audio_converter_cleanup(gavl_audio_converter_t* cnv)
     }
   cnv->num_conversions = 0;
   cnv->contexts     = NULL;
-  cnv->last_context = (gavl_audio_convert_context_t*)0;
+  cnv->last_context = NULL;
   }
 
 void gavl_audio_converter_destroy(gavl_audio_converter_t* cnv)

@@ -149,6 +149,6 @@ gavl_video_scale_get_weight gavl_video_scale_get_weight_func(gavl_video_options_
       return get_weight_sinc;
     default:
       *num_points = 0;
-      return (gavl_video_scale_get_weight)0;
+      return NULL;
     }
   }

@@ -58,7 +58,7 @@ static void video_converter_cleanup(gavl_video_converter_t* cnv)
     free(cnv->first_context);
     cnv->first_context = ctx;
     }
-  cnv->last_context = (gavl_video_convert_context_t*)0;
+  cnv->last_context = NULL;
   cnv->num_contexts = 0;
   }
 

@@ -23,6 +23,7 @@
 #include <blend.h>
 
 #include <math.h>
+#include <stdlib.h>
 
 /* Switch on individual items in the colorspace tables / macros */
 #define HAVE_YUVJ_TO_YUV_8
@@ -2142,7 +2143,7 @@ gavl_find_blend_func_c(gavl_overlay_blend_context_t * ctx,
       return blend_rgba_float;
       break;
     case GAVL_PIXELFORMAT_NONE:
-      return (gavl_blend_func_t)0;
+      return NULL;
     }
-  return (gavl_blend_func_t)0;
+  return NULL;
   }

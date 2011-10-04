@@ -55,8 +55,8 @@ gavl_framerate_converter_init(gavl_framerate_converter_t * cnv,
 
 void gavl_framerate_converter_reset(gavl_framerate_converter_t * cnv)
   {
-  cnv->input_frame_1 = (gavl_video_frame_t*)0;
-  cnv->input_frame_2 = (gavl_video_frame_t*)0;
+  cnv->input_frame_1 = NULL;
+  cnv->input_frame_2 = NULL;
   cnv->do_resync = 1;
   }
 

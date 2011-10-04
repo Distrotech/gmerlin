@@ -124,7 +124,7 @@ static gavl_transform_scanline_func get_func(gavl_transform_funcs_t * tab,
       return tab->transform_float_x_4;
       break;
     }
-  return (gavl_transform_scanline_func)0;
+  return NULL;
   }
 
 

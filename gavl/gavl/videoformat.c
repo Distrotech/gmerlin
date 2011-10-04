@@ -137,7 +137,7 @@ const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode)
     if(interlace_mode_tab[i].mode == mode)
       return interlace_mode_tab[i].name;
     }
-  return (const char*)0;
+  return NULL;
   }
 
 typedef const struct
@@ -165,7 +165,7 @@ const char * gavl_framerate_mode_to_string(gavl_framerate_mode_t mode)
     if(framerate_mode_tab[i].mode == mode)
       return framerate_mode_tab[i].name;
     }
-  return (const char*)0;
+  return NULL;
   
   }
 
@@ -194,7 +194,7 @@ const char * gavl_chroma_placement_to_string(gavl_chroma_placement_t mode)
     if(chroma_placement_tab[i].mode == mode)
       return chroma_placement_tab[i].name;
     }
-  return (const char*)0;
+  return NULL;
   
   }
 

@@ -208,7 +208,7 @@ const char * gavl_pixelformat_to_string(gavl_pixelformat_t pixelformat)
     if(pixelformat_tab[i].pixelformat == pixelformat)
       return pixelformat_tab[i].name;
     }
-  return (const char*)0;
+  return NULL;
   }
 
 gavl_pixelformat_t gavl_string_to_pixelformat(const char * name)

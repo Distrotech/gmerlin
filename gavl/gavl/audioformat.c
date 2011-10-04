@@ -49,7 +49,7 @@ const char * gavl_sample_format_to_string(gavl_sample_format_t format)
     if(format == sample_format_names[i].format)
       return sample_format_names[i].name;
     }
-  return (char*)0;
+  return NULL;
   }
 
 gavl_sample_format_t gavl_string_to_sample_format(const char * str)
@@ -99,7 +99,7 @@ const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t mode)
     if(mode == interleave_mode_names[i].mode)
       return interleave_mode_names[i].name;
     }
-  return (char*)0;
+  return NULL;
   }
 
 static const struct
@@ -150,7 +150,7 @@ const char * gavl_channel_id_to_string(gavl_channel_id_t id)
     if(id == channel_id_names[i].id)
       return channel_id_names[i].name;
     }
-  return (char*)0;
+  return NULL;
   }
 
 void gavl_audio_format_dump(const gavl_audio_format_t * f)

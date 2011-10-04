@@ -20,6 +20,8 @@
  * *****************************************************************/
 
 #include <sys/time.h>
+#include <stdlib.h>
+
 #include <config.h>
 
 #include <inttypes.h>
@@ -30,14 +32,14 @@ static struct timeval time_after;
 
 void timer_init()
   {
-  gettimeofday(&time_before, (struct timezone*)0);
+  gettimeofday(&time_before, NULL);
   }
 
 uint64_t timer_stop()
   {
   uint64_t before, after, diff;
   
-  gettimeofday(&time_after, (struct timezone*)0);
+  gettimeofday(&time_after, NULL);
 
   before = ((uint64_t)time_before.tv_sec)*1000000 + time_before.tv_usec;
   after  = ((uint64_t)time_after.tv_sec)*1000000  + time_after.tv_usec;

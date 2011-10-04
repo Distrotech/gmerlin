@@ -60,43 +60,43 @@
  *   Some braindead YUV conversion (but works at least :-)
  */
 
-static int * r_to_y = (int*)0;
-static int * g_to_y = (int*)0;
-static int * b_to_y = (int*)0;
+static int * r_to_y = NULL;
+static int * g_to_y = NULL;
+static int * b_to_y = NULL;
 
-static int * r_to_u = (int*)0;
-static int * g_to_u = (int*)0;
-static int * b_to_u = (int*)0;
+static int * r_to_u = NULL;
+static int * g_to_u = NULL;
+static int * b_to_u = NULL;
 
-static int * r_to_v = (int*)0;
-static int * g_to_v = (int*)0;
-static int * b_to_v = (int*)0;
+static int * r_to_v = NULL;
+static int * g_to_v = NULL;
+static int * b_to_v = NULL;
 
-static int * y_to_rgb = (int*)0;
-static int * v_to_r = (int*)0;
-static int * u_to_g = (int*)0;
-static int * v_to_g = (int*)0;
-static int * u_to_b = (int*)0;
+static int * y_to_rgb = NULL;
+static int * v_to_r = NULL;
+static int * u_to_g = NULL;
+static int * v_to_g = NULL;
+static int * u_to_b = NULL;
 
 /* JPEG Quantization */
 
-static int * r_to_yj = (int*)0;
-static int * g_to_yj = (int*)0;
-static int * b_to_yj = (int*)0;
+static int * r_to_yj = NULL;
+static int * g_to_yj = NULL;
+static int * b_to_yj = NULL;
 
-static int * r_to_uj = (int*)0;
-static int * g_to_uj = (int*)0;
-static int * b_to_uj = (int*)0;
+static int * r_to_uj = NULL;
+static int * g_to_uj = NULL;
+static int * b_to_uj = NULL;
 
-static int * r_to_vj = (int*)0;
-static int * g_to_vj = (int*)0;
-static int * b_to_vj = (int*)0;
+static int * r_to_vj = NULL;
+static int * g_to_vj = NULL;
+static int * b_to_vj = NULL;
 
-static int * yj_to_rgb = (int*)0;
-static int * vj_to_r = (int*)0;
-static int * uj_to_g = (int*)0;
-static int * vj_to_g = (int*)0;
-static int * uj_to_b = (int*)0;
+static int * yj_to_rgb = NULL;
+static int * vj_to_r = NULL;
+static int * uj_to_g = NULL;
+static int * vj_to_g = NULL;
+static int * uj_to_b = NULL;
 
 
 
@@ -1321,7 +1321,7 @@ static int write_file(const char * name,
   int color_type;  
   int png_transforms;
   gavl_video_frame_t * tmp_frame;
-  gavl_video_frame_t * out_frame = (gavl_video_frame_t *)0;
+  gavl_video_frame_t * out_frame = NULL;
   gavl_video_format_t tmp_format;
 
   int i;

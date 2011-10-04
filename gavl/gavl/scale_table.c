@@ -101,10 +101,10 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   int i, j, src_index_min, src_index_nearest;
   double src_index_f;
   float widen_factor;
-  float * preblur_factors = (float*)0;
+  float * preblur_factors = NULL;
   int num_preblur_factors = 0;
   int num_tmp_factors = 0;
-  float * tmp_factors = (float*)0;
+  float * tmp_factors = NULL;
   
   gavl_video_scale_get_weight weight_func;
   

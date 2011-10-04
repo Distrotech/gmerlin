@@ -64,8 +64,8 @@ gavl_video_scaler_t * gavl_video_scaler_create()
   int i, j;
   ret = calloc(1, sizeof(*ret));
 
-  ret->src = gavl_video_frame_create((gavl_video_format_t*)0);
-  ret->dst = gavl_video_frame_create((gavl_video_format_t*)0);
+  ret->src = gavl_video_frame_create(NULL);
+  ret->dst = gavl_video_frame_create(NULL);
 
   gavl_video_options_set_defaults(&ret->opt);
 

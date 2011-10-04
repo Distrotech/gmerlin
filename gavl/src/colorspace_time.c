@@ -38,14 +38,14 @@ static struct timeval time_after;
 
 static void timer_init()
   {
-  gettimeofday(&time_before, (struct timezone*)0);
+  gettimeofday(&time_before, NULL);
   }
 
 static void timer_stop()
   {
   double before, after, diff;
   
-  gettimeofday(&time_after, (struct timezone*)0);
+  gettimeofday(&time_after, NULL);
 
   before = time_before.tv_sec + time_before.tv_usec / 1.0e6;
   after  = time_after.tv_sec  + time_after.tv_usec  / 1.0e6;

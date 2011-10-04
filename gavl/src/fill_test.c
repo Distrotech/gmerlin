@@ -39,7 +39,7 @@ write_png(char * filename, gavl_video_format_t * format, gavl_video_frame_t * fr
   gavl_video_converter_t * cnv;
     
   gavl_video_format_t format_1;
-  gavl_video_frame_t * frame_1 = (gavl_video_frame_t*)0;
+  gavl_video_frame_t * frame_1 = NULL;
 
   
   if((format->pixelformat != GAVL_RGB_24) && (format->pixelformat != GAVL_RGBA_32))

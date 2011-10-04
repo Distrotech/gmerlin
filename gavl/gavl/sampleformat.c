@@ -594,7 +594,7 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
     case GAVL_SAMPLE_NONE:
       break;
     }
-  return (gavl_audio_func_t)0;
+  return NULL;
   }
 
 void gavl_destroy_sampleformat_table(gavl_sampleformat_table_t * t)

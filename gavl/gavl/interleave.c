@@ -205,7 +205,7 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
         }
       break;
     }
-  return (gavl_audio_func_t)0;
+  return NULL;
   }
 
 gavl_interleave_table_t *
