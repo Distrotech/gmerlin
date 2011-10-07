@@ -32,7 +32,7 @@ static effect *quarkRegister(void)
 	effect *entry;
         quarktv_t * priv;
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -50,9 +50,9 @@ static effect *quarkRegister(void)
 static int start(effect * e)
 {
 	int i;
-        quarktv_t * priv = (quarktv_t*)e->priv;
+        quarktv_t * priv = e->priv;
 
-	priv->buffer = (RGB32 *)malloc(e->video_area *
+	priv->buffer = malloc(e->video_area *
                                        PIXEL_SIZE * PLANES);
 	if(priv->buffer == NULL)
 		return -1;
@@ -68,7 +68,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-        quarktv_t * priv = (quarktv_t*)e->priv;
+        quarktv_t * priv = e->priv;
 	if(priv->state) {
 		if(priv->buffer) {
 			free(priv->buffer);
@@ -82,7 +82,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
-        quarktv_t * priv = (quarktv_t*)e->priv;
+        quarktv_t * priv = e->priv;
 	int i;
 	int cf;
 

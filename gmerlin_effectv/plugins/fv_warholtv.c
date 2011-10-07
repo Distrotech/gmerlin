@@ -33,7 +33,7 @@ static effect *warholRegister(void)
 	effect *entry;
         warholtv_t * priv;
           
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) return NULL;
         priv = calloc(1, sizeof(*priv));
 
@@ -48,7 +48,7 @@ static effect *warholRegister(void)
 
 static int start(effect * e)
   {
-  warholtv_t * priv = (warholtv_t*)e->priv;
+  warholtv_t * priv = e->priv;
   
   priv->state = 1;
   return 0;
@@ -56,7 +56,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  warholtv_t * priv = (warholtv_t*)e->priv;
+  warholtv_t * priv = e->priv;
   priv->state = 0;
   return 0;
   }

@@ -42,7 +42,7 @@ static effect *diffRegister(void)
 {
 	effect *entry;
         diff_t * priv;
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -57,8 +57,8 @@ static effect *diffRegister(void)
 
 static int start(effect * e)
   {
-  diff_t * priv = (diff_t*)e->priv;
-  priv->prevbuf = (RGB32*)malloc(e->video_area * PIXEL_SIZE);
+  diff_t * priv = e->priv;
+  priv->prevbuf = malloc(e->video_area * PIXEL_SIZE);
   if(priv->prevbuf == NULL)
     {
     return -1;
@@ -70,7 +70,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  diff_t * priv = (diff_t*)e->priv;
+  diff_t * priv = e->priv;
   priv->state = 0;
   free(priv->prevbuf);
   return 0;
@@ -83,7 +83,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   unsigned int src_red, src_grn, src_blu;
   unsigned int old_red, old_grn, old_blu;
   unsigned int red_val, red_diff, grn_val, grn_diff, blu_val, blu_diff;
-  diff_t * priv = (diff_t*)e->priv;
+  diff_t * priv = e->priv;
     
   i = 0;
   for (y = 0; y < e->video_height; y++)
@@ -191,8 +191,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  diff_t * priv = (diff_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  diff_t * priv = vp->e->priv;
   
   if(!name)
     return;

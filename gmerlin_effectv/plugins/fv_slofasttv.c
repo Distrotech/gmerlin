@@ -41,7 +41,7 @@ static effect *slofastRegister(void)
   {
   effect *entry;
   slofast_t * priv;
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -57,8 +57,8 @@ static effect *slofastRegister(void)
 static int start(effect * e)
   {
   int i;
-  slofast_t * priv = (slofast_t *)(e->priv);
-  priv->buffer = (RGB32 *)malloc(e->video_area*PIXEL_SIZE*PLANES);
+  slofast_t * priv = e->priv;
+  priv->buffer = malloc(e->video_area*PIXEL_SIZE*PLANES);
   if(priv->buffer == NULL)
     return -1;
   memset(priv->buffer, 0, e->video_area*PIXEL_SIZE*PLANES);
@@ -75,7 +75,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  slofast_t * priv = (slofast_t *)e->priv;
+  slofast_t * priv = e->priv;
   if(priv->state)
     {
     if(priv->buffer)
@@ -88,7 +88,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
   {
-  slofast_t * priv = (slofast_t *)e->priv;
+  slofast_t * priv = e->priv;
   /* store new frame */
   if ((priv->mode == STATE_FILL) || (priv->count & 0x1) == 1)
     {

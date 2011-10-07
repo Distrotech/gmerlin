@@ -39,7 +39,7 @@ static void setParams(effect * e)
 	double t;
 	double x, y;
 	double dizz;
-        vertigotv_t * priv = (vertigotv_t *)e->priv;
+        vertigotv_t * priv = e->priv;
 	dizz = sin(priv->phase) * 10 + sin(priv->phase*1.9+5) * 5;
 
 	x = e->video_width / 2;
@@ -78,7 +78,7 @@ static effect *dizzyRegister(void)
 	effect *entry;
         vertigotv_t * priv;
 	
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -93,9 +93,9 @@ static effect *dizzyRegister(void)
 
 static int start(effect * e)
   {
-  vertigotv_t * priv = (vertigotv_t *)e->priv;
+  vertigotv_t * priv = e->priv;
         
-  priv->buffer = (RGB32 *)malloc(e->video_area*2*PIXEL_SIZE);
+  priv->buffer = malloc(e->video_area*2*PIXEL_SIZE);
   memset(priv->buffer, 0, e->video_area * 2 * PIXEL_SIZE);
   
   if(priv->buffer == NULL)
@@ -113,7 +113,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-        vertigotv_t * priv = (vertigotv_t *)e->priv;
+        vertigotv_t * priv = e->priv;
 	priv->state = 0;
         if(priv->buffer)
           {
@@ -125,7 +125,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
-        vertigotv_t * priv = (vertigotv_t *)e->priv;
+        vertigotv_t * priv = e->priv;
 	RGB32 *p;
 	RGB32 v;
 	int x, y;
@@ -193,8 +193,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  vertigotv_t * priv = (vertigotv_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  vertigotv_t * priv = vp->e->priv;
   int changed = 0;
   if(!name)
     return;

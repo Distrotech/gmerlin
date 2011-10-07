@@ -179,7 +179,7 @@ static void break_line(effect * e, int a, int b, int width, int height)
 	int x, y;
 	int c;
 	int len;
-        spark_t * priv = (spark_t *)e->priv;
+        spark_t * priv = e->priv;
 	dx = priv->px[b] - priv->px[a];
 	dy = priv->py[b] - priv->py[a];
 	if((dx*dx+dy*dy)<100 || (b-a)<3) {
@@ -203,7 +203,7 @@ static void break_line(effect * e, int a, int b, int width, int height)
 static void draw_spark(effect * e, struct shortvec sv, RGB32 *dest, int width, int height)
 {
 	int i;
-        spark_t * priv = (spark_t *)e->priv;
+        spark_t * priv = e->priv;
 
 	priv->px[0] = sv.x1;
 	priv->py[0] = sv.y1;
@@ -336,7 +336,7 @@ static struct shortvec detectEdgePoints(effect * e, unsigned char *diff)
 
 static int setBackground(effect * e, RGB32 *src)
 {
-        spark_t * priv = (spark_t *)e->priv;
+        spark_t * priv = e->priv;
 	image_bgset_y(e, src);
 	priv->bgIsSet = 1;
 
@@ -348,7 +348,7 @@ static effect *sparkRegister(void)
 	effect *entry;
         spark_t * priv;
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -364,7 +364,7 @@ static effect *sparkRegister(void)
 static int start(effect * e)
 {
 	int i;
-        spark_t * priv = (spark_t *)e->priv;
+        spark_t * priv = e->priv;
 	
 	for(i=0; i<POINT_MAX; i++) {
 		priv->pp[i] = 0;
@@ -383,7 +383,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-        spark_t * priv = (spark_t *)e->priv;
+        spark_t * priv = e->priv;
 	priv->stat = 0;
 	return 0;
 }
@@ -393,7 +393,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 	int i;
 	unsigned char *diff;
 	struct shortvec sv;
-        spark_t * priv = (spark_t *)e->priv;
+        spark_t * priv = e->priv;
 
 	if(!priv->bgIsSet) {
 		setBackground(e, src);
@@ -462,8 +462,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  spark_t * priv = (spark_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  spark_t * priv = vp->e->priv;
   
   if(!name)
     return;

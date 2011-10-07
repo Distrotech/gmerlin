@@ -33,7 +33,7 @@ static effect *baltanRegister(void)
 	effect *entry;
         baltantv_t * priv = calloc(1, sizeof(*priv));
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -49,8 +49,8 @@ static int start(effect * e)
 {
 	int i;
 
-  baltantv_t * priv = (baltantv_t*)e->priv;
-  priv->buffer = (RGB32 *)malloc(e->video_area * PIXEL_SIZE * PLANES);
+  baltantv_t * priv = e->priv;
+  priv->buffer = malloc(e->video_area * PIXEL_SIZE * PLANES);
 	if(priv->buffer == NULL)
 		return -1;
 
@@ -67,7 +67,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-  baltantv_t * priv = (baltantv_t*)e->priv;
+  baltantv_t * priv = e->priv;
 	if(priv->state) {
 		if(priv->buffer) {
 			free(priv->buffer);
@@ -81,7 +81,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
-  baltantv_t * priv = (baltantv_t*)e->priv;
+  baltantv_t * priv = e->priv;
 	int i, cf;
 
 	for(i=0; i<e->video_area; i++) {

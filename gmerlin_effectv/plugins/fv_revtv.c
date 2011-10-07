@@ -50,7 +50,7 @@ static effect *revRegister(void)
 	effect *entry;
         rev_t * priv;
 
-        entry = (effect *)calloc(1, sizeof(effect));
+        entry = calloc(1, sizeof(effect));
 	if(entry == NULL) return NULL;
 
         priv = calloc(1, sizeof(*priv));
@@ -64,14 +64,14 @@ static effect *revRegister(void)
 
 static int start(effect * e)
   {
-  rev_t * priv = (rev_t *)e->priv;
+  rev_t * priv = e->priv;
   priv->state = 1;
   return 0;
   }
 
 static int stop(effect * e)
   {
-  rev_t * priv = (rev_t *)e->priv;
+  rev_t * priv = e->priv;
   priv->state = 0;
   return 0;
   }
@@ -81,7 +81,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dst)
   {
   int i;
   RGB32 * ptr;
-  rev_t * priv = (rev_t *)e->priv;
+  rev_t * priv = e->priv;
   priv->vgrab++;
   if (priv->vgrab>=priv->vgrabtime)
     {
@@ -102,7 +102,7 @@ static void vasulka(effect * e,
                     RGB32 *src, RGB32 *dst,
                     int srcx, int srcy, int dstx, int dsty, int w, int h)
   {
-  rev_t * priv = (rev_t *)e->priv;
+  rev_t * priv = e->priv;
   RGB32 *cdst=dst+((dsty*e->video_width)+dstx);
   RGB32 *nsrc;
   int y,x,R,G,B,yval;
@@ -187,8 +187,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  rev_t * priv = (rev_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  rev_t * priv = vp->e->priv;
   
   if(!name)
     return;

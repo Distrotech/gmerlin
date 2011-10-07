@@ -42,7 +42,7 @@ static effect *nervousRegister(void)
   effect *entry;
   nervous_t * priv;
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -61,9 +61,9 @@ static effect *nervousRegister(void)
 static int start(effect * e)
   {
   int i;
-  nervous_t * priv = (nervous_t *)e->priv;
+  nervous_t * priv = e->priv;
   
-  priv->buffer = (RGB32 *)malloc(e->video_area*PIXEL_SIZE*PLANES);
+  priv->buffer = malloc(e->video_area*PIXEL_SIZE*PLANES);
   if(priv->buffer == NULL)
     return -1;
   memset(priv->buffer, 0, e->video_area*PIXEL_SIZE*PLANES);
@@ -81,7 +81,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  nervous_t * priv = (nervous_t *)e->priv;
+  nervous_t * priv = e->priv;
   if(priv->state)
     {
     if(priv->buffer)
@@ -93,7 +93,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
   {
-  nervous_t * priv = (nervous_t *)e->priv;
+  nervous_t * priv = e->priv;
   memcpy(priv->planetable[priv->plane], src, e->video_area * PIXEL_SIZE);
   if(priv->stock < PLANES)
     {
@@ -152,8 +152,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  nervous_t * priv = (nervous_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  nervous_t * priv = vp->e->priv;
   
   if(!name)
     return;

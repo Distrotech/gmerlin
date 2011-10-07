@@ -37,7 +37,7 @@ static effect *shagadelicRegister(void)
 	effect *entry;
 	shagadelictv_t * priv;
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -59,10 +59,10 @@ static int start(effect * e)
 #else
 	double xx, yy;
 #endif
-	shagadelictv_t * priv = (shagadelictv_t *)e->priv;
+	shagadelictv_t * priv = e->priv;
 
-        priv->ripple = (char *)malloc(e->video_area*4);
-	priv->spiral = (char *)malloc(e->video_area);
+        priv->ripple = malloc(e->video_area*4);
+	priv->spiral = malloc(e->video_area);
 	if(priv->ripple == NULL || priv->spiral == NULL) {
 		return -1;
 	}
@@ -113,7 +113,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  shagadelictv_t * priv = (shagadelictv_t *)e->priv;
+  shagadelictv_t * priv = e->priv;
   priv->stat = 0;
   if(priv->ripple)
     {
@@ -136,7 +136,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   unsigned char r, g, b;
   char *pr, *pg, *pb;
   int mask;
-  shagadelictv_t * priv = (shagadelictv_t *)e->priv;
+  shagadelictv_t * priv = e->priv;
 
   mask =
     (priv->mask_r * 0xff0000) | 
@@ -215,8 +215,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  shagadelictv_t * priv = (shagadelictv_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  shagadelictv_t * priv = vp->e->priv;
   int changed = 0;
   if(!name)
     return;

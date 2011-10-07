@@ -25,7 +25,7 @@ typedef struct
 
 static int setBackground(effect * e, RGB32 *src)
   {
-  noise_t * priv = (noise_t *)e->priv;
+  noise_t * priv = e->priv;
   image_bgset_y(e, src);
   priv->bgIsSet = 1;
   
@@ -37,7 +37,7 @@ static effect *noiseRegister(void)
   effect *entry;
   noise_t * priv;
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -53,7 +53,7 @@ static effect *noiseRegister(void)
 
 static int start(effect * e)
   {
-  noise_t * priv = (noise_t *)e->priv;
+  noise_t * priv = e->priv;
   image_init(e);
   image_set_threshold_y(e, 40);
   priv->bgIsSet = 0;
@@ -64,7 +64,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  noise_t * priv = (noise_t *)e->priv;
+  noise_t * priv = e->priv;
   priv->stat = 0;
   return 0;
   }
@@ -73,7 +73,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
   unsigned char *diff;
-  noise_t * priv = (noise_t *)e->priv;
+  noise_t * priv = e->priv;
   
   if(!priv->bgIsSet) {
   setBackground(e, src);

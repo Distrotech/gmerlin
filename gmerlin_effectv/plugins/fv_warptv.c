@@ -44,7 +44,7 @@ static effect *warpRegister(void)
   effect *entry;
   warptv_t * priv = calloc(1, sizeof(*priv));
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL) return NULL;
 	
   entry->start = start;
@@ -56,7 +56,7 @@ static effect *warpRegister(void)
 
 static int start(effect *e)
   {
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
   initWarp(e);
   priv->state = 1;
   return 0;
@@ -64,7 +64,7 @@ static int start(effect *e)
 
 static int stop(effect *e)
   {
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
   if(priv->state)
     {
     priv->state = 0;
@@ -77,7 +77,7 @@ static void initSinTable (effect *e)
   {
   int32_t	*tptr, *tsinptr;
   double	i;
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
   
   tsinptr = tptr = priv->sintable;
   
@@ -91,7 +91,7 @@ static void initSinTable (effect *e)
 static void initOffsTable (effect *e)
   {
   int y;
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
   
   for (y = 0; y < e->video_height; y++)
     {
@@ -107,7 +107,7 @@ static void initDistTable (effect *e)
 #else
   double	x,y,m;
 #endif
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
 
   halfw = e->video_width>> 1;
   halfh = e->video_height >> 1;
@@ -129,9 +129,9 @@ static void initDistTable (effect *e)
 
 static void initWarp (effect *e)
   {
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
 
-  priv->offstable = (int *)malloc (e->video_height * sizeof (int));      
+  priv->offstable = malloc (e->video_height * sizeof (int));      
   priv->disttable = malloc (e->video_width * e->video_height * sizeof (int));
   initSinTable (e);
   initOffsTable (e);
@@ -140,7 +140,7 @@ static void initWarp (effect *e)
 
 static void disposeWarp (effect *e)
   {
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
   if(priv->disttable)
     free (priv->disttable);
   if(priv->offstable)
@@ -150,7 +150,7 @@ static void disposeWarp (effect *e)
 static int draw(effect *e, RGB32 *src, RGB32 *dst)
   {
   int xw,yw,cw;
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
   
   xw  = (int) (sin((priv->tval+100)*M_PI/128) * 30);
   yw  = (int) (sin((priv->tval)*M_PI/256) * -35);
@@ -166,7 +166,7 @@ static int draw(effect *e, RGB32 *src, RGB32 *dst)
 
 static void doWarp (effect *e, int xw, int yw, int cw,RGB32 *src,RGB32 *dst)
   {
-  warptv_t * priv = (warptv_t*)e->priv;
+  warptv_t * priv = e->priv;
   
   int32_t c,i, x,y, dx,dy, maxx, maxy;
   int32_t width, height, skip, *ctptr, *distptr;

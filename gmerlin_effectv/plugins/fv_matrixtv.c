@@ -70,7 +70,7 @@ static effect *matrixRegister(void)
   effect *entry;
   matrix_t * priv;
 
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -88,7 +88,7 @@ static effect *matrixRegister(void)
 
 static int start(effect * e)
   {
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
   priv->mapW = e->video_width / FONT_W;
   priv->mapH = e->video_height / FONT_H;
   priv->cmap = malloc(priv->mapW * priv->mapH);
@@ -99,7 +99,7 @@ static int start(effect * e)
     return -1;
     }
   
-  priv->blips = (Blip *)malloc(priv->mapW * sizeof(Blip));
+  priv->blips = malloc(priv->mapW * sizeof(Blip));
   if(priv->blips == NULL)
     {
     return -1;
@@ -119,7 +119,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
   priv->stat = 0;
   free(priv->cmap);
   free(priv->vmap);
@@ -135,7 +135,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   unsigned char *c, *v, *i;
   unsigned int val;
   RGB32 a, b;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
   
   if(priv->pause == 0)
     {
@@ -187,7 +187,7 @@ static void createImg(effect * e, RGB32 *src)
   unsigned int val;
   RGB32 pc, pr, pb; //center, right, below
   int r, g, b;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
 
   q = priv->img;
 
@@ -240,7 +240,7 @@ static RGB32 green(unsigned int v)
 static void setPalette(effect * e)
   {
   int i;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
 
   for(i=0; i<256; i++)
     {
@@ -256,7 +256,7 @@ static void setPattern(effect * e)
   int c, l, x, y, cx, cy;
   char *p;
   unsigned char v;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
 
   /* FIXME: This code is highly depends on the structure of bundled */
   /*        matrixFont.xpm. */
@@ -290,7 +290,7 @@ static void setPattern(effect * e)
 
 static void drawChar(effect * e, RGB32 *dest, unsigned char c, unsigned char v)
   {
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
   int x, y, i;
   unsigned int *p;
   unsigned char *f;
@@ -320,7 +320,7 @@ static void blipSlide(effect * e, int);
 static void updateCharMap(effect * e)
   {
   int x;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
 
   for(x=0; x<priv->mapW; x++) {
   darkenColumn(e, x);
@@ -347,7 +347,7 @@ static void darkenColumn(effect * e, int x)
   int y;
   unsigned char *p;
   int v;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
 
   p = priv->vmap + x;
   for(y=0; y<priv->mapH; y++) {
@@ -362,7 +362,7 @@ static void darkenColumn(effect * e, int x)
 
 static void blipNone(effect * e, int x)
   {
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
   unsigned int r;
 
   // This is a test code to reuse a randome number for multi purpose. :-P
@@ -387,7 +387,7 @@ static void blipFall(effect * e, int x)
   int i, y;
   unsigned char *p, *c;
   unsigned int r;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
 
   y = priv->blips[x].y;
   p = priv->vmap + x + y * priv->mapW;
@@ -429,7 +429,7 @@ static void blipFall(effect * e, int x)
 static void blipStop(effect * e, int x)
   {
   int y;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
 
   y = priv->blips[x].y;
   priv->vmap[x + y * priv->mapW] = 254;
@@ -446,7 +446,7 @@ static void blipSlide(effect * e, int x)
   {
   int y, dy;
   unsigned char *p;
-  matrix_t * priv = (matrix_t*)e->priv;
+  matrix_t * priv = e->priv;
 
   priv->blips[x].timer--;
   if(priv->blips[x].timer < 0) {
@@ -487,8 +487,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  matrix_t * priv = (matrix_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  matrix_t * priv = vp->e->priv;
   
   if(!name)
     return;

@@ -30,7 +30,7 @@ static effect *rdsRegister(void)
 	effect *entry;
 	rds_t * priv;
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -46,14 +46,14 @@ static effect *rdsRegister(void)
 
 static int start(effect*e)
   {
-  rds_t * priv = (rds_t *)(e->priv);
+  rds_t * priv = e->priv;
   priv->stat = 1;
   return 0;
   }
 
 static int stop(effect*e)
   {
-  rds_t * priv = (rds_t *)(e->priv);
+  rds_t * priv = e->priv;
   priv->stat = 0;
   return 0;
   }
@@ -64,7 +64,7 @@ static int draw(effect*e, RGB32 *src, RGB32 *dest)
 	RGB32 *target;
 	RGB32 v;
 	RGB32 R, G, B;
-        rds_t * priv = (rds_t *)(e->priv);
+        rds_t * priv = e->priv;
 
 	memset(dest, 0, e->video_area * PIXEL_SIZE);
 	target = dest;
@@ -173,8 +173,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  rds_t * priv = (rds_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  rds_t * priv = vp->e->priv;
   
   if(!name)
     return;

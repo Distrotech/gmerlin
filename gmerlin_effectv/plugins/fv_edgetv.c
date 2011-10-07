@@ -44,7 +44,7 @@ static effect *edgeRegister(void)
 
   priv = calloc(1, sizeof(*priv));
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -58,14 +58,14 @@ static effect *edgeRegister(void)
 
 static int start(effect * e)
   {
-  edge_t * priv = (edge_t *)e->priv;
+  edge_t * priv = e->priv;
   memset(priv->map, 0, priv->map_width * priv->map_height * PIXEL_SIZE * 2);
 
   priv->map_width = e->video_width / 4;
   priv->map_height = e->video_height / 4;
   priv->video_width_margin = e->video_width - priv->map_width * 4;
 
-  priv->map = (RGB32 *)malloc(priv->map_width*priv->map_height*PIXEL_SIZE*2);
+  priv->map = malloc(priv->map_width*priv->map_height*PIXEL_SIZE*2);
   if(priv->map == NULL)
     {
     return 0;
@@ -76,7 +76,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  edge_t * priv = (edge_t *)e->priv;
+  edge_t * priv = e->priv;
   free(priv->map);
   priv->stat = 0;
   return 0;
@@ -88,7 +88,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   int r, g, b;
   RGB32 p, q;
   RGB32 v0, v1, v2, v3;
-  edge_t * priv = (edge_t *)e->priv;
+  edge_t * priv = e->priv;
   
   src += e->video_width*4+4;
   dest += e->video_width*4+4;

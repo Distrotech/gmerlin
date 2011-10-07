@@ -14,10 +14,10 @@
 /* Initializer is called from utils_init(). */
 int image_init(effect * e)
   {
-  e->stretching_buffer = (RGB32 *)calloc(e->video_area, sizeof(RGB32));
-  e->background = (RGB32 *)calloc(e->video_area, sizeof(RGB32));
-  e->diff = (unsigned char *)calloc(e->video_area, sizeof(unsigned char));
-  e->diff2 = (unsigned char *)calloc(e->video_area, sizeof(unsigned char));
+  e->stretching_buffer = calloc(e->video_area, sizeof(RGB32));
+  e->background = calloc(e->video_area, sizeof(RGB32));
+  e->diff = calloc(e->video_area, sizeof(unsigned char));
+  e->diff2 = calloc(e->video_area, sizeof(unsigned char));
   if(e->stretching_buffer == NULL ||
      e->background == NULL ||
      e->diff == NULL ||

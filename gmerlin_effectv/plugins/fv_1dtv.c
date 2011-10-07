@@ -31,7 +31,7 @@ static effect *onedRegister(void)
   onedtv_t * priv;
   priv = calloc(1, sizeof(*priv));
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   entry->priv = priv;
   if(entry == NULL)
     return NULL;
@@ -45,9 +45,9 @@ static effect *onedRegister(void)
 
 static int start(effect * e)
   {
-  onedtv_t * priv = (onedtv_t*)e->priv;
+  onedtv_t * priv = e->priv;
  
-  priv->linebuf = (RGB32 *)malloc(e->video_width * PIXEL_SIZE);
+  priv->linebuf = malloc(e->video_width * PIXEL_SIZE);
   if(priv->linebuf == NULL)
     return -1;
   memset(priv->linebuf, 0, e->video_width * PIXEL_SIZE);
@@ -64,7 +64,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  onedtv_t * priv = (onedtv_t*)e->priv;
+  onedtv_t * priv = e->priv;
   priv->state = 0;
   if(priv->linebuf) free(priv->linebuf);
   return 0;
@@ -73,7 +73,7 @@ static int stop(effect * e)
 
 static void blitline_buf(effect * e, RGB32 *src, RGB32 *dest)
   {
-  onedtv_t * priv = (onedtv_t*)e->priv;
+  onedtv_t * priv = e->priv;
   memcpy(dest + e->video_width * priv->prevline,
          priv->linebuf, e->video_width * PIXEL_SIZE);
 
@@ -88,7 +88,7 @@ static void blitline_buf(effect * e, RGB32 *src, RGB32 *dest)
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
   {
   int i;
-  onedtv_t * priv = (onedtv_t*)e->priv;
+  onedtv_t * priv = e->priv;
 
   blitline_buf(e, src, dest);
 

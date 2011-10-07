@@ -42,7 +42,7 @@ static effect *colstreakRegister(void)
 {
 	effect *entry;
         colstreaktv_t * priv;
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -57,8 +57,8 @@ static effect *colstreakRegister(void)
 
 static int start(effect*e)
 {
-        colstreaktv_t * priv = (colstreaktv_t *)e->priv;
-	priv->buffer = (unsigned char *)malloc(e->video_area * MAX_PLANES * 3);
+        colstreaktv_t * priv = e->priv;
+	priv->buffer = malloc(e->video_area * MAX_PLANES * 3);
 	if(priv->buffer == NULL)
 		return -1;
 	memset(priv->buffer, 0, e->video_area * MAX_PLANES * 3);
@@ -75,7 +75,7 @@ static int start(effect*e)
 
 static int stop(effect*e)
 {
-        colstreaktv_t * priv = (colstreaktv_t *)e->priv;
+        colstreaktv_t * priv = e->priv;
 	if(priv->state) {
 		if(priv->buffer) {
 			free(priv->buffer);
@@ -88,7 +88,7 @@ static int stop(effect*e)
 
 static int draw(effect*e, RGB32 *src, RGB32 *dest)
 {
-        colstreaktv_t * priv = (colstreaktv_t *)e->priv;
+        colstreaktv_t * priv = e->priv;
 	int i, j, cf, pf;
 	RGB32 v;
 	unsigned int R, G, B;
@@ -164,8 +164,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  colstreaktv_t * priv = (colstreaktv_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  colstreaktv_t * priv = vp->e->priv;
   int changed = 0;
   if(!name)
     return;

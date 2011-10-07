@@ -58,7 +58,7 @@ typedef struct
 static void setTable(effect * e)
   {
   int i;
-  ripple_t * priv = (ripple_t *)e->priv;
+  ripple_t * priv = e->priv;
   for(i=0; i<128; i++)
     {
     priv->sqrtable[i] = i*i;
@@ -71,7 +71,7 @@ static void setTable(effect * e)
 
 static int setBackground(effect * e, RGB32 *src)
   {
-  ripple_t * priv = (ripple_t *)e->priv;
+  ripple_t * priv = e->priv;
   
   image_bgset_y(e, src);
   priv->bgIsSet = 1;
@@ -84,7 +84,7 @@ static effect *rippleRegister(void)
 	effect *entry;
         ripple_t * priv;
 
-        entry = (effect *)calloc(1, sizeof(effect));
+        entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -100,12 +100,12 @@ static effect *rippleRegister(void)
 
 static int start(effect * e)
   {
-  ripple_t * priv = (ripple_t *)e->priv;
+  ripple_t * priv = e->priv;
   image_init(e);
   priv->map_h = e->video_height / 2 + 1;
   priv->map_w = e->video_width / 2 + 1;
-  priv->map = (int *)malloc(priv->map_h*priv->map_w*3*sizeof(int));
-  priv->vtable = (signed char *)malloc(priv->map_h*priv->map_w*2*sizeof(signed char));
+  priv->map = malloc(priv->map_h*priv->map_w*3*sizeof(int));
+  priv->vtable = malloc(priv->map_h*priv->map_w*2*sizeof(signed char));
   if(priv->map == NULL || priv->vtable == NULL)
     {
     return 0;
@@ -139,7 +139,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  ripple_t * priv = (ripple_t *)e->priv;
+  ripple_t * priv = e->priv;
 
   free(priv->map);
   free(priv->vtable);
@@ -154,7 +154,7 @@ static void motiondetect(effect * e, RGB32 *src)
   int width;
   int *p, *q;
   int x, y, h;
-  ripple_t * priv = (ripple_t *)e->priv;
+  ripple_t * priv = e->priv;
 
   if(!priv->bgIsSet)
     {
@@ -192,7 +192,7 @@ static inline void drop(effect * e, int power)
   {
   int x, y;
   int *p, *q;
-  ripple_t * priv = (ripple_t *)e->priv;
+  ripple_t * priv = e->priv;
   
   x = fastrand(e)%(priv->map_w-4)+2;
   y = fastrand(e)%(priv->map_h-4)+2;
@@ -210,7 +210,7 @@ static void raindrop(effect * e)
   {
 
   int i;
-  ripple_t * priv = (ripple_t *)e->priv;
+  ripple_t * priv = e->priv;
 
   if(priv->period == 0)
     {
@@ -289,7 +289,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 #ifdef DEBUG
   RGB32 *dest2;
 #endif
-  ripple_t * priv = (ripple_t *)e->priv;
+  ripple_t * priv = e->priv;
 
   /* impact from the motion or rain drop */
   if(priv->mode)
@@ -497,8 +497,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  ripple_t * priv = (ripple_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  ripple_t * priv = vp->e->priv;
   
   if(!name)
     return;

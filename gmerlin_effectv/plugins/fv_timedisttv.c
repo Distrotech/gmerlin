@@ -36,7 +36,7 @@ static effect *timeDistortionRegister(void)
 	effect *entry;
         timedist_t * priv;
 
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -53,7 +53,7 @@ static effect *timeDistortionRegister(void)
 static int start(effect * e)
 {
 	int i;
-        timedist_t * priv = (timedist_t *)e->priv;
+        timedist_t * priv = e->priv;
         image_init(e);
 	priv->warptime[0] = malloc(e->video_area * sizeof(int));
 	priv->warptime[1] = malloc(e->video_area * sizeof(int));
@@ -61,7 +61,7 @@ static int start(effect * e)
 		return -1;
 	}
         
-	priv->buffer = (RGB32 *)malloc(e->video_area * PIXEL_SIZE * PLANES);
+	priv->buffer = malloc(e->video_area * PIXEL_SIZE * PLANES);
 	if(priv->buffer == NULL)
 		return -1;
 	memset(priv->buffer, 0, e->video_area * PIXEL_SIZE * PLANES);
@@ -80,7 +80,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-        timedist_t * priv = (timedist_t *)e->priv;
+        timedist_t * priv = e->priv;
 	if(priv->state) {
 		if(priv->buffer) {
 			free(priv->buffer);
@@ -100,7 +100,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 	int i, x, y;
 	unsigned char *diff;
 	int *p, *q;
-        timedist_t * priv = (timedist_t *)e->priv;
+        timedist_t * priv = e->priv;
 
 	memcpy(priv->planetable[priv->plane], src, PIXEL_SIZE * e->video_area);
 	diff = image_bgsubtract_update_y(e, src);

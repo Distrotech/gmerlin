@@ -40,7 +40,7 @@ static effect *chameleonRegister(void)
   effect *entry;
   chameleon_t * priv;
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   
   if(entry == NULL)
     return NULL;
@@ -57,14 +57,14 @@ static effect *chameleonRegister(void)
 
 static int start(effect * e)
   {
-  chameleon_t * priv = (chameleon_t *)e->priv;
+  chameleon_t * priv = e->priv;
   
-  priv->sum = (unsigned int *)malloc(e->video_area * sizeof(unsigned int));
-  priv->bgimage = (RGB32 *)malloc(e->video_area * PIXEL_SIZE);
+  priv->sum = malloc(e->video_area * sizeof(unsigned int));
+  priv->bgimage = malloc(e->video_area * PIXEL_SIZE);
   if(priv->sum == NULL || priv->bgimage == NULL)
     return -1;
   
-  priv->timebuffer = (unsigned char *)malloc(e->video_area * PLANES);
+  priv->timebuffer = malloc(e->video_area * PLANES);
   if(priv->timebuffer == NULL)
     return -1;
   
@@ -79,7 +79,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  chameleon_t * priv = (chameleon_t *)e->priv;
+  chameleon_t * priv = e->priv;
   if(priv->state)
     {
     if(priv->timebuffer)
@@ -104,7 +104,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
   {
-  chameleon_t * priv = (chameleon_t *)e->priv;
+  chameleon_t * priv = e->priv;
   if(!priv->bgIsSet)
     {
     setBackground(e, src);
@@ -131,7 +131,7 @@ static void drawDisappearing(effect * e, RGB32 *src, RGB32 *dest)
 	unsigned char *p;
 	RGB32 *q;
 	unsigned int *s;
-  chameleon_t * priv = (chameleon_t *)e->priv;
+  chameleon_t * priv = e->priv;
 
 	p = priv->timebuffer + priv->plane * e->video_area;
 	q = priv->bgimage;
@@ -176,7 +176,7 @@ static void drawAppearing(effect * e, RGB32 *src, RGB32 *dest)
 	unsigned char *p;
 	RGB32 *q;
 	unsigned int *s;
-  chameleon_t * priv = (chameleon_t *)e->priv;
+  chameleon_t * priv = e->priv;
 
 	p = priv->timebuffer + priv->plane * e->video_area;
 	q = priv->bgimage;
@@ -214,7 +214,7 @@ static void drawAppearing(effect * e, RGB32 *src, RGB32 *dest)
 
 static void setBackground(effect * e, RGB32 *src)
   {
-  chameleon_t * priv = (chameleon_t *)e->priv;
+  chameleon_t * priv = e->priv;
   memcpy(priv->bgimage, src, e->video_area * PIXEL_SIZE);
   priv->bgIsSet = 1;
   }
@@ -245,8 +245,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  chameleon_t * priv = (chameleon_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  chameleon_t * priv = vp->e->priv;
   
   if(!name)
     return;

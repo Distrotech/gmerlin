@@ -64,7 +64,7 @@ static effect *diceRegister(void)
   dice_t * priv;
   priv = calloc(1, sizeof(*priv));
 
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -80,8 +80,8 @@ static effect *diceRegister(void)
 
 static int start(effect * e)
   {
-  dice_t * priv = (dice_t*)(e->priv);
-  priv->dicemap = (char*)malloc(e->video_height * e->video_width * sizeof(char));
+  dice_t * priv = e->priv;
+  priv->dicemap = malloc(e->video_height * e->video_width * sizeof(char));
   if(priv->dicemap == NULL)
     {
     return -1;
@@ -96,7 +96,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  dice_t * priv = (dice_t*)(e->priv);
+  dice_t * priv = e->priv;
   
   priv->state = 0;
   free(priv->dicemap);
@@ -109,7 +109,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   int map_x, map_y, map_i;
   int base;
   int dx, dy, di;
-  dice_t * priv = (dice_t*)(e->priv);
+  dice_t * priv = e->priv;
   
   map_i = 0;
   for(map_y = 0; map_y < priv->g_map_height; map_y++)
@@ -190,7 +190,7 @@ static void diceCreateMap(effect * e)
   int x;
   int y;
   int i;
-  dice_t * priv = (dice_t*)(e->priv);
+  dice_t * priv = e->priv;
   
   priv->g_map_height = e->video_height >> priv->g_cube_bits;
   priv->g_map_width = e->video_width >> priv->g_cube_bits;
@@ -233,8 +233,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  dice_t * priv = (dice_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  dice_t * priv = vp->e->priv;
   
   if(!name)
     return;

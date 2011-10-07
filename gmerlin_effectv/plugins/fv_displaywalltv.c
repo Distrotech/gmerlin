@@ -37,7 +37,7 @@ static effect *displayWallRegister(void)
   effect *entry;
   displaywalltv_t * priv;
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -57,7 +57,7 @@ static void initVec(effect * e)
   {
   int x, y, i;
   double vx, vy;
-  displaywalltv_t * priv = (displaywalltv_t*)e->priv;
+  displaywalltv_t * priv = e->priv;
   i = 0;
   for(y=0; y<e->video_height; y++)
     {
@@ -78,14 +78,14 @@ static void initVec(effect * e)
 
 static int start(effect * e)
   {
-  displaywalltv_t * priv = (displaywalltv_t*)e->priv;
+  displaywalltv_t * priv = e->priv;
   priv->state = 1;
   
   priv->cx = e->video_width / 2;
   priv->cy = e->video_height / 2;
   
-  priv->vecx = (int *)malloc(sizeof(int) * e->video_area);
-  priv->vecy = (int *)malloc(sizeof(int) * e->video_area);
+  priv->vecx = malloc(sizeof(int) * e->video_area);
+  priv->vecy = malloc(sizeof(int) * e->video_area);
 
   if(priv->vecx == NULL || priv->vecy == NULL)
     return -1;
@@ -97,7 +97,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  displaywalltv_t * priv = (displaywalltv_t*)e->priv;
+  displaywalltv_t * priv = e->priv;
   priv->state = 0;
   free(priv->vecx);
   free(priv->vecy);
@@ -108,7 +108,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y, i;
   int px, py;
-  displaywalltv_t * priv = (displaywalltv_t*)e->priv;
+  displaywalltv_t * priv = e->priv;
   
   priv->bx += priv->speedx;
   priv->by += priv->speedy;
@@ -181,8 +181,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  displaywalltv_t * priv = (displaywalltv_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  displaywalltv_t * priv = vp->e->priv;
   int changed = 0;
   if(!name)
     return;

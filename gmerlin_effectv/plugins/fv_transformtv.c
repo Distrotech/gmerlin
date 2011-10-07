@@ -53,7 +53,7 @@ static effect *transformRegister(void)
   {
   effect *entry;
   transform_t * priv;
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL) return NULL;
 
   priv = calloc(1, sizeof(*priv));
@@ -68,7 +68,7 @@ static void SquareTableInit(effect * e)
 {
 	const int size = 16;
 	int x, y, tx, ty;
-        transform_t * priv = (transform_t *)e->priv;
+        transform_t * priv = e->priv;
 	for(y=0; y<e->video_height; y++) {
 		ty = y % size - size / 2;
 		if((y/size)%2)
@@ -92,7 +92,7 @@ static void SquareTableInit(effect * e)
 
 static int start(effect * e)
 {
-        transform_t * priv = (transform_t *)e->priv;
+        transform_t * priv = e->priv;
   int x,y,i;
 //   int xdest,ydest;
 
@@ -121,7 +121,7 @@ static int start(effect * e)
 static int stop(effect * e)
 {
   int i;
-        transform_t * priv = (transform_t *)e->priv;
+        transform_t * priv = e->priv;
 
   if(priv->state) {
 	priv->state = 0;
@@ -136,7 +136,7 @@ static int stop(effect * e)
 static int draw(effect * e, RGB32 *src, RGB32 *dst)
 {
   int x,y;
-  transform_t * priv = (transform_t *)e->priv;
+  transform_t * priv = e->priv;
   priv->t++;
   
   for (y=0;y < e->video_height;y++)
@@ -186,8 +186,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  transform_t * priv = (transform_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  transform_t * priv = vp->e->priv;
   
   if(!name)
     return;

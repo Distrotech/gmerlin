@@ -39,7 +39,7 @@ static void rasterPup(effect *, RGB32 *);
 
 static int resetBuffer(effect * e, RGB32 *src)
   {
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   memcpy(priv->buffer, src, e->video_area * PIXEL_SIZE);
   priv->bgIsSet = 1;
   
@@ -51,7 +51,7 @@ static effect *pupRegister()
   effect *entry;
   pup_t * priv = calloc(1, sizeof(*priv));
         
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     return NULL;
   entry->priv = priv;
@@ -64,10 +64,10 @@ static effect *pupRegister()
 
 static int start(effect * e)
   {
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   priv->bgIsSet = 0;
   priv->state = 1;
-  priv->buffer = (RGB32 *)malloc(e->video_area * PIXEL_SIZE);
+  priv->buffer = malloc(e->video_area * PIXEL_SIZE);
   if(priv->buffer == NULL)
     return -1;
         
@@ -76,7 +76,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   priv->state = 0;
   free(priv->buffer);
   return 0;
@@ -84,7 +84,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
   {
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   if(!priv->bgIsSet) {
   resetBuffer(e, src);
   }
@@ -121,7 +121,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 static void randomPup(effect * e, RGB32 *src)
   {
   int i, x;
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   int pixNum = 100 + (int)(priv->strength * (10000 - 100) + 0.5);
   
   for(i=pixNum; i>0; i--) {
@@ -134,7 +134,7 @@ static void diagonalPup(effect * e, RGB32 *src)
   {
   int x, y, s;
   RGB32 *p;
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
 
   int step = -100 + (int)(priv->strength * (200) + 0.5);;
   
@@ -167,7 +167,7 @@ static void diagonalPup(effect * e, RGB32 *src)
 static void dissolutionPup(effect * e, RGB32 *src)
   {
   int i;
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   
   int step = 1 + (int)(priv->strength * 99 + 0.5);;
 
@@ -184,7 +184,7 @@ static void verticalPup(effect * e, RGB32 *src)
   {
   int x, y;
   RGB32 *dest;
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   int step = 2 + (int)(priv->strength * (e->video_width-1) + 0.5);;
   
   dest = priv->buffer;
@@ -209,7 +209,7 @@ static void horizontalPup(effect * e, RGB32 *src)
   {
   int y;
   RGB32 *dest;
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   int step = 2 + (int)(priv->strength * (e->video_height-2) + 0.5);;
   
   src += e->video_width * priv->phase;
@@ -232,7 +232,7 @@ static void rasterPup(effect * e, RGB32 *src)
   int x, y;
   unsigned int offset;
   RGB32 *dest;
-  pup_t * priv = (pup_t*)e->priv;
+  pup_t * priv = e->priv;
   int step = 2 + (int)(priv->strength * (e->video_height-2) + 0.5);;
 
   offset = 0;
@@ -309,8 +309,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed = 0;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  pup_t * priv = (pup_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  pup_t * priv = vp->e->priv;
   
   if(!name)
     return;

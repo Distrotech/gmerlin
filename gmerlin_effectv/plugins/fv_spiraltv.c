@@ -170,7 +170,7 @@ static effect *spiralRegister(void)
         spiral_t * priv;
         priv = calloc(1, sizeof(*priv));
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
         
 	entry->start = start;
 	entry->stop = stop;
@@ -183,9 +183,9 @@ static effect *spiralRegister(void)
 static int start(effect * e)
   {
   int i;
-  spiral_t * priv = (spiral_t*)e->priv;
+  spiral_t * priv = e->priv;
   
-  priv->depthmap = (int *)malloc(e->video_width * e->video_height * sizeof(int));
+  priv->depthmap = malloc(e->video_width * e->video_height * sizeof(int));
 
   priv->g_focus_x = (e->video_width/2);
   priv->g_focus_y = (e->video_height/2);
@@ -203,7 +203,7 @@ static int start(effect * e)
     **
     ** Multiply by 4 for 640x480!
     */
-  priv->buffer = (unsigned int *)malloc(e->video_area * PIXEL_SIZE * PLANES);
+  priv->buffer = malloc(e->video_area * PIXEL_SIZE * PLANES);
   if(priv->buffer == NULL)
     return 0;
   memset(priv->buffer, 0, e->video_area * PIXEL_SIZE * PLANES);
@@ -239,7 +239,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  spiral_t * priv = (spiral_t*)e->priv;
+  spiral_t * priv = e->priv;
   if(priv->state)
     {
     if(priv->buffer)
@@ -266,7 +266,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
     int x, y, i;
 	int cf;
-  spiral_t * priv = (spiral_t*)e->priv;
+  spiral_t * priv = e->priv;
 
 	memcpy(priv->planetable[priv->plane], src, e->video_width * e->video_height * PIXEL_SIZE);
 
@@ -360,8 +360,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  spiral_t * priv = (spiral_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  spiral_t * priv = vp->e->priv;
   int changed = 0;
   if(!name)
     return;
@@ -400,7 +400,7 @@ static void spiralCreateMap(effect * e)
     int v;
     int i;
     int wave_offset;
-    spiral_t * priv = (spiral_t*)e->priv;
+    spiral_t * priv = e->priv;
     priv->g_focus_x = (int)(priv->center_x * e->video_width);
     priv->g_focus_y = (int)(priv->center_y * e->video_height);
     
@@ -448,7 +448,7 @@ static WaveEl* spiralDefineWaves(effect * e)
     // This code feels a little like a hack, but at least it contains
     // all like-minded hacks in one place.
     
-  wave_table = (WaveEl*)malloc(WAVE_TABLE_SIZE);
+  wave_table = malloc(WAVE_TABLE_SIZE);
     if (NULL == wave_table)
     {
         return NULL;
@@ -501,7 +501,7 @@ static WaveEl* spiralDefineWaves(effect * e)
 
 static void spiralMoveFocus(effect * e)
 {
-  spiral_t * priv = (spiral_t*)e->priv;
+  spiral_t * priv = e->priv;
   priv->g_focus_counter++;
 
     //  We'll only switch maps every X frames.

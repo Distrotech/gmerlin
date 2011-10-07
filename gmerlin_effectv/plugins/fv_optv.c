@@ -62,7 +62,7 @@ static void setOpmap(effect * e)
 #endif
 	int sci;
 
-        op_t * priv = (op_t*)e->priv;
+        op_t * priv = e->priv;
 	sci = 640 / e->video_width;
 	i = 0;
 	for(y=0; y<e->video_height; y++) {
@@ -99,7 +99,7 @@ static effect *opRegister(void)
 	effect *entry;
         op_t * priv;
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -114,12 +114,12 @@ static effect *opRegister(void)
 
 static int start(effect * e)
 {
-        op_t * priv = (op_t*)e->priv;
+        op_t * priv = e->priv;
 	int i;
         
         for(i=0; i<OPMAP_MAX; i++)
           {
-          priv->opmap[i] = (char *)malloc(e->video_area);
+          priv->opmap[i] = malloc(e->video_area);
           if(priv->opmap[i] == NULL)
             {
             return -1;
@@ -139,7 +139,7 @@ static int start(effect * e)
 static int stop(effect * e)
   {
   int i;
-  op_t * priv = (op_t*)e->priv;
+  op_t * priv = e->priv;
   priv->stat = 0;
   for(i=0; i<OPMAP_MAX; i++)
     free(priv->opmap[i]);
@@ -151,7 +151,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 	int x, y;
 	char *p;
 	unsigned char *diff;
-        op_t * priv = (op_t*)e->priv;
+        op_t * priv = e->priv;
 
 	switch(priv->mode) {
 		default:
@@ -218,8 +218,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  op_t * priv = (op_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  op_t * priv = vp->e->priv;
   
   if(!name)
     return;

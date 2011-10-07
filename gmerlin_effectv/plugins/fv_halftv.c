@@ -51,7 +51,7 @@ static effect *nervousHalfRegister(void)
 {
 	effect *entry;
         half_t * priv;
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -68,8 +68,8 @@ static effect *nervousHalfRegister(void)
 static int start(effect * e)
   {
   int i;
-  half_t * priv = (half_t*)(e->priv);
-  priv->buffer = (RGB32 *)malloc(e->video_area*PIXEL_SIZE*PLANES);
+  half_t * priv = e->priv;
+  priv->buffer = malloc(e->video_area*PIXEL_SIZE*PLANES);
   if(priv->buffer == NULL)
     return -1;
   memset(priv->buffer, 0, e->video_area*PIXEL_SIZE*PLANES);
@@ -87,7 +87,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-  half_t * priv = (half_t*)(e->priv);
+  half_t * priv = e->priv;
 	if(priv->state) {
 		if(priv->buffer)
 			free(priv->buffer);
@@ -99,13 +99,13 @@ static int stop(effect * e)
 
 static int nextDelay(effect * e)
 {
-  half_t * priv = (half_t*)(e->priv);
+  half_t * priv = e->priv;
 	return (priv->plane - priv->delay + PLANES) % PLANES;
 }
 
 static int nextScratch(effect * e)
 {
-  half_t * priv = (half_t*)(e->priv);
+  half_t * priv = e->priv;
 	if(priv->scratchTimer) {
 		priv->scratchCurrent = priv->scratchCurrent + priv->scratchStride;
 		while(priv->scratchCurrent < 0) priv->scratchCurrent += priv->stock;
@@ -123,7 +123,7 @@ static int nextScratch(effect * e)
 
 static int nextNervous(effect * e)
 {
-  half_t * priv = (half_t*)(e->priv);
+  half_t * priv = e->priv;
 	if(priv->stock > 0)
 		return inline_fastrand(e) % priv->stock;
 
@@ -134,7 +134,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
 	int readplane;
 	RGB32 *buf;
-  half_t * priv = (half_t*)(e->priv);
+  half_t * priv = e->priv;
 
 	memcpy(priv->planetable[priv->plane], src, e->video_area * PIXEL_SIZE);
 	if(priv->stock < PLANES) {
@@ -412,8 +412,8 @@ static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
   int changed;
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  half_t * priv = (half_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  half_t * priv = vp->e->priv;
   
   if(!name)
     return;

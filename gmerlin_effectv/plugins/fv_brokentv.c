@@ -32,7 +32,7 @@ static effect *scrollRegister(void)
 	effect *entry;
         brokentv_t * priv;
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) return NULL;
 
         priv = calloc(1, sizeof(*priv));
@@ -47,7 +47,7 @@ static effect *scrollRegister(void)
 
 static int start(effect * e)
 {
-        brokentv_t * priv = (brokentv_t *)e->priv;
+        brokentv_t * priv = e->priv;
 	priv->offset = 0;
 	priv->state = 1;
 
@@ -56,14 +56,14 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-        brokentv_t * priv = (brokentv_t *)e->priv;
+        brokentv_t * priv = e->priv;
 	priv->state = 0;
 	return 0;
 }
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
-        brokentv_t * priv = (brokentv_t *)e->priv;
+        brokentv_t * priv = e->priv;
 	memcpy (dest, src+(e->video_height - priv->offset)*e->video_width, 
 		priv->offset * e->video_width * sizeof (RGB32));
 	memcpy (dest+priv->offset*e->video_width, src,
@@ -79,7 +79,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 
 void add_noise (effect * e, RGB32 *dest)
 {
-        brokentv_t * priv = (brokentv_t *)e->priv;
+        brokentv_t * priv = e->priv;
 	int i, x, y, dy;
 
 	for (y = priv->offset, dy = 0; ((dy < 3) && (y < e->video_height)); y++, dy++) {

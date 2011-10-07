@@ -47,7 +47,7 @@ inline static unsigned char inline_RGBtoY(effect * e, int rgb)
 static void init_sampxy_table(effect * e)
 {
 	int i, j;
-        dottv_t * priv = (dottv_t *)e->priv;
+        dottv_t * priv = e->priv;
 	j = priv->dot_hsize;
 	for(i=0; i<priv->dots_width; i++) {
 		priv->sampx[i] = j;
@@ -66,7 +66,7 @@ static void makePattern(effect * e)
 	int u, v;
 	double p, q, r;
 	RGB32 *pat;
-        dottv_t * priv = (dottv_t *)e->priv;
+        dottv_t * priv = e->priv;
 
 	for(i=0; i<DOTMAX; i++) {
 /* Generated pattern is a quadrant of a disk. */
@@ -109,7 +109,7 @@ static void makeOneHeart(effect * e, int val, unsigned char *bigheart)
 	double w, h;
 	RGB32 *pat;
 	RGB32 c;
-        dottv_t * priv = (dottv_t *)e->priv;
+        dottv_t * priv = e->priv;
 #define SFACT 4
 
 	pat = priv->heart_pattern + val * priv->dot_size * priv->dot_hsize;
@@ -169,7 +169,7 @@ static void makeHeartPattern(effect * e)
 	int i, x, y;
 	unsigned char *bigheart;
 
-	bigheart = (unsigned char *)malloc(sizeof(unsigned char) * 64 * 32);
+	bigheart = malloc(sizeof(unsigned char) * 64 * 32);
 	memset(bigheart, 0, 64 * 32 * sizeof(unsigned char));
 	for(y=0; y<32; y++) {
 		for(x=0; x<16;x++) {
@@ -189,7 +189,7 @@ static effect *dotRegister()
 	effect *entry;
         dottv_t * priv;
         
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -209,7 +209,7 @@ static int start(effect * e)
   {
   
   double scale = 1.0;
-  dottv_t * priv = (dottv_t *)e->priv;
+  dottv_t * priv = e->priv;
 
 #if 0  
   if(screen_scale > 0)
@@ -231,18 +231,18 @@ static int start(effect * e)
   priv->dots_width = e->video_width / priv->dot_size;
   priv->dots_height = e->video_height / priv->dot_size;
 	
-  priv->pattern = (RGB32 *)malloc(DOTMAX * priv->dot_hsize * priv->dot_hsize * sizeof(RGB32));
+  priv->pattern = malloc(DOTMAX * priv->dot_hsize * priv->dot_hsize * sizeof(RGB32));
   if(priv->pattern == NULL) {
   return -1;
   }
-  priv->heart_pattern = (RGB32 *)malloc(DOTMAX * priv->dot_hsize * priv->dot_size * PIXEL_SIZE);
+  priv->heart_pattern = malloc(DOTMAX * priv->dot_hsize * priv->dot_size * PIXEL_SIZE);
   if(priv->heart_pattern == NULL) {
   free(priv->pattern);
   return -1;
   }
   
-  priv->sampx = (int *)malloc(e->video_width*sizeof(int));
-  priv->sampy = (int *)malloc(e->video_height*sizeof(int));
+  priv->sampx = malloc(e->video_width*sizeof(int));
+  priv->sampy = malloc(e->video_height*sizeof(int));
   if(priv->sampx == NULL || priv->sampy == NULL)
     {
     return -1;
@@ -259,7 +259,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-  dottv_t * priv = (dottv_t *)e->priv;
+  dottv_t * priv = e->priv;
   priv->state = 0;
 
   if(priv->pattern) free(priv->pattern);
@@ -272,7 +272,7 @@ static int stop(effect * e)
 
 static void drawDot(effect * e, int xx, int yy, unsigned char c, RGB32 *dest)
 {
-  dottv_t * priv = (dottv_t *)e->priv;
+  dottv_t * priv = e->priv;
 	int x, y;
 	RGB32 *pat;
 
@@ -306,7 +306,7 @@ static void drawDot(effect * e, int xx, int yy, unsigned char c, RGB32 *dest)
 
 static void drawHeart(effect * e, int xx, int yy, unsigned char c, RGB32 *dest)
 {
-  dottv_t * priv = (dottv_t *)e->priv;
+  dottv_t * priv = e->priv;
 	int x, y;
 	RGB32 *pat;
 
@@ -328,7 +328,7 @@ static void drawHeart(effect * e, int xx, int yy, unsigned char c, RGB32 *dest)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
-  dottv_t * priv = (dottv_t *)e->priv;
+  dottv_t * priv = e->priv;
 	int x, y;
 	int sx, sy;
 
@@ -377,8 +377,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  dottv_t * priv = (dottv_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  dottv_t * priv = vp->e->priv;
 
   if(!name)
     return;

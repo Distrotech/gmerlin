@@ -29,7 +29,7 @@ typedef struct
 
 static int setBackground(effect* e, RGB32 *src)
 {
-mosaic_t * priv = (mosaic_t*)e->priv;
+mosaic_t * priv = e->priv;
 	image_bgset_y(e, src);
 	priv->bgIsSet = 1;
 
@@ -41,7 +41,7 @@ static effect *mosaicRegister(void)
 	effect *entry;
         mosaic_t * priv;
 	
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -57,7 +57,7 @@ static effect *mosaicRegister(void)
 
 static int start(effect* e)
   {
-  mosaic_t * priv = (mosaic_t*)e->priv;
+  mosaic_t * priv = e->priv;
 
   image_init(e);
   image_set_threshold_y(e, MAGIC_THRESHOLD);
@@ -69,7 +69,7 @@ static int start(effect* e)
 
 static int stop(effect* e)
 {
-mosaic_t * priv = (mosaic_t*)e->priv;
+mosaic_t * priv = e->priv;
 	priv->stat = 0;
 	return 0;
 }
@@ -80,7 +80,7 @@ static int draw(effect* e, RGB32 *src, RGB32 *dest)
 	int count;
 	RGB32 *p, *q;
 	unsigned char *diff, *r;
-mosaic_t * priv = (mosaic_t*)e->priv;
+mosaic_t * priv = e->priv;
 
 	if(!priv->bgIsSet) {
 		setBackground(e, src);

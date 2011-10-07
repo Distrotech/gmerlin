@@ -33,7 +33,7 @@ typedef struct
 
 static int setBackground(effect * e, RGB32 *src)
   {
-  fire_t * priv = (fire_t *)(e->priv);
+  fire_t * priv = e->priv;
   
   image_bgset_y(e, src);
   priv->bgIsSet = 1;
@@ -66,7 +66,7 @@ static effect *fireRegister(void)
   effect *entry;
   fire_t * priv;
 
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -85,8 +85,8 @@ static effect *fireRegister(void)
 
 static int start(effect * e)
   {
-  fire_t * priv = (fire_t *)(e->priv);
-  priv->buffer = (unsigned char *)malloc(e->video_area);
+  fire_t * priv = e->priv;
+  priv->buffer = malloc(e->video_area);
   if(priv->buffer == NULL)
     {
     return -1;
@@ -102,7 +102,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  fire_t * priv = (fire_t *)(e->priv);
+  fire_t * priv = e->priv;
   priv->state = 0;
   free(priv->buffer);
   return 0;
@@ -113,7 +113,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   int i, x, y;
   unsigned char v;
   unsigned char *diff;
-  fire_t * priv = (fire_t *)(e->priv);
+  fire_t * priv = e->priv;
   
   if(!priv->bgIsSet)
     {
@@ -206,8 +206,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  fire_t * priv = (fire_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  fire_t * priv = vp->e->priv;
   
   if(!name)
     return;

@@ -54,7 +54,7 @@ static void makePalette(burn_t * priv)
 
 static int setBackground(effect * e, RGB32 *src)
   {
-  burn_t * priv = (burn_t *)e->priv;
+  burn_t * priv = e->priv;
   image_bgset_y(e, src);
   priv->bgIsSet = 1;
   
@@ -66,7 +66,7 @@ static effect *burnRegister()
   effect *entry;
   burn_t * priv;
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -85,9 +85,9 @@ static effect *burnRegister()
 
 static int start(effect * e)
   {
-  burn_t * priv = (burn_t *)e->priv;
+  burn_t * priv = e->priv;
 
-  priv->buffer = (unsigned char *)malloc(e->video_area);
+  priv->buffer = malloc(e->video_area);
   if(priv->buffer == NULL)
     return -1;
   image_init(e);
@@ -101,7 +101,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  burn_t * priv = (burn_t *)e->priv;
+  burn_t * priv = e->priv;
   priv->state = 0;
   free(priv->buffer);
   return 0;
@@ -113,7 +113,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   unsigned char v, w;
   RGB32 a, b;
   unsigned char *diff;
-  burn_t * priv = (burn_t *)e->priv;
+  burn_t * priv = e->priv;
 
   if(!priv->bgIsSet)
     {
@@ -192,8 +192,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  burn_t * priv = (burn_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  burn_t * priv = vp->e->priv;
   
   if(!name)
     return;

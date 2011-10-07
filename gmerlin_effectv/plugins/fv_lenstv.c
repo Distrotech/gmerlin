@@ -54,7 +54,7 @@ static void apply_lens(effect *e, int ox, int oy,RGB32 *src,RGB32 *dst)
 {
     int x, y, noy,pos, nox;
 	int *p;
-        lenstv_t * priv = (lenstv_t*)e->priv;
+        lenstv_t * priv = e->priv;
         
 	p = priv->lens;
 	for (y = 0; y < priv->lens_width_i; y++) {
@@ -75,7 +75,7 @@ static effect *lensRegister(void)
 lenstv_t * priv;
 effect *entry;
         //	mode=1;
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) return NULL;
 
 	entry->start = start;
@@ -89,7 +89,7 @@ effect *entry;
 
 static int start(effect *e)
   {
-  lenstv_t * priv = (lenstv_t*)e->priv;
+  lenstv_t * priv = e->priv;
   
   init(e);
   priv->state = 1;
@@ -98,7 +98,7 @@ static int start(effect *e)
 
 static int stop(effect *e)
   {
-  lenstv_t * priv = (lenstv_t*)e->priv;
+  lenstv_t * priv = e->priv;
   priv->state = 0;
   if(priv->lens)
     {
@@ -110,7 +110,7 @@ static int stop(effect *e)
 
 static int draw(effect *e, RGB32 *src, RGB32 *dst)
   {
-  lenstv_t * priv = (lenstv_t*)e->priv;
+  lenstv_t * priv = e->priv;
   memcpy(dst, src, e->video_area * PIXEL_SIZE);
   apply_lens(e,priv->xi,priv->yi,src,dst);
   return 0;
@@ -119,7 +119,7 @@ static int draw(effect *e, RGB32 *src, RGB32 *dst)
 static void init(effect *e) {
 
   int x,y,r,d;
-  lenstv_t * priv = (lenstv_t*)e->priv;
+  lenstv_t * priv = e->priv;
 
   if(!e->video_width || !e->video_height)
     return;
@@ -135,7 +135,7 @@ static void init(effect *e) {
   if(priv->lens != NULL) {
 	  free(priv->lens);
   }
-  priv->lens = (int *)malloc(priv->lens_width_i * priv->lens_width_i * sizeof(int));
+  priv->lens = malloc(priv->lens_width_i * priv->lens_width_i * sizeof(int));
   memset(priv->lens, 0, priv->lens_width_i * priv->lens_width_i * sizeof(int));
 
     /* generate the lens distortion */
@@ -268,7 +268,7 @@ static void init(effect *e) {
 
 static void clipmag(effect *e)
   {
-  lenstv_t * priv = (lenstv_t*)e->priv;
+  lenstv_t * priv = e->priv;
   if(priv->yi<0-(priv->lens_width_i/2)+1)
     priv->yi=0-(priv->lens_width_i/2)+1;
   if(priv->yi>=e->video_height-priv->lens_width_i/2-1)
@@ -334,8 +334,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  lenstv_t * priv = (lenstv_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  lenstv_t * priv = vp->e->priv;
   int changed = 0;
   if(!name)
     return;

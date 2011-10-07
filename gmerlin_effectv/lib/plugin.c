@@ -26,7 +26,7 @@ void bg_effectv_connect_input_port(void * priv,
                                    void * data, int stream, int port)
   {
   bg_effectv_plugin_t * vp;
-  vp = (bg_effectv_plugin_t *)priv;
+  vp = priv;
   
   if(!port)
     {
@@ -53,7 +53,7 @@ static gavl_pixelformat_t agn_formats[] =
 void bg_effectv_set_input_format(void * priv, gavl_video_format_t * format, int port)
   {
   bg_effectv_plugin_t * vp;
-  vp = (bg_effectv_plugin_t *)priv;
+  vp = priv;
   
   if(port)
     return;
@@ -116,7 +116,7 @@ void * bg_effectv_create(effectRegisterFunc * f, int flags)
 void bg_effectv_destroy(void*priv)
   {
   bg_effectv_plugin_t * p;
-  p = (bg_effectv_plugin_t *)priv;
+  p = priv;
   
   if(p->e)
     {
@@ -142,14 +142,14 @@ void bg_effectv_destroy(void*priv)
 void bg_effectv_get_output_format(void * priv, gavl_video_format_t * format)
   {
   bg_effectv_plugin_t * vp;
-  vp = (bg_effectv_plugin_t *)priv;
+  vp = priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
 int bg_effectv_read_video(void * priv, gavl_video_frame_t * frame, int stream)
   {
   bg_effectv_plugin_t * vp;
-  vp = (bg_effectv_plugin_t *)priv;
+  vp = priv;
 
   if(!vp->in_frame)
     {

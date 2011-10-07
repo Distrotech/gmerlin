@@ -34,7 +34,7 @@ static effect *streakRegister(void)
 {
 	effect *entry;
         streaktv_t * priv;
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -50,9 +50,9 @@ static effect *streakRegister(void)
 static int start(effect * e)
 {
 	int i;
-        streaktv_t * priv = (streaktv_t *)(e->priv);
+        streaktv_t * priv = e->priv;
         
-	priv->buffer = (RGB32 *)malloc(e->video_area * PIXEL_SIZE * PLANES);
+	priv->buffer = malloc(e->video_area * PIXEL_SIZE * PLANES);
 	if(priv->buffer == NULL)
 		return -1;
 	memset(priv->buffer, 0, e->video_area * PIXEL_SIZE * PLANES);
@@ -67,7 +67,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-        streaktv_t * priv = (streaktv_t *)(e->priv);
+        streaktv_t * priv = e->priv;
 	if(priv->state) {
 		if(priv->buffer) {
 			free(priv->buffer);
@@ -80,7 +80,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
-        streaktv_t * priv = (streaktv_t *)(e->priv);
+        streaktv_t * priv = e->priv;
 	int i, cf;
 
 	for(i=0; i<e->video_area; i++) {

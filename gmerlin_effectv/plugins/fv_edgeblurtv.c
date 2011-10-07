@@ -52,7 +52,7 @@ static effect *edgeBlurRegister(void)
   effect *entry;
   edgeblur_t * priv;
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -70,10 +70,10 @@ static effect *edgeBlurRegister(void)
 
 static int start(effect * e)
   {
-  edgeblur_t * priv = (edgeblur_t *)e->priv;
+  edgeblur_t * priv = e->priv;
   
-  priv->blur[0] = (int *)malloc(e->video_area * sizeof(int));
-  priv->blur[1] = (int *)malloc(e->video_area * sizeof(int));
+  priv->blur[0] = malloc(e->video_area * sizeof(int));
+  priv->blur[1] = malloc(e->video_area * sizeof(int));
   if(priv->blur[0] == NULL || priv->blur[1] == NULL)
     {
     return -1;
@@ -92,7 +92,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  edgeblur_t * priv = (edgeblur_t *)e->priv;
+  edgeblur_t * priv = e->priv;
   if(priv->state)
     {
     priv->state = 0;
@@ -108,7 +108,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   unsigned char *diff;
   int v;
   int *p, *q;
-  edgeblur_t * priv = (edgeblur_t *)e->priv;
+  edgeblur_t * priv = e->priv;
 
   diff = image_edge(e, src);
 
@@ -162,8 +162,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  edgeblur_t * priv = (edgeblur_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  edgeblur_t * priv = vp->e->priv;
   
   if(!name)
     return;

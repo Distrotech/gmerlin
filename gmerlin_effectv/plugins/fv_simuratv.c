@@ -51,7 +51,7 @@ static effect *simuraRegister(void)
 	}
 #endif
 
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) {
 		return NULL;
 	}
@@ -66,7 +66,7 @@ static effect *simuraRegister(void)
 
 static int start(effect * e)
   {
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
   
   priv->hwidth = e->video_width/2;
   priv->hheight = e->video_height/2;
@@ -77,14 +77,14 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
   priv->stat = 0;
   return 0;
   }
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
   {
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
   switch(priv->mirror)
     {
     case 1:
@@ -124,7 +124,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_no(effect * e, RGB32 *src, RGB32 *dest)
   {
   int i;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(i=0; i<e->video_area; i++)
     {
@@ -135,7 +135,7 @@ static void mirror_no(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_u(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(y=0; y<priv->hheight; y++) {
   for(x=0; x<e->video_width; x++) {
@@ -148,7 +148,7 @@ static void mirror_u(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_d(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(y=priv->hheight; y<e->video_height; y++) {
   for(x=0; x<e->video_width; x++) {
@@ -161,7 +161,7 @@ static void mirror_d(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_l(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(y=0; y<e->video_height; y++) {
   for(x=0; x<priv->hwidth; x++) {
@@ -174,7 +174,7 @@ static void mirror_l(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_r(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(y=0; y<e->video_height; y++) {
   for(x=priv->hwidth; x<e->video_width; x++) {
@@ -187,7 +187,7 @@ static void mirror_r(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_ul(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(y=0; y<priv->hheight; y++) {
   for(x=0; x<priv->hwidth; x++) {
@@ -202,7 +202,7 @@ static void mirror_ul(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_ur(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(y=0; y<priv->hheight; y++) {
   for(x=priv->hwidth; x<e->video_width; x++) {
@@ -217,7 +217,7 @@ static void mirror_ur(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_dl(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(y=priv->hheight; y<e->video_height; y++) {
   for(x=0; x<priv->hwidth; x++) {
@@ -232,7 +232,7 @@ static void mirror_dl(effect * e, RGB32 *src, RGB32 *dest)
 static void mirror_dr(effect * e, RGB32 *src, RGB32 *dest)
   {
   int x, y;
-  simuratv_t * priv = (simuratv_t *)e->priv;
+  simuratv_t * priv = e->priv;
 
   for(y=priv->hheight; y<e->video_height; y++) {
   for(x=priv->hwidth; x<e->video_width; x++) {
@@ -273,8 +273,8 @@ static const bg_parameter_info_t * get_parameters(void * data)
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t *val)
   {
-  bg_effectv_plugin_t * vp = (bg_effectv_plugin_t *)data;
-  simuratv_t * priv = (simuratv_t*)vp->e->priv;
+  bg_effectv_plugin_t * vp = data;
+  simuratv_t * priv = vp->e->priv;
 
   if(!name)
     return;

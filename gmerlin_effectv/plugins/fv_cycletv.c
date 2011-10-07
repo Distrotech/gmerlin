@@ -28,7 +28,7 @@ static effect *cycleRegister(void)
 	effect *entry;
         cycle_t * priv;
 
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) return NULL;
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
@@ -41,7 +41,7 @@ static effect *cycleRegister(void)
 
 static int start(effect* e)
   {
-  cycle_t * priv = (cycle_t*)e->priv;
+  cycle_t * priv = e->priv;
   priv->roff = priv->goff = priv->boff = 0;
   priv->state = 1;
   return 0;
@@ -49,7 +49,7 @@ static int start(effect* e)
 
 static int stop(effect*e)
   {
-  cycle_t * priv = (cycle_t*)e->priv;
+  cycle_t * priv = e->priv;
   priv->state = 0;
   return 0;
   }
@@ -58,7 +58,7 @@ static int stop(effect*e)
 static int draw(effect* e, RGB32 *src, RGB32 *dst)
   {
   int i;
-  cycle_t * priv = (cycle_t*)e->priv;
+  cycle_t * priv = e->priv;
   
   priv->roff += 1;
   priv->goff += 3;        

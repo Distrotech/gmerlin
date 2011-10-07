@@ -46,7 +46,7 @@ static void coloraging(effect * e, RGB32 *src, RGB32 *dest)
 {
 	RGB32 a, b;
 	int i;
-        agingtv_t * priv = (agingtv_t*)e->priv;
+        agingtv_t * priv = e->priv;
         
 	priv->colorage -= (int)(inline_fastrand(e))>>28;
 	if(priv->colorage < 0) priv->colorage = 0;
@@ -66,7 +66,7 @@ static void scratching(effect * e, RGB32 *dest)
 	RGB32 *p, a, b;
 	const int width = e->video_width;
 	const int height = e->video_height;
-        agingtv_t * priv = (agingtv_t*)e->priv;
+        agingtv_t * priv = e->priv;
 	for(i=0; i<priv->scratch_lines; i++) {
 		if(priv->scratches[i].life) {
 			priv->scratches[i].x = priv->scratches[i].x + priv->scratches[i].dx;
@@ -116,7 +116,7 @@ static void dusts(effect * e, RGB32 *dest)
 	int x, y;
 	const int width = e->video_width;
 	const int height = e->video_height;
-        agingtv_t * priv = (agingtv_t*)e->priv;
+        agingtv_t * priv = e->priv;
 
 	if(priv->dust_interval == 0) {
 		if((fastrand(e)&0xf0000000) == 0) {
@@ -151,7 +151,7 @@ static void pits(effect * e, RGB32 *dest)
 	int x, y;
 	const int width = e->video_width;
 	const int height = e->video_height;
-        agingtv_t * priv = (agingtv_t*)e->priv;
+        agingtv_t * priv = e->priv;
 
 	pnumscale = priv->area_scale * 2;
 	if(priv->pits_interval) {
@@ -181,7 +181,7 @@ static effect *agingRegister(void)
 {
 	effect *entry;
         agingtv_t * priv;
-	entry = (effect *)calloc(1, sizeof(effect));
+	entry = calloc(1, sizeof(effect));
 	if(entry == NULL) return NULL;
 	
 	entry->start = start;
@@ -194,7 +194,7 @@ static effect *agingRegister(void)
 
 static void aging_mode_switch(effect * e)
 {
-        agingtv_t * priv = (agingtv_t*)e->priv;
+        agingtv_t * priv = e->priv;
 	switch(priv->aging_mode) {
 		default:
 		case 0:
@@ -209,7 +209,7 @@ static void aging_mode_switch(effect * e)
 
 static int start(effect * e)
 {
-        agingtv_t * priv = (agingtv_t*)e->priv;
+        agingtv_t * priv = e->priv;
 	priv->aging_mode = 0;
 	aging_mode_switch(e);
 	priv->colorage = 0x18;
@@ -220,7 +220,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
 {
-        agingtv_t * priv = (agingtv_t*)e->priv;
+        agingtv_t * priv = e->priv;
 	priv->state = 0;
 
 	return 0;
@@ -228,7 +228,7 @@ static int stop(effect * e)
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
-        agingtv_t * priv = (agingtv_t*)e->priv;
+        agingtv_t * priv = e->priv;
 	coloraging(e, src, dest);
 
 	scratching(e, dest);

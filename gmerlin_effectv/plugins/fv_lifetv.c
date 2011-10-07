@@ -27,7 +27,7 @@ typedef struct
 static void clear_field(effect * e)
   {
   life_t * priv;
-  priv = (life_t *)e->priv;
+  priv = e->priv;
   memset(priv->field1, 0, e->video_area);
   }
 
@@ -36,7 +36,7 @@ static effect *lifeRegister(void)
   effect *entry;
   life_t * priv;
   
-  entry = (effect *)calloc(1, sizeof(effect));
+  entry = calloc(1, sizeof(effect));
   if(entry == NULL)
     {
     return NULL;
@@ -53,11 +53,11 @@ static effect *lifeRegister(void)
 
 static int start(effect * e)
   {
-  life_t * priv = (life_t *)e->priv;
+  life_t * priv = e->priv;
   image_init(e);
   image_set_threshold_y(e, 40);
 
-  priv->field = (unsigned char *)malloc(e->video_area*2);
+  priv->field = malloc(e->video_area*2);
   if(priv->field == NULL)
     return -1;
   
@@ -71,7 +71,7 @@ static int start(effect * e)
 
 static int stop(effect * e)
   {
-  life_t * priv = (life_t *)e->priv;
+  life_t * priv = e->priv;
   free(priv->field);
   priv->stat = 0;
   return 0;
@@ -84,7 +84,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   unsigned char sum, sum1, sum2, sum3;
   int width;
   RGB32 pix;
-  life_t * priv = (life_t *)e->priv;
+  life_t * priv = e->priv;
   
   width = e->video_width;
   
