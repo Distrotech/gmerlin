@@ -59,7 +59,7 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
   {
   bgav_packet_t * p;
   dvdsub_t * priv;
-  priv = (dvdsub_t *)s->data.subtitle.decoder->priv;
+  priv = s->data.subtitle.decoder->priv;
   
   /* Check if we have enough data */
 
@@ -173,7 +173,7 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   
   uint32_t local_palette[4];
   
-  priv = (dvdsub_t *)s->data.subtitle.decoder->priv;
+  priv = s->data.subtitle.decoder->priv;
 
   ifo_palette = (uint32_t*)(s->ext_data);
   
@@ -322,14 +322,14 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
 static void close_dvdsub(bgav_stream_t * s)
   {
   dvdsub_t * priv;
-  priv = (dvdsub_t *)s->data.subtitle.decoder->priv;
+  priv = s->data.subtitle.decoder->priv;
 
   }
 
 static void resync_dvdsub(bgav_stream_t * s)
   {
   dvdsub_t * priv;
-  priv = (dvdsub_t *)s->data.subtitle.decoder->priv;
+  priv = s->data.subtitle.decoder->priv;
   priv->buffer_size = 0;
   priv->packet_size = 0;
   }

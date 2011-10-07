@@ -324,7 +324,7 @@ static int init_qtaudio(bgav_stream_t * s)
 static int read_data(bgav_stream_t * s)
   {
   bgav_packet_t * p;
-  qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
+  qta_priv_t * priv = s->data.audio.decoder->priv;
   p = bgav_stream_get_packet_read(s);
   if(!p)
     {
@@ -346,7 +346,7 @@ static int decode_frame_qtaudio(bgav_stream_t * s)
   {
   int num_frames;
   unsigned long out_frames, out_bytes;
-  qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
+  qta_priv_t * priv = s->data.audio.decoder->priv;
   //  priv->ldt_fs = Setup_LDT_Keeper();
     
   while(priv->in_buffer_size < priv->InFrameSize)
@@ -388,7 +388,7 @@ static void close_qtaudio(bgav_stream_t * s)
   unsigned long ConvertedFrames=0;
   unsigned long ConvertedBytes=0;
 
-  qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
+  qta_priv_t * priv = s->data.audio.decoder->priv;
 
   bgav_windll_lock();
   
@@ -412,7 +412,7 @@ static void close_qtaudio(bgav_stream_t * s)
 
 static void resync_qtaudio(bgav_stream_t * s)
   {
-  qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
+  qta_priv_t * priv = s->data.audio.decoder->priv;
   priv->in_buffer_size = 0;
   priv->frame->valid_samples = 0;
   }

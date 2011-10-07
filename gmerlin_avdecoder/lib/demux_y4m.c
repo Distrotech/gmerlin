@@ -44,7 +44,7 @@ typedef struct
 static ssize_t read_func(void * data, void * buf, size_t len)
   {
   int result;
-  bgav_input_context_t * inp = (bgav_input_context_t *)data;
+  bgav_input_context_t * inp = data;
   result = bgav_input_read_data(inp, (uint8_t*)buf, len);
 
   if(result < len)

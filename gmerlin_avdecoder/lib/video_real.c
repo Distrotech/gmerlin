@@ -245,7 +245,7 @@ static int init_real(bgav_stream_t * s)
     return 0; 
     }
   
-  extradata = (unsigned int*)(s->ext_data);
+  extradata = s->ext_data;
 
   init_data.unk1 = 11;
   init_data.w    = s->data.video.format.frame_width;
@@ -314,7 +314,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   dp_hdr_t* dp_hdr;
   char * dp_data;
 
-  priv = (real_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   p = bgav_stream_get_packet_read(s);
 
@@ -352,7 +352,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
 static void close_real(bgav_stream_t * s)
   {
   real_priv_t * priv;
-  priv = (real_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   if(priv->gavl_frame)
     gavl_video_frame_destroy(priv->gavl_frame);

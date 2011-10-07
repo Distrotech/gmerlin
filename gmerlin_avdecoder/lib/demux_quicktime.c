@@ -310,7 +310,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
 
     if(bgav_s && (bgav_s->type == BGAV_STREAM_AUDIO))
       {
-      s = (stream_priv_t*)(bgav_s->priv);
+      s = bgav_s->priv;
 
       if(!s->stbl->stsz.sample_size)
         {
@@ -397,7 +397,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
       }
     else if(bgav_s && (bgav_s->type == BGAV_STREAM_VIDEO))
       {
-      s = (stream_priv_t*)(bgav_s->priv);
+      s = bgav_s->priv;
       for(j = 0; j < s->stbl->stsc.entries[s->stsc_pos].samples_per_chunk; j++)
         {
         packet_size = (s->stsz_pos >= 0) ? s->stbl->stsz.entries[s->stsz_pos]:
@@ -486,7 +486,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
       }
     else if(bgav_s && (bgav_s->type == BGAV_STREAM_SUBTITLE_TEXT))
       {
-      s = (stream_priv_t*)(bgav_s->priv);
+      s = bgav_s->priv;
       
       /* Read single samples of a chunk */
       
@@ -1370,7 +1370,7 @@ static void set_stream_edl(qt_priv_t * priv, bgav_stream_t * s,
 
   int mdhd_ts, mvhd_ts;
   
-  sp = (stream_priv_t *)s->priv;
+  sp = s->priv;
   elst = &sp->trak->edts.elst;
 
   mvhd_ts = priv->moov.mvhd.time_scale;

@@ -119,7 +119,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
 
   bgav_packet_t * p;
   ffmpeg_audio_priv * priv;
-  priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
+  priv= s->data.audio.decoder->priv;
 
   /* Read data if necessary */
   while(!priv->buf.size ||
@@ -350,7 +350,7 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
 static void resync_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_audio_priv * priv;
-  priv = (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   avcodec_flush_buffers(priv->ctx);
   priv->frame->valid_samples = 0;
   bgav_bytebuffer_flush(&priv->buf);
@@ -359,7 +359,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
 static void close_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_audio_priv * priv;
-  priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
+  priv= s->data.audio.decoder->priv;
 
   if(!priv)
     return;

@@ -100,7 +100,7 @@ static int get_data(bgav_stream_t*s)
   {
   mpeg2_priv_t * priv;
   int cache_index;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   if(priv->p)
     {
@@ -175,7 +175,7 @@ static void get_format(bgav_stream_t*s,
   {
   mpeg2_priv_t * priv;
   int container_time;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   container_time = (ret->timescale > 0) && (ret->frame_duration > 0);
 
@@ -301,7 +301,7 @@ static void get_format(bgav_stream_t*s,
 static int parse(bgav_stream_t*s, mpeg2_state_t * state)
   {
   mpeg2_priv_t * priv;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   while(1)
     {
@@ -349,7 +349,7 @@ static int decode_picture(bgav_stream_t*s)
   int cache_index;
   mpeg2_priv_t * priv;
   mpeg2_state_t state;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   done = 0;
   while(1)
     {
@@ -464,7 +464,7 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   {
   mpeg2_priv_t * priv;
 
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   /* Decode frame */
   
@@ -585,7 +585,7 @@ static void resync_mpeg2(bgav_stream_t*s)
   {
   mpeg2_priv_t * priv;
   bgav_packet_t * p;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   if(priv->p)
     {
@@ -630,7 +630,7 @@ static void resync_mpeg2(bgav_stream_t*s)
 static void close_mpeg2(bgav_stream_t*s)
   {
   mpeg2_priv_t * priv;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   if(priv->p)
     bgav_packet_pool_put(s->pp, priv->p);

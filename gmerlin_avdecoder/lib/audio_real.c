@@ -343,7 +343,7 @@ static int fill_buffer(bgav_stream_t * s)
   bgav_packet_t * p;
 
 #if 1 /* Reordering made by the demuxer */
-  priv = (real_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   p = bgav_stream_get_packet_read(s);
 
   if(!p)
@@ -370,7 +370,7 @@ static int fill_buffer(bgav_stream_t * s)
   int w=s->data.audio.block_align; // 5
   int h=((short*)(s->ext_data))[1];
   int cfs=((short*)(s->ext_data))[3];
-  priv = (real_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   p = bgav_stream_get_packet_read(s);
 
@@ -456,7 +456,7 @@ static int decode_frame_real(bgav_stream_t * s)
   unsigned int len;
 
   real_priv_t * priv;
-  priv = (real_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   if(!priv->read_buffer_size)
     {
     if(!fill_buffer(s))
@@ -485,7 +485,7 @@ static int decode_frame_real(bgav_stream_t * s)
 
 static void close_real(bgav_stream_t * s)
   {
-  real_priv_t * p = (real_priv_t*)s->data.audio.decoder->priv;
+  real_priv_t * p = s->data.audio.decoder->priv;
 
   if(p->frame)
     gavl_audio_frame_destroy(p->frame);
@@ -504,7 +504,7 @@ static void close_real(bgav_stream_t * s)
 
 static void resync_real(bgav_stream_t * s)
   {
-  real_priv_t * p = (real_priv_t*)s->data.audio.decoder->priv;
+  real_priv_t * p = s->data.audio.decoder->priv;
   p->frame->valid_samples = 0;
   p->read_buffer_size = 0;
   }

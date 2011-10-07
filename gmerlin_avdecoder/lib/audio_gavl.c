@@ -33,7 +33,7 @@ typedef struct
 static int decode_frame_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
-  priv = (gavl_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   if(priv->p)
     {
@@ -72,7 +72,7 @@ static int init_gavl(bgav_stream_t * s)
 static void close_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
-  priv = (gavl_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   if(priv)
     free(priv);
   }
@@ -80,7 +80,7 @@ static void close_gavl(bgav_stream_t * s)
 static void resync_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
-  priv = (gavl_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   if(priv->p)
     {

@@ -280,7 +280,7 @@ static void cleanup_stream_asf(bgav_stream_t * s)
   asf_audio_stream_t * as;
   if(s->type == BGAV_STREAM_AUDIO)
     {
-    as = (asf_audio_stream_t*)s->priv;
+    as = s->priv;
     
     if(as->scramble_buffer)
       free(as->scramble_buffer);
@@ -997,7 +997,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
       {
       if(s->type == BGAV_STREAM_AUDIO)
         {
-        as = (asf_audio_stream_t*)(s->priv);
+        as = s->priv;
         if((as->descramble_w > 1) && (as->descramble_h > 1))
           asf_descramble(as,
                          s->packet->data,

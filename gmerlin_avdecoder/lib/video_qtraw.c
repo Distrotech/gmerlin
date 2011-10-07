@@ -350,7 +350,7 @@ static int decode_qtraw(bgav_stream_t * s, gavl_video_frame_t * f)
   uint8_t * src, *dst;
   bgav_packet_t * p;
 
-  priv = (raw_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   /* We assume one frame per packet */
   
@@ -383,7 +383,7 @@ static int decode_qtraw(bgav_stream_t * s, gavl_video_frame_t * f)
 static void close_qtraw(bgav_stream_t * s)
   {
   raw_priv_t * priv;
-  priv = (raw_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   free(priv);
   }
 

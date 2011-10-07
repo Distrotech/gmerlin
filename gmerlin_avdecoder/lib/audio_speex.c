@@ -104,7 +104,7 @@ static int decode_frame_speex(bgav_stream_t * s)
   int i;
   bgav_packet_t * p;
   speex_priv_t * priv;
-  priv = (speex_priv_t*)s->data.audio.decoder->priv;
+  priv = s->data.audio.decoder->priv;
 
   p = bgav_stream_get_packet_read(s);
   if(!p)
@@ -146,7 +146,7 @@ static void close_speex(bgav_stream_t * s)
   {
   speex_priv_t * priv;
 
-  priv = (speex_priv_t *)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   speex_bits_destroy(&priv->bits);
 

@@ -47,7 +47,7 @@ static int get_data(bgav_stream_t * s)
   faad_priv_t * priv;
   bgav_packet_t * p;
   
-  priv = (faad_priv_t *)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   
   p = bgav_stream_get_packet_read(s);
   if(!p)
@@ -73,7 +73,7 @@ static int decode_frame_faad2(bgav_stream_t * s)
   faad_priv_t * priv;
   int parse = (s->action == BGAV_STREAM_PARSE);
     
-  priv = (faad_priv_t *)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   memset(&frame_info, 0, sizeof(&frame_info));
   
@@ -251,7 +251,7 @@ static int init_faad2(bgav_stream_t * s)
 static void close_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
-  priv = (faad_priv_t *)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   if(priv->dec)
     faacDecClose(priv->dec);
 
@@ -262,7 +262,7 @@ static void close_faad2(bgav_stream_t * s)
 static void resync_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
-  priv = (faad_priv_t *)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   bgav_bytebuffer_flush(&priv->buf);
   }

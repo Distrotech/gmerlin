@@ -127,7 +127,7 @@ typedef struct
 static void close_aviraw(bgav_stream_t * s)
   {
   aviraw_t * priv;
-  priv = (aviraw_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   free(priv);
   }
 
@@ -141,7 +141,7 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
   uint8_t * src;
   uint8_t * dst;
 
-  priv = (aviraw_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   while(1)
     {

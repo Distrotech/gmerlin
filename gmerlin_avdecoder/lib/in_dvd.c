@@ -942,7 +942,7 @@ static void    close_dvd(bgav_input_context_t * ctx)
     {
     for(i = 0; i < ctx->tt->num_tracks; i++)
       {
-      track_priv = (track_priv_t*)(ctx->tt->tracks[i].priv);
+      track_priv = ctx->tt->tracks[i].priv;
       if(track_priv)
         {
         if(track_priv->chapters)
@@ -970,7 +970,7 @@ static int select_track_dvd(bgav_input_context_t * ctx, int track)
   ctx->demuxer->flags &= ~BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
   
   ttsrpt = dvd->vmg_ifo->tt_srpt;
-  track_priv = (track_priv_t*)(ctx->tt->cur->priv);
+  track_priv = ctx->tt->cur->priv;
 
   dvd->current_track_priv = track_priv;
   

@@ -120,7 +120,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   bgav_packet_t * p = NULL;
   tga_priv_t * priv;
   
-  priv = (tga_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   s->flags |= STREAM_INTRA_ONLY;
   
   if(!(s->flags & STREAM_HAVE_PICTURE))
@@ -296,7 +296,7 @@ static int init_tga(bgav_stream_t * s)
 static void close_tga(bgav_stream_t * s)
   {
   tga_priv_t * priv;
-  priv = (tga_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   if(!priv->is_mono)
     gavl_video_frame_null(priv->frame);
   gavl_video_frame_destroy(priv->frame);

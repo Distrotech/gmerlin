@@ -135,7 +135,7 @@ static SchroBuffer * get_data(bgav_stream_t * s)
   SchroBuffer * ret;
   int size;
   uint8_t * data;
-  priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   if(priv->eof)
     return NULL;
@@ -209,7 +209,7 @@ static void get_format(bgav_stream_t * s)
   {
   SchroVideoFormat * format;
   schroedinger_priv_t* priv;
-  priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   format = schro_decoder_get_video_format(priv->dec);
 
@@ -266,7 +266,7 @@ static int decode_picture(bgav_stream_t * s)
   SchroBuffer * buf = NULL;
   SchroFrame * frame = NULL;
   schroedinger_priv_t* priv;
-  priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   while(1)
     {
@@ -371,7 +371,7 @@ static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
   int duration;
   gavl_timecode_t tc;
   schroedinger_priv_t * priv;
-  priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   if(!priv->dec_frame && !decode_picture(s))
     return 0;
@@ -406,7 +406,7 @@ static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
 static void close_schroedinger(bgav_stream_t * s)
   {
   schroedinger_priv_t * priv;
-  priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   if(priv->dec)
     schro_decoder_free(priv->dec);
@@ -420,7 +420,7 @@ static void close_schroedinger(bgav_stream_t * s)
 static void resync_schroedinger(bgav_stream_t * s)
   {
   schroedinger_priv_t * priv;
-  priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   /* TODO: Skip non-keyframes and update out_time */
   

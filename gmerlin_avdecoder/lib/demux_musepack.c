@@ -74,32 +74,32 @@ static int probe_mpc(bgav_input_context_t * input)
 
 static mpc_int32_t mpc_read(void *t, void *ptr, mpc_int32_t size)
   {
-  read_struct * r = (read_struct*)t;
+  read_struct * r = t;
   return bgav_input_read_data(r->ctx, ptr, size);
   }
 
 static mpc_bool_t mpc_seek(void *t, mpc_int32_t offset)
   {
-  read_struct * r = (read_struct*)t;
+  read_struct * r = t;
   bgav_input_seek(r->ctx, offset + r->start_bytes, SEEK_SET);
   return TRUE;
   }
 
 static mpc_int32_t mpc_tell(void *t)
   {
-  read_struct * r = (read_struct*)t;
+  read_struct * r = t;
   return r->ctx->position - r->start_bytes;
   }
 
 static mpc_int32_t mpc_get_size(void *t)
   {
-  read_struct * r = (read_struct*)t;
+  read_struct * r = t;
   return r->ctx->total_bytes - r->start_bytes - r->end_bytes;
   }
 
 static mpc_bool_t mpc_canseek(void *t)
   {
-  read_struct * r = (read_struct*)t;
+  read_struct * r = t;
   return r->ctx->input->seek_byte ? TRUE : FALSE;
   }
 

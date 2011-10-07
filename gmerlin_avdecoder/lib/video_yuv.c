@@ -56,7 +56,7 @@ static void decode_yuv2(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   int i, j;
   uint8_t * src, *dst_y, *dst_u, *dst_v;
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   
@@ -88,7 +88,7 @@ static int init_yuv2(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("Full scale YUV 4:2:2 packed (yuv2)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_yuv2;
@@ -140,7 +140,7 @@ static void decode_v408(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   int i, j;
   uint8_t * src, *dst;
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   
@@ -168,7 +168,7 @@ static int init_v408(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YUVA 4:4:4:4 (v408)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = s->data.video.format.image_width * 4;
   priv->decode_func = decode_v408;
@@ -186,7 +186,7 @@ static int init_v408(bgav_stream_t * s)
 static void decode_2vuy(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
   {
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   gavl_video_frame_copy(&s->data.video.format,
@@ -200,7 +200,7 @@ static int init_2vuy(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YUV 4:2:2 packed (2vuy)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_2vuy;
@@ -216,7 +216,7 @@ static int init_2vuy(bgav_stream_t * s)
 static void decode_VYUY(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
   {
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   gavl_video_frame_copy(&s->data.video.format,
@@ -230,7 +230,7 @@ static int init_VYUY(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YUV 4:2:2 packed (VYUY)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_VYUY;
@@ -243,7 +243,7 @@ static int init_VYUY(bgav_stream_t * s)
 static void decode_yv12(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
   {
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   priv->frame->planes[1] = priv->frame->planes[0] + s->data.video.format.image_height * priv->frame->strides[0];
@@ -258,7 +258,7 @@ static int init_yv12(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YUV 4:2:0 planar (yv12)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width, 2);
   priv->frame->strides[1] = priv->frame->strides[0]/2;
@@ -272,7 +272,7 @@ static int init_yv12(bgav_stream_t * s)
 static void decode_YV12(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
   {
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   priv->frame->planes[2] = priv->frame->planes[0] + s->data.video.format.image_height * priv->frame->strides[0];
@@ -289,7 +289,7 @@ static int init_YV12(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YUV 4:2:0 planar (YV12)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width, 2);
   priv->frame->strides[1] = priv->frame->strides[0]/2;
@@ -307,7 +307,7 @@ static int init_YV12(bgav_stream_t * s)
 static void decode_YVU9(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
   {
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   priv->frame->planes[2] = priv->frame->planes[0] + s->data.video.format.image_height * priv->frame->strides[0];
@@ -325,7 +325,7 @@ static int init_YVU9(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YVU9");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width, 8);
   priv->frame->strides[1] = priv->frame->strides[0]/4;
@@ -344,7 +344,7 @@ static void decode_v308(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   int i, j;
   uint8_t * src, *dst_y, *dst_u, *dst_v;
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   
@@ -378,7 +378,7 @@ static int init_v308(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YUV 4:4:4 packed (v308)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = s->data.video.format.image_width * 3;
   priv->decode_func = decode_v308;
@@ -398,7 +398,7 @@ static void decode_v410(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   uint16_t *dst_y, *dst_u, *dst_v;
   uint32_t src_i;
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   
@@ -430,7 +430,7 @@ static int init_v410(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YUV 4:4:4 packed (v410)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = s->data.video.format.image_width * 4;
   priv->decode_func = decode_v410;
@@ -450,7 +450,7 @@ static void decode_v210(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   uint16_t *dst_y, *dst_u, *dst_v;
   uint32_t i1, i2, i3, i4;
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
   
@@ -518,7 +518,7 @@ static int init_v210(bgav_stream_t * s)
   init_common(s);
   s->description = bgav_sprintf("YUV 4:2:2 packed (v210)");
 
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = (PADD(s->data.video.format.image_width, 48) * 8) / 3;
   priv->decode_func = decode_v210;
@@ -538,7 +538,7 @@ static void decode_yuv4(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   int i, j;
   uint8_t * src, *dst_y, *dst_u, *dst_v;
   yuv_priv_t * priv;
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->planes[0] = p->data;
 
@@ -578,7 +578,7 @@ static int init_yuv4(bgav_stream_t * s)
   s->description = bgav_sprintf("YUV 4:2:0 packed (yuv4)");
   s->flags |= STREAM_INTRA_ONLY;
   
-  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width, 2) * 3;
   priv->decode_func = decode_yuv4;
@@ -593,7 +593,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   yuv_priv_t * priv;
   bgav_packet_t * p;
-  priv = (yuv_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   /* We assume one frame per packet */
   
@@ -628,7 +628,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 static void close(bgav_stream_t * s)
   {
   yuv_priv_t * priv;
-  priv = (yuv_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   gavl_video_frame_null(priv->frame);
   gavl_video_frame_destroy(priv->frame);

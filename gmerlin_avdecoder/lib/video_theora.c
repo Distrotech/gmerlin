@@ -193,7 +193,7 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
   
   th_ycbcr_buffer yuv;
   theora_priv_t * priv;
-  priv = (theora_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   while(1)
     {
@@ -240,7 +240,7 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
 static void close_theora(bgav_stream_t * s)
   {
   theora_priv_t * priv;
-  priv = (theora_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   th_decode_free(priv->ctx);
   th_setup_free(priv->ts);

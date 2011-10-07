@@ -527,7 +527,7 @@ static int handle_stream_transport(bgav_stream_t * s,
   int server_ports[2] = { 0, 0 };
   int client_ports[2] = { 0, 0 };
   //  int i;
-  rtp_stream_priv_t * sp = (rtp_stream_priv_t *)s->priv;
+  rtp_stream_priv_t * sp = s->priv;
   
   if(!tcp)
     {
@@ -601,7 +601,7 @@ static int init_stream_generic(bgav_input_context_t * ctx,
                                char ** session_id, int tcp)
   {
   rtsp_priv_t * priv = ctx->priv;
-  rtp_stream_priv_t * sp = (rtp_stream_priv_t *)s->priv;
+  rtp_stream_priv_t * sp = s->priv;
   char * field;
   const char * var;
 

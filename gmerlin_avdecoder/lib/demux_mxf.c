@@ -108,7 +108,7 @@ static int next_packet_clip_wrapped_const(bgav_demuxer_context_t * ctx, bgav_str
   bgav_packet_t * p;
   mxf_t * priv;
   priv = ctx->priv;
-  sp = (stream_priv_t*)(s->priv);
+  sp = s->priv;
 
   /* Need the KLV packet for this stream */
   if(!sp->start)
@@ -184,7 +184,7 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
     return 1;
     }
   
-  sp = (stream_priv_t*)(s->priv);
+  sp = s->priv;
 
   p = bgav_stream_get_packet_write(s);
   p->position = position;
@@ -355,7 +355,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   {
   stream_priv_t * priv;
   init_stream_common(ctx, s, st, sd, fourcc);
-  priv = (stream_priv_t *)s->priv;
+  priv = s->priv;
   if(sd->sample_rate_num % sd->sample_rate_den)
     bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Rounding fractional audio samplerate");
   s->data.audio.format.samplerate = sd->sample_rate_num / sd->sample_rate_den;
@@ -401,7 +401,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   {
   stream_priv_t * priv;
   init_stream_common(ctx, s, st, sd, fourcc);
-  priv = (stream_priv_t *)s->priv;
+  priv = s->priv;
   
   if((s->fourcc == BGAV_MK_FOURCC('m','p','g','v')) ||
      (s->fourcc == BGAV_MK_FOURCC('m','x','5','p')) ||
@@ -688,7 +688,7 @@ static bgav_stream_t * next_stream(bgav_stream_t * s, int num)
     {
     if(s[i].action != BGAV_STREAM_MUTE)
       {
-      sp = (stream_priv_t *)s[i].priv;
+      sp = s[i].priv;
       if(!sp->eof)
         return s + i;
       }
@@ -703,7 +703,7 @@ static int next_packet_mxf(bgav_demuxer_context_t * ctx)
   
   s = ctx->request_stream;
   if(s)
-    sp = (stream_priv_t*)s->priv;
+    sp = s->priv;
   else
     sp = NULL;
   
@@ -717,7 +717,7 @@ static int next_packet_mxf(bgav_demuxer_context_t * ctx)
       s = next_stream(ctx->tt->cur->subtitle_streams,ctx->tt->cur->num_subtitle_streams);
     if(!s)
       return 0;
-    sp = (stream_priv_t*)s->priv;
+    sp = s->priv;
     }
   return 1;
   }
@@ -807,7 +807,7 @@ static int find_source_stream(bgav_stream_t * streams, int num, int track_id)
   
   for(i = 0; i < num; i++)
     {
-    p = (stream_priv_t *)streams->priv;
+    p = streams->priv;
     if(p->track_id == track_id)
       return i;
     }

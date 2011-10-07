@@ -38,19 +38,19 @@
 
 static void error_callback(const char *msg, void *client_data)
   {
-  bgav_options_t * opt = (bgav_options_t*)client_data;
+  bgav_options_t * opt = client_data;
   bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN_OJP, "%s", msg);
   }
 
 static void warning_callback(const char *msg, void *client_data)
   {
-  bgav_options_t * opt = (bgav_options_t*)client_data;
+  bgav_options_t * opt = client_data;
   bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN_OJP, "%s", msg);
   }
 
 static void info_callback(const char *msg, void *client_data)
   {
-  bgav_options_t * opt = (bgav_options_t*)client_data;
+  bgav_options_t * opt = client_data;
   bgav_log(opt, BGAV_LOG_INFO, LOG_DOMAIN_OJP, "%s", msg);
   }
 
@@ -119,7 +119,7 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   bgav_packet_t * p;
   opj_cio_t *cio;
 
-  priv = (openjpeg_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   if(!(s->flags & STREAM_HAVE_PICTURE))
     {
@@ -245,7 +245,7 @@ static int init_openjpeg(bgav_stream_t * s)
 static void close_openjpeg(bgav_stream_t * s)
   {
   openjpeg_priv_t * priv;
-  priv = (openjpeg_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   /* free remaining structures */
   if(priv->dinfo)
@@ -258,7 +258,7 @@ static void close_openjpeg(bgav_stream_t * s)
 static void resync_openjpeg(bgav_stream_t * s)
   {
   openjpeg_priv_t * priv;
-  priv = (openjpeg_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   }
 #endif
 

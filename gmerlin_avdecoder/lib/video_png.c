@@ -45,7 +45,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   png_priv_t * priv;
   bgav_packet_t * p;
   
-  priv = (png_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   if(!priv->have_header)
     {
@@ -123,7 +123,7 @@ static int init_png(bgav_stream_t * s)
 static void close_png(bgav_stream_t * s)
   {
   png_priv_t * priv;
-  priv = (png_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   if(priv->png_reader)
     bgav_png_reader_destroy(priv->png_reader);
   free(priv);
@@ -132,7 +132,7 @@ static void close_png(bgav_stream_t * s)
 static void resync_png(bgav_stream_t * s)
   {
   png_priv_t * priv;
-  priv = (png_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   bgav_png_reader_reset(priv->png_reader);
   priv->have_header = 0;
   }

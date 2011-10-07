@@ -61,7 +61,7 @@ static int decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   rtjpeg_priv_t * priv;
   bgav_packet_t * p;
-  priv = (rtjpeg_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   /* We assume one frame per packet */
   
@@ -91,7 +91,7 @@ static int decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
 static void close_rtjpeg(bgav_stream_t * s)
   {
   rtjpeg_priv_t * priv;
-  priv = (rtjpeg_priv_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   RTjpeg_close(priv->rtjpeg);
   gavl_video_frame_destroy(priv->frame);

@@ -64,9 +64,9 @@ read_callback(const FLAC__StreamDecoder *decoder,
   int bytes_to_copy;
   flac_priv_t * priv;
   bgav_stream_t * s;
-  s = (bgav_stream_t *)client_data;
+  s = client_data;
 
-  priv = (flac_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   
   while(bytes_read < *bytes)
     {
@@ -173,8 +173,8 @@ write_callback(const FLAC__StreamDecoder *decoder,
   {
   flac_priv_t * priv;
   bgav_stream_t * s;
-  s = (bgav_stream_t *)client_data;
-  priv = (flac_priv_t*)(s->data.audio.decoder->priv);
+  s = client_data;
+  priv = s->data.audio.decoder->priv;
 
   priv->frame->valid_samples = frame->header.blocksize;
   priv->copy_samples(priv->frame, buffer, s->data.audio.format.num_channels,
@@ -189,7 +189,7 @@ metadata_callback(const FLAC__StreamDecoder *decoder,
                   void *client_data)
   {
   bgav_stream_t * s;
-  s = (bgav_stream_t *)client_data;
+  s = client_data;
   if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
     {
     s->data.audio.format.num_channels = metadata->data.stream_info.channels;
@@ -292,7 +292,7 @@ static int init_flac(bgav_stream_t * s)
 static int decode_frame_flac(bgav_stream_t * s)
   {
   flac_priv_t * priv;
-  priv = (flac_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   priv->frame->valid_samples = 0;
   
@@ -316,7 +316,7 @@ static int decode_frame_flac(bgav_stream_t * s)
 static void close_flac(bgav_stream_t * s)
   {
   flac_priv_t * priv;
-  priv = (flac_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
   if(priv->dec)
@@ -327,7 +327,7 @@ static void close_flac(bgav_stream_t * s)
 static void resync_flac(bgav_stream_t * s)
   {
   flac_priv_t * priv;
-  priv = (flac_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   
   FLAC__stream_decoder_flush(priv->dec);
   priv->frame->valid_samples = 0;

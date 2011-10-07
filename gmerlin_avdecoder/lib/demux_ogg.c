@@ -268,14 +268,14 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
   for(i = 0; i < ctx->tt->num_tracks; i++)
     {
     track = &ctx->tt->tracks[i];
-    track_priv = (track_priv_t*)(track->priv);
+    track_priv = track->priv;
     bgav_dprintf( "Track %d, start_pos: %" PRId64 ", end_pos: %" PRId64 "\n",
             i+1, track_priv->start_pos, track_priv->end_pos);
     
     for(j = 0; j < track->num_audio_streams; j++)
       {
       s = &track->audio_streams[j];
-      stream_priv = (stream_priv_t*)(s->priv);
+      stream_priv = s->priv;
       bgav_dprintf( "Audio stream %d\n", j+1);
       bgav_dprintf( "  Serialno: %d\n", s->stream_id);
       bgav_dprintf( "  Language: %s\n", s->language);
@@ -287,7 +287,7 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
     for(j = 0; j < track->num_video_streams; j++)
       {
       s = &track->video_streams[j];
-      stream_priv = (stream_priv_t*)(s->priv);
+      stream_priv = s->priv;
       bgav_dprintf( "Video stream %d\n", j+1);
       bgav_dprintf( "  Serialno: %d\n", s->stream_id);
       bgav_dprintf( "  Last granulepos: %" PRId64 "\n",
@@ -301,7 +301,7 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
         continue;
       
       s = &track->subtitle_streams[j];
-      stream_priv = (stream_priv_t*)(s->priv);
+      stream_priv = s->priv;
       bgav_dprintf( "Subtitle stream %d\n", j+1);
       bgav_dprintf( "  Serialno: %d\n", s->stream_id);
       bgav_dprintf( "  Language: %s\n", s->language);
@@ -328,7 +328,7 @@ static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
 
   memset(&vc, 0, sizeof(vc));
 
-  stream_priv = (stream_priv_t*)(s->priv);
+  stream_priv = s->priv;
   
   if(!bgav_vorbis_comment_read(&vc, input_mem))
     return;
@@ -510,7 +510,7 @@ static uint32_t detect_stream(ogg_packet * op)
 static void cleanup_stream_ogg(bgav_stream_t * s)
   {
   stream_priv_t * stream_priv;
-  stream_priv = (stream_priv_t*)(s->priv);
+  stream_priv = s->priv;
   if(stream_priv)
     {
     ogg_stream_clear(&stream_priv->os);
@@ -883,7 +883,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
 
     if(s)
       {
-      ogg_stream = (stream_priv_t*)(s->priv);
+      ogg_stream = s->priv;
       ogg_stream_pagein(&ogg_stream->os, &priv->current_page);
       priv->page_valid = 0;
       header_bytes +=
@@ -987,7 +987,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
     
     for(i = 0; i < track->num_audio_streams; i++)
       {
-      ogg_stream = (stream_priv_t*)(track->audio_streams[i].priv);
+      ogg_stream = track->audio_streams[i].priv;
       if(ogg_stream->header_packets_read < ogg_stream->header_packets_needed)
         done = 0;
       }
@@ -996,7 +996,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       {
       for(i = 0; i < track->num_video_streams; i++)
         {
-        ogg_stream = (stream_priv_t*)(track->video_streams[i].priv);
+        ogg_stream = track->video_streams[i].priv;
         if(ogg_stream->header_packets_read < ogg_stream->header_packets_needed)
           done = 0;
         }
@@ -1008,7 +1008,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         {
         if(track->subtitle_streams[i].data.subtitle.subreader)
           continue;
-        ogg_stream = (stream_priv_t*)(track->subtitle_streams[i].priv);
+        ogg_stream = track->subtitle_streams[i].priv;
         if(ogg_stream->header_packets_read < ogg_stream->header_packets_needed)
           done = 0;
         }
@@ -1154,7 +1154,7 @@ static int track_has_serialno(bgav_track_t * track,
   if(s)
     *s = NULL;
   
-  track_priv = (track_priv_t*)(track->priv);
+  track_priv = track->priv;
 
   for(i = 0; i < track_priv->num_unsupported_streams; i++)
     {
@@ -1228,7 +1228,7 @@ static int64_t find_next_track(bgav_demuxer_context_t * ctx,
 
     if(s)
       {
-      stream_priv = (stream_priv_t*)(s->priv);
+      stream_priv = s->priv;
       stream_priv->last_granulepos = granulepos_1;
       }
     return page_pos_2;
@@ -1242,7 +1242,7 @@ static gavl_time_t granulepos_2_time(bgav_stream_t * s,
   int64_t frames;
 
   stream_priv_t * stream_priv;
-  stream_priv = (stream_priv_t *)(s->priv);
+  stream_priv = s->priv;
   switch(stream_priv->fourcc_priv)
     {
     case FOURCC_VORBIS:
@@ -1254,7 +1254,7 @@ static gavl_time_t granulepos_2_time(bgav_stream_t * s,
                                   pos);
       break;
     case FOURCC_THEORA:
-      stream_priv = (stream_priv_t*)(s->priv);
+      stream_priv = s->priv;
 
       frames = pos >> stream_priv->keyframe_granule_shift;
       frames +=
@@ -1289,7 +1289,7 @@ static void get_last_granulepos(bgav_demuxer_context_t * ctx,
   int done = 0, i, serialno;
   bgav_stream_t * s;
   
-  track_priv = (track_priv_t*)(track->priv);
+  track_priv = track->priv;
 
   pos = track_priv->end_pos;
   
@@ -1299,7 +1299,7 @@ static void get_last_granulepos(bgav_demuxer_context_t * ctx,
     done = 1;
     for(i = 0; i < track->num_audio_streams; i++)
       {
-      stream_priv = (stream_priv_t*)(track->audio_streams[i].priv);
+      stream_priv = track->audio_streams[i].priv;
       if(stream_priv->last_granulepos < 0)
         {
         done = 0;
@@ -1310,7 +1310,7 @@ static void get_last_granulepos(bgav_demuxer_context_t * ctx,
       {
       for(i = 0; i < track->num_video_streams; i++)
         {
-        stream_priv = (stream_priv_t*)(track->video_streams[i].priv);
+        stream_priv = track->video_streams[i].priv;
         if(stream_priv->last_granulepos < 0)
           {
           done = 0;
@@ -1331,7 +1331,7 @@ static void get_last_granulepos(bgav_demuxer_context_t * ctx,
     s = NULL;
     if(track_has_serialno(track, serialno, &s) && s)
       {
-      stream_priv = (stream_priv_t*)(s->priv);
+      stream_priv = s->priv;
       if(stream_priv->last_granulepos < 0)
         stream_priv->last_granulepos = granulepos;
       }
@@ -1352,12 +1352,12 @@ static void get_metadata(bgav_track_t * track)
 
   for(i = 0; i < track->num_audio_streams; i++)
     {
-    stream_priv = (stream_priv_t *)(track->audio_streams[i].priv);
+    stream_priv = track->audio_streams[i].priv;
     bgav_metadata_merge2(&track->metadata, &stream_priv->metadata);
     }
   for(i = 0; i < track->num_video_streams; i++)
     {
-    stream_priv = (stream_priv_t *)(track->video_streams[i].priv);
+    stream_priv = track->video_streams[i].priv;
     bgav_metadata_merge2(&track->metadata, &stream_priv->metadata);
     }
   }
@@ -1424,7 +1424,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
         {
         if(s && last_granulepos >= 0)
           {
-          stream_priv = (stream_priv_t*)(s->priv);
+          stream_priv = s->priv;
           stream_priv->last_granulepos = last_granulepos;
           }
         break;
@@ -1438,14 +1438,14 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
 
     /* Get the end positions of all tracks */
 
-    track_priv_1 = (track_priv_t*)(ctx->tt->tracks[0].priv);
+    track_priv_1 = ctx->tt->tracks[0].priv;
     for(i = 0; i < ctx->tt->num_tracks; i++)
       {
       if(i == ctx->tt->num_tracks-1)
         track_priv_1->end_pos = ctx->input->total_bytes;
       else
         {
-        track_priv_2 = (track_priv_t*)(ctx->tt->tracks[i+1].priv);
+        track_priv_2 = ctx->tt->tracks[i+1].priv;
         track_priv_1->end_pos = track_priv_2->start_pos;
         track_priv_1 = track_priv_2;
         }
@@ -1464,7 +1464,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
       for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
         {
         stream_priv =
-          (stream_priv_t*)(ctx->tt->tracks[i].audio_streams[j].priv);
+          ctx->tt->tracks[i].audio_streams[j].priv;
 
         ogg_stream_reset(&stream_priv->os);
         
@@ -1479,7 +1479,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
       for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
         {
         stream_priv =
-          (stream_priv_t*)(ctx->tt->tracks[i].video_streams[j].priv);
+          ctx->tt->tracks[i].video_streams[j].priv;
 
         ogg_stream_reset(&stream_priv->os);
         
@@ -1496,7 +1496,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
           continue;
     
         stream_priv =
-          (stream_priv_t*)(ctx->tt->tracks[i].subtitle_streams[j].priv);
+          ctx->tt->tracks[i].subtitle_streams[j].priv;
 
         ogg_stream_reset(&stream_priv->os);
         }
@@ -1527,7 +1527,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
     get_metadata(&ctx->tt->tracks[0]);
 
     /* Set end position to -1 */
-    track_priv_1 = (track_priv_t*)(ctx->tt->tracks[0].priv);
+    track_priv_1 = ctx->tt->tracks[0].priv;
     track_priv_1->end_pos = -1;
 
     priv->is_live = 1;
@@ -1585,7 +1585,7 @@ static int new_streaming_track(bgav_demuxer_context_t * ctx)
     
     if(!audio_done)
       {
-      stream_priv = (stream_priv_t*)(ctx->tt->cur->audio_streams->priv);
+      stream_priv = ctx->tt->cur->audio_streams->priv;
       if(fourcc == stream_priv->fourcc_priv)
         {
         ogg_stream_init(&stream_priv->os, serialno);
@@ -1596,7 +1596,7 @@ static int new_streaming_track(bgav_demuxer_context_t * ctx)
       }
     if(!done && !video_done)
       {
-      stream_priv = (stream_priv_t*)(ctx->tt->cur->video_streams->priv);
+      stream_priv = ctx->tt->cur->video_streams->priv;
       if(fourcc == stream_priv->fourcc_priv)
         {
         ogg_stream_init(&stream_priv->os, serialno);
@@ -1668,7 +1668,7 @@ static void set_packet_pos(ogg_t * op, stream_priv_t * sp,
 
 static int check_header_packet(ogg_t * op, bgav_stream_t * s, ogg_packet * p)
   {
-  stream_priv_t * sp = (stream_priv_t *)s->priv;
+  stream_priv_t * sp = s->priv;
   switch(sp->fourcc_priv)
     {
     case FOURCC_THEORA:
@@ -2157,7 +2157,7 @@ static void reset_track(bgav_track_t * track, int bos)
   for(i = 0; i < track->num_audio_streams; i++)
     {
     stream_priv =
-      (stream_priv_t*)(track->audio_streams[i].priv);
+      track->audio_streams[i].priv;
     stream_priv->prev_granulepos = position;
     stream_priv->frame_counter = position;
     stream_priv->do_sync = do_sync;
@@ -2170,7 +2170,7 @@ static void reset_track(bgav_track_t * track, int bos)
   for(i = 0; i < track->num_video_streams; i++)
     {
     stream_priv =
-      (stream_priv_t*)(track->video_streams[i].priv);
+      track->video_streams[i].priv;
 
     stream_priv->prev_granulepos = position;
     stream_priv->frame_counter = position;
@@ -2185,8 +2185,7 @@ static void reset_track(bgav_track_t * track, int bos)
     {
     if(track->subtitle_streams[i].data.subtitle.subreader)
       continue;
-    stream_priv =
-      (stream_priv_t*)(track->subtitle_streams[i].priv);
+    stream_priv = track->subtitle_streams[i].priv;
     ogg_stream_reset(&stream_priv->os);
     if(bos)
       STREAM_SET_SYNC(&track->subtitle_streams[i], 0);
@@ -2197,8 +2196,7 @@ static void resync_ogg(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   stream_priv_t * stream_priv;
 
-  stream_priv =
-    (stream_priv_t*)(s->priv);
+  stream_priv = s->priv;
 
   switch(s->type)
     {
@@ -2243,7 +2241,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     }
   
   /* Seek to the file position */
-  track_priv = (track_priv_t*)(ctx->tt->cur->priv);
+  track_priv = ctx->tt->cur->priv;
   filepos = track_priv->start_pos +
     (int64_t)((double)gavl_time_unscale(scale, time) /
               (double)(ctx->tt->cur->duration) *
@@ -2277,8 +2275,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 
     for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
       {
-      stream_priv =
-        (stream_priv_t*)(ctx->tt->cur->audio_streams[i].priv);
+      stream_priv = ctx->tt->cur->audio_streams[i].priv;
       
       if(stream_priv->do_sync &&
          (ctx->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE))
@@ -2288,8 +2285,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
       {
       for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
         {
-        stream_priv =
-          (stream_priv_t*)(ctx->tt->cur->video_streams[i].priv);
+        stream_priv = ctx->tt->cur->video_streams[i].priv;
         if(stream_priv->do_sync &&
            (ctx->tt->cur->video_streams[i].action != BGAV_STREAM_MUTE))
           done = 0;
@@ -2310,7 +2306,7 @@ static void close_ogg(bgav_demuxer_context_t * ctx)
   
   for(i = 0; i < ctx->tt->num_tracks; i++)
     {
-    track_priv = (track_priv_t*)(ctx->tt->tracks[i].priv);
+    track_priv = ctx->tt->tracks[i].priv;
     if(track_priv->unsupported_streams)
       free(track_priv->unsupported_streams);
     free(track_priv);
@@ -2331,8 +2327,7 @@ static void init_track(bgav_track_t * track)
   
   for(i = 0; i < track->num_audio_streams; i++)
     {
-    stream_priv =
-      (stream_priv_t*)(track->audio_streams[i].priv);
+    stream_priv = track->audio_streams[i].priv;
     stream_priv->prev_granulepos = 0;
     stream_priv->frame_counter = 0;
     stream_priv->do_sync = 0;
@@ -2341,8 +2336,7 @@ static void init_track(bgav_track_t * track)
 
   for(i = 0; i < track->num_video_streams; i++)
     {
-    stream_priv =
-      (stream_priv_t*)(track->video_streams[i].priv);
+    stream_priv = track->video_streams[i].priv;
     stream_priv->prev_granulepos = 0;
     stream_priv->frame_counter = 0;
     stream_priv->do_sync = 0;
@@ -2353,8 +2347,7 @@ static void init_track(bgav_track_t * track)
     {
     if(track->subtitle_streams[i].data.subtitle.subreader)
       continue;
-    stream_priv =
-      (stream_priv_t*)(track->subtitle_streams[i].priv);
+    stream_priv = track->subtitle_streams[i].priv;
     ogg_stream_reset(&stream_priv->os);
     }
   }
@@ -2368,7 +2361,7 @@ static int select_track_ogg(bgav_demuxer_context_t * ctx,
   
   priv = ctx->priv;
   
-  track_priv = (track_priv_t*)(ctx->tt->cur->priv);
+  track_priv = ctx->tt->cur->priv;
   
   if(ctx->input->input->seek_byte)
     {

@@ -108,7 +108,7 @@ static int lavf_read(URLContext *h, unsigned char *buf, int size)
   {
   bgav_input_context_t * input;
   int result;
-  input = (bgav_input_context_t *)h->priv_data;
+  input = h->priv_data;
 
   result = bgav_input_read_data(input, buf, size);
   if(!result)
@@ -124,7 +124,7 @@ static int lavf_write(URLContext *h, const unsigned char *buf, int size)
 static int64_t lavf_seek(URLContext *h, int64_t pos, int whence)
   {
   bgav_input_context_t * input;
-  input = (bgav_input_context_t *)h->priv_data;
+  input = h->priv_data;
 
   if(!input->input->seek_byte)
     return -1;

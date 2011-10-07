@@ -157,14 +157,14 @@ static void reset_streams_priv(bgav_track_t * track)
   stream_priv_t * priv;
   for(i = 0; i < track->num_audio_streams; i++)
     {
-    priv = (stream_priv_t*)(track->audio_streams[i].priv);
+    priv = track->audio_streams[i].priv;
     priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
     priv->pts_offset = 0;
     }
 
   for(i = 0; i < track->num_video_streams; i++)
     {
-    priv = (stream_priv_t*)(track->video_streams[i].priv);
+    priv = track->video_streams[i].priv;
     priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
     priv->pts_offset = 0;
     }
@@ -177,7 +177,7 @@ static void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
   char tmp_string1[128];
   char tmp_string2[128];
   stream_priv_t * priv;
-  priv = (stream_priv_t*)(s->priv);
+  priv = s->priv;
 
   if(priv->last_pts == BGAV_TIMESTAMP_UNDEFINED)
     {
@@ -1671,7 +1671,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
 static void resync_mpegts(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   stream_priv_t * priv;
-  priv = (stream_priv_t*)(s->priv);
+  priv = s->priv;
   priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
   priv->pts_offset = 0;
   }

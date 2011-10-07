@@ -69,11 +69,11 @@ bgav_timecode_table_destroy(bgav_timecode_table_t * table)
 
 static int compare_func(const void * arg1_1, const void * arg2_1)
   {
-  bgav_timecode_table_entry_t * arg1;
-  bgav_timecode_table_entry_t * arg2;
+  const bgav_timecode_table_entry_t * arg1;
+  const bgav_timecode_table_entry_t * arg2;
 
-  arg1 = (bgav_timecode_table_entry_t *)arg1_1;
-  arg2 = (bgav_timecode_table_entry_t *)arg2_1;
+  arg1 = arg1_1;
+  arg2 = arg2_1;
 
   if(arg1->pts < arg2->pts)
     return -1;

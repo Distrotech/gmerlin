@@ -74,7 +74,7 @@ static int read_data(bgav_stream_t * s)
   char * buffer;
   bgav_packet_t * p;
   vorbis_audio_priv * priv;
-  priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   p = bgav_stream_get_packet_read(s);
   if(!p)
     {
@@ -92,7 +92,7 @@ static int next_page(bgav_stream_t * s)
   {
   int result = 0;
   vorbis_audio_priv * priv;
-  priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   
   while(result < 1)
@@ -124,7 +124,7 @@ static int next_packet(bgav_stream_t * s)
   int result = 0;
   vorbis_audio_priv * priv;
   
-  priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   
   if(s->fourcc == BGAV_VORBIS)
     {
@@ -476,7 +476,7 @@ static int decode_frame_vorbis(bgav_stream_t * s)
   int i;
   int samples_decoded = 0;
   
-  priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
     
   /* Decode stuff */
   
@@ -517,7 +517,7 @@ static int decode_frame_vorbis(bgav_stream_t * s)
 static void resync_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
-  priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   if(priv->p)
     {
@@ -586,7 +586,7 @@ static void resync_vorbis(bgav_stream_t * s)
 static void close_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
-  priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   ogg_stream_clear(&priv->dec_os);
   ogg_sync_clear(&priv->dec_oy);

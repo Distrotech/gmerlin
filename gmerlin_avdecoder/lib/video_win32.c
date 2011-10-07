@@ -428,7 +428,7 @@ static int decode_std(bgav_win32_thread_t * thread)
   bgav_stream_t * s = thread->s;
   gavl_video_frame_t * frame = thread->video_frame;
   
-  priv = (win32_priv_t*)(thread->priv);
+  priv = thread->priv;
   
   flags = 0;
 
@@ -475,7 +475,7 @@ static int decode_std(bgav_win32_thread_t * thread)
 static void cleanup_std(bgav_win32_thread_t * thread)
   {
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(thread->priv);
+  priv = thread->priv;
   if(priv->hic)
     {
     ICDecompressEnd(priv->hic);
@@ -555,7 +555,7 @@ static int decode_ds(bgav_win32_thread_t*t)
   bgav_stream_t * s = t->s;
   gavl_video_frame_t * frame = t->video_frame;
   
-  priv = (win32_priv_t*)(t->priv);
+  priv = t->priv;
   
   result = DS_VideoDecoder_DecodeInternal(priv->ds_dec, t->data, t->data_len,
                                            t->keyframe,
@@ -581,7 +581,7 @@ static int decode_ds(bgav_win32_thread_t*t)
 static void cleanup_ds(bgav_win32_thread_t*t)
   {
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(t->priv);
+  priv = t->priv;
 
   if(priv->ds_dec )
     DS_VideoDecoder_Destroy(priv->ds_dec);
@@ -656,7 +656,7 @@ static int decode_dmo(bgav_win32_thread_t*t)
   bgav_stream_t * s = t->s;
   gavl_video_frame_t * frame = t->video_frame;
   
-  priv = (win32_priv_t*)(t->priv);
+  priv = t->priv;
     
   result = DMO_VideoDecoder_DecodeInternal(priv->dmo_dec, t->data,
                                            t->data_len,
@@ -676,7 +676,7 @@ static int decode_dmo(bgav_win32_thread_t*t)
 static void cleanup_dmo(bgav_win32_thread_t*t)
   {
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(t->priv);
+  priv = t->priv;
 
   if(priv->dmo_dec )
     DMO_VideoDecoder_Destroy(priv->dmo_dec);
@@ -722,7 +722,7 @@ static int decode_win32(bgav_stream_t * s, gavl_video_frame_t * f)
   int result;
   bgav_packet_t * p;
 
-  t = (bgav_win32_thread_t*)(s->data.video.decoder->priv);
+  t = s->data.video.decoder->priv;
   
   p = bgav_stream_get_packet_read(s);
   if(!p)

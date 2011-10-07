@@ -38,7 +38,7 @@
 static void * win32_thread(void * data)
   {
   bgav_win32_thread_t * t;
-  t = (bgav_win32_thread_t*)data;
+  t = data;
 
   t->ldt_fs = Setup_LDT_Keeper();
   

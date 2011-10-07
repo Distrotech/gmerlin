@@ -91,7 +91,7 @@ static int init_gsm(bgav_stream_t * s)
 static void close_gsm(bgav_stream_t * s)
   {
   gsm_priv * priv;
-  priv = (gsm_priv*)s->data.audio.decoder->priv;
+  priv = s->data.audio.decoder->priv;
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
@@ -103,7 +103,7 @@ static int decode_frame_gsm(bgav_stream_t * s)
   {
   gsm_priv * priv;
 
-  priv = (gsm_priv*)s->data.audio.decoder->priv;
+  priv = s->data.audio.decoder->priv;
   
   if(!priv->packet)
     {
@@ -145,7 +145,7 @@ static int decode_frame_gsm(bgav_stream_t * s)
 static void resync_gsm(bgav_stream_t * s)
   {
   gsm_priv * priv;
-  priv = (gsm_priv*)s->data.audio.decoder->priv;
+  priv = s->data.audio.decoder->priv;
   
   priv->frame->valid_samples = 0;
 

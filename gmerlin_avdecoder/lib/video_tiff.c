@@ -50,7 +50,7 @@ typedef struct
 static tsize_t read_function(thandle_t fd, tdata_t data, tsize_t length)
   {
   uint32_t bytes_read;
-  tiff_t *p = (tiff_t*)(fd);
+  tiff_t *p = (tiff_t*)fd;
 
   bytes_read = length;
   if(length > p->buffer_size - p->buffer_position)
@@ -63,7 +63,7 @@ static tsize_t read_function(thandle_t fd, tdata_t data, tsize_t length)
 
 static toff_t seek_function(thandle_t fd, toff_t off, int whence)
   {
-  tiff_t *p = (tiff_t*)(fd);
+  tiff_t *p = (tiff_t*)fd;
 
   if (whence == SEEK_SET) p->buffer_position = off;
   else if (whence == SEEK_CUR) p->buffer_position += off;
@@ -81,7 +81,7 @@ static toff_t seek_function(thandle_t fd, toff_t off, int whence)
 
 static toff_t size_function(thandle_t fd)
   {
-  tiff_t *p = (tiff_t*)(fd);
+  tiff_t *p = (tiff_t*)fd;
   return (p->buffer_size);
   }
 
@@ -117,7 +117,7 @@ static TIFF* open_tiff_mem(char *mode, tiff_t* p)
 static int read_header_tiff(bgav_stream_t * s,
                             gavl_video_format_t * format)
   {
-  tiff_t *p = (tiff_t*)(s->data.video.decoder->priv);
+  tiff_t *p = s->data.video.decoder->priv;
 
   p->packet = bgav_stream_get_packet_read(s);
   if(!p->packet)
@@ -181,7 +181,7 @@ static int read_image_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   uint8_t * frame_ptr_start;
   int i, j;
   
-  tiff_t *p = (tiff_t*)(s->data.video.decoder->priv);
+  tiff_t *p = s->data.video.decoder->priv;
 
   if(!p->raster)
     p->raster =
@@ -267,7 +267,7 @@ static int init_tiff(bgav_stream_t * s)
 static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   tiff_t * priv;
-  priv = (tiff_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   
   /* We decode only if we have a frame */
@@ -292,7 +292,7 @@ static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
 static void close_tiff(bgav_stream_t * s)
   {
   tiff_t * priv;
-  priv = (tiff_t*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   if (priv->raster) _TIFFfree(priv->raster);
 
@@ -301,7 +301,7 @@ static void close_tiff(bgav_stream_t * s)
 
 static void resync_tiff(bgav_stream_t * s)
   {
-  tiff_t *p = (tiff_t*)(s->data.video.decoder->priv);
+  tiff_t *p = s->data.video.decoder->priv;
   
   if(p->packet)
     {

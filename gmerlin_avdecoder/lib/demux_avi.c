@@ -419,7 +419,7 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
   
   if(stream->type == BGAV_STREAM_AUDIO)
     {
-    avi_as = (audio_priv_t*)(stream->priv);
+    avi_as = stream->priv;
     samplerate = stream->data.audio.format.samplerate;
 
     bgav_superindex_add_packet(si,
@@ -1001,7 +1001,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
     {
     for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
       {
-      avi_as = (audio_priv_t *)(ctx->tt->cur->audio_streams[i].priv);
+      avi_as = ctx->tt->cur->audio_streams[i].priv;
       
       if(!avi_as->has_indx)
         return;
@@ -1013,7 +1013,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
     }
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     {
-    avi_vs = (video_priv_t *)(ctx->tt->cur->video_streams[i].priv);
+    avi_vs = ctx->tt->cur->video_streams[i].priv;
     ctx->tt->cur->video_streams[i].duration = 0;
     if(!avi_vs->has_indx)
       return;
@@ -1035,7 +1035,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
     {
     streams[i].s = &ctx->tt->cur->audio_streams[i];
     
-    avi_as = (audio_priv_t *)(streams[i].s->priv);
+    avi_as = streams[i].s->priv;
 
     streams[i].indx = &avi_as->indx;
     
@@ -1059,7 +1059,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
     {
     streams[i].s = &ctx->tt->cur->video_streams[i-num_audio_streams];
 
-    avi_vs = (video_priv_t *)(streams[i].s->priv);
+    avi_vs = streams[i].s->priv;
 
     streams[i].indx = &avi_vs->indx;
     
@@ -1172,7 +1172,7 @@ static void cleanup_stream_avi(bgav_stream_t * s)
   if(s->type == BGAV_STREAM_AUDIO)
     {
     audio_priv_t * avi_as;
-    avi_as = (audio_priv_t*)(s->priv);
+    avi_as = s->priv;
     if(avi_as)
       {
       if(avi_as->has_indx)
@@ -1186,7 +1186,7 @@ static void cleanup_stream_avi(bgav_stream_t * s)
     if(s->data.video.palette_size)
       free(s->data.video.palette);
 
-    avi_vs = (video_priv_t*)(s->priv);
+    avi_vs = s->priv;
 
     if(avi_vs)
       {
@@ -1539,7 +1539,7 @@ static void process_packet_iavs_stream(bgav_stream_t * s, bgav_packet_t * p)
   bgav_stream_t * as;
   bgav_stream_t * vs;
   
-  priv = (avi_priv_t*)(s->demuxer->priv);
+  priv = s->demuxer->priv;
   
   if(!priv->dv_dec)
     {
@@ -1738,7 +1738,7 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
   
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
     {
-    avi_as = (audio_priv_t*)(ctx->tt->cur->audio_streams[i].priv);
+    avi_as = ctx->tt->cur->audio_streams[i].priv;
     avi_as->total_bytes = 0;
     avi_as->total_blocks = 0;
     ctx->tt->cur->audio_streams[i].duration = 0;
@@ -1746,7 +1746,7 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
 
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     {
-    avi_vs = (video_priv_t*)(ctx->tt->cur->video_streams[i].priv);
+    avi_vs = ctx->tt->cur->video_streams[i].priv;
     ctx->tt->cur->video_streams[i].duration = 0;
     }
 
@@ -2076,7 +2076,7 @@ static int open_avi(bgav_demuxer_context_t * ctx)
 
     for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
       {
-      avi_vs = (video_priv_t*)(ctx->tt->cur->video_streams[i].priv);
+      avi_vs = ctx->tt->cur->video_streams[i].priv;
       if(check_codec(ctx->tt->cur->video_streams[i].fourcc,
                      video_codecs_msmpeg4v1))
         avi_vs->is_keyframe = is_keyframe_msmpeg4v1;
@@ -2239,7 +2239,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
       
       if(s->type == BGAV_STREAM_VIDEO)
         {
-        avi_vs = (video_priv_t*)s->priv;
+        avi_vs = s->priv;
         p->pts = avi_vs->frame_counter * s->data.video.format.frame_duration;
         avi_vs->frame_counter++;
         if(s->action == BGAV_STREAM_PARSE)
@@ -2252,7 +2252,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
         {
         if(s->index_mode == INDEX_MODE_SIMPLE)
           {
-          avi_as = (audio_priv_t*)s->priv;
+          avi_as = s->priv;
           p->pts = avi_as->sample_counter;
           avi_as->sample_counter += p->data_size / s->data.audio.block_align;
           if(s->action == BGAV_STREAM_PARSE)
@@ -2267,7 +2267,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     }
   else if(s->type == BGAV_STREAM_VIDEO) // Increase timestamp for empty frames
     {
-    avi_vs = (video_priv_t*)s->priv;
+    avi_vs = s->priv;
     avi_vs->frame_counter++;
     if(s->action == BGAV_STREAM_PARSE)
       s->duration = avi_vs->frame_counter * s->data.video.format.frame_duration;
@@ -2285,11 +2285,11 @@ static void resync_avi(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
-      avi_as = (audio_priv_t*)(s->priv);
+      avi_as = s->priv;
       avi_as->sample_counter = STREAM_GET_SYNC(s);
       break;
     case BGAV_STREAM_VIDEO:
-      avi_vs = (video_priv_t*)(s->priv);
+      avi_vs = s->priv;
       avi_vs->frame_counter = STREAM_GET_SYNC(s) /
         s->data.video.format.frame_duration;
       break;

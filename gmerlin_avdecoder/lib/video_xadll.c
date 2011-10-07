@@ -218,12 +218,12 @@ static void XA_YUV221111_Convert(unsigned char *image_p,
   int uvstride;
 
   
-  stream = (bgav_stream_t *)(image_p);
+  stream = (bgav_stream_t *)image_p;
 
   ystride=stream->data.video.format.image_width; //(yuv->y_w)?yuv->y_w:imagex;
   uvstride=stream->data.video.format.image_width/2; //(yuv->uv_w)?yuv->uv_w:(imagex/2);
 
-  priv = (xanim_priv_t*)(stream->data.video.decoder->priv);
+  priv = stream->data.video.decoder->priv;
 
   if(!priv->frame)
     return;
@@ -411,7 +411,7 @@ static int decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
   bgav_packet_t * p;
   xanim_priv_t * priv;
 
-  priv = (xanim_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   p = bgav_stream_get_packet_read(s);
   if(!p)
     return 0;
@@ -432,7 +432,7 @@ static int decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
 static void close_xadll(bgav_stream_t * s)
   {
   xanim_priv_t * priv;
-  priv = (xanim_priv_t *)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   dlclose(priv->dll_handle);
 

@@ -322,7 +322,7 @@ static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md,
   int format = atoi(md->formats[0]);
   int i;
   char * fmtp;
-  rtp_stream_priv_t * sp = (rtp_stream_priv_t*)s->priv;
+  rtp_stream_priv_t * sp = s->priv;
 
   if(bgav_sdp_get_attr_fmtp(md->attributes, md->num_attributes,
                             format, &fmtp))
@@ -559,7 +559,7 @@ static void init_pollfds(bgav_demuxer_context_t * ctx)
   index = 0;
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
     {
-    sp = (rtp_stream_priv_t *)ctx->tt->cur->audio_streams[i].priv;
+    sp = ctx->tt->cur->audio_streams[i].priv;
     priv->pollfds[index].fd = sp->rtp_fd;
     priv->pollfds[index].events = POLLIN;
     index++;
@@ -569,7 +569,7 @@ static void init_pollfds(bgav_demuxer_context_t * ctx)
     }
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     {
-    sp = (rtp_stream_priv_t *)ctx->tt->cur->video_streams[i].priv;
+    sp = ctx->tt->cur->video_streams[i].priv;
     priv->pollfds[index].fd = sp->rtp_fd;
     priv->pollfds[index].events = POLLIN;
     index++;
@@ -1639,7 +1639,7 @@ static void append_packet_ogg(bgav_stream_t * s, uint8_t * data, int len)
   {
   ogg_packet * op;
   bgav_packet_alloc(s->packet, s->packet->data_size + len);
-  op = (ogg_packet *)s->packet->data;
+  op = s->packet->data;
   op->packet = s->packet->data + sizeof(*op);
   op->bytes += len;
   memcpy(s->packet->data + s->packet->data_size, data, len);

@@ -214,7 +214,7 @@ static int get_data(bgav_stream_t * s)
   win32_priv_t * priv;
   bgav_packet_t * p;
   
-  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   p = bgav_stream_get_packet_read(s);
   if(!p)
@@ -248,7 +248,7 @@ static int decode_frame_DS(bgav_stream_t * s)
   unsigned int size_written;
   
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   while(priv->buffer_size < priv->src_size)
     if(!get_data(s))
@@ -281,7 +281,7 @@ static int decode_frame_std(bgav_stream_t * s)
   win32_priv_t * priv;
   ACMSTREAMHEADER ash;
   HRESULT hr = 0;
-  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   /* Get new data */
 
@@ -493,7 +493,7 @@ static int decode_frame_w32(bgav_stream_t * s)
   int samples_decoded = 0;
   Setup_FS_Segment();
   
-  priv = (win32_priv_t *)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   if(!priv->decode_frame(s))
     return 0;
@@ -506,7 +506,7 @@ static int decode_frame_w32(bgav_stream_t * s)
 static void resync_w32(bgav_stream_t * s)
   {
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   priv->buffer_size = 0;
   priv->frame->valid_samples = 0;
@@ -515,7 +515,7 @@ static void resync_w32(bgav_stream_t * s)
 static void close_w32(bgav_stream_t * s)
   {
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   if(priv->buffer)
     free(priv->buffer);

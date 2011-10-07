@@ -977,7 +977,7 @@ fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp, bgav_pack
   int kf=timestamp;
   int pict_type;
   int orig_kf;
-  rm_video_stream_t * priv = (rm_video_stream_t*)stream->priv;
+  rm_video_stream_t * priv = stream->priv;
 #if 1
   if(stream->fourcc==BGAV_MK_FOURCC('R','V','3','0') ||
      stream->fourcc==BGAV_MK_FOURCC('R','V','4','0'))
@@ -1283,7 +1283,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
   uint16_t aac_packet_lengths[16];
   uint8_t num_aac_packets;
   
-  as = (rm_audio_stream_t*)stream->priv;
+  as = stream->priv;
   
   packet_size = PAYLOAD_LENGTH(h);
 
@@ -1469,7 +1469,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       {
       stream = ctx->request_stream;
 
-      rs = (rm_stream_t*)(stream->priv);
+      rs = stream->priv;
 
       if(rs->data_pos >= rs->data_end)
         return 0;
@@ -1482,7 +1482,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
         {
         stream = &ctx->tt->cur->audio_streams[i];
-        rs = (rm_stream_t*)(stream->priv);
+        rs = stream->priv;
         
         if((stream->action == BGAV_STREAM_MUTE) ||
            !bgav_packet_buffer_is_empty(stream->packet_buffer) ||
@@ -1501,7 +1501,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
         for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
           {
           stream = &ctx->tt->cur->video_streams[i];
-          rs = (rm_stream_t*)(stream->priv);
+          rs = stream->priv;
           
           if((stream->action == BGAV_STREAM_MUTE) ||
              !bgav_packet_buffer_is_empty(stream->packet_buffer) ||
@@ -1551,7 +1551,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   
   if(stream->type == BGAV_STREAM_VIDEO)
     {
-    rs = (rm_stream_t*)(stream->priv);
+    rs = stream->priv;
     if(rm->do_seek)
       {
       if(rs->stream->indx.records[rs->index_record].packet_count_for_this_packet > rm->next_packet)
@@ -1568,7 +1568,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     }
   else if(stream->type == BGAV_STREAM_AUDIO)
     {
-    rs = (rm_stream_t*)(stream->priv);
+    rs = stream->priv;
     if(rm->do_seek)
       {
       if(rs->stream->indx.records[rs->index_record].packet_count_for_this_packet > rm->next_packet)
@@ -1615,7 +1615,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   for(i = 0; i < track->num_video_streams; i++)
     {
     stream = &track->video_streams[i];
-    vs = (rm_video_stream_t*)(stream->priv);
+    vs = stream->priv;
     vs->com.index_record = seek_indx(&vs->com.stream->indx, real_time,
                                  &position, &start_packet, &end_packet);
     STREAM_SET_SYNC(stream, vs->com.stream->indx.records[vs->com.index_record].timestamp);
@@ -1626,7 +1626,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   for(i = 0; i < track->num_audio_streams; i++)
     {
     stream = &track->audio_streams[i];
-    rs = (rm_stream_t*)(stream->priv);
+    rs = stream->priv;
     rs->index_record = seek_indx(&rs->stream->indx, real_time,
                                  &position, &start_packet, &end_packet);
     STREAM_SET_SYNC(stream, rs->stream->indx.records[rs->index_record].timestamp);
@@ -1680,7 +1680,7 @@ static int select_track_rmff(bgav_demuxer_context_t * ctx, int t)
   
   for(i = 0; i < track->num_audio_streams; i++)
     {
-    as = (rm_audio_stream_t*)(track->audio_streams[i].priv);
+    as = track->audio_streams[i].priv;
     if(as)
       {
       as->sub_packet_cnt = 0;
@@ -1689,7 +1689,7 @@ static int select_track_rmff(bgav_demuxer_context_t * ctx, int t)
     }
   for(i = 0; i < track->num_video_streams; i++)
     {
-    vs = (rm_video_stream_t*)(track->video_streams[i].priv);
+    vs = track->video_streams[i].priv;
     if(vs)
       {
       //      vs->kf_pts = 0;
