@@ -250,7 +250,7 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   ogg_packet packet;
   uint8_t * ptr;
   uint32_t len;
-  vorbis_t * vorbis = (vorbis_t *)data;
+  vorbis_t * vorbis = data;
   uint32_t vendor_len;
 
   uint8_t * comment_packet;
@@ -321,7 +321,7 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   ogg_packet header_codebooks;
   //  struct ovectl_ratemanage2_arg ai;
 
-  vorbis_t * vorbis = (vorbis_t *)data;
+  vorbis_t * vorbis = data;
 
   vorbis->format = format;
   vorbis->frame = gavl_audio_frame_create(NULL);
@@ -397,7 +397,7 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
 static int flush_header_pages_vorbis(void*data)
   {
   vorbis_t * vorbis;
-  vorbis = (vorbis_t*)data;
+  vorbis = data;
   if(bg_ogg_flush(&vorbis->enc_os, vorbis->output, 1) < 0)
     return 0;
   else
@@ -408,7 +408,7 @@ static void set_parameter_vorbis(void * data, const char * name,
                                  const bg_parameter_value_t * v)
   {
   vorbis_t * vorbis;
-  vorbis = (vorbis_t*)data;
+  vorbis = data;
   
   if(!name)
     {
@@ -489,7 +489,7 @@ static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
   vorbis_t * vorbis;
   float **buffer;
      
-  vorbis = (vorbis_t*)data;
+  vorbis = data;
 
   buffer = vorbis_analysis_buffer(&vorbis->enc_vd, frame->valid_samples);
 
@@ -538,7 +538,7 @@ static int close_vorbis(void * data)
   int ret = 1;
   vorbis_t * vorbis;
   int result;
-  vorbis = (vorbis_t*)data;
+  vorbis = data;
 
   if(vorbis->samples_read)
     {

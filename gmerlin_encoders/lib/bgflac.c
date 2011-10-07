@@ -223,7 +223,7 @@ const bg_parameter_info_t * bg_flac_get_parameters(void * data)
 void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
   {
   bg_flac_t * flac;
-  flac = (bg_flac_t*)data;
+  flac = data;
     
   if(!name)
     {

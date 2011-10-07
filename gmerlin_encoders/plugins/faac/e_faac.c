@@ -73,7 +73,7 @@ static void * create_faac()
 static void destroy_faac(void * priv)
   {
   faac_t * faac;
-  faac = (faac_t*)priv;
+  faac = priv;
   
   free(faac);
   }
@@ -168,7 +168,7 @@ static void set_audio_parameter_faac(void * data, int stream, const char * name,
                                      const bg_parameter_value_t * v)
   {
   faac_t * faac;
-  faac = (faac_t*)data;
+  faac = data;
   
   if(stream)
     return;
@@ -280,7 +280,7 @@ static void set_parameter_faac(void * data, const char * name,
                                const bg_parameter_value_t * v)
   {
   faac_t * faac;
-  faac = (faac_t*)data;
+  faac = data;
   
   if(!name)
     return;
@@ -299,7 +299,7 @@ static int open_faac(void * data, const char * filename,
   faac_t * faac;
   bgen_id3v2_t * id3v2;
 
-  faac = (faac_t*)data;
+  faac = data;
 
   faac->filename = bg_filename_ensure_extension(filename, "aac");
 
@@ -336,7 +336,7 @@ static int add_audio_stream_faac(void * data,
   
   faac_t * faac;
   
-  faac = (faac_t*)data;
+  faac = data;
 
   /* Create encoder handle and get configuration */
 
@@ -439,7 +439,7 @@ static int write_audio_frame_faac(void * data, gavl_audio_frame_t * frame,
   int samples_copied;
     
   faac_t * faac;
-  faac = (faac_t*)data;
+  faac = data;
 
   
   while(samples_done < frame->valid_samples)
@@ -476,7 +476,7 @@ static void get_audio_format_faac(void * data, int stream,
                                  gavl_audio_format_t * ret)
   {
   faac_t * faac;
-  faac = (faac_t*)data;
+  faac = data;
   gavl_audio_format_copy(ret, &faac->format);
   }
 
@@ -485,7 +485,7 @@ static int close_faac(void * data, int do_delete)
   {
   int ret = 1, result;
   faac_t * faac;
-  faac = (faac_t*)data;
+  faac = data;
 
   /* Flush remaining audio data */
 

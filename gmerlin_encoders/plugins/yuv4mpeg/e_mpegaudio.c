@@ -57,7 +57,7 @@ static void * create_mpa()
 static void destroy_mpa(void * priv)
   {
   e_mpa_t * mpa;
-  mpa = (e_mpa_t*)priv;
+  mpa = priv;
 
   free(mpa);
   }
@@ -73,7 +73,7 @@ static void set_parameter_mpa(void * data, const char * name,
                               const bg_parameter_value_t * v)
   {
   e_mpa_t * mpa;
-  mpa = (e_mpa_t*)data;
+  mpa = data;
   if(!name)
     {
     return;
@@ -86,7 +86,7 @@ static int open_mpa(void * data, const char * filename,
                     const bg_chapter_list_t * chapter_list)
   {
   e_mpa_t * mpa;
-  mpa = (e_mpa_t*)data;
+  mpa = data;
 
   mpa->filename =
     bg_filename_ensure_extension(filename,
@@ -104,7 +104,7 @@ static int add_audio_stream_mpa(void * data,
   {
   e_mpa_t * mpa;
 
-  mpa = (e_mpa_t*)data;
+  mpa = data;
   bg_mpa_set_format(&mpa->com, format);
   return 0;
   }
@@ -115,7 +115,7 @@ static int add_audio_stream_compressed_mpa(void * data,
                                            const gavl_compression_info_t * ci)
   {
   e_mpa_t * mpa;
-  mpa = (e_mpa_t*)data;
+  mpa = data;
   bg_mpa_set_ci(&mpa->com, ci);
   return 0;
   }
@@ -123,7 +123,7 @@ static int add_audio_stream_compressed_mpa(void * data,
 static int start_mpa(void * data)
   {
   int result;
-  e_mpa_t * e = (e_mpa_t*)data;
+  e_mpa_t * e = data;
   result = bg_mpa_start(&e->com, e->filename);
   if(!result)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mp2enc executable");
@@ -148,7 +148,7 @@ static int write_audio_frame_mpa(void * data, gavl_audio_frame_t * frame,
                                   int stream)
   {
   e_mpa_t * mpa;
-  mpa = (e_mpa_t*)data;
+  mpa = data;
   return bg_mpa_write_audio_frame(&mpa->com, frame);
   }
 
@@ -156,7 +156,7 @@ static int write_audio_packet_mpa(void * data, gavl_packet_t * p,
                                   int stream)
   {
   e_mpa_t * mpa;
-  mpa = (e_mpa_t*)data;
+  mpa = data;
   return bg_mpa_write_audio_packet(&mpa->com, p);
   }
 
@@ -164,7 +164,7 @@ static void get_audio_format_mpa(void * data, int stream,
                                  gavl_audio_format_t * ret)
   {
   e_mpa_t * mpa;
-  mpa = (e_mpa_t*)data;
+  mpa = data;
   bg_mpa_get_format(&mpa->com, ret);
   
   }
@@ -173,7 +173,7 @@ static int close_mpa(void * data, int do_delete)
   {
   int ret = 1;
   e_mpa_t * mpa;
-  mpa = (e_mpa_t*)data;
+  mpa = data;
 
   if(!bg_mpa_close(&mpa->com))
     ret = 0;

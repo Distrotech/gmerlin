@@ -115,7 +115,7 @@ static void set_parameter_flac(void * data,
                                const bg_parameter_value_t * v)
   {
   flac_t * flac;
-  flac = (flac_t*)data;
+  flac = data;
   
   if(!name)
     return;
@@ -145,7 +145,7 @@ static int open_flac(void * data, const char * filename,
   int result = 1;
   flac_t * flac;
   
-  flac = (flac_t*)data;
+  flac = data;
 
   /* Create encoder instance */
   flac->enc = FLAC__file_encoder_new();
@@ -183,7 +183,7 @@ static int add_audio_stream_flac(void * data,
                                  const gavl_audio_format_t * format)
   {
   flac_t * flac;
-  flac = (flac_t*)data;
+  flac = data;
 
   /* Copy and adjust format */
 
@@ -196,7 +196,7 @@ static int add_audio_stream_flac(void * data,
 static int start_flac(void * data)
   {
   flac_t * flac;
-  flac = (flac_t*)data;
+  flac = data;
 
   bg_flac_init_file_encoder(&flac->com, flac->enc);
 
@@ -227,7 +227,7 @@ static int write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
   int ret = 1;
   flac_t * flac;
   
-  flac = (flac_t*)data;
+  flac = data;
 
   bg_flac_prepare_audio_frame(&flac->com, frame);
   
@@ -244,7 +244,7 @@ static void get_audio_format_flac(void * data, int stream,
                                  gavl_audio_format_t * ret)
   {
   flac_t * flac;
-  flac = (flac_t*)data;
+  flac = data;
   gavl_audio_format_copy(ret, &flac->format);
   
   }
@@ -286,7 +286,7 @@ seektable_write_callback(const FLAC__FileDecoder *decoder,
 
   seektable_client_data * cd;
 
-  cd = (seektable_client_data*)client_data;
+  cd = client_data;
   
   if(cd->sample_position >= cd->seek_samples[cd->table_position])
     {
@@ -425,7 +425,7 @@ static void finalize_seektable(flac_t * flac)
 static int close_flac(void * data, int do_delete)
   {
   flac_t * flac;
-  flac = (flac_t*)data;
+  flac = data;
 
   if(flac->seektable && !do_delete)
     {
@@ -458,7 +458,7 @@ static int close_flac(void * data, int do_delete)
 static void destroy_flac(void * priv)
   {
   flac_t * flac;
-  flac = (flac_t*)priv;
+  flac = priv;
   close_flac(priv, 1);
   free(flac);
   }
@@ -468,7 +468,7 @@ static void set_audio_parameter_flac(void * data, int stream,
                                      const bg_parameter_value_t * val)
   {
   flac_t * flac;
-  flac = (flac_t*)data;
+  flac = data;
   bg_flac_set_parameter(&flac->com, name, val);
   }
 

@@ -201,7 +201,7 @@ static void * create_lame()
 static void destroy_lame(void * priv)
   {
   lame_priv_t * lame;
-  lame = (lame_priv_t*)priv;
+  lame = priv;
   if(lame->lame)
     lame_close(lame->lame);
   free(lame);
@@ -318,7 +318,7 @@ static void set_audio_parameter_lame(void * data, int stream,
   {
   lame_priv_t * lame;
   int i;
-  lame = (lame_priv_t*)data;
+  lame = data;
   
   if(stream)
     return;
@@ -489,7 +489,7 @@ static void set_parameter_lame(void * data, const char * name,
                                const bg_parameter_value_t * v)
   {
   lame_priv_t * lame;
-  lame = (lame_priv_t*)data;
+  lame = data;
   
   if(!name)
     return;
@@ -509,7 +509,7 @@ static int open_lame(void * data, const char * filename,
   lame_priv_t * lame;
   bgen_id3v2_t * id3v2;
 
-  lame = (lame_priv_t*)data;
+  lame = data;
 
   lame->lame = lame_init();
   id3tag_init(lame->lame);
@@ -561,7 +561,7 @@ static int add_audio_stream_compressed_lame(void * data,
   {
   lame_priv_t * lame;
   
-  lame = (lame_priv_t*)data;
+  lame = data;
   lame->ci = ci;
   return 0;
   }
@@ -571,7 +571,7 @@ static int add_audio_stream_lame(void * data, const char * language,
   {
   lame_priv_t * lame;
   
-  lame = (lame_priv_t*)data;
+  lame = data;
   
   /* Copy and adjust format */
     
@@ -606,7 +606,7 @@ static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
   {
   lame_priv_t * lame;
   
-  lame = (lame_priv_t*)data;
+  lame = data;
 
   if((lame->ci->bitrate < 0) &&
      !lame->xing)
@@ -632,7 +632,7 @@ static int write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,
   int max_out_size, bytes_encoded;
   lame_priv_t * lame;
   
-  lame = (lame_priv_t*)data;
+  lame = data;
 
   max_out_size = (5 * frame->valid_samples) / 4 + 7200;
   if(lame->output_buffer_alloc < max_out_size)
@@ -660,7 +660,7 @@ static void get_audio_format_lame(void * data, int stream,
                                  gavl_audio_format_t * ret)
   {
   lame_priv_t * lame;
-  lame = (lame_priv_t*)data;
+  lame = data;
   gavl_audio_format_copy(ret, &lame->format);
   
   }
@@ -670,7 +670,7 @@ static int close_lame(void * data, int do_delete)
   int ret = 1;
   lame_priv_t * lame;
   int bytes_encoded;
-  lame = (lame_priv_t*)data;
+  lame = data;
 
   /* 1. Flush the buffer */
   

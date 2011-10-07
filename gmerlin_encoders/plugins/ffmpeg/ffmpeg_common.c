@@ -125,7 +125,7 @@ void bg_ffmpeg_set_callbacks(void * data,
 void bg_ffmpeg_destroy(void * data)
   {
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
 
   if(priv->parameters)
     bg_parameter_info_destroy_array(priv->parameters);
@@ -144,21 +144,21 @@ void bg_ffmpeg_destroy(void * data)
 const bg_parameter_info_t * bg_ffmpeg_get_parameters(void * data)
   {
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   return priv->parameters;
   }
 
 const bg_parameter_info_t * bg_ffmpeg_get_audio_parameters(void * data)
   {
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   return priv->audio_parameters;
   }
 
 const bg_parameter_info_t * bg_ffmpeg_get_video_parameters(void * data)
   {
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   return priv->video_parameters;
   }
 
@@ -167,7 +167,7 @@ void bg_ffmpeg_set_parameter(void * data, const char * name,
   {
   int i;
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   if(!name)
     {
     return;
@@ -265,7 +265,7 @@ int bg_ffmpeg_open(void * data, const char * filename,
   AVOutputFormat *fmt;
   char * tmp_string;
   
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   if(!priv->format)
     return 0;
 
@@ -311,7 +311,7 @@ int bg_ffmpeg_add_audio_stream(void * data, const char * language,
   ffmpeg_priv_t * priv;
   ffmpeg_audio_stream_t * st;
   
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   
   priv->audio_streams =
     realloc(priv->audio_streams,
@@ -343,7 +343,7 @@ int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
   {
   ffmpeg_priv_t * priv;
   ffmpeg_video_stream_t * st;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
 
   priv->video_streams =
     realloc(priv->video_streams,
@@ -378,7 +378,7 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
   {
   ffmpeg_priv_t * priv;
   ffmpeg_audio_stream_t * st;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
 
   if(!name)
     return;
@@ -398,7 +398,7 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
   {
   ffmpeg_priv_t * priv;
   ffmpeg_video_stream_t * st;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
 
   if(!name)
     return;
@@ -424,7 +424,7 @@ int bg_ffmpeg_set_video_pass(void * data, int stream, int pass,
   {
   ffmpeg_priv_t * priv;
   ffmpeg_video_stream_t * st;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
 
   st = &priv->video_streams[stream];
   st->pass           = pass;
@@ -569,7 +569,7 @@ int bg_ffmpeg_start(void * data)
   {
   ffmpeg_priv_t * priv;
   int i;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   
   /* set the output parameters (must be done even if no
      parameters). */
@@ -611,7 +611,7 @@ void bg_ffmpeg_get_audio_format(void * data, int stream,
                                 gavl_audio_format_t*ret)
   {
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
 
   gavl_audio_format_copy(ret, &priv->audio_streams[stream].format);
                          
@@ -621,7 +621,7 @@ void bg_ffmpeg_get_video_format(void * data, int stream,
                                 gavl_video_format_t*ret)
   {
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
 
   gavl_video_format_copy(ret, &priv->video_streams[stream].format);
   
@@ -679,7 +679,7 @@ int bg_ffmpeg_write_audio_frame(void * data,
   ffmpeg_priv_t * priv;
   int samples_written = 0;
   int samples_copied;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   st = &priv->audio_streams[stream];
   
   while(samples_written < frame->valid_samples)
@@ -752,7 +752,7 @@ int bg_ffmpeg_write_video_frame(void * data,
   ffmpeg_priv_t * priv;
   ffmpeg_video_stream_t * st;
   
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
   st = &priv->video_streams[stream];
 
   if(st->stream->codec->time_base.num == 1) /* Variable */
@@ -842,7 +842,7 @@ int bg_ffmpeg_close(void * data, int do_delete)
   {
   ffmpeg_priv_t * priv;
   int i;
-  priv = (ffmpeg_priv_t *)data;
+  priv = data;
 
   // Flush and close the streams
 

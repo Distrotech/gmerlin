@@ -87,7 +87,7 @@ write_callback(const FLAC__StreamEncoder *encoder,
   ogg_packet op;
   int result;
   flacogg_t * flacogg;
-  flacogg = (flacogg_t*)data;
+  flacogg = data;
   
   
   if(!flacogg->header_written)
@@ -219,7 +219,7 @@ static void set_parameter_flacogg(void * data, const char * name,
                                   const bg_parameter_value_t * v)
   {
   flacogg_t * flacogg;
-  flacogg = (flacogg_t*)data;
+  flacogg = data;
   
   if(!name)
     return;
@@ -228,7 +228,7 @@ static void set_parameter_flacogg(void * data, const char * name,
 
 static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t * metadata)
   {
-  flacogg_t * flacogg = (flacogg_t *)data;
+  flacogg_t * flacogg = data;
 
   flacogg->com.format = format;
   
@@ -272,7 +272,7 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
 static int flush_header_pages_flacogg(void*data)
   {
   flacogg_t * flacogg;
-  flacogg = (flacogg_t*)data;
+  flacogg = data;
   if(bg_ogg_flush(&flacogg->os, flacogg->output, 1) <= 0)
     return 0;
   return 1;
@@ -281,7 +281,7 @@ static int flush_header_pages_flacogg(void*data)
 static int write_audio_frame_flacogg(void * data, gavl_audio_frame_t * frame)
   {
   flacogg_t * flacogg;
-  flacogg = (flacogg_t*)data;
+  flacogg = data;
   
   bg_flac_prepare_audio_frame(&flacogg->com, frame);
 
@@ -296,7 +296,7 @@ static int close_flacogg(void * data)
   int ret = 1;
   uint8_t buf[1] = { 0x00 };
   flacogg_t * flacogg;
-  flacogg = (flacogg_t*)data;
+  flacogg = data;
   
   if(flacogg->enc)
     {

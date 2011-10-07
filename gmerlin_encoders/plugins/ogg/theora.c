@@ -415,7 +415,7 @@ static int init_theora(void * data, gavl_video_format_t * format,
   ogg_packet op;
   int header_packets;
   
-  theora_t * theora = (theora_t *)data;
+  theora_t * theora = data;
 
   theora->format = format;
 

@@ -96,7 +96,7 @@ static void comment_init(char **comments, int* length, char *vendor_string)
   int vendor_length=strlen(vendor_string);
   int user_comment_list_length=0;
   int len=4+vendor_length+4;
-  char *p=(char*)malloc(len);
+  char *p=malloc(len);
   if(p==NULL){
   }
   writeint(p, 0, vendor_length);
@@ -114,7 +114,7 @@ static void comment_add(char **comments, int* length, char *tag, char *val)
   int val_len=strlen(val);
   int len=(*length)+4+tag_len+val_len;
 
-  p=(char*)realloc(p, len);
+  p=realloc(p, len);
   if(p==NULL){
   }
 
@@ -221,7 +221,7 @@ static void set_parameter_speex(void * data, const char * name,
                                  const bg_parameter_value_t * v)
   {
   speex_t * speex;
-  speex = (speex_t*)data;
+  speex = data;
   
   if(!name)
     {
@@ -324,7 +324,7 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   ogg_packet op;
   int dummy;
   
-  speex_t * speex = (speex_t *)data;
+  speex_t * speex = data;
 
   speex->format = format;
 
@@ -448,7 +448,7 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
 static int flush_header_pages_speex(void*data)
   {
   speex_t * speex;
-  speex = (speex_t*)data;
+  speex = data;
   if(bg_ogg_flush(&speex->enc_os, speex->output, 1) <= 0)
     return 0;
   return 1;
@@ -533,7 +533,7 @@ static int write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
   int samples_read = 0;
   int samples_copied;
   speex_t * speex;
-  speex = (speex_t*)data;
+  speex = data;
 
   while(samples_read < frame->valid_samples)
     {
@@ -561,7 +561,7 @@ static int close_speex(void * data)
   {
   int ret = 1;
   speex_t * speex;
-  speex = (speex_t*)data;
+  speex = data;
 
   if(!encode_frame(speex, 1))
     ret = 0;

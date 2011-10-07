@@ -61,7 +61,7 @@ static int open_y4m(void * data, const char * filename,
                     const bg_metadata_t * metadata,
                     const bg_chapter_list_t * chapter_list)
   {
-  e_y4m_t * e = (e_y4m_t*)data;
+  e_y4m_t * e = data;
 
   /* Copy filename for later reusal */
   e->filename = bg_filename_ensure_extension(filename, "y4m");
@@ -79,7 +79,7 @@ static int open_y4m(void * data, const char * filename,
 
 static int add_video_stream_y4m(void * data, const gavl_video_format_t* format)
   {
-  e_y4m_t * e = (e_y4m_t*)data;
+  e_y4m_t * e = data;
   gavl_video_format_copy(&e->com.format, format);
   return 0;
   }
@@ -87,7 +87,7 @@ static int add_video_stream_y4m(void * data, const gavl_video_format_t* format)
 static void get_video_format_y4m(void * data, int stream,
                                  gavl_video_format_t * ret)
   {
-  e_y4m_t * e = (e_y4m_t*)data;
+  e_y4m_t * e = data;
 
   gavl_video_format_copy(ret, &e->com.format);
   }
@@ -95,7 +95,7 @@ static void get_video_format_y4m(void * data, int stream,
 static int start_y4m(void * data)
   {
   int result;
-  e_y4m_t * e = (e_y4m_t*)data;
+  e_y4m_t * e = data;
   
   bg_encoder_set_framerate(&e->com.fr,
                            &e->com.format);
@@ -108,13 +108,13 @@ static int write_video_frame_y4m(void * data,
                                  gavl_video_frame_t* frame,
                                   int stream)
   {
-  e_y4m_t * e = (e_y4m_t*)data;
+  e_y4m_t * e = data;
   return bg_y4m_write_frame(&e->com, frame);
   }
 
 static int close_y4m(void * data, int do_delete)
   {
-  e_y4m_t * e = (e_y4m_t*)data;
+  e_y4m_t * e = data;
   close(e->com.fd);
   if(do_delete)
     remove(e->filename);
@@ -123,7 +123,7 @@ static int close_y4m(void * data, int do_delete)
 
 static void destroy_y4m(void * data)
   {
-  e_y4m_t * e = (e_y4m_t*)data;
+  e_y4m_t * e = data;
   bg_y4m_cleanup(&e->com);
 
   if(e->filename)
@@ -178,7 +178,7 @@ static void set_video_parameter_y4m(void * data, int stream, const char * name,
                                     const bg_parameter_value_t * val)
   {
   int sub_h, sub_v;
-  e_y4m_t * e = (e_y4m_t*)data;
+  e_y4m_t * e = data;
   if(!name)
     {
     /* Detect chroma mode from input format */
