@@ -538,7 +538,7 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
   gxf_priv_t * priv;
   int64_t position;
   
-  priv = (gxf_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   position = ctx->input->position;
   
@@ -618,7 +618,7 @@ static void seek_gxf(bgav_demuxer_context_t * ctx, int64_t time,
   
   int64_t field_index;
 
-  priv = (gxf_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   field_index = gavl_time_rescale(scale, priv->timescale, time);
   
@@ -652,7 +652,7 @@ static void seek_gxf(bgav_demuxer_context_t * ctx, int64_t time,
 static void close_gxf(bgav_demuxer_context_t * ctx)
   {
   gxf_priv_t * priv;
-  priv = (gxf_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   flt_free(&priv->flt);
   free(priv);
   }

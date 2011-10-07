@@ -123,7 +123,7 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
   bgav_packet_t *ap = NULL, *vp = NULL;
   bgav_stream_t *as, *vs;
   dv_priv_t * priv;
-  priv = (dv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   /*
    *  demuxing dv is easy: we copy the video frame and
@@ -167,7 +167,7 @@ static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
   bgav_stream_t * as, * vs;
   int64_t frame_pos;
   int64_t t;
-  priv = (dv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   vs = ctx->tt->cur->video_streams;
   as = ctx->tt->cur->audio_streams;
 
@@ -195,7 +195,7 @@ static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
 static int select_track_dv(bgav_demuxer_context_t * ctx, int track)
   {
   dv_priv_t * priv;
-  priv = (dv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   bgav_dv_dec_set_frame_counter(priv->d, 0);
   bgav_dv_dec_set_sample_counter(priv->d, 0);
   return 1;
@@ -204,7 +204,7 @@ static int select_track_dv(bgav_demuxer_context_t * ctx, int track)
 static void close_dv(bgav_demuxer_context_t * ctx)
   {
   dv_priv_t * priv;
-  priv = (dv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   if(priv->frame_buffer)
     free(priv->frame_buffer);
   if(priv->d)
@@ -216,7 +216,7 @@ static void close_dv(bgav_demuxer_context_t * ctx)
 static void resync_dv(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   dv_priv_t * priv;
-  priv = (dv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   switch(s->type)
     {

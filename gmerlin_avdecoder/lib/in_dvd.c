@@ -258,7 +258,7 @@ static int setup_track(bgav_input_context_t * ctx,
   track_priv_t * track_priv;
   const char * language_3cc;
   char language_2cc[3];
-  dvd_t * dvd = (dvd_t*)(ctx->priv);
+  dvd_t * dvd = ctx->priv;
   ttsrpt = dvd->vmg_ifo->tt_srpt;
 
   /* Open VTS */
@@ -800,7 +800,7 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
   int blocks;
   dvd_t * d;
 
-  d = (dvd_t*)ctx->priv;
+  d = ctx->priv;
   
   if(DVDReadBlocks(d->dvd_file, sector, 1, buf) != 1)
     {
@@ -852,7 +852,7 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
 static int check_next_cell(bgav_input_context_t * ctx)
   {
   dvd_t * d;
-  d = (dvd_t*)(ctx->priv);
+  d = ctx->priv;
 
   if(d->next_cell < 0)
     return 0;
@@ -868,7 +868,7 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
   {
   dvd_t * d;
   int l;
-  d = (dvd_t*)(ctx->priv);
+  d = ctx->priv;
   switch(d->state)
     {
     case CELL_START:
@@ -924,7 +924,7 @@ static void    close_dvd(bgav_input_context_t * ctx)
   int i;
   track_priv_t * track_priv;
   dvd_t * dvd;
-  dvd = (dvd_t*)(ctx->priv);
+  dvd = ctx->priv;
 
   if(dvd->dvd_reader)
     DVDClose(dvd->dvd_reader);
@@ -965,7 +965,7 @@ static int select_track_dvd(bgav_input_context_t * ctx, int track)
   track_priv_t * track_priv;
   vts_ptt_srpt_t *vts_ptt_srpt;
   
-  dvd = (dvd_t*)(ctx->priv);
+  dvd = ctx->priv;
   dvd->last_vobu_end_pts = BGAV_TIMESTAMP_UNDEFINED;
   ctx->demuxer->flags &= ~BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
   
@@ -1017,7 +1017,7 @@ static void seek_time_dvd(bgav_input_context_t * ctx, int64_t t1, int scale)
   gavl_time_t t;
   t = gavl_time_unscale(scale, t1);
   
-  dvd = (dvd_t*)(ctx->priv);
+  dvd = ctx->priv;
 
   time = 0;
   cell_start_time = 0;

@@ -333,7 +333,7 @@ static void seek_flac(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int64_t sample_pos;
   bgav_stream_t * s = &ctx->tt->cur->audio_streams[0];
   
-  priv = (flac_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   sample_pos = gavl_time_rescale(scale,
                                  priv->streaminfo.samplerate,
@@ -361,7 +361,7 @@ static void seek_flac(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static void close_flac(bgav_demuxer_context_t * ctx)
   {
   flac_priv_t * priv;
-  priv = (flac_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->seektable.num_entries)
     free(priv->seektable.entries);

@@ -131,7 +131,7 @@ static int do_read(bgav_input_context_t* ctx,
   int bytes_to_copy;
   int bytes_read;
 
-  priv = (mms_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   bytes_read = 0;
   while(bytes_read < len)
@@ -171,7 +171,7 @@ static int read_mms_nonblock(bgav_input_context_t* ctx,
 static void    close_mms(bgav_input_context_t * ctx)
   {
   mms_priv_t * mms;
-  mms = (mms_priv_t *)(ctx->priv);
+  mms = ctx->priv;
   if(mms->mms)
     bgav_mms_close(mms->mms);
   free(mms);

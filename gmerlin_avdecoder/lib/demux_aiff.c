@@ -121,7 +121,7 @@ static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
   aiff_priv_t * priv;
   bgav_stream_t * s;
   s = &ctx->tt->cur->audio_streams[0];
-  priv = (aiff_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   return ((pos - ctx->data_start)/s->data.audio.block_align) *
     priv->samples_per_block;
@@ -132,7 +132,7 @@ static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
   aiff_priv_t * priv;
 
   bgav_stream_t * s;
-  priv = (aiff_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   s = &ctx->tt->cur->audio_streams[0];
   
   return ctx->data_start + (time/priv->samples_per_block)
@@ -408,7 +408,7 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   int bytes_to_read;
   int bytes_read;
   bgav_stream_t * s;
-  priv = (aiff_priv_t *)ctx->priv;
+  priv = ctx->priv;
 
   s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
@@ -443,7 +443,7 @@ static void seek_aiff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
                       s->data.audio.format.samplerate,
                       time);
   
-  priv = (aiff_priv_t *)ctx->priv;
+  priv = ctx->priv;
   
   pos = time_2_pos(ctx, time_scaled);
   bgav_input_seek(ctx->input, pos, SEEK_SET);
@@ -455,7 +455,7 @@ static void seek_aiff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static void close_aiff(bgav_demuxer_context_t * ctx)
   {
   aiff_priv_t * priv;
-  priv = (aiff_priv_t *)ctx->priv;
+  priv = ctx->priv;
   free(priv);
   }
 

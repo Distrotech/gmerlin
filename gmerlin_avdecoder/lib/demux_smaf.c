@@ -203,7 +203,7 @@ static int next_packet_smaf(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
 
-  priv = (smaf_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   bytes_to_read = priv->bytes_left;
 
@@ -229,7 +229,7 @@ static int next_packet_smaf(bgav_demuxer_context_t * ctx)
 static void close_smaf(bgav_demuxer_context_t * ctx)
   {
   smaf_priv_t * priv;
-  priv = (smaf_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   if(priv)
     free(priv);

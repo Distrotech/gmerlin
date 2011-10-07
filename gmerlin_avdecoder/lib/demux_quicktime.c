@@ -237,7 +237,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
   int duration;
   qt_trak_t * trak;
   int pts_offset;
-  priv = (qt_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   /* 1 step: Count the total number of chunks */
   for(i = 0; i < priv->moov.num_tracks; i++)
@@ -573,7 +573,7 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
   
   bgav_charset_converter_t * cnv = NULL;
   
-  priv = (qt_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   moov = &priv->moov;
 
   if(!moov->udta.have_ilst)
@@ -865,7 +865,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   bgav_track_t * track;
   int skip_first_frame = 0;
   int skip_last_frame = 0;
-  qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
+  qt_priv_t * priv = ctx->priv;
   qt_moov_t * moov = &priv->moov;
 
   qt_trak_t * trak;
@@ -1301,7 +1301,7 @@ static int handle_rmra(bgav_demuxer_context_t * ctx)
   char * basename = NULL, *pos;
   
   int i, index;
-  qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
+  qt_priv_t * priv = ctx->priv;
   int num_urls = 0;
   for(i = 0; i < priv->moov.rmra.num_rmda; i++)
     {
@@ -1406,7 +1406,7 @@ static void build_edl(bgav_demuxer_context_t * ctx)
   bgav_edl_stream_t * es;
   bgav_edl_track_t * t;
   
-  qt_priv_t * priv = (qt_priv_t*)ctx->priv;
+  qt_priv_t * priv = ctx->priv;
  
   int i;
 
@@ -1741,7 +1741,7 @@ static void close_quicktime(bgav_demuxer_context_t * ctx)
   {
   qt_priv_t * priv;
 
-  priv = (qt_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->streams)
     free(priv->streams);

@@ -609,7 +609,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
   uint32_t fourcc;
   int have_sync_header = 0;
   
-  priv = (nsv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   if(!priv->payload_follows)
     {
@@ -764,7 +764,7 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   nsv_sync_header_t sh;
   uint32_t fourcc;
 
-  priv = (nsv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   if(!priv->fh.toc.frames) /* TOC version 1 */
     {
@@ -825,7 +825,7 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static int select_track_nsv(bgav_demuxer_context_t * ctx, int track)
   {
   nsv_priv_t * priv;
-  priv = (nsv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   priv->payload_follows = 1;
   return 1;
   }
@@ -833,7 +833,7 @@ static int select_track_nsv(bgav_demuxer_context_t * ctx, int track)
 static void close_nsv(bgav_demuxer_context_t * ctx)
   {
   nsv_priv_t * priv;
-  priv = (nsv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   nsv_file_header_free(&priv->fh);
   }
 

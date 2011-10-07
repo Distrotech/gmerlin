@@ -981,7 +981,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
   video_priv_t * avi_vs;
   uint32_t size = 0, test_size;
 
-  avi_priv_t * priv = (avi_priv_t *)(ctx->priv);
+  avi_priv_t * priv = ctx->priv;
   
   struct
     {
@@ -1407,7 +1407,7 @@ static int process_packet_iavs(bgav_demuxer_context_t * ctx, int64_t position)
   uint8_t header[DV_HEADER_SIZE];
   avi_priv_t * priv;
   
-  priv = (avi_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   if(!priv->dv_dec)
     {
@@ -1483,7 +1483,7 @@ static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
                       int scale)
   {
   avi_priv_t * priv;
-  priv = (avi_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   bgav_superindex_seek(ctx->si,
                        ctx->tt->cur->video_streams,
@@ -1617,7 +1617,7 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
   video_priv_t * video_priv;
   bgav_stream_t * bg_vs;
   bgav_stream_t * bg_as;
-  avi_priv_t * priv = (avi_priv_t*)(ctx->priv);
+  avi_priv_t * priv = ctx->priv;
 
   priv->has_iavs = 1;
   
@@ -1732,7 +1732,7 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
   int64_t base_offset;
   int first_pos;
   
-  avi = (avi_priv_t*)(ctx->priv);
+  avi = ctx->priv;
 
   /* Reset timestamps */
   
@@ -2150,7 +2150,7 @@ static void close_avi(bgav_demuxer_context_t * ctx)
   {
   avi_priv_t * priv;
   
-  priv = (avi_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   if(priv)
     {
@@ -2179,7 +2179,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   audio_priv_t* avi_as;
   int result = 1;
   int64_t position;
-  priv = (avi_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->has_iavs && ctx->si)
     {
@@ -2303,7 +2303,7 @@ static void resync_avi(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
 static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   {
   avi_priv_t * priv;
-  priv = (avi_priv_t*)ctx->priv;
+  priv = ctx->priv;
   if(ctx->si && priv->has_iavs)
     seek_iavs(ctx, time, scale);
   }

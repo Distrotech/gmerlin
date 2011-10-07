@@ -95,7 +95,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
   bgav_stream_t * vs;
   
   avs_priv_t * priv;
-  priv = (avs_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   /* We process an entire frame */
 
@@ -320,7 +320,7 @@ static int open_avs(bgav_demuxer_context_t * ctx)
 static void close_avs(bgav_demuxer_context_t * ctx)
   {
   avs_priv_t * priv;
-  priv = (avs_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

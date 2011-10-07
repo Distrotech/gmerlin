@@ -251,7 +251,7 @@ static int next_packet_mpc(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   bgav_packet_t * p;
   mpc_priv_t * priv;
-  priv = (mpc_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   s = &ctx->tt->cur->audio_streams[0];
 
@@ -280,7 +280,7 @@ static void seek_mpc(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   bgav_stream_t * s;
   
   mpc_priv_t * priv;
-  priv = (mpc_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   s = &ctx->tt->cur->audio_streams[0];
 
@@ -291,7 +291,7 @@ static void seek_mpc(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static void close_mpc(bgav_demuxer_context_t * ctx)
   {
   mpc_priv_t * priv;
-  priv = (mpc_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

@@ -308,7 +308,7 @@ static const int lpcm_freq_tab[4] = { 48000, 96000, 44100, 32000 };
 static void goto_sector_cdxa(bgav_demuxer_context_t * ctx, int64_t sector)
   {
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   bgav_input_seek(ctx->input, ctx->data_start + priv->sector_size_raw * (sector + priv->start_sector),
                   SEEK_SET);
@@ -320,7 +320,7 @@ static void goto_sector_cdxa(bgav_demuxer_context_t * ctx, int64_t sector)
 static int read_sector_cdxa(bgav_demuxer_context_t * ctx)
   {
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   if(bgav_input_read_data(ctx->input, priv->sector_buffer, priv->sector_size_raw) <
      priv->sector_size_raw)
     return 0;
@@ -334,7 +334,7 @@ static int read_sector_cdxa(bgav_demuxer_context_t * ctx)
 static void goto_sector_input(bgav_demuxer_context_t * ctx, int64_t sector)
   {
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   bgav_input_seek_sector(ctx->input, sector + priv->start_sector);
   bgav_input_reopen_memory(priv->input_mem,
                            NULL, 0);
@@ -344,7 +344,7 @@ static void goto_sector_input(bgav_demuxer_context_t * ctx, int64_t sector)
 static int read_sector_input(bgav_demuxer_context_t * ctx)
   {
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   if(!bgav_input_read_sector(ctx->input, priv->sector_buffer))
     {
     return 0;
@@ -359,7 +359,7 @@ static int select_track_mpegps(bgav_demuxer_context_t * ctx, int track)
   {
   int i;
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   /* If we didn't run yet, we do nothing.
      This prevents reopening of the input. */
@@ -399,7 +399,7 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
   uint32_t start_code = 0;
   
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   priv->input_mem          = bgav_input_open_memory(NULL, 0, ctx->opt);
 
@@ -511,7 +511,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
   mpegps_priv_t * priv;
   bgav_stream_t * stream = NULL;
 
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   while(!got_packet)
     {
     if(!(start_code = next_start_code(input)))
@@ -912,7 +912,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
 static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
   {
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   if(priv->sector_size)
     {
     while(1)
@@ -957,7 +957,7 @@ static void find_streams(bgav_demuxer_context_t * ctx)
   
   bgav_input_context_t * input_save = NULL;
   
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->find_streams = 1;
   priv->do_sync = 1;
   priv->have_pts = 0;
@@ -996,7 +996,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
   uint32_t start_code = 0;
   
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   if(!ctx->input->total_bytes && !ctx->input->total_sectors)
     return; 
@@ -1040,7 +1040,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
 static int do_sync(bgav_demuxer_context_t * ctx)
   {
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->do_sync = 1;
 
   //  fprintf(stderr, "do sync...\n");
@@ -1070,7 +1070,7 @@ static int init_cdxa(bgav_demuxer_context_t * ctx)
   uint32_t fourcc;
   uint32_t size;
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(ctx->input->input->read_sector)
     return 0;
@@ -1134,7 +1134,7 @@ static int init_mpegps(bgav_demuxer_context_t * ctx)
   mpegps_priv_t * priv;
   uint32_t start_code;
 
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   while(1)
     {
     if(!(start_code = next_start_code(ctx->input)))
@@ -1261,7 +1261,7 @@ static void seek_normal(bgav_demuxer_context_t * ctx, int64_t time,
   int64_t file_position;
   uint32_t header = 0;
   
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   //  file_position = (priv->pack_header.mux_rate*50*time)/GAVL_TIME_SCALE;
   /* Using double is ugly, but in integer, this can overflow for large file (even in 64 bit).
@@ -1301,7 +1301,7 @@ static void seek_sector(bgav_demuxer_context_t * ctx, gavl_time_t time,
   mpegps_priv_t * priv;
   int64_t sector;
   
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   //  file_position = (priv->pack_header.mux_rate*50*time)/GAVL_TIME_SCALE;
   sector = (priv->total_sectors * gavl_time_unscale(scale, time))/
@@ -1333,7 +1333,7 @@ static void seek_mpegps(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int i;
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   /* Reset lpcm timestamps */
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
@@ -1361,7 +1361,7 @@ static void seek_mpegps(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static void close_mpegps(bgav_demuxer_context_t * ctx)
   {
   mpegps_priv_t * priv;
-  priv = (mpegps_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   if(!priv)
     return;
   if(priv->sector_buffer)

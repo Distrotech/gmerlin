@@ -174,7 +174,7 @@ static int next_packet_adif(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   aac_priv_t * priv;
   int bytes_read;
-  priv = (aac_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   s = ctx->tt->cur->audio_streams;
   
   /* Just copy the bytes, we have no idea about
@@ -195,7 +195,7 @@ static int next_packet_adif(bgav_demuxer_context_t * ctx)
 static int select_track_adif(bgav_demuxer_context_t * ctx, int track)
   {
   aac_priv_t * priv;
-  priv = (aac_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   priv->sample_count = 0;
   return 1;
   }
@@ -203,7 +203,7 @@ static int select_track_adif(bgav_demuxer_context_t * ctx, int track)
 static void close_adif(bgav_demuxer_context_t * ctx)
   {
   aac_priv_t * priv;
-  priv = (aac_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   free(priv);
   }

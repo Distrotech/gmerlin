@@ -113,7 +113,7 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
   uint8_t test_data[7];
   int packet_size, i;
     
-  priv = (a52_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   s = ctx->tt->cur->audio_streams;
   
@@ -159,7 +159,7 @@ static void seek_a52(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int64_t t;
   bgav_stream_t * s;
 
-  priv = (a52_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   
   s = ctx->tt->cur->audio_streams;
@@ -181,7 +181,7 @@ static void seek_a52(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static int select_track_a52(bgav_demuxer_context_t * ctx, int track)
   {
   a52_priv_t * priv;
-  priv = (a52_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   priv->frame_count = 0;
   return 1;
   }
@@ -189,7 +189,7 @@ static int select_track_a52(bgav_demuxer_context_t * ctx, int track)
 static void close_a52(bgav_demuxer_context_t * ctx)
   {
   a52_priv_t * priv;
-  priv = (a52_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

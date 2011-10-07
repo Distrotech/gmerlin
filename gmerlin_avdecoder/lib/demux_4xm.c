@@ -202,7 +202,7 @@ static int setup_video_stream(bgav_demuxer_context_t * ctx,
   uint32_t width, height;
   fourxm_chunk_t chunk;
   bgav_stream_t * s;
-  fourxm_priv_t * priv = (fourxm_priv_t *)(ctx->priv);
+  fourxm_priv_t * priv = ctx->priv;
   
   while(ctx->input->position < parent->end_pos)
     {
@@ -376,7 +376,7 @@ static int open_4xm(bgav_demuxer_context_t * ctx)
 static int select_track_4xm(bgav_demuxer_context_t * ctx, int track)
   {
   fourxm_priv_t * priv;
-  priv = (fourxm_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->video_pts =
     - ctx->tt->cur->video_streams[0].data.video.format.frame_duration;
   return 1;
@@ -393,7 +393,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
   uint32_t stream_id;
   fourxm_priv_t * priv;
 
-  priv = (fourxm_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   while(!done)
     {
@@ -488,7 +488,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
 static void close_4xm(bgav_demuxer_context_t * ctx)
   {
   fourxm_priv_t * priv;
-  priv = (fourxm_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

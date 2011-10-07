@@ -89,7 +89,7 @@ static int     read_pnm(bgav_input_context_t* ctx,
                              uint8_t * buffer, int len)
   {
   int result;
-  pnm_priv_t * priv = (pnm_priv_t*)(ctx->priv);
+  pnm_priv_t * priv = ctx->priv;
 
   if(priv->eof)
     return 0;
@@ -103,7 +103,7 @@ static int     read_pnm(bgav_input_context_t* ctx,
 
 static void    close_pnm(bgav_input_context_t * ctx)
   {
-  pnm_priv_t * priv = (pnm_priv_t*)(ctx->priv);
+  pnm_priv_t * priv = ctx->priv;
 
   if(priv->url)
     free(priv->url);

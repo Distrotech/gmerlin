@@ -163,7 +163,7 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
   fli_priv_t * priv;
   uint8_t preamble[FLIC_PREAMBLE_SIZE];
 
-  priv = (fli_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   /* Skip header if not already done */
   if(priv->skip_header)
@@ -214,7 +214,7 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
 static void close_fli(bgav_demuxer_context_t * ctx)
   {
   fli_priv_t * priv;
-  priv = (fli_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

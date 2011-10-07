@@ -248,7 +248,7 @@ static int next_packet_voc(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   chunk_header_t h;
 
-  priv = (voc_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   s = &ctx->tt->cur->audio_streams[0];
   
@@ -306,7 +306,7 @@ static void seek_voc(bgav_demuxer_context_t * ctx, gavl_time_t time)
 static void close_voc(bgav_demuxer_context_t * ctx)
   {
   voc_priv_t * priv;
-  priv = (voc_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   if(priv)
     free(priv);

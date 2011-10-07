@@ -135,7 +135,7 @@ static int read_smb(bgav_input_context_t* ctx,
   {
   int len_read, err;
   smb_priv_t * p;
-  p = (smb_priv_t*)(ctx->priv);
+  p = ctx->priv;
   
   if(len + p->bytes_read > ctx->total_bytes)
     len = ctx->total_bytes - p->bytes_read;
@@ -163,7 +163,7 @@ static int64_t seek_byte_smb(bgav_input_context_t * ctx,
   {
   smb_priv_t * p;
   int64_t len;
-  p = (smb_priv_t*)(ctx->priv);
+  p = ctx->priv;
 
   len = smbc_lseek(p->fd, pos, SEEK_SET);
   
@@ -176,7 +176,7 @@ static int64_t seek_byte_smb(bgav_input_context_t * ctx,
 static void    close_smb(bgav_input_context_t * ctx)
   {
   smb_priv_t * p;
-  p = (smb_priv_t*)(ctx->priv);
+  p = ctx->priv;
   smbc_close(p->fd);
   free(p);
   }

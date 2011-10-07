@@ -265,7 +265,7 @@ static int read_palette(bgav_demuxer_context_t * ctx)
   int size;
   int64_t start_pos;
   
-  priv = (smacker_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   memcpy(old_pal, priv->pal, 768);
 
@@ -343,7 +343,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
   smacker_priv_t * priv;
 
   int64_t frame_end;
-  priv = (smacker_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   frame_end = ctx->input->position + 
     (priv->h.frame_sizes[priv->current_frame] & (~3));
@@ -437,7 +437,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
 static int select_track_smacker(bgav_demuxer_context_t * ctx, int t)
   {
   smacker_priv_t * priv;
-  priv = (smacker_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   priv->current_frame = 0;
   return 1;
@@ -446,7 +446,7 @@ static int select_track_smacker(bgav_demuxer_context_t * ctx, int t)
 static void close_smacker(bgav_demuxer_context_t * ctx)
   {
   smacker_priv_t * priv;
-  priv = (smacker_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv)
     {

@@ -178,7 +178,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
   mtv_priv_t * priv;
   bgav_stream_t * s;
   bgav_packet_t * p;
-  priv = (mtv_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->do_audio)
     {
@@ -240,7 +240,7 @@ static void seek_mtv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   uint32_t frame_number;
   bgav_stream_t * s;
   mtv_priv_t * priv;
-  priv = (mtv_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   frame_number = gavl_time_rescale(scale, priv->video_fps, time);
   file_position = MTV_HEADER_SIZE + priv->sync_size * frame_number;
@@ -267,7 +267,7 @@ static void seek_mtv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static int select_track_mtv(bgav_demuxer_context_t * ctx, int track)
   {
   mtv_priv_t * priv;
-  priv = (mtv_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->do_audio = 1;
   return 1;
   }
@@ -276,7 +276,7 @@ static int select_track_mtv(bgav_demuxer_context_t * ctx, int track)
 static void close_mtv(bgav_demuxer_context_t * ctx)
   {
   mtv_priv_t * priv;
-  priv = (mtv_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

@@ -32,13 +32,13 @@ typedef struct
 static int read_fd(bgav_input_context_t* ctx,
                     uint8_t * buffer, int len)
   {
-  fd_priv_t * priv = (fd_priv_t*)(ctx->priv);
+  fd_priv_t * priv = ctx->priv;
   return read(priv->fd, buffer, len);
   }
 
 static void    close_fd(bgav_input_context_t * ctx)
   {
-  fd_priv_t * priv = (fd_priv_t*)(ctx->priv);
+  fd_priv_t * priv = ctx->priv;
   free(priv);
   }
 

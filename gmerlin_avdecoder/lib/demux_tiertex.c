@@ -211,7 +211,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   
   tiertex_priv_t * priv;
-  priv = (tiertex_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   while(1)
     {
@@ -306,7 +306,7 @@ static void close_tiertex(bgav_demuxer_context_t * ctx)
   {
   int i;
   tiertex_priv_t * priv;
-  priv = (tiertex_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(!priv)
     return;
@@ -320,7 +320,7 @@ static int select_track_tiertex(bgav_demuxer_context_t * ctx, int t)
   {
   int i;
   tiertex_priv_t * priv;
-  priv = (tiertex_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(!priv)
     return 0;

@@ -750,7 +750,7 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   rtp_priv_t * priv;
   int processed = 0;
   
-  priv = (rtp_priv_t *)ctx->priv;
+  priv = ctx->priv;
 
   for(i = 0; i < priv->num_streams; i++)
     {

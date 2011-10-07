@@ -36,20 +36,20 @@ typedef struct
 static int     read_callbacks(bgav_input_context_t* ctx,
                          uint8_t * buffer, int len)
   {
-  cb_t * c = (cb_t *)(ctx->priv);
+  cb_t * c = ctx->priv;
   return c->read_callback(c->priv, buffer, len);
   }
 
 static int64_t seek_byte_callbacks(bgav_input_context_t * ctx,
                               int64_t pos, int whence)
   {
-  cb_t * c = (cb_t *)(ctx->priv);
+  cb_t * c = ctx->priv;
   return c->seek_callback(c->priv, pos, whence);
   }
 
 static void    close_callbacks(bgav_input_context_t * ctx)
   {
-  cb_t * c = (cb_t *)(ctx->priv);
+  cb_t * c = ctx->priv;
   if(c)
     free(c);
   }

@@ -360,7 +360,7 @@ static int do_read(bgav_input_context_t * ctx,
   {
   int len_read;
   ftp_priv_t * p;
-  p = (ftp_priv_t*)(ctx->priv);
+  p = ctx->priv;
 
   if(len + p->bytes_read > ctx->total_bytes)
     len = ctx->total_bytes - p->bytes_read;
@@ -393,7 +393,7 @@ static void close_ftp(bgav_input_context_t * ctx)
   {
   char * server_cmd;
   ftp_priv_t * p;
-  p = (ftp_priv_t*)(ctx->priv);
+  p = ctx->priv;
   
   server_cmd = bgav_sprintf("QUIT\r\n");
   bgav_tcp_send(ctx->opt, p->control_fd, (uint8_t*)server_cmd,

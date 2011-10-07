@@ -305,7 +305,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   bgav_track_t * track = ctx->tt->cur;
 
   rm_private_t * priv;
-  priv = (rm_private_t*)(ctx->priv);
+  priv = ctx->priv;
 
     
   bg_as = bgav_track_add_audio_stream(track, ctx->opt);
@@ -485,7 +485,7 @@ static void init_audio_stream_mp3(bgav_demuxer_context_t * ctx, bgav_rmff_stream
   rm_audio_stream_t * rm_as;
   rm_as = calloc(1, sizeof(*rm_as));
 
-  priv = (rm_private_t*)(ctx->priv);
+  priv = ctx->priv;
   
   bg_as = bgav_track_add_audio_stream(track, ctx->opt);
   bg_as->cleanup = cleanup_stream_rm;
@@ -519,7 +519,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
 
   uint8_t * data = _data;
   
-  priv = (rm_private_t*)(ctx->priv);
+  priv = ctx->priv;
   
   bg_vs = bgav_track_add_video_stream(track, ctx->opt);
   bg_vs->cleanup = cleanup_stream_rm;
@@ -717,7 +717,7 @@ static int get_multirate_offsets(bgav_demuxer_context_t * ctx,
 
   old_pos = ctx->input->position;
     
-  priv = (rm_private_t*)(ctx->priv);
+  priv = ctx->priv;
   
   /* Look in each logical stream description for the stream number */
   for(i = 0; i < priv->header->num_streams; i++)
@@ -1431,7 +1431,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   uint32_t stream_pos = 0;
   int i;
   
-  rm = (rm_private_t*)(ctx->priv);
+  rm = ctx->priv;
 
   if(!rm->is_multirate)
     {
@@ -1602,7 +1602,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   uint32_t end_packet =    0x00;
   
   
-  rm = (rm_private_t*)(ctx->priv);
+  rm = ctx->priv;
   track = ctx->tt->cur;
   
   real_time = gavl_time_rescale(scale, 1000, time);
@@ -1653,7 +1653,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static void close_rmff(bgav_demuxer_context_t * ctx)
   {
   rm_private_t * priv;
-  priv = (rm_private_t *)ctx->priv;
+  priv = ctx->priv;
   
   if(priv)
     {
@@ -1670,7 +1670,7 @@ static int select_track_rmff(bgav_demuxer_context_t * ctx, int t)
   rm_private_t * priv;
   bgav_track_t * track;
   int i;
-  priv = (rm_private_t *)ctx->priv;
+  priv = ctx->priv;
   
   priv->next_packet = 0;
   

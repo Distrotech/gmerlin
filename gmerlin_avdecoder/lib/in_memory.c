@@ -39,7 +39,7 @@ static int read_mem(bgav_input_context_t* ctx,
   int bytes_to_read;
   int bytes_left;
   
-  mem_priv_t * priv = (mem_priv_t*)(ctx->priv);
+  mem_priv_t * priv = ctx->priv;
   bytes_left = ctx->total_bytes - (uint32_t)(priv->data_ptr - priv->data);
   bytes_to_read = (len < bytes_left) ? len : bytes_left;
   memcpy(buffer, priv->data_ptr, bytes_to_read);
@@ -50,14 +50,14 @@ static int read_mem(bgav_input_context_t* ctx,
 static int64_t seek_byte_mem(bgav_input_context_t * ctx,
                              int64_t pos, int whence)
   {
-  mem_priv_t * priv = (mem_priv_t*)(ctx->priv);
+  mem_priv_t * priv = ctx->priv;
   priv->data_ptr = priv->data + ctx->position;
   return ctx->position;
   }
 
 static void    close_mem(bgav_input_context_t * ctx)
   {
-  mem_priv_t * priv = (mem_priv_t*)(ctx->priv);
+  mem_priv_t * priv = ctx->priv;
   free(priv);
   }
 
@@ -93,7 +93,7 @@ void bgav_input_reopen_memory(bgav_input_context_t * ctx,
                               uint32_t data_size)
   {
   mem_priv_t * priv;
-  priv = (mem_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   priv->data     = data;
   priv->data_ptr = data;
@@ -109,7 +109,7 @@ static int read_buffer(bgav_input_context_t* ctx,
   {
   int result;
   int old_size;
-  mem_priv_t * priv = (mem_priv_t*)(ctx->priv);
+  mem_priv_t * priv = ctx->priv;
   old_size = priv->data_ptr - priv->data;
   bgav_input_ensure_buffer_size(priv->input, old_size + len);
   priv->data        = priv->input->buffer;

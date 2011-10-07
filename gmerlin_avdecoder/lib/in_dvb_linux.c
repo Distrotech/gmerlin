@@ -200,7 +200,7 @@ static int set_diseqc(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * c)
   struct dvb_diseqc_master_cmd cmd =
     {{0xe0, 0x10, 0x38, 0xf0, 0x00, 0x00}, 4};
 
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   cmd.msg[3] = 0xf0 | ((c->sat_no * 4) & 0x0f) |
     (c->tone ? 1 : 0) | (c->pol ? 0 : 2);
@@ -235,7 +235,7 @@ static int tune_in(bgav_input_context_t * ctx,
   struct dvb_frontend_event event;
   struct pollfd pfd[1];
   
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   /* set_diseqc for satellite tuners */
 
@@ -330,7 +330,7 @@ static int get_streams(bgav_input_context_t * ctx,
   pmt_section_t pmts;
   struct dmx_sct_filter_params params;
   dvb_priv_t * priv;
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
     
   if(channel->initialized)
     return 1;
@@ -465,7 +465,7 @@ static int load_channel_cache(bgav_input_context_t * ctx)
   const char * attr;
   long file_time;
   
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   input = bgav_input_create(ctx->opt);
   
@@ -665,7 +665,7 @@ static void save_channel_cache(bgav_input_context_t * ctx)
   dvb_priv_t * priv;
   int i, j;
   struct stat st;
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   filename = strrchr(priv->device_directory, '/');
   filename++;
@@ -826,7 +826,7 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url, char ** redire
 static void close_dvb(bgav_input_context_t * ctx)
   {
   dvb_priv_t * priv;
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   set_num_filters(priv, 0);
   if(priv->dvr_fd >= 0)
@@ -971,7 +971,7 @@ static void check_eit(bgav_input_context_t* ctx)
   struct timeval timeout;
   char * pos_c;
   //  char * tmp_string;
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   FD_ZERO(&rset);
   FD_SET (priv->filter_fds[priv->eit_filter], &rset);
@@ -1144,7 +1144,7 @@ static int read_dvb(bgav_input_context_t* ctx,
   int result;
   struct pollfd pfd[1];
   
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   /* Flush events */
   while (ioctl(priv->fe_fd, FE_GET_EVENT, &event) != -1);
@@ -1251,7 +1251,7 @@ static int setup_filters(bgav_input_context_t * ctx,
   int num_audio_streams;
   int audio_index;
   
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   set_num_filters(priv, track->num_audio_streams +
                   track->num_video_streams + channel->extra_pcr_pid + 1);
@@ -1411,7 +1411,7 @@ static int select_track_dvb(bgav_input_context_t * ctx, int track)
   fd_set rset;
   struct timeval timeout;
   
-  priv = (dvb_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   if(priv->dvr_fd >= 0)
     {

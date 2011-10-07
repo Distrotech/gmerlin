@@ -159,7 +159,7 @@ static int next_packet_tta(bgav_demuxer_context_t * ctx)
   tta_priv_t * priv;
   bgav_packet_t * p;
   bgav_stream_t * s;
-  priv = (tta_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->current_frame >= priv->total_frames)
     return 0; // EOF
@@ -186,7 +186,7 @@ static void seek_tta(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int64_t time_scaled, filepos;
   bgav_stream_t * s;
   tta_priv_t * priv;
-  priv = (tta_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   s = &ctx->tt->cur->audio_streams[0];
   time_scaled = gavl_time_rescale(scale, s->timescale, time);
@@ -207,7 +207,7 @@ static void seek_tta(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static void close_tta(bgav_demuxer_context_t * ctx)
   {
   tta_priv_t * priv;
-  priv = (tta_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   if(priv)
     {

@@ -522,7 +522,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
   int do_audio = 0;
   int do_video = 0;
   
-  priv = (vivo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   if(!bgav_input_read_data(ctx->input, &c, 1))
     return 0;
@@ -634,7 +634,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
 static int select_track_vivo(bgav_demuxer_context_t * ctx, int t)
   {
   vivo_priv_t * priv;
-  priv = (vivo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   priv->audio_pos = 0;
   return 1;
   }
@@ -642,7 +642,7 @@ static int select_track_vivo(bgav_demuxer_context_t * ctx, int t)
 static void close_vivo(bgav_demuxer_context_t * ctx)
   {
   vivo_priv_t * priv;
-  priv = (vivo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   vivo_header_free(&priv->header);
   free(priv);

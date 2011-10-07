@@ -354,7 +354,7 @@ static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
 
 static void seek_byte(bgav_demuxer_context_t * ctx, int64_t pos)
   {
-  ogg_t * priv = (ogg_t*)(ctx->priv);
+  ogg_t * priv = ctx->priv;
   ogg_sync_reset(&priv->oy);
   //  ogg_page_clear(&priv->os);
   bgav_input_seek(ctx->input, pos, SEEK_SET);
@@ -368,7 +368,7 @@ static int get_data(bgav_demuxer_context_t * ctx)
   int bytes_to_read;
   char * buf;
   int result;
-  ogg_t * priv = (ogg_t*)(ctx->priv);
+  ogg_t * priv = ctx->priv;
 
   
   bytes_to_read = BYTES_TO_READ;
@@ -401,7 +401,7 @@ static int get_page(bgav_demuxer_context_t * ctx)
   int page_size;
   char * buf;
   int bytes_skipped = 0;
-  ogg_t * priv = (ogg_t*)(ctx->priv);
+  ogg_t * priv = ctx->priv;
 
   if(priv->page_valid)
     return 1;
@@ -535,7 +535,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
   int header_bytes = 0;
   bgav_dirac_sequence_header_t dirac_header;
   
-  priv = (ogg_t *)(ctx->priv);
+  priv = ctx->priv;
 
   ogg_track = calloc(1, sizeof(*ogg_track));
   ogg_track->start_pos = start_position;
@@ -1044,7 +1044,7 @@ find_first_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_t pos2,
   {
   int64_t ret;
   int result;
-  ogg_t * priv = (ogg_t*)(ctx->priv);
+  ogg_t * priv = ctx->priv;
 
   seek_byte(ctx, pos1);
   ret = pos1;
@@ -1175,7 +1175,7 @@ static int64_t find_next_track(bgav_demuxer_context_t * ctx,
   bgav_stream_t * s;
   stream_priv_t * stream_priv;
   
-  priv = (ogg_t *)(ctx->priv);
+  priv = ctx->priv;
   
   /* Do bisection search */
   pos1 = start_pos;
@@ -1549,7 +1549,7 @@ static int new_streaming_track(bgav_demuxer_context_t * ctx)
   ogg_stream_state os;
   int serialno;
   int done, audio_done, video_done;
-  ogg_t * priv = (ogg_t*)(ctx->priv);
+  ogg_t * priv = ctx->priv;
     
   /*
    *  Ok, we try to get the new stuff, update the serial numbers from
@@ -1623,7 +1623,7 @@ static char * get_name(bgav_metadata_t * m)
 static void metadata_changed(bgav_demuxer_context_t * ctx)
   {
   char * name;
-  ogg_t * priv = (ogg_t*)(ctx->priv);
+  ogg_t * priv = ctx->priv;
 
   if(ctx->opt->metadata_change_callback || ctx->opt->name_change_callback)
     {
@@ -1761,7 +1761,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   int64_t granulepos;
   stream_priv_t * stream_priv = NULL;
-  ogg_t * priv = (ogg_t*)(ctx->priv);
+  ogg_t * priv = ctx->priv;
   int subtitle_duration;
   int page_continued;
 
@@ -2316,7 +2316,7 @@ static void close_ogg(bgav_demuxer_context_t * ctx)
     free(track_priv);
     }
   
-  priv = (ogg_t *)ctx->priv;
+  priv = ctx->priv;
   ogg_sync_clear(&priv->oy);
 
   /* IMPORTANT: The paket will be freed by the last ogg_stream */
@@ -2366,7 +2366,7 @@ static int select_track_ogg(bgav_demuxer_context_t * ctx,
   ogg_t * priv;
   track_priv_t * track_priv;
   
-  priv = (ogg_t *)(ctx->priv);
+  priv = ctx->priv;
   
   track_priv = (track_priv_t*)(ctx->tt->cur->priv);
   

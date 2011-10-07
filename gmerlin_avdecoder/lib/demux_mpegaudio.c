@@ -228,7 +228,7 @@ static int resync(bgav_demuxer_context_t * ctx, int check_next)
   int skipped_bytes = 0;
   bgav_mpa_header_t next_header;
     
-  priv = (mpegaudio_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   while(1)
     {
@@ -273,7 +273,7 @@ static gavl_time_t get_duration(bgav_demuxer_context_t * ctx,
   if(!(ctx->input->input->seek_byte))
     return GAVL_TIME_UNDEFINED;
   
-  priv = (mpegaudio_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   bgav_input_seek(ctx->input, start_offset, SEEK_SET);
   if(!resync(ctx, 1))
@@ -309,7 +309,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
   uint8_t frame[MAX_FRAME_BYTES]; /* Max possible mpeg audio frame size */
   mpegaudio_priv_t * priv;
   
-  priv = (mpegaudio_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   if(!resync(ctx, 1))
     return 0;
   
@@ -574,7 +574,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   mpegaudio_priv_t * priv;
   int64_t bytes_left = -1;
-  priv = (mpegaudio_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   if(priv->data_end && (priv->data_end - ctx->input->position < 4))
     return 0;
@@ -615,7 +615,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
 static void resync_mpegaudio(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   mpegaudio_priv_t * priv;
-  priv = (mpegaudio_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->frames = STREAM_GET_SYNC(s) / s->data.audio.format.samples_per_frame;
   }
 
@@ -626,7 +626,7 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
   mpegaudio_priv_t * priv;
   bgav_stream_t * s;
   
-  priv = (mpegaudio_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   s = ctx->tt->cur->audio_streams;
 
   time -= gavl_time_rescale(scale,
@@ -660,7 +660,7 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
 static void close_mpegaudio(bgav_demuxer_context_t * ctx)
   {
   mpegaudio_priv_t * priv;
-  priv = (mpegaudio_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   
   bgav_metadata_free(&priv->metadata);
   
@@ -674,7 +674,7 @@ static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
   {
   mpegaudio_priv_t * priv;
 
-  priv = (mpegaudio_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->albw)
     {

@@ -62,7 +62,7 @@ static int find_tag(bgav_demuxer_context_t * ctx, uint32_t tag)
   uint32_t fourcc;
   uint32_t size;
   wav_priv_t * priv;
-  priv = (wav_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   while(1)
     {
@@ -203,7 +203,7 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   wav_priv_t * priv;
   int bytes_to_read;
   
-  priv = (wav_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   s = bgav_track_find_stream(ctx, STREAM_ID);
   
@@ -246,7 +246,7 @@ static void seek_wav(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int64_t file_position;
   wav_priv_t * priv;
   bgav_stream_t * s;
-  priv = (wav_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   s = ctx->tt->cur->audio_streams;
 
@@ -273,7 +273,7 @@ static void seek_wav(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 static void close_wav(bgav_demuxer_context_t * ctx)
   {
   wav_priv_t * priv;
-  priv = (wav_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   if(priv->info)
     bgav_RIFFINFO_destroy(priv->info);

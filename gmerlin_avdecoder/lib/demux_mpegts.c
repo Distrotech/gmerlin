@@ -345,7 +345,7 @@ get_program_timestamp(bgav_demuxer_context_t * ctx, int * program)
   mpegts_t * priv;
   bgav_pes_header_t pes_header;
 
-  priv = (mpegts_t*)(ctx->priv);
+  priv = ctx->priv;
 
   /* Get the program to which the packet belongs */
 
@@ -431,7 +431,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
   int64_t total_packets;
   int64_t position;
   
-  priv = (mpegts_t*)(ctx->priv);
+  priv = ctx->priv;
   
   bgav_input_seek(ctx->input, priv->first_packet_pos, SEEK_SET);
   
@@ -569,7 +569,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
   mpegts_t * priv;
   int i, j;
   
-  priv = (mpegts_t*)(ctx->priv);
+  priv = ctx->priv;
   //  bgav_hexdump(data, packet.payload_size, 16);
 
   /* We are at the beginning of the payload of a PAT packet */
@@ -875,7 +875,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
 
   memset(&ts, 0, sizeof(ts));
   
-  priv = (mpegts_t*)(ctx->priv);
+  priv = ctx->priv;
   
   /* Allocate programs and track table */
   priv->num_programs = 1;
@@ -1376,7 +1376,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
   int bytes_to_copy;
   bgav_pes_header_t pes_header;
   int64_t position;
-  priv = (mpegts_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(!priv->packet_size)
     return 0;
@@ -1683,7 +1683,7 @@ static void seek_mpegts(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int64_t position;
   
   mpegts_t * priv;
-  priv = (mpegts_t*)(ctx->priv);
+  priv = ctx->priv;
 
   reset_streams_priv(ctx->tt->cur);
   
@@ -1717,7 +1717,7 @@ static void close_mpegts(bgav_demuxer_context_t * ctx)
   {
   int i;
   mpegts_t * priv;
-  priv = (mpegts_t*)(ctx->priv);
+  priv = ctx->priv;
   
   if(!priv)
     return;
@@ -1745,7 +1745,7 @@ static int select_track_mpegts(bgav_demuxer_context_t * ctx,
                                 int track)
   {
   mpegts_t * priv;
-  priv = (mpegts_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->current_program = track;
   priv->error_counter = 0;
   

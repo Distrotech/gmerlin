@@ -276,7 +276,7 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   ra_priv_t * priv;
   int len;
-  priv = (ra_priv_t *)ctx->priv;
+  priv = ctx->priv;
   
   s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);

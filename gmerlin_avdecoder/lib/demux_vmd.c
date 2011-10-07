@@ -258,7 +258,7 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   bgav_packet_t * p;
   
-  priv = (vmd_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->current_frame >= priv->frame_count)
     return 0;
@@ -300,7 +300,7 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
 static int select_track_vmd(bgav_demuxer_context_t * ctx, int track)
   {
   vmd_priv_t * priv;
-  priv = (vmd_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->current_frame = 0;
   return 1;
   }
@@ -308,7 +308,7 @@ static int select_track_vmd(bgav_demuxer_context_t * ctx, int track)
 static void close_vmd(bgav_demuxer_context_t * ctx)
   {
   vmd_priv_t * priv;
-  priv = (vmd_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

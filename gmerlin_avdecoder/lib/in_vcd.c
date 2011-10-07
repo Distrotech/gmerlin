@@ -75,7 +75,7 @@ typedef struct
 static int select_track_vcd(bgav_input_context_t * ctx, int track)
   {
   vcd_priv * priv;
-  priv = (vcd_priv*)(ctx->priv);
+  priv = ctx->priv;
 
 
   priv->current_track = track+1;
@@ -186,7 +186,7 @@ static void toc_2_tt(bgav_input_context_t * ctx)
   int i;
   
   vcd_priv * priv;
-  priv = (vcd_priv*)(ctx->priv);
+  priv = ctx->priv;
   
   ctx->tt = bgav_track_table_create(priv->num_video_tracks);
     
@@ -313,7 +313,7 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url, char ** r)
 static int read_sector(bgav_input_context_t * ctx, uint8_t * data)
   {
   vcd_priv * priv;
-  priv = (vcd_priv*)(ctx->priv);
+  priv = ctx->priv;
 
   //  do
   //    {
@@ -342,7 +342,7 @@ static int read_vcd(bgav_input_context_t* ctx,
   int bytes_to_copy;
     
   vcd_priv * priv;
-  priv = (vcd_priv*)(ctx->priv);
+  priv = ctx->priv;
 
   while(bytes_read < len)
     {
@@ -370,7 +370,7 @@ static int64_t seek_byte_vcd(bgav_input_context_t * ctx,
   vcd_priv * priv;
   int sector;
   int sector_offset;
-  priv = (vcd_priv*)(ctx->priv);
+  priv = ctx->priv;
   sector =
     priv->tracks[priv->current_track].start_sector + 
     ctx->position / SECTOR_SIZE;
@@ -393,7 +393,7 @@ static int64_t seek_sector_vcd(bgav_input_context_t * ctx,
                                int64_t sector)
   {
   vcd_priv * priv;
-  priv = (vcd_priv*)(ctx->priv);
+  priv = ctx->priv;
 
   priv->next_sector = sector + priv->tracks[priv->current_track].start_sector;
   return priv->next_sector;
@@ -406,7 +406,7 @@ static int64_t seek_sector_vcd(bgav_input_context_t * ctx,
 static void    close_vcd(bgav_input_context_t * ctx)
   {
   vcd_priv * priv;
-  priv = (vcd_priv*)(ctx->priv);
+  priv = ctx->priv;
   if(priv->cdio)
     cdio_destroy(priv->cdio);
   if(priv->tracks)

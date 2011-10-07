@@ -165,7 +165,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   int adpcm_bits;
   flv_priv_t * priv;
 
-  priv = (flv_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   s->flags |= STREAM_NEED_START_TIME;
     
@@ -244,7 +244,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   {
   flv_priv_t * priv;
   uint8_t header[1];
-  priv = (flv_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   s->flags |= STREAM_NEED_START_TIME;
   
@@ -524,7 +524,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx, flv_tag * t)
   int64_t end_pos;
   int ret;
   
-  priv = (flv_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   end_pos = ctx->input->position + t->data_size;
   
@@ -565,7 +565,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   int32_t cts;
   int has_cts = 0;
 
-  priv = (flv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   position = ctx->input->position;
   /* Previous tag size (ignore this?) */
@@ -791,7 +791,7 @@ static void handle_metadata(bgav_demuxer_context_t * ctx)
   int num_obj;
   flv_priv_t * priv;
   int as, vs;
-  priv = (flv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   obj = priv->metadata.data.object.children;
   num_obj = priv->metadata.data.object.num_children;
@@ -833,7 +833,7 @@ static void seek_flv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int64_t file_pos;
   uint32_t i;
   flv_priv_t * priv;
-  priv = (flv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   /* Get index objects */
 
@@ -1015,7 +1015,7 @@ static int open_flv(bgav_demuxer_context_t * ctx)
 static void resync_flv(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   flv_priv_t * priv;
-  priv = (flv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   if(s->type == BGAV_STREAM_AUDIO)
     {
@@ -1027,7 +1027,7 @@ static void resync_flv(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
 static void close_flv(bgav_demuxer_context_t * ctx)
   {
   flv_priv_t * priv;
-  priv = (flv_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   free_meta_object(&priv->metadata);
 

@@ -771,7 +771,7 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
 static void close_ffmpeg(bgav_demuxer_context_t * ctx)
   {
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t*)ctx->priv;
+  priv = ctx->priv;
 
   av_close_input_file(priv->avfc);
 #ifdef NEW_IO
@@ -792,7 +792,7 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   int i_tmp;
-  priv = (ffmpeg_priv_t*)ctx->priv;
+  priv = ctx->priv;
   
   if(av_read_frame(priv->avfc, &pkt) < 0)
     return 0;
@@ -854,7 +854,7 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
 static void seek_ffmpeg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t*)ctx->priv;
+  priv = ctx->priv;
 
   av_seek_frame(priv->avfc, -1,
                 gavl_time_rescale(scale, AV_TIME_BASE, time), 0);

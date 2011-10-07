@@ -266,7 +266,7 @@ static void convert_yuva4444(uint8_t ** dst, uint8_t ** src, int size)
 static int select_track_y4m(bgav_demuxer_context_t * ctx, int track)
   {
   y4m_t * priv;
-  priv = (y4m_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->pts = 0;
   return 1;
   }
@@ -278,7 +278,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   y4m_t * priv;
     
-  priv = (y4m_t*)(ctx->priv);
+  priv = ctx->priv;
   
   s = ctx->tt->cur->video_streams;
   
@@ -363,14 +363,14 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
 static void resync_y4m(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   y4m_t * priv;
-  priv = (y4m_t *)(ctx->priv);
+  priv = ctx->priv;
   priv->pts = STREAM_GET_SYNC(s);
   }
 
 static void close_y4m(bgav_demuxer_context_t * ctx)
   {
   y4m_t * priv;
-  priv = (y4m_t *)(ctx->priv);
+  priv = ctx->priv;
   y4m_fini_stream_info(&priv->si);
   y4m_fini_frame_info(&priv->fi);
   if(priv->tmp_planes[0])

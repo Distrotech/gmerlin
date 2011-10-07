@@ -229,7 +229,7 @@ static int next_packet_dxa(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s = NULL;
   bgav_packet_t * p = NULL;
   
-  priv = (dxa_t*)(ctx->priv);
+  priv = ctx->priv;
   
   if((priv->audio_position >= priv->audio_end) &&
      (priv->current_frame >= priv->frames))
@@ -347,7 +347,7 @@ static int next_packet_dxa(bgav_demuxer_context_t * ctx)
 static int select_track_dxa(bgav_demuxer_context_t * ctx, int track)
   {
   dxa_t * priv;
-  priv = (dxa_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->audio_position = priv->audio_start;
   priv->video_position = priv->video_start;
   priv->current_frame = 0;
@@ -357,7 +357,7 @@ static int select_track_dxa(bgav_demuxer_context_t * ctx, int track)
 
 static void close_dxa(bgav_demuxer_context_t * ctx)
   {
-  dxa_t * priv = (dxa_t*)(ctx->priv);
+  dxa_t * priv = ctx->priv;
   if(priv)
     free(priv);
   }

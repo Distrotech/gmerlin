@@ -194,7 +194,7 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   bgav_packet_t * p;
   
-  priv = (gif_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   while(!done)
     {
@@ -346,7 +346,7 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
 static int select_track_gif(bgav_demuxer_context_t * ctx, int track)
   {
   gif_priv_t * priv;
-  priv = (gif_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   priv->video_pts = 0;
   return 1;
   }
@@ -355,7 +355,7 @@ static int select_track_gif(bgav_demuxer_context_t * ctx, int track)
 static void close_gif(bgav_demuxer_context_t * ctx)
   {
   gif_priv_t * priv;
-  priv = (gif_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   if(priv)
     free(priv);
   }

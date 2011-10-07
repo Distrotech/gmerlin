@@ -327,7 +327,7 @@ static void build_superindex(bgav_demuxer_context_t * ctx)
   int do_audio;
   int duration;
   int offset;
-  priv = (r3d_priv_t *)ctx->priv;
+  priv = ctx->priv;
 
   ctx->si = bgav_superindex_create(priv->reob.audio_packets +
                                    priv->reob.video_packets);
@@ -506,7 +506,7 @@ seek_r3d(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
 static void close_r3d(bgav_demuxer_context_t * ctx)
   {
   r3d_priv_t * priv;
-  priv = (r3d_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->rdvo) free(priv->rdvo);
   if(priv->rdvs) free(priv->rdvs);

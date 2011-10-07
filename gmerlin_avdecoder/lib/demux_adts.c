@@ -420,7 +420,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   aac_priv_t * priv;
   uint8_t buf[ADTS_SIZE];
   
-  priv = (aac_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   s = ctx->tt->cur->audio_streams;
 
@@ -456,14 +456,14 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
 static void resync_adts(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   aac_priv_t * priv;
-  priv = (aac_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   priv->sample_count = STREAM_GET_SYNC(ctx->tt->cur->audio_streams);
   }
 
 static int select_track_adts(bgav_demuxer_context_t * ctx, int track)
   {
   aac_priv_t * priv;
-  priv = (aac_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   priv->sample_count = 0;
   return 1;
   }
@@ -471,7 +471,7 @@ static int select_track_adts(bgav_demuxer_context_t * ctx, int track)
 static void close_adts(bgav_demuxer_context_t * ctx)
   {
   aac_priv_t * priv;
-  priv = (aac_priv_t *)(ctx->priv);
+  priv = ctx->priv;
 
   free(priv);
   }

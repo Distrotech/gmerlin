@@ -182,7 +182,7 @@ static int read_chunk(bgav_input_context_t* ctx)
   unsigned long chunk_size;
   int bytes_read;
   int result;
-  http_priv * p = (http_priv *)(ctx->priv);
+  http_priv * p = ctx->priv;
   fd = bgav_http_get_fd(p->h);
 
   /* We first check if there is data availble, after that, the whole
@@ -243,7 +243,7 @@ static int read_data_chunked(bgav_input_context_t* ctx,
   int bytes_read = 0;
   int bytes_to_copy;
     
-  http_priv * p = (http_priv *)(ctx->priv);
+  http_priv * p = ctx->priv;
   while(bytes_read < len)
     {
     if(!p->chunk_buffer_size)
@@ -270,7 +270,7 @@ static int read_data(bgav_input_context_t* ctx,
                      uint8_t * buffer, int len, int block)
   {
   int fd;
-  http_priv * p = (http_priv *)(ctx->priv);
+  http_priv * p = ctx->priv;
 
   if(p->chunked)
     return read_data_chunked(ctx, buffer, len);
@@ -291,7 +291,7 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
   uint8_t icy_len;
   int meta_bytes;
   http_priv * priv;
-  priv = (http_priv*)(ctx->priv);
+  priv = ctx->priv;
     
   if(!read_data(ctx, &icy_len, 1, block))
     {
@@ -354,7 +354,7 @@ static int do_read(bgav_input_context_t* ctx,
   int bytes_read = 0;
 
   int result;
-  http_priv * p = (http_priv *)(ctx->priv);
+  http_priv * p = ctx->priv;
 
   if(!p->icy_metaint) 
     return read_data(ctx, buffer, len, block);
@@ -410,7 +410,7 @@ static int read_nonblock_http(bgav_input_context_t * ctx,
 
 static void close_http(bgav_input_context_t * ctx)
   {
-  http_priv * p = (http_priv *)(ctx->priv);
+  http_priv * p = ctx->priv;
 
   if(p->chunk_buffer)
     free(p->chunk_buffer);

@@ -244,7 +244,7 @@ static int next_packet_8svx(bgav_demuxer_context_t * ctx)
     
   s = &ctx->tt->cur->audio_streams[0];
 
-  priv = (svx_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   bytes_to_read = samples_to_bytes(s, SAMPLES2READ);
   
@@ -277,7 +277,7 @@ static void seek_8svx(bgav_demuxer_context_t * ctx, gavl_time_t time,
   int64_t sample;
   svx_priv_t * priv;
   s = &ctx->tt->cur->audio_streams[0];
-  priv = (svx_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   sample = gavl_time_rescale(scale, s->data.audio.format.samplerate, time);
   
@@ -290,7 +290,7 @@ static void seek_8svx(bgav_demuxer_context_t * ctx, gavl_time_t time,
 static void close_8svx(bgav_demuxer_context_t * ctx)
   {
   svx_priv_t * priv;
-  priv = (svx_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

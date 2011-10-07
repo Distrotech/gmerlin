@@ -221,7 +221,7 @@ static int next_packet_vqa(bgav_demuxer_context_t * ctx)
   uint32_t type;
   uint32_t size;
   vqa_priv_t * priv;
-  priv = (vqa_priv_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(!bgav_input_read_fourcc(ctx->input, &type) ||
      !bgav_input_read_32_be(ctx->input, &size))
@@ -262,7 +262,7 @@ static int next_packet_vqa(bgav_demuxer_context_t * ctx)
 static void close_vqa(bgav_demuxer_context_t * ctx)
   {
   vqa_priv_t * priv;
-  priv = (vqa_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 

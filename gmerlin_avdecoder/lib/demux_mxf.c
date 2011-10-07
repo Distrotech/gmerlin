@@ -107,7 +107,7 @@ static int next_packet_clip_wrapped_const(bgav_demuxer_context_t * ctx, bgav_str
   stream_priv_t * sp;
   bgav_packet_t * p;
   mxf_t * priv;
-  priv = (mxf_t *)ctx->priv;
+  priv = ctx->priv;
   sp = (stream_priv_t*)(s->priv);
 
   /* Need the KLV packet for this stream */
@@ -169,7 +169,7 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
   stream_priv_t * sp;
   mxf_t * priv;
 
-  priv = (mxf_t*)ctx->priv;
+  priv = ctx->priv;
   position = ctx->input->position;
 
   if(position > ((partition_t*)(ctx->tt->cur->priv))->end_pos)
@@ -287,7 +287,7 @@ static void init_stream_common(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   stream_priv_t * sp;
   mxf_t * priv;
   /* Common initialization */
-  priv = (mxf_t *)ctx->priv;
+  priv = ctx->priv;
   sp = calloc(1, sizeof(*priv));
   s->priv = sp;
   s->fourcc = fourcc;
@@ -461,7 +461,7 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx,
   uint32_t fourcc;
   bgav_stream_t * s = NULL;
   
-  priv = (mxf_t*)ctx->priv;
+  priv = ctx->priv;
   
   ss = (mxf_sequence_t*)(t->sequence);
   
@@ -577,7 +577,7 @@ static int init_simple(bgav_demuxer_context_t * ctx)
   mxf_package_t * sp = NULL;
   int index = 0;
   
-  priv = (mxf_t*)ctx->priv;
+  priv = ctx->priv;
   /* We simply open the Source packages */
   
   for(i = 0; i < priv->mxf.header.num_metadata; i++)
@@ -774,7 +774,7 @@ static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
 static void close_mxf(bgav_demuxer_context_t * ctx)
   {
   mxf_t * priv;
-  priv = (mxf_t*)ctx->priv;
+  priv = ctx->priv;
   bgav_mxf_file_free(&priv->mxf);
   free(priv);
   }
@@ -882,7 +882,7 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
   int track_index, stream_index = 0;
   bgav_edl_segment_t * seg;
   int64_t duration = 0;
-  priv = (mxf_t*)ctx->priv;
+  priv = ctx->priv;
 
   if(!mt)
     return;
@@ -962,7 +962,7 @@ static void build_edl_mxf(bgav_demuxer_context_t * ctx)
   int i, j;
   mxf_package_t * sp = NULL;
   bgav_edl_track_t * t;
-  priv = (mxf_t*)ctx->priv;
+  priv = ctx->priv;
 
   if(!ctx->input->filename)
     return;

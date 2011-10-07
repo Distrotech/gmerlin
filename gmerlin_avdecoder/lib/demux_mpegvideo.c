@@ -93,7 +93,7 @@ static int parse(bgav_demuxer_context_t * ctx, int code)
   int64_t pos;
   int bytes_read;
   
-  priv = (mpegvideo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   while(1)
     {
@@ -138,7 +138,7 @@ static void next_packet_fi(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   
-  priv = (mpegvideo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   s = ctx->tt->cur->video_streams;
   
   pos = ctx->input->position;
@@ -207,7 +207,7 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
 
   int bytes_to_read;
   
-  priv = (mpegvideo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   
   s = ctx->tt->cur->video_streams;
 
@@ -268,7 +268,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
 static void close_mpegvideo(bgav_demuxer_context_t * ctx)
   {
   mpegvideo_priv_t * priv;
-  priv = (mpegvideo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 
@@ -276,7 +276,7 @@ static void resync_mpegvideo(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
 #if 0
   mpegvideo_priv_t * priv;
-  priv = (mpegvideo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   bgav_video_parser_reset(priv->parser, BGAV_TIMESTAMP_UNDEFINED, STREAM_GET_SYNC(s));
   //  fprintf(stderr, "resync: %ld\n", s->in_time);
   priv->eof = 0;
@@ -287,7 +287,7 @@ static int select_track_mpegvideo(bgav_demuxer_context_t * ctx, int track)
   {
 #if 0
   mpegvideo_priv_t * priv;
-  priv = (mpegvideo_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   bgav_video_parser_reset(priv->parser, BGAV_TIMESTAMP_UNDEFINED, 0);
   priv->eof = 0;
 #endif

@@ -235,7 +235,7 @@ static int open_thp(bgav_demuxer_context_t * ctx)
 static int next_packet_thp(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
-  thp_t * priv = (thp_t*)(ctx->priv);
+  thp_t * priv = ctx->priv;
   uint32_t audio_size = 0, video_size;
   bgav_packet_t * p;
   
@@ -304,7 +304,7 @@ static int next_packet_thp(bgav_demuxer_context_t * ctx)
 
 static int select_track_thp(bgav_demuxer_context_t * ctx, int track)
   {
-  thp_t * priv = (thp_t*)(ctx->priv);
+  thp_t * priv = ctx->priv;
   priv->next_frame_offset = priv->h.firstFrameOffset;
   priv->next_frame_size   = priv->h.firstFrameSize;
   priv->next_frame = 0;
@@ -313,7 +313,7 @@ static int select_track_thp(bgav_demuxer_context_t * ctx, int track)
 
 static void close_thp(bgav_demuxer_context_t * ctx)
   {
-  thp_t * priv = (thp_t*)(ctx->priv);
+  thp_t * priv = ctx->priv;
   if(priv)
     free(priv);
   }

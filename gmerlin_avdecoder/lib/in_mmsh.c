@@ -51,7 +51,7 @@ static int read_data(bgav_input_context_t* ctx,
                      uint8_t * buffer, int len, int block)
   {
   int fd;
-  mmsh_priv * p = (mmsh_priv *)(ctx->priv);
+  mmsh_priv * p = ctx->priv;
   
   fd = bgav_http_get_fd(p->h);
   
@@ -204,7 +204,7 @@ static int fill_buffer(bgav_input_context_t* ctx, int block)
   {
   stream_chunck_t ch;
   int len;
-  mmsh_priv * p = (mmsh_priv  *)(ctx->priv);
+  mmsh_priv * p = ctx->priv;
 
   while(1)
     {
@@ -257,7 +257,7 @@ static int do_read(bgav_input_context_t* ctx,
   {
   int bytes_read = 0;
   int bytes_to_copy;
-  mmsh_priv * p = (mmsh_priv*)(ctx->priv);
+  mmsh_priv * p = ctx->priv;
   
   while(bytes_read < len)
     {
@@ -292,7 +292,7 @@ static int read_nonblock_mmsh(bgav_input_context_t * ctx,
 
 static void close_mmsh(bgav_input_context_t * ctx)
   {
-  mmsh_priv * p = (mmsh_priv  *)(ctx->priv);
+  mmsh_priv * p = ctx->priv;
   bgav_http_close(p->h);
   free(p);
   }

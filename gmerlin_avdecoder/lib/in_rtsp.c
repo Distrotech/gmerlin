@@ -119,7 +119,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   int fd;
   uint8_t header[8];
   int seq;
-  rtsp_priv_t * priv = (rtsp_priv_t *)(ctx->priv);
+  rtsp_priv_t * priv = ctx->priv;
 
   if(priv->eof)
     return 0;
@@ -294,7 +294,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
                              const char * url, int * got_redirected)
   {
   const char * var;
-  rtsp_priv_t * priv = (rtsp_priv_t *)(ctx->priv);
+  rtsp_priv_t * priv = ctx->priv;
   
   /* Open URL */
 
@@ -600,7 +600,7 @@ static int init_stream_generic(bgav_input_context_t * ctx,
                                bgav_stream_t * s, int * port,
                                char ** session_id, int tcp)
   {
-  rtsp_priv_t * priv = (rtsp_priv_t*)ctx->priv;
+  rtsp_priv_t * priv = ctx->priv;
   rtp_stream_priv_t * sp = (rtp_stream_priv_t *)s->priv;
   char * field;
   const char * var;
@@ -932,7 +932,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
 static void close_rtsp(bgav_input_context_t * ctx)
   {
   rtsp_priv_t * priv;
-  priv = (rtsp_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   if(!priv)
     return;
   
@@ -963,7 +963,7 @@ static int do_read(bgav_input_context_t* ctx,
   rtsp_priv_t * priv;
   int bytes_to_copy;
   int fd;
-  priv = (rtsp_priv_t*)(ctx->priv);
+  priv = ctx->priv;
   bytes_read = 0;
   if(priv->next_packet)
     {

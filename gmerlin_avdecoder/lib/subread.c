@@ -196,7 +196,7 @@ static int read_mpsub(bgav_stream_t * s)
   char * ptr;
   
   ctx = s->data.subtitle.subreader;
-  priv = (mpsub_priv_t*)(ctx->priv);
+  priv = ctx->priv;
     
   while(1)
     {
@@ -286,7 +286,7 @@ static void close_mpsub(bgav_stream_t * s)
   mpsub_priv_t * priv;
   
   ctx = s->data.subtitle.subreader;
-  priv = (mpsub_priv_t *)(ctx->priv);
+  priv = ctx->priv;
   free(priv);
   }
 
@@ -321,7 +321,7 @@ static int init_current_spumux(bgav_stream_t * s)
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
   ctx = s->data.subtitle.subreader;
-  priv = (spumux_t*)(ctx->priv);
+  priv = ctx->priv;
   
   priv->cur = priv->yml->children;
   while(priv->cur && (!priv->cur->name || strcasecmp(priv->cur->name, "stream")))
@@ -345,7 +345,7 @@ static int advance_current_spumux(bgav_stream_t * s)
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
   ctx = s->data.subtitle.subreader;
-  priv = (spumux_t*)(ctx->priv);
+  priv = ctx->priv;
 
   priv->cur = priv->cur->next;
   while(priv->cur && (!priv->cur->name || strcasecmp(priv->cur->name, "spu")))
@@ -388,7 +388,7 @@ static int read_spumux(bgav_stream_t * s)
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
   ctx = s->data.subtitle.subreader;
-  priv = (spumux_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(!priv->cur)
     return 0;
@@ -560,7 +560,7 @@ static void seek_spumux(bgav_stream_t * s, int64_t time1, int scale)
   gavl_time_t time = gavl_time_unscale(scale, time1);
   
   ctx = s->data.subtitle.subreader;
-  priv = (spumux_t*)(ctx->priv);
+  priv = ctx->priv;
   init_current_spumux(s);
   
   while(1)
@@ -610,7 +610,7 @@ static void close_spumux(bgav_stream_t * s)
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
   ctx = s->data.subtitle.subreader;
-  priv = (spumux_t*)(ctx->priv);
+  priv = ctx->priv;
 
   if(priv->yml)
     bgav_yml_free(priv->yml);
