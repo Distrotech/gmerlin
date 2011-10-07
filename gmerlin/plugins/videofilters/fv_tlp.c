@@ -61,7 +61,7 @@ static void * create_tlp()
 static void destroy_tlp(void * priv)
   {
   tlp_priv_t * vp;
-  vp = (tlp_priv_t *)priv;
+  vp = priv;
   if(vp->frame_1)
     gavl_video_frame_destroy(vp->frame_1);
   if(vp->frame_2)
@@ -106,7 +106,7 @@ static const bg_parameter_info_t * get_parameters_tlp(void * priv)
 static void set_parameter_tlp(void * priv, const char * name, const bg_parameter_value_t * val)
   {
   tlp_priv_t * vp;
-  vp = (tlp_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -121,7 +121,7 @@ static void connect_input_port_tlp(void * priv,
                                     void * data, int stream, int port)
   {
   tlp_priv_t * vp;
-  vp = (tlp_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -135,7 +135,7 @@ static void connect_input_port_tlp(void * priv,
 static void set_input_format_tlp(void * priv, gavl_video_format_t * format, int port)
   {
   tlp_priv_t * vp;
-  vp = (tlp_priv_t *)priv;
+  vp = priv;
 
   gavl_video_format_copy(&vp->format, format);
 
@@ -155,21 +155,21 @@ static void set_input_format_tlp(void * priv, gavl_video_format_t * format, int 
 static void get_output_format_tlp(void * priv, gavl_video_format_t * format)
   {
   tlp_priv_t * vp;
-  vp = (tlp_priv_t *)priv;
+  vp = priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
 static void reset_tlp(void * priv)
   {
   tlp_priv_t * vp;
-  vp = (tlp_priv_t *)priv;
+  vp = priv;
   vp->init = 1;
   }
 
 static int read_video_tlp(void * priv, gavl_video_frame_t * frame, int stream)
   {
   tlp_priv_t * vp;
-  vp = (tlp_priv_t *)priv;
+  vp = priv;
   
   if(!vp->frame_1)
     vp->frame_1 = gavl_video_frame_create(&vp->format);

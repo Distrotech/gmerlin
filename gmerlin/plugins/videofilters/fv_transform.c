@@ -147,7 +147,7 @@ static gavl_video_options_t * get_options_transform(void * priv)
 static void destroy_transform(void * priv)
   {
   transform_t * vp;
-  vp = (transform_t *)priv;
+  vp = priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
 
@@ -420,7 +420,7 @@ set_parameter_transform(void * priv, const char * name,
   transform_t * vp;
   gavl_scale_mode_t scale_mode;
   
-  vp = (transform_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -621,7 +621,7 @@ static void connect_input_port_transform(void * priv,
                                     void * data, int stream, int port)
   {
   transform_t * vp;
-  vp = (transform_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -635,7 +635,7 @@ static void set_input_format_transform(void * priv,
                                 gavl_video_format_t * format, int port)
   {
   transform_t * vp;
-  vp = (transform_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -655,7 +655,7 @@ static void get_output_format_transform(void * priv,
                                  gavl_video_format_t * format)
   {
   transform_t * vp;
-  vp = (transform_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -665,7 +665,7 @@ static void transform_func_matrix(void * priv,
                                   double * src_x, double * src_y)
   {
   transform_t * vp;
-  vp = (transform_t *)priv;
+  vp = priv;
   *src_x = dst_x * vp->matrix[0][0] +
     dst_y * vp->matrix[0][1] +
     vp->matrix[0][2];
@@ -805,7 +805,7 @@ static void transform_func_matrix3(void * priv,
   {
   double  w;
   transform_t * vp;
-  vp = (transform_t *)priv;
+  vp = priv;
   w = vp->matrix3[2][0] * x + vp->matrix3[2][1] * y + vp->matrix3[2][2];
   
   if (w == 0.0)
@@ -1088,7 +1088,7 @@ static void transform_func_lens_effect(void * priv,
   double shift;
   double x1, y1;
   
-  vp = (transform_t *)priv;
+  vp = priv;
 
   x1 = (x - vp->lens_effect_pos_real[0]) * vp->sar;
   y1 = y - vp->lens_effect_pos_real[1];
@@ -1142,7 +1142,7 @@ static void transform_func_whirl(void * priv,
   {
   transform_t * vp;
   double dx, dy, d, dist, factor, sina, cosa, ang;
-  vp = (transform_t *)priv;
+  vp = priv;
   
   dx = (x - vp->whirl_center_real[0]) * vp->sar;
   dy = y - vp->whirl_center_real[1];
@@ -1225,7 +1225,7 @@ static int read_video_transform(void * priv, gavl_video_frame_t * frame,
                          int stream)
   {
   transform_t * vp;
-  vp = (transform_t *)priv;
+  vp = priv;
 
   //  fprintf (stderr, "vp->do_transform: %d\n", vp->do_transform);
 

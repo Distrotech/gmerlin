@@ -65,7 +65,7 @@ static void * create_tctweak()
 static void destroy_tctweak(void * priv)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
   free(vp);
   }
 
@@ -157,7 +157,7 @@ set_parameter_tctweak(void * priv, const char * name,
                       const bg_parameter_value_t * val)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -196,7 +196,7 @@ static void connect_input_port_tctweak(void * priv,
                                     void * data, int stream, int port)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -211,7 +211,7 @@ static void set_input_format_tctweak(void * priv,
                                 gavl_video_format_t * format, int port)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
   
   if(port)
     return;
@@ -248,7 +248,7 @@ static void get_output_format_tctweak(void * priv,
                                  gavl_video_format_t * format)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -268,7 +268,7 @@ static int read_video_tctweak(void * priv, gavl_video_frame_t * frame,
   {
   tc_priv_t * vp;
   gavl_timecode_t tc;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
 
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;

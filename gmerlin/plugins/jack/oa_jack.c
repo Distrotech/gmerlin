@@ -192,7 +192,7 @@ static void write_frame_jack(void * p, gavl_audio_frame_t * f)
   int i;
   int samples_written, result;
   gavl_time_t delay_time;
-  jack_t * priv = (jack_t*)(p);
+  jack_t * priv = p;
   int write_space;
   
   //  fprintf(stderr, "Write jack %d\n", f->valid_samples);

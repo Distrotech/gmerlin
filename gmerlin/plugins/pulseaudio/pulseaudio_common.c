@@ -196,7 +196,7 @@ int bg_pa_open(bg_pa_t * p, int record)
 void bg_pa_close(void * data)
   {
   bg_pa_t * priv;
-  priv = (bg_pa_t *)data;
+  priv = data;
   if(priv->pa)
     {
     pa_simple_free(priv->pa);
@@ -215,7 +215,7 @@ void * bg_pa_create()
 void bg_pa_destroy(void * p)
   {
   bg_pa_t * priv;
-  priv = (bg_pa_t *)p;
+  priv = p;
   if(priv->server) free(priv->server);
   if(priv->dev) free(priv->dev);
   free(priv);

@@ -41,7 +41,7 @@ static void * create_edl()
 
 static void close_edl(void * data)
   {
-  edl_t * e = (edl_t*)data;
+  edl_t * e = data;
   if(e->edl)
     {
     bg_edl_destroy(e->edl);
@@ -51,14 +51,14 @@ static void close_edl(void * data)
 
 static void destroy_edl(void * data)
   {
-  edl_t * e = (edl_t*)data;
+  edl_t * e = data;
   close_edl(e);
   free(e);
   }
 
 static int open_edl(void * data, const char * arg)
   {
-  edl_t * e = (edl_t*)data;
+  edl_t * e = data;
   e->edl = bg_edl_load(arg);
   if(e->edl)
     {
@@ -75,7 +75,7 @@ static int get_num_tracks_edl(void * data)
 
 static const bg_edl_t * get_edl_edl(void * data)
   {
-  edl_t * e = (edl_t*)data;
+  edl_t * e = data;
   return e->edl;
   }
 

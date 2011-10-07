@@ -76,7 +76,7 @@ static void * create_pnm()
 
 static void destroy_pnm(void* priv) 
   {
-  pnm_t * pnm = (pnm_t*)priv;
+  pnm_t * pnm = priv;
   if(pnm->buffer)
     free(pnm->buffer);
   if(pnm)
@@ -88,7 +88,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
   FILE *pnm_file;
   char *ptr;
   char *end_ptr;
-  pnm_t *p = (pnm_t*)priv;
+  pnm_t *p = priv;
   unsigned long size;
 
   p->is_pnm = 0;
@@ -287,7 +287,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   uint8_t * frame_ptr;
   uint16_t * frame_ptr_16;
   uint8_t * frame_ptr_start;
-  pnm_t *p = (pnm_t*)priv;
+  pnm_t *p = priv;
   uint8_t pixels_8, mask;
 
   if(!frame)

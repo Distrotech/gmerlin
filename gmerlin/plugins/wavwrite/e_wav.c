@@ -298,7 +298,7 @@ static void set_callbacks_wav(void * data, bg_encoder_callbacks_t * cb)
 static void destroy_wav(void * priv)
   {
   wav_t * wav;
-  wav = (wav_t*)priv;
+  wav = priv;
 
   if(wav->output)
     fclose(wav->output);
@@ -423,7 +423,7 @@ static void set_audio_parameter_wav(void * data, int stream,
                                     const bg_parameter_value_t * v)
   {
   wav_t * wav;
-  wav = (wav_t*)data;
+  wav = data;
   
   if(stream)
     return;
@@ -442,7 +442,7 @@ static void set_parameter_wav(void * data, const char * name,
                               const bg_parameter_value_t * v)
   {
   wav_t * wav;
-  wav = (wav_t*)data;
+  wav = data;
   
   if(!name)
     return;
@@ -456,7 +456,7 @@ static int open_wav(void * data, const char * filename,
   {
   int result;
   wav_t * wav;
-  wav = (wav_t*)data;
+  wav = data;
   
   wav->filename = bg_filename_ensure_extension(filename, "wav");
 
@@ -486,7 +486,7 @@ static int add_audio_stream_wav(void * data, const char * language,
   {
   wav_t * wav;
   
-  wav = (wav_t*)data;
+  wav = data;
 
   gavl_audio_format_copy(&wav->format, format);
 
@@ -501,7 +501,7 @@ static int write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
   int num_samples, num_bytes;
   wav_t * wav;
   
-  wav = (wav_t*)data;
+  wav = data;
   
   num_samples = frame->valid_samples * wav->format.num_channels;
   num_bytes = num_samples * wav->bytes_per_sample;
@@ -529,14 +529,14 @@ static void get_audio_format_wav(void * data, int stream,
                                  gavl_audio_format_t * ret)
   {
   wav_t * wav;
-  wav = (wav_t*)data;
+  wav = data;
   gavl_audio_format_copy(ret, &wav->format);
   }
 
 static int start_wav(void * data)
   {
   wav_t * wav;
-  wav = (wav_t*)data;
+  wav = data;
 
   /* Write the header and adjust format */
 
@@ -599,7 +599,7 @@ static int close_wav(void * data, int do_delete)
   int ret = 1;
   wav_t * wav;
   int64_t total_bytes;
-  wav = (wav_t*)data;
+  wav = data;
 
   if(!do_delete)
     {

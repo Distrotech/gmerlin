@@ -189,7 +189,7 @@ static void * create_scope()
 static void destroy_scope(void * priv)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
 
   if(vp->audio_frame)
     gavl_audio_frame_destroy(vp->audio_frame);
@@ -227,7 +227,7 @@ open_scope(void * priv, gavl_audio_format_t * audio_format,
   {
   scope_priv_t * vp;
   
-  vp = (scope_priv_t *)priv;
+  vp = priv;
 
   /* Create thread pool */
 
@@ -583,7 +583,7 @@ static void draw_frame_scope(void * priv, gavl_video_frame_t * frame)
   {
   scope_priv_t * vp;
 
-  vp = (scope_priv_t *)priv;
+  vp = priv;
 
   /* Set foreground */
   
@@ -640,7 +640,7 @@ static void update_scope(void * priv, gavl_audio_frame_t * frame)
   int i, j;
   float new_energy;
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
   gavl_audio_frame_copy(&vp->audio_format, vp->audio_frame, frame,
                         0, 0, vp->audio_format.samples_per_frame,
                         frame->valid_samples);
@@ -668,7 +668,7 @@ static void update_scope(void * priv, gavl_audio_frame_t * frame)
 static void close_scope(void * priv)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
   
   }
 
@@ -682,7 +682,7 @@ static void set_parameter_scope(void * priv, const char * name,
                                 const bg_parameter_value_t * val)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -912,7 +912,7 @@ static void transform_sin(void *priv, double xdst, double ydst,
                           double *xsrc, double *ysrc)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
   
   *xsrc = xdst;
   *ysrc = ydst + (5.0 * vp->half_height / 120.0) * 
@@ -922,7 +922,7 @@ static void transform_sin(void *priv, double xdst, double ydst,
 static void transform_cos(void *priv, double xdst, double ydst, double *xsrc, double *ysrc)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
   
   *xsrc = xdst;
   *ysrc = ydst + (5.0 * vp->half_height / 120.0) *
@@ -934,7 +934,7 @@ transform_rotate_left(void *priv, double xdst, double ydst,
                       double *xsrc, double *ysrc)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
 
   xdst -= vp->half_width;
   ydst -= vp->half_height;
@@ -951,7 +951,7 @@ transform_rotate_right(void *priv, double xdst, double ydst,
                        double *xsrc, double *ysrc)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
 
   xdst -= vp->half_width;
   ydst -= vp->half_height;
@@ -970,7 +970,7 @@ static void transform_zoom_in(void * priv,
                               double *ysrc)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
 
   xdst -= vp->half_width;
   ydst -= vp->half_height;
@@ -989,7 +989,7 @@ static void transform_zoom_out(void * priv,
                                double *ysrc)
   {
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
 
   xdst -= vp->half_width;
   ydst -= vp->half_height;
@@ -1015,7 +1015,7 @@ static void transform_lens(void * priv,
 
   double lens_zoom = 1.5;
   scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
   
   x1 = x - vp->half_width;
   y1 = y - vp->half_height;
@@ -1063,7 +1063,7 @@ static void transform_ripple(void * priv,
   float shift;
   scope_priv_t * vp;
   double x1, y1;
-  vp = (scope_priv_t *)priv;
+  vp = priv;
   x1 = x - vp->half_width;
   y1 = y - vp->half_height;
   

@@ -38,7 +38,7 @@ static int jack_process(jack_nframes_t nframes, void *arg)
   {
   int i;
   int samples_written, result;
-  jack_t * priv = (jack_t*)(arg);
+  jack_t * priv = arg;
   int write_space;
   char *out;
 
@@ -144,7 +144,7 @@ static int read_frame_jack(void * p, gavl_audio_frame_t * f,
   
   int samples_read, result;
   
-  jack_t * priv = (jack_t*)(p);
+  jack_t * priv = p;
 
   for(i = 0; i < priv->format.num_channels; i++)
     {

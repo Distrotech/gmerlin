@@ -53,7 +53,7 @@ static void * create_volume()
 static void destroy_volume(void * priv)
   {
   volume_priv_t * vp;
-  vp = (volume_priv_t *)priv;
+  vp = priv;
 
   gavl_volume_control_destroy(vp->vc);
   free(vp);
@@ -85,7 +85,7 @@ static void set_parameter_volume(void * priv, const char * name,
                                  const bg_parameter_value_t * val)
   {
   volume_priv_t * vp;
-  vp = (volume_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -102,7 +102,7 @@ static void connect_input_port_volume(void * priv,
                                       void * data, int stream, int port)
   {
   volume_priv_t * vp;
-  vp = (volume_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -116,7 +116,7 @@ static void connect_input_port_volume(void * priv,
 static void set_input_format_volume(void * priv, gavl_audio_format_t * format, int port)
   {
   volume_priv_t * vp;
-  vp = (volume_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -128,7 +128,7 @@ static void set_input_format_volume(void * priv, gavl_audio_format_t * format, i
 static void get_output_format_volume(void * priv, gavl_audio_format_t * format)
   {
   volume_priv_t * vp;
-  vp = (volume_priv_t *)priv;
+  vp = priv;
   
   gavl_audio_format_copy(format, &vp->format);
   }
@@ -136,7 +136,7 @@ static void get_output_format_volume(void * priv, gavl_audio_format_t * format)
 static int read_audio_volume(void * priv, gavl_audio_frame_t * frame, int stream, int num_samples)
   {
   volume_priv_t * vp;
-  vp = (volume_priv_t *)priv;
+  vp = priv;
 
   if(vp->read_func(vp->read_data, frame, vp->read_stream, num_samples))
     {

@@ -65,14 +65,14 @@ static void * create_tiff()
 
 static void destroy_tiff(void* priv)
   {
-  tiff_t * tiff = (tiff_t*)priv;
+  tiff_t * tiff = priv;
   free(tiff);
   }
 
 static int write_header_tiff(void * priv, const char * filename,
                              gavl_video_format_t * format, const bg_metadata_t * m)
   {
-  tiff_t * p = (tiff_t*)priv;
+  tiff_t * p = priv;
   uint16_t v[1];
 
   char * real_filename;
@@ -139,7 +139,7 @@ static int write_header_tiff(void * priv, const char * filename,
 static int write_image_tiff(void *priv, gavl_video_frame_t *frame)
   {
   int i;
-  tiff_t *p = (tiff_t*)priv;
+  tiff_t *p = priv;
   uint8_t * frame_ptr_start;
   
   frame_ptr_start = frame->planes[0];
@@ -197,7 +197,7 @@ static void set_parameter_tiff(void * p, const char * name,
                                const bg_parameter_value_t * val)
   {
   tiff_t * tiff;
-  tiff = (tiff_t *)p;
+  tiff = p;
 
   if(!name)
     return;

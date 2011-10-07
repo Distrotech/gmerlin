@@ -107,7 +107,7 @@ static void * create_oldcolor()
 static void destroy_oldcolor(void * priv)
   {
   oldcolor_priv_t * vp;
-  vp = (oldcolor_priv_t *)priv;
+  vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
   free(vp);
@@ -216,7 +216,7 @@ static void set_parameter_oldcolor(void * priv, const char * name,
   {
   oldcolor_priv_t * vp;
   int changed = 0;
-  vp = (oldcolor_priv_t *)priv;
+  vp = priv;
   if(!name)
     return;
   
@@ -291,7 +291,7 @@ static void connect_input_port_oldcolor(void * priv,
                                     void * data, int stream, int port)
   {
   oldcolor_priv_t * vp;
-  vp = (oldcolor_priv_t *)priv;
+  vp = priv;
   
   if(!port)
     {
@@ -304,7 +304,7 @@ static void connect_input_port_oldcolor(void * priv,
 static void set_input_format_oldcolor(void * priv, gavl_video_format_t * format, int port)
   {
   oldcolor_priv_t * vp;
-  vp = (oldcolor_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -316,14 +316,14 @@ static void set_input_format_oldcolor(void * priv, gavl_video_format_t * format,
 static void get_output_format_oldcolor(void * priv, gavl_video_format_t * format)
   {
   oldcolor_priv_t * vp;
-  vp = (oldcolor_priv_t *)priv;
+  vp = priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
 static int read_video_oldcolor(void * priv, gavl_video_frame_t * frame, int stream)
   {
   oldcolor_priv_t * vp;
-  vp = (oldcolor_priv_t *)priv;
+  vp = priv;
 
 #if 0  
   if(!vp->oldcolor_h && !vp->oldcolor_v)

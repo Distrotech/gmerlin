@@ -72,7 +72,7 @@ static int open_spumux(void * priv, const char * filename,
                        const bg_chapter_list_t * chapter_list)
   {
   char * pos;
-  spumux_t * spumux = (spumux_t*)priv;
+  spumux_t * spumux = priv;
   
   if(metadata)
     bg_metadata_copy(&spumux->metadata, metadata);
@@ -99,7 +99,7 @@ static int open_spumux(void * priv, const char * filename,
 static int add_subtitle_overlay_stream_spumux(void * priv, const char * language,
                                               const gavl_video_format_t * format)
   {
-  spumux_t * spumux = (spumux_t*)priv;
+  spumux_t * spumux = priv;
   gavl_video_format_copy((&spumux->format), format);
   spumux->format.pixelformat = GAVL_RGBA_32;
   spumux->format.timescale = GAVL_TIME_SCALE;
@@ -114,7 +114,7 @@ static int start_spumux(void * priv)
 static void get_subtitle_overlay_format_spumux(void * priv, int stream,
                                                gavl_video_format_t*ret)
   {
-  spumux_t * spumux = (spumux_t*)priv;
+  spumux_t * spumux = priv;
   gavl_video_format_copy(ret, (&spumux->format));
   }
 
@@ -135,7 +135,7 @@ static void print_time(FILE * out, gavl_time_t time, gavl_video_format_t * forma
 static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int stream)
   {
   char * image_filename;
-  spumux_t * spumux = (spumux_t*)priv;
+  spumux_t * spumux = priv;
   gavl_video_format_t tmp_format;
   gavl_video_format_copy(&tmp_format, (&spumux->format));
 
@@ -178,7 +178,7 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
 static int close_spumux(void * priv, int do_delete)
   {
   int i;
-  spumux_t * spumux = (spumux_t*)priv;
+  spumux_t * spumux = priv;
   char * image_filename;
 
   fprintf(spumux->xml_file, "  </stream>\n</subpictures>\n");
@@ -200,7 +200,7 @@ static int close_spumux(void * priv, int do_delete)
 
 static void destroy_spumux(void * priv)
   {
-  spumux_t * spumux = (spumux_t*)priv;
+  spumux_t * spumux = priv;
   if(spumux->xml_file)
     close_spumux(priv, 1);
   

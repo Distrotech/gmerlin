@@ -286,7 +286,7 @@ void bg_pwc_set_parameter(int fd, void * priv,
   struct pwc_whitebalance whitebalance;
   struct pwc_wb_speed wb_speed;
 
-  p = (pwc_priv_t*)priv;
+  p = priv;
     
   if(!name)
     {

@@ -79,7 +79,7 @@ static void * create_cdrdao()
 static void destroy_cdrdao(void * priv)
   {
   cdrdao_t * cdrdao;
-  cdrdao = (cdrdao_t*)priv;
+  cdrdao = priv;
   bg_cdrdao_destroy(cdrdao->cdr);
   if(cdrdao->toc_file) free(cdrdao->toc_file);
   free(cdrdao);
@@ -124,7 +124,7 @@ static void set_parameter_cdrdao(void * data, const char * name,
                                  const bg_parameter_value_t * v)
   {
   cdrdao_t * cdrdao;
-  cdrdao = (cdrdao_t*)data;
+  cdrdao = data;
   if(!name)
     return;
   if(!strcmp(name, "use_cdtext"))
@@ -140,7 +140,7 @@ static void set_parameter_cdrdao(void * data, const char * name,
 static void set_callbacks_cdrdao(void * data, bg_e_pp_callbacks_t * callbacks)
   {
   cdrdao_t * cdrdao;
-  cdrdao = (cdrdao_t*)data;
+  cdrdao = data;
   cdrdao->callbacks = callbacks;
   bg_cdrdao_set_callbacks(cdrdao->cdr, callbacks);
   }
@@ -148,7 +148,7 @@ static void set_callbacks_cdrdao(void * data, bg_e_pp_callbacks_t * callbacks)
 static int init_cdrdao(void * data)
   {
   cdrdao_t * cdrdao;
-  cdrdao = (cdrdao_t*)data;
+  cdrdao = data;
   free_tracks(cdrdao);
   /* Check for cdrdao */
   if(!bg_search_file_exec("cdrdao", NULL))
@@ -230,7 +230,7 @@ static void add_track_cdrdao(void * data, const char * filename,
   {
   int32_t duration = 0;
   cdrdao_t * cdrdao;
-  cdrdao = (cdrdao_t*)data;
+  cdrdao = data;
 
   if(cdrdao->pregap > 0)
     {
@@ -275,7 +275,7 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
   int pregap_ff;
   int pregap;
   
-  cdrdao = (cdrdao_t*)data;
+  cdrdao = data;
 
   if(!cdrdao->num_tracks)
     {
@@ -430,7 +430,7 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
 static void stop_cdrdao(void * data)
   {
   cdrdao_t * cdrdao;
-  cdrdao = (cdrdao_t*)data;
+  cdrdao = data;
   bg_cdrdao_stop(cdrdao->cdr);
   }
 

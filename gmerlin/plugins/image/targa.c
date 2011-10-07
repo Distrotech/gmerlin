@@ -264,14 +264,14 @@ tga_result tga_read_from_memory(tga_image *dest, uint8_t * buf, int len)
 
     if (dest->image_id_length > 0)
     {
-        dest->image_id = (uint8_t*)malloc(dest->image_id_length);
+        dest->image_id = malloc(dest->image_id_length);
         if (dest->image_id == NULL) BARF(TGAERR_NO_MEM);
         READ(dest->image_id, dest->image_id_length);
     }
 
     if (dest->color_map_type == TGA_COLOR_MAP_PRESENT)
     {
-        dest->color_map_data = (uint8_t*)malloc(
+        dest->color_map_data = malloc(
             (dest->color_map_origin + dest->color_map_length) *
             dest->color_map_depth / 8);
         if (dest->color_map_data == NULL) BARF(TGAERR_NO_MEM);
@@ -280,7 +280,7 @@ tga_result tga_read_from_memory(tga_image *dest, uint8_t * buf, int len)
             dest->color_map_length * dest->color_map_depth / 8);
     }
 
-    dest->image_data = (uint8_t*) malloc(
+    dest->image_data =  malloc(
         dest->width * dest->height * dest->pixel_depth / 8);
     if (dest->image_data == NULL)
             BARF(TGAERR_NO_MEM);

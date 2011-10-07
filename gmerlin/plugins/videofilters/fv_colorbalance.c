@@ -149,7 +149,7 @@ static gavl_video_options_t * get_options_colorbalance(void * priv)
 static void destroy_colorbalance(void * priv)
   {
   colorbalance_priv_t * vp;
-  vp = (colorbalance_priv_t *)priv;
+  vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
   free(vp);
@@ -210,7 +210,7 @@ static void set_parameter_colorbalance(void * priv, const char * name,
   int changed = 0;
   colorbalance_priv_t * vp;
   
-  vp = (colorbalance_priv_t *)priv;
+  vp = priv;
   
   if(!name)
     return;
@@ -260,7 +260,7 @@ static void connect_input_port_colorbalance(void * priv,
                                          void * data, int stream, int port)
   {
   colorbalance_priv_t * vp;
-  vp = (colorbalance_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -527,7 +527,7 @@ static void process_rgba_float(colorbalance_priv_t * vp, gavl_video_frame_t * fr
 static void set_input_format_colorbalance(void * priv, gavl_video_format_t * format, int port)
   {
   colorbalance_priv_t * vp;
-  vp = (colorbalance_priv_t *)priv;
+  vp = priv;
 
   vp->use_matrix = 0;
 
@@ -617,7 +617,7 @@ static void set_input_format_colorbalance(void * priv, gavl_video_format_t * for
 static void get_output_format_colorbalance(void * priv, gavl_video_format_t * format)
   {
   colorbalance_priv_t * vp;
-  vp = (colorbalance_priv_t *)priv;
+  vp = priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
@@ -626,7 +626,7 @@ static int
 read_video_colorbalance(void * priv, gavl_video_frame_t * frame, int stream)
   {
   colorbalance_priv_t * vp;
-  vp = (colorbalance_priv_t *)priv;
+  vp = priv;
   return vp->read_video(vp, frame);
   }
 

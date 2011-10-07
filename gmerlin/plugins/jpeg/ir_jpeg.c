@@ -72,7 +72,7 @@ void * create_jpeg()
 
 static void destroy_jpeg(void* priv)
   {
-  jpeg_t * jpeg = (jpeg_t*)priv;
+  jpeg_t * jpeg = priv;
   jpeg_destroy_decompress(&jpeg->cinfo);
   free(jpeg);
   }
@@ -92,7 +92,7 @@ static
 int read_header_jpeg(void * priv, const char * filename,
                      gavl_video_format_t * format)
   {
-  jpeg_t * jpeg = (jpeg_t*)priv;
+  jpeg_t * jpeg = priv;
   
   jpeg->input = fopen(filename, "rb");
 
@@ -171,7 +171,7 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
   {
   int i;
   int num_lines;
-  jpeg_t * jpeg = (jpeg_t*)priv;
+  jpeg_t * jpeg = priv;
 
   if(!frame)
     {

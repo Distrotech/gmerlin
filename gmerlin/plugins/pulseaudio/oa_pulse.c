@@ -27,7 +27,7 @@ static int open_pulse(void * data,
                       gavl_audio_format_t * format)
   {
   bg_pa_t * priv;
-  priv = (bg_pa_t *)data;
+  priv = data;
 
   gavl_audio_format_copy(&priv->format, format);
   
@@ -59,7 +59,7 @@ static void write_frame_pulse(void * p, gavl_audio_frame_t * f)
   {
   bg_pa_t * priv;
   int error;
-  priv = (bg_pa_t *)p;
+  priv = p;
   pa_simple_write(priv->pa,
                   f->samples.u_8,
                   priv->block_align * f->valid_samples,
@@ -71,7 +71,7 @@ static int get_delay_pulse(void * p)
   bg_pa_t * priv;
   int error;
   int ret;
-  priv = (bg_pa_t *)p;
+  priv = p;
   ret = gavl_time_rescale(1000000, priv->format.samplerate,
                           pa_simple_get_latency(priv->pa, &error));
   return ret;

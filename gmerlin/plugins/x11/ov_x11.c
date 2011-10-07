@@ -195,7 +195,7 @@ static int accel_callback(void * data, int id)
   {
   x11_t * priv;
   float f_tmp, f_tmp_scaled;
-  priv = (x11_t *)data;
+  priv = data;
   switch(id)
     {
     case ACCEL_TOGGLE_FULLSCREEN:
@@ -424,7 +424,7 @@ static int accel_callback(void * data, int id)
 static int key_callback(void * data, int key, int mask)
   {
   x11_t * priv;
-  priv = (x11_t *)data;
+  priv = data;
   if(priv->callbacks && priv->callbacks->key_callback)
     return priv->callbacks->key_callback(priv->callbacks->data, key, mask);
   return 0;
@@ -433,7 +433,7 @@ static int key_callback(void * data, int key, int mask)
 static int key_release_callback(void * data, int key, int mask)
   {
   x11_t * priv;
-  priv = (x11_t *)data;
+  priv = data;
   if(priv->callbacks && priv->callbacks->key_release_callback)
     {
     //    fprintf(stderr, "OV X11: Key callback\n");
@@ -446,14 +446,14 @@ static int key_release_callback(void * data, int key, int mask)
 static void set_fullscreen(void * data, int fullscreen)
   {
   x11_t * priv;
-  priv = (x11_t *)data;
+  priv = data;
   priv->fullscreen = fullscreen;
   }
 
 static int button_callback(void * data, int x, int y, int button, int mask)
   {
   x11_t * priv;
-  priv = (x11_t *)data;
+  priv = data;
   switch(button)
     {
     case 4:
@@ -516,7 +516,7 @@ static int button_release_callback(void * data, int x, int y, int button,
                                    int mask)
   {
   x11_t * priv;
-  priv = (x11_t *)data;
+  priv = data;
   /* Check for plugin callback*/
   if(priv->callbacks && priv->callbacks->button_release_callback)
     {
@@ -530,7 +530,7 @@ static int button_release_callback(void * data, int x, int y, int button,
 static int motion_callback(void * data, int x, int y, int mask)
   {
   x11_t * priv;
-  priv = (x11_t *)data;
+  priv = data;
   /* Check for plugin callback*/
   if(priv->callbacks && priv->callbacks->motion_callback)
     {
@@ -545,7 +545,7 @@ static int motion_callback(void * data, int x, int y, int mask)
 static void size_changed(void * data, int width, int height)
   {
   x11_t * priv;
-  priv = (x11_t *)data;
+  priv = data;
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got window size: %d %d",
          width, height);
   priv->window_width  = width;
@@ -589,7 +589,7 @@ static void * create_x11()
 
 static void destroy_x11(void * data)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   
   if(priv->parameters)
     bg_parameter_info_destroy_array(priv->parameters);
@@ -670,7 +670,7 @@ static void create_parameters(x11_t * priv)
 
 static const bg_parameter_info_t * get_parameters_x11(void * data)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   if(!priv->parameters)
     create_parameters(priv);
   return priv->parameters;
@@ -680,7 +680,7 @@ static void set_parameter_x11(void * data,
                               const char * name,
                               const bg_parameter_value_t * val)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   ensure_window(priv);
 
   if(!name)
@@ -721,7 +721,7 @@ static void set_parameter_x11(void * data,
 static int get_parameter_x11(void * data, const char * name,
                              bg_parameter_value_t * val)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
 
   if(!name)
     return 0;
@@ -761,7 +761,7 @@ static int get_parameter_x11(void * data, const char * name,
 
 static void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   priv->callbacks = callbacks;
   if(priv->callbacks && priv->callbacks->accel_map)
     bg_accelerator_map_append_array(priv->accel_map,
@@ -770,13 +770,13 @@ static void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
 
 static void set_window_x11(void * data, const char * window_id)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   priv->window_id = bg_strdup(priv->window_id, window_id);
   }
 
 static const char * get_window_x11(void * data)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   return bg_x11_window_get_display_string(priv->win);
   }
 
@@ -801,7 +801,7 @@ static void set_window_options_x11(void * data,
 
 static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   int result;
   ensure_window_realized(priv);
   
@@ -822,25 +822,25 @@ static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
 
 static gavl_video_frame_t * create_frame_x11(void * data)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   return bg_x11_window_create_frame(priv->win);
   }
 
 static void destroy_frame_x11(void * data, gavl_video_frame_t * frame)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   bg_x11_window_destroy_frame(priv->win, frame);
   }
 
 static gavl_overlay_t * create_overlay_x11(void * data, int id)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   return bg_x11_window_create_overlay(priv->win, id);
   }
 
 static void destroy_overlay_x11(void * data, int id, gavl_overlay_t * ovl)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   bg_x11_window_destroy_overlay(priv->win, id, ovl);
   }
 
@@ -848,40 +848,40 @@ static void destroy_overlay_x11(void * data, int id, gavl_overlay_t * ovl)
 static int
 add_overlay_stream_x11(void * data, gavl_video_format_t * format)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   /* Realloc */
   return bg_x11_window_add_overlay_stream(priv->win, format);
   }
 
 static void set_overlay_x11(void * data, int stream, gavl_overlay_t * ovl)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   bg_x11_window_set_overlay(priv->win, stream, ovl);
   }
 
 
 static void put_video_x11(void * data, gavl_video_frame_t * frame)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   bg_x11_window_put_frame(priv->win, frame);
   }
 
 static void put_still_x11(void * data, gavl_video_frame_t * frame)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   bg_x11_window_put_still(priv->win, frame);
   
   }
 
 static void handle_events_x11(void * data)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   bg_x11_window_handle_events(priv->win, 0);
   }
 
 static void close_x11(void * data)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   if(priv->is_open)
     {
     priv->is_open = 0;
@@ -893,7 +893,7 @@ static void update_aspect_x11(void * data, int pixel_width,
                               int pixel_height)
   {
   x11_t * priv;
-  priv = (x11_t*)data;
+  priv = data;
   priv->video_format.pixel_width = pixel_width;
   priv->video_format.pixel_height = pixel_height;
   set_drawing_coords(priv);
@@ -901,7 +901,7 @@ static void update_aspect_x11(void * data, int pixel_width,
 
 static void show_window_x11(void * data, int show)
   {
-  x11_t * priv = (x11_t*)data;
+  x11_t * priv = data;
   ensure_window_realized(priv);
   bg_x11_window_show(priv->win, show);
   }

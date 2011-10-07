@@ -50,7 +50,7 @@ static void * create_gavl()
 
 static void destroy_gavl(void* priv)
   {
-  gavl_t * gavl = (gavl_t*)priv;
+  gavl_t * gavl = priv;
   gavl_dsp_context_destroy(gavl->ctx);
   free(gavl);
   }
@@ -61,7 +61,7 @@ static int read_header_gavl(void * priv, const char * filename,
   bg_f_chunk_t ch;
   bg_f_signature_t sig;
   
-  gavl_t * gavl = (gavl_t*)priv;
+  gavl_t * gavl = priv;
 
   if(!bg_f_io_open_stdio_read(&gavl->io, filename))
     return 0;
@@ -97,7 +97,7 @@ static int read_header_gavl(void * priv, const char * filename,
 static int read_image_gavl(void * priv, gavl_video_frame_t * frame)
   {
   bg_f_chunk_t ch;
-  gavl_t * gavl = (gavl_t*)priv;
+  gavl_t * gavl = priv;
   
   /* Read frame */
   if(!bg_f_chunk_read(&gavl->io, &ch)) 

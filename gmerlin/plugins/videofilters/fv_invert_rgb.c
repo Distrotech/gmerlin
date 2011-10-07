@@ -82,7 +82,7 @@ static void * create_invert()
 static void destroy_invert(void * priv)
   {
   invert_priv_t * vp;
-  vp = (invert_priv_t *)priv;
+  vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
   free(vp);
@@ -158,7 +158,7 @@ static void set_parameter_invert(void * priv, const char * name,
   {
   invert_priv_t * vp;
   int changed = 0;
-  vp = (invert_priv_t *)priv;
+  vp = priv;
   if(!name)
     return;
   
@@ -206,7 +206,7 @@ static void connect_input_port_invert(void * priv,
                                     void * data, int stream, int port)
   {
   invert_priv_t * vp;
-  vp = (invert_priv_t *)priv;
+  vp = priv;
   
   if(!port)
     {
@@ -490,7 +490,7 @@ static void process_matrix(invert_priv_t * vp, gavl_video_frame_t * frame)
 static void set_input_format_invert(void * priv, gavl_video_format_t * format, int port)
   {
   invert_priv_t * vp;
-  vp = (invert_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -536,14 +536,14 @@ static void set_input_format_invert(void * priv, gavl_video_format_t * format, i
 static void get_output_format_invert(void * priv, gavl_video_format_t * format)
   {
   invert_priv_t * vp;
-  vp = (invert_priv_t *)priv;
+  vp = priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
 static int read_video_invert(void * priv, gavl_video_frame_t * frame, int stream)
   {
   invert_priv_t * vp;
-  vp = (invert_priv_t *)priv;
+  vp = priv;
   
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;

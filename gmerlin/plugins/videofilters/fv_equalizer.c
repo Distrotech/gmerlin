@@ -411,7 +411,7 @@ static gavl_video_options_t * get_options_equalizer(void * priv)
 static void destroy_equalizer(void * priv)
   {
   equalizer_priv_t * vp;
-  vp = (equalizer_priv_t *)priv;
+  vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
   free(vp);
@@ -477,7 +477,7 @@ static void set_parameter_equalizer(void * priv, const char * name,
   int test_i;
   float test_f;
 
-  vp = (equalizer_priv_t *)priv;
+  vp = priv;
   
   if(!name)
     return;
@@ -531,7 +531,7 @@ static void connect_input_port_equalizer(void * priv,
                                          void * data, int stream, int port)
   {
   equalizer_priv_t * vp;
-  vp = (equalizer_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -548,7 +548,7 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
   {
   int sub_h, sub_v;
   equalizer_priv_t * vp;
-  vp = (equalizer_priv_t *)priv;
+  vp = priv;
   
   vp->use_matrix = 0;
   
@@ -736,7 +736,7 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
 static void get_output_format_equalizer(void * priv, gavl_video_format_t * format)
   {
   equalizer_priv_t * vp;
-  vp = (equalizer_priv_t *)priv;
+  vp = priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
@@ -745,7 +745,7 @@ static int
 read_video_equalizer(void * priv, gavl_video_frame_t * frame, int stream)
   {
   equalizer_priv_t * vp;
-  vp = (equalizer_priv_t *)priv;
+  vp = priv;
   return vp->read_video(vp, frame);
   }
 

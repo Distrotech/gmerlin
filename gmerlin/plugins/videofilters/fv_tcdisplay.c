@@ -66,7 +66,7 @@ static void * create_tcdisplay()
 static void destroy_tcdisplay(void * priv)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
   bg_text_renderer_destroy(vp->renderer);
   gavl_overlay_blend_context_destroy(vp->blender);
   free(vp);
@@ -243,7 +243,7 @@ set_parameter_tcdisplay(void * priv, const char * name,
                       const bg_parameter_value_t * val)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     {
@@ -265,7 +265,7 @@ static void connect_input_port_tcdisplay(void * priv,
                                     void * data, int stream, int port)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -280,7 +280,7 @@ static void set_input_format_tcdisplay(void * priv,
                                        gavl_video_format_t * format, int port)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
   
   if(port)
     return;
@@ -308,7 +308,7 @@ static void get_output_format_tcdisplay(void * priv,
                                  gavl_video_format_t * format)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -319,7 +319,7 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
   tc_priv_t * vp;
   char str[GAVL_TIMECODE_STRING_LEN];
   char * pos;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
   
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
@@ -370,7 +370,7 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
 static void reset_tcdisplay(void * priv)
   {
   tc_priv_t * vp;
-  vp = (tc_priv_t *)priv;
+  vp = priv;
   vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
   }
 

@@ -44,7 +44,7 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
   int color_type;
   int bits = 8;
   int i, j;
-  bg_pngwriter_t * png = (bg_pngwriter_t*)priv;
+  bg_pngwriter_t * png = priv;
 
   png->transform_flags = PNG_TRANSFORM_IDENTITY;
   
@@ -202,7 +202,7 @@ int bg_pngwriter_write_image(void * priv, gavl_video_frame_t * frame)
   {
   int i;
   unsigned char ** rows;
-  bg_pngwriter_t * png = (bg_pngwriter_t*)priv;
+  bg_pngwriter_t * png = priv;
 
   rows = malloc(png->format.image_height * sizeof(*rows));
 
@@ -235,7 +235,7 @@ void bg_pngwriter_set_parameter(void * p, const char * name,
                                 const bg_parameter_value_t * val)
   {
   bg_pngwriter_t * png;
-  png = (bg_pngwriter_t *)p;
+  png = p;
   
   if(!name)
     return;

@@ -72,7 +72,7 @@ static const bg_parameter_info_t parameters[] =
 static void set_parameter_esd(void * data, const char * name,
                               const bg_parameter_value_t * val)
   {
-  esd_t * e = (esd_t *)data;
+  esd_t * e = data;
 
   if(!name)
     return;
@@ -98,7 +98,7 @@ static void * create_esd()
 
 static void destroy_esd(void *data)
   {
-  esd_t * e = (esd_t *)data;
+  esd_t * e = data;
 
   if(e->hostname)
     free(e->hostname);
@@ -120,7 +120,7 @@ static int open_esd(void * data,
   char * name;
   char hostname[128];
   
-  esd_t * e = (esd_t*)data;
+  esd_t * e = data;
 
   e->samples_read = 0;
   
@@ -178,7 +178,7 @@ static int open_esd(void * data,
 
 static void close_esd(void * data)
   {
-  esd_t * e = (esd_t*)(data);
+  esd_t * e = data;
   esd_close(e->esd_socket);
   gavl_audio_frame_destroy(e->f);
   }
@@ -189,7 +189,7 @@ static int read_frame_esd(void * p, gavl_audio_frame_t * f, int stream,
   int samples_read;
   int samples_copied;
   
-  esd_t * priv = (esd_t*)(p);
+  esd_t * priv = p;
   
   samples_read = 0;
 

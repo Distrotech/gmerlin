@@ -55,7 +55,7 @@ static void * create_pixelformat()
 static void destroy_pixelformat(void * priv)
   {
   pixelformat_priv_t * vp;
-  vp = (pixelformat_priv_t *)priv;
+  vp = priv;
   if(vp->parameters)
     bg_parameter_info_destroy_array(vp->parameters);
   free(vp);
@@ -108,7 +108,7 @@ static bg_parameter_info_t * create_parameters()
 static const bg_parameter_info_t * get_parameters_pixelformat(void * priv)
   {
   pixelformat_priv_t * vp;
-  vp = (pixelformat_priv_t *)priv;
+  vp = priv;
   if(!vp->parameters)
     vp->parameters = create_parameters();
   return vp->parameters;
@@ -120,7 +120,7 @@ set_parameter_pixelformat(void * priv, const char * name,
   {
   pixelformat_priv_t * vp;
   gavl_pixelformat_t f;
-  vp = (pixelformat_priv_t *)priv;
+  vp = priv;
   
   if(!name)
     return;
@@ -141,7 +141,7 @@ static void connect_input_port_pixelformat(void * priv,
                                     void * data, int stream, int port)
   {
   pixelformat_priv_t * vp;
-  vp = (pixelformat_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -157,7 +157,7 @@ static void set_input_format_pixelformat(void * priv,
                                          int port)
   {
   pixelformat_priv_t * vp;
-  vp = (pixelformat_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -170,7 +170,7 @@ static void set_input_format_pixelformat(void * priv,
 static void get_output_format_pixelformat(void * priv, gavl_video_format_t * format)
   {
   pixelformat_priv_t * vp;
-  vp = (pixelformat_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -178,7 +178,7 @@ static void get_output_format_pixelformat(void * priv, gavl_video_format_t * for
 static int need_restart_pixelformat(void * priv)
   {
   pixelformat_priv_t * vp;
-  vp = (pixelformat_priv_t *)priv;
+  vp = priv;
   return vp->need_restart;
   }
 
@@ -186,7 +186,7 @@ static int read_video_pixelformat(void * priv,
                                   gavl_video_frame_t * frame, int stream)
   {
   pixelformat_priv_t * vp;
-  vp = (pixelformat_priv_t *)priv;
+  vp = priv;
   
   return vp->read_func(vp->read_data, frame, vp->read_stream);
   }

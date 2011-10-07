@@ -53,7 +53,7 @@ typedef struct
 static int need_restart_colormatrix(void * priv)
   {
   colormatrix_priv_t * vp;
-  vp = (colormatrix_priv_t *)priv;
+  vp = priv;
   return vp->need_restart;
   }
 
@@ -75,7 +75,7 @@ static gavl_video_options_t * get_options_colormatrix(void * priv)
 static void destroy_colormatrix(void * priv)
   {
   colormatrix_priv_t * vp;
-  vp = (colormatrix_priv_t *)priv;
+  vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
   free(vp);
@@ -350,7 +350,7 @@ static void set_parameter_colormatrix(void * priv, const char * name,
   {
   int changed = 0;
   colormatrix_priv_t * vp;
-  vp = (colormatrix_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -396,7 +396,7 @@ static void connect_input_port_colormatrix(void * priv,
                                     void * data, int stream, int port)
   {
   colormatrix_priv_t * vp;
-  vp = (colormatrix_priv_t *)priv;
+  vp = priv;
   
   if(!port)
     {
@@ -412,7 +412,7 @@ set_input_format_colormatrix(void * priv,
   {
   colormatrix_priv_t * vp;
   int flags = 0;
-  vp = (colormatrix_priv_t *)priv;
+  vp = priv;
   if(vp->force_alpha)
     flags |= BG_COLORMATRIX_FORCE_ALPHA;
 
@@ -428,7 +428,7 @@ static void get_output_format_colormatrix(void * priv,
                                           gavl_video_format_t * format)
   {
   colormatrix_priv_t * vp;
-  vp = (colormatrix_priv_t *)priv;
+  vp = priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
@@ -436,7 +436,7 @@ static int read_video_colormatrix(void * priv,
                                   gavl_video_frame_t * frame, int stream)
   {
   colormatrix_priv_t * vp;
-  vp = (colormatrix_priv_t *)priv;
+  vp = priv;
 
 #if 0  
   if(!vp->colormatrix_h && !vp->colormatrix_v)

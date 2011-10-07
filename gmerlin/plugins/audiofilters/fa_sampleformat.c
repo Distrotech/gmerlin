@@ -55,7 +55,7 @@ static void * create_sampleformat()
 static void destroy_sampleformat(void * priv)
   {
   sampleformat_priv_t * vp;
-  vp = (sampleformat_priv_t *)priv;
+  vp = priv;
   if(vp->parameters)
     bg_parameter_info_destroy_array(vp->parameters);
   free(vp);
@@ -108,7 +108,7 @@ static bg_parameter_info_t * create_parameters()
 static const bg_parameter_info_t * get_parameters_sampleformat(void * priv)
   {
   sampleformat_priv_t * vp;
-  vp = (sampleformat_priv_t *)priv;
+  vp = priv;
   if(!vp->parameters)
     vp->parameters = create_parameters();
   return vp->parameters;
@@ -120,7 +120,7 @@ set_parameter_sampleformat(void * priv, const char * name,
   {
   sampleformat_priv_t * vp;
   gavl_sample_format_t f;
-  vp = (sampleformat_priv_t *)priv;
+  vp = priv;
   
   if(!name)
     return;
@@ -141,7 +141,7 @@ static void connect_input_port_sampleformat(void * priv,
                                     void * data, int stream, int port)
   {
   sampleformat_priv_t * vp;
-  vp = (sampleformat_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -157,7 +157,7 @@ static void set_input_format_sampleformat(void * priv,
                                          int port)
   {
   sampleformat_priv_t * vp;
-  vp = (sampleformat_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -170,7 +170,7 @@ static void set_input_format_sampleformat(void * priv,
 static void get_output_format_sampleformat(void * priv, gavl_audio_format_t * format)
   {
   sampleformat_priv_t * vp;
-  vp = (sampleformat_priv_t *)priv;
+  vp = priv;
   
   gavl_audio_format_copy(format, &vp->format);
   }
@@ -178,7 +178,7 @@ static void get_output_format_sampleformat(void * priv, gavl_audio_format_t * fo
 static int need_restart_sampleformat(void * priv)
   {
   sampleformat_priv_t * vp;
-  vp = (sampleformat_priv_t *)priv;
+  vp = priv;
   return vp->need_restart;
   }
 
@@ -186,7 +186,7 @@ static int read_audio_sampleformat(void * priv,
                                   gavl_audio_frame_t * frame, int stream, int num_samples)
   {
   sampleformat_priv_t * vp;
-  vp = (sampleformat_priv_t *)priv;
+  vp = priv;
   
   return vp->read_func(vp->read_data, frame, vp->read_stream, num_samples);
   }

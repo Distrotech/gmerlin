@@ -114,7 +114,7 @@ static const bg_parameter_info_t *
 get_parameters_alsa(void * p)
   {
   int i;
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
   if(!priv->parameters)
     {
     priv->parameters = calloc(num_static_parameters + 2,
@@ -134,7 +134,7 @@ static void
 set_parameter_alsa(void * p, const char * name,
                    const bg_parameter_value_t * val)
   {
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
   
   if(!name)
     return;
@@ -186,7 +186,7 @@ static int open_alsa(void * data,
                      gavl_video_format_t * video_format)
   {
   const char * card = NULL;
-  alsa_t * priv = (alsa_t*)(data);
+  alsa_t * priv = data;
   
   if(priv->user_device)
   card = priv->user_device;
@@ -226,7 +226,7 @@ static int open_alsa(void * data,
 
 static void close_alsa(void * p)
   {
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
   if(priv->pcm)
     {
     snd_pcm_close(priv->pcm);
@@ -293,7 +293,7 @@ static int read_frame_alsa(void * p, gavl_audio_frame_t * f,
   int samples_read;
   int samples_copied;
 
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
 
   samples_read = 0;
 
@@ -326,7 +326,7 @@ static int read_frame_alsa(void * p, gavl_audio_frame_t * f,
 
 static void destroy_alsa(void * p)
   {
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
   if(priv->parameters)
     bg_parameter_info_destroy_array(priv->parameters);
   free(priv);

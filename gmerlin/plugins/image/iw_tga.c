@@ -57,7 +57,7 @@ static void * create_tga()
 
 static void destroy_tga(void * priv)
   {
-  tga_t * tga = (tga_t*)priv;
+  tga_t * tga = priv;
   free(tga);
   }
 
@@ -70,7 +70,7 @@ static void set_callbacks_tga(void * data, bg_iw_callbacks_t * cb)
 static int write_header_tga(void * priv, const char * filename,
                             gavl_video_format_t * format, const bg_metadata_t * m)
   {
-  tga_t * tga = (tga_t*)priv;
+  tga_t * tga = priv;
 
   if(gavl_pixelformat_has_alpha(format->pixelformat))
     format->pixelformat = GAVL_RGBA_32;
@@ -89,7 +89,7 @@ static int write_header_tga(void * priv, const char * filename,
 
 static int write_image_tga(void * priv, gavl_video_frame_t * frame)
   {
-  tga_t * tga = (tga_t*)priv;
+  tga_t * tga = priv;
   gavl_video_frame_t * tmp_frame;
   int result, ret = 1;
 
@@ -172,7 +172,7 @@ static void set_parameter_tga(void * p, const char * name,
                               const bg_parameter_value_t * val)
   {
   tga_t * tga;
-  tga = (tga_t *)p;
+  tga = p;
   
   if(!name)
     return;

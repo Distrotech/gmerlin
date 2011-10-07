@@ -68,7 +68,7 @@ void bg_cdrdao_set_parameter(void * data, const char * name,
   bg_cdrdao_t * c;
   if(!name)
     return;
-  c = (bg_cdrdao_t*)(data);
+  c = data;
   if(!strcmp(name, "cdrdao_run"))
     c->run = val->val_i;
   else if(!strcmp(name, "cdrdao_device"))

@@ -69,7 +69,7 @@ static void * create_tiff()
 
 static void destroy_tiff(void* priv)
   {
-  tiff_t * tiff = (tiff_t*)priv;
+  tiff_t * tiff = priv;
   if(tiff->buffer) free(tiff->buffer);
   free(tiff);
   }
@@ -77,7 +77,7 @@ static void destroy_tiff(void* priv)
 static tsize_t read_function(thandle_t fd, tdata_t data, tsize_t length)
   {
   uint32_t bytes_read;
-  tiff_t *p = (tiff_t*)(fd);
+  tiff_t *p = (tiff_t*)fd;
 
   bytes_read = length;
   if(length > p->buffer_size - p->buffer_position)
@@ -90,7 +90,7 @@ static tsize_t read_function(thandle_t fd, tdata_t data, tsize_t length)
 	
 static toff_t seek_function(thandle_t fd, toff_t off, int whence)
   {
-  tiff_t *p = (tiff_t*)(fd);
+  tiff_t *p = (tiff_t*)fd;
 	
   if (whence == SEEK_SET) p->buffer_position = off;
   else if (whence == SEEK_CUR) p->buffer_position += off;
@@ -109,8 +109,8 @@ static toff_t seek_function(thandle_t fd, toff_t off, int whence)
 
 static toff_t size_function(thandle_t fd)
   {
-  tiff_t *p = (tiff_t*)(fd);
-  return (p->buffer_size);
+  tiff_t *p = (tiff_t*)fd;
+  return p->buffer_size;
   }
 
 static int close_function(thandle_t fd)
@@ -563,7 +563,7 @@ read_header_tiff(void *priv,const char *filename,
   {
   double minmax_d[4];
   uint16_t tmp_16;
-  tiff_t *p = (tiff_t*)priv;
+  tiff_t *p = priv;
   
   tiff_read_mem(priv, filename);
 
@@ -781,7 +781,7 @@ static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
   {
   int i, j;
   uint32_t *raster;
-  tiff_t *p = (tiff_t*)priv;
+  tiff_t *p = priv;
   uint32_t * raster_ptr;
   uint8_t * frame_ptr;
   uint8_t * frame_ptr_start;

@@ -54,7 +54,7 @@ static void * create_tga()
 
 static void destroy_tga(void* priv)
   {
-  tga_t * tga = (tga_t*)priv;
+  tga_t * tga = priv;
 
   if(tga->frame)
     {
@@ -92,7 +92,7 @@ static gavl_pixelformat_t get_pixelformat(int depth, int * bytes_per_pixel)
 static int read_header_tga(void * priv, const char * filename,
                            gavl_video_format_t * format)
   {
-  tga_t * tga = (tga_t*)priv;
+  tga_t * tga = priv;
   
   if(tga_read(&tga->tga, filename) != TGA_NOERR)
     {
@@ -135,7 +135,7 @@ static int read_header_tga(void * priv, const char * filename,
 
 static int get_compression_info_tga(void * priv, gavl_compression_info_t * ci)
   {
-  tga_t * tga = (tga_t*)priv;
+  tga_t * tga = priv;
 
   if((tga->tga.image_type == TGA_IMAGE_TYPE_COLORMAP) ||
      (tga->tga.image_type == TGA_IMAGE_TYPE_COLORMAP_RLE))
@@ -148,7 +148,7 @@ static int get_compression_info_tga(void * priv, gavl_compression_info_t * ci)
 static int read_image_tga(void * priv, gavl_video_frame_t * frame)
   {
   int ret;
-  tga_t * tga = (tga_t*)priv;
+  tga_t * tga = priv;
 
   ret = 0;
 

@@ -309,7 +309,7 @@ static int open_oss(void * data, gavl_audio_format_t * format)
   int center_channel = 0;
   int lfe_channel = 0;
   int ret;
-  oss_t * priv = (oss_t*)data;
+  oss_t * priv = data;
 
   priv->fd_front      = -1;
   priv->fd_rear       = -1;
@@ -417,7 +417,7 @@ static int open_oss(void * data, gavl_audio_format_t * format)
 
 static void stop_oss(void * p)
   {
-  oss_t * priv = (oss_t*)(p);
+  oss_t * priv = p;
 
   if(priv->fd_front != -1)
     {
@@ -443,7 +443,7 @@ static void close_oss(void * p)
 
 static int start_oss(void * data)
   {
-  oss_t * priv = (oss_t*)data;
+  oss_t * priv = data;
 
   if((priv->fd_front == -1) && (priv->fd_rear == -1)
      && (priv->fd_center_lfe == -1))
@@ -454,7 +454,7 @@ static int start_oss(void * data)
 
 static void write_frame_oss(void * p, gavl_audio_frame_t * f)
   {
-  oss_t * priv = (oss_t*)(p);
+  oss_t * priv = p;
 
   
   write(priv->fd_front, f->channels.s_8[0], f->valid_samples *
@@ -475,7 +475,7 @@ static void write_frame_oss(void * p, gavl_audio_frame_t * f)
 
 static void destroy_oss(void * p)
   {
-  oss_t * priv = (oss_t*)(p);
+  oss_t * priv = p;
 
   if(priv->device_front)
     free(priv->device_front);
@@ -497,7 +497,7 @@ static int get_delay_oss(void * p)
   {
   int unplayed_bytes;
   oss_t * priv;
-  priv = (oss_t*)(p);
+  priv = p;
   if(ioctl(priv->fd_front, SNDCTL_DSP_GETODELAY, &unplayed_bytes)== -1)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "SNDCTL_DSP_GETODELAY ioctl failed");
@@ -514,7 +514,7 @@ set_parameter_oss(void * p, const char * name,
                   const bg_parameter_value_t * val)
   {
   char * pos;
-  oss_t * priv = (oss_t*)(p);
+  oss_t * priv = p;
   if(!name)
     return;
   if(!strcmp(name, "multichannel_mode"))

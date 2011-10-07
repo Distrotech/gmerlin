@@ -54,7 +54,7 @@ static void * create_shift()
 static void destroy_shift(void * priv)
   {
   shift_priv_t * vp;
-  vp = (shift_priv_t *)priv;
+  vp = priv;
   free(vp);
   }
 
@@ -82,7 +82,7 @@ static void set_parameter_shift(void * priv, const char * name,
                                const bg_parameter_value_t * val)
   {
   shift_priv_t * vp;
-  vp = (shift_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -96,7 +96,7 @@ static void connect_input_port_shift(void * priv,
                                     void * data, int stream, int port)
   {
   shift_priv_t * vp;
-  vp = (shift_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -121,7 +121,7 @@ static void set_input_format_shift(void * priv, gavl_video_format_t * format, in
   {
   shift_priv_t * vp;
   int width_mult;
-  vp = (shift_priv_t *)priv;
+  vp = priv;
 
   
   if(!port)
@@ -143,7 +143,7 @@ static void set_input_format_shift(void * priv, gavl_video_format_t * format, in
 static void get_output_format_shift(void * priv, gavl_video_format_t * format)
   {
   shift_priv_t * vp;
-  vp = (shift_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -154,7 +154,7 @@ static int read_video_shift(void * priv, gavl_video_frame_t * frame, int stream)
   int i, j;
   uint16_t * ptr;
   
-  vp = (shift_priv_t *)priv;
+  vp = priv;
 
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;

@@ -64,7 +64,7 @@ static void * create_interlace()
 static void destroy_interlace(void * priv)
   {
   interlace_priv_t * vp;
-  vp = (interlace_priv_t *)priv;
+  vp = priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
 
@@ -102,7 +102,7 @@ static const bg_parameter_info_t * get_parameters_interlace(void * priv)
 static int need_restart_interlace(void * priv)
   {
   interlace_priv_t * vp;
-  vp = (interlace_priv_t *)priv;
+  vp = priv;
   return vp->need_restart;
   }
 
@@ -112,7 +112,7 @@ static void set_parameter_interlace(void * priv, const char * name,
   {
   interlace_priv_t * vp;
   gavl_interlace_mode_t new_interlace;
-  vp = (interlace_priv_t *)priv;
+  vp = priv;
   if(!name)
     return;
 
@@ -135,7 +135,7 @@ static void connect_input_port_interlace(void * priv,
                                     void * data, int stream, int port)
   {
   interlace_priv_t * vp;
-  vp = (interlace_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -150,7 +150,7 @@ static void set_input_format_interlace(void * priv,
                                        gavl_video_format_t * format, int port)
   {
   interlace_priv_t * vp;
-  vp = (interlace_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -172,7 +172,7 @@ static void
 get_output_format_interlace(void * priv, gavl_video_format_t * format)
   {
   interlace_priv_t * vp;
-  vp = (interlace_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -183,7 +183,7 @@ static int read_video_interlace(void * priv,
   {
   interlace_priv_t * vp;
   int field;
-  vp = (interlace_priv_t *)priv;
+  vp = priv;
 
   field = vp->out_interlace == GAVL_INTERLACE_TOP_FIRST ? 0 : 1;
 

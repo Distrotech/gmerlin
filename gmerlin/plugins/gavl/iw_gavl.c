@@ -61,7 +61,7 @@ static void set_callbacks_gavl(void * data, bg_iw_callbacks_t * cb)
 
 static void destroy_gavl(void* priv)
   {
-  gavl_t * gavl = (gavl_t*)priv;
+  gavl_t * gavl = priv;
 
   free(gavl);
   }
@@ -73,7 +73,7 @@ static int write_header_gavl(void * priv, const char * filename,
   {
   bg_f_signature_t sig;
   char * real_filename;
-  gavl_t * gavl = (gavl_t*)priv;
+  gavl_t * gavl = priv;
   
   real_filename = bg_filename_ensure_extension(filename, "gavi");
 
@@ -99,7 +99,7 @@ static int write_header_gavl(void * priv, const char * filename,
 
 static int write_image_gavl(void * priv, gavl_video_frame_t * frame)
   {
-  gavl_t * gavl = (gavl_t*)priv;
+  gavl_t * gavl = priv;
   if(!bg_f_video_frame_write(&gavl->io, &gavl->format, frame))
     return 0;
   bg_f_io_close(&gavl->io);

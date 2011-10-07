@@ -55,7 +55,7 @@ static void * create_flip()
 static void destroy_flip(void * priv)
   {
   flip_priv_t * vp;
-  vp = (flip_priv_t *)priv;
+  vp = priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
   free(vp);
@@ -89,7 +89,7 @@ static void set_parameter_flip(void * priv, const char * name,
                                const bg_parameter_value_t * val)
   {
   flip_priv_t * vp;
-  vp = (flip_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -105,7 +105,7 @@ static void connect_input_port_flip(void * priv,
                                     void * data, int stream, int port)
   {
   flip_priv_t * vp;
-  vp = (flip_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -119,7 +119,7 @@ static void connect_input_port_flip(void * priv,
 static void set_input_format_flip(void * priv, gavl_video_format_t * format, int port)
   {
   flip_priv_t * vp;
-  vp = (flip_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     gavl_video_format_copy(&vp->format, format);
@@ -134,7 +134,7 @@ static void set_input_format_flip(void * priv, gavl_video_format_t * format, int
 static void get_output_format_flip(void * priv, gavl_video_format_t * format)
   {
   flip_priv_t * vp;
-  vp = (flip_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -142,7 +142,7 @@ static void get_output_format_flip(void * priv, gavl_video_format_t * format)
 static int read_video_flip(void * priv, gavl_video_frame_t * frame, int stream)
   {
   flip_priv_t * vp;
-  vp = (flip_priv_t *)priv;
+  vp = priv;
 
   if(!vp->flip_h && !vp->flip_v)
     {

@@ -67,7 +67,7 @@ static void * create_zoom()
 static void destroy_zoom(void * priv)
   {
   zs_priv_t * vp;
-  vp = (zs_priv_t *)priv;
+  vp = priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
 
@@ -176,7 +176,7 @@ static void set_parameter_zoom(void * priv, const char * name, const bg_paramete
   gavl_scale_mode_t scale_mode;
   gavl_downscale_filter_t new_downscale_filter;
 
-  vp = (zs_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -253,7 +253,7 @@ static void connect_input_port_zoom(void * priv,
                                     void * data, int stream, int port)
   {
   zs_priv_t * vp;
-  vp = (zs_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -268,7 +268,7 @@ static void set_input_format_zoom(void * priv,
                                 gavl_video_format_t * format, int port)
   {
   zs_priv_t * vp;
-  vp = (zs_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     gavl_video_format_copy(&vp->format, format);
@@ -285,7 +285,7 @@ static void get_output_format_zoom(void * priv,
                                  gavl_video_format_t * format)
   {
   zs_priv_t * vp;
-  vp = (zs_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -342,7 +342,7 @@ static int read_video_zoom(void * priv, gavl_video_frame_t * frame,
                          int stream)
   {
   zs_priv_t * vp;
-  vp = (zs_priv_t *)priv;
+  vp = priv;
 
   if((vp->scale_h == 1.0) && (vp->scale_v == 1.0))
     {

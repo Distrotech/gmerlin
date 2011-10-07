@@ -49,7 +49,7 @@ void
 bg_jack_set_parameter(void * p, const char * name,
                       const bg_parameter_value_t * val)
   {
-  jack_t * priv = (jack_t*)(p);
+  jack_t * priv = p;
   if(!name)
     return;
 
@@ -69,7 +69,7 @@ void * bg_jack_create()
 
 int bg_jack_start(void * data)
   {
-  jack_t * priv = (jack_t*)(data);
+  jack_t * priv = data;
   
   pthread_mutex_lock(&priv->active_mutex);
   priv->active = 1;
@@ -80,7 +80,7 @@ int bg_jack_start(void * data)
 
 void bg_jack_stop(void * data)
   {
-  jack_t * priv = (jack_t*)(data);
+  jack_t * priv = data;
   pthread_mutex_lock(&priv->active_mutex);
   priv->active = 0;
   pthread_mutex_unlock(&priv->active_mutex);
@@ -273,7 +273,7 @@ int bg_jack_close_client(jack_t * priv)
 
 void bg_jack_destroy(void * p)
   {
-  jack_t * priv = (jack_t*)(p);
+  jack_t * priv = p;
   
   /* Stop thread and close client connection */
   if(priv->client)

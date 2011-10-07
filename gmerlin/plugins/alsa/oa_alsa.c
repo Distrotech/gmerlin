@@ -179,7 +179,7 @@ static void * create_alsa()
 
 static int start_alsa(void * data)
   {
-  alsa_t * priv = (alsa_t*)(data);
+  alsa_t * priv = data;
 
   if(snd_pcm_prepare(priv->pcm) < 0)
     return 0;
@@ -189,7 +189,7 @@ static int start_alsa(void * data)
 
 static void stop_alsa(void * data)
   {
-  alsa_t * priv = (alsa_t*)(data);
+  alsa_t * priv = data;
   snd_pcm_drop(priv->pcm);
 
   }
@@ -201,7 +201,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   int num_rear_channels;
   int num_lfe_channels;
   const char * card = NULL;
-  alsa_t * priv = (alsa_t*)(data);
+  alsa_t * priv = data;
 
   //  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening");
   
@@ -331,7 +331,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 
 static void close_alsa(void * p)
   {
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
 
   //  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Closing");
 
@@ -345,7 +345,7 @@ static void close_alsa(void * p)
 static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
   {
   int result = -EPIPE;
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
 
   if(priv->convert_4_3)
     {
@@ -390,7 +390,7 @@ static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
 
 static void destroy_alsa(void * p)
   {
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
   close_alsa(priv);
 
   if(priv->parameters)
@@ -405,7 +405,7 @@ static void destroy_alsa(void * p)
 static const bg_parameter_info_t *
 get_parameters_alsa(void * p)
   {
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
   return priv->parameters;
   }
 
@@ -415,7 +415,7 @@ static int get_delay_alsa(void * p)
   int result;
   snd_pcm_sframes_t frames;
   alsa_t * priv;
-  priv = (alsa_t*)(p); 
+  priv = p; 
   result = snd_pcm_delay(priv->pcm, &frames);
   if(!result)
     return frames;
@@ -427,7 +427,7 @@ static void
 set_parameter_alsa(void * p, const char * name,
                    const bg_parameter_value_t * val)
   {
-  alsa_t * priv = (alsa_t*)(p);
+  alsa_t * priv = p;
   if(!name)
     return;
 

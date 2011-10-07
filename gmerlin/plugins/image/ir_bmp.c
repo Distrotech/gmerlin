@@ -92,7 +92,7 @@ static void * create_bmp()
 
 static void destroy_bmp(void* priv) 
   {
-  bmp_t * bmp = (bmp_t*)priv;
+  bmp_t * bmp = priv;
   if(bmp)
     free(bmp);
   }
@@ -210,7 +210,7 @@ static gavl_pixelformat_t get_csp(int bits, uint32_t r_mask,
 static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t * format)
   {
   int i;
-  bmp_t *p = (bmp_t*)priv;
+  bmp_t *p = priv;
   char type[2];
   unsigned short ncols, tmpShort = 0, planes;
   unsigned long headSize = 0, size;
@@ -353,7 +353,7 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
 static int read_image_bmp(void *priv, gavl_video_frame_t *frame)
   {
   int keep_going;
-  bmp_t *p = (bmp_t*)priv;
+  bmp_t *p = priv;
   uint8_t * frame_ptr;
   uint8_t * frame_ptr_start;
   unsigned char byte = 0;

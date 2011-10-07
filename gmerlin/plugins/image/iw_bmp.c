@@ -95,7 +95,7 @@ static void * create_bmp()
 
 static void destroy_bmp(void * priv)
   {
-  bmp_t * bmp = (bmp_t*)priv;
+  bmp_t * bmp = priv;
   free(bmp);
   }
 
@@ -110,7 +110,7 @@ static int write_header_bmp(void * priv, const char * filename,
                             const bg_metadata_t * m)
   {
   char * real_filename;
-  bmp_t * bmp = (bmp_t*)priv;
+  bmp_t * bmp = priv;
 
   real_filename = bg_filename_ensure_extension(filename, "bmp");
 
@@ -178,7 +178,7 @@ static int write_header_bmp(void * priv, const char * filename,
 
 static int write_image_bmp(void * priv, gavl_video_frame_t * frame)
   {
-  bmp_t * bmp = (bmp_t*)priv;
+  bmp_t * bmp = priv;
   uint8_t *frame_ptr;
   uint8_t *frame_ptr_start;
   int i, skip;

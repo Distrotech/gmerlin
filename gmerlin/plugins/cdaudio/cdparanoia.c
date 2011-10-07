@@ -67,7 +67,7 @@ int bg_cdaudio_rip_init(void * data,
   char * msg = NULL;
   int paranoia_mode;
   cdparanoia_priv_t * priv;
-  priv = (cdparanoia_priv_t *)data;
+  priv = data;
   
   priv->cdio = cdio;
   
@@ -176,7 +176,7 @@ void bg_cdaudio_rip_close(void * data)
 void bg_cdaudio_rip_destroy(void * data)
   {
   cdparanoia_priv_t * priv;
-  priv = (cdparanoia_priv_t *)data;
+  priv = data;
   free(priv);
   }
 
@@ -238,7 +238,7 @@ bg_cdaudio_rip_set_parameter(void * data, const char * name,
                              const bg_parameter_value_t * val)
   {
   cdparanoia_priv_t * priv;
-  priv = (cdparanoia_priv_t *)data;
+  priv = data;
 
   if(!name)
     return 0;

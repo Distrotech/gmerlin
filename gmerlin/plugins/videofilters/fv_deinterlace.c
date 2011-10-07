@@ -98,7 +98,7 @@ static void * create_deinterlace()
 static void destroy_deinterlace(void * priv)
   {
   deinterlace_priv_t * vp;
-  vp = (deinterlace_priv_t *)priv;
+  vp = priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
 
@@ -120,7 +120,7 @@ static gavl_video_options_t * get_options_deinterlace(void * priv)
 static void reset_deinterlace(void * priv)
   {
   deinterlace_priv_t * vp;
-  vp = (deinterlace_priv_t *)priv;
+  vp = priv;
   bg_yadif_reset(vp->yadif);
   }
 
@@ -200,7 +200,9 @@ static void set_parameter_deinterlace(void * priv, const char * name,
   int new_output_mode;
   
   deinterlace_priv_t * vp;
-  vp = (deinterlace_priv_t *)priv;
+  vp = priv;
+
+  new_output_mode = vp->output_mode;
   
   if(!name)
     return;
@@ -362,7 +364,7 @@ static void connect_input_port_deinterlace(void * priv,
                                            int port)
   {
   deinterlace_priv_t * vp;
-  vp = (deinterlace_priv_t *)priv;
+  vp = priv;
   
   if(!port)
     {
@@ -399,7 +401,7 @@ set_input_format_deinterlace(void * priv,
   {
   deinterlace_priv_t * vp;
   int yadif_mode;
-  vp = (deinterlace_priv_t *)priv;
+  vp = priv;
   if(!port)
     {
     if(vp->frame)
@@ -466,14 +468,14 @@ set_input_format_deinterlace(void * priv,
 static int need_restart_deinterlace(void * priv)
   {
   deinterlace_priv_t * vp;
-  vp = (deinterlace_priv_t *)priv;
+  vp = priv;
   return vp->need_restart;
   }
 
 static void get_output_format_deinterlace(void * priv, gavl_video_format_t * format)
   {
   deinterlace_priv_t * vp;
-  vp = (deinterlace_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->out_format);
   }
@@ -481,7 +483,7 @@ static void get_output_format_deinterlace(void * priv, gavl_video_format_t * for
 static int read_video_deinterlace(void * priv, gavl_video_frame_t * frame, int stream)
   {
   deinterlace_priv_t * vp;
-  vp = (deinterlace_priv_t *)priv;
+  vp = priv;
 
   if(vp->need_reinit)
     {

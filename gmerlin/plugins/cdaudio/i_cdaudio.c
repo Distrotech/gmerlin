@@ -122,7 +122,7 @@ static void destroy_cd_data(cdaudio_t* cd)
 static const char * get_disc_name_cdaudio(void* priv)
   {
   cdaudio_t * cd;
-  cd = (cdaudio_t *)priv;
+  cd = priv;
   return cd->disc_name;
   }
 
@@ -140,14 +140,14 @@ static void set_callbacks_cdaudio(void * data,
                            bg_input_callbacks_t * callbacks)
   {
   cdaudio_t * cd;
-  cd = (cdaudio_t *)data;
+  cd = data;
   cd->callbacks = callbacks;
   }
 
 static void destroy_cdaudio(void * data)
   {
   cdaudio_t * cd;
-  cd = (cdaudio_t *)data;
+  cd = data;
 
   destroy_cd_data(cd);
   
@@ -171,7 +171,7 @@ static int open_cdaudio(void * data, const char * arg)
 
   char * tmp_filename;
     
-  cdaudio_t * cd = (cdaudio_t*)data;
+  cdaudio_t * cd = data;
 
   /* Destroy data from previous open */
   destroy_cd_data(cd);
@@ -343,20 +343,20 @@ static int open_cdaudio(void * data, const char * arg)
 
 static int get_num_tracks_cdaudio(void * data)
   {
-  cdaudio_t * cd = (cdaudio_t*)data;
+  cdaudio_t * cd = data;
   return cd->index->num_audio_tracks;
   }
 
 static bg_track_info_t * get_track_info_cdaudio(void * data, int track)
   {
-  cdaudio_t * cd = (cdaudio_t*)data;
+  cdaudio_t * cd = data;
   return &cd->track_info[track];
   }
 
 static int set_track_cdaudio(void * data, int track)
   {
   int i;
-  cdaudio_t * cd = (cdaudio_t*)data;
+  cdaudio_t * cd = data;
 
   for(i = 0; i < cd->index->num_tracks; i++)
     {
@@ -381,7 +381,7 @@ static int set_audio_stream_cdaudio(void * priv, int stream,
 static int start_cdaudio(void * priv)
   {
   int i;
-  cdaudio_t * cd = (cdaudio_t*)priv;
+  cdaudio_t * cd = priv;
 
 
   if(!cd->cdio)
@@ -406,7 +406,7 @@ static int start_cdaudio(void * priv)
 
 static void stop_cdaudio(void * priv)
   {
-  cdaudio_t * cd = (cdaudio_t*)priv;
+  cdaudio_t * cd = priv;
   if(cd->rip_initialized)
     {
     bg_cdaudio_rip_close(cd->ripper);
@@ -446,7 +446,7 @@ static int read_audio_cdaudio(void * priv,
                               int num_samples)
   {
   int samples_read = 0, samples_copied;
-  cdaudio_t * cd = (cdaudio_t*)priv;
+  cdaudio_t * cd = priv;
   
   if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
     {
@@ -485,7 +485,7 @@ static void seek_cdaudio(void * priv, int64_t * time, int scale)
 
   uint32_t sample_position, samples_to_skip;
   
-  cdaudio_t * cd = (cdaudio_t*)priv;
+  cdaudio_t * cd = priv;
   
   if(!cd->rip_initialized)
     {
@@ -520,7 +520,7 @@ static void seek_cdaudio(void * priv, int64_t * time, int scale)
 
 static void close_cdaudio(void * priv)
   {
-  cdaudio_t * cd = (cdaudio_t*)priv;
+  cdaudio_t * cd = priv;
   if(cd->cdio)
     {
     bg_cdaudio_close(cd->cdio);
@@ -683,7 +683,7 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
 
 static const bg_parameter_info_t * get_parameters_cdaudio(void * data)
   {
-  cdaudio_t * cd = (cdaudio_t*)data;
+  cdaudio_t * cd = data;
   bg_parameter_info_t const * srcs[3];
 
   if(!cd->parameters)
@@ -700,7 +700,7 @@ static const bg_parameter_info_t * get_parameters_cdaudio(void * data)
 static void set_parameter_cdaudio(void * data, const char * name,
                                   const bg_parameter_value_t * val)
   {
-  cdaudio_t * cd = (cdaudio_t*)data;
+  cdaudio_t * cd = data;
 
   if(!name)
     return;

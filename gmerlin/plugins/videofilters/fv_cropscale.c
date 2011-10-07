@@ -120,7 +120,7 @@ static gavl_video_options_t * get_options_cropscale(void * priv)
 static void destroy_cropscale(void * priv)
   {
   cropscale_priv_t * vp;
-  vp = (cropscale_priv_t *)priv;
+  vp = priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
   gavl_video_scaler_destroy(vp->scaler);
@@ -565,7 +565,7 @@ static void set_parameter_cropscale(void * priv, const char * name,
   gavl_downscale_filter_t new_downscale_filter;
   chroma_out_mode_t new_chroma_out_mode;
   
-  vp = (cropscale_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -874,7 +874,7 @@ static void connect_input_port_cropscale(void * priv,
                                     void * data, int stream, int port)
   {
   cropscale_priv_t * vp;
-  vp = (cropscale_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -1172,7 +1172,7 @@ static void set_out_format(cropscale_priv_t * vp)
 static void set_input_format_cropscale(void * priv, gavl_video_format_t * format, int port)
   {
   cropscale_priv_t * vp;
-  vp = (cropscale_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -1197,7 +1197,7 @@ static void set_input_format_cropscale(void * priv, gavl_video_format_t * format
 static void get_output_format_cropscale(void * priv, gavl_video_format_t * format)
   {
   cropscale_priv_t * vp;
-  vp = (cropscale_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->out_format);
   }
@@ -1224,7 +1224,7 @@ static void transfer_global_options(gavl_video_options_t * opt,
 static int read_video_cropscale(void * priv, gavl_video_frame_t * frame, int stream)
   {
   cropscale_priv_t * vp;
-  vp = (cropscale_priv_t *)priv;
+  vp = priv;
   
   if(vp->need_reinit)
     {
@@ -1274,7 +1274,7 @@ static int read_video_cropscale(void * priv, gavl_video_frame_t * frame, int str
 static int need_restart_cropscale(void * priv)
   {
   cropscale_priv_t * vp;
-  vp = (cropscale_priv_t *)priv;
+  vp = priv;
   return vp->need_restart;
   }
 

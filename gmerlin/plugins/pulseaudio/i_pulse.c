@@ -29,7 +29,7 @@ static int open_pulse(void * data,
                       gavl_video_format_t * video_format)
   {
   bg_pa_t * priv;
-  priv = (bg_pa_t *)data;
+  priv = data;
 
   // gavl_audio_format_copy(&priv->format, format);
   
@@ -53,7 +53,7 @@ static int read_frame_pulse(void * p, gavl_audio_frame_t * f,
   {
   bg_pa_t * priv;
   int error = 0;
-  priv = (bg_pa_t *)p;
+  priv = p;
   pa_simple_read(priv->pa, f->samples.u_8,
                  priv->block_align * num_samples,
                  &error);
@@ -112,7 +112,7 @@ static void
 set_parameter_pulse(void * p, const char * name,
                     const bg_parameter_value_t * val)
   {
-  bg_pa_t * priv = (bg_pa_t*)(p);
+  bg_pa_t * priv = p;
   
   if(!name)
     return;

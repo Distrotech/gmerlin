@@ -53,7 +53,7 @@ static const bg_parameter_info_t parameters[] =
 static void set_parameter_esd(void * data, const char * name,
                               const bg_parameter_value_t * val)
   {
-  esd_t * e = (esd_t *)data;
+  esd_t * e = data;
 
   if(!name)
     return;
@@ -73,7 +73,7 @@ static void * create_esd()
 
 static void destroy_esd(void *data)
   {
-  esd_t * e = (esd_t *)data;
+  esd_t * e = data;
 
   if(e->hostname)
     free(e->hostname);
@@ -82,7 +82,7 @@ static void destroy_esd(void *data)
 
 static int open_esd(void * data, gavl_audio_format_t * format)
   {
-  esd_t * e = (esd_t *)data;
+  esd_t * e = data;
   e->bytes_per_sample = 1;
 
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
@@ -129,7 +129,7 @@ static int open_esd(void * data, gavl_audio_format_t * format)
 
 static int start_esd(void * p)
   {
-  esd_t * e = (esd_t *)p;
+  esd_t * e = p;
   e->esd_socket = esd_play_stream(e->esd_format,
                                   e->samplerate,
                                   e->hostname,
@@ -141,7 +141,7 @@ static int start_esd(void * p)
 
 static void write_esd(void * p, gavl_audio_frame_t * f)
   {
-  esd_t * e = (esd_t*)(p);
+  esd_t * e = p;
   write(e->esd_socket, f->channels.s_8[0], f->valid_samples *
         e->bytes_per_sample);
   }
@@ -153,7 +153,7 @@ static void close_esd(void * p)
 
 static void stop_esd(void * p)
   {
-  esd_t * e = (esd_t*)(p);
+  esd_t * e = p;
   esd_close(e->esd_socket);
   }
 

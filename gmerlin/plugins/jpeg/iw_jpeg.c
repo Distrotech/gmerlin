@@ -291,7 +291,7 @@ static void set_parameter_jpeg(void * p, const char * name,
                                const bg_parameter_value_t * val)
   {
   jpeg_t * jpeg;
-  jpeg = (jpeg_t *)p;
+  jpeg = p;
   
   if(!name)
     return;

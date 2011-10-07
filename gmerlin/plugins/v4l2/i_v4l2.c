@@ -422,7 +422,7 @@ static int open_v4l(void * priv,
   unsigned int i;
   enum v4l2_buf_type type;
 
-  v4l = (v4l2_t*)priv;
+  v4l = priv;
   gavl_timer_set(v4l->timer, 0);
   gavl_timer_start(v4l->timer);
   /* Open device */
@@ -666,7 +666,7 @@ static void close_v4l(void * priv)
   v4l2_t * v4l;
   enum v4l2_buf_type type;
   unsigned int i;
-  v4l = (v4l2_t*)priv;
+  v4l = priv;
   gavl_timer_stop(v4l->timer);
 
   // stop_capturing                  (void)
@@ -842,7 +842,7 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
 static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
   {
   v4l2_t * v4l;
-  v4l = (v4l2_t*)priv;
+  v4l = priv;
 
   
   for (;;)
@@ -904,7 +904,7 @@ static void * create_v4l()
 static void  destroy_v4l(void * priv)
   {
   v4l2_t * v4l;
-  v4l = (v4l2_t*)priv;
+  v4l = priv;
   gavl_video_frame_null(v4l->frame);
   gavl_video_frame_destroy(v4l->frame);
 #if HAVE_V4LCONVERT
@@ -1052,7 +1052,7 @@ static void create_parameters(v4l2_t * v4l)
 static const bg_parameter_info_t * get_parameters_v4l(void * priv)
   {
   v4l2_t * v4l;
-  v4l = (v4l2_t*)priv;
+  v4l = priv;
   if(!v4l->parameters)
     create_parameters(v4l);
   return v4l->parameters;
@@ -1062,7 +1062,7 @@ static int get_parameter_v4l(void * priv, const char * name,
                              bg_parameter_value_t * val)
   {
   v4l2_t * v4l;
-  v4l = (v4l2_t*)priv;
+  v4l = priv;
   if(v4l->controls && (v4l->fd >= 0))
     {
     int i;
@@ -1098,7 +1098,7 @@ static void set_parameter_v4l(void * priv, const char * name,
                               const bg_parameter_value_t * val)
   {
   v4l2_t * v4l;
-  v4l = (v4l2_t*)priv;
+  v4l = priv;
 
   if(!name)
     {

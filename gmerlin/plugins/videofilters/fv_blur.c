@@ -102,7 +102,7 @@ static void transfer_global_options(gavl_video_options_t * opt,
 static void destroy_blur(void * priv)
   {
   blur_priv_t * vp;
-  vp = (blur_priv_t *)priv;
+  vp = priv;
   if(vp->frame) gavl_video_frame_destroy(vp->frame);
   if(vp->scaler) gavl_video_scaler_destroy(vp->scaler);
   gavl_video_options_destroy(vp->global_opt);
@@ -155,7 +155,7 @@ static float * get_coeffs(float radius, int * r_i, int mode)
       return NULL;
     }
   if(*r_i < 1)
-    return (float*)(0);
+    return NULL;
   /* Allocate and set return values */
   ret = malloc(((*r_i * 2) + 1)*sizeof(*ret));
 
@@ -283,7 +283,7 @@ static void set_parameter_blur(void * priv, const char * name,
                                const bg_parameter_value_t * val)
   {
   blur_priv_t * vp;
-  vp = (blur_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -337,7 +337,7 @@ static void connect_input_port_blur(void * priv,
                                          void * data, int stream, int port)
   {
   blur_priv_t * vp;
-  vp = (blur_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -351,7 +351,7 @@ static void connect_input_port_blur(void * priv,
 static void set_input_format_blur(void * priv, gavl_video_format_t * format, int port)
   {
   blur_priv_t * vp;
-  vp = (blur_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -363,14 +363,14 @@ static void set_input_format_blur(void * priv, gavl_video_format_t * format, int
 static void get_output_format_blur(void * priv, gavl_video_format_t * format)
   {
   blur_priv_t * vp;
-  vp = (blur_priv_t *)priv;
+  vp = priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
 static int read_video_blur(void * priv, gavl_video_frame_t * frame, int stream)
   {
   blur_priv_t * vp;
-  vp = (blur_priv_t *)priv;
+  vp = priv;
 
   if((vp->radius_h != 0.0) || (vp->radius_v != 0.0))
     {

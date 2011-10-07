@@ -197,7 +197,7 @@ static int open_v4l(void * priv,
                     gavl_video_format_t * format)
   {
   v4l_t * v4l;
-  v4l = (v4l_t*)priv;
+  v4l = priv;
 
   /* Open device */
 
@@ -328,7 +328,7 @@ static int open_v4l(void * priv,
 static void close_v4l(void * priv)
   {
   v4l_t * v4l;
-  v4l = (v4l_t*)priv;
+  v4l = priv;
 
   if(v4l->fd >= 0)
     {
@@ -342,7 +342,7 @@ static void close_v4l(void * priv)
 static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
   {
   v4l_t * v4l;
-  v4l = (v4l_t*)priv;
+  v4l = priv;
 
   v4l->mmap_struct.frame = v4l->frame_index;
   
@@ -380,7 +380,7 @@ static void * create_v4l()
 static void  destroy_v4l(void * priv)
   {
   v4l_t * v4l;
-  v4l = (v4l_t*)priv;
+  v4l = priv;
   gavl_video_frame_null(v4l->frame);
   gavl_video_frame_destroy(v4l->frame);
   close_v4l(priv);
@@ -534,7 +534,7 @@ static void create_parameters(v4l_t * v4l)
 static const bg_parameter_info_t * get_parameters_v4l(void * priv)
   {
   v4l_t * v4l;
-  v4l = (v4l_t*)priv;
+  v4l = priv;
 
   if(!v4l->parameters ||
      (v4l->have_pwc != v4l->have_pwc_parameters))
@@ -550,7 +550,7 @@ static void set_parameter_v4l(void * priv, const char * name,
   {
   char * pos;
   v4l_t * v4l;
-  v4l = (v4l_t*)priv;
+  v4l = priv;
 
   if(!name)
     {

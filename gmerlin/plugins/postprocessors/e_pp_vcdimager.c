@@ -81,7 +81,7 @@ static void * create_vcdimager()
 static void destroy_vcdimager(void * priv)
   {
   vcdimager_t * vcdimager;
-  vcdimager = (vcdimager_t*)priv;
+  vcdimager = priv;
 
   FREE(vcdimager->xml_file);
   FREE(vcdimager->bin_file);
@@ -150,7 +150,7 @@ static const bg_parameter_info_t * get_parameters_vcdimager(void * data)
 
 static void set_parameter_vcdimager(void * data, const char * name, const bg_parameter_value_t * v)
   {
-  vcdimager_t * vcd = (vcdimager_t*)data;
+  vcdimager_t * vcd = data;
   if(!name)
     return;
   SET_STR(bin_file);
@@ -165,7 +165,7 @@ static void set_parameter_vcdimager(void * data, const char * name, const bg_par
 static void set_callbacks_vcdimager(void * data, bg_e_pp_callbacks_t * callbacks)
   {
   vcdimager_t * vcdimager;
-  vcdimager = (vcdimager_t*)data;
+  vcdimager = data;
   vcdimager->callbacks = callbacks;
   bg_cdrdao_set_callbacks(vcdimager->cdr, callbacks);
   
@@ -174,7 +174,7 @@ static void set_callbacks_vcdimager(void * data, bg_e_pp_callbacks_t * callbacks
 static int init_vcdimager(void * data)
   {
   vcdimager_t * vcdimager;
-  vcdimager = (vcdimager_t*)data;
+  vcdimager = data;
 #if 0
   if(!bg_search_file_exec("cdrdao", NULL) ||
      !bg_search_file_exec("vcdxgen", NULL) ||
@@ -190,7 +190,7 @@ static void add_track_vcdimager(void * data, const char * filename,
                                 bg_metadata_t * metadata, int pp_only)
   {
   vcdimager_t * vcdimager;
-  vcdimager = (vcdimager_t*)data;
+  vcdimager = data;
   vcdimager->files = realloc(vcdimager->files,
                              sizeof(*(vcdimager->files)) * (vcdimager->num_files+1));
   vcdimager->files[vcdimager->num_files].name = bg_strdup(NULL, filename);
@@ -283,7 +283,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   char * bin_file = NULL;
   char * cue_file = NULL;
   char * xml_file = NULL;
-  vcdimager = (vcdimager_t*)data;
+  vcdimager = data;
   
   /* Build vcdxgen commandline */
 
@@ -389,7 +389,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
 static void stop_vcdimager(void * data)
   {
   vcdimager_t * vcdimager;
-  vcdimager = (vcdimager_t*)data;
+  vcdimager = data;
   bg_cdrdao_stop(vcdimager->cdr);
   }
 

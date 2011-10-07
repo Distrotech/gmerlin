@@ -106,7 +106,7 @@ get_parameters_oss(void * priv)
 static void
 set_parameter_oss(void * p, const char * name, const bg_parameter_value_t * val)
   {
-  oss_t * priv = (oss_t*)(p);
+  oss_t * priv = p;
   char * pos;
   if(!name)
     return;
@@ -150,7 +150,7 @@ static int open_oss(void * data,
   {
   gavl_sample_format_t sample_format;
   int test_value;
-  oss_t * priv = (oss_t*)data;
+  oss_t * priv = data;
 
   priv->fd = -1;
   priv->samples_read = 0;
@@ -242,7 +242,7 @@ static int open_oss(void * data,
 
 static void close_oss(void * p)
   {
-  oss_t * priv = (oss_t*)(p);
+  oss_t * priv = p;
   
   if(priv->fd != -1)
     {
@@ -253,7 +253,7 @@ static void close_oss(void * p)
 
 static int read_frame_oss(void * p, gavl_audio_frame_t * f, int stream, int num_samples)
   {
-  oss_t * priv = (oss_t*)(p);
+  oss_t * priv = p;
   
   f->valid_samples = read(priv->fd,
                           f->samples.s_8,
@@ -266,7 +266,7 @@ static int read_frame_oss(void * p, gavl_audio_frame_t * f, int stream, int num_
 
 static void destroy_oss(void * p)
   {
-  oss_t * priv = (oss_t*)(p);
+  oss_t * priv = p;
 
   if(priv->device)
     free(priv->device);

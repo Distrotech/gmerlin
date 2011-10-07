@@ -59,7 +59,7 @@ static void dump_mikmod(void * data, const char * path)
   {
   FILE * out = stderr;
   i_mikmod_t * mikmod;
-  mikmod = (i_mikmod_t*)data;
+  mikmod = data;
    
   fprintf(out, "  DUMP_MIKMOD:\n");
   fprintf(out, "    Path:            %s\n", path);
@@ -95,7 +95,7 @@ static int read_audio_samples_mikmod(void * data, gavl_audio_frame_t * f, int st
                                      int num_samples)
   {
   int result;
-  i_mikmod_t * e = (i_mikmod_t*)data;
+  i_mikmod_t * e = data;
 
   result = bg_subprocess_read_data(e->proc->stdout_fd,
                                    f->samples.u_8, num_samples * e->block_align);
@@ -115,7 +115,7 @@ static int open_mikmod(void * data, const char * arg)
   {
   int result;
   char *command;
-  i_mikmod_t * mik = (i_mikmod_t*)data;
+  i_mikmod_t * mik = data;
   gavl_audio_frame_t * test_frame;
   
   // if no mikmod installed 
@@ -217,14 +217,14 @@ static int get_num_tracks_mikmod(void * data)
 
 static bg_track_info_t * get_track_info_mikmod(void * data, int track)
   {
-  i_mikmod_t * e = (i_mikmod_t*)data;
+  i_mikmod_t * e = data;
   return &e->track_info;
   }
 
 
 static void close_mikmod(void * data)
   {
-  i_mikmod_t * e = (i_mikmod_t*)data;
+  i_mikmod_t * e = data;
   if(e->proc)
     {
     if(!e->eof)
@@ -237,7 +237,7 @@ static void close_mikmod(void * data)
 
 static void destroy_mikmod(void * data)
   {
-  i_mikmod_t * e = (i_mikmod_t*)data;
+  i_mikmod_t * e = data;
   close_mikmod(data);
   free(e);
   }
@@ -300,7 +300,7 @@ static void set_parameter_mikmod(void * data, const char * name,
                                  const bg_parameter_value_t * val)
   {
   i_mikmod_t * mikmod;
-  mikmod = (i_mikmod_t*)data;
+  mikmod = data;
   if(!name)
     return;
   else if(!strcmp(name, "output"))

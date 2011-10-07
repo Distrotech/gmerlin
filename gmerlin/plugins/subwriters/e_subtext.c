@@ -159,7 +159,7 @@ static int open_subtext(void * data, const char * filename,
                         const bg_chapter_list_t * chapter_list)
   {
   subtext_t * e;
-  e = (subtext_t *)data;
+  e = data;
   
   e->filename =
     bg_filename_ensure_extension(filename,
@@ -180,7 +180,7 @@ static int add_subtitle_text_stream_subtext(void * data, const char * language,
                                             int * timescale)
   {
   subtext_t * e;
-  e = (subtext_t *)data;
+  e = data;
   *timescale = GAVL_TIME_SCALE;
   return 0;
   }
@@ -188,7 +188,7 @@ static int add_subtitle_text_stream_subtext(void * data, const char * language,
 static int start_subtext(void * data)
   {
   subtext_t * e;
-  e = (subtext_t *)data;
+  e = data;
   
   if(formats[e->format_index].write_header)
     formats[e->format_index].write_header(e);
@@ -201,7 +201,7 @@ static int write_subtitle_text_subtext(void * data, const char * text,
                                        gavl_time_t duration, int stream)
   {
   subtext_t * e;
-  e = (subtext_t *)data;
+  e = data;
   formats[e->format_index].write_subtitle(e, text, start, duration);
   e->titles_written++;
 
@@ -214,7 +214,7 @@ static int write_subtitle_text_subtext(void * data, const char * text,
 static int close_subtext(void * data, int do_delete)
   {
   subtext_t * e;
-  e = (subtext_t *)data;
+  e = data;
   if(e->output)
     {
     fclose(e->output);
@@ -228,7 +228,7 @@ static int close_subtext(void * data, int do_delete)
 static void destroy_subtext(void * data)
   {
   subtext_t * e;
-  e = (subtext_t *)data;
+  e = data;
   if(e->output)
     close_subtext(data, 1);
   if(e->filename)
@@ -260,7 +260,7 @@ static void set_parameter_subtext(void * data, const char * name,
   {
   int i;
   subtext_t * e;
-  e = (subtext_t *)data;
+  e = data;
 
   if(!name)
     return;

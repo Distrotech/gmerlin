@@ -125,7 +125,7 @@ static void * create_decimate()
 static void destroy_decimate(void * priv)
   {
   decimate_priv_t * vp;
-  vp = (decimate_priv_t *)priv;
+  vp = priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
   gavl_video_frame_null(vp->b1);
@@ -190,7 +190,7 @@ static const bg_parameter_info_t * get_parameters_decimate(void * priv)
 static void set_parameter_decimate(void * priv, const char * name, const bg_parameter_value_t * val)
   {
   decimate_priv_t * vp;
-  vp = (decimate_priv_t *)priv;
+  vp = priv;
 
   if(!name)
     return;
@@ -210,7 +210,7 @@ static void connect_input_port_decimate(void * priv,
                                     void * data, int stream, int port)
   {
   decimate_priv_t * vp;
-  vp = (decimate_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -223,7 +223,7 @@ static void connect_input_port_decimate(void * priv,
 static void reset_decimate(void * priv)
   {
   decimate_priv_t * vp;
-  vp = (decimate_priv_t *)priv;
+  vp = priv;
   vp->have_frame = 0;
   }
 
@@ -232,7 +232,7 @@ set_input_format_decimate(void * priv,
                           gavl_video_format_t * format, int port)
   {
   decimate_priv_t * vp;
-  vp = (decimate_priv_t *)priv;
+  vp = priv;
 
   if(!port)
     {
@@ -400,7 +400,7 @@ static void get_output_format_decimate(void * priv,
                                        gavl_video_format_t * format)
   {
   decimate_priv_t * vp;
-  vp = (decimate_priv_t *)priv;
+  vp = priv;
   
   gavl_video_format_copy(format, &vp->format);
   }
@@ -451,7 +451,7 @@ static int read_video_decimate(void * priv,
   {
   decimate_priv_t * vp;
   int skipped = 0;
-  vp = (decimate_priv_t *)priv;
+  vp = priv;
   if(!vp->have_frame)
     {
     if(!vp->read_func(vp->read_data, frame, vp->read_stream))

@@ -58,7 +58,7 @@ static void * create_pnm()
 
 static void destroy_pnm(void* priv)
   {
-  pnm_t * pnm = (pnm_t*)priv;
+  pnm_t * pnm = priv;
   if(pnm->comment)
     free(pnm->comment);
   free(pnm);
@@ -74,7 +74,7 @@ static int write_header_pnm(void * priv, const char * filename,
                             gavl_video_format_t * format, const bg_metadata_t * m)
   {
   char * real_filename;
-  pnm_t * p = (pnm_t*)priv;
+  pnm_t * p = priv;
 
   real_filename = bg_filename_ensure_extension(filename, "ppm");
 
@@ -115,7 +115,7 @@ static int write_header_pnm(void * priv, const char * filename,
 static int write_image_pnm(void *priv, gavl_video_frame_t *frame)
   {
   int i, j;
-  pnm_t *p = (pnm_t*)priv;
+  pnm_t *p = priv;
   uint8_t * frame_ptr;
   uint8_t * frame_ptr_start;
 
@@ -190,7 +190,7 @@ static void set_parameter_pnm(void * p, const char * name,
                               const bg_parameter_value_t * val)
   {
   pnm_t * pnm;
-  pnm = (pnm_t *)p;
+  pnm = p;
 
   if(!name)
     return;
