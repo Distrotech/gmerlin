@@ -1027,7 +1027,8 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
     
     for(i = 0; i < ret->root_section.num_children; i++)
       {
-      ret->root_section.children[i] = calloc(1, sizeof(*ret->root_section.children[i]));
+      ret->root_section.children[i] =
+        calloc(1, sizeof(*ret->root_section.children[i]));
       
       if(info[index].gettext_domain)
         translation_domain = info[i].gettext_domain;
@@ -1043,7 +1044,8 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
                          TR_DOM(info[index].long_name), -1);
 
       if(ret->preset_section)
-        preset_subsection = bg_cfg_section_find_subsection(ret->preset_section, info[index].name);
+        preset_subsection =
+          bg_cfg_section_find_subsection(ret->preset_section, info[index].name);
       else
         preset_subsection = NULL;
 
@@ -1057,7 +1059,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
 
       ret->root_section.children[i]->parent = &ret->root_section;
 
-      while(info[index].type == BG_PARAMETER_SECTION)
+      //      while(info[index].type == BG_PARAMETER_SECTION)
         index++;
 
       

@@ -123,7 +123,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame,
 /** @}
  */
 
-#define BG_PLUGIN_API_VERSION 24
+#define BG_PLUGIN_API_VERSION 25
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -914,6 +914,41 @@ struct bg_oa_plugin_s
  *  \brief Recorder
  */ 
 
+typedef struct bg_recorder_callbacks_s bg_recorder_callbacks_t;
+
+/** \ingroup plugin_r
+ *  \brief Callbacks for recorder plugins
+ *
+ *  Passing the callback structure to the plugin is optional. Futhermore,
+ *  any of the callback functions is optional (i.e. can be NULL). The plugin
+ *  might use the callbacks for propagating events.
+ */
+
+struct bg_recorder_callbacks_s
+  {
+  /** \brief Name changed
+   *  \param data The data member of this bg_input_callbacks_s struct
+   *  \param time The new name
+   *
+   *  This is for web-radio stations, which send song-names.
+   */
+  
+  void (*name_changed)(void * data, const char * name);
+  
+  /** \brief Metadata changed
+   *  \param data The data member of this bg_input_callbacks_s struct
+   *  \param m The new metadata
+   *
+   *  This is for web-radio stations, which send metadata for each song.
+   */
+  
+  void (*metadata_changed)(void * data, const bg_metadata_t * m);
+  
+  void * data; //!< Application specific data passed as the first argument to all callbacks.
+  
+  };
+
+
 /** \ingroup plugin_r
  *  \brief Typedef for recorder
  */
@@ -930,6 +965,17 @@ struct bg_recorder_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
+  /** \brief Set callbacks
+   *  \param priv The handle returned by the create() method
+   *  \param callbacks Callback structure initialized by the caller before
+   *
+   * Set callback functions, which will be called by the plugin.
+   * Defining as well as calling this function is optional. Any of the
+   * members of callbacks can be NULL.
+   */
+  
+  void (*set_callbacks)(void * priv, bg_recorder_callbacks_t * callbacks);
+  
   /** \brief Open plugin
    *  \param priv The handle returned by the create() method
    *  \param format The desired format
@@ -938,8 +984,10 @@ struct bg_recorder_plugin_s
    *  by the plugin. To convert the source format to the output format,
    *  use a \ref gavl_audio_converter_t
    */
+
   
-  int (*open)(void * priv, gavl_audio_format_t * audio_format, gavl_video_format_t * video_format);
+  int (*open)(void * priv, gavl_audio_format_t * audio_format,
+              gavl_video_format_t * video_format);
   
   /** \brief Read audio samples
    */
@@ -1720,7 +1768,19 @@ struct bg_encoder_plugin_s
    */
   
   int (*write_subtitle_overlay)(void * data, gavl_overlay_t * ovl, int stream);
+
+  /** \brief Update metadata
+   *  \param data The data member of this bg_input_callbacks_s struct
+   *  \param name Name
+   *  \param m Metadata
+   *
+   *  Update metadata for broadcasting plugins.
+   *  Either name or m can be NULL.
+   */
   
+  void (*update_metadata)(void * data, const char * name,
+                          const bg_metadata_t * m);
+
   /** \brief Close encoder
    *  \param priv The handle returned by the create() method
    *  \param do_delete Set this to 1 to delete all created files
@@ -1728,7 +1788,7 @@ struct bg_encoder_plugin_s
    *
    *  After calling this function, the plugin should be destroyed.
    */
-
+  
   int (*close)(void * data, int do_delete);
   };
 

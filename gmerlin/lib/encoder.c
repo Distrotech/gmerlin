@@ -1123,3 +1123,17 @@ int bg_encoder_write_video_packet(bg_encoder_t * enc, gavl_packet_t * p, int str
   video_stream_t * s = &enc->video_streams[stream];
   return s->plugin->write_video_packet(s->priv, p, s->out_index);
   }
+
+void bg_encoder_update_metadata(bg_encoder_t * enc,
+                                const char * name,
+                                const bg_metadata_t * m)
+  {
+  int i;
+  for(i = 0; i < enc->num_plugins; i++)
+    {
+    bg_encoder_plugin_t * encoder =
+      (bg_encoder_plugin_t *)enc->plugins[i]->plugin;
+    if(encoder->update_metadata)
+      encoder->update_metadata(enc->plugins[i]->priv, name, m);
+    }
+  }

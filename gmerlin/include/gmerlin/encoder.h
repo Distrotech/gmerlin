@@ -66,7 +66,8 @@ int bg_encoder_add_video_stream(bg_encoder_t *,
                                 const gavl_video_format_t * format,
                                 int index);
 
-int bg_encoder_add_audio_stream_compressed(bg_encoder_t *, const char * language,
+int bg_encoder_add_audio_stream_compressed(bg_encoder_t *,
+                                           const char * language,
                                            const gavl_audio_format_t * format,
                                            const gavl_compression_info_t * info,
                                            int index);
@@ -81,27 +82,48 @@ int bg_encoder_add_subtitle_text_stream(bg_encoder_t *, const char * language,
                                         int timescale,
                                         int index);
 
-int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t *, const char * language,
+int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t *,
+                                           const char * language,
                                            const gavl_video_format_t * format,
-                                           int index, bg_stream_type_t source_format);
+                                           int index,
+                                           bg_stream_type_t source_format);
 
 
 /* Get formats */
-void bg_encoder_get_audio_format(bg_encoder_t *, int stream, gavl_audio_format_t*ret);
-void bg_encoder_get_video_format(bg_encoder_t *, int stream, gavl_video_format_t*ret);
-void bg_encoder_get_subtitle_overlay_format(bg_encoder_t *, int stream, gavl_video_format_t*ret);
-void bg_encoder_get_subtitle_text_timescale(bg_encoder_t *, int stream, int * ret);
+void bg_encoder_get_audio_format(bg_encoder_t *, int stream,
+                                 gavl_audio_format_t*ret);
+void bg_encoder_get_video_format(bg_encoder_t *, int stream,
+                                 gavl_video_format_t*ret);
+void bg_encoder_get_subtitle_overlay_format(bg_encoder_t *, int stream,
+                                            gavl_video_format_t*ret);
+void bg_encoder_get_subtitle_text_timescale(bg_encoder_t *, int stream,
+                                            int * ret);
 
 
 /* Start encoding */
 int bg_encoder_start(bg_encoder_t *);
 
 /* Write frame */
-int bg_encoder_write_audio_frame(bg_encoder_t *, gavl_audio_frame_t * frame, int stream);
-int bg_encoder_write_video_frame(bg_encoder_t *, gavl_video_frame_t * frame, int stream);
+int bg_encoder_write_audio_frame(bg_encoder_t *,
+                                 gavl_audio_frame_t * frame, int stream);
+
+int bg_encoder_write_video_frame(bg_encoder_t *,
+                                 gavl_video_frame_t * frame, int stream);
+
 int bg_encoder_write_subtitle_text(bg_encoder_t *,const char * text,
                                    int64_t start, int64_t duration, int stream);
-int bg_encoder_write_subtitle_overlay(bg_encoder_t *, gavl_overlay_t * ovl, int stream);
 
-int bg_encoder_write_audio_packet(bg_encoder_t *, gavl_packet_t * p, int stream);
-int bg_encoder_write_video_packet(bg_encoder_t *, gavl_packet_t * p, int stream);
+int bg_encoder_write_subtitle_overlay(bg_encoder_t *,
+                                      gavl_overlay_t * ovl, int stream);
+
+int bg_encoder_write_audio_packet(bg_encoder_t *,
+                                  gavl_packet_t * p, int stream);
+
+int bg_encoder_write_video_packet(bg_encoder_t *,
+                                  gavl_packet_t * p, int stream);
+
+/* Update metadata */
+
+void bg_encoder_update_metadata(bg_encoder_t *,
+                                const char * name,
+                                const bg_metadata_t * m);
