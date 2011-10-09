@@ -44,6 +44,8 @@ bg_shout_t * bg_shout_create(int format)
 
   shout_init();
   ret->s = shout_new();
+
+  
   shout_set_format(ret->s, format);
   return ret; 
   }
@@ -167,6 +169,7 @@ void bg_shout_destroy(bg_shout_t * s)
   shout_free(s->s);
   }
 
+
 int bg_shout_write(bg_shout_t * s, const uint8_t * data, int len)
   {
   if(shout_send(s->s, data, len) != SHOUTERR_SUCCESS)
@@ -174,3 +177,26 @@ int bg_shout_write(bg_shout_t * s, const uint8_t * data, int len)
   return len;
   }
 
+void bg_shout_update_metadata(bg_shout_t * s, const char * name,
+                              const bg_metadata_t * m)
+  {
+  shout_metadata_t * met;
+  
+  met = shout_metadata_new();
+  
+  if(m && m->artist && m->title)
+    {
+    shout_metadata_add(met, "artist", m->artist);
+    shout_metadata_add(met, "title",  m->title);
+    }
+  else if(name)
+    {
+    shout_metadata_add(met, "song", name);
+    }
+  else /* Clear everything */
+    {
+    shout_metadata_add(met, "song", shout_get_name(s->s));
+    }
+  shout_set_metadata(s->s, met);
+  shout_metadata_free(met);
+  }

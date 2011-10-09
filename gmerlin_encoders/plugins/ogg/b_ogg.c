@@ -34,7 +34,7 @@
 
 #include "ogg_common.h"
 
-#undef HAVE_FLAC
+#undef HAVE_FLAC /* Switch off flac */
 
 extern const bg_ogg_codec_t bg_theora_codec;
 extern const bg_ogg_codec_t bg_vorbis_codec;
@@ -53,9 +53,9 @@ static bg_ogg_codec_t const * const audio_codecs[] =
 #ifdef HAVE_SPEEX
     &bg_speex_codec,
 #endif
-    // #ifdef HAVE_FLAC
-    //    &bg_flacogg_codec,
-    // #endif
+#ifdef HAVE_FLAC
+    &bg_flacogg_codec,
+#endif
     NULL,
   };
 
@@ -78,7 +78,8 @@ static int add_audio_stream_b_ogg(void * data,
   return ret;
   }
 
-static int add_video_stream_b_ogg(void * data, const gavl_video_format_t * format)
+static int add_video_stream_b_ogg(void * data,
+                                  const gavl_video_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_video_stream(data, format);
@@ -87,7 +88,8 @@ static int add_video_stream_b_ogg(void * data, const gavl_video_format_t * forma
   }
 
 static void set_audio_parameter_b_ogg(void * data, int stream,
-                                       const char * name, const bg_parameter_value_t * val)
+                                      const char * name,
+                                      const bg_parameter_value_t * val)
   {
   int i;
   if(!name)
@@ -124,6 +126,14 @@ static int open_callback(void * data)
   return bg_shout_open(data);
   }
 
+static void update_metadata(void * data,
+                            const char * name,
+                            const bg_metadata_t * m)
+  {
+  bg_ogg_encoder_t * enc = data;
+  bg_shout_update_metadata(enc->write_callback_data, name, m);
+  }
+
 static void * create_b_ogg()
   {
   bg_ogg_encoder_t * ret = bg_ogg_encoder_create();
@@ -140,7 +150,8 @@ static const bg_parameter_info_t * get_parameters_b_ogg(void * data)
   return bg_shout_get_parameters(enc->write_callback_data);
   }
 
-static void set_parameter_b_ogg(void * data, const char * name, const bg_parameter_value_t * val)
+static void set_parameter_b_ogg(void * data, const char * name,
+                                const bg_parameter_value_t * val)
   {
   bg_ogg_encoder_t * enc = data;
   bg_shout_set_parameter(enc->write_callback_data, name, val);
@@ -148,7 +159,8 @@ static void set_parameter_b_ogg(void * data, const char * name, const bg_paramet
 
 static int
 open_b_ogg(void * data, const char * file,
-           const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list)
+           const bg_metadata_t * metadata,
+           const bg_chapter_list_t * chapter_list)
   {
   /* TODO: Handle metadata */
   
@@ -194,6 +206,8 @@ const bg_encoder_plugin_t the_plugin =
 
     .get_audio_format =        bg_ogg_encoder_get_audio_format,
     .get_video_format =        bg_ogg_encoder_get_video_format,
+
+    .update_metadata  =        update_metadata,
     
     .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
     .write_video_frame =   bg_ogg_encoder_write_video_frame,
