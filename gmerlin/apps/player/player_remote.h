@@ -64,3 +64,16 @@
 #define PLAYER_COMMAND_SET_CHAPTER    15
 #define PLAYER_COMMAND_NEXT_CHAPTER   16
 #define PLAYER_COMMAND_PREV_CHAPTER   17
+
+/* Query values */
+
+#define PLAYER_COMMAND_GET_NAME       (1<<8)
+#define PLAYER_COMMAND_GET_METADATA   (2<<8)
+#define PLAYER_COMMAND_GET_TIME       (3<<8)
+
+/* Query responses */
+
+#define PLAYER_RESPONSE_GET_NAME      (1<<16)
+#define PLAYER_RESPONSE_GET_METADATA  (2<<16)
+#define PLAYER_RESPONSE_GET_TIME      (3<<16)
+

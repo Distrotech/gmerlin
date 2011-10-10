@@ -72,6 +72,7 @@ struct bg_remote_server_s
 
   int do_reopen;
   bg_msg_t * msg;
+  int last_read_fd;
   };
 
 bg_remote_server_t * bg_remote_server_create(int listen_port,
@@ -218,12 +219,24 @@ static void check_connections(bg_remote_server_t * s)
     }
   }
 
-bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
+static int select_socket(int fd, int milliseconds)
   {
   fd_set rset;
-  
   struct timeval timeout;
+
+  FD_ZERO (&rset);
+  FD_SET  (fd, &rset);
+
+  timeout.tv_sec  = milliseconds / 1000;
+  timeout.tv_usec = (milliseconds % 1000) * 1000;
   
+  if(select (fd+1, &rset, NULL, NULL, &timeout) > 0)
+    return 1;
+  return 0;
+  }
+
+bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
+  {
   server_connection_t * conn, * tmp_conn;
   check_connections(s);
 
@@ -234,17 +247,14 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
     
   while(conn)
     {
-    FD_ZERO (&rset);
-    FD_SET  (conn->fd, &rset);
-
-    timeout.tv_sec  = 0;
-    timeout.tv_usec = 0;
-    
-    if(select (conn->fd+1, &rset, NULL, NULL, &timeout) > 0)
+    if(select_socket(conn->fd, 0))
       {
       bg_msg_free(s->msg);
       if(bg_msg_read_socket(s->msg, conn->fd, -1))
+        {
+        s->last_read_fd = conn->fd;
         return s->msg;
+        }
       else /* Select said reading won't block but reading failed
               -> Client probably disconnected */
         {
@@ -258,6 +268,18 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
     }
   
   return NULL;
+  }
+
+bg_msg_t * bg_remote_server_get_msg_write(bg_remote_server_t * s)
+  {
+  bg_msg_free(s->msg);
+  return s->msg;
+  }
+
+int bg_remote_server_done_msg_write(bg_remote_server_t * s)
+  {
+  /* Write message */
+  return bg_msg_write_socket(s->msg, s->last_read_fd);
   }
 
 void bg_remote_server_wait_close(bg_remote_server_t * s)
@@ -274,7 +296,7 @@ void bg_remote_server_wait_close(bg_remote_server_t * s)
 
 void bg_remote_server_put_msg(bg_remote_server_t * s, bg_msg_t * m)
   {
-
+  
   }
 
 void bg_remote_server_destroy(bg_remote_server_t * s)
@@ -467,6 +489,12 @@ int bg_remote_client_done_msg_write(bg_remote_client_t * c)
 
 bg_msg_t * bg_remote_client_get_msg_read(bg_remote_client_t * c)
   {
+  if(select_socket(c->fd, 1000))
+    {
+    bg_msg_free(c->msg);
+    if(bg_msg_read_socket(c->msg, c->fd, -1))
+      return c->msg;
+    }
   return NULL;
   }
 

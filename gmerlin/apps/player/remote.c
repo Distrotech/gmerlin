@@ -59,9 +59,7 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
       locations[1] = NULL;
       gmerlin_add_locations(g, locations);
       free(arg_str);
-      
       break;
-      
     case PLAYER_COMMAND_PLAY_LOCATION:
       arg_str = bg_msg_get_arg_string(msg, 0);
       locations[0] = arg_str;
@@ -79,7 +77,6 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
       gmerlin_play_device(g, arg_str);
       free(arg_str);
       break;
-
       
 /* Volume control (arg: Volume in dB) */
 
@@ -117,6 +114,25 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
     case PLAYER_COMMAND_PREV_CHAPTER:
       bg_player_prev_chapter(g->player);
       break;
-      
+
+    case PLAYER_COMMAND_GET_NAME:
+      msg = bg_remote_server_get_msg_write(g->remote);
+      bg_msg_set_id(msg, PLAYER_RESPONSE_GET_NAME);
+      /* Set name */
+      bg_msg_set_arg_string(msg, 0, "BlaBla");
+      bg_remote_server_done_msg_write(g->remote);
+      break;
+    case PLAYER_COMMAND_GET_METADATA:
+      msg = bg_remote_server_get_msg_write(g->remote);
+      bg_msg_set_id(msg, PLAYER_RESPONSE_GET_METADATA);
+      /* Set Metadata */
+      bg_remote_server_done_msg_write(g->remote);
+      break;
+    case PLAYER_COMMAND_GET_TIME:
+      msg = bg_remote_server_get_msg_write(g->remote);
+      bg_msg_set_id(msg, PLAYER_RESPONSE_GET_TIME);
+      /* Set Time */
+      bg_remote_server_done_msg_write(g->remote);
+      break;
     }
   }

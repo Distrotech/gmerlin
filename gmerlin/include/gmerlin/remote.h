@@ -51,6 +51,10 @@ void bg_remote_server_destroy(bg_remote_server_t *);
 /* Wait until all client connections are closed (use with caution) */
 void bg_remote_server_wait_close(bg_remote_server_t * s);
 
+bg_msg_t * bg_remote_server_get_msg_write(bg_remote_server_t * s);
+int bg_remote_server_done_msg_write(bg_remote_server_t * s);
+
+
 /* Remote client */
 
 typedef struct bg_remote_client_s bg_remote_client_t;
@@ -71,6 +75,5 @@ bg_msg_t * bg_remote_client_get_msg_write(bg_remote_client_t * c);
 int bg_remote_client_done_msg_write(bg_remote_client_t * c);
 
 bg_msg_t * bg_remote_client_get_msg_read(bg_remote_client_t * c);
-
 
 #endif // __BG_REMOTE_H_
