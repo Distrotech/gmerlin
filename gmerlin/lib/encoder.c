@@ -1137,16 +1137,26 @@ int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
   }
 
     
-int bg_encoder_write_audio_packet(bg_encoder_t * enc, gavl_packet_t * p, int stream)
+int bg_encoder_write_audio_packet(bg_encoder_t * enc,
+                                  gavl_packet_t * p, int stream)
   {
+  int ret;
   audio_stream_t * s = &enc->audio_streams[stream];
-  return s->plugin->write_audio_packet(s->priv, p, s->out_index);
+  bg_plugin_lock(s->h);
+  ret = s->plugin->write_audio_packet(s->priv, p, s->out_index);
+  bg_plugin_unlock(s->h);
+  return ret;
   }
 
-int bg_encoder_write_video_packet(bg_encoder_t * enc, gavl_packet_t * p, int stream)
+int bg_encoder_write_video_packet(bg_encoder_t * enc,
+                                  gavl_packet_t * p, int stream)
   {
+  int ret;
   video_stream_t * s = &enc->video_streams[stream];
-  return s->plugin->write_video_packet(s->priv, p, s->out_index);
+  bg_plugin_lock(s->h);
+  ret = s->plugin->write_video_packet(s->priv, p, s->out_index);
+  bg_plugin_unlock(s->h);
+  return ret;
   }
 
 void bg_encoder_update_metadata(bg_encoder_t * enc,
