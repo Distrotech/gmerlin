@@ -421,49 +421,56 @@ char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs)
   char * ret = NULL;
   char * tmp;
 
+  char * sep;
+
+  if(use_tabs)
+    sep = ":\t ";
+  else
+    sep = ": ";
+  
   if(m->author)
     {
-    tmp = bg_sprintf(TR("Author:\t %s\n"), m->author);
+    tmp = bg_sprintf(TR("Author%s%s\n"), sep, m->author);
     META_STRCAT();
     }
   if(m->artist)
     {
-    tmp = bg_sprintf(TR("Artist:\t %s\n"), m->artist);
+    tmp = bg_sprintf(TR("Artist%s%s\n"), sep, m->artist);
     META_STRCAT();
     }
   if(m->title)
     {
-    tmp = bg_sprintf(TR("Title:\t %s\n"), m->title);
+    tmp = bg_sprintf(TR("Title%s%s\n"), sep, m->title);
     META_STRCAT();
     }
   if(m->album)
     {
-    tmp = bg_sprintf(TR("Album:\t %s\n"), m->album);
+    tmp = bg_sprintf(TR("Album%s%s\n"), sep, m->album);
     META_STRCAT();
     }
   if(m->copyright)
     {
-    tmp = bg_sprintf(TR("Copyright:\t %s\n"), m->copyright);
+    tmp = bg_sprintf(TR("Copyright%s%s\n"), sep, m->copyright);
     META_STRCAT();
     }
   if(m->genre)
     {
-    tmp = bg_sprintf(TR("Genre:\t %s\n"), m->genre);
+    tmp = bg_sprintf(TR("Genre%s%s\n"), sep, m->genre);
     META_STRCAT();
     }
   if(m->date)
     {
-    tmp = bg_sprintf(TR("Date:\t %s\n"), m->date);
+    tmp = bg_sprintf(TR("Date%s%s\n"), sep, m->date);
     META_STRCAT();
     }
   if(m->track)
     {
-    tmp = bg_sprintf(TR("Track:\t %d\n"), m->track);
+    tmp = bg_sprintf(TR("Track%s%d\n"), sep, m->track);
     META_STRCAT();
     }
   if(m->comment)
     {
-    tmp = bg_sprintf(TR("Comment:\t %s\n"), m->comment);
+    tmp = bg_sprintf(TR("Comment%s%s\n"), sep, m->comment);
     META_STRCAT();
     }
   /* Remove trailing '\n' */

@@ -87,9 +87,6 @@ struct bg_gtk_info_window_s
 
   /* We store everything interesting locally */
   
-  gavl_video_format_t subtitle_format;
-  
-
   int num_audio_streams;
   int num_video_streams;
   int num_subtitle_streams;
@@ -644,6 +641,7 @@ static gboolean idle_callback(gpointer data)
           set_line_multi(w, PATH_METADATA, tmp_string);
           free(tmp_string);
           }
+        bg_metadata_free(&arg_m);
         break;
       }
     bg_msg_queue_unlock_read(w->queue);

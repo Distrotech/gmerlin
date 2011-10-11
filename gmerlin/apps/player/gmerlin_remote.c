@@ -57,23 +57,58 @@ static void cmd_get_name(void * data, int * argc, char *** _argv, int arg)
 
 static void cmd_get_metadata(void * data, int * argc, char *** _argv, int arg)
   {
+  char * str;
+  bg_metadata_t m;
   bg_msg_t * msg;
   bg_remote_client_t * remote;
   remote = (bg_remote_client_t *)data;
   msg = bg_remote_client_get_msg_write(remote);
   bg_msg_set_id(msg, PLAYER_COMMAND_GET_METADATA);
   bg_remote_client_done_msg_write(remote);
+
+  msg = bg_remote_client_get_msg_read(remote);
+  if(!msg)
+    return;
+
+  memset(&m, 0, sizeof(m));
+  bg_msg_get_arg_metadata(msg, 0, &m);
+
+  str = bg_metadata_to_string(&m, 0);
+
+  if(str)
+    {
+    printf("%s\n", str);
+    free(str);
+    }
+  
+  bg_metadata_free(&m);
   
   }
 
 static void cmd_get_time(void * data, int * argc, char *** _argv, int arg)
   {
+  gavl_time_t time;
+  gavl_time_t duration;
   bg_msg_t * msg;
   bg_remote_client_t * remote;
+  char str[GAVL_TIME_STRING_LEN];
+  
   remote = (bg_remote_client_t *)data;
   msg = bg_remote_client_get_msg_write(remote);
-  bg_msg_set_id(msg, PLAYER_COMMAND_GET_METADATA);
+  bg_msg_set_id(msg, PLAYER_COMMAND_GET_TIME);
   bg_remote_client_done_msg_write(remote);
+
+  msg = bg_remote_client_get_msg_read(remote);
+  if(!msg)
+    return;
+
+  time = bg_msg_get_arg_time(msg, 0);
+  duration = bg_msg_get_arg_time(msg, 1);
+
+  gavl_time_prettyprint(time, str);
+  printf("Time: %s\n", str);
+  gavl_time_prettyprint(duration, str);
+  printf("Duration: %s\n", str);
   
   }
 

@@ -388,6 +388,7 @@ static void handle_message(player_window_t * win,
         if(win->duration != GAVL_TIME_UNDEFINED)
           bg_gtk_slider_set_pos(win->seek_slider,
                                 (float)(time) / (float)(win->duration));
+        win->gmerlin->remote_data.time = time;
         }
       break;
     case BG_PLAYER_MSG_VOLUME_CHANGED:
@@ -451,6 +452,9 @@ static void handle_message(player_window_t * win,
     case BG_PLAYER_MSG_TRACK_NAME:
       arg_str_1 = bg_msg_get_arg_string(msg, 0);
       display_set_track_name(win->display, arg_str_1);
+      win->gmerlin->remote_data.name =
+        bg_strdup(win->gmerlin->remote_data.name,
+                  arg_str_1);
       free(arg_str_1);
       break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
@@ -531,7 +535,7 @@ static void handle_message(player_window_t * win,
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
       win->duration = bg_msg_get_arg_time(msg, 0);
-
+      win->gmerlin->remote_data.duration = win->duration;
       arg_i_2 = bg_msg_get_arg_int(msg, 1);
 
       if(arg_i_2)
@@ -543,6 +547,11 @@ static void handle_message(player_window_t * win,
       else
         bg_gtk_slider_set_state(win->seek_slider,
                                 BG_GTK_SLIDER_HIDDEN);
+      break;
+    case BG_PLAYER_MSG_METADATA:
+      bg_metadata_free(&win->gmerlin->remote_data.metadata);
+      bg_msg_get_arg_metadata(msg, 0,
+                              &win->gmerlin->remote_data.metadata);
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);

@@ -162,6 +162,17 @@ struct gmerlin_s
 
   /* For all windows */
   GtkAccelGroup *accel_group;
+
+  /* The following can be queried remotely */
+
+  struct
+    {
+    bg_metadata_t metadata;
+    char * name;
+    gavl_time_t time;
+    gavl_time_t duration;
+    } remote_data;
+  
   };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);
