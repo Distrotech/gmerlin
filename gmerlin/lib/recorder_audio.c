@@ -226,16 +226,10 @@ void * bg_recorder_audio_thread(void * data)
       if(as->do_convert_enc)
         {
         gavl_audio_convert(as->enc_cnv, as->pipe_frame, as->enc_frame);
-        pthread_mutex_lock(&rec->enc_mutex);
         bg_encoder_write_audio_frame(rec->enc, as->enc_frame, as->enc_index);
-        pthread_mutex_unlock(&rec->enc_mutex);
         }
       else
-        {
-        pthread_mutex_lock(&rec->enc_mutex);
         bg_encoder_write_audio_frame(rec->enc, as->pipe_frame, as->enc_index);
-        pthread_mutex_unlock(&rec->enc_mutex);
-        }
       }
     
     }

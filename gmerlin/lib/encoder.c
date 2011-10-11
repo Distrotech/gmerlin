@@ -37,7 +37,8 @@ typedef struct
 
   bg_encoder_plugin_t * plugin;
   void * priv;
-
+  bg_plugin_handle_t * h;
+  
   gavl_audio_format_t format;
 
   bg_cfg_section_t * section;
@@ -56,7 +57,8 @@ typedef struct
 
   bg_encoder_plugin_t * plugin;
   void * priv;
-
+  bg_plugin_handle_t * h;
+  
   gavl_video_format_t format;
   
   bg_cfg_section_t * section;
@@ -78,6 +80,7 @@ typedef struct
 
   bg_encoder_plugin_t * plugin;
   void * priv;
+  bg_plugin_handle_t * h;
 
   int timescale;
   
@@ -95,6 +98,7 @@ typedef struct
 
   bg_encoder_plugin_t * plugin;
   void * priv;
+  bg_plugin_handle_t * h;
 
   gavl_video_format_t format;
 
@@ -538,7 +542,8 @@ static int start_audio(bg_encoder_t * enc, int stream)
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
-
+  s->h = h;
+  
   /* Add stream */
 
   if(s->ci)
@@ -581,7 +586,8 @@ static int start_video(bg_encoder_t * enc, int stream)
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
-
+  s->h = h;
+  
   /* Add stream */
   
   if(s->ci)
@@ -637,7 +643,7 @@ static int start_subtitle_text(bg_encoder_t * enc, int stream)
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
-
+  s->h = h;
   /* Add stream */
   
   s->out_index = s->plugin->add_subtitle_text_stream(s->priv, s->language, &s->timescale);
@@ -674,7 +680,8 @@ static int start_subtitle_overlay(bg_encoder_t * enc, int stream)
   
   s->plugin = (bg_encoder_plugin_t*)h->plugin;
   s->priv = h->priv;
-
+  s->h = h;
+  
   /* Add stream */
   s->out_index =
     s->plugin->add_subtitle_overlay_stream(s->priv,
@@ -980,15 +987,18 @@ void bg_encoder_get_subtitle_text_timescale(bg_encoder_t * enc,
   *ret = s->timescale;
   }
 
-
-
 /* Write frame */
 int bg_encoder_write_audio_frame(bg_encoder_t * enc,
                                  gavl_audio_frame_t * frame,
                                  int stream)
   {
+  int ret;
   audio_stream_t * s = &enc->audio_streams[stream];
-  return s->plugin->write_audio_frame(s->priv, frame, s->out_index);
+
+  bg_plugin_lock(s->h);
+  ret = s->plugin->write_audio_frame(s->priv, frame, s->out_index);
+  bg_plugin_unlock(s->h);
+  return ret;
   }
   
 
@@ -996,6 +1006,7 @@ int bg_encoder_write_video_frame(bg_encoder_t * enc,
                                  gavl_video_frame_t * frame,
                                  int stream)
   {
+  int ret;
   video_stream_t * s = &enc->video_streams[stream];
 #if 0  
   fprintf(stderr, "Write video frame %"PRId64"\n", frame->timestamp);
@@ -1007,7 +1018,10 @@ int bg_encoder_write_video_frame(bg_encoder_t * enc,
     }
   s->last_timestamp = frame->timestamp;
 #endif
-  return s->plugin->write_video_frame(s->priv, frame, s->out_index);
+  bg_plugin_lock(s->h);
+  ret = s->plugin->write_video_frame(s->priv, frame, s->out_index);
+  bg_plugin_unlock(s->h);
+  return ret;
   }
 
 int bg_encoder_write_subtitle_text(bg_encoder_t * enc,
@@ -1015,15 +1029,26 @@ int bg_encoder_write_subtitle_text(bg_encoder_t * enc,
                                    int64_t start,
                                    int64_t duration, int stream)
   {
+  int ret;
   subtitle_text_stream_t * s = &enc->subtitle_text_streams[stream];
-  return s->plugin->write_subtitle_text(s->priv, text, start, duration, s->out_index);
+
+  bg_plugin_lock(s->h);
+  ret = s->plugin->write_subtitle_text(s->priv, text,
+                                       start, duration, s->out_index);
+  bg_plugin_unlock(s->h);
+  return ret;
   }
 
 int bg_encoder_write_subtitle_overlay(bg_encoder_t * enc,
                                       gavl_overlay_t * ovl, int stream)
   {
+  int ret;
   subtitle_overlay_stream_t * s = &enc->subtitle_overlay_streams[stream];
-  return s->plugin->write_subtitle_overlay(s->priv, ovl, s->out_index);
+
+  bg_plugin_lock(s->h);
+  ret = s->plugin->write_subtitle_overlay(s->priv, ovl, s->out_index);
+  bg_plugin_unlock(s->h);
+  return ret;
   }
 
 static bg_plugin_handle_t *
@@ -1134,6 +1159,10 @@ void bg_encoder_update_metadata(bg_encoder_t * enc,
     bg_encoder_plugin_t * encoder =
       (bg_encoder_plugin_t *)enc->plugins[i]->plugin;
     if(encoder->update_metadata)
+      {
+      bg_plugin_lock(enc->plugins[i]);
       encoder->update_metadata(enc->plugins[i]->priv, name, m);
+      bg_plugin_unlock(enc->plugins[i]);
+      }
     }
   }

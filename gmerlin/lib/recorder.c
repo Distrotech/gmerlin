@@ -58,7 +58,6 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   ret->th[1] = ret->vs.th;
 
   ret->msg_queues = bg_msg_queue_list_create();
-  pthread_mutex_init(&ret->enc_mutex, NULL);
   pthread_mutex_init(&ret->time_mutex, NULL);
   pthread_mutex_init(&ret->snapshot_mutex, NULL);
   
@@ -88,7 +87,6 @@ void bg_recorder_destroy(bg_recorder_t * rec)
   if(rec->snapshot_filename_mask) free(rec->snapshot_filename_mask);
 
   bg_metadata_free(&rec->m);
-  pthread_mutex_destroy(&rec->enc_mutex);
   pthread_mutex_destroy(&rec->time_mutex);
   pthread_mutex_destroy(&rec->snapshot_mutex);
   

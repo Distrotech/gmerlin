@@ -676,16 +676,10 @@ void * bg_recorder_video_thread(void * data)
       if(vs->do_convert_enc)
         {
         gavl_video_convert(vs->enc_cnv, vs->pipe_frame, vs->enc_frame);
-        pthread_mutex_lock(&rec->enc_mutex);
         bg_encoder_write_video_frame(rec->enc, vs->enc_frame, vs->enc_index);
-        pthread_mutex_unlock(&rec->enc_mutex);
         }
       else
-        {
-        pthread_mutex_lock(&rec->enc_mutex);
         bg_encoder_write_video_frame(rec->enc, vs->pipe_frame, vs->enc_index);
-        pthread_mutex_unlock(&rec->enc_mutex);
-        }
       }
     
     /* */

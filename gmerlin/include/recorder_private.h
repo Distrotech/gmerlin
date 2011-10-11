@@ -198,8 +198,6 @@ struct bg_recorder_s
   
   bg_encoder_t * enc;
   
-  pthread_mutex_t enc_mutex;
-  
   char * output_directory;
   char * output_filename_mask;
   char * snapshot_directory;
