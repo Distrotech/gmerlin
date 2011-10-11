@@ -162,3 +162,5 @@ void
 bg_recorder_set_metadata_parameter(void * data,
                                    const char * name,
                                    const bg_parameter_value_t * val);
+
+void bg_recorder_ping(bg_recorder_t * rec);

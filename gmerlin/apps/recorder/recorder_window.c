@@ -39,6 +39,7 @@
 #include "recorder_window.h"
 
 #define DELAY_TIME 100
+#define PING_INTERVAL 10
 
 /* This is missing in the gtk headers */
 
@@ -113,7 +114,7 @@ struct bg_recorder_window_s
   gavl_rectangle_i_t win_rect;
 
   int toolbar_hidden;
-  
+  int timeout_counter;
   };
 
 static const bg_parameter_info_t gui_parameters[] =
@@ -531,7 +532,14 @@ static gboolean timeout_func(void * data)
     bg_msg_queue_unlock_read(win->msg_queue);
     }
 
-
+  if(!win->timeout_counter)
+    {
+    bg_recorder_ping(win->rec);
+    }
+  win->timeout_counter++;
+  if(win->timeout_counter >= PING_INTERVAL)
+    win->timeout_counter = 0;
+  
   return TRUE;
   }
 
@@ -786,9 +794,9 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
   bg_dialog_add(ret->cfg_dialog,
                 TR("Metadata"),
                 ret->metadata_section,
+                bg_recorder_set_metadata_parameter,
                 NULL,
-                NULL,
-                NULL,
+                ret->rec,
                 bg_recorder_get_metadata_parameters(ret->rec));
   
   bg_dialog_add(ret->cfg_dialog,
@@ -816,6 +824,12 @@ bg_recorder_window_create(bg_cfg_registry_t * cfg_reg,
                        bg_recorder_set_output_parameter,
                        ret->rec);
 
+  bg_cfg_section_apply(ret->metadata_section,
+                       bg_recorder_get_metadata_parameters(ret->rec),
+                       bg_recorder_set_metadata_parameter,
+                       ret->rec);
+
+  
   /* Initialize windows */
 
   dpy = gdk_display_get_default();

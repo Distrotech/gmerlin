@@ -42,6 +42,13 @@
 #define FLAG_DO_RECORD      (1<<2) 
 #define FLAG_INTERRUPTED    (1<<3)
 
+typedef enum
+  {
+    BG_RECORDER_METADATA_STATIC,
+    BG_RECORDER_METADATA_INPUT,
+    BG_RECORDER_METADATA_PLAYER,
+  } bg_recoder_metadata_mode_t;
+
 typedef struct 
   {
   int flags;
@@ -212,9 +219,8 @@ struct bg_recorder_s
 
   int snapshot;
   
-
   pthread_mutex_t snapshot_mutex;
-  
+  bg_recoder_metadata_mode_t metadata_mode;
   };
 
 void bg_recorder_create_audio(bg_recorder_t*);

@@ -30,6 +30,8 @@
 
 #include <gmerlin/recorder.h>
 #include <recorder_private.h>
+#include <gmerlin/subprocess.h>
+
 
 const uint32_t bg_recorder_stream_mask =
 BG_STREAM_AUDIO | BG_STREAM_VIDEO;                                   
@@ -498,18 +500,52 @@ bg_recorder_set_output_parameter(void * data,
   if(!strcmp(name, "output_directory"))
     rec->output_directory = bg_strdup(rec->output_directory, val->val_str);
   else if(!strcmp(name, "output_filename_mask"))
-    rec->output_filename_mask = bg_strdup(rec->output_filename_mask, val->val_str);
+    rec->output_filename_mask =
+      bg_strdup(rec->output_filename_mask, val->val_str);
   else if(!strcmp(name, "snapshot_directory"))
-    rec->snapshot_directory = bg_strdup(rec->snapshot_directory, val->val_str);
+    rec->snapshot_directory =
+      bg_strdup(rec->snapshot_directory, val->val_str);
   else if(!strcmp(name, "snapshot_filename_mask"))
-    rec->snapshot_filename_mask = bg_strdup(rec->snapshot_filename_mask, val->val_str);
+    rec->snapshot_filename_mask =
+      bg_strdup(rec->snapshot_filename_mask, val->val_str);
   }
+
+static const bg_parameter_info_t common_metadata_parameters[] =
+  {
+    {
+      .name      = "metadata_mode",
+      .long_name = TRS("Metadata mode"),
+      .type      = BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "static" },
+      .multi_names =  (char const *[]){ "static",
+                                        "input",
+                                        "player", NULL },
+      .multi_labels = (char const *[]){ TRS("Static"),
+                                        TRS("From input"),
+                                        TRS("From player"), NULL  },
+    },
+    { /* End of parameters */ },
+  };
 
 const bg_parameter_info_t *
 bg_recorder_get_metadata_parameters(bg_recorder_t * rec)
   {
   if(!rec->metadata_parameters)
-    rec->metadata_parameters = bg_metadata_get_parameters(&rec->m);
+    {
+    bg_parameter_info_t * p;
+    const bg_parameter_info_t * params[3];
+
+    p = bg_metadata_get_parameters(&rec->m);
+
+    params[0] = common_metadata_parameters;
+    params[1] = p;
+    params[2] = NULL;
+    
+    rec->metadata_parameters = bg_parameter_info_concat_arrays(params);
+    
+    bg_parameter_info_destroy_array(p);
+    
+    }
   return rec->metadata_parameters;
   }
 
@@ -519,6 +555,21 @@ bg_recorder_set_metadata_parameter(void * data,
                                    const bg_parameter_value_t * val)
   {
   bg_recorder_t * rec = data;
+
+  if(name)
+    {
+    if(!strcmp(name, "metadata_mode"))
+      {
+      if(!strcmp(val->val_str, "static"))
+        rec->metadata_mode = BG_RECORDER_METADATA_STATIC;
+      else if(!strcmp(val->val_str, "input"))
+        rec->metadata_mode = BG_RECORDER_METADATA_INPUT;
+      else if(!strcmp(val->val_str, "player"))
+        rec->metadata_mode = BG_RECORDER_METADATA_PLAYER;
+      return;
+      }
+    }
+  
   bg_metadata_set_parameter(&rec->m, name, val);
   }
 
@@ -562,5 +613,56 @@ void bg_recorder_snapshot(bg_recorder_t * rec)
   pthread_mutex_lock(&rec->snapshot_mutex);
   rec->snapshot = 1;
   pthread_mutex_unlock(&rec->snapshot_mutex);
-  fprintf(stderr, "Snapshot\n");
+  //  fprintf(stderr, "Snapshot\n");
+  }
+
+static const char * remote_command =
+  "gmerlin_remote -get-name -get-metadata 2>> /dev/null";
+
+#define CHECK_STRING(key, val) \
+  len = strlen(key); \
+  if(!strncmp(key, line, len)) \
+    val = bg_strdup(val, line + len)
+
+
+static void update_metadata(bg_recorder_t * rec)
+  {
+  bg_subprocess_t * sp;
+  char * line = NULL;
+  int line_alloc = 0;
+  int len;
+
+  bg_metadata_t m;
+  char * name = NULL;
+
+  memset(&m, 0, sizeof(m));
+  
+  sp = bg_subprocess_create(remote_command, 0, 1, 0);
+  
+  fprintf(stderr, "Update metadata\n");
+
+  while(1)
+    {
+    if(!bg_subprocess_read_line(sp->stdout_fd,
+                                &line, &line_alloc, -1))
+      break;
+    fprintf(stderr, "Got remote line: %s\n", line);
+
+    CHECK_STRING("Name: ", name);
+    CHECK_STRING("Author: ", m.author);
+    CHECK_STRING("Artist: ", m.artist);
+    CHECK_STRING("Title: ", m.title);
+    CHECK_STRING("Album: ", m.album);
+    CHECK_STRING("Genre: ", m.genre);
+    }
+  bg_subprocess_close(sp);
+  }
+
+void bg_recorder_ping(bg_recorder_t * rec)
+  {
+  fprintf(stderr, "bg_recorder_ping\n");
+  if(rec->metadata_mode == BG_RECORDER_METADATA_PLAYER)
+    {
+    update_metadata(rec);
+    }
   }
