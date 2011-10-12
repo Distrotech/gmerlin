@@ -221,6 +221,9 @@ struct bg_recorder_s
   
   pthread_mutex_t snapshot_mutex;
   bg_recoder_metadata_mode_t metadata_mode;
+
+  bg_metadata_t updated_metadata;
+  char * updated_name;
   };
 
 void bg_recorder_create_audio(bg_recorder_t*);

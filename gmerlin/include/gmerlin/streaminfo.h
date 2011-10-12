@@ -243,6 +243,15 @@ void bg_metadata_set_parameter(void * data, const char * name,
 
 void bg_metadata_dump(const bg_metadata_t * m);
 
+/** \brief Check if 2 metadata structures are equal
+ *  \param m1 Metadata 1
+ *  \param m2 Metadata 2
+ *  \return 1 if the metadata are equal, 0 else
+ */
+
+int bg_metadata_equal(const bg_metadata_t * m1,
+                      const bg_metadata_t * m2);
+
 
 /** \brief Chapter list
  *

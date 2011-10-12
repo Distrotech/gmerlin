@@ -539,3 +539,27 @@ void bg_metadata_dump(const bg_metadata_t * m)
   
   }
 
+#define CMP_STR(s)                             \
+  if((m1->s && !m2->s) || (!m1->s && m2->s) || \
+     (m1->s && m2->s && strcmp(m1->s, m2->s))) \
+    return 0
+
+#define CMP_INT(s) \
+  if(m1->s != m2->s) \
+    return 0
+
+int bg_metadata_equal(const bg_metadata_t * m1,
+                      const bg_metadata_t * m2)
+  {
+  CMP_STR(artist);
+  CMP_STR(title);
+  CMP_STR(album);
+  CMP_STR(date);
+  CMP_STR(genre);
+  CMP_STR(comment);
+  CMP_STR(author);
+  CMP_STR(copyright);
+  CMP_INT(track);
+  return 1;
+  }
+                        

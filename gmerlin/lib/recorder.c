@@ -31,7 +31,9 @@
 #include <gmerlin/recorder.h>
 #include <recorder_private.h>
 #include <gmerlin/subprocess.h>
+#include <gmerlin/log.h>
 
+#define LOG_DOMAIN "recorder"
 
 const uint32_t bg_recorder_stream_mask =
 BG_STREAM_AUDIO | BG_STREAM_VIDEO;                                   
@@ -89,6 +91,10 @@ void bg_recorder_destroy(bg_recorder_t * rec)
   if(rec->snapshot_filename_mask) free(rec->snapshot_filename_mask);
 
   bg_metadata_free(&rec->m);
+  bg_metadata_free(&rec->updated_metadata);
+  if(rec->updated_name)
+    free(rec->updated_name);
+  
   pthread_mutex_destroy(&rec->time_mutex);
   pthread_mutex_destroy(&rec->snapshot_mutex);
   
@@ -639,28 +645,54 @@ static void update_metadata(bg_recorder_t * rec)
   
   sp = bg_subprocess_create(remote_command, 0, 1, 0);
   
-  fprintf(stderr, "Update metadata\n");
+  //  fprintf(stderr, "Update metadata\n");
 
   while(1)
     {
     if(!bg_subprocess_read_line(sp->stdout_fd,
                                 &line, &line_alloc, -1))
       break;
-    fprintf(stderr, "Got remote line: %s\n", line);
+    //    fprintf(stderr, "Got remote line: %s\n", line);
 
-    CHECK_STRING("Name: ", name);
-    CHECK_STRING("Author: ", m.author);
-    CHECK_STRING("Artist: ", m.artist);
-    CHECK_STRING("Title: ", m.title);
-    CHECK_STRING("Album: ", m.album);
-    CHECK_STRING("Genre: ", m.genre);
+    CHECK_STRING("Name: ",      name);
+    CHECK_STRING("Author: ",    m.author);
+    CHECK_STRING("Artist: ",    m.artist);
+    CHECK_STRING("Title: ",     m.title);
+    CHECK_STRING("Album: ",     m.album);
+    CHECK_STRING("Genre: ",     m.genre);
+    CHECK_STRING("Comment: ",   m.comment);
+    CHECK_STRING("Copyright: ", m.copyright);
+    CHECK_STRING("Date: ",      m.date);
     }
   bg_subprocess_close(sp);
+
+  if(!bg_metadata_equal(&m, &rec->updated_metadata) ||
+     !rec->updated_name || 
+     strcmp(name, rec->updated_name))
+    {
+    /* Metadata changed */
+
+    if(rec->enc)
+      bg_encoder_update_metadata(rec->enc, name, &m);
+    
+    if(rec->updated_name)
+      free(rec->updated_name);
+    rec->updated_name = name;
+    
+    bg_metadata_free(&rec->updated_metadata);
+    memcpy(&rec->updated_metadata, &m, sizeof(m));
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track %s", name);
+    }
+  else
+    {
+    free(name);
+    bg_metadata_free(&m);
+    }
   }
 
 void bg_recorder_ping(bg_recorder_t * rec)
   {
-  fprintf(stderr, "bg_recorder_ping\n");
+  //  fprintf(stderr, "bg_recorder_ping\n");
   if(rec->metadata_mode == BG_RECORDER_METADATA_PLAYER)
     {
     update_metadata(rec);
