@@ -28,7 +28,7 @@
 #include <gmerlin/utils.h>
 
 #include <gmerlin/log.h>
-#define LOG_DOMAIN "oa_pulse"
+#define LOG_DOMAIN "pulse"
 
 static const struct
   {
