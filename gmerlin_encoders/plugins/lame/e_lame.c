@@ -53,7 +53,6 @@ typedef struct
   
   bgen_id3v1_t * id3v1;
   
-  int64_t samples_read;
   bg_encoder_callbacks_t * cb;
 
   const gavl_compression_info_t * ci;
@@ -238,17 +237,6 @@ static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
   return 1;
   }
 
-static int write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,
-                                  int stream)
-  {
-  int ret;
-  lame_priv_t * lame;
-  lame = data;
-  ret = bg_lame_write_audio_frame(&lame->com, frame);
-  lame->samples_read += frame->valid_samples;
-  return ret;
-  }
-
 static int close_lame(void * data, int do_delete)
   {
   int ret = 1;
@@ -257,7 +245,7 @@ static int close_lame(void * data, int do_delete)
 
   /* 1. Flush the buffer */
   
-  if(lame->samples_read)
+  if(lame->com.samples_read)
     {
     if(!bg_lame_flush(&lame->com))
       ret = 0;
@@ -342,7 +330,7 @@ const bg_encoder_plugin_t the_plugin =
 
     .get_audio_format =        bg_lame_get_audio_format,
     
-    .write_audio_frame =   write_audio_frame_lame,
+    .write_audio_frame =    bg_lame_write_audio_frame,
     .write_audio_packet =   write_audio_packet_lame,
     .close =               close_lame
   };

@@ -346,10 +346,12 @@ int bg_lame_add_audio_stream(void * data, const char * language,
 
   }
 
-int bg_lame_write_audio_frame(lame_common_t * lame, gavl_audio_frame_t * frame)
+int bg_lame_write_audio_frame(void * data, gavl_audio_frame_t * frame, int stream)
   {
+  int ret = 1;
   int max_out_size, bytes_encoded;
-
+  lame_common_t * lame = data;
+  
   max_out_size = (5 * frame->valid_samples) / 4 + 7200;
   if(lame->output_buffer_alloc < max_out_size)
     {
@@ -369,9 +371,11 @@ int bg_lame_write_audio_frame(lame_common_t * lame, gavl_audio_frame_t * frame)
 
   if(lame->write_callback(lame->write_priv,
                           lame->output_buffer, bytes_encoded) < bytes_encoded)
-    return 0;
+    ret = 0;
   
-  return 1;
+  lame->samples_read += frame->valid_samples;
+
+  return ret;
   }
 
 void bg_lame_get_audio_format(void * data, int stream,

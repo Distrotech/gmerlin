@@ -25,7 +25,7 @@ typedef struct bg_shout_s bg_shout_t;
 
 bg_shout_t * bg_shout_create(int format);
 
-const bg_parameter_info_t * bg_shout_get_parameters(bg_shout_t *);
+const bg_parameter_info_t * bg_shout_get_parameters(void);
 
 void bg_shout_set_parameter(void * data, const char * name,
                             const bg_parameter_value_t * val);

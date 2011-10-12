@@ -146,8 +146,7 @@ static void * create_b_ogg()
 
 static const bg_parameter_info_t * get_parameters_b_ogg(void * data)
   {
-  bg_ogg_encoder_t * enc = data;
-  return bg_shout_get_parameters(enc->write_callback_data);
+  return bg_shout_get_parameters();
   }
 
 static void set_parameter_b_ogg(void * data, const char * name,

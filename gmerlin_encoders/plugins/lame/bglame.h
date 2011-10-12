@@ -43,6 +43,8 @@ typedef struct
   
   int (*write_callback)(void * priv, uint8_t * data, int len);
   void * write_priv;
+
+  int64_t samples_read;
   
   } lame_common_t;
 
@@ -58,8 +60,8 @@ void bg_lame_open(lame_common_t * com);
 int bg_lame_add_audio_stream(void * data, const char * language,
                               const gavl_audio_format_t * format);
 
-int bg_lame_write_audio_frame(lame_common_t * com,
-                              gavl_audio_frame_t * f);
+int bg_lame_write_audio_frame(void * priv,
+                              gavl_audio_frame_t * f, int stream);
 
 void bg_lame_get_audio_format(void * data, int stream,
                               gavl_audio_format_t * ret);

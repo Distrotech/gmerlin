@@ -96,7 +96,7 @@ static const bg_parameter_info_t parameters[] =
     { /* */ },
   };
 
-const bg_parameter_info_t * bg_shout_get_parameters(bg_shout_t * s)
+const bg_parameter_info_t * bg_shout_get_parameters(void)
   {
   return parameters;
   }
