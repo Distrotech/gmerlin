@@ -162,13 +162,14 @@ open_b_ogg(void * data, const char * file,
            const bg_metadata_t * metadata,
            const bg_chapter_list_t * chapter_list)
   {
-  /* TODO: Handle metadata */
-  
-  
-  return bg_ogg_encoder_open(data, NULL, metadata, chapter_list,
-                             NULL);
+  bg_ogg_encoder_t * enc = data;
+  if(!bg_ogg_encoder_open(enc, NULL, metadata, chapter_list,
+                          NULL))
+    return 0;
+  if(metadata)
+    bg_shout_update_metadata(enc->write_callback_data, NULL, metadata);
+  return 1;
   }
-
 
 const bg_encoder_plugin_t the_plugin =
   {

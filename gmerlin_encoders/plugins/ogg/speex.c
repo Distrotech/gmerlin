@@ -359,7 +359,6 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   /* Setup header and mode */
     
   mode = speex_lib_get_mode(speex->modeID);
-
   
   speex_init_header(&header, speex->format->samplerate, 1, mode);
   header.frames_per_packet=speex->nframes;
