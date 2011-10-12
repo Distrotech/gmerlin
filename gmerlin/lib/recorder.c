@@ -119,6 +119,7 @@ static void init_encoding(bg_recorder_t * rec)
   time_t t;
   char time_string[512];
   char * filename_base;
+  const bg_metadata_t * m;
   
   time(&t);
   localtime_r(&t, &brokentime);
@@ -134,8 +135,13 @@ static void init_encoding(bg_recorder_t * rec)
                                rec->encoder_section,
                                NULL,
                                bg_recorder_stream_mask, bg_recorder_plugin_mask);
+
+  if(rec->metadata_mode != BG_RECORDER_METADATA_STATIC)
+    m = &rec->updated_metadata;
+  else
+    m = &rec->m;
   
-  bg_encoder_open(rec->enc, filename_base, NULL, NULL);
+  bg_encoder_open(rec->enc, filename_base, m, NULL);
   free(filename_base);
   }
 
