@@ -23,160 +23,34 @@
 #include <stdlib.h>
 #include <config.h>
 #include <errno.h>
-#include <gmerlin/plugin.h>
+
+#include <gmerlin_encoders.h>
 #include <gmerlin/pluginfuncs.h>
 #include <gmerlin/translation.h>
+
+#define LAME_FILE
+#include "bglame.h"
 
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_lame"
 
-#include <gmerlin_encoders.h>
-
-#include <lame/lame.h>
 
 #include <xing.h>
 
-/* Supported samplerates for MPEG-1/2/2.5 */
-
-static const int samplerates[] =
-  {
-    /* MPEG-2.5 */
-    8000,
-    11025,
-    12000,
-    /* MPEG-2 */
-    16000,
-    22050,
-    24000,
-    /* MPEG-1 */
-    32000,
-    44100,
-    48000
-  };
-
-static int get_samplerate(int in_rate)
-  {
-  int i;
-  int diff;
-  int min_diff = 1000000;
-  int min_i = -1;
-  
-  for(i = 0; i < sizeof(samplerates)/sizeof(samplerates[0]); i++)
-    {
-    if(samplerates[i] == in_rate)
-      return in_rate;
-    else
-      {
-      diff = abs(in_rate - samplerates[i]);
-      if(diff < min_diff)
-        {
-        min_diff = diff;
-        min_i = i;
-        }
-      }
-    }
-  if(min_i >= 0)
-    {
-    return samplerates[min_i];
-    }
-  else
-    return 44100;
-  }
-
-/* Find the correct bitrate */
-
-static const int mpeg1_bitrates[] =
-  {
-    32,
-    40,
-    48,
-    56,
-    64,
-    80,
-    96,
-    112,
-    128,
-    160,
-    192,
-    224,
-    256,
-    320
-  };
-
-static const int mpeg2_bitrates[] =
-  {
-    8,
-    16,
-    24,
-    32,
-    40,
-    48,
-    56,
-    64,
-    80,
-    96,
-    112,
-    128,
-    144,
-    160
-  };
-
-static int get_bitrate(int bitrate, int samplerate)
-  {
-  int i;
-  int const * bitrates;
-  int diff;
-  int min_diff = 1000000;
-  int min_i = -1;
-
-  if(samplerate >= 32000)
-    bitrates = mpeg1_bitrates;
-  else
-    bitrates = mpeg2_bitrates;
-
-  for(i = 0; i < sizeof(mpeg1_bitrates) / sizeof(mpeg1_bitrates[0]); i++)
-    {
-    if(bitrate == bitrates[i])
-      return bitrate;
-    diff = abs(bitrate - bitrates[i]);
-    if(diff < min_diff)
-      {
-      min_diff = diff;
-      min_i = i;
-      }
-    }
-  if(min_i >= 0)
-    return bitrates[min_i];
-  return 128;
-  }
 
 typedef struct
   {
+  lame_common_t com; // Must be first!!
+  
   char * filename;
   
-  lame_t lame;
-  gavl_audio_format_t format;
-
   FILE * output;
 
   int do_id3v1;
   int do_id3v2;
   int id3v2_charset;
   
-  uint8_t * output_buffer;
-  int output_buffer_alloc;
-
-  enum vbr_mode_e vbr_mode;
-
-  /* Config stuff */
-    
-  int abr_min_bitrate;
-  int abr_max_bitrate;
-  int abr_bitrate;
-  int cbr_bitrate;
-  int vbr_quality;
-
   bgen_id3v1_t * id3v1;
   
   int64_t samples_read;
@@ -192,8 +66,8 @@ static void * create_lame()
   {
   lame_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
-  
-  ret->vbr_mode = vbr_off;
+
+  bg_lame_init(&ret->com);
   
   return ret;
   }
@@ -202,8 +76,7 @@ static void destroy_lame(void * priv)
   {
   lame_priv_t * lame;
   lame = priv;
-  if(lame->lame)
-    lame_close(lame->lame);
+  bg_lame_close(&lame->com);
   free(lame);
   }
 
@@ -213,242 +86,15 @@ static void set_callbacks_lame(void * data, bg_encoder_callbacks_t * cb)
   lame->cb = cb;
   }
 
-static const bg_parameter_info_t audio_parameters[] =
-  {
-    {
-      .name =        "bitrate_mode",
-      .long_name =   TRS("Bitrate mode"),
-      .type =        BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "CBR" },
-      .multi_names = (char const *[]){ "CBR",
-                              "ABR",
-                              "VBR",
-                              NULL },
-      .multi_labels = (char const *[]){ TRS("Constant"),
-                               TRS("Average"),
-                               TRS("Variable"),
-                               NULL },
-    },
-    {
-      .name =        "stereo_mode",
-      .long_name =   TRS("Stereo mode"),
-      .type =        BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "Auto" },
-      .multi_names = (char const *[]){ "Stereo",
-                              "Joint stereo",
-                              "Auto",
-                              NULL },
-      .multi_labels = (char const *[]){ TRS("Stereo"),
-                               TRS("Joint stereo"),
-                               TRS("Auto"),
-                              NULL },
-      .help_string = TRS("Stereo: Completely independent channels\n\
-Joint stereo: Improve quality (save bits) by using similarities of the channels\n\
-Auto (recommended): Select one of the above depending on quality or bitrate setting")
-    },
-    {
-      .name =        "quality",
-      .long_name =   TRS("Encoding speed"),
-      .type =        BG_PARAMETER_SLIDER_INT,
-      .val_min =     { .val_i = 0 },
-      .val_max =     { .val_i = 9 },
-      .val_default = { .val_i = 2 },
-      .help_string = TRS("0: Slowest encoding, best quality\n\
-9: Fastest encoding, worst quality")
-    },
-    {
-      .name =        "cbr_bitrate",
-      .long_name =   TRS("Bitrate (kbps)"),
-      .type =        BG_PARAMETER_INT,
-      .val_min =     { .val_i = 8 },
-      .val_max =     { .val_i = 320 },
-      .val_default = { .val_i = 128 },
-      .help_string = TRS("Bitrate in kbps. If your selection is no \
-valid mp3 bitrate, we'll choose the closest value.")
-    },
-    {
-      .name =        "vbr_quality",
-      .long_name =   TRS("VBR Quality"),
-      .type =        BG_PARAMETER_SLIDER_INT,
-      .val_min =     { .val_i = 0 },
-      .val_max =     { .val_i = 9 },
-      .val_default = { .val_i = 4 },
-      .help_string = TRS("VBR Quality level. 0: best, 9: worst")
-    },
-    {
-      .name =        "abr_bitrate",
-      .long_name =   TRS("ABR overall bitrate (kbps)"),
-      .type =        BG_PARAMETER_INT,
-      .val_min =     { .val_i = 8 },
-      .val_max =     { .val_i = 320 },
-      .val_default = { .val_i = 128 },
-      .help_string = TRS("Average bitrate for ABR mode")
-    },
-    {
-      .name =        "abr_min_bitrate",
-      .long_name =   TRS("ABR min bitrate (kbps)"),
-      .type =        BG_PARAMETER_INT,
-      .val_min =     { .val_i = 0 },
-      .val_max =     { .val_i = 320 },
-      .val_default = { .val_i = 0 },
-      .help_string = TRS("Minimum bitrate for ABR mode. 0 means let lame decide. \
-If your selection is no valid mp3 bitrate, we'll choose the closest value.")
-    },
-    {
-      .name =        "abr_max_bitrate",
-      .long_name =   TRS("ABR max bitrate (kbps)"),
-      .type =        BG_PARAMETER_INT,
-      .val_min =     { .val_i = 0 },
-      .val_max =     { .val_i = 320 },
-      .val_default = { .val_i = 0 },
-      .help_string = TRS("Maximum bitrate for ABR mode. 0 means let lame decide. \
-If your selection is no valid mp3 bitrate, we'll choose the closest value.")
-    },
-    { /* End of parameters */ }
-  };
 
 static const bg_parameter_info_t * get_audio_parameters_lame(void * data)
   {
   return audio_parameters;
   }
 
-static void set_audio_parameter_lame(void * data, int stream,
-                                     const char * name,
-                                     const bg_parameter_value_t * v)
+static int write_callback(void * priv, uint8_t * data, int len)
   {
-  lame_priv_t * lame;
-  int i;
-  lame = data;
-  
-  if(stream)
-    return;
-  else if(!name)
-    {
-    /* Finalize configuration and do some sanity checks */
-
-    switch(lame->vbr_mode)
-      {
-      case vbr_abr:
-        /* Average bitrate */
-        if(lame_set_VBR_q(lame->lame, lame->vbr_quality))
-          bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_VBR_q failed");
-
-        if(lame_set_VBR_mean_bitrate_kbps(lame->lame, lame->abr_bitrate))
-          bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-                 "lame_set_VBR_mean_bitrate_kbps failed");
-        
-        if(lame->abr_min_bitrate)
-          {
-          lame->abr_min_bitrate =
-            get_bitrate(lame->abr_min_bitrate, lame->format.samplerate);
-          if(lame->abr_min_bitrate > lame->abr_bitrate)
-            {
-            lame->abr_min_bitrate = get_bitrate(8, lame->format.samplerate);
-            }
-          if(lame_set_VBR_min_bitrate_kbps(lame->lame, lame->abr_min_bitrate))
-            bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-                   "lame_set_VBR_min_bitrate_kbps failed");
-          }
-        if(lame->abr_max_bitrate)
-          {
-          lame->abr_max_bitrate =
-            get_bitrate(lame->abr_max_bitrate, lame->format.samplerate);
-          if(lame->abr_max_bitrate < lame->abr_bitrate)
-            {
-            lame->abr_max_bitrate = get_bitrate(320, lame->format.samplerate);
-            }
-          if(lame_set_VBR_max_bitrate_kbps(lame->lame, lame->abr_max_bitrate))
-            bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-                   "lame_set_VBR_max_bitrate_kbps failed");
-          }
-        break;
-      case vbr_default:
-        if(lame_set_VBR_q(lame->lame, lame->vbr_quality))
-          bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_VBR_q failed");
-        break;
-      case vbr_off:
-        lame->cbr_bitrate =
-            get_bitrate(lame->cbr_bitrate, lame->format.samplerate);
-        if(lame_set_brate(lame->lame, lame->cbr_bitrate))
-          bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_brate failed");
-        break;
-      default:
-        break;
-      }
-
-    if(lame_init_params(lame->lame) < 0)
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_init_params failed");
-
-    return;
-    }
-
-  if(!strcmp(name, "bitrate_mode"))
-    {
-    if(!strcmp(v->val_str, "ABR"))
-      {
-      lame->vbr_mode = vbr_abr;
-      }
-    else if(!strcmp(v->val_str, "VBR"))
-      {
-      lame->vbr_mode = vbr_default;
-      }
-    else
-      {
-      lame->vbr_mode = vbr_off;
-      }
-    if(lame_set_VBR(lame->lame, lame->vbr_mode))
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_VBR failed");
-    
-    if(lame_set_bWriteVbrTag(lame->lame, (lame->vbr_mode == vbr_off) ? 0 : 1))
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_bWriteVbrTag failed");
-
-    //    lame_set_bWriteVbrTag(lame->lame, 0);
-    }
-  else if(!strcmp(name, "stereo_mode"))
-    {
-    if(lame->format.num_channels == 1)
-      return;
-    i = NOT_SET;
-    if(!strcmp(v->val_str, "Stereo"))
-      {
-      i = STEREO;
-      }
-    else if(!strcmp(v->val_str, "Joint stereo"))
-      {
-      i = JOINT_STEREO;
-      }
-    if(i != NOT_SET)
-      {
-      if(lame_set_mode(lame->lame, JOINT_STEREO))
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_mode failed");
-      }
-    }
-  else if(!strcmp(name, "quality"))
-    {
-    if(lame_set_quality(lame->lame, v->val_i))
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_quality failed");
-    }
-  
-  else if(!strcmp(name, "cbr_bitrate"))
-    {
-    lame->cbr_bitrate = v->val_i;
-    }
-  else if(!strcmp(name, "vbr_quality"))
-    {
-    lame->vbr_quality = v->val_i;
-    }
-  else if(!strcmp(name, "abr_bitrate"))
-    {
-    lame->abr_bitrate = v->val_i;
-    }
-  else if(!strcmp(name, "abr_min_bitrate"))
-    {
-    lame->abr_min_bitrate = v->val_i;
-    }
-  else if(!strcmp(name, "abr_max_bitrate"))
-    {
-    lame->abr_max_bitrate = v->val_i;
-    }
+  return fwrite(data, 1, len, priv);
   }
 
 /* Global parameters */
@@ -511,8 +157,8 @@ static int open_lame(void * data, const char * filename,
 
   lame = data;
 
-  lame->lame = lame_init();
-  id3tag_init(lame->lame);
+  bg_lame_open(&lame->com);
+  //  id3tag_init(lame->lame);
 
   lame->filename = bg_filename_ensure_extension(filename, "mp3");
 
@@ -527,6 +173,9 @@ static int open_lame(void * data, const char * filename,
     return 0;
     }
 
+  lame->com.write_callback = write_callback;
+  lame->com.write_priv = lame->output;
+    
   if(lame->do_id3v2 && metadata)
     {
     id3v2 = bgen_id3v2_create(metadata);
@@ -566,42 +215,6 @@ static int add_audio_stream_compressed_lame(void * data,
   return 0;
   }
 
-static int add_audio_stream_lame(void * data, const char * language,
-                                 const gavl_audio_format_t * format)
-  {
-  lame_priv_t * lame;
-  
-  lame = data;
-  
-  /* Copy and adjust format */
-    
-  gavl_audio_format_copy(&lame->format, format);
-
-  lame->format.sample_format = GAVL_SAMPLE_FLOAT;
-  lame->format.interleave_mode = GAVL_INTERLEAVE_NONE;
-  lame->format.samplerate = get_samplerate(lame->format.samplerate);
-  
-  if(lame->format.num_channels > 2)
-    {
-    lame->format.num_channels = 2;
-    lame->format.channel_locations[0] = GAVL_CHID_NONE;
-    gavl_set_channel_setup(&lame->format);
-    }
-
-  if(lame_set_in_samplerate(lame->lame, lame->format.samplerate))
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_in_samplerate failed");
-  if(lame_set_num_channels(lame->lame,  lame->format.num_channels))
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_num_channels failed");
-
-  if(lame_set_scale(lame->lame, 32767.0))
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_scale failed");
-    
-  
-  //  lame_set_out_samplerate(lame->lame, lame->format.samplerate);
-  
-  return 0;
-  }
-
 static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
   {
   lame_priv_t * lame;
@@ -628,71 +241,30 @@ static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
 static int write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,
                                   int stream)
   {
-  int ret = 1;
-  int max_out_size, bytes_encoded;
+  int ret;
   lame_priv_t * lame;
-  
   lame = data;
-
-  max_out_size = (5 * frame->valid_samples) / 4 + 7200;
-  if(lame->output_buffer_alloc < max_out_size)
-    {
-    lame->output_buffer_alloc = max_out_size + 1024;
-    lame->output_buffer = realloc(lame->output_buffer,
-                                  lame->output_buffer_alloc);
-    }
-
-  bytes_encoded = lame_encode_buffer_float(lame->lame,
-                                           frame->channels.f[0],
-                                           (lame->format.num_channels > 1) ?
-                                           frame->channels.f[1] :
-                                           frame->channels.f[0],
-                                           frame->valid_samples,
-                                           lame->output_buffer,
-                                           lame->output_buffer_alloc);
-  if(fwrite(lame->output_buffer, 1, bytes_encoded, lame->output) < bytes_encoded)
-    ret = 0;
+  ret = bg_lame_write_audio_frame(&lame->com, frame);
   lame->samples_read += frame->valid_samples;
   return ret;
-  }
-
-static void get_audio_format_lame(void * data, int stream,
-                                 gavl_audio_format_t * ret)
-  {
-  lame_priv_t * lame;
-  lame = data;
-  gavl_audio_format_copy(ret, &lame->format);
-  
   }
 
 static int close_lame(void * data, int do_delete)
   {
   int ret = 1;
   lame_priv_t * lame;
-  int bytes_encoded;
   lame = data;
 
   /* 1. Flush the buffer */
   
   if(lame->samples_read)
     {
-    if(lame->output_buffer_alloc < 7200)
-      {
-      lame->output_buffer_alloc = 7200;
-      lame->output_buffer = realloc(lame->output_buffer, lame->output_buffer_alloc);
-      }
-    bytes_encoded = lame_encode_flush(lame->lame, lame->output_buffer, 
-                                      lame->output_buffer_alloc);
-
-    if(fwrite(lame->output_buffer, 1, bytes_encoded, lame->output) < bytes_encoded)
+    if(!bg_lame_flush(&lame->com))
       ret = 0;
     
     /* 2. Write xing tag */
-    
-    if(lame->vbr_mode != vbr_off)
-      {
-      lame_mp3_tags_fid(lame->lame, lame->output);
-      }
+    if(lame->com.vbr_mode != vbr_off)
+      lame_mp3_tags_fid(lame->com.lame, lame->output);
     }
 
   /* Write xing tag if we wrote compressed stream */  
@@ -724,12 +296,8 @@ static int close_lame(void * data, int do_delete)
     }
   
   /* Clean up */
-  if(lame->lame)
-    {
-    lame_close(lame->lame);
-    lame->lame = NULL;
-    }
-
+  bg_lame_close(&lame->com);
+  
   if(lame->filename)
     {
     /* Remove if necessary */
@@ -739,11 +307,6 @@ static int close_lame(void * data, int do_delete)
     lame->filename = NULL;
     }
 
-  if(lame->output_buffer)
-    {
-    free(lame->output_buffer);
-    lame->output_buffer = NULL;
-    }
   return 1;
   }
 
@@ -772,12 +335,12 @@ const bg_encoder_plugin_t the_plugin =
     .writes_compressed_audio = writes_compressed_audio_lame,
     .get_audio_parameters =    get_audio_parameters_lame,
 
-    .add_audio_stream =        add_audio_stream_lame,
+    .add_audio_stream =        bg_lame_add_audio_stream,
     .add_audio_stream_compressed =        add_audio_stream_compressed_lame,
     
-    .set_audio_parameter =     set_audio_parameter_lame,
+    .set_audio_parameter =     bg_lame_set_audio_parameter,
 
-    .get_audio_format =        get_audio_format_lame,
+    .get_audio_format =        bg_lame_get_audio_format,
     
     .write_audio_frame =   write_audio_frame_lame,
     .write_audio_packet =   write_audio_packet_lame,
