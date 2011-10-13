@@ -58,10 +58,15 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Format"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "mpeg1" },
-      .multi_names =  (char const *[]){ "mpeg1",          "mpeg2",          "vcd", "svcd", "dvd", NULL },
-      .multi_labels = (char const *[]){ TRS("MPEG-1 (generic)"), TRS("MPEG-2 (generic)"),
-                               TRS("VCD"), TRS("SVCD"), TRS("DVD (for dvdauthor)"),
-                               NULL  },
+      .multi_names =  (char const *[]){ "mpeg1",
+                                        "mpeg2",
+                                        "vcd", "svcd", "dvd", NULL },
+      .multi_labels = (char const *[]){ TRS("MPEG-1 (generic)"),
+                                        TRS("MPEG-2 (generic)"),
+                                        TRS("VCD"),
+                                        TRS("SVCD"),
+                                        TRS("DVD (for dvdauthor)"),
+                                        NULL  },
       .help_string =  TRS("Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST provide valid\
  frame sizes"),
     },
@@ -71,7 +76,10 @@ static const bg_parameter_info_t parameters[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "auto" },
       .multi_names =  (char const *[]){ "auto", "vbr", "cbr",NULL  },
-      .multi_labels = (char const *[]){ TRS("Auto"), TRS("Variable"), TRS("Constant"), NULL  },
+      .multi_labels = (char const *[]){ TRS("Auto"),
+                                        TRS("Variable"),
+                                        TRS("Constant"),
+                                        NULL  },
       .help_string = TRS("Specify constant or variable bitrate. For \"Auto\", constant bitrate will be \
 used for MPEG-1, variable bitrate will be used for MPEG-2. For formats, which require CBR, this option \
 is ignored"),
@@ -308,7 +316,8 @@ static void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
     case FORMAT_DVD:
       if(format->interlace_mode == GAVL_INTERLACE_MIXED)
         {
-        bg_log(BG_LOG_WARNING, LOG_DOMAIN,  "Mixed interlacing not supported (yet)");
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+               "Mixed interlacing not supported (yet)");
         format->interlace_mode = GAVL_INTERLACE_NONE;
         }
       break;

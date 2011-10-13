@@ -386,29 +386,31 @@ static int start_mpeg(void * data)
   
   for(i = 0; i < e->num_audio_streams; i++)
     {
+    if(e->audio_streams[i].ci)
+      bg_mpa_set_ci(&e->audio_streams[i].mpa, e->audio_streams[i].ci);
+    else
+      bg_mpa_set_format(&e->audio_streams[i].mpa, &e->audio_streams[i].format);
+    
     e->audio_streams[i].filename =
       get_filename(e, bg_mpa_get_extension(&e->audio_streams[i].mpa), 1);
 
     if(!e->audio_streams[i].filename)
       return 0;
 
-    if(e->audio_streams[i].ci)
-      bg_mpa_set_ci(&e->audio_streams[i].mpa, e->audio_streams[i].ci);
-    else
-      bg_mpa_set_format(&e->audio_streams[i].mpa, &e->audio_streams[i].format);
     if(!bg_mpa_start(&e->audio_streams[i].mpa, e->audio_streams[i].filename))
       return 0;
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
+    if(e->video_streams[i].ci)
+      bg_mpv_set_ci(&e->video_streams[i].mpv, e->video_streams[i].ci);
+
     e->video_streams[i].filename =
       get_filename(e, bg_mpv_get_extension(&e->video_streams[i].mpv), 0);
 
     if(!e->video_streams[i].filename)
       return 0;
 
-    if(e->video_streams[i].ci)
-      bg_mpv_set_ci(&e->video_streams[i].mpv, e->video_streams[i].ci);
     
     bg_mpv_open(&e->video_streams[i].mpv, e->video_streams[i].filename);
 
