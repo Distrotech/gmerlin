@@ -87,11 +87,13 @@ static const bg_parameter_info_t parameters[] =
       .name        = "name",
       .long_name   = TRS("Name"),
       .type        = BG_PARAMETER_STRING,
+      .val_default = { .val_str = "Test stream" },
     },
     {
       .name        = "description",
       .long_name   = TRS("Description"),
       .type        = BG_PARAMETER_STRING,
+      .val_default = { .val_str = "Brought to you by gmerlin" },
     },
     { /* */ },
   };
