@@ -376,7 +376,6 @@ static void opt_v(void * data, int * argc, char *** _argv, int arg)
 
 // static void opt_help(void * data, int * argc, char *** argv, int arg);
 
-
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -908,7 +907,6 @@ int main(int argc, char ** argv)
 
   update_global_options();
   
-
 #ifdef INFO_WINDOW
   info_window =
     bg_gtk_info_window_create(player, info_close_callback, NULL);

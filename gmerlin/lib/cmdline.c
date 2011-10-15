@@ -522,8 +522,6 @@ static void opt_help_texi(void * data, int * argc, char *** argv, int arg)
 
 static void opt_version(void * data, int * argc, char *** argv, int arg)
   {
-  bg_cmdline_app_data_t * app_data =
-    (bg_cmdline_app_data_t*)data;
   print_version(app_data);
   exit(0);
   }
@@ -664,8 +662,8 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
                                                 option_string))
     return 0;
   /* Now, apply the section */
-  
-  bg_cfg_section_apply(section, parameters, set_parameter, data);
+  if(set_parameter)
+    bg_cfg_section_apply(section, parameters, set_parameter, data);
   return 1;
   }
 
@@ -933,21 +931,27 @@ static void print_help_parameters(int indent,
 
         pos += fprintf(out, TR("Supported options: "));
         j = 0;
-        while(parameters[i].multi_names[j])
-          {
-          if(j) pos += fprintf(out, " ");
 
-          if(pos + strlen(parameters[i].multi_names[j]) > MAX_COLS)
+        if(parameters[i].multi_names)
+          {
+          while(parameters[i].multi_names[j])
             {
-            if(format != BG_HELP_FORMAT_MAN)
-              fprintf(out, "\n");
-            pos = 0;
-            do_indent(out, indent+2, format);
-            pos += indent+2;
+            if(j) pos += fprintf(out, " ");
+
+            if(pos + strlen(parameters[i].multi_names[j]) > MAX_COLS)
+              {
+              if(format != BG_HELP_FORMAT_MAN)
+                fprintf(out, "\n");
+              pos = 0;
+              do_indent(out, indent+2, format);
+              pos += indent+2;
+              }
+            pos += fprintf(out, "%s", parameters[i].multi_names[j]);
+            j++;
             }
-          pos += fprintf(out, "%s", parameters[i].multi_names[j]);
-          j++;
           }
+        else
+          pos += fprintf(out, TR("<None>"));
 
         print_linebreak(out, format);
         

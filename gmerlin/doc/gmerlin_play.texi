@@ -11,7 +11,7 @@ Commandline Multimedia player
 Set audio output options@*
 @table @r
 @item @b{p}=option[@{suboptions@}]@*@*
-Supported options: oa_alsa oa_pulse oa_jack oa_oss oa_esd@*@*
+Supported options: oa_alsa oa_pulse oa_oss oa_esd@*@*
 Default: oa_alsa@*@*
 Audio output plugin@*@*
 @b{Suboptions for p=oa_alsa}@*@*
@@ -46,13 +46,6 @@ Buffer time@*@*
 Set the buffer time (in milliseconds). Larger values improve playback
 performance on slow systems under load. Smaller values decrease the
 latency of the volume control.
-@*@*
-@end table
-@b{Suboptions for p=oa_jack}@*@*
-@table @r
-@item @b{connect_ports}=[1|0] (default: 1)@*@*
-Connect ports@*@*
-Autoconnect ports
 @*@*
 @end table
 @b{Suboptions for p=oa_oss}@*@*
@@ -130,7 +123,7 @@ Set and configure input plugin@*
 @table @r
 @item @b{p}=option[@{suboptions@}]@*@*
 Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt 
-i_edl i_singlepic i_mikmod i_gmerlerra@*@*
+i_edl i_singlepic i_mikmod@*@*
 Default: i_avdec@*@*
 input plugin@*@*
 @b{Suboptions for p=i_avdec}@*@*
@@ -355,7 +348,7 @@ ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3
 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS 
 ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv 
 ffmpeg_rle ffmpeg_wrle ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_ffv1 
-ffmpeg_dnxhd mjpa ffmpeg_imx ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50
+ffmpeg_dnxhd mjpa ffmpeg_imx ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50 yuvs
 
 Video Codecs@*@*
 Sort and configure video codecs
@@ -504,11 +497,6 @@ Use surround mixing@*@*
 Force volume fade at the end of module@*@*
 @item @b{interpol}=[1|0] (default: 0)@*@*
 Use interpolate mixing@*@*
-@end table
-@b{Suboptions for p=i_gmerlerra}@*@*
-@table @r
-@item @b{render_quality}=[1|0] (default: 1)@*@*
-Render quality@*@*
 @end table
 @end table
 

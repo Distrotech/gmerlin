@@ -347,11 +347,14 @@ static char * parse_string(const char * str, int * len_ret)
 
 static const bg_parameter_info_t *
 find_parameter(const bg_parameter_info_t * info,
-               const char * str, int * len)
+               const char * str, int * len, char ** subsection_name)
   {
   FILE * out = stderr;
   int i;
   const char * end;
+
+  *subsection_name = NULL;
+  
   /* Get the options name */
   end = str;
   while((*end != '=') && (*end != '\0'))
@@ -362,9 +365,13 @@ find_parameter(const bg_parameter_info_t * info,
   
   /* Now, find the parameter info */
   i = 0;
-  
+
   while(info[i].name)
     {
+    if((info[i].type == BG_PARAMETER_SECTION) &&
+       (info[i].flags & BG_PARAMETER_OWN_SECTION))
+      *subsection_name = info[i].name;
+    
     if(!info[i].opt)
       {
       if((strlen(info[i].name) == (end - str)) &&
@@ -408,7 +415,7 @@ static int check_option(const bg_parameter_info_t * info,
 
 
 /* Returns characters read or 0 */
-int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
+int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
                                               const bg_parameter_info_t * parameters,
                                               const char * str_start)
   {
@@ -418,6 +425,9 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
   bg_cfg_item_t * item;
   int len = 0, i, index;
   const bg_parameter_info_t * info;
+  char * real_section_name;
+  
+  bg_cfg_section_t * real_section;
   bg_cfg_section_t * subsection;
   char * tmp_string;
   
@@ -428,8 +438,13 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
     if((*str == '\0') || (*str == '}'))
       return str - str_start;
     
-    info = find_parameter(parameters, str, &len);
+    info = find_parameter(parameters, str, &len, &real_section_name);
 
+    if(real_section_name)
+      real_section = bg_cfg_section_find_subsection(sec, real_section_name);
+    else
+      real_section = sec;
+    
     if(!info || (info->type == BG_PARAMETER_SECTION) ||
        (info->type == BG_PARAMETER_BUTTON))
       {
@@ -438,7 +453,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
       fprintf(out, "\n");
       goto fail;
       }
-    item = bg_cfg_section_find_item(section, info);
+    item = bg_cfg_section_find_item(real_section, info);
 
     str += len;
     
@@ -511,9 +526,9 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
 
         if(info->type == BG_PARAMETER_MULTI_CHAIN)
           {
-          while(section->children)
-            bg_cfg_section_delete_subsection(section,
-                                             section->children);
+          while(real_section->children)
+            bg_cfg_section_delete_subsection(real_section,
+                                             real_section->children);
           }
         
         index = 0;
@@ -533,7 +548,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
           if(*str == '{')
             {
             str++;
-            subsection = bg_cfg_section_find_subsection(section, info->name);
+            subsection = bg_cfg_section_find_subsection(real_section, info->name);
 
             if(info->type == BG_PARAMETER_MULTI_LIST)
               subsection = bg_cfg_section_find_subsection(subsection, tmp_string);
@@ -587,7 +602,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
         if(*str == '{')
           {
           str++;
-          subsection = bg_cfg_section_find_subsection(section, info->name);
+          subsection = bg_cfg_section_find_subsection(real_section, info->name);
           subsection = bg_cfg_section_find_subsection(subsection, item->value.val_str);
           i = 0;
 

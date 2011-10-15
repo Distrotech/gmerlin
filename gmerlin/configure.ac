@@ -993,6 +993,7 @@ apps/player/Makefile \
 apps/alsamixer/Makefile \
 apps/camelot/Makefile \
 apps/cmdlineplayer/Makefile \
+apps/cmdlinerecorder/Makefile \
 apps/recorder/Makefile \
 apps/transcoder/Makefile \
 apps/visualizer/Makefile \

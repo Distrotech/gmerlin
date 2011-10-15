@@ -1,4 +1,4 @@
-.TH GMERLIN_PLAYER 1 "January 2011" Gmerlin "User Manuals"
+.TH GMERLIN_PLAYER 1 "October 2011" Gmerlin "User Manuals"
 .SH NAME
 gmerlin_player
 .SH SYNOPSIS
@@ -20,7 +20,7 @@ Set audio output options
 .RS 2
 .BR p "=option[{suboptions}]"
 .P
-Supported options: oa_alsa oa_pulse oa_jack oa_oss oa_esd
+Supported options: oa_alsa oa_pulse oa_oss oa_esd
 .P
 Default: oa_alsa
 .P
@@ -81,18 +81,6 @@ Buffer time
 Set the buffer time (in milliseconds). Larger values improve playback
 performance on slow systems under load. Smaller values decrease the
 latency of the volume control.
-
-.P
-.RE
-.B Suboptions for p=oa_jack
-
-.P
-.RS 2
-.BR connect_ports "=[1|0] (default: 1)"
-.P
-Connect ports
-.P
-Autoconnect ports
 
 .P
 .RE
@@ -231,7 +219,7 @@ Set and configure input plugin
 .RS 2
 .BR p "=option[{suboptions}]"
 .P
-Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_edl i_singlepic i_mikmod i_gmerlerra
+Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_edl i_singlepic i_mikmod
 .P
 Default: i_avdec
 .P
@@ -603,7 +591,7 @@ ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3
 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS 
 ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv 
 ffmpeg_rle ffmpeg_wrle ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_ffv1 
-ffmpeg_dnxhd mjpa ffmpeg_imx ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50
+ffmpeg_dnxhd mjpa ffmpeg_imx ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50 yuvs
 
 Video Codecs
 .P
@@ -871,15 +859,6 @@ Force volume fade at the end of module
 .BR interpol "=[1|0] (default: 0)"
 .P
 Use interpolate mixing
-.P
-.RE
-.B Suboptions for p=i_gmerlerra
-
-.P
-.RS 2
-.BR render_quality "=[1|0] (default: 1)"
-.P
-Render quality
 .P
 .RE
 .RE

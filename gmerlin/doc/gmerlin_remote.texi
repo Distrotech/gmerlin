@@ -61,6 +61,15 @@ Seek relative. <diff> is in seconds.@*
 @item -chapter [num|+|-]
 Go to the specified chapter. Use '+' and '-' to go to the next or previous chapter respectively@*
 
+@item -get-name
+Print name of the current track@*
+
+@item -get-metadata
+Print metadata of the current track@*
+
+@item -get-time
+Print time of the current track@*
+
 @end table
 @item Generic options
 The following generic options are available for all gmerlin applications@*

@@ -5,4 +5,5 @@ apps/player/gmerlin -help-man > apps/player/gmerlin.1
 apps/player/gmerlin_remote -help-man > apps/player/gmerlin_remote.1
 apps/transcoder/gmerlin_transcoder -help-man > apps/transcoder/gmerlin_transcoder.1
 apps/transcoder/gmerlin_transcoder_remote -help-man > apps/transcoder/gmerlin_transcoder_remote.1
+apps/cmdlinerecorder/gmerlin-record -help-man > apps/cmdlinerecorder/gmerlin-record.1
 # apps/recorder/gmerlin_recorder -help-man > apps/recorder/gmerlin_recorder.1

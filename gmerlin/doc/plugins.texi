@@ -110,15 +110,6 @@ i_mikmod.so
 @item Description
 Simple wrapper, which calls the mikmod program
 @end table
-@subsection Gmerlerra plugin
-@table @i
-@item Internal name
-i_gmerlerra
-@item Module
-i_gmerlerra.so
-@item Description
-Renderer for gmerlerra projects
-@end table
 @node plugin_oa
 @section Audio output
 
@@ -139,15 +130,6 @@ oa_pulse
 oa_pulse.so
 @item Description
 PulseAudio output
-@end table
-@subsection Jack
-@table @i
-@item Internal name
-oa_jack
-@item Module
-oa_jack.so
-@item Description
-Jack output plugin
 @end table
 @subsection OSS
 @table @i
@@ -190,15 +172,6 @@ i_alsa
 i_alsa.so
 @item Description
 Alsa recorder
-@end table
-@subsection Jack
-@table @i
-@item Internal name
-i_jack
-@item Module
-i_jack.so
-@item Description
-Jack recorder
 @end table
 @subsection OSS
 @table @i
@@ -313,6 +286,15 @@ e_mpegaudio
 e_mpegaudio.so
 @item Description
 Encoder for elementary MPEG-1 layer 1/2 audio streams. Based on mjpegtools (http://mjpeg.sourceforge.net).
+@end table
+@subsection Lame mp3 broadcaster
+@table @i
+@item Internal name
+b_lame
+@item Module
+b_lame.so
+@item Description
+mp3 broadcaster for icecast servers. Based on lame (http://www.mp3dev.org) and libshout (http://www.icecast.org).
 @end table
 @subsection Faac encoder
 @table @i

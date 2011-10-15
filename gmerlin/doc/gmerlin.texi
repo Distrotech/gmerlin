@@ -531,6 +531,7 @@ numeric types, or supported options for strings (if available).
 * GUI Transcoder::
 * Transcoder remote control::
 * Commandline player::
+* Commandline recorder::
 * Alsamixer::
 * Visualizer::
 * Keyboard daemon::
@@ -1556,7 +1557,17 @@ settings for each stream separately.
 
 @include gmerlin_play.texi
 
+@node Commandline recorder
+@section Commandline recorder
 
+@menu
+* Invoking gmerlin-record: gmerlin-record.
+@end menu
+
+@node gmerlin-record
+@subsection Invoking gmerlin-record
+
+@include gmerlin_record.texi
 
 @node Alsamixer
 @section Alsamixer

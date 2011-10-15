@@ -165,7 +165,7 @@ bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
     ret->stderr_fd = connect_pipe_parent(&ret_priv->stderr_fd);
     ret_priv->pid = pid;
     }
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created process: %s [%d]",
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Created process: %s [%d]",
          command, pid);
   
   return ret;
@@ -203,7 +203,7 @@ int bg_subprocess_close(bg_subprocess_t*p)
 
   ret = WEXITSTATUS(status);
   
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Finished process [%d] return value: %d",
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Finished process [%d] return value: %d",
          priv->pid, ret);
   
   if(priv->stdout_fd.use)

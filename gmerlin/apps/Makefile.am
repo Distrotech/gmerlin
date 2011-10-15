@@ -56,6 +56,7 @@ endif
 
 SUBDIRS = $(player_subdirs) \
 cmdlineplayer \
+cmdlinerecorder \
 $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
 $(camelot_subdirs) \
