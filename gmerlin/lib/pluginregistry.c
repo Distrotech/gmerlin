@@ -38,6 +38,7 @@
 #include <config.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/singlepic.h>
+#include <gmerlin/mediafiledevice.h>
 
 #include <gmerlin/translation.h>
 
@@ -61,6 +62,7 @@ struct bg_plugin_registry_s
   bg_plugin_info_t * singlepic_input;
   bg_plugin_info_t * singlepic_stills_input;
   bg_plugin_info_t * singlepic_encoder;
+  bg_plugin_info_t * audiofile_recorder;
   
   };
 
@@ -956,6 +958,10 @@ bg_plugin_registry_t *
   ret->singlepic_encoder = bg_singlepic_encoder_info(ret);
   if(ret->singlepic_encoder)
     ret->entries = append_to_list(ret->entries, ret->singlepic_encoder);
+
+  ret->audiofile_recorder = bg_audiofiledevice_info(ret);
+  if(ret->audiofile_recorder)
+    ret->entries = append_to_list(ret->entries, ret->audiofile_recorder);
   
   /* Sort */
 
@@ -1538,6 +1544,13 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
     ret->plugin = bg_singlepic_encoder_get();
     ret->priv = bg_singlepic_encoder_create(reg);
     }
+  else if(reg->audiofile_recorder &&
+          !strcmp(reg->audiofile_recorder->name, info->name))
+    {
+    ret->plugin = bg_audiofiledevice_get();
+    ret->priv = bg_audiofiledevice_create(reg);
+    }
+  
   ret->info = info;
   bg_plugin_ref(ret);
   return ret;

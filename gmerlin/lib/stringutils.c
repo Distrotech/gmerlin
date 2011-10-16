@@ -600,3 +600,34 @@ char * bg_canonical_filename(const char * name)
   return ret;
 #endif
   }
+
+void * bg_read_file(const char * filename, int * len_ret)
+  {
+  uint8_t * ret;
+  FILE * file;
+  size_t len;
+  
+  file = fopen(filename, "r");
+  if(!file)
+    return NULL;
+
+  fseek(file, 0, SEEK_END);
+  len = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  ret = malloc(len + 1);
+
+  if(fread(ret, 1, len, file) < len)
+    {
+    fclose(file);
+    free(ret);
+    return NULL;
+    }
+  ret[len] = '\0';
+  fclose(file);
+
+  if(len_ret)
+    *len_ret = len;
+  
+  return ret;
+  }

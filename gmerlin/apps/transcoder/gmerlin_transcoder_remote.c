@@ -34,9 +34,7 @@
 
 static void cmd_addalbum(void * data, int * argc, char *** _argv, int arg)
   {
-  FILE * file;
   FILE * out = stderr;
-  int len;
   char * xml_string;
 
   bg_msg_t * msg;
@@ -52,22 +50,10 @@ static void cmd_addalbum(void * data, int * argc, char *** _argv, int arg)
 
   /* Load the entire xml file into a string */
 
-  file = fopen(argv[arg], "r");
-  if(!file)
+  xml_string = bg_read_file(argv[arg], NULL);
+  if(!xml_string)
     return;
-
-  fseek(file, 0, SEEK_END);
-  len = ftell(file);
-  fseek(file, 0, SEEK_SET);
-  xml_string = malloc(len + 1);
-  if(fread(xml_string, 1, len, file) < len)
-    {
-    fclose(file);
-    return;
-    }
-  xml_string[len] = '\0';
-  fclose(file);
-    
+  
   msg = bg_remote_client_get_msg_write(remote);
 
   bg_msg_set_id(msg, TRANSCODER_REMOTE_ADD_ALBUM);

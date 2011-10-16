@@ -16,6 +16,7 @@ filters.h \
 keycodes.h \
 lcdproc.h \
 log.h \
+mediafiledevice.h \
 msgqueue.h \
 osd.h \
 parameter.h \

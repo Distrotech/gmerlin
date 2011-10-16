@@ -32,11 +32,10 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 
-
 #include <gmerlin/cfg_registry.h>
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/pluginfuncs.h>
-#include <config.h>
+
 #include <gmerlin/utils.h>
 #include <gmerlin/singlepic.h>
 #include <gmerlin/log.h>

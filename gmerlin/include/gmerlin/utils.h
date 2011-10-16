@@ -434,6 +434,16 @@ void bg_dprintf(const char * format, ...) __attribute__ ((format (printf, 1, 2))
 
 void bg_diprintf(int indent, const char * format, ...) __attribute__ ((format (printf, 2, 3)));
 
+/** \brief Read an entire file into a buffer
+ *  \param filename Name of the file
+ *  \param format len Returns the length in bytes
+ *  \returns A buffer containing the entire file
+ */
+
+void * bg_read_file(const char * filename, int * len);
+
+
+
 /* @} */
 
 extern char const * const bg_language_codes[];

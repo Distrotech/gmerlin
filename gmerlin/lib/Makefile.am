@@ -84,6 +84,7 @@ language_table.c \
 lcdproc.c \
 log.c \
 md5.c \
+mediafiledevice.c \
 metadata.c \
 metadata_xml.c \
 msgqueue.c \
