@@ -31,6 +31,9 @@
 
 #include <gmerlin/mediafiledevice.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/tree.h>
+
+#define SAMPLES_PER_FRAME 1024
 
 typedef struct
   {
@@ -43,19 +46,28 @@ typedef struct
   gavl_audio_options_t * opt;
 
   int num_files;
+  int files_alloc;
   int current;
   int do_shuffle;
   char * album_file;
   
   struct
     {
-    const char * location;
-    const char * plugin;
+    char * location;
+    char * plugin;
+    int track;
     } * files;
 
   /* Shuffle list */
   int * indices;
   
+  bg_plugin_handle_t * h;
+  bg_input_plugin_t * plugin;
+
+  bg_read_audio_func_t in_func;
+  void * in_data;
+  int    in_stream;
+  gavl_audio_frame_t * frame;
   } audiofile_t;
 
 static const bg_parameter_info_t parameters_audio[] =
@@ -127,11 +139,161 @@ static void destroy_audio(void * p)
   gavl_audio_options_destroy(m->opt);
   }
 
+static void free_track_list(audiofile_t * m)
+  {
+  int i;
+
+  if(m->files)
+    {
+    for(i = 0; i < m->num_files; i++)
+      {
+      if(m->files[i].location)
+        free(m->files[i].location);
+      if(m->files[i].plugin)
+        free(m->files[i].plugin);
+      }
+    free(m->files);
+    m->files = NULL;
+    }
+  if(m->indices)
+    {
+    free(m->indices);
+    m->indices = NULL;
+    }
+  }
+
+static void append_track(audiofile_t * m,
+                         const char * location,
+                         const char * plugin,
+                         int track)
+  {
+  if(m->num_files + 1 > m->files_alloc)
+    {
+    m->files_alloc += 128;
+    m->files = realloc(m->files, sizeof(*m->files) * m->files_alloc);
+    memset(m->files + m->num_files, 0,
+           sizeof(*m->files) * (m->files_alloc - m->num_files));
+    }
+  m->files[m->num_files].location =
+    bg_strdup(m->files[m->num_files].location, location);
+  m->files[m->num_files].plugin =
+    bg_strdup(m->files[m->num_files].plugin, plugin);
+  m->files[m->num_files].track = track;
+  m->num_files++;
+  }
+
+static int build_track_list(audiofile_t * m)
+  {
+  bg_album_entry_t * entries;
+  bg_album_entry_t * e;
+  char * album_xml;
+
+  free_track_list(m);
+  
+  if(!m->album_file)
+    return 0;
+  
+  album_xml = bg_read_file(m->album_file, NULL);
+
+  if(!album_xml)
+    return 0;
+  
+  entries = bg_album_entries_new_from_xml(album_xml);
+  free(album_xml);
+  
+  if(!entries)
+    return 0;
+  
+  e = entries;
+
+  while(e)
+    {
+    if(!e->num_audio_streams)
+      {
+      e = e->next;
+      continue;
+      }
+    append_track(m, e->location, e->plugin, e->index);
+    e = e->next;
+    }
+
+  if(!m->num_files)
+    return 0;
+
+  /* TODO: Shuffle */
+  
+  return m->num_files;
+  }
+
+static int open_file(audiofile_t * m)
+  {
+  bg_track_info_t * ti;
+  
+  const bg_plugin_info_t * info;
+  int idx = m->current;   /* TODO: Shuffle */
+  
+  if(m->h)
+    {
+    bg_plugin_unref(m->h); 
+    m->h = NULL;
+    }
+  
+  if(m->files[idx].plugin)
+    info = bg_plugin_find_by_name(m->plugin_reg, m->files[idx].plugin);
+  else
+    info = NULL;
+  
+  if(!bg_input_plugin_load(m->plugin_reg,
+                           m->files[idx].location,
+                           info, &m->h, NULL, 0))
+    return 0;
+
+  m->plugin = (bg_input_plugin_t *)m->h->plugin;
+
+  /* Select track */
+  if(m->plugin->get_num_tracks &&
+     (m->plugin->get_num_tracks(m->h->priv) <= m->files[idx].track))
+    return 0;
+
+  ti = m->plugin->get_track_info(m->h->priv, m->files[idx].track);
+  
+  if(m->plugin->set_track)
+    m->plugin->set_track(m->h->priv, m->files[idx].track);
+
+  if(!ti->num_audio_streams)
+    return 0;
+
+  m->plugin->set_audio_stream(m->h->priv, 0, BG_STREAM_ACTION_DECODE);
+
+  if(!m->plugin->start(m->h->priv))
+    return 0;
+
+  gavl_audio_format_copy(&m->in_format, &ti->audio_streams[0].format);
+
+  /* Input channel */
+
+  m->in_func = m->plugin->read_audio;
+  m->in_data = m->h->priv;
+  m->in_stream = 0;
+  
+  /* Set up format converter */
+  
+  if(bg_audio_converter_init(m->cnv,
+                             &m->in_format,
+                             &m->out_format))
+    {
+    bg_audio_converter_connect_input(m->cnv, m->in_func, m->in_data, m->in_stream);
+    m->in_func = bg_audio_converter_read;
+    m->in_data = m->cnv;
+    m->in_stream = 0;
+    }
+  return 1;
+  }
+
 static int open_audio(void * p,
                       gavl_audio_format_t * format,
                       gavl_video_format_t * video_format)
   {
-  char * album_xml;
   audiofile_t * m = p;
   /* Finalize audio format */
 
@@ -139,17 +301,19 @@ static int open_audio(void * p,
   gavl_set_channel_setup(&m->out_format);
 
   gavl_audio_format_copy(format, &m->out_format);
-
+  m->frame = gavl_audio_frame_create(&m->out_format);
+  
   /* Create track list */
-  if(!m->album_file)
+  if(!build_track_list(m))
     return 0;
 
-  
+  m->current = 0;
   
   /* Open first file */
+  if(!open_file(m))
+    return 0;
   
-  
-  return 0;
+  return 1;
   }
 
 static void close_audio(void * p)
@@ -162,8 +326,46 @@ static int read_frame_audio(void * p, gavl_audio_frame_t * f,
                             int stream,
                             int num_samples)
   {
+  int samples_read;
+  int samples_to_read;
   audiofile_t * m = p;
-  return 0;
+
+  f->valid_samples = 0;
+  
+  while(f->valid_samples < num_samples)
+    {
+    samples_to_read = SAMPLES_PER_FRAME;
+
+    if(samples_to_read + f->valid_samples > num_samples)
+      samples_to_read = num_samples - f->valid_samples;
+    
+    samples_read = m->in_func(m->in_data, m->frame,
+                              m->in_stream, samples_to_read);
+
+    if(samples_read > 0)
+      {
+      gavl_audio_frame_copy(&m->out_format,
+                            f, m->frame,
+                            f->valid_samples /* dst_pos */,
+                            0                /* src_pos */,
+                            samples_read,
+                            samples_read);
+      f->valid_samples += samples_read;
+      }
+    else /* Open next file */
+      {
+      while(1)
+        {
+        m->current++;
+        if(m->current >= m->num_files)
+          m->current = 0;
+        if(open_file(m))
+          break;
+        }
+      
+      }
+    }
+  return samples_read;
   }
 
 static const bg_recorder_plugin_t audiofile_input =
@@ -229,7 +431,8 @@ void * bg_audiofiledevice_create(bg_plugin_registry_t * reg)
   /* Set common audio format parameters */
   ret->out_format.sample_format = GAVL_SAMPLE_FLOAT;
   ret->out_format.interleave_mode = GAVL_INTERLEAVE_NONE;
-
+  ret->out_format.samples_per_frame = SAMPLES_PER_FRAME;
+  
   ret->opt = gavl_audio_options_create();
   ret->cnv = bg_audio_converter_create(ret->opt);
   

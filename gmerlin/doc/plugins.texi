@@ -200,6 +200,15 @@ i_pulse.so
 @item Description
 PulseAudio capture. You can specify the source, where we'll get the audio.
 @end table
+@subsection Audiofile recorder
+@table @i
+@item Internal name
+i_audiofile
+@item Module
+Internal plugin
+@item Description
+Take a bunch of audio file and make them available as a recording device
+@end table
 @node plugin_rv
 @section Video recorder
 

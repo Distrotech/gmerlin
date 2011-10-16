@@ -4,7 +4,6 @@ gmerlin-record
 .SH SYNOPSIS
 .B gmerlin-record 
 .I [options]
-.I gml...
 
 .SH DESCRIPTION
 Commandline recorder
@@ -24,7 +23,7 @@ Record audio
 .P
 .BR plugin "=option[{suboptions}]"
 .P
-Supported options: i_alsa i_oss i_esd i_pulse
+Supported options: i_alsa i_oss i_esd i_pulse i_audiofile
 .P
 Default: i_alsa
 .P
@@ -162,6 +161,31 @@ Source
 .P
 Source to open. Use the PulseAudio manager for available Sources.
 
+.P
+.RE
+.B Suboptions for plugin=i_audiofile
+
+.P
+.RS 2
+.BR channel_mode "=<string>"
+.P
+Supported strings: mono stereo
+.P
+Default: stereo
+.P
+Channel Mode
+.P
+.BR samplerate "=<number> (8000..96000, default: 44100)"
+.P
+Samplerate [Hz]
+.P
+.BR album "=<string>"
+.P
+Album
+.P
+.BR shuffle "=[1|0] (default: 0)"
+.P
+Shuffle
 .P
 .RE
 .BR language "=<string>"
@@ -7350,11 +7374,11 @@ User
 .P
 Password
 .P
-.BR name "=<string>"
+.BR name "=<string> (Default: Test stream)"
 .P
 Name
 .P
-.BR description "=<string>"
+.BR description "=<string> (Default: Brought to you by gmerlin)"
 .P
 Description
 .P
@@ -11142,11 +11166,11 @@ User
 .P
 Password
 .P
-.BR name "=<string>"
+.BR name "=<string> (Default: Test stream)"
 .P
 Name
 .P
-.BR description "=<string>"
+.BR description "=<string> (Default: Brought to you by gmerlin)"
 .P
 Description
 .P
@@ -14790,6 +14814,42 @@ frame duration here
 
 .P
 .RE
+.RE
+
+.B -o
+.I <output_options>
+
+.RS 2
+Set output options
+.RE
+.RS 2
+.BR output_directory "=<string> (Default: .)"
+.P
+Output directory
+.P
+.BR output_filename_mask "=<string> (Default: %Y-%m-%d-%H-%M-%S)"
+.P
+Output filename mask
+.P
+Extension is appended by the plugin
+For the date and time formatting, consult the documentation
+of the strftime(3) function
+
+.P
+.BR snapshot_directory "=<string> (Default: .)"
+.P
+Snapshot directory
+.P
+.BR snapshot_filename_mask "=<string> (Default: shot_%5n)"
+.P
+Snapshot filename mask
+.P
+Extension is appended by the plugin
+%t    Inserts time
+%d    Inserts date
+%<i>n Inserts Frame number with <i> digits
+
+.P
 .RE
 
 .B -r
