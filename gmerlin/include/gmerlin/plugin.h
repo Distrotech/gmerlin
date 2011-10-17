@@ -928,21 +928,13 @@ struct bg_recorder_callbacks_s
   {
   /** \brief Name changed
    *  \param data The data member of this bg_input_callbacks_s struct
-   *  \param time The new name
+   *  \param name The new name
+   *  \param metadata The new name
    *
    *  This is for web-radio stations, which send song-names.
    */
   
-  void (*name_changed)(void * data, const char * name);
-  
-  /** \brief Metadata changed
-   *  \param data The data member of this bg_input_callbacks_s struct
-   *  \param m The new metadata
-   *
-   *  This is for web-radio stations, which send metadata for each song.
-   */
-  
-  void (*metadata_changed)(void * data, const bg_metadata_t * m);
+  void (*metadata_changed)(void * data, const char * name, const bg_metadata_t * m);
   
   void * data; //!< Application specific data passed as the first argument to all callbacks.
   

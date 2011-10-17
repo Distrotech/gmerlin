@@ -146,7 +146,10 @@ bg_recorder_set_audio_parameter(void * data,
     info = bg_plugin_find_by_name(rec->plugin_reg, val->val_str);
     as->input_handle = bg_plugin_load(rec->plugin_reg, info);
     as->input_plugin = (bg_recorder_plugin_t*)(as->input_handle->plugin);
+    if(as->input_plugin->set_callbacks)
+      as->input_plugin->set_callbacks(as->input_handle->priv, &rec->recorder_cb);
     }
+  
   else if(as->input_handle && as->input_plugin->common.set_parameter)
     {
     as->input_plugin->common.set_parameter(as->input_handle->priv, name, val);

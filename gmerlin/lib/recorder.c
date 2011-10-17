@@ -40,6 +40,25 @@ BG_STREAM_AUDIO | BG_STREAM_VIDEO;
 
 const uint32_t bg_recorder_plugin_mask = BG_PLUGIN_FILE | BG_PLUGIN_BROADCAST;
 
+static void metadata_changed_callback(void * priv, const char * name, const bg_metadata_t * m)
+  {
+  bg_recorder_t * rec = priv;
+  if(rec->metadata_mode != BG_RECORDER_METADATA_INPUT)
+    return;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track: %s", name);
+  
+  if(rec->enc && rec->encoding_finalized)
+    {
+    bg_encoder_update_metadata(rec->enc, name, m);
+    }
+  else
+    {
+    bg_metadata_copy(&rec->updated_metadata, m);
+    rec->updated_name = bg_strdup(rec->updated_name, name);
+    }
+  }
+
 bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_recorder_t * ret = calloc(1, sizeof(*ret));
@@ -64,6 +83,9 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
   ret->msg_queues = bg_msg_queue_list_create();
   pthread_mutex_init(&ret->time_mutex, NULL);
   pthread_mutex_init(&ret->snapshot_mutex, NULL);
+
+  ret->recorder_cb.metadata_changed = metadata_changed_callback;
+  ret->recorder_cb.data = ret;
   
   return ret;
   }
@@ -155,6 +177,8 @@ static int finalize_encoding(bg_recorder_t * rec)
   if(rec->vs.flags & STREAM_ACTIVE)
     bg_recorder_video_finalize_encode(rec);
   
+  bg_encoder_update_metadata(rec->enc, rec->updated_name, &rec->updated_metadata);
+  rec->encoding_finalized = 1;
   return 1;
   }
 
@@ -162,6 +186,8 @@ int bg_recorder_run(bg_recorder_t * rec)
   {
   int do_audio = 0;
   int do_video = 0;
+
+  rec->encoding_finalized = 0;
   
   if(rec->flags & FLAG_DO_RECORD)
     {

@@ -224,6 +224,10 @@ struct bg_recorder_s
 
   bg_metadata_t updated_metadata;
   char * updated_name;
+  
+  bg_recorder_callbacks_t recorder_cb;
+  
+  int encoding_finalized;
   };
 
 void bg_recorder_create_audio(bg_recorder_t*);

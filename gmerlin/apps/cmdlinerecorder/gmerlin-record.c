@@ -293,6 +293,10 @@ int main(int argc, char ** argv)
   int timeout_counter = 0;
 
   gavl_time_t delay_time = DELAY_TIME * 1000;
+
+  /* We must initialize the random number generator if we want the
+     Vorbis encoder to work */
+  srand(time(NULL));
   
   /* Create plugin regsitry */
   cfg_reg = bg_cfg_registry_create();

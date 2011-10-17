@@ -32,6 +32,8 @@
 #include <gmerlin/mediafiledevice.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/tree.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "mediafiledevice"
 
 #define SAMPLES_PER_FRAME 1024
 
@@ -68,6 +70,12 @@ typedef struct
   void * in_data;
   int    in_stream;
   gavl_audio_frame_t * frame;
+
+  int64_t sample_counter;
+
+  gavl_timer_t * timer;
+  bg_recorder_callbacks_t * callbacks;
+  
   } audiofile_t;
 
 static const bg_parameter_info_t parameters_audio[] =
@@ -137,6 +145,7 @@ static void destroy_audio(void * p)
   audiofile_t * m = p;
   bg_audio_converter_destroy(m->cnv);
   gavl_audio_options_destroy(m->opt);
+  gavl_timer_destroy(m->timer);
   }
 
 static void free_track_list(audiofile_t * m)
@@ -191,19 +200,27 @@ static int build_track_list(audiofile_t * m)
   free_track_list(m);
   
   if(!m->album_file)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No album file given");
     return 0;
-  
+    }
   album_xml = bg_read_file(m->album_file, NULL);
 
   if(!album_xml)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Album file %s could not be opened",
+           m->album_file);
     return 0;
-  
+    }
   entries = bg_album_entries_new_from_xml(album_xml);
   free(album_xml);
   
   if(!entries)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Album file %s contains no entries",
+           m->album_file);
     return 0;
-  
+    }
   e = entries;
 
   while(e)
@@ -218,9 +235,30 @@ static int build_track_list(audiofile_t * m)
     }
 
   if(!m->num_files)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Album file %s contains no usable entries",
+           m->album_file);
     return 0;
-
+    }
   /* TODO: Shuffle */
+
+  if(m->do_shuffle)
+    {
+    int i, index;
+    int tmp;
+    m->indices = malloc(sizeof(*m->indices) * m->num_files);
+
+    for(i = 0; i < m->num_files; i++)
+      m->indices[i] = i;
+    
+    for(i = 0; i < m->num_files; i++)
+      {
+      index = rand() % m->num_files;
+      tmp = m->indices[i];
+      m->indices[i] = m->indices[index];
+      m->indices[index] = tmp;
+      }
+    }
   
   return m->num_files;
   }
@@ -228,10 +266,9 @@ static int build_track_list(audiofile_t * m)
 static int open_file(audiofile_t * m)
   {
   bg_track_info_t * ti;
-  
+  int num_tracks;
   const bg_plugin_info_t * info;
-  int idx = m->current;   /* TODO: Shuffle */
-  
+  int idx = m->indices ? m->indices[m->current] : m->current;
   if(m->h)
     {
     bg_plugin_unref(m->h); 
@@ -251,8 +288,12 @@ static int open_file(audiofile_t * m)
   m->plugin = (bg_input_plugin_t *)m->h->plugin;
 
   /* Select track */
-  if(m->plugin->get_num_tracks &&
-     (m->plugin->get_num_tracks(m->h->priv) <= m->files[idx].track))
+  if(m->plugin->get_num_tracks)
+    num_tracks = m->plugin->get_num_tracks(m->h->priv);
+  else
+    num_tracks = 1;
+  
+  if(num_tracks <= m->files[idx].track)
     return 0;
 
   ti = m->plugin->get_track_info(m->h->priv, m->files[idx].track);
@@ -265,6 +306,20 @@ static int open_file(audiofile_t * m)
 
   m->plugin->set_audio_stream(m->h->priv, 0, BG_STREAM_ACTION_DECODE);
 
+  if(m->callbacks && m->callbacks->metadata_changed)
+    {
+    if(ti->name)
+      m->callbacks->metadata_changed(m->callbacks->data, ti->name, &ti->metadata);
+    else
+      {
+      char * tmp_string = bg_get_track_name_default(m->files[idx].location,
+                                                    m->files[idx].track,
+                                                    num_tracks);
+      m->callbacks->metadata_changed(m->callbacks->data, tmp_string, &ti->metadata);
+      free(tmp_string);
+      }
+    }
+  
   if(!m->plugin->start(m->h->priv))
     return 0;
 
@@ -297,6 +352,8 @@ static int open_audio(void * p,
   audiofile_t * m = p;
   /* Finalize audio format */
 
+  m->sample_counter = 0;
+  
   m->out_format.channel_locations[0] = GAVL_CHID_NONE;
   gavl_set_channel_setup(&m->out_format);
 
@@ -312,14 +369,14 @@ static int open_audio(void * p,
   /* Open first file */
   if(!open_file(m))
     return 0;
-  
+  gavl_timer_start(m->timer);
   return 1;
   }
 
 static void close_audio(void * p)
   {
   audiofile_t * m = p;
-  
+  gavl_timer_stop(m->timer);
   }
 
 static int read_frame_audio(void * p, gavl_audio_frame_t * f,
@@ -328,6 +385,9 @@ static int read_frame_audio(void * p, gavl_audio_frame_t * f,
   {
   int samples_read;
   int samples_to_read;
+  gavl_time_t current_time;
+  gavl_time_t diff_time;
+  
   audiofile_t * m = p;
 
   f->valid_samples = 0;
@@ -365,7 +425,23 @@ static int read_frame_audio(void * p, gavl_audio_frame_t * f,
       
       }
     }
-  return samples_read;
+
+  /* Wait until we can output the data */
+  
+  current_time = gavl_timer_get(m->timer);
+  diff_time = gavl_time_unscale(m->out_format.samplerate, m->sample_counter) - current_time;
+
+  if(diff_time > 0)
+    gavl_time_delay(&diff_time);
+  
+  m->sample_counter += f->valid_samples;
+  return f->valid_samples;
+  }
+
+static void set_callbacks_audio(void * p, bg_recorder_callbacks_t * callbacks)
+  {
+  audiofile_t * m = p;
+  m->callbacks = callbacks;
   }
 
 static const bg_recorder_plugin_t audiofile_input =
@@ -384,6 +460,7 @@ static const bg_recorder_plugin_t audiofile_input =
       .get_parameters = get_parameters_audio,
       .set_parameter =  set_parameter_audio,
     },
+    .set_callbacks = set_callbacks_audio,
     .open =          open_audio,
     .read_audio =    read_frame_audio,
     .close =         close_audio,
@@ -435,6 +512,7 @@ void * bg_audiofiledevice_create(bg_plugin_registry_t * reg)
   
   ret->opt = gavl_audio_options_create();
   ret->cnv = bg_audio_converter_create(ret->opt);
+  ret->timer = gavl_timer_create();
   
   return ret;
   } 

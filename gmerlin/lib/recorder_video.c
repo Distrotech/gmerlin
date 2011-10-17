@@ -216,6 +216,8 @@ bg_recorder_set_video_parameter(void * data,
     info = bg_plugin_find_by_name(rec->plugin_reg, val->val_str);
     vs->input_handle = bg_plugin_load(rec->plugin_reg, info);
     vs->input_plugin = (bg_recorder_plugin_t*)(vs->input_handle->plugin);
+    if(vs->input_plugin->set_callbacks)
+      vs->input_plugin->set_callbacks(vs->input_handle->priv, &rec->recorder_cb);
     }
   else if(!strcmp(name, "limit_fps"))
     {
