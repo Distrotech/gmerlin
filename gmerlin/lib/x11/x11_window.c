@@ -64,6 +64,8 @@ int XShmGetEventBase (Display *);
 
 static int check_disable_screensaver(bg_x11_window_t * w)
   {
+  if(!w->current)
+    return 0;
   /* Never change global settings if we are embedded */
   if(w->current->parent != w->root)
     return 0;
