@@ -134,6 +134,9 @@ bg_x11_screensaver_enable(bg_x11_screensaver_t * scr)
   {
   int dummy, interval, prefer_blank, allow_exp;
 
+  if(!scr->dpy || !scr->timer)
+    return;
+  
   gavl_timer_stop(scr->timer);
   
   if(!scr->disabled)
