@@ -368,9 +368,11 @@ int bg_lame_write_audio_frame(void * data, gavl_audio_frame_t * frame, int strea
                                            frame->valid_samples,
                                            lame->output_buffer,
                                            lame->output_buffer_alloc);
-
-  if(lame->write_callback(lame->write_priv,
-                          lame->output_buffer, bytes_encoded) < bytes_encoded)
+  
+  if((bytes_encoded > 0) &&
+     (lame->write_callback(lame->write_priv,
+                           lame->output_buffer, bytes_encoded) < bytes_encoded))
+    
     ret = 0;
   
   lame->samples_read += frame->valid_samples;
@@ -398,8 +400,9 @@ int bg_lame_flush(lame_common_t * lame)
   bytes_encoded = lame_encode_flush(lame->lame, lame->output_buffer, 
                                     lame->output_buffer_alloc);
 
-  if(lame->write_callback(lame->write_priv,
-                          lame->output_buffer, bytes_encoded) < bytes_encoded)
+  if((bytes_encoded > 0) &&
+     (lame->write_callback(lame->write_priv,
+                           lame->output_buffer, bytes_encoded) < bytes_encoded))
     return 0;
   
   return 1;

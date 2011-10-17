@@ -34,8 +34,11 @@
 struct bg_shout_s
   {
   shout_t * s;
+  shout_metadata_t * met;
+  int metadata_sent;
+  int64_t bytes_sent;
   };
-  
+ 
 
 bg_shout_t * bg_shout_create(int format)
   {
@@ -171,34 +174,55 @@ void bg_shout_destroy(bg_shout_t * s)
   shout_free(s->s);
   }
 
+static void flush_metadata(bg_shout_t * s)
+  {
+  if(shout_set_metadata(s->s, s->met) != SHOUTERR_SUCCESS)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Sending metadata failed: %s",
+           shout_get_error(s->s));
+    }
+  shout_metadata_free(s->met);
+  s->met = NULL;
+  }
 
 int bg_shout_write(bg_shout_t * s, const uint8_t * data, int len)
   {
+  //  fprintf(stderr, "Shout send: %d %ld %p\n", len, s->bytes_sent, s->met);
+  
   if(shout_send(s->s, data, len) != SHOUTERR_SUCCESS)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Sending data failed: %s",
+           shout_get_error(s->s));
     return 0;
+    }
+  s->bytes_sent += len;
+  
+  //   if(s->met && (s->bytes_sent > 32000))
+  //    flush_metadata(s);
+  
   return len;
   }
 
 void bg_shout_update_metadata(bg_shout_t * s, const char * name,
                               const bg_metadata_t * m)
   {
-  shout_metadata_t * met;
+  if(s->met)
+    shout_metadata_free(s->met);
   
-  met = shout_metadata_new();
+  s->met = shout_metadata_new();
   
   if(m && m->artist && m->title)
     {
-    shout_metadata_add(met, "artist", m->artist);
-    shout_metadata_add(met, "title",  m->title);
+    shout_metadata_add(s->met, "artist", m->artist);
+    shout_metadata_add(s->met, "title",  m->title);
     }
   else if(name)
     {
-    shout_metadata_add(met, "song", name);
+    shout_metadata_add(s->met, "song", name);
     }
   else /* Clear everything */
     {
-    shout_metadata_add(met, "song", shout_get_name(s->s));
+    shout_metadata_add(s->met, "song", shout_get_name(s->s));
     }
-  shout_set_metadata(s->s, met);
-  shout_metadata_free(met);
+  flush_metadata(s);
   }
