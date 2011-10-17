@@ -215,6 +215,9 @@ void bg_x11_window_set_fullscreen_mapped(bg_x11_window_t * win,
 static void show_window(bg_x11_window_t * win, window_t * w, int show)
   {
   unsigned long buffer[2];
+
+  if(!w)
+    return;
   
   if(!show)
     {
