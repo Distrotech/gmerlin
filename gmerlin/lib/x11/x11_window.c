@@ -371,6 +371,8 @@ static int open_display(bg_x11_window_t * w)
   if(!w->display_string_parent)
     {
     w->dpy = XOpenDisplay(NULL);
+    if(!w->dpy)
+      return 0;
     w->normal.parent = None;
     w->fullscreen.parent = None;
     }
@@ -394,9 +396,7 @@ static int open_display(bg_x11_window_t * w)
     
     w->dpy = XOpenDisplay(w->display_string_parent);
     if(!w->dpy)
-      {
       return 0;
-      }
     
     w->normal.parent = strtoul(normal_id, NULL, 16);
     
