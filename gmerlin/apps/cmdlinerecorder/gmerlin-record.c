@@ -337,9 +337,7 @@ int main(int argc, char ** argv)
     bg_cfg_section_create_from_parameters("metadata", metadata_parameters);
 
   encoder_parameters = bg_recorder_get_encoder_parameters(recorder);
-
-  bg_parameters_dump(encoder_parameters, "encoder_parameters.xml");
-
+  
   encoder_section =
     bg_cfg_section_create_from_parameters("encoder", encoder_parameters);
 
