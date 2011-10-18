@@ -26,6 +26,8 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/translation.h>
+#include <gmerlin/charset.h>
+
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "shout"
 
@@ -37,8 +39,10 @@ struct bg_shout_s
   shout_metadata_t * met;
   int metadata_sent;
   int64_t bytes_sent;
+  int format;
+  bg_charset_converter_t * cnv;
   };
- 
+
 
 bg_shout_t * bg_shout_create(int format)
   {
@@ -47,7 +51,10 @@ bg_shout_t * bg_shout_create(int format)
 
   shout_init();
   ret->s = shout_new();
+  ret->format = format;
 
+  if(ret->format != SHOUT_FORMAT_OGG)
+    ret->cnv = bg_charset_converter_create("UTF-8", "ISO-8859-1");
   
   shout_set_format(ret->s, format);
   return ret; 
@@ -172,6 +179,10 @@ void bg_shout_destroy(bg_shout_t * s)
   if(shout_get_connected(s->s) == SHOUTERR_CONNECTED)
     shout_close(s->s);
   shout_free(s->s);
+  if(s->cnv)
+    bg_charset_converter_destroy(s->cnv);
+  
+  free(s);
   }
 
 static void flush_metadata(bg_shout_t * s)
@@ -203,9 +214,24 @@ int bg_shout_write(bg_shout_t * s, const uint8_t * data, int len)
   return len;
   }
 
+static void metadata_add(bg_shout_t * s,
+                         const char * name,
+                         const char * val)
+  {
+  if(!s->cnv)
+    shout_metadata_add(s->met, name, val);
+  else
+    {
+    char * tmp_string = bg_convert_string(s->cnv, val, -1, NULL);
+    shout_metadata_add(s->met, name, tmp_string);
+    free(tmp_string);
+    }
+  }
+
 void bg_shout_update_metadata(bg_shout_t * s, const char * name,
                               const bg_metadata_t * m)
   {
+  
   if(s->met)
     shout_metadata_free(s->met);
   
@@ -213,16 +239,16 @@ void bg_shout_update_metadata(bg_shout_t * s, const char * name,
   
   if(m && m->artist && m->title)
     {
-    shout_metadata_add(s->met, "artist", m->artist);
-    shout_metadata_add(s->met, "title",  m->title);
+    metadata_add(s, "artist", m->artist);
+    metadata_add(s, "title",  m->title);
     }
   else if(name)
     {
-    shout_metadata_add(s->met, "song", name);
+    metadata_add(s, "song", name);
     }
   else /* Clear everything */
     {
-    shout_metadata_add(s->met, "song", shout_get_name(s->s));
+    metadata_add(s, "song", shout_get_name(s->s));
     }
   flush_metadata(s);
   }
