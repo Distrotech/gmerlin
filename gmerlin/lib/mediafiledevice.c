@@ -22,6 +22,10 @@
 #include <config.h>
 #include <string.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 
 #include <gmerlin/translation.h>
 #include <gmerlin/converters.h>
@@ -76,7 +80,18 @@ typedef struct
   gavl_timer_t * timer;
   bg_recorder_callbacks_t * callbacks;
   
+  time_t mtime;
   } audiofile_t;
+
+static int get_mtime(const char * file, time_t * ret)
+  {
+  struct stat st;
+  if(stat(file, &st))
+    return 0;
+  *ret = st.st_mtime;
+  return 1;
+  }
+  
 
 static const bg_parameter_info_t parameters_audio[] =
   {
@@ -268,7 +283,18 @@ static int open_file(audiofile_t * m)
   bg_track_info_t * ti;
   int num_tracks;
   const bg_plugin_info_t * info;
-  int idx = m->indices ? m->indices[m->current] : m->current;
+  int idx;
+  time_t new_mtime;
+
+  if(get_mtime(m->album_file, &new_mtime) && (new_mtime != m->mtime))
+    {
+    m->mtime = new_mtime;
+    if(!build_track_list(m))
+      return 0;
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Reloaded album (file changed)");
+    }
+  
+  idx = m->indices ? m->indices[m->current] : m->current;
   if(m->h)
     {
     bg_plugin_unref(m->h); 
@@ -359,6 +385,9 @@ static int open_audio(void * p,
 
   gavl_audio_format_copy(format, &m->out_format);
   m->frame = gavl_audio_frame_create(&m->out_format);
+
+  if(!get_mtime(m->album_file, &m->mtime))
+    return 0;
   
   /* Create track list */
   if(!build_track_list(m))
