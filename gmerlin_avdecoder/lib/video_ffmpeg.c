@@ -48,6 +48,14 @@
 
 #ifdef HAVE_LIBPOSTPROC
 #include POSTPROC_HEADER
+
+# if (defined HAVE_PP_CONTEXT) && (!defined HAVE_PP_CONTEXT_T)
+#  define pp_context_t pp_context
+# endif
+# if (defined HAVE_PP_MODE) && (!defined HAVE_PP_MODE_T)
+#  define pp_mode_t pp_mode
+# endif
+
 #endif
 
 #ifdef HAVE_LIBSWSCALE

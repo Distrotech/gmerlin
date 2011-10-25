@@ -130,6 +130,13 @@ fi
 
 if test $found_header = "false"; then
 have_libpostproc=false
+else
+CFLAGS="-DPOSTPROC_HEADER=$POSTPROC_HEADER $CFLAGS"
+AC_CHECK_TYPES([pp_context_t, pp_context, pp_mode_t, pp_mode], [], [], [[
+#ifdef POSTPROC_HEADER
+#include POSTPROC_HEADER
+#endif
+]])
 fi
 
 CFLAGS="$CFLAGS_save"
