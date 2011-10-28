@@ -162,6 +162,7 @@ static int open_gif(bgav_demuxer_context_t * ctx)
   ctx->tt = bgav_track_table_create(1);
   s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('g','i','f',' ');
+  s->flags |= STREAM_INTRA_ONLY;
 
   s->data.video.format.image_width  = sd.width;
   s->data.video.format.image_height = sd.height;
@@ -178,6 +179,8 @@ static int open_gif(bgav_demuxer_context_t * ctx)
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+
+  ctx->index_mode = INDEX_MODE_SIMPLE;
   
   return 1;
   }
@@ -193,7 +196,8 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
   int frame_duration;
   bgav_stream_t * s;
   bgav_packet_t * p;
-  
+
+  int64_t ctxposition = ctx->input->position;
   priv = ctx->priv;
 
   while(!done)
@@ -264,6 +268,7 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
   s = ctx->tt->cur->video_streams;
   
   p = bgav_stream_get_packet_write(s);
+  p->position = ctxposition;
 
   bgav_packet_alloc(p, GLOBAL_HEADER_LEN + priv->global_cmap_bytes +
                     GCE_LEN + // GCE length
@@ -351,6 +356,13 @@ static int select_track_gif(bgav_demuxer_context_t * ctx, int track)
   return 1;
   }
 
+static void resync_gif(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
+  {
+  gif_priv_t * priv;
+  priv = ctx->priv;
+  priv->video_pts = STREAM_GET_SYNC(s);
+  }
+
 
 static void close_gif(bgav_demuxer_context_t * ctx)
   {
@@ -366,5 +378,6 @@ const bgav_demuxer_t bgav_demuxer_gif =
     .open =         open_gif,
     .select_track = select_track_gif,
     .next_packet =  next_packet_gif,
+    .resync =       resync_gif,
     .close =        close_gif
   };
