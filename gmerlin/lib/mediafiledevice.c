@@ -184,6 +184,7 @@ static void free_track_list(audiofile_t * m)
     free(m->indices);
     m->indices = NULL;
     }
+  m->num_files = 0;
   }
 
 static void append_track(audiofile_t * m,
@@ -248,14 +249,15 @@ static int build_track_list(audiofile_t * m)
     append_track(m, e->location, e->plugin, e->index);
     e = e->next;
     }
-
+  if(entries)
+    bg_album_entries_destroy(entries);
+  
   if(!m->num_files)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Album file %s contains no usable entries",
            m->album_file);
     return 0;
     }
-  /* TODO: Shuffle */
 
   if(m->do_shuffle)
     {
@@ -288,10 +290,10 @@ static int open_file(audiofile_t * m)
 
   if(get_mtime(m->album_file, &new_mtime) && (new_mtime != m->mtime))
     {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Reloading album (file changed)");
     m->mtime = new_mtime;
     if(!build_track_list(m))
       return 0;
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Reloaded album (file changed)");
     }
   
   idx = m->indices ? m->indices[m->current] : m->current;
@@ -458,7 +460,9 @@ static int read_frame_audio(void * p, gavl_audio_frame_t * f,
   /* Wait until we can output the data */
   
   current_time = gavl_timer_get(m->timer);
-  diff_time = gavl_time_unscale(m->out_format.samplerate, m->sample_counter) - current_time;
+  diff_time =
+    gavl_time_unscale(m->out_format.samplerate, m->sample_counter) -
+    current_time;
 
   if(diff_time > 0)
     gavl_time_delay(&diff_time);
