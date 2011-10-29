@@ -30,6 +30,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <syslog.h>
 
 #include <gmerlin/log.h>
 #include <gmerlin/utils.h>
@@ -175,6 +176,73 @@ char * bg_log_last_error()
   return ret;
   }
 
+/* Syslog stuff */
+
+static bg_msg_queue_t * syslog_queue = NULL;
+
+static struct
+  {
+  int gmerlin_level;
+  int syslog_level;
+  }
+loglevels[] =
+  {
+    { BG_LOG_ERROR,   LOG_ERR },
+    { BG_LOG_WARNING, LOG_WARNING },
+    { BG_LOG_INFO,    LOG_INFO },
+    { BG_LOG_DEBUG,   LOG_DEBUG },
+  };
+
+void bg_log_syslog_init(const char * name)
+  {
+  syslog_queue = bg_msg_queue_create();
+  bg_log_set_dest(syslog_queue);
+
+  /* Initialize Logging */
+  openlog(name, LOG_PID, LOG_USER);
+  }
+
+void bg_log_syslog_flush()
+  {
+  bg_msg_t * msg;
+  char * domain;
+  char * message;
+  int i;
+  
+  int gmerlin_level;
+  int syslog_level = LOG_INFO;
+  while((msg = bg_msg_queue_try_lock_read(syslog_queue)))
+    {
+    gmerlin_level = bg_msg_get_id(msg);
+
+    if(!(gmerlin_level & log_mask))
+      {
+      bg_msg_queue_unlock_read(syslog_queue);
+      continue;
+      }
+    
+    domain = bg_msg_get_arg_string(msg, 0);
+    message = bg_msg_get_arg_string(msg, 1);
+
+
+    i = 0;
+    for(i = 0; i < sizeof(loglevels) / sizeof(loglevels[0]); i++)
+      {
+      if(loglevels[i].gmerlin_level == gmerlin_level)
+        {
+        loglevels[i].syslog_level = syslog_level;
+        break;
+        }
+      }
+    syslog(syslog_level, "%s: %s", domain, message);
+    free(domain);
+    free(message);
+    bg_msg_queue_unlock_read(syslog_queue);
+    }
+  
+  }
+
+
 #if defined(__GNUC__)
 
 static void cleanup_log() __attribute__ ((destructor));
@@ -183,6 +251,8 @@ static void cleanup_log()
   {
   if(last_error)
     free(last_error);
+  if(syslog_queue)
+    bg_msg_queue_destroy(syslog_queue);
   }
 
 #endif

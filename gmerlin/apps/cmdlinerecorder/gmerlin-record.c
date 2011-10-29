@@ -55,8 +55,10 @@ static bg_cfg_registry_t * cfg_reg;
 
 static int do_record = 0;
 
-#define DELAY_TIME 100
-#define PING_INTERVAL 10
+static int do_syslog = 0;
+
+#define DELAY_TIME 50
+#define PING_INTERVAL 20
 
 static void opt_aud(void * data, int * argc, char *** _argv, int arg)
   {
@@ -191,6 +193,18 @@ static void opt_o(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_syslog(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -syslog requires an argument\n");
+    exit(-1);
+    }
+  bg_log_syslog_init((*_argv)[arg]);
+  do_syslog = 1;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -247,6 +261,12 @@ static bg_cmdline_arg_t global_options[] =
       .arg =         "-r",
       .help_string = "Record to file",
       .callback =    opt_r,
+    },
+    {
+      .arg =         "-syslog",
+      .help_arg =    "<name>",
+      .help_string = "Set log messages to syslog",
+      .callback =    opt_syslog,
     },
     {
       /* End */
@@ -383,6 +403,9 @@ int main(int argc, char ** argv)
     timeout_counter++;
     if(timeout_counter >= PING_INTERVAL)
       timeout_counter = 0;
+
+    if(do_syslog)
+      bg_log_syslog_flush();
     
     gavl_time_delay(&delay_time);
     }

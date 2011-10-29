@@ -25,10 +25,6 @@
 #include <sys/stat.h>
 #include <string.h>
 
-
-
-#include <syslog.h>
-
 #include <X11/Xlib.h>
 
 /* Gmerlin includes */
@@ -71,52 +67,6 @@ static int x11_error(Display * d, XErrorEvent * evt)
   return 0;
   }
 
-static struct
-  {
-  int gmerlin_level;
-  int syslog_level;
-  }
-loglevels[] =
-  {
-    { BG_LOG_ERROR,   LOG_ERR },
-    { BG_LOG_WARNING, LOG_WARNING },
-    { BG_LOG_INFO,    LOG_INFO },
-    { BG_LOG_DEBUG,   LOG_DEBUG },
-  };
-
-static void flush_log_queue(kbd_daemon_t * d)
-  {
-  bg_msg_t * msg;
-  char * domain;
-  char * message;
-  int i;
-  
-  int gmerlin_level;
-  int syslog_level = LOG_INFO;
-  while((msg = bg_msg_queue_try_lock_read(d->log_queue)))
-    {
-    gmerlin_level = bg_msg_get_id(msg);
-
-    domain = bg_msg_get_arg_string(msg, 0);
-    message = bg_msg_get_arg_string(msg, 1);
-
-
-    i = 0;
-    for(i = 0; i < sizeof(loglevels) / sizeof(loglevels[0]); i++)
-      {
-      if(loglevels[i].gmerlin_level == gmerlin_level)
-        {
-        loglevels[i].syslog_level = syslog_level;
-        break;
-        }
-      }
-    syslog(syslog_level, "%s: %s", domain, message);
-    free(domain);
-    free(message);
-    bg_msg_queue_unlock_read(d->log_queue);
-    }
-  }
-
 static void grab_keys(kbd_daemon_t * d)
   {
   int i;
@@ -150,7 +100,7 @@ static void grab_keys(kbd_daemon_t * d)
         }
       }
     }
-  flush_log_queue(d);
+  bg_log_syslog_flush();
   }
 
 static void ungrab_keys(kbd_daemon_t * d)
@@ -164,7 +114,7 @@ static void ungrab_keys(kbd_daemon_t * d)
                  d->root);
       }
     }
-  flush_log_queue(d);
+  bg_log_syslog_flush();
   }
 
 static void kbd_daemon_destroy(kbd_daemon_t * d)
@@ -181,7 +131,7 @@ static void kbd_daemon_destroy(kbd_daemon_t * d)
     }
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Exiting");
   
-  flush_log_queue(d);
+  bg_log_syslog_flush();
   bg_msg_queue_destroy(d->log_queue);
   free(d);
   }
@@ -194,13 +144,10 @@ static kbd_daemon_t * kbd_daemon_create()
   ret = calloc(1, sizeof(*ret));
 
   /* Initialize logging */
-  ret->log_queue = bg_msg_queue_create();
-  bg_log_set_dest(ret->log_queue);
 
   XSetErrorHandler(x11_error);
   
-  /* Initialize Logging */
-  openlog("gmerlin_kbd", LOG_PID, LOG_USER);
+  bg_log_syslog_init("gmerlin_kbd");
   
   /* Open X11 connection */
   ret->dpy = XOpenDisplay(NULL);
@@ -224,7 +171,7 @@ static kbd_daemon_t * kbd_daemon_create()
     return NULL;
     }
   grab_keys(ret);
-  flush_log_queue(ret);
+  bg_log_syslog_flush();
   return ret;
   }
 
@@ -296,7 +243,7 @@ static void kbd_loop(kbd_daemon_t * d)
           break;
         }
       }
-    flush_log_queue(d);
+    bg_log_syslog_flush();
     gavl_time_delay(&delay_time);
     }
   }

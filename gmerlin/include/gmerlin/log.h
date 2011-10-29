@@ -166,4 +166,20 @@ void bg_log_set_verbose(int mask);
 
 char * bg_log_last_error();
 
+/** \ingroup log
+ *  \brief Initialize syslog logging
+ *  \param name Application name
+ */
+
+void bg_log_syslog_init(const char * name);
+
+/** \ingroup log
+ *  Flush the log queue, must be done periodically by the
+ *  application
+ */
+
+void bg_log_syslog_flush();
+
+
+
 #endif // __BG_LOG_H_
