@@ -185,6 +185,8 @@ static void free_track_list(audiofile_t * m)
     m->indices = NULL;
     }
   m->num_files = 0;
+  m->files_alloc = 0;
+  m->current = 0;
   }
 
 static void append_track(audiofile_t * m,
@@ -290,7 +292,6 @@ static int open_file(audiofile_t * m)
 
   if(get_mtime(m->album_file, &new_mtime) && (new_mtime != m->mtime))
     {
-    fprintf(stderr, "Reloading album (file changed)");
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Reloading album (file changed)");
     m->mtime = new_mtime;
     if(!build_track_list(m))
