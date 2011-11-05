@@ -107,6 +107,8 @@ static void set_sub_param(void * priv, const char * name,
   else if(list->is_chain)
     tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->selected,
                             name);
+  else if(list->param_selected < 0)
+    return;
   else
     {
     tmp_string = bg_sprintf("%s.%s.%s", w->info->name,
@@ -197,14 +199,6 @@ static void apply_sub_params(bg_gtk_widget_t * w)
   if(names)
     bg_strbreak_free(names);
   }
-
-#if 0
-static void do_apply_sub_params(bg_gtk_widget_t * w)
-  {
-  apply_sub_params(w);
-  set_sub_param(w, NULL, NULL);
-  }
-#endif
 
 /* Return the string corresponding to the current list */
 static char * get_list_string(bg_gtk_widget_t * w)
@@ -781,9 +775,9 @@ static void button_callback(GtkWidget * wid, gpointer data)
   bg_cfg_section_t * subsection;
   bg_cfg_section_t * subsubsection;
 
-  w = (bg_gtk_widget_t *)data;
-  priv = (list_priv_t *)(w->priv);
-
+  w = data;
+  priv = w->priv;
+  
   if(wid == priv->config_button)
     {
     if(w->cfg_section)

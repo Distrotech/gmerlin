@@ -869,14 +869,14 @@ static GtkWidget * create_section(dialog_section_t * section,
     section->widgets[count].funcs->attach(section->widgets[count].priv, table,
                                  &row, &num_columns);
 
-    /* Get the value from the config data... */
-    if(section->cfg_section)
+    /* Get the value from the get_param function */
+    if(get_param &&
+       get_param(data, info[i].name, &section->widgets[count].value))
+      ;
+    /* .. or from the config data... */
+    else if(section->cfg_section)
       bg_cfg_section_get_parameter(section->cfg_section, &info[i],
                                    &section->widgets[count].value);
-    /* ... or from the get_param function */
-    else if(get_param &&
-            get_param(data, info[i].name, &section->widgets[count].value))
-      ;
     /* ... or from the parameter default */
     else
       bg_parameter_value_copy(&section->widgets[count].value,
