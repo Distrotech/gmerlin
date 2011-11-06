@@ -56,9 +56,9 @@ static int read_data(bgav_input_context_t* ctx,
   fd = bgav_http_get_fd(p->h);
   
   if(block)
-    return bgav_read_data_fd(fd, buffer, len, ctx->opt->read_timeout);
+    return bgav_read_data_fd(ctx->opt, fd, buffer, len, ctx->opt->read_timeout);
   else
-    return bgav_read_data_fd(fd, buffer, len, 0);
+    return bgav_read_data_fd(ctx->opt, fd, buffer, len, 0);
   }
 
 typedef struct

@@ -32,7 +32,8 @@ typedef struct
   int64_t bytes_read;
   } ftp_priv_t;
 
-static int get_server_answer(int fd, char ** server_msg,
+static int get_server_answer(const bgav_options_t * opt, 
+                             int fd, char ** server_msg,
                              int * server_msg_alloc,int connect_timeout)
   {
   char status[5];
@@ -41,7 +42,7 @@ static int get_server_answer(int fd, char ** server_msg,
   status[4] = '\0';
   status_neu[4] = '\0';
     
-  if(!bgav_read_line_fd(fd, server_msg, server_msg_alloc, connect_timeout))
+  if(!bgav_read_line_fd(opt, fd, server_msg, server_msg_alloc, connect_timeout))
     {
     return 0;
     }
@@ -61,7 +62,7 @@ static int get_server_answer(int fd, char ** server_msg,
   
   while(strncmp(status, status_neu, 4)!= 0)
     {
-    if(!bgav_read_line_fd(fd, server_msg, server_msg_alloc, connect_timeout))
+    if(!bgav_read_line_fd(opt, fd, server_msg, server_msg_alloc, connect_timeout))
       return 0;
     strncpy(status_neu, *server_msg, 4);
     }
@@ -173,7 +174,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
   /* Connect */
   if((p->control_fd = bgav_tcp_connect(ctx->opt, host, port))== -1)
     goto fail;
-  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+  if(get_server_answer(ctx->opt,
+                       p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 220)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not read answer");
@@ -208,7 +210,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
   if(!bgav_tcp_send(ctx->opt, p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd)))
     goto fail;
   FREE(server_cmd);
-  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+  if(get_server_answer(ctx->opt,
+                       p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 331)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -220,7 +223,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
   if(!bgav_tcp_send(ctx->opt, p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd)))
     goto fail;
   FREE(server_cmd);
-  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+  if(get_server_answer(ctx->opt,
+                       p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 230)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not read answer");
@@ -244,7 +248,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
   if(!bgav_tcp_send(ctx->opt, p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd)))
     goto fail;
   FREE(server_cmd);
-  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+  if(get_server_answer(ctx->opt,
+                       p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 250)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not read answer");
@@ -261,7 +266,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
     goto fail;
   FREE(server_cmd);
   
-  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+  if(get_server_answer(ctx->opt,
+                       p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 213)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not read answer");
@@ -288,7 +294,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
                     p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd)))
     goto fail;
   FREE(server_cmd);
-  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+  if(get_server_answer(ctx->opt,
+                       p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 200)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not read answer");
@@ -305,7 +312,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
   if(!bgav_tcp_send(ctx->opt, p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd)))
     goto fail;
   FREE(server_cmd);
-  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+  if(get_server_answer(ctx->opt,
+                       p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 227)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not read answer");
@@ -326,7 +334,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
     goto fail;
   FREE(server_cmd);
   
-  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+  if(get_server_answer(ctx->opt,
+                       p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 150)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not read answer");
@@ -369,7 +378,8 @@ static int do_read(bgav_input_context_t * ctx,
     {
     return 0;
     }
-  len_read = bgav_read_data_fd(p->data_fd, buffer, len, timeout);
+  len_read = bgav_read_data_fd(ctx->opt,
+                               p->data_fd, buffer, len, timeout);
   p->bytes_read += len_read;
   return len_read;
   }

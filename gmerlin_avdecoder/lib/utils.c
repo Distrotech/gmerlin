@@ -308,7 +308,8 @@ int bgav_url_split(const char * url,
  */
 #define BYTES_TO_ALLOC 1024
 
-int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds)
+int bgav_read_line_fd(const bgav_options_t * opt,
+                      int fd, char ** ret, int * ret_alloc, int milliseconds)
   {
   char * pos;
   char c;
@@ -324,7 +325,7 @@ int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds)
   pos = *ret;
   while(1)
     {
-    if(!bgav_read_data_fd(fd, (uint8_t*)(&c), 1, milliseconds))
+    if(!bgav_read_data_fd(opt, fd, (uint8_t*)(&c), 1, milliseconds))
       {
       if(!bytes_read)
         return 0;
@@ -357,7 +358,8 @@ int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds)
   return 1;
   }
 
-int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
+int bgav_read_data_fd(const bgav_options_t * opt,
+                      int fd, uint8_t * ret, int len, int milliseconds)
   {
   int bytes_read = 0;
   int result;
@@ -382,6 +384,7 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
     
       if((result = select (fd+1, &rset, NULL, NULL, &timeout)) <= 0)
         {
+//        fprintf(stderr, "Read timed out %d\n", milliseconds);
         return bytes_read;
         }
       }
@@ -391,6 +394,9 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
       bytes_read += result;
     else if(result <= 0)
       {
+      if(result <0)
+        bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "recv failed: %s", strerror(errno));
       return bytes_read;
       }
     }

@@ -108,14 +108,14 @@ int bgav_http_header_revc(const bgav_options_t * opt,
   char * answer = NULL;
   int answer_alloc = 0;
   
-  while(bgav_read_line_fd(fd, &answer, &answer_alloc, opt->connect_timeout))
+  while(bgav_read_line_fd(opt, fd, &answer, &answer_alloc, opt->connect_timeout))
     {
     if(*answer == '\0')
       break;
     bgav_http_header_add_line(h, answer);
     ret = 1;
     }
-  
+
   if(answer)
     free(answer);
   return ret;
@@ -186,9 +186,10 @@ struct bgav_http_s
   int fd;
   };
 
-static bgav_http_t * do_connect(const char * host, int port, const bgav_options_t * opt,
-                                bgav_http_header_t * request_header,
-                                bgav_http_header_t * extra_header)
+static bgav_http_t *
+do_connect(const char * host, int port, const bgav_options_t * opt,
+           bgav_http_header_t * request_header,
+           bgav_http_header_t * extra_header)
   {
   bgav_http_t * ret = NULL;
   
@@ -214,7 +215,11 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
   
   ret->header = bgav_http_header_create();
   
-  bgav_http_header_revc(ret->opt, ret->header, ret->fd);
+  if(!bgav_http_header_revc(ret->opt, ret->header, ret->fd))
+    {
+    bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading response failed");
+    goto fail;
+    }
 
   return ret;
   
@@ -353,7 +358,8 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
       if(user) { free(user); user = NULL; }
       if(pass) { free(pass); pass = NULL; }
       
-      if(!opt->user_pass_callback(opt->user_pass_callback_data, host, &user, &pass))
+      if(!opt->user_pass_callback(opt->user_pass_callback_data,
+                                  host, &user, &pass))
         goto fail;
       }
     
@@ -378,7 +384,8 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   if(status >= 400) /* Error */
     {
     if(bgav_http_header_status_line(ret->header))
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s", bgav_http_header_status_line(ret->header));
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s",
+               bgav_http_header_status_line(ret->header));
     goto fail;
     }
   else if(status >= 300) /* Redirection */
@@ -393,8 +400,11 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     location = bgav_http_header_get_var(ret->header, "Location");
 
     if(location)
-      {
       *redirect_url = bgav_strdup(location);
+    else
+      {
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Got redirection but no URL");
       }
     
     if(host)
@@ -411,7 +421,8 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   else if(status < 200)  /* Error */
     {
     if(bgav_http_header_status_line(ret->header))
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s", bgav_http_header_status_line(ret->header));
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s",
+               bgav_http_header_status_line(ret->header));
     goto fail;
     }
   

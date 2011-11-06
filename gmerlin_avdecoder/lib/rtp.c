@@ -1639,7 +1639,7 @@ static void append_packet_ogg(bgav_stream_t * s, uint8_t * data, int len)
   {
   ogg_packet * op;
   bgav_packet_alloc(s->packet, s->packet->data_size + len);
-  op = s->packet->data;
+  op = (ogg_packet *)s->packet->data;
   op->packet = s->packet->data + sizeof(*op);
   op->bytes += len;
   memcpy(s->packet->data + s->packet->data_size, data, len);

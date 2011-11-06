@@ -195,7 +195,7 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected)
   
   buf = malloc(content_length+1);
   
-  if(bgav_read_data_fd(rtsp->fd, (uint8_t*)buf,
+  if(bgav_read_data_fd(rtsp->opt, rtsp->fd, (uint8_t*)buf,
                        content_length, rtsp->opt->read_timeout) <
      content_length)
     {

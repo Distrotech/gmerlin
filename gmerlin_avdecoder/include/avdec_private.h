@@ -1679,9 +1679,9 @@ int bgav_check_file_read(const char * filename);
 
 /* Read a single line from a filedescriptor */
 
-int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds);
+int bgav_read_line_fd(const bgav_options_t * opt, int fd, char ** ret, int * ret_alloc, int milliseconds);
 
-int bgav_read_data_fd(int fd, uint8_t * ret, int size, int milliseconds);
+int bgav_read_data_fd(const bgav_options_t * opt, int fd, uint8_t * ret, int size, int milliseconds);
 
 /* tcp.c */
 
