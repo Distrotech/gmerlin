@@ -70,7 +70,7 @@ static int read_dref_table(bgav_input_context_t * input,
     {
     ret->data_reference = malloc(ret->size - 11);
     if(bgav_input_read_data(input, ret->data_reference,
-                            ret->size - 12) < ref->size - 12)
+                            ret->size - 12) < ret->size - 12)
       return 0;
     ret->data_reference[ret->size-12] = '\0';
     }
