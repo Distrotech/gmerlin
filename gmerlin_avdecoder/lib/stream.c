@@ -308,3 +308,14 @@ void bgav_stream_done_packet_read(bgav_stream_t * s, bgav_packet_t * p)
   {
   bgav_packet_pool_put(s->pp, p);
   }
+
+void bgav_stream_set_extradata(bgav_stream_t * s, const uint8_t * data, int len)
+  {
+  if(len <= 0)
+    return;
+  
+  s->ext_size = len;
+  s->ext_data = malloc(len + 16);
+  memcpy(s->ext_data, data, len);
+  memset(s->ext_data + len, 0, 16);
+  }

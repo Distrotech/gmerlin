@@ -552,6 +552,7 @@ qt_tmcd.c \
 qt_trak.c \
 qt_tref.c \
 qt_udta.c \
+qt_useratoms.c \
 qt_utils.c \
 qt_wave.c \
 redirect.c \

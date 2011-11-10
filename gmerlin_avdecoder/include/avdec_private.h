@@ -617,6 +617,8 @@ void bgav_stream_create_packet_buffer(bgav_stream_t * stream);
 void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt);
 void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
+void bgav_stream_set_extradata(bgav_stream_t * s, const uint8_t * data, int len);
+
 
 /* Top level packet functions */
 bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s);

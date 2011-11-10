@@ -1311,12 +1311,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         /* This lets us play blender AVIs. */
                 
         if((ch->ckSize > 40) && (bg_vs->fourcc != BGAV_MK_FOURCC('M','J','P','G')))
-          {
-          bg_vs->ext_size = ch->ckSize - 40;
-          bg_vs->ext_data = calloc(bg_vs->ext_size + 16, 1);
-          memcpy(bg_vs->ext_data, pos, bg_vs->ext_size);
-          }
-
+          bgav_stream_set_extradata(bg_vs, pos, ch->ckSize - 40);
+        
         /* Add palette if depth <= 8 */
 
         

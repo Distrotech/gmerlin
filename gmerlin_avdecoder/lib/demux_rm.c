@@ -407,14 +407,9 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
           data++;
 
         codecdata_length = BGAV_PTR_2_32BE(data);data+=4;
-      
-        bg_as->ext_size = codecdata_length;
-        if(bg_as->ext_size)
-          {
-          bg_as->ext_data = malloc(bg_as->ext_size);
-          memcpy(bg_as->ext_data, data, codecdata_length);
-          }
 
+        bgav_stream_set_extradata(bg_as, data, codecdata_length);
+        
         if((bg_as->fourcc == BGAV_MK_FOURCC('a', 't', 'r', 'c')) ||
            (bg_as->fourcc == BGAV_MK_FOURCC('c', 'o', 'o', 'k')))
           bg_as->data.audio.block_align = sub_packet_size;
@@ -433,16 +428,9 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
           data++;
 
         codecdata_length = BGAV_PTR_2_32BE(data);data+=4;
+
         if(codecdata_length>=1)
-          {
-          bg_as->ext_size = codecdata_length-1;
-          data++;
-          if(bg_as->ext_size)
-            {
-            bg_as->ext_data = malloc(bg_as->ext_size);
-            memcpy(bg_as->ext_data, data, bg_as->ext_size);
-            }
-          }
+          bgav_stream_set_extradata(bg_as, data+1, codecdata_length-1);
         break;
       default:
       
@@ -508,7 +496,7 @@ static void init_audio_stream_mp3(bgav_demuxer_context_t * ctx, bgav_rmff_stream
 
 static void init_video_stream(bgav_demuxer_context_t * ctx,
                               bgav_rmff_stream_t * stream,
-                              uint8_t * _data, int len)
+                              uint8_t * data_start, int len)
   {
   uint16_t fps, fps2;
   bgav_stream_t * bg_vs;
@@ -517,7 +505,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   
   bgav_track_t * track = ctx->tt->cur;
 
-  uint8_t * data = _data;
+  uint8_t * data = data_start;
   
   priv = ctx->priv;
   
@@ -532,8 +520,6 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   /* Set container bitrate */
   bg_vs->container_bitrate = stream->mdpr.avg_bit_rate;
   
-  //  bg_vs->ext_size = 16;
-  //  bg_vs->ext_data = calloc(bg_vs->ext_size, 1);
   bg_vs->priv = rm_vs;
 
   data += 4; // VIDO
@@ -568,11 +554,8 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   
   /* Read extradata */
 
-  bg_vs->ext_size = len - (data - _data);
-  bg_vs->ext_data = malloc(bg_vs->ext_size);
-
-  memcpy(bg_vs->ext_data, data, bg_vs->ext_size);
-
+  bgav_stream_set_extradata(bg_vs, data, len - (data - data_start));
+  
   switch(bg_vs->fourcc)
     {
     case BGAV_MK_FOURCC('R','V','1','0'):

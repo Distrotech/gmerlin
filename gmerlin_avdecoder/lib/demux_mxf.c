@@ -432,11 +432,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   s->data.video.format.frame_height   = sd->height;
 
   if(sd->ext_size)
-    {
-    s->ext_size = sd->ext_size;
-    s->ext_data = malloc(s->ext_size);
-    memcpy(s->ext_data, sd->ext_data, s->ext_size);
-    }
+    bgav_stream_set_extradata(s, sd->ext_data, sd->ext_size);
   
   /* Todo: Aspect ratio */
   s->data.video.format.pixel_width    = 1;

@@ -82,12 +82,8 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
           break;
           }
         /* Append user atom */
-        ret->user_atoms = realloc(ret->user_atoms,
-                                  sizeof(*(ret->user_atoms))*(ret->num_user_atoms+1));
-        ret->user_atoms[ret->num_user_atoms] = malloc(ch.size);
-        memcpy(ret->user_atoms[ret->num_user_atoms], data_ptr, ch.size);
-        bgav_qt_atom_skip(input_mem, &ch);
-        ret->num_user_atoms++;
+        if(!bgav_qt_user_atoms_append(&ch, input_mem, &ret->user))
+          return 0;
         break;
       }
     if(done)
@@ -99,9 +95,6 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 
 void bgav_qt_wave_dump(int indent, qt_wave_t * f)
   {
-  int i;
-  int size;
-  uint32_t fourcc;
 
   bgav_diprintf(indent, "wave\n");
   if(f->has_frma)
@@ -111,30 +104,17 @@ void bgav_qt_wave_dump(int indent, qt_wave_t * f)
   if(f->has_esds)
     bgav_qt_esds_dump(indent+2, &f->esds);
 
-  for(i = 0; i < f->num_user_atoms; i++)
-    {
-    size = BGAV_PTR_2_32BE(f->user_atoms[i]);
-    fourcc = BGAV_PTR_2_FOURCC(f->user_atoms[i]+4);
-    bgav_diprintf(indent+2, "User atom: ");
-    bgav_dump_fourcc(fourcc);
-    bgav_dprintf( " (size: %d)\n", size);
-    bgav_hexdump(f->user_atoms[i], size, 16);
-    }
+  bgav_qt_user_atoms_dump(indent+2, &f->user);
   }
 
 void bgav_qt_wave_free(qt_wave_t * w)
   {
-  int i;
   if(w->raw)
     free(w->raw);
   
   if(w->has_esds)
     bgav_qt_esds_free(&w->esds);
-  if(w->user_atoms)
-    {
-    for(i = 0; i < w->num_user_atoms; i++)
-      free(w->user_atoms[i]);
-    free(w->user_atoms);
-    }
+
+  bgav_qt_user_atoms_free(&w->user);
   
   }

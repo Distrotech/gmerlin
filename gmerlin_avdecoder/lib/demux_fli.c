@@ -139,10 +139,7 @@ static int open_fli(bgav_demuxer_context_t * ctx)
     }
 
   /* Set extradata */
-  
-  s->ext_data = malloc(priv->header_size);
-  memcpy(s->ext_data, priv->header, priv->header_size);
-  s->ext_size = priv->header_size;
+  bgav_stream_set_extradata(s, priv->header, priv->header_size);
   
   ctx->stream_description = bgav_sprintf("FLI/FLC Animation");
 

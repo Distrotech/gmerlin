@@ -38,7 +38,8 @@ extern const bgav_palette_entry_t bgav_qt_default_palette_4_gray[];
 extern const bgav_palette_entry_t bgav_qt_default_palette_16_gray[];
 extern const bgav_palette_entry_t bgav_qt_default_palette_256_gray[];
 
-static bgav_palette_entry_t * copy_palette(const bgav_palette_entry_t * p, int num)
+static bgav_palette_entry_t *
+copy_palette(const bgav_palette_entry_t * p, int num)
   {
   bgav_palette_entry_t * ret;
   ret = malloc(num * sizeof(*ret));
@@ -56,9 +57,12 @@ static void stsd_dump_common(int indent, qt_sample_description_t * d)
   bgav_dump_fourcc(d->fourcc);
   bgav_dprintf( "\n");
   
-  bgav_diprintf(indent, "data_reference_index:  %d\n", d->data_reference_index);
-  bgav_diprintf(indent, "version:               %d\n", d->version);
-  bgav_diprintf(indent, "revision_level:        %d\n", d->revision_level);
+  bgav_diprintf(indent, "data_reference_index:  %d\n",
+                d->data_reference_index);
+  bgav_diprintf(indent, "version:               %d\n",
+                d->version);
+  bgav_diprintf(indent, "revision_level:        %d\n",
+                d->revision_level);
   bgav_diprintf(indent, "vendor:                ");
   bgav_dump_fourcc(d->vendor);
   bgav_dprintf( "\n");
@@ -68,22 +72,27 @@ static void stsd_dump_common(int indent, qt_sample_description_t * d)
 static void stsd_dump_audio(int indent, qt_sample_description_t * d)
   {
   
-  bgav_diprintf(indent, "  num_channels          %d\n", d->format.audio.num_channels);
-  bgav_diprintf(indent, "  bits_per_sample:      %d\n", d->format.audio.bits_per_sample);
-  bgav_diprintf(indent, "  compression_id:       %d\n", d->format.audio.compression_id);
-  bgav_diprintf(indent, "  packet_size:          %d\n", d->format.audio.packet_size);
-  bgav_diprintf(indent, "  samplerate:           %d\n", d->format.audio.samplerate);
+  bgav_diprintf(indent, "  num_channels          %d\n",
+                d->format.audio.num_channels);
+  bgav_diprintf(indent, "  bits_per_sample:      %d\n",
+                d->format.audio.bits_per_sample);
+  bgav_diprintf(indent, "  compression_id:       %d\n",
+                d->format.audio.compression_id);
+  bgav_diprintf(indent, "  packet_size:          %d\n",
+                d->format.audio.packet_size);
+  bgav_diprintf(indent, "  samplerate:           %d\n",
+                d->format.audio.samplerate);
 
   if(d->version == 1)
     {
     bgav_diprintf(indent, "samples_per_packet:   %d\n",
-            d->format.audio.samples_per_packet);
+                  d->format.audio.samples_per_packet);
     bgav_diprintf(indent, "bytes_per_packet:     %d\n",
-            d->format.audio.bytes_per_packet);
+                  d->format.audio.bytes_per_packet);
     bgav_diprintf(indent, "bytes_per_frame:      %d\n",
-            d->format.audio.bytes_per_frame);
+                  d->format.audio.bytes_per_frame);
     bgav_diprintf(indent, "bytes_per_sample:     %d\n",
-            d->format.audio.bytes_per_sample);
+                  d->format.audio.bytes_per_sample);
     }
   if(d->version == 2)
     {
@@ -93,23 +102,37 @@ static void stsd_dump_audio(int indent, qt_sample_description_t * d)
     bgav_qt_wave_dump(indent+2, &d->format.audio.wave);
   if(d->format.audio.has_chan)
     bgav_qt_chan_dump(indent+2, &d->format.audio.chan);
+  
+  bgav_qt_user_atoms_dump(indent+2, &d->format.audio.user);
   }
 
 static void stsd_dump_video(int indent, qt_sample_description_t * d)
   {
 
-  bgav_dprintf( "  temporal_quality:      %d\n", d->format.video.temporal_quality);
-  bgav_dprintf( "  spatial_quality:       %d\n", d->format.video.spatial_quality);
-  bgav_dprintf( "  width:                 %d\n", d->format.video.width);
-  bgav_dprintf( "  height:                %d\n", d->format.video.height);
-  bgav_dprintf( "  horizontal_resolution: %f\n", d->format.video.horizontal_resolution);
-  bgav_dprintf( "  vertical_resolution:   %f\n", d->format.video.vertical_resolution);
-  bgav_dprintf( "  data_size:             %d\n", d->format.video.data_size);
-  bgav_dprintf( "  frame_count:           %d\n", d->format.video.frame_count); /* Frames / sample */
-  bgav_dprintf( "  compressor_name:       %s\n", d->format.video.compressor_name);
-  bgav_dprintf( "  depth:                 %d\n", d->format.video.depth);
-  bgav_dprintf( "  ctab_id:               %d\n", d->format.video.ctab_id);
-  bgav_dprintf( "  ctab_size:             %d\n", d->format.video.ctab_size);
+  bgav_dprintf( "  temporal_quality:      %d\n",
+                d->format.video.temporal_quality);
+  bgav_dprintf( "  spatial_quality:       %d\n",
+                d->format.video.spatial_quality);
+  bgav_dprintf( "  width:                 %d\n",
+                d->format.video.width);
+  bgav_dprintf( "  height:                %d\n",
+                d->format.video.height);
+  bgav_dprintf( "  horizontal_resolution: %f\n",
+                d->format.video.horizontal_resolution);
+  bgav_dprintf( "  vertical_resolution:   %f\n",
+                d->format.video.vertical_resolution);
+  bgav_dprintf( "  data_size:             %d\n",
+                d->format.video.data_size);
+  bgav_dprintf( "  frame_count:           %d\n",
+                d->format.video.frame_count); /* Frames / sample */
+  bgav_dprintf( "  compressor_name:       %s\n",
+                d->format.video.compressor_name);
+  bgav_dprintf( "  depth:                 %d\n",
+                d->format.video.depth);
+  bgav_dprintf( "  ctab_id:               %d\n",
+                d->format.video.ctab_id);
+  bgav_dprintf( "  ctab_size:             %d\n",
+                d->format.video.ctab_size);
   }
 
 
@@ -118,27 +141,39 @@ static void stsd_dump_subtitle_qt(int indent, qt_sample_description_t * d)
   bgav_diprintf(indent, "fourcc:                ");
   bgav_dump_fourcc(d->fourcc);
   bgav_dprintf( "\n");
-  bgav_diprintf(indent, "data_reference_index:  %d\n", d->data_reference_index);
-  bgav_diprintf(indent, "displayFlags:          %08x\n", d->format.subtitle_qt.displayFlags);
-  bgav_diprintf(indent, "textJustification:     %d\n", d->format.subtitle_qt.textJustification);
-  bgav_diprintf(indent, "bgColor:               [%d,%d,%d]\n", d->format.subtitle_qt.bgColor[0],
-                d->format.subtitle_qt.bgColor[1], d->format.subtitle_qt.bgColor[1]);
+  bgav_diprintf(indent, "data_reference_index:  %d\n",
+                d->data_reference_index);
+  bgav_diprintf(indent, "displayFlags:          %08x\n",
+                d->format.subtitle_qt.displayFlags);
+  bgav_diprintf(indent, "textJustification:     %d\n",
+                d->format.subtitle_qt.textJustification);
+  bgav_diprintf(indent, "bgColor:               [%d,%d,%d]\n",
+                d->format.subtitle_qt.bgColor[0],
+                d->format.subtitle_qt.bgColor[1],
+                d->format.subtitle_qt.bgColor[1]);
   bgav_diprintf(indent, "defaultTextBox:        [%d,%d,%d,%d]\n",
                 d->format.subtitle_qt.defaultTextBox[0],
                 d->format.subtitle_qt.defaultTextBox[1],
                 d->format.subtitle_qt.defaultTextBox[2],
                 d->format.subtitle_qt.defaultTextBox[3]);
-  bgav_diprintf(indent, "scrpStartChar:         %d\n", d->format.subtitle_qt.scrpStartChar);
-  bgav_diprintf(indent, "scrpHeight:            %d\n", d->format.subtitle_qt.scrpHeight);
-  bgav_diprintf(indent, "scrpAscent:            %d\n", d->format.subtitle_qt.scrpAscent);
-  bgav_diprintf(indent, "scrpFont:              %d\n", d->format.subtitle_qt.scrpFont);
-  bgav_diprintf(indent, "scrpFace:              %d\n", d->format.subtitle_qt.scrpFace);
-  bgav_diprintf(indent, "scrpSize:              %d\n", d->format.subtitle_qt.scrpSize);
+  bgav_diprintf(indent, "scrpStartChar:         %d\n",
+                d->format.subtitle_qt.scrpStartChar);
+  bgav_diprintf(indent, "scrpHeight:            %d\n",
+                d->format.subtitle_qt.scrpHeight);
+  bgav_diprintf(indent, "scrpAscent:            %d\n",
+                d->format.subtitle_qt.scrpAscent);
+  bgav_diprintf(indent, "scrpFont:              %d\n",
+                d->format.subtitle_qt.scrpFont);
+  bgav_diprintf(indent, "scrpFace:              %d\n",
+                d->format.subtitle_qt.scrpFace);
+  bgav_diprintf(indent, "scrpSize:              %d\n",
+                d->format.subtitle_qt.scrpSize);
   bgav_diprintf(indent, "scrpColor:             [%d,%d,%d]\n",
                 d->format.subtitle_qt.scrpColor[0],
                 d->format.subtitle_qt.scrpColor[1],
                 d->format.subtitle_qt.scrpColor[2]);
-  bgav_diprintf(indent, "font_name:             %s\n", d->format.subtitle_qt.font_name);
+  bgav_diprintf(indent, "font_name:             %s\n",
+                d->format.subtitle_qt.font_name);
   }
 
 /*
@@ -162,10 +197,14 @@ static void stsd_dump_subtitle_tx3g(int indent, qt_sample_description_t * d)
   bgav_diprintf(indent, "fourcc:                   ");
   bgav_dump_fourcc(d->fourcc);
   bgav_dprintf( "\n");
-  bgav_diprintf(indent, "data_reference_index:     %d\n", d->data_reference_index);
-  bgav_diprintf(indent, "display_flags:            %08x\n", d->format.subtitle_tx3g.display_flags);
-  bgav_diprintf(indent, "horizontal_justification: %d\n", d->format.subtitle_tx3g.horizontal_justification);
-  bgav_diprintf(indent, "vertical_justification:   %d\n", d->format.subtitle_tx3g.vertical_justification);
+  bgav_diprintf(indent, "data_reference_index:     %d\n",
+                d->data_reference_index);
+  bgav_diprintf(indent, "display_flags:            %08x\n",
+                d->format.subtitle_tx3g.display_flags);
+  bgav_diprintf(indent, "horizontal_justification: %d\n",
+                d->format.subtitle_tx3g.horizontal_justification);
+  bgav_diprintf(indent, "vertical_justification:   %d\n",
+                d->format.subtitle_tx3g.vertical_justification);
   bgav_diprintf(indent, "back_color:               [%d,%d,%d,%d]\n",
                 d->format.subtitle_tx3g.back_color[0],
                 d->format.subtitle_tx3g.back_color[1],
@@ -176,11 +215,16 @@ static void stsd_dump_subtitle_tx3g(int indent, qt_sample_description_t * d)
                 d->format.subtitle_tx3g.defaultTextBox[1],
                 d->format.subtitle_tx3g.defaultTextBox[2],
                 d->format.subtitle_tx3g.defaultTextBox[3]);
-  bgav_diprintf(indent, "start_char_offset:        %d\n", d->format.subtitle_tx3g.start_char_offset);
-  bgav_diprintf(indent, "end_char_offset:          %d\n", d->format.subtitle_tx3g.end_char_offset);
-  bgav_diprintf(indent, "font_id:                  %d\n", d->format.subtitle_tx3g.font_id);
-  bgav_diprintf(indent, "style_flags:              %d\n", d->format.subtitle_tx3g.style_flags);
-  bgav_diprintf(indent, "font_size:                %d\n", d->format.subtitle_tx3g.font_size);
+  bgav_diprintf(indent, "start_char_offset:        %d\n",
+                d->format.subtitle_tx3g.start_char_offset);
+  bgav_diprintf(indent, "end_char_offset:          %d\n",
+                d->format.subtitle_tx3g.end_char_offset);
+  bgav_diprintf(indent, "font_id:                  %d\n",
+                d->format.subtitle_tx3g.font_id);
+  bgav_diprintf(indent, "style_flags:              %d\n",
+                d->format.subtitle_tx3g.style_flags);
+  bgav_diprintf(indent, "font_size:                %d\n",
+                d->format.subtitle_tx3g.font_size);
   bgav_diprintf(indent, "text_color:               [%d,%d,%d,%d]\n",
                 d->format.subtitle_tx3g.text_color[0],
                 d->format.subtitle_tx3g.text_color[1],
@@ -196,11 +240,16 @@ static void stsd_dump_timecode(int indent, qt_sample_description_t * d)
   bgav_dump_fourcc(d->fourcc);
   bgav_dprintf( "\n");
 
-  bgav_diprintf(indent, "reserved2     %d\n", d->format.timecode.reserved2);
-  bgav_diprintf(indent, "flags         %d\n", d->format.timecode.flags);
-  bgav_diprintf(indent, "timescale     %d\n", d->format.timecode.timescale);
-  bgav_diprintf(indent, "frameduration %d\n", d->format.timecode.frameduration);
-  bgav_diprintf(indent, "numframes     %d\n", d->format.timecode.numframes);
+  bgav_diprintf(indent, "reserved2     %d\n",
+                d->format.timecode.reserved2);
+  bgav_diprintf(indent, "flags         %d\n",
+                d->format.timecode.flags);
+  bgav_diprintf(indent, "timescale     %d\n",
+                d->format.timecode.timescale);
+  bgav_diprintf(indent, "frameduration %d\n",
+                d->format.timecode.frameduration);
+  bgav_diprintf(indent, "numframes     %d\n",
+                d->format.timecode.numframes);
   bgav_diprintf(indent, "reserved3     %02x\n",
          d->format.timecode.reserved3);
   
@@ -334,7 +383,9 @@ static int stsd_read_audio(bgav_input_context_t * input,
       case 0:
         break;
       default:
-        bgav_qt_atom_skip_unknown(input, &h, BGAV_MK_FOURCC('s','t','s','d'));
+        if(!bgav_qt_user_atoms_append(&h, input, &ret->format.audio.user))
+          return 0;
+        // bgav_qt_atom_skip_unknown(input, &h, BGAV_MK_FOURCC('s','t','s','d'));
         break;
       }
     }
@@ -404,27 +455,33 @@ static int stsd_read_video(bgav_input_context_t * input,
           ret->format.video.ctab_size = 2;
           break;
         case 2:
-          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_4, 4);
+          ret->format.video.ctab =
+            copy_palette(bgav_qt_default_palette_4, 4);
           ret->format.video.ctab_size = 4;
           break;
         case 4:
-          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_16, 16);
+          ret->format.video.ctab =
+            copy_palette(bgav_qt_default_palette_16, 16);
           ret->format.video.ctab_size = 16;
           break;
         case 8:
-          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_256, 256);
+          ret->format.video.ctab =
+            copy_palette(bgav_qt_default_palette_256, 256);
           ret->format.video.ctab_size = 256;
           break;
         case 34:
-          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_4_gray, 4);
+          ret->format.video.ctab =
+            copy_palette(bgav_qt_default_palette_4_gray, 4);
           ret->format.video.ctab_size = 4;
           break;
         case 36:
-          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_16_gray, 16);
+          ret->format.video.ctab =
+            copy_palette(bgav_qt_default_palette_16_gray, 16);
           ret->format.video.ctab_size = 16;
           break;
         case 40:
-          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_256_gray, 256);
+          ret->format.video.ctab =
+            copy_palette(bgav_qt_default_palette_256_gray, 256);
           ret->format.video.ctab_size = 256;
           break;
         }
@@ -719,7 +776,7 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
         bgav_qt_wave_free(&c->entries[i].desc.format.audio.wave);
       if(c->entries[i].desc.format.audio.has_chan)
         bgav_qt_chan_free(&c->entries[i].desc.format.audio.chan);
-      
+      bgav_qt_user_atoms_free(&c->entries[i].desc.format.audio.user);
       }
     else if(c->entries[i].desc.type == BGAV_STREAM_VIDEO)
       {

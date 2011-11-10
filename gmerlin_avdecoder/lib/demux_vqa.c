@@ -167,9 +167,9 @@ static int open_vqa(bgav_demuxer_context_t * ctx)
   /* Initialize video stream */
   s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->stream_id = VIDEO_ID;
-  s->ext_size = VQA_HEADER_SIZE;
-  s->ext_data = malloc(s->ext_size);
-  memcpy(s->ext_data, priv->header, s->ext_size);
+
+  bgav_stream_set_extradata(s, priv->header, VQA_HEADER_SIZE);
+  
   s->fourcc = BGAV_MK_FOURCC('W','V','Q','A');
   s->data.video.format.image_width = h.Width;
   s->data.video.format.frame_width = h.Width;

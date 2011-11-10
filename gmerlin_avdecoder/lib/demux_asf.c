@@ -664,12 +664,8 @@ static int open_asf(bgav_demuxer_context_t * ctx)
         
         //        gavl_video_format_dump(&bgav_vs->format);
         if(pos - buf < type_specific_size)
-          {
-          bgav_vs->ext_size = type_specific_size - (pos - buf);
-          bgav_vs->ext_data = malloc(bgav_vs->ext_size);
-          memcpy(bgav_vs->ext_data, pos, bgav_vs->ext_size);
-          }
-
+          bgav_stream_set_extradata(bgav_vs, pos, type_specific_size - (pos - buf));
+        
         /* Stream specific (not known for now) */
 
         if(stream_specific_size)

@@ -174,6 +174,21 @@ int bgav_qt_stss_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_stss_free(qt_stss_t * c);
 void bgav_qt_stss_dump(int indent, qt_stss_t * c);
 
+typedef struct
+  {
+  int num;
+  uint8_t ** atoms;
+  } qt_user_atoms_t;
+
+int bgav_qt_user_atoms_append(qt_atom_header_t * h,
+                              bgav_input_context_t * ctx,
+                              qt_user_atoms_t * ret);
+
+void bgav_qt_user_atoms_free(qt_user_atoms_t * a);
+void bgav_qt_user_atoms_dump(int indent, qt_user_atoms_t * a);
+
+uint8_t * bgav_user_atoms_find(qt_user_atoms_t * a, uint32_t fourcc,
+                               int * len);
 
 
 /* esds */
@@ -283,7 +298,6 @@ void bgav_qt_chan_free(qt_chan_t * chan);
 
 /* wave */
 
-
 typedef struct
   {
   /* Some codecs need the wave atom in raw form */
@@ -299,8 +313,7 @@ typedef struct
   int has_esds;
   qt_esds_t esds;
 
-  int num_user_atoms;
-  uint8_t ** user_atoms;
+  qt_user_atoms_t user;
   
   } qt_wave_t;
 
@@ -420,6 +433,8 @@ typedef struct
       int has_chan;
       qt_chan_t chan;
       
+      /* User atoms */
+      qt_user_atoms_t user;
       } audio;
     struct
       {

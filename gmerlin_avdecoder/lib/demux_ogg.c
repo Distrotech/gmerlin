@@ -704,9 +704,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->index_mode = INDEX_MODE_SIMPLE;
         s->flags |= STREAM_NO_DURATIONS;
         ogg_stream->fourcc_priv = FOURCC_FLAC_NEW;
-        s->ext_data = malloc(priv->op.bytes - 9);
-        memcpy(s->ext_data, priv->op.packet + 9, priv->op.bytes - 9);
-        s->ext_size = priv->op.bytes - 9;
+        bgav_stream_set_extradata(s, priv->op.packet + 9, priv->op.bytes - 9);
         s->stream_id = serialno;
         
         /* We tell the decoder, that this is the last metadata packet */
@@ -752,10 +750,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         ogg_stream->header_packets_read = 1;
 
         /* First packet is also the extradata */
-        s->ext_data = malloc(priv->op.bytes);
-        memcpy(s->ext_data, priv->op.packet, priv->op.bytes);
-        s->ext_size = priv->op.bytes;
-
+        bgav_stream_set_extradata(s, priv->op.packet, priv->op.bytes);
+        
         /* Samplerate */
         s->data.audio.format.samplerate = BGAV_PTR_2_32LE(priv->op.packet + 36);
 

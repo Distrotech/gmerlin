@@ -186,12 +186,8 @@ static void init_vfw(bgav_stream_t * s)
   s->fourcc = bgav_BITMAPINFOHEADER_get_fourcc(&bh);
 
   if(data < end)
-    {
-    s->ext_size = end - data;
-    s->ext_data = malloc(s->ext_size);
-    memcpy(s->ext_data, data, s->ext_size);
-    }
-
+    bgav_stream_set_extradata(s, data, end - data);
+  
   if(bgav_video_is_divx4(s->fourcc))
     s->flags |= (STREAM_B_FRAMES|STREAM_PARSE_FRAME);
   }
@@ -275,9 +271,7 @@ static void init_aac(bgav_stream_t * s)
   bgav_mkv_track_t * p = s->priv;
   if(p->CodecPrivate)
     {
-    s->ext_data = malloc(p->CodecPrivateLen);
-    memcpy(s->ext_data, p->CodecPrivate, p->CodecPrivateLen);
-    s->ext_size = p->CodecPrivateLen;
+    bgav_stream_set_extradata(s, p->CodecPrivate, p->CodecPrivateLen);
     }
   else
     {
@@ -379,11 +373,7 @@ static void init_stream_common(mkv_t * m,
     if(info->init_func)
       info->init_func(s);
     else if(track->CodecPrivateLen)
-      {
-      s->ext_data = malloc(track->CodecPrivateLen);
-      memcpy(s->ext_data, track->CodecPrivate, track->CodecPrivateLen);
-      s->ext_size = track->CodecPrivateLen;
-      }
+      bgav_stream_set_extradata(s, track->CodecPrivate, track->CodecPrivateLen);
     }
   s->stream_id = track->TrackNumber;
   s->timescale = 1000000000 / m->segment_info.TimecodeScale;
