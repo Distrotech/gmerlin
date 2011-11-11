@@ -37,7 +37,7 @@
 
 // #define DUMP_DECODE
 // #define DUMP_PACKET
-//#define DUMP_EXTRADATA
+// #define DUMP_EXTRADATA
 
 /* Different decoding functions */
 
@@ -112,6 +112,42 @@ typedef struct
 
 static codec_info_t * lookup_codec(bgav_stream_t * s);
 
+static int init_format(bgav_stream_t * s)
+  {
+  ffmpeg_audio_priv * priv;
+  priv= s->data.audio.decoder->priv;
+
+  /* These might be set from the codec or the container */
+
+  s->data.audio.format.num_channels = priv->ctx->channels;
+  s->data.audio.format.samplerate   = priv->ctx->sample_rate;
+  
+  /* These come from the codec */
+  
+  s->data.audio.format.sample_format =
+    sample_format_ffmpeg_2_gavl(priv->ctx->sample_fmt);
+  
+  /* If we got no sample format, initialization went wrong */
+  if(s->data.audio.format.sample_format == GAVL_SAMPLE_NONE)
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Could not get sample format (maybe codec init failed)");
+      return 0;
+    }
+  priv->sample_size =
+    gavl_bytes_per_sample(s->data.audio.format.sample_format);
+  
+  gavl_set_channel_setup(&s->data.audio.format);
+  s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
+  priv->frame = gavl_audio_frame_create(&s->data.audio.format);
+  priv->frame_alloc =
+    priv->sample_size *
+    s->data.audio.format.num_channels *
+    s->data.audio.format.samples_per_frame;
+  s->data.audio.format.samples_per_frame = 1024;
+  return 1;
+  }
+
 static int decode_frame_ffmpeg(bgav_stream_t * s)
   {
   int frame_size;
@@ -185,18 +221,9 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
                              priv->buf.buffer,
                              priv->buf.size);
 #endif
-    s->data.audio.format.num_channels = priv->ctx->channels;
-    s->data.audio.format.samplerate   = priv->ctx->sample_rate;
 
-    gavl_set_channel_setup(&s->data.audio.format);
-
-    s->data.audio.format.samples_per_frame =
-      priv->frame_alloc / (gavl_bytes_per_sample(s->data.audio.format.sample_format) *
-                           s->data.audio.format.num_channels);
-    
-    priv->frame = gavl_audio_frame_create(&s->data.audio.format);
-    s->data.audio.format.samples_per_frame = 1024;
-
+    if(!init_format(s))
+      return 0;
     memcpy(priv->frame->samples.s_16, tmp_buf, frame_size);
     free(tmp_buf);
     }
@@ -262,7 +289,6 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   priv->info = lookup_codec(s);
   codec = avcodec_find_decoder(priv->info->ffmpeg_id);
   priv->ctx = avcodec_alloc_context();
-  
 
   //  priv->ctx->width = s->format.frame_width;
   //  priv->ctx->height = s->format.frame_height;
@@ -316,25 +342,15 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   /* Set missing format values */
   
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  s->data.audio.format.sample_format =
-    sample_format_ffmpeg_2_gavl(priv->ctx->sample_fmt);
-
   s->data.audio.preroll = priv->info->preroll;
-
-  priv->sample_size =
-    gavl_bytes_per_sample(s->data.audio.format.sample_format);
-
-  /* Format already known */
-  if(s->data.audio.format.num_channels && s->data.audio.format.samplerate)
+  
+  /* Check if we know the format already */
+  if(s->data.audio.format.num_channels &&
+     s->data.audio.format.samplerate &&
+     (priv->ctx->sample_fmt != SAMPLE_FMT_NONE))
     {
-    gavl_set_channel_setup(&s->data.audio.format);
-    s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
-    priv->frame = gavl_audio_frame_create(&s->data.audio.format);
-    priv->frame_alloc =
-      priv->sample_size *
-      s->data.audio.format.num_channels *
-      s->data.audio.format.samples_per_frame;
-    s->data.audio.format.samples_per_frame = 1024;
+    if(!init_format(s))
+      return 0;
     }
   else /* Let ffmpeg find out the format */
     {
