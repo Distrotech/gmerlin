@@ -184,7 +184,7 @@ remove_connection(server_connection_t * connections,
   
   close(conn->fd);
   free(conn);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN_SERVER, "Client connection closed");
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN_SERVER, "Client connection closed");
   
   return connections;
   }
@@ -208,7 +208,7 @@ static void check_connections(bg_remote_server_t * s)
 
   if(new_fd >= 0)
     {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN_SERVER, "New client connection");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN_SERVER, "New client connection");
     conn = add_connection(s, new_fd);
 
     if(conn)
@@ -435,7 +435,8 @@ int bg_remote_client_init(bg_remote_client_t * c,
 
   if(bg_socket_write_data(c->fd, (uint8_t*)answer_message, len) < len)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Sending initialization string failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT,
+           "Sending initialization string failed");
     goto fail;
     }
   /* Read welcome message */
@@ -443,7 +444,8 @@ int bg_remote_client_init(bg_remote_client_t * c,
   if(!bg_socket_read_line(c->fd, &buffer,
                           &buffer_alloc, c->milliseconds))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Reading welcome line failed");
+    bg_log(BG_LOG_ERROR,
+           LOG_DOMAIN_CLIENT, "Reading welcome line failed");
     goto fail;
     }
 
