@@ -230,7 +230,8 @@ static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
       return 0;
     }
 
-  bg_xing_update(lame->xing, p->data_len);
+  if(lame->xing)
+    bg_xing_update(lame->xing, p->data_len);
   
   if(fwrite(p->data, 1, p->data_len, lame->output) < p->data_len)
     return 0;
