@@ -66,7 +66,8 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
   
   size_t inbytesleft;
   size_t outbytesleft;
-
+  int done = 0;
+  
   alloc_size = len + BYTES_INCREMENT;
 
   inbytesleft  = len;
@@ -76,7 +77,7 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
   inbuf  = in_string;
   outbuf = ret;
   
-  while(1)
+  while(!done)
     {
     if(iconv(cd, &inbuf, &inbytesleft,
              &outbuf, &outbytesleft) == (size_t)-1)
@@ -94,9 +95,11 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
           break;
         case EILSEQ:
           bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid Multibyte sequence");
+          done = 1;
           break;
         case EINVAL:
           bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Incomplete Multibyte sequence");
+          done = 1;
           break;
         }
       }
