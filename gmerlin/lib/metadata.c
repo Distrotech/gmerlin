@@ -264,7 +264,7 @@ int bg_metadata_get_year(const bg_metadata_t * m)
     
     while(!isdigit(*pos1) && (*pos1 != '\0'))
       pos1++;
-    if(pos1 == '\0')
+    if(*pos1 == '\0')
       return 0;
 
     /* Check if we have a 4 digit number */
@@ -276,7 +276,7 @@ int bg_metadata_get_year(const bg_metadata_t * m)
 
     while(isdigit(*pos1) && (*pos1 != '\0'))
       pos1++;
-    if(pos1 == '\0')
+    if(*pos1 == '\0')
       return 0;
     }
   return 0;
