@@ -472,6 +472,14 @@ void bg_media_tree_set_current(void * data,
                                bg_album_t * album,
                                const bg_album_entry_t * entry);
 
+/* Get the parent directory of the last added directory */
+
+const char *
+bg_media_tree_get_add_directory_path(bg_media_tree_t * t);
+
+void
+bg_media_tree_set_add_directory_path(bg_media_tree_t * t, const char *);
+
 /* Set the next and previous track */
 
 int bg_media_tree_next(bg_media_tree_t *, int wrap,
@@ -489,6 +497,11 @@ const char * bg_media_tree_get_current_track_name(bg_media_tree_t *);
 const bg_parameter_info_t * bg_media_tree_get_parameters(bg_media_tree_t*);
 void bg_media_tree_set_parameter(void * priv, const char * name,
                                  const bg_parameter_value_t * val);
+
+int
+bg_media_tree_get_parameter(void * priv, const char * name,
+                            bg_parameter_value_t * val);
+
 
 /* Mark the current entry as error */
 

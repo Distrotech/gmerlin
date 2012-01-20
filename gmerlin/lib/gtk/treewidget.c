@@ -985,6 +985,7 @@ static void add_dir_callback(char * dir, int recursive,
   bg_media_tree_add_directory(w->tree, w->selected_album,
                               dir,
                               recursive, subdirs_as_subalbums, watch, plugin);
+  
   gtk_widget_set_sensitive(w->treeview, 1);
   }
 
@@ -1005,9 +1006,10 @@ static void add_directory(bg_gtk_tree_widget_t * w)
                          bg_media_tree_get_plugin_registry(w->tree),
                          BG_PLUGIN_INPUT,
                          BG_PLUGIN_FILE);
-  
+
+  bg_gtk_filesel_set_directory(dirsel,
+                               bg_media_tree_get_add_directory_path(w->tree));
   bg_gtk_filesel_run(dirsel, 1);
-    
   }
 
 static void create_new_album(bg_gtk_tree_widget_t * w)

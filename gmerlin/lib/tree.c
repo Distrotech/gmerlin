@@ -478,7 +478,9 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
   
   if(t->filename)
     free(t->filename);
-
+  if(t->add_directory_path)
+    free(t->add_directory_path);
+  
 #ifdef HAVE_INOTIFY
   close(t->com.inotify_fd);
 #endif
@@ -1202,6 +1204,11 @@ unused album files) at program exit")
       .val_default = { .val_str = "srt txt pdf" },
       .help_string = TRS("File extensions, which are never loaded automatically"),
     },
+    {
+      .name =        "add_directory_path",
+      .type =        BG_PARAMETER_STRING,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+    },
     { /* End of parameters */ }
   };
 
@@ -1210,11 +1217,26 @@ const bg_parameter_info_t * bg_media_tree_get_parameters(bg_media_tree_t * tree)
   return parameters;
   }
 
+int
+bg_media_tree_get_parameter(void * priv, const char * name,
+                            bg_parameter_value_t * val)
+  {
+  bg_media_tree_t * tree = priv;
+  if(!name)
+    return 0;
+  if(!strcmp(name, "add_directory_path"))
+    {
+    val->val_str =
+      bg_strdup(val->val_str, tree->add_directory_path);
+    return 1;
+    }
+  return 9;
+  }
+
 void bg_media_tree_set_parameter(void * priv, const char * name,
                                  const bg_parameter_value_t * val)
   {
-  bg_media_tree_t * tree;
-  tree = (bg_media_tree_t*)priv;
+  bg_media_tree_t * tree = priv;
   if(!name)
     return;
 
@@ -1237,6 +1259,11 @@ void bg_media_tree_set_parameter(void * priv, const char * name,
   else if(!strcmp(name, "prefer_edl"))
     {
     tree->com.prefer_edl = val->val_i;
+    }
+  else if(!strcmp(name, "add_directory_path"))
+    {
+    tree->add_directory_path = 
+      bg_strdup(tree->add_directory_path, val->val_str);
     }
   }
 
@@ -1377,10 +1404,22 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
                                  int watch,
                                  const char * plugin)
   {
+  char * pos;
   add_directory(t, parent, directory, recursive, subdirs_to_subalbums,
                 watch,
                 plugin, 0);
-  
+  t->add_directory_path = bg_strdup(t->add_directory_path, directory);
+
+  pos = strrchr(t->add_directory_path, '/');
+
+  if(pos && (pos - t->add_directory_path < strlen(t->add_directory_path) - 1))
+    *pos = '\0';
+  }
+
+const char *
+bg_media_tree_get_add_directory_path(bg_media_tree_t * t)
+  {
+  return t->add_directory_path;
   }
 
 static int albums_have_file(bg_album_t * album, const char * filename)

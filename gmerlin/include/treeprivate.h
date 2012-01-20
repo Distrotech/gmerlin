@@ -236,6 +236,7 @@ struct bg_mediatree_s
   bg_album_common_t com;
 
   char * filename;
+  char * add_directory_path;
   
   bg_album_t       * children;
 

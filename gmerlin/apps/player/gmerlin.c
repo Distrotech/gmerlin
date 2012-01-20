@@ -436,6 +436,10 @@ void gmerlin_destroy(gmerlin_t * g)
 
   bg_gtk_log_window_destroy(g->log_window);
 
+  bg_cfg_section_get(g->tree_section,
+                     bg_media_tree_get_parameters(g->tree),
+                     bg_media_tree_get_parameter,
+                     (void*)(g->tree));
   
   bg_media_tree_destroy(g->tree);
 
