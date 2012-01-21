@@ -101,54 +101,95 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src)
 #undef MY_STRCPY
 #undef MY_INTCPY
 
+#define PARAM_ARTIST \
+    { \
+      .name =      "artist", \
+      .long_name = TRS("Artist"), \
+      .type =      BG_PARAMETER_STRING, \
+    }
+
+#define PARAM_TITLE \
+    { \
+      .name =      "title", \
+      .long_name = TRS("Title"), \
+      .type =      BG_PARAMETER_STRING, \
+    }
+
+#define PARAM_ALBUM \
+    { \
+      .name =      "album", \
+      .long_name = TRS("Album"), \
+      .type =      BG_PARAMETER_STRING, \
+    }
+
+#define PARAM_TRACK \
+    { \
+      .name =      "track", \
+      .long_name = TRS("Track"), \
+      .type =      BG_PARAMETER_INT, \
+    }
+
+#define PARAM_GENRE \
+    { \
+      .name =      "genre", \
+      .long_name = TRS("Genre"), \
+      .type =      BG_PARAMETER_STRING, \
+    }
+
+#define PARAM_AUTHOR \
+    { \
+      .name =      "author", \
+      .long_name = TRS("Author"), \
+      .type =      BG_PARAMETER_STRING, \
+    }
+
+#define PARAM_COPYRIGHT \
+    { \
+      .name =      "copyright", \
+      .long_name = TRS("Copyright"), \
+      .type =      BG_PARAMETER_STRING, \
+    }
+
+#define PARAM_DATE \
+    { \
+      .name =        "date", \
+      .long_name =   TRS("Date"), \
+      .type =        BG_PARAMETER_STRING, \
+      .help_string = TRS("Complete date or year only") \
+    }
+
+#define PARAM_COMMENT \
+    { \
+      .name =      "comment", \
+      .long_name = TRS("Comment"), \
+      .type =      BG_PARAMETER_STRING, \
+    }
+
 static const bg_parameter_info_t parameters[] =
   {
-    {
-      .name =      "artist",
-      .long_name = TRS("Artist"),
-      .type =      BG_PARAMETER_STRING,
-    },
-    {
-      .name =      "title",
-      .long_name = TRS("Title"),
-      .type =      BG_PARAMETER_STRING,
-    },
-    {
-      .name =      "album",
-      .long_name = TRS("Album"),
-      .type =      BG_PARAMETER_STRING,
-    },
-    {
-      .name =      "track",
-      .long_name = TRS("Track"),
-      .type =      BG_PARAMETER_INT,
-    },
-    {
-      .name =      "genre",
-      .long_name = TRS("Genre"),
-      .type =      BG_PARAMETER_STRING,
-    },
-    {
-      .name =      "author",
-      .long_name = TRS("Author"),
-      .type =      BG_PARAMETER_STRING,
-    },
-    {
-      .name =      "copyright",
-      .long_name = TRS("Copyright"),
-      .type =      BG_PARAMETER_STRING,
-    },
-    {
-      .name =        "date",
-      .long_name =   TRS("Date"),
-      .type =        BG_PARAMETER_STRING,
-      .help_string = TRS("Complete date or year only")
-    },
-    {
-      .name =      "comment",
-      .long_name = TRS("Comment"),
-      .type =      BG_PARAMETER_STRING,
-    },
+    PARAM_ARTIST,
+    PARAM_TITLE,
+    PARAM_ALBUM,
+    PARAM_TRACK,
+    PARAM_GENRE,
+    PARAM_AUTHOR,
+    PARAM_COPYRIGHT,
+    PARAM_DATE,
+    PARAM_COMMENT,
+    { /* End of parameters */ }
+  };
+
+static const bg_parameter_info_t parameters_common[] =
+  {
+    PARAM_ARTIST,
+    // PARAM_TITLE,
+    PARAM_ALBUM,
+    // PARAM_TRACK,
+    PARAM_GENRE,
+    PARAM_AUTHOR,
+    PARAM_COPYRIGHT,
+    PARAM_DATE,
+    PARAM_COMMENT,
     { /* End of parameters */ }
   };
 
@@ -158,12 +199,14 @@ static const bg_parameter_info_t parameters[] =
 #define SP_INT(s) if(!strcmp(ret[i].name, # s)) \
     ret[i].val_default.val_i = m->s;
 
-bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m)
+static
+bg_parameter_info_t * get_parameters(bg_metadata_t * m, int common)
   {
   int i;
   
   bg_parameter_info_t * ret;
-  ret = bg_parameter_info_copy_array(parameters);
+
+  ret = bg_parameter_info_copy_array(common ? parameters_common : parameters);
 
   if(!m)
     return ret;
@@ -186,6 +229,16 @@ bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m)
     i++;
     }
   return ret;
+  }
+
+bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m)
+  {
+  return get_parameters(m, 0);
+  }
+
+bg_parameter_info_t * bg_metadata_get_parameters_common(bg_metadata_t * m)
+  {
+  return get_parameters(m, 1);
   }
 
 #undef SP_STR

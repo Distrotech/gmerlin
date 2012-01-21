@@ -226,6 +226,23 @@ void bg_metadata_2_xml(xmlNodePtr xml_metadata,
 
 bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m);
 
+/** \brief Get parameters for editing metadata
+ *  \param m Metadata
+ *  \returns A NULL-terminated array of parameter descriptions
+ *
+ *  This function works exactly like \ref bg_metadata_get_parameters
+ *  but it returns only the parameters suitable for mass tagging.
+ *  Using this function and \ref bg_metadata_set_parameter lets
+ *  you set metadata with the usual configuration methods.
+ *  The default values of the returned descriptions are set from
+ *  the Metadata.
+ *
+ *  Call \ref bg_parameter_info_destroy_array to free the returned array
+ */
+
+bg_parameter_info_t * bg_metadata_get_parameters_common(bg_metadata_t * m);
+
+
 /** \brief Change metadata by setting parameters
  *  \param data Metadata casted to void
  *  \param name Name of the parameter

@@ -165,6 +165,7 @@ typedef struct
   GtkWidget * configure_item;
   GtkWidget * encoder_item;
   GtkWidget * chapter_item;
+  GtkWidget * mass_tag_item;
   GtkWidget * menu;
   } selected_menu_t;
 
@@ -336,6 +337,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.mass_tag_item, 1);
 
     gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 1);
     gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 1);
@@ -360,6 +362,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.mass_tag_item, 0);
 
     gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 0);
     gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 0);
@@ -382,6 +385,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.mass_tag_item, 1);
     
     gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 1);
     gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 1);
@@ -788,7 +792,6 @@ static void set_encoder_parameter(void * data, const char * name,
 
 static void configure_encoders(track_list_t * l)
   {
-  
   bg_cfg_section_t * s;
   bg_dialog_t * dlg;
   
@@ -840,6 +843,68 @@ static void configure_encoders(track_list_t * l)
   bg_cfg_section_destroy(s);
   }
 
+static void mass_tag(track_list_t * l)
+  {
+  bg_dialog_t * dlg;
+  bg_transcoder_track_t * first_selected;
+  bg_parameter_info_t * params;
+  bg_cfg_section_t * s;
+  encoder_parameter_data d;
+  int i;
+  bg_parameter_value_t val;
+  d.changed = 0;
+
+  first_selected = l->tracks;
+  while(first_selected && !first_selected->selected)
+    first_selected = first_selected->next;
+  
+  if(!first_selected)
+    return;
+  
+  params = bg_metadata_get_parameters_common(NULL);
+  s = bg_cfg_section_create_from_parameters("Mass tag", params);
+
+  /* Copy parameters from the first selected track */
+  i = 0;
+  while(params[i].name)
+    {
+    memset(&val, 0, sizeof(val));
+
+    bg_cfg_section_get_parameter(first_selected->metadata_section,
+                                 &params[i],
+                                 &val);
+    bg_cfg_section_set_parameter(s,
+                                 &params[i],
+                                 &val);
+    bg_parameter_value_free(&val, params[i].type);
+    i++;
+    }
+
+  /* Create and show dialog */
+  dlg = bg_dialog_create(s,
+                         set_encoder_parameter,
+                         NULL,
+                         &d,
+                         params,
+                         TR("Mass tag"));
+  bg_dialog_show(dlg, l->widget);
+
+  /* Apply values */
+  if(d.changed)
+    {
+    while(first_selected)
+      {
+      if(first_selected->selected)
+        bg_cfg_section_transfer(s, first_selected->metadata_section);
+      first_selected = first_selected->next;
+      }
+    }
+
+  
+  bg_dialog_destroy(dlg);
+  
+  }
+  
 static void button_callback(GtkWidget * w, gpointer data)
   {
   track_list_t * t;
@@ -937,6 +1002,10 @@ static void button_callback(GtkWidget * w, gpointer data)
     bg_gtk_chapter_dialog_show(&t->selected_track->chapter_list,
                                track_duration, t->treeview);
     }
+  else if(w == t->menu.selected_menu.mass_tag_item)
+    {
+    mass_tag(t);
+    }
   else if((w == t->encoder_button) ||
           (w == t->menu.selected_menu.encoder_item))
     {
@@ -1012,6 +1081,8 @@ static void init_menu(track_list_t * t)
     create_item(t, t->menu.selected_menu.menu, TR("Configure..."), "config_16.png");
   t->menu.selected_menu.chapter_item =
     create_item(t, t->menu.selected_menu.menu, TR("Edit chapters..."), "chapter_16.png");
+  t->menu.selected_menu.mass_tag_item =
+    create_item(t, t->menu.selected_menu.menu, TR("Mass tag..."), NULL);
   t->menu.selected_menu.encoder_item =
     create_item(t, t->menu.selected_menu.menu, TR("Change encoders..."), "plugin_16.png");
 
@@ -1066,6 +1137,7 @@ static void init_menu(track_list_t * t)
   gtk_widget_set_sensitive(t->menu.selected_menu.remove_item, 0);
   gtk_widget_set_sensitive(t->menu.selected_menu.encoder_item, 0);
   gtk_widget_set_sensitive(t->menu.selected_menu.chapter_item, 0);
+  gtk_widget_set_sensitive(t->menu.selected_menu.mass_tag_item, 0);
   
   gtk_widget_set_sensitive(t->menu.edit_menu.cut_item, 0);
   gtk_widget_set_sensitive(t->menu.edit_menu.copy_item, 0);
