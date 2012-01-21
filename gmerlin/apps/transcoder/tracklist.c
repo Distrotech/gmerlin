@@ -899,10 +899,9 @@ static void mass_tag(track_list_t * l)
       first_selected = first_selected->next;
       }
     }
-
   
   bg_dialog_destroy(dlg);
-  
+  bg_cfg_section_destroy(s);
   }
   
 static void button_callback(GtkWidget * w, gpointer data)
