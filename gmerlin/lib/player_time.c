@@ -87,7 +87,7 @@ void bg_player_time_get(bg_player_t * player, int exact,
                         gavl_time_t * ret)
   {
   bg_player_audio_stream_t * ctx = &player->audio_stream;
-
+  gavl_time_t test_time;
   int samples_in_soundcard;
   
   if(!exact)
@@ -114,13 +114,10 @@ void bg_player_time_get(bg_player_t * player, int exact,
       bg_plugin_unlock(ctx->plugin_handle);
 
       pthread_mutex_lock(&ctx->time_mutex);
-      ctx->current_time =
-        gavl_samples_to_time(ctx->output_format.samplerate,
-                             ctx->samples_written-samples_in_soundcard);
-
-      
-      // ctx->current_time *= ctx->player->audio_stream.output_format.samplerate;
-      // ctx->current_time /= ctx->player->audio_stream.input_format.samplerate;
+      test_time = gavl_samples_to_time(ctx->output_format.samplerate,
+                                       ctx->samples_written-samples_in_soundcard);
+      if(test_time > ctx->current_time)
+        ctx->current_time = test_time;
       
       *ret = ctx->current_time;
       pthread_mutex_unlock(&ctx->time_mutex);
