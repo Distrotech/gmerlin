@@ -917,11 +917,33 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       /* MPEG-2 Video */
       if((pes_header.stream_id >= 0xe0) && (pes_header.stream_id <= 0xef))
         {
+        int size = priv->buffer_size - (priv->ptr - priv->buffer);
+        
+        bgav_hexdump(priv->ptr, 16, 16);
+        
         s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
-        s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
         s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
         s->index_mode = INDEX_MODE_MPEG;
-        s->flags |= STREAM_NEED_EXACT_COMPRESSION;
+
+        /* Try to distinguish between MPEG-1/2 and H.264 */
+        if((size >= 4) &&
+           (priv->ptr[0] == 0x00) && 
+           (priv->ptr[1] == 0x00) && 
+           (priv->ptr[2] == 0x01) &&
+           ((priv->ptr[3] == 0xb3) || // Sequence header
+            (priv->ptr[3] == 0x00) || // Picture
+            (priv->ptr[3] == 0xb8))) //  GOP 
+          {
+          s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+          s->flags |= STREAM_NEED_EXACT_COMPRESSION;
+          fprintf(stderr, "Detected MPEG video\n");
+          }
+        else
+          {
+          s->fourcc = BGAV_MK_FOURCC('H', '2', '6', '4');
+          fprintf(stderr, "Detected H.264 video\n");
+          }
+        
         }
       /* MPEG Audio */
       else if((pes_header.stream_id & 0xe0) == 0xc0)

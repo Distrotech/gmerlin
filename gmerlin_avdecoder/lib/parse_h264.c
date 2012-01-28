@@ -388,8 +388,8 @@ static int handle_nal(bgav_video_parser_t * parser)
         {
         /* has_picture_start is also set if the sps was found, so we must check for
            coding_type as well */
-        if(!priv->has_picture_start || !parser->cache[parser->cache_size-1].coding_type)
-          {
+        //        if(!priv->has_picture_start || !parser->cache[parser->cache_size-1].coding_type)
+        //          {
           get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
                    priv->nal_len - header_len);
                 
@@ -402,31 +402,32 @@ static int handle_nal(bgav_video_parser_t * parser)
           if(!priv->has_picture_start &&
              !bgav_video_parser_set_picture_start(parser))
             return PARSER_ERROR;
-          
-          switch(sh.slice_type)
-            {
-            case 2:
-            case 7:
-              bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_I);
-              break;
-            case 0:
-            case 5:
-              bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_P);
-              break;
-            case 1:
-            case 6:
-              bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_B);
-              break;
-            default: /* Assume the worst */
-              fprintf(stderr, "Unknown slice type %d\n", sh.slice_type);
-              break;
-                    
-            }
 
+          if(!parser->cache[parser->cache_size-1].coding_type)
+            {
+            switch(sh.slice_type)
+              {
+              case 2:
+              case 7:
+                bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_I);
+                break;
+              case 0:
+              case 5:
+                bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_P);
+                break;
+              case 1:
+              case 6:
+                bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_B);
+                break;
+              default: /* Assume the worst */
+                fprintf(stderr, "Unknown slice type %d\n", sh.slice_type);
+                break;
+              }
+            }
           if(sh.field_pic_flag)
             parser->cache[parser->cache_size-1].field_pic = 1;
           
-          }
+          //          }
         priv->has_picture_start = 0;
         }
       else
@@ -543,6 +544,9 @@ static int handle_nal(bgav_video_parser_t * parser)
     case H264_NAL_END_OF_STREAM:
       break;
     case H264_NAL_FILLER_DATA:
+      break;
+    default:
+      fprintf(stderr, "Unknown nh.unit_type %d", nh.unit_type);
       break;
     }
   

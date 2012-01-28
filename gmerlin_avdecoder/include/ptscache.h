@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#define PTS_CACHE_SIZE 16
+#define PTS_CACHE_SIZE 32
 
 typedef struct
   {

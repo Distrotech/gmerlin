@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#define PARSER_CACHE_MAX 16
+#define PARSER_CACHE_MAX 32
 
 #define PARSER_CONTINUE     (PARSER_PRIV+0)
 #define PARSER_DISCARD      (PARSER_PRIV+1)
