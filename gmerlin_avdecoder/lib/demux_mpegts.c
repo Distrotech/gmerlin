@@ -244,8 +244,20 @@ parse_transport_packet(bgav_demuxer_context_t * ctx)
   
   if(!bgav_transport_packet_parse(opt, &priv->ptr, &priv->packet))
     {
-    fprintf(stderr, "Lost sync %ld %ld\n",
-            ctx->input->position,ctx->input->total_bytes);
+    if(ctx->input->total_bytes > 0)
+      {
+      if(ctx->input->total_bytes - ctx->input->position > 1024)
+        {
+        bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Lost sync %"PRId64" bytes before file end\n",
+                 ctx->input->total_bytes - ctx->input->position);
+        }
+      }
+    else
+      {
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Lost sync\n");
+      }
     return 0;
     }
   if(priv->packet.transport_error)

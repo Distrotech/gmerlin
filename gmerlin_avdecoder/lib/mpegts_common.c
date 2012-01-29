@@ -296,7 +296,6 @@ int bgav_transport_packet_parse(const bgav_options_t * opt,
 
   if(ptr[0] != 0x47)
     {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Lost sync");
     return 0;
     }
   
