@@ -237,12 +237,17 @@ typedef struct
   } mpegts_t;
 
 static inline int
-parse_transport_packet(const bgav_options_t * opt,
-                       mpegts_t * priv)
+parse_transport_packet(bgav_demuxer_context_t * ctx)
   {
+  const bgav_options_t * opt = ctx->opt;
+  mpegts_t * priv = ctx->priv;
+  
   if(!bgav_transport_packet_parse(opt, &priv->ptr, &priv->packet))
+    {
+    fprintf(stderr, "Lost sync %ld %ld\n",
+            ctx->input->position,ctx->input->total_bytes);
     return 0;
-
+    }
   if(priv->packet.transport_error)
     {
     priv->error_counter++;
@@ -457,7 +462,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
   
   while(keep_going)
     {
-    if(!parse_transport_packet(ctx->opt, priv))
+    if(!parse_transport_packet(ctx))
       return 0;
 
     pts = get_program_timestamp(ctx, &program_index);
@@ -504,7 +509,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
 
     for(i = 0; i < SCAN_PACKETS; i++)
       {
-      if(!parse_transport_packet(ctx->opt, priv))
+      if(!parse_transport_packet(ctx))
         return 0;
       
       pts = get_program_timestamp(ctx, &program_index);
@@ -634,7 +639,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
 
   while(keep_going)
     {
-    if(!parse_transport_packet(ctx->opt, priv))
+    if(!parse_transport_packet(ctx))
       {
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Lost sync during initializing");
@@ -884,7 +889,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
 
   while(1)
     {
-    if(!parse_transport_packet(ctx->opt, priv))
+    if(!parse_transport_packet(ctx))
       break;
 
     /* Find the PCR PID */
@@ -919,7 +924,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         {
         int size = priv->buffer_size - (priv->ptr - priv->buffer);
         
-        bgav_hexdump(priv->ptr, 16, 16);
+        //        bgav_hexdump(priv->ptr, 16, 16);
         
         s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
         s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
@@ -936,12 +941,12 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
           {
           s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           s->flags |= STREAM_NEED_EXACT_COMPRESSION;
-          fprintf(stderr, "Detected MPEG video\n");
+          // fprintf(stderr, "Detected MPEG video\n");
           }
         else
           {
           s->fourcc = BGAV_MK_FOURCC('H', '2', '6', '4');
-          fprintf(stderr, "Detected H.264 video\n");
+          // fprintf(stderr, "Detected H.264 video\n");
           }
         
         }
@@ -1048,7 +1053,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
     
     while(1)
       {
-      parse_transport_packet(ctx->opt, priv);
+      parse_transport_packet(ctx);
     
       if(priv->packet.pid == 0x0000)
         {
@@ -1425,7 +1430,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
   
   for(i = 0; i < num_packets; i++)
     {
-    if(!parse_transport_packet(ctx->opt, priv))
+    if(!parse_transport_packet(ctx))
       {
       return 0;
       }
