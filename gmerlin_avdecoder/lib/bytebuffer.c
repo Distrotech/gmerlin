@@ -32,7 +32,8 @@ void bgav_bytebuffer_append(bgav_bytebuffer_t * b, bgav_packet_t * p, int paddin
     }
   memcpy(b->buffer + b->size, p->data, p->data_size);
   b->size += p->data_size;
-  memset(b->buffer + b->size, 0, padding);
+  if(padding)
+    memset(b->buffer + b->size, 0, padding);
   }
 
 void bgav_bytebuffer_append_data(bgav_bytebuffer_t * b, uint8_t * data, int len, int padding)
@@ -44,8 +45,28 @@ void bgav_bytebuffer_append_data(bgav_bytebuffer_t * b, uint8_t * data, int len,
     }
   memcpy(b->buffer + b->size, data, len);
   b->size += len;
-  memset(b->buffer + b->size, 0, padding);
+
+  if(padding)
+    memset(b->buffer + b->size, 0, padding);
   }
+
+int bgav_bytebuffer_append_read(bgav_bytebuffer_t * b, bgav_input_context_t * input, int len, int padding)
+  {
+  int ret;
+  if(b->size + len + padding > b->alloc)
+    {
+    b->alloc = b->size + len + padding + 1024; 
+    b->buffer = realloc(b->buffer, b->alloc);
+    }
+
+  ret = bgav_input_read_data(input, b->buffer + b->size, len);
+  b->size += ret;
+  if(padding)
+    memset(b->buffer + b->size, 0, padding);
+  
+  return ret;
+  }
+
 
 
 void bgav_bytebuffer_remove(bgav_bytebuffer_t * b, int bytes)

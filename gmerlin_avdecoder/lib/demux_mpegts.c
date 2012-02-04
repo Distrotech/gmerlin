@@ -233,8 +233,69 @@ typedef struct
   int do_sync;
 
   int error_counter;
+
+  int discontinuous;
   
   } mpegts_t;
+
+static int resync_file(bgav_demuxer_context_t * ctx, uint8_t * ptr, int * len)
+  {
+  int i;
+  mpegts_t * priv = ctx->priv;
+  uint8_t * ptr1 = ptr + 1;
+
+  int bytes_skipped = 1;
+  
+  for(i = 1; i < priv->packet_size; i++)
+    {
+    if(*ptr1 == 0x47)
+      {
+      memmove(ptr, ptr1, *len - bytes_skipped);
+      *len -= bytes_skipped;
+      *len += bgav_input_read_data(ctx->input, ptr + *len, bytes_skipped);
+      bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Skipped discontinuity %d bytes", bytes_skipped);
+      priv->discontinuous = 1;
+      return bytes_skipped;
+      }
+    ptr1++;
+    bytes_skipped++;
+    }
+  return 0;
+  }
+
+static int read_data(bgav_demuxer_context_t * ctx, int num_packets)
+  {
+  int i;
+  int bytes_read;
+  mpegts_t * priv = ctx->priv;
+  uint8_t * ptr;
+  
+  /* Read data */
+  bytes_read = bgav_input_read_data(ctx->input, priv->buffer, num_packets * priv->packet_size);
+  
+  /* Check if we are in sync */
+  
+  ptr = priv->buffer;
+
+  num_packets = bytes_read / priv->packet_size;
+  
+  for(i = 0; i < num_packets; i++)
+    {
+    if(*ptr != 0x47)
+      {
+      if(!resync_file(ctx, ptr, &bytes_read))
+        break;
+      }
+    ptr += priv->packet_size;
+    }
+  num_packets = bytes_read / priv->packet_size;
+  return num_packets * priv->packet_size;
+  }
+
+static int get_data(bgav_demuxer_context_t * ctx, int num_packets)
+  {
+  return 0;
+  }
 
 static inline int
 parse_transport_packet(bgav_demuxer_context_t * ctx)
@@ -286,22 +347,23 @@ static inline int next_packet(mpegts_t * priv)
   return (priv->ptr - priv->buffer < priv->buffer_size);
   }
 
-static inline int next_packet_scan(bgav_input_context_t * input,
-                                   mpegts_t * priv, int can_seek)
+static inline int next_packet_scan(bgav_demuxer_context_t * ctx)
   {
   int packets_scanned;
+
+  mpegts_t * priv = ctx->priv;
+  int can_seek = ctx->input->input->seek_byte ? 1 : 0;
+  
   if(!next_packet(priv))
     {
     if(can_seek)
       {
       packets_scanned =
-        (input->position - priv->first_packet_pos) / priv->packet_size;
+        (ctx->input->position - priv->first_packet_pos) / priv->packet_size;
 
       if(packets_scanned < SCAN_PACKETS_SEEK)
         {
-        priv->buffer_size =
-          bgav_input_read_data(input, priv->buffer,
-                               priv->packet_size * SCAN_PACKETS);
+        priv->buffer_size =read_data(ctx, SCAN_PACKETS);
         if(!priv->buffer_size)
           return 0;
         
@@ -463,9 +525,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
 
   keep_going = 1;
   
-  priv->buffer_size =
-    bgav_input_read_data(ctx->input, priv->buffer,
-                         priv->packet_size * SCAN_PACKETS);
+  priv->buffer_size = read_data(ctx, SCAN_PACKETS);
   if(!priv->buffer_size)
     return 0;
   
@@ -482,7 +542,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
       {
       priv->programs[program_index].start_pcr = pts;
       }
-    if(!next_packet_scan(ctx->input, priv, 1))
+    if(!next_packet_scan(ctx))
       return 0;
     
     /* Check if we are done */
@@ -510,11 +570,16 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
     {
     bgav_input_seek(ctx->input, position, SEEK_SET);
 
-    priv->buffer_size =
-      bgav_input_read_data(ctx->input, priv->buffer,
-                           priv->packet_size * SCAN_PACKETS);
+    priv->buffer_size = read_data(ctx, SCAN_PACKETS);
     if(!priv->buffer_size)
       return 0;
+
+    if(priv->discontinuous)
+      {
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Got discontinuities, won't get wrong durations");
+      return 0;
+      }
     
     priv->ptr = priv->buffer;
     priv->packet_start = priv->buffer;
@@ -638,7 +703,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
       }
     }
 
-  if(!next_packet_scan(ctx->input, priv, input_can_seek))
+  if(!next_packet_scan(ctx))
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Premature EOF");
@@ -678,7 +743,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
     
     if(program == priv->num_programs)
       {
-      if(!next_packet_scan(ctx->input, priv, input_can_seek))
+      if(!next_packet_scan(ctx))
         break;
       continue;
       }
@@ -706,7 +771,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
         return 0;
         }
       }
-    if(!next_packet_scan(ctx->input, priv, input_can_seek))
+    if(!next_packet_scan(ctx))
       break;
     }
 
@@ -914,7 +979,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
     if(bgav_track_find_stream_all(&ctx->tt->tracks[0],
                                   priv->packet.pid))
       {
-      if(!next_packet_scan(ctx->input, priv, input_can_seek))
+      if(!next_packet_scan(ctx))
         break;
       else
         continue;
@@ -995,7 +1060,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       s->timescale = 90000;
       s->flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
       }
-    if(!next_packet_scan(ctx->input, priv, input_can_seek))
+    if(!next_packet_scan(ctx))
         break;
     }
   test_data_free(&ts);
@@ -1055,9 +1120,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
     have_pat = 0;
     
     if(input_can_seek)
-      priv->buffer_size =
-        bgav_input_read_data(ctx->input, priv->buffer,
-                             priv->packet_size * SCAN_PACKETS);
+      priv->buffer_size = read_data(ctx, SCAN_PACKETS);
     else
       priv->buffer_size =
         bgav_input_get_data(ctx->input, priv->buffer,
@@ -1078,9 +1141,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
         {
         if(input_can_seek && (packets_scanned < SCAN_PACKETS_SEEK))
           {
-          priv->buffer_size =
-            bgav_input_read_data(ctx->input, priv->buffer,
-                                 priv->packet_size * SCAN_PACKETS);
+          priv->buffer_size = read_data(ctx, SCAN_PACKETS);
           if(!priv->buffer_size)
             break;
           priv->ptr = priv->buffer;
@@ -1105,9 +1166,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
         bgav_input_seek(ctx->input, priv->first_packet_pos,
                         SEEK_SET);
 
-        priv->buffer_size =
-          bgav_input_read_data(ctx->input, priv->buffer,
-                               priv->packet_size * SCAN_PACKETS);
+        priv->buffer_size = read_data(ctx, SCAN_PACKETS);
         priv->ptr = priv->buffer;
         priv->packet_start = priv->buffer;
         }
@@ -1428,9 +1487,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
      (position + priv->packet_size * num_packets > ctx->next_packet_pos))
     num_packets = (ctx->next_packet_pos - position) / priv->packet_size;
     
-  priv->buffer_size =
-    bgav_input_read_data(ctx->input,
-                         priv->buffer, priv->packet_size * num_packets);
+  priv->buffer_size = read_data(ctx, num_packets);
   
   if(priv->buffer_size < priv->packet_size)
     return 0;
