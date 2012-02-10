@@ -29,6 +29,8 @@ AC_TRY_COMPILE([
 #include <ffmpeg/avcodec.h>],[], [found_header="true";AVCODEC_HEADER="<ffmpeg/avcodec.h>";VDPAU_HEADER="<vdpau.h>" ],)
 fi
 
+AC_CHECK_HEADERS([libavcore/avcore.h])
+
 avcodec_ok="false"
 AC_TRY_RUN([
     #include <stdio.h>

@@ -30,7 +30,7 @@
 
 #define LOG_DOMAIN "quicktime"
 
-// #define DUMP_MOOV
+#define DUMP_MOOV
 
 #ifdef HAVE_FAAD2
 #include <aac_frame.h>
@@ -60,6 +60,7 @@ typedef struct
 
   int skip_first_frame; /* Enabled only if the first frame has a different codec */
   int skip_last_frame; /* Enabled only if the last frame has a different codec */
+  int64_t first_pts;
   } stream_priv_t;
 
 typedef struct
@@ -108,6 +109,13 @@ static void stream_init(stream_priv_t * s, qt_trak_t * trak)
   s->ctts_pos = (s->stbl->has_ctts) ? 0 : -1;
   /* stsz_pos is -1 if all samples have the same size */
   s->stsz_pos = (s->stbl->stsz.sample_size) ? -1 : 0;
+  
+  if((trak->edts.elst.num_entries > 0) &&
+     (trak->edts.elst.table[0].media_time != 0))
+    {
+    fprintf(stderr, "Got start time: %d %d\n",
+            trak->edts.elst.table[0].media_time, trak->mdia.mdhd.time_scale);
+    }
   }
 
 
@@ -331,7 +339,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      stream_id,
-                     bgav_s->duration,
+                     bgav_s->duration + bgav_s->start_time,
                      check_keyframe(s), chunk_samples, packet_size);
           
           bgav_s->duration += chunk_samples;
@@ -372,7 +380,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                    bgav_s,
                    i, chunk_offset,
                    stream_id,
-                   bgav_s->duration,
+                   bgav_s->duration + bgav_s->start_time,
                    check_keyframe(s), chunk_samples, 0);
         /* Time to sample */
         bgav_s->duration += chunk_samples;
@@ -433,7 +441,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      -1,
-                     bgav_s->duration + pts_offset,
+                     bgav_s->duration + pts_offset + bgav_s->start_time,
                      check_keyframe(s),
                      duration,
                      packet_size);
@@ -445,7 +453,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      stream_id,
-                     bgav_s->duration + pts_offset,
+                     bgav_s->duration + pts_offset + bgav_s->start_time,
                      check_keyframe(s),
                      duration,
                      packet_size);
@@ -506,7 +514,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                    bgav_s,
                    i, chunk_offset,
                    stream_id,
-                   bgav_s->duration,
+                   bgav_s->duration + bgav_s->start_time,
                    check_keyframe(s), duration,
                    packet_size);
         
@@ -893,7 +901,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       bg_as = bgav_track_add_audio_stream(track, ctx->opt);
 
-      if(trak->edts.elst.num_entries > 1)
+      if(((trak->edts.elst.num_entries == 1) && (trak->edts.elst.table[0].media_time != 0)) ||
+         (trak->edts.elst.num_entries > 1))
         priv->has_edl = 1;
       
       bgav_qt_mdhd_get_language(&trak->mdia.mdhd,

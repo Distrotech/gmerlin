@@ -32,8 +32,19 @@
 
 #include AVCODEC_HEADER
 
-
 #define LOG_DOMAIN "audio_ffmpeg"
+
+#ifdef HAVE_LIBAVCORE_AVCORE_H
+#include <libavcore/avcore.h>
+#endif
+
+#if LIBAVCODEC_BUILD >= ((53<<16)+(25<<8)+0)
+#define DECODE_AUDIO4
+#elif LIBAVCODEC_BUILD >= ((52<<16)+(23<<8)+0)
+#define DECODE_AUDIO3
+#else
+#define DECODE_AUDIO2
+#endif
 
 // #define DUMP_DECODE
 // #define DUMP_PACKET
@@ -41,10 +52,16 @@
 
 /* Different decoding functions */
 
-#if LIBAVCODEC_BUILD >= ((51<<16)+(29<<8)+0)
-#define DECODE_FUNC avcodec_decode_audio2
-#else
-#define DECODE_FUNC avcodec_decode_audio
+// #define DECODE_FUNC avcodec_decode_audio2
+
+#if LIBAVCORE_VERSION_INT >= ((0<<16)|(10<<8)|0)
+#define SampleFormat    AVSampleFormat
+#define SAMPLE_FMT_U8   AV_SAMPLE_FMT_U8
+#define SAMPLE_FMT_S16  AV_SAMPLE_FMT_S16
+#define SAMPLE_FMT_S32  AV_SAMPLE_FMT_S32
+#define SAMPLE_FMT_FLT  AV_SAMPLE_FMT_FLT
+#define SAMPLE_FMT_DBL  AV_SAMPLE_FMT_DBL
+#define SAMPLE_FMT_NONE AV_SAMPLE_FMT_NONE
 #endif
 
 /* Sample formats */
@@ -60,9 +77,7 @@ sampleformats[] =
     { SAMPLE_FMT_S16, GAVL_SAMPLE_S16 },    ///< signed 16 bits
     { SAMPLE_FMT_S32, GAVL_SAMPLE_S32 },    ///< signed 32 bits
     { SAMPLE_FMT_FLT, GAVL_SAMPLE_FLOAT },  ///< float
-#if LIBAVCODEC_BUILD >= ((51<<16)+(65<<8)+0)
     { SAMPLE_FMT_DBL, GAVL_SAMPLE_DOUBLE }, ///< double
-#endif
   };
 
 static gavl_sample_format_t
@@ -96,15 +111,16 @@ typedef struct
   codec_info_t * info;
   
   gavl_audio_frame_t * frame;
+#ifndef DECODE_AUDIO4
   int frame_alloc;
-
+#endif
   bgav_bytebuffer_t buf;
   
   /* ffmpeg changes the extradata sometimes,
      so we save them locally here */
   uint8_t * ext_data;
 
-#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+#if (defined DECODE_AUDIO3) || (defined DECODE_AUDIO4)
   AVPacket pkt;
 #endif
   int sample_size;
@@ -138,6 +154,8 @@ static int init_format(bgav_stream_t * s)
     gavl_bytes_per_sample(s->data.audio.format.sample_format);
   
   gavl_set_channel_setup(&s->data.audio.format);
+
+#ifndef DECODE_AUDIO4
   s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
   priv->frame_alloc =
@@ -145,16 +163,15 @@ static int init_format(bgav_stream_t * s)
     s->data.audio.format.num_channels *
     s->data.audio.format.samples_per_frame;
   s->data.audio.format.samples_per_frame = 1024;
+#endif
   return 1;
   }
 
-static int decode_frame_ffmpeg(bgav_stream_t * s)
-  {
-  int frame_size;
-  int bytes_used;
 
-  bgav_packet_t * p;
+static int fill_buffer(bgav_stream_t * s)
+  {
   ffmpeg_audio_priv * priv;
+  bgav_packet_t * p;
   priv= s->data.audio.decoder->priv;
 
   /* Read data if necessary */
@@ -173,11 +190,27 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
     bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
     bgav_stream_done_packet_read(s, p);
     }
-#if LIBAVCODEC_BUILD >= 3349760
+  return 1;
+  }
+
+/*
+ *  Old version
+ */
+
+#ifndef DECODE_AUDIO4
+static int decode_frame_ffmpeg(bgav_stream_t * s)
+  {
+  int bytes_used;
+
+  ffmpeg_audio_priv * priv;
+  int frame_size;
+  
+  priv= s->data.audio.decoder->priv;
+
+  if(!fill_buffer(s))
+    return 0;
+
   frame_size = priv->frame_alloc;
-#else
-  frame_size = 0;
-#endif
   
 #ifdef DUMP_DECODE
   bgav_dprintf("decode_audio Size: %d, Frame size: %d\n",
@@ -187,7 +220,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   
   if(priv->frame)
     {
-#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+#ifdef
     priv->pkt.data = priv->buf.buffer;
     priv->pkt.size = priv->buf.size;
     
@@ -195,18 +228,18 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
                                        priv->frame->samples.s_16,
                                        &frame_size,
                                        &priv->pkt);
-#else    
-    bytes_used = DECODE_FUNC(priv->ctx,
-                             priv->frame->samples.s_16,
-                             &frame_size,
-                             priv->buf.buffer,
-                             priv->buf.size);
+#else
+    bytes_used = avcodec_decode_audio2(priv->ctx,
+                                       priv->frame->samples.s_16,
+                                       &frame_size,
+                                       priv->buf.buffer,
+                                       priv->buf.size);
 #endif
     }
   else
     {
     int16_t * tmp_buf = malloc(priv->frame_alloc);
-#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+#ifdef DECODE_AUDIO3
     priv->pkt.data = priv->buf.buffer;
     priv->pkt.size = priv->buf.size;
     
@@ -214,12 +247,12 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
                                        tmp_buf,
                                        &frame_size,
                                        &priv->pkt);
-#else    
-    bytes_used = DECODE_FUNC(priv->ctx,
-                             tmp_buf,
-                             &frame_size,
-                             priv->buf.buffer,
-                             priv->buf.size);
+#else
+    bytes_used = avcodec_decode_audio2(priv->ctx,
+                                       tmp_buf,
+                                       &frame_size,
+                                       priv->buf.buffer,
+                                       priv->buf.size);
 #endif
 
     if(!init_format(s))
@@ -279,6 +312,102 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   
   return 1;
   }
+#else
+
+/*
+ *  New version
+ */
+
+static int decode_frame_ffmpeg(bgav_stream_t * s)
+  {
+  int bytes_used;
+
+  ffmpeg_audio_priv * priv;
+  AVFrame f;
+  int got_frame;
+  
+  priv= s->data.audio.decoder->priv;
+
+  if(!fill_buffer(s))
+    return 0;
+ 
+#ifdef DUMP_DECODE
+  bgav_dprintf("decode_audio Size: %d\n",
+               priv->buf.size);
+  //  bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
+#endif
+
+  priv->pkt.data = priv->buf.buffer;
+  priv->pkt.size = priv->buf.size;
+
+  bytes_used = avcodec_decode_audio4(priv->ctx, &f,
+                                     &got_frame, &priv->pkt);
+
+  
+
+  if(got_frame && f.nb_samples)
+    {
+    /* Allocate or enlarge frame */
+
+    if(s->data.audio.format.samples_per_frame < f.nb_samples)
+      {
+      if(!priv->frame)
+        {
+        if(!init_format(s))
+          return 0;
+        }
+      else
+        gavl_audio_frame_destroy(priv->frame);
+
+      s->data.audio.format.samples_per_frame = f.nb_samples;
+      priv->frame = gavl_audio_frame_create(&s->data.audio.format);
+      }
+    /* This will break with planar formats */
+    memcpy(priv->frame->samples.s_16,
+           f.data,
+           f.nb_samples * priv->sample_size *
+           s->data.audio.format.num_channels);
+    
+    priv->frame->valid_samples = f.nb_samples;
+    }
+  
+#ifdef DUMP_DECODE
+  bgav_dprintf("Used %d bytes\n", bytes_used);
+#endif
+  
+  if(bytes_used < 0)
+    {
+    /* Error */
+    return 0;
+    }
+
+  /* Advance packet buffer */
+
+  if(bytes_used > 0)
+    bgav_bytebuffer_remove(&priv->buf, bytes_used);
+  else
+    {
+    //    priv->bytes_in_packet_buffer = 0;
+    }
+  
+  /* No Samples decoded, get next packet */
+
+  if(!got_frame)
+    return 1;
+  
+#ifdef DUMP_DECODE
+  bgav_dprintf("Got %d samples\n", priv->frame->valid_samples);
+#endif
+  
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format,
+                             s->data.audio.frame, priv->frame);
+  
+  return 1;
+  }
+
+
+#endif
+
 
 
 static int init_ffmpeg_audio(bgav_stream_t * s)
@@ -288,8 +417,13 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   priv->info = lookup_codec(s);
   codec = avcodec_find_decoder(priv->info->ffmpeg_id);
-  priv->ctx = avcodec_alloc_context();
 
+#if LIBAVCODEC_VERSION_INT < ((53<<16)|(8<<8)|0)
+  priv->ctx = avcodec_alloc_context();
+#else
+  priv->ctx = avcodec_alloc_context3(NULL);
+#endif
+  
   //  priv->ctx->width = s->format.frame_width;
   //  priv->ctx->height = s->format.frame_height;
 
@@ -311,11 +445,7 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   priv->ctx->sample_rate     = s->data.audio.format.samplerate;
   priv->ctx->block_align     = s->data.audio.block_align;
   priv->ctx->bit_rate        = s->codec_bitrate;
-#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
-  priv->ctx->bits_per_sample = s->data.audio.bits_per_sample;
-#else
   priv->ctx->bits_per_coded_sample = s->data.audio.bits_per_sample;
-#endif  
   if(priv->info->codec_tag != -1)
     priv->ctx->codec_tag = priv->info->codec_tag;
   else
@@ -330,11 +460,20 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
 
   bgav_ffmpeg_lock();
   
+#if LIBAVCODEC_VERSION_INT < ((53<<16)|(8<<8)|0)
   if(avcodec_open(priv->ctx, codec) != 0)
     {
     bgav_ffmpeg_unlock();
     return 0;
     }
+#else
+  if(avcodec_open2(priv->ctx, codec, NULL) != 0)
+    {
+    bgav_ffmpeg_unlock();
+    return 0;
+    }
+#endif
+  
   bgav_ffmpeg_unlock();
   
   s->data.audio.decoder->priv = priv;
@@ -354,7 +493,9 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
     }
   else /* Let ffmpeg find out the format */
     {
+#ifndef DECODE_AUDIO4
     priv->frame_alloc = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+#endif
     if(!decode_frame_ffmpeg(s))
       return 0;
     }
@@ -510,11 +651,9 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'B', 'P', '2'), 0x00 },
       -1 },
     /*     CODEC_ID_ADPCM_THP, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+4)
     { "FFmpeg THP Audio decoder", "THP Audio", CODEC_ID_ADPCM_THP,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'H', 'P', 'A'),
                0x00 } },
-#endif
     /*     CODEC_ID_ADPCM_IMA_AMV, */
     /*     CODEC_ID_ADPCM_EA_R1, */
     /*     CODEC_ID_ADPCM_EA_R3, */
@@ -675,52 +814,39 @@ static codec_info_t codec_infos[] =
       -1 },
     /*     CODEC_ID_QCELP, */
     /*     CODEC_ID_WAVPACK, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(16<<8)+0)
     { "FFmpeg Wavpack decoder", "Wavpack", CODEC_ID_WAVPACK,
       (uint32_t[]){ BGAV_MK_FOURCC('w', 'v', 'p', 'k'),
                     0x00 },
       -1 },
-#endif
     /*     CODEC_ID_DSICINAUDIO, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(18<<8)+0)
     { "FFmpeg Delphine CIN audio decoder", "Delphine CIN Audio",
       CODEC_ID_DSICINAUDIO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'c', 'i', 'n'),
                0x00 },
       -1 },
-#endif
     /*     CODEC_ID_IMC, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(23<<8)+0)
     { "FFmpeg Intel Music decoder", "Intel Music coder", CODEC_ID_IMC,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0401),
                0x00 },
       -1 },
-#endif
     /*     CODEC_ID_MUSEPACK7, */
     /*     CODEC_ID_MLP, */
     /*     CODEC_ID_GSM_MS, /\* as found in WAV *\/ */
     /*     CODEC_ID_ATRAC3, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+4)
     { "FFmpeg ATRAC3 decoder", "ATRAC3", CODEC_ID_ATRAC3,
       (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'),
                     BGAV_WAVID_2_FOURCC(0x0270),
                     0x00  } },
-#endif
     /*     CODEC_ID_VOXWARE, */
     /*     CODEC_ID_APE, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(44<<8)+0)
     { "FFmpeg Monkey's Audio decoder", "Monkey's Audio", CODEC_ID_APE,
       (uint32_t[]){ BGAV_MK_FOURCC('.', 'a', 'p', 'e'),
                     0x00  } },
-#endif
     /*     CODEC_ID_NELLYMOSER, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(46<<8)+0)
     { "FFmpeg Nellymoser decoder", "Nellymoser", CODEC_ID_NELLYMOSER,
       (uint32_t[]){ BGAV_MK_FOURCC('N', 'E', 'L', 'L'),
                     0x00 },
       -1 },
-#endif
-
     
 #if LIBAVCODEC_BUILD >= ((52<<16)+(55<<8)+0)
     { "FFmpeg AMR NB decoder", "AMR Narrowband", CODEC_ID_AMR_NB,
@@ -762,7 +888,9 @@ bgav_init_audio_decoders_ffmpeg(bgav_options_t * opt)
   {
   int i;
   real_num_codecs = 0;
+#if LIBAVCODEC_VERSION_MAJOR < 54
   avcodec_init();
+#endif
   avcodec_register_all();
 
   for(i = 0; i < NUM_CODECS; i++)

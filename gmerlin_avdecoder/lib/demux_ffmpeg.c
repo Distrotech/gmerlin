@@ -33,8 +33,27 @@
 #define NEW_IO_API
 #endif
 
+#if LIBAVFORMAT_VERSION_INT >= ((53<<16)+(2<<8)+0)
+#define BRANDNEW_IO_API
+#endif
+
 #if LIBAVFORMAT_VERSION_MAJOR >= 53
 #define NEW_METADATA
+#endif
+
+#if LIBAVFORMAT_VERSION_MAJOR >= 54
+#define AV_METADATA_MATCH_CASE      AV_DICT_MATCH_CASE
+#define AV_METADATA_IGNORE_SUFFIX   AV_DICT_IGNORE_SUFFIX
+#define AV_METADATA_DONT_STRDUP_KEY AV_DICT_DONT_STRDUP_KEY
+#define AV_METADATA_DONT_STRDUP_VAL AV_DICT_DONT_STRDUP_VAL
+#define AV_METADATA_DONT_OVERWRITE  AV_DICT_DONT_OVERWRITE
+
+
+#define AVMetadata    AVDictionary
+#define AVMetadataTag AVDictionaryEntry
+
+#define av_metadata_get(m, key, prev, flags) av_dict_get(m, key, prev, flags)
+
 #endif
 
 #if LIBAVCODEC_VERSION_MAJOR >= 53
@@ -70,12 +89,7 @@ typedef struct
   AVIOContext * pb;
   unsigned char * buffer;
 #else  
-#if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
-  ByteIOContext pb;
-#else
   ByteIOContext * pb;
-#endif
-
 #endif // OLD_IO_API  
   } ffmpeg_priv_t;
 
@@ -606,13 +620,14 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     
   s->container_bitrate = codec->bit_rate;
   s->stream_id = index;
-
+#if 0
   if(codec->palctrl)
     {
     s->priv = calloc(AVPALETTE_COUNT, sizeof(bgav_palette_entry_t));
     s->data.video.palette = s->priv;
     s->data.video.palette_size = AVPALETTE_COUNT;
     }
+#endif
   }
 
 static int open_ffmpeg(bgav_demuxer_context_t * ctx)
@@ -620,13 +635,17 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
   int i;
   ffmpeg_priv_t * priv;
   AVFormatContext *avfc;
-  AVFormatParameters ap;
+
   char * tmp_filename;
 #ifdef NEW_METADATA
   AVMetadataTag * tag;
 #endif
 
+#ifndef BRANDNEW_IO_API
+  AVFormatParameters ap;
   memset(&ap, 0, sizeof(ap));
+#endif
+  
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
 
@@ -648,51 +667,56 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
                        ctx->input->input->seek_byte ? lavf_seek : NULL);
 #else
   
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 29, 0)
-  register_protocol(&bgav_protocol);
-#else
   av_register_protocol(&bgav_protocol);
-#endif
 
   url_fopen(&priv->pb, tmp_filename, URL_RDONLY);
 
-#if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
-  ((URLContext*)(priv->pb.opaque))->priv_data= ctx->input;
-#else
   ((URLContext*)(priv->pb->opaque))->priv_data= ctx->input;
-#endif
 
 #endif // !NEW_IO_API
 
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 26, 0)
-  avfc = av_alloc_format_context();
-#else
   avfc = avformat_alloc_context();
-#endif
 
   priv->avif = get_format(ctx->input);
-  
-#if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
-  if(av_open_input_stream(&avfc, &priv->pb, tmp_filename, priv->avif, &ap)<0)
-#else
+
+#ifdef BRANDNEW_IO_API
+  avfc->pb = priv->pb;
+
+  if(avformat_open_input(&avfc, tmp_filename, priv->avif, NULL)<0)
+    {
+    bgav_log(ctx->opt,BGAV_LOG_ERROR,LOG_DOMAIN,
+             "avformat_open_input failed");
+    free(tmp_filename);
+    return 0;
+    }
+#else 
   if(av_open_input_stream(&avfc, priv->pb, tmp_filename, priv->avif, &ap)<0)
-#endif
     {
     bgav_log(ctx->opt,BGAV_LOG_ERROR,LOG_DOMAIN,
              "av_open_input_stream failed");
     free(tmp_filename);
     return 0;
     }
+#endif
   free(tmp_filename);
   priv->avfc= avfc;
   /* Get the streams */
+#if LIBAVFORMAT_VERSION_INT >= ((53<<16)|(6<<8))|0
+  if(avformat_find_stream_info(avfc, NULL) < 0)
+    {
+    bgav_log(ctx->opt,BGAV_LOG_ERROR,LOG_DOMAIN,
+             "avformat_find_stream_info failed");
+    return 0;
+    }
+#else
   if(av_find_stream_info(avfc) < 0)
     {
     bgav_log(ctx->opt,BGAV_LOG_ERROR,LOG_DOMAIN,
              "av_find_stream_info failed");
     return 0;
     }
-
+#endif
+  
   ctx->tt = bgav_track_table_create(1);
   
   for(i = 0; i < avfc->nb_streams; i++)
@@ -770,8 +794,12 @@ static void close_ffmpeg(bgav_demuxer_context_t * ctx)
   {
   ffmpeg_priv_t * priv;
   priv = ctx->priv;
-
+#if LIBAVFORMAT_VERSION_INT >= ((53<<16)|(17<<8)|0)
+  avformat_close_input(&priv->avfc);
+#else
   av_close_input_file(priv->avfc);
+#endif
+  
 #ifdef NEW_IO
   if(priv->buffer)
     free(priv->buffer);
@@ -790,6 +818,14 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   int i_tmp;
+
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+  uint32_t * pal_i;
+  int pal_i_len;
+#else
+  const int pal_i_len = AVPALETTE_COUNT;
+#endif
+  
   priv = ctx->priv;
   
   if(av_read_frame(priv->avfc, &pkt) < 0)
@@ -820,26 +856,40 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
     }
   /* Handle palette */
   if((s->type == BGAV_STREAM_VIDEO) &&
+#if LIBAVCODEC_VERSION_MAJOR < 54
      avs->codec->palctrl &&
-     avs->codec->palctrl->palette_changed)
+     avs->codec->palctrl->palette_changed
+#else
+     (pal_i = (uint32_t*)av_packet_get_side_data(&pkt,
+                                                 AV_PKT_DATA_PALETTE,
+                                                 &pal_i_len))
+#endif
+     )
     {
-    pal = s->priv;
     
-    for(i = 0; i < AVPALETTE_COUNT; i++)
+#if LIBAVCODEC_VERSION_MAJOR < 54
+    pal_i = avs->codec->palctrl->palette;
+#else
+    pal_i_len /= 4;
+    p->palette = malloc(sizeof(*p->palette) * pal_i_len);
+    p->palette_size = pal_i_len;
+    pal = p->palette;
+#endif
+    for(i = 0; i < pal_i_len; i++)
       {
-      i_tmp = (avs->codec->palctrl->palette[i] >> 24) & 0xff;
+      i_tmp = (pal_i[i] >> 24) & 0xff;
       pal[i].a = i_tmp | i_tmp << 8;
-      i_tmp = (avs->codec->palctrl->palette[i] >> 16) & 0xff;
+      i_tmp = (pal_i[i] >> 16) & 0xff;
       pal[i].r = i_tmp | i_tmp << 8;
-      i_tmp = (avs->codec->palctrl->palette[i] >> 8) & 0xff;
+      i_tmp = (pal_i[i] >> 8) & 0xff;
       pal[i].g = i_tmp | i_tmp << 8;
-      i_tmp = (avs->codec->palctrl->palette[i]) & 0xff;
+      i_tmp = (pal_i[i]) & 0xff;
       pal[i].b = i_tmp | i_tmp << 8;
       }
+#if LIBAVCODEC_VERSION_MAJOR < 54
     avs->codec->palctrl->palette_changed = 0;
-    s->data.video.palette_changed = 1;
+#endif
     }
-  
   if(pkt.flags&PKT_FLAG_KEY)
     PACKET_SET_KEYFRAME(p);
   bgav_stream_done_packet_write(s, p);

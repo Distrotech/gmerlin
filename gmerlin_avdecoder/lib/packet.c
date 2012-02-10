@@ -201,3 +201,19 @@ void bgav_packet_source_copy(bgav_packet_source_t * dst,
   {
   memcpy(dst, src, sizeof(*dst));
   }
+
+void bgav_packet_alloc_palette(bgav_packet_t * p, int size)
+  {
+  p->palette = malloc(sizeof(*p->palette) * size);
+  p->palette_size = size;
+  }
+
+void bgav_packet_free_palette(bgav_packet_t * p)
+  {
+  if(p->palette)
+    {
+    free(p->palette);
+    p->palette = NULL;
+    }
+  p->palette_size = 0;
+  }

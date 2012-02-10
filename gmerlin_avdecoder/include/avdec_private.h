@@ -210,6 +210,34 @@ struct bgav_subtitle_overlay_decoder_context_s
   const bgav_subtitle_overlay_decoder_t * decoder;
   };
 
+/* Palette support */
+
+typedef struct
+  {
+  uint16_t r;
+  uint16_t g;
+  uint16_t b;
+  uint16_t a;
+  } bgav_palette_entry_t;
+
+/* These map a palette entry to a gavl format frame */
+
+#define BGAV_PALETTE_2_RGB24(pal, dst) \
+dst[0] = pal.r >> 8;\
+dst[1] = pal.g >> 8;\
+dst[2] = pal.b >> 8;
+
+#define BGAV_PALETTE_2_RGBA32(pal, dst) \
+dst[0] = pal.r >> 8;\
+dst[1] = pal.g >> 8;\
+dst[2] = pal.b >> 8;\
+dst[3] = pal.a >> 8;
+
+#define BGAV_PALETTE_2_BGR24(pal, dst) \
+dst[2] = pal.r >> 8;\
+dst[1] = pal.g >> 8;\
+dst[0] = pal.b >> 8;
+
 /* Packet */
 
 #define PACKET_FLAG_KEY    (1<<8)
@@ -263,6 +291,10 @@ struct bgav_packet_s
   struct bgav_packet_s * next;
 
   uint32_t flags;
+
+  /* Palette data */
+  int palette_size;
+  bgav_palette_entry_t * palette;
   };
 
 /* packet.c */
@@ -276,6 +308,10 @@ void bgav_packet_swap_data(bgav_packet_t * p1, bgav_packet_t * p2);
 
 void bgav_packet_pad(bgav_packet_t * p);
 void bgav_packet_reset(bgav_packet_t * p);
+
+void bgav_packet_alloc_palette(bgav_packet_t * p, int size);
+void bgav_packet_free_palette(bgav_packet_t * p);
+
 
 // void bgav_packet_done_write(bgav_packet_t *);
 // void bgav_packet_done_read(bgav_packet_t *);
@@ -322,33 +358,6 @@ void bgav_packet_pool_put(bgav_packet_pool_t * pp,
 void bgav_packet_pool_destroy(bgav_packet_pool_t*);
 
 
-/* Palette support */
-
-typedef struct
-  {
-  uint16_t r;
-  uint16_t g;
-  uint16_t b;
-  uint16_t a;
-  } bgav_palette_entry_t;
-
-/* These map a palette entry to a gavl format frame */
-
-#define BGAV_PALETTE_2_RGB24(pal, dst) \
-dst[0] = pal.r >> 8;\
-dst[1] = pal.g >> 8;\
-dst[2] = pal.b >> 8;
-
-#define BGAV_PALETTE_2_RGBA32(pal, dst) \
-dst[0] = pal.r >> 8;\
-dst[1] = pal.g >> 8;\
-dst[2] = pal.b >> 8;\
-dst[3] = pal.a >> 8;
-
-#define BGAV_PALETTE_2_BGR24(pal, dst) \
-dst[2] = pal.r >> 8;\
-dst[1] = pal.g >> 8;\
-dst[0] = pal.b >> 8;
 
 /* Stream types
    (changing numeric values alters the index file format) */
@@ -570,9 +579,7 @@ struct bgav_stream_s
       
       bgav_video_decoder_context_t * decoder;
       gavl_video_format_t format;
-      int palette_size;
-      bgav_palette_entry_t * palette;
-      int palette_changed;
+      //      int palette_changed;
       
 /* How to get frame times and durations */
 #define BGAV_FRAMETIME_CONSTANT  0 /* Strictly constant framerate */
