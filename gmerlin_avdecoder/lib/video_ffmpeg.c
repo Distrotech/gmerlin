@@ -117,8 +117,11 @@ typedef struct
   /* Real video ugliness */
 
   uint32_t rv_extradata[2+FF_INPUT_BUFFER_PADDING_SIZE/4];
-  AVPaletteControl palette;
 
+#if LIBAVCODEC_VERSION_MAJOR < 54
+  AVPaletteControl palette;
+#endif
+  
   /* State variables */
   int need_format;
 
@@ -216,26 +219,24 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
           //                  priv->vdpau_states[i].state.surface);
           }
         }
-#if 1
       if(pic->reference)
         {
+#if LIBAVCODEC_VERSION_INT < ((53<<16)|(28<<8)|1)
         pic->age= priv->ip_age[0];
-        
+#endif
         priv->ip_age[0]= priv->ip_age[1]+1;
         priv->ip_age[1]= 1;
         priv->b_age++;
         }
       else
         {
+#if LIBAVCODEC_VERSION_INT < ((53<<16)|(28<<8)|1)
         pic->age= priv->b_age;
-        
+#endif
         priv->ip_age[0]++;
         priv->ip_age[1]++;
         priv->b_age=1;
         }
-#else
-      pic->age = INT_MAX;
-#endif
       priv->vdpau_states[i].used = 1;
       return 0;
       }
@@ -331,7 +332,7 @@ static void dump_frame(uint8_t * data, int len)
 
 static int decode_picture(bgav_stream_t * s)
   {
-  int i, imax;
+  int i;
   int bytes_used;
   ffmpeg_video_priv * priv;
   bgav_pts_cache_entry_t * e;
@@ -416,21 +417,32 @@ static int decode_picture(bgav_stream_t * s)
       }
     
     /* Palette terror */
-    if(s->data.video.palette_changed)
+
+    if(priv->packet && priv->packet->palette)
       {
-      priv->palette.palette_changed = 1;
+      uint32_t * pal_i;
+      int imax;
       imax =
-        (s->data.video.palette_size > AVPALETTE_COUNT)
-        ? AVPALETTE_COUNT : s->data.video.palette_size;
+        (priv->packet->palette_size > AVPALETTE_COUNT)
+        ? AVPALETTE_COUNT : priv->packet->palette_size;
+      
+#if LIBAVCODEC_VERSION_MAJOR < 54
+      priv->palette.palette_changed = 1;
+      pal_i = priv->palette.palette;
+#else
+      pal_i =
+        (uint32_t*)av_packet_new_side_data(&priv->pkt, AV_PKT_DATA_PALETTE,
+                                           imax * 4);
+#endif
       for(i = 0; i < imax; i++)
         {
-        priv->palette.palette[i] =
-          ((s->data.video.palette[i].a >> 8) << 24) |
-          ((s->data.video.palette[i].r >> 8) << 16) |
-          ((s->data.video.palette[i].g >> 8) << 8) |
-          ((s->data.video.palette[i].b >> 8));
+        pal_i[i] =
+          ((priv->packet->palette[i].a >> 8) << 24) |
+          ((priv->packet->palette[i].r >> 8) << 16) |
+          ((priv->packet->palette[i].g >> 8) << 8) |
+          ((priv->packet->palette[i].b >> 8));
         }
-      s->data.video.palette_changed = 0;
+      bgav_packet_free_palette(priv->packet);
       }
     
     /* Decode one frame */
@@ -451,6 +463,19 @@ static int decode_picture(bgav_stream_t * s)
                                        priv->frame,
                                        &have_picture,
                                        &priv->pkt);
+
+    /* Ugly hack: Need to free the side data elements manually because
+       ffmpeg has no public API for that */
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+    if(priv->pkt.side_data_elems)
+      {
+      av_free(priv->pkt.side_data[0].data);
+      av_freep(&priv->pkt.side_data);
+      priv->pkt.side_data_elems = 0;
+      }
+#endif
+       
+    
 #else
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
@@ -772,7 +797,11 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   priv->info = lookup_codec(s);
 
+#if LIBAVCODEC_VERSION_INT < ((53<<16)|(8<<8)|0)
   priv->ctx = avcodec_alloc_context();
+#else
+  priv->ctx = avcodec_alloc_context3(NULL);
+#endif
 
   codec = find_decoder(priv->info->ffmpeg_id, s);
   

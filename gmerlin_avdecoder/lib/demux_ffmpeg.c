@@ -871,8 +871,9 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
     pal_i = avs->codec->palctrl->palette;
 #else
     pal_i_len /= 4;
-    p->palette = malloc(sizeof(*p->palette) * pal_i_len);
-    p->palette_size = pal_i_len;
+
+    bgav_packet_alloc_palette(p, pal_i_len);
+    
     pal = p->palette;
 #endif
     for(i = 0; i < pal_i_len; i++)
