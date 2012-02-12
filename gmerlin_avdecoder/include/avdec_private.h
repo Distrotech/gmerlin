@@ -595,6 +595,14 @@ struct bgav_stream_s
       int max_ref_frames; /* Needed for VDPAU */
       
       bgav_video_format_tracker_t * ft;
+
+      struct
+        {
+        bgav_palette_entry_t * entries;
+        int size;
+        int sent;
+        } pal;
+      
       } video;
     struct
       {

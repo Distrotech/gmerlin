@@ -1183,9 +1183,7 @@ static void cleanup_stream_avi(bgav_stream_t * s)
   else if(s->type == BGAV_STREAM_VIDEO)
     {
     video_priv_t * avi_vs;
-    if(s->data.video.palette_size)
-      free(s->data.video.palette);
-
+    
     avi_vs = s->priv;
 
     if(avi_vs)
@@ -1318,15 +1316,15 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         
         if((bh.biBitCount <= 8) && (bh.biClrUsed))
           {
-          bg_vs->data.video.palette_size = (ch->ckSize - 40) / 4;
-          bg_vs->data.video.palette      =
-            malloc(bg_vs->data.video.palette_size * sizeof(*(bg_vs->data.video.palette)));
-          for(i = 0; i < bg_vs->data.video.palette_size; i++)
+          bg_vs->data.video.pal.size = (ch->ckSize - 40) / 4;
+          bg_vs->data.video.pal.entries =
+            malloc(bg_vs->data.video.pal.size * sizeof(*(bg_vs->data.video.pal.entries)));
+          for(i = 0; i < bg_vs->data.video.pal.size; i++)
             {
-            bg_vs->data.video.palette[i].b = BYTE_2_COLOR(pos[4*i]);
-            bg_vs->data.video.palette[i].g = BYTE_2_COLOR(pos[4*i+1]);
-            bg_vs->data.video.palette[i].r = BYTE_2_COLOR(pos[4*i+2]);
-            bg_vs->data.video.palette[i].a = 0xffff;
+            bg_vs->data.video.pal.entries[i].b = BYTE_2_COLOR(pos[4*i]);
+            bg_vs->data.video.pal.entries[i].g = BYTE_2_COLOR(pos[4*i+1]);
+            bg_vs->data.video.pal.entries[i].r = BYTE_2_COLOR(pos[4*i+2]);
+            bg_vs->data.video.pal.entries[i].a = 0xffff;
             }
           }
 

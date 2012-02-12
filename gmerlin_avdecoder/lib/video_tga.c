@@ -114,6 +114,36 @@ static void gray_2_rgb(tga_image * tga, gavl_video_frame_t * f)
     }
   }
 
+static int set_palette(bgav_stream_t * s, bgav_packet_t * p)
+  {
+  int i;
+  tga_priv_t * priv;
+  priv = s->data.video.decoder->priv;
+  if(priv->ctab_size && (priv->ctab_size != p->palette_size * 4))
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Palette size changed %d -> %d",
+             priv->ctab_size/4, p->palette_size);
+    return 0;
+    }
+  
+  priv->ctab_size = p->palette_size * 4;
+
+  if(!priv->ctab)
+    priv->ctab = malloc(priv->ctab_size);
+  
+  for(i = 0; i < p->palette_size; i++)
+    {
+    priv->ctab[i*4+0] = (p->palette[i].r) >> 8;
+    priv->ctab[i*4+1] = (p->palette[i].g) >> 8;
+    priv->ctab[i*4+2] = (p->palette[i].b) >> 8;
+    priv->ctab[i*4+3] = (p->palette[i].a) >> 8;
+    }
+  bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+           "Setting palette %d entries", p->palette_size);
+  return 1;
+  }
+
 static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   int result;
@@ -131,6 +161,10 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!p)
       return 0;
 
+    /* Set palette */
+    if(p->palette_size && !set_palette(s, p))
+      return 0;
+    
     priv->pts = p->pts;
     priv->duration = p->duration;
     
@@ -254,29 +288,11 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
 
 static int init_tga(bgav_stream_t * s)
   {
-  int i;
   tga_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
 
   
   s->data.video.decoder->priv = priv;
-
-  if(s->data.video.palette_size)
-    {
-    priv->ctab_size = s->data.video.palette_size * 4;
-    
-    priv->ctab = malloc(priv->ctab_size);
-    for(i = 0; i < s->data.video.palette_size; i++)
-      {
-      priv->ctab[i*4+0] = (s->data.video.palette[i].r) >> 8;
-      priv->ctab[i*4+1] = (s->data.video.palette[i].g) >> 8;
-      priv->ctab[i*4+2] = (s->data.video.palette[i].b) >> 8;
-      priv->ctab[i*4+3] = (s->data.video.palette[i].a) >> 8;
-      }
-    bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-             "Setting palette %d entries",
-             s->data.video.palette_size);
-    }
   
   /* Get format by decoding first frame */
 

@@ -194,6 +194,7 @@ void bgav_packet_reset(bgav_packet_t * p)
   p->data_size = 0;
   p->header_size = 0;
   p->duration = -1;
+  bgav_packet_free_palette(p);
   }
 
 void bgav_packet_source_copy(bgav_packet_source_t * dst,

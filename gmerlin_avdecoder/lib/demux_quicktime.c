@@ -1139,9 +1139,15 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
         bg_vs->data.video.frametime_mode = BGAV_FRAMETIME_PACKET;
         }
-      bg_vs->data.video.palette_size = desc->format.video.ctab_size;
-      if(bg_vs->data.video.palette_size)
-        bg_vs->data.video.palette = desc->format.video.ctab;
+      bg_vs->data.video.pal.size = desc->format.video.ctab_size;
+      if(bg_vs->data.video.pal.size)
+        {
+        int len = bg_vs->data.video.pal.size *
+          sizeof(*bg_vs->data.video.pal.entries);
+        
+        bg_vs->data.video.pal.entries = malloc(len);
+        memcpy(bg_vs->data.video.pal.entries, desc->format.video.ctab, len);
+        }
       
       /* Set extradata suitable for Sorenson 3 */
       

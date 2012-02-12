@@ -122,12 +122,21 @@ typedef struct
   void (*scanline_func)(uint8_t * src, uint8_t * dst,
                         int num_pixels, bgav_palette_entry_t * pal);
   int in_stride;
+
+  /* Updated palette */
+  bgav_palette_entry_t * pal;
+  int pal_size;
+  
   } aviraw_t;
 
 static void close_aviraw(bgav_stream_t * s)
   {
   aviraw_t * priv;
   priv = s->data.video.decoder->priv;
+
+  if(priv->pal)
+    free(priv->pal);
+  
   free(priv);
   }
 
@@ -155,8 +164,23 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
     else
       break;
     }
-  
 
+  /* Fetch palette */
+
+  if(p->palette_size)
+    {
+    if(priv->pal_size && (p->palette_size != priv->pal_size))
+      {
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Palette size changed %d -> %d",
+               priv->pal_size, p->palette_size);
+      return 0;
+      }
+    if(!priv->pal)
+      priv->pal = malloc(p->palette_size * sizeof(priv->pal));
+    memcpy(priv->pal, p->palette, p->palette_size * sizeof(priv->pal));
+    }
+  
   if(f)
     {
     /* RGB AVIs are upside down */
@@ -165,7 +189,7 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
     for(i = 0; i < s->data.video.format.image_height; i++)
       {
       priv->scanline_func(src, dst, s->data.video.format.image_width,
-                          s->data.video.palette);
+                          priv->pal);
       src += priv->in_stride;
       dst -= f->strides[0];
       }
@@ -207,17 +231,17 @@ static int init_aviraw(bgav_stream_t * s)
 #endif
     case 8:
       /* Depth 8 and no palette means grayscale */
-      if(!s->data.video.palette_size)
+      if(!s->data.video.pal.size)
         {
         priv->scanline_func = scanline_8_gray;
         s->data.video.format.pixelformat = GAVL_GRAY_8;
         }
       else
         {
-        if(s->data.video.palette_size < 256)
+        if(s->data.video.pal.size < 256)
           bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                    "Palette too small %d < 256",
-                   s->data.video.palette_size);
+                   s->data.video.pal.size);
         priv->scanline_func = scanline_8;
         s->data.video.format.pixelformat = GAVL_RGB_24;
         }

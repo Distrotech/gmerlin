@@ -292,10 +292,12 @@ static int read_data(bgav_demuxer_context_t * ctx, int num_packets)
   return num_packets * priv->packet_size;
   }
 
+#if 0
 static int get_data(bgav_demuxer_context_t * ctx, int num_packets)
   {
   return 0;
   }
+#endif
 
 static inline int
 parse_transport_packet(bgav_demuxer_context_t * ctx)

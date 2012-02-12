@@ -245,7 +245,7 @@ static int init_real(bgav_stream_t * s)
     return 0; 
     }
   
-  extradata = s->ext_data;
+  extradata = (unsigned int *)s->ext_data;
 
   init_data.unk1 = 11;
   init_data.w    = s->data.video.format.frame_width;

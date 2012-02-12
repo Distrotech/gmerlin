@@ -238,11 +238,11 @@ static int init_qtraw(bgav_stream_t * s)
       /* 1 bpp palette */
       priv->bytes_per_line = width / 8;
       priv->scanline_func = scanline_raw_1;
-      if(s->data.video.palette_size < 2)
+      if(s->data.video.pal.size < 2)
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                  "Palette missing or too small %d",
-                s->data.video.palette_size);
+                s->data.video.pal.size);
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
@@ -252,11 +252,11 @@ static int init_qtraw(bgav_stream_t * s)
       /* 2 bpp palette */
       priv->bytes_per_line = width / 4;
       priv->scanline_func = scanline_raw_2;
-      if(s->data.video.palette_size < 4)
+      if(s->data.video.pal.size < 4)
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                  "Palette missing or too small %d",
-                 s->data.video.palette_size);
+                 s->data.video.pal.size);
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
@@ -266,11 +266,11 @@ static int init_qtraw(bgav_stream_t * s)
       /* 4 bpp palette */
       priv->bytes_per_line = width / 2;
       priv->scanline_func = scanline_raw_4;
-      if(s->data.video.palette_size < 16)
+      if(s->data.video.pal.size < 16)
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                  "Palette missing or too small %d",
-                 s->data.video.palette_size);
+                 s->data.video.pal.size);
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
@@ -280,11 +280,11 @@ static int init_qtraw(bgav_stream_t * s)
       /* 8 bpp palette */
       priv->bytes_per_line = width;
       priv->scanline_func = scanline_raw_8;
-      if(s->data.video.palette_size < 256)
+      if(s->data.video.pal.size < 256)
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                  "Palette missing or too small %d",
-                 s->data.video.palette_size);
+                 s->data.video.pal.size);
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
@@ -370,7 +370,7 @@ static int decode_qtraw(bgav_stream_t * s, gavl_video_frame_t * f)
   for(i = 0; i < s->data.video.format.image_height; i++)
     {
     priv->scanline_func(src, dst, s->data.video.format.image_width,
-                        s->data.video.palette);
+                        s->data.video.pal.entries);
     src += priv->bytes_per_line;
     dst += f->strides[0];
     f->timestamp = p->pts;

@@ -774,6 +774,10 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   ffmpeg_video_priv * priv;
 
+#if LIBAVCODEC_VERSION_MAJOR >= 54  
+  AVDictionary * options = NULL;
+#endif
+  
   //  av_log_set_level(AV_LOG_DEBUG);
   
   if((s->action == BGAV_STREAM_PARSE) &&
@@ -826,11 +830,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   priv->ctx->width = s->data.video.format.frame_width;
   priv->ctx->height = s->data.video.format.frame_height;
-#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
-  priv->ctx->bits_per_sample = s->data.video.depth;
-#else
   priv->ctx->bits_per_coded_sample = s->data.video.depth;
-#endif  
 
   /* Setting codec tag with Nuppelvideo crashes */
   //  if(s->fourcc != BGAV_MK_FOURCC('R', 'J', 'P', 'G'))
@@ -890,8 +890,10 @@ static int init_ffmpeg(bgav_stream_t * s)
 
   /* Build the palette from the stream info */
   
-  if(s->data.video.palette_size)
+  //  if(s->data.video.palette_size)
+#if LIBAVCODEC_VERSION_MAJOR < 54
     priv->ctx->palctrl = &priv->palette;
+#endif
   
   //  bgav_hexdump(s->ext_data, s->ext_size, 16);
   
@@ -918,7 +920,13 @@ static int init_ffmpeg(bgav_stream_t * s)
   if(((s->fourcc == BGAV_MK_FOURCC('A','V','R','n')) ||
       (s->fourcc == BGAV_MK_FOURCC('M','J','P','G'))) &&
      priv->ctx->extradata_size)
+    {
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+    av_dict_set(&options, "extern_huff", "1", 0);
+#else
     priv->ctx->flags |= CODEC_FLAG_EXTERN_HUFF;
+#endif
+    }
   
   priv->ctx->workaround_bugs = FF_BUG_AUTODETECT;
   priv->ctx->error_concealment = 3;
@@ -929,7 +937,11 @@ static int init_ffmpeg(bgav_stream_t * s)
 
   bgav_ffmpeg_lock();
   
+#if LIBAVCODEC_VERSION_MAJOR < 54
   if(avcodec_open(priv->ctx, codec) != 0)
+#else
+  if(avcodec_open2(priv->ctx, codec, &options) != 0)
+#endif
     {
     bgav_ffmpeg_unlock();
     return 0;
@@ -995,6 +1007,10 @@ static int init_ffmpeg(bgav_stream_t * s)
     priv->field_format.frame_height /= 2;
     priv->field_format.image_height /= 2;
     }
+
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+  av_dict_free(&options);
+#endif
   
   s->description = bgav_sprintf("%s", priv->info->format_name);
   return 1;

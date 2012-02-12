@@ -207,7 +207,7 @@ static void decode_s_24_lpcm(bgav_stream_t * s)
   num_bytes   = num_samples * 3 * s->data.audio.format.num_channels;
 
   src = priv->packet_ptr;
-  dst = priv->frame->samples.s_32;
+  dst = (uint32_t *)priv->frame->samples.s_32;
 
   i = (num_samples * s->data.audio.format.num_channels)/4;
   
@@ -241,7 +241,7 @@ static void decode_s_24_lpcm_mono(bgav_stream_t * s)
   num_bytes   = num_samples * 3;
 
   src = priv->packet_ptr;
-  dst = priv->frame->samples.s_32;
+  dst = (uint32_t *)priv->frame->samples.s_32;
 
   i = num_samples/2;
   

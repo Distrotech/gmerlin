@@ -138,6 +138,12 @@ void bgav_stream_free(bgav_stream_t * s)
      s->data.subtitle.subreader)
     bgav_subtitle_reader_destroy(s);
 
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    if(s->data.video.pal.entries)
+      free(s->data.video.pal.entries);
+    }
+  
   if(s->timecode_table)
     bgav_timecode_table_destroy(s->timecode_table);
   if(s->pp)
@@ -252,12 +258,21 @@ void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
 
   /* If the stream has a constant framerate, all packets have the same
      duration */
-  if((s->type == BGAV_STREAM_VIDEO) && 
-     (s->data.video.format.frame_duration) &&
-     (s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT) &&
-     !p->duration)
-    p->duration = s->data.video.format.frame_duration;
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    if((s->data.video.format.frame_duration) &&
+       (s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT) &&
+       !p->duration)
+      p->duration = s->data.video.format.frame_duration;
 
+    if(s->data.video.pal.size && !s->data.video.pal.sent)
+      {
+      bgav_packet_alloc_palette(p, s->data.video.pal.size);
+      memcpy(p->palette, s->data.video.pal.entries,
+             s->data.video.pal.size * sizeof(*p->palette));
+      s->data.video.pal.sent = 1;
+      }
+    }
   /* Padding (if fourcc != gavl) */
   if(p->data)
     memset(p->data + p->data_size, 0, PACKET_PADDING);
