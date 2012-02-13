@@ -388,10 +388,30 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
   ffmpeg_audio_stream_t * st;
   priv = data;
 
-  if(!name)
-    return;
-
   st = &priv->audio_streams[stream];
+  
+  if(!name)
+    {
+    /* Set the bitrate for PCM codecs */
+    switch(st->stream->codec->codec_id)
+      {
+      case CODEC_ID_PCM_S16BE:
+      case CODEC_ID_PCM_S16LE:
+        st->stream->codec->bit_rate = st->format.samplerate * st->format.num_channels * 16;
+        break;
+      case CODEC_ID_PCM_S8:
+      case CODEC_ID_PCM_U8:
+      case CODEC_ID_PCM_ALAW:
+      case CODEC_ID_PCM_MULAW:
+        st->stream->codec->bit_rate = st->format.samplerate * st->format.num_channels * 8;
+        break;
+      default:
+        break;
+      }
+    
+    return;
+    }
+  
   
   if(!strcmp(name, "codec"))
     st->stream->codec->codec_id = bg_ffmpeg_find_audio_encoder(priv->format, v->val_str);
@@ -413,8 +433,9 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
   priv = data;
 
   if(!name)
+    {
     return;
-
+    }
   st = &priv->video_streams[stream];
   
   if(!strcmp(name, "codec"))
