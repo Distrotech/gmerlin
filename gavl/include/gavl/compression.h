@@ -47,6 +47,11 @@ extern "C" {
 #define GAVL_COMPRESSION_HAS_FIELD_PICTURES (1<<2) //!< Packets can consist of 2 consecutive fields
 #define GAVL_COMPRESSION_SBR                (1<<3) //!< Samplerate got doubled by decoder, format and sample counts are for the upsampled rate
 
+/** \brief Codec ID
+ *
+ *  These are used as identifiers for the type of compression
+ */
+
 typedef enum
   {
     GAVL_CODEC_ID_NONE  = 0, //!< Unknown/unsupported compression format
@@ -207,6 +212,9 @@ void gavl_packet_free(gavl_packet_t * p);
 GAVL_PUBLIC
 void gavl_packet_dump(const gavl_packet_t * p);
 
+/**
+ *  @}
+ */
   
 #ifdef __cplusplus
 }

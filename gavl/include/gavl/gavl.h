@@ -701,7 +701,7 @@ int gavl_audio_frames_equal(const gavl_audio_format_t * format,
 
   Plots an audio frame into an ascii file with one line per
   sample in the format:
-  <sample_number> <channel1> <channel2> ...
+  sample_number channel1 channel2 ...
 
   In addition, a file for making a plot with gnuplot is generated.
   name_base is used for generating the filenames. For the data file,
@@ -3768,9 +3768,8 @@ gavl_frame_table_create_audio(int samplerate, int64_t offset, int64_t duration,
 
 /** \brief Create a frame table for constant framerate video
  *  \param offset Timestamp of the first frame
- *  \param duration Duration of each frame
+ *  \param frame_duration Duration of each frame
  *  \param num_frames Number of frames
- *  \param fmt Timecode format (or NULL)
  *  \param start_timecode Timecode of the first frame (or GAVL_TIMECODE_UNDEFINED)
  *  \returns A newly allocated frame table
  *
@@ -3940,7 +3939,7 @@ gavl_frame_table_end_time(const gavl_frame_table_t * t);
  */
   
 GAVL_PUBLIC
-int gavl_frame_table_save(const gavl_frame_table_t * tab,
+int gavl_frame_table_save(const gavl_frame_table_t * t,
                           const char * filename);
 
 /** \brief Load a frame table from a file

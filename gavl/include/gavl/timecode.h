@@ -204,7 +204,7 @@ void gavl_timecode_prettyprint_short(gavl_timecode_t tc,
                                      char str[GAVL_TIMECODE_STRING_LEN_SHORT]);
 
   
-/*
+/**
  * @}
  */
 
