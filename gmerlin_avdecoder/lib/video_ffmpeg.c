@@ -425,6 +425,9 @@ static int decode_picture(bgav_stream_t * s)
       imax =
         (priv->packet->palette_size > AVPALETTE_COUNT)
         ? AVPALETTE_COUNT : priv->packet->palette_size;
+
+      bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+               "Got palette %d entries", priv->packet->palette_size);
       
 #if LIBAVCODEC_VERSION_MAJOR < 54
       priv->palette.palette_changed = 1;
@@ -432,7 +435,7 @@ static int decode_picture(bgav_stream_t * s)
 #else
       pal_i =
         (uint32_t*)av_packet_new_side_data(&priv->pkt, AV_PKT_DATA_PALETTE,
-                                           imax * 4);
+                                           AVPALETTE_COUNT * 4);
 #endif
       for(i = 0; i < imax; i++)
         {
@@ -442,6 +445,9 @@ static int decode_picture(bgav_stream_t * s)
           ((priv->packet->palette[i].g >> 8) << 8) |
           ((priv->packet->palette[i].b >> 8));
         }
+      for(i = imax; i < AVPALETTE_COUNT; i++)
+        pal_i[i] = 0;
+      
       bgav_packet_free_palette(priv->packet);
       }
     

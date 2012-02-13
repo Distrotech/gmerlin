@@ -151,6 +151,9 @@ static int do_video          = 1;
 int main(int argc, char ** argv)
   {
   FILE * cb_file = NULL;
+
+  int log_level = 3;
+  int lev;
   
   int i, j;
   int num_audio_streams;
@@ -253,6 +256,11 @@ int main(int argc, char ** argv)
       dump_ci = 1;
       arg_index++;
       }
+    else if(!strcmp(argv[arg_index], "-v"))
+      {
+      log_level = strtol(argv[arg_index+1], NULL, 10);
+      arg_index+=2;
+      }
     else
       arg_index++;
     }
@@ -264,6 +272,19 @@ int main(int argc, char ** argv)
   bgav_options_set_network_bandwidth(opt, network_bandwidth);
   bgav_options_set_seek_subtitles(opt, seek_subtitles);
 
+  lev = 0;
+  if(log_level > 0)
+    lev |= BGAV_LOG_ERROR;
+  if(log_level > 1)
+    lev |= BGAV_LOG_WARNING;
+  if(log_level > 2)
+    lev |= BGAV_LOG_INFO;
+  if(log_level > 3)
+    lev |= BGAV_LOG_DEBUG;
+  
+  bgav_options_set_log_level(opt, lev);
+    
+  
   bgav_options_set_seek_subtitles(opt, 1);
 
   if(sample_accurate)
