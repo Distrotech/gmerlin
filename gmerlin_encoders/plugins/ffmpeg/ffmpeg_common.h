@@ -26,6 +26,21 @@
 
 #define FLAG_CONSTANT_FRAMERATE (1<<9)
 
+#ifdef HAVE_LIBAVCORE_AVCORE_H
+#include <libavcore/avcore.h>
+#endif
+
+#if LIBAVCORE_VERSION_INT >= ((0<<16)|(10<<8)|0)
+#define SampleFormat    AVSampleFormat
+#define SAMPLE_FMT_U8   AV_SAMPLE_FMT_U8
+#define SAMPLE_FMT_S16  AV_SAMPLE_FMT_S16
+#define SAMPLE_FMT_S32  AV_SAMPLE_FMT_S32
+#define SAMPLE_FMT_FLT  AV_SAMPLE_FMT_FLT
+#define SAMPLE_FMT_DBL  AV_SAMPLE_FMT_DBL
+#define SAMPLE_FMT_NONE AV_SAMPLE_FMT_NONE
+#endif
+
+
 typedef struct
   {
   char * name;
@@ -67,7 +82,11 @@ bg_parameter_info_t *
 bg_ffmpeg_create_parameters(const ffmpeg_format_info_t * format_info);
 
 void
-bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
+bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+                              AVDictionary ** options,
+#endif
+                              const char * name,
                               const bg_parameter_value_t * val);
 
 enum CodecID
@@ -87,6 +106,11 @@ typedef struct
   gavl_audio_frame_t * frame;
 
   int initialized;
+
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+  AVDictionary * options;
+#endif
+
   } ffmpeg_audio_stream_t;
 
 typedef struct
@@ -108,6 +132,11 @@ typedef struct
   bg_encoder_framerate_t fr;
   
   int64_t frames_written;
+
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+  AVDictionary * options;
+#endif
+
   } ffmpeg_video_stream_t;
 
 typedef struct

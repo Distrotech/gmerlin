@@ -17,17 +17,19 @@ dnl Look for header
 found_header="false"
 
 AC_TRY_COMPILE([
-#include <libavcodec/avcodec.h>],[], [found_header="true";AVCODEC_HEADER="<libavcodec/avcodec.h>" ],)
+#include <libavcodec/avcodec.h>],[], [found_header="true";AVCODEC_HEADER="<libavcodec/avcodec.h>";VDPAU_HEADER="<libavcodec/vdpau.h>" ],)
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <avcodec.h>],[],[found_header="true";AVCODEC_HEADER="<avcodec.h>"])
+#include <avcodec.h>],[],[found_header="true";AVCODEC_HEADER="<avcodec.h>";VDPAU_HEADER="<vdpau.h>"])
 fi
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <ffmpeg/avcodec.h>],[], [found_header="true";AVCODEC_HEADER="<ffmpeg/avcodec.h>" ],)
+#include <ffmpeg/avcodec.h>],[], [found_header="true";AVCODEC_HEADER="<ffmpeg/avcodec.h>";VDPAU_HEADER="<vdpau.h>" ],)
 fi
+
+AC_CHECK_HEADERS([libavcore/avcore.h])
 
 avcodec_ok="false"
 AC_TRY_RUN([
@@ -57,6 +59,29 @@ AC_TRY_RUN([
     # program could not be run
     AC_MSG_RESULT(failed)
   ])
+
+have_avcodec_img_convert="false"
+
+if test "x$avcodec_ok" = "xtrue"; then
+
+avcodec_swscale_missing="false"
+
+AC_MSG_CHECKING(for img_convert)
+AC_TRY_LINK([#include <avcodec.h>],
+            [img_convert(NULL, 0, NULL, 0, 0, 0);
+             return 0;],
+            have_avcodec_img_convert=true
+            AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+
+if test "x$have_avcodec_img_convert" != "xtrue"; then
+  if test "x$have_libswscale" != xtrue; then
+    avcodec_swscale_missing="true"
+    avcodec_ok="false"
+  fi
+fi
+
+fi
+
 CFLAGS="$CFLAGS_save"
 LIBS="$LIBS_save"
 ])
@@ -75,6 +100,8 @@ avcodec_done="false"
 
 AH_TEMPLATE([AVCODEC_HEADER],
             [Header for libavcodec])
+AH_TEMPLATE([VDPAU_HEADER],
+            [Header for vdpau])
 
 dnl
 dnl First preference: configure options
@@ -95,6 +122,15 @@ dnl
 
 if test "x$avcodec_done" = "xfalse"; then
   PKG_CHECK_MODULES(AVCODEC, libavcodec, avcodec_orig="true", avcodec_orig="false")
+
+dnl
+dnl No idea for what this is good but libavcodec is not found if this is missing
+dnl
+
+  if test "x$os_win32" = "xyes"; then
+    AVCODEC_LIBS="-L/usr/local/bin $AVCODEC_LIBS"
+  fi
+
   ACL_CHECK_AVCODEC([$1])
   if test "x$avcodec_ok" = "xtrue"; then
     avcodec_done="true"
@@ -104,6 +140,7 @@ fi
 if test "x$avcodec_done" = "xtrue"; then
   ifelse([$2], , :, [$2])
   AC_DEFINE_UNQUOTED(AVCODEC_HEADER, $AVCODEC_HEADER)
+  AC_DEFINE_UNQUOTED(VDPAU_HEADER, $VDPAU_HEADER)
 else
   ifelse([$3], , :, [$3])
 fi

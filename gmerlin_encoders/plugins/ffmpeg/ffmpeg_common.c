@@ -322,9 +322,13 @@ int bg_ffmpeg_add_audio_stream(void * data, const char * language,
   
   gavl_audio_format_copy(&st->format, format);
 
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
+  st->stream = avformat_new_stream(priv->ctx, NULL);
+#else
   st->stream = av_new_stream(priv->ctx,
                              priv->num_audio_streams +
                              priv->num_video_streams);
+#endif 
   
   /* Adjust format */
   st->format.interleave_mode = GAVL_INTERLEAVE_ALL;
@@ -354,9 +358,13 @@ int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
   
   gavl_video_format_copy(&st->format, format);
 
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
+  st->stream = avformat_new_stream(priv->ctx, NULL);
+#else
   st->stream = av_new_stream(priv->ctx,
                              priv->num_audio_streams +
                              priv->num_video_streams);
+#endif 
   
   st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
   
@@ -388,7 +396,11 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
   if(!strcmp(name, "codec"))
     st->stream->codec->codec_id = bg_ffmpeg_find_audio_encoder(priv->format, v->val_str);
   else
-    bg_ffmpeg_set_codec_parameter(st->stream->codec, name, v);
+    bg_ffmpeg_set_codec_parameter(st->stream->codec,
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+                                  &st->options,
+#endif
+                                  name, v);
   
   }
 
@@ -413,8 +425,11 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
     return;
     }
   else
-    bg_ffmpeg_set_codec_parameter(st->stream->codec, name, v);
-  
+    bg_ffmpeg_set_codec_parameter(st->stream->codec,
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+                                  &st->options,
+#endif
+                                  name, v);
   }
 
 
@@ -451,12 +466,21 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
 
   st->stream->codec->sample_fmt = codec->sample_fmts[0];
   st->format.sample_format = bg_sample_format_ffmpeg_2_gavl(codec->sample_fmts[0]);
-  
+
+#if LIBAVCODEC_VERSION_MAJOR < 54
   if(avcodec_open(st->stream->codec, codec) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for audio");
     return 0;
     }
+#else
+  if(avcodec_open2(st->stream->codec, codec, &st->options) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open2 failed for audio");
+    return 0;
+    }
+#endif
+  
   if(st->stream->codec->frame_size <= 1)
     st->format.samples_per_frame = 1024; // Frame size for uncompressed codecs
   else
@@ -551,12 +575,20 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
     st->stream->codec->time_base.den = st->format.timescale;
     st->stream->codec->time_base.num = 1;
     }
-  
+
+#if LIBAVCODEC_VERSION_MAJOR < 54
   if(avcodec_open(st->stream->codec, codec) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for video");
     return 0;
     }
+#else
+  if(avcodec_open2(st->stream->codec, codec, &st->options) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open2 failed for video");
+    return 0;
+    }
+#endif
   st->buffer_alloc = st->format.image_width * st->format.image_width * 4;
   st->buffer = malloc(st->buffer_alloc);
   st->frame = avcodec_alloc_frame();
@@ -571,13 +603,15 @@ int bg_ffmpeg_start(void * data)
   int i;
   priv = data;
   
+#if LIBAVFORMAT_VERSION_MAJOR < 54
   /* set the output parameters (must be done even if no
      parameters). */
   if(av_set_parameters(priv->ctx, NULL) < 0)
     {
     return 0;
     }
-
+#endif
+  
   /* Open encoders */
   for(i = 0; i < priv->num_audio_streams; i++)
     {
@@ -590,18 +624,29 @@ int bg_ffmpeg_start(void * data)
     if(!open_video_encoder(priv, &priv->video_streams[i]))
       return 0;
     }
-  
+
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 105, 0)  
   /* Open file */
   if(url_fopen(&priv->ctx->pb, priv->ctx->filename, URL_WRONLY) < 0)
-    {
     return 0;
-    }
+#else
+  if(avio_open(&priv->ctx->pb, priv->ctx->filename, AVIO_FLAG_WRITE) < 0)
+    return 0;
+#endif
   
+#if LIBAVFORMAT_VERSION_MAJOR < 54
   if(av_write_header(priv->ctx))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing multiplexer failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "av_write_header failed");
     return 0;
     }
+#else
+  if(avformat_write_header(priv->ctx, NULL))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avformat_write_header failed");
+    return 0;
+    }
+#endif
   
   priv->initialized = 1;
   return 1;
@@ -638,10 +683,15 @@ static int flush_audio(ffmpeg_priv_t * priv,
     out_size = st->stream->codec->block_align * st->frame->valid_samples;
   else
     out_size = st->buffer_alloc;
-  
+
+  //#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,34,0)
   bytes_encoded = avcodec_encode_audio(st->stream->codec, st->buffer,
                                        out_size,
                                        st->frame->samples.s_16);
+  //#else
+  
+    //#endif
+  
   if(bytes_encoded > 0)
     {
     av_init_packet(&pkt);
@@ -859,10 +909,10 @@ int bg_ffmpeg_close(void * data, int do_delete)
   if(priv->initialized)
     {
     av_write_trailer(priv->ctx);
-#if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
-    url_fclose(&priv->ctx->pb);
-#else
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(52, 105, 0)  
     url_fclose(priv->ctx->pb);
+#else
+    avio_close(priv->ctx->pb);
 #endif
     }
   if(do_delete)

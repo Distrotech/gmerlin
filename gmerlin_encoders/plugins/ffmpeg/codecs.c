@@ -777,7 +777,12 @@ const enum_t mb_decision[] =
 
 
 void
-bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
+bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+                              AVDictionary ** options,
+#endif
+
+                              const char * name,
                               const bg_parameter_value_t * val)
   {
   int found = 0, i;
@@ -858,11 +863,11 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
   PARAM_FLAG("ff_flag_qpel",CODEC_FLAG_QPEL);
   PARAM_FLAG("ff_flag_gmc",CODEC_FLAG_GMC);
   PARAM_FLAG("ff_flag_mv0",CODEC_FLAG_MV0);
-  PARAM_FLAG("ff_flag_part",CODEC_FLAG_PART);
+  //  PARAM_FLAG("ff_flag_part",CODEC_FLAG_PART);
   PARAM_FLAG("ff_flag_gray",CODEC_FLAG_GRAY);
   PARAM_FLAG("ff_flag_emu_edge",CODEC_FLAG_EMU_EDGE);
   PARAM_FLAG("ff_flag_normalize_aqp",CODEC_FLAG_NORMALIZE_AQP);
-  PARAM_FLAG("ff_flag_alt_scan",CODEC_FLAG_ALT_SCAN);
+  //  PARAM_FLAG("ff_flag_alt_scan",CODEC_FLAG_ALT_SCAN);
 #if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
   PARAM_FLAG("ff_flag_trellis_quant",CODEC_FLAG_TRELLIS_QUANT);
 #else
@@ -870,13 +875,13 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
 #endif
   PARAM_FLAG("ff_flag_bitexact",CODEC_FLAG_BITEXACT);
   PARAM_FLAG("ff_flag_ac_pred",CODEC_FLAG_AC_PRED);
-  PARAM_FLAG("ff_flag_h263p_umv",CODEC_FLAG_H263P_UMV);
+  //  PARAM_FLAG("ff_flag_h263p_umv",CODEC_FLAG_H263P_UMV);
   PARAM_FLAG("ff_flag_cbp_rd",CODEC_FLAG_CBP_RD);
   PARAM_FLAG("ff_flag_qp_rd",CODEC_FLAG_QP_RD);
-  PARAM_FLAG("ff_flag_h263p_aiv",CODEC_FLAG_H263P_AIV);
-  PARAM_FLAG("ff_flag_obmc",CODEC_FLAG_OBMC);
+  //  PARAM_FLAG("ff_flag_h263p_aiv",CODEC_FLAG_H263P_AIV);
+  //  PARAM_FLAG("ffx_flag_obmc",CODEC_FLAG_OBMC);
   PARAM_FLAG("ff_flag_loop_filter",CODEC_FLAG_LOOP_FILTER);
-  PARAM_FLAG("ff_flag_h263p_slice_struct",CODEC_FLAG_H263P_SLICE_STRUCT);
+  //  PARAM_FLAG("ff_flag_h263p_slice_struct",CODEC_FLAG_H263P_SLICE_STRUCT);
   PARAM_FLAG("ff_flag_closed_gop",CODEC_FLAG_CLOSED_GOP);
   PARAM_FLAG2("ff_flag2_fast",CODEC_FLAG2_FAST);
   PARAM_FLAG2("ff_flag2_strict_gop",CODEC_FLAG2_STRICT_GOP);
