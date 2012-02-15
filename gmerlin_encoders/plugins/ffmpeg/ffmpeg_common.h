@@ -30,7 +30,7 @@
 #include <libavcore/avcore.h>
 #endif
 
-#if LIBAVCORE_VERSION_INT >= ((0<<16)|(10<<8)|0)
+#if (LIBAVCORE_VERSION_INT >= ((0<<16)|(10<<8)|0)) || (LIBAVUTIL_VERSION_INT >= ((50<<16)|(38<<8)|0))
 #define SampleFormat    AVSampleFormat
 #define SAMPLE_FMT_U8   AV_SAMPLE_FMT_U8
 #define SAMPLE_FMT_S16  AV_SAMPLE_FMT_S16
