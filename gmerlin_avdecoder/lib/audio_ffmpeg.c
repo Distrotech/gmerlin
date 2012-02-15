@@ -164,6 +164,8 @@ static int init_format(bgav_stream_t * s)
     s->data.audio.format.samples_per_frame;
   s->data.audio.format.samples_per_frame = 1024;
 #endif
+
+  fprintf(stderr, "Got format\n");
   return 1;
   }
 
@@ -334,7 +336,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
 #ifdef DUMP_DECODE
   bgav_dprintf("decode_audio Size: %d\n",
                priv->buf.size);
-  //  bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
+  //  bgav_hexdump(priv->buf.buffer, 186, 16);
 #endif
 
   priv->pkt.data = priv->buf.buffer;
@@ -342,9 +344,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
 
   bytes_used = avcodec_decode_audio4(priv->ctx, &f,
                                      &got_frame, &priv->pkt);
-
   
-
   if(got_frame && f.nb_samples)
     {
     /* Allocate or enlarge frame */
@@ -354,7 +354,10 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
       if(!priv->frame)
         {
         if(!init_format(s))
+          {
+          fprintf(stderr, "Init format failed\n");
           return 0;
+          }
         }
       else
         gavl_audio_frame_destroy(priv->frame);
@@ -364,7 +367,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
       }
     /* This will break with planar formats */
     memcpy(priv->frame->samples.s_16,
-           f.data,
+           f.extended_data[0],
            f.nb_samples * priv->sample_size *
            s->data.audio.format.num_channels);
     
@@ -482,23 +485,23 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.preroll = priv->info->preroll;
-  
-  /* Check if we know the format already */
-  if(s->data.audio.format.num_channels &&
-     s->data.audio.format.samplerate &&
-     (priv->ctx->sample_fmt != SAMPLE_FMT_NONE))
-    {
-    if(!init_format(s))
-      return 0;
-    }
-  else /* Let ffmpeg find out the format */
-    {
+
+  //  /* Check if we know the format already */
+  //  if(s->data.audio.format.num_channels &&
+  //     s->data.audio.format.samplerate &&
+  //     (priv->ctx->sample_fmt != SAMPLE_FMT_NONE))
+  //    {
+  //    if(!init_format(s))
+  //      return 0;
+  //    }
+  //  else /* Let ffmpeg find out the format */
+  //    {
 #ifndef DECODE_AUDIO4
     priv->frame_alloc = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 #endif
     if(!decode_frame_ffmpeg(s))
       return 0;
-    }
+  //    }
     
   s->description = bgav_sprintf("%s", priv->info->format_name);
   return 1;

@@ -32,8 +32,8 @@
 /* Define the variables below to get a detailed file dump
    on each open call */
 
-// #define DUMP_HEADERS
-// #define DUMP_INDICES
+#define DUMP_HEADERS
+#define DUMP_INDICES
 // #define DUMP_AUDIO_TYPE
 
 /* AVI Flags */
