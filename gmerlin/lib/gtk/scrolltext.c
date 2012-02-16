@@ -404,7 +404,8 @@ void bg_gtk_scrolltext_destroy(bg_gtk_scrolltext_t * d)
     g_object_unref(d->pixmap_string);
   if(d->pixmap_da)
     g_object_unref(d->pixmap_da);
-  
+  if(d->gc)
+    g_object_unref(d->gc);
 
   free(d);
   }

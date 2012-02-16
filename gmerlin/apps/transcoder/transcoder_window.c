@@ -1143,7 +1143,8 @@ void transcoder_window_destroy(transcoder_window_t* w)
   bg_cfg_registry_save(w->cfg_reg, tmp_path);
   if(tmp_path)
     free(tmp_path);
-  
+
+  bg_plugin_registry_destroy(w->plugin_reg);
   bg_cfg_registry_destroy(w->cfg_reg);
 
   if(w->task_path)
@@ -1154,8 +1155,10 @@ void transcoder_window_destroy(transcoder_window_t* w)
   bg_msg_queue_destroy(w->msg_queue);
   
   bg_remote_server_destroy(w->remote);
+  bg_gtk_time_display_destroy(w->time_remaining);
+  bg_gtk_scrolltext_destroy(w->scrolltext);
   
-  //  g_object_unref(w->tooltips);
+  //  g_object_unref(w->win);
   
   free(w);
   }

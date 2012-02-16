@@ -342,6 +342,16 @@ void bg_encoder_destroy(bg_encoder_t * enc, int do_delete)
   
   if(enc->filename_base)
     free(enc->filename_base);
+
+  if(enc->audio_streams)
+    free(enc->audio_streams);
+  if(enc->video_streams)
+    free(enc->video_streams);
+  if(enc->subtitle_text_streams)
+    free(enc->subtitle_text_streams);
+  if(enc->subtitle_overlay_streams)
+    free(enc->subtitle_overlay_streams);
+  
   
   free(enc);
   }

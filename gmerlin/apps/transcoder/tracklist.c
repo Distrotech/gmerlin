@@ -1635,6 +1635,8 @@ void track_list_destroy(track_list_t * t)
     free(t->open_path);
   if(t->clipboard)
     free(t->clipboard);
+
+  bg_gtk_time_display_destroy(t->time_total);
   
   free(t);
   }

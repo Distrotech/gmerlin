@@ -2612,6 +2612,7 @@ static int init_encoder(bg_transcoder_t * ret)
   bg_encoder_open(ret->enc, tmp_string,
                   &ret->metadata,
                   ret->transcoder_track->chapter_list);
+  free(tmp_string);
   
   for(i = 0; i < ret->num_audio_streams; i++)
     {
