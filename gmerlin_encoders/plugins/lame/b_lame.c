@@ -53,6 +53,7 @@ static void destroy_lame(void * priv)
   b_lame_t * lame;
   lame = priv;
   bg_lame_close(&lame->com);
+  bg_shout_destroy(lame->shout);
   free(lame);
   }
 

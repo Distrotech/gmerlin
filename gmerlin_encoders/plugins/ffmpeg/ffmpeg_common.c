@@ -62,6 +62,10 @@
 #endif
 #endif
 
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(52, 96, 0)  
+#define AVFORMAT_FREE_CONTEXT 1
+#endif
+
 static bg_parameter_info_t *
 create_format_parameters(const ffmpeg_format_info_t * formats)
   {
@@ -791,6 +795,9 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
   av_init_packet(&pkt);
 
 #if ENCODE_VIDEO2
+  pkt.data = NULL;
+  pkt.size = 0;
+  
   if(avcodec_encode_video2(st->stream->codec, &pkt, frame, &got_packet) < 0)
     return -1;
   if(got_packet)
@@ -878,22 +885,32 @@ int bg_ffmpeg_write_video_frame(void * data,
   return 1;
   }
 
-static int close_audio_encoder(ffmpeg_priv_t * priv,
-                               ffmpeg_audio_stream_t * st)
+static void flush_audio_encoder(ffmpeg_priv_t * priv,
+                                ffmpeg_audio_stream_t * st)
   {
   /* Flush */
   if(st->frame && st->frame->valid_samples && priv->initialized)
     {
     if(!flush_audio(priv, st))
-      return 0;
+      return;
     }
+  }
+  
+static int close_audio_encoder(ffmpeg_priv_t * priv,
+                               ffmpeg_audio_stream_t * st)
+  {
   
   /* Close encoder and free buffers */
+
   if(st->initialized)
     avcodec_close(st->stream->codec);
-  else
-    av_free(st->stream->codec);
-
+  
+#ifndef AVFORMAT_FREE_CONTEXT  
+  av_free(st->stream->codec);
+#endif
+  
+  //  st->stream->codec = NULL;
+  
   if(st->buffer)
     free(st->buffer);
   if(st->frame)
@@ -902,7 +919,7 @@ static int close_audio_encoder(ffmpeg_priv_t * priv,
   return 1;
   }
 
-static void close_video_encoder(ffmpeg_priv_t * priv,
+static void flush_video_encoder(ffmpeg_priv_t * priv,
                                 ffmpeg_video_stream_t * st)
   {
   int result;
@@ -915,12 +932,25 @@ static void close_video_encoder(ffmpeg_priv_t * priv,
         break;
       }
     }
-  
-  /* Close encoder and free buffers */
+  }
+
+static void close_video_encoder(ffmpeg_priv_t * priv,
+                                ffmpeg_video_stream_t * st)
+  {
+  if(st->stream->codec->stats_in)
+    {
+    free(st->stream->codec->stats_in);
+    st->stream->codec->stats_in = NULL;
+    }
   if(st->initialized)
     avcodec_close(st->stream->codec);
-  else
-    av_free(st->stream->codec);
+  
+  /* Close encoder and free buffers */
+#ifndef AVFORMAT_FREE_CONTEXT  
+  av_free(st->stream->codec);
+#endif
+  
+  //  st->stream->codec = NULL;
   
   if(st->frame)
     free(st->frame);
@@ -928,8 +958,6 @@ static void close_video_encoder(ffmpeg_priv_t * priv,
   if(st->buffer)
     free(st->buffer);
 #endif
-  if(st->stream->codec->stats_in)
-    free(st->stream->codec->stats_in);
 
   if(st->stats_filename)
     free(st->stats_filename);
@@ -945,16 +973,16 @@ int bg_ffmpeg_close(void * data, int do_delete)
   int i;
   priv = data;
 
-  // Flush and close the streams
+  // Flush the streams
 
   for(i = 0; i < priv->num_audio_streams; i++)
     {
-    close_audio_encoder(priv, &priv->audio_streams[i]);
+    flush_audio_encoder(priv, &priv->audio_streams[i]);
     }
 
   for(i = 0; i < priv->num_video_streams; i++)
     {
-    close_video_encoder(priv, &priv->video_streams[i]);
+    flush_video_encoder(priv, &priv->video_streams[i]);
     }
 
   if(priv->initialized)
@@ -966,6 +994,29 @@ int bg_ffmpeg_close(void * data, int do_delete)
     avio_close(priv->ctx->pb);
 #endif
     }
+
+  // Flush the encoders
+
+  for(i = 0; i < priv->num_audio_streams; i++)
+    {
+    close_audio_encoder(priv, &priv->audio_streams[i]);
+    }
+
+  for(i = 0; i < priv->num_video_streams; i++)
+    {
+    close_video_encoder(priv, &priv->video_streams[i]);
+    }
+
+  
+#if AVFORMAT_FREE_CONTEXT  
+  avformat_free_context(priv->ctx);
+#else
+  av_free(priv->ctx);
+#endif
+
+
+  priv->ctx = NULL;
+ 
   if(do_delete)
     remove(priv->ctx->filename);
   
