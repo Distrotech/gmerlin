@@ -40,6 +40,11 @@
 #define SAMPLE_FMT_NONE AV_SAMPLE_FMT_NONE
 #endif
 
+#if LIBAVCODEC_VERSION_INT >= ((54<<16)|(01<<8)|0)
+#define ENCODE_VIDEO2 1
+#else
+#define ENCODE_VIDEO 1
+#endif
 
 typedef struct
   {
@@ -117,9 +122,11 @@ typedef struct
   {
   AVStream * stream;
   gavl_video_format_t format;
-  
+
+#if ENCODE_VIDEO  
   uint8_t * buffer;
   int buffer_alloc;
+#endif
   AVFrame * frame;
 
   int initialized;

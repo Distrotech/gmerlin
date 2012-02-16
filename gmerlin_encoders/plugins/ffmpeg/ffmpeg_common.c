@@ -610,8 +610,12 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
     return 0;
     }
 #endif
+
+#if ENCODE_VIDEO
   st->buffer_alloc = st->format.image_width * st->format.image_width * 4;
   st->buffer = malloc(st->buffer_alloc);
+#endif
+
   st->frame = avcodec_alloc_frame();
   st->initialized = 1;
   
@@ -781,25 +785,51 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
                        AVFrame * frame)
   {
   AVPacket pkt;
-  int bytes_encoded;
 
+  int bytes_encoded = 0;
+  int got_packet = 0;
+  av_init_packet(&pkt);
+
+#if ENCODE_VIDEO2
+  if(avcodec_encode_video2(st->stream->codec, &pkt, frame, &got_packet) < 0)
+    return -1;
+  if(got_packet)
+    bytes_encoded = pkt.size;
+#else
   bytes_encoded = avcodec_encode_video(st->stream->codec,
                                        st->buffer, st->buffer_alloc,
                                        frame);
+  if(bytes_encoded < 0)
+    return;
+  else if(bytes_encoded > 0)
+    got_packet = 1;
+#endif
 
-  if(bytes_encoded > 0)
+  if(got_packet)
     {
-    av_init_packet(&pkt);
+#if ENCODE_VIDEO // Old
     pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
                           st->stream->codec->time_base,
                           st->stream->time_base);
     
     if(st->stream->codec->coded_frame->key_frame)
       pkt.flags |= PKT_FLAG_KEY;
-    pkt.stream_index = st->stream->index;
     pkt.data = st->buffer;
     pkt.size = bytes_encoded;
+#else // New
+
+    if(pkt.pts != AV_NOPTS_VALUE)
+      pkt.pts= av_rescale_q(pkt.pts,
+                            st->stream->codec->time_base,
+                            st->stream->time_base);
+    if(pkt.dts != AV_NOPTS_VALUE)
+      pkt.dts= av_rescale_q(pkt.dts,
+                            st->stream->codec->time_base,
+                            st->stream->time_base);
+#endif
     
+    pkt.stream_index = st->stream->index;
+
     //    if(av_write_frame(priv->ctx, &pkt) != 0) 
     if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
       {
@@ -894,10 +924,10 @@ static void close_video_encoder(ffmpeg_priv_t * priv,
   
   if(st->frame)
     free(st->frame);
-  
+#if ENCODE_VIDEO  
   if(st->buffer)
     free(st->buffer);
-  
+#endif
   if(st->stream->codec->stats_in)
     free(st->stream->codec->stats_in);
 
