@@ -123,10 +123,8 @@ typedef struct
   AVStream * stream;
   gavl_video_format_t format;
 
-#if ENCODE_VIDEO  
   uint8_t * buffer;
   int buffer_alloc;
-#endif
   AVFrame * frame;
 
   int initialized;

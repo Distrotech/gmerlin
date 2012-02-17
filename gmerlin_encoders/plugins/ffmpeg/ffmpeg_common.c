@@ -615,11 +615,9 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
     }
 #endif
 
-#if ENCODE_VIDEO
   st->buffer_alloc = st->format.image_width * st->format.image_width * 4;
   st->buffer = malloc(st->buffer_alloc);
-#endif
-
+  
   st->frame = avcodec_alloc_frame();
   st->initialized = 1;
   
@@ -795,8 +793,8 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
   av_init_packet(&pkt);
 
 #if ENCODE_VIDEO2
-  pkt.data = NULL;
-  pkt.size = 0;
+  pkt.data = st->buffer;
+  pkt.size = st->buffer_alloc;
   
   if(avcodec_encode_video2(st->stream->codec, &pkt, frame, &got_packet) < 0)
     return -1;
@@ -954,10 +952,8 @@ static void close_video_encoder(ffmpeg_priv_t * priv,
   
   if(st->frame)
     free(st->frame);
-#if ENCODE_VIDEO  
   if(st->buffer)
     free(st->buffer);
-#endif
 
   if(st->stats_filename)
     free(st->stats_filename);
