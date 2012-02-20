@@ -238,3 +238,28 @@ gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p);
 enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p);
 
 gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p);
+
+enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl);
+
+
+/* Compressed stream support */
+
+int bg_ffmpeg_writes_compressed_audio(void * priv,
+                                      const gavl_video_format_t * format,
+                                      const gavl_compression_info_t * info);
+
+int bg_ffmpeg_writes_compressed_video(void * priv,
+                                      const gavl_video_format_t * format,
+                                      const gavl_compression_info_t * info);
+
+int bg_ffmpeg_add_audio_stream_compressed(void * priv, const char * language,
+                                          const gavl_audio_format_t * format,
+                                          const gavl_compression_info_t * info);
+
+int bg_ffmpeg_add_video_stream_compressed(void * priv, const char * language,
+                                          const gavl_video_format_t * format,
+                                          const gavl_compression_info_t * info);
+
+
+int bg_ffmpeg_write_audio_packet(void * data, gavl_packet_t * packet, int stream);
+int bg_ffmpeg_write_video_packet(void * data, gavl_packet_t * packet, int stream);

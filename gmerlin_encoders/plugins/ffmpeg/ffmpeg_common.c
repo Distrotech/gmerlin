@@ -1178,3 +1178,46 @@ gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p)
     }
   return GAVL_SAMPLE_NONE;
   }
+
+static const struct
+  {
+  gavl_codec_id_t gavl;
+  enum CodecID    ffmpeg;
+  }
+codec_ids[] =
+  {
+    /* Audio */
+    { GAVL_CODEC_ID_ALAW,   CODEC_ID_PCM_ALAW  }, //!< alaw 2:1
+    { GAVL_CODEC_ID_ULAW,   CODEC_ID_PCM_MULAW }, //!< mu-law 2:1
+    { GAVL_CODEC_ID_MP2,    CODEC_ID_MP2       }, //!< MPEG-1 audio layer II
+    { GAVL_CODEC_ID_MP3,    CODEC_ID_MP3       }, //!< MPEG-1/2 audio layer 3 CBR/VBR
+    { GAVL_CODEC_ID_AC3,    CODEC_ID_AC3       }, //!< AC3
+    { GAVL_CODEC_ID_AAC,    CODEC_ID_AAC       }, //!< AAC as stored in quicktime/mp4
+    { GAVL_CODEC_ID_VORBIS, CODEC_ID_VORBIS    }, //!< Vorbis (segmented extradata and packets)
+    
+    /* Video */
+    { GAVL_CODEC_ID_JPEG,      CODEC_ID_MJPEG      }, //!< JPEG image
+    { GAVL_CODEC_ID_PNG,       CODEC_ID_PNG        }, //!< PNG image
+    { GAVL_CODEC_ID_TIFF,      CODEC_ID_TIFF       }, //!< TIFF image
+    { GAVL_CODEC_ID_TGA,       CODEC_ID_TARGA      }, //!< TGA image
+    { GAVL_CODEC_ID_MPEG1,     CODEC_ID_MPEG1VIDEO }, //!< MPEG-1 video
+    { GAVL_CODEC_ID_MPEG2,     CODEC_ID_MPEG2VIDEO }, //!< MPEG-2 video
+    { GAVL_CODEC_ID_MPEG4_ASP, CODEC_ID_MPEG4      }, //!< MPEG-4 ASP (a.k.a. Divx4)
+    { GAVL_CODEC_ID_H264,      CODEC_ID_H264       }, //!< H.264 (Annex B)
+    { GAVL_CODEC_ID_THEORA,    CODEC_ID_THEORA     }, //!< Theora (segmented extradata
+    { GAVL_CODEC_ID_DIRAC,     CODEC_ID_DIRAC      }, //!< Complete DIRAC frames, sequence end code appended to last packet
+    { GAVL_CODEC_ID_DV,        CODEC_ID_DVVIDEO    }, //!< DV (several variants)
+    { GAVL_CODEC_ID_NONE,      CODEC_ID_NONE       },
+  };
+
+enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl)
+  {
+  int i = 0;
+  while(codec_ids[i].gavl != GAVL_CODEC_ID_NONE)
+    {
+    if(codec_ids[i].gavl == gavl)
+      return codec_ids[i].ffmpeg;
+    i++;
+    }
+  return CODEC_ID_NONE;
+  }
