@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include <wctype.h>
+#include <errno.h>
 
 /* For stat/opendir */
 
@@ -452,6 +453,86 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
   bg_album_insert_urls_before(a, uri_list, NULL, after);
   
   bg_urilist_free(uri_list);
+  }
+
+int bg_album_entries_save_extm3u(bg_album_entry_t * e, const char * name)
+  {
+  FILE * out;
+  const char * real_location;
+
+  if(!e)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Not exporting empty album");
+    return 0;
+    }
+  out = fopen(name, "w");
+  if(!out)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Could not open %s: %s", name, strerror(errno));
+    return 0;
+    }
+
+  fprintf(out, "#EXTM3U\r\n");
+
+  while(e)
+    {
+    fprintf(out, "#EXTINF:%d,%s\r\n",
+            (int)(e->duration / GAVL_TIME_SCALE),
+            e->name);
+
+    if(!strncmp(e->location, "file://", 7))
+      real_location = e->location + 7;
+    else
+      real_location = e->location;
+    
+    fprintf(out, "%s\r\n", real_location);
+    e = e->next;
+    }
+  fclose(out);
+  return 1;
+  }
+
+int bg_album_entries_save_pls(bg_album_entry_t * e, const char * name)
+  {
+  FILE * out;
+  int count = 1;
+  const char * real_location;
+  if(!e)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Not exporting empty album");
+    return 0;
+    }
+  out = fopen(name, "w");
+  if(!out)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Could not open %s: %s", name, strerror(errno));
+    return 0;
+    }
+  fprintf(out, "[Playlist]\r\n");
+
+  while(e)
+    {
+    if(!strncmp(e->location, "file://", 7))
+      real_location = e->location + 7;
+    else
+      real_location = e->location;
+    
+    fprintf(out, "File%d=%s\r\n", count, real_location);
+    fprintf(out, "Title%d=%s\r\n",count, e->name);
+    fprintf(out, "Length%d=%d\r\n",count, (int)(e->duration / GAVL_TIME_SCALE));
+    e = e->next;
+    count++;
+    }
+  // Footer
+  fprintf(out, "NumberOfEntries=%d\r\n", count-1);
+  fprintf(out, "Version=2\r\n");
+  fclose(out);
+  return 1;
+  
   }
 
 /* Open / close */

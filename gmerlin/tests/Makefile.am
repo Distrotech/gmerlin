@@ -48,6 +48,8 @@ $(v4l_programs) \
 $(gtk_programs)
 
 bin_PROGRAMS = gmerlin_imgconvert \
+album2m3u \
+album2pls \
 gmerlin_imgdiff \
 gmerlin_psnr \
 gmerlin_ssim \
@@ -59,6 +61,13 @@ gmerlin_visualize
 
 audioplayer1_SOURCES = audioplayer1.c
 audioplayer1_LDADD = ../lib/libgmerlin.la -ldl
+
+album2m3u_SOURCES = album2m3u.c
+album2m3u_LDADD = ../lib/libgmerlin.la -ldl
+
+album2pls_SOURCES = album2pls.c
+album2pls_LDADD = ../lib/libgmerlin.la -ldl
+
 
 extractchannel_SOURCES = extractchannel.c
 extractchannel_LDADD = ../lib/libgmerlin.la -ldl

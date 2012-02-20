@@ -311,6 +311,11 @@ void bg_album_insert_albums_after(bg_album_t * a,
 
 void bg_album_save(bg_album_t * a, const char * filename);
 
+/* Export to playlist formats */
+
+int bg_album_entries_save_extm3u(bg_album_entry_t * e, const char * name);
+int bg_album_entries_save_pls(bg_album_entry_t * e, const char * name);
+
 /* Create a struing containing the xml code for the album */
 /* Can be used for Drag & Drop for example                */
 
