@@ -21,24 +21,55 @@
 
 #include <config.h>
 
+#include <string.h>
+
+
 #include <gmerlin/tree.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 
+#ifdef M3U
+#define LOG_DOMAIN "album2m3u"
+#define EXPORT bg_album_entries_save_extm3u
+#else
 #define LOG_DOMAIN "album2pls"
+#define EXPORT bg_album_entries_save_pls
+#endif
 
 int main(int argc, char ** argv)
   {
   bg_album_entry_t * entries;
   char * album_xml;
+  int arg_index;
+  int strip = 0;
+  char * prefix = NULL;
   
   if(argc < 3)
     {
-    fprintf(stderr, "Usage: %s <album> <outfile>\n", argv[0]);
+    fprintf(stderr, "Usage: %s [-s <num> -pre <prefix> <album> <outfile>\n",
+            argv[0]);
     return -1;
     }
 
-  album_xml = bg_read_file(argv[1], NULL);
+  arg_index = 1;
+
+  while(arg_index < argc - 2)
+    {
+    if(!strcmp(argv[arg_index], "-s"))
+      {
+      strip = atoi(argv[arg_index+1]);
+      arg_index+=2;
+      }
+    if(!strcmp(argv[arg_index], "-p"))
+      {
+      prefix = argv[arg_index+1];
+      arg_index+=2;
+      }
+    else
+      break;
+    }
+  
+  album_xml = bg_read_file(argv[arg_index], NULL);
   if(!album_xml)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Album file %s could not be opened",
@@ -55,7 +86,7 @@ int main(int argc, char ** argv)
            argv[1]);
     return 0;
     }
-  bg_album_entries_save_pls(entries, argv[2]);
+  EXPORT(entries, argv[arg_index+1], strip, prefix);
   bg_album_entries_destroy(entries);
   return 0;
   }

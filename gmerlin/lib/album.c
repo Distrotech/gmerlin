@@ -455,11 +455,38 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
   bg_urilist_free(uri_list);
   }
 
-int bg_album_entries_save_extm3u(bg_album_entry_t * e, const char * name)
+static char * get_playlist_location(const char * orig,
+                                    int strip_leading,
+                                    const char * prefix)
+  {
+  int i;
+  char * pos;
+  if(!strncmp(orig, "file://", 7))
+    orig += 7;
+  
+  if((*orig == '/') && strip_leading)
+    {
+    for(i = 0; i < strip_leading; i++)
+      {
+      pos = strchr(orig+1, '/');
+      if(pos)
+        orig = pos;
+      else
+        return NULL;
+      }
+    }
+  if(prefix)
+    return bg_sprintf("%s%s", prefix, orig);
+  else
+    return bg_strdup(NULL, orig);
+  }
+
+int bg_album_entries_save_extm3u(bg_album_entry_t * e, const char * name,
+                                 int strip_leading, const char * prefix)
   {
   FILE * out;
-  const char * real_location;
-
+  char * tmp_string;
+  
   if(!e)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
@@ -478,27 +505,34 @@ int bg_album_entries_save_extm3u(bg_album_entry_t * e, const char * name)
 
   while(e)
     {
+    tmp_string = get_playlist_location(e->location,
+                                       strip_leading, prefix);
+    if(!tmp_string)
+      {
+      e = e->next;
+      continue;
+      }
+    
     fprintf(out, "#EXTINF:%d,%s\r\n",
             (int)(e->duration / GAVL_TIME_SCALE),
             e->name);
 
-    if(!strncmp(e->location, "file://", 7))
-      real_location = e->location + 7;
-    else
-      real_location = e->location;
     
-    fprintf(out, "%s\r\n", real_location);
+    fprintf(out, "%s\r\n", tmp_string);
+    free(tmp_string);
     e = e->next;
     }
   fclose(out);
   return 1;
   }
 
-int bg_album_entries_save_pls(bg_album_entry_t * e, const char * name)
+int bg_album_entries_save_pls(bg_album_entry_t * e, const char * name,
+                              int strip_leading, const char * prefix)
   {
   FILE * out;
   int count = 1;
-  const char * real_location;
+  char * tmp_string;
+
   if(!e)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
@@ -516,14 +550,17 @@ int bg_album_entries_save_pls(bg_album_entry_t * e, const char * name)
 
   while(e)
     {
-    if(!strncmp(e->location, "file://", 7))
-      real_location = e->location + 7;
-    else
-      real_location = e->location;
-    
-    fprintf(out, "File%d=%s\r\n", count, real_location);
+    tmp_string = get_playlist_location(e->location,
+                                       strip_leading, prefix);
+    if(!tmp_string)
+      {
+      e = e->next;
+      continue;
+      }
+    fprintf(out, "File%d=%s\r\n", count, tmp_string);
     fprintf(out, "Title%d=%s\r\n",count, e->name);
     fprintf(out, "Length%d=%d\r\n",count, (int)(e->duration / GAVL_TIME_SCALE));
+    free(tmp_string);
     e = e->next;
     count++;
     }
