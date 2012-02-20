@@ -40,11 +40,18 @@
 #define SAMPLE_FMT_NONE AV_SAMPLE_FMT_NONE
 #endif
 
-#if LIBAVCODEC_VERSION_INT >= ((54<<16)|(01<<8)|0)
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(54,1,0)
 #define ENCODE_VIDEO2 1
 #else
 #define ENCODE_VIDEO 1
 #endif
+
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(53,34,0)
+#define ENCODE_AUDIO2 1
+#else
+#define ENCODE_AUDIO 1
+#endif
+
 
 typedef struct
   {
@@ -116,6 +123,10 @@ typedef struct
   AVDictionary * options;
 #endif
 
+#if ENCODE_VIDEO2
+  int64_t samples_written;
+#endif
+  
   } ffmpeg_audio_stream_t;
 
 typedef struct

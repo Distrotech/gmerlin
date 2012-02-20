@@ -66,6 +66,7 @@
 #define AVFORMAT_FREE_CONTEXT 1
 #endif
 
+
 static bg_parameter_info_t *
 create_format_parameters(const ffmpeg_format_info_t * formats)
   {
@@ -699,6 +700,61 @@ void bg_ffmpeg_get_video_format(void * data, int stream,
   
   }
 
+#if ENCODE_AUDIO2
+static int flush_audio(ffmpeg_priv_t * priv,
+                       ffmpeg_audio_stream_t * st)
+  {
+  AVPacket pkt;
+  AVFrame f;
+  int got_packet;
+  
+  av_init_packet(&pkt);
+
+  pkt.data = st->buffer;
+  pkt.size = st->buffer_alloc;
+  
+  avcodec_get_frame_defaults(&f);
+  f.nb_samples = st->frame->valid_samples;
+
+  f.pts = st->samples_written;
+  
+  avcodec_fill_audio_frame(&f, st->format.num_channels, st->stream->codec->sample_fmt,
+                           st->frame->samples.u_8,
+                           st->stream->codec->frame_size * st->format.num_channels * 2, 1);
+    
+  if(avcodec_encode_audio2(st->stream->codec, &pkt,
+                           &f, &got_packet) < 0)
+    return 0;
+  
+  if(got_packet && pkt.size)
+    {
+    if(pkt.pts != AV_NOPTS_VALUE)
+      pkt.pts= av_rescale_q(pkt.pts,
+                            st->stream->codec->time_base,
+                            st->stream->time_base);
+    
+    pkt.flags |= PKT_FLAG_KEY;
+    pkt.stream_index= st->stream->index;
+    
+    /* write the compressed frame in the media file */
+    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
+      //    if(av_write_frame(priv->ctx, &pkt) != 0)
+      {
+      priv->got_error = 1;
+      return 0;
+      }
+    }
+  
+  /* Mute frame */
+  gavl_audio_frame_mute(st->frame, &st->format);
+  st->frame->valid_samples = 0;
+  st->samples_written += st->format.samples_per_frame;
+  
+  return pkt.size;
+  }
+
+#else
+
 static int flush_audio(ffmpeg_priv_t * priv,
                        ffmpeg_audio_stream_t * st)
   {
@@ -711,13 +767,9 @@ static int flush_audio(ffmpeg_priv_t * priv,
   else
     out_size = st->buffer_alloc;
 
-  //#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(53,34,0)
   bytes_encoded = avcodec_encode_audio(st->stream->codec, st->buffer,
                                        out_size,
                                        st->frame->samples.s_16);
-  //#else
-  
-    //#endif
   
   if(bytes_encoded > 0)
     {
@@ -748,6 +800,8 @@ static int flush_audio(ffmpeg_priv_t * priv,
   st->frame->valid_samples = 0;
   return bytes_encoded;
   }
+
+#endif
 
 int bg_ffmpeg_write_audio_frame(void * data,
                                 gavl_audio_frame_t * frame, int stream)
