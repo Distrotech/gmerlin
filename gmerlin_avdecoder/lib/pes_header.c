@@ -226,14 +226,21 @@ int bgav_pes_header_read(bgav_input_context_t * input,
   return 1;
   }
 
+static void dump_timestamp(int64_t ts)
+  {
+  if(ts > 0)
+    bgav_dprintf("%"PRId64" (%f)", ts, (float)ts / 90000.0);
+  else
+    bgav_dprintf("Unknown");
+  }
+
 void bgav_pes_header_dump(bgav_pes_header_t * p)
   {
-  if(p->pts > 0)
-    bgav_dprintf("PES Header: PTS: %f, Stream ID: %02x, payload_size: %d\n",
-            (float)p->pts / 90000.0, p->stream_id, p->payload_size);
-  else
-    bgav_dprintf("PES Header: PTS: Unknown, Stream ID: %02x, payload_size: %d\n",
-            p->stream_id, p->payload_size);
-  
+  bgav_dprintf("PES Header: PTS: ");
+  dump_timestamp(p->pts);
+  bgav_dprintf(" DTS: ");
+  dump_timestamp(p->dts);
+  bgav_dprintf(" Stream ID: %02x, payload_size: %d\n",
+               p->stream_id, p->payload_size);
   }
 
