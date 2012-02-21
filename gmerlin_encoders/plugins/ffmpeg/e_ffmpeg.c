@@ -65,7 +65,7 @@ static const ffmpeg_format_info_t formats[] =
       
     },
     {
-      .name =       "MPEG-2",
+      .name =       "MPEG-2 (generic)",
       .short_name = "vob",
       .extension =  "vob",
       .max_audio_streams = -1,
@@ -79,7 +79,21 @@ static const ffmpeg_format_info_t formats[] =
                                        CODEC_ID_NONE },
       .flags = FLAG_CONSTANT_FRAMERATE,
       .framerates = bg_ffmpeg_mpeg_framerates,
+    },
+    {
+      .name =       "MPEG-2 (dvd)",
+      .short_name = "dvd",
+      .extension =  "vob",
+      .max_audio_streams = -1,
+      .max_video_streams = -1,
+      .audio_codecs = (enum CodecID[]){  CODEC_ID_MP2,
+                                         CODEC_ID_AC3,
+                                         CODEC_ID_NONE },
 
+      .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG2VIDEO,
+                                         CODEC_ID_NONE },
+      .flags = FLAG_CONSTANT_FRAMERATE,
+      .framerates = bg_ffmpeg_mpeg_framerates,
     },
     {
       .name =       "Flash Video",
