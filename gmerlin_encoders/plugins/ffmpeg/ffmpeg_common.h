@@ -127,6 +127,8 @@ typedef struct
   int64_t samples_written;
 #endif
   
+  const gavl_compression_info_t * ci;
+  int64_t pts_offset;
   } ffmpeg_audio_stream_t;
 
 typedef struct
@@ -152,7 +154,11 @@ typedef struct
 #if LIBAVCODEC_VERSION_MAJOR >= 54
   AVDictionary * options;
 #endif
+  const gavl_compression_info_t * ci;
+  
+  int64_t dts;
 
+  int64_t pts_offset;
   } ffmpeg_video_stream_t;
 
 typedef struct
@@ -173,8 +179,11 @@ typedef struct
   const ffmpeg_format_info_t * format;
 
   int initialized;
-  
   int got_error;
+
+  // Needed when we write compressed video packets with B-frames
+  int need_pts_offset;
+  
   bg_encoder_callbacks_t * cb;
   } ffmpeg_priv_t;
 
@@ -245,7 +254,7 @@ enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl);
 /* Compressed stream support */
 
 int bg_ffmpeg_writes_compressed_audio(void * priv,
-                                      const gavl_video_format_t * format,
+                                      const gavl_audio_format_t * format,
                                       const gavl_compression_info_t * info);
 
 int bg_ffmpeg_writes_compressed_video(void * priv,
@@ -256,7 +265,7 @@ int bg_ffmpeg_add_audio_stream_compressed(void * priv, const char * language,
                                           const gavl_audio_format_t * format,
                                           const gavl_compression_info_t * info);
 
-int bg_ffmpeg_add_video_stream_compressed(void * priv, const char * language,
+int bg_ffmpeg_add_video_stream_compressed(void * priv,
                                           const gavl_video_format_t * format,
                                           const gavl_compression_info_t * info);
 

@@ -479,7 +479,10 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
                               ffmpeg_audio_stream_t * st)
   {
   AVCodec * codec;
-
+  
+  if(st->ci)
+    return 1;
+  
   if(st->stream->codec->codec_id == CODEC_ID_NONE)
     return 0;
   
@@ -524,6 +527,19 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
   return 1;
   }
 
+static void set_framerate(ffmpeg_video_stream_t * st)
+  {
+  if(st->format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
+    {
+    st->stream->codec->time_base.den = st->format.timescale;
+    st->stream->codec->time_base.num = st->format.frame_duration;
+    }
+  else
+    {
+    st->stream->codec->time_base.den = st->format.timescale;
+    st->stream->codec->time_base.num = 1;
+    }
+  }
 
 static int open_video_encoder(ffmpeg_priv_t * priv,
                               ffmpeg_video_stream_t * st)
@@ -534,6 +550,12 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   if(st->stream->codec->codec_id == CODEC_ID_NONE)
     return 0;
 
+  if(st->ci)
+    {
+    set_framerate(st);
+    return 1;
+    }
+  
   codec = avcodec_find_encoder(st->stream->codec->codec_id);
   if(!codec)
     {
@@ -590,17 +612,8 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
     else
       bg_encoder_set_framerate(&st->fr, &st->format);
     }
-  
-  if(st->format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
-    {
-    st->stream->codec->time_base.den = st->format.timescale;
-    st->stream->codec->time_base.num = st->format.frame_duration;
-    }
-  else
-    {
-    st->stream->codec->time_base.den = st->format.timescale;
-    st->stream->codec->time_base.num = 1;
-    }
+
+  set_framerate(st);
 
 #if LIBAVCODEC_VERSION_MAJOR < 54
   if(avcodec_open(st->stream->codec, codec) < 0)
@@ -675,6 +688,30 @@ int bg_ffmpeg_start(void * data)
     return 0;
     }
 #endif
+
+  if(priv->need_pts_offset)
+    {
+    /* We use half a second */
+    AVRational r = { 1, 2 };
+    
+    for(i = 0; i < priv->num_audio_streams; i++)
+      {
+      priv->audio_streams[i].pts_offset =
+        av_rescale_q(1,
+                     r,
+                     priv->audio_streams[i].stream->time_base);
+      // fprintf(stderr, "pts offset: %lld\n", priv->audio_streams[i].pts_offset);
+      }
+
+    for(i = 0; i < priv->num_video_streams; i++)
+      {
+      priv->video_streams[i].pts_offset =
+        av_rescale_q(1,
+                     r,
+                     priv->video_streams[i].stream->time_base);
+      // fprintf(stderr, "pts offset: %lld\n", priv->video_streams[i].pts_offset);
+      }
+    }
   
   priv->initialized = 1;
   return 1;
@@ -731,7 +768,7 @@ static int flush_audio(ffmpeg_priv_t * priv,
     if(pkt.pts != AV_NOPTS_VALUE)
       pkt.pts= av_rescale_q(pkt.pts,
                             st->stream->codec->time_base,
-                            st->stream->time_base);
+                            st->stream->time_base) + st->pts_offset;
     
     pkt.flags |= PKT_FLAG_KEY;
     pkt.stream_index= st->stream->index;
@@ -780,7 +817,7 @@ static int flush_audio(ffmpeg_priv_t * priv,
        (st->stream->codec->coded_frame->pts != AV_NOPTS_VALUE))
       pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
                             st->stream->codec->time_base,
-                            st->stream->time_base);
+                            st->stream->time_base)  + st->pts_offset;
     
     pkt.flags |= PKT_FLAG_KEY;
     pkt.stream_index= st->stream->index;
@@ -869,7 +906,7 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
 #if ENCODE_VIDEO // Old
     pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
                           st->stream->codec->time_base,
-                          st->stream->time_base);
+                          st->stream->time_base) + st->pts_offset;
     
     if(st->stream->codec->coded_frame->key_frame)
       pkt.flags |= PKT_FLAG_KEY;
@@ -880,11 +917,11 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
     if(pkt.pts != AV_NOPTS_VALUE)
       pkt.pts= av_rescale_q(pkt.pts,
                             st->stream->codec->time_base,
-                            st->stream->time_base);
+                            st->stream->time_base) + st->pts_offset;
     if(pkt.dts != AV_NOPTS_VALUE)
       pkt.dts= av_rescale_q(pkt.dts,
                             st->stream->codec->time_base,
-                            st->stream->time_base);
+                            st->stream->time_base) + st->pts_offset;
 #endif
     
     pkt.stream_index = st->stream->index;
@@ -975,6 +1012,10 @@ static void flush_video_encoder(ffmpeg_priv_t * priv,
                                 ffmpeg_video_stream_t * st)
   {
   int result;
+
+  if(st->ci)
+    return;
+  
   if(priv->initialized)
     {
     while(1)
@@ -1225,9 +1266,23 @@ enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl)
   }
 
 int bg_ffmpeg_writes_compressed_audio(void * priv,
-                                      const gavl_video_format_t * format,
+                                      const gavl_audio_format_t * format,
                                       const gavl_compression_info_t * info)
   {
+  int i;
+  enum CodecID ffmpeg_id;
+  ffmpeg_priv_t * f = priv;
+  
+  ffmpeg_id = bg_codec_id_gavl_2_ffmpeg(info->id);
+  
+  i = 0;
+  while(f->format->audio_codecs[i] != CODEC_ID_NONE)
+    {
+    if(f->format->audio_codecs[i] == ffmpeg_id)
+      return 1;
+    i++;
+    }
+  
   return 0;
   }
 
@@ -1235,6 +1290,20 @@ int bg_ffmpeg_writes_compressed_video(void * priv,
                                       const gavl_video_format_t * format,
                                       const gavl_compression_info_t * info)
   {
+  int i;
+  enum CodecID ffmpeg_id;
+  ffmpeg_priv_t * f = priv;
+
+  ffmpeg_id = bg_codec_id_gavl_2_ffmpeg(info->id);
+
+  i = 0;
+  while(f->format->video_codecs[i] != CODEC_ID_NONE)
+    {
+    if(f->format->video_codecs[i] == ffmpeg_id)
+      return 1;
+    i++;
+    }
+  
   return 0;
   }
 
@@ -1242,23 +1311,130 @@ int bg_ffmpeg_add_audio_stream_compressed(void * priv, const char * language,
                                           const gavl_audio_format_t * format,
                                           const gavl_compression_info_t * info)
   {
-  return 0;
+  int ret;
+  ffmpeg_audio_stream_t * st;
+  ffmpeg_priv_t * f = priv;
+
+  ret = bg_ffmpeg_add_audio_stream(priv, language, format);
+  st = f->audio_streams + ret;
+  st->ci = info;
+  st->stream->codec->codec_id = bg_codec_id_gavl_2_ffmpeg(st->ci->id);
+
+  st->stream->codec->time_base.num = 1;
+  st->stream->codec->time_base.den = st->format.samplerate;
+  if(st->ci->bitrate)
+    st->stream->codec->bit_rate = st->ci->bitrate;
+  
+  return ret;
   }
 
-int bg_ffmpeg_add_video_stream_compressed(void * priv, const char * language,
+int bg_ffmpeg_add_video_stream_compressed(void * priv,
                                           const gavl_video_format_t * format,
                                           const gavl_compression_info_t * info)
   {
-  return 0;
+  int ret;
+  ffmpeg_video_stream_t * st;
+  ffmpeg_priv_t * f = priv;
+
+  ret = bg_ffmpeg_add_video_stream(priv, format);
+  st = f->video_streams + ret;
+  st->ci = info;
+  st->stream->codec->codec_id = bg_codec_id_gavl_2_ffmpeg(st->ci->id);
+  st->dts = GAVL_TIME_UNDEFINED;
+  if(st->ci->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
+    f->need_pts_offset = 1;
+
+  if(st->ci->bitrate)
+    st->stream->codec->bit_rate = st->ci->bitrate;
+
+  return ret;
   }
 
 
-int bg_ffmpeg_write_audio_packet(void * data, gavl_packet_t * packet, int stream)
+int bg_ffmpeg_write_audio_packet(void * priv, gavl_packet_t * packet, int stream)
   {
-  return 0;
+  AVPacket pkt;
+  ffmpeg_priv_t * f = priv;
+  ffmpeg_audio_stream_t * st = f->audio_streams + stream;
+  
+  if(packet->pts == GAVL_TIME_UNDEFINED)
+    return 1; // Drop undecodable packet
+  
+  av_init_packet(&pkt);
+
+  pkt.data = packet->data;
+  pkt.size = packet->data_len;
+    
+  pkt.pts= av_rescale_q(packet->pts,
+                        st->stream->codec->time_base,
+                        st->stream->time_base) + st->pts_offset;
+  pkt.dts = pkt.pts;
+  pkt.flags |= PKT_FLAG_KEY;
+  pkt.stream_index= st->stream->index;
+
+  //  fprintf(stderr, "write audio packet: %lld %lld %lld\n", pkt.pts, pkt.dts, packet->pts);
+  //  gavl_packet_dump(packet);
+  
+  /* write the compressed frame in the media file */
+  if(av_interleaved_write_frame(f->ctx, &pkt) != 0)
+    {
+    f->got_error = 1;
+    return 0;
+    }
+  return 1;
   }
 
-int bg_ffmpeg_write_video_packet(void * data, gavl_packet_t * packet, int stream)
+int bg_ffmpeg_write_video_packet(void * priv, gavl_packet_t * packet, int stream)
   {
-  return 0;
+  AVPacket pkt;
+  ffmpeg_priv_t * f = priv;
+  ffmpeg_video_stream_t * st = f->video_streams + stream;
+
+  //  fprintf(stderr, "Write video packet: pts: %lld duration: %lld dts: %lld\n", packet->pts, packet->duration, st->dts);
+  
+  if(packet->pts == GAVL_TIME_UNDEFINED)
+    return 1; // Drop undecodable packet
+  
+  av_init_packet(&pkt);
+  pkt.data = packet->data;
+  pkt.size = packet->data_len;
+
+  pkt.pts= av_rescale_q(packet->pts,
+                        st->stream->codec->time_base,
+                        st->stream->time_base)  + st->pts_offset;
+  
+  if(st->ci->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
+    {
+    if(st->dts == GAVL_TIME_UNDEFINED)
+      st->dts = packet->pts - packet->duration;
+    
+    pkt.dts= av_rescale_q(st->dts,
+                          st->stream->codec->time_base,
+                          st->stream->time_base) + st->pts_offset;
+    st->dts += packet->duration;
+    }
+  else
+    pkt.dts = pkt.pts;
+  
+  //  pkt.duration = av_rescale_q(packet->duration,
+  //                              st->stream->codec->time_base,
+  //                              st->stream->time_base);
+  
+  
+  if(packet->flags & GAVL_PACKET_KEYFRAME)  
+    pkt.flags |= PKT_FLAG_KEY;
+  
+  pkt.stream_index= st->stream->index;
+
+  //  fprintf(stderr, "Video dts: %lld, pts: %lld\n", pkt.dts, pkt.pts);
+  
+  /* write the compressed frame in the media file */
+  if(av_interleaved_write_frame(f->ctx, &pkt) != 0)
+    {
+    f->got_error = 1;
+    return 0;
+    }
+  //  fprintf(stderr, "Write video packet done\n");
+
+  return 1;
   }

@@ -34,13 +34,13 @@ static const ffmpeg_format_info_t formats[] =
       .max_audio_streams = 1,
       .max_video_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_PCM_S16LE,
-                                       CODEC_ID_PCM_U8,
-                                       CODEC_ID_PCM_ALAW,
-                                       CODEC_ID_PCM_MULAW,
-                                       CODEC_ID_MP3,
-                                       CODEC_ID_MP2,
-                                       CODEC_ID_AC3,
-                                       CODEC_ID_NONE },
+                                         CODEC_ID_PCM_U8,
+                                         CODEC_ID_PCM_ALAW,
+                                         CODEC_ID_PCM_MULAW,
+                                         CODEC_ID_MP3,
+                                         CODEC_ID_MP2,
+                                         CODEC_ID_AC3,
+                                         CODEC_ID_NONE },
 
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG4,
                                        CODEC_ID_MSMPEG4V3,
@@ -179,10 +179,18 @@ const bg_encoder_plugin_t the_plugin =
     .set_callbacks =        bg_ffmpeg_set_callbacks,
     
     .open =                 bg_ffmpeg_open,
+
+    .writes_compressed_audio = bg_ffmpeg_writes_compressed_audio,
+    .writes_compressed_video = bg_ffmpeg_writes_compressed_video,
+
+    
     
     .add_audio_stream =     bg_ffmpeg_add_audio_stream,
-    
     .add_video_stream =     bg_ffmpeg_add_video_stream,
+
+    .add_audio_stream_compressed =     bg_ffmpeg_add_audio_stream_compressed,
+    .add_video_stream_compressed =     bg_ffmpeg_add_video_stream_compressed,
+
     .set_video_pass =       bg_ffmpeg_set_video_pass,
     .set_audio_parameter =  bg_ffmpeg_set_audio_parameter,
     .set_video_parameter =  bg_ffmpeg_set_video_parameter,
@@ -194,6 +202,10 @@ const bg_encoder_plugin_t the_plugin =
     
     .write_audio_frame =    bg_ffmpeg_write_audio_frame,
     .write_video_frame =    bg_ffmpeg_write_video_frame,
+
+    .write_audio_packet =    bg_ffmpeg_write_audio_packet,
+    .write_video_packet =    bg_ffmpeg_write_video_packet,
+
     .close =                bg_ffmpeg_close,
   };
 
