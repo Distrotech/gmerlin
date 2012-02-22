@@ -143,7 +143,6 @@ bgav_video_parser_create(bgav_stream_t * s)
     s->src.peek_func = bgav_video_parser_peek_packet_parse_frame;
     }
   s->src.data = ret;
-
   
   func(ret);
   return ret;

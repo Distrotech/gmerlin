@@ -86,6 +86,18 @@ int bgav_video_start(bgav_stream_t * s)
       }
     s->index_mode = INDEX_MODE_SIMPLE;
     }
+  /* Frametype detector */
+  if((s->flags & STREAM_NEED_FRAMETYPES) && !s->fd)
+    {
+    s->fd = bgav_frametype_detector_create(s);
+    if(!bgav_stream_peek_packet_read(s, 1))
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "EOF while initializing frametype detector");
+      return 0;
+      }
+    }
+  
   /* Packet timer */
   if((s->flags & (STREAM_NO_DURATIONS|STREAM_WRONG_B_TIMESTAMPS)) &&
      !s->pt)
@@ -227,6 +239,11 @@ void bgav_video_stop(bgav_stream_t * s)
     bgav_packet_timer_destroy(s->pt);
     s->pt = NULL;
     }
+  if(s->fd)
+    {
+    bgav_frametype_detector_destroy(s->fd);
+    s->fd = NULL;
+    }
   if(s->data.video.ft)
     {
     bgav_video_format_tracker_destroy(s->data.video.ft);
@@ -267,10 +284,10 @@ void bgav_video_resync(bgav_stream_t * s)
     }
 
   if(s->pt)
-    {
     bgav_packet_timer_reset(s->pt);
-    }
-
+  if(s->fd)
+    bgav_frametype_detector_reset(s->fd);
+  
   /* If the stream has keyframes, skip until the next one */
 
   if(!(s->flags & (STREAM_INTRA_ONLY|STREAM_STILL_MODE)))

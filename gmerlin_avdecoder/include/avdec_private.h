@@ -78,11 +78,7 @@ typedef struct bgav_video_format_tracker_s bgav_video_format_tracker_t;
 #include <id3.h>
 #include <yml.h>
 #include <packettimer.h>
-
-#define BGAV_CODING_TYPE_I 'I'
-#define BGAV_CODING_TYPE_P 'P'
-#define BGAV_CODING_TYPE_B 'B'
-#define BGAV_CODING_TYPE_D 'D' /* Unsupported */
+#include <frametype.h>
 
 /* subsequent calls of read() or peek() will return the next packet */
 typedef bgav_packet_t * (*bgav_get_packet_callback)(void * data);
@@ -240,6 +236,11 @@ dst[0] = pal.b >> 8;
 
 /* Packet */
 
+#define BGAV_CODING_TYPE_I 'I'
+#define BGAV_CODING_TYPE_P 'P'
+#define BGAV_CODING_TYPE_B 'B'
+#define BGAV_CODING_TYPE_D 'D' /* Unsupported */
+
 #define PACKET_FLAG_KEY    (1<<8)
 #define PACKET_FLAG_SKIP   (1<<9)
 #define PACKET_FLAG_LAST   (1<<10)
@@ -386,27 +387,28 @@ typedef enum
 #define STREAM_B_FRAMES           (1<<3)
 #define STREAM_WRONG_B_TIMESTAMPS (1<<4)
 #define STREAM_HEADER_FROM_PARSER (1<<5)
-#define STREAM_STILL_MODE         (1<<6) /* Still image mode */
-#define STREAM_STILL_SHOWN        (1<<7) /* Still image already shown */
-#define STREAM_EOF_D              (1<<8) /* End of file at demuxer */
-#define STREAM_EOF_C              (1<<9) /* End of file at codec */
+#define STREAM_STILL_MODE         (1<<6)  /* Still image mode          */
+#define STREAM_STILL_SHOWN        (1<<7)  /* Still image already shown */
+#define STREAM_EOF_D              (1<<8)  /* End of file at demuxer    */
+#define STREAM_EOF_C              (1<<9)  /* End of file at codec      */
+#define STREAM_NEED_FRAMETYPES    (1<<10) /* Need frame types          */
 
 /* Stream can have a nonzero start time */
-#define STREAM_NEED_START_TIME   (1<<10)
+#define STREAM_NEED_START_TIME   (1<<11)
 
 /* Picture is available for immediate output */
-#define STREAM_HAVE_PICTURE       (1<<11)
+#define STREAM_HAVE_PICTURE       (1<<12)
 
 /* Already got the format from the parser */
-#define STREAM_PARSE_HAVE_FORMAT  (1<<12)
+#define STREAM_PARSE_HAVE_FORMAT  (1<<13)
 
-#define STREAM_RAW_PACKETS        (1<<13)
-#define STREAM_FIELD_PICTURES     (1<<14)
-#define STREAM_FILTER_PACKETS     (1<<15)
-#define STREAM_SBR                (1<<16)
-#define STREAM_NO_DURATIONS       (1<<17)
-#define STREAM_HAS_DTS            (1<<18)
-#define STREAM_B_PYRAMID          (1<<19)
+#define STREAM_RAW_PACKETS        (1<<14)
+#define STREAM_FIELD_PICTURES     (1<<15)
+#define STREAM_FILTER_PACKETS     (1<<16)
+#define STREAM_SBR                (1<<17)
+#define STREAM_NO_DURATIONS       (1<<18)
+#define STREAM_HAS_DTS            (1<<19)
+#define STREAM_B_PYRAMID          (1<<20)
 
 
 /* Stream could not get exact compression info from the
@@ -537,7 +539,11 @@ struct bgav_stream_s
   bgav_packet_pool_t * pp;  /* Where to put consumed
                                packets for later use */
 
-  bgav_packet_timer_t * pt; /* Correct timestamps from broken containers */
+  /* Correct timestamps from broken containers */
+  bgav_packet_timer_t * pt;
+  
+  /* Detect frametypes from broken containers */
+  bgav_frametype_detector_t * fd; 
   
   union
     {

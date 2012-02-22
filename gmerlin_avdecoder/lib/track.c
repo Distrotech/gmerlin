@@ -806,7 +806,7 @@ void bgav_track_get_compression(bgav_track_t * t)
     if(vdec && !vdec->get_format)
       vdec = NULL;
     
-    if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) || vdec)
+    if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME|STREAM_NEED_FRAMETYPES)) || vdec)
       {
       bgav_stream_start(s);
       p = bgav_stream_peek_packet_read(s, 1);

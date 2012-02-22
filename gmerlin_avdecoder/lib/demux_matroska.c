@@ -195,7 +195,17 @@ static void init_vfw(bgav_stream_t * s)
 static void init_theora(bgav_stream_t * s)
   {
   setup_ogg_extradata(s);
-  s->fourcc = BGAV_MK_FOURCC('T', 'H', 'R', 'A');
+  }
+
+static void init_avc1(bgav_stream_t * s)
+  {
+  bgav_mkv_track_t * track = s->priv;
+
+  s->flags |= STREAM_NEED_FRAMETYPES;
+  if(track->CodecPrivateLen)
+    bgav_stream_set_extradata(s,
+                              track->CodecPrivate,
+                              track->CodecPrivateLen);
   }
 
 static const codec_info_t video_codecs[] =
@@ -212,8 +222,8 @@ static const codec_info_t video_codecs[] =
     { "V_REAL/RV30",     BGAV_MK_FOURCC('R','V','3','0'), NULL,     0 },
     { "V_REAL/RV40",     BGAV_MK_FOURCC('R','V','4','0'), NULL,     0 },
     { "V_VP8",           BGAV_MK_FOURCC('V','P','8','0'), NULL,     0 },
-    { "V_THEORA",        0x00,                            init_theora, 0 },
-    { "V_MPEG4/ISO/AVC", BGAV_MK_FOURCC('a','v','c','1'), NULL,     0 },
+    { "V_THEORA",        BGAV_MK_FOURCC('T','H','R','A'), init_theora, 0 },
+    { "V_MPEG4/ISO/AVC", BGAV_MK_FOURCC('a','v','c','1'), init_avc1, 0 },
     { /* End */ }
   };
 
@@ -469,7 +479,7 @@ static int init_video(bgav_demuxer_context_t * ctx,
   fmt->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   
   s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
-  //  s->flags |= STREAM_NO_DURATIONS;
+  s->flags |= STREAM_NO_DURATIONS;
   
   return 1;
   }

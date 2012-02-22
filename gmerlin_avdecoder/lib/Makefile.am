@@ -461,6 +461,7 @@ dvframe.c \
 edl.c \
 fileindex.c \
 formattracker.c \
+frametype.c \
 h264_header.c \
 http.c \
 id3v1.c \

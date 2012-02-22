@@ -27,7 +27,7 @@
 
 #define MAX_PACKETS 32
 
-#define DUMP_INPUT
+// #define DUMP_INPUT
 // #define DUMP_OUTPUT
 
 struct bgav_packet_timer_s

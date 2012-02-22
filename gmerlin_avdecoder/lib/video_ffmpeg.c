@@ -497,6 +497,7 @@ static int decode_picture(bgav_stream_t * s)
         bgav_dprintf("\n");
       else
         {
+#if 0
         if(priv->frame->pict_type == FF_I_TYPE)
           bgav_dprintf("I-Frame ");
         else if(priv->frame->pict_type == FF_B_TYPE)
@@ -509,7 +510,7 @@ static int decode_picture(bgav_stream_t * s)
           bgav_dprintf("SI-Frame ");
         else if(priv->frame->pict_type == FF_SP_TYPE)
           bgav_dprintf("SP-Frame ");
-
+#endif
         bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
                      priv->frame->interlaced_frame,
                      priv->frame->top_field_first,
@@ -557,6 +558,7 @@ static int decode_picture(bgav_stream_t * s)
         bgav_dprintf("\n");
       else
         {
+#if 0
         if(priv->frame->pict_type == FF_I_TYPE)
           bgav_dprintf("I-Frame ");
         else if(priv->frame->pict_type == FF_B_TYPE)
@@ -569,7 +571,7 @@ static int decode_picture(bgav_stream_t * s)
           bgav_dprintf("SI-Frame ");
         else if(priv->frame->pict_type == FF_SP_TYPE)
           bgav_dprintf("SP-Frame ");
-
+#endif
         bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
                      priv->frame->interlaced_frame,
                      priv->frame->top_field_first,
