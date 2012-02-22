@@ -342,6 +342,7 @@ static const codec_info_t audio_codecs[] =
     { "A_MPEG/",         0x00,                            init_mpa,    CODEC_FLAG_INCOMPLETE },
     { "A_AAC/",          BGAV_MK_FOURCC('m','p','4','a'), init_aac,    CODEC_FLAG_INCOMPLETE },
     { "A_AC3",           BGAV_MK_FOURCC('.','a','c','3'), init_ac3,    0 },
+    { "A_DTS",           BGAV_MK_FOURCC('d','t','s',' '), init_ac3,    0 },
     { /* End */ }
   };
 
@@ -367,6 +368,12 @@ static void init_stream_common(mkv_t * m,
     i++;
     }
 
+  if(!info)
+    {
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown codec: %s",
+             track->CodecID);
+    }
+  
   if(info)
     {
     s->fourcc = info->fourcc;
@@ -462,7 +469,7 @@ static int init_video(bgav_demuxer_context_t * ctx,
   fmt->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   
   s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
-  s->flags |= STREAM_NO_DURATIONS;
+  //  s->flags |= STREAM_NO_DURATIONS;
   
   return 1;
   }
@@ -646,7 +653,8 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   if(!strcmp(p->ebml_header.DocType, "matroska"))
-    ctx->stream_description = bgav_sprintf("Matroska (version %d)", p->ebml_header.DocTypeVersion);
+    ctx->stream_description = bgav_sprintf("Matroska (version %d)",
+                                           p->ebml_header.DocTypeVersion);
   else if(!strcmp(p->ebml_header.DocType, "webm"))
     ctx->stream_description = bgav_sprintf("Matroska (webm)");
 
@@ -760,6 +768,9 @@ static int process_block(bgav_demuxer_context_t * ctx,
   t = s->priv;
   if(bg)
     {
+    if(s->type == BGAV_STREAM_VIDEO)
+      fprintf(stderr, "Reference blocks: %d\n", bg->num_reference_blocks);
+    
     if(!bg->num_reference_blocks)
       keyframe = 1;
     }

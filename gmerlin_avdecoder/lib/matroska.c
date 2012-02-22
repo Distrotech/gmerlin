@@ -884,7 +884,7 @@ int bgav_mkv_tracks_read(bgav_input_context_t * ctx,
         if(!bgav_mkv_track_read(ctx, ret + ret_num, &e))
           return 0;
 
-        // bgav_mkv_track_dump(ret + ret_num);
+        bgav_mkv_track_dump(ret + ret_num);
         ret_num++;
         break;
       default:
