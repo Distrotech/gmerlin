@@ -36,6 +36,29 @@ typedef struct
   dts_state_t * state;
   } dca_t;
 
+static int parse_frame_dca(bgav_audio_parser_t * parser,
+                           bgav_packet_t * p)
+  {
+  int flags, sample_rate, bit_rate, frame_length, frame_bytes;
+  dca_t * priv = parser->priv;
+
+  if(p->data_size < DCA_HEADER_BYTES)
+    return 0;
+  
+  frame_bytes = dts_syncinfo(priv->state, p->data,
+                             &flags, &sample_rate, &bit_rate, &frame_length);
+  if(frame_bytes <= 0)
+    return 0;
+
+  p->duration = frame_length;
+  if(parser->s->codec_bitrate <= 0)
+    parser->s->codec_bitrate = bit_rate;
+  if(parser->s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
+    bgav_dca_flags_2_channel_setup(flags, &parser->s->data.audio.format);
+  fprintf(stderr, "Parse frame: %d %d\n", p->data_size, frame_bytes);
+  return 1;
+  }
+
 static int parse_dca(bgav_audio_parser_t * parser)
   {
   int i;
@@ -80,7 +103,6 @@ static void cleanup_dca(bgav_audio_parser_t * parser)
   free(priv);
   }
 
-
 void bgav_audio_parser_init_dca(bgav_audio_parser_t * parser)
   {
   dca_t * priv = calloc(1, sizeof(*priv));
@@ -88,6 +110,7 @@ void bgav_audio_parser_init_dca(bgav_audio_parser_t * parser)
   parser->priv = priv;
   parser->parse = parse_dca;
   parser->cleanup = cleanup_dca;
+  parser->parse_frame = parse_frame_dca;
   }
 
 void bgav_dca_flags_2_channel_setup(int flags, gavl_audio_format_t * format)
