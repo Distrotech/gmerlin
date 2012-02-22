@@ -55,7 +55,7 @@ static int parse_frame_dca(bgav_audio_parser_t * parser,
     parser->s->codec_bitrate = bit_rate;
   if(parser->s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
     bgav_dca_flags_2_channel_setup(flags, &parser->s->data.audio.format);
-  fprintf(stderr, "Parse frame: %d %d\n", p->data_size, frame_bytes);
+  //  fprintf(stderr, "Parse frame: %d %d\n", p->data_size, frame_bytes);
   return 1;
   }
 

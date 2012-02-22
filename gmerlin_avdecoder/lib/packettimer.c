@@ -27,8 +27,8 @@
 
 #define MAX_PACKETS 32
 
-// #define DUMP_INPUT
-// #define DUMP_OUTPUT
+#define DUMP_INPUT
+#define DUMP_OUTPUT
 
 struct bgav_packet_timer_s
   {
@@ -46,7 +46,7 @@ struct bgav_packet_timer_s
   bgav_packet_t * last_ip_frame_1;
   bgav_packet_t * last_ip_frame_2;
   
-  int num_b_frames;
+  //  int num_b_frames;
   int num_ip_frames;
 
   void (*insert_packet)(bgav_packet_timer_t * pt);
@@ -308,7 +308,7 @@ static int get_packet(bgav_packet_timer_t * pt, int force)
       pt->num_ip_frames++;
       break;
     case BGAV_CODING_TYPE_B:
-      pt->num_b_frames++;
+      //      pt->num_b_frames++;
       break;
     }
 
@@ -340,6 +340,7 @@ static bgav_packet_t * remove_packet(bgav_packet_timer_t * pt)
   bgav_dprintf("packet_timer out: ");
   bgav_packet_dump(ret);
 #endif
+  
   return ret;
   }
 
@@ -451,7 +452,7 @@ void bgav_packet_timer_reset(bgav_packet_timer_t * pt)
   //  fprintf(stderr, "bgav_packet_timer_reset %d\n",
   //          pt->num_packets);
   
-  pt->num_b_frames = 0;
+  //  pt->num_b_frames = 0;
   pt->num_ip_frames = 0;
   pt->eof = 0;
   pt->current_pts = BGAV_TIMESTAMP_UNDEFINED;

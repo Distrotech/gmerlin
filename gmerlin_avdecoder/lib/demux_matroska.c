@@ -347,7 +347,7 @@ static void init_ac3(bgav_stream_t * s)
 
 static void init_dts(bgav_stream_t * s)
   {
-  bgav_mkv_track_t * p = s->priv;
+  // bgav_mkv_track_t * p = s->priv;
   s->flags |= STREAM_PARSE_FRAME;
   s->index_mode = INDEX_MODE_SIMPLE;
   }
@@ -786,8 +786,8 @@ static int process_block(bgav_demuxer_context_t * ctx,
   t = s->priv;
   if(bg)
     {
-    if(s->type == BGAV_STREAM_VIDEO)
-      fprintf(stderr, "Reference blocks: %d\n", bg->num_reference_blocks);
+    // if(s->type == BGAV_STREAM_VIDEO)
+    //  fprintf(stderr, "Reference blocks: %d\n", bg->num_reference_blocks);
     
     if(!bg->num_reference_blocks)
       keyframe = 1;

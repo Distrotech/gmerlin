@@ -118,6 +118,8 @@ static int initialize(bgav_frametype_detector_t * fd)
   while(fd->num_packets < 3)
     {
     p = fd->src.get_func(fd->src.data);
+    if(!p)
+      return 0;
     type = set_packet_type(fd, p);
     put_packet(fd, p);
     
