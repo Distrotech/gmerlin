@@ -414,7 +414,7 @@ typedef enum
 /* Stream could not get exact compression info from the
  * demuxer
  */
-#define STREAM_NEED_EXACT_COMPRESSION (1<<12)
+#define STREAM_NEED_EXACT_COMPRESSION (1<<21)
 
 #define STREAM_SET_SYNC(s, t)  (s)->sync_time = t
 #define STREAM_GET_SYNC(s)     (s)->sync_time

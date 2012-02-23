@@ -227,8 +227,8 @@ int bgav_mpv_sequence_display_extension_parse(const bgav_options_t * opt,
   ret->display_width = (buffer[1] << 6) | (buffer[2] >> 2);
   ret->display_height = ((buffer[2]& 1 ) << 13) | (buffer[3] << 5) | (buffer[4] >> 3);
 
-  fprintf(stderr, "Got display width: %d %d\n",
-          ret->display_width, ret->display_height);
+  //  fprintf(stderr, "Got display width: %d %d\n",
+  //          ret->display_width, ret->display_height);
   
   return num;
   }

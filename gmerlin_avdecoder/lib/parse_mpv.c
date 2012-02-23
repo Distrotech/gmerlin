@@ -137,7 +137,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           if(priv->have_sh && !priv->sh.has_dpy_ext)
             {
             priv->state = MPEG_HAS_SEQUENCE_DISPLAY_EXT_CODE;
-            fprintf(stderr, "Got sequence display extenstion\n");
+            // fprintf(stderr, "Got sequence display extenstion\n");
             }
           else
             {

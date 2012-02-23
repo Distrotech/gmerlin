@@ -35,17 +35,14 @@
 
 #define LOG_DOMAIN "video_libmpeg2"
 
-// #define DUMP_TIMESTAMS
-
-// #define DUMP_SEQUENCE_HEADER
-
-// #define DUMP_PACKETS
+//#define DUMP_SEQUENCE_HEADER
+//#define DUMP_PACKETS
 
 static const char picture_types[] = { "?IPB????" };
 
 /* Debug function */
 #ifdef DUMP_SEQUENCE_HEADER
-void dump_sequence_header(const mpeg2_sequence_t * s)
+static void dump_sequence_header(const mpeg2_sequence_t * s)
   {
   bgav_dprintf("Sequence header:\n");
   bgav_dprintf("size:         %d x %d\n", s->width, s->height);
@@ -127,9 +124,6 @@ static int get_data(bgav_stream_t*s)
     else
       return 0;
     }
-#ifdef DUMP_TIMESTAMS
-  bgav_dprintf("Packet timestamp: %"PRId64"\n", priv->p->pts);
-#endif
 
   if(priv->flags & FLAG_NEED_SEQUENCE)
     {
@@ -146,7 +140,7 @@ static int get_data(bgav_stream_t*s)
     }
   
   priv->p = bgav_stream_get_packet_read(s);
-
+  
 #ifdef DUMP_PACKETS
   fprintf(stderr, "Got packet ");
   bgav_packet_dump(priv->p);
