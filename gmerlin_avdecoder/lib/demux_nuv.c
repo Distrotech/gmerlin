@@ -119,7 +119,6 @@ static int open_nuv(bgav_demuxer_context_t * ctx)
     vs->data.video.format.pixel_height = 10000;
     vs->data.video.format.timescale      = 1000;
     vs->data.video.format.frame_duration = 1000.0 / fps;
-    vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
     vs->flags |= STREAM_NO_DURATIONS;
 
     if(interlaced)

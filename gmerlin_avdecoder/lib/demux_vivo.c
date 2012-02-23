@@ -459,7 +459,6 @@ static int open_vivo(bgav_demuxer_context_t * ctx)
   /* Set up video stream */
   
   video_stream = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  video_stream->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   video_stream->flags |= STREAM_NO_DURATIONS;
 
   if(priv->header.version == 1)

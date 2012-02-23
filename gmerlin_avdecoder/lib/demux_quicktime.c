@@ -1137,7 +1137,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       else
         {
         bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-        bg_vs->data.video.frametime_mode = BGAV_FRAMETIME_PACKET;
         }
       bg_vs->data.video.pal.size = desc->format.video.ctab_size;
       if(bg_vs->data.video.pal.size)

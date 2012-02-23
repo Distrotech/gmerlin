@@ -1396,7 +1396,6 @@ static int init_h264(bgav_stream_t * s)
       }
     }
   /* TODO: Get packetization-mode */
-  s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
   s->data.video.format.timescale = s->timescale;
   s->flags |= STREAM_NO_DURATIONS;

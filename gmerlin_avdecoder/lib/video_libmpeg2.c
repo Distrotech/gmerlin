@@ -273,7 +273,6 @@ static void get_format(bgav_stream_t*s,
       {
       ret->timescale /= 2;
       ret->frame_duration /= 2;
-      s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
       }
     }
 #ifdef DUMP_SEQUENCE_HEADER

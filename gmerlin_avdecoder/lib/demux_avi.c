@@ -507,7 +507,6 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
     else /* If we have zero size, the framerate will be nonconstant */
       {
       stream->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-      stream->data.video.frametime_mode = BGAV_FRAMETIME_PACKET;
       }
     stream->duration += stream->data.video.format.frame_duration;
     }

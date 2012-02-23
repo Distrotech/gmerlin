@@ -438,7 +438,6 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
       s = bgav_track_add_video_stream(track, opt);
       s->index_mode = INDEX_MODE_MPEG;
       s->fourcc = st->fourcc;
-      s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
       }
     /* ISO/IEC 13818-1 PES packets containing private data */
     else if(pmts->streams[i].type == 0x06)

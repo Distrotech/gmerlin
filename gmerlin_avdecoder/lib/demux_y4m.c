@@ -146,7 +146,6 @@ static int open_y4m(bgav_demuxer_context_t * ctx)
       s->data.video.format.timescale *= 2;
       s->data.video.format.frame_duration *= 2;
       s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-      s->data.video.frametime_mode = BGAV_FRAMETIME_PACKET;
       break;
     }
   

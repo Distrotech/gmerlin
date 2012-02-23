@@ -254,8 +254,6 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
-
-  s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
   
   ctx->tt->cur->duration = GAVL_TIME_UNDEFINED;
   ctx->stream_description = bgav_sprintf("Elementary video stream");

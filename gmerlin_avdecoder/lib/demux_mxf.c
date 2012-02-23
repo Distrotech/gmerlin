@@ -80,12 +80,9 @@ static void set_pts(bgav_stream_t * s, stream_priv_t * sp,
   {
   if(s->type == BGAV_STREAM_VIDEO)
     {
-    if(s->data.video.frametime_mode != BGAV_FRAMETIME_CODEC)
-      {
-      p->pts = sp->pts_counter;
-      p->duration = s->data.video.format.frame_duration;
-      sp->pts_counter += p->duration;
-      }
+    p->pts = sp->pts_counter;
+    p->duration = s->data.video.format.frame_duration;
+    sp->pts_counter += p->duration;
     if(sp->frame_size)
       PACKET_SET_KEYFRAME(p);
     }
@@ -411,13 +408,11 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
      (s->fourcc == BGAV_MK_FOURCC('m','x','4','n')) ||
      (s->fourcc == BGAV_MK_FOURCC('m','x','3','n')))
     {
-    s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
     s->index_mode = INDEX_MODE_MPEG;
     s->flags |= STREAM_PARSE_FRAME;
     }
   else if(s->fourcc == BGAV_MK_FOURCC('m','p','4','v'))
     {
-    s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
     s->index_mode = INDEX_MODE_MPEG;
     s->flags |= STREAM_PARSE_FULL; 
     }

@@ -151,7 +151,6 @@ static void add_video_stream(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * vs = NULL;
   vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   vs->flags |= STREAM_NO_DURATIONS;
 
   vs->stream_id = VIDEO_ID;

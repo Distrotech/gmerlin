@@ -127,7 +127,6 @@ static int open_smjpeg(bgav_demuxer_context_t * ctx)
         s->data.video.format.pixel_height = 1;
         s->data.video.format.timescale = 1000;
         s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-        s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
         s->flags |= STREAM_NO_DURATIONS;
 
         if(!bgav_input_read_fourcc(ctx->input, &fourcc))

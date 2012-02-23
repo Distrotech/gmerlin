@@ -164,7 +164,6 @@ static int open_tiertex(bgav_demuxer_context_t * ctx)
   s->data.video.format.timescale = SEQ_FRAME_RATE;
   s->data.video.format.frame_duration = 1;
   s->stream_id = VIDEO_ID;
-  s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
   s->flags |= STREAM_NO_DURATIONS;
 

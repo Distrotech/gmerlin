@@ -1011,7 +1011,6 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         //        bgav_hexdump(priv->ptr, 16, 16);
         
         s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
-        s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
         s->index_mode = INDEX_MODE_MPEG;
 
         /* Try to distinguish between MPEG-1/2 and H.264 */
