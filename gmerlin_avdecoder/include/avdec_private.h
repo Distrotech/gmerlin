@@ -386,7 +386,6 @@ typedef enum
 #define STREAM_PARSE_FRAME        (1<<2) /* Frame aligned but no keyframes */
 #define STREAM_B_FRAMES           (1<<3)
 #define STREAM_WRONG_B_TIMESTAMPS (1<<4)
-#define STREAM_HEADER_FROM_PARSER (1<<5)
 #define STREAM_STILL_MODE         (1<<6)  /* Still image mode          */
 #define STREAM_STILL_SHOWN        (1<<7)  /* Still image already shown */
 #define STREAM_EOF_D              (1<<8)  /* End of file at demuxer    */
