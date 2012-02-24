@@ -459,13 +459,10 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     info->global_header_len = s->ext_size;
     }
   
-  if(need_bitrate)
-    {
-    if(s->container_bitrate)
-      info->bitrate = s->container_bitrate;
-    else
-      info->bitrate = s->codec_bitrate;
-    }
+  if(s->codec_bitrate)
+    info->bitrate = s->codec_bitrate;
+  else if(s->container_bitrate)
+    info->bitrate = s->container_bitrate;
   return 1;
   }
 

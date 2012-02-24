@@ -361,8 +361,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           (parser->format->image_width + 15) & ~15;
         parser->format->frame_height  =
           (parser->format->image_height + 15) & ~15;
-
         
+        parser->s->codec_bitrate = priv->sh.bitrate * 400;
         
         priv->have_sh = 1;
         }
@@ -406,6 +406,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         
         if(priv->sh.ext.low_delay)
           parser->s->flags &= ~STREAM_B_FRAMES;
+
+        parser->s->codec_bitrate += (priv->sh.ext.bitrate_ext << 18) * 400;
         
         parser->pos += len;
         
