@@ -45,6 +45,9 @@ struct bgav_packet_timer_s
   
   int num_b_frames;
   int num_ip_frames;
+
+  int num_b_frames_total;
+  int num_ip_frames_total;
   
   //  void (*insert_packet)(bgav_packet_timer_t * pt);
   //  void (*flush)(bgav_packet_timer_t * pt);
@@ -122,6 +125,45 @@ static void set_pts(bgav_packet_timer_t * pt,
   pt->current_pts += p->duration;
   }
 
+static void get_first_indices(bgav_packet_timer_t * pt,
+                              int * ip1, int * b1)
+  {
+  int i;
+  *ip1 = -1;
+  *b   = -1;
+
+  for(i = 0; i < pt->num_packets; i++)
+    {
+    if(PACKET_GET_CODING_TYPE(pt->packets) == BGAV_CODING_TYPE_B)
+      {
+      if(*b < 0)
+        *b = i;
+      }
+    else
+      {
+      if(*ip1 < 0)
+        *ip1 = i;
+      }
+    if((*ip1 >= 0) && (ip2 >= 0))
+      return;
+    }
+  }
+
+static void get_next_ip(bgav_packet_timer_t * pt,
+                        int ip1, int * ip2)
+  {
+  *ip2 = -1;
+  for(i = ip1 + 1; i < ip->num_packets; i++)
+    {
+    if(PACKET_GET_CODING_TYPE(pt->packets) != BGAV_CODING_TYPE_B)
+      {
+      *ip2 = i;
+      return;
+      }
+    }
+  }
+
+
 /* These are the actual worker functions */
 
 /*
@@ -158,6 +200,20 @@ next_packet_duration_from_dts(bgav_packet_timer_t * pt)
 static int
 next_packet_duration_from_pts(bgav_packet_timer_t * pt)
   {
+  int ip1, ip2, b;
+  
+  if(pt->num_packets && (pt->packets[0].duration > 0))
+    return 1;
+  
+  while(pt->num_packets < 3)
+    {
+    if(!insert_packet(pt))
+      break;
+    }
+
+  get_first_indices(pt, &ip1, &b1);
+  
+  
   return 0;
   }
 
