@@ -1323,8 +1323,10 @@ int bg_ffmpeg_add_audio_stream_compressed(void * priv, const char * language,
   st->stream->codec->time_base.num = 1;
   st->stream->codec->time_base.den = st->format.samplerate;
   if(st->ci->bitrate)
+    {
     st->stream->codec->bit_rate = st->ci->bitrate;
-  
+    st->stream->codec->rc_max_rate = st->ci->bitrate;
+    }
   return ret;
   }
 
@@ -1345,8 +1347,11 @@ int bg_ffmpeg_add_video_stream_compressed(void * priv,
     f->need_pts_offset = 1;
 
   if(st->ci->bitrate)
+    {
+    st->stream->codec->rc_max_rate = st->ci->bitrate;
     st->stream->codec->bit_rate = st->ci->bitrate;
-
+    }
+  
   return ret;
   }
 
