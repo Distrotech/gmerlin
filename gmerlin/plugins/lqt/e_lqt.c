@@ -92,6 +92,8 @@ typedef struct
     uint8_t ** rows;
     lqt_codec_info_t ** codec_info;
     bg_encoder_framerate_t fr;
+    int64_t frames_written;
+    int64_t pts_offset;
     } * video_streams;
   
   struct
@@ -435,6 +437,9 @@ static int write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
   gavl_time_t test_time;
   e_lqt_t * e = data;
 
+  if(!e->audio_streams[stream].samples_written && frame->timestamp)
+    lqt_set_audio_pts_offset(e->file, stream, frame->timestamp);
+  
   e->audio_streams[stream].samples_written += frame->valid_samples;
   
   test_time = gavl_time_unscale(e->audio_streams[stream].format.samplerate,
@@ -447,7 +452,7 @@ static int write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
   }
 
 static int write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
-                                  int stream)
+                                 int stream)
   {
   gavl_time_t test_time;
   e_lqt_t * e = data;
@@ -456,9 +461,19 @@ static int write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
                                 frame->timestamp);
   if(e->duration < test_time)
     e->duration = test_time;
+
+  if(!e->video_streams[stream].frames_written)
+    {
+    e->video_streams[stream].pts_offset = frame->timestamp;
+    if(e->video_streams[stream].pts_offset)
+      lqt_set_video_pts_offset(e->file, stream,
+                               e->video_streams[stream].pts_offset);
+    }
+  e->video_streams[stream].frames_written++;
   
   return !lqt_gavl_encode_video(e->file, stream, frame,
-                                e->video_streams[stream].rows);
+                                e->video_streams[stream].rows,
+                                e->video_streams[stream].pts_offset);
   }
 
 static int write_subtitle_text_lqt(void * data,const char * text,

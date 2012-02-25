@@ -160,7 +160,7 @@ void lqt_gavl_set_video_codec(quicktime_t * file,
  */
 
 int lqt_gavl_encode_video(quicktime_t * file, int track,
-                           gavl_video_frame_t * frame, uint8_t ** rows);
+                          gavl_video_frame_t * frame, uint8_t ** rows, int64_t pts_offset);
 
 /** \ingroup encode
  *  \brief Encode a video frame

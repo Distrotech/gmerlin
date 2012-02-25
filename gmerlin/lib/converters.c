@@ -67,6 +67,7 @@ bg_audio_converter_create(const gavl_audio_options_t * opt)
   ret = calloc(1, sizeof(*ret));
   ret->opt = opt;
   ret->cnv = gavl_audio_converter_create();
+  ret->out_pts = TIME_UNDEFINED;
   return ret;
   }
 
@@ -210,6 +211,7 @@ int bg_audio_converter_init(bg_audio_converter_t * cnv,
     
     cnv->last_samples = 0;
     }
+  cnv->out_pts = TIME_UNDEFINED;
   return result;
   }
 

@@ -375,7 +375,7 @@ void lqt_gavl_add_video_track(quicktime_t * file,
   }
 
 int lqt_gavl_encode_video(quicktime_t * file, int track,
-                           gavl_video_frame_t * frame, uint8_t ** rows)
+                          gavl_video_frame_t * frame, uint8_t ** rows, int64_t pts_offset)
   {
   int i, height;
   int result;
@@ -402,11 +402,11 @@ int lqt_gavl_encode_video(quicktime_t * file, int track,
     lqt_set_row_span_uv(file, track, frame->strides[1]);
 #if LQT_BUILD >= LQT_MAKE_BUILD(1,1,2)
     if(frame->duration > 0)
-      result = lqt_encode_video_d(file, frame->planes, track, frame->timestamp,
+      result = lqt_encode_video_d(file, frame->planes, track, frame->timestamp - pts_offset,
                                   frame->duration);
     else
 #endif
-      result = lqt_encode_video(file, frame->planes, track, frame->timestamp);
+      result = lqt_encode_video(file, frame->planes, track, frame->timestamp - pts_offset);
 
     }
   else
@@ -419,10 +419,11 @@ int lqt_gavl_encode_video(quicktime_t * file, int track,
       }
 #if LQT_BUILD >= LQT_MAKE_BUILD(1,1,2)
     if(frame->duration > 0)
-      result = lqt_encode_video_d(file, rows, track, frame->timestamp, frame->duration);
+      result = lqt_encode_video_d(file, rows, track, frame->timestamp - pts_offset,
+                                  frame->duration);
     else
 #endif
-      result = lqt_encode_video(file, rows, track, frame->timestamp);
+      result = lqt_encode_video(file, rows, track, frame->timestamp - pts_offset);
     }
   return result;
   }

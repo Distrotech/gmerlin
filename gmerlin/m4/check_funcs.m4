@@ -9,7 +9,7 @@ AH_TEMPLATE([HAVE_LIBAVCODEC],
 
 have_avcodec=false
 
-AVCODEC_BUILD="3345152"
+AVCODEC_BUILD="3412992"
 
 AC_ARG_ENABLE(libavcodec,
 [AC_HELP_STRING([--disable-libavcodec],[Disable libavcodec (default: autodetect)])],
@@ -48,7 +48,7 @@ AH_TEMPLATE([AVFORMAT_HEADER], [libavformat header])
 
 have_avformat=false
 
-AVFORMAT_BUILD="3278080"
+AVFORMAT_BUILD="3415808"
 
 AC_ARG_ENABLE(libavformat,
 [AC_HELP_STRING([--disable-libavformat],[Disable libavformat (default: autodetect)])],
@@ -130,6 +130,13 @@ fi
 
 if test $found_header = "false"; then
 have_libpostproc=false
+else
+CFLAGS="-DPOSTPROC_HEADER=$POSTPROC_HEADER $CFLAGS"
+AC_CHECK_TYPES([pp_context_t, pp_context, pp_mode_t, pp_mode], [], [], [[
+#ifdef POSTPROC_HEADER
+#include POSTPROC_HEADER
+#endif
+]])
 fi
 
 CFLAGS="$CFLAGS_save"
@@ -1793,7 +1800,8 @@ AC_ARG_ENABLE(vdpau,
 esac],[test_vdpau=true])
 
 if test x$test_vdpau = xtrue; then
-   
+if test x$have_x = xtrue; then
+ 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
@@ -1820,6 +1828,7 @@ esac
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
+fi
 fi
 
 AC_SUBST(VDPAU_CFLAGS)

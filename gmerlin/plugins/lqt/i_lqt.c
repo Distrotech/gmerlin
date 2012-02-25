@@ -77,6 +77,7 @@ typedef struct
   struct
     {
     int quicktime_index;
+    int64_t pts_offset;
     } * audio_streams;
   
   struct
@@ -84,11 +85,13 @@ typedef struct
     int quicktime_index;
     unsigned char ** rows;
     int has_timecodes;
+    int64_t pts_offset;
     } * video_streams;
   struct
     {
     int quicktime_index;
     int timescale;
+    int64_t pts_offset;
     } * subtitle_streams;
   } i_lqt_t;
 
@@ -190,6 +193,9 @@ static int open_lqt(void * data, const char * arg)
         {
         e->audio_streams[e->track_info.num_audio_streams].quicktime_index = i;
 
+        e->audio_streams[e->track_info.num_audio_streams].pts_offset =
+          lqt_get_audio_pts_offset(e->file, i);
+        
         codec_info = lqt_audio_codec_from_file(e->file, i);
         e->track_info.audio_streams[e->track_info.num_audio_streams].description =
           bg_strdup(e->track_info.audio_streams[e->track_info.num_audio_streams].description,
@@ -224,11 +230,9 @@ static int open_lqt(void * data, const char * arg)
 
                 
         e->video_streams[e->track_info.num_video_streams].rows = lqt_gavl_rows_create(e->file, i);
-        
+        e->video_streams[e->track_info.num_video_streams].pts_offset =
+          lqt_get_video_pts_offset(e->file, i);
         e->track_info.num_video_streams++;
-
-        
-
         }
       }
     }
@@ -255,6 +259,9 @@ static int open_lqt(void * data, const char * arg)
         e->subtitle_streams[e->track_info.num_subtitle_streams].quicktime_index = i;
         e->subtitle_streams[e->track_info.num_subtitle_streams].timescale =
           lqt_text_time_scale(e->file, i);
+
+        e->subtitle_streams[e->track_info.num_subtitle_streams].pts_offset =
+          lqt_get_text_pts_offset(e->file, i);
         
         lqt_get_text_language(e->file, i,
                               e->track_info.subtitle_streams[e->track_info.num_subtitle_streams].language);
@@ -299,9 +306,11 @@ int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
                           int num_samples)
   {
   i_lqt_t * e = data;
-
+  
   lqt_gavl_decode_audio(e->file, e->audio_streams[stream].quicktime_index,
                         f, num_samples);
+  if(f->valid_samples)
+    f->timestamp += e->audio_streams[stream].pts_offset;
   return f->valid_samples;
   }
 
@@ -317,8 +326,13 @@ static int read_subtitle_text_lqt(void * priv,
                                   int64_t * duration, int stream)
   {
   i_lqt_t * e = priv;
-  return lqt_read_text(e->file, stream, text, text_alloc,
-                       start_time, duration);
+  int ret =  lqt_read_text(e->file,
+                           e->subtitle_streams[stream].quicktime_index,
+                           text, text_alloc,
+                           start_time, duration);
+  if(ret)
+    *start_time += e->subtitle_streams[stream].pts_offset;
+  return ret;
   }
 
 /* Read one video frame (returns FALSE on EOF) */
@@ -326,9 +340,12 @@ static
 int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
   {
   i_lqt_t * e = data;
-  return lqt_gavl_decode_video(e->file,
-                               e->video_streams[stream].quicktime_index,
-                               f, e->video_streams[stream].rows);
+  int ret = lqt_gavl_decode_video(e->file,
+                                  e->video_streams[stream].quicktime_index,
+                                  f, e->video_streams[stream].rows);
+  if(ret)
+    f->timestamp += e->video_streams[stream].pts_offset;
+  return ret;
   }
 
 

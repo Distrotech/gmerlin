@@ -48,6 +48,7 @@
 #include <gmerlin/subprocess.h>
 
 // #define DUMP_VIDEO_TIMESTAMPS
+// #define DUMP_AUDIO_TIMESTAMPS
 
 #define LOG_DOMAIN "transcoder"
 
@@ -766,7 +767,7 @@ static int decode_video_frame(void * priv, gavl_video_frame_t * f, int stream)
     return 0;
 
 #ifdef DUMP_VIDEO_TIMESTAMPS
-  bg_debug("Input timestamp: %"PRId64" Offset: %"PRId64"\n",
+  bg_debug("Input timestamp (video): %"PRId64" Offset: %"PRId64"\n",
            f->timestamp, s->start_time_scaled);
 #endif
   
@@ -786,7 +787,6 @@ static int decode_video_frame(void * priv, gavl_video_frame_t * f, int stream)
     }
   return 1;
   }
-
 
 static void init_audio_stream(audio_stream_t * ret,
                               bg_transcoder_track_audio_t * s,
@@ -1298,10 +1298,15 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
         }
       }
     if(frame)
+      {
+#ifdef DUMP_AUDIO_TIMESTAMPS
+      bg_debug("Output timestamp (audio): %"PRId64"\n",
+               frame->timestamp);
+#endif
       ret = bg_encoder_write_audio_frame(t->enc,
                                          frame,
                                          s->com.out_index);
-    
+      }
 
     s->com.time = gavl_samples_to_time(s->out_format.samplerate,
                                        s->samples_read);
@@ -1619,7 +1624,7 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
       }
 
 #ifdef DUMP_VIDEO_TIMESTAMPS
-    bg_debug("Output timestamp: %"PRId64"\n", s->frame->timestamp);
+    bg_debug("Output timestamp (video): %"PRId64"\n", s->frame->timestamp);
 #endif
   
     ret = bg_encoder_write_video_frame(t->enc,
