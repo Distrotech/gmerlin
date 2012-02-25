@@ -141,3 +141,13 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
   .help_string = TRS("Set postprocessing (to remove compression artifacts). 0 means no postprocessing, 1 means maximum postprocessing.") \
   }
 
+#define PARAM_THREADS \
+  {                    \
+  .name = "threads",    \
+  .long_name = TRS("Number of decoding threads"),         \
+  .type = BG_PARAMETER_INT,           \
+  .val_default = { .val_i = 1 },              \
+  .val_min =     { .val_i = 1 },              \
+  .val_max = { .val_i = 1024 },              \
+  .help_string = TRS("Set the number of threads used by Video codecs") \
+  }

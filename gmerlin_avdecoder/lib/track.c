@@ -278,7 +278,7 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
       }
     
     if((!video_format->image_width || !video_format->image_height ||
-        !video_format->timescale || !video_format->frame_duration) &&
+        !video_format->timescale) &&
        (video_stream->action != BGAV_STREAM_PARSE))
       {
       bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,

@@ -1197,8 +1197,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         {
         charset = bgav_qt_get_charset(trak->mdia.mdhd.language);
         
-        /* TODO: Quicktime text subtitles can also be chapter tracks!! */
-        
         bg_ss =
           bgav_track_add_subtitle_stream(track, ctx->opt, 1, charset);
 

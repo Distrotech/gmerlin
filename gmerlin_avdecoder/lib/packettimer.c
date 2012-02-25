@@ -197,7 +197,8 @@ static int set_duration_from_dts(bgav_packet_timer_t * pt, int index)
 static int
 next_packet_duration_from_dts(bgav_packet_timer_t * pt)
   {
-  if(pt->num_packets && ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0])))
+  if(pt->num_packets &&
+     ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0])))
     return 1;
   
   while(pt->num_packets < 2)
@@ -242,18 +243,22 @@ static bgav_packet_t * insert_packet_duration_from_pts(bgav_packet_timer_t * pt)
   }
 
 /*
- *   Set duration of this_index from the pts difference of this_index and next_index
- *   If next_index < 0, we have EOF
+ *  Set duration of this_index from the pts difference
+ *  of this_index and next_index
+ *  If next_index < 0, we have EOF
  */ 
 
-static int set_duration_from_pts(bgav_packet_timer_t * pt, int this_index, int next_index)
+static int
+set_duration_from_pts(bgav_packet_timer_t * pt,
+                      int this_index, int next_index)
   {
   if(next_index < 0)
     {
     pt->packets[this_index]->duration = pt->last_duration;
     return 1;
     }
-  pt->packets[this_index]->duration = pt->packets[next_index]->pts - pt->packets[this_index]->pts;
+  pt->packets[this_index]->duration =
+    pt->packets[next_index]->pts - pt->packets[this_index]->pts;
   pt->last_duration = pt->packets[this_index]->duration;
   return 1;
   }
@@ -266,7 +271,8 @@ next_packet_duration_from_pts(bgav_packet_timer_t * pt)
   bgav_packet_t * p;
   int i;
   
-  if(pt->num_packets && ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0])))
+  if(pt->num_packets &&
+     ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0])))
     return 1;
   
   while(pt->num_packets < 3)

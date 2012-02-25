@@ -900,8 +900,11 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   //  if(s->data.video.palette_size)
 #if LIBAVCODEC_VERSION_MAJOR < 54
-    priv->ctx->palctrl = &priv->palette;
+  priv->ctx->palctrl = &priv->palette;
 #endif
+
+  /* Threads */
+  priv->ctx->thread_count = s->opt->threads;
   
   //  bgav_hexdump(s->ext_data, s->ext_size, 16);
   

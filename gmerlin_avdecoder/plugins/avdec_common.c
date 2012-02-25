@@ -595,6 +595,10 @@ bg_avdec_set_parameter(void * p, const char * name,
     {
     bgav_options_set_vdpau(avdec->opt, val->val_i);
     }
+  else if(!strcmp(name, "threads"))
+    {
+    bgav_options_set_threads(avdec->opt, val->val_i);
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)

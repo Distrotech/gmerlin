@@ -373,7 +373,12 @@ static void init_stream_common(mkv_t * m,
   const codec_info_t * info = NULL;
   
   s->priv = track;
+  s->stream_id = track->TrackNumber;
+  s->timescale = 1000000000 / m->segment_info.TimecodeScale;
 
+  if(!codecs)
+    return;
+  
   while(codecs[i].id)
     {
     if(((codecs[i].flags & CODEC_FLAG_INCOMPLETE) &&
@@ -400,8 +405,6 @@ static void init_stream_common(mkv_t * m,
     else if(track->CodecPrivateLen)
       bgav_stream_set_extradata(s, track->CodecPrivate, track->CodecPrivateLen);
     }
-  s->stream_id = track->TrackNumber;
-  s->timescale = 1000000000 / m->segment_info.TimecodeScale;
   }
 
 static int init_audio(bgav_demuxer_context_t * ctx,
@@ -489,6 +492,37 @@ static int init_video(bgav_demuxer_context_t * ctx,
   s->flags |= STREAM_NO_DURATIONS;
   
   return 1;
+  }
+
+static int init_subtitle(bgav_demuxer_context_t * ctx,
+                         bgav_mkv_track_t * track)
+  {
+  bgav_stream_t * s;
+  mkv_t * m = ctx->priv;
+  
+  //  fprintf(stderr, "Init subtitles\n");
+  //  bgav_mkv_track_dump(track);
+
+  if(!strcmp(track->CodecID, "S_TEXT/UTF8"))
+    {
+    // fprintf(stderr, "UTF-8 subtitles\n");
+    s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 1, "UTF-8");
+    init_stream_common(m, s, track, NULL);
+    s->description = bgav_sprintf("SRT");
+    if(track->Language)
+      memcpy(s->language, track->Language, 3);
+    else
+      memcpy(s->language, "und", 3);
+    
+    return 1;
+    }
+  else
+    {
+    fprintf(stderr, "Subtitle format %s not suppported yet\n",
+            track->CodecID);
+    }
+  
+  return 0;
   }
 
 #define MAX_HEADER_LEN 16
@@ -614,23 +648,26 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         break;
       case MKV_TRACK_COMPLEX:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Complex tracks not supported yet\n");
+                 "Complex tracks not supported yet");
         break;
       case MKV_TRACK_LOGO:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Logo tracks not supported yet\n");
+                 "Logo tracks not supported yet");
         break;
       case MKV_TRACK_SUBTITLE:
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Subtitle tracks not supported yet\n");
+        if(!init_subtitle(ctx, &p->tracks[i]))
+          return 0;
+        
+        //        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+        //                 "Subtitle tracks not supported yet");
         break;
       case MKV_TRACK_BUTTONS:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Button tracks not supported yet\n");
+                 "Button tracks not supported yet");
         break;
       case MKV_TRACK_CONTROL:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Control tracks not supported yet\n");
+                 "Control tracks not supported yet");
         break;
       }
     }
@@ -785,9 +822,6 @@ static int process_block(bgav_demuxer_context_t * ctx,
   t = s->priv;
   if(bg)
     {
-    // if(s->type == BGAV_STREAM_VIDEO)
-    //  fprintf(stderr, "Reference blocks: %d\n", bg->num_reference_blocks);
-    
     if(!bg->num_reference_blocks)
       keyframe = 1;
     }
@@ -806,6 +840,13 @@ static int process_block(bgav_demuxer_context_t * ctx,
       p->data_size = 0;
       append_packet_data(s, p, b->data, b->data_size);
       setup_packet(m, s, p, pts, keyframe, 0);
+
+      if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
+        {
+        if(bg && bg->BlockDuration)
+          p->duration = bg->BlockDuration;
+        }
+      
       bgav_stream_done_packet_write(s, p);
       break;
     case MKV_LACING_EBML:

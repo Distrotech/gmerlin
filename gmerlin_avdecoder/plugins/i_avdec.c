@@ -345,6 +345,7 @@ supported encodings."),
       .val_default = { .val_i = 20 },
       .help_string = TRS("Set the maximum total size of the cache directory."),
     },
+    PARAM_THREADS, 
     {
       .name =        "dv_datetime",
       .long_name =   TRS("Export date and time as timecodes for DV"),
