@@ -233,10 +233,6 @@ static int writes_compressed_video_lqt(void * data,
                                        const gavl_compression_info_t * ci)
   {
   e_lqt_t * e = data;
-
-  fprintf(stderr, "writes_compressed_video_lqt\n");
-  gavl_video_format_dump(format);
-
   return lqt_gavl_writes_compressed_video(e->file_type, format, ci);
   }
 
@@ -812,12 +808,26 @@ static void set_video_parameter_lqt(void * data, int stream, const char * name,
 static int write_video_packet_lqt(void * data, gavl_packet_t * p, int stream)
   {
   e_lqt_t * e = data;
+
+  if(!e->video_streams[stream].frames_written)
+    {
+    e->video_streams[stream].pts_offset = p->pts;
+    if(e->video_streams[stream].pts_offset)
+      lqt_set_video_pts_offset(e->file, stream,
+                               e->video_streams[stream].pts_offset);
+    }
+  e->video_streams[stream].frames_written++;
+  
   return lqt_gavl_write_video_packet(e->file, stream, p);
   }
 
 static int write_audio_packet_lqt(void * data, gavl_packet_t * p, int stream)
   {
   e_lqt_t * e = data;
+
+  if(!e->audio_streams[stream].samples_written && p->pts)
+    lqt_set_audio_pts_offset(e->file, stream, p->pts);
+  e->audio_streams[stream].samples_written += p->duration;
   return lqt_gavl_write_audio_packet(e->file, stream, p);
   }
 

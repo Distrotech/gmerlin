@@ -489,14 +489,22 @@ static int get_video_compression_info_lqt(void * data,
 
 static int read_audio_packet_lqt(void * data, int stream, gavl_packet_t * p)
   {
+  int ret;
   i_lqt_t * e = data;
-  return lqt_gavl_read_audio_packet(e->file, stream, p);
+  ret = lqt_gavl_read_audio_packet(e->file, stream, p);
+  if(ret)
+    p->pts += e->audio_streams[stream].pts_offset;
+  return ret;
   }
 
 static int read_video_packet_lqt(void * data, int stream, gavl_packet_t * p)
   {
+  int ret;
   i_lqt_t * e = data;
-  return lqt_gavl_read_video_packet(e->file, stream, p);
+  ret = lqt_gavl_read_video_packet(e->file, stream, p);
+  if(ret)
+    p->pts += e->video_streams[stream].pts_offset;
+  return ret;
   }
 
 static int start_lqt(void * data)
