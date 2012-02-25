@@ -130,6 +130,13 @@ fi
 
 if test $found_header = "false"; then
 have_libpostproc=false
+else
+CFLAGS="-DPOSTPROC_HEADER=$POSTPROC_HEADER $CFLAGS"
+AC_CHECK_TYPES([pp_context_t, pp_context, pp_mode_t, pp_mode], [], [], [[
+#ifdef POSTPROC_HEADER
+#include POSTPROC_HEADER
+#endif
+]])
 fi
 
 CFLAGS="$CFLAGS_save"
@@ -577,11 +584,9 @@ esac],[test_libtiff=true])
 
 if test x$test_libtiff = xtrue; then
    
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 LIBS="$LIBS -ltiff"
-CFLAGS="$CFLAGS"
    
 AC_MSG_CHECKING(for libtiff)
 AC_TRY_LINK([#include <tiffio.h>],
@@ -596,11 +601,9 @@ AC_TRY_LINK([#include <tiffio.h>],
 case $have_libtiff in
   true) AC_DEFINE(HAVE_LIBTIFF)
         AC_MSG_RESULT(yes)
-        TIFF_LIBS=$LIBS;
-        TIFF_CFLAGS=$CFLAGS ;;
+        TIFF_LIBS=$LIBS;;
   false) AC_MSG_RESULT(no); TIFF_LIBS=""; TIFF_CFLAGS="";;
 esac
-CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
 fi
@@ -755,11 +758,9 @@ esac],[test_libpng=true])
 
 if test x$test_libpng = xtrue; then
    
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 LIBS="$LIBS -lpng -lm -lz"
-CFLAGS="$CFLAGS"
  
 AC_MSG_CHECKING(for libpng)
 AC_TRY_LINK([#include <png.h>],
@@ -772,11 +773,9 @@ AC_TRY_LINK([#include <png.h>],
 case $have_libpng in
   true) AC_DEFINE(HAVE_LIBPNG)
         AC_MSG_RESULT(yes)
-        PNG_LIBS=$LIBS;
-        PNG_CFLAGS=$CFLAGS ;;
+        PNG_LIBS=$LIBS;;
   false) AC_MSG_RESULT(no); PNG_LIBS=""; PNG_CFLAGS="";;
 esac
-CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
 fi
