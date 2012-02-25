@@ -776,7 +776,7 @@ typedef struct
   struct
     {
     uint32_t duration;
-    uint32_t media_time;
+    int32_t media_time;
     uint32_t media_rate;
     } * table;
   } qt_elst_t;
@@ -1097,4 +1097,4 @@ const char * bgav_qt_get_charset(int mac_code);
 
 void bgav_qt_init_timecodes(bgav_input_context_t * ctx,
                             bgav_stream_t * s,
-                            qt_trak_t * trak);
+                            qt_trak_t * trak, int64_t pts_offset);

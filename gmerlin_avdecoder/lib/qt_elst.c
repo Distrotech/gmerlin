@@ -53,7 +53,7 @@ int bgav_qt_elst_read(qt_atom_header_t * h, bgav_input_context_t * input,
   for(i = 0; i < ret->num_entries; i++)
     {
     if(!bgav_input_read_32_be(input, &ret->table[i].duration) ||
-       !bgav_input_read_32_be(input, &ret->table[i].media_time) ||
+       !bgav_input_read_32_be(input, (uint32_t*)&ret->table[i].media_time) ||
        !bgav_input_read_32_be(input, &ret->table[i].media_rate))
       return 0;
     }

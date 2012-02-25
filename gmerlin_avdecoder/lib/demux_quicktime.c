@@ -100,8 +100,9 @@ typedef struct
 
 /* Intitialize everything */
 
-static void stream_init(stream_priv_t * s, qt_trak_t * trak)
+static void stream_init(bgav_stream_t * bgav_s, qt_trak_t * trak, int moov_scale)
   {
+  stream_priv_t * s = bgav_s->priv;
   s->trak = trak;
   s->stbl = &trak->mdia.minf.stbl;
 
@@ -109,15 +110,21 @@ static void stream_init(stream_priv_t * s, qt_trak_t * trak)
   s->ctts_pos = (s->stbl->has_ctts) ? 0 : -1;
   /* stsz_pos is -1 if all samples have the same size */
   s->stsz_pos = (s->stbl->stsz.sample_size) ? -1 : 0;
-  
-  if((trak->edts.elst.num_entries > 0) &&
-     (trak->edts.elst.table[0].media_time != 0))
-    {
-    fprintf(stderr, "Got start time: %d %d\n",
-            trak->edts.elst.table[0].media_time, trak->mdia.mdhd.time_scale);
-    }
-  }
 
+  /* Detect negative first timestamp */
+  if((trak->edts.elst.num_entries == 1) &&
+     (trak->edts.elst.table[0].media_time != 0))
+    s->first_pts = -trak->edts.elst.table[0].media_time;
+
+  /* Detect positive first timestamp */
+  else if((trak->edts.elst.num_entries == 2) &&
+          (trak->edts.elst.table[0].media_time == -1))
+    s->first_pts = gavl_time_rescale(moov_scale, trak->mdia.mdhd.time_scale, 
+                                     trak->edts.elst.table[0].duration);
+  
+  if(s->first_pts)
+    bgav_s->flags |= STREAM_NEED_START_TIME;
+  }
 
 static int probe_quicktime(bgav_input_context_t * input)
   {
@@ -339,7 +346,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      stream_id,
-                     bgav_s->duration + bgav_s->start_time,
+                     bgav_s->duration + s->first_pts,
                      check_keyframe(s), chunk_samples, packet_size);
           
           bgav_s->duration += chunk_samples;
@@ -380,7 +387,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                    bgav_s,
                    i, chunk_offset,
                    stream_id,
-                   bgav_s->duration + bgav_s->start_time,
+                   bgav_s->duration + s->first_pts,
                    check_keyframe(s), chunk_samples, 0);
         /* Time to sample */
         bgav_s->duration += chunk_samples;
@@ -441,7 +448,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      -1,
-                     bgav_s->duration + pts_offset + bgav_s->start_time,
+                     bgav_s->duration + pts_offset + s->first_pts,
                      check_keyframe(s),
                      duration,
                      packet_size);
@@ -453,7 +460,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      stream_id,
-                     bgav_s->duration + pts_offset + bgav_s->start_time,
+                     bgav_s->duration + pts_offset + s->first_pts,
                      check_keyframe(s),
                      duration,
                      packet_size);
@@ -514,7 +521,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                    bgav_s,
                    i, chunk_offset,
                    stream_id,
-                   bgav_s->duration + bgav_s->start_time,
+                   bgav_s->duration + s->first_pts,
                    check_keyframe(s), duration,
                    packet_size);
         
@@ -901,8 +908,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       bg_as = bgav_track_add_audio_stream(track, ctx->opt);
 
-      if(((trak->edts.elst.num_entries == 1) && (trak->edts.elst.table[0].media_time != 0)) ||
-         (trak->edts.elst.num_entries > 1))
+      if((trak->edts.elst.num_entries > 2) ||
+         ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
         priv->has_edl = 1;
       
       bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
@@ -911,9 +918,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       desc = &stsd->entries[0].desc;
 
       stream_priv = &priv->streams[i];
-      stream_init(stream_priv, &moov->tracks[i]);
-      
       bg_as->priv = stream_priv;
+
+      stream_init(bg_as, &moov->tracks[i], moov->mvhd.time_scale);
       
       bg_as->timescale = trak->mdia.mdhd.time_scale;
       bg_as->fourcc    = desc->fourcc;
@@ -1063,20 +1070,21 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       bg_vs = bgav_track_add_video_stream(track, ctx->opt);
 
-      if(trak->edts.elst.num_entries > 1)
+      if((trak->edts.elst.num_entries > 2) ||
+         ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
         priv->has_edl = 1;
             
       desc = &stsd->entries[skip_first_frame].desc;
       stream_priv = &priv->streams[i];
       
-      stream_init(stream_priv, &moov->tracks[i]);
+      bg_vs->priv = stream_priv;
+      stream_init(bg_vs, &moov->tracks[i], moov->mvhd.time_scale);
 
       if(skip_first_frame)
         stream_priv->skip_first_frame = 1;
       if(skip_last_frame)
         stream_priv->skip_last_frame = 1;
       
-      bg_vs->priv = stream_priv;
       
       bg_vs->fourcc = desc->fourcc;
       bg_vs->data.video.format.image_width = desc->format.video.width;
@@ -1200,7 +1208,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss =
           bgav_track_add_subtitle_stream(track, ctx->opt, 1, charset);
 
-        if(trak->edts.elst.num_entries > 1)
+        if((trak->edts.elst.num_entries > 2) ||
+           ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
           priv->has_edl = 1;
         
         bg_ss->description = bgav_sprintf("Quicktime subtitles");
@@ -1213,8 +1222,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss->stream_id = i;
         
         stream_priv = &priv->streams[i];
-        stream_init(stream_priv, &moov->tracks[i]);
         bg_ss->priv = stream_priv;
+        stream_init(bg_ss, &moov->tracks[i], moov->mvhd.time_scale);
         bg_ss->process_packet = process_packet_subtitle_qt;
         }
       }
@@ -1231,7 +1240,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss =
           bgav_track_add_subtitle_stream(track, ctx->opt, 1, "bgav_unicode");
 
-        if(trak->edts.elst.num_entries > 1)
+        if((trak->edts.elst.num_entries > 2) ||
+           ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
           priv->has_edl = 1;
         
         bg_ss->description = bgav_sprintf("3gpp subtitles");
@@ -1243,8 +1253,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss->stream_id = i;
 
         stream_priv = &priv->streams[i];
-        stream_init(stream_priv, &moov->tracks[i]);
         bg_ss->priv = stream_priv;
+        stream_init(bg_ss, &moov->tracks[i], moov->mvhd.time_scale);
         bg_ss->process_packet = process_packet_subtitle_tx3g;
         }
       }
@@ -1266,9 +1276,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
 
   if(priv->timecode_track && (ctx->tt->cur->num_video_streams == 1))
     {
+    stream_priv = ctx->tt->cur->video_streams[0].priv;
     bgav_qt_init_timecodes(ctx->input,
                            &ctx->tt->cur->video_streams[0],
-                           priv->timecode_track);
+                           priv->timecode_track, stream_priv->first_pts);
     }
   
   }

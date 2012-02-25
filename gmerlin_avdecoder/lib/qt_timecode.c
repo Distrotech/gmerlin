@@ -26,7 +26,7 @@
 
 void bgav_qt_init_timecodes(bgav_input_context_t * input,
                             bgav_stream_t * s,
-                            qt_trak_t * trak)
+                            qt_trak_t * trak, int64_t pts_offset)
   {
   int i, j;
   bgav_timecode_table_t * table;
@@ -108,7 +108,7 @@ void bgav_qt_init_timecodes(bgav_input_context_t * input,
                  "EOF while reading timecode");
         goto fail;
         }
-      table->entries[samples_read].pts      = pts;
+      table->entries[samples_read].pts      = pts + pts_offset;
       table->entries[samples_read].timecode =
         gavl_timecode_from_framecount(&s->data.video.format.timecode_format, timecode);
 
