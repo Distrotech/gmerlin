@@ -9,7 +9,7 @@ AH_TEMPLATE([HAVE_LIBAVCODEC],
 
 have_avcodec=false
 
-AVCODEC_BUILD="3345152"
+AVCODEC_BUILD="3412992"
 
 AC_ARG_ENABLE(libavcodec,
 [AC_HELP_STRING([--disable-libavcodec],[Disable libavcodec (default: autodetect)])],
@@ -48,7 +48,7 @@ AH_TEMPLATE([AVFORMAT_HEADER], [libavformat header])
 
 have_avformat=false
 
-AVFORMAT_BUILD="3278080"
+AVFORMAT_BUILD="3415808"
 
 AC_ARG_ENABLE(libavformat,
 [AC_HELP_STRING([--disable-libavformat],[Disable libavformat (default: autodetect)])],
@@ -130,6 +130,13 @@ fi
 
 if test $found_header = "false"; then
 have_libpostproc=false
+else
+CFLAGS="-DPOSTPROC_HEADER=$POSTPROC_HEADER $CFLAGS"
+AC_CHECK_TYPES([pp_context_t, pp_context, pp_mode_t, pp_mode], [], [], [[
+#ifdef POSTPROC_HEADER
+#include POSTPROC_HEADER
+#endif
+]])
 fi
 
 CFLAGS="$CFLAGS_save"
@@ -577,11 +584,9 @@ esac],[test_libtiff=true])
 
 if test x$test_libtiff = xtrue; then
    
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 LIBS="$LIBS -ltiff"
-CFLAGS="$CFLAGS"
    
 AC_MSG_CHECKING(for libtiff)
 AC_TRY_LINK([#include <tiffio.h>],
@@ -596,11 +601,9 @@ AC_TRY_LINK([#include <tiffio.h>],
 case $have_libtiff in
   true) AC_DEFINE(HAVE_LIBTIFF)
         AC_MSG_RESULT(yes)
-        TIFF_LIBS=$LIBS;
-        TIFF_CFLAGS=$CFLAGS ;;
+        TIFF_LIBS=$LIBS;;
   false) AC_MSG_RESULT(no); TIFF_LIBS=""; TIFF_CFLAGS="";;
 esac
-CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
 fi
@@ -755,11 +758,9 @@ esac],[test_libpng=true])
 
 if test x$test_libpng = xtrue; then
    
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 LIBS="$LIBS -lpng -lm -lz"
-CFLAGS="$CFLAGS"
  
 AC_MSG_CHECKING(for libpng)
 AC_TRY_LINK([#include <png.h>],
@@ -772,11 +773,9 @@ AC_TRY_LINK([#include <png.h>],
 case $have_libpng in
   true) AC_DEFINE(HAVE_LIBPNG)
         AC_MSG_RESULT(yes)
-        PNG_LIBS=$LIBS;
-        PNG_CFLAGS=$CFLAGS ;;
+        PNG_LIBS=$LIBS;;
   false) AC_MSG_RESULT(no); PNG_LIBS=""; PNG_CFLAGS="";;
 esac
-CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
 fi
@@ -1576,10 +1575,8 @@ esac],[test_libjpeg=true])
 
 if test x$test_libjpeg = xtrue; then
 
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 LIBS="$LIBS -ljpeg"
-CFLAGS="$CFLAGS"
 
 AC_MSG_CHECKING(for libjpeg)
 AC_TRY_LINK([#include <stdio.h>
@@ -1590,13 +1587,11 @@ AC_TRY_LINK([#include <stdio.h>
 case $have_libjpeg in
   true) AC_DEFINE(HAVE_LIBJPEG)
         AC_MSG_RESULT(yes)
-        JPEG_LIBS=$LIBS;
-        JPEG_CFLAGS=$CFLAGS;;
+        JPEG_LIBS=$LIBS;;
   false) AC_MSG_RESULT(no); JPEG_LIBS=""; JPEG_CFLAGS="";;
   * ) AC_MSG_RESULT("Somethings wrong: $have_libjpeg") ;;
 esac
 
-CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
 fi
@@ -1639,7 +1634,6 @@ dnl
 dnl Search for OpenGL libraries
 dnl
 
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 have_GL="true"
@@ -1652,17 +1646,14 @@ int main() { if(0) glBegin(GL_QUADS); return 0;}
 ],[],[have_GL="false"])
 fi
 
-GL_CFLAGS=$CFLAGS
 GL_LIBS=$LIBS
 
-CFLAGS="$OLD_CFLAGS"
 LIBS="$OLD_LIBS"
 
 dnl
 dnl Check for GLX
 dnl
 
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 have_GLX="true"
@@ -1675,10 +1666,8 @@ int main() { if(0) glXChooseFBConfig(NULL, 0,
 	NULL, NULL); return 0;}],[],[have_GLX="false"])
 fi
 
-GLX_CFLAGS=$CFLAGS
 GLX_LIBS=$LIBS
 
-CFLAGS="$OLD_CFLAGS"
 LIBS="$OLD_LIBS"
 
 if test "x$have_GL" = "xtrue"; then
@@ -1772,8 +1761,8 @@ AC_MSG_CHECKING([for POSIX unnamed semaphores]);
     sem_t s;
     result = sem_init(&s, 0, 0);
     if(result)
-      return 0;
-    return -1;
+      return -1;
+    return 0;
     }
   ],
   [
@@ -1811,7 +1800,8 @@ AC_ARG_ENABLE(vdpau,
 esac],[test_vdpau=true])
 
 if test x$test_vdpau = xtrue; then
-   
+if test x$have_x = xtrue; then
+ 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
@@ -1838,6 +1828,7 @@ esac
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
+fi
 fi
 
 AC_SUBST(VDPAU_CFLAGS)
