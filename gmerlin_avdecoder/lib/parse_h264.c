@@ -477,10 +477,11 @@ static int handle_nal(bgav_video_parser_t * parser)
         priv->sps_buffer = malloc(priv->sps_len);
         memcpy(priv->sps_buffer,
                parser->buf.buffer + parser->pos, priv->sps_len);
-        
-        bgav_video_parser_set_framerate(parser, priv->sps.vui.time_scale,
-                                        priv->sps.vui.num_units_in_tick * 2);
 
+        parser->format->timescale = priv->sps.vui.time_scale;
+        parser->format->frame_duration = priv->sps.vui.num_units_in_tick * 2;
+        bgav_video_parser_set_framerate(parser);
+        
         bgav_h264_sps_get_image_size(&priv->sps,
                                      parser->format);
         parser->s->data.video.max_ref_frames = priv->sps.num_ref_frames;

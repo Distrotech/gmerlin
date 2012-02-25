@@ -70,9 +70,10 @@ typedef struct
 static void set_format(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv = parser->priv;
-  bgav_video_parser_set_framerate(parser,
-                                  priv->vol.vop_time_increment_resolution,
-                                  priv->vol.fixed_vop_time_increment);
+
+  parser->format->timescale = priv->vol.vop_time_increment_resolution;
+  parser->format->frame_duration = priv->vol.fixed_vop_time_increment;
+  bgav_video_parser_set_framerate(parser);
   
 #if 0
   parser->format.image_width  = priv->sh.horizontal_size_value;

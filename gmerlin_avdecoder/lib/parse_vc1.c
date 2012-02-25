@@ -74,9 +74,9 @@ static void handle_sequence(bgav_video_parser_t * parser)
 
   if(priv->sh.profile == PROFILE_ADVANCED)
     {
-    bgav_video_parser_set_framerate(parser,
-                                    priv->sh.h.adv.timescale,
-                                    priv->sh.h.adv.frame_duration);
+    parser->format->timescale = priv->sh.h.adv.timescale;
+    parser->format->frame_duration = priv->sh.h.adv.frame_duration;
+    bgav_video_parser_set_framerate(parser);
     }
   priv->have_sh = 1;
   }

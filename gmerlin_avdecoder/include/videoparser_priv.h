@@ -149,7 +149,5 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser);
 /* Notify the parser of the end of a global header */
 void bgav_video_parser_set_header_end(bgav_video_parser_t * parser);
 
-
 /* Set the framerate, can be called multiple times before the first picture start code */
-void bgav_video_parser_set_framerate(bgav_video_parser_t * parser,
-                                     int timescale, int frame_duration);
+void bgav_video_parser_set_framerate(bgav_video_parser_t * parser);

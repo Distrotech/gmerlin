@@ -351,9 +351,10 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         parser->pos += len;
 
         bgav_mpv_get_framerate(priv->sh.frame_rate_index, &timescale, &frame_duration);
-        
-        bgav_video_parser_set_framerate(parser,
-                                        timescale, frame_duration);
+
+        parser->format->timescale = timescale;
+        parser->format->frame_duration = frame_duration;
+        bgav_video_parser_set_framerate(parser);
         
         parser->format->image_width  = priv->sh.horizontal_size_value;
         parser->format->image_height = priv->sh.vertical_size_value;
@@ -392,9 +393,10 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         
         priv->sh.mpeg2 = 1;
 
-        bgav_video_parser_set_framerate(parser,
-                                        parser->format->timescale * (priv->sh.ext.timescale_ext+1) * 2,
-                                        parser->format->frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
+        parser->format->timescale *=  (priv->sh.ext.timescale_ext+1) * 2;
+        parser->format->frame_duration *= (priv->sh.ext.frame_duration_ext+1) * 2;
+        
+        bgav_video_parser_set_framerate(parser);
         
         parser->format->image_width  += priv->sh.ext.horizontal_size_ext;
         parser->format->image_height += priv->sh.ext.vertical_size_ext;
@@ -485,9 +487,10 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
           
           bgav_mpv_get_framerate(priv->sh.frame_rate_index,
                                  &timescale, &frame_duration);
-          
-          bgav_video_parser_set_framerate(parser,
-                                          timescale, frame_duration);
+
+          parser->format->timescale = timescale;
+          parser->format->frame_duration = frame_duration;
+          bgav_video_parser_set_framerate(parser);
           start += len;
           }
         else
@@ -502,10 +505,9 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
             return PARSER_ERROR;
           priv->sh.mpeg2 = 1;
 
-          bgav_video_parser_set_framerate(parser,
-                                          parser->format->timescale * (priv->sh.ext.timescale_ext+1) * 2,
-                                          parser->format->frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
-          
+          parser->format->timescale *= (priv->sh.ext.timescale_ext+1) * 2;
+          parser->format->frame_duration *= (priv->sh.ext.frame_duration_ext+1) * 2;
+          bgav_video_parser_set_framerate(parser);
           start += len;
           }
         else

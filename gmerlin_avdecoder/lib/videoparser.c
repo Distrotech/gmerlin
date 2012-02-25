@@ -583,28 +583,16 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   
   }
 
-void bgav_video_parser_set_framerate(bgav_video_parser_t * parser,
-                                     int timescale, int frame_duration)
+
+
+void bgav_video_parser_set_framerate(bgav_video_parser_t * parser)
   {
   int i;
-
-  if(!parser->format->timescale || !parser->format->frame_duration)
-    {
-    parser->format->timescale = timescale;
-    parser->format->frame_duration = frame_duration;
-    
-    /*
-     *  Frame duration is set by bgav_video_parser_set_picture_start(),
-     *  which will be before the global header for most formats (i.e.
-     *  when frame duration isn't known yet).
-     */
-    
-    for(i = 0; i < parser->cache_size ; i++)
-      parser->cache[i].duration = parser->format->frame_duration;
-    }
-
+  for(i = 0; i < parser->cache_size ; i++)
+    parser->cache[i].duration = parser->format->frame_duration;
+  
   if(!parser->s->timescale)
-    parser->s->timescale = timescale;
+    parser->s->timescale = parser->format->timescale;
   
   }
 
