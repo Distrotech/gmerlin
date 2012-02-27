@@ -781,20 +781,6 @@ dnl
 dnl Applications
 dnl
 
-dnl Camelot
-
-AC_ARG_ENABLE(camelot,
-              AC_HELP_STRING(--disable-camelot, [Disable Camelot (default: enabled)]),
-              [case "${enableval}" in
-                 yes) have_camelot=true ;;
-                 no) have_camelot=false ;;
-               esac],
-	       have_camelot=true)
-
-if test "x$have_gtk" != "xtrue" -o "x$have_v4l" = "xfalse"; then
-have_camelot=false
-fi
-AM_CONDITIONAL(HAVE_CAMELOT, test x$have_camelot = xtrue)
 
 dnl Plugin configurator
 
@@ -991,7 +977,6 @@ apps/Makefile \
 apps/plugincfg/Makefile \
 apps/player/Makefile \
 apps/alsamixer/Makefile \
-apps/camelot/Makefile \
 apps/cmdlineplayer/Makefile \
 apps/cmdlinerecorder/Makefile \
 apps/recorder/Makefile \
@@ -1292,13 +1277,6 @@ fi
 
 echo
 echo "=== Applications: ================================="
-
-echo -n "Camelot:             "
-if test "x$have_camelot" = "xtrue"; then
-echo "Enabled"
-else
-echo "Disabled"
-fi
 
 echo -n "Plugin Configurator: "
 if test "x$have_plugincfg" = "xtrue"; then

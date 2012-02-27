@@ -142,17 +142,13 @@ int main(int argc, char ** argv)
   do_convert = gavl_video_converter_init(cnv, &input_format, &output_format);
 
   /* Allocate video image */
-
-  if(output->create_frame)
-    frame = output->create_frame(output_handle->priv);
-    
+  
   if(do_convert)
-    {
     input_frame = gavl_video_frame_create(&input_format);
-    }
-
+  
   while(keep_going)
     {
+    frame = output->get_frame(output_handle->priv);
     if(do_convert)
       {
       if(!input->read_video(input_handle->priv, input_frame, 0))

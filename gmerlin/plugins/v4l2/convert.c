@@ -104,7 +104,8 @@ bg_v4l2_convert_t * bg_v4l2_convert_create(int fd, uint32_t * v4l_fmt,
   ret->fmt.image_height = ret->dst_format.fmt.pix.height;
   ret->fmt.frame_width = ret->dst_format.fmt.pix.width;
   ret->fmt.frame_height = ret->dst_format.fmt.pix.height;
-  ret->fmt.pixelformat = pixelformat_v4l2_2_gavl(ret->dst_format.fmt.pix.pixelformat);
+  ret->fmt.pixelformat =
+    bgv4l2_pixelformat_v4l2_2_gavl(ret->dst_format.fmt.pix.pixelformat);
   ret->frame = gavl_video_frame_create_nopad(&ret->fmt);
   if(gavl_fmt)
     *gavl_fmt = ret->fmt.pixelformat;

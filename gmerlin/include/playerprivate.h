@@ -181,7 +181,7 @@ typedef struct
   void               * priv;
 
   bg_ov_callbacks_t callbacks;
-  gavl_video_frame_t * frame;
+  gavl_video_frame_t * still_frame;
   gavl_time_t frame_time;
   //  gavl_time_t last_time; /* Last player time */
   

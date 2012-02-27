@@ -19,5 +19,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-gavl_pixelformat_t pixelformat_v4l2_2_gavl(int csp);
-uint32_t pixelformat_gavl_2_v4l2(gavl_pixelformat_t scp);
+#include <config.h>
+#include <gavl/gavl.h>
+#include <gmerlin/parameter.h>
+
+#include <asm/types.h>          /* for videodev2.h */
+#include <linux/videodev2.h>
+
+
+gavl_pixelformat_t bgv4l2_pixelformat_v4l2_2_gavl(int csp);
+
+uint32_t bgv4l2_pixelformat_gavl_2_v4l2(gavl_pixelformat_t scp);
+
+/* uictl */
+int bgv4l2_ioctl(int fd, int request, void * arg);
+
+// Parameter stuff
+
+void bgv4l2_create_device_selector(bg_parameter_info_t * info,
+                                   int capability);
+
+int bgv4l2_set_device_parameter(int fd,
+                                struct v4l2_queryctrl * controls,
+                                int num_controls,
+                                const char * name,
+                                const bg_parameter_value_t * val);
+
+int bgv4l2_get_device_parameter(int fd,
+                                struct v4l2_queryctrl * controls,
+                                int num_controls,
+                                const char * name,
+                                bg_parameter_value_t * val);
+
+
+struct v4l2_queryctrl * bgv4l2_create_device_controls(int fd, int * num);
+                          
+// Device handling stuff
+
+int bgv4l2_open_device(const char * device, int capability,
+                       struct v4l2_capability * cap);
+
+typedef enum
+  {
+    BGV4L2_IO_METHOD_RW = 0,
+    BGV4L2_IO_METHOD_MMAP = 1,
+    BGV4L2_IO_METHOD_USERPTR = 2,
+  } bgv4l2_io_method_t;

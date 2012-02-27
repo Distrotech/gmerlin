@@ -1221,18 +1221,11 @@ struct bg_ov_plugin_s
   
   int  (*open)(void * priv, gavl_video_format_t * format, int keep_aspect);
   
-  /** \brief Allocate a video frame
+  /** \brief Get a video frame for filling with data
    *  \param priv The handle returned by the create() method
-   *  \returns a newly allocated video frame
-   *
-   *  This optional method allocates a video frame in a plugin specific 
-   *  manner (e.g. in a shared memory segment). If this funtion is 
-   *  defined, all frames which are passed to the plugin, must be allocated
-   *  by this function. Before the plugin is closed, all created frames must
-   *  be freed with the destroy_frame() method.
    */
   
-  gavl_video_frame_t * (*create_frame)(void * priv);
+  gavl_video_frame_t * (*get_frame)(void * priv);
   
   /** \brief Add a stream for transparent overlays
    *  \param priv The handle returned by the create() method
@@ -1313,8 +1306,7 @@ struct bg_ov_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param frame The frame to be freed
    */
-
-  void (*destroy_frame)(void * priv, gavl_video_frame_t * frame);
+  //  void (*destroy_frame)(void * priv, gavl_video_frame_t * frame);
 
   /** \brief Free an overlay created with the create_overlay() method.
    *  \param priv The handle returned by the create() method

@@ -34,9 +34,6 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
-#include <asm/types.h>          /* for videodev2.h */
-
-#include <linux/videodev2.h>
 
 
 #include <config.h>
@@ -58,12 +55,6 @@
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 /* Input module */
-typedef enum
-  {
-    IO_METHOD_READ = 0,
-    IO_METHOD_MMAP = 1,
-    IO_METHOD_USERPTR = 2,
-  } io_method;
 
 typedef struct
   {
@@ -75,7 +66,7 @@ typedef struct
   {
   bg_parameter_info_t * parameters;
   char *           device;
-  io_method	io;
+  bgv4l2_io_method_t	io;
   int              fd;
   buffer_t *         buffers;
   unsigned int     n_buffers;
@@ -101,142 +92,9 @@ typedef struct
 #endif
   } v4l2_t;
 
-static int
-xioctl(int fd, int request, void * arg)
-  {
-  int r;
-  
-  do{
-    r = ioctl (fd, request, arg);
-  } while (-1 == r && EINTR == errno);
-  
-  return r;
-  }
-
-static int append_param(bg_parameter_info_t ** ret, int * num,
-                        int fd, struct v4l2_queryctrl * ctrl)
-  {
-  bg_parameter_info_t * info;
-
-  switch(ctrl->type)
-    {
-    case V4L2_CTRL_TYPE_INTEGER:
-    case V4L2_CTRL_TYPE_INTEGER64:
-    case V4L2_CTRL_TYPE_BOOLEAN:
-    case V4L2_CTRL_TYPE_BUTTON:
-      break;
-    case V4L2_CTRL_TYPE_MENU:
-    default:
-      return 0;
-    }
-  
-  if(ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
-    return 0;
-  
-  *ret = realloc(*ret, ( (*num)+2 ) * sizeof(**ret));
-  memset((*ret) + *num, 0, 2 * sizeof(**ret));
-
-  info = &(*ret)[*num];
-
-  info->name = bg_strdup(info->name, (char*)ctrl->name);
-  info->long_name = bg_strdup(info->long_name, (char*)ctrl->name);
-  info->flags = BG_PARAMETER_SYNC;
-  
-  switch(ctrl->type)
-    {
-    case V4L2_CTRL_TYPE_INTEGER:
-      if(ctrl->maximum > ctrl->minimum)
-        info->type = BG_PARAMETER_SLIDER_INT;
-      else
-        info->type = BG_PARAMETER_INT;
-      info->val_min.val_i = ctrl->minimum;
-      info->val_max.val_i = ctrl->maximum;
-      info->val_default.val_i = ctrl->default_value;
-      break;
-    case V4L2_CTRL_TYPE_INTEGER64:
-      info->type = BG_PARAMETER_INT;
-      break;
-    case V4L2_CTRL_TYPE_BOOLEAN:
-      info->type = BG_PARAMETER_CHECKBUTTON;
-      info->val_default.val_i = ctrl->default_value;
-      break;
-    case V4L2_CTRL_TYPE_BUTTON:
-      info->type = BG_PARAMETER_BUTTON;
-      break;
-    case V4L2_CTRL_TYPE_MENU:
-      info->type = BG_PARAMETER_STRINGLIST;
-      break;
-    default:
-      break;
-    }
-  *num += 1;
-  return 1;
-  }
-
-static bg_parameter_info_t * create_card_parameters(int fd)
-  {
-  int num = 0;
-  int i;
-  struct v4l2_queryctrl ctrl;
-  bg_parameter_info_t * ret = NULL;
-  
-  for(i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++)
-    {
-    ctrl.id = i;
-    if(xioctl(fd, VIDIOC_QUERYCTRL, &ctrl) < 0)
-      continue;
-    append_param(&ret, &num, fd, &ctrl);
-    }
-  
-  i = V4L2_CID_PRIVATE_BASE;
-  while(1)
-    {
-    ctrl.id = i;
-    if(xioctl(fd, VIDIOC_QUERYCTRL, &ctrl) < 0)
-      break;
-    append_param(&ret, &num, fd, &ctrl);
-    i++;
-    }
-  return ret;
-  }
-
-static void append_control(struct v4l2_queryctrl ** ret, int * num,
-                           struct v4l2_queryctrl * ctrl)
-  {
-  *ret = realloc(*ret, ( (*num)+2 ) * sizeof(**ret));
-  memcpy((*ret) + *num, ctrl, sizeof(**ret));
-  *num += 1;
-  }
-
-static struct v4l2_queryctrl * create_card_controls(int fd, int * num)
-  {
-  int i;
-  struct v4l2_queryctrl ctrl;
-  struct v4l2_queryctrl * ret = NULL;
-  *num = 0;
-  
-  for(i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++)
-    {
-    ctrl.id = i;
-    if(xioctl(fd, VIDIOC_QUERYCTRL, &ctrl) < 0)
-      continue;
-    append_control(&ret, num, &ctrl);
-    }
-  
-  i = V4L2_CID_PRIVATE_BASE;
-  while(1)
-    {
-    ctrl.id = i;
-    if(xioctl(fd, VIDIOC_QUERYCTRL, &ctrl) < 0)
-      break;
-    append_control(&ret, num, &ctrl);
-    i++;
-    }
-  return ret;
-  }
 
 static int
-init_read(v4l2_t * v4l, unsigned int		buffer_size)
+init_read(v4l2_t * v4l)
   {
   v4l->buffers = calloc (1, sizeof (*v4l->buffers));
   
@@ -246,8 +104,8 @@ init_read(v4l2_t * v4l, unsigned int		buffer_size)
     return 0;
     }
   
-  v4l->buffers[0].length = buffer_size;
-  v4l->buffers[0].start = malloc (buffer_size);
+  v4l->buffers[0].length = v4l->fmt.fmt.pix.sizeimage;
+  v4l->buffers[0].start = malloc(v4l->fmt.fmt.pix.sizeimage);
   
   if (!v4l->buffers[0].start)
     {
@@ -261,6 +119,8 @@ static int
 init_mmap(v4l2_t * v4l)
   {
   struct v4l2_requestbuffers req;
+  int i;
+  enum v4l2_buf_type type;
   
   CLEAR (req);
   
@@ -268,7 +128,7 @@ init_mmap(v4l2_t * v4l)
   req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   req.memory              = V4L2_MEMORY_MMAP;
   
-  if (-1 == xioctl (v4l->fd, VIDIOC_REQBUFS, &req))
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_REQBUFS, &req))
     {
     if (EINVAL == errno)
       {
@@ -307,7 +167,7 @@ init_mmap(v4l2_t * v4l)
     buf.memory      = V4L2_MEMORY_MMAP;
     buf.index       = v4l->n_buffers;
     
-    if (-1 == xioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
+    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
       return 0;
     
     v4l->buffers[v4l->n_buffers].length = buf.length;
@@ -320,6 +180,30 @@ init_mmap(v4l2_t * v4l)
     
     if (MAP_FAILED == v4l->buffers[v4l->n_buffers].start)
       return 0;
+    }
+
+  for (i = 0; i < v4l->n_buffers; ++i)
+    {
+    struct v4l2_buffer buf;
+    CLEAR (buf);
+    
+    buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory      = V4L2_MEMORY_MMAP;
+    buf.index       = i;
+    
+    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
+      return 0;
+      }
+    }
+  
+  type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMON failed: %s", strerror(errno));
+    return 0;
     }
   return 1;
   }
@@ -339,7 +223,7 @@ init_userp(v4l2_t * v4l, unsigned int		buffer_size)
   req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   req.memory              = V4L2_MEMORY_USERPTR;
 
-  if (-1 == xioctl (v4l->fd, VIDIOC_REQBUFS, &req))
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_REQBUFS, &req))
     {
     if (EINVAL == errno)
       {
@@ -385,7 +269,7 @@ static int get_pixelformat(int fd, uint32_t * ret)
   while(1)
     {
     desc.index = index;
-    if(-1 == xioctl (fd, VIDIOC_ENUM_FMT, &desc))
+    if(-1 == bgv4l2_ioctl (fd, VIDIOC_ENUM_FMT, &desc))
       return 0;
 #if 0
     fprintf(stderr, "Cam pixelformat %c%c%c%c\n",
@@ -399,7 +283,8 @@ static int get_pixelformat(int fd, uint32_t * ret)
     if(!desc.index)
       *ret = desc.pixelformat;
     
-    if(pixelformat_v4l2_2_gavl(desc.pixelformat) != GAVL_PIXELFORMAT_NONE)
+    if(bgv4l2_pixelformat_v4l2_2_gavl(desc.pixelformat) !=
+       GAVL_PIXELFORMAT_NONE)
       {
       *ret = desc.pixelformat;
       return 1;
@@ -425,55 +310,29 @@ static int open_v4l(void * priv,
   v4l = priv;
   gavl_timer_set(v4l->timer, 0);
   gavl_timer_start(v4l->timer);
-  /* Open device */
-  v4l->fd = open(v4l->device, O_RDWR /* required */ | O_NONBLOCK, 0);
-  
-  if(v4l->fd < 0)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening %s failed: %s", v4l->device, strerror(errno));
-    return 0;
-    }
-  
-  if (-1 == xioctl (v4l->fd, VIDIOC_QUERYCAP, &cap))
-    {
-    if (EINVAL == errno)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s is no V4L2 device",
-               v4l->device);
-      return 0;
-      }
-    else
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QUERYCAP failed: %s", strerror(errno));
-      return 0;
-      }
-    }
 
+  v4l->fd = bgv4l2_open_device(v4l->device, V4L2_CAP_VIDEO_CAPTURE,
+                               &cap);
+  
   //  create_card_parameters(v4l->fd);
 
   if(v4l->controls)
     free(v4l->controls);
   
-  v4l->controls = create_card_controls(v4l->fd, &v4l->num_controls);
-
+  v4l->controls =
+    bgv4l2_create_device_controls(v4l->fd, &v4l->num_controls);
+  
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Device name: %s", cap.card);
   
-  if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s is no video capture device",
-           v4l->device);
-    return 0;
-    }
-
   if (cap.capabilities & V4L2_CAP_STREAMING)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");
-    v4l->io = IO_METHOD_MMAP;
+    v4l->io = BGV4L2_IO_METHOD_MMAP;
     }
   else if(cap.capabilities & V4L2_CAP_READWRITE)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying read i/o");
-    v4l->io = IO_METHOD_READ;
+    v4l->io = BGV4L2_IO_METHOD_RW;
     }
   
   /* Select video input, video standard and tune here. */
@@ -483,12 +342,12 @@ static int open_v4l(void * priv,
 
   cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-  if (0 == xioctl (v4l->fd, VIDIOC_CROPCAP, &cropcap))
+  if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_CROPCAP, &cropcap))
     {
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     crop.c = cropcap.defrect; /* reset to default */
     
-    if (-1 == xioctl (v4l->fd, VIDIOC_S_CROP, &crop))
+    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_CROP, &crop))
       {
       switch (errno)
         {
@@ -526,12 +385,13 @@ static int open_v4l(void * priv,
     }
   else
     {
-    format->pixelformat  = pixelformat_v4l2_2_gavl(v4l->v4l2_pixelformat);
+    format->pixelformat =
+      bgv4l2_pixelformat_v4l2_2_gavl(v4l->v4l2_pixelformat);
     }
   
   v4l->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   
-  if (-1 == xioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s", strerror(errno));
     return 0;
@@ -544,7 +404,7 @@ static int open_v4l(void * priv,
   v4l->fmt.fmt.pix.height      = v4l->height;
   v4l->fmt.fmt.pix.pixelformat = v4l->v4l2_pixelformat;
   
-  if (-1 == xioctl (v4l->fd, VIDIOC_S_FMT, &v4l->fmt))
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_FMT, &v4l->fmt))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_FMT failed: %s", strerror(errno));
     return 0;
@@ -561,7 +421,7 @@ static int open_v4l(void * priv,
     fmt.fmt.pix.sizeimage = min;
 #endif
 
-  if (-1 == xioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s", strerror(errno));
     return 0;
@@ -587,17 +447,17 @@ static int open_v4l(void * priv,
   
   switch (v4l->io)
     {
-    case IO_METHOD_READ:
-      if(!init_read (v4l, v4l->fmt.fmt.pix.sizeimage))
+    case BGV4L2_IO_METHOD_RW:
+      if(!init_read (v4l))
         return 0;
       break;
       
-    case IO_METHOD_MMAP:
+    case BGV4L2_IO_METHOD_MMAP:
       if(!init_mmap (v4l))
         return 0;
       break;
       
-    case IO_METHOD_USERPTR:
+    case BGV4L2_IO_METHOD_USERPTR:
       if(!init_userp (v4l, v4l->fmt.fmt.pix.sizeimage))
         return 0;
       break;
@@ -607,33 +467,15 @@ static int open_v4l(void * priv,
 
   switch (v4l->io)
     {
-    case IO_METHOD_READ:
+    case BGV4L2_IO_METHOD_RW:
       /* Nothing to do. */
       break;
       
-    case IO_METHOD_MMAP:
-      for (i = 0; i < v4l->n_buffers; ++i)
-        {
-        struct v4l2_buffer buf;
-        
-        CLEAR (buf);
-        
-        buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory      = V4L2_MEMORY_MMAP;
-        buf.index       = i;
-        
-        if (-1 == xioctl (v4l->fd, VIDIOC_QBUF, &buf))
-          return 0;
-        }
-      
-      type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      
-      if (-1 == xioctl (v4l->fd, VIDIOC_STREAMON, &type))
-        return 0;
+    case BGV4L2_IO_METHOD_MMAP:
       
       break;
       
-    case IO_METHOD_USERPTR:
+    case BGV4L2_IO_METHOD_USERPTR:
       for (i = 0; i < v4l->n_buffers; ++i)
         {
         struct v4l2_buffer buf;
@@ -646,13 +488,13 @@ static int open_v4l(void * priv,
         buf.m.userptr	= (unsigned long) v4l->buffers[i].start;
         buf.length      = v4l->buffers[i].length;
         
-        if (-1 == xioctl (v4l->fd, VIDIOC_QBUF, &buf))
+        if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
           return 0;
         }
       
       type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
       
-      if (-1 == xioctl (v4l->fd, VIDIOC_STREAMON, &type))
+      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
         return 0;
       
       break;
@@ -669,37 +511,28 @@ static void close_v4l(void * priv)
   v4l = priv;
   gavl_timer_stop(v4l->timer);
 
-  // stop_capturing                  (void)
-
   switch (v4l->io)
     {
-    case IO_METHOD_READ:
-      /* Nothing to do. */
-      break;
-    case IO_METHOD_MMAP:
-    case IO_METHOD_USERPTR:
-      type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      
-      if (-1 == xioctl (v4l->fd, VIDIOC_STREAMOFF, &type))
-        return;
-      break;
-    }
-  //  uninit_device                   (void)
-
-  switch (v4l->io)
-    {
-    case IO_METHOD_READ:
+    case BGV4L2_IO_METHOD_RW:
       if(v4l->buffers && v4l->buffers[0].start)
         free (v4l->buffers[0].start);
       break;
 
-    case IO_METHOD_MMAP:
+    case BGV4L2_IO_METHOD_MMAP:
+      type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMOFF, &type))
+        return;
+
       for (i = 0; i < v4l->n_buffers; ++i)
         if (-1 == munmap (v4l->buffers[i].start, v4l->buffers[i].length))
           return;
       break;
 
-    case IO_METHOD_USERPTR:
+    case BGV4L2_IO_METHOD_USERPTR:
+      type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMOFF, &type))
+        return;
+      
       for (i = 0; i < v4l->n_buffers; ++i)
         free (v4l->buffers[i].start);
       break;
@@ -745,7 +578,7 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
 
   switch (v4l->io)
     {
-    case IO_METHOD_READ:
+    case BGV4L2_IO_METHOD_RW:
       if (-1 == read (v4l->fd, v4l->buffers[0].start, v4l->buffers[0].length))
         {
         switch (errno)
@@ -766,13 +599,13 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
 
       break;
 
-    case IO_METHOD_MMAP:
+    case BGV4L2_IO_METHOD_MMAP:
       CLEAR (buf);
       
       buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
       buf.memory = V4L2_MEMORY_MMAP;
       
-      if (-1 == xioctl (v4l->fd, VIDIOC_DQBUF, &buf))
+      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
         {
         switch (errno)
           {
@@ -793,18 +626,18 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
       
       process_image (v4l, v4l->buffers[buf.index].start, frame);
       
-      if (-1 == xioctl (v4l->fd, VIDIOC_QBUF, &buf))
+      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
         return -1;
       
       break;
       
-    case IO_METHOD_USERPTR:
+    case BGV4L2_IO_METHOD_USERPTR:
       CLEAR (buf);
       
       buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
       buf.memory = V4L2_MEMORY_USERPTR;
       
-      if (-1 == xioctl (v4l->fd, VIDIOC_DQBUF, &buf))
+      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
         {
         switch (errno)
           {
@@ -830,7 +663,7 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
       
       process_image (v4l, (void *) buf.m.userptr, frame);
       
-      if (-1 == xioctl (v4l->fd, VIDIOC_QBUF, &buf))
+      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
         return -1;
       
       break;
@@ -987,66 +820,11 @@ static const bg_parameter_info_t parameters[] =
 
 static void create_parameters(v4l2_t * v4l)
   {
-  int i;
-  int fd;
   bg_parameter_info_t * info;
-  char * tmp_string;
-  struct v4l2_capability cap;
-  int num_cards = 0;
   v4l->parameters = bg_parameter_info_copy_array(parameters);
-
-  info = v4l->parameters + 1;
-
-  for(i = 0; i < 10; i++)
-    {
-    tmp_string = bg_sprintf("/dev/video%d", i);
-    
-    fd = open(tmp_string, O_RDWR | O_NONBLOCK, 0);
-    if(fd < 0)
-      {
-      free(tmp_string);
-      continue;
-      }
-
-    if(-1 == xioctl(fd, VIDIOC_QUERYCAP, &cap))
-      {
-      close(fd);
-      free(tmp_string);
-      continue;
-      }
-
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-      {
-      close(fd);
-      free(tmp_string);
-      continue;
-      }
-
-    info->multi_names_nc = realloc(info->multi_names_nc, (num_cards + 2)*
-                                sizeof(*info->multi_names));
-
-    info->multi_labels_nc = realloc(info->multi_labels_nc, (num_cards + 2)*
-                                sizeof(*info->multi_labels));
-
-    info->multi_parameters_nc = realloc(info->multi_parameters_nc, (num_cards + 2)*
-                                     sizeof(*info->multi_parameters));
-    
-    info->multi_names_nc[num_cards] = bg_strdup(NULL, tmp_string);
-    info->multi_names_nc[num_cards+1] = NULL;
-
-    info->multi_labels_nc[num_cards] = bg_strdup(NULL, (char*)cap.card);
-    info->multi_labels_nc[num_cards+1] = NULL;
-
-    info->multi_parameters_nc[num_cards] = create_card_parameters(fd);
-    info->multi_parameters_nc[num_cards+1] = NULL;
-
-    bg_parameter_info_set_const_ptrs(info);
-
-    num_cards++;
-    close(fd);
-    free(tmp_string);
-    }
   
+  info = v4l->parameters + 1;
+  bgv4l2_create_device_selector(info, V4L2_CAP_VIDEO_CAPTURE);
   }
 
 static const bg_parameter_info_t * get_parameters_v4l(void * priv)
@@ -1065,31 +843,10 @@ static int get_parameter_v4l(void * priv, const char * name,
   v4l = priv;
   if(v4l->controls && (v4l->fd >= 0))
     {
-    int i;
-    struct v4l2_control ctrl;
-    
-    for(i = 0; i < v4l->num_controls; i++)
-      {
-      if(!strcmp(name, (char*)v4l->controls[i].name))
-        {
-        if(!val)
-          return 0;
-
-        ctrl.id = v4l->controls[i].id;
-        
-        //        fprintf(stderr, "Get parameter: %s \n", v4l->controls[i].name);
-        
-        if(!xioctl(v4l->fd, VIDIOC_G_CTRL, &ctrl))
-          {
-          //          fprintf(stderr, " Success %d\n", ctrl.value);
-          val->val_i = ctrl.value;
-          return 1;
-          }
-        //        else
-        //          fprintf(stderr, " Failure\n");
-        return 0;
-        }
-      }
+    return bgv4l2_get_device_parameter(v4l->fd,
+                                       v4l->controls,
+                                       v4l->num_controls,
+                                       name, val);
     }
   return 0;
   }
@@ -1167,32 +924,11 @@ static void set_parameter_v4l(void * priv, const char * name,
 
   else if(v4l->controls && (v4l->fd >= 0))
     {
-    int i;
-    struct v4l2_control ctrl;
-    
-    for(i = 0; i < v4l->num_controls; i++)
-      {
-      if(!strcmp(name, (char*)v4l->controls[i].name))
-        {
-        if(!val)
-          {
-          //          fprintf(stderr, "Set button: %s", name);
-          ctrl.value = 0;
-          }
-        else
-          {
-          //          fprintf(stderr, "Set parameter: %s %d [%d]", name, val->val_i, v4l->controls[i].id);
-          ctrl.value = val->val_i;
-          }
-        ctrl.id = v4l->controls[i].id;
-        
-        if(xioctl(v4l->fd, VIDIOC_S_CTRL, &ctrl))
-          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Failure");
-        return;
-        }
-      }
+    bgv4l2_set_device_parameter(v4l->fd,
+                                v4l->controls,
+                                v4l->num_controls,
+                                name, val);
     }
-
   }
 
 const bg_recorder_plugin_t the_plugin =

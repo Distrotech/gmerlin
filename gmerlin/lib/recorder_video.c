@@ -317,10 +317,8 @@ bg_recorder_set_video_monitor_parameter(void * data,
     if(vs->monitor_plugin->set_callbacks)
       vs->monitor_plugin->set_callbacks(vs->monitor_handle->priv,
                                         &vs->monitor_cb);
-    
-    vs->monitor_plugin->show_window(vs->monitor_handle->priv, 1);
-    
-
+    if(vs->monitor_plugin->show_window)
+      vs->monitor_plugin->show_window(vs->monitor_handle->priv, 1);
     }
   else if(vs->monitor_handle && vs->monitor_plugin->common.set_parameter)
     {
@@ -641,7 +639,7 @@ void * bg_recorder_video_thread(void * data)
   {
   bg_recorder_t * rec = data;
   bg_recorder_video_stream_t * vs = &rec->vs;
-
+  gavl_video_frame_t * monitor_frame;
   bg_player_thread_wait_for_start(vs->th);
 
   gavl_timer_set(vs->timer, 0);
@@ -652,6 +650,19 @@ void * bg_recorder_video_thread(void * data)
     if(!bg_player_thread_check(vs->th))
       break;
 
+    vs->pipe_frame = NULL;
+    
+    if(vs->flags & STREAM_MONITOR)
+      {
+      monitor_frame =
+        vs->monitor_plugin->get_frame(vs->monitor_handle->priv);
+      if(!vs->do_convert_monitor)
+        vs->pipe_frame = monitor_frame;
+      }
+
+    if(!vs->pipe_frame)
+      vs->pipe_frame = vs->pipe_frame_priv;
+    
     if(!vs->in_func(vs->in_data, vs->pipe_frame, vs->in_stream))
       break; /* Should never happen */
 
@@ -662,9 +673,9 @@ void * bg_recorder_video_thread(void * data)
     if(vs->flags & STREAM_MONITOR)
       {
       if(vs->do_convert_monitor)
-        gavl_video_convert(vs->monitor_cnv, vs->pipe_frame, vs->monitor_frame);
+        gavl_video_convert(vs->monitor_cnv, vs->pipe_frame, monitor_frame);
       
-      vs->monitor_plugin->put_video(vs->monitor_handle->priv, vs->monitor_frame);
+      vs->monitor_plugin->put_video(vs->monitor_handle->priv, monitor_frame);
       }
     if(vs->monitor_plugin && vs->monitor_plugin->handle_events)
       vs->monitor_plugin->handle_events(vs->monitor_handle->priv);
@@ -796,7 +807,8 @@ int bg_recorder_video_init(bg_recorder_t * rec)
     }
   
   /* Create frames */
-  
+
+#if 0
   if(vs->flags & STREAM_MONITOR)
     {
     if(vs->monitor_plugin->create_frame)
@@ -804,12 +816,10 @@ int bg_recorder_video_init(bg_recorder_t * rec)
     else
       vs->monitor_frame = gavl_video_frame_create(&vs->monitor_format);
     }
+#endif
+  if(vs->do_convert_monitor || !(vs->flags & STREAM_MONITOR))
+    vs->pipe_frame_priv = gavl_video_frame_create(&vs->pipe_format);
   
-  if(!vs->do_convert_monitor && (vs->flags & STREAM_MONITOR))
-    vs->pipe_frame = vs->monitor_frame;
-  else
-    vs->pipe_frame = gavl_video_frame_create(&vs->pipe_format);
-
   /* Initialize snapshot counter */
   
   
@@ -853,21 +863,10 @@ void bg_recorder_video_cleanup(bg_recorder_t * rec)
   if(vs->flags & STREAM_INPUT_OPEN)
     vs->input_plugin->close(vs->input_handle->priv);
 
-  if(vs->pipe_frame && (vs->pipe_frame != vs->monitor_frame))
-    {
-    gavl_video_frame_destroy(vs->pipe_frame);
-    }
-  vs->pipe_frame = NULL;
+  if(vs->pipe_frame_priv)
+    gavl_video_frame_destroy(vs->pipe_frame_priv);
   
-  if(vs->monitor_frame)
-    {
-    if(vs->monitor_plugin->destroy_frame)
-      vs->monitor_plugin->destroy_frame(vs->monitor_handle->priv,
-                                        vs->monitor_frame);
-    else
-      gavl_video_frame_destroy(vs->monitor_frame);
-    vs->monitor_frame = NULL;
-    }
+  vs->pipe_frame_priv = NULL;
   
   if(vs->flags & STREAM_MONITOR_OPEN)
     vs->monitor_plugin->close(vs->monitor_handle->priv);

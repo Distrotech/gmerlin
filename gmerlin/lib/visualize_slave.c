@@ -258,7 +258,7 @@ typedef struct
   int do_stop;
 
   gavl_video_frame_t * video_frame_in;
-  gavl_video_frame_t * video_frame_out;
+  //  gavl_video_frame_t * video_frame_out;
 
   gavl_timer_t * timer;
   
@@ -543,15 +543,6 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
   /* Close OV Plugin */
   if(v->do_ov)
     {
-    if(v->video_frame_out)
-      {
-      if(v->ov_plugin->destroy_frame)
-        v->ov_plugin->destroy_frame(v->ov_handle->priv,
-                                 v->video_frame_out);
-      else
-        gavl_video_frame_destroy(v->video_frame_out);
-      v->video_frame_out = NULL;
-      }
     if(v->video_frame_in)
       {
       gavl_video_frame_destroy(v->video_frame_in);
@@ -572,6 +563,7 @@ static void * video_thread_func(void * data)
   gavl_time_t diff_time, current_time;
   float last_fps = -1.0;
   int64_t frame_time;
+  gavl_video_frame_t * out_frame = NULL;
   
   v = (bg_visualizer_slave_t*)data;
   
@@ -597,16 +589,18 @@ static void * video_thread_func(void * data)
     /* Draw frame */
     
     if(!(v->do_ov))
-      v->vis_plugin->draw_frame(v->vis_handle->priv,
-                                NULL);
+      v->vis_plugin->draw_frame(v->vis_handle->priv, NULL);
     else if(v->do_convert_video)
       {
+      out_frame = v->ov_plugin->get_frame(v->ov_handle->priv);
       v->vis_plugin->draw_frame(v->vis_handle->priv, v->video_frame_in);
-      gavl_video_convert(v->video_cnv, v->video_frame_in, v->video_frame_out);
+      gavl_video_convert(v->video_cnv, v->video_frame_in, out_frame);
       }
     else
-      v->vis_plugin->draw_frame(v->vis_handle->priv, v->video_frame_out);
-    
+      {
+      out_frame = v->ov_plugin->get_frame(v->ov_handle->priv);
+      v->vis_plugin->draw_frame(v->vis_handle->priv, out_frame);
+      }
     pthread_mutex_unlock(&v->vis_mutex);
     
     /* Wait until we can show the frame */
@@ -623,7 +617,7 @@ static void * video_thread_func(void * data)
     if(v->do_ov)
       {
       pthread_mutex_lock(&v->ov_mutex);
-      v->ov_plugin->put_video(v->ov_handle->priv, v->video_frame_out);
+      v->ov_plugin->put_video(v->ov_handle->priv, out_frame);
       frame_time = gavl_timer_get(v->timer);
       
       v->ov_plugin->handle_events(v->ov_handle->priv);
@@ -750,11 +744,6 @@ static int init_plugin(bg_visualizer_slave_t * v)
     v->do_convert_video =
       gavl_video_converter_init(v->video_cnv, &v->video_format_in_real,
                                 &v->video_format_out);
-    
-    if(v->ov_plugin->create_frame)
-      v->video_frame_out = v->ov_plugin->create_frame(v->ov_handle->priv);
-    else
-      v->video_frame_out = gavl_video_frame_create(&v->video_format_out);
     
     if(v->do_convert_video)
       v->video_frame_in = gavl_video_frame_create(&v->video_format_in_real);

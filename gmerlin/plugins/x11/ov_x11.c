@@ -127,6 +127,8 @@ typedef struct
   float contrast;
 
   int keep_aspect;
+
+  gavl_video_frame_t * frame;
   
   } x11_t;
 
@@ -820,16 +822,13 @@ static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   return result;
   }
 
-static gavl_video_frame_t * create_frame_x11(void * data)
+static gavl_video_frame_t * get_frame_x11(void * data)
   {
   x11_t * priv = data;
-  return bg_x11_window_create_frame(priv->win);
-  }
 
-static void destroy_frame_x11(void * data, gavl_video_frame_t * frame)
-  {
-  x11_t * priv = data;
-  bg_x11_window_destroy_frame(priv->win, frame);
+  if(!priv->frame)
+    priv->frame = bg_x11_window_create_frame(priv->win);
+  return priv->frame;
   }
 
 static gavl_overlay_t * create_overlay_x11(void * data, int id)
@@ -887,6 +886,11 @@ static void close_x11(void * data)
     priv->is_open = 0;
     bg_x11_window_close_video(priv->win);
     }
+  if(priv->frame)
+    {
+    bg_x11_window_destroy_frame(priv->win, priv->frame);
+    priv->frame = NULL;
+    }
   }
 
 static void update_aspect_x11(void * data, int pixel_width,
@@ -931,7 +935,7 @@ const bg_ov_plugin_t the_plugin =
     .set_window_options =   set_window_options_x11,
     .set_window_title =   set_window_title_x11,
     .open =               open_x11,
-    .create_frame =    create_frame_x11,
+    .get_frame =    get_frame_x11,
 
     .add_overlay_stream = add_overlay_stream_x11,
 
@@ -944,7 +948,6 @@ const bg_ov_plugin_t the_plugin =
 
     .handle_events =  handle_events_x11,
     
-    .destroy_frame =     destroy_frame_x11,
     .destroy_overlay =   destroy_overlay_x11,
     .close =          close_x11,
     .update_aspect =  update_aspect_x11,

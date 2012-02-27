@@ -19,13 +19,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <gavl/gavl.h>
-
 #include <sys/time.h>
 #include <time.h>
 
-#include <linux/videodev2.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <errno.h>
+#include <unistd.h>
+
+#include <string.h>
+
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "v4l2"
+
 #include "v4l2_common.h"
+
 
 
 static const struct
@@ -109,7 +120,7 @@ num_pixelformats = sizeof(pixelformats)/sizeof(pixelformats[0]);
 
 /* Colorspace translation stuff */
 
-gavl_pixelformat_t pixelformat_v4l2_2_gavl(int csp)
+gavl_pixelformat_t bgv4l2_pixelformat_v4l2_2_gavl(int csp)
   {
   int i;
   for(i = 0; i < num_pixelformats; i++)
@@ -120,7 +131,7 @@ gavl_pixelformat_t pixelformat_v4l2_2_gavl(int csp)
   return GAVL_PIXELFORMAT_NONE;
   }
 
-uint32_t pixelformat_gavl_2_v4l2(gavl_pixelformat_t csp)
+uint32_t bgv4l2_pixelformat_gavl_2_v4l2(gavl_pixelformat_t csp)
   {
   int i;
   for(i = 0; i < num_pixelformats; i++)
@@ -129,4 +140,318 @@ uint32_t pixelformat_gavl_2_v4l2(gavl_pixelformat_t csp)
       return pixelformats[i].v4l2;
     }
   return 0;
+  }
+
+/* ioctl utility */
+
+int bgv4l2_ioctl(int fd, int request, void * arg)
+  {
+  int r;
+  
+  do{
+    r = ioctl (fd, request, arg);
+  } while (-1 == r && EINTR == errno);
+  
+  return r;
+  }
+
+
+/* Config stuff */
+
+static int append_param(bg_parameter_info_t ** ret, int * num,
+                        int fd, struct v4l2_queryctrl * ctrl)
+  {
+  bg_parameter_info_t * info;
+
+  switch(ctrl->type)
+    {
+    case V4L2_CTRL_TYPE_INTEGER:
+    case V4L2_CTRL_TYPE_INTEGER64:
+    case V4L2_CTRL_TYPE_BOOLEAN:
+    case V4L2_CTRL_TYPE_BUTTON:
+      break;
+    case V4L2_CTRL_TYPE_MENU:
+    default:
+      return 0;
+    }
+  
+  if(ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
+    return 0;
+  
+  *ret = realloc(*ret, ( (*num)+2 ) * sizeof(**ret));
+  memset((*ret) + *num, 0, 2 * sizeof(**ret));
+
+  info = &(*ret)[*num];
+
+  info->name = bg_strdup(info->name, (char*)ctrl->name);
+  info->long_name = bg_strdup(info->long_name, (char*)ctrl->name);
+  info->flags = BG_PARAMETER_SYNC;
+  
+  switch(ctrl->type)
+    {
+    case V4L2_CTRL_TYPE_INTEGER:
+      if(ctrl->maximum > ctrl->minimum)
+        info->type = BG_PARAMETER_SLIDER_INT;
+      else
+        info->type = BG_PARAMETER_INT;
+      info->val_min.val_i = ctrl->minimum;
+      info->val_max.val_i = ctrl->maximum;
+      info->val_default.val_i = ctrl->default_value;
+      break;
+    case V4L2_CTRL_TYPE_INTEGER64:
+      info->type = BG_PARAMETER_INT;
+      break;
+    case V4L2_CTRL_TYPE_BOOLEAN:
+      info->type = BG_PARAMETER_CHECKBUTTON;
+      info->val_default.val_i = ctrl->default_value;
+      break;
+    case V4L2_CTRL_TYPE_BUTTON:
+      info->type = BG_PARAMETER_BUTTON;
+      break;
+    case V4L2_CTRL_TYPE_MENU:
+      info->type = BG_PARAMETER_STRINGLIST;
+      break;
+    default:
+      break;
+    }
+  *num += 1;
+  return 1;
+  }
+
+static bg_parameter_info_t * create_card_parameters(int fd)
+  {
+  int num = 0;
+  int i;
+  struct v4l2_queryctrl ctrl;
+  bg_parameter_info_t * ret = NULL;
+  
+  for(i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++)
+    {
+    ctrl.id = i;
+    if(bgv4l2_ioctl(fd, VIDIOC_QUERYCTRL, &ctrl) < 0)
+      continue;
+    append_param(&ret, &num, fd, &ctrl);
+    }
+  
+  i = V4L2_CID_PRIVATE_BASE;
+  while(1)
+    {
+    ctrl.id = i;
+    if(bgv4l2_ioctl(fd, VIDIOC_QUERYCTRL, &ctrl) < 0)
+      break;
+    append_param(&ret, &num, fd, &ctrl);
+    i++;
+    }
+  return ret;
+  }
+
+
+void bgv4l2_create_device_selector(bg_parameter_info_t * info,
+                                   int capability)
+  {
+  int i, fd;
+  struct v4l2_capability cap;
+  int num_cards = 0;
+  char * tmp_string;
+
+  for(i = 0; i < 64; i++)
+    {
+    tmp_string = bg_sprintf("/dev/video%d", i);
+    
+    fd = open(tmp_string, O_RDWR | O_NONBLOCK, 0);
+    if(fd < 0)
+      {
+      free(tmp_string);
+      continue;
+      }
+
+    if(-1 == bgv4l2_ioctl(fd, VIDIOC_QUERYCAP, &cap))
+      {
+      close(fd);
+      free(tmp_string);
+      continue;
+      }
+
+    if (!(cap.capabilities & capability))
+      {
+      close(fd);
+      free(tmp_string);
+      continue;
+      }
+
+    info->multi_names_nc = realloc(info->multi_names_nc, (num_cards + 2)*
+                                sizeof(*info->multi_names));
+
+    info->multi_labels_nc = realloc(info->multi_labels_nc, (num_cards + 2)*
+                                sizeof(*info->multi_labels));
+
+    info->multi_parameters_nc = realloc(info->multi_parameters_nc, (num_cards + 2)*
+                                     sizeof(*info->multi_parameters));
+    
+    info->multi_names_nc[num_cards] = bg_strdup(NULL, tmp_string);
+    info->multi_names_nc[num_cards+1] = NULL;
+
+    info->multi_labels_nc[num_cards] = bg_strdup(NULL, (char*)cap.card);
+    info->multi_labels_nc[num_cards+1] = NULL;
+
+    info->multi_parameters_nc[num_cards] = create_card_parameters(fd);
+    info->multi_parameters_nc[num_cards+1] = NULL;
+
+    bg_parameter_info_set_const_ptrs(info);
+
+    num_cards++;
+    close(fd);
+    free(tmp_string);
+    }
+
+  
+  }
+
+static void append_control(struct v4l2_queryctrl ** ret, int * num,
+                           struct v4l2_queryctrl * ctrl)
+  {
+  *ret = realloc(*ret, ( (*num)+2 ) * sizeof(**ret));
+  memcpy((*ret) + *num, ctrl, sizeof(**ret));
+  *num += 1;
+  }
+
+struct v4l2_queryctrl * bgv4l2_create_device_controls(int fd, int * num)
+  {
+  int i;
+  struct v4l2_queryctrl ctrl;
+  struct v4l2_queryctrl * ret = NULL;
+  *num = 0;
+  
+  for(i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++)
+    {
+    ctrl.id = i;
+    if(bgv4l2_ioctl(fd, VIDIOC_QUERYCTRL, &ctrl) < 0)
+      continue;
+    append_control(&ret, num, &ctrl);
+    }
+  
+  i = V4L2_CID_PRIVATE_BASE;
+  while(1)
+    {
+    ctrl.id = i;
+    if(bgv4l2_ioctl(fd, VIDIOC_QUERYCTRL, &ctrl) < 0)
+      break;
+    append_control(&ret, num, &ctrl);
+    i++;
+    }
+  return ret;
+  }
+
+
+int bgv4l2_set_device_parameter(int fd,
+                                struct v4l2_queryctrl * controls,
+                                int num_controls,
+                                const char * name,
+                                const bg_parameter_value_t * val)
+  {
+  int i;
+  struct v4l2_control ctrl;
+  
+  for(i = 0; i < num_controls; i++)
+    {
+    if(!strcmp(name, (char*)controls[i].name))
+      {
+      if(!val)
+        {
+        // fprintf(stderr, "Set button: %s", name);
+        ctrl.value = 0;
+        }
+      else
+        {
+        // fprintf(stderr, "Set parameter: %s %d [%d]", name, val->val_i, v4l->controls[i].id);
+        ctrl.value = val->val_i;
+        }
+      ctrl.id = controls[i].id;
+      
+      if(bgv4l2_ioctl(fd, VIDIOC_S_CTRL, &ctrl))
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_CTRL Failed");
+      return 1;
+      }
+    }
+  return 0;
+  }
+
+
+int bgv4l2_get_device_parameter(int fd,
+                                struct v4l2_queryctrl * controls,
+                                int num_controls,
+                                const char * name,
+                                bg_parameter_value_t * val)
+  {
+  int i;
+  struct v4l2_control ctrl;
+  
+  for(i = 0; i < num_controls; i++)
+      {
+      if(!strcmp(name, (char*)controls[i].name))
+        {
+        if(!val)
+          return 0;
+
+        ctrl.id = controls[i].id;
+        
+        //        fprintf(stderr, "Get parameter: %s \n", controls[i].name);
+        
+        if(!bgv4l2_ioctl(fd, VIDIOC_G_CTRL, &ctrl))
+          {
+          //          fprintf(stderr, " Success %d\n", ctrl.value);
+          val->val_i = ctrl.value;
+          return 1;
+          }
+        else
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_CTRL Failed");
+        return 0;
+        }
+      }
+  return 0;
+  }
+
+int bgv4l2_open_device(const char * device, int capability,
+                       struct v4l2_capability * cap)
+  {
+  int ret = -1;
+  
+  /* Open device */
+  ret = open(device, O_RDWR /* required */ | O_NONBLOCK, 0);
+  
+  if(ret < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening %s failed: %s",
+           device, strerror(errno));
+    goto fail;
+    }
+  
+  if (-1 == bgv4l2_ioctl (ret, VIDIOC_QUERYCAP, cap))
+    {
+    if (EINVAL == errno)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s is no V4L2 device",
+               device);
+      goto fail;
+      }
+    else
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QUERYCAP failed: %s",
+             strerror(errno));
+      goto fail;
+      }
+    }
+
+  if (!(cap->capabilities & capability))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s is no video %s device",
+           device,
+           capability == V4L2_CAP_VIDEO_CAPTURE ? "capture" : "output");
+    goto fail;
+    }
+  return ret;
+  fail:
+  if(ret >= 0)
+    close(ret);
+  return -1;
   }

@@ -17,11 +17,11 @@ else
 alsamixer_subdirs =
 endif
 
-if HAVE_CAMELOT
-camelot_subdirs = camelot
-else
-camelot_subdirs =
-endif
+#if HAVE_CAMELOT
+#camelot_subdirs = camelot
+#else
+#camelot_subdirs =
+#endif
 
 if HAVE_TRANSCODER
 transcoder_subdirs = transcoder

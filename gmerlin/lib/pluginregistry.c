@@ -1605,19 +1605,21 @@ bg_plugin_handle_t * bg_ov_plugin_load(bg_plugin_registry_t * reg,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid plugin type for video output");
     return NULL;
     }
+#if 0
   if(!(info->flags & BG_PLUGIN_EMBED_WINDOW) && window_id)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Plugin %s doesn't support embedded windows", info->name);
     return NULL;
     }
-  
+#endif
   ret = load_plugin(reg, info);
   
   if(window_id)
     {
     plugin = (bg_ov_plugin_t*)(ret->plugin);
-    plugin->set_window(ret->priv, window_id);
+    if(plugin->set_window)
+      plugin->set_window(ret->priv, window_id);
     }
   
   if(ret)

@@ -173,11 +173,6 @@ int main(int argc, char ** argv)
   if(do_convert)
     input_frame = gavl_video_frame_create(&info->video_streams[0].format);
   
-  if(output_plugin->create_frame)
-    output_frame = output_plugin->create_frame(output_handle->priv);
-  else
-    input_frame = gavl_video_frame_create(&video_format);
-
   /* Allocate timer */
 
   timer = gavl_timer_create();
@@ -192,6 +187,8 @@ int main(int argc, char ** argv)
     {
     while(1)
       {
+      output_frame = output_plugin->get_frame(output_handle->priv);
+      
       if(!input_plugin->read_video(input_handle->priv, input_frame, 0))
         break;
       gavl_video_convert(video_converter, input_frame, output_frame);
@@ -229,12 +226,7 @@ int main(int argc, char ** argv)
 
   if(do_convert)
     gavl_video_frame_destroy(input_frame);
-
-  if(output_plugin->destroy_frame)
-    output_plugin->destroy_frame(output_handle->priv, output_frame);
-  else
-    gavl_video_frame_destroy(output_frame);
-  
+    
   if(input_plugin->stop)
     input_plugin->stop(input_handle->priv);
 
