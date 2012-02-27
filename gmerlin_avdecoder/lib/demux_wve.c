@@ -27,7 +27,6 @@
 #define SCDl_TAG BGAV_MK_FOURCC('S', 'C', 'D', 'l')
 #define pIQT_TAG BGAV_MK_FOURCC('p', 'I', 'Q', 'T')
 #define SCEl_TAG BGAV_MK_FOURCC('S', 'C', 'E', 'l')
-#define _TAG     BGAV_MK_FOURCC('', '', '', '')
 
 #define EA_SAMPLE_RATE 22050
 #define EA_BITS_PER_SAMPLE 16
