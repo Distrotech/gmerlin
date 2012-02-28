@@ -46,6 +46,7 @@ typedef struct
   void * buf;
   size_t size;
   int index;
+  int queued;
   } buffer_t;
 
 typedef struct
@@ -63,7 +64,7 @@ typedef struct
   buffer_t buffers[MAX_BUFFERS];
   int num_buffers;
   int buffer_index;
-  
+  int need_streamon;
   } ov_v4l2_t;
 
 static void cleanup_v4l(ov_v4l2_t *);
@@ -223,7 +224,6 @@ static int init_mmap(ov_v4l2_t * v4l)
   int i;
   struct v4l2_requestbuffers req;
   struct v4l2_buffer buf;
-  enum v4l2_buf_type type;
   
   CLEAR (req);
   
@@ -291,13 +291,7 @@ static int init_mmap(ov_v4l2_t * v4l)
     
     v4l->buffers[i].f->user_data = &v4l->buffers[i];
     }
-  type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-  
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMON failed: %s", strerror(errno));
-    return 0;
-    }
+  v4l->need_streamon = 1;
   
   return 1;
   }
@@ -307,7 +301,7 @@ static void cleanup_mmap(ov_v4l2_t * v4l)
   int i;
   enum v4l2_buf_type type;
 
-  type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
   if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMOFF, &type))
     return;
 
@@ -345,6 +339,18 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
     return;
     }
+
+  if(v4l->need_streamon)
+    {
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+    v4l->need_streamon = 0;
+    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMON failed: %s", strerror(errno));
+      return;
+      }
+    }
+ 
   // fprintf(stderr, "QBUF %d\n", buf.index);
   }
 
@@ -460,9 +466,32 @@ static int open_v4l2(void * priv,
   return 0;
   }
 
+static gavl_video_frame_t * get_frame_dqbuf(ov_v4l2_t * v4l, int mode)
+  {
+  int i;
+  struct v4l2_buffer buf;
+
+  for(i = 0; i < v4l->num_buffers; i++)
+    {
+    if(!v4l->buffers[i].queued)
+      return v4l->buffers[i].f;
+    }
+  
+  CLEAR(buf);
+  buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+  buf.memory = mode;
+
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_DQBUF failed: %s",
+           strerror(errno));
+    return NULL;
+    }
+  return v4l->buffers[buf.index].f;
+  }
+
 static gavl_video_frame_t * get_frame_v4l2(void * data)
   {
-  struct v4l2_buffer buf;
 
   ov_v4l2_t * v4l = data;
   
@@ -472,21 +501,7 @@ static gavl_video_frame_t * get_frame_v4l2(void * data)
       return v4l->buffers[0].f;
       break;
     case BGV4L2_IO_METHOD_MMAP:
-      CLEAR(buf);
-      
-      buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-      buf.memory = V4L2_MEMORY_MMAP;
-      
-      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_DQBUF failed: %s",
-               strerror(errno));
-        return NULL;
-        }
-      //      fprintf(stderr, "DQBUF %d\n", buf.index);
-      
-      // fprintf(stderr, "Got frame %d\n", buf.index);
-      return v4l->buffers[buf.index].f;
+      return get_frame_dqbuf(v4l, V4L2_MEMORY_MMAP);
       break;
     default:
       return NULL;
@@ -508,6 +523,13 @@ static void put_video_v4l2(void * data, gavl_video_frame_t * frame)
     default:
       return;
     }
+  }
+
+static void show_window_v4l2(void * data, int show)
+  {
+  ov_v4l2_t * v4l = data;
+  if(!show)
+    cleanup_v4l(v4l);
   }
 
 static void put_still_v4l2(void * data, gavl_video_frame_t * frame)
@@ -562,7 +584,7 @@ const bg_ov_plugin_t the_plugin =
     .close =          close_v4l2,
     //    .update_aspect =  update_aspect_v4l2,
     
-    //    .show_window =    show_window_v4l2
+    .show_window =    show_window_v4l2
   };
 
 /* Include this into all plugin modules exactly once
