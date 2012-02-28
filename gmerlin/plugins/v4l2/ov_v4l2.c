@@ -291,22 +291,6 @@ static int init_mmap(ov_v4l2_t * v4l)
     
     v4l->buffers[i].f->user_data = &v4l->buffers[i];
     }
-#if 0
-  for(i = 0; i < v4l->num_buffers; i++)
-    {
-    CLEAR (buf);
-    
-    buf.type        = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-    buf.memory      = V4L2_MEMORY_MMAP;
-    buf.index       = i;
-    
-    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
-      return 0;
-      }
-    }
-#endif
   type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
   
   if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
@@ -361,6 +345,7 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
     return;
     }
+  // fprintf(stderr, "QBUF %d\n", buf.index);
   }
 
 static void cleanup_v4l(ov_v4l2_t * v4l)
@@ -498,6 +483,8 @@ static gavl_video_frame_t * get_frame_v4l2(void * data)
                strerror(errno));
         return NULL;
         }
+      //      fprintf(stderr, "DQBUF %d\n", buf.index);
+      
       // fprintf(stderr, "Got frame %d\n", buf.index);
       return v4l->buffers[buf.index].f;
       break;
@@ -525,6 +512,8 @@ static void put_video_v4l2(void * data, gavl_video_frame_t * frame)
 
 static void put_still_v4l2(void * data, gavl_video_frame_t * frame)
   {
+  fprintf(stderr, "Put still\n");
+  
   // ov_v4l2_t * v4l = data;
   }
 

@@ -193,7 +193,8 @@ init_mmap(v4l2_t * v4l)
     
     if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s",
+             strerror(errno));
       return 0;
       }
     }
@@ -202,7 +203,8 @@ init_mmap(v4l2_t * v4l)
   
   if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMON failed: %s", strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMON failed: %s",
+           strerror(errno));
     return 0;
     }
   return 1;
@@ -213,6 +215,8 @@ init_userp(v4l2_t * v4l, unsigned int		buffer_size)
   {
   struct v4l2_requestbuffers req;
   unsigned int page_size;
+  unsigned int i;
+  enum v4l2_buf_type type;
 
   page_size = getpagesize ();
   buffer_size = (buffer_size + page_size - 1) & ~(page_size - 1);
@@ -257,6 +261,28 @@ init_userp(v4l2_t * v4l, unsigned int		buffer_size)
       return 0;
       }
     }
+
+  for (i = 0; i < v4l->n_buffers; ++i)
+    {
+    struct v4l2_buffer buf;
+    
+    CLEAR (buf);
+    
+    buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory      = V4L2_MEMORY_USERPTR;
+    buf.index       = i;
+    buf.m.userptr	= (unsigned long) v4l->buffers[i].start;
+    buf.length      = v4l->buffers[i].length;
+    
+    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
+      return 0;
+    }
+  
+  type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
+    return 0;
+  
   return 1;
   }
 
@@ -304,9 +330,7 @@ static int open_v4l(void * priv,
   //  struct v4l2_cropcap cropcap;
   //  struct v4l2_crop crop;
   //  unsigned int min;
-  unsigned int i;
-  enum v4l2_buf_type type;
-
+  
   v4l = priv;
   gavl_timer_set(v4l->timer, 0);
   gavl_timer_start(v4l->timer);
@@ -462,44 +486,6 @@ static int open_v4l(void * priv,
         return 0;
       break;
     }
-  
-  /* start_capturing  */
-
-  switch (v4l->io)
-    {
-    case BGV4L2_IO_METHOD_RW:
-      /* Nothing to do. */
-      break;
-      
-    case BGV4L2_IO_METHOD_MMAP:
-      
-      break;
-      
-    case BGV4L2_IO_METHOD_USERPTR:
-      for (i = 0; i < v4l->n_buffers; ++i)
-        {
-        struct v4l2_buffer buf;
-        
-        CLEAR (buf);
-        
-        buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory      = V4L2_MEMORY_USERPTR;
-        buf.index       = i;
-        buf.m.userptr	= (unsigned long) v4l->buffers[i].start;
-        buf.length      = v4l->buffers[i].length;
-        
-        if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
-          return 0;
-        }
-      
-      type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      
-      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
-        return 0;
-      
-      break;
-    }
-  
   return 1;
   }
 
