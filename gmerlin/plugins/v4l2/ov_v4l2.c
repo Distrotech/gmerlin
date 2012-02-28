@@ -63,7 +63,6 @@ typedef struct
 
   buffer_t buffers[MAX_BUFFERS];
   int num_buffers;
-  int buffer_index;
   int need_streamon;
   } ov_v4l2_t;
 
@@ -333,7 +332,8 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
   buf.type        = V4L2_BUF_TYPE_VIDEO_OUTPUT;
   buf.memory      = V4L2_MEMORY_MMAP;
   buf.index       = b->index;
-    
+  buf.bytesused   = v4l->fmt.fmt.pix.sizeimage;
+  
   if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
@@ -450,8 +450,6 @@ static int open_v4l2(void * priv,
   
   gavl_video_format_copy(&v4l->format, format);
 
-  v4l->buffer_index = 0;
-  
   /* Set up buffers */
   switch(v4l->io)
     {
