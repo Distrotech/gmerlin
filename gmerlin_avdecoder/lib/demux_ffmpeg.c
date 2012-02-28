@@ -818,9 +818,9 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   int i_tmp;
+  uint32_t * pal_i;
 
 #if LIBAVCODEC_VERSION_MAJOR >= 54
-  uint32_t * pal_i;
   int pal_i_len;
 #else
   const int pal_i_len = AVPALETTE_COUNT;
