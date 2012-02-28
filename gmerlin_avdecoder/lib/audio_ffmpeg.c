@@ -39,11 +39,11 @@
 #endif
 
 #if LIBAVCODEC_BUILD >= ((53<<16)+(25<<8)+0)
-#define DECODE_AUDIO4
+#define DECODE_AUDIO4 1
 #elif LIBAVCODEC_BUILD >= ((52<<16)+(23<<8)+0)
-#define DECODE_AUDIO3
+#define DECODE_AUDIO3 1
 #else
-#define DECODE_AUDIO2
+#define DECODE_AUDIO2 1
 #endif
 
 // #define DUMP_DECODE
@@ -222,7 +222,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   
   if(priv->frame)
     {
-#ifdef
+#ifdef DECODE_AUDIO3
     priv->pkt.data = priv->buf.buffer;
     priv->pkt.size = priv->buf.size;
     
