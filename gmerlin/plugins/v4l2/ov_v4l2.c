@@ -491,6 +491,17 @@ static gavl_video_frame_t * get_frame_dqbuf(ov_v4l2_t * v4l, int mode)
           buf.index,
           !!(buf.flags & V4L2_BUF_FLAG_DONE),
           !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
+
+  if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
+    {
+    fprintf(stderr, "VIDIOC_QUERY_BUF %d done: %d, queued: %d\n",
+            buf.index,
+            !!(buf.flags & V4L2_BUF_FLAG_DONE),
+            !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
+        
+    }
+
+
   return v4l->buffers[buf.index].f;
   }
 

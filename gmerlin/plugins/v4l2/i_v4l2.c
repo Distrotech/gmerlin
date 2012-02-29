@@ -630,7 +630,7 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
             return -1;
           }
         }
-
+      
       fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
               buf.index,
               !!(buf.flags & V4L2_BUF_FLAG_DONE),
@@ -639,6 +639,16 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
       //      assert (buf.index < n_buffers);
       
       process_image (v4l, v4l->buffers[buf.index].start, frame);
+
+      if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
+        {
+        fprintf(stderr, "VIDIOC_QUERY_BUF %d done: %d, queued: %d\n",
+                buf.index,
+                !!(buf.flags & V4L2_BUF_FLAG_DONE),
+                !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
+        
+        }
+      
       
       if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
         return -1;
