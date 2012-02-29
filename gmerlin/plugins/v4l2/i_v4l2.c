@@ -52,7 +52,6 @@
 #include "convert.h"
 #endif
 
-#define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 /* Input module */
 
@@ -197,6 +196,7 @@ init_mmap(v4l2_t * v4l)
              strerror(errno));
       return 0;
       }
+    fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
     }
   
   type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -290,13 +290,21 @@ static int get_pixelformat(int fd, uint32_t * ret)
   {
   int index = 0;
   struct v4l2_fmtdesc desc;
+
+  CLEAR(desc);
+  
   desc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; 
   
   while(1)
     {
     desc.index = index;
     if(-1 == bgv4l2_ioctl (fd, VIDIOC_ENUM_FMT, &desc))
-      return 0;
+      {
+      if((errno != EINVAL) || !index)
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "VIDIOC_ENUM_FMT failed: %s", strerror(errno));
+      break;
+      }
 #if 0
     fprintf(stderr, "Cam pixelformat %c%c%c%c\n",
             desc.pixelformat & 0xff,
@@ -317,6 +325,21 @@ static int get_pixelformat(int fd, uint32_t * ret)
       }
     index++;
     }
+
+#if 0  
+  if(!index)
+    {
+    struct v4l2_format fmt;
+    CLEAR (fmt);
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (-1 == bgv4l2_ioctl (fd, VIDIOC_G_FMT, &fmt))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s", strerror(errno));
+      return 0;
+      }
+    *ret = fmt.fmt.pix.pixelformat;
+    }
+#endif
   return 0;
   }
 
@@ -607,6 +630,11 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
             return -1;
           }
         }
+
+      fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
+              buf.index,
+              !!(buf.flags & V4L2_BUF_FLAG_DONE),
+              !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
       
       //      assert (buf.index < n_buffers);
       
@@ -615,6 +643,8 @@ static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
       if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
         return -1;
       
+      fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
+
       break;
       
     case BGV4L2_IO_METHOD_USERPTR:
@@ -676,8 +706,10 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
     /* Timeout. */
     tv.tv_sec = 4;
     tv.tv_usec = 0;
-    
-    r = select (v4l->fd + 1, &fds, NULL, NULL, &tv);
+
+    fprintf(stderr, "Select...");
+    r = select(v4l->fd + 1, &fds, NULL, NULL, &tv);
+    fprintf(stderr, "Select...done\n");
     
     if (-1 == r)
       {

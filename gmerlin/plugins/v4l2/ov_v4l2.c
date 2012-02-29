@@ -38,7 +38,6 @@
 
 #define MAX_BUFFERS 2 // TODO: Always enough?
 
-#define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 typedef struct
   {
@@ -166,7 +165,7 @@ static gavl_pixelformat_t * get_pixelformats(int fd)
   struct v4l2_fmtdesc desc;
   gavl_pixelformat_t fmt;
   gavl_pixelformat_t * ret = NULL;
-  int num_ret;
+  int num_ret = 0;
   int i;
   int present;
   CLEAR(desc);
@@ -339,7 +338,10 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
     return;
     }
-
+  fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
+  
+  b->queued = 1;
+  
   if(v4l->need_streamon)
     {
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
@@ -350,8 +352,6 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
       return;
       }
     }
- 
-  // fprintf(stderr, "QBUF %d\n", buf.index);
   }
 
 static void cleanup_v4l(ov_v4l2_t * v4l)
@@ -366,6 +366,7 @@ static void cleanup_v4l(ov_v4l2_t * v4l)
       break;
     case BGV4L2_IO_METHOD_MMAP:
       cleanup_mmap(v4l);
+      break;
     default:
       return;
     }
@@ -485,6 +486,11 @@ static gavl_video_frame_t * get_frame_dqbuf(ov_v4l2_t * v4l, int mode)
            strerror(errno));
     return NULL;
     }
+  
+  fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
+          buf.index,
+          !!(buf.flags & V4L2_BUF_FLAG_DONE),
+          !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
   return v4l->buffers[buf.index].f;
   }
 

@@ -142,6 +142,15 @@ static const bg_parameter_info_t parameters[] =
       .flags     = BG_PARAMETER_PLUGIN,
     },
     {
+      .name        = "do_limit_fps",
+      .long_name   = TRS("Limit fps"),
+      .type        = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .num_digits  = 2,
+      .help_string = TRS("Limit frames per second. "
+                         "By default, the maximum possible framerate will be used."),
+    },
+    {
       .name        = "limit_fps",
       .long_name   = TRS("fps limit"),
       .type        = BG_PARAMETER_FLOAT,
@@ -224,6 +233,12 @@ bg_recorder_set_video_parameter(void * data,
     pthread_mutex_lock(&vs->config_mutex);
     vs->limit_timescale      = (int)(val->val_f * 100.0);
     vs->limit_duration = 100;
+    pthread_mutex_unlock(&vs->config_mutex);
+    }
+  else if(!strcmp(name, "do_limit_fps"))
+    {
+    pthread_mutex_lock(&vs->config_mutex);
+    vs->do_limit_fps = val->val_i;
     pthread_mutex_unlock(&vs->config_mutex);
     }
   else if(vs->input_handle && vs->input_plugin->common.set_parameter)
@@ -716,15 +731,21 @@ static int read_video_internal(void * data, gavl_video_frame_t * frame, int stre
   if(vs->frame_counter)
     {
     pthread_mutex_lock(&vs->config_mutex);
-    next_frame_time = vs->last_frame_time +
-      gavl_frames_to_time(vs->limit_timescale, vs->limit_duration, 1);
-    pthread_mutex_unlock(&vs->config_mutex);
+
+    if(vs->do_limit_fps)
+      {
+      next_frame_time = vs->last_frame_time +
+        gavl_frames_to_time(vs->limit_timescale, vs->limit_duration, 1);
+      pthread_mutex_unlock(&vs->config_mutex);
     
-    cur_time = gavl_timer_get(vs->timer);
-    diff_time = next_frame_time - cur_time - vs->last_capture_duration;
+      cur_time = gavl_timer_get(vs->timer);
+      diff_time = next_frame_time - cur_time - vs->last_capture_duration;
     
-    if(diff_time > 0)
-      gavl_time_delay(&diff_time);
+      if(diff_time > 0)
+        gavl_time_delay(&diff_time);
+      }
+    else
+      pthread_mutex_unlock(&vs->config_mutex);
     }
   
   cur_time = gavl_timer_get(vs->timer);
@@ -744,7 +765,6 @@ static int read_video_internal(void * data, gavl_video_frame_t * frame, int stre
     {
     bg_recorder_msg_framerate(rec, (double)(FRAMERATE_INTERVAL*GAVL_TIME_SCALE) /
                               (double)(time_after - vs->fps_frame_time));
-    
     vs->fps_frame_time = time_after;
     }
 

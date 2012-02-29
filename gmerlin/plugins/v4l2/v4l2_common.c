@@ -224,6 +224,8 @@ static bg_parameter_info_t * create_card_parameters(int fd)
   int i;
   struct v4l2_queryctrl ctrl;
   bg_parameter_info_t * ret = NULL;
+
+  CLEAR(ctrl);
   
   for(i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++)
     {
@@ -253,7 +255,8 @@ void bgv4l2_create_device_selector(bg_parameter_info_t * info,
   struct v4l2_capability cap;
   int num_cards = 0;
   char * tmp_string;
-
+  CLEAR(cap);
+  
   for(i = 0; i < 64; i++)
     {
     tmp_string = bg_sprintf("/dev/video%d", i);
@@ -321,6 +324,8 @@ struct v4l2_queryctrl * bgv4l2_create_device_controls(int fd, int * num)
   struct v4l2_queryctrl ctrl;
   struct v4l2_queryctrl * ret = NULL;
   *num = 0;
+
+  CLEAR(ctrl);
   
   for(i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++)
     {
@@ -385,6 +390,7 @@ int bgv4l2_get_device_parameter(int fd,
   {
   int i;
   struct v4l2_control ctrl;
+  CLEAR(ctrl);
   
   for(i = 0; i < num_controls; i++)
       {

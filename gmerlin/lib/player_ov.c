@@ -149,6 +149,12 @@ static gavl_overlay_t * create_overlay(bg_player_video_stream_t * vs,
                                        int id)
   {
   gavl_overlay_t * ret;
+  gavl_video_format_t * format;
+
+  if(id == vs->subtitle_id)
+    format = &vs->ss->output_format;
+  else
+    format = &vs->osd_format;
   
   if(vs->plugin->create_overlay)
     {
@@ -159,23 +165,12 @@ static gavl_overlay_t * create_overlay(bg_player_video_stream_t * vs,
   else
     {
     ret = calloc(1, sizeof(*ret));
-
-    if(id == vs->subtitle_id)
-      ret->frame =
-        gavl_video_frame_create(&vs->ss->output_format);
-    else
-      ret->frame =
-        gavl_video_frame_create(&vs->osd_format);
+    ret->frame =
+      gavl_video_frame_create(format);
     }
-
-  if(id == vs->subtitle_id)
-    gavl_video_frame_clear(ret->frame,
-                           &vs->ss->output_format);
-  else
-    gavl_video_frame_clear(ret->frame,
-                           &vs->osd_format);
-    
   
+  gavl_video_frame_clear(ret->frame,
+                         format);
   return ret;
   }
 

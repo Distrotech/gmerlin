@@ -161,6 +161,8 @@ typedef struct
   
   gavl_time_t last_frame_time;
   gavl_time_t last_capture_duration;
+
+  int do_limit_fps;
   
   int limit_timescale;
   int limit_duration;

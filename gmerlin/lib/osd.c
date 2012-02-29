@@ -189,13 +189,9 @@ void bg_osd_set_parameter(void * data, const char * name,
   osd = (bg_osd_t*)data;
 
   if(!strcmp(name, "enable_osd"))
-    {
     osd->enable = val->val_i;
-    }
   else if(!strcmp(name, "duration"))
-    {
     osd->duration = val->val_i * ((GAVL_TIME_SCALE) / 1000);
-    }
   else
     bg_text_renderer_set_parameter(osd->renderer, name, val);
   }
