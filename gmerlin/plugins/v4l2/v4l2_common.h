@@ -63,7 +63,7 @@ typedef enum
   {
     BGV4L2_IO_METHOD_RW = 0,
     BGV4L2_IO_METHOD_MMAP = 1,
-    BGV4L2_IO_METHOD_USERPTR = 2,
+    //    BGV4L2_IO_METHOD_USERPTR = 2,
   } bgv4l2_io_method_t;
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))

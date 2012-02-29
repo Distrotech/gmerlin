@@ -52,6 +52,7 @@
 #include "convert.h"
 #endif
 
+// #define FORCE_RW
 
 /* Input module */
 
@@ -137,6 +138,7 @@ init_mmap(v4l2_t * v4l)
       }
     else
       {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_REQBUFS failed: %s", strerror(errno));
       return 0;
       }
     }
@@ -167,8 +169,10 @@ init_mmap(v4l2_t * v4l)
     buf.index       = v4l->n_buffers;
     
     if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QUERYBUF failed: %s", strerror(errno));
       return 0;
-    
+      }
     v4l->buffers[v4l->n_buffers].length = buf.length;
     v4l->buffers[v4l->n_buffers].start =
       mmap (NULL /* start anywhere */,
@@ -207,82 +211,6 @@ init_mmap(v4l2_t * v4l)
            strerror(errno));
     return 0;
     }
-  return 1;
-  }
-
-static int
-init_userp(v4l2_t * v4l, unsigned int		buffer_size)
-  {
-  struct v4l2_requestbuffers req;
-  unsigned int page_size;
-  unsigned int i;
-  enum v4l2_buf_type type;
-
-  page_size = getpagesize ();
-  buffer_size = (buffer_size + page_size - 1) & ~(page_size - 1);
-
-  CLEAR (req);
-
-  req.count               = 4;
-  req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  req.memory              = V4L2_MEMORY_USERPTR;
-
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_REQBUFS, &req))
-    {
-    if (EINVAL == errno)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
-               "user pointer i/o", v4l->device);
-      return 0;
-      }
-    else
-      {
-      return 0;
-      }
-    }
-  
-  v4l->buffers = calloc (4, sizeof (*v4l->buffers));
-
-  if (!v4l->buffers)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
-    return 0;
-    }
-  
-  for (v4l->n_buffers = 0; v4l->n_buffers < 4; ++v4l->n_buffers)
-    {
-    v4l->buffers[v4l->n_buffers].length = buffer_size;
-    v4l->buffers[v4l->n_buffers].start = memalign (/* boundary */ page_size,
-                                                   buffer_size);
-    
-    if (!v4l->buffers[v4l->n_buffers].start)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
-      return 0;
-      }
-    }
-
-  for (i = 0; i < v4l->n_buffers; ++i)
-    {
-    struct v4l2_buffer buf;
-    
-    CLEAR (buf);
-    
-    buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory      = V4L2_MEMORY_USERPTR;
-    buf.index       = i;
-    buf.m.userptr	= (unsigned long) v4l->buffers[i].start;
-    buf.length      = v4l->buffers[i].length;
-    
-    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
-      return 0;
-    }
-  
-  type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
-    return 0;
-  
   return 1;
   }
 
@@ -370,7 +298,8 @@ static int open_v4l(void * priv,
     bgv4l2_create_device_controls(v4l->fd, &v4l->num_controls);
   
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Device name: %s", cap.card);
-  
+
+#ifndef FORCE_RW  
   if (cap.capabilities & V4L2_CAP_STREAMING)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");
@@ -381,6 +310,9 @@ static int open_v4l(void * priv,
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying read i/o");
     v4l->io = BGV4L2_IO_METHOD_RW;
     }
+#else
+  v4l->io = BGV4L2_IO_METHOD_RW;
+#endif
   
   /* Select video input, video standard and tune here. */
 
@@ -503,11 +435,6 @@ static int open_v4l(void * priv,
       if(!init_mmap (v4l))
         return 0;
       break;
-      
-    case BGV4L2_IO_METHOD_USERPTR:
-      if(!init_userp (v4l, v4l->fmt.fmt.pix.sizeimage))
-        return 0;
-      break;
     }
   return 1;
   }
@@ -530,20 +457,13 @@ static void close_v4l(void * priv)
     case BGV4L2_IO_METHOD_MMAP:
       type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
       if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMOFF, &type))
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMOFF failed: %s", strerror(errno));
         return;
-
+        }
       for (i = 0; i < v4l->n_buffers; ++i)
         if (-1 == munmap (v4l->buffers[i].start, v4l->buffers[i].length))
           return;
-      break;
-
-    case BGV4L2_IO_METHOD_USERPTR:
-      type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMOFF, &type))
-        return;
-      
-      for (i = 0; i < v4l->n_buffers; ++i)
-        free (v4l->buffers[i].start);
       break;
     }
   if(v4l->buffers)
@@ -580,121 +500,81 @@ static void process_image(v4l2_t * v4l, void * data,
   frame->timestamp = gavl_timer_get(v4l->timer) / TIME_DIV;
   }
 
-static int read_frame(v4l2_t * v4l, gavl_video_frame_t * frame)
+static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
+  {
+  if (-1 == read (v4l->fd, v4l->buffers[0].start, v4l->buffers[0].length))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read failed: %s", strerror(errno));
+    switch (errno)
+      {
+      case EAGAIN:
+        return 0;
+        
+      case EIO:
+        /* Could ignore EIO, see spec. */
+            
+        /* fall through */
+            
+      default:
+        return 0;
+      }
+    }
+  process_image (v4l, v4l->buffers[0].start, frame);
+  return 1;
+  }
+
+static int read_frame_mmap(v4l2_t * v4l, gavl_video_frame_t * frame)
   {
   struct v4l2_buffer buf;
-  unsigned int i;
-
-  switch (v4l->io)
-    {
-    case BGV4L2_IO_METHOD_RW:
-      if (-1 == read (v4l->fd, v4l->buffers[0].start, v4l->buffers[0].length))
-        {
-        switch (errno)
-          {
-          case EAGAIN:
-            return 0;
-            
-          case EIO:
-            /* Could ignore EIO, see spec. */
-            
-            /* fall through */
-            
-          default:
-            return -1;
-          }
-        }
-      process_image (v4l, v4l->buffers[0].start, frame);
-
-      break;
-
-    case BGV4L2_IO_METHOD_MMAP:
-      CLEAR (buf);
-      
-      buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      buf.memory = V4L2_MEMORY_MMAP;
-      
-      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
-        {
-        switch (errno)
-          {
-          case EAGAIN:
-            return 0;
-            
-          case EIO:
-            /* Could ignore EIO, see spec. */
-            
-            /* fall through */
-            
-          default:
-            return -1;
-          }
-        }
-      
-      fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
-              buf.index,
-              !!(buf.flags & V4L2_BUF_FLAG_DONE),
-              !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
-      
-      //      assert (buf.index < n_buffers);
-      
-      process_image (v4l, v4l->buffers[buf.index].start, frame);
-
-      if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
-        {
-        fprintf(stderr, "VIDIOC_QUERY_BUF %d done: %d, queued: %d\n",
-                buf.index,
-                !!(buf.flags & V4L2_BUF_FLAG_DONE),
-                !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
-        
-        }
-      
-      
-      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
-        return -1;
-      
-      fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
-
-      break;
-      
-    case BGV4L2_IO_METHOD_USERPTR:
-      CLEAR (buf);
-      
-      buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-      buf.memory = V4L2_MEMORY_USERPTR;
-      
-      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
-        {
-        switch (errno)
-          {
-          case EAGAIN:
-            return -1;
-            
-          case EIO:
-            /* Could ignore EIO, see spec. */
-            
-            /* fall through */
-            
-          default:
-            return 0;
-          }
-        }
-      
-      for (i = 0; i < v4l->n_buffers; ++i)
-        if (buf.m.userptr == (unsigned long) v4l->buffers[i].start
-            && buf.length == v4l->buffers[i].length)
-          break;
-      
-      //      assert (i < n_buffers);
-      
-      process_image (v4l, (void *) buf.m.userptr, frame);
-      
-      if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
-        return -1;
-      
-      break;
-    }
   
+  CLEAR (buf);
+      
+  buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  buf.memory = V4L2_MEMORY_MMAP;
+      
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_DQBUF failed: %s", strerror(errno));
+    switch (errno)
+      {
+      case EAGAIN:
+        return 0;
+            
+      case EIO:
+        /* Could ignore EIO, see spec. */
+            
+        /* fall through */
+            
+      default:
+        return 0;
+      }
+    }
+      
+  fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
+          buf.index,
+          !!(buf.flags & V4L2_BUF_FLAG_DONE),
+          !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
+      
+  //      assert (buf.index < n_buffers);
+      
+  process_image (v4l, v4l->buffers[buf.index].start, frame);
+#if 0
+  if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
+    {
+    fprintf(stderr, "VIDIOC_QUERYBUF %d done: %d, queued: %d\n",
+            buf.index,
+            !!(buf.flags & V4L2_BUF_FLAG_DONE),
+            !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
+        
+    }
+#endif
+      
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
+    return 0;
+    }
+  fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
   return 1;
   }
 
@@ -719,12 +599,13 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
 
     fprintf(stderr, "Select...");
     r = select(v4l->fd + 1, &fds, NULL, NULL, &tv);
-    fprintf(stderr, "Select...done\n");
+    fprintf(stderr, "Select...done %d\n", r);
     
     if (-1 == r)
       {
       if (EINTR == errno)
         continue;
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Select failed: %s", strerror(errno));
       return 0;
       }
     
@@ -734,19 +615,19 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
       return 0;
       }
 
-    r = read_frame (v4l, frame);
-
-    if(r > 0)
-      break;
-    else if(!r)
-      continue;
-    else
-      return 0;
-    
-    /* EAGAIN - continue select loop. */
+    switch (v4l->io)
+      {
+      case BGV4L2_IO_METHOD_RW:
+        return read_frame_read(v4l, frame);
+        break;
+        
+      case BGV4L2_IO_METHOD_MMAP:
+        return read_frame_mmap(v4l, frame);
+        break;
+      }
     }
   
-  return 1;
+  return 0;
   }
 
 static void * create_v4l()
