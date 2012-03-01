@@ -150,9 +150,21 @@ static int init_matrix_predefined(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNEL
   //  int output_side;
   int input_lfe;
   int output_lfe;
-
   int in_index, out_index;
 
+  float center_level;
+  float rear_level;
+
+  if(in->center_level > 0.0)
+    center_level = in->center_level;
+  else
+    center_level = 1.0;
+
+  if(in->rear_level > 0.0)
+    rear_level = in->rear_level;
+  else
+    rear_level = 1.0;
+  
   input_front = gavl_front_channels(in);
   output_front = gavl_front_channels(out);
 
@@ -362,7 +374,7 @@ static int init_matrix_predefined(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNEL
 
           OUT_INDEX(GAVL_CHID_FRONT_CENTER);
           IN_INDEX(GAVL_CHID_FRONT_CENTER);
-          ret[out_index][in_index] = in->center_level;
+          ret[out_index][in_index] = center_level;
           break;
         case 2: /* 3 Front -> 2 Front */
           OUT_INDEX(GAVL_CHID_FRONT_LEFT);
@@ -375,11 +387,11 @@ static int init_matrix_predefined(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNEL
 
           OUT_INDEX(GAVL_CHID_FRONT_LEFT);
           IN_INDEX(GAVL_CHID_FRONT_CENTER);
-          ret[out_index][in_index] = in->center_level;
+          ret[out_index][in_index] = center_level;
 
           OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
           IN_INDEX(GAVL_CHID_FRONT_CENTER);
-          ret[out_index][in_index] = in->center_level;
+          ret[out_index][in_index] = center_level;
           break;
         case 3: /* 3 Front -> 3 Front */
           OUT_INDEX(GAVL_CHID_FRONT_LEFT);
@@ -558,17 +570,17 @@ static int init_matrix_predefined(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNEL
             case 1:  /* 1 Rear -> 1 Front */
               OUT_INDEX(GAVL_CHID_FRONT_CENTER);
               IN_INDEX(GAVL_CHID_REAR_CENTER);
-              ret[out_index][in_index] = in->rear_level;
+              ret[out_index][in_index] = rear_level;
               break;
             case 2:  /* 1 Rear -> 2 Front */
             case 3:
               OUT_INDEX(GAVL_CHID_FRONT_LEFT);
               IN_INDEX(GAVL_CHID_REAR_CENTER);
-              ret[out_index][in_index] = in->rear_level;
+              ret[out_index][in_index] = rear_level;
 
               OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
               IN_INDEX(GAVL_CHID_REAR_CENTER);
-              ret[out_index][in_index] = in->rear_level;
+              ret[out_index][in_index] = rear_level;
               break;
             }
           break;
@@ -597,21 +609,21 @@ static int init_matrix_predefined(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNEL
             /* 2 Rear -> 1 Front */
             OUT_INDEX(GAVL_CHID_FRONT_CENTER);
             IN_INDEX(GAVL_CHID_REAR_LEFT);
-            ret[out_index][in_index] = in->rear_level;
+            ret[out_index][in_index] = rear_level;
 
             OUT_INDEX(GAVL_CHID_FRONT_CENTER);
             IN_INDEX(GAVL_CHID_REAR_RIGHT);
-            ret[out_index][in_index] = in->rear_level;
+            ret[out_index][in_index] = rear_level;
             }
           else
             {
             OUT_INDEX(GAVL_CHID_FRONT_LEFT);
             IN_INDEX(GAVL_CHID_REAR_LEFT);
-            ret[out_index][in_index] = in->rear_level;
+            ret[out_index][in_index] = rear_level;
 
             OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
             IN_INDEX(GAVL_CHID_REAR_RIGHT);
-            ret[out_index][in_index] = in->rear_level;
+            ret[out_index][in_index] = rear_level;
             break;
             }
           break;
