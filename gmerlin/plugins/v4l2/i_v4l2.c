@@ -431,6 +431,10 @@ static void close_v4l(void * priv)
   enum v4l2_buf_type type;
   unsigned int i;
   v4l = priv;
+
+  if(v4l->fd < 0)
+    return;
+  
   gavl_timer_stop(v4l->timer);
 
   switch (v4l->io)

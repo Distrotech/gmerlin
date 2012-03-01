@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <signal.h>
+
 #include <config.h>
 #include <gmerlin/recorder.h>
 #include <gmerlin/pluginregistry.h>
@@ -59,6 +61,26 @@ static int do_syslog = 0;
 
 #define DELAY_TIME 50
 #define PING_INTERVAL 20
+
+int got_sigint = 0;
+
+static void sigint_handler(int sig)
+  {
+  fprintf(stderr, "\nCTRL+C caught\n");
+  got_sigint = 1;
+  }
+
+static void set_sigint_handler()
+  {
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_handler = sigint_handler;
+  if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
+    fprintf(stderr, "sigaction failed\n");
+    }
+  }
 
 static void opt_aud(void * data, int * argc, char *** _argv, int arg)
   {
@@ -314,6 +336,8 @@ int main(int argc, char ** argv)
 
   gavl_time_t delay_time = DELAY_TIME * 1000;
 
+  set_sigint_handler();
+  
   /* We must initialize the random number generator if we want the
      Vorbis encoder to work */
   srand(time(NULL));
@@ -401,6 +425,10 @@ int main(int argc, char ** argv)
       if(!bg_recorder_ping(recorder))
         break;
       }
+
+    if(got_sigint)
+      break;
+    
     timeout_counter++;
     if(timeout_counter >= PING_INTERVAL)
       timeout_counter = 0;
