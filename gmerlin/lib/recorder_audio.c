@@ -44,8 +44,26 @@ void bg_recorder_create_audio(bg_recorder_t * rec)
   as->th = bg_player_thread_create(rec->tc);
 
   as->pd = gavl_peak_detector_create();
-  
+
+  pthread_mutex_init(&as->eof_mutex, NULL);
   }
+
+void bg_recorder_audio_set_eof(bg_recorder_audio_stream_t * s, int eof)
+  {
+  pthread_mutex_lock(&s->eof_mutex);
+  s->eof = eof;
+  pthread_mutex_unlock(&s->eof_mutex);
+  }
+
+int  bg_recorder_audio_get_eof(bg_recorder_audio_stream_t * s)
+  {
+  int ret;
+  pthread_mutex_lock(&s->eof_mutex);
+  ret = s->eof;
+  pthread_mutex_unlock(&s->eof_mutex);
+  return ret;
+  }
+
 
 void bg_recorder_destroy_audio(bg_recorder_t * rec)
   {
@@ -56,6 +74,7 @@ void bg_recorder_destroy_audio(bg_recorder_t * rec)
   bg_player_thread_destroy(as->th);
 
   gavl_peak_detector_destroy(as->pd);
+  pthread_mutex_destroy(&as->eof_mutex);
   
   }
 
@@ -195,7 +214,7 @@ bg_recorder_set_audio_filter_parameter(void * data,
 void * bg_recorder_audio_thread(void * data)
   {
   double peaks[2]; /* Doesn't work for > 2 channels!! */
-  
+  gavl_time_t idle_time = GAVL_TIME_SCALE / 100; // 10 ms
   bg_recorder_t * rec = data;
   bg_recorder_audio_stream_t * as = &rec->as;
 
@@ -205,11 +224,20 @@ void * bg_recorder_audio_thread(void * data)
     {
     if(!bg_player_thread_check(as->th))
       break;
+
+    if(bg_recorder_audio_get_eof(as))
+      {
+      gavl_time_delay(&idle_time);
+      continue;
+      }
     
     if(!as->in_func(as->in_data, as->pipe_frame, as->in_stream,
                     as->pipe_format.samples_per_frame))
-      break; /* Should never happen */
-    
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read failed (device unplugged?)");
+      bg_recorder_audio_set_eof(as, 1);
+      continue; // Need to go to bg_player_thread_check to stop the thread cleanly
+      }
     /* Peak detection */    
     gavl_peak_detector_update(as->pd, as->pipe_frame);
     gavl_peak_detector_get_peaks(as->pd, NULL, NULL, peaks);

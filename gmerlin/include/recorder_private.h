@@ -93,8 +93,14 @@ typedef struct
   int enc_index;
 
   char language[4];
+
+  int eof;
+  pthread_mutex_t eof_mutex;
   
   } bg_recorder_audio_stream_t;
+
+void bg_recorder_audio_set_eof(bg_recorder_audio_stream_t*, int eof);
+int  bg_recorder_audio_get_eof(bg_recorder_audio_stream_t*);
 
 typedef struct 
   {
@@ -182,8 +188,14 @@ typedef struct
   gavl_time_t last_snapshot_time;
   
   int snapshot_counter;
+
+  int eof;
+  pthread_mutex_t eof_mutex;
   
   } bg_recorder_video_stream_t;
+
+void bg_recorder_video_set_eof(bg_recorder_video_stream_t*, int eof);
+int  bg_recorder_video_get_eof(bg_recorder_video_stream_t*);
 
 struct bg_recorder_s
   {

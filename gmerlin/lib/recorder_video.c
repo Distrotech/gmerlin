@@ -102,7 +102,26 @@ void bg_recorder_create_video(bg_recorder_t * rec)
   vs->monitor_cb.button_release_callback = ov_button_release_callback;
   vs->monitor_cb.motion_callback = ov_motion_callback;
   vs->monitor_cb.data = rec;
+
+  pthread_mutex_init(&vs->eof_mutex, NULL);
   }
+
+void bg_recorder_video_set_eof(bg_recorder_video_stream_t * s, int eof)
+  {
+  pthread_mutex_lock(&s->eof_mutex);
+  s->eof = eof;
+  pthread_mutex_unlock(&s->eof_mutex);
+  }
+
+int  bg_recorder_video_get_eof(bg_recorder_video_stream_t * s)
+  {
+  int ret;
+  pthread_mutex_lock(&s->eof_mutex);
+  ret = s->eof;
+  pthread_mutex_unlock(&s->eof_mutex);
+  return ret;
+  }
+
 
 void bg_recorder_destroy_video(bg_recorder_t * rec)
   {
@@ -125,6 +144,7 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
     bg_plugin_unref(vs->snapshot_handle);
   
   bg_gavl_video_options_free(&vs->opt);
+  pthread_mutex_destroy(&vs->eof_mutex);
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -655,6 +675,7 @@ void * bg_recorder_video_thread(void * data)
   bg_recorder_t * rec = data;
   bg_recorder_video_stream_t * vs = &rec->vs;
   gavl_video_frame_t * monitor_frame;
+  gavl_time_t idle_time = GAVL_TIME_SCALE / 100; // 10 ms
   bg_player_thread_wait_for_start(vs->th);
 
   gavl_timer_set(vs->timer, 0);
@@ -665,6 +686,12 @@ void * bg_recorder_video_thread(void * data)
     if(!bg_player_thread_check(vs->th))
       break;
 
+    if(bg_recorder_video_get_eof(vs))
+      {
+      gavl_time_delay(&idle_time);
+      continue;
+      }
+    
     vs->pipe_frame = NULL;
     
     if(vs->flags & STREAM_MONITOR)
@@ -679,8 +706,11 @@ void * bg_recorder_video_thread(void * data)
       vs->pipe_frame = vs->pipe_frame_priv;
     
     if(!vs->in_func(vs->in_data, vs->pipe_frame, vs->in_stream))
-      break; /* Should never happen */
-
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read failed (device unplugged?)");
+      bg_recorder_video_set_eof(vs, 1);
+      continue; // Need to go to bg_player_thread_check to stop the thread cleanly
+      }
     /* Check whether to make a snapshot */
     check_snapshot(rec);
     

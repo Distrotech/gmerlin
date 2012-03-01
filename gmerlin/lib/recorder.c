@@ -208,6 +208,8 @@ int bg_recorder_run(bg_recorder_t * rec)
     else
       do_audio = 1;
     }
+
+  bg_recorder_audio_set_eof(&rec->as, !do_audio);
   
   if(rec->vs.flags & STREAM_ACTIVE)
     {
@@ -216,6 +218,8 @@ int bg_recorder_run(bg_recorder_t * rec)
     else
       do_video = 1;
     }
+
+  bg_recorder_video_set_eof(&rec->vs, !do_video);
   
   if(rec->flags & FLAG_DO_RECORD)
     {
@@ -722,11 +726,16 @@ static void update_metadata(bg_recorder_t * rec)
     }
   }
 
-void bg_recorder_ping(bg_recorder_t * rec)
+int bg_recorder_ping(bg_recorder_t * rec)
   {
   //  fprintf(stderr, "bg_recorder_ping\n");
   if(rec->metadata_mode == BG_RECORDER_METADATA_PLAYER)
     {
     update_metadata(rec);
     }
+
+  if(bg_recorder_video_get_eof(&rec->vs) &&
+     bg_recorder_audio_get_eof(&rec->as))
+    return 0;
+  return 1;
   }

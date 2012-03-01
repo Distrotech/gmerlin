@@ -437,7 +437,10 @@ static void close_v4l(void * priv)
     {
     case BGV4L2_IO_METHOD_RW:
       if(v4l->buffers && v4l->buffers[0].start)
+        {
         free (v4l->buffers[0].start);
+        v4l->buffers[0].start = NULL;
+        }
       break;
 
     case BGV4L2_IO_METHOD_MMAP:
@@ -448,13 +451,18 @@ static void close_v4l(void * priv)
         return;
         }
       for (i = 0; i < v4l->n_buffers; ++i)
+        {
         if (-1 == munmap (v4l->buffers[i].start, v4l->buffers[i].length))
           return;
+        v4l->buffers[i].start = NULL;
+        }
       break;
     }
   if(v4l->buffers)
+    {
     free (v4l->buffers);
-
+    v4l->buffers = NULL;
+    }
   if(v4l->frame)
     {
     gavl_video_frame_null(v4l->frame);
@@ -514,7 +522,7 @@ static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
   if(!v4l->converter &&
      bgv4l2_strides_match(frame, v4l->strides, v4l->num_strides))
     {
-    if (-1 == read (v4l->fd, frame->planes[0], v4l->buffers[0].length))
+    if (read (v4l->fd, frame->planes[0], v4l->fmt.fmt.pix.sizeimage) < v4l->fmt.fmt.pix.sizeimage)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read failed: %s", strerror(errno));
       return 0;
@@ -701,7 +709,7 @@ static const bg_parameter_info_t parameters[] =
     },
     {
       .name =        "force_rw",
-      .long_name =   TRS("Force write"),
+      .long_name =   TRS("Force read"),
       .type =        BG_PARAMETER_CHECKBUTTON,
       .val_default = { .val_i = 1 },
       .help_string = TRS("Don't use memory mapping")

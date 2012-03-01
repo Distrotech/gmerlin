@@ -493,8 +493,12 @@ gavl_video_frame_t * bgv4l2_create_frame(uint8_t * data, // Can be NULL
 int bgv4l2_strides_match(const gavl_video_frame_t * f, int * strides, int num_strides)
   {
   int i;
+  
   for(i = 0; i < num_strides; i++)
     {
+    if(i && (f->planes[i] < f->planes[i-1]))
+      return 0;
+    
     if(f->strides[i] != strides[i])
       return 0;
     }

@@ -398,7 +398,8 @@ int main(int argc, char ** argv)
     {
     if(!timeout_counter)
       {
-      bg_recorder_ping(recorder);
+      if(!bg_recorder_ping(recorder))
+        break;
       }
     timeout_counter++;
     if(timeout_counter >= PING_INTERVAL)
@@ -410,5 +411,6 @@ int main(int argc, char ** argv)
     gavl_time_delay(&delay_time);
     }
   
+  bg_recorder_destroy(recorder);
   return 0;
   }
