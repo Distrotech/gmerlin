@@ -443,7 +443,7 @@ static int open_v4l2(void * priv,
     }
   else if(cap.capabilities & V4L2_CAP_READWRITE)
     {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying read i/o");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying write i/o");
     v4l->io = BGV4L2_IO_METHOD_RW;
     }
   

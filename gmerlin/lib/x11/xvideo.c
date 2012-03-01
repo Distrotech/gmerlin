@@ -133,7 +133,7 @@ static void check_xv(driver_data_t * d)
     
     for (k = 0; k < formats; k++)
       {
-      if (formatValues[k].id == XV_ID_YV12)
+      if(formatValues[k].id == XV_ID_I420)
         {
         if(!have_420)
           {
@@ -143,7 +143,7 @@ static void check_xv(driver_data_t * d)
           have_420 = 1;
           }
         }
-      else if(formatValues[k].id == XV_ID_I420)
+      else if (formatValues[k].id == XV_ID_YV12)
         {
         if(!have_420)
           {
