@@ -1,4 +1,4 @@
-.TH GMERLIN_PLAYER 1 "October 2011" Gmerlin "User Manuals"
+.TH GMERLIN_PLAYER 1 "March 2012" Gmerlin "User Manuals"
 .SH NAME
 gmerlin_player
 .SH SYNOPSIS
@@ -32,7 +32,7 @@ Audio output plugin
 .RS 2
 .BR card "=<string>"
 .P
-Supported strings: default hw:0,0 hw:0,1
+Supported strings: default hw:0,0 hw:0,4
 .P
 Default: default
 .P
@@ -137,7 +137,7 @@ Set video output options
 .RS 2
 .BR p "=option[{suboptions}]"
 .P
-Supported options: ov_x11
+Supported options: ov_x11 ov_v4l2
 .P
 Default: ov_x11
 .P
@@ -204,6 +204,26 @@ Scale quality
 
 .P
 .RE
+.B Suboptions for p=ov_v4l2
+
+.P
+.RS 2
+.BR device "=option[{suboptions}]"
+.P
+Supported options: /dev/video0
+.P
+Default: /dev/video0
+.P
+V4L2 Device
+.P
+.BR force_rw "=[1|0] (default: 1)"
+.P
+Force write
+.P
+Don't use memory mapping
+
+.P
+.RE
 .BR w "=<string>"
 .P
 Window ID
@@ -219,12 +239,157 @@ Set and configure input plugin
 .RS 2
 .BR p "=option[{suboptions}]"
 .P
-Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_edl i_singlepic i_mikmod
+Supported options: i_cdaudio i_avdec i_vcd i_dvd i_singlepic_stills i_lqt i_edl i_singlepic i_mikmod
 .P
-Default: i_avdec
+Default: i_cdaudio
 .P
 input plugin
 .P
+.B Suboptions for p=i_cdaudio
+
+.P
+.RS 2
+.BR trackname_template "=<string> (Default: %p - %t)"
+.P
+Trackname template
+.P
+Template for track name generation from metadata
+%p:    Artist
+%a:    Album
+%g:    Genre
+%t:    Track name
+%<d>n: Track number (d = number of digits, 1-9)
+%y:    Year
+%c:    Comment
+
+.P
+.BR use_cdtext "=[1|0] (default: 1)"
+.P
+Use CD-Text
+.P
+Try to get CD metadata from CD-Text
+
+.P
+.BR use_local "=[1|0] (default: 1)"
+.P
+Use locally saved metadata
+.P
+Whenever we obtain CD metadata from the internet, we save them into
+$HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,
+disabling this option will retrieve the metadata again and overwrite the
+saved data.
+
+.P
+.BR use_musicbrainz "=[1|0] (default: 1)"
+.P
+Use Musicbrainz
+.P
+.BR musicbrainz_host "=<string> (Default: mm.musicbrainz.org)"
+.P
+Server
+.P
+.BR musicbrainz_port "=<number> (1..65535, default: 80)"
+.P
+Port
+.P
+.BR musicbrainz_proxy_host "=<string>"
+.P
+Proxy
+.P
+Proxy server (leave empty for direct connection)
+
+.P
+.BR musicbrainz_proxy_port "=<number> (1..65535, default: 80)"
+.P
+Proxy port
+.P
+Proxy port
+
+.P
+.BR use_cddb "=[1|0] (default: 1)"
+.P
+Use Cddb
+.P
+.BR cddb_host "=<string> (Default: freedb.org)"
+.P
+Server
+.P
+.BR cddb_port "=<number> (1..65535, default: 80)"
+.P
+Port
+.P
+.BR cddb_path "=<string> (Default: /~cddb/cddb.cgi)"
+.P
+Path
+.P
+.BR cddb_proxy_host "=<string>"
+.P
+Proxy
+.P
+Proxy server (leave empty for direct connection)
+
+.P
+.BR cddb_proxy_port "=<number> (1..65535, default: 80)"
+.P
+Proxy port
+.P
+Proxy port
+
+.P
+.BR cddb_proxy_user "=<string>"
+.P
+Proxy username
+.P
+User name for proxy (leave empty for poxies, which don't require
+authentication)
+
+.P
+.BR cddb_proxy_pass "=<string>"
+.P
+Proxy password
+.P
+Password for proxy
+
+.P
+.BR cddb_timeout "=<number> (0..1000, default: 10)"
+.P
+Timeout
+.P
+Timeout (in seconds) for connections to the CDDB server
+
+.P
+.BR cdparanoia_speed "=<string>"
+.P
+Supported strings: Auto 4 8 16 32
+.P
+Default: Auto
+.P
+Speed
+.P
+.BR cdparanoia_max_retries "=<number> (0..200, default: 20)"
+.P
+Maximum retries
+.P
+Maximum number of retries, 0 = infinite
+
+.P
+.BR cdparanoia_disable_paranoia "=[1|0] (default: 0)"
+.P
+Disable paranoia
+.P
+Disable all data verification and correction features.
+
+.P
+.BR cdparanoia_disable_extra_paranoia "=[1|0] (default: 0)"
+.P
+Disable extra paranoia
+.P
+Disables intra-read data verification; only overlap checking atread
+boundaries is performed. It can wedge if errors  occur  in the attempted
+overlap area. Not recommended.
+
+.P
+.RE
 .B Suboptions for p=i_avdec
 
 .P
@@ -391,154 +556,16 @@ Cache size (Megabytes)
 Set the maximum total size of the cache directory.
 
 .P
+.BR threads "=<number> (1..1024, default: 1)"
+.P
+Number of decoding threads
+.P
+Set the number of threads used by Video codecs
+
+.P
 .BR dv_datetime "=[1|0] (default: 0)"
 .P
 Export date and time as timecodes for DV
-.P
-.RE
-.B Suboptions for p=i_cdaudio
-
-.P
-.RS 2
-.BR trackname_template "=<string> (Default: %p - %t)"
-.P
-Trackname template
-.P
-Template for track name generation from metadata
-%p:    Artist
-%a:    Album
-%g:    Genre
-%t:    Track name
-%<d>n: Track number (d = number of digits, 1-9)
-%y:    Year
-%c:    Comment
-
-.P
-.BR use_cdtext "=[1|0] (default: 1)"
-.P
-Use CD-Text
-.P
-Try to get CD metadata from CD-Text
-
-.P
-.BR use_local "=[1|0] (default: 1)"
-.P
-Use locally saved metadata
-.P
-Whenever we obtain CD metadata from the internet, we save them into
-$HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,
-disabling this option will retrieve the metadata again and overwrite the
-saved data.
-
-.P
-.BR use_musicbrainz "=[1|0] (default: 1)"
-.P
-Use Musicbrainz
-.P
-.BR musicbrainz_host "=<string> (Default: mm.musicbrainz.org)"
-.P
-Server
-.P
-.BR musicbrainz_port "=<number> (1..65535, default: 80)"
-.P
-Port
-.P
-.BR musicbrainz_proxy_host "=<string>"
-.P
-Proxy
-.P
-Proxy server (leave empty for direct connection)
-
-.P
-.BR musicbrainz_proxy_port "=<number> (1..65535, default: 80)"
-.P
-Proxy port
-.P
-Proxy port
-
-.P
-.BR use_cddb "=[1|0] (default: 1)"
-.P
-Use Cddb
-.P
-.BR cddb_host "=<string> (Default: freedb.org)"
-.P
-Server
-.P
-.BR cddb_port "=<number> (1..65535, default: 80)"
-.P
-Port
-.P
-.BR cddb_path "=<string> (Default: /~cddb/cddb.cgi)"
-.P
-Path
-.P
-.BR cddb_proxy_host "=<string>"
-.P
-Proxy
-.P
-Proxy server (leave empty for direct connection)
-
-.P
-.BR cddb_proxy_port "=<number> (1..65535, default: 80)"
-.P
-Proxy port
-.P
-Proxy port
-
-.P
-.BR cddb_proxy_user "=<string>"
-.P
-Proxy username
-.P
-User name for proxy (leave empty for poxies, which don't require
-authentication)
-
-.P
-.BR cddb_proxy_pass "=<string>"
-.P
-Proxy password
-.P
-Password for proxy
-
-.P
-.BR cddb_timeout "=<number> (0..1000, default: 10)"
-.P
-Timeout
-.P
-Timeout (in seconds) for connections to the CDDB server
-
-.P
-.BR cdparanoia_speed "=<string>"
-.P
-Supported strings: Auto 4 8 16 32
-.P
-Default: Auto
-.P
-Speed
-.P
-.BR cdparanoia_max_retries "=<number> (0..200, default: 20)"
-.P
-Maximum retries
-.P
-Maximum number of retries, 0 = infinite
-
-.P
-.BR cdparanoia_disable_paranoia "=[1|0] (default: 0)"
-.P
-Disable paranoia
-.P
-Disable all data verification and correction features.
-
-.P
-.BR cdparanoia_disable_extra_paranoia "=[1|0] (default: 0)"
-.P
-Disable extra paranoia
-.P
-Disables intra-read data verification; only overlap checking atread
-boundaries is performed. It can wedge if errors  occur  in the attempted
-overlap area. Not recommended.
-
 .P
 .RE
 .B Suboptions for p=i_dvd
@@ -574,8 +601,8 @@ Time to pass until the next track will be selected. 0 means infinite.
 .BR ac "={option[{suboptions}][:option[{suboptions}]...]}"
 .P
 Supported options: ima4 rawaudio twos ulaw sowt alaw in24 in32 fl32 fl64 
-lpcm faad2 ffmpeg_mp3 ffmpeg_mp2 ffmpeg_ac3 ffmpeg_qdm2 ffmpeg_alac 
-ffmpeg_adpcm_ms ffmpeg_ima_adpcm_wav vorbis vorbis_qt
+lpcm vorbis vorbis_qt ffmpeg_mp3 ffmpeg_mp2 ffmpeg_ac3 ffmpeg_qdm2 
+ffmpeg_alac ffmpeg_adpcm_ms ffmpeg_ima_adpcm_wav faad2
 
 Audio Codecs
 .P
@@ -584,14 +611,15 @@ Sort and configure audio codecs
 .P
 .BR vc "={option[{suboptions}][:option[{suboptions}]...]}"
 .P
-Supported options: jpeg rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy 
-v210 schroedinger png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 
+Supported options: raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 rtjpeg 
+jpeg mjpa png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 
 ffmpeg_msmpeg4v2 ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263_dec 
 ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 
 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS 
 ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv 
-ffmpeg_rle ffmpeg_wrle ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_ffv1 
-ffmpeg_dnxhd mjpa ffmpeg_imx ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50 yuvs
+ffmpeg_rle ffmpeg_wrle ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50 
+ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_ffv1 ffmpeg_dnxhd ffmpeg_imx 
+schroedinger yuvs
 
 Video Codecs
 .P
@@ -742,6 +770,33 @@ Grayscale mode
 Grayscale mode
 .P
 .RE
+.B Suboptions for ffmpeg_dv
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_dvcpro
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_dv50
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
 .B Suboptions for ffmpeg_dvcprohd
 
 .P
@@ -779,33 +834,6 @@ Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_imx
-
-.P
-.RS 2
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.RE
-.B Suboptions for ffmpeg_dv
-
-.P
-.RS 2
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.RE
-.B Suboptions for ffmpeg_dvcpro
-
-.P
-.RS 2
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.RE
-.B Suboptions for ffmpeg_dv50
 
 .P
 .RS 2
