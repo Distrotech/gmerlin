@@ -522,7 +522,7 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
             track->CodecID);
     }
   
-  return 0;
+  return 1;
   }
 
 #define MAX_HEADER_LEN 16

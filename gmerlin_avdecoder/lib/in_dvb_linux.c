@@ -1205,7 +1205,7 @@ static int setup_pes_filter(const bgav_options_t * opt,
                             int fd, int pes_type, int stream_id)
   {
   struct dmx_pes_filter_params params;
-  
+  memset(&params, 0, sizeof(params));
   params.pid      = stream_id;
   params.input    = DMX_IN_FRONTEND;
   params.output   = DMX_OUT_TS_TAP;
