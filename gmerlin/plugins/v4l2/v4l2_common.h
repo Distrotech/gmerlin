@@ -59,6 +59,17 @@ struct v4l2_queryctrl * bgv4l2_create_device_controls(int fd, int * num);
 int bgv4l2_open_device(const char * device, int capability,
                        struct v4l2_capability * cap);
 
+gavl_video_frame_t * bgv4l2_create_frame(uint8_t * data, // Can be NULL
+                                         const gavl_video_format_t * gavl,
+                                         const struct v4l2_format * v4l2);
+
+int bgv4l2_set_strides(const gavl_video_format_t * gavl,
+                       const struct v4l2_format * v4l2, int * ret);
+
+int bgv4l2_strides_match(const gavl_video_frame_t * f, int * strides, int num_strides);
+
+
+
 typedef enum
   {
     BGV4L2_IO_METHOD_RW = 0,

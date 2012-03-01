@@ -39,8 +39,6 @@
 #define MAX_BUFFERS  4  // TODO: Always enough?
 #define MMAP_BUFFERS 4 // TODO: Always enough?
 
-// #define FORCE_RW 1
-
 typedef struct
   {
   gavl_video_frame_t * f;
@@ -68,6 +66,9 @@ typedef struct
   int num_queued;
 
   int buffer_index;
+  
+  int force_rw;
+  
   } ov_v4l2_t;
 
 static void cleanup_v4l(ov_v4l2_t *);
@@ -105,6 +106,13 @@ static const bg_parameter_info_t parameters[] =
       .type =        BG_PARAMETER_MULTI_MENU,
       .val_default = { .val_str = "/dev/video0" },
     },
+    {
+      .name =        "force_rw",
+      .long_name =   TRS("Force write"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Don't use memory mapping")
+    },
     { /* End */ }
   };
 
@@ -137,9 +145,9 @@ static void set_parameter_v4l2(void * priv, const char * name,
     return;
     }
   else if(!strcmp(name, "device"))
-    {
     v4l->device = bg_strdup(v4l->device, val->val_str);
-    }
+  else if(!strcmp(name, "force_rw"))
+    v4l->force_rw = val->val_i;
   else if(v4l->controls && (v4l->fd >= 0))
     {
     bgv4l2_set_device_parameter(v4l->fd,
@@ -147,7 +155,6 @@ static void set_parameter_v4l2(void * priv, const char * name,
                                 v4l->num_controls,
                                 name, val);
     }
-
   }
 
 static int get_parameter_v4l2(void * priv, const char * name,
@@ -215,7 +222,9 @@ static gavl_pixelformat_t * get_pixelformats(int fd)
 static int init_write(ov_v4l2_t * v4l)
   {
   v4l->num_buffers = 1;
-  v4l->buffers[0].f = gavl_video_frame_create_nopad(&v4l->format);
+  v4l->buffers[0].f = bgv4l2_create_frame(NULL, // Can be NULL
+                                          &v4l->format,
+                                          &v4l->fmt);
   return 1;
   }
 
@@ -291,10 +300,10 @@ static int init_mmap(ov_v4l2_t * v4l)
       }
     v4l->buffers[i].index = i;
     
-    v4l->buffers[i].f = gavl_video_frame_create(NULL);
-    gavl_video_frame_set_planes(v4l->buffers[i].f,
-                                &v4l->format, v4l->buffers[i].buf);
-    
+    v4l->buffers[i].f =
+      bgv4l2_create_frame(v4l->buffers[i].buf, // Can be NULL
+                          &v4l->format,
+                          &v4l->fmt);
     v4l->buffers[i].f->user_data = &v4l->buffers[i];
     }
   v4l->need_streamon = 1;
@@ -350,7 +359,7 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
     return;
     }
-  fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
+  //  fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
 
   v4l->num_queued++;
   
@@ -363,7 +372,7 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMON failed: %s", strerror(errno));
       return;
       }
-    fprintf(stderr, "STREAMON\n");
+    //    fprintf(stderr, "STREAMON\n");
     }
 
   b->queued = 1;
@@ -427,8 +436,7 @@ static int open_v4l2(void * priv,
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Device name: %s", cap.card);
 
   /* Get the I/O method */
-#ifndef FORCE_RW
-  if (cap.capabilities & V4L2_CAP_STREAMING)
+  if ((cap.capabilities & V4L2_CAP_STREAMING) && !v4l->force_rw)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");
     v4l->io = BGV4L2_IO_METHOD_MMAP;
@@ -438,9 +446,6 @@ static int open_v4l2(void * priv,
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying read i/o");
     v4l->io = BGV4L2_IO_METHOD_RW;
     }
-#else
-    v4l->io = BGV4L2_IO_METHOD_RW;
-#endif
   
   memset(&v4l->fmt, 0, sizeof(v4l->fmt));
   
@@ -523,10 +528,10 @@ static gavl_video_frame_t * get_frame_dqbuf(ov_v4l2_t * v4l, int mode)
   if(v4l->buffer_index >= v4l->num_buffers)
     v4l->buffer_index = 0;
   
-  fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
-          buf.index,
-          !!(buf.flags & V4L2_BUF_FLAG_DONE),
-          !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
+  //  fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
+  //          buf.index,
+  //          !!(buf.flags & V4L2_BUF_FLAG_DONE),
+  //          !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
 
   return v4l->buffers[buf.index].f;
   }

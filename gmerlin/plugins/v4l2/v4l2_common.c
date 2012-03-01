@@ -461,3 +461,42 @@ int bgv4l2_open_device(const char * device, int capability,
     close(ret);
   return -1;
   }
+
+int bgv4l2_set_strides(const gavl_video_format_t * gavl,
+                       const struct v4l2_format * v4l2, int * ret)
+  {
+  ret[0] = v4l2->fmt.pix.bytesperline;
+  
+  if(gavl_pixelformat_is_planar(gavl->pixelformat))
+    {
+    int sub_h, sub_v;
+    gavl_pixelformat_chroma_sub(gavl->pixelformat, &sub_h, &sub_v);
+    /* Might crash with odd sizes */
+    ret[1] = v4l2->fmt.pix.bytesperline / sub_h;
+    ret[2] = v4l2->fmt.pix.bytesperline / sub_h;
+    return 3;
+    }
+  else
+    return 1;
+  }
+
+gavl_video_frame_t * bgv4l2_create_frame(uint8_t * data, // Can be NULL
+                                         const gavl_video_format_t * gavl,
+                                         const struct v4l2_format * v4l2)
+  {
+  gavl_video_frame_t * ret = gavl_video_frame_create(NULL);
+  bgv4l2_set_strides(gavl, v4l2, ret->strides);
+  gavl_video_frame_set_planes(ret, gavl, data);
+  return ret;
+  }
+
+int bgv4l2_strides_match(const gavl_video_frame_t * f, int * strides, int num_strides)
+  {
+  int i;
+  for(i = 0; i < num_strides; i++)
+    {
+    if(f->strides[i] != strides[i])
+      return 0;
+    }
+  return 1;
+  }

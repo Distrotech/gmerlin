@@ -40,6 +40,9 @@ struct bg_v4l2_convert_s
 
   struct v4l2_format src_format;
   struct v4l2_format dst_format;
+
+  int strides[GAVL_MAX_PLANES];
+  int num_strides;
   };
 
 #if 0
@@ -106,10 +109,14 @@ bg_v4l2_convert_t * bg_v4l2_convert_create(int fd, uint32_t * v4l_fmt,
   ret->fmt.frame_height = ret->dst_format.fmt.pix.height;
   ret->fmt.pixelformat =
     bgv4l2_pixelformat_v4l2_2_gavl(ret->dst_format.fmt.pix.pixelformat);
-  ret->frame = gavl_video_frame_create_nopad(&ret->fmt);
+  ret->frame = bgv4l2_create_frame(NULL, // Can be NULL
+                                   &ret->fmt, &ret->dst_format);
   if(gavl_fmt)
     *gavl_fmt = ret->fmt.pixelformat;
-  ret->dst_size = gavl_video_format_get_image_size(&ret->fmt);
+  ret->dst_size = ret->dst_format.fmt.pix.sizeimage;
+
+  ret->num_strides = bgv4l2_set_strides(&ret->fmt,
+                                        &ret->dst_format, ret->strides);
   return ret;
   }
 
@@ -118,6 +125,19 @@ void bg_v4l2_convert_convert(bg_v4l2_convert_t * cnv, uint8_t * data, int size,
   {
   int result;
   //  fprintf(stderr, "bg_v4l2_convert_convert %d\n", size);
+
+  if(bgv4l2_strides_match(frame, cnv->strides, cnv->num_strides))
+    {
+    result = v4lconvert_convert(cnv->cnv,
+                                &cnv->src_format,  /* in */
+                                &cnv->dst_format, /* in */
+                                data, size, frame->planes[0], cnv->dst_size);
+    return;
+    }
+  
+  if(!cnv->frame)
+    cnv->frame = bgv4l2_create_frame(NULL, // Can be NULL
+                                     &cnv->fmt, &cnv->dst_format);
   
   result = v4lconvert_convert(cnv->cnv,
                               &cnv->src_format,  /* in */

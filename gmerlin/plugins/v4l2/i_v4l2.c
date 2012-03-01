@@ -52,8 +52,6 @@
 #include "convert.h"
 #endif
 
-// #define FORCE_RW
-
 /* Input module */
 
 typedef struct
@@ -87,9 +85,13 @@ typedef struct
   struct v4l2_queryctrl * controls;
   int num_controls;
   gavl_timer_t * timer;
+
+  int force_rw;
 #ifdef HAVE_V4LCONVERT
   bg_v4l2_convert_t * converter;
 #endif
+  int strides[GAVL_MAX_PLANES];
+  int num_strides;
   } v4l2_t;
 
 
@@ -97,17 +99,11 @@ static int
 init_read(v4l2_t * v4l)
   {
   v4l->buffers = calloc (1, sizeof (*v4l->buffers));
+
+  v4l->num_strides = bgv4l2_set_strides(&v4l->format,
+                                        &v4l->fmt, v4l->strides);
   
   if (!v4l->buffers)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
-    return 0;
-    }
-  
-  v4l->buffers[0].length = v4l->fmt.fmt.pix.sizeimage;
-  v4l->buffers[0].start = malloc(v4l->fmt.fmt.pix.sizeimage);
-  
-  if (!v4l->buffers[0].start)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Out of memory");
     return 0;
@@ -200,7 +196,7 @@ init_mmap(v4l2_t * v4l)
              strerror(errno));
       return 0;
       }
-    fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
+    //    fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
     }
   
   type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -299,8 +295,7 @@ static int open_v4l(void * priv,
   
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Device name: %s", cap.card);
 
-#ifndef FORCE_RW  
-  if (cap.capabilities & V4L2_CAP_STREAMING)
+  if ((cap.capabilities & V4L2_CAP_STREAMING) && !v4l->force_rw)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");
     v4l->io = BGV4L2_IO_METHOD_MMAP;
@@ -310,9 +305,6 @@ static int open_v4l(void * priv,
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying read i/o");
     v4l->io = BGV4L2_IO_METHOD_RW;
     }
-#else
-  v4l->io = BGV4L2_IO_METHOD_RW;
-#endif
   
   /* Select video input, video standard and tune here. */
 
@@ -417,12 +409,6 @@ static int open_v4l(void * priv,
   format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
 
   gavl_video_format_copy(&v4l->format, format);
-  //  gavl_video_format_dump(&v4l->format);
-
-  //  fprintf(stderr, "Bytesperline: %d, sizeimage: %d\n",
-  //          v4l->fmt.fmt.pix.bytesperline, v4l->fmt.fmt.pix.sizeimage);
-
-  gavl_video_frame_set_strides(v4l->frame, &v4l->format);
   
   switch (v4l->io)
     {
@@ -469,6 +455,14 @@ static void close_v4l(void * priv)
   if(v4l->buffers)
     free (v4l->buffers);
 
+  if(v4l->frame)
+    {
+    gavl_video_frame_null(v4l->frame);
+    gavl_video_frame_destroy(v4l->frame);
+    v4l->frame = NULL;
+    }
+
+  
   if(v4l->fd >= 0)
     close(v4l->fd);
   v4l->fd = -1;
@@ -478,6 +472,13 @@ static void close_v4l(void * priv)
     free(v4l->controls);
     v4l->controls = NULL;
     }
+#if HAVE_V4LCONVERT
+  if(v4l->converter)
+    {
+    bg_v4l2_convert_destroy(v4l->converter);
+    v4l->converter = NULL;
+    }
+#endif
   }
 
 static void process_image(v4l2_t * v4l, void * data,
@@ -492,6 +493,13 @@ static void process_image(v4l2_t * v4l, void * data,
   else
     {
 #endif
+
+  if(!v4l->frame)
+    {
+    v4l->frame = gavl_video_frame_create(NULL);
+    bgv4l2_set_strides(&v4l->format,
+                       &v4l->fmt, v4l->frame->strides);
+    }
   gavl_video_frame_set_planes(v4l->frame, &v4l->format, data);
   gavl_video_frame_copy(&v4l->format, frame, v4l->frame);
 #ifdef HAVE_V4LCONVERT
@@ -502,7 +510,23 @@ static void process_image(v4l2_t * v4l, void * data,
 
 static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
   {
-  if (-1 == read (v4l->fd, v4l->buffers[0].start, v4l->buffers[0].length))
+  /* If strides match we can read directly into the frame buffer */
+  if(!v4l->converter &&
+     bgv4l2_strides_match(frame, v4l->strides, v4l->num_strides))
+    {
+    if (-1 == read (v4l->fd, frame->planes[0], v4l->buffers[0].length))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read failed: %s", strerror(errno));
+      return 0;
+      }
+    frame->timestamp = gavl_timer_get(v4l->timer) / TIME_DIV;
+    return 1;
+    }
+
+  if(!v4l->buffers[0].start)
+    v4l->buffers[0].start = malloc(v4l->fmt.fmt.pix.sizeimage);
+  
+  if (-1 == read (v4l->fd, v4l->buffers[0].start, v4l->fmt.fmt.pix.sizeimage))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read failed: %s", strerror(errno));
     switch (errno)
@@ -549,12 +573,13 @@ static int read_frame_mmap(v4l2_t * v4l, gavl_video_frame_t * frame)
         return 0;
       }
     }
-      
+
+#if 0  
   fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
           buf.index,
           !!(buf.flags & V4L2_BUF_FLAG_DONE),
           !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
-      
+#endif
   //      assert (buf.index < n_buffers);
       
   process_image (v4l, v4l->buffers[buf.index].start, frame);
@@ -574,7 +599,7 @@ static int read_frame_mmap(v4l2_t * v4l, gavl_video_frame_t * frame)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
     return 0;
     }
-  fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
+  //  fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
   return 1;
   }
 
@@ -597,9 +622,9 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
     tv.tv_sec = 4;
     tv.tv_usec = 0;
 
-    fprintf(stderr, "Select...");
+    //    fprintf(stderr, "Select...");
     r = select(v4l->fd + 1, &fds, NULL, NULL, &tv);
-    fprintf(stderr, "Select...done %d\n", r);
+    //    fprintf(stderr, "Select...done %d\n", r);
     
     if (-1 == r)
       {
@@ -635,8 +660,7 @@ static void * create_v4l()
   v4l2_t * v4l;
 
   v4l = calloc(1, sizeof(*v4l));
-
-  v4l->frame = gavl_video_frame_create(NULL);
+  
   v4l->fd = -1;
   //  v4l->device = bg_strdup(v4l->device, "/dev/video4");
   v4l->timer = gavl_timer_create();
@@ -647,12 +671,6 @@ static void  destroy_v4l(void * priv)
   {
   v4l2_t * v4l;
   v4l = priv;
-  gavl_video_frame_null(v4l->frame);
-  gavl_video_frame_destroy(v4l->frame);
-#if HAVE_V4LCONVERT
-  if(v4l->converter)
-    bg_v4l2_convert_destroy(v4l->converter);
-#endif
   close_v4l(priv);
   gavl_timer_destroy(v4l->timer);
   
@@ -680,6 +698,13 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("V4L2 Device"),
       .type =        BG_PARAMETER_MULTI_MENU,
       .val_default = { .val_str = "/dev/video0" },
+    },
+    {
+      .name =        "force_rw",
+      .long_name =   TRS("Force write"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Don't use memory mapping")
     },
     {
       .name =        "res",
@@ -776,9 +801,9 @@ static void set_parameter_v4l(void * priv, const char * name,
     return;
     }
   else if(!strcmp(name, "device"))
-    {
     v4l->device = bg_strdup(v4l->device, val->val_str);
-    }
+  else if(!strcmp(name, "force_rw"))
+    v4l->force_rw = val->val_i;
   else if(!strcmp(name, "resolution"))
     {
     if(!strcmp(val->val_str, "QSIF (160x112)"))
