@@ -49,6 +49,61 @@ void * memalign (size_t align, size_t size);
 static void video_frame_alloc(gavl_video_frame_t * ret,
                               const gavl_video_format_t * format, int align)
   {
+  int planar;
+
+  if(format->pixelformat == GAVL_PIXELFORMAT_NONE)
+    {
+    fprintf(stderr, "Pixelformat not specified for video frame\n");
+    return;
+    }
+  planar = gavl_pixelformat_is_planar(format->pixelformat);
+  
+  if(planar)
+    {
+    int sub_h;
+    int sub_v;
+    int bpc;
+    
+    gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+    
+    bpc = gavl_pixelformat_bytes_per_component(format->pixelformat);
+
+    if(!ret->strides[0])
+      {
+      ret->strides[0] = bpc * format->frame_width;
+      ret->strides[1] = bpc * ((format->frame_width + sub_h - 1) / sub_h);
+      ret->strides[2] = ret->strides[1];
+      
+      if(align)
+        {
+        ALIGN(ret->strides[0]);
+        ALIGN(ret->strides[1]);
+        ALIGN(ret->strides[2]);
+        }
+      }
+    
+    ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                              ret->strides[0]*format->frame_height+
+                              ret->strides[1]*((format->frame_height+sub_v-1)/sub_v)+
+                              ret->strides[2]*((format->frame_height+sub_v-1)/sub_v));
+    ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
+    ret->planes[2] = ret->planes[1] + ret->strides[1]*((format->frame_height+sub_v-1)/sub_v);
+    }
+  else // Packed
+    {
+    if(!ret->strides[0])
+      {
+      ret->strides[0] =
+        format->frame_width * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
+      if(align)
+        ALIGN(ret->strides[0]);
+      }
+    ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                              ret->strides[0] * format->frame_height);
+    }
+
+#if 0 // Old version
+  
   switch(format->pixelformat)
     {
     case GAVL_GRAY_8:
@@ -293,7 +348,7 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       fprintf(stderr, "Pixelformat not specified for video frame\n");
       return;
     }
-
+#endif
   }
 
 static void video_frame_free(gavl_video_frame_t * frame)
@@ -1744,19 +1799,27 @@ void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
   int i;
   int sub_h, sub_v;
   int advance;
-  int num_planes = gavl_pixelformat_num_planes(format->pixelformat);
+  int num_planes;
   if(!frame->strides[0])
     gavl_video_frame_set_strides(frame, format);
 
-  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
-
-  for(i = 0; i < num_planes; i++)
+  if(buffer)
     {
-    frame->planes[i] = buffer;
-    advance = frame->strides[i] * format->frame_height;
-    if(i)
-      advance /= sub_v;
-    buffer += advance;
+    num_planes = gavl_pixelformat_num_planes(format->pixelformat);
+    gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+  
+    for(i = 0; i < num_planes; i++)
+      {
+      frame->planes[i] = buffer;
+      advance = frame->strides[i] * format->frame_height;
+      if(i)
+        advance /= sub_v;
+      buffer += advance;
+      }
+    }
+  else
+    {
+    video_frame_alloc(frame, format, 0);
     }
   
   }
