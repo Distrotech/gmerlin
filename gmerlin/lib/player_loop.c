@@ -605,9 +605,6 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   if(flags & BG_PLAY_FLAG_INIT_THEN_PAUSE)
     {
     bg_player_set_state(p, BG_PLAYER_STATE_PAUSED, NULL, NULL);
-
-    
-
     if(DO_VIDEO(p->flags))
       {
       bg_player_ov_reset(p);
