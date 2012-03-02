@@ -1201,7 +1201,7 @@ unused album files) at program exit")
       .name =        "blacklist",
       .long_name =   TRS("Blacklist"),
       .type =        BG_PARAMETER_STRING,
-      .val_default = { .val_str = "srt txt pdf" },
+      .val_default = { .val_str = "srt txt pdf nfo" },
       .help_string = TRS("File extensions, which are never loaded automatically"),
     },
     {

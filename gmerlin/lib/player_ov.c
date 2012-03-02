@@ -340,7 +340,6 @@ static void handle_subtitle(bg_player_t * p)
     swp = s->ss->current_subtitle;
     s->ss->current_subtitle = s->ss->next_subtitle;
     s->ss->next_subtitle = swp;
-    
     }
   
   /* Try to read as many subtitles as possible */

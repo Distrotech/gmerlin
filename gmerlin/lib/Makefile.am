@@ -89,6 +89,7 @@ metadata.c \
 metadata_xml.c \
 msgqueue.c \
 osd.c \
+ov.c \
 parameter.c \
 parameter_xml.c \
 player.c \

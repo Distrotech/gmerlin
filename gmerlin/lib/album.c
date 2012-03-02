@@ -2210,7 +2210,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
 
   if(is_blacklisted(album->com, url))
     {
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Not loading %s (blacklisted extension)", url);
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Not loading %s (blacklisted extension)", url);
     return NULL;
     }
   
