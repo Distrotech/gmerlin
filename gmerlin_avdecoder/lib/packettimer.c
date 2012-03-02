@@ -88,7 +88,7 @@ static bgav_packet_t * insert_packet(bgav_packet_timer_t * pt)
   
   if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
     {
-    if(pt->num_ip_frames_total != 2)
+    if(pt->num_ip_frames_total < 2)
       PACKET_SET_SKIP(p);
     
     pt->num_b_frames++;
@@ -157,18 +157,6 @@ static void get_first_indices(bgav_packet_timer_t * pt,
     }
   }
 #endif
-
-static int get_next_ip(bgav_packet_timer_t * pt,
-                       int index)
-  {
-  int i;
-  for(i = index + 1; i < pt->num_packets; i++)
-    {
-    if(IS_IP(i))
-      return i;
-    }
-  return -1;
-  }
 
 
 /* These are the actual worker functions */
@@ -242,6 +230,34 @@ static bgav_packet_t * insert_packet_duration_from_pts(bgav_packet_timer_t * pt)
   return p;
   }
 
+static int get_next_ip_duration_from_pts(bgav_packet_timer_t * pt,
+                                         int index)
+  {
+  int i;
+  bgav_packet_t * p;
+  for(i = index + 1; i < pt->num_packets; i++)
+    {
+    if(IS_IP(i))
+      return i;
+    }
+
+  // Read packets until this B-frame sequence is finished
+  while(1)
+    {
+    p = insert_packet_duration_from_pts(pt);
+    
+    if(!p)
+      return -1;
+    
+    if(PACKET_GET_CODING_TYPE(p) != BGAV_CODING_TYPE_B)
+      return pt->num_packets-1;
+    }
+  
+  return -1;
+  }
+
+
+
 /*
  *  Set duration of this_index from the pts difference
  *  of this_index and next_index
@@ -261,6 +277,31 @@ set_duration_from_pts(bgav_packet_timer_t * pt,
     pt->packets[next_index]->pts - pt->packets[this_index]->pts;
   pt->last_duration = pt->packets[this_index]->duration;
   return 1;
+  }
+
+/*
+ *  Get the index of the next smallest pts aftet pts in the
+ *  range between start (inclusive) and end (exclusive)
+ */
+
+static int get_next_pts(bgav_packet_timer_t * pt,
+                        int start, int end, int64_t pts)
+  {
+  int i;
+  int ret = -1;
+  int64_t next_pts = 0;
+  
+  for(i = start; i < end; i++)
+    {
+    if(pt->packets[i]->pts <= pts)
+      continue;
+    if((ret < 0) || (pt->packets[i]->pts < next_pts))
+      {
+      ret = i;
+      next_pts = pt->packets[i]->pts;
+      }
+    }
+  return ret;
   }
 
 static int
@@ -313,6 +354,7 @@ next_packet_duration_from_pts(bgav_packet_timer_t * pt)
       }
     else
       {
+      fprintf(stderr, "BUG 1\n");
       // BUG
       }
     }
@@ -340,26 +382,7 @@ next_packet_duration_from_pts(bgav_packet_timer_t * pt)
       {
       // PB
 
-      next_ip = get_next_ip(pt, 1);
-
-      if(next_ip < 0)
-        {
-        // Read packets until this B-frame sequence is finished
-
-        while(1)
-          {
-          p = insert_packet_duration_from_pts(pt);
-
-          if(!p)
-            break;
-
-          if(PACKET_GET_CODING_TYPE(p) != BGAV_CODING_TYPE_B)
-            {
-            next_ip = pt->num_packets-1;
-            break;
-            }
-          }
-        }
+      next_ip = get_next_ip_duration_from_pts(pt, 1);
       
       if(next_ip < 0)
         {
@@ -372,12 +395,36 @@ next_packet_duration_from_pts(bgav_packet_timer_t * pt)
       
       // Get durations of the B-frame sequence
 
-      for(i = 1; i < last_b; i++)
+      if(!pt->b_pyramid)
         {
-        // This will be wrong for B-Pyramid!
-        set_duration_from_pts(pt, i, i+1);
+        for(i = 1; i < last_b; i++)
+          {
+          // This will be wrong for B-Pyramid!
+          set_duration_from_pts(pt, i, i+1);
+          }
+        set_duration_from_pts(pt, last_b, 0);
         }
-      set_duration_from_pts(pt, last_b, 0);
+      else
+        {
+        int next_index;
+        /* Durations of a PBBBBB sequence with B-pyramid:
+           We use a quite stupid approach assuming that the
+           B-sequence is arbitrarily shuffled */
+        
+        for(i = 1; i <= last_b; i++)
+          {
+          next_index =
+            get_next_pts(pt, 0, last_b, pt->packets[i]->pts);
+          if(next_index < 0)
+            {
+            fprintf(stderr, "BUG 3");
+            return 0;
+            }
+          set_duration_from_pts(pt, i, next_index);
+          }
+        
+        }
+      
 
       /* If we have eof, we stop here */
       if(next_ip < 0)
@@ -412,8 +459,30 @@ next_packet_duration_from_pts(bgav_packet_timer_t * pt)
         // PBBBPB
         else
           {
-          set_duration_from_pts(pt, 0, next_ip+1);
-          return 1;
+          if(!pt->b_pyramid)
+            {
+            set_duration_from_pts(pt, 0, next_ip+1);
+            return 1;
+            }
+          else
+            {
+            int next_index;
+            int next_ip2 = get_next_ip_duration_from_pts(pt, next_ip+1);
+            if(next_ip2 < 0)
+              next_index = get_next_pts(pt, next_ip+1,
+                                        pt->num_packets,
+                                        pt->packets[0]->pts);
+            else
+              next_index = get_next_pts(pt, next_ip+1,
+                                        next_ip2,
+                                        pt->packets[0]->pts);
+            if(next_index < 0)
+              {
+              fprintf(stderr, "BUG 4\n");
+              }
+            set_duration_from_pts(pt, 0, next_index);
+            return 1;
+            }
           }
         
         }
@@ -423,6 +492,7 @@ next_packet_duration_from_pts(bgav_packet_timer_t * pt)
   else
     {
     //BUG
+    fprintf(stderr, "BUG 2\n");
     }
   
   return 0;
@@ -584,6 +654,7 @@ bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s)
   bgav_packet_timer_t * ret = calloc(1, sizeof(*ret));
   ret->s = s;
   ret->current_pts = BGAV_TIMESTAMP_UNDEFINED;
+  ret->last_b_pts = BGAV_TIMESTAMP_UNDEFINED;
 
   bgav_packet_source_copy(&ret->src, &s->src);
 

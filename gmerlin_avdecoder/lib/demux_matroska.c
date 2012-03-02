@@ -518,8 +518,9 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
     }
   else
     {
-    fprintf(stderr, "Subtitle format %s not suppported yet\n",
-            track->CodecID);
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Subtitle format %s not suppported yet",
+             track->CodecID);
     }
   
   return 1;
