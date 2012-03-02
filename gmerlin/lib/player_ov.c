@@ -394,17 +394,15 @@ static void handle_subtitle(bg_player_t * p)
 
 void bg_player_ov_update_still(bg_player_t * p)
   {
+  gavl_video_frame_t * frame;
   bg_player_video_stream_t * s = &p->video_stream;
   
-  if(!s->still_frame)
-    {
-    s->still_frame = s->plugin->get_frame(s->priv);
-    if(!bg_player_read_video(p, s->still_frame))
-      return;
-    s->frame_time =
-      gavl_time_unscale(s->output_format.timescale,
-                        s->still_frame->timestamp);
-    }
+  frame = s->plugin->get_frame(s->priv);
+  if(!bg_player_read_video(p, frame))
+    return;
+  s->frame_time =
+    gavl_time_unscale(s->output_format.timescale,
+                      frame->timestamp);
   
   if(DO_SUBTITLE(p->flags))
     handle_subtitle(p);
@@ -412,8 +410,8 @@ void bg_player_ov_update_still(bg_player_t * p)
   handle_messages(s, s->frame_time);
   
   bg_plugin_lock(s->plugin_handle);
-  s->plugin->put_still(s->priv, s->still_frame);
-
+  s->plugin->put_still(s->priv, frame);
+  
   if(s->plugin->handle_events)
     s->plugin->handle_events(s->priv);
   bg_plugin_unlock(s->plugin_handle);
@@ -464,7 +462,6 @@ void bg_player_ov_reset(bg_player_t * p)
     s->ss->current_subtitle->frame->timestamp = GAVL_TIME_UNDEFINED;
     s->ss->next_subtitle->frame->timestamp = GAVL_TIME_UNDEFINED;
     }
-  s->still_frame = NULL;
   
   }
 

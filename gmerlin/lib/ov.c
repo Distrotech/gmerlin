@@ -222,6 +222,18 @@ void bg_ov_set_overlay(bg_ov_t * ov, int stream, gavl_overlay_t * ovl)
     }
   }
 
+void bg_ov_destroy_overlay(bg_ov_t * ov, int id, gavl_overlay_t * ovl)
+  {
+  if(ov->has_hw_overlay)
+    ov->plugin->destroy_overlay(ov->priv, id, ovl);
+  else
+    {
+    gavl_video_frame_destroy(ovl->frame);
+    free(ovl->frame);
+    }
+  }
+
+
 void bg_ov_put_video(bg_ov_t * ov, gavl_video_frame_t*frame)
   {
   ov->still_mode = 0;
@@ -287,10 +299,6 @@ void bg_ov_update_aspect(bg_ov_t * ov, int pixel_width, int pixel_height)
 
   }
 
-void bg_ov_destroy_overlay(bg_ov_t * ov, int id, gavl_overlay_t * ovl)
-  {
-
-  }
   
 void bg_ov_close(bg_ov_t * ov)
   {
