@@ -468,7 +468,7 @@ static int handle_nal(bgav_video_parser_t * parser)
         get_rbsp(parser,
                  parser->buf.buffer + parser->pos + header_len,
                  priv->nal_len - header_len);
-        bgav_h264_sps_parse(parser->opt,
+        bgav_h264_sps_parse(parser->s->opt,
                             &priv->sps,
                             priv->rbsp, priv->rbsp_len);
         // bgav_h264_sps_dump(&priv->sps);

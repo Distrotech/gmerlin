@@ -68,7 +68,7 @@ static void handle_sequence(bgav_video_parser_t * parser)
   vc1_priv_t * priv = parser->priv;
   unescape_data(parser);
 
-  bgav_vc1_sequence_header_read(parser->opt, &priv->sh, 
+  bgav_vc1_sequence_header_read(parser->s->opt, &priv->sh, 
                                 priv->buf, priv->buf_len);
   bgav_vc1_sequence_header_dump(&priv->sh);
 
@@ -89,7 +89,7 @@ static void handle_picture(bgav_video_parser_t * parser)
   if(priv->sh.profile == PROFILE_ADVANCED)
     {
     unescape_data(parser);
-    bgav_vc1_picture_header_adv_read(parser->opt,
+    bgav_vc1_picture_header_adv_read(parser->s->opt,
                                      &aph,
                                      priv->buf, priv->buf_len,
                                      &priv->sh);

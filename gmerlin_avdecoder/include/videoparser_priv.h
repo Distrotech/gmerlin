@@ -87,7 +87,7 @@ struct bgav_video_parser_s
   reset_func        reset;
   parse_frame_func  parse_frame;
   
-  const bgav_options_t * opt;
+  //  const bgav_options_t * opt;
   
   /* Extradata */
   //  uint8_t * header;

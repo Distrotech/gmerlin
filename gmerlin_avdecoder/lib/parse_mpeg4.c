@@ -125,7 +125,7 @@ static int extract_user_data(bgav_video_parser_t * parser,
   if(!strncasecmp(priv->user_data, "divx", 4) &&
      (priv->user_data[priv->user_data_size-1] == 'p'))
     {
-    bgav_log(parser->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+    bgav_log(parser->s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
              "Detected packed B-frames");
     priv->packed_b_frames = 1;
     }
@@ -147,7 +147,7 @@ static int parse_header_mpeg4(bgav_video_parser_t * parser)
     switch(bgav_mpeg4_get_start_code(pos))
       {
       case MPEG4_CODE_VOL_START:
-        len = bgav_mpeg4_vol_header_read(parser->opt,
+        len = bgav_mpeg4_vol_header_read(parser->s->opt,
                                          &priv->vol, pos,
                                          parser->s->ext_size -
                                          (pos - parser->s->ext_data));
@@ -269,7 +269,7 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
     case MPEG4_HAS_VOP_CODE:
       /* Try to get the picture header */
       
-      len = bgav_mpeg4_vop_header_read(parser->opt,
+      len = bgav_mpeg4_vop_header_read(parser->s->opt,
                                         &vh,
                                         parser->buf.buffer + parser->pos,
                                         parser->buf.size - parser->pos, &priv->vol);
@@ -292,7 +292,7 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
 
       if(!priv->have_vol)
         {
-        len = bgav_mpeg4_vol_header_read(parser->opt,
+        len = bgav_mpeg4_vol_header_read(parser->s->opt,
                                          &priv->vol,
                                          parser->buf.buffer + parser->pos,
                                          parser->buf.size - parser->pos);
@@ -382,7 +382,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
       case MPEG4_CODE_VOL_START:
         if(!priv->have_vol)
           {
-          result = bgav_mpeg4_vol_header_read(parser->opt,
+          result = bgav_mpeg4_vol_header_read(parser->s->opt,
                                               &priv->vol, data,
                                               data_end - data);
           if(!result)
@@ -399,7 +399,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           data += 4;
         break;
       case MPEG4_CODE_VOP_START:
-        result = bgav_mpeg4_vop_header_read(parser->opt,
+        result = bgav_mpeg4_vop_header_read(parser->s->opt,
                                             &vh, data, data_end-data,
                                             &priv->vol);
         if(!result)

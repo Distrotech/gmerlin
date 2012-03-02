@@ -130,7 +130,7 @@ static int parse_cavs(bgav_video_parser_t * parser)
     case CAVS_HAS_PIC_CODE:
       /* Try to get the picture header */
       
-      len = bgav_cavs_picture_header_read(parser->opt,
+      len = bgav_cavs_picture_header_read(parser->s->opt,
                                           &ph,
                                           parser->buf.buffer + parser->pos,
                                           parser->buf.size - parser->pos, &priv->seq);
@@ -153,7 +153,7 @@ static int parse_cavs(bgav_video_parser_t * parser)
 
       if(!priv->have_seq)
         {
-        len = bgav_cavs_sequence_header_read(parser->opt,
+        len = bgav_cavs_sequence_header_read(parser->s->opt,
                                              &priv->seq,
                                              parser->buf.buffer + parser->pos,
                                              parser->buf.size - parser->pos);
