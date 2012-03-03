@@ -367,33 +367,15 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
 void bg_x11_window_put_frame_internal(bg_x11_window_t * w,
                                       gavl_video_frame_t * f)
   {
-  gavl_video_frame_t * f1;
-  int i;
-  
-  if(!w->current_driver->driver->add_overlay_stream && w->has_overlay)
-    {
-    if(!w->out_frame)
-      w->out_frame = bg_x11_window_create_frame(w);
-    
-    gavl_video_frame_copy(&w->video_format, w->out_frame, f);
-    
-    for(i = 0; i < w->num_overlay_streams; i++)
-      gavl_overlay_blend(w->overlay_streams[i].ctx, w->out_frame);
-    f1 = w->out_frame;
-    }
-  else
-    f1 = f;
   
   if(w->do_sw_scale)
     {
-    gavl_video_scaler_scale(w->scaler, f1, w->window_frame);
+    gavl_video_scaler_scale(w->scaler, f, w->window_frame);
     w->current_driver->driver->put_frame(w->current_driver,
                                          w->window_frame);
     }
   else
-    {
-    w->current_driver->driver->put_frame(w->current_driver, f1);
-    }
+    w->current_driver->driver->put_frame(w->current_driver, f);
   }
 
 void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
@@ -416,8 +398,6 @@ void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)
 
 void bg_x11_window_close_video(bg_x11_window_t * w)
   {
-  int i;
-
   if(w->window_frame)
     {
     if(w->current_driver->driver->destroy_frame)
@@ -431,19 +411,9 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
     bg_x11_window_destroy_frame(w, w->still_frame);
     w->still_frame = NULL;
     }
-  if(w->out_frame)
-    {
-    bg_x11_window_destroy_frame(w, w->out_frame);
-    w->out_frame = NULL;
-    }
   
   if(w->overlay_streams)
     {
-    for(i = 0; i < w->num_overlay_streams; i++)
-      {
-      if(w->overlay_streams[i].ctx)
-        gavl_overlay_blend_context_destroy(w->overlay_streams[i].ctx);
-      }
     free(w->overlay_streams);
     w->num_overlay_streams = 0;
     w->overlay_streams = NULL;

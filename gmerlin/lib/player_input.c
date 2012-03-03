@@ -103,7 +103,7 @@ void bg_player_input_select_streams(bg_player_t * p)
   if(!p->audio_stream.plugin_handle)
     p->current_audio_stream = -1;
 
-  if(!p->video_stream.plugin)
+  if(!p->video_stream.ov)
     {
     p->current_video_stream = -1;
     p->current_subtitle_stream = -1;

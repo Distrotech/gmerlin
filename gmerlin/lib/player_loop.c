@@ -452,7 +452,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
         bg_visualizer_close(p->visualizer);
       /* Initialize visualizer */
       bg_visualizer_open_plugin(p->visualizer, &p->audio_stream.fifo_format,
-                                p->video_stream.plugin_handle);
+                                bg_ov_get_plugin(p->video_stream.ov));
       }
     else
       {
@@ -1287,9 +1287,7 @@ static void * player_thread(void * data)
       break;
     
     if(player->flags & PLAYER_FREEZE_FRAME)
-      {
       bg_player_ov_handle_events(&player->video_stream);
-      }
     if(player->flags & PLAYER_FREEZE_VIS)
       bg_visualizer_update(player->visualizer, NULL);    
 

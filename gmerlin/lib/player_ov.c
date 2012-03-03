@@ -145,6 +145,7 @@ static void destroy_frame(bg_player_video_stream_t * s,
   }
 #endif
 
+#if 0
 static gavl_overlay_t * create_overlay(bg_player_video_stream_t * vs,
                                        int id)
   {
@@ -189,7 +190,7 @@ static void destroy_overlay(bg_player_video_stream_t * vs,
     free(ovl);
     }
   }
-
+#endif
 
 
 void bg_player_ov_create(bg_player_t * player)
@@ -208,27 +209,18 @@ void bg_player_ov_create(bg_player_t * player)
   
   }
 
-void bg_player_add_accelerators(bg_player_t * player, const bg_accelerator_t * list)
+void bg_player_add_accelerators(bg_player_t * player,
+                                const bg_accelerator_t * list)
   {
-  if(player->video_stream.plugin_handle)
-    bg_plugin_lock(player->video_stream.plugin_handle);
-
   bg_accelerator_map_append_array(player->video_stream.accel_map, list);
-  
-  if(player->video_stream.plugin_handle)
-    bg_plugin_unlock(player->video_stream.plugin_handle);
   }
 
 
 void bg_player_ov_standby(bg_player_video_stream_t * ctx)
   {
-  if(!ctx->plugin_handle)
+  if(!ctx->ov)
     return;
-
-  bg_plugin_lock(ctx->plugin_handle);
-  if(ctx->plugin->show_window)
-    ctx->plugin->show_window(ctx->priv, 0);
-  bg_plugin_unlock(ctx->plugin_handle);
+  bg_ov_show_window(ctx->ov, 0);
   }
 
 
@@ -238,21 +230,19 @@ void bg_player_ov_set_plugin(bg_player_t * player, bg_plugin_handle_t * handle)
 
   ctx = &player->video_stream;
 
-  if(ctx->plugin_handle)
-    bg_plugin_unref(ctx->plugin_handle);
-  
-
-  ctx->plugin_handle = handle;
+  if(ctx->ov)
+    {
+    bg_ov_destroy(ctx->ov);
+    ctx->ov = NULL;
+    }
 
   if(handle)
     {
-    ctx->plugin = (bg_ov_plugin_t*)(ctx->plugin_handle->plugin);
-    ctx->priv = ctx->plugin_handle->priv;
-    
-    bg_plugin_lock(ctx->plugin_handle);
-    if(ctx->plugin->set_callbacks)
-      ctx->plugin->set_callbacks(ctx->priv, &ctx->callbacks);
-    bg_plugin_unlock(ctx->plugin_handle);
+    ctx->ov = bg_ov_create(handle);
+    bg_ov_set_callbacks(ctx->ov, &ctx->callbacks);
+
+    /* ov holds a private reference */
+    bg_plugin_unref(handle);
     }
   }
 
@@ -260,22 +250,21 @@ void bg_player_ov_destroy(bg_player_t * player)
   {
   bg_player_video_stream_t * ctx = &player->video_stream;
   
-  if(ctx->plugin_handle)
-    bg_plugin_unref(ctx->plugin_handle);
+  if(ctx->ov)
+    bg_ov_destroy(ctx->ov);
   }
 
 int bg_player_ov_init(bg_player_video_stream_t * vs)
   {
   int result;
   
-  bg_plugin_lock(vs->plugin_handle);
-  result = vs->plugin->open(vs->priv,
-                             &vs->output_format, 1);
-  if(vs->plugin->set_window_title)
-    vs->plugin->set_window_title(vs->priv, "Video output");
+  result = bg_ov_open(vs->ov, &vs->output_format, 1);
   
-  if(result && vs->plugin->show_window)
-    vs->plugin->show_window(vs->priv, 1);
+  bg_ov_set_window_title(vs->ov, "Video output");
+  
+  if(result)
+    bg_ov_show_window(vs->ov, 1);
+  
   else if(!result)
     return result;
   
@@ -285,21 +274,16 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
               &vs->osd_format);
   /* Fixme: Lets just hope, that the OSD format doesn't get changed
      by this call. Otherwise, we would need a gavl_video_converter */
-  if(vs->plugin->add_overlay_stream)
-    vs->osd_id = vs->plugin->add_overlay_stream(vs->priv,
-                                                &vs->osd_format);
-  else
-    vs->osd_id = -1;
+
+  vs->osd_id = bg_ov_add_overlay_stream(vs->ov,  &vs->osd_format);
   
   /* create_overlay needs the lock again */
-  bg_plugin_unlock(vs->plugin_handle);
 
   /* Create frame */
-  //  vs->frame = create_frame(vs);
-
+  
   if(vs->osd_id >= 0)
     {
-    vs->osd_ovl = create_overlay(vs, vs->osd_id);
+    vs->osd_ovl = bg_ov_create_overlay(vs->ov, vs->osd_id);
     bg_osd_set_overlay(vs->osd, vs->osd_ovl);
     }
   vs->frames_written = 0;
@@ -327,10 +311,7 @@ static void handle_subtitle(bg_player_t * p)
   if(s->subtitle_active &&
      !overlay_is_current(s->ss->current_subtitle, s->frame_time))
     {
-    bg_plugin_lock(s->plugin_handle);
-    s->plugin->set_overlay(s->priv, s->subtitle_id,
-                           NULL);
-    bg_plugin_unlock(s->plugin_handle);
+    bg_ov_set_overlay(s->ov, s->subtitle_id, NULL);
     
     /* Make invalid */
     s->ss->current_subtitle->frame->timestamp = GAVL_TIME_UNDEFINED;
@@ -362,10 +343,8 @@ static void handle_subtitle(bg_player_t * p)
      (s->ss->current_subtitle->frame->timestamp != GAVL_TIME_UNDEFINED) &&
      overlay_is_current(s->ss->current_subtitle, s->frame_time))
     {
-    bg_plugin_lock(s->plugin_handle);
-    s->plugin->set_overlay(s->priv, s->subtitle_id,
+    bg_ov_set_overlay(s->ov, s->subtitle_id,
                            s->ss->current_subtitle);
-    bg_plugin_unlock(s->plugin_handle);
     s->subtitle_active = 1;
     }
   /* Check if the next subtitle became valid */
@@ -383,10 +362,8 @@ static void handle_subtitle(bg_player_t * p)
     s->ss->current_subtitle = s->ss->next_subtitle;
     s->ss->next_subtitle = swp;
 
-    bg_plugin_lock(s->plugin_handle);
-    s->plugin->set_overlay(s->priv, s->subtitle_id,
+    bg_ov_set_overlay(s->ov, s->subtitle_id,
                            s->ss->current_subtitle);
-    bg_plugin_unlock(s->plugin_handle);
     s->subtitle_active = 1;
     }
   }
@@ -397,7 +374,7 @@ void bg_player_ov_update_still(bg_player_t * p)
   gavl_video_frame_t * frame;
   bg_player_video_stream_t * s = &p->video_stream;
   
-  frame = s->plugin->get_frame(s->priv);
+  frame = bg_ov_get_frame(s->ov);
   if(!bg_player_read_video(p, frame))
     return;
   s->frame_time =
@@ -409,19 +386,15 @@ void bg_player_ov_update_still(bg_player_t * p)
   
   handle_messages(s, s->frame_time);
   
-  bg_plugin_lock(s->plugin_handle);
-  s->plugin->put_still(s->priv, frame);
-  
-  if(s->plugin->handle_events)
-    s->plugin->handle_events(s->priv);
-  bg_plugin_unlock(s->plugin_handle);
+  bg_ov_put_still(s->ov, frame);
+  bg_ov_handle_events(s->ov);
   }
 
 void bg_player_ov_cleanup(bg_player_video_stream_t * s)
   {
   if(s->osd_ovl)
     {
-    destroy_overlay(s, s->osd_id, s->osd_ovl);
+    bg_ov_destroy_overlay(s->ov, s->osd_id, s->osd_ovl);
     s->osd_ovl = NULL;
     }
 
@@ -430,19 +403,17 @@ void bg_player_ov_cleanup(bg_player_video_stream_t * s)
 
   if(s->ss->subtitles[0])
     {
-    destroy_overlay(s, s->subtitle_id, s->ss->subtitles[0]);
+    bg_ov_destroy_overlay(s->ov, s->subtitle_id, s->ss->subtitles[0]);
     s->ss->subtitles[0] = NULL;
     }
   if(s->ss->subtitles[1])
     {
-    destroy_overlay(s, s->subtitle_id, s->ss->subtitles[1]);
+    bg_ov_destroy_overlay(s->ov, s->subtitle_id, s->ss->subtitles[1]);
     s->ss->subtitles[1] = NULL;
     }
   
-  bg_plugin_lock(s->plugin_handle);
-  s->plugin->close(s->priv);
-  bg_plugin_unlock(s->plugin_handle);
-
+  bg_ov_close(s->ov);
+  
   }
 
 void bg_player_ov_reset(bg_player_t * p)
@@ -452,26 +423,17 @@ void bg_player_ov_reset(bg_player_t * p)
   if(DO_SUBTITLE(p->flags))
     {
     if(s->subtitle_active)
-      {
-      bg_plugin_lock(s->plugin_handle);
-      s->plugin->set_overlay(s->priv, s->subtitle_id,
-                             NULL);
-      bg_plugin_unlock(s->plugin_handle);
-      }
+      bg_ov_set_overlay(s->ov, s->subtitle_id, NULL);
     s->subtitle_active = 0;
     s->ss->current_subtitle->frame->timestamp = GAVL_TIME_UNDEFINED;
     s->ss->next_subtitle->frame->timestamp = GAVL_TIME_UNDEFINED;
     }
-  
   }
 
 void bg_player_ov_update_aspect(bg_player_video_stream_t * ctx,
                                 int pixel_width, int pixel_height)
   {
-  bg_plugin_lock(ctx->plugin_handle);
-  if(ctx->plugin && ctx->plugin->update_aspect)
-    ctx->plugin->update_aspect(ctx->priv, pixel_width, pixel_height);
-  bg_plugin_unlock(ctx->plugin_handle);
+  bg_ov_update_aspect(ctx->ov, pixel_width, pixel_height);
   }
 
 /* Set this extra because we must initialize subtitles after the video output */
@@ -483,13 +445,13 @@ void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * s)
   /* Add subtitle stream for plugin */
   
   s->subtitle_id =
-    s->plugin->add_overlay_stream(s->priv,
+    bg_ov_add_overlay_stream(s->ov,
                                     &s->ss->output_format);
   
   /* Allocate overlay frames */
   
-  s->ss->subtitles[0] = create_overlay(s, s->subtitle_id);
-  s->ss->subtitles[1] = create_overlay(s, s->subtitle_id);
+  s->ss->subtitles[0] = bg_ov_create_overlay(s->ov, s->subtitle_id);
+  s->ss->subtitles[1] = bg_ov_create_overlay(s->ov, s->subtitle_id);
 
   s->ss->subtitles[0]->frame->timestamp = GAVL_TIME_UNDEFINED;  
   s->ss->subtitles[1]->frame->timestamp = GAVL_TIME_UNDEFINED;  
@@ -500,12 +462,7 @@ void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * s)
 
 void bg_player_ov_handle_events(bg_player_video_stream_t * s)
   {
-  if(s->plugin->handle_events)
-    {
-    bg_plugin_lock(s->plugin_handle);
-    s->plugin->handle_events(s->priv);
-    bg_plugin_unlock(s->plugin_handle);
-    }
+  bg_ov_handle_events(s->ov);
   handle_messages(s, s->frame_time);
   }
 
@@ -558,10 +515,8 @@ void * bg_player_ov_thread(void * data)
       {
       break;
       }
-
-    bg_plugin_lock(s->plugin_handle);
-    frame = s->plugin->get_frame(s->priv);
-    bg_plugin_unlock(s->plugin_handle);
+    
+    frame = bg_ov_get_frame(s->ov);
     
     if(!bg_player_read_video(p, frame))
       {
@@ -596,9 +551,9 @@ void * bg_player_ov_thread(void * data)
     if(s->osd_id >= 0)
       {
       if(bg_osd_overlay_valid(s->osd, s->frame_time))
-        s->plugin->set_overlay(s->priv, s->osd_id, s->osd_ovl);
+        bg_ov_set_overlay(s->ov, s->osd_id, s->osd_ovl);
       else
-        s->plugin->set_overlay(s->priv, s->osd_id, NULL);
+        bg_ov_set_overlay(s->ov, s->osd_id, NULL);
       }
     
     /* Check Timing */
@@ -619,11 +574,8 @@ void * bg_player_ov_thread(void * data)
       bg_player_broadcast_time(p, s->frame_time);
       }
     
-    bg_plugin_lock(s->plugin_handle);
-    s->plugin->put_video(s->priv, frame);
-    if(s->plugin->handle_events)
-      s->plugin->handle_events(s->priv);
-    bg_plugin_unlock(s->plugin_handle);
+    bg_ov_put_video(s->ov, frame);
+    bg_ov_handle_events(s->ov);
     s->frames_written++;
     }
   

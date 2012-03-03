@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include <string.h>
+#include <malloc.h> // memalign
 
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
@@ -486,6 +487,11 @@ gavl_video_frame_t * bgv4l2_create_frame(uint8_t * data, // Can be NULL
   {
   gavl_video_frame_t * ret = gavl_video_frame_create(NULL);
   bgv4l2_set_strides(gavl, v4l2, ret->strides);
+  
+  /* We allocate the frame here because sometimes sizeimage is
+     padded to the pagesize */
+  if(!data)
+    data = memalign(16, v4l2->fmt.pix.sizeimage);
   gavl_video_frame_set_planes(ret, gavl, data);
   return ret;
   }

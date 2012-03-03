@@ -23,7 +23,6 @@
 #include <config.h>
 
 #include <gmerlin/pluginregistry.h>
-// #include <gmerlin/fifo.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/bggavl.h>
 #include <gmerlin/textrenderer.h>
@@ -33,6 +32,7 @@
 #include <gmerlin/visualize.h>
 
 #include <gmerlin/translation.h>
+#include <gmerlin/ov.h>
 
 #include <player_thread.h>
 
@@ -176,9 +176,13 @@ typedef struct
   /* If the playback was interrupted due to changed parameters */
   int interrupted;
 
+#if 0  
   bg_plugin_handle_t * plugin_handle;
   bg_ov_plugin_t     * plugin;
   void               * priv;
+#else
+  bg_ov_t * ov;
+#endif
 
   bg_ov_callbacks_t callbacks;
   //  gavl_video_frame_t * still_frame;

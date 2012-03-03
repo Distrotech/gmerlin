@@ -413,14 +413,31 @@ static int open_v4l2(void * priv,
   gavl_pixelformat_t * pixelformats;
   
   ov_v4l2_t * v4l = priv;
-
-  CLEAR(v4l->fmt);
   
   if(v4l->fd >= 0)
     {
+    /* We accept the framerate settings but nothing else */
+    v4l->format.framerate_mode = format->framerate_mode;
+    v4l->format.timescale      = format->timescale;
+    v4l->format.frame_duration = format->frame_duration;
+    
     gavl_video_format_copy(format, &v4l->format);
     return 1;
     }
+
+  /* For now we accept only square pixels */
+  if((format->pixel_width != format->pixel_height) && keep_aspect)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Forcing square pixels");
+    format->image_width *= format->pixel_width;
+    format->image_width /= format->pixel_height;
+    format->pixel_width = 1;
+    format->pixel_height = 1;
+    if(format->frame_width < format->image_width)
+      format->frame_width = format->image_width;
+    }
+  
+  CLEAR(v4l->fmt);
   
   v4l->fd = bgv4l2_open_device(v4l->device, V4L2_CAP_VIDEO_OUTPUT,
                                  &cap);
@@ -582,13 +599,6 @@ static void show_window_v4l2(void * data, int show)
     cleanup_v4l(v4l);
   }
 
-static void put_still_v4l2(void * data, gavl_video_frame_t * frame)
-  {
-  fprintf(stderr, "Put still\n");
-  
-  // ov_v4l2_t * v4l = data;
-  }
-
 static void close_v4l2(void * data)
   {
   // Noop (for now)
@@ -626,7 +636,6 @@ const bg_ov_plugin_t the_plugin =
     //    .set_overlay =        set_overlay_v4l2,
 
     .put_video =          put_video_v4l2,
-    .put_still =          put_still_v4l2,
 
     //    .handle_events =  handle_events_v4l2,
     

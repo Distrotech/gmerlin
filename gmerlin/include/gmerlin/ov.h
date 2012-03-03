@@ -25,6 +25,9 @@
 typedef struct bg_ov_s bg_ov_t;
 
 bg_ov_t * bg_ov_create(bg_plugin_handle_t * h);
+
+bg_plugin_handle_t * bg_ov_get_plugin(bg_ov_t *);
+
 void bg_ov_destroy(bg_ov_t * ov);
 
 void bg_ov_set_window(bg_ov_t * ov, const char * window_id);

@@ -354,6 +354,11 @@ bg_recorder_set_video_monitor_parameter(void * data,
                                         &vs->monitor_cb);
     if(vs->monitor_plugin->show_window)
       vs->monitor_plugin->show_window(vs->monitor_handle->priv, 1);
+
+    if(!rec->display_string &&
+       vs->monitor_plugin->set_window_title)
+      vs->monitor_plugin->set_window_title(vs->monitor_handle->priv, "Gmerlin recorder "VERSION);
+    
     }
   else if(vs->monitor_handle && vs->monitor_plugin->common.set_parameter)
     {

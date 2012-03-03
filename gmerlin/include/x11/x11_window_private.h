@@ -302,7 +302,6 @@ struct bg_x11_window_s
   
   struct
     {
-    gavl_overlay_blend_context_t * ctx;
     gavl_overlay_t * ovl;
     unsigned long texture; /* For OpenGL only */
     gavl_video_format_t format;
@@ -313,7 +312,6 @@ struct bg_x11_window_s
   float contrast;
   
   gavl_video_frame_t * still_frame;
-  gavl_video_frame_t * out_frame;
   int still_mode;
 
   Pixmap icon;

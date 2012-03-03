@@ -26,6 +26,9 @@
 int bg_x11_window_add_overlay_stream(bg_x11_window_t * w,
                                      gavl_video_format_t * format)
   {
+  if(!w->current_driver->driver->add_overlay_stream)
+    return -1;
+  
   w->overlay_streams =
     realloc(w->overlay_streams,
             (w->num_overlay_streams+1) * sizeof(*(w->overlay_streams)));
@@ -35,17 +38,7 @@ int bg_x11_window_add_overlay_stream(bg_x11_window_t * w,
   /* Initialize */
   gavl_video_format_copy(&w->overlay_streams[w->num_overlay_streams].format,
                          format); 
-  if(w->current_driver->driver->add_overlay_stream)
-    {
-    w->current_driver->driver->add_overlay_stream(w->current_driver);
-    }
-  else
-    {
-    w->overlay_streams[w->num_overlay_streams].ctx = gavl_overlay_blend_context_create();
-    gavl_overlay_blend_context_init(w->overlay_streams[w->num_overlay_streams].ctx,
-                                    &w->video_format,
-                                    &w->overlay_streams[w->num_overlay_streams].format);
-    }
+  w->current_driver->driver->add_overlay_stream(w->current_driver);
   
   gavl_video_format_copy(format,
                          &w->overlay_streams[w->num_overlay_streams].format); 
@@ -59,10 +52,7 @@ void bg_x11_window_set_overlay(bg_x11_window_t * w, int stream,
   {
   int i;
   w->overlay_streams[stream].ovl = ovl;
-  if(w->current_driver->driver->set_overlay)
-    w->current_driver->driver->set_overlay(w->current_driver, stream, ovl);
-  else
-    gavl_overlay_blend_context_set_overlay(w->overlay_streams[stream].ctx, ovl);
+  w->current_driver->driver->set_overlay(w->current_driver, stream, ovl);
   w->has_overlay = 0;
   for(i = 0; i < w->num_overlay_streams; i++)
     {
