@@ -78,24 +78,13 @@ bg_audio_filter_chain_get_parameters(bg_audio_filter_chain_t * ch);
  *  \param val Value
  *
  *  In some cases the filter chain must be rebuilt after setting a parameter.
- *  The application should therefore call \ref bg_audio_filter_chain_need_rebuild
+ *  The application should therefore call \ref bg_audio_filter_chain_need_restart
  *  and call \ref bg_audio_filter_chain_init if necessary.
  */
 
 void bg_audio_filter_chain_set_parameter(void * data,
                                          const char * name,
                                          const bg_parameter_value_t * val);
-
-/** \brief Check if an audio filter chain needs to be rebuilt
- *  \param ch An audio filter chain
- *  \returns 1 if the chain must be rebuilt, 0 else
- *
- *  If this returns true, you should call \ref bg_audio_filter_chain_rebuild
- *  or \ref bg_audio_filter_chain_init. It's usually used after
- *  \ref bg_audio_filter_chain_set_parameter.
- */
-
-int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch);
 
 /** \brief Check if an audio filter chain needs to be restarted
  *  \param ch An audio filter chain
@@ -229,23 +218,12 @@ bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch);
  *
  *  In some cases the filter chain must be rebuilt after setting a parameter.
  *  The application should therefore call
- *  \ref bg_video_filter_chain_need_rebuild
+ *  \ref bg_video_filter_chain_need_restart
  *  and call \ref bg_video_filter_chain_init if necessary.
  */
 
 void bg_video_filter_chain_set_parameter(void * data, const char * name,
                                          const bg_parameter_value_t * val);
-
-/** \brief Check if a video filter chain needs to be rebuilt
- *  \param ch A video filter chain
- *  \returns 1 if the chain must be rebuilt, 0 else
- *
- *  If this returns true, you should call 
- *  \ref bg_video_filter_chain_init. It's usually used after
- *  \ref bg_video_filter_chain_set_parameter.
- */
-
-int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch);
 
 /** \brief Check if a video filter chain needs to be restarted
  *  \param ch A video filter chain

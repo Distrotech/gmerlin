@@ -464,7 +464,7 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
 /** \ingroup plugin_registry
  *  \brief Create a parameter array for encoders
  *  \param reg       A plugin registry
- *  \param type_mask Mask of all stream types to be encoded
+ *  \param stream_type_mask Mask of all stream types to be encoded
  *  \param flag_mask Mask of all returned plugin flags
  *  \returns Parameter array for setting up encoders
  *
@@ -484,7 +484,7 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
 
 /** \ingroup plugin_registry
  *  \brief Get the name for an encoding plugin
- *  \param plugin_ref A plugin registry
+ *  \param plugin_reg A plugin registry
  *  \param s An encoder section (see \ref bg_plugin_registry_create_encoder_parameters)
  *  \param stream_type The stream type to encode
  *  \param stream_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
@@ -499,7 +499,7 @@ bg_encoder_section_get_plugin(bg_plugin_registry_t * plugin_reg,
 
 /** \ingroup plugin_registry
  *  \brief Get the plugin configuration for an encoding plugin
- *  \param plugin_ref A plugin registry
+ *  \param plugin_reg A plugin registry
  *  \param s An encoder section (see \ref bg_plugin_registry_create_encoder_parameters)
  *  \param stream_type The stream type to encode
  *  \param stream_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
@@ -518,7 +518,7 @@ bg_encoder_section_get_plugin_config(bg_plugin_registry_t * plugin_reg,
 
 /** \ingroup plugin_registry
  *  \brief Get the stream configuration for an encoding plugin
- *  \param plugin_ref A plugin registry
+ *  \param plugin_reg A plugin registry
  *  \param s An encoder section (see \ref bg_plugin_registry_create_encoder_parameters)
  *  \param stream_type The stream type to encode
  *  \param stream_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
@@ -537,7 +537,8 @@ bg_encoder_section_get_stream_config(bg_plugin_registry_t * plugin_reg,
 
 /** \ingroup plugin_registry
  *  \brief Get an encoder configuration section from a registry
- *  \param plugin_ref A plugin registry
+ *  \param plugin_reg A plugin registry
+ *  \param parameters Parameters returned by \ref bg_plugin_registry_create_encoder_parameters
  *  \param type_mask The stream mask passed to \ref bg_plugin_registry_create_encoder_parameters
  *  \param flag_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
  *  \returns The encoder section with the values from the registry
@@ -551,8 +552,9 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
 
 /** \ingroup plugin_registry
  *  \brief Store an encoder configuration in a registry
- *  \param plugin_ref A plugin registry
+ *  \param plugin_reg A plugin registry
  *  \param s The encoder section to store
+ *  \param parameters Parameters returned by \ref bg_plugin_registry_create_encoder_parameters
  *  \param type_mask The stream mask passed to \ref bg_plugin_registry_create_encoder_parameters
  *  \param flag_mask The mask passed to \ref bg_plugin_registry_create_encoder_parameters
  *  \returns The encoder section with the values from the registry
@@ -570,6 +572,7 @@ bg_encoder_section_store_in_registry(bg_plugin_registry_t * plugin_reg,
  *  \brief Set the default for a particular plugin type
  *  \param reg A plugin registry
  *  \param type The type for which the default will be set
+ *  \param flag_mask A mask of plugin flags
  *  \param plugin_name Short name of the plugin
  *
  *  Default plugins are stored for various types (recorders, output and
@@ -584,6 +587,7 @@ void bg_plugin_registry_set_default(bg_plugin_registry_t * reg,
  *  \brief Set the default for a particular plugin type
  *  \param reg A plugin registry
  *  \param type The plugin type
+ *  \param flag_mask A mask of plugin flags
  *  \returns A plugin info or NULL
  *
  *  Note, that the registry does not store a default input plugin.
@@ -757,6 +761,7 @@ void bg_plugin_registry_remove_device(bg_plugin_registry_t * reg,
  *  \param reg A plugin registry
  *  \param filename Image filename
  *  \param format Returns format of the image
+ *  \param m Returns metadata
  *  \returns The frame, which contains the image
  *
  *  Use gavl_video_frame_destroy to free the
@@ -776,6 +781,7 @@ gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * reg,
  *  \param filename Image filename
  *  \param frame The frame, which contains the image
  *  \param format Returns format of the image
+ *  \param m Metadata
  */
 
 void
@@ -886,8 +892,7 @@ void bg_plugin_unref_nolock(bg_plugin_handle_t * h);
  *  \param module_filename Module filename or NULL
  *  \returns A newly allocated plugin info
  *
- *  Use this function only if you create a plugin handle outside a plugin
- *  registry. Free the returned info with \ref bg_plugin_info_destroy
+ *  This is used by internal plugins or API wrappers only.
  */
 
 bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin,

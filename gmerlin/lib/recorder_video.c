@@ -500,8 +500,7 @@ bg_recorder_set_video_filter_parameter(void * data,
   bg_video_filter_chain_lock(vs->fc);
   bg_video_filter_chain_set_parameter(vs->fc, name, val);
   
-  if(bg_video_filter_chain_need_rebuild(vs->fc) ||
-     bg_video_filter_chain_need_restart(vs->fc))
+  if(bg_video_filter_chain_need_restart(vs->fc))
     need_restart = 1;
   else
     need_restart = 0;

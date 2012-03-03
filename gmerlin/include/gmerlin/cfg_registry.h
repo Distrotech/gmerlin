@@ -108,7 +108,7 @@ void bg_cfg_registry_save(bg_cfg_registry_t * reg, const char * filename);
  */
 
 
-int bg_cfg_registry_has_section(bg_cfg_registry_t * r, const char * name);
+int bg_cfg_registry_has_section(bg_cfg_registry_t * reg, const char * name);
 
 
 /* The name and xml tag of the section must be set before */
@@ -286,11 +286,11 @@ void bg_cfg_section_transfer_children(bg_cfg_section_t * src, bg_cfg_section_t *
 
 /** \ingroup cfg_section
  *  \brief Insert a reference to a section as child
- *  \param src s
- *  \param dst Child section to be added as reference
+ *  \param section Configuration section
+ *  \param ref Child section to be added as reference
  */
 
-void bg_cfg_section_add_ref(bg_cfg_section_t * s, bg_cfg_section_t * ref);
+void bg_cfg_section_add_ref(bg_cfg_section_t * section, bg_cfg_section_t * ref);
 
 /*
  *  Get/Set section names
@@ -547,7 +547,7 @@ int bg_cfg_section_has_subsection(bg_cfg_section_t * section,
  *  \param info Parameter info
  */ 
 
-void bg_cfg_section_restore_defaults(bg_cfg_section_t * s,
+void bg_cfg_section_restore_defaults(bg_cfg_section_t * section,
                                      const bg_parameter_info_t * info);
 
 

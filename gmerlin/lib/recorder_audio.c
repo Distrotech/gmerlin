@@ -202,8 +202,7 @@ bg_recorder_set_audio_filter_parameter(void * data,
   bg_audio_filter_chain_lock(as->fc);
   bg_audio_filter_chain_set_parameter(as->fc, name, val);
   
-  if(bg_audio_filter_chain_need_rebuild(as->fc) ||
-     bg_audio_filter_chain_need_restart(as->fc))
+  if(bg_audio_filter_chain_need_restart(as->fc))
     need_restart = 1;
   else
     need_restart = 0;

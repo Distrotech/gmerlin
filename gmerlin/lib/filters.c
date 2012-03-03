@@ -93,13 +93,9 @@ int bg_audio_filter_chain_need_restart(bg_audio_filter_chain_t * ch)
       ch->need_restart = 1;
     }
   
-  return ch->need_restart;
+  return ch->need_restart || ch->need_rebuild;
   }
 
-int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch)
-  {
-  return ch->need_rebuild;
-  }
 
 static int audio_filter_create(audio_filter_t * f,
                                bg_audio_filter_chain_t * ch,
@@ -520,11 +516,6 @@ struct bg_video_filter_chain_s
   pthread_mutex_t mutex;
   };
 
-int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch)
-  {
-  return ch->need_rebuild;
-  }
-
 int bg_video_filter_chain_need_restart(bg_video_filter_chain_t * ch)
   {
   gavl_video_format_t test_format;
@@ -537,7 +528,7 @@ int bg_video_filter_chain_need_restart(bg_video_filter_chain_t * ch)
       ch->need_restart = 1;
     }
   
-  return ch->need_restart;
+  return ch->need_restart || ch->need_rebuild;
   }
 
 static int

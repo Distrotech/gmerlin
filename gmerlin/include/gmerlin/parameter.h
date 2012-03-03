@@ -224,6 +224,7 @@ typedef int (*bg_get_parameter_func_t)(void * data, const char * name,
 /** \ingroup parameter
  *  \brief Copy a single parameter info
  *  \param src Source 
+ *  \param dst Destination 
  */
 
 void bg_parameter_info_copy(bg_parameter_info_t * dst,

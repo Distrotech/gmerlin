@@ -62,7 +62,7 @@ void bg_visualizer_destroy(bg_visualizer_t * v);
 const bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t* v);
 
 /** \brief Set ov callbacks
- *  \param priv A visualizer 
+ *  \param v A visualizer 
  *  \param cb Callbacks
  */
 

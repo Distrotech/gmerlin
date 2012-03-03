@@ -136,7 +136,7 @@ char * bg_canonical_filename(const char * name);
 
 /** \brief Ensure a file extension
  *  \param filename Filename (with or without extension)
- *  \param extension Extension to look for
+ *  \param ext Extension to look for
  *  \returns A newly allocated filename
  *
  *  This function checks case insensitively if filename
@@ -244,7 +244,7 @@ int bg_url_split(const char * url,
 
 /** \brief Get MD5 hash of a filename
  *  \param gml
- *  \ret Returns the MD5 sum
+ *  \param ret Returns the MD5 sum
  *
  *  This creates an MD5 hash of a gml. For regular
  *  files this is compatible with the thumbnailing
@@ -436,7 +436,7 @@ void bg_diprintf(int indent, const char * format, ...) __attribute__ ((format (p
 
 /** \brief Read an entire file into a buffer
  *  \param filename Name of the file
- *  \param format len Returns the length in bytes
+ *  \param len Returns the length in bytes
  *  \returns A buffer containing the entire file
  */
 

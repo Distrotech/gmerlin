@@ -389,6 +389,7 @@ int bg_msg_write_audio_frame(bg_msg_t * msg,
  *  \param frame An audio frame
  *  \param cb Callback
  *  \param cb_data Data to pass to callback
+ *  \param big_endian 1 if data should be sent in big endian format
  *  \returns 1 on success, 0 on error
  *
  *  Before you can use this function, msg must contain

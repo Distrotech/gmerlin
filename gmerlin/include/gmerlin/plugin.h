@@ -658,7 +658,7 @@ struct bg_input_plugin_s
    *  \returns A newly allocated frame table or NULL
    *
    *  The returned frame table must be freed with
-   *  \ref gavL_frame_table_destroy.
+   *  \ref gavl_frame_table_destroy.
    */
 
   gavl_frame_table_t * (*get_frame_table)(void * priv, int stream);
@@ -817,23 +817,6 @@ struct bg_input_plugin_s
  *  \ingroup plugin
  *  \brief Audio output
  */ 
-
-/** \ingroup plugin_oa
- *  \brief typedef for audio output callbacks
- *
- */
-
-typedef struct bg_oa_callbacks_s bg_oa_callbacks_t;
-
-/** \ingroup plugin_oa
- *  \brief Callbacks for audio output plugins
- *
- */
-
-struct bg_oa_callbacks_s
-  {
-  bg_read_audio_func_t read_audio;
-  };
 
 /** \ingroup plugin_oa
  *  \brief Typedef for audio output plugin
@@ -1966,6 +1949,10 @@ struct bg_image_reader_plugin_s
  */
 
 typedef struct bg_iw_callbacks_s bg_iw_callbacks_t;
+
+/**  
+ * \brief Callbacks for the image writer plugin
+ */
 
 struct bg_iw_callbacks_s
   {

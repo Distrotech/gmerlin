@@ -224,7 +224,7 @@ bg_player_get_video_filter_parameters(bg_player_t * p)
 void bg_player_set_video_filter_parameter(void * data, const char * name,
                                           const bg_parameter_value_t * val)
   {
-  int need_rebuild = 0, need_restart = 0;
+  int need_restart = 0;
   int is_interrupted;
   int do_init;
   bg_player_t * p = (bg_player_t*)data;
@@ -238,14 +238,12 @@ void bg_player_set_video_filter_parameter(void * data, const char * name,
   bg_video_filter_chain_lock(p->video_stream.fc);
   bg_video_filter_chain_set_parameter(p->video_stream.fc, name, val);
   
-  need_rebuild =
-    bg_video_filter_chain_need_rebuild(p->video_stream.fc);
   need_restart =
     bg_video_filter_chain_need_restart(p->video_stream.fc);
   
   bg_video_filter_chain_unlock(p->video_stream.fc);
   
-  if(!do_init && (need_rebuild || need_restart) && !is_interrupted)
+  if(!do_init && need_restart && !is_interrupted)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Restarting playback due to changed video filters");
