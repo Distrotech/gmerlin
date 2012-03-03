@@ -222,8 +222,15 @@ bg_audio_filter_chain_set_parameter(void * data, const char * name,
   ch = (bg_audio_filter_chain_t *)data;
   
   if(!name)
+    {
+    for(i = 0; i < ch->num_filters; i++)
+      {
+      if(ch->filters[i].plugin->common.set_parameter)
+        ch->filters[i].plugin->common.set_parameter(ch->filters[i].handle->priv,
+                                             NULL, NULL);
+      }
     return;
-
+    }
 
   if(!strcmp(name, "audio_filters"))
     {
@@ -646,7 +653,15 @@ bg_video_filter_chain_set_parameter(void * data, const char * name,
   ch = (bg_video_filter_chain_t *)data;
   
   if(!name)
+    {
+    for(i = 0; i < ch->num_filters; i++)
+      {
+      if(ch->filters[i].plugin->common.set_parameter)
+        ch->filters[i].plugin->common.set_parameter(ch->filters[i].handle->priv,
+                                             NULL, NULL);
+      }
     return;
+    }
   
   if(!strcmp(name, "video_filters"))
     {

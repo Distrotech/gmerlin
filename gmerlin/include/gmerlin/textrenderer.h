@@ -40,4 +40,5 @@ void bg_text_renderer_get_frame_format(bg_text_renderer_t * r,
                                        gavl_video_format_t * frame_format);
 
 
-void bg_text_renderer_render(bg_text_renderer_t*, const char * string, gavl_overlay_t * ovl);
+void bg_text_renderer_render(bg_text_renderer_t*,
+                             const char * string, gavl_overlay_t * ovl);

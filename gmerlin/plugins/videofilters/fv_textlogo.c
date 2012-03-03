@@ -33,7 +33,7 @@
 
 #include <gmerlin/textrenderer.h>
 
-#define LOG_DOMAIN "fv_tcdisplay"
+#define LOG_DOMAIN "fv_textlogo"
 
 
 typedef struct
@@ -49,12 +49,13 @@ typedef struct
   
   bg_text_renderer_t * renderer;
   gavl_overlay_blend_context_t * blender;
-  
-  int interpolate;
-  gavl_timecode_t last_timecode;
+
+  char * textlogo;
+
+  int need_overlay;
   } tc_priv_t;
 
-static void * create_tcdisplay()
+static void * create_textlogo()
   {
   tc_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -63,12 +64,16 @@ static void * create_tcdisplay()
   return ret;
   }
 
-static void destroy_tcdisplay(void * priv)
+static void destroy_textlogo(void * priv)
   {
   tc_priv_t * vp;
   vp = priv;
   bg_text_renderer_destroy(vp->renderer);
   gavl_overlay_blend_context_destroy(vp->blender);
+  
+  if(vp->textlogo)
+    free(vp->textlogo);
+  
   free(vp);
   }
 
@@ -82,12 +87,11 @@ static const bg_parameter_info_t parameters[] =
       .type =       BG_PARAMETER_SECTION,
     },
     {
-      .name = "interpolate",
-      .long_name = TRS("Interpolate missing"),
-      .type = BG_PARAMETER_CHECKBUTTON,
-      .flags = BG_PARAMETER_SYNC,
-      .val_default = { .val_i = 1 },
-      .help_string = TRS("Interpolate missing timecodes"),
+      .name = "text",
+      .long_name = TRS("Text"),
+      .type = BG_PARAMETER_STRING,
+      .val_default = { .val_str = "Enter text" },
+      .help_string = TRS("Text to display"),
     },
     {
       .name =       "render_options",
@@ -197,13 +201,13 @@ static const bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static const bg_parameter_info_t * get_parameters_tcdisplay(void * priv)
+static const bg_parameter_info_t * get_parameters_textlogo(void * priv)
   {
   return parameters;
   }
 
 static void
-set_parameter_tcdisplay(void * priv, const char * name,
+set_parameter_textlogo(void * priv, const char * name,
                       const bg_parameter_value_t * val)
   {
   tc_priv_t * vp;
@@ -213,20 +217,18 @@ set_parameter_tcdisplay(void * priv, const char * name,
     {
     bg_text_renderer_set_parameter(vp->renderer,
                                    NULL, NULL);
+    vp->need_overlay = 1;
     }
-  else if(!strcmp(name, "interpolate"))
-    {
-    vp->interpolate = val->val_i;
-    }
+  else if(!strcmp(name, "text"))
+    vp->textlogo = bg_strdup(vp->textlogo, val->val_str);
   else
     bg_text_renderer_set_parameter(vp->renderer,
                                    name, val);
+  }
 
-    }
-
-static void connect_input_port_tcdisplay(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
+static void connect_input_port_textlogo(void * priv,
+                                        bg_read_video_func_t func,
+                                        void * data, int stream, int port)
   {
   tc_priv_t * vp;
   vp = priv;
@@ -240,7 +242,7 @@ static void connect_input_port_tcdisplay(void * priv,
   
   }
 
-static void set_input_format_tcdisplay(void * priv,
+static void set_input_format_textlogo(void * priv,
                                        gavl_video_format_t * format, int port)
   {
   tc_priv_t * vp;
@@ -248,7 +250,6 @@ static void set_input_format_tcdisplay(void * priv,
   
   if(port)
     return;
-
   
   gavl_video_format_copy(&vp->format, format);
 
@@ -263,12 +264,12 @@ static void set_input_format_tcdisplay(void * priv,
   if(vp->ovl.frame)
     gavl_video_frame_destroy(vp->ovl.frame);
   vp->ovl.frame = gavl_video_frame_create(&vp->ovl_format);
-  vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
 
+  vp->need_overlay = 1;
 
   }
 
-static void get_output_format_tcdisplay(void * priv,
+static void get_output_format_textlogo(void * priv,
                                  gavl_video_format_t * format)
   {
   tc_priv_t * vp;
@@ -277,65 +278,31 @@ static void get_output_format_tcdisplay(void * priv,
   gavl_video_format_copy(format, &vp->format);
   }
 
-static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
+static int read_video_textlogo(void * priv, gavl_video_frame_t * frame,
                                 int stream)
   {
   tc_priv_t * vp;
-  char str[GAVL_TIMECODE_STRING_LEN];
-  char * pos;
   vp = priv;
   
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
 
-
-  if(frame->timecode == GAVL_TIMECODE_UNDEFINED)
+  if(vp->need_overlay)
     {
-    if(vp->interpolate && (vp->last_timecode != GAVL_TIMECODE_UNDEFINED))
-      {
-      int64_t framecount;
-      framecount = gavl_timecode_to_framecount(&vp->format.timecode_format,
-                                               vp->last_timecode);
-      
-      framecount++;
-      
-      vp->last_timecode =
-        gavl_timecode_from_framecount(&vp->format.timecode_format,
-                                      framecount);
-      }
-    else
-      return 1;
+    gavl_video_frame_clear(vp->ovl.frame, &vp->ovl_format);
+
+    if(vp->textlogo)
+      bg_text_renderer_render(vp->renderer, vp->textlogo, &vp->ovl);
+    
+    gavl_overlay_blend_context_set_overlay(vp->blender, &vp->ovl);
+    
+    vp->need_overlay = 0;
     }
-  else
-    {
-    vp->last_timecode = frame->timecode;
-    }
-
   
-  gavl_timecode_prettyprint(&vp->format.timecode_format,
-                            vp->last_timecode, str);
-
-  pos = strchr(str, ' ');
-  if(pos)
-    *pos = '\n';
-  
-  //  fprintf(stderr, "Got timecode: %s\n", str);
-
-  
-  bg_text_renderer_render(vp->renderer, str, &vp->ovl);
-  // bg_text_renderer_render(vp->renderer, "Blah", &vp->ovl);
-  gavl_overlay_blend_context_set_overlay(vp->blender, &vp->ovl);
   
   gavl_overlay_blend(vp->blender, frame);
 
   return 1;
-  }
-
-static void reset_tcdisplay(void * priv)
-  {
-  tc_priv_t * vp;
-  vp = priv;
-  vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -343,25 +310,24 @@ const bg_fv_plugin_t the_plugin =
     .common =
     {
       BG_LOCALE,
-      .name =      "fv_tcdisplay",
-      .long_name = TRS("Display timecodes"),
-      .description = TRS("Burn timecodes into video frames"),
+      .name =      "fv_textlogo",
+      .long_name = TRS("Text logo"),
+      .description = TRS("Burn a static text onto video frames"),
       .type =     BG_PLUGIN_FILTER_VIDEO,
       .flags =    BG_PLUGIN_FILTER_1,
-      .create =   create_tcdisplay,
-      .destroy =   destroy_tcdisplay,
-      .get_parameters =   get_parameters_tcdisplay,
-      .set_parameter =    set_parameter_tcdisplay,
+      .create =   create_textlogo,
+      .destroy =   destroy_textlogo,
+      .get_parameters =   get_parameters_textlogo,
+      .set_parameter =    set_parameter_textlogo,
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_tcdisplay,
+    .connect_input_port = connect_input_port_textlogo,
     
-    .set_input_format = set_input_format_tcdisplay,
-    .get_output_format = get_output_format_tcdisplay,
+    .set_input_format = set_input_format_textlogo,
+    .get_output_format = get_output_format_textlogo,
 
-    .read_video = read_video_tcdisplay,
-    .reset      = reset_tcdisplay,
+    .read_video = read_video_textlogo,
     
   };
 

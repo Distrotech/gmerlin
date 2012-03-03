@@ -27,8 +27,10 @@ fv_interlace.la \
 fv_invert_rgb.la \
 fv_oldcolor.la \
 fv_pixelformat.la \
+fv_swapfields.la \
 fv_tcdisplay.la \
 fv_tctweak.la \
+fv_textlogo.la \
 fv_tlp.la \
 fv_transform.la \
 fv_zoom.la
@@ -60,6 +62,10 @@ fv_tlp_la_LIBADD = @MODULE_LIBADD@
 fv_tcdisplay_la_SOURCES  = fv_tcdisplay.c
 fv_tcdisplay_la_CFLAGS   = @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 fv_tcdisplay_la_LIBADD = @MODULE_LIBADD@
+
+fv_textlogo_la_SOURCES  = fv_textlogo.c
+fv_textlogo_la_CFLAGS   = @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
+fv_textlogo_la_LIBADD = @MODULE_LIBADD@
 
 fv_tctweak_la_SOURCES  = fv_tctweak.c
 fv_tctweak_la_LIBADD = @MODULE_LIBADD@
