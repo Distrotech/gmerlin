@@ -860,10 +860,10 @@ static void button_callback(GtkWidget * wid, gpointer data)
     dialog = bg_dialog_create(w->cfg_section, add_func, NULL,
                               w, params, tmp_string);
     
-    free(params[0].gettext_domain);
     
     free(tmp_string);
     bg_dialog_show(dialog, priv->treeview);
+    free(params[0].gettext_domain);
     
     }
   else if(wid == priv->remove_button)
