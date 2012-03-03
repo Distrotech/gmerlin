@@ -12,7 +12,7 @@
   </compound>
   <compound kind="file">
     <name>gavl.h</name>
-    <path>/home/pix/Src/Gmerlin/gavl/include/gavl/</path>
+    <path>/home/pix/Src/Gmerlin_svn/gavl/include/gavl/</path>
     <filename>gavl_8h</filename>
     <class kind="struct">gavl_audio_format_t</class>
     <class kind="union">gavl_audio_samples_t</class>
@@ -990,6 +990,12 @@
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
+      <name>GAVL_FRAMERATE_UNKNOWN</name>
+      <anchorfile>group__video__format.html</anchorfile>
+      <anchor>gga27bc061c95b4416a2ddd2cae2f8ee811a300414b65b11483cf8838b38481e8ae9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
       <name>GAVL_FRAMERATE_CONSTANT</name>
       <anchorfile>group__video__format.html</anchorfile>
       <anchor>gga27bc061c95b4416a2ddd2cae2f8ee811a3b8019ccde52a3dc42b337bb21addad7</anchor>
@@ -1399,6 +1405,20 @@
       <anchorfile>group__audio__frame.html</anchorfile>
       <anchor>ga86c3f2bc3346e3f8031e030deaea8d8c</anchor>
       <arglist>(const gavl_audio_format_t *format, gavl_audio_frame_t *src, gavl_audio_frame_t *dst, int start, int len)</arglist>
+    </member>
+    <member kind="function">
+      <type>GAVL_PUBLIC int</type>
+      <name>gavl_audio_frames_equal</name>
+      <anchorfile>group__audio__frame.html</anchorfile>
+      <anchor>gabb58c41223763dbce3ad6e99396c1225</anchor>
+      <arglist>(const gavl_audio_format_t *format, const gavl_audio_frame_t *f1, const gavl_audio_frame_t *f2)</arglist>
+    </member>
+    <member kind="function">
+      <type>GAVL_PUBLIC int</type>
+      <name>gavl_audio_frame_plot</name>
+      <anchorfile>group__audio__frame.html</anchorfile>
+      <anchor>ga9dfdb12d729cf26adf0c53b224191e4a</anchor>
+      <arglist>(const gavl_audio_format_t *format, const gavl_audio_frame_t *frame, const char *name_base)</arglist>
     </member>
     <member kind="function">
       <type>GAVL_PUBLIC void</type>
@@ -1906,6 +1926,13 @@
     </member>
     <member kind="function">
       <type>GAVL_PUBLIC const char *</type>
+      <name>gavl_framerate_mode_to_string</name>
+      <anchorfile>group__video__format.html</anchorfile>
+      <anchor>ga0e05fb91c7798060d796ff65c5f129d9</anchor>
+      <arglist>(gavl_framerate_mode_t mode)</arglist>
+    </member>
+    <member kind="function">
+      <type>GAVL_PUBLIC const char *</type>
       <name>gavl_interlace_mode_to_string</name>
       <anchorfile>group__video__format.html</anchorfile>
       <anchor>ga7baa4e63f5f4699ae11d659fa5f806fe</anchor>
@@ -2113,6 +2140,13 @@
       <anchorfile>group__video__frame.html</anchorfile>
       <anchor>ga4700fc9e06cece057d1c8a9aa058c2f8</anchor>
       <arglist>(const gavl_video_format_t *format, gavl_color_channel_t ch, const gavl_video_frame_t *src, gavl_video_frame_t *dst)</arglist>
+    </member>
+    <member kind="function">
+      <type>GAVL_PUBLIC int</type>
+      <name>gavl_video_frames_equal</name>
+      <anchorfile>group__video__frame.html</anchorfile>
+      <anchor>gad8987beb284d530c246c153482b322ec</anchor>
+      <arglist>(const gavl_video_format_t *format, const gavl_video_frame_t *f1, const gavl_video_frame_t *f2)</arglist>
     </member>
     <member kind="function">
       <type>GAVL_PUBLIC void</type>
@@ -2643,8 +2677,8 @@
       <type>GAVL_PUBLIC int</type>
       <name>gavl_frame_table_save</name>
       <anchorfile>group__frame__table.html</anchorfile>
-      <anchor>ga705fcb7b4257d5daaa423dbf4d2a55ff</anchor>
-      <arglist>(const gavl_frame_table_t *tab, const char *filename)</arglist>
+      <anchor>ga15211644be347e181d22929e79ca6dbe</anchor>
+      <arglist>(const gavl_frame_table_t *t, const char *filename)</arglist>
     </member>
     <member kind="function">
       <type>GAVL_PUBLIC gavl_frame_table_t *</type>
@@ -2784,13 +2818,6 @@
       <anchorfile>group__timecode.html</anchorfile>
       <anchor>ga0bfd79167ca0f9849b82d020f1d3cc75</anchor>
       <arglist>(gavl_timecode_t tc, char str[GAVL_TIMECODE_STRING_LEN_SHORT])</arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>flags</name>
-      <anchorfile>group__timecode.html</anchorfile>
-      <anchor>gae095ea9a7c3fbbcd56ca3d26dd643a93</anchor>
-      <arglist></arglist>
     </member>
   </compound>
   <compound kind="group">
@@ -3287,6 +3314,20 @@
       <anchorfile>group__audio__frame.html</anchorfile>
       <anchor>ga86c3f2bc3346e3f8031e030deaea8d8c</anchor>
       <arglist>(const gavl_audio_format_t *format, gavl_audio_frame_t *src, gavl_audio_frame_t *dst, int start, int len)</arglist>
+    </member>
+    <member kind="function">
+      <type>GAVL_PUBLIC int</type>
+      <name>gavl_audio_frames_equal</name>
+      <anchorfile>group__audio__frame.html</anchorfile>
+      <anchor>gabb58c41223763dbce3ad6e99396c1225</anchor>
+      <arglist>(const gavl_audio_format_t *format, const gavl_audio_frame_t *f1, const gavl_audio_frame_t *f2)</arglist>
+    </member>
+    <member kind="function">
+      <type>GAVL_PUBLIC int</type>
+      <name>gavl_audio_frame_plot</name>
+      <anchorfile>group__audio__frame.html</anchorfile>
+      <anchor>ga9dfdb12d729cf26adf0c53b224191e4a</anchor>
+      <arglist>(const gavl_audio_format_t *format, const gavl_audio_frame_t *frame, const char *name_base)</arglist>
     </member>
   </compound>
   <compound kind="group">
@@ -4384,6 +4425,12 @@
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
+      <name>GAVL_FRAMERATE_UNKNOWN</name>
+      <anchorfile>group__video__format.html</anchorfile>
+      <anchor>gga27bc061c95b4416a2ddd2cae2f8ee811a300414b65b11483cf8838b38481e8ae9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
       <name>GAVL_FRAMERATE_CONSTANT</name>
       <anchorfile>group__video__format.html</anchorfile>
       <anchor>gga27bc061c95b4416a2ddd2cae2f8ee811a3b8019ccde52a3dc42b337bb21addad7</anchor>
@@ -4532,6 +4579,13 @@
       <anchorfile>group__video__format.html</anchorfile>
       <anchor>ga2258430d4307e686a3dc77e52deaf079</anchor>
       <arglist>(gavl_chroma_placement_t mode)</arglist>
+    </member>
+    <member kind="function">
+      <type>GAVL_PUBLIC const char *</type>
+      <name>gavl_framerate_mode_to_string</name>
+      <anchorfile>group__video__format.html</anchorfile>
+      <anchor>ga0e05fb91c7798060d796ff65c5f129d9</anchor>
+      <arglist>(gavl_framerate_mode_t mode)</arglist>
     </member>
     <member kind="function">
       <type>GAVL_PUBLIC const char *</type>
@@ -4748,6 +4802,13 @@
       <anchorfile>group__video__frame.html</anchorfile>
       <anchor>ga4700fc9e06cece057d1c8a9aa058c2f8</anchor>
       <arglist>(const gavl_video_format_t *format, gavl_color_channel_t ch, const gavl_video_frame_t *src, gavl_video_frame_t *dst)</arglist>
+    </member>
+    <member kind="function">
+      <type>GAVL_PUBLIC int</type>
+      <name>gavl_video_frames_equal</name>
+      <anchorfile>group__video__frame.html</anchorfile>
+      <anchor>gad8987beb284d530c246c153482b322ec</anchor>
+      <arglist>(const gavl_video_format_t *format, const gavl_video_frame_t *f1, const gavl_video_frame_t *f2)</arglist>
     </member>
   </compound>
   <compound kind="group">
@@ -5540,8 +5601,8 @@
       <type>GAVL_PUBLIC int</type>
       <name>gavl_frame_table_save</name>
       <anchorfile>group__frame__table.html</anchorfile>
-      <anchor>ga705fcb7b4257d5daaa423dbf4d2a55ff</anchor>
-      <arglist>(const gavl_frame_table_t *tab, const char *filename)</arglist>
+      <anchor>ga15211644be347e181d22929e79ca6dbe</anchor>
+      <arglist>(const gavl_frame_table_t *t, const char *filename)</arglist>
     </member>
     <member kind="function">
       <type>GAVL_PUBLIC gavl_frame_table_t *</type>
@@ -5855,6 +5916,20 @@
     </member>
     <member kind="define">
       <type>#define</type>
+      <name>GAVL_COMPRESSION_HAS_FIELD_PICTURES</name>
+      <anchorfile>group__compression.html</anchorfile>
+      <anchor>ga21ed3d2abf45710350c1322e83490df4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
+      <name>GAVL_COMPRESSION_SBR</name>
+      <anchorfile>group__compression.html</anchorfile>
+      <anchor>ga6d6122a51eabe09d528e6e70f2fe2832</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="define">
+      <type>#define</type>
       <name>GAVL_PACKET_TYPE_I</name>
       <anchorfile>group__compression.html</anchorfile>
       <anchor>ga4862d16a5c63bc349240980de13bb5ea</anchor>
@@ -5926,15 +6001,9 @@
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
-      <name>GAVL_CODEC_ID_MP3_CBR</name>
+      <name>GAVL_CODEC_ID_MP3</name>
       <anchorfile>group__compression.html</anchorfile>
-      <anchor>gga3e101e880064877a18f79ba4ea88525ba08258c60cf518a9dc8f2dc811c92cbb2</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="enumvalue">
-      <name>GAVL_CODEC_ID_MP3_VBR</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gga3e101e880064877a18f79ba4ea88525baa97c6bed3f8d3142b4788b6c9a38253c</anchor>
+      <anchor>gga3e101e880064877a18f79ba4ea88525babeb1acd5673f67d8e98918277d242966</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
@@ -5944,9 +6013,9 @@
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
-      <name>GAVL_CODEC_ID_AAC_RAW</name>
+      <name>GAVL_CODEC_ID_AAC</name>
       <anchorfile>group__compression.html</anchorfile>
-      <anchor>gga3e101e880064877a18f79ba4ea88525ba081b97aeb1de2bd977ae3e09570fab66</anchor>
+      <anchor>gga3e101e880064877a18f79ba4ea88525ba6784e5e6b69cf289604ddf84a83c98d2</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
@@ -6004,12 +6073,6 @@
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
-      <name>GAVL_CODEC_ID_H264_ISOM</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gga3e101e880064877a18f79ba4ea88525ba3d1dcff730806f75e936543b24fb0e88</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="enumvalue">
       <name>GAVL_CODEC_ID_THEORA</name>
       <anchorfile>group__compression.html</anchorfile>
       <anchor>gga3e101e880064877a18f79ba4ea88525baab70e133cdc1967d7ee88e7bfe70f5e6</anchor>
@@ -6019,6 +6082,12 @@
       <name>GAVL_CODEC_ID_DIRAC</name>
       <anchorfile>group__compression.html</anchorfile>
       <anchor>gga3e101e880064877a18f79ba4ea88525ba4c354a019d90e50609e6c497700a378a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_CODEC_ID_DV</name>
+      <anchorfile>group__compression.html</anchorfile>
+      <anchor>gga3e101e880064877a18f79ba4ea88525ba2ebe5a2f8d5e5c60055e987ef4682c5f</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
@@ -6043,6 +6112,13 @@
       <arglist>(gavl_codec_id_t id, int *separate)</arglist>
     </member>
     <member kind="function">
+      <type>GAVL_PUBLIC int</type>
+      <name>gavl_compression_need_pixelformat</name>
+      <anchorfile>group__compression.html</anchorfile>
+      <anchor>ga0b4f01f12214f4bebfee6c24ae0187f4</anchor>
+      <arglist>(gavl_codec_id_t id)</arglist>
+    </member>
+    <member kind="function">
       <type>GAVL_PUBLIC void</type>
       <name>gavl_packet_alloc</name>
       <anchorfile>group__compression.html</anchorfile>
@@ -6062,90 +6138,6 @@
       <anchorfile>group__compression.html</anchorfile>
       <anchor>ga04b8f9acda91b3204785d4eff53fd2aa</anchor>
       <arglist>(const gavl_packet_t *p)</arglist>
-    </member>
-    <member kind="variable">
-      <type>gavl_codec_id_t</type>
-      <name>id</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga150f1b785ea6e4d245b471f2ecf8c27c</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>uint8_t *</type>
-      <name>global_header</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga34f7bdedc240ca9f76de2318881aef0f</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>global_header_len</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga5da6f14ac1584a4464a3fc5bcdeb1a60</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>bitrate</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga6e6ba500d4fd17e84371e2d375fd1ba2</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>data_len</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga09212e87b796a4a7f4afc4dec82e7623</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>data_alloc</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gaffd91c0cca1445026ac237f04c379a27</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>flags</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gab9a4239c45027f8aa85c968940e3eff1</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int64_t</type>
-      <name>pts</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga57be2a88ea5177b4b4adecf7bbb74936</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int64_t</type>
-      <name>dts</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga44e3a417dbedf705ab30bead1718656f</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int64_t</type>
-      <name>duration</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gadec69d3eadb2731d79d9679903f389a7</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>field2_offset</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gaeb842eb78c5e787dcc4772a099361f89</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int</type>
-      <name>header_size</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga333836763a311e3b4d1d2d64f9d45aa4</anchor>
-      <arglist></arglist>
     </member>
   </compound>
   <compound kind="union">
@@ -6380,29 +6372,36 @@
     <member kind="variable">
       <type>gavl_codec_id_t</type>
       <name>id</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga150f1b785ea6e4d245b471f2ecf8c27c</anchor>
+      <anchorfile>structgavl__compression__info__t.html</anchorfile>
+      <anchor>a150f1b785ea6e4d245b471f2ecf8c27c</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>uint8_t *</type>
       <name>global_header</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga34f7bdedc240ca9f76de2318881aef0f</anchor>
+      <anchorfile>structgavl__compression__info__t.html</anchorfile>
+      <anchor>a34f7bdedc240ca9f76de2318881aef0f</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>global_header_len</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga5da6f14ac1584a4464a3fc5bcdeb1a60</anchor>
+      <anchorfile>structgavl__compression__info__t.html</anchorfile>
+      <anchor>a5da6f14ac1584a4464a3fc5bcdeb1a60</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>bitrate</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga6e6ba500d4fd17e84371e2d375fd1ba2</anchor>
+      <anchorfile>structgavl__compression__info__t.html</anchorfile>
+      <anchor>a6e6ba500d4fd17e84371e2d375fd1ba2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>int</type>
+      <name>palette_size</name>
+      <anchorfile>structgavl__compression__info__t.html</anchorfile>
+      <anchor>ad244224cb4bd21349fadf7eb3e94477e</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -6788,57 +6787,57 @@
     <member kind="variable">
       <type>int</type>
       <name>data_len</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga09212e87b796a4a7f4afc4dec82e7623</anchor>
+      <anchorfile>structgavl__packet__t.html</anchorfile>
+      <anchor>a09212e87b796a4a7f4afc4dec82e7623</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>data_alloc</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gaffd91c0cca1445026ac237f04c379a27</anchor>
+      <anchorfile>structgavl__packet__t.html</anchorfile>
+      <anchor>affd91c0cca1445026ac237f04c379a27</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>flags</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gab9a4239c45027f8aa85c968940e3eff1</anchor>
+      <anchorfile>structgavl__packet__t.html</anchorfile>
+      <anchor>ab9a4239c45027f8aa85c968940e3eff1</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int64_t</type>
       <name>pts</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga57be2a88ea5177b4b4adecf7bbb74936</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable">
-      <type>int64_t</type>
-      <name>dts</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga44e3a417dbedf705ab30bead1718656f</anchor>
+      <anchorfile>structgavl__packet__t.html</anchorfile>
+      <anchor>a57be2a88ea5177b4b4adecf7bbb74936</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int64_t</type>
       <name>duration</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gadec69d3eadb2731d79d9679903f389a7</anchor>
+      <anchorfile>structgavl__packet__t.html</anchorfile>
+      <anchor>adec69d3eadb2731d79d9679903f389a7</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>field2_offset</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>gaeb842eb78c5e787dcc4772a099361f89</anchor>
+      <anchorfile>structgavl__packet__t.html</anchorfile>
+      <anchor>aeb842eb78c5e787dcc4772a099361f89</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>header_size</name>
-      <anchorfile>group__compression.html</anchorfile>
-      <anchor>ga333836763a311e3b4d1d2d64f9d45aa4</anchor>
+      <anchorfile>structgavl__packet__t.html</anchorfile>
+      <anchor>a333836763a311e3b4d1d2d64f9d45aa4</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>int</type>
+      <name>sequence_end_pos</name>
+      <anchorfile>structgavl__packet__t.html</anchorfile>
+      <anchor>a8923363218642f7fcf9366fec8165fd0</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -6919,8 +6918,8 @@
     <member kind="variable">
       <type>int</type>
       <name>flags</name>
-      <anchorfile>group__timecode.html</anchorfile>
-      <anchor>gae095ea9a7c3fbbcd56ca3d26dd643a93</anchor>
+      <anchorfile>structgavl__timecode__format__t.html</anchorfile>
+      <anchor>ae095ea9a7c3fbbcd56ca3d26dd643a93</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -7073,15 +7072,15 @@
     </member>
   </compound>
   <compound kind="dir">
-    <name>/home/pix/Src/Gmerlin/gavl/doc/</name>
-    <path>/home/pix/Src/Gmerlin/gavl/doc/</path>
-    <filename>dir_15e55c0b93d35eed26c6908a47aed7d0.html</filename>
+    <name>/home/pix/Src/Gmerlin_svn/gavl/doc/</name>
+    <path>/home/pix/Src/Gmerlin_svn/gavl/doc/</path>
+    <filename>dir_af20ec4551ec7181023f470efcbbe418.html</filename>
     <file>mainpage.incl</file>
   </compound>
   <compound kind="dir">
-    <name>/home/pix/Src/Gmerlin/gavl/include/gavl/</name>
-    <path>/home/pix/Src/Gmerlin/gavl/include/gavl/</path>
-    <filename>dir_07295ce999cf21f8f23ece26a029cd78.html</filename>
+    <name>/home/pix/Src/Gmerlin_svn/gavl/include/gavl/</name>
+    <path>/home/pix/Src/Gmerlin_svn/gavl/include/gavl/</path>
+    <filename>dir_53e8e735b55ca0d1d0a896e6aca9442e.html</filename>
     <file>compression.h</file>
     <file>gavl.h</file>
     <file>gavldsp.h</file>
@@ -7089,9 +7088,9 @@
     <file>timecode.h</file>
   </compound>
   <compound kind="dir">
-    <name>/home/pix/Src/Gmerlin/gavl/include/</name>
-    <path>/home/pix/Src/Gmerlin/gavl/include/</path>
-    <filename>dir_a0fc954bb28ba717e0e916f40ad8ff08.html</filename>
-    <dir>/home/pix/Src/Gmerlin/gavl/include/gavl/</dir>
+    <name>/home/pix/Src/Gmerlin_svn/gavl/include/</name>
+    <path>/home/pix/Src/Gmerlin_svn/gavl/include/</path>
+    <filename>dir_b8e22912d0447171684e031f5949984c.html</filename>
+    <dir>/home/pix/Src/Gmerlin_svn/gavl/include/gavl/</dir>
   </compound>
 </tagfile>

@@ -300,7 +300,7 @@ void bgav_options_set_read_timeout(bgav_options_t * opt, int timeout);
 
 
 BGAV_PUBLIC
-void bgav_options_set_rtp_port_base(bgav_options_t*b, int p);
+void bgav_options_set_rtp_port_base(bgav_options_t * opt, int p);
 
 /** \ingroup options
  *  \brief Try TCP before UDP
@@ -312,7 +312,7 @@ void bgav_options_set_rtp_port_base(bgav_options_t*b, int p);
  */
 
 BGAV_PUBLIC
-void bgav_options_set_rtp_try_tcp(bgav_options_t*b, int enable);
+void bgav_options_set_rtp_try_tcp(bgav_options_t * opt, int enable);
 
 /** \ingroup options
  *  \brief Set network bandwidth
@@ -616,7 +616,7 @@ void bgav_options_set_dv_datetime(bgav_options_t* opt,
 /** \ingroup options
  *  \brief Shrink factor
  *  \param opt Option container
- *  \param Exponent of the shrink factor
+ *  \param factor Exponent of the shrink factor
  *
  *  This enables downscaling of images while decoding.
  *  Currently only supported for JPEG-2000.
@@ -629,7 +629,7 @@ void bgav_options_set_shrink(bgav_options_t* opt,
 /** \ingroup options
  *  \brief VDPAU acceleration
  *  \param opt Option container
- *  \param 1 to enable vdpau, 0 else
+ *  \param vdpau 1 to enable vdpau, 0 else
  *
  *  Since 1.0.2
  */
@@ -1029,6 +1029,7 @@ int bgav_open_fd(bgav_t * bgav, int fd,
  *  \param priv Private argument for the callbacks
  *  \param filename The filename of the input or NULL if this info is not known.
  *  \param mimetype The mimetype of the input or NULL if this info is not known.
+ *  \param total_bytes File size in bytes or 0 if this info is not known.
  *  \returns 1 on success, 0 else.
  */
 
