@@ -165,7 +165,7 @@ static int init_format(bgav_stream_t * s)
   s->data.audio.format.samples_per_frame = 1024;
 #endif
 
-  fprintf(stderr, "Got format\n");
+  //  fprintf(stderr, "Got format\n");
   return 1;
   }
 
@@ -360,11 +360,16 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
           }
         }
       else
+        {
         gavl_audio_frame_destroy(priv->frame);
-
+        priv->frame = NULL;
+        }
       s->data.audio.format.samples_per_frame = f.nb_samples;
-      priv->frame = gavl_audio_frame_create(&s->data.audio.format);
       }
+    
+    if(!priv->frame)
+      priv->frame = gavl_audio_frame_create(&s->data.audio.format);
+    
     /* This will break with planar formats */
     memcpy(priv->frame->samples.s_16,
            f.extended_data[0],

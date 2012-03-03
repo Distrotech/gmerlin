@@ -2150,7 +2150,7 @@ static void get_format(AVCodecContext * ctx, gavl_video_format_t * format)
     if(format->pixelformat == GAVL_YUV_420_P)
       format->chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
 
-    if(!format->interlace_mode)
+    if(format->interlace_mode == GAVL_INTERLACE_UNKNOWN)
       format->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
 
     /* We completely ignore the frame size of the container */

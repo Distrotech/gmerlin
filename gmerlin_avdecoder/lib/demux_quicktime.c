@@ -1115,9 +1115,11 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         {
         if(desc->format.video.fiel.fields == 2)
           {
-          if((desc->format.video.fiel.detail == 14) || (desc->format.video.fiel.detail == 6))
+          if((desc->format.video.fiel.detail == 14) ||
+             (desc->format.video.fiel.detail == 6))
             bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
-          else if((desc->format.video.fiel.detail == 9) || (desc->format.video.fiel.detail == 1))
+          else if((desc->format.video.fiel.detail == 9) ||
+                  (desc->format.video.fiel.detail == 1))
             bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
           }
         }
