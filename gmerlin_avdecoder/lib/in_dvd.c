@@ -925,19 +925,23 @@ static void    close_dvd(bgav_input_context_t * ctx)
   track_priv_t * track_priv;
   dvd_t * dvd;
   dvd = ctx->priv;
-
-  if(dvd->dvd_reader)
-    DVDClose(dvd->dvd_reader);
   
-  if(dvd->dvd_file)
-    DVDCloseFile(dvd->dvd_file);
-  
+  // ifo_handle_t
   if(dvd->vmg_ifo)
     ifoClose(dvd->vmg_ifo);
-  
+
+  // ifo_handle_t
   if(dvd->vts_ifo)
     ifoClose(dvd->vts_ifo);
 
+  // dvd_file_t
+  if(dvd->dvd_file)
+    DVDCloseFile(dvd->dvd_file);
+
+  // dvd_reader_t
+  if(dvd->dvd_reader)
+    DVDClose(dvd->dvd_reader);
+  
   if(ctx->tt)
     {
     for(i = 0; i < ctx->tt->num_tracks; i++)
@@ -999,8 +1003,9 @@ static int select_track_dvd(bgav_input_context_t * ctx, int track)
   /* Set the subtitle palettes */
   for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
     {
-    ctx->tt->cur->subtitle_streams[i].ext_data = (uint8_t*)(dvd->pgc->palette);
-    ctx->tt->cur->subtitle_streams[i].ext_size = sizeof(dvd->pgc->palette);
+    bgav_stream_set_extradata(&ctx->tt->cur->subtitle_streams[i],
+                              (uint8_t*)dvd->pgc->palette,
+                              sizeof(dvd->pgc->palette));
     }
   return 1;
   }

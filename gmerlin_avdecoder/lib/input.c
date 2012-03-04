@@ -862,6 +862,8 @@ void bgav_input_close(bgav_input_context_t * ctx)
     free(ctx->charset);
   if(ctx->cnv)
     bgav_charset_converter_destroy(ctx->cnv);
+  if(ctx->disc_name)
+    free(ctx->disc_name);
 
   if(ctx->tt)
     bgav_track_table_unref(ctx->tt);

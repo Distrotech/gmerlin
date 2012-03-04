@@ -323,7 +323,7 @@ static void close_dvdsub(bgav_stream_t * s)
   {
   dvdsub_t * priv;
   priv = s->data.subtitle.decoder->priv;
-
+  free(priv);
   }
 
 static void resync_dvdsub(bgav_stream_t * s)
