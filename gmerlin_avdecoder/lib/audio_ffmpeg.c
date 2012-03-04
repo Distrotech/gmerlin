@@ -347,19 +347,18 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   
   if(got_frame && f.nb_samples)
     {
+    /* Detect if we need the format */
+    if(!priv->sample_size && !init_format(s))
+      {
+      fprintf(stderr, "Init format failed\n");
+      return 0;
+      }
+    
     /* Allocate or enlarge frame */
 
     if(s->data.audio.format.samples_per_frame < f.nb_samples)
       {
-      if(!priv->frame)
-        {
-        if(!init_format(s))
-          {
-          fprintf(stderr, "Init format failed\n");
-          return 0;
-          }
-        }
-      else
+      if(priv->frame)
         {
         gavl_audio_frame_destroy(priv->frame);
         priv->frame = NULL;
