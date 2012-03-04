@@ -68,10 +68,17 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
     {
     if(priv->packet_size && (priv->buffer_size >= priv->packet_size))
       return 1;
-
-    if(!bgav_stream_peek_packet_read(s, 0))
-      return 0;
     
+    if(!bgav_stream_peek_packet_read(s, 0))
+      {
+      /* Signal EOF */
+      if(s->flags & STREAM_EOF_D)
+        {
+        s->flags |= STREAM_EOF_C;
+        return 1;
+        }
+      return 0;
+      }
     p = bgav_stream_get_packet_read(s);
 
     /* Append data */
