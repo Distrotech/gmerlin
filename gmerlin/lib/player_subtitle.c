@@ -215,8 +215,17 @@ int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl)
     }
 
   /* Unscale the overlay times */
-  ovl->frame->timestamp = gavl_time_unscale(s->input_format.timescale, ovl->frame->timestamp);
-  ovl->frame->duration  = gavl_time_unscale(s->input_format.timescale, ovl->frame->duration);
+  ovl->frame->timestamp =
+    gavl_time_unscale(s->input_format.timescale, ovl->frame->timestamp);
+  ovl->frame->duration  =
+    gavl_time_unscale(s->input_format.timescale, ovl->frame->duration);
+#if 0
+  bg_dprintf("Got subtitle %f -> %f (%f)\n",
+             gavl_time_to_seconds(ovl->frame->timestamp),
+             gavl_time_to_seconds(ovl->frame->timestamp +
+                                  ovl->frame->duration),
+             gavl_time_to_seconds(ovl->frame->duration));
+#endif
   
   return 1;
   }
