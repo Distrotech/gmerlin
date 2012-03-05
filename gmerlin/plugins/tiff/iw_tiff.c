@@ -108,7 +108,7 @@ static int write_header_tiff(void * priv, const char * filename,
     {
     if(gavl_pixelformat_is_gray(format->pixelformat))
       {
-      format->pixelformat = GAVL_GRAYA_32;
+      format->pixelformat = GAVL_GRAYA_16;
       p->SamplesPerPixel = 2;
       photometric = PHOTOMETRIC_MINISBLACK;
       }
@@ -122,8 +122,19 @@ static int write_header_tiff(void * priv, const char * filename,
     }
   else
     {
-    format->pixelformat = GAVL_RGB_24;
-    p->SamplesPerPixel = 3;
+    if(gavl_pixelformat_is_gray(format->pixelformat))
+      {
+      format->pixelformat = GAVL_GRAY_8;
+      p->SamplesPerPixel = 1;
+      photometric = PHOTOMETRIC_MINISBLACK;
+      }
+    else
+      {
+      format->pixelformat = GAVL_RGB_24;
+      p->SamplesPerPixel = 3;
+      photometric = PHOTOMETRIC_RGB;
+      }
+    has_alpha = 0;
     }
   
   TIFFSetField(p->output, TIFFTAG_IMAGEWIDTH, p->Width);
@@ -136,7 +147,7 @@ static int write_header_tiff(void * priv, const char * filename,
   if(p->compression == COMPRESSION_DEFLATE)
     TIFFSetField(p->output, TIFFTAG_ZIPQUALITY, p->zip_quality);
   TIFFSetField(p->output, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
-  TIFFSetField(p->output, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+  TIFFSetField(p->output, TIFFTAG_PHOTOMETRIC, photometric);
   TIFFSetField(p->output, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
   TIFFSetField(p->output, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
   
