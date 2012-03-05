@@ -88,6 +88,7 @@ mediafiledevice.c \
 metadata.c \
 metadata_xml.c \
 msgqueue.c \
+ocr.c \
 osd.c \
 ov.c \
 parameter.c \

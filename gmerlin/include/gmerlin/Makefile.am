@@ -18,6 +18,7 @@ lcdproc.h \
 log.h \
 mediafiledevice.h \
 msgqueue.h \
+ocr.h \
 osd.h \
 parameter.h \
 player.h \

@@ -360,6 +360,16 @@ BG_GAVL_PARAM_FRAMERATE_USER
     .help_string = TRS("Always perform chroma resampling if chroma subsampling factors or chroma placements are different. Usually, this is only done for qualities above 3."), \
   }
 
+#define BG_GAVL_PARAM_BACKGROUND \
+   \
+    { \
+      .name =        "background_color", \
+      .long_name =   TRS("Background color"), \
+      .type =      BG_PARAMETER_COLOR_RGB, \
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_color = { 0.0, 0.0, 0.0 } }, \
+      .help_string = TRS("Background color to use, when alpha mode above is \"Blend background color\"."), \
+    }
 
 #define BG_GAVL_PARAM_ALPHA                \
     { \
@@ -371,15 +381,8 @@ BG_GAVL_PARAM_FRAMERATE_USER
       .multi_names = (char const *[]){"ignore", "blend_color", (char*)0}, \
       .multi_labels = (char const *[]){TRS("Ignore"), TRS("Blend background color"), (char*)0}, \
     .help_string = TRS("This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in."),\
-    }, \
-    { \
-      .name =        "background_color", \
-      .long_name =   TRS("Background color"), \
-      .type =      BG_PARAMETER_COLOR_RGB, \
-      .flags =       BG_PARAMETER_SYNC,                     \
-      .val_default = { .val_color = { 0.0, 0.0, 0.0 } }, \
-      .help_string = TRS("Background color to use, when alpha mode above is \"Blend background color\"."), \
-    }
+       }, \
+  BG_GAVL_PARAM_BACKGROUND
 
 #define BG_GAVL_PARAM_FRAMESIZE_USER           \
     { \
