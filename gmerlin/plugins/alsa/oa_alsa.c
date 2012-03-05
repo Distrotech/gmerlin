@@ -399,6 +399,7 @@ static void destroy_alsa(void * p)
     free(priv->user_device);
   if(priv->card)
     free(priv->card);
+  snd_config_update_free_global();
   free(priv);
   }
 

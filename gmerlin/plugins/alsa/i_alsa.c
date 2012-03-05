@@ -329,6 +329,8 @@ static void destroy_alsa(void * p)
   alsa_t * priv = p;
   if(priv->parameters)
     bg_parameter_info_destroy_array(priv->parameters);
+  snd_config_update_free_global();
+
   free(priv);
   }
 

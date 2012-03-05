@@ -750,7 +750,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
       tmp_info = tmp_info->next;
       }
 
-    //    dlclose(test_module);
+    dlclose(test_module);
     ret = append_to_list(ret, new_info);
     }
   
@@ -1319,7 +1319,7 @@ static void unload_plugin(bg_plugin_handle_t * h)
   
   if(h->location) free(h->location);
 
-#if 0
+#if 1
   // Some few libs (e.g. the OpenGL lib shipped with NVidia)
   // seem to install pthread cleanup handlers, which point to library
   // functions. dlclosing libraries causes programs to crash

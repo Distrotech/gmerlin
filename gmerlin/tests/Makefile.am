@@ -40,6 +40,7 @@ client \
 dump_plugins \
 extractchannel \
 insertchannel \
+ocrtest \
 textrenderer \
 ladspa \
 thumbnail \
@@ -68,6 +69,8 @@ album2m3u_LDADD = ../lib/libgmerlin.la -ldl
 album2pls_SOURCES = album2pls.c
 album2pls_LDADD = ../lib/libgmerlin.la -ldl
 
+ocrtest_SOURCES = ocrtest.c
+ocrtest_LDADD = ../lib/libgmerlin.la -ldl
 
 extractchannel_SOURCES = extractchannel.c
 extractchannel_LDADD = ../lib/libgmerlin.la -ldl

@@ -411,6 +411,8 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   
   xmlNodePtr xml_plugin;
   xmlNodePtr xml_item;
+
+  //  fprintf(stderr, "Save plugin: %s\n", info->name);
   
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     
