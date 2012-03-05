@@ -35,8 +35,11 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "iw_pnm"
 
-#define BINARY    6
-#define ASCII     3
+#define BINARY_RGB    6
+#define ASCII_RGB     3
+
+#define BINARY_GRAY   5
+#define ASCII_GRAY    2
 
 typedef struct
   {
@@ -45,8 +48,9 @@ typedef struct
   uint32_t Width;
   uint32_t Height;
   gavl_video_format_t format;
-  uint16_t pnm_format;
+  int binary;
   bg_iw_callbacks_t * cb;
+  int is_gray;
   } pnm_t;
 
 static void * create_pnm()
@@ -73,11 +77,29 @@ static void set_callbacks_pnm(void * data, bg_iw_callbacks_t * cb)
 static int write_header_pnm(void * priv, const char * filename,
                             gavl_video_format_t * format, const bg_metadata_t * m)
   {
+  int sig = 0;
+  const char * ext;
   char * real_filename;
   pnm_t * p = priv;
 
-  real_filename = bg_filename_ensure_extension(filename, "ppm");
+  p->Width =  format->image_width;
+  p->Height =  format->image_height;
 
+  if(gavl_pixelformat_is_gray(format->pixelformat))
+    {
+    format->pixelformat = GAVL_GRAY_8;
+    p->is_gray = 1;
+    ext = "pgm";
+    }
+  else
+    {
+    format->pixelformat = GAVL_RGB_24;
+    p->is_gray = 0;
+    ext = "ppm";
+    }
+  
+  real_filename = bg_filename_ensure_extension(filename, ext);
+  
   if(!bg_iw_cb_create_output_file(p->cb, real_filename))
     {
     free(real_filename);
@@ -93,22 +115,25 @@ static int write_header_pnm(void * priv, const char * filename,
            real_filename, strerror(errno));
     return 0;
     }
-  
-  p->Width =  format->image_width;
-  p->Height =  format->image_height;
-  format->pixelformat = GAVL_RGB_24;
+ 
 
+  if(p->binary)
+    {
+    if(p->is_gray)
+      sig = BINARY_GRAY;
+    else
+      sig = BINARY_RGB;
+    }
+  else
+    {
+    if(p->is_gray)
+      sig = ASCII_GRAY;
+    else
+      sig = ASCII_RGB;
+    }
+  
   /* Write the header lines */  
-  if(p->pnm_format == BINARY)
-    {
-    fprintf(p->output,"P%d\n# %s\n%d %d\n255\n", BINARY, p->comment, p->Width, p->Height);
-    }
-
-  if(p->pnm_format == ASCII)
-    {
-    fprintf(p->output,"P%d\n# %s\n%d %d\n255\n", ASCII, p->comment, p->Width, p->Height);
-    }
-  
+  fprintf(p->output,"P%d\n# %s\n%d %d\n255\n", sig, p->comment, p->Width, p->Height);
   return 1;
   }
 
@@ -117,35 +142,37 @@ static int write_image_pnm(void *priv, gavl_video_frame_t *frame)
   int i, j;
   pnm_t *p = priv;
   uint8_t * frame_ptr;
-  uint8_t * frame_ptr_start;
 
+  int bytes_per_pixel;
+  if(p->is_gray)
+    bytes_per_pixel = 1;
+  else
+    bytes_per_pixel = 3;
   
   /* write image data binary */
-  if(p->pnm_format == BINARY)
+  if(p->binary)
     {
-    frame_ptr_start = frame->planes[0];
+    frame_ptr = frame->planes[0];
     
     for (i = 0; i < p->Height; i++)
       {
-      frame_ptr = frame_ptr_start ;
-      fwrite(frame_ptr, 3, p->Width, p->output);
-      frame_ptr_start += frame->strides[0];
+      fwrite(frame_ptr, bytes_per_pixel, p->Width, p->output);
+      frame_ptr += frame->strides[0];
       }
     }
-
   /* write image data ascii */
-  if(p->pnm_format == ASCII)
+  else
     {
+    uint8_t * frame_ptr_start;
     frame_ptr_start = frame->planes[0];
-    
     for (i = 0; i < p->Height; i++)
       {
       frame_ptr = frame_ptr_start ;
 
-      for(j = 0; j < p->Width; j++)
+      for(j = 0; j < p->Width * bytes_per_pixel; j++)
         {
-        fprintf(p->output," %d %d %d", frame_ptr[0], frame_ptr[1], frame_ptr[2]);
-        frame_ptr+=3;
+        fprintf(p->output," %d", *frame_ptr);
+        frame_ptr++;
         }
       fprintf(p->output,"\n");
       frame_ptr_start += frame->strides[0];
@@ -198,15 +225,12 @@ static void set_parameter_pnm(void * p, const char * name,
   else if(!strcmp(name, "format"))
     {
     if(!strcmp(val->val_str, "binary"))
-      pnm->pnm_format = BINARY;
+      pnm->binary = 1;
     else if(!strcmp(val->val_str, "ascii"))
-      pnm->pnm_format = ASCII;
+      pnm->binary = 0;
     }
   else if(!strcmp(name, "comment"))
-    {
     pnm->comment = bg_strdup(pnm->comment, val->val_str);
-    }
-   
   }
 
 const bg_image_writer_plugin_t the_plugin =
@@ -215,8 +239,8 @@ const bg_image_writer_plugin_t the_plugin =
     {
       BG_LOCALE,
       .name =           "iw_pnm",
-      .long_name =      TRS("PPM writer"),
-      .description =    TRS("Writer for PPM images"),
+      .long_name =      TRS("PPM/PGM writer"),
+      .description =    TRS("Writer for PPM/PGM images"),
       .type =           BG_PLUGIN_IMAGE_WRITER,
       .flags =          BG_PLUGIN_FILE,
       .priority =       5,
@@ -225,7 +249,7 @@ const bg_image_writer_plugin_t the_plugin =
       .get_parameters = get_parameters_pnm,
       .set_parameter =  set_parameter_pnm
     },
-    .extensions = "ppm",
+    .extensions = "ppm pgm",
     .set_callbacks = set_callbacks_pnm,
     .write_header =  write_header_pnm,
     .write_image =   write_image_pnm,

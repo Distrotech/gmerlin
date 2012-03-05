@@ -74,8 +74,9 @@ static int write_header_tiff(void * priv, const char * filename,
   {
   tiff_t * p = priv;
   uint16_t v[1];
-
+  int photometric;
   char * real_filename;
+  int has_alpha;
   
   real_filename = bg_filename_ensure_extension(filename, "tif");
   
@@ -105,8 +106,19 @@ static int write_header_tiff(void * priv, const char * filename,
   
   if(gavl_pixelformat_has_alpha(format->pixelformat))
     {
-    format->pixelformat = GAVL_RGBA_32;
-    p->SamplesPerPixel = 4;
+    if(gavl_pixelformat_is_gray(format->pixelformat))
+      {
+      format->pixelformat = GAVL_GRAYA_32;
+      p->SamplesPerPixel = 2;
+      photometric = PHOTOMETRIC_MINISBLACK;
+      }
+    else
+      {
+      format->pixelformat = GAVL_RGBA_32;
+      p->SamplesPerPixel = 4;
+      photometric = PHOTOMETRIC_RGB;
+      }
+    has_alpha = 1;
     }
   else
     {
@@ -127,8 +139,8 @@ static int write_header_tiff(void * priv, const char * filename,
   TIFFSetField(p->output, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
   TIFFSetField(p->output, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
   TIFFSetField(p->output, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
-
-  if(p->SamplesPerPixel == 4)
+  
+  if(has_alpha)
     {
     v[0] = EXTRASAMPLE_ASSOCALPHA;
     TIFFSetField(p->output, TIFFTAG_EXTRASAMPLES, 1, v);
