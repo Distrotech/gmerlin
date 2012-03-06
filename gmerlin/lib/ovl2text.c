@@ -97,7 +97,8 @@ static int close_ovl2text(void * priv, int do_delete)
 static void destroy_ovl2text(void * priv)
   {
   ovl2text_t * ovl2text = priv;
-  
+  bg_ocr_destroy(ovl2text->ocr);
+  free(ovl2text);
   }
 
 static const bg_parameter_info_t * get_parameters_ovl2text(void * priv)
@@ -106,7 +107,8 @@ static const bg_parameter_info_t * get_parameters_ovl2text(void * priv)
   return ovl2text->parameters;
   }
 
-static void set_parameter_ovl2text(void * priv, const char * name, const bg_parameter_value_t * val)
+static void set_parameter_ovl2text(void * priv, const char * name,
+                                   const bg_parameter_value_t * val)
   {
   
   }
