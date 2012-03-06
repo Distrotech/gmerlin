@@ -135,7 +135,6 @@ static void stsd_dump_video(int indent, qt_sample_description_t * d)
                 d->format.video.ctab_size);
   }
 
-
 static void stsd_dump_subtitle_qt(int indent, qt_sample_description_t * d)
   {
   bgav_diprintf(indent, "fourcc:                ");
@@ -176,6 +175,8 @@ static void stsd_dump_subtitle_qt(int indent, qt_sample_description_t * d)
                 d->format.subtitle_qt.font_name);
   }
 
+
+
 /*
       uint32_t display_flags;
       uint8_t horizontal_justification;
@@ -191,6 +192,8 @@ static void stsd_dump_subtitle_qt(int indent, qt_sample_description_t * d)
       int has_ftab;
       qt_ftab_t ftab;
 */
+
+
 
 static void stsd_dump_subtitle_tx3g(int indent, qt_sample_description_t * d)
   {
@@ -254,6 +257,8 @@ static void stsd_dump_timecode(int indent, qt_sample_description_t * d)
          d->format.timecode.reserved3);
   
   }
+
+
 
 
 static int stsd_read_common(bgav_input_context_t * input,
@@ -652,6 +657,34 @@ static int stsd_read_timecode(bgav_input_context_t * input,
   return 1;
   }
 
+static int stsd_read_mp4s(bgav_input_context_t * input,
+                          qt_sample_description_t * ret)
+  {
+  qt_atom_header_t h;
+  if(!bgav_input_read_fourcc(input, &ret->fourcc) ||
+     (bgav_input_read_data(input, ret->reserved, 6) < 6) ||
+     !bgav_input_read_16_be(input, &ret->data_reference_index))
+    return 0;
+
+  while(1)
+    {
+    if(!bgav_qt_atom_read_header(input, &h))
+      {
+      break;
+      }
+    switch(h.fourcc)
+      {
+      case BGAV_MK_FOURCC('e','s','d','s'):
+        if(!bgav_qt_esds_read(&h, input, &ret->esds))
+          return 0;
+        ret->has_esds = 1;
+      default:
+        bgav_qt_atom_skip_unknown(input, &h, BGAV_MK_FOURCC('s','t','s','d'));
+        break;
+      }
+    }
+  return 1;
+  }
 
 int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_stsd_t * ret)
@@ -758,7 +791,17 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
       if(!result)
         return 0;
       }
-    
+    /* Subpictures */
+    else if(!strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data,
+                     "mp4s", 4)) 
+      {
+      input_mem = bgav_input_open_memory(c->entries[i].data,
+                                         c->entries[i].data_size, opt);
+      result = stsd_read_mp4s(input_mem, &c->entries[i].desc);
+      bgav_input_destroy(input_mem);
+      if(!result)
+        return 0;
+      }
     }
   return 1;
   }
@@ -798,6 +841,17 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
   
   free(c->entries);
   }
+
+static void stsd_dump_mp4s(int indent, qt_sample_description_t * d)
+  {
+  bgav_diprintf(indent, "fourcc:       ");
+  bgav_dump_fourcc(d->fourcc);
+  bgav_dprintf( "\n");
+  bgav_diprintf(indent, "data_reference_index:     %d\n",
+                d->data_reference_index);
+  
+  }
+
 
 void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
   {
@@ -842,6 +896,12 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
     else if(s->entries[i].desc.fourcc == BGAV_MK_FOURCC('t','m','c','d'))
       {
       stsd_dump_timecode(indent+2, &s->entries[i].desc);
+      }
+    else if(s->entries[i].desc.fourcc == BGAV_MK_FOURCC('m','p','4','s'))
+      {
+      stsd_dump_mp4s(indent+2, &s->entries[i].desc);
+      if(s->entries[i].desc.has_esds)
+        bgav_qt_esds_dump(indent+2, &s->entries[i].desc.esds);
       }
     }
   }

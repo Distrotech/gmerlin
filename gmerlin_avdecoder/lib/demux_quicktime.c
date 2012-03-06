@@ -30,7 +30,7 @@
 
 #define LOG_DOMAIN "quicktime"
 
-// #define DUMP_MOOV
+#define DUMP_MOOV
 
 #ifdef HAVE_FAAD2
 #include <aac_frame.h>
@@ -868,14 +868,307 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
   bgav_input_seek(ctx->input, old_pos, SEEK_SET);
   }
 
+static void init_audio(bgav_demuxer_context_t * ctx,
+                       qt_trak_t * trak, int index)
+  {
+  int user_len;
+  uint8_t * user_atom;
+  bgav_stream_t * bg_as;
+  qt_stsd_t * stsd;
+  qt_sample_description_t * desc;
+  
+  qt_priv_t * priv = ctx->priv;
+  qt_moov_t * moov = &priv->moov;
+  
+  stsd = &trak->mdia.minf.stbl.stsd;
+  bg_as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
+
+  if((trak->edts.elst.num_entries > 2) ||
+     ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
+    priv->has_edl = 1;
+      
+  bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
+                            bg_as->language);
+      
+  desc = &stsd->entries[0].desc;
+
+  bg_as->priv = &priv->streams[index];
+
+  stream_init(bg_as, trak, moov->mvhd.time_scale);
+      
+  bg_as->timescale = trak->mdia.mdhd.time_scale;
+  bg_as->fourcc    = desc->fourcc;
+  bg_as->data.audio.format.num_channels = desc->format.audio.num_channels;
+  bg_as->data.audio.format.samplerate = (int)(desc->format.audio.samplerate+0.5);
+  bg_as->data.audio.bits_per_sample = desc->format.audio.bits_per_sample;
+  if(desc->version == 1)
+    {
+    if(desc->format.audio.bytes_per_frame)
+      bg_as->data.audio.block_align =
+        desc->format.audio.bytes_per_frame;
+    }
+
+  /* Set channel configuration (if present) */
+
+  if(desc->format.audio.has_chan)
+    {
+    bgav_qt_chan_get(&desc->format.audio.chan,
+                     &bg_as->data.audio.format);
+    }
+      
+  /* Set mp4 extradata */
+      
+  if(desc->has_esds)
+    {
+    bgav_stream_set_extradata(bg_as, desc->esds.decoderConfig,
+                              desc->esds.decoderConfigLen);
+        
+    /* Check for mp3on4 */
+    if((desc->esds.objectTypeId == 64) &&
+       (desc->esds.decoderConfigLen >= 2) &&
+       (bg_as->ext_data[0] >> 3 == 29))
+      {
+      if(!init_mp3on4(bg_as))
+        {
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Invalid mp3on4 channel configuration");
+        bg_as->fourcc = 0;
+        }
+      }
+    else
+      set_audio_from_esds(bg_as, &desc->esds);
+    }
+  else if(bg_as->fourcc == BGAV_MK_FOURCC('l', 'p', 'c', 'm'))
+    {
+    /* Quicktime 7 lpcm: extradata contains formatSpecificFlags
+       in native byte order */
+
+    bgav_stream_set_extradata(bg_as,
+                              (uint8_t*)(&desc->format.audio.formatSpecificFlags),
+                              sizeof(desc->format.audio.formatSpecificFlags));
+    }
+  else if(desc->format.audio.has_wave)
+    {
+    if((desc->format.audio.wave.has_esds) &&
+       (desc->format.audio.wave.esds.decoderConfigLen))
+      {
+      bgav_stream_set_extradata(bg_as,
+                                desc->format.audio.wave.esds.decoderConfig,
+                                desc->format.audio.wave.esds.decoderConfigLen);
+      }
+    else if((user_atom = bgav_user_atoms_find(&desc->format.audio.wave.user,
+                                              BGAV_MK_FOURCC('O','V','H','S'),
+                                              &user_len)))
+      bgav_stream_set_extradata(bg_as, user_atom, user_len);
+    else if((user_atom = bgav_user_atoms_find(&desc->format.audio.wave.user,
+                                              BGAV_MK_FOURCC('a','l','a','c'),
+                                              &user_len)))
+      bgav_stream_set_extradata(bg_as, user_atom, user_len);
+    else if((user_atom = bgav_user_atoms_find(&desc->format.audio.wave.user,
+                                              BGAV_MK_FOURCC('g','l','b','l'),
+                                              &user_len)))
+      bgav_stream_set_extradata(bg_as, user_atom, user_len);
+        
+    if(!bg_as->ext_size)
+      {
+      /* Raw wave atom needed by win32 decoders (QDM2) */
+      bgav_stream_set_extradata(bg_as, desc->format.audio.wave.raw,
+                                desc->format.audio.wave.raw_size);
+      }
+    }
+  else if((user_atom = bgav_user_atoms_find(&desc->format.audio.user,
+                                            BGAV_MK_FOURCC('a','l','a','c'),
+                                            &user_len)))
+    bgav_stream_set_extradata(bg_as, user_atom, user_len);
+  else if(desc->has_glbl)
+    {
+    bgav_stream_set_extradata(bg_as, desc->glbl.data,
+                              desc->glbl.size);
+    }
+      
+  bg_as->stream_id = index;
+      
+
+  /* Check endianess */
+
+  if(desc->format.audio.wave.has_enda &&
+     desc->format.audio.wave.enda.littleEndian)
+    {
+    bg_as->data.audio.endianess = BGAV_ENDIANESS_LITTLE;
+    }
+  else
+    bg_as->data.audio.endianess = BGAV_ENDIANESS_BIG;
+
+  /* Fix channels and samplerate for AMR */
+
+  if(bg_as->fourcc == BGAV_MK_FOURCC('s','a','m','r'))
+    {
+    bg_as->data.audio.format.num_channels = 1;
+    bg_as->data.audio.format.samplerate = 8000;
+    }
+  else if(bg_as->fourcc == BGAV_MK_FOURCC('s','a','w','b'))
+    {
+    bg_as->data.audio.format.num_channels = 1;
+    bg_as->data.audio.format.samplerate = 16000;
+    }
+  }
+
+static void init_video(bgav_demuxer_context_t * ctx,
+                       qt_trak_t * trak, int index)
+  {
+  bgav_stream_t * bg_vs;
+  int skip_first_frame = 0;
+  int skip_last_frame = 0;
+  qt_stsd_t * stsd;
+  qt_sample_description_t * desc;
+  qt_priv_t * priv = ctx->priv;
+  qt_moov_t * moov = &priv->moov;
+  stsd = &trak->mdia.minf.stbl.stsd;
+  
+  if(stsd->num_entries > 1)
+    {
+    if((trak->mdia.minf.stbl.stsc.num_entries >= 2) &&
+       (trak->mdia.minf.stbl.stsc.entries[0].samples_per_chunk == 1) &&
+       (trak->mdia.minf.stbl.stsc.entries[1].sample_description_id == 2) &&
+       (trak->mdia.minf.stbl.stsc.entries[1].first_chunk == 2))
+      {
+      skip_first_frame = 1;
+      }
+    if((trak->mdia.minf.stbl.stsc.num_entries >= 2) &&
+       (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].samples_per_chunk == 1) &&
+       (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].sample_description_id == stsd->num_entries) &&
+       (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].first_chunk == trak->mdia.minf.stbl.stco.num_entries))
+      {
+      skip_last_frame = 1;
+      }
+
+    if(stsd->num_entries > 1 + skip_first_frame + skip_last_frame)
+      return;
+    }
+      
+  bg_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
+
+  if((trak->edts.elst.num_entries > 2) ||
+     ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
+    priv->has_edl = 1;
+            
+  desc = &stsd->entries[skip_first_frame].desc;
+  
+  bg_vs->priv = &priv->streams[index];
+  stream_init(bg_vs, trak, moov->mvhd.time_scale);
+
+  if(skip_first_frame)
+    priv->streams[index].skip_first_frame = 1;
+  if(skip_last_frame)
+    priv->streams[index].skip_last_frame = 1;
+        
+  bg_vs->fourcc = desc->fourcc;
+  bg_vs->data.video.format.image_width = desc->format.video.width;
+  bg_vs->data.video.format.image_height = desc->format.video.height;
+  bg_vs->data.video.format.frame_width = desc->format.video.width;
+  bg_vs->data.video.format.frame_height = desc->format.video.height;
+
+  if(!trak->mdia.minf.stbl.has_stss ||
+     (bgav_qt_stts_num_samples(&trak->mdia.minf.stbl.stts) ==
+      trak->mdia.minf.stbl.stss.num_entries))
+    {
+    bg_vs->flags |= STREAM_INTRA_ONLY;
+    }
+  else if(trak->mdia.minf.stbl.has_ctts)
+    bg_vs->flags |= STREAM_B_FRAMES;
+      
+  if(desc->format.video.has_pasp)
+    {
+    bg_vs->data.video.format.pixel_width = desc->format.video.pasp.hSpacing;
+    bg_vs->data.video.format.pixel_height = desc->format.video.pasp.vSpacing;
+    }
+  else
+    {
+    bg_vs->data.video.format.pixel_width = 1;
+    bg_vs->data.video.format.pixel_height = 1;
+    }
+  if(desc->format.video.has_fiel)
+    {
+    if(desc->format.video.fiel.fields == 2)
+      {
+      if((desc->format.video.fiel.detail == 14) ||
+         (desc->format.video.fiel.detail == 6))
+        bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+      else if((desc->format.video.fiel.detail == 9) ||
+              (desc->format.video.fiel.detail == 1))
+        bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+      }
+    }
+  bg_vs->data.video.depth = desc->format.video.depth;
+      
+  bg_vs->data.video.format.timescale = trak->mdia.mdhd.time_scale;
+
+  /* We set the timescale here, because we need it before the demuxer sets it. */
+
+  bg_vs->timescale = trak->mdia.mdhd.time_scale;
+      
+  bg_vs->data.video.format.frame_duration =
+    trak->mdia.minf.stbl.stts.entries[0].duration;
+
+  /* Some quicktime movies have just a still image */
+  if((trak->mdia.minf.stbl.stts.num_entries == 1) &&
+     (trak->mdia.minf.stbl.stts.entries[0].count == 1))
+    bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
+  else if((trak->mdia.minf.stbl.stts.num_entries == 1) ||
+          ((trak->mdia.minf.stbl.stts.num_entries == 2) &&
+           (trak->mdia.minf.stbl.stts.entries[1].count == 1)))
+    bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
+  else
+    bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+      
+  bg_vs->data.video.pal.size = desc->format.video.ctab_size;
+  if(bg_vs->data.video.pal.size)
+    {
+    int len = bg_vs->data.video.pal.size *
+      sizeof(*bg_vs->data.video.pal.entries);
+        
+    bg_vs->data.video.pal.entries = malloc(len);
+    memcpy(bg_vs->data.video.pal.entries, desc->format.video.ctab, len);
+    }
+      
+  /* Set extradata suitable for Sorenson 3 */
+      
+  if(bg_vs->fourcc == BGAV_MK_FOURCC('S', 'V', 'Q', '3'))
+    {
+    if(stsd->entries[skip_first_frame].desc.format.video.has_SMI)
+      bgav_stream_set_extradata(bg_vs,
+                                stsd->entries[0].data,
+                                stsd->entries[0].data_size);
+    }
+  else if((bg_vs->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
+          (stsd->entries[0].desc.format.video.avcC_offset))
+    {
+    bgav_stream_set_extradata(bg_vs,
+                              stsd->entries[skip_first_frame].data +
+                              stsd->entries[skip_first_frame].desc.format.video.avcC_offset,
+                              stsd->entries[skip_first_frame].desc.format.video.avcC_size);
+    }
+      
+  /* Set mp4 extradata */
+
+  if((stsd->entries[skip_first_frame].desc.has_esds) &&
+     (stsd->entries[skip_first_frame].desc.esds.decoderConfigLen))
+    {
+    bgav_stream_set_extradata(bg_vs,
+                              stsd->entries[skip_first_frame].desc.esds.decoderConfig,
+                              stsd->entries[skip_first_frame].desc.esds.decoderConfigLen);
+    }
+  else if(desc->has_glbl)
+    bgav_stream_set_extradata(bg_vs, desc->glbl.data, desc->glbl.size);
+  
+  bg_vs->stream_id = index;
+  }
+
 static void quicktime_init(bgav_demuxer_context_t * ctx)
   {
   int i;
-  bgav_stream_t * bg_as;
-  bgav_stream_t * bg_vs;
   bgav_stream_t * bg_ss;
   stream_priv_t * stream_priv;
-  qt_sample_description_t * desc;
   bgav_track_t * track;
   int skip_first_frame = 0;
   int skip_last_frame = 0;
@@ -884,16 +1177,12 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
 
   qt_trak_t * trak;
   qt_stsd_t * stsd;
-
-  int user_len;
-  uint8_t * user_atom;
   
   track = ctx->tt->cur;
   
   //  ctx->tt->cur->duration = 0;
-
-  priv->streams = calloc(moov->num_tracks, sizeof(*(priv->streams)));
   
+  priv->streams = calloc(moov->num_tracks, sizeof(*(priv->streams)));
   
   for(i = 0; i < moov->num_tracks; i++)
     {
@@ -903,140 +1192,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     if(trak->mdia.minf.has_smhd)
       {
       if(!stsd->entries)
-        {
         continue;
-        }
-      bg_as = bgav_track_add_audio_stream(track, ctx->opt);
-
-      if((trak->edts.elst.num_entries > 2) ||
-         ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
-        priv->has_edl = 1;
-      
-      bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
-                                bg_as->language);
-      
-      desc = &stsd->entries[0].desc;
-
-      stream_priv = &priv->streams[i];
-      bg_as->priv = stream_priv;
-
-      stream_init(bg_as, &moov->tracks[i], moov->mvhd.time_scale);
-      
-      bg_as->timescale = trak->mdia.mdhd.time_scale;
-      bg_as->fourcc    = desc->fourcc;
-      bg_as->data.audio.format.num_channels = desc->format.audio.num_channels;
-      bg_as->data.audio.format.samplerate = (int)(desc->format.audio.samplerate+0.5);
-      bg_as->data.audio.bits_per_sample = desc->format.audio.bits_per_sample;
-      if(desc->version == 1)
-        {
-        if(desc->format.audio.bytes_per_frame)
-          bg_as->data.audio.block_align =
-            desc->format.audio.bytes_per_frame;
-        }
-
-      /* Set channel configuration (if present) */
-
-      if(desc->format.audio.has_chan)
-        {
-        bgav_qt_chan_get(&desc->format.audio.chan,
-                         &bg_as->data.audio.format);
-        }
-      
-      /* Set mp4 extradata */
-      
-      if(desc->has_esds)
-        {
-        bgav_stream_set_extradata(bg_as, desc->esds.decoderConfig,
-                                  desc->esds.decoderConfigLen);
-        
-        /* Check for mp3on4 */
-        if((desc->esds.objectTypeId == 64) &&
-           (desc->esds.decoderConfigLen >= 2) &&
-           (bg_as->ext_data[0] >> 3 == 29))
-          {
-          if(!init_mp3on4(bg_as))
-            {
-            bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                     "Invalid mp3on4 channel configuration");
-            bg_as->fourcc = 0;
-            }
-          }
-        else
-          set_audio_from_esds(bg_as, &desc->esds);
-        }
-      else if(bg_as->fourcc == BGAV_MK_FOURCC('l', 'p', 'c', 'm'))
-        {
-        /* Quicktime 7 lpcm: extradata contains formatSpecificFlags
-           in native byte order */
-
-        bgav_stream_set_extradata(bg_as,
-                                 (uint8_t*)(&desc->format.audio.formatSpecificFlags),
-                                 sizeof(desc->format.audio.formatSpecificFlags));
-        }
-      else if(desc->format.audio.has_wave)
-        {
-        if((desc->format.audio.wave.has_esds) &&
-           (desc->format.audio.wave.esds.decoderConfigLen))
-          {
-          bgav_stream_set_extradata(bg_as,
-                                    desc->format.audio.wave.esds.decoderConfig,
-                                    desc->format.audio.wave.esds.decoderConfigLen);
-          }
-        else if((user_atom = bgav_user_atoms_find(&desc->format.audio.wave.user,
-                                                  BGAV_MK_FOURCC('O','V','H','S'),
-                                                  &user_len)))
-          bgav_stream_set_extradata(bg_as, user_atom, user_len);
-        else if((user_atom = bgav_user_atoms_find(&desc->format.audio.wave.user,
-                                                  BGAV_MK_FOURCC('a','l','a','c'),
-                                                  &user_len)))
-          bgav_stream_set_extradata(bg_as, user_atom, user_len);
-        else if((user_atom = bgav_user_atoms_find(&desc->format.audio.wave.user,
-                                                  BGAV_MK_FOURCC('g','l','b','l'),
-                                                  &user_len)))
-          bgav_stream_set_extradata(bg_as, user_atom, user_len);
-        
-        if(!bg_as->ext_size)
-          {
-          /* Raw wave atom needed by win32 decoders (QDM2) */
-          bgav_stream_set_extradata(bg_as, desc->format.audio.wave.raw,
-                                    desc->format.audio.wave.raw_size);
-          }
-        }
-      else if((user_atom = bgav_user_atoms_find(&desc->format.audio.user,
-                                                BGAV_MK_FOURCC('a','l','a','c'),
-                                                &user_len)))
-        bgav_stream_set_extradata(bg_as, user_atom, user_len);
-      else if(desc->has_glbl)
-        {
-        bgav_stream_set_extradata(bg_as, desc->glbl.data,
-                                  desc->glbl.size);
-        }
-      
-      bg_as->stream_id = i;
-      
-
-      /* Check endianess */
-
-      if(desc->format.audio.wave.has_enda &&
-         desc->format.audio.wave.enda.littleEndian)
-        {
-        bg_as->data.audio.endianess = BGAV_ENDIANESS_LITTLE;
-        }
-      else
-        bg_as->data.audio.endianess = BGAV_ENDIANESS_BIG;
-
-      /* Fix channels and samplerate for AMR */
-
-      if(bg_as->fourcc == BGAV_MK_FOURCC('s','a','m','r'))
-        {
-        bg_as->data.audio.format.num_channels = 1;
-        bg_as->data.audio.format.samplerate = 8000;
-        }
-      else if(bg_as->fourcc == BGAV_MK_FOURCC('s','a','w','b'))
-        {
-        bg_as->data.audio.format.num_channels = 1;
-        bg_as->data.audio.format.samplerate = 16000;
-        }
+      init_audio(ctx, trak, i);
       }
     /* Video stream */
     else if(trak->mdia.minf.has_vmhd)
@@ -1047,149 +1204,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       if(!stsd->entries)
         continue;
       
-      if(stsd->num_entries > 1)
-        {
-        if((trak->mdia.minf.stbl.stsc.num_entries >= 2) &&
-           (trak->mdia.minf.stbl.stsc.entries[0].samples_per_chunk == 1) &&
-           (trak->mdia.minf.stbl.stsc.entries[1].sample_description_id == 2) &&
-           (trak->mdia.minf.stbl.stsc.entries[1].first_chunk == 2))
-          {
-          skip_first_frame = 1;
-          }
-        if((trak->mdia.minf.stbl.stsc.num_entries >= 2) &&
-           (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].samples_per_chunk == 1) &&
-           (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].sample_description_id == stsd->num_entries) &&
-           (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].first_chunk == trak->mdia.minf.stbl.stco.num_entries))
-          {
-          skip_last_frame = 1;
-          }
-
-        if(stsd->num_entries > 1 + skip_first_frame + skip_last_frame)
-          continue;
-        }
-      
-      bg_vs = bgav_track_add_video_stream(track, ctx->opt);
-
-      if((trak->edts.elst.num_entries > 2) ||
-         ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
-        priv->has_edl = 1;
-            
-      desc = &stsd->entries[skip_first_frame].desc;
-      stream_priv = &priv->streams[i];
-      
-      bg_vs->priv = stream_priv;
-      stream_init(bg_vs, &moov->tracks[i], moov->mvhd.time_scale);
-
-      if(skip_first_frame)
-        stream_priv->skip_first_frame = 1;
-      if(skip_last_frame)
-        stream_priv->skip_last_frame = 1;
-      
-      
-      bg_vs->fourcc = desc->fourcc;
-      bg_vs->data.video.format.image_width = desc->format.video.width;
-      bg_vs->data.video.format.image_height = desc->format.video.height;
-      bg_vs->data.video.format.frame_width = desc->format.video.width;
-      bg_vs->data.video.format.frame_height = desc->format.video.height;
-
-      if(!trak->mdia.minf.stbl.has_stss ||
-         (bgav_qt_stts_num_samples(&trak->mdia.minf.stbl.stts) ==
-          trak->mdia.minf.stbl.stss.num_entries))
-        {
-        bg_vs->flags |= STREAM_INTRA_ONLY;
-        }
-      else if(trak->mdia.minf.stbl.has_ctts)
-        bg_vs->flags |= STREAM_B_FRAMES;
-      
-      if(desc->format.video.has_pasp)
-        {
-        bg_vs->data.video.format.pixel_width = desc->format.video.pasp.hSpacing;
-        bg_vs->data.video.format.pixel_height = desc->format.video.pasp.vSpacing;
-        }
-      else
-        {
-        bg_vs->data.video.format.pixel_width = 1;
-        bg_vs->data.video.format.pixel_height = 1;
-        }
-      if(desc->format.video.has_fiel)
-        {
-        if(desc->format.video.fiel.fields == 2)
-          {
-          if((desc->format.video.fiel.detail == 14) ||
-             (desc->format.video.fiel.detail == 6))
-            bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
-          else if((desc->format.video.fiel.detail == 9) ||
-                  (desc->format.video.fiel.detail == 1))
-            bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
-          }
-        }
-      bg_vs->data.video.depth = desc->format.video.depth;
-      
-      bg_vs->data.video.format.timescale = trak->mdia.mdhd.time_scale;
-
-      /* We set the timescale here, because we need it before the dmuxer sets it. */
-
-      bg_vs->timescale = trak->mdia.mdhd.time_scale;
-      
-      bg_vs->data.video.format.frame_duration =
-        trak->mdia.minf.stbl.stts.entries[0].duration;
-
-      /* Some quicktime movies have just a still image */
-      if((trak->mdia.minf.stbl.stts.num_entries == 1) &&
-              (trak->mdia.minf.stbl.stts.entries[0].count == 1))
-        {
-        bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
-        }
-      else if((trak->mdia.minf.stbl.stts.num_entries == 1) ||
-              ((trak->mdia.minf.stbl.stts.num_entries == 2) &&
-               (trak->mdia.minf.stbl.stts.entries[1].count == 1)))
-        bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
-      else
-        {
-        bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-        }
-      bg_vs->data.video.pal.size = desc->format.video.ctab_size;
-      if(bg_vs->data.video.pal.size)
-        {
-        int len = bg_vs->data.video.pal.size *
-          sizeof(*bg_vs->data.video.pal.entries);
-        
-        bg_vs->data.video.pal.entries = malloc(len);
-        memcpy(bg_vs->data.video.pal.entries, desc->format.video.ctab, len);
-        }
-      
-      /* Set extradata suitable for Sorenson 3 */
-      
-      if(bg_vs->fourcc == BGAV_MK_FOURCC('S', 'V', 'Q', '3'))
-        {
-        if(stsd->entries[skip_first_frame].desc.format.video.has_SMI)
-          bgav_stream_set_extradata(bg_vs,
-                                    stsd->entries[0].data,
-                                    stsd->entries[0].data_size);
-        }
-      else if((bg_vs->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
-              (stsd->entries[0].desc.format.video.avcC_offset))
-        {
-        bgav_stream_set_extradata(bg_vs,
-                                  stsd->entries[skip_first_frame].data +
-                                  stsd->entries[skip_first_frame].desc.format.video.avcC_offset,
-                                  stsd->entries[skip_first_frame].desc.format.video.avcC_size);
-        }
-      
-      /* Set mp4 extradata */
-
-      if((stsd->entries[skip_first_frame].desc.has_esds) &&
-         (stsd->entries[skip_first_frame].desc.esds.decoderConfigLen))
-        {
-        bgav_stream_set_extradata(bg_vs,
-                                  stsd->entries[skip_first_frame].desc.esds.decoderConfig,
-                                  stsd->entries[skip_first_frame].desc.esds.decoderConfigLen);
-        }
-      else if(desc->has_glbl)
-        bgav_stream_set_extradata(bg_vs, desc->glbl.data, desc->glbl.size);
-      
-      bg_vs->stream_id = i;
-      
+      init_video(ctx, trak, i);
       }
     /* Quicktime subtitles */
     else if(stsd->entries[0].desc.fourcc == BGAV_MK_FOURCC('t','e','x','t'))
@@ -1272,6 +1287,13 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       else
         priv->timecode_track = trak;
       }
+    else if(trak->mdia.hdlr.component_subtype == BGAV_MK_FOURCC('s','u','b','p'))
+      {
+      fprintf(stderr, "Detected DVD subtitles\n");
+
+      
+      }
+    
     }
   
   set_metadata(ctx);
