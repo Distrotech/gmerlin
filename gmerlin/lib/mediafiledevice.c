@@ -484,7 +484,7 @@ static const bg_recorder_plugin_t audiofile_input =
     .common =
     {
       BG_LOCALE,
-      .name =          "i_audiofile",
+      .name =          bg_audiofiledevice_name,
       .long_name =     TRS("Audiofile recorder"),
       .description =   TRS("Take a bunch of audio file and make them available as a recording device"),
       .type =          BG_PLUGIN_RECORDER_AUDIO,

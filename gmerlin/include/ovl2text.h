@@ -19,16 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+bg_plugin_info_t * bg_ovl2text_info(bg_plugin_registry_t * reg);
+const bg_plugin_common_t * bg_ovl2text_get();
+
 /*
- *  These get a bunch of media files (a directory or an album file)
- *  and make them available like a recording device
+ *  Create the plugins (These are a replacement for the create() methods
  */
 
-bg_plugin_info_t * bg_audiofiledevice_info(bg_plugin_registry_t * reg);
+void * bg_ovl2text_create(bg_plugin_registry_t * reg);
 
-const bg_plugin_common_t * bg_audiofiledevice_get();
+const bg_plugin_common_t * bg_ovl2text_get_plugin();
 
-void * bg_audiofiledevice_create(bg_plugin_registry_t * reg);
-
-#define bg_audiofiledevice_name        "i_audiofile"
-
+#define bg_ovl2text_name        "e_ovl2text"

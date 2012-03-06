@@ -652,24 +652,11 @@ static bg_plugin_info_t * get_input_info(bg_plugin_registry_t * reg,
   if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_READER,
                                          BG_PLUGIN_FILE))
     return NULL;
-  
-  ret = calloc(1, sizeof(*ret));
 
-  ret->gettext_domain      = bg_strdup(ret->gettext_domain, plugin->common.gettext_domain);
-  
-  ret->gettext_directory   = bg_strdup(ret->gettext_directory,
-                                       plugin->common.gettext_directory);
-  
-  
-  ret->name      = bg_strdup(ret->name, plugin->common.name);
-  ret->long_name = bg_strdup(ret->long_name, plugin->common.long_name);
-  ret->description = bg_strdup(ret->description, plugin->common.description);
+  ret = bg_plugin_info_create(&plugin->common);
   
   ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_READER,
                                    BG_PLUGIN_FILE);
-  ret->priority  =  plugin->common.priority;
-  ret->type  =  plugin->common.type;
-  ret->flags =  plugin->common.flags;
   return ret;
   }
 
@@ -1110,24 +1097,8 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_WRITER,
                                          BG_PLUGIN_FILE))
     return NULL;
-  
-  ret = calloc(1, sizeof(*ret));
-
-  ret->gettext_domain      = bg_strdup(ret->gettext_domain, encoder_plugin.common.gettext_domain);
-  ret->gettext_directory   = bg_strdup(ret->gettext_directory,
-                                       encoder_plugin.common.gettext_directory);
-  
-  
-  ret->name      = bg_strdup(ret->name, encoder_plugin.common.name);
-  ret->long_name = bg_strdup(ret->long_name, encoder_plugin.common.long_name);
-  ret->description = bg_strdup(ret->description,
-                               encoder_plugin.common.description);
-  
-  ret->type     = encoder_plugin.common.type;
-  ret->flags    = encoder_plugin.common.flags;
-  ret->priority = encoder_plugin.common.priority;
+  ret = bg_plugin_info_create(&encoder_plugin.common);
   ret->parameters = create_encoder_parameters(reg);
-  
   return ret;
   }
 

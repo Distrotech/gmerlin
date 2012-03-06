@@ -888,16 +888,12 @@ void bg_plugin_unref_nolock(bg_plugin_handle_t * h);
 /** \ingroup plugin_registry
  *  \brief Create a plugin info from a plugin
  *  \param plugin A plugin
- *  \param plugin_priv Handle returned by the create() method
- *  \param module_filename Module filename or NULL
  *  \returns A newly allocated plugin info
  *
- *  This is used by internal plugins or API wrappers only.
+ *  This is used by internal plugins only.
  */
 
-bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin,
-                                         void * plugin_priv,
-                                         const char * module_filename);
+bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin);
 
 /** \ingroup plugin_registry
  *  \brief Create an empty plugin handle
