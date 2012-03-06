@@ -20,6 +20,10 @@
  * *****************************************************************/
 
 #include <config.h>
+
+#include <string.h>
+
+
 #include <gmerlin/translation.h>
 #include <gmerlin/pluginregistry.h>
 
@@ -33,19 +37,23 @@
 typedef struct
   {
   bg_encoder_callbacks_t * cb;
-  bg_plugin_registry_t * reg;
+  bg_plugin_registry_t * plugin_reg;
   gavl_video_format_t format;
   bg_ocr_t * ocr;
 
   bg_parameter_info_t * parameters;
+
+  bg_plugin_handle_t * enc_handle;
+  bg_encoder_plugin_t * enc_plugin;
+
   } ovl2text_t;
 
 void * bg_ovl2text_create(bg_plugin_registry_t * plugin_reg)
   {
   ovl2text_t * ret = calloc(1, sizeof(*ret));
-  ret->reg = plugin_reg;
+  ret->plugin_reg = plugin_reg;
 
-  ret->ocr = bg_ocr_create(ret->reg);
+  ret->ocr = bg_ocr_create(ret->plugin_reg);
   return ret;
   }
 
@@ -61,55 +69,159 @@ static int open_ovl2text(void * data, const char * filename,
   {
   ovl2text_t * e = data;
   
-  return 0;
+  /* Open text subtitle encoder */
+  if(!e->enc_plugin || !e->enc_plugin->open(e->enc_handle->priv, filename,
+                                            metadata, chapter_list))
+    return 0;
+  return 1;
   }
 
-static int add_subtitle_overlay_stream_ovl2text(void * priv, const char * language,
-                                              const gavl_video_format_t * format)
+static int add_subtitle_overlay_stream_ovl2text(void * priv,
+                                                const char * language,
+                                                const gavl_video_format_t * format)
   {
+  ovl2text_t * e = priv;
+  if(!bg_ocr_init(e->ocr, format, language))
+    return -1;
+
+  gavl_video_format_copy(&e->format, format);
+  
+  if(!e->enc_plugin ||
+     !e->enc_plugin->add_subtitle_text_stream(e->enc_handle->priv, language,
+                                              &e->format.timescale))
+    return -1;
   return 0;
   }
 
 static int start_ovl2text(void * priv)
   {
+  ovl2text_t * e = priv;
+  if(e->enc_plugin->start && !e->enc_plugin->start(e->enc_handle->priv))
+    return 0;
   return 1;
   }
 
 static void get_subtitle_overlay_format_ovl2text(void * priv, int stream,
                                                gavl_video_format_t*ret)
   {
-  ovl2text_t * ovl2text = priv;
-  gavl_video_format_copy(ret, &ovl2text->format);
+  ovl2text_t * e = priv;
+  gavl_video_format_copy(ret, &e->format);
   }
 
 static int write_subtitle_overlay_ovl2text(void * priv, gavl_overlay_t * ovl, int stream)
   {
-  ovl2text_t * ovl2text = priv;
-  return 0;
+  int ret = 0;
+  char * str = NULL;
+  ovl2text_t * e = priv;
+  
+  bg_ocr_run(e->ocr, &e->format, ovl->frame, &str);
+  
+  if(str)
+    ret = e->enc_plugin->write_subtitle_text(e->enc_handle->priv,
+                                             str, ovl->frame->timestamp,
+                                             ovl->frame->duration, stream);
+  return ret;
   }
 
 static int close_ovl2text(void * priv, int do_delete)
   {
-  ovl2text_t * ovl2text = priv;
+  ovl2text_t * e = priv;
+  e->enc_plugin->close(e->enc_handle->priv, do_delete);
   return 0;
   }
 
 static void destroy_ovl2text(void * priv)
   {
-  ovl2text_t * ovl2text = priv;
-  bg_ocr_destroy(ovl2text->ocr);
-  free(ovl2text);
+  ovl2text_t * e = priv;
+  bg_ocr_destroy(e->ocr);
+  free(e);
   }
+
+static const bg_parameter_info_t ocr_section[] =
+  {
+    {
+      .name =        "ocr",
+      .long_name =   TRS("OCR"),
+      .type =      BG_PARAMETER_SECTION,
+    },
+    { /* End */ }
+  };
+
+static const bg_parameter_info_t enc_section[] =
+  {
+    {
+      .name =        "encoder", 
+      .long_name =   TRS("Encoder"),
+      .type =      BG_PARAMETER_SECTION,
+    },
+    {
+      .name =        "plugin",
+      .long_name =   TRS("Plugin"),
+      .type =      BG_PARAMETER_MULTI_MENU,
+      .help_string = TRS("Plugin for writing the text subtitles"),
+    },
+    { /* End */ }
+  };
+
+static bg_parameter_info_t * create_parameters(bg_plugin_registry_t * plugin_reg)
+  {
+  const bg_parameter_info_t * info[4];
+  bg_parameter_info_t * enc;
+  bg_parameter_info_t * ret;
+  enc = bg_parameter_info_copy_array(enc_section);
+  bg_plugin_registry_set_parameter_info(plugin_reg,
+                                        BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
+                                        BG_PLUGIN_FILE, &enc[1]);
+
+  info[0] = ocr_section;
+  info[1] = bg_ocr_get_parameters();
+  info[2] = enc;
+  info[3] = NULL;
+  ret = bg_parameter_info_concat_arrays(info);
+  
+  bg_parameter_info_destroy_array(enc);
+  return ret;
+  }
+
 
 static const bg_parameter_info_t * get_parameters_ovl2text(void * priv)
   {
-  ovl2text_t * ovl2text = priv;
-  return ovl2text->parameters;
+  ovl2text_t * e = priv;
+  
+  if(e->parameters)
+    return e->parameters;
+  
+  /* Create parameters */
+  e->parameters = create_parameters(e->plugin_reg);
+  return e->parameters;
   }
 
 static void set_parameter_ovl2text(void * priv, const char * name,
                                    const bg_parameter_value_t * val)
   {
+  ovl2text_t * e = priv;
+  if(!name)
+    return;
+  
+  else if(!strcmp(name, "plugin"))
+    {
+    const bg_plugin_info_t * info;
+    if(!e->enc_handle || strcmp(e->enc_handle->info->name, val->val_str))
+      {
+      if(e->enc_handle)
+        {
+        bg_plugin_unref(e->enc_handle);
+        e->enc_handle = NULL;
+        }
+      info = bg_plugin_find_by_name(e->plugin_reg, val->val_str);
+
+      e->enc_handle = bg_plugin_load(e->plugin_reg, info);
+      e->enc_plugin = (bg_encoder_plugin_t*)(e->enc_handle->plugin);
+      
+      if(e->enc_plugin->set_callbacks && e->cb)
+        e->enc_plugin->set_callbacks(e->enc_handle->priv, e->cb);
+      }
+    }
   
   }
 
@@ -154,5 +266,6 @@ bg_plugin_info_t * bg_ovl2text_info(bg_plugin_registry_t * reg)
   {
   bg_plugin_info_t * ret;
   ret = bg_plugin_info_create(&the_plugin.common);
+  ret->parameters = create_parameters(reg);
   return ret;
   }

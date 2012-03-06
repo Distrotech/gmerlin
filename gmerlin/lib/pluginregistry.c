@@ -475,6 +475,21 @@ bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin)
   new_info->type        = plugin->type; 	 
   new_info->flags       = plugin->flags; 	 
   new_info->priority    = plugin->priority;
+
+  if(plugin->type & (BG_PLUGIN_ENCODER_AUDIO|
+                     BG_PLUGIN_ENCODER_VIDEO|
+                     BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
+                     BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY |
+                     BG_PLUGIN_ENCODER ))
+    {
+    bg_encoder_plugin_t * encoder;
+    encoder = (bg_encoder_plugin_t*)plugin;
+    new_info->max_audio_streams = encoder->max_audio_streams;
+    new_info->max_video_streams = encoder->max_video_streams;
+    new_info->max_subtitle_text_streams = encoder->max_subtitle_text_streams;
+    new_info->max_subtitle_overlay_streams = encoder->max_subtitle_overlay_streams;
+    }
+  
   return new_info;
   }
 
@@ -511,10 +526,6 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
     {
     bg_encoder_plugin_t * encoder;
     encoder = (bg_encoder_plugin_t*)plugin;
-    new_info->max_audio_streams = encoder->max_audio_streams;
-    new_info->max_video_streams = encoder->max_video_streams;
-    new_info->max_subtitle_text_streams = encoder->max_subtitle_text_streams;
-    new_info->max_subtitle_overlay_streams = encoder->max_subtitle_overlay_streams;
     
     if(encoder->get_audio_parameters)
       {

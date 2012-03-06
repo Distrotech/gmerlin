@@ -157,7 +157,7 @@ const bg_parameter_info_t parameters[] =
     
   };
 
-const bg_parameter_info_t * bg_ocr_get_parameters(bg_ocr_t * ocr)
+const bg_parameter_info_t * bg_ocr_get_parameters()
   {
   return parameters;
   }
