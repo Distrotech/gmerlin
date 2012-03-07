@@ -126,6 +126,14 @@ static void stream_init(bgav_stream_t * bgav_s, qt_trak_t * trak, int moov_scale
     bgav_s->flags |= STREAM_NEED_START_TIME;
   }
 
+static int trak_has_edl(qt_trak_t * trak)
+  {
+  if((trak->edts.elst.num_entries > 2) ||
+     ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
+    return 1;
+  return 0;
+  }
+
 static int probe_quicktime(bgav_input_context_t * input)
   {
   uint32_t header;
@@ -275,7 +283,8 @@ static void build_index(bgav_demuxer_context_t * ctx)
         num_packets += bgav_qt_trak_chunks(trak);
       }
     else if(!strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data, "text", 4) ||
-            !strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data, "tx3g", 4))
+            !strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data, "tx3g", 4) ||
+            !strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data, "mp4s", 4))
       {
       num_packets += bgav_qt_trak_samples(trak);
       }
@@ -499,7 +508,9 @@ static void build_index(bgav_demuxer_context_t * ctx)
           s->stsc_pos++;
         }
       }
-    else if(bgav_s && (bgav_s->type == BGAV_STREAM_SUBTITLE_TEXT))
+    else if(bgav_s &&
+            ((bgav_s->type == BGAV_STREAM_SUBTITLE_TEXT) ||
+             (bgav_s->type == BGAV_STREAM_SUBTITLE_OVERLAY)))
       {
       s = bgav_s->priv;
       
@@ -883,8 +894,7 @@ static void init_audio(bgav_demuxer_context_t * ctx,
   stsd = &trak->mdia.minf.stbl.stsd;
   bg_as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
-  if((trak->edts.elst.num_entries > 2) ||
-     ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
+  if(trak_has_edl(trak))
     priv->has_edl = 1;
       
   bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
@@ -1048,8 +1058,7 @@ static void init_video(bgav_demuxer_context_t * ctx,
       
   bg_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
 
-  if((trak->edts.elst.num_entries > 2) ||
-     ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
+  if(trak_has_edl(trak))
     priv->has_edl = 1;
             
   desc = &stsd->entries[skip_first_frame].desc;
@@ -1225,8 +1234,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss =
           bgav_track_add_subtitle_stream(track, ctx->opt, 1, charset);
 
-        if((trak->edts.elst.num_entries > 2) ||
-           ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
+        if(trak_has_edl(trak))
           priv->has_edl = 1;
         
         bg_ss->description = bgav_sprintf("Quicktime subtitles");
@@ -1257,8 +1265,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss =
           bgav_track_add_subtitle_stream(track, ctx->opt, 1, "bgav_unicode");
 
-        if((trak->edts.elst.num_entries > 2) ||
-           ((trak->edts.elst.num_entries == 2) && (trak->edts.elst.table[0].media_time >= 0)))
+        if(trak_has_edl(trak))
           priv->has_edl = 1;
         
         bg_ss->description = bgav_sprintf("3gpp subtitles");
@@ -1287,11 +1294,42 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       else
         priv->timecode_track = trak;
       }
-    else if(trak->mdia.hdlr.component_subtype == BGAV_MK_FOURCC('s','u','b','p'))
+    else if(stsd->entries[0].desc.fourcc == BGAV_MK_FOURCC('m','p','4','s'))
       {
+      uint32_t * pal;
+      uint8_t * pos;
+      int j;
       fprintf(stderr, "Detected DVD subtitles\n");
 
+      if(!stsd->entries[0].desc.has_esds ||
+         (stsd->entries[0].desc.esds.decoderConfigLen != 64))
+        {
+        fprintf(stderr, "Expected 64 bytes of extradata (got %d)\n",
+                stsd->entries[0].desc.esds.decoderConfigLen);
+        }
+      bg_ss = bgav_track_add_subtitle_stream(track, ctx->opt, 0, NULL);
+      bg_ss->description = bgav_sprintf("DVD subtitles");
+      bg_ss->fourcc = stsd->entries[0].desc.fourcc;
       
+      if(trak_has_edl(trak))
+        priv->has_edl = 1;
+
+      /* Set palette */
+      bg_ss->ext_size = 64;
+      bg_ss->ext_data = malloc(bg_ss->ext_size);
+      pal = (uint32_t*)bg_ss->ext_data;
+      pos = stsd->entries[0].desc.esds.decoderConfig;
+      for(j = 0; j < 16; j++)
+        {
+        pal[j] = BGAV_PTR_2_32BE(pos);
+        pos += 4;
+        }
+
+      bg_ss->timescale = trak->mdia.mdhd.time_scale;
+      bg_ss->stream_id = i;
+      
+      bg_ss->priv = &priv->streams[i];
+      stream_init(bg_ss, &moov->tracks[i], moov->mvhd.time_scale);
       }
     
     }

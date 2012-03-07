@@ -81,6 +81,9 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
       }
     p = bgav_stream_get_packet_read(s);
 
+    bgav_packet_dump(p);
+    bgav_hexdump(p->data, p->data_size >= 16 ? 16 : p->data_size , 16);
+    
     /* Append data */
     if(priv->buffer_size + p->data_size > priv->buffer_alloc)
       {
@@ -268,7 +271,7 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   
   
   /* Dump the information we have right now */
-#if 0  
+#if 1
   bgav_dprintf("Subtitle packet %d bytes\n", priv->packet_size);
   bgav_dprintf("Coords:  [%d,%d] -> [%d,%d]\n", x1, y1, x2, y2);
   bgav_dprintf("Palette: [ %02x, %02x, %02x, %02x ]\n",
@@ -309,13 +312,25 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
 
   ovl->frame->timestamp = priv->pts + start_date * 900;
   ovl->frame->duration = 900 * (end_date - start_date);
-  
+#if 0
+  fprintf(stderr, "Got overlay ");
+  fprintf(stderr, " %f %f\n",
+          ovl->frame->timestamp / 90000.0, 
+          (ovl->frame->timestamp + ovl->frame->duration) / 90000.0);
+#endif
   ovl->ovl_rect.x = 0;
   ovl->ovl_rect.y = 0;
   ovl->ovl_rect.w = x2 - x1 + 1;
   ovl->ovl_rect.h = y2 - y1 + 1;
   ovl->dst_x = x1;
   ovl->dst_y = y1;
+
+  /* Shift the overlays (can happen in some pathological cases) */
+  if(ovl->dst_x + ovl->ovl_rect.w > s->data.subtitle.format.image_width)
+    ovl->dst_x = s->data.subtitle.format.image_width - ovl->ovl_rect.w;
+
+  if(ovl->dst_y + ovl->ovl_rect.h > s->data.subtitle.format.image_height)
+    ovl->dst_y = s->data.subtitle.format.image_height - ovl->ovl_rect.h;
   
   /* If we reach this point, we have a complete subtitle packet */
   //  bgav_hexdump(priv->buffer, priv->packet_size, 16);
@@ -343,7 +358,8 @@ static void resync_dvdsub(bgav_stream_t * s)
 
 static bgav_subtitle_overlay_decoder_t decoder =
   {
-    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('D', 'V', 'D', 'S'), 0 },
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('D', 'V', 'D', 'S'),
+                             BGAV_MK_FOURCC('m', 'p', '4', 's'), 0 },
     .name =    "DVD subtitle decoder",
     .init =         init_dvdsub,
     .has_subtitle = has_subtitle_dvdsub,
