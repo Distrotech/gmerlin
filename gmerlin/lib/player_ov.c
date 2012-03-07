@@ -211,15 +211,17 @@ static int overlay_is_expired(gavl_overlay_t * ovl,
                               gavl_time_t frame_time)
   {
   if((ovl->frame->duration > 0) &&
-     (ovl->frame->timestamp + ovl->frame->duration > frame_time))
+     (ovl->frame->timestamp + ovl->frame->duration < frame_time))
+    {
     return 1;
+    }
   return 0;
   }
 
 static int overlay_is_early(gavl_overlay_t * ovl,
                             gavl_time_t frame_time)
   {
-  if(ovl->frame->timestamp < frame_time)
+  if(ovl->frame->timestamp > frame_time)
     return 1;
   return 0;
   }
@@ -231,7 +233,7 @@ static void handle_subtitle(bg_player_t * p)
   
   /* Check if subtitle expired */
   if(s->subtitle_active &&
-     !overlay_is_expired(s->ss->current_subtitle, s->frame_time))
+     overlay_is_expired(s->ss->current_subtitle, s->frame_time))
     {
     bg_ov_set_overlay(s->ov, s->subtitle_id, NULL);
     

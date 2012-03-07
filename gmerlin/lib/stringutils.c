@@ -631,3 +631,45 @@ void * bg_read_file(const char * filename, int * len_ret)
   
   return ret;
   }
+
+static const struct
+  {
+  const char * bcode;
+  const char * tcode;
+  }
+iso639tab[] =
+  {
+    { "alb", "sqi" },
+    { "arm", "hye" },
+    { "baq", "eus" },
+    { "bur", "mya" },
+    { "chi", "zho" },
+    { "cze", "ces" },
+    { "dut", "nld" },
+    { "fre", "fra" },
+    { "geo", "kat" },
+    { "ger", "deu" },
+    { "gre", "ell" },
+    { "ice", "isl" },
+    { "mac", "mkd" },
+    { "mao", "mri" },
+    { "may", "msa" },
+    { "per", "fas" },
+    { "rum", "ron" },
+    { "slo", "slk" },
+    { "tib", "bod" },
+    { "wel", "cym" },
+    { /* End */    }
+  };
+
+const char * bg_iso639_b_to_t(const char * code)
+  {
+  int i = 0;
+  while(iso639tab[i].bcode)
+    {
+    if(!strcmp(code, iso639tab[i].bcode))
+      return iso639tab[i].tcode;
+    i++;
+    }
+  return code;
+  }

@@ -58,7 +58,7 @@ static ocr_funcs_t ocr_funcs[] =
 struct bg_ocr_s
   {
   gavl_video_converter_t * cnv;
-  bg_gavl_video_options_t opt;
+  gavl_video_options_t * opt;
   
   bg_plugin_registry_t * plugin_reg;
 
@@ -134,11 +134,12 @@ bg_ocr_t * bg_ocr_create(bg_plugin_registry_t * plugin_reg)
   ret->cb.create_output_file = create_output_file;
   
   ret->cnv = gavl_video_converter_create();
+  ret->opt = gavl_video_converter_get_options(ret->cnv);
+  gavl_video_options_set_alpha_mode(ret->opt, GAVL_ALPHA_BLEND_COLOR);
+  
   ret->plugin_reg = plugin_reg;
   ret->funcs = funcs;
-
-  bg_gavl_video_options_init(&ret->opt);
-  
+    
   return ret;
   }
 
@@ -162,10 +163,19 @@ const bg_parameter_info_t * bg_ocr_get_parameters()
   return parameters;
   }
 
-void bg_ocr_set_parameter(void * ocr, const char * name,
+int bg_ocr_set_parameter(void * data, const char * name,
                           const bg_parameter_value_t * val)
   {
+  bg_ocr_t * ocr = data;
 
+  if(!name)
+    return 1;
+  else if(!strcmp(name, "background_color"))
+    {
+    gavl_video_options_set_background_color(ocr->opt, val->val_color);
+    return 1;
+    }
+  return 0;
   }
 
 
@@ -177,6 +187,9 @@ int bg_ocr_init(bg_ocr_t * ocr,
   gavl_video_format_copy(&ocr->out_format, format);
 
   /* Get pixelformat for conversion */
+
+  if(language && (language[0] != '\0'))
+    strncpy(ocr->lang, language, 3);
   
   if(!ocr->funcs->init(ocr, &ocr->out_format))
     return 0;
@@ -246,8 +259,6 @@ void bg_ocr_destroy(bg_ocr_t * ocr)
   if(ocr->image_file)
     free(ocr->image_file);
   
-  bg_gavl_video_options_free(&ocr->opt);
-  
   free(ocr);
   }
 
@@ -311,6 +322,12 @@ static int run_tesseract(bg_ocr_t * ocr, const gavl_video_format_t * format,
     goto fail;
 
   commandline = bg_sprintf("tesseract %s %s", ocr->image_file, base);
+
+  if(ocr->lang[0] != '\0')
+    {
+    commandline = bg_strcat(commandline, " -l ");
+    commandline = bg_strcat(commandline, bg_iso639_b_to_t(ocr->lang));
+    }
   
   if(bg_system(commandline))
     goto fail;

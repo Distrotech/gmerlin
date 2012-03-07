@@ -442,6 +442,12 @@ void bg_diprintf(int indent, const char * format, ...) __attribute__ ((format (p
 
 void * bg_read_file(const char * filename, int * len);
 
+/** \brief Convert a ISO 639-2/B language code to a ISO 639-2/T code
+ *  \param code ISO 639-2/B
+ *  \returns ISO 639-2/T code
+ */
+
+const char * bg_iso639_b_to_t(const char * code);
 
 
 /* @} */

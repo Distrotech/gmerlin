@@ -28,6 +28,8 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "e_subtext"
 
 typedef struct
   {
@@ -65,8 +67,15 @@ static void write_subtitle_srt(subtext_t * s, const char * text,
   {
   int i;
   char ** lines;
-  /* Index */
 
+  if(!text || (*text == '\0'))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Ignoring empty subtitle");
+    return;
+    }
+
+  /* Index */
+  
   fprintf(s->output, "%d\r\n", s->titles_written + 1);
   
   /* Time */
@@ -84,6 +93,9 @@ static void write_subtitle_srt(subtext_t * s, const char * text,
     }
   /* Empty line */
   fprintf(s->output, "\r\n");
+
+  fflush(s->output);
+  
   bg_strbreak_free(lines);
   }
 

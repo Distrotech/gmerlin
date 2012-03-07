@@ -1330,7 +1330,7 @@ static void correct_subtitle_timestamp(subtitle_stream_t * s,
                                        bg_transcoder_t * t)
   {
   /* Correct timestamps */
-
+  
   if(t->start_time != GAVL_TIME_UNDEFINED)
     {
     *start -= gavl_time_scale(s->in_format.timescale, t->start_time);
@@ -1668,7 +1668,6 @@ static int subtitle_iteration(bg_transcoder_t * t)
       continue;
       }
     
-    
     /* Check for decoding */
     if(!st->com.has_current)
       {
@@ -1702,6 +1701,9 @@ static int subtitle_iteration(bg_transcoder_t * t)
                                            st->text, st->subtitle_start,
                                            st->subtitle_duration,
                                            st->com.com.out_index);
+
+          st->com.com.time = gavl_time_unscale(st->com.out_format.timescale,
+                                               st->subtitle_start);
           
           if(st->subtitle_start > t->time)
             t->time = st->subtitle_start;
@@ -1712,8 +1714,11 @@ static int subtitle_iteration(bg_transcoder_t * t)
             bg_encoder_write_subtitle_overlay(t->enc,
                                               &st->com.ovl1,
                                               st->com.com.out_index);
-          if(st->com.ovl1.frame->timestamp > t->time)
-            t->time = st->com.ovl1.frame->timestamp;
+          st->com.com.time = gavl_time_unscale(st->com.out_format.timescale,
+                                               st->com.ovl1.frame->timestamp);
+          
+          if(st->com.com.time > t->time)
+            t->time = st->com.com.time;
           }
         st->com.has_current = 0;
         }
@@ -1761,8 +1766,11 @@ static int subtitle_iteration(bg_transcoder_t * t)
         ret = bg_encoder_write_subtitle_overlay(t->enc,
                                                 &ss->ovl1,
                                                 ss->com.out_index);
-        if(ss->ovl1.frame->timestamp > t->time)
-          t->time = ss->ovl1.frame->timestamp;
+        ss->com.time = gavl_time_unscale(ss->out_format.timescale,
+                                         ss->ovl1.frame->timestamp);
+          
+        if(ss->com.time > t->time)
+          t->time = ss->com.time;
         ss->has_current = 0;
         }
       }

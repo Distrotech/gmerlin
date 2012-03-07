@@ -137,23 +137,8 @@ static void destroy_ovl2text(void * priv)
   free(e);
   }
 
-static const bg_parameter_info_t ocr_section[] =
-  {
-    {
-      .name =        "ocr",
-      .long_name =   TRS("OCR"),
-      .type =      BG_PARAMETER_SECTION,
-    },
-    { /* End */ }
-  };
-
 static const bg_parameter_info_t enc_section[] =
   {
-    {
-      .name =        "encoder", 
-      .long_name =   TRS("Encoder"),
-      .type =      BG_PARAMETER_SECTION,
-    },
     {
       .name =        "plugin",
       .long_name =   TRS("Plugin"),
@@ -165,18 +150,16 @@ static const bg_parameter_info_t enc_section[] =
 
 static bg_parameter_info_t * create_parameters(bg_plugin_registry_t * plugin_reg)
   {
-  const bg_parameter_info_t * info[4];
+  const bg_parameter_info_t * info[3];
   bg_parameter_info_t * enc;
   bg_parameter_info_t * ret;
   enc = bg_parameter_info_copy_array(enc_section);
   bg_plugin_registry_set_parameter_info(plugin_reg,
                                         BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
-                                        BG_PLUGIN_FILE, &enc[1]);
-
-  info[0] = ocr_section;
-  info[1] = bg_ocr_get_parameters();
-  info[2] = enc;
-  info[3] = NULL;
+                                        BG_PLUGIN_FILE, &enc[0]);
+  info[0] = bg_ocr_get_parameters();
+  info[1] = enc;
+  info[2] = NULL;
   ret = bg_parameter_info_concat_arrays(info);
   
   bg_parameter_info_destroy_array(enc);
@@ -201,8 +184,12 @@ static void set_parameter_ovl2text(void * priv, const char * name,
   {
   ovl2text_t * e = priv;
   if(!name)
+    {
+    bg_ocr_set_parameter(e->ocr, NULL, NULL);
     return;
-  
+    }
+  else if(bg_ocr_set_parameter(e->ocr, name, val))
+    return;
   else if(!strcmp(name, "plugin"))
     {
     const bg_plugin_info_t * info;
@@ -222,7 +209,8 @@ static void set_parameter_ovl2text(void * priv, const char * name,
         e->enc_plugin->set_callbacks(e->enc_handle->priv, e->cb);
       }
     }
-  
+  else
+    e->enc_plugin->common.set_parameter(e->enc_handle->priv, name, val);
   }
 
 static const bg_encoder_plugin_t the_plugin =

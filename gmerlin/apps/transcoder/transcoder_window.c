@@ -1368,8 +1368,8 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                       NULL,
                       bg_text_renderer_get_parameters());
   
-  cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
-                                             "subtitle_overlay");
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
+                                               "subtitle_overlay");
 
   bg_dialog_add(dlg,
                 TR("Overlay subtitle defaults"),

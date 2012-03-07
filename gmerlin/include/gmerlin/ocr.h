@@ -28,7 +28,7 @@ typedef struct bg_ocr_s bg_ocr_t;
 
 bg_ocr_t * bg_ocr_create(bg_plugin_registry_t * plugin_reg);
 const bg_parameter_info_t * bg_ocr_get_parameters();
-void bg_ocr_set_parameter(void * ocr, const char * name,
+int bg_ocr_set_parameter(void * ocr, const char * name,
                           const bg_parameter_value_t * val);
 int bg_ocr_init(bg_ocr_t *,
                 const gavl_video_format_t * format,
