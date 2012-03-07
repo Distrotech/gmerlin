@@ -125,7 +125,7 @@ static int decode_frame_dts(bgav_stream_t * s)
     if(!frame_bytes)
       return 0;
     
-    if(frame_bytes < priv->packet->data_size)
+    if(priv->packet->data_size < frame_bytes)
       return 0;
 
     if(priv->need_format)

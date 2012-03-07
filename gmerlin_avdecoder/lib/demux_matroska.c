@@ -29,6 +29,8 @@
 
 #define LOG_DOMAIN "demux_matroska"
 
+#define DUMP_HEADERS
+
 typedef struct
   {
   bgav_mkv_ebml_header_t ebml_header;
@@ -497,7 +499,7 @@ static int init_video(bgav_demuxer_context_t * ctx,
 static int init_subtitle(bgav_demuxer_context_t * ctx,
                          bgav_mkv_track_t * track)
   {
-  bgav_stream_t * s;
+  bgav_stream_t * s = NULL;
   mkv_t * m = ctx->priv;
   
   //  fprintf(stderr, "Init subtitles\n");
@@ -507,14 +509,57 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
     {
     // fprintf(stderr, "UTF-8 subtitles\n");
     s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 1, "UTF-8");
-    init_stream_common(m, s, track, NULL);
     s->description = bgav_sprintf("SRT");
-    if(track->Language)
-      memcpy(s->language, track->Language, 3);
-    else
-      memcpy(s->language, "und", 3);
-    
     return 1;
+    }
+  else if(!strcmp(track->CodecID, "S_VOBSUB"))
+    {
+    char * line = NULL;
+    int line_alloc = 0;
+    uint32_t * pal = NULL;
+    bgav_input_context_t * input_mem;
+    
+    input_mem = bgav_input_open_memory(track->CodecPrivate, track->CodecPrivateLen,
+                                       ctx->opt);
+    
+    /* Get the palette from the codec data */
+    while(bgav_input_read_line(input_mem, &line, &line_alloc, 0, NULL))
+      {
+      //      fprintf(stderr, "Got line: %s\n", line);
+      if(!strncmp(line, "palette:", 8))
+        {
+        int index;
+        char ** colors = bgav_stringbreak(line + 8, ',');
+
+        index = 0;
+        while(colors[index])
+          index++;
+        if(index == 16)
+          {
+          index = 0;
+          pal = malloc(16 * sizeof(*pal));
+
+          for(index = 0; index < 16; index++)
+            pal[index] = strtol(colors[index], NULL, 16);
+          }
+        }
+      if(pal)
+        break;
+      }
+    if(line)
+      free(line);
+    bgav_input_close(input_mem);
+    bgav_input_destroy(input_mem);
+
+    if(pal)
+      {
+      s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 0, NULL);
+      s->description = bgav_sprintf("DVD subtitles");
+      s->fourcc = BGAV_MK_FOURCC('D', 'V', 'D', 'S');
+      s->ext_data = (uint8_t*)pal;
+      s->ext_size = 16 * 4; // 64
+      }
+    
     }
   else
     {
@@ -523,6 +568,15 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
              track->CodecID);
     }
   
+  if(!s)
+    return 1;
+  
+  init_stream_common(m, s, track, NULL);
+  if(track->Language)
+    memcpy(s->language, track->Language, 3);
+  else
+    memcpy(s->language, "und", 3);
+    
   return 1;
   }
 
@@ -599,20 +653,28 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
                                          &p->meta_seek_info,
                                          &e))
           return 0;
-        // bgav_mkv_meta_seek_info_dump(&p->meta_seek_info);
+#ifdef DUMP_HEADERS
+        bgav_mkv_meta_seek_info_dump(&p->meta_seek_info);
+#endif
         break;
       case MKV_ID_Info:
         bgav_input_skip(ctx->input, head_len);
         e.end += pos;
         if(!bgav_mkv_segment_info_read(ctx->input, &p->segment_info, &e))
           return 0;
-        //        bgav_mkv_segment_info_dump(&p->segment_info);
+#ifdef DUMP_HEADERS
+        bgav_mkv_segment_info_dump(&p->segment_info);
+#endif
         break;
       case MKV_ID_Tracks:
         bgav_input_skip(ctx->input, head_len);
         e.end += pos;
         if(!bgav_mkv_tracks_read(ctx->input, &p->tracks, &p->num_tracks, &e))
           return 0;
+#ifdef DUMP_HEADERS
+        for(i = 0; i < p->num_tracks; i++)
+          bgav_mkv_track_dump(&p->tracks[i]);
+#endif
         break;
       case MKV_ID_Cues:
         if(!bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))

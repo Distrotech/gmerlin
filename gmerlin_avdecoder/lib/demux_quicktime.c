@@ -1299,13 +1299,13 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       uint32_t * pal;
       uint8_t * pos;
       int j;
-      fprintf(stderr, "Detected DVD subtitles\n");
-
       if(!stsd->entries[0].desc.has_esds ||
          (stsd->entries[0].desc.esds.decoderConfigLen != 64))
         {
-        fprintf(stderr, "Expected 64 bytes of extradata (got %d)\n",
-                stsd->entries[0].desc.esds.decoderConfigLen);
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Expected 64 bytes of palette data for DVD subtitles (got %d)",
+                 stsd->entries[0].desc.esds.decoderConfigLen);
+        continue;
         }
       bg_ss = bgav_track_add_subtitle_stream(track, ctx->opt, 0, NULL);
       bg_ss->description = bgav_sprintf("DVD subtitles");

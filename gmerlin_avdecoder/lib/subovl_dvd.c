@@ -271,7 +271,7 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   
   
   /* Dump the information we have right now */
-#if 1
+#if 0
   bgav_dprintf("Subtitle packet %d bytes\n", priv->packet_size);
   bgav_dprintf("Coords:  [%d,%d] -> [%d,%d]\n", x1, y1, x2, y2);
   bgav_dprintf("Palette: [ %02x, %02x, %02x, %02x ]\n",

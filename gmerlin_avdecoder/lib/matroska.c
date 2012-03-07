@@ -521,6 +521,110 @@ void  bgav_mkv_segment_info_free(bgav_mkv_segment_info_t * si)
   MY_FREE(si->WritingApp);
   }
 
+/* ContentCompression */
+
+int bgav_mkv_content_compression_read(bgav_input_context_t * ctx,
+                                      bgav_mkv_content_compression_t * ret,
+                                      bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_ContentCompAlgo:
+        break;
+      case MKV_ID_ContentCompSettings:
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "compression");
+        break;
+      }
+    }
+  return 1;
+  }
+
+void bgav_mkv_content_compression_dump(bgav_mkv_content_compression_t * cc)
+  {
+
+  }
+
+void bgav_mkv_content_compression_free(bgav_mkv_content_compression_t * cc)
+  {
+  
+  }
+
+
+/* ContentEncryption */
+
+int bgav_mkv_content_encryption_read(bgav_input_context_t * ctx,
+                                      bgav_mkv_content_encryption_t * ret,
+                                      bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_ContentEncAlgo:
+        break;
+      case MKV_ID_ContentEncKeyID:
+        break;
+      case MKV_ID_ContentSignature:
+        break;
+      case MKV_ID_ContentSigKeyID:
+        break;
+      case MKV_ID_ContentSigAlgo:
+        break;
+      case MKV_ID_ContentSigHashAlgo:
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "encryption");
+        break;
+      }
+    }
+  
+  return 0;
+  }
+
+void bgav_mkv_content_encryption_dump(bgav_mkv_content_encryption_t * cc)
+  {
+
+  }
+
+void bgav_mkv_content_encryption_free(bgav_mkv_content_encryption_t * cc)
+  {
+  
+  }
+
+/* ContentEncoding */
+
+int bgav_mkv_content_encoding_read(bgav_input_context_t * ctx,
+                                      bgav_mkv_content_encoding_t * ret,
+                                      bgav_mkv_element_t * parent)
+  {
+  return 0;
+  }
+
+void bgav_mkv_content_encoding_dump(bgav_mkv_content_encoding_t * cc)
+  {
+
+  }
+
+void bgav_mkv_content_encoding_free(bgav_mkv_content_encoding_t * cc)
+  {
+  
+  }
+
+
 
 /* Track */
 

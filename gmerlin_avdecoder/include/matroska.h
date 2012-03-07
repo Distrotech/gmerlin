@@ -101,6 +101,71 @@ int bgav_mkv_segment_info_read(bgav_input_context_t * ctx,
 void  bgav_mkv_segment_info_dump(const bgav_mkv_segment_info_t * si);
 void  bgav_mkv_segment_info_free(bgav_mkv_segment_info_t * si);
 
+/* Content Compression */
+
+typedef struct
+  {
+  int ContentCompAlgo;
+
+  uint8_t * ContentCompSettings;
+  int ContentCompSettingsLen;
+  
+  } bgav_mkv_content_compression_t;
+
+int bgav_mkv_content_compression_read(bgav_input_context_t * ctx,
+                                      bgav_mkv_content_compression_t * ret,
+                                      bgav_mkv_element_t * parent);
+void bgav_mkv_content_compression_dump(bgav_mkv_content_compression_t * cc);
+void bgav_mkv_content_compression_free(bgav_mkv_content_compression_t * cc);
+
+/* Content Encryption */
+
+typedef struct
+  {
+  int ContentEncAlgo;
+  uint8_t * ContentEncKeyID;
+  int       ContentEncKeyIDLen;
+
+  uint8_t * ContentSignature;
+  int       ContentSignatureLen;
+
+  uint8_t * ContentSigKeyID;
+  int       ContentSigKeyIDLen;
+
+  int ContentSigAlgo;
+  int ContentSigHashAlgo;
+  
+  } bgav_mkv_content_encryption_t;
+
+int bgav_mkv_content_encryption_read(bgav_input_context_t * ctx,
+                                     bgav_mkv_content_encryption_t * ret,
+                                     bgav_mkv_element_t * parent);
+void bgav_mkv_content_encryption_dump(bgav_mkv_content_encryption_t * cc);
+void bgav_mkv_content_encryption_free(bgav_mkv_content_encryption_t * cc);
+
+/* Content Encoding */
+
+#define MKV_CONTENT_ENCODING_COMPRESSION 0
+#define MKV_CONTENT_ENCODING_ENCRYPTION  1
+
+typedef struct
+  {
+  int ContentEncodingOrder;
+  int ContentEncodingScope;
+  int ContentEncodingType;
+
+  bgav_mkv_content_compression_t ContentCompression;
+  bgav_mkv_content_encryption_t  ContentEncryption;
+  
+  } bgav_mkv_content_encoding_t;
+
+int bgav_mkv_content_encoding_read(bgav_input_context_t * ctx,
+                                     bgav_mkv_content_encoding_t * ret,
+                                     bgav_mkv_element_t * parent);
+void bgav_mkv_content_encoding_dump(bgav_mkv_content_encoding_t * cc);
+void bgav_mkv_content_encoding_free(bgav_mkv_content_encoding_t * cc);
+
+
 /* Track */
 
 #define MKV_FlagInterlaced (1<<0)
@@ -171,6 +236,8 @@ typedef struct
   bgav_mkv_track_audio_t audio;
   
   /* TODO: Content encodings */
+  bgav_mkv_content_encoding_t * encodings;
+  int num_encodings;
   
   /* For codecs with constant framesizes set this to enable sample
      accurate positioning */
@@ -402,6 +469,24 @@ void bgav_mkv_block_group_free(bgav_mkv_block_group_t * g);
 #define MKV_ID_OutputSamplingFrequency 0x78b5
 #define MKV_ID_Channels                0x9f
 #define MKV_ID_BitDepth                0x6264
+
+/* Encoding (== Compression/Encryption) */
+
+#define MKV_ID_ContentEncodings        0x6d80
+#define MKV_ID_ContentEncoding         0x6240
+#define MKV_ID_ContentEncodingOrder    0x5031
+#define MKV_ID_ContentEncodingScope    0x5032
+#define MKV_ID_ContentEncodingType     0x5033
+#define MKV_ID_ContentCompression      0x5034
+#define MKV_ID_ContentCompAlgo         0x4254
+#define MKV_ID_ContentCompSettings     0x4255
+#define MKV_ID_ContentEncryption       0x5035
+#define MKV_ID_ContentEncAlgo          0x47e1
+#define MKV_ID_ContentEncKeyID         0x47e2
+#define MKV_ID_ContentSignature        0x47e3
+#define MKV_ID_ContentSigKeyID         0x47e4
+#define MKV_ID_ContentSigAlgo          0x47e5
+#define MKV_ID_ContentSigHashAlgo      0x47e6
 
 /* Cueing Data */
 
