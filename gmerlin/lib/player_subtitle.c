@@ -26,7 +26,7 @@
 #include <gmerlin/player.h>
 #include <playerprivate.h>
 
-// #define NUM_SUBTITLE_FRAMES 2 /* How many overlays are in the fifo */
+// #define DUMP_SUBTITLE
 
 void bg_player_subtitle_create(bg_player_t * p)
   {
@@ -219,12 +219,13 @@ int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl)
     gavl_time_unscale(s->input_format.timescale, ovl->frame->timestamp);
   ovl->frame->duration  =
     gavl_time_unscale(s->input_format.timescale, ovl->frame->duration);
-#if 0
+#if DUMP_SUBTITLE
   bg_dprintf("Got subtitle %f -> %f (%f)\n",
              gavl_time_to_seconds(ovl->frame->timestamp),
              gavl_time_to_seconds(ovl->frame->timestamp +
                                   ovl->frame->duration),
              gavl_time_to_seconds(ovl->frame->duration));
+  
 #endif
   
   return 1;
