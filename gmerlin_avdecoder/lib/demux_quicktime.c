@@ -30,7 +30,7 @@
 
 #define LOG_DOMAIN "quicktime"
 
-#define DUMP_MOOV
+// #define DUMP_MOOV
 
 #ifdef HAVE_FAAD2
 #include <aac_frame.h>
