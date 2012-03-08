@@ -38,6 +38,9 @@ typedef struct
   int64_t pts;
   
   int pts_mult;
+
+  gavl_video_format_t vs_format;
+
   } dvdsub_t;
 
 static int init_dvdsub(bgav_stream_t * s)
@@ -51,9 +54,16 @@ static int init_dvdsub(bgav_stream_t * s)
   /* Initialize format */
   video_stream_format = &s->data.subtitle.video_stream->data.video.format;
 
-  gavl_video_format_copy(&s->data.subtitle.format, video_stream_format);
-  s->data.subtitle.format.pixelformat = GAVL_YUVA_32;
+  if(!s->data.subtitle.format.image_width ||
+     !s->data.subtitle.format.image_height)
+    gavl_video_format_copy(&s->data.subtitle.format, video_stream_format);
 
+  gavl_video_format_copy(&priv->vs_format, video_stream_format);
+  
+  s->data.subtitle.format.pixelformat = GAVL_YUVA_32;
+  s->data.subtitle.format.timescale = s->timescale;
+  s->data.subtitle.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  
   priv->pts_mult = s->timescale / 100;
   
   return 1;
@@ -331,11 +341,11 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   ovl->dst_y = y1;
 
   /* Shift the overlays (can happen in some pathological cases) */
-  if(ovl->dst_x + ovl->ovl_rect.w > s->data.subtitle.format.image_width)
-    ovl->dst_x = s->data.subtitle.format.image_width - ovl->ovl_rect.w;
+  if(ovl->dst_x + ovl->ovl_rect.w > priv->vs_format.image_width)
+    ovl->dst_x = priv->vs_format.image_width - ovl->ovl_rect.w;
 
-  if(ovl->dst_y + ovl->ovl_rect.h > s->data.subtitle.format.image_height)
-    ovl->dst_y = s->data.subtitle.format.image_height - ovl->ovl_rect.h;
+  if(ovl->dst_y + ovl->ovl_rect.h > priv->vs_format.image_height)
+    ovl->dst_y = priv->vs_format.image_height - ovl->ovl_rect.h;
   
   /* If we reach this point, we have a complete subtitle packet */
   //  bgav_hexdump(priv->buffer, priv->packet_size, 16);
