@@ -160,7 +160,7 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
 
   dst->gettext_domain    = bg_strdup(dst->gettext_domain,    src->gettext_domain);
   dst->gettext_directory = bg_strdup(dst->gettext_directory, src->gettext_directory);
-  dst->preset_path = bg_strdup(dst->preset_path, src->preset_path);
+  dst->preset_path       = bg_strdup(dst->preset_path,       src->preset_path);
   
   switch(dst->type)
     {

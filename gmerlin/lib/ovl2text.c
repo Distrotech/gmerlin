@@ -134,6 +134,10 @@ static void destroy_ovl2text(void * priv)
   {
   ovl2text_t * e = priv;
   bg_ocr_destroy(e->ocr);
+
+  if(e->parameters)
+    bg_parameter_info_destroy_array(e->parameters);
+  
   free(e);
   }
 

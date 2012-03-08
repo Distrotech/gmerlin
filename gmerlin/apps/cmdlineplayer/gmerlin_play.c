@@ -700,6 +700,7 @@ static int handle_message(bg_player_t * player,
         {
         if(time_active) { putc('\n', stderr); time_active = 0; }
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Name: %s", arg_str1);
+        free(arg_str1);
         }
       break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
@@ -751,14 +752,17 @@ static int handle_message(bg_player_t * player,
     case BG_PLAYER_MSG_STREAM_DESCRIPTION:
       arg_str1 = bg_msg_get_arg_string(message, 0);
       bg_log(BG_LOG_INFO, LOG_DOMAIN, "Format: %s", arg_str1);
+      free(arg_str1);
       break;
     case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
       arg_str1 = bg_msg_get_arg_string(message, 0);
       bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream: %s", arg_str1);
+      free(arg_str1);
       break;
     case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
       arg_str1 = bg_msg_get_arg_string(message, 0);
       bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream: %s", arg_str1);
+      free(arg_str1);
       break;
     case BG_PLAYER_MSG_SUBTITLE_DESCRIPTION:
       arg_str1 = bg_msg_get_arg_string(message, 0);

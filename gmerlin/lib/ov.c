@@ -83,6 +83,7 @@ void bg_ov_destroy(bg_ov_t * ov)
     UNLOCK(ov);
     }
   bg_plugin_unref(ov->h);
+  free(ov);
   }
 
 void bg_ov_set_window(bg_ov_t * ov, const char * window_id)

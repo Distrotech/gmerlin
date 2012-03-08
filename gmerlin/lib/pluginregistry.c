@@ -2155,6 +2155,7 @@ create_encoder_parameters(const bg_plugin_info_t * info)
   {
   int i = 0;
   bg_parameter_info_t * ret;
+  char * tmp_string;
   
   const bg_parameter_info_t * src[11];
 
@@ -2218,7 +2219,9 @@ create_encoder_parameters(const bg_plugin_info_t * info)
   if(ret)
     {
     ret->flags |= BG_PARAMETER_GLOBAL_PRESET;
-    ret->preset_path = bg_sprintf("plugins/%s", info->name);
+    tmp_string = bg_sprintf("plugins/%s", info->name);
+    ret->preset_path = bg_strdup(ret->preset_path, tmp_string);
+    free(tmp_string);
     }
 
   //  if(!strcmp(info->name, "e_mpeg"))
