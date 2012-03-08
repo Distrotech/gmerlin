@@ -1034,6 +1034,14 @@ int main(int argc, char ** argv)
 
   bg_msg_queue_destroy(message_queue);
 
+  if(oa_handle)
+    bg_plugin_unref(oa_handle);
+  if(ov_handle)
+    bg_plugin_unref(ov_handle);
+
+  if(input_handle)
+    bg_plugin_unref(input_handle);
+  
   tmp_path =  bg_search_file_read("generic", "config.xml");
   bg_cfg_registry_load(cfg_reg, tmp_path);
   if(tmp_path)
