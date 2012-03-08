@@ -392,6 +392,324 @@ void bgav_mkv_meta_seek_info_free(bgav_mkv_meta_seek_info_t * info)
   MY_FREE(info->entries);
   }
 
+/* Chapter display */
+
+int bgav_mkv_chapter_display_read(bgav_input_context_t * ctx,
+                                  bgav_mkv_chapter_display_t * ret,
+                                  bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_ChapString:
+        if(!mkv_read_string(ctx, &ret->ChapString, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_ChapLanguage:
+        if(!mkv_read_string(ctx, &ret->ChapLanguage, e.size)) 
+          return 0;
+        break;
+      case MKV_ID_ChapCountry:
+        if(!mkv_read_string(ctx, &ret->ChapCountry, e.size)) 
+          return 0;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "chapter_display");
+        break;
+      }
+    }
+  return 1; 
+  }
+
+void bgav_mkv_chapter_display_dump(bgav_mkv_chapter_display_t * cd)
+  {
+  bgav_dprintf("      ChapterDisplay:\n");
+  bgav_dprintf("        ChapString:    %s\n", cd->ChapString);
+  bgav_dprintf("        ChapLanguage:  %s\n", cd->ChapLanguage);
+  bgav_dprintf("        ChapCountry:   %s\n", cd->ChapCountry);
+  }
+
+void bgav_mkv_chapter_display_free(bgav_mkv_chapter_display_t * cd)
+  {
+  MY_FREE(cd->ChapString);
+  MY_FREE(cd->ChapLanguage);
+  MY_FREE(cd->ChapCountry);
+  }
+
+/* Chapter Track */
+
+int bgav_mkv_chapter_track_read(bgav_input_context_t * ctx,
+                                  bgav_mkv_chapter_track_t * ret,
+                                  bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_ChapterTrackNumber:
+        if(!mkv_read_uint(ctx, &ret->ChapterTrackNumber, e.size))
+          return 0;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "chapter_track");
+        break;
+      }
+    }
+  return 1;
+  }
+
+void bgav_mkv_chapter_track_dump(bgav_mkv_chapter_track_t * ct)
+  {
+  bgav_dprintf("      ChapterTrack:\n");
+  bgav_dprintf("        Chapter track: %"PRId64"\n", ct->ChapterTrackNumber);
+  }
+
+void bgav_mkv_chapter_track_free(bgav_mkv_chapter_track_t * ct)
+  {
+  
+  }
+
+
+/* Chapter Atom */
+
+int bgav_mkv_chapter_atom_read(bgav_input_context_t * ctx,
+                               bgav_mkv_chapter_atom_t * ret,
+                               bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_ChapterUID:
+        if(!mkv_read_uint(ctx, &ret->ChapterUID, e.size))
+          return 0;
+        break;
+      case MKV_ID_ChapterTimeStart:
+        if(!mkv_read_uint(ctx, &ret->ChapterTimeStart, e.size))
+          return 0;
+        break;
+      case MKV_ID_ChapterTimeEnd:
+        if(!mkv_read_uint(ctx, &ret->ChapterTimeEnd, e.size))
+          return 0;
+        break;
+      case MKV_ID_ChapterFlagHidden:
+        if(!mkv_read_uint_small(ctx, &ret->ChapterFlagHidden, e.size))
+          return 0;
+        break;
+      case MKV_ID_ChapterFlagEnabled:
+        if(!mkv_read_uint_small(ctx, &ret->ChapterFlagEnabled, e.size))
+          return 0;
+        break;
+      case MKV_ID_ChapterSegmentUID:
+        if(!mkv_read_binary(ctx, &ret->ChapterSegmentUID,
+                            &ret->ChapterSegmentUIDLen, e.size))
+          return 0;
+        break;
+      case MKV_ID_ChapterSegmentEditionUID:
+        if(!mkv_read_binary(ctx, &ret->ChapterSegmentEditionUID,
+                            &ret->ChapterSegmentEditionUIDLen, e.size))
+          return 0;
+        break;
+      case MKV_ID_ChapterTrack:
+        ret->tracks = realloc(ret->tracks, (ret->num_tracks+1)*sizeof(*ret->tracks));
+        memset(ret->tracks + ret->num_tracks, 0, sizeof(*ret->tracks));
+        if(!bgav_mkv_chapter_track_read(ctx, ret->tracks + ret->num_tracks, &e))
+          return 0;
+        ret->num_tracks++;
+        break;
+      case MKV_ID_ChapterDisplay:
+        ret->displays = realloc(ret->displays, (ret->num_displays+1)*sizeof(*ret->displays));
+        memset(ret->displays + ret->num_displays, 0, sizeof(*ret->displays));
+        if(!bgav_mkv_chapter_display_read(ctx, ret->displays + ret->num_displays, &e))
+          return 0;
+        ret->num_displays++;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "chapter_atom");
+        break;
+      }
+    }
+  return 1;
+  }
+
+void bgav_mkv_chapter_atom_dump(bgav_mkv_chapter_atom_t * ca)
+  {
+  int i;
+  bgav_dprintf("    ChapterAtom:\n");
+  bgav_dprintf("      ChapterUID:           %"PRId64"\n", ca->ChapterUID);
+  bgav_dprintf("      ChapterTimeStart:     %"PRId64"\n", ca->ChapterTimeStart);
+  bgav_dprintf("      ChapterTimeEnd:       %"PRId64"\n", ca->ChapterTimeEnd);
+  bgav_dprintf("      ChapterFlagHidden:    %d\n", ca->ChapterFlagHidden);
+  bgav_dprintf("      ChapterFlagEnabled:   %d\n", ca->ChapterFlagEnabled);
+  bgav_dprintf("      ChapterSegmentUIDLen: %d\n", ca->ChapterSegmentUIDLen);
+  if(ca->ChapterSegmentUIDLen)
+    bgav_hexdump(ca->ChapterSegmentUID, ca->ChapterSegmentUIDLen, 16);
+  bgav_dprintf("      ChapterSegmentEditionLen: %d\n", ca->ChapterSegmentEditionUIDLen);
+  if(ca->ChapterSegmentEditionUIDLen)
+    bgav_hexdump(ca->ChapterSegmentEditionUID, ca->ChapterSegmentEditionUIDLen, 16);
+
+  for(i = 0; i < ca->num_tracks; i++)
+    bgav_mkv_chapter_track_dump(ca->tracks+i);
+  for(i = 0; i < ca->num_displays; i++)
+    bgav_mkv_chapter_display_dump(ca->displays+i);
+  }
+
+void bgav_mkv_chapter_atom_free(bgav_mkv_chapter_atom_t * ca)
+  {
+  int i;
+  MY_FREE(ca->ChapterSegmentUID);
+  MY_FREE(ca->ChapterSegmentEditionUID);
+
+  if(ca->tracks)
+    {
+    for(i = 0; i < ca->num_tracks; i++)
+      bgav_mkv_chapter_track_free(&ca->tracks[i]);
+    free(ca->tracks);
+    }
+  if(ca->displays)
+    {
+    for(i = 0; i < ca->num_displays; i++)
+      bgav_mkv_chapter_display_free(&ca->displays[i]);
+    free(ca->displays);
+    }
+  }
+
+/* Edition entry */
+
+int bgav_mkv_edition_entry_read(bgav_input_context_t * ctx,
+                               bgav_mkv_edition_entry_t * ret,
+                               bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_EditionUID:
+        if(!mkv_read_uint(ctx, &ret->EditionUID, e.size))
+          return 0;
+        break;
+      case MKV_ID_EditionFlagHidden:
+        if(!mkv_read_uint_small(ctx, &ret->EditionFlagHidden, e.size))
+          return 0;
+        break;
+      case MKV_ID_EditionFlagDefault:
+        if(!mkv_read_uint_small(ctx, &ret->EditionFlagDefault, e.size))
+          return 0;
+        break;
+      case MKV_ID_EditionFlagOrdered:
+        if(!mkv_read_uint_small(ctx, &ret->EditionFlagOrdered, e.size))
+          return 0;
+        break;
+      case MKV_ID_ChapterAtom:
+        ret->atoms = realloc(ret->atoms, (ret->num_atoms+1)*sizeof(*ret->atoms));
+        memset(ret->atoms + ret->num_atoms, 0, sizeof(*ret->atoms));
+        if(!bgav_mkv_chapter_atom_read(ctx, ret->atoms + ret->num_atoms, &e))
+          return 0;
+        ret->num_atoms++;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "edition_entry");
+        break;
+      }
+    }
+  return 1; 
+  
+  }
+
+void bgav_mkv_edition_entry_dump(bgav_mkv_edition_entry_t * ee)
+  {
+  int i;
+  bgav_dprintf("  EditionEntry:\n");
+  bgav_dprintf("    EditionUID: %"PRId64"\n", ee->EditionUID);
+  bgav_dprintf("    EditionFlagHidden: %d\n", ee->EditionFlagHidden);
+  bgav_dprintf("    EditionFlagDefault: %d\n", ee->EditionFlagDefault);
+  bgav_dprintf("    EditionFlagOrdered: %d\n", ee->EditionFlagOrdered);
+
+  for(i = 0; i < ee->num_atoms; i++)
+    bgav_mkv_chapter_atom_dump(&ee->atoms[i]);
+  }
+
+void bgav_mkv_edition_entry_free(bgav_mkv_edition_entry_t * ee)
+  {
+  int i;
+  if(ee->atoms)
+    {
+    for(i = 0; i < ee->num_atoms; i++)
+      bgav_mkv_chapter_atom_free(&ee->atoms[i]);
+    free(ee->atoms);
+    }
+  }
+
+
+/* Chapters */
+
+int bgav_mkv_chapters_read(bgav_input_context_t * ctx,
+                           bgav_mkv_chapters_t * ret,
+                           bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_EditionEntry:
+        ret->editions = realloc(ret->editions, (ret->num_editions+1)* sizeof(*ret->editions));
+        memset(ret->editions + ret->num_editions, 0, sizeof(*ret->editions));
+        if(!bgav_mkv_edition_entry_read(ctx, ret->editions + ret->num_editions, &e))
+          return 0;
+        ret->num_editions++;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "chapters");
+        break;
+      }
+    }
+  return 1; 
+  }
+
+void bgav_mkv_chapters_dump(bgav_mkv_chapters_t * cd)
+  {
+  int i;
+  bgav_dprintf("Chapters:\n");
+  
+  for(i = 0; i < cd->num_editions; i++)
+    bgav_mkv_edition_entry_dump(&cd->editions[i]);
+  }
+
+void bgav_mkv_chapters_free(bgav_mkv_chapters_t * cd)
+  {
+  int i;
+  if(cd->editions)
+    {
+    for(i = 0; i < cd->num_editions; i++)
+      bgav_mkv_edition_entry_free(&cd->editions[i]);
+    free(cd->editions);
+    }
+  
+  }
+
+
+
 /* Segment info */
 
 int bgav_mkv_segment_info_read(bgav_input_context_t * ctx,

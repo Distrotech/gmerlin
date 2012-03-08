@@ -59,6 +59,8 @@ typedef struct
   
   int64_t cluster_pos; // Start position of last cluster
   
+  bgav_mkv_chapters_t chapters;
+  
   } mkv_t;
  
 static int probe_matroska(bgav_input_context_t * input)
@@ -713,8 +715,15 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         ctx->data_start = pos;
         ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
         break;
-
-        
+      case MKV_ID_Chapters:
+        bgav_input_skip(ctx->input, head_len);
+        e.end += pos;
+        if(!bgav_mkv_chapters_read(ctx->input, &p->chapters, &e)) 
+          return 0;
+#ifdef DUMP_HEADERS
+        bgav_mkv_chapters_dump(&p->chapters);
+#endif
+        break;
       default:
         bgav_input_skip(ctx->input, head_len);
         bgav_mkv_element_skip(ctx->input, &e, "segment");
@@ -1203,7 +1212,7 @@ static void close_matroska(bgav_demuxer_context_t * ctx)
   bgav_mkv_meta_seek_info_free(&priv->meta_seek_info);
   
   bgav_mkv_cues_free(&priv->cues);
-
+  bgav_mkv_chapters_free(&priv->chapters);
   bgav_mkv_cluster_free(&priv->cluster);
 
   bgav_mkv_block_group_free(&priv->bg);

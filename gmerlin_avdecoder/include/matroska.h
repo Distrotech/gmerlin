@@ -19,9 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+/* Basic stuff */
+   
 int bgav_mkv_read_id(bgav_input_context_t * ctx, int * ret);
 int bgav_mkv_read_size(bgav_input_context_t * ctx, int64_t * ret);
 
+/* EMBL element */
 
 typedef struct
   {
@@ -35,6 +38,8 @@ int bgav_mkv_element_read(bgav_input_context_t * ctx, bgav_mkv_element_t * ret);
 void bgav_mkv_element_dump(const bgav_mkv_element_t * ret);
 void bgav_mkv_element_skip(bgav_input_context_t * ctx,
                            const bgav_mkv_element_t * el, const char * parent_name);
+
+/* EMBL header */
 
 typedef struct
   {
@@ -51,6 +56,8 @@ int bgav_mkv_ebml_header_read(bgav_input_context_t * ctx,
                               bgav_mkv_ebml_header_t * ret);
 void bgav_mkv_ebml_header_dump(const bgav_mkv_ebml_header_t * h);
 void bgav_mkv_ebml_header_free(bgav_mkv_ebml_header_t * h);
+
+/* Meta seek info */
 
 typedef struct
   {
@@ -70,7 +77,104 @@ int bgav_mkv_meta_seek_info_read(bgav_input_context_t * ctx,
 
 void bgav_mkv_meta_seek_info_dump(const bgav_mkv_meta_seek_info_t * info);
 void bgav_mkv_meta_seek_info_free(bgav_mkv_meta_seek_info_t * info);
+
+/* Chapter display */
+
+typedef struct
+  {
+  char * ChapString;
+  char * ChapLanguage;
+  char * ChapCountry;
+  } bgav_mkv_chapter_display_t;
+
+int bgav_mkv_chapter_display_read(bgav_input_context_t * ctx,
+                                  bgav_mkv_chapter_display_t * ret,
+                                  bgav_mkv_element_t * parent);
+void bgav_mkv_chapter_display_dump(bgav_mkv_chapter_display_t * cd);
+void bgav_mkv_chapter_display_free(bgav_mkv_chapter_display_t * cd);
+
+/* Chapter track */
+
+typedef struct
+  {
+  uint64_t ChapterTrackNumber;
+  } bgav_mkv_chapter_track_t;
+
+int bgav_mkv_chapter_track_read(bgav_input_context_t * ctx,
+                                  bgav_mkv_chapter_track_t * ret,
+                                  bgav_mkv_element_t * parent);
+void bgav_mkv_chapter_track_dump(bgav_mkv_chapter_track_t * ct);
+void bgav_mkv_chapter_track_free(bgav_mkv_chapter_track_t * ct);
+
+
+/* Chapter Atom */
+
+typedef struct
+  {
+  uint64_t ChapterUID;
+  uint64_t ChapterTimeStart;
+  uint64_t ChapterTimeEnd;
+  int ChapterFlagHidden;
+  int ChapterFlagEnabled;
+
+  uint8_t * ChapterSegmentUID;
+  int ChapterSegmentUIDLen;
   
+  uint8_t * ChapterSegmentEditionUID;
+  int ChapterSegmentEditionUIDLen;
+  
+  int num_tracks;
+  bgav_mkv_chapter_track_t * tracks;
+  
+  int num_displays;
+  bgav_mkv_chapter_display_t * displays;
+  
+  } bgav_mkv_chapter_atom_t;
+
+int bgav_mkv_chapter_atom_read(bgav_input_context_t * ctx,
+                               bgav_mkv_chapter_atom_t * ret,
+                               bgav_mkv_element_t * parent);
+void bgav_mkv_chapter_atom_dump(bgav_mkv_chapter_atom_t * ca);
+void bgav_mkv_chapter_atom_free(bgav_mkv_chapter_atom_t * ca);
+
+
+/* */
+
+
+typedef struct
+  {
+  uint64_t EditionUID;
+  int EditionFlagHidden;
+  int EditionFlagDefault;
+  int EditionFlagOrdered;
+  bgav_mkv_chapter_atom_t * atoms;
+  int num_atoms;
+  } bgav_mkv_edition_entry_t;
+
+int bgav_mkv_edition_entry_read(bgav_input_context_t * ctx,
+                               bgav_mkv_edition_entry_t * ret,
+                               bgav_mkv_element_t * parent);
+void bgav_mkv_edition_entry_dump(bgav_mkv_edition_entry_t * ca);
+void bgav_mkv_edition_entry_free(bgav_mkv_edition_entry_t * ca);
+
+
+/* Chapters */
+
+typedef struct
+  {
+  /* TODO: Can there be more than one?? */
+  bgav_mkv_edition_entry_t * editions;
+  int num_editions;
+  } bgav_mkv_chapters_t;
+
+int bgav_mkv_chapters_read(bgav_input_context_t * ctx,
+                           bgav_mkv_chapters_t * ret,
+                           bgav_mkv_element_t * parent);
+
+void bgav_mkv_chapters_dump(bgav_mkv_chapters_t * cd);
+void bgav_mkv_chapters_free(bgav_mkv_chapters_t * cd);
+
+/* SegmentInfo */
 
 typedef struct
   {
@@ -440,6 +544,36 @@ void bgav_mkv_block_group_free(bgav_mkv_block_group_t * g);
 #define MKV_ID_Title                      0x7ba9
 #define MKV_ID_MuxingApp                  0x4d80
 #define MKV_ID_WritingApp                 0x5741
+
+/* Chapter */
+
+#define MKV_ID_Chapters                   0x1043a770
+#define MKV_ID_EditionEntry               0x45b9
+#define MKV_ID_EditionUID                 0x45bc
+#define MKV_ID_EditionFlagHidden          0x45bd
+#define MKV_ID_EditionFlagDefault         0x45db
+#define MKV_ID_EditionFlagOrdered         0x45dd
+#define MKV_ID_ChapterAtom                0xb6
+#define MKV_ID_ChapterUID                 0x73c4
+#define MKV_ID_ChapterTimeStart           0x91
+#define MKV_ID_ChapterTimeEnd             0x92
+#define MKV_ID_ChapterFlagHidden          0x98
+#define MKV_ID_ChapterFlagEnabled         0x4598
+#define MKV_ID_ChapterSegmentUID          0x6e67
+#define MKV_ID_ChapterSegmentEditionUID   0x6ebc
+#define MKV_ID_ChapterTrack               0x8f
+#define MKV_ID_ChapterTrackNumber         0x89
+#define MKV_ID_ChapterDisplay             0x80
+#define MKV_ID_ChapString                 0x85
+#define MKV_ID_ChapLanguage               0x437c
+#define MKV_ID_ChapCountry                0x437e
+#define MKV_ID_ChapProcess                0x6944
+#define MKV_ID_ChapProcessCodecID         0x6955
+#define MKV_ID_ChapProcessPrivate         0x450d
+#define MKV_ID_ChapProcessCommand         0x6911
+#define MKV_ID_ChapProcessTime            0x6922
+#define MKV_ID_ChapProcessData            0x6933
+
 
 /* Tracks */
 
