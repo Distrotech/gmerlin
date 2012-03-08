@@ -30,7 +30,7 @@
 
 #define LOG_DOMAIN "demux_matroska"
 
-#define DUMP_HEADERS
+// #define DUMP_HEADERS
 
 typedef struct
   {
@@ -609,6 +609,31 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
+static bgav_chapter_list_t * create_chapter_list(bgav_mkv_chapters_t * chap)
+  {
+  int i;
+  /* We support only the first (and only?) EditionEntry */
+  bgav_chapter_list_t * ret = NULL;
+
+  if(!chap->num_editions || !chap->editions[0].num_atoms)
+    return NULL;
+
+  ret = bgav_chapter_list_create(GAVL_TIME_SCALE, chap->editions[0].num_atoms);
+
+  for(i = 0; i < chap->editions[0].num_atoms; i++)
+    {
+    // No ns precision
+    ret->chapters[i].time = chap->editions[0].atoms[i].ChapterTimeStart / 1000; 
+
+    /* Take first language */
+    if(chap->editions[0].atoms[i].num_displays)
+      ret->chapters[i].name =
+        bgav_strdup(chap->editions[0].atoms[i].displays[0].ChapString);
+    }
+  
+  return ret;
+  }
+
 #define MAX_HEADER_LEN 16
 
 static int open_matroska(bgav_demuxer_context_t * ctx)
@@ -771,6 +796,9 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
       }
     }
 
+  /* Look for chapters */
+  ctx->tt->cur->chapter_list = create_chapter_list(&p->chapters);
+  
   /* Look for file index (cues) */
   if(p->meta_seek_info.num_entries && ctx->input->input->seek_byte &&
      !p->have_cues)
