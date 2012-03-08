@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 
 #include <avdec_private.h>
 #include <matroska.h>
@@ -529,6 +530,10 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
       if(!strncmp(line, "palette:", 8))
         {
         int index;
+        
+        float r, g, b;
+        int y, u, v;
+        
         char ** colors = bgav_stringbreak(line + 8, ',');
 
         index = 0;
@@ -540,8 +545,30 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
           pal = malloc(16 * sizeof(*pal));
 
           for(index = 0; index < 16; index++)
+            {
             pal[index] = strtol(colors[index], NULL, 16);
+
+            /* Now it gets insane: The vobsub program
+               converts the YCbCr palette from the IFO file to RGB,
+               so we need to convert it back
+
+               http://guliverkli.svn.sourceforge.net/viewvc/guliverkli/
+                      trunk/guliverkli/src/subtitles/
+                      VobSubFile.cpp?revision=605&view=markup
+               (line 821)
+             */
+            
+            r = (pal[index] >> 16) & 0xff;
+            g = (pal[index] >>  8) & 0xff;
+            b = pal[index] & 0xff;
+
+            y =  (int)((0.257 * r) + (0.504 * g) + (0.098 * b) + 16);
+            u =  (int)(-(0.148 * r) - (0.291 * g) + (0.439 * b) + 128);
+            v =  (int)((0.439 * r) - (0.368 * g) - (0.071 * b) + 128);
+            pal[index] = y << 16 | u << 8 | v;
+            }
           }
+        bgav_stringbreak_free(colors);
         }
       if(pal)
         break;
@@ -746,15 +773,23 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         // fprintf(stderr, "Found index at %"PRId64"\n",
         //         p->meta_seek_info.entries[i].SeekPosition);
 
-        pos = ctx->input->position;
-
-        bgav_input_seek(ctx->input,
-                        p->segment_start +
-                        p->meta_seek_info.entries[i].SeekPosition, SEEK_SET);
-        
-        if(bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))
-          p->have_cues = 1;
-        bgav_input_seek(ctx->input, pos, SEEK_SET);
+        if(p->segment_start + p->meta_seek_info.entries[i].SeekPosition > ctx->input->total_bytes)
+          {
+          bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                   "Didn't find cues (truncated file?)");
+          }
+        else
+          {
+          pos = ctx->input->position;
+          
+          bgav_input_seek(ctx->input,
+                          p->segment_start +
+                          p->meta_seek_info.entries[i].SeekPosition, SEEK_SET);
+          
+          if(bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))
+            p->have_cues = 1;
+          bgav_input_seek(ctx->input, pos, SEEK_SET);
+          }
         }
       }
     }
@@ -819,14 +854,53 @@ static int get_ebml_frame_size_int(uint8_t * ptr1, int size, int64_t * ret)
   return bytes;
   }
 
-static void append_packet_data(bgav_stream_t * s,
-                               bgav_packet_t * p,
-                               const uint8_t * data,
-                               int len)
+static void set_packet_data(bgav_stream_t * s,
+                            bgav_packet_t * p,
+                            const uint8_t * data,
+                            int len)
   {
-  bgav_packet_alloc(p, len);
-  memcpy(p->data, data, len);
-  p->data_size = len;
+  bgav_mkv_track_t * t = s->priv;
+
+  if((t->num_encodings == 1) &&
+     (t->encodings[0].ContentEncodingType == MKV_CONTENT_ENCODING_COMPRESSION) &&
+     (t->encodings[0].ContentCompression.ContentCompAlgo == MKV_CONTENT_COMP_ALGO_ZLIB))
+    {
+    uLongf out_len;
+    int err;
+    /* zlib decompression (probably the dumbest possible routine,
+       but it seems that this is used just for subtitles) */
+
+    bgav_packet_alloc(p, len * 5); // Optimistically assume 1:5 ratio
+    
+    while(1)
+      {
+      out_len = p->data_alloc;
+      err = uncompress(p->data, &out_len, data, len);
+
+      if(err == Z_OK)
+        {
+        p->data_size = out_len;
+        // fprintf(stderr, "Uncompressed packet %d -> %d\n", len, p->data_size);
+        break;
+        }
+      else if(err == Z_BUF_ERROR)
+        bgav_packet_alloc(p, p->data_alloc * 2); // Double the compression ratio
+      else
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Decompression of matroska packet failed");
+        p->data_size = 0;
+        break;
+        }
+      }
+    }
+  else
+    {
+    /* Plain packet */
+    bgav_packet_alloc(p, len);
+    memcpy(p->data, data, len);
+    p->data_size = len;
+    }
   }
 
 static void setup_packet(mkv_t * m, bgav_stream_t * s,
@@ -901,7 +975,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
     case MKV_LACING_NONE:
       p = bgav_stream_get_packet_write(s);
       p->data_size = 0;
-      append_packet_data(s, p, b->data, b->data_size);
+      set_packet_data(s, p, b->data, b->data_size);
       setup_packet(m, s, p, pts, keyframe, 0);
 
       if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
@@ -963,7 +1037,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         {
         p = bgav_stream_get_packet_write(s);
         p->data_size = 0;
-        append_packet_data(s, p, ptr, m->lace_sizes[i]);
+        set_packet_data(s, p, ptr, m->lace_sizes[i]);
         ptr += m->lace_sizes[i];
         setup_packet(m, s, p, pts, keyframe, i);
         bgav_stream_done_packet_write(s, p);
@@ -1006,7 +1080,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         {
         p = bgav_stream_get_packet_write(s);
         p->data_size = 0;
-        append_packet_data(s, p, ptr, m->lace_sizes[i]);
+        set_packet_data(s, p, ptr, m->lace_sizes[i]);
         ptr += m->lace_sizes[i];
         setup_packet(m, s, p, pts, keyframe, i);
         bgav_stream_done_packet_write(s, p);
@@ -1028,7 +1102,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
         {
         p = bgav_stream_get_packet_write(s);
         p->data_size = 0;
-        append_packet_data(s, p, ptr, frame_size);
+        set_packet_data(s, p, ptr, frame_size);
         ptr += frame_size;
         setup_packet(m, s, p, pts, keyframe, i);
         bgav_stream_done_packet_write(s, p);

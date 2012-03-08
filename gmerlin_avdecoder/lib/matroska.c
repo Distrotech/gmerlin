@@ -537,8 +537,13 @@ int bgav_mkv_content_compression_read(bgav_input_context_t * ctx,
     switch(e.id)
       {
       case MKV_ID_ContentCompAlgo:
+        if(!mkv_read_uint_small(ctx, &ret->ContentCompAlgo, e.size))
+          return 0;
         break;
       case MKV_ID_ContentCompSettings:
+        if(!mkv_read_binary(ctx, &ret->ContentCompSettings,
+                            &ret->ContentCompSettingsLen, e.size))
+          return 0;
         break;
       default:
         bgav_mkv_element_skip(ctx, &e, "compression");
@@ -550,12 +555,38 @@ int bgav_mkv_content_compression_read(bgav_input_context_t * ctx,
 
 void bgav_mkv_content_compression_dump(bgav_mkv_content_compression_t * cc)
   {
+  bgav_dprintf("    ContentCompression:\n");
+  bgav_dprintf("      ContentCompAlgo: %d ", cc->ContentCompAlgo);
+  switch(cc->ContentCompAlgo)
+    {
+    case MKV_CONTENT_COMP_ALGO_ZLIB:
+      bgav_dprintf("(zlib)");
+      break;
+    case MKV_CONTENT_COMP_ALGO_BZLIB:
+      bgav_dprintf("(bzlib)");
+      break;
+    case MKV_CONTENT_COMP_ALGO_LZO1X:
+      bgav_dprintf("(lzo1x)");
+      break;
+    case MKV_CONTENT_COMP_ALGO_HEADER_STRIPPING:
+      bgav_dprintf("(header stripping)");
+      break;
+    default:
+      bgav_dprintf("(unknown)");
+      break;
+    }
+  bgav_dprintf("\n");
 
+  bgav_dprintf("      ContentCompSettingsLen: %d\n", cc->ContentCompSettingsLen);
+  
+  if(cc->ContentCompSettingsLen)
+    bgav_hexdump(cc->ContentCompSettings, cc->ContentCompSettingsLen, 16);
   }
+  
 
 void bgav_mkv_content_compression_free(bgav_mkv_content_compression_t * cc)
   {
-  
+  MY_FREE(cc->ContentCompSettings);
   }
 
 
@@ -575,14 +606,27 @@ int bgav_mkv_content_encryption_read(bgav_input_context_t * ctx,
     switch(e.id)
       {
       case MKV_ID_ContentEncAlgo:
+        if(!mkv_read_uint_small(ctx, &ret->ContentEncAlgo, e.size))
+          return 0;
         break;
       case MKV_ID_ContentEncKeyID:
+        if(!mkv_read_binary(ctx, &ret->ContentEncKeyID,
+                            &ret->ContentEncKeyIDLen, e.size))
+          return 0;
         break;
       case MKV_ID_ContentSignature:
+        if(!mkv_read_binary(ctx, &ret->ContentSignature,
+                            &ret->ContentSignatureLen, e.size))
+          return 0;
         break;
       case MKV_ID_ContentSigKeyID:
+        if(!mkv_read_binary(ctx, &ret->ContentSigKeyID,
+                            &ret->ContentSigKeyIDLen, e.size))
+          return 0;
         break;
       case MKV_ID_ContentSigAlgo:
+        if(!mkv_read_uint_small(ctx, &ret->ContentSigAlgo, e.size))
+          return 0;
         break;
       case MKV_ID_ContentSigHashAlgo:
         break;
@@ -591,37 +635,187 @@ int bgav_mkv_content_encryption_read(bgav_input_context_t * ctx,
         break;
       }
     }
-  
-  return 0;
+  return 1;
   }
 
-void bgav_mkv_content_encryption_dump(bgav_mkv_content_encryption_t * cc)
+void bgav_mkv_content_encryption_dump(bgav_mkv_content_encryption_t * ce)
   {
+  bgav_dprintf("    ContentEncryption:\n");
+  bgav_dprintf("      ContentEncAlgo: %d ", ce->ContentEncAlgo);
+  switch(ce->ContentEncAlgo)
+    {
+    case MKV_CONTENT_ENC_ALGO_NONE: // Only signed
+      bgav_dprintf("(sig only)");
+      break;
+    case MKV_CONTENT_ENC_ALGO_DES:
+      bgav_dprintf("(des)");
+      break;
+    case MKV_CONTENT_ENC_ALGO_3DES:
+      bgav_dprintf("(3des)");
+      break;
+    case MKV_CONTENT_ENC_ALGO_TWOFISH:
+      bgav_dprintf("(twofish)");
+      break;
+    case MKV_CONTENT_ENC_ALGO_BLOWFISH:
+      bgav_dprintf("(blowfish)");
+      break;
+    case MKV_CONTENT_ENC_ALGO_AES:
+      bgav_dprintf("(aes)");
+      break;
+    default:
+      bgav_dprintf("(unknown)");
+      break;
+    }
+  bgav_dprintf("\n");
 
+  bgav_dprintf("      ContentEncKeyIDLen: %d\n", ce->ContentEncKeyIDLen);
+  if(ce->ContentEncKeyIDLen)
+    bgav_hexdump(ce->ContentEncKeyID, ce->ContentEncKeyIDLen, 16);
+
+  bgav_dprintf("      ContentSigAlgo: %d ", ce->ContentSigAlgo);
+  switch(ce->ContentSigAlgo)
+    {
+    case MKV_CONTENT_SIG_ALGO_NONE: // Only encrypted
+      bgav_dprintf("(enc only)");
+      break;
+    case MKV_CONTENT_SIG_ALGO_RSA:
+      bgav_dprintf("(rsa)");
+      break;
+    default:
+      bgav_dprintf("(unknown)");
+      break;
+    }
+  bgav_dprintf("\n");
+
+  bgav_dprintf("      ContentSigHashAlgo: %d ", ce->ContentSigHashAlgo);
+  switch(ce->ContentSigHashAlgo)
+    {
+    case MKV_CONTENT_SIG_HASH_ALGO_NONE:     // Only encrypted
+      bgav_dprintf("(enc only)");
+      break;
+    case MKV_CONTENT_SIG_HASH_ALGO_SHA1_160:
+      bgav_dprintf("(sha1-160)");
+      break;
+    case MKV_CONTENT_SIG_HASH_ALGO_MD5:
+      bgav_dprintf("(md5)");
+      break;
+    }
+  bgav_dprintf("\n");
+  
+  bgav_dprintf("      ContentSignatureLen: %d\n", ce->ContentSignatureLen);
+  if(ce->ContentSignatureLen)
+    bgav_hexdump(ce->ContentSignature, ce->ContentSignatureLen, 16);
+
+  bgav_dprintf("      ContentSigKeyIDLen: %d\n", ce->ContentSigKeyIDLen);
+  if(ce->ContentSigKeyIDLen)
+    bgav_hexdump(ce->ContentSigKeyID, ce->ContentSigKeyIDLen, 16);
+
+  
+  
   }
 
-void bgav_mkv_content_encryption_free(bgav_mkv_content_encryption_t * cc)
+void bgav_mkv_content_encryption_free(bgav_mkv_content_encryption_t * ce)
   {
-  
+  MY_FREE(ce->ContentEncKeyID);
+  MY_FREE(ce->ContentSignature);
+  MY_FREE(ce->ContentSigKeyID);
   }
 
 /* ContentEncoding */
 
 int bgav_mkv_content_encoding_read(bgav_input_context_t * ctx,
-                                      bgav_mkv_content_encoding_t * ret,
-                                      bgav_mkv_element_t * parent)
+                                   bgav_mkv_content_encoding_t * ret,
+                                   bgav_mkv_element_t * parent)
   {
-  return 0;
-  }
-
-void bgav_mkv_content_encoding_dump(bgav_mkv_content_encoding_t * cc)
-  {
-
-  }
-
-void bgav_mkv_content_encoding_free(bgav_mkv_content_encoding_t * cc)
-  {
+  bgav_mkv_element_t e;
   
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_ContentEncodingOrder:
+        if(!mkv_read_uint_small(ctx, &ret->ContentEncodingOrder, e.size))
+          return 0;
+        break;
+      case MKV_ID_ContentEncodingScope:
+        if(!mkv_read_uint_small(ctx, &ret->ContentEncodingScope, e.size))
+          return 0;
+        break;
+      case MKV_ID_ContentEncodingType:
+        if(!mkv_read_uint_small(ctx, &ret->ContentEncodingType, e.size))
+          return 0;
+        break;
+      case MKV_ID_ContentCompression:
+        if(!bgav_mkv_content_compression_read(ctx, &ret->ContentCompression, &e))
+          return 0;
+      case MKV_ID_ContentEncryption:
+        if(!bgav_mkv_content_encryption_read(ctx, &ret->ContentEncryption, &e))
+          return 0;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "content_encoding");
+        break;
+        
+      }
+    }
+  return 1;
+  }
+
+void bgav_mkv_content_encoding_dump(bgav_mkv_content_encoding_t * ce)
+  {
+  bgav_dprintf("  ContentEncoding:\n");
+  bgav_dprintf("    ContentEncodingOrder: %d\n", ce->ContentEncodingOrder);
+  bgav_dprintf("    ContentEncodingScope: %d\n", ce->ContentEncodingScope);
+  bgav_dprintf("    ContentEncodingType:  %d ", ce->ContentEncodingType);
+
+  switch(ce->ContentEncodingType)
+    {
+    case MKV_CONTENT_ENCODING_COMPRESSION:
+      bgav_dprintf("(compression)\n");
+      bgav_mkv_content_compression_dump(&ce->ContentCompression);
+      break;
+    case MKV_CONTENT_ENCODING_ENCRYPTION:
+      bgav_dprintf("(encryption)\n");
+      bgav_mkv_content_encryption_dump(&ce->ContentEncryption);
+      break;
+    }
+  }
+
+void bgav_mkv_content_encoding_free(bgav_mkv_content_encoding_t * ce)
+  {
+  bgav_mkv_content_compression_free(&ce->ContentCompression);
+  bgav_mkv_content_encryption_free(&ce->ContentEncryption);
+  }
+
+int bgav_mkv_content_encodings_read(bgav_input_context_t * ctx,
+                                    bgav_mkv_content_encoding_t ** ret,
+                                    int * num_ret,
+                                    bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+    switch(e.id)
+      {
+      case MKV_ID_ContentEncoding:
+        *ret = realloc(*ret, ((*num_ret)+1) * sizeof(**ret));
+        memset(*ret + *num_ret, 0, sizeof(**ret));
+        if(!bgav_mkv_content_encoding_read(ctx, *ret + *num_ret, &e))
+          return 0;
+        (*num_ret)++;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "content_encodings");
+        break;
+      }
+    }
+  return 1;
   }
 
 
@@ -851,6 +1045,13 @@ int bgav_mkv_track_read(bgav_input_context_t * ctx,
         if(!track_read_audio(ctx, &ret->audio, &e))
           return 0;
         break;
+      case MKV_ID_ContentEncodings:
+        if(!bgav_mkv_content_encodings_read(ctx,
+                                            &ret->encodings,
+                                            &ret->num_encodings,
+                                            &e))
+          return 0;
+        break;
       default:
         bgav_mkv_element_skip(ctx, &e, "track");
         break;
@@ -890,6 +1091,7 @@ static void track_dump_video(const bgav_mkv_track_video_t * v)
 
 void  bgav_mkv_track_dump(const bgav_mkv_track_t * t)
   {
+  int i;
   bgav_dprintf("Matroska track\n");
   bgav_dprintf("  TrackNumber:        %"PRId64"\n", t->TrackNumber);
   bgav_dprintf("  TrackUID:           %"PRId64"\n", t->TrackUID);
@@ -941,6 +1143,9 @@ void  bgav_mkv_track_dump(const bgav_mkv_track_t * t)
   bgav_dprintf("  CodecDecodeAll:     %d\n", t->CodecDecodeAll);
   bgav_dprintf("  TrackOverlay:       %"PRId64"\n", t->TrackOverlay);
 
+  for(i = 0; i < t->num_encodings; i++)
+    bgav_mkv_content_encoding_dump(&t->encodings[i]);
+  
   switch(t->TrackType)
     {
     case MKV_TRACK_VIDEO:
@@ -958,12 +1163,21 @@ void  bgav_mkv_track_dump(const bgav_mkv_track_t * t)
 
 void  bgav_mkv_track_free(bgav_mkv_track_t * t)
   {
+  int i;
+  
   MY_FREE(t->Name);
   MY_FREE(t->Language);
   MY_FREE(t->CodecID);
   MY_FREE(t->CodecPrivate);
   MY_FREE(t->CodecName);
   MY_FREE(t->video.ColourSpace);
+
+  if(t->num_encodings)
+    {
+    for(i = 0; i < t->num_encodings; i++)
+      bgav_mkv_content_encoding_free(t->encodings + i);
+    free(t->encodings);
+    }
   }
 
 int bgav_mkv_tracks_read(bgav_input_context_t * ctx,

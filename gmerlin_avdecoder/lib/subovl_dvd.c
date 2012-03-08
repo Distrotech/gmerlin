@@ -36,6 +36,8 @@ typedef struct
   int buffer_size;
   int packet_size; /* Size of the entire packet (read from the first 2 bytes) */
   int64_t pts;
+  
+  int pts_mult;
   } dvdsub_t;
 
 static int init_dvdsub(bgav_stream_t * s)
@@ -51,6 +53,9 @@ static int init_dvdsub(bgav_stream_t * s)
 
   gavl_video_format_copy(&s->data.subtitle.format, video_stream_format);
   s->data.subtitle.format.pixelformat = GAVL_YUVA_32;
+
+  priv->pts_mult = s->timescale / 100;
+  
   return 1;
   }
 
@@ -81,8 +86,8 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
       }
     p = bgav_stream_get_packet_read(s);
 
-    bgav_packet_dump(p);
-    bgav_hexdump(p->data, p->data_size >= 16 ? 16 : p->data_size , 16);
+    //    bgav_packet_dump(p);
+    //    bgav_hexdump(p->data, p->data_size >= 16 ? 16 : p->data_size , 16);
     
     /* Append data */
     if(priv->buffer_size + p->data_size > priv->buffer_alloc)
@@ -310,8 +315,8 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   //  ovl->frame->timestamp = gavl_time_unscale(s->timescale, priv->pts + start_date * 900);
   //  ovl->frame->duration = gavl_time_unscale(100, end_date - start_date);
 
-  ovl->frame->timestamp = priv->pts + start_date * 900;
-  ovl->frame->duration = 900 * (end_date - start_date);
+  ovl->frame->timestamp = priv->pts + start_date * priv->pts_mult;
+  ovl->frame->duration = priv->pts_mult * (end_date - start_date);
 #if 0
   fprintf(stderr, "Got overlay ");
   fprintf(stderr, " %f %f\n",
