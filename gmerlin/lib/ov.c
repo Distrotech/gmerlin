@@ -258,7 +258,7 @@ static void blend_overlays(bg_ov_t * ov, gavl_video_frame_t * f)
     {
     if(ov->ovl_str[i].ovl)
       {
-      fprintf(stderr, "Blend overlay\n");
+      //      fprintf(stderr, "Blend overlay\n");
       gavl_overlay_blend(ov->ovl_str[i].ctx, f);
       }
     }
