@@ -76,6 +76,8 @@ struct bg_ocr_s
   
   bg_iw_callbacks_t cb;
   char * image_file;
+
+  char * tmpdir;
   
   };
 
@@ -152,6 +154,13 @@ const bg_parameter_info_t parameters[] =
       .val_default = { .val_color = { 0.0, 0.0, 0.0 } }, \
       .help_string = TRS("Background color to use, when converting formats with transparency to grayscale"), \
     },
+    {                                    \
+      .name =        "tmpdir",      \
+      .long_name =   TRS("Temporary directory"), \
+      .type =      BG_PARAMETER_DIRECTORY, \
+      .val_default = { .val_str = "/tmp" }, \
+      .help_string = TRS("Temporary directory for image files"), \
+    },
     {
       /* End */
     }
@@ -175,6 +184,11 @@ int bg_ocr_set_parameter(void * data, const char * name,
     gavl_video_options_set_background_color(ocr->opt, val->val_color);
     return 1;
     }
+  else if(!strcmp(name, "tmpdir"))
+    {
+    ocr->tmpdir = bg_strdup(ocr->tmpdir, val->val_str);
+    }
+  
   return 0;
   }
 
@@ -258,6 +272,8 @@ void bg_ocr_destroy(bg_ocr_t * ocr)
 
   if(ocr->image_file)
     free(ocr->image_file);
+  if(ocr->tmpdir)
+    free(ocr->tmpdir);
   
   free(ocr);
   }
@@ -296,11 +312,17 @@ static int run_tesseract(bg_ocr_t * ocr, const gavl_video_format_t * format,
   char * text_file = NULL;
   char * base = NULL;
   int result = 0;
+
+  char * template = bg_sprintf("%s/gmerlin_ocr_%%05.tiff", ocr->tmpdir);
   
   /* Create name for tiff file */
-  tiff_file = bg_create_unique_filename("/tmp/gmerlin_ocr_%05x.tif");
+  tiff_file = bg_create_unique_filename(template);
+
+  free(template);
+  
   if(!tiff_file)
     return 0;
+
   
   base = bg_strdup(NULL, tiff_file);
   pos = strrchr(base, '.');
