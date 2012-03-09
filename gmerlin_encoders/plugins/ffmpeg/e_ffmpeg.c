@@ -71,12 +71,12 @@ static const ffmpeg_format_info_t formats[] =
       .max_audio_streams = -1,
       .max_video_streams = -1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP2,
-                                       CODEC_ID_MP3,
-                                       CODEC_ID_AC3,
-                                       CODEC_ID_NONE },
+                                         CODEC_ID_MP3,
+                                         CODEC_ID_AC3,
+                                         CODEC_ID_NONE },
 
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG2VIDEO,
-                                       CODEC_ID_NONE },
+                                         CODEC_ID_NONE },
       .flags = FLAG_CONSTANT_FRAMERATE,
       .framerates = bg_ffmpeg_mpeg_framerates,
     },
@@ -102,10 +102,10 @@ static const ffmpeg_format_info_t formats[] =
       .max_audio_streams = 1,
       .max_video_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP3,
-                                       CODEC_ID_NONE },
+                                         CODEC_ID_NONE },
       
       .video_codecs = (enum CodecID[]){  CODEC_ID_FLV1,
-                                       CODEC_ID_NONE },
+                                         CODEC_ID_NONE },
     },
     {
       .name =       "ASF",
@@ -142,6 +142,24 @@ static const ffmpeg_format_info_t formats[] =
                                        CODEC_ID_NONE },
       .flags = FLAG_CONSTANT_FRAMERATE,
       .framerates = bg_ffmpeg_mpeg_framerates,
+    },
+    {
+      .name =       "Matroska",
+      .short_name = "matroska",
+      .extension =  "mkv",
+      .max_audio_streams = -1,
+      .max_video_streams = -1,
+      .audio_codecs = (enum CodecID[]){  CODEC_ID_MP3,
+                                         CODEC_ID_MP2,
+                                         CODEC_ID_AC3,
+                                         CODEC_ID_NONE },
+      
+      .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG4,
+                                         CODEC_ID_MPEG1VIDEO,
+                                         CODEC_ID_MPEG2VIDEO,
+                                         CODEC_ID_NONE },
+      //      .flags = FLAG_CONSTANT_FRAMERATE,
+      //      .framerates = bg_ffmpeg_mpeg_framerates,
     },
 #if 0 // Encoded file is messed up
     {
@@ -186,6 +204,7 @@ const bg_encoder_plugin_t the_plugin =
     
     .max_audio_streams =         -1,
     .max_video_streams =         -1,
+    .max_subtitle_text_streams = -1,
     
     .get_audio_parameters = bg_ffmpeg_get_audio_parameters,
     .get_video_parameters = bg_ffmpeg_get_video_parameters,
@@ -201,6 +220,7 @@ const bg_encoder_plugin_t the_plugin =
     
     .add_audio_stream =     bg_ffmpeg_add_audio_stream,
     .add_video_stream =     bg_ffmpeg_add_video_stream,
+    .add_subtitle_text_stream =     bg_ffmpeg_add_text_stream,
 
     .add_audio_stream_compressed =     bg_ffmpeg_add_audio_stream_compressed,
     .add_video_stream_compressed =     bg_ffmpeg_add_video_stream_compressed,
@@ -216,6 +236,7 @@ const bg_encoder_plugin_t the_plugin =
     
     .write_audio_frame =    bg_ffmpeg_write_audio_frame,
     .write_video_frame =    bg_ffmpeg_write_video_frame,
+    .write_subtitle_text =    bg_ffmpeg_write_subtitle_text,
 
     .write_audio_packet =    bg_ffmpeg_write_audio_packet,
     .write_video_packet =    bg_ffmpeg_write_video_packet,

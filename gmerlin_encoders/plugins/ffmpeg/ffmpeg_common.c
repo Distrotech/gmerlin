@@ -262,6 +262,39 @@ static void set_metadata(ffmpeg_priv_t * priv,
   }
 #endif
 
+static void set_chapters(AVFormatContext * ctx,
+                         const bg_chapter_list_t * chapter_list)
+  {
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51,5,0)
+  int i;
+  if(!chapter_list || !chapter_list->num_chapters)
+    return;
+  
+  ctx->chapters =
+    av_malloc(chapter_list->num_chapters * sizeof(*ctx->chapters));
+  ctx->nb_chapters = chapter_list->num_chapters;
+  
+  for(i = 0; i < chapter_list->num_chapters; i++)
+    {
+    ctx->chapters[i] = av_mallocz(sizeof(*(ctx->chapters[i])));
+    ctx->chapters[i]->time_base.num = 1;
+    ctx->chapters[i]->time_base.den = chapter_list->timescale;
+    ctx->chapters[i]->start = chapter_list->chapters[i].time;
+    if(i < chapter_list->num_chapters - 1)
+      ctx->chapters[i]->end = chapter_list->chapters[i+1].time;
+    
+    if(chapter_list->chapters[i].name)
+      av_dict_set(&ctx->chapters[i]->metadata,
+                  "title", chapter_list->chapters[i].name, 0);
+    }
+#else
+  if(!chapter_list || !chapter_list->num_chapters)
+    return;
+  bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+         "Not writing chapters (ffmpeg version too old)");
+#endif
+  }
+
 int bg_ffmpeg_open(void * data, const char * filename,
                    const bg_metadata_t * metadata,
                    const bg_chapter_list_t * chapter_list)
@@ -303,9 +336,8 @@ int bg_ffmpeg_open(void * data, const char * filename,
   /* Add metadata */
 
   if(metadata)
-    {
     set_metadata(priv, metadata);
-    }
+  set_chapters(priv->ctx, chapter_list);
   
   return 1;
   }
@@ -329,10 +361,14 @@ int bg_ffmpeg_add_audio_stream(void * data, const char * language,
 
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
   st->stream = avformat_new_stream(priv->ctx, NULL);
+  /* Set language */
+  if(language && (language[0] != '\0'))
+    av_dict_set(&st->stream->metadata, "language", language, 0);
 #else
   st->stream = av_new_stream(priv->ctx,
                              priv->num_audio_streams +
-                             priv->num_video_streams);
+                             priv->num_video_streams +
+                             priv->num_text_streams);
 #endif 
   
   /* Adjust format */
@@ -368,7 +404,8 @@ int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
 #else
   st->stream = av_new_stream(priv->ctx,
                              priv->num_audio_streams +
-                             priv->num_video_streams);
+                             priv->num_video_streams +
+                             priv->num_text_streams);
 #endif 
   
   st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
@@ -384,6 +421,41 @@ int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
   
   priv->num_video_streams++;
   return priv->num_video_streams-1;
+  }
+
+int bg_ffmpeg_add_text_stream(void * data, const char * language,
+                              int * timescale)
+  {
+  ffmpeg_priv_t * priv;
+  ffmpeg_text_stream_t * st;
+  priv = data;
+
+  priv->text_streams =
+    realloc(priv->text_streams,
+            (priv->num_text_streams+1)*sizeof(*priv->text_streams));
+  
+  st = priv->text_streams + priv->num_text_streams;
+  memset(st, 0, sizeof(*st));
+
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
+  st->stream = avformat_new_stream(priv->ctx, NULL);
+  if(language && (language[0] != '\0'))
+    av_dict_set(&st->stream->metadata, "language", language, 0);
+#else
+  st->stream = av_new_stream(priv->ctx,
+                             priv->num_audio_streams +
+                             priv->num_video_streams +
+                             priv->num_text_streams);
+#endif 
+
+  st->stream->codec->codec_type = CODEC_TYPE_SUBTITLE;
+  st->stream->codec->codec_id = CODEC_ID_TEXT;
+
+  st->stream->codec->time_base.num = 1;
+  st->stream->codec->time_base.den = *timescale;
+  
+  priv->num_text_streams++;
+  return priv->num_text_streams-1;
   }
 
 void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
@@ -973,6 +1045,46 @@ int bg_ffmpeg_write_video_frame(void * data,
   
   return 1;
   }
+
+
+int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
+                                  int64_t start,
+                                  int64_t duration, int stream)
+  {
+  AVPacket pkt;
+  ffmpeg_priv_t * priv;
+  ffmpeg_text_stream_t * st;
+  
+  priv = data;
+  st = &priv->text_streams[stream];
+
+  av_init_packet(&pkt);
+  
+  pkt.data     = (uint8_t*)bg_strdup(NULL, text);
+  pkt.size     = strlen(text)+1;
+
+  pkt.pts= av_rescale_q(start,
+                        st->stream->codec->time_base,
+                        st->stream->time_base) + st->pts_offset;
+  pkt.duration= av_rescale_q(duration,
+                             st->stream->codec->time_base,
+                             st->stream->time_base) + st->pts_offset;
+  
+  pkt.convergence_duration = pkt.duration;
+  pkt.dts = pkt.pts;
+  pkt.stream_index = st->stream->index;
+  
+  if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
+    {
+    priv->got_error = 1;
+    return 0;
+    }
+  if(pkt.data)
+    free(pkt.data);
+  return 1;
+  }
+
+
 
 static void flush_audio_encoder(ffmpeg_priv_t * priv,
                                 ffmpeg_audio_stream_t * st)

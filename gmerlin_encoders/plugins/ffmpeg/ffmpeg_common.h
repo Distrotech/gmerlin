@@ -163,11 +163,19 @@ typedef struct
 
 typedef struct
   {
+  AVStream * stream;
+  int64_t pts_offset;
+  } ffmpeg_text_stream_t;
+
+typedef struct
+  {
   int num_audio_streams;
   int num_video_streams;
+  int num_text_streams;
   
   ffmpeg_audio_stream_t * audio_streams;
   ffmpeg_video_stream_t * video_streams;
+  ffmpeg_text_stream_t * text_streams;
   
   AVFormatContext * ctx;
   
@@ -214,6 +222,9 @@ int bg_ffmpeg_add_audio_stream(void * data, const char * language,
                                const gavl_audio_format_t * format);
 
 int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format);
+int bg_ffmpeg_add_text_stream(void * data, const char * language,
+                              int * timescale);
+
 
 void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
                                    const bg_parameter_value_t * v);
@@ -240,6 +251,11 @@ int bg_ffmpeg_write_audio_frame(void * data,
 
 int bg_ffmpeg_write_video_frame(void * data,
                                 gavl_video_frame_t * frame, int stream);
+
+int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
+                                  int64_t start,
+                                  int64_t duration, int stream);
+
 
 int bg_ffmpeg_close(void * data, int do_delete);
 
