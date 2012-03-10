@@ -187,6 +187,7 @@ int bg_ocr_set_parameter(void * data, const char * name,
   else if(!strcmp(name, "tmpdir"))
     {
     ocr->tmpdir = bg_strdup(ocr->tmpdir, val->val_str);
+    return 1;
     }
   
   return 0;
@@ -313,7 +314,7 @@ static int run_tesseract(bg_ocr_t * ocr, const gavl_video_format_t * format,
   char * base = NULL;
   int result = 0;
 
-  char * template = bg_sprintf("%s/gmerlin_ocr_%%05.tiff", ocr->tmpdir);
+  char * template = bg_sprintf("%s/gmerlin_ocr_%%05d.tif", ocr->tmpdir);
   
   /* Create name for tiff file */
   tiff_file = bg_create_unique_filename(template);

@@ -807,8 +807,15 @@ static void set_video_parameter_lqt(void * data, int stream, const char * name,
 
 static int write_video_packet_lqt(void * data, gavl_packet_t * p, int stream)
   {
+  gavl_time_t test_time;
   e_lqt_t * e = data;
+  
+  test_time = gavl_time_unscale(e->video_streams[stream].format.timescale,
+                                p->pts);
+  if(e->duration < test_time)
+    e->duration = test_time;
 
+  
   if(!e->video_streams[stream].frames_written)
     {
     e->video_streams[stream].pts_offset = p->pts;
@@ -823,11 +830,18 @@ static int write_video_packet_lqt(void * data, gavl_packet_t * p, int stream)
 
 static int write_audio_packet_lqt(void * data, gavl_packet_t * p, int stream)
   {
+  gavl_time_t test_time;
   e_lqt_t * e = data;
 
   if(!e->audio_streams[stream].samples_written && p->pts)
     lqt_set_audio_pts_offset(e->file, stream, p->pts);
   e->audio_streams[stream].samples_written += p->duration;
+
+  test_time = gavl_time_unscale(e->audio_streams[stream].format.samplerate,
+                                e->audio_streams[stream].samples_written);
+  if(e->duration < test_time)
+    e->duration = test_time;
+  
   return lqt_gavl_write_audio_packet(e->file, stream, p);
   }
 
