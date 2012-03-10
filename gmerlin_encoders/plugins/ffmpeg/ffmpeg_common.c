@@ -527,10 +527,16 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
     st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
     id = bg_ffmpeg_find_video_encoder(priv->format, v->val_str);
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
-    codec = avcodec_find_encoder(st->stream->codec->codec_id);
+    codec = avcodec_find_encoder(id);
     if(codec)
       avcodec_get_context_defaults3(st->stream->codec, codec);
 #endif
+
+    // avcodec_get_context_defaults3
+    // does a memset(... , 0, ...) on the whole
+    // context, so we need to set all fields again
+    
+    st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
     st->stream->codec->codec_id = id;
     /* Set format for codec */
     st->stream->codec->width  = st->format.image_width;
@@ -593,6 +599,10 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
   st->stream->codec->sample_fmt = codec->sample_fmts[0];
   st->format.sample_format = bg_sample_format_ffmpeg_2_gavl(codec->sample_fmts[0]);
 
+  /* Extract extradata */
+  if(priv->ctx->oformat->flags & AVFMT_GLOBALHEADER)
+    st->stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+  
 #if LIBAVCODEC_VERSION_MAJOR < 54
   if(avcodec_open(st->stream->codec, codec) < 0)
     {
