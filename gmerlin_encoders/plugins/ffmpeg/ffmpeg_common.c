@@ -375,10 +375,6 @@ int bg_ffmpeg_add_audio_stream(void * data, const char * language,
   st->format.interleave_mode = GAVL_INTERLEAVE_ALL;
   st->format.sample_format   = GAVL_SAMPLE_S16;
 
-  /* Set format for codec */
-  st->stream->codec->sample_rate = st->format.samplerate;
-  st->stream->codec->channels    = st->format.num_channels;
-  st->stream->codec->codec_type        = CODEC_TYPE_AUDIO;
   
   priv->num_audio_streams++;
   return priv->num_audio_streams-1;
@@ -407,17 +403,6 @@ int bg_ffmpeg_add_video_stream(void * data, const gavl_video_format_t * format)
                              priv->num_video_streams +
                              priv->num_text_streams);
 #endif 
-  
-  st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
-  
-  /* Set format for codec */
-  st->stream->codec->width  = st->format.image_width;
-  st->stream->codec->height = st->format.image_height;
-
-  st->stream->codec->sample_aspect_ratio.num = st->format.pixel_width;
-  st->stream->codec->sample_aspect_ratio.den = st->format.pixel_height;
-  st->stream->sample_aspect_ratio.num = st->format.pixel_width;
-  st->stream->sample_aspect_ratio.den = st->format.pixel_height;
   
   priv->num_video_streams++;
   return priv->num_video_streams-1;
@@ -491,7 +476,25 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
   
   
   if(!strcmp(name, "codec"))
-    st->stream->codec->codec_id = bg_ffmpeg_find_audio_encoder(priv->format, v->val_str);
+    {
+    enum CodecID id;
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
+    AVCodec * codec;
+#endif
+    st->stream->codec->codec_type        = CODEC_TYPE_AUDIO;
+    id = bg_ffmpeg_find_audio_encoder(priv->format, v->val_str);
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
+    codec = avcodec_find_encoder(id);
+    if(codec)
+      avcodec_get_context_defaults3(st->stream->codec, codec);
+
+    /* Set format for codec */
+    st->stream->codec->codec_id = id;
+    st->stream->codec->sample_rate = st->format.samplerate;
+    st->stream->codec->channels    = st->format.num_channels;
+    st->stream->codec->codec_type        = CODEC_TYPE_AUDIO;
+#endif
+    }
   else
     bg_ffmpeg_set_codec_parameter(st->stream->codec,
 #if LIBAVCODEC_VERSION_MAJOR >= 54
@@ -516,8 +519,30 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
   st = &priv->video_streams[stream];
   
   if(!strcmp(name, "codec"))
-    st->stream->codec->codec_id =
-      bg_ffmpeg_find_video_encoder(priv->format, v->val_str);
+    {
+    enum CodecID id;
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
+    AVCodec * codec;
+#endif
+    st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
+    id = bg_ffmpeg_find_video_encoder(priv->format, v->val_str);
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
+    codec = avcodec_find_encoder(st->stream->codec->codec_id);
+    if(codec)
+      avcodec_get_context_defaults3(st->stream->codec, codec);
+#endif
+    st->stream->codec->codec_id = id;
+    /* Set format for codec */
+    st->stream->codec->width  = st->format.image_width;
+    st->stream->codec->height = st->format.image_height;
+
+    st->stream->codec->sample_aspect_ratio.num = st->format.pixel_width;
+    st->stream->codec->sample_aspect_ratio.den = st->format.pixel_height;
+    st->stream->sample_aspect_ratio.num = st->format.pixel_width;
+    st->stream->sample_aspect_ratio.den = st->format.pixel_height;
+
+    
+    }
   else if(bg_encoder_set_framerate_parameter(&st->fr, name, v))
     {
     return;
@@ -686,7 +711,7 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
     }
 
   set_framerate(st);
-
+  
 #if LIBAVCODEC_VERSION_MAJOR < 54
   if(avcodec_open(st->stream->codec, codec) < 0)
     {
@@ -1463,6 +1488,18 @@ int bg_ffmpeg_add_video_stream_compressed(void * priv,
     st->stream->codec->rc_max_rate = st->ci->bitrate;
     st->stream->codec->bit_rate = st->ci->bitrate;
     }
+  /* Set extradata */
+  if(st->ci && st->ci->global_header_len)
+    {
+    st->stream->codec->extradata_size = st->ci->global_header_len;
+    st->stream->codec->extradata =
+      av_malloc(st->stream->codec->extradata_size);
+    memcpy(st->stream->codec->extradata,
+           st->ci->global_header,
+           st->ci->global_header_len);
+    st->stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    }
+
   
   return ret;
   }
@@ -1523,7 +1560,7 @@ int bg_ffmpeg_write_video_packet(void * priv, gavl_packet_t * packet, int stream
   if(st->ci->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
     {
     if(st->dts == GAVL_TIME_UNDEFINED)
-      st->dts = packet->pts - packet->duration;
+      st->dts = packet->pts - 3*packet->duration;
     
     pkt.dts= av_rescale_q(st->dts,
                           st->stream->codec->time_base,

@@ -238,6 +238,94 @@ static const bg_parameter_info_t parameters_msmpeg4v3[] = {
   { /* End of parameters */ }
 };
 
+static const bg_parameter_info_t parameters_libx264[] = {
+  {
+    .name =      "libx264_preset",
+    .long_name = TRS("Preset"),
+    .type =      BG_PARAMETER_STRINGLIST,
+    .val_default = {val_str: "medium"},
+    .multi_names = (char const *[]){"ultrafast",
+                                    "superfast",
+                                    "veryfast",
+                                    "faster",
+                                    "fast",
+                                    "medium",
+                                    "slow",
+                                    "slower",
+                                    "veryslow",
+                                    "placebo",
+                                    (char *)0},
+    .multi_labels = (char const *[]){TRS("Ultrafast"),
+                                     TRS("Superfast"),
+                                     TRS("Veryfast"),
+                                     TRS("Faster"),
+                                     TRS("Fast"),
+                                     TRS("Medium"),
+                                     TRS("Slow"),
+                                     TRS("Slower"),
+                                     TRS("Veryslow"),
+                                     TRS("Placebo"),
+                                     (char *)0 },
+  },
+  {
+    .name =      "libx264_tune",
+    .long_name = TRS("Tune"),
+    .type =      BG_PARAMETER_STRINGLIST,
+    .val_default = {val_str: "$none"},
+    .multi_names = (char const *[]){"$none",
+                                    "film",
+                                    "animation",
+                                    "grain",
+                                    "stillimage",
+                                    "psnr",
+                                    "ssim",
+                                    "fastdecode",
+                                    "zerolatency",
+                                    (char *)0},
+    .multi_labels = (char const *[]){TRS("None"),
+                                     TRS("Film"),
+                                     TRS("Animation"),
+                                     TRS("Grain"),
+                                     TRS("Still image"),
+                                     TRS("PSNR"),
+                                     TRS("SSIM"),
+                                     TRS("Fast decode"),
+                                     TRS("Zero latency"),
+                                     (char *)0},
+  },
+  {
+    .name =      "ff_bit_rate_video",
+    .long_name = TRS("Bit rate (kbps)"),
+    .type =      BG_PARAMETER_INT,
+    .val_min     = { .val_i = 0 },
+    .val_max     = { .val_i = 10000 },
+    .val_default = { .val_i = 0 },
+    .help_string = TRS("If > 0 encode with average bitrate"),
+  },
+  {
+    .name =      "libx264_crf",
+    .long_name = TRS("Quality-based VBR"),
+    .type =      BG_PARAMETER_SLIDER_FLOAT,
+    .val_min     = { .val_f = -1.0 },
+    .val_max     = { .val_f = 51.0 },
+    .val_default = { .val_f = 23.0 },
+    .help_string = TRS("Negative means disable"),
+    .num_digits  = 2,
+  },
+  {
+    .name =      "libx264_qp",
+    .long_name = TRS("Force constant QP"),
+    .type =      BG_PARAMETER_SLIDER_INT,
+    .val_min     = { .val_i = -1 },
+    .val_max     = { .val_i = 69 },
+    .val_default = { .val_i = -1 },
+    .help_string = TRS("Negative means disable, 0 means lossless"),
+  },
+  { /* End */ },
+};
+
+/* Audio */
+
 static const bg_parameter_info_t parameters_ac3[] = {
   ENCODE_PARAM_AC3
   { /* End of parameters */ }
@@ -379,6 +467,13 @@ static const ffmpeg_codec_info_t video_codecs[] =
       .long_name  = TRS("Real Video 1"),
       .id         = CODEC_ID_RV10,
       .parameters = parameters_msmpeg4v3,
+      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
+    },
+    {
+      .name       = "libx264",
+      .long_name  = TRS("H.264"),
+      .id         = CODEC_ID_H264,
+      .parameters = parameters_libx264,
       .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
     },
 #if 0
@@ -775,6 +870,34 @@ const enum_t mb_decision[] =
     found = 1;                                      \
     }
 
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+#define PARAM_DICT_STRING(n, ffmpeg_key) \
+  if(!strcmp(n, name)) \
+    { \
+    if(val->val_str && (val->val_str[0] != '$')) \
+      av_dict_set(options,                      \
+                  ffmpeg_key, val->val_str, 0); \
+    }
+
+#define PARAM_DICT_FLOAT(n, ffmpeg_key) \
+  if(!strcmp(n, name)) \
+    { \
+    char * str; \
+    str = bg_sprintf("%f", val->val_f); \
+    av_dict_set(options, ffmpeg_key, str, 0); \
+    free(str); \
+    }
+
+#define PARAM_DICT_INT(n, ffmpeg_key) \
+  if(!strcmp(n, name)) \
+    { \
+    char * str; \
+    str = bg_sprintf("%d", val->val_i); \
+    av_dict_set(options, ffmpeg_key, str, 0); \
+    free(str); \
+    }
+#endif
+
 
 void
 bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
@@ -885,6 +1008,13 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_FLAG("ff_flag_closed_gop",CODEC_FLAG_CLOSED_GOP);
   PARAM_FLAG2("ff_flag2_fast",CODEC_FLAG2_FAST);
   PARAM_FLAG2("ff_flag2_strict_gop",CODEC_FLAG2_STRICT_GOP);
+
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+  PARAM_DICT_STRING("libx264_preset", "preset");
+  PARAM_DICT_STRING("libx264_tune",   "tune");
+  PARAM_DICT_FLOAT("libx264_crf", "crf");
+  PARAM_DICT_FLOAT("libx264_qp", "qp");
+#endif
   
   }
 
