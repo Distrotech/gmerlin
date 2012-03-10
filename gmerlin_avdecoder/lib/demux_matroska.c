@@ -206,7 +206,7 @@ static void init_avc1(bgav_stream_t * s)
   {
   bgav_mkv_track_t * track = s->priv;
 
-  s->flags |= STREAM_NEED_FRAMETYPES;
+  s->flags |= STREAM_NEED_FRAMETYPES|STREAM_B_FRAMES;
   if(track->CodecPrivateLen)
     bgav_stream_set_extradata(s,
                               track->CodecPrivate,
@@ -348,6 +348,7 @@ static void init_ac3(bgav_stream_t * s)
   {
   bgav_mkv_track_t * p = s->priv;
   p->frame_samples = 1536;
+  s->flags |= STREAM_PARSE_FRAME; // Detect bitrate
   }
 
 static void init_dts(bgav_stream_t * s)
@@ -381,6 +382,11 @@ static void init_stream_common(mkv_t * m,
   s->stream_id = track->TrackNumber;
   s->timescale = 1000000000 / m->segment_info.TimecodeScale;
 
+  if(track->Language)
+    memcpy(s->language, track->Language, 3);
+  else
+    memcpy(s->language, "und", 3);
+  
   if(!codecs)
     return;
   
@@ -513,7 +519,6 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
     // fprintf(stderr, "UTF-8 subtitles\n");
     s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 1, "UTF-8");
     s->description = bgav_sprintf("SRT");
-    return 1;
     }
   else if(!strcmp(track->CodecID, "S_VOBSUB"))
     {
@@ -601,11 +606,7 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
     return 1;
   
   init_stream_common(m, s, track, NULL);
-  if(track->Language)
-    memcpy(s->language, track->Language, 3);
-  else
-    memcpy(s->language, "und", 3);
-    
+  
   return 1;
   }
 

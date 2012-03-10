@@ -125,7 +125,8 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
     return 0; /* Never get here */
   
   /* Convert packet to subtitle */
-
+  if(!p)
+    return 0;
 
   if(s->data.subtitle.cnv)
     {
@@ -175,8 +176,11 @@ int bgav_has_subtitle(bgav_t * b, int stream)
         return 1;
       else
         {
-        if(s->flags & STREAM_EOF_C)
+        if(s->flags & STREAM_EOF_D)
+          {
+          s->flags |= STREAM_EOF_C;
           return 1;
+          }
         else
           return 0;
         }

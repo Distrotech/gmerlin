@@ -100,6 +100,8 @@ static bgav_packet_t * insert_packet(bgav_packet_timer_t * pt)
     pt->num_ip_frames_total++;
     }
   
+  p->duration = -1;
+  
   pt->packets[pt->num_packets] = p;
   pt->num_packets++;
   return p;
@@ -124,40 +126,6 @@ static bgav_packet_t * remove_packet(bgav_packet_timer_t * pt)
     pt->num_ip_frames--;
   return ret;
   }
-
-#if 0
-static void set_duration(bgav_packet_timer_t * pt,
-                         bgav_packet_t * p, int64_t duration)
-  {
-  p->duration = duration;
-  pt->last_duration = duration;
-  }
-
-static void get_first_indices(bgav_packet_timer_t * pt,
-                              int * ip1, int * b1)
-  {
-  int i;
-  *ip1 = -1;
-  *b1   = -1;
-
-  for(i = 0; i < pt->num_packets; i++)
-    {
-    if(IS_B(i))
-      {
-      if(*b1 < 0)
-        *b1 = i;
-      }
-    else
-      {
-      if(*ip1 < 0)
-        *ip1 = i;
-      }
-    if((*ip1 >= 0) && (*b1 >= 0))
-      return;
-    }
-  }
-#endif
-
 
 /* These are the actual worker functions */
 
@@ -264,19 +232,19 @@ static int get_next_ip_duration_from_pts(bgav_packet_timer_t * pt,
  *  If next_index < 0, we have EOF
  */ 
 
-static int
+static void
 set_duration_from_pts(bgav_packet_timer_t * pt,
                       int this_index, int next_index)
   {
   if(next_index < 0)
     {
     pt->packets[this_index]->duration = pt->last_duration;
-    return 1;
+    return;
     }
   pt->packets[this_index]->duration =
     pt->packets[next_index]->pts - pt->packets[this_index]->pts;
   pt->last_duration = pt->packets[this_index]->duration;
-  return 1;
+  return;
   }
 
 /*
@@ -285,7 +253,7 @@ set_duration_from_pts(bgav_packet_timer_t * pt,
  */
 
 static int get_next_pts(bgav_packet_timer_t * pt,
-                        int start, int end, int64_t pts)
+                        int start, int end, int current)
   {
   int i;
   int ret = -1;
@@ -293,7 +261,7 @@ static int get_next_pts(bgav_packet_timer_t * pt,
   
   for(i = start; i < end; i++)
     {
-    if(pt->packets[i]->pts <= pts)
+    if(pt->packets[i]->pts <= pt->packets[current]->pts)
       continue;
     if((ret < 0) || (pt->packets[i]->pts < next_pts))
       {
@@ -304,198 +272,89 @@ static int get_next_pts(bgav_packet_timer_t * pt,
   return ret;
   }
 
+static void
+flush_duration_from_pts(bgav_packet_timer_t * pt,
+                        int start, int end,
+                        int start_seek, int end_seek)
+  {
+  int i;
+  int next;
+
+  for(i = start; i < end; i++)
+    {
+    if(pt->packets[i]->duration > 0)
+      continue;
+    next = get_next_pts(pt, start_seek, end_seek, i);
+    set_duration_from_pts(pt, i, next);
+    }
+  }
+
 static int
 next_packet_duration_from_pts(bgav_packet_timer_t * pt)
   {
-  int next_ip;
-  int last_b;
-  bgav_packet_t * p;
-  int i;
+  int ip1, ip2, ip3;
+  int next;
   
   if(pt->num_packets &&
      ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0])))
     return 1;
   
-  while(pt->num_packets < 3)
+  ip1 = get_next_ip_duration_from_pts(pt, -1);
+  if(ip1 < 0)
+    goto flush;
+  if(ip1 > 0)
     {
-    if(!insert_packet_duration_from_pts(pt))
-      break;
+    fprintf(stderr, "BUUUG");
+    return 0;
     }
   
-  if(!pt->num_packets)
-    return 0;
+  ip2 = get_next_ip_duration_from_pts(pt, ip1);
+  if(ip2 < 1)
+    goto flush;
+  ip3 = get_next_ip_duration_from_pts(pt, ip2);
+  if(ip3 < 2)
+    goto flush;
   
-  /* Last packet */
-  if(pt->num_packets == 1)
+  /* PPP */
+  if((ip2 - ip1 == 1) &&
+     (ip3 - ip2 == 1))
     {
-    set_duration_from_pts(pt, 0, -1);
+    set_duration_from_pts(pt, 0, 1);
     return 1;
     }
-  
-  /* Last 2 packets */
-  if(pt->num_packets == 2)
+
+  /* PPBBBP */
+  else if(ip2 - ip1 == 1)
     {
-    if(IS_IP(0))
-      {
-      // PP
-      if(IS_IP(1))
-        {
-        set_duration_from_pts(pt, 0, 1);
-        set_duration_from_pts(pt, 1, -1);
-        return 1;
-        }
-      // PB
-      else
-        {
-        set_duration_from_pts(pt, 1, 0);
-        set_duration_from_pts(pt, 0, -1);
-        return 1;
-        }
-      }
-    else
-      {
-      fprintf(stderr, "BUG 1\n");
-      // BUG
-      }
-    }
+    next = get_next_pts(pt, ip2+1, ip3, 0);
+    set_duration_from_pts(pt, 0, next);
 
-  // 3 Packets
-  if(IS_IP(0))
+    /* Flush B-frame sequence */
+    flush_duration_from_pts(pt, ip2+1, ip3, ip2, ip3);
+    }
+  /* PBBBPP */
+  else if(ip3 - ip2 == 1)
     {
-    if(IS_IP(1))
-      {
-      // IPP
-      if(IS_IP(2))
-        {
-        set_duration_from_pts(pt, 0, 1);
-        return 1;
-        }
-      // IPB
-      else
-        {
-        // This will be wrong for B-Pyramid!
-        set_duration_from_pts(pt, 0, 2);
-        return 1;
-        }
-      }
-    else
-      {
-      // PB
+    set_duration_from_pts(pt, 0, ip2);
 
-      next_ip = get_next_ip_duration_from_pts(pt, 1);
-      
-      if(next_ip < 0)
-        {
-        if(!pt->eof)
-          return 0; // Cache full
-        last_b = pt->num_packets-1;
-        }
-      else
-        last_b = next_ip - 1;
-      
-      // Get durations of the B-frame sequence
-
-      if(!pt->b_pyramid)
-        {
-        for(i = 1; i < last_b; i++)
-          {
-          // This will be wrong for B-Pyramid!
-          set_duration_from_pts(pt, i, i+1);
-          }
-        set_duration_from_pts(pt, last_b, 0);
-        }
-      else
-        {
-        int next_index;
-        /* Durations of a PBBBBB sequence with B-pyramid:
-           We use a quite stupid approach assuming that the
-           B-sequence is arbitrarily shuffled */
-        
-        for(i = 1; i <= last_b; i++)
-          {
-          next_index =
-            get_next_pts(pt, 0, last_b, pt->packets[i]->pts);
-          if(next_index < 0)
-            {
-            fprintf(stderr, "BUG 3");
-            return 0;
-            }
-          set_duration_from_pts(pt, i, next_index);
-          }
-        
-        }
-      
-
-      /* If we have eof, we stop here */
-      if(next_ip < 0)
-        {
-        set_duration_from_pts(pt, 0, -1);
-        return 1;
-        }
-      else
-        {
-        if(next_ip == pt->num_packets - 1)
-          {
-          p = insert_packet_duration_from_pts(pt);
-
-          // PBBBP.
-          if(!p)
-            {
-            if(!pt->eof)
-              return 0; // Cache full
-            
-            set_duration_from_pts(pt, 0, pt->num_packets - 1);
-            set_duration_from_pts(pt, pt->num_packets - 1, -1);
-            return 1;
-            }
-          }
-
-        // PBBBPP
-        if(IS_IP(next_ip+1))
-          {
-          set_duration_from_pts(pt, 0, next_ip);
-          return 1;
-          }
-        // PBBBPB
-        else
-          {
-          if(!pt->b_pyramid)
-            {
-            set_duration_from_pts(pt, 0, next_ip+1);
-            return 1;
-            }
-          else
-            {
-            int next_index;
-            int next_ip2 = get_next_ip_duration_from_pts(pt, next_ip+1);
-            if(next_ip2 < 0)
-              next_index = get_next_pts(pt, next_ip+1,
-                                        pt->num_packets,
-                                        pt->packets[0]->pts);
-            else
-              next_index = get_next_pts(pt, next_ip+1,
-                                        next_ip2,
-                                        pt->packets[0]->pts);
-            if(next_index < 0)
-              {
-              fprintf(stderr, "BUG 4\n");
-              }
-            set_duration_from_pts(pt, 0, next_index);
-            return 1;
-            }
-          }
-        
-        }
-      
-      }
+    /* Flush B-frame sequence */
+    flush_duration_from_pts(pt, 1, ip2, 0, ip2);
     }
+  /* PBBBPBBBP */
   else
     {
-    //BUG
-    fprintf(stderr, "BUG 2\n");
+    next = get_next_pts(pt, ip2+1, ip3, 0);
+    set_duration_from_pts(pt, 0, next);
+
+    /* Flush B-frame sequence */
+    flush_duration_from_pts(pt, 1, ip2, 0, ip2);
     }
-  
-  return 0;
+  return 1;
+  flush:
+
+  flush_duration_from_pts(pt, 0, pt->num_packets,
+                          0, pt->num_packets);
+  return 1;
   }
 
 /*
