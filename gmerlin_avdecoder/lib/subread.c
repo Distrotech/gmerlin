@@ -26,7 +26,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
-
+#include <glob.h>
 
 #include <avdec_private.h>
 
@@ -741,15 +741,14 @@ extern bgav_input_t bgav_input_file;
 bgav_subtitle_reader_context_t *
 bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   {
-  char * file, *directory, *pos, *name;
-  int file_len;
-  DIR * dir;
-  struct dirent * res;
+  char *pattern, *pos, *name;
   const bgav_subtitle_reader_t * r;
-  char * subtitle_filename;
   bgav_subtitle_reader_context_t * ret = NULL;
   bgav_subtitle_reader_context_t * end = NULL;
   bgav_subtitle_reader_context_t *new;
+  glob_t glob_buf;
+  int i;
+  int base_len;
   
   /* Check if input is a regular file */
   if((input_ctx->input != &bgav_input_file) || !input_ctx->filename)
@@ -757,55 +756,39 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     return NULL;
     }
 
-  /* Get directory name and open directory */
-  directory = bgav_strdup(input_ctx->filename);
-  pos = strrchr(directory, '/');
+  pattern = bgav_strdup(input_ctx->filename);
+  pos = strrchr(pattern, '.');
   if(!pos)
     {
-    free(directory);
-    return NULL;
-    }
-  *pos = '\0';
-
-  file = pos + 1;
-  /* Cut off extension */
-  pos = strrchr(file, '.');
-  if(pos)
-    file_len = pos - file;
-  else
-    file_len = strlen(file);
-  dir = opendir(directory);
-  if(!dir)
-    {
+    free(pattern);
     return NULL;
     }
 
-  while( (res=readdir(dir)) )
+  base_len = pos - pattern;
+  
+  pos[0] = '*';
+  pos[1] = '\0';
+
+  if(glob(pattern, 0, NULL, &glob_buf))
+    return NULL;
+
+  for(i = 0; i < glob_buf.gl_pathc; i++)
     {
-    if(!res)
-      break;
-    
-    /* Check, if the filenames match */
-    if(strncasecmp(res->d_name, file, file_len) ||
-       !strcmp(res->d_name, file))
+    if(!strcmp(glob_buf.gl_pathv[i], input_ctx->filename))
       continue;
-    
-    subtitle_filename = bgav_sprintf("%s/%s", directory, res->d_name);
-    
-    r = find_subtitle_reader(subtitle_filename, input_ctx->opt);
+    //    fprintf(stderr, "Found %s\n", glob_buf.gl_pathv[i]);
+
+    r = find_subtitle_reader(glob_buf.gl_pathv[i], input_ctx->opt);
     if(!r)
-      {
-      free(subtitle_filename);
       continue;
-      }
+    
     new = calloc(1, sizeof(*new));
-    new->filename = subtitle_filename;
+    new->filename = bgav_strdup(glob_buf.gl_pathv[i]);
     new->input    = bgav_input_create(input_ctx->opt);
     new->reader   = r;
     new->p = bgav_packet_create();
-    
-    name = res->d_name + file_len;
 
+    name = glob_buf.gl_pathv[i] + base_len;
     
     while(!isalnum(*name) && (*name != '\0'))
       name++;
@@ -815,7 +798,9 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
       pos = strrchr(name, '.');
       new->info = bgav_strndup(name, pos);
       }
-
+    
+    /* Apped to list */
+    
     if(!ret)
       {
       ret = new;
@@ -827,8 +812,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
       end = end->next;
       }
     }
-  closedir(dir);
-  free(directory);
+  globfree(&glob_buf);
   return ret;
   }
 
