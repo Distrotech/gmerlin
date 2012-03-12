@@ -44,6 +44,9 @@ typedef struct
   bgav_mkv_track_t * tracks;
   int num_tracks;
 
+  bgav_mkv_tag_t * tags;
+  int num_tags;
+  
   int64_t segment_start;
 
   bgav_mkv_cluster_t cluster;
@@ -748,6 +751,15 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
           return 0;
 #ifdef DUMP_HEADERS
         bgav_mkv_chapters_dump(&p->chapters);
+#endif
+        break;
+      case MKV_ID_Tags:
+        bgav_input_skip(ctx->input, head_len);
+        e.end += pos;
+        if(!bgav_mkv_tags_read(ctx->input, &p->tags, &p->num_tags, &e))
+          return 0;
+#ifdef DUMP_HEADERS
+        bgav_mkv_tags_dump(p->tags, p->num_tags);
 #endif
         break;
       default:

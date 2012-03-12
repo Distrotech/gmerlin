@@ -138,8 +138,7 @@ void bgav_mkv_chapter_atom_dump(bgav_mkv_chapter_atom_t * ca);
 void bgav_mkv_chapter_atom_free(bgav_mkv_chapter_atom_t * ca);
 
 
-/* */
-
+/* Edition entry */
 
 typedef struct
   {
@@ -173,6 +172,83 @@ int bgav_mkv_chapters_read(bgav_input_context_t * ctx,
 
 void bgav_mkv_chapters_dump(bgav_mkv_chapters_t * cd);
 void bgav_mkv_chapters_free(bgav_mkv_chapters_t * cd);
+
+/* Target */
+
+typedef struct
+  {
+  int TargetTypeValue;
+  char * TargetType;
+  uint64_t TagTrackUID;
+  uint64_t TagEditionUID;
+  uint64_t TagChapterUID;
+  uint64_t TagAttachmentUID;
+  } bgav_mkv_target_t;
+
+int bgav_mkv_target_read(bgav_input_context_t * ctx,
+                         bgav_mkv_target_t * ret,
+                         bgav_mkv_element_t * parent);
+
+void bgav_mkv_target_dump(bgav_mkv_target_t * t);
+void bgav_mkv_target_free(bgav_mkv_target_t * t);
+
+/* Targets */
+
+int bgav_mkv_targets_read(bgav_input_context_t * ctx,
+                          bgav_mkv_target_t ** ret,
+                          int * num_ret,
+                          bgav_mkv_element_t * parent);
+
+void bgav_mkv_targets_dump(bgav_mkv_target_t * t, int num);
+void bgav_mkv_targets_free(bgav_mkv_target_t * t, int num);
+
+
+/* SimpleTag */
+
+typedef struct
+  {
+  char * TagName;
+  char * TagLanguage;
+  int TagDefault;
+  char * TagString;
+  uint8_t * TagBinary;
+  int TagBinaryLen;
+  } bgav_mkv_simple_tag_t;
+
+int bgav_mkv_simple_tag_read(bgav_input_context_t * ctx,
+                             bgav_mkv_simple_tag_t * ret,
+                             bgav_mkv_element_t * parent);
+
+void bgav_mkv_simple_tag_dump(bgav_mkv_simple_tag_t * t);
+void bgav_mkv_simple_tag_free(bgav_mkv_simple_tag_t * t);
+
+/* Tag */
+
+typedef struct
+  {
+  bgav_mkv_target_t * targets;
+  int num_targets;
+  
+  bgav_mkv_simple_tag_t st;
+  } bgav_mkv_tag_t;
+
+int bgav_mkv_tag_read(bgav_input_context_t * ctx,
+                         bgav_mkv_tag_t * ret,
+                         bgav_mkv_element_t * parent);
+
+void bgav_mkv_tag_dump(bgav_mkv_tag_t * t);
+void bgav_mkv_tag_free(bgav_mkv_tag_t * t);
+
+/* Tags */
+
+int bgav_mkv_tags_read(bgav_input_context_t * ctx,
+                       bgav_mkv_tag_t ** ret,
+                       int * num_ret,
+                       bgav_mkv_element_t * parent);
+
+void bgav_mkv_tags_dump(bgav_mkv_tag_t * t, int num_tags);
+void bgav_mkv_tags_free(bgav_mkv_tag_t * t, int num_tags);
+
 
 /* SegmentInfo */
 
@@ -685,6 +761,25 @@ void bgav_mkv_block_group_free(bgav_mkv_block_group_t * g);
 #define MKV_ID_TimeSlice         0xe8
 #define MKV_ID_LaceNumber        0xcc
 #define MKV_ID_SimpleBlock       0xa3
+
+/* Tagging */
+
+#define MKV_ID_Tags              0x1254c367
+#define MKV_ID_Tag               0x7373
+#define MKV_ID_Targets           0x63c0
+#define MKV_ID_TargetTypeValue   0x68ca
+#define MKV_ID_TargetType        0x63ca
+#define MKV_ID_TagTrackUID       0x63c5
+#define MKV_ID_TagEditionUID     0x63c9
+#define MKV_ID_TagChapterUID     0x63c4
+#define MKV_ID_TagAttachmentUID  0x63c6
+#define MKV_ID_SimpleTag         0x67c8
+#define MKV_ID_TagName           0x45a3
+#define MKV_ID_TagLanguage       0x447a
+#define MKV_ID_TagDefault        0x4484
+#define MKV_ID_TagString         0x4487
+#define MKV_ID_TagBinary         0x4485
+
 
 #if 0
 #define MKV_ID_ 0x

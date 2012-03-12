@@ -708,7 +708,231 @@ void bgav_mkv_chapters_free(bgav_mkv_chapters_t * cd)
   
   }
 
+/* Target */
 
+int bgav_mkv_target_read(bgav_input_context_t * ctx,
+                         bgav_mkv_target_t * ret,
+                         bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+
+    switch(e.id)
+      {
+      case MKV_ID_TargetTypeValue:   // 0x68ca
+        if(!mkv_read_uint_small(ctx, &ret->TargetTypeValue, e.size))
+          return 0;
+        break;
+      case MKV_ID_TargetType:        // 0x63ca
+        if(!mkv_read_string(ctx, &ret->TargetType, e.size))
+          return 0;
+        break;
+      case MKV_ID_TagTrackUID:       // 0x63c5
+        if(!mkv_read_uint(ctx, &ret->TagTrackUID, e.size))
+          return 0;
+        break;
+      case MKV_ID_TagEditionUID:     // 0x63c9
+        if(!mkv_read_uint(ctx, &ret->TagEditionUID, e.size))
+          return 0;
+        break;
+      case MKV_ID_TagChapterUID:     // 0x63c4
+        if(!mkv_read_uint(ctx, &ret->TagChapterUID, e.size))
+          return 0;
+        break;
+      case MKV_ID_TagAttachmentUID:  // 0x63c6
+        if(!mkv_read_uint(ctx, &ret->TagAttachmentUID, e.size))
+          return 0;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "target");
+        break;
+      }
+    }
+  return 0;
+  }
+
+void bgav_mkv_target_dump(bgav_mkv_target_t * t)
+  {
+  bgav_dprintf("  TargetTypeValue:  %d\n",        t->TargetTypeValue);
+  bgav_dprintf("  TargetType:       %s\n",        t->TargetType);
+  bgav_dprintf("  TagTrackUID:      %"PRId64"\n", t->TagTrackUID);
+  bgav_dprintf("  TagEditionUID:    %"PRId64"\n", t->TagEditionUID);
+  bgav_dprintf("  TagChapterUID:    %"PRId64"\n", t->TagChapterUID);
+  bgav_dprintf("  TagAttachmentUID: %"PRId64"\n", t->TagAttachmentUID);
+  }
+
+void bgav_mkv_target_free(bgav_mkv_target_t * t)
+  {
+  MY_FREE(t->TargetType);
+  }
+
+/* Targets */
+
+int bgav_mkv_targets_read(bgav_input_context_t * ctx,
+                          bgav_mkv_target_t ** ret,
+                          int * num_ret,
+                          bgav_mkv_element_t * parent)
+  {
+  return 0;
+  }
+
+void bgav_mkv_targets_dump(bgav_mkv_target_t * t, int num)
+  {
+
+  }
+
+void bgav_mkv_targets_free(bgav_mkv_target_t * t, int num)
+  {
+  
+  }
+
+
+/* Simple tag */
+
+int bgav_mkv_simple_tag_read(bgav_input_context_t * ctx,
+                             bgav_mkv_simple_tag_t * ret,
+                             bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+    
+    switch(e.id)
+      {
+      case MKV_ID_TagName:
+        if(!mkv_read_string(ctx, &ret->TagName, e.size))
+          return 0;
+        break;
+      case MKV_ID_TagLanguage:
+        if(!mkv_read_string(ctx, &ret->TagLanguage, e.size))
+          return 0;
+        break;
+      case MKV_ID_TagDefault:
+        if(!mkv_read_uint_small(ctx, &ret->TagDefault, e.size))
+          return 0;
+        break;
+      case MKV_ID_TagString:
+        if(!mkv_read_string(ctx, &ret->TagString, e.size))
+          return 0;
+        break;
+      case MKV_ID_TagBinary:
+        if(!mkv_read_binary(ctx, &ret->TagBinary, &ret->TagBinaryLen, e.size))
+          return 0;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "simple_tag");
+        break;
+      }
+    }
+
+  return 0;
+  }
+
+void bgav_mkv_simple_tag_dump(bgav_mkv_simple_tag_t * t)
+  {
+  bgav_dprintf("  SimpleTag\n");
+  bgav_dprintf("    TagName:      %s\n", t->TagName);
+  bgav_dprintf("    TagLanguage:  %s\n", t->TagLanguage);
+  bgav_dprintf("    TagDefault:   %d\n", t->TagDefault);
+  bgav_dprintf("    TagString:    %s\n", t->TagString);
+  bgav_dprintf("    TagBinaryLen: %d\n", t->TagBinaryLen);
+  if(t->TagBinaryLen)
+    bgav_hexdump(t->TagBinary, t->TagBinaryLen, 16);
+  }
+
+void bgav_mkv_simple_tag_free(bgav_mkv_simple_tag_t * t)
+  {
+  MY_FREE(t->TagName);
+  MY_FREE(t->TagLanguage);
+  MY_FREE(t->TagString);
+  MY_FREE(t->TagBinary);
+  }
+
+/* Tag */
+
+int bgav_mkv_tag_read(bgav_input_context_t * ctx,
+                      bgav_mkv_tag_t * ret,
+                      bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+    
+    switch(e.id)
+      {
+      case MKV_ID_Targets:
+        
+        break;
+      case MKV_ID_SimpleTag:
+      default:
+        bgav_mkv_element_skip(ctx, &e, "tag");
+        break;
+      }
+    }
+  return 1;
+  }
+
+void bgav_mkv_tag_dump(bgav_mkv_tag_t * t)
+  {
+
+  }
+
+void bgav_mkv_tag_free(bgav_mkv_tag_t * t)
+  {
+
+  }
+
+/* Tags */
+
+int bgav_mkv_tags_read(bgav_input_context_t * ctx,
+                       bgav_mkv_tag_t ** ret,
+                       int * num_ret,
+                       bgav_mkv_element_t * parent)
+  {
+  bgav_mkv_element_t e;
+  while(ctx->position < parent->end)
+    {
+    if(!bgav_mkv_element_read(ctx, &e))
+      return 0;
+    switch(e.id)
+      {
+      case MKV_ID_Tag:
+        *ret = realloc(*ret, ((*num_ret)+1)*sizeof(**ret));
+        memset(*ret + *num_ret, 0, sizeof(**ret));
+        if(!bgav_mkv_tag_read(ctx, *ret + *num_ret, &e))
+          return 0;
+        (*num_ret)++;
+        break;
+      default:
+        bgav_mkv_element_skip(ctx, &e, "tags");
+        break;
+      }
+    
+    }
+  return 1;
+  }
+
+void bgav_mkv_tags_dump(bgav_mkv_tag_t * t, int num_tags)
+  {
+  int i;
+  for(i = 0; i < num_tags; i++)
+    bgav_mkv_tag_dump(t+i);
+  }
+
+void bgav_mkv_tags_free(bgav_mkv_tag_t * t, int num_tags)
+  {
+  int i;
+  for(i = 0; i < num_tags; i++)
+    bgav_mkv_tag_free(t+i);
+  MY_FREE(t);
+  }
 
 /* Segment info */
 
