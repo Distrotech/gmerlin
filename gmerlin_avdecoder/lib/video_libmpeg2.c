@@ -171,7 +171,7 @@ static void get_format(bgav_stream_t*s,
   int container_time;
   priv = s->data.video.decoder->priv;
 
-  container_time = (ret->timescale > 0) && (ret->frame_duration > 0);
+  container_time = (ret->timescale > 0);
 
   if(!container_time)
     {
@@ -309,7 +309,8 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
       continue;
       }
     
-    if((*state == STATE_GOP) && !(s->flags & FLAG_EXTERN_TIMECODES))
+    if((*state == STATE_GOP) && !(s->flags & FLAG_EXTERN_TIMECODES) &&
+       s->data.video.format.frame_duration)
       {
       if(!s->data.video.format.timecode_format.int_framerate)
         {

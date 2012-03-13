@@ -61,6 +61,9 @@ typedef struct
   int i_count;
 
   int d10; // Special handling for D10 */
+  
+  int framerate_from_container;
+  
   } mpeg12_priv_t;
 
 static void reset_mpeg12(bgav_video_parser_t * parser)
@@ -484,13 +487,19 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
           if(!len)
             return PARSER_ERROR;
           priv->have_sh = 1;
-          
-          bgav_mpv_get_framerate(priv->sh.frame_rate_index,
-                                 &timescale, &frame_duration);
 
-          parser->format->timescale = timescale;
-          parser->format->frame_duration = frame_duration;
-          bgav_video_parser_set_framerate(parser);
+          if(!parser->format->timescale)
+            {
+            bgav_mpv_get_framerate(priv->sh.frame_rate_index,
+                                   &timescale, &frame_duration);
+          
+            parser->format->timescale = timescale;
+            parser->format->frame_duration = frame_duration;
+            bgav_video_parser_set_framerate(parser);
+            }
+          else
+            priv->framerate_from_container = 1;
+          
           start += len;
           }
         else
@@ -505,9 +514,12 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
             return PARSER_ERROR;
           priv->sh.mpeg2 = 1;
 
-          parser->format->timescale *= (priv->sh.ext.timescale_ext+1) * 2;
-          parser->format->frame_duration *= (priv->sh.ext.frame_duration_ext+1) * 2;
-          bgav_video_parser_set_framerate(parser);
+          if(!priv->framerate_from_container)
+            {
+            parser->format->timescale *= (priv->sh.ext.timescale_ext+1) * 2;
+            parser->format->frame_duration *= (priv->sh.ext.frame_duration_ext+1) * 2;
+            bgav_video_parser_set_framerate(parser);
+            }
           start += len;
           }
         else
