@@ -250,10 +250,12 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     if(t->subtitle_streams[i].action == BGAV_STREAM_MUTE)
       continue;
     num_active_subtitle_streams++;
-    if(!t->subtitle_streams[i].data.subtitle.video_stream)
+    if(!t->subtitle_streams[i].data.subtitle.video_stream &&
+       t->num_video_streams)
+      {
       t->subtitle_streams[i].data.subtitle.video_stream =
         t->video_streams;
-
+      }
     if(!t->subtitle_streams[i].data.subtitle.video_stream)
       {
       bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -413,6 +415,15 @@ void bgav_track_remove_audio_stream(bgav_track_t * track, int stream)
 
 void bgav_track_remove_video_stream(bgav_track_t * track, int stream)
   {
+  /* Remove this stream from the subtitle streams as well */
+  int i;
+  for(i = 0; i < track->num_subtitle_streams; i++)
+    {
+    if(track->subtitle_streams[i].data.subtitle.video_stream ==
+       &track->video_streams[stream])
+      track->subtitle_streams[i].data.subtitle.video_stream = NULL;
+    }
+  
   remove_stream(track->video_streams, stream, track->num_video_streams);
   track->num_video_streams--;
   }
@@ -461,8 +472,6 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
     s = &track->video_streams[i];
     if(!bgav_find_video_decoder(s))
       {
-      bgav_track_remove_video_stream(track, i);
-      
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "No video decoder found for fourcc %c%c%c%c (0x%08x)",
                (s->fourcc & 0xFF000000) >> 24,
@@ -470,11 +479,11 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
                (s->fourcc & 0x0000FF00) >> 8,
                (s->fourcc & 0x000000FF),
                s->fourcc);
+      bgav_track_remove_video_stream(track, i);
       }
     else if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
        !bgav_video_parser_supported(s->fourcc))
       {
-      bgav_track_remove_video_stream(track, i);
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "No parser found for fourcc %c%c%c%c (0x%08x)",
                (s->fourcc & 0xFF000000) >> 24,
@@ -482,6 +491,7 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
                (s->fourcc & 0x0000FF00) >> 8,
                (s->fourcc & 0x000000FF),
                s->fourcc);
+      bgav_track_remove_video_stream(track, i);
       }
     else
       i++;

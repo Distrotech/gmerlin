@@ -205,7 +205,7 @@ static void init_theora(bgav_stream_t * s)
   setup_ogg_extradata(s);
   }
 
-static void init_avc1(bgav_stream_t * s)
+static void init_mpeg(bgav_stream_t * s)
   {
   bgav_mkv_track_t * track = s->priv;
 
@@ -231,7 +231,9 @@ static const codec_info_t video_codecs[] =
     { "V_REAL/RV40",     BGAV_MK_FOURCC('R','V','4','0'), NULL,     0 },
     { "V_VP8",           BGAV_MK_FOURCC('V','P','8','0'), NULL,     0 },
     { "V_THEORA",        BGAV_MK_FOURCC('T','H','R','A'), init_theora, 0 },
-    { "V_MPEG4/ISO/AVC", BGAV_MK_FOURCC('a','v','c','1'), init_avc1, 0 },
+    { "V_MPEG4/ISO/AVC", BGAV_MK_FOURCC('a','v','c','1'), init_mpeg, 0 },
+    { "V_MPEG1",         BGAV_MK_FOURCC('m','p','v','1'), init_mpeg, 0 },
+    { "V_MPEG2",         BGAV_MK_FOURCC('m','p','v','2'), init_mpeg, 0 },
     { /* End */ }
   };
 
@@ -384,7 +386,8 @@ static void init_stream_common(mkv_t * m,
   s->priv = track;
   s->stream_id = track->TrackNumber;
   s->timescale = 1000000000 / m->segment_info.TimecodeScale;
-
+  s->flags |= STREAM_NEED_START_TIME;
+  
   if(track->Language)
     memcpy(s->language, track->Language, 3);
   else
@@ -638,6 +641,42 @@ static bgav_chapter_list_t * create_chapter_list(bgav_mkv_chapters_t * chap)
   return ret;
   }
 
+#define SET_TAG_STRING(name, member) \
+  else if(!strcmp(tags[i].st[j].TagName, name)) \
+    ret->member = bgav_strdup(tags[i].st[j].TagString)
+
+#define SET_TAG_INT(name, member) \
+  else if(!strcmp(tags[i].st[j].TagName, name)) \
+    ret->member = atoi(tags[i].st[j].TagString)
+
+static void init_metadata(bgav_mkv_tag_t * tags, int num_tags,
+                          bgav_metadata_t * ret)
+  {
+  int i, j;
+  for(i = 0; i < num_tags; i++)
+    {
+    /* Pick just the global tags */
+    if(!tags[i].targets.num_TagTrackUID &&
+       !tags[i].targets.num_TagEditionUID &&
+       !tags[i].targets.num_TagChapterUID &&
+       !tags[i].targets.num_TagAttachmentUID)
+      {
+      for(j = 0; j < tags[i].num_st; j++)
+        {
+        if(!tags[i].st[j].TagName)
+          return;
+        SET_TAG_STRING("COMPOSER", author);
+        SET_TAG_STRING("ALBUM", album);
+        SET_TAG_STRING("COPYRIGHT", copyright);
+        SET_TAG_STRING("COMMENT", comment);
+        SET_TAG_STRING("GENRE", genre);
+        SET_TAG_STRING("DATE", date);
+        SET_TAG_INT("PART_NUMBER", track);
+        }
+      }
+    }
+  }
+
 #define MAX_HEADER_LEN 16
 
 static int open_matroska(bgav_demuxer_context_t * ctx)
@@ -811,6 +850,10 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
 
   /* Look for chapters */
   ctx->tt->cur->chapter_list = create_chapter_list(&p->chapters);
+
+  /* Metadata */
+  init_metadata(p->tags, p->num_tags,
+                &ctx->tt->cur->metadata);
   
   /* Look for file index (cues) */
   if(p->meta_seek_info.num_entries && ctx->input->input->seek_byte &&
