@@ -821,6 +821,7 @@ int bg_ffmpeg_start(void * data)
     }
 #endif
 
+#if 0  
   if(priv->need_pts_offset)
     {
     /* We use half a second */
@@ -844,7 +845,7 @@ int bg_ffmpeg_start(void * data)
       // fprintf(stderr, "pts offset: %lld\n", priv->video_streams[i].pts_offset);
       }
     }
-  
+#endif
   priv->initialized = 1;
   return 1;
   }
