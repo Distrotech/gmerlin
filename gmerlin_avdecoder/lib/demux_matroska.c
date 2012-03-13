@@ -1255,6 +1255,7 @@ static void close_matroska(bgav_demuxer_context_t * ctx)
   bgav_mkv_cues_free(&priv->cues);
   bgav_mkv_chapters_free(&priv->chapters);
   bgav_mkv_cluster_free(&priv->cluster);
+  bgav_mkv_tags_free(priv->tags, priv->num_tags);
 
   bgav_mkv_block_group_free(&priv->bg);
   

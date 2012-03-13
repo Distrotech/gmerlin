@@ -179,29 +179,25 @@ typedef struct
   {
   int TargetTypeValue;
   char * TargetType;
-  uint64_t TagTrackUID;
-  uint64_t TagEditionUID;
-  uint64_t TagChapterUID;
-  uint64_t TagAttachmentUID;
-  } bgav_mkv_target_t;
-
-int bgav_mkv_target_read(bgav_input_context_t * ctx,
-                         bgav_mkv_target_t * ret,
-                         bgav_mkv_element_t * parent);
-
-void bgav_mkv_target_dump(bgav_mkv_target_t * t);
-void bgav_mkv_target_free(bgav_mkv_target_t * t);
-
-/* Targets */
+  uint64_t * TagTrackUID;
+  int num_TagTrackUID;
+  
+  uint64_t * TagEditionUID;
+  int num_TagEditionUID;
+  
+  uint64_t * TagChapterUID;
+  int num_TagChapterUID;
+  
+  uint64_t * TagAttachmentUID;
+  int num_TagAttachmentUID;
+  } bgav_mkv_targets_t;
 
 int bgav_mkv_targets_read(bgav_input_context_t * ctx,
-                          bgav_mkv_target_t ** ret,
-                          int * num_ret,
-                          bgav_mkv_element_t * parent);
+                         bgav_mkv_targets_t * ret,
+                         bgav_mkv_element_t * parent);
 
-void bgav_mkv_targets_dump(bgav_mkv_target_t * t, int num);
-void bgav_mkv_targets_free(bgav_mkv_target_t * t, int num);
-
+void bgav_mkv_targets_dump(bgav_mkv_targets_t * t);
+void bgav_mkv_targets_free(bgav_mkv_targets_t * t);
 
 /* SimpleTag */
 
@@ -226,10 +222,10 @@ void bgav_mkv_simple_tag_free(bgav_mkv_simple_tag_t * t);
 
 typedef struct
   {
-  bgav_mkv_target_t * targets;
-  int num_targets;
+  bgav_mkv_targets_t targets;
   
-  bgav_mkv_simple_tag_t st;
+  bgav_mkv_simple_tag_t * st;
+  int num_st;
   } bgav_mkv_tag_t;
 
 int bgav_mkv_tag_read(bgav_input_context_t * ctx,

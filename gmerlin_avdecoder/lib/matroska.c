@@ -710,8 +710,8 @@ void bgav_mkv_chapters_free(bgav_mkv_chapters_t * cd)
 
 /* Target */
 
-int bgav_mkv_target_read(bgav_input_context_t * ctx,
-                         bgav_mkv_target_t * ret,
+int bgav_mkv_targets_read(bgav_input_context_t * ctx,
+                         bgav_mkv_targets_t * ret,
                          bgav_mkv_element_t * parent)
   {
   bgav_mkv_element_t e;
@@ -731,64 +731,69 @@ int bgav_mkv_target_read(bgav_input_context_t * ctx,
           return 0;
         break;
       case MKV_ID_TagTrackUID:       // 0x63c5
-        if(!mkv_read_uint(ctx, &ret->TagTrackUID, e.size))
+        ret->TagTrackUID =
+          realloc(ret->TagTrackUID,
+                  (ret->num_TagTrackUID+1)*sizeof(*ret->TagTrackUID));
+        if(!mkv_read_uint(ctx, ret->TagTrackUID + ret->num_TagTrackUID, e.size))
           return 0;
+        ret->num_TagTrackUID++;
         break;
       case MKV_ID_TagEditionUID:     // 0x63c9
-        if(!mkv_read_uint(ctx, &ret->TagEditionUID, e.size))
+        ret->TagEditionUID =
+          realloc(ret->TagEditionUID,
+                  (ret->num_TagEditionUID+1)*sizeof(*ret->TagEditionUID));
+        if(!mkv_read_uint(ctx, ret->TagEditionUID + ret->num_TagEditionUID, e.size))
           return 0;
+        ret->num_TagEditionUID++;
         break;
       case MKV_ID_TagChapterUID:     // 0x63c4
-        if(!mkv_read_uint(ctx, &ret->TagChapterUID, e.size))
+        ret->TagChapterUID =
+          realloc(ret->TagChapterUID,
+                  (ret->num_TagChapterUID+1)*sizeof(*ret->TagChapterUID));
+        if(!mkv_read_uint(ctx, ret->TagChapterUID + ret->num_TagChapterUID, e.size))
           return 0;
+        ret->num_TagChapterUID++;
         break;
       case MKV_ID_TagAttachmentUID:  // 0x63c6
-        if(!mkv_read_uint(ctx, &ret->TagAttachmentUID, e.size))
+        ret->TagAttachmentUID =
+          realloc(ret->TagAttachmentUID,
+                  (ret->num_TagAttachmentUID+1)*sizeof(*ret->TagAttachmentUID));
+        if(!mkv_read_uint(ctx, ret->TagAttachmentUID + ret->num_TagAttachmentUID, e.size))
           return 0;
+        ret->num_TagAttachmentUID++;
         break;
       default:
         bgav_mkv_element_skip(ctx, &e, "target");
         break;
       }
     }
-  return 0;
+  return 1;
   }
 
-void bgav_mkv_target_dump(bgav_mkv_target_t * t)
+void bgav_mkv_targets_dump(bgav_mkv_targets_t * t)
   {
-  bgav_dprintf("  TargetTypeValue:  %d\n",        t->TargetTypeValue);
-  bgav_dprintf("  TargetType:       %s\n",        t->TargetType);
-  bgav_dprintf("  TagTrackUID:      %"PRId64"\n", t->TagTrackUID);
-  bgav_dprintf("  TagEditionUID:    %"PRId64"\n", t->TagEditionUID);
-  bgav_dprintf("  TagChapterUID:    %"PRId64"\n", t->TagChapterUID);
-  bgav_dprintf("  TagAttachmentUID: %"PRId64"\n", t->TagAttachmentUID);
+  int i;
+  bgav_dprintf("  Targets\n");
+  bgav_dprintf("    TargetTypeValue:  %d\n",        t->TargetTypeValue);
+  bgav_dprintf("    TargetType:       %s\n",        t->TargetType);
+  for(i = 0; i < t->num_TagTrackUID; i++)
+    bgav_dprintf("    TagTrackUID:      %"PRId64"\n", t->TagTrackUID[i]);
+  for(i = 0; i < t->num_TagEditionUID; i++)
+    bgav_dprintf("    TagEditionUID:    %"PRId64"\n", t->TagEditionUID[i]);
+  for(i = 0; i < t->num_TagChapterUID; i++)
+    bgav_dprintf("    TagChapterUID:    %"PRId64"\n", t->TagChapterUID[i]);
+  for(i = 0; i < t->num_TagAttachmentUID; i++)
+    bgav_dprintf("    TagAttachmentUID: %"PRId64"\n", t->TagAttachmentUID[i]);
   }
 
-void bgav_mkv_target_free(bgav_mkv_target_t * t)
+void bgav_mkv_targets_free(bgav_mkv_targets_t * t)
   {
   MY_FREE(t->TargetType);
+  MY_FREE(t->TagTrackUID);
+  MY_FREE(t->TagEditionUID);
+  MY_FREE(t->TagChapterUID);
+  MY_FREE(t->TagAttachmentUID);
   }
-
-/* Targets */
-
-int bgav_mkv_targets_read(bgav_input_context_t * ctx,
-                          bgav_mkv_target_t ** ret,
-                          int * num_ret,
-                          bgav_mkv_element_t * parent)
-  {
-  return 0;
-  }
-
-void bgav_mkv_targets_dump(bgav_mkv_target_t * t, int num)
-  {
-
-  }
-
-void bgav_mkv_targets_free(bgav_mkv_target_t * t, int num)
-  {
-  
-  }
-
 
 /* Simple tag */
 
@@ -830,7 +835,7 @@ int bgav_mkv_simple_tag_read(bgav_input_context_t * ctx,
       }
     }
 
-  return 0;
+  return 1;
   }
 
 void bgav_mkv_simple_tag_dump(bgav_mkv_simple_tag_t * t)
@@ -867,10 +872,17 @@ int bgav_mkv_tag_read(bgav_input_context_t * ctx,
     
     switch(e.id)
       {
-      case MKV_ID_Targets:
-        
-        break;
       case MKV_ID_SimpleTag:
+        ret->st = realloc(ret->st, (ret->num_st + 1)*sizeof(*ret->st));
+        memset(ret->st + ret->num_st, 0, sizeof(*ret->st));
+        if(!bgav_mkv_simple_tag_read(ctx, ret->st + ret->num_st, &e))
+          return 0;
+        ret->num_st++;
+        break;
+      case MKV_ID_Targets:
+        if(!bgav_mkv_targets_read(ctx, &ret->targets, &e))
+          return 0;
+        break;
       default:
         bgav_mkv_element_skip(ctx, &e, "tag");
         break;
@@ -881,12 +893,26 @@ int bgav_mkv_tag_read(bgav_input_context_t * ctx,
 
 void bgav_mkv_tag_dump(bgav_mkv_tag_t * t)
   {
-
+  int i;
+  bgav_dprintf("Tag:\n");
+  
+  bgav_mkv_targets_dump(&t->targets);
+  
+  for(i = 0; i < t->num_st; i++)
+    {
+    bgav_mkv_simple_tag_dump(t->st + i);
+    }
+  
   }
 
 void bgav_mkv_tag_free(bgav_mkv_tag_t * t)
   {
+  int i;
 
+  for(i = 0; i < t->num_st; i++)
+    bgav_mkv_simple_tag_free(t->st + i);
+  MY_FREE(t->st);
+  bgav_mkv_targets_free(&t->targets);
   }
 
 /* Tags */

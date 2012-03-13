@@ -772,6 +772,8 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   if(glob(pattern, 0, NULL, &glob_buf))
     return NULL;
 
+  free(pattern);
+  
   for(i = 0; i < glob_buf.gl_pathc; i++)
     {
     if(!strcmp(glob_buf.gl_pathv[i], input_ctx->filename))
