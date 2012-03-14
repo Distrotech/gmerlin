@@ -274,41 +274,6 @@ static void init_common(bg_flac_t * flac)
     
   }
 
-#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
-void bg_flac_init_file_encoder(bg_flac_t * flac, FLAC__FileEncoder * enc)
-  {
-  init_common(flac);
-  /* Set compression parameters from presets */
-
-  FLAC__file_encoder_set_sample_rate(enc, flac->format->samplerate);
-  FLAC__file_encoder_set_channels(enc, flac->format->num_channels);
-  
-  FLAC__file_encoder_set_blocksize(enc,
-                                   clevels[flac->clevel].blocksize);
-    
-  FLAC__file_encoder_set_max_lpc_order(enc,
-                                       clevels[flac->clevel].max_lpc_order);
-  FLAC__file_encoder_set_min_residual_partition_order(enc,
-                                                      clevels[flac->clevel].min_residual_partition_order);
-  FLAC__file_encoder_set_max_residual_partition_order(enc,
-                                                      clevels[flac->clevel].max_residual_partition_order);
-    
-  if(flac->format->num_channels == 2)
-    {
-    FLAC__file_encoder_set_do_mid_side_stereo(enc,
-                                              clevels[flac->clevel].do_mid_side);
-    FLAC__file_encoder_set_loose_mid_side_stereo(enc,
-                                                 clevels[flac->clevel].loose_mid_side);
-    }
-
-  FLAC__file_encoder_set_do_exhaustive_model_search(enc,
-                                                    clevels[flac->clevel].do_exhaustive_model_search);
-
-  FLAC__file_encoder_set_bits_per_sample(enc, flac->bits_per_sample);
-  
-  }
-#endif
-
 void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc)
   {
   init_common(flac);

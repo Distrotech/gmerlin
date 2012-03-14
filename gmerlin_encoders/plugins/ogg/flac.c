@@ -75,11 +75,7 @@ typedef struct
 static FLAC__StreamEncoderWriteStatus
 write_callback(const FLAC__StreamEncoder *encoder,
                const FLAC__byte buffer[],
-#if BGAV_FLAC_VERSION_INT < MAKE_VERSION(1, 1, 2)
-               unsigned bytes,
-#else
                size_t bytes,
-#endif
                unsigned samples,
                unsigned current_frame,
                void *data)
@@ -241,30 +237,16 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
 
   /* Initialize encoder */
     
-#if BGAV_FLAC_VERSION_INT < MAKE_VERSION(1, 1, 2)
-  FLAC__stream_encoder_set_write_callback(flacogg->enc, write_callback);
-  FLAC__stream_encoder_set_metadata_callback(flacogg->enc, metadata_callback);
-  FLAC__stream_encoder_set_client_data(flacogg->enc, flacogg);
-  
-  if(FLAC__stream_encoder_init(flacogg->enc) != FLAC__STREAM_ENCODER_OK)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "FLAC__stream_encoder_init failed");
-    return 0;
-    }
-#else
   if(FLAC__stream_encoder_init_stream(flacogg->enc,
                                       write_callback,
                                       NULL,
                                       NULL,
                                       metadata_callback,
                                       flacogg) != FLAC__STREAM_ENCODER_OK)
-  {
-  bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "FLAC__stream_encoder_init_stream failed");
-  return 0;
-  }
-#endif
-  
-
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "FLAC__stream_encoder_init_stream failed");
+    return 0;
+    }
   
   return 1;
   }
