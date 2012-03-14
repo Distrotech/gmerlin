@@ -9,7 +9,7 @@ AH_TEMPLATE([HAVE_LIBAVCODEC],
 
 have_avcodec=false
 
-AVCODEC_BUILD="3345152"
+AVCODEC_BUILD="3412992"
 
 AC_ARG_ENABLE(libavcodec,
 [AC_HELP_STRING([--disable-libavcodec],[Disable libavcodec (default: autodetect)])],
@@ -48,7 +48,7 @@ AH_TEMPLATE([AVFORMAT_HEADER], [libavformat header])
 
 have_avformat=false
 
-AVFORMAT_BUILD="3278080"
+AVFORMAT_BUILD="3415808"
 
 AC_ARG_ENABLE(libavformat,
 [AC_HELP_STRING([--disable-libavformat],[Disable libavformat (default: autodetect)])],
@@ -989,7 +989,7 @@ dnl
 
 AC_DEFUN([GMERLIN_CHECK_FLAC],[
 
-FLAC_REQUIRED="1.1.0"
+FLAC_REQUIRED="1.2.0"
 have_flac="false"
 
 AC_ARG_ENABLE(flac,
@@ -1024,7 +1024,7 @@ LIBS="$GMERLIN_DEP_LIBS -lFLAC -lm"
     if(sscanf(FLAC__VERSION_STRING, "%d.%d.%d", &version_major,
               &version_minor, &version_patchlevel) < 3)
       return -1;
-    if((version_major != 1) || (version_minor < 1))
+    if((version_major != 1) || (version_minor < 2))
       return 1;
     version_file = fopen("flac_version", "w");
     fprintf(version_file, "%d.%d.%d\n", version_major,
@@ -1575,10 +1575,8 @@ esac],[test_libjpeg=true])
 
 if test x$test_libjpeg = xtrue; then
 
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 LIBS="$LIBS -ljpeg"
-CFLAGS="$CFLAGS"
 
 AC_MSG_CHECKING(for libjpeg)
 AC_TRY_LINK([#include <stdio.h>
@@ -1589,13 +1587,11 @@ AC_TRY_LINK([#include <stdio.h>
 case $have_libjpeg in
   true) AC_DEFINE(HAVE_LIBJPEG)
         AC_MSG_RESULT(yes)
-        JPEG_LIBS=$LIBS;
-        JPEG_CFLAGS=$CFLAGS;;
+        JPEG_LIBS=$LIBS;;
   false) AC_MSG_RESULT(no); JPEG_LIBS=""; JPEG_CFLAGS="";;
   * ) AC_MSG_RESULT("Somethings wrong: $have_libjpeg") ;;
 esac
 
-CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
 fi
@@ -1638,7 +1634,6 @@ dnl
 dnl Search for OpenGL libraries
 dnl
 
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 have_GL="true"
@@ -1651,17 +1646,14 @@ int main() { if(0) glBegin(GL_QUADS); return 0;}
 ],[],[have_GL="false"])
 fi
 
-GL_CFLAGS=$CFLAGS
 GL_LIBS=$LIBS
 
-CFLAGS="$OLD_CFLAGS"
 LIBS="$OLD_LIBS"
 
 dnl
 dnl Check for GLX
 dnl
 
-OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 have_GLX="true"
@@ -1674,10 +1666,8 @@ int main() { if(0) glXChooseFBConfig(NULL, 0,
 	NULL, NULL); return 0;}],[],[have_GLX="false"])
 fi
 
-GLX_CFLAGS=$CFLAGS
 GLX_LIBS=$LIBS
 
-CFLAGS="$OLD_CFLAGS"
 LIBS="$OLD_LIBS"
 
 if test "x$have_GL" = "xtrue"; then
@@ -1810,7 +1800,8 @@ AC_ARG_ENABLE(vdpau,
 esac],[test_vdpau=true])
 
 if test x$test_vdpau = xtrue; then
-   
+if test x$have_x = xtrue; then
+ 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
@@ -1837,6 +1828,7 @@ esac
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
+fi
 fi
 
 AC_SUBST(VDPAU_CFLAGS)
