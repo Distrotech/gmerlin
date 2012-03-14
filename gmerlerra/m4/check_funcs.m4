@@ -989,7 +989,7 @@ dnl
 
 AC_DEFUN([GMERLIN_CHECK_FLAC],[
 
-FLAC_REQUIRED="1.1.0"
+FLAC_REQUIRED="1.2.0"
 have_flac="false"
 
 AC_ARG_ENABLE(flac,
@@ -1024,7 +1024,7 @@ LIBS="$GMERLIN_DEP_LIBS -lFLAC -lm"
     if(sscanf(FLAC__VERSION_STRING, "%d.%d.%d", &version_major,
               &version_minor, &version_patchlevel) < 3)
       return -1;
-    if((version_major != 1) || (version_minor < 1))
+    if((version_major != 1) || (version_minor < 2))
       return 1;
     version_file = fopen("flac_version", "w");
     fprintf(version_file, "%d.%d.%d\n", version_major,
