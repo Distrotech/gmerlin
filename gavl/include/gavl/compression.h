@@ -63,6 +63,7 @@ typedef enum
     GAVL_CODEC_ID_AC3,       //!< AC3
     GAVL_CODEC_ID_AAC,       //!< AAC as stored in quicktime/mp4
     GAVL_CODEC_ID_VORBIS,    //!< Vorbis (segmented extradata and packets)
+    GAVL_CODEC_ID_FLAC,      //!< Flac (extradata contain a file header without comment and seektable)
     
     /* Video */
     GAVL_CODEC_ID_JPEG = 0x10000, //!< JPEG image
@@ -73,7 +74,7 @@ typedef enum
     GAVL_CODEC_ID_MPEG2,          //!< MPEG-2 video
     GAVL_CODEC_ID_MPEG4_ASP,      //!< MPEG-4 ASP (a.k.a. Divx4)
     GAVL_CODEC_ID_H264,           //!< H.264 (Annex B)
-    GAVL_CODEC_ID_THEORA,         //!< Theora (segmented extradata
+    GAVL_CODEC_ID_THEORA,         //!< Theora (segmented extradata)
     GAVL_CODEC_ID_DIRAC,          //!< Complete DIRAC frames, sequence end code appended to last packet
     GAVL_CODEC_ID_DV,             //!< DV (several variants)
   } gavl_codec_id_t;
