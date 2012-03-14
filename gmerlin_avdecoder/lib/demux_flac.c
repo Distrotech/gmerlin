@@ -175,22 +175,13 @@ static int open_flac(bgav_demuxer_context_t * ctx)
         
         bgav_flac_streaminfo_dump(&priv->streaminfo);
         
-        s->data.audio.format.num_channels = priv->streaminfo.num_channels;
-        s->data.audio.format.samplerate   = priv->streaminfo.samplerate;
-        s->data.audio.bits_per_sample     = priv->streaminfo.bits_per_sample;
-
-        if(priv->streaminfo.min_blocksize ==
-           priv->streaminfo.max_blocksize)
-          s->data.audio.format.samples_per_frame = priv->streaminfo.min_blocksize;
-           
-
-        s->fourcc = BGAV_MK_FOURCC('F', 'L', 'A', 'C');
+        bgav_flac_streaminfo_init_stream(&priv->streaminfo, s);
         
         if(priv->streaminfo.total_samples)
           ctx->tt->cur->duration =
             gavl_samples_to_time(priv->streaminfo.samplerate,
                                  priv->streaminfo.total_samples);
-        
+          
         //        bgav_input_skip(ctx->input, size);
         break;
       case 1: // PADDING

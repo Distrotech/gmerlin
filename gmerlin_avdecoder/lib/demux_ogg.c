@@ -46,6 +46,7 @@
 #include <avdec_private.h>
 #include <vorbis_comment.h>
 #include <dirac_header.h>
+#include <flac_header.h>
 
 #include <ogg/ogg.h>
 
@@ -519,6 +520,17 @@ static void cleanup_stream_ogg(bgav_stream_t * s)
     }
   }
 
+static void setup_flac(bgav_stream_t * s)
+  {
+  bgav_flac_streaminfo_t h;
+
+  if(s->ext_size - 8 < BGAV_FLAC_STREAMINFO_SIZE)
+    return;
+  
+  bgav_flac_streaminfo_read(s->ext_data + 8, &h);
+  bgav_flac_streaminfo_init_stream(&h, s);
+  }
+
 /* Set up a track, which starts at start position */
 
 static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
@@ -708,11 +720,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         /* We tell the decoder, that this is the last metadata packet */
         s->ext_data[4] |= 0x80;
         
-        s->data.audio.format.samplerate = 
-          (s->ext_data[18] << 12) |
-          (s->ext_data[19] << 4) |
-          ((s->ext_data[20] >> 4)&0xf);
-
+        setup_flac(s);
+        
         ogg_stream->header_packets_needed = BGAV_PTR_2_16BE(priv->op.packet+7)+1;
         ogg_stream->header_packets_read = 1;
 
@@ -951,11 +960,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
 
                 /* We tell the decoder, that this is the last metadata packet */
                 s->ext_data[4] |= 0x80;
-              
-                s->data.audio.format.samplerate = 
-                  (s->ext_data[18] << 12) |
-                  (s->ext_data[19] << 4) |
-                  ((s->ext_data[20] >> 4)&0xf);
+                setup_flac(s);
                 break;
               case 1:
                 parse_vorbis_comment(s, priv->op.packet+4, priv->op.bytes-4);
@@ -2069,12 +2074,15 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         
           if(!check_header_packet(priv, s, &priv->op))
             break;
-        
+          
           p = bgav_stream_get_packet_write(s);
           bgav_packet_alloc(p, priv->op.bytes);
           memcpy(p->data, priv->op.packet, priv->op.bytes);
           p->data_size = priv->op.bytes;
 
+          fprintf(stderr, "Flac packet:\n");
+          bgav_hexdump(p->data, 16, 16);
+          
           if(stream_priv->prev_granulepos >= 0)
             {
             p->pts = stream_priv->prev_granulepos;

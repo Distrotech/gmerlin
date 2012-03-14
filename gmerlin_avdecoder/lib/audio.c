@@ -368,6 +368,13 @@ static uint32_t aac_fourccs[] =
     0x00
   };
 
+static uint32_t flac_fourccs[] =
+  {
+    BGAV_MK_FOURCC('F','L','A','C'),
+    0x00
+  };
+
+
 static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
   {
   int i = 0;
@@ -394,38 +401,34 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
   memset(info, 0, sizeof(*info));
   
   if(check_fourcc(s->fourcc, alaw_fourccs))
-    {
     id = GAVL_CODEC_ID_ALAW;
-    }
   else if(check_fourcc(s->fourcc, ulaw_fourccs))
-    {
     id = GAVL_CODEC_ID_ULAW;
-    }
   else if(check_fourcc(s->fourcc, ac3_fourccs))
-    {
     id = GAVL_CODEC_ID_AC3;
-    }
   else if(check_fourcc(s->fourcc, mp2_fourccs))
-    {
     id = GAVL_CODEC_ID_MP2;
-    }
   else if(check_fourcc(s->fourcc, mp3_fourccs))
-    {
     id = GAVL_CODEC_ID_MP3;
-    }
   else if(check_fourcc(s->fourcc, aac_fourccs))
     {
     id = GAVL_CODEC_ID_AAC;
     need_header = 1;
     need_bitrate = 0;
     }
-
   else if(check_fourcc(s->fourcc, vorbis_fourccs))
     {
     id = GAVL_CODEC_ID_VORBIS;
     need_bitrate = 0;
     need_header = 1;
     }
+  else if(check_fourcc(s->fourcc, flac_fourccs))
+    {
+    id = GAVL_CODEC_ID_FLAC;
+    need_bitrate = 0;
+    need_header = 1;
+    }
+  
   if(id == GAVL_CODEC_ID_NONE)
     {
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,

@@ -60,6 +60,59 @@ void bgav_flac_streaminfo_dump(bgav_flac_streaminfo_t * s)
   bgav_dprintf("  Total samples:   %" PRId64 "\n", s->total_samples);
   }
 
+void bgav_flac_streaminfo_init_stream(bgav_flac_streaminfo_t * si, bgav_stream_t * s)
+  {
+  gavl_audio_format_t * fmt = &s->data.audio.format;
+  
+  fmt->num_channels = si->num_channels;
+  fmt->samplerate   = si->samplerate;
+  s->data.audio.bits_per_sample     = si->bits_per_sample;
+  
+  if(si->min_blocksize ==
+     si->max_blocksize)
+    fmt->samples_per_frame = si->min_blocksize;
+  s->fourcc = BGAV_MK_FOURCC('F', 'L', 'A', 'C');
+
+  switch(fmt->num_channels)
+    {
+    case 1:
+      fmt->channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+      break;
+    case 2:
+      fmt->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      fmt->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      break;
+    case 3:
+      fmt->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      fmt->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      fmt->channel_locations[2] = GAVL_CHID_FRONT_CENTER;
+      break;
+    case 4:
+      fmt->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      fmt->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      fmt->channel_locations[2] = GAVL_CHID_REAR_LEFT;
+      fmt->channel_locations[3] = GAVL_CHID_REAR_RIGHT;
+      break;
+    case 5:
+      fmt->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      fmt->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      fmt->channel_locations[2] = GAVL_CHID_FRONT_CENTER;
+      fmt->channel_locations[3] = GAVL_CHID_REAR_LEFT;
+      fmt->channel_locations[4] = GAVL_CHID_REAR_RIGHT;
+      break;
+    case 6:
+      fmt->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      fmt->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      fmt->channel_locations[2] = GAVL_CHID_FRONT_CENTER;
+      fmt->channel_locations[3] = GAVL_CHID_LFE;
+      fmt->channel_locations[4] = GAVL_CHID_REAR_LEFT;
+      fmt->channel_locations[5] = GAVL_CHID_REAR_RIGHT;
+      break;
+    }
+  if(si->total_samples)
+    s->duration = si->total_samples;
+  }
+
 static int read_utf8(const uint8_t * ptr, int64_t * ret)
   {
   uint8_t mask, val;
@@ -292,7 +345,7 @@ int bgav_flac_frame_header_read(const uint8_t * ptr,
   crc = crc8(ptr_start, ptr - ptr_start);
   if(crc != *ptr)
     {
-    fprintf(stderr, "CRC mismatch\n");
+    //    fprintf(stderr, "CRC mismatch\n");
     return 0;
     }
   
