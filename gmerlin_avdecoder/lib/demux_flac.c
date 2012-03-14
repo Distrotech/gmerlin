@@ -36,59 +36,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vorbis_comment.h>
+#include <flac_header.h>
 
-typedef struct
-  {
-  uint16_t min_blocksize;
-  uint16_t max_blocksize;
-
-  uint32_t min_framesize;
-  uint32_t max_framesize;
-
-  uint32_t samplerate;
-  int num_channels;
-  int bits_per_sample;
-  int64_t total_samples;
-  } streaminfo_t;
-
-#define STREAMINFO_SIZE 38
-
-static int streaminfo_read(bgav_input_context_t * ctx,
-                    streaminfo_t * ret)
-  {
-  uint64_t tmp_1;
-  
-  if(!bgav_input_read_16_be(ctx, &ret->min_blocksize) ||
-     !bgav_input_read_16_be(ctx, &ret->max_blocksize) ||
-     !bgav_input_read_24_be(ctx, &ret->min_framesize) ||
-     !bgav_input_read_24_be(ctx, &ret->max_framesize) ||
-     !bgav_input_read_64_be(ctx, &tmp_1))
-    return 0;
-
-  ret->samplerate      =   tmp_1 >> 44;
-  ret->num_channels    = ((tmp_1 >> 41) & 0x7) + 1;
-  ret->bits_per_sample = ((tmp_1 >> 36) & 0x1f) + 1;
-  ret->total_samples   = (tmp_1 & 0xfffffffffLL);
-
-  /* Skip MD5 */
-  bgav_input_skip(ctx, 16);
-  
-  return 1;
-  }
-#if 0
-static void streaminfo_dump(streaminfo_t * s)
-  {
-  bgav_dprintf("FLAC Streaminfo\n");
-  bgav_dprintf("Blocksize [%d/%d]\n", s->min_blocksize,
-          s->max_blocksize);
-  bgav_dprintf("Framesize [%d/%d]\n", s->min_framesize,
-          s->max_framesize);
-  bgav_dprintf("Samplerate:      %d\n", s->samplerate);
-  bgav_dprintf("Num channels:    %d\n", s->num_channels);
-  bgav_dprintf("Bits per sample: %d\n", s->bits_per_sample);
-  bgav_dprintf("Total samples:   %" PRId64 "\n", s->total_samples);
-  }
-#endif
 /* Seek table */
 
 typedef struct
@@ -134,14 +83,6 @@ static void seektable_dump(seektable_t * t)
   }
 #endif
 
-/*
- *  Vorbis comment.
- *  These are simple enough to support directly
- */
-
-
-
-
 /* Probe */
 
 static int probe_flac(bgav_input_context_t * input)
@@ -162,8 +103,13 @@ static int probe_flac(bgav_input_context_t * input)
 
 typedef struct
   {
-  streaminfo_t streaminfo;
+  bgav_flac_streaminfo_t streaminfo;
   seektable_t seektable;
+  
+  bgav_bytebuffer_t buf;
+  int64_t next_header;
+  int has_sync;
+  bgav_flac_frame_header_t fh;
   } flac_priv_t;
 
 
@@ -206,7 +152,7 @@ static int open_flac(bgav_demuxer_context_t * ctx)
       case 0: // STREAMINFO
         /* Add audio stream */
         s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-        s->ext_size = STREAMINFO_SIZE + 4;
+        s->ext_size = BGAV_FLAC_STREAMINFO_SIZE + 8; // Make a complete file header
         s->ext_data = malloc(s->ext_size);
 
         s->ext_data[0] = 'f';
@@ -220,23 +166,24 @@ static int open_flac(bgav_demuxer_context_t * ctx)
         s->ext_data[4] |= 0x80;
         
         if(bgav_input_read_data(ctx->input, s->ext_data + 8,
-                                STREAMINFO_SIZE - 4) < 
-           STREAMINFO_SIZE - 4)
+                                BGAV_FLAC_STREAMINFO_SIZE) < 
+           BGAV_FLAC_STREAMINFO_SIZE)
           goto fail;
         
-        input_mem =
-          bgav_input_open_memory(s->ext_data + 8, STREAMINFO_SIZE - 4,
-                                 ctx->opt);
-        
-        if(!streaminfo_read(input_mem, &priv->streaminfo))
+        if(!bgav_flac_streaminfo_read(s->ext_data + 8, &priv->streaminfo))
           goto fail;
-        bgav_input_close(input_mem);
-        bgav_input_destroy(input_mem);
-        //        streaminfo_dump(&priv->streaminfo);
+        
+        bgav_flac_streaminfo_dump(&priv->streaminfo);
         
         s->data.audio.format.num_channels = priv->streaminfo.num_channels;
         s->data.audio.format.samplerate   = priv->streaminfo.samplerate;
         s->data.audio.bits_per_sample     = priv->streaminfo.bits_per_sample;
+
+        if(priv->streaminfo.min_blocksize ==
+           priv->streaminfo.max_blocksize)
+          s->data.audio.format.samples_per_frame = priv->streaminfo.min_blocksize;
+           
+
         s->fourcc = BGAV_MK_FOURCC('F', 'L', 'A', 'C');
         
         if(priv->streaminfo.total_samples)
@@ -293,7 +240,8 @@ static int open_flac(bgav_demuxer_context_t * ctx)
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   ctx->stream_description = bgav_strdup("FLAC Format");
-
+  ctx->index_mode = INDEX_MODE_SIMPLE;
+  
   if(priv->seektable.num_entries && ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
   
@@ -302,27 +250,97 @@ static int open_flac(bgav_demuxer_context_t * ctx)
   return 0;
   }
 
-#define PACKET_BYTES 1024
+#define BYTES_TO_READ 1024
+#define SYNC_SIZE (1024*1024)
+
+static int find_next_header(bgav_demuxer_context_t * ctx,
+                            int start,
+                            bgav_flac_frame_header_t * h)
+  {
+  int i;
+  flac_priv_t * priv = ctx->priv;
+
+  if(priv->buf.size < BGAV_FLAC_FRAMEHEADER_MAX)
+    {
+    if(!bgav_bytebuffer_append_read(&priv->buf, ctx->input, BYTES_TO_READ, 0))
+      return -1;
+    }
+  
+  while(1)
+    {
+    for(i = start; i < priv->buf.size - BGAV_FLAC_FRAMEHEADER_MAX; i++)
+      {
+      if(bgav_flac_frame_header_read(priv->buf.buffer + i, &priv->streaminfo, h))
+        return i;
+      }
+    
+    if(priv->buf.size > SYNC_SIZE)
+      return -1;
+
+    start = priv->buf.size - BGAV_FLAC_FRAMEHEADER_MAX;
+    
+    if(!bgav_bytebuffer_append_read(&priv->buf, ctx->input, BYTES_TO_READ, 0))
+      return -1;
+    
+    }
+  return -1;
+  }
 
 static int next_packet_flac(bgav_demuxer_context_t * ctx)
   {
+  int pos, size;
   bgav_stream_t * s;
   bgav_packet_t * p;
-
+  bgav_flac_frame_header_t fh;
+  
+  flac_priv_t * priv = ctx->priv;
+  
   s = bgav_track_find_stream(ctx, 0);
-  
-  /* We play dumb and read just 1024 bytes */
 
-  p = bgav_stream_get_packet_write(s);
-  
-  bgav_packet_alloc(p, PACKET_BYTES);
-  p->data_size = bgav_input_read_data(ctx->input, 
-                                      p->data, PACKET_BYTES);
-
-  if(!p->data_size)
+  if(!s)
     return 0;
 
+  if(!priv->has_sync)
+    {
+    pos = find_next_header(ctx, 0, &priv->fh);
+    if(pos < 0)
+      return 0;
+
+    if(pos > 0)
+      bgav_bytebuffer_remove(&priv->buf, pos);
+    priv->has_sync = 1;
+    }
+  
+  /* Get next header */
+  pos = find_next_header(ctx, BGAV_FLAC_FRAMEHEADER_MIN, &fh);
+  
+  if(pos < 0) // EOF
+    size = priv->buf.size;
+  else
+    size = pos;
+
+  if((pos < 0) && !size)
+    return 0;
+  
+  p = bgav_stream_get_packet_write(s);
+  
+  bgav_packet_alloc(p, size);
+
+  memcpy(p->data, priv->buf.buffer, size);
+  p->pts = priv->fh.sample_number;
+  p->duration = priv->fh.blocksize;
+  p->data_size = size;
+  p->position = ctx->input->position - priv->buf.size;
+  
+  bgav_bytebuffer_remove(&priv->buf, size);
+
+  /* Save frame header for later use */
+  memcpy(&priv->fh, &fh, sizeof(fh));
+
+//  bgav_packet_dump(p);
+  
   bgav_stream_done_packet_write(s, p);
+  
   return 1;
   }
 
@@ -356,6 +374,18 @@ static void seek_flac(bgav_demuxer_context_t * ctx, int64_t time, int scale)
                   SEEK_SET);
 
   STREAM_SET_SYNC(s, priv->seektable.entries[i].sample_number);
+
+  priv->has_sync = 0;
+  bgav_bytebuffer_flush(&priv->buf);
+  }
+
+static int select_track_flac(bgav_demuxer_context_t * ctx, int track)
+  {
+  flac_priv_t * priv;
+  priv = ctx->priv;
+  priv->has_sync = 0;
+  bgav_bytebuffer_flush(&priv->buf);
+  return 1;
   }
 
 static void close_flac(bgav_demuxer_context_t * ctx)
@@ -366,8 +396,17 @@ static void close_flac(bgav_demuxer_context_t * ctx)
   if(priv->seektable.num_entries)
     free(priv->seektable.entries);
 
+  bgav_bytebuffer_free(&priv->buf);
 
   free(priv);
+  }
+
+static void resync_flac(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
+  {
+  flac_priv_t * priv;
+  priv = ctx->priv;
+  priv->has_sync = 0;
+  bgav_bytebuffer_flush(&priv->buf);
   }
 
 const bgav_demuxer_t bgav_demuxer_flac =
@@ -375,7 +414,9 @@ const bgav_demuxer_t bgav_demuxer_flac =
     .probe =       probe_flac,
     .open =        open_flac,
     .next_packet = next_packet_flac,
+    .select_track = select_track_flac,
     .seek =        seek_flac,
+    .resync        = resync_flac,
     .close =       close_flac
   };
 

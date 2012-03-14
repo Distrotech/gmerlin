@@ -18,6 +18,7 @@ codecs.h \
 dirac_header.h \
 dvb_channels.h \
 dvframe.h \
+flac_header.h \
 frametype.h \
 h264_header.h \
 http.h \

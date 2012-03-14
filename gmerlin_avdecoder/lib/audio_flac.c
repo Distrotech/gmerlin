@@ -254,8 +254,9 @@ static int init_flac(bgav_stream_t * s)
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   
   gavl_set_channel_setup(&s->data.audio.format);
-  s->data.audio.format.samples_per_frame = 1024;
 
+  if(!s->data.audio.format.samples_per_frame)
+    s->data.audio.format.samples_per_frame = 1024;
   
   /* Set sample format stuff */
 

@@ -460,6 +460,7 @@ dirac_header.c \
 dvframe.c \
 edl.c \
 fileindex.c \
+flac_header.c \
 formattracker.c \
 frametype.c \
 h264_header.c \
