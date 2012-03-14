@@ -33,8 +33,8 @@
 
 #define LOG_DOMAIN "flac"
 
-#define MAKE_VERSION(maj,min,pat) ((maj<<16)|(min<<8)|pat)
-#define BGAV_FLAC_VERSION_INT MAKE_VERSION(BGAV_FLAC_MAJOR,BGAV_FLAC_MINOR,BGAV_FLAC_PATCHLEVEL)
+// #define MAKE_VERSION(maj,min,pat) ((maj<<16)|(min<<8)|pat)
+// #define BGAV_FLAC_VERSION_INT MAKE_VERSION(BGAV_FLAC_MAJOR,BGAV_FLAC_MINOR,BGAV_FLAC_PATCHLEVEL)
 
 typedef struct
   {
@@ -220,20 +220,6 @@ static int init_flac(bgav_stream_t * s)
   priv->header_ptr = s->ext_data;
   priv->dec = FLAC__stream_decoder_new();
  
-#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2) 
-  FLAC__stream_decoder_set_read_callback(priv->dec,
-                                         read_callback);
-  FLAC__stream_decoder_set_write_callback(priv->dec,
-                                          write_callback);
-
-  FLAC__stream_decoder_set_error_callback(priv->dec,
-                                          error_callback);
-  FLAC__stream_decoder_set_metadata_callback(priv->dec,
-                                             metadata_callback);
-
-  FLAC__stream_decoder_set_client_data(priv->dec, s);
-  FLAC__stream_decoder_init(priv->dec);
-#else
   FLAC__stream_decoder_init_stream(
                priv->dec,
                read_callback,
@@ -242,9 +228,7 @@ static int init_flac(bgav_stream_t * s)
                metadata_callback,
                error_callback,
                (void*) s);
-#endif
-
-
+  
   if(!FLAC__stream_decoder_process_until_end_of_metadata(priv->dec))
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading metadata failed");
