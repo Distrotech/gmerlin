@@ -330,20 +330,47 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   
   priv= s->data.audio.decoder->priv;
 
-  if(!fill_buffer(s))
-    return 0;
+  while(1)
+    {
+    if(!fill_buffer(s))
+      return 0;
  
 #ifdef DUMP_DECODE
-  bgav_dprintf("decode_audio Size: %d\n",
-               priv->buf.size);
-  //  bgav_hexdump(priv->buf.buffer, 186, 16);
+    bgav_dprintf("decode_audio Size: %d\n",
+                 priv->buf.size);
+    //  bgav_hexdump(priv->buf.buffer, 186, 16);
 #endif
 
-  priv->pkt.data = priv->buf.buffer;
-  priv->pkt.size = priv->buf.size;
+    priv->pkt.data = priv->buf.buffer;
+    priv->pkt.size = priv->buf.size;
+    
+    bytes_used = avcodec_decode_audio4(priv->ctx, &f,
+                                       &got_frame, &priv->pkt);
+    
+#ifdef DUMP_DECODE
+  bgav_dprintf("Used %d bytes\n", bytes_used);
+#endif
 
-  bytes_used = avcodec_decode_audio4(priv->ctx, &f,
-                                     &got_frame, &priv->pkt);
+    if(bytes_used < 0)
+      {
+      /* Error */
+      return 0;
+      }
+    
+    /* Advance packet buffer */
+    
+    if(bytes_used > 0)
+      bgav_bytebuffer_remove(&priv->buf, bytes_used);
+
+    if(got_frame)
+      break;
+
+    /* Only codecs with delay are allowed to eat
+       packets without outputting audio */
+    if(!(priv->ctx->codec->capabilities & CODEC_CAP_DELAY))
+      return 0;
+    }
+  
   
   if(got_frame && f.nb_samples)
     {
@@ -376,25 +403,6 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
            s->data.audio.format.num_channels);
     
     priv->frame->valid_samples = f.nb_samples;
-    }
-  
-#ifdef DUMP_DECODE
-  bgav_dprintf("Used %d bytes\n", bytes_used);
-#endif
-  
-  if(bytes_used < 0)
-    {
-    /* Error */
-    return 0;
-    }
-
-  /* Advance packet buffer */
-
-  if(bytes_used > 0)
-    bgav_bytebuffer_remove(&priv->buf, bytes_used);
-  else
-    {
-    //    priv->bytes_in_packet_buffer = 0;
     }
   
   /* No Samples decoded, get next packet */
@@ -862,6 +870,26 @@ static codec_info_t codec_infos[] =
       -1 },
 #endif
 
+    
+#if LIBAVCODEC_BUILD >= ((52<<16)+(40<<8)+0)
+    { "FFmpeg MPEG-4 ALS decoder", "MPEG-4 ALS", CODEC_ID_MP4ALS,
+      (uint32_t[]){ BGAV_MK_FOURCC('m', 'a', 'l', 's'),
+                    0x00 },
+      -1 },
+#endif
+
+    { "FFmpeg MLP decoder", "MLP", CODEC_ID_MLP,
+      (uint32_t[]){ BGAV_MK_FOURCC('.', 'm', 'l', 'p'),
+                    0x00 },
+      -1 },
+
+#if 0 // Experimental    
+    { "FFmpeg WMA lossless decoder", "WMA lossless", CODEC_ID_WMALOSSLESS,
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0163),
+                    0x00 },
+      -1 },
+#endif
+    
     
     /*     CODEC_ID_MUSEPACK8, */
   };

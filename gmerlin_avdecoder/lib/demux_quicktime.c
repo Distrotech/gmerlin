@@ -684,12 +684,18 @@ static const struct
 audio_object_ids[] =
   {
     { 105, BGAV_MK_FOURCC('.','m','p','3') },
-    { 107, BGAV_MK_FOURCC('.','m','p','2') }
+    { 107, BGAV_MK_FOURCC('.','m','p','2') },
+    {  36, BGAV_MK_FOURCC('m','a','l','s') },
   };
 
 static void set_audio_from_esds(bgav_stream_t * s, qt_esds_t * esds)
   {
   int i;
+  int object_id;
+  
+  fprintf(stderr, "Object type ID: %d\n", esds->objectTypeId);
+  bgav_qt_esds_dump(0, esds);
+  
   for(i = 0; i < sizeof(audio_object_ids)/sizeof(audio_object_ids[0]); i++)
     {
     if(audio_object_ids[i].objectTypeId == esds->objectTypeId)
@@ -698,6 +704,31 @@ static void set_audio_from_esds(bgav_stream_t * s, qt_esds_t * esds)
       return;
       }
     }
+
+  if((esds->objectTypeId == 0x40) && (esds->decoderConfigLen >= 2))
+    {
+    object_id = esds->decoderConfig[0] >> 3;
+
+    if(object_id == 31)
+      {
+      object_id = esds->decoderConfig[0] & 0x07;
+      object_id <<= 3;
+      object_id |= (esds->decoderConfig[1] >> 5) & 0x07;
+      object_id += 32;
+      }
+    
+    // fprintf(stderr, "object_id: %d\n", object_id);
+
+    for(i = 0; i < sizeof(audio_object_ids)/sizeof(audio_object_ids[0]); i++)
+      {
+      if(audio_object_ids[i].objectTypeId == object_id)
+        {
+        s->fourcc = audio_object_ids[i].fourcc;
+        return;
+        }
+      }
+    }
+
   }
 
 static void process_packet_subtitle_qt(bgav_stream_t * s, bgav_packet_t * p)
@@ -1529,7 +1560,7 @@ static void check_he_aac(bgav_demuxer_context_t * ctx,
     /* Read packet */
     if(ctx->si->entries[index_pos].size > buffer_alloc)
       {
-      buffer_alloc += 1024;
+      buffer_alloc = ctx->si->entries[index_pos].size + 1024;
       buffer = realloc(buffer, buffer_alloc);
       }
 

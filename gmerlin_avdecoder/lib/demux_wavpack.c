@@ -82,18 +82,18 @@ static void dump_header(wvpk_header_t * h)
   {
   bgav_dprintf("wavpack header\n");
   
-  bgav_dprintf("  .fourcc =          ");
+  bgav_dprintf("  fourcc:          ");
   bgav_dump_fourcc(h->fourcc);
   bgav_dprintf("\n");
 
   bgav_dprintf("  block_size:      %d\n", h->block_size);
-  bgav_dprintf("  .version =         %d\n", h->version);
+  bgav_dprintf("  version:         %d\n", h->version);
   bgav_dprintf("  track_number:    %d\n", h->track_number);
   bgav_dprintf("  track_sub_index: %d\n", h->track_sub_index);
   bgav_dprintf("  total_samples:   %d\n", h->total_samples);
   bgav_dprintf("  sample_offset:   %d\n", h->sample_offset);
   bgav_dprintf("  num_samples:     %d\n", h->num_samples);
-  bgav_dprintf("  .flags =           %08x\n", h->flags);
+  bgav_dprintf("  flags:           %08x\n", h->flags);
   bgav_dprintf("  crc:             %08x\n", h->crc);
   }
 #endif

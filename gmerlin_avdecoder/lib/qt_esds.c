@@ -28,8 +28,6 @@
 
 #define LOG_DOMAIN "qt_esds"
 
-// #define ENABLE_DUMP
-
 #define MP4ODescrTag                    0x01
 #define MP4IODescrTag                   0x02
 #define MP4ESDescrTag                   0x03
@@ -144,9 +142,6 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
       return 0;
     }
   bgav_qt_atom_skip(input, h);
-#ifdef ENABLE_DUMP
-  bgav_qt_esds_dump(ret);
-#endif
   return 1;
   }
 

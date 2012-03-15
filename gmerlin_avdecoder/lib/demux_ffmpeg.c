@@ -324,6 +324,8 @@ static audio_codec_map_t audio_codecs[] =
 #endif
     //    { CODEC_ID_MUSEPACK7, },
     //    { CODEC_ID_MLP, },
+    { CODEC_ID_MLP, BGAV_MK_FOURCC('.', 'm', 'l', 'p') },
+    
 #if LIBAVCODEC_BUILD >= ((51<<16)+(34<<8)+0)
     { CODEC_ID_GSM_MS, BGAV_WAVID_2_FOURCC(0x31) }, /* as found in WAV */
 #endif
