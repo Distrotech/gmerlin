@@ -41,6 +41,8 @@ typedef struct
   bg_flac_t com; /* Must be first for bg_flac_set_audio_parameter */
   
   char * filename;
+
+  FILE * out;
   
   gavl_audio_format_t format;
   FLAC__StreamEncoder * enc;
@@ -60,7 +62,23 @@ typedef struct
   int64_t samples_written;
 
   bg_encoder_callbacks_t * cb;
+
+  FLAC__StreamMetadata_StreamInfo si;
   
+  int64_t data_start;
+  int64_t bytes_written;
+  
+  struct
+    {
+    int64_t sample;
+    int64_t pos;
+    int frame_samples;
+    } * frame_table;
+  
+  uint32_t frame_table_len;
+  uint32_t frame_table_alloc;
+
+  const gavl_compression_info_t * ci;
   } flac_t;
 
 static void * create_flac()
@@ -128,17 +146,6 @@ static void set_parameter_flac(void * data,
     flac->num_seektable_entries = v->val_i;
   }
 
-
-static void create_seektable(flac_t * flac)
-  {
-  flac->seektable =
-    FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
-
-  FLAC__metadata_object_seektable_template_append_placeholders(flac->seektable,
-                                                               flac->num_seektable_entries);
-  flac->metadata[flac->num_metadata++] = flac->seektable;
-  }
-
 static int open_flac(void * data, const char * filename,
                      const bg_metadata_t * m, const bg_chapter_list_t * chapter_list)
   {
@@ -154,6 +161,8 @@ static int open_flac(void * data, const char * filename,
 
   if(!bg_encoder_cb_create_output_file(flac->cb, flac->filename))
     return 0;
+
+  flac->out = fopen(flac->filename, "wb");
   
   /* Create vorbis comment */
 
@@ -167,7 +176,12 @@ static int open_flac(void * data, const char * filename,
 
   if(flac->use_seektable)
     {
-    create_seektable(flac);
+    flac->seektable =
+      FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
+    
+    FLAC__metadata_object_seektable_template_append_placeholders(flac->seektable,
+                                                                 flac->num_seektable_entries);
+    flac->metadata[flac->num_metadata++] = flac->seektable;
     }
   
   
@@ -193,16 +207,131 @@ static int add_audio_stream_flac(void * data,
   return 0;
   }
 
+#if 0
+  struct
+    {
+    int64_t sample;
+    int64_t pos;
+    int frame_samples;
+    } * frame_table;
+  
+  uint32_t frame_table_len;
+  uint32_t frame_table_alloc;
+#endif
+
+static void append_packet(flac_t * f, int samples)
+  {
+  if(f->frame_table_len + 1 > f->frame_table_alloc)
+    {
+    f->frame_table_alloc += 10000;
+    f->frame_table = realloc(f->frame_table,
+                             f->frame_table_alloc * sizeof(*f->frame_table));
+    }
+  if(f->frame_table_len)
+    {
+    f->frame_table[f->frame_table_len].sample =
+      f->frame_table[f->frame_table_len-1].sample +
+      f->frame_table[f->frame_table_len-1].frame_samples;
+    }
+  else
+    {
+    f->frame_table[f->frame_table_len].sample = 0;
+    }
+  f->frame_table[f->frame_table_len].frame_samples = samples;
+  f->frame_table[f->frame_table_len].pos = f->bytes_written + f->data_start;
+  f->frame_table_len++;
+  }
+
+#if 0
+static void progress_callback(const FLAC__StreamEncoder *encoder,
+                              FLAC__uint64 bytes_written,
+                              FLAC__uint64 samples_written,
+                              unsigned frames_written,
+                              unsigned total_frames_estimate, void *client_data)
+  {
+  fprintf(stderr, "Progress callback: bytes: %ld samples: %ld frames: %d\n",
+          bytes_written, samples_written, frames_written);
+  }
+#endif
+
+static void
+metadata_callback(const FLAC__StreamEncoder *decoder,
+                  const FLAC__StreamMetadata *metadata,
+                  void *data)
+  {
+  flac_t * flac = data;
+  
+  if((metadata->type == FLAC__METADATA_TYPE_STREAMINFO) &&
+     !flac->ci)
+    {
+    fprintf(stderr, "Got final streaminfo\n");
+    memcpy(&flac->si, &metadata->data.stream_info, sizeof(flac->si));
+    }
+  }
+
+static FLAC__StreamEncoderWriteStatus
+write_callback(const FLAC__StreamEncoder *encoder,
+               const FLAC__byte buffer[],
+               size_t bytes,
+               unsigned samples,
+               unsigned current_frame,
+               void *data)
+  {
+  flac_t * flac;
+  flac = data;
+
+  fprintf(stderr, "Write callback %ld bytes, %d samples, current_frame: %d\n",
+          bytes, samples, current_frame);
+
+  if(!flac->bytes_written)
+    {
+    /* Signature */
+    fprintf(stderr, "Got signature\n");
+    }
+  else if((buffer[0] & 0x7f) == 0)
+    {
+    fprintf(stderr, "Got streaminfo\n");
+    }
+  else if((buffer[0] & 0x7f) == 3)
+    {
+    fprintf(stderr, "Got seektable\n");
+    }
+  else if((buffer[0] & 0x7f) == 4)
+    {
+    fprintf(stderr, "Got comment\n");
+    }
+  else
+    {
+    fprintf(stderr, "Got frame\n");
+
+    if(!flac->data_start < 0)
+      flac->data_start = flac->bytes_written;
+    
+    append_packet(flac, samples);
+    
+    }
+  
+  if(fwrite(buffer, 1, bytes, flac->out) == bytes)
+    {
+    flac->bytes_written += bytes;
+    return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+    }
+  return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+  }
+
 static int start_flac(void * data)
   {
   flac_t * flac;
   flac = data;
 
-  bg_flac_init_file_encoder(&flac->com, flac->enc);
-
-  if(FLAC__stream_encoder_init_file(flac->enc, flac->filename,
-                                    NULL,
-                                    flac) != FLAC__STREAM_ENCODER_OK)
+  bg_flac_init_stream_encoder(&flac->com, flac->enc);
+  
+  if(FLAC__stream_encoder_init_stream(flac->enc,
+                                      write_callback,
+                                      NULL, // Seek
+                                      NULL, // Tell
+                                      metadata_callback, // Metadata
+                                      flac) != FLAC__STREAM_ENCODER_OK)
     {
     if(errno)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing encoder failed: %s",
@@ -211,6 +340,21 @@ static int start_flac(void * data)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing encoder failed");
     return 0;
     }
+
+  /* At this point the flac encoder wrote the header, close it here */
+  if(flac->ci)
+    {
+    FLAC__stream_encoder_finish(flac->enc);
+    FLAC__stream_encoder_delete(flac->enc);
+    flac->enc = NULL;
+    }
+  else
+    {
+    flac->com.samples_per_block =
+      FLAC__stream_encoder_get_blocksize(flac->enc);
+    fprintf(stderr, "Got blocksize %d\n", flac->com.samples_per_block);
+    }
+  flac->data_start = -1;
   
   return 1;
   }
@@ -242,6 +386,8 @@ static void get_audio_format_flac(void * data, int stream,
   gavl_audio_format_copy(ret, &flac->format);
   
   }
+
+#if 0
 
 /*
  *  Finalize seektable.
@@ -308,6 +454,7 @@ static void seektable_metadata_callback(const FLAC__StreamDecoder *decoder,
                                         const FLAC__StreamMetadata *metadata,
                                         void *client_data)
   {
+  
   }
 
 static void finalize_seektable(flac_t * flac)
@@ -403,6 +550,56 @@ static void finalize_seektable(flac_t * flac)
 
   }
 
+#else
+
+static void build_seek_table(flac_t * flac, FLAC__StreamMetadata * tab)
+  {
+  
+  }
+
+static void finalize(flac_t * flac)
+  {
+  FLAC__Metadata_Chain    * chain;
+  FLAC__Metadata_Iterator * iter;
+  FLAC__StreamMetadata    * metadata;
+
+  if(!flac->filename)
+    return;
+  
+  chain = FLAC__metadata_chain_new();
+  FLAC__metadata_chain_read(chain, flac->filename);
+  iter = FLAC__metadata_iterator_new();
+  FLAC__metadata_iterator_init(iter, chain);
+
+  /* Update stream info */
+  while(FLAC__metadata_iterator_get_block_type(iter) != FLAC__METADATA_TYPE_STREAMINFO)
+    FLAC__metadata_iterator_next(iter);
+
+  metadata = FLAC__metadata_iterator_get_block(iter);
+  memcpy(&metadata->data.stream_info, &flac->si, sizeof(flac->si));
+
+  /* Seek table */
+  if(flac->seektable) // Build seek table
+    {
+    while(FLAC__metadata_iterator_get_block_type(iter) != FLAC__METADATA_TYPE_SEEKTABLE)
+      FLAC__metadata_iterator_next(iter);
+    metadata = FLAC__metadata_iterator_get_block(iter);
+    build_seek_table(flac, metadata);
+    }
+  
+  /* Write metadata back to the file */
+
+  FLAC__metadata_chain_write(chain,
+                             true, /* use_padding */
+                             true  /* preserve_file_stats */ );
+
+  /* Clean up stuff */
+
+  FLAC__metadata_iterator_delete(iter);
+  FLAC__metadata_chain_delete(chain);
+  }
+#endif
+
 static int close_flac(void * data, int do_delete)
   {
   flac_t * flac;
@@ -418,11 +615,16 @@ static int close_flac(void * data, int do_delete)
     FLAC__stream_encoder_delete(flac->enc);
     flac->enc = NULL;
     }
-  
+
+  if(flac->out)
+    {
+    fclose(flac->out);
+    flac->out = NULL;
+    }
   if(do_delete && flac->filename)
     remove(flac->filename);
-  else if(flac->seektable)
-    finalize_seektable(flac);
+  else
+    finalize(flac);
   
   free(flac->filename);
   flac->filename = NULL;
@@ -432,6 +634,13 @@ static int close_flac(void * data, int do_delete)
     FLAC__metadata_object_delete(flac->seektable);
     flac->seektable = NULL;
     }
+
+  if(flac->frame_table)
+    {
+    free(flac->frame_table);
+    flac->frame_table = NULL;
+    }
+  
   bg_flac_free(&flac->com);
   return 1;
   }
@@ -451,6 +660,73 @@ static void set_audio_parameter_flac(void * data, int stream,
   flac_t * flac;
   flac = data;
   bg_flac_set_parameter(&flac->com, name, val);
+  }
+
+/* Compressed packet support */
+
+static int writes_compressed_audio_flac(void * priv,
+                            const gavl_audio_format_t * format,
+                            const gavl_compression_info_t * info)
+  {
+  if((info->id == GAVL_CODEC_ID_FLAC) && (info->global_header_len == 42))
+    return 1;
+  return 0;
+  }
+
+static int add_audio_stream_compressed_flac(void * priv, const char * language,
+                                            const gavl_audio_format_t * format,
+                                            const gavl_compression_info_t * info)
+  {
+  uint16_t i_tmp;
+  uint8_t * ptr;
+  flac_t * flac = priv;
+  flac->ci = info;
+  
+  ptr = flac->ci->global_header
+    + 8  // Signature + metadata header
+    + 10 // min/max frame/blocksize
+    + 2; // upper 16 bit of 20 samplerate bits
+
+  // |4|3|5|4|
+  i_tmp = ptr[0];
+  i_tmp <<= 8;
+  i_tmp |= ptr[1];
+  
+  flac->si.sample_rate = format->samplerate;
+  flac->si.channels = format->num_channels;
+  flac->si.bits_per_sample = ((i_tmp >> 4) & 0x1f)+1;
+  
+  memcpy(flac->si.md5sum, flac->ci->global_header + 42 - 16, 16);
+  return 0;
+  }
+
+static int write_audio_packet_flac(void * priv, gavl_packet_t * packet, int stream)
+  {
+  flac_t * flac = priv;
+
+  if(!flac->si.min_blocksize || (packet->duration < flac->si.min_blocksize))
+    flac->si.min_blocksize = packet->duration;
+  if(packet->duration > flac->si.max_blocksize)
+    flac->si.max_blocksize = packet->duration;
+
+  if(!flac->si.min_framesize || (packet->data_len < flac->si.min_framesize))
+    flac->si.min_framesize = packet->data_len;
+  if(packet->data_len > flac->si.max_framesize)
+    flac->si.max_framesize = packet->data_len;
+
+  if(!flac->data_start < 0)
+    flac->data_start = flac->bytes_written;
+  
+  
+  append_packet(flac, packet->duration);
+  flac->samples_written += packet->duration;
+  if(fwrite(packet->data, 1, packet->data_len, flac->out) == packet->data_len)
+    {
+    flac->bytes_written += packet->data_len;
+    return 1;
+    }
+  else
+    return 0;
   }
 
 const bg_encoder_plugin_t the_plugin =
@@ -479,7 +755,11 @@ const bg_encoder_plugin_t the_plugin =
     
     .get_audio_parameters =    bg_flac_get_parameters,
 
+    .writes_compressed_audio = writes_compressed_audio_flac,
+    
     .add_audio_stream =        add_audio_stream_flac,
+    .add_audio_stream_compressed = add_audio_stream_compressed_flac,
+    
     
     .set_audio_parameter =     set_audio_parameter_flac,
 
@@ -488,6 +768,7 @@ const bg_encoder_plugin_t the_plugin =
     .start =                   start_flac,
     
     .write_audio_frame =   write_audio_frame_flac,
+    .write_audio_packet =   write_audio_packet_flac,
     .close =               close_flac
   };
 

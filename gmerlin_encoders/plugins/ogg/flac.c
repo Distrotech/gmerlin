@@ -248,6 +248,9 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
     return 0;
     }
   
+  flacogg->com.samples_per_block =
+    FLAC__stream_encoder_get_blocksize(flacogg->enc);
+  
   return 1;
   }
 

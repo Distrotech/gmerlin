@@ -88,7 +88,7 @@ static void do_shift(int32_t * dst[], int num_channels, int num_samples,
  *  the options -0 through -8 of the flac commandline
  *  encoder
  */
-
+#if 0
 static struct
   {
   int blocksize;                    // -b
@@ -192,6 +192,7 @@ clevels[] =
       .do_exhaustive_model_search =   1,    // -e
     }
   };
+#endif
 
 static const bg_parameter_info_t audio_parameters[] =
   {
@@ -241,17 +242,16 @@ void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_va
   //  fprintf(stderr, "set_audio_parameter_flac %s\n", name);
   }
 
-static void init_common(bg_flac_t * flac)
+void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc)
   {
+  /* Common initialization */
   flac->format->interleave_mode = GAVL_INTERLEAVE_NONE;
   
   /* Samplerates which are no multiples of 10 are invalid */
   flac->format->samplerate = ((flac->format->samplerate + 9) / 10) * 10;
   
   /* Bits per sample */
-
-  flac->samples_per_block = clevels[flac->clevel].blocksize;
-    
+      
   if(flac->bits_per_sample <= 8)
     {
     flac->copy_frame = copy_frame_8;
@@ -271,40 +271,19 @@ static void init_common(bg_flac_t * flac)
     flac->format->sample_format = GAVL_SAMPLE_S32;
     }
   flac->divisor = (1 << flac->shift_bits); 
-    
-  }
 
-void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc)
-  {
-  init_common(flac);
   /* Set compression parameters from presets */
-
+  
   FLAC__stream_encoder_set_sample_rate(enc, flac->format->samplerate);
   FLAC__stream_encoder_set_channels(enc, flac->format->num_channels);
 
-  FLAC__stream_encoder_set_blocksize(enc,
-                                   clevels[flac->clevel].blocksize);
-    
-  FLAC__stream_encoder_set_max_lpc_order(enc,
-                                       clevels[flac->clevel].max_lpc_order);
-  FLAC__stream_encoder_set_min_residual_partition_order(enc,
-                                                      clevels[flac->clevel].min_residual_partition_order);
-  FLAC__stream_encoder_set_max_residual_partition_order(enc,
-                                                      clevels[flac->clevel].max_residual_partition_order);
-    
-  if(flac->format->num_channels == 2)
-    {
-    FLAC__stream_encoder_set_do_mid_side_stereo(enc,
-                                              clevels[flac->clevel].do_mid_side);
-    FLAC__stream_encoder_set_loose_mid_side_stereo(enc,
-                                                 clevels[flac->clevel].loose_mid_side);
-    }
-
-  FLAC__stream_encoder_set_do_exhaustive_model_search(enc,
-                                                    clevels[flac->clevel].do_exhaustive_model_search);
-
+  /* */
+  FLAC__stream_encoder_set_compression_level(enc, flac->clevel);
+  
   FLAC__stream_encoder_set_bits_per_sample(enc, flac->bits_per_sample);
 
+  
+  
   }
 
 void bg_flac_prepare_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame)

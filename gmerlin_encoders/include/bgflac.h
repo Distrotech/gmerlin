@@ -54,8 +54,6 @@ void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_va
 
 void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc);
 
-#define bg_flac_init_file_encoder(a,b) bg_flac_init_stream_encoder(a,b)
-
 void bg_flac_init_metadata(bg_flac_t * flac, const bg_metadata_t * metadata);
 
 void bg_flac_prepare_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame);
