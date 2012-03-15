@@ -38,50 +38,8 @@
 #include <vorbis_comment.h>
 #include <flac_header.h>
 
-/* Seek table */
-
-typedef struct
-  {
-  int num_entries;
-  struct
-    {
-    uint64_t sample_number;
-    uint64_t offset;
-    uint16_t num_samples;
-    } * entries;
-  } seektable_t;
-
-static int seektable_read(bgav_input_context_t * input,
-                          seektable_t * ret,
-                          int size)
-  {
-  int i;
-  ret->num_entries = size / 18;
-  ret->entries = malloc(ret->num_entries * sizeof(*(ret->entries)));
-
-  for(i = 0; i < ret->num_entries; i++)
-    {
-    if(!bgav_input_read_64_be(input, &ret->entries[i].sample_number) ||
-       !bgav_input_read_64_be(input, &ret->entries[i].offset) ||
-       !bgav_input_read_16_be(input, &ret->entries[i].num_samples))
-      return 0;
-    }
-  return 1;
-  }
-#if 0
-static void seektable_dump(seektable_t * t)
-  {
-  int i;
-  bgav_dprintf("Seektable: %d entries\n", t->num_entries);
-  for(i = 0; i < t->num_entries; i++)
-    {
-    bgav_dprintf("Sample: %" PRId64 ", Position: %" PRId64 ", Num samples: %d\n",
-            t->entries[i].sample_number,
-            t->entries[i].offset,
-            t->entries[i].num_samples);
-    }
-  }
-#endif
+#define DUMP_HEADERS
+// #define DUMP_INDEX
 
 /* Probe */
 
@@ -104,7 +62,7 @@ static int probe_flac(bgav_input_context_t * input)
 typedef struct
   {
   bgav_flac_streaminfo_t streaminfo;
-  seektable_t seektable;
+  bgav_flac_seektable_t seektable;
   
   bgav_bytebuffer_t buf;
   int64_t next_header;
@@ -172,9 +130,9 @@ static int open_flac(bgav_demuxer_context_t * ctx)
         
         if(!bgav_flac_streaminfo_read(s->ext_data + 8, &priv->streaminfo))
           goto fail;
-        
+#ifdef DUMP_HEADERS
         bgav_flac_streaminfo_dump(&priv->streaminfo);
-        
+#endif        
         bgav_flac_streaminfo_init_stream(&priv->streaminfo, s);
         
         if(priv->streaminfo.total_samples)
@@ -191,9 +149,12 @@ static int open_flac(bgav_demuxer_context_t * ctx)
         bgav_input_skip(ctx->input, size);
         break;
       case 3: // SEEKTABLE
-        if(!seektable_read(ctx->input, &priv->seektable, size))
+        if(!bgav_flac_seektable_read(ctx->input, &priv->seektable, size))
           goto fail;
-        //        seektable_dump(&priv->seektable);
+
+#ifdef DUMP_INDEX
+      bgav_flac_seektable_dump(&priv->seektable);
+#endif
         //        bgav_input_skip(ctx->input, size);
         break;
       case 4: // VORBIS_COMMENT
@@ -384,8 +345,7 @@ static void close_flac(bgav_demuxer_context_t * ctx)
   flac_priv_t * priv;
   priv = ctx->priv;
 
-  if(priv->seektable.num_entries)
-    free(priv->seektable.entries);
+  bgav_flac_seektable_free(&priv->seektable);
 
   bgav_bytebuffer_free(&priv->buf);
 

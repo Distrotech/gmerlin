@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include <string.h>
+#include <stdlib.h>
 
 
 #include <avdec_private.h>
@@ -350,4 +351,43 @@ int bgav_flac_frame_header_read(const uint8_t * ptr,
     }
   
   return 1;
+  }
+
+/* Seek table */
+
+int bgav_flac_seektable_read(bgav_input_context_t * input,
+                          bgav_flac_seektable_t * ret,
+                          int size)
+  {
+  int i;
+  ret->num_entries = size / 18;
+  ret->entries = malloc(ret->num_entries * sizeof(*(ret->entries)));
+
+  for(i = 0; i < ret->num_entries; i++)
+    {
+    if(!bgav_input_read_64_be(input, &ret->entries[i].sample_number) ||
+       !bgav_input_read_64_be(input, &ret->entries[i].offset) ||
+       !bgav_input_read_16_be(input, &ret->entries[i].num_samples))
+      return 0;
+    }
+  return 1;
+  }
+
+void bgav_flac_seektable_dump(bgav_flac_seektable_t * t)
+  {
+  int i;
+  bgav_dprintf("Seektable: %d entries\n", t->num_entries);
+  for(i = 0; i < t->num_entries; i++)
+    {
+    bgav_dprintf("Sample: %" PRId64 ", Position: %" PRId64 ", Num samples: %d\n",
+            t->entries[i].sample_number,
+            t->entries[i].offset,
+            t->entries[i].num_samples);
+    }
+  }
+
+void bgav_flac_seektable_free(bgav_flac_seektable_t * t)
+  {
+  if(t->entries)
+    free(t->entries);
   }

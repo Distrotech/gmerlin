@@ -66,5 +66,26 @@ typedef struct
   } bgav_flac_frame_header_t;
 
 int bgav_flac_frame_header_read(const uint8_t * ptr,
-                              bgav_flac_streaminfo_t * si,
-                              bgav_flac_frame_header_t * ret);
+                                bgav_flac_streaminfo_t * si,
+                                bgav_flac_frame_header_t * ret);
+
+/* Seek table */
+
+typedef struct
+  {
+  int num_entries;
+  struct
+    {
+    uint64_t sample_number;
+    uint64_t offset;
+    uint16_t num_samples;
+    } * entries;
+  } bgav_flac_seektable_t;
+
+int bgav_flac_seektable_read(bgav_input_context_t * input,
+                             bgav_flac_seektable_t * ret,
+                             int size);
+
+void bgav_flac_seektable_dump(bgav_flac_seektable_t * t);
+
+void bgav_flac_seektable_free(bgav_flac_seektable_t * t);

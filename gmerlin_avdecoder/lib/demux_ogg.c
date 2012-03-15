@@ -529,6 +529,10 @@ static void setup_flac(bgav_stream_t * s)
   
   bgav_flac_streaminfo_read(s->ext_data + 8, &h);
   bgav_flac_streaminfo_init_stream(&h, s);
+
+  s->flags |= STREAM_PARSE_FRAME;
+  s->index_mode = INDEX_MODE_SIMPLE;
+  s->timescale = s->data.audio.format.samplerate;
   }
 
 /* Set up a track, which starts at start position */
@@ -2080,8 +2084,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           memcpy(p->data, priv->op.packet, priv->op.bytes);
           p->data_size = priv->op.bytes;
 
-          fprintf(stderr, "Flac packet:\n");
-          bgav_hexdump(p->data, 16, 16);
+          //  fprintf(stderr, "Flac packet:\n");
+          //  bgav_hexdump(p->data, 16, 16);
           
           if(stream_priv->prev_granulepos >= 0)
             {
