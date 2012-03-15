@@ -693,8 +693,8 @@ static void set_audio_from_esds(bgav_stream_t * s, qt_esds_t * esds)
   int i;
   int object_id;
   
-  fprintf(stderr, "Object type ID: %d\n", esds->objectTypeId);
-  bgav_qt_esds_dump(0, esds);
+  //  fprintf(stderr, "Object type ID: %d\n", esds->objectTypeId);
+  //  bgav_qt_esds_dump(0, esds);
   
   for(i = 0; i < sizeof(audio_object_ids)/sizeof(audio_object_ids[0]); i++)
     {
