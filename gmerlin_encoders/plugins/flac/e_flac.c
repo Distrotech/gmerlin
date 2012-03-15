@@ -252,29 +252,29 @@ write_callback(const FLAC__StreamEncoder *encoder,
   flac_t * flac;
   flac = data;
 
-  fprintf(stderr, "Write callback %zd bytes, %d samples, current_frame: %d\n",
-          bytes, samples, current_frame);
+  //  fprintf(stderr, "Write callback %zd bytes, %d samples, current_frame: %d\n",
+  //          bytes, samples, current_frame);
 
   if(!flac->bytes_written)
     {
     /* Signature */
-    fprintf(stderr, "Got signature\n");
+    //    fprintf(stderr, "Got signature\n");
     }
   else if((buffer[0] & 0x7f) == 0)
     {
-    fprintf(stderr, "Got streaminfo\n");
+    //    fprintf(stderr, "Got streaminfo\n");
     }
   else if((buffer[0] & 0x7f) == 3)
     {
-    fprintf(stderr, "Got seektable\n");
+    //    fprintf(stderr, "Got seektable\n");
     }
   else if((buffer[0] & 0x7f) == 4)
     {
-    fprintf(stderr, "Got comment\n");
+    //    fprintf(stderr, "Got comment\n");
     }
   else
     {
-    fprintf(stderr, "Got frame\n");
+    //    fprintf(stderr, "Got frame\n");
 
     if(flac->data_start < 0)
       flac->data_start = flac->bytes_written;
