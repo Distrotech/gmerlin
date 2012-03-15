@@ -251,7 +251,11 @@ void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc)
   flac->format->samplerate = ((flac->format->samplerate + 9) / 10) * 10;
   
   /* Bits per sample */
-      
+
+  /* bits_per_sample is zero when writing compressed packets */
+  if(!flac->bits_per_sample)
+    flac->bits_per_sample = 16;
+    
   if(flac->bits_per_sample <= 8)
     {
     flac->copy_frame = copy_frame_8;

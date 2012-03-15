@@ -67,18 +67,16 @@ typedef struct
   
   int64_t data_start;
   int64_t bytes_written;
-  
-  struct
-    {
-    int64_t sample;
-    int64_t pos;
-    int frame_samples;
-    } * frame_table;
+
+  /* Table with *all* frames */
+  FLAC__StreamMetadata_SeekPoint * frame_table;
   
   uint32_t frame_table_len;
   uint32_t frame_table_alloc;
 
   const gavl_compression_info_t * ci;
+
+  int fixed_blocksize;
   } flac_t;
 
 static void * create_flac()
@@ -207,18 +205,6 @@ static int add_audio_stream_flac(void * data,
   return 0;
   }
 
-#if 0
-  struct
-    {
-    int64_t sample;
-    int64_t pos;
-    int frame_samples;
-    } * frame_table;
-  
-  uint32_t frame_table_len;
-  uint32_t frame_table_alloc;
-#endif
-
 static void append_packet(flac_t * f, int samples)
   {
   if(f->frame_table_len + 1 > f->frame_table_alloc)
@@ -229,30 +215,19 @@ static void append_packet(flac_t * f, int samples)
     }
   if(f->frame_table_len)
     {
-    f->frame_table[f->frame_table_len].sample =
-      f->frame_table[f->frame_table_len-1].sample +
+    f->frame_table[f->frame_table_len].sample_number =
+      f->frame_table[f->frame_table_len-1].sample_number +
       f->frame_table[f->frame_table_len-1].frame_samples;
     }
   else
     {
-    f->frame_table[f->frame_table_len].sample = 0;
+    f->frame_table[f->frame_table_len].sample_number = 0;
     }
   f->frame_table[f->frame_table_len].frame_samples = samples;
-  f->frame_table[f->frame_table_len].pos = f->bytes_written + f->data_start;
+  f->frame_table[f->frame_table_len].stream_offset = f->bytes_written - f->data_start;
   f->frame_table_len++;
   }
 
-#if 0
-static void progress_callback(const FLAC__StreamEncoder *encoder,
-                              FLAC__uint64 bytes_written,
-                              FLAC__uint64 samples_written,
-                              unsigned frames_written,
-                              unsigned total_frames_estimate, void *client_data)
-  {
-  fprintf(stderr, "Progress callback: bytes: %ld samples: %ld frames: %d\n",
-          bytes_written, samples_written, frames_written);
-  }
-#endif
 
 static void
 metadata_callback(const FLAC__StreamEncoder *decoder,
@@ -263,10 +238,7 @@ metadata_callback(const FLAC__StreamEncoder *decoder,
   
   if((metadata->type == FLAC__METADATA_TYPE_STREAMINFO) &&
      !flac->ci)
-    {
-    fprintf(stderr, "Got final streaminfo\n");
     memcpy(&flac->si, &metadata->data.stream_info, sizeof(flac->si));
-    }
   }
 
 static FLAC__StreamEncoderWriteStatus
@@ -280,7 +252,7 @@ write_callback(const FLAC__StreamEncoder *encoder,
   flac_t * flac;
   flac = data;
 
-  fprintf(stderr, "Write callback %ld bytes, %d samples, current_frame: %d\n",
+  fprintf(stderr, "Write callback %zd bytes, %d samples, current_frame: %d\n",
           bytes, samples, current_frame);
 
   if(!flac->bytes_written)
@@ -304,7 +276,7 @@ write_callback(const FLAC__StreamEncoder *encoder,
     {
     fprintf(stderr, "Got frame\n");
 
-    if(!flac->data_start < 0)
+    if(flac->data_start < 0)
       flac->data_start = flac->bytes_written;
     
     append_packet(flac, samples);
@@ -554,7 +526,44 @@ static void finalize_seektable(flac_t * flac)
 
 static void build_seek_table(flac_t * flac, FLAC__StreamMetadata * tab)
   {
-  
+  int i;
+
+  /* We encoded fewer frames than we have in the seektable: Placeholders will remain there */
+  if(flac->frame_table_len <= flac->num_seektable_entries)
+    {
+    for(i = 0; i < flac->frame_table_len; i++)
+      {
+      FLAC__metadata_object_seektable_set_point(tab,
+                                                i, flac->frame_table[i]);
+      }
+    }
+  /* More common case: We have more frames than we will have in the seek table */
+  else
+    {
+    int index = 0;
+    int64_t next_seek_sample;
+    
+    /* First entry is always copied */
+    FLAC__metadata_object_seektable_set_point(tab,
+                                              0, flac->frame_table[0]);
+    index = 1;
+    next_seek_sample = (flac->samples_written * index) / flac->num_seektable_entries;
+    
+    for(i = 1; i < flac->frame_table_len; i++)
+      {
+      if(flac->frame_table[i].sample_number >= next_seek_sample)
+        {
+        FLAC__metadata_object_seektable_set_point(tab,
+                                                  index, flac->frame_table[i]);
+
+        index++;
+        next_seek_sample = (flac->samples_written * index) / flac->num_seektable_entries;
+
+        if(index >= flac->num_seektable_entries)
+          break;
+        }
+      }
+    }
   }
 
 static void finalize(flac_t * flac)
@@ -681,6 +690,9 @@ static int add_audio_stream_compressed_flac(void * priv, const char * language,
   uint8_t * ptr;
   flac_t * flac = priv;
   flac->ci = info;
+
+  gavl_audio_format_copy(&flac->format, format);
+  flac->com.format = &flac->format;
   
   ptr = flac->ci->global_header
     + 8  // Signature + metadata header
@@ -704,22 +716,40 @@ static int write_audio_packet_flac(void * priv, gavl_packet_t * packet, int stre
   {
   flac_t * flac = priv;
 
-  if(!flac->si.min_blocksize || (packet->duration < flac->si.min_blocksize))
+  if(packet->data_len < 6)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Packet data too small: %d",
+           packet->data_len);
+    return 0;
+    }
+  
+  if(!flac->samples_written)
+    {
+    flac->fixed_blocksize = !(packet->data[1] & 0x01); // bit 15
     flac->si.min_blocksize = packet->duration;
-  if(packet->duration > flac->si.max_blocksize)
     flac->si.max_blocksize = packet->duration;
-
+    }
+  else if(!flac->fixed_blocksize)
+    {
+    if(packet->duration < flac->si.min_blocksize)
+      flac->si.min_blocksize = packet->duration;
+    if(packet->duration > flac->si.max_blocksize)
+      flac->si.max_blocksize = packet->duration;
+    }
+  
   if(!flac->si.min_framesize || (packet->data_len < flac->si.min_framesize))
     flac->si.min_framesize = packet->data_len;
   if(packet->data_len > flac->si.max_framesize)
     flac->si.max_framesize = packet->data_len;
 
-  if(!flac->data_start < 0)
+  if(flac->data_start < 0)
     flac->data_start = flac->bytes_written;
-  
   
   append_packet(flac, packet->duration);
   flac->samples_written += packet->duration;
+
+  flac->si.total_samples = flac->samples_written;
+
   if(fwrite(packet->data, 1, packet->data_len, flac->out) == packet->data_len)
     {
     flac->bytes_written += packet->data_len;
