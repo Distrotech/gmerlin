@@ -2228,6 +2228,25 @@ GAVL_PUBLIC
 int gavl_get_color_channel_format(const gavl_video_format_t * frame_format,
                                   gavl_video_format_t * channel_format,
                                   gavl_color_channel_t ch);
+
+
+/*!
+  \ingroup video_format
+  \brief Get the video format of one field
+  \param frame_format The video format of the full frame
+  \param field_format Format of the field
+  \param field Field (0 or 1)
+
+  Use this function if you need to split a frame into fields.
+  It handles odd heights correctly
+  
+  Since 1.2.1
+*/
+
+GAVL_PUBLIC
+void gavl_get_field_format(const gavl_video_format_t * frame_format,
+                          gavl_video_format_t * field_format,
+                          int field);
   
   
 /*! 

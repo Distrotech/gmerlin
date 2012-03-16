@@ -293,3 +293,24 @@ int gavl_video_format_get_image_size(const gavl_video_format_t * format)
     }
   return ret;
   }
+
+void gavl_get_field_format(const gavl_video_format_t * frame_format,
+                           gavl_video_format_t * field_format,
+                           int field)
+  {
+  gavl_video_format_copy(field_format, frame_format);
+
+  field_format->image_height /= 2;
+  field_format->frame_height /= 2;
+
+  if(frame_format->image_height % 2)
+    {
+    /* Top field gets an extra scanline */
+    if(!field)
+      {
+      field_format->image_height++;
+      if(field_format->frame_height < field_format->image_height)
+        field_format->frame_height = field_format->image_height;
+      }
+    }
+  }
