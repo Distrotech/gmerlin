@@ -40,8 +40,8 @@ typedef struct
   int read_stream;
   
   gavl_video_format_t format;
-  gavl_video_format_t field_format;
-
+  gavl_video_format_t field_format[2];
+  
   gavl_video_frame_t * frame;
 
   gavl_video_frame_t * src_field;
@@ -155,10 +155,11 @@ static void set_input_format_interlace(void * priv,
   if(!port)
     {
     gavl_video_format_copy(&vp->format, format);
-    gavl_video_format_copy(&vp->field_format, format);
-    vp->field_format.image_height /= 2;
+    
     vp->format.frame_duration *= 2;
     vp->format.interlace_mode = vp->out_interlace;
+    gavl_get_field_format(&vp->format, &vp->field_format[0], 0);
+    gavl_get_field_format(&vp->format, &vp->field_format[1], 1);
     }
   if(vp->frame)
     {
@@ -204,7 +205,8 @@ static int read_video_interlace(void * priv,
   gavl_video_frame_get_field(vp->format.pixelformat,
                              frame,
                              vp->dst_field, field);
-  gavl_video_frame_copy(&vp->field_format, vp->dst_field, vp->src_field);
+
+  gavl_video_frame_copy(&vp->field_format[field], vp->dst_field, vp->src_field);
 
   gavl_video_frame_copy_metadata(frame, vp->frame);
 
@@ -229,8 +231,7 @@ static int read_video_interlace(void * priv,
   gavl_video_frame_get_field(vp->format.pixelformat,
                              frame,
                              vp->dst_field, field);
-  gavl_video_frame_copy(&vp->field_format, vp->dst_field, vp->src_field);
-
+  gavl_video_frame_copy(&vp->field_format[field], vp->dst_field, vp->src_field);
   
   
   return 1;

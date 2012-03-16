@@ -40,7 +40,7 @@ typedef struct
   int read_stream;
   
   gavl_video_format_t format;
-  gavl_video_format_t field_format;
+  gavl_video_format_t field_format[2];
   
   gavl_video_frame_t * fields[2];
   
@@ -114,10 +114,9 @@ static void set_input_format_swapfields(void * priv,
   vp->noop = 0;
     
   gavl_video_format_copy(&vp->format, format);
-  gavl_video_format_copy(&vp->field_format, format);
-  vp->field_format.image_height /= 2;
-  vp->field_format.frame_height /= 2;
-
+  gavl_get_field_format(format, &vp->field_format[0], 0);
+  gavl_get_field_format(format, &vp->field_format[1], 1);
+  
   if(vp->format.interlace_mode == GAVL_INTERLACE_TOP_FIRST)
     {
     vp->format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
@@ -184,10 +183,10 @@ static int read_video_swapfields(void * priv,
     return vp->read_func(vp->read_data, frame, vp->read_stream);
   
   if(!vp->fields[0])
-    vp->fields[0] = gavl_video_frame_create(&vp->field_format);
+    vp->fields[0] = gavl_video_frame_create(&vp->field_format[0]);
   if(!vp->fields[1])
-    vp->fields[1] = gavl_video_frame_create(&vp->field_format);
-
+    vp->fields[1] = gavl_video_frame_create(&vp->field_format[1]);
+  
   if(vp->init)
     {
     if(!vp->read_func(vp->read_data, frame, vp->read_stream))
@@ -200,7 +199,8 @@ static int read_video_swapfields(void * priv,
                                frame,
                                vp->cpy_field, vp->delay_field);
     
-    gavl_video_frame_copy(&vp->field_format, vp->last_field, vp->cpy_field);
+    gavl_video_frame_copy(&vp->field_format[vp->delay_field],
+                          vp->last_field, vp->cpy_field);
     vp->init = 0;
     vp->next_pts = frame->timestamp * vp->framerate_mult +
       (frame->duration * vp->framerate_mult) / 2;
@@ -214,10 +214,12 @@ static int read_video_swapfields(void * priv,
                              vp->cpy_field, vp->delay_field);
 
   /* Save field for later use */
-  gavl_video_frame_copy(&vp->field_format, vp->next_field, vp->cpy_field);
+  gavl_video_frame_copy(&vp->field_format[vp->delay_field],
+                        vp->next_field, vp->cpy_field);
   
   /* Copy field from last frame */
-  gavl_video_frame_copy(&vp->field_format, vp->cpy_field, vp->last_field);
+  gavl_video_frame_copy(&vp->field_format[vp->delay_field],
+                        vp->cpy_field, vp->last_field);
 
   /* Swap pointers */
   swp = vp->next_field;
