@@ -312,6 +312,8 @@ void bgav_packet_reset(bgav_packet_t * p);
 
 void bgav_packet_alloc_palette(bgav_packet_t * p, int size);
 void bgav_packet_free_palette(bgav_packet_t * p);
+void bgav_packet_copy_metadata(bgav_packet_t * dst,
+                               const bgav_packet_t * src);
 
 
 // void bgav_packet_done_write(bgav_packet_t *);
@@ -580,7 +582,6 @@ struct bgav_stream_s
       int depth;
       int planes;     /* For M$ formats only */
       int image_size; /* For M$ formats only */
-      int flip_y;
       
       bgav_video_decoder_context_t * decoder;
       gavl_video_format_t format;

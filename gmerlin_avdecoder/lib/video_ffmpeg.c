@@ -72,13 +72,18 @@
 
 #define LOG_DOMAIN "ffmpeg_video"
 
-#define DUMP_DECODE
+// #define DUMP_DECODE
 // #define DUMP_EXTRADATA
-#define DUMP_PACKET
+// #define DUMP_PACKET
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
-#define HAS_DELAY      (1<<0)
+#define HAS_DELAY       (1<<0)
+#define SWAP_FIELDS_IN  (1<<1)
+#define SWAP_FIELDS_OUT (1<<2)
+#define MERGE_FIELDS    (1<<3)
+#define FLIP_Y          (1<<4)
+
 
 static int get_format_jpeg(bgav_stream_t*, bgav_packet_t * p);
 static int get_format_dv(bgav_stream_t*, bgav_packet_t * p);
@@ -128,9 +133,6 @@ typedef struct
   uint8_t * extradata;
   int extradata_size;
   
-  //  packet_info_t packets[FF_MAX_B_FRAMES+1];
-  bgav_packet_t * packet;
-  
   int flags;
 
 #ifdef HAVE_LIBPOSTPROC
@@ -146,10 +148,9 @@ typedef struct
   gavl_video_frame_t * flip_frame; /* Only used if we flip AND do postprocessing */
   
   /* Swap fields for MJPEG-A/B bottom first */
-  int swap_fields;
   gavl_video_frame_t  * src_field;
   gavl_video_frame_t  * dst_field;
-  gavl_video_format_t field_format;
+  gavl_video_format_t field_format[2];
   
   /* */
   //  AVCodecParserContext * parser;
@@ -158,10 +159,7 @@ typedef struct
   bgav_dv_dec_t * dvdec;
   
   gavl_timecode_t last_dv_timecode;
-
-  uint8_t * frame_buffer;
-  int frame_buffer_len;
-
+  
   bgav_pts_cache_t pts_cache;
 
   int64_t picture_timestamp;
@@ -185,6 +183,8 @@ typedef struct
 
   int b_age;
   int ip_age[2];
+
+  bgav_packet_t * p;
   
   } ffmpeg_video_priv;
 
@@ -283,26 +283,57 @@ static enum PixelFormat vdpau_get_format(struct AVCodecContext *s, const enum Pi
 static codec_info_t * lookup_codec(bgav_stream_t * s);
 
 
-static int get_data(bgav_stream_t * s)
+static bgav_packet_t * get_data(bgav_stream_t * s)
   {
   ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  bgav_packet_t * ret;
   
-  if(priv->packet)
-    {
-    bgav_stream_done_packet_read(s, priv->packet);
-    priv->packet = NULL;
-    }
-
-  priv->packet = bgav_stream_get_packet_read(s);
+  ret = bgav_stream_get_packet_read(s);
+  
+  if(!ret)
+    return NULL;
 
 #ifdef DUMP_PACKET
   fprintf(stderr, "Got packet ");
-  bgav_packet_dump(priv->packet);
+  bgav_packet_dump(ret);
 #endif
-                   
-  if(!priv->packet)
-    return 0;
-  return 1;
+
+  if((priv->flags & SWAP_FIELDS_IN) && (ret->field2_offset))
+    {
+    if(!priv->p)
+      priv->p = bgav_packet_create();
+    
+    bgav_packet_alloc(priv->p, ret->data_size);
+
+    priv->p->field2_offset =
+      ret->data_size - ret->field2_offset;
+    
+    /* Second field -> first field */
+    memcpy(priv->p->data,
+           ret->data + ret->field2_offset,
+           ret->data_size - ret->field2_offset);
+
+    /* First field -> second field */
+    memcpy(priv->p->data + priv->p->field2_offset,
+           ret->data,
+           ret->field2_offset);
+    bgav_packet_copy_metadata(priv->p, ret);
+    priv->p->data_size = ret->data_size;
+    bgav_stream_done_packet_read(s, ret);
+    ret = priv->p;
+    }
+  
+  if(priv->flags & MERGE_FIELDS)
+    ret->field2_offset = 0;
+  
+  return ret;
+  }
+
+static void done_data(bgav_stream_t * s, bgav_packet_t * p)
+  {
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  if(p != priv->p)
+    bgav_stream_done_packet_read(s, p);
   }
 
 static void get_format(AVCodecContext * ctx, gavl_video_format_t * format);
@@ -314,7 +345,7 @@ static void init_pp(bgav_stream_t * s);
 
 /* Codec specific hacks */
 
-static void handle_dv(bgav_stream_t * s);
+static void handle_dv(bgav_stream_t * s, bgav_packet_t * p);
 
 #if 0
 static int frame_dumped = 0;
@@ -337,6 +368,9 @@ static int decode_picture(bgav_stream_t * s)
   ffmpeg_video_priv * priv;
   bgav_pts_cache_entry_t * e;
   int have_picture = 0;
+  uint8_t * frame_buffer = NULL;
+  int frame_buffer_len = 0;
+  bgav_packet_t * p;
   
   priv = s->data.video.decoder->priv;
 
@@ -344,15 +378,10 @@ static int decode_picture(bgav_stream_t * s)
   
   while(1)
     {
-    /* Read data if necessary */
-    if(!get_data(s))
+    /* Read data */
+    if(!(p = get_data(s)))
       {
-      if(priv->flags & HAS_DELAY)
-        {
-        priv->frame_buffer_len = 0;
-        priv->frame_buffer = NULL;
-        }
-      else
+      if(!priv->flags & HAS_DELAY)
         return 0;
       }
     else /* Got packet */
@@ -361,13 +390,13 @@ static int decode_picture(bgav_stream_t * s)
       
       priv->ctx->skip_frame = AVDISCARD_DEFAULT;
       
-      if(priv->packet->pts == BGAV_TIMESTAMP_UNDEFINED)
+      if(p->pts == BGAV_TIMESTAMP_UNDEFINED)
         {
         priv->ctx->skip_frame = AVDISCARD_NONREF;
         }
       else if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
         {
-        if(PACKET_GET_CODING_TYPE(priv->packet) == BGAV_CODING_TYPE_B)
+        if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
           {
           /* Special handling for B-Pyramid */
           if(s->flags & STREAM_B_PYRAMID)
@@ -387,7 +416,7 @@ static int decode_picture(bgav_stream_t * s)
               priv->ctx->skip_frame = AVDISCARD_NONREF;
 #endif
             }
-          else if(priv->packet->pts + priv->packet->duration < priv->skip_time)
+          else if(p->pts + p->duration < priv->skip_time)
             {
             priv->ctx->skip_frame = AVDISCARD_NONREF;
             }
@@ -397,37 +426,37 @@ static int decode_picture(bgav_stream_t * s)
       if(priv->ctx->skip_frame == AVDISCARD_DEFAULT)
         {
         bgav_pts_cache_push(&priv->pts_cache,
-                            priv->packet->pts,
-                            priv->packet->duration,
-                            priv->packet->tc,
+                            p->pts,
+                            p->duration,
+                            p->tc,
                             NULL, &e);
         }
       
-      priv->frame_buffer = priv->packet->data;
+      frame_buffer = p->data;
 
-      if(priv->packet->field2_offset)
-        priv->frame_buffer_len = priv->packet->field2_offset;
+      if(p->field2_offset)
+        frame_buffer_len = p->field2_offset;
       else
-        priv->frame_buffer_len = priv->packet->data_size;
+        frame_buffer_len = p->data_size;
       }
     /* DV Video ugliness */
     if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
       {
-      handle_dv(s);
+      handle_dv(s, p);
       }
     
     /* Palette terror */
 
-    if(priv->packet && priv->packet->palette)
+    if(p && p->palette)
       {
       uint32_t * pal_i;
       int imax;
       imax =
-        (priv->packet->palette_size > AVPALETTE_COUNT)
-        ? AVPALETTE_COUNT : priv->packet->palette_size;
+        (p->palette_size > AVPALETTE_COUNT)
+        ? AVPALETTE_COUNT : p->palette_size;
 
       bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-               "Got palette %d entries", priv->packet->palette_size);
+               "Got palette %d entries", p->palette_size);
       
 #if LIBAVCODEC_VERSION_MAJOR < 54
       priv->palette.palette_changed = 1;
@@ -440,31 +469,31 @@ static int decode_picture(bgav_stream_t * s)
       for(i = 0; i < imax; i++)
         {
         pal_i[i] =
-          ((priv->packet->palette[i].a >> 8) << 24) |
-          ((priv->packet->palette[i].r >> 8) << 16) |
-          ((priv->packet->palette[i].g >> 8) << 8) |
-          ((priv->packet->palette[i].b >> 8));
+          ((p->palette[i].a >> 8) << 24) |
+          ((p->palette[i].r >> 8) << 16) |
+          ((p->palette[i].g >> 8) << 8) |
+          ((p->palette[i].b >> 8));
         }
       for(i = imax; i < AVPALETTE_COUNT; i++)
         pal_i[i] = 0;
       
-      bgav_packet_free_palette(priv->packet);
+      bgav_packet_free_palette(p);
       }
     
     /* Decode one frame */
     
 #ifdef DUMP_DECODE
     bgav_dprintf("Decode: out_time: %" PRId64 " len: %d\n", s->out_time,
-                 priv->frame_buffer_len);
-    if(priv->frame_buffer)
-      bgav_hexdump(priv->frame_buffer, 16, 16);
+                 frame_buffer_len);
+    if(frame_buffer)
+      bgav_hexdump(frame_buffer, 16, 16);
 #endif
     
-    //    dump_frame(priv->frame_buffer, priv->frame_buffer_len);
+    //    dump_frame(frame_buffer, frame_buffer_len);
 
 #if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
-    priv->pkt.data = priv->frame_buffer;
-    priv->pkt.size = priv->frame_buffer_len;
+    priv->pkt.data = frame_buffer;
+    priv->pkt.size = frame_buffer_len;
     bytes_used = avcodec_decode_video2(priv->ctx,
                                        priv->frame,
                                        &have_picture,
@@ -486,13 +515,13 @@ static int decode_picture(bgav_stream_t * s)
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
                                       &have_picture,
-                                      priv->frame_buffer,
-                                      priv->frame_buffer_len);
+                                      frame_buffer,
+                                      frame_buffer_len);
 #endif
     
 #ifdef DUMP_DECODE
       bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                   bytes_used, priv->frame_buffer_len, have_picture);
+                   bytes_used, frame_buffer_len, have_picture);
       if(!have_picture)
         bgav_dprintf("\n");
       else
@@ -523,21 +552,21 @@ static int decode_picture(bgav_stream_t * s)
 #endif
     
     /* Decode 2nd field for field pictures */
-    if(priv->packet && priv->packet->field2_offset && (bytes_used > 0))
+    if(p && p->field2_offset && (bytes_used > 0))
       {
-      priv->frame_buffer = priv->packet->data + priv->packet->field2_offset;
-      priv->frame_buffer_len = priv->packet->data_size - priv->packet->field2_offset;
+      frame_buffer = p->data + p->field2_offset;
+      frame_buffer_len = p->data_size - p->field2_offset;
 
 #ifdef DUMP_DECODE
       bgav_dprintf("Decode (f2): out_time: %" PRId64 " len: %d\n", s->out_time,
-                   priv->frame_buffer_len);
-      if(priv->frame_buffer)
-        bgav_hexdump(priv->frame_buffer, 16, 16);
+                   frame_buffer_len);
+      if(frame_buffer)
+        bgav_hexdump(frame_buffer, 16, 16);
 #endif
 
 #if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
-      priv->pkt.data = priv->frame_buffer;
-      priv->pkt.size = priv->frame_buffer_len;
+      priv->pkt.data = frame_buffer;
+      priv->pkt.size = frame_buffer_len;
       bytes_used = avcodec_decode_video2(priv->ctx,
                                          priv->frame,
                                          &have_picture,
@@ -547,13 +576,13 @@ static int decode_picture(bgav_stream_t * s)
       bytes_used = avcodec_decode_video(priv->ctx,
                                         priv->frame,
                                         &have_picture,
-                                        priv->frame_buffer,
-                                        priv->frame_buffer_len);
+                                        frame_buffer,
+                                        frame_buffer_len);
 #endif
 
 #ifdef DUMP_DECODE
       bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                   bytes_used, priv->frame_buffer_len, have_picture);
+                   bytes_used, frame_buffer_len, have_picture);
       if(!have_picture)
         bgav_dprintf("\n");
       else
@@ -584,14 +613,11 @@ static int decode_picture(bgav_stream_t * s)
 #endif
       }
 
-    if(priv->packet)
-      {
-      bgav_stream_done_packet_read(s, priv->packet);
-      priv->packet = NULL;
-      }
+    if(p)
+      done_data(s, p);
     
     /* If we passed no data and got no picture, we are done here */
-    if(!priv->frame_buffer_len && !have_picture)
+    if(!frame_buffer_len && !have_picture)
       {
       return 0;
       }
@@ -805,7 +831,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   /* Set up coded specific details */
   
   if(s->fourcc == BGAV_MK_FOURCC('W','V','1','F'))
-    s->data.video.flip_y = 1;
+    s->flags |= FLIP_Y;
   
   priv->info = lookup_codec(s);
 
@@ -914,14 +940,20 @@ static int init_ffmpeg(bgav_stream_t * s)
   /* Some codecs need extra stuff */
 
   /* Swap fields for Quicktime Motion JPEG */
-  if((s->fourcc == BGAV_MK_FOURCC('m','j','p','a')) ||
-     (s->fourcc == BGAV_MK_FOURCC('m','j','p','b')))
+  if(s->fourcc == BGAV_MK_FOURCC('m','j','p','a'))
+    {
+    priv->flags |= MERGE_FIELDS;
+    if(s->data.video.format.interlace_mode == GAVL_INTERLACE_BOTTOM_FIRST)
+      priv->flags |= SWAP_FIELDS_IN;
+    }
+  
+  if((s->fourcc == BGAV_MK_FOURCC('m','j','p','b')))
     {
     if(s->data.video.format.interlace_mode == GAVL_INTERLACE_BOTTOM_FIRST)
       {
 #if 1
       // #if LIBAVCODEC_VERSION_INT < ((53<<16)|(32<<8)|2)
-      priv->swap_fields = 1;
+      priv->flags |= SWAP_FIELDS_OUT;
       priv->src_field = gavl_video_frame_create(NULL);
       priv->dst_field = gavl_video_frame_create(NULL);
 #else
@@ -1016,14 +1048,14 @@ static int init_ffmpeg(bgav_stream_t * s)
 #endif
     }
 
-  if(priv->swap_fields)
+  if(priv->flags & SWAP_FIELDS_OUT)
     {
-    gavl_video_format_copy(&priv->field_format,
-                           &s->data.video.format);
-    priv->field_format.frame_height /= 2;
-    priv->field_format.image_height /= 2;
+    gavl_get_field_format(&s->data.video.format,
+                          &priv->field_format[0], 0);
+    gavl_get_field_format(&s->data.video.format,
+                          &priv->field_format[1], 1);
     }
-
+  
 #if LIBAVCODEC_VERSION_MAJOR >= 54
   av_dict_free(&options);
 #endif
@@ -1044,11 +1076,6 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv->ip_age[1] = 256*256*256*64;
   priv->b_age = 256*256*256*64;
 
-  if(priv->packet)
-    {
-    bgav_stream_done_packet_read(s, priv->packet);
-    priv->packet = NULL;
-    }
   priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
 
   bgav_pts_cache_clear(&priv->pts_cache);
@@ -1096,6 +1123,9 @@ static void close_ffmpeg(bgav_stream_t * s)
     {
     bgav_dv_dec_destroy(priv->dvdec);
     }
+
+  if(priv->p)
+    bgav_packet_destroy(priv->p);
   
   if(priv->extradata)
     free(priv->extradata);
@@ -1110,8 +1140,6 @@ static void close_ffmpeg(bgav_stream_t * s)
   if(priv->swsContext)
     sws_freeContext(priv->swsContext);
 #endif
-  if(priv->packet)
-    bgav_stream_done_packet_read(s, priv->packet);
   
   free(priv->frame);
   free(priv);
@@ -2264,7 +2292,7 @@ static void init_pp(bgav_stream_t * s)
         priv->pp_mode = pp_get_mode_by_name_and_quality("hb:a,vb:a,dr:a",
                                                         level);
         
-        if(s->data.video.flip_y)
+        if(priv->flags & FLIP_Y)
           priv->flip_frame = gavl_video_frame_create(&s->data.video.format);
             
         break;
@@ -2291,11 +2319,11 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
     if(s->data.video.format.pixelformat == GAVL_RGBA_32)
       pal8_to_rgba32(f, priv->frame,
                      s->data.video.format.image_width,
-                     s->data.video.format.image_height, s->data.video.flip_y);
+                     s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
     else
       pal8_to_rgb24(f, priv->frame,
                     s->data.video.format.image_width,
-                    s->data.video.format.image_height, s->data.video.flip_y);
+                    s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
     }
 #ifdef HAVE_VDPAU
   else if(priv->vdpau_ctx)
@@ -2315,14 +2343,14 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
     {
     rgba32_to_rgba32(f, priv->frame,
                      s->data.video.format.image_width,
-                     s->data.video.format.image_height, s->data.video.flip_y);
+                     s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
     }
 #if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
   else if(priv->ctx->pix_fmt == PIX_FMT_YUVA420P)
     {
     yuva420_to_yuva32(f, priv->frame,
                       s->data.video.format.image_width,
-                      s->data.video.format.image_height, s->data.video.flip_y);
+                      s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
     }
 #endif
   else if(!priv->do_convert)
@@ -2330,7 +2358,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
 #ifdef HAVE_LIBPOSTPROC
     if(priv->do_pp)
       {
-      if(s->data.video.flip_y)
+      if(priv->flags & FLIP_Y)
         {
         pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
                        priv->flip_frame->planes, priv->flip_frame->strides,
@@ -2361,10 +2389,10 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->gavl_frame->strides[1] = priv->frame->linesize[1];
       priv->gavl_frame->strides[2] = priv->frame->linesize[2];
 
-      if(s->data.video.flip_y)
+      if(priv->flags & FLIP_Y)
         gavl_video_frame_copy_flip_y(&s->data.video.format,
                                      f, priv->gavl_frame);
-      else if(priv->swap_fields)
+      else if(priv->flags & SWAP_FIELDS_OUT)
         {
         /* src field (top) -> dst field (bottom) */
         gavl_video_frame_get_field(s->data.video.format.pixelformat,
@@ -2377,7 +2405,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
                                    priv->dst_field,
                                    1);
         
-        gavl_video_frame_copy(&priv->field_format, priv->dst_field, priv->src_field);
+        gavl_video_frame_copy(&priv->field_format[1], priv->dst_field, priv->src_field);
 
         /* src field (bottom) -> dst field (top) */
         gavl_video_frame_get_field(s->data.video.format.pixelformat,
@@ -2389,7 +2417,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
                                    f,
                                    priv->dst_field,
                                    0);
-        gavl_video_frame_copy(&priv->field_format, priv->dst_field, priv->src_field);
+        gavl_video_frame_copy(&priv->field_format[0], priv->dst_field, priv->src_field);
         }
       else
         gavl_video_frame_copy(&s->data.video.format, f, priv->gavl_frame);
@@ -2432,20 +2460,20 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
 
 /* Extract format and get timecode */
 
-/* We get the DV format info ourselfes, since the values
+/* We get the DV format info ourselves, since the values
    ffmpeg returns are not reliable */
 
-static void handle_dv(bgav_stream_t * s)
+static void handle_dv(bgav_stream_t * s, bgav_packet_t * p)
   {
   ffmpeg_video_priv * priv = s->data.video.decoder->priv;
   
   if(priv->need_format)
     {
     priv->dvdec = bgav_dv_dec_create();
-    bgav_dv_dec_set_header(priv->dvdec, priv->frame_buffer);
+    bgav_dv_dec_set_header(priv->dvdec, p->data);
     }
       
-  bgav_dv_dec_set_frame(priv->dvdec, priv->frame_buffer);
+  bgav_dv_dec_set_frame(priv->dvdec, p->data);
   
   if(priv->need_format)
     {

@@ -58,27 +58,6 @@ void bgav_packet_pad(bgav_packet_t * p)
   memset(p->data + p->data_size, 0, PACKET_PADDING);
   }
 
-#if 0
-void bgav_packet_done_write(bgav_packet_t * p)
-  {
-  p->valid = 1;
-  p->stream->in_position++;
-
-  /* If the stream has a constant framerate, all packets have the same
-     duration */
-  if((p->stream->type == BGAV_STREAM_VIDEO) && 
-     (p->stream->data.video.format.frame_duration) &&
-     (p->stream->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT) &&
-     !p->duration)
-    p->duration = p->stream->data.video.format.frame_duration;
-
-  /* Padding (if fourcc != gavl) */
-  if(p->data)
-    memset(p->data + p->data_size, 0, PACKET_PADDING);
-
-  }
-#endif
-
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,
                                    const char * text,
                                    int len,
@@ -156,35 +135,6 @@ void bgav_packet_swap_data(bgav_packet_t * p1, bgav_packet_t * p2)
   SWAP(p1->data_alloc, p2->data_alloc);
   }
 
-#if 0
-void bgav_packet_get_text_subtitle(bgav_packet_t * p,
-                                   char ** text,
-                                   int * text_alloc,
-                                   int &text_len,
-                                   gavl_time_t * start,
-                                   gavl_time_t * duration)
-  {
-  int len;
-  len = p->data_size;
-
-  if(*text_alloc < len)
-    {
-    *text_alloc = len + 128;
-    *text = realloc(*text, *text_alloc);
-    }
-  
-  if(len)
-    {
-    strcpy(*text, (char*)p->data);
-    }
-
-  *start    = gavl_time_unscale(p->stream->timescale, p->pts);
-  *duration = gavl_time_unscale(p->stream->timescale, p->duration_scaled);
-  
-  }
-#endif
-
-
 void bgav_packet_reset(bgav_packet_t * p)
   {
   p->pts = BGAV_TIMESTAMP_UNDEFINED;
@@ -195,6 +145,16 @@ void bgav_packet_reset(bgav_packet_t * p)
   p->header_size = 0;
   p->duration = -1;
   bgav_packet_free_palette(p);
+  }
+
+void bgav_packet_copy_metadata(bgav_packet_t * dst,
+                               const bgav_packet_t * src)
+  {
+  dst->pts      = src->pts;
+  dst->dts      = src->dts;
+  dst->duration = src->duration;
+  dst->flags    = src->flags;
+  dst->tc       = src->tc;
   }
 
 void bgav_packet_source_copy(bgav_packet_source_t * dst,
