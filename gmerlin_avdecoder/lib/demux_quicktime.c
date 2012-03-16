@@ -1101,8 +1101,12 @@ static void init_video(bgav_demuxer_context_t * ctx,
     priv->streams[index].skip_first_frame = 1;
   if(skip_last_frame)
     priv->streams[index].skip_last_frame = 1;
-        
+  
   bg_vs->fourcc = desc->fourcc;
+
+  if(bg_vs->fourcc == BGAV_MK_FOURCC('m','j','p','a'))
+    bg_vs->flags |= STREAM_PARSE_FRAME;
+  
   bg_vs->data.video.format.image_width = desc->format.video.width;
   bg_vs->data.video.format.image_height = desc->format.video.height;
   bg_vs->data.video.format.frame_width = desc->format.video.width;
