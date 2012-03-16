@@ -85,7 +85,7 @@ static int create_output_file(void * priv, const char * name)
   {
   bg_ocr_t * ocr = priv;
   ocr->image_file = bg_strdup(ocr->image_file, name);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Writing image file %s", name);
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Writing image file %s", name);
   return 1;
   }
 
@@ -246,6 +246,8 @@ int bg_ocr_run(bg_ocr_t * ocr,
 
   if(!result)
     {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+           "OCR failed, keeping %s", ocr->image_file);
     *ret = ocr->image_file;
     ocr->image_file = NULL;
     }
@@ -253,7 +255,7 @@ int bg_ocr_run(bg_ocr_t * ocr,
     {
     if(ocr->image_file)
       {
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", ocr->image_file);
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Removing %s", ocr->image_file);
       remove(ocr->image_file);
       free(ocr->image_file);
       ocr->image_file = NULL;
