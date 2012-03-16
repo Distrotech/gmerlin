@@ -72,7 +72,7 @@
 
 #define LOG_DOMAIN "ffmpeg_video"
 
-// #define DUMP_DECODE
+#define DUMP_DECODE
 // #define DUMP_EXTRADATA
 // #define DUMP_PACKET
 
@@ -919,9 +919,14 @@ static int init_ffmpeg(bgav_stream_t * s)
     {
     if(s->data.video.format.interlace_mode == GAVL_INTERLACE_BOTTOM_FIRST)
       {
+#if 1
+      // #if LIBAVCODEC_VERSION_INT < ((53<<16)|(32<<8)|2)
       priv->swap_fields = 1;
       priv->src_field = gavl_video_frame_create(NULL);
       priv->dst_field = gavl_video_frame_create(NULL);
+#else
+      priv->ctx->field_order = AV_FIELD_BB;
+#endif
       }
     }
 

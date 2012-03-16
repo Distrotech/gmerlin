@@ -506,6 +506,7 @@ parse_cavs.c \
 parse_dirac.c \
 parse_flac.c \
 parse_h264.c \
+parse_mjpa.c \
 parse_mpeg4.c \
 parse_mpv.c \
 parse_mpegaudio.c \
