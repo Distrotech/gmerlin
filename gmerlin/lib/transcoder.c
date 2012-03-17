@@ -1370,7 +1370,7 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
     
 
     if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
-                   (st->subtitle_start >= t->end_time)))
+                   (gavl_time_unscale(s->in_format.timescale, st->subtitle_start) >= t->end_time)))
       {
       s->eof = 1;
       return 0;
@@ -1389,8 +1389,9 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
     result = s->com.in_plugin->read_subtitle_overlay(s->com.in_handle->priv,
                                                      ovl, s->com.in_index);
     
-    if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
-                   (ovl->frame->timestamp >= t->end_time)))
+    if(!result ||
+       ((t->end_time != GAVL_TIME_UNDEFINED) &&
+        (gavl_time_unscale(s->in_format.timescale, ovl->frame->timestamp) >= t->end_time)))
       {
       s->eof = 1;
       return 0;
@@ -1417,7 +1418,7 @@ static int decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
                                                     s->com.com.in_index);
   
   if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
-                 (s->subtitle_start >= t->end_time)))
+                 (gavl_time_unscale(s->com.in_format.timescale, s->subtitle_start) >= t->end_time)))
     {
     s->com.eof = 1;
     return 0;
@@ -2799,6 +2800,12 @@ static int init_converters(bg_transcoder_t * ret)
   int i;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
+    if(ret->audio_streams[i].com.do_copy)
+      {
+      gavl_audio_format_copy(&ret->audio_streams[i].out_format,
+                             &ret->audio_streams[i].in_format);
+      continue;
+      }
     if(!ret->audio_streams[i].com.do_decode)
       continue;
     if(!init_audio_converter(&ret->audio_streams[i], ret))
@@ -2806,6 +2813,13 @@ static int init_converters(bg_transcoder_t * ret)
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
+    if(ret->video_streams[i].com.do_copy)
+      {
+      gavl_video_format_copy(&ret->video_streams[i].out_format,
+                             &ret->video_streams[i].in_format);
+      continue;
+      }
+    
     if(!ret->video_streams[i].com.do_decode)
       continue;
 
