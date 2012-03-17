@@ -38,7 +38,7 @@ typedef struct
   int64_t pts;
   
   int pts_mult;
-
+  int field_height;
   gavl_video_format_t vs_format;
 
   } dvdsub_t;
@@ -65,6 +65,7 @@ static int init_dvdsub(bgav_stream_t * s)
   s->data.subtitle.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
   
   priv->pts_mult = s->timescale / 100;
+  priv->field_height = s->data.subtitle.format.image_height / 2;
   
   return 1;
   }
@@ -157,6 +158,12 @@ static int decode_scanline(const uint8_t * ptr, uint32_t * dst,
     len = v >> 2;
     color = v & 0x03;
 
+    if(x + len > width)
+      {
+      fprintf(stderr, "x + len > width: %d + %d > %d\n", x, len, width);
+      len = width - x;
+      }
+    
     for(i = 0; i < len; i++)
       {
       *dst = palette[color];
@@ -171,14 +178,18 @@ static int decode_scanline(const uint8_t * ptr, uint32_t * dst,
 
 static void decode_field(uint8_t * ptr, int len,
                          uint8_t * dst, int width, int dst_stride,
-                         uint32_t * palette)
+                         uint32_t * palette, int max_height)
   {
+  int ypos = 0;
   int pos = 0;
 
   while(pos < len)
     {
     pos += decode_scanline(ptr + pos, (uint32_t*)dst, palette, width);
     dst += dst_stride;
+    ypos++;
+    if(ypos >= max_height)
+      break;
     }
   }
 
@@ -311,19 +322,18 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   /* Decode the image */
   
   decode_field(priv->buffer + offset1, offset2 - offset1,
-               ovl->frame->planes[0], x2 - x1 + 1,
+               ovl->frame->planes[0],
+               x2 - x1 + 1,
                2 * ovl->frame->strides[0],
-               local_palette);
+               local_palette, priv->field_height);
   
   decode_field(priv->buffer + offset2, ctrl_start - offset2,
                ovl->frame->planes[0] + ovl->frame->strides[0],
                x2 - x1 + 1,
                2 * ovl->frame->strides[0],
-               local_palette);
+               local_palette, priv->field_height);
 
   /* Set rest of overlay structure */
-  //  ovl->frame->timestamp = gavl_time_unscale(s->timescale, priv->pts + start_date * 900);
-  //  ovl->frame->duration = gavl_time_unscale(100, end_date - start_date);
 
   ovl->frame->timestamp = priv->pts + start_date * priv->pts_mult;
   ovl->frame->duration = priv->pts_mult * (end_date - start_date);
