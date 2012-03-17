@@ -1271,6 +1271,8 @@ int bg_ffmpeg_close(void * data, int do_delete)
     close_video_encoder(priv, &priv->video_streams[i]);
     }
 
+  if(do_delete)
+    remove(priv->ctx->filename);
   
 #if AVFORMAT_FREE_CONTEXT  
   avformat_free_context(priv->ctx);
@@ -1281,8 +1283,6 @@ int bg_ffmpeg_close(void * data, int do_delete)
 
   priv->ctx = NULL;
  
-  if(do_delete)
-    remove(priv->ctx->filename);
   
   return 1;
   }
