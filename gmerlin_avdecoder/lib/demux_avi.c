@@ -32,9 +32,8 @@
 /* Define the variables below to get a detailed file dump
    on each open call */
 
-// #define DUMP_HEADERS
-// #define DUMP_INDICES
 // #define DUMP_AUDIO_TYPE
+// #define DUMP_CHUNK_HEADERS
 
 /* AVI Flags */
 
@@ -396,7 +395,6 @@ static int read_chunk_header(bgav_input_context_t * input,
     bgav_input_read_32_le(input, &chunk->ckSize);
   }
 
-#ifdef DUMP_HEADERS
 static void dump_chunk_header(chunk_header_t * chunk)
   {
   bgav_dprintf("chunk header:\n");
@@ -404,7 +402,6 @@ static void dump_chunk_header(chunk_header_t * chunk)
   bgav_dump_fourcc(chunk->ckID);
   bgav_dprintf("\n  ckSize %d\n", chunk->ckSize);
   }
-#endif
 
 #ifdef DUMP_AUDIO_TYPE
 static int do_msg = 1;
@@ -525,7 +522,6 @@ static int read_riff_header(bgav_input_context_t * input,
   }
 
 
-#ifdef DUMP_HEADERS
 static void dump_avih(avih_t * h)
   {
   bgav_dprintf("avih:\n");
@@ -543,7 +539,6 @@ static void dump_avih(avih_t * h)
   bgav_dprintf("  dwRate: %d\n",                h->dwRate);
   bgav_dprintf("  dwLength: %d\n",              h->dwLength);
   }
-#endif
 
 static int read_avih(bgav_input_context_t* input,
               avih_t * ret, chunk_header_t * ch)
@@ -571,9 +566,8 @@ static int read_avih(bgav_input_context_t* input,
     {
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
-#ifdef DUMP_HEADERS
-  dump_avih(ret);
-#endif
+  if(input->opt->dump_headers)
+    dump_avih(ret);
   return result;
   }
 
@@ -585,7 +579,6 @@ static void free_idx1(idx1_t * idx1)
     free(idx1->entries);
   }
 
-#ifdef DUMP_INDICES
 static void dump_idx1(idx1_t * idx1)
   {
   int i;
@@ -599,7 +592,6 @@ static void dump_idx1(idx1_t * idx1)
     bgav_dprintf(" Size: %d\n", idx1->entries[i].dwChunkLength);
     }
   }
-#endif
 
 static int probe_idx1(bgav_input_context_t * input)
   {
@@ -636,7 +628,6 @@ static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
 /* strh */
 
 
-#ifdef DUMP_HEADERS
 static void dump_strh(strh_t * ret)
   {
   bgav_dprintf("strh\n  fccType: ");
@@ -659,7 +650,6 @@ static void dump_strh(strh_t * ret)
   bgav_dprintf("  dwQuality: %d (%08x)\n", ret->dwQuality, ret->dwQuality);
   bgav_dprintf("  dwSampleSize: %d (%08x)\n", ret->dwSampleSize, ret->dwSampleSize);
   }
-#endif
 
 static int read_strh(bgav_input_context_t * input, strh_t * ret,
                      chunk_header_t * ch)
@@ -687,9 +677,8 @@ static int read_strh(bgav_input_context_t * input, strh_t * ret,
     {
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
-#ifdef DUMP_HEADERS
-  dump_strh(ret);
-#endif
+  if(input->opt->dump_headers)
+    dump_strh(ret);
   return result;
   }
 
@@ -698,13 +687,11 @@ static int read_strh(bgav_input_context_t * input, strh_t * ret,
 /* dmlh */
 
 
-#ifdef DUMP_HEADERS
 static void dump_dmlh(dmlh_t * dmlh)
   {
   bgav_dprintf("dmlh:\n");
   bgav_dprintf("  dwTotalFrames: %d\n", dmlh->dwTotalFrames);
   }
-#endif
 
 static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
                      chunk_header_t * ch)
@@ -723,14 +710,12 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
   }
 /* odml */
 
-#ifdef DUMP_HEADERS
 static void dump_odml(odml_t * odml)
   {
   bgav_dprintf("odml:\n");
   if(odml->has_dmlh)
     dump_dmlh(&odml->dmlh);
   }
-#endif
 
 static int read_odml(bgav_input_context_t * input, odml_t * ret,
                      chunk_header_t * ch)
@@ -766,10 +751,8 @@ static int read_odml(bgav_input_context_t * input, odml_t * ret,
     {
     bgav_input_skip(input, ch->ckSize - 4 - input->position - start_pos);
     }
-#ifdef DUMP_HEADERS
-  dump_odml(ret);
-#endif
-
+  if(input->opt->dump_headers)
+    dump_odml(ret);
   return 1;
   }
 
@@ -870,7 +853,6 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
   return 1;
   }
 
-#ifdef DUMP_INDICES
 static void dump_indx(indx_t * indx)
   {
   int i;
@@ -941,7 +923,6 @@ static void dump_indx(indx_t * indx)
       break;
     }
   }
-#endif
 
 static void free_indx(indx_t * indx)
   {
@@ -1223,9 +1204,8 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         pos = buf;
         bgav_WAVEFORMAT_read(&wf, buf, ch->ckSize);
         bgav_WAVEFORMAT_get_format(&wf, bg_as);
-#ifdef DUMP_HEADERS
-        bgav_WAVEFORMAT_dump(&wf);
-#endif
+        if(ctx->opt->dump_headers)
+          bgav_WAVEFORMAT_dump(&wf);
         bgav_WAVEFORMAT_free(&wf);
         //        bg_as->fourcc = BGAV_WAVID_2_FOURCC(wf.wFormatTag);
         //        if(!bg_as->data.audio.bits_per_sample)
@@ -1248,9 +1228,8 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
       case ID_INDX:
         if(!read_indx(ctx->input, &avi_as->indx, ch))
           return 0;
-#ifdef DUMP_INDICES
-        dump_indx(&avi_as->indx);
-#endif
+        if(ctx->opt->dump_indices)
+          dump_indx(&avi_as->indx);
         avi_as->has_indx = 1;
         break;
       default:
@@ -1300,10 +1279,9 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         pos = buf;
         bgav_BITMAPINFOHEADER_read(&bh, &pos);
         bgav_BITMAPINFOHEADER_get_format(&bh, bg_vs);
-#ifdef DUMP_HEADERS
-        bgav_BITMAPINFOHEADER_dump(&bh);
-#endif
-
+        if(ctx->opt->dump_headers)
+          bgav_BITMAPINFOHEADER_dump(&bh);
+        
         /* We don't add extradata if the fourcc is MJPG */
         /* This lets us play blender AVIs. */
                 
@@ -1342,10 +1320,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
       case ID_INDX:
         if(!read_indx(ctx->input, &avi_vs->indx, ch))
           return 0;
-
-#ifdef DUMP_INDICES
-        dump_indx(&avi_vs->indx);
-#endif
+        if(ctx->opt->dump_indices)
+          dump_indx(&avi_vs->indx);
         avi_vs->has_indx = 1;
         break;
       default:
@@ -1660,10 +1636,8 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
       case ID_INDX:
         if(!read_indx(ctx->input, &video_priv->indx, ch))
           return 0;
-
-#ifdef DUMP_INDICES
-        dump_indx(&video_priv->indx);
-#endif
+        if(ctx->opt->dump_indices)
+          dump_indx(&video_priv->indx);
         video_priv->has_indx = 1;
         break;
       default:
@@ -1949,10 +1923,11 @@ static int open_avi(bgav_demuxer_context_t * ctx)
     if(!read_chunk_header(ctx->input, &ch))
       goto fail;
     }
-#ifdef DUMP_HEADERS
-  bgav_dprintf("movi:\n");
-  dump_chunk_header(&ch);
-#endif
+  if(ctx->opt->dump_headers)
+    {
+    bgav_dprintf("movi:\n");
+    dump_chunk_header(&ch);
+    }
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 
@@ -1971,9 +1946,8 @@ static int open_avi(bgav_demuxer_context_t * ctx)
     if(probe_idx1(ctx->input) && read_idx1(ctx->input, &p->idx1))
       {
       p->has_idx1 = 1;
-#ifdef DUMP_INDICES
-      dump_idx1(&p->idx1);
-#endif
+      if(ctx->opt->dump_indices)
+        dump_idx1(&p->idx1);
       }
     bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
     }
@@ -2191,7 +2165,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
       return 0;
       }
 
-#ifdef DUMP_HEADERS
+#ifdef DUMP_CHUNK_HEADERS
     dump_chunk_header(&ch);
 #endif
 

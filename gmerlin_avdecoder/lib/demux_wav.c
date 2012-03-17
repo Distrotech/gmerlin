@@ -26,7 +26,6 @@
 
 #define STREAM_ID 0
 
-// #define DUMP_HEADER
 
 /* WAV demuxer */
 
@@ -133,10 +132,9 @@ static int open_wav(bgav_demuxer_context_t * ctx)
   
   bgav_WAVEFORMAT_read(&wf, buf, format_size);
 
-#ifdef DUMP_HEADER
-  bgav_WAVEFORMAT_dump(&wf);
-#endif
-
+  if(ctx->opt->dump_headers)
+    bgav_WAVEFORMAT_dump(&wf);
+  
   bgav_WAVEFORMAT_get_format(&wf, s);
   bgav_WAVEFORMAT_free(&wf);
   free(buf);

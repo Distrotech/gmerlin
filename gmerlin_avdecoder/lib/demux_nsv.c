@@ -32,8 +32,6 @@
 
 #define LOG_DOMAIN "nsv"
 
-// #define DUMP_HEADERS
-
 /*
  *  Straight forward implementation of the NSV spec from
  *  http://ultravox.aol.com/
@@ -200,7 +198,6 @@ static void nsv_file_header_free(nsv_file_header_t * h)
   if(h->toc.frames)         free(h->toc.frames);
   }
 
-#ifdef DUMP_HEADERS
 static void nsv_file_header_dump(nsv_file_header_t * h)
   {
   int i;
@@ -242,7 +239,6 @@ static void nsv_file_header_dump(nsv_file_header_t * h)
   else
     bgav_dprintf( "  No TOC\n");
   }
-#endif
 
 typedef struct
   {
@@ -269,7 +265,6 @@ static int nsv_sync_header_read(bgav_input_context_t * ctx,
   return 1;
   }
 
-#ifdef DUMP_HEADERS
 static void nsv_sync_header_dump(nsv_sync_header_t * h)
   {
   bgav_dprintf( "sync_header\n");
@@ -286,7 +281,6 @@ static void nsv_sync_header_dump(nsv_sync_header_t * h)
   bgav_dprintf( "  framerate_idx: %d\n", h->framerate);
   bgav_dprintf( "  syncoffs:      %d\n", h->syncoffs);
   }
-#endif
 
 typedef struct
   {
@@ -426,18 +420,16 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
       else
         {
         p->has_fh = 1;
-#ifdef DUMP_HEADERS
-        nsv_file_header_dump(&p->fh);
-#endif
+        if(ctx->opt->dump_headers)
+          nsv_file_header_dump(&p->fh);
         }
       }
     else if(fourcc == NSV_SYNC_HEADER)
       {
       if(!nsv_sync_header_read(ctx->input, &sh))
         return 0;
-#ifdef DUMP_HEADERS
-      nsv_sync_header_dump(&sh);
-#endif
+      if(ctx->opt->dump_headers)
+        nsv_sync_header_dump(&sh);
       done = 1;
       }
     }

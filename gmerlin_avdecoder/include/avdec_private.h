@@ -867,6 +867,9 @@ struct bgav_options_s
   int threads;
 
   int log_level;
+
+  int dump_headers;
+  int dump_indices;
   
   /* Callbacks */
 
@@ -890,7 +893,7 @@ struct bgav_options_s
   
   bgav_index_callback index_callback;
   void * index_callback_data;
-
+  
   };
 
 BGAV_PUBLIC void bgav_options_set_defaults(bgav_options_t*opt);

@@ -40,8 +40,6 @@
 #define TYPE_DATE        11
 #define TYPE_TERMINATOR   9
 
-//#define DUMP_METADATA
-
 #define FOURCC_AAC  BGAV_MK_FOURCC('m', 'p', '4', 'a')
 // #define FOURCC_H264 BGAV_MK_FOURCC('h', '2', '6', '4')
 
@@ -307,8 +305,6 @@ static double int2dbl(int64_t v){
     return ldexp(((v&((1LL<<52)-1)) + (1LL<<52)) * (v>>63|1), (v>>52&0x7FF)-1075);
 }
 
-#ifdef DUMP_METADATA
-
 static void dump_meta_object(meta_object_t * obj, int num_spaces)
   {
   int i;
@@ -349,7 +345,6 @@ static void dump_meta_object(meta_object_t * obj, int num_spaces)
       break;
     }
   }
-#endif
 
 static int read_meta_object(bgav_input_context_t * input,
                             meta_object_t * ret, int read_name, int read_type, int64_t end_pos)
@@ -615,11 +610,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           init_video_stream(ctx);
         }
 #endif
-
-#ifdef DUMP_METADATA
-      dump_meta_object(&priv->metadata, 0);
-#endif
-      //    bgav_input_skip_dump(ctx->input, t.data_size);
+      if(ctx->opt->dump_headers)
+        dump_meta_object(&priv->metadata, 0);
       }
     else
       bgav_input_skip(ctx->input, t.data_size);

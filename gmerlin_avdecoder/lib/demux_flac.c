@@ -38,9 +38,6 @@
 #include <vorbis_comment.h>
 #include <flac_header.h>
 
-#define DUMP_HEADERS
-// #define DUMP_INDEX
-
 /* Probe */
 
 static int probe_flac(bgav_input_context_t * input)
@@ -130,9 +127,8 @@ static int open_flac(bgav_demuxer_context_t * ctx)
         
         if(!bgav_flac_streaminfo_read(s->ext_data + 8, &priv->streaminfo))
           goto fail;
-#ifdef DUMP_HEADERS
-        bgav_flac_streaminfo_dump(&priv->streaminfo);
-#endif        
+        if(ctx->opt->dump_headers)
+          bgav_flac_streaminfo_dump(&priv->streaminfo);
         bgav_flac_streaminfo_init_stream(&priv->streaminfo, s);
         
         if(priv->streaminfo.total_samples)
@@ -151,11 +147,8 @@ static int open_flac(bgav_demuxer_context_t * ctx)
       case 3: // SEEKTABLE
         if(!bgav_flac_seektable_read(ctx->input, &priv->seektable, size))
           goto fail;
-
-#ifdef DUMP_INDEX
-      bgav_flac_seektable_dump(&priv->seektable);
-#endif
-        //        bgav_input_skip(ctx->input, size);
+        if(ctx->opt->dump_indices)
+          bgav_flac_seektable_dump(&priv->seektable);
         break;
       case 4: // VORBIS_COMMENT
         comment_buffer = malloc(size);
@@ -172,13 +165,14 @@ static int open_flac(bgav_demuxer_context_t * ctx)
           bgav_vorbis_comment_2_metadata(&vc,
                                          &ctx->tt->cur->metadata);
           }
-        //        bgav_hexdump(comment_buffer, size, 16);
+
+        if(ctx->opt->dump_headers)
+          bgav_vorbis_comment_dump(&vc);
+        
         bgav_vorbis_comment_free(&vc);
         bgav_input_close(input_mem);
         bgav_input_destroy(input_mem);
-        
         free(comment_buffer);
-        //        bgav_input_skip(ctx->input, size);
         break;
       case 5: // CUESHEET
         bgav_input_skip(ctx->input, size);

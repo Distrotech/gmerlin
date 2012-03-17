@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// #define DUMP_HEADERS
-
 #define LOG_DOMAIN "demux_r3d"
 
 #define AUDIO_ID 0
@@ -95,7 +93,6 @@ static int read_red1(bgav_input_context_t * ctx,
   return 1;
   }
 
-#ifdef DUMP_HEADERS
 static void dump_red1(red1_t * red1)
   {
   bgav_dprintf("R3D header:\n");
@@ -118,7 +115,6 @@ static void dump_red1(red1_t * red1)
   bgav_dprintf("  unknown15:       %d\n", red1->unknown15);
   bgav_dprintf("  name:            %s\n", red1->name);
   }
-#endif
 /* Packet headers are not used, we build a superindex instead.
    They are left here for reference */
 
@@ -238,7 +234,6 @@ static int read_reob(bgav_input_context_t * ctx,
     bgav_input_read_32_be(ctx, &ret->unknown5);
   }
 
-#ifdef DUMP_HEADERS
 static void dump_reob(reob_t * reob)
   {
   bgav_dprintf("reob:\n");
@@ -255,7 +250,6 @@ static void dump_reob(reob_t * reob)
   bgav_dprintf("  unknown4:       %d\n", reob->unknown4);
   bgav_dprintf("  unknown5:       %d\n", reob->unknown5);
   }
-#endif
 /* Index */
 
 static uint32_t * read_index(bgav_input_context_t * ctx,
@@ -394,9 +388,8 @@ static int open_r3d(bgav_demuxer_context_t * ctx)
     }
   if(!read_red1(ctx->input, &priv->red1))
     return 0;
-#ifdef DUMP_HEADERS
-  dump_red1(&priv->red1);
-#endif
+  if(ctx->opt->dump_headers)
+    dump_red1(&priv->red1);
   bgav_input_seek(ctx->input, -0x38, SEEK_END);
   if(!read_chunk_header(ctx->input, &ch))
     return 0;
@@ -410,9 +403,8 @@ static int open_r3d(bgav_demuxer_context_t * ctx)
   
   if(!read_reob(ctx->input, &priv->reob))
     return 0;
-#ifdef DUMP_HEADERS
-  dump_reob(&priv->reob);
-#endif
+  if(ctx->opt->dump_headers)
+    dump_reob(&priv->reob);
   
   /* Read indices */
 

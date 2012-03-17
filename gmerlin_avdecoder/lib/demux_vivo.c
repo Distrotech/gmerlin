@@ -152,7 +152,6 @@ static int check_key(char * buffer, const char * key, char ** pos)
   return 0;
   }
 
-#if DUMP_HEADERS
 static void vivo_header_dump(vivo_header_t * h)
   {
   bgav_dprintf( "Main VIVO header\n");
@@ -192,8 +191,6 @@ static void vivo_header_dump(vivo_header_t * h)
     }
   
   }
-
-#endif
 
 static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
   {
@@ -367,9 +364,8 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
     }
 
   result = 1;
-#if DUMP_HEADERS
-  vivo_header_dump(ret);
-#endif
+  if(input->opt->dump_headers)
+    vivo_header_dump(ret);
   fail:
   if(buffer)
     free(buffer);

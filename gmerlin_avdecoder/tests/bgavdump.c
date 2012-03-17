@@ -36,12 +36,6 @@
 
 // #define TRACK 6
 
-static int64_t audio_seek = -1;
-static int64_t video_seek = -1;
-static gavl_time_t global_seek = -1;
-
-static int dump_ci = 0;
-
 /* Callback based reading: We do a simple stdio mapping here */
 
 #ifdef _WIN32
@@ -147,6 +141,42 @@ static int seek_subtitles    = 2;
 static int frames_to_read    = 10;
 static int do_audio          = 1;
 static int do_video          = 1;
+static int sample_accurate = 0;
+static int vdpau = 0;
+static int64_t audio_seek = -1;
+static int64_t video_seek = -1;
+static gavl_time_t global_seek = -1;
+static int dump_ci = 0;
+
+
+static void print_usage()
+  {
+  fprintf(stderr, "Usage: bgavdump [options] location\n");
+  fprintf(stderr, "       bgavdump -L\n");
+  fprintf(stderr, "\n");
+  fprintf(stderr, "-s               Switch to sample accurate mode\n");
+  fprintf(stderr, "-aseek <sample>  Seek to audio sample\n");
+  fprintf(stderr, "-vseek <time>    Seek to video time\n");
+  fprintf(stderr, "-seek <seconds>  Do a global seek to a time\n");
+  fprintf(stderr, "-na              Disable audio\n");
+  fprintf(stderr, "-nv              Disable video\n");
+  fprintf(stderr, "-nf <number>     Number of A/V frames to read\n");
+  fprintf(stderr, "-v <level>       Verbosity level (0..4)\n");
+  fprintf(stderr, "-ci              Dump compression info\n");
+  fprintf(stderr, "-vdpau           Try to use vdpau\n");
+  fprintf(stderr, "-dh              Dump headers of the file\n");
+  fprintf(stderr, "-di              Dump indices of the file\n");
+  fprintf(stderr, "-L               List all demultiplexers and codecs\n");
+  }
+
+static void list_all()
+  {
+  bgav_inputs_dump();
+  bgav_redirectors_dump();
+  bgav_formats_dump();
+  bgav_codecs_dump();
+  bgav_subreaders_dump();
+  }
 
 int main(int argc, char ** argv)
   {
@@ -167,8 +197,6 @@ int main(int argc, char ** argv)
   int sub_text_alloc = 0;
   gavl_time_t sub_time;
   gavl_time_t sub_duration;
-  int sample_accurate = 0;
-  int vdpau = 0;
   
   bgav_t * file;
   bgav_options_t * opt;
@@ -187,17 +215,7 @@ int main(int argc, char ** argv)
   
   if(argc == 1)
     {
-    fprintf(stderr, "Usage: bgavdump [-s] [-aseek <sample>] [-vseek <time>] [-seek <time>] <location>\n");
-
-    bgav_inputs_dump();
-    bgav_redirectors_dump();
-    
-    bgav_formats_dump();
-    
-    bgav_codecs_dump();
-
-    bgav_subreaders_dump();
-    
+    print_usage();
     return 0;
     }
   
@@ -210,6 +228,11 @@ int main(int argc, char ** argv)
   arg_index = 1;
   while(arg_index < argc - 1)
     {
+    if(!strcmp(argv[arg_index], "-L"))
+      {
+      list_all();
+      return 0;
+      }
     if(!strcmp(argv[arg_index], "-s"))
       {
       sample_accurate = 1;
@@ -254,6 +277,16 @@ int main(int argc, char ** argv)
     else if(!strcmp(argv[arg_index], "-ci"))
       {
       dump_ci = 1;
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-dh"))
+      {
+      bgav_options_set_dump_headers(opt, 1);
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-di"))
+      {
+      bgav_options_set_dump_indices(opt, 1);
       arg_index++;
       }
     else if(!strcmp(argv[arg_index], "-v"))

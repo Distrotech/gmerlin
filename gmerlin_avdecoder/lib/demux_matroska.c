@@ -30,8 +30,6 @@
 
 #define LOG_DOMAIN "demux_matroska"
 
-// #define DUMP_HEADERS
-
 typedef struct
   {
   bgav_mkv_ebml_header_t ebml_header;
@@ -750,32 +748,33 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
                                          &p->meta_seek_info,
                                          &e))
           return 0;
-#ifdef DUMP_HEADERS
-        bgav_mkv_meta_seek_info_dump(&p->meta_seek_info);
-#endif
+        if(ctx->opt->dump_headers)
+          bgav_mkv_meta_seek_info_dump(&p->meta_seek_info);
         break;
       case MKV_ID_Info:
         bgav_input_skip(ctx->input, head_len);
         e.end += pos;
         if(!bgav_mkv_segment_info_read(ctx->input, &p->segment_info, &e))
           return 0;
-#ifdef DUMP_HEADERS
-        bgav_mkv_segment_info_dump(&p->segment_info);
-#endif
+        if(ctx->opt->dump_headers)
+          bgav_mkv_segment_info_dump(&p->segment_info);
         break;
       case MKV_ID_Tracks:
         bgav_input_skip(ctx->input, head_len);
         e.end += pos;
         if(!bgav_mkv_tracks_read(ctx->input, &p->tracks, &p->num_tracks, &e))
           return 0;
-#ifdef DUMP_HEADERS
-        for(i = 0; i < p->num_tracks; i++)
-          bgav_mkv_track_dump(&p->tracks[i]);
-#endif
+        if(ctx->opt->dump_headers)
+          {
+          for(i = 0; i < p->num_tracks; i++)
+            bgav_mkv_track_dump(&p->tracks[i]);
+          }
         break;
       case MKV_ID_Cues:
         if(!bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))
           return 0;
+        if(ctx->opt->dump_indices)
+          bgav_mkv_cues_dump(&p->cues);
         p->have_cues = 1;
         break;
       case MKV_ID_Cluster:
@@ -788,18 +787,16 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         e.end += pos;
         if(!bgav_mkv_chapters_read(ctx->input, &p->chapters, &e)) 
           return 0;
-#ifdef DUMP_HEADERS
-        bgav_mkv_chapters_dump(&p->chapters);
-#endif
+        if(ctx->opt->dump_headers)
+          bgav_mkv_chapters_dump(&p->chapters);
         break;
       case MKV_ID_Tags:
         bgav_input_skip(ctx->input, head_len);
         e.end += pos;
         if(!bgav_mkv_tags_read(ctx->input, &p->tags, &p->num_tags, &e))
           return 0;
-#ifdef DUMP_HEADERS
-        bgav_mkv_tags_dump(p->tags, p->num_tags);
-#endif
+        if(ctx->opt->dump_headers)
+          bgav_mkv_tags_dump(p->tags, p->num_tags);
         break;
       default:
         bgav_input_skip(ctx->input, head_len);

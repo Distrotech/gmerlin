@@ -33,7 +33,6 @@
 #define CLIP_WRAPPED_CBR   1
 #define CLIP_WRAPPED_PARSE 2 /* Unsupported for now */
 
-// #define DUMP_MXF
 
 static void build_edl_mxf(bgav_demuxer_context_t * ctx);
 
@@ -619,9 +618,8 @@ static int open_mxf(bgav_demuxer_context_t * ctx)
              "Parsing MXF file failed, please report");
     return 0;
     }
-#ifdef DUMP_MXF
-  bgav_mxf_file_dump(&priv->mxf);
-#endif
+  if(ctx->opt->dump_headers)
+    bgav_mxf_file_dump(&priv->mxf);
   
   if(priv->mxf.header.max_source_sequence_components == 1)
     {

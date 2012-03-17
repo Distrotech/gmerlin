@@ -638,6 +638,30 @@ BGAV_PUBLIC
 void bgav_options_set_vdpau(bgav_options_t* opt,
                             int vdpau);
 
+/** \ingroup options
+ *  \brief Dump file headers
+ *  \param opt Option container
+ *  \param enable 1 to dump file headers, 0 else
+ *
+ *  Since 1.1.1
+ */
+
+BGAV_PUBLIC
+void bgav_options_set_dump_headers(bgav_options_t* opt,
+                                   int enable);
+
+/** \ingroup options
+ *  \brief Dump file indices
+ *  \param opt Option container
+ *  \param enable 1 to dump file indices, 0 else
+ *
+ *  Since 1.1.1
+ */
+
+BGAV_PUBLIC
+void bgav_options_set_dump_indices(bgav_options_t* opt,
+                                   int enable);
+
   
 
 /** \ingroup options

@@ -35,8 +35,6 @@
 #define AUDIO_ID 0
 #define VIDEO_ID 1
 
-// #define DUMP_HEADER
-
 typedef struct
   {
   char tag[4]; //'THP\0'
@@ -78,7 +76,6 @@ static int read_header(bgav_input_context_t * input, ThpHeader * ret)
   return 1;
   }
 
-#ifdef DUMP_HEADER
 
 static void dump_header(ThpHeader * h)
   {
@@ -103,8 +100,6 @@ static void dump_header(ThpHeader * h)
   bgav_dprintf("  firstFrameOffset:    %d\n", h->firstFrameOffset);
   bgav_dprintf("  lastFrameOffset:     %d\n", h->lastFrameOffset);
   }
-
-#endif
 
 static int probe_thp(bgav_input_context_t * input)
   {
@@ -152,9 +147,8 @@ static int open_thp(bgav_demuxer_context_t * ctx)
   if(!read_header(ctx->input, &priv->h))
     return 0;
 
-#ifdef DUMP_HEADER  
-  dump_header(&priv->h);
-#endif
+  if(ctx->opt->dump_headers)
+    dump_header(&priv->h);
   
   bgav_input_seek(ctx->input, priv->h.componentDataOffset, SEEK_SET);
 

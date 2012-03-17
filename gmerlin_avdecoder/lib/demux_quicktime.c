@@ -30,7 +30,6 @@
 
 #define LOG_DOMAIN "quicktime"
 
-// #define DUMP_MOOV
 
 #ifdef HAVE_FAAD2
 #include <aac_frame.h>
@@ -1738,10 +1737,8 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
           }
         have_moov = 1;
         bgav_qt_atom_skip(ctx->input, &h);
-#ifdef DUMP_MOOV
-        bgav_qt_moov_dump(0, &priv->moov);
-#endif
-
+        if(ctx->opt->dump_headers)
+          bgav_qt_moov_dump(0, &priv->moov);
         break;
       case BGAV_MK_FOURCC('f','r','e','e'):
       case BGAV_MK_FOURCC('w','i','d','e'):

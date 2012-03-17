@@ -51,9 +51,6 @@
 /* Maximum number of consecutive error packets */
 #define MAX_ERROR_PACKETS   10
 
-// #define DUMP_PMT_PAT
-
-
 #if 0
 
 // #define DUMP_HDV_AUX
@@ -673,9 +670,8 @@ static int init_psi(bgav_demuxer_context_t * ctx,
              "PAT section spans multiple packets, please report");
     return 0;
     }
-#ifdef DUMP_PMT_PAT
-  bgav_pat_section_dump(&pats);
-#endif
+  if(ctx->opt->dump_headers)
+    bgav_pat_section_dump(&pats);
   if(pats.section_number || pats.last_section_number)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -767,9 +763,8 @@ static int init_psi(bgav_demuxer_context_t * ctx,
                  "PMT section spans multiple packets, please report");
         return 0;
         }
-#ifdef DUMP_PMT_PAT
-      bgav_pmt_section_dump(&priv->programs[program].pmts);
-#endif
+      if(ctx->opt->dump_headers)
+        bgav_pmt_section_dump(&priv->programs[program].pmts);
       if(priv->programs[program].pmts.section_number ||
          priv->programs[program].pmts.last_section_number)
         {

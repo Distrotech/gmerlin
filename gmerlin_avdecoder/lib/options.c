@@ -211,6 +211,19 @@ void bgav_options_set_threads(bgav_options_t * opt, int threads)
   opt->threads = threads;
   }
 
+void bgav_options_set_dump_headers(bgav_options_t* opt,
+                                   int enable)
+  {
+  opt->dump_headers = enable;
+  }
+
+void bgav_options_set_dump_indices(bgav_options_t* opt,
+                                   int enable)
+  {
+  opt->dump_indices = enable;
+  }
+
+
 #define FREE(ptr) if(ptr) free(ptr)
 
 void bgav_options_free(bgav_options_t*opt)
@@ -322,7 +335,9 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 
   CP_INT(vdpau);
   CP_INT(threads);
-
+  CP_INT(dump_headers);
+  CP_INT(dump_indices);
+  
   /* Callbacks */
   
   CP_INT(name_change_callback);
