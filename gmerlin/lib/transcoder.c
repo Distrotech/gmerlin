@@ -2011,12 +2011,12 @@ static void send_init_messages(bg_transcoder_t * t)
         switch(t->subtitle_overlay_streams[i].com.action)
           {
           case STREAM_ACTION_BLEND:
-            bg_log(BG_LOG_INFO, LOG_DOMAIN, "Text subtitle stream %d: Blending onto video stream %d",
+            bg_log(BG_LOG_INFO, LOG_DOMAIN, "Overlay subtitle stream %d: Blending onto video stream %d",
                    i+1, t->subtitle_overlay_streams[i].video_stream);
             break;
           case STREAM_ACTION_TRANSCODE:
           case STREAM_ACTION_TRANSCODE_OVERLAY:
-            bg_log(BG_LOG_INFO, LOG_DOMAIN, "Text subtitle stream %d: Exporting to file", i+1);
+            bg_log(BG_LOG_INFO, LOG_DOMAIN, "Overlay subtitle stream %d: Exporting to file", i+1);
             break;
           }
         }
@@ -2220,29 +2220,32 @@ static void create_streams(bg_transcoder_t * ret,
   ret->num_audio_streams = track->num_audio_streams;
   if(ret->num_audio_streams)
     ret->audio_streams = calloc(ret->num_audio_streams,
-                                sizeof(*(ret->audio_streams)));
+                                sizeof(*ret->audio_streams));
   
   ret->num_video_streams = track->num_video_streams;
 
   if(ret->num_video_streams)
     ret->video_streams = calloc(ret->num_video_streams,
-                                sizeof(*(ret->video_streams)));
+                                sizeof(*ret->video_streams));
 
   ret->num_subtitle_text_streams = track->num_subtitle_text_streams;
 
   if(ret->num_subtitle_text_streams)
     ret->subtitle_text_streams = calloc(ret->num_subtitle_text_streams,
-                                sizeof(*(ret->subtitle_text_streams)));
+                                sizeof(*ret->subtitle_text_streams));
 
   ret->num_subtitle_overlay_streams = track->num_subtitle_overlay_streams;
 
   if(ret->num_subtitle_overlay_streams)
     ret->subtitle_overlay_streams = calloc(ret->num_subtitle_overlay_streams,
-                                sizeof(*(ret->subtitle_overlay_streams)));
+                                           sizeof(*ret->subtitle_overlay_streams));
   
   /* Prepare streams */
     
   ret->num_audio_streams_real = 0;
+  ret->num_video_streams_real = 0;
+  ret->num_subtitle_text_streams_real = 0;
+  ret->num_subtitle_overlay_streams_real = 0;
     
   for(i = 0; i < ret->num_audio_streams; i++)
     {
@@ -2254,7 +2257,6 @@ static void create_streams(bg_transcoder_t * ret,
       ret->num_audio_streams_real++;
     }
 
-  ret->num_video_streams_real = 0;
   
   for(i = 0; i < ret->num_video_streams; i++)
     {
@@ -2265,8 +2267,6 @@ static void create_streams(bg_transcoder_t * ret,
       ret->num_video_streams_real++;
     }
 
-  ret->num_subtitle_text_streams_real = 0;
-  ret->num_subtitle_overlay_streams_real = 0;
   
   for(i = 0; i < ret->num_subtitle_text_streams; i++)
     {
@@ -2717,7 +2717,10 @@ static int init_video_converter(video_stream_t * ret, bg_transcoder_t * t)
   
   /* Create frames */
   if(!ret->frame)
+    {
     ret->frame = gavl_video_frame_create(&ret->out_format);
+    // fprintf(stderr, "Created video frame %p %p\n", ret->frame, ret->frame->planes[0]);
+    }
   gavl_video_frame_clear(ret->frame, &ret->out_format);
   
   return 1;
@@ -3052,7 +3055,10 @@ static void cleanup_video_stream(video_stream_t * s)
   /* Free all resources */
 
   if(s->frame)
+    {
+    // fprintf(stderr, "gavl_video_frame_destroy %p %p\n", s->frame, s->frame->planes[0]);
     gavl_video_frame_destroy(s->frame);
+    }
   if(s->fc)
     bg_video_filter_chain_destroy(s->fc);
   
@@ -3218,17 +3224,22 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       }
     }
 
-  for(i = 0; i < t->num_subtitle_text_streams; i++)
+  /* Detecting EOF for subtitles doesn't work when we transcode until
+     a specified time */
+  if(t->end_time == GAVL_TIME_UNDEFINED)
     {
-    if(t->subtitle_text_streams[i].com.com.status != STREAM_STATE_ON)
-      continue;
-    done = 0;
-    }
-  for(i = 0; i < t->num_subtitle_overlay_streams; i++)
-    {
-    if(t->subtitle_overlay_streams[i].com.status != STREAM_STATE_ON)
-      continue;
-    done = 0;
+    for(i = 0; i < t->num_subtitle_text_streams; i++)
+      {
+      if(t->subtitle_text_streams[i].com.com.status != STREAM_STATE_ON)
+        continue;
+      done = 0;
+      }
+    for(i = 0; i < t->num_subtitle_overlay_streams; i++)
+      {
+      if(t->subtitle_overlay_streams[i].com.status != STREAM_STATE_ON)
+        continue;
+      done = 0;
+      }
     }
   
   if(done)

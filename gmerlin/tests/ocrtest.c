@@ -25,6 +25,7 @@
 #include <gmerlin/ocr.h>
 
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, char ** argv)
   {
@@ -37,6 +38,7 @@ int main(int argc, char ** argv)
   gavl_video_frame_t * frame = NULL;
   bg_ocr_t * ocr = NULL;
   char * ret = NULL;
+  bg_parameter_value_t val;
   
   /* Create config registry */
   cfg_reg = bg_cfg_registry_create();
@@ -53,11 +55,13 @@ int main(int argc, char ** argv)
 
   /* Create ocr */
   ocr = bg_ocr_create(plugin_reg);
-
+  val.val_str = ".";
+  bg_ocr_set_parameter(ocr, "tmpdir", &val);
   if(!ocr)
     goto fail;
   
   /* Load image */
+  memset(&format, 0, sizeof(format));
   frame = bg_plugin_registry_load_image(plugin_reg, argv[1],
                                         &format, NULL);
 
@@ -80,6 +84,9 @@ int main(int argc, char ** argv)
     bg_plugin_registry_destroy(plugin_reg);
   if(cfg_reg)
     bg_cfg_registry_destroy(cfg_reg);
+
+  if(ret)
+    free(ret);
   
-  
+  return 0;
   }

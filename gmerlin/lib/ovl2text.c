@@ -87,8 +87,8 @@ static int add_subtitle_overlay_stream_ovl2text(void * priv,
   gavl_video_format_copy(&e->format, format);
   
   if(!e->enc_plugin ||
-     !e->enc_plugin->add_subtitle_text_stream(e->enc_handle->priv, language,
-                                              &e->format.timescale))
+     (e->enc_plugin->add_subtitle_text_stream(e->enc_handle->priv, language,
+                                              &e->format.timescale) < 0))
     return -1;
   return 0;
   }
@@ -127,7 +127,7 @@ static int close_ovl2text(void * priv, int do_delete)
   {
   ovl2text_t * e = priv;
   e->enc_plugin->close(e->enc_handle->priv, do_delete);
-  return 0;
+  return 1;
   }
 
 static void destroy_ovl2text(void * priv)
@@ -137,6 +137,9 @@ static void destroy_ovl2text(void * priv)
 
   if(e->parameters)
     bg_parameter_info_destroy_array(e->parameters);
+
+  if(e->enc_handle)
+    bg_plugin_unref(e->enc_handle);
   
   free(e);
   }
@@ -197,21 +200,19 @@ static void set_parameter_ovl2text(void * priv, const char * name,
   else if(!strcmp(name, "plugin"))
     {
     const bg_plugin_info_t * info;
-    if(!e->enc_handle || strcmp(e->enc_handle->info->name, val->val_str))
-      {
-      if(e->enc_handle)
-        {
-        bg_plugin_unref(e->enc_handle);
-        e->enc_handle = NULL;
-        }
-      info = bg_plugin_find_by_name(e->plugin_reg, val->val_str);
 
-      e->enc_handle = bg_plugin_load(e->plugin_reg, info);
-      e->enc_plugin = (bg_encoder_plugin_t*)(e->enc_handle->plugin);
-      
-      if(e->enc_plugin->set_callbacks && e->cb)
-        e->enc_plugin->set_callbacks(e->enc_handle->priv, e->cb);
+    if(e->enc_handle)
+      {
+      bg_plugin_unref(e->enc_handle);
+      e->enc_handle = NULL;
       }
+    info = bg_plugin_find_by_name(e->plugin_reg, val->val_str);
+    
+    e->enc_handle = bg_plugin_load(e->plugin_reg, info);
+    e->enc_plugin = (bg_encoder_plugin_t*)(e->enc_handle->plugin);
+    
+    if(e->enc_plugin->set_callbacks && e->cb)
+      e->enc_plugin->set_callbacks(e->enc_handle->priv, e->cb);
     }
   else
     e->enc_plugin->common.set_parameter(e->enc_handle->priv, name, val);

@@ -161,9 +161,7 @@ const bg_parameter_info_t parameters[] =
       .val_default = { .val_str = "/tmp" }, \
       .help_string = TRS("Temporary directory for image files"), \
     },
-    {
-      /* End */
-    }
+    { /* End */ }
     
   };
 
@@ -198,6 +196,12 @@ int bg_ocr_init(bg_ocr_t * ocr,
                 const gavl_video_format_t * format,
                 const char * language)
   {
+  if(ocr->out_frame)
+    {
+    gavl_video_frame_destroy(ocr->out_frame);
+    ocr->out_frame = NULL;
+    }
+  
   gavl_video_format_copy(&ocr->in_format, format);
   gavl_video_format_copy(&ocr->out_format, format);
 

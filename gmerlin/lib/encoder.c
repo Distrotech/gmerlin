@@ -557,10 +557,16 @@ static int start_audio(bg_encoder_t * enc, int stream)
   /* Add stream */
 
   if(s->ci)
+    {
     s->out_index = s->plugin->add_audio_stream_compressed(s->priv, s->language, &s->format, s->ci);
+    if(s->out_index < 0)
+      return 0;
+    }
   else
     {
     s->out_index = s->plugin->add_audio_stream(s->priv, s->language, &s->format);
+    if(s->out_index < 0)
+      return 0;
   
     /* Apply parameters */ 
 
@@ -576,7 +582,7 @@ static int start_audio(bg_encoder_t * enc, int stream)
                            &st);
       }
     }
-  
+
   return 1;
   }
 
@@ -601,10 +607,16 @@ static int start_video(bg_encoder_t * enc, int stream)
   /* Add stream */
   
   if(s->ci)
+    {
     s->out_index = s->plugin->add_video_stream_compressed(s->priv, &s->format, s->ci);
+    if(s->out_index < 0)
+      return 0;
+    }
   else
     {
     s->out_index = s->plugin->add_video_stream(s->priv, &s->format);
+    if(s->out_index < 0)
+      return 0;
   
     /* Apply parameters */ 
     if(s->plugin->set_video_parameter)
@@ -657,7 +669,9 @@ static int start_subtitle_text(bg_encoder_t * enc, int stream)
   /* Add stream */
   
   s->out_index = s->plugin->add_subtitle_text_stream(s->priv, s->language, &s->timescale);
-    
+  if(s->out_index < 0)
+    return 0;
+
   /* Apply parameters */ 
   if(s->plugin->set_subtitle_text_parameter)
     {
@@ -696,7 +710,9 @@ static int start_subtitle_overlay(bg_encoder_t * enc, int stream)
   s->out_index =
     s->plugin->add_subtitle_overlay_stream(s->priv,
                                            s->language, &s->format);
-    
+  if(s->out_index < 0)
+    return 0;
+  
   /* Apply parameters */ 
   if(s->plugin->set_subtitle_overlay_parameter)
     {
