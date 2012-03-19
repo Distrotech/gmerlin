@@ -27,6 +27,7 @@
 
 // #define DUMP_WRITE
 
+//#define DUMP_OUT_PACKETS
 
 int bgav_stream_start(bgav_stream_t * stream)
   {
@@ -310,7 +311,18 @@ int bgav_stream_get_index(bgav_stream_t * s)
 bgav_packet_t *
 bgav_stream_get_packet_read(bgav_stream_t * s)
   {
+#ifdef DUMP_OUT_PACKETS
+  bgav_packet_t * p;
+  p = s->src.get_func(s->src.data);
+  if(p)
+    {
+    bgav_dprintf("Got packet (stream %d): ", s->stream_id);
+    bgav_packet_dump(p);
+    }
+  return p;
+#else
   return s->src.get_func(s->src.data);
+#endif
   }
 
 bgav_packet_t *

@@ -165,6 +165,8 @@ static void copy_samples_32(gavl_audio_frame_t * f,
     }
   }
 
+//static int64_t __total = 0;
+
 static FLAC__StreamDecoderWriteStatus
 write_callback(const FLAC__StreamDecoder *decoder,
                const FLAC__Frame *frame,
@@ -175,7 +177,14 @@ write_callback(const FLAC__StreamDecoder *decoder,
   bgav_stream_t * s;
   s = client_data;
   priv = s->data.audio.decoder->priv;
-
+#if 0
+  fprintf(stderr, "%d %ld %ld\n",
+          frame->header.blocksize, __total,
+          frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER ?
+          frame->header.number.frame_number * frame->header.blocksize :
+          frame->header.number.sample_number);
+  __total += frame->header.blocksize;
+#endif
   priv->frame->valid_samples = frame->header.blocksize;
   priv->copy_samples(priv->frame, buffer, s->data.audio.format.num_channels,
                      priv->shift_bits);

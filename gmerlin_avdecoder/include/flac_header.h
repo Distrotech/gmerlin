@@ -44,8 +44,10 @@ void bgav_flac_streaminfo_init_stream(bgav_flac_streaminfo_t * si, bgav_stream_t
 
 /* Frame header */
 
-#define BGAV_FLAC_FRAMEHEADER_MIN (4+1+1)
-#define BGAV_FLAC_FRAMEHEADER_MAX (4+7+2+2+1)
+// Sync,Blocking blocksize,rate channel,sample pts crc
+#define BGAV_FLAC_FRAMEHEADER_MIN (2+1+1+1+1)
+// Sync,Blocking blocksize,rate channel,sample pts size rate crc
+#define BGAV_FLAC_FRAMEHEADER_MAX (2+1+1+7+2+2+1)
 
 typedef struct
   {
@@ -66,8 +68,15 @@ typedef struct
   } bgav_flac_frame_header_t;
 
 int bgav_flac_frame_header_read(const uint8_t * ptr,
+                                int size,
                                 bgav_flac_streaminfo_t * si,
                                 bgav_flac_frame_header_t * ret);
+
+int bgav_flac_frame_header_equal(bgav_flac_frame_header_t * h1,
+                                 bgav_flac_frame_header_t * h2);
+
+int bgav_flac_check_crc(const uint8_t * ptr, int size);
+
 
 /* Seek table */
 

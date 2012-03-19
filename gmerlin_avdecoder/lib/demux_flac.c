@@ -64,7 +64,11 @@ typedef struct
   bgav_bytebuffer_t buf;
   int64_t next_header;
   int has_sync;
-  bgav_flac_frame_header_t fh;
+  bgav_flac_frame_header_t this_fh;
+  
+  bgav_flac_frame_header_t first_fh;
+  int have_first_fh;
+  int64_t pts;
   } flac_priv_t;
 
 
@@ -206,7 +210,7 @@ static int find_next_header(bgav_demuxer_context_t * ctx,
   int i;
   flac_priv_t * priv = ctx->priv;
 
-  if(priv->buf.size < BGAV_FLAC_FRAMEHEADER_MAX)
+  if(priv->buf.size < BGAV_FLAC_FRAMEHEADER_MIN)
     {
     if(!bgav_bytebuffer_append_read(&priv->buf, ctx->input, BYTES_TO_READ, 0))
       return -1;
@@ -216,8 +220,20 @@ static int find_next_header(bgav_demuxer_context_t * ctx,
     {
     for(i = start; i < priv->buf.size - BGAV_FLAC_FRAMEHEADER_MAX; i++)
       {
-      if(bgav_flac_frame_header_read(priv->buf.buffer + i, &priv->streaminfo, h))
-        return i;
+      if(bgav_flac_frame_header_read(priv->buf.buffer + i, priv->buf.size - i,
+                                     &priv->streaminfo, h))
+        {
+        if(!priv->have_first_fh)
+          {
+          memcpy(&priv->first_fh, h, sizeof(*h));
+          priv->have_first_fh = 1;
+          return i;
+          }
+        else if(bgav_flac_check_crc(priv->buf.buffer, i))
+          return i;
+        //        else
+        //          fprintf(stderr, "crc mismatch\n");
+        }
       }
     
     if(priv->buf.size > SYNC_SIZE)
@@ -237,7 +253,7 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
   int pos, size;
   bgav_stream_t * s;
   bgav_packet_t * p;
-  bgav_flac_frame_header_t fh;
+  bgav_flac_frame_header_t next_fh;
   
   flac_priv_t * priv = ctx->priv;
   
@@ -248,17 +264,23 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
 
   if(!priv->has_sync)
     {
-    pos = find_next_header(ctx, 0, &priv->fh);
+    pos = find_next_header(ctx, 0, &next_fh);
     if(pos < 0)
       return 0;
 
     if(pos > 0)
       bgav_bytebuffer_remove(&priv->buf, pos);
+
+    memcpy(&priv->this_fh, &next_fh, sizeof(next_fh));
+    
     priv->has_sync = 1;
     }
   
   /* Get next header */
-  pos = find_next_header(ctx, BGAV_FLAC_FRAMEHEADER_MIN, &fh);
+  pos = find_next_header(ctx, BGAV_FLAC_FRAMEHEADER_MIN, &next_fh);
+
+  //  if(pos < 0)
+  //  fprintf(stderr, "pos < 0!!\n");
   
   if(pos < 0) // EOF
     size = priv->buf.size;
@@ -273,15 +295,30 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
   bgav_packet_alloc(p, size);
 
   memcpy(p->data, priv->buf.buffer, size);
-  p->pts = priv->fh.sample_number;
-  p->duration = priv->fh.blocksize;
+  //  p->pts = fh.sample_number;
+  
+  p->duration = priv->this_fh.blocksize;
+  p->pts = priv->pts;
+  
+  if(priv->streaminfo.total_samples &&
+     (p->pts < priv->streaminfo.total_samples) &&
+     (p->pts + p->duration > priv->streaminfo.total_samples))
+    p->duration = priv->streaminfo.total_samples - p->pts;
+
+  //  fprintf(stderr, "Packet pts %ld %ld\n",
+  //          p->pts, priv->this_fh.sample_number);
+  
+  priv->pts += p->duration;
+  
   p->data_size = size;
   p->position = ctx->input->position - priv->buf.size;
+
   
   bgav_bytebuffer_remove(&priv->buf, size);
-
   /* Save frame header for later use */
-  memcpy(&priv->fh, &fh, sizeof(fh));
+  memcpy(&priv->this_fh, &next_fh, sizeof(next_fh));
+  
+  //  memcpy(&priv->fh, &fh, sizeof(fh));
 
 //  bgav_packet_dump(p);
   
@@ -352,6 +389,7 @@ static void resync_flac(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   priv = ctx->priv;
   priv->has_sync = 0;
   bgav_bytebuffer_flush(&priv->buf);
+  priv->pts = STREAM_GET_SYNC(ctx->tt->cur->audio_streams);
   }
 
 const bgav_demuxer_t bgav_demuxer_flac =

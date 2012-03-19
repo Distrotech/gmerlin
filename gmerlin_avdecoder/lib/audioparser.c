@@ -106,7 +106,10 @@ int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
         
     }
   else
-    parser->parse_frame(parser, p);
+    {
+    if(!parser->parse_frame(parser, p))
+      return PARSER_ERROR;
+    }
   
   p->pts = parser->timestamp;
   parser->timestamp += p->duration;
@@ -523,7 +526,9 @@ bgav_audio_parser_peek_packet_parse_frame(void * parser1, int force)
 
   if(parser->out_packet->duration < 0)
     {
-    bgav_audio_parser_parse_frame(parser, parser->out_packet);
+    if(bgav_audio_parser_parse_frame(parser, parser->out_packet) ==
+       PARSER_ERROR)
+      return 0;
     }
   return parser->out_packet;
   }
