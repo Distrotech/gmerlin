@@ -895,7 +895,23 @@ static void mass_tag(track_list_t * l)
     while(first_selected)
       {
       if(first_selected->selected)
-        bg_cfg_section_transfer(s, first_selected->metadata_section);
+        {
+        i = 0;
+        while(params[i].name)
+          {
+          memset(&val, 0, sizeof(val));
+          bg_cfg_section_get_parameter(s,
+                                       &params[i],
+                                       &val);
+          if((params[i].type == BG_PARAMETER_STRING) &&
+             val.val_str)
+            bg_cfg_section_set_parameter(first_selected->metadata_section,
+                                         &params[i],
+                                         &val);
+          bg_parameter_value_free(&val, params[i].type);
+          i++;
+          }
+        }
       first_selected = first_selected->next;
       }
     }

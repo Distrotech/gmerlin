@@ -70,7 +70,7 @@ static void write_subtitle_srt(subtext_t * s, const char * text,
 
   if(!text || (*text == '\0'))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Ignoring empty subtitle");
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Ignoring empty subtitle");
     return;
     }
 

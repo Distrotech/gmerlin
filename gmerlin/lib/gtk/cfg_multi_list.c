@@ -415,61 +415,60 @@ static void add_func(void * priv, const char * name,
   bg_cfg_section_t * subsection;
   bg_cfg_section_t * subsubsection;
   bg_cfg_section_t * subsection_default;
-  w = (bg_gtk_widget_t*)priv;
-  list = (list_priv_t*)(w->priv);
-
+  w = priv;
+  list = w->priv;
+  
   if(!name)
+    return;
+  if(strcmp(name, w->info->name))
     return;
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(list->treeview));
   
-  if(!strcmp(name, w->info->name))
-    {
-    index = 0;
-    while(strcmp(w->info->multi_names[index], val->val_str))
-      index++;
+  index = 0;
+  while(strcmp(w->info->multi_names[index], val->val_str))
+    index++;
     
-    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+  gtk_list_store_append(GTK_LIST_STORE(model), &iter);
 
-    if(!list->multi_labels && w->info->multi_labels)
-      translate_labels(w);
+  if(!list->multi_labels && w->info->multi_labels)
+    translate_labels(w);
     
-    if(list->multi_labels)
-      gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                         COLUMN_LABEL,
-                         list->multi_labels[index],
-                         -1);
-    else
-      gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                         COLUMN_LABEL,
-                         w->info->multi_names[index],
-                         -1);
-
+  if(list->multi_labels)
     gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                       COLUMN_NAME,
+                       COLUMN_LABEL,
+                       list->multi_labels[index],
+                       -1);
+  else
+    gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                       COLUMN_LABEL,
                        w->info->multi_names[index],
                        -1);
+
+  gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                     COLUMN_NAME,
+                     w->info->multi_names[index],
+                     -1);
     
-    subsection =
-      bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
+  subsection =
+    bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
     
-    subsection_default =
-      bg_cfg_section_find_subsection(subsection, val->val_str);
+  subsection_default =
+    bg_cfg_section_find_subsection(subsection, val->val_str);
     
-    if(w->info->multi_parameters[index])
-      bg_cfg_section_create_items(subsection_default, 
-                                  w->info->multi_parameters[index]);
+  if(w->info->multi_parameters[index])
+    bg_cfg_section_create_items(subsection_default, 
+                                w->info->multi_parameters[index]);
     
-    subsubsection =
-      bg_cfg_section_create_subsection_at_pos(subsection, list->num);
-    bg_cfg_section_transfer(subsection_default, subsubsection);
+  subsubsection =
+    bg_cfg_section_create_subsection_at_pos(subsection, list->num);
+  bg_cfg_section_transfer(subsection_default, subsubsection);
     
-    list->num++;
+  list->num++;
     
-    if(w->info->flags & BG_PARAMETER_SYNC)
-      {
-      bg_gtk_change_callback(NULL, w);
-      }
+  if(w->info->flags & BG_PARAMETER_SYNC)
+    {
+    bg_gtk_change_callback(NULL, w);
     }
   }
 
