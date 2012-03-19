@@ -239,12 +239,16 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if ((p = has_preset_widget(&menu->save_to_menu, w, menu->presets)))
     {
     char * question = bg_sprintf("Overwrite preset %s?", p->name);
+    
     if(!bg_gtk_question(question, menu->menubar))
       {
       free(question);
       return;
       }
     free(question);
+
+    if(menu->save_cb)
+      menu->save_cb(menu->cb_data);
     
     menu->presets = bg_preset_add(menu->presets,
                                   menu->path,

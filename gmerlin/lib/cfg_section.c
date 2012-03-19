@@ -91,7 +91,8 @@ bg_cfg_section_find_subsection_by_index(bg_cfg_section_t * s,
   return section;
   }
 
-static char * make_unique_name(bg_cfg_section_t * section, const char * template)
+static char * make_unique_name(bg_cfg_section_t * section,
+                               const char * template)
   {
   int i = 0;
   char * ret;
@@ -108,8 +109,9 @@ static char * make_unique_name(bg_cfg_section_t * section, const char * template
   return ret;
   }
 
-bg_cfg_section_t * bg_cfg_section_create_subsection_at_pos(bg_cfg_section_t * section,
-                                                           int pos)
+bg_cfg_section_t *
+bg_cfg_section_create_subsection_at_pos(bg_cfg_section_t * section,
+                                        int pos)
   {
   int i;
   char * name;
@@ -1329,6 +1331,19 @@ void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,
       before->next = before->next->next;
       bg_cfg_section_destroy(subsection);
       }
+    }
+  
+  }
+
+void bg_cfg_section_delete_subsections(bg_cfg_section_t * section)
+  {
+  bg_cfg_section_t * tmp;
+
+  while(section->children)
+    {
+    tmp = section->children->next;
+    bg_cfg_section_destroy(section->children);
+    section->children = tmp;
     }
   
   }

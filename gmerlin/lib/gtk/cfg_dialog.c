@@ -256,7 +256,8 @@ static void reset_section(dialog_section_t * s)
     reset_section(s->children[i]);
   }
 
-static void restore_section(dialog_section_t * s, bg_cfg_section_t * cfg_section)
+static void restore_section(dialog_section_t * s,
+                            bg_cfg_section_t * cfg_section)
   {
   int i;
   bg_parameter_value_t val;
@@ -304,6 +305,9 @@ static void restore_section(dialog_section_t * s, bg_cfg_section_t * cfg_section
       bg_cfg_section_t * src1, * dst1;
       dst1 = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
       src1 = bg_cfg_section_find_subsection(cfg_section, s->widgets[i].info->name);
+
+      if(s->widgets[i].info->type == BG_PARAMETER_MULTI_CHAIN)
+        bg_cfg_section_delete_subsections(dst1);
       bg_cfg_section_transfer_children(src1, dst1);
       }
     }
@@ -641,8 +645,9 @@ static void preset_save_callback(void * data)
       src1 = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
       dst1 = bg_cfg_section_find_subsection(s->preset_section, s->widgets[i].info->name);
 
+      if(s->widgets[i].info->type == BG_PARAMETER_MULTI_CHAIN)
+        bg_cfg_section_delete_subsections(dst1);
       bg_cfg_section_transfer_children(src1, dst1);
-      
       }
     }
   }

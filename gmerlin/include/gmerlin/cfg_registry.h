@@ -385,6 +385,13 @@ void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
 void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,
                                       bg_cfg_section_t * subsection);
 
+/** \ingroup cfg_section
+ *  \brief Delete all subsections
+ *  \param section The configuration section
+ */
+
+void bg_cfg_section_delete_subsections(bg_cfg_section_t * section);
+
 
 /*
  *  Type specific get/set functions, which don't require

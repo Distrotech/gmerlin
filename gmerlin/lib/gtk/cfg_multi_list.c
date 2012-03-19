@@ -400,8 +400,8 @@ static void get_value(bg_gtk_widget_t * w)
   if(!init)
     bg_strbreak_free(names);
   
-  if(w->info->flags & BG_PARAMETER_SYNC)
-    bg_gtk_change_callback(NULL, w);
+  //  if(w->info->flags & BG_PARAMETER_SYNC)
+  //    bg_gtk_change_callback(NULL, w);
   }
 
 static void add_func(void * priv, const char * name,
@@ -414,7 +414,7 @@ static void add_func(void * priv, const char * name,
   GtkTreeIter iter;
   bg_cfg_section_t * subsection;
   bg_cfg_section_t * subsubsection;
-  bg_cfg_section_t * subsection_default;
+  //  bg_cfg_section_t * subsection_default;
   w = priv;
   list = w->priv;
   
@@ -452,17 +452,23 @@ static void add_func(void * priv, const char * name,
     
   subsection =
     bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
-    
+
+#if 0 
   subsection_default =
     bg_cfg_section_find_subsection(subsection, val->val_str);
-    
+  
   if(w->info->multi_parameters[index])
     bg_cfg_section_create_items(subsection_default, 
                                 w->info->multi_parameters[index]);
-    
+#endif
+  
   subsubsection =
     bg_cfg_section_create_subsection_at_pos(subsection, list->num);
-  bg_cfg_section_transfer(subsection_default, subsubsection);
+  if(w->info->multi_parameters[index])
+    bg_cfg_section_create_items(subsubsection, 
+                                w->info->multi_parameters[index]);
+  
+  //  bg_cfg_section_transfer(subsection_default, subsubsection);
     
   list->num++;
     
@@ -797,10 +803,11 @@ static void button_callback(GtkWidget * wid, gpointer data)
 
     
     if(w->info->multi_labels && w->info->multi_labels[priv->param_selected])
-      label = TRD(w->info->multi_labels[priv->param_selected], priv->translation_domain);
+      label = TRD(w->info->multi_labels[priv->param_selected],
+                  priv->translation_domain);
     else
       label = w->info->multi_names[priv->param_selected];
-
+    
     dialog = bg_dialog_create(subsection, set_sub_param, get_sub_param, w,
                               w->info->multi_parameters[priv->param_selected],
                               label);
@@ -851,7 +858,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     params[0].multi_labels       = w->info->multi_labels;
     params[0].multi_descriptions = w->info->multi_descriptions;
     params[0].help_string        = w->info->help_string;
-    params[0].multi_parameters   = w->info->multi_parameters;
+    //    params[0].multi_parameters   = w->info->multi_parameters;
     
     tmp_string = bg_sprintf(TR("Add %s"),
                             TRD(w->info->long_name, priv->translation_domain));

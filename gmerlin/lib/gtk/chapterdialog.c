@@ -167,7 +167,8 @@ static void set_parameter(void * data, const char * name,
     win->cl->chapters[win->edited].name =
       bg_strdup(win->cl->chapters[win->edited].name, val->val_str);
   else if(!strcmp(name, "time"))
-    win->cl->chapters[win->edited].time = val->val_time;
+    win->cl->chapters[win->edited].time =
+      gavl_time_scale(win->cl->timescale, val->val_time);
   }
 
 
@@ -249,6 +250,7 @@ static void button_callback(GtkWidget * w, gpointer data)
       win->cl = bg_chapter_list_create(0);
       win->selected = 0;
       win->edited = 0;
+      win->cl->timescale = GAVL_TIME_SCALE;
       }
     else
       win->edited = win->selected + 1;
