@@ -694,6 +694,8 @@ static int write_audio_packet_flac(void * priv, gavl_packet_t * packet, int stre
   {
   flac_t * flac = priv;
 
+  // fprintf(stderr, "%ld %ld\n", packet->duration, flac->samples_written);
+  
   if(packet->data_len < 6)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Packet data too small: %d",

@@ -380,12 +380,14 @@ void bg_flac_init_metadata(bg_flac_t * flac, const bg_metadata_t * m)
   
   flac->vorbis_comment =
     FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
-  STR_COMMENT(artist,    "ARTIST");
-  STR_COMMENT(title,     "TITLE");
-  STR_COMMENT(album,     "ALBUM");
-  STR_COMMENT(genre,     "GENRE");
-  STR_COMMENT(date,      "DATE");
-  STR_COMMENT(copyright, "COPYRIGHT");
-  INT_COMMENT(track,     "TRACKNUMBER");
+  STR_COMMENT(artist,      "ARTIST");
+  STR_COMMENT(title,       "TITLE");
+  STR_COMMENT(album,       "ALBUM");
+  STR_COMMENT(albumartist, "ALBUM ARTIST");
+  STR_COMMENT(albumartist, "ALBUMARTIST");
+  STR_COMMENT(genre,       "GENRE");
+  STR_COMMENT(date,        "DATE");
+  STR_COMMENT(copyright,   "COPYRIGHT");
+  INT_COMMENT(track,       "TRACKNUMBER");
   RAW_COMMENT(comment);
   }
