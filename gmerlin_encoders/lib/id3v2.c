@@ -134,7 +134,9 @@ bgen_id3v2_t * bgen_id3v2_create(const bg_metadata_t * m)
   ret->header.minor_version = 4;
   ret->header.flags = 0;
 
-  TEXT_FRAME(artist,    MK_FOURCC('T', 'P', 'E', '1'));
+  TEXT_FRAME(artist,      MK_FOURCC('T', 'P', 'E', '1'));
+  TEXT_FRAME(albumartist, MK_FOURCC('T', 'P', 'E', '2'));
+
   TEXT_FRAME(title,     MK_FOURCC('T', 'I', 'T', '2'));
   TEXT_FRAME(album,     MK_FOURCC('T', 'A', 'L', 'B'));
   INT_FRAME(track,      MK_FOURCC('T', 'R', 'C', 'K'));
