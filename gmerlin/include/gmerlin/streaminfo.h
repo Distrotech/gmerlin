@@ -107,17 +107,18 @@ typedef struct
 
 typedef struct
   {
-  char * artist; //!< Artist
-  char * title; //!< Title
-  char * album; //!< Album
+  char * artist;      //!< Artist
+  char * title;       //!< Title
+  char * album;       //!< Album
       
-  int track; //!< Track number
-  char * date; //!< Date
-  char * genre; //!< Genre
-  char * comment;//!< Comment
+  int track;          //!< Track number
+  char * date;        //!< Date
+  char * genre;       //!< Genre
+  char * comment;     //!< Comment
 
-  char * author;//!< Author
-  char * copyright;//!< Copyright
+  char * author;      //!< Author
+  char * copyright;   //!< Copyright
+  char * albumartist; //!< Albumartist
   
   bg_metadata_extended_t * ext; //!< Extended metadata as NULL terminated array
   } bg_metadata_t;

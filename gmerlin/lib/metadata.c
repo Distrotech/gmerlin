@@ -47,6 +47,7 @@ void bg_metadata_free(bg_metadata_t * m)
   MY_FREE(m->author);
   MY_FREE(m->copyright);
   MY_FREE(m->date);
+  MY_FREE(m->albumartist);
 
   if(m->ext)
     {
@@ -81,6 +82,7 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src)
 
   MY_STRCPY(author);
   MY_STRCPY(copyright);
+  MY_STRCPY(albumartist);
   MY_INTCOPY(track);
 
   if(src->ext)
@@ -105,6 +107,13 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src)
     { \
       .name =      "artist", \
       .long_name = TRS("Artist"), \
+      .type =      BG_PARAMETER_STRING, \
+    }
+
+#define PARAM_ALBUMARTIST \
+    { \
+      .name =      "albumartist", \
+      .long_name = TRS("Album artist"), \
       .type =      BG_PARAMETER_STRING, \
     }
 
@@ -173,6 +182,7 @@ static const bg_parameter_info_t parameters[] =
     PARAM_TRACK,
     PARAM_GENRE,
     PARAM_AUTHOR,
+    PARAM_ALBUMARTIST,
     PARAM_COPYRIGHT,
     PARAM_DATE,
     PARAM_COMMENT,
@@ -187,6 +197,7 @@ static const bg_parameter_info_t parameters_common[] =
     // PARAM_TRACK,
     PARAM_GENRE,
     PARAM_AUTHOR,
+    PARAM_ALBUMARTIST,
     PARAM_COPYRIGHT,
     PARAM_DATE,
     PARAM_COMMENT,
@@ -215,6 +226,7 @@ bg_parameter_info_t * get_parameters(bg_metadata_t * m, int common)
   while(ret[i].name)
     {
     SP_STR(artist);
+    SP_STR(albumartist);
     SP_STR(title);
     SP_STR(album);
       
@@ -264,6 +276,7 @@ void bg_metadata_set_parameter(void * data, const char * name,
     return;
 
   SP_STR(artist);
+  SP_STR(albumartist);
   SP_STR(title);
   SP_STR(album);
   
@@ -501,6 +514,11 @@ char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs)
     tmp = bg_sprintf(TR("Album%s%s\n"), sep, m->album);
     META_STRCAT();
     }
+  if(m->albumartist)
+    {
+    tmp = bg_sprintf(TR("Album artist%s%s\n"), sep, m->albumartist);
+    META_STRCAT();
+    }
   if(m->copyright)
     {
     tmp = bg_sprintf(TR("Copyright%s%s\n"), sep, m->copyright);
@@ -555,15 +573,16 @@ void bg_metadata_dump(const bg_metadata_t * m)
   int len, max_len, i;
   bg_dprintf("Metadata:\n");
 
-  if(m->artist)    bg_diprintf(2, "Artist:    %s\n", m->artist);
-  if(m->title)     bg_diprintf(2, "Title:     %s\n", m->title);
-  if(m->album)     bg_diprintf(2, "Album:     %s\n", m->album);
-  if(m->track)     bg_diprintf(2, "Track:     %d\n", m->track);
-  if(m->date)      bg_diprintf(2, "Date:      %s\n", m->date);
-  if(m->genre)     bg_diprintf(2, "Genre:     %s\n", m->genre);
-  if(m->comment)   bg_diprintf(2, "Comment:   %s\n", m->comment);
-  if(m->author)    bg_diprintf(2, "Author:    %s\n", m->author);
-  if(m->copyright) bg_diprintf(2, "Copyright: %s\n", m->copyright);
+  if(m->artist)      bg_diprintf(2, "Artist:       %s\n", m->artist);
+  if(m->title)       bg_diprintf(2, "Title:        %s\n", m->title);
+  if(m->album)       bg_diprintf(2, "Album:        %s\n", m->album);
+  if(m->track)       bg_diprintf(2, "Track:        %d\n", m->track);
+  if(m->date)        bg_diprintf(2, "Date:         %s\n", m->date);
+  if(m->genre)       bg_diprintf(2, "Genre:        %s\n", m->genre);
+  if(m->comment)     bg_diprintf(2, "Comment:      %s\n", m->comment);
+  if(m->author)      bg_diprintf(2, "Author:       %s\n", m->author);
+  if(m->albumartist) bg_diprintf(2, "Album artist: %s\n", m->albumartist);
+  if(m->copyright)   bg_diprintf(2, "Copyright:    %s\n", m->copyright);
 
   if(m->ext)
     {
@@ -605,6 +624,7 @@ int bg_metadata_equal(const bg_metadata_t * m1,
                       const bg_metadata_t * m2)
   {
   CMP_STR(artist);
+  CMP_STR(albumartist);
   CMP_STR(title);
   CMP_STR(album);
   CMP_STR(date);
