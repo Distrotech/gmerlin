@@ -112,7 +112,7 @@ void bgav_metadata_dump(bgav_metadata_t*m)
   PS("  Copyright:    ", m->copyright);
   PS("  Album:        ", m->album);
   PS("  Artist:       ", m->artist);
-  PS("  Album artist: ", m->artist);
+  PS("  Album artist: ", m->albumartist);
   PS("  Genre:        ", m->genre);
   PI("  Track:        ", m->track);
   PS("  Date:         ", m->date);
