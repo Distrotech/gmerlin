@@ -49,6 +49,11 @@ static void convert_metadata(bg_metadata_t * dst,
     dst->artist =
       bg_strdup(dst->artist, str);
 
+  str = bgav_metadata_get_albumartist(m);
+  if(str)
+    dst->albumartist =
+      bg_strdup(dst->albumartist, str);
+
   str = bgav_metadata_get_album(m);
   if(str)
     dst->album =

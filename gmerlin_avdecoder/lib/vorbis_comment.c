@@ -96,6 +96,9 @@ static char const * const date_key = "DATE";
 // static char const * const _location_key = "LOCATION=";
 static char const * const copyright_key = "COPYRIGHT";
 
+static char const * const albumartist1_key = "ALBUM ARTIST";
+static char const * const albumartist2_key = "ALBUMARTIST";
+
 const char *
 bgav_vorbis_comment_get_field(bgav_vorbis_comment_t * vc, const char * key)
   {
@@ -138,6 +141,11 @@ void bgav_vorbis_comment_2_metadata(bgav_vorbis_comment_t * comment,
   if((field = bgav_vorbis_comment_get_field(comment, copyright_key)))
     m->copyright = bgav_strdup(field);
 
+  if((field = bgav_vorbis_comment_get_field(comment, albumartist1_key)))
+    m->albumartist = bgav_strdup(field);
+  else if((field = bgav_vorbis_comment_get_field(comment, albumartist1_key)))
+    m->albumartist = bgav_strdup(field);
+  
   if((field = bgav_vorbis_comment_get_field(comment, track_number_key)))
     m->track = atoi(field);
   

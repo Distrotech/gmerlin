@@ -35,6 +35,7 @@ void bgav_metadata_free(bgav_metadata_t * m)
   MY_FREE(m->copyright);
   MY_FREE(m->album);
   MY_FREE(m->artist);
+  MY_FREE(m->albumartist);
   MY_FREE(m->date);
   MY_FREE(m->genre);
   memset(m, 0, sizeof(*m));
@@ -67,6 +68,7 @@ void bgav_metadata_merge(bgav_metadata_t * dst,
   MERGE_S(copyright);
   MERGE_S(album);
   MERGE_S(artist);
+  MERGE_S(albumartist);
   MERGE_S(date);
   MERGE_S(genre);
 
@@ -88,6 +90,7 @@ void bgav_metadata_merge2(bgav_metadata_t * dst,
   MERGE2_S(copyright);
   MERGE2_S(album);
   MERGE2_S(artist);
+  MERGE2_S(albumartist);
   MERGE2_S(date);
   MERGE2_S(genre);
 
@@ -103,15 +106,16 @@ void bgav_metadata_dump(bgav_metadata_t*m)
   {
   bgav_dprintf("Metadata:\n");
   
-  PS("  Author:    ", m->author);
-  PS("  Title:     ", m->title);
-  PS("  Comment:   ", m->comment);
-  PS("  Copyright: ", m->copyright);
-  PS("  Album:     ", m->album);
-  PS("  Artist:    ", m->artist);
-  PS("  Genre:     ", m->genre);
-  PI("  Track:     ", m->track);
-  PS("  Date:      ", m->date);
+  PS("  Author:       ", m->author);
+  PS("  Title:        ", m->title);
+  PS("  Comment:      ", m->comment);
+  PS("  Copyright:    ", m->copyright);
+  PS("  Album:        ", m->album);
+  PS("  Artist:       ", m->artist);
+  PS("  Album artist: ", m->artist);
+  PS("  Genre:        ", m->genre);
+  PI("  Track:        ", m->track);
+  PS("  Date:         ", m->date);
   }
 
 const char * bgav_metadata_get_author(const bgav_metadata_t*m)
@@ -142,6 +146,11 @@ const char * bgav_metadata_get_album(const bgav_metadata_t*m)
 const char * bgav_metadata_get_artist(const bgav_metadata_t*m)
   {
   return m->artist;
+  }
+
+const char * bgav_metadata_get_albumartist(const bgav_metadata_t*m)
+  {
+  return m->albumartist;
   }
 
 const char * bgav_metadata_get_genre(const bgav_metadata_t*m)

@@ -108,6 +108,7 @@ struct bgav_metadata_s
   char * artist;
   char * genre;
   char * date;
+  char * albumartist;
   int track;
   };
 

@@ -173,28 +173,20 @@ void bgav_id3v2_dump(bgav_id3v2_tag_t * t)
   /* Dump header */
 
   bgav_dprintf( "Header:\n");
-  bgav_dprintf( "  Major .version = %d\n", t->header.major_version);
-  bgav_dprintf( "  Minor .version = %d\n", t->header.minor_version);
+  bgav_dprintf( "  Major version: %d\n", t->header.major_version);
+  bgav_dprintf( "  Minor version: %d\n", t->header.minor_version);
   bgav_dprintf( "  Flags:         ");
   if(t->header.flags & ID3V2_TAG_UNSYNCHRONIZED)
-    {
     bgav_dprintf( "UNSYNCHRONIZED ");
-    }
   if(t->header.flags & ID3V2_TAG_EXTENDED_HEADER)
-    {
     bgav_dprintf( " EXTENDED_HEADER");
-    }
   if(t->header.flags & ID3V2_TAG_EXPERIMENTAL)
-    {
     bgav_dprintf( " EXPERIMENTAL");
-    }
   if(t->header.flags & ID3V2_TAG_EXPERIMENTAL)
-    {
     bgav_dprintf( " FOOTER_PRESENT");
-    }
   bgav_dprintf( "\n");
   bgav_dprintf( "  Size: %d\n", t->header.size);
-
+  
   for(i = 0; i < t->num_frames; i++)
     {
     bgav_dprintf( "========== Frame %d ==========\n", i+1);
@@ -573,6 +565,13 @@ static const uint32_t artist_tags[] =
     0x00,
   };
 
+static const uint32_t albumartist_tags[] =
+  {
+    BGAV_MK_FOURCC('T','P','E','2'),
+    BGAV_MK_FOURCC('T','P','2',0x00),
+    0x00,
+  };
+
 static const uint32_t date_tags[] =
   {
     BGAV_MK_FOURCC('T','Y','E',0x00),
@@ -704,6 +703,12 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
   if(frame && frame->strings)
     m->artist = bgav_strdup(frame->strings[0]);
 
+  /* Albumartist */
+
+  frame = bgav_id3v2_find_frame(t, albumartist_tags);
+  if(frame && frame->strings)
+    m->albumartist = bgav_strdup(frame->strings[0]);
+  
   /* Author */
 
   frame = bgav_id3v2_find_frame(t, author_tags);

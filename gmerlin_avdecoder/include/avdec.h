@@ -170,6 +170,15 @@ BGAV_PUBLIC
 const char * bgav_metadata_get_artist(const bgav_metadata_t * metadata);
 
 /** \ingroup metadata
+ * \brief Get the album artist of this track
+ * \param metadata Metadata container
+ * \returns The album artist in UTF-8 or NULL
+ */
+
+BGAV_PUBLIC
+const char * bgav_metadata_get_albumartist(const bgav_metadata_t * metadata);
+
+/** \ingroup metadata
  * \brief Get the genre this track belongs to
  * \param metadata Metadata container
  * \returns The genre in UTF-8 or NULL
