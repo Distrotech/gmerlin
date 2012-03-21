@@ -488,6 +488,7 @@ void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
   len += str_len(m->comment);
   len += str_len(m->author);
   len += str_len(m->copyright);
+  len += str_len(m->albumartist);
   
   ptr = bg_msg_set_arg_ptr(msg, arg, len);
   pos = ptr;
@@ -500,6 +501,7 @@ void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
   pos = set_str(pos, m->comment);
   pos = set_str(pos, m->author);
   pos = set_str(pos, m->copyright);
+  pos = set_str(pos, m->albumartist);
   pos = set_32(pos, m->track);
   }
 
@@ -522,6 +524,7 @@ void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
   pos = get_str(pos, &m->comment);
   pos = get_str(pos, &m->author);
   pos = get_str(pos, &m->copyright);
+  pos = get_str(pos, &m->albumartist);
   pos = get_32(pos,  &tmp);
   m->track = tmp;
   
