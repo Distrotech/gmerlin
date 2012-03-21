@@ -651,7 +651,7 @@ bg_video_filter_chain_set_parameter(void * data, const char * name,
   
   bg_video_filter_chain_t * ch;
   ch = (bg_video_filter_chain_t *)data;
-  
+    
   if(!name)
     {
     for(i = 0; i < ch->num_filters; i++)
@@ -662,6 +662,7 @@ bg_video_filter_chain_set_parameter(void * data, const char * name,
       }
     return;
     }
+
   
   if(!strcmp(name, "video_filters"))
     {

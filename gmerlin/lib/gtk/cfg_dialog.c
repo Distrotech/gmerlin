@@ -208,26 +208,7 @@ static void reset_section(dialog_section_t * s)
                             s->widgets[i].info);
 
     s->widgets[i].funcs->get_value(&s->widgets[i]);
-    
-    if(s->cfg_section)
-      {
-      if(s->widgets[i].info->flags & BG_PARAMETER_SYNC)
-        bg_cfg_section_set_parameter(s->cfg_section,
-                                     s->widgets[i].info,
-                                      &s->widgets[i].value);
 
-      /* If we have multi parameters, we'll also reset the subsection, even if
-         BG_PARAMETER_SYNC isn't set */
-
-      if(s->widgets[i].cfg_subsection_save)
-        {
-        cfg_subsection = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
-        bg_cfg_section_transfer(s->widgets[i].cfg_subsection_save, cfg_subsection);
-        }
-      if(s->widgets[i].funcs->apply_sub_params)
-        s->widgets[i].funcs->apply_sub_params(&s->widgets[i]);
-      }
-    
     if(s->set_param && (s->widgets[i].info->flags & BG_PARAMETER_SYNC))
       {
       set_param = 1;
@@ -247,6 +228,26 @@ static void reset_section(dialog_section_t * s)
         s->set_param(s->callback_data, s->widgets[i].info->name,
                      &s->widgets[i].value);
       }
+    
+    if(s->cfg_section)
+      {
+      if(s->widgets[i].info->flags & BG_PARAMETER_SYNC)
+        bg_cfg_section_set_parameter(s->cfg_section,
+                                     s->widgets[i].info,
+                                      &s->widgets[i].value);
+      
+      /* If we have multi parameters, we'll also reset the subsection, even if
+         BG_PARAMETER_SYNC isn't set */
+      
+      if(s->widgets[i].cfg_subsection_save)
+        {
+        cfg_subsection = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
+        bg_cfg_section_transfer(s->widgets[i].cfg_subsection_save, cfg_subsection);
+        }
+      if(s->widgets[i].funcs->apply_sub_params)
+        s->widgets[i].funcs->apply_sub_params(&s->widgets[i]);
+      }
+    
     }
   
   if(set_param)
