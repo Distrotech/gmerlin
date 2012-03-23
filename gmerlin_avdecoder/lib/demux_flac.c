@@ -229,6 +229,8 @@ static int find_next_header(bgav_demuxer_context_t * ctx,
           priv->have_first_fh = 1;
           return i;
           }
+        else if(!priv->has_sync) // Assume we seeked correctly
+          return i;
         else if(bgav_flac_check_crc(priv->buf.buffer, i))
           return i;
         //        else
@@ -357,6 +359,7 @@ static void seek_flac(bgav_demuxer_context_t * ctx, int64_t time, int scale)
                   SEEK_SET);
 
   STREAM_SET_SYNC(s, priv->seektable.entries[i].sample_number);
+  priv->pts = priv->seektable.entries[i].sample_number;
 
   priv->has_sync = 0;
   bgav_bytebuffer_flush(&priv->buf);
