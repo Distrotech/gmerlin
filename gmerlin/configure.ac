@@ -155,9 +155,14 @@ PKG_CHECK_MODULES(FONTCONFIG, fontconfig >= $FONTCONFIG_REQUIRED, , AC_MSG_ERROR
 FREETYPE_REQUIRED="9.7.3"
 PKG_CHECK_MODULES(FREETYPE, freetype2 >= $FREETYPE_REQUIRED, , AC_MSG_ERROR("freetype2 not found"))
 
-ICONV_LIBS=
+ICONV_LIBS=""
 AC_CHECK_LIB(iconv, libiconv_close, ICONV_LIBS="-liconv")
 AC_SUBST(ICONV_LIBS)
+
+SQLITE3_LIBS=""
+AC_CHECK_LIB(sqlite3, sqlite3_exec, [SQLITE3_LIBS="-lsqlite3"; have_sqlite3="true"], have_sqlite3="false")
+AC_SUBST(SQLITE3_LIBS)
+
 
 dnl
 dnl Gtk
@@ -914,6 +919,22 @@ AC_ARG_ENABLE(thumbnailer,
 
 AM_CONDITIONAL(HAVE_THUMBNAILER, test x$have_thumbnailer = xtrue)
 
+dnl nmjedit
+
+AC_ARG_ENABLE(nmjedit,
+              AC_HELP_STRING(--enable-nmjedit, [Enable nmjedit (default: disabled)]),
+              [case "${enableval}" in
+                 yes) have_nmjedit=true ;;
+                 no) have_nmjedit=false ;;
+               esac],
+	       have_nmjedit=false)
+
+if test "x$have_sqlite3" = "xfalse"; then
+have_nmjedit="false"
+fi
+
+AM_CONDITIONAL(HAVE_NMJEDIT, test "x$have_nmjedit" = "xtrue")
+
 dnl
 dnl CFLAGS
 dnl
@@ -984,6 +1005,7 @@ apps/transcoder/Makefile \
 apps/visualizer/Makefile \
 apps/kbd/Makefile \
 apps/thumbnailer/Makefile \
+apps/nmjedit/Makefile \
 doc/Makefile \
 doc/Doxyfile \
 icons/Makefile \
@@ -1329,6 +1351,13 @@ fi
 
 echo -n "Thumbnailer:         "
 if test "x$have_thumbnailer" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled"
+fi
+
+echo -n "nmjedit:             "
+if test "x$have_nmjedit" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled"

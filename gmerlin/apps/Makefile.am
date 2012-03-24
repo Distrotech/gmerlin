@@ -53,12 +53,19 @@ else
 thumbnailer_subdirs =
 endif
 
+if HAVE_NMJEDIT
+nmjedit_subdirs = nmjedit
+else
+nmjedit_subdirs =
+endif
+
 
 SUBDIRS = $(player_subdirs) \
 cmdlineplayer \
 cmdlinerecorder \
 $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
+$(nmjedit_subdirs) \
 $(camelot_subdirs) \
 $(recorder_subdirs) \
 $(transcoder_subdirs) \
