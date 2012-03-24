@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <string.h>
+
+
 #include <config.h>
 #include <gmerlin/recorder.h>
 #include <gmerlin/pluginregistry.h>
@@ -95,6 +98,10 @@ int main(int argc, char ** argv)
   index = 0;
   while(dirs[index])
     {
+    char * dir = dirs[index];
+    if(dir[strlen(dir)-1] == '/')
+      dir[strlen(dir)-1] = '\0';
+    
     bg_nmj_add_directory(db, dirs[index], 0);
     index++;
     }

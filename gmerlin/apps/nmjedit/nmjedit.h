@@ -21,6 +21,25 @@
 
 #include <sqlite3.h>
 #include <inttypes.h>
+#include <time.h>
+
+/* Directory scanning utility */
+
+typedef struct
+  {
+  int checked;
+  char * path;
+  time_t time;
+  int64_t size;
+  } bg_nmj_file_t;
+
+bg_nmj_file_t * bg_nmj_file_scan(const char * directory,
+                                 const char * extensions);
+
+bg_nmj_file_t * bg_nmj_file_lookup(bg_nmj_file_t * files,
+                                   const char * path);
+
+void bg_nmj_file_destroy(bg_nmj_file_t * files);
 
 /* Directory */
 
@@ -33,6 +52,8 @@ typedef struct
   int64_t size;     // Sum of all file sizes in bytes
   int64_t category; // 40 for Music
   char * status;    // 3 (??)
+
+  int found;
   } bg_nmj_dir_t;
 
 void bg_nmj_dir_init(bg_nmj_dir_t*);
@@ -70,6 +91,8 @@ typedef struct
   int64_t album_id;
   int64_t artist_id;
   int64_t genre_id;
+
+  int found;
   
   } bg_nmj_song_t;
 
@@ -109,4 +132,3 @@ int bg_nmj_album_save(bg_nmj_album_t *);
 
 int bg_nmj_add_directory(sqlite3 * db, const char * directory, int types);
 int bg_nmj_remove_directory(sqlite3 * db, const char * directory, int types);
-
