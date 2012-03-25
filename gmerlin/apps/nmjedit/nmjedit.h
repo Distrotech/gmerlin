@@ -53,6 +53,26 @@ bg_sqlite_exec(sqlite3 * db,                              /* An open database */
 time_t bg_nmj_string_to_time(const char * str);
 void bg_nmj_time_to_string(time_t time, char * str);
 
+char * bg_nmj_escape_string(const char * str);
+char * bg_nmj_unescape_string(const char * str);
+
+int64_t bg_nmj_string_to_id(sqlite3 * db,
+                            const char * table,
+                            const char * id_row,
+                            const char * string_row,
+                            const char * str);
+
+char * bg_nmj_id_to_string(sqlite3 * db,
+                           const char * table,
+                           const char * string_row,
+                           const char * id_row,
+                           int64_t id);
+
+int64_t bg_nmj_id_to_id(sqlite3 * db,
+                        const char * table,
+                        const char * dst_row,
+                        const char * src_row,
+                        int64_t id);
   
 /* Directory scanning utility */
 
@@ -135,7 +155,9 @@ typedef struct
 void bg_nmj_song_free(bg_nmj_song_t * song);
 void bg_nmj_song_init(bg_nmj_song_t * song);
 void bg_nmj_song_dump(bg_nmj_song_t * song);
-int bg_nmj_song_get_info(bg_plugin_registry_t * plugin_reg,
+
+int bg_nmj_song_get_info(sqlite3 * db,
+                         bg_plugin_registry_t * plugin_reg,
                          bg_nmj_dir_t * dir,
                          bg_nmj_file_t * file,
                          bg_nmj_song_t * song,

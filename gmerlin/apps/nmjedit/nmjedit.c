@@ -91,7 +91,7 @@ append_int_callback(void * data, int argc, char **argv, char **azColName)
   return 0;
   }
 
-static int64_t string_to_id(sqlite3 * db,
+int64_t bg_nmj_string_to_id(sqlite3 * db,
                             const char * table,
                             const char * id_row,
                             const char * string_row,
@@ -107,7 +107,7 @@ static int64_t string_to_id(sqlite3 * db,
   return result ? ret : -1 ;
   }
 
-static char * id_to_string(sqlite3 * db,
+char * bg_nmj_id_to_string(sqlite3 * db,
                            const char * table,
                            const char * string_row,
                            const char * id_row,
@@ -116,11 +116,27 @@ static char * id_to_string(sqlite3 * db,
   char * buf;
   char * ret = NULL;
   int result;
-  buf = sqlite3_mprintf("select %s from %s where %s = %ld;",
+  buf = sqlite3_mprintf("select %s from %s where %s = %"PRId64";",
                         string_row, table, id_row, id);
   result = bg_sqlite_exec(db, buf, string_callback, &ret);
   return result ? ret : NULL;
   }
+
+int64_t bg_nmj_id_to_id(sqlite3 * db,
+                        const char * table,
+                        const char * dst_row,
+                        const char * src_row,
+                        int64_t id)
+  {
+  char * buf;
+  int64_t ret = -1;
+  int result;
+  buf = sqlite3_mprintf("select %s from %s where %s = %"PRId64";",
+                        dst_row, table, src_row, id);
+  result = bg_sqlite_exec(db, buf, id_callback, &ret);
+  return result ? ret : -1;
+  }
+
 
 static const struct
   {
@@ -129,20 +145,51 @@ static const struct
   }
 escape_rules[] =
   {
-    { '\'', "&apos;" }
+    { '\'', "&apos;" },
+    { '&',  "&amp;" },
     { /* End */      }
   };
   
 char * bg_nmj_escape_string(const char * str)
   {
-  
+  int done;
+  int i;
+  const char * pos;
+  char * ret = 0;
+  char buf[2];
+  buf[1] = '\0';
+
+  pos = str;
+  while(*pos != '\0')
+    {
+    done = 0;
+    i = 0;
+    while(escape_rules[i].escaped)
+      {
+      if(escape_rules[i].c == *pos)
+        {
+        ret = bg_strcat(ret, escape_rules[i].escaped);
+        done = 1;
+        break;
+        }
+      i++;
+      }
+    if(!done)
+      {
+      buf[0] = *pos;
+      ret = bg_strcat(ret, buf);
+      }
+    pos++;
+    }
+  return ret;
   }
 
+#if 0
 char * bg_nmj_unescape_string(const char * str)
   {
   
   }
-
+#endif
 
 /* Directory */
 
@@ -347,7 +394,7 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
       bg_nmj_song_init(&new_song);
       
       /* File changed */
-      if(!bg_nmj_song_get_info(plugin_reg, dir, file, 
+      if(!bg_nmj_song_get_info(db, plugin_reg, dir, file, 
                               &new_song, &song))
         return 0;
       fprintf(stderr, "Got new song\n");

@@ -80,6 +80,9 @@ void bg_nmj_song_dump(bg_nmj_song_t * song)
   bg_dprintf("  genre:          %s\n",        song->genre);
   bg_dprintf("  artist:         %s\n",        song->artist);
   bg_dprintf("  albumartist:    %s\n",        song->albumartist);
+  bg_dprintf("  genre_id:       %"PRId64"\n", song->genre_id);
+  bg_dprintf("  artist_id:      %"PRId64"\n", song->artist_id);
+  bg_dprintf("  album_id:       %"PRId64"\n",  song->album_id);
   }
 
 static int song_query_callback(void * data, int argc, char **argv, char **azColName)
@@ -123,23 +126,40 @@ int bg_nmj_song_query(sqlite3 * db, bg_nmj_song_t * song)
     sql = sqlite3_mprintf("select * from SONGS where PATH = %Q;", song->path);
     result = bg_sqlite_exec(db, sql, song_query_callback, song);
     sqlite3_free(sql);
-    return song->found;
+    if(!song->found)
+      return 0;
     }
   else if(song->id >= 0)
     {
     sql = sqlite3_mprintf("select * from SONGS where ID = %"PRId64";", song->id);
     result = bg_sqlite_exec(db, sql, song_query_callback, song);
     sqlite3_free(sql);
-    return song->found;
+    if(!song->found)
+      return 0;
     }
   else
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Either ID or path must be set in directory\n");
     return 0;
     }
+
+  /* Get secondary stuff */
+  song->genre_id = bg_nmj_id_to_id(db, "SONG_GENRES_SONGS", "GENRES_ID", "SONGS_ID", song->id);
+  if(song->genre_id >= 0)
+    song->genre = bg_nmj_id_to_string(db, "SONG_GENRES", "NAME", "ID", song->genre_id);
+  
+  song->album_id = bg_nmj_id_to_id(db, "SONG_ALBUMS_SONGS", "ALBUMS_ID", "SONGS_ID", song->id);
+  if(song->album_id >= 0)
+    song->album = bg_nmj_id_to_string(db, "SONG_ALBUMS", "TITLE", "ID", song->album_id);
+
+  song->artist_id = bg_nmj_id_to_id(db, "SONG_PERSONS_SONGS", "PERSONS_ID", "SONGS_ID", song->id);
+  if(song->artist_id >= 0)
+    song->artist = bg_nmj_id_to_string(db, "SONG_PERSONS", "NAME", "ID", song->artist_id);
+  
   }
 
-int bg_nmj_song_get_info(bg_plugin_registry_t * plugin_reg,
+int bg_nmj_song_get_info(sqlite3 * db,
+                         bg_plugin_registry_t * plugin_reg,
                          bg_nmj_dir_t * dir,
                          bg_nmj_file_t * file,
                          bg_nmj_song_t * song,
@@ -176,8 +196,8 @@ int bg_nmj_song_get_info(bg_plugin_registry_t * plugin_reg,
 
   /* Fill in the data structure */
   
-  song->title = bg_strdup(song->title, ti->metadata.title);
-  song->search_title = bg_strdup(song->search_title, ti->metadata.title);
+  song->title = bg_nmj_escape_string(ti->metadata.title);
+  song->search_title = bg_nmj_escape_string(ti->metadata.title);
 
   song->path = bg_strdup(song->path, file->path);
   song->scan_dirs_id = dir->id;
@@ -200,10 +220,23 @@ int bg_nmj_song_get_info(bg_plugin_registry_t * plugin_reg,
   song->create_time = malloc(BG_NMJ_TIME_STRING_LEN);
   bg_nmj_time_to_string(file->time, song->create_time);
 
-  song->album  = bg_strdup(song->album, ti->metadata.album);
-  song->artist  = bg_strdup(song->artist, ti->metadata.artist);
-  song->albumartist  = bg_strdup(song->albumartist, ti->metadata.albumartist);
-  song->genre  = bg_strdup(song->genre, ti->metadata.genre);
+  song->album        = bg_nmj_escape_string(ti->metadata.album);
+  song->artist       = bg_nmj_escape_string(ti->metadata.artist);
+  song->albumartist  = bg_nmj_escape_string(ti->metadata.albumartist);
+  song->genre        = bg_nmj_escape_string(ti->metadata.genre);
+
+  song->album_id     = bg_nmj_string_to_id(db, "SONG_ALBUMS", "ID",
+                                           "TITLE", song->album);
+  song->genre_id     = bg_nmj_string_to_id(db, "SONG_GENRES", "ID",
+                                           "NAME", song->genre);
+
+  if(song->albumartist)
+    song->artist_id    = bg_nmj_string_to_id(db, "SONG_PERSONS", "ID",
+                                             "NAME", song->albumartist);
+  else if(song->artist)
+    song->artist_id    = bg_nmj_string_to_id(db, "SONG_PERSONS", "ID",
+                                             "NAME", song->artist);
+  
   
   ret = 1;
   fail:
