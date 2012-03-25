@@ -236,7 +236,7 @@ static int open_voc(bgav_demuxer_context_t * ctx)
         break;
       }
     }
-  ctx->stream_description = bgav_sprintf("Creative voice (VOC)");
+  ctx->stream_description = bgav_sprintf("VOC");
   return 1;
   }
 

@@ -245,7 +245,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
       break;
     }
   
-  ctx->stream_description = bgav_sprintf("Real audio Version %d", version);
+  ctx->stream_description = bgav_sprintf("Real audio");
   return 1;
   }
 

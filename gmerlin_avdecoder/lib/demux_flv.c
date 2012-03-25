@@ -995,7 +995,7 @@ static int open_flv(bgav_demuxer_context_t * ctx)
     bgav_input_seek(ctx->input, pos, SEEK_SET);
     }
   
-  ctx->stream_description = bgav_sprintf("Flash video (FLV)");
+  ctx->stream_description = bgav_sprintf("FLV");
   
   return 1;
   

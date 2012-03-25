@@ -164,7 +164,7 @@ static int open_mtv(bgav_demuxer_context_t * ctx)
     if(ctx->input->input->seek_byte)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
-  ctx->stream_description = bgav_sprintf("MTV format");
+  ctx->stream_description = bgav_sprintf("MTV");
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

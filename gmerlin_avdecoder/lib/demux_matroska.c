@@ -895,10 +895,9 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   if(!strcmp(p->ebml_header.DocType, "matroska"))
-    ctx->stream_description = bgav_sprintf("Matroska (version %d)",
-                                           p->ebml_header.DocTypeVersion);
+    ctx->stream_description = bgav_sprintf("Matroska");
   else if(!strcmp(p->ebml_header.DocType, "webm"))
-    ctx->stream_description = bgav_sprintf("Matroska (webm)");
+    ctx->stream_description = bgav_sprintf("Webm");
 
   bgav_input_close(input_mem);
   bgav_input_destroy(input_mem);

@@ -523,7 +523,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
     ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
     }
 
-  ctx->stream_description = bgav_sprintf("Nullsoft Video (NSV)");
+  ctx->stream_description = bgav_sprintf("NSV");
 
   if(p->need_pcm_format)
     {

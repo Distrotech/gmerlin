@@ -875,7 +875,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
       }
     }
 
-  ctx->stream_description = bgav_sprintf("Real Media file format");
+  ctx->stream_description = bgav_sprintf("RM");
 
   /* Handle metadata */
 

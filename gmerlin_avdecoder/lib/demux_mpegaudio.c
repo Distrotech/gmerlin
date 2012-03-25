@@ -382,9 +382,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
                    s->container_bitrate/1000);
 
   ctx->stream_description =
-    bgav_sprintf("MPEG-%s layer %d, bitrate: %s",
-                 version_string, 
-                 priv->header.layer, bitrate_string);
+    bgav_sprintf("MPEG Audio");
   free(bitrate_string);
 
   return 1;

@@ -97,7 +97,7 @@ static int open_a52(bgav_demuxer_context_t * ctx)
     = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
     (s->container_bitrate / 8);
   ctx->index_mode = INDEX_MODE_SIMPLE;
-  ctx->stream_description = bgav_sprintf("Raw A52");
+  ctx->stream_description = bgav_sprintf("AC3");
   return 1;
   
   fail:

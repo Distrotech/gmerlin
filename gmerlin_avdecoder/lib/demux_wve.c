@@ -172,7 +172,7 @@ static int open_wve(bgav_demuxer_context_t * ctx)
   if(header_size > ctx->input->position)
     bgav_input_skip(ctx->input, header_size - ctx->input->position);
   
-  ctx->stream_description = bgav_sprintf("Electronicarts WVE format");
+  ctx->stream_description = bgav_sprintf("Electronicarts WVE");
 
   return 1;
   }

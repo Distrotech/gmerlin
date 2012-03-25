@@ -733,7 +733,7 @@ static int open_asf(bgav_demuxer_context_t * ctx)
   if(ctx->input->input->seek_byte && asf->hdr.packets_count)
     ctx->flags |= (BGAV_DEMUXER_CAN_SEEK | BGAV_DEMUXER_SEEK_ITERATIVE);
   
-  ctx->stream_description = bgav_sprintf("Windows media format (ASF)");
+  ctx->stream_description = bgav_sprintf("ASF");
   
   return 1;
   fail:

@@ -1210,7 +1210,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
 
       }
     }
-  ctx->stream_description = bgav_sprintf("MPEG-2 transport stream");
+  ctx->stream_description = bgav_sprintf("MPEGTS");
   
   ctx->index_mode = INDEX_MODE_MIXED;
   return 1;

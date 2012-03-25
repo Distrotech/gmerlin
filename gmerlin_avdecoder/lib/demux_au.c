@@ -206,7 +206,7 @@ static int open_au(bgav_demuxer_context_t * ctx)
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 
   
-  ctx->stream_description = bgav_sprintf("AU/SND format");
+  ctx->stream_description = bgav_sprintf("AU/SND");
   ctx->index_mode = INDEX_MODE_PCM;
   return 1;
   }

@@ -74,7 +74,7 @@ static int open_gsm(bgav_demuxer_context_t * ctx)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
 
-  ctx->stream_description = bgav_sprintf("RAW GSM");
+  ctx->stream_description = bgav_sprintf("GSM");
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

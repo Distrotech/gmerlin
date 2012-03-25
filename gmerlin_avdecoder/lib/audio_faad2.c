@@ -143,16 +143,16 @@ static int decode_frame_faad2(bgav_stream_t * s)
     switch(frame_info.object_type)
       {
       case MAIN:
-        s->description = bgav_sprintf("%s", "AAC Main profile");
+        s->description = bgav_sprintf("%s", "AAC Main");
         break;
       case LC:
-        s->description = bgav_sprintf("%s", "AAC Low Complexity profile (LC)");
+        s->description = bgav_sprintf("%s", "AAC LC");
         break;
       case SSR:
-        s->description = bgav_sprintf("%s", "AAC Scalable Sample Rate profile (SSR)");
+        s->description = bgav_sprintf("%s", "AAC SSR");
         break;
       case LTP:
-        s->description = bgav_sprintf("%s", "AAC Long Term Prediction (LTP)");
+        s->description = bgav_sprintf("%s", "AAC LTP");
         break;
       case HE_AAC:
         s->description = bgav_sprintf("%s", "HE-AAC");

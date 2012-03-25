@@ -1204,23 +1204,11 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
     find_streams(ctx);
   else
     priv->have_pts = 1;
-  
-  if(!priv->pack_header.mux_rate)
-    {
-    ctx->stream_description =
-      bgav_sprintf("MPEG-%d %s stream, bitrate: Unspecified",
-                   priv->pack_header.version,
-                   (priv->pack_header.version == 1 ?
-                    "system" : "program"));
-    }
-  else
-    ctx->stream_description =
-      bgav_sprintf("MPEG-%d %s stream, bitrate: %.2f kb/sec",
-                   priv->pack_header.version,
-                   (priv->pack_header.version == 1 ?
-                    "system" : "program"),
-                   (float)priv->pack_header.mux_rate * 0.4);
 
+  ctx->stream_description =
+    bgav_sprintf("MPEG-%d",
+                 priv->pack_header.version);
+  
   if(((ctx->input->input->seek_byte) && priv->have_pts) ||
      (ctx->input->input->seek_sector) ||
      (ctx->input->input->seek_time))

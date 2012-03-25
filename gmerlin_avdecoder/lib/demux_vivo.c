@@ -493,7 +493,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx)
   ctx->tt->cur->metadata.comment   = bgav_sprintf("Made with %s",
                                                             priv->header.producer);
 
-  ctx->stream_description = bgav_sprintf("Vivo Version %d.x", priv->header.version);
+  ctx->stream_description = bgav_sprintf("Vivo");
 
   ctx->tt->cur->duration = (GAVL_TIME_SCALE * (int64_t)(priv->header.duration)) / 1000;
 

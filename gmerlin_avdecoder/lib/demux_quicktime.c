@@ -1822,7 +1822,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
       ctx->stream_description = bgav_sprintf("Quicktime");
       break;
     default:
-      ctx->stream_description = bgav_sprintf("Quicktime/mp4/m4a format");
+      ctx->stream_description = bgav_sprintf("Quicktime/mp4/m4a");
       break;
     
     }
