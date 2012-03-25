@@ -19,10 +19,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <config.h>
+
+#define _GNU_SOURCE
+#include <time.h>
 #include <sqlite3.h>
 #include <inttypes.h>
-#include <time.h>
 
+#include <gmerlin/pluginregistry.h>
+
+/* Utilits functions */
+
+#define MY_FREE(ptr) \
+  if(ptr) \
+    free(ptr);
+
+#define SET_QUERY_STRING(col, val)   \
+  if(!strcasecmp(azColName[i], col)) \
+    ret->val = bg_strdup(ret->val, argv[i]);
+
+#define SET_QUERY_INT(col, val)      \
+  if(!strcasecmp(azColName[i], col) && argv[i]) \
+    ret->val = strtoll(argv[i], NULL, 10);
+
+int
+bg_sqlite_exec(sqlite3 * db,                              /* An open database */
+               const char *sql,                           /* SQL to be evaluated */
+               int (*callback)(void*,int,char**,char**),  /* Callback function */
+               void * data);                              /* 1st argument to callback */
+
+
+#define BG_NMJ_TIME_STRING_LEN 20
+time_t bg_nmj_string_to_time(const char * str);
+void bg_nmj_time_to_string(time_t time, char * str);
+
+  
 /* Directory scanning utility */
 
 typedef struct
@@ -34,7 +65,7 @@ typedef struct
   } bg_nmj_file_t;
 
 bg_nmj_file_t * bg_nmj_file_scan(const char * directory,
-                                 const char * extensions);
+                                 const char * extensions, int64_t * size);
 
 bg_nmj_file_t * bg_nmj_file_lookup(bg_nmj_file_t * files,
                                    const char * path);
@@ -87,24 +118,34 @@ typedef struct
   char * update_state;    // "2" or "5"
   char * filestatus;      // unused
 
-  /* Stuff for other databases */
+  /* Secondary info */
+  char * album;
+  char * genre;
+  char * artist;
+  char * albumartist;
+
   int64_t album_id;
   int64_t artist_id;
   int64_t genre_id;
-
+  
   int found;
   
   } bg_nmj_song_t;
 
-// void bg_nmj_song_load_from_file(sqlite3 * db, bg_nmj_song_t * song, const char * file);
-// void bg_nmj_song_load_from_db(sqlite3 * db, bg_nmj_song_t * song, int64_t id);
-// void bg_nmj_song_save_to_db(sqlite3 * db, bg_nmj_song_t * song);
-// void bg_nmj_song_delete_from_db(sqlite3 * db, bg_nmj_song_t * song);
 void bg_nmj_song_free(bg_nmj_song_t * song);
 void bg_nmj_song_init(bg_nmj_song_t * song);
 void bg_nmj_song_dump(bg_nmj_song_t * song);
+int bg_nmj_song_get_info(bg_plugin_registry_t * plugin_reg,
+                         bg_nmj_dir_t * dir,
+                         bg_nmj_file_t * file,
+                         bg_nmj_song_t * song,
+                         bg_nmj_song_t * old_song);
+
 int bg_nmj_song_query(sqlite3 * db, bg_nmj_song_t * song);
-int bg_nmj_song_save(sqlite3 * db, bg_nmj_song_t * song);
+
+int bg_nmj_song_add(sqlite3 * db, bg_nmj_song_t * song);
+int bg_nmj_song_update(sqlite3 * db, bg_nmj_song_t * song);
+int bg_nmj_song_delete(sqlite3 * db, bg_nmj_song_t * song);
 
 /* Album */
 
@@ -130,5 +171,7 @@ int bg_nmj_album_save(bg_nmj_album_t *);
 #define BG_NMJ_MEDIA_TYPE_VIDEO (1<<1)
 #define BG_NMJ_MEDIA_TYPE_IMAGE (1<<2)
 
-int bg_nmj_add_directory(sqlite3 * db, const char * directory, int types);
+int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
+                         sqlite3 * db, const char * directory, int types);
 int bg_nmj_remove_directory(sqlite3 * db, const char * directory, int types);
+

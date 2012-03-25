@@ -56,6 +56,7 @@ typedef struct
   char * info;        //!< Directors comments etc...
   int64_t duration;   //!< Duration in timescale tics
   int64_t pts_offset; //!< First timestamp
+  int    bitrate;     //!< Bitrate in bits / sec
   } bg_audio_info_t;
 
 /** \brief Description of a video stream
@@ -404,7 +405,7 @@ typedef struct
   {
   int flags;             //!< 1 if track is seekable (duration must be > 0 then)
   char * name;           //!< Name of the track (can be NULL)
-  char * description;    //!< Technical desription of the format
+  char * description;    //!< Technical description of the format
   int64_t duration;      //!< Duration
   
   int num_audio_streams;   //!< Number of audio streams

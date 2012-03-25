@@ -19,31 +19,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <string.h>
-
 #include "nmjedit.h"
-#include <config.h>
+
 #include <gmerlin/log.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/utils.h>
 #define LOG_DOMAIN "nmjedit"
 
-#define MY_FREE(ptr) \
-  if(ptr) \
-    free(ptr);
+#include <string.h>
 
-#define SET_QUERY_STRING(col, val)   \
-  if(!strcasecmp(azColName[i], col)) \
-    ret->val = bg_strdup(ret->val, argv[i]);
-
-#define SET_QUERY_INT(col, val)      \
-  if(!strcasecmp(azColName[i], col) && argv[i]) \
-    ret->val = strtoll(argv[i], NULL, 10);
-
-static int my_sqlite_exec(sqlite3 * db,                              /* An open database */
-                          const char *sql,                           /* SQL to be evaluated */
-                          int (*callback)(void*,int,char**,char**),  /* Callback function */
-                          void * data)                               /* 1st argument to callback */
+int
+bg_sqlite_exec(sqlite3 * db,                              /* An open database */
+               const char *sql,                           /* SQL to be evaluated */
+               int (*callback)(void*,int,char**,char**),  /* Callback function */
+               void * data)                               /* 1st argument to callback */
   {
   char * err_msg;
   int err;
@@ -113,7 +102,7 @@ static int64_t string_to_id(sqlite3 * db,
   int result;
   buf = sqlite3_mprintf("select %s from %s where %s = \"%s\";",
                         id_row, table, string_row, str);
-  result = my_sqlite_exec(db, buf, id_callback, &ret);
+  result = bg_sqlite_exec(db, buf, id_callback, &ret);
   sqlite3_free(buf);
   return result ? ret : -1 ;
   }
@@ -129,9 +118,31 @@ static char * id_to_string(sqlite3 * db,
   int result;
   buf = sqlite3_mprintf("select %s from %s where %s = %ld;",
                         string_row, table, id_row, id);
-  result = my_sqlite_exec(db, buf, string_callback, &ret);
+  result = bg_sqlite_exec(db, buf, string_callback, &ret);
   return result ? ret : NULL;
   }
+
+static const struct
+  {
+  char c;
+  char * escaped;
+  }
+escape_rules[] =
+  {
+    { '\'', "&apos;" }
+    { /* End */      }
+  };
+  
+char * bg_nmj_escape_string(const char * str)
+  {
+  
+  }
+
+char * bg_nmj_unescape_string(const char * str)
+  {
+  
+  }
+
 
 /* Directory */
 
@@ -201,14 +212,14 @@ int bg_nmj_dir_query(sqlite3 * db, bg_nmj_dir_t * dir)
   if(dir->directory)
     {
     sql = sqlite3_mprintf("select * from SCAN_DIRS where DIRECTORY = %Q;", dir->directory);
-    result = my_sqlite_exec(db, sql, dir_query_callback, dir);
+    result = bg_sqlite_exec(db, sql, dir_query_callback, dir);
     sqlite3_free(sql);
     return dir->found;
     }
   else if(dir->id >= 0)
     {
     sql = sqlite3_mprintf("select * from SCAN_DIRS where ID = %"PRId64";", dir->id);
-    result = my_sqlite_exec(db, sql, dir_query_callback, dir);
+    result = bg_sqlite_exec(db, sql, dir_query_callback, dir);
     sqlite3_free(sql);
     return dir->found;
     }
@@ -224,178 +235,99 @@ int bg_nmj_dir_save(sqlite3* db, bg_nmj_dir_t * dir)
   return 0;
   }
 
-/* Song */
-
-#if 0
-typedef struct
-  {
-  /* SONGS */
-  int64_t id;
-  char * title;
-  char * search_title;
-  char * path;
-  int64_t scan_dirs_id;
-  int64_t folders_id;   // Unused? */
-  char * runtime;
-  char * format;
-  char * lyric;
-  int64_t rating;   // default: 0
-  char * hash;      // Unused?
-  int64_t size;
-  char * bit_rate;
-  int64_t track_position; // 1..
-  char * release_date;    // YYYY-01-01
-  char * create_time;     // 2012-03-21 23:43:16
-  char * update_state;    // "2" or "5"
-  char * filestatus;      // unused
-
-  /* Stuff for other databases */
-  int64_t album_id;
-  int64_t artist_id;
-  int64_t genre_id;
-  
-  } bg_nmj_song_t;
-#endif
-
-void bg_nmj_song_free(bg_nmj_song_t * song)
-  {
-  MY_FREE(song->title);
-  MY_FREE(song->search_title);
-  MY_FREE(song->path);
-  MY_FREE(song->runtime);
-  MY_FREE(song->format);
-  MY_FREE(song->lyric);
-  MY_FREE(song->hash);
-  MY_FREE(song->bit_rate);
-  MY_FREE(song->release_date);
-  MY_FREE(song->create_time);
-  MY_FREE(song->update_state);
-  MY_FREE(song->filestatus);
-  }
-
-void bg_nmj_song_init(bg_nmj_song_t * song)
-  {
-  memset(song, 0, sizeof(*song));
-  song->id = -1;
-  }
-
-void bg_nmj_song_dump(bg_nmj_song_t * song)
-  {
-  bg_dprintf("Song:\n");
-  bg_dprintf("  ID:             %"PRId64"\n", song->id);
-  bg_dprintf("  title:          %s\n",        song->title);
-  bg_dprintf("  search_title:   %s\n",        song->search_title);
-  bg_dprintf("  path:           %s\n",        song->path);
-  bg_dprintf("  scan_dirs_id:   %"PRId64"\n", song->scan_dirs_id);
-  bg_dprintf("  folders_id:     %"PRId64"\n", song->folders_id);
-  bg_dprintf("  runtime:        %s\n",        song->runtime);
-  bg_dprintf("  format:         %s\n",        song->format);
-  bg_dprintf("  lyric:          %s\n",        song->lyric);
-  bg_dprintf("  rating:         %"PRId64"\n", song->rating);
-  bg_dprintf("  hash:           %s\n",        song->hash);
-  bg_dprintf("  size:           %"PRId64"\n",        song->size);
-  bg_dprintf("  bit_rate:       %s\n",        song->bit_rate);
-  bg_dprintf("  track_position: %"PRId64"\n",        song->track_position);
-  bg_dprintf("  release_date:   %s\n",        song->release_date);
-  bg_dprintf("  create_time:    %s\n",        song->create_time);
-  bg_dprintf("  update_state:   %s\n",        song->update_state);
-  bg_dprintf("  filestatus:     %s\n",        song->filestatus);
-  }
-
-static int song_query_callback(void * data, int argc, char **argv, char **azColName)
-  {
-  int i;
-  bg_nmj_song_t * ret = data;
-  
-  for(i = 0; i < argc; i++)
-    {
-    //    fprintf(stderr, "col: %s, val: %s\n", azColName[i], argv[i]);
-    SET_QUERY_INT("ID", id);
-    SET_QUERY_STRING("TITLE", title);
-    SET_QUERY_STRING("SEARCH_TITLE", search_title);
-    SET_QUERY_STRING("PATH", path);
-    SET_QUERY_INT("SCAN_DIRS_ID", scan_dirs_id);
-    SET_QUERY_INT("FOLDERS_ID", folders_id);
-    SET_QUERY_STRING("RUNTIME", runtime);
-    SET_QUERY_STRING("FORMAT", format);
-    SET_QUERY_STRING("LYRIC", lyric);
-    SET_QUERY_INT("RATING", rating);
-    SET_QUERY_STRING("HASH", hash);
-    SET_QUERY_INT("SIZE", size);
-    SET_QUERY_STRING("BIT_RATE", bit_rate);
-    SET_QUERY_INT("TRACK_POSITION", track_position);
-    SET_QUERY_STRING("RELEASE_DATE", release_date);
-    SET_QUERY_STRING("CREATE_TIME", create_time);
-    SET_QUERY_STRING("UPDATE_STATE", update_state );
-    SET_QUERY_STRING("FILESTATUS", filestatus );
-    }
-  ret->found = 1;
-  return 0;
-  }
-
-
-int bg_nmj_song_query(sqlite3 * db, bg_nmj_song_t * song)
-  {
-  char * sql;
-  int result;
-  if(song->path)
-    {
-    sql = sqlite3_mprintf("select * from SONGS where PATH = %Q;", song->path);
-    result = my_sqlite_exec(db, sql, song_query_callback, song);
-    sqlite3_free(sql);
-    return song->found;
-    }
-  else if(song->id >= 0)
-    {
-    sql = sqlite3_mprintf("select * from SONGS where ID = %"PRId64";", song->id);
-    result = my_sqlite_exec(db, sql, song_query_callback, song);
-    sqlite3_free(sql);
-    return song->found;
-    }
-  else
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Either ID or path must be set in directory\n");
-    return 0;
-    }
-  }
-
-int bg_nmj_song_save(sqlite3 * db, bg_nmj_song_t * song)
-  {
-  return 0;
-  }
 
 /* Album */
 
 /* Main entry points */
 
-static int add_directory(sqlite3 * db, bg_nmj_dir_t * dir, int type)
+static const char * audio_extensions = "mp3 flac";
+static const char * video_extensions = "avi mov mkv flv";
+static const char * image_extensions = "jpg";
+
+static char * make_extensions(int type)
+  {
+  char * ret = NULL;
+  if(type & BG_NMJ_MEDIA_TYPE_AUDIO)
+    {
+    if(ret)
+      ret = bg_strcat(ret, " ");
+    ret = bg_strcat(ret, audio_extensions);
+    }
+  if(type & BG_NMJ_MEDIA_TYPE_VIDEO)
+    {
+    if(ret)
+      ret = bg_strcat(ret, " ");
+    ret = bg_strcat(ret, video_extensions);
+    }
+  if(type & BG_NMJ_MEDIA_TYPE_IMAGE)
+    {
+    if(ret)
+      ret = bg_strcat(ret, " ");
+    ret = bg_strcat(ret, image_extensions);
+    }
+  return ret;
+  }
+
+// YYYY-MM-DD HH:MM:SS
+#define TIME_FORMAT "%Y-%m-%d %H:%M:%S"
+
+#define BG_NMJ_TIME_STRING_LEN 20
+time_t bg_nmj_string_to_time(const char * str)
+  {
+  struct tm tm;
+  strptime(str, TIME_FORMAT, &tm); 
+  return mktime(&tm);
+  }
+
+void bg_nmj_time_to_string(time_t time, char * str)
+  {
+  struct tm tm;
+  localtime_r(&time, &tm);
+  strftime(str, BG_NMJ_TIME_STRING_LEN, TIME_FORMAT, &tm);
+  }
+
+static int add_directory(bg_plugin_registry_t * plugin_reg,
+                         sqlite3 * db, bg_nmj_dir_t * dir, int type)
   {
   return 0;
   }
 
-static int update_directory(sqlite3 * db, bg_nmj_dir_t * dir, int type)
+static int update_directory(bg_plugin_registry_t * plugin_reg,
+                            sqlite3 * db, bg_nmj_dir_t * dir, int type)
   {
   append_int_t tab;
   char * sql;
   int result;
   int i;
   bg_nmj_song_t song;
+  bg_nmj_file_t * files;
+  int64_t size = 0;
+  int ret = 0;
+  char * extensions;
+  bg_nmj_file_t * file;
   
   memset(&tab, 0, sizeof(tab));
+
+  extensions = make_extensions(type);
+  
+  files = bg_nmj_file_scan(dir->directory, extensions, &size);
+  
   
   /* 1. Query all files in the database and check if they changed or were deleted */
-  sql = sqlite3_mprintf("select ID from SONGS where SCAN_DIRS_ID = %"PRId64";", dir->id);
-  result = my_sqlite_exec(db, sql, append_int_callback, &tab);
+  sql =
+    sqlite3_mprintf("select ID from SONGS where SCAN_DIRS_ID = %"PRId64";",
+                    dir->id);
+  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
   sqlite3_free(sql);
   
   if(!result)
-    return 0;
-
+    goto fail;
+  
   for(i = 0; i < tab.num_val; i++)
     {
     bg_nmj_song_init(&song);
     song.id = tab.val[i];
-
+    
     if(!bg_nmj_song_query(db, &song))
       return 0;
     
@@ -403,17 +335,45 @@ static int update_directory(sqlite3 * db, bg_nmj_dir_t * dir, int type)
     bg_nmj_song_dump(&song);
     
     /* Check if song is still current */
+
+    file = bg_nmj_file_lookup(files, song.path);
+    if(!file)
+      {
+      /* File disappeared */
+      }
+    else if(file->time != bg_nmj_string_to_time(song.create_time))
+      {
+      bg_nmj_song_t new_song;
+      bg_nmj_song_init(&new_song);
+      
+      /* File changed */
+      if(!bg_nmj_song_get_info(plugin_reg, dir, file, 
+                              &new_song, &song))
+        return 0;
+      fprintf(stderr, "Got new song\n");
+      bg_nmj_song_dump(&new_song);
+      
+      }
     
     bg_nmj_song_free(&song);
     }
   
   /* 2. Check for newly added files */
+
+  ret = 1;
+  fail:
   
-  return 1;
+  if(files)
+    bg_nmj_file_destroy(files);
+  if(extensions)
+    free(extensions);
+  
+  return ret;
   }
 
 
-int bg_nmj_add_directory(sqlite3 * db, const char * directory, int types)
+int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
+                         sqlite3 * db, const char * directory, int types)
   {
   int result;
   /* Check if the directory already exists */
@@ -425,12 +385,12 @@ int bg_nmj_add_directory(sqlite3 * db, const char * directory, int types)
     {
     fprintf(stderr, "Directory exists\n");
     bg_nmj_dir_dump(&dir);
-    result = update_directory(db, &dir, types);
+    result = update_directory(plugin_reg, db, &dir, types);
     }
   else
     {
     fprintf(stderr, "Directory doesn't exist\n");
-    result = add_directory(db, &dir, types);
+    result = add_directory(plugin_reg, db, &dir, types);
     }
   
   bg_nmj_dir_free(&dir);

@@ -60,6 +60,8 @@ const bg_cmdline_app_data_t app_data =
 
 #define DATABASE_FILE "nmj_database/media.db"
 
+#define TYPES BG_NMJ_MEDIA_TYPE_AUDIO
+
 int main(int argc, char ** argv)
   {
   bg_cfg_section_t * cfg_section;
@@ -102,7 +104,7 @@ int main(int argc, char ** argv)
     if(dir[strlen(dir)-1] == '/')
       dir[strlen(dir)-1] = '\0';
     
-    bg_nmj_add_directory(db, dirs[index], 0);
+    bg_nmj_add_directory(plugin_reg, db, dirs[index], TYPES);
     index++;
     }
     
