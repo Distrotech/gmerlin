@@ -148,3 +148,17 @@ void bg_nmj_file_destroy(bg_nmj_file_t * files)
     }
   free(files);
   }
+
+void bg_nmj_file_remove(bg_nmj_file_t * files,
+                        bg_nmj_file_t * file)
+  {
+  /* Count entries after this one */
+  int num = 1;
+  
+  while(file[num].path)
+    num++;
+
+  free(file->path);
+  memmove(file, file+1, num * sizeof(*file));
+  
+  }

@@ -137,6 +137,23 @@ int64_t bg_nmj_id_to_id(sqlite3 * db,
   return result ? ret : -1;
   }
 
+int64_t bg_nmj_get_next_id(sqlite3 * db, const char * table)
+  {
+  int result;
+  char * sql;
+  int64_t ret = -1;
+
+  sql = sqlite3_mprintf("select max(id) from %s;", table);
+  result = bg_sqlite_exec(db, sql, id_callback, &ret);
+  sqlite3_free(sql);
+  if(!result)
+    return -1;
+
+  if(ret < 0)
+    return -1;
+
+  return ret + 1;
+  }
 
 static const struct
   {
@@ -155,8 +172,12 @@ char * bg_nmj_escape_string(const char * str)
   int done;
   int i;
   const char * pos;
-  char * ret = 0;
+  char * ret = NULL;
   char buf[2];
+
+  if(!str)
+    return NULL;
+  
   buf[1] = '\0';
 
   pos = str;
@@ -287,7 +308,7 @@ int bg_nmj_dir_save(sqlite3* db, bg_nmj_dir_t * dir)
 
 /* Main entry points */
 
-static const char * audio_extensions = "mp3 flac";
+static const char * audio_extensions = "mp3 flac ogg";
 static const char * video_extensions = "avi mov mkv flv";
 static const char * image_extensions = "jpg";
 
@@ -322,6 +343,7 @@ static char * make_extensions(int type)
 time_t bg_nmj_string_to_time(const char * str)
   {
   struct tm tm;
+  memset(&tm, 0, sizeof(tm));
   strptime(str, TIME_FORMAT, &tm); 
   return mktime(&tm);
   }
@@ -329,6 +351,7 @@ time_t bg_nmj_string_to_time(const char * str)
 void bg_nmj_time_to_string(time_t time, char * str)
   {
   struct tm tm;
+  memset(&tm, 0, sizeof(tm));
   localtime_r(&time, &tm);
   strftime(str, BG_NMJ_TIME_STRING_LEN, TIME_FORMAT, &tm);
   }
@@ -352,13 +375,13 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
   int ret = 0;
   char * extensions;
   bg_nmj_file_t * file;
+  char time_str[BG_NMJ_TIME_STRING_LEN];
   
   memset(&tab, 0, sizeof(tab));
 
   extensions = make_extensions(type);
   
   files = bg_nmj_file_scan(dir->directory, extensions, &size);
-  
   
   /* 1. Query all files in the database and check if they changed or were deleted */
   sql =
@@ -378,8 +401,8 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
     if(!bg_nmj_song_query(db, &song))
       return 0;
     
-    fprintf(stderr, "Got song\n");
-    bg_nmj_song_dump(&song);
+    //    fprintf(stderr, "Got song\n");
+    //    bg_nmj_song_dump(&song);
     
     /* Check if song is still current */
 
@@ -387,26 +410,54 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
     if(!file)
       {
       /* File disappeared */
+      bg_nmj_song_delete(db, &song);
       }
     else if(file->time != bg_nmj_string_to_time(song.create_time))
       {
       bg_nmj_song_t new_song;
+
+      bg_nmj_time_to_string(file->time, time_str);
+      fprintf(stderr, "Song %s changed %s -> %s (%ld -> %ld)\n",
+              song.title, song.create_time, time_str,
+              bg_nmj_string_to_time(song.create_time), file->time);
+      
       bg_nmj_song_init(&new_song);
       
       /* File changed */
       if(!bg_nmj_song_get_info(db, plugin_reg, dir, file, 
-                              &new_song, &song))
+                              &new_song))
         return 0;
-      fprintf(stderr, "Got new song\n");
-      bg_nmj_song_dump(&new_song);
+      //      bg_nmj_song_dump(&new_song);
       
+      bg_nmj_song_update(db, &song, &new_song);
+      
+      bg_nmj_song_free(&new_song);
       }
+
+    /* Remove from array */
+    if(file)
+      bg_nmj_file_remove(files, file);
     
     bg_nmj_song_free(&song);
     }
   
   /* 2. Check for newly added files */
+  i = 0;
+  while(files[i].path)
+    {
+    bg_nmj_song_t new_song;
+    bg_nmj_song_init(&new_song);
+    if(!bg_nmj_song_get_info(db, plugin_reg, dir, file, 
+                             &new_song))
+      return 0;
 
+    fprintf(stderr, "Got new song\n");
+    bg_nmj_song_dump(&new_song);
+    
+    i++;
+    }
+
+  
   ret = 1;
   fail:
   

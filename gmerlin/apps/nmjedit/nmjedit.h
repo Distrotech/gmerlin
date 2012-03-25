@@ -73,7 +73,9 @@ int64_t bg_nmj_id_to_id(sqlite3 * db,
                         const char * dst_row,
                         const char * src_row,
                         int64_t id);
-  
+
+int64_t bg_nmj_get_next_id(sqlite3 * db, const char * table);
+
 /* Directory scanning utility */
 
 typedef struct
@@ -91,6 +93,10 @@ bg_nmj_file_t * bg_nmj_file_lookup(bg_nmj_file_t * files,
                                    const char * path);
 
 void bg_nmj_file_destroy(bg_nmj_file_t * files);
+
+void bg_nmj_file_remove(bg_nmj_file_t * files,
+                        bg_nmj_file_t * file);
+
 
 /* Directory */
 
@@ -160,13 +166,14 @@ int bg_nmj_song_get_info(sqlite3 * db,
                          bg_plugin_registry_t * plugin_reg,
                          bg_nmj_dir_t * dir,
                          bg_nmj_file_t * file,
-                         bg_nmj_song_t * song,
-                         bg_nmj_song_t * old_song);
+                         bg_nmj_song_t * song);
 
 int bg_nmj_song_query(sqlite3 * db, bg_nmj_song_t * song);
 
 int bg_nmj_song_add(sqlite3 * db, bg_nmj_song_t * song);
-int bg_nmj_song_update(sqlite3 * db, bg_nmj_song_t * song);
+int bg_nmj_song_update(sqlite3 * db,
+                       bg_nmj_song_t * old_song,
+                       bg_nmj_song_t * new_song);
 int bg_nmj_song_delete(sqlite3 * db, bg_nmj_song_t * song);
 
 /* Album */
