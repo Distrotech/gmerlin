@@ -33,12 +33,89 @@
 
 #include "nmjedit.h"
 
+char ** add_dirs = NULL;
+int num_add_dirs = 0;
+
+char ** del_dirs = NULL;
+int num_del_dirs = 0;
+
+
+static void opt_add(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -add requires an argument\n");
+    exit(-1);
+    }
+  
+  add_dirs = realloc(add_dirs, (num_add_dirs+1)*sizeof(*add_dirs));
+  add_dirs[num_add_dirs] = bg_strdup(NULL, (*_argv)[arg]);
+  num_add_dirs++;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_del(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -del requires an argument\n");
+    exit(-1);
+    }
+  
+  del_dirs = realloc(del_dirs, (num_del_dirs+1)*sizeof(*del_dirs));
+  del_dirs[num_del_dirs] = bg_strdup(NULL, (*_argv)[arg]);
+  num_del_dirs++;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_v(void * data, int * argc, char *** _argv, int arg)
+  {
+  int val, verbose = 0;
+
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -v requires an argument\n");
+    exit(-1);
+    }
+  val = atoi((*_argv)[arg]);  
+  
+  if(val > 0)
+    verbose |= BG_LOG_ERROR;
+  if(val > 1)
+    verbose |= BG_LOG_WARNING;
+  if(val > 2)
+    verbose |= BG_LOG_INFO;
+  if(val > 3)
+    verbose |= BG_LOG_DEBUG;
+  bg_log_set_verbose(verbose);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+
 
 static bg_cmdline_arg_t global_options[] =
   {
-    {},
+    {
+      .arg =         "-add",
+      .help_arg =    "<directory>",
+      .help_string = "Add directory",
+      .callback =    opt_add,
+    },
+    {
+      .arg =         "-del",
+      .help_arg =    "<directory>",
+      .help_string = "Delete directory",
+      .callback =    opt_del,
+    },
+    {
+      .arg =         "-v",
+      .help_arg =    "level",
+      .help_string = "Set verbosity level (0..4)",
+      .callback =    opt_v,
+    },
+    { /* End */ },
   };
-  
+
 const bg_cmdline_app_data_t app_data =
   {
     .package =  PACKAGE,
@@ -70,8 +147,11 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t * cfg_reg;
   sqlite3 * db;
   int result;
-  char ** dirs;
-  int index;
+  char * dir;
+  int i;
+
+  bg_cmdline_init(&app_data);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL);
   
   /* Make database connection */
   
@@ -95,18 +175,28 @@ int main(int argc, char ** argv)
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
-  dirs = bg_cmdline_get_locations_from_args(&argc, &argv);
-
-  index = 0;
-  while(dirs[index])
+  /* Add directories */
+  for(i = 0; i < num_add_dirs; i++)
     {
-    char * dir = dirs[index];
+    dir = add_dirs[i];
+    
     if(dir[strlen(dir)-1] == '/')
       dir[strlen(dir)-1] = '\0';
-    
-    bg_nmj_add_directory(plugin_reg, db, dirs[index], TYPES);
-    index++;
+    bg_nmj_add_directory(plugin_reg, db, dir, TYPES);
     }
+
+  /* Delete directories */
+  for(i = 0; i < num_del_dirs; i++)
+    {
+    dir = del_dirs[i];
     
+    if(dir[strlen(dir)-1] == '/')
+      dir[strlen(dir)-1] = '\0';
+    bg_nmj_remove_directory(db, dir);
+    }
+
+  /* Close sql connection */
+  sqlite3_close(db);
+  
   return 0;
   }

@@ -85,6 +85,7 @@ void bg_nmj_song_dump(bg_nmj_song_t * song)
   bg_dprintf("  albumartist:    %s\n",        song->albumartist);
   bg_dprintf("  genre_id:       %"PRId64"\n", song->genre_id);
   bg_dprintf("  artist_id:      %"PRId64"\n", song->artist_id);
+  bg_dprintf("  albumartist_id: %"PRId64"\n", song->albumartist_id);
   bg_dprintf("  album_id:       %"PRId64"\n",  song->album_id);
   }
 
@@ -235,20 +236,21 @@ int bg_nmj_song_get_info(sqlite3 * db,
   song->genre        = bg_nmj_escape_string(ti->metadata.genre);
 
   /* Get IDs */
-  if(song->album)
-    song->album_id     = bg_nmj_string_to_id(db, "SONG_ALBUMS", "ID",
-                                             "TITLE", song->album);
   if(song->genre)
     song->genre_id     = bg_nmj_string_to_id(db, "SONG_GENRES", "ID",
                                              "NAME", song->genre);
   
   if(song->albumartist)
-    song->artist_id    = bg_nmj_string_to_id(db, "SONG_PERSONS", "ID",
-                                             "NAME", song->albumartist);
-  else if(song->artist)
+    song->albumartist_id    = bg_nmj_string_to_id(db, "SONG_PERSONS", "ID",
+                                                  "NAME", song->albumartist);
+  if(song->artist)
     song->artist_id    = bg_nmj_string_to_id(db, "SONG_PERSONS", "ID",
                                              "NAME", song->artist);
   
+  /* TODO: Many albums can have the same name, check with PERSONS as well */
+  if(song->album)
+    song->album_id     = bg_nmj_string_to_id(db, "SONG_ALBUMS", "ID",
+                                             "TITLE", song->album);
   
   ret = 1;
   fail:
@@ -263,6 +265,18 @@ int bg_nmj_song_get_info(sqlite3 * db,
 
 int bg_nmj_song_add(sqlite3 * db, bg_nmj_song_t * song)
   {
+  int result;
+  char * sql;
+
+  song->id = bg_nmj_get_next_id(db, "SONGS");
+
+  /* Add Song */
+
+  /* Add Genre */
+
+  /* Add Artist */
+  
+  /* Add Album */
   
   return 0;
   }

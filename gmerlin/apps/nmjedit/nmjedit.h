@@ -152,6 +152,7 @@ typedef struct
 
   int64_t album_id;
   int64_t artist_id;
+  int64_t albumartist_id;
   int64_t genre_id;
   
   int found;
@@ -202,5 +203,5 @@ int bg_nmj_album_save(bg_nmj_album_t *);
 
 int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
                          sqlite3 * db, const char * directory, int types);
-int bg_nmj_remove_directory(sqlite3 * db, const char * directory, int types);
+int bg_nmj_remove_directory(sqlite3 * db, const char * directory);
 

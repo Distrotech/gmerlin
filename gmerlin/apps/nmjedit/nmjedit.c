@@ -359,6 +359,23 @@ void bg_nmj_time_to_string(time_t time, char * str)
 static int add_directory(bg_plugin_registry_t * plugin_reg,
                          sqlite3 * db, bg_nmj_dir_t * dir, int type)
   {
+  bg_nmj_file_t * files;
+  char * extensions;
+  int i;
+  bg_nmj_song_t song;
+  int64_t size = 0;
+  
+  extensions = make_extensions(type);
+  files = bg_nmj_file_scan(dir->directory, extensions, &size);
+
+  
+  
+  i = 0;
+  while(files[i].path)
+    {
+    bg_nmj_song_init(&song);
+    }
+  
   return 0;
   }
 
@@ -457,7 +474,6 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
     i++;
     }
 
-  
   ret = 1;
   fail:
   
@@ -496,8 +512,50 @@ int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
   return result;
   }
 
-int bg_nmj_remove_directory(sqlite3 * db, const char * directory, int types)
+int bg_nmj_remove_directory(sqlite3 * db, const char * directory)
   {
-  return 0;
+  bg_nmj_dir_t dir;
+  char * sql;
+  int result;
+  append_int_t tab;
+  bg_nmj_song_t song;
+  int ret = 0;
+  int i;
+  
+  bg_nmj_dir_init(&dir);
+  memset(&tab, 0, sizeof(tab));
+  dir.directory = bg_strdup(NULL, directory);
+
+  if(!bg_nmj_dir_query(db, &dir))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s doesn't exist", directory);
+    return 0;
+    }
+
+  /* Loop through all songs and remove them */
+  sql =
+    sqlite3_mprintf("select ID from SONGS where SCAN_DIRS_ID = %"PRId64";", dir.id);
+  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  sqlite3_free(sql);
+  if(!result)
+    goto fail;
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    bg_nmj_song_init(&song);
+    song.id = tab.val[i];
+
+    if(bg_nmj_song_query(db, &song))
+      bg_nmj_song_delete(db, &song);
+    bg_nmj_song_free(&song);
+    }
+  
+  ret = 1;
+  fail:
+
+  if(tab.val)
+    free(tab.val);
+  
+  return ret;
   }
 
