@@ -205,6 +205,34 @@ char * bg_nmj_escape_string(const char * str)
   return ret;
   }
 
+static const char * search_string_skip[] =
+  {
+    "a ",
+    "the ",
+    "&apos;", // 'Round Midnight
+    NULL
+  };
+
+char * bg_nmj_make_search_string(const char * str)
+  {
+  int i, len;
+  const char * pos = str;
+
+  i = 0;
+  while(search_string_skip[i])
+    {
+    len = strlen(search_string_skip[i]);
+    if(!strncasecmp(str, search_string_skip[i], len))
+      {
+      pos = str + len;
+      break;
+      }
+    i++;
+    }
+  return bg_strdup(NULL, pos);
+  }
+
+
 int64_t bg_nmj_album_lookup(sqlite3 * db,
                             int64_t artist_id, const char * title)
   {
@@ -223,7 +251,7 @@ int64_t bg_nmj_album_lookup(sqlite3 * db,
   sqlite3_free(sql);
   
   if(!result)
-    return -1;
+    goto fail;
   
   for(i = 0; i < tab.num_val; i++)
     {
@@ -235,7 +263,8 @@ int64_t bg_nmj_album_lookup(sqlite3 * db,
       break;
       }
     }
-
+  
+  fail:
   if(tab.val)
     free(tab.val);
   return ret;
@@ -528,7 +557,6 @@ int bg_nmj_remove_directory(sqlite3 * db, const char * directory)
     {
     bg_nmj_song_init(&song);
     song.id = tab.val[i];
-
     if(bg_nmj_song_query(db, &song))
       bg_nmj_song_delete(db, &song);
     bg_nmj_song_free(&song);
@@ -543,3 +571,122 @@ int bg_nmj_remove_directory(sqlite3 * db, const char * directory)
   return ret;
   }
 
+int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
+                          const char * in_file,
+                          const char * out_file,
+                          int thumb_size)
+  {
+  int ret = 0;
+  /* Formats */
+  
+  gavl_video_format_t input_format;
+  gavl_video_format_t output_format;
+  
+  /* Frames */
+  
+  gavl_video_frame_t * input_frame = NULL;
+  gavl_video_frame_t * output_frame = NULL;
+
+  gavl_video_converter_t * cnv = 0;
+  int do_convert;
+  bg_image_writer_plugin_t * output_plugin;
+  bg_plugin_handle_t * output_handle = NULL;
+  const bg_plugin_info_t * plugin_info;
+  
+  input_frame = bg_plugin_registry_load_image(plugin_reg,
+                                              in_file,
+                                              &input_format, NULL);
+
+  gavl_video_format_copy(&output_format, &input_format);
+
+  /* Scale the image to square pixels */
+  output_format.image_width *= output_format.pixel_width;
+  output_format.image_height *= output_format.pixel_height;
+  
+  if(output_format.image_width > input_format.image_height)
+    {
+    output_format.image_height = (thumb_size * output_format.image_height) /
+      output_format.image_width;
+    output_format.image_width = thumb_size;
+    }
+  else
+    {
+    output_format.image_width      = (thumb_size * output_format.image_width) /
+      output_format.image_height;
+    output_format.image_height = thumb_size;
+    }
+
+  output_format.pixel_width = 1;
+  output_format.pixel_height = 1;
+  output_format.interlace_mode = GAVL_INTERLACE_NONE;
+
+  output_format.frame_width = output_format.image_width;
+  output_format.frame_height = output_format.image_height;
+
+  plugin_info =
+    bg_plugin_find_by_name(plugin_reg, "iw_jpeg");
+
+  if(!plugin_info)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin for %s", out_file);
+    goto fail;
+    }
+
+  output_plugin = (bg_image_writer_plugin_t*)output_handle->plugin;
+
+  if(!output_plugin->write_header(output_handle->priv,
+                                  out_file, &output_format, NULL))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image header failed");
+    return 0;
+    }
+
+  /* Initialize video converter */
+  cnv = gavl_video_converter_create();
+  do_convert = gavl_video_converter_init(cnv, &input_format, &output_format);
+
+  if(do_convert)
+    {
+    output_frame = gavl_video_frame_create(&output_format);
+    gavl_video_convert(cnv, input_frame, output_frame);
+    if(!output_plugin->write_image(output_handle->priv,
+                                   output_frame))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image failed");
+      goto fail;
+      }
+    }
+  else
+    {
+    if(!output_plugin->write_image(output_handle->priv,
+                                   input_frame))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image failed");
+      goto fail;
+      }
+    }
+  
+  ret = 1;
+  fail:
+
+  if(input_frame)
+    gavl_video_frame_destroy(input_frame);
+  if(output_frame)
+    gavl_video_frame_destroy(output_frame);
+  if(output_handle)
+    bg_plugin_unref(output_handle);
+  if(cnv)
+    gavl_video_converter_destroy(cnv);
+  return ret;
+  }
+
+void bg_nmj_cleanup(sqlite3 * db)
+  {
+  /* Check for empty albums */
+
+  /* Check for empty music genres */
+
+  /* Rebuild indices */
+  
+  
+  }

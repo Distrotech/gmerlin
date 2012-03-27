@@ -208,8 +208,8 @@ int bg_nmj_song_get_info(sqlite3 * db,
   /* Fill in the data structure */
   
   song->title = bg_nmj_escape_string(ti->metadata.title);
-  song->search_title = bg_nmj_escape_string(ti->metadata.title);
-
+  song->search_title = bg_nmj_make_search_string(song->title);
+  
   song->path = bg_strdup(song->path, file->path);
   song->scan_dirs_id = dir->id;
   song->runtime = bg_sprintf("%d", (int)(ti->duration / GAVL_TIME_SCALE));
@@ -362,7 +362,7 @@ int bg_nmj_song_add(sqlite3 * db, bg_nmj_song_t * song)
       }
     }
   
-  /* Add Album */
+  /* Album */
 
   if(song->album && song->albumartist)
     {
@@ -372,9 +372,14 @@ int bg_nmj_song_add(sqlite3 * db, bg_nmj_song_t * song)
       
       
       }
+    else
+      {
+      /* Insert into existing album */
+      
+      }
     }
   
-  return 0;
+  return 1;
   }
 
 #define APPEND_STRING(member, col) \

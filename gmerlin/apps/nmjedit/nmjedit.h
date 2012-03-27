@@ -54,7 +54,9 @@ time_t bg_nmj_string_to_time(const char * str);
 void bg_nmj_time_to_string(time_t time, char * str);
 
 char * bg_nmj_escape_string(const char * str);
-char * bg_nmj_unescape_string(const char * str);
+// char * bg_nmj_unescape_string(const char * str);
+
+char * bg_nmj_make_search_string(const char * str);
 
 int64_t bg_nmj_string_to_id(sqlite3 * db,
                             const char * table,
@@ -75,6 +77,12 @@ int64_t bg_nmj_id_to_id(sqlite3 * db,
                         int64_t id);
 
 int64_t bg_nmj_get_next_id(sqlite3 * db, const char * table);
+
+int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
+                          const char * in_file,
+                          const char * out_file,
+                          int thumb_size);
+
 
 /* Directory scanning utility */
 
@@ -210,3 +218,4 @@ int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
                          sqlite3 * db, const char * directory, int types);
 int bg_nmj_remove_directory(sqlite3 * db, const char * directory);
 
+void bg_nmj_cleanup(sqlite3 * db);
