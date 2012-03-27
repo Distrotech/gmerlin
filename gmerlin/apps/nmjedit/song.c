@@ -55,6 +55,7 @@ void bg_nmj_song_init(bg_nmj_song_t * song)
   song->id = -1;
   song->album_id = -1;
   song->artist_id = -1;
+  song->albumartist_id = -1;
   song->genre_id = -1;
   }
 
@@ -235,6 +236,9 @@ int bg_nmj_song_get_info(sqlite3 * db,
   song->albumartist  = bg_nmj_escape_string(ti->metadata.albumartist);
   song->genre        = bg_nmj_escape_string(ti->metadata.genre);
 
+  /* Unknown stuff */
+  song->update_state = bg_sprintf("%d", 2);
+  
   /* Get IDs */
   if(song->genre)
     song->genre_id     = bg_nmj_string_to_id(db, "SONG_GENRES", "ID",
@@ -247,10 +251,9 @@ int bg_nmj_song_get_info(sqlite3 * db,
     song->artist_id    = bg_nmj_string_to_id(db, "SONG_PERSONS", "ID",
                                              "NAME", song->artist);
   
-  /* TODO: Many albums can have the same name, check with PERSONS as well */
-  if(song->album)
-    song->album_id     = bg_nmj_string_to_id(db, "SONG_ALBUMS", "ID",
-                                             "TITLE", song->album);
+  /* Lookup album (title AND albumartist MUST match) */
+  if(song->album && (song->albumartist_id >= 0))
+    song->album_id = bg_nmj_album_lookup(db, song->albumartist_id, song->album);
   
   ret = 1;
   fail:
@@ -267,16 +270,109 @@ int bg_nmj_song_add(sqlite3 * db, bg_nmj_song_t * song)
   {
   int result;
   char * sql;
+  int64_t id;
 
+  /* Get ID */
   song->id = bg_nmj_get_next_id(db, "SONGS");
-
+  
   /* Add Song */
+#if 0
+  sql = sqlite3_mprintf("INSERT INTO SONGS "
+                        "( ID, TITLE, SEARCH_TITLE, PATH, SCAN_DIRS_ID, "
+                        "RUNTIME, FORMAT, RATING, SIZE, PLAY_COUNT, BITRATE, "
+                        "TRACK_POSITION, RELEASE_DATE, CREATE_TIME, UPDATE_STATE ) VALUES "
+                        "( %"PRId64", %Q, %Q, %Q, %"PRId64","
+                        " %Q, %Q, %"PRId64", %"PRId64", %"PRId64", %Q "
+                        " %"PRId64", %Q, %Q, %Q);",
+                        song->id, song->title, song->search_title, song->path, song->scan_dirs_id,
+                        song->runtime, song->format, song->rating, song->size, song->play_count, song->bitrate,
+                        song->track_position, song->release_date, song->create_time, song->update_state);
+  
+  result = bg_sqlite_exec(db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  if(!result)
+    return result;
+#endif
+  
+  
+  if(song->genre)
+    {
+    /* Add new genre */
+    if(song->genre_id < 0)
+      {
+      song->genre_id = bg_nmj_get_next_id(db, "SONG_GENRES");
+      sql = sqlite3_mprintf("INSERT INTO SONG_GENRES ( ID, NAME ) VALUES ( %"PRId64", %Q );",
+                            song->genre_id, song->genre);
+      result = bg_sqlite_exec(db, sql, NULL, NULL);
+      sqlite3_free(sql);
+      if(!result)
+        return result;
+      }
+    /* Set Genre */
+    id = bg_nmj_get_next_id(db, "SONG_GENRES_SONGS");
+    sql = sqlite3_mprintf("INSERT INTO SONG_GENRES_SONGS ( ID, SONGS_ID, GENRES_ID ) VALUES "
+                          "( %"PRId64", %"PRId64", %"PRId64" );",
+                          id, song->id, song->genre_id);
+    result = bg_sqlite_exec(db, sql, NULL, NULL);
+    sqlite3_free(sql);
+    if(!result)
+      return result;
+    }
+  
+  if(song->artist)
+    {
+    /* Add new artist */
+    if(song->artist_id < 0)
+      {
+      song->artist_id = bg_nmj_get_next_id(db, "SONG_PERSONS");
+      sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS ( ID, NAME ) VALUES ( %"PRId64", %Q );",
+                            song->artist_id, song->artist);
+      result = bg_sqlite_exec(db, sql, NULL, NULL);
+      sqlite3_free(sql);
+      if(!result)
+        return result;
+      }
 
-  /* Add Genre */
+    /* Set artist */
+    id = bg_nmj_get_next_id(db, "SONG_PERSONS_SONGS");
+    sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS_SONGS ( ID, PERSONS_ID, SONG_ID, PERSON_TYPE ) VALUES "
+                          "( %"PRId64", %"PRId64", %"PRId64", %Q );",
+                          id, song->artist_id, song->id, "ARTIST");
+    result = bg_sqlite_exec(db, sql, NULL, NULL);
+    sqlite3_free(sql);
+    if(!result)
+      return result;
+    }
+  
+  if(song->albumartist)
+    {
+    if(!strcmp(song->artist, song->albumartist))
+      song->albumartist_id = song->artist_id;
 
-  /* Add Artist */
+    /* Add new album artist */
+    if(song->albumartist_id < 0)
+      {
+      song->albumartist_id = bg_nmj_get_next_id(db, "SONG_PERSONS");
+      sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS ( ID, NAME ) VALUES ( %"PRId64", %Q );",
+                            song->albumartist_id, song->albumartist);
+      result = bg_sqlite_exec(db, sql, NULL, NULL);
+      sqlite3_free(sql);
+      if(!result)
+        return result;
+      }
+    }
   
   /* Add Album */
+
+  if(song->album && song->albumartist)
+    {
+    if(song->album_id < 0)
+      {
+      /* Create new album */
+      
+      
+      }
+    }
   
   return 0;
   }

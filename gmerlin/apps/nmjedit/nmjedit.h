@@ -117,8 +117,8 @@ void bg_nmj_dir_init(bg_nmj_dir_t*);
 void bg_nmj_dir_free(bg_nmj_dir_t*);
 void bg_nmj_dir_dump(bg_nmj_dir_t*);
 int bg_nmj_dir_query(sqlite3*, bg_nmj_dir_t*);
-int bg_nmj_dir_save(sqlite3*, bg_nmj_dir_t*);
-
+int bg_nmj_dir_add(sqlite3*, bg_nmj_dir_t*);
+int bg_nmj_dir_update(sqlite3*, bg_nmj_dir_t*);
 
 /* Song structure */
 
@@ -195,11 +195,16 @@ void bg_nmj_album_dump(bg_nmj_album_t *);
 int bg_nmj_album_query(bg_nmj_album_t *);
 int bg_nmj_album_save(bg_nmj_album_t *);
 
+int64_t bg_nmj_album_lookup(sqlite3 * db,
+                            int64_t artist, const char * title);
+
+
 /* Master functions */
 
-#define BG_NMJ_MEDIA_TYPE_AUDIO (1<<0)
-#define BG_NMJ_MEDIA_TYPE_VIDEO (1<<1)
-#define BG_NMJ_MEDIA_TYPE_IMAGE (1<<2)
+#define BG_NMJ_MEDIA_TYPE_AUDIO         (1<<0)
+#define BG_NMJ_MEDIA_TYPE_VIDEO         (1<<1)
+#define BG_NMJ_MEDIA_TYPE_VIDEO_PRIVATE (1<<2)
+#define BG_NMJ_MEDIA_TYPE_PHOTO         (1<<3)
 
 int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
                          sqlite3 * db, const char * directory, int types);

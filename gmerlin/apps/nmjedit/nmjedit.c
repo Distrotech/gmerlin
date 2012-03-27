@@ -205,103 +205,49 @@ char * bg_nmj_escape_string(const char * str)
   return ret;
   }
 
+int64_t bg_nmj_album_lookup(sqlite3 * db,
+                            int64_t artist_id, const char * title)
+  {
+  int i;
+  int64_t ret = -1;
+  append_int_t tab;
+  char * sql;
+  int result;
+  
+  memset(&tab, 0, sizeof(&tab));
+
+  sql =
+    sqlite3_mprintf("select ID from SONG_ALBUMS where TITLE = %Q;",
+                    title);
+  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  sqlite3_free(sql);
+  
+  if(!result)
+    return -1;
+  
+  for(i = 0; i < tab.num_val; i++)
+    {
+    if(bg_nmj_id_to_id(db, "SONG_PERSONS_SONG_ALBUMS",
+                       "PERSONS_ID",
+                       "ALBUMS_ID", tab.val[i]) == artist_id)
+      {
+      ret = tab.val[i];
+      break;
+      }
+    }
+
+  if(tab.val)
+    free(tab.val);
+  return ret;
+  }
+
+
 #if 0
 char * bg_nmj_unescape_string(const char * str)
   {
   
   }
 #endif
-
-/* Directory */
-
-#if 0
-typedef struct
-  {
-  int64_t id;
-  char * directory; // Relative path
-  char * name;      // Absolute path??
-  int64_t size;     // Sum of all file sizes in bytes
-  int64_t category; // 40 for Music
-  char * status;    // 3 (??)
-  } bg_nmj_dir_t;
-#endif
-
-void bg_nmj_dir_init(bg_nmj_dir_t * dir)
-  {
-  memset(dir, 0, sizeof(*dir));
-  dir->id   = -1;
-  dir->size = -1;
-  }
-
-void bg_nmj_dir_free(bg_nmj_dir_t *  dir)
-  {
-  MY_FREE(dir->directory);
-  MY_FREE(dir->name);
-  MY_FREE(dir->status);
-  MY_FREE(dir->scan_time);
-  }
-
-void bg_nmj_dir_dump(bg_nmj_dir_t*  dir)
-  {
-  bg_dprintf("Directory\n");
-  bg_dprintf("  ID:        %"PRId64"\n", dir->id);
-  bg_dprintf("  Directory: %s\n",        dir->directory);
-  bg_dprintf("  Name:      %s\n",        dir->name);
-  bg_dprintf("  ScanTime:  %s\n",        dir->scan_time);
-  bg_dprintf("  Size:      %"PRId64"\n", dir->size);
-  bg_dprintf("  Category:  %"PRId64"\n", dir->category);
-  bg_dprintf("  Status:    %s\n",        dir->status);
-  }
-
-static int dir_query_callback(void * data, int argc, char **argv, char **azColName)
-  {
-  int i;
-  bg_nmj_dir_t * ret = data;
-  
-  for(i = 0; i < argc; i++)
-    {
-    //    fprintf(stderr, "col: %s, val: %s\n", azColName[i], argv[i]);
-    SET_QUERY_INT("ID", id);
-    SET_QUERY_STRING("DIRECTORY", directory);
-    SET_QUERY_STRING("NAME", name);
-    SET_QUERY_INT("SIZE", size);
-    SET_QUERY_INT("CATEGORY", category);
-    SET_QUERY_STRING("STATUS", status);
-    }
-  ret->found = 1;
-  return 0;
-  }
-
-int bg_nmj_dir_query(sqlite3 * db, bg_nmj_dir_t * dir)
-  {
-  char * sql;
-  int result;
-  
-  if(dir->directory)
-    {
-    sql = sqlite3_mprintf("select * from SCAN_DIRS where DIRECTORY = %Q;", dir->directory);
-    result = bg_sqlite_exec(db, sql, dir_query_callback, dir);
-    sqlite3_free(sql);
-    return dir->found;
-    }
-  else if(dir->id >= 0)
-    {
-    sql = sqlite3_mprintf("select * from SCAN_DIRS where ID = %"PRId64";", dir->id);
-    result = bg_sqlite_exec(db, sql, dir_query_callback, dir);
-    sqlite3_free(sql);
-    return dir->found;
-    }
-  else
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Either ID or path must be set in directory\n");
-    return 0;
-    }
-  }
-
-int bg_nmj_dir_save(sqlite3* db, bg_nmj_dir_t * dir)
-  {
-  return 0;
-  }
 
 
 /* Album */
@@ -327,7 +273,7 @@ static char * make_extensions(int type)
       ret = bg_strcat(ret, " ");
     ret = bg_strcat(ret, video_extensions);
     }
-  if(type & BG_NMJ_MEDIA_TYPE_IMAGE)
+  if(type & BG_NMJ_MEDIA_TYPE_PHOTO)
     {
     if(ret)
       ret = bg_strcat(ret, " ");
@@ -356,24 +302,62 @@ void bg_nmj_time_to_string(time_t time, char * str)
   strftime(str, BG_NMJ_TIME_STRING_LEN, TIME_FORMAT, &tm);
   }
 
+/*
+ *  Categories are summed up from the following:
+ *  
+ *   3: Video
+ *   4: Video (private)
+ *  16: Photo
+ *  40: Music
+ */
+
+static int category_from_types(int types)
+  {
+  int ret = 0;
+  if(types & BG_NMJ_MEDIA_TYPE_AUDIO)
+    ret += 40;
+  if(types & BG_NMJ_MEDIA_TYPE_VIDEO)
+    ret += 3;
+  if(types & BG_NMJ_MEDIA_TYPE_VIDEO_PRIVATE)
+    ret += 4;
+  if(types & BG_NMJ_MEDIA_TYPE_PHOTO)
+    ret += 16;
+  return ret;
+  }
+
 static int add_directory(bg_plugin_registry_t * plugin_reg,
-                         sqlite3 * db, bg_nmj_dir_t * dir, int type)
+                         sqlite3 * db, bg_nmj_dir_t * dir, int types)
   {
   bg_nmj_file_t * files;
   char * extensions;
   int i;
   bg_nmj_song_t song;
   int64_t size = 0;
-  
-  extensions = make_extensions(type);
-  files = bg_nmj_file_scan(dir->directory, extensions, &size);
 
+  /* Scan */
+  extensions = make_extensions(types);
+  files = bg_nmj_file_scan(dir->directory, extensions, &size);
   
+  /* Add directory */
+
+  dir->size = size;
+  dir->category = category_from_types(types);
+  dir->status = bg_sprintf("%d", 3); // Whatever that means
+
+  if(!bg_nmj_dir_add(db, dir))
+    return 0;
+  
+  /* Add songs */
   
   i = 0;
   while(files[i].path)
     {
     bg_nmj_song_init(&song);
+    bg_nmj_song_get_info(db, plugin_reg, dir, &files[i], &song);
+    fprintf(stderr, "Got song:\n");
+    bg_nmj_song_dump(&song);
+    //    bg_nmj_song_add(&song);
+    i++;
     }
   
   return 0;
@@ -464,12 +448,13 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
     {
     bg_nmj_song_t new_song;
     bg_nmj_song_init(&new_song);
-    if(!bg_nmj_song_get_info(db, plugin_reg, dir, file, 
+    if(!bg_nmj_song_get_info(db, plugin_reg, dir, &files[i], 
                              &new_song))
       return 0;
 
     fprintf(stderr, "Got new song\n");
     bg_nmj_song_dump(&new_song);
+    bg_nmj_song_add(db, &new_song);
     
     i++;
     }
@@ -484,7 +469,6 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
   
   return ret;
   }
-
 
 int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
                          sqlite3 * db, const char * directory, int types)
