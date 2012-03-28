@@ -355,6 +355,8 @@ int bg_avdec_start(void * priv)
 
     avdec->current_track->audio_streams[i].duration =
       bgav_audio_duration(avdec->dec, i);
+    avdec->current_track->audio_streams[i].bitrate =
+      bgav_get_audio_bitrate(avdec->dec, i);
     }
   for(i = 0; i < avdec->current_track->num_subtitle_streams; i++)
     {

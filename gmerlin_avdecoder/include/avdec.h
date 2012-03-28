@@ -1412,6 +1412,17 @@ BGAV_PUBLIC
 const char * bgav_get_audio_language(bgav_t * bgav, int stream);
 
 /** \ingroup streams
+ *  \brief Get the bitrate of an audio stream
+ *  \param bgav A decoder instance
+ *  \param stream Audio stream index (starting with 0)
+ *  \returns Bitrate in bits / sec. 0 means VBR or unknown
+ */
+
+BGAV_PUBLIC
+int bgav_get_audio_bitrate(bgav_t * bgav, int stream);
+
+  
+/** \ingroup streams
  *  \brief Get the language of an audio stream
  *  \param bgav A decoder instance
  *  \param stream Subtitle stream index (starting with 0)

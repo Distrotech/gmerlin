@@ -178,6 +178,18 @@ const char * bgav_get_audio_language(bgav_t * b, int s)
     b->tt->cur->audio_streams[s].language : NULL;
   }
 
+int bgav_get_audio_bitrate(bgav_t * bgav, int stream)
+  {
+  bgav_stream_t * s = bgav->tt->cur->audio_streams + stream;
+  if(s->codec_bitrate)
+    return s->codec_bitrate;
+  else if(s->container_bitrate)
+    return s->container_bitrate;
+  else
+    return 0;
+  }
+
+
 static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
                       int num_samples)
   {

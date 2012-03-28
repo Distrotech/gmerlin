@@ -240,7 +240,7 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
       {
       if(demuxers[i].demuxer->probe(input))
         {
-        bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+        bgav_log(input->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
                  "Detected %s format", demuxers[i].format_name);
         return demuxers[i].demuxer;
         }
@@ -250,7 +250,7 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
       {
       if(sync_demuxers[i].demuxer->probe(input))
         {
-        bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+        bgav_log(input->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
                  "Detected %s format",
                  sync_demuxers[i].format_name);
         return sync_demuxers[i].demuxer;
@@ -263,7 +263,7 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
       {
       if(yml_demuxers[i].demuxer->probe_yml(yml))
         {
-        bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+        bgav_log(input->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
                  "Detected %s format",
                  yml_demuxers[i].format_name);
         return yml_demuxers[i].demuxer;
