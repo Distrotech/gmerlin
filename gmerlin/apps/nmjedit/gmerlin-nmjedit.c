@@ -38,8 +38,8 @@ int num_add_dirs = 0;
 
 char ** del_dirs = NULL;
 int num_del_dirs = 0;
-
 int list_dirs = 0;
+int do_create = 0;
 
 static void opt_add(void * data, int * argc, char *** _argv, int arg)
   {
@@ -72,6 +72,11 @@ static void opt_del(void * data, int * argc, char *** _argv, int arg)
 static void opt_list_dirs(void * data, int * argc, char *** _argv, int arg)
   {
   list_dirs = 1;
+  }
+
+static void opt_create(void * data, int * argc, char *** _argv, int arg)
+  {
+  do_create = 1;
   }
 
 static void opt_v(void * data, int * argc, char *** _argv, int arg)
@@ -122,6 +127,11 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "List directories",
       .callback =    opt_list_dirs,
     },
+    {
+      .arg =         "-create",
+      .help_string = "Create new and empty database",
+      .callback =    opt_create,
+    },
     { /* End */ },
   };
 
@@ -161,6 +171,12 @@ int main(int argc, char ** argv)
 
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
+
+  if(do_create)
+    {
+    bg_nmj_create_new();
+    return 0;
+    }
   
   /* Make database connection */
   

@@ -120,19 +120,31 @@ int bg_ensure_directory(const char * dir)
   char ** directories;
   char * subpath = NULL;
   int i, ret;
+  int absolute;
   
   /* Return early */
   if(!access(dir, R_OK|W_OK|X_OK))
     return 1;
+
+  if(dir[0] == '/')
+    absolute = 1;
+  else
+    absolute = 0;
   
   /* We omit the first slash */
-  directories = bg_strbreak(dir+1, '/');
-
+  
+  if(absolute)
+    directories = bg_strbreak(dir+1, '/');
+  else
+    directories = bg_strbreak(dir, '/');
+  
   i = 0;
   ret = 1;
   while(directories[i])
     {
-    subpath = bg_strcat(subpath, "/");
+    if(i || absolute)
+      subpath = bg_strcat(subpath, "/");
+
     subpath = bg_strcat(subpath, directories[i]);
 
     if(access(subpath, R_OK) && (errno == ENOENT))

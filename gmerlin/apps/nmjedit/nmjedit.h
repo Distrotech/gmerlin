@@ -28,7 +28,12 @@
 
 #include <gmerlin/pluginregistry.h>
 
+#define DATABASE_FILE "nmj_database/media.db"
+#define DATABASE_VERSION "1.9.0"
+
 /* Utilits functions */
+
+
 
 #define MY_FREE(ptr) \
   if(ptr) \
@@ -238,3 +243,4 @@ int bg_nmj_remove_directory(sqlite3 * db, const char * directory);
 void bg_nmj_list_dirs(sqlite3 * db);
 
 void bg_nmj_cleanup(sqlite3 * db);
+void bg_nmj_create_new();
