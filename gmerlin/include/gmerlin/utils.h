@@ -442,6 +442,16 @@ void bg_diprintf(int indent, const char * format, ...) __attribute__ ((format (p
 
 void * bg_read_file(const char * filename, int * len);
 
+/** \brief Write an entire file into a buffer
+ *  \param filename Name of the file
+ *  \param data Data to write
+ *  \param len Length in bytes
+ *  \returns 1 on success, 0 on failure
+ */
+
+int bg_write_file(const char * filename, void * data, int len);
+
+
 /** \brief Convert a ISO 639-2/B language code to a ISO 639-2/T code
  *  \param code ISO 639-2/B
  *  \returns ISO 639-2/T code

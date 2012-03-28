@@ -27,6 +27,7 @@
 #define LOG_DOMAIN "nmjedit"
 
 #include <string.h>
+#include <ctype.h>
 
 int
 bg_sqlite_exec(sqlite3 * db,                              /* An open database */
@@ -39,7 +40,7 @@ bg_sqlite_exec(sqlite3 * db,                              /* An open database */
 
   err = sqlite3_exec(db, sql, callback, data, &err_msg);
 
-  fprintf(stderr, "Sending %s\n", sql);
+  //  fprintf(stderr, "Sending %s\n", sql);
 
   if(err)
     {
@@ -56,7 +57,8 @@ bg_sqlite_exec(sqlite3 * db,                              /* An open database */
 static int id_callback(void * data, int argc, char **argv, char **azColName)
   {
   int64_t * ret = data;
-  *ret = strtoll(argv[0], NULL, 10);
+  if(argv[0])
+    *ret = strtoll(argv[0], NULL, 10);
   return 0;
   }
 
@@ -80,14 +82,17 @@ append_int_callback(void * data, int argc, char **argv, char **azColName)
   {
   int64_t ret;
   append_int_t * val = data;
-  ret = strtoll(argv[0], NULL, 10);
-  if(val->num_val + 1 > val->val_alloc)
+  if(argv[0])
     {
-    val->val_alloc = val->num_val + 128;
-    val->val = realloc(val->val, val->val_alloc * sizeof(*val->val));
+    ret = strtoll(argv[0], NULL, 10);
+    if(val->num_val + 1 > val->val_alloc)
+      {
+      val->val_alloc = val->num_val + 128;
+      val->val = realloc(val->val, val->val_alloc * sizeof(*val->val));
+      }
+    val->val[val->num_val] = ret;
+    val->num_val++;
     }
-  val->val[val->num_val] = ret;
-  val->num_val++;
   return 0;
   }
 
@@ -100,7 +105,7 @@ int64_t bg_nmj_string_to_id(sqlite3 * db,
   char * buf;
   int64_t ret = -1;
   int result;
-  buf = sqlite3_mprintf("select %s from %s where %s = \"%s\";",
+  buf = sqlite3_mprintf("select %s from %s where %s = %Q;",
                         id_row, table, string_row, str);
   result = bg_sqlite_exec(db, buf, id_callback, &ret);
   sqlite3_free(buf);
@@ -141,7 +146,7 @@ int64_t bg_nmj_get_next_id(sqlite3 * db, const char * table)
   {
   int result;
   char * sql;
-  int64_t ret = -1;
+  int64_t ret = 0;
 
   sql = sqlite3_mprintf("select max(id) from %s;", table);
   result = bg_sqlite_exec(db, sql, id_callback, &ret);
@@ -153,6 +158,24 @@ int64_t bg_nmj_get_next_id(sqlite3 * db, const char * table)
     return -1;
 
   return ret + 1;
+  }
+
+int64_t bg_nmj_count_id(sqlite3 * db,
+                        const char * table,
+                        const char * id_row,
+                        int64_t id)
+  {
+  int result;
+  char * sql;
+  int64_t ret = 0;
+
+  sql = sqlite3_mprintf("select count(*) from %s where %s = %"PRId64";",
+                        table, id_row, id);
+  result = bg_sqlite_exec(db, sql, id_callback, &ret);
+  sqlite3_free(sql);
+  if(!result)
+    return -1;
+  return ret;
   }
 
 static const struct
@@ -205,6 +228,47 @@ char * bg_nmj_escape_string(const char * str)
   return ret;
   }
 
+int64_t bg_nmj_get_group(sqlite3 * db, const char * table, char * str)
+  {
+  char * group;
+  char * sql;
+  int ret = -1;
+  int i;
+  int result;
+  int first = toupper(str[0]);
+  
+  append_int_t tab;
+  memset(&tab, 0, sizeof(tab));
+
+  sql =
+    sqlite3_mprintf("select ID from %s;", table);
+  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  sqlite3_free(sql);
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    group = bg_nmj_id_to_string(db, table, "NAME", "ID", tab.val[i]);
+    if(strlen(group) == 1)
+      {
+      if(first == group[0])
+        ret = tab.val[i];
+      }
+    else if(strlen(group) == 3)
+      {
+      if((first >= group[0]) && (first <= group[2]))
+        ret = tab.val[i];
+      }
+    free(group);
+    if(ret >= 0)
+      break;
+    }
+  if((ret < 0) && tab.num_val)
+    ret = tab.val[tab.num_val-1];
+  if(tab.val)
+    free(tab.val);
+  return ret;
+  }
+
 static const char * search_string_skip[] =
   {
     "a ",
@@ -242,7 +306,7 @@ int64_t bg_nmj_album_lookup(sqlite3 * db,
   char * sql;
   int result;
   
-  memset(&tab, 0, sizeof(&tab));
+  memset(&tab, 0, sizeof(tab));
 
   sql =
     sqlite3_mprintf("select ID from SONG_ALBUMS where TITLE = %Q;",
@@ -320,14 +384,14 @@ time_t bg_nmj_string_to_time(const char * str)
   struct tm tm;
   memset(&tm, 0, sizeof(tm));
   strptime(str, TIME_FORMAT, &tm); 
-  return mktime(&tm);
+  return timegm(&tm);
   }
 
 void bg_nmj_time_to_string(time_t time, char * str)
   {
   struct tm tm;
   memset(&tm, 0, sizeof(tm));
-  localtime_r(&time, &tm);
+  gmtime_r(&time, &tm);
   strftime(str, BG_NMJ_TIME_STRING_LEN, TIME_FORMAT, &tm);
   }
 
@@ -383,9 +447,10 @@ static int add_directory(bg_plugin_registry_t * plugin_reg,
     {
     bg_nmj_song_init(&song);
     bg_nmj_song_get_info(db, plugin_reg, dir, &files[i], &song);
-    fprintf(stderr, "Got song:\n");
-    bg_nmj_song_dump(&song);
-    //    bg_nmj_song_add(&song);
+    //    fprintf(stderr, "Got song:\n");
+    //    bg_nmj_song_dump(&song);
+    //    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Adding song %s", song.title);
+    bg_nmj_song_add(plugin_reg, db, &song);
     i++;
     }
   
@@ -481,10 +546,9 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
                              &new_song))
       return 0;
 
-    fprintf(stderr, "Got new song\n");
-    bg_nmj_song_dump(&new_song);
-    bg_nmj_song_add(db, &new_song);
-    
+    //    fprintf(stderr, "Got new song\n");
+    //    bg_nmj_song_dump(&new_song);
+    bg_nmj_song_add(plugin_reg, db, &new_song);
     i++;
     }
 
@@ -561,6 +625,15 @@ int bg_nmj_remove_directory(sqlite3 * db, const char * directory)
       bg_nmj_song_delete(db, &song);
     bg_nmj_song_free(&song);
     }
+
+  /* Remove directory */
+  sql = sqlite3_mprintf("DELETE FROM SCAN_DIRS WHERE ID = %"PRId64";",
+                        dir.id);
+  result = bg_sqlite_exec(db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  if(!result)
+    return 0;
+
   
   ret = 1;
   fail:
@@ -632,6 +705,14 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
     goto fail;
     }
 
+  output_handle = bg_plugin_load(plugin_reg, plugin_info);
+
+  if(!output_handle)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", plugin_info->long_name);
+    goto fail;
+    }
+  
   output_plugin = (bg_image_writer_plugin_t*)output_handle->plugin;
 
   if(!output_plugin->write_header(output_handle->priv,
@@ -680,12 +761,118 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
   return ret;
   }
 
+void bg_nmj_list_dirs(sqlite3 * db)
+  {
+  append_int_t tab;
+  bg_nmj_dir_t dir;
+  int i;
+  char * sql;
+  int result;
+  
+  memset(&tab, 0, sizeof(tab));
+
+  sql =
+    sqlite3_mprintf("select ID from SCAN_DIRS;");
+  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  sqlite3_free(sql);
+
+  if(!result)
+    return;
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    bg_nmj_dir_init(&dir);
+    dir.id = tab.val[i];
+    if(!bg_nmj_dir_query(db, &dir))
+      return;
+    bg_nmj_dir_dump(&dir);
+    bg_nmj_dir_free(&dir);
+    }
+  if(tab.val)
+    free(tab.val);
+  }
+
+
 void bg_nmj_cleanup(sqlite3 * db)
   {
-  /* Check for empty albums */
-
+  int i;
+  int64_t count;
+  append_int_t tab;
+  char * tmp_string;
+  char * sql;
+  int result;
+  
+  memset(&tab, 0, sizeof(tab));
+  
   /* Check for empty music genres */
+  sql =
+    sqlite3_mprintf("select ID from SONG_GENRES;");
+  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  sqlite3_free(sql);
+  if(!result)
+    return;
 
+  for(i = 0; i < tab.num_val; i++)
+    {
+    count = bg_nmj_count_id(db,
+                            "SONG_GENRES_SONGS",
+                            "GENRES_ID",
+                            tab.val[i]);
+    count += bg_nmj_count_id(db,
+                            "SONG_GENRES_SONG_ALBUMS",
+                            "GENRES_ID",
+                            tab.val[i]);
+    if(!count)
+      {
+      tmp_string = bg_nmj_id_to_string(db, "SONG_GENRES", "NAME", "ID", tab.val[i]);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing empty genre %s", tmp_string);
+      free(tmp_string);
+
+      sql = sqlite3_mprintf("DELETE FROM SONG_GENRES WHERE ID = %"PRId64";",
+                            tab.val[i]);
+      result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+      sqlite3_free(sql);
+      if(!result)
+        return;
+      }
+    }
+  
+  /* Check for empty music persons */
+
+  tab.num_val = 0;
+  sql =
+    sqlite3_mprintf("select ID from SONG_PERSONS;");
+  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  sqlite3_free(sql);
+  if(!result)
+    return;
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    count = bg_nmj_count_id(db,
+                            "SONG_PERSONS_SONGS",
+                            "PERSONS_ID",
+                            tab.val[i]);
+    count += bg_nmj_count_id(db,
+                            "SONG_PERSONS_SONG_ALBUMS",
+                            "PERSONS_ID",
+                            tab.val[i]);
+    if(!count)
+      {
+      tmp_string = bg_nmj_id_to_string(db, "SONG_PERSONS", "NAME", "ID", tab.val[i]);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing empty person %s", tmp_string);
+      free(tmp_string);
+
+      sql = sqlite3_mprintf("DELETE FROM SONG_PERSONS WHERE ID = %"PRId64";",
+                            tab.val[i]);
+      result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+      sqlite3_free(sql);
+      if(!result)
+        return;
+
+      }
+    }
+  
   /* Rebuild indices */
   
   

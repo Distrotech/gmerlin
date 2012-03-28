@@ -39,6 +39,7 @@ int num_add_dirs = 0;
 char ** del_dirs = NULL;
 int num_del_dirs = 0;
 
+int list_dirs = 0;
 
 static void opt_add(void * data, int * argc, char *** _argv, int arg)
   {
@@ -68,6 +69,11 @@ static void opt_del(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_list_dirs(void * data, int * argc, char *** _argv, int arg)
+  {
+  list_dirs = 1;
+  }
+
 static void opt_v(void * data, int * argc, char *** _argv, int arg)
   {
   int val, verbose = 0;
@@ -91,8 +97,6 @@ static void opt_v(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-
-
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -112,6 +116,11 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "level",
       .help_string = "Set verbosity level (0..4)",
       .callback =    opt_v,
+    },
+    {
+      .arg =         "-list-dirs",
+      .help_string = "List directories",
+      .callback =    opt_list_dirs,
     },
     { /* End */ },
   };
@@ -175,6 +184,11 @@ int main(int argc, char ** argv)
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
+  if(list_dirs)
+    {
+    bg_nmj_list_dirs(db);
+    }
+  
   /* Add directories */
   for(i = 0; i < num_add_dirs; i++)
     {
@@ -195,6 +209,8 @@ int main(int argc, char ** argv)
     bg_nmj_remove_directory(db, dir);
     }
 
+  bg_nmj_cleanup(db);
+  
   /* Close sql connection */
   sqlite3_close(db);
   

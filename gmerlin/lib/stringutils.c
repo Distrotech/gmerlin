@@ -632,6 +632,24 @@ void * bg_read_file(const char * filename, int * len_ret)
   return ret;
   }
 
+int bg_write_file(const char * filename, void * data, int len)
+  {
+  FILE * file;
+  
+  file = fopen(filename, "w");
+  if(!file)
+    return 0;
+  
+  if(fwrite(data, 1, len, file) < len)
+    {
+    fclose(file);
+    return 0;
+    }
+  fclose(file);
+  return 1;
+  }
+
+
 static const struct
   {
   const char * bcode;

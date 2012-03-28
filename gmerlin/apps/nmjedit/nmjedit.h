@@ -70,6 +70,12 @@ char * bg_nmj_id_to_string(sqlite3 * db,
                            const char * id_row,
                            int64_t id);
 
+int64_t bg_nmj_count_id(sqlite3 * db,
+                        const char * table,
+                        const char * id_row,
+                        int64_t id);
+
+
 int64_t bg_nmj_id_to_id(sqlite3 * db,
                         const char * table,
                         const char * dst_row,
@@ -83,6 +89,7 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
                           const char * out_file,
                           int thumb_size);
 
+int64_t bg_nmj_get_group(sqlite3 * db, const char * table, char * str);
 
 /* Directory scanning utility */
 
@@ -179,11 +186,14 @@ int bg_nmj_song_get_info(sqlite3 * db,
 
 int bg_nmj_song_query(sqlite3 * db, bg_nmj_song_t * song);
 
-int bg_nmj_song_add(sqlite3 * db, bg_nmj_song_t * song);
+int bg_nmj_song_add(bg_plugin_registry_t * plugin_reg,
+                    sqlite3 * db, bg_nmj_song_t * song);
 int bg_nmj_song_update(sqlite3 * db,
                        bg_nmj_song_t * old_song,
                        bg_nmj_song_t * new_song);
 int bg_nmj_song_delete(sqlite3 * db, bg_nmj_song_t * song);
+
+char * bg_nmj_song_get_cover(bg_nmj_song_t * song);
 
 /* Album */
 
@@ -195,13 +205,20 @@ typedef struct
   char * total_item;
   char * release_date;
   char * update_state; // 3??
+  
+  int64_t genre_id;
+  int64_t artist_id;
+  
+  int found;
   } bg_nmj_album_t;
 
 void bg_nmj_album_init(bg_nmj_album_t *);
 void bg_nmj_album_free(bg_nmj_album_t *);
 void bg_nmj_album_dump(bg_nmj_album_t *);
-int bg_nmj_album_query(bg_nmj_album_t *);
-int bg_nmj_album_save(bg_nmj_album_t *);
+int bg_nmj_album_query(sqlite3 * db, bg_nmj_album_t *);
+int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
+                     sqlite3 * db, bg_nmj_album_t *, bg_nmj_song_t * song);
+int bg_nmj_album_delete(sqlite3 * db, int64_t album_id, bg_nmj_song_t * song);
 
 int64_t bg_nmj_album_lookup(sqlite3 * db,
                             int64_t artist, const char * title);
@@ -217,5 +234,7 @@ int64_t bg_nmj_album_lookup(sqlite3 * db,
 int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
                          sqlite3 * db, const char * directory, int types);
 int bg_nmj_remove_directory(sqlite3 * db, const char * directory);
+
+void bg_nmj_list_dirs(sqlite3 * db);
 
 void bg_nmj_cleanup(sqlite3 * db);

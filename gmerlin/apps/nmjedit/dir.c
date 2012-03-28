@@ -125,7 +125,7 @@ int bg_nmj_dir_add(sqlite3* db, bg_nmj_dir_t * dir)
   dir->id = bg_nmj_get_next_id(db, "SCAN_DIRS");
   if(!dir->name)
     dir->name = bg_strdup(dir->name, dir->directory);
-  
+ 
   sql = sqlite3_mprintf("INSERT INTO SCAN_DIRS ( ID, DIRECTORY, NAME, SIZE, CATEGORY, STATUS ) VALUES "
                        "( %"PRId64", %Q, %Q, %"PRId64", %"PRId64", %Q )",
                        dir->id, dir->directory, dir->name, dir->size, dir->category, dir->status );
