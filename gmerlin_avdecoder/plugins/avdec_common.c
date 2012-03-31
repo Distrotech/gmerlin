@@ -784,6 +784,11 @@ static bg_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
   
   for(i = 0; i < len; i++)
     {
+    /* Metadata */
+    if(src[i].metadata)
+      convert_metadata(&ret[i].metadata,
+                       src[i].metadata);
+    
     /* Copy pointers */
     ret[i].audio_streams = copy_streams(src[i].audio_streams,
                                         src[i].num_audio_streams);

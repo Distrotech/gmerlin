@@ -127,14 +127,26 @@ static bgav_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
   for(i = 0; i < len; i++)
     {
     /* Copy pointers */
-    ret[i].audio_streams = copy_streams(src[i].audio_streams,
-                                        src[i].num_audio_streams);
-    ret[i].video_streams = copy_streams(src[i].video_streams,
-                                        src[i].num_video_streams);
-    ret[i].subtitle_text_streams = copy_streams(src[i].subtitle_text_streams,
-                                           src[i].num_subtitle_text_streams);
-    ret[i].subtitle_overlay_streams = copy_streams(src[i].subtitle_overlay_streams,
-                                           src[i].num_subtitle_overlay_streams);
+    if(src[i].metadata)
+      {
+      ret[i].metadata = calloc(1, sizeof(*ret[i].metadata));
+      bgav_metadata_copy(ret[i].metadata,
+                         src[i].metadata);
+      }
+
+    
+    ret[i].audio_streams =
+      copy_streams(src[i].audio_streams,
+                   src[i].num_audio_streams);
+    ret[i].video_streams =
+      copy_streams(src[i].video_streams,
+                   src[i].num_video_streams);
+    ret[i].subtitle_text_streams =
+      copy_streams(src[i].subtitle_text_streams,
+                   src[i].num_subtitle_text_streams);
+    ret[i].subtitle_overlay_streams =
+      copy_streams(src[i].subtitle_overlay_streams,
+                   src[i].num_subtitle_overlay_streams);
     }
   return ret;
   }
@@ -177,6 +189,12 @@ static void free_tracks(bgav_edl_track_t * s, int len)
   int i;
   for(i = 0; i < len; i++)
     {
+    if(s[i].metadata)
+      {
+      bgav_metadata_free(s[i].metadata);
+      free(s[i].metadata);
+      }
+    
     if(s[i].audio_streams)
       free_streams(s[i].audio_streams, s[i].num_audio_streams);
     if(s[i].video_streams)
@@ -191,8 +209,10 @@ static void free_tracks(bgav_edl_track_t * s, int len)
 
 void bgav_edl_destroy(bgav_edl_t * e)
   {
-  if(e->tracks) free_tracks(e->tracks, e->num_tracks);
-  if(e->url) free(e->url);
+  if(e->tracks)
+    free_tracks(e->tracks, e->num_tracks);
+  if(e->url)
+    free(e->url);
   free(e);
   }
 
@@ -223,6 +243,9 @@ static void dump_track(const bgav_edl_track_t * t)
   {
   int i;
   bgav_diprintf(2, "Track\n");
+  if(t->metadata)
+    bgav_metadata_dump(t->metadata);
+  
   bgav_diprintf(4, "Audio streams: %d\n", t->num_audio_streams);
   for(i = 0; i < t->num_audio_streams; i++)
     {

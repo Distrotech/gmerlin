@@ -37,6 +37,7 @@ extern const bgav_demuxer_t bgav_demuxer_vivo;
 extern const bgav_demuxer_t bgav_demuxer_fli;
 extern const bgav_demuxer_t bgav_demuxer_flv;
 
+extern const bgav_demuxer_t bgav_demuxer_ape;
 extern const bgav_demuxer_t bgav_demuxer_wavpack;
 extern const bgav_demuxer_t bgav_demuxer_tta;
 extern const bgav_demuxer_t bgav_demuxer_voc;
@@ -119,6 +120,7 @@ static const demuxer_t demuxers[] =
     { &bgav_demuxer_rmff,      "Real Media" },
     { &bgav_demuxer_ra,        "Real Audio" },
     { &bgav_demuxer_quicktime, "Quicktime/mp4/m4a" },
+    { &bgav_demuxer_ape,       "APE"               },
     { &bgav_demuxer_wav,       "WAV" },
     { &bgav_demuxer_au,        "Sun AU" },
     { &bgav_demuxer_aiff,      "AIFF(C)" },

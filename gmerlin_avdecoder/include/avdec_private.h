@@ -122,6 +122,9 @@ void bgav_metadata_merge2(bgav_metadata_t * dst,
                           bgav_metadata_t * src);
 
 void bgav_metadata_free(bgav_metadata_t*);
+void bgav_metadata_copy(bgav_metadata_t * dst,
+                        bgav_metadata_t * src);
+
 
 /* Decoder structures */
 

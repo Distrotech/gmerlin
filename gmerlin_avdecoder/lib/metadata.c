@@ -41,6 +41,25 @@ void bgav_metadata_free(bgav_metadata_t * m)
   memset(m, 0, sizeof(*m));
   }
 
+#define CPY_STRING(val) \
+  dst->val = bgav_strdup(src->val);
+
+void bgav_metadata_copy(bgav_metadata_t * dst,
+                        bgav_metadata_t * src)
+  {
+  CPY_STRING(author);
+  CPY_STRING(title);
+  CPY_STRING(comment);
+  CPY_STRING(copyright);
+  CPY_STRING(album);
+  CPY_STRING(artist);
+  CPY_STRING(albumartist);
+  CPY_STRING(date);
+  CPY_STRING(genre);
+  dst->track = src->track;
+  }
+                        
+
 #define MERGE_S(s) \
 if(dst->s) free(dst->s);\
 if(src1->s) \

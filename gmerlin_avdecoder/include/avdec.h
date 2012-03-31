@@ -1144,6 +1144,8 @@ typedef struct
 
 typedef struct
   {
+  bgav_metadata_t * metadata;
+  
   int num_audio_streams;             //!< Number of logical audio streams
   bgav_edl_stream_t * audio_streams; //!< Logical audio streams
 

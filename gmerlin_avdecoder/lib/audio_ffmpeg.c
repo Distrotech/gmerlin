@@ -333,8 +333,11 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   while(1)
     {
     if(!fill_buffer(s))
-      return 0;
- 
+      {
+      if(!(priv->ctx->codec->capabilities & CODEC_CAP_DELAY))
+        return 0;
+      }
+      
 #ifdef DUMP_DECODE
     bgav_dprintf("decode_audio Size: %d\n",
                  priv->buf.size);
@@ -356,6 +359,9 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
       /* Error */
       return 0;
       }
+
+    if(!priv->buf.size && !got_frame)
+      return 0; // EOF
     
     /* Advance packet buffer */
     
