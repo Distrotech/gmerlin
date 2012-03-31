@@ -457,19 +457,25 @@ static void write_frame_oss(void * p, gavl_audio_frame_t * f)
   oss_t * priv = p;
 
   
-  write(priv->fd_front, f->channels.s_8[0], f->valid_samples *
-        priv->num_channels_front * priv->bytes_per_sample);
-
+  if(write(priv->fd_front, f->channels.s_8[0], f->valid_samples *
+           priv->num_channels_front * priv->bytes_per_sample) < 0)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
+           strerror(errno));
+     
   if(priv->num_channels_rear)
     {
-    write(priv->fd_rear, f->channels.s_8[2], f->valid_samples *
-        priv->num_channels_rear * priv->bytes_per_sample);
+    if(write(priv->fd_rear, f->channels.s_8[2], f->valid_samples *
+             priv->num_channels_rear * priv->bytes_per_sample) < 0)
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
+             strerror(errno));
     }
 
   if(priv->num_channels_center_lfe)
     {
-    write(priv->fd_center_lfe, f->channels.s_8[4], f->valid_samples *
-          priv->num_channels_center_lfe * priv->bytes_per_sample);
+    if(write(priv->fd_center_lfe, f->channels.s_8[4], f->valid_samples *
+             priv->num_channels_center_lfe * priv->bytes_per_sample) < 0)
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
+             strerror(errno));
     }
   }
 

@@ -121,7 +121,8 @@ static void log_internal(bg_log_level_t level, const char * domain,
   msg_string = malloc(len+1);
   vsnprintf(msg_string, len+1, format, argp);
 #else
-  vasprintf(&msg_string, format, argp);
+  if(vasprintf(&msg_string, format, argp) < 0)
+    return; // Should never happen
 #endif
   logs_internal(level, domain, msg_string);
   free(msg_string);

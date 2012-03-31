@@ -864,7 +864,8 @@ static void mass_tag(track_list_t * l)
   params = bg_metadata_get_parameters_common(NULL);
   s = bg_cfg_section_create_from_parameters("Mass tag", params);
 
-  /* Copy parameters from the first selected track */
+  /* Copy parameters from the first selected track. Also set the
+     help string. */
   i = 0;
   while(params[i].name)
     {
@@ -877,6 +878,10 @@ static void mass_tag(track_list_t * l)
                                  &params[i],
                                  &val);
     bg_parameter_value_free(&val, params[i].type);
+
+    params[i].help_string = bg_strdup(params[i].help_string,
+                                      TRS("Use \"-\" to clear this field for all tracks. Empty string means to leave it unchanged for all tracks"));
+    
     i++;
     }
 
@@ -903,11 +908,21 @@ static void mass_tag(track_list_t * l)
           bg_cfg_section_get_parameter(s,
                                        &params[i],
                                        &val);
-          if((params[i].type == BG_PARAMETER_STRING) &&
-             val.val_str)
-            bg_cfg_section_set_parameter(first_selected->metadata_section,
-                                         &params[i],
-                                         &val);
+          if(params[i].type == BG_PARAMETER_STRING)
+            {
+            if(!strcmp(val.val_str, "-"))
+              {
+              bg_parameter_value_t val1;
+              val1.val_str = NULL;
+              bg_cfg_section_set_parameter(first_selected->metadata_section,
+                                           &params[i],
+                                           &val1);
+              }
+            else
+              bg_cfg_section_set_parameter(first_selected->metadata_section,
+                                           &params[i],
+                                           &val);
+            }
           bg_parameter_value_free(&val, params[i].type);
           i++;
           }
@@ -918,6 +933,7 @@ static void mass_tag(track_list_t * l)
   
   bg_dialog_destroy(dlg);
   bg_cfg_section_destroy(s);
+  bg_parameter_info_destroy_array(params);
   }
   
 static void button_callback(GtkWidget * w, gpointer data)

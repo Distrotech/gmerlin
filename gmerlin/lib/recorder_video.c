@@ -678,7 +678,7 @@ void * bg_recorder_video_thread(void * data)
   {
   bg_recorder_t * rec = data;
   bg_recorder_video_stream_t * vs = &rec->vs;
-  gavl_video_frame_t * monitor_frame;
+  gavl_video_frame_t * monitor_frame = NULL;
   gavl_time_t idle_time = GAVL_TIME_SCALE / 100; // 10 ms
   bg_player_thread_wait_for_start(vs->th);
 

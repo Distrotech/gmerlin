@@ -756,7 +756,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
     case MotionNotify:
 
       /* Check if we had a fake motion event from the screensaver */
-      if(w->scr.fake_motion)
+      if(w->scr.fake_motion > 0)
         {
         w->scr.fake_motion--;
         return;

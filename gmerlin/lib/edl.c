@@ -133,6 +133,8 @@ static bg_edl_track_t * copy_tracks(const bg_edl_track_t * src, int len)
     /* Copy pointers */
 
     ret[i].name = bg_strdup(NULL, src[i].name);
+
+    bg_metadata_copy(&ret[i].metadata, &src[i].metadata);
     
     ret[i].audio_streams = copy_streams(src[i].audio_streams,
                                         src[i].num_audio_streams);
@@ -187,22 +189,29 @@ static void free_tracks(bg_edl_track_t * s, int len)
     free(s->name);
   for(i = 0; i < len; i++)
     {
+    bg_metadata_free(&s[i].metadata);
+    
     if(s[i].audio_streams)
       free_streams(s[i].audio_streams, s[i].num_audio_streams);
     if(s[i].video_streams)
-      free_streams(s[i].video_streams, s[i].num_video_streams);
+      free_streams(s[i].video_streams,
+                   s[i].num_video_streams);
     if(s[i].subtitle_text_streams)
-      free_streams(s[i].subtitle_text_streams, s[i].num_subtitle_text_streams);
+      free_streams(s[i].subtitle_text_streams,
+                   s[i].num_subtitle_text_streams);
     if(s[i].subtitle_overlay_streams)
-      free_streams(s[i].subtitle_overlay_streams, s[i].num_subtitle_overlay_streams);
+      free_streams(s[i].subtitle_overlay_streams,
+                   s[i].num_subtitle_overlay_streams);
     }
   free(s);
   }
 
 void bg_edl_destroy(bg_edl_t * e)
   {
-  if(e->tracks) free_tracks(e->tracks, e->num_tracks);
-  if(e->url) free(e->url);
+  if(e->tracks)
+    free_tracks(e->tracks, e->num_tracks);
+  if(e->url)
+    free(e->url);
   free(e);
   }
 
