@@ -402,6 +402,7 @@ chapterlist.c \
 charset.c \
 cavs_header.c \
 codecs.c \
+cue.c \
 demuxer.c \
 demux_4xm.c \
 demux_8svx.c \

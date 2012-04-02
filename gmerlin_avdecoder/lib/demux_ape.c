@@ -22,6 +22,7 @@
 #include <avdec_private.h>
 #include <stdlib.h>
 
+#include <cue.h>
 
 /* Ape demuxer taken from ffmpeg */
 
@@ -315,7 +316,7 @@ static int open_ape(bgav_demuxer_context_t * ctx)
       }
     priv->index[i].size = (priv->index[i].size + 3) & ~3;
     }
-
+  free(seektable);
   
   /* Set up structures */
 
@@ -337,10 +338,12 @@ static int open_ape(bgav_demuxer_context_t * ctx)
   ctx->tt->cur->duration =
     gavl_samples_to_time(priv->h.samplerate,
                          s->duration);
-
+  
   ctx->stream_description = bgav_strdup("APE");
   ctx->index_mode = INDEX_MODE_SIMPLE;
   ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
+
+  bgav_demuxer_init_cue(ctx);
   
   return 1;
   }

@@ -15,6 +15,7 @@ bsf_private.h \
 bswap.h \
 cavs_header.h \
 codecs.h \
+cue.h \
 dirac_header.h \
 dvb_channels.h \
 dvframe.h \

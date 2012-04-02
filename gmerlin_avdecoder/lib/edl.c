@@ -126,6 +126,8 @@ static bgav_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
   
   for(i = 0; i < len; i++)
     {
+    if(src[i].name)
+      ret[i].name = bgav_strdup(src[i].name);
     /* Copy pointers */
     if(src[i].metadata)
       {
@@ -133,7 +135,7 @@ static bgav_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
       bgav_metadata_copy(ret[i].metadata,
                          src[i].metadata);
       }
-
+    
     
     ret[i].audio_streams =
       copy_streams(src[i].audio_streams,
@@ -194,6 +196,8 @@ static void free_tracks(bgav_edl_track_t * s, int len)
       bgav_metadata_free(s[i].metadata);
       free(s[i].metadata);
       }
+    if(s[i].name)
+      free(s[i].name);
     
     if(s[i].audio_streams)
       free_streams(s[i].audio_streams, s[i].num_audio_streams);

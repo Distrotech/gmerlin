@@ -45,10 +45,11 @@ static void add_char_16(char ** buffer, int * buffer_alloc,
   *ptr = c;
   }
 
-static int read_line_utf16(bgav_input_context_t * ctx,
-                           int (*read_char)(bgav_input_context_t*,uint16_t*),
-                           char ** buffer, int * buffer_alloc, int buffer_offset,
-                           int * ret_len)
+static int
+read_line_utf16(bgav_input_context_t * ctx,
+                int (*read_char)(bgav_input_context_t*,uint16_t*),
+                char ** buffer, int * buffer_alloc, int buffer_offset,
+                int * ret_len)
   {
   uint16_t c;
   int pos = buffer_offset;
@@ -94,7 +95,8 @@ static void add_char(char ** buffer, int * buffer_alloc,
   }
 
 int bgav_input_read_line(bgav_input_context_t* input,
-                         char ** buffer, int * buffer_alloc, int buffer_offset, int * len)
+                         char ** buffer, int * buffer_alloc,
+                         int buffer_offset, int * len)
   {
   char c;
   int pos = buffer_offset;
@@ -115,7 +117,7 @@ int bgav_input_read_line(bgav_input_context_t* input,
     if(!bgav_input_read_data(input, (uint8_t*)(&c), 1))
       {
       //      return 0;
-      add_char(buffer, buffer_alloc, pos, 0);
+      add_char(buffer, buffer_alloc, pos, '\0');
       return pos - buffer_offset;
       break;
       }
@@ -127,7 +129,7 @@ int bgav_input_read_line(bgav_input_context_t* input,
       pos++;
       }
     }
-  add_char(buffer, buffer_alloc, pos, 0);
+  add_char(buffer, buffer_alloc, pos, '\0');
   if(len)
     *len = pos - buffer_offset;
   return input->position - old_pos;
