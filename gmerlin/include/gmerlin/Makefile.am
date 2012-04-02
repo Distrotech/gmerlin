@@ -20,6 +20,7 @@ mediafiledevice.h \
 msgqueue.h \
 ocr.h \
 osd.h \
+ov.h \
 parameter.h \
 player.h \
 playermsg.h \
