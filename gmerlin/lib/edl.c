@@ -134,6 +134,8 @@ static bg_edl_track_t * copy_tracks(const bg_edl_track_t * src, int len)
 
     ret[i].name = bg_strdup(NULL, src[i].name);
 
+    memset(&ret[i].metadata, 0, sizeof(ret[i].metadata));
+    
     bg_metadata_copy(&ret[i].metadata, &src[i].metadata);
     
     ret[i].audio_streams = copy_streams(src[i].audio_streams,

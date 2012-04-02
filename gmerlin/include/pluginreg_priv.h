@@ -34,3 +34,5 @@ void bg_plugin_registry_save(bg_plugin_info_t * info);
 
 
 void bg_plugin_info_destroy(bg_plugin_info_t * info);
+
+bg_plugin_info_t * bg_edldec_get_info();

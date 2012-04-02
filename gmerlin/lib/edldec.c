@@ -28,6 +28,9 @@
 #include <gmerlin/converters.h>
 #include <gmerlin/utils.h>
 
+#include <pluginreg_priv.h>
+
+
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "edldec"
 
@@ -169,7 +172,7 @@ typedef struct
   const bg_edl_t * edl;
 
   bg_plugin_registry_t * plugin_reg;
-  const bg_plugin_info_t * plugin_info;
+  //  const bg_plugin_info_t * plugin_info;
   bg_input_callbacks_t * callbacks;
 
   gavl_audio_options_t * a_opt;
@@ -625,7 +628,7 @@ static int init_source_common(edl_dec_t * dec,
   {
   if(!bg_input_plugin_load(dec->plugin_reg,
                            com->url,
-                           dec->plugin_info,
+                           NULL,
                            &com->handle,
                            dec->callbacks, 0))
     return 0;
@@ -1368,7 +1371,7 @@ static const bg_input_plugin_t edl_plugin =
       BG_LOCALE,
       .name =           "i_edldec",
       .long_name =      TRS("EDL decoder"),
-      .description =    TRS("This metaplugin decodes and EDL as if it was a single file."),
+      .description =    TRS("This metaplugin decodes an EDL as if it was a single file."),
       .type =           BG_PLUGIN_INPUT,
       .flags =          BG_PLUGIN_FILE,
       .priority =       1,
@@ -1412,6 +1415,10 @@ static const bg_input_plugin_t edl_plugin =
     .close = close_edl,
   };
 
+bg_plugin_info_t * bg_edldec_get_info()
+  {
+  return bg_plugin_info_create(&edl_plugin.common);
+  }
 
 int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
                              const bg_edl_t * edl,
@@ -1446,7 +1453,6 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
   
   priv->edl = edl;
   priv->plugin_reg = reg;
-  priv->plugin_info = info;
   priv->callbacks = callbacks;
   
   priv->track_info = calloc(edl->num_tracks, sizeof(*priv->track_info));

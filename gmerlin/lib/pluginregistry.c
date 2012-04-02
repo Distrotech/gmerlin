@@ -1023,6 +1023,11 @@ bg_plugin_registry_t *
       ret->entries = append_to_list(ret->entries, tmp_info);
     i++;
     }
+
+  tmp_info = bg_edldec_get_info();
+  if(tmp_info)
+    ret->entries = append_to_list(ret->entries, tmp_info);
+  
   
   /* Sort */
 
@@ -2001,6 +2006,8 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
   /* Load EDL instead */
   edl = bg_edl_copy(edl_c);
 
+  info = bg_plugin_find_by_name(reg, "i_edldec");
+  
   if(!bg_input_plugin_load_edl(reg, edl, info, ret,
                                callbacks))
     {
