@@ -302,7 +302,7 @@ static int start_flac(void * data)
     {
     flac->com.samples_per_block =
       FLAC__stream_encoder_get_blocksize(flac->enc);
-    fprintf(stderr, "Got blocksize %d\n", flac->com.samples_per_block);
+    //    fprintf(stderr, "Got blocksize %d\n", flac->com.samples_per_block);
     }
   flac->data_start = -1;
   
