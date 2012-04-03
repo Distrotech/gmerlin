@@ -977,6 +977,7 @@ static void add_dir_callback(char * dir, int recursive,
                              int subdirs_as_subalbums,
                              int watch,
                              const char * plugin,
+                             int prefer_edl,
                              void * data)
   {
   bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t*)data;
@@ -984,7 +985,8 @@ static void add_dir_callback(char * dir, int recursive,
   gtk_widget_set_sensitive(w->treeview, 0);
   bg_media_tree_add_directory(w->tree, w->selected_album,
                               dir,
-                              recursive, subdirs_as_subalbums, watch, plugin);
+                              recursive, subdirs_as_subalbums,
+                              watch, plugin, prefer_edl);
   
   gtk_widget_set_sensitive(w->treeview, 1);
   }

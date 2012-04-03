@@ -46,6 +46,7 @@ struct bg_gtk_drivesel_s
   bg_gtk_plugin_menu_t * plugin_menu;
   
   void (*add_files)(char ** files, const char * plugin,
+                    int prefer_edl,
                     void * data);
 
   void (*close_notify)(bg_gtk_drivesel_t * f, void * data);
@@ -109,7 +110,7 @@ static void button_callback(GtkWidget * w, gpointer data)
 
     plugin = f->plugin_info->name;
     
-    f->add_files(drives, plugin, f->callback_data);
+    f->add_files(drives, plugin, 0, f->callback_data);
     }
   
   else if((w == f->window) || (w == f->close_button))
@@ -142,7 +143,7 @@ static gboolean destroy_callback(GtkWidget * w, GdkEvent * event,
 bg_gtk_drivesel_t *
 bg_gtk_drivesel_create(const char * title,
                        void (*add_files)(char ** files, const char * plugin,
-                                         void * data),
+                                         int prefer_edl, void * data),
                        void (*close_notify)(bg_gtk_drivesel_t *,
                                             void * data),
                        void * user_data,

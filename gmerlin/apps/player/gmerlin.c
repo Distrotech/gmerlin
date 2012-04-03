@@ -948,7 +948,7 @@ void gmerlin_add_locations(gmerlin_t * g, char ** locations)
     }
 
   bg_album_insert_urls_before(incoming, locations,
-                              NULL, NULL);
+                              NULL, 0, NULL);
 
   if(!was_open)
     bg_album_close(incoming);

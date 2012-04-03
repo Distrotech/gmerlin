@@ -24,7 +24,6 @@
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
-// #include <gmerlin/encoderinfo.h>
 /* This defines a track with all information
    necessary for transcoding */
 
@@ -138,6 +137,7 @@ bg_transcoder_track_subtitle_overlay_get_general_parameters();
 bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
                            const bg_plugin_info_t * plugin,
+                           int prefer_edl,
                            int track, bg_plugin_registry_t * plugin_reg,
                            bg_cfg_section_t * section,
                            bg_cfg_section_t * encoder_section,

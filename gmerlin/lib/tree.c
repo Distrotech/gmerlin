@@ -1295,6 +1295,7 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
                           int subdirs_to_subalbums,
                           int watch,
                           const char * plugin,
+                          int prefer_edl,
                           int depth)
   {
   char * tmp_string;
@@ -1366,18 +1367,18 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
       {
       add_directory(t, a, filename, recursive, subdirs_to_subalbums,
                     watch,
-                    plugin, depth + 1);
+                    plugin, prefer_edl, depth + 1);
       }
     else if(S_ISREG(stat_buf.st_mode))
       {
       if(watch)
         bg_album_insert_file_before(a, filename,
-                                    plugin,
+                                    plugin, prefer_edl,
                                     NULL,
                                     stat_buf.st_mtime);
       else
         bg_album_insert_file_before(a, filename,
-                                    plugin,
+                                    plugin, prefer_edl,
                                     NULL,
                                     0);
       }
@@ -1402,12 +1403,12 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
                                  int recursive,
                                  int subdirs_to_subalbums,
                                  int watch,
-                                 const char * plugin)
+                                 const char * plugin, int prefer_edl)
   {
   char * pos;
   add_directory(t, parent, directory, recursive, subdirs_to_subalbums,
                 watch,
-                plugin, 0);
+                plugin, prefer_edl, 0);
   t->add_directory_path = bg_strdup(t->add_directory_path, directory);
 
   pos = strrchr(t->add_directory_path, '/');

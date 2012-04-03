@@ -210,6 +210,7 @@ void bg_album_insert_entries_before(bg_album_t * album,
 void bg_album_insert_file_before(bg_album_t * a,
                                  char * file,
                                  const char * plugin,
+                                 int prefer_edl,
                                  bg_album_entry_t * after,
                                  time_t mtime);
 
@@ -229,7 +230,7 @@ int bg_album_num_unsync(bg_album_t * a);
 
 bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                      char * url,
-                                     const char * plugin_name);
+                                     const char * plugin_name, int prefer_edl);
 
 struct bg_mediatree_s
   {

@@ -246,11 +246,13 @@ int bg_album_is_open(bg_album_t * a);
 void bg_album_insert_urls_before(bg_album_t * a,
                                  char ** urls,
                                  const char * plugin,
+                                 int prefer_edl,
                                  bg_album_entry_t * after);
 
 void bg_album_insert_urls_after(bg_album_t * a,
                                 char ** urls,
                                 const char * plugin,
+                                int prefer_edl,
                                 bg_album_entry_t * before);
 
 /* Inserts an xml-string */
@@ -408,7 +410,8 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
                                  int recursive,
                                  int subdirs_to_subalbums,
                                  int watch,
-                                 const char * plugin);
+                                 const char * plugin,
+                                 int prefer_edl);
 
 /* Gets a root album */
 

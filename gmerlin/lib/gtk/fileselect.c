@@ -44,10 +44,11 @@ struct bg_gtk_filesel_s
   GtkWidget * plugin_menu;
   bg_gtk_plugin_menu_t * plugins;
   void (*add_files)(char ** files, const char * plugin,
-                    void * data);
+                    int prefer_edl, void * data);
 
   void (*add_dir)(char * dir, int recursive, int subdirs_as_subalbums,
-                  int watch, const char * plugin, void * data);
+                  int watch, const char * plugin, int prefer_edl,
+                  void * data);
   
   void (*close_notify)(bg_gtk_filesel_t * f, void * data);
   
@@ -61,6 +62,7 @@ struct bg_gtk_filesel_s
   GtkWidget * recursive;
   GtkWidget * subdirs_as_subalbums;
   GtkWidget * watch;
+  GtkWidget * prefer_edl;
   };
 
 static void add_files(bg_gtk_filesel_t * f)
@@ -92,7 +94,9 @@ static void add_files(bg_gtk_filesel_t * f)
   
   f->unsensitive = 1;
   gtk_widget_set_sensitive(f->filesel, 0);
-  f->add_files(filenames, plugin, f->callback_data);
+  f->add_files(filenames, plugin,
+               gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->prefer_edl)),
+               f->callback_data);
   gtk_widget_set_sensitive(f->filesel, 1);
   f->unsensitive = 0;
   
@@ -118,6 +122,7 @@ static void add_dir(bg_gtk_filesel_t * f)
              gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->subdirs_as_subalbums)),
              gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->watch)),
              plugin,
+             gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->prefer_edl)),
              f->callback_data);
   gtk_widget_set_sensitive(f->filesel, 1);
   f->unsensitive = 0;
@@ -172,11 +177,13 @@ static gboolean destroy_callback(GtkWidget * w, GdkEvent * event,
 static bg_gtk_filesel_t *
 filesel_create(const char * title,
                void (*add_files)(char ** files, const char * plugin,
+                                 int prefer_edl,
                                  void * data),
                void (*add_dir)(char * dir, int recursive,
                                int subdirs_as_subalbums,
                                int watch,
                                const char * plugin,
+                               int prefer_edl,
                                void * data),
                void (*close_notify)(bg_gtk_filesel_t *,
                                     void * data),
@@ -258,6 +265,13 @@ filesel_create(const char * title,
     
     bg_gtk_box_pack_start_defaults(GTK_BOX(extra),
                                 bg_gtk_plugin_menu_get_widget(ret->plugins));
+    ret->prefer_edl =
+      gtk_check_button_new_with_label(TR("Prefer EDL"));
+    gtk_widget_show(ret->prefer_edl);
+    
+    bg_gtk_box_pack_start_defaults(GTK_BOX(extra),
+                                   ret->prefer_edl);
+    
     }
 
   if(extra)
@@ -286,6 +300,7 @@ filesel_create(const char * title,
 bg_gtk_filesel_t *
 bg_gtk_filesel_create(const char * title,
                       void (*add_file)(char ** files, const char * plugin,
+                                       int prefer_edl,
                                        void * data),
                       void (*close_notify)(bg_gtk_filesel_t *,
                                            void * data),
@@ -308,6 +323,7 @@ bg_gtk_dirsel_create(const char * title,
                                      int subdirs_as_subalbums,
                                      int watch,
                                      const char * plugin,
+                                     int prefer_edl,
                                      void * data),
                      void (*close_notify)(bg_gtk_filesel_t *,
                                           void * data),

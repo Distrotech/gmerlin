@@ -401,7 +401,7 @@ struct bg_transcoder_s
   gavl_time_t end_time;
   int set_start_time;
   int set_end_time;
-  
+  int prefer_edl;
   bg_metadata_t metadata;
   
   /* General configuration stuff */
@@ -1864,8 +1864,8 @@ set_parameter_general(void * data, const char * name,
   SP_STR(subdir);
   
   SP_INT(track);
-  
-  
+  SP_INT(prefer_edl);
+    
   SP_INT(set_start_time);
   SP_INT(set_end_time);
   SP_TIME(start_time);
@@ -2056,6 +2056,7 @@ static void send_file_messages(bg_transcoder_t * t)
 
 static int open_input(bg_transcoder_t * ret)
   {
+  bg_cfg_section_t * s;
   const bg_plugin_info_t * plugin_info;
   
   plugin_info = bg_plugin_find_by_name(ret->plugin_reg, ret->plugin);
@@ -2065,39 +2066,30 @@ static int open_input(bg_transcoder_t * ret)
     goto fail;
     }
 
-  ret->in_handle = bg_plugin_load(ret->plugin_reg, plugin_info);
-  if(!ret->in_handle)
+  s = bg_plugin_registry_get_section(ret->plugin_reg,
+                                     plugin_info->name);
+
+  if(s && ret->transcoder_track->input_section)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open plugin %s", ret->plugin);
-    goto fail;
+    bg_cfg_section_transfer(ret->transcoder_track->input_section, s);
     }
 
-  ret->in_plugin = (bg_input_plugin_t*)(ret->in_handle->plugin);
-
-  if(ret->in_plugin->common.set_parameter &&
-     ret->in_plugin->common.get_parameters &&
-     ret->transcoder_track->input_section)
-    {
-    bg_cfg_section_apply(ret->transcoder_track->input_section,
-                         ret->in_plugin->common.get_parameters(ret->in_handle->priv),
-                         ret->in_plugin->common.set_parameter, ret->in_handle->priv);
-    }
+  //  fprintf(stderr, "open input %d\n", ret->prefer_edl);
   
-  if(!ret->in_plugin->open(ret->in_handle->priv, ret->location))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s with plugin %s",
-                                  ret->location, ret->plugin);
+  if(!bg_input_plugin_load(ret->plugin_reg,
+                           ret->location,
+                           plugin_info,
+                           &ret->in_handle,
+                           NULL, ret->prefer_edl))
     goto fail;
-    }
 
+  ret->in_plugin = (bg_input_plugin_t*)ret->in_handle->plugin;
+  
   if(bg_string_is_url(ret->location))
     ret->is_url = 1;
   
-
-  
   /* Select track and get track info */
-
-    
+  
   if(ret->in_plugin->get_num_tracks &&
      (ret->track >= ret->in_plugin->get_num_tracks(ret->in_handle->priv)))
     {

@@ -45,6 +45,7 @@ struct bg_gtk_urlsel_s
     
   bg_gtk_plugin_menu_t * plugins;
   void (*add_files)(char ** files, const char * plugin,
+                    int prefer_edl,
                     void * data);
 
   void (*close_notify)(bg_gtk_urlsel_t * f, void * data);
@@ -71,7 +72,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     urls[0] = bg_strdup(NULL, gtk_entry_get_text(GTK_ENTRY(f->entry)));
     urls[1] = NULL;
     
-    f->add_files(urls, plugin,
+    f->add_files(urls, plugin, 0,
                  f->callback_data);
     free(urls[0]);
     }
@@ -106,6 +107,7 @@ static gboolean destroy_callback(GtkWidget * w, GdkEvent * event,
 bg_gtk_urlsel_t *
 bg_gtk_urlsel_create(const char * title,
                      void (*add_files)(char ** files, const char * plugin,
+                                       int prefer_edl,
                                        void * data),
                      void (*close_notify)(bg_gtk_urlsel_t *,
                                           void * data),

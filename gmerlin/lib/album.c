@@ -362,6 +362,7 @@ void bg_album_insert_entries_before(bg_album_t * album,
 void bg_album_insert_urls_before(bg_album_t * a,
                                  char ** locations,
                                  const char * plugin,
+                                 int prefer_edl,
                                  bg_album_entry_t * after)
   {
   int i = 0;
@@ -369,7 +370,7 @@ void bg_album_insert_urls_before(bg_album_t * a,
 
   while(locations[i])
     {
-    new_entries = bg_album_load_url(a, locations[i], plugin);
+    new_entries = bg_album_load_url(a, locations[i], plugin, prefer_edl);
     bg_album_insert_entries_before(a, new_entries, after);
     //    bg_album_changed(a);
     i++;
@@ -379,13 +380,14 @@ void bg_album_insert_urls_before(bg_album_t * a,
 void bg_album_insert_file_before(bg_album_t * a,
                                  char * file,
                                  const char * plugin,
+                                 int prefer_edl,
                                  bg_album_entry_t * after,
                                  time_t mtime)
   {
   bg_album_entry_t * new_entries;
   bg_album_entry_t * e;
   
-  new_entries = bg_album_load_url(a, file, plugin);
+  new_entries = bg_album_load_url(a, file, plugin, prefer_edl);
   e = new_entries;
   while(e)
     {
@@ -402,6 +404,7 @@ void bg_album_insert_file_before(bg_album_t * a,
 void bg_album_insert_urls_after(bg_album_t * a,
                                 char ** locations,
                                 const char * plugin,
+                                int prefer_edl,
                                 bg_album_entry_t * before)
   {
   int i = 0;
@@ -409,7 +412,7 @@ void bg_album_insert_urls_after(bg_album_t * a,
 
   while(locations[i])
     {
-    new_entries = bg_album_load_url(a, locations[i], plugin);
+    new_entries = bg_album_load_url(a, locations[i], plugin, prefer_edl);
     bg_album_insert_entries_after(a, new_entries, before);
 
     before = new_entries;
@@ -435,7 +438,7 @@ void bg_album_insert_urilist_after(bg_album_t * a, const char * str,
   if(!uri_list)
     return;
 
-  bg_album_insert_urls_after(a, uri_list, NULL, before);
+  bg_album_insert_urls_after(a, uri_list, NULL, 0, before);
 
   bg_urilist_free(uri_list);
   }
@@ -450,7 +453,7 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
   if(!uri_list)
     return;
 
-  bg_album_insert_urls_before(a, uri_list, NULL, after);
+  bg_album_insert_urls_before(a, uri_list, NULL, 0, after);
   
   bg_urilist_free(uri_list);
   }
@@ -672,6 +675,7 @@ static void sync_dir_add(bg_album_t * a, char * filename, time_t mtime)
   bg_album_insert_file_before(a,
                               filename,
                               NULL,
+                              0,
                               NULL,
                               mtime);
   }
@@ -2118,7 +2122,7 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
         
       new_entry = bg_album_load_url(album,
                                     e->location,
-                                    name);
+                                    name, 0);
       if(new_entry)
         {
         /* Insert new entries into list */
@@ -2193,7 +2197,8 @@ static int is_blacklisted(bg_album_common_t * com,
 
 bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                      char * url,
-                                     const char * plugin_name)
+                                     const char * plugin_name,
+                                     int prefer_edl)
   {
   int i, num_entries;
   
@@ -2230,7 +2235,8 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            url, info,
-                           &album->com->load_handle, &album->com->input_callbacks, album->com->prefer_edl))
+                           &album->com->load_handle,
+                           &album->com->input_callbacks, album->com->prefer_edl))
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Loading %s failed", url);
     return NULL;

@@ -1027,16 +1027,16 @@ static void do_paste(bg_gtk_album_widget_t * w)
   }
 
 static void add_file_callback(char ** files, const char * plugin,
-                                 void * data)
+                              int prefer_edl,
+                              void * data)
   {
   bg_album_entry_t * entry;
   bg_gtk_album_widget_t * widget = data;
 
   gtk_widget_set_sensitive(widget->treeview, 0);
-
-  
+ 
   entry = bg_album_get_entry(widget->album, widget->cursor_pos);
-  bg_album_insert_urls_before(widget->album, files, plugin, entry);
+  bg_album_insert_urls_before(widget->album, files, plugin, prefer_edl, entry);
 
   gtk_widget_set_sensitive(widget->treeview, 1);
   
@@ -1045,7 +1045,8 @@ static void add_file_callback(char ** files, const char * plugin,
   }
 
 static void add_urls_callback(char ** urls, const char * plugin,
-                                 void * data)
+                              int prefer_edl,
+                              void * data)
   {
   bg_album_entry_t * entry;
   bg_gtk_album_widget_t * widget = data;
@@ -1053,13 +1054,15 @@ static void add_urls_callback(char ** urls, const char * plugin,
 
   gtk_widget_set_sensitive(widget->treeview, 0);
   entry = bg_album_get_entry(widget->album, widget->cursor_pos);
-  bg_album_insert_urls_before(widget->album, urls, plugin, entry);
+  bg_album_insert_urls_before(widget->album, urls, plugin, prefer_edl,
+                              entry);
   gtk_widget_set_sensitive(widget->treeview, 1);
   
   }
 
 static void add_albums_callback(char ** files, const char * plugin,
-                                   void * data)
+                                int prefer_edl,
+                                void * data)
   {
   bg_album_entry_t * entry;
   bg_gtk_album_widget_t * widget = data;

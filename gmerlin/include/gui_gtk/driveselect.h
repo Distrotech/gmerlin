@@ -26,7 +26,9 @@ typedef struct bg_gtk_drivesel_s bg_gtk_drivesel_t;
 
 bg_gtk_drivesel_t *
 bg_gtk_drivesel_create(const char * title,
-                       void (*add_drive)(char ** drives, const char * plugin,
+                       void (*add_drive)(char ** drives,
+                                         const char * plugin,
+                                         int prefer_edl,
                                          void * data),
                        void (*close_notify)(bg_gtk_drivesel_t *,
                                             void * data),

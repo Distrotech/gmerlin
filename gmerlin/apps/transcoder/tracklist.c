@@ -166,6 +166,8 @@ typedef struct
   GtkWidget * encoder_item;
   GtkWidget * chapter_item;
   GtkWidget * mass_tag_item;
+  GtkWidget * auto_number_item;
+  GtkWidget * auto_rename_item;
   GtkWidget * menu;
   } selected_menu_t;
 
@@ -215,8 +217,6 @@ struct track_list_s
 
   GtkWidget * delete_button;
   GtkWidget * config_button;
-  //  GtkWidget * up_button;
-  //  GtkWidget * down_button;
   GtkWidget * encoder_button;
   GtkWidget * chapter_button;
 
@@ -241,8 +241,6 @@ struct track_list_s
   const bg_parameter_info_t * encoder_parameters;
   
   bg_gtk_time_display_t * time_total;
-
-
   int show_tooltips;
 
   menu_t menu;
@@ -250,6 +248,7 @@ struct track_list_s
   encoder_pp_window_t * encoder_pp_window;
 
   char * open_path;
+  char * rename_mask;
   bg_gtk_filesel_t * filesel;
   
   char * clipboard;
@@ -338,6 +337,8 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.mass_tag_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.auto_number_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.auto_rename_item, 1);
 
     gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 1);
     gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 1);
@@ -363,6 +364,8 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.mass_tag_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.auto_number_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.auto_rename_item, 0);
 
     gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 0);
     gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 0);
@@ -386,6 +389,8 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.mass_tag_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.auto_number_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.auto_rename_item, 1);
     
     gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 1);
     gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 1);
@@ -715,6 +720,7 @@ static void move_down(track_list_t * l)
   }
 
 static void add_file_callback(char ** files, const char * plugin,
+                              int prefer_edl,
                               void * data)
   {
   const bg_plugin_info_t * plugin_info;
@@ -730,11 +736,12 @@ static void add_file_callback(char ** files, const char * plugin,
     plugin_info = NULL;
   while(files[i])
     {
-    
     new_track =
       bg_transcoder_track_create(files[i], plugin_info,
+                                 prefer_edl,
                                  -1, l->plugin_reg,
-                                 l->track_defaults_section, l->encoder_section, NULL);
+                                 l->track_defaults_section,
+                                 l->encoder_section, NULL);
     add_track(l, new_track);
     track_list_update(l);
     i++;
@@ -742,7 +749,8 @@ static void add_file_callback(char ** files, const char * plugin,
 
   /* Remember open path */
   if(l->filesel)
-    l->open_path = bg_strdup(l->open_path, bg_gtk_filesel_get_directory(l->filesel));
+    l->open_path = bg_strdup(l->open_path,
+                             bg_gtk_filesel_get_directory(l->filesel));
   }
 
 static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
@@ -935,7 +943,124 @@ static void mass_tag(track_list_t * l)
   bg_cfg_section_destroy(s);
   bg_parameter_info_destroy_array(params);
   }
+
+static const bg_parameter_info_t auto_rename_parameters[] =
+  {
+    {
+      .name =        "rename_mask",
+      .long_name =   TRS("Format for track names"),
+      .type =        BG_PARAMETER_STRING,
+      .help_string = TRS("Format specifier for tracknames from\n\
+metadata\n\
+%p:    Artist\n\
+%a:    Album\n\
+%g:    Genre\n\
+%t:    Track name\n\
+%<d>n: Track number with <d> digits\n\
+%y:    Year\n\
+%c:    Comment"),
+      
+    },
+    { /* End */ },
+  };
+
+typedef struct
+  {
+  char * rename_mask;
+  } auto_rename_parameter_data;
+
+static void set_auto_rename_parameter(void * data, const char * name,
+                                      const bg_parameter_value_t * val)
+  {
+  auto_rename_parameter_data * d = data;
+
+  if(!name)
+    return;
+  if(!strcmp(name, "rename_mask"))
+    d->rename_mask = bg_strdup(d->rename_mask,
+                               val->val_str);
+  }
+
+static void auto_rename(track_list_t * l)
+  {
+  bg_parameter_info_t * metadata_params;
+  bg_parameter_info_t * auto_rename_params;
+  auto_rename_parameter_data d;
+  bg_dialog_t * dlg;
   
+  metadata_params = bg_metadata_get_parameters(NULL);
+  auto_rename_params =
+    bg_parameter_info_copy_array(auto_rename_parameters);
+
+  auto_rename_params[0].val_default.val_str =
+    bg_strdup(NULL, l->rename_mask);
+
+  memset(&d, 0, sizeof(d));
+  
+  
+  /* Create dialog */
+  dlg = bg_dialog_create(NULL,
+                         set_auto_rename_parameter,
+                         NULL,
+                         &d,
+                         auto_rename_params,
+                         TR("Auto rename"));
+  bg_dialog_show(dlg, l->widget);
+  bg_dialog_destroy(dlg);
+  
+  if(d.rename_mask)
+    {
+    bg_transcoder_track_t * t = l->tracks;
+    while(t)
+      {
+      if(t->selected)
+        {
+        char * new_name;
+        bg_metadata_t m;
+        memset(&m, 0, sizeof(m));
+        bg_cfg_section_apply(t->metadata_section,
+                             metadata_params,
+                             bg_metadata_set_parameter,
+                             &m);
+        new_name = bg_create_track_name(&m, d.rename_mask);
+        bg_cfg_section_set_parameter_string(t->general_section,
+                                            "name", new_name);
+        free(new_name);
+        bg_metadata_free(&m);
+        }
+      t = t->next;
+      }
+    /* Save for later use */
+    l->rename_mask = bg_strdup(l->rename_mask, d.rename_mask);
+    free(d.rename_mask);
+    track_list_update(l);
+    }
+  
+  bg_parameter_info_destroy_array(metadata_params);
+  bg_parameter_info_destroy_array(auto_rename_params);
+  }
+
+
+static void auto_number(track_list_t * l)
+  {
+  bg_transcoder_track_t * t;
+  int num = 1;
+  
+  t = l->tracks;
+
+  while(t)
+    {
+    if(t->selected)
+      {
+      bg_cfg_section_set_parameter_int(t->metadata_section, 
+                                       "track", num);
+      num++;
+      }
+    t = t->next;
+    }
+  }
+
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   track_list_t * t;
@@ -986,7 +1111,8 @@ static void button_callback(GtkWidget * w, gpointer data)
                                       add_file_callback,
                                       drivesel_close_callback,
                                       t, NULL  /* parent */,
-                                      t->plugin_reg, BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
+                                      t->plugin_reg,
+                                      BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
     gtk_widget_set_sensitive(t->add_removable_button, 0);
     bg_gtk_drivesel_run(drivesel, 0, t->add_removable_button);
     
@@ -1037,6 +1163,15 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     mass_tag(t);
     }
+  else if(w == t->menu.selected_menu.auto_number_item)
+    {
+    auto_number(t);
+    }
+  else if(w == t->menu.selected_menu.auto_rename_item)
+    {
+    auto_rename(t);
+    }
+  
   else if((w == t->encoder_button) ||
           (w == t->menu.selected_menu.encoder_item))
     {
@@ -1114,6 +1249,10 @@ static void init_menu(track_list_t * t)
     create_item(t, t->menu.selected_menu.menu, TR("Edit chapters..."), "chapter_16.png");
   t->menu.selected_menu.mass_tag_item =
     create_item(t, t->menu.selected_menu.menu, TR("Mass tag..."), NULL);
+  t->menu.selected_menu.auto_number_item =
+    create_item(t, t->menu.selected_menu.menu, TR("Auto numbering"), NULL);
+  t->menu.selected_menu.auto_rename_item =
+    create_item(t, t->menu.selected_menu.menu, TR("Auto rename..."), NULL);
   t->menu.selected_menu.encoder_item =
     create_item(t, t->menu.selected_menu.menu, TR("Change encoders..."), "plugin_16.png");
 
@@ -1169,6 +1308,8 @@ static void init_menu(track_list_t * t)
   gtk_widget_set_sensitive(t->menu.selected_menu.encoder_item, 0);
   gtk_widget_set_sensitive(t->menu.selected_menu.chapter_item, 0);
   gtk_widget_set_sensitive(t->menu.selected_menu.mass_tag_item, 0);
+  gtk_widget_set_sensitive(t->menu.selected_menu.auto_number_item, 0);
+  gtk_widget_set_sensitive(t->menu.selected_menu.auto_rename_item, 0);
   
   gtk_widget_set_sensitive(t->menu.edit_menu.cut_item, 0);
   gtk_widget_set_sensitive(t->menu.edit_menu.copy_item, 0);
@@ -1248,7 +1389,7 @@ void track_list_add_url(track_list_t * l, char * url)
   bg_transcoder_track_t * new_tracks;
   new_tracks =
     bg_transcoder_track_create(url,
-                               NULL,
+                               NULL, 0,
                                -1, l->plugin_reg,
                                l->track_defaults_section, l->encoder_section,
                                NULL);
@@ -1665,6 +1806,8 @@ void track_list_destroy(track_list_t * t)
 
   if(t->open_path)
     free(t->open_path);
+  if(t->rename_mask)
+    free(t->rename_mask);
   if(t->clipboard)
     free(t->clipboard);
 
@@ -1750,6 +1893,13 @@ bg_parameter_info_t parameters[] =
       .flags =       BG_PARAMETER_HIDE_DIALOG,
       .val_default = { .val_str = "." },
     },
+    {
+      .name =        "rename_mask",
+      .long_name =   "rename mask",
+      .type =        BG_PARAMETER_STRING,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_str = "%p - %t" },
+    },
     { /* End of parameters */ }
   };
 
@@ -1770,6 +1920,8 @@ track_list_set_parameter(void * data, const char * name,
   
   if(!strcmp(name, "open_path"))
     t->open_path = bg_strdup(t->open_path, val->val_str);
+  if(!strcmp(name, "rename_mask"))
+    t->rename_mask = bg_strdup(t->rename_mask, val->val_str);
   }
 
 int track_list_get_parameter(void * data, const char * name, bg_parameter_value_t * val)
@@ -1783,6 +1935,11 @@ int track_list_get_parameter(void * data, const char * name, bg_parameter_value_
   if(!strcmp(name, "open_path"))
     {
     val->val_str = bg_strdup(val->val_str, t->open_path);
+    return 1;
+    }
+  else if(!strcmp(name, "rename_mask"))
+    {
+    val->val_str = bg_strdup(val->val_str, t->rename_mask);
     return 1;
     }
   return 0;

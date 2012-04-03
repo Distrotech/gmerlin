@@ -54,29 +54,26 @@ static void create_sections(bg_transcoder_track_t * t,
   bg_cfg_section_t * filter_section;
   bg_cfg_section_t * textrenderer_section;
 
-#if 0
-  t->general_section =
-    bg_cfg_section_create_from_parameters("General", t->general_parameters);
-#else
   t->input_section = bg_cfg_section_copy(input_section);
   
-  general_section = bg_cfg_section_find_subsection(track_defaults_section, "general");
+  general_section =
+    bg_cfg_section_find_subsection(track_defaults_section, "general");
   t->general_section = bg_cfg_section_copy(general_section);
   
-  /* The parameters which were initially hidden are not present in the general section.
+  /* The parameters which were initially hidden are not
+     present in the general section.
      Therefore, we will create the missing items now */
 
   i = 0;
   while(t->general_parameters[i].name)
     {
-    bg_cfg_section_get_parameter(t->general_section,
+    bg_cfg_section_set_parameter(t->general_section,
                                  &t->general_parameters[i],
-                                 NULL);
+                                 &t->general_parameters[i].val_default);
+    
     i++;
     }
-  
-#endif
-  
+    
   /* Stop here for redirectors */
 
   if(t->url)
@@ -178,7 +175,7 @@ static const bg_parameter_info_t parameters_general[] =
       .name =      "prefer_edl",
       .long_name = TRS("Prefer EDL"),
       .type =      BG_PARAMETER_CHECKBUTTON,
-      .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects which one to decode."),
+      .flags =     BG_PARAMETER_HIDE_DIALOG,
     },
     {
       .name =      "track",
@@ -510,10 +507,6 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
          !strcmp(track->general_parameters[i].name, "set_end_time") ||
          !strcmp(track->general_parameters[i].name, "end_time"))
         track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
-    
-      if(!strcmp(track->general_parameters[i].name, "prefer_edl"))
-        track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
-    
       i++;
       }
     }
@@ -541,6 +534,7 @@ static char * create_stream_label(const char * info, const char * language)
 static void set_track(bg_transcoder_track_t * track,
                       bg_track_info_t * track_info,
                       bg_plugin_handle_t * input_plugin,
+                      const bg_plugin_info_t * input_info,
                       const char * location,
                       int track_index,
                       int total_tracks,
@@ -549,12 +543,12 @@ static void set_track(bg_transcoder_track_t * track,
   int i;
   int subtitle_text_index, subtitle_overlay_index;
   const bg_input_plugin_t * input;
-  input = (bg_input_plugin_t *)(input_plugin->plugin);
+  input = (bg_input_plugin_t *)input_plugin->plugin;
   
   /* General parameters */
-
   
-  track->general_parameters = bg_parameter_info_copy_array(parameters_general);
+  track->general_parameters =
+    bg_parameter_info_copy_array(parameters_general);
 
   i = 0;
   while(track->general_parameters[i].name)
@@ -562,47 +556,13 @@ static void set_track(bg_transcoder_track_t * track,
     if(!strcmp(track->general_parameters[i].name, "name"))
       {
       if(track_info->name)
-        track->general_parameters[i].val_default.val_str = bg_strdup(NULL,
-                                                                     track_info->name);
+        track->general_parameters[i].val_default.val_str =
+          bg_strdup(NULL, track_info->name);
       else
         track->general_parameters[i].val_default.val_str =
           bg_get_track_name_default(location, track_index, total_tracks);
       track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
       }
-#if 0
-    else if(!strcmp(track->general_parameters[i].name, "audio_encoder"))
-      {
-      if(encoder_info->audio_info)
-        track->general_parameters[i].val_default.val_str =
-          bg_strdup(NULL, encoder_info->audio_info->name);
-      else
-        track->general_parameters[i].val_default.val_str =
-          bg_strdup(NULL, encoder_info->video_info->name);
-      }
-    else if(!strcmp(track->general_parameters[i].name, "subtitle_text_encoder"))
-      {
-      if(encoder_info->subtitle_text_info)
-        track->general_parameters[i].val_default.val_str =
-          bg_strdup(NULL, encoder_info->subtitle_text_info->name);
-      else
-        track->general_parameters[i].val_default.val_str =
-          bg_strdup(NULL, encoder_info->video_info->name);
-      }
-    else if(!strcmp(track->general_parameters[i].name, "subtitle_overlay_encoder"))
-      {
-      if(encoder_info->subtitle_overlay_info)
-        track->general_parameters[i].val_default.val_str =
-          bg_strdup(NULL, encoder_info->subtitle_overlay_info->name);
-      else
-        track->general_parameters[i].val_default.val_str =
-          bg_strdup(NULL, encoder_info->video_info->name);
-      }
-
-    
-    else if(!strcmp(track->general_parameters[i].name, "video_encoder"))
-      track->general_parameters[i].val_default.val_str =
-        bg_strdup(NULL, encoder_info->video_info->name);
-#endif
     
     else if(!strcmp(track->general_parameters[i].name, "duration"))
       track->general_parameters[i].val_default.val_time = track_info->duration;
@@ -614,15 +574,21 @@ static void set_track(bg_transcoder_track_t * track,
                     input->get_disc_name(input_plugin->priv));
       }
     else if(!strcmp(track->general_parameters[i].name, "flags"))
-      {
       track->general_parameters[i].val_default.val_i = track_info->flags;
-      }
     else if(!strcmp(track->general_parameters[i].name, "location"))
       track->general_parameters[i].val_default.val_str = bg_strdup(NULL, location);
 
     else if(!strcmp(track->general_parameters[i].name, "plugin"))
-      track->general_parameters[i].val_default.val_str = bg_strdup(NULL, input_plugin->info->name);
-
+      track->general_parameters[i].val_default.val_str =
+        bg_strdup(NULL, input_info->name);
+    else if(!strcmp(track->general_parameters[i].name, "prefer_edl"))
+      {
+      if(input_plugin->edl)
+        track->general_parameters[i].val_default.val_i = 1;
+      else
+        track->general_parameters[i].val_default.val_i = 0;
+        
+      }
     else if(!strcmp(track->general_parameters[i].name, "track"))
       track->general_parameters[i].val_default.val_i = track_index;
 
@@ -800,6 +766,7 @@ static void disable_streams(bg_input_plugin_t * plugin, void * priv)
 bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
                            const bg_plugin_info_t * input_info,
+                           int prefer_edl,
                            int track, bg_plugin_registry_t * plugin_reg,
                            bg_cfg_section_t * track_defaults_section,
                            bg_cfg_section_t * encoder_section,
@@ -816,29 +783,40 @@ bg_transcoder_track_create(const char * url,
   bg_plugin_handle_t     * plugin_handle = NULL;
   int num_tracks;
   int streams_enabled = 0;
-  int prefer_edl;
   
   bg_cfg_section_t * input_section;
   
   /* Load the plugin */
 
-  bg_cfg_section_get_parameter_int(track_defaults_section, "prefer_edl", &prefer_edl);
-  
-  if(!bg_input_plugin_load(plugin_reg, url,
-                           input_info, &plugin_handle, NULL, prefer_edl))
+  if(!input_info)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", url);
-    return NULL;
+    if(!bg_input_plugin_load(plugin_reg, url,
+                             input_info, &plugin_handle, NULL, 0))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", url);
+      return NULL;
+      }
+    input_info = bg_plugin_find_by_name(plugin_reg, plugin_handle->info->name);
     }
+
+  if(!plugin_handle || prefer_edl)
+    {
+    if(!bg_input_plugin_load(plugin_reg, url,
+                             input_info, &plugin_handle, NULL, prefer_edl))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", url);
+      return NULL;
+      }
+    }
+  
   if(plugin_handle->edl)
     bg_cfg_section_set_parameter_int(track_defaults_section, "prefer_edl", 1);
   else
     bg_cfg_section_set_parameter_int(track_defaults_section, "prefer_edl", 0);
   
-  input = (bg_input_plugin_t*)(plugin_handle->plugin);
+  input = (bg_input_plugin_t*)plugin_handle->plugin;
   
-  input_section = bg_plugin_registry_get_section(plugin_reg,
-                                                 plugin_handle->info->name);
+  input_section = bg_plugin_registry_get_section(plugin_reg, input_info->name);
   
   /* Decide what to load */
   
@@ -870,7 +848,7 @@ bg_transcoder_track_create(const char * url,
       streams_enabled = 1;
       }
     
-    set_track(new_track, track_info, plugin_handle, url, track, num_tracks,
+    set_track(new_track, track_info, plugin_handle, input_info, url, track, num_tracks,
               plugin_reg);
     create_sections(new_track, track_defaults_section, input_section,
                     encoder_section, track_info);
@@ -918,7 +896,7 @@ bg_transcoder_track_create(const char * url,
         streams_enabled = 1;
         }
       
-      set_track(new_track, track_info, plugin_handle, url, i, num_tracks,
+      set_track(new_track, track_info, plugin_handle, input_info, url, i, num_tracks,
                 plugin_reg);
       create_sections(new_track, track_defaults_section, input_section,
                       encoder_section, track_info);
@@ -966,9 +944,10 @@ static bg_transcoder_track_t * remove_redirectors(bg_transcoder_track_t * entrie
       /* Load "real" url */
       
       new_entry = bg_transcoder_track_create(e->url,
-                                             info,
+                                             info, 0,
                                              -1, plugin_reg,
-                                             track_defaults_section, encoder_section,
+                                             track_defaults_section,
+                                             encoder_section,
                                              NULL);
       
       if(new_entry)
@@ -1046,10 +1025,11 @@ bg_transcoder_track_create_from_urilist(const char * list,
     if(!ret)
       {
       ret = bg_transcoder_track_create(uri_list[i],
-                                       NULL,
+                                       NULL, 0,
                                        -1,
                                        plugin_reg,
-                                       track_defaults_section, encoder_section, NULL);
+                                       track_defaults_section,
+                                       encoder_section, NULL);
       if(ret)
         {
         ret_last = ret;
@@ -1060,10 +1040,11 @@ bg_transcoder_track_create_from_urilist(const char * list,
     else
       {
       ret_last->next = bg_transcoder_track_create(uri_list[i],
-                                                  NULL,
+                                                  NULL, 0,
                                                   -1,
                                                   plugin_reg,
-                                                  track_defaults_section, encoder_section,
+                                                  track_defaults_section,
+                                                  encoder_section,
                                                   NULL);
       if(ret)
         {
@@ -1093,7 +1074,7 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
   bg_transcoder_track_t * ret_last =NULL;
   bg_transcoder_track_t * ret =NULL;
   const bg_plugin_info_t * plugin_info;
-
+  int prefer_edl;
   new_entries = bg_album_entries_new_from_xml(xml_string);
 
   entry = new_entries;
@@ -1104,11 +1085,18 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
       plugin_info = bg_plugin_find_by_name(plugin_reg, entry->plugin);
     else
       plugin_info = NULL;
+
+    if(entry->flags & BG_ALBUM_ENTRY_EDL)
+      prefer_edl = 1;
+    else
+      prefer_edl = 0;
+    
     if(!ret)
       {
         
       ret = bg_transcoder_track_create(entry->location,
                                        plugin_info,
+                                       prefer_edl,
                                        entry->index,
                                        plugin_reg,
                                        track_defaults_section, encoder_section,
@@ -1119,6 +1107,7 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
       {
       ret_last->next = bg_transcoder_track_create(entry->location,
                                                   plugin_info,
+                                                  prefer_edl,
                                                   entry->index,
                                                   plugin_reg,
                                                   track_defaults_section,

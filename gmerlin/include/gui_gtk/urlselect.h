@@ -27,6 +27,7 @@ typedef struct bg_gtk_urlsel_s bg_gtk_urlsel_t;
 bg_gtk_urlsel_t *
 bg_gtk_urlsel_create(const char * title,
                      void (*add_url)(char ** urls, const char * plugin,
+                                     int prefer_edl,
                                      void * data),
                      void (*close_notify)(bg_gtk_urlsel_t *,
                                           void * data),

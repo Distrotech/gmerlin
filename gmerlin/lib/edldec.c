@@ -172,7 +172,6 @@ typedef struct
   const bg_edl_t * edl;
 
   bg_plugin_registry_t * plugin_reg;
-  //  const bg_plugin_info_t * plugin_info;
   bg_input_callbacks_t * callbacks;
 
   gavl_audio_options_t * a_opt;
@@ -1373,7 +1372,7 @@ static const bg_input_plugin_t edl_plugin =
       .long_name =      TRS("EDL decoder"),
       .description =    TRS("This metaplugin decodes an EDL as if it was a single file."),
       .type =           BG_PLUGIN_INPUT,
-      .flags =          BG_PLUGIN_FILE,
+      .flags =          0,
       .priority =       1,
       .create =         NULL,
       .destroy =        destroy_edl,
