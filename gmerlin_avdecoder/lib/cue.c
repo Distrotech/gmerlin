@@ -342,18 +342,9 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
         track->metadata->title = bgav_strdup(cue->tracks[i].title);
       track->metadata->track = cue->tracks[i].number;
 
-#if 0      
-      /* Build track name */
-      if(cue->tracks[i].title)
-        {
-        if(cue->tracks[i].performer)
-          track->name = 
-        }
-#endif 
       stream = bgav_edl_add_audio_stream(track);
       stream->timescale = 44100;
-      
-      
+     
       seg = bgav_edl_add_segment(stream);
       seg->timescale = 44100;
       seg->speed_num = 1;
@@ -374,7 +365,6 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
               last_seg->src_time;
             }
           }
-
         if(cue->tracks[i].indices[j].number == 1)
           {
           /* Start time of this track */
