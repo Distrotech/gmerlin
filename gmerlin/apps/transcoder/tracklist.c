@@ -918,7 +918,7 @@ static void mass_tag(track_list_t * l)
                                        &val);
           if(params[i].type == BG_PARAMETER_STRING)
             {
-            if(!strcmp(val.val_str, "-"))
+            if(val.val_str && !strcmp(val.val_str, "-"))
               {
               bg_parameter_value_t val1;
               val1.val_str = NULL;
