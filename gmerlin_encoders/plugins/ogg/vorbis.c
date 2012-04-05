@@ -155,6 +155,12 @@ static void build_comment(vorbis_comment * vc, bg_metadata_t * metadata)
   
   if(metadata->artist)
     vorbis_comment_add_tag(vc, "ARTIST", metadata->artist);
+
+  if(metadata->albumartist)
+    {
+    vorbis_comment_add_tag(vc, "ALBUMARTIST", metadata->albumartist);
+    vorbis_comment_add_tag(vc, "ALBUM ARTIST", metadata->albumartist);
+    }
   
   if(metadata->title)
     vorbis_comment_add_tag(vc, "TITLE", metadata->title);
@@ -528,8 +534,8 @@ static int write_packet_vorbis(void * data, gavl_packet_t * packet)
   ogg_stream_packetin(&vorbis->enc_os,&op);
   
   /* Flush pages if any */
-  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, 0)) <= 0)
-    return result;
+  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, 0)) < 0)
+    return 0;
   return 1;
   }
 
