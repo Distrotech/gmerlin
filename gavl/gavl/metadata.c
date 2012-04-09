@@ -48,6 +48,7 @@ gavl_metadata_free(gavl_metadata_t * m)
     }
   if(m->tags)
     free(m->tags);
+  gavl_metadata_init(m);
   }
 
 void
@@ -64,7 +65,7 @@ gavl_metadata_copy(gavl_metadata_t * dst,
     }
   dst->num_tags = src->num_tags;
   }
-                   
+
 
 void
 gavl_metadata_init(gavl_metadata_t * m)
