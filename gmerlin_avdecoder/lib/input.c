@@ -870,7 +870,7 @@ void bgav_input_close(bgav_input_context_t * ctx)
   if(ctx->tt)
     bgav_track_table_unref(ctx->tt);
     
-  bgav_metadata_free(&ctx->metadata);
+  gavl_metadata_free(&ctx->metadata);
   //  free(ctx);
   
   opt = ctx->opt;

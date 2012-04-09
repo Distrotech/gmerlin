@@ -289,17 +289,17 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
   bgav_edl_segment_t * seg;
   bgav_edl_segment_t * last_seg;
   const char * pos;
-  bgav_metadata_t m;
+  gavl_metadata_t m;
   
   bgav_edl_t * ret = bgav_edl_create();
 
   /* Create common metadata entries */
   memset(&m , 0, sizeof(m));
   if(cue->title)
-    m.album = bgav_strdup(cue->title);
+    gavl_metadata_set(&m, GAVL_META_ALBUM, cue->title);
   if(cue->performer)
-    m.albumartist = bgav_strdup(cue->performer);
-
+    gavl_metadata_set(&m, GAVL_META_ALBUMARTIST, cue->performer);
+  
   for(i = 0; i < cue->num_comments; i++)
     {
     pos = cue->comments[i];
@@ -308,21 +308,21 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
       pos += 6;
       pos = skip_space(pos);
       if(pos)
-        m.genre = get_string(pos);
+        gavl_metadata_set_nocpy(&m, GAVL_META_GENRE, get_string(pos));
       }
     if(!strncasecmp(pos, "DATE ", 5))
       {
       pos += 5;
       pos = skip_space(pos);
       if(pos)
-        m.date = get_string(pos);
+        gavl_metadata_set_nocpy(&m, GAVL_META_YEAR, get_string(pos));
       }
     if(!strncasecmp(pos, "COMMENT ", 8))
       {
       pos += 8;
       pos = skip_space(pos);
       if(pos)
-        m.comment = get_string(pos);
+        gavl_metadata_set_nocpy(&m, GAVL_META_COMMENT, get_string(pos));
       }
     }
 
@@ -334,13 +334,14 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
       track = bgav_edl_add_track(ret);
       track->metadata = calloc(1, sizeof(*track->metadata));
             
-      bgav_metadata_copy(track->metadata, &m);
+      gavl_metadata_copy(track->metadata, &m);
       
       if(cue->tracks[i].performer)
-        track->metadata->artist = bgav_strdup(cue->tracks[i].performer);
+        gavl_metadata_set(track->metadata, GAVL_META_ARTIST, cue->tracks[i].performer);
       if(cue->tracks[i].title)
-        track->metadata->title = bgav_strdup(cue->tracks[i].title);
-      track->metadata->track = cue->tracks[i].number;
+        gavl_metadata_set(track->metadata, GAVL_META_TITLE, cue->tracks[i].title);
+
+      gavl_metadata_set_int(track->metadata, GAVL_META_TRACKNUMBER, cue->tracks[i].number);
 
       stream = bgav_edl_add_audio_stream(track);
       stream->timescale = 44100;
@@ -386,7 +387,7 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
       last_seg->src_time;
     }
 
-  bgav_metadata_free(&m);
+  gavl_metadata_free(&m);
   
   return ret;
   }

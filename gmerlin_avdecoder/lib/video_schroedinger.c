@@ -360,7 +360,8 @@ static int init_schroedinger(bgav_stream_t * s)
   if(!decode_picture(s)) /* Get format */
     return 0;
 
-  s->description = bgav_sprintf("Dirac"); 
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                    "Dirac");
   return 1;
   }
 

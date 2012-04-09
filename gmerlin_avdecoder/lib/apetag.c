@@ -134,29 +134,29 @@ void bgav_ape_tag_dump(bgav_ape_tag_t * tag)
     }
   }
 
-#define STRVAL(k, v) \
+#define STRVAL(k, gavl_key) \
   if(!strcasecmp(tag->items[i].key, k) && tag->items[i].str)  \
-    m->v = bgav_strdup(tag->items[i].str)
+    gavl_metadata_set(m, gavl_key, tag->items[i].str);
 
-#define INTVAL(k, v) \
-  if(!strcasecmp(tag->items[i].key, k) && tag->items[i].str)  \
-    m->v = atoi(tag->items[i].str)
+#define INTVAL(k, gavl_key) \
+  if(!strcasecmp(tag->items[i].key, k) && tag->items[i].str)            \
+    gavl_metadata_set_int(m, gavl_key, atoi(tag->items[i].str));
 
-void bgav_ape_tag_2_metadata(bgav_ape_tag_t * tag, bgav_metadata_t * m)
+void bgav_ape_tag_2_metadata(bgav_ape_tag_t * tag, gavl_metadata_t * m)
   {
   int i;
   for(i = 0; i < tag->num_items; i++)
     {
-    STRVAL("Genre",     genre);
-    STRVAL("Year",      date);
-    STRVAL("Artist",    artist);
-    STRVAL("Album",     album);
-    STRVAL("Title",     title);
-    STRVAL("Comment",   comment);
-    STRVAL("Composer",  author);
-    STRVAL("Copyright", copyright);
+    STRVAL("Genre",     GAVL_META_GENRE);
+    STRVAL("Year",      GAVL_META_YEAR);
+    STRVAL("Artist",    GAVL_META_ARTIST);
+    STRVAL("Album",     GAVL_META_ALBUM);
+    STRVAL("Title",     GAVL_META_TITLE);
+    STRVAL("Comment",   GAVL_META_COMMENT);
+    STRVAL("Composer",  GAVL_META_AUTHOR);
+    STRVAL("Copyright", GAVL_META_COPYRIGHT);
 
-    INTVAL("Track", track);
+    INTVAL("Track", GAVL_META_TRACKNUMBER);
     }
   }
 

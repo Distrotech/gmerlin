@@ -28,6 +28,8 @@
 
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
+#include <gavl/metadata.h>
+
 #include "bgavdefs.h" // This is ugly, but works
 
 #ifdef __cplusplus
@@ -113,7 +115,7 @@ bgav_t * bgav_create();
  * This structure is returned by \ref bgav_get_metadata
  */
 
-typedef struct bgav_metadata_s bgav_metadata_t;
+typedef gavl_metadata_t bgav_metadata_t;
 
 /** \ingroup metadata
  * \brief Get the author (or composer) of the track

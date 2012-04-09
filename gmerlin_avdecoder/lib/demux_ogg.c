@@ -108,7 +108,7 @@ typedef struct
 
   int keyframe_granule_shift;
 
-  bgav_metadata_t metadata;
+  gavl_metadata_t metadata;
 
   int64_t frame_counter;
 
@@ -283,7 +283,7 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
       bgav_dprintf( "  Last granulepos: %" PRId64 "\n",
               stream_priv->last_granulepos);
       bgav_dprintf( "  Metadata:\n");
-      bgav_metadata_dump(&stream_priv->metadata);
+      gavl_metadata_dump(&stream_priv->metadata);
       }
     for(j = 0; j < track->num_video_streams; j++)
       {
@@ -294,7 +294,7 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
       bgav_dprintf( "  Last granulepos: %" PRId64 "\n",
               stream_priv->last_granulepos);
       bgav_dprintf( "  Metadata:\n");
-      bgav_metadata_dump(&stream_priv->metadata);
+      gavl_metadata_dump(&stream_priv->metadata);
       }
     for(j = 0; j < track->num_subtitle_streams; j++)
       {
@@ -307,7 +307,7 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
       bgav_dprintf( "  Serialno: %d\n", s->stream_id);
       bgav_dprintf( "  Language: %s\n", s->language);
       bgav_dprintf( "  Metadata:\n");
-      bgav_metadata_dump(&stream_priv->metadata);
+      gavl_metadata_dump(&stream_priv->metadata);
       }
     
     }
@@ -334,9 +334,7 @@ static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
   if(!bgav_vorbis_comment_read(&vc, input_mem))
     return;
 
-  bgav_metadata_free(&stream_priv->metadata);
-  if(s->language[0] != '\0')
-    s->language[0] = '\0';
+  gavl_metadata_free(&stream_priv->metadata);
   
   bgav_vorbis_comment_2_metadata(&vc, &stream_priv->metadata);
 
@@ -345,7 +343,9 @@ static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
     {
     language = bgav_lang_from_name(field);
     if(language)
-      strcpy(s->language, language);
+      {
+      gavl_metadata_set(&s->m, GAVL_META_LANGUAGE, language);
+      }
     }
   bgav_vorbis_comment_free(&vc);
   bgav_input_destroy(input_mem);
@@ -515,7 +515,7 @@ static void cleanup_stream_ogg(bgav_stream_t * s)
   if(stream_priv)
     {
     ogg_stream_clear(&stream_priv->os);
-    bgav_metadata_free(&stream_priv->metadata);
+    gavl_metadata_free(&stream_priv->metadata);
     free(stream_priv);
     }
   }
@@ -855,7 +855,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         
         s->fourcc = FOURCC_OGM_TEXT;
         s->timescale = 10000000 / ogm_header.time_unit;
-        s->description = bgav_sprintf("OGM subtitles");
+
+        gavl_metadata_set(&s->m, GAVL_META_FORMAT, "OGM subtitles");
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
         priv->is_ogm = 1;
@@ -1349,17 +1350,17 @@ static void get_metadata(bgav_track_t * track)
   {
   stream_priv_t * stream_priv;
   int i;
-  bgav_metadata_free(&track->metadata);
+  gavl_metadata_free(&track->metadata);
 
   for(i = 0; i < track->num_audio_streams; i++)
     {
     stream_priv = track->audio_streams[i].priv;
-    bgav_metadata_merge2(&track->metadata, &stream_priv->metadata);
+    gavl_metadata_merge2(&track->metadata, &stream_priv->metadata);
     }
   for(i = 0; i < track->num_video_streams; i++)
     {
     stream_priv = track->video_streams[i].priv;
-    bgav_metadata_merge2(&track->metadata, &stream_priv->metadata);
+    gavl_metadata_merge2(&track->metadata, &stream_priv->metadata);
     }
   }
 
@@ -1508,14 +1509,19 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
          metadata */
       if(ctx->tt->num_tracks > 1)
         {
-        if(ctx->tt->tracks[i].metadata.artist && ctx->tt->tracks[i].metadata.title)
-          ctx->tt->tracks[i].name = bgav_sprintf("%s - %s",
-                                                 ctx->tt->tracks[i].metadata.artist,
-                                                 ctx->tt->tracks[i].metadata.title);
-        else if(ctx->tt->tracks[i].metadata.title)
-          ctx->tt->tracks[i].name = bgav_sprintf("%s",
-                                                 ctx->tt->tracks[i].metadata.title);
+        const char * artist;
+        const char * title;
         
+        artist = gavl_metadata_get(&ctx->tt->tracks[i].metadata, GAVL_META_ARTIST);
+        title = gavl_metadata_get(&ctx->tt->tracks[i].metadata, GAVL_META_TITLE);
+        
+        
+        if(artist && title)
+          ctx->tt->tracks[i].name = bgav_sprintf("%s - %s",
+                                                 artist,
+                                                 title);
+        else if(title)
+          ctx->tt->tracks[i].name = bgav_sprintf("%s", title);
         else
           ctx->tt->tracks[i].name = bgav_sprintf("Track %d", i+1);
         }
@@ -1523,8 +1529,10 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
     }
   else /* Streaming case */
     {
-    if(ctx->input->metadata.title)
-      ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
+    const char * title =
+      gavl_metadata_get(&ctx->tt->tracks[0].metadata, GAVL_META_TITLE);
+    if(title)
+      ctx->tt->tracks[0].name = bgav_strdup(title);
     get_metadata(&ctx->tt->tracks[0]);
 
     /* Set end position to -1 */
@@ -1612,12 +1620,18 @@ static int new_streaming_track(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static char * get_name(bgav_metadata_t * m)
+static char * get_name(gavl_metadata_t * m)
   {
-  if(m->artist && m->title)
-    return bgav_sprintf("%s - %s", m->artist, m->title);
-  else if(m->title)
-    return bgav_sprintf("%s", m->title);
+  const char * artist;
+  const char * title;
+
+  artist = gavl_metadata_get(m, GAVL_META_ARTIST);
+  title = gavl_metadata_get(m, GAVL_META_TITLE);
+  
+  if(artist && title)
+    return bgav_sprintf("%s - %s", artist, title);
+  else if(title)
+    return bgav_sprintf("%s", title);
   return NULL;
   }
 
@@ -1629,7 +1643,7 @@ static void metadata_changed(bgav_demuxer_context_t * ctx)
   if(ctx->opt->metadata_change_callback || ctx->opt->name_change_callback)
     {
     get_metadata(ctx->tt->cur);
-    bgav_metadata_merge2(&ctx->tt->cur->metadata, &ctx->input->metadata);
+    gavl_metadata_merge2(&ctx->tt->cur->metadata, &ctx->input->metadata);
     }
   
   if(ctx->opt->metadata_change_callback)

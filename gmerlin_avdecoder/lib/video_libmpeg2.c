@@ -547,11 +547,19 @@ static int init_mpeg2(bgav_stream_t*s)
   priv->frame->strides[0] = priv->info->sequence->width;
   priv->frame->strides[1] = priv->info->sequence->chroma_width;
   priv->frame->strides[2] = priv->info->sequence->chroma_width;
-  
+
+
+  gavl_metadata_set_nocpy(&s->m, GAVL_META_FORMAT,
+                          bgav_sprintf("MPEG-%d",
+                                       (priv->info->sequence->flags & SEQ_FLAG_MPEG2) ? 2 : 1));
+
+#if 0
   s->description =
     bgav_sprintf("MPEG-%d, %d kb/sec", 
                  (priv->info->sequence->flags & SEQ_FLAG_MPEG2) ? 2 : 1,
                  (priv->info->sequence->byte_rate * 8) / 1000);
+#endif
+  
   s->codec_bitrate = priv->info->sequence->byte_rate * 8;
   priv->flags |= FLAG_NEED_SEQUENCE;
   

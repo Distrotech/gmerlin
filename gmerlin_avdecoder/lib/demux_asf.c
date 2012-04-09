@@ -410,8 +410,9 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, (uint8_t*)str, len1) < len1)
       goto fail;
-    ctx->tt->cur->metadata.title = bgav_convert_string(cnv, str, len1,
-                                              NULL);
+    gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                            GAVL_META_TITLE, bgav_convert_string(cnv, str, len1,
+                                                                 NULL));
     }
 
   /* Author */
@@ -420,8 +421,9 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, (uint8_t*)str, len2) < len2)
       goto fail;
-    ctx->tt->cur->metadata.author =
-      bgav_convert_string(cnv, str, len2, NULL);
+    gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                            GAVL_META_AUTHOR, bgav_convert_string(cnv, str, len2,
+                                                                  NULL));
     }
 
   /* Copyright */
@@ -430,8 +432,9 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, (uint8_t*)str, len3) < len3)
       goto fail;
-    ctx->tt->cur->metadata.copyright =
-      bgav_convert_string(cnv, str, len3, NULL);
+    gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                            GAVL_META_COPYRIGHT, bgav_convert_string(cnv, str, len3,
+                                                                     NULL));
     }
 
   /* Comment */
@@ -440,8 +443,9 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, (uint8_t*)str, len4) < len4)
       goto fail;
-    ctx->tt->cur->metadata.comment =
-      bgav_convert_string(cnv, str, len4, NULL);
+    gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                            GAVL_META_COMMENT, bgav_convert_string(cnv, str, len4,
+                                                                   NULL));
     }
 
   /* Unknown stuff */

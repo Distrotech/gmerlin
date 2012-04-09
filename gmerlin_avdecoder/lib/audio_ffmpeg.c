@@ -521,7 +521,8 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
       return 0;
   //    }
     
-  s->description = bgav_sprintf("%s", priv->info->format_name);
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                    priv->info->format_name);
   return 1;
   }
 

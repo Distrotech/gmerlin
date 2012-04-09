@@ -306,12 +306,18 @@ static int open_4xm(bgav_demuxer_context_t * ctx)
                 switch(chunk.fourcc)
                   {
                   case ID_info:
-                    ctx->tt->cur->metadata.comment =
-                      calloc(chunk.size+1, 1);
+                    {
+                    char * tmp_string = calloc(chunk.size+1, 1);
                     if(bgav_input_read_data(ctx->input,
-                                            (uint8_t*)ctx->tt->cur->metadata.comment,
+                                            (uint8_t*)tmp_string,
                                             chunk.size) < chunk.size)
+                      {
+                      free(tmp_string);
                       return 0;
+                      }
+                    gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                                            GAVL_META_COMMENT, tmp_string);
+                    }
                     break;
                   case ID_std_:
                     bgav_input_skip(ctx->input, 4); // data rate

@@ -170,25 +170,9 @@ static char const * const id3_genres[GENRE_MAX] =
     "Anime", "JPop", "Synthpop"
   };
 
-#define CS(src, dst) \
-if(t->src) m->dst = bgav_strdup(t->src);
+#define CS(src, gavl_name) \
+  if(t->src) gavl_metadata_set(m, gavl_name, t->src);
 
-#if 0
-  
-typedef struct
-  {
-  char * title;   /* Song title	 30 characters */
-  char * artist;  /* Artist	 30 characters */
-  char * album;   /* Album Album 30 characters */
-  char * year;    /* Year         4 characters  */
-  char * comment; /* Comment     30/28 characters */
-
-  uint8_t genre;
-  uint8_t track;
-  
-  } bgav_id3v1_tag_t;
-
-#endif
 
 const char * bgav_id3v1_get_genre(int id)
   {
@@ -197,15 +181,16 @@ const char * bgav_id3v1_get_genre(int id)
   return NULL;
   }
 
-void bgav_id3v1_2_metadata(bgav_id3v1_tag_t * t, bgav_metadata_t * m)
+void bgav_id3v1_2_metadata(bgav_id3v1_tag_t * t, gavl_metadata_t * m)
   {
-  CS(title, title);
-  CS(artist, artist);
-  CS(album, album);
-  CS(year, date);
-  CS(comment, comment);
+  CS(title, GAVL_META_TITLE);
+  CS(artist, GAVL_META_ARTIST);
+  CS(album, GAVL_META_ALBUM);
+  CS(year, GAVL_META_YEAR);
+  CS(comment, GAVL_META_COMMENT);
   
   if(t->genre < GENRE_MAX)
-    m->genre = bgav_strdup(bgav_id3v1_get_genre(t->genre));
-  m->track = t->track;
+    gavl_metadata_set(m, GAVL_META_GENRE, bgav_id3v1_get_genre(t->genre));
+  if(t->track)
+    gavl_metadata_set_int(m, GAVL_META_GENRE, t->track);
   }

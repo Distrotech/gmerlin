@@ -750,26 +750,26 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
                                          priv->avfc->iformat->long_name);
 
 #ifdef NEW_METADATA
-#define GET_METADATA_STRING(val, name) \
-  tag = av_metadata_get(avfc->metadata, name, NULL, \
+#define GET_METADATA_STRING(gavl_name, ffmpeg_name) \
+  tag = av_metadata_get(avfc->metadata, ffmpeg_name, NULL, \
                         AV_METADATA_IGNORE_SUFFIX); \
   if(tag) \
-    ctx->tt->cur->metadata.val = bgav_strdup(tag->value);
+    gavl_metadata_set(&ctx->tt->cur->metadata, gavl_name, tag->value);
 
-#define GET_METADATA_INT(val, name) \
-  tag = av_metadata_get(avfc->metadata, name, NULL, \
+#define GET_METADATA_INT(gavl_name, ffmpeg_name) \
+  tag = av_metadata_get(avfc->metadata, ffmpeg_name, NULL, \
                         AV_METADATA_IGNORE_SUFFIX); \
   if(tag) \
-    ctx->tt->cur->metadata.val = atoi(tag->value);
+    gavl_metadata_set_int(&ctx->tt->cur->metadata, gavl_name, atoi(tag->value));
   
   if(avfc->metadata)
     {
-    GET_METADATA_STRING(title,     "title");
-    GET_METADATA_STRING(author,    "author");
-    GET_METADATA_STRING(copyright, "copyright");
-    GET_METADATA_STRING(genre,     "genre");
-    GET_METADATA_STRING(album,     "album");
-    GET_METADATA_INT(track,        "track");
+    GET_METADATA_STRING(GAVL_META_TITLE,     "title");
+    GET_METADATA_STRING(GAVL_META_AUTHOR,    "author");
+    GET_METADATA_STRING(GAVL_META_COPYRIGHT, "copyright");
+    GET_METADATA_STRING(GAVL_META_GENRE,     "genre");
+    GET_METADATA_STRING(GAVL_META_ALBUM,     "album");
+    GET_METADATA_INT(GAVL_META_TRACKNUMBER,  "track");
     }
 
 #else

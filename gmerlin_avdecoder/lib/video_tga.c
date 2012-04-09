@@ -303,9 +303,7 @@ static int init_tga(bgav_stream_t * s)
   
   priv->do_init = 0;
   
-  s->description = bgav_sprintf("TGA Video (%s)",
-                                ((s->data.video.format.pixelformat ==
-                                  GAVL_RGBA_32) ? "RGBA" : "RGB")); 
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT, "TGA");
   return 1;
   }
 

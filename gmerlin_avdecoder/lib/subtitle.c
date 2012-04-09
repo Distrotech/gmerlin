@@ -56,8 +56,8 @@ int bgav_subtitle_is_text(bgav_t * bgav, int stream)
 
 const char * bgav_get_subtitle_language(bgav_t * b, int s)
   {
-  return (b->tt->cur->subtitle_streams[s].language[0] != '\0') ?
-    b->tt->cur->subtitle_streams[s].language : NULL;
+  return gavl_metadata_get(&b->tt->cur->subtitle_streams[s].m,
+                           GAVL_META_LANGUAGE);
   }
 
 int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
@@ -320,5 +320,6 @@ int bgav_subtitle_skipto(bgav_stream_t * s, int64_t * time, int scale)
 
 const char * bgav_get_subtitle_info(bgav_t * b, int s)
   {
-  return b->tt->cur->subtitle_streams[s].info;
+  return gavl_metadata_get(&b->tt->cur->subtitle_streams[s].m,
+                           GAVL_META_LABEL);
   }

@@ -572,7 +572,7 @@ static const uint32_t albumartist_tags[] =
     0x00,
   };
 
-static const uint32_t date_tags[] =
+static const uint32_t year_tags[] =
   {
     BGAV_MK_FOURCC('T','Y','E',0x00),
     BGAV_MK_FOURCC('T','Y','E','R'),
@@ -674,7 +674,7 @@ static char * get_comment(const bgav_options_t * opt,
   return ret;
   }
 
-void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
+void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, gavl_metadata_t*m)
   {
   int i_tmp;
   bgav_id3v2_frame_t * frame;
@@ -683,50 +683,50 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
 
   frame = bgav_id3v2_find_frame(t, title_tags);
   if(frame && frame->strings)
-    m->title = bgav_strdup(frame->strings[0]);
+    gavl_metadata_set(m, GAVL_META_TITLE, frame->strings[0]);
 
   /* Album */
     
   frame = bgav_id3v2_find_frame(t, album_tags);
   if(frame && frame->strings)
-    m->album = bgav_strdup(frame->strings[0]);
+    gavl_metadata_set(m, GAVL_META_ALBUM, frame->strings[0]);
 
   /* Copyright */
     
   frame = bgav_id3v2_find_frame(t, copyright_tags);
   if(frame && frame->strings)
-    m->copyright = bgav_strdup(frame->strings[0]);
+    gavl_metadata_set(m, GAVL_META_COPYRIGHT, frame->strings[0]);
 
   /* Artist */
 
   frame = bgav_id3v2_find_frame(t, artist_tags);
   if(frame && frame->strings)
-    m->artist = bgav_strdup(frame->strings[0]);
+    gavl_metadata_set(m, GAVL_META_ARTIST, frame->strings[0]);
 
   /* Albumartist */
 
   frame = bgav_id3v2_find_frame(t, albumartist_tags);
   if(frame && frame->strings)
-    m->albumartist = bgav_strdup(frame->strings[0]);
+    gavl_metadata_set(m, GAVL_META_ALBUMARTIST, frame->strings[0]);
   
   /* Author */
 
   frame = bgav_id3v2_find_frame(t, author_tags);
   if(frame && frame->strings)
-    m->author = bgav_strdup(frame->strings[0]);
+    gavl_metadata_set(m, GAVL_META_AUTHOR, frame->strings[0]);
   
-  /* Date */
+  /* Year */
   
-  frame = bgav_id3v2_find_frame(t, date_tags);
+  frame = bgav_id3v2_find_frame(t, year_tags);
   if(frame && frame->strings)
-    m->date = bgav_strdup(frame->strings[0]);
+    gavl_metadata_set(m, GAVL_META_YEAR, frame->strings[0]);
 
   /* Track */
 
   frame = bgav_id3v2_find_frame(t, track_tags);
   if(frame && frame->strings)
-    m->track = atoi(frame->strings[0]);
-
+    gavl_metadata_set_int(m, GAVL_META_TRACKNUMBER, atoi(frame->strings[0]));
+  
   /* Genre */
   
   frame = bgav_id3v2_find_frame(t, genre_tags);
@@ -735,11 +735,11 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
     if((frame->strings[0][0] == '(') && isdigit(frame->strings[0][1]))
       {
       i_tmp = atoi(&frame->strings[0][1]);
-      m->genre = bgav_strdup(bgav_id3v1_get_genre(i_tmp));
+      gavl_metadata_set(m, GAVL_META_GENRE, bgav_id3v1_get_genre(i_tmp));
       }
     else
       {
-      m->genre = bgav_strdup(frame->strings[0]);
+      gavl_metadata_set(m, GAVL_META_GENRE, frame->strings[0]);
       }
     }
 
@@ -748,7 +748,7 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
   frame = bgav_id3v2_find_frame(t, comment_tags);
 
   if(frame)
-    m->comment = get_comment(t->opt, frame);
+    gavl_metadata_set_nocpy(m, GAVL_META_COMMENT, get_comment(t->opt, frame));
   
   }
 

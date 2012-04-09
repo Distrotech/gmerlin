@@ -121,39 +121,39 @@ void bgav_vorbis_comment_2_metadata(bgav_vorbis_comment_t * comment,
   int j;
 
   if((field = bgav_vorbis_comment_get_field(comment, artist_key)))
-    m->artist = bgav_strdup(field);
+    gavl_metadata_set(m, GAVL_META_ARTIST, field);
 
   if((field = bgav_vorbis_comment_get_field(comment, author_key)))
-    m->author = bgav_strdup(field);
+    gavl_metadata_set(m, GAVL_META_AUTHOR, field);
 
   if((field = bgav_vorbis_comment_get_field(comment, album_key)))
-    m->album = bgav_strdup(field);
+    gavl_metadata_set(m, GAVL_META_ALBUM, field);
 
   if((field = bgav_vorbis_comment_get_field(comment, title_key)))
-    m->title = bgav_strdup(field);
+    gavl_metadata_set(m, GAVL_META_TITLE, field);
 
   if((field = bgav_vorbis_comment_get_field(comment, genre_key)))
-    m->genre = bgav_strdup(field);
+    gavl_metadata_set(m, GAVL_META_GENRE, field);
 
   if((field = bgav_vorbis_comment_get_field(comment, date_key)))
-    m->date = bgav_strdup(field);
+    gavl_metadata_set(m, GAVL_META_DATE, field);
 
   if((field = bgav_vorbis_comment_get_field(comment, copyright_key)))
-    m->copyright = bgav_strdup(field);
+    gavl_metadata_set(m, GAVL_META_COPYRIGHT, field);
 
   if((field = bgav_vorbis_comment_get_field(comment, albumartist1_key)))
-    m->albumartist = bgav_strdup(field);
-  else if((field = bgav_vorbis_comment_get_field(comment, albumartist1_key)))
-    m->albumartist = bgav_strdup(field);
+    gavl_metadata_set(m, GAVL_META_ALBUMARTIST, field);
+  else if((field = bgav_vorbis_comment_get_field(comment, albumartist2_key)))
+    gavl_metadata_set(m, GAVL_META_ALBUMARTIST, field);
   
   if((field = bgav_vorbis_comment_get_field(comment, track_number_key)))
-    m->track = atoi(field);
+    gavl_metadata_set_int(m, GAVL_META_TRACKNUMBER, atoi(field));
   
   for(j = 0; j < comment->num_user_comments; j++)
     {
     if(!strchr(comment->user_comments[j], '='))
       {
-      m->comment = bgav_strdup(comment->user_comments[j]);
+      gavl_metadata_set(m, GAVL_META_COMMENT, comment->user_comments[j]);
       break;
       }
     }

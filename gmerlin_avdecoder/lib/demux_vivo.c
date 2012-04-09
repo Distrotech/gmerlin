@@ -487,12 +487,15 @@ static int open_vivo(bgav_demuxer_context_t * ctx)
     video_stream->data.video.format.image_height * 3;
   /* Set up metadata */
 
-  ctx->tt->cur->metadata.title     = bgav_strdup(priv->header.title);
-  ctx->tt->cur->metadata.author    = bgav_strdup(priv->header.author);
-  ctx->tt->cur->metadata.copyright = bgav_strdup(priv->header.copyright);
-  ctx->tt->cur->metadata.comment   = bgav_sprintf("Made with %s",
-                                                            priv->header.producer);
-
+  gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_TITLE, priv->header.title);
+  gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_AUTHOR, priv->header.author);
+  gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_COPYRIGHT, priv->header.copyright);
+  gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_SOFTWARE, priv->header.producer);
+  
   ctx->stream_description = bgav_sprintf("Vivo");
 
   ctx->tt->cur->duration = (GAVL_TIME_SCALE * (int64_t)(priv->header.duration)) / 1000;

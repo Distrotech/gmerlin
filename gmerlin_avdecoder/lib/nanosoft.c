@@ -615,33 +615,22 @@ void bgav_RIFFINFO_destroy(bgav_RIFFINFO_t * info)
 
 /* CS == copy_string */
 
-#define CS(meta, tag) if(!m->meta) m->meta = bgav_strdup(info->tag);
+#define CS(meta, tag) \
+  if(!gavl_metadata_get(m, meta))               \
+    gavl_metadata_set(m, meta, info->tag);
 
 void bgav_RIFFINFO_get_metadata(bgav_RIFFINFO_t * info, bgav_metadata_t * m)
   {
-  CS(artist,    IART);
-  CS(title,     INAM);
-  CS(comment,   ICMT);
-  CS(copyright, ICOP);
-  CS(genre,     IGNR);
-  CS(date,      ICRD);
-
-  /*
-   * Create comment from Software and Engineer
-   * This one is for verifying, that some wav samples in Windows XP are
-   * made with a cracked version of Soundforge (registered under the name
-   * Deepz0ne)
-   */
+  CS(GAVL_META_ARTIST,    IART);
+  CS(GAVL_META_TITLE,     INAM);
+  CS(GAVL_META_COMMENT,   ICMT);
+  CS(GAVL_META_COPYRIGHT, ICOP);
+  CS(GAVL_META_GENRE,     IGNR);
+  CS(GAVL_META_DATE,      ICRD);
+  CS(GAVL_META_SOFTWARE,  ISFT);
+  CS(GAVL_META_CREATOR,   IENG);
   
-  if(!m->comment)
-    {
-    if(info->IENG && info->ISFT)
-      m->comment = bgav_sprintf("Made by %s with %s", info->IENG, info->ISFT);
-    else if(info->IENG)
-      m->comment = bgav_sprintf("Made by %s", info->IENG);
-    else if(info->ISFT)
-      m->comment = bgav_sprintf("Made with %s", info->ISFT);
-    }
+  
   }
 
 #undef CS

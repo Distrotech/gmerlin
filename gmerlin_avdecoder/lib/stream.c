@@ -123,12 +123,10 @@ void bgav_stream_free(bgav_stream_t * s)
   if(s->ext_data)
     free(s->ext_data);
   
-  if(s->description)
-    free(s->description);
-  if(s->info)
-    free(s->info);
   if(s->file_index)
     bgav_file_index_destroy(s->file_index);
+
+  gavl_metadata_free(&s->m);
   
   if(s->packet_buffer)
     bgav_packet_buffer_destroy(s->packet_buffer);
@@ -169,13 +167,10 @@ void bgav_stream_dump(bgav_stream_t * s)
     case BGAV_STREAM_UNKNOWN:
       return;
     }
-  if(s->language[0] != '\0')
-    bgav_dprintf("  Language:          %s\n", bgav_lang_name(s->language));
-  if(s->info)
-    bgav_dprintf("  Info:              %s\n", s->info);
 
-  bgav_dprintf("  Type:              %s\n",
-          (s->description ? s->description : "Not specified"));
+  bgav_dprintf("  Metadata:\n");
+  gavl_metadata_dump(&s->m, 4);
+  
   bgav_dprintf("  Fourcc:            ");
   bgav_dump_fourcc(s->fourcc);
   bgav_dprintf("\n");

@@ -394,6 +394,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
   uint32_t fourcc;
   int done = 0;
   bgav_input_context_t * input_save = NULL;
+  const char * title;
   
   //  test_framerate();
   
@@ -489,16 +490,18 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
 
     /* Metadata */
     if(p->fh.metadata.title)
-      ctx->tt->cur->metadata.title =
-        bgav_strdup(p->fh.metadata.title);
-
+      gavl_metadata_set(&ctx->tt->cur->metadata,
+                        GAVL_META_TITLE,
+                        p->fh.metadata.title);
     if(p->fh.metadata.url)
-      ctx->tt->cur->metadata.comment =
-        bgav_strdup(p->fh.metadata.url);
+      gavl_metadata_set(&ctx->tt->cur->metadata,
+                        GAVL_META_URL,
+                        p->fh.metadata.url);
     if(p->fh.metadata.creator)
-      ctx->tt->cur->metadata.author =
-        bgav_strdup(p->fh.metadata.creator);
-
+      gavl_metadata_set(&ctx->tt->cur->metadata,
+                        GAVL_META_AUTHOR,
+                        p->fh.metadata.creator);
+    
     /* Decide whether we can seek */
     if(ctx->input->input->seek_byte)
       {
@@ -518,9 +521,10 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
-  if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
+  if(!ctx->tt->tracks[0].name &&
+     (title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
     {
-    ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
+    ctx->tt->tracks[0].name = bgav_strdup(title);
     }
 
   ctx->stream_description = bgav_sprintf("NSV");

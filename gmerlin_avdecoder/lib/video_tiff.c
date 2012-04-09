@@ -255,12 +255,8 @@ static int init_tiff(bgav_stream_t * s)
     s->data.video.format.pixelformat = GAVL_RGBA_32;
   else
     s->data.video.format.pixelformat = GAVL_RGB_24;
-  
-  s->description = bgav_sprintf("TIFF Video (%s)",
-                                ((s->data.video.format.pixelformat ==
-                                  GAVL_RGBA_32) ? "RGBA" : "RGB")); 
-  
 
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT, "TIFF");
   return 1;
   }
 

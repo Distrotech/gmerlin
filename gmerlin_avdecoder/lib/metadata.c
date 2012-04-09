@@ -25,164 +25,59 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MY_FREE(ptr) if(ptr)free(ptr);ptr=NULL;
-
-void bgav_metadata_free(bgav_metadata_t * m)
-  {
-  MY_FREE(m->author);
-  MY_FREE(m->title);
-  MY_FREE(m->comment);
-  MY_FREE(m->copyright);
-  MY_FREE(m->album);
-  MY_FREE(m->artist);
-  MY_FREE(m->albumartist);
-  MY_FREE(m->date);
-  MY_FREE(m->genre);
-  memset(m, 0, sizeof(*m));
-  }
-
-#define CPY_STRING(val) \
-  dst->val = bgav_strdup(src->val);
-
-void bgav_metadata_copy(bgav_metadata_t * dst,
-                        bgav_metadata_t * src)
-  {
-  CPY_STRING(author);
-  CPY_STRING(title);
-  CPY_STRING(comment);
-  CPY_STRING(copyright);
-  CPY_STRING(album);
-  CPY_STRING(artist);
-  CPY_STRING(albumartist);
-  CPY_STRING(date);
-  CPY_STRING(genre);
-  dst->track = src->track;
-  }
-                        
-
-#define MERGE_S(s) \
-if(dst->s) free(dst->s);\
-if(src1->s) \
-  dst->s=bgav_strdup(src1->s);\
-else if(src2->s) \
-  dst->s=bgav_strdup(src2->s);\
-else \
-  dst->s=NULL;
-
-#define MERGE_I(s) \
-if(src1->s) \
-  dst->s=src1->s;\
-else if(src2->s) \
-  dst->s=src2->s;\
-else \
-  dst->s=0;
-
-void bgav_metadata_merge(bgav_metadata_t * dst,
-                         bgav_metadata_t * src1,
-                         bgav_metadata_t * src2)
-  {
-  MERGE_S(author);
-  MERGE_S(title);
-  MERGE_S(comment);
-  MERGE_S(copyright);
-  MERGE_S(album);
-  MERGE_S(artist);
-  MERGE_S(albumartist);
-  MERGE_S(date);
-  MERGE_S(genre);
-
-  MERGE_I(track);
-  }
-
-#define MERGE2_S(s) \
-if((!dst->s) && (src->s)) dst->s=bgav_strdup(src->s)
-
-#define MERGE2_I(s) \
-if((!dst->s) && (src->s)) dst->s=src->s
-
-void bgav_metadata_merge2(bgav_metadata_t * dst,
-                          bgav_metadata_t * src)
-  {
-  MERGE2_S(author);
-  MERGE2_S(title);
-  MERGE2_S(comment);
-  MERGE2_S(copyright);
-  MERGE2_S(album);
-  MERGE2_S(artist);
-  MERGE2_S(albumartist);
-  MERGE2_S(date);
-  MERGE2_S(genre);
-
-  MERGE2_I(track);
-  }
-
-
-
-#define PS(label, str) if(str)bgav_dprintf("%s%s\n", label, str);
-#define PI(label, i)   if(i) bgav_dprintf("%s%d\n", label, i);
-
-void bgav_metadata_dump(bgav_metadata_t*m)
-  {
-  bgav_dprintf("Metadata:\n");
-  
-  PS("  Author:       ", m->author);
-  PS("  Title:        ", m->title);
-  PS("  Comment:      ", m->comment);
-  PS("  Copyright:    ", m->copyright);
-  PS("  Album:        ", m->album);
-  PS("  Artist:       ", m->artist);
-  PS("  Album artist: ", m->albumartist);
-  PS("  Genre:        ", m->genre);
-  PI("  Track:        ", m->track);
-  PS("  Date:         ", m->date);
-  }
 
 const char * bgav_metadata_get_author(const bgav_metadata_t*m)
   {
-  return m->author;
+  return gavl_metadata_get(m, GAVL_META_AUTHOR);
   }
 
 const char * bgav_metadata_get_title(const bgav_metadata_t*m)
   {
-  return m->title;
+  return gavl_metadata_get(m, GAVL_META_TITLE);
   }
 
 const char * bgav_metadata_get_comment(const bgav_metadata_t*m)
   {
-  return m->comment;
+  return gavl_metadata_get(m, GAVL_META_COMMENT);
   }
 
 const char * bgav_metadata_get_copyright(const bgav_metadata_t*m)
   {
-  return m->copyright;
+  return gavl_metadata_get(m, GAVL_META_COPYRIGHT);
   }
 
 const char * bgav_metadata_get_album(const bgav_metadata_t*m)
   {
-  return m->album;
+  return gavl_metadata_get(m, GAVL_META_ALBUM);
   }
 
 const char * bgav_metadata_get_artist(const bgav_metadata_t*m)
   {
-  return m->artist;
+  return gavl_metadata_get(m, GAVL_META_ARTIST);
   }
 
 const char * bgav_metadata_get_albumartist(const bgav_metadata_t*m)
   {
-  return m->albumartist;
+  return gavl_metadata_get(m, GAVL_META_ALBUMARTIST);
   }
 
 const char * bgav_metadata_get_genre(const bgav_metadata_t*m)
   {
-  return m->genre;
+  return gavl_metadata_get(m, GAVL_META_GENRE);
   }
 
 const char * bgav_metadata_get_date(const bgav_metadata_t*m)
   {
-  return m->date;
+  const char * ret = gavl_metadata_get(m, GAVL_META_DATE);
+  if(!ret)
+    ret = gavl_metadata_get(m, GAVL_META_YEAR);
+  return ret;
   }
 
 int bgav_metadata_get_track(const bgav_metadata_t*m)
   {
-  return m->track;
+  int ret;
+  if(gavl_metadata_get_int(m, GAVL_META_TRACKNUMBER, &ret))
+    return ret;
+  return 0;
   }

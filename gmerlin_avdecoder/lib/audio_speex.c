@@ -95,7 +95,9 @@ static int init_speex(bgav_stream_t * s)
     callback.data = &priv->stereo;
     speex_decoder_ctl(priv->dec_state, SPEEX_SET_HANDLER, &callback);
     }
-  s->description = bgav_sprintf("Speex");
+
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                    "Speex");
   return 1;
   }
 

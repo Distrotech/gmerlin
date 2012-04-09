@@ -136,6 +136,10 @@ int bgav_audio_start(bgav_stream_t * s)
     if(!s->timescale)
       s->timescale = s->data.audio.format.samplerate;
     }
+
+  if(s->data.audio.bits_per_sample)
+    gavl_metadata_set_int(&s->m, GAVL_META_AUDIO_BITS ,
+                          s->data.audio.bits_per_sample);
   
   return 1;
   }
@@ -163,19 +167,21 @@ void bgav_audio_stop(bgav_stream_t * s)
 
 const char * bgav_get_audio_description(bgav_t * b, int s)
   {
-  return b->tt->cur->audio_streams[s].description;
+  return gavl_metadata_get(&b->tt->cur->audio_streams[s].m,
+                           GAVL_META_FORMAT);
   }
 
 const char * bgav_get_audio_info(bgav_t * b, int s)
   {
-  return b->tt->cur->audio_streams[s].info;
+  return gavl_metadata_get(&b->tt->cur->audio_streams[s].m,
+                           GAVL_META_LABEL);
   }
 
 
 const char * bgav_get_audio_language(bgav_t * b, int s)
   {
-  return (b->tt->cur->audio_streams[s].language[0] != '\0') ?
-    b->tt->cur->audio_streams[s].language : NULL;
+  return gavl_metadata_get(&b->tt->cur->audio_streams[s].m,
+                           GAVL_META_LANGUAGE);
   }
 
 int bgav_get_audio_bitrate(bgav_t * bgav, int stream)

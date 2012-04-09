@@ -124,17 +124,20 @@ static int read_meta_data(bgav_demuxer_context_t * ctx, chunk_header_t * ret)
   switch(ret->fourcc)
     {
     case ID_NAME:
-      ctx->tt->cur->metadata.title = buffer;
+      gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                              GAVL_META_TITLE, buffer);
       break;
     case ID_COPY:
-      ctx->tt->cur->metadata.copyright = buffer;
+      gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                              GAVL_META_COPYRIGHT, buffer);
       break;
     case ID_AUTH:
-      ctx->tt->cur->metadata.author = buffer;
+      gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                              GAVL_META_AUTHOR, buffer);
       break;
     case ID_ANNO:
-      ctx->tt->cur->metadata.comment
-        = buffer;
+      gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                              GAVL_META_COMMENT, buffer);
       break;
     }
   return 1;

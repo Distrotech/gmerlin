@@ -52,7 +52,8 @@ static int init_rtjpeg(bgav_stream_t * s)
   
   priv->frame = gavl_video_frame_create(&s->data.video.format);
 
-  s->description = bgav_sprintf("RTjpeg");
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                    "RTjpeg");
   
   return 1;
   }

@@ -583,8 +583,11 @@ static int load_channel_cache(bgav_input_context_t * ctx)
                   s->fourcc = strtol(stream_child->children->str, NULL, 16);
 
                 else if(!strcmp(stream_child->name, "language"))
-                  sscanf(stream_child->children->str, "%3s", s->language);
-                
+                  {
+                  char language[4];
+                  sscanf(stream_child->children->str, "%3s", language);
+                  gavl_metadata_set(&s->m, GAVL_META_LANGUAGE, language);
+                  }
                 stream_child = stream_child->next;
                 }
               }
@@ -661,6 +664,7 @@ static void save_channel_cache(bgav_input_context_t * ctx)
   FILE * output = NULL;
   char * filename;
   char * path = NULL;
+  const char * language;
   dvb_priv_t * priv;
   int i, j;
   struct stat st;
@@ -697,11 +701,11 @@ static void save_channel_cache(bgav_input_context_t * ctx)
       fprintf(output, "        <fourcc>%08x</fourcc>\n",
               ctx->tt->tracks[i].audio_streams[j].fourcc);
 
-      if(ctx->tt->tracks[i].audio_streams[j].language[0])
-        {
+      language = gavl_metadata_get(&ctx->tt->tracks[i].audio_streams[j].m,
+                                   GAVL_META_LANGUAGE);
+      if(language)
         fprintf(output, "        <language>%3s</language>\n",
-                ctx->tt->tracks[i].audio_streams[j].language);
-        }
+                language);
       fprintf(output, "      </astream>\n");
       }
     fprintf(output, "    </astreams>\n");
@@ -1041,9 +1045,10 @@ static void check_eit(bgav_input_context_t* ctx)
       {
       int desc_len, desc_tag;
       uint8_t * end_pos;
-      bgav_metadata_t * m;
-
+      gavl_metadata_t * m;
       char time_string[32]; /* 26 actually */
+      const char * tmp_string;
+      
       asctime_r(&start_time, time_string);
       pos_c = strchr(time_string, '\n');
       if(pos_c)
@@ -1053,7 +1058,9 @@ static void check_eit(bgav_input_context_t* ctx)
 
       m = &ctx->tt->cur->metadata;
 
-      if(m->date && !strcmp(m->date, time_string))
+      tmp_string = gavl_metadata_get(m, GAVL_META_DATE);
+      
+      if(tmp_string && !strcmp(tmp_string, time_string))
         {
         /* Already read this */
         pos = descriptors_end;
@@ -1063,7 +1070,7 @@ static void check_eit(bgav_input_context_t* ctx)
       priv->name_changed = 1;
       priv->metadata_changed = 1;
       
-      bgav_metadata_free(m);
+      gavl_metadata_free(m);
       
       while(1)
         {
@@ -1082,8 +1089,8 @@ static void check_eit(bgav_input_context_t* ctx)
             if(ctx->opt->name_change_callback ||
                ctx->opt->metadata_change_callback)
               {
-              m->title = decode_eit_string(ctx->opt, pos, tmp);
-
+              gavl_metadata_set_nocpy(m, GAVL_META_TITLE, 
+                                      decode_eit_string(ctx->opt, pos, tmp));
               }
             pos += tmp;
             
@@ -1091,8 +1098,9 @@ static void check_eit(bgav_input_context_t* ctx)
             
             if(ctx->opt->metadata_change_callback)
               {
-              m->comment = decode_eit_string(ctx->opt,
-                                             pos, tmp);
+              gavl_metadata_set_nocpy(m, GAVL_META_COMMENT, 
+                                      decode_eit_string(ctx->opt,
+                                                        pos, tmp));
               }
             pos += tmp;
             break;
@@ -1102,11 +1110,9 @@ static void check_eit(bgav_input_context_t* ctx)
         
         if(ctx->opt->metadata_change_callback)
           {
-          m->date = bgav_strdup(time_string);
-          
+          gavl_metadata_set(m, GAVL_META_DATE, time_string);
           ctx->opt->metadata_change_callback(ctx->opt->metadata_change_callback_data,
                                              m);
-          
           }
         pos = end_pos;
         if(pos >= descriptors_end)
@@ -1123,7 +1129,8 @@ static void check_eit(bgav_input_context_t* ctx)
   if(ctx->opt->name_change_callback && priv->name_changed)
     {
     ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
-                                   ctx->tt->cur->metadata.title);
+                                   gavl_metadata_get(&ctx->tt->cur->metadata,
+                                                     GAVL_META_TITLE));
     priv->name_changed = 0;
     }
   if(ctx->opt->metadata_change_callback && priv->metadata_changed)
@@ -1437,7 +1444,7 @@ static int select_track_dvb(bgav_input_context_t * ctx, int track)
   select(priv->dvr_fd+1, &rset, NULL, NULL, &timeout);
 
   /* Clear metadata so they are reread */
-  bgav_metadata_free(&ctx->tt->cur->metadata);
+  gavl_metadata_free(&ctx->tt->cur->metadata);
   return 1;
   }
 

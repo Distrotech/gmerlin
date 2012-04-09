@@ -157,20 +157,19 @@ static int probe_aiff(bgav_input_context_t * input)
   return 0;
   }
 
-static char * read_meta_string(char * old, bgav_input_context_t * input,
-                        chunk_header_t * h)
+static char * read_meta_string(bgav_input_context_t * input,
+                               chunk_header_t * h)
   {
-  if(old)
-    free(old);
-  old = calloc(h->size+1, 1);
-  if(bgav_input_read_data(input, (uint8_t*)old, h->size) < h->size)
+  char * ret;
+  ret = calloc(h->size+1, 1);
+  if(bgav_input_read_data(input, (uint8_t*)ret, h->size) < h->size)
     {
-    free(old);
+    free(ret);
     return NULL;
     }
   if(h->size & 1)
     bgav_input_skip(input, 1);
-  return old;
+  return ret;
   }
 
 static int open_aiff(bgav_demuxer_context_t * ctx)
@@ -183,6 +182,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx)
   aiff_priv_t * priv;
   int keep_going = 1;
   bgav_track_t * track;
+  char * tmp_string;
   
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
@@ -352,24 +352,24 @@ static int open_aiff(bgav_demuxer_context_t * ctx)
           }
         break;
       case BGAV_MK_FOURCC('N','A','M','E'):
-        ctx->tt->cur->metadata.title =
-        read_meta_string(ctx->tt->cur->metadata.title, 
-                         ctx->input, &ch);
+        tmp_string = read_meta_string(ctx->input, &ch);
+        gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                                GAVL_META_TITLE, tmp_string);
         break;
       case BGAV_MK_FOURCC('A','U','T','H'):
-        ctx->tt->cur->metadata.author =
-        read_meta_string(ctx->tt->cur->metadata.author, 
-                         ctx->input, &ch);
+        tmp_string = read_meta_string(ctx->input, &ch);
+        gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                                GAVL_META_AUTHOR, tmp_string);
         break;
       case BGAV_MK_FOURCC('(','c',')',' '):
-        ctx->tt->cur->metadata.copyright =
-        read_meta_string(ctx->tt->cur->metadata.copyright, 
-                         ctx->input, &ch);
+        tmp_string = read_meta_string(ctx->input, &ch);
+        gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                                GAVL_META_COPYRIGHT, tmp_string);
         break;
       case BGAV_MK_FOURCC('A','N','N','O'):
-        ctx->tt->cur->metadata.comment =
-        read_meta_string(ctx->tt->cur->metadata.comment, 
-                         ctx->input, &ch);
+        tmp_string = read_meta_string(ctx->input, &ch);
+        gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                                GAVL_META_COMMENT, tmp_string);
         break;
       case BGAV_MK_FOURCC('S','S','N','D'):
         bgav_input_skip(ctx->input, 4); /* Offset */

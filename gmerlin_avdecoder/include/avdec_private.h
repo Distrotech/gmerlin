@@ -28,6 +28,8 @@
 #include <libintl.h>
 
 #include <os.h>
+#include <gavl/metatags.h>
+
 
 #define PACKET_PADDING 32
 
@@ -96,6 +98,7 @@ typedef struct
 void bgav_packet_source_copy(bgav_packet_source_t * dst,
                              const bgav_packet_source_t * src);
 
+#if 0
 /* Metadata */
 
 struct bgav_metadata_s
@@ -125,7 +128,7 @@ void bgav_metadata_free(bgav_metadata_t*);
 void bgav_metadata_copy(bgav_metadata_t * dst,
                         bgav_metadata_t * src);
 
-
+#endif
 /* Decoder structures */
 
 struct bgav_audio_decoder_s
@@ -489,13 +492,16 @@ struct bgav_stream_s
   bgav_packet_t * packet;
   int             packet_seq;
  
-  char * description;   /* Technical description of the stream */
-  char * info;          /* Info about the stream (e.g. Directors comments) */
+  //  char * description;   /* Technical description of the stream */
+  //  char * info;          /* Info about the stream (e.g. Directors comments) */
   
   /* Language (ISO 639-3 B code) */
 
-  char language[4];
-    
+  //  char language[4];
+
+  gavl_metadata_t m;
+  
+  
   /*
    *  Sometimes, the bitrates important for codecs 
    *  and the bitrates set in the container format

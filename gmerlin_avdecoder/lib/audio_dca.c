@@ -138,8 +138,9 @@ static int decode_frame_dts(bgav_stream_t * s)
       bgav_dca_flags_2_channel_setup(flags, &s->data.audio.format);
   
       priv->frame = gavl_audio_frame_create(&s->data.audio.format);
-      s->description =
-        bgav_sprintf("DTS %d kb/sec", bit_rate/1000);
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "DTS");
       }
     
     dts_frame(priv->state, priv->packet->data, &flags, &level, 0.0);

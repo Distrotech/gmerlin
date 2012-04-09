@@ -499,10 +499,15 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
                                0x0a, &desc_len);
         if(desc)
           {
-          s->language[0] = desc[2];
-          s->language[1] = desc[3];
-          s->language[2] = desc[4];
-          bgav_correct_language(s->language);
+          char language[4];
+          
+          language[0] = desc[2];
+          language[1] = desc[3];
+          language[2] = desc[4];
+          language[3] = '\0';
+          bgav_correct_language(language);
+          gavl_metadata_set(&s->m, GAVL_META_LANGUAGE,
+                           language);
           }
         }
 

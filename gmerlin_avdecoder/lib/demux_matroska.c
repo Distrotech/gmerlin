@@ -387,9 +387,7 @@ static void init_stream_common(mkv_t * m,
   s->flags |= STREAM_NEED_START_TIME;
   
   if(track->Language)
-    memcpy(s->language, track->Language, 3);
-  else
-    memcpy(s->language, "und", 3);
+    gavl_metadata_set(&s->m, GAVL_META_LANGUAGE, track->Language);
   
   if(!codecs)
     return;
@@ -522,7 +520,8 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
     {
     // fprintf(stderr, "UTF-8 subtitles\n");
     s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 1, "UTF-8");
-    s->description = bgav_sprintf("SRT");
+    gavl_metadata_set(&s->m, GAVL_META_FORMAT, "SRT");
+
     }
   else if(!strcmp(track->CodecID, "S_VOBSUB"))
     {
@@ -592,7 +591,8 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
     if(pal)
       {
       s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 0, NULL);
-      s->description = bgav_sprintf("DVD subtitles");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT, "DVD subtitles");
       s->fourcc = BGAV_MK_FOURCC('D', 'V', 'D', 'S');
       s->ext_data = (uint8_t*)pal;
       s->ext_size = 16 * 4; // 64
@@ -639,16 +639,16 @@ static bgav_chapter_list_t * create_chapter_list(bgav_mkv_chapters_t * chap)
   return ret;
   }
 
-#define SET_TAG_STRING(name, member) \
+#define SET_TAG_STRING(name, gavl_name) \
   else if(!strcmp(tags[i].st[j].TagName, name)) \
-    ret->member = bgav_strdup(tags[i].st[j].TagString)
+    gavl_metadata_set(ret, gavl_name, tags[i].st[j].TagString)
 
-#define SET_TAG_INT(name, member) \
+#define SET_TAG_INT(name, gavl_name) \
   else if(!strcmp(tags[i].st[j].TagName, name)) \
-    ret->member = atoi(tags[i].st[j].TagString)
+    gavl_metadata_set_int(ret, gavl_name, atoi(tags[i].st[j].TagString))
 
 static void init_metadata(bgav_mkv_tag_t * tags, int num_tags,
-                          bgav_metadata_t * ret)
+                          gavl_metadata_t * ret)
   {
   int i, j;
   for(i = 0; i < num_tags; i++)
@@ -663,13 +663,13 @@ static void init_metadata(bgav_mkv_tag_t * tags, int num_tags,
         {
         if(!tags[i].st[j].TagName)
           return;
-        SET_TAG_STRING("COMPOSER", author);
-        SET_TAG_STRING("ALBUM", album);
-        SET_TAG_STRING("COPYRIGHT", copyright);
-        SET_TAG_STRING("COMMENT", comment);
-        SET_TAG_STRING("GENRE", genre);
-        SET_TAG_STRING("DATE", date);
-        SET_TAG_INT("PART_NUMBER", track);
+        SET_TAG_STRING("COMPOSER", GAVL_META_AUTHOR);
+        SET_TAG_STRING("ALBUM", GAVL_META_ALBUM);
+        SET_TAG_STRING("COPYRIGHT", GAVL_META_COPYRIGHT);
+        SET_TAG_STRING("COMMENT", GAVL_META_COMMENT);
+        SET_TAG_STRING("GENRE", GAVL_META_GENRE);
+        SET_TAG_STRING("DATE", GAVL_META_DATE);
+        SET_TAG_INT("PART_NUMBER", GAVL_META_TRACKNUMBER);
         }
       }
     }

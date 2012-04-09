@@ -576,19 +576,21 @@ static void build_index(bgav_demuxer_context_t * ctx)
   free(chunk_indices);
   }
 
-#define SET_UDTA_STRING(dst, src) \
-if(!(ctx->tt->cur->metadata.dst) && moov->udta.src)\
-  {                                                                     \
-  if(moov->udta.have_ilst) \
-    ctx->tt->cur->metadata.dst = bgav_strdup(moov->udta.src); \
-  else \
-    ctx->tt->cur->metadata.dst = bgav_convert_string(cnv, moov->udta.src, -1, NULL);\
-  }
+#define SET_UDTA_STRING(gavl_name, src) \
+  if(!(gavl_metadata_get(&ctx->tt->cur->metadata, gavl_name) && moov->udta.src)) \
+    {                                                                   \
+    if(moov->udta.have_ilst)                                            \
+      gavl_metadata_set(&ctx->tt->cur->metadata, gavl_name, moov->udta.src); \
+    else                                                                \
+      gavl_metadata_set_nocpy(&ctx->tt->cur->metadata, gavl_name, \
+                              bgav_convert_string(cnv, moov->udta.src, -1, NULL)); \
+    }
 
-#define SET_UDTA_INT(dst, src) \
-  if(!(ctx->tt->cur->metadata.dst) && moov->udta.src && isdigit(*(moov->udta.src))) \
+#define SET_UDTA_INT(gavl_name, src) \
+  if(!gavl_metadata_get(&ctx->tt->cur->metadata, gavl_name) && moov->udta.src && \
+     isdigit(*(moov->udta.src)))                                        \
     { \
-    ctx->tt->cur->metadata.dst = atoi(moov->udta.src);\
+    gavl_metadata_set_int(&ctx->tt->cur->metadata, gavl_name, atoi(moov->udta.src)); \
     }
 
 static void set_metadata(bgav_demuxer_context_t * ctx)
@@ -605,23 +607,27 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
     cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", "UTF-8");
     
   
-  SET_UDTA_STRING(artist,    ART);
-  SET_UDTA_STRING(title,     nam);
-  SET_UDTA_STRING(album,     alb);
-  SET_UDTA_STRING(genre,     gen);
-  SET_UDTA_STRING(copyright, cpy);
-  SET_UDTA_INT(track,     trk);
-  SET_UDTA_STRING(comment,   cmt);
-  SET_UDTA_STRING(comment,   inf);
-  SET_UDTA_STRING(author,    aut);
-
-  if(!ctx->tt->cur->metadata.track && moov->udta.trkn)
-    ctx->tt->cur->metadata.track = moov->udta.trkn;
-
+  SET_UDTA_STRING(GAVL_META_ARTIST,    ART);
+  SET_UDTA_STRING(GAVL_META_TITLE,     nam);
+  SET_UDTA_STRING(GAVL_META_ALBUM,     alb);
+  SET_UDTA_STRING(GAVL_META_GENRE,     gen);
+  SET_UDTA_STRING(GAVL_META_COPYRIGHT, cpy);
+  SET_UDTA_INT(GAVL_META_TRACKNUMBER,  trk);
+  SET_UDTA_STRING(GAVL_META_COMMENT,   cmt);
+  SET_UDTA_STRING(GAVL_META_COMMENT,   inf);
+  SET_UDTA_STRING(GAVL_META_AUTHOR,    aut);
+  
+  if(!gavl_metadata_get(&ctx->tt->cur->metadata, GAVL_META_TRACKNUMBER)
+     && moov->udta.trkn)
+    {
+    gavl_metadata_set_int(&ctx->tt->cur->metadata, GAVL_META_TRACKNUMBER,
+                          moov->udta.trkn);
+    }
+  
   if(cnv)
     bgav_charset_converter_destroy(cnv);
 
-  //  bgav_metadata_dump(&ctx->tt->cur->metadata);
+  //  gavl_metadata_dump(&ctx->tt->cur->metadata);
   }
 
 /*
@@ -912,6 +918,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
 static void init_audio(bgav_demuxer_context_t * ctx,
                        qt_trak_t * trak, int index)
   {
+  char language[4];
   int user_len;
   uint8_t * user_atom;
   bgav_stream_t * bg_as;
@@ -928,8 +935,10 @@ static void init_audio(bgav_demuxer_context_t * ctx,
     priv->has_edl = 1;
       
   bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
-                            bg_as->language);
-      
+                            language);
+
+  gavl_metadata_set(&bg_as->m, GAVL_META_LANGUAGE, language);
+  
   desc = &stsd->entries[0].desc;
 
   bg_as->priv = &priv->streams[index];
@@ -1220,6 +1229,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
 
   qt_trak_t * trak;
   qt_stsd_t * stsd;
+  char language[4];
   
   track = ctx->tt->cur;
   
@@ -1253,6 +1263,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     else if(stsd->entries[0].desc.fourcc == BGAV_MK_FOURCC('t','e','x','t'))
       {
       const char * charset;
+      
       if(!stsd->entries)
         continue;
 
@@ -1271,11 +1282,16 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         if(trak_has_edl(trak))
           priv->has_edl = 1;
         
-        bg_ss->description = bgav_sprintf("Quicktime subtitles");
+        gavl_metadata_set(&bg_ss->m, GAVL_META_FORMAT,
+                          "Quicktime subtitles");
         bg_ss->fourcc = stsd->entries[0].desc.fourcc;
         
         bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
-                                  bg_ss->language);
+                                  language);
+        
+        gavl_metadata_set(&bg_ss->m, GAVL_META_LANGUAGE,
+                          language);
+        
         
         bg_ss->timescale = trak->mdia.mdhd.time_scale;
         bg_ss->stream_id = i;
@@ -1302,11 +1318,15 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         if(trak_has_edl(trak))
           priv->has_edl = 1;
         
-        bg_ss->description = bgav_sprintf("3gpp subtitles");
+        gavl_metadata_set(&bg_ss->m, GAVL_META_FORMAT,
+                          "3gpp subtitles");
+
         bg_ss->fourcc = stsd->entries[0].desc.fourcc;
         bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
-                                  bg_ss->language);
-      
+                                  language);
+        gavl_metadata_set(&bg_ss->m, GAVL_META_LANGUAGE,
+                          language);
+                
         bg_ss->timescale = trak->mdia.mdhd.time_scale;
         bg_ss->stream_id = i;
 
@@ -1342,7 +1362,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         continue;
         }
       bg_ss = bgav_track_add_subtitle_stream(track, ctx->opt, 0, NULL);
-      bg_ss->description = bgav_sprintf("DVD subtitles");
+
+      gavl_metadata_set(&bg_ss->m, GAVL_META_FORMAT, "DVD subtitles");
       bg_ss->fourcc = stsd->entries[0].desc.fourcc;
       
       if(trak_has_edl(trak))

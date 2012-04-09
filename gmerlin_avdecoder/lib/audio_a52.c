@@ -94,8 +94,9 @@ static int decode_frame_a52(bgav_stream_t * s)
 
     s->codec_bitrate = h.bitrate;
 
-    s->description =
-      bgav_sprintf("AC3 %d kb/sec", h.bitrate/1000);
+    gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                      "AC3");
+    
 #ifdef LIBA52_DOUBLE
     s->data.audio.format.sample_format = GAVL_SAMPLE_DOUBLE;
 #else

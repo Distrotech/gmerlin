@@ -1059,8 +1059,9 @@ static int init_ffmpeg(bgav_stream_t * s)
 #if LIBAVCODEC_VERSION_MAJOR >= 54
   av_dict_free(&options);
 #endif
-  
-  s->description = bgav_sprintf("%s", priv->info->format_name);
+
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                    priv->info->format_name);
   return 1;
   }
 

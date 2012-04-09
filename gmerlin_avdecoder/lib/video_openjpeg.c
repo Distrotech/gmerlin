@@ -238,7 +238,7 @@ static int init_openjpeg(bgav_stream_t * s)
   decode_openjpeg(s, NULL);
   priv->need_format = 0;
   
-  s->description = bgav_sprintf("JPEG-2000"); 
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT, "JPEG-2000");
   return 1;
   }
 

@@ -176,10 +176,12 @@ static int init_theora(bgav_stream_t * s)
   
   /* Create frame */
   priv->frame = gavl_video_frame_create(NULL);
-  s->description = bgav_sprintf("Theora (Version %d.%d.%d)",
-                                priv->ti.version_major, priv->ti.version_minor,
-                                priv->ti.version_subminor); 
-  
+
+  gavl_metadata_set_nocpy(&s->m, GAVL_META_FORMAT,
+                           bgav_sprintf("Theora (Version %d.%d.%d)",
+                                        priv->ti.version_major,
+                                        priv->ti.version_minor,
+                                        priv->ti.version_subminor));
   return 1;
   }
 

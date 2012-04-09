@@ -280,7 +280,7 @@ static int init_aviraw(bgav_stream_t * s)
     {
     priv->in_stride += (4 - (priv->in_stride % 4));
     }
-  s->description = bgav_sprintf("RGB uncompressed");
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT, "AVI raw");
   return 1;
   }
 

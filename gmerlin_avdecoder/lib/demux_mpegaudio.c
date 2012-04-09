@@ -173,7 +173,7 @@ typedef struct
   bgav_albw_t * albw;
   
   /* Global metadata */
-  bgav_metadata_t metadata;
+  gavl_metadata_t metadata;
   
   bgav_xing_header_t xing;
   int have_xing;
@@ -355,9 +355,6 @@ static int set_stream(bgav_demuxer_context_t * ctx)
       }
     }
   
-  if(s->description)
-    free(s->description);
-    
   switch(priv->header.version)
     {
     case MPEG_VERSION_1:
@@ -391,10 +388,10 @@ static int set_stream(bgav_demuxer_context_t * ctx)
 static void get_metadata_albw(bgav_input_context_t* input,
                               int64_t * start_position,
                               int64_t * end_position,
-                              bgav_metadata_t * metadata)
+                              gavl_metadata_t * metadata)
   {
-  bgav_metadata_t metadata_v1;
-  bgav_metadata_t metadata_v2;
+  gavl_metadata_t metadata_v1;
+  gavl_metadata_t metadata_v2;
 
   bgav_id3v1_tag_t * id3v1 = NULL;
   bgav_id3v2_tag_t * id3v2 = NULL;
@@ -425,9 +422,9 @@ static void get_metadata_albw(bgav_input_context_t* input,
       bgav_id3v1_2_metadata(id3v1, &metadata_v1);
       }
     }
-  bgav_metadata_merge(metadata, &metadata_v2, &metadata_v1);
-  bgav_metadata_free(&metadata_v1);
-  bgav_metadata_free(&metadata_v2);
+  gavl_metadata_merge(metadata, &metadata_v2, &metadata_v1);
+  gavl_metadata_free(&metadata_v1);
+  gavl_metadata_free(&metadata_v2);
 
   if(id3v1)
     bgav_id3v1_destroy(id3v1);
@@ -438,13 +435,13 @@ static void get_metadata_albw(bgav_input_context_t* input,
 
 static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
                                          bgav_albw_t * albw,
-                                         bgav_metadata_t * global_metadata)
+                                         gavl_metadata_t * global_metadata)
   {
   int i;
   const char * end_pos;
   bgav_track_table_t * ret;
   bgav_stream_t * s;
-  bgav_metadata_t track_metadata;
+  gavl_metadata_t track_metadata;
 
   memset(&track_metadata, 0, sizeof(track_metadata));
     
@@ -466,9 +463,9 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
                       &albw->tracks[i].start_pos,
                       &albw->tracks[i].end_pos,
                       &track_metadata);
-    bgav_metadata_merge(&ret->tracks[i].metadata,
+    gavl_metadata_merge(&ret->tracks[i].metadata,
                         &track_metadata, global_metadata);
-    bgav_metadata_free(&track_metadata);
+    gavl_metadata_free(&track_metadata);
     
     ret->tracks[i].duration = get_duration(ctx,
                                            albw->tracks[i].start_pos,
@@ -482,15 +479,16 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
 
 static int open_mpegaudio(bgav_demuxer_context_t * ctx)
   {
-  bgav_metadata_t metadata_v1;
-  bgav_metadata_t metadata_v2;
+  gavl_metadata_t metadata_v1;
+  gavl_metadata_t metadata_v2;
 
   bgav_id3v1_tag_t * id3v1 = NULL;
   bgav_stream_t * s;
   
   mpegaudio_priv_t * priv;
   int64_t oldpos;
-    
+  const char * title;
+  
   memset(&metadata_v1, 0, sizeof(metadata_v1));
   memset(&metadata_v2, 0, sizeof(metadata_v2));
   
@@ -523,7 +521,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
       }
     bgav_input_seek(ctx->input, oldpos, SEEK_SET);
     }
-  bgav_metadata_merge(&priv->metadata, &metadata_v2, &metadata_v1);
+  gavl_metadata_merge(&priv->metadata, &metadata_v2, &metadata_v1);
   
   if(priv->albw)
     {
@@ -546,21 +544,22 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
     ctx->tt->tracks[0].duration = get_duration(ctx,
                                                priv->data_start,
                                                priv->data_end);
-    bgav_metadata_merge(&ctx->tt->tracks[0].metadata,
+    gavl_metadata_merge(&ctx->tt->tracks[0].metadata,
                         &metadata_v2, &metadata_v1);
     }
 
   if(id3v1)
     bgav_id3v1_destroy(id3v1);
-  bgav_metadata_free(&metadata_v1);
-  bgav_metadata_free(&metadata_v2);
+  gavl_metadata_free(&metadata_v1);
+  gavl_metadata_free(&metadata_v2);
   
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
-  if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
+  if(!ctx->tt->tracks[0].name &&
+     (title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
     {
-    ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
+    ctx->tt->tracks[0].name = bgav_strdup(title);
     }
   ctx->index_mode = INDEX_MODE_SIMPLE;
   return 1;
@@ -660,7 +659,7 @@ static void close_mpegaudio(bgav_demuxer_context_t * ctx)
   mpegaudio_priv_t * priv;
   priv = ctx->priv;
   
-  bgav_metadata_free(&priv->metadata);
+  gavl_metadata_free(&priv->metadata);
   
   if(priv->albw)
     bgav_albw_destroy(priv->albw);

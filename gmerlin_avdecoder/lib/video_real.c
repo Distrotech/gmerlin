@@ -290,8 +290,9 @@ static int init_real(bgav_stream_t * s)
       return 0;
       }
     }
-  
-  s->description = bgav_sprintf("%s", info->format_name);
+
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                    info->format_name);
   
   return 1;
   };

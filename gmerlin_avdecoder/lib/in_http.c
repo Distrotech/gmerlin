@@ -75,7 +75,8 @@ static char const * const comment_vars[] =
   };
 
 static void set_metadata_string(bgav_http_header_t * header,
-                                char const * const vars[], char ** str)
+                                char const * const vars[],
+                                gavl_metadata_t * m, const char * name)
   {
   const char * val;
   int i = 0;
@@ -84,7 +85,7 @@ static void set_metadata_string(bgav_http_header_t * header,
     val = bgav_http_header_get_var(header, vars[i]);
     if(val)
       {
-      *str = bgav_strdup(val);
+      gavl_metadata_set(m, name, val);
       return;
       }
     else
@@ -148,11 +149,11 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   /* Get Metadata */
 
   set_metadata_string(header,
-                      title_vars, &ctx->metadata.title);
+                      title_vars, &ctx->metadata, GAVL_META_TITLE);
   set_metadata_string(header,
-                      genre_vars, &ctx->metadata.genre);
+                      genre_vars, &ctx->metadata, GAVL_META_GENRE);
   set_metadata_string(header,
-                      comment_vars, &ctx->metadata.comment);
+                      comment_vars, &ctx->metadata, GAVL_META_COMMENT);
 
   /* If we have chunked encoding, skip the chunk size and assume, that
      the whole data is in one chunk */

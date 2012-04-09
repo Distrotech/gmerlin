@@ -781,7 +781,8 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   bgav_rmff_mdpr_t * mdpr;
   uint32_t header = 0;
   bgav_track_t * track;
-
+  const char * title;
+  
   bgav_charset_converter_t * cnv;
 
   //  bgav_rmff_header_dump(h);
@@ -795,8 +796,8 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
   track = ctx->tt->cur;
 
-  if(ctx->input->metadata.title)
-    track->name = bgav_strdup(ctx->input->metadata.title);
+  if((title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
+    track->name = bgav_strdup(title);
     
   /* Create streams */
 
@@ -882,26 +883,35 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", "UTF-8");
 
   if(priv->header->cont.title_len)
-    track->metadata.title = bgav_convert_string(cnv,
+    gavl_metadata_set_nocpy(&track->metadata,
+                            GAVL_META_TITLE,
+                            bgav_convert_string(cnv,
                                                 priv->header->cont.title,
                                                 priv->header->cont.title_len,
-                                                NULL);
+                                                NULL));
   if(priv->header->cont.author_len)
-    track->metadata.author = bgav_convert_string(cnv,
+    gavl_metadata_set_nocpy(&track->metadata,
+                            GAVL_META_AUTHOR,
+                            bgav_convert_string(cnv,
                                                 priv->header->cont.author,
                                                 priv->header->cont.author_len,
-                                                NULL);
+                                                NULL));
+  
   if(priv->header->cont.copyright_len)
-    track->metadata.copyright = bgav_convert_string(cnv,
+    gavl_metadata_set_nocpy(&track->metadata,
+                            GAVL_META_COPYRIGHT,
+                            bgav_convert_string(cnv,
                                                 priv->header->cont.copyright,
                                                 priv->header->cont.copyright_len,
-                                                NULL);
-
+                                                NULL));
+  
   if(priv->header->cont.comment_len)
-    track->metadata.comment = bgav_convert_string(cnv,
+    gavl_metadata_set_nocpy(&track->metadata,
+                            GAVL_META_COMMENT,
+                            bgav_convert_string(cnv,
                                                 priv->header->cont.comment,
                                                 priv->header->cont.comment_len,
-                                                NULL);
+                                                NULL));
   bgav_charset_converter_destroy(cnv);
 
   ctx->data_start = ctx->input->position;

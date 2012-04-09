@@ -456,8 +456,9 @@ static int init_vorbis(bgav_stream_t * s)
   
   bgav_vorbis_set_channel_setup(&s->data.audio.format);
   gavl_set_channel_setup(&s->data.audio.format);
-  s->description = bgav_sprintf("Ogg Vorbis");
 
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT, "Ogg Vorbis");
+  
   /* Preroll */
 
   /* Samples of packet N is (blocksize[n-1]+blocksize[n])/4

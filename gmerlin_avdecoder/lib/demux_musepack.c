@@ -106,7 +106,7 @@ static mpc_bool_t mpc_canseek(void *t)
 static int open_mpc(bgav_demuxer_context_t * ctx)
   {
   int ape_tag_size;
-  bgav_metadata_t start_metadata, end_metadata;
+  gavl_metadata_t start_metadata, end_metadata;
 
   bgav_id3v1_tag_t * id3v1  = NULL;
   bgav_ape_tag_t   * apetag = NULL;
@@ -184,10 +184,10 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
     else if(apetag)
       bgav_ape_tag_2_metadata(apetag, &end_metadata);
     
-    bgav_metadata_merge(&ctx->tt->cur->metadata,
+    gavl_metadata_merge(&ctx->tt->cur->metadata,
                         &start_metadata, &end_metadata);
-    bgav_metadata_free(&start_metadata);
-    bgav_metadata_free(&end_metadata);
+    gavl_metadata_free(&start_metadata);
+    gavl_metadata_free(&end_metadata);
     }
   
   else if(ctx->input->id3v2)
@@ -230,14 +230,13 @@ static int open_mpc(bgav_demuxer_context_t * ctx)
   s->fourcc = BGAV_MK_FOURCC('g', 'a', 'v', 'l');
 
   s->timescale = priv->si.sample_freq;
-
-  s->description = bgav_sprintf("Musepack");
+  
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                    "Musepack");
   
   ctx->tt->cur->duration =
     gavl_samples_to_time(s->data.audio.format.samplerate,
                          mpc_streaminfo_get_length_samples(&priv->si));
-
-  ctx->stream_description = bgav_sprintf("Musepack");
 
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;

@@ -50,7 +50,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url, char ** r)
   int i;
   bgav_input_context_t * input;
   bgav_track_t * track;
-  
+  const char * title;
   mms_priv_t * priv;
 
   priv = calloc(1, sizeof(*priv));
@@ -98,8 +98,9 @@ static int open_mms(bgav_input_context_t * ctx, const char * url, char ** r)
   
   bgav_mms_select_streams(priv->mms, stream_ids, num_streams);
 
-  if((!track->name) && (track->metadata.title))
-    track->name = bgav_strdup(track->metadata.title);
+  title = gavl_metadata_get(&track->metadata, GAVL_META_TITLE);
+  if(!track->name && title)
+    track->name = bgav_strdup(title);
   
   free(stream_ids);
   /* Set the input context of the demuxer */

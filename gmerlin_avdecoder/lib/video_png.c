@@ -111,12 +111,7 @@ static int init_png(bgav_stream_t * s)
     return 0;
     }
   priv->need_header = 0;
-  
-  s->description = bgav_sprintf("PNG Video (%s)",
-                                ((s->data.video.format.pixelformat ==
-                                  GAVL_RGBA_32) ? "RGBA" : "RGB")); 
-  
-
+  gavl_metadata_set(&s->m, GAVL_META_FORMAT, "PNG");
   return 1;
   }
 

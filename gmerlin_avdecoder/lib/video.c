@@ -171,7 +171,8 @@ int bgav_video_start(bgav_stream_t * s)
 
 const char * bgav_get_video_description(bgav_t * b, int s)
   {
-  return b->tt->cur->video_streams[s].description;
+  return gavl_metadata_get(&b->tt->cur->video_streams[s].m,
+                           GAVL_META_FORMAT);
   }
 
 

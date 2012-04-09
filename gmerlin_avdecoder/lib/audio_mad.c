@@ -95,7 +95,6 @@ static void get_format(bgav_stream_t * s)
   {
   mad_priv_t * priv;
   const char * version_string;
-  char * bitrate_string;
   
   priv = s->data.audio.decoder->priv;
 
@@ -147,14 +146,11 @@ static void get_format(bgav_stream_t * s)
       s->data.audio.preroll = s->data.audio.format.samples_per_frame;
     version_string = "1";
     }
-  if(s->codec_bitrate == BGAV_BITRATE_VBR)
-    bitrate_string = bgav_sprintf("VBR");
-  else
-    bitrate_string = bgav_sprintf("%d kb/sec", s->codec_bitrate/1000);
-  s->description =
-    bgav_sprintf("MPEG-%s layer %d, %s",
-                 version_string, priv->frame.header.layer, bitrate_string);
-  free(bitrate_string);
+  
+  gavl_metadata_set_nocpy(&s->m, GAVL_META_FORMAT,
+                          bgav_sprintf("MPEG-%s layer %d",
+                                       version_string, priv->frame.header.layer));
+  
   priv->audio_frame = gavl_audio_frame_create(&s->data.audio.format);
   }
 

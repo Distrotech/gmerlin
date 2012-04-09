@@ -251,9 +251,10 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   aac_priv_t * priv;
   bgav_stream_t * s;
   bgav_id3v1_tag_t * id3v1 = NULL;
-  bgav_metadata_t id3v1_metadata, id3v2_metadata;
+  gavl_metadata_t id3v1_metadata, id3v2_metadata;
   uint8_t buf[ADTS_SIZE];
-
+  const char * title;
+  
   adts_header_t adts;
   
   priv = calloc(1, sizeof(*priv));
@@ -299,12 +300,12 @@ static int open_adts(bgav_demuxer_context_t * ctx)
     memset(&id3v2_metadata, 0, sizeof(id3v2_metadata));
     bgav_id3v1_2_metadata(id3v1, &id3v1_metadata);
     bgav_id3v2_2_metadata(ctx->input->id3v2, &id3v2_metadata);
-    //    bgav_metadata_dump(&id3v2_metadata);
+    //    gavl_metadata_dump(&id3v2_metadata);
 
-    bgav_metadata_merge(&ctx->tt->cur->metadata,
+    gavl_metadata_merge(&ctx->tt->cur->metadata,
                         &id3v2_metadata, &id3v1_metadata);
-    bgav_metadata_free(&id3v1_metadata);
-    bgav_metadata_free(&id3v2_metadata);
+    gavl_metadata_free(&id3v1_metadata);
+    gavl_metadata_free(&id3v2_metadata);
     }
   else if(ctx->input->id3v2)
     bgav_id3v2_2_metadata(ctx->input->id3v2,
@@ -392,9 +393,10 @@ static int open_adts(bgav_demuxer_context_t * ctx)
 
   ctx->index_mode = INDEX_MODE_SIMPLE;
 
-  if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
+  if(!ctx->tt->tracks[0].name &&
+     (title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
     {
-    ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
+    ctx->tt->tracks[0].name = bgav_strdup(title);
     }
 
 #ifdef HAVE_FAAD2

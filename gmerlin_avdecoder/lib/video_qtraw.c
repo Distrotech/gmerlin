@@ -246,7 +246,11 @@ static int init_qtraw(bgav_stream_t * s)
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
-      s->description = bgav_sprintf("Quicktime Uncompressed 1 bpp palette");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw palette");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 1);
+      
       break;
     case 2:
       /* 2 bpp palette */
@@ -260,7 +264,11 @@ static int init_qtraw(bgav_stream_t * s)
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
-      s->description = bgav_sprintf("Quicktime Uncompressed 2 bpp palette");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw palette");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 2);
+
       break;
     case 4:
       /* 4 bpp palette */
@@ -274,7 +282,10 @@ static int init_qtraw(bgav_stream_t * s)
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
-      s->description = bgav_sprintf("Quicktime Uncompressed 4 bpp palette");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw palette");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 4);
       break;
     case 8:
       /* 8 bpp palette */
@@ -288,49 +299,70 @@ static int init_qtraw(bgav_stream_t * s)
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
-      s->description = bgav_sprintf("Quicktime Uncompressed 8 bpp palette");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw palette");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 8);
       break;
     case 16:
       /* RGB565 */
       priv->bytes_per_line = width * 2;
       priv->scanline_func = scanline_raw_16;
       s->data.video.format.pixelformat = GAVL_RGB_15;
-      s->description = bgav_sprintf("Quicktime Uncompressed 16 bpp RGB");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw RGB");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 16);
       break;
     case 24:
       /* 24 RGB */
       priv->bytes_per_line = width * 3;
       priv->scanline_func = scanline_raw_24;
       s->data.video.format.pixelformat = GAVL_RGB_24;
-      s->description = bgav_sprintf("Quicktime Uncompressed 24 bpp RGB");
+      
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw RGB");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 24);
       break;
     case 32:
       /* 32 ARGB */
       priv->bytes_per_line = width * 4;
       priv->scanline_func = scanline_raw_32;
       s->data.video.format.pixelformat = GAVL_RGBA_32;
-      s->description = bgav_sprintf("Quicktime Uncompressed 32 bpp RGBA");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw RGBA");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 32);
       break;
     case 34:
       /* 2 bit gray */
       priv->bytes_per_line = width / 4;
       priv->scanline_func = scanline_raw_2_gray;
       s->data.video.format.pixelformat = GAVL_RGB_24;
-      s->description = bgav_sprintf("Quicktime Uncompressed 2 bpp gray");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw gray");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 2);
       break;
     case 36:
       /* 4 bit gray */
       priv->bytes_per_line = width / 2;
       priv->scanline_func = scanline_raw_4_gray;
       s->data.video.format.pixelformat = GAVL_RGB_24;
-      s->description = bgav_sprintf("Quicktime Uncompressed 4 bpp gray");
+
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw gray");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 4);
+
       break;
     case 40:
       /* 8 bit gray */
       priv->bytes_per_line = width;
       priv->scanline_func = scanline_raw_8_gray;
       s->data.video.format.pixelformat = GAVL_RGB_24;
-      s->description = bgav_sprintf("Quicktime Uncompressed 8 bpp gray");
+      gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                        "Quickime raw gray");
+      gavl_metadata_set_int(&s->m, GAVL_META_VIDEO_BPP, 8);
       break;
     }
   if(priv->bytes_per_line & 1)
