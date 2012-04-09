@@ -71,6 +71,7 @@ dsputils.c \
 frametable.c \
 interleave.c \
 memcpy.c \
+metadata.c \
 mix.c \
 peakdetector.c \
 psnr.c \
