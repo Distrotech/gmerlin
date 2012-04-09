@@ -36,6 +36,10 @@ void
 gavl_metadata_free(gavl_metadata_t * m);
 
 void
+gavl_metadata_init(gavl_metadata_t * m);
+
+
+void
 gavl_metadata_set(gavl_metadata_t * m,
                   const char * key,
                   const char * val);
@@ -46,9 +50,21 @@ gavl_metadata_set_int(gavl_metadata_t * m,
                       int val);
 
 
-const char * gavl_metadata_get(gavl_metadata_t * m,
+const char * gavl_metadata_get(const gavl_metadata_t * m,
                                const char * key);
 
 
-int gavl_metadata_get_int(gavl_metadata_t * m,
+int gavl_metadata_get_int(const gavl_metadata_t * m,
                           const char * key, int * ret);
+
+void gavl_metadata_merge(gavl_metadata_t * dst,
+                         const gavl_metadata_t * src1,
+                         const gavl_metadata_t * src2);
+
+void gavl_metadata_merge2(gavl_metadata_t * dst,
+                          const gavl_metadata_t * src);
+
+
+void
+gavl_metadata_copy(gavl_metadata_t * dst,
+                   const gavl_metadata_t * src);
