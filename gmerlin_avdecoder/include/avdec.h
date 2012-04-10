@@ -1426,9 +1426,19 @@ const char * bgav_get_audio_language(bgav_t * bgav, int stream);
 BGAV_PUBLIC
 int bgav_get_audio_bitrate(bgav_t * bgav, int stream);
 
+/** \ingroup streams
+ *  \brief Get the metadata of an audio stream
+ *  \param bgav A decoder instance
+ *  \param stream Audio stream index (starting with 0)
+ *  \returns The metadata for the stream
+ */
+
+BGAV_PUBLIC
+const bgav_metadata_t *
+bgav_get_audio_metadata(bgav_t * bgav, int stream);
   
 /** \ingroup streams
- *  \brief Get the language of an audio stream
+ *  \brief Get the language of a subtitle stream
  *  \param bgav A decoder instance
  *  \param stream Subtitle stream index (starting with 0)
  *  \returns A language string.
@@ -1437,6 +1447,29 @@ int bgav_get_audio_bitrate(bgav_t * bgav, int stream);
 BGAV_PUBLIC
 const char * bgav_get_subtitle_language(bgav_t * bgav, int stream);
 
+/** \ingroup streams
+ *  \brief Get the metadata of a subtitle stream
+ *  \param bgav A decoder instance
+ *  \param stream Subtitle stream index (starting with 0)
+ *  \returns The metadata for the stream
+ */
+
+BGAV_PUBLIC
+const bgav_metadata_t *
+bgav_get_subtitle_metadata(bgav_t * bgav, int stream);
+
+/** \ingroup streams
+ *  \brief Get the metadata of a video stream
+ *  \param bgav A decoder instance
+ *  \param stream Video stream index (starting with 0)
+ *  \returns The metadata for the stream
+ */
+
+BGAV_PUBLIC
+const bgav_metadata_t *
+bgav_get_video_metadata(bgav_t * bgav, int stream);
+
+  
 /** \ingroup streams
  *  \brief Stream action
  *

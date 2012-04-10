@@ -323,3 +323,9 @@ const char * bgav_get_subtitle_info(bgav_t * b, int s)
   return gavl_metadata_get(&b->tt->cur->subtitle_streams[s].m,
                            GAVL_META_LABEL);
   }
+
+const bgav_metadata_t *
+bgav_get_subtitle_metadata(bgav_t * b, int s)
+  {
+  return &b->tt->cur->subtitle_streams[s].m;
+  }

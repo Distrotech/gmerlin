@@ -177,6 +177,12 @@ const char * bgav_get_audio_info(bgav_t * b, int s)
                            GAVL_META_LABEL);
   }
 
+const bgav_metadata_t *
+bgav_get_audio_metadata(bgav_t * b, int s)
+  {
+  return &b->tt->cur->audio_streams[s].m;
+  }
+
 
 const char * bgav_get_audio_language(bgav_t * b, int s)
   {
