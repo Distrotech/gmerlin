@@ -1362,6 +1362,7 @@ static void get_metadata(bgav_track_t * track)
     stream_priv = track->video_streams[i].priv;
     gavl_metadata_merge2(&track->metadata, &stream_priv->metadata);
     }
+  gavl_metadata_set(&track->metadata, GAVL_META_FORMAT, "Ogg");
   }
 
 static int open_ogg(bgav_demuxer_context_t * ctx)
@@ -1546,7 +1547,6 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
   
   if(ctx->input->input->seek_byte)
     ctx->flags |= (BGAV_DEMUXER_CAN_SEEK|BGAV_DEMUXER_SEEK_ITERATIVE);
-  ctx->stream_description = bgav_strdup("Ogg");
   ctx->index_mode = INDEX_MODE_MIXED;
   return 1;
   }

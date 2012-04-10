@@ -491,9 +491,6 @@ struct bgav_stream_s
 
   bgav_packet_t * packet;
   int             packet_seq;
- 
-  //  char * description;   /* Technical description of the stream */
-  //  char * info;          /* Info about the stream (e.g. Directors comments) */
   
   /* Language (ISO 639-3 B code) */
 
@@ -1372,7 +1369,6 @@ struct bgav_demuxer_context_s
   bgav_input_context_t * input;
   
   bgav_track_table_t * tt;
-  char * stream_description;
 
   int packet_size; /* Optional, if it's fixed */
   

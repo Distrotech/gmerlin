@@ -205,8 +205,8 @@ static int open_au(bgav_demuxer_context_t * ctx)
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 
-  
-  ctx->stream_description = bgav_sprintf("AU/SND");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "AU/SND");
   ctx->index_mode = INDEX_MODE_PCM;
   return 1;
   }

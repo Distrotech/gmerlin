@@ -141,7 +141,8 @@ static int open_fli(bgav_demuxer_context_t * ctx)
   /* Set extradata */
   bgav_stream_set_extradata(s, priv->header, priv->header_size);
   
-  ctx->stream_description = bgav_sprintf("FLI/FLC");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "FLI/FLC");
 
   priv->skip_header = 1;
   

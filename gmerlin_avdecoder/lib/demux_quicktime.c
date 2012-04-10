@@ -1831,19 +1831,23 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
   switch(priv->ftyp_fourcc)
     {
     case BGAV_MK_FOURCC('M','4','A',' '):
-      ctx->stream_description = bgav_sprintf("MPEG-4 audio (m4a)");
+      gavl_metadata_set(&ctx->tt->cur->metadata, 
+                        GAVL_META_FORMAT, "MPEG-4 audio (m4a)");
       break;
     case BGAV_MK_FOURCC('m','p','4','1'):
     case BGAV_MK_FOURCC('m','p','4','2'):
     case BGAV_MK_FOURCC('i','s','o','m'):
-      ctx->stream_description = bgav_sprintf("MPEG-4 video (mp4)");
+      gavl_metadata_set(&ctx->tt->cur->metadata, 
+                        GAVL_META_FORMAT, "MPEG-4 video (mp4)");
       break;
     case 0:
     case BGAV_MK_FOURCC('q','t',' ',' '):
-      ctx->stream_description = bgav_sprintf("Quicktime");
+      gavl_metadata_set(&ctx->tt->cur->metadata, 
+                        GAVL_META_FORMAT, "Quicktime");
       break;
     default:
-      ctx->stream_description = bgav_sprintf("Quicktime/mp4/m4a");
+      gavl_metadata_set(&ctx->tt->cur->metadata, 
+                        GAVL_META_FORMAT, "Quicktime/mp4/m4a");
       break;
     
     }

@@ -227,7 +227,8 @@ static int open_8svx(bgav_demuxer_context_t * ctx)
   if(ctx->input->input->seek_byte)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
-  ctx->stream_description = bgav_sprintf("8SVX");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "8SVX");
   ctx->index_mode = INDEX_MODE_PCM;
   return 1;
   }

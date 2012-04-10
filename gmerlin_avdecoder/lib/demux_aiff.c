@@ -394,9 +394,11 @@ static int open_aiff(bgav_demuxer_context_t * ctx)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   if(priv->is_aifc)
-    ctx->stream_description = bgav_sprintf("AIFF-C");
+    gavl_metadata_set(&ctx->tt->cur->metadata, 
+                      GAVL_META_FORMAT, "AIFF-C");
   else
-    ctx->stream_description = bgav_sprintf("AIFF");
+    gavl_metadata_set(&ctx->tt->cur->metadata, 
+                      GAVL_META_FORMAT, "AIFF");
   ctx->index_mode = INDEX_MODE_PCM;
   return 1;
   }

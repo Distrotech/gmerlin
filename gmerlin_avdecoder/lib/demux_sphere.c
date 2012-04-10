@@ -285,8 +285,10 @@ static int open_sphere(bgav_demuxer_context_t * ctx)
     }
 
   bgav_input_skip(ctx->input, HEADERSIZE - ctx->input->position);
-
-  ctx->stream_description = bgav_sprintf("NIST SPHERE");
+  
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "NIST SPHERE");
+  
   ctx->index_mode = INDEX_MODE_PCM;
   
   if(h.SampleByteFormat)

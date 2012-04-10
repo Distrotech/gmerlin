@@ -876,8 +876,9 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
       }
     }
 
-  ctx->stream_description = bgav_sprintf("RM");
-
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "RM");
+  
   /* Handle metadata */
 
   cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", "UTF-8");

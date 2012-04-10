@@ -189,7 +189,8 @@ static int open_smaf(bgav_demuxer_context_t * ctx)
     }
   priv->bytes_left = ch.size;
 
-  ctx->stream_description = bgav_sprintf("SMAF Ringtone");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "SMAF Ringtone");
 
   return 1;
   }

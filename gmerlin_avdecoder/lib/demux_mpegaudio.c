@@ -377,9 +377,8 @@ static int set_stream(bgav_demuxer_context_t * ctx)
     bitrate_string =
       bgav_sprintf("%d kb/s",
                    s->container_bitrate/1000);
-
-  ctx->stream_description =
-    bgav_sprintf("MPEG Audio");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "MPEG Audio");
   free(bitrate_string);
 
   return 1;
@@ -471,6 +470,10 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
                                            albw->tracks[i].start_pos,
                                            albw->tracks[i].end_pos);
       
+
+    gavl_metadata_set(&ret->tracks[i].metadata,
+                      GAVL_META_FORMAT, "MPEG Audio");
+
     
     }
   

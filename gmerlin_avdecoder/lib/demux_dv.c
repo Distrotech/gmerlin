@@ -108,7 +108,8 @@ static int open_dv(bgav_demuxer_context_t * ctx)
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
   
-  ctx->stream_description = bgav_sprintf("DV");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "DV");
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

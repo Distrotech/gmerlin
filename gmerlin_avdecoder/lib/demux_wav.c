@@ -173,8 +173,8 @@ static int open_wav(bgav_demuxer_context_t * ctx)
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
-
-  ctx->stream_description = bgav_sprintf("WAV");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "WAV");
 
   if(ctx->tt->cur->audio_streams[0].data.audio.bits_per_sample)
     {

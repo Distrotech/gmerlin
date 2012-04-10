@@ -209,8 +209,9 @@ static int open_vqa(bgav_demuxer_context_t * ctx)
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
-  
-  ctx->stream_description = bgav_sprintf("Westwood VQA");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Westwood VQA");
   return 1;
   }
 

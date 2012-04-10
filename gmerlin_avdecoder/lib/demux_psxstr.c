@@ -162,7 +162,8 @@ static int open_psxstr(bgav_demuxer_context_t * ctx)
         break;
       }
     }
-  ctx->stream_description = bgav_sprintf("Sony Playstation (PSX) STR");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Sony Playstation (PSX) STR");
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

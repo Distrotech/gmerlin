@@ -344,50 +344,9 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   
   s->data.audio.format.samplerate = adts.samplerate;
   
-  if(adts.mpeg_version == 2)
-    {
-    switch(adts.profile)
-      {
-      case 0:
-        ctx->stream_description =
-          bgav_strdup("MPEG-2 AAC Main profile [ADTS]");
-        break;
-      case 1:
-        ctx->stream_description =
-          bgav_strdup("MPEG-2 AAC Low Complexity profile (LC) [ADTS]");
-        break;
-      case 2:
-        ctx->stream_description =
-          bgav_strdup("MPEG-2 AAC Scalable Sample Rate profile (SSR) [ADTS]");
-        break;
-      case 3:
-        ctx->stream_description =
-          bgav_strdup("MPEG-2 AAC (reserved) [ADTS]");
-        break;
-      }
-    }
-  else
-    {
-    switch(adts.profile)
-      {
-      case 0:
-        ctx->stream_description =
-          bgav_strdup("MPEG-4 AAC MAIN [ADTS]");
-        break;
-      case 1:
-        ctx->stream_description =
-          bgav_strdup("MPEG-4 AAC LC [ADTS]");
-        break;
-      case 2:
-        ctx->stream_description =
-          bgav_strdup("MPEG-4 AAC SSR [ADTS]");
-        break;
-      case 3:
-        ctx->stream_description =
-          bgav_strdup("MPEG-4 AAC LTP [ADTS]");
-        break;
-      }
-    }
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "ADTS");
+
   
   //  adts_header_dump(&adts);
 

@@ -128,7 +128,9 @@ static int open_sol(bgav_demuxer_context_t * ctx)
   s->data.audio.format.samplerate = rate;
   s->data.audio.format.num_channels = sol_channels(magic, type);
   s->stream_id = 0;
-  ctx->stream_description = bgav_sprintf("Sierra SOL");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Sierra SOL");
   return 1;
   }
 

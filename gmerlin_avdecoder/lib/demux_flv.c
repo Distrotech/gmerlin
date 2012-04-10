@@ -995,8 +995,9 @@ static int open_flv(bgav_demuxer_context_t * ctx)
     bgav_input_seek(ctx->input, pos, SEEK_SET);
     }
   
-  ctx->stream_description = bgav_sprintf("FLV");
-  
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "FLV");
+
   return 1;
   
   fail:

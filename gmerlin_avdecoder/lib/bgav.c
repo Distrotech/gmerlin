@@ -491,7 +491,8 @@ const bgav_metadata_t * bgav_get_metadata(bgav_t*b, int track)
 
 const char * bgav_get_description(bgav_t * b)
   {
-  return b->demuxer->stream_description;
+  return gavl_metadata_get(&b->tt->tracks[0].metadata,
+                           GAVL_META_FORMAT);
   }
 
 bgav_options_t * bgav_get_options(bgav_t * b)

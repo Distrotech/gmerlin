@@ -218,8 +218,9 @@ static int open_dxa(bgav_demuxer_context_t * ctx)
   priv->audio_position = priv->audio_start;
   priv->video_position = priv->video_start;
 
-  ctx->stream_description = bgav_sprintf("DXA");
-  
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "DXA");
+
   return 1;
   }
 

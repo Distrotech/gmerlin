@@ -249,7 +249,8 @@ static int open_smacker(bgav_demuxer_context_t * ctx)
       }
     }
 
-  ctx->stream_description = bgav_sprintf("Smacker");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Smacker");
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 

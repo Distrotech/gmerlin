@@ -40,7 +40,9 @@ static int open_shorten(bgav_demuxer_context_t * ctx)
   s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('.','s','h','n');
   s->stream_id = 0;
-  ctx->stream_description = bgav_sprintf("Shorten");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Shorten");
   return 1;
   }
 

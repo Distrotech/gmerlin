@@ -154,8 +154,9 @@ static int open_dsicin(bgav_demuxer_context_t * ctx)
   s->fourcc = BGAV_MK_FOURCC('d','c','i','n');
   s->stream_id = AUDIO_ID;
 
-  ctx->stream_description = bgav_sprintf("Delphine Software CIN");
-
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Delphine Software CIN");
+  
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   

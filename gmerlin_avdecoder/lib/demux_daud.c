@@ -54,7 +54,9 @@ static int open_daud(bgav_demuxer_context_t * ctx)
   s->container_bitrate = 3 * 6 * 96000 * 8;
   s->data.audio.block_align = 3 * 6;
   s->data.audio.bits_per_sample = 24;
-  ctx->stream_description = bgav_sprintf("D-Cinema audio");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "D-Cinema audio");
   ctx->data_start = 0;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   if(ctx->input->input->seek_byte)

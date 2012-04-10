@@ -665,6 +665,10 @@ static int open_mxf(bgav_demuxer_context_t * ctx)
         ctx->index_mode = INDEX_MODE_NONE;
       }
     }
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "MXF");
+
   
   return 1;
   }

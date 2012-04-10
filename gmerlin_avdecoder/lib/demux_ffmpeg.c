@@ -745,10 +745,7 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
     if(priv->avfc->iformat->read_seek)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
-
-  ctx->stream_description = bgav_sprintf(TRD("%s (via ffmpeg)"),
-                                         priv->avfc->iformat->long_name);
-
+  
 #ifdef NEW_METADATA
 #define GET_METADATA_STRING(gavl_name, ffmpeg_name) \
   tag = av_metadata_get(avfc->metadata, ffmpeg_name, NULL, \
@@ -761,6 +758,7 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
                         AV_METADATA_IGNORE_SUFFIX); \
   if(tag) \
     gavl_metadata_set_int(&ctx->tt->cur->metadata, gavl_name, atoi(tag->value));
+
   
   if(avfc->metadata)
     {
@@ -787,6 +785,12 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
     ctx->tt->cur->metadata.genre = bgav_strdup(avfc->genre);
 
 #endif
+
+  gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                          GAVL_META_FORMAT,
+                          bgav_sprintf(TRD("%s (via ffmpeg)"),
+                                       priv->avfc->iformat->long_name));
+  
   
   return 1;
   }

@@ -527,7 +527,8 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
     ctx->tt->tracks[0].name = bgav_strdup(title);
     }
 
-  ctx->stream_description = bgav_sprintf("NSV");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "NSV");
 
   if(p->need_pcm_format)
     {

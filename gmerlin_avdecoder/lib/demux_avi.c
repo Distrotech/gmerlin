@@ -2091,8 +2091,9 @@ static int open_avi(bgav_demuxer_context_t * ctx)
 
   if(p->info)
     bgav_RIFFINFO_get_metadata(p->info, &ctx->tt->cur->metadata);
-  
-  ctx->stream_description = bgav_sprintf("AVI");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "AVI");
   
   return 1;
   fail:

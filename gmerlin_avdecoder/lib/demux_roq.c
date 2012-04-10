@@ -179,7 +179,9 @@ static int open_roq(bgav_demuxer_context_t * ctx)
     s->data.video.format.timescale = framerate;
     s->data.video.format.frame_duration = 1;
     }
-  ctx->stream_description = bgav_sprintf("ID Roq");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "ID Roq");
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

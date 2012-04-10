@@ -234,7 +234,9 @@ static int open_vmd(bgav_demuxer_context_t * ctx)
   //  dump_frames(priv->frame_table, priv->frame_count);
   
   /* */
-  ctx->stream_description = bgav_sprintf("Sierra VMD");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Sierra VMD");
   ret = 1;
   
   ctx->data_start = ctx->input->position;

@@ -338,9 +338,7 @@ void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
 
   if(ctx->redirector)
     bgav_redirector_destroy(ctx->redirector);
-  
-  
-  FREE(ctx->stream_description);
+    
   free(ctx);
   }
 
@@ -492,8 +490,7 @@ void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   {
   ctx->demuxer->close(ctx);
   ctx->priv = NULL;
-  FREE(ctx->stream_description);
-  
+    
   /* Reset global variables */
   ctx->flags &= ~(BGAV_DEMUXER_SI_SEEKING |
                   BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET);

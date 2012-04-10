@@ -221,7 +221,8 @@ static int open_thp(bgav_demuxer_context_t * ctx)
   priv->next_frame_offset = priv->h.firstFrameOffset;
   priv->next_frame_size   = priv->h.firstFrameSize;
 
-  ctx->stream_description = bgav_sprintf("THP");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "THP");
   
   return 1;
   }

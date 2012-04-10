@@ -74,7 +74,8 @@ static int open_gsm(bgav_demuxer_context_t * ctx)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
 
-  ctx->stream_description = bgav_sprintf("GSM");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "GSM");
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

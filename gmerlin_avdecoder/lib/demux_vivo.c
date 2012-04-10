@@ -495,8 +495,9 @@ static int open_vivo(bgav_demuxer_context_t * ctx)
                     GAVL_META_COPYRIGHT, priv->header.copyright);
   gavl_metadata_set(&ctx->tt->cur->metadata,
                     GAVL_META_SOFTWARE, priv->header.producer);
-  
-  ctx->stream_description = bgav_sprintf("Vivo");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Vivo");
 
   ctx->tt->cur->duration = (GAVL_TIME_SCALE * (int64_t)(priv->header.duration)) / 1000;
 

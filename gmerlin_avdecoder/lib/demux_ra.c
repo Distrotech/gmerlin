@@ -250,8 +250,10 @@ static int open_ra(bgav_demuxer_context_t * ctx)
       bgav_stream_set_extradata(s, (uint8_t*)priv->ext_data, 10);
       break;
     }
-  
-  ctx->stream_description = bgav_sprintf("Real audio");
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Real audio");
+      
   return 1;
   }
 

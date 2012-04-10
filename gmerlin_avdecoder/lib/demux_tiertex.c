@@ -182,7 +182,8 @@ static int open_tiertex(bgav_demuxer_context_t * ctx)
     }
   priv->num_frame_buffers = i;
 
-  ctx->stream_description = bgav_sprintf("Tiertex SEQ");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "Tiertex SEQ");
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

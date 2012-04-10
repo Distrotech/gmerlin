@@ -233,9 +233,11 @@ static int open_nuv(bgav_demuxer_context_t * ctx)
   
   /* Set description */
   if(is_mythtv)
-    ctx->stream_description = bgav_sprintf("MythTV");
+    gavl_metadata_set(&ctx->tt->cur->metadata, 
+                      GAVL_META_FORMAT, "MythTV");
   else
-    ctx->stream_description = bgav_sprintf("NuppelVideo");
+    gavl_metadata_set(&ctx->tt->cur->metadata, 
+                      GAVL_META_FORMAT, "NuppelVideo");
   
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

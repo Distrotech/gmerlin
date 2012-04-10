@@ -236,7 +236,9 @@ static int open_voc(bgav_demuxer_context_t * ctx)
         break;
       }
     }
-  ctx->stream_description = bgav_sprintf("VOC");
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "VOC");
+
   return 1;
   }
 

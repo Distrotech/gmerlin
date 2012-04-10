@@ -238,7 +238,8 @@ static int open_ircam(bgav_demuxer_context_t * ctx)
   ircam_header_t h;
   bgav_stream_t * as;
   int64_t total_samples;
-
+  const char * format;
+  
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
 
@@ -332,30 +333,34 @@ static int open_ircam(bgav_demuxer_context_t * ctx)
   switch(h.fourcc)
     {
     case VAXN:
-      ctx->stream_description = bgav_sprintf("IRCAM: VAX (native)");
+      format = "IRCAM: VAX (native)";
       break;
     case VAX:
-      ctx->stream_description = bgav_sprintf("IRCAM: VAX");
+      format = "IRCAM: VAX";
       break;
     case SUNN:
-      ctx->stream_description = bgav_sprintf("IRCAM: Sun (native) ");
+      format = "IRCAM: Sun (native) ";
       break;
     case SUN:
-      ctx->stream_description = bgav_sprintf("IRCAM: Sun");
+      format = "IRCAM: Sun";
       break;
     case MIPSD:
-      ctx->stream_description = bgav_sprintf("IRCAM: MIPS (DECstation)");
+      format = "IRCAM: MIPS (DECstation)";
       break;
     case MIPSS:
-      ctx->stream_description = bgav_sprintf("IRCAM: MIPS (SGI)");
+      format = "IRCAM: MIPS (SGI)";
       break;
     case NEXT:
-      ctx->stream_description = bgav_sprintf("IRCAM: NeXT");
+      format = "IRCAM: NeXT";
       break;
     default:
-      ctx->stream_description = bgav_sprintf("IRCAM: ...");
+      format = "IRCAM: ...";
       break;
     }
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, format);
+  
   bgav_input_skip(ctx->input, HEADER_SIZE - ctx->input->position);
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

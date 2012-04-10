@@ -1205,9 +1205,10 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
   else
     priv->have_pts = 1;
 
-  ctx->stream_description =
-    bgav_sprintf("MPEG-%d",
-                 priv->pack_header.version);
+  gavl_metadata_set_nocpy(&ctx->tt->cur->metadata, 
+                          GAVL_META_FORMAT,
+                          bgav_sprintf("MPEG-%d",
+                                       priv->pack_header.version));
   
   if(((ctx->input->input->seek_byte) && priv->have_pts) ||
      (ctx->input->input->seek_sector) ||
