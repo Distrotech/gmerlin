@@ -94,6 +94,7 @@ get_cue_file(bgav_input_context_t * audio_file)
     {
     free(tmp_string);
     free(filename);
+    return NULL;
     }
   ret = bgav_input_create(audio_file->opt);
   if(!bgav_input_open(ret, filename))
@@ -337,11 +338,14 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
       gavl_metadata_copy(track->metadata, &m);
       
       if(cue->tracks[i].performer)
-        gavl_metadata_set(track->metadata, GAVL_META_ARTIST, cue->tracks[i].performer);
+        gavl_metadata_set(track->metadata, GAVL_META_ARTIST,
+                          cue->tracks[i].performer);
       if(cue->tracks[i].title)
-        gavl_metadata_set(track->metadata, GAVL_META_TITLE, cue->tracks[i].title);
+        gavl_metadata_set(track->metadata, GAVL_META_TITLE,
+                          cue->tracks[i].title);
 
-      gavl_metadata_set_int(track->metadata, GAVL_META_TRACKNUMBER, cue->tracks[i].number);
+      gavl_metadata_set_int(track->metadata, GAVL_META_TRACKNUMBER,
+                            cue->tracks[i].number);
 
       stream = bgav_edl_add_audio_stream(track);
       stream->timescale = 44100;
@@ -353,7 +357,7 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
       
       for(j = 0; j < cue->tracks[i].num_indices; j++)
         {
-        if(cue->tracks[i].indices[j].number == 0)
+        if(j == 0)
           {
           /* End time of previous track */
           if(ret->num_tracks > 1)
@@ -366,15 +370,14 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
               last_seg->src_time;
             }
           }
-        if(cue->tracks[i].indices[j].number == 1)
+        if((cue->tracks[i].indices[j].number == 1) ||
+           (cue->tracks[i].num_indices == 1))
           {
           /* Start time of this track */
           seg->src_time =
             cue->tracks[i].indices[j].frame * SAMPLES_PER_FRAME;
           }
-        
         }
-      
       }
     }
 

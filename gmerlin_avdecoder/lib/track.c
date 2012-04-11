@@ -40,7 +40,7 @@ bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt)
   
   bgav_stream_init(ret, opt);
   bgav_stream_create_packet_buffer(ret);
-  ret->data.audio.bits_per_sample = 16;
+  // ret->data.audio.bits_per_sample = 16;
   ret->type = BGAV_STREAM_AUDIO;
   ret->track = t;
   

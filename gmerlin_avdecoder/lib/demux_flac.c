@@ -38,6 +38,9 @@
 #include <vorbis_comment.h>
 #include <flac_header.h>
 
+#include <cue.h>
+
+
 /* Probe */
 
 static int probe_flac(bgav_input_context_t * input)
@@ -196,6 +199,8 @@ static int open_flac(bgav_demuxer_context_t * ctx)
   
   if(priv->seektable.num_entries && ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
+
+  bgav_demuxer_init_cue(ctx);
   
   return 1;
     fail:

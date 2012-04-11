@@ -140,6 +140,13 @@ int bgav_audio_start(bgav_stream_t * s)
   if(s->data.audio.bits_per_sample)
     gavl_metadata_set_int(&s->m, GAVL_META_AUDIO_BITS ,
                           s->data.audio.bits_per_sample);
+
+  if(s->codec_bitrate)
+    gavl_metadata_set_int(&s->m, GAVL_META_BITRATE,
+                          s->codec_bitrate);
+  else if(s->container_bitrate)
+    gavl_metadata_set_int(&s->m, GAVL_META_BITRATE,
+                          s->container_bitrate);
   
   return 1;
   }
