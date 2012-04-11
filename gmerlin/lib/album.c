@@ -2236,7 +2236,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            url, info,
                            &album->com->load_handle,
-                           &album->com->input_callbacks, album->com->prefer_edl))
+                           &album->com->input_callbacks, prefer_edl))
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Loading %s failed", url);
     return NULL;

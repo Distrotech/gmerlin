@@ -926,7 +926,7 @@ static void mass_tag(track_list_t * l)
                                            &params[i],
                                            &val1);
               }
-            else
+            else if(val.val_str && (val.val_str[0] != '\0'))
               bg_cfg_section_set_parameter(first_selected->metadata_section,
                                            &params[i],
                                            &val);

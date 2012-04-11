@@ -88,8 +88,6 @@ typedef struct
   char * password;
   int save_auth;
 
-  int prefer_edl;
-
 #ifdef HAVE_INOTIFY
   int inotify_fd;
 #endif

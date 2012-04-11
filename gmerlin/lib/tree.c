@@ -1191,13 +1191,6 @@ metadata\n\
 unused album files) at program exit")
     },
     {
-      .name =        "prefer_edl",
-      .long_name =   TRS("Prefer EDL"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 0 },
-      .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects which one to decode. This setting is saved in the album once the file is loaded.")
-    },
-    {
       .name =        "blacklist",
       .long_name =   TRS("Blacklist"),
       .type =        BG_PARAMETER_STRING,
@@ -1255,10 +1248,6 @@ void bg_media_tree_set_parameter(void * priv, const char * name,
   else if(!strcmp(name, "purge_directory"))
     {
     tree->purge_directory = val->val_i;
-    }
-  else if(!strcmp(name, "prefer_edl"))
-    {
-    tree->com.prefer_edl = val->val_i;
     }
   else if(!strcmp(name, "add_directory_path"))
     {
