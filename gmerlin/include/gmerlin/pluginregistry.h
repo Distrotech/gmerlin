@@ -771,7 +771,7 @@ void bg_plugin_registry_remove_device(bg_plugin_registry_t * reg,
 gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * reg,
                                                    const char * filename,
                                                    gavl_video_format_t * format,
-                                                   bg_metadata_t * m);
+                                                   gavl_metadata_t * m);
 
 /* Same as above for writing. Does implicit pixelformat conversion */
 
@@ -788,7 +788,8 @@ void
 bg_plugin_registry_save_image(bg_plugin_registry_t * reg,
                               const char * filename,
                               gavl_video_frame_t * frame,
-                              const gavl_video_format_t * format, const bg_metadata_t * m);
+                              const gavl_video_format_t * format,
+                              const gavl_metadata_t * m);
 
 
 /** \brief Get thumbnail of a movie

@@ -42,6 +42,9 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "transcoder_track"
 
+#include <gavl/metatags.h>
+
+
 static void create_sections(bg_transcoder_track_t * t,
                             bg_cfg_section_t * track_defaults_section,
                             bg_cfg_section_t * input_section,
@@ -49,7 +52,7 @@ static void create_sections(bg_transcoder_track_t * t,
                             bg_track_info_t * track_info)
   {
   int i, in_index;
-
+  const char * tag;
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * filter_section;
   bg_cfg_section_t * textrenderer_section;
@@ -93,10 +96,13 @@ static void create_sections(bg_transcoder_track_t * t,
       {
       t->audio_streams[i].general_section = bg_cfg_section_copy(general_section);
       t->audio_streams[i].filter_section = bg_cfg_section_copy(filter_section);
-      if(track_info->audio_streams[i].language[0] != '\0')
+
+      tag = gavl_metadata_get(&track_info->audio_streams[i].m,
+                              GAVL_META_LANGUAGE);
+      
+      if(tag)
         bg_cfg_section_set_parameter_string(t->audio_streams[i].general_section,
-                                            "in_language",
-                                            track_info->audio_streams[i].language);
+                                            "in_language", tag);
       }
     }
 
@@ -127,10 +133,13 @@ static void create_sections(bg_transcoder_track_t * t,
 
       in_index = t->subtitle_text_streams[i].in_index;
 
-      if(track_info->subtitle_streams[in_index].language[0] != '\0')
+      tag = gavl_metadata_get(&track_info->subtitle_streams[i].m,
+                              GAVL_META_LANGUAGE);
+            
+      if(tag)
         bg_cfg_section_set_parameter_string(t->subtitle_text_streams[i].general_section,
                                             "in_language",
-                                            track_info->subtitle_streams[in_index].language);
+                                            tag);
       }
     }
 
@@ -142,10 +151,13 @@ static void create_sections(bg_transcoder_track_t * t,
       {
       t->subtitle_overlay_streams[i].general_section = bg_cfg_section_copy(general_section);
       in_index = t->subtitle_overlay_streams[i].in_index;
-      if(track_info->subtitle_streams[in_index].language[0] != '\0')
+
+      tag = gavl_metadata_get(&track_info->subtitle_streams[in_index].m,
+                              GAVL_META_LANGUAGE);
+      
+      if(tag)
         bg_cfg_section_set_parameter_string(t->subtitle_overlay_streams[i].general_section,
-                                            "in_language",
-                                            track_info->subtitle_streams[in_index].language);
+                                            "in_language", tag);
       }
     }
   
@@ -519,11 +531,17 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
   create_filter_parameters(track, plugin_reg);
   }
 
-static char * create_stream_label(const char * info, const char * language)
+static char * create_stream_label(const gavl_metadata_t * m)
   {
-  if(language && *language && info)
+  const char * info;
+  const char * language;
+
+  info = gavl_metadata_get(m, GAVL_META_LABEL);
+  language = gavl_metadata_get(m, GAVL_META_LANGUAGE);
+  
+  if(language && info)
     return bg_sprintf("%s [%s]", info, bg_get_language_name(language));
-  else if(language && *language)
+  else if(language)
     return bg_strdup(NULL, bg_get_language_name(language));
   else if(info)
     return bg_strdup(NULL, info);
@@ -646,9 +664,7 @@ static void set_track(bg_transcoder_track_t * track,
     for(i = 0; i < track_info->num_audio_streams; i++)
       {
       track->audio_streams[i].label =
-        create_stream_label(track_info->audio_streams[i].info,
-                            track_info->audio_streams[i].language);
-      
+        create_stream_label(&track_info->audio_streams[i].m);
       }
     
     }
@@ -664,8 +680,7 @@ static void set_track(bg_transcoder_track_t * track,
     for(i = 0; i < track_info->num_video_streams; i++)
       {
       track->video_streams[i].label =
-        create_stream_label(track_info->video_streams[i].info,
-                            track_info->video_streams[i].language);
+        create_stream_label(&track_info->video_streams[i].m);
       }
     }
 
@@ -682,12 +697,14 @@ static void set_track(bg_transcoder_track_t * track,
       }
 
     if(track->num_subtitle_text_streams)
-      track->subtitle_text_streams = calloc(track->num_subtitle_text_streams,
-                                            sizeof(*(track->subtitle_text_streams)));
+      track->subtitle_text_streams =
+        calloc(track->num_subtitle_text_streams,
+               sizeof(*(track->subtitle_text_streams)));
     
     if(track->num_subtitle_overlay_streams)
-      track->subtitle_overlay_streams = calloc(track->num_subtitle_overlay_streams,
-                                               sizeof(*(track->subtitle_overlay_streams)));
+      track->subtitle_overlay_streams =
+        calloc(track->num_subtitle_overlay_streams,
+               sizeof(*(track->subtitle_overlay_streams)));
     
     subtitle_text_index = 0;
     subtitle_overlay_index = 0;
@@ -697,16 +714,14 @@ static void set_track(bg_transcoder_track_t * track,
       if(track_info->subtitle_streams[i].is_text)
         {
         track->subtitle_text_streams[subtitle_text_index].label =
-          create_stream_label(track_info->subtitle_streams[i].info,
-                       track_info->subtitle_streams[i].language);
+          create_stream_label(&track_info->subtitle_streams[i].m);
         track->subtitle_text_streams[subtitle_text_index].in_index = i;
         subtitle_text_index++;
         }
       else
         {
         track->subtitle_overlay_streams[subtitle_overlay_index].label =
-          create_stream_label(track_info->subtitle_streams[i].info,
-                       track_info->subtitle_streams[i].language);
+          create_stream_label(&track_info->subtitle_streams[i].m);
         track->subtitle_overlay_streams[subtitle_overlay_index].in_index = i;
         
         subtitle_overlay_index++;

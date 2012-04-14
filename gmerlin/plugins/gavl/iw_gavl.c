@@ -69,7 +69,7 @@ static void destroy_gavl(void* priv)
 
 static int write_header_gavl(void * priv, const char * filename,
                              gavl_video_format_t * format,
-                             const bg_metadata_t * metadata)
+                             const gavl_metadata_t * metadata)
   {
   bg_f_signature_t sig;
   char * real_filename;

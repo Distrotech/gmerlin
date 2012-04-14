@@ -46,7 +46,7 @@ bg_encoder_set_video_pass(bg_encoder_t * enc,
 void bg_encoder_destroy(bg_encoder_t * enc, int do_delete); 
 
 int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
-                    const bg_metadata_t * metadata,
+                    const gavl_metadata_t * metadata,
                     const bg_chapter_list_t * chapter_list);
 
 int bg_encoder_writes_compressed_audio(bg_encoder_t * enc,
@@ -58,32 +58,35 @@ int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
                                        const gavl_compression_info_t * info);
 
 /* Add streams */
-int bg_encoder_add_audio_stream(bg_encoder_t *, const char * language,
+int bg_encoder_add_audio_stream(bg_encoder_t *, const gavl_metadata_t * m,
                                 const gavl_audio_format_t * format,
                                 int index);
 
 int bg_encoder_add_video_stream(bg_encoder_t *,
+                                const gavl_metadata_t * m,
                                 const gavl_video_format_t * format,
                                 int index);
 
 int bg_encoder_add_audio_stream_compressed(bg_encoder_t *,
-                                           const char * language,
+                                           const gavl_metadata_t * m,
                                            const gavl_audio_format_t * format,
                                            const gavl_compression_info_t * info,
                                            int index);
 
 int bg_encoder_add_video_stream_compressed(bg_encoder_t *,
+                                           const gavl_metadata_t * m,
                                            const gavl_video_format_t * format,
                                            const gavl_compression_info_t * info,
                                            int index);
 
 
-int bg_encoder_add_subtitle_text_stream(bg_encoder_t *, const char * language,
+int bg_encoder_add_subtitle_text_stream(bg_encoder_t *,
+                                        const gavl_metadata_t * m,
                                         int timescale,
                                         int index);
 
 int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t *,
-                                           const char * language,
+                                           const gavl_metadata_t * m,
                                            const gavl_video_format_t * format,
                                            int index,
                                            bg_stream_type_t source_format);
@@ -126,4 +129,4 @@ int bg_encoder_write_video_packet(bg_encoder_t *,
 
 void bg_encoder_update_metadata(bg_encoder_t *,
                                 const char * name,
-                                const bg_metadata_t * m);
+                                const gavl_metadata_t * m);

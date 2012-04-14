@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 
 #include <gmerlin/utils.h> 
@@ -40,7 +41,9 @@ BG_STREAM_AUDIO | BG_STREAM_VIDEO;
 
 const uint32_t bg_recorder_plugin_mask = BG_PLUGIN_FILE | BG_PLUGIN_BROADCAST;
 
-static void metadata_changed_callback(void * priv, const char * name, const bg_metadata_t * m)
+static void
+metadata_changed_callback(void * priv, const char * name,
+                          const gavl_metadata_t * m)
   {
   bg_recorder_t * rec = priv;
   if(rec->metadata_mode != BG_RECORDER_METADATA_INPUT)
@@ -54,7 +57,7 @@ static void metadata_changed_callback(void * priv, const char * name, const bg_m
     }
   else
     {
-    bg_metadata_copy(&rec->updated_metadata, m);
+    gavl_metadata_copy(&rec->updated_metadata, m);
     rec->updated_name = bg_strdup(rec->updated_name, name);
     }
   }
@@ -112,8 +115,8 @@ void bg_recorder_destroy(bg_recorder_t * rec)
   if(rec->snapshot_directory)     free(rec->snapshot_directory);
   if(rec->snapshot_filename_mask) free(rec->snapshot_filename_mask);
 
-  bg_metadata_free(&rec->m);
-  bg_metadata_free(&rec->updated_metadata);
+  gavl_metadata_free(&rec->m);
+  gavl_metadata_free(&rec->updated_metadata);
   if(rec->updated_name)
     free(rec->updated_name);
   
@@ -141,7 +144,7 @@ static void init_encoding(bg_recorder_t * rec)
   time_t t;
   char time_string[512];
   char * filename_base;
-  const bg_metadata_t * m;
+  const gavl_metadata_t * m;
   
   time(&t);
   localtime_r(&t, &brokentime);
@@ -672,12 +675,15 @@ static void update_metadata(bg_recorder_t * rec)
   bg_subprocess_t * sp;
   char * line = NULL;
   int line_alloc = 0;
-  int len;
 
-  bg_metadata_t m;
+  char * key;
+  char * val;
+  char * pos;
+  
+  gavl_metadata_t m;
   char * name = NULL;
 
-  memset(&m, 0, sizeof(m));
+  gavl_metadata_init(&m);
   
   sp = bg_subprocess_create(remote_command, 0, 1, 0);
   
@@ -690,19 +696,22 @@ static void update_metadata(bg_recorder_t * rec)
       break;
     //    fprintf(stderr, "Got remote line: %s\n", line);
 
-    CHECK_STRING("Name: ",      name);
-    CHECK_STRING("Author: ",    m.author);
-    CHECK_STRING("Artist: ",    m.artist);
-    CHECK_STRING("Title: ",     m.title);
-    CHECK_STRING("Album: ",     m.album);
-    CHECK_STRING("Genre: ",     m.genre);
-    CHECK_STRING("Comment: ",   m.comment);
-    CHECK_STRING("Copyright: ", m.copyright);
-    CHECK_STRING("Date: ",      m.date);
+    pos = strchr(line, ':');
+    if(!pos)
+      continue;
+
+    key = bg_strndup(NULL, line, pos);
+    pos++;
+    while(isspace(*pos))
+      pos++;
+    val = pos;
+
+    gavl_metadata_set(&m, key, val);
+    free(key);
     }
   bg_subprocess_close(sp);
 
-  if(!bg_metadata_equal(&m, &rec->updated_metadata) ||
+  if(!gavl_metadata_equal(&m, &rec->updated_metadata) ||
      !rec->updated_name || 
      strcmp(name, rec->updated_name))
     {
@@ -715,14 +724,14 @@ static void update_metadata(bg_recorder_t * rec)
       free(rec->updated_name);
     rec->updated_name = name;
     
-    bg_metadata_free(&rec->updated_metadata);
+    gavl_metadata_free(&rec->updated_metadata);
     memcpy(&rec->updated_metadata, &m, sizeof(m));
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track %s", name);
     }
   else
     {
     free(name);
-    bg_metadata_free(&m);
+    gavl_metadata_free(&m);
     }
   }
 

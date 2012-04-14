@@ -123,7 +123,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame,
 /** @}
  */
 
-#define BG_PLUGIN_API_VERSION 25
+#define BG_PLUGIN_API_VERSION 26
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -373,7 +373,7 @@ struct bg_input_callbacks_s
    *  This is for web-radio stations, which send metadata for each song.
    */
   
-  void (*metadata_changed)(void * data, const bg_metadata_t * m);
+  void (*metadata_changed)(void * data, const gavl_metadata_t * m);
 
   /** \brief Buffer callback
    *  \param data The data member of this bg_input_callbacks_s struct
@@ -912,12 +912,13 @@ struct bg_recorder_callbacks_s
   /** \brief Name changed
    *  \param data The data member of this bg_input_callbacks_s struct
    *  \param name The new name
-   *  \param metadata The new name
+   *  \param metadata The new metadata
    *
    *  This is for web-radio stations, which send song-names.
    */
   
-  void (*metadata_changed)(void * data, const char * name, const bg_metadata_t * m);
+  void (*metadata_changed)(void * data, const char * name,
+                           const gavl_metadata_t * m);
   
   void * data; //!< Application specific data passed as the first argument to all callbacks.
   
@@ -1427,7 +1428,7 @@ struct bg_encoder_plugin_s
    */
   
   int (*open)(void * data, const char * filename,
-              const bg_metadata_t * metadata,
+              const gavl_metadata_t * metadata,
               const bg_chapter_list_t * chapter_list);
   
   /* Return per stream parameters */
@@ -1484,7 +1485,7 @@ struct bg_encoder_plugin_s
    *  needed by the plugin, after \ref start() was called.
    */
   
-  int (*add_audio_stream)(void * priv, const char * language,
+  int (*add_audio_stream)(void * priv, const gavl_metadata_t * m,
                           const gavl_audio_format_t * format);
 
   /** \brief Add an audio stream fpr compressed writing
@@ -1499,7 +1500,7 @@ struct bg_encoder_plugin_s
    *  needed by the plugin, after \ref start() was called.
    */
   
-  int (*add_audio_stream_compressed)(void * priv, const char * language,
+  int (*add_audio_stream_compressed)(void * priv, const gavl_metadata_t * m,
                                      const gavl_audio_format_t * format,
                                      const gavl_compression_info_t * info);
   
@@ -1513,7 +1514,9 @@ struct bg_encoder_plugin_s
    *  needed by the plugin, after \ref start() was called.
    */
   
-  int (*add_video_stream)(void * priv, const gavl_video_format_t * format);
+  int (*add_video_stream)(void * priv,
+                          const gavl_metadata_t * m,
+                          const gavl_video_format_t * format);
 
   /** \brief Add a video stream for compressed writing
    *  \param priv The handle returned by the create() method
@@ -1527,6 +1530,7 @@ struct bg_encoder_plugin_s
    */
   
   int (*add_video_stream_compressed)(void * priv,
+                                     const gavl_metadata_t * m,
                                      const gavl_video_format_t * format,
                                      const gavl_compression_info_t * info);
   
@@ -1536,7 +1540,8 @@ struct bg_encoder_plugin_s
    *  \returns Index of this stream (starting with 0)
    */
   
-  int (*add_subtitle_text_stream)(void * priv, const char * language,
+  int (*add_subtitle_text_stream)(void * priv,
+                                  const gavl_metadata_t * m,
                                   int * timescale);
   
   /** \brief Add a text subtitle stream
@@ -1551,7 +1556,8 @@ struct bg_encoder_plugin_s
    *  needed by the plugin, after \ref start was called.
    */
   
-  int (*add_subtitle_overlay_stream)(void * priv, const char * language,
+  int (*add_subtitle_overlay_stream)(void * priv,
+                                     const gavl_metadata_t * m,
                                      const gavl_video_format_t * format);
   
   /* Set parameters for the streams */
@@ -1746,7 +1752,7 @@ struct bg_encoder_plugin_s
    */
   
   void (*update_metadata)(void * data, const char * name,
-                          const bg_metadata_t * m);
+                          const gavl_metadata_t * m);
 
   /** \brief Close encoder
    *  \param priv The handle returned by the create() method
@@ -1858,7 +1864,7 @@ struct bg_encoder_pp_plugin_s
    */
   
   void (*add_track)(void * priv, const char * filename,
-                    bg_metadata_t * metadata, int pp_only);
+                    gavl_metadata_t * metadata, int pp_only);
   
   /** \brief Start postprocessing
    *  \param priv The handle returned by the create() method
@@ -1922,7 +1928,7 @@ struct bg_image_reader_plugin_s
    *  \returns Metadata for the image or NULL
    */
   
-  const bg_metadata_t * (*get_metadata)(void * priv);
+  const gavl_metadata_t * (*get_metadata)(void * priv);
 
   /** \brief Get compression info
    *  \param priv The handle returned by the create() method
@@ -2003,7 +2009,7 @@ struct bg_image_writer_plugin_s
    */
   
   int (*write_header)(void * priv, const char * filename,
-                      gavl_video_format_t * format, const bg_metadata_t * m);
+                      gavl_video_format_t * format, const gavl_metadata_t * m);
   
   /** \brief Write the image
    *  \param priv The handle returned by the create() method

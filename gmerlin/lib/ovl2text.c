@@ -26,6 +26,7 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/pluginregistry.h>
+#include <gavl/metatags.h>
 
 #include <ovl2text.h>
 #include <gmerlin/log.h>
@@ -64,7 +65,7 @@ static void set_callbacks_ovl2text(void * data, bg_encoder_callbacks_t * cb)
   }
 
 static int open_ovl2text(void * data, const char * filename,
-                         const bg_metadata_t * metadata,
+                         const gavl_metadata_t * metadata,
                          const bg_chapter_list_t * chapter_list)
   {
   ovl2text_t * e = data;
@@ -76,18 +77,23 @@ static int open_ovl2text(void * data, const char * filename,
   return 1;
   }
 
-static int add_subtitle_overlay_stream_ovl2text(void * priv,
-                                                const char * language,
-                                                const gavl_video_format_t * format)
+static int
+add_subtitle_overlay_stream_ovl2text(void * priv,
+                                     const gavl_metadata_t * m,
+                                     const gavl_video_format_t * format)
   {
+  const char * language;
   ovl2text_t * e = priv;
+
+  language = gavl_metadata_get(m, GAVL_META_LANGUAGE);
+  
   if(!bg_ocr_init(e->ocr, format, language))
     return -1;
 
   gavl_video_format_copy(&e->format, format);
   
   if(!e->enc_plugin ||
-     (e->enc_plugin->add_subtitle_text_stream(e->enc_handle->priv, language,
+     (e->enc_plugin->add_subtitle_text_stream(e->enc_handle->priv, m,
                                               &e->format.timescale) < 0))
     return -1;
   return 0;

@@ -75,7 +75,8 @@ static void set_callbacks_pnm(void * data, bg_iw_callbacks_t * cb)
   }
 
 static int write_header_pnm(void * priv, const char * filename,
-                            gavl_video_format_t * format, const bg_metadata_t * m)
+                            gavl_video_format_t * format,
+                            const gavl_metadata_t * m)
   {
   int sig = 0;
   const char * ext;

@@ -29,6 +29,8 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 
+#include <gavl/metatags.h>
+
 #include "lqt_common.h"
 #include "lqtgavl.h"
 
@@ -130,16 +132,19 @@ static void setup_chapters(i_lqt_t * e, int track)
 
 static int open_lqt(void * data, const char * arg)
   {
-  char * tmp_string;
+  const char * tag;
   int i;
   char * filename;
   int num_audio_streams = 0;
   int num_video_streams = 0;
   int num_text_streams = 0;
+  gavl_metadata_t * m;
   i_lqt_t * e = data;
 
   lqt_codec_info_t ** codec_info;
 
+  char lang[4];
+  lang[3] = '\0';
   
   /* We want to keep the thing const-clean */
   filename = bg_strdup(NULL, arg);
@@ -153,25 +158,45 @@ static int open_lqt(void * data, const char * arg)
 
   /* Set metadata */
 
-  e->track_info.metadata.title =
-    bg_strdup(NULL, quicktime_get_name(e->file));
-  e->track_info.metadata.copyright =
-    bg_strdup(NULL, quicktime_get_copyright(e->file));
+  m = &e->track_info.metadata;
+  
+  tag = quicktime_get_name(e->file);
+  if(tag)
+    gavl_metadata_set(m, GAVL_META_TITLE, tag);
 
-  e->track_info.metadata.comment =
-    bg_strdup(NULL, lqt_get_comment(e->file));
-  if(!e->track_info.metadata.comment)
-    e->track_info.metadata.comment =
-      bg_strdup(NULL, quicktime_get_info(e->file));
+  tag = quicktime_get_copyright(e->file);
+  if(tag)
+    gavl_metadata_set(m, GAVL_META_COPYRIGHT, tag);
 
-  tmp_string = lqt_get_track(e->file);
-  if(tmp_string && isdigit(*tmp_string))
-    e->track_info.metadata.track = atoi(tmp_string);
+  tag = lqt_get_comment(e->file);
+  if(!tag)
+    tag = quicktime_get_info(e->file);
 
-  e->track_info.metadata.artist = bg_strdup(NULL, lqt_get_artist(e->file));
-  e->track_info.metadata.album  = bg_strdup(NULL, lqt_get_album(e->file));
-  e->track_info.metadata.genre  = bg_strdup(NULL, lqt_get_genre(e->file));
-  e->track_info.metadata.author  = bg_strdup(NULL, lqt_get_author(e->file));
+  if(tag)
+    gavl_metadata_set(m, GAVL_META_COMMENT, tag);
+
+  
+
+  tag = lqt_get_track(e->file);
+  if(tag)
+    gavl_metadata_set(m, GAVL_META_TRACKNUMBER, tag);
+
+  tag = lqt_get_artist(e->file);
+  if(tag)
+    gavl_metadata_set(m, GAVL_META_ARTIST, tag);
+
+  tag = lqt_get_album(e->file);
+  if(tag)
+    gavl_metadata_set(m, GAVL_META_ALBUM, tag);
+
+  tag = lqt_get_genre(e->file);
+  if(tag)
+    gavl_metadata_set(m, GAVL_META_GENRE, tag);
+
+  tag = lqt_get_author(e->file);
+  if(tag)
+    gavl_metadata_set(m, GAVL_META_AUTHOR, tag);
+  
   
   /* Query streams */
 
@@ -191,19 +216,23 @@ static int open_lqt(void * data, const char * arg)
       {
       if(quicktime_supported_audio(e->file, i))
         {
+        m = &e->track_info.audio_streams[e->track_info.num_audio_streams].m;
+        
         e->audio_streams[e->track_info.num_audio_streams].quicktime_index = i;
 
         e->audio_streams[e->track_info.num_audio_streams].pts_offset =
           lqt_get_audio_pts_offset(e->file, i);
         
         codec_info = lqt_audio_codec_from_file(e->file, i);
-        e->track_info.audio_streams[e->track_info.num_audio_streams].description =
-          bg_strdup(e->track_info.audio_streams[e->track_info.num_audio_streams].description,
-                    codec_info[0]->long_name);
+
+        gavl_metadata_set(m, GAVL_META_FORMAT, codec_info[0]->long_name);
+
         lqt_destroy_codec_info(codec_info);
 
-        lqt_get_audio_language(e->file, i,
-                               e->track_info.audio_streams[e->track_info.num_audio_streams].language);
+        lqt_get_audio_language(e->file, i, lang);
+        gavl_metadata_set(m, GAVL_META_LANGUAGE, lang);
+        
+
         e->track_info.num_audio_streams++;
         }
       }
@@ -220,16 +249,16 @@ static int open_lqt(void * data, const char * arg)
       {
       if(quicktime_supported_video(e->file, i))
         {
+        m = &e->track_info.video_streams[e->track_info.num_video_streams].m;
+        
         e->video_streams[e->track_info.num_video_streams].quicktime_index = i;
         
         codec_info = lqt_video_codec_from_file(e->file, i);
-        e->track_info.video_streams[e->track_info.num_video_streams].description =
-          bg_strdup(e->track_info.video_streams[e->track_info.num_video_streams].description,
-                    codec_info[0]->long_name);
+        gavl_metadata_set(m, GAVL_META_FORMAT, codec_info[0]->long_name);
         lqt_destroy_codec_info(codec_info);
-
-                
-        e->video_streams[e->track_info.num_video_streams].rows = lqt_gavl_rows_create(e->file, i);
+        
+        e->video_streams[e->track_info.num_video_streams].rows =
+          lqt_gavl_rows_create(e->file, i);
         e->video_streams[e->track_info.num_video_streams].pts_offset =
           lqt_get_video_pts_offset(e->file, i);
         e->track_info.num_video_streams++;
@@ -256,6 +285,8 @@ static int open_lqt(void * data, const char * arg)
         }
       else
         {
+        m = &e->track_info.subtitle_streams[e->track_info.num_subtitle_streams].m;
+        
         e->subtitle_streams[e->track_info.num_subtitle_streams].quicktime_index = i;
         e->subtitle_streams[e->track_info.num_subtitle_streams].timescale =
           lqt_text_time_scale(e->file, i);
@@ -263,8 +294,8 @@ static int open_lqt(void * data, const char * arg)
         e->subtitle_streams[e->track_info.num_subtitle_streams].pts_offset =
           lqt_get_text_pts_offset(e->file, i);
         
-        lqt_get_text_language(e->file, i,
-                              e->track_info.subtitle_streams[e->track_info.num_subtitle_streams].language);
+        lqt_get_text_language(e->file, i, lang);
+        gavl_metadata_set(m, GAVL_META_LANGUAGE, lang);
         
         e->track_info.subtitle_streams[e->track_info.num_subtitle_streams].is_text = 1;
         
@@ -278,11 +309,9 @@ static int open_lqt(void * data, const char * arg)
   e->track_info.duration = lqt_gavl_duration(e->file);
 
   if(lqt_is_avi(e->file))
-     e->track_info.description = bg_strdup(e->track_info.description,
-                                           "AVI (lqt)");
+    gavl_metadata_set(&e->track_info.metadata, GAVL_META_FORMAT, "AVI (lqt)");
   else
-    e->track_info.description = bg_strdup(e->track_info.description,
-                                            "Quicktime (lqt)");
+    gavl_metadata_set(&e->track_info.metadata, GAVL_META_FORMAT, "Quicktime (lqt)");
   
   //  if(!e->track_info.num_audio_streams && !e->track_info.num_video_streams)
   //    return 0;

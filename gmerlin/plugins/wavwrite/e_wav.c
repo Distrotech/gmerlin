@@ -38,6 +38,8 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_wav"
 
+#include <gavl/metatags.h>
+
 /* Speaker configurations for WAVEFORMATEXTENSIBLE */
 
 #define SPEAKER_FRONT_LEFT 	        0x1
@@ -70,7 +72,7 @@ typedef struct wav_s
   gavl_audio_format_t format;
 
   int write_info_chunk;
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   char * filename;
   uint32_t channel_mask;
 
@@ -222,7 +224,7 @@ typedef struct
 
 #define BUFFER_SIZE 256
 
-static int write_info_chunk(FILE * output, bg_metadata_t * m)
+static int write_info_chunk(FILE * output, gavl_metadata_t * m)
   {
   int len;
   int total_len;
@@ -242,11 +244,11 @@ static int write_info_chunk(FILE * output, bg_metadata_t * m)
   strftime(date_string, BUFFER_SIZE, "%Y-%m-%d", &time_date);
   sprintf(software_string, "%s-%s", PACKAGE, VERSION);
 
-  info.IART = m->artist;
-  info.INAM = m->title;
-  info.ICMT = m->comment;
-  info.ICOP = m->copyright;
-  info.IGNR = m->genre;
+  info.IART = gavl_metadata_get(m, GAVL_META_ARTIST);
+  info.INAM = gavl_metadata_get(m, GAVL_META_TITLE);
+  info.ICMT = gavl_metadata_get(m, GAVL_META_COMMENT);
+  info.ICOP = gavl_metadata_get(m, GAVL_META_COPYRIGHT);
+  info.IGNR = gavl_metadata_get(m, GAVL_META_GENRE);
   info.ICRD = date_string;
   info.ISFT = software_string;
 
@@ -451,7 +453,7 @@ static void set_parameter_wav(void * data, const char * name,
   }
 
 static int open_wav(void * data, const char * filename,
-                    const bg_metadata_t * metadata,
+                    const gavl_metadata_t * metadata,
                     const bg_chapter_list_t * chapter_list)
   {
   int result;
@@ -475,13 +477,14 @@ static int open_wav(void * data, const char * filename,
     result = 1;
 
   if(metadata)
-    bg_metadata_copy(&wav->metadata, metadata);
+    gavl_metadata_copy(&wav->metadata, metadata);
   
   return result;
   }
 
 
-static int add_audio_stream_wav(void * data, const char * language,
+static int add_audio_stream_wav(void * data,
+                                const gavl_metadata_t * m,
                                 const gavl_audio_format_t * format)
   {
   wav_t * wav;
@@ -625,7 +628,7 @@ static int close_wav(void * data, int do_delete)
   if(do_delete)
     remove(wav->filename);
 
-  bg_metadata_free(&wav->metadata);
+  gavl_metadata_free(&wav->metadata);
   
   wav->output = NULL;
   return ret;

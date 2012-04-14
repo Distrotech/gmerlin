@@ -29,6 +29,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "nmjedit.song"
 
+#include <gavl/metatags.h>
 
 void bg_nmj_song_free(bg_nmj_song_t * song)
   {
@@ -182,6 +183,7 @@ int bg_nmj_song_get_info(sqlite3 * db,
   int ret = 0;
   bg_track_info_t * ti;
   int year;
+  int tag_i;
   
   if(!bg_input_plugin_load(plugin_reg, file->path, NULL, &h, NULL, 0))
     goto fail;
@@ -208,21 +210,24 @@ int bg_nmj_song_get_info(sqlite3 * db,
 
   /* Fill in the data structure */
   
-  song->title = bg_nmj_escape_string(ti->metadata.title);
+  song->title = bg_nmj_escape_string(gavl_metadata_get(&ti->metadata, GAVL_META_TITLE));
   song->search_title = bg_nmj_make_search_string(song->title);
   
   song->path = bg_strdup(song->path, file->path);
   song->scan_dirs_id = dir->id;
   song->runtime = bg_sprintf("%d", (int)(ti->duration / GAVL_TIME_SCALE));
-  song->format  = bg_strdup(song->format, ti->description);
-  song->size    = file->size;
 
-  if(ti->audio_streams[0].bitrate)
-    song->bit_rate = bg_sprintf("%d", (int)(ti->audio_streams[0].bitrate / 1000));
+  song->format  = bg_strdup(song->format,
+                            gavl_metadata_get(&ti->metadata, GAVL_META_FORMAT));
+  song->size    = file->size;
+  
+  if(gavl_metadata_get_int(&ti->audio_streams[0].m, GAVL_META_BITRATE, &tag_i))
+    song->bit_rate = bg_sprintf("%d", (int)(tag_i / 1000));
   else
     song->bit_rate = bg_strdup(song->bit_rate, "VBR");
 
-  song->track_position = ti->metadata.track;
+  if(gavl_metadata_get_int(&ti->metadata, GAVL_META_TRACKNUMBER, &tag_i))
+    song->track_position = tag_i;
 
   year = bg_metadata_get_year(&ti->metadata);
   if(year)
@@ -232,10 +237,14 @@ int bg_nmj_song_get_info(sqlite3 * db,
   song->create_time = malloc(BG_NMJ_TIME_STRING_LEN);
   bg_nmj_time_to_string(file->time, song->create_time);
 
-  song->album        = bg_nmj_escape_string(ti->metadata.album);
-  song->artist       = bg_nmj_escape_string(ti->metadata.artist);
-  song->albumartist  = bg_nmj_escape_string(ti->metadata.albumartist);
-  song->genre        = bg_nmj_escape_string(ti->metadata.genre);
+  song->album        =
+    bg_nmj_escape_string(gavl_metadata_get(&ti->metadata, GAVL_META_ALBUM));
+  song->artist       =
+    bg_nmj_escape_string(gavl_metadata_get(&ti->metadata, GAVL_META_ARTIST));
+  song->albumartist  =
+    bg_nmj_escape_string(gavl_metadata_get(&ti->metadata, GAVL_META_ALBUMARTIST));
+  song->genre        =
+    bg_nmj_escape_string(gavl_metadata_get(&ti->metadata, GAVL_META_GENRE));
 
   /* Unknown stuff */
   song->update_state = bg_sprintf("%d", 2);

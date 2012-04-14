@@ -45,7 +45,7 @@ static void name_changed(void * data, const char * name)
   bg_player_set_track_name(p, name);
   }
 
-static void metadata_changed(void * data, const bg_metadata_t * m)
+static void metadata_changed(void * data, const gavl_metadata_t * m)
   {
   bg_player_t * p = data;
   bg_player_set_metadata(p, m);

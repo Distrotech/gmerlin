@@ -30,6 +30,7 @@
 
 #include <gmerlin/subprocess.h>
 #include <gmerlin/log.h>
+#include <gavl/metatags.h>
 
 #define LOG_DOMAIN "i_mikmod"
 
@@ -143,8 +144,10 @@ static int open_mikmod(void * data, const char * arg)
     mik->track_info.audio_streams[0].format.sample_format = GAVL_SAMPLE_S16;
 
   mik->track_info.audio_streams[0].format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  mik->track_info.audio_streams[0].description = bg_strdup(NULL, "mikmod audio");
   mik->track_info.audio_streams[0].format.samples_per_frame = 1024;
+
+  gavl_metadata_set(&mik->track_info.audio_streams[0].m,
+                    GAVL_META_FORMAT, "mikmod audio");
   
   gavl_set_channel_setup(&mik->track_info.audio_streams[0].format);
 

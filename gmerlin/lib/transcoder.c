@@ -47,6 +47,9 @@
 
 #include <gmerlin/subprocess.h>
 
+#include <gavl/metatags.h>
+
+
 // #define DUMP_VIDEO_TIMESTAMPS
 // #define DUMP_AUDIO_TIMESTAMPS
 
@@ -87,11 +90,17 @@ static void copy_language(char * dst, const char * src)
     *dst = '\0';
   }
 
-static char * get_language(char * in_lang, char * lang, int force)
+static void get_language(char * in_lang, char * lang, int force,
+                         gavl_metadata_t * m)
   {
+  char * ret;
+  
   if(in_lang)
-    return force ? lang : in_lang;
-  return lang;
+    ret = force ? lang : in_lang;
+  else
+    ret = lang;
+
+  gavl_metadata_set(m, GAVL_META_LANGUAGE, ret);
   }
 
 typedef struct subtitle_stream_s subtitle_stream_t;
@@ -117,6 +126,8 @@ typedef struct
   
   gavl_compression_info_t ci;
   gavl_packet_t packet;
+
+  gavl_metadata_t m;
   
   } stream_t;
 
@@ -402,7 +413,7 @@ struct bg_transcoder_s
   int set_start_time;
   int set_end_time;
   int prefer_edl;
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   
   /* General configuration stuff */
 
@@ -739,10 +750,10 @@ void bg_transcoder_send_msg_error(bg_msg_queue_list_t * l)
 static void set_message_metadata(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_TRANSCODER_MSG_METADATA);
-  bg_msg_set_arg_metadata(msg, 0, (const bg_metadata_t*)data);
+  bg_msg_set_arg_metadata(msg, 0, (const gavl_metadata_t*)data);
   }
 
-void bg_transcoder_send_msg_metadata(bg_msg_queue_list_t * l, bg_metadata_t * m)
+void bg_transcoder_send_msg_metadata(bg_msg_queue_list_t * l, gavl_metadata_t * m)
   {
   bg_msg_queue_list_send(l,
                          set_message_metadata, m);
@@ -999,15 +1010,15 @@ static void set_input_formats(bg_transcoder_t * ret)
 static void add_audio_stream(audio_stream_t * ret,
                              bg_transcoder_t * t)
   {
-  char * language;
   
   ret->in_func = ret->com.in_plugin->read_audio;
   ret->in_data = ret->com.in_handle->priv;
   ret->in_stream = ret->com.in_index;
   
   /* We set the frame size so we have roughly half second long audio chunks */
-  ret->in_format.samples_per_frame = gavl_time_to_samples(ret->in_format.samplerate,
-                                                          GAVL_TIME_SCALE/2);
+  ret->in_format.samples_per_frame =
+    gavl_time_to_samples(ret->in_format.samplerate,
+                         GAVL_TIME_SCALE/2);
   
   bg_audio_filter_chain_connect_input(ret->fc,
                                       ret->in_func,
@@ -1016,8 +1027,9 @@ static void add_audio_stream(audio_stream_t * ret,
   
   bg_audio_filter_chain_init(ret->fc, &ret->in_format, &ret->pipe_format);
 
-  ret->pipe_format.samples_per_frame = gavl_time_to_samples(ret->pipe_format.samplerate,
-                                                            GAVL_TIME_SCALE/2);
+  ret->pipe_format.samples_per_frame =
+    gavl_time_to_samples(ret->pipe_format.samplerate,
+                         GAVL_TIME_SCALE/2);
   
   ret->in_func = bg_audio_filter_chain_read;
   ret->in_data = ret->fc;
@@ -1027,15 +1039,16 @@ static void add_audio_stream(audio_stream_t * ret,
                          &ret->pipe_format);
   
   /* Decide language */
-  language = get_language(ret->in_language,
-                          ret->out_language,
-                          ret->force_language);
+  get_language(ret->in_language,
+               ret->out_language,
+               ret->force_language,
+               &ret->com.m);
   
   /* Add the audio stream */
 
   ret->com.out_index =
     bg_encoder_add_audio_stream(t->enc,
-                                language,
+                                &ret->com.m,
                                 &ret->out_format,
                                 ret->com.in_index);
   }
@@ -1043,17 +1056,17 @@ static void add_audio_stream(audio_stream_t * ret,
 static void add_audio_stream_compressed(audio_stream_t * ret,
                                         bg_transcoder_t * t)
   {
-  char * language;
   /* Decide language */
-  language = get_language(ret->in_language,
-                          ret->out_language,
-                          ret->force_language);
+  get_language(ret->in_language,
+               ret->out_language,
+               ret->force_language,
+               &ret->com.m);
   
   /* Add the audio stream */
   
   ret->com.out_index =
     bg_encoder_add_audio_stream_compressed(t->enc,
-                                           language,
+                                           &ret->com.m,
                                            &ret->in_format,
                                            &ret->com.ci,
                                            ret->com.in_index);
@@ -1065,13 +1078,13 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
                                      bg_transcoder_track_subtitle_text_t * s,
                                      bg_transcoder_t * t)
   {
-  char * language;
   if(ret->com.com.action == STREAM_ACTION_TRANSCODE)
     {
     /* Decide language */
-    language = get_language(ret->com.in_language,
-                            ret->com.out_language,
-                            ret->com.force_language);
+    get_language(ret->com.in_language,
+                 ret->com.out_language,
+                 ret->com.force_language,
+                 &ret->com.com.m);
 
     gavl_video_format_copy(&ret->com.out_format,
                            &ret->com.in_format);
@@ -1080,7 +1093,8 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
     /* TODO: timescale might get changed by the encoder!!! */
     ret->com.com.out_index =
       bg_encoder_add_subtitle_text_stream(t->enc,
-                                          language, ret->com.out_format.timescale,
+                                          &ret->com.com.m,
+                                          ret->com.out_format.timescale,
                                           ret->com.com.in_index);
     
     }
@@ -1104,35 +1118,37 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
       }
 
     /* Decide language */
-    language = get_language(ret->com.in_language,
-                            ret->com.out_language,
-                            ret->com.force_language);
+    get_language(ret->com.in_language,
+                 ret->com.out_language,
+                 ret->com.force_language,
+                 &ret->com.com.m);
     
     ret->com.com.out_index =
       bg_encoder_add_subtitle_overlay_stream(t->enc,
-                                             language,
-                                             &ret->com.out_format, ret->com.com.in_index,
+                                             &ret->com.com.m,
+                                             &ret->com.out_format,
+                                             ret->com.com.in_index,
                                              BG_STREAM_SUBTITLE_TEXT);
     }
   }
 
-static void add_subtitle_overlay_stream(subtitle_stream_t * ret,
-                                        bg_transcoder_track_subtitle_overlay_t * s,
-                                        bg_transcoder_t * t)
+static void
+add_subtitle_overlay_stream(subtitle_stream_t * ret,
+                            bg_transcoder_track_subtitle_overlay_t * s,
+                            bg_transcoder_t * t)
   {
-  char * language;
-  
   gavl_video_format_copy(&ret->out_format, &ret->in_format);
 
   /* Decide language */
 
-  language = get_language(ret->in_language,
-                          ret->out_language,
-                          ret->force_language);
+  get_language(ret->in_language,
+               ret->out_language,
+               ret->force_language,
+               &ret->com.m);
   
   ret->com.out_index =
     bg_encoder_add_subtitle_overlay_stream(t->enc,
-                                           language,
+                                           &ret->com.m,
                                            &ret->out_format, ret->com.in_index,
                                            BG_STREAM_SUBTITLE_OVERLAY);
   }
@@ -1157,6 +1173,7 @@ static void add_video_stream(video_stream_t * ret,
 
   ret->com.out_index =
     bg_encoder_add_video_stream(t->enc,
+                                &ret->com.m,
                                 &ret->out_format,
                                 ret->com.in_index);
   }
@@ -1168,6 +1185,7 @@ static void add_video_stream_compressed(video_stream_t * ret,
 
   ret->com.out_index =
     bg_encoder_add_video_stream_compressed(t->enc,
+                                           &ret->com.m,
                                            &ret->in_format,
                                            &ret->com.ci,
                                            ret->com.in_index);
@@ -3016,6 +3034,7 @@ static void cleanup_stream(stream_t * s)
   {
   gavl_compression_info_free(&s->ci);
   gavl_packet_free(&s->packet);
+  gavl_metadata_free(&s->m);
   }
 
 static void cleanup_audio_stream(audio_stream_t * s)
@@ -3398,7 +3417,7 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   
   /* Free metadata */
 
-  bg_metadata_free(&t->metadata);
+  gavl_metadata_free(&t->metadata);
   
   /* Close and destroy the input plugin */
 

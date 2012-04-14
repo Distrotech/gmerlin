@@ -34,7 +34,7 @@
 
 static void msg_metadata(bg_msg_t * msg, const void * data)
   {
-  bg_metadata_t * m = (bg_metadata_t *)data;
+  gavl_metadata_t * m = (gavl_metadata_t *)data;
   bg_msg_set_id(msg, BG_PLAYER_MSG_METADATA);
   bg_msg_set_arg_metadata(msg, 0, m);
   }
@@ -143,8 +143,7 @@ static void msg_audio_stream_info(bg_msg_t * msg, const void * data)
   bg_msg_set_id(msg, BG_PLAYER_MSG_AUDIO_STREAM_INFO);
 
   bg_msg_set_arg_int(msg,    0, si->index);
-  bg_msg_set_arg_string(msg, 1, si->track->audio_streams[si->index].info);
-  bg_msg_set_arg_string(msg, 2, si->track->audio_streams[si->index].language);
+  bg_msg_set_arg_metadata(msg, 1, &si->track->audio_streams[si->index].m);
   }
 
 static void msg_video_stream_info(bg_msg_t * msg, const void * data)
@@ -154,8 +153,7 @@ static void msg_video_stream_info(bg_msg_t * msg, const void * data)
   bg_msg_set_id(msg, BG_PLAYER_MSG_VIDEO_STREAM_INFO);
 
   bg_msg_set_arg_int(msg,    0, si->index);
-  bg_msg_set_arg_string(msg, 1, si->track->video_streams[si->index].info);
-  bg_msg_set_arg_string(msg, 2, si->track->video_streams[si->index].language);
+  bg_msg_set_arg_metadata(msg, 1, &si->track->video_streams[si->index].m);
   }
 
 static void msg_subtitle_stream_info(bg_msg_t * msg, const void * data)
@@ -165,28 +163,11 @@ static void msg_subtitle_stream_info(bg_msg_t * msg, const void * data)
   bg_msg_set_id(msg, BG_PLAYER_MSG_SUBTITLE_STREAM_INFO);
 
   bg_msg_set_arg_int(msg,    0, si->index);
-  bg_msg_set_arg_string(msg, 1, si->track->subtitle_streams[si->index].info);
-  bg_msg_set_arg_string(msg, 2, si->track->subtitle_streams[si->index].language);
-  }
-
-static void msg_video_description(bg_msg_t * msg, const void * data)
-  {
-  bg_msg_set_id(msg, BG_PLAYER_MSG_VIDEO_DESCRIPTION);
-  bg_msg_set_arg_string(msg, 0, (char*)data);
+  bg_msg_set_arg_metadata(msg, 1, &si->track->subtitle_streams[si->index].m);
   }
 
 
-static void msg_audio_description(bg_msg_t * msg, const void * data)
-  {
-  bg_msg_set_id(msg, BG_PLAYER_MSG_AUDIO_DESCRIPTION);
-  bg_msg_set_arg_string(msg, 0, (char*)data);
-  }
 
-static void msg_stream_description(bg_msg_t * msg, const void * data)
-  {
-  bg_msg_set_id(msg, BG_PLAYER_MSG_STREAM_DESCRIPTION);
-  bg_msg_set_arg_string(msg, 0, (char*)data);
-  }
 
 
 static void msg_mute(bg_msg_t * msg, const void * data)
@@ -463,13 +444,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   
   /* Send input messages */
   bg_player_input_send_messages(p);
-
   
-  if(p->track_info->description)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_stream_description,
-                           p->track_info->description);
-
   /* Send metadata */
 
   bg_msg_queue_list_send(p->message_queues,
@@ -533,21 +508,12 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   /* Send messages about formats */
   if(DO_AUDIO(p->flags))
     {
-    if(p->track_info->audio_streams[p->current_audio_stream].description)
-      bg_msg_queue_list_send(p->message_queues,
-                             msg_audio_description,
-                             p->track_info->audio_streams[p->current_audio_stream].description);
     bg_msg_queue_list_send(p->message_queues,
                            msg_audio_stream,
                            p);
     }
   if(DO_VIDEO(p->flags))
     {
-    if(!DO_SUBTITLE_ONLY(p->flags) &&
-       p->track_info->video_streams[p->current_video_stream].description)
-      bg_msg_queue_list_send(p->message_queues,
-                             msg_video_description,
-                             p->track_info->video_streams[p->current_video_stream].description);
     bg_msg_queue_list_send(p->message_queues,
                            msg_video_stream,
                            p);

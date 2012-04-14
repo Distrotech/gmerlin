@@ -224,7 +224,7 @@ struct bg_recorder_s
   char * snapshot_directory;
   char * snapshot_filename_mask;
   
-  bg_metadata_t m;
+  gavl_metadata_t m;
   bg_parameter_info_t * metadata_parameters;
 
   gavl_time_t recording_time;
@@ -236,7 +236,7 @@ struct bg_recorder_s
   pthread_mutex_t snapshot_mutex;
   bg_recoder_metadata_mode_t metadata_mode;
 
-  bg_metadata_t updated_metadata;
+  gavl_metadata_t updated_metadata;
   char * updated_name;
   
   bg_recorder_callbacks_t recorder_cb;

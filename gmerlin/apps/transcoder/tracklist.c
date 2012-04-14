@@ -1016,8 +1016,8 @@ static void auto_rename(track_list_t * l)
       if(t->selected)
         {
         char * new_name;
-        bg_metadata_t m;
-        memset(&m, 0, sizeof(m));
+        gavl_metadata_t m;
+        gavl_metadata_init(&m);
         bg_cfg_section_apply(t->metadata_section,
                              metadata_params,
                              bg_metadata_set_parameter,
@@ -1026,7 +1026,7 @@ static void auto_rename(track_list_t * l)
         bg_cfg_section_set_parameter_string(t->general_section,
                                             "name", new_name);
         free(new_name);
-        bg_metadata_free(&m);
+        gavl_metadata_free(&m);
         }
       t = t->next;
       }

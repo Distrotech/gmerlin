@@ -43,9 +43,10 @@ static int thumbnail_up_to_date(const char * thumbnail_file,
                                 int64_t mtime)
   {
   int i;
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   int64_t test_mtime;
   int ret = 0;
+  const char * val;
   memset(&metadata, 0, sizeof(metadata));
   memset(format, 0, sizeof(*format));
   
@@ -55,21 +56,15 @@ static int thumbnail_up_to_date(const char * thumbnail_file,
                                          &metadata);
   
   i = 0;
-  if(metadata.ext)
+
+  val = gavl_metadata_get(&metadata, "Thumb::MTime");
+  if(val)
     {
-    while(metadata.ext[i].key)
-      {
-      if(!strcmp(metadata.ext[i].key, "Thumb::MTime"))
-        {
-        test_mtime = strtoll(metadata.ext[i].value, NULL, 10);
-        if(mtime == test_mtime)
-          ret = 1;
-        break;
-        }
-      i++;
-      }
+    test_mtime = strtoll(val, NULL, 10);
+    if(mtime == test_mtime)
+      ret = 1;
     }
-  bg_metadata_free(&metadata);
+  gavl_metadata_free(&metadata);
   return ret;
   }
 
@@ -80,11 +75,12 @@ static void make_fail_thumbnail(const char * gml,
   {
   gavl_video_format_t format;
   gavl_video_frame_t * frame;
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   char * tmp_string;
   
   memset(&format, 0, sizeof(format));
-  memset(&metadata, 0, sizeof(metadata));
+
+  gavl_metadata_init(&metadata);
   
   format.image_width = 1;
   format.image_height = 1;
@@ -98,18 +94,16 @@ static void make_fail_thumbnail(const char * gml,
   gavl_video_frame_clear(frame, &format);
   
   tmp_string = bg_string_to_uri(gml, -1);
-  bg_metadata_append_ext(&metadata, "Thumb::URI", tmp_string);
-  free(tmp_string);
+  gavl_metadata_set_nocpy(&metadata, "Thumb::URI", tmp_string);
 
   tmp_string = bg_sprintf("%"PRId64, mtime);
-  bg_metadata_append_ext(&metadata, "Thumb::MTime", tmp_string);
-  free(tmp_string);
+  gavl_metadata_set_nocpy(&metadata, "Thumb::MTime", tmp_string);
 
   bg_plugin_registry_save_image(plugin_reg,
                                 thumb_filename,
                                 frame,
                                 &format, &metadata);
-  bg_metadata_free(&metadata);
+  gavl_metadata_free(&metadata);
   gavl_video_frame_destroy(frame);
   }
 

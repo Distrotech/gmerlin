@@ -187,7 +187,7 @@ static int init_vcdimager(void * data)
   }
 
 static void add_track_vcdimager(void * data, const char * filename,
-                                bg_metadata_t * metadata, int pp_only)
+                                gavl_metadata_t * metadata, int pp_only)
   {
   vcdimager_t * vcdimager;
   vcdimager = data;

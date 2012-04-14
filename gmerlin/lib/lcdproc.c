@@ -28,6 +28,9 @@
 #include <gmerlin/lcdproc.h>
 #include <gmerlin/bgsocket.h>
 
+#include <gavl/metatags.h>
+
+
 #include <string.h>
 #include <sys/types.h> /* pid_t */
 #include <unistd.h>
@@ -541,10 +544,29 @@ static int destroy_formats(bg_lcdproc_t * l)
   return 0;
   }
 
-static int set_audio_description(bg_lcdproc_t * l, const char * desc)
+static int set_audio_description(bg_lcdproc_t * l, gavl_metadata_t * m)
   {
+  char * desc;
   char * command;
 
+  const char * format_str;
+  int bitrate = 0;
+
+  format_str = gavl_metadata_get(m, GAVL_META_FORMAT);
+
+  if(!gavl_metadata_get_int(m, GAVL_META_BITRATE, &bitrate))
+    bitrate = 0;
+
+  if(!format_str)
+    desc = NULL;
+  else
+    {
+    if(bitrate)
+      desc = bg_sprintf("%s %d kbps", format_str, bitrate);
+    else
+      desc = bg_sprintf("%s", format_str);
+    }
+  
   if(!desc)
     {
     command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {A: Off}",
@@ -559,6 +581,7 @@ static int set_audio_description(bg_lcdproc_t * l, const char * desc)
     else
       command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {A: %s}",
                            descriptions_name, audio_description_name, desc);
+    free(desc);
     }
   if(!send_command(l, command))
     goto fail;
@@ -570,9 +593,21 @@ static int set_audio_description(bg_lcdproc_t * l, const char * desc)
 
   }
 
-static int set_video_description(bg_lcdproc_t * l, const char * desc)
+static int set_video_description(bg_lcdproc_t * l, gavl_metadata_t * m)
   {
+  char * desc;
+  const char * format_str;
   char * command;
+
+  format_str = gavl_metadata_get(m, GAVL_META_FORMAT);
+
+  if(!format_str)
+    desc = NULL;
+  else
+    {
+    desc = bg_sprintf("%s", format_str);
+    }
+  
   if(!desc)
     {
     command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {V: Off}",
@@ -586,6 +621,7 @@ static int set_video_description(bg_lcdproc_t * l, const char * desc)
     else
       command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {V: %s}",
                            descriptions_name, video_description_name, desc);
+    free(desc);
     }
   if(!send_command(l, command))
     goto fail;
@@ -748,20 +784,24 @@ static void * thread_func(void * data)
             free(arg_str_1);
             }
           break;
-        case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
+        case BG_PLAYER_MSG_AUDIO_STREAM_INFO:
           if(l->have_descriptions)
             {
-            arg_str_1 = bg_msg_get_arg_string(msg, 0);
-            result = set_audio_description(l, arg_str_1);
-            free(arg_str_1);
+            gavl_metadata_t m;
+            gavl_metadata_init(&m);
+            bg_msg_get_arg_metadata(msg, 1, &m);
+            result = set_audio_description(l, &m);
+            gavl_metadata_free(&m);
             }
           break;
-        case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
+        case BG_PLAYER_MSG_VIDEO_STREAM_INFO:
           if(l->have_descriptions)
             {
-            arg_str_1 = bg_msg_get_arg_string(msg, 0);
-            result = set_video_description(l, arg_str_1);
-            free(arg_str_1);
+            gavl_metadata_t m;
+            gavl_metadata_init(&m);
+            bg_msg_get_arg_metadata(msg, 1, &m);
+            result = set_audio_description(l, &m);
+            gavl_metadata_free(&m);
             }
           break;
         case BG_PLAYER_MSG_AUDIO_STREAM:

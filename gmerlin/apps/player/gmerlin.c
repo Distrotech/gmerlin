@@ -453,7 +453,7 @@ void gmerlin_destroy(gmerlin_t * g)
 
   if(g->remote_data.name)
     free(g->remote_data.name);
-  bg_metadata_free(&g->remote_data.metadata);
+  gavl_metadata_free(&g->remote_data.metadata);
   
   free(g);
   

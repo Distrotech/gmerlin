@@ -46,7 +46,7 @@ typedef struct
   char * filename;
   int subtitles_written;
 
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
 
   bg_encoder_callbacks_t * cb;
   
@@ -68,14 +68,14 @@ static void set_callbacks_spumux(void * data, bg_encoder_callbacks_t * cb)
   }
 
 static int open_spumux(void * priv, const char * filename,
-                       const bg_metadata_t * metadata,
+                       const gavl_metadata_t * metadata,
                        const bg_chapter_list_t * chapter_list)
   {
   char * pos;
   spumux_t * spumux = priv;
   
   if(metadata)
-    bg_metadata_copy(&spumux->metadata, metadata);
+    gavl_metadata_copy(&spumux->metadata, metadata);
   
   spumux->filename = bg_filename_ensure_extension(filename, "xml");
   

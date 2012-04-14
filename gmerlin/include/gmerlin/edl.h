@@ -97,7 +97,7 @@ typedef struct
   {
   char * name; //!< Optional name of that track
 
-  bg_metadata_t metadata; //!< Metadata
+  gavl_metadata_t metadata; //!< Metadata
   
   int num_audio_streams;             //!< Number of logical audio streams
   bg_edl_stream_t * audio_streams; //!< Logical audio streams

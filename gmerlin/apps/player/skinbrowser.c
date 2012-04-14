@@ -323,6 +323,7 @@ static int install_skin(const char * filename, GtkWidget * parent)
   }
 
 static void add_file_callback(char ** files, const char * plugin,
+                              int prefer_edl,
                               void * data)
   {
   int rescan = 0;

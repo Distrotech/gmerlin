@@ -166,12 +166,12 @@ void bg_player_set_duration(bg_player_t * p, gavl_time_t duration, int can_seek)
 static void msg_metadata(bg_msg_t * msg,
                          const void * data)
   {
-  const bg_metadata_t * m = (const bg_metadata_t *)(data);
+  const gavl_metadata_t * m = data;
   bg_msg_set_id(msg, BG_PLAYER_MSG_METADATA);
   bg_msg_set_arg_metadata(msg, 0, m);
   }
 
-void bg_player_set_metadata(bg_player_t * p, const bg_metadata_t * m)
+void bg_player_set_metadata(bg_player_t * p, const gavl_metadata_t * m)
   {
   bg_msg_queue_list_send(p->message_queues,
                          msg_metadata, m);

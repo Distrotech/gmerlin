@@ -308,7 +308,7 @@ void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
  */
 
 void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
-                             const bg_metadata_t * m);
+                             const gavl_metadata_t * m);
 
 /** \brief Get a matadata argument
  *  \param msg A message
@@ -319,7 +319,7 @@ void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
  */
 
 void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
-                             bg_metadata_t * m);
+                             gavl_metadata_t * m);
 
 /*
  *  This on will be used for remote controls,

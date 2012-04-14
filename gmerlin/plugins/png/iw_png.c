@@ -64,7 +64,7 @@ static void destroy_png(void * priv)
   }
 
 static int write_header_png(void * priv, const char * filename,
-                            gavl_video_format_t * format, const bg_metadata_t * metadata)
+                            gavl_video_format_t * format, const gavl_metadata_t * metadata)
   {
   int ret;
   char * real_filename;

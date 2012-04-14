@@ -58,24 +58,23 @@ enum
 #define PATH_INPUT_PLUGIN     1
 #define PATH_LOCATION         2
 #define PATH_TRACK            3
-#define PATH_FORMAT           4
-#define PATH_METADATA         5
-#define PATH_AUDIO            6
-#define PATH_AUDIO_DESC       7
-#define PATH_AUDIO_FORMAT_I   8
-#define PATH_AUDIO_FORMAT_O   9
+#define PATH_METADATA         4
+#define PATH_AUDIO            5
+#define PATH_AUDIO_DESC       6
+#define PATH_AUDIO_FORMAT_I   7
+#define PATH_AUDIO_FORMAT_O   8
 
-#define PATH_VIDEO           10
-#define PATH_VIDEO_DESC      11
-#define PATH_VIDEO_FORMAT_I  12
-#define PATH_VIDEO_FORMAT_O  13
+#define PATH_VIDEO            9
+#define PATH_VIDEO_DESC      10
+#define PATH_VIDEO_FORMAT_I  11
+#define PATH_VIDEO_FORMAT_O  12
 
-#define PATH_SUBTITLE          14
-#define PATH_SUBTITLE_DESC     15
-#define PATH_SUBTITLE_FORMAT_I 16
-#define PATH_SUBTITLE_FORMAT_O 17
+#define PATH_SUBTITLE          13
+#define PATH_SUBTITLE_DESC     14
+#define PATH_SUBTITLE_FORMAT_I 15
+#define PATH_SUBTITLE_FORMAT_O 16
 
-#define PATH_NUM             18
+#define PATH_NUM             17
 
 /* Delay between update calls in Milliseconds */
 
@@ -479,7 +478,7 @@ static gboolean idle_callback(gpointer data)
   
   gavl_audio_format_t arg_af;
   gavl_video_format_t arg_vf;
-  bg_metadata_t     arg_m;
+  gavl_metadata_t     arg_m;
   
   bg_gtk_info_window_t * w;
   bg_msg_t * msg;
@@ -553,38 +552,27 @@ static gboolean idle_callback(gpointer data)
         break;
       case BG_PLAYER_MSG_TRACK_DURATION:
         break;
-      case BG_PLAYER_MSG_STREAM_DESCRIPTION:
-        
-        arg_str = bg_msg_get_arg_string(msg, 0);
-        
-        if(arg_str)
+      case BG_PLAYER_MSG_AUDIO_STREAM_INFO:
+        gavl_metadata_init(&arg_m);
+        bg_msg_get_arg_metadata(msg, 1, &arg_m);
+        tmp_string = bg_metadata_to_string(&arg_m, 1);
+        if(tmp_string)
           {
-          tmp_string = bg_sprintf(TR("Format:\t%s"), arg_str);
-          set_line_index(w, PATH_FORMAT, tmp_string, 1);
+          set_line_multi(w, PATH_AUDIO_DESC, tmp_string);
           free(tmp_string);
-          free(arg_str);
           }
-        
+        gavl_metadata_free(&arg_m);
         break;
-      case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
-        arg_str = bg_msg_get_arg_string(msg, 0);
-        if(arg_str)
+      case BG_PLAYER_MSG_VIDEO_STREAM_INFO:
+        gavl_metadata_init(&arg_m);
+        bg_msg_get_arg_metadata(msg, 1, &arg_m);
+        tmp_string = bg_metadata_to_string(&arg_m, 1);
+        if(tmp_string)
           {
-          tmp_string = bg_sprintf(TR("Stream type:\t%s"), arg_str);
-          set_line_index(w, PATH_AUDIO_DESC, tmp_string, 1);
+          set_line_multi(w, PATH_VIDEO_DESC, tmp_string);
           free(tmp_string);
-          free(arg_str);
           }
-        break;
-      case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
-        arg_str = bg_msg_get_arg_string(msg, 0);
-        if(arg_str)
-          {
-          tmp_string = bg_sprintf(TR("Stream type:\t%s"), arg_str);
-          set_line_index(w, PATH_VIDEO_DESC, tmp_string, 1);
-          free(tmp_string);
-          free(arg_str);
-          }
+        gavl_metadata_free(&arg_m);
         break;
       case BG_PLAYER_MSG_AUDIO_STREAM:
         arg_i = bg_msg_get_arg_int(msg, 0);
@@ -631,9 +619,9 @@ static gboolean idle_callback(gpointer data)
         
         break;
       case BG_PLAYER_MSG_METADATA:
-        memset(&arg_m, 0, sizeof(arg_m));
+        gavl_metadata_init(&arg_m);
         bg_msg_get_arg_metadata(msg, 0, &arg_m);
-        
+                
         tmp_string = bg_metadata_to_string(&arg_m, 1);
         
         if(tmp_string)
@@ -641,7 +629,7 @@ static gboolean idle_callback(gpointer data)
           set_line_multi(w, PATH_METADATA, tmp_string);
           free(tmp_string);
           }
-        bg_metadata_free(&arg_m);
+        gavl_metadata_free(&arg_m);
         break;
       }
     bg_msg_queue_unlock_read(w->queue);
@@ -688,10 +676,6 @@ static void reset_tree(bg_gtk_info_window_t * w)
 
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
   
-  /* Format */
-  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_FORMAT]);
-  set_line(w, &iter, TR("Format"), 0);
-  
   /* Metadata */
   gtk_tree_model_get_iter(model, &iter, w->paths[PATH_METADATA]);
   set_line(w, &iter, TR("Metadata"), 0);
@@ -703,7 +687,8 @@ static void reset_tree(bg_gtk_info_window_t * w)
 
   /* Audio -> desc */
   gtk_tree_model_get_iter(model, &iter, w->paths[PATH_AUDIO_DESC]);
-  set_line(w, &iter, TR("Stream type"), 0);
+  set_line(w, &iter, TR("Metadata"), 0);
+  remove_children(w, &iter);
   
   /* Audio -> format_i */
   gtk_tree_model_get_iter(model, &iter, w->paths[PATH_AUDIO_FORMAT_I]);
@@ -721,7 +706,8 @@ static void reset_tree(bg_gtk_info_window_t * w)
 
   /* Video -> desc */
   gtk_tree_model_get_iter(model, &iter, w->paths[PATH_VIDEO_DESC]);
-  set_line(w, &iter, TR("Stream type"), 0);
+  set_line(w, &iter, TR("Metadata"), 0);
+  remove_children(w, &iter);
 
   /* Video -> format_i */
   gtk_tree_model_get_iter(model, &iter, w->paths[PATH_VIDEO_FORMAT_I]);
@@ -739,7 +725,8 @@ static void reset_tree(bg_gtk_info_window_t * w)
 
   /* Subtitle -> desc */
   gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE_DESC]);
-  set_line(w, &iter, TR("Stream type"), 0);
+  set_line(w, &iter, TR("Metadata"), 0);
+  remove_children(w, &iter);
   
   /* Subtitle -> format_i */
   gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE_FORMAT_I]);
@@ -782,11 +769,7 @@ static void init_tree(bg_gtk_info_window_t * w)
   gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_TRACK] = gtk_tree_model_get_path(model, &iter);
   set_line(w, &iter, TR("Track"), 0);
-  
-  /* Format */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
-  w->paths[PATH_FORMAT] = gtk_tree_model_get_path(model, &iter);
-  
+    
   /* Metadata */
   gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_METADATA] = gtk_tree_model_get_path(model, &iter);

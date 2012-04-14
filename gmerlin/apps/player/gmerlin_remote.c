@@ -58,7 +58,7 @@ static void cmd_get_name(void * data, int * argc, char *** _argv, int arg)
 static void cmd_get_metadata(void * data, int * argc, char *** _argv, int arg)
   {
   char * str;
-  bg_metadata_t m;
+  gavl_metadata_t m;
   bg_msg_t * msg;
   bg_remote_client_t * remote;
   remote = (bg_remote_client_t *)data;
@@ -81,7 +81,7 @@ static void cmd_get_metadata(void * data, int * argc, char *** _argv, int arg)
     free(str);
     }
   
-  bg_metadata_free(&m);
+  gavl_metadata_free(&m);
   
   }
 

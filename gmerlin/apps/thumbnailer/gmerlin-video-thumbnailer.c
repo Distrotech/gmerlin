@@ -113,7 +113,7 @@ int main(int argc, char ** argv)
   bg_input_plugin_t        * input_plugin;
   bg_image_writer_plugin_t * output_plugin;
   
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
@@ -203,7 +203,7 @@ int main(int argc, char ** argv)
   info = input_plugin->get_track_info(input_handle->priv, 0);
   
   /* Copy metadata (extend them later) */
-  bg_metadata_copy(&metadata, &info->metadata);
+  gavl_metadata_copy(&metadata, &info->metadata);
   
   /* Select track */
   if(input_plugin->set_track)
@@ -347,23 +347,23 @@ int main(int argc, char ** argv)
   /* Extended metadata */
 
   tmp_string = bg_string_to_uri(in_file, -1);
-  bg_metadata_append_ext(&metadata, "Thumb::URI", tmp_string);
+  gavl_metadata_set(&metadata, "Thumb::URI", tmp_string);
   free(tmp_string);
 
   tmp_string = bg_sprintf("%"PRId64, (int64_t)st.st_mtime);
-  bg_metadata_append_ext(&metadata, "Thumb::MTime", tmp_string);
+  gavl_metadata_set(&metadata, "Thumb::MTime", tmp_string);
   free(tmp_string);
 
-  bg_metadata_append_ext(&metadata, "Software", "gmerlin-video-thumbnailer");
+  gavl_metadata_set(&metadata, "Software", "gmerlin-video-thumbnailer");
   
   tmp_string = bg_sprintf("%"PRId64, (int64_t)st.st_size);
-  bg_metadata_append_ext(&metadata, "Thumb::Size", tmp_string);
+  gavl_metadata_set(&metadata, "Thumb::Size", tmp_string);
   free(tmp_string);
 
   if(info->duration != GAVL_TIME_UNDEFINED)
     {
     tmp_string = bg_sprintf("%d", (int)(gavl_time_to_seconds(info->duration)));
-    bg_metadata_append_ext(&metadata, "Thumb::Movie::Length", tmp_string);
+    gavl_metadata_set(&metadata, "Thumb::Movie::Length", tmp_string);
     free(tmp_string);
     }
   
@@ -411,7 +411,7 @@ int main(int argc, char ** argv)
   gavl_video_frame_destroy(input_frame);
 
   gavl_video_converter_destroy(cnv);
-  bg_metadata_free(&metadata);
+  gavl_metadata_free(&metadata);
   
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Successfully saved %s", out_file);
   

@@ -70,7 +70,8 @@ static void destroy_tiff(void* priv)
   }
 
 static int write_header_tiff(void * priv, const char * filename,
-                             gavl_video_format_t * format, const bg_metadata_t * m)
+                             gavl_video_format_t * format,
+                             const gavl_metadata_t * m)
   {
   tiff_t * p = priv;
   uint16_t v[1];

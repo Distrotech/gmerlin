@@ -474,60 +474,55 @@ void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
 
 
 void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
-                             const bg_metadata_t * m)
+                             const gavl_metadata_t * m)
   {
+  int i;
+  
   uint8_t * ptr;
   uint8_t * pos;
 
   int len = 4;
-  len += str_len(m->artist);
-  len += str_len(m->title);
-  len += str_len(m->album);
-  len += str_len(m->date);
-  len += str_len(m->genre);
-  len += str_len(m->comment);
-  len += str_len(m->author);
-  len += str_len(m->copyright);
-  len += str_len(m->albumartist);
+
+  for(i = 0; i < m->num_tags; i++)
+    {
+    len += str_len(m->tags[i].key);
+    len += str_len(m->tags[i].val);
+    }
   
   ptr = bg_msg_set_arg_ptr(msg, arg, len);
   pos = ptr;
 
-  pos = set_str(pos, m->artist);
-  pos = set_str(pos, m->title);
-  pos = set_str(pos, m->album);
-  pos = set_str(pos, m->date);
-  pos = set_str(pos, m->genre);
-  pos = set_str(pos, m->comment);
-  pos = set_str(pos, m->author);
-  pos = set_str(pos, m->copyright);
-  pos = set_str(pos, m->albumartist);
-  pos = set_32(pos, m->track);
+  pos = set_32(pos, m->num_tags);
+  for(i = 0; i < m->num_tags; i++)
+    {
+    pos = set_str(pos, m->tags[i].key);
+    pos = set_str(pos, m->tags[i].val);
+    }
   }
 
 void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
-                             bg_metadata_t * m)
+                             gavl_metadata_t * m)
   {
-  uint32_t tmp;
+  int i;
+  uint32_t num;
   uint8_t * ptr;
   uint8_t * pos;
-
+  char * key;
+  char * val;
+  
   ptr = bg_msg_get_arg_ptr(msg, arg, NULL);
   
   pos = ptr;
 
-  pos = get_str(pos, &m->artist);
-  pos = get_str(pos, &m->title);
-  pos = get_str(pos, &m->album);
-  pos = get_str(pos, &m->date);
-  pos = get_str(pos, &m->genre);
-  pos = get_str(pos, &m->comment);
-  pos = get_str(pos, &m->author);
-  pos = get_str(pos, &m->copyright);
-  pos = get_str(pos, &m->albumartist);
-  pos = get_32(pos,  &tmp);
-  m->track = tmp;
-  
+  pos = get_32(pos, &num);
+
+  for(i = 0; i < num; i++)
+    {
+    pos = get_str(pos, &key);
+    pos = get_str(pos, &val);
+    gavl_metadata_set_nocpy(m, key, val);
+    free(key);
+    }
   free(ptr);
   }
 

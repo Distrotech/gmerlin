@@ -46,7 +46,7 @@ int bg_cdaudio_get_metadata_cddb(bg_cdaudio_index_t * idx,
   int i, success;
   int num_matches;
   unsigned int disc_id_call, date;
-  bg_metadata_t *m;
+  gavl_metadata_t *m;
   
   const char *genre, *album; 
   cddb_disc_t * disc = NULL;

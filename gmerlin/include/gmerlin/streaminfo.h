@@ -23,6 +23,7 @@
 #define __BG_STREAMINFO_H_
 
 #include <gavl/gavl.h>
+#include <gavl/metadata.h>
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -51,12 +52,11 @@
 typedef struct
   {
   gavl_audio_format_t format; //!< Format (invalid until after the start function was called)
-  char * description; //!< Something like MPEG-1 audio layer 3, 128 kbps
-  char   language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
-  char * info;        //!< Directors comments etc...
+
+  gavl_metadata_t m; //!< Metadata
+  
   int64_t duration;   //!< Duration in timescale tics
   int64_t pts_offset; //!< First timestamp
-  int    bitrate;     //!< Bitrate in bits / sec
   } bg_audio_info_t;
 
 /** \brief Description of a video stream
@@ -67,9 +67,8 @@ typedef struct
 typedef struct
   {
   gavl_video_format_t format; //!< Format (invalid before the start function was called)
-  char * description; //!< Something like MPEG-1 video 1150 kbps
-  char language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
-  char * info;        //!< Info about this stream
+  gavl_metadata_t m; //!< Metadata
+
   int64_t duration;   //!< Duration in timescale tics
   int64_t pts_offset; //!< First timestamp
   } bg_video_info_t;
@@ -81,64 +80,11 @@ typedef struct
 
 typedef struct
   {
-  char * description; //!< Something like subrip format
-  char language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
-  char * info;        //!< Info about this stream
-
+  gavl_metadata_t m; //!< Metadata
   int is_text; //!< 1 if subtitles are in text format (0 for overlay subtitles)
   gavl_video_format_t format; //!< Format of overlay subtitles
   int64_t duration;   //!< Duration in timescale tics
   } bg_subtitle_info_t;
-
-/** \brief Metadata extensions
- *
- *  Generic structure for extended metadata as key-value pairs
- */
-
-typedef struct
-  {
-  char * key;   //!< Key
-  char * value; //!< Value
-  } bg_metadata_extended_t;
-
-/** \brief Description of metadata
- *
- *  Unknown fields can be NULL. Strings here MUST be in UTF-8
- */
-
-typedef struct
-  {
-  char * artist;      //!< Artist
-  char * title;       //!< Title
-  char * album;       //!< Album
-      
-  int track;          //!< Track number
-  char * date;        //!< Date
-  char * genre;       //!< Genre
-  char * comment;     //!< Comment
-
-  char * author;      //!< Author
-  char * copyright;   //!< Copyright
-  char * albumartist; //!< Albumartist
-  
-  bg_metadata_extended_t * ext; //!< Extended metadata as NULL terminated array
-  } bg_metadata_t;
-
-/** \brief Free all strings in a metadata structure
- *  \param m Metadata
- */
-
-void bg_metadata_free(bg_metadata_t * m);
-
-/** \brief Copy metadata
- *  \param dst Destination
- *  \param src Source
- *
- *  Make sure, that dst is either memset to 0 before the call or
- *  contains only strings, which can savely be freed.
- */
-
-void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src);
 
 /** \brief Create trackname from metadata
  *  \param m Metadata
@@ -161,7 +107,7 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src);
  *  
  */
 
-char * bg_create_track_name(const bg_metadata_t * m, const char * format);
+char * bg_create_track_name(const gavl_metadata_t * m, const char * format);
 
 /** \brief Convert metadata to a humanized string
  *  \param m Metadata
@@ -169,7 +115,7 @@ char * bg_create_track_name(const bg_metadata_t * m, const char * format);
  *  \returns A newly allocated string
  */
 
-char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs);
+char * bg_metadata_to_string(const gavl_metadata_t * m, int use_tabs);
 
 /** \brief Try to get the year from the metadata
  *  \param m Metadata
@@ -179,17 +125,8 @@ char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs);
  *  tries to extract the year and return it as int.
  */
 
-int bg_metadata_get_year(const bg_metadata_t * m);
+int bg_metadata_get_year(const gavl_metadata_t * m);
 
-/** \brief Append extended metadata
- *  \param m Metadata
- *  \param key Key
- *  \param value Value
- *
- *  Append a key-value pair to the extended metadata
- */
-
-void bg_metadata_append_ext(bg_metadata_t * m, const char * key, const char * value);
 
 /* XML Interface */
 
@@ -202,7 +139,7 @@ void bg_metadata_append_ext(bg_metadata_t * m, const char * key, const char * va
  */
 
 void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
-                       bg_metadata_t * ret);
+                       gavl_metadata_t * ret);
 
 /** \brief Convert a metadata struct into a libxml2 node
  *  \param ret Metadata
@@ -212,7 +149,7 @@ void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
  */
 
 void bg_metadata_2_xml(xmlNodePtr xml_metadata,
-                       bg_metadata_t * ret);
+                       gavl_metadata_t * ret);
 
 /** \brief Get parameters for editing metadata
  *  \param m Metadata
@@ -226,7 +163,7 @@ void bg_metadata_2_xml(xmlNodePtr xml_metadata,
  *  Call \ref bg_parameter_info_destroy_array to free the returned array
  */
 
-bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m);
+bg_parameter_info_t * bg_metadata_get_parameters(gavl_metadata_t * m);
 
 /** \brief Get parameters for editing metadata
  *  \param m Metadata
@@ -242,7 +179,7 @@ bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m);
  *  Call \ref bg_parameter_info_destroy_array to free the returned array
  */
 
-bg_parameter_info_t * bg_metadata_get_parameters_common(bg_metadata_t * m);
+bg_parameter_info_t * bg_metadata_get_parameters_common(gavl_metadata_t * m);
 
 
 /** \brief Change metadata by setting parameters
@@ -254,22 +191,14 @@ bg_parameter_info_t * bg_metadata_get_parameters_common(bg_metadata_t * m);
 void bg_metadata_set_parameter(void * data, const char * name,
                                const bg_parameter_value_t * v);
 
-/** \brief Dump metadata to stderr
- *  \param m Metadata
- *
- *  Used for debugging purposes
- */
-
-void bg_metadata_dump(const bg_metadata_t * m);
-
 /** \brief Check if 2 metadata structures are equal
  *  \param m1 Metadata 1
  *  \param m2 Metadata 2
  *  \return 1 if the metadata are equal, 0 else
  */
 
-int bg_metadata_equal(const bg_metadata_t * m1,
-                      const bg_metadata_t * m2);
+//int bg_metadata_equal(const bg_metadata_t * m1,
+//                      const bg_metadata_t * m2);
 
 
 /** \brief Chapter list
@@ -405,7 +334,6 @@ typedef struct
   {
   int flags;             //!< 1 if track is seekable (duration must be > 0 then)
   char * name;           //!< Name of the track (can be NULL)
-  char * description;    //!< Technical description of the format
   int64_t duration;      //!< Duration
   
   int num_audio_streams;   //!< Number of audio streams
@@ -416,7 +344,7 @@ typedef struct
   bg_video_info_t *    video_streams; //!< Video streams
   bg_subtitle_info_t * subtitle_streams; //!< Subtitle streams
 
-  bg_metadata_t metadata; //!< Metadata (optional)
+  gavl_metadata_t metadata; //!< Metadata (optional)
   
   /* The following are only meaningful for redirectors */
   

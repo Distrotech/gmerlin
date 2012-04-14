@@ -27,6 +27,7 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gavl/metatags.h>
 
 #include <png.h>
 
@@ -40,7 +41,7 @@ typedef struct
 
   FILE * file;
   
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   } png_t;
 
 static void * create_png()
@@ -228,14 +229,13 @@ static int read_header_png(void * priv, const char * filename,
       if(text[i].compression == PNG_TEXT_COMPRESSION_NONE)
         {
         if(!strcasecmp(text[i].key, "Author"))
-          png->metadata.author = bg_strdup(png->metadata.author, text[i].text);
-        else if(!strcasecmp(text[i].key, "Title"))
-          png->metadata.title = bg_strdup(png->metadata.title, text[i].text);
-        else if(!strcasecmp(text[i].key, "Copyright"))
-          png->metadata.copyright = bg_strdup(png->metadata.copyright, text[i].text);
+          gavl_metadata_set(&png->metadata, GAVL_META_AUTHOR, text[i].text);
+        if(!strcasecmp(text[i].key, "Title"))
+          gavl_metadata_set(&png->metadata, GAVL_META_TITLE, text[i].text);
+        if(!strcasecmp(text[i].key, "Copyright"))
+          gavl_metadata_set(&png->metadata, GAVL_META_COPYRIGHT, text[i].text);
         else
-          bg_metadata_append_ext(&png->metadata, text[i].key, text[i].text);
-        // fprintf(stderr, "png text: key: %s text: %s\n", text[i].key, text[i].text);
+          gavl_metadata_set(&png->metadata, text[i].key, text[i].text);
         }
       }
     }
@@ -254,7 +254,7 @@ static int get_compression_info_png(void * priv, gavl_compression_info_t * ci)
   }
 
 
-static const bg_metadata_t * get_metadata_png(void * priv)
+static const gavl_metadata_t * get_metadata_png(void * priv)
   {
   png_t * png = priv;
   return(&png->metadata);
@@ -284,7 +284,7 @@ static int read_image_png(void * priv, gavl_video_frame_t * frame)
 
   if(rows)
     free(rows);
-  bg_metadata_free(&png->metadata);
+  gavl_metadata_free(&png->metadata);
   return 1;
   }
 

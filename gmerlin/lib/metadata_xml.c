@@ -31,41 +31,31 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/xmlutils.h>
 
-#define XML_2_INT(key)                          \
-if(!BG_XML_STRCMP(node->name, #key))                 \
-  {                                             \
-  ret->key = atoi(tmp_string);                  \
-  xmlFree(tmp_string);                          \
-  node = node->next;                            \
-  continue;                                     \
+#include <gavl/metatags.h>
+
+static const struct
+  {
+  const char * xml_name;
+  const char * gavl_name;
   }
-
-#define XML_2_STRING(key)                     \
-if(!BG_XML_STRCMP(node->name, #key))               \
-  {                                           \
-  ret->key = bg_strdup(ret->key, tmp_string); \
-  xmlFree(tmp_string);                        \
-  node = node->next;                          \
-  continue;                                   \
-  }
-
-#if 0
-      
-  int track;
-  char * artist;
-  char * title;
-  char * album;
-  char * date;
-  char * genre;
-  char * comment;
-
-  char * author;
-  char * copyright;
-#endif
+tags[] =
+  {
+    { "track",     GAVL_META_TRACKNUMBER },
+    { "artist",    GAVL_META_ARTIST      },
+    { "title",     GAVL_META_TITLE       },
+    { "album",     GAVL_META_ALBUM       },
+    { "date",      GAVL_META_DATE        },
+    { "genre",     GAVL_META_GENRE       },
+    { "comment",   GAVL_META_COMMENT     },
+    { "author",    GAVL_META_AUTHOR      },
+    { "copyright", GAVL_META_COPYRIGHT   },
+    { /* End */ }
+  };
 
 void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
-                       bg_metadata_t * ret)
+                       gavl_metadata_t * ret)
   {
+  int i;
   char * tmp_string;
   xmlNodePtr node;
   
@@ -80,18 +70,16 @@ void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
       }
     tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
 
-    XML_2_INT(track);
-        
-    XML_2_STRING(artist);
-    XML_2_STRING(title);
-    XML_2_STRING(album);
-    XML_2_STRING(date);
-    XML_2_STRING(genre);
-    XML_2_STRING(comment);
-    
-    XML_2_STRING(author);
-    XML_2_STRING(copyright);
-    
+    i = 0;
+    while(tags[i].xml_name)
+      {
+      if(!BG_XML_STRCMP(node->name, tags[i].xml_name))
+        {
+        gavl_metadata_set(ret, tags[i].gavl_name, tmp_string);
+        break;
+        }
+      i++;
+      }
     xmlFree(tmp_string);
     node = node->next;
     }
@@ -116,22 +104,26 @@ void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
     }
 
 void bg_metadata_2_xml(xmlNodePtr xml_metadata,
-                       bg_metadata_t * m)
+                       gavl_metadata_t * m)
   {
-  char * tmp_string;
+  int i, j;
   xmlNodePtr child;
-
-  INT_2_XML(track);
-  
-  STRING_2_XML(artist);
-  STRING_2_XML(title);
-  STRING_2_XML(album);
-  STRING_2_XML(date);
-  STRING_2_XML(genre);
-  STRING_2_XML(comment);
-  
-  STRING_2_XML(author);
-  STRING_2_XML(copyright);
+  for(i = 0; i < m->num_tags; i++)
+    {
+    j = 0;
+    while(tags[j].gavl_name)
+      {
+      if(!strcmp(m->tags[i].key, tags[j].gavl_name))
+        {
+        child = xmlNewTextChild(xml_metadata, NULL,
+                                (xmlChar*)tags[j].xml_name, NULL);
+        xmlAddChild(child, BG_XML_NEW_TEXT(m->tags[i].val));
+        xmlAddChild(xml_metadata, BG_XML_NEW_TEXT("\n"));
+        break;
+        }
+      j++;
+      }
+    }
   
   }
 

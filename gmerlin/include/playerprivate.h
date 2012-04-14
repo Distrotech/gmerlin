@@ -530,4 +530,5 @@ void bg_player_accel_pressed(bg_player_t * player, int id);
 
 void bg_player_set_track_name(bg_player_t * player, const char *);
 void bg_player_set_duration(bg_player_t * player, gavl_time_t duration, int can_seek);
-void bg_player_set_metadata(bg_player_t * player, const bg_metadata_t *);
+
+void bg_player_set_metadata(bg_player_t * player, const gavl_metadata_t *);

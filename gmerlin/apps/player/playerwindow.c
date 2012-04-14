@@ -549,7 +549,7 @@ static void handle_message(player_window_t * win,
                                 BG_GTK_SLIDER_HIDDEN);
       break;
     case BG_PLAYER_MSG_METADATA:
-      bg_metadata_free(&win->gmerlin->remote_data.metadata);
+      gavl_metadata_free(&win->gmerlin->remote_data.metadata);
       bg_msg_get_arg_metadata(msg, 0,
                               &win->gmerlin->remote_data.metadata);
       break;
@@ -564,14 +564,6 @@ static void handle_message(player_window_t * win,
     case BG_PLAYER_MSG_SUBTITLE_STREAM:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
       main_menu_set_subtitle_index(win->main_menu, arg_i_1);
-      break;
-    case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
-      break;
-    case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
-      break;
-    case BG_PLAYER_MSG_SUBTITLE_DESCRIPTION:
-      break;
-    case BG_PLAYER_MSG_STREAM_DESCRIPTION:
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM_INFO:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);

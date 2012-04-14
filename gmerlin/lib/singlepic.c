@@ -40,6 +40,8 @@
 #include <gmerlin/singlepic.h>
 #include <gmerlin/log.h>
 
+#include <gavl/metatags.h>
+
 #define LOG_DOMAIN_ENC "singlepicture-encoder"
 #define LOG_DOMAIN_DEC "singlepicture-decoder"
 
@@ -250,8 +252,8 @@ static int open_input(void * priv, const char * filename)
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
 
-  inp->track_info.video_streams[0].description =
-    bg_strdup(NULL, "Single images");
+  gavl_metadata_set(&inp->track_info.video_streams[0].m,
+                    GAVL_META_FORMAT, "Single images");
   
   inp->track_info.duration = gavl_frames_to_time(inp->timescale,
                                                  inp->frame_duration,
@@ -310,8 +312,8 @@ static int open_stills_input(void * priv, const char * filename)
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
 
-  inp->track_info.video_streams[0].description =
-    bg_strdup(NULL, "Still Image");
+  gavl_metadata_set(&inp->track_info.video_streams[0].m,
+                    GAVL_META_FORMAT, "Still Image");
   
   inp->track_info.video_streams[0].format.framerate_mode =
     GAVL_FRAMERATE_STILL;
@@ -733,7 +735,7 @@ typedef struct
   bg_plugin_handle_t * plugin_handle;
   bg_image_writer_plugin_t * image_writer;
   
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   
   bg_parameter_info_t * parameters;
 
@@ -851,7 +853,7 @@ static void create_mask(encoder_t * e, const char * ext)
   }
 
 static int open_encoder(void * data, const char * filename,
-                        const bg_metadata_t * metadata,
+                        const gavl_metadata_t * metadata,
                         const bg_chapter_list_t * chapter_list)
   {
   encoder_t * e;
@@ -862,7 +864,7 @@ static int open_encoder(void * data, const char * filename,
   e->filename_base = bg_strdup(e->filename_base, filename);
   
   if(metadata)
-    bg_metadata_copy(&e->metadata, metadata);
+    gavl_metadata_copy(&e->metadata, metadata);
   
   return 1;
   }
@@ -909,7 +911,9 @@ static int writes_compressed_video(void * priv,
 
 
 
-static int add_video_stream_encoder(void * data, const gavl_video_format_t * format)
+static int add_video_stream_encoder(void * data,
+                                    const gavl_metadata_t * m,
+                                    const gavl_video_format_t * format)
   {
   char ** extensions;
   encoder_t * e = data;
@@ -927,7 +931,9 @@ static int add_video_stream_encoder(void * data, const gavl_video_format_t * for
   }
 
 static int
-add_video_stream_compressed_encoder(void * data, const gavl_video_format_t * format,
+add_video_stream_compressed_encoder(void * data,
+                                    const gavl_metadata_t * m,
+                                    const gavl_video_format_t * format,
                                     const gavl_compression_info_t * info)
   {
   encoder_t * e;
@@ -1013,7 +1019,7 @@ static int close_encoder(void * data, int do_delete)
   STR_FREE(e->filename_buffer);
   STR_FREE(e->filename_base);
   
-  bg_metadata_free(&e->metadata);
+  gavl_metadata_free(&e->metadata);
   
   if(e->plugin_handle)
     {

@@ -28,6 +28,7 @@
 #include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
+#include <gavl/metatags.h>
 
 #include "lqt_common.h"
 #include "lqtgavl.h"
@@ -154,10 +155,9 @@ static const char * get_extension(int type)
   }
 
 static int open_lqt(void * data, const char * filename,
-                    const bg_metadata_t * metadata,
+                    const gavl_metadata_t * m,
                     const bg_chapter_list_t * chapter_list)
   {
-  char * track_string;
   e_lqt_t * e = data;
 
   e->filename = bg_filename_ensure_extension(filename, get_extension(e->file_type));
@@ -176,7 +176,6 @@ static int open_lqt(void * data, const char * filename,
     }
   else
     {
-    
     e->file = lqt_open_write(e->filename, e->file_type);
     }
   if(!e->file)
@@ -190,29 +189,67 @@ static int open_lqt(void * data, const char * filename,
     
   /* Set metadata */
 
-  if(metadata)
+  if(m)
     {
-    if(metadata->copyright)
-      quicktime_set_copyright(e->file, metadata->copyright);
-    if(metadata->title)
-      quicktime_set_name(e->file, metadata->title);
+    char * tag;
 
-    if(metadata->comment)
-      lqt_set_comment(e->file, metadata->comment);
-    if(metadata->artist)
-      lqt_set_artist(e->file, metadata->artist);
-    if(metadata->genre)
-      lqt_set_genre(e->file, metadata->genre);
-    if(metadata->track)
+    /* TODO: Make the arguments in lqt const friendly */
+    
+    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_COPYRIGHT));
+    if(tag)
       {
-      track_string = bg_sprintf("%d", metadata->track);
-      lqt_set_track(e->file, track_string);
-      free(track_string);
+      quicktime_set_copyright(e->file, tag);
+      free(tag);
       }
-    if(metadata->album)
-      lqt_set_album(e->file, metadata->album);
-    if(metadata->author)
-      lqt_set_author(e->file, metadata->author);
+
+    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_TITLE));
+    if(tag)
+      {
+      quicktime_set_name(e->file, tag);
+      free(tag);
+      }
+    
+    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_COMMENT));
+    if(tag)
+      {
+      lqt_set_comment(e->file, tag);
+      free(tag);
+      }
+    
+    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_ARTIST));
+    if(tag)
+      {
+      lqt_set_artist(e->file, tag);
+      free(tag);
+      }
+    
+    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_GENRE));
+    if(tag)
+      {
+      lqt_set_genre(e->file, tag);
+      free(tag);
+      }
+    
+    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_TRACKNUMBER));
+    if(tag)
+      {
+      lqt_set_track(e->file, tag);
+      free(tag);
+      }
+
+    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_ALBUM));
+    if(tag)
+      {
+      lqt_set_album(e->file, tag);
+      free(tag);
+      }
+
+    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_AUTHOR));
+    if(tag)
+      {
+      lqt_set_author(e->file, tag);
+      free(tag);
+      }
     }
   
   e->chapter_list = chapter_list;
@@ -238,9 +275,11 @@ static int writes_compressed_video_lqt(void * data,
 
 
 
-static int add_audio_stream_lqt(void * data, const char * language,
+static int add_audio_stream_lqt(void * data,
+                                const gavl_metadata_t * m,
                                 const gavl_audio_format_t * format)
   {
+  const char * tag;
   e_lqt_t * e = data;
 
   e->audio_streams =
@@ -253,16 +292,22 @@ static int add_audio_stream_lqt(void * data, const char * language,
   
   lqt_gavl_add_audio_track(e->file, &e->audio_streams[e->num_audio_streams].format,
                            NULL);
-  lqt_set_audio_language(e->file, e->num_audio_streams, language);
+
+  tag = gavl_metadata_get(m, GAVL_META_LANGUAGE);
+  if(tag)
+    lqt_set_audio_language(e->file, e->num_audio_streams, tag);
   
   e->num_audio_streams++;
   return e->num_audio_streams-1;
   }
 
-static int add_audio_stream_compressed_lqt(void * data, const char * language,
-                                           const gavl_audio_format_t * format,
-                                           const gavl_compression_info_t * ci)
+static int
+add_audio_stream_compressed_lqt(void * data,
+                                const gavl_metadata_t * m,
+                                const gavl_audio_format_t * format,
+                                const gavl_compression_info_t * ci)
   {
+  const char * tag;
   e_lqt_t * e = data;
 
   e->audio_streams =
@@ -271,12 +316,20 @@ static int add_audio_stream_compressed_lqt(void * data, const char * language,
   memset(&e->audio_streams[e->num_audio_streams], 0,
          sizeof(*(e->audio_streams)));
   lqt_gavl_add_audio_track_compressed(e->file, format, ci);
+
+  tag = gavl_metadata_get(m, GAVL_META_LANGUAGE);
+  if(tag)
+    lqt_set_audio_language(e->file, e->num_audio_streams, tag);
+  
   e->num_audio_streams++;
   return e->num_audio_streams-1;
   }
 
-static int add_subtitle_text_stream_lqt(void * data, const char * language, int * timescale)
+static int add_subtitle_text_stream_lqt(void * data,
+                                        const gavl_metadata_t * m,
+                                        int * timescale)
   {
+  const char * tag;
   e_lqt_t * e = data;
 
   e->subtitle_text_streams =
@@ -287,8 +340,11 @@ static int add_subtitle_text_stream_lqt(void * data, const char * language, int 
   memset(&e->subtitle_text_streams[e->num_subtitle_text_streams], 0,
          sizeof(*(e->subtitle_text_streams)));
 
-  strncpy(e->subtitle_text_streams[e->num_subtitle_text_streams].language,
-          language, 3);
+  tag = gavl_metadata_get(m, GAVL_META_LANGUAGE);
+  if(tag)
+    strncpy(e->subtitle_text_streams[e->num_subtitle_text_streams].language,
+            tag, 3);
+  
   e->subtitle_text_streams[e->num_subtitle_text_streams].timescale = *timescale;
   
   e->num_subtitle_text_streams++;
@@ -297,6 +353,7 @@ static int add_subtitle_text_stream_lqt(void * data, const char * language, int 
 
 
 static int add_video_stream_lqt(void * data,
+                                const gavl_metadata_t* m,
                                 const gavl_video_format_t* format)
   {
   e_lqt_t * e = data;
@@ -317,9 +374,11 @@ static int add_video_stream_lqt(void * data,
   return e->num_video_streams-1;
   }
 
-static int add_video_stream_compressed_lqt(void * data,
-                                           const gavl_video_format_t* format,
-                                           const gavl_compression_info_t * ci)
+static int
+add_video_stream_compressed_lqt(void * data,
+                                const gavl_metadata_t* m,
+                                const gavl_video_format_t* format,
+                                const gavl_compression_info_t * ci)
   {
   e_lqt_t * e = data;
 

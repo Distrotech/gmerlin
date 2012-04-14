@@ -107,7 +107,7 @@ static void set_callbacks_bmp(void * data, bg_iw_callbacks_t * cb)
 
 static int write_header_bmp(void * priv, const char * filename,
                             gavl_video_format_t * format,
-                            const bg_metadata_t * m)
+                            const gavl_metadata_t * m)
   {
   char * real_filename;
   bmp_t * bmp = priv;

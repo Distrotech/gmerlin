@@ -38,20 +38,17 @@
 
 static void bg_audio_info_free(bg_audio_info_t * info)
   {
-  MY_FREE(info->description);
-  MY_FREE(info->info);
+  gavl_metadata_free(&info->m);
   }
 
 static void bg_video_info_free(bg_video_info_t * info)
   {
-  MY_FREE(info->description);
-  MY_FREE(info->info);
+  gavl_metadata_free(&info->m);
   }
 
 static void bg_subtitle_info_free(bg_subtitle_info_t * info)
   {
-  MY_FREE(info->description);
-  MY_FREE(info->info);
+  gavl_metadata_free(&info->m);
   }
 
 void bg_track_info_free(bg_track_info_t * info)
@@ -78,13 +75,12 @@ void bg_track_info_free(bg_track_info_t * info)
     MY_FREE(info->subtitle_streams);
     }
 
-  bg_metadata_free(&info->metadata);
+  gavl_metadata_free(&info->metadata);
 
   if(info->chapter_list)
     bg_chapter_list_destroy(info->chapter_list);
   
   MY_FREE(info->name);
-  MY_FREE(info->description);
   MY_FREE(info->url);
   memset(info, 0, sizeof(*info));
   }

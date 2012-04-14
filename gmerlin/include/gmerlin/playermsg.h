@@ -256,33 +256,6 @@
 
 #define BG_PLAYER_MSG_METADATA               10
 
-/** \brief Audio description changed
- *
- *  arg0: Audio description (char*)
- */
-
-#define BG_PLAYER_MSG_AUDIO_DESCRIPTION      11
-
-/** \brief Video description changed
- *
- *  arg0: Video description (char*)
- */
-#define BG_PLAYER_MSG_VIDEO_DESCRIPTION      12
-
-
-/** \brief Subtitle description changed
- *
- *  arg0: Subtitle description (char*)
- */
-
-#define BG_PLAYER_MSG_SUBTITLE_DESCRIPTION   14
-
-/** \brief Description of the track changed
- *
- *  arg0: Stream description (char*)
- */
-#define BG_PLAYER_MSG_STREAM_DESCRIPTION     15
-
 /** \brief Volume changed
  *
  *  arg0: New volume in dB (float)

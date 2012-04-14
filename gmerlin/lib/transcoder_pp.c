@@ -46,7 +46,7 @@ struct bg_transcoder_pp_s
   char ** audio_filename;
   char ** video_filename;
   char * filename;
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   
   pthread_t thread;
 
@@ -116,7 +116,7 @@ void bg_transcoder_pp_destroy(bg_transcoder_pp_t * p)
   {
   bg_msg_queue_list_destroy(p->msg_out);
   bg_msg_queue_destroy(p->msg_in);
-  bg_metadata_free(&p->metadata);
+  gavl_metadata_free(&p->metadata);
   gavl_timer_destroy(p->timer);
   if(p->plugin)
     bg_plugin_unref(p->plugin);
@@ -189,7 +189,7 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
       case BG_TRANSCODER_MSG_FINISHED:
         break;
       case BG_TRANSCODER_MSG_METADATA:
-        bg_metadata_free(&p->metadata);
+        gavl_metadata_free(&p->metadata);
         bg_msg_get_arg_metadata(msg, 0, &p->metadata);
         break;
       case BG_TRANSCODER_MSG_FILE:

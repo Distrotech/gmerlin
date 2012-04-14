@@ -136,7 +136,7 @@ static bg_edl_track_t * copy_tracks(const bg_edl_track_t * src, int len)
 
     memset(&ret[i].metadata, 0, sizeof(ret[i].metadata));
     
-    bg_metadata_copy(&ret[i].metadata, &src[i].metadata);
+    gavl_metadata_copy(&ret[i].metadata, &src[i].metadata);
     
     ret[i].audio_streams = copy_streams(src[i].audio_streams,
                                         src[i].num_audio_streams);
@@ -191,7 +191,7 @@ static void free_tracks(bg_edl_track_t * s, int len)
     free(s->name);
   for(i = 0; i < len; i++)
     {
-    bg_metadata_free(&s[i].metadata);
+    gavl_metadata_free(&s[i].metadata);
     
     if(s[i].audio_streams)
       free_streams(s[i].audio_streams, s[i].num_audio_streams);

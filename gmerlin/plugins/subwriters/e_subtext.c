@@ -31,6 +31,8 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_subtext"
 
+#include <gavl/metatags.h>
+
 typedef struct
   {
   FILE * output;  
@@ -41,7 +43,7 @@ typedef struct
   gavl_time_t last_time;
   gavl_time_t last_duration;
   
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   
   bg_encoder_callbacks_t * cb;
 
@@ -101,14 +103,22 @@ static void write_subtitle_srt(subtext_t * s, const char * text,
 
 static void write_header_mpsub(subtext_t * s)
   {
-  if(s->metadata.title)
-    fprintf(s->output, "TITLE=%s\n", s->metadata.title);
+  const char * tag;
 
-  if(s->metadata.author)
-    fprintf(s->output, "AUTHOR=%s\n", s->metadata.author);
+  tag = gavl_metadata_get(&s->metadata, GAVL_META_TITLE);
+  
+  if(tag)
+    fprintf(s->output, "TITLE=%s\n", tag);
 
-  if(s->metadata.comment)
-    fprintf(s->output, "NOTE=%s\n", s->metadata.comment);
+  tag = gavl_metadata_get(&s->metadata, GAVL_META_AUTHOR);
+
+  if(tag)
+    fprintf(s->output, "AUTHOR=%s\n", tag);
+
+  tag = gavl_metadata_get(&s->metadata, GAVL_META_COMMENT);
+
+  if(tag)
+    fprintf(s->output, "NOTE=%s\n", tag);
   fprintf(s->output, "FORMAT=TIME\n\n");
   }
 
@@ -167,7 +177,7 @@ static void set_callbacks_subtext(void * data, bg_encoder_callbacks_t * cb)
   }
 
 static int open_subtext(void * data, const char * filename,
-                        const bg_metadata_t * metadata,
+                        const gavl_metadata_t * metadata,
                         const bg_chapter_list_t * chapter_list)
   {
   subtext_t * e;
@@ -183,12 +193,12 @@ static int open_subtext(void * data, const char * filename,
   e->output = fopen(e->filename, "w");
 
   if(metadata)
-    bg_metadata_copy(&e->metadata, metadata);
+    gavl_metadata_copy(&e->metadata, metadata);
   
   return 1;
   }
 
-static int add_subtitle_text_stream_subtext(void * data, const char * language,
+static int add_subtitle_text_stream_subtext(void * data, const gavl_metadata_t * m,
                                             int * timescale)
   {
   subtext_t * e;

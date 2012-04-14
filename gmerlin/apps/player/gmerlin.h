@@ -167,7 +167,7 @@ struct gmerlin_s
 
   struct
     {
-    bg_metadata_t metadata;
+    gavl_metadata_t metadata;
     char * name;
     gavl_time_t time;
     gavl_time_t duration;

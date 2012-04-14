@@ -30,6 +30,9 @@
 #include <gmerlin/log.h>
 #include "cdrdao_common.h"
 
+#include <gavl/metatags.h>
+
+
 #define LOG_DOMAIN "e_pp_cdrdao"
 
 typedef struct
@@ -43,7 +46,7 @@ typedef struct
 
   struct
     {
-    bg_metadata_t metadata;
+    gavl_metadata_t metadata;
     char * filename;
     uint32_t duration; /* In samples */
     int pp_only;
@@ -58,7 +61,7 @@ static void free_tracks(cdrdao_t * c)
     {
     for(i = 0; i < c->num_tracks; i++)
       {
-      bg_metadata_free(&c->tracks[i].metadata);
+      gavl_metadata_free(&c->tracks[i].metadata);
       if(c->tracks[i].filename)
         free(c->tracks[i].filename);
       }
@@ -226,7 +229,7 @@ static int32_t get_wav_length(const char * filename)
   }
 
 static void add_track_cdrdao(void * data, const char * filename,
-                             bg_metadata_t * metadata, int pp_only)
+                             gavl_metadata_t * metadata, int pp_only)
   {
   int32_t duration = 0;
   cdrdao_t * cdrdao;
@@ -247,7 +250,7 @@ static void add_track_cdrdao(void * data, const char * filename,
 
   memset(cdrdao->tracks + cdrdao->num_tracks, 0, sizeof(*cdrdao->tracks));
 
-  bg_metadata_copy(&cdrdao->tracks[cdrdao->num_tracks].metadata,
+  gavl_metadata_copy(&cdrdao->tracks[cdrdao->num_tracks].metadata,
                    metadata);
   cdrdao->tracks[cdrdao->num_tracks].filename = bg_strdup(NULL, filename);
   cdrdao->tracks[cdrdao->num_tracks].pp_only = pp_only;
@@ -260,6 +263,11 @@ static void add_track_cdrdao(void * data, const char * filename,
 
 static void run_cdrdao(void * data, const char * directory, int cleanup)
   {
+  const char * artist_0 = NULL;
+  const char * album_0 = NULL;
+  const char * artist_i;
+  const char * album_i;
+  
   FILE * outfile;
   int i;
   int do_album = 0;
@@ -291,15 +299,15 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
     {
     for(i = 0; i < cdrdao->num_tracks; i++)
       {
-      if(!cdrdao->tracks[i].metadata.artist ||
-         !cdrdao->tracks[i].metadata.title)
+      if(!gavl_metadata_get(&cdrdao->tracks[i].metadata, GAVL_META_ARTIST) ||
+         !gavl_metadata_get(&cdrdao->tracks[i].metadata, GAVL_META_TITLE))
         {
         do_cdtext = 0;
         break;
         }
-      if(!cdrdao->tracks[i].metadata.author)
+      if(!gavl_metadata_get(&cdrdao->tracks[i].metadata, GAVL_META_AUTHOR))
         do_author = 0;
-      if(!cdrdao->tracks[i].metadata.comment)
+      if(!gavl_metadata_get(&cdrdao->tracks[i].metadata, GAVL_META_COMMENT))
         do_comment = 0;
       }
     }
@@ -312,22 +320,33 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
     if(cdrdao->use_cdtext)
       {
       do_album = 1;
+
+      album_0 = gavl_metadata_get(&cdrdao->tracks[0].metadata,
+                                 GAVL_META_ALBUM);
       
-      if(!cdrdao->tracks[0].metadata.album)
+      if(!album_0)
         do_album = 0;
       else
         {
+        artist_0 = gavl_metadata_get(&cdrdao->tracks[0].metadata,
+                                    GAVL_META_ARTIST);
+        
         for(i = 1; i < cdrdao->num_tracks; i++)
           {
-          if(strcmp(cdrdao->tracks[i].metadata.artist, cdrdao->tracks[0].metadata.artist))
-            {
+          artist_i = gavl_metadata_get(&cdrdao->tracks[i].metadata,
+                                       GAVL_META_ARTIST);
+          
+          if(strcmp(artist_i, artist_0))
             same_artist = 0;
-            }
-          if(!cdrdao->tracks[i].metadata.album ||
-             strcmp(cdrdao->tracks[i].metadata.album,  cdrdao->tracks[0].metadata.album))
-            {
+
+          album_i = gavl_metadata_get(&cdrdao->tracks[i].metadata,
+                                      GAVL_META_ALBUM);
+          
+          if(!album_i || strcmp(album_i, album_0))
             do_album = 0;
-            }
+
+          if(!do_album && !same_artist)
+            break;
           }
         }
       }
@@ -360,9 +379,9 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
 
     // Language number should always start with 0
     fprintf(outfile, "  LANGUAGE 0 {\n");
-        // Required fields - at least all CD-TEXT CDs I've seen so far have them.
-    fprintf(outfile, "    TITLE \"%s\"\n", (do_album ? cdrdao->tracks[0].metadata.album : "Audio CD"));
-    fprintf(outfile, "    PERFORMER \"%s\"\n", (same_artist ? cdrdao->tracks[0].metadata.artist :
+    // Required fields - at least all CD-TEXT CDs I've seen so far have them.
+    fprintf(outfile, "    TITLE \"%s\"\n", (do_album ? album_0 : "Audio CD"));
+    fprintf(outfile, "    PERFORMER \"%s\"\n", (same_artist ? artist_0 :
                                                 "Various"));
     fprintf(outfile, "    DISC_ID \"XY12345\"\n");
     fprintf(outfile, "    UPC_EAN \"\"\n"); // usually empty
@@ -384,12 +403,16 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
       {
       fprintf(outfile, "CD_TEXT {\n");
       fprintf(outfile, "  LANGUAGE 0 {\n");
-      fprintf(outfile, "    TITLE \"%s\"\n", cdrdao->tracks[i].metadata.title);
-      fprintf(outfile, "    PERFORMER \"%s\"\n", cdrdao->tracks[i].metadata.artist);
+      fprintf(outfile, "    TITLE \"%s\"\n",
+              gavl_metadata_get(&cdrdao->tracks[i].metadata, GAVL_META_TITLE));
+      fprintf(outfile, "    PERFORMER \"%s\"\n",
+              gavl_metadata_get(&cdrdao->tracks[i].metadata, GAVL_META_ARTIST));
       fprintf(outfile, "    ISRC \"US-XX1-98-01234\"\n");
       fprintf(outfile, "    ARRANGER \"\"\n");
-      fprintf(outfile, "    SONGWRITER \"%s\"\n", (do_author ? cdrdao->tracks[i].metadata.author : ""));
-      fprintf(outfile, "    MESSAGE \"%s\"\n", (do_comment ? cdrdao->tracks[i].metadata.comment : ""));
+      fprintf(outfile, "    SONGWRITER \"%s\"\n",
+              (do_author ? gavl_metadata_get(&cdrdao->tracks[i].metadata, GAVL_META_AUTHOR) : ""));
+      fprintf(outfile, "    MESSAGE \"%s\"\n",
+              (do_comment ? gavl_metadata_get(&cdrdao->tracks[i].metadata, GAVL_META_COMMENT) : ""));
       fprintf(outfile, "  }\n");
       fprintf(outfile, "}\n");
       }

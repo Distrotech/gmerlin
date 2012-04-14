@@ -170,11 +170,11 @@ static int open_encoder(bg_plugin_registry_t * plugin_reg,
     }
 
   /* Add video stream */
-  video_index = (*plugin)->add_video_stream((*handle)->priv, video_format);
+  video_index = (*plugin)->add_video_stream((*handle)->priv, NULL, video_format);
 
   /* Add audio stream */
   if((*plugin)->add_audio_stream)
-    audio_index = (*plugin)->add_audio_stream((*handle)->priv, "eng", audio_format);
+    audio_index = (*plugin)->add_audio_stream((*handle)->priv, NULL, audio_format);
 
   /* Set video parameters */
 

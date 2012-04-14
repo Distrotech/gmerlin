@@ -32,6 +32,7 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gavl/metatags.h>
 
 #include <png.h>
 
@@ -39,11 +40,12 @@
 #include "pngwriter.h"
 
 int bg_pngwriter_write_header(void * priv, const char * filename,
-                              gavl_video_format_t * format, const bg_metadata_t * metadata)
+                              gavl_video_format_t * format,
+                              const gavl_metadata_t * metadata)
   {
   int color_type;
   int bits = 8;
-  int i, j;
+  int j;
   bg_pngwriter_t * png = priv;
 
   png->transform_flags = PNG_TRANSFORM_IDENTITY;
@@ -140,60 +142,25 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
   if(!metadata)
     return 1;
 
-  if(metadata->author)
-    png->num_text++;
-  if(metadata->title)
-    png->num_text++;
-  if(metadata->copyright)
-    png->num_text++;
-  
-  if(metadata->ext)
-    {
-    i = 0;
-    while(metadata->ext[i].key)
-      {
-      i++;
-      png->num_text++;
-      }
-    }
-
+  png->num_text = metadata->num_tags;
   png->text = calloc(png->num_text, sizeof(*png->text));
 
-  j = 0;
-  if(metadata->author)
+  for(j = 0; j < metadata->num_tags; j++)
     {
     png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
-    png->text[j].key         = bg_strdup(png->text[j].key, "Author");
-    png->text[j].text        = bg_strdup(png->text[j].text, metadata->author);
-    j++;
-    }
-  if(metadata->title)
-    {
-    png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
-    png->text[j].key         = bg_strdup(png->text[j].key, "Title");
-    png->text[j].text        = bg_strdup(png->text[j].text, metadata->title);
-    j++;
-    }
-  if(metadata->copyright)
-    {
-    png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
-    png->text[j].key         = bg_strdup(png->text[j].key, "Copyright");
-    png->text[j].text        = bg_strdup(png->text[j].text, metadata->copyright);
-    j++;
-    }
 
-  if(metadata->ext)
-    {
-    i = 0;
-    while(metadata->ext[i].key)
-      {
-      png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
-      png->text[j].key         = bg_strdup(png->text[j].key, metadata->ext[i].key);
-      png->text[j].text        = bg_strdup(png->text[j].text, metadata->ext[i].value);
-      j++;
-      i++;
-      }
+    if(!strcmp(metadata->tags[j].key, GAVL_META_AUTHOR))
+      png->text[j].key         = bg_strdup(png->text[j].key, "Author");
+    else if(!strcmp(metadata->tags[j].key, GAVL_META_TITLE))
+      png->text[j].key         = bg_strdup(png->text[j].key, "Title");
+    else if(!strcmp(metadata->tags[j].key, GAVL_META_COPYRIGHT))
+      png->text[j].key         = bg_strdup(png->text[j].key, "Copyright");
+    else
+      png->text[j].key         = bg_strdup(png->text[j].key, metadata->tags[j].key);
+    
+    png->text[j].text        = bg_strdup(png->text[j].text, metadata->tags[j].val);
     }
+  
   png_set_text(png->png_ptr, png->info_ptr, png->text, png->num_text);
   return 1;
   }

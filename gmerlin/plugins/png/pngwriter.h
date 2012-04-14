@@ -40,7 +40,8 @@ typedef struct
   } bg_pngwriter_t;
 
 int bg_pngwriter_write_header(void * priv, const char * filename,
-                              gavl_video_format_t * format, const bg_metadata_t * metadata);
+                              gavl_video_format_t * format,
+                              const gavl_metadata_t * metadata);
 
 int bg_pngwriter_write_image(void * priv, gavl_video_frame_t * frame);
 

@@ -44,7 +44,7 @@ typedef struct
   bg_cfg_section_t * section;
   const bg_parameter_info_t * parameters;
 
-  char language[4];
+  const gavl_metadata_t * m;
 
   const gavl_compression_info_t * ci;
   
@@ -67,7 +67,9 @@ typedef struct
   int pass;
   int total_passes;
   char * stats_file;
-  
+
+  const gavl_metadata_t * m;
+
   //  int64_t last_timestamp;
   const gavl_compression_info_t * ci;
   
@@ -87,8 +89,8 @@ typedef struct
   bg_cfg_section_t * section;
   const bg_parameter_info_t * parameters;
 
-  char language[4];
-
+  const gavl_metadata_t * m;
+  
   } subtitle_text_stream_t;
 
 typedef struct
@@ -105,7 +107,7 @@ typedef struct
   bg_cfg_section_t * section;
   const bg_parameter_info_t * parameters;
 
-  char language[4];
+  const gavl_metadata_t * m;
   
   } subtitle_overlay_stream_t;
 
@@ -162,7 +164,7 @@ struct bg_encoder_s
 
   char * filename_base;
 
-  const bg_metadata_t * metadata;
+  const gavl_metadata_t * metadata;
   const bg_chapter_list_t * chapter_list;
   
   };
@@ -357,7 +359,7 @@ void bg_encoder_destroy(bg_encoder_t * enc, int do_delete)
   }
 
 int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
-                    const bg_metadata_t * metadata,
+                    const gavl_metadata_t * metadata,
                     const bg_chapter_list_t * chapter_list)
   {
   enc->filename_base = bg_strdup(enc->filename_base, filename_base);
@@ -558,13 +560,16 @@ static int start_audio(bg_encoder_t * enc, int stream)
 
   if(s->ci)
     {
-    s->out_index = s->plugin->add_audio_stream_compressed(s->priv, s->language, &s->format, s->ci);
+    s->out_index =
+      s->plugin->add_audio_stream_compressed(s->priv, s->m,
+                                             &s->format, s->ci);
     if(s->out_index < 0)
       return 0;
     }
   else
     {
-    s->out_index = s->plugin->add_audio_stream(s->priv, s->language, &s->format);
+    s->out_index =
+      s->plugin->add_audio_stream(s->priv, s->m, &s->format);
     if(s->out_index < 0)
       return 0;
   
@@ -608,13 +613,16 @@ static int start_video(bg_encoder_t * enc, int stream)
   
   if(s->ci)
     {
-    s->out_index = s->plugin->add_video_stream_compressed(s->priv, &s->format, s->ci);
+    s->out_index =
+      s->plugin->add_video_stream_compressed(s->priv, s->m,
+                                             &s->format, s->ci);
     if(s->out_index < 0)
       return 0;
     }
   else
     {
-    s->out_index = s->plugin->add_video_stream(s->priv, &s->format);
+    s->out_index = s->plugin->add_video_stream(s->priv, s->m,
+                                               &s->format);
     if(s->out_index < 0)
       return 0;
   
@@ -668,7 +676,7 @@ static int start_subtitle_text(bg_encoder_t * enc, int stream)
   s->h = h;
   /* Add stream */
   
-  s->out_index = s->plugin->add_subtitle_text_stream(s->priv, s->language, &s->timescale);
+  s->out_index = s->plugin->add_subtitle_text_stream(s->priv, s->m, &s->timescale);
   if(s->out_index < 0)
     return 0;
 
@@ -709,7 +717,7 @@ static int start_subtitle_overlay(bg_encoder_t * enc, int stream)
   /* Add stream */
   s->out_index =
     s->plugin->add_subtitle_overlay_stream(s->priv,
-                                           s->language, &s->format);
+                                           s->m, &s->format);
   if(s->out_index < 0)
     return 0;
   
@@ -793,7 +801,7 @@ int bg_encoder_start(bg_encoder_t * enc)
 
 /* Add streams */
 int bg_encoder_add_audio_stream(bg_encoder_t * enc,
-                                const char * language,
+                                const gavl_metadata_t * m,
                                 const gavl_audio_format_t * format,
                                 int source_index)
   {
@@ -816,8 +824,7 @@ int bg_encoder_add_audio_stream(bg_encoder_t * enc,
   else if(enc->video_plugin.info)
     s->parameters = enc->video_plugin.info->audio_parameters;
 
-  if(language)
-    strncpy(s->language, language, 3);
+  s->m = m;
   
   ret = enc->num_audio_streams;
   enc->num_audio_streams++;
@@ -825,6 +832,7 @@ int bg_encoder_add_audio_stream(bg_encoder_t * enc,
   }
 
 int bg_encoder_add_video_stream(bg_encoder_t * enc,
+                                const gavl_metadata_t * m,
                                 const gavl_video_format_t * format,
                                 int source_index)
   {
@@ -843,13 +851,16 @@ int bg_encoder_add_video_stream(bg_encoder_t * enc,
     s->section = enc->video_stream.section;
 
   s->parameters = enc->video_plugin.info->video_parameters;
+
+  s->m = m;
   
   ret = enc->num_video_streams;
   enc->num_video_streams++;
   return ret;
   }
 
-int bg_encoder_add_audio_stream_compressed(bg_encoder_t * enc, const char * language,
+int bg_encoder_add_audio_stream_compressed(bg_encoder_t * enc,
+                                           const gavl_metadata_t * m,
                                            const gavl_audio_format_t * format,
                                            const gavl_compression_info_t * info,
                                            int source_index)
@@ -864,9 +875,7 @@ int bg_encoder_add_audio_stream_compressed(bg_encoder_t * enc, const char * lang
   s->in_index = source_index;
   
   s->ci = info;
-  
-  if(language)
-    strncpy(s->language, language, 3);
+  s->m = m;
   
   ret = enc->num_audio_streams;
   enc->num_audio_streams++;
@@ -875,6 +884,7 @@ int bg_encoder_add_audio_stream_compressed(bg_encoder_t * enc, const char * lang
   }
 
 int bg_encoder_add_video_stream_compressed(bg_encoder_t * enc,
+                                           const gavl_metadata_t * m,
                                            const gavl_video_format_t * format,
                                            const gavl_compression_info_t * info,
                                            int source_index)
@@ -889,7 +899,7 @@ int bg_encoder_add_video_stream_compressed(bg_encoder_t * enc,
   s->in_index = source_index;
   
   s->ci = info;
-  
+  s->m = m;
   ret = enc->num_video_streams;
   enc->num_video_streams++;
   return ret;
@@ -897,7 +907,7 @@ int bg_encoder_add_video_stream_compressed(bg_encoder_t * enc,
 
 
 int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc,
-                                        const char * language,
+                                        const gavl_metadata_t * m,
                                         int timescale,
                                         int source_index)
   {
@@ -909,6 +919,8 @@ int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc,
 
   s->timescale = timescale;
   s->in_index = source_index;
+
+  s->m = m;
   
   if(enc->tt)
     s->section = enc->tt->subtitle_text_streams[source_index].encoder_section_text;
@@ -920,8 +932,6 @@ int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc,
   else if(enc->video_plugin.info)
     s->parameters = enc->video_plugin.info->subtitle_text_parameters;
 
-  if(language)
-    strncpy(s->language, language, 3);
   
   ret = enc->num_subtitle_text_streams;
   enc->num_subtitle_text_streams++;
@@ -930,7 +940,7 @@ int bg_encoder_add_subtitle_text_stream(bg_encoder_t * enc,
   }
 
 int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t * enc,
-                                           const char * language,
+                                           const gavl_metadata_t * m,
                                            const gavl_video_format_t * format,
                                            int source_index, bg_stream_type_t source_format)
   {
@@ -942,7 +952,7 @@ int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t * enc,
 
   gavl_video_format_copy(&s->format, format);
   s->in_index = source_index;
-
+  s->m = m;
   if(enc->tt)
     {
     if(source_format == BG_STREAM_SUBTITLE_TEXT)
@@ -958,8 +968,6 @@ int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t * enc,
   else if(enc->video_plugin.info)
     s->parameters = enc->video_plugin.info->subtitle_overlay_parameters;
 
-  if(language)
-    strncpy(s->language, language, 3);
   
   ret = enc->num_subtitle_overlay_streams;
   enc->num_subtitle_overlay_streams++;
@@ -1187,7 +1195,7 @@ int bg_encoder_write_video_packet(bg_encoder_t * enc,
 
 void bg_encoder_update_metadata(bg_encoder_t * enc,
                                 const char * name,
-                                const bg_metadata_t * m)
+                                const gavl_metadata_t * m)
   {
   int i;
   for(i = 0; i < enc->num_plugins; i++)

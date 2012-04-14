@@ -68,7 +68,8 @@ static void set_callbacks_tga(void * data, bg_iw_callbacks_t * cb)
   }
 
 static int write_header_tga(void * priv, const char * filename,
-                            gavl_video_format_t * format, const bg_metadata_t * m)
+                            gavl_video_format_t * format,
+                            const gavl_metadata_t * m)
   {
   tga_t * tga = priv;
 

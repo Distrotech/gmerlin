@@ -121,7 +121,7 @@ int main(int argc, char ** argv)
   char ** files;
   int num_conversions;
   
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   
   conversion_section =
     bg_cfg_section_create_from_parameters("conversion",
@@ -208,7 +208,7 @@ int main(int argc, char ** argv)
   fprintf(stderr, "Output format:\n");
   gavl_video_format_dump(&out_format);
 
-  bg_metadata_dump(&metadata);
+  gavl_metadata_dump(&metadata, 0);
   
   opt = gavl_video_converter_get_options(cnv);
   gavl_video_options_copy(opt, vopt.opt);
@@ -239,7 +239,7 @@ int main(int argc, char ** argv)
 
   gavl_video_converter_destroy(cnv);
 
-  bg_metadata_free(&metadata);
+  gavl_metadata_free(&metadata);
   
   return 0;
   }

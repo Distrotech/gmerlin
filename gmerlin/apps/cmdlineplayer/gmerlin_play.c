@@ -656,21 +656,6 @@ static void print_time(gavl_time_t time)
   time_active = 1;
   }
 
-#define DO_PRINT(f, s) if(s)bg_log(BG_LOG_INFO, LOG_DOMAIN, f, s);
-
-static void dump_metadata(bg_metadata_t * m)
-  {
-  DO_PRINT("Artist:    %s", m->artist);
-  DO_PRINT("Author:    %s", m->author);
-  DO_PRINT("Title:     %s", m->title);
-  DO_PRINT("Album:     %s", m->album);
-  DO_PRINT("Genre:     %s", m->genre);
-  DO_PRINT("Copyright: %s", m->copyright);
-  DO_PRINT("Date:      %s", m->date);
-  DO_PRINT("Track:     %d", m->track);
-  DO_PRINT("Comment:   %s", m->comment);
-  }
-#undef DO_PRINT
 
 static int handle_message(bg_player_t * player,
                           bg_msg_t * message)
@@ -680,7 +665,7 @@ static int handle_message(bg_player_t * player,
   gavl_time_t t;
   gavl_audio_format_t audio_format;
   gavl_video_format_t video_format;
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
 
   char * tmp_string_1;
   char * tmp_string_2;
@@ -749,35 +734,37 @@ static int handle_message(bg_player_t * player,
       free(tmp_string_1);
       free(tmp_string_2);
       break;
-    case BG_PLAYER_MSG_STREAM_DESCRIPTION:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Format: %s", arg_str1);
-      free(arg_str1);
+    case BG_PLAYER_MSG_AUDIO_STREAM_INFO:
+      gavl_metadata_init(&metadata);
+      bg_msg_get_arg_metadata(message, 1, &metadata);
+      fprintf(stderr, "Audio stream\n");
+      gavl_metadata_dump(&metadata, 2);
+      gavl_metadata_free(&metadata);
       break;
-    case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream: %s", arg_str1);
-      free(arg_str1);
+    case BG_PLAYER_MSG_VIDEO_STREAM_INFO:
+      gavl_metadata_init(&metadata);
+      bg_msg_get_arg_metadata(message, 1, &metadata);
+      fprintf(stderr, "Video stream\n");
+      gavl_metadata_dump(&metadata, 2);
+      gavl_metadata_free(&metadata);
       break;
-    case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream: %s", arg_str1);
-      free(arg_str1);
+    case BG_PLAYER_MSG_SUBTITLE_STREAM_INFO:
+      gavl_metadata_init(&metadata);
+      bg_msg_get_arg_metadata(message, 1, &metadata);
+      fprintf(stderr, "Subtitle stream\n");
+      gavl_metadata_dump(&metadata, 2);
+      gavl_metadata_free(&metadata);
       break;
-    case BG_PLAYER_MSG_SUBTITLE_DESCRIPTION:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subtitle stream: %s", arg_str1);
-      free(arg_str1);
-      break;
-      /* Metadata */
     case BG_PLAYER_MSG_CLEANUP:
       bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player cleaned up");
       break;
     case BG_PLAYER_MSG_METADATA:
-      memset(&metadata, 0, sizeof(metadata));
+      /* Metadata */
+      gavl_metadata_init(&metadata);
       bg_msg_get_arg_metadata(message, 0, &metadata);
-      dump_metadata(&metadata);
-      bg_metadata_free(&metadata);
+      fprintf(stderr, "Metadata:\n");
+      gavl_metadata_dump(&metadata, 2);
+      gavl_metadata_free(&metadata);
       break;
     case BG_PLAYER_MSG_STATE_CHANGED:
       arg_i1 = bg_msg_get_arg_int(message, 0);
