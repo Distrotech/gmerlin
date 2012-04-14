@@ -61,7 +61,7 @@ static void set_callbacks_mpv(void * data, bg_encoder_callbacks_t * cb)
   }
 
 static int open_mpv(void * data, const char * filename,
-                    const bg_metadata_t * metadata,
+                    const gavl_metadata_t * metadata,
                     const bg_chapter_list_t * chapter_list)
   {
   e_mpv_t * e = data;
@@ -71,7 +71,10 @@ static int open_mpv(void * data, const char * filename,
   return 1;
   }
 
-static int add_video_stream_mpv(void * data, const gavl_video_format_t* format)
+static int
+add_video_stream_mpv(void * data,
+                     const gavl_metadata_t* m,
+                     const gavl_video_format_t* format)
   {
   e_mpv_t * e = data;
 
@@ -80,7 +83,9 @@ static int add_video_stream_mpv(void * data, const gavl_video_format_t* format)
   return 0;
   }
 
-static int add_video_stream_compressed_mpv(void * data, const gavl_video_format_t* format,
+static int add_video_stream_compressed_mpv(void * data,
+                                           const gavl_metadata_t* m,
+                                           const gavl_video_format_t* format,
                                            const gavl_compression_info_t* ci)
   {
   e_mpv_t * e = data;

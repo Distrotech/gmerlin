@@ -30,6 +30,9 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "oggspeex"
 
+#include <gavl/metatags.h>
+
+
 #include <speex/speex.h>
 #include <speex/speex_header.h>
 #include <speex/speex_stereo.h>
@@ -105,7 +108,8 @@ static void comment_init(char **comments, int* length, char *vendor_string)
   *length=len;
   *comments=p;
 }
-static void comment_add(char **comments, int* length, char *tag, char *val)
+static void comment_add(char **comments, int* length,
+                        const char *tag, const char *val)
 {
   char* p=*comments;
   int vendor_length=readint(p, 0);
@@ -274,47 +278,49 @@ static void set_parameter_speex(void * data, const char * name,
   
   }
 
-static void build_comment(char ** comments, int * comments_len, bg_metadata_t * metadata)
+static void build_comment(char ** comments,
+                          int * comments_len,
+                          const gavl_metadata_t * metadata)
   {
   char * tmp_string;
   char * version;
-
+  const char * val;
+  
   speex_lib_ctl(SPEEX_LIB_GET_VERSION_STRING, &version);
     
   tmp_string = bg_sprintf("Encoded with Speex %s", version);
   comment_init(comments, comments_len, tmp_string);
   free(tmp_string);
     
-  if(metadata->artist)
-    comment_add(comments, comments_len, "ARTIST=", metadata->artist);
+  if((val = gavl_metadata_get(metadata, GAVL_META_ARTIST)))
+    comment_add(comments, comments_len, "ARTIST=", val);
   
-  if(metadata->title)
-    comment_add(comments, comments_len, "TITLE=", metadata->title);
+  if((val = gavl_metadata_get(metadata, GAVL_META_TITLE)))
+    comment_add(comments, comments_len, "TITLE=", val);
 
-  if(metadata->album)
-    comment_add(comments, comments_len, "ALBUM=", metadata->album);
+  if((val = gavl_metadata_get(metadata, GAVL_META_ALBUM)))
+    comment_add(comments, comments_len, "ALBUM=", val);
     
-  if(metadata->genre)
-    comment_add(comments, comments_len, "GENRE=", metadata->genre);
+  if((val = gavl_metadata_get(metadata, GAVL_META_GENRE)))
+    comment_add(comments, comments_len, "GENRE=", val);
 
-  if(metadata->date)
-    comment_add(comments, comments_len, "DATE=", metadata->date);
+  if((val = gavl_metadata_get(metadata, GAVL_META_DATE)))
+    comment_add(comments, comments_len, "DATE=", val);
+  else if((val = gavl_metadata_get(metadata, GAVL_META_YEAR)))
+    comment_add(comments, comments_len, "DATE=", val);
+
+  if((val = gavl_metadata_get(metadata, GAVL_META_COPYRIGHT)))
+    comment_add(comments, comments_len, "COPYRIGHT=", val);
+
+  if((val = gavl_metadata_get(metadata, GAVL_META_TRACKNUMBER)))
+    comment_add(comments, comments_len, "TRACKNUMBER=", val);
   
-  if(metadata->copyright)
-    comment_add(comments, comments_len, "COPYRIGHT=", metadata->copyright);
-
-  if(metadata->track)
-    {
-    tmp_string = bg_sprintf("%d", metadata->track);
-    comment_add(comments, comments_len, "TRACKNUMBER=", tmp_string);
-    free(tmp_string);
-    }
-
-  if(metadata->comment)
-    comment_add(comments, comments_len, NULL, metadata->comment);
+  if((val = gavl_metadata_get(metadata, GAVL_META_COMMENT)))
+    comment_add(comments, comments_len, NULL, val);
   }
 
-static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t * metadata)
+static int init_speex(void * data, gavl_audio_format_t * format,
+                      gavl_metadata_t * metadata)
   {
   float quality_f;
   char *comments = NULL;

@@ -146,8 +146,9 @@ static void set_parameter_lame(void * data, const char * name,
     lame->id3v2_charset = atoi(v->val_str);
   }
 
-static int open_lame(void * data, const char * filename,
-                     const bg_metadata_t * metadata,
+static int open_lame(void * data,
+                     const char * filename,
+                     const gavl_metadata_t * metadata,
                      const bg_chapter_list_t * chapter_list)
   {
   int ret = 1;
@@ -202,10 +203,11 @@ static int writes_compressed_audio_lame(void * data, const gavl_audio_format_t *
     return 0;
   }
 
-static int add_audio_stream_compressed_lame(void * data,
-                                            const char * language,
-                                            const gavl_audio_format_t * format,
-                                            const gavl_compression_info_t * ci)
+static int
+add_audio_stream_compressed_lame(void * data,
+                                 const gavl_metadata_t * m,
+                                 const gavl_audio_format_t * format,
+                                 const gavl_compression_info_t * ci)
   {
   lame_priv_t * lame;
   

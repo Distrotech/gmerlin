@@ -81,14 +81,14 @@ static int write_callback(void * priv, uint8_t * data, int len)
 
 static void update_metadata(void * data,
                             const char * name,
-                            const bg_metadata_t * m)
+                            const gavl_metadata_t * m)
   {
   b_lame_t * enc = data;
   bg_shout_update_metadata(enc->shout, name, m);
   }
 
 static int open_lame(void * data, const char * filename,
-                     const bg_metadata_t * metadata,
+                     const gavl_metadata_t * metadata,
                      const bg_chapter_list_t * chapter_list)
   {
   b_lame_t * lame;

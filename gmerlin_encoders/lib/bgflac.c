@@ -24,6 +24,7 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/translation.h>
+#include <gavl/metatags.h>
 
 #include <config.h>
 
@@ -333,12 +334,12 @@ void bg_flac_free(bg_flac_t * flac)
 
 /* Metadata -> vorbis comment */
 
-#define STR_COMMENT(str, key) \
-  if(m->str) \
+#define STR_COMMENT(gavl_name, key)         \
+  if((val = gavl_metadata_get(m, gavl_name)))    \
     { \
     memset(&entry, 0, sizeof(entry)); \
-    entry.entry = (uint8_t*)bg_sprintf("%s=%s", key, m->str);   \
-    entry.length = strlen((char*)(entry.entry));                        \
+    entry.entry = (uint8_t*)bg_sprintf("%s=%s", key, val);   \
+    entry.length = strlen((char*)entry.entry);                        \
     FLAC__metadata_object_vorbiscomment_insert_comment(flac->vorbis_comment, \
                                                        num_comments++,  \
                                                        entry, \
@@ -346,18 +347,17 @@ void bg_flac_free(bg_flac_t * flac)
     free(entry.entry); \
     }
 
-#define INT_COMMENT(i, key) \
-  if(m->i) \
-    { \
-    memset(&entry, 0, sizeof(entry)); \
-    entry.entry = (uint8_t*)bg_sprintf("%s=%d", key, m->i);     \
-    entry.length = strlen((char*)(entry.entry));                        \
-    FLAC__metadata_object_vorbiscomment_insert_comment(flac->vorbis_comment, \
-                                                       num_comments++,  \
-                                                       entry, \
-                                                       1); \
-    free(entry.entry); \
-    }
+#define INT_COMMENT(num, key) \
+   {\
+   memset(&entry, 0, sizeof(entry));            \
+   entry.entry = (uint8_t*)bg_sprintf("%s=%d", key, num);             \
+   entry.length = strlen((char*)entry.entry);                           \
+   FLAC__metadata_object_vorbiscomment_insert_comment(flac->vorbis_comment, \
+                                                      num_comments++,   \
+                                                      entry,            \
+                                                      1);               \
+   free(entry.entry);                                                   \
+   }
 
 #define RAW_COMMENT(str) \
   if(m->str) \
@@ -372,22 +372,29 @@ void bg_flac_free(bg_flac_t * flac)
     free(entry.entry); \
     }
 
-void bg_flac_init_metadata(bg_flac_t * flac, const bg_metadata_t * m)
+void bg_flac_init_metadata(bg_flac_t * flac, const gavl_metadata_t * m)
   {
   FLAC__StreamMetadata_VorbisComment_Entry entry;
-  
+  const char * val;
   int num_comments = 0;
+  int year;
   
   flac->vorbis_comment =
     FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
-  STR_COMMENT(artist,      "ARTIST");
-  STR_COMMENT(title,       "TITLE");
-  STR_COMMENT(album,       "ALBUM");
-  STR_COMMENT(albumartist, "ALBUM ARTIST");
-  STR_COMMENT(albumartist, "ALBUMARTIST");
-  STR_COMMENT(genre,       "GENRE");
-  STR_COMMENT(date,        "DATE");
-  STR_COMMENT(copyright,   "COPYRIGHT");
-  INT_COMMENT(track,       "TRACKNUMBER");
-  RAW_COMMENT(comment);
+  STR_COMMENT(GAVL_META_ARTIST, "ARTIST");
+  STR_COMMENT(GAVL_META_TITLE, "TITLE");
+  STR_COMMENT(GAVL_META_ALBUM, "ALBUM");
+  STR_COMMENT(GAVL_META_ALBUMARTIST, "ALBUM ARTIST");
+  STR_COMMENT(GAVL_META_ALBUMARTIST, "ALBUMARTIST");
+  STR_COMMENT(GAVL_META_GENRE, "GENRE");
+
+  /* TODO: Get year */
+  year = bg_metadata_get_year(m);
+  if(year > 0)
+    {
+    INT_COMMENT(year, "DATE");
+    }
+  STR_COMMENT(GAVL_META_COPYRIGHT, "COPYRIGHT");
+  STR_COMMENT(GAVL_META_TRACKNUMBER, "TRACKNUMBER");
+  STR_COMMENT(GAVL_META_COMMENT, "COMMENT");
   }

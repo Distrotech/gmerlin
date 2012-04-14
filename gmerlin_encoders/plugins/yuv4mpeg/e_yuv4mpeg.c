@@ -58,7 +58,7 @@ static void set_callbacks_y4m(void * data, bg_encoder_callbacks_t * cb)
 
 
 static int open_y4m(void * data, const char * filename,
-                    const bg_metadata_t * metadata,
+                    const gavl_metadata_t * metadata,
                     const bg_chapter_list_t * chapter_list)
   {
   e_y4m_t * e = data;
@@ -77,7 +77,9 @@ static int open_y4m(void * data, const char * filename,
   return 1;
   }
 
-static int add_video_stream_y4m(void * data, const gavl_video_format_t* format)
+static int add_video_stream_y4m(void * data,
+                                const gavl_metadata_t * m,
+                                const gavl_video_format_t* format)
   {
   e_y4m_t * e = data;
   gavl_video_format_copy(&e->com.format, format);

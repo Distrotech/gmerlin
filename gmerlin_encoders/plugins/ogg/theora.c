@@ -25,6 +25,9 @@
 
 #include <config.h>
 
+#include <gavl/metatags.h>
+
+
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/pluginfuncs.h>
@@ -221,39 +224,63 @@ static void set_parameter_theora(void * data, const char * name,
   }
 
 
-static void build_comment(th_comment * vc, bg_metadata_t * metadata)
+static void build_comment(th_comment * vc, gavl_metadata_t * metadata)
   {
-  char * tmp_string;
+  char * val;
   
   th_comment_init(vc);
   
-  if(metadata->artist)
-    th_comment_add_tag(vc, "ARTIST", metadata->artist);
-  
-  if(metadata->title)
-    th_comment_add_tag(vc, "TITLE", metadata->title);
-
-  if(metadata->album)
-    th_comment_add_tag(vc, "ALBUM", metadata->album);
-    
-  if(metadata->genre)
-    th_comment_add_tag(vc, "GENRE", metadata->genre);
-
-  if(metadata->date)
-    th_comment_add_tag(vc, "DATE", metadata->date);
-  
-  if(metadata->copyright)
-    th_comment_add_tag(vc, "COPYRIGHT", metadata->copyright);
-
-  if(metadata->track)
+  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_ARTIST))))
     {
-    tmp_string = bg_sprintf("%d", metadata->track);
-    th_comment_add_tag(vc, "TRACKNUMBER", tmp_string);
-    free(tmp_string);
+    th_comment_add_tag(vc, "ARTIST", val);
+    free(val);
+    }
+  
+  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_TITLE))))
+    {
+    th_comment_add_tag(vc, "TITLE", val);
+    free(val);
+    }
+  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_ALBUM))))
+    {
+    th_comment_add_tag(vc, "ALBUM", val);
+    free(val);
+    }
+  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_GENRE))))
+    {
+    th_comment_add_tag(vc, "GENRE", val);
+    free(val);
     }
 
-  if(metadata->comment)
-    th_comment_add(vc, metadata->comment);
+  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_DATE))))
+    {
+    th_comment_add_tag(vc, "DATE", val);
+    free(val);
+    }
+
+  else if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_YEAR))))
+    {
+    th_comment_add_tag(vc, "DATE", val);
+    free(val);
+    }
+  
+  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_COPYRIGHT))))
+    {
+    th_comment_add_tag(vc, "COPYRIGHT", val);
+    free(val);
+    }
+
+  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_TRACKNUMBER))))
+    {
+    th_comment_add_tag(vc, "TRACK", val);
+    free(val);
+    }
+
+  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_COMMENT))))
+    {
+    th_comment_add(vc, val);
+    free(val);
+    }
   }
 
 static const gavl_pixelformat_t supported_pixelformats[] =
@@ -330,7 +357,7 @@ static uint8_t * create_comment_packet(th_comment * comment, int * len1)
 static int init_compressed_theora(void * data,
                                   gavl_video_format_t * format,
                                   const gavl_compression_info_t * ci,
-                                  bg_metadata_t * metadata)
+                                  gavl_metadata_t * metadata)
   {
   ogg_packet packet;
   
@@ -407,7 +434,7 @@ static int init_compressed_theora(void * data,
   }
 
 static int init_theora(void * data, gavl_video_format_t * format,
-                       bg_metadata_t * metadata)
+                       gavl_metadata_t * metadata)
   {
   int sub_h, sub_v;
   int arg_i1, arg_i2;

@@ -25,6 +25,7 @@
 
 #include <gmerlin/utils.h>
 #include <gmerlin/charset.h>
+#include <gavl/metatags.h>
 
 #define GENRE_MAX 0x94
 
@@ -99,19 +100,22 @@ struct bgen_id3v1_s
   char data[128];
   };
 
-static void set_string(char * dst, char * src, int max_len,
+static void set_string(char * dst, const gavl_metadata_t * m,
+                       const char * key, int max_len,
                        bg_charset_converter_t * cnv)
   {
   int out_len;
 
   char * tmp_string;
 
+  const char * src = gavl_metadata_get(m, key);
+  
   if(!src)
     return;
 
   tmp_string =
     bg_convert_string(cnv,
-                        src, -1, &out_len);
+                      src, -1, &out_len);
 
   if(!tmp_string) /* String could not be converted */
     return;
@@ -122,13 +126,15 @@ static void set_string(char * dst, char * src, int max_len,
   free(tmp_string);
   }
 
-bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t * m)
+bgen_id3v1_t * bgen_id3v1_create(const gavl_metadata_t * m)
   {
+  int track;
   int i;
   char * tmp_string;
   int year;
   bg_charset_converter_t * cnv;
   bgen_id3v1_t * ret;
+  const char * genre;
   ret = calloc(1, sizeof(*ret));
 
   ret->data[0] = 'T';
@@ -137,9 +143,9 @@ bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t * m)
 
   cnv = bg_charset_converter_create("UTF-8", "ISO-8859-1");
 
-  set_string(&ret->data[TITLE_POS],  m->title,  TITLE_LEN, cnv);
-  set_string(&ret->data[ARTIST_POS], m->artist, ARTIST_LEN, cnv);
-  set_string(&ret->data[ALBUM_POS],  m->album,  ALBUM_LEN, cnv);
+  set_string(&ret->data[TITLE_POS],  m, GAVL_META_TITLE,  TITLE_LEN, cnv);
+  set_string(&ret->data[ARTIST_POS], m, GAVL_META_ARTIST, ARTIST_LEN, cnv);
+  set_string(&ret->data[ALBUM_POS],  m, GAVL_META_ALBUM,  ALBUM_LEN, cnv);
 
   /* Year */
     
@@ -156,29 +162,32 @@ bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t * m)
 
   /* Comment */
 
-  set_string(&ret->data[COMMENT_POS],  m->comment,  COMMENT_LEN, cnv);
+  set_string(&ret->data[COMMENT_POS], m, GAVL_META_COMMENT, COMMENT_LEN, cnv);
 
   /* Track */
 
-  if((m->track > 0) && (m->track < 255))
-    ret->data[TRACK_POS] = m->track;
+  if(gavl_metadata_get_int(m, GAVL_META_TRACKNUMBER, &track) &&
+     (track > 0) && (track < 255))
+    ret->data[TRACK_POS] = track;
   
   /* Genre */
-
+  
   ret->data[GENRE_POS] = 0xff;
 
-  if(m->genre)
+  genre = gavl_metadata_get(m, GAVL_META_GENRE);
+    
+  if(genre)
     {
     for(i = 0; i < GENRE_MAX; i++)
       {
-      if(!strcasecmp(m->genre, id3_genres[i]))
+      if(!strcasecmp(genre, id3_genres[i]))
         {
         ret->data[GENRE_POS] = i;
         break;
         }
       }
     }
-    
+  
   bg_charset_converter_destroy(cnv);
   
   return ret;

@@ -86,7 +86,8 @@ static void close_file(void * priv)
 
 int
 bg_ogg_encoder_open(void * data, const char * file,
-                    const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list,
+                    const gavl_metadata_t * metadata,
+                    const bg_chapter_list_t * chapter_list,
                     const char * ext)
   {
   bg_ogg_encoder_t * e = data;
@@ -115,7 +116,7 @@ bg_ogg_encoder_open(void * data, const char * file,
   
   e->serialno = rand();
   if(metadata)
-    bg_metadata_copy(&e->metadata, metadata);
+    gavl_metadata_copy(&e->metadata, metadata);
   return 1;
   }
 

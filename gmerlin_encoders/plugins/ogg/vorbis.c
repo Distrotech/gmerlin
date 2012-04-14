@@ -35,6 +35,9 @@
 #include <vorbis/vorbisenc.h>
 #include "ogg_common.h"
 
+#include <gavl/metatags.h>
+
+
 #define BITRATE_MODE_VBR         0
 #define BITRATE_MODE_VBR_BITRATE 1
 #define BITRATE_MODE_MANAGED     2
@@ -147,45 +150,44 @@ static const bg_parameter_info_t * get_parameters_vorbis()
   return parameters;
   }
 
-static void build_comment(vorbis_comment * vc, bg_metadata_t * metadata)
+static void build_comment(vorbis_comment * vc, gavl_metadata_t * metadata)
   {
-  char * tmp_string;
+  const char * val;
   
   vorbis_comment_init(vc);
   
-  if(metadata->artist)
-    vorbis_comment_add_tag(vc, "ARTIST", metadata->artist);
+  if((val = gavl_metadata_get(metadata, GAVL_META_ARTIST)))
+    vorbis_comment_add_tag(vc, "ARTIST", val);
 
-  if(metadata->albumartist)
+  if((val = gavl_metadata_get(metadata, GAVL_META_ALBUMARTIST)))
     {
-    vorbis_comment_add_tag(vc, "ALBUMARTIST", metadata->albumartist);
-    vorbis_comment_add_tag(vc, "ALBUM ARTIST", metadata->albumartist);
+    vorbis_comment_add_tag(vc, "ALBUMARTIST", val);
+    vorbis_comment_add_tag(vc, "ALBUM ARTIST", val);
     }
   
-  if(metadata->title)
-    vorbis_comment_add_tag(vc, "TITLE", metadata->title);
+  if((val = gavl_metadata_get(metadata, GAVL_META_TITLE)))
+    vorbis_comment_add_tag(vc, "TITLE", val);
 
-  if(metadata->album)
-    vorbis_comment_add_tag(vc, "ALBUM", metadata->album);
+  if((val = gavl_metadata_get(metadata, GAVL_META_ALBUM)))
+    vorbis_comment_add_tag(vc, "ALBUM", val);
     
-  if(metadata->genre)
-    vorbis_comment_add_tag(vc, "GENRE", metadata->genre);
+  if((val = gavl_metadata_get(metadata, GAVL_META_GENRE)))
+    vorbis_comment_add_tag(vc, "GENRE", val);
 
-  if(metadata->date)
-    vorbis_comment_add_tag(vc, "DATE", metadata->date);
+
+  if((val = gavl_metadata_get(metadata, GAVL_META_DATE)))
+    vorbis_comment_add_tag(vc, "DATE", val);
+  else if((val = gavl_metadata_get(metadata, GAVL_META_YEAR)))
+    vorbis_comment_add_tag(vc, "DATE", val);
   
-  if(metadata->copyright)
-    vorbis_comment_add_tag(vc, "COPYRIGHT", metadata->copyright);
+  if((val = gavl_metadata_get(metadata, GAVL_META_COPYRIGHT)))
+    vorbis_comment_add_tag(vc, "COPYRIGHT", val);
 
-  if(metadata->track)
-    {
-    tmp_string = bg_sprintf("%d", metadata->track);
-    vorbis_comment_add_tag(vc, "TRACKNUMBER", tmp_string);
-    free(tmp_string);
-    }
-
-  if(metadata->comment)
-    vorbis_comment_add(vc, metadata->comment);
+  if((val = gavl_metadata_get(metadata, GAVL_META_TRACKNUMBER)))
+    vorbis_comment_add_tag(vc, "TRACKNUMBER", val);
+  
+  if((val = gavl_metadata_get(metadata, GAVL_META_COMMENT)))
+    vorbis_comment_add(vc, val);
   }
 
 #define PTR_2_32BE(p) \
@@ -251,7 +253,7 @@ static uint8_t * create_comment_packet(vorbis_comment * comment, int * len1)
 
 static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
                                   const gavl_compression_info_t * ci,
-                                  bg_metadata_t * metadata)
+                                  gavl_metadata_t * metadata)
   {
   ogg_packet packet;
   uint8_t * ptr;
@@ -320,7 +322,9 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   return 1;
   }
 
-static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t * metadata)
+static int init_vorbis(void * data,
+                       gavl_audio_format_t * format,
+                       gavl_metadata_t * metadata)
   {
   ogg_packet header_main;
   ogg_packet header_comments;

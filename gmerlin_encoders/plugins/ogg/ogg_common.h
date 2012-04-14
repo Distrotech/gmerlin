@@ -34,16 +34,19 @@ typedef struct
   const bg_parameter_info_t * (*get_parameters)();
   void (*set_parameter)(void*, const char * name, const bg_parameter_value_t * v);
 
-  int (*init_audio)(void*, gavl_audio_format_t * format, bg_metadata_t * metadata);
-  int (*init_video)(void*, gavl_video_format_t * format, bg_metadata_t * metadata);
+  int (*init_audio)(void*, gavl_audio_format_t * format,
+                    gavl_metadata_t * metadata);
+
+  int (*init_video)(void*, gavl_video_format_t * format,
+                    gavl_metadata_t * metadata);
 
   int (*init_audio_compressed)(void*, gavl_audio_format_t * format,
                                const gavl_compression_info_t * ci,
-                               bg_metadata_t * metadata);
+                               gavl_metadata_t * metadata);
 
   int (*init_video_compressed)(void*, gavl_video_format_t * format,
                                const gavl_compression_info_t * ci,
-                               bg_metadata_t * metadata);
+                               gavl_metadata_t * metadata);
 
   int (*set_video_pass)(void*, int pass, int total_passes, const char * stats_file);
   
@@ -87,7 +90,7 @@ struct bg_ogg_encoder_s
 
   long serialno;
   
-  bg_metadata_t metadata;
+  gavl_metadata_t metadata;
   char * filename;
   
   bg_parameter_info_t * audio_parameters;
@@ -107,7 +110,7 @@ void bg_ogg_encoder_set_callbacks(void *, bg_encoder_callbacks_t * cb);
 
 
 int bg_ogg_encoder_open(void *, const char * file,
-                        const bg_metadata_t * metadata,
+                        const gavl_metadata_t * metadata,
                         const bg_chapter_list_t * chapter_list, const char * ext);
 
 void bg_ogg_encoder_destroy(void*);

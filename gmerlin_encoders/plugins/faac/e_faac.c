@@ -293,7 +293,7 @@ static void set_parameter_faac(void * data, const char * name,
   }
 
 static int open_faac(void * data, const char * filename,
-                     const bg_metadata_t * metadata,
+                     const gavl_metadata_t * metadata,
                      const bg_chapter_list_t * chapter_list)
   {
   faac_t * faac;
@@ -328,7 +328,7 @@ static int open_faac(void * data, const char * filename,
   }
 
 static int add_audio_stream_faac(void * data,
-                                 const char * language,
+                                 const gavl_metadata_t * m,
                                  const gavl_audio_format_t * format)
   {
   unsigned long input_samples;

@@ -67,7 +67,7 @@ static const bg_parameter_info_t * get_video_parameters_theora(void * data)
   }
 
 static int add_audio_stream_theora(void * data,
-                                   const char * language,
+                                   const gavl_metadata_t * m,
                                    const gavl_audio_format_t * format)
   {
   int ret;
@@ -76,7 +76,7 @@ static int add_audio_stream_theora(void * data,
   }
 
 static int add_audio_stream_compressed_theora(void * data,
-                                              const char * language,
+                                              const gavl_metadata_t * m,
                                               const gavl_audio_format_t * format,
                                               const gavl_compression_info_t * ci)
   {
@@ -87,7 +87,9 @@ static int add_audio_stream_compressed_theora(void * data,
   return ret;
   }
 
-static int add_video_stream_theora(void * data, const gavl_video_format_t * format)
+static int add_video_stream_theora(void * data,
+                                   const gavl_metadata_t * m,
+                                   const gavl_video_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_video_stream(data, format);
@@ -95,9 +97,11 @@ static int add_video_stream_theora(void * data, const gavl_video_format_t * form
   return ret;
   }
 
-static int add_video_stream_compressed_theora(void * data,
-                                              const gavl_video_format_t * format,
-                                              const gavl_compression_info_t * ci)
+static int
+add_video_stream_compressed_theora(void * data,
+                                   const gavl_metadata_t * m,
+                                   const gavl_video_format_t * format,
+                                   const gavl_compression_info_t * ci)
   {
   int ret;
   ret = bg_ogg_encoder_add_video_stream_compressed(data, format, ci);
@@ -132,7 +136,8 @@ static void set_audio_parameter_theora(void * data, int stream,
 
 static int
 open_theora(void * data, const char * file,
-            const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list)
+            const gavl_metadata_t * metadata,
+            const bg_chapter_list_t * chapter_list)
   {
   return bg_ogg_encoder_open(data, file, metadata, chapter_list,
                              "ogv");

@@ -30,12 +30,12 @@ const bg_parameter_info_t * bg_shout_get_parameters(void);
 void bg_shout_set_parameter(void * data, const char * name,
                             const bg_parameter_value_t * val);
 
-void bg_shout_set_metadata(bg_shout_t * s, const bg_metadata_t * m);
+void bg_shout_set_metadata(bg_shout_t * s, const gavl_metadata_t * m);
 
 int bg_shout_open(bg_shout_t *);
 
 void bg_shout_update_metadata(bg_shout_t *, const char * name,
-                              const bg_metadata_t * m);
+                              const gavl_metadata_t * m);
 
 void bg_shout_destroy(bg_shout_t *);
 

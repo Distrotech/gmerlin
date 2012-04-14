@@ -31,6 +31,9 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "shout"
 
+#include <gavl/metatags.h>
+
+
 #include <bgshout.h>
 
 struct bg_shout_s
@@ -168,10 +171,11 @@ int bg_shout_open(bg_shout_t * s)
   return 1;
   }
 
-void bg_shout_set_metadata(bg_shout_t * s, const bg_metadata_t * m)
+void bg_shout_set_metadata(bg_shout_t * s, const gavl_metadata_t * m)
   {
-  if(m->genre)
-    shout_set_genre(s->s, m->genre);
+  const char * genre;
+  if((genre = gavl_metadata_get(m, GAVL_META_GENRE)))
+    shout_set_genre(s->s, genre);
   }
 
 void bg_shout_destroy(bg_shout_t * s)
@@ -229,18 +233,26 @@ static void metadata_add(bg_shout_t * s,
   }
 
 void bg_shout_update_metadata(bg_shout_t * s, const char * name,
-                              const bg_metadata_t * m)
+                              const gavl_metadata_t * m)
   {
+  const char * artist = NULL;
+  const char * title = NULL;
   
   if(s->met)
     shout_metadata_free(s->met);
   
   s->met = shout_metadata_new();
-  
-  if(m && m->artist && m->title)
+
+  if(m)
     {
-    metadata_add(s, "artist", m->artist);
-    metadata_add(s, "title",  m->title);
+    artist = gavl_metadata_get(m, GAVL_META_ARTIST);
+    title = gavl_metadata_get(m, GAVL_META_TITLE);
+    }
+  
+  if(artist && title)
+    {
+    metadata_add(s, "artist", artist);
+    metadata_add(s, "title",  title);
     }
   else if(name)
     {

@@ -70,8 +70,8 @@ static const bg_parameter_info_t * get_video_parameters_b_ogg(void * data)
   }
 
 static int add_audio_stream_b_ogg(void * data,
-                                   const char * language,
-                                   const gavl_audio_format_t * format)
+                                  const gavl_metadata_t * m,
+                                  const gavl_audio_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, format);
@@ -79,6 +79,7 @@ static int add_audio_stream_b_ogg(void * data,
   }
 
 static int add_video_stream_b_ogg(void * data,
+                                  const gavl_metadata_t * m,
                                   const gavl_video_format_t * format)
   {
   int ret;
@@ -128,7 +129,7 @@ static int open_callback(void * data)
 
 static void update_metadata(void * data,
                             const char * name,
-                            const bg_metadata_t * m)
+                            const gavl_metadata_t * m)
   {
   bg_ogg_encoder_t * enc = data;
   bg_shout_update_metadata(enc->write_callback_data, name, m);
@@ -158,7 +159,7 @@ static void set_parameter_b_ogg(void * data, const char * name,
 
 static int
 open_b_ogg(void * data, const char * file,
-           const bg_metadata_t * metadata,
+           const gavl_metadata_t * metadata,
            const bg_chapter_list_t * chapter_list)
   {
   bg_ogg_encoder_t * enc = data;

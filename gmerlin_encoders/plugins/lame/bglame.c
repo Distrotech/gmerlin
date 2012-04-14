@@ -310,7 +310,8 @@ void bg_lame_open(lame_common_t * com)
   com->lame = lame_init();
   }
 
-int bg_lame_add_audio_stream(void * data, const char * language,
+int bg_lame_add_audio_stream(void * data,
+                             const gavl_metadata_t * m,
                              const gavl_audio_format_t * format)
   {
   lame_common_t * lame;

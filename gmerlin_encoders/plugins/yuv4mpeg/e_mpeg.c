@@ -102,7 +102,7 @@ static void set_callbacks_mpeg(void * data, bg_encoder_callbacks_t * cb)
   }
 
 static int open_mpeg(void * data, const char * filename,
-                     const bg_metadata_t * metadata,
+                     const gavl_metadata_t * metadata,
                      const bg_chapter_list_t * chapter_list)
   {
   e_mpeg_t * e = data;
@@ -134,7 +134,7 @@ static int open_mpeg(void * data, const char * filename,
   }
 
 static int add_audio_stream_mpeg(void * data,
-                                 const char * language,
+                                 const gavl_metadata_t * m,
                                  const gavl_audio_format_t * format)
   {
   e_mpeg_t * e = data;
@@ -156,7 +156,7 @@ static int add_audio_stream_mpeg(void * data,
   }
 
 static int add_audio_stream_compressed_mpeg(void * data,
-                                            const char * language,
+                                            const gavl_metadata_t * m,
                                             const gavl_audio_format_t * format,
                                             const gavl_compression_info_t * ci)
   {
@@ -179,7 +179,9 @@ static int add_audio_stream_compressed_mpeg(void * data,
   }
 
 
-static int add_video_stream_mpeg(void * data, const gavl_video_format_t* format)
+static int add_video_stream_mpeg(void * data,
+                                 const gavl_metadata_t * m,
+                                 const gavl_video_format_t* format)
   {
   e_mpeg_t * e = data;
 
@@ -197,9 +199,11 @@ static int add_video_stream_mpeg(void * data, const gavl_video_format_t* format)
   return (e->num_video_streams - 1);
   }
 
-static int add_video_stream_compressed_mpeg(void * data,
-                                            const gavl_video_format_t* format,
-                                            const gavl_compression_info_t * ci)
+static int
+add_video_stream_compressed_mpeg(void * data,
+                                 const gavl_metadata_t * m,
+                                 const gavl_video_format_t* format,
+                                 const gavl_compression_info_t * ci)
   {
   e_mpeg_t * e = data;
 

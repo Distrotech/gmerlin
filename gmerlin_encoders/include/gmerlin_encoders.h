@@ -27,8 +27,8 @@
 typedef struct bgen_id3v1_s bgen_id3v1_t;
 typedef struct bgen_id3v2_s bgen_id3v2_t;
 
-bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t*);
-bgen_id3v2_t * bgen_id3v2_create(const bg_metadata_t*);
+bgen_id3v1_t * bgen_id3v1_create(const gavl_metadata_t*);
+bgen_id3v2_t * bgen_id3v2_create(const gavl_metadata_t*);
 
 #define ID3_ENCODING_LATIN1    0x00
 #define ID3_ENCODING_UTF16_BOM 0x01

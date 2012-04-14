@@ -25,6 +25,7 @@
 #include <gmerlin/charset.h>
 
 #include <gmerlin_encoders.h>
+#include <gavl/metatags.h>
 
 /* Simple ID3 writer.
    We do the following:
@@ -90,7 +91,8 @@ struct bgen_id3v2_s
 
   };
 
-static void add_frame(bgen_id3v2_t * tag, uint32_t fourcc, char * string)
+static void add_frame(bgen_id3v2_t * tag, uint32_t fourcc,
+                      const char * string)
   {
   tag->frames = realloc(tag->frames,
                         (tag->num_frames+1)*sizeof(*(tag->frames)));
@@ -113,36 +115,36 @@ static void add_frame(bgen_id3v2_t * tag, uint32_t fourcc, char * string)
   char * copyright;
 */
 
-#define TEXT_FRAME(str, fcc) if(m->str) { add_frame(ret, fcc, m->str); }
-
-#define INT_FRAME(i, fcc) if(m->i) \
+#define TEXT_FRAME(str, key, fcc) \
+  val = gavl_metadata_get(m, key); \
+  if(val) \
     { \
-    tmp_string = bg_sprintf("%d", m->i);\
-    add_frame(ret, fcc, tmp_string);\
-    free(tmp_string); \
+    add_frame(ret, fcc, val); \
     }
 
-bgen_id3v2_t * bgen_id3v2_create(const bg_metadata_t * m)
+
+bgen_id3v2_t * bgen_id3v2_create(const gavl_metadata_t * m)
   {
   int year;
   char * tmp_string;
   
   bgen_id3v2_t * ret;
+  const char * val;
   ret = calloc(1, sizeof(*ret));
 
   ret->header.major_version = 4;
   ret->header.minor_version = 4;
   ret->header.flags = 0;
 
-  TEXT_FRAME(artist,      MK_FOURCC('T', 'P', 'E', '1'));
-  TEXT_FRAME(albumartist, MK_FOURCC('T', 'P', 'E', '2'));
+  TEXT_FRAME(artist,      GAVL_META_ARTIST,      MK_FOURCC('T', 'P', 'E', '1'));
+  TEXT_FRAME(albumartist, GAVL_META_ALBUMARTIST, MK_FOURCC('T', 'P', 'E', '2'));
 
-  TEXT_FRAME(title,     MK_FOURCC('T', 'I', 'T', '2'));
-  TEXT_FRAME(album,     MK_FOURCC('T', 'A', 'L', 'B'));
-  INT_FRAME(track,      MK_FOURCC('T', 'R', 'C', 'K'));
-  TEXT_FRAME(genre,     MK_FOURCC('T', 'C', 'O', 'N'));
-  TEXT_FRAME(author,    MK_FOURCC('T', 'C', 'O', 'M'));
-  TEXT_FRAME(copyright, MK_FOURCC('T', 'C', 'O', 'P'));
+  TEXT_FRAME(title,     GAVL_META_TITLE,       MK_FOURCC('T', 'I', 'T', '2'));
+  TEXT_FRAME(album,     GAVL_META_ALBUM,       MK_FOURCC('T', 'A', 'L', 'B'));
+  TEXT_FRAME(track,     GAVL_META_TRACKNUMBER, MK_FOURCC('T', 'R', 'C', 'K'));
+  TEXT_FRAME(genre,     GAVL_META_GENRE,       MK_FOURCC('T', 'C', 'O', 'N'));
+  TEXT_FRAME(author,    GAVL_META_AUTHOR,      MK_FOURCC('T', 'C', 'O', 'M'));
+  TEXT_FRAME(copyright, GAVL_META_COPYRIGHT,   MK_FOURCC('T', 'C', 'O', 'P'));
 
   year = bg_metadata_get_year(m);
   if(year)
@@ -152,7 +154,7 @@ bgen_id3v2_t * bgen_id3v2_create(const bg_metadata_t * m)
     free(tmp_string); \
     }
 
-  TEXT_FRAME(comment,   MK_FOURCC('C', 'O', 'M', 'M'));
+  TEXT_FRAME(comment,   GAVL_META_COMMENT, MK_FOURCC('C', 'O', 'M', 'M'));
   return ret;
   }
 

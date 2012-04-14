@@ -57,8 +57,9 @@ void bg_lame_set_audio_parameter(void * data, int stream,
 
 void bg_lame_open(lame_common_t * com);
 
-int bg_lame_add_audio_stream(void * data, const char * language,
-                              const gavl_audio_format_t * format);
+int bg_lame_add_audio_stream(void * data,
+                             const gavl_metadata_t * m, 
+                             const gavl_audio_format_t * format);
 
 int bg_lame_write_audio_frame(void * priv,
                               gavl_audio_frame_t * f, int stream);

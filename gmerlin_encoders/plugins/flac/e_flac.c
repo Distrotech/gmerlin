@@ -145,7 +145,8 @@ static void set_parameter_flac(void * data,
   }
 
 static int open_flac(void * data, const char * filename,
-                     const bg_metadata_t * m, const bg_chapter_list_t * chapter_list)
+                     const gavl_metadata_t * m,
+                     const bg_chapter_list_t * chapter_list)
   {
   int result = 1;
   flac_t * flac;
@@ -191,7 +192,7 @@ static int open_flac(void * data, const char * filename,
   }
 
 static int add_audio_stream_flac(void * data,
-                                 const char * language,
+                                 const gavl_metadata_t * m,
                                  const gavl_audio_format_t * format)
   {
   flac_t * flac;
@@ -660,9 +661,11 @@ static int writes_compressed_audio_flac(void * priv,
   return 0;
   }
 
-static int add_audio_stream_compressed_flac(void * priv, const char * language,
-                                            const gavl_audio_format_t * format,
-                                            const gavl_compression_info_t * info)
+static int
+add_audio_stream_compressed_flac(void * priv,
+                                 const gavl_metadata_t * m,
+                                 const gavl_audio_format_t * format,
+                                 const gavl_compression_info_t * info)
   {
   uint16_t i_tmp;
   uint8_t * ptr;

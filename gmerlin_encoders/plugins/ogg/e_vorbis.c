@@ -51,7 +51,8 @@ static int add_audio_stream_vorbis(void * data, const char * language,
 
 static int
 open_vorbis(void * data, const char * file,
-            const bg_metadata_t * metadata, const bg_chapter_list_t * chapter_list)
+            const gavl_metadata_t * metadata,
+            const bg_chapter_list_t * chapter_list)
   {
   return bg_ogg_encoder_open(data, file, metadata, chapter_list,
                              "ogg");

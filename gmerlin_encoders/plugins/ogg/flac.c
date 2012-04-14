@@ -222,7 +222,8 @@ static void set_parameter_flacogg(void * data, const char * name,
   bg_flac_set_parameter(&flacogg->com, name, v);
   }
 
-static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t * metadata)
+static int init_flacogg(void * data, gavl_audio_format_t * format,
+                        gavl_metadata_t * metadata)
   {
   flacogg_t * flacogg = data;
 
