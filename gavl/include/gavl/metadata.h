@@ -19,6 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef GAVL_METADATA_H_INCLUDED
+#define GAVL_METADATA_H_INCLUDED
+
+#include <gavl/gavldefs.h>
+
+
 typedef struct
   {
   char * key;
@@ -32,39 +38,56 @@ typedef struct
   int num_tags;
   } gavl_metadata_t;
 
-void
+GAVL_PUBLIC void
 gavl_metadata_free(gavl_metadata_t * m);
 
-void
+GAVL_PUBLIC void
 gavl_metadata_init(gavl_metadata_t * m);
 
 
-void
+GAVL_PUBLIC void
 gavl_metadata_set(gavl_metadata_t * m,
                   const char * key,
                   const char * val);
 
-void
+GAVL_PUBLIC void
+gavl_metadata_set_nocpy(gavl_metadata_t * m,
+                        const char * key,
+                        char * val);
+
+GAVL_PUBLIC void
 gavl_metadata_set_int(gavl_metadata_t * m,
                       const char * key,
                       int val);
 
-
+GAVL_PUBLIC 
 const char * gavl_metadata_get(const gavl_metadata_t * m,
                                const char * key);
 
-
+GAVL_PUBLIC 
 int gavl_metadata_get_int(const gavl_metadata_t * m,
                           const char * key, int * ret);
 
+GAVL_PUBLIC 
 void gavl_metadata_merge(gavl_metadata_t * dst,
                          const gavl_metadata_t * src1,
                          const gavl_metadata_t * src2);
 
+GAVL_PUBLIC
 void gavl_metadata_merge2(gavl_metadata_t * dst,
                           const gavl_metadata_t * src);
 
 
-void
+GAVL_PUBLIC void
 gavl_metadata_copy(gavl_metadata_t * dst,
                    const gavl_metadata_t * src);
+
+GAVL_PUBLIC void
+gavl_metadata_dump(const gavl_metadata_t * m, int indent);
+
+GAVL_PUBLIC int
+gavl_metadata_equal(const gavl_metadata_t * m1,
+                    const gavl_metadata_t * m2);
+
+
+#endif // GAVL_METADATA_H_INCLUDED

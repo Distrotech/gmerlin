@@ -19,15 +19,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#define GAVL_META_TITLE       "TITLE"
-#define GAVL_META_ARTIST      "ARTIST"
-#define GAVL_META_COPYRIGHT   "COPYRIGHT"
-#define GAVL_META_ALBUM       "ALBUM"
-#define GAVL_META_GENRE       "GENRE"
-#define GAVL_META_TRACKNUMBER "TRACKNUMBER"
-#define GAVL_META_DATE        "DATE"        // YYYY-MM-DD
-#define GAVL_META_YEAR        "YEAR"        // YYYY
-#define GAVL_META_LANGUAGE    "LANGUAGE"    // ISO 639-2/B 3 letter code
-#define GAVL_META_ALBUMARTIST "ALBUMARTIST"
-#define GAVL_META_AUTHOR      "AUTHOR"
-#define GAVL_META_COMMENT     "COMMENT"
+#define GAVL_META_TITLE       "Title"
+#define GAVL_META_ARTIST      "Artist"
+#define GAVL_META_COPYRIGHT   "Copyright"
+#define GAVL_META_ALBUM       "Album"
+#define GAVL_META_GENRE       "Genre"
+#define GAVL_META_TRACKNUMBER "Tracknumber"
+#define GAVL_META_DATE        "Date"        // YYYY-MM-DD
+#define GAVL_META_YEAR        "Year"        // YYYY
+#define GAVL_META_LANGUAGE    "Language"    // ISO 639-2/B 3 letter code
+#define GAVL_META_ALBUMARTIST "Albumartist"
+#define GAVL_META_AUTHOR      "Author"
+#define GAVL_META_COMMENT     "Comment"
+#define GAVL_META_URL         "URL"
+#define GAVL_META_SOFTWARE    "Software"
+#define GAVL_META_CREATOR     "Creator"
+
+/* Container format or codec */
+#define GAVL_META_FORMAT      "Format"
+
+/* Stream label (e.g. "Directors comments" */
+#define GAVL_META_LABEL       "Label"
+
+#define GAVL_META_BITRATE     "Bitrate"
+
+#define GAVL_META_AUDIO_BITS  "AUDIO_BITS"
+#define GAVL_META_VIDEO_BPP   "VIDEO_BPP"

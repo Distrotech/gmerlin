@@ -85,19 +85,33 @@ static int find_tag(const gavl_metadata_t * m, const char * key)
   return -1;
   }
 
-
 void
 gavl_metadata_set(gavl_metadata_t * m,
                   const char * key,
-                  const char * val)
+                  const char * val_c)
+  {
+  char * val;
+  if(val_c && (*val_c != '\0'))
+    val = my_strdup(val_c);
+  else
+    val = NULL;
+  gavl_metadata_set_nocpy(m, key, val);
+  }
+
+
+void
+gavl_metadata_set_nocpy(gavl_metadata_t * m,
+                        const char * key,
+                        char * val)
   {
   int idx = find_tag(m, key);
 
   if(idx >= 0) // Tag exists
     {
-    free(m->tags[idx].val);
+    if(m->tags[idx].val)
+      free(m->tags[idx].val);
     if(val && (*val != '\0')) // Replace tag
-      m->tags[idx].val = my_strdup(val);
+      m->tags[idx].val = val;
     else // Delete tag
       {
       if(idx < (m->num_tags - 1))
@@ -112,18 +126,17 @@ gavl_metadata_set(gavl_metadata_t * m,
     {
     if(val && (*val != '\0')) // Add new tag
       {
-      if(m->num_tags + 1 < m->tags_alloc)
+      if(m->num_tags + 1 > m->tags_alloc)
         {
         m->tags_alloc = m->num_tags + 16;
         m->tags = realloc(m->tags,
                           m->tags_alloc * sizeof(*m->tags));
         }
       m->tags[m->num_tags].key = my_strdup(key);
-      m->tags[m->num_tags].val = my_strdup(val);
+      m->tags[m->num_tags].val = val;
       m->num_tags++;
       }
     }
-  
   }
 
 #define STR_SIZE 128
@@ -155,6 +168,8 @@ int gavl_metadata_get_int(const gavl_metadata_t * m,
   {
   char * rest;
   const char * val_str = gavl_metadata_get(m, key);
+  if(!val_str)
+    return 0;
   *ret = strtol(val_str, &rest, 10);
   if(*rest != '\0')
     return 0;
@@ -190,4 +205,57 @@ void gavl_metadata_merge2(gavl_metadata_t * dst,
                         src->tags[i].key,
                         src->tags[i].val);
     }
+  }
+
+GAVL_PUBLIC void
+gavl_metadata_dump(const gavl_metadata_t * m, int indent)
+  {
+  int len, i, j;
+  int max_key_len = 0;
+  
+  for(i = 0; i < m->num_tags; i++)
+    {
+    len = strlen(m->tags[i].key);
+    if(len > max_key_len)
+      max_key_len = len;
+    }
+  
+  for(i = 0; i < m->num_tags; i++)
+    {
+    len = strlen(m->tags[i].key);
+
+    for(j = 0; j < indent; j++)
+      fprintf(stderr, " ");
+
+    fprintf(stderr, "%s: ", m->tags[i].key);
+
+    for(j = 0; j < max_key_len - len; j++)
+      fprintf(stderr, " ");
+
+    fprintf(stderr, "%s\n", m->tags[i].val);
+    }
+  }
+
+int
+gavl_metadata_equal(const gavl_metadata_t * m1,
+                    const gavl_metadata_t * m2)
+  {
+  int i;
+  const char * val;
+
+  /* Check if tags from m1 are present in m2 */
+  for(i = 0; i < m1->num_tags; i++)
+    {
+    val = gavl_metadata_get(m2, m1->tags[i].key);
+    if(!val || strcmp(val, m1->tags[i].val))
+      return 0;
+    }
+  
+  /* Check if tags from m2 are present in m1 */
+  for(i = 0; i < m2->num_tags; i++)
+    {
+    if(!gavl_metadata_get(m1, m2->tags[i].key))
+      return 0;
+    }
+  return 1;
   }
