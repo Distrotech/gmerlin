@@ -303,8 +303,6 @@ static gavl_time_t get_duration(bgav_demuxer_context_t * ctx,
 static int set_stream(bgav_demuxer_context_t * ctx)
      
   {
-  char * bitrate_string;
-  const char * version_string;
   bgav_stream_t * s;
   uint8_t frame[MAX_FRAME_BYTES]; /* Max possible mpeg audio frame size */
   mpegaudio_priv_t * priv;
@@ -344,43 +342,10 @@ static int set_stream(bgav_demuxer_context_t * ctx)
   if(!s->container_bitrate)
     {
     if(priv->have_xing)
-      {
       s->container_bitrate = BGAV_BITRATE_VBR;
-      // s->codec_bitrate     = BGAV_BITRATE_VBR;
-      }
     else
-      {
       s->container_bitrate = priv->header.bitrate;
-      // s->codec_bitrate     = priv->header.bitrate;
-      }
     }
-  
-  switch(priv->header.version)
-    {
-    case MPEG_VERSION_1:
-      version_string = "1";
-      break;
-    case MPEG_VERSION_2:
-      version_string = "2";
-      break;
-    case MPEG_VERSION_2_5:
-      version_string = "2.5";
-      break;
-    default:
-      version_string = "Not specified";
-      break;
-    }
-    
-  if(s->container_bitrate == BGAV_BITRATE_VBR)
-    bitrate_string = bgav_strdup("Variable");
-  else
-    bitrate_string =
-      bgav_sprintf("%d kb/s",
-                   s->container_bitrate/1000);
-  gavl_metadata_set(&ctx->tt->cur->metadata, 
-                    GAVL_META_FORMAT, "MPEG Audio");
-  free(bitrate_string);
-
   return 1;
   }
 
@@ -469,12 +434,6 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
     ret->tracks[i].duration = get_duration(ctx,
                                            albw->tracks[i].start_pos,
                                            albw->tracks[i].end_pos);
-      
-
-    gavl_metadata_set(&ret->tracks[i].metadata,
-                      GAVL_META_FORMAT, "MPEG Audio");
-
-    
     }
   
   return ret;
@@ -482,6 +441,7 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
 
 static int open_mpegaudio(bgav_demuxer_context_t * ctx)
   {
+  int i;
   gavl_metadata_t metadata_v1;
   gavl_metadata_t metadata_v2;
 
@@ -564,6 +524,13 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
     {
     ctx->tt->tracks[0].name = bgav_strdup(title);
     }
+
+  /* Set the format for each track */
+
+  for(i = 0; i < ctx->tt->num_tracks; i++)
+    gavl_metadata_set(&ctx->tt->tracks[i].metadata, 
+                      GAVL_META_FORMAT, "MPEG Audio");
+  
   ctx->index_mode = INDEX_MODE_SIMPLE;
   return 1;
   }

@@ -29,6 +29,7 @@
 #include <avdec.h>
 #include "avdec_common.h"
 
+#if 0
 static void convert_metadata(bg_metadata_t * dst,
                              const bgav_metadata_t * m)
   {
@@ -80,6 +81,7 @@ static void convert_metadata(bg_metadata_t * dst,
     bgav_metadata_get_track(m);
   
   }
+#endif
 
 static void log_callback(void*data, bgav_log_level_t level,
                          const char * log_domain,
@@ -316,7 +318,6 @@ int bg_avdec_set_subtitle_stream(void * priv,
 int bg_avdec_start(void * priv)
   {
   int i;
-  const char * str;
   avdec_priv * avdec;
   const gavl_video_format_t * format;
   avdec = (avdec_priv*)(priv);
@@ -330,9 +331,9 @@ int bg_avdec_start(void * priv)
     gavl_video_format_copy(&(avdec->current_track->video_streams[i].format),
                            bgav_get_video_format(avdec->dec, i));
 
-    str = bgav_get_video_description(avdec->dec, i);
-    if(str)
-      avdec->current_track->video_streams[i].description = bg_strdup(NULL, str);
+    gavl_metadata_copy(&avdec->current_track->video_streams[i].m,
+                       bgav_get_video_metadata(avdec->dec, i));
+    
     avdec->current_track->video_streams[i].duration =
       bgav_video_duration(avdec->dec, i);
     
@@ -341,33 +342,18 @@ int bg_avdec_start(void * priv)
     {
     gavl_audio_format_copy(&(avdec->current_track->audio_streams[i].format),
                            bgav_get_audio_format(avdec->dec, i));
+
+    gavl_metadata_copy(&avdec->current_track->audio_streams[i].m,
+                       bgav_get_audio_metadata(avdec->dec, i));
     
-    str = bgav_get_audio_description(avdec->dec, i);
-    if(str)
-      avdec->current_track->audio_streams[i].description = bg_strdup(NULL, str);
-    str = bgav_get_audio_info(avdec->dec, i);
-    if(str)
-      avdec->current_track->audio_streams[i].info = bg_strdup(NULL, str);
-
-    str = bgav_get_audio_language(avdec->dec, i);
-    if(str && *str)
-      memcpy(avdec->current_track->audio_streams[i].language, str, 4);
-
     avdec->current_track->audio_streams[i].duration =
       bgav_audio_duration(avdec->dec, i);
-    avdec->current_track->audio_streams[i].bitrate =
-      bgav_get_audio_bitrate(avdec->dec, i);
     }
   for(i = 0; i < avdec->current_track->num_subtitle_streams; i++)
     {
-    str = bgav_get_subtitle_language(avdec->dec, i);
-    if(str && *str)
-      memcpy(avdec->current_track->subtitle_streams[i].language, str, 4);
+    gavl_metadata_copy(&avdec->current_track->subtitle_streams[i].m,
+                       bgav_get_subtitle_metadata(avdec->dec, i));
     
-    str = bgav_get_subtitle_info(avdec->dec, i);
-    if(str)
-      avdec->current_track->subtitle_streams[i].info = bg_strdup(NULL, str);
-
     if(bgav_subtitle_is_text(avdec->dec, i))
       {
       avdec->current_track->subtitle_streams[i].is_text = 1;
@@ -444,7 +430,8 @@ int bg_avdec_init(avdec_priv * avdec)
     /* Get metadata */
     
     m = bgav_get_metadata(avdec->dec, i);
-    convert_metadata(&(avdec->track_info[i].metadata), m);
+    
+    gavl_metadata_copy(&avdec->track_info[i].metadata, m);
 
     /* Get chapters */
 
@@ -615,7 +602,6 @@ int bg_avdec_get_num_tracks(void * p)
 int bg_avdec_set_track(void * priv, int track)
   {
   int i;
-  const char * str;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
   
@@ -623,10 +609,6 @@ int bg_avdec_set_track(void * priv, int track)
     return 0;
   avdec->current_track = &(avdec->track_info[track]);
   
-  str = bgav_get_description(avdec->dec);
-  if(str)
-    avdec->track_info[track].description =
-      bg_strdup(avdec->track_info[track].description, str);
 
   /* Get formats (need them for compressed output */
   for(i = 0; i < avdec->current_track->num_audio_streams; i++)
@@ -650,21 +632,15 @@ gavl_frame_table_t * bg_avdec_get_frame_table(void * priv, int stream)
 
 
 static void metadata_change_callback(void * priv,
-                                     const bgav_metadata_t * metadata)
+                                     const gavl_metadata_t * metadata)
   {
-  bg_metadata_t m;
   avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
-
+  avdec = priv;
   
   if(avdec->bg_callbacks && avdec->bg_callbacks->metadata_changed)
     {
-    memset(&m, 0, sizeof(m));
-    convert_metadata(&m, metadata);
-
     avdec->bg_callbacks->metadata_changed(avdec->bg_callbacks->data,
-                                          &m);
-    bg_metadata_free(&m);
+                                          metadata);
     }
   }
 
@@ -786,8 +762,8 @@ static bg_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
     {
     /* Metadata */
     if(src[i].metadata)
-      convert_metadata(&ret[i].metadata,
-                       src[i].metadata);
+      gavl_metadata_copy(&ret[i].metadata, src[i].metadata);
+    
     ret[i].name = bg_strdup(ret[i].name, src[i].name);
     
     /* Copy pointers */
