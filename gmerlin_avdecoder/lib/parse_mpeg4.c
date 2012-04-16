@@ -101,6 +101,8 @@ static void reset_mpeg4(bgav_video_parser_t * parser)
 static int extract_user_data(bgav_video_parser_t * parser,
                              const uint8_t * data, const uint8_t * data_end)
   {
+  int i;
+  int is_vendor;
   mpeg4_priv_t * priv = parser->priv;
   const uint8_t * pos1;
   if(priv->user_data)
@@ -129,6 +131,28 @@ static int extract_user_data(bgav_video_parser_t * parser,
              "Detected packed B-frames");
     priv->packed_b_frames = 1;
     }
+
+  /* Set software field in metadata */
+  is_vendor = 1;
+  for(i = 0; i < priv->user_data_size - priv->packed_b_frames; i++)
+    {
+    if(((uint8_t)priv->user_data[i] < 32) ||
+       ((uint8_t)priv->user_data[i] > 127))
+      {
+      is_vendor = 0;
+      break;
+      }
+    }
+  if(is_vendor)
+    {
+    int vendor_len = priv->user_data_size - priv->packed_b_frames;
+    char * vendor = malloc(vendor_len + 1);
+    memcpy(vendor, priv->user_data, vendor_len);
+    vendor[vendor_len] = '\0';
+    gavl_metadata_set_nocpy(&parser->s->m, GAVL_META_SOFTWARE,
+                            vendor);
+    }
+  
   return priv->user_data_size+4;
   }
 
@@ -457,7 +481,8 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           data += result;
           
           if(p->header_size && priv->packed_b_frames)
-            bgav_mpeg4_remove_packed_flag(p->data, &p->data_size, &p->header_size);
+            bgav_mpeg4_remove_packed_flag(p->data,
+                                          &p->data_size, &p->header_size);
           num_pictures++;
           }
         if(!priv->packed_b_frames || (num_pictures == 2))
