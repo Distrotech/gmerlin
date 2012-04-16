@@ -577,7 +577,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
   }
 
 #define SET_UDTA_STRING(gavl_name, src) \
-  if(!(gavl_metadata_get(&ctx->tt->cur->metadata, gavl_name) && moov->udta.src)) \
+  if(!gavl_metadata_get(&ctx->tt->cur->metadata, gavl_name) && moov->udta.src) \
     {                                                                   \
     if(moov->udta.have_ilst)                                            \
       gavl_metadata_set(&ctx->tt->cur->metadata, gavl_name, moov->udta.src); \
