@@ -257,7 +257,7 @@ static int get_compression_info_png(void * priv, gavl_compression_info_t * ci)
 static const gavl_metadata_t * get_metadata_png(void * priv)
   {
   png_t * png = priv;
-  return(&png->metadata);
+  return &png->metadata;
   }
 
 static int read_image_png(void * priv, gavl_video_frame_t * frame)

@@ -457,6 +457,22 @@ AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
 AC_SUBST(LQT_REQUIRED)
 
 dnl
+dnl libexif
+dnl
+
+AH_TEMPLATE([HAVE_LIBEXIF],
+            [Do we have libexif installed?])
+
+PKG_CHECK_MODULES(LIBEXIF, libexif, have_libexif=true, have_libexif=false)
+
+if test x$have_libexif = "xtrue"; then
+AC_DEFINE(HAVE_LIBEXIF)
+fi
+
+AM_CONDITIONAL(HAVE_LIBEXIF, test x$have_libexif = xtrue)
+
+
+dnl
 dnl libv4lconvert
 dnl
 

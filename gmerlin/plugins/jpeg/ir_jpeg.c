@@ -34,6 +34,10 @@
 
 #include <jpeglib.h>
 
+#ifdef HAVE_LIBEXIF
+#include "exif.h"
+#endif  
+
 
 #define PADD(i, size) i = ((i + size - 1) / size) * size
 
@@ -53,6 +57,8 @@ typedef struct
   
   FILE * input;
   gavl_video_format_t format;
+  gavl_metadata_t metadata;
+
   } jpeg_t;
 
 static
@@ -74,6 +80,7 @@ static void destroy_jpeg(void* priv)
   {
   jpeg_t * jpeg = priv;
   jpeg_destroy_decompress(&jpeg->cinfo);
+  gavl_metadata_free(&jpeg->metadata);
   free(jpeg);
   }
 
@@ -85,15 +92,14 @@ static void destroy_jpeg(void* priv)
     
 // bg_parameter_func set_parameter;
 
-/* OPTIONAL: Return a readable description of the last error */
-
-// char * (*get_error)(void* priv);
 static
 int read_header_jpeg(void * priv, const char * filename,
                      gavl_video_format_t * format)
   {
   jpeg_t * jpeg = priv;
-  
+
+  gavl_metadata_free(&jpeg->metadata);
+    
   jpeg->input = fopen(filename, "rb");
 
   if(!jpeg->input)
@@ -163,8 +169,20 @@ int read_header_jpeg(void * priv, const char * filename,
       format->pixelformat = GAVL_RGB_24;
     }
   gavl_video_format_copy(&jpeg->format, format);
+
+#ifdef HAVE_LIBEXIF
+  bg_exif_get_metadata(filename, &jpeg->metadata);
+#endif
+  
   return 1;
   }
+
+static const gavl_metadata_t * get_metadata_jpeg(void * priv)
+  {
+  jpeg_t * jpeg = priv;
+  return &jpeg->metadata;
+  }
+
 
 static 
 int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
@@ -273,6 +291,7 @@ const bg_image_reader_plugin_t the_plugin =
     },
     .extensions  = "jpeg jpg",
     .read_header = read_header_jpeg,
+    .get_metadata = get_metadata_jpeg,
     .get_compression_info = get_compression_info_jpeg,
     .read_image =  read_image_jpeg,
   };

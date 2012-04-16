@@ -96,11 +96,13 @@ static int open_spumux(void * priv, const char * filename,
   return 1;
   }
 
-static int add_subtitle_overlay_stream_spumux(void * priv, const char * language,
-                                              const gavl_video_format_t * format)
+static int
+add_subtitle_overlay_stream_spumux(void * priv,
+                                   const gavl_metadata_t * m,
+                                   const gavl_video_format_t * format)
   {
   spumux_t * spumux = priv;
-  gavl_video_format_copy((&spumux->format), format);
+  gavl_video_format_copy(&spumux->format, format);
   spumux->format.pixelformat = GAVL_RGBA_32;
   spumux->format.timescale = GAVL_TIME_SCALE;
   return 1;
