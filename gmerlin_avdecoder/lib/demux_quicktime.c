@@ -99,7 +99,8 @@ typedef struct
 
 /* Intitialize everything */
 
-static void stream_init(bgav_stream_t * bgav_s, qt_trak_t * trak, int moov_scale)
+static void stream_init(bgav_stream_t * bgav_s, qt_trak_t * trak,
+                        int moov_scale)
   {
   stream_priv_t * s = bgav_s->priv;
   s->trak = trak;
@@ -123,6 +124,12 @@ static void stream_init(bgav_stream_t * bgav_s, qt_trak_t * trak, int moov_scale
   
   if(s->first_pts)
     bgav_s->flags |= STREAM_NEED_START_TIME;
+
+  /* Set encoding software */
+  if(trak->mdia.hdlr.component_name)
+    gavl_metadata_set(&bgav_s->m, GAVL_META_SOFTWARE,
+                      trak->mdia.hdlr.component_name);
+
   }
 
 static int trak_has_edl(qt_trak_t * trak)
