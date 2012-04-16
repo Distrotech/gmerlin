@@ -347,6 +347,8 @@ static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
       gavl_metadata_set(&s->m, GAVL_META_LANGUAGE, language);
       }
     }
+  
+  gavl_metadata_set(&s->m, GAVL_META_SOFTWARE, vc.vendor);
   bgav_vorbis_comment_free(&vc);
   bgav_input_destroy(input_mem);
   }

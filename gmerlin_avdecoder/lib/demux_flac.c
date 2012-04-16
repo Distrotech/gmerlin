@@ -173,6 +173,10 @@ static int open_flac(bgav_demuxer_context_t * ctx)
                                          &ctx->tt->cur->metadata);
           }
 
+        if(ctx->tt->cur->audio_streams)
+          gavl_metadata_set(&ctx->tt->cur->audio_streams->m, 
+                            GAVL_META_SOFTWARE, vc.vendor);
+        
         if(ctx->opt->dump_headers)
           bgav_vorbis_comment_dump(&vc);
         
