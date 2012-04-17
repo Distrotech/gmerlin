@@ -26,6 +26,7 @@
 #include <gmerlin/utils.h>
 #include <cddb/cddb.h>
 
+#include <gavl/metatags.h>
 
 #include "cdaudio.h"
 
@@ -48,7 +49,9 @@ int bg_cdaudio_get_metadata_cddb(bg_cdaudio_index_t * idx,
   unsigned int disc_id_call, date;
   gavl_metadata_t *m;
   
-  const char *genre, *album; 
+  char *genre;
+  const char *album; 
+  
   cddb_disc_t * disc = NULL;
   cddb_conn_t * conn = NULL;
   cddb_track_t * track = NULL;
@@ -130,8 +133,10 @@ int bg_cdaudio_get_metadata_cddb(bg_cdaudio_index_t * idx,
     }
   
   /* info for gmerlin from the first match */
-  genre = cddb_disc_get_category_str(disc);
+  genre = bg_strdup(NULL, cddb_disc_get_category_str(disc));
 
+  genre[0] = toupper(genre[0]);
+  
   disc_id_call = cddb_disc_get_discid(disc); 
   
   cddb_disc_set_category_str(disc, genre);
@@ -155,16 +160,20 @@ int bg_cdaudio_get_metadata_cddb(bg_cdaudio_index_t * idx,
     m = &info[idx->tracks[i].index].metadata;
     track = cddb_disc_get_track(disc, i);
 
-    m->artist = bg_strdup(m->artist, cddb_track_get_artist(track));
-    m->title = bg_strdup(m->title, cddb_track_get_title(track));
-    m->genre = bg_strdup(m->genre, genre);
-    m->genre[0] = toupper(m->genre[0]);
-    m->album = bg_strdup(m->album, album);
+    gavl_metadata_set(m, GAVL_META_ARTIST, cddb_track_get_artist(track));
+    gavl_metadata_set(m, GAVL_META_TITLE, cddb_track_get_title(track));
+    gavl_metadata_set(m, GAVL_META_GENRE, genre);
+    gavl_metadata_set(m, GAVL_META_ALBUM, album);
+    
     if(date)
-      m->date = bg_sprintf("%d", date);
+      gavl_metadata_set_int(m, GAVL_META_YEAR, date);
     }
   
   /* clean up all trash */
+
+  if(genre)
+    free(genre);
+  
   cddb_destroy(conn);
   cddb_disc_destroy(disc);
   return 1;

@@ -26,6 +26,8 @@
 
 #include <gmerlin/utils.h>
 #include "cdaudio.h"
+#include <gavl/metatags.h>
+
 
 #if 0
 /*
@@ -153,22 +155,21 @@ int bg_cdaudio_get_metadata_musicbrainz(bg_cdaudio_index_t * idx,
     
     /* Title */
     mb_GetResultData1(m, MBE_AlbumGetTrackName, data, 256, i+1);
-    info[j].metadata.title = bg_strdup(info[j].metadata.title, data);
 
+    gavl_metadata_set(&info[j].metadata, GAVL_META_TITLE, data);
+    
     /* Artist */
     if(is_multiple_artist)
       {
       mb_GetResultData1(m, MBE_AlbumGetArtistName, data, 256, i+1);
-      info[j].metadata.artist = bg_strdup(info[j].metadata.artist, data);
+      gavl_metadata_set(&info[j].metadata, GAVL_META_ARTIST, data);
       }
     else
-      {
-      info[j].metadata.artist = bg_strdup(info[j].metadata.artist, artist);
-      }
-
+      gavl_metadata_set(&info[j].metadata, GAVL_META_ARTIST, artist);
+    
     /* Album name */
 
-    info[j].metadata.album = bg_strdup(info[j].metadata.album, album_name);
+    gavl_metadata_set(&info[j].metadata, GAVL_META_ALBUM, album_name);
     }
   ret = 1;
   fail:

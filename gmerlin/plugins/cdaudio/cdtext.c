@@ -28,10 +28,13 @@
 #include <cdio/cdio.h>
 #include <cdio/cdtext.h>
 
+#include <gavl/metatags.h>
+
+
 #include "cdaudio.h"
 
-#define GET_FIELD(dst,key) \
-  dst = bg_strdup(dst, cdtext_get_const(key, cdtext));
+#define GET_FIELD(dst, key) \
+  field = cdtext_get_const(key, cdtext);
 
 #define GET_FIELD_DEFAULT(dst,key)                                      \
   field = cdtext_get_const(key, cdtext);                                \
@@ -51,11 +54,12 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
     
   /* Global information */
 
-  char * artist  = NULL;
-  char * author  = NULL;
-  char * album   = NULL;
-  char * genre   = NULL;
-  char * comment = NULL;
+  const char * title  = NULL;
+  const char * artist  = NULL;
+  const char * author  = NULL;
+  const char * album   = NULL;
+  const char * genre   = NULL;
+  const char * comment = NULL;
   const cdtext_t * cdtext;
 
   /* Get information for the whole disc */
@@ -63,16 +67,17 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
   cdtext = cdio_get_cdtext (cdio, 0);
 
   if(!cdtext)
-    {
     return 0;
-    }
   
-  GET_FIELD(artist,CDTEXT_PERFORMER);
-  GET_FIELD(author,CDTEXT_SONGWRITER);
-  GET_FIELD(author,CDTEXT_COMPOSER); /* Composer overwrites songwriter */
-  GET_FIELD(album,CDTEXT_TITLE);
-  GET_FIELD(genre,CDTEXT_GENRE);
-  GET_FIELD(comment,CDTEXT_MESSAGE);
+  artist  = cdtext_get_const(CDTEXT_PERFORMER, cdtext);
+  author  = cdtext_get_const(CDTEXT_COMPOSER, cdtext); /* Composer overwrites songwriter */
+
+  if(!author)
+    author  = cdtext_get_const(CDTEXT_SONGWRITER, cdtext);
+  
+  album  = cdtext_get_const(CDTEXT_TITLE, cdtext);
+  genre  = cdtext_get_const(CDTEXT_GENRE, cdtext);
+  comment  = cdtext_get_const(CDTEXT_MESSAGE, cdtext);
   
   for(i = 0; i < idx->num_tracks; i++)
     {
@@ -82,19 +87,52 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
       if(!cdtext)
         return 0;
       
-      GET_FIELD(info[idx->tracks[i].index].metadata.title, CDTEXT_TITLE);
-
-      if(!info[idx->tracks[i].index].metadata.title)
+      GET_FIELD(title, CDTEXT_TITLE);
+      
+      if(!title)
         return 0;
 
-      GET_FIELD_DEFAULT(artist, CDTEXT_PERFORMER);
-      GET_FIELD_DEFAULT(author, CDTEXT_SONGWRITER);
-      GET_FIELD_DEFAULT(author, CDTEXT_COMPOSER);
-      GET_FIELD_DEFAULT(genre,  CDTEXT_GENRE);
-      GET_FIELD_DEFAULT(comment,  CDTEXT_MESSAGE);
-      info[idx->tracks[i].index].metadata.album =
-        bg_strdup(info[idx->tracks[i].index].metadata.album,
-                  album);
+      gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                        GAVL_META_TITLE, title);
+
+      if((field = cdtext_get_const(CDTEXT_PERFORMER, cdtext)))
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_ARTIST, field);
+      else
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_ARTIST, artist);
+
+
+      if((field = cdtext_get_const(CDTEXT_COMPOSER, cdtext)))
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_AUTHOR, field);
+      else if((field = cdtext_get_const(CDTEXT_SONGWRITER, cdtext)))
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_AUTHOR, field);
+      else if(author)
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_AUTHOR, author);
+
+
+      if((field = cdtext_get_const(CDTEXT_GENRE, cdtext)))
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_GENRE, field);
+      else
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_GENRE, genre);
+
+      if((field = cdtext_get_const(CDTEXT_MESSAGE, cdtext)))
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_COMMENT, field);
+      else
+        gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                          GAVL_META_COMMENT, comment);
+
+
+      gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                        GAVL_META_ALBUM, album);
+      gavl_metadata_set(&info[idx->tracks[i].index].metadata,
+                        GAVL_META_ALBUMARTIST, artist);
       }
     }
   return 1;

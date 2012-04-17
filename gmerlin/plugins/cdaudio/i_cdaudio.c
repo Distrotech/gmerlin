@@ -34,6 +34,8 @@
 
 #define LOG_DOMAIN "i_cdaudio"
 
+#include <gavl/metatags.h>
+
 typedef struct
   {
   bg_parameter_info_t * parameters;
@@ -206,7 +208,8 @@ static int open_cdaudio(void * data, const char * arg)
       cd->track_info[j].audio_streams[0].format.num_channels = 2;
       cd->track_info[j].audio_streams[0].format.sample_format = GAVL_SAMPLE_S16;
       cd->track_info[j].audio_streams[0].format.interleave_mode = GAVL_INTERLEAVE_ALL;
-      cd->track_info[j].audio_streams[0].description = bg_strdup(NULL, "CD audio");
+      gavl_metadata_set(&cd->track_info[j].audio_streams[0].m, GAVL_META_FORMAT,
+                        "CD Audio");
       
       gavl_set_channel_setup(&cd->track_info[j].audio_streams[0].format);
       
@@ -214,8 +217,11 @@ static int open_cdaudio(void * data, const char * arg)
         ((int64_t)(cd->index->tracks[i].last_sector -
                    cd->index->tracks[i].first_sector + 1) *
          GAVL_TIME_SCALE) / 75;
-      cd->track_info[j].description = bg_strdup(NULL, TR("CD audio track"));
-      cd->track_info[j].metadata.track = j+1;
+
+      gavl_metadata_set(&cd->track_info[j].metadata, GAVL_META_FORMAT,
+                        "CD Audio");
+      gavl_metadata_set_int(&cd->track_info[j].metadata, GAVL_META_TRACKNUMBER,
+                            j+1);
       cd->track_info[j].flags = BG_TRACK_SEEKABLE | BG_TRACK_PAUSABLE;
       }
     }
@@ -329,9 +335,7 @@ static int open_cdaudio(void * data, const char * arg)
                                  cd->trackname_template);
         }
       }
-    if(cd->track_info[0].metadata.album)
-      cd->disc_name = cd->track_info[0].metadata.album;
-    
+    cd->disc_name = gavl_metadata_get(&cd->track_info[0].metadata, GAVL_META_ALBUM);
     }
 
   /* We close it again, so other apps won't cry */
