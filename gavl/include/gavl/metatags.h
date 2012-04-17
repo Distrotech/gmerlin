@@ -25,7 +25,15 @@
 #define GAVL_META_ALBUM       "Album"
 #define GAVL_META_GENRE       "Genre"
 #define GAVL_META_TRACKNUMBER "Tracknumber"
-#define GAVL_META_DATE        "Date"        // YYYY-MM-DD
+
+// Generic date
+#define GAVL_META_DATE        "Date"        // YYYY-MM-DD [HH:MM:SS]
+
+#define GAVL_META_DATE_CREATE "CreationDate"     // YYYY-MM-DD [HH:MM:SS]
+#define GAVL_META_DATE_MODIFY "ModificationDate" // YYYY-MM-DD [HH:MM:SS]
+
+
+// Only the year
 #define GAVL_META_YEAR        "Year"        // YYYY
 #define GAVL_META_LANGUAGE    "Language"    // ISO 639-2/B 3 letter code
 #define GAVL_META_ALBUMARTIST "Albumartist"
@@ -43,5 +51,9 @@
 
 #define GAVL_META_BITRATE     "Bitrate"
 
-#define GAVL_META_AUDIO_BITS  "AUDIO_BITS"
-#define GAVL_META_VIDEO_BPP   "VIDEO_BPP"
+#define GAVL_META_AUDIO_BITS  "BitsPerSample"
+#define GAVL_META_VIDEO_BPP   "BitsPerPixel"
+
+#define GAVL_META_VENDOR      "Vendor"
+#define GAVL_META_DEVICE      "Device"
+

@@ -176,6 +176,74 @@ int gavl_metadata_get_int(const gavl_metadata_t * m,
   return 1;
   }
 
+void
+gavl_metadata_set_date(gavl_metadata_t * m,
+                       const char * key,
+                       int year,
+                       int month,
+                       int day)
+  {
+  // YYYY-MM-DD
+  char buf[11];
+  snprintf(buf, 11, "%04d-%02d-%02d", year, month, day);
+  gavl_metadata_set(m, key, buf);
+  }
+
+void
+gavl_metadata_set_date_time(gavl_metadata_t * m,
+                            const char * key,
+                            int year,
+                            int month,
+                            int day,
+                            int hour,
+                            int minute,
+                            int second)
+  {
+  // YYYY-MM-DD HH:MM:SS
+  char buf[20];
+  snprintf(buf, 20, "%04d-%02d-%02d %02d:%02d:%02d",
+           year, month, day, hour, minute, second);
+  gavl_metadata_set(m, key, buf);
+  }
+
+GAVL_PUBLIC int
+gavl_metadata_get_date(gavl_metadata_t * m,
+                       const char * key,
+                       int * year,
+                       int * month,
+                       int * day)
+  {
+  const char * val = gavl_metadata_get(m, key);
+  if(!val)
+    return 0;
+
+  if(sscanf(val, "%04d-%02d-%02d", year, month, day) < 3)
+    return 0;
+  return 1;
+  }
+
+GAVL_PUBLIC int
+gavl_metadata_get_date_time(gavl_metadata_t * m,
+                            const char * key,
+                            int * year,
+                            int * month,
+                            int * day,
+                            int * hour,
+                            int * minute,
+                            int * second)
+  {
+  const char * val = gavl_metadata_get(m, key);
+  if(!val)
+    return 0;
+
+  if(sscanf(val, "%04d-%02d-%02d %02d:%02d:%02d",
+            year, month, day, hour, minute, second) < 6)
+    return 0;
+  return 1;
+  }
+
+
+
 void gavl_metadata_merge(gavl_metadata_t * dst,
                          const gavl_metadata_t * src1,
                          const gavl_metadata_t * src2)

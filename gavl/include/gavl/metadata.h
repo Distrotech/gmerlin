@@ -59,6 +59,41 @@ GAVL_PUBLIC void
 gavl_metadata_set_int(gavl_metadata_t * m,
                       const char * key,
                       int val);
+GAVL_PUBLIC void
+gavl_metadata_set_date(gavl_metadata_t * m,
+                       const char * key,
+                       int year,
+                       int month,
+                       int day);
+
+GAVL_PUBLIC void
+gavl_metadata_set_date_time(gavl_metadata_t * m,
+                            const char * key,
+                            int year,
+                            int month,
+                            int day,
+                            int hour,
+                            int minute,
+                            int second);
+
+GAVL_PUBLIC int
+gavl_metadata_get_date(gavl_metadata_t * m,
+                       const char * key,
+                       int * year,
+                       int * month,
+                       int * day);
+
+GAVL_PUBLIC int
+gavl_metadata_get_date_time(gavl_metadata_t * m,
+                            const char * key,
+                            int * year,
+                            int * month,
+                            int * day,
+                            int * hour,
+                            int * minute,
+                            int * second);
+
+
 
 GAVL_PUBLIC 
 const char * gavl_metadata_get(const gavl_metadata_t * m,
