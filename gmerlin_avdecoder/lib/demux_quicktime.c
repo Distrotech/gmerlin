@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #include <avdec_private.h>
 #include <qt.h>
@@ -34,6 +35,32 @@
 #ifdef HAVE_FAAD2
 #include <aac_frame.h>
 #endif
+
+
+static void time_to_metadata(gavl_metadata_t * m,
+                             const char * key,
+                             uint64_t t)
+  {
+  time_t ti;
+  struct tm tm;
+
+  /*  2082844800 = seconds between 1/1/04 and 1/1/70 */
+  ti = t - 2082844800;
+  localtime_r(&ti, &tm);
+  tm.tm_mon++;
+  tm.tm_year+=1900;
+
+  gavl_metadata_set_date_time(m,
+                              key,
+                              tm.tm_year,
+                              tm.tm_mon,
+                              tm.tm_mday,
+                              tm.tm_hour,
+                              tm.tm_min,
+                              tm.tm_sec);
+  
+  }
+
 
 typedef struct
   {
@@ -130,6 +157,13 @@ static void stream_init(bgav_stream_t * bgav_s, qt_trak_t * trak,
     gavl_metadata_set(&bgav_s->m, GAVL_META_SOFTWARE,
                       trak->mdia.hdlr.component_name);
 
+  time_to_metadata(&bgav_s->m,
+                   GAVL_META_DATE_CREATE,
+                   trak->mdia.mdhd.creation_time);
+  time_to_metadata(&bgav_s->m,
+                   GAVL_META_DATE_MODIFY,
+                   trak->mdia.mdhd.modification_time);
+  
   }
 
 static int trak_has_edl(qt_trak_t * trak)
@@ -630,6 +664,14 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
     gavl_metadata_set_int(&ctx->tt->cur->metadata, GAVL_META_TRACKNUMBER,
                           moov->udta.trkn);
     }
+
+  time_to_metadata(&ctx->tt->cur->metadata,
+                   GAVL_META_DATE_CREATE,
+                   moov->mvhd.creation_time);
+  time_to_metadata(&ctx->tt->cur->metadata,
+                   GAVL_META_DATE_MODIFY,
+                   moov->mvhd.modification_time);
+
   
   if(cnv)
     bgav_charset_converter_destroy(cnv);
