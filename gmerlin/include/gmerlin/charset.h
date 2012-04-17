@@ -63,7 +63,7 @@ void bg_charset_converter_destroy(bg_charset_converter_t * cnv);
  */
 
 char * bg_convert_string(bg_charset_converter_t * cnv,
-                           const char * in_string, int in_len,
-                           int * out_len);
+                         const char * in_string, int in_len,
+                         int * out_len);
 
 /** @} */

@@ -38,6 +38,8 @@
 #include "exif.h"
 #endif  
 
+#include <gavl/metatags.h>
+
 
 #define PADD(i, size) i = ((i + size - 1) / size) * size
 
@@ -173,7 +175,8 @@ int read_header_jpeg(void * priv, const char * filename,
 #ifdef HAVE_LIBEXIF
   bg_exif_get_metadata(filename, &jpeg->metadata);
 #endif
-  
+
+  gavl_metadata_set(&jpeg->metadata, GAVL_META_FORMAT, "JPEG");
   return 1;
   }
 

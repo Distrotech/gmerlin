@@ -174,8 +174,10 @@ static int open_input(void * priv, const char * filename)
   const char * pos;
   const char * pos_start;
   const char * pos_end;
+  const gavl_metadata_t * m;
   
   input_t * inp = priv;
+
   
   /* Check if the first file exists */
   
@@ -245,15 +247,12 @@ static int open_input(void * priv, const char * filename)
       break;
     inp->frame_end++;
     }
-
+  
   /* Create stream */
-    
+  
   inp->track_info.num_video_streams = 1;
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
-
-  gavl_metadata_set(&inp->track_info.video_streams[0].m,
-                    GAVL_META_FORMAT, "Single images");
   
   inp->track_info.duration = gavl_frames_to_time(inp->timescale,
                                                  inp->frame_duration,
@@ -270,6 +269,8 @@ static int open_input(void * priv, const char * filename)
 
   sprintf(inp->filename_buffer, inp->template, inp->current_frame);
 
+  /* Load image header */
+  
   if(!inp->image_reader->read_header(inp->handle->priv,
                                      inp->filename_buffer,
                                      &inp->track_info.video_streams[0].format))
@@ -281,13 +282,28 @@ static int open_input(void * priv, const char * filename)
   inp->track_info.video_streams[0].format.framerate_mode =
     GAVL_FRAMERATE_CONSTANT;
   inp->header_read = 1;
+
+  /* Metadata */
+
+  if(inp->image_reader->get_metadata &&
+     (m = inp->image_reader->get_metadata(inp->handle->priv)))
+    {
+    gavl_metadata_copy(&inp->track_info.metadata, m);
+    }
+  
+  gavl_metadata_set(&inp->track_info.video_streams[0].m,
+                    GAVL_META_FORMAT, "Single images");
+
   
   return 1;
   }
 
 static int open_stills_input(void * priv, const char * filename)
   {
+  const char * tag;
   const bg_plugin_info_t * info;
+  const gavl_metadata_t * m;
+  
   input_t * inp = priv;
   
   /* Check if the first file exists */
@@ -312,8 +328,6 @@ static int open_stills_input(void * priv, const char * filename)
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
 
-  gavl_metadata_set(&inp->track_info.video_streams[0].m,
-                    GAVL_META_FORMAT, "Still Image");
   
   inp->track_info.video_streams[0].format.framerate_mode =
     GAVL_FRAMERATE_STILL;
@@ -333,6 +347,24 @@ static int open_stills_input(void * priv, const char * filename)
   inp->track_info.video_streams[0].format.timescale = GAVL_TIME_SCALE;
   inp->track_info.video_streams[0].format.frame_duration = 0;
   inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL;
+
+  /* Metadata */
+
+  if(inp->image_reader->get_metadata &&
+     (m = inp->image_reader->get_metadata(inp->handle->priv)))
+    {
+    gavl_metadata_copy(&inp->track_info.metadata, m);
+    }
+
+  tag = gavl_metadata_get(m, GAVL_META_FORMAT);
+  if(tag)
+    gavl_metadata_set(&inp->track_info.video_streams[0].m,
+                      GAVL_META_FORMAT, tag);
+  
+  gavl_metadata_set(&inp->track_info.metadata,
+                    GAVL_META_FORMAT, "Still image");
+
+
   inp->header_read = 1;
 
   return 1;
