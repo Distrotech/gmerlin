@@ -346,9 +346,7 @@ static int open_v4l(void * priv,
                                             &format->pixelformat, v4l->width,
                                             v4l->height);
     if(!v4l->converter)
-      {
       return 0;
-      }
 #else
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no supported pixelformat");
     return 0;
@@ -523,7 +521,10 @@ static void process_image(v4l2_t * v4l, void * data,
 static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
   {
   /* If strides match we can read directly into the frame buffer */
-  if(!v4l->converter &&
+  if(
+#ifdef HAVE_V4LCONVERT
+     !v4l->converter &&
+#endif
      bgv4l2_strides_match(frame, v4l->strides, v4l->num_strides))
     {
     if (read (v4l->fd, frame->planes[0], v4l->fmt.fmt.pix.sizeimage) < v4l->fmt.fmt.pix.sizeimage)

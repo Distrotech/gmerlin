@@ -41,7 +41,7 @@
 
 #include "exif.h"
 
-static uint32_t get_long(uint8_t * data)
+static void get_long_le(uint8_t * data, uint32_t * ret1)
   {
   uint32_t ret;
   ret = data[3];
@@ -51,15 +51,67 @@ static uint32_t get_long(uint8_t * data)
   ret |= data[1];
   ret <<= 8;
   ret |= data[0];
-  return ret;
+  *ret1 = ret;
   }
 
-static uint16_t get_short(uint8_t * data)
+static void get_short_le(uint8_t * data, uint16_t * ret1)
   {
   uint16_t ret;
   ret = data[1];
   ret <<= 8;
   ret |= data[0];
+  *ret1 = ret;
+  }
+
+static void get_long_be(uint8_t * data, uint32_t * ret1)
+  {
+  uint32_t ret;
+  ret = data[0];
+  ret <<= 8;
+  ret |= data[1];
+  ret <<= 8;
+  ret |= data[2];
+  ret <<= 8;
+  ret |= data[3];
+  *ret1 = ret;
+  }
+
+static void get_short_be(uint8_t * data, uint16_t * ret1)
+  {
+  uint16_t ret;
+  ret = data[0];
+  ret <<= 8;
+  ret |= data[1];
+  *ret1 = ret;
+  }
+
+static uint32_t get_long(uint8_t * data, ExifByteOrder bo)
+  {
+  uint32_t ret;
+  if(bo == EXIF_BYTE_ORDER_INTEL)
+    get_long_le(data, &ret);
+  else
+    get_long_be(data, &ret);
+  return ret;
+  }
+
+static int32_t get_slong(uint8_t * data, ExifByteOrder bo)
+  {
+  int32_t ret;
+  if(bo == EXIF_BYTE_ORDER_INTEL)
+    get_long_le(data, (uint32_t*)&ret);
+  else
+    get_long_be(data, (uint32_t*)&ret);
+  return ret;
+  }
+
+static uint16_t get_short(uint8_t * data, ExifByteOrder bo)
+  {
+  uint16_t ret;
+  if(bo == EXIF_BYTE_ORDER_INTEL)
+    get_short_le(data, &ret);
+  else
+    get_short_be(data, &ret);
   return ret;
   }
 
@@ -68,6 +120,7 @@ typedef struct
   {
   gavl_metadata_t * m;
   bg_charset_converter_t * cnv;
+  ExifByteOrder bo;
   } foreach_data_t;
 
 static void set_utf16le(foreach_data_t * fd,
@@ -122,11 +175,29 @@ static void set_rational(foreach_data_t * fd,
      (e->size != 8))
     return;
 
-  num = get_long(e->data);
-  den = get_long(e->data + 4);
-
+  num = get_long(e->data, fd->bo);
+  den = get_long(e->data + 4, fd->bo);
+  
   gavl_metadata_set_nocpy(fd->m, key,
                           bg_sprintf("%d/%d", num, den));
+  }
+
+static void set_srational(foreach_data_t * fd,
+                          ExifEntry * e,
+                          const char * key)
+  {
+  int32_t num, den;
+  if((e->format !=  EXIF_FORMAT_SRATIONAL) ||
+     (e->size != 8))
+    return;
+
+  num = get_slong(e->data, fd->bo);
+  den = get_slong(e->data + 4, fd->bo);
+  
+  gavl_metadata_set_nocpy(fd->m, key,
+                          bg_sprintf("%.4f [%d/%d]",
+                                     (float)num / (float)den,
+                                     num, den));
   }
 
 static void set_long(foreach_data_t * fd,
@@ -138,7 +209,7 @@ static void set_long(foreach_data_t * fd,
      (e->size != 4))
     return;
 
-  num = get_long(e->data);
+  num = get_long(e->data, fd->bo);
   
   gavl_metadata_set_int(fd->m, key, num);
   }
@@ -152,11 +223,23 @@ static void set_short(foreach_data_t * fd,
      (e->size != 2))
     return;
 
-  num = get_short(e->data);
+  num = get_short(e->data, fd->bo);
   
   gavl_metadata_set_int(fd->m, key, num);
   }
 
+static void set_version(foreach_data_t * fd,
+                        ExifEntry * e,
+                        const char * key)
+  {
+  if(e->format !=  EXIF_FORMAT_UNDEFINED)
+    return;
+  
+  gavl_metadata_set_nocpy(fd->m, key,
+                          bg_strndup(NULL,
+                                     (char*)e->data,
+                                     (char*)(e->data + e->size)));
+  }
 
 static void foreach2(ExifEntry * e, void * priv)
   {
@@ -192,20 +275,17 @@ static void foreach2(ExifEntry * e, void * priv)
     case EXIF_TAG_DATE_TIME:
       set_date_time(fd, e, GAVL_META_DATE_MODIFY);
       break;
-#if 0
-    case EXIF_TAG_EXPOSURE_TIME:
-      set_rational(fd, e, GAVL_META_EXPOSURE_TIME);
+    case EXIF_TAG_INTEROPERABILITY_VERSION:
+    case EXIF_TAG_EXIF_VERSION:
+    case EXIF_TAG_FLASH_PIX_VERSION:
+      {
+      char * tmp_string;
+      tmp_string =
+        bg_sprintf("Exif::%s", exif_tag_get_name_in_ifd(e->tag, ifd));
+      set_version(fd, e, tmp_string);
+      free(tmp_string);
+      }
       break;
-    case EXIF_TAG_FNUMBER:
-      set_rational(fd, e, GAVL_META_F_NUMBER);
-      break;
-    case EXIF_TAG_X_RESOLUTION:
-      set_rational(fd, e, GAVL_META_X_RESOLUTION);
-      break;
-    case EXIF_TAG_Y_RESOLUTION:
-      set_rational(fd, e, GAVL_META_Y_RESOLUTION);
-      break;
-#endif
     default:
       {
       char * tmp_string;
@@ -216,6 +296,9 @@ static void foreach2(ExifEntry * e, void * priv)
         {
         case EXIF_FORMAT_RATIONAL:
           set_rational(fd, e, tmp_string);
+          break;
+        case EXIF_FORMAT_SRATIONAL:
+          set_srational(fd, e, tmp_string);
           break;
         case EXIF_FORMAT_SHORT:
           set_short(fd, e, tmp_string);
@@ -246,7 +329,6 @@ static void foreach2(ExifEntry * e, void * priv)
       }
       break;
     }
-  
   }
 
 static void foreach1(ExifContent * c, void * priv)
@@ -265,6 +347,9 @@ void bg_exif_get_metadata(const char * filename,
   d = exif_data_new_from_file(filename);
   if(!d)
     return;
+
+  fd.bo = exif_data_get_byte_order(d);
+  
   exif_data_foreach_content(d, foreach1, &fd);
   exif_data_unref(d);
 

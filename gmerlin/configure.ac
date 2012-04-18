@@ -1313,6 +1313,14 @@ echo "Disabled"
 fi
 fi
 
+echo -n "libexif:             "
+if test "x$have_libexif" = "xtrue"; then
+echo "Yes (CFLAGS=$LIBEXIF_CFLAGS LIBS=$LIBEXIF_LIBS)"
+else
+echo "Missing (Go to http://libexif.sourceforge.net/)"
+fi
+
+
 echo
 echo "=== Applications: ================================="
 
