@@ -115,13 +115,53 @@ static uint16_t get_short(uint8_t * data, ExifByteOrder bo)
   return ret;
   }
 
-
 typedef struct
   {
   gavl_metadata_t * m;
   bg_charset_converter_t * cnv;
   ExifByteOrder bo;
   } foreach_data_t;
+
+typedef struct
+  {
+  int val;
+  const char * str;
+  } enum_tab_t;
+
+static const char * get_enum_label(const enum_tab_t * tab, int val)
+  {
+  int i = 0;
+  while(tab[i].str)
+    {
+    if(tab[i].val == val)
+      return tab[i].str;
+    i++;
+    }
+  return "unknown";
+  }
+
+static void set_enum(foreach_data_t * fd,
+                     ExifEntry * e,
+                     const char * key,
+                     const enum_tab_t * tab)
+  {
+  int val;
+  const char * str;
+  
+  if(e->format == EXIF_FORMAT_SHORT)
+    val = get_short(e->data, fd->bo);
+  else if((e->format == EXIF_FORMAT_UNDEFINED) &&
+          (e->size == 1))
+    val = *e->data;
+  
+  else
+    return;
+
+  str = get_enum_label(tab, val);
+
+  gavl_metadata_set_nocpy(fd->m, key,
+                          bg_sprintf("%d (%s)", val, str));
+  }
 
 static void set_utf16le(foreach_data_t * fd,
                         ExifEntry * e,
@@ -177,9 +217,11 @@ static void set_rational(foreach_data_t * fd,
 
   num = get_long(e->data, fd->bo);
   den = get_long(e->data + 4, fd->bo);
-  
+
   gavl_metadata_set_nocpy(fd->m, key,
-                          bg_sprintf("%d/%d", num, den));
+                          bg_sprintf("%.4f [%d/%d]",
+                                     (float)num / (float)den,
+                                     num, den));
   }
 
 static void set_srational(foreach_data_t * fd,
@@ -241,13 +283,141 @@ static void set_version(foreach_data_t * fd,
                                      (char*)(e->data + e->size)));
   }
 
+const enum_tab_t resolution_units[] =
+  {
+    { 2, "inches" },
+    { 3, "centimeters" },
+    { },
+  };
+
+const enum_tab_t compressions[] =
+  {
+    { 1, "uncompressed" },
+    { 6, "JPEG"         },
+    { },
+  };
+
+const enum_tab_t colorspaces[] =
+  {
+    { 1, "sRGB" },
+    { 0xFFFF, "Uncalibrated" },
+    { },
+  };
+
+const enum_tab_t metering_modes[] =
+  {
+    { 0, "unknown" },
+    { 1, "Average" },
+    { 2, "CenterWeightedAverage" },
+    { 3, "Spot" },
+    { 4, "MultiSpot" },
+    { 5, "Pattern" },
+    { 6, "Partial" },
+    { 255, "other" },
+    { },
+  };
+
+const enum_tab_t sensing_methods[] =
+  {
+    { 1, "Not defined" },
+    { 2, "One-chip color area sensor" },
+    { 3, "Two-chip color area sensor" },
+    { 4, "Three-chip color area sensor" },
+    { 5, "Color sequential area sensor" },
+    { 7, "Trilinear sensor" },
+    { 8, "Color sequential linear sensor" },
+    { },
+  };
+
+const enum_tab_t custom_rendered[] =
+  {
+    { 0, "Normal process" },
+    { 1, "Custom process" },
+    { },
+  };
+
+const enum_tab_t exposure_modes[] =
+  {
+    { 0, "Auto exposure" },
+    { 1, "Manual exposure" },
+    { 2, "Auto bracket" },
+    { },
+  };
+
+const enum_tab_t white_balance[] =
+  {
+    { 0, "Auto white balance"   },
+    { 1, "Manual white balance" },
+    { },
+  };
+
+const enum_tab_t scene_capture_types[] =
+  {
+
+    { 0, "Standard" },
+    { 1, "Landscape" },
+    { 2, "Portrait" },
+    { 3, "Night scene" },
+    { },
+  };
+
+const enum_tab_t flash_modes[] =
+  {
+
+    { 0x0000, "Flash did not fire" },
+    { 0x0001, "Flash fired" },
+    { 0x0005, "Strobe return light not detected" },
+    { 0x0007, "Strobe return light detected" },
+    { 0x0009, "Flash fired, compulsory flash mode" },
+    { 0x000D, "Flash fired, compulsory flash mode, return light not detected" },
+    { 0x000F, "Flash fired, compulsory flash mode, return light detected" },
+    { 0x0010, "Flash did not fire, compulsory flash mode" },
+    { 0x0018, "Flash did not fire, auto mode" },
+    { 0x0019, "Flash fired, auto mode" },
+    { 0x001D, "Flash fired, auto mode, return light not detected" },
+    { 0x001F, "Flash fired, auto mode, return light detected" },
+    { 0x0020, "No flash function" },
+    { 0x0041, "Flash fired, red-eye reduction mode" },
+    { 0x0045, "Flash fired, red-eye reduction mode, return light not detected" },
+    { 0x0047, "Flash fired, red-eye reduction mode, return light detected" },
+    { 0x0049, "Flash fired, compulsory flash mode, red-eye reduction mode" },
+    { 0x004D, "Flash fired, compulsory flash mode, red-eye reduction mode, return light not detected" },
+    { 0x004F, "Flash fired, compulsory flash mode, red-eye reduction mode, return light detected" },
+    { 0x0059, "Flash fired, auto mode, red-eye reduction mode" },
+    { 0x005D, "Flash fired, auto mode, return light not detected, red-eye reduction mode" },
+    { 0x005F, "Flash fired, auto mode, return light detected, red-eye reduction mode" },
+    { },
+  };
+
+const enum_tab_t file_sources[] =
+  {
+    { 3, "DSC" },
+    { },
+  };
+
+const enum_tab_t components[] =
+  {
+    { 0, "-"  },
+    { 1, "Y"  },
+    { 2, "Cb" },
+    { 3, "Cr" },
+    { 4, "R"  },
+    { 5, "G"  },
+    { 6, "B"  },
+    { },
+  };
+
 static void foreach2(ExifEntry * e, void * priv)
   {
+  int done;
   foreach_data_t  * fd;
+  char * tmp_string = NULL;
+
   ExifIfd ifd = exif_content_get_ifd(e->parent);
 
   fd = priv;
 
+  done = 1;
   
   switch(e->tag)
     {
@@ -275,23 +445,68 @@ static void foreach2(ExifEntry * e, void * priv)
     case EXIF_TAG_DATE_TIME:
       set_date_time(fd, e, GAVL_META_DATE_MODIFY);
       break;
+    default:
+      done = 0;
+      break;
+    }
+
+  if(done)
+    return;
+
+  tmp_string =
+    bg_sprintf("Exif::%s", exif_tag_get_name_in_ifd(e->tag, ifd));
+
+  switch(e->tag)
+    {
+    case EXIF_TAG_COMPONENTS_CONFIGURATION:
+      if(e->size == 4)
+        gavl_metadata_set_nocpy(fd->m, tmp_string,
+                                bg_sprintf("%s, %s, %s, %s",
+                                           get_enum_label(components, e->data[0]),
+                                           get_enum_label(components, e->data[1]),
+                                           get_enum_label(components, e->data[2]),
+                                           get_enum_label(components, e->data[3])));
+      break;
+    case EXIF_TAG_FILE_SOURCE:
+      set_enum(fd, e, tmp_string, file_sources);
+      break;
+    case EXIF_TAG_FLASH:
+      set_enum(fd, e, tmp_string, flash_modes);
+      break;
+    case EXIF_TAG_SCENE_CAPTURE_TYPE:
+      set_enum(fd, e, tmp_string, scene_capture_types);
+      break;
+    case EXIF_TAG_WHITE_BALANCE:
+      set_enum(fd, e, tmp_string, white_balance);
+      break;
+    case EXIF_TAG_EXPOSURE_MODE:
+      set_enum(fd, e, tmp_string, exposure_modes);
+      break;
+    case EXIF_TAG_CUSTOM_RENDERED:
+      set_enum(fd, e, tmp_string, custom_rendered);
+      break;
+    case EXIF_TAG_SENSING_METHOD:
+      set_enum(fd, e, tmp_string, sensing_methods);
+      break;
+    case EXIF_TAG_RESOLUTION_UNIT:
+    case EXIF_TAG_FOCAL_PLANE_RESOLUTION_UNIT:
+      set_enum(fd, e, tmp_string, resolution_units);
+      break;
+    case EXIF_TAG_METERING_MODE:
+      set_enum(fd, e, tmp_string, metering_modes);
+      break;
+    case EXIF_TAG_COMPRESSION:
+      set_enum(fd, e, tmp_string, compressions);
+      break;
+    case EXIF_TAG_COLOR_SPACE:
+      set_enum(fd, e, tmp_string, colorspaces);
+      break;
     case EXIF_TAG_INTEROPERABILITY_VERSION:
     case EXIF_TAG_EXIF_VERSION:
     case EXIF_TAG_FLASH_PIX_VERSION:
-      {
-      char * tmp_string;
-      tmp_string =
-        bg_sprintf("Exif::%s", exif_tag_get_name_in_ifd(e->tag, ifd));
       set_version(fd, e, tmp_string);
-      free(tmp_string);
-      }
       break;
     default:
-      {
-      char * tmp_string;
-      tmp_string =
-        bg_sprintf("Exif::%s", exif_tag_get_name_in_ifd(e->tag, ifd));
-      
       switch(e->format)
         {
         case EXIF_FORMAT_RATIONAL:
@@ -310,6 +525,7 @@ static void foreach2(ExifEntry * e, void * priv)
           set_ascii(fd, e, tmp_string);
           break;
         default:
+#if 0
           fprintf(stderr, "Got unknown exif tag %x\n", e->tag);
           fprintf(stderr, "  Name:        %s\n",
                   exif_tag_get_name_in_ifd(e->tag, ifd));
@@ -322,13 +538,14 @@ static void foreach2(ExifEntry * e, void * priv)
           fprintf(stderr, "  Size:        %d\n",
                   e->size);
           bg_hexdump(e->data, e->size, 16);
+#endif
           break;
           
         }
-      free(tmp_string);
-      }
       break;
     }
+  if(tmp_string)
+    free(tmp_string);
   }
 
 static void foreach1(ExifContent * c, void * priv)
