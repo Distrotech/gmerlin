@@ -21,6 +21,8 @@
 
 #include <avdec_private.h>
 #include <nanosoft.h>
+#include <cue.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -187,6 +189,8 @@ static int open_wav(bgav_demuxer_context_t * ctx)
     ctx->tt->cur->duration
       = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
       (ctx->tt->cur->audio_streams[0].codec_bitrate / 8);
+
+  bgav_demuxer_init_cue(ctx);
   
   return 1;
   

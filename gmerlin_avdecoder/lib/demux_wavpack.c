@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <cue.h>
+
 #define LOG_DOMAIN "wavpack"
 
 typedef struct
@@ -39,6 +41,11 @@ typedef struct
   uint32_t flags;
   uint32_t crc;
   } wvpk_header_t;
+
+typedef struct
+  {
+  int64_t pts;
+  } wvpk_priv_t;
 
 #define HEADER_SIZE 32
 
@@ -76,8 +83,6 @@ static void parse_header(wvpk_header_t * ret, uint8_t * data)
   ret->crc             = BGAV_PTR_2_32LE(data);
   }
 
-#if 0
-
 static void dump_header(wvpk_header_t * h)
   {
   bgav_dprintf("wavpack header\n");
@@ -96,7 +101,6 @@ static void dump_header(wvpk_header_t * h)
   bgav_dprintf("  flags:           %08x\n", h->flags);
   bgav_dprintf("  crc:             %08x\n", h->crc);
   }
-#endif
 
 static int probe_wavpack(bgav_input_context_t * input)
   {
@@ -112,29 +116,39 @@ static int open_wavpack(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   uint8_t header[HEADER_SIZE];
   wvpk_header_t h;
+  wvpk_priv_t * priv;
+
+  priv = calloc(1, sizeof(*priv));
+
+  ctx->priv = priv;
   
   if(bgav_input_get_data(ctx->input, header, HEADER_SIZE) < HEADER_SIZE)
     return 0;
 
   parse_header(&h, header);
-  //  dump_header(&h);
+
+  if(ctx->opt->dump_headers)
+    dump_header(&h);
 
   /* Use header data to set up stream */
   if(h.flags & WV_FLOAT)
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Floating point data is not supported");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Floating point data is not supported");
     return 0;
     }
   
   if(h.flags & WV_HYBRID)
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Hybrid coding mode is not supported");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Hybrid coding mode is not supported");
     return 0;
     }
   
   if(h.flags & WV_INT32)
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Integer point data is not supported");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Integer point data is not supported");
     return 0;
     }
   
@@ -152,8 +166,14 @@ static int open_wavpack(bgav_demuxer_context_t * ctx)
   ctx->tt->cur->duration =
     gavl_time_unscale(s->data.audio.format.samplerate, h.total_samples);
 
+  s->duration = h.total_samples;
+  
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
+
+  ctx->index_mode = INDEX_MODE_SIMPLE;
+
+  bgav_demuxer_init_cue(ctx);
   
   return 1;
   }
@@ -165,6 +185,10 @@ static int next_packet_wavpack(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   int size;
+  int64_t pos;
+  wvpk_priv_t * priv = ctx->priv;
+
+  pos = ctx->input->position;
   
   if(bgav_input_read_data(ctx->input, header, HEADER_SIZE) < HEADER_SIZE)
     return 0; // EOF
@@ -172,17 +196,21 @@ static int next_packet_wavpack(bgav_demuxer_context_t * ctx)
   s = &ctx->tt->cur->audio_streams[0];
   p = bgav_stream_get_packet_write(s);
 
+  p->position = pos;
+
+  
   /* The last 12 bytes of the header must be copied to the
      packet */
 
   parse_header(&h, header);
   //  dump_header(&h);
-
+  
   if(h.fourcc != BGAV_MK_FOURCC('w', 'v', 'p', 'k'))
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Lost sync");
     return 0;
     }
+    
   size = h.block_size - 24;
   
   bgav_packet_alloc(p, size + WV_EXTRA_SIZE);
@@ -192,25 +220,29 @@ static int next_packet_wavpack(bgav_demuxer_context_t * ctx)
     return 0; // EOF
   
   p->data_size = WV_EXTRA_SIZE + size;
+  p->pts = priv->pts;
+  p->duration = h.num_samples;
+  
+  priv->pts += h.num_samples;
   
   bgav_stream_done_packet_write(s, p);
-
-
+  
   return 1;
   }
 
-static void seek_wavpack(bgav_demuxer_context_t * ctx, int64_t time, int scale)
+static void seek_wavpack(bgav_demuxer_context_t * ctx,
+                         int64_t time, int scale)
   {
-  int64_t current_pos;
   int64_t time_scaled;
   bgav_stream_t * s;
   
   uint8_t header[HEADER_SIZE];
   wvpk_header_t h;
-
+  wvpk_priv_t * priv = ctx->priv;
+  
   s = &ctx->tt->cur->audio_streams[0];
 
-  current_pos = 0;
+  priv->pts = 0;
   time_scaled = gavl_time_rescale(scale, s->timescale, time);
   
   bgav_input_seek(ctx->input, 0, SEEK_SET);
@@ -220,26 +252,45 @@ static void seek_wavpack(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     if(bgav_input_get_data(ctx->input, header, HEADER_SIZE) < HEADER_SIZE)
       return;
     parse_header(&h, header);
-    if(current_pos + h.num_samples > time_scaled)
+    if(priv->pts + h.num_samples > time_scaled)
       break;
 
     bgav_input_skip(ctx->input, HEADER_SIZE);
     bgav_input_skip(ctx->input, h.block_size - 24);
-    current_pos += h.num_samples;
+    priv->pts += h.num_samples;
     }
-  STREAM_SET_SYNC(s, current_pos);
+  STREAM_SET_SYNC(s, priv->pts);
   }
 
 static void close_wavpack(bgav_demuxer_context_t * ctx)
   {
-
+  wvpk_priv_t * priv = ctx->priv;
+  free(priv);
   }
+
+static void resync_wavpack(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
+  {
+  wvpk_priv_t * priv;
+  priv = ctx->priv;
+  priv->pts = STREAM_GET_SYNC(s);
+  }
+
+static int select_track_wavpack(bgav_demuxer_context_t * ctx, int track)
+  {
+  wvpk_priv_t * priv;
+  priv = ctx->priv;
+  priv->pts = 0;
+  return 1;
+  }
+
 
 const bgav_demuxer_t bgav_demuxer_wavpack =
   {
     .probe =       probe_wavpack,
     .open =        open_wavpack,
+    .select_track = select_track_wavpack,
     .next_packet = next_packet_wavpack,
     .seek =        seek_wavpack,
+    .resync =      resync_wavpack,
     .close =       close_wavpack
   };

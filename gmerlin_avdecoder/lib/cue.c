@@ -90,14 +90,20 @@ get_cue_file(bgav_input_context_t * audio_file)
   *pos = '\0';
   
   filename = bgav_sprintf("%s.%s", tmp_string, "cue");
+  free(tmp_string);
+  
   if(access(filename, R_OK))
     {
-    free(tmp_string);
     free(filename);
     return NULL;
     }
   ret = bgav_input_create(audio_file->opt);
-  if(!bgav_input_open(ret, filename))
+
+  /* Adding file:// prevents the .cue files being
+     opened with the vcd module */
+  tmp_string = bgav_sprintf("file://%s", filename);
+  
+  if(!bgav_input_open(ret, tmp_string))
     {
     bgav_input_destroy(ret);
     free(tmp_string);
