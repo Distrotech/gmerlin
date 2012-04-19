@@ -63,6 +63,7 @@ gavl_metadata_copy(gavl_metadata_t * dst,
     dst->tags[i].key = my_strdup(src->tags[i].key);
     dst->tags[i].val = my_strdup(src->tags[i].val);
     }
+  dst->tags_alloc = src->tags_alloc;
   dst->num_tags = src->num_tags;
   }
 
