@@ -113,16 +113,18 @@ static bg_nmj_file_t * file_scan_internal(const char * directory,
 
 bg_nmj_file_t * bg_nmj_file_scan(const char * directory,
                                  const char * extensions,
-                                 int64_t * size)
+                                 int64_t * size, int * num)
   {
   bg_nmj_file_t * ret = NULL;
   int num_ret = 0;
   int ret_alloc = 0;
   *size = 0;
-  return file_scan_internal(directory,
-                            extensions,
-                            ret,
-                            &num_ret, &ret_alloc, size);
+  ret = file_scan_internal(directory,
+                           extensions,
+                           ret,
+                           &num_ret, &ret_alloc, size);
+  *num = num_ret;
+  return ret;
   }
 
 bg_nmj_file_t * bg_nmj_file_lookup(bg_nmj_file_t * files,

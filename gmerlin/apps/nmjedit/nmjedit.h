@@ -96,6 +96,9 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
 
 int64_t bg_nmj_get_group(sqlite3 * db, const char * table, char * str);
 
+char * bg_nmj_find_dir(sqlite3 * db, const char * path);
+
+
 /* Directory scanning utility */
 
 typedef struct
@@ -107,7 +110,7 @@ typedef struct
   } bg_nmj_file_t;
 
 bg_nmj_file_t * bg_nmj_file_scan(const char * directory,
-                                 const char * extensions, int64_t * size);
+                                 const char * extensions, int64_t * size, int * num);
 
 bg_nmj_file_t * bg_nmj_file_lookup(bg_nmj_file_t * files,
                                    const char * path);
@@ -241,6 +244,8 @@ int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
 int bg_nmj_remove_directory(sqlite3 * db, const char * directory);
 
 void bg_nmj_list_dirs(sqlite3 * db);
+
+int bg_nmj_add_album(sqlite3 * db, const char * album);
 
 void bg_nmj_cleanup(sqlite3 * db);
 void bg_nmj_create_new();

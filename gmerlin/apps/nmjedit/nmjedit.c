@@ -426,10 +426,15 @@ static int add_directory(bg_plugin_registry_t * plugin_reg,
   int i;
   bg_nmj_song_t song;
   int64_t size = 0;
-
+  int num = 0;
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Adding %s", dir->directory);
+  
   /* Scan */
   extensions = make_extensions(types);
-  files = bg_nmj_file_scan(dir->directory, extensions, &size);
+  files = bg_nmj_file_scan(dir->directory, extensions, &size, &num);
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scanned %d files", num);
   
   /* Add directory */
 
@@ -471,13 +476,18 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
   char * extensions;
   bg_nmj_file_t * file;
   char time_str[BG_NMJ_TIME_STRING_LEN];
+  int num = 0;
   
   memset(&tab, 0, sizeof(tab));
 
   extensions = make_extensions(type);
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Updating %s", dir->directory);
   
-  files = bg_nmj_file_scan(dir->directory, extensions, &size);
-  
+  files = bg_nmj_file_scan(dir->directory, extensions, &size, &num);
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scanned %d files", num);
+    
   /* 1. Query all files in the database and check if they changed or were deleted */
   sql =
     sqlite3_mprintf("select ID from SONGS where SCAN_DIRS_ID = %"PRId64";",
@@ -487,7 +497,9 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
   
   if(!result)
     goto fail;
-  
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Found %d files in database", tab.num_val);
+    
   for(i = 0; i < tab.num_val; i++)
     {
     bg_nmj_song_init(&song);
@@ -574,13 +586,12 @@ int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
 
   if(bg_nmj_dir_query(db, &dir))
     {
-    fprintf(stderr, "Directory exists\n");
-    bg_nmj_dir_dump(&dir);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Directory %s exists", directory);
     result = update_directory(plugin_reg, db, &dir, types);
     }
   else
     {
-    fprintf(stderr, "Directory doesn't exist\n");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Directory %s doesn't exist", directory);
     result = add_directory(plugin_reg, db, &dir, types);
     }
   
@@ -792,7 +803,43 @@ void bg_nmj_list_dirs(sqlite3 * db)
     free(tab.val);
   }
 
+char * bg_nmj_find_dir(sqlite3 * db, const char * path)
+  {
+  append_int_t tab;
+  char * sql;
+  int result;
+  char * dir;
+  int i;
+  
+  memset(&tab, 0, sizeof(tab));
+  sql =
+    sqlite3_mprintf("select * from SCAN_DIRS;");
+  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  sqlite3_free(sql);
 
+  if(!result)
+    return NULL;
+  
+  for(i = 0; i < tab.num_val; i++)
+    {
+    dir = bg_nmj_id_to_string(db,
+                              "SCAN_DIRS",
+                              "DIRECTORY",
+                              "ID",
+                              tab.val[i]);
+    if(strstr(path, dir))
+      {
+      free(tab.val);
+      return dir;
+      }
+    free(dir);
+    }
+
+  if(tab.val)
+    free(tab.val);
+  return NULL;
+  }
+  
 void bg_nmj_cleanup(sqlite3 * db)
   {
   int i;

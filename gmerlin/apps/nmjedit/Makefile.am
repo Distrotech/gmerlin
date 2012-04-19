@@ -15,6 +15,7 @@ bin_PROGRAMS = gmerlin-nmjedit
 gmerlin_nmjedit_LDADD = $(top_builddir)/lib/libgmerlin.la @SQLITE3_LIBS@ -ldl
 gmerlin_nmjedit_SOURCES= \
 album.c \
+bgalbum.c \
 create.c \
 dir.c \
 gmerlin-nmjedit.c \

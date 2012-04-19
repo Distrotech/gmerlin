@@ -38,6 +38,10 @@ int num_add_dirs = 0;
 
 char ** del_dirs = NULL;
 int num_del_dirs = 0;
+
+char ** add_albums = NULL;
+int num_add_albums = 0;
+
 int list_dirs = 0;
 int do_create = 0;
 
@@ -54,6 +58,21 @@ static void opt_add(void * data, int * argc, char *** _argv, int arg)
   num_add_dirs++;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
+
+static void opt_add_album(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -add-album requires an argument\n");
+    exit(-1);
+    }
+  
+  add_albums = realloc(add_albums, (num_add_albums+1)*sizeof(*add_albums));
+  add_albums[num_add_albums] = bg_strdup(NULL, (*_argv)[arg]);
+  num_add_albums++;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 
 static void opt_del(void * data, int * argc, char *** _argv, int arg)
   {
@@ -115,6 +134,12 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<directory>",
       .help_string = "Delete directory",
       .callback =    opt_del,
+    },
+    {
+      .arg =         "-add-album",
+      .help_arg =    "<album>",
+      .help_string = "Add album as a playlist",
+      .callback =    opt_add_album,
     },
     {
       .arg =         "-v",
@@ -225,6 +250,13 @@ int main(int argc, char ** argv)
     bg_nmj_remove_directory(db, dir);
     }
 
+  /* Add albums */
+  for(i = 0; i < num_add_albums; i++)
+    {
+    dir = add_albums[i];
+    bg_nmj_add_album(db, dir);
+    }
+  
   bg_nmj_cleanup(db);
   
   /* Close sql connection */

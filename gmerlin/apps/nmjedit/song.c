@@ -497,6 +497,8 @@ int bg_nmj_song_delete(sqlite3 * db, bg_nmj_song_t * song)
   char * sql;
   int result;
   /* Delete from SONGS */
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Deleting song %s", song->title);
+  
   sql = sqlite3_mprintf("DELETE FROM SONGS WHERE ID = %"PRId64";", song->id);
   result = bg_sqlite_exec(db, sql, NULL, NULL);
   sqlite3_free(sql);
