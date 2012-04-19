@@ -624,14 +624,12 @@ static bg_plugin_info_t * get_info(void * test_module,
   if(!check_plugin_version(test_module))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version", filename);
-    dlclose(test_module);
     return NULL;
     }
   plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));
   if(!plugin)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No symbol the_plugin in %s", filename);
-    dlclose(test_module);
     return NULL;
     }
   if(!plugin->priority)
@@ -645,8 +643,8 @@ static bg_plugin_info_t * get_info(void * test_module,
       {
       if(!strcmp(plugin->name, opt->blacklist[i]))
         {
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Not loading %s (blacklisted)", plugin->name);
-        dlclose(test_module);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN,
+               "Not loading %s (blacklisted)", plugin->name);
         return NULL;
         }
       i++;
@@ -748,7 +746,8 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
     test_module = dlopen(filename, RTLD_NOW);
     if(!test_module)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "dlopen failed for %s: %s", filename, dlerror());
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "dlopen failed for %s: %s",
+             filename, dlerror());
       continue;
       }
 
