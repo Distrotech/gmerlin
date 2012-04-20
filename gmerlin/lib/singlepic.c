@@ -356,10 +356,14 @@ static int open_stills_input(void * priv, const char * filename)
     gavl_metadata_copy(&inp->track_info.metadata, m);
     }
 
-  tag = gavl_metadata_get(m, GAVL_META_FORMAT);
+  tag = gavl_metadata_get(&inp->track_info.metadata,
+                          GAVL_META_FORMAT);
   if(tag)
     gavl_metadata_set(&inp->track_info.video_streams[0].m,
                       GAVL_META_FORMAT, tag);
+  else
+    gavl_metadata_set(&inp->track_info.video_streams[0].m,
+                      GAVL_META_FORMAT, "Image");
   
   gavl_metadata_set(&inp->track_info.metadata,
                     GAVL_META_FORMAT, "Still image");

@@ -248,8 +248,11 @@ int bg_ocr_run(bg_ocr_t * ocr,
   else
     result = ocr->funcs->run(ocr, format, frame, ret);
 
-  if(!result)
+  if(!result || (**ret == '\0'))
     {
+    if(*ret)
+      free(*ret);
+    
     bg_log(BG_LOG_WARNING, LOG_DOMAIN,
            "OCR failed, keeping %s", ocr->image_file);
     *ret = ocr->image_file;
