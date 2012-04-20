@@ -166,10 +166,6 @@ static void msg_subtitle_stream_info(bg_msg_t * msg, const void * data)
   bg_msg_set_arg_metadata(msg, 1, &si->track->subtitle_streams[si->index].m);
   }
 
-
-
-
-
 static void msg_mute(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_MUTE);

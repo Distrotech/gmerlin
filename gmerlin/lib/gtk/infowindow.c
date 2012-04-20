@@ -563,6 +563,17 @@ static gboolean idle_callback(gpointer data)
           }
         gavl_metadata_free(&arg_m);
         break;
+      case BG_PLAYER_MSG_SUBTITLE_STREAM_INFO:
+        gavl_metadata_init(&arg_m);
+        bg_msg_get_arg_metadata(msg, 1, &arg_m);
+        tmp_string = bg_metadata_to_string(&arg_m, 1);
+        if(tmp_string)
+          {
+          set_line_multi(w, PATH_SUBTITLE_DESC, tmp_string);
+          free(tmp_string);
+          }
+        gavl_metadata_free(&arg_m);
+        break;
       case BG_PLAYER_MSG_VIDEO_STREAM_INFO:
         gavl_metadata_init(&arg_m);
         bg_msg_get_arg_metadata(msg, 1, &arg_m);

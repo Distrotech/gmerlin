@@ -923,18 +923,6 @@ void main_menu_set_num_chapters(main_menu_t * m,
   chapter_menu_set_num(m->g, &m->chapter_menu, num, timescale);
   }
 
-void main_menu_set_audio_info(main_menu_t * m, int stream,
-                              const char * info,
-                              const char * language)
-  {
-  char * label;
-  GtkWidget * w;
-  
-  label = bg_get_stream_label(stream, info, language);
-  w = m->audio_stream_menu.stream_items[stream];
-  gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
-  free(label);
-  }
 
 void main_menu_set_chapter_info(main_menu_t * m, int chapter,
                                 const char * name,
@@ -971,24 +959,24 @@ void main_menu_chapter_changed(main_menu_t * m, int chapter)
   }
 
 
-
-
-void main_menu_set_video_info(main_menu_t * m, int stream,
-                              const char * info,
-                              const char * language)
+void main_menu_set_audio_info(main_menu_t * m, int stream,
+                              const gavl_metadata_t * metadata)
   {
   char * label;
   GtkWidget * w;
-  if(info && language && *language)
-    label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
-  else if(info)
-    label = bg_sprintf("%s", info);
-  else if(language && *language)
-    label = bg_sprintf(TR("Stream %d [%s]"), stream+1,
-                       bg_get_language_name(language));
-  else
-    label = bg_sprintf(TR("Stream %d"), stream+1);
-  
+  label = bg_get_stream_label(stream, metadata);
+  w = m->audio_stream_menu.stream_items[stream];
+  gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
+  free(label);
+  }
+
+
+void main_menu_set_video_info(main_menu_t * m, int stream,
+                              const gavl_metadata_t * metadata)
+  {
+  char * label;
+  GtkWidget * w;
+  label = bg_get_stream_label(stream, metadata);
   w = m->video_stream_menu.stream_items[stream];
   gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
 
@@ -997,21 +985,11 @@ void main_menu_set_video_info(main_menu_t * m, int stream,
   }
 
 void main_menu_set_subtitle_info(main_menu_t * m, int stream,
-                                 const char * info,
-                                 const char * language)
+                                 const gavl_metadata_t * metadata)
   {
   char * label;
   GtkWidget * w;
-  if(info && language && *language)
-    label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
-  else if(info)
-    label = bg_sprintf("%s", info);
-  else if(language && *language)
-    label = bg_sprintf(TR("Stream %d [%s]"), stream+1,
-                       bg_get_language_name(language));
-  else
-    label = bg_sprintf(TR("Stream %d"), stream+1);
-  
+  label = bg_get_stream_label(stream, metadata);
   w = m->subtitle_stream_menu.stream_items[stream];
   gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
   free(label);

@@ -47,6 +47,8 @@
 
 #include <gmerlin/translation.h>
 
+#include <gavl/metatags.h>
+
 
 #include <md5.h>
 
@@ -576,14 +578,20 @@ char * bg_filename_ensure_extension(const char * filename,
     return bg_sprintf("%s.%s", filename, ext);
   }
 
-char * bg_get_stream_label(int index, const char * info, const char * language)
+char * bg_get_stream_label(int index, const gavl_metadata_t * m)
   {
   char * label;
-  if(info && language && *language)
+  const char * info;
+  const char * language;
+  
+  info = gavl_metadata_get(m, GAVL_META_LABEL);
+  language = gavl_metadata_get(m, GAVL_META_LANGUAGE);
+  
+  if(info && language)
     label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
   else if(info)
     label = bg_sprintf("%s", info);
-  else if(language && *language)
+  else if(language)
     label = bg_sprintf(TR("Stream %d [%s]"), index+1, bg_get_language_name(language));
   else
     label = bg_sprintf(TR("Stream %d"), index+1);

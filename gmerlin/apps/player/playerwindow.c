@@ -373,7 +373,6 @@ static void handle_message(player_window_t * win,
   int arg_i_3;
   float arg_f_1;
   char * arg_str_1;
-  char * arg_str_2;
   gavl_time_t time;
 
   id = bg_msg_get_id(msg);
@@ -566,32 +565,36 @@ static void handle_message(player_window_t * win,
       main_menu_set_subtitle_index(win->main_menu, arg_i_1);
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM_INFO:
+      {
+      gavl_metadata_t m;
+      gavl_metadata_init(&m);
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
-      arg_str_1 = bg_msg_get_arg_string(msg, 1);
-      arg_str_2 = bg_msg_get_arg_string(msg, 2);
-      main_menu_set_audio_info(win->main_menu, arg_i_1, arg_str_1, arg_str_2);
-      if(arg_str_1) free(arg_str_1);
-      if(arg_str_2) free(arg_str_2);
+      bg_msg_get_arg_metadata(msg, 1, &m);
+      main_menu_set_audio_info(win->main_menu, arg_i_1, &m);
+      gavl_metadata_free(&m);
+      }
       break;
     case BG_PLAYER_MSG_VIDEO_STREAM_INFO:
+      {
+      gavl_metadata_t m;
+      gavl_metadata_init(&m);
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
-      arg_str_1 = bg_msg_get_arg_string(msg, 1);
-      arg_str_2 = bg_msg_get_arg_string(msg, 2);
-      main_menu_set_video_info(win->main_menu, arg_i_1, arg_str_1, arg_str_2);
-      if(arg_str_1) free(arg_str_1);
-      if(arg_str_2) free(arg_str_2);
+      bg_msg_get_arg_metadata(msg, 1, &m);
+      main_menu_set_video_info(win->main_menu, arg_i_1, &m);
+      gavl_metadata_free(&m);
+      }
       break;
     case BG_PLAYER_MSG_SUBTITLE_STREAM_INFO:
+      {
+      gavl_metadata_t m;
+      gavl_metadata_init(&m);
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
-      arg_str_1 = bg_msg_get_arg_string(msg, 1);
-      arg_str_2 = bg_msg_get_arg_string(msg, 2);
-      main_menu_set_subtitle_info(win->main_menu, arg_i_1, arg_str_1,
-                                  arg_str_2);
-      if(arg_str_1) free(arg_str_1);
-      if(arg_str_2) free(arg_str_2);
+      bg_msg_get_arg_metadata(msg, 1, &m);
+      main_menu_set_subtitle_info(win->main_menu, arg_i_1, &m);
+      gavl_metadata_free(&m);
+      }
       break;
     }
-  
   }
 
 void player_window_push_accel(player_window_t * w, int accel)

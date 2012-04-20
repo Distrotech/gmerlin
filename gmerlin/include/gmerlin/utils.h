@@ -23,6 +23,7 @@
 #define __BG_UTILS_H_
 
 #include <gavl/gavl.h>
+#include <gavl/metadata.h>
 
 /** \defgroup utils Utilities
  *  \brief Utility functions
@@ -419,7 +420,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs);
  *  \returns A newly allocated string
  */
 
-char * bg_get_stream_label(int index, const char * info, const char * language);
+char * bg_get_stream_label(int index, const gavl_metadata_t * m);
 
 /** \brief Dump to stderr
  *  \param format Format (printf compatible)

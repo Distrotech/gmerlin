@@ -77,16 +77,13 @@ void main_menu_set_chapter_info(main_menu_t * m, int chapter,
 void main_menu_chapter_changed(main_menu_t * m, int chapter);
 
 void main_menu_set_audio_info(main_menu_t *, int stream,
-                              const char * info,
-                              const char * language);
+                              const gavl_metadata_t * m);
 
 void main_menu_set_video_info(main_menu_t *, int stream,
-                              const char * info,
-                              const char * language);
+                              const gavl_metadata_t * m);
 
 void main_menu_set_subtitle_info(main_menu_t *, int stream,
-                                 const char * info,
-                                 const char * language);
+                                 const gavl_metadata_t * m);
 
 void
 main_menu_update_streams(main_menu_t *,
