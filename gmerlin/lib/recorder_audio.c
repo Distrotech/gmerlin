@@ -31,6 +31,8 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "recorder.audio"
 
+#include <gavl/metatags.h>
+
 void bg_recorder_create_audio(bg_recorder_t * rec)
   {
   bg_recorder_audio_stream_t * as = &rec->as;
@@ -75,7 +77,7 @@ void bg_recorder_destroy_audio(bg_recorder_t * rec)
 
   gavl_peak_detector_destroy(as->pd);
   pthread_mutex_destroy(&as->eof_mutex);
-  
+  gavl_metadata_free(&as->m);
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -145,9 +147,7 @@ bg_recorder_set_audio_parameter(void * data,
       as->flags &= ~STREAM_ACTIVE;
     }
   else if(!strcmp(name, "language"))
-    {
-    strncpy(as->language, val->val_str, 3);
-    }
+    gavl_metadata_set(&as->m, GAVL_META_LANGUAGE, val->val_str);
   else if(!strcmp(name, "plugin"))
     {
     const bg_plugin_info_t * info;
@@ -308,7 +308,7 @@ int bg_recorder_audio_init(bg_recorder_t * rec)
 
   if(as->flags & STREAM_ENCODE)
     {
-    as->enc_index = bg_encoder_add_audio_stream(rec->enc, as->language,
+    as->enc_index = bg_encoder_add_audio_stream(rec->enc, &as->m,
                                                 &as->pipe_format, 0);
     }
   

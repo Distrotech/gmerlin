@@ -92,10 +92,10 @@ typedef struct
 
   int enc_index;
 
-  char language[4];
-
   int eof;
   pthread_mutex_t eof_mutex;
+
+  gavl_metadata_t m;
   
   } bg_recorder_audio_stream_t;
 

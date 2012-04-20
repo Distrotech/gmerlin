@@ -36,6 +36,8 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "ir_bmp"
 
+#include <gavl/metatags.h>
+
 
 #define BI_RGB       0
 #define BI_RLE8      1
@@ -58,6 +60,8 @@ typedef struct
   unsigned long width, height;
   unsigned long y_per_meter, x_per_meter;
   RGBQUAD rgbQuads[256];
+
+  gavl_metadata_t m;
   } bmp_t;
 
 
@@ -346,6 +350,9 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
   format->image_height = format->frame_height;
   format->pixel_width = 1;
   format->pixel_height = 1;
+
+  gavl_metadata_set(&p->m, GAVL_META_FORMAT, "BMP");
+  
   
   return 1;
   }
@@ -736,6 +743,12 @@ static int read_image_bmp(void *priv, gavl_video_frame_t *frame)
   return 1;
   }
 
+static const gavl_metadata_t * get_metadata_bmp(void * priv)
+  {
+  bmp_t *p = priv;
+  return &p->m;
+  }
+
 const bg_image_reader_plugin_t the_plugin =
   {
     .common =
@@ -752,6 +765,7 @@ const bg_image_reader_plugin_t the_plugin =
     },
     .extensions =    "bmp",
     .read_header = read_header_bmp,
+    .get_metadata = get_metadata_bmp,
     .read_image =  read_image_bmp,
   };
 

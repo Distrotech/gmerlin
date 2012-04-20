@@ -32,6 +32,7 @@
 #include <config.h>
 #include <gmerlin/translation.h>
 
+#include <gavl/metatags.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "ir_pnm"
@@ -62,6 +63,8 @@ typedef struct
   int width;
   int height;
   int maxval;
+
+  gavl_metadata_t m;
   } pnm_t;
 
 
@@ -79,8 +82,9 @@ static void destroy_pnm(void* priv)
   pnm_t * pnm = priv;
   if(pnm->buffer)
     free(pnm->buffer);
-  if(pnm)
-    free(pnm);
+  gavl_metadata_free(&pnm-> m);
+  free(pnm);
+  
   }
 
 static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t * format)
@@ -274,7 +278,13 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
   
   format->pixel_width = 1;
   format->pixel_height = 1;
-  
+
+  if((p->is_pnm == PGMbin) || (p->is_pnm == PGMascii))
+    gavl_metadata_set(&p->m, GAVL_META_FORMAT, "PGM");
+  else if((p->is_pnm == PBMbin) || (p->is_pnm == PBMascii))
+    gavl_metadata_set(&p->m, GAVL_META_FORMAT, "PBM");
+  else
+    gavl_metadata_set(&p->m, GAVL_META_FORMAT, "PPM");
   return 1;
   }
 
@@ -629,6 +639,13 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   return 1;
   }
 
+static const gavl_metadata_t * get_metadata_pnm(void * priv)
+  {
+  pnm_t *p = priv;
+  return &p->m;
+  }
+
+
 const bg_image_reader_plugin_t the_plugin =
   {
     .common =
@@ -645,6 +662,7 @@ const bg_image_reader_plugin_t the_plugin =
     },
     .extensions =    "pnm ppm pbm pgm",
     .read_header = read_header_pnm,
+    .get_metadata = get_metadata_pnm,
     .read_image =  read_image_pnm,
   };
 

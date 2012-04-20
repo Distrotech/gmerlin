@@ -35,6 +35,9 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "ir_tiff"
 
+#include <gavl/metatags.h>
+
+
 typedef struct
   {
   uint8_t *buffer;
@@ -57,7 +60,8 @@ typedef struct
   void (*convert_scanline)(uint8_t * dst, uint8_t * src,
                            int width, int plane);
   
-
+  gavl_metadata_t m;
+  
   } tiff_t;
 
 static void * create_tiff()
@@ -70,7 +74,9 @@ static void * create_tiff()
 static void destroy_tiff(void* priv)
   {
   tiff_t * tiff = priv;
-  if(tiff->buffer) free(tiff->buffer);
+  if(tiff->buffer)
+    free(tiff->buffer);
+  gavl_metadata_free(&tiff->m);
   free(tiff);
   }
 
@@ -740,7 +746,8 @@ read_header_tiff(void *priv,const char *filename,
         
       }
     }
-  
+
+  gavl_metadata_set(&p->m, GAVL_META_FORMAT, "TIFF");
   return 1;
   }
 
@@ -883,6 +890,12 @@ static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
   return 1;
   }
 
+static const gavl_metadata_t * get_metadata_tiff(void * priv)
+  {
+  tiff_t * t = priv;
+  return &t->m;
+  }
+
 const bg_image_reader_plugin_t the_plugin =
   {
     .common =
@@ -899,6 +912,7 @@ const bg_image_reader_plugin_t the_plugin =
     },
     .extensions =    "tif tiff",
     .read_header = read_header_tiff,
+    .get_metadata = get_metadata_tiff,
     .read_image =  read_image_tiff,
   };
 

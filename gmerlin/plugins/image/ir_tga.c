@@ -32,6 +32,7 @@
 #define LOG_DOMAIN "ir_tga"
 
 #include "targa.h"
+#include <gavl/metatags.h>
 
 typedef struct
   {
@@ -41,6 +42,8 @@ typedef struct
   int bytes_per_pixel;
 
   char * filename;
+
+  gavl_metadata_t m;
   
   } tga_t;
 
@@ -61,6 +64,7 @@ static void destroy_tga(void* priv)
     gavl_video_frame_null(tga->frame);
     gavl_video_frame_destroy(tga->frame);
     }
+  gavl_metadata_free(&tga->m);
   free(tga);
   }
 
@@ -126,6 +130,8 @@ static int read_header_tga(void * priv, const char * filename,
     goto fail;
 
   gavl_video_format_copy(&tga->format, format);
+
+  gavl_metadata_set(&tga->m, GAVL_META_FORMAT, "TGA");
   
   return 1;
   fail:
@@ -207,6 +213,12 @@ static int read_image_tga(void * priv, gavl_video_frame_t * frame)
   return ret;
   }
 
+static const gavl_metadata_t * get_metadata_tga(void * priv)
+  {
+  tga_t * t = priv;
+  return &t->m;
+  }
+
 const bg_image_reader_plugin_t the_plugin =
   {
     .common =
@@ -223,6 +235,7 @@ const bg_image_reader_plugin_t the_plugin =
     },
     .extensions =    "tga",
     .read_header = read_header_tga,
+    .get_metadata = get_metadata_tga,
     .get_compression_info = get_compression_info_tga,
     .read_image =  read_image_tga,
   };
