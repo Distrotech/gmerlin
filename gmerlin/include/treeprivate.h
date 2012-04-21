@@ -73,6 +73,7 @@ typedef struct
   char * metadata_format;
 
   char * blacklist;
+  char * blacklist_files;
   
   /* Shuffle list */
 

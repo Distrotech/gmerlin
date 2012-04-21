@@ -2184,17 +2184,34 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
 static int is_blacklisted(bg_album_common_t * com,
                           const char * url)
   {
-  const char * ext;
+  const char * pos;
   if(!com->blacklist) // No blacklist
     return 0;
   if(strncmp(url, "file:", 5) && (*url != '/'))  // Remote file
     return 0;
 
-  ext = strrchr(url, '.');
-  if(!ext)
-    return 0;
-  ext++;
-  return bg_string_match(ext, com->blacklist);
+  pos = strrchr(url, '.');
+  if(pos)
+    {
+    pos++;
+    if(bg_string_match(pos, com->blacklist))
+      {
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Not loading %s (blacklisted extension)", url);
+      return 1;
+      }
+    }
+  
+  pos = strrchr(url, '/');
+  if(pos)
+    {
+    pos++;
+    if(bg_string_match(pos, com->blacklist_files))
+      {
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Not loading %s (blacklisted filename)", url);
+      return 1;
+      }
+    }
+  return 0;
   }
 
 bg_album_entry_t * bg_album_load_url(bg_album_t * album,
@@ -2217,7 +2234,6 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
 
   if(is_blacklisted(album->com, url))
     {
-    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Not loading %s (blacklisted extension)", url);
     return NULL;
     }
   

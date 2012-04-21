@@ -473,6 +473,10 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
     free(t->com.metadata_format);
   if(t->com.blacklist)
     free(t->com.blacklist);
+
+  if(t->com.blacklist_files)
+    free(t->com.blacklist_files);
+
   if(t->com.load_handle)
     bg_plugin_unref(t->com.load_handle);
   
@@ -1193,10 +1197,16 @@ unused album files) at program exit")
     },
     {
       .name =        "blacklist",
-      .long_name =   TRS("Blacklist"),
+      .long_name =   TRS("Blacklisted extensions"),
       .type =        BG_PARAMETER_STRING,
       .val_default = { .val_str = "srt txt pdf nfo" },
       .help_string = TRS("File extensions, which are never loaded automatically"),
+    },
+    {
+      .name =        "blacklist_files",
+      .long_name =   TRS("Blacklisted filenames"),
+      .type =        BG_PARAMETER_STRING,
+      .help_string = TRS("Filenames, which are never loaded automatically"),
     },
     {
       .name =        "add_directory_path",
@@ -1245,6 +1255,10 @@ void bg_media_tree_set_parameter(void * priv, const char * name,
   else if(!strcmp(name, "blacklist"))
     {
     tree->com.blacklist = bg_strdup(tree->com.blacklist, val->val_str);
+    }
+  else if(!strcmp(name, "blacklist_files"))
+    {
+    tree->com.blacklist_files = bg_strdup(tree->com.blacklist_files, val->val_str);
     }
   else if(!strcmp(name, "purge_directory"))
     {
