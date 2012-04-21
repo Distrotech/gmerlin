@@ -167,6 +167,9 @@ int read_header_jpeg(void * priv, const char * filename,
         format->pixelformat = GAVL_RGB_24;
         }
       break;
+    case JCS_GRAYSCALE:
+      format->pixelformat = GAVL_GRAY_8;
+      break;
     default:
       format->pixelformat = GAVL_RGB_24;
     }
@@ -200,7 +203,8 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
     return 1;
     }
   
-  if(jpeg->format.pixelformat != GAVL_RGB_24)
+  if((jpeg->format.pixelformat != GAVL_RGB_24) &&
+     (jpeg->format.pixelformat != GAVL_GRAY_8))
     jpeg->cinfo.raw_data_out = TRUE;
   
   jpeg_start_decompress(&jpeg->cinfo);
@@ -208,6 +212,7 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
   switch(jpeg->format.pixelformat)
     {
     case GAVL_RGB_24:
+    case GAVL_GRAY_8:
       while(jpeg->cinfo.output_scanline < jpeg->cinfo.output_height)
         {
         for(i = 0; i < 16; i++)

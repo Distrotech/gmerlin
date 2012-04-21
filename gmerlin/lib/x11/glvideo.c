@@ -208,7 +208,8 @@ static void create_texture(gl_priv_t * priv,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
   glTexImage2D(GL_TEXTURE_2D, 0,
-               ret->type,
+               GL_RGBA,
+               // ret->type,
                texture_format.frame_width,
                texture_format.frame_height,
                0,
