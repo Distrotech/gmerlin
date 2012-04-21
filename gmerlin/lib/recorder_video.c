@@ -352,13 +352,9 @@ bg_recorder_set_video_monitor_parameter(void * data,
     if(vs->monitor_plugin->set_callbacks)
       vs->monitor_plugin->set_callbacks(vs->monitor_handle->priv,
                                         &vs->monitor_cb);
-    if(vs->monitor_plugin->show_window)
-      vs->monitor_plugin->show_window(vs->monitor_handle->priv, 1);
 
-    if(!rec->display_string &&
-       vs->monitor_plugin->set_window_title)
-      vs->monitor_plugin->set_window_title(vs->monitor_handle->priv, "Gmerlin recorder "VERSION);
-    
+    if(vs->monitor_plugin->show_window && rec->display_string)
+      vs->monitor_plugin->show_window(vs->monitor_handle->priv, 1);
     }
   else if(vs->monitor_handle && vs->monitor_plugin->common.set_parameter)
     {
@@ -849,6 +845,13 @@ int bg_recorder_video_init(bg_recorder_t * rec)
     vs->do_convert_monitor = gavl_video_converter_init(vs->monitor_cnv, &vs->pipe_format,
                                                        &vs->monitor_format);
     vs->flags |= STREAM_MONITOR_OPEN;
+
+    if(vs->monitor_plugin->show_window && !rec->display_string)
+      {
+      vs->monitor_plugin->show_window(vs->monitor_handle->priv, 1);
+      if(vs->monitor_plugin->set_window_title)
+        vs->monitor_plugin->set_window_title(vs->monitor_handle->priv, "Gmerlin recorder "VERSION);
+      }
     }
   else
     vs->do_convert_monitor = 0;
