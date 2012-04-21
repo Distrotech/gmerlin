@@ -288,7 +288,12 @@ static int open_v4l(void * priv,
   //  create_card_parameters(v4l->fd);
 
   if(v4l->controls)
+    {
     free(v4l->controls);
+    v4l->controls = NULL;
+    }
+  if(v4l->fd < 0)
+    return 0;
   
   v4l->controls =
     bgv4l2_create_device_controls(v4l->fd, &v4l->num_controls);
