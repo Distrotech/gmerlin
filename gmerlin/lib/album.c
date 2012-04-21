@@ -108,7 +108,8 @@ void bg_album_set_default_location(bg_album_t * album)
 
 static void entry_from_track_info(bg_album_common_t * com,
                                   bg_album_entry_t * entry,
-                                  bg_track_info_t  * track_info)
+                                  bg_track_info_t  * track_info,
+                                  int update_name)
   {
   int i;
   int name_set = 0;
@@ -128,7 +129,7 @@ static void entry_from_track_info(bg_album_common_t * com,
   
   entry->num_subtitle_streams = track_info->num_subtitle_streams;
 
-  if(!(entry->flags & BG_ALBUM_ENTRY_PRIVNAME))
+  if(!entry->name || update_name)
     {
     if(entry->name)
       {
@@ -163,7 +164,8 @@ static void entry_from_track_info(bg_album_common_t * com,
       else
         {
         entry->name =
-          bg_get_track_name_default(entry->location, entry->index, entry->total_tracks);
+          bg_get_track_name_default(entry->location,
+                                    entry->index, entry->total_tracks);
         }
       }
     }
@@ -182,9 +184,10 @@ static void entry_from_track_info(bg_album_common_t * com,
 
 void bg_album_update_entry(bg_album_t * album,
                            bg_album_entry_t * entry,
-                           bg_track_info_t  * track_info, int callback)
+                           bg_track_info_t  * track_info,
+                           int callback, int update_name)
   {
-  entry_from_track_info(album->com, entry, track_info);
+  entry_from_track_info(album->com, entry, track_info, update_name);
   if(callback)
     bg_album_entry_changed(album, entry);
   }
@@ -196,7 +199,7 @@ bg_album_entry_create_from_track_info(bg_track_info_t * track_info,
   bg_album_entry_t * ret;
   ret = bg_album_entry_create();
   ret->location = bg_strdup(ret->location, url);
-  entry_from_track_info(NULL, ret, track_info);
+  entry_from_track_info(NULL, ret, track_info, 1);
   return ret;
   }
 
@@ -1652,8 +1655,7 @@ void bg_album_rename_track(bg_album_t * album,
     entry = entry->next;
     }
   entry->name = bg_strdup(entry->name, name);
-  entry->flags |= BG_ALBUM_ENTRY_PRIVNAME;
-
+  
   if(entry->name_w)
     {
     free(entry->name_w);
@@ -2267,7 +2269,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
            new_entry->index+1, new_entry->total_tracks);
     
     bg_album_common_set_auth_info(album->com, new_entry);
-    bg_album_update_entry(album, new_entry, track_info, 0);
+    bg_album_update_entry(album, new_entry, track_info, 0, 1);
     
     new_entry->plugin = bg_strdup(new_entry->plugin, plugin_name);
     
@@ -2364,7 +2366,7 @@ static int refresh_entry(bg_album_t * album,
                              entry->total_tracks, entry->name);
     }
   
-  bg_album_update_entry(album, entry, track_info, 1);
+  bg_album_update_entry(album, entry, track_info, 1, 1);
   plugin->close(album->com->load_handle->priv);
   bg_album_entry_changed(album, entry);
   return 1;

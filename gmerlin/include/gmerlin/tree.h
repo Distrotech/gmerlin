@@ -31,7 +31,6 @@
 
 #define BG_ALBUM_ENTRY_ERROR      (1<<0)
 #define BG_ALBUM_ENTRY_SELECTED   (1<<1)
-#define BG_ALBUM_ENTRY_PRIVNAME   (1<<2)
 #define BG_ALBUM_ENTRY_REDIRECTOR (1<<3)
 #define BG_ALBUM_ENTRY_SAVE_AUTH  (1<<4)
 #define BG_ALBUM_ENTRY_EDL        (1<<5)

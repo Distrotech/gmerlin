@@ -76,12 +76,6 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
       ret->flags |= BG_ALBUM_ENTRY_SAVE_AUTH;
     xmlFree(tmp_string);
     }
-  if((tmp_string = BG_XML_GET_PROP(node, "privname")))
-    {
-    if(atoi(tmp_string))
-      ret->flags |= BG_ALBUM_ENTRY_PRIVNAME;
-    xmlFree(tmp_string);
-    }
   
   node = node->children;
   
@@ -391,10 +385,6 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   if(entry->flags & BG_ALBUM_ENTRY_ERROR)
     {
     BG_XML_SET_PROP(xml_entry, "error", "1");
-    }
-  if(entry->flags & BG_ALBUM_ENTRY_PRIVNAME)
-    {
-    BG_XML_SET_PROP(xml_entry, "privname", "1");
     }
   if(entry->flags & BG_ALBUM_ENTRY_SAVE_AUTH)
     {

@@ -1128,7 +1128,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
            (char*)t->com.current_entry->location);
     goto fail;
     }
-  bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info, 1);
+  bg_album_update_entry(t->com.current_album,
+                        t->com.current_entry, track_info, 1, 0);
 
   bg_album_common_set_auth_info(&t->com, t->com.current_entry);
   

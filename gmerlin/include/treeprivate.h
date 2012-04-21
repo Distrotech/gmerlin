@@ -176,7 +176,8 @@ int bg_album_inotify(bg_album_t * a, uint8_t * event1);
 
 void bg_album_update_entry(bg_album_t * album,
                            bg_album_entry_t * entry,
-                           bg_track_info_t  * track_info, int callback);
+                           bg_track_info_t  * track_info,
+                           int callback, int update_name);
 
 int bg_album_get_unique_id(bg_album_t * album);
 
