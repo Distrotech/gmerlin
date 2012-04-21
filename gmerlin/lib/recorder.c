@@ -712,8 +712,8 @@ static void update_metadata(bg_recorder_t * rec)
   bg_subprocess_close(sp);
 
   if(!gavl_metadata_equal(&m, &rec->updated_metadata) ||
-     !rec->updated_name || 
-     strcmp(name, rec->updated_name))
+     (!rec->updated_name && name) ||
+     (name && rec->updated_name && strcmp(name, rec->updated_name)))
     {
     /* Metadata changed */
 
@@ -726,7 +726,9 @@ static void update_metadata(bg_recorder_t * rec)
     
     gavl_metadata_free(&rec->updated_metadata);
     memcpy(&rec->updated_metadata, &m, sizeof(m));
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track %s", name);
+
+    if(name)
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track %s", name);
     }
   else
     {
