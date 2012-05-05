@@ -538,7 +538,8 @@ static int load_channel_cache(bgav_input_context_t * ctx)
         goto fail;
       priv->channels[channel_index].extra_pcr_pid = atoi(attr);
 
-      ctx->tt->tracks[channel_index].name = bgav_strdup(priv->channels[channel_index].name);
+      ctx->tt->tracks[channel_index].name =
+        bgav_strdup(priv->channels[channel_index].name);
       
       while(channel_child)
         {
@@ -563,7 +564,8 @@ static int load_channel_cache(bgav_input_context_t * ctx)
             if(!strcmp(stream_node->name, "astream"))
               {
               s =
-                bgav_track_add_audio_stream(&ctx->tt->tracks[channel_index], ctx->opt);
+                bgav_track_add_audio_stream(&ctx->tt->tracks[channel_index],
+                                            ctx->opt);
               s->timescale = 90000;
               s->flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
               
@@ -923,9 +925,12 @@ static char * decode_eit_string(const bgav_options_t * opt,
 
 #define bcdtoint(i) ((((i & 0xf0) >> 4) * 10) + (i & 0x0f))
 
-/* Extract UTC time and date encoded in modified julian date format and return it as a time_t.
+/*
+ *  Extract UTC time and date encoded in modified julian date format and
+ *  return it as a time_t.
  */
-static void dvb_mjdtime (uint8_t *buf, struct tm *tma)
+
+static void dvb_mjdtime(uint8_t *buf, struct tm *tma)
   {
   int i;
   unsigned int year, month, day, hour, min, sec;
@@ -972,7 +977,6 @@ static void check_eit(bgav_input_context_t* ctx)
   fd_set rset;
   int version;
   struct timeval timeout;
-  char * pos_c;
   //  char * tmp_string;
   priv = ctx->priv;
   
@@ -1028,11 +1032,9 @@ static void check_eit(bgav_input_context_t* ctx)
   while(pos - start + 4 < len)
     {
     tmp = BGAV_PTR_2_16BE(pos); pos+=2;
-
     
     dvb_mjdtime(pos, &start_time);
     pos += 5;
-
     
     tmp = BGAV_PTR_2_24BE(pos); pos+=3;
 
@@ -1040,19 +1042,21 @@ static void check_eit(bgav_input_context_t* ctx)
     
     descriptors_end = pos + (tmp & 0x0fff);
     
-    
     if(tmp >> 13 == 0x04)
       {
       int desc_len, desc_tag;
       uint8_t * end_pos;
       gavl_metadata_t * m;
-      char time_string[32]; /* 26 actually */
+      char time_string[GAVL_METADATA_DATE_TIME_STRING_LEN];
       const char * tmp_string;
       
-      asctime_r(&start_time, time_string);
-      pos_c = strchr(time_string, '\n');
-      if(pos_c)
-        *pos_c = '\0';
+      gavl_metadata_date_time_to_string(start_time.tm_year + 1900,
+                                        start_time.tm_mon+1,
+                                        start_time.tm_mday,
+                                        start_time.tm_hour,
+                                        start_time.tm_min,
+                                        start_time.tm_sec,
+                                        time_string);
       
       /* Parse descriptors */
 
