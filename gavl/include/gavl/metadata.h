@@ -24,6 +24,11 @@
 
 #include <gavl/gavldefs.h>
 
+// YYYY-MM-DD
+#define GAVL_METADATA_DATE_STRING_LEN 11
+
+// YYYY-MM-DD HH:MM:SS
+#define GAVL_METADATA_DATE_TIME_STRING_LEN 20
 
 typedef struct
   {
@@ -65,6 +70,21 @@ gavl_metadata_set_date(gavl_metadata_t * m,
                        int year,
                        int month,
                        int day);
+
+GAVL_PUBLIC void
+gavl_metadata_date_to_string(int year,
+                             int month,
+                             int day, char * ret);
+
+GAVL_PUBLIC void
+gavl_metadata_date_time_to_string(int year,
+                                  int month,
+                                  int day,
+                                  int hour,
+                                  int minute,
+                                  int second,
+                                  char * ret);
+
 
 GAVL_PUBLIC void
 gavl_metadata_set_date_time(gavl_metadata_t * m,

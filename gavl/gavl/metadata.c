@@ -177,6 +177,31 @@ int gavl_metadata_get_int(const gavl_metadata_t * m,
   return 1;
   }
 
+/* Time <-> String */
+
+void
+gavl_metadata_date_to_string(int year,
+                             int month,
+                             int day, char * ret)
+  {
+  snprintf(ret, GAVL_METADATA_DATE_STRING_LEN,
+           "%04d-%02d-%02d", year, month, day);
+  }
+
+void
+gavl_metadata_date_time_to_string(int year,
+                                  int month,
+                                  int day,
+                                  int hour,
+                                  int minute,
+                                  int second,
+                                  char * ret)
+  {
+  snprintf(ret, GAVL_METADATA_DATE_TIME_STRING_LEN,
+           "%04d-%02d-%02d %02d:%02d:%02d",
+           year, month, day, hour, minute, second);
+  }
+
 void
 gavl_metadata_set_date(gavl_metadata_t * m,
                        const char * key,
@@ -185,8 +210,8 @@ gavl_metadata_set_date(gavl_metadata_t * m,
                        int day)
   {
   // YYYY-MM-DD
-  char buf[11];
-  snprintf(buf, 11, "%04d-%02d-%02d", year, month, day);
+  char buf[GAVL_METADATA_DATE_STRING_LEN];
+  gavl_metadata_date_to_string(year, month, day, buf);
   gavl_metadata_set(m, key, buf);
   }
 
@@ -201,9 +226,14 @@ gavl_metadata_set_date_time(gavl_metadata_t * m,
                             int second)
   {
   // YYYY-MM-DD HH:MM:SS
-  char buf[20];
-  snprintf(buf, 20, "%04d-%02d-%02d %02d:%02d:%02d",
-           year, month, day, hour, minute, second);
+  char buf[GAVL_METADATA_DATE_TIME_STRING_LEN];
+  gavl_metadata_date_time_to_string(year,
+                                    month,
+                                    day,
+                                    hour,
+                                    minute,
+                                    second,
+                                    buf);
   gavl_metadata_set(m, key, buf);
   }
 
