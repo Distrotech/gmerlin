@@ -475,7 +475,6 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
   int ret = 0;
   char * extensions;
   bg_nmj_file_t * file;
-  char time_str[BG_NMJ_TIME_STRING_LEN];
   int num = 0;
   
   memset(&tab, 0, sizeof(tab));
@@ -521,28 +520,11 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
       }
     else if(file->time != bg_nmj_string_to_time(song.create_time))
       {
-      bg_nmj_song_t new_song;
-
-      bg_nmj_time_to_string(file->time, time_str);
-      fprintf(stderr, "Song %s changed %s -> %s (%ld -> %ld)\n",
-              song.title, song.create_time, time_str,
-              bg_nmj_string_to_time(song.create_time), file->time);
-      
-      bg_nmj_song_init(&new_song);
-      
-      /* File changed */
-      if(!bg_nmj_song_get_info(db, plugin_reg, dir, file, 
-                              &new_song))
-        return 0;
-      //      bg_nmj_song_dump(&new_song);
-      
-      bg_nmj_song_update(db, &song, &new_song);
-      
-      bg_nmj_song_free(&new_song);
+      /* File changed, will be re-added later */
+      bg_nmj_song_delete(db, &song);
       }
-
     /* Remove from array */
-    if(file)
+    else
       bg_nmj_file_remove(files, file);
     
     bg_nmj_song_free(&song);
@@ -839,7 +821,13 @@ char * bg_nmj_find_dir(sqlite3 * db, const char * path)
     free(tab.val);
   return NULL;
   }
-  
+
+const char * bg_nmj_album_groups[] =
+  {
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
+    "Q-R", "S", "T", "U", "V", "W", "X-Y", "Z", "_OTHERS", NULL
+  };
+
 void bg_nmj_cleanup(sqlite3 * db)
   {
   int i;
@@ -920,7 +908,6 @@ void bg_nmj_cleanup(sqlite3 * db)
       }
     }
   
-  /* Rebuild indices */
-  
-  
+  /* Rebuild album groups */
+    
   }

@@ -137,6 +137,8 @@ void bg_nmj_create_new()
   int i;
   int result;
   sqlite3 * db;
+  int64_t id;
+  char * sql;
   
   if(!access("nmj_database", R_OK | W_OK))
     {
@@ -171,6 +173,29 @@ void bg_nmj_create_new()
     i++;
     }
   /* Set version number */
-  if(!bg_sqlite_exec(db, "INSERT INTO DB_VERSION ( ID, VERSION ) VALUES ( 1, '"DATABASE_VERSION "' );", NULL, NULL))
+  if(!bg_sqlite_exec(db, "INSERT INTO DB_VERSION ( ID, VERSION ) VALUES ( 1, '"DATABASE_VERSION"' );",
+                     NULL, NULL))
     return;
+
+  /* Set SCAN_SYSTEM */
+  if(!bg_sqlite_exec(db, "INSERT INTO SCAN_SYSTEM ( ID, TYPE, VALUE ) VALUES ( 1, 'RUNNING_STATUS', 0 );",
+                     NULL, NULL))
+    return;
+
+  /* Create album groups */
+
+  i = 0;
+  while(bg_nmj_album_groups[i])
+    {
+    id = bg_nmj_get_next_id(db, "SONG_GROUPS");
+    sql = sqlite3_mprintf("INSERT INTO SONG_GROUPS "
+                          "( ID, NAME, LANGUAGE ) VALUES "
+                          "( %"PRId64", %Q, 'EN' );",
+                          id, bg_nmj_album_groups[i]);
+    result = bg_sqlite_exec(db, sql, NULL, NULL);
+    sqlite3_free(sql);
+    if(!result)
+      return;
+    i++;
+    }
   }

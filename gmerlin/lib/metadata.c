@@ -146,7 +146,7 @@ static const bg_parameter_info_t parameters_common[] =
 static
 bg_parameter_info_t * get_parameters(gavl_metadata_t * m, int common)
   {
-  int i;
+  int i, year;
   int val_i;
   bg_parameter_info_t * ret;
 
@@ -164,7 +164,15 @@ bg_parameter_info_t * get_parameters(gavl_metadata_t * m, int common)
     SP_STR("album", GAVL_META_ALBUM);
     
     SP_INT("track", GAVL_META_TRACKNUMBER);
-    SP_STR("date",  GAVL_META_YEAR);
+
+    if(!strcmp(ret[i].name, "date"))
+      {
+      year = bg_metadata_get_year(m);
+      if(year)
+        ret[i].val_default.val_str = bg_sprintf("%d", year);
+      }
+    
+    //  SP_STR("date",  GAVL_META_YEAR);
     SP_STR("genre", GAVL_META_GENRE);
     SP_STR("comment", GAVL_META_COMMENT);
 
@@ -173,6 +181,7 @@ bg_parameter_info_t * get_parameters(gavl_metadata_t * m, int common)
     
     i++;
     }
+  
   return ret;
   }
 

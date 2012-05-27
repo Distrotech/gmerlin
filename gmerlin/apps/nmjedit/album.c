@@ -115,6 +115,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
   
   if(a->id < 0)
     {
+    char * artist;
     
     a->id = bg_nmj_get_next_id(db, "SONG_ALBUMS");
     a->title = bg_strdup(a->title, song->album);
@@ -130,11 +131,11 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     /* Insert */
 
     sql = sqlite3_mprintf("INSERT INTO SONG_ALBUMS "
-                         "( ID, TITLE, SEARCH_TITLE, TOTAL_ITEM, "
-                         "RELEASE_DATE, UPDATE_STATE ) VALUES "
-                         "( %"PRId64", %Q, %Q, %Q, %Q, %Q );",
-                         a->id, a->title, a->search_title, a->total_item,
-                         a->release_date, a->update_state);
+                          "( ID, TITLE, SEARCH_TITLE, TOTAL_ITEM, "
+                          "RELEASE_DATE, UPDATE_STATE ) VALUES "
+                          "( %"PRId64", %Q, %Q, %Q, %Q, %Q );",
+                          a->id, a->title, a->search_title, a->total_item,
+                          a->release_date, a->update_state);
     
     result = bg_sqlite_exec(db, sql, NULL, NULL);
     sqlite3_free(sql);
@@ -160,7 +161,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS_SONG_ALBUMS "
                          "( ID, PERSONS_ID, ALBUMS_ID, PERSON_TYPE ) VALUES "
                          "( %"PRId64", %"PRId64", %"PRId64", %Q );",
-                          id, song->albumartist_id, a->id, "ARTIST");
+                          id, a->artist_id, a->id, "ARTIST");
     result = bg_sqlite_exec(db, sql, NULL, NULL);
     sqlite3_free(sql);
     if(!result)
@@ -168,10 +169,18 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
 
     /* Get group */
 
-    group_id = bg_nmj_get_group(db, "SONG_GROUPS", a->search_title);
+    group_id = -1;
+    artist = bg_nmj_id_to_string(db, "SONG_PERSONS", "NAME", "ID", a->artist_id);
+    
+    if(artist)
+      {
+      group_id = bg_nmj_get_group(db, "SONG_GROUPS", artist);
+      free(artist);
+      }
+    
     if(group_id >= 0)
       {
-      id = bg_nmj_get_next_id(db, "SONG_GROUPS");
+      id = bg_nmj_get_next_id(db, "SONG_GROUPS_SONG_ALBUMS");
       sql = sqlite3_mprintf("INSERT INTO SONG_GROUPS_SONG_ALBUMS "
                             "( ID, GROUPS_ID, ALBUMS_ID ) VALUES "
                             "( %"PRId64", %"PRId64", %"PRId64" );",
@@ -324,14 +333,21 @@ static int remove_album(sqlite3 * db, int64_t album_id)
     return 0;
   
   /* Delete from persons */
-  sql = sqlite3_mprintf("DELETE FROM SONG_PERSONS_SONG_ALBUMS WHERE ID = %"PRId64";", album_id);
+  sql = sqlite3_mprintf("DELETE FROM SONG_PERSONS_SONG_ALBUMS WHERE ALBUMS_ID = %"PRId64";", album_id);
   result = bg_sqlite_exec(db, sql, NULL, NULL);
   sqlite3_free(sql);
   if(!result)
     return 0;
 
   /* Delete from genres */
-  sql = sqlite3_mprintf("DELETE FROM SONG_GENRES_SONG_ALBUMS WHERE ID = %"PRId64";", album_id);
+  sql = sqlite3_mprintf("DELETE FROM SONG_GENRES_SONG_ALBUMS WHERE ALBUMS_ID = %"PRId64";", album_id);
+  result = bg_sqlite_exec(db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  if(!result)
+    return 0;
+
+  /* Delete from Groups */
+  sql = sqlite3_mprintf("DELETE FROM SONG_GROUPS_SONG_ALBUMS WHERE ALBUMS_ID = %"PRId64";", album_id);
   result = bg_sqlite_exec(db, sql, NULL, NULL);
   sqlite3_free(sql);
   if(!result)

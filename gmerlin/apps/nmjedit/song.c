@@ -433,64 +433,6 @@ char * bg_nmj_song_get_cover(bg_nmj_song_t * song)
     num_cols++; \
     }
 
-int bg_nmj_song_update(sqlite3 * db,
-                       bg_nmj_song_t * old_song,
-                       bg_nmj_song_t * new_song)
-  {
-  int result;
-  char * sql;
-  char * tmp_string;
-  int num_cols = 0;
-  /* Update SONGS */
-
-  sql = bg_strdup(NULL, "UPDATE SONGS SET");
-
-  APPEND_STRING(title,        "TITLE");
-  APPEND_STRING(search_title, "SEARCH_TITLE");
-  APPEND_STRING(runtime,      "RUNTIME");
-  APPEND_STRING(format,       "FORMAT");
-  APPEND_INT(rating,          "RATING");
-  APPEND_INT(rating,          "SIZE");
-  APPEND_INT(rating,          "RATING");
-  APPEND_STRING(bit_rate,     "BIT_RATE");
-  APPEND_INT(track_position,  "TRACK_POSITION");
-  APPEND_STRING(release_date, "RELEASE_DATE");
-  APPEND_STRING(create_time,  "CREATE_TIME");
-  
-  tmp_string = sqlite3_mprintf(" WHERE ID = %"PRId64, old_song->id);
-  sql = bg_strcat(sql, tmp_string);
-  sqlite3_free(tmp_string);
-
-  if(num_cols)
-    result = bg_sqlite_exec(db, sql, NULL, NULL);
-  else
-    result = 1;
-  
-  free(sql);
-
-  if(!result)
-    return 0;
-  
-  /* Album changed */
-  if(old_song->album_id != new_song->album_id)
-    {
-    
-    }
-  
-  /* Genre changed */
-  if(old_song->genre_id != new_song->genre_id)
-    {
-    
-    }
-
-  /* Artist changed */
-  if(old_song->genre_id != new_song->genre_id)
-    {
-    
-    }
-  
-  return 1;
-  }
 
 int bg_nmj_song_delete(sqlite3 * db, bg_nmj_song_t * song)
   {

@@ -196,14 +196,14 @@ int bg_nmj_song_query(sqlite3 * db, bg_nmj_song_t * song);
 
 int bg_nmj_song_add(bg_plugin_registry_t * plugin_reg,
                     sqlite3 * db, bg_nmj_song_t * song);
-int bg_nmj_song_update(sqlite3 * db,
-                       bg_nmj_song_t * old_song,
-                       bg_nmj_song_t * new_song);
+
 int bg_nmj_song_delete(sqlite3 * db, bg_nmj_song_t * song);
 
 char * bg_nmj_song_get_cover(bg_nmj_song_t * song);
 
 /* Album */
+
+extern const char * bg_nmj_album_groups[];
 
 typedef struct
   {
