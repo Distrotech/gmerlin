@@ -1041,7 +1041,18 @@ void bg_album_set_expanded(bg_album_t * a, int expanded)
   if(expanded)
     a->flags |= BG_ALBUM_EXPANDED;
   else
+    {
+    bg_album_t * child;
     a->flags &= ~BG_ALBUM_EXPANDED;
+    
+    /* Unexpand the children too */
+    child = a->children;
+    while(child)
+      {
+      bg_album_set_expanded(child, 0);
+      child = child->next;
+      }
+    }
   }
 
 int bg_album_get_expanded(bg_album_t * a)

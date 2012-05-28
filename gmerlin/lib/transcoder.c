@@ -319,6 +319,9 @@ struct subtitle_stream_s
   char in_language[4];
   char out_language[4];
   int force_language;
+
+  int64_t time_offset;
+  int64_t time_offset_scaled;
   };
 
 typedef struct
@@ -346,24 +349,28 @@ static void set_subtitle_parameter_general(void * data,
 
   if(!strcmp(name, "video_stream"))
     stream->video_stream = val->val_i-1;
-  if(!strcmp(name, "in_language"))
+  else if(!strcmp(name, "in_language"))
     {
     copy_language(stream->in_language, val->val_str);
     return;
     }
-  if(!strcmp(name, "language"))
+  else if(!strcmp(name, "language"))
     {
     copy_language(stream->out_language, val->val_str);
     return;
     }
-  if(!strcmp(name, "force_language"))
+  else if(!strcmp(name, "force_language"))
     {
     stream->force_language = val->val_i;
     return;
     }
-
-  if(set_stream_parameters_general(&stream->com,
-                                   name, val))
+  else if(!strcmp(name, "time_offset"))
+    {
+    stream->time_offset = (int64_t)(val->val_f * GAVL_TIME_SCALE + 0.5);
+    return;
+    }
+  else if(set_stream_parameters_general(&stream->com,
+                                        name, val))
     return;
   }
 
@@ -1347,6 +1354,9 @@ static void correct_subtitle_timestamp(subtitle_stream_t * s,
                                        int64_t * duration,
                                        bg_transcoder_t * t)
   {
+  /* Add offset */
+  *start += gavl_time_scale(s->in_format.timescale, s->time_offset);
+  
   /* Correct timestamps */
   
   if(t->start_time != GAVL_TIME_UNDEFINED)

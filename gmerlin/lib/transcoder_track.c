@@ -320,6 +320,15 @@ static const bg_parameter_info_t general_parameters_subtitle_text[] =
       .help_string = TRS("Force the given language even if the input has the language set differently.")
     },
     {
+      .name      = "time_offset",
+      .long_name = TRS("Time offset"),
+      .flags     = BG_PARAMETER_SYNC,
+      .type      = BG_PARAMETER_FLOAT,
+      .val_min   = { .val_f = -600.0 },
+      .val_max   = { .val_f =  600.0 },
+      .num_digits = 3,
+    },
+    {
       .name =        "video_stream",
       .long_name =   TRS("Video stream"),
       .type =        BG_PARAMETER_INT,

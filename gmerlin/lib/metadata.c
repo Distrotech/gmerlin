@@ -171,8 +171,6 @@ bg_parameter_info_t * get_parameters(gavl_metadata_t * m, int common)
       if(year)
         ret[i].val_default.val_str = bg_sprintf("%d", year);
       }
-    
-    //  SP_STR("date",  GAVL_META_YEAR);
     SP_STR("genre", GAVL_META_GENRE);
     SP_STR("comment", GAVL_META_COMMENT);
 

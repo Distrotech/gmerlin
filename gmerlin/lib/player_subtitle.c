@@ -53,6 +53,7 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   s = &player->subtitle_stream;
 
   bg_player_input_get_subtitle_format(player);
+
   
   if(DO_SUBTITLE_TEXT(player->flags))
     {
@@ -109,9 +110,36 @@ void bg_player_subtitle_cleanup(bg_player_t * player)
 #undef FREE_OVERLAY
 /* Configuration stuff */
 
+static bg_parameter_info_t general_parameters[] =
+  {
+    {
+      .name = "general",
+      .long_name = TRS("General"),
+      .type = BG_PARAMETER_SECTION,
+    },
+    {
+      .name      = "time_offset",
+      .long_name = TRS("Time offset"),
+      .flags     = BG_PARAMETER_SYNC,
+      .type      = BG_PARAMETER_FLOAT,
+      .val_min   = { .val_f = -600.0 },
+      .val_max   = { .val_f =  600.0 },
+      .num_digits = 3,
+    },
+    { /* */ }
+  };
+
 const bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * p)
   {
-  return bg_text_renderer_get_parameters();
+  if(!p->subtitle_stream.parameters)
+    {
+    const bg_parameter_info_t * info[3];
+    info[0] = general_parameters;
+    info[1] = bg_text_renderer_get_parameters();
+    info[2] = NULL;
+    p->subtitle_stream.parameters = bg_parameter_info_concat_arrays(info);
+    }
+  return p->subtitle_stream.parameters;
   }
 
 void bg_player_set_subtitle_parameter(void * data, const char * name,
@@ -123,9 +151,15 @@ void bg_player_set_subtitle_parameter(void * data, const char * name,
     return;
   
   pthread_mutex_lock(&player->subtitle_stream.config_mutex);
-  
-  bg_text_renderer_set_parameter(player->subtitle_stream.renderer,
-                                 name, val);
+
+  if(!strcmp(name, "time_offset"))
+    {
+    player->subtitle_stream.time_offset =
+      (int64_t)(val->val_f * GAVL_TIME_SCALE + 0.5);
+    }
+  else
+    bg_text_renderer_set_parameter(player->subtitle_stream.renderer,
+                                   name, val);
   
   pthread_mutex_unlock(&player->subtitle_stream.config_mutex);
   }
@@ -216,7 +250,8 @@ int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl)
 
   /* Unscale the overlay times */
   ovl->frame->timestamp =
-    gavl_time_unscale(s->input_format.timescale, ovl->frame->timestamp);
+    gavl_time_unscale(s->input_format.timescale, ovl->frame->timestamp) +
+    s->time_offset;
   ovl->frame->duration  =
     gavl_time_unscale(s->input_format.timescale, ovl->frame->duration);
 #ifdef DUMP_SUBTITLE

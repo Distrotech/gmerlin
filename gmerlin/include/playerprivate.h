@@ -152,6 +152,10 @@ typedef struct
   gavl_overlay_t * subtitles[2];
   
   int eof;
+
+  bg_parameter_info_t * parameters;
+  
+  int64_t time_offset;
   } bg_player_subtitle_stream_t;
 
 typedef struct
