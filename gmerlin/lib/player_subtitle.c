@@ -26,7 +26,7 @@
 #include <gmerlin/player.h>
 #include <playerprivate.h>
 
-#define DUMP_SUBTITLE
+// #define DUMP_SUBTITLE
 
 void bg_player_subtitle_create(bg_player_t * p)
   {
