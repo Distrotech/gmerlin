@@ -40,7 +40,7 @@ static const bg_parameter_info_t * get_audio_parameters_vorbis(void * data)
   return bg_vorbis_codec.get_parameters();
   }
 
-static int add_audio_stream_vorbis(void * data, const char * language,
+static int add_audio_stream_vorbis(void * data, const gavl_metadata_t *m,
                                    const gavl_audio_format_t * format)
   {
   int ret;
@@ -69,7 +69,7 @@ static int writes_compressed_audio_vorbis(void* data,
   }
 
 static int add_audio_stream_compressed_vorbis(void * data,
-                                              const char * language,
+                                              const gavl_metadata_t * m,
                                               const gavl_audio_format_t * format,
                                               const gavl_compression_info_t * ci)
   {

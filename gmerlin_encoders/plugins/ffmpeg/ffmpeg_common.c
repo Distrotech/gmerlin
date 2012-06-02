@@ -1133,6 +1133,9 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
   st = &priv->text_streams[stream];
 
   av_init_packet(&pkt);
+
+  fprintf(stderr, "Write subtitle 1 %ld -> %ld\n", start, start + duration);
+  fprintf(stderr, "%s\n", text);
   
   pkt.data     = (uint8_t*)bg_strdup(NULL, text);
   pkt.size     = strlen(text)+1;
@@ -1143,7 +1146,10 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
   pkt.duration= av_rescale_q(duration,
                              st->stream->codec->time_base,
                              st->stream->time_base) + st->pts_offset;
-  
+
+  fprintf(stderr, "Write subtitle 2 %ld -> %ld\n", pkt.pts,
+          pkt.pts + pkt.duration);
+
   pkt.convergence_duration = pkt.duration;
   pkt.dts = pkt.pts;
   pkt.stream_index = st->stream->index;
