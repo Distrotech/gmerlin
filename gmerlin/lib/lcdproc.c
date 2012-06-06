@@ -549,14 +549,17 @@ static int set_audio_description(bg_lcdproc_t * l, gavl_metadata_t * m)
   char * desc;
   char * command;
 
-  const char * format_str;
+  const char * format_str = NULL;
   int bitrate = 0;
 
-  format_str = gavl_metadata_get(m, GAVL_META_FORMAT);
+  if(m)
+    {
+    format_str = gavl_metadata_get(m, GAVL_META_FORMAT);
 
-  if(!gavl_metadata_get_int(m, GAVL_META_BITRATE, &bitrate))
-    bitrate = 0;
-
+    if(!gavl_metadata_get_int(m, GAVL_META_BITRATE, &bitrate))
+      bitrate = 0;
+    }
+  
   if(!format_str)
     desc = NULL;
   else
@@ -596,11 +599,13 @@ static int set_audio_description(bg_lcdproc_t * l, gavl_metadata_t * m)
 static int set_video_description(bg_lcdproc_t * l, gavl_metadata_t * m)
   {
   char * desc;
-  const char * format_str;
+  const char * format_str = NULL;
   char * command;
 
-  format_str = gavl_metadata_get(m, GAVL_META_FORMAT);
-
+  if(m)
+    format_str = gavl_metadata_get(m, GAVL_META_FORMAT);
+    
+  
   if(!format_str)
     desc = NULL;
   else

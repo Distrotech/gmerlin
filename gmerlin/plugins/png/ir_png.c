@@ -56,6 +56,13 @@ static void destroy_png(void* priv)
   {
   png_t * png = priv;
 
+  if(png->png_ptr)
+    png_destroy_read_struct(&png->png_ptr, &png->info_ptr,
+                            &png->end_info);
+  
+  if(png->file)
+    fclose(png->file);
+  
   free(png);
   }
 
@@ -281,8 +288,13 @@ static int read_image_png(void * priv, gavl_video_frame_t * frame)
   
   png_destroy_read_struct(&png->png_ptr, &png->info_ptr,
                           &png->end_info);
+  
+  png->png_ptr = NULL;
+  png->info_ptr = NULL;
+  png->end_info = NULL;
+  
   fclose(png->file);
-
+  png->file = NULL;
   if(rows)
     free(rows);
   gavl_metadata_free(&png->metadata);
