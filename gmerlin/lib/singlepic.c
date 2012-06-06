@@ -320,6 +320,15 @@ static int open_stills_input(void * priv, const char * filename)
     return 0;
   
   inp->handle = bg_plugin_load(inp->plugin_reg, info);
+
+  if(!inp->handle)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_DEC,
+           "Plugin %s could not be loaded",
+           info->name);
+    return 0;
+    }
+  
   inp->image_reader = (bg_image_reader_plugin_t*)inp->handle->plugin;
   
   /* Create stream */

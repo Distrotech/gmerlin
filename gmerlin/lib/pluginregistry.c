@@ -1574,7 +1574,11 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
           }
         ret->plugin = dlsym(ret->dll_handle, "the_plugin");
         if(!ret->plugin)
+          {
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "dlsym failed for %s: %s",
+                 info->module_filename, dlerror());
           goto fail;
+          }
         ret->priv = ret->plugin->create();
         break;
       case BG_PLUGIN_API_LADSPA:

@@ -40,6 +40,8 @@ static int log_mask = BG_LOG_ERROR | BG_LOG_WARNING | BG_LOG_INFO;
 static char * last_error = NULL;
 pthread_mutex_t last_error_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+// #define DUMP_LOG
+
 static const struct
   {
   bg_log_level_t level;
@@ -77,8 +79,10 @@ static void logs_internal(bg_log_level_t level, const char * domain,
   char ** lines;
   int i;
   FILE * out = stderr;
+#ifndef DUMP_LOG
   if(!log_queue)
     {
+#endif
     if(level & log_mask)
       {
       lines = bg_strbreak(msg_string, '\n');
@@ -99,8 +103,12 @@ static void logs_internal(bg_log_level_t level, const char * domain,
         }
       bg_strbreak_free(lines);
       }
+#ifndef DUMP_LOG
     }
   else
+#else
+  if(log_queue)
+#endif
     {
     msg = bg_msg_queue_lock_write(log_queue);
     bg_msg_set_id(msg, level);

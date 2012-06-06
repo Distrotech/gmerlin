@@ -83,6 +83,9 @@ static void destroy_jpeg(void* priv)
   jpeg_t * jpeg = priv;
   jpeg_destroy_decompress(&jpeg->cinfo);
   gavl_metadata_free(&jpeg->metadata);
+
+  if(jpeg->input)
+    fclose(jpeg->input);
   free(jpeg);
   }
 
@@ -273,7 +276,7 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
     }
   jpeg_finish_decompress(&jpeg->cinfo);
   fclose(jpeg->input);
-  
+  jpeg->input = NULL;
   return 1;
   }
 
