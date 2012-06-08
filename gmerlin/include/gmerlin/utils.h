@@ -415,8 +415,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs);
 
 /** \brief Create a stream label
  *  \param index Index of the stream (starting with 0)
- *  \param info Information (or NULL)
- *  \param language Language (or NULL)
+ *  \param m Metadata
  *  \returns A newly allocated string
  */
 
