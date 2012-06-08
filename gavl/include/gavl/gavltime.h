@@ -276,7 +276,8 @@ GAVL_PUBLIC
 uint64_t gavl_benchmark_get_time(int flags);
 
 /*! \ingroup timer
- * \brief Get a description about the value returned by \ref gavl_benchmark_get_time
+ * \brief Get a description about the value returned by
+ *        \ref gavl_benchmark_get_time
  * \param flags Flags returned by \ref gavl_accel_supported
  * \returns A string describing what the time value means
  *
