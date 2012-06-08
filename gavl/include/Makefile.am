@@ -11,6 +11,7 @@ colorspace.h \
 deinterlace.h \
 dsp.h \
 float_cast.h \
+gavfprivate.h \
 interleave.h \
 macros.h \
 mix.h \

@@ -1,5 +1,6 @@
 pkginclude_HEADERS = \
 compression.h \
+gavf.h \
 gavl.h \
 gavltime.h \
 gavl_version.h \

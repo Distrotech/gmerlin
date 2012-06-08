@@ -41,7 +41,7 @@ threednow_subdirs =
 endif
 
 
-SUBDIRS = hq c libgdither libsamplerate $(mmx_subdirs) \
+SUBDIRS = hq c gavf libgdither libsamplerate $(mmx_subdirs) \
 $(sse_subdirs) \
 $(sse2_subdirs) \
 $(sse3_subdirs) \
@@ -114,6 +114,7 @@ $(sse2_libs) \
 $(sse3_libs) \
 $(threednow_libs) \
 c/libgavl_c.la \
+gavf/libgavf.la \
 hq/libgavl_hq.la \
 libgdither/libgdither.la \
 libsamplerate/libsamplerate.la \
