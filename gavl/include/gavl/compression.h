@@ -117,6 +117,17 @@ void gavl_compression_info_free(gavl_compression_info_t* info);
 GAVL_PUBLIC
 void gavl_compression_info_dump(const gavl_compression_info_t * info);
 
+/** \brief Copy a compression info
+ *  \param dst Destination
+ *  \param src Source
+ *
+ */
+
+GAVL_PUBLIC
+void gavl_compression_info_copy(gavl_compression_info_t * dst,
+                                const gavl_compression_info_t * src);
+
+  
 /** \brief Get the file extension of the corresponding raw format
  *  \param id A codec ID
  *  \param separate If non-null returns 1 if each packet should be in a separate file
@@ -147,6 +158,16 @@ const char * gavl_compression_get_extension(gavl_codec_id_t id, int * separate);
 GAVL_PUBLIC
 int gavl_compression_need_pixelformat(gavl_codec_id_t id);
 
+/** \brief Check if an audio compression constant frame samples 
+ *  \param id A codec ID
+ *  \returns 1 if the compression has the same number of samples in each frame, 0 else
+ *
+ */
+
+GAVL_PUBLIC
+int gavl_compression_constant_frame_samples(gavl_codec_id_t id);
+
+  
   
 #define GAVL_PACKET_TYPE_I 'I'      //!< Packet is an I-frame
 #define GAVL_PACKET_TYPE_P 'P'      //!< Packet is a P-frame

@@ -20,6 +20,7 @@
  * *****************************************************************/
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
@@ -57,8 +58,9 @@ void gavl_compression_info_free(gavl_compression_info_t * info)
     free(info->global_header);
   }
 
-#define FLAG_SEPARATE          (1<<0)
-#define FLAG_NEEDS_PIXELFORMAT (1<<1)
+#define FLAG_SEPARATE           (1<<0)
+#define FLAG_NEEDS_PIXELFORMAT  (1<<1)
+#define FLAG_CFS                (1<<2) // Constant Frame Samples
 
 struct
   {
@@ -72,10 +74,10 @@ compression_ids[] =
     /* Audio */
     { GAVL_CODEC_ID_ALAW,      NULL,       "alaw"         },
     { GAVL_CODEC_ID_ULAW,      NULL,       "ulaw"         },
-    { GAVL_CODEC_ID_MP2,       "mp2",      "MPEG layer 2" },
-    { GAVL_CODEC_ID_MP3,       "mp3",      "MPEG layer 3" },
-    { GAVL_CODEC_ID_AC3,       "ac3",      "AC3"          },
-    { GAVL_CODEC_ID_AAC,       NULL,       "AAC"          },
+    { GAVL_CODEC_ID_MP2,       "mp2",      "MPEG layer 2", FLAG_CFS },
+    { GAVL_CODEC_ID_MP3,       "mp3",      "MPEG layer 3", FLAG_CFS },
+    { GAVL_CODEC_ID_AC3,       "ac3",      "AC3",          FLAG_CFS },
+    { GAVL_CODEC_ID_AAC,       NULL,       "AAC",          FLAG_CFS },
     { GAVL_CODEC_ID_VORBIS,    NULL,       "Vorbis"       },
     { GAVL_CODEC_ID_FLAC,      NULL,       "Flac"         },
     
@@ -116,6 +118,17 @@ int gavl_compression_need_pixelformat(gavl_codec_id_t id)
     {
     if(compression_ids[i].id == id)
       return !!(compression_ids[i].flags & FLAG_NEEDS_PIXELFORMAT);
+    }
+  return 0;
+  }
+
+int gavl_compression_constant_frame_samples(gavl_codec_id_t id)
+  {
+  int i;
+  for(i = 0; i < sizeof(compression_ids)/sizeof(compression_ids[0]); i++)
+    {
+    if(compression_ids[i].id == id)
+      return !!(compression_ids[i].flags & FLAG_CFS);
     }
   return 0;
   }
@@ -167,6 +180,19 @@ void gavl_compression_info_dump(const gavl_compression_info_t * info)
   else
     fprintf(stderr, "\n");
   }
+
+GAVL_PUBLIC
+void gavl_compression_info_copy(gavl_compression_info_t * dst,
+                                const gavl_compression_info_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
+  if(src->global_header)
+    {
+    dst->global_header = malloc(src->global_header_len);
+    memcpy(dst->global_header, src->global_header, src->global_header_len);
+    }
+  }
+
 
 GAVL_PUBLIC
 void gavl_packet_alloc(gavl_packet_t * p, int len)
