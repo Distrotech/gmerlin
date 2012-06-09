@@ -50,14 +50,6 @@ typedef struct
     } format;
 
   gavl_metadata_t m;
-
-  /* Secondary variables */
-  int timescale;
-  int packet_duration;
-  int64_t last_sync_pts;
-  int64_t last_pts;
-  
-  int has_pts;
   
   } gavf_stream_header_t;
 

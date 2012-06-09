@@ -107,9 +107,6 @@ int gavf_program_header_add_audio_stream(gavf_program_header_t * ph,
   
   gavl_compression_info_copy(&h->ci, ci);
   gavl_audio_format_copy(&h->format.audio, format);
-
-  gavf_stream_header_init_audio(h);
-  
   return ph->num_streams-1;
   }
 
@@ -124,8 +121,6 @@ int gavf_program_header_add_video_stream(gavf_program_header_t * ph,
   gavl_compression_info_copy(&h->ci, ci);
   gavl_video_format_copy(&h->format.video, format);
 
-  gavf_stream_header_init_video(h);
-
   return ph->num_streams-1;
   }
 
@@ -136,8 +131,6 @@ int gavf_program_header_add_text_stream(gavf_program_header_t * ph,
   gavf_stream_header_t * h = add_stream(ph, m);
   h->type = GAVF_STREAM_TEXT;
   h->format.text.timescale = timescale;
-  gavf_stream_header_init_text(h);
-  
   return ph->num_streams-1;
   }
 

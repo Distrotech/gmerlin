@@ -419,7 +419,7 @@ int gavf_write_metadata(gavf_io_t * io, const gavl_metadata_t * m)
 /* Packet */
 
 int gavf_read_gavl_packet(gavf_io_t * io,
-                          gavf_stream_header_t * sh,
+                          gavf_stream_t * s,
                           gavl_packet_t * p)
   {
   int i;
@@ -427,29 +427,29 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   gavl_extension_header_t eh;
 
   /* Flags */
-  if(!gavf_io_read_uint32v(io, &p->flags))
+  if(!gavf_io_read_uint32v(io, (uint32_t*)&p->flags))
     return 0;
   
   /* PTS */
-  if(sh->has_pts)
+  if(s->has_pts)
     {
     if(!gavf_io_read_int64v(io, &p->pts))
       return 0;
-    p->pts += sh->last_sync_pts;
+    p->pts += s->last_sync_pts;
     }
   else
     {
-    p->pts = sh->last_pts;
+    p->pts = s->last_pts;
     }
   
   /* Duration */
-  if(!sh->packet_duration)
+  if(!s->packet_duration)
     {
     if(!gavf_io_read_int64v(io, &p->duration))
       return 0;
     }
   else
-    p->duration = sh->packet_duration;
+    p->duration = s->packet_duration;
   
   /* Extensions */
   if(!gavf_io_read_uint32v(io, &num_extensions))
@@ -473,8 +473,8 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     }
 
   /* Set pts */
-  if(!sh->has_pts)
-    sh->last_pts += p->duration;
+  if(!s->has_pts)
+    s->last_pts += p->duration;
   
   /* Payload */
   if(!gavf_io_read_uint32v(io, (uint32_t*)&p->data_len))
@@ -487,7 +487,7 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   }
 
 int gavf_write_gavl_packet(gavf_io_t * io,
-                           gavf_stream_header_t * sh,
+                           gavf_stream_t * s,
                            const gavl_packet_t * p)
   {
   uint32_t num_extensions;
@@ -501,25 +501,24 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     return 0;
     
   /* PTS */
-  if(sh->has_pts)
+  if(s->has_pts)
     {
-    if(!gavf_io_write_int64v(io, p->pts - sh->last_sync_pts))
+    if(!gavf_io_write_int64v(io, p->pts - s->last_sync_pts))
       return 0;
     }
-
+  
   /* Duration */
-  if(!sh->packet_duration)
+  if(!s->packet_duration)
     {
     if(!gavf_io_write_int64v(io, p->duration))
       return 0;
     }
-
   
   /* Count Extensions */
 
   num_extensions = 0;
   
-  if(sh->packet_duration && (p->duration < sh->packet_duration))
+  if(s->packet_duration && (p->duration < s->packet_duration))
     num_extensions++;
 
   /* Write Extensions */
@@ -531,7 +530,7 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     gavf_buffer_init_static(&buf, data, MAX_EXT_SIZE_AF);
     gavf_io_init_buf_write(&bufio, &buf);
     
-    if(sh->packet_duration && (p->duration < sh->packet_duration))
+    if(s->packet_duration && (p->duration < s->packet_duration))
       {
       buf.len = 0;
       if(!gavf_io_write_int64v(&bufio, p->duration) ||

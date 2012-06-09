@@ -97,7 +97,6 @@ void gavf_stream_header_init_audio(gavf_stream_header_t * h);
 void gavf_stream_header_init_video(gavf_stream_header_t * h);
 void gavf_stream_header_init_text(gavf_stream_header_t * h);
 
-
 /* Program header */
 
 int gavf_program_header_add_audio_stream(gavf_program_header_t * ph,
@@ -116,6 +115,19 @@ int gavf_program_header_write(gavf_io_t * io,
                               const gavf_program_header_t * ph);
 void gavf_program_header_free(gavf_program_header_t * ph);
 
+/* Stream */
+
+typedef struct
+  {
+  gavf_stream_header_t * h;
+
+  /* Secondary variables */
+  int timescale;
+  int packet_duration;
+  int64_t last_sync_pts;
+  int64_t last_pts;
+  int has_pts;
+  } gavf_stream_t;
 
 /* Formats */
 
@@ -137,11 +149,11 @@ int gavf_write_metadata(gavf_io_t * io, const gavl_metadata_t * ci);
 
 /* Packet */
 int gavf_read_gavl_packet(gavf_io_t * io,
-                          gavf_stream_header_t * sh,
+                          gavf_stream_t * s,
                           gavl_packet_t * p);
 
 int gavf_write_gavl_packet(gavf_io_t * io,
-                           gavf_stream_header_t * sh,
+                           gavf_stream_t * s,
                            const gavl_packet_t * p);
 
 /* Options */
@@ -197,7 +209,10 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 #define GAVF_TAG_PACKET_INDEX   "GAVFPIDX"
 
 #define GAVF_TAG_PACKET_HEADER    "P"
-#define GAVF_TAG_METADATA_HEADER  "M"
+#define GAVF_TAG_PACKET_HEADER_C  'P'
+
+#define GAVF_TAG_METADATA_HEADER   "M"
+#define GAVF_TAG_METADATA_HEADER_C 'M'
 
 typedef struct
   {
