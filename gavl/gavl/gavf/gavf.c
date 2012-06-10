@@ -22,7 +22,9 @@ struct gavf_s
   
   gavf_io_t pkt_io;
   gavf_buffer_t pkt_buf;
-
+  
+  uint64_t sync_pos;
+  
   int wr;
   };
 
@@ -128,7 +130,7 @@ static int handle_chunk(gavf_t * g, char * sig)
     }
   else if(!strncmp(sig, GAVF_TAG_SYNC_HEADER, 8))
     {
-    
+    g->sync_pos = g->io->position;
     }  
   else if(!strncmp(sig, GAVF_TAG_SYNC_INDEX, 8))
     {
@@ -190,6 +192,8 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
       if(!handle_chunk(g, sig))
         return 0;
       }
+    if(g->sync_pos > 0)
+      break;
     }
   
   return 1;
