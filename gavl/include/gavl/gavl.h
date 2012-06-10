@@ -259,9 +259,9 @@ typedef enum
   
 typedef struct 
   {
-  int samples_per_frame;  /*!< Maximum number of samples per frame */
-  int samplerate;         /*!< Samplerate */
-  int num_channels;         /*!< Number of channels */
+  uint32_t samples_per_frame;  /*!< Maximum number of samples per frame */
+  uint32_t samplerate;         /*!< Samplerate */
+  uint32_t num_channels;         /*!< Number of channels */
   gavl_sample_format_t   sample_format; /*!< Sample format */
   gavl_interleave_mode_t interleave_mode; /*!< Interleave mode */
   
@@ -2118,22 +2118,22 @@ const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode);
   
 struct gavl_video_format_s
   {
-  int frame_width;/*!< Width of the frame buffer in pixels, might be larger than image_width */
-  int frame_height;/*!< Height of the frame buffer in pixels, might be larger than image_height */
+  uint32_t frame_width;/*!< Width of the frame buffer in pixels, might be larger than image_width */
+  uint32_t frame_height;/*!< Height of the frame buffer in pixels, might be larger than image_height */
    
-  int image_width;/*!< Width of the image in pixels */
-  int image_height;/*!< Height of the image in pixels */
+  uint32_t image_width;/*!< Width of the image in pixels */
+  uint32_t image_height;/*!< Height of the image in pixels */
   
   /* Support for nonsquare pixels */
     
-  int pixel_width;/*!< Relative width of a pixel (pixel aspect ratio is pixel_width/pixel_height) */
-  int pixel_height;/*!< Relative height of a pixel (pixel aspect ratio is pixel_width/pixel_height) */
+  uint32_t pixel_width;/*!< Relative width of a pixel (pixel aspect ratio is pixel_width/pixel_height) */
+  uint32_t pixel_height;/*!< Relative height of a pixel (pixel aspect ratio is pixel_width/pixel_height) */
     
   gavl_pixelformat_t pixelformat;/*!< Pixelformat */
 
-  int frame_duration;/*!< Duration of a frame in timescale tics. Meaningful only if framerate_mode is
+  uint32_t frame_duration;/*!< Duration of a frame in timescale tics. Meaningful only if framerate_mode is
                        GAVL_FRAMERATE_CONSTANT */
-  int timescale;/*!< Timescale in tics per second */
+  uint32_t timescale;/*!< Timescale in tics per second */
 
   gavl_framerate_mode_t   framerate_mode;/*!< Framerate mode */
   gavl_chroma_placement_t chroma_placement;/*!< Chroma placement */

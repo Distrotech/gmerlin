@@ -225,12 +225,23 @@ void gavl_packet_alloc(gavl_packet_t * p, int len);
 GAVL_PUBLIC
 void gavl_packet_free(gavl_packet_t * p);
 
+/** \brief Copy a packet
+ *  \param dst Destination
+ *  \param src Source
+ */
+
+  
+GAVL_PUBLIC
+void gavl_packet_copy(gavl_packet_t * dst,
+                      const gavl_packet_t * src);
+
+  
 /** \brief Dump a packet to stderr
  *  \param p A packet
  *
  *  Use this for debugging
  */
-
+  
 GAVL_PUBLIC
 void gavl_packet_dump(const gavl_packet_t * p);
 

@@ -8,6 +8,9 @@ fileindex.c     \
 gavf.c          \
 gavlstructs.c   \
 io.c            \
+packetbuffer.c   \
+packetindex.c   \
 programheader.c \
-streamheader.c
+streamheader.c  \
+syncindex.c
 

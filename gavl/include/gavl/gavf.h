@@ -63,8 +63,15 @@ typedef struct
 typedef struct
   {
   uint32_t stream_id;
-  uint32_t len;
   } gavf_packet_header_t;
+
+/* Options */
+
+#define GAVF_OPT_FLAG_SYNC_INDEX   (1<<0)
+#define GAVF_OPT_FLAG_PACKET_INDEX (1<<1)
+#define GAVF_OPT_FLAG_INTERLEAVE   (1<<2)
+
+void gavf_options_set_flags(gavf_options_t *, int flags);
 
 
 /* General functions */
@@ -82,7 +89,7 @@ const gavf_program_header_t * gavf_get_program_header(gavf_t *);
 const gavf_packet_header_t * gavf_packet_read_header(gavf_t * gavf);
 
 void gavf_packet_skip(gavf_t * gavf);
-void gavf_packet_read_packet(gavf_t * gavf, gavl_packet_t * p);
+int gavf_packet_read_packet(gavf_t * gavf, gavl_packet_t * p);
 
 /* Write support */
 

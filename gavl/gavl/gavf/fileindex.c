@@ -39,6 +39,10 @@ int gavf_file_index_read(gavf_io_t * io, gavf_file_index_t * fi)
 int gavf_file_index_write(gavf_io_t * io, const gavf_file_index_t * fi)
   {
   int i;
+
+  if(gavf_io_write_data(io, (uint8_t*)GAVF_TAG_FILE_INDEX, 8) < 8)
+    return 0;
+
   if(!gavf_io_write_uint32v(io, fi->entries_alloc))
     return 0;
 

@@ -115,6 +115,19 @@ int gavf_program_header_write(gavf_io_t * io,
                               const gavf_program_header_t * ph);
 void gavf_program_header_free(gavf_program_header_t * ph);
 
+/* Packetbuffer */
+
+typedef struct gavf_packet_buffer_s gavf_packet_buffer_t;
+
+gavf_packet_buffer_t * gavf_packet_buffer_create(int timescale);
+
+gavl_packet_t * gavf_packet_buffer_get_write(gavf_packet_buffer_t *);
+gavl_packet_t * gavf_packet_buffer_get_read(gavf_packet_buffer_t *);
+
+gavl_time_t gavf_packet_buffer_get_min_pts(gavf_packet_buffer_t * b);
+
+void gavf_packet_buffer_destroy(gavf_packet_buffer_t *);
+
 /* Stream */
 
 typedef struct
@@ -125,8 +138,11 @@ typedef struct
   int timescale;
   int packet_duration;
   int64_t last_sync_pts;
-  int64_t last_pts;
+  int64_t next_pts;
   int has_pts;
+  
+  gavf_packet_buffer_t * pb;
+  
   } gavf_stream_t;
 
 /* Formats */
@@ -156,11 +172,12 @@ int gavf_write_gavl_packet(gavf_io_t * io,
                            gavf_stream_t * s,
                            const gavl_packet_t * p);
 
+
 /* Options */
 
 struct gavf_options_s
   {
-  int dummy;
+  uint32_t flags;
   };
 
 /* Extension header */
@@ -231,3 +248,53 @@ int gavf_file_index_read(gavf_io_t * io, gavf_file_index_t * fi);
 int gavf_file_index_write(gavf_io_t * io, const gavf_file_index_t * fi);
 void gavf_file_index_free(gavf_file_index_t * fi);
 void gavf_file_index_add(gavf_file_index_t * fi, char * tag, int64_t position);
+
+typedef struct
+  {
+  uint64_t num_entries;
+  uint64_t entries_alloc;
+  
+  struct
+    {
+    uint32_t id;
+    uint32_t flags;    // Same as the packet flags
+    
+    uint64_t pos;
+    int64_t pts;
+    } * entries;
+  } gavf_packet_index_t;
+
+void gavf_packet_index_add(gavf_packet_index_t * idx,
+                           uint32_t id, uint32_t flags, uint64_t pos,
+                           int64_t pts);
+
+int gavf_packet_index_read(gavf_io_t * io, gavf_packet_index_t * idx);
+int gavf_packet_index_write(gavf_io_t * io, const gavf_packet_index_t * idx);
+void gavf_packet_index_free(gavf_packet_index_t * idx);
+
+typedef struct
+  {
+  uint64_t num_entries;
+  uint64_t entries_alloc;
+
+  struct
+    {
+    uint64_t pos;
+    int64_t * pts;
+    } * entries;
+
+  /* Secondary variables (not in the file) */
+  int num_streams;
+  int pts_len;
+  
+  } gavf_sync_index_t;
+
+void gavf_sync_index_init(gavf_sync_index_t * idx, int num_streams);
+
+
+void gavf_sync_index_add(gavf_sync_index_t * idx,
+                         uint64_t pos, int64_t * pts);
+
+int gavf_sync_index_read(gavf_io_t * io, gavf_sync_index_t * idx);
+int gavf_sync_index_write(gavf_io_t * io, const gavf_sync_index_t * idx);
+void gavf_sync_index_free(gavf_sync_index_t * idx);

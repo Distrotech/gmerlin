@@ -181,7 +181,6 @@ void gavl_compression_info_dump(const gavl_compression_info_t * info)
     fprintf(stderr, "\n");
   }
 
-GAVL_PUBLIC
 void gavl_compression_info_copy(gavl_compression_info_t * dst,
                                 const gavl_compression_info_t * src)
   {
@@ -194,7 +193,6 @@ void gavl_compression_info_copy(gavl_compression_info_t * dst,
   }
 
 
-GAVL_PUBLIC
 void gavl_packet_alloc(gavl_packet_t * p, int len)
   {
   if(len > p->data_alloc)
@@ -204,12 +202,30 @@ void gavl_packet_alloc(gavl_packet_t * p, int len)
     }
   }
 
-GAVL_PUBLIC
 void gavl_packet_free(gavl_packet_t * p)
   {
   if(p->data)
     free(p->data);
   }
+
+void gavl_packet_copy(gavl_packet_t * dst,
+                      const gavl_packet_t * src)
+  {
+  int data_alloc_save;
+  uint8_t * data_save;
+
+  data_alloc_save = dst->data_alloc;
+  data_save       = dst->data;
+
+  memcpy(dst, src, sizeof(*src));
+
+  dst->data_alloc = data_alloc_save;
+  dst->data       = data_save;
+
+  gavl_packet_alloc(dst, src->data_len);
+  memcpy(dst->data, src->data, src->data_len);
+  }
+
 
 void gavl_packet_dump(const gavl_packet_t * p)
   {

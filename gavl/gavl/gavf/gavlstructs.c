@@ -16,8 +16,8 @@ int gavf_read_audio_format(gavf_io_t * io, gavl_audio_format_t * format)
   
   gavl_extension_header_t eh;
   
-  if(!gavf_io_read_int32v(io, &format->samplerate) ||
-     !gavf_io_read_int32v(io, &format->num_channels))
+  if(!gavf_io_read_uint32v(io, &format->samplerate) ||
+     !gavf_io_read_uint32v(io, &format->num_channels))
     return 0;
 
   for(i = 0; i < format->num_channels; i++)
@@ -36,7 +36,7 @@ int gavf_read_audio_format(gavf_io_t * io, gavl_audio_format_t * format)
     switch(eh.key)
       {
       case GAVF_EXT_AF_SAMPLESPERFRAME:
-        if(!gavf_io_read_int32v(io, &format->samples_per_frame))
+        if(!gavf_io_read_uint32v(io, &format->samples_per_frame))
           return 0;
         break;
       case GAVF_EXT_AF_SAMPLEFORMAT:
@@ -73,8 +73,8 @@ int gavf_write_audio_format(gavf_io_t * io, const gavl_audio_format_t * format)
   int i;
   
   /* Write common stuff */
-  if(!gavf_io_write_int32v(io, format->samplerate) ||
-     !gavf_io_write_int32v(io, format->num_channels))
+  if(!gavf_io_write_uint32v(io, format->samplerate) ||
+     !gavf_io_write_uint32v(io, format->num_channels))
     return 0;
   
   for(i = 0; i < format->num_channels; i++)
@@ -114,7 +114,7 @@ int gavf_write_audio_format(gavf_io_t * io, const gavl_audio_format_t * format)
   if(format->samples_per_frame != 0)
     {
     buf.len = 0;
-    if(!gavf_io_write_int32v(&bufio, format->samples_per_frame) ||
+    if(!gavf_io_write_uint32v(&bufio, format->samples_per_frame) ||
        gavf_extension_write(io, GAVF_EXT_AF_SAMPLESPERFRAME,
                             buf.len, buf.buf))
       return 0;
@@ -164,15 +164,15 @@ int gavf_read_video_format(gavf_io_t * io, gavl_video_format_t * format)
   gavl_extension_header_t eh;
 
   /* Read mandatory stuff */
-  if(!gavf_io_read_int32v(io, &format->image_width) ||
-     !gavf_io_read_int32v(io, &format->image_height) ||
+  if(!gavf_io_read_uint32v(io, &format->image_width) ||
+     !gavf_io_read_uint32v(io, &format->image_height) ||
      !gavf_io_read_int32v(io, &format->framerate_mode) ||
-     !gavf_io_read_int32v(io, &format->timescale))
+     !gavf_io_read_uint32v(io, &format->timescale))
     return 0;
 
   if(format->framerate_mode != GAVL_FRAMERATE_STILL)
     {
-    if(!gavf_io_read_int32v(io, &format->frame_duration))
+    if(!gavf_io_read_uint32v(io, &format->frame_duration))
       return 0;
     }
 
@@ -197,8 +197,8 @@ int gavf_read_video_format(gavf_io_t * io, gavl_video_format_t * format)
           return 0;
         break;
       case GAVF_EXT_VF_PIXEL_ASPECT:
-        if(!gavf_io_read_int32v(io, &format->pixel_width) ||
-           !gavf_io_read_int32v(io, &format->pixel_height))
+        if(!gavf_io_read_uint32v(io, &format->pixel_width) ||
+           !gavf_io_read_uint32v(io, &format->pixel_height))
           return 0;
         break;
       case GAVF_EXT_VF_INTERLACE:
@@ -206,8 +206,8 @@ int gavf_read_video_format(gavf_io_t * io, gavl_video_format_t * format)
           return 0;
         break;
       case GAVF_EXT_VF_FRAME_SIZE:
-        if(!gavf_io_read_int32v(io, &format->frame_width) ||
-           !gavf_io_read_int32v(io, &format->frame_height))
+        if(!gavf_io_read_uint32v(io, &format->frame_width) ||
+           !gavf_io_read_uint32v(io, &format->frame_height))
           return 0;
         break;
       default:
@@ -228,15 +228,15 @@ int gavf_write_video_format(gavf_io_t * io, const gavl_video_format_t * format)
   gavf_io_t bufio;
 
   /* Write mandatory stuff */
-  if(!gavf_io_write_int32v(io, format->image_width) ||
-     !gavf_io_write_int32v(io, format->image_height) ||
-     !gavf_io_write_int32v(io, format->framerate_mode) ||
-     !gavf_io_write_int32v(io, format->timescale))
+  if(!gavf_io_write_uint32v(io, format->image_width) ||
+     !gavf_io_write_uint32v(io, format->image_height) ||
+     !gavf_io_write_uint32v(io, format->framerate_mode) ||
+     !gavf_io_write_uint32v(io, format->timescale))
     return 0;
 
   if(format->framerate_mode != GAVL_FRAMERATE_STILL)
     {
-    if(!gavf_io_write_int32v(io, format->frame_duration))
+    if(!gavf_io_write_uint32v(io, format->frame_duration))
       return 0;
     }
 
@@ -438,9 +438,7 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     p->pts += s->last_sync_pts;
     }
   else
-    {
-    p->pts = s->last_pts;
-    }
+    p->pts = s->next_pts;
   
   /* Duration */
   if(!s->packet_duration)
@@ -471,10 +469,9 @@ int gavf_read_gavl_packet(gavf_io_t * io,
         break;
       }
     }
-
+  
   /* Set pts */
-  if(!s->has_pts)
-    s->last_pts += p->duration;
+  s->next_pts += p->duration;
   
   /* Payload */
   if(!gavf_io_read_uint32v(io, (uint32_t*)&p->data_len))
