@@ -244,3 +244,47 @@ void gavl_packet_dump(const gavl_packet_t * p)
   hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16);
   
   }
+
+GAVL_PUBLIC
+void gavl_video_frame_to_packet(const gavl_video_format_t * format,
+                                const gavl_video_frame_t * frame,
+                                gavl_packet_t * packet)
+  {
+  
+  }
+  
+GAVL_PUBLIC
+void gavl_packet_to_video_frame(const gavl_video_format_t * format,
+                                const gavl_packet_t * packet,
+                                gavl_video_frame_t * frame)
+  {
+
+  }
+
+/** \brief Convert a audio frame to a packet 
+ *  \param format Audio format
+ *  \param frame Frame
+ *  \param packet Packet
+ */
+  
+GAVL_PUBLIC
+void gavl_audio_frame_to_packet(const gavl_audio_format_t * format,
+                                const gavl_audio_frame_t * frame,
+                                gavl_packet_t * packet)
+  {
+
+  }
+  
+/** \brief Convert a packet to a audio frame
+ *  \param format Audio format
+ *  \param packet Packet
+ *  \param frame Frame
+ */
+  
+GAVL_PUBLIC
+void gavl_packet_to_audio_frame(const gavl_audio_format_t * format,
+                                const gavl_packet_t * packet,
+                                gavl_audio_frame_t * frame)
+  {
+  
+  }

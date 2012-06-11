@@ -102,7 +102,7 @@ csp_planar_packed.h  \
 csp_planar_planar.h \
 ssim_tab.h
 
-AM_LDFLAGS = -export-symbols-regex gavl -version-info \
+AM_LDFLAGS = -export-symbols-regex 'gav(l|f)' -version-info \
 @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ \
 @LIBGAVL_LDFLAGS@
 

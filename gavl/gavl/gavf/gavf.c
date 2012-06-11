@@ -299,6 +299,13 @@ int gavf_add_text_stream(gavf_t * g,
 static int write_packet(gavf_t * g, gavf_stream_t * s,
                         gavl_packet_t * p)
   {
+  if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
+    {
+    gavf_packet_index_add(&g->pi,
+                          s->h->id, p->flags, g->io->position,
+                          p->pts);
+    }
+  
   if((gavf_io_write_data(g->io,
                          (const uint8_t*)GAVF_TAG_PACKET_HEADER, 1) < 1) ||
      (!gavf_io_write_uint32v(g->io, s->h->id)))
@@ -311,6 +318,46 @@ static int write_packet(gavf_t * g, gavf_stream_t * s,
     return 0;
   
   return 1;
+  }
+
+static void flush_packets(gavf_t * g, int flush_all)
+  {
+  int i;
+  gavl_time_t min_time;
+  gavl_time_t test_time;
+  
+  int min_index;
+  
+  while(1)
+    {
+    min_index = -1;
+    min_time = GAVL_TIME_UNDEFINED;
+    
+    for(i = 0; i < g->ph.num_streams; i++)
+      {
+      test_time =
+        gavf_packet_buffer_get_min_pts(g->streams[i].pb);
+
+      if(test_time != GAVL_TIME_UNDEFINED)
+        {
+        if((min_time == GAVL_TIME_UNDEFINED) ||
+           (min_time > test_time))
+          {
+          min_time = test_time;
+          min_index = i;
+          }
+        }
+      else
+        {
+        if((g->ph.streams[i].type == GAVF_STREAM_AUDIO) ||
+           (g->ph.streams[i].type == GAVF_STREAM_VIDEO))
+          {
+          
+          }
+           
+        }
+      }
+    }
   }
 
 int gavf_write_packet(gavf_t * g, int stream, gavl_packet_t * p)
@@ -329,6 +376,11 @@ int gavf_write_packet(gavf_t * g, int stream, gavl_packet_t * p)
   
   /* Decide whether to write a sync header */
   
+  if(!g->sync_pos)
+    {
+
+    }
+    
   return write_packet(g, s, p);
   }
 
