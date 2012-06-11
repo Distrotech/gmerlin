@@ -152,6 +152,17 @@ bg_gavf_add_audio_stream(void * data,
   return f->num_audio_streams-1;
   }
 
+static void adjust_video_format(gavl_video_format_t * fmt)
+  {
+  int sub_h, sub_v;
+
+  gavl_pixelformat_chroma_sub(fmt->pixelformat, &sub_h, &sub_v);
+  
+  fmt->frame_width  = ((fmt->image_width  + sub_h - 1) / sub_h) * sub_h;
+  fmt->frame_height = ((fmt->image_height + sub_v - 1) / sub_v) * sub_v;
+  
+  }
+
 static int
 bg_gavf_add_video_stream(void * data,
                          const gavl_metadata_t * m,
@@ -167,9 +178,13 @@ bg_gavf_add_video_stream(void * data,
 
   gavl_video_format_copy(&f->video_streams[f->num_video_streams].format,
                          format);
-  f->video_streams[f->num_video_streams].index =
-    gavf_add_video_stream(f->enc, &ci, format, m);
 
+  adjust_video_format(&f->video_streams[f->num_video_streams].format);
+  
+  f->video_streams[f->num_video_streams].index =
+    gavf_add_video_stream(f->enc, &ci,
+                          &f->video_streams[f->num_video_streams].format, m);
+  
   f->num_video_streams++;
   return f->num_video_streams-1;
   }
