@@ -70,6 +70,7 @@ dsp.c \
 dsputils.c \
 frametable.c \
 interleave.c \
+memalign.c \
 memcpy.c \
 metadata.c \
 mix.c \

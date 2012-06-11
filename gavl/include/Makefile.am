@@ -14,6 +14,7 @@ float_cast.h \
 gavfprivate.h \
 interleave.h \
 macros.h \
+memalign.h \
 mix.h \
 sampleformat.h \
 samplerate.h \

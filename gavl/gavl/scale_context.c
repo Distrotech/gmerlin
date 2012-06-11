@@ -28,14 +28,7 @@
 #include <scale.h>
 
 #include <accel.h>
-
-#ifdef HAVE_MEMALIGN
-/* some systems have memalign() but no declaration for it */
-void * memalign (size_t align, size_t size);
-#else
-/* assume malloc alignment is sufficient */
-#define memalign(align,size) malloc (size)
-#endif
+#include <memalign.h>
 
 #define SCALE_X        0
 #define SCALE_Y        1
@@ -328,7 +321,7 @@ static void alloc_temp(gavl_video_scale_context_t * ctx, gavl_pixelformat_t pixe
     if(ctx->buffer)
       free(ctx->buffer);
     ctx->buffer_alloc = size + 8192;
-    ctx->buffer = memalign(ALIGNMENT_BYTES, ctx->buffer_alloc);
+    ctx->buffer = gavl_memalign(ALIGNMENT_BYTES, ctx->buffer_alloc);
     }
   }
 

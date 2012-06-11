@@ -32,16 +32,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-/* Taken from a52dec (thanks guys) */
-
-#ifdef HAVE_MEMALIGN
-/* some systems have memalign() but no declaration for it */
-void * memalign (size_t align, size_t size);
-#else
-/* assume malloc alignment is sufficient */
-#define memalign(align,size) malloc (size)
-#endif
+#include <memalign.h>
 
 #define ALIGNMENT_BYTES 16
 #define ALIGN(a) a=((a+ALIGNMENT_BYTES-1)/ALIGNMENT_BYTES)*ALIGNMENT_BYTES
@@ -82,7 +73,7 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
         }
       }
     
-    ret->planes[0] = memalign(ALIGNMENT_BYTES,
+    ret->planes[0] = gavl_memalign(ALIGNMENT_BYTES,
                               ret->strides[0]*format->frame_height+
                               ret->strides[1]*((format->frame_height+sub_v-1)/sub_v)+
                               ret->strides[2]*((format->frame_height+sub_v-1)/sub_v));
@@ -98,7 +89,7 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       if(align)
         ALIGN(ret->strides[0]);
       }
-    ret->planes[0] = memalign(ALIGNMENT_BYTES,
+    ret->planes[0] = gavl_memalign(ALIGNMENT_BYTES,
                               ret->strides[0] * format->frame_height);
     }
   }
@@ -1573,7 +1564,6 @@ void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
     {
     video_frame_alloc(frame, format, 0);
     }
-  
   }
 
 int gavl_video_frames_equal(const gavl_video_format_t * format,

@@ -131,6 +131,8 @@ dnl Check for library functions
 dnl 
 
 AC_CHECK_FUNCS([memalign])
+AC_CHECK_FUNCS([posix_memalign])
+
 AC_CHECK_FUNCS([sched_setaffinity])
 
 dnl

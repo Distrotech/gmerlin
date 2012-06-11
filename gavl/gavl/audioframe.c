@@ -29,15 +29,7 @@
 #include <accel.h>
 #include <bswap.h>
 
-/* Taken from a52dec (thanks guys) */
-
-#ifdef HAVE_MEMALIGN
-/* some systems have memalign() but no declaration for it */
-void * memalign (size_t align, size_t size);
-#else
-/* assume malloc alignment is sufficient */
-#define memalign(align,size) malloc (size)
-#endif
+#include <memalign.h>
 
 #define ALIGNMENT_BYTES 16
 
@@ -60,7 +52,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_U8:
       ret->channel_stride = num_samples;
       ret->samples.u_8 =
-        memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
+        gavl_memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
 
       for(i = 0; i < format->num_channels; i++)
         ret->channels.u_8[i] = &ret->samples.u_8[i*num_samples];
@@ -69,7 +61,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_S8:
       ret->channel_stride = num_samples;
       ret->samples.s_8 =
-        memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
+        gavl_memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
 
       for(i = 0; i < format->num_channels; i++)
         ret->channels.s_8[i] = &ret->samples.s_8[i*num_samples];
@@ -78,7 +70,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_U16:
       ret->channel_stride = num_samples * 2;
       ret->samples.u_16 =
-        memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
+        gavl_memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
         ret->channels.u_16[i] = &ret->samples.u_16[i*num_samples];
 
@@ -86,7 +78,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_S16:
       ret->channel_stride = num_samples * 2;
       ret->samples.s_16 =
-        memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
+        gavl_memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
         ret->channels.s_16[i] = &ret->samples.s_16[i*num_samples];
 
@@ -95,7 +87,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_S32:
       ret->channel_stride = num_samples * 4;
       ret->samples.s_32 =
-        memalign(ALIGNMENT_BYTES, 4 * num_samples * format->num_channels);
+        gavl_memalign(ALIGNMENT_BYTES, 4 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
         ret->channels.s_32[i] = &ret->samples.s_32[i*num_samples];
 
@@ -104,7 +96,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_FLOAT:
       ret->channel_stride = num_samples * sizeof(float);
       ret->samples.f =
-        memalign(ALIGNMENT_BYTES, sizeof(float) * num_samples * format->num_channels);
+        gavl_memalign(ALIGNMENT_BYTES, sizeof(float) * num_samples * format->num_channels);
 
       for(i = 0; i < format->num_channels; i++)
         ret->channels.f[i] = &ret->samples.f[i*num_samples];
@@ -113,7 +105,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_DOUBLE:
       ret->channel_stride = num_samples * sizeof(double);
       ret->samples.d =
-        memalign(ALIGNMENT_BYTES, sizeof(double) * num_samples * format->num_channels);
+        gavl_memalign(ALIGNMENT_BYTES, sizeof(double) * num_samples * format->num_channels);
 
       for(i = 0; i < format->num_channels; i++)
         ret->channels.d[i] = &ret->samples.d[i*num_samples];
