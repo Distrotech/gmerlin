@@ -205,6 +205,9 @@ typedef struct
   int header_size;   //!< Size of a repeated global header (or 0)
   int sequence_end_pos;    //!< Position of sequence end code if any
 
+  gavl_interlace_mode_t interlace_mode;
+  gavl_timecode_t timecode;
+  
   } gavl_packet_t;
 
 /** \brief Allocate memory for a packet

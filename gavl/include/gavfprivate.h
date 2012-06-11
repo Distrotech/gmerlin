@@ -142,6 +142,9 @@ typedef struct
   int has_pts;
   
   gavf_packet_buffer_t * pb;
+
+  /* Video stuff */
+  int image_size;
   
   } gavf_stream_t;
 

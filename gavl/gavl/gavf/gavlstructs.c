@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 
 #include <gavfprivate.h>
@@ -163,6 +164,8 @@ int gavf_read_video_format(gavf_io_t * io, gavl_video_format_t * format)
   
   gavl_extension_header_t eh;
 
+  memset(format, 0, sizeof(*format));
+  
   /* Read mandatory stuff */
   if(!gavf_io_read_uint32v(io, &format->image_width) ||
      !gavf_io_read_uint32v(io, &format->image_height) ||
@@ -179,8 +182,6 @@ int gavf_read_video_format(gavf_io_t * io, gavl_video_format_t * format)
   /* Set defaults */
   format->pixel_width = 1;
   format->pixel_height = 1;
-  format->frame_width = format->image_width;
-  format->frame_height = format->image_height;
   
   /* Read extensions */
   if(!gavf_io_read_uint32v(io, &num_extensions))
@@ -217,6 +218,10 @@ int gavf_read_video_format(gavf_io_t * io, gavl_video_format_t * format)
         
       }
     }
+
+  if(!format->frame_width || !format->frame_height)
+    gavl_video_format_set_frame_size(format, 0, 0);
+  
   return 1;
   }
 

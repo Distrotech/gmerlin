@@ -125,7 +125,7 @@ int gavf_add_audio_stream(gavf_t * g,
 GAVL_PUBLIC
 int gavf_add_video_stream(gavf_t * g,
                           const gavl_compression_info_t * ci,
-                          const gavl_video_format_t * format,
+                          gavl_video_format_t * format,
                           const gavl_metadata_t * m);
 
 GAVL_PUBLIC
@@ -134,7 +134,10 @@ int gavf_add_text_stream(gavf_t * g,
                          const gavl_metadata_t * m);
 
 GAVL_PUBLIC
-int gavf_write_packet(gavf_t *, int stream, gavl_packet_t * p);
+int gavf_write_packet(gavf_t *, int stream, const gavl_packet_t * p);
+
+GAVL_PUBLIC
+int gavf_write_video_frame(gavf_t *, int stream, gavl_video_frame_t * frame);
 
 GAVL_PUBLIC
 int gavf_update_metadata(gavf_t *, gavl_metadata_t * m);

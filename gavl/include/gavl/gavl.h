@@ -2209,6 +2209,27 @@ void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
 GAVL_PUBLIC
 int gavl_video_format_get_image_size(const gavl_video_format_t * format);
 
+/*! 
+  \ingroup video_format
+  \brief Set the frame size from the image size
+  \param format A video format
+  \param pad_h Horizontal padding value
+  \param pad_v Vertical padding value
+
+  Set the frame_width and frame_height of the format
+  from the image_width and image_height. Pad them
+  to multiples of pad_h and pad_v pixels.
+
+  If pad_h or pad_v is zero or less, use the chroma subsampling
+  factors (e.g. a 4:1:1 format will have width as a multiple of 4
+  and the height as a multiple of 1).
+*/
+
+GAVL_PUBLIC
+void gavl_video_format_set_frame_size(gavl_video_format_t * format,
+                                      int pad_h, int pad_v);
+
+  
 /*!
   \ingroup video_format
   \brief Get the video format for extracting/merging one channel
@@ -2637,6 +2658,22 @@ void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
                                  const gavl_video_format_t * format,
                                  uint8_t * buffer);
 
+/*!
+  \ingroup video_frame
+  \brief Check if a video frame uses a continuous memory block
+  \param format Format of the video data in the frame
+  \param frame Video frame
+  \returns 1 if the planes are consequtive in memory and no padding is used, 0 else
+
+  Use this to check if a frame can be directly serialized or not.
+  
+*/
+  
+GAVL_PUBLIC
+int gavl_video_frame_continuous(const gavl_video_format_t * format,
+                                const gavl_video_frame_t * frame);
+
+  
 /*!
   \ingroup video_frame
   \brief Extract one channel of a video frame into a grayscale image

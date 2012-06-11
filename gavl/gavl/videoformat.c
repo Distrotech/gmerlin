@@ -265,6 +265,25 @@ int gavl_video_formats_equal(const gavl_video_format_t * format_1,
   return !memcmp(format_1, format_2, sizeof(*format_1));
   }
 
+void gavl_video_format_set_frame_size(gavl_video_format_t * format,
+                                      int pad_h, int pad_v)
+  {
+  if((pad_h < 1) || (pad_v < 1))
+    {
+    int sub_h = 1, sub_v = 1;
+
+    if(format->pixelformat != GAVL_PIXELFORMAT_NONE)
+      gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+    
+    if(pad_h < 1)
+      pad_h = sub_h;
+    if(pad_v < 1)
+      pad_v = sub_v;
+    }
+  format->frame_width  = ((format->image_width  + pad_h - 1) / pad_h) * pad_h;
+  format->frame_height = ((format->image_height + pad_v - 1) / pad_v) * pad_v;
+  }
+
 int gavl_video_format_get_image_size(const gavl_video_format_t * format)
   {
   int i;
@@ -273,7 +292,7 @@ int gavl_video_format_get_image_size(const gavl_video_format_t * format)
   int ret = 0, height;
   
   int num_planes = gavl_pixelformat_num_planes(format->pixelformat);
-  bytes_per_line = gavl_pixelformat_is_planar(format->pixelformat) ?
+  bytes_per_line = (num_planes > 1) ?
     format->frame_width * gavl_pixelformat_bytes_per_component(format->pixelformat) :
     format->frame_width * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
   

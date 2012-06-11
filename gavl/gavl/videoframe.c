@@ -1521,7 +1521,7 @@ void gavl_video_frame_set_strides(gavl_video_frame_t * frame,
   int bytes_per_line;
   int sub_h, sub_v;
   int num_planes = gavl_pixelformat_num_planes(format->pixelformat);
-  bytes_per_line = gavl_pixelformat_is_planar(format->pixelformat) ?
+  bytes_per_line = (num_planes > 1) ?
     format->frame_width * gavl_pixelformat_bytes_per_component(format->pixelformat) :
     format->frame_width * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
 
@@ -1598,6 +1598,48 @@ int gavl_video_frames_equal(const gavl_video_format_t * format,
                 f2->planes[i] + j * f2->strides[i], bytes_per_line))
         return 0;
       }
+    }
+  return 1;
+  }
+
+int gavl_video_frame_continuous(const gavl_video_format_t * format,
+                                const gavl_video_frame_t * frame)
+  {
+  int i;
+  int bytes_per_line;
+  int bytes_per_plane;
+  int sub_h, sub_v;
+  
+  int planes = gavl_pixelformat_num_planes(format->pixelformat);
+
+  if(planes > 1)
+    bytes_per_line = format->frame_width * gavl_pixelformat_bytes_per_component(format->pixelformat);
+  else
+    bytes_per_line = format->frame_width * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
+  
+  if(frame->strides[0] != bytes_per_line)
+    return 0;
+  
+  if(planes == 1)
+    return 1;
+
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+  bytes_per_plane = bytes_per_line * format->frame_height;
+  
+  for(i = 1; i < planes; i++)
+    {
+    if(frame->planes[i] - frame->planes[i-1] != bytes_per_plane)
+      return 0;
+    
+    if(i == 1)
+      {
+      bytes_per_line /= sub_h;
+      bytes_per_plane = bytes_per_line * (format->frame_height / sub_v);
+      }
+
+    if(frame->strides[i] != bytes_per_line)
+      return 0;
+        
     }
   return 1;
   }
