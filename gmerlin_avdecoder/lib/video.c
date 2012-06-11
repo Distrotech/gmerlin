@@ -867,7 +867,7 @@ static void copy_packet_fields(gavl_packet_t * p, bgav_packet_t * bp)
 
   if(PACKET_GET_KEYFRAME(bp))
     p->flags |= GAVL_PACKET_KEYFRAME;
-
+  
   }
 
 int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
