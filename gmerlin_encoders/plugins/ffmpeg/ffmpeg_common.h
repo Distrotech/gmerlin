@@ -123,7 +123,7 @@ typedef struct
   AVDictionary * options;
 #endif
 
-#if ENCODE_VIDEO2
+#if ENCODE_AUDIO2
   int64_t samples_written;
 #endif
   
