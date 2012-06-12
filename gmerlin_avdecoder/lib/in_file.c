@@ -42,7 +42,7 @@
 #ifdef HAVE_FTELLO
 #define BGAV_FTELL ftello
 #else
-#define BGAV_FSEEK ftell
+#define BGAV_FTELL ftell
 #endif
 
 #endif
