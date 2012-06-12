@@ -20,10 +20,14 @@
  * *****************************************************************/
 
 #include <string.h>
+#include <stdio.h>
 
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/pluginfuncs.h>
+
 #include <gavl/gavf.h>
 
 typedef struct
@@ -57,6 +61,9 @@ typedef struct
   gavf_t * enc;
   bg_encoder_callbacks_t * cb;
   gavf_options_t * opt;
+
+  FILE * output;
+  char * filename;
   
   } bg_gavf_t;
 
@@ -75,6 +82,7 @@ static void bg_gavf_destroy(void * data)
   {
   bg_gavf_t * f = data;
   
+  free(f);
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -129,7 +137,23 @@ bg_gavf_open(void * data, const char * filename,
              const gavl_metadata_t * metadata,
              const bg_chapter_list_t * chapter_list)
   {
-  return 0;
+  gavf_io_t * io;
+  bg_gavf_t * f = data;
+
+  f->filename = bg_filename_ensure_extension(filename, "gavf");
+
+  if(!bg_encoder_cb_create_output_file(f->cb, f->filename))
+    return 0;
+  
+  if(!(f->output = fopen(f->filename, "wb")))
+    return 0;
+
+  io = gavf_io_create_file(f->output, 1, 1);
+
+  if(!gavf_open_write(f->enc, io))
+    return 0;
+  
+  return 1;
   }
 
 static int
@@ -279,8 +303,8 @@ static int
 bg_gavf_write_audio_frame(void * data,
                           gavl_audio_frame_t * frame, int stream)
   {
-  bg_gavf_t * f = data;
-  
+  //  bg_gavf_t * f = data;
+  return 0;
   }
 
 static int
@@ -312,7 +336,7 @@ bg_gavf_write_subtitle_text(void * data,const char * text,
   p.duration = duration;
   
   ret = gavf_write_packet(f->enc, stream, &p);
-  gavf_packet_free(&p);
+  gavl_packet_free(&p);
   return ret;
   }
 
@@ -320,7 +344,9 @@ static int
 bg_gavf_close(void * data, int do_delete)
   {
   bg_gavf_t * f = data;
-
+  gavf_close(f->enc);
+  fclose(f->output);
+  return 1;
   }
 
 static int
@@ -337,7 +363,7 @@ bg_gavf_write_video_packet(void * data, gavl_packet_t * packet,
                            int stream)
   {
   bg_gavf_t * f = data;
-  return gavf_write_packet(f->enc, f->audio_streams[stream].index,
+  return gavf_write_packet(f->enc, f->video_streams[stream].index,
                            packet);
   }
 
