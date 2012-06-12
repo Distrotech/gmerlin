@@ -245,6 +245,12 @@ void gavl_packet_dump(const gavl_packet_t * p)
   
   }
 
+void gavl_packet_init(gavl_packet_t * p)
+  {
+  memset(p, 0, sizeof(*p));
+  }
+
+
 GAVL_PUBLIC
 void gavl_video_frame_to_packet(const gavl_video_format_t * format,
                                 const gavl_video_frame_t * frame,

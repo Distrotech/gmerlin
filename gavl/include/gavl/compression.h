@@ -210,6 +210,15 @@ typedef struct
   
   } gavl_packet_t;
 
+/** \brief Initialize a packet
+ *  \param p A packet
+ *
+ */
+  
+GAVL_PUBLIC
+void gavl_packet_init(gavl_packet_t * p);
+
+  
 /** \brief Allocate memory for a packet
  *  \param p A packet
  *  \param len Number of bytes you want to store in the packet

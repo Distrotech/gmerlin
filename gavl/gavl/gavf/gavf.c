@@ -42,8 +42,15 @@ struct gavf_s
   gavl_time_t sync_distance;
 
   encoding_mode_t encoding_mode;
+  encoding_mode_t final_encoding_mode;
   
   };
+
+gavf_options_t * gavf_get_options(gavf_t * g)
+  {
+  return &g->opt;
+  }
+
 
 /* Extensions */
 
@@ -86,13 +93,11 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
   if(s->h->ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES)
     g->sync_distance = 0;
   
-  
   if(s->h->format.video.framerate_mode == GAVL_FRAMERATE_CONSTANT)
     s->packet_duration = s->h->format.video.frame_duration;
 
   if(s->h->ci.id == GAVL_CODEC_ID_NONE)
     s->image_size = gavl_video_format_get_image_size(&s->h->format.video);
-  
   }
 
 static void gavf_stream_init_text(gavf_stream_t * s)
@@ -347,47 +352,18 @@ int gavf_add_text_stream(gavf_t * g,
   return gavf_program_header_add_text_stream(&g->ph, timescale, m);
   }
 
-static int write_packet(gavf_t * g, gavf_stream_t * s,
-                        const gavl_packet_t * p)
-  {
-  // If a stream has B-frames, this won't be correct
-  // for the next sync timestamp (it will be taken from the
-  // packet pts in write_sync_header)
-  // It will, however, be correct to get the duration
-  
-  if(s->next_sync_pts < p->pts + p->duration)
-    s->next_sync_pts = p->pts + p->duration;
-  
-  if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
-    {
-    gavf_packet_index_add(&g->pi,
-                          s->h->id, p->flags, g->io->position,
-                          p->pts);
-    }
-  
-  if((gavf_io_write_data(g->io,
-                         (const uint8_t*)GAVF_TAG_PACKET_HEADER, 1) < 1) ||
-     (!gavf_io_write_uint32v(g->io, s->h->id)))
-    return 0;
-
-  gavf_buffer_reset(&g->pkt_buf);
-
-  if(!gavf_write_gavl_packet(&g->pkt_io, s, p) ||
-     !gavf_io_write_buffer(g->io, &g->pkt_buf))
-    return 0;
-  
-  return 1;
-  }
-
 static int start_encoding(gavf_t * g)
   {
   if(!g->streams)
-    {
-    init_streams(g);
-    gavf_file_index_add(&g->fi, GAVF_TAG_PROGRAM_HEADER, g->io->position);
-    if(!gavf_program_header_write(g->io, &g->ph))
-      return 0;
-    }
+    return 1;
+  
+  g->sync_distance = g->opt.sync_distance;
+  
+  init_streams(g);
+  gavf_file_index_add(&g->fi, GAVF_TAG_PROGRAM_HEADER, g->io->position);
+  if(!gavf_program_header_write(g->io, &g->ph))
+    return 0;
+  
   return 1;
   }
 
@@ -439,7 +415,65 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
   return 1;
   }
 
-static int get_min_pts_stream(gavf_t * g, int flush_all, gavl_time_t * min_time_p)
+static int write_packet(gavf_t * g, int stream,
+                        const gavl_packet_t * p)
+  {
+  int write_sync = 0;
+  gavf_stream_t * s = &g->streams[stream];
+  
+  /* Decide whether to write a sync header */
+  if(!g->sync_pos)
+    write_sync = 1;
+  else if(g->sync_distance)
+    {
+    if(gavl_time_unscale(s->timescale, p->pts) - g->last_sync_time >
+       g->sync_distance)
+      write_sync = 1;
+    }
+  else
+    {
+    if(p->flags & GAVL_PACKET_KEYFRAME)
+      write_sync = 1;
+    }
+
+  if(write_sync)
+    {
+    if(!write_sync_header(g, stream, p))
+      return 0;
+    }
+  
+  // If a stream has B-frames, this won't be correct
+  // for the next sync timestamp (it will be taken from the
+  // packet pts in write_sync_header)
+  // It will, however, be correct to get the duration
+  
+  if(s->next_sync_pts < p->pts + p->duration)
+    s->next_sync_pts = p->pts + p->duration;
+  
+  if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
+    {
+    gavf_packet_index_add(&g->pi,
+                          s->h->id, p->flags, g->io->position,
+                          p->pts);
+    }
+  
+  if((gavf_io_write_data(g->io,
+                         (const uint8_t*)GAVF_TAG_PACKET_HEADER, 1) < 1) ||
+     (!gavf_io_write_uint32v(g->io, s->h->id)))
+    return 0;
+
+  gavf_buffer_reset(&g->pkt_buf);
+
+  if(!gavf_write_gavl_packet(&g->pkt_io, s, p) ||
+     !gavf_io_write_buffer(g->io, &g->pkt_buf))
+    return 0;
+  
+  return 1;
+  }
+
+
+static int get_min_pts_stream(gavf_t * g, int flush_all,
+                              gavl_time_t * min_time_p)
   {
   int i;
   int min_index;
@@ -492,10 +526,8 @@ static int flush_packets(gavf_t * g, int flush_all)
       return 1;
     
     p = gavf_packet_buffer_get_read(g->streams[min_index].pb);
-
-    /* TODO: Check for sync header */
     
-    if(!write_packet(g, &g->streams[min_index], p))
+    if(!write_packet(g, min_index, p))
       return 0;
     }
   return 1;
@@ -506,6 +538,9 @@ int gavf_write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   {
   gavf_stream_t * s;
   gavl_packet_t * p1;
+  gavl_time_t min_time;
+  int min_index;
+  
   if(!start_encoding(g))
     return 0;
   
@@ -515,20 +550,24 @@ int gavf_write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
     s->next_sync_pts = p->pts;
 
   /* Decide whether to write a sync header */
-
-  /*
-   * Cases
-   *
-   * 1. No first sync header yet (packets are buffered)
-   * 2. Got first sync header and we are writing synchronous
-   */
   
   switch(g->encoding_mode)
     {
     case ENC_STARTING:
+      /* Buffer packet */
+      p1 = gavf_packet_buffer_get_write(s->pb);
+      gavl_packet_copy(p1, p);
+
+      /* Check if we are done */
+      min_index = get_min_pts_stream(g, 0, &min_time);
+      if(min_index >= 0)
+        {
+        
+        }
+      
       break;
     case ENC_SYNCHRONOUS:
-      return write_packet(g, s, p);
+      return write_packet(g, stream, p);
       break;
     case ENC_INTERLEAVING:
       p1 = gavf_packet_buffer_get_write(s->pb);
@@ -564,7 +603,7 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
   if(gavl_video_frame_continuous(&s->h->format.video, frame))
     {
     gavl_packet_t p;
-    memset(&p, 0, sizeof(p));
+    gavl_packet_init(&p);
     p.data_len = s->image_size;
     p.data = frame->planes[0];
     video_frame_2_pkt(frame, &p);
