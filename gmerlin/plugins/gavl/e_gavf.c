@@ -298,8 +298,22 @@ bg_gavf_write_subtitle_text(void * data,const char * text,
                             int64_t duration, int stream)
   {
   bg_gavf_t * f = data;
-  gavf_packet_t p;
+  gavl_packet_t p;
+  int ret;
+  int len;
   
+  gavl_packet_init(&p);
+  len = strlen(text);
+
+  gavl_packet_alloc(&p, len);
+  memcpy(p.data, text, len);
+  p.data_len = len;
+  p.pts = start;
+  p.duration = duration;
+  
+  ret = gavf_write_packet(f->enc, stream, &p);
+  gavf_packet_free(&p);
+  return ret;
   }
 
 static int
