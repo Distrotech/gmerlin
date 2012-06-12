@@ -137,7 +137,10 @@ typedef struct
   /* Secondary variables */
   int timescale;
   int packet_duration;
-  int64_t last_sync_pts;
+
+  int64_t last_sync_pts; // PTS of the last snyc header
+  int64_t next_sync_pts; // PTS of the next sync header (for streams without B-frames)
+  
   int64_t next_pts;
   int has_pts;
   
@@ -181,7 +184,10 @@ int gavf_write_gavl_packet(gavf_io_t * io,
 struct gavf_options_s
   {
   uint32_t flags;
+  gavl_time_t sync_distance;
   };
+
+
 
 /* Extension header */
 

@@ -77,6 +77,10 @@ typedef struct
 GAVL_PUBLIC
 void gavf_options_set_flags(gavf_options_t *, int flags);
 
+GAVL_PUBLIC
+void gavf_options_set_sync_distance(gavf_options_t *, gavl_time_t sync_distance);
+
+
 /* General functions */
 
 GAVL_PUBLIC
