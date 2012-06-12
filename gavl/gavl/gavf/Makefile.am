@@ -6,9 +6,11 @@ libgavf_la_SOURCES = \
 buffer.c        \
 fileindex.c     \
 gavf.c          \
+gavfoptions.c   \
 gavlstructs.c   \
 io.c            \
-packetbuffer.c   \
+io_stdio.c      \
+packetbuffer.c  \
 packetindex.c   \
 programheader.c \
 streamheader.c  \

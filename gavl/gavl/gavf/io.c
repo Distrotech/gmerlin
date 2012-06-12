@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include <gavfprivate.h>
-#include <stdio.h>
 
 void gavf_io_init(gavf_io_t * ret,
                   gavf_read_func  r,

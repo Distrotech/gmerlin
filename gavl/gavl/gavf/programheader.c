@@ -67,11 +67,7 @@ int gavf_program_header_write(gavf_io_t * io,
   if(!gavf_write_metadata(&bufio, &ph->m))
     goto fail;
   
-  /* Flush everything */
-  if(gavf_io_write_data(io, (const uint8_t*)GAVF_TAG_PROGRAM_HEADER, 8) < 8)
-    goto fail;
-
-  if(gavf_io_write_buffer(io, &buf))
+  if(!gavf_io_write_buffer(io, &buf))
     goto fail;
 
   ret = 1;
@@ -89,7 +85,7 @@ add_stream(gavf_program_header_t * ph, const gavl_metadata_t * m)
   ph->num_streams++;
   
   ph->streams = realloc(ph->streams,
-                        ph->num_streams * sizeof(ph->streams));
+                        ph->num_streams * sizeof(*ph->streams));
   
   ret = &ph->streams[ph->num_streams-1];
   memset(ret, 0, sizeof(*ret));

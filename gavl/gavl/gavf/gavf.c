@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include <gavfprivate.h>
 
@@ -354,7 +353,7 @@ int gavf_add_text_stream(gavf_t * g,
 
 static int start_encoding(gavf_t * g)
   {
-  if(!g->streams)
+  if(g->streams)
     return 1;
   
   g->sync_distance = g->opt.sync_distance;
@@ -622,7 +621,6 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
     video_frame_2_pkt(frame, &g->write_pkt);
     return gavf_write_packet(g, stream, &g->write_pkt);
     }
-  
   }
 
 /* Close */
@@ -645,6 +643,7 @@ void gavf_close(gavf_t * g)
       if(!gavf_sync_index_write(g->io, &g->si))
         return;
       }
+    
     if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
       {
       gavf_file_index_add(&g->fi, GAVF_TAG_PACKET_INDEX, g->io->position);
@@ -653,6 +652,11 @@ void gavf_close(gavf_t * g)
       }
     
     /* Rewrite file index */
+    if(g->io->seek_func)
+      {
+      gavf_io_seek(g->io, 0, SEEK_SET);
+      gavf_file_index_write(g->io, &g->fi);
+      }
     
     }
 

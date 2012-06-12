@@ -4,6 +4,8 @@
 #include <gavl/metadata.h>
 #include <gavl/gavldefs.h>
 
+#include <stdio.h>
+
 typedef struct gavf_s gavf_t;
 typedef struct gavf_options_s gavf_options_t;
 
@@ -26,6 +28,9 @@ gavf_io_t * gavf_io_create(gavf_read_func  r,
 
 GAVL_PUBLIC
 void gavf_io_destroy(gavf_io_t *);
+
+GAVL_PUBLIC
+gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek);
 
 /* Stream information */
 

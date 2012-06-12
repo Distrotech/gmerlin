@@ -56,8 +56,12 @@ gavl_metadata_copy(gavl_metadata_t * dst,
                    const gavl_metadata_t * src)
   {
   int i;
-  dst->tags = calloc(src->tags_alloc, sizeof(*dst->tags));
 
+  if(!src->tags_alloc)
+    return;
+
+  dst->tags = calloc(src->tags_alloc, sizeof(*dst->tags));
+  
   for(i = 0; i < src->num_tags; i++)
     {
     dst->tags[i].key = my_strdup(src->tags[i].key);

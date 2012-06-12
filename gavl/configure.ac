@@ -133,6 +133,9 @@ dnl
 AC_CHECK_FUNCS([memalign])
 AC_CHECK_FUNCS([posix_memalign])
 
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
+
 AC_CHECK_FUNCS([sched_setaffinity])
 
 dnl
@@ -270,7 +273,7 @@ dnl
 INCLUDES='-I$(top_srcdir)/include -I$(top_srcdir)/include/gavl -I$(top_builddir)/include'
 AC_SUBST(INCLUDES)
 
-LIBGAVL_CFLAGS=-D__GAVL__
+LIBGAVL_CFLAGS="-D__GAVL__ -D_FILE_OFFSET_BITS=64"
 AC_SUBST(LIBGAVL_CFLAGS)
 
 AC_SUBST(LIBGAVL_LIBS)	
