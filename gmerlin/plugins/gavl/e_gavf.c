@@ -56,6 +56,7 @@ typedef struct
   
   gavf_t * enc;
   bg_encoder_callbacks_t * cb;
+  gavf_options_t * opt;
   
   } bg_gavf_t;
 
@@ -63,6 +64,10 @@ static void * bg_gavf_create()
   {
   bg_gavf_t * ret;
   ret = calloc(1, sizeof(*ret));
+  ret->enc = gavf_create();
+
+  ret->opt = gavf_get_options(ret->enc);
+  
   return ret;
   }
 
@@ -78,8 +83,17 @@ static const bg_parameter_info_t parameters[] =
       .name      = "format",
       .long_name = TRS("Format"),
       .type      = BG_PARAMETER_STRINGLIST,
-      .multi_names  = (char*[]){ "disk", NULL },
-      .multi_labels = (char*[]){ TRS("Disk"), NULL },
+      .multi_names  = (const char*[]){ "disk", NULL },
+      .multi_labels = (const char*[]){ TRS("Disk"), NULL },
+    },
+    {
+      .name        = "sync_distance",
+      .long_name   = TRS("Sync distance (ms)"),
+      .type        = BG_PARAMETER_INT,
+      .val_min     = { .val_i = 20 },
+      .val_max     = { .val_i = 10000 },
+      .val_default = { .val_i = 500 },
+      .help_string = TRS("Distance between sync headers if no stream has keyframes. Smaller distances produce larger overhead but speed up seeking"),
     },
     { /* End */ }
   };
@@ -95,7 +109,11 @@ bg_gavf_set_parameter(void * data, const char * name,
                       const bg_parameter_value_t * val)
   {
   bg_gavf_t * f = data;
-  
+
+  if(!name)
+    return;
+  else if(!strcmp(name, "sync_distance"))
+    gavf_options_set_sync_distance(f->opt, val->val_i * 1000);
   }
 
 static void
@@ -152,17 +170,6 @@ bg_gavf_add_audio_stream(void * data,
   return f->num_audio_streams-1;
   }
 
-static void adjust_video_format(gavl_video_format_t * fmt)
-  {
-  int sub_h, sub_v;
-
-  gavl_pixelformat_chroma_sub(fmt->pixelformat, &sub_h, &sub_v);
-  
-  fmt->frame_width  = ((fmt->image_width  + sub_h - 1) / sub_h) * sub_h;
-  fmt->frame_height = ((fmt->image_height + sub_v - 1) / sub_v) * sub_v;
-  
-  }
-
 static int
 bg_gavf_add_video_stream(void * data,
                          const gavl_metadata_t * m,
@@ -178,8 +185,6 @@ bg_gavf_add_video_stream(void * data,
 
   gavl_video_format_copy(&f->video_streams[f->num_video_streams].format,
                          format);
-
-  adjust_video_format(&f->video_streams[f->num_video_streams].format);
   
   f->video_streams[f->num_video_streams].index =
     gavf_add_video_stream(f->enc, &ci,
@@ -239,7 +244,7 @@ bg_gavf_add_video_stream_compressed(void * data,
   gavl_video_format_copy(&f->video_streams[f->num_video_streams].format,
                          format);
   f->video_streams[f->num_video_streams].index =
-    gavf_add_video_stream(f->enc, info, format, m);
+    gavf_add_video_stream(f->enc, info, &f->video_streams[f->num_video_streams].format, m);
 
   f->num_video_streams++;
   return f->num_video_streams-1;
@@ -283,7 +288,8 @@ bg_gavf_write_video_frame(void * data,
                           gavl_video_frame_t * frame, int stream)
   {
   bg_gavf_t * f = data;
-  
+  return gavf_write_video_frame(f->enc, f->video_streams[stream].index,
+                                frame);
   }
 
 static int
@@ -292,6 +298,7 @@ bg_gavf_write_subtitle_text(void * data,const char * text,
                             int64_t duration, int stream)
   {
   bg_gavf_t * f = data;
+  gavf_packet_t p;
   
   }
 
