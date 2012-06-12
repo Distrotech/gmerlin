@@ -181,7 +181,7 @@ dnl
 
 have_gmerlin="false"
 
-GMERLIN_REQUIRED="1.0.0"
+GMERLIN_REQUIRED="1.2.0"
 
 AC_ARG_ENABLE(gmerlin,
 [AC_HELP_STRING([--disable-gmerlin],[Disable gmerlin plugins (default: autodetect)])],
