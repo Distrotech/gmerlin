@@ -57,6 +57,8 @@ typedef struct
     {
     int index;
     } * text_streams;
+
+  int flags;
   
   gavf_t * enc;
   bg_encoder_callbacks_t * cb;
@@ -103,6 +105,27 @@ static const bg_parameter_info_t parameters[] =
       .val_default = { .val_i = 500 },
       .help_string = TRS("Distance between sync headers if no stream has keyframes. Smaller distances produce larger overhead but speed up seeking"),
     },
+    {
+      .name        = "sync_index",
+      .long_name   = TRS("Write sync index"),
+      .type        = BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Write a synchronisation index to enable seeking"),
+      .val_default = { .val_i = 1 },
+    },
+    {
+      .name        = "packet_index",
+      .long_name   = TRS("Write packet index"),
+      .type        = BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Write a packet index to enable faster seeking"),
+      .val_default = { .val_i = 1 },
+    },
+    {
+      .name        = "interleave",
+      .long_name   = TRS("Interleave"),
+      .type        = BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Take care of proper interleaving. Enabling this increases encoding latency and memory usage. Disable this if the packets are already properly interleaved."),
+      .val_default = { .val_i = 1 },
+    },
     { /* End */ }
   };
 
@@ -119,9 +142,30 @@ bg_gavf_set_parameter(void * data, const char * name,
   bg_gavf_t * f = data;
 
   if(!name)
+    {
+    gavf_options_set_flags(f->opt, f->flags);
     return;
+    }
   else if(!strcmp(name, "sync_distance"))
     gavf_options_set_sync_distance(f->opt, val->val_i * 1000);
+  else if(!strcmp(name, "sync_index"))
+    {
+    if(val->val_i)
+      f->flags |= GAVF_OPT_FLAG_SYNC_INDEX;
+    else
+      f->flags &= ~GAVF_OPT_FLAG_SYNC_INDEX;
+    }
+  else if(!strcmp(name, "packet_index"))
+    {
+    if(val->val_i)
+      f->flags |= GAVF_OPT_FLAG_PACKET_INDEX;
+    else
+      f->flags &= ~GAVF_OPT_FLAG_PACKET_INDEX;
+    }
+  else if(!strcmp(name, "interleave"))
+    {
+
+    }
   }
 
 static void
