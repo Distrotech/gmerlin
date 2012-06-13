@@ -360,7 +360,7 @@ int gavf_write_compression_info(gavf_io_t * io,
   
   /* Read mandatory stuff */
   if(!gavf_io_write_int32v(io, ci->flags) ||
-     !gavf_io_write_int32v(io, ci->id))
+     !gavf_io_write_uint32v(io, ci->id))
     return 0;
 
   /* Count extensions */
