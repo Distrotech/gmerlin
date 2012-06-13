@@ -340,7 +340,11 @@ int gavf_read_compression_info(gavf_io_t * io,
     switch(eh.key)
       {
       case GAVF_EXT_CI_GLOBAL_HEADER:
-        
+        ci->global_header_len = eh.len;
+        ci->global_header = malloc(ci->global_header_len);
+        if(gavf_io_read_data(io, ci->global_header,
+                             ci->global_header_len) < ci->global_header_len)
+          return 0;
         break;
       }
     }

@@ -60,7 +60,7 @@ static int read_buf(void * priv, uint8_t * data, int len)
   
   if(len > 0)
     {
-    memcpy(buf->buf + buf->pos, data, len);
+    memcpy(data, buf->buf + buf->pos, len);
     buf->pos += len;
     }
   return len;

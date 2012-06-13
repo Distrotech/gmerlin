@@ -96,6 +96,7 @@ int gavf_stream_header_write(gavf_io_t * io, const gavf_stream_header_t * h);
 void gavf_stream_header_init_audio(gavf_stream_header_t * h);
 void gavf_stream_header_init_video(gavf_stream_header_t * h);
 void gavf_stream_header_init_text(gavf_stream_header_t * h);
+void gavf_stream_header_dump(gavf_stream_header_t * h);
 
 /* Program header */
 
@@ -114,6 +115,8 @@ int gavf_program_header_read(gavf_io_t * io, gavf_program_header_t * ph);
 int gavf_program_header_write(gavf_io_t * io,
                               const gavf_program_header_t * ph);
 void gavf_program_header_free(gavf_program_header_t * ph);
+void gavf_program_header_dump(gavf_program_header_t * ph);
+
 
 /* Packetbuffer */
 
@@ -260,6 +263,7 @@ int gavf_file_index_read(gavf_io_t * io, gavf_file_index_t * fi);
 int gavf_file_index_write(gavf_io_t * io, const gavf_file_index_t * fi);
 void gavf_file_index_free(gavf_file_index_t * fi);
 void gavf_file_index_add(gavf_file_index_t * fi, char * tag, int64_t position);
+void gavf_file_index_dump(const gavf_file_index_t * fi);
 
 typedef struct
   {
@@ -283,6 +287,7 @@ void gavf_packet_index_add(gavf_packet_index_t * idx,
 int gavf_packet_index_read(gavf_io_t * io, gavf_packet_index_t * idx);
 int gavf_packet_index_write(gavf_io_t * io, const gavf_packet_index_t * idx);
 void gavf_packet_index_free(gavf_packet_index_t * idx);
+void gavf_packet_index_dump(gavf_packet_index_t * idx);
 
 typedef struct
   {
@@ -310,3 +315,4 @@ void gavf_sync_index_add(gavf_sync_index_t * idx,
 int gavf_sync_index_read(gavf_io_t * io, gavf_sync_index_t * idx);
 int gavf_sync_index_write(gavf_io_t * io, const gavf_sync_index_t * idx);
 void gavf_sync_index_free(gavf_sync_index_t * idx);
+void gavf_sync_index_dump(const gavf_sync_index_t * idx);

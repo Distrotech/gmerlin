@@ -159,6 +159,10 @@ static int handle_chunk(gavf_t * g, char * sig)
     {
     if(!gavf_program_header_read(g->io, &g->ph))
       return 0;
+
+    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
+      gavf_program_header_dump(&g->ph);
+    
     init_streams(g);
     }
   else if(!strncmp(sig, GAVF_TAG_SYNC_HEADER, 8))
@@ -167,13 +171,18 @@ static int handle_chunk(gavf_t * g, char * sig)
     }  
   else if(!strncmp(sig, GAVF_TAG_SYNC_INDEX, 8))
     {
-    if(gavf_packet_index_read(g->io, &g->pi))
+    if(gavf_sync_index_read(g->io, &g->si))
       g->opt.flags |= GAVF_OPT_FLAG_SYNC_INDEX;
+
+    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
+      gavf_sync_index_dump(&g->si);
     }
   else if(!strncmp(sig, GAVF_TAG_PACKET_INDEX, 8))
     {
     if(gavf_packet_index_read(g->io, &g->pi))
       g->opt.flags |= GAVF_OPT_FLAG_PACKET_INDEX;
+    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
+      gavf_packet_index_dump(&g->pi);
     }
   return 1;
   }
@@ -203,6 +212,9 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
       if(!gavf_file_index_read(g->io, &g->fi))
         return 0;
 
+      if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
+        gavf_file_index_dump(&g->fi);
+      
       if(g->io->seek_func)
         {
         for(i = 0; i < g->fi.num_entries; i++)
@@ -377,6 +389,10 @@ static int start_encoding(gavf_t * g)
     }
   
   gavf_file_index_add(&g->fi, GAVF_TAG_PROGRAM_HEADER, g->io->position);
+
+  if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
+    gavf_program_header_dump(&g->ph);
+  
   if(!gavf_program_header_write(g->io, &g->ph))
     return 0;
   
@@ -669,6 +685,8 @@ void gavf_close(gavf_t * g)
     if(g->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX)
       {
       gavf_file_index_add(&g->fi, GAVF_TAG_SYNC_INDEX, g->io->position);
+      if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
+        gavf_sync_index_dump(&g->si);
       if(!gavf_sync_index_write(g->io, &g->si))
         return;
       }
@@ -676,6 +694,8 @@ void gavf_close(gavf_t * g)
     if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
       {
       gavf_file_index_add(&g->fi, GAVF_TAG_PACKET_INDEX, g->io->position);
+      if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
+        gavf_packet_index_dump(&g->pi);
       if(!gavf_packet_index_write(g->io, &g->pi))
         return;
       }

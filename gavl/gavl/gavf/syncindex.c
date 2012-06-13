@@ -19,8 +19,10 @@ void gavf_sync_index_add(gavf_sync_index_t * idx,
     idx->entries = realloc(idx->entries,
                            idx->entries_alloc * sizeof(*idx->entries));
     }
+  idx->entries[idx->num_entries].pos = pos;
   idx->entries[idx->num_entries].pts = malloc(idx->pts_len);
   memcpy(idx->entries[idx->num_entries].pts, pts, idx->pts_len);
+  idx->num_entries++;
   }
 
 int gavf_sync_index_read(gavf_io_t * io, gavf_sync_index_t * idx)
@@ -75,4 +77,22 @@ void gavf_sync_index_free(gavf_sync_index_t * idx)
   {
   if(idx->entries)
     free(idx->entries);
+  }
+
+void gavf_sync_index_dump(const gavf_sync_index_t * idx)
+  {
+  uint64_t i;
+  int j;
+  
+  fprintf(stderr, "Sync index (%"PRId64" entries)\n", idx->num_entries);
+
+  for(i = 0; i < idx->num_entries; i++)
+    {
+    fprintf(stderr, "  Pos: %"PRId64"\n", idx->entries[i].pos);
+    for(j = 0; j < idx->num_streams; j++)
+      {
+      fprintf(stderr, "    PTS %02d: %"PRId64"\n", j, idx->entries[i].pts[j]);
+      }
+    }
+  
   }

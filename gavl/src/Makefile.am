@@ -16,6 +16,7 @@ benchmark \
 colorspace_time \
 deinterlace_time \
 dump_frame_table \
+gavfdump \
 pixelformat_penalty \
 plot_scale_kernels \
 scale_time \
@@ -28,6 +29,8 @@ pixelformat_penalty_LDADD = ../gavl/libgavl.la
 benchmark_SOURCES = benchmark.c
 benchmark_LDADD = ../gavl/libgavl.la @RT_LIBS@
 
+gavfdump_SOURCES = gavfdump.c
+gavfdump_LDADD = ../gavl/libgavl.la
 
 volume_test_SOURCES = volume_test.c
 volume_test_LDADD = ../gavl/libgavl.la

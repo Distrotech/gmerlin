@@ -69,3 +69,16 @@ void gavf_file_index_add(gavf_file_index_t * fi, char * tag, int64_t position)
   fi->entries[fi->num_entries].position = position;
   fi->num_entries++;
   }
+
+void gavf_file_index_dump(const gavf_file_index_t * fi)
+  {
+  int i;
+  fprintf(stderr, "File index (%d entries):\n", fi->num_entries);
+  
+  for(i = 0; i < fi->num_entries; i++)
+    {
+    fprintf(stderr, "  Tag: ");
+    fwrite(fi->entries[i].tag, 1, 8, stderr);
+    fprintf(stderr, "  Pos: %"PRId64"\n", fi->entries[i].position);
+    }
+  }

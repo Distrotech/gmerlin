@@ -79,6 +79,11 @@ typedef struct
 #define GAVF_OPT_FLAG_PACKET_INDEX (1<<1)
 #define GAVF_OPT_FLAG_INTERLEAVE   (1<<2)
 
+#define GAVF_OPT_FLAG_DUMP_HEADERS (1<<3)
+#define GAVF_OPT_FLAG_DUMP_INDICES (1<<4)
+#define GAVF_OPT_FLAG_DUMP_PACKETS (1<<5)
+
+
 GAVL_PUBLIC
 void gavf_options_set_flags(gavf_options_t *, int flags);
 

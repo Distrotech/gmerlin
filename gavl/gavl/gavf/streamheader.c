@@ -63,3 +63,50 @@ void gavf_stream_header_free(gavf_stream_header_t * h)
   gavl_compression_info_free(&h->ci);
   gavl_metadata_free(&h->m);
   }
+
+static const struct
+  {
+  int type;
+  const char * name;
+  }
+type_names[] =
+  {
+    { GAVF_STREAM_AUDIO, "Audio" },
+    { GAVF_STREAM_VIDEO, "Video" },
+    { GAVF_STREAM_TEXT,  "Text" },
+    { /* End */ },
+  };
+
+static const char * get_type_name(int type)
+  {
+  int i = 0;
+  while(type_names[i].name)
+    {
+    if(type_names[i].type == type)
+      return type_names[i].name;
+    i++;
+    }
+  return NULL;
+  }
+
+void gavf_stream_header_dump(gavf_stream_header_t * h)
+  {
+  fprintf(stderr, "    Type: %d (%s)\n", h->type, get_type_name(h->type));
+  fprintf(stderr, "    ID:   %d\n", h->id);
+
+  switch(h->type)
+    {
+    case GAVF_STREAM_AUDIO:
+      gavl_compression_info_dump(&h->ci);
+      gavl_audio_format_dump(&h->format.audio);
+      break;
+    case GAVF_STREAM_VIDEO:
+      gavl_compression_info_dump(&h->ci);
+      gavl_video_format_dump(&h->format.video);
+      break;
+    case GAVF_STREAM_TEXT:
+      fprintf(stderr, "    Timescale: %d\n", h->format.text.timescale);
+      break;
+    }
+  
+  }

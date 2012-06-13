@@ -12,7 +12,7 @@ int gavf_program_header_read(gavf_io_t * io, gavf_program_header_t * ph)
   
   gavf_buffer_init(&buf);
 
-  if(gavf_io_read_buffer(io, &buf))
+  if(!gavf_io_read_buffer(io, &buf))
     goto fail;
   
   gavf_io_init_buf_read(&bufio, &buf);
@@ -142,4 +142,20 @@ void gavf_program_header_free(gavf_program_header_t * ph)
   if(ph->streams)
     free(ph->streams);
   gavl_metadata_free(&ph->m);
+  }
+
+void gavf_program_header_dump(gavf_program_header_t * ph)
+  {
+  int i;
+  
+  fprintf(stderr, "Program header\n");
+  fprintf(stderr, "  Metadata\n");
+  gavl_metadata_dump(&ph->m, 4);
+
+  for(i = 0; i < ph->num_streams; i++)
+    {
+    fprintf(stderr, "  Stream %d\n", i+1);
+    gavf_stream_header_dump(&ph->streams[i]);
+    }
+  
   }

@@ -65,3 +65,15 @@ void gavf_packet_index_free(gavf_packet_index_t * idx)
   if(idx->entries)
     free(idx->entries);
   }
+
+void gavf_packet_index_dump(gavf_packet_index_t * idx)
+  {
+  uint64_t i;
+  fprintf(stderr, "Packet index (%"PRId64" Entries)\n", idx->num_entries);
+  for(i = 0; i < idx->num_entries; i++)
+    {
+    fprintf(stderr, "  id: %02d flags: %08x pos: %"PRId64" pts: %"PRId64"\n",
+            idx->entries[i].id, idx->entries[i].flags,
+            idx->entries[i].pos, idx->entries[i].pts);
+    }
+  }

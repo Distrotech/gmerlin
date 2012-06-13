@@ -113,13 +113,13 @@ int gavf_io_read_uint64f(gavf_io_t * io, uint64_t * num)
     return 0;
 
   *num =
-    ((uint64_t)buf[0] << 56 ) ||
-    ((uint64_t)buf[1] << 48 ) ||
-    ((uint64_t)buf[2] << 40 ) ||
-    ((uint64_t)buf[3] << 32 ) ||
-    ((uint64_t)buf[4] << 24 ) ||
-    ((uint64_t)buf[5] << 16 ) ||
-    ((uint64_t)buf[6] << 8 ) ||
+    ((uint64_t)buf[0] << 56 ) |
+    ((uint64_t)buf[1] << 48 ) |
+    ((uint64_t)buf[2] << 40 ) |
+    ((uint64_t)buf[3] << 32 ) |
+    ((uint64_t)buf[4] << 24 ) |
+    ((uint64_t)buf[5] << 16 ) |
+    ((uint64_t)buf[6] << 8 ) |
     ((uint64_t)buf[7]);
   return 1;
   }
@@ -347,7 +347,7 @@ int gavf_io_write_int32v(gavf_io_t * io, int32_t num)
 int gavf_io_read_int32v(gavf_io_t * io, int32_t * num)
   {
   int64_t ret = 0;
-  if(gavf_io_read_int64v(io, &ret))
+  if(!gavf_io_read_int64v(io, &ret))
     return 0;
   *num = ret;
   return 1;
