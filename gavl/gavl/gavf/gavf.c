@@ -7,7 +7,7 @@ typedef enum
   {
     ENC_STARTING = 0,
     ENC_SYNCHRONOUS,
-    ENC_INTERLEAVING
+    ENC_INTERLEAVE
   } encoding_mode_t;
 
 struct gavf_s
@@ -103,6 +103,7 @@ static void gavf_stream_init_text(gavf_stream_t * s)
   {
   s->timescale = s->h->format.text.timescale;
   s->has_pts = 1;
+  s->discontinuous = 1;
   }
 
 static void init_streams(gavf_t * g)
@@ -359,6 +360,22 @@ static int start_encoding(gavf_t * g)
   g->sync_distance = g->opt.sync_distance;
   
   init_streams(g);
+
+  if(g->ph.num_streams == 1)
+    {
+    g->encoding_mode = ENC_SYNCHRONOUS;
+    g->final_encoding_mode = ENC_SYNCHRONOUS;
+    }
+  else
+    {
+    g->encoding_mode = ENC_STARTING;
+    
+    if(g->opt.flags & GAVF_OPT_FLAG_INTERLEAVE)
+      g->final_encoding_mode = ENC_INTERLEAVE;
+    else
+      g->final_encoding_mode = ENC_SYNCHRONOUS;
+    }
+  
   gavf_file_index_add(&g->fi, GAVF_TAG_PROGRAM_HEADER, g->io->position);
   if(!gavf_program_header_write(g->io, &g->ph))
     return 0;
@@ -376,8 +393,13 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
     else if((stream >= 0) &&
             (g->ph.streams[i].ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES))
       g->sync_pts[i] = GAVL_TIME_UNDEFINED;
+
+    else if((g->streams[i].discontinuous) &&
+            (g->streams[i].next_sync_pts == GAVL_TIME_UNDEFINED))
+      g->sync_pts[i] = 0;
     else
       g->sync_pts[i] = g->streams[i].next_sync_pts;
+    
     }
 
   /* Update sync index */
@@ -431,7 +453,9 @@ static int write_packet(gavf_t * g, int stream,
     }
   else
     {
-    if(p->flags & GAVL_PACKET_KEYFRAME)
+    if((g->ph.streams[stream].type == GAVF_STREAM_VIDEO) &&
+       (g->ph.streams[stream].ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES) &&
+       p->flags & GAVL_PACKET_KEYFRAME)
       write_sync = 1;
     }
 
@@ -448,6 +472,8 @@ static int write_packet(gavf_t * g, int stream,
   
   if(s->next_sync_pts < p->pts + p->duration)
     s->next_sync_pts = p->pts + p->duration;
+
+  /* Update packet index */
   
   if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
     {
@@ -469,7 +495,6 @@ static int write_packet(gavf_t * g, int stream,
   
   return 1;
   }
-
 
 static int get_min_pts_stream(gavf_t * g, int flush_all,
                               gavl_time_t * min_time_p)
@@ -498,8 +523,7 @@ static int get_min_pts_stream(gavf_t * g, int flush_all,
       }
     else
       {
-      if(((g->ph.streams[i].type == GAVF_STREAM_AUDIO) ||
-          (g->ph.streams[i].type == GAVF_STREAM_VIDEO)) &&
+      if((!g->streams[i].discontinuous) &&
          !flush_all)
         {
         /* Some streams without packets: stop here */
@@ -561,14 +585,19 @@ int gavf_write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
       min_index = get_min_pts_stream(g, 0, &min_time);
       if(min_index >= 0)
         {
-        
+        g->encoding_mode = g->final_encoding_mode;
+        if(g->final_encoding_mode == ENC_SYNCHRONOUS)
+          return flush_packets(g, 1);
+        else
+          return flush_packets(g, 0);
         }
-      
+      else
+        return 1;
       break;
     case ENC_SYNCHRONOUS:
       return write_packet(g, stream, p);
       break;
-    case ENC_INTERLEAVING:
+    case ENC_INTERLEAVE:
       p1 = gavf_packet_buffer_get_write(s->pb);
       gavl_packet_copy(p1, p);
       return flush_packets(g, 0);

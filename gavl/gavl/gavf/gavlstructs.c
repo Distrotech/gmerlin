@@ -524,7 +524,7 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     num_extensions++;
 
   /* Write Extensions */
-  if(!gavf_io_read_uint32v(io, &num_extensions))
+  if(!gavf_io_write_uint32v(io, num_extensions))
     return 0;
 
   if(num_extensions)

@@ -148,6 +148,9 @@ typedef struct
 
   /* Video stuff */
   int image_size;
+
+  /* True for subtitle streams */
+  int discontinuous;
   
   } gavf_stream_t;
 
