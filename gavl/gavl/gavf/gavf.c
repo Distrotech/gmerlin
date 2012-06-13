@@ -187,6 +187,21 @@ static int handle_chunk(gavf_t * g, char * sig)
   return 1;
   }
 
+static int read_sync_header(gavf_t * g)
+  {
+  int i;
+  /* Read sync header */
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    if(!gavf_io_read_int64v(g->io, &g->sync_pts[i]))
+      return 0;
+    
+    if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
+      g->streams[i].last_sync_pts = g->sync_pts[i];
+    }
+  return 1;
+  }
+  
 int gavf_open_read(gavf_t * g, gavf_io_t * io)
   {
   int i;
@@ -240,6 +255,17 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
     if(g->sync_pos > 0)
       break;
     }
+
+  if(g->sync_pos != g->io->position)
+    {
+    if(g->io->seek_func)
+      gavf_io_seek(io, g->sync_pos, SEEK_SET);
+    else
+      return 0;
+    }
+
+  if(!read_sync_header(g))
+    return 0;
   
   return 1;
   }
@@ -272,18 +298,11 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
 
       if(!strncmp(c, GAVF_TAG_SYNC_HEADER, 8))
         {
-        int i;
-        /* Read sync header */
-        for(i = 0; i < g->ph.num_streams; i++)
-          {
-          if(!gavf_io_read_int64v(g->io, &g->sync_pts[i]))
-            return 0;
-
-          if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
-            g->streams[i].last_sync_pts = g->sync_pts[i];
-          }
+        if(!read_sync_header(g))
+          return 0;
         }
-      
+      else
+        return 0;
       }
     
     }

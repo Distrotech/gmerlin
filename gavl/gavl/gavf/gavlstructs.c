@@ -235,7 +235,7 @@ int gavf_write_video_format(gavf_io_t * io, const gavl_video_format_t * format)
   /* Write mandatory stuff */
   if(!gavf_io_write_uint32v(io, format->image_width) ||
      !gavf_io_write_uint32v(io, format->image_height) ||
-     !gavf_io_write_uint32v(io, format->framerate_mode) ||
+     !gavf_io_write_int32v(io, format->framerate_mode) ||
      !gavf_io_write_uint32v(io, format->timescale))
     return 0;
 
