@@ -208,6 +208,21 @@ void gavl_packet_free(gavl_packet_t * p)
     free(p->data);
   }
 
+void gavl_packet_reset(gavl_packet_t * p)
+  {
+  int data_alloc_save;
+  uint8_t * data_save;
+
+  data_alloc_save = p->data_alloc;
+  data_save       = p->data;
+
+  memset(p, 0, sizeof(*p));
+  
+  p->data_alloc = data_alloc_save;
+  p->data       = data_save;
+  
+  }
+
 void gavl_packet_copy(gavl_packet_t * dst,
                       const gavl_packet_t * src)
   {

@@ -79,6 +79,8 @@ typedef enum
     GAVL_CODEC_ID_DV,             //!< DV (several variants)
   } gavl_codec_id_t;
 
+#define GAVL_BITRATE_VBR -1
+  
   /** \brief Compression format
    *
    *  This defines parameters of the compression. The most important
@@ -91,11 +93,11 @@ typedef enum
   
 typedef struct
   {
-  int flags; //!< ORed combination of GAVL_COMPRESSION_* flags
+  uint32_t flags; //!< ORed combination of GAVL_COMPRESSION_* flags
   gavl_codec_id_t id; //!< Codec ID
   
   uint8_t * global_header; //!< Global header
-  int global_header_len;   //!< Length of global header
+  uint32_t global_header_len;   //!< Length of global header
   
   int bitrate;             //!< Needed by some codecs, negative values mean VBR
   int palette_size;        //!< Size of the embedded palette for image codecs
@@ -166,16 +168,14 @@ int gavl_compression_need_pixelformat(gavl_codec_id_t id);
 
 GAVL_PUBLIC
 int gavl_compression_constant_frame_samples(gavl_codec_id_t id);
-
   
-  
-#define GAVL_PACKET_TYPE_I 'I'      //!< Packet is an I-frame
-#define GAVL_PACKET_TYPE_P 'P'      //!< Packet is a P-frame
-#define GAVL_PACKET_TYPE_B 'B'      //!< Packet is a B-frame
-#define GAVL_PACKET_TYPE_MASK 0xff  //!< Mask for frame type
+#define GAVL_PACKET_TYPE_I    0x00      //!< Packet is an I-frame
+#define GAVL_PACKET_TYPE_P    0x01      //!< Packet is a P-frame
+#define GAVL_PACKET_TYPE_B    0x02      //!< Packet is a B-frame
+#define GAVL_PACKET_TYPE_MASK 0x03      //!< Mask for frame type
 
-#define GAVL_PACKET_KEYFRAME (1<<8) //!< Packet is a keyframe
-#define GAVL_PACKET_LAST     (1<<9) //!< Packet is the last in the stream (only Xiph codecs need this flag)
+#define GAVL_PACKET_KEYFRAME (1<<2) //!< Packet is a keyframe
+#define GAVL_PACKET_LAST     (1<<3) //!< Packet is the last in the stream (only Xiph codecs need this flag)
 
 /** \brief Packet structure
  *
@@ -196,14 +196,14 @@ typedef struct
   int data_len;   //!< Length of data
   int data_alloc; //!< How many bytes got allocated
 
-  int flags;      //!< ORed combination of GAVL_PACKET_* flags
+  uint32_t flags; //!< ORed combination of GAVL_PACKET_* flags
 
   int64_t pts;      //!< Presentation time
   int64_t duration; //!< Duration of the contained frame
 
-  int field2_offset; //!< Offset of field 2 for field pictures
-  int header_size;   //!< Size of a repeated global header (or 0)
-  int sequence_end_pos;    //!< Position of sequence end code if any
+  uint32_t field2_offset; //!< Offset of field 2 for field pictures
+  uint32_t header_size;   //!< Size of a repeated global header (or 0)
+  uint32_t sequence_end_pos;    //!< Position of sequence end code if any
 
   gavl_interlace_mode_t interlace_mode;
   gavl_timecode_t timecode;
@@ -241,11 +241,19 @@ void gavl_packet_free(gavl_packet_t * p);
  *  \param dst Destination
  *  \param src Source
  */
-
   
 GAVL_PUBLIC
 void gavl_packet_copy(gavl_packet_t * dst,
                       const gavl_packet_t * src);
+
+/** \brief Reset a packet
+ *  \param p Destination
+ *
+ *  Set fields to their default values
+ */
+  
+GAVL_PUBLIC
+void gavl_packet_reset(gavl_packet_t * p);
 
   
 /** \brief Dump a packet to stderr

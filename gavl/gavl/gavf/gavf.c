@@ -197,7 +197,11 @@ static int read_sync_header(gavf_t * g)
       return 0;
     
     if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
+      {
       g->streams[i].last_sync_pts = g->sync_pts[i];
+      if(!g->streams[i].has_pts)
+        g->streams[i].next_pts = g->sync_pts[i];
+      }
     }
   return 1;
   }
@@ -490,7 +494,7 @@ static int write_packet(gavf_t * g, int stream,
     {
     if((g->ph.streams[stream].type == GAVF_STREAM_VIDEO) &&
        (g->ph.streams[stream].ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES) &&
-       p->flags & GAVL_PACKET_KEYFRAME)
+       (p->flags & GAVL_PACKET_KEYFRAME))
       write_sync = 1;
     }
 

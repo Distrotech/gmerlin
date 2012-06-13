@@ -227,10 +227,13 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 /* Compresson info */
 
 #define GAVF_EXT_CI_GLOBAL_HEADER    0
+#define GAVF_EXT_CI_BITRATE          1
 
 /* Packet */
 
 #define GAVF_EXT_PK_DURATION         0
+#define GAVF_EXT_PK_HEADER_SIZE      1
+#define GAVF_EXT_PK_SEQ_END          2
 
 /* File index */
 

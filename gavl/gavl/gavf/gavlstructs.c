@@ -9,6 +9,7 @@
 #define MAX_EXT_SIZE_AF 16
 #define MAX_EXT_SIZE_VF 32
 #define MAX_EXT_SIZE_PK 16
+#define MAX_EXT_SIZE_CI 16
 
 int gavf_read_audio_format(gavf_io_t * io, gavl_audio_format_t * format)
   {
@@ -325,7 +326,7 @@ int gavf_read_compression_info(gavf_io_t * io,
   gavl_extension_header_t eh;
 
   /* Read mandatory stuff */
-  if(!gavf_io_read_int32v(io, &ci->flags) ||
+  if(!gavf_io_read_uint32v(io, &ci->flags) ||
      !gavf_io_read_uint32v(io, &ci->id))
     return 0;
 
@@ -346,6 +347,10 @@ int gavf_read_compression_info(gavf_io_t * io,
                              ci->global_header_len) < ci->global_header_len)
           return 0;
         break;
+      case GAVF_EXT_CI_BITRATE:
+        if(!gavf_io_read_int32v(io, &ci->bitrate))
+          return 0;
+        break;
       }
     }
   
@@ -357,9 +362,13 @@ int gavf_write_compression_info(gavf_io_t * io,
                                 const gavl_compression_info_t * ci)
   {
   uint32_t num_extensions;
+  uint8_t data[MAX_EXT_SIZE_CI];
+  gavf_buffer_t buf;
+  gavf_io_t bufio;
+
   
   /* Read mandatory stuff */
-  if(!gavf_io_write_int32v(io, ci->flags) ||
+  if(!gavf_io_write_uint32v(io, ci->flags) ||
      !gavf_io_write_uint32v(io, ci->id))
     return 0;
 
@@ -369,6 +378,9 @@ int gavf_write_compression_info(gavf_io_t * io,
   if(ci->global_header_len)
     num_extensions++;
 
+  if(ci->bitrate)
+    num_extensions++;
+  
   /* Write extensions */
   if(!gavf_io_write_uint32v(io, num_extensions))
     return 0;
@@ -376,11 +388,23 @@ int gavf_write_compression_info(gavf_io_t * io,
   if(!num_extensions)
     return 1;
 
+  gavf_buffer_init_static(&buf, data, MAX_EXT_SIZE_AF);
+  gavf_io_init_buf_write(&bufio, &buf);
+  
   if(ci->global_header_len)
     {
     if(!gavf_extension_write(io, GAVF_EXT_CI_GLOBAL_HEADER,
                              ci->global_header_len,
                              ci->global_header))
+      return 0;
+    }
+
+  if(ci->bitrate)
+    {
+    buf.len = 0;
+    if(!gavf_io_write_int32v(&bufio, ci->bitrate) ||
+       !gavf_extension_write(io, GAVF_EXT_CI_BITRATE,
+                             buf.len, buf.buf))
       return 0;
     }
   
@@ -435,6 +459,8 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   uint32_t num_extensions;
   gavl_extension_header_t eh;
 
+  gavl_packet_reset(p);
+  
   /* Flags */
   if(!gavf_io_read_uint32v(io, (uint32_t*)&p->flags))
     return 0;
@@ -457,6 +483,13 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     }
   else
     p->duration = s->packet_duration;
+
+  /* Field2 */
+  if(s->h->ci.flags & GAVL_COMPRESSION_HAS_FIELD_PICTURES)
+    {
+    if(!gavf_io_read_uint32v(io, &p->field2_offset))
+      return 0;
+    }
   
   /* Extensions */
   if(!gavf_io_read_uint32v(io, &num_extensions))
@@ -470,6 +503,10 @@ int gavf_read_gavl_packet(gavf_io_t * io,
       {
       case GAVF_EXT_PK_DURATION:
         if(!gavf_io_read_int64v(io, &p->duration))
+          return 0;
+        break;
+      case GAVF_EXT_PK_HEADER_SIZE:
+        if(!gavf_io_read_uint32v(io, &p->header_size))
           return 0;
         break;
       default:
@@ -502,6 +539,39 @@ int gavf_write_gavl_packet(gavf_io_t * io,
   gavf_buffer_t buf;
   gavf_io_t bufio;
 
+  uint32_t data_len;
+  uint32_t sequence_end_pos;
+  uint32_t field2_offset;
+  uint32_t header_size;
+  
+  const uint8_t * data_ptr;
+
+  data_len         = p->data_len;
+  sequence_end_pos = p->sequence_end_pos;
+  field2_offset    = p->field2_offset;
+  header_size      = p->header_size;
+  data_ptr         = p->data;
+  
+  /* Check if we can remove redundant headers */
+  if(header_size)
+    {
+    if((header_size == s->h->ci.global_header_len) &&
+       !memcmp(p->data, s->h->ci.global_header, header_size))
+      {
+      data_len -= header_size;
+      
+      if(field2_offset)
+        field2_offset -= header_size;
+
+      if(sequence_end_pos)
+        sequence_end_pos -= header_size;
+      
+      data_ptr += header_size;
+      
+      header_size = 0;
+      }
+    }
+  
   /* Flags */
   if(!gavf_io_write_uint32v(io, p->flags))
     return 0;
@@ -519,7 +589,14 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     if(!gavf_io_write_int64v(io, p->duration))
       return 0;
     }
-  
+
+  /* Field2 */
+  if(s->h->ci.flags & GAVL_COMPRESSION_HAS_FIELD_PICTURES)
+    {
+    if(!gavf_io_write_uint32v(io, p->field2_offset))
+      return 0;
+    }
+    
   /* Count Extensions */
 
   num_extensions = 0;
@@ -527,6 +604,9 @@ int gavf_write_gavl_packet(gavf_io_t * io,
   if(s->packet_duration && (p->duration < s->packet_duration))
     num_extensions++;
 
+  if(header_size)
+    num_extensions++;
+  
   /* Write Extensions */
   if(!gavf_io_write_uint32v(io, num_extensions))
     return 0;
@@ -540,15 +620,25 @@ int gavf_write_gavl_packet(gavf_io_t * io,
       {
       buf.len = 0;
       if(!gavf_io_write_int64v(&bufio, p->duration) ||
-         gavf_extension_write(io, GAVF_EXT_PK_DURATION,
-                              buf.len, buf.buf))
+         !gavf_extension_write(io, GAVF_EXT_PK_DURATION,
+                               buf.len, buf.buf))
         return 0;
       }
+
+    if(header_size)
+      {
+      buf.len = 0;
+      if(!gavf_io_write_uint32v(&bufio, header_size) ||
+         !gavf_extension_write(io, GAVF_EXT_PK_HEADER_SIZE,
+                               buf.len, buf.buf))
+        return 0;
+      }
+    
     }
   
   /* Payload */
-  if(!gavf_io_write_uint32v(io, p->data_len) ||
-     !gavf_io_write_data(io, p->data, p->data_len))
+  if(!gavf_io_write_uint32v(io, data_len) ||
+     !gavf_io_write_data(io, data_ptr, data_len))
     return 0;
   return 1;
   }
