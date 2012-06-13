@@ -115,8 +115,8 @@ static void get_format(bgav_stream_t * s)
 
   if(!s->codec_bitrate)
     {
-    if(s->container_bitrate == BGAV_BITRATE_VBR)
-      s->codec_bitrate = BGAV_BITRATE_VBR;
+    if(s->container_bitrate == GAVL_BITRATE_VBR)
+      s->codec_bitrate = GAVL_BITRATE_VBR;
     else
       s->codec_bitrate = priv->frame.header.bitrate;
     }

@@ -1213,7 +1213,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         
         /* Check for VBR audio */
         if(!strh->dwSampleSize)
-          bg_as->container_bitrate = BGAV_BITRATE_VBR;
+          bg_as->container_bitrate = GAVL_BITRATE_VBR;
         free(buf);
         break;
       case ID_STRD:

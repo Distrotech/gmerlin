@@ -131,7 +131,7 @@ typedef struct
   int need_format;
 
   uint8_t * extradata;
-  int extradata_size;
+  uint32_t extradata_size;
   
   int flags;
 

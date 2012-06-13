@@ -179,7 +179,7 @@ void bgav_stream_dump(bgav_stream_t * s)
           s->stream_id,
           s->stream_id);
   bgav_dprintf("  Codec bitrate:     ");
-  if(s->codec_bitrate == BGAV_BITRATE_VBR)
+  if(s->codec_bitrate == GAVL_BITRATE_VBR)
     bgav_dprintf("Variable\n");
   else if(s->codec_bitrate)
     bgav_dprintf("%d\n", s->codec_bitrate);
@@ -187,7 +187,7 @@ void bgav_stream_dump(bgav_stream_t * s)
     bgav_dprintf("Unspecified\n");
 
   bgav_dprintf("  Container bitrate: ");
-  if(s->container_bitrate == BGAV_BITRATE_VBR)
+  if(s->container_bitrate == GAVL_BITRATE_VBR)
     bgav_dprintf("Variable\n");
   else if(s->container_bitrate)
     bgav_dprintf("%d\n", s->container_bitrate);

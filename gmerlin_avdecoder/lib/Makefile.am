@@ -421,6 +421,7 @@ demux_dxa.c \
 demux_flac.c \
 demux_fli.c \
 demux_flv.c \
+demux_gavf.c \
 demux_gif.c \
 demux_gsm.c \
 demux_gxf.c \

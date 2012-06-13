@@ -54,7 +54,7 @@ pixel_aspect[] =
     {2, 1},
   };
 
-static void get_pixel_size(bgav_h264_vui_t * v, int * w, int * h)
+static void get_pixel_size(bgav_h264_vui_t * v, uint32_t * w, uint32_t * h)
   {
   if(v->aspect_ratio_info_present_flag)
     {

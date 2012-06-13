@@ -342,7 +342,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
   if(!s->container_bitrate)
     {
     if(priv->have_xing)
-      s->container_bitrate = BGAV_BITRATE_VBR;
+      s->container_bitrate = GAVL_BITRATE_VBR;
     else
       s->container_bitrate = priv->header.bitrate;
     }

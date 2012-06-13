@@ -144,7 +144,7 @@ static int open_adif(bgav_demuxer_context_t * ctx)
 
   if(buf[4 + skip_size] & 0x10)
     {
-    ctx->tt->cur->audio_streams[0].container_bitrate = BGAV_BITRATE_VBR;
+    ctx->tt->cur->audio_streams[0].container_bitrate = GAVL_BITRATE_VBR;
     }
   else
     {

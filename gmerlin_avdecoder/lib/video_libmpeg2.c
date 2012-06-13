@@ -35,8 +35,8 @@
 
 #define LOG_DOMAIN "video_libmpeg2"
 
-//#define DUMP_SEQUENCE_HEADER
-//#define DUMP_PACKETS
+#define DUMP_SEQUENCE_HEADER
+#define DUMP_PACKETS
 
 static const char picture_types[] = { "?IPB????" };
 
@@ -522,15 +522,15 @@ static int init_mpeg2(bgav_stream_t*s)
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
   
-  if(s->action == BGAV_STREAM_PARSE)
-    return 1;
-
   if(s->data.video.format.timecode_format.int_framerate)
     s->flags |= FLAG_EXTERN_TIMECODES;
   
   priv->dec  = mpeg2_init();
   priv->info = mpeg2_info(priv->dec);
   priv->non_b_count = 0;
+
+  priv->flags |= FLAG_NEED_SEQUENCE;
+  
   while(1)
     {
     if(!parse(s, &state))
@@ -538,6 +538,8 @@ static int init_mpeg2(bgav_stream_t*s)
     if(state == STATE_SEQUENCE)
       break;
     }
+
+  priv->flags &= ~FLAG_NEED_SEQUENCE;
   
   /* Get format */
   
@@ -561,7 +563,6 @@ static int init_mpeg2(bgav_stream_t*s)
 #endif
   
   s->codec_bitrate = priv->info->sequence->byte_rate * 8;
-  priv->flags |= FLAG_NEED_SEQUENCE;
   
   if(!s->timescale)
     s->timescale = s->data.video.format.timescale;

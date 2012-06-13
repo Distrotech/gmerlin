@@ -290,7 +290,7 @@ static void remove_byte(uint8_t * data, int byte, int * len, int * header_end)
     (*header_end)--;
   }
 
-void bgav_mpeg4_remove_packed_flag(uint8_t * data, int * len, int * header_len)
+void bgav_mpeg4_remove_packed_flag(uint8_t * data, uint32_t * len, uint32_t * header_len)
   {
   const uint8_t * sc2;
   uint8_t * hend = data + *header_len;

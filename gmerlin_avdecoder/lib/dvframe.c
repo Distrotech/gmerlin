@@ -450,7 +450,7 @@ void bgav_dv_dec_init_audio(bgav_dv_dec_t * d, bgav_stream_t * s)
   gavl_audio_format_copy(&d->audio_format, &s->data.audio.format);
   }
 
-void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t * d, int * pixel_width, int * pixel_height)
+void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t * d, uint32_t * pixel_width, uint32_t * pixel_height)
   {
   const uint8_t* vsc_pack;
   int apt, is16_9;

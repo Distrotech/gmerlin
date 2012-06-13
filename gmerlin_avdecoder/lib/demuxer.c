@@ -81,6 +81,7 @@ extern const bgav_demuxer_t bgav_demuxer_dxa;
 extern const bgav_demuxer_t bgav_demuxer_thp;
 extern const bgav_demuxer_t bgav_demuxer_r3d;
 extern const bgav_demuxer_t bgav_demuxer_matroska;
+extern const bgav_demuxer_t bgav_demuxer_gavf;
 
 #ifdef HAVE_VORBIS
 extern const bgav_demuxer_t bgav_demuxer_ogg;
@@ -174,6 +175,7 @@ static const demuxer_t demuxers[] =
     { &bgav_demuxer_gsm, "raw gsm" },
     { &bgav_demuxer_daud, "D-Cinema audio" },
     { &bgav_demuxer_vmd,  "Sierra VMD" },
+    { &bgav_demuxer_gavf,  "GAVF" },
   };
 
 static const demuxer_t sync_demuxers[] =

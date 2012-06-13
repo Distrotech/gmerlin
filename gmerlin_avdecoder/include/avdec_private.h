@@ -29,7 +29,7 @@
 
 #include <os.h>
 #include <gavl/metatags.h>
-
+#include <gavl/compression.h>
 
 #define PACKET_PADDING 32
 
@@ -383,8 +383,6 @@ typedef enum
 
 
 /* Stream structure */ 
-
-#define BGAV_BITRATE_VBR -1
 
 #define BGAV_ENDIANESS_NONE   0 // Unspecified
 #define BGAV_ENDIANESS_BIG    1

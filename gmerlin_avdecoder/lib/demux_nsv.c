@@ -324,7 +324,7 @@ static int probe_nsv(bgav_input_context_t * input)
   return 1;
   }
 
-static void simplify_rational(int * num, int * den)
+static void simplify_rational(uint32_t * num, uint32_t * den)
   {
   int i = 2;
 
@@ -340,7 +340,7 @@ static void simplify_rational(int * num, int * den)
     }
   }
 
-static void calc_framerate(int code, int * num, int * den)
+static void calc_framerate(int code, uint32_t * num, uint32_t * den)
   {
   int t, s_num, s_den;
   if(!(code & 0x80))
