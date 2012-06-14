@@ -160,7 +160,7 @@ static void set_parameter_b_ogg(void * data, const char * name,
 static int
 open_b_ogg(void * data, const char * file,
            const gavl_metadata_t * metadata,
-           const bg_chapter_list_t * chapter_list)
+           const gavl_chapter_list_t * chapter_list)
   {
   bg_ogg_encoder_t * enc = data;
   if(!bg_ogg_encoder_open(enc, NULL, metadata, chapter_list,

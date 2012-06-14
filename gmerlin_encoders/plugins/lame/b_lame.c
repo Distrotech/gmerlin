@@ -90,7 +90,7 @@ static void update_metadata(void * data,
 
 static int open_lame(void * data, const char * filename,
                      const gavl_metadata_t * metadata,
-                     const bg_chapter_list_t * chapter_list)
+                     const gavl_chapter_list_t * chapter_list)
   {
   b_lame_t * lame;
 

@@ -146,7 +146,7 @@ static void set_parameter_flac(void * data,
 
 static int open_flac(void * data, const char * filename,
                      const gavl_metadata_t * m,
-                     const bg_chapter_list_t * chapter_list)
+                     const gavl_chapter_list_t * chapter_list)
   {
   int result = 1;
   flac_t * flac;

@@ -149,7 +149,7 @@ static void set_parameter_lame(void * data, const char * name,
 static int open_lame(void * data,
                      const char * filename,
                      const gavl_metadata_t * metadata,
-                     const bg_chapter_list_t * chapter_list)
+                     const gavl_chapter_list_t * chapter_list)
   {
   int ret = 1;
   lame_priv_t * lame;

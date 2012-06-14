@@ -294,7 +294,7 @@ static void set_parameter_faac(void * data, const char * name,
 
 static int open_faac(void * data, const char * filename,
                      const gavl_metadata_t * metadata,
-                     const bg_chapter_list_t * chapter_list)
+                     const gavl_chapter_list_t * chapter_list)
   {
   faac_t * faac;
   bgen_id3v2_t * id3v2;

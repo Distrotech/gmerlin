@@ -59,7 +59,7 @@ static void set_callbacks_y4m(void * data, bg_encoder_callbacks_t * cb)
 
 static int open_y4m(void * data, const char * filename,
                     const gavl_metadata_t * metadata,
-                    const bg_chapter_list_t * chapter_list)
+                    const gavl_chapter_list_t * chapter_list)
   {
   e_y4m_t * e = data;
 

@@ -264,7 +264,7 @@ static void set_metadata(ffmpeg_priv_t * priv,
 #endif
 
 static void set_chapters(AVFormatContext * ctx,
-                         const bg_chapter_list_t * chapter_list)
+                         const gavl_chapter_list_t * chapter_list)
   {
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51,5,0)
   int i;
@@ -298,7 +298,7 @@ static void set_chapters(AVFormatContext * ctx,
 
 int bg_ffmpeg_open(void * data, const char * filename,
                    const gavl_metadata_t * metadata,
-                   const bg_chapter_list_t * chapter_list)
+                   const gavl_chapter_list_t * chapter_list)
   {
   ffmpeg_priv_t * priv;
   AVOutputFormat *fmt;
@@ -1133,9 +1133,6 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
   st = &priv->text_streams[stream];
 
   av_init_packet(&pkt);
-
-  fprintf(stderr, "Write subtitle 1 %ld -> %ld\n", start, start + duration);
-  fprintf(stderr, "%s\n", text);
   
   pkt.data     = (uint8_t*)bg_strdup(NULL, text);
   pkt.size     = strlen(text)+1;
@@ -1146,10 +1143,7 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
   pkt.duration= av_rescale_q(duration,
                              st->stream->codec->time_base,
                              st->stream->time_base) + st->pts_offset;
-
-  fprintf(stderr, "Write subtitle 2 %ld -> %ld\n", pkt.pts,
-          pkt.pts + pkt.duration);
-
+  
   pkt.convergence_duration = pkt.duration;
   pkt.dts = pkt.pts;
   pkt.stream_index = st->stream->index;

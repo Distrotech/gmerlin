@@ -87,7 +87,7 @@ static void close_file(void * priv)
 int
 bg_ogg_encoder_open(void * data, const char * file,
                     const gavl_metadata_t * metadata,
-                    const bg_chapter_list_t * chapter_list,
+                    const gavl_chapter_list_t * chapter_list,
                     const char * ext)
   {
   bg_ogg_encoder_t * e = data;
