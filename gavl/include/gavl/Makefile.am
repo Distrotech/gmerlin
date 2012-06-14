@@ -1,4 +1,5 @@
 pkginclude_HEADERS = \
+chapterlist.h \
 compression.h \
 gavf.h \
 gavl.h \

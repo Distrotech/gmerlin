@@ -154,6 +154,8 @@ typedef struct
 
   /* True for subtitle streams */
   int discontinuous;
+
+  gavf_buffer_t last_global_header;
   
   } gavf_stream_t;
 

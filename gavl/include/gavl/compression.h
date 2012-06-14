@@ -79,7 +79,7 @@ typedef enum
     GAVL_CODEC_ID_DV,             //!< DV (several variants)
   } gavl_codec_id_t;
 
-#define GAVL_BITRATE_VBR -1
+#define GAVL_BITRATE_VBR -1 //!< Use this to specify a VBR stream
   
   /** \brief Compression format
    *
@@ -205,8 +205,8 @@ typedef struct
   uint32_t header_size;   //!< Size of a repeated global header (or 0)
   uint32_t sequence_end_pos;    //!< Position of sequence end code if any
 
-  gavl_interlace_mode_t interlace_mode;
-  gavl_timecode_t timecode;
+  gavl_interlace_mode_t interlace_mode; //!< Interlace mode for mixed interlacing
+  gavl_timecode_t timecode; //!< Timecode
   
   } gavl_packet_t;
 

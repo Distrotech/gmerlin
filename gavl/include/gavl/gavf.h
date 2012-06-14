@@ -123,7 +123,8 @@ int gavf_packet_read_packet(gavf_t * gavf, gavl_packet_t * p);
 /* Write support */
 
 GAVL_PUBLIC
-int gavf_open_write(gavf_t * g, gavf_io_t * io);
+int gavf_open_write(gavf_t * g, gavf_io_t * io,
+                    const gavl_metadata_t * m);
 
 /*
  *  Return value: >= 0 is the stream ID passed to gavf_write_packet()

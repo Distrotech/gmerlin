@@ -555,8 +555,8 @@ int gavf_write_gavl_packet(gavf_io_t * io,
   /* Check if we can remove redundant headers */
   if(header_size)
     {
-    if((header_size == s->h->ci.global_header_len) &&
-       !memcmp(p->data, s->h->ci.global_header, header_size))
+    if((header_size == s->last_global_header.len) &&
+       !memcmp(p->data, s->last_global_header.buf, header_size))
       {
       data_len -= header_size;
       
@@ -570,6 +570,15 @@ int gavf_write_gavl_packet(gavf_io_t * io,
       
       header_size = 0;
       }
+    else // Remember this header to check later if it can be removed
+      {
+      gavf_buffer_alloc(&s->last_global_header,
+                        header_size);
+      memcpy(s->last_global_header.buf,
+             data_ptr, header_size);
+      s->last_global_header.len = header_size;
+      }
+    
     }
   
   /* Flags */

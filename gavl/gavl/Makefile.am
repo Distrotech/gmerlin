@@ -58,6 +58,7 @@ audioformat.c \
 audioframe.c \
 audiooptions.c \
 blend.c \
+chapterlist.c \
 colorchannel.c \
 colorspace.c \
 compression.c \

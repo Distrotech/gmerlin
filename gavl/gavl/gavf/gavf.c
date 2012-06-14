@@ -50,7 +50,6 @@ gavf_options_t * gavf_get_options(gavf_t * g)
   return &g->opt;
   }
 
-
 /* Extensions */
 
 int gavf_extension_header_read(gavf_io_t * io, gavl_extension_header_t * eh)
@@ -140,8 +139,25 @@ static void init_streams(gavf_t * g)
       {
       g->streams[i].pb =
         gavf_packet_buffer_create(g->streams[i].timescale);
+
+      if(g->streams[i].h->ci.global_header_len)
+        {
+        gavf_buffer_alloc(&g->streams[i].last_global_header,
+                          g->streams[i].h->ci.global_header_len);
+        memcpy(g->streams[i].last_global_header.buf,
+               g->streams[i].h->ci.global_header,
+               g->streams[i].h->ci.global_header_len);
+        g->streams[i].last_global_header.len =
+          g->streams[i].h->ci.global_header_len;
+        }
+      
       }
     }
+  }
+
+static void gavf_stream_free(gavf_stream_t * s)
+  {
+  gavf_buffer_free(&s->last_global_header);
   }
 
 gavf_t * gavf_create()
@@ -347,12 +363,15 @@ int gavf_packet_read_packet(gavf_t * g, gavl_packet_t * p)
 
 /* Write support */
 
-int gavf_open_write(gavf_t * g, gavf_io_t * io)
+int gavf_open_write(gavf_t * g, gavf_io_t * io, const gavl_metadata_t * m)
   {
   g->io = io;
   g->wr = 1;
   /* Initialize packet buffer */
   gavf_io_init_buf_write(&g->pkt_io, &g->pkt_buf);
+
+  if(m)
+    gavl_metadata_copy(&g->ph.m, m);
   
   if(g->io->seek_func)
     {
@@ -695,6 +714,7 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
 
 void gavf_close(gavf_t * g)
   {
+  int i;
   if(g->wr)
     {
     /* Flush packets if any */
@@ -733,11 +753,18 @@ void gavf_close(gavf_t * g)
     }
 
   /* Free stuff */
+
+  if(g->streams)
+    {
+    for(i = 0; i < g->ph.num_streams; i++)
+      gavf_stream_free(&g->streams[i]);
+    free(g->streams);
+    }
   gavf_file_index_free(&g->fi);
   gavf_sync_index_free(&g->si);
   gavf_packet_index_free(&g->pi);
   gavf_program_header_free(&g->ph);
-
+  
   if(g->write_frame)
     {
     gavl_video_frame_null(g->write_frame);
@@ -748,6 +775,8 @@ void gavf_close(gavf_t * g)
     free(g->sync_pts);
   
   gavl_packet_free(&g->write_pkt);
+
+  gavf_buffer_free(&g->pkt_buf);
   
   free(g);
   }

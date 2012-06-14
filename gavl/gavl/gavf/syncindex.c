@@ -75,6 +75,14 @@ int gavf_sync_index_write(gavf_io_t * io, const gavf_sync_index_t * idx)
 
 void gavf_sync_index_free(gavf_sync_index_t * idx)
   {
+  int i;
+  for(i = 0; i < idx->num_entries; i++)
+    {
+    if(idx->entries[i].pts)
+      free(idx->entries[i].pts);
+    }
+          
+
   if(idx->entries)
     free(idx->entries);
   }
