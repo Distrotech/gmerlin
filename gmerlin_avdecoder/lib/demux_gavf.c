@@ -29,6 +29,7 @@
 typedef struct
   {
   
+  gavf_io_t * io;
   gavf_t * dec;
   } gavf_demuxer_t;
 
@@ -107,6 +108,8 @@ static int init_track(bgav_track_t * track,
   {
   int i;
   bgav_stream_t * s;
+
+  gavl_metadata_copy(&track->metadata, &ph->m);
   
   for(i = 0; i < ph->num_streams; i++)
     {
@@ -120,7 +123,7 @@ static int init_track(bgav_track_t * track,
 
         bgav_stream_set_extradata(s, ph->streams[i].ci.global_header,
                                   ph->streams[i].ci.global_header_len);
-
+        s->container_bitrate = ph->streams[i].ci.bitrate;
         break;
       case GAVF_STREAM_VIDEO:
         s = bgav_track_add_video_stream(track, opt);
@@ -136,7 +139,7 @@ static int init_track(bgav_track_t * track,
 
         bgav_stream_set_extradata(s, ph->streams[i].ci.global_header,
                                   ph->streams[i].ci.global_header_len);
-        
+        s->container_bitrate = ph->streams[i].ci.bitrate;
         break;
       case GAVF_STREAM_TEXT:
         break;
@@ -149,7 +152,6 @@ static int init_track(bgav_track_t * track,
 static int open_gavf(bgav_demuxer_context_t * ctx)
   {
   gavf_options_t * opt;
-  gavf_io_t * io;
   uint32_t flags = 0;
   
   gavf_demuxer_t * priv = calloc(1, sizeof(*priv));
@@ -166,13 +168,13 @@ static int open_gavf(bgav_demuxer_context_t * ctx)
     flags |= GAVF_OPT_FLAG_DUMP_INDICES;
   gavf_options_set_flags(opt, flags);
 
-  io = gavf_io_create(read_func,
+  priv->io = gavf_io_create(read_func,
                       NULL,
                       (ctx->input->input->seek_byte ? seek_func : 0),
                       NULL,
                       ctx->input);
 
-  if(!gavf_open_read(priv->dec, io))
+  if(!gavf_open_read(priv->dec, priv->io))
     return 0;
   
   ctx->tt = bgav_track_table_create(1);
@@ -266,6 +268,9 @@ static void close_gavf(bgav_demuxer_context_t * ctx)
   {
   gavf_demuxer_t * priv;
   priv = ctx->priv;
+  gavf_close(priv->dec);
+  gavf_io_destroy(priv->io);
+  
   free(priv);
   }
 

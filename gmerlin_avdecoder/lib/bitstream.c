@@ -106,7 +106,7 @@ int bgav_bitstream_get_bits(bgav_bitstream_t * b)
 
 int bgav_bitstream_peek(bgav_bitstream_t * b, int * ret, int bits)
   {
-  int64_t tmp;
+  int64_t tmp = 0;
   int result;
   
   /* State is saved here */

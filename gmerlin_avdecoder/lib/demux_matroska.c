@@ -1083,7 +1083,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
       uint8_t * ptr;
       int bytes;
       int64_t frame_size;
-      int64_t frame_size_diff;
+      int64_t frame_size_diff = 0;
       
       //      fprintf(stderr, "MKV_LACING_EBML\n");
       //      bgav_hexdump(ptr, 32, 16);

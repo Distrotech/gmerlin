@@ -59,7 +59,7 @@ static void
 filter_avcc(bgav_bsf_t* bsf, bgav_packet_t * in, bgav_packet_t * out)
   {
   uint8_t * ptr, *end;
-  int len;
+  int len = 0;
   int nals_sent = 0;
   avcc_t * priv = bsf->priv;
   

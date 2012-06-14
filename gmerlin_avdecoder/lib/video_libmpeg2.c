@@ -35,8 +35,8 @@
 
 #define LOG_DOMAIN "video_libmpeg2"
 
-#define DUMP_SEQUENCE_HEADER
-#define DUMP_PACKETS
+// #define DUMP_SEQUENCE_HEADER
+// #define DUMP_PACKETS
 
 static const char picture_types[] = { "?IPB????" };
 

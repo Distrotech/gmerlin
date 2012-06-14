@@ -438,7 +438,8 @@ int bg_avdec_init(avdec_priv * avdec)
     num_chapters = bgav_get_num_chapters(avdec->dec, i, &chapter_timescale);
     if(num_chapters)
       {
-      avdec->track_info[i].chapter_list = bg_chapter_list_create(num_chapters);
+      avdec->track_info[i].chapter_list =
+        gavl_chapter_list_create(num_chapters);
       avdec->track_info[i].chapter_list->timescale = chapter_timescale;
       for(j = 0; j < num_chapters; j++)
         {

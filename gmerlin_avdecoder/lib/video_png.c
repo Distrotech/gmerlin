@@ -43,7 +43,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   char * error_msg = NULL;
   png_priv_t * priv;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   
   priv = s->data.video.decoder->priv;
   

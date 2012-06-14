@@ -197,12 +197,12 @@ static gavl_time_t get_duration(pgc_t * pgc, int start_cell, int end_cell, int a
 
 static const struct
   {
-  int image_width;
-  int image_height;
-  int pixel_width_4_3;
-  int pixel_height_4_3;
-  int pixel_width_16_9;
-  int pixel_height_16_9;
+  uint32_t image_width;
+  uint32_t image_height;
+  uint32_t pixel_width_4_3;
+  uint32_t pixel_height_4_3;
+  uint32_t pixel_width_16_9;
+  uint32_t pixel_height_16_9;
   }
 frame_sizes[] =
   {
@@ -215,7 +215,8 @@ frame_sizes[] =
   };
 
 static void guess_pixel_aspect(int width, int height, int aspect,
-                               int * pixel_width, int * pixel_height)
+                               uint32_t * pixel_width,
+                               uint32_t * pixel_height)
   {
   int i;
   for(i = 0; i < sizeof(frame_sizes)/sizeof(frame_sizes[0]); i++)
