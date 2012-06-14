@@ -92,6 +92,8 @@ char * bgav_sprintf(const char * format,...)
   va_list argp; /* arg ptr */
 #ifndef HAVE_VASPRINTF
   int len;
+#else
+  int result;
 #endif
   char * ret;
   va_start( argp, format);
@@ -101,7 +103,7 @@ char * bgav_sprintf(const char * format,...)
   ret = malloc(len+1);
   vsnprintf(ret, len+1, format, argp);
 #else
-  vasprintf(&ret, format, argp);
+  result = vasprintf(&ret, format, argp);
 #endif
   va_end(argp);
   return ret;

@@ -895,7 +895,8 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
   
   total_chapters = bgav_qt_trak_samples(trak);
   ctx->tt->cur->chapter_list =
-    bgav_chapter_list_create(trak->mdia.mdhd.time_scale, total_chapters);
+    gavl_chapter_list_create(total_chapters);
+  ctx->tt->cur->chapter_list->timescale = trak->mdia.mdhd.time_scale;
   
   chunk_index = 0;
   stts_index = 0;

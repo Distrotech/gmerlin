@@ -614,17 +614,18 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static bgav_chapter_list_t * create_chapter_list(bgav_mkv_chapters_t * chap)
+static gavl_chapter_list_t * create_chapter_list(bgav_mkv_chapters_t * chap)
   {
   int i;
   /* We support only the first (and only?) EditionEntry */
-  bgav_chapter_list_t * ret = NULL;
+  gavl_chapter_list_t * ret = NULL;
 
   if(!chap->num_editions || !chap->editions[0].num_atoms)
     return NULL;
 
-  ret = bgav_chapter_list_create(GAVL_TIME_SCALE, chap->editions[0].num_atoms);
-
+  ret = gavl_chapter_list_create(chap->editions[0].num_atoms);
+  ret->timescale = GAVL_TIME_SCALE;
+  
   for(i = 0; i < chap->editions[0].num_atoms; i++)
     {
     // No ns precision

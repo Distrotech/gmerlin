@@ -371,7 +371,7 @@ void bgav_track_free(bgav_track_t * t)
   
   gavl_metadata_free(&t->metadata);
   if(t->chapter_list)
-    bgav_chapter_list_destroy(t->chapter_list);
+    gavl_chapter_list_destroy(t->chapter_list);
   
   if(t->audio_streams)
     {

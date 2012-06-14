@@ -366,7 +366,8 @@ static int setup_track(bgav_input_context_t * ctx,
     {
 #endif
     new_track->chapter_list =
-      bgav_chapter_list_create(GAVL_TIME_SCALE, track_priv->num_chapters);
+      gavl_chapter_list_create(track_priv->num_chapters);
+    new_track->chapter_list->timescale = GAVL_TIME_SCALE;
     new_track->duration = 0;
     for(i = 0; i < track_priv->num_chapters; i++)
       {

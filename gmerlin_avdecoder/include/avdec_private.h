@@ -668,22 +668,7 @@ int bgav_stream_skipto(bgav_stream_t * s, int64_t * time, int scale);
  *  Chapter list
  */
 
-typedef struct
-  {
-  int num_chapters;
-  int timescale;
-  struct
-    {
-    int64_t time;
-    char * name;
-    } * chapters;
-  } bgav_chapter_list_t;
-
-bgav_chapter_list_t * bgav_chapter_list_create(int timescale,
-                                               int num_chapters);
-
-void bgav_chapter_list_dump(bgav_chapter_list_t * list);
-void bgav_chapter_list_destroy(bgav_chapter_list_t * list);
+void bgav_chapter_list_dump(const gavl_chapter_list_t * list);
 
 #define TRACK_SAMPLE_ACCURATE (1<<0)
 #define TRACK_HAS_FILE_INDEX  (1<<1)
@@ -703,7 +688,7 @@ struct bgav_track_s
   bgav_stream_t * video_streams;
   bgav_stream_t * subtitle_streams;
   
-  bgav_chapter_list_t * chapter_list;
+  gavl_chapter_list_t * chapter_list;
   
   void * priv; /* For storing private data */  
 

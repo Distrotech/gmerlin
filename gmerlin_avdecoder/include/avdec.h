@@ -29,6 +29,7 @@
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
 #include <gavl/metadata.h>
+#include <gavl/chapterlist.h>
 
 #include "bgavdefs.h" // This is ugly, but works
 
@@ -1398,6 +1399,20 @@ bgav_get_chapter_name(bgav_t * bgav, int track, int chapter);
 BGAV_PUBLIC
 int64_t bgav_get_chapter_time(bgav_t * bgav, int track, int chapter);
 
+/** \ingroup track
+ *  \brief Get the chapter list
+ *  \param bgav A decoder instance
+ *  \param track Track index (starts with 0)
+ *  \returns A chapter list (or NULL)
+ *
+ *  Use this as a replacement for \ref bgav_get_num_chapters ,
+ *  \ref bgav_get_chapter_name and \ref bgav_get_chapter_time
+ */
+
+BGAV_PUBLIC
+const gavl_chapter_list_t * bgav_get_chapter_list(bgav_t * bgav, int track);
+
+  
 /** \defgroup streams Query and select streams
  * \ingroup decoding
  *

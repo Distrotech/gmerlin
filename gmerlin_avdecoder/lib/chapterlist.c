@@ -23,18 +23,7 @@
 
 #include <avdec_private.h>
 
-bgav_chapter_list_t * bgav_chapter_list_create(int timescale,
-                                               int num_chapters)
-  {
-  bgav_chapter_list_t * ret;
-  ret = calloc(1, sizeof(*ret));
-  ret->timescale = timescale;
-  ret->num_chapters = num_chapters;
-  ret->chapters = calloc(ret->num_chapters, sizeof(*ret->chapters));
-  return ret;
-  }
-
-void bgav_chapter_list_dump(bgav_chapter_list_t * list)
+void bgav_chapter_list_dump(const gavl_chapter_list_t * list)
   {
   int i;
   char time_string[GAVL_TIME_STRING_LEN];
@@ -53,27 +42,17 @@ void bgav_chapter_list_dump(bgav_chapter_list_t * list)
     }
   }
 
-void bgav_chapter_list_destroy(bgav_chapter_list_t * list)
-  {
-  int i;
-  for(i = 0; i < list->num_chapters; i++)
-    if(list->chapters[i].name) free(list->chapters[i].name);
-  if(list->chapters)
-    free(list->chapters);
-  free(list);
-  }
-
-static bgav_chapter_list_t * get_chapter_list(bgav_t * bgav, int track)
+const gavl_chapter_list_t * bgav_get_chapter_list(bgav_t * bgav, int track)
   {
   if(track >= bgav->tt->num_tracks || track < 0)
-    return 0;
+    return NULL;
   return bgav->tt->tracks[track].chapter_list;
   }
 
 int bgav_get_num_chapters(bgav_t * bgav, int track, int * timescale)
   {
-  bgav_chapter_list_t * list;
-  list = get_chapter_list(bgav, track);
+  const gavl_chapter_list_t * list;
+  list = bgav_get_chapter_list(bgav, track);
   if(!list)
     {
     *timescale = 0;
@@ -86,8 +65,8 @@ int bgav_get_num_chapters(bgav_t * bgav, int track, int * timescale)
 const char *
 bgav_get_chapter_name(bgav_t * bgav, int track, int chapter)
   {
-  bgav_chapter_list_t * list;
-  list = get_chapter_list(bgav, track);
+  const gavl_chapter_list_t * list;
+  list = bgav_get_chapter_list(bgav, track);
   if(!list || (chapter < 0) || (chapter >= list->num_chapters))
     return NULL;
   return list->chapters[chapter].name;
@@ -95,8 +74,8 @@ bgav_get_chapter_name(bgav_t * bgav, int track, int chapter)
 
 int64_t bgav_get_chapter_time(bgav_t * bgav, int track, int chapter)
   {
-  bgav_chapter_list_t * list;
-  list = get_chapter_list(bgav, track);
+  const gavl_chapter_list_t * list;
+  list = bgav_get_chapter_list(bgav, track);
   if(!list || (chapter < 0) || (chapter >= list->num_chapters))
     return 0;
   return list->chapters[chapter].time;
