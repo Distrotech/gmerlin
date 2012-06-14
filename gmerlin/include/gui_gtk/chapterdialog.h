@@ -20,5 +20,5 @@
  * *****************************************************************/
 
 
-void bg_gtk_chapter_dialog_show(bg_chapter_list_t ** list,
+void bg_gtk_chapter_dialog_show(gavl_chapter_list_t ** list,
                                 gavl_time_t duration, GtkWidget * parent);

@@ -623,7 +623,9 @@ static bg_plugin_info_t * get_info(void * test_module,
   
   if(!check_plugin_version(test_module))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Plugin %s has no or wrong version. Recompiling the plugin should fix this.",
+           filename);
     return NULL;
     }
   plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));

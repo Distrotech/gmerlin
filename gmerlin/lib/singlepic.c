@@ -899,7 +899,7 @@ static void create_mask(encoder_t * e, const char * ext)
 
 static int open_encoder(void * data, const char * filename,
                         const gavl_metadata_t * metadata,
-                        const bg_chapter_list_t * chapter_list)
+                        const gavl_chapter_list_t * chapter_list)
   {
   encoder_t * e;
   

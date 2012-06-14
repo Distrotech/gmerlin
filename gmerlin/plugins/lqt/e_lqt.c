@@ -109,7 +109,7 @@ typedef struct
     uint16_t bg_color[4];
     } * subtitle_text_streams;
   
-  const bg_chapter_list_t * chapter_list;
+  const gavl_chapter_list_t * chapter_list;
   
   int chapter_track_id;
   } e_lqt_t;
@@ -156,7 +156,7 @@ static const char * get_extension(int type)
 
 static int open_lqt(void * data, const char * filename,
                     const gavl_metadata_t * m,
-                    const bg_chapter_list_t * chapter_list)
+                    const gavl_chapter_list_t * chapter_list)
   {
   e_lqt_t * e = data;
 
@@ -327,7 +327,7 @@ add_audio_stream_compressed_lqt(void * data,
 
 static int add_subtitle_text_stream_lqt(void * data,
                                         const gavl_metadata_t * m,
-                                        int * timescale)
+                                        uint32_t * timescale)
   {
   const char * tag;
   e_lqt_t * e = data;

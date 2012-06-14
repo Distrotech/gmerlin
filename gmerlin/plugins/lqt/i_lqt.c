@@ -113,7 +113,7 @@ static void setup_chapters(i_lqt_t * e, int track)
   char * text = NULL;
   int text_alloc = 0;
   
-  e->track_info.chapter_list = bg_chapter_list_create(0);
+  e->track_info.chapter_list = gavl_chapter_list_create(0);
   e->track_info.chapter_list->timescale = lqt_text_time_scale(e->file, track);
 
   num = lqt_text_samples(e->file, track);
@@ -122,7 +122,7 @@ static void setup_chapters(i_lqt_t * e, int track)
     {
     if(lqt_read_text(e->file, track, &text, &text_alloc, &timestamp, &duration))
       {
-      bg_chapter_list_insert(e->track_info.chapter_list, i, timestamp, text);
+      gavl_chapter_list_insert(e->track_info.chapter_list, i, timestamp, text);
       }
     else
       break;

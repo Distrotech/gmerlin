@@ -49,7 +49,7 @@ typedef struct
   GtkWidget * ok_button;
   GtkWidget * cancel_button;
     
-  bg_chapter_list_t * cl;
+  gavl_chapter_list_t * cl;
 
   int selected;
   int edited;
@@ -247,7 +247,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     if(!win->cl)
       {
-      win->cl = bg_chapter_list_create(0);
+      win->cl = gavl_chapter_list_create(0);
       win->selected = 0;
       win->edited = 0;
       win->cl->timescale = GAVL_TIME_SCALE;
@@ -255,13 +255,13 @@ static void button_callback(GtkWidget * w, gpointer data)
     else
       win->edited = win->selected + 1;
     
-    bg_chapter_list_insert(win->cl, win->edited,
+    gavl_chapter_list_insert(win->cl, win->edited,
                            0,NULL);
     win->is_ok = 0;
     edit_chapter(win);
     
     if(!win->is_ok)
-      bg_chapter_list_delete(win->cl, win->edited);
+      gavl_chapter_list_delete(win->cl, win->edited);
     else
       {
       win->selected = win->edited;
@@ -270,7 +270,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->delete_button)
     {
-    bg_chapter_list_delete(win->cl, win->selected);
+    gavl_chapter_list_delete(win->cl, win->selected);
     update_list(win);
     }
   else if(w == win->edit_button)
@@ -318,7 +318,7 @@ static GtkWidget * create_window_pixmap_button(bg_gtk_chapter_dialog_t * win,
   return button;
   }
 
-static bg_gtk_chapter_dialog_t * create_dialog(bg_chapter_list_t * list,
+static bg_gtk_chapter_dialog_t * create_dialog(gavl_chapter_list_t * list,
                                                gavl_time_t duration)
   {
   GtkListStore *store;
@@ -332,7 +332,7 @@ static bg_gtk_chapter_dialog_t * create_dialog(bg_chapter_list_t * list,
     
   bg_gtk_chapter_dialog_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->cl = bg_chapter_list_copy(list);
+  ret->cl = gavl_chapter_list_copy(list);
   ret->duration = duration;
   
   /* Create objects */
@@ -448,11 +448,11 @@ static void destroy_dialog(bg_gtk_chapter_dialog_t * dlg)
   gtk_widget_destroy(dlg->window);
 
   if(dlg->cl)
-    bg_chapter_list_destroy(dlg->cl);
+    gavl_chapter_list_destroy(dlg->cl);
   free(dlg);
   }
 
-void bg_gtk_chapter_dialog_show(bg_chapter_list_t ** list,
+void bg_gtk_chapter_dialog_show(gavl_chapter_list_t ** list,
                                 gavl_time_t duration, GtkWidget * parent)
   {
   bg_gtk_chapter_dialog_t * dlg;
@@ -468,8 +468,8 @@ void bg_gtk_chapter_dialog_show(bg_chapter_list_t ** list,
 
   if(dlg->is_ok)
     {
-    if(*list) bg_chapter_list_destroy(*list);
-    *list = bg_chapter_list_copy(dlg->cl);
+    if(*list) gavl_chapter_list_destroy(*list);
+    *list = gavl_chapter_list_copy(dlg->cl);
     }
     
   destroy_dialog(dlg);

@@ -660,7 +660,7 @@ static void set_track(bg_transcoder_track_t * track,
 
   /* Chapter list */
   if(track_info->chapter_list)
-    track->chapter_list = bg_chapter_list_copy(track_info->chapter_list);
+    track->chapter_list = gavl_chapter_list_copy(track_info->chapter_list);
   
   /* Audio streams */
   
@@ -1312,7 +1312,7 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
     bg_parameter_info_destroy_array(t->metadata_parameters);
 
   if(t->chapter_list)
-    bg_chapter_list_destroy(t->chapter_list);
+    gavl_chapter_list_destroy(t->chapter_list);
   
   if(t->url)
     free(t->url);

@@ -115,7 +115,7 @@ struct bg_transcoder_track_s
   char * url;
 
   /* Chapter list (can be NULL) */
-  bg_chapter_list_t * chapter_list;
+  gavl_chapter_list_t * chapter_list;
   };
 
 const bg_parameter_info_t *

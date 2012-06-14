@@ -184,8 +184,7 @@ static void msg_subpicture_description(bg_msg_t * msg, const void * data)
 
 static void msg_num_chapters(bg_msg_t * msg, const void * data)
   {
-  bg_chapter_list_t * l;
-  l = (bg_chapter_list_t *)data;
+  const gavl_chapter_list_t * l = data;
   bg_msg_set_id(msg, BG_PLAYER_MSG_NUM_CHAPTERS);
 
   if(l)
@@ -202,7 +201,7 @@ static void msg_num_chapters(bg_msg_t * msg, const void * data)
 
 struct chapter_info_s
   {
-  bg_chapter_list_t * l;
+  gavl_chapter_list_t * l;
   int index;
   };
 
@@ -791,7 +790,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t, int scale)
   if(player->track_info->chapter_list)
     {
     new_chapter =
-      bg_chapter_list_get_current(player->track_info->chapter_list,
+      gavl_chapter_list_get_current(player->track_info->chapter_list,
                                   sync_time);
     if(new_chapter != player->current_chapter)
       {
@@ -1270,7 +1269,7 @@ static void * player_thread(void * data)
             }
           }
         if(player->track_info->chapter_list &&
-           bg_chapter_list_changed(player->track_info->chapter_list,
+           gavl_chapter_list_changed(player->track_info->chapter_list,
                                    time, &player->current_chapter))
           {
           bg_msg_queue_list_send(player->message_queues,

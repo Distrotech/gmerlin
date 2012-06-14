@@ -78,7 +78,7 @@ void bg_track_info_free(bg_track_info_t * info)
   gavl_metadata_free(&info->metadata);
 
   if(info->chapter_list)
-    bg_chapter_list_destroy(info->chapter_list);
+    gavl_chapter_list_destroy(info->chapter_list);
   
   MY_FREE(info->name);
   MY_FREE(info->url);

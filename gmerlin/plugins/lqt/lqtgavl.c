@@ -476,6 +476,7 @@ int lqt_gavl_get_video_format(quicktime_t * file,
   int constant_framerate;
   int tc_framerate;
   uint32_t tc_flags;
+  int pixel_width, pixel_height;
   if(track >= quicktime_video_tracks(file) ||
      track < 0)
     return 0;
@@ -486,9 +487,12 @@ int lqt_gavl_get_video_format(quicktime_t * file,
   format->frame_width = format->image_width;
   format->frame_height = format->image_height;
 
-  lqt_get_pixel_aspect(file, track, &format->pixel_width,
-                       &format->pixel_height);
+  lqt_get_pixel_aspect(file, track, &pixel_width,
+                       &pixel_height);
 
+  format->pixel_width = pixel_width;
+  format->pixel_height = pixel_height;
+  
   format->timescale = lqt_video_time_scale(file, track);
   format->frame_duration = lqt_frame_duration(file, track,
                                               &constant_framerate);

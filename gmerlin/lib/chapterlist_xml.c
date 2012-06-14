@@ -31,7 +31,7 @@
 #define CHAPTERS_KEY "CHAPTERS"
 #define NAME_KEY    "name"
 
-void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list)
+void bg_chapter_list_2_xml(gavl_chapter_list_t * list, xmlNodePtr xml_list)
   {
   char * tmp_string;
   int i;
@@ -59,16 +59,16 @@ void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list)
   
   }
 
-bg_chapter_list_t *
+gavl_chapter_list_t *
 bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list)
   {
   int index;
-  bg_chapter_list_t * ret;
+  gavl_chapter_list_t * ret;
   char * tmp_string;
   gavl_time_t time;
   xmlNodePtr node;
   
-  ret = bg_chapter_list_create(0);
+  ret = gavl_chapter_list_create(0);
   ret->timescale = GAVL_TIME_SCALE;
   
   tmp_string = (char*)BG_XML_GET_PROP(xml_list, "timescale");
@@ -90,7 +90,7 @@ bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list)
 
       tmp_string = BG_XML_GET_PROP(node, NAME_KEY);
       
-      bg_chapter_list_insert(ret, index,
+      gavl_chapter_list_insert(ret, index,
                              time, tmp_string);
       if(tmp_string)
         xmlFree(tmp_string);
@@ -101,7 +101,7 @@ bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list)
   return ret;
   }
 
-void bg_chapter_list_save(bg_chapter_list_t * list, const char * filename)
+void bg_chapter_list_save(gavl_chapter_list_t * list, const char * filename)
   {
   xmlDocPtr  xml_doc;
   xmlNodePtr  xml_list;
@@ -115,12 +115,12 @@ void bg_chapter_list_save(bg_chapter_list_t * list, const char * filename)
   xmlFreeDoc(xml_doc);
   }
 
-bg_chapter_list_t * bg_chapter_list_load(const char * filename)
+gavl_chapter_list_t * bg_chapter_list_load(const char * filename)
   {
   xmlDocPtr xml_doc;
   xmlNodePtr node;
 
-  bg_chapter_list_t * ret;
+  gavl_chapter_list_t * ret;
 
   xml_doc = bg_xml_parse_file(filename);
 

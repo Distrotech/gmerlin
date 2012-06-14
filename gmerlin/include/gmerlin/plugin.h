@@ -1429,7 +1429,7 @@ struct bg_encoder_plugin_s
   
   int (*open)(void * data, const char * filename,
               const gavl_metadata_t * metadata,
-              const bg_chapter_list_t * chapter_list);
+              const gavl_chapter_list_t * chapter_list);
   
   /* Return per stream parameters */
 
@@ -1542,7 +1542,7 @@ struct bg_encoder_plugin_s
   
   int (*add_subtitle_text_stream)(void * priv,
                                   const gavl_metadata_t * m,
-                                  int * timescale);
+                                  uint32_t * timescale);
   
   /** \brief Add a text subtitle stream
    *  \param priv The handle returned by the create() method

@@ -66,7 +66,7 @@ static void set_callbacks_ovl2text(void * data, bg_encoder_callbacks_t * cb)
 
 static int open_ovl2text(void * data, const char * filename,
                          const gavl_metadata_t * metadata,
-                         const bg_chapter_list_t * chapter_list)
+                         const gavl_chapter_list_t * chapter_list)
   {
   ovl2text_t * e = data;
   

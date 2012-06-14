@@ -61,6 +61,8 @@ typedef struct
   int flags;
   
   gavf_t * enc;
+  gavf_io_t * io;
+
   bg_encoder_callbacks_t * cb;
   gavf_options_t * opt;
 
@@ -179,9 +181,8 @@ bg_gavf_set_callbacks(void * data,
 static int
 bg_gavf_open(void * data, const char * filename,
              const gavl_metadata_t * metadata,
-             const bg_chapter_list_t * chapter_list)
+             const gavl_chapter_list_t * chapter_list)
   {
-  gavf_io_t * io;
   bg_gavf_t * f = data;
 
   f->filename = bg_filename_ensure_extension(filename, "gavf");
@@ -192,9 +193,9 @@ bg_gavf_open(void * data, const char * filename,
   if(!(f->output = fopen(f->filename, "wb")))
     return 0;
 
-  io = gavf_io_create_file(f->output, 1, 1);
+  f->io = gavf_io_create_file(f->output, 1, 1);
 
-  if(!gavf_open_write(f->enc, io))
+  if(!gavf_open_write(f->enc, f->io, metadata))
     return 0;
   
   return 1;
@@ -265,7 +266,7 @@ bg_gavf_add_video_stream(void * data,
 static int
 bg_gavf_add_text_stream(void * data,
                         const gavl_metadata_t * m,
-                        int * timescale)
+                        uint32_t * timescale)
   {
   bg_gavf_t * f = data;
   f->text_streams =
@@ -389,6 +390,7 @@ bg_gavf_close(void * data, int do_delete)
   {
   bg_gavf_t * f = data;
   gavf_close(f->enc);
+  gavf_io_destroy(f->io);
   fclose(f->output);
   return 1;
   }

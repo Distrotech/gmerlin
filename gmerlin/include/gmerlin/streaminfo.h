@@ -24,6 +24,7 @@
 
 #include <gavl/gavl.h>
 #include <gavl/metadata.h>
+#include <gavl/chapterlist.h>
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -191,70 +192,6 @@ bg_parameter_info_t * bg_metadata_get_parameters_common(gavl_metadata_t * m);
 void bg_metadata_set_parameter(void * data, const char * name,
                                const bg_parameter_value_t * v);
 
-/** \brief Check if 2 metadata structures are equal
- *  \param m1 Metadata 1
- *  \param m2 Metadata 2
- *  \return 1 if the metadata are equal, 0 else
- */
-
-//int bg_metadata_equal(const bg_metadata_t * m1,
-//                      const bg_metadata_t * m2);
-
-
-/** \brief Chapter list
- *
- *  Chapters in gmerlin are simply an array of
- *  seekpoints with (optionally) associated names.
- *  They are valid as soon as the file is opened
- */
-
-typedef struct
-  {
-  int num_chapters;       //!< Number of chapters
-  int timescale;          //!< Scale of the timestamps
-  struct
-    {
-    int64_t time;        //!< Start time (seekpoint) of this chapter
-    char * name;          //!< Name for this chapter (or NULL if unavailable)
-    } * chapters;         //!< Chapters
-  } bg_chapter_list_t;
-
-/** \brief Create chapter list
- *  \param num_chapters Initial number of chapters
- */
-
-
-bg_chapter_list_t * bg_chapter_list_create(int num_chapters);
-
-/** \brief Copy chapter list
- *  \param list Chapter list
- */
-
-bg_chapter_list_t * bg_chapter_list_copy(const bg_chapter_list_t * list);
-
-
-/** \brief Destroy chapter list
- *  \param list A chapter list
- */
-
-void bg_chapter_list_destroy(bg_chapter_list_t * list);
-/** \brief Insert a chapter into a chapter list
- *  \param list A chapter list
- *  \param index Position (starting with 0) where the new chapter will be placed
- *  \param time Start time of the chapter
- *  \param name Chapter name (or NULL)
- */
-
-void bg_chapter_list_insert(bg_chapter_list_t * list, int index,
-                            int64_t time, const char * name);
-
-/** \brief Delete a chapter from a chapter list
- *  \param list A chapter list
- *  \param index Position (starting with 0) of the chapter to delete
- */
-
-void bg_chapter_list_delete(bg_chapter_list_t * list, int index);
-
 /** \brief Set default chapter names
  *  \param list A chapter list
  *
@@ -262,33 +199,7 @@ void bg_chapter_list_delete(bg_chapter_list_t * list, int index);
  *  set them to "Chapter 1", "Chapter 2" etc.
  */
 
-void bg_chapter_list_set_default_names(bg_chapter_list_t * list);
-
-/** \brief Get current chapter
- *  \param list A chapter list
- *  \param time Playback time
- *  \returns The current chapter index
- *
- *  Use this function after seeking to signal a
- *  chapter change
- */
-
-int bg_chapter_list_get_current(bg_chapter_list_t * list,
-                                 gavl_time_t time);
-
-/** \brief Get current chapter
- *  \param list A chapter list
- *  \param time Playback time
- *  \param current_chapter Returns the current chapter
- *  \returns 1 if the chapter changed, 0 else
- *
- *  Use this function during linear playback to signal a
- *  chapter change
- */
-
-int bg_chapter_list_changed(bg_chapter_list_t * list,
-                            gavl_time_t time, int * current_chapter);
-
+void bg_chapter_list_set_default_names(gavl_chapter_list_t * list);
 
 /** \brief Convert a chapter list into a libxml2 node
  *  \param list Chapter list
@@ -297,7 +208,7 @@ int bg_chapter_list_changed(bg_chapter_list_t * list,
  *  See the libxml2 documentation for more infos
  */
 
-void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list);
+void bg_chapter_list_2_xml(gavl_chapter_list_t * list, xmlNodePtr xml_list);
 
 /** \brief Convert libxml2 node into a chapter list
  *  \param xml_doc Pointer to the xml document
@@ -307,7 +218,7 @@ void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list);
  *  See the libxml2 documentation for more infos
  */
 
-bg_chapter_list_t *
+gavl_chapter_list_t *
 bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list);
 
 /** \brief Save a chapter list to a file
@@ -315,14 +226,14 @@ bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list);
  *  \param filename Where to save the list
  */
 
-void bg_chapter_list_save(bg_chapter_list_t * list, const char * filename);
+void bg_chapter_list_save(gavl_chapter_list_t * list, const char * filename);
 
 /** \brief Load a chapter list from a file
  *  \param filename From where to load the list
  *  \returns A newly created chapter list or NULL
  */
 
-bg_chapter_list_t * bg_chapter_list_load(const char * filename);
+gavl_chapter_list_t * bg_chapter_list_load(const char * filename);
 
 #define BG_TRACK_SEEKABLE (1<<0) //!< Track is seekable
 #define BG_TRACK_PAUSABLE (1<<1) //!< Track is pausable
@@ -350,7 +261,7 @@ typedef struct
   
   char * url; //!< URL (needed if is_redirector field is nonzero)
 
-  bg_chapter_list_t * chapter_list; //!< Chapter list (or NULL)
+  gavl_chapter_list_t * chapter_list; //!< Chapter list (or NULL)
   
   } bg_track_info_t;
 

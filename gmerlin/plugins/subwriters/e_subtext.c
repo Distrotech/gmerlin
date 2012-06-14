@@ -178,7 +178,7 @@ static void set_callbacks_subtext(void * data, bg_encoder_callbacks_t * cb)
 
 static int open_subtext(void * data, const char * filename,
                         const gavl_metadata_t * metadata,
-                        const bg_chapter_list_t * chapter_list)
+                        const gavl_chapter_list_t * chapter_list)
   {
   subtext_t * e;
   e = data;
@@ -198,8 +198,9 @@ static int open_subtext(void * data, const char * filename,
   return 1;
   }
 
-static int add_subtitle_text_stream_subtext(void * data, const gavl_metadata_t * m,
-                                            int * timescale)
+static int add_subtitle_text_stream_subtext(void * data,
+                                            const gavl_metadata_t * m,
+                                            uint32_t * timescale)
   {
   subtext_t * e;
   e = data;

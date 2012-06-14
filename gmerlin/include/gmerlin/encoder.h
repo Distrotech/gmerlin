@@ -47,7 +47,7 @@ void bg_encoder_destroy(bg_encoder_t * enc, int do_delete);
 
 int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
                     const gavl_metadata_t * metadata,
-                    const bg_chapter_list_t * chapter_list);
+                    const gavl_chapter_list_t * chapter_list);
 
 int bg_encoder_writes_compressed_audio(bg_encoder_t * enc,
                                        const gavl_audio_format_t * format,
@@ -100,7 +100,7 @@ void bg_encoder_get_video_format(bg_encoder_t *, int stream,
 void bg_encoder_get_subtitle_overlay_format(bg_encoder_t *, int stream,
                                             gavl_video_format_t*ret);
 void bg_encoder_get_subtitle_text_timescale(bg_encoder_t *, int stream,
-                                            int * ret);
+                                            uint32_t * ret);
 
 
 /* Start encoding */

@@ -69,7 +69,7 @@ static void set_callbacks_spumux(void * data, bg_encoder_callbacks_t * cb)
 
 static int open_spumux(void * priv, const char * filename,
                        const gavl_metadata_t * metadata,
-                       const bg_chapter_list_t * chapter_list)
+                       const gavl_chapter_list_t * chapter_list)
   {
   char * pos;
   spumux_t * spumux = priv;

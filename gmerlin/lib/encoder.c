@@ -84,7 +84,7 @@ typedef struct
   void * priv;
   bg_plugin_handle_t * h;
 
-  int timescale;
+  uint32_t timescale;
   
   bg_cfg_section_t * section;
   const bg_parameter_info_t * parameters;
@@ -165,7 +165,7 @@ struct bg_encoder_s
   char * filename_base;
 
   const gavl_metadata_t * metadata;
-  const bg_chapter_list_t * chapter_list;
+  const gavl_chapter_list_t * chapter_list;
   
   };
 
@@ -360,7 +360,7 @@ void bg_encoder_destroy(bg_encoder_t * enc, int do_delete)
 
 int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
                     const gavl_metadata_t * metadata,
-                    const bg_chapter_list_t * chapter_list)
+                    const gavl_chapter_list_t * chapter_list)
   {
   enc->filename_base = bg_strdup(enc->filename_base, filename_base);
   enc->metadata = metadata;
@@ -1015,7 +1015,7 @@ void bg_encoder_get_subtitle_overlay_format(bg_encoder_t * enc,
 
 void bg_encoder_get_subtitle_text_timescale(bg_encoder_t * enc,
                                             int stream,
-                                            int * ret)
+                                            uint32_t * ret)
   {
   subtitle_text_stream_t * s = &enc->subtitle_text_streams[stream];
   *ret = s->timescale;
