@@ -104,11 +104,17 @@ static uint32_t get_fourcc(gavl_codec_id_t id)
   }
 
 static int init_track(bgav_track_t * track,
-                      const gavf_program_header_t * ph, const bgav_options_t * opt)
+                      gavf_t * dec,
+                      const bgav_options_t * opt, int * have_duration)
   {
   int i;
   bgav_stream_t * s;
+  const int64_t * pts;
 
+  const gavf_program_header_t * ph;
+
+  ph = gavf_get_program_header(dec);
+  
   gavl_metadata_copy(&track->metadata, &ph->m);
   
   for(i = 0; i < ph->num_streams; i++)
@@ -145,6 +151,18 @@ static int init_track(bgav_track_t * track,
         s->timescale = ph->streams[i].format.text.timescale;
         break;
       }
+
+    pts = gavf_first_pts(dec);
+    if(pts)
+      {
+      s->start_time = pts[i];
+      pts = gavf_end_pts(dec);
+      if(pts)
+        {
+        s->duration = pts[i] - s->start_time;
+        *have_duration = 1;
+        }
+      }
     s->stream_id = ph->streams[i].id;
     gavl_metadata_copy(&s->m, &ph->streams[i].m);
     }
@@ -157,7 +175,7 @@ static int open_gavf(bgav_demuxer_context_t * ctx)
   const gavl_chapter_list_t * cl;
   gavf_options_t * opt;
   uint32_t flags = 0;
-  
+  int have_duration = 0;
   gavf_demuxer_t * priv = calloc(1, sizeof(*priv));
   
   ctx->priv = priv;
@@ -183,9 +201,13 @@ static int open_gavf(bgav_demuxer_context_t * ctx)
   
   ctx->tt = bgav_track_table_create(1);
 
-  if(!init_track(ctx->tt->cur, gavf_get_program_header(priv->dec), ctx->opt))
+  if(!init_track(ctx->tt->cur, priv->dec,
+                 ctx->opt, &have_duration))
     return 0;
 
+  if(have_duration)
+    bgav_track_calc_duration(ctx->tt->cur);
+  
   cl = gavf_get_chapter_list(priv->dec);
   ctx->tt->cur->chapter_list = gavl_chapter_list_copy(cl);
   
@@ -196,6 +218,7 @@ static int select_track_gavf(bgav_demuxer_context_t * ctx, int track)
   {
   gavf_demuxer_t * priv;
   priv = ctx->priv;
+  gavf_reset(priv->dec);
   return 1;
   }
 
