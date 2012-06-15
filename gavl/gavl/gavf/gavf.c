@@ -286,17 +286,23 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
       break;
     }
 
+  gavf_reset(g);
+  
+  return 1;
+  }
+
+int gavf_reset(gavf_t * g)
+  {
   if(g->sync_pos != g->io->position)
     {
     if(g->io->seek_func)
-      gavf_io_seek(io, g->sync_pos, SEEK_SET);
+      gavf_io_seek(g->io, g->sync_pos, SEEK_SET);
     else
       return 0;
     }
 
   if(!read_sync_header(g))
     return 0;
-  
   return 1;
   }
 

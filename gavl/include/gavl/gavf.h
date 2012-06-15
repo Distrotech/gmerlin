@@ -124,6 +124,9 @@ void gavf_packet_skip(gavf_t * gavf);
 GAVL_PUBLIC
 int gavf_packet_read_packet(gavf_t * gavf, gavl_packet_t * p);
 
+GAVL_PUBLIC
+int gavf_reset(gavf_t * gavf);
+
 /* Write support */
 
 GAVL_PUBLIC
