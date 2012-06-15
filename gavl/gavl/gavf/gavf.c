@@ -378,7 +378,7 @@ int gavf_packet_read_packet(gavf_t * g, gavl_packet_t * p)
   gavf_buffer_reset(&g->pkt_buf);
   
   if(!gavf_io_read_buffer(g->io, &g->pkt_buf) ||
-     !gavf_read_gavl_packet(&g->pkt_io, s, p))
+     !gavf_read_gavl_packet(&g->pkt_io, s, p, g->pkt_buf.len))
     return 0;
   return 1;
   }

@@ -180,7 +180,7 @@ int gavf_write_metadata(gavf_io_t * io, const gavl_metadata_t * ci);
 /* Packet */
 int gavf_read_gavl_packet(gavf_io_t * io,
                           gavf_stream_t * s,
-                          gavl_packet_t * p);
+                          gavl_packet_t * p, int len);
 
 int gavf_write_gavl_packet(gavf_io_t * io,
                            gavf_stream_t * s,

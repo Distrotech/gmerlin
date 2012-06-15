@@ -176,6 +176,7 @@ int gavl_compression_constant_frame_samples(gavl_codec_id_t id);
 
 #define GAVL_PACKET_KEYFRAME (1<<2) //!< Packet is a keyframe
 #define GAVL_PACKET_LAST     (1<<3) //!< Packet is the last in the stream (only Xiph codecs need this flag)
+#define GAVL_PACKET_EXT      (1<<4) //!< Packet has extensions (used only in gavf files)
 
 /** \brief Packet structure
  *

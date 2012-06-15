@@ -453,12 +453,10 @@ int gavf_write_metadata(gavf_io_t * io, const gavl_metadata_t * m)
 
 int gavf_read_gavl_packet(gavf_io_t * io,
                           gavf_stream_t * s,
-                          gavl_packet_t * p)
+                          gavl_packet_t * p, int len)
   {
-  int i;
-  uint32_t num_extensions;
-  gavl_extension_header_t eh;
-
+  uint64_t start_pos = io->position;
+  
   gavl_packet_reset(p);
   
   /* Flags */
@@ -490,38 +488,46 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     if(!gavf_io_read_uint32v(io, &p->field2_offset))
       return 0;
     }
-  
-  /* Extensions */
-  if(!gavf_io_read_uint32v(io, &num_extensions))
-    return 0;
 
-  for(i = 0; i < num_extensions; i++)
+  if(p->flags & GAVL_PACKET_EXT)
     {
-    if(!gavf_extension_header_read(io, &eh))
+    uint32_t num_extensions;
+    int i;
+    gavl_extension_header_t eh;
+    
+    /* Extensions */
+    if(!gavf_io_read_uint32v(io, &num_extensions))
       return 0;
-    switch(eh.key)
+
+    for(i = 0; i < num_extensions; i++)
       {
-      case GAVF_EXT_PK_DURATION:
-        if(!gavf_io_read_int64v(io, &p->duration))
-          return 0;
-        break;
-      case GAVF_EXT_PK_HEADER_SIZE:
-        if(!gavf_io_read_uint32v(io, &p->header_size))
-          return 0;
-        break;
-      default:
-        /* Skip */
-        gavf_io_skip(io, eh.len);
-        break;
+      if(!gavf_extension_header_read(io, &eh))
+        return 0;
+      switch(eh.key)
+        {
+        case GAVF_EXT_PK_DURATION:
+          if(!gavf_io_read_int64v(io, &p->duration))
+            return 0;
+          break;
+        case GAVF_EXT_PK_HEADER_SIZE:
+          if(!gavf_io_read_uint32v(io, &p->header_size))
+            return 0;
+          break;
+        default:
+          /* Skip */
+          gavf_io_skip(io, eh.len);
+          break;
+        }
       }
     }
+  
+  p->flags &= ~GAVL_PACKET_EXT;
   
   /* Set pts */
   s->next_pts += p->duration;
   
   /* Payload */
-  if(!gavf_io_read_uint32v(io, (uint32_t*)&p->data_len))
-    return 0;
+  p->data_len = len - (io->position - start_pos);
   gavl_packet_alloc(p, p->data_len);
   if(gavf_io_read_data(io, p->data, p->data_len) < p->data_len)
     return 0;
@@ -543,6 +549,7 @@ int gavf_write_gavl_packet(gavf_io_t * io,
   uint32_t sequence_end_pos;
   uint32_t field2_offset;
   uint32_t header_size;
+  uint32_t flags;
   
   const uint8_t * data_ptr;
 
@@ -575,9 +582,22 @@ int gavf_write_gavl_packet(gavf_io_t * io,
       s->last_global_header.len = header_size;
       }
     }
+
+  /* Count extensions */
+  num_extensions = 0;
+  
+  if(s->packet_duration && (p->duration < s->packet_duration))
+    num_extensions++;
+
+  if(header_size)
+    num_extensions++;
   
   /* Flags */
-  if(!gavf_io_write_uint32v(io, p->flags))
+
+  flags = p->flags;
+  if(num_extensions)
+    flags |= GAVL_PACKET_EXT;
+  if(!gavf_io_write_uint32v(io, flags))
     return 0;
     
   /* PTS */
@@ -600,23 +620,14 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     if(!gavf_io_write_uint32v(io, p->field2_offset))
       return 0;
     }
-    
-  /* Count Extensions */
-
-  num_extensions = 0;
-  
-  if(s->packet_duration && (p->duration < s->packet_duration))
-    num_extensions++;
-
-  if(header_size)
-    num_extensions++;
   
   /* Write Extensions */
-  if(!gavf_io_write_uint32v(io, num_extensions))
-    return 0;
 
   if(num_extensions)
     {
+    if(!gavf_io_write_uint32v(io, num_extensions))
+      return 0;
+    
     gavf_buffer_init_static(&buf, data, MAX_EXT_SIZE_AF);
     gavf_io_init_buf_write(&bufio, &buf);
     
@@ -640,8 +651,7 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     }
   
   /* Payload */
-  if(!gavf_io_write_uint32v(io, data_len) ||
-     !gavf_io_write_data(io, data_ptr, data_len))
+  if(gavf_io_write_data(io, data_ptr, data_len) < data_len)
     return 0;
   return 1;
   }
