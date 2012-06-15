@@ -51,6 +51,8 @@ void bgav_mpv_get_framerate(int code, int * timescale, int *frame_duration);
 
 typedef struct
   {
+  int profile_level_id;
+  
   int progressive_sequence;
   int chroma_format;
   

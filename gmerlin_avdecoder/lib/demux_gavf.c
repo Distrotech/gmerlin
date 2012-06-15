@@ -169,7 +169,8 @@ static int init_track(bgav_track_t * track,
   
   return 1;
   }
-  
+
+
 static int open_gavf(bgav_demuxer_context_t * ctx)
   {
   const gavl_chapter_list_t * cl;
@@ -206,8 +207,12 @@ static int open_gavf(bgav_demuxer_context_t * ctx)
     return 0;
 
   if(have_duration)
+    {
     bgav_track_calc_duration(ctx->tt->cur);
-  
+
+    if(ctx->input->input->seek_byte)
+      ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
+    }
   cl = gavf_get_chapter_list(priv->dec);
   ctx->tt->cur->chapter_list = gavl_chapter_list_copy(cl);
   
@@ -221,6 +226,29 @@ static int select_track_gavf(bgav_demuxer_context_t * ctx, int track)
   gavf_reset(priv->dec);
   return 1;
   }
+
+static void seek_gavf(bgav_demuxer_context_t * ctx, int64_t time, int scale)
+  {
+  int i;
+  const int64_t * sync_pts;
+  gavf_demuxer_t * priv;
+  const gavf_program_header_t * ph;
+  bgav_stream_t * s;
+  
+  priv = ctx->priv;
+
+  sync_pts = gavf_seek(priv->dec, time, scale);
+
+  ph = gavf_get_program_header(priv->dec);
+
+  for(i = 0; i < ph->num_streams; i++)
+    {
+    s = bgav_track_find_stream(ctx, ph->streams[i].id);
+    if(s)
+      STREAM_SET_SYNC(s, sync_pts[i]);
+    }
+  }
+
 
 static int next_packet_gavf(bgav_demuxer_context_t * ctx)
   {
@@ -311,6 +339,7 @@ const bgav_demuxer_t bgav_demuxer_gavf =
     .open         = open_gavf,
     .select_track = select_track_gavf,
     .next_packet = next_packet_gavf,
+    .seek =        seek_gavf,
     .resync      = resync_gavf,
     .close =       close_gavf
   };

@@ -26,51 +26,6 @@
 
 #define LOG_DOMAIN "mpv_header"
 
-#if 0
-
-/* Original version (from ffmpeg) */
-const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
-                                         const uint8_t *end )
-  {
-  const uint8_t *a = p + 4 - ((long)p & 3);
-  
-  for( end -= 3; p < a && p < end; p++ )
-    {
-    if( p[0] == 0 && p[1] == 0 && p[2] == 1 )
-      return p;
-    }
-  
-  for( end -= 3; p < end; p += 4 )
-    {
-    uint32_t x = *(const uint32_t*)p;
-    if( (x - 0x01010101) & (~x) & 0x80808080 )
-      { // generic
-      if( p[1] == 0 )
-        {
-        if( p[0] == 0 && p[2] == 1 )
-          return p;
-        if( p[2] == 0 && p[3] == 1 )
-          return p+1;
-        }
-      if( p[3] == 0 )
-        {
-        if( p[2] == 0 && p[4] == 1 )
-          return p+2;
-        if( p[4] == 0 && p[5] == 1 )
-          return p+3;
-        }
-      }
-    }
-  
-  for( end += 3; p < end; p++ )
-    {
-    if( p[0] == 0 && p[1] == 0 && p[2] == 1 )
-      return p;
-    }
-  return NULL;
-  }
-#else
-
 /* Optimized version 17% faster(for the complete index build)
    than the ffmpeg one */
 
@@ -158,9 +113,6 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
     }
   return NULL;
   }
-
-#endif
-
 
 int bgav_mpv_get_start_code(const uint8_t * data)
   {
@@ -315,6 +267,8 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
   len -= 4;
   if(len < 6)
     return 0;
+
+  ret->profile_level_id = (buffer[0] << 4) | (buffer[1] >> 4);
   ret->progressive_sequence = buffer[1] & (1 << 3);
   
   ret->chroma_format = (buffer[1] & 0x06) >> 1;
