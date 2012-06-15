@@ -270,8 +270,8 @@ struct bgav_packet_s
   /* For superindex files, it's the index position, for all other files,
      it's the file position */
   int64_t position;
-  int data_size;
-  int data_alloc;
+  uint32_t data_size;
+  uint32_t data_alloc;
   uint8_t * data;
 
   gavl_timecode_t tc;
@@ -281,8 +281,8 @@ struct bgav_packet_s
   int field2_offset; /* Offset of 2nd field if 2 field pictures are in the
                         packet (0 else) */
 
-  int header_size; /* Size of a repeated global header */
-  int sequence_end_pos; /* Position of sequence end code (if any) */
+  uint32_t header_size; /* Size of a repeated global header */
+  uint32_t sequence_end_pos; /* Position of sequence end code (if any) */
   
   int64_t pts; /* In stream timescale tics */
   int64_t dts; /* In stream timescale tics */
@@ -664,11 +664,6 @@ void bgav_stream_clear(bgav_stream_t * s);
 
 int bgav_stream_skipto(bgav_stream_t * s, int64_t * time, int scale);
 
-/*
- *  Chapter list
- */
-
-void bgav_chapter_list_dump(const gavl_chapter_list_t * list);
 
 #define TRACK_SAMPLE_ACCURATE (1<<0)
 #define TRACK_HAS_FILE_INDEX  (1<<1)

@@ -113,11 +113,11 @@ static int init_track(bgav_track_t * track,
   
   for(i = 0; i < ph->num_streams; i++)
     {
+    s = NULL;
     switch(ph->streams[i].type)
       {
       case GAVF_STREAM_AUDIO:
         s = bgav_track_add_audio_stream(track, opt);
-        s->stream_id = ph->streams[i].id;
         gavl_audio_format_copy(&s->data.audio.format, &ph->streams[i].format.audio);
         s->fourcc = get_fourcc(ph->streams[i].ci.id);
 
@@ -127,7 +127,6 @@ static int init_track(bgav_track_t * track,
         break;
       case GAVF_STREAM_VIDEO:
         s = bgav_track_add_video_stream(track, opt);
-        s->stream_id = ph->streams[i].id;
         gavl_video_format_copy(&s->data.video.format, &ph->streams[i].format.video);
         
         s->fourcc = get_fourcc(ph->streams[i].ci.id);
@@ -142,8 +141,12 @@ static int init_track(bgav_track_t * track,
         s->container_bitrate = ph->streams[i].ci.bitrate;
         break;
       case GAVF_STREAM_TEXT:
+        s = bgav_track_add_subtitle_stream(track, opt, 1, "UTF-8");
+        s->timescale = ph->streams[i].format.text.timescale;
         break;
       }
+    s->stream_id = ph->streams[i].id;
+    gavl_metadata_copy(&s->m, &ph->streams[i].m);
     }
   
   return 1;
@@ -151,6 +154,7 @@ static int init_track(bgav_track_t * track,
   
 static int open_gavf(bgav_demuxer_context_t * ctx)
   {
+  const gavl_chapter_list_t * cl;
   gavf_options_t * opt;
   uint32_t flags = 0;
   
@@ -182,6 +186,9 @@ static int open_gavf(bgav_demuxer_context_t * ctx)
   if(!init_track(ctx->tt->cur, gavf_get_program_header(priv->dec), ctx->opt))
     return 0;
 
+  cl = gavf_get_chapter_list(priv->dec);
+  ctx->tt->cur->chapter_list = gavl_chapter_list_copy(cl);
+  
   return 1;
   }
 

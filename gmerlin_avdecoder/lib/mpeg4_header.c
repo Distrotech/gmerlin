@@ -278,7 +278,7 @@ void bgav_mpeg4_vop_header_dump(bgav_mpeg4_vop_header_t * h)
   
   }
 
-static void remove_byte(uint8_t * data, int byte, int * len, int * header_end)
+static void remove_byte(uint8_t * data, int byte, uint32_t * len, uint32_t * header_end)
   {
   /* Byte if the last one */
   if(byte < *len - 1)
