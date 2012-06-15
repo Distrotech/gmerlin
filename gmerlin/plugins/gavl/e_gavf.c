@@ -380,7 +380,7 @@ bg_gavf_write_subtitle_text(void * data,const char * text,
   p.pts = start;
   p.duration = duration;
   
-  ret = gavf_write_packet(f->enc, stream, &p);
+  ret = gavf_write_packet(f->enc, f->text_streams[stream].index, &p);
   gavl_packet_free(&p);
   return ret;
   }
