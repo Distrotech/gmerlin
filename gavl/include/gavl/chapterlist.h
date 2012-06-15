@@ -45,8 +45,8 @@ extern "C" {
   
 typedef struct
   {
-  int num_chapters;       //!< Number of chapters
-  int timescale;          //!< Scale of the timestamps
+  uint32_t num_chapters;       //!< Number of chapters
+  uint32_t timescale;          //!< Scale of the timestamps
   struct
     {
     int64_t time;         //!< Start time (seekpoint) of this chapter
@@ -122,6 +122,15 @@ GAVL_PUBLIC
 int gavl_chapter_list_changed(gavl_chapter_list_t * list,
                               gavl_time_t time, int * current_chapter);
 
+/** \brief Dump a chapter list to stderr
+ *  \param list A chapter list
+ *
+ *  Use this for debugging
+ */
+
+GAVL_PUBLIC
+void gavl_chapter_list_dump(const gavl_chapter_list_t * list);
+  
 /**
  * @}
  */

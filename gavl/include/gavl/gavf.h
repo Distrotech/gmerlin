@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
+#include <gavl/chapterlist.h>
 #include <gavl/metadata.h>
 #include <gavl/gavldefs.h>
 
@@ -109,6 +110,9 @@ GAVL_PUBLIC
 int gavf_open_read(gavf_t * g, gavf_io_t * io);
 
 GAVL_PUBLIC
+const gavl_chapter_list_t * gavf_get_chapter_list(gavf_t * g);
+
+GAVL_PUBLIC
 const gavf_program_header_t * gavf_get_program_header(gavf_t *);
 
 GAVL_PUBLIC
@@ -124,7 +128,8 @@ int gavf_packet_read_packet(gavf_t * gavf, gavl_packet_t * p);
 
 GAVL_PUBLIC
 int gavf_open_write(gavf_t * g, gavf_io_t * io,
-                    const gavl_metadata_t * m);
+                    const gavl_metadata_t * m,
+                    const gavl_chapter_list_t * cl);
 
 /*
  *  Return value: >= 0 is the stream ID passed to gavf_write_packet()

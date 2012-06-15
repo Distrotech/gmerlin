@@ -17,6 +17,8 @@ struct gavf_s
   gavf_file_index_t     fi;
   gavf_sync_index_t     si;
   gavf_packet_index_t   pi;
+
+  gavl_chapter_list_t * cl;
   
   gavf_packet_header_t  pkthdr;
   
@@ -42,6 +44,7 @@ struct gavf_s
 
   encoding_mode_t encoding_mode;
   encoding_mode_t final_encoding_mode;
+
   
   };
 
@@ -200,6 +203,13 @@ static int handle_chunk(gavf_t * g, char * sig)
     if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
       gavf_packet_index_dump(&g->pi);
     }
+  else if(!strncmp(sig, GAVF_TAG_CHAPTER_LIST, 8))
+    {
+    if(!(g->cl = gavf_read_chapter_list(g->io)))
+      return 0;
+    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
+      gavl_chapter_list_dump(g->cl);
+    }
   return 1;
   }
 
@@ -295,6 +305,12 @@ const gavf_program_header_t * gavf_get_program_header(gavf_t * g)
   return &g->ph;
   }
 
+const gavl_chapter_list_t * gavf_get_chapter_list(gavf_t * g)
+  {
+  return g->cl;
+  }
+
+
 const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
   {
   char c[8];
@@ -363,7 +379,9 @@ int gavf_packet_read_packet(gavf_t * g, gavl_packet_t * p)
 
 /* Write support */
 
-int gavf_open_write(gavf_t * g, gavf_io_t * io, const gavl_metadata_t * m)
+int gavf_open_write(gavf_t * g, gavf_io_t * io,
+                    const gavl_metadata_t * m,
+                    const gavl_chapter_list_t * cl)
   {
   g->io = io;
   g->wr = 1;
@@ -372,6 +390,9 @@ int gavf_open_write(gavf_t * g, gavf_io_t * io, const gavl_metadata_t * m)
 
   if(m)
     gavl_metadata_copy(&g->ph.m, m);
+
+  if(cl)
+    g->cl = gavl_chapter_list_copy(cl);
   
   if(g->io->seek_func)
     {
@@ -742,6 +763,13 @@ void gavf_close(gavf_t * g)
       if(!gavf_packet_index_write(g->io, &g->pi))
         return;
       }
+
+    if(g->cl)
+      {
+      gavf_file_index_add(&g->fi, GAVF_TAG_CHAPTER_LIST, g->io->position);
+      if(!gavf_write_chapter_list(g->io, g->cl))
+        return;
+      }
     
     /* Rewrite file index */
     if(g->io->seek_func)
@@ -764,6 +792,9 @@ void gavf_close(gavf_t * g)
   gavf_sync_index_free(&g->si);
   gavf_packet_index_free(&g->pi);
   gavf_program_header_free(&g->ph);
+
+  if(g->cl)
+    gavl_chapter_list_destroy(g->cl);
   
   if(g->write_frame)
     {

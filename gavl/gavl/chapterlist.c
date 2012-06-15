@@ -24,8 +24,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-
-
+#include <stdio.h>
 
 gavl_chapter_list_t * gavl_chapter_list_create(int num_chapters)
   {
@@ -159,4 +158,24 @@ int gavl_chapter_list_changed(gavl_chapter_list_t * list,
       break;
     }
   return ret;
+  }
+
+void gavl_chapter_list_dump(const gavl_chapter_list_t * list)
+  {
+  int i;
+  char time_string[GAVL_TIME_STRING_LEN];
+  gavl_time_t t;
+  
+  fprintf(stderr, "Chapter list\n");
+  fprintf(stderr, "  Timescale: %d\n", list->timescale);
+  for(i = 0; i < list->num_chapters; i++)
+    {
+    t = gavl_time_unscale(list->timescale, 
+                          list->chapters[i].time);
+    gavl_time_prettyprint(t, time_string);
+    fprintf(stderr, "  Chapter %d\n", i+1);
+    fprintf(stderr, "    Name: %s\n", list->chapters[i].name);
+    fprintf(stderr, "    Time: %" PRId64 " [%s]\n", list->chapters[i].time, time_string);
+    }
+
   }

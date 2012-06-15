@@ -396,8 +396,10 @@ int gavf_io_read_string(gavf_io_t * io, char ** ret)
     return 0;
 
   if(!len)
+    {
+    *ret = NULL;
     return 1;
-  
+    }
   *ret = malloc(len + 1);
   if(!ret)
     return 0;
@@ -412,7 +414,12 @@ int gavf_io_read_string(gavf_io_t * io, char ** ret)
 
 int gavf_io_write_string(gavf_io_t * io, const char * str)
   {
-  uint32_t len = strlen(str);
+  uint32_t len;
+
+  if(!str)
+    return gavf_io_write_uint32v(io, 0);
+  
+  len = strlen(str);
   if(!gavf_io_write_uint32v(io, len) ||
      gavf_io_write_data(io, (const uint8_t*)str, len) < len)
     return 0;
