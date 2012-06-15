@@ -195,7 +195,7 @@ bg_gavf_open(void * data, const char * filename,
 
   f->io = gavf_io_create_file(f->output, 1, 1);
 
-  if(!gavf_open_write(f->enc, f->io, metadata))
+  if(!gavf_open_write(f->enc, f->io, metadata, chapter_list))
     return 0;
   
   return 1;

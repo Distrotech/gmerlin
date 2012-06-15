@@ -206,7 +206,8 @@ bg_parameter_info_t * bg_metadata_get_parameters_common(gavl_metadata_t * m)
 #define SP_INT(s, gavl_name) \
   if(!strcmp(name, s))       \
     { \
-    gavl_metadata_set_int(m, gavl_name, val->val_i); \
+    if(val->val_i) \
+      gavl_metadata_set_int(m, gavl_name, val->val_i);    \
     return; \
     }
 
