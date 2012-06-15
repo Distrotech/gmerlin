@@ -127,6 +127,22 @@ int gavf_packet_read_packet(gavf_t * gavf, gavl_packet_t * p);
 GAVL_PUBLIC
 int gavf_reset(gavf_t * gavf);
 
+/* Get the first PTS of all streams */
+
+GAVL_PUBLIC
+const int64_t * gavf_first_pts(gavf_t * gavf);
+
+/* Get the last PTS of the streams */
+
+GAVL_PUBLIC
+const int64_t * gavf_end_pts(gavf_t * gavf);
+
+/* Seek to a specific time. Return the sync timestamps of
+   all streams at the current position */
+
+GAVL_PUBLIC
+const int64_t * gavf_seek(gavf_t * gavf, int64_t time, int scale);
+
 /* Write support */
 
 GAVL_PUBLIC

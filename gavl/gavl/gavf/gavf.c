@@ -383,6 +383,33 @@ int gavf_packet_read_packet(gavf_t * g, gavl_packet_t * p)
   return 1;
   }
 
+const int64_t * gavf_first_pts(gavf_t * gavf)
+  {
+  if(gavf->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX)
+    return gavf->si.entries[0].pts;
+  else
+    return NULL;
+  }
+
+/* Get the last PTS of the streams */
+
+const int64_t * gavf_end_pts(gavf_t * gavf)
+  {
+  if(gavf->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX)
+    return gavf->si.entries[gavf->si.num_entries - 1].pts;
+  else
+    return NULL;
+  }
+
+/* Seek to a specific time. Return the sync timestamps of
+   all streams at the current position */
+
+const int64_t * gavf_seek(gavf_t * gavf, int64_t time, int scale)
+  {
+  
+  }
+
+
 /* Write support */
 
 int gavf_open_write(gavf_t * g, gavf_io_t * io,
