@@ -524,9 +524,13 @@ static void set_has_file_index(bgav_t * b)
     for(j= 0; j <b->tt->tracks[i].num_subtitle_streams; j++)
       {
       s = &b->tt->tracks[i].subtitle_streams[j];
-      update_duration(s, s->timescale,
-                      &b->tt->tracks[i].duration);
-      set_has_file_index_s(s, b->demuxer);
+
+      if(!s->data.subtitle.subreader)
+        {
+        update_duration(s, s->timescale,
+                        &b->tt->tracks[i].duration);
+        set_has_file_index_s(s, b->demuxer);
+        }
       }
     // }
     }
@@ -855,7 +859,10 @@ static int build_file_index_simple(bgav_t * b)
     for(j = 0; j < b->tt->cur->num_video_streams; j++)
       flush_stream_simple(&b->tt->cur->video_streams[j], 0);
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
-      flush_stream_simple(&b->tt->cur->subtitle_streams[j], 0);
+      {
+      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+        flush_stream_simple(&b->tt->cur->subtitle_streams[j], 0);
+      }
     }
 
   for(j = 0; j < b->tt->cur->num_audio_streams; j++)
@@ -863,8 +870,10 @@ static int build_file_index_simple(bgav_t * b)
   for(j = 0; j < b->tt->cur->num_video_streams; j++)
     flush_stream_simple(&b->tt->cur->video_streams[j], 1);
   for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
-    flush_stream_simple(&b->tt->cur->subtitle_streams[j], 1);
-  
+    {
+    if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+      flush_stream_simple(&b->tt->cur->subtitle_streams[j], 1);
+    }
   bgav_input_seek(b->input, old_position, SEEK_SET);
   return 1;
   }

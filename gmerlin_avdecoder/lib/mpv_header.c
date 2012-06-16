@@ -268,7 +268,7 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
   if(len < 6)
     return 0;
 
-  ret->profile_level_id = (buffer[0] << 4) | (buffer[1] >> 4);
+  ret->profile_level_id = ((buffer[0] & 0x0f) << 4) | (buffer[1] >> 4);
   ret->progressive_sequence = buffer[1] & (1 << 3);
   
   ret->chroma_format = (buffer[1] & 0x06) >> 1;
