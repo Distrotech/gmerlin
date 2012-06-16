@@ -404,9 +404,52 @@ const int64_t * gavf_end_pts(gavf_t * gavf)
 /* Seek to a specific time. Return the sync timestamps of
    all streams at the current position */
 
-const int64_t * gavf_seek(gavf_t * gavf, int64_t time, int scale)
+const int64_t * gavf_seek(gavf_t * g, int64_t time, int scale)
   {
+  int stream = 0;
+  int64_t index_position;
+  int64_t time_scaled;
+  int done = 0;
   
+  if(!(g->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX))
+    return NULL;
+
+  index_position = g->si.num_entries - 1;
+  while(!done)
+    {
+    /* Find next continuous stream */
+    while(g->streams[stream].discontinuous)
+      {
+      stream++;
+      if(stream >= g->ph.num_streams)
+        {
+        done = 1;
+        break;
+        }
+      }
+
+    if(done)
+      break;
+    
+    time_scaled = gavl_time_rescale(scale, g->streams[stream].timescale, time);
+    
+    /* Descrease index pointer until we are before this time */
+    
+    while(g->si.entries[index_position].pts[stream] > time_scaled)
+      {
+      if(!index_position)
+        {
+        done = 1;
+        break;
+        }
+      index_position--;
+      }
+    stream++;
+    }
+
+  /* Seek to the positon */
+  gavf_io_seek(g->io, g->si.entries[index_position].pos, SEEK_SET);
+  return g->si.entries[index_position].pts;
   }
 
 
