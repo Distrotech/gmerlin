@@ -168,10 +168,18 @@ int gavl_compression_need_pixelformat(gavl_codec_id_t id);
 
 GAVL_PUBLIC
 int gavl_compression_constant_frame_samples(gavl_codec_id_t id);
+
+/** \brief Check if an audio compression size for each samples 
+ *  \param id A codec ID
+ *  \returns The coded size of one sample or 0
+ */
+
+GAVL_PUBLIC
+int gavl_compression_get_sample_size(gavl_codec_id_t id);
   
-#define GAVL_PACKET_TYPE_I    0x00      //!< Packet is an I-frame
-#define GAVL_PACKET_TYPE_P    0x01      //!< Packet is a P-frame
-#define GAVL_PACKET_TYPE_B    0x02      //!< Packet is a B-frame
+#define GAVL_PACKET_TYPE_I    0x01      //!< Packet is an I-frame
+#define GAVL_PACKET_TYPE_P    0x02      //!< Packet is a P-frame
+#define GAVL_PACKET_TYPE_B    0x03      //!< Packet is a B-frame
 #define GAVL_PACKET_TYPE_MASK 0x03      //!< Mask for frame type
 
 #define GAVL_PACKET_KEYFRAME (1<<2) //!< Packet is a keyframe
@@ -266,51 +274,6 @@ void gavl_packet_reset(gavl_packet_t * p);
 GAVL_PUBLIC
 void gavl_packet_dump(const gavl_packet_t * p);
 
-/** \brief Convert a video frame to a packet 
- *  \param format Video format
- *  \param frame Frame
- *  \param packet Packet
- */
-  
-GAVL_PUBLIC
-void gavl_video_frame_to_packet(const gavl_video_format_t * format,
-                                const gavl_video_frame_t * frame,
-                                gavl_packet_t * packet);
-  
-/** \brief Convert a packet to a video frame
- *  \param format Video format
- *  \param packet Packet
- *  \param frame Frame
- */
-  
-GAVL_PUBLIC
-void gavl_packet_to_video_frame(const gavl_video_format_t * format,
-                                const gavl_packet_t * packet,
-                                gavl_video_frame_t * frame);
-
-/** \brief Convert a audio frame to a packet 
- *  \param format Audio format
- *  \param frame Frame
- *  \param packet Packet
- */
-  
-GAVL_PUBLIC
-void gavl_audio_frame_to_packet(const gavl_audio_format_t * format,
-                                const gavl_audio_frame_t * frame,
-                                gavl_packet_t * packet);
-  
-/** \brief Convert a packet to a audio frame
- *  \param format Audio format
- *  \param packet Packet
- *  \param frame Frame
- */
-  
-GAVL_PUBLIC
-void gavl_packet_to_audio_frame(const gavl_audio_format_t * format,
-                                const gavl_packet_t * packet,
-                                gavl_audio_frame_t * frame);
-
-  
   
 /**
  *  @}

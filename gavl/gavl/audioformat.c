@@ -109,21 +109,6 @@ static const struct
   }
 channel_id_names[] =
   {
-#if 0
-    GAVL_CHID_NONE         = 0,   /*!< Undefined                                 */
-    GAVL_CHID_FRONT_CENTER,       /*!< For mono                                  */
-    GAVL_CHID_FRONT_LEFT,         /*!< Front left                                */
-    GAVL_CHID_FRONT_RIGHT,        /*!< Front right                               */
-    GAVL_CHID_FRONT_CENTER_LEFT,  /*!< Left of Center                            */
-    GAVL_CHID_FRONT_CENTER_RIGHT, /*!< Right of Center                           */
-    GAVL_CHID_REAR_LEFT,          /*!< Rear left                                 */
-    GAVL_CHID_REAR_RIGHT,         /*!< Rear right                                */
-    GAVL_CHID_REAR_CENTER,        /*!< Rear Center                               */
-    GAVL_CHID_SIDE_LEFT,          /*!< Side left                                 */
-    GAVL_CHID_SIDE_RIGHT,         /*!< Side right                                */
-    GAVL_CHID_LFE,                /*!< Subwoofer                                 */
-    GAVL_CHID_AUX,                /*!< Additional channel (can be more than one) */
-#endif
     { GAVL_CHID_NONE,                "Unknown channel" },
     { GAVL_CHID_FRONT_CENTER,        "Front C" },
     { GAVL_CHID_FRONT_LEFT,          "Front L" },

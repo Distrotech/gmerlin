@@ -456,7 +456,7 @@ int gavf_read_gavl_packet(gavf_io_t * io,
                           gavl_packet_t * p, int len)
   {
   uint64_t start_pos = io->position;
-  
+
   gavl_packet_reset(p);
   
   /* Flags */
@@ -464,7 +464,7 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     return 0;
   
   /* PTS */
-  if(s->has_pts)
+  if(s->flags & STREAM_FLAG_HAS_PTS)
     {
     if(!gavf_io_read_int64v(io, &p->pts))
       return 0;
@@ -474,14 +474,12 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     p->pts = s->next_pts;
   
   /* Duration */
-  if(!s->packet_duration)
+  if(s->flags & STREAM_FLAG_HAS_DURATION)
     {
     if(!gavf_io_read_int64v(io, &p->duration))
       return 0;
     }
-  else
-    p->duration = s->packet_duration;
-
+  
   /* Field2 */
   if(s->h->ci.flags & GAVL_COMPRESSION_HAS_FIELD_PICTURES)
     {
@@ -489,6 +487,14 @@ int gavf_read_gavl_packet(gavf_io_t * io,
       return 0;
     }
 
+  /* Interlace mode */
+  if(s->flags & STREAM_FLAG_HAS_INTERLACE)
+    {
+    if(!gavf_io_write_uint32v(io, p->interlace_mode))
+      return 0;
+    }
+
+  
   if(p->flags & GAVL_PACKET_EXT)
     {
     uint32_t num_extensions;
@@ -523,14 +529,24 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   
   p->flags &= ~GAVL_PACKET_EXT;
   
-  /* Set pts */
-  s->next_pts += p->duration;
-  
   /* Payload */
   p->data_len = len - (io->position - start_pos);
   gavl_packet_alloc(p, p->data_len);
   if(gavf_io_read_data(io, p->data, p->data_len) < p->data_len)
     return 0;
+
+  /* Duration */
+  if(!p->duration)
+    {
+    if(s->packet_duration)
+      p->duration = s->packet_duration;
+    else if(s->block_align)
+      p->duration = p->data_len / s->block_align;
+    else
+      return 0;
+    }
+  /* Set pts */
+  s->next_pts += p->duration;
   
   return 1;
   }
@@ -601,14 +617,14 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     return 0;
     
   /* PTS */
-  if(s->has_pts)
+  if(s->flags & STREAM_FLAG_HAS_PTS)
     {
     if(!gavf_io_write_int64v(io, p->pts - s->last_sync_pts))
       return 0;
     }
   
   /* Duration */
-  if(!s->packet_duration)
+  if(s->flags & STREAM_FLAG_HAS_DURATION)
     {
     if(!gavf_io_write_int64v(io, p->duration))
       return 0;
@@ -618,6 +634,13 @@ int gavf_write_gavl_packet(gavf_io_t * io,
   if(s->h->ci.flags & GAVL_COMPRESSION_HAS_FIELD_PICTURES)
     {
     if(!gavf_io_write_uint32v(io, p->field2_offset))
+      return 0;
+    }
+
+  /* Interlace mode */
+  if(s->flags & STREAM_FLAG_HAS_INTERLACE)
+    {
+    if(!gavf_io_write_uint32v(io, p->interlace_mode))
       return 0;
     }
   

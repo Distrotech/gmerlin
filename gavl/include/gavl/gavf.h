@@ -143,6 +143,14 @@ const int64_t * gavf_end_pts(gavf_t * gavf);
 GAVL_PUBLIC
 const int64_t * gavf_seek(gavf_t * gavf, int64_t time, int scale);
 
+/* Read uncompressed frames */
+
+void gavf_packet_to_video_frame(gavl_packet_t * p, gavl_video_frame_t * frame,
+                                const gavl_video_format_t * format);
+
+void gavf_packet_to_audio_frame(gavl_packet_t * p, gavl_audio_frame_t * frame,
+                                const gavl_audio_format_t * format);
+
 /* Write support */
 
 GAVL_PUBLIC
@@ -177,6 +185,9 @@ int gavf_write_packet(gavf_t *, int stream, const gavl_packet_t * p);
 
 GAVL_PUBLIC
 int gavf_write_video_frame(gavf_t *, int stream, gavl_video_frame_t * frame);
+
+GAVL_PUBLIC
+int gavf_write_audio_frame(gavf_t *, int stream, gavl_audio_frame_t * frame);
 
 GAVL_PUBLIC
 int gavf_update_metadata(gavf_t *, gavl_metadata_t * m);

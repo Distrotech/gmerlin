@@ -693,6 +693,36 @@ int gavl_audio_frames_equal(const gavl_audio_format_t * format,
 
 /*!
   \ingroup audio_frame
+  \brief Check if an audio frames is continuous in memory
+  \param format Format
+  \param f First frame
+  \param f2 Second frame
+  \returns 1 if the frame is continuous 0 else
+  
+  Since 1.5.0
+*/
+
+  
+GAVL_PUBLIC
+int gavl_audio_frame_continuous(const gavl_audio_format_t * format,
+                                const gavl_audio_frame_t * f);
+
+
+/*!
+  \ingroup audio_frame
+  \brief Set the channel pointers of an audio frame
+  \param format Format
+  \param f First frame
+  Since 1.5.0
+*/
+  
+GAVL_PUBLIC
+void gavl_audio_frame_set_channels(gavl_audio_frame_t * f,
+                                   const gavl_audio_format_t * format,
+                                   uint8_t * data);
+
+/*!
+  \ingroup audio_frame
   \brief Plot an audio frame to an ASCII file
   \param format Format
   \param frame An audio frame

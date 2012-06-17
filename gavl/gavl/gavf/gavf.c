@@ -36,7 +36,8 @@ struct gavf_s
   int wr;
   
   gavl_packet_t write_pkt;
-  gavl_video_frame_t * write_frame;
+  gavl_video_frame_t * write_vframe;
+  gavl_audio_frame_t * write_aframe;
 
   /* Time of the last sync header */
   gavl_time_t last_sync_time;
@@ -77,11 +78,21 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 
 static void gavf_stream_init_audio(gavf_stream_t * s)
   {
+  int sample_size;
   s->timescale = s->h->format.audio.samplerate;
 
   /* Figure out the samples per frame */
   if(gavl_compression_constant_frame_samples(s->h->ci.id))
     s->packet_duration = s->h->format.audio.samples_per_frame;
+  else if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+    s->block_align =
+      gavl_bytes_per_sample(s->h->format.audio.sample_format) *
+      s->h->format.audio.num_channels;
+  else if((sample_size = gavl_compression_get_sample_size(s->h->ci.id)))
+    s->block_align =
+      sample_size * s->h->format.audio.num_channels;
+  else
+    s->flags |= STREAM_FLAG_HAS_DURATION;
   }
 
 static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
@@ -89,14 +100,23 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
   s->timescale = s->h->format.video.timescale;
 
   if(s->h->ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES)
-    s->has_pts = 1;
-
+    s->flags |= STREAM_FLAG_HAS_PTS;
+  
   if(s->h->ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES)
     g->sync_distance = 0;
   
   if(s->h->format.video.framerate_mode == GAVL_FRAMERATE_CONSTANT)
     s->packet_duration = s->h->format.video.frame_duration;
-
+  else
+    s->flags |= STREAM_FLAG_HAS_DURATION;
+  
+  if(((s->h->format.video.interlace_mode == GAVL_INTERLACE_MIXED) ||
+      (s->h->format.video.interlace_mode == GAVL_INTERLACE_MIXED_TOP) ||
+      (s->h->format.video.interlace_mode == GAVL_INTERLACE_MIXED_BOTTOM)) &&
+     (s->h->ci.id == GAVL_CODEC_ID_NONE))
+    s->flags |= STREAM_FLAG_HAS_INTERLACE;
+  
+  
   if(s->h->ci.id == GAVL_CODEC_ID_NONE)
     s->image_size = gavl_video_format_get_image_size(&s->h->format.video);
   }
@@ -104,7 +124,7 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
 static void gavf_stream_init_text(gavf_stream_t * s)
   {
   s->timescale = s->h->format.text.timescale;
-  s->has_pts = 1;
+  s->flags |= STREAM_FLAG_HAS_PTS;
   s->discontinuous = 1;
   }
 
@@ -225,8 +245,7 @@ static int read_sync_header(gavf_t * g)
     if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
       {
       g->streams[i].last_sync_pts = g->sync_pts[i];
-      if(!g->streams[i].has_pts)
-        g->streams[i].next_pts = g->sync_pts[i];
+      g->streams[i].next_pts = g->sync_pts[i];
       }
     }
   return 1;
@@ -766,8 +785,8 @@ static void video_frame_2_pkt(const gavl_video_frame_t * frame,
   {
   pkt->pts = frame->timestamp;
   pkt->duration = frame->duration;
-  pkt->interlace_mode = frame->interlace_mode;
   pkt->timecode = frame->timecode;
+  pkt->interlace_mode = frame->interlace_mode;
   }
 
 int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
@@ -796,16 +815,90 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
   else
     {
     gavl_packet_alloc(&g->write_pkt, s->image_size);
-    if(!g->write_frame)
-      g->write_frame = gavl_video_frame_create(NULL);
-    gavl_video_frame_set_strides(g->write_frame, &s->h->format.video);
-    gavl_video_frame_set_planes(g->write_frame, &s->h->format.video, g->write_pkt.data);
+    if(!g->write_vframe)
+      g->write_vframe = gavl_video_frame_create(NULL);
+    g->write_vframe->strides[0] = 0;
+    gavl_video_frame_set_planes(g->write_vframe, &s->h->format.video, g->write_pkt.data);
 
-    gavl_video_frame_copy(&s->h->format.video, g->write_frame, frame);
+    gavl_video_frame_copy(&s->h->format.video, g->write_vframe, frame);
     video_frame_2_pkt(frame, &g->write_pkt);
     return gavf_write_packet(g, stream, &g->write_pkt);
     }
   }
+
+void gavf_packet_to_video_frame(gavl_packet_t * p, gavl_video_frame_t * frame,
+                                const gavl_video_format_t * format)
+  {
+  frame->timecode  = p->timecode;
+  frame->timestamp = p->pts;
+  frame->interlace_mode = p->interlace_mode;
+  frame->duration = p->duration;
+  
+  frame->strides[0] = 0;
+  gavl_video_frame_set_planes(frame, format, p->data);
+  }
+
+static void audio_frame_2_pkt(const gavl_audio_frame_t * frame,
+                              gavl_packet_t * pkt)
+  {
+  pkt->pts = frame->timestamp;
+  pkt->duration = frame->valid_samples;
+  }
+
+int gavf_write_audio_frame(gavf_t * g, int stream, gavl_audio_frame_t * frame)
+  {
+  gavf_stream_t * s;
+
+  if(!start_encoding(g))
+    return 0;
+
+  s = &g->streams[stream];
+
+  if((s->h->type != GAVF_STREAM_AUDIO) || (s->h->ci.id != GAVL_CODEC_ID_NONE))
+    return 0;
+
+  /* Check if we need to copy the frame or can take it directly */
+  if(gavl_audio_frame_continuous(&s->h->format.audio, frame))
+    {
+    gavl_packet_t p;
+    gavl_packet_init(&p);
+    p.data_len = frame->valid_samples * s->block_align ;
+    p.data = frame->samples.u_8;
+    audio_frame_2_pkt(frame, &p);
+    
+    return gavf_write_packet(g, stream, &p);
+    }
+  else
+    {
+    gavl_packet_alloc(&g->write_pkt, frame->valid_samples * s->block_align);
+    if(!g->write_aframe)
+      g->write_aframe = gavl_audio_frame_create(NULL);
+
+    g->write_aframe->valid_samples = frame->valid_samples;
+    gavl_audio_frame_set_channels(g->write_aframe, &s->h->format.audio,
+                                  g->write_pkt.data);
+    
+    gavl_audio_frame_copy(&s->h->format.audio,
+                          g->write_aframe,
+                          frame,
+                          0,
+                          0,
+                          frame->valid_samples,
+                          g->write_aframe->valid_samples);
+    audio_frame_2_pkt(frame, &g->write_pkt);
+    return gavf_write_packet(g, stream, &g->write_pkt);
+    }
+  
+  }
+
+void gavf_packet_to_audio_frame(gavl_packet_t * p, gavl_audio_frame_t * frame,
+                                const gavl_audio_format_t * format)
+  {
+  frame->valid_samples = p->duration;
+  frame->timestamp = p->pts;
+  gavl_audio_frame_set_channels(frame, format, p->data);
+  }
+
 
 /* Close */
 
@@ -872,10 +965,16 @@ void gavf_close(gavf_t * g)
   if(g->cl)
     gavl_chapter_list_destroy(g->cl);
   
-  if(g->write_frame)
+  if(g->write_vframe)
     {
-    gavl_video_frame_null(g->write_frame);
-    gavl_video_frame_destroy(g->write_frame);
+    gavl_video_frame_null(g->write_vframe);
+    gavl_video_frame_destroy(g->write_vframe);
+    }
+
+  if(g->write_aframe)
+    {
+    gavl_audio_frame_null(g->write_aframe);
+    gavl_audio_frame_destroy(g->write_aframe);
     }
 
   if(g->sync_pts)

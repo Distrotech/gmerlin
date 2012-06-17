@@ -520,3 +520,48 @@ int gavl_audio_frame_plot(const gavl_audio_format_t * format,
   fclose(out);
   return 1;
   }
+
+int gavl_audio_frame_continuous(const gavl_audio_format_t * format,
+                                const gavl_audio_frame_t * frame)
+  {
+  int sample_size;
+  int i;
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_ALL:
+      return 1;
+      break;
+    case GAVL_INTERLEAVE_NONE:
+      sample_size = gavl_bytes_per_sample(format->sample_format);
+      for(i = 1; i < format->num_channels; i++)
+        {
+        if(frame->channels.s_8[i] - frame->channels.s_8[i-1] !=
+           sample_size * frame->valid_samples)
+          return 0;
+        }
+      return 1;
+      break;
+    case GAVL_INTERLEAVE_2:
+      sample_size = gavl_bytes_per_sample(format->sample_format);
+      for(i = 2; i < format->num_channels; i+=2)
+        {
+        if(frame->channels.s_8[i] - frame->channels.s_8[i-2] !=
+           2 * sample_size * frame->valid_samples)
+          return 0;
+        }
+      return 1;
+      break;
+    }
+  return 0;
+  }
+
+void gavl_audio_frame_set_channels(gavl_audio_frame_t * f,
+                                   const gavl_audio_format_t * format,
+                                   uint8_t * data)
+  {
+  int i;
+  int sample_size = gavl_bytes_per_sample(format->sample_format);
+
+  for(i = 0; i < format->num_channels; i++)
+    f->channels.u_8[i] = data + i * sample_size * f->valid_samples;
+  }

@@ -133,11 +133,17 @@ void gavf_packet_buffer_destroy(gavf_packet_buffer_t *);
 
 /* Stream */
 
+#define STREAM_FLAG_HAS_PTS       (1<<0)
+#define STREAM_FLAG_HAS_INTERLACE (1<<1)
+#define STREAM_FLAG_HAS_DURATION  (1<<2)
+
 typedef struct
   {
   gavf_stream_header_t * h;
 
   /* Secondary variables */
+  int flags;
+
   int timescale;
   int packet_duration;
 
@@ -145,8 +151,7 @@ typedef struct
   int64_t next_sync_pts; // PTS of the next sync header (for streams without B-frames)
   
   int64_t next_pts;
-  int has_pts;
-  
+ 
   gavf_packet_buffer_t * pb;
 
   /* Video stuff */
@@ -155,8 +160,10 @@ typedef struct
   /* True for subtitle streams */
   int discontinuous;
 
+  /* Save the last global header so we can kick it out when the same one
+     comes again */
   gavf_buffer_t last_global_header;
-  
+  int block_align;
   } gavf_stream_t;
 
 /* Formats */
