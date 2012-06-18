@@ -124,7 +124,7 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
 static void gavf_stream_init_text(gavf_stream_t * s)
   {
   s->timescale = s->h->format.text.timescale;
-  s->flags |= STREAM_FLAG_HAS_PTS;
+  s->flags |= (STREAM_FLAG_HAS_PTS | STREAM_FLAG_HAS_DURATION);
   s->discontinuous = 1;
   }
 
