@@ -1350,7 +1350,7 @@ void gavl_peak_detector_reset(gavl_peak_detector_t * pd);
  * Define rectangular areas in a video frame
  */
 
-/*! Integer rectangle
+/*! \brief Integer rectangle
  * \ingroup rectangle
  */
   
@@ -1362,7 +1362,7 @@ typedef struct
   int h; /*!< Height */
   } gavl_rectangle_i_t;
 
-/*! Floating point rectangle
+/*! \brief Floating point rectangle
  * \ingroup rectangle
  */
   

@@ -145,9 +145,11 @@ const int64_t * gavf_seek(gavf_t * gavf, int64_t time, int scale);
 
 /* Read uncompressed frames */
 
+GAVL_PUBLIC
 void gavf_packet_to_video_frame(gavl_packet_t * p, gavl_video_frame_t * frame,
                                 const gavl_video_format_t * format);
 
+GAVL_PUBLIC
 void gavf_packet_to_audio_frame(gavl_packet_t * p, gavl_audio_frame_t * frame,
                                 const gavl_audio_format_t * format);
 

@@ -42,11 +42,22 @@ extern "C" {
  */
 
 
-#define GAVL_COMPRESSION_HAS_P_FRAMES (1<<0) //!< Not all frames are keyframes
-#define GAVL_COMPRESSION_HAS_B_FRAMES (1<<1) //!< Frames don't appear in presentation order 
-#define GAVL_COMPRESSION_HAS_FIELD_PICTURES (1<<2) //!< Packets can consist of 2 consecutive fields
-#define GAVL_COMPRESSION_SBR                (1<<3) //!< Samplerate got doubled by decoder, format and sample counts are for the upsampled rate
+/** \brief Set if not all frames are keyframes */
+ 
+#define GAVL_COMPRESSION_HAS_P_FRAMES (1<<0) 
 
+/** \brief Set if frames don't appear in presentation order */
+#define GAVL_COMPRESSION_HAS_B_FRAMES (1<<1) //!<  
+
+/** \brief Packets can consist of 2 consecutive fields */
+#define GAVL_COMPRESSION_HAS_FIELD_PICTURES (1<<2)
+
+/** \brief Samplerate got doubled by decoder, format and sample counts are for the upsampled rate */
+#define GAVL_COMPRESSION_SBR                (1<<3)
+
+/** \brief Only in uncompressed gavf streams: Specifies that multibyte numbers are big endian */
+#define GAVL_COMPRESSION_BIG_ENDIAN         (1<<4)
+  
 /** \brief Codec ID
  *
  *  These are used as identifiers for the type of compression
@@ -54,7 +65,11 @@ extern "C" {
 
 typedef enum
   {
-    GAVL_CODEC_ID_NONE  = 0, //!< Unknown/unsupported compression format
+
+    /** \brief Unknown/unsupported compression format. In gavf files this signals that the stream
+     *  consists of uncompressed gavl frames
+     */
+    GAVL_CODEC_ID_NONE  = 0, 
     /* Audio */
     GAVL_CODEC_ID_ALAW  = 1, //!< alaw 2:1
     GAVL_CODEC_ID_ULAW,      //!< mu-law 2:1
