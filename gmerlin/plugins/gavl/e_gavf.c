@@ -39,17 +39,12 @@ typedef struct
   struct
     {
     gavl_audio_format_t format;
-    const gavl_compression_info_t * ci;
-    
     int index;
     } * audio_streams;
   
   struct
     {
     gavl_video_format_t format;
-
-    const gavl_compression_info_t * ci;
-
     int index;
     } * video_streams;
 
@@ -348,8 +343,9 @@ static int
 bg_gavf_write_audio_frame(void * data,
                           gavl_audio_frame_t * frame, int stream)
   {
-  //  bg_gavf_t * f = data;
-  return 0;
+  bg_gavf_t * f = data;
+  return gavf_write_audio_frame(f->enc, f->audio_streams[stream].index,
+                                frame);
   }
 
 static int
