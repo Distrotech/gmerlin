@@ -388,6 +388,7 @@ RTjpeg.c \
 a52_header.c \
 apetag.c \
 audio.c \
+audio_gavf.c \
 audio_gavl.c \
 audio_pcm.c \
 audioparser.c \
@@ -594,6 +595,7 @@ utils.c \
 vc1_header.c \
 video.c \
 videoparser.c \
+video_gavf.c \
 video_gavl.c \
 video_qtraw.c \
 video_aviraw.c \

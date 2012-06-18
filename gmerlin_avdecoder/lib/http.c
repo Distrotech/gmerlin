@@ -220,7 +220,8 @@ do_connect(const char * host, int port, const bgav_options_t * opt,
     bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading response failed");
     goto fail;
     }
-
+  //  bgav_http_header_dump(ret->header);
+  
   return ret;
   
   fail:
