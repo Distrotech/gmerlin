@@ -16,6 +16,7 @@ typedef int (*gavf_read_func)(void * priv, uint8_t * data, int len);
 typedef int (*gavf_write_func)(void * priv, const uint8_t * data, int len);
 typedef int64_t (*gavf_seek_func)(void * priv, int64_t pos, int whence);
 typedef void (*gavf_close_func)(void * priv);
+typedef void (*gavf_flush_func)(void * priv);
 
 
 typedef struct gavl_io_s gavf_io_t;
@@ -25,10 +26,14 @@ gavf_io_t * gavf_io_create(gavf_read_func  r,
                            gavf_write_func w,
                            gavf_seek_func  s,
                            gavf_close_func c,
+                           gavf_flush_func f,
                            void * data);
 
 GAVL_PUBLIC
 void gavf_io_destroy(gavf_io_t *);
+
+GAVL_PUBLIC
+void gavf_io_flush(gavf_io_t *);
 
 GAVL_PUBLIC
 gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek);
@@ -113,7 +118,7 @@ GAVL_PUBLIC
 const gavl_chapter_list_t * gavf_get_chapter_list(gavf_t * g);
 
 GAVL_PUBLIC
-const gavf_program_header_t * gavf_get_program_header(gavf_t *);
+gavf_program_header_t * gavf_get_program_header(gavf_t *);
 
 GAVL_PUBLIC
 const gavf_packet_header_t * gavf_packet_read_header(gavf_t * gavf);

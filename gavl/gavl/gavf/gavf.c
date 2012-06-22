@@ -325,7 +325,7 @@ int gavf_reset(gavf_t * g)
   return 1;
   }
 
-const gavf_program_header_t * gavf_get_program_header(gavf_t * g)
+gavf_program_header_t * gavf_get_program_header(gavf_t * g)
   {
   return &g->ph;
   }
@@ -554,6 +554,8 @@ static int start_encoding(gavf_t * g)
   if(!gavf_program_header_write(g->io, &g->ph))
     return 0;
   
+  gavf_io_flush(g->io);
+  
   return 1;
   }
 
@@ -607,6 +609,7 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
     if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
       g->streams[i].last_sync_pts = g->sync_pts[i];
     }
+  gavf_io_flush(g->io);
   return 1;
   }
 
@@ -666,6 +669,8 @@ static int write_packet(gavf_t * g, int stream,
   if(!gavf_write_gavl_packet(&g->pkt_io, s, p) ||
      !gavf_io_write_buffer(g->io, &g->pkt_buf))
     return 0;
+
+  gavf_io_flush(g->io);
   
   return 1;
   }

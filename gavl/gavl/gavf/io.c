@@ -9,6 +9,7 @@ void gavf_io_init(gavf_io_t * ret,
                   gavf_write_func w,
                   gavf_seek_func  s,
                   gavf_close_func c,
+                  gavf_flush_func f,
                   void * priv)
   {
   memset(ret, 0, sizeof(*ret));
@@ -24,13 +25,14 @@ gavf_io_t * gavf_io_create(gavf_read_func  r,
                            gavf_write_func w,
                            gavf_seek_func  s,
                            gavf_close_func c,
+                           gavf_flush_func f,
                            void * priv)
   {
   gavf_io_t * ret;
   ret = malloc(sizeof(*ret));
   if(!ret)
     return NULL;
-  gavf_io_init(ret, r, w, s, c, priv);
+  gavf_io_init(ret, r, w, s, c, f, priv);
   return ret;
   }
 
@@ -40,6 +42,12 @@ void gavf_io_destroy(gavf_io_t * io)
   if(io->close_func)
     io->close_func(io->priv);
   free(io);
+  }
+
+void gavf_io_flush(gavf_io_t * io)
+  {
+  if(io->flush_func)
+    io->flush_func(io->priv);
   }
 
 int gavf_io_read_data(gavf_io_t * io, uint8_t * buf, int len)

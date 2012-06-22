@@ -87,6 +87,7 @@ gavf_io_t * gavf_io_create_buf_read(gavf_buffer_t * buf)
                         NULL,
                         NULL,
                         NULL,
+                        NULL,
                         buf);
   }
 
@@ -94,6 +95,7 @@ gavf_io_t * gavf_io_create_buf_write(gavf_buffer_t * buf)
   {
   return gavf_io_create(NULL,
                         write_buf,
+                        NULL,
                         NULL,
                         NULL,
                         buf);
@@ -107,6 +109,7 @@ void gavf_io_init_buf_read(gavf_io_t * io, gavf_buffer_t * buf)
                NULL,
                NULL,
                NULL,
+               NULL,
                buf);
   }
 
@@ -115,6 +118,7 @@ void gavf_io_init_buf_write(gavf_io_t * io, gavf_buffer_t * buf)
   gavf_io_init(io,
                NULL,
                write_buf,
+               NULL,
                NULL,
                NULL,
                buf);

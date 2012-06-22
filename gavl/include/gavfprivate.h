@@ -28,12 +28,14 @@ void gavf_buffer_reset(gavf_buffer_t * buf);
 
 struct gavl_io_s
   {
-  int (*read_func)(void * priv, uint8_t * data, int len);
-  int (*write_func)(void * priv, const uint8_t * data, int len);
-  int64_t (*seek_func)(void * priv, int64_t pos, int whence);
-  void (*close_func)(void * priv);
+  gavf_read_func read_func;
+  gavf_write_func write_func;
+  gavf_seek_func seek_func;
+  gavf_close_func close_func;
+  gavf_flush_func flush_func;
+  
   void * priv;
-
+  
   int64_t position;
   };
 
@@ -42,6 +44,7 @@ void gavf_io_init(gavf_io_t * ret,
                   gavf_write_func w,
                   gavf_seek_func  s,
                   gavf_close_func c,
+                  gavf_flush_func f,
                   void * priv);
 
 int64_t gavf_io_seek(gavf_io_t * io, int64_t pos, int whence);

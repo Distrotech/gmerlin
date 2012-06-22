@@ -33,27 +33,35 @@ static int64_t seek_file(void * priv, int64_t pos, int whence)
   return GAVL_FTELL((FILE*)priv);
   }
 
+static void flush_file(void * priv)
+  {
+  fflush((FILE*)priv);
+  }
+
 GAVL_PUBLIC
 gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek)
   {
   gavf_read_func rf;
   gavf_write_func wf;
   gavf_seek_func sf;
-    
+  gavf_flush_func ff;
+  
   if(wr)
     {
     wf = write_file;
     rf = NULL;
+    ff = flush_file;
     }
   else
     {
     wf = NULL;
     rf = read_file;
+    ff = NULL;
     }
   if(can_seek)
     sf = seek_file;
   else
     sf = NULL;
 
-  return gavf_io_create(rf, wf, sf, NULL, f);
+  return gavf_io_create(rf, wf, sf, NULL, ff, f);
   }
