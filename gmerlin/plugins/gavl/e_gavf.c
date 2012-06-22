@@ -80,6 +80,13 @@ static void * bg_gavf_create()
 static void bg_gavf_destroy(void * data)
   {
   bg_gavf_t * f = data;
+
+  if(f->audio_streams)
+    free(f->audio_streams);
+  if(f->video_streams)
+    free(f->video_streams);
+  if(f->text_streams)
+    free(f->text_streams);
   
   free(f);
   }

@@ -61,6 +61,8 @@ album_xml.c \
 bggavl.c \
 bgladspa.c \
 bgfrei0r.c \
+bgplug.c \
+bgshm.c \
 bgxml.c \
 cfg_item.c \
 cfg_registry.c \

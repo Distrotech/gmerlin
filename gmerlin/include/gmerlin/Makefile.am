@@ -3,6 +3,7 @@ accelerator.h \
 bg_sem.h \
 bg_version.h \
 bggavl.h \
+bgplug.h \
 bgsocket.h \
 cfg_dialog.h \
 cfg_registry.h \
