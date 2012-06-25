@@ -5214,7 +5214,7 @@ msgstr "Dämon läuft"
 
 #: apps/kbd/kbd_config.c:619
 msgid ""
-"Switch deamon on and off. If you want to start the daemon with each start of "
+"Switch daemon on and off. If you want to start the daemon with each start of "
 "X, add \"gmerlin_kbd\" to your startup programs"
 msgstr ""
 "Schalte den Dämon ein und aus. Wenn Du den Dämon bei jedem Start von X "
@@ -6435,7 +6435,7 @@ msgstr "Befehl \"%s\" vom Server nicht verstanden"
 
 #: lib/lcdproc.c:211
 #, c-format
-msgid "Could not resolve adress for: %s"
+msgid "Could not resolve address for: %s"
 msgstr "Konnte Adresse nicht auflösen für %s"
 
 #: lib/lcdproc.c:218

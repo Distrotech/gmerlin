@@ -774,9 +774,7 @@ static int msg_write_callback(void * priv, const uint8_t * data, int len)
 static int write_message(bg_msg_t * msg)
   {
   int result;
-//  fprintf(stderr, "Write message slave...\n");
   result = bg_msg_write(msg, msg_write_callback, NULL);
-//  fprintf(stderr, "Write message slave done %d\n", result);
   return result;
   }
 

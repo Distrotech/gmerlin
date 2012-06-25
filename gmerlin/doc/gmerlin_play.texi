@@ -181,7 +181,7 @@ Port base for RTP@*@*
 Port base for RTP over UDP. Values of 1024 or smaller enable random
 ports (recommended for RTSP aware firewalls). Values larger than 1024
 define the base port. 2 consecutive ports are used for each A/V stream,
-these must be accessable through the firewall. Odd values are rounded to
+these must be accessible through the firewall. Odd values are rounded to
 the next even value.
 @*@*
 @item @b{ftp_anonymous}=[1|0] (default: 1)@*@*

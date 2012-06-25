@@ -4932,7 +4932,7 @@ msgstr ""
 
 #: apps/kbd/kbd_config.c:619
 msgid ""
-"Switch deamon on and off. If you want to start the daemon with each start of "
+"Switch daemon on and off. If you want to start the daemon with each start of "
 "X, add \"gmerlin_kbd\" to your startup programs"
 msgstr ""
 
@@ -6066,7 +6066,7 @@ msgstr ""
 
 #: lib/lcdproc.c:211
 #, c-format
-msgid "Could not resolve adress for: %s"
+msgid "Could not resolve address for: %s"
 msgstr ""
 
 #: lib/lcdproc.c:218

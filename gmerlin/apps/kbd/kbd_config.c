@@ -616,7 +616,7 @@ static window_t * create_window()
   ret->kbd_button = gtk_check_button_new_with_label(TR("Daemon running"));
 
   bg_gtk_tooltips_set_tip(ret->kbd_button,
-                          TRS("Switch deamon on and off. If you want to start the daemon with each start of X, add \"gmerlin_kbd\" to your startup programs"),
+                          TRS("Switch daemon on and off. If you want to start the daemon with each start of X, add \"gmerlin_kbd\" to your startup programs"),
                           PACKAGE);
   
   ret->add_button =

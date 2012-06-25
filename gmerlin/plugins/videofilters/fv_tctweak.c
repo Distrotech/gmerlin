@@ -303,7 +303,7 @@ static int read_video_tctweak(void * priv, gavl_video_frame_t * frame,
           }
         else
           {
-          fprintf(stderr, "Non continous timecode: ");
+          fprintf(stderr, "Non continuous timecode: ");
           gavl_timecode_dump(&vp->format.timecode_format, tc);
           fprintf(stderr, " != ");
           gavl_timecode_dump(&vp->format.timecode_format, frame->timecode);

@@ -211,7 +211,7 @@ static int do_connect(bg_lcdproc_t* l)
 
   if(!bg_host_address_set(addr, l->hostname_cfg, l->port_cfg, SOCK_STREAM))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not resolve adress for: %s",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not resolve address for: %s",
            l->hostname_cfg);
     goto fail;
     }

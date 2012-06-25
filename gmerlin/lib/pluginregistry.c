@@ -225,6 +225,9 @@ static bg_plugin_info_t * sort_by_priority(bg_plugin_info_t * list)
   bg_plugin_info_t ** arr;
   int num_plugins = 0;
   int keep_going;
+
+  if(NULL==list)
+    return NULL;
   
   /* Count plugins */
 
@@ -1030,16 +1033,18 @@ bg_plugin_registry_t *
     ret->entries = append_to_list(ret->entries, tmp_info);
   
   
-  /* Sort */
+  if(ret->entries)
+    {
+    /* Sort */
+    ret->entries = sort_by_priority(ret->entries);
 
-  ret->entries = sort_by_priority(ret->entries);
+    if(!opt->dont_save)
+      bg_plugin_registry_save(ret->entries);
+  
+    /* Remove duplicate external plugins */
+    ret->entries = remove_duplicate(ret->entries);
+    }
 
-  if(!opt->dont_save)
-    bg_plugin_registry_save(ret->entries);
-  
-  /* Remove duplicate external plugins */
-  ret->entries = remove_duplicate(ret->entries);
-  
   /* Kick out unsupported plugins */
   tmp_info = ret->entries;
 
