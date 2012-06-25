@@ -49,7 +49,7 @@ libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIB
 bin_PROGRAMS = gmerlin_visualizer_slave
 
 gmerlin_visualizer_slave_SOURCES = visualize_slave.c
-gmerlin_visualizer_slave_LDADD = libgmerlin.la
+gmerlin_visualizer_slave_LDADD = libgmerlin.la -ldl -lpthread
 
 lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \

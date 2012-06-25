@@ -130,7 +130,7 @@ chapter_SOURCES = chapter.c
 chapter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 vumeter_SOURCES = vumeter.c
-vumeter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+vumeter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la @GTK_LIBS@
 
 
 v4ltest_SOURCES = v4ltest.c
@@ -143,7 +143,7 @@ visualization_SOURCES = visualization.c
 visualization_LDADD = ../lib/libgmerlin.la
 
 scrolltext_SOURCES = scrolltext.c
-scrolltext_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+scrolltext_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la @GTK_LIBS@
 
 question_SOURCES = question.c
 question_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
@@ -155,7 +155,7 @@ message_SOURCES = message.c
 message_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 playtree_SOURCES = playtree.c
-playtree_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+playtree_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la @GTK_LIBS@
 
 server_SOURCES = server.c
 server_LDADD = ../lib/libgmerlin.la

@@ -36,7 +36,7 @@ fv_transform.la \
 fv_zoom.la
 
 fv_blur_la_SOURCES  = fv_blur.c
-fv_blur_la_LIBADD = @MODULE_LIBADD@
+fv_blur_la_LIBADD = @MODULE_LIBADD@ @LIBM@
 
 fv_colormatrix_rgb_la_SOURCES  = fv_colormatrix_rgb.c colormatrix.c
 fv_colormatrix_rgb_la_LIBADD = @MODULE_LIBADD@
@@ -71,7 +71,7 @@ fv_tctweak_la_SOURCES  = fv_tctweak.c
 fv_tctweak_la_LIBADD = @MODULE_LIBADD@
 
 fv_transform_la_SOURCES  = fv_transform.c
-fv_transform_la_LIBADD = @MODULE_LIBADD@
+fv_transform_la_LIBADD = @MODULE_LIBADD@ @LIBM@
 
 fv_cropscale_la_SOURCES  = fv_cropscale.c
 fv_cropscale_la_LIBADD = @MODULE_LIBADD@
@@ -91,9 +91,11 @@ fv_deinterlace_la_LIBADD   = @MODULE_LIBADD@
 fv_deinterlace_la_SOURCES  = fv_deinterlace.c bgyadif.c
 
 fv_equalizer_la_SOURCES  = fv_equalizer.c colormatrix.c
-fv_equalizer_la_LIBADD = @MODULE_LIBADD@
+fv_equalizer_la_LIBADD = @MODULE_LIBADD@ @LIBM@
 
 fv_zoom_la_SOURCES  = fv_zoom.c
 fv_zoom_la_LIBADD = @MODULE_LIBADD@
+
+fv_swapfields_la_LIBADD = @MODULE_LIBADD@
 
 noinst_HEADERS = bgyadif.h colormatrix.h deinterlace.h

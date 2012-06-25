@@ -56,6 +56,7 @@ $(cddb_libs) \
 @CDIO_LIBS@ \
 @CDIO_CDDA_LIBS@ \
 @CDIO_PARANOIA_LIBS@ \
-@MODULE_LIBADD@
+@MODULE_LIBADD@ \
+@XML2_LIBS@
 
 noinst_HEADERS = cdaudio.h sha1.h

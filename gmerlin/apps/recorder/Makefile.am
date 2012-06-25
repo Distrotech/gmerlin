@@ -20,7 +20,7 @@ gmerlin_recorder_SOURCES = gmerlin_recorder.c recorder_window.c
 
 gmerlin_recorder_LDADD = \
 $(top_builddir)/lib/gtk/libgmerlin_gtk.la \
-$(top_builddir)/lib/libgmerlin.la
+$(top_builddir)/lib/libgmerlin.la @GTK_LIBS@
 
 noinst_HEADERS = recorder_window.h
 

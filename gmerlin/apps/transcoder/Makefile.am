@@ -28,7 +28,7 @@ gmerlin_transcoder_remote_SOURCES = gmerlin_transcoder_remote.c
 
 gmerlin_transcoder_LDADD = \
 $(top_builddir)/lib/gtk/libgmerlin_gtk.la \
-$(top_builddir)/lib/libgmerlin.la
+$(top_builddir)/lib/libgmerlin.la @GTK_LIBS@
 
 gmerlin_transcoder_remote_LDADD = \
 $(top_builddir)/lib/libgmerlin.la
