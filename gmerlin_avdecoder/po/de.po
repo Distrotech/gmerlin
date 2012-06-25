@@ -165,7 +165,7 @@ msgid ""
 "Port base for RTP over UDP. Values of 1024 or smaller enable random ports "
 "(recommended for RTSP aware firewalls). Values larger than 1024 define the "
 "base port. 2 consecutive ports are used for each A/V stream, these must be "
-"accessable through the firewall. Odd values are rounded to the next even "
+"accessible through the firewall. Odd values are rounded to the next even "
 "value."
 msgstr ""
 
@@ -1561,7 +1561,7 @@ msgstr "Lesen des Status fehlgeschlagen: %s"
 
 #: lib/demux_nsv.c:519
 msgid ""
-"Seeking with verison 2 TOC not support due to lack of sample files.\n"
+"Seeking with version 2 TOC not support due to lack of sample files.\n"
 "Contact the authors to solve this"
 msgstr ""
 "Suchen mit Version 2 TOC ist nicht unterstützt wegen fehlender "
@@ -2062,7 +2062,7 @@ msgstr ""
 
 #: lib/in_rtsp.c:581
 #, c-format
-msgid "Server adress: %s\n"
+msgid "Server address: %s\n"
 msgstr ""
 
 #: lib/in_rtsp.c:593

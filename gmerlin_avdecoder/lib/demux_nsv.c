@@ -510,7 +510,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
       else
         {
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Seeking with verison 2 TOC not support due to lack of sample files.\nContact the authors to solve this");
+                 "Seeking with version 2 TOC not support due to lack of sample files.\nContact the authors to solve this");
         }
       }
 

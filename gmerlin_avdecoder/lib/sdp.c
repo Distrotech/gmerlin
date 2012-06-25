@@ -813,7 +813,7 @@ void bgav_sdp_free(bgav_sdp_t * s)
 void bgav_sdp_dump(bgav_sdp_t * s)
   {
   int i;
-  bgav_dprintf( "Protcol Version: %d\n", s->protocol_version);        /* v= */
+  bgav_dprintf( "Protocol Version: %d\n", s->protocol_version);        /* v= */
 
   bgav_dprintf( "Origin:\n");
 

@@ -578,7 +578,7 @@ static int handle_stream_transport(bgav_stream_t * s,
 
       freeaddrinfo(addr);
       
-      bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server adress: %s\n", ip);
+      bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server address: %s\n", ip);
       free(ip);
       }
     else

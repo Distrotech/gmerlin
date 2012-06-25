@@ -260,7 +260,7 @@ static const bg_parameter_info_t parameters[] =
       .val_min =     { .val_i =     0 },
       .val_max =     { .val_i = 65530 },
       .val_default = { .val_i =     0 },
-      .help_string = TRS("Port base for RTP over UDP. Values of 1024 or smaller enable random ports (recommended for RTSP aware firewalls). Values larger than 1024 define the base port. 2 consecutive ports are used for each A/V stream, these must be accessable through the firewall. Odd values are rounded to the next even value."),
+      .help_string = TRS("Port base for RTP over UDP. Values of 1024 or smaller enable random ports (recommended for RTSP aware firewalls). Values larger than 1024 define the base port. 2 consecutive ports are used for each A/V stream, these must be accessible through the firewall. Odd values are rounded to the next even value."),
     },
     {
       .name =       "ftp_options",
