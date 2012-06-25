@@ -165,6 +165,7 @@ const bg_cmdline_app_data_t app_data =
     .package =  PACKAGE,
     .version =  VERSION,
     .name =     "gmerlin-nmjedit",
+    .long_name = "Editor for nmj databases",
     .synopsis = TRS("[options]\n"),
     .help_before = TRS("Editor for NMJ2 databases\n"),
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },

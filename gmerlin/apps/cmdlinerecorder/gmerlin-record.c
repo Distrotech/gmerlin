@@ -312,6 +312,7 @@ const bg_cmdline_app_data_t app_data =
     .package =  PACKAGE,
     .version =  VERSION,
     .name =     "gmerlin-record",
+    .long_name = TRS("Commandline recorder"),
     .synopsis = TRS("[options]\n"),
     .help_before = TRS("Commandline recorder\n"),
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },

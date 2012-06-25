@@ -155,6 +155,20 @@ static void print_string(FILE * out, const char * str, bg_help_format_t format)
         }
       }
       break;
+    case BG_HELP_FORMAT_MAN:
+      {
+      const char * pos;
+      pos = str;
+      while(*pos)
+        {
+        if(*pos == '-')
+          fprintf(out, "\\%c", *pos);
+        else
+          fprintf(out, "%c", *pos);
+        pos++;
+        }
+      }
+      break;
     default:
       fprintf(out, "%s", str);
       break;
@@ -173,7 +187,9 @@ static void print_bold(FILE * out, char * str, bg_help_format_t format)
       /* Do nothing */
       break;
     case BG_HELP_FORMAT_MAN:
-      fprintf(out, ".B %s\n", str);
+      fprintf(out, ".B ");
+      print_string(out, str, format);
+      fprintf(out, "\n");
       break;
     case BG_HELP_FORMAT_TEXI:
       fprintf(out, "@b{");
@@ -383,7 +399,12 @@ void bg_cmdline_print_help(char * argv0, bg_help_format_t format)
 
       free(string_uc);
 
-      printf(".SH NAME\n%s\n", app_data->name);
+      if(app_data->long_name)
+        printf(".SH NAME\n%s \\- %s\n", app_data->name,
+               app_data->long_name);
+      else
+        printf(".SH NAME\n%s\n", app_data->name);
+        
       printf(".SH SYNOPSIS\n.B %s \n", app_data->name);
       tmp_string = bg_strdup(NULL,
                              TRD(app_data->synopsis, app_data->package));

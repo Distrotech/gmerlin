@@ -557,6 +557,7 @@ const bg_cmdline_app_data_t app_data =
     .package =  PACKAGE,
     .version =  VERSION,
     .name =     "gmerlin_remote",
+    .long_name = TRS("Remote control for the Gmerlin GUI Player"),
     .synopsis = TRS("[options] command\n"),
     .help_before = TRS("Remote control command for the Gmerlin GUI Player\n"),
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Global options"), global_options },

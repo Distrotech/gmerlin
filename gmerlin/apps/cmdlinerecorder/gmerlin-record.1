@@ -1,6 +1,6 @@
-.TH GMERLIN-RECORD 1 "March 2012" Gmerlin "User Manuals"
+.TH GMERLIN-RECORD 1 "June 2012" Gmerlin "User Manuals"
 .SH NAME
-gmerlin-record
+gmerlin-record \- Commandline recorder
 .SH SYNOPSIS
 .B gmerlin-record 
 .I [options]
@@ -10,7 +10,7 @@ Commandline recorder
 
 .SH OPTIONS
 
-.B -aud
+.B \-aud
 .I <audio_options>
 
 .RS 2
@@ -35,7 +35,7 @@ Plugin
 .RS 2
 .BR card "=<string>"
 .P
-Supported strings: default hw:0,0 hw:0,1 hw:0,2 hw:0,3
+Supported strings: default hw:0,0 hw:0,2
 .P
 Default: default
 .P
@@ -198,7 +198,7 @@ Language
 .P
 .RE
 
-.B -vid
+.B \-vid
 .I <video_options>
 
 .RS 2
@@ -211,12 +211,48 @@ Record video
 .P
 .BR plugin "=option[{suboptions}]"
 .P
-Supported options: i_v4l i_v4l2 i_x11
+Supported options: i_v4l2 i_v4l i_x11
 .P
-Default: i_v4l
+Default: i_v4l2
 .P
 Plugin
 .P
+.B Suboptions for plugin=i_v4l2
+
+.P
+.RS 2
+.BR device "=option[{suboptions}]"
+.P
+Supported options: <None>
+.P
+Default: /dev/video0
+.P
+V4L2 Device
+.P
+.BR force_rw "=[1|0] (default: 1)"
+.P
+Force read
+.P
+Don't use memory mapping
+
+.P
+.BR resolution "=<string>"
+.P
+Supported strings: QSIF (160x112) QCIF (176x144) QVGA (320x240) SIF(352x240) CIF (352x288) VGA (640x480) User defined
+.P
+Default: QVGA (320x240)
+.P
+Resolution
+.P
+.BR user_width "=<number> (160..1024, default: 720)"
+.P
+User defined width
+.P
+.BR user_height "=<number> (112..768, default: 576)"
+.P
+User defined height
+.P
+.RE
 .B Suboptions for plugin=i_v4l
 
 .P
@@ -260,42 +296,6 @@ Contrast
 .BR whiteness "=<number> (0..65535, default: 30000)"
 .P
 Whiteness
-.P
-.RE
-.B Suboptions for plugin=i_v4l2
-
-.P
-.RS 2
-.BR device "=option[{suboptions}]"
-.P
-Supported options: /dev/video0
-.P
-Default: /dev/video0
-.P
-V4L2 Device
-.P
-.BR force_rw "=[1|0] (default: 1)"
-.P
-Force read
-.P
-Don't use memory mapping
-
-.P
-.BR resolution "=<string>"
-.P
-Supported strings: QSIF (160x112) QCIF (176x144) QVGA (320x240) SIF(352x240) CIF (352x288) VGA (640x480) User defined
-.P
-Default: QVGA (320x240)
-.P
-Resolution
-.P
-.BR user_width "=<number> (160..1024, default: 720)"
-.P
-User defined width
-.P
-.BR user_height "=<number> (112..768, default: 576)"
-.P
-User defined height
 .P
 .RE
 .B Suboptions for plugin=i_x11
@@ -344,7 +344,7 @@ really fast
 .P
 .RE
 
-.B -af
+.B \-af
 .I <audio filter options>
 
 .RS 2
@@ -353,17 +353,13 @@ Set audio filter options
 .RS 2
 .BR audio_filters "={option[{suboptions}][:option[{suboptions}]...]}"
 .P
-Supported options: fa_ladspa_lp4pole_fcrcia_oa fa_ladspa_fourByFourPole 
-fa_ladspa_adsr fa_ladspa_amPitchshift fa_ladspa_alias fa_ladspa_allpass_c 
-fa_ladspa_allpass_l fa_ladspa_allpass_n fa_ladspa_amp_gcia_oa 
-fa_ladspa_amp_mono fa_ladspa_amp_stereo fa_ladspa_artificialLatency 
-fa_ladspa_divider fa_ladspa_autoPhaser fa_ladspa_sawtooth_fa_oa 
-fa_ladspa_square_fa_oa fa_ladspa_triangle_fasc_oa 
-fa_ladspa_triangle_fcsa_oa fa_ladspa_pulse_fapc_oa fa_ladspa_pulse_fcpa_oa 
+Supported options: fa_ladspa_fourByFourPole fa_ladspa_amPitchshift 
+fa_ladspa_alias fa_ladspa_allpass_c fa_ladspa_allpass_l 
+fa_ladspa_allpass_n fa_ladspa_amp_mono fa_ladspa_amp_stereo 
+fa_ladspa_artificialLatency fa_ladspa_divider fa_ladspa_autoPhaser 
 fa_ladspa_satanMaximiser fa_ladspa_canyon_delay fa_ladspa_chebstortion 
-fa_ladspa_syncsquare_fcga_oa fa_ladspa_syncpulse_fcpcga_oa fa_ladspa_comb 
-fa_ladspa_comb_c fa_ladspa_comb_l fa_ladspa_comb_n fa_ladspa_const 
-fa_ladspa_crossoverDist fa_ladspa_dcRemove fa_ladspa_dj_eq 
+fa_ladspa_comb fa_ladspa_comb_c fa_ladspa_comb_l fa_ladspa_comb_n 
+fa_ladspa_const fa_ladspa_crossoverDist fa_ladspa_dcRemove fa_ladspa_dj_eq 
 fa_ladspa_dj_eq_mono fa_ladspa_djFlanger fa_ladspa_decimator 
 fa_ladspa_declip fa_ladspa_delayorama fa_ladspa_diode 
 fa_ladspa_disintegrator fa_ladspa_dysonCompress fa_ladspa_delay_0,01s 
@@ -373,31 +369,27 @@ fa_ladspa_fastLookaheadLimiter fa_ladspa_foverdrive
 fa_ladspa_fbdelay_0,01s fa_ladspa_fbdelay_0,1s fa_ladspa_fbdelay_1s 
 fa_ladspa_fbdelay_5s fa_ladspa_fbdelay_60s fa_ladspa_flanger 
 fa_ladspa_foldover fa_sampleformat fa_ladspa_fadDelay fa_ladspa_freeverb3 
-fa_ladspa_freqTracker fa_ladspa_fmod_famc_oa fa_ladspa_fmod_fcma_oa 
-fa_ladspa_butthigh_iir fa_ladspa_buttlow_iir fa_ladspa_gsm fa_ladspa_gate 
-fa_ladspa_giantFlange fa_ladspa_bandpass_a_iir fa_ladspa_bandpass_iir 
-fa_ladspa_highpass_iir fa_ladspa_lowpass_iir fa_ladspa_gongBeater 
-fa_ladspa_gong fa_ladspa_grain_scatter fa_ladspa_hard_gate 
-fa_ladspa_hardLimiter fa_ladspa_harmonicGen fa_ladspa_hermesFilter 
-fa_ladspa_hpf fa_ladspa_pitchScaleHQ fa_ladspa_identity_audio 
-fa_ladspa_imp fa_ladspa_inv fa_ladspa_karaoke fa_ladspa_lcrDelay 
-fa_ladspa_lfoPhaser fa_ladspa_lsFilter fa_ladspa_lofi fa_ladspa_lpf 
-fa_ladspa_notch_iir fa_ladspa_matrixSpatialiser fa_ladspa_matrixMSSt 
-fa_ladspa_matrixStMS fa_ladspa_mbeq fa_ladspa_multivoiceChorus 
-fa_ladspa_pitchScale fa_ladspa_pointerCastDistortion 
-fa_ladspa_random_fasc_oa fa_ladspa_random_fcsa_oa fa_ladspa_rateShifter 
+fa_ladspa_freqTracker fa_ladspa_butthigh_iir fa_ladspa_buttlow_iir 
+fa_ladspa_gsm fa_ladspa_gate fa_ladspa_giantFlange 
+fa_ladspa_bandpass_a_iir fa_ladspa_bandpass_iir fa_ladspa_highpass_iir 
+fa_ladspa_lowpass_iir fa_ladspa_gongBeater fa_ladspa_gong 
+fa_ladspa_grain_scatter fa_ladspa_hard_gate fa_ladspa_hardLimiter 
+fa_ladspa_harmonicGen fa_ladspa_hermesFilter fa_ladspa_hpf 
+fa_ladspa_pitchScaleHQ fa_ladspa_identity_audio fa_ladspa_imp 
+fa_ladspa_inv fa_ladspa_karaoke fa_ladspa_lcrDelay fa_ladspa_lfoPhaser 
+fa_ladspa_lsFilter fa_ladspa_lofi fa_ladspa_lpf fa_ladspa_notch_iir 
+fa_ladspa_matrixSpatialiser fa_ladspa_matrixMSSt fa_ladspa_matrixStMS 
+fa_ladspa_mbeq fa_ladspa_multivoiceChorus fa_ladspa_pitchScale 
+fa_ladspa_pointerCastDistortion fa_ladspa_rateShifter 
 fa_ladspa_retroFlange fa_ladspa_revdelay fa_ladspa_ringmod_1i1o1l 
-fa_ladspa_sc1 fa_ladspa_sc4 fa_ladspa_sc4m fa_ladspa_se4 
-fa_ladspa_difference_iamc_oa fa_ladspa_difference_icma_oa 
-fa_ladspa_product_iaic_oa fa_ladspa_ratio_nadc_oa fa_ladspa_ratio_ncda_oa 
-fa_ladspa_sum_iaic_oa fa_ladspa_sifter fa_ladspa_compress_peak 
-fa_ladspa_compress_rms fa_ladspa_expand_peak fa_ladspa_expand_rms 
-fa_ladspa_limit_peak fa_ladspa_limit_rms fa_ladspa_amp fa_ladspa_delay_c 
-fa_ladspa_delay_l fa_ladspa_delay_n fa_ladspa_sine_faac 
-fa_ladspa_sine_fcaa fa_ladspa_singlePara fa_ladspa_sinusWavewrapper 
-fa_ladspa_smoothDecimate fa_ladspa_svf fa_ladspa_tap_autopan 
-fa_ladspa_tap_chorusflanger fa_ladspa_tap_deesser fa_ladspa_tap_dynamics_m 
-fa_ladspa_tap_dynamics_st fa_ladspa_tap_equalizer 
+fa_ladspa_sc1 fa_ladspa_sc4 fa_ladspa_sc4m fa_ladspa_se4 fa_ladspa_sifter 
+fa_ladspa_compress_peak fa_ladspa_compress_rms fa_ladspa_expand_peak 
+fa_ladspa_expand_rms fa_ladspa_limit_peak fa_ladspa_limit_rms 
+fa_ladspa_amp fa_ladspa_delay_c fa_ladspa_delay_l fa_ladspa_delay_n 
+fa_ladspa_sine_faac fa_ladspa_sine_fcaa fa_ladspa_singlePara 
+fa_ladspa_sinusWavewrapper fa_ladspa_smoothDecimate fa_ladspa_svf 
+fa_ladspa_tap_autopan fa_ladspa_tap_chorusflanger fa_ladspa_tap_deesser 
+fa_ladspa_tap_dynamics_m fa_ladspa_tap_dynamics_st fa_ladspa_tap_equalizer 
 fa_ladspa_tap_equalizer_bw fa_ladspa_tap_doubler fa_ladspa_tap_pinknoise 
 fa_ladspa_tap_pitch fa_ladspa_tap_reflector fa_ladspa_tap_reverb 
 fa_ladspa_tap_rotspeak fa_ladspa_tap_limiter fa_ladspa_tap_sigmoid 
@@ -409,19 +401,6 @@ fa_ladspa_zm1
 
 Audio Filters
 .P
-.B Suboptions for fa_ladspa_lp4pole_fcrcia_oa
-
-.P
-.RS 2
-.BR Cutoff Frequency "=<number> (0.000..0.500, default: 0.500)"
-.P
-Cutoff Frequency
-.P
-.BR Resonanz "=<number> (0.000..4.000, default: 0.000)"
-.P
-Resonanz
-.P
-.RE
 .B Suboptions for fa_ladspa_fourByFourPole
 
 .P
@@ -469,31 +448,6 @@ Add gain (dB)
 Overall gain for this filter. This is only valid if you add the effect
 to the input data
 
-.P
-.RE
-.B Suboptions for fa_ladspa_adsr
-
-.P
-.RS 2
-.BR Trigger Threshold "=<number> (default: 0.000)"
-.P
-Trigger Threshold
-.P
-.BR Einschwingzeit (s) "=<number> (default: 0.000)"
-.P
-Einschwingzeit (s)
-.P
-.BR Abklingzeit (s) "=<number> (default: 0.000)"
-.P
-Abklingzeit (s)
-.P
-.BR Haltewert "=<number> (0.000..1.000, default: 1.000)"
-.P
-Haltewert
-.P
-.BR Ausklingzeit (s) "=<number> (default: 0.000)"
-.P
-Ausklingzeit (s)
 .P
 .RE
 .B Suboptions for fa_ladspa_amPitchshift
@@ -629,15 +583,6 @@ to the input data
 
 .P
 .RE
-.B Suboptions for fa_ladspa_amp_gcia_oa
-
-.P
-.RS 2
-.BR Verstärkung (dB) "=<number> (-96.000..96.000, default: 0.000)"
-.P
-Verstärkung (dB)
-.P
-.RE
 .B Suboptions for fa_ladspa_amp_mono
 
 .P
@@ -735,42 +680,6 @@ to the input data
 
 .P
 .RE
-.B Suboptions for fa_ladspa_triangle_fasc_oa
-
-.P
-.RS 2
-.BR Slope "=<number> (0.000..1.000, default: 0.500)"
-.P
-Slope
-.P
-.RE
-.B Suboptions for fa_ladspa_triangle_fcsa_oa
-
-.P
-.RS 2
-.BR Frequenz "=<number> (0.000..0.500, default: 440.000)"
-.P
-Frequenz
-.P
-.RE
-.B Suboptions for fa_ladspa_pulse_fapc_oa
-
-.P
-.RS 2
-.BR Pulse Width "=<number> (0.000..1.000, default: 0.500)"
-.P
-Pulse Width
-.P
-.RE
-.B Suboptions for fa_ladspa_pulse_fcpa_oa
-
-.P
-.RS 2
-.BR Frequenz "=<number> (0.000..0.500, default: 440.000)"
-.P
-Frequenz
-.P
-.RE
 .B Suboptions for fa_ladspa_satanMaximiser
 
 .P
@@ -840,28 +749,6 @@ Add gain (dB)
 Overall gain for this filter. This is only valid if you add the effect
 to the input data
 
-.P
-.RE
-.B Suboptions for fa_ladspa_syncsquare_fcga_oa
-
-.P
-.RS 2
-.BR Frequency "=<number> (0.000..64.000, default: 16.000)"
-.P
-Frequency
-.P
-.RE
-.B Suboptions for fa_ladspa_syncpulse_fcpcga_oa
-
-.P
-.RS 2
-.BR Frequenz "=<number> (0.000..64.000, default: 16.000)"
-.P
-Frequenz
-.P
-.BR Pulse Width "=<number> (0.000..1.000, default: 0.500)"
-.P
-Pulse Width
 .P
 .RE
 .B Suboptions for fa_ladspa_comb
@@ -1698,24 +1585,6 @@ Add gain (dB)
 Overall gain for this filter. This is only valid if you add the effect
 to the input data
 
-.P
-.RE
-.B Suboptions for fa_ladspa_fmod_famc_oa
-
-.P
-.RS 2
-.BR Modulation (Octaves) "=<number> (default: 0.000)"
-.P
-Modulation (Octaves)
-.P
-.RE
-.B Suboptions for fa_ladspa_fmod_fcma_oa
-
-.P
-.RS 2
-.BR Frequenz (Hz) "=<number> (0.000..0.500, default: 440.000)"
-.P
-Frequenz (Hz)
 .P
 .RE
 .B Suboptions for fa_ladspa_butthigh_iir
@@ -2988,24 +2857,6 @@ to the input data
 
 .P
 .RE
-.B Suboptions for fa_ladspa_random_fasc_oa
-
-.P
-.RS 2
-.BR Wave Smoothness "=<number> (0.000..1.000, default: 1.000)"
-.P
-Wave Smoothness
-.P
-.RE
-.B Suboptions for fa_ladspa_random_fcsa_oa
-
-.P
-.RS 2
-.BR Frequenz (Hz) "=<number> (0.000..0.500, default: 440.000)"
-.P
-Frequenz (Hz)
-.P
-.RE
 .B Suboptions for fa_ladspa_rateShifter
 
 .P
@@ -3304,60 +3155,6 @@ Add gain (dB)
 Overall gain for this filter. This is only valid if you add the effect
 to the input data
 
-.P
-.RE
-.B Suboptions for fa_ladspa_difference_iamc_oa
-
-.P
-.RS 2
-.BR Input to Subtract "=<number> (default: 0.000)"
-.P
-Input to Subtract
-.P
-.RE
-.B Suboptions for fa_ladspa_difference_icma_oa
-
-.P
-.RS 2
-.BR Input "=<number> (default: 0.000)"
-.P
-Input
-.P
-.RE
-.B Suboptions for fa_ladspa_product_iaic_oa
-
-.P
-.RS 2
-.BR Second Input "=<number> (default: 0.000)"
-.P
-Second Input
-.P
-.RE
-.B Suboptions for fa_ladspa_ratio_nadc_oa
-
-.P
-.RS 2
-.BR Denominator "=<number> (default: 0.000)"
-.P
-Denominator
-.P
-.RE
-.B Suboptions for fa_ladspa_ratio_ncda_oa
-
-.P
-.RS 2
-.BR Numerator "=<number> (default: 0.000)"
-.P
-Numerator
-.P
-.RE
-.B Suboptions for fa_ladspa_sum_iaic_oa
-
-.P
-.RS 2
-.BR Second Input "=<number> (default: 0.000)"
-.P
-Second Input
 .P
 .RE
 .B Suboptions for fa_ladspa_sifter
@@ -4845,7 +4642,7 @@ to the input data
 .RE
 .RE
 
-.B -vf
+.B \-vf
 .I <video filter options>
 
 .RS 2
@@ -4862,24 +4659,22 @@ fv_flip fv_framerate fv_pixelformat fv_interlace fv_invert fv_lenstv
 fv_lifetv fv_matrixtv fv_mosaictv fv_halftv fv_nervoustv fv_noisetv 
 fv_oldcolor fv_optv fv_puptv fv_quarktv fv_colormatrix_rgb fv_rdstv 
 fv_revtv fv_rippletv fv_rndmtv fv_shagadelictv fv_shift fv_simuratv 
-fv_slofasttv fv_sparktv fv_spiraltv fv_streaktv fv_tlp fv_timedisttv 
-fv_transform fv_transformtv fv_tctweak fv_vertigotv fv_warholtv fv_warptv 
-fv_colormatrix_yuv fv_zoom bg_f0r_3 point color balance bg_f0r_3dflippo 
-bg_f0r_B bg_f0r_Baltan bg_f0r_Brightness bg_f0r_Cartoon 
-bg_f0r_Color Distance bg_f0r_Contrast0r bg_f0r_Curves bg_f0r_Defish0r 
-bg_f0r_Delaygrab bg_f0r_Distort0r bg_f0r_Edgeglow bg_f0r_Equaliz0r 
-bg_f0r_Flippo bg_f0r_G bg_f0r_Gamma bg_f0r_Glow bg_f0r_Hueshift0r 
-bg_f0r_Invert0r bg_f0r_K-Means Clustering bg_f0r_Lens Correction 
-bg_f0r_LetterB0xed bg_f0r_Levels bg_f0r_Luminance bg_f0r_Mask0Mate 
-bg_f0r_Nervous bg_f0r_Nikon D90 Stairstepping fix bg_f0r_Perspective 
-bg_f0r_R bg_f0r_RGB-Parade bg_f0r_SOP/Sat bg_f0r_Saturat0r 
-bg_f0r_Scale0Tilt bg_f0r_Sobel bg_f0r_Squareblur bg_f0r_TehRoxx0r 
-bg_f0r_Threshold0r bg_f0r_Tint0r bg_f0r_Transparency bg_f0r_Twolay0r 
-bg_f0r_Vectorscope bg_f0r_Vertigo bg_f0r_Water bg_f0r_White Balance 
-bg_f0r_alpha0ps bg_f0r_alphagrad bg_f0r_alphaspot bg_f0r_bluescreen0r 
-bg_f0r_bw0r bg_f0r_c0rners bg_f0r_coloradj_RGB bg_f0r_delay0r 
-bg_f0r_nosync0r bg_f0r_pixeliz0r bg_f0r_pr0be bg_f0r_pr0file 
-bg_f0r_primaries bg_f0r_scanline0r bg_f0r_select0r bg_f0r_threelay0r
+fv_slofasttv fv_sparktv fv_spiraltv fv_streaktv fv_swapfields fv_tlp 
+fv_textlogo fv_timedisttv fv_transform fv_transformtv fv_tctweak 
+fv_vertigotv fv_warholtv fv_warptv fv_colormatrix_yuv fv_zoom 
+bg_f0r_3 point color balance bg_f0r_3dflippo bg_f0r_B bg_f0r_Baltan 
+bg_f0r_Brightness bg_f0r_Cartoon bg_f0r_Color Distance bg_f0r_Contrast0r 
+bg_f0r_Curves bg_f0r_Dealygrab bg_f0r_Distort0r bg_f0r_Edgeglow 
+bg_f0r_Equaliz0r bg_f0r_Flippo bg_f0r_G bg_f0r_Gamma bg_f0r_Glow 
+bg_f0r_Hueshift0r bg_f0r_Invert0r bg_f0r_K-Means Clustering 
+bg_f0r_Lens Correction bg_f0r_LetterB0xed bg_f0r_Levels bg_f0r_Luminance 
+bg_f0r_Mask0Mate bg_f0r_Nervous bg_f0r_Perspective bg_f0r_R 
+bg_f0r_RGB-Parade bg_f0r_Saturat0r bg_f0r_Scale0Tilt bg_f0r_Sobel 
+bg_f0r_Squareblur bg_f0r_TehRoxx0r bg_f0r_Threshold0r bg_f0r_Tint0r 
+bg_f0r_Transparency bg_f0r_Twolay0r bg_f0r_Vectorscope bg_f0r_Vertigo 
+bg_f0r_Water bg_f0r_White Balance bg_f0r_bluescreen0r bg_f0r_bw0r 
+bg_f0r_delay0r bg_f0r_nosync0r bg_f0r_pixeliz0r bg_f0r_primaries 
+bg_f0r_scanline0r bg_f0r_threelay0r
 
 Video Filters
 .P
@@ -5277,7 +5072,7 @@ Border color
 .P
 Border width
 .P
-.BR font "=<string> (Default: Courier-20)"
+.BR font "=<string> (Default: Courier\-20)"
 .P
 Font
 .P
@@ -5904,6 +5699,82 @@ Strength
 .BR quality "=<number> (1..5, default: 2)"
 .P
 Quality
+.P
+.RE
+.B Suboptions for fv_textlogo
+
+.P
+.RS 2
+.BR text "=<string> (Default: Enter text)"
+.P
+Text
+.P
+Text to display
+
+.P
+.BR color "=<r>,<g>,<b>,<a> (default: 1.000,1.000,1.000,1.000)"
+.P
+<r>, <g>, <b> and <a> are in the range 0.0..1.0
+.P
+Text color
+.P
+.BR border_color "=<r>,<g>,<b> (default: 0.000,0.000,0.000)"
+.P
+<r>, <g> and <b> are in the range 0.0..1.0
+.P
+Border color
+.P
+.BR border_width "=<number> (0.00..10.00, default: 2.00)"
+.P
+Border width
+.P
+.BR font "=<string> (Default: Courier\-20)"
+.P
+Font
+.P
+.BR justify_h "=<string>"
+.P
+Supported strings: center left right
+.P
+Default: right
+.P
+Horizontal justify
+.P
+.BR justify_v "=<string>"
+.P
+Supported strings: center top bottom
+.P
+Default: top
+.P
+Vertical justify
+.P
+.BR border_left "=<number> (0..65535, default: 10)"
+.P
+Left border
+.P
+Distance from the left text border to the image border
+
+.P
+.BR border_right "=<number> (0..65535, default: 10)"
+.P
+Right border
+.P
+Distance from the right text border to the image border
+
+.P
+.BR border_top "=<number> (0..65535, default: 10)"
+.P
+Top border
+.P
+Distance from the top text border to the image border
+
+.P
+.BR border_bottom "=<number> (0..65535, default: 10)"
+.P
+Bottom border
+.P
+Distance from the bottom text border to the image border
+
 .P
 .RE
 .B Suboptions for fv_transform
@@ -6575,67 +6446,6 @@ Point 5 output value
 
 .P
 .RE
-.B Suboptions for bg_f0r_Defish0r
-
-.P
-.RS 2
-.BR Amount "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Amount
-.P
-Focal Ratio
-
-.P
-.BR DeFish "=[1|0] (default: 0)"
-.P
-DeFish
-.P
-Fish or Defish
-
-.P
-.BR Type "=<number> (0.0000..1.0000, default: 0.6667)"
-.P
-Type
-.P
-Mapping function
-
-.P
-.BR Scaling "=<number> (0.0000..1.0000, default: 0.6667)"
-.P
-Scaling
-.P
-Scaling method
-
-.P
-.BR Manual Scale "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Manual Scale
-.P
-Manual Scale
-
-.P
-.BR Interpolator "=<number> (0.0000..1.0000, default: 0.1667)"
-.P
-Interpolator
-.P
-Quality of interpolation
-
-.P
-.BR Aspect type "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Aspect type
-.P
-Pixel aspect ratio presets
-
-.P
-.BR Manual Aspect "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Manual Aspect
-.P
-Manual Pixel Aspect ratio
-
-.P
-.RE
 .B Suboptions for bg_f0r_Distort0r
 
 .P
@@ -6736,7 +6546,7 @@ The shift value
 
 .P
 .RE
-.B Suboptions for bg_f0r_K-Means Clustering
+.B Suboptions for bg_f0r_K\-Means Clustering
 
 .P
 .RS 2
@@ -6918,102 +6728,6 @@ Bottom Left
 Bottom Right
 .P
 .RE
-.B Suboptions for bg_f0r_SOP/Sat
-
-.P
-.RS 2
-.BR rSlope "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-rSlope
-.P
-Slope of the red color component
-
-.P
-.BR gSlope "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-gSlope
-.P
-Slope of the green color component
-
-.P
-.BR bSlope "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-bSlope
-.P
-Slope of the blue color component
-
-.P
-.BR aSlope "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-aSlope
-.P
-Slope of the alpha component
-
-.P
-.BR rOffset "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-rOffset
-.P
-Offset of the red color component
-
-.P
-.BR gOffset "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-gOffset
-.P
-Offset of the green color component
-
-.P
-.BR bOffset "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-bOffset
-.P
-Offset of the blue color component
-
-.P
-.BR aOffset "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-aOffset
-.P
-Offset of the alpha component
-
-.P
-.BR rPower "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-rPower
-.P
-Power (Gamma) of the red color component
-
-.P
-.BR gPower "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-gPower
-.P
-Power (Gamma) of the green color component
-
-.P
-.BR bPower "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-bPower
-.P
-Power (Gamma) of the blue color component
-
-.P
-.BR aPower "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-aPower
-.P
-Power (Gamma) of the alpha component
-
-.P
-.BR saturation "=<number> (0.0000..1.0000, default: 200.0000)"
-.P
-saturation
-.P
-Overall saturation
-
-.P
-.RE
 .B Suboptions for bg_f0r_Saturat0r
 
 .P
@@ -7145,6 +6859,13 @@ The transparency value
 
 .P
 .RS 2
+.BR Mode "=<number> (0.0000..1.0000, default: 3.0000)"
+.P
+Mode
+.P
+The effect mode
+
+.P
 .BR PhaseIncrement "=<number> (0.0000..1.0000, default: 0.0200)"
 .P
 PhaseIncrement
@@ -7164,15 +6885,6 @@ Zoomrate
 
 .P
 .RS 2
-.BR splash "=<x>,<y> (default: 0.000,0.000)"
-.P
-<r>, <g> and <b> are in the range 0.0..1.0
-.P
-splash
-.P
-make a big splash in the center
-
-.P
 .BR physics "=<number> (0.0000..1.0000, default: 0.0000)"
 .P
 physics
@@ -7244,109 +6956,6 @@ Adjust the level of green.
 
 .P
 .RE
-.B Suboptions for bg_f0r_alpha0ps
-
-.P
-.RS 2
-.BR Display "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Display
-.P
-.BR Display input alpha "=[1|0] (default: 0)"
-.P
-Display input alpha
-.P
-.BR Operation "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Operation
-.P
-.BR Threshold "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Threshold
-.P
-.BR Shrink/grow amount "=<number> (0.0000..1.0000, default: 0.3333)"
-.P
-Shrink/grow amount
-.P
-.BR Invert "=[1|0] (default: 0)"
-.P
-Invert
-.P
-.RE
-.B Suboptions for bg_f0r_alphagrad
-
-.P
-.RS 2
-.BR Position "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Position
-.P
-.BR Transition width "=[1|0] (default: 0)"
-.P
-Transition width
-.P
-.BR Tilt "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Tilt
-.P
-.BR Min "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Min
-.P
-.BR Max "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-Max
-.P
-.BR Operation "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Operation
-.P
-.RE
-.B Suboptions for bg_f0r_alphaspot
-
-.P
-.RS 2
-.BR Shape "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Shape
-.P
-.BR Position X "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Position X
-.P
-.BR Position Y "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Position Y
-.P
-.BR Size X "=<number> (0.0000..1.0000, default: 0.1000)"
-.P
-Size X
-.P
-.BR Size Y "=<number> (0.0000..1.0000, default: 0.1000)"
-.P
-Size Y
-.P
-.BR Tilt "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Tilt
-.P
-.BR Transition width "=<number> (0.0000..1.0000, default: 0.2000)"
-.P
-Transition width
-.P
-.BR Min "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Min
-.P
-.BR Max "=<number> (0.0000..1.0000, default: 1.0000)"
-.P
-Max
-.P
-.BR Operation "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Operation
-.P
-.RE
 .B Suboptions for bg_f0r_bluescreen0r
 
 .P
@@ -7366,160 +6975,6 @@ Distance
 .P
 Distance to Color (127 is good)
 
-.P
-.RE
-.B Suboptions for bg_f0r_c0rners
-
-.P
-.RS 2
-.BR Corner 1 X "=<number> (0.0000..1.0000, default: 0.3333)"
-.P
-Corner 1 X
-.P
-X coordinate of corner 1
-
-.P
-.BR Corner 1 Y "=<number> (0.0000..1.0000, default: 0.3333)"
-.P
-Corner 1 Y
-.P
-Y coordinate of corner 1
-
-.P
-.BR Corner 2 X "=<number> (0.0000..1.0000, default: 0.6667)"
-.P
-Corner 2 X
-.P
-X coordinate of corner 2
-
-.P
-.BR Corner 2 Y "=<number> (0.0000..1.0000, default: 0.3333)"
-.P
-Corner 2 Y
-.P
-Y coordinate of corner 2
-
-.P
-.BR Corner 3 X "=<number> (0.0000..1.0000, default: 0.6667)"
-.P
-Corner 3 X
-.P
-X coordinate of corner 3
-
-.P
-.BR Corner 3 Y "=<number> (0.0000..1.0000, default: 0.6667)"
-.P
-Corner 3 Y
-.P
-Y coordinate of corner 3
-
-.P
-.BR Corner 4 X "=<number> (0.0000..1.0000, default: 0.3333)"
-.P
-Corner 4 X
-.P
-X coordinate of corner 4
-
-.P
-.BR Corner 4 Y "=<number> (0.0000..1.0000, default: 0.6667)"
-.P
-Corner 4 Y
-.P
-Y coordinate of corner 4
-
-.P
-.BR Enable Stretch "=[1|0] (default: 0)"
-.P
-Enable Stretch
-.P
-Enable stretching
-
-.P
-.BR Stretch X "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Stretch X
-.P
-Amount of stretching in X direction
-
-.P
-.BR Stretch Y "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Stretch Y
-.P
-Amount of stretching in Y direction
-
-.P
-.BR Interpolator "=<number> (0.0000..1.0000, default: 0.1667)"
-.P
-Interpolator
-.P
-Quality of interpolation
-
-.P
-.BR Transparent Background "=[1|0] (default: 0)"
-.P
-Transparent Background
-.P
-Makes background transparent
-
-.P
-.BR Feather Alpha "=<number> (0.0000..1.0000, default: 0.0100)"
-.P
-Feather Alpha
-.P
-Makes smooth transition into transparent
-
-.P
-.RE
-.B Suboptions for bg_f0r_coloradj_RGB
-
-.P
-.RS 2
-.BR R "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-R
-.P
-Amount of red
-
-.P
-.BR G "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-G
-.P
-Amount of green
-
-.P
-.BR B "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-B
-.P
-Amount of blue
-
-.P
-.BR Action "=<number> (0.0000..1.0000, default: 0.3333)"
-.P
-Action
-.P
-Type of color adjustment
-
-.P
-.BR Keep luma "=[1|0] (default: 1)"
-.P
-Keep luma
-.P
-Don't change brightness
-
-.P
-.BR Alpha controlled "=[1|0] (default: 0)"
-.P
-Alpha controlled
-.P
-Adjust only areas with nonzero alpha
-
-.P
-.BR Luma formula "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Luma formula
 .P
 .RE
 .B Suboptions for bg_f0r_delay0r
@@ -7565,210 +7020,6 @@ Vertical size of one "pixel"
 
 .P
 .RE
-.B Suboptions for bg_f0r_pr0be
-
-.P
-.RS 2
-.BR Measurement "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Measurement
-.P
-What measurement to display
-
-.P
-.BR X "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-X
-.P
-X position of probe
-
-.P
-.BR Y "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Y
-.P
-Y position of probe
-
-.P
-.BR X size "=<number> (0.0000..1.0000, default: 0.2500)"
-.P
-X size
-.P
-X size of probe
-
-.P
-.BR Y size "=<number> (0.0000..1.0000, default: 0.2500)"
-.P
-Y size
-.P
-Y size of probe
-
-.P
-.BR 256 scale "=[1|0] (default: 0)"
-.P
-256 scale
-.P
-use 0-255 instead of 0.0-1.0
-
-.P
-.BR Show alpha "=[1|0] (default: 0)"
-.P
-Show alpha
-.P
-Display alpha value too
-
-.P
-.BR Big window "=[1|0] (default: 0)"
-.P
-Big window
-.P
-Display more data
-
-.P
-.RE
-.B Suboptions for bg_f0r_pr0file
-
-.P
-.RS 2
-.BR X "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-X
-.P
-X position of profile
-
-.P
-.BR Y "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Y
-.P
-Y position of profile
-
-.P
-.BR Tilt "=<number> (0.0000..1.0000, default: 0.5000)"
-.P
-Tilt
-.P
-Tilt of profile
-
-.P
-.BR Length "=<number> (0.0000..1.0000, default: 0.1584)"
-.P
-Length
-.P
-Length of profile
-
-.P
-.BR Channel "=<number> (0.0000..1.0000, default: 0.3750)"
-.P
-Channel
-.P
-Channel to numerically display
-
-.P
-.BR Marker 1 "=<number> (0.0000..1.0000, default: -0.2000)"
-.P
-Marker 1
-.P
-Position of marker 1
-
-.P
-.BR Marker 2 "=<number> (0.0000..1.0000, default: -0.2000)"
-.P
-Marker 2
-.P
-Position of marker 2
-
-.P
-.BR R trace "=[1|0] (default: 1)"
-.P
-R trace
-.P
-Show R trace on scope
-
-.P
-.BR G trace "=[1|0] (default: 1)"
-.P
-G trace
-.P
-Show G trace on scope
-
-.P
-.BR B trace "=[1|0] (default: 1)"
-.P
-B trace
-.P
-Show B trace on scope
-
-.P
-.BR Y trace "=[1|0] (default: 0)"
-.P
-Y trace
-.P
-Show Y' trace on scope
-
-.P
-.BR Pr trace "=[1|0] (default: 0)"
-.P
-Pr trace
-.P
-Show Pr trace on scope
-
-.P
-.BR Pb trace "=[1|0] (default: 0)"
-.P
-Pb trace
-.P
-Show Pb trace on scope
-
-.P
-.BR Alpha trace "=[1|0] (default: 0)"
-.P
-Alpha trace
-.P
-Show Alpha trace on scope
-
-.P
-.BR Display average "=[1|0] (default: 1)"
-.P
-Display average
-.P
-e
-
-.P
-.BR Display RMS "=[1|0] (default: 1)"
-.P
-Display RMS
-.P
-.BR Display minimum "=[1|0] (default: 0)"
-.P
-Display minimum
-.P
-.BR Display maximum "=[1|0] (default: 0)"
-.P
-Display maximum
-.P
-.BR 256 scale "=[1|0] (default: 0)"
-.P
-256 scale
-.P
-use 0-255 instead of 0.0-1.0
-
-.P
-.BR Color "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Color
-.P
-rec 601 or rec 709
-
-.P
-.BR Crosshair color "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Crosshair color
-.P
-Color of the profile marker
-
-.P
-.RE
 .B Suboptions for bg_f0r_primaries
 
 .P
@@ -7781,52 +7032,9 @@ influence of mean px value. > 32 = 0
 
 .P
 .RE
-.B Suboptions for bg_f0r_select0r
-
-.P
-.RS 2
-.BR Color to select "=<r>,<g>,<b> (default: 0.000,0.800,0.000)"
-.P
-<r>, <g> and <b> are in the range 0.0..1.0
-.P
-Color to select
-.P
-.BR Invert selection "=[1|0] (default: 0)"
-.P
-Invert selection
-.P
-.BR Delta R / A / Hue "=<number> (0.0000..1.0000, default: 0.2000)"
-.P
-Delta R / A / Hue
-.P
-.BR Delta G / B / Chroma "=<number> (0.0000..1.0000, default: 0.2000)"
-.P
-Delta G / B / Chroma
-.P
-.BR Delta B / I / I "=<number> (0.0000..1.0000, default: 0.2000)"
-.P
-Delta B / I / I
-.P
-.BR Selection subspace "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Selection subspace
-.P
-.BR Subspace shape "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Subspace shape
-.P
-.BR Edge mode "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Edge mode
-.P
-.BR Operation "=<number> (0.0000..1.0000, default: 0.0000)"
-.P
-Operation
-.P
-.RE
 .RE
 
-.B -vm
+.B \-vm
 .I <video monitor options>
 
 .RS 2
@@ -7912,7 +7120,7 @@ Scale quality
 .RS 2
 .BR device "=option[{suboptions}]"
 .P
-Supported options: /dev/video0
+Supported options: <None>
 .P
 Default: /dev/video0
 .P
@@ -7928,7 +7136,7 @@ Don't use memory mapping
 .RE
 .RE
 
-.B -m
+.B \-m
 .I <metadata_options>
 
 .RS 2
@@ -7967,16 +7175,17 @@ Genre
 .P
 Author
 .P
+.BR albumartist "=<string>"
+.P
+Album artist
+.P
 .BR copyright "=<string>"
 .P
 Copyright
 .P
 .BR date "=<string>"
 .P
-Date
-.P
-Complete date or year only
-
+Year
 .P
 .BR comment "=<string>"
 .P
@@ -7984,7 +7193,7 @@ Comment
 .P
 .RE
 
-.B -enc
+.B \-enc
 .I <encoding_options>
 
 .RS 2
@@ -7997,7 +7206,7 @@ Write audio stream to video file if possible
 .P
 .BR audio_encoder "=option[{suboptions}]"
 .P
-Supported options: e_wav e_vorbis e_speex e_flacogg e_flac e_lame e_faac e_mpegaudio e_ffmpeg_audio b_lame
+Supported options: e_wav e_speex e_flacogg e_flac e_lame e_mpegaudio b_lame e_faac e_ffmpeg_audio e_vorbis
 .P
 Default: e_wav
 .P
@@ -8018,61 +7227,6 @@ Supported strings: 8 16 24 32
 Default: 16
 .P
 Bits per sample
-.P
-.RE
-.B Suboptions for audio_encoder=e_vorbis
-
-.P
-.RS 2
-.BR bitrate_mode "=<string>"
-.P
-Supported strings: vbr vbr_bitrate managed
-.P
-Default: VBR
-.P
-Bitrate mode
-.P
-Bitrate mode:
-VBR: You specify a quality and (optionally) a minimum and maximum
-bitrate
-VBR (bitrate): The specified nominal bitrate will be used for selecting
-the encoder mode.
-Managed: You specify a nominal bitrate and (optionally) a minimum and
-maximum bitrate
-VBR is recommended, managed bitrate might result in a worse quality
-
-.P
-.BR nominal_bitrate "=<number> (0..1000, default: 128)"
-.P
-Nominal bitrate (kbps)
-.P
-Nominal bitrate (in kbps) for managed mode
-
-.P
-.BR quality "=<number> (0.0..10.0, default: 3.0)"
-.P
-VBR Quality (10: best)
-.P
-Quality for VBR mode
-10: best (largest output file)
-0:  worst (smallest output file)
-
-.P
-.BR min_bitrate "=<number> (0..1000, default: 0)"
-.P
-Minimum bitrate (kbps)
-.P
-Optional minimum bitrate (in kbps)
-0 = unspecified
-
-.P
-.BR max_bitrate "=<number> (0..1000, default: 0)"
-.P
-Maximum bitrate (kbps)
-.P
-Optional maximum bitrate (in kbps)
-0 = unspecified
-
 .P
 .RE
 .B Suboptions for audio_encoder=e_speex
@@ -8285,6 +7439,94 @@ is no valid mp3 bitrate, we'll choose the closest value.
 
 .P
 .RE
+.B Suboptions for audio_encoder=e_mpegaudio
+
+.P
+.RS 2
+.BR bitrate "=<number> (32..448, default: 224)"
+.P
+Bitrate (kbps)
+.P
+.BR layer "=<number> (1..2, default: 2)"
+.P
+Layer (1 or 2)
+.P
+Audio layer
+
+.P
+.BR vcd "=[1|0] (default: 1)"
+.P
+VCD Compatible
+.P
+Make VCD compliant output. This forces layer II, 224 kbps and 44.1 KHz
+stereo
+
+.P
+.RE
+.B Suboptions for audio_encoder=b_lame
+
+.P
+.RS 2
+.BR server "=<string> (Default: localhost)"
+.P
+Server
+.P
+.BR port "=<number> (1..65535, default: 8000)"
+.P
+Port
+.P
+.BR mount "=<string> (Default: /stream.ogg)"
+.P
+Mount
+.P
+.BR user "=<string> (Default: source)"
+.P
+User
+.P
+.BR password "=<string>"
+.P
+Password
+.P
+.BR name "=<string> (Default: Test stream)"
+.P
+Name
+.P
+.BR description "=<string> (Default: Brought to you by gmerlin)"
+.P
+Description
+.P
+.BR stereo_mode "=<string>"
+.P
+Supported strings: Stereo Joint stereo Auto
+.P
+Default: Auto
+.P
+Stereo mode
+.P
+Stereo: Completely independent channels
+Joint stereo: Improve quality (save bits) by using similarities of the
+channels
+Auto (recommended): Select one of the above depending on quality or
+bitrate setting
+
+.P
+.BR quality "=<number> (0..9, default: 2)"
+.P
+Encoding speed
+.P
+0: Slowest encoding, best quality
+9: Fastest encoding, worst quality
+
+.P
+.BR cbr_bitrate "=<number> (8..320, default: 128)"
+.P
+Bitrate (kbps)
+.P
+Bitrate in kbps. If your selection is no valid mp3 bitrate, we'll choose
+the closest value.
+
+.P
+.RE
 .B Suboptions for audio_encoder=e_faac
 
 .P
@@ -8342,30 +7584,6 @@ Use temporal noise shaping
 .BR no_midside "=[1|0] (default: 0)"
 .P
 Don't use mid/side coding
-.P
-.RE
-.B Suboptions for audio_encoder=e_mpegaudio
-
-.P
-.RS 2
-.BR bitrate "=<number> (32..448, default: 224)"
-.P
-Bitrate (kbps)
-.P
-.BR layer "=<number> (1..2, default: 2)"
-.P
-Layer (1 or 2)
-.P
-Audio layer
-
-.P
-.BR vcd "=[1|0] (default: 1)"
-.P
-VCD Compatible
-.P
-Make VCD compliant output. This forces layer II, 224 kbps and 44.1 KHz
-stereo
-
 .P
 .RE
 .B Suboptions for audio_encoder=e_ffmpeg_audio
@@ -8441,73 +7659,64 @@ Bit rate (kbps)
 .P
 .RE
 .RE
-.B Suboptions for audio_encoder=b_lame
+.B Suboptions for audio_encoder=e_vorbis
 
 .P
 .RS 2
-.BR server "=<string> (Default: localhost)"
+.BR bitrate_mode "=<string>"
 .P
-Server
+Supported strings: vbr vbr_bitrate managed
 .P
-.BR port "=<number> (1..65535, default: 8000)"
+Default: VBR
 .P
-Port
+Bitrate mode
 .P
-.BR mount "=<string> (Default: /stream.ogg)"
-.P
-Mount
-.P
-.BR user "=<string> (Default: source)"
-.P
-User
-.P
-.BR password "=<string>"
-.P
-Password
-.P
-.BR name "=<string> (Default: Test stream)"
-.P
-Name
-.P
-.BR description "=<string> (Default: Brought to you by gmerlin)"
-.P
-Description
-.P
-.BR stereo_mode "=<string>"
-.P
-Supported strings: Stereo Joint stereo Auto
-.P
-Default: Auto
-.P
-Stereo mode
-.P
-Stereo: Completely independent channels
-Joint stereo: Improve quality (save bits) by using similarities of the
-channels
-Auto (recommended): Select one of the above depending on quality or
-bitrate setting
+Bitrate mode:
+VBR: You specify a quality and (optionally) a minimum and maximum
+bitrate
+VBR (bitrate): The specified nominal bitrate will be used for selecting
+the encoder mode.
+Managed: You specify a nominal bitrate and (optionally) a minimum and
+maximum bitrate
+VBR is recommended, managed bitrate might result in a worse quality
 
 .P
-.BR quality "=<number> (0..9, default: 2)"
+.BR nominal_bitrate "=<number> (0..1000, default: 128)"
 .P
-Encoding speed
+Nominal bitrate (kbps)
 .P
-0: Slowest encoding, best quality
-9: Fastest encoding, worst quality
+Nominal bitrate (in kbps) for managed mode
 
 .P
-.BR cbr_bitrate "=<number> (8..320, default: 128)"
+.BR quality "=<number> (0.0..10.0, default: 3.0)"
 .P
-Bitrate (kbps)
+VBR Quality (10: best)
 .P
-Bitrate in kbps. If your selection is no valid mp3 bitrate, we'll choose
-the closest value.
+Quality for VBR mode
+10: best (largest output file)
+0:  worst (smallest output file)
+
+.P
+.BR min_bitrate "=<number> (0..1000, default: 0)"
+.P
+Minimum bitrate (kbps)
+.P
+Optional minimum bitrate (in kbps)
+0 = unspecified
+
+.P
+.BR max_bitrate "=<number> (0..1000, default: 0)"
+.P
+Maximum bitrate (kbps)
+.P
+Optional maximum bitrate (in kbps)
+0 = unspecified
 
 .P
 .RE
 .BR video_encoder "=option[{suboptions}]"
 .P
-Supported options: e_lqt e_y4m e_mpegvideo e_singlepic e_theora e_mpeg e_ffmpeg_video e_ffmpeg b_ogg
+Supported options: e_lqt e_y4m e_mpegvideo e_singlepic e_gavf e_theora b_ogg e_ffmpeg e_ffmpeg_video e_mpeg
 .P
 Default: e_lqt
 .P
@@ -8542,7 +7751,7 @@ reasonable and should only be changed by people who know what they do.
 .P
 .BR codec "=option[{suboptions}]"
 .P
-Supported options: ima4 rawaudio twos ulaw sowt alaw in24 in32 fl32 fl64 lpcm vorbis vorbis_qt ffmpeg_mp2 ffmpeg_ac3 lame faac
+Supported options: ima4 rawaudio twos ulaw sowt alaw in24 in32 fl32 fl64 lpcm faac lame ffmpeg_mp2 ffmpeg_ac3 vorbis vorbis_qt
 .P
 Default: ima4
 .P
@@ -8601,64 +7810,25 @@ Format
 Little endian
 .P
 .RE
-.B Suboptions for codec=vorbis
+.B Suboptions for codec=faac
 
 .P
 .RS 2
-.BR vorbis_bitrate "=<number> (default: 128000)"
+.BR faac_bitrate "=<number> (default: 0)"
 .P
-Nominal Bitrate
+Bitrate (kbps, 0 = VBR)
 .P
-.BR vorbis_vbr "=[1|0] (default: 1)"
+.BR quality "=<number> (10..500, default: 100)"
 .P
-Use variable bitrate
+VBR Quality
 .P
-.BR vorbis_max_bitrate "=<number> (default: -1)"
+.BR object_type "=<string>"
 .P
-Maximum Bitrate (-1 = no limit)
+Supported strings: Low Main SSR LTP
 .P
-.BR vorbis_min_bitrate "=<number> (default: -1)"
+Default: Low
 .P
-Minimum Bitrate (-1 = no limit)
-.P
-.RE
-.B Suboptions for codec=vorbis_qt
-
-.P
-.RS 2
-.BR vorbis_bitrate "=<number> (default: 128000)"
-.P
-Nominal Bitrate
-.P
-.BR vorbis_vbr "=[1|0] (default: 1)"
-.P
-Use variable bitrate
-.P
-.BR vorbis_max_bitrate "=<number> (default: -1)"
-.P
-Maximum Bitrate (-1 = no limit)
-.P
-.BR vorbis_min_bitrate "=<number> (default: -1)"
-.P
-Minimum Bitrate (-1 = no limit)
-.P
-.RE
-.B Suboptions for codec=ffmpeg_mp2
-
-.P
-.RS 2
-.BR bit_rate_audio "=<number> (default: 128)"
-.P
-Bit rate (kbps)
-.P
-.RE
-.B Suboptions for codec=ffmpeg_ac3
-
-.P
-.RS 2
-.BR bit_rate_audio "=<number> (default: 128)"
-.P
-Bit rate (kbps)
+Object type
 .P
 .RE
 .B Suboptions for codec=lame
@@ -8718,25 +7888,64 @@ VBR Quality level. 0: best, 9: worst
 
 .P
 .RE
-.B Suboptions for codec=faac
+.B Suboptions for codec=ffmpeg_mp2
 
 .P
 .RS 2
-.BR faac_bitrate "=<number> (default: 0)"
+.BR bit_rate_audio "=<number> (default: 128)"
 .P
-Bitrate (kbps, 0 = VBR)
+Bit rate (kbps)
 .P
-.BR quality "=<number> (10..500, default: 100)"
+.RE
+.B Suboptions for codec=ffmpeg_ac3
+
 .P
-VBR Quality
+.RS 2
+.BR bit_rate_audio "=<number> (default: 128)"
 .P
-.BR object_type "=<string>"
+Bit rate (kbps)
 .P
-Supported strings: Low Main SSR LTP
+.RE
+.B Suboptions for codec=vorbis
+
 .P
-Default: Low
+.RS 2
+.BR vorbis_bitrate "=<number> (default: 128000)"
 .P
-Object type
+Nominal Bitrate
+.P
+.BR vorbis_vbr "=[1|0] (default: 1)"
+.P
+Use variable bitrate
+.P
+.BR vorbis_max_bitrate "=<number> (default: -1)"
+.P
+Maximum Bitrate (-1 = no limit)
+.P
+.BR vorbis_min_bitrate "=<number> (default: -1)"
+.P
+Minimum Bitrate (-1 = no limit)
+.P
+.RE
+.B Suboptions for codec=vorbis_qt
+
+.P
+.RS 2
+.BR vorbis_bitrate "=<number> (default: 128000)"
+.P
+Nominal Bitrate
+.P
+.BR vorbis_vbr "=[1|0] (default: 1)"
+.P
+Use variable bitrate
+.P
+.BR vorbis_max_bitrate "=<number> (default: -1)"
+.P
+Maximum Bitrate (-1 = no limit)
+.P
+.BR vorbis_min_bitrate "=<number> (default: -1)"
+.P
+Minimum Bitrate (-1 = no limit)
 .P
 .RE
 .BR box_top "=<number> (0..65535, default: 0)"
@@ -8785,12 +7994,25 @@ frame duration here
 .P
 .BR codec "=option[{suboptions}]"
 .P
-Supported options: raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 rtjpeg jpeg mjpa png ffmpeg_mpg4 ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263 ffmpeg_h263p ffmpeg_mjpg ffmpeg_rle ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50 ffmpeg_ffvhuff ffmpeg_ffv1 ffmpeg_dnxhd ffmpeg_imx x264 schroedinger yuvs
+Supported options: jpeg rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 schroedinger png ffmpeg_mpg4 ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263 ffmpeg_h263p ffmpeg_mjpg ffmpeg_rle ffmpeg_ffvhuff ffmpeg_ffv1 ffmpeg_dnxhd mjpa x264 ffmpeg_imx ffmpeg_dv ffmpeg_dvcpro ffmpeg_dv50 yuvs
 .P
-Default: raw
+Default: jpeg
 .P
 Codec
 .P
+.B Suboptions for codec=jpeg
+
+.P
+.RS 2
+.BR jpeg_quality "=<number> (1..100, default: 95)"
+.P
+Quality
+.P
+.BR jpeg_usefloat "=[1|0] (default: 0)"
+.P
+Use float
+.P
+.RE
 .B Suboptions for codec=rtjpeg
 
 .P
@@ -8812,30 +8034,185 @@ Luma quantiser
 Chroma quantiser
 .P
 .RE
-.B Suboptions for codec=jpeg
+.B Suboptions for codec=schroedinger
 
 .P
 .RS 2
-.BR jpeg_quality "=<number> (1..100, default: 95)"
+.BR enc_rate_control "=<string>"
+.P
+Supported strings: Constant noise threshold Constant bitrate Low delay Lossless Constant lambda Constant error Constant quality
+.P
+Default: Constant quality
+.P
+Rate control
+.P
+.BR enc_bitrate "=<number> (default: 13824000)"
+.P
+Bitrate
+.P
+.BR enc_buffer_size "=<number> (default: 0)"
+.P
+Buffer size
+.P
+.BR enc_buffer_level "=<number> (default: 0)"
+.P
+Buffer level
+.P
+.BR enc_noise_threshold "=<number> (0.00..100.00, default: 25.00)"
+.P
+Noise Threshold
+.P
+.BR enc_quality "=<number> (0.00..10.00, default: 5.00)"
 .P
 Quality
 .P
-.BR jpeg_usefloat "=[1|0] (default: 0)"
+.BR enc_enable_rdo_cbr "=[1|0] (default: 1)"
 .P
-Use float
+rdo cbr
 .P
-.RE
-.B Suboptions for codec=mjpa
+.BR enc_gop_structure "=<string>"
+.P
+Supported strings: Adaptive Intra only Backref Chained backref Biref Chained biref
+.P
+Default: Adaptive
+.P
+GOP Stucture
+.P
+.BR enc_au_distance "=<number> (default: 30)"
+.P
+GOP size
+.P
+.BR enc_open_gop "=[1|0] (default: 1)"
+.P
+Open GOPs
+.P
+Choose whether GOPs should be open or closed. Closed GOPs improve
+seeking accuracy for buggy decoders, open GOPs have a slightly
+better compression
 
 .P
-.RS 2
-.BR jpeg_quality "=<number> (1..100, default: 95)"
+.BR enc_mv_precision "=<number> (default: 0)"
 .P
-Quality
+MV Precision
 .P
-.BR jpeg_usefloat "=[1|0] (default: 0)"
+.BR enc_motion_block_size "=<string>"
 .P
-Use float
+Supported strings: Automatic Small Medium Large
+.P
+Default: Automatic
+.P
+Block size
+.P
+.BR enc_motion_block_overlap "=<string>"
+.P
+Supported strings: Automatic None Partial Full
+.P
+Default: Automatic
+.P
+Block overlap
+.P
+.BR enc_enable_chroma_me "=[1|0] (default: 0)"
+.P
+Enable chroma ME
+.P
+.BR enc_enable_global_motion "=[1|0] (default: 0)"
+.P
+Enable GMC
+.P
+Enable global motion estimation
+
+.P
+.BR enc_enable_phasecorr_estimation "=[1|0] (default: 0)"
+.P
+Enable phasecorrelation estimation
+.P
+.BR enc_enable_hierarchical_estimation "=[1|0] (default: 1)"
+.P
+Hierarchical estimation
+.P
+.BR enc_enable_phasecorr_estimation "=[1|0] (default: 0)"
+.P
+Phasecorr estimation
+.P
+.BR enc_enable_bigblock_estimation "=[1|0] (default: 1)"
+.P
+Bigblock estimation
+.P
+.BR enc_enable_global_motion "=[1|0] (default: 0)"
+.P
+Global motion estimation
+.P
+.BR enc_enable_deep_estimation "=[1|0] (default: 1)"
+.P
+Deep estimation
+.P
+.BR enc_enable_scene_change_detection "=[1|0] (default: 1)"
+.P
+Scene change detection
+.P
+.BR enc_intra_wavelet "=<string>"
+.P
+Supported strings: Deslauriers-Debuc (9,3) LeGall (5,3) Deslauriers-Debuc (13,5) Haar (no shift) Haar (single shift) Fidelity Daubechies (9,7)
+.P
+Default: Deslauriers\-Debuc (9,3)
+.P
+Intra wavelet
+.P
+.BR enc_inter_wavelet "=<string>"
+.P
+Supported strings: Deslauriers-Debuc (9,3) LeGall (5,3) Deslauriers-Debuc (13,5) Haar (no shift) Haar (single shift) Fidelity Daubechies (9,7)
+.P
+Default: LeGall (5,3)
+.P
+Inter wavelet
+.P
+.BR enc_filtering "=<string>"
+.P
+Supported strings: None Center weighted median Gaussian Add noise Adaptive Gaussian
+.P
+Default: None
+.P
+Filter
+.P
+.BR enc_filter_value "=<number> (0..100, default: 5)"
+.P
+Filter value
+.P
+.BR enc_force_profile "=<string>"
+.P
+Supported strings: Auto VC-2 low delay VC-2 simple VC-2 main Main
+.P
+Default: Auto
+.P
+Force profile
+.P
+.BR enc_codeblock_size "=<string>"
+.P
+Supported strings: Auto Small Medium Large Full
+.P
+Default: Auto
+.P
+Codeblock size
+.P
+.BR enc_enable_multiquant "=[1|0] (default: 1)"
+.P
+Enable multiquant
+.P
+.BR enc_enable_dc_multiquant "=[1|0] (default: 0)"
+.P
+Enable DC multiquant
+.P
+.BR enc_enable_noarith "=[1|0] (default: 0)"
+.P
+Disable arithmetic coding
+.P
+.BR enc_downsample_levels "=<number> (2..8, default: 5)"
+.P
+Downsample levels
+.P
+.BR enc_transform_depth "=<number> (0..6, default: 3)"
+.P
+Transform depth
 .P
 .RE
 .B Suboptions for codec=png
@@ -10992,21 +10369,17 @@ Default: VLC
 Coder type
 .P
 .RE
-.B Suboptions for codec=ffmpeg_imx
+.B Suboptions for codec=mjpa
 
 .P
 .RS 2
-.BR imx_bitrate "=<string>"
+.BR jpeg_quality "=<number> (1..100, default: 95)"
 .P
-Supported strings: 30 40 50
+Quality
 .P
-Default: 50
+.BR jpeg_usefloat "=[1|0] (default: 0)"
 .P
-Bitrate (Mbps)
-.P
-.BR imx_strip_vbi "=<number> (default: 1)"
-.P
-Strip VBI
+Use float
 .P
 .RE
 .B Suboptions for codec=x264
@@ -11406,185 +10779,21 @@ early SKIP detection on P-frames
 Transform coefficient thresholding on P-frames
 .P
 .RE
-.B Suboptions for codec=schroedinger
+.B Suboptions for codec=ffmpeg_imx
 
 .P
 .RS 2
-.BR enc_rate_control "=<string>"
+.BR imx_bitrate "=<string>"
 .P
-Supported strings: Constant noise threshold Constant bitrate Low delay Lossless Constant lambda Constant error Constant quality
+Supported strings: 30 40 50
 .P
-Default: Constant quality
+Default: 50
 .P
-Rate control
+Bitrate (Mbps)
 .P
-.BR enc_bitrate "=<number> (default: 13824000)"
+.BR imx_strip_vbi "=<number> (default: 1)"
 .P
-Bitrate
-.P
-.BR enc_buffer_size "=<number> (default: 0)"
-.P
-Buffer size
-.P
-.BR enc_buffer_level "=<number> (default: 0)"
-.P
-Buffer level
-.P
-.BR enc_noise_threshold "=<number> (0.00..100.00, default: 25.00)"
-.P
-Noise Threshold
-.P
-.BR enc_quality "=<number> (0.00..10.00, default: 5.00)"
-.P
-Quality
-.P
-.BR enc_enable_rdo_cbr "=[1|0] (default: 1)"
-.P
-rdo cbr
-.P
-.BR enc_gop_structure "=<string>"
-.P
-Supported strings: Adaptive Intra only Backref Chained backref Biref Chained biref
-.P
-Default: Adaptive
-.P
-GOP Stucture
-.P
-.BR enc_au_distance "=<number> (default: 30)"
-.P
-GOP size
-.P
-.BR enc_open_gop "=[1|0] (default: 1)"
-.P
-Open GOPs
-.P
-Choose whether GOPs should be open or closed. Closed GOPs improve
-seeking accuracy for buggy decoders, open GOPs have a slightly
-better compression
-
-.P
-.BR enc_mv_precision "=<number> (default: 0)"
-.P
-MV Precision
-.P
-.BR enc_motion_block_size "=<string>"
-.P
-Supported strings: Automatic Small Medium Large
-.P
-Default: Automatic
-.P
-Block size
-.P
-.BR enc_motion_block_overlap "=<string>"
-.P
-Supported strings: Automatic None Partial Full
-.P
-Default: Automatic
-.P
-Block overlap
-.P
-.BR enc_enable_chroma_me "=[1|0] (default: 0)"
-.P
-Enable chroma ME
-.P
-.BR enc_enable_global_motion "=[1|0] (default: 0)"
-.P
-Enable GMC
-.P
-Enable global motion estimation
-
-.P
-.BR enc_enable_phasecorr_estimation "=[1|0] (default: 0)"
-.P
-Enable phasecorrelation estimation
-.P
-.BR enc_enable_hierarchical_estimation "=[1|0] (default: 1)"
-.P
-Hierarchical estimation
-.P
-.BR enc_enable_phasecorr_estimation "=[1|0] (default: 0)"
-.P
-Phasecorr estimation
-.P
-.BR enc_enable_bigblock_estimation "=[1|0] (default: 1)"
-.P
-Bigblock estimation
-.P
-.BR enc_enable_global_motion "=[1|0] (default: 0)"
-.P
-Global motion estimation
-.P
-.BR enc_enable_deep_estimation "=[1|0] (default: 1)"
-.P
-Deep estimation
-.P
-.BR enc_enable_scene_change_detection "=[1|0] (default: 1)"
-.P
-Scene change detection
-.P
-.BR enc_intra_wavelet "=<string>"
-.P
-Supported strings: Deslauriers-Debuc (9,3) LeGall (5,3) Deslauriers-Debuc (13,5) Haar (no shift) Haar (single shift) Fidelity Daubechies (9,7)
-.P
-Default: Deslauriers-Debuc (9,3)
-.P
-Intra wavelet
-.P
-.BR enc_inter_wavelet "=<string>"
-.P
-Supported strings: Deslauriers-Debuc (9,3) LeGall (5,3) Deslauriers-Debuc (13,5) Haar (no shift) Haar (single shift) Fidelity Daubechies (9,7)
-.P
-Default: LeGall (5,3)
-.P
-Inter wavelet
-.P
-.BR enc_filtering "=<string>"
-.P
-Supported strings: None Center weighted median Gaussian Add noise Adaptive Gaussian
-.P
-Default: None
-.P
-Filter
-.P
-.BR enc_filter_value "=<number> (0..100, default: 5)"
-.P
-Filter value
-.P
-.BR enc_force_profile "=<string>"
-.P
-Supported strings: Auto VC-2 low delay VC-2 simple VC-2 main Main
-.P
-Default: Auto
-.P
-Force profile
-.P
-.BR enc_codeblock_size "=<string>"
-.P
-Supported strings: Auto Small Medium Large Full
-.P
-Default: Auto
-.P
-Codeblock size
-.P
-.BR enc_enable_multiquant "=[1|0] (default: 1)"
-.P
-Enable multiquant
-.P
-.BR enc_enable_dc_multiquant "=[1|0] (default: 0)"
-.P
-Enable DC multiquant
-.P
-.BR enc_enable_noarith "=[1|0] (default: 0)"
-.P
-Disable arithmetic coding
-.P
-.BR enc_downsample_levels "=<number> (2..8, default: 5)"
-.P
-Downsample levels
-.P
-.BR enc_transform_depth "=<number> (0..6, default: 3)"
-.P
-Transform depth
+Strip VBI
 .P
 .RE
 .RE
@@ -11715,27 +10924,30 @@ frame duration here
 .RS 2
 .BR plugin "=option[{suboptions}]"
 .P
-Supported options: iw_jpeg iw_png iw_tiff iw_tga iw_bmp iw_pnm iw_gavl
+Supported options: iw_pnm iw_bmp iw_png iw_jpeg iw_tga iw_tiff iw_gavl
 .P
-Default: iw_jpeg
+Default: iw_pnm
 .P
 Plugin
 .P
-.B Suboptions for plugin=iw_jpeg
+.B Suboptions for plugin=iw_pnm
 
 .P
 .RS 2
-.BR quality "=<number> (0..100, default: 95)"
+.BR format "=<string>"
 .P
-Quality
+Supported strings: binary ascii
 .P
-.BR chroma_sampling "=<string>"
+Default: binary
 .P
-Supported strings: 4:2:0 4:2:2 4:4:4
+Format
 .P
-Default: 4:2:0
+.BR comment "=<string> (Default: Created with gmerlin)"
 .P
-Chroma sampling
+Comment
+.P
+Comment which will be written in front of every file
+
 .P
 .RE
 .B Suboptions for plugin=iw_png
@@ -11759,6 +10971,32 @@ format
 
 .P
 .RE
+.B Suboptions for plugin=iw_jpeg
+
+.P
+.RS 2
+.BR quality "=<number> (0..100, default: 95)"
+.P
+Quality
+.P
+.BR chroma_sampling "=<string>"
+.P
+Supported strings: 4:2:0 4:2:2 4:4:4
+.P
+Default: 4:2:0
+.P
+Chroma sampling
+.P
+.RE
+.B Suboptions for plugin=iw_tga
+
+.P
+.RS 2
+.BR rle "=[1|0] (default: 0)"
+.P
+Do RLE compression
+.P
+.RE
 .B Suboptions for plugin=iw_tiff
 
 .P
@@ -11780,35 +11018,6 @@ JPEG quality
 Deflate compression level
 .P
 .RE
-.B Suboptions for plugin=iw_tga
-
-.P
-.RS 2
-.BR rle "=[1|0] (default: 0)"
-.P
-Do RLE compression
-.P
-.RE
-.B Suboptions for plugin=iw_pnm
-
-.P
-.RS 2
-.BR format "=<string>"
-.P
-Supported strings: binary ascii
-.P
-Default: binary
-.P
-Format
-.P
-.BR comment "=<string> (Default: Created with gmerlin)"
-.P
-Comment
-.P
-Comment which will be written in front of every file
-
-.P
-.RE
 .BR frame_digits "=<number> (1..9, default: 4)"
 .P
 Framenumber digits
@@ -11816,6 +11025,50 @@ Framenumber digits
 .BR frame_offset "=<number> (0..1000000, default: 0)"
 .P
 Framenumber offset
+.P
+.RE
+.B Suboptions for video_encoder=e_gavf
+
+.P
+.RS 2
+.BR format "=<string>"
+.P
+Supported strings: disk
+.P
+Default: (null)
+.P
+Format
+.P
+.BR sync_distance "=<number> (20..10000, default: 500)"
+.P
+Sync distance (ms)
+.P
+Distance between sync headers if no stream has keyframes. Smaller
+distances produce larger overhead but speed up seeking
+
+.P
+.BR sync_index "=[1|0] (default: 1)"
+.P
+Write sync index
+.P
+Write a synchronisation index to enable seeking
+
+.P
+.BR packet_index "=[1|0] (default: 1)"
+.P
+Write packet index
+.P
+Write a packet index to enable faster seeking
+
+.P
+.BR interleave "=[1|0] (default: 1)"
+.P
+Interleave
+.P
+Take care of proper interleaving. Enabling this increases encoding
+latency and memory usage. Disable this if the packets are already
+properly interleaved.
+
 .P
 .RE
 .B Suboptions for video_encoder=e_theora
@@ -12046,929 +11299,224 @@ frame duration here
 
 .P
 .RE
-.B Suboptions for video_encoder=e_mpeg
+.B Suboptions for video_encoder=b_ogg
 
 .P
 .RS 2
-.BR format "=<string>"
+.BR server "=<string> (Default: localhost)"
 .P
-Supported strings: mpeg1 vcd mpeg2 svcd dvd_nav dvd
+Server
 .P
-Default: mpeg1
+.BR port "=<number> (1..65535, default: 8000)"
 .P
-Format
+Port
 .P
-Output format. Note that for some output formats (e.g. VCD), you MUST
-use proper settings for the audio and video streams also, since this
-isn't done automatically
-
+.BR mount "=<string> (Default: /stream.ogg)"
 .P
-.BR tmp_dir "=<string>"
+Mount
 .P
-Directory for temporary files
+.BR user "=<string> (Default: source)"
 .P
-Leave empty to use the same directory as the final output file
-
+User
 .P
-.BR aux_stream_1 "=<string>"
+.BR password "=<string>"
 .P
-Additional stream 1
+Password
 .P
-Additional stream to multiplex into the final output file. Use this if
-you want e.g. create mp3 or AC3 audio with some other encoder
-
+.BR name "=<string> (Default: Test stream)"
 .P
-.BR aux_stream_2 "=<string>"
+Name
 .P
-Additional stream 2
+.BR description "=<string> (Default: Brought to you by gmerlin)"
 .P
-Additional stream to multiplex into the final output file. Use this if
-you want e.g. create mp3 or AC3 audio with some other encoder
-
-.P
-.BR aux_stream_3 "=<string>"
-.P
-Additional stream 3
-.P
-Additional stream to multiplex into the final output file. Use this if
-you want e.g. create mp3 or AC3 audio with some other encoder
-
-.P
-.BR bitrate "=<number> (32..448, default: 224)"
-.P
-Bitrate (kbps)
-.P
-.BR layer "=<number> (1..2, default: 2)"
-.P
-Layer (1 or 2)
-.P
-Audio layer
-
-.P
-.BR vcd "=[1|0] (default: 1)"
-.P
-VCD Compatible
-.P
-Make VCD compliant output. This forces layer II, 224 kbps and 44.1 KHz
-stereo
-
-.P
-.BR format "=<string>"
-.P
-Supported strings: mpeg1 mpeg2 vcd svcd dvd
-.P
-Default: mpeg1
-.P
-Format
-.P
-Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST
-provide valid frame sizes
-
-.P
-.BR bitrate_mode "=<string>"
-.P
-Supported strings: auto vbr cbr
-.P
-Default: auto
-.P
-Bitrate Mode
-.P
-Specify constant or variable bitrate. For "Auto", constant bitrate will
-be used for MPEG-1, variable bitrate will be used for MPEG-2. For
-formats, which require CBR, this option is ignored
-
-.P
-.BR bitrate "=<number> (200..99999, default: 1150)"
-.P
-Bitrate (kbps)
-.P
-Video bitrate in kbps. For VBR, it's the maximum bitrate. If the format
-requires a fixed bitrate (e.g. VCD) this option is ignored
-
-.P
-.BR quantization "=<number> (1..31, default: 8)"
-.P
-Quantization
-.P
-Minimum quantization for VBR. Lower numbers mean higher quality. For
-CBR, this option is ignored.
-
-.P
-.BR quant_matrix "=<string>"
-.P
-Supported strings: default kvcd tmpgenc hi-res
-.P
-Default: default
-.P
-Quantization matrices
-.P
-.BR bframes "=<number> (0..2, default: 0)"
-.P
-Number of B-Frames
-.P
-Specify the number of B-frames between 2 P/I frames. More B-frames slow
-down encoding and increase memory usage, but might give better
-compression results. For VCD, this option is ignored, since the VCD
-standard requires 2 B-frames, no matter if you like them or not.
-
-.P
-.BR user_options "=<string>"
-.P
-User options
-.P
-Enter further commandline options for mpeg2enc here. Check the mpeg2enc
-manual page for details
-
-.P
-.BR default_timescale "=<number> (default: 25)"
-.P
-Default timescale
-.P
-For formats, which support only constant framerates, set the default
-timescale here
-
-.P
-.BR default_frame_duration "=<number> (default: 1)"
-.P
-Default frame duration
-.P
-For formats, which support only constant framerates, set the default
-frame duration here
-
-.P
-.RE
-.B Suboptions for video_encoder=e_ffmpeg_video
-
-.P
-.RS 2
-.BR format "=<string>"
-.P
-Supported strings: mpeg1video mpeg2video
-.P
-Default: mpeg1video
-.P
-Format
+Description
 .P
 .BR codec "=option[{suboptions}]"
 .P
-Supported options: mpeg1video mpeg2video
+Supported options: vorbis speex
 .P
-Default: mpeg1video
+Default: vorbis
 .P
 Codec
 .P
-.B Suboptions for codec=mpeg1video
+.B Suboptions for codec=vorbis
 
 .P
 .RS 2
-.BR gop_size "=<number> (0..300, default: 250)"
+.BR bitrate_mode "=<string>"
 .P
-GOP size (0 = intra only)
+Supported strings: vbr vbr_bitrate managed
 .P
-.BR ff_scenechange_threshold "=<number> (-1000000000..1000000000, default: 0)"
+Default: VBR
 .P
-Scenechange threshold
+Bitrate mode
 .P
-Threshold for scene change detection.
-Negative values mean more sensitivity (more keyframes)
+Bitrate mode:
+VBR: You specify a quality and (optionally) a minimum and maximum
+bitrate
+VBR (bitrate): The specified nominal bitrate will be used for
+selecting the encoder mode.
+Managed: You specify a nominal bitrate and (optionally) a minimum
+and maximum bitrate
+VBR is recommended, managed bitrate might result in a worse quality
 
 .P
-.BR ff_scenechange_factor "=<number> (default: 0)"
+.BR nominal_bitrate "=<number> (0..1000, default: 128)"
 .P
-Scenechange factor
+Nominal bitrate (kbps)
 .P
-Multiplied by qscale for each frame and added to scene_change_score
+Nominal bitrate (in kbps) for managed mode
 
 .P
-.BR ff_flag_closed_gop "=[1|0] (default: 0)"
+.BR quality "=<number> (0.0..10.0, default: 3.0)"
 .P
-Close all GOPs
+VBR Quality (10: best)
 .P
-.BR ff_flag2_strict_gop "=[1|0] (default: 0)"
-.P
-Strictly enforce GOP size
-.P
-.BR ff_max_b_frames "=<number> (0..16, default: 0)"
-.P
-Max B-Frames
-.P
-Maximum number of B-frames between non B-frames
+Quality for VBR mode
+10: best (largest output file)
+0:  worst (smallest output file)
 
 .P
-.BR ff_b_frame_strategy "=[1|0] (default: 0)"
-.P
-Avoid B-frames in high motion scenes
-.P
-.BR ff_bit_rate_video "=<number> (default: 800)"
-.P
-Bit rate (kbps)
-.P
-.BR ff_bit_rate_tolerance "=<number> (default: 8000)"
-.P
-Bitrate tolerance (kbps)
-.P
-Number of bits the bitstream is allowed to diverge from the
-reference. Unused for constant quantizer encoding
-
-.P
-.BR ff_rc_min_rate "=<number> (default: 0)"
+.BR min_bitrate "=<number> (0..1000, default: 0)"
 .P
 Minimum bitrate (kbps)
 .P
-Minimum bitrate (0 means arbitrary)
+Optional minimum bitrate (in kbps)
+0 = unspecified
 
 .P
-.BR ff_rc_max_rate "=<number> (default: 0)"
+.BR max_bitrate "=<number> (0..1000, default: 0)"
 .P
 Maximum bitrate (kbps)
 .P
-Maximum bitrate (0 means arbitrary)
-
-.P
-.BR ff_rc_buffer_size "=<number> (default: 0)"
-.P
-RC buffer size
-.P
-Decoder bitstream buffer size in kbits. When encoding with max
-and/or min bitrate, this must be specified.
-
-.P
-.BR ff_rc_initial_cplx "=<number> (0.0..99.0, default: 0.0)"
-.P
-Initial RC complexity
-.P
-.BR ff_rc_initial_buffer_occupancy "=<number> (default: 0)"
-.P
-Initial RC buffer occupancy
-.P
-Number of kilobits which should be loaded into the rc buffer before
-encoding starts. Must not be larger than RC buffer size
-
-.P
-.BR ff_qmin "=<number> (0..31, default: 2)"
-.P
-Minimum quantizer scale
-.P
-.BR ff_qmax "=<number> (0..31, default: 31)"
-.P
-Maximum quantizer scale
-.P
-.BR ff_max_qdiff "=<number> (0..31, default: 3)"
-.P
-Maximum quantizer difference
-.P
-Maximum quantizer difference between frames
-
-.P
-.BR ff_flag_qscale "=[1|0] (default: 0)"
-.P
-Use fixed quantizer
-.P
-Use fixed quality encoding
-
-.P
-.BR ff_qscale "=<number> (1..31, default: 10)"
-.P
-Fixed quantizer
-.P
-Quantizer for fixed quality encoding. Lower means better, 1 is not
-recommended
-
-.P
-.BR ff_qcompress "=<number> (0.00..1.00, default: 0.50)"
-.P
-Quantizer compression
-.P
-Amount of qscale change between easy & hard scenes
-
-.P
-.BR ff_qblur "=<number> (0.00..1.00, default: 0.00)"
-.P
-Quantizer blur
-.P
-Amount of qscale smoothing over time
-
-.P
-.BR ff_quantizer_noise_shaping "=<number> (0..3, default: 0)"
-.P
-Quantizer noise shaping
-.P
-Choose quantization such that noise will be masked by
-similar-frequency content in the image
-
-.P
-.BR ff_trellis "=[1|0] (default: 0)"
-.P
-Use trellis quantization
-.P
-Use trellis quantization (improves quality)
-
-.P
-.BR ff_i_quant_factor "=<number> (-31.0..31.0, default: -0.8)"
-.P
-I quantizer factor
-.P
-Quantizer factor between P-frames and I-frames.
-If > 0 then the last P frame quantizer will be used (q=
-lastp_q*factor+offset).
-If < 0 then normal ratecontrol will be done (q=
--normal_q*factor+offset)
-
-.P
-.BR ff_i_quant_offset "=<number> (0.0..31.0, default: 0.0)"
-.P
-I quantizer offset
-.P
-Quantizer offset between P-frames and I-frames
-
-.P
-.BR ff_b_quant_factor "=<number> (-31.00..31.00, default: 1.25)"
-.P
-B quantizer factor
-.P
-Quantizer factor between B-frames and non-B-frames
-
-.P
-.BR ff_b_quant_offset "=<number> (0.00..31.00, default: 1.25)"
-.P
-B quantizer offset
-.P
-Quantizer offset between B-frames and non-B-frames
-if > 0 then the last p frame quantizer will be used (q=
-lastp_q*factor+offset)
-if < 0 then normal ratecontrol will be done (q=
--normal_q*factor+offset)
-
-.P
-.BR ff_me_method "=<string>"
-.P
-Supported strings: Zero Phods Log X1 Epzs Full
-.P
-Default: Zero
-.P
-Motion estimation method
-.P
-.BR ff_me_cmp "=<string>"
-.P
-Supported strings: SAD SSE SATD DCT PSNR BIT RD ZERO VSAD VSSE NSSE
-.P
-Default: SAD
-.P
-ME compare function
-.P
-Motion estimation compare function.SAD: Sum of absolute differences
-SSE: Sum of squared errors
-SATD: Sum of absolute Hadamard transformed differences
-DCT: Sum of absolute DCT transformed differences
-PSNR: Sum of squared quantization errors (low quality)
-BIT: Number of bits needed for the block
-RD: Rate distortion optimal (slow)
-ZERO: 0
-VSAD: Sum of absolute vertical differences
-VSSE: Sum of squared vertical differences
-NSSE: Noise preserving sum of squared differences
-
-.P
-.BR ff_me_cmp_chroma "=[1|0] (default: 0)"
-.P
-Enable chroma ME compare
-.P
-.BR ff_me_range "=<number> (0..1000, default: 0)"
-.P
-Motion estimation range
-.P
-Motion estimation search range (0 means unlimited)
-
-.P
-.BR ff_me_threshold "=<number> (0..4000000, default: 0)"
-.P
-ME Theshold
-.P
-Motion estimation threshold. under which no motion estimation is
-performed, but instead the user specified motion vectors are used
-
-.P
-.BR ff_mb_decision "=<string>"
-.P
-Supported strings: Use compare function Fewest bits Rate distoration
-.P
-Default: Use compare function
-.P
-MB decision mode
-.P
-.BR ff_dia_size "=<number> (-9..9, default: 0)"
-.P
-ME diamond size & shape
-.P
-Motion estimation diamond size. Negative means shape adaptive.
-
-.P
-.BR ff_pre_me "=<number> (0..2, default: 0)"
-.P
-ME pre-pass
-.P
-Motion estimation pre-pass
-0: disabled
-1: only after I-frames
-2: always
-
-.P
-.BR ff_me_pre_cmp "=<string>"
-.P
-Supported strings: SAD SSE SATD DCT PSNR BIT RD ZERO VSAD VSSE NSSE
-.P
-Default: SAD
-.P
-ME pre-pass compare function
-.P
-Motion estimation pre-pass compare function.
-SAD: Sum of absolute differences
-SSE: Sum of squared errors
-SATD: Sum of absolute Hadamard transformed differences
-DCT: Sum of absolute DCT transformed differences
-PSNR: Sum of squared quantization errors (low quality)
-BIT: Number of bits needed for the block
-RD: Rate distortion optimal (slow)
-ZERO: 0
-VSAD: Sum of absolute vertical differences
-VSSE: Sum of squared vertical differences
-NSSE: Noise preserving sum of squared differences
-
-.P
-.BR ff_me_pre_cmp_chroma "=[1|0] (default: 0)"
-.P
-Enable chroma ME pre-pass compare
-.P
-.BR ff_pre_dia_size "=<number> (-9..9, default: 0)"
-.P
-ME pre-pass diamond size & shape
-.P
-Motion estimation pre-pass diamond size. Negative means shape
-adaptive.
-
-.P
-.BR ff_lumi_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Luminance masking
-.P
-Encode very bright image parts with reduced quality. 0 means
-disabled, 0-0.3 is a sane range.
-
-.P
-.BR ff_dark_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Darkness masking
-.P
-Encode very dark image parts with reduced quality. 0 means disabled,
-0-0.3 is a sane range.
-
-.P
-.BR ff_temporal_cplx_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Temporary complexity masking
-.P
-Encode very fast moving image parts with reduced quality. 0 means
-disabled.
-
-.P
-.BR ff_spatial_cplx_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Spatial complexity masking
-.P
-Encode very complex image parts with reduced quality. 0 means
-disabled, 0-0.5 is a sane range.
-
-.P
-.BR ff_border_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Border masking
-.P
-Encode image parts near the border with reduced quality. 0 means
-disabled
-
-.P
-.BR ff_p_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Inter block masking
-.P
-Encode inter blocks with reduced quality (increases the quality of
-intra blocks).  0 means disabled, 1 will double the bits allocated
-for intra blocks.
-
-.P
-.BR ff_flag_normalize_aqp "=[1|0] (default: 0)"
-.P
-Normalize adaptive quantization
-.P
-When using masking, try to adjust the per macroblock quantizers to
-maintain the desired average
-
-.P
-.BR ff_strict_std_compliance "=<number> (-2..2, default: 0)"
-.P
-Standards compliance
-.P
-2: Strictly conform to a older more strict version of the spec or
-reference software
-1: Strictly conform to all the things in the spec no matter what
-consequences
-0: Default
--1: Allow inofficial extensions
--2: Allow non standarized experimental things
-
-.P
-.BR ff_noise_reduction "=<number> (0..2000, default: 0)"
-.P
-Noise reduction
-.P
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.BR ff_flag_bitexact "=[1|0] (default: 0)"
-.P
-Use only bitexact stuff
-.P
-Use only bitexact stuff (except (i)dct)
+Optional maximum bitrate (in kbps)
+0 = unspecified
 
 .P
 .RE
-.B Suboptions for codec=mpeg2video
+.B Suboptions for codec=speex
 
 .P
 .RS 2
-.BR gop_size "=<number> (0..300, default: 250)"
+.BR mode "=<string>"
 .P
-GOP size (0 = intra only)
+Supported strings: auto nb wb uwb
 .P
-.BR ff_scenechange_threshold "=<number> (-1000000000..1000000000, default: 0)"
+Default: auto
 .P
-Scenechange threshold
+Speex mode
 .P
-Threshold for scene change detection.
-Negative values mean more sensitivity (more keyframes)
+Encoding mode. If you select Auto, the mode will be taken from the
+samplerate.
 
 .P
-.BR ff_scenechange_factor "=<number> (default: 0)"
+.BR quality "=<number> (0..10, default: 3)"
 .P
-Scenechange factor
+Quality (10: best)
 .P
-Multiplied by qscale for each frame and added to scene_change_score
+.BR complexity "=<number> (0..10, default: 3)"
+.P
+Encoding complexity
+.P
+.BR nframes "=<number> (1..10, default: 1)"
+.P
+Frames per Ogg packet
+.P
+.BR bitrate "=<number> (0..128, default: 8)"
+.P
+Bitrate (kbps)
+.P
+Bitrate (in kbps). Set to 0 for seleting the standard bitrates for
+the encoding mode.
 
 .P
-.BR ff_flag_closed_gop "=[1|0] (default: 0)"
+.BR vbr "=[1|0] (default: 0)"
 .P
-Close all GOPs
+Variable bitrate
 .P
-.BR ff_flag2_strict_gop "=[1|0] (default: 0)"
+.BR abr_bitrate "=<number> (0..128, default: 0)"
 .P
-Strictly enforce GOP size
+Average bitrate (kbps)
 .P
-.BR ff_max_b_frames "=<number> (0..16, default: 0)"
-.P
-Max B-Frames
-.P
-Maximum number of B-frames between non B-frames
+Average bitrate (in kbps). Set to 0 for disabling ABR.
 
 .P
-.BR ff_b_frame_strategy "=[1|0] (default: 0)"
+.BR vad "=[1|0] (default: 0)"
 .P
-Avoid B-frames in high motion scenes
+Use voice activity detection
 .P
-.BR ff_bit_rate_video "=<number> (default: 800)"
+.BR dtx "=[1|0] (default: 0)"
 .P
-Bit rate (kbps)
-.P
-.BR ff_bit_rate_tolerance "=<number> (default: 8000)"
-.P
-Bitrate tolerance (kbps)
-.P
-Number of bits the bitstream is allowed to diverge from the
-reference. Unused for constant quantizer encoding
-
-.P
-.BR ff_rc_min_rate "=<number> (default: 0)"
-.P
-Minimum bitrate (kbps)
-.P
-Minimum bitrate (0 means arbitrary)
-
-.P
-.BR ff_rc_max_rate "=<number> (default: 0)"
-.P
-Maximum bitrate (kbps)
-.P
-Maximum bitrate (0 means arbitrary)
-
-.P
-.BR ff_rc_buffer_size "=<number> (default: 0)"
-.P
-RC buffer size
-.P
-Decoder bitstream buffer size in kbits. When encoding with max
-and/or min bitrate, this must be specified.
-
-.P
-.BR ff_rc_initial_cplx "=<number> (0.0..99.0, default: 0.0)"
-.P
-Initial RC complexity
-.P
-.BR ff_rc_initial_buffer_occupancy "=<number> (default: 0)"
-.P
-Initial RC buffer occupancy
-.P
-Number of kilobits which should be loaded into the rc buffer before
-encoding starts. Must not be larger than RC buffer size
-
-.P
-.BR ff_qmin "=<number> (0..31, default: 2)"
-.P
-Minimum quantizer scale
-.P
-.BR ff_qmax "=<number> (0..31, default: 31)"
-.P
-Maximum quantizer scale
-.P
-.BR ff_max_qdiff "=<number> (0..31, default: 3)"
-.P
-Maximum quantizer difference
-.P
-Maximum quantizer difference between frames
-
-.P
-.BR ff_flag_qscale "=[1|0] (default: 0)"
-.P
-Use fixed quantizer
-.P
-Use fixed quality encoding
-
-.P
-.BR ff_qscale "=<number> (1..31, default: 10)"
-.P
-Fixed quantizer
-.P
-Quantizer for fixed quality encoding. Lower means better, 1 is not
-recommended
-
-.P
-.BR ff_qcompress "=<number> (0.00..1.00, default: 0.50)"
-.P
-Quantizer compression
-.P
-Amount of qscale change between easy & hard scenes
-
-.P
-.BR ff_qblur "=<number> (0.00..1.00, default: 0.00)"
-.P
-Quantizer blur
-.P
-Amount of qscale smoothing over time
-
-.P
-.BR ff_quantizer_noise_shaping "=<number> (0..3, default: 0)"
-.P
-Quantizer noise shaping
-.P
-Choose quantization such that noise will be masked by
-similar-frequency content in the image
-
-.P
-.BR ff_trellis "=[1|0] (default: 0)"
-.P
-Use trellis quantization
-.P
-Use trellis quantization (improves quality)
-
-.P
-.BR ff_i_quant_factor "=<number> (-31.0..31.0, default: -0.8)"
-.P
-I quantizer factor
-.P
-Quantizer factor between P-frames and I-frames.
-If > 0 then the last P frame quantizer will be used (q=
-lastp_q*factor+offset).
-If < 0 then normal ratecontrol will be done (q=
--normal_q*factor+offset)
-
-.P
-.BR ff_i_quant_offset "=<number> (0.0..31.0, default: 0.0)"
-.P
-I quantizer offset
-.P
-Quantizer offset between P-frames and I-frames
-
-.P
-.BR ff_b_quant_factor "=<number> (-31.00..31.00, default: 1.25)"
-.P
-B quantizer factor
-.P
-Quantizer factor between B-frames and non-B-frames
-
-.P
-.BR ff_b_quant_offset "=<number> (0.00..31.00, default: 1.25)"
-.P
-B quantizer offset
-.P
-Quantizer offset between B-frames and non-B-frames
-if > 0 then the last p frame quantizer will be used (q=
-lastp_q*factor+offset)
-if < 0 then normal ratecontrol will be done (q=
--normal_q*factor+offset)
-
-.P
-.BR ff_me_method "=<string>"
-.P
-Supported strings: Zero Phods Log X1 Epzs Full
-.P
-Default: Zero
-.P
-Motion estimation method
-.P
-.BR ff_me_cmp "=<string>"
-.P
-Supported strings: SAD SSE SATD DCT PSNR BIT RD ZERO VSAD VSSE NSSE
-.P
-Default: SAD
-.P
-ME compare function
-.P
-Motion estimation compare function.SAD: Sum of absolute differences
-SSE: Sum of squared errors
-SATD: Sum of absolute Hadamard transformed differences
-DCT: Sum of absolute DCT transformed differences
-PSNR: Sum of squared quantization errors (low quality)
-BIT: Number of bits needed for the block
-RD: Rate distortion optimal (slow)
-ZERO: 0
-VSAD: Sum of absolute vertical differences
-VSSE: Sum of squared vertical differences
-NSSE: Noise preserving sum of squared differences
-
-.P
-.BR ff_me_cmp_chroma "=[1|0] (default: 0)"
-.P
-Enable chroma ME compare
-.P
-.BR ff_me_range "=<number> (0..1000, default: 0)"
-.P
-Motion estimation range
-.P
-Motion estimation search range (0 means unlimited)
-
-.P
-.BR ff_me_threshold "=<number> (0..4000000, default: 0)"
-.P
-ME Theshold
-.P
-Motion estimation threshold. under which no motion estimation is
-performed, but instead the user specified motion vectors are used
-
-.P
-.BR ff_mb_decision "=<string>"
-.P
-Supported strings: Use compare function Fewest bits Rate distoration
-.P
-Default: Use compare function
-.P
-MB decision mode
-.P
-.BR ff_dia_size "=<number> (-9..9, default: 0)"
-.P
-ME diamond size & shape
-.P
-Motion estimation diamond size. Negative means shape adaptive.
-
-.P
-.BR ff_pre_me "=<number> (0..2, default: 0)"
-.P
-ME pre-pass
-.P
-Motion estimation pre-pass
-0: disabled
-1: only after I-frames
-2: always
-
-.P
-.BR ff_me_pre_cmp "=<string>"
-.P
-Supported strings: SAD SSE SATD DCT PSNR BIT RD ZERO VSAD VSSE NSSE
-.P
-Default: SAD
-.P
-ME pre-pass compare function
-.P
-Motion estimation pre-pass compare function.
-SAD: Sum of absolute differences
-SSE: Sum of squared errors
-SATD: Sum of absolute Hadamard transformed differences
-DCT: Sum of absolute DCT transformed differences
-PSNR: Sum of squared quantization errors (low quality)
-BIT: Number of bits needed for the block
-RD: Rate distortion optimal (slow)
-ZERO: 0
-VSAD: Sum of absolute vertical differences
-VSSE: Sum of squared vertical differences
-NSSE: Noise preserving sum of squared differences
-
-.P
-.BR ff_me_pre_cmp_chroma "=[1|0] (default: 0)"
-.P
-Enable chroma ME pre-pass compare
-.P
-.BR ff_pre_dia_size "=<number> (-9..9, default: 0)"
-.P
-ME pre-pass diamond size & shape
-.P
-Motion estimation pre-pass diamond size. Negative means shape
-adaptive.
-
-.P
-.BR ff_lumi_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Luminance masking
-.P
-Encode very bright image parts with reduced quality. 0 means
-disabled, 0-0.3 is a sane range.
-
-.P
-.BR ff_dark_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Darkness masking
-.P
-Encode very dark image parts with reduced quality. 0 means disabled,
-0-0.3 is a sane range.
-
-.P
-.BR ff_temporal_cplx_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Temporary complexity masking
-.P
-Encode very fast moving image parts with reduced quality. 0 means
-disabled.
-
-.P
-.BR ff_spatial_cplx_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Spatial complexity masking
-.P
-Encode very complex image parts with reduced quality. 0 means
-disabled, 0-0.5 is a sane range.
-
-.P
-.BR ff_border_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Border masking
-.P
-Encode image parts near the border with reduced quality. 0 means
-disabled
-
-.P
-.BR ff_p_masking "=<number> (0.00..1.00, default: 0.00)"
-.P
-Inter block masking
-.P
-Encode inter blocks with reduced quality (increases the quality of
-intra blocks).  0 means disabled, 1 will double the bits allocated
-for intra blocks.
-
-.P
-.BR ff_flag_normalize_aqp "=[1|0] (default: 0)"
-.P
-Normalize adaptive quantization
-.P
-When using masking, try to adjust the per macroblock quantizers to
-maintain the desired average
-
-.P
-.BR ff_strict_std_compliance "=<number> (-2..2, default: 0)"
-.P
-Standards compliance
-.P
-2: Strictly conform to a older more strict version of the spec or
-reference software
-1: Strictly conform to all the things in the spec no matter what
-consequences
-0: Default
--1: Allow inofficial extensions
--2: Allow non standarized experimental things
-
-.P
-.BR ff_noise_reduction "=<number> (0..2000, default: 0)"
-.P
-Noise reduction
-.P
-.BR ff_flag_gray "=[1|0] (default: 0)"
-.P
-Grayscale mode
-.P
-.BR ff_flag_bitexact "=[1|0] (default: 0)"
-.P
-Use only bitexact stuff
-.P
-Use only bitexact stuff (except (i)dct)
-
+Enable file-based discontinuous transmission
 .P
 .RE
+.BR cbr "=[1|0] (default: 0)"
+.P
+Use constant bitrate
+.P
+For constant bitrate, choose a target bitrate. For variable bitrate,
+choose a nominal quality.
+
+.P
+.BR target_bitrate "=<number> (45..2000, default: 250)"
+.P
+Target bitrate (kbps)
+.P
+.BR quality "=<number> (0..63, default: 10)"
+.P
+Nominal quality
+.P
+Quality for VBR mode
+63: best (largest output file)
+0:  worst (smallest output file)
+
+.P
+.BR max_keyframe_interval "=<number> (1..1000, default: 64)"
+.P
+Maximum keyframe interval
+.P
+.BR drop_frames "=[1|0] (default: 1)"
+.P
+Enable frame dropping
+.P
+Drop frames to keep within bitrate buffer constraints. This can have a
+severe impact on quality, but is the only way to ensure that bitrate
+targets are met at low rates during sudden bursts of activity.
+
+.P
+.BR cap_overflow "=[1|0] (default: 1)"
+.P
+Don't bank excess bits for later use
+.P
+Ignore bitrate buffer overflows. If the encoder uses so few bits that
+the reservoir of available bits overflows, ignore the excess. The
+encoder will not try to use these extra bits in future frames. At high
+rates this may cause the result to be undersized, but allows a client to
+play the stream using a finite buffer; it should normally be enabled.
+
+.P
+.BR cap_underflow "=[1|0] (default: 0)"
+.P
+Don't try to make up shortfalls later
+.P
+Ignore bitrate buffer underflows. If the encoder uses so many bits that
+the reservoir of available bits underflows, ignore the deficit. The
+encoder will not try to make up these extra bits in future frames. At
+low rates this may cause the result to be oversized; it should normally
+be disabled.
+
+.P
+.BR speed "=<number> (0.00..1.00, default: 0.00)"
+.P
+Encoding speed
+.P
+Higher speed levels favor quicker encoding over better quality per bit.
+Depending on the encoding mode, and the internal algorithms used,
+quality may actually improve, but in this case bitrate will also likely
+increase. In any case, overall rate/distortion performance will probably
+decrease.
+
+.P
 .BR default_timescale "=<number> (default: 25)"
 .P
 Default timescale
@@ -12992,7 +11540,7 @@ frame duration here
 .RS 2
 .BR format "=<string>"
 .P
-Supported strings: avi mpeg vob dvd flv asf mpegts
+Supported strings: avi mpeg vob dvd flv asf mpegts matroska
 .P
 Default: avi
 .P
@@ -13073,7 +11621,7 @@ Bit rate (kbps)
 .RE
 .BR codec "=option[{suboptions}]"
 .P
-Supported options: mpeg4 msmpeg4v3 mjpeg mpeg1video mpeg2video flv1 wmv1
+Supported options: mpeg4 msmpeg4v3 mjpeg mpeg1video mpeg2video flv1 wmv1 libx264
 .P
 Default: mpeg4
 .P
@@ -15466,6 +14014,48 @@ Use only bitexact stuff (except (i)dct)
 
 .P
 .RE
+.B Suboptions for codec=libx264
+
+.P
+.RS 2
+.BR libx264_preset "=<string>"
+.P
+Supported strings: ultrafast superfast veryfast faster fast medium slow slower veryslow placebo
+.P
+Default: medium
+.P
+Preset
+.P
+.BR libx264_tune "=<string>"
+.P
+Supported strings: $none film animation grain stillimage psnr ssim fastdecode zerolatency
+.P
+Default: $none
+.P
+Tune
+.P
+.BR ff_bit_rate_video "=<number> (0..10000, default: 0)"
+.P
+Bit rate (kbps)
+.P
+If > 0 encode with average bitrate
+
+.P
+.BR libx264_crf "=<number> (-1.00..51.00, default: 23.00)"
+.P
+Quality-based VBR
+.P
+Negative means disable
+
+.P
+.BR libx264_qp "=<number> (-1..69, default: -1)"
+.P
+Force constant QP
+.P
+Negative means disable, 0 means lossless
+
+.P
+.RE
 .BR default_timescale "=<number> (default: 25)"
 .P
 Default timescale
@@ -15483,222 +14073,927 @@ frame duration here
 
 .P
 .RE
-.B Suboptions for video_encoder=b_ogg
+.B Suboptions for video_encoder=e_ffmpeg_video
 
 .P
 .RS 2
-.BR server "=<string> (Default: localhost)"
+.BR format "=<string>"
 .P
-Server
+Supported strings: mpeg1video mpeg2video
 .P
-.BR port "=<number> (1..65535, default: 8000)"
+Default: mpeg1video
 .P
-Port
-.P
-.BR mount "=<string> (Default: /stream.ogg)"
-.P
-Mount
-.P
-.BR user "=<string> (Default: source)"
-.P
-User
-.P
-.BR password "=<string>"
-.P
-Password
-.P
-.BR name "=<string> (Default: Test stream)"
-.P
-Name
-.P
-.BR description "=<string> (Default: Brought to you by gmerlin)"
-.P
-Description
+Format
 .P
 .BR codec "=option[{suboptions}]"
 .P
-Supported options: vorbis speex
+Supported options: mpeg1video mpeg2video
 .P
-Default: vorbis
+Default: mpeg1video
 .P
 Codec
 .P
-.B Suboptions for codec=vorbis
+.B Suboptions for codec=mpeg1video
 
 .P
 .RS 2
-.BR bitrate_mode "=<string>"
+.BR gop_size "=<number> (0..300, default: 250)"
 .P
-Supported strings: vbr vbr_bitrate managed
+GOP size (0 = intra only)
 .P
-Default: VBR
+.BR ff_scenechange_threshold "=<number> (-1000000000..1000000000, default: 0)"
 .P
-Bitrate mode
+Scenechange threshold
 .P
-Bitrate mode:
-VBR: You specify a quality and (optionally) a minimum and maximum
-bitrate
-VBR (bitrate): The specified nominal bitrate will be used for
-selecting the encoder mode.
-Managed: You specify a nominal bitrate and (optionally) a minimum
-and maximum bitrate
-VBR is recommended, managed bitrate might result in a worse quality
+Threshold for scene change detection.
+Negative values mean more sensitivity (more keyframes)
 
 .P
-.BR nominal_bitrate "=<number> (0..1000, default: 128)"
+.BR ff_scenechange_factor "=<number> (default: 0)"
 .P
-Nominal bitrate (kbps)
+Scenechange factor
 .P
-Nominal bitrate (in kbps) for managed mode
+Multiplied by qscale for each frame and added to scene_change_score
 
 .P
-.BR quality "=<number> (0.0..10.0, default: 3.0)"
+.BR ff_flag_closed_gop "=[1|0] (default: 0)"
 .P
-VBR Quality (10: best)
+Close all GOPs
 .P
-Quality for VBR mode
-10: best (largest output file)
-0:  worst (smallest output file)
+.BR ff_flag2_strict_gop "=[1|0] (default: 0)"
+.P
+Strictly enforce GOP size
+.P
+.BR ff_max_b_frames "=<number> (0..16, default: 0)"
+.P
+Max B-Frames
+.P
+Maximum number of B-frames between non B-frames
 
 .P
-.BR min_bitrate "=<number> (0..1000, default: 0)"
+.BR ff_b_frame_strategy "=[1|0] (default: 0)"
+.P
+Avoid B-frames in high motion scenes
+.P
+.BR ff_bit_rate_video "=<number> (default: 800)"
+.P
+Bit rate (kbps)
+.P
+.BR ff_bit_rate_tolerance "=<number> (default: 8000)"
+.P
+Bitrate tolerance (kbps)
+.P
+Number of bits the bitstream is allowed to diverge from the
+reference. Unused for constant quantizer encoding
+
+.P
+.BR ff_rc_min_rate "=<number> (default: 0)"
 .P
 Minimum bitrate (kbps)
 .P
-Optional minimum bitrate (in kbps)
-0 = unspecified
+Minimum bitrate (0 means arbitrary)
 
 .P
-.BR max_bitrate "=<number> (0..1000, default: 0)"
+.BR ff_rc_max_rate "=<number> (default: 0)"
 .P
 Maximum bitrate (kbps)
 .P
-Optional maximum bitrate (in kbps)
-0 = unspecified
+Maximum bitrate (0 means arbitrary)
+
+.P
+.BR ff_rc_buffer_size "=<number> (default: 0)"
+.P
+RC buffer size
+.P
+Decoder bitstream buffer size in kbits. When encoding with max
+and/or min bitrate, this must be specified.
+
+.P
+.BR ff_rc_initial_cplx "=<number> (0.0..99.0, default: 0.0)"
+.P
+Initial RC complexity
+.P
+.BR ff_rc_initial_buffer_occupancy "=<number> (default: 0)"
+.P
+Initial RC buffer occupancy
+.P
+Number of kilobits which should be loaded into the rc buffer before
+encoding starts. Must not be larger than RC buffer size
+
+.P
+.BR ff_qmin "=<number> (0..31, default: 2)"
+.P
+Minimum quantizer scale
+.P
+.BR ff_qmax "=<number> (0..31, default: 31)"
+.P
+Maximum quantizer scale
+.P
+.BR ff_max_qdiff "=<number> (0..31, default: 3)"
+.P
+Maximum quantizer difference
+.P
+Maximum quantizer difference between frames
+
+.P
+.BR ff_flag_qscale "=[1|0] (default: 0)"
+.P
+Use fixed quantizer
+.P
+Use fixed quality encoding
+
+.P
+.BR ff_qscale "=<number> (1..31, default: 10)"
+.P
+Fixed quantizer
+.P
+Quantizer for fixed quality encoding. Lower means better, 1 is not
+recommended
+
+.P
+.BR ff_qcompress "=<number> (0.00..1.00, default: 0.50)"
+.P
+Quantizer compression
+.P
+Amount of qscale change between easy & hard scenes
+
+.P
+.BR ff_qblur "=<number> (0.00..1.00, default: 0.00)"
+.P
+Quantizer blur
+.P
+Amount of qscale smoothing over time
+
+.P
+.BR ff_quantizer_noise_shaping "=<number> (0..3, default: 0)"
+.P
+Quantizer noise shaping
+.P
+Choose quantization such that noise will be masked by
+similar-frequency content in the image
+
+.P
+.BR ff_trellis "=[1|0] (default: 0)"
+.P
+Use trellis quantization
+.P
+Use trellis quantization (improves quality)
+
+.P
+.BR ff_i_quant_factor "=<number> (-31.0..31.0, default: -0.8)"
+.P
+I quantizer factor
+.P
+Quantizer factor between P-frames and I-frames.
+If > 0 then the last P frame quantizer will be used (q=
+lastp_q*factor+offset).
+If < 0 then normal ratecontrol will be done (q=
+-normal_q*factor+offset)
+
+.P
+.BR ff_i_quant_offset "=<number> (0.0..31.0, default: 0.0)"
+.P
+I quantizer offset
+.P
+Quantizer offset between P-frames and I-frames
+
+.P
+.BR ff_b_quant_factor "=<number> (-31.00..31.00, default: 1.25)"
+.P
+B quantizer factor
+.P
+Quantizer factor between B-frames and non-B-frames
+
+.P
+.BR ff_b_quant_offset "=<number> (0.00..31.00, default: 1.25)"
+.P
+B quantizer offset
+.P
+Quantizer offset between B-frames and non-B-frames
+if > 0 then the last p frame quantizer will be used (q=
+lastp_q*factor+offset)
+if < 0 then normal ratecontrol will be done (q=
+-normal_q*factor+offset)
+
+.P
+.BR ff_me_method "=<string>"
+.P
+Supported strings: Zero Phods Log X1 Epzs Full
+.P
+Default: Zero
+.P
+Motion estimation method
+.P
+.BR ff_me_cmp "=<string>"
+.P
+Supported strings: SAD SSE SATD DCT PSNR BIT RD ZERO VSAD VSSE NSSE
+.P
+Default: SAD
+.P
+ME compare function
+.P
+Motion estimation compare function.SAD: Sum of absolute differences
+SSE: Sum of squared errors
+SATD: Sum of absolute Hadamard transformed differences
+DCT: Sum of absolute DCT transformed differences
+PSNR: Sum of squared quantization errors (low quality)
+BIT: Number of bits needed for the block
+RD: Rate distortion optimal (slow)
+ZERO: 0
+VSAD: Sum of absolute vertical differences
+VSSE: Sum of squared vertical differences
+NSSE: Noise preserving sum of squared differences
+
+.P
+.BR ff_me_cmp_chroma "=[1|0] (default: 0)"
+.P
+Enable chroma ME compare
+.P
+.BR ff_me_range "=<number> (0..1000, default: 0)"
+.P
+Motion estimation range
+.P
+Motion estimation search range (0 means unlimited)
+
+.P
+.BR ff_me_threshold "=<number> (0..4000000, default: 0)"
+.P
+ME Theshold
+.P
+Motion estimation threshold. under which no motion estimation is
+performed, but instead the user specified motion vectors are used
+
+.P
+.BR ff_mb_decision "=<string>"
+.P
+Supported strings: Use compare function Fewest bits Rate distoration
+.P
+Default: Use compare function
+.P
+MB decision mode
+.P
+.BR ff_dia_size "=<number> (-9..9, default: 0)"
+.P
+ME diamond size & shape
+.P
+Motion estimation diamond size. Negative means shape adaptive.
+
+.P
+.BR ff_pre_me "=<number> (0..2, default: 0)"
+.P
+ME pre-pass
+.P
+Motion estimation pre-pass
+0: disabled
+1: only after I-frames
+2: always
+
+.P
+.BR ff_me_pre_cmp "=<string>"
+.P
+Supported strings: SAD SSE SATD DCT PSNR BIT RD ZERO VSAD VSSE NSSE
+.P
+Default: SAD
+.P
+ME pre-pass compare function
+.P
+Motion estimation pre-pass compare function.
+SAD: Sum of absolute differences
+SSE: Sum of squared errors
+SATD: Sum of absolute Hadamard transformed differences
+DCT: Sum of absolute DCT transformed differences
+PSNR: Sum of squared quantization errors (low quality)
+BIT: Number of bits needed for the block
+RD: Rate distortion optimal (slow)
+ZERO: 0
+VSAD: Sum of absolute vertical differences
+VSSE: Sum of squared vertical differences
+NSSE: Noise preserving sum of squared differences
+
+.P
+.BR ff_me_pre_cmp_chroma "=[1|0] (default: 0)"
+.P
+Enable chroma ME pre-pass compare
+.P
+.BR ff_pre_dia_size "=<number> (-9..9, default: 0)"
+.P
+ME pre-pass diamond size & shape
+.P
+Motion estimation pre-pass diamond size. Negative means shape
+adaptive.
+
+.P
+.BR ff_lumi_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Luminance masking
+.P
+Encode very bright image parts with reduced quality. 0 means
+disabled, 0-0.3 is a sane range.
+
+.P
+.BR ff_dark_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Darkness masking
+.P
+Encode very dark image parts with reduced quality. 0 means disabled,
+0-0.3 is a sane range.
+
+.P
+.BR ff_temporal_cplx_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Temporary complexity masking
+.P
+Encode very fast moving image parts with reduced quality. 0 means
+disabled.
+
+.P
+.BR ff_spatial_cplx_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Spatial complexity masking
+.P
+Encode very complex image parts with reduced quality. 0 means
+disabled, 0-0.5 is a sane range.
+
+.P
+.BR ff_border_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Border masking
+.P
+Encode image parts near the border with reduced quality. 0 means
+disabled
+
+.P
+.BR ff_p_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Inter block masking
+.P
+Encode inter blocks with reduced quality (increases the quality of
+intra blocks).  0 means disabled, 1 will double the bits allocated
+for intra blocks.
+
+.P
+.BR ff_flag_normalize_aqp "=[1|0] (default: 0)"
+.P
+Normalize adaptive quantization
+.P
+When using masking, try to adjust the per macroblock quantizers to
+maintain the desired average
+
+.P
+.BR ff_strict_std_compliance "=<number> (-2..2, default: 0)"
+.P
+Standards compliance
+.P
+2: Strictly conform to a older more strict version of the spec or
+reference software
+1: Strictly conform to all the things in the spec no matter what
+consequences
+0: Default
+-1: Allow inofficial extensions
+-2: Allow non standarized experimental things
+
+.P
+.BR ff_noise_reduction "=<number> (0..2000, default: 0)"
+.P
+Noise reduction
+.P
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.BR ff_flag_bitexact "=[1|0] (default: 0)"
+.P
+Use only bitexact stuff
+.P
+Use only bitexact stuff (except (i)dct)
 
 .P
 .RE
-.B Suboptions for codec=speex
+.B Suboptions for codec=mpeg2video
 
 .P
 .RS 2
-.BR mode "=<string>"
+.BR gop_size "=<number> (0..300, default: 250)"
 .P
-Supported strings: auto nb wb uwb
+GOP size (0 = intra only)
 .P
-Default: auto
+.BR ff_scenechange_threshold "=<number> (-1000000000..1000000000, default: 0)"
 .P
-Speex mode
+Scenechange threshold
 .P
-Encoding mode. If you select Auto, the mode will be taken from the
-samplerate.
+Threshold for scene change detection.
+Negative values mean more sensitivity (more keyframes)
 
 .P
-.BR quality "=<number> (0..10, default: 3)"
+.BR ff_scenechange_factor "=<number> (default: 0)"
 .P
-Quality (10: best)
+Scenechange factor
 .P
-.BR complexity "=<number> (0..10, default: 3)"
+Multiplied by qscale for each frame and added to scene_change_score
+
 .P
-Encoding complexity
+.BR ff_flag_closed_gop "=[1|0] (default: 0)"
 .P
-.BR nframes "=<number> (1..10, default: 1)"
+Close all GOPs
 .P
-Frames per Ogg packet
+.BR ff_flag2_strict_gop "=[1|0] (default: 0)"
 .P
-.BR bitrate "=<number> (0..128, default: 8)"
+Strictly enforce GOP size
+.P
+.BR ff_max_b_frames "=<number> (0..16, default: 0)"
+.P
+Max B-Frames
+.P
+Maximum number of B-frames between non B-frames
+
+.P
+.BR ff_b_frame_strategy "=[1|0] (default: 0)"
+.P
+Avoid B-frames in high motion scenes
+.P
+.BR ff_bit_rate_video "=<number> (default: 800)"
+.P
+Bit rate (kbps)
+.P
+.BR ff_bit_rate_tolerance "=<number> (default: 8000)"
+.P
+Bitrate tolerance (kbps)
+.P
+Number of bits the bitstream is allowed to diverge from the
+reference. Unused for constant quantizer encoding
+
+.P
+.BR ff_rc_min_rate "=<number> (default: 0)"
+.P
+Minimum bitrate (kbps)
+.P
+Minimum bitrate (0 means arbitrary)
+
+.P
+.BR ff_rc_max_rate "=<number> (default: 0)"
+.P
+Maximum bitrate (kbps)
+.P
+Maximum bitrate (0 means arbitrary)
+
+.P
+.BR ff_rc_buffer_size "=<number> (default: 0)"
+.P
+RC buffer size
+.P
+Decoder bitstream buffer size in kbits. When encoding with max
+and/or min bitrate, this must be specified.
+
+.P
+.BR ff_rc_initial_cplx "=<number> (0.0..99.0, default: 0.0)"
+.P
+Initial RC complexity
+.P
+.BR ff_rc_initial_buffer_occupancy "=<number> (default: 0)"
+.P
+Initial RC buffer occupancy
+.P
+Number of kilobits which should be loaded into the rc buffer before
+encoding starts. Must not be larger than RC buffer size
+
+.P
+.BR ff_qmin "=<number> (0..31, default: 2)"
+.P
+Minimum quantizer scale
+.P
+.BR ff_qmax "=<number> (0..31, default: 31)"
+.P
+Maximum quantizer scale
+.P
+.BR ff_max_qdiff "=<number> (0..31, default: 3)"
+.P
+Maximum quantizer difference
+.P
+Maximum quantizer difference between frames
+
+.P
+.BR ff_flag_qscale "=[1|0] (default: 0)"
+.P
+Use fixed quantizer
+.P
+Use fixed quality encoding
+
+.P
+.BR ff_qscale "=<number> (1..31, default: 10)"
+.P
+Fixed quantizer
+.P
+Quantizer for fixed quality encoding. Lower means better, 1 is not
+recommended
+
+.P
+.BR ff_qcompress "=<number> (0.00..1.00, default: 0.50)"
+.P
+Quantizer compression
+.P
+Amount of qscale change between easy & hard scenes
+
+.P
+.BR ff_qblur "=<number> (0.00..1.00, default: 0.00)"
+.P
+Quantizer blur
+.P
+Amount of qscale smoothing over time
+
+.P
+.BR ff_quantizer_noise_shaping "=<number> (0..3, default: 0)"
+.P
+Quantizer noise shaping
+.P
+Choose quantization such that noise will be masked by
+similar-frequency content in the image
+
+.P
+.BR ff_trellis "=[1|0] (default: 0)"
+.P
+Use trellis quantization
+.P
+Use trellis quantization (improves quality)
+
+.P
+.BR ff_i_quant_factor "=<number> (-31.0..31.0, default: -0.8)"
+.P
+I quantizer factor
+.P
+Quantizer factor between P-frames and I-frames.
+If > 0 then the last P frame quantizer will be used (q=
+lastp_q*factor+offset).
+If < 0 then normal ratecontrol will be done (q=
+-normal_q*factor+offset)
+
+.P
+.BR ff_i_quant_offset "=<number> (0.0..31.0, default: 0.0)"
+.P
+I quantizer offset
+.P
+Quantizer offset between P-frames and I-frames
+
+.P
+.BR ff_b_quant_factor "=<number> (-31.00..31.00, default: 1.25)"
+.P
+B quantizer factor
+.P
+Quantizer factor between B-frames and non-B-frames
+
+.P
+.BR ff_b_quant_offset "=<number> (0.00..31.00, default: 1.25)"
+.P
+B quantizer offset
+.P
+Quantizer offset between B-frames and non-B-frames
+if > 0 then the last p frame quantizer will be used (q=
+lastp_q*factor+offset)
+if < 0 then normal ratecontrol will be done (q=
+-normal_q*factor+offset)
+
+.P
+.BR ff_me_method "=<string>"
+.P
+Supported strings: Zero Phods Log X1 Epzs Full
+.P
+Default: Zero
+.P
+Motion estimation method
+.P
+.BR ff_me_cmp "=<string>"
+.P
+Supported strings: SAD SSE SATD DCT PSNR BIT RD ZERO VSAD VSSE NSSE
+.P
+Default: SAD
+.P
+ME compare function
+.P
+Motion estimation compare function.SAD: Sum of absolute differences
+SSE: Sum of squared errors
+SATD: Sum of absolute Hadamard transformed differences
+DCT: Sum of absolute DCT transformed differences
+PSNR: Sum of squared quantization errors (low quality)
+BIT: Number of bits needed for the block
+RD: Rate distortion optimal (slow)
+ZERO: 0
+VSAD: Sum of absolute vertical differences
+VSSE: Sum of squared vertical differences
+NSSE: Noise preserving sum of squared differences
+
+.P
+.BR ff_me_cmp_chroma "=[1|0] (default: 0)"
+.P
+Enable chroma ME compare
+.P
+.BR ff_me_range "=<number> (0..1000, default: 0)"
+.P
+Motion estimation range
+.P
+Motion estimation search range (0 means unlimited)
+
+.P
+.BR ff_me_threshold "=<number> (0..4000000, default: 0)"
+.P
+ME Theshold
+.P
+Motion estimation threshold. under which no motion estimation is
+performed, but instead the user specified motion vectors are used
+
+.P
+.BR ff_mb_decision "=<string>"
+.P
+Supported strings: Use compare function Fewest bits Rate distoration
+.P
+Default: Use compare function
+.P
+MB decision mode
+.P
+.BR ff_dia_size "=<number> (-9..9, default: 0)"
+.P
+ME diamond size & shape
+.P
+Motion estimation diamond size. Negative means shape adaptive.
+
+.P
+.BR ff_pre_me "=<number> (0..2, default: 0)"
+.P
+ME pre-pass
+.P
+Motion estimation pre-pass
+0: disabled
+1: only after I-frames
+2: always
+
+.P
+.BR ff_me_pre_cmp "=<string>"
+.P
+Supported strings: SAD SSE SATD DCT PSNR BIT RD ZERO VSAD VSSE NSSE
+.P
+Default: SAD
+.P
+ME pre-pass compare function
+.P
+Motion estimation pre-pass compare function.
+SAD: Sum of absolute differences
+SSE: Sum of squared errors
+SATD: Sum of absolute Hadamard transformed differences
+DCT: Sum of absolute DCT transformed differences
+PSNR: Sum of squared quantization errors (low quality)
+BIT: Number of bits needed for the block
+RD: Rate distortion optimal (slow)
+ZERO: 0
+VSAD: Sum of absolute vertical differences
+VSSE: Sum of squared vertical differences
+NSSE: Noise preserving sum of squared differences
+
+.P
+.BR ff_me_pre_cmp_chroma "=[1|0] (default: 0)"
+.P
+Enable chroma ME pre-pass compare
+.P
+.BR ff_pre_dia_size "=<number> (-9..9, default: 0)"
+.P
+ME pre-pass diamond size & shape
+.P
+Motion estimation pre-pass diamond size. Negative means shape
+adaptive.
+
+.P
+.BR ff_lumi_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Luminance masking
+.P
+Encode very bright image parts with reduced quality. 0 means
+disabled, 0-0.3 is a sane range.
+
+.P
+.BR ff_dark_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Darkness masking
+.P
+Encode very dark image parts with reduced quality. 0 means disabled,
+0-0.3 is a sane range.
+
+.P
+.BR ff_temporal_cplx_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Temporary complexity masking
+.P
+Encode very fast moving image parts with reduced quality. 0 means
+disabled.
+
+.P
+.BR ff_spatial_cplx_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Spatial complexity masking
+.P
+Encode very complex image parts with reduced quality. 0 means
+disabled, 0-0.5 is a sane range.
+
+.P
+.BR ff_border_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Border masking
+.P
+Encode image parts near the border with reduced quality. 0 means
+disabled
+
+.P
+.BR ff_p_masking "=<number> (0.00..1.00, default: 0.00)"
+.P
+Inter block masking
+.P
+Encode inter blocks with reduced quality (increases the quality of
+intra blocks).  0 means disabled, 1 will double the bits allocated
+for intra blocks.
+
+.P
+.BR ff_flag_normalize_aqp "=[1|0] (default: 0)"
+.P
+Normalize adaptive quantization
+.P
+When using masking, try to adjust the per macroblock quantizers to
+maintain the desired average
+
+.P
+.BR ff_strict_std_compliance "=<number> (-2..2, default: 0)"
+.P
+Standards compliance
+.P
+2: Strictly conform to a older more strict version of the spec or
+reference software
+1: Strictly conform to all the things in the spec no matter what
+consequences
+0: Default
+-1: Allow inofficial extensions
+-2: Allow non standarized experimental things
+
+.P
+.BR ff_noise_reduction "=<number> (0..2000, default: 0)"
+.P
+Noise reduction
+.P
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.BR ff_flag_bitexact "=[1|0] (default: 0)"
+.P
+Use only bitexact stuff
+.P
+Use only bitexact stuff (except (i)dct)
+
+.P
+.RE
+.BR default_timescale "=<number> (default: 25)"
+.P
+Default timescale
+.P
+For formats, which support only constant framerates, set the default
+timescale here
+
+.P
+.BR default_frame_duration "=<number> (default: 1)"
+.P
+Default frame duration
+.P
+For formats, which support only constant framerates, set the default
+frame duration here
+
+.P
+.RE
+.B Suboptions for video_encoder=e_mpeg
+
+.P
+.RS 2
+.BR format "=<string>"
+.P
+Supported strings: mpeg1 vcd mpeg2 svcd dvd_nav dvd
+.P
+Default: mpeg1
+.P
+Format
+.P
+Output format. Note that for some output formats (e.g. VCD), you MUST
+use proper settings for the audio and video streams also, since this
+isn't done automatically
+
+.P
+.BR tmp_dir "=<string>"
+.P
+Directory for temporary files
+.P
+Leave empty to use the same directory as the final output file
+
+.P
+.BR aux_stream_1 "=<string>"
+.P
+Additional stream 1
+.P
+Additional stream to multiplex into the final output file. Use this if
+you want e.g. create mp3 or AC3 audio with some other encoder
+
+.P
+.BR aux_stream_2 "=<string>"
+.P
+Additional stream 2
+.P
+Additional stream to multiplex into the final output file. Use this if
+you want e.g. create mp3 or AC3 audio with some other encoder
+
+.P
+.BR aux_stream_3 "=<string>"
+.P
+Additional stream 3
+.P
+Additional stream to multiplex into the final output file. Use this if
+you want e.g. create mp3 or AC3 audio with some other encoder
+
+.P
+.BR bitrate "=<number> (32..448, default: 224)"
 .P
 Bitrate (kbps)
 .P
-Bitrate (in kbps). Set to 0 for seleting the standard bitrates for
-the encoding mode.
+.BR layer "=<number> (1..2, default: 2)"
+.P
+Layer (1 or 2)
+.P
+Audio layer
 
 .P
-.BR vbr "=[1|0] (default: 0)"
+.BR vcd "=[1|0] (default: 1)"
 .P
-Variable bitrate
+VCD Compatible
 .P
-.BR abr_bitrate "=<number> (0..128, default: 0)"
-.P
-Average bitrate (kbps)
-.P
-Average bitrate (in kbps). Set to 0 for disabling ABR.
+Make VCD compliant output. This forces layer II, 224 kbps and 44.1 KHz
+stereo
 
 .P
-.BR vad "=[1|0] (default: 0)"
+.BR format "=<string>"
 .P
-Use voice activity detection
+Supported strings: mpeg1 mpeg2 vcd svcd dvd
 .P
-.BR dtx "=[1|0] (default: 0)"
+Default: mpeg1
 .P
-Enable file-based discontinuous transmission
+Format
 .P
-.RE
-.BR cbr "=[1|0] (default: 0)"
-.P
-Use constant bitrate
-.P
-For constant bitrate, choose a target bitrate. For variable bitrate,
-choose a nominal quality.
+Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST
+provide valid frame sizes
 
 .P
-.BR target_bitrate "=<number> (45..2000, default: 250)"
+.BR bitrate_mode "=<string>"
 .P
-Target bitrate (kbps)
+Supported strings: auto vbr cbr
 .P
-.BR quality "=<number> (0..63, default: 10)"
+Default: auto
 .P
-Nominal quality
+Bitrate Mode
 .P
-Quality for VBR mode
-63: best (largest output file)
-0:  worst (smallest output file)
+Specify constant or variable bitrate. For "Auto", constant bitrate will
+be used for MPEG-1, variable bitrate will be used for MPEG-2. For
+formats, which require CBR, this option is ignored
 
 .P
-.BR max_keyframe_interval "=<number> (1..1000, default: 64)"
+.BR bitrate "=<number> (200..99999, default: 1150)"
 .P
-Maximum keyframe interval
+Bitrate (kbps)
 .P
-.BR drop_frames "=[1|0] (default: 1)"
-.P
-Enable frame dropping
-.P
-Drop frames to keep within bitrate buffer constraints. This can have a
-severe impact on quality, but is the only way to ensure that bitrate
-targets are met at low rates during sudden bursts of activity.
+Video bitrate in kbps. For VBR, it's the maximum bitrate. If the format
+requires a fixed bitrate (e.g. VCD) this option is ignored
 
 .P
-.BR cap_overflow "=[1|0] (default: 1)"
+.BR quantization "=<number> (1..31, default: 8)"
 .P
-Don't bank excess bits for later use
+Quantization
 .P
-Ignore bitrate buffer overflows. If the encoder uses so few bits that
-the reservoir of available bits overflows, ignore the excess. The
-encoder will not try to use these extra bits in future frames. At high
-rates this may cause the result to be undersized, but allows a client to
-play the stream using a finite buffer; it should normally be enabled.
+Minimum quantization for VBR. Lower numbers mean higher quality. For
+CBR, this option is ignored.
 
 .P
-.BR cap_underflow "=[1|0] (default: 0)"
+.BR quant_matrix "=<string>"
 .P
-Don't try to make up shortfalls later
+Supported strings: default kvcd tmpgenc hi-res
 .P
-Ignore bitrate buffer underflows. If the encoder uses so many bits that
-the reservoir of available bits underflows, ignore the deficit. The
-encoder will not try to make up these extra bits in future frames. At
-low rates this may cause the result to be oversized; it should normally
-be disabled.
+Default: default
+.P
+Quantization matrices
+.P
+.BR bframes "=<number> (0..2, default: 0)"
+.P
+Number of B-Frames
+.P
+Specify the number of B-frames between 2 P/I frames. More B-frames slow
+down encoding and increase memory usage, but might give better
+compression results. For VCD, this option is ignored, since the VCD
+standard requires 2 B-frames, no matter if you like them or not.
 
 .P
-.BR speed "=<number> (0.00..1.00, default: 0.00)"
+.BR user_options "=<string>"
 .P
-Encoding speed
+User options
 .P
-Higher speed levels favor quicker encoding over better quality per bit.
-Depending on the encoding mode, and the internal algorithms used,
-quality may actually improve, but in this case bitrate will also likely
-increase. In any case, overall rate/distortion performance will probably
-decrease.
+Enter further commandline options for mpeg2enc here. Check the mpeg2enc
+manual page for details
 
 .P
 .BR default_timescale "=<number> (default: 25)"
@@ -15720,7 +15015,7 @@ frame duration here
 .RE
 .RE
 
-.B -o
+.B \-o
 .I <output_options>
 
 .RS 2
@@ -15731,7 +15026,7 @@ Set output options
 .P
 Output directory
 .P
-.BR output_filename_mask "=<string> (Default: %Y-%m-%d-%H-%M-%S)"
+.BR output_filename_mask "=<string> (Default: %Y\-%m\-%d\-%H\-%M\-%S)"
 .P
 Output filename mask
 .P
@@ -15756,13 +15051,13 @@ Extension is appended by the plugin
 .P
 .RE
 
-.B -r
+.B \-r
 
 .RS 2
 Record to file
 .RE
 
-.B -syslog
+.B \-syslog
 .I <name>
 
 .RS 2
@@ -15772,25 +15067,25 @@ Set log messages to syslog
 .SH GENERIC OPTIONS
 The following generic options are available for all gmerlin applications
 
-.B -help
+.B \-help
 
 .RS 2
 Print this help message and exit
 .RE
 
-.B -help-man
+.B \-help\-man
 
 .RS 2
 Print this help message as a manual page and exit
 .RE
 
-.B -help-texi
+.B \-help\-texi
 
 .RS 2
 Print this help message in texinfo format and exit
 .RE
 
-.B -version
+.B \-version
 
 .RS 2
 Print version info and exit

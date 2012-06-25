@@ -49,6 +49,7 @@ const bg_cmdline_app_data_t app_data =
     .package =  PACKAGE,
     .version =  VERSION,
     .name =     "gmerlin",
+    .long_name = TRS("Gmerlin GUI Player"),
     .synopsis = TRS("[options] [gmls ...]\n"),
     .help_before = TRS("Gmerlin GUI Player"),
     .args = (bg_cmdline_arg_array_t[]) { {  } },

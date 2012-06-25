@@ -1,6 +1,6 @@
-.TH GMERLIN_REMOTE 1 "March 2012" Gmerlin "User Manuals"
+.TH GMERLIN_REMOTE 1 "June 2012" Gmerlin "User Manuals"
 .SH NAME
-gmerlin_remote
+gmerlin_remote \- Remote control for the Gmerlin GUI Player
 .SH SYNOPSIS
 .B gmerlin_remote 
 .I [options]
@@ -11,21 +11,21 @@ Remote control command for the Gmerlin GUI Player
 
 .SH GLOBAL OPTIONS
 
-.B -host
+.B \-host
 .I <hostname>
 
 .RS 2
 Host to connect to, default is localhost
 .RE
 
-.B -port
+.B \-port
 .I <port>
 
 .RS 2
 Port to connect to
 .RE
 
-.B -launch
+.B \-launch
 
 .RS 2
 Launch new player if necessary
@@ -33,64 +33,64 @@ Launch new player if necessary
 
 .SH COMMANDS
 
-.B -play
+.B \-play
 
 .RS 2
 Play current track
 .RE
 
-.B -next
+.B \-next
 
 .RS 2
 Switch to next track
 .RE
 
-.B -prev
+.B \-prev
 
 .RS 2
 Switch to previous track
 .RE
 
-.B -stop
+.B \-stop
 
 .RS 2
 Stop playback
 .RE
 
-.B -pause
+.B \-pause
 
 .RS 2
 Pause playback
 .RE
 
-.B -mute
+.B \-mute
 
 .RS 2
 Toggle mute
 .RE
 
-.B -add
+.B \-add
 .I <gml>
 
 .RS 2
 Add <gml> to the incoming album
 .RE
 
-.B -addplay
+.B \-addplay
 .I <gml>
 
 .RS 2
 Add <gml> to the incoming album and play it
 .RE
 
-.B -open
+.B \-open
 .I <device>
 
 .RS 2
 Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd).
 .RE
 
-.B -openplay
+.B \-openplay
 .I <device>
 
 .RS 2
@@ -98,28 +98,28 @@ Open album for <device> and play first track. Device must be a GML (e.g.
 dvd:///dev/hdd).
 .RE
 
-.B -volume
+.B \-volume
 .I <volume>
 
 .RS 2
 Set player volume. <volume> is in dB, 0.0 is max
 .RE
 
-.B -volume-rel
+.B \-volume\-rel
 .I <diff>
 
 .RS 2
 In- or decrease player volume. <diff> is in dB
 .RE
 
-.B -seek-rel
+.B \-seek\-rel
 .I <diff>
 
 .RS 2
 Seek relative. <diff> is in seconds.
 .RE
 
-.B -chapter
+.B \-chapter
 .I [num|+|-]
 
 .RS 2
@@ -127,19 +127,19 @@ Go to the specified chapter. Use '+' and '-' to go to the next or previous
 chapter respectively
 .RE
 
-.B -get-name
+.B \-get\-name
 
 .RS 2
 Print name of the current track
 .RE
 
-.B -get-metadata
+.B \-get\-metadata
 
 .RS 2
 Print metadata of the current track
 .RE
 
-.B -get-time
+.B \-get\-time
 
 .RS 2
 Print time of the current track
@@ -148,25 +148,25 @@ Print time of the current track
 .SH GENERIC OPTIONS
 The following generic options are available for all gmerlin applications
 
-.B -help
+.B \-help
 
 .RS 2
 Print this help message and exit
 .RE
 
-.B -help-man
+.B \-help\-man
 
 .RS 2
 Print this help message as a manual page and exit
 .RE
 
-.B -help-texi
+.B \-help\-texi
 
 .RS 2
 Print this help message in texinfo format and exit
 .RE
 
-.B -version
+.B \-version
 
 .RS 2
 Print version info and exit

@@ -833,6 +833,7 @@ const bg_cmdline_app_data_t app_data =
     .package =  PACKAGE,
     .version =  VERSION,
     .name =     "gmerlin_player",
+    .long_name = TRS("Commandline media player"),
     .synopsis = TRS("[options] gml...\n"),
     .help_before = TRS("Commandline Multimedia player\n"),
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },

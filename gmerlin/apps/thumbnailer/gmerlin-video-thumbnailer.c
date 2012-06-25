@@ -89,6 +89,7 @@ const bg_cmdline_app_data_t app_data =
     .package =  PACKAGE,
     .version =  VERSION,
     .name =     "gmerlin-video-thumbnailer",
+    .long_name = "Video thumbnailer",
     .synopsis = TRS("[options] video_file thumbnail_file...\n"),
     .help_before = TRS("Video thumbnailer\n"),
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },

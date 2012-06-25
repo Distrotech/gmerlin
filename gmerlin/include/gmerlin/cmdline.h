@@ -66,6 +66,8 @@ typedef struct
   char * package;
   char * version;
   char * name;
+  char * long_name;
+
   char * synopsis;
   char * help_before;
   const bg_cmdline_arg_array_t * args; /* Null terminated */

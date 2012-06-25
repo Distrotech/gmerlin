@@ -65,6 +65,7 @@ const bg_cmdline_app_data_t app_data =
     .package =  PACKAGE,
     .version =  VERSION,
     .name =     "gmerlin_transcoder",
+    .long_name = TRS("GTK multimedia transcoder"),
     .synopsis = TRS("[options]\n"),
     .help_before = TRS("GTK multimedia transcoder\n"),
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), args },
