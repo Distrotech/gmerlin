@@ -155,20 +155,6 @@ static void print_string(FILE * out, const char * str, bg_help_format_t format)
         }
       }
       break;
-    case BG_HELP_FORMAT_MAN:
-      {
-      const char * pos;
-      pos = str;
-      while(*pos)
-        {
-        if(*pos == '-')
-          fprintf(out, "\\%c", *pos);
-        else
-          fprintf(out, "%c", *pos);
-        pos++;
-        }
-      }
-      break;
     default:
       fprintf(out, "%s", str);
       break;
@@ -187,8 +173,21 @@ static void print_bold(FILE * out, char * str, bg_help_format_t format)
       /* Do nothing */
       break;
     case BG_HELP_FORMAT_MAN:
+      {
+      const char * pos;
+
       fprintf(out, ".B ");
-      print_string(out, str, format);
+
+      pos = str;
+      while(*pos)
+        {
+        if(*pos == '-')
+          fprintf(out, "\\%c", *pos);
+        else
+          fprintf(out, "%c", *pos);
+        pos++;
+        }
+      }
       fprintf(out, "\n");
       break;
     case BG_HELP_FORMAT_TEXI:
