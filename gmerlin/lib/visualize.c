@@ -40,13 +40,18 @@
 #include <gmerlin/log.h>
 
 #define LOG_DOMAIN "visualizer"
-
 /*
  * gmerlin_visualize_slave
  *   -w "window_id"
  *   -p "plugin_module"
  *   -o "output_module"
  */
+
+#ifdef PKGBIN_DIR
+# define PKGBIN_PATH PKGBIN_DIR"/"
+#else
+# define PKGBIN_PATH ""
+#endif
 
 struct bg_visualizer_s
   {
@@ -228,13 +233,13 @@ static int visualizer_start(bg_visualizer_t * v)
     
   if(v->vis_info->flags & BG_PLUGIN_VISUALIZE_FRAME)
     {
-    command = bg_sprintf("gmerlin_visualizer_slave  -w %s -o %s -p ",
+    command = bg_sprintf(PKGBIN_PATH "gmerlin_visualizer_slave  -w %s -o %s -p ",
                          v->display_string,
                          v->ov_info->module_filename);
     }
   else
     {
-    command = bg_sprintf("gmerlin_visualizer_slave -w %s -p ",
+    command = bg_sprintf(PKGBIN_PATH "gmerlin_visualizer_slave -w %s -p ",
                          v->display_string);
     }
 #ifdef HAVE_LV

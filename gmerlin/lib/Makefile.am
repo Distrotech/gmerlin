@@ -1,4 +1,5 @@
 plugindir=$(pkglibdir)/plugins
+pkgbindir=$(pkglibdir)/bin
 INCLUDES = -I$(top_srcdir)/include
 
 if HAVE_X11
@@ -40,13 +41,14 @@ AM_CFLAGS = \
 -DPLUGIN_DIR=\"$(plugindir)\" \
 -DDOC_DIR=\"$(docdir)\"  \
 -DDATA_DIR=\"$(pkgdatadir)\" \
+-DPKGBIN_DIR=\"$(pkgbindir)\" \
 $(lv_cflags)
 
 libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ -export-symbols-regex ^bg_
 
 libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
 
-bin_PROGRAMS = gmerlin_visualizer_slave
+pkgbin_PROGRAMS = gmerlin_visualizer_slave
 
 gmerlin_visualizer_slave_SOURCES = visualize_slave.c
 gmerlin_visualizer_slave_LDADD = libgmerlin.la -ldl -lpthread
