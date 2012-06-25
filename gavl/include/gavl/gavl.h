@@ -2332,7 +2332,7 @@ void gavl_video_format_dump(const gavl_video_format_t * format);
  * Video frame
  */
   
-typedef struct
+typedef struct gavl_video_frame_s
   {
   uint8_t * planes[GAVL_MAX_PLANES]; /*!< Pointers to the planes */
   int strides[GAVL_MAX_PLANES];      /*!< For each plane, this stores the byte offset between the scanlines */
@@ -2342,6 +2342,12 @@ typedef struct
   int64_t duration; /*!< Duration in stream specific units (see \ref video_format) */
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
   gavl_timecode_t timecode; /*!< Timecode associated with this frame */
+
+  int refcount;             /*!< Reference count: Means that the frame is still used (since 1.5.0) */
+  void (*destroy)(struct gavl_video_frame_s*, void*priv); /*!< Function for destroying this frame (since 1.5.0) */
+  void * destroy_priv;      /*!< Private data to pass to destroy() (since 1.5.0) */
+  
+  
   } gavl_video_frame_t;
 
 
@@ -4046,16 +4052,145 @@ gavl_frame_table_t * gavl_frame_table_load(const char * filename);
 
 GAVL_PUBLIC void
 gavl_frame_table_dump(const gavl_frame_table_t * t);
-
-
-  
-
-  
   
 /**
  * @}
  */
 
+/*! \defgroup video_frame_pool Video frame pool
+ * \ingroup video
+ *
+ * This is used in scenarios where we want optimized
+ * video pipelines. Allocated frames can be passed
+ * forward or backwards in the pipeline while minimizing
+ * the memcpy operations.
+ *
+ * The idea is to call \ref gavl_video_frame_ref if
+ * an application intends to use a frame beyond an actual
+ * function call and release it when it's done with it.
+ *
+ * The frame pool takes care of the refcounts and allocates
+ * frames on demand if necessary.
+ * 
+ * @{
+ */
+
+/** \brief Video frame pool
+ *
+ * Since 1.5.0.
+ */
+
+typedef struct gavl_video_frame_pool_s gavl_video_frame_pool_t;
+
+/** \brief Create a video frame pool
+ *  \param create_frame Function used to create one video frame
+ *  \param priv Private data to pass to create_frame
+ *  \returns A video frame pool
+ */
+  
+GAVL_PUBLIC
+gavl_video_frame_pool_t *
+gavl_video_frame_pool_create(gavl_video_frame_t * (create_frame)(void * priv),
+                             void * priv);
+
+/** \brief Create a video frame pool
+ *  \param p A frame pool
+ *  \returns A video frame, either newly allocated or reused
+ */
+
+GAVL_PUBLIC
+gavl_video_frame_t * gavl_video_frame_pool_get(gavl_video_frame_pool_t *p);
+
+/** \brief Destroy a video frame pool
+ *  \param p A frame pool
+ *
+ *  This also frees all frames, which were allocated by this
+ *  frame pool.
+ */
+  
+GAVL_PUBLIC
+void gavl_video_frame_pool_destroy(gavl_video_frame_pool_t *p);
+
+/** \brief Reset a video frame pool
+ *  \param p A frame pool
+ *
+ *  Set the reference counters of all frames to zero.
+ *  This is typically called before a seek operation in the stream.
+ */
+
+GAVL_PUBLIC
+void gavl_video_frame_pool_reset(gavl_video_frame_pool_t *p);
+
+/**
+ * @}
+ */
+  
+typedef gavl_audio_frame_t *
+(*gavl_audio_source_func_t)(void * priv, gavl_audio_frame_t* frame,
+                            int stream);
+
+typedef int
+(*gavl_video_source_func_t)(void * priv, gavl_video_frame_t ** frame,
+                            int stream);
+
+typedef struct gavl_video_source_s gavl_video_source_t;
+typedef struct gavl_audio_source_s gavl_audio_source_t;
+
+#define GAVL_SINK_ALLOC           (1<<0)
+
+/** \brief Source/destination want to allocate it's frames */
+  
+#define GAVL_SOURCE_ALLOC           (1<<0)
+
+/** \brief Destination changes frame */
+
+#define GAVL_SOURCE_DST_DESTROYS_FRAMES (1<<1)
+#define GAVL_SOURCE_KEEPS_FRAMES        (1<<1)
+
+/* Called by the source */
+  
+GAVL_PUBLIC
+gavl_video_source_t * gavl_video_source_create(gavl_video_source_func_t func,
+                                               void * priv, int stream,
+                                               int src_flags,
+                                               const gavl_video_format_t * src_format);
+
+GAVL_PUBLIC
+gavl_video_options_t * gavl_video_source_get_options(gavl_video_source_t *);
+  
+/* Called by the destination */
+
+GAVL_PUBLIC
+const gavl_video_format_t * gavl_video_source_get_src_format(gavl_video_source_t *);
+
+GAVL_PUBLIC
+const gavl_video_format_t * gavl_video_source_get_dst_format(gavl_video_source_t *);
+
+GAVL_PUBLIC
+void gavl_video_source_set_dst(gavl_video_source_t*, int dst_flags,
+                               const gavl_video_format_t * dst_format);
+
+GAVL_PUBLIC
+int gavl_video_source_read_frame(void*, int stream,
+                                 gavl_video_frame_t ** frame);
+  
+/* Called by source */ 
+
+GAVL_PUBLIC
+gavl_audio_source_t *
+gavl_audio_source_create(gavl_audio_source_func_t func,
+                         void * priv, int stream,
+                         int src_flags,
+                         const gavl_audio_format_t * src_format);
+
+GAVL_PUBLIC
+const gavl_audio_format_t * gavl_audio_source_get_src_format(gavl_audio_source_t *);
+
+GAVL_PUBLIC
+const gavl_audio_format_t * gavl_audio_source_get_dst_format(gavl_audio_source_t *);
+
+GAVL_PUBLIC
+int gavl_audio_source_read_frame(void*, int stream, gavl_audio_frame_t ** frame);
   
 #ifdef __cplusplus
 }

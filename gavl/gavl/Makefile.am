@@ -85,6 +85,7 @@ scale_context.c \
 scale_kernels.c \
 scale_table.c \
 ssim.c \
+sources.c \
 time.c \
 timecode.c \
 timer.c \
@@ -94,6 +95,7 @@ transform_table.c \
 video.c \
 videoformat.c \
 videoframe.c \
+videoframepool.c \
 videooptions.c \
 volume.c
 
