@@ -1,11 +1,10 @@
 [Desktop Entry]
-Encoding=UTF-8
 Name=Gmerlin transcoder
 Name[de]=Gmerlin transcoder
 Comment=Gmerlin multimedia transcoder
 Comment[de]=Gmerlin multimedia transcoder
 Exec=gmerlin_transcoder
-Icon=gmerlin-transcoder.png
+Icon=gmerlin-transcoder
 Type=Application
 Categories=Application;AudioVideo;
 
