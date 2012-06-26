@@ -108,7 +108,7 @@ ssim_tab.h
 
 AM_LDFLAGS = -export-symbols-regex 'gav(l|f)' -version-info \
 @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ \
-@LIBGAVL_LDFLAGS@
+@LIBGAVL_LDFLAGS@ @GMERLIN_LIB_LDFLAGS@
 
 libgavl_la_LIBADD = \
 @GMERLIN_DEP_LIBS@ \

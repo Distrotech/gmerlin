@@ -102,6 +102,8 @@ AC_SUBST(GMERLIN_DEP_LIBS)
 LIBGAVL_LIBS=""
 LIBGAVL_LDFLAGS=""
 
+APPS_LDFLAGS=""
+
 dnl
 dnl Check for mingw
 dnl
@@ -125,6 +127,12 @@ dnl maybe we should check here if the user only wants static libs
 
 LIBGAVL_LDFLAGS="-no-undefined $LIBGAVL_LDFLAGS"
 fi
+
+dnl
+dnl Check for Linker flags
+dnl
+
+GMERLIN_CHECK_LDFLAGS
 
 dnl
 dnl Check for library functions
@@ -278,6 +286,7 @@ AC_SUBST(LIBGAVL_CFLAGS)
 
 AC_SUBST(LIBGAVL_LIBS)	
 AC_SUBST(LIBGAVL_LDFLAGS)	
+AC_SUBST(APPS_LDFLAGS)
 
 AC_OUTPUT(Makefile \
 gavl.spec \

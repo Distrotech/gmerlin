@@ -1,3 +1,5 @@
+AM_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
+
 if HAVE_LIBPNG
 png_programs = \
 colorspace_test \

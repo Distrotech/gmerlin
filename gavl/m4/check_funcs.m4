@@ -1,4 +1,36 @@
 dnl
+dnl Standardized linker flags:
+dnl We use --as-needed for executables and
+dnl --no-undefined for libraries
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LDFLAGS],[
+
+GMERLIN_LIB_LDFLAGS=""
+GMERLIN_EXE_LDFLAGS=""
+
+AC_MSG_CHECKING(if linker supports --no-undefined)
+OLD_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS -Wl,--no-undefined"
+AC_TRY_LINK([],[],
+            [GMERLIN_LIB_LDFLAGS="-Wl,--no-undefined $GMERLIN_LIB_LDFLAGS"; AC_MSG_RESULT(Supported)],
+            [AC_MSG_RESULT(Unsupported)])
+LDFLAGS=$OLD_LDFLAGS
+
+AC_MSG_CHECKING(if linker supports --as-needed)
+OLD_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS -Wl,--as-needed"
+AC_TRY_LINK([],[],
+            [GMERLIN_EXE_LDFLAGS="-Wl,--as-needed $GMERLIN_EXE_LDFLAGS"; AC_MSG_RESULT(Supported)],
+            [AC_MSG_RESULT(Unsupported)])
+LDFLAGS=$OLD_LDFLAGS
+
+AC_SUBST(GMERLIN_LIB_LDFLAGS)
+AC_SUBST(GMERLIN_EXE_LDFLAGS)
+
+])
+
+dnl
 dnl AVCodec
 dnl
 
