@@ -44,7 +44,7 @@ AM_CFLAGS = \
 -DPKGBIN_DIR=\"$(pkgbindir)\" \
 $(lv_cflags)
 
-libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ -export-symbols-regex ^bg_
+libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ -export-symbols-regex ^bg_ @GMERLIN_LIB_LDFLAGS@
 
 libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
 

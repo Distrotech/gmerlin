@@ -9,6 +9,7 @@ AM_CFLAGS = \
 -DDOC_DIR=\"$(docdir)\" \
 -DDATA_DIR=\"$(pkgdatadir)\"
 
+AM_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
 
 bin_PROGRAMS = gmerlin_plugincfg
 
