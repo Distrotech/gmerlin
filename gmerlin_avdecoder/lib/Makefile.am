@@ -141,7 +141,7 @@ endif
 
 if HAVE_LIBAVCODEC
 avcodec_cflags =  @AVCODEC_CFLAGS@
-avcodec_libs =    @AVCODEC_LIBS@
+avcodec_libs =    @AVCODEC_LIBS@ -lavutil
 avcodec_sources = audio_ffmpeg.c video_ffmpeg.c
 else
 avcodec_cflags =
@@ -294,7 +294,7 @@ endif
 
 SUBDIRS = $(win32_subdirs) $(gsm_subdirs)
 
-libgmerlin_avdec_la_LDFLAGS=-export-dynamic -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@
+libgmerlin_avdec_la_LDFLAGS=-export-dynamic -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ @GMERLIN_LIB_LDFLAGS@
 
 libgmerlin_avdec_la_LIBADD= \
 @GMERLIN_DEP_LIBS@ \

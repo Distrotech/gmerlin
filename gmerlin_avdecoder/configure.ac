@@ -141,6 +141,11 @@ fi
 
 AM_CONDITIONAL(HAVE_DOXYGEN, test "x$have_doxygen" = "xtrue")
 
+dnl
+dnl Linker flags
+dnl 
+
+GMERLIN_CHECK_LDFLAGS
 
 dnl
 dnl Check for Libraries

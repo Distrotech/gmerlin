@@ -1,5 +1,7 @@
 INCLUDES = -I$(top_srcdir)/include
 
+AM_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
+
 bin_PROGRAMS = bgavdump \
 bgavdemux
 

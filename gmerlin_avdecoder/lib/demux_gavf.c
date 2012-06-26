@@ -195,6 +195,7 @@ static int open_gavf(bgav_demuxer_context_t * ctx)
                       NULL,
                       (ctx->input->input->seek_byte ? seek_func : 0),
                       NULL,
+                      NULL,
                       ctx->input);
 
   if(!gavf_open_read(priv->dec, priv->io))
