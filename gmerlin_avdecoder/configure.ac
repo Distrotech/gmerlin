@@ -317,12 +317,6 @@ dnl
 GMERLIN_CHECK_VORBIS
 
 dnl
-dnl libmpeg2
-dnl 
-
-GMERLIN_CHECK_LIBMPEG2
-
-dnl
 dnl libtiff
 dnl
 
@@ -727,15 +721,6 @@ elif test "x$test_openjpeg" = "xfalse"; then
 echo "Disabled"
 else
 echo "Missing (Go to http://www.openjpeg.org)"
-fi
-
-echo -n "libmpeg2 (mpeg2dec)     "
-if test "x$have_libmpeg2" = "xtrue"; then
-echo "Found (CFLAGS=$LIBMPEG2_CFLAGS LIBS=$LIBMPEG2_LIBS)"
-elif test "x$test_libmpeg2" = "xfalse"; then
-echo "Disabled"
-else
-echo "Missing (Go to http://libmpeg2.sourceforge.net/)"
 fi
 
 echo -n "libmad 0.15.x:          "

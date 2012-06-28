@@ -77,16 +77,6 @@ tiff_libs =
 tiff_sources =
 endif
 
-if HAVE_LIBMPEG2
-libmpeg2_cflags =  @LIBMPEG2_CFLAGS@
-libmpeg2_libs =    @LIBMPEG2_LIBS@
-libmpeg2_sources = video_libmpeg2.c
-else
-libmpeg2_cflags =
-libmpeg2_libs =
-libmpeg2_sources =
-endif
-
 if HAVE_FLAC
 flac_cflags =  @FLAC_CFLAGS@
 flac_libs =    @FLAC_LIBS@
@@ -300,7 +290,6 @@ libgmerlin_avdec_la_LIBADD= \
 @GMERLIN_DEP_LIBS@ \
 $(vorbis_libs) \
 $(ogg_libs) \
-$(libmpeg2_libs) \
 $(win32_libs) \
 $(png_libs) \
 $(openjpeg_libs) \
@@ -342,7 +331,6 @@ $(openjpeg_cflags) \
 $(tiff_cflags) \
 $(faad2_cflags) \
 $(flac_cflags) \
-$(libmpeg2_cflags) \
 $(a52_cflags) \
 $(dca_cflags) \
 $(musepack_cflags) \
@@ -359,7 +347,6 @@ $(libswscale_cflags) \
 $(vdpau_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
-$(libmpeg2_sources) \
 $(vorbis_sources) \
 $(ogg_sources) \
 $(faad2_sources) \

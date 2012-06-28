@@ -554,6 +554,27 @@ int main(int argc, char ** argv)
               fprintf(stderr, ", Duration: %"PRId64, vf->duration);
             else
               fprintf(stderr, ", Duration: Unknown");
+
+            if(gavl_interlace_mode_is_mixed(video_format->interlace_mode))
+              {
+              fprintf(stderr, ", IL: ");
+              switch(vf->interlace_mode)
+                {
+                case GAVL_INTERLACE_TOP_FIRST:
+                  fprintf(stderr, "T");
+                  break;
+                case GAVL_INTERLACE_BOTTOM_FIRST:
+                  fprintf(stderr, "B");
+                  break;
+                case GAVL_INTERLACE_NONE:
+                  fprintf(stderr, "P");
+                  break;
+                default:
+                  fprintf(stderr, "?");
+                  break;
+                  
+                }
+              }
             
             if(vf->timecode != GAVL_TIMECODE_UNDEFINED)
               {

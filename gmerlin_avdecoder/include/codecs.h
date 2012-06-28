@@ -72,9 +72,6 @@ void bgav_init_audio_decoders_faad2();
 void bgav_init_audio_decoders_flac();
 #endif
 
-#ifdef HAVE_LIBMPEG2
-void bgav_init_video_decoders_libmpeg2();
-#endif
 #ifdef HAVE_XADLL
 int bgav_init_video_decoders_xadll(bgav_options_t * opt);
 extern char * bgav_dll_path_xanim;

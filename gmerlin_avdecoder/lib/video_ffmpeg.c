@@ -76,8 +76,6 @@
 // #define DUMP_EXTRADATA
 // #define DUMP_PACKET
 
-/* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
-
 #define HAS_DELAY       (1<<0)
 #define SWAP_FIELDS_IN  (1<<1)
 #define SWAP_FIELDS_OUT (1<<2)
@@ -165,6 +163,7 @@ typedef struct
   int64_t picture_timestamp;
   int     picture_duration;
   gavl_timecode_t picture_timecode;
+  gavl_interlace_mode_t picture_interlace;
   
   int64_t skip_time;
 
@@ -273,7 +272,8 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
                                     state->bitstream_buffers);
   }
 
-static enum PixelFormat vdpau_get_format(struct AVCodecContext *s, const enum PixelFormat *fmt)
+static enum PixelFormat
+vdpau_get_format(struct AVCodecContext *s, const enum PixelFormat *fmt)
   {
   return *fmt;
   }
@@ -297,7 +297,7 @@ static bgav_packet_t * get_data(bgav_stream_t * s)
   fprintf(stderr, "Got packet ");
   bgav_packet_dump(ret);
 #endif
-
+  
   if((priv->flags & SWAP_FIELDS_IN) && (ret->field2_offset))
     {
     if(!priv->p)
@@ -526,20 +526,6 @@ static int decode_picture(bgav_stream_t * s)
         bgav_dprintf("\n");
       else
         {
-#if 0
-        if(priv->frame->pict_type == FF_I_TYPE)
-          bgav_dprintf("I-Frame ");
-        else if(priv->frame->pict_type == FF_B_TYPE)
-          bgav_dprintf("B-Frame ");
-        else if(priv->frame->pict_type == FF_P_TYPE)
-          bgav_dprintf("P-Frame ");
-        else if(priv->frame->pict_type == FF_S_TYPE)
-          bgav_dprintf("S-Frame ");
-        else if(priv->frame->pict_type == FF_SI_TYPE)
-          bgav_dprintf("SI-Frame ");
-        else if(priv->frame->pict_type == FF_SP_TYPE)
-          bgav_dprintf("SP-Frame ");
-#endif
         bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
                      priv->frame->interlaced_frame,
                      priv->frame->top_field_first,
@@ -550,7 +536,7 @@ static int decode_picture(bgav_stream_t * s)
         bgav_dprintf("\n");
         }
 #endif
-    
+      
     /* Decode 2nd field for field pictures */
     if(p && p->field2_offset && (bytes_used > 0))
       {
@@ -587,20 +573,6 @@ static int decode_picture(bgav_stream_t * s)
         bgav_dprintf("\n");
       else
         {
-#if 0
-        if(priv->frame->pict_type == FF_I_TYPE)
-          bgav_dprintf("I-Frame ");
-        else if(priv->frame->pict_type == FF_B_TYPE)
-          bgav_dprintf("B-Frame ");
-        else if(priv->frame->pict_type == FF_P_TYPE)
-          bgav_dprintf("P-Frame ");
-        else if(priv->frame->pict_type == FF_S_TYPE)
-          bgav_dprintf("S-Frame ");
-        else if(priv->frame->pict_type == FF_SI_TYPE)
-          bgav_dprintf("SI-Frame ");
-        else if(priv->frame->pict_type == FF_SP_TYPE)
-          bgav_dprintf("SP-Frame ");
-#endif
         bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
                      priv->frame->interlaced_frame,
                      priv->frame->top_field_first,
@@ -613,6 +585,8 @@ static int decode_picture(bgav_stream_t * s)
 #endif
       }
 
+    
+    
     if(p)
       done_data(s, p);
     
@@ -629,11 +603,26 @@ static int decode_picture(bgav_stream_t * s)
       }
 
     }
+
+  if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
+    {
+    if(priv->frame->interlaced_frame)
+      {
+      if(priv->frame->top_field_first)
+        priv->picture_interlace = GAVL_INTERLACE_TOP_FIRST;
+      else
+        priv->picture_interlace = GAVL_INTERLACE_BOTTOM_FIRST;
+      }
+    else
+      priv->picture_interlace = GAVL_INTERLACE_NONE;
+    }
+  
   
   priv->picture_timestamp =
     bgav_pts_cache_get_first(&priv->pts_cache,
                              &priv->picture_duration,
                              &priv->picture_timecode);
+  
   return 1;
   }
 
@@ -1060,8 +1049,10 @@ static int init_ffmpeg(bgav_stream_t * s)
   av_dict_free(&options);
 #endif
 
-  gavl_metadata_set(&s->m, GAVL_META_FORMAT,
-                    priv->info->format_name);
+  if(!gavl_metadata_get(&s->m, GAVL_META_FORMAT))
+    gavl_metadata_set(&s->m, GAVL_META_FORMAT,
+                      priv->info->format_name);
+  
   return 1;
   }
 
@@ -1779,7 +1770,43 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '8', '0'),
                     0x00 } },
 #endif
-    
+
+    { "Ffmpeg MPEG-1/2 decoder", "MPEG-1/2", CODEC_ID_MPEG2VIDEO,
+      (uint32_t[]){ /* Set by MPEG demuxers */
+      BGAV_MK_FOURCC('m','p','v','1'), // MPEG-1
+      BGAV_MK_FOURCC('m','p','v','2'), // MPEG-2
+      BGAV_MK_FOURCC('m','p','g','v'), // MPEG-1/2
+      /* Quicktime fourccs */
+      BGAV_MK_FOURCC('h','d','v','1'), // HDV 720p30
+      BGAV_MK_FOURCC('h','d','v','2'), // 1080i60 25 Mbps CBR
+      BGAV_MK_FOURCC('h','d','v','3'), // 1080i50 25 Mbps CBR
+      BGAV_MK_FOURCC('h','d','v','5'), // HDV 720p25
+      BGAV_MK_FOURCC('h','d','v','6'), // 1080p24 25 Mbps CBR
+      BGAV_MK_FOURCC('h','d','v','7'), // 1080p25 25 Mbps CBR
+      BGAV_MK_FOURCC('h','d','v','8'), // 1080p30 25 Mbps CBR
+      BGAV_MK_FOURCC('x','d','v','1'), // XDCAM EX 720p30 VBR
+      BGAV_MK_FOURCC('x','d','v','2'), // XDCAM HD 1080i60 VBR
+      BGAV_MK_FOURCC('x','d','v','3'), // XDCAM HD 1080i50 VBR
+      BGAV_MK_FOURCC('x','d','v','4'), // XDCAM EX 720p24 VBR
+      BGAV_MK_FOURCC('x','d','v','5'), // XDCAM EX 720p25 VBR
+      BGAV_MK_FOURCC('x','d','v','6'), // XDCAM HD 1080p24 VBR
+      BGAV_MK_FOURCC('x','d','v','7'), // XDCAM HD 1080p25 VBR
+      BGAV_MK_FOURCC('x','d','v','8'), // XDCAM HD 1080p30 VBR
+      BGAV_MK_FOURCC('x','d','v','9'), // XDCAM EX 720p60 VBR
+      BGAV_MK_FOURCC('x','d','v','a'), // XDCAM EX 720p50 VBR
+      BGAV_MK_FOURCC('x','d','v','b'), // XDCAM EX 1080i60 VBR
+      BGAV_MK_FOURCC('x','d','v','c'), // XDCAM EX 1080i50 VBR
+      BGAV_MK_FOURCC('x','d','v','d'), // XDCAM EX 1080p24 VBR
+      BGAV_MK_FOURCC('x','d','v','e'), // XDCAM EX 1080p25 VBR
+      BGAV_MK_FOURCC('x','d','v','f'), // XDCAM EX 1080p30 VBR
+      BGAV_MK_FOURCC('m','x','3','p'), // IMX PAL 30 MBps
+      BGAV_MK_FOURCC('m','x','4','p'), // IMX PAL 40 MBps
+      BGAV_MK_FOURCC('m','x','5','p'), // IMX PAL 50 MBps
+      BGAV_MK_FOURCC('m','x','3','n'), // IMX NTSC 30 MBps
+      BGAV_MK_FOURCC('m','x','4','n'), // IMX NTSC 40 MBps
+      BGAV_MK_FOURCC('m','x','5','n'), // IMX NTSC 50 MBps
+      0x00 },
+    },
   };
 
 #define NUM_CODECS sizeof(codec_infos)/sizeof(codec_infos[0])
@@ -1817,11 +1844,9 @@ void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)
       codecs[real_num_codecs].decoder.name = codecs[real_num_codecs].info->decoder_name;
       
       if(c->capabilities & CODEC_CAP_DELAY) 
-        {
-        codecs[real_num_codecs].decoder.flags |= VCODEC_FLAG_DELAY;
         codecs[real_num_codecs].decoder.skipto = skipto_ffmpeg;
-        }
-      codecs[real_num_codecs].decoder.fourccs = codecs[real_num_codecs].info->fourccs;
+      codecs[real_num_codecs].decoder.fourccs =
+        codecs[real_num_codecs].info->fourccs;
       codecs[real_num_codecs].decoder.init = init_ffmpeg;
       codecs[real_num_codecs].decoder.decode = decode_ffmpeg;
       //      codecs[real_num_codecs].decoder.parse = parse_ffmpeg;
@@ -2452,6 +2477,9 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
   f->timestamp = priv->picture_timestamp;
   f->duration = priv->picture_duration;
 
+  if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
+    f->interlace_mode = priv->picture_interlace;
+  
   if(priv->picture_timecode != GAVL_TIMECODE_UNDEFINED)
     {
     s->codec_timecode = priv->picture_timecode;

@@ -155,10 +155,17 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
              priv->have_sh)
             {
             if(priv->sh.mpeg2)
+              {
               parser->s->fourcc = BGAV_MK_FOURCC('m','p','v','2');
+              gavl_metadata_set(&parser->s->m, GAVL_META_FORMAT,
+                                bgav_sprintf("MPEG-2"));
+              }
             else
+              {
               parser->s->fourcc = BGAV_MK_FOURCC('m','p','v','1');
-
+              gavl_metadata_set(&parser->s->m, GAVL_META_FORMAT,
+                                bgav_sprintf("MPEG-1"));
+              }
             }
 
           if(!parser->format->pixel_width)
@@ -216,10 +223,21 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           /* Set sequence end  */
           bgav_video_parser_set_sequence_end(parser, 4);
 
-          /* Seset timestamp for for still mode */
+          /* Reset timestamp for still mode */
           if(!priv->pb_count && (priv->i_count == 1))
             parser->timestamp = BGAV_TIMESTAMP_UNDEFINED;
-          
+
+          /* */
+
+          if(parser->cache[parser->cache_size-1].header_size &&
+             parser->cache[parser->cache_size-1].sequence_end_pos &&
+             !(parser->s->flags & STREAM_STILL_MODE))
+            {
+            parser->s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
+            parser->s->flags |= STREAM_STILL_MODE;
+            bgav_log(parser->s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                     "Detected MPEG still mode");
+            }
           priv->pb_count = 0;
           priv->i_count = 0;
           //          fprintf(stderr, "Detected sequence end\n");
@@ -379,12 +397,6 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
     case MPEG_HAS_SEQUENCE_EXT_CODE:
       if(!priv->sh.mpeg2)
         {
-        if(parser->s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
-          parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
-
-        if(parser->s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
-          parser->s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-        
         /* Try to get the sequence extension */
         len =
           bgav_mpv_sequence_extension_parse(parser->s->opt,
@@ -395,7 +407,18 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           return PARSER_NEED_DATA;
         
         priv->sh.mpeg2 = 1;
-
+        
+        if(parser->s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
+          {
+          if(priv->sh.ext.progressive_sequence)
+            parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
+          else
+            parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
+          }
+        
+        if(parser->s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
+          parser->s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+        
         parser->format->timescale *=  (priv->sh.ext.timescale_ext+1) * 2;
         parser->format->frame_duration *= (priv->sh.ext.frame_duration_ext+1) * 2;
         

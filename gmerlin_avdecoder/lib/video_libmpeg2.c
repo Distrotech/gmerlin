@@ -674,7 +674,6 @@ static int skipto_mpeg2(bgav_stream_t * s, int64_t time, int exact)
 
 static bgav_video_decoder_t decoder =
   {
-    .flags = VCODEC_FLAG_DELAY,
     .fourccs =
     (uint32_t[]){ /* Set by MPEG demuxers */
     BGAV_MK_FOURCC('m','p','v','1'), // MPEG-1

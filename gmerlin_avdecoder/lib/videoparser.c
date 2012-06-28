@@ -340,7 +340,8 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   parser->eof = 1;
   }
 
-void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser, int code_len)
+void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser,
+                                        int code_len)
   {
   int i;
 

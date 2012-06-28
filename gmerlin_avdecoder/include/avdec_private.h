@@ -143,8 +143,6 @@ struct bgav_audio_decoder_s
   bgav_audio_decoder_t * next;
   };
 
-#define VCODEC_FLAG_DELAY (1<<0)
-
 struct bgav_video_decoder_s
   {
   uint32_t * fourccs;

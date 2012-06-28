@@ -103,6 +103,10 @@ void bgav_packet_dump(bgav_packet_t * p)
   if(p->header_size)
     bgav_dprintf(", head: %d", p->header_size);
 
+  if(p->sequence_end_pos)
+    bgav_dprintf(", end: %d", p->sequence_end_pos);
+  
+  
   if(p->ilace == GAVL_INTERLACE_TOP_FIRST)
     bgav_dprintf(", il: t");
   else if(p->ilace == GAVL_INTERLACE_BOTTOM_FIRST)

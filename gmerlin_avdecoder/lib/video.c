@@ -169,6 +169,13 @@ int bgav_video_start(bgav_stream_t * s)
       return 0;
     }
 
+  if(s->codec_bitrate)
+    gavl_metadata_set_int(&s->m, GAVL_META_BITRATE,
+                          s->codec_bitrate);
+  else if(s->container_bitrate)
+    gavl_metadata_set_int(&s->m, GAVL_META_BITRATE,
+                          s->container_bitrate);
+  
   if(s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
     s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
   if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
