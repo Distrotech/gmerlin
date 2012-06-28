@@ -4124,28 +4124,32 @@ void gavl_video_frame_pool_reset(gavl_video_frame_pool_t *p);
 /**
  * @}
  */
+
+typedef enum
+  {
+    GAVL_SOURCE_EOF   = 0,
+    GAVL_SOURCE_OK    = 1,
+    GAVL_SOURCE_AGAIN = 2,
+  } gavl_source_status_t;
   
-typedef gavl_audio_frame_t *
-(*gavl_audio_source_func_t)(void * priv, gavl_audio_frame_t* frame,
+typedef gavl_source_status_t
+(*gavl_audio_source_func_t)(void * priv, gavl_audio_frame_t ** frame,
                             int stream);
 
-typedef int
+typedef gavl_source_status_t
 (*gavl_video_source_func_t)(void * priv, gavl_video_frame_t ** frame,
                             int stream);
 
 typedef struct gavl_video_source_s gavl_video_source_t;
 typedef struct gavl_audio_source_s gavl_audio_source_t;
 
-#define GAVL_SINK_ALLOC           (1<<0)
+/** \brief Source provides a pointer to an internal structure */
 
-/** \brief Source/destination want to allocate it's frames */
-  
-#define GAVL_SOURCE_ALLOC           (1<<0)
+#define GAVL_SOURCE_SRC_ALLOC               (1<<0)
 
 /** \brief Destination changes frame */
 
 #define GAVL_SOURCE_DST_DESTROYS_FRAMES (1<<1)
-#define GAVL_SOURCE_KEEPS_FRAMES        (1<<1)
 
 /* Called by the source */
   
@@ -4171,8 +4175,9 @@ void gavl_video_source_set_dst(gavl_video_source_t*, int dst_flags,
                                const gavl_video_format_t * dst_format);
 
 GAVL_PUBLIC
-int gavl_video_source_read_frame(void*, int stream,
-                                 gavl_video_frame_t ** frame);
+gavl_source_status_t
+gavl_video_source_read_frame(void*, int stream,
+                             gavl_video_frame_t ** frame);
   
 /* Called by source */ 
 
