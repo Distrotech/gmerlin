@@ -140,6 +140,12 @@ const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode)
   return NULL;
   }
 
+int gavl_interlace_mode_is_mixed(gavl_interlace_mode_t mode)
+  {
+  return !!(mode & 0x10);
+  }
+
+
 typedef const struct
   {
   gavl_framerate_mode_t mode;

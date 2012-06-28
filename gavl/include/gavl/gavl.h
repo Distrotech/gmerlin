@@ -2125,9 +2125,9 @@ typedef enum
     GAVL_INTERLACE_NONE          = 0, /*!< Progressive */
     GAVL_INTERLACE_TOP_FIRST     = 1, /*!< Top field first */
     GAVL_INTERLACE_BOTTOM_FIRST  = 2, /*!< Bottom field first */
-    GAVL_INTERLACE_MIXED         = 3, /*!< Use interlace_mode of the frames */
-    GAVL_INTERLACE_MIXED_TOP     = 4, /*!< Progressive + top    */
-    GAVL_INTERLACE_MIXED_BOTTOM  = 5, /*!< Progressive + bottom */
+    GAVL_INTERLACE_MIXED         = (0x10 | 1), /*!< Use interlace_mode of the frames */
+    GAVL_INTERLACE_MIXED_TOP     = (0x10 | 2), /*!< Progressive + top    */
+    GAVL_INTERLACE_MIXED_BOTTOM  = (0x10 | 3), /*!< Progressive + bottom */
   } gavl_interlace_mode_t;
 
 /*! \ingroup video_format
@@ -2138,7 +2138,17 @@ typedef enum
 
 GAVL_PUBLIC
 const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode);
+
+/*! \ingroup video_format
+ * \brief Check if an interlace mode is mixed
+ * \param mode An interlace mode
+ * \returns 1 if the interlace mode is set for each frame, 0 else
+ *
+ * Since 1.5.0
+ */
   
+GAVL_PUBLIC
+int gavl_interlace_mode_is_mixed(gavl_interlace_mode_t mode);
   
 /* Video format structure */
   
