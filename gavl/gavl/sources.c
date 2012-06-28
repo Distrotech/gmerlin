@@ -97,6 +97,10 @@ static gavl_source_status_t
 read_video_simple(gavl_video_source_t * s,
                   gavl_video_frame_t ** frame)
   {
+  if(*frame)
+    {
+    
+    }
   
   }
 
@@ -115,11 +119,30 @@ read_video_cnv(gavl_video_source_t * s,
 
   if(!(*frame))
     {
-    if(s->fp_out)
+    if(!s->fp_out)
       s->fp_out = gavl_video_frame_pool_create(NULL, &s->dst_format);
     *frame = gavl_video_frame_pool_get(s->fp_out);
     }
   gavl_video_convert(s->cnv, in_frame, *frame);
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_source_status_t
+read_frame_fps(gavl_video_source_t * s,
+               gavl_video_frame_t ** frame)
+  {
+  gavl_source_status_t st;
+  if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
+    {
+    if(s->fps_frame)
+      s->fps_frame->refcount = 0;
+    s->fps_frame = gavl_video_frame_pool_get(s->fp_in);
+    }
+  if((st = s->func(s->priv, &s->fps_frame, s->stream)) != GAVL_SOURCE_OK)
+    return st;
+    
+  s->fps_pts      = s->fps_frame->timestamp;
+  s->fps_duration = s->fps_frame->duration;
   return GAVL_SOURCE_OK;
   }
 
@@ -134,18 +157,13 @@ read_video_fps(gavl_video_source_t * s,
   /* Read frame if necessary */
   if(!s->fps_frame)
     {
-    if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
-      s->fps_frame = gavl_video_frame_pool_get(s->fp_in);
-    if((st = s->func(s->priv, &s->fps_frame, s->stream)) != GAVL_SOURCE_OK)
+    if((st = read_frame_fps(s, &s->fps_frame)))
       return st;
-    
-    s->fps_pts      = s->fps_frame->timestamp;
-    s->fps_duration = s->fps_frame->duration;
+    new_frame = 1;
     
     s->next_pts = gavl_time_rescale(s->src_format.timescale,
                                     s->dst_format.timescale,
                                     s->fps_frame->timestamp);
-    new_frame = 1;
     }
   
   /* Check if frame expired */
@@ -153,41 +171,62 @@ read_video_fps(gavl_video_source_t * s,
                           s->dst_format.timescale,
                           s->fps_pts + s->fps_duration) <= s->next_pts)
     {
-    if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
-      s->fps_frame = gavl_video_frame_pool_get(s->fp_in);
-    
-    if((st = s->func(s->priv, &s->fps_frame, s->stream)) != GAVL_SOURCE_OK)
+    if((st = read_frame_fps(s, &s->fps_frame)))
       return st;
-
-    s->fps_pts      = s->fps_frame->timestamp;
-    s->fps_duration = s->fps_frame->duration;
     new_frame = 1;
     }
-  
+
+  /* Set pts / duration */
   s->fps_frame->timestamp = s->next_pts;
   s->fps_frame->duration  = s->dst_format.frame_duration;
-  
   s->next_pts += s->dst_format.frame_duration;
 
   /* Check if frame will be expired next time */
   if(gavl_time_rescale(s->src_format.timescale,
                        s->dst_format.timescale,
                        s->fps_pts + s->fps_duration) <= s->next_pts)
-    expired = 1; // Frame won't be used another time
+    expired = 1;
   
   /* Now check what to do */
+
+  /* Convert into output buffer */
+  if(*frame && s->do_convert && new_frame && expired)
+    {
+    gavl_video_convert(s->cnv, s->fps_frame, *frame);
+    return GAVL_SOURCE_OK;
+    }
+
+  /* Convert into local buffer */
+  if(s->do_convert && new_frame)
+    {
+    gavl_video_frame_t * tmp_frame;
+    if(!s->fp_out)
+      s->fp_out = gavl_video_frame_pool_create(NULL, &s->dst_format);
+    tmp_frame = gavl_video_frame_pool_get(s->fp_out);
+    gavl_video_convert(s->cnv, s->fps_frame, tmp_frame);
+    s->fps_frame = tmp_frame;
+    s->fps_frame->refcount = 1;
+    }
   
+  /* Copy into output buffer */
   if(*frame)
     {
-    if(new_frame)
-      {
-      
-      }
+    gavl_video_frame_copy(&s->dst_format, *frame, s->fps_frame);
+    return GAVL_SOURCE_OK;
     }
-  else
+
+  /* Pass frame directly */
+  if(!(s->dst_flags & GAVL_SOURCE_DST_OVERWRITES) || expired)
     {
-    
+    *frame = s->fps_frame;
+    return GAVL_SOURCE_OK;
     }
+
+  /* Copy to tmp frame and output this */
+  if(!s->fp_out)
+    s->fp_out = gavl_video_frame_pool_create(NULL, &s->dst_format);
+  *frame = gavl_video_frame_pool_get(s->fp_out);
+  gavl_video_frame_copy(&s->dst_format, *frame, s->fps_frame);
   return GAVL_SOURCE_OK;
   }
   

@@ -4149,7 +4149,7 @@ typedef struct gavl_audio_source_s gavl_audio_source_t;
 
 /** \brief Destination changes frame */
 
-#define GAVL_SOURCE_DST_DESTROYS_FRAMES (1<<1)
+#define GAVL_SOURCE_DST_OVERWRITES          (1<<1)
 
 /* Called by the source */
   
