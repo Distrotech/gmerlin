@@ -695,8 +695,7 @@ int gavl_audio_frames_equal(const gavl_audio_format_t * format,
   \ingroup audio_frame
   \brief Check if an audio frames is continuous in memory
   \param format Format
-  \param f First frame
-  \param f2 Second frame
+  \param f Frame
   \returns 1 if the frame is continuous 0 else
   
   Since 1.5.0
@@ -711,8 +710,10 @@ int gavl_audio_frame_continuous(const gavl_audio_format_t * format,
 /*!
   \ingroup audio_frame
   \brief Set the channel pointers of an audio frame
+  \param f Frame
   \param format Format
-  \param f First frame
+  \param data Address of the first sample of the first channel
+
   Since 1.5.0
 */
   
@@ -4075,9 +4076,9 @@ gavl_frame_table_dump(const gavl_frame_table_t * t);
  * forward or backwards in the pipeline while minimizing
  * the memcpy operations.
  *
- * The idea is to call \ref gavl_video_frame_ref if
+ * The idea is to increment the refcount of a frame if
  * an application intends to use a frame beyond an actual
- * function call and release it when it's done with it.
+ * function call and decrement it when it's done with it.
  *
  * The frame pool takes care of the refcounts and allocates
  * frames on demand if necessary.
@@ -4100,7 +4101,7 @@ typedef struct gavl_video_frame_pool_s gavl_video_frame_pool_t;
   
 GAVL_PUBLIC
 gavl_video_frame_pool_t *
-gavl_video_frame_pool_create(gavl_video_frame_t * (create_frame)(void * priv),
+gavl_video_frame_pool_create(gavl_video_frame_t * (*create_frame)(void * priv),
                              void * priv);
 
 /** \brief Create a video frame pool
@@ -4135,62 +4136,188 @@ void gavl_video_frame_pool_reset(gavl_video_frame_pool_t *p);
  * @}
  */
 
+/*! \defgroup sources A/V sources
+ *
+ *  A/V sources are elements, which can be used to
+ *  conveniently pass audio or video frames from one
+ *  program module to another. They do implicit format
+ *  conversion and optimized buffer handling.
+ *
+ *  A module, which provides A/V frames, creates a source
+ *  module and tells the native format in which it provides
+ *  the frames. If you want to obtain the frames from the source,
+ *  you tell the desired output format and if you intend to overwrite
+ *  the frames.
+ *
+ *  To obtain the frames, you pass the address of the pointer of the
+ *  frame. If the pointer is NULL, it will be set to an internal buffer.
+ *
+ *  The return value is of the type \ref gavl_source_status_t, which can
+ *  have 3 states depending on whether the stream ended (EOF) or a frame
+ *  is available or if no frame is available right now. The latter can be
+ *  used to implement parts of the pipeline in pull mode (the default) and
+ *  others in push mode.
+ * 
+ * @{
+ */
+
+/** \brief Video frame pool
+ *
+ * Since 1.5.0.
+ */
+
+/** \brief Return value of the source function */  
+
 typedef enum
   {
-    GAVL_SOURCE_EOF   = 0,
-    GAVL_SOURCE_OK    = 1,
-    GAVL_SOURCE_AGAIN = 2,
+    GAVL_SOURCE_EOF   = 0, //!< End of file, no more frames available
+    GAVL_SOURCE_OK    = 1, //!< Frame available
+    GAVL_SOURCE_AGAIN = 2, //!< No frame available right now, might try later
   } gavl_source_status_t;
+
+/** \brief Prototype for onbtaining one audio frame
+ *  \param priv Client data
+ *  \param frame Where to store the frame
+ *  \param stream Stream number to read from (usually zero)
+ *
+ *  If *frame is non-null, the data will be copied there,
+ *  otherwise the address of an internally allocated frame is returned
+ */
   
 typedef gavl_source_status_t
 (*gavl_audio_source_func_t)(void * priv, gavl_audio_frame_t ** frame,
                             int stream);
 
+/** \brief Prototype for onbtaining one video frame
+ *  \param priv Client data
+ *  \param frame Where to store the frame
+ *  \param stream Stream number to read from (usually zero)
+ *
+ *  If *frame is non-null, the data will be copied there,
+ *  otherwise the address of an internally allocated frame is returned.
+ */
+  
 typedef gavl_source_status_t
 (*gavl_video_source_func_t)(void * priv, gavl_video_frame_t ** frame,
                             int stream);
 
+/** \brief Forward declaration of the video source */
+  
 typedef struct gavl_video_source_s gavl_video_source_t;
+
+/** \brief Forward declaration of the audio source */
+  
 typedef struct gavl_audio_source_s gavl_audio_source_t;
 
 /** \brief Source provides a pointer to an internal structure */
 
 #define GAVL_SOURCE_SRC_ALLOC               (1<<0)
 
-/** \brief Destination changes frame */
+/** \brief Destination changes frame. */
 
 #define GAVL_SOURCE_DST_OVERWRITES          (1<<1)
 
 /* Called by the source */
-  
-GAVL_PUBLIC
-gavl_video_source_t * gavl_video_source_create(gavl_video_source_func_t func,
-                                               void * priv, int stream,
-                                               int src_flags,
-                                               const gavl_video_format_t * src_format);
+
+/** \brief Create a video source
+ *  \param func Function to get the frames from
+ *  \param priv Client data to pass to func
+ *  \param stream Stream number to pass to func
+ *  \param src_flags Flags describing the source
+ *  \param src_format Native source format
+ *  \returns A newly created video source
+ */
 
 GAVL_PUBLIC
-gavl_video_options_t * gavl_video_source_get_options(gavl_video_source_t *);
+gavl_video_source_t *
+gavl_video_source_create(gavl_video_source_func_t func,
+                         void * priv, int stream,
+                         int src_flags,
+                         const gavl_video_format_t * src_format);
+
+/** \brief Get coversion options of a video source
+ *  \param s A video source
+ *  \returns Conversion options
+ */
+
+  
+GAVL_PUBLIC
+gavl_video_options_t * gavl_video_source_get_options(gavl_video_source_t * s);
+
+/** \brief Reset a video source
+ *  \param s A video source
+ *
+ *  Call this after seeking to reset the internal state
+ */
+  
+GAVL_PUBLIC
+void gavl_video_source_reset(gavl_video_source_t * s);
+
+/** \brief Destroy a video source
+ *  \param s A video source
+ *
+ *  Destroy a video source including all video frames ever
+ *  created by it.
+ */
+
+GAVL_PUBLIC
+void gavl_video_source_destroy(gavl_video_source_t * s);
   
 /* Called by the destination */
 
+/** \brief Get the native format
+ *  \param s A video source
+ *  \returns The native video format
+ */
+  
 GAVL_PUBLIC
-const gavl_video_format_t * gavl_video_source_get_src_format(gavl_video_source_t *);
+const gavl_video_format_t *
+gavl_video_source_get_src_format(gavl_video_source_t * s);
 
+/** \brief Get the output format
+ *  \param s A video source
+ *  \returns The video format in which frames are read
+ */
+  
 GAVL_PUBLIC
-const gavl_video_format_t * gavl_video_source_get_dst_format(gavl_video_source_t *);
+const gavl_video_format_t *
+gavl_video_source_get_dst_format(gavl_video_source_t * s);
 
+/** \brief Set the destination mode
+ *  \param s A video source
+ *  \param dst_flags Flags
+ *  \param dst_format Format in which the frames will be read
+ *
+ *  If the destination format differs from the source format,
+ *  it is converted. For this, we have a \ref gavl_video_converter_t
+ *  and also do simple framerate conversion which repeats/drops
+ *  frames.
+ */
+  
 GAVL_PUBLIC
-void gavl_video_source_set_dst(gavl_video_source_t*, int dst_flags,
-                               const gavl_video_format_t * dst_format);
+void
+gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
+                          const gavl_video_format_t * dst_format);
+
+/** \brief Read a video frame
+ *  \param s A video source 
+ *  \param frame Address of a frame.
+ *  \param stream Set this to zero
+ *
+ *  This reads one frame from the source. If *frame is NULL
+ *  it will be set to an internal bufferm otherwise the data is
+ *  copied to the frame you pass.
+ */
+
 
 GAVL_PUBLIC
 gavl_source_status_t
-gavl_video_source_read_frame(void*, int stream,
-                             gavl_video_frame_t ** frame);
+gavl_video_source_read_frame(void * s, gavl_video_frame_t ** frame,
+                             int stream);
   
 /* Called by source */ 
-
+#if 0
+  
 GAVL_PUBLIC
 gavl_audio_source_t *
 gavl_audio_source_create(gavl_audio_source_func_t func,
@@ -4199,13 +4326,22 @@ gavl_audio_source_create(gavl_audio_source_func_t func,
                          const gavl_audio_format_t * src_format);
 
 GAVL_PUBLIC
-const gavl_audio_format_t * gavl_audio_source_get_src_format(gavl_audio_source_t *);
+const gavl_audio_format_t *
+gavl_audio_source_get_src_format(gavl_audio_source_t *);
 
 GAVL_PUBLIC
-const gavl_audio_format_t * gavl_audio_source_get_dst_format(gavl_audio_source_t *);
+const gavl_audio_format_t *
+gavl_audio_source_get_dst_format(gavl_audio_source_t *);
 
 GAVL_PUBLIC
-int gavl_audio_source_read_frame(void*, int stream, gavl_audio_frame_t ** frame);
+int gavl_audio_source_read_frame(void*, int stream,
+                                 gavl_audio_frame_t ** frame);
+
+#endif
+/**
+ * @}
+ */
+
   
 #ifdef __cplusplus
 }

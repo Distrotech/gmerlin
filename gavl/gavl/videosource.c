@@ -31,9 +31,11 @@ struct gavl_video_source_s
   int src_flags;
   int dst_flags;
 
+  /* Callback set by the client */
+  
   gavl_video_source_func_t func;
   gavl_video_converter_t * cnv;
-  int rescale_timestamps;
+  int scale_timestamps;
   
   int do_convert;
   
@@ -48,9 +50,10 @@ struct gavl_video_source_s
   
   gavl_video_frame_t * fps_frame;
   
-  gavl_video_frame_pool_t * fp_in;
-  gavl_video_frame_pool_t * fp_out;
+  gavl_video_frame_pool_t * src_fp;
+  gavl_video_frame_pool_t * dst_fp;
 
+  /* Callback set according to the configuration */
   gavl_source_status_t (*read_video)(gavl_video_source_t * s,
                                      gavl_video_frame_t ** frame);
   };
@@ -69,8 +72,6 @@ gavl_video_source_create(gavl_video_source_func_t func,
   ret->src_flags = src_flags;
   gavl_video_format_copy(&ret->src_format, src_format);
   ret->cnv = gavl_video_converter_create();
-
-  
   return ret;
   }
 
@@ -81,7 +82,7 @@ gavl_video_source_get_src_format(gavl_video_source_t * s)
   {
   return &s->src_format;
   }
-  
+
 const gavl_video_format_t *
 gavl_video_source_get_dst_format(gavl_video_source_t * s)
   {
@@ -93,15 +94,89 @@ gavl_video_options_t * gavl_video_source_get_options(gavl_video_source_t * s)
   return gavl_video_converter_get_options(s->cnv);
   }
 
+GAVL_PUBLIC
+void gavl_video_source_reset(gavl_video_source_t * s)
+  {
+  s->next_pts = GAVL_TIME_UNDEFINED;
+  if(s->src_fp)
+    gavl_video_frame_pool_reset(s->src_fp);
+  if(s->dst_fp)
+    gavl_video_frame_pool_reset(s->dst_fp);
+  }
+
+GAVL_PUBLIC
+void gavl_video_source_destroy(gavl_video_source_t * s)
+  {
+  if(s->src_fp)
+    gavl_video_frame_pool_destroy(s->src_fp);
+  if(s->dst_fp)
+    gavl_video_frame_pool_destroy(s->dst_fp);
+  gavl_video_converter_destroy(s->cnv);
+  free(s);
+  }
+
+#define SCALE_PTS(f)                                           \
+  if(s->scale_timestamps)                                      \
+    {                                                          \
+    int64_t next_pts;                                          \
+    if(s->next_pts == GAVL_TIME_UNDEFINED)                     \
+      s->next_pts = gavl_time_rescale(s->src_format.timescale, \
+                                      s->dst_format.timescale, \
+                                      (f)->timestamp);               \
+    next_pts = gavl_time_rescale(s->src_format.timescale,      \
+                                 s->dst_format.timescale,      \
+                                 (f)->timestamp + (f)->duration);    \
+    (f)->timestamp = s->next_pts;                                    \
+    (f)->duration = next_pts - (f)->timestamp;                       \
+    s->next_pts = next_pts;                                    \
+    }
+
 static gavl_source_status_t
 read_video_simple(gavl_video_source_t * s,
                   gavl_video_frame_t ** frame)
   {
-  if(*frame)
+  gavl_source_status_t st;
+  gavl_video_frame_t * in_frame;
+  int direct = 0;
+  
+  /* Pass from src to dst */
+
+  if(!(*frame) && (s->src_flags & GAVL_SOURCE_SRC_ALLOC) &&
+     !(s->dst_flags & GAVL_SOURCE_DST_OVERWRITES))
+    direct = 1;
+  
+  /* Pass from dst to src (this is the legacy behavior) */
+
+  if(*frame && !(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
+    direct = 1;
+  
+  if(direct)
     {
-    
+    if((st = s->func(s->priv, frame, s->stream)) != GAVL_SOURCE_OK)
+      return st;
+    SCALE_PTS(*frame);
+    return GAVL_SOURCE_OK;
     }
   
+  /* memcpy */
+
+  if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
+    in_frame = gavl_video_frame_pool_get(s->src_fp);
+  else
+    in_frame = NULL;
+  
+  if(!(*frame))
+    {
+    if(!s->dst_fp)
+      s->dst_fp = gavl_video_frame_pool_create(NULL, &s->dst_format);
+    *frame = gavl_video_frame_pool_get(s->dst_fp);
+    }
+  if((st = s->func(s->priv, &in_frame, s->stream)) != GAVL_SOURCE_OK)
+    return st;
+
+  gavl_video_frame_copy(&s->src_format, *frame, in_frame);
+  SCALE_PTS(*frame);
+  return GAVL_SOURCE_OK;
   }
 
 static gavl_source_status_t
@@ -112,18 +187,19 @@ read_video_cnv(gavl_video_source_t * s,
   gavl_video_frame_t * in_frame = NULL;
   
   if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
-    in_frame = gavl_video_frame_pool_get(s->fp_in);
+    in_frame = gavl_video_frame_pool_get(s->src_fp);
 
   if((st = s->func(s->priv, &in_frame, s->stream)) != GAVL_SOURCE_OK)
     return st;
 
   if(!(*frame))
     {
-    if(!s->fp_out)
-      s->fp_out = gavl_video_frame_pool_create(NULL, &s->dst_format);
-    *frame = gavl_video_frame_pool_get(s->fp_out);
+    if(!s->dst_fp)
+      s->dst_fp = gavl_video_frame_pool_create(NULL, &s->dst_format);
+    *frame = gavl_video_frame_pool_get(s->dst_fp);
     }
   gavl_video_convert(s->cnv, in_frame, *frame);
+  SCALE_PTS(*frame);
   return GAVL_SOURCE_OK;
   }
 
@@ -136,7 +212,7 @@ read_frame_fps(gavl_video_source_t * s,
     {
     if(s->fps_frame)
       s->fps_frame->refcount = 0;
-    s->fps_frame = gavl_video_frame_pool_get(s->fp_in);
+    s->fps_frame = gavl_video_frame_pool_get(s->src_fp);
     }
   if((st = s->func(s->priv, &s->fps_frame, s->stream)) != GAVL_SOURCE_OK)
     return st;
@@ -200,9 +276,9 @@ read_video_fps(gavl_video_source_t * s,
   if(s->do_convert && new_frame)
     {
     gavl_video_frame_t * tmp_frame;
-    if(!s->fp_out)
-      s->fp_out = gavl_video_frame_pool_create(NULL, &s->dst_format);
-    tmp_frame = gavl_video_frame_pool_get(s->fp_out);
+    if(!s->dst_fp)
+      s->dst_fp = gavl_video_frame_pool_create(NULL, &s->dst_format);
+    tmp_frame = gavl_video_frame_pool_get(s->dst_fp);
     gavl_video_convert(s->cnv, s->fps_frame, tmp_frame);
     s->fps_frame = tmp_frame;
     s->fps_frame->refcount = 1;
@@ -223,9 +299,9 @@ read_video_fps(gavl_video_source_t * s,
     }
 
   /* Copy to tmp frame and output this */
-  if(!s->fp_out)
-    s->fp_out = gavl_video_frame_pool_create(NULL, &s->dst_format);
-  *frame = gavl_video_frame_pool_get(s->fp_out);
+  if(!s->dst_fp)
+    s->dst_fp = gavl_video_frame_pool_create(NULL, &s->dst_format);
+  *frame = gavl_video_frame_pool_get(s->dst_fp);
   gavl_video_frame_copy(&s->dst_format, *frame, s->fps_frame);
   return GAVL_SOURCE_OK;
   }
@@ -234,14 +310,21 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
                                const gavl_video_format_t * dst_format)
   {
   int convert_fps;
+  gavl_video_format_t dst_fmt;
   
   s->dst_flags = dst_flags;
   gavl_video_format_copy(&s->dst_format, dst_format);
-  
+
+  gavl_video_format_copy(&dst_fmt, dst_format);
+
+  dst_fmt.framerate_mode = s->src_format.framerate_mode;
+  dst_fmt.timescale      = s->src_format.timescale;
+  dst_fmt.frame_duration = s->src_format.frame_duration;
+    
   s->do_convert =
-    gavl_video_converter_init(s->cnv, &s->src_format, &s->dst_format);
+    gavl_video_converter_init(s->cnv, &s->src_format, &dst_fmt);
   
-  s->rescale_timestamps = 0;
+  s->scale_timestamps = 0;
 
   convert_fps = 0;
   
@@ -254,6 +337,12 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
       convert_fps = 1;
       }
     }
+
+  if(!convert_fps)
+    {
+    if(s->src_format.timescale != s->src_format.timescale)
+      s->scale_timestamps = 1;
+    }
   
   if(convert_fps)
     s->read_video = read_video_fps;
@@ -262,27 +351,27 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
   else
     s->read_video = read_video_simple;
   
-  if(!convert_fps)
-    {
-    if(s->src_format.timescale != s->src_format.timescale)
-      s->rescale_timestamps = 1;
-    }
 
   if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
-    s->fp_in = gavl_video_frame_pool_create(NULL, &s->src_format);
+    s->src_fp = gavl_video_frame_pool_create(NULL, &s->src_format);
   
   }
   
-gavl_source_status_t gavl_video_source_read_frame(void * sp, int stream,
-                                                  gavl_video_frame_t ** frame)
+gavl_source_status_t
+gavl_video_source_read_frame(void * sp, gavl_video_frame_t ** frame,
+                             int stream)
   {
   gavl_video_source_t * s = sp;
   
   if(!frame)
     {
+    /* Forget our status */
+    gavl_video_source_reset(s);
+    
     /* Skip one frame as cheaply as possible */
+    return s->func(s, NULL, stream);
     }
   else
-    return s->read_video(sp, frame);
+    return s->read_video(s, frame);
   }
 
