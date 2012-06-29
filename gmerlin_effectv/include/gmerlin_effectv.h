@@ -1,7 +1,7 @@
 /*****************************************************************
  * gmerlin_effectv - EffecTV plugins for gmerlin
  *
- * Copyright (c) 2001 - 2011 Members of the Gmerlin project
+ * Copyright (c) 2001 - 2012 Members of the Gmerlin project
  * gmerlin-general@lists.sourceforge.net
  * http://gmerlin.sourceforge.net
  *
