@@ -4185,8 +4185,7 @@ typedef enum
  */
   
 typedef gavl_source_status_t
-(*gavl_audio_source_func_t)(void * priv, gavl_audio_frame_t ** frame,
-                            int stream);
+(*gavl_audio_source_func_t)(void * priv, gavl_audio_frame_t ** frame);
 
 /** \brief Prototype for onbtaining one video frame
  *  \param priv Client data
@@ -4198,8 +4197,7 @@ typedef gavl_source_status_t
  */
   
 typedef gavl_source_status_t
-(*gavl_video_source_func_t)(void * priv, gavl_video_frame_t ** frame,
-                            int stream);
+(*gavl_video_source_func_t)(void * priv, gavl_video_frame_t ** frame);
 
 /** \brief Forward declaration of the video source */
   
@@ -4231,8 +4229,7 @@ typedef struct gavl_audio_source_s gavl_audio_source_t;
 GAVL_PUBLIC
 gavl_video_source_t *
 gavl_video_source_create(gavl_video_source_func_t func,
-                         void * priv, int stream,
-                         int src_flags,
+                         void * priv, int src_flags,
                          const gavl_video_format_t * src_format);
 
 /** \brief Get coversion options of a video source
@@ -4312,8 +4309,7 @@ gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
 
 GAVL_PUBLIC
 gavl_source_status_t
-gavl_video_source_read_frame(void * s, gavl_video_frame_t ** frame,
-                             int stream);
+gavl_video_source_read_frame(void * s, gavl_video_frame_t ** frame);
   
 /* Called by source */ 
 #if 0

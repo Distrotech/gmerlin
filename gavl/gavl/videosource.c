@@ -40,7 +40,6 @@ struct gavl_video_source_s
   int do_convert;
   
   void * priv;
-  int stream;
 
   /* FPS Conversion */
   int64_t next_pts;
@@ -60,7 +59,7 @@ struct gavl_video_source_s
 
 gavl_video_source_t *
 gavl_video_source_create(gavl_video_source_func_t func,
-                         void * priv, int stream,
+                         void * priv,
                          int src_flags,
                          const gavl_video_format_t * src_format)
   {
@@ -68,7 +67,6 @@ gavl_video_source_create(gavl_video_source_func_t func,
 
   ret->func = func;
   ret->priv = priv;
-  ret->stream = stream;
   ret->src_flags = src_flags;
   gavl_video_format_copy(&ret->src_format, src_format);
   ret->cnv = gavl_video_converter_create();
@@ -152,7 +150,7 @@ read_video_simple(gavl_video_source_t * s,
   
   if(direct)
     {
-    if((st = s->func(s->priv, frame, s->stream)) != GAVL_SOURCE_OK)
+    if((st = s->func(s->priv, frame)) != GAVL_SOURCE_OK)
       return st;
     SCALE_PTS(*frame);
     return GAVL_SOURCE_OK;
@@ -171,7 +169,7 @@ read_video_simple(gavl_video_source_t * s,
       s->dst_fp = gavl_video_frame_pool_create(NULL, &s->dst_format);
     *frame = gavl_video_frame_pool_get(s->dst_fp);
     }
-  if((st = s->func(s->priv, &in_frame, s->stream)) != GAVL_SOURCE_OK)
+  if((st = s->func(s->priv, &in_frame)) != GAVL_SOURCE_OK)
     return st;
 
   gavl_video_frame_copy(&s->src_format, *frame, in_frame);
@@ -189,7 +187,7 @@ read_video_cnv(gavl_video_source_t * s,
   if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
     in_frame = gavl_video_frame_pool_get(s->src_fp);
 
-  if((st = s->func(s->priv, &in_frame, s->stream)) != GAVL_SOURCE_OK)
+  if((st = s->func(s->priv, &in_frame)) != GAVL_SOURCE_OK)
     return st;
 
   if(!(*frame))
@@ -214,7 +212,7 @@ read_frame_fps(gavl_video_source_t * s,
       s->fps_frame->refcount = 0;
     s->fps_frame = gavl_video_frame_pool_get(s->src_fp);
     }
-  if((st = s->func(s->priv, &s->fps_frame, s->stream)) != GAVL_SOURCE_OK)
+  if((st = s->func(s->priv, &s->fps_frame)) != GAVL_SOURCE_OK)
     return st;
     
   s->fps_pts      = s->fps_frame->timestamp;
@@ -358,8 +356,7 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
   }
   
 gavl_source_status_t
-gavl_video_source_read_frame(void * sp, gavl_video_frame_t ** frame,
-                             int stream)
+gavl_video_source_read_frame(void * sp, gavl_video_frame_t ** frame)
   {
   gavl_video_source_t * s = sp;
   
@@ -369,7 +366,7 @@ gavl_video_source_read_frame(void * sp, gavl_video_frame_t ** frame,
     gavl_video_source_reset(s);
     
     /* Skip one frame as cheaply as possible */
-    return s->func(s, NULL, stream);
+    return s->func(s, NULL);
     }
   else
     return s->read_video(s, frame);
