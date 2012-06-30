@@ -709,7 +709,7 @@ static uint32_t d10_fourccs[] =
     0x00,
   };
 
-static uint32_t dv_fourccs[] =
+const uint32_t bgav_dv_fourccs[] =
   {
     BGAV_MK_FOURCC('d', 'v', 's', 'd'), 
     BGAV_MK_FOURCC('D', 'V', 'S', 'D'), 
@@ -734,18 +734,6 @@ static uint32_t dv_fourccs[] =
     0x00,
   };
 
-static int check_fourcc(uint32_t fourcc, uint32_t * fourccs)
-  {
-  int i = 0;
-  while(fourccs[i])
-    {
-    if(fourccs[i] == fourcc)
-      return 1;
-    else
-      i++;
-    }
-  return 0;
-  }
 
 int bgav_get_video_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info)
@@ -758,34 +746,34 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   
   memset(info, 0, sizeof(*info));
   
-  if(check_fourcc(s->fourcc, png_fourccs))
+  if(bgav_check_fourcc(s->fourcc, png_fourccs))
     id = GAVL_CODEC_ID_PNG;
-  else if(check_fourcc(s->fourcc, jpeg_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, jpeg_fourccs))
     id = GAVL_CODEC_ID_JPEG;
-  else if(check_fourcc(s->fourcc, tiff_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, tiff_fourccs))
     id = GAVL_CODEC_ID_TIFF;
-  else if(check_fourcc(s->fourcc, tga_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, tga_fourccs))
     id = GAVL_CODEC_ID_TGA;
-  else if(check_fourcc(s->fourcc, mpeg1_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, mpeg1_fourccs))
     id = GAVL_CODEC_ID_MPEG1;
-  else if(check_fourcc(s->fourcc, mpeg2_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, mpeg2_fourccs))
     id = GAVL_CODEC_ID_MPEG2;
-  else if(check_fourcc(s->fourcc, theora_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, theora_fourccs))
     id = GAVL_CODEC_ID_THEORA;
-  else if(check_fourcc(s->fourcc, dirac_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, dirac_fourccs))
     id = GAVL_CODEC_ID_DIRAC;
-  else if(check_fourcc(s->fourcc, h264_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, h264_fourccs))
     id = GAVL_CODEC_ID_H264;
-  else if(check_fourcc(s->fourcc, mpeg4_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, mpeg4_fourccs))
     id = GAVL_CODEC_ID_MPEG4_ASP;
-  else if(check_fourcc(s->fourcc, dv_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs))
     id = GAVL_CODEC_ID_DV;
-  else if(check_fourcc(s->fourcc, avc1_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, avc1_fourccs))
     {
     id = GAVL_CODEC_ID_H264;
     s->flags |= STREAM_FILTER_PACKETS;
     }
-  else if(check_fourcc(s->fourcc, d10_fourccs))
+  else if(bgav_check_fourcc(s->fourcc, d10_fourccs))
     {
     id = GAVL_CODEC_ID_MPEG2;
     need_bitrate = 1;

@@ -62,6 +62,20 @@ void bgav_dump_fourcc(uint32_t fourcc)
     
   }
 
+int bgav_check_fourcc(uint32_t fourcc, const uint32_t * fourccs)
+  {
+  int i = 0;
+  while(fourccs[i])
+    {
+    if(fourccs[i] == fourcc)
+      return 1;
+    else
+      i++;
+    }
+  return 0;
+  }
+
+
 void bgav_hexdump(const uint8_t * data, int len, int linebreak)
   {
   int i;

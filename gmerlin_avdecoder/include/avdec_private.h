@@ -102,7 +102,7 @@ void bgav_packet_source_copy(bgav_packet_source_t * dst,
 
 struct bgav_audio_decoder_s
   {
-  uint32_t * fourccs;
+  const uint32_t * fourccs;
   const char * name;
   int (*init)(bgav_stream_t*);
   int (*decode_frame)(bgav_stream_t*);
@@ -113,7 +113,7 @@ struct bgav_audio_decoder_s
 
 struct bgav_video_decoder_s
   {
-  uint32_t * fourccs;
+  const uint32_t * fourccs;
   const char * name;
   int flags;
 
@@ -1603,6 +1603,8 @@ int bgav_init(bgav_t * b);
 /* utils.c */
 
 void bgav_dump_fourcc(uint32_t fourcc);
+int bgav_check_fourcc(uint32_t fourcc, const uint32_t * fourccs);
+
 void bgav_hexdump(const uint8_t * data, int len, int linebreak);
 char * bgav_sprintf(const char * format,...)   __attribute__ ((format (printf, 1, 2)));
 
@@ -1713,6 +1715,8 @@ void bgav_audio_resync(bgav_stream_t * stream);
 int bgav_audio_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 
 /* video.c */
+
+extern const uint32_t bgav_dv_fourccs[];
 
 void bgav_video_dump(bgav_stream_t * s);
 

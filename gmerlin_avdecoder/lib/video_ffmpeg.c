@@ -91,7 +91,7 @@ typedef struct
   const char * decoder_name;
   const char * format_name;
   enum CodecID ffmpeg_id;
-  uint32_t * fourccs;
+  const uint32_t * fourccs;
 
   int (*get_format)(bgav_stream_t*, bgav_packet_t * p);
   } codec_info_t;
@@ -690,21 +690,22 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
         priv->gavl_frame->strides[2] = priv->frame->linesize[2];
         gavl_video_frame_copy(&s->data.video.format, f, priv->gavl_frame);
         }
+
+      /* Set frame metadata */
+
+      f->timestamp = priv->picture_timestamp;
+      f->duration = priv->picture_duration;
+
+      if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
+        f->interlace_mode = priv->picture_interlace;
+    
+      if(priv->picture_timecode != GAVL_TIMECODE_UNDEFINED)
+        {
+        s->codec_timecode = priv->picture_timecode;
+        s->has_codec_timecode = 1;
+        }
       }
     
-    /* Set frame metadata */
-
-    f->timestamp = priv->picture_timestamp;
-    f->duration = priv->picture_duration;
-
-    if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
-      f->interlace_mode = priv->picture_interlace;
-    
-    if(priv->picture_timecode != GAVL_TIMECODE_UNDEFINED)
-      {
-      s->codec_timecode = priv->picture_timecode;
-      s->has_codec_timecode = 1;
-      }
     }
   else if(!priv->need_format)
     return 0; /* EOF */
@@ -1340,6 +1341,8 @@ static codec_info_t codec_infos[] =
     
     /*     CODEC_ID_DVVIDEO, */
     { "FFmpeg DV decoder", "DV Video", CODEC_ID_DVVIDEO,
+      bgav_dv_fourccs,
+#if 0
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'v', 's', 'd'), 
                     BGAV_MK_FOURCC('D', 'V', 'S', 'D'), 
                     BGAV_MK_FOURCC('d', 'v', 'h', 'd'), 
@@ -1362,14 +1365,9 @@ static codec_info_t codec_infos[] =
                     BGAV_MK_FOURCC('d', 'v', 'h', '3') , /* DVCPRO HD 30p produced by FCP */
                     
                     0x00 },
+#endif
       get_format_dv,
     },
-    
-    { "FFmpeg DVCPRO50 decoder", "DVCPRO50 Video", CODEC_ID_DVVIDEO,
-      (uint32_t[]){ BGAV_MK_FOURCC('d', 'v', '5', 'n'),
-               BGAV_MK_FOURCC('d', 'v', '5', 'p'),
-               0x00 } },
-
     /*     CODEC_ID_HUFFYUV, */
     { "FFmpeg Hufyuv decoder", "Huff YUV", CODEC_ID_HUFFYUV,
       (uint32_t[]){ BGAV_MK_FOURCC('H', 'F', 'Y', 'U'),

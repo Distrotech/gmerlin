@@ -357,7 +357,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         return PARSER_NEED_DATA;
       parser->pos += len;
       priv->state = MPEG_NEED_STARTCODE;
-
+      
       if(!parser->s->data.video.format.timecode_format.int_framerate)
         {
         parser->s->data.video.format.timecode_format.int_framerate =
@@ -624,13 +624,39 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
         start += len;
         break;
       case MPEG_CODE_GOP:
+        {
+        bgav_mpv_gop_header_t        gh;
+        
         if(!parser->s->ext_data && priv->have_sh)
           {
           bgav_video_parser_extract_header(parser);
           ret = PARSER_CONTINUE;
           }
+
+        len = bgav_mpv_gop_header_parse(parser->s->opt,
+                                        &gh, start, end - start);
         
-        start += 4;
+        if(!len)
+          return PARSER_ERROR;
+        
+        start += len;
+
+        if(!parser->s->data.video.format.timecode_format.int_framerate)
+          {
+          parser->s->data.video.format.timecode_format.int_framerate =
+            parser->s->data.video.format.timescale /
+            parser->s->data.video.format.frame_duration;
+          if(gh.drop)
+            parser->s->data.video.format.timecode_format.flags |=
+              GAVL_TIMECODE_DROP_FRAME;
+          }
+        
+        gavl_timecode_from_hmsf(&p->tc,
+                                gh.hours,
+                                gh.minutes,
+                                gh.seconds,
+                                gh.frames);
+        }
         break;
       case MPEG_CODE_SLICE:
         return ret;
