@@ -932,7 +932,7 @@ test_streams_detect(test_streams_t * s, bgav_track_t * track,
     {
     ret = bgav_track_add_audio_stream(track, opt);
     ret->fourcc = BGAV_MK_FOURCC('.','a','c','3');
-    ret->index_mode = INDEX_MODE_MPEG;
+    ret->index_mode = INDEX_MODE_SIMPLE;
     }
 
   if(ret)
@@ -1009,7 +1009,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         //        bgav_hexdump(priv->ptr, 16, 16);
         
         s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
-        s->index_mode = INDEX_MODE_MPEG;
+        s->index_mode = INDEX_MODE_SIMPLE;
 
         /* Try to distinguish between MPEG-1/2 and H.264 */
         if((size >= 4) &&
@@ -1036,7 +1036,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         {
         s = bgav_track_add_audio_stream(&ctx->tt->tracks[0], ctx->opt);
         s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'a');
-        s->index_mode = INDEX_MODE_MPEG;
+        s->index_mode = INDEX_MODE_SIMPLE;
         s->flags |= STREAM_NEED_EXACT_COMPRESSION;
         }
       else

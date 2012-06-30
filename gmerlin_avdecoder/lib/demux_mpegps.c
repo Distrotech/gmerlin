@@ -492,7 +492,7 @@ static void init_stream(bgav_stream_t * s, uint32_t fourcc,
                         int stream_id)
   {
   s->timescale = 90000;
-  s->index_mode = INDEX_MODE_MPEG;
+  s->index_mode = INDEX_MODE_SIMPLE;
   s->fourcc = fourcc;
   s->stream_id = stream_id;
   }
@@ -1116,13 +1116,13 @@ static int init_cdxa(bgav_demuxer_context_t * ctx)
   
   stream =  bgav_track_add_audio_stream(track, ctx->opt);
   stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '2');
-  stream->index_mode = INDEX_MODE_MPEG;
+  stream->index_mode = INDEX_MODE_SIMPLE;
   stream->stream_id = 0xc0;
   stream->timescale = 90000;
   
   stream =  bgav_track_add_video_stream(track, ctx->opt);
   stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'v', '1');
-  stream->index_mode = INDEX_MODE_MPEG;
+  stream->index_mode = INDEX_MODE_SIMPLE;
   stream->stream_id = 0xe0;
   stream->timescale = 90000;
   

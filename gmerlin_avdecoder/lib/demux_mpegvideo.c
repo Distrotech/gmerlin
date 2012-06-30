@@ -130,7 +130,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   ctx->tt = bgav_track_table_create(1);
   
   s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  s->index_mode = INDEX_MODE_MPEG;
+  s->index_mode = INDEX_MODE_SIMPLE;
   /*
    *  We just set the fourcc, everything else will
    *  be set by the parser

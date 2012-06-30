@@ -194,7 +194,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
         break;
       case 2: /* MP3 */
         s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
-        s->index_mode = INDEX_MODE_MPEG;
+        s->index_mode = INDEX_MODE_SIMPLE;
         s->flags |= STREAM_PARSE_FULL;
         s->duration = 0;
         break;
@@ -220,7 +220,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
         s->fourcc = FOURCC_AAC;
         //        s->index_mode = INDEX_MODE_MPEG;
         s->flags |= STREAM_PARSE_FULL | STREAM_NEED_START_TIME;
-        s->index_mode = INDEX_MODE_MPEG;
+        s->index_mode = INDEX_MODE_SIMPLE;
         // ctx->index_mode = 0;
         s->duration = 0;
         priv->need_audio_extradata = 1;

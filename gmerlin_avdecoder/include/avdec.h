@@ -1887,6 +1887,22 @@ void bgav_skip_video(bgav_t * bgav, int stream,
                      int64_t * time, int scale,
                      int exact);
 
+/** \ingroup decode
+    \brief Return the video source for this stream
+    \param bgav A decoder instance
+    \param stream Stream index (starting with 0)
+    \returns A video source to get the frames from
+
+    This is an alternative to using \ref bgav_video_has_still and
+    \ref bgav_read_video. A \ref gavl_video_source_t lets you read
+    frames with optimized buffer management and implicit format
+    conversion. For a still stream, if no image is available, the
+    source will return GAVL_VIDEO_SOURCE_AGAIN.
+*/
+  
+BGAV_PUBLIC
+gavl_video_source_t * bgav_get_video_source(bgav_t * bgav, int stream);
+
   
 /** \ingroup decode
     \brief Decode audio samples

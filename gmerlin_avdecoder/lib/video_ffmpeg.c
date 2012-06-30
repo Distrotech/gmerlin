@@ -151,9 +151,7 @@ typedef struct
   gavl_video_format_t field_format[2];
   
   /* */
-  //  AVCodecParserContext * parser;
-  //  int parser_started;
-    
+  
   bgav_dv_dec_t * dvdec;
   
   gavl_timecode_t last_dv_timecode;
@@ -803,11 +801,6 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   //  av_log_set_level(AV_LOG_DEBUG);
   
-  if((s->action == BGAV_STREAM_PARSE) &&
-     (s->demuxer->index_mode != INDEX_MODE_MPEG) &&
-     (s->index_mode != INDEX_MODE_MPEG))
-    return 1;
-
   priv = calloc(1, sizeof(*priv));
   priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
 
@@ -1849,7 +1842,6 @@ void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)
         codecs[real_num_codecs].info->fourccs;
       codecs[real_num_codecs].decoder.init = init_ffmpeg;
       codecs[real_num_codecs].decoder.decode = decode_ffmpeg;
-      //      codecs[real_num_codecs].decoder.parse = parse_ffmpeg;
       codecs[real_num_codecs].decoder.close = close_ffmpeg;
       codecs[real_num_codecs].decoder.resync = resync_ffmpeg;
       

@@ -98,37 +98,6 @@ typedef struct
 void bgav_packet_source_copy(bgav_packet_source_t * dst,
                              const bgav_packet_source_t * src);
 
-#if 0
-/* Metadata */
-
-struct bgav_metadata_s
-  {
-  char * author;
-  char * title;
-  char * comment;
-  char * copyright;
-  char * album;
-  char * artist;
-  char * genre;
-  char * date;
-  char * albumartist;
-  int track;
-  };
-
-void bgav_metadata_dump(bgav_metadata_t*m);
-
-void bgav_metadata_merge(bgav_metadata_t * dst,
-                         bgav_metadata_t * src1,
-                         bgav_metadata_t * src2);
-
-void bgav_metadata_merge2(bgav_metadata_t * dst,
-                          bgav_metadata_t * src);
-
-void bgav_metadata_free(bgav_metadata_t*);
-void bgav_metadata_copy(bgav_metadata_t * dst,
-                        bgav_metadata_t * src);
-
-#endif
 /* Decoder structures */
 
 struct bgav_audio_decoder_s
@@ -139,7 +108,6 @@ struct bgav_audio_decoder_s
   int (*decode_frame)(bgav_stream_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
-  void (*parse)(bgav_stream_t*);
   bgav_audio_decoder_t * next;
   };
 
@@ -163,7 +131,7 @@ struct bgav_video_decoder_s
   int (*decode)(bgav_stream_t*, gavl_video_frame_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
-  void (*parse)(bgav_stream_t*, int flush);
+  //  void (*parse)(bgav_stream_t*, int flush);
   
   /* Skip to a specified time. Only needed for
      decoders which are not synchronous
@@ -488,12 +456,7 @@ struct bgav_stream_s
   bgav_packet_t * packet;
   int             packet_seq;
   
-  /* Language (ISO 639-3 B code) */
-
-  //  char language[4];
-
   gavl_metadata_t m;
-  
   
   /*
    *  Sometimes, the bitrates important for codecs 
@@ -603,6 +566,8 @@ struct bgav_stream_s
         int size;
         int sent;
         } pal;
+      
+      gavl_video_source_t * source;
       
       } video;
     struct
@@ -1317,7 +1282,7 @@ struct bgav_demuxer_s
 /* Packets have precise timestamps (but no durations) and are adjacent in the file */
 // #define INDEX_MODE_PTS    2
 /* MPEG Program/transport stream: Needs complete parsing */
-#define INDEX_MODE_MPEG   3
+// #define INDEX_MODE_MPEG   3
 /* For PCM soundfiles: Sample accuracy is already there */
 #define INDEX_MODE_PCM    4
 /* File has a global index and codecs, which allow sample accuracy */

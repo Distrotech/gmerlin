@@ -407,12 +407,12 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
      (s->fourcc == BGAV_MK_FOURCC('m','x','4','n')) ||
      (s->fourcc == BGAV_MK_FOURCC('m','x','3','n')))
     {
-    s->index_mode = INDEX_MODE_MPEG;
+    s->index_mode = INDEX_MODE_SIMPLE;
     s->flags |= STREAM_PARSE_FRAME;
     }
   else if(s->fourcc == BGAV_MK_FOURCC('m','p','4','v'))
     {
-    s->index_mode = INDEX_MODE_MPEG;
+    s->index_mode = INDEX_MODE_SIMPLE;
     s->flags |= STREAM_PARSE_FULL; 
     }
   else

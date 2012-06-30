@@ -2019,7 +2019,7 @@ static int open_avi(bgav_demuxer_context_t * ctx)
         continue;
       else if(check_codec(ctx->tt->cur->audio_streams[i].fourcc, audio_codecs_parse_mpeg))
         {
-        ctx->tt->cur->audio_streams[i].index_mode = INDEX_MODE_MPEG;
+        ctx->tt->cur->audio_streams[i].index_mode = INDEX_MODE_SIMPLE;
         ctx->tt->cur->audio_streams[i].flags |= STREAM_PARSE_FULL;
         ctx->index_mode = INDEX_MODE_SI_PARSE;
         continue;
@@ -2069,7 +2069,7 @@ static int open_avi(bgav_demuxer_context_t * ctx)
         }
       else if(check_codec(ctx->tt->cur->audio_streams[i].fourcc, audio_codecs_parse_mpeg))
         {
-        ctx->tt->cur->audio_streams[i].index_mode = INDEX_MODE_MPEG;
+        ctx->tt->cur->audio_streams[i].index_mode = INDEX_MODE_SIMPLE;
         ctx->tt->cur->audio_streams[i].flags |= STREAM_PARSE_FULL;
         continue;
         }

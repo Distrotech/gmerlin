@@ -1732,7 +1732,7 @@ static void fix_index(bgav_demuxer_context_t * ctx)
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                  "Dirac stream has no ctts");
         ctx->index_mode = INDEX_MODE_SI_PARSE;
-        s->index_mode = INDEX_MODE_MPEG;
+        s->index_mode = INDEX_MODE_SIMPLE;
         s->flags |= STREAM_PARSE_FRAME;
         }
       }

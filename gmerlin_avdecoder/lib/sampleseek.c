@@ -387,7 +387,6 @@ int bgav_set_sample_accurate(bgav_t * b)
         b->tt->tracks[i].flags |= TRACK_SAMPLE_ACCURATE;
       return 1;
       break;
-    case INDEX_MODE_MPEG:
     case INDEX_MODE_SIMPLE:
     case INDEX_MODE_MIXED:
       if(!b->input->index_file || !b->input->input->seek_byte)

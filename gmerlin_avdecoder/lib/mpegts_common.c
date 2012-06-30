@@ -426,7 +426,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         (track->num_audio_streams < max_audio_streams)))
       {
       s = bgav_track_add_audio_stream(track, opt);
-      s->index_mode = INDEX_MODE_MPEG;
+      s->index_mode = INDEX_MODE_SIMPLE;
       s->fourcc = st->fourcc;
 
 
@@ -436,7 +436,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         (track->num_video_streams < max_video_streams)))
       {
       s = bgav_track_add_video_stream(track, opt);
-      s->index_mode = INDEX_MODE_MPEG;
+      s->index_mode = INDEX_MODE_SIMPLE;
       s->fourcc = st->fourcc;
       }
     /* ISO/IEC 13818-1 PES packets containing private data */
@@ -451,7 +451,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         {
         s = bgav_track_add_audio_stream(track, opt);
         s->fourcc = BGAV_MK_FOURCC('.','a','c','3');
-        s->index_mode = INDEX_MODE_MPEG;
+        s->index_mode = INDEX_MODE_SIMPLE;
         ac3_streams++;
         }
       else
@@ -473,7 +473,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         {
         s = bgav_track_add_video_stream(track, opt);
         s->fourcc = BGAV_MK_FOURCC('d','r','a','c');
-        s->index_mode = INDEX_MODE_MPEG;
+        s->index_mode = INDEX_MODE_SIMPLE;
         }
       else
         {

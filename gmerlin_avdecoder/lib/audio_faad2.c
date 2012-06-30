@@ -267,54 +267,6 @@ static void resync_faad2(bgav_stream_t * s)
   bgav_bytebuffer_flush(&priv->buf);
   }
 
-static void parse_faad2(bgav_stream_t * s)
-  {
-  bgav_packet_t * p;
-  faad_priv_t * priv;
-  int old_buffer_size;
-  int64_t position;
-
-  priv = s->data.audio.decoder->priv;
-  
-  while(bgav_stream_peek_packet_read(s, 0))
-    {
-    /* Get the packet and append data to the buffer */
-    p = bgav_stream_get_packet_read(s);
-
-    old_buffer_size = priv->buf.size;
-
-    bgav_bytebuffer_append(&priv->buf, p, 0);
-    position = p->position;
-    bgav_stream_done_packet_read(s, p);
-    
-    while(priv->buf.size >= FAAD_MIN_STREAMSIZE)
-      {
-      if(!decode_frame_faad2(s))
-        break;
-      
-      /* If frame starts in the previous packet,
-         use the previous index */
-      if(old_buffer_size)
-        {
-        bgav_file_index_append_packet(s->file_index,
-                                      priv->last_position,
-                                      s->duration,
-                                      PACKET_FLAG_KEY, GAVL_TIMECODE_UNDEFINED);
-        old_buffer_size = 0;
-        }
-      else
-        bgav_file_index_append_packet(s->file_index,
-                                      position,
-                                      s->duration,
-                                      PACKET_FLAG_KEY, GAVL_TIMECODE_UNDEFINED);
-      
-      s->duration += s->data.audio.frame->valid_samples;
-      }
-    priv->last_position = position;
-    }
-  }
-
-
 static bgav_audio_decoder_t decoder =
   {
     .name =   "FAAD AAC audio decoder",
@@ -332,7 +284,6 @@ static bgav_audio_decoder_t decoder =
     
     .init =   init_faad2,
     .decode_frame = decode_frame_faad2,
-    .parse = parse_faad2,
     .close =  close_faad2,
     .resync =  resync_faad2
   };
