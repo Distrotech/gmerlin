@@ -167,6 +167,8 @@ int bgav_video_start(bgav_stream_t * s)
     result = dec->init(s);
     if(!result)
       return 0;
+    
+    
     }
 
   if(s->codec_bitrate)
@@ -188,7 +190,6 @@ const char * bgav_get_video_description(bgav_t * b, int s)
   return gavl_metadata_get(&b->tt->cur->video_streams[s].m,
                            GAVL_META_FORMAT);
   }
-
 
 static int bgav_video_decode(bgav_stream_t * s,
                              gavl_video_frame_t* frame)
@@ -263,6 +264,12 @@ void bgav_video_stop(bgav_stream_t * s)
     {
     bgav_video_format_tracker_destroy(s->data.video.ft);
     s->data.video.ft = NULL;
+    }
+
+  if(s->data.video.source)
+    {
+    gavl_video_source_destroy(s->data.video.source);
+    s->data.video.source = NULL;
     }
   if(s->data.video.decoder)
     {

@@ -124,14 +124,20 @@ struct bgav_video_decoder_s
   int (*get_format)(bgav_stream_t*, bgav_packet_t * p);
   
   int (*init)(bgav_stream_t*);
+
+
   /*
    *  Decodes one frame. If frame is NULL;
-   *  the frame is skipped
+   *  the frame is skipped.
+   *  If this function is NULL, the codec must create a
+   *  video source for the stream
    */
   int (*decode)(bgav_stream_t*, gavl_video_frame_t*);
+  
+
   void (*close)(bgav_stream_t*);
-  void (*resync)(bgav_stream_t*);
-  //  void (*parse)(bgav_stream_t*, int flush);
+  
+  void (*resync)(bgav_stream_t*); // Call after seeking
   
   /* Skip to a specified time. Only needed for
      decoders which are not synchronous

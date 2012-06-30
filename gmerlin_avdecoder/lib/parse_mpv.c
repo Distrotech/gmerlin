@@ -357,6 +357,21 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         return PARSER_NEED_DATA;
       parser->pos += len;
       priv->state = MPEG_NEED_STARTCODE;
+
+      if(!parser->s->data.video.format.timecode_format.int_framerate)
+        {
+        parser->s->data.video.format.timecode_format.int_framerate =
+          parser->s->data.video.format.timescale / parser->s->data.video.format.frame_duration;
+        if(gh.drop)
+          parser->s->data.video.format.timecode_format.flags |=
+            GAVL_TIMECODE_DROP_FRAME;
+        }
+
+      gavl_timecode_from_hmsf(&parser->cache[parser->cache_size-1].tc,
+                              gh.hours,
+                              gh.minutes,
+                              gh.seconds,
+                              gh.frames);
       break;
     case MPEG_HAS_SEQUENCE_CODE:
       /* Try to get the sequence header */
