@@ -305,18 +305,20 @@ int bgav_stream_get_index(bgav_stream_t * s)
 bgav_packet_t *
 bgav_stream_get_packet_read(bgav_stream_t * s)
   {
-#ifdef DUMP_OUT_PACKETS
   bgav_packet_t * p;
   p = s->src.get_func(s->src.data);
   if(p)
     {
+    if(s->timecode_table)
+      p->tc =
+        bgav_timecode_table_get_timecode(s->timecode_table,
+                                         p->pts);
+#ifdef DUMP_OUT_PACKETS
     bgav_dprintf("Got packet (stream %d): ", s->stream_id);
     bgav_packet_dump(p);
+#endif
     }
   return p;
-#else
-  return s->src.get_func(s->src.data);
-#endif
   }
 
 bgav_packet_t *

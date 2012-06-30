@@ -182,6 +182,8 @@ typedef struct
   int ip_age[2];
 
   bgav_packet_t * p;
+
+  void (*put_frame)(bgav_stream_t * s, gavl_video_frame_t * f);
   
   } ffmpeg_video_priv;
 
@@ -335,7 +337,7 @@ static void done_data(bgav_stream_t * s, bgav_packet_t * p)
   }
 
 static void get_format(AVCodecContext * ctx, gavl_video_format_t * format);
-static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f);
+static void init_put_frame(bgav_stream_t * s);
 
 #ifdef HAVE_LIBPOSTPROC
 static void init_pp(bgav_stream_t * s);
@@ -673,7 +675,36 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   if(s->flags & STREAM_HAVE_PICTURE)
     {
     if(f)
-      put_frame(s, f);
+      {
+      if(priv->put_frame)
+        priv->put_frame(s, f);
+      else
+        {
+        /* TODO: Remove this */
+        priv->gavl_frame->planes[0]  = priv->frame->data[0];
+        priv->gavl_frame->planes[1]  = priv->frame->data[1];
+        priv->gavl_frame->planes[2]  = priv->frame->data[2];
+          
+        priv->gavl_frame->strides[0] = priv->frame->linesize[0];
+        priv->gavl_frame->strides[1] = priv->frame->linesize[1];
+        priv->gavl_frame->strides[2] = priv->frame->linesize[2];
+        gavl_video_frame_copy(&s->data.video.format, f, priv->gavl_frame);
+        }
+      }
+    
+    /* Set frame metadata */
+
+    f->timestamp = priv->picture_timestamp;
+    f->duration = priv->picture_duration;
+
+    if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
+      f->interlace_mode = priv->picture_interlace;
+    
+    if(priv->picture_timecode != GAVL_TIMECODE_UNDEFINED)
+      {
+      s->codec_timecode = priv->picture_timecode;
+      s->has_codec_timecode = 1;
+      }
     }
   else if(!priv->need_format)
     return 0; /* EOF */
@@ -1012,11 +1043,11 @@ static int init_ffmpeg(bgav_stream_t * s)
 #endif
   if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
     {
+#ifdef HAVE_LIBSWSCALE
     s->data.video.format.pixelformat = GAVL_YUV_420_P;
     priv->do_convert = 1;
     priv->dst_format = PIX_FMT_YUV420P;
-
-#ifdef HAVE_LIBSWSCALE
+    
     priv->swsContext =
       sws_getContext(s->data.video.format.image_width,
                      s->data.video.format.image_height,
@@ -1027,6 +1058,10 @@ static int init_ffmpeg(bgav_stream_t * s)
                      SWS_FAST_BILINEAR, NULL,
                      NULL,
                      NULL);
+#else
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Unsupported pixelformat and no libswscale available");
+    return 0;
 #endif
     }
 
@@ -1045,6 +1080,8 @@ static int init_ffmpeg(bgav_stream_t * s)
   if(!gavl_metadata_get(&s->m, GAVL_META_FORMAT))
     gavl_metadata_set(&s->m, GAVL_META_FORMAT,
                       priv->info->format_name);
+
+  init_put_frame(s);
   
   return 1;
   }
@@ -1959,8 +1996,6 @@ static void pal8_to_rgba32(gavl_video_frame_t * dst, AVFrame * src,
     }
   }
 
-#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
-
 static void yuva420_to_yuva32(gavl_video_frame_t * dst, AVFrame * src,
                               int width, int height, int flip_y)
   {
@@ -2073,7 +2108,6 @@ static void yuva420_to_yuva32(gavl_video_frame_t * dst, AVFrame * src,
     dst_save += dst_stride;
     }
   }
-#endif
 
 
 /* Real stupid rgba format conversion */
@@ -2323,8 +2357,137 @@ static void init_pp(bgav_stream_t * s)
   }
 #endif
 
+static void put_frame_palette(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv;
+  priv = s->data.video.decoder->priv;
+  
+  if(s->data.video.format.pixelformat == GAVL_RGBA_32)
+    pal8_to_rgba32(f, priv->frame,
+                   s->data.video.format.image_width,
+                   s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
+  else
+    pal8_to_rgb24(f, priv->frame,
+                  s->data.video.format.image_width,
+                  s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
+  }
+
+#ifdef HAVE_VDPAU
+static void put_frame_vdpau(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  struct vdpau_render_state * state =
+    (struct vdpau_render_state *)priv->frame->data[0];
+  bgav_vdpau_context_surface_to_frame(priv->vdpau_ctx,
+                                      state->surface, f);
+  }
+#endif
+
+static void put_frame_rgba32(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  rgba32_to_rgba32(f, priv->frame,
+                   s->data.video.format.image_width,
+                   s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
+  }
+
+static void put_frame_yuva420(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  yuva420_to_yuva32(f, priv->frame,
+                    s->data.video.format.image_width,
+                    s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
+  }
+
+static void put_frame_pp(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  if(priv->flags & FLIP_Y)
+    {
+    pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
+                   priv->flip_frame->planes, priv->flip_frame->strides,
+                   priv->ctx->width, priv->ctx->height,
+                   priv->frame->qscale_table, priv->frame->qstride,
+                   priv->pp_mode, priv->pp_context,
+                   priv->frame->pict_type);
+    gavl_video_frame_copy_flip_y(&s->data.video.format,
+                                 f, priv->flip_frame);
+    }
+  else
+    pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
+                   f->planes, f->strides,
+                   priv->ctx->width, priv->ctx->height,
+                   priv->frame->qscale_table, priv->frame->qstride,
+                   priv->pp_mode, priv->pp_context,
+                   priv->frame->pict_type);
+  }
+
+static void put_frame_flip(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  priv->gavl_frame->planes[0]  = priv->frame->data[0];
+  priv->gavl_frame->planes[1]  = priv->frame->data[1];
+  priv->gavl_frame->planes[2]  = priv->frame->data[2];
+          
+  priv->gavl_frame->strides[0] = priv->frame->linesize[0];
+  priv->gavl_frame->strides[1] = priv->frame->linesize[1];
+  priv->gavl_frame->strides[2] = priv->frame->linesize[2];
+  gavl_video_frame_copy_flip_y(&s->data.video.format,
+                               f, priv->gavl_frame);
+  
+  }
+
+static void put_frame_swapfields(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  priv->gavl_frame->planes[0]  = priv->frame->data[0];
+  priv->gavl_frame->planes[1]  = priv->frame->data[1];
+  priv->gavl_frame->planes[2]  = priv->frame->data[2];
+          
+  priv->gavl_frame->strides[0] = priv->frame->linesize[0];
+  priv->gavl_frame->strides[1] = priv->frame->linesize[1];
+  priv->gavl_frame->strides[2] = priv->frame->linesize[2];
+
+  /* src field (top) -> dst field (bottom) */
+  gavl_video_frame_get_field(s->data.video.format.pixelformat,
+                             priv->gavl_frame,
+                             priv->src_field,
+                             0);
+
+  gavl_video_frame_get_field(s->data.video.format.pixelformat,
+                             f,
+                             priv->dst_field,
+                             1);
+        
+  gavl_video_frame_copy(&priv->field_format[1], priv->dst_field, priv->src_field);
+
+  /* src field (bottom) -> dst field (top) */
+  gavl_video_frame_get_field(s->data.video.format.pixelformat,
+                             priv->gavl_frame,
+                             priv->src_field,
+                             1);
+
+  gavl_video_frame_get_field(s->data.video.format.pixelformat,
+                             f,
+                             priv->dst_field,
+                             0);
+  gavl_video_frame_copy(&priv->field_format[0], priv->dst_field, priv->src_field);
+  
+  }
+
+#ifdef HAVE_LIBSWSCALE
+static void put_frame_swscale(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  sws_scale(priv->swsContext,
+            (const uint8_t * const *)priv->frame->data, priv->frame->linesize,
+            0, s->data.video.format.image_height,
+            f->planes, f->strides);
+  }
+#endif
+
 /* Copy/postprocess/flip internal frame to output */
-static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
+static void init_put_frame(bgav_stream_t * s)
   {
 #ifndef HAVE_LIBSWSCALE
   AVPicture ffmpeg_frame;
@@ -2333,112 +2496,34 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
   ffmpeg_video_priv * priv;
   priv = s->data.video.decoder->priv;
   if(priv->ctx->pix_fmt == PIX_FMT_PAL8)
-    {
-    if(s->data.video.format.pixelformat == GAVL_RGBA_32)
-      pal8_to_rgba32(f, priv->frame,
-                     s->data.video.format.image_width,
-                     s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
-    else
-      pal8_to_rgb24(f, priv->frame,
-                    s->data.video.format.image_width,
-                    s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
-    }
+    priv->put_frame = put_frame_palette;
 #ifdef HAVE_VDPAU
   else if(priv->vdpau_ctx)
-    {
-    struct vdpau_render_state * state =
-      (struct vdpau_render_state *)priv->frame->data[0];
-    //    gavl_video_frame_clear(f, &s->data.video.format);
-    bgav_vdpau_context_surface_to_frame(priv->vdpau_ctx,
-                                        state->surface, f);
-    }
+    priv->put_frame = put_frame_vdpau;
 #endif
+
 #if LIBAVUTIL_VERSION_INT < (50<<16)
   else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
 #else
   else if(priv->ctx->pix_fmt == PIX_FMT_RGB32)
 #endif
-    {
-    rgba32_to_rgba32(f, priv->frame,
-                     s->data.video.format.image_width,
-                     s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
-    }
-#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
+    priv->put_frame = put_frame_rgba32;
   else if(priv->ctx->pix_fmt == PIX_FMT_YUVA420P)
-    {
-    yuva420_to_yuva32(f, priv->frame,
-                      s->data.video.format.image_width,
-                      s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
-    }
-#endif
+    priv->put_frame = put_frame_yuva420;
   else if(!priv->do_convert)
     {
 #ifdef HAVE_LIBPOSTPROC
     if(priv->do_pp)
-      {
-      if(priv->flags & FLIP_Y)
-        {
-        pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
-                       priv->flip_frame->planes, priv->flip_frame->strides,
-                       priv->ctx->width, priv->ctx->height,
-                       priv->frame->qscale_table, priv->frame->qstride,
-                       priv->pp_mode, priv->pp_context,
-                       priv->frame->pict_type);
-        gavl_video_frame_copy_flip_y(&s->data.video.format,
-                                     f, priv->flip_frame);
-        }
-      else
-        pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
-                       f->planes, f->strides,
-                       priv->ctx->width, priv->ctx->height,
-                       priv->frame->qscale_table, priv->frame->qstride,
-                       priv->pp_mode, priv->pp_context,
-                       priv->frame->pict_type);
-            
-      }
+      priv->put_frame = put_frame_pp;
     else
       {
 #endif
-      priv->gavl_frame->planes[0]  = priv->frame->data[0];
-      priv->gavl_frame->planes[1]  = priv->frame->data[1];
-      priv->gavl_frame->planes[2]  = priv->frame->data[2];
-          
-      priv->gavl_frame->strides[0] = priv->frame->linesize[0];
-      priv->gavl_frame->strides[1] = priv->frame->linesize[1];
-      priv->gavl_frame->strides[2] = priv->frame->linesize[2];
-
       if(priv->flags & FLIP_Y)
-        gavl_video_frame_copy_flip_y(&s->data.video.format,
-                                     f, priv->gavl_frame);
+        priv->put_frame = put_frame_flip;
       else if(priv->flags & SWAP_FIELDS_OUT)
-        {
-        /* src field (top) -> dst field (bottom) */
-        gavl_video_frame_get_field(s->data.video.format.pixelformat,
-                                   priv->gavl_frame,
-                                   priv->src_field,
-                                   0);
-
-        gavl_video_frame_get_field(s->data.video.format.pixelformat,
-                                   f,
-                                   priv->dst_field,
-                                   1);
-        
-        gavl_video_frame_copy(&priv->field_format[1], priv->dst_field, priv->src_field);
-
-        /* src field (bottom) -> dst field (top) */
-        gavl_video_frame_get_field(s->data.video.format.pixelformat,
-                                   priv->gavl_frame,
-                                   priv->src_field,
-                                   1);
-
-        gavl_video_frame_get_field(s->data.video.format.pixelformat,
-                                   f,
-                                   priv->dst_field,
-                                   0);
-        gavl_video_frame_copy(&priv->field_format[0], priv->dst_field, priv->src_field);
-        }
+        priv->put_frame = put_frame_swapfields;
       else
-        gavl_video_frame_copy(&s->data.video.format, f, priv->gavl_frame);
+        priv->put_frame = NULL;
 #ifdef HAVE_LIBPOSTPROC
       }
 #endif
@@ -2448,34 +2533,8 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
     // TODO: Enable postprocessing for non-gavl pixelformats
     // (but not as long as it makes no sense)
 #ifdef HAVE_LIBSWSCALE
-    sws_scale(priv->swsContext,
-              (const uint8_t * const *)priv->frame->data, priv->frame->linesize,
-              0, s->data.video.format.image_height,
-              f->planes, f->strides);
-
-#else
-    ffmpeg_frame.data[0]     = f->planes[0];
-    ffmpeg_frame.data[1]     = f->planes[1];
-    ffmpeg_frame.data[2]     = f->planes[2];
-    ffmpeg_frame.linesize[0] = f->strides[0];
-    ffmpeg_frame.linesize[1] = f->strides[1];
-    ffmpeg_frame.linesize[2] = f->strides[2];
-    img_convert(&ffmpeg_frame, priv->dst_format,
-                (AVPicture*)(priv->frame), priv->ctx->pix_fmt,
-                s->data.video.format.image_width,
-                s->data.video.format.image_height);
+    priv->put_frame = put_frame_swscale;
 #endif
-    }
-  f->timestamp = priv->picture_timestamp;
-  f->duration = priv->picture_duration;
-
-  if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
-    f->interlace_mode = priv->picture_interlace;
-  
-  if(priv->picture_timecode != GAVL_TIMECODE_UNDEFINED)
-    {
-    s->codec_timecode = priv->picture_timecode;
-    s->has_codec_timecode = 1;
     }
   }
 

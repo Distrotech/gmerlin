@@ -167,7 +167,12 @@ int bgav_video_start(bgav_stream_t * s)
     result = dec->init(s);
     if(!result)
       return 0;
-    
+
+    if(!s->data.video.source)
+      {
+      /* Create source through the default functions */
+      
+      }
     
     }
 
@@ -200,7 +205,7 @@ static int bgav_video_decode(bgav_stream_t * s,
   if(!result)
     return result;
   
-  /* Set the final timestamp for the frame */
+  /* Set the final metadata for the frame */
   
   if(frame)
     {
@@ -208,13 +213,7 @@ static int bgav_video_decode(bgav_stream_t * s,
     bgav_dprintf("Video timestamp: %"PRId64"\n", frame->timestamp);
 #endif    
     s->out_time = frame->timestamp + frame->duration;
-    
-    /* Set timecode */
-    if(s->timecode_table)
-      frame->timecode =
-        bgav_timecode_table_get_timecode(s->timecode_table,
-                                         frame->timestamp);
-    else if(s->has_codec_timecode)
+    if(s->has_codec_timecode)
       {
       frame->timecode = s->codec_timecode;
       s->has_codec_timecode = 0;
