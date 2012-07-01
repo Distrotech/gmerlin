@@ -55,8 +55,10 @@ void bgav_dv_dec_set_frame(bgav_dv_dec_t*, uint8_t * data);
 void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t*, uint32_t * pixel_width,
                                   uint32_t * pixel_height);
 
-void bgav_dv_dec_get_image_size(bgav_dv_dec_t*, int * width,
-                                int * height);
+void bgav_dv_dec_get_image_size(bgav_dv_dec_t*, uint32_t * width,
+                                uint32_t * height);
+
+void bgav_dv_dec_get_video_format(bgav_dv_dec_t * d, gavl_video_format_t * fmt);
 
 gavl_pixelformat_t bgav_dv_dec_get_pixelformat(bgav_dv_dec_t*);
 

@@ -495,6 +495,7 @@ packet.c \
 parse_a52.c \
 parse_cavs.c \
 parse_dirac.c \
+parse_dv.c \
 parse_flac.c \
 parse_h264.c \
 parse_mjpa.c \

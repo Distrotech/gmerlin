@@ -66,7 +66,13 @@ int bgav_video_start(bgav_stream_t * s)
 
   if(!s->timescale && s->data.video.format.timescale)
     s->timescale = s->data.video.format.timescale;
-  
+
+  /* Some streams need to be parsed generically for extracting
+     format values and/or timecodes */
+
+  if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs))
+    s->flags |= STREAM_PARSE_FRAME;
+    
   if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
      !s->data.video.parser)
     {
@@ -213,14 +219,6 @@ static int bgav_video_decode(bgav_stream_t * s,
     bgav_dprintf("Video timestamp: %"PRId64"\n", frame->timestamp);
 #endif    
     s->out_time = frame->timestamp + frame->duration;
-    if(s->has_codec_timecode)
-      {
-      frame->timecode = s->codec_timecode;
-      s->has_codec_timecode = 0;
-      }
-    else
-      frame->timecode = GAVL_TIMECODE_UNDEFINED;
-    
     }
 
   s->flags &= ~STREAM_HAVE_PICTURE;

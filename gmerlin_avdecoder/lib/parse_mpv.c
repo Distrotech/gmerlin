@@ -568,6 +568,13 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
           {
           bgav_video_parser_extract_header(parser);
           ret = PARSER_CONTINUE;
+
+          if(priv->sh.mpeg2)
+            gavl_metadata_set(&parser->s->m, GAVL_META_FORMAT,
+                              bgav_sprintf("MPEG-2"));
+          else
+            gavl_metadata_set(&parser->s->m, GAVL_META_FORMAT,
+                              bgav_sprintf("MPEG-1"));
           }
         len = bgav_mpv_picture_header_parse(parser->s->opt,
                                             &ph, start, end - start);
@@ -631,6 +638,12 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
           {
           bgav_video_parser_extract_header(parser);
           ret = PARSER_CONTINUE;
+          if(priv->sh.mpeg2)
+            gavl_metadata_set(&parser->s->m, GAVL_META_FORMAT,
+                              bgav_sprintf("MPEG-2"));
+          else
+            gavl_metadata_set(&parser->s->m, GAVL_META_FORMAT,
+                              bgav_sprintf("MPEG-1"));
           }
 
         len = bgav_mpv_gop_header_parse(parser->s->opt,

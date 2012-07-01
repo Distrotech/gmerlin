@@ -502,9 +502,6 @@ struct bgav_stream_s
   /* timecode table (for video streams only for now) */
   bgav_timecode_table_t * timecode_table;
   
-  int has_codec_timecode;
-  gavl_timecode_t codec_timecode;
-
   bgav_bsf_t * bsf;
   
   bgav_packet_source_t src; /* Where to get packets */

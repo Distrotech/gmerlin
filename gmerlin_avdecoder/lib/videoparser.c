@@ -120,6 +120,12 @@ bgav_video_parser_create(bgav_stream_t * s)
     }
 
   if(!func)
+    {
+    if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs))
+      func = bgav_video_parser_init_dv;
+    }
+  
+  if(!func)
     return NULL;
   
   ret = calloc(1, sizeof(*ret));

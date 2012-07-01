@@ -483,24 +483,30 @@ void bgav_dv_dec_get_timecode_format(bgav_dv_dec_t * d,
   
   }
 
+void bgav_dv_dec_get_video_format(bgav_dv_dec_t * d, gavl_video_format_t * fmt)
+  {
+  bgav_dv_dec_get_pixel_aspect(d, &fmt->pixel_width,
+                               &fmt->pixel_height);
+
+  bgav_dv_dec_get_image_size(d, &fmt->image_width,
+                             &fmt->image_height);
+
+  fmt->pixelformat = bgav_dv_dec_get_pixelformat(d);
+  
+  fmt->frame_width  = fmt->image_width;
+  fmt->frame_height = fmt->image_height;
+  
+  if(!fmt->timescale)
+    {
+    fmt->frame_duration = d->profile->frame_rate_base;
+    fmt->timescale      = d->profile->frame_rate;
+    }
+  }
+
 void bgav_dv_dec_init_video(bgav_dv_dec_t * d, bgav_stream_t * s)
   {
   s->fourcc = BGAV_MK_FOURCC('d', 'v', 'c', ' ');
-
-  bgav_dv_dec_get_pixel_aspect(d, &s->data.video.format.pixel_width,
-                               &s->data.video.format.pixel_height);
-
-  s->data.video.format.image_width  = d->profile->width;
-  s->data.video.format.image_height = d->profile->height;
-  
-  s->data.video.format.frame_width  = d->profile->width;
-  s->data.video.format.frame_height = d->profile->height;
-
-  if(!s->data.video.format.timescale)
-    {
-    s->data.video.format.frame_duration = d->profile->frame_rate_base;
-    s->data.video.format.timescale      = d->profile->frame_rate;
-    }
+  bgav_dv_dec_get_video_format(d, &s->data.video.format);
   gavl_video_format_copy(&d->video_format, &s->data.video.format);
   }
 
@@ -780,8 +786,8 @@ int bgav_dv_dec_get_timecode(bgav_dv_dec_t * d,
   return 1;
   }
 
-void bgav_dv_dec_get_image_size(bgav_dv_dec_t * d, int * width,
-                                int * height)
+void bgav_dv_dec_get_image_size(bgav_dv_dec_t * d, uint32_t * width,
+                                uint32_t * height)
   {
   *width  = d->profile->width;
   *height = d->profile->height;

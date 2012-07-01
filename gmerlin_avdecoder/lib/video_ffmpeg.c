@@ -84,7 +84,6 @@
 
 
 static int get_format_jpeg(bgav_stream_t*, bgav_packet_t * p);
-static int get_format_dv(bgav_stream_t*, bgav_packet_t * p);
 
 typedef struct
   {
@@ -345,7 +344,6 @@ static void init_pp(bgav_stream_t * s);
 
 /* Codec specific hacks */
 
-static void handle_dv(bgav_stream_t * s, bgav_packet_t * p);
 
 #if 0
 static int frame_dumped = 0;
@@ -439,12 +437,6 @@ static int decode_picture(bgav_stream_t * s)
       else
         frame_buffer_len = p->data_size;
       }
-    /* DV Video ugliness */
-    if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
-      {
-      handle_dv(s, p);
-      }
-    
     /* Palette terror */
 
     if(p && p->palette)
@@ -698,12 +690,8 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
 
       if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
         f->interlace_mode = priv->picture_interlace;
-    
-      if(priv->picture_timecode != GAVL_TIMECODE_UNDEFINED)
-        {
-        s->codec_timecode = priv->picture_timecode;
-        s->has_codec_timecode = 1;
-        }
+
+      f->timecode = priv->picture_timecode;
       }
     
     }
@@ -1366,7 +1354,6 @@ static codec_info_t codec_infos[] =
                     
                     0x00 },
 #endif
-      get_format_dv,
     },
     /*     CODEC_ID_HUFFYUV, */
     { "FFmpeg Hufyuv decoder", "Huff YUV", CODEC_ID_HUFFYUV,
@@ -2536,75 +2523,6 @@ static void init_put_frame(bgav_stream_t * s)
     }
   }
 
-/* Extract format and get timecode */
-
-/* We get the DV format info ourselves, since the values
-   ffmpeg returns are not reliable */
-
-static void handle_dv(bgav_stream_t * s, bgav_packet_t * p)
-  {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
-  
-  if(priv->need_format)
-    {
-    priv->dvdec = bgav_dv_dec_create();
-    bgav_dv_dec_set_header(priv->dvdec, p->data);
-    }
-      
-  bgav_dv_dec_set_frame(priv->dvdec, p->data);
-  
-  if(priv->need_format)
-    {
-    bgav_dv_dec_get_pixel_aspect(priv->dvdec,
-                                 &s->data.video.format.pixel_width,
-                                 &s->data.video.format.pixel_height);
-        
-    if(!s->data.video.format.timecode_format.int_framerate)
-      {
-      bgav_dv_dec_get_timecode_format(priv->dvdec,
-                                      &s->data.video.format.timecode_format, s->opt);
-      }
-    }
-  /* Extract timecodes */
-  if(s->opt->dv_datetime)
-    {
-    int year, month, day;
-    int hour, minute, second;
-
-    gavl_timecode_t tc = 0;
-        
-    if(bgav_dv_dec_get_date(priv->dvdec, &year, &month, &day) &&
-       bgav_dv_dec_get_time(priv->dvdec, &hour, &minute, &second))
-      {
-      gavl_timecode_from_ymd(&tc,
-                             year, month, day);
-      gavl_timecode_from_hmsf(&tc,
-                              hour, minute, second, 0);
-          
-      if((priv->last_dv_timecode != GAVL_TIMECODE_UNDEFINED) &&
-         (tc != priv->last_dv_timecode))
-        {
-        if(s->data.video.format.timecode_format.flags & GAVL_TIMECODE_DROP_FRAME)
-          {
-          if(!second && (minute % 10))
-            gavl_timecode_from_hmsf(&tc,
-                                    hour, minute, second, 2);
-          }
-        s->codec_timecode = tc;
-        s->has_codec_timecode = 1;
-        }
-      priv->last_dv_timecode = tc;
-      }
-    }
-  else
-    {
-    if(bgav_dv_dec_get_timecode(priv->dvdec,
-                                &s->codec_timecode))
-      s->has_codec_timecode = 1;
-    }
-  
-  }
-
 /* Global locking */
 
 static pthread_mutex_t ffmpeg_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -2727,21 +2645,3 @@ static int get_format_jpeg(bgav_stream_t * s, bgav_packet_t * p)
   return 0;
   }
 
-static int get_format_dv(bgav_stream_t * s, bgav_packet_t * p)
-  {
-  bgav_dv_dec_t * dvdec;
-
-  dvdec = bgav_dv_dec_create();
-  bgav_dv_dec_set_header(dvdec, p->data);
-  bgav_dv_dec_set_frame(dvdec, p->data);
-  
-  bgav_dv_dec_get_pixel_aspect(dvdec,
-                               &s->data.video.format.pixel_width,
-                               &s->data.video.format.pixel_height);
-
-  s->data.video.format.pixelformat = 
-    bgav_dv_dec_get_pixelformat(dvdec);
-  
-  bgav_dv_dec_destroy(dvdec);
-  return 1;
-  }

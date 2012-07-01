@@ -105,7 +105,12 @@ void bgav_packet_dump(bgav_packet_t * p)
 
   if(p->sequence_end_pos)
     bgav_dprintf(", end: %d", p->sequence_end_pos);
-  
+
+  if(p->tc != GAVL_TIMECODE_UNDEFINED)
+    {
+    bgav_dprintf(", TC: ");
+    gavl_timecode_dump(NULL, p->tc);
+    }
   
   if(p->ilace == GAVL_INTERLACE_TOP_FIRST)
     bgav_dprintf(", il: t");
