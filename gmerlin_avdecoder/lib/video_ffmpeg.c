@@ -148,15 +148,11 @@ typedef struct
   
   /* */
   
-  bgav_dv_dec_t * dvdec;
-  
-  gavl_timecode_t last_dv_timecode;
-  
   bgav_pts_cache_t pts_cache;
 
   int64_t picture_timestamp;
   int     picture_duration;
-  gavl_timecode_t picture_timecode;
+  //  gavl_timecode_t picture_timecode;
   gavl_interlace_mode_t picture_interlace;
   
   int64_t skip_time;
@@ -368,8 +364,6 @@ static int decode_picture(bgav_stream_t * s)
   bgav_packet_t * p;
   
   priv = s->data.video.decoder->priv;
-
-  priv->picture_timecode = GAVL_TIMECODE_UNDEFINED;
   
   while(1)
     {
@@ -674,13 +668,8 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
 
       bgav_pts_cache_get_first(&priv->pts_cache, f);
       
-      f->timestamp = priv->picture_timestamp;
-      f->duration = priv->picture_duration;
-
       if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
         f->interlace_mode = priv->picture_interlace;
-
-      f->timecode = priv->picture_timecode;
       }
     else
       {
@@ -995,7 +984,6 @@ static int init_ffmpeg(bgav_stream_t * s)
   //  priv->ctx->skip_idct = AVDISCARD_ALL;
   
   /* Set missing format values */
-  priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
   
   priv->need_format = 1;
   
@@ -1078,9 +1066,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv->ip_age[0] = 256*256*256*64;
   priv->ip_age[1] = 256*256*256*64;
   priv->b_age = 256*256*256*64;
-
-  priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
-
+  
   bgav_pts_cache_clear(&priv->pts_cache);
   
   }
@@ -1121,12 +1107,7 @@ static void close_ffmpeg(bgav_stream_t * s)
     gavl_video_frame_null(priv->dst_field);
     gavl_video_frame_destroy(priv->dst_field);
     }
-
-  if(priv->dvdec)
-    {
-    bgav_dv_dec_destroy(priv->dvdec);
-    }
-
+  
   if(priv->p)
     bgav_packet_destroy(priv->p);
   
