@@ -38,29 +38,25 @@ typedef struct
   tga_image tga;
   gavl_video_frame_t * frame;
   int bytes_per_pixel;
-
+  
+  bgav_packet_t * p;
+  
   /* Read the first frame during initialization to get the format */
   int do_init;
   
   /* Colormap */
   uint8_t * ctab;
   int ctab_size;
-  
-  int is_mono;
-
-  int64_t pts;
-  int duration;
   } tga_priv_t;
 
-
-static gavl_pixelformat_t get_pixelformat(int depth, int * bytes_per_pixel, int * is_mono)
+static gavl_pixelformat_t
+get_pixelformat(int depth, int * bytes_per_pixel)
   {
   switch(depth)
     {
     case 8: /* Grayscale */
-      *bytes_per_pixel = 3;
-      *is_mono = 1;
-      return GAVL_RGB_24;
+      *bytes_per_pixel = 1;
+      return GAVL_GRAY_8;
       break;
     case 16:
       *bytes_per_pixel = 2;
@@ -91,28 +87,6 @@ static void dump_packet(uint8_t * data, int size)
   fclose(f);
   }
 #endif
-
-static void gray_2_rgb(tga_image * tga, gavl_video_frame_t * f)
-  {
-  int i, j;
-  uint8_t * dst;
-  uint8_t * src;
-
-  src = tga->image_data;
-
-  for(i = 0; i < tga->height; i++)
-    {
-    dst = f->planes[0] + i * f->strides[0];
-    for(j = 0; j < tga->width; j++)
-      {
-      dst[0] = src[0];
-      dst[1] = src[0];
-      dst[2] = src[0];
-      dst += 3;
-      src++;
-      }
-    }
-  }
 
 static int set_palette(bgav_stream_t * s, bgav_packet_t * p)
   {
@@ -147,7 +121,6 @@ static int set_palette(bgav_stream_t * s, bgav_packet_t * p)
 static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   int result;
-  bgav_packet_t * p = NULL;
   tga_priv_t * priv;
   
   priv = s->data.video.decoder->priv;
@@ -157,56 +130,52 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     {
     /* Decode a frame */
     
-    p = bgav_stream_get_packet_read(s);
-    if(!p)
+    priv->p = bgav_stream_get_packet_read(s);
+    if(!priv->p)
       return 0;
 
     /* Set palette */
-    if(p->palette_size && !set_palette(s, p))
+    if(priv->p->palette_size && !set_palette(s, priv->p))
       return 0;
     
-    priv->pts = p->pts;
-    priv->duration = p->duration;
-    
-    result = tga_read_from_memory(&priv->tga, p->data,
-                                  p->data_size, priv->ctab, priv->ctab_size);
+    result = tga_read_from_memory(&priv->tga, priv->p->data,
+                                  priv->p->data_size,
+                                  priv->ctab, priv->ctab_size);
     if(result != TGA_NOERR)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "tga_read_from_memory failed: %s (%d bytes)",
-              tga_error(result), p->data_size);
+              tga_error(result), priv->p->data_size);
       //      dump_packet(p->data, p->data_size);
       return 0;
       }
 
     s->flags |= STREAM_HAVE_PICTURE;
-    
-    bgav_stream_done_packet_read(s, p);
     }
   if(priv->do_init)
     {
     /* Figure out the format */
 
-    s->data.video.format.frame_width = priv->tga.width;
+    s->data.video.format.frame_width  = priv->tga.width;
     s->data.video.format.frame_height = priv->tga.height;
     
-    s->data.video.format.image_width = priv->tga.width;
+    s->data.video.format.image_width  = priv->tga.width;
     s->data.video.format.image_height = priv->tga.height;
     
-    s->data.video.format.pixel_width = 1;
+    s->data.video.format.pixel_width  = 1;
     s->data.video.format.pixel_height = 1;
     switch(priv->tga.image_type)
       {
       case TGA_IMAGE_TYPE_COLORMAP:
       case TGA_IMAGE_TYPE_COLORMAP_RLE:
-        s->data.video.format.pixelformat = get_pixelformat(priv->tga.color_map_depth,
-                                                         &priv->bytes_per_pixel,
-                                                         &priv->is_mono);
+        s->data.video.format.pixelformat =
+          get_pixelformat(priv->tga.color_map_depth,
+                          &priv->bytes_per_pixel);
         break;
       default:
-        s->data.video.format.pixelformat = get_pixelformat(priv->tga.pixel_depth,
-                                                         &priv->bytes_per_pixel,
-                                                         &priv->is_mono);
+        s->data.video.format.pixelformat =
+          get_pixelformat(priv->tga.pixel_depth,
+                          &priv->bytes_per_pixel);
         break;
       }
     if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
@@ -215,10 +184,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
                "Cannot detect image type: %d", priv->tga.image_type);
       return 0;
       }
-    if(priv->is_mono)
-      priv->frame = gavl_video_frame_create(&s->data.video.format);
-    else
-      priv->frame = gavl_video_frame_create(NULL);
+    priv->frame = gavl_video_frame_create(NULL);
     return 1;
     }
   /* Copy it */
@@ -242,15 +208,9 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(s->data.video.format.pixelformat == GAVL_RGBA_32)
       tga_swap_red_blue(&priv->tga);
 
-    if(priv->is_mono)
-      {
-      gray_2_rgb(&priv->tga, priv->frame);
-      }
-    else
-      {
-      priv->frame->strides[0] = priv->bytes_per_pixel * s->data.video.format.image_width;
-      priv->frame->planes[0] = priv->tga.image_data;
-      }
+    priv->frame->strides[0] =
+      priv->bytes_per_pixel * s->data.video.format.image_width;
+    priv->frame->planes[0] = priv->tga.image_data;
     
     /* Figure out the copy function */
     
@@ -258,26 +218,31 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       {
       if(priv->tga.image_descriptor & TGA_T_TO_B_BIT)
         {
-        gavl_video_frame_copy_flip_x(&s->data.video.format, frame, priv->frame);
+        gavl_video_frame_copy_flip_x(&s->data.video.format,
+                                     frame, priv->frame);
         }
       else
         {
-        gavl_video_frame_copy_flip_xy(&s->data.video.format, frame, priv->frame);
+        gavl_video_frame_copy_flip_xy(&s->data.video.format,
+                                      frame, priv->frame);
         }
       }
     else
       {
       if(priv->tga.image_descriptor & TGA_T_TO_B_BIT)
         {
-        gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
+        gavl_video_frame_copy(&s->data.video.format,
+                              frame, priv->frame);
         }
       else
         {
-        gavl_video_frame_copy_flip_y(&s->data.video.format, frame, priv->frame);
+        gavl_video_frame_copy_flip_y(&s->data.video.format,
+                                     frame, priv->frame);
         }
       }
-    frame->timestamp = priv->pts;
-    frame->duration = priv->duration;
+
+    bgav_set_video_frame_from_packet(priv->p, frame);
+    bgav_stream_done_packet_read(s, priv->p);
     }
   /* Free anything */
 
@@ -311,11 +276,11 @@ static void close_tga(bgav_stream_t * s)
   {
   tga_priv_t * priv;
   priv = s->data.video.decoder->priv;
-  if(!priv->is_mono)
-    gavl_video_frame_null(priv->frame);
+  gavl_video_frame_null(priv->frame);
   gavl_video_frame_destroy(priv->frame);
+  if(priv->ctab)
+    free(priv->ctab);
   free(priv);
-  
   }
 
 static bgav_video_decoder_t decoder =

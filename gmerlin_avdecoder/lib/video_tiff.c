@@ -228,7 +228,7 @@ static int read_image_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
     }
 
   frame->timestamp = p->packet->pts;
-  frame->duration = p->packet->duration;
+  frame->duration  = p->packet->duration;
   
   TIFFClose( p->tiff );
   p->tiff = NULL;
