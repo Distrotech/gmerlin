@@ -62,9 +62,7 @@ static int get_max_index(bgav_pts_cache_t * c)
   }
 
 void bgav_pts_cache_push(bgav_pts_cache_t * c,
-                         int64_t pts,
-                         int duration,
-                         gavl_timecode_t tc,
+                         bgav_packet_t * p,
                          int * index,
                          bgav_pts_cache_entry_t ** e)
   {
@@ -78,9 +76,9 @@ void bgav_pts_cache_push(bgav_pts_cache_t * c,
     i = get_min_index(c);
   
   c->entries[i].used      = 1;
-  c->entries[i].pts       = pts;
-  c->entries[i].duration  = duration;
-  c->entries[i].tc        = tc;
+  c->entries[i].pts       = p->pts;
+  c->entries[i].duration  = p->duration;
+  c->entries[i].tc        = p->tc;
   
   if(index)
     *index = i;
@@ -96,21 +94,23 @@ void bgav_pts_cache_clear(bgav_pts_cache_t * c)
   }
 
 /* Get the smallest timestamp */
-int64_t bgav_pts_cache_get_first(bgav_pts_cache_t * c, int * duration,
-                                 gavl_timecode_t * tc)
+int bgav_pts_cache_get_first(bgav_pts_cache_t * c, gavl_video_frame_t * f)
   {
   int i = get_min_index(c);
-
+  
   if(i < 0)
-    return BGAV_TIMESTAMP_UNDEFINED;
+    return 0;
   else
     {
     c->entries[i].used = 0;
-    *duration = c->entries[i].duration;
-    if(tc)
-      *tc = c->entries[i].tc;
-    return c->entries[i].pts;
+    if(f)
+      {
+      f->duration = c->entries[i].duration;
+      f->timecode = c->entries[i].tc;
+      f->timestamp = c->entries[i].pts;
+      }
     }
+  return 1;
   }
 
 int64_t bgav_pts_cache_peek_last(bgav_pts_cache_t * c, int * duration)

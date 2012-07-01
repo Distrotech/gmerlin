@@ -51,8 +51,8 @@ static int decode_frame_gavf_video(bgav_stream_t * s, gavl_video_frame_t * frame
 
   if(frame)
     {
-    frame->timestamp = p->pts;
-    frame->duration = p->duration;
+    bgav_set_video_frame_from_packet(p, frame);
+
     gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
     }
 

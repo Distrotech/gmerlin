@@ -175,8 +175,7 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
                           priv->img->comps[0].h,
                           (uint16_t*)f->planes[0], f->strides[0]);
 
-        f->timestamp = p->pts;
-        f->duration = p->duration;
+        bgav_set_video_frame_from_packet(p, f);
         }
       else
         {

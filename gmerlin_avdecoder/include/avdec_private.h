@@ -1710,6 +1710,8 @@ int bgav_audio_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 extern const uint32_t bgav_dv_fourccs[];
 extern const uint32_t bgav_png_fourccs[];
 
+void bgav_set_video_frame_from_packet(const bgav_packet_t * p,
+                                      gavl_video_frame_t * f);
 
 void bgav_video_dump(bgav_stream_t * s);
 

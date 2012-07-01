@@ -81,8 +81,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
       return 0;
     priv->have_header = 0;
 
-    frame->timestamp = p->pts;
-    frame->duration = p->duration;
+    bgav_set_video_frame_from_packet(p, frame);
     }
   bgav_stream_done_packet_read(s, p);
   return 1;

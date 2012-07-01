@@ -231,9 +231,8 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     
     gavl_video_frame_copy(&s->data.video.format,
                           frame, priv->frame);
-    
-    frame->timestamp = p->pts;
-    frame->duration = p->duration;
+
+    bgav_set_video_frame_from_packet(p, frame);
     }
   bgav_stream_done_packet_read(s, p);
   return 1;

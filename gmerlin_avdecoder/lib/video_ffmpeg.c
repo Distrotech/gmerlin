@@ -420,11 +420,7 @@ static int decode_picture(bgav_stream_t * s)
       
       if(priv->ctx->skip_frame == AVDISCARD_DEFAULT)
         {
-        bgav_pts_cache_push(&priv->pts_cache,
-                            p->pts,
-                            p->duration,
-                            p->tc,
-                            NULL, &e);
+        bgav_pts_cache_push(&priv->pts_cache, p, NULL, &e);
         }
       
       frame_buffer = p->data;
@@ -606,12 +602,6 @@ static int decode_picture(bgav_stream_t * s)
       priv->picture_interlace = GAVL_INTERLACE_NONE;
     }
   
-  
-  priv->picture_timestamp =
-    bgav_pts_cache_get_first(&priv->pts_cache,
-                             &priv->picture_duration,
-                             &priv->picture_timecode);
-  
   return 1;
   }
 
@@ -682,6 +672,8 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
 
       /* Set frame metadata */
 
+      bgav_pts_cache_get_first(&priv->pts_cache, f);
+      
       f->timestamp = priv->picture_timestamp;
       f->duration = priv->picture_duration;
 
@@ -690,7 +682,10 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
 
       f->timecode = priv->picture_timecode;
       }
-    
+    else
+      {
+      bgav_pts_cache_get_first(&priv->pts_cache, NULL);
+      }
     }
   else if(!priv->need_format)
     return 0; /* EOF */

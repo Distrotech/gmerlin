@@ -48,7 +48,6 @@ bgav_get_video_metadata(bgav_t * b, int s)
   return &b->tt->cur->video_streams[s].m;
   }
 
-
 int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   {
   if((stream >= b->tt->cur->num_video_streams) ||
@@ -909,4 +908,14 @@ int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   bgav_stream_done_packet_read(s, bp);
   
   return 1;
+  }
+
+/* Set frame metadata from packet */
+
+void bgav_set_video_frame_from_packet(const bgav_packet_t * p,
+                                      gavl_video_frame_t * f)
+  {
+  f->timestamp = p->pts;
+  f->duration = p->duration;
+  f->timecode = p->tc;
   }

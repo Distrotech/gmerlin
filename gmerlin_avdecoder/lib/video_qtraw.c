@@ -405,8 +405,8 @@ static int decode_qtraw(bgav_stream_t * s, gavl_video_frame_t * f)
                         s->data.video.pal.entries);
     src += priv->bytes_per_line;
     dst += f->strides[0];
-    f->timestamp = p->pts;
-    f->duration = p->duration;
+    
+    bgav_set_video_frame_from_packet(p, f);
     }
   bgav_stream_done_packet_read(s, p);
   return 1;
