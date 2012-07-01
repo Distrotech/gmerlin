@@ -117,12 +117,6 @@ struct bgav_video_decoder_s
   const char * name;
   int flags;
 
-  /*
-   *  Get the format without initializing the decoder. This is
-   *  needed for compressed reading of some streams
-   */
-  int (*get_format)(bgav_stream_t*, bgav_packet_t * p);
-  
   int (*init)(bgav_stream_t*);
 
 
@@ -1714,6 +1708,8 @@ int bgav_audio_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 /* video.c */
 
 extern const uint32_t bgav_dv_fourccs[];
+extern const uint32_t bgav_png_fourccs[];
+
 
 void bgav_video_dump(bgav_stream_t * s);
 

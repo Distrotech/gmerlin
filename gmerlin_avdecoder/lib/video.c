@@ -70,9 +70,10 @@ int bgav_video_start(bgav_stream_t * s)
   /* Some streams need to be parsed generically for extracting
      format values and/or timecodes */
 
-  if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs))
+  if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs) ||
+     bgav_check_fourcc(s->fourcc, bgav_png_fourccs))
     s->flags |= STREAM_PARSE_FRAME;
-    
+  
   if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
      !s->data.video.parser)
     {
@@ -629,7 +630,7 @@ gavl_frame_table_t * bgav_get_frame_table(bgav_t * bgav, int stream)
     return NULL;
   }
 
-static uint32_t png_fourccs[] =
+const uint32_t bgav_png_fourccs[] =
   {
     BGAV_MK_FOURCC('p', 'n', 'g', ' '),
     BGAV_MK_FOURCC('M', 'P', 'N', 'G'),
@@ -744,7 +745,7 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   
   memset(info, 0, sizeof(*info));
   
-  if(bgav_check_fourcc(s->fourcc, png_fourccs))
+  if(bgav_check_fourcc(s->fourcc, bgav_png_fourccs))
     id = GAVL_CODEC_ID_PNG;
   else if(bgav_check_fourcc(s->fourcc, jpeg_fourccs))
     id = GAVL_CODEC_ID_JPEG;

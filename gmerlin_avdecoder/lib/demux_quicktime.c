@@ -1162,7 +1162,8 @@ static void init_video(bgav_demuxer_context_t * ctx,
   
   bg_vs->fourcc = desc->fourcc;
 
-  if(bg_vs->fourcc == BGAV_MK_FOURCC('m','j','p','a'))
+  if((bg_vs->fourcc == BGAV_MK_FOURCC('m','j','p','a')) ||
+     (bg_vs->fourcc == BGAV_MK_FOURCC('j','p','e','g')))
     bg_vs->flags |= STREAM_PARSE_FRAME;
   
   bg_vs->data.video.format.image_width = desc->format.video.width;

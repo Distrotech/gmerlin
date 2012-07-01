@@ -137,7 +137,8 @@ void bgav_video_parser_init_vc1(bgav_video_parser_t * parser);
 void bgav_video_parser_init_dirac(bgav_video_parser_t * parser);
 void bgav_video_parser_init_mjpa(bgav_video_parser_t * parser);
 void bgav_video_parser_init_dv(bgav_video_parser_t * parser);
-
+void bgav_video_parser_init_jpeg(bgav_video_parser_t * parser);
+void bgav_video_parser_init_png(bgav_video_parser_t * parser);
 
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes);
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser);

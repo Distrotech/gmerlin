@@ -82,9 +82,6 @@
 #define MERGE_FIELDS    (1<<3)
 #define FLIP_Y          (1<<4)
 
-
-static int get_format_jpeg(bgav_stream_t*, bgav_packet_t * p);
-
 typedef struct
   {
   const char * decoder_name;
@@ -1222,7 +1219,6 @@ static codec_info_t codec_infos[] =
                     BGAV_MK_FOURCC('d', 'm', 'b', '1'),
                     BGAV_MK_FOURCC('J', 'F', 'I', 'F'), // SMJPEG
                     0x00 },
-      get_format_jpeg,
     },
     
     /*     CODEC_ID_MJPEGB, */
@@ -1867,8 +1863,6 @@ void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)
       codecs[real_num_codecs].decoder.close = close_ffmpeg;
       codecs[real_num_codecs].decoder.resync = resync_ffmpeg;
       
-      if(codec_infos[i].get_format)
-        codecs[real_num_codecs].decoder.get_format = codec_infos[i].get_format;
       bgav_video_decoder_register(&codecs[real_num_codecs].decoder);
       real_num_codecs++;
       }
@@ -2535,113 +2529,5 @@ void bgav_ffmpeg_lock()
 void bgav_ffmpeg_unlock()
   {
   pthread_mutex_unlock(&ffmpeg_mutex);
-  }
-
-static int get_format_jpeg(bgav_stream_t * s, bgav_packet_t * p)
-  {
-  const uint8_t * ptr = p->data;
-  int marker;
-  int len;
-  int components[3];
-  int sub_h[3];
-  int sub_v[3];
-  
-  //  fprintf(stderr, "get_format_jpeg\n");
-  //  bgav_hexdump(p->data, 16, 16);
-  
-  while(1)
-    {
-    marker = BGAV_PTR_2_16BE(ptr); ptr+=2;
-    
-    switch(marker)
-      {
-      case 0xFFD8:
-        //        fprintf(stderr, "Got SOI\n");
-        break;
-      case 0xFFC0:
-      case 0xFFC1:
-      case 0xFFC2:
-      case 0xFFC3:
-      case 0xFFC5:
-      case 0xFFC6:
-      case 0xFFC7:
-      case 0xFFC8:
-      case 0xFFC9:
-      case 0xFFCa:
-      case 0xFFCb:
-      case 0xFFCd:
-      case 0xFFCe:
-      case 0xFFCf:
-        {
-        int tmp, i;
-        int num_components;
-        //        bgav_hexdump(ptr, 16, 16);
-      
-        len = BGAV_PTR_2_16BE(ptr); ptr+=2;
-        //        fprintf(stderr, "Got SOF %d\n", len-2);
-        
-        tmp = *ptr; ptr++;
-
-        //        fprintf(stderr, "Bits: %d\n", tmp);
-      
-        tmp = BGAV_PTR_2_16BE(ptr); ptr+=2;
-        //        fprintf(stderr, "Height: %d\n", tmp);
-
-        tmp = BGAV_PTR_2_16BE(ptr); ptr+=2;
-        //        fprintf(stderr, "Width: %d\n", tmp);
-        
-        num_components = *ptr; ptr++;
-        //        fprintf(stderr, "Components: %d\n", tmp);
-                
-        for(i = 0; i < num_components; i++)
-          {
-          components[i] = *ptr; ptr++;
-          sub_h[i]      = (*ptr) >> 4;
-          sub_v[i]      = (*ptr) & 0xF;
-          ptr += 2; /* Skip huffman table */
-          //          fprintf(stderr, "Component: ID: %d, sub_h: %d, sub_v: %d\n",
-          //                  components[i], sub_h[i], sub_v[i]);
-          }
-        
-        if((num_components != 3) ||
-           (components[0] != 1) ||
-           (components[1] != 2) ||
-           (components[2] != 3) ||
-           (sub_h[1] != sub_h[2]) ||
-           (sub_v[1] != sub_v[2]))
-          {
-          return 0;
-          }
-
-        if((sub_h[0] == 1) &&
-           (sub_v[0] == 1) &&
-           (sub_h[1] == 1) &&
-           (sub_v[1] == 1))
-          s->data.video.format.pixelformat = GAVL_YUVJ_444_P;
-        else if((sub_h[0] == 2) &&
-                (sub_v[0] == 2) &&
-                (sub_h[1] == 1) &&
-                (sub_v[1] == 1))
-          s->data.video.format.pixelformat = GAVL_YUVJ_420_P;
-        else if((sub_h[0] == 2) &&
-                (sub_v[0] == 1) &&
-                (sub_h[1] == 1) &&
-                (sub_v[1] == 1))
-          s->data.video.format.pixelformat = GAVL_YUVJ_422_P;
-        return 1;
-        }
-        break;
-      case 0xFFDA: // SOS
-        return 0;
-        break;
-      default:
-        len = BGAV_PTR_2_16BE(ptr); ptr+=2;
-        //        fprintf(stderr, "Got %04x %d\n", marker, len-2);
-        ptr+=len-2;
-        break;
-      }
-    
-    }
-  return 0;
   }
 

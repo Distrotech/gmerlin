@@ -498,10 +498,12 @@ parse_dirac.c \
 parse_dv.c \
 parse_flac.c \
 parse_h264.c \
+parse_jpeg.c \
 parse_mjpa.c \
 parse_mpeg4.c \
 parse_mpv.c \
 parse_mpegaudio.c \
+parse_png.c \
 parse_vc1.c \
 pes_header.c \
 pnm.c \

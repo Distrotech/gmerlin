@@ -88,6 +88,7 @@ parsers[] =
     { BGAV_MK_FOURCC('V', 'C', '-', '1'), bgav_video_parser_init_vc1 },
     { BGAV_MK_FOURCC('d', 'r', 'a', 'c'), bgav_video_parser_init_dirac },
     { BGAV_MK_FOURCC('m', 'j', 'p', 'a'), bgav_video_parser_init_mjpa },
+    { BGAV_MK_FOURCC('j', 'p', 'e', 'g'), bgav_video_parser_init_jpeg },
   };
 
 int bgav_video_parser_supported(uint32_t fourcc)
@@ -123,6 +124,8 @@ bgav_video_parser_create(bgav_stream_t * s)
     {
     if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs))
       func = bgav_video_parser_init_dv;
+    else if(bgav_check_fourcc(s->fourcc, bgav_png_fourccs))
+      func = bgav_video_parser_init_png;
     }
   
   if(!func)
