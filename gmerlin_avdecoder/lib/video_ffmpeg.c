@@ -81,6 +81,7 @@
 #define SWAP_FIELDS_OUT (1<<2)
 #define MERGE_FIELDS    (1<<3)
 #define FLIP_Y          (1<<4)
+#define B_REFERENCE     (1<<5) // B-frames can be reference frames (H.264 only for now)
 
 /* Skip handling */
 
@@ -157,8 +158,8 @@ typedef struct
   
   bgav_pts_cache_t pts_cache;
 
-  int64_t picture_timestamp;
-  int     picture_duration;
+  //  int64_t picture_timestamp;
+  //  int     picture_duration;
   //  gavl_timecode_t picture_timecode;
   gavl_interlace_mode_t picture_interlace;
   
@@ -420,64 +421,44 @@ static int decode_picture(bgav_stream_t * s)
     if(p) /* Got packet */
       {
       /* Check what to skip */
-
-      switch(priv->skip_mode)
-        {
-        case SKIP_MODE_NONE:
-          priv->ctx->skip_frame = AVDISCARD_DEFAULT;
-          break;
-        case SKIP_MODE_FAST:
-          if((PACKET_GET_CODING_TYPE(p) != BGAV_CODING_TYPE_B) &&
-             (p->pts >= priv->skip_time))
-            priv->skip_mode = SKIP_MODE_SLOW;
-          priv->ctx->skip_frame = AVDISCARD_BIDIR;
-          break;
-        case SKIP_MODE_SLOW:
-          priv->ctx->skip_frame = AVDISCARD_DEFAULT;
-          break;
-        }
-      
-      /* Skip non-reference frames */
-      
       
       if(p->pts == BGAV_TIMESTAMP_UNDEFINED)
         {
-        priv->ctx->skip_frame = AVDISCARD_NONREF;
+        done_data(s, p);
+        // fprintf(stderr, "Skipping frame (fast)\n");
+        continue;
         }
-      else if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
+      
+      if(priv->skip_mode == SKIP_MODE_FAST)
+        {
+        /* Didn't have "our" I/P-frame yet: Don't even look at this */
+        if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
+          {
+          done_data(s, p);
+          // fprintf(stderr, "Skipping frame (fast)\n");
+          continue;
+          }
+        else if(p->pts + p->duration >= priv->skip_time)
+          priv->skip_mode = SKIP_MODE_SLOW;
+        }
+
+      if(priv->skip_mode)
         {
         if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
           {
-          /* Special handling for B-Pyramid */
-          if(s->flags & STREAM_B_PYRAMID)
+          if(!(priv->flags & B_REFERENCE) &&
+             (p->pts + p->duration < priv->skip_time))
             {
-#if 0
-            int last_duration;
-            int64_t last_pts;
-            last_pts = bgav_pts_cache_peek_last(&priv->pts_cache, &last_duration);
-            if(last_pts == BGAV_TIMESTAMP_UNDEFINED)
-              {
-              fprintf(stderr, "Oops\n");
-              }
-            
-            fprintf(stderr, "Last pts: %lld, %d\n", last_pts, last_duration);
-            if((last_pts != BGAV_TIMESTAMP_UNDEFINED) &&
-               (last_pts + last_duration < priv->skip_time))
-              priv->ctx->skip_frame = AVDISCARD_NONREF;
-#endif
-            }
-          else if(p->pts + p->duration < priv->skip_time)
-            {
-            priv->ctx->skip_frame = AVDISCARD_NONREF;
+            done_data(s, p);
+            // fprintf(stderr, "Skipping frame (fast)\n");
+            continue;
             }
           }
         }
       
       if(priv->ctx->skip_frame == AVDISCARD_DEFAULT)
-        {
         bgav_pts_cache_push(&priv->pts_cache, p, NULL, &e);
-        }
-
+      
       priv->pkt.data = p->data;
       if(p->field2_offset)
         priv->pkt.size = p->field2_offset;
@@ -607,23 +588,23 @@ static int decode_picture(bgav_stream_t * s)
         priv->gavl_frame->planes[i]  = priv->frame->data[i];
         priv->gavl_frame->strides[i] = priv->frame->linesize[i];
         }
-      
+      bgav_pts_cache_get_first(&priv->pts_cache, priv->gavl_frame);
+
+      if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
+        {
+        if(priv->frame->interlaced_frame)
+          {
+          if(priv->frame->top_field_first)
+            priv->gavl_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+          else
+            priv->gavl_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+          }
+        else
+          priv->gavl_frame->interlace_mode = GAVL_INTERLACE_NONE;
+        }
       break;
       }
 
-    }
-
-  if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
-    {
-    if(priv->frame->interlaced_frame)
-      {
-      if(priv->frame->top_field_first)
-        priv->picture_interlace = GAVL_INTERLACE_TOP_FIRST;
-      else
-        priv->picture_interlace = GAVL_INTERLACE_BOTTOM_FIRST;
-      }
-    else
-      priv->picture_interlace = GAVL_INTERLACE_NONE;
     }
   
   return 1;
@@ -650,19 +631,12 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
             priv->picture_timestamp, time, exact);
 #endif
     
-    if(priv->picture_duration <= 0)
-      {
-      if(priv->picture_timestamp >= time)
-        break;
-      }
-    else
-      {
-      if(priv->picture_timestamp + priv->picture_duration > time)
-        break;
-      }
+    if(priv->gavl_frame->timestamp + priv->gavl_frame->duration > time)
+      break;
     }
   priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
-  s->out_time = priv->picture_timestamp;
+  priv->skip_mode = SKIP_MODE_NONE;
+  s->out_time = priv->gavl_frame->timestamp;
   return 1;
   }
 
@@ -683,31 +657,16 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
       if(priv->put_frame)
         {
         priv->put_frame(s, f);
+        /* Set frame metadata */
         gavl_video_frame_copy_metadata(f, priv->gavl_frame);
         }
       else
         {
         /* TODO: Remove this */
-        priv->gavl_frame->planes[0]  = priv->frame->data[0];
-        priv->gavl_frame->planes[1]  = priv->frame->data[1];
-        priv->gavl_frame->planes[2]  = priv->frame->data[2];
-          
-        priv->gavl_frame->strides[0] = priv->frame->linesize[0];
-        priv->gavl_frame->strides[1] = priv->frame->linesize[1];
-        priv->gavl_frame->strides[2] = priv->frame->linesize[2];
         gavl_video_frame_copy(&s->data.video.format, f, priv->gavl_frame);
+        /* Set frame metadata */
+        gavl_video_frame_copy_metadata(f, priv->gavl_frame);
         }
-
-      /* Set frame metadata */
-
-      bgav_pts_cache_get_first(&priv->pts_cache, f);
-      
-      if(gavl_interlace_mode_is_mixed(s->data.video.format.interlace_mode))
-        f->interlace_mode = priv->picture_interlace;
-      }
-    else
-      {
-      bgav_pts_cache_get_first(&priv->pts_cache, NULL);
       }
     }
   else if(!priv->need_format)
@@ -907,6 +866,11 @@ static int init_ffmpeg(bgav_stream_t * s)
   /* Check if there might be B-frames */
   if(codec->capabilities & CODEC_CAP_DELAY)
     priv->flags |= HAS_DELAY;
+
+  /* Check if B-frames might be references */
+  if(codec->id == CODEC_ID_H264)
+    priv->flags |= B_REFERENCE;
+    
   
   priv->ctx->opaque = s;
   
@@ -929,7 +893,7 @@ static int init_ffmpeg(bgav_stream_t * s)
 #endif
     }
   
-  if(s->action == BGAV_STREAM_PARSE)
+  if(s->action == BGAV_STREAM_PARSE) // FIXME: Not needed?
     return 1;
   
   priv->ctx->codec_type = CODEC_TYPE_VIDEO;
