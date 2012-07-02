@@ -82,6 +82,13 @@
 #define MERGE_FIELDS    (1<<3)
 #define FLIP_Y          (1<<4)
 
+/* Skip handling */
+
+#define SKIP_MODE_NONE 0 // No Skipping
+#define SKIP_MODE_FAST 1 // Skip all B frames
+#define SKIP_MODE_SLOW 2 // 
+
+
 typedef struct
   {
   const char * decoder_name;
@@ -156,10 +163,9 @@ typedef struct
   gavl_interlace_mode_t picture_interlace;
   
   int64_t skip_time;
-
-#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+  int skip_mode;
+  
   AVPacket pkt;
-#endif
 
 #ifdef HAVE_VDPAU
   bgav_vdpau_context_t * vdpau_ctx;
@@ -352,32 +358,87 @@ static void dump_frame(uint8_t * data, int len)
   }
 #endif
 
+static void update_palette(bgav_stream_t * s, bgav_packet_t * p)
+  {
+  uint32_t * pal_i;
+  int i, imax;
+  ffmpeg_video_priv * priv;
+  priv = s->data.video.decoder->priv;
+  
+  imax =
+    (p->palette_size > AVPALETTE_COUNT)
+    ? AVPALETTE_COUNT : p->palette_size;
+
+  bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+           "Got palette %d entries", p->palette_size);
+      
+#if LIBAVCODEC_VERSION_MAJOR < 54
+  priv->palette.palette_changed = 1;
+  pal_i = priv->palette.palette;
+#else
+  pal_i =
+    (uint32_t*)av_packet_new_side_data(&priv->pkt, AV_PKT_DATA_PALETTE,
+                                       AVPALETTE_COUNT * 4);
+#endif
+  for(i = 0; i < imax; i++)
+    {
+    pal_i[i] =
+      ((p->palette[i].a >> 8) << 24) |
+      ((p->palette[i].r >> 8) << 16) |
+      ((p->palette[i].g >> 8) << 8) |
+      ((p->palette[i].b >> 8));
+    }
+  for(i = imax; i < AVPALETTE_COUNT; i++)
+    pal_i[i] = 0;
+      
+  bgav_packet_free_palette(p);
+
+  }
+
 static int decode_picture(bgav_stream_t * s)
   {
-  int i;
   int bytes_used;
   ffmpeg_video_priv * priv;
   bgav_pts_cache_entry_t * e;
   int have_picture = 0;
-  uint8_t * frame_buffer = NULL;
-  int frame_buffer_len = 0;
   bgav_packet_t * p;
   
   priv = s->data.video.decoder->priv;
+
+  priv->pkt.data = NULL;
+  priv->pkt.size = 0;
   
   while(1)
     {
     /* Read data */
-    if(!(p = get_data(s)))
+    p = get_data(s);
+
+    /* Early EOF detection */
+    if(!p && !(priv->flags & HAS_DELAY))
+      return 0;
+
+    if(p) /* Got packet */
       {
-      if(!priv->flags & HAS_DELAY)
-        return 0;
-      }
-    else /* Got packet */
-      {
+      /* Check what to skip */
+
+      switch(priv->skip_mode)
+        {
+        case SKIP_MODE_NONE:
+          priv->ctx->skip_frame = AVDISCARD_DEFAULT;
+          break;
+        case SKIP_MODE_FAST:
+          if((PACKET_GET_CODING_TYPE(p) != BGAV_CODING_TYPE_B) &&
+             (p->pts >= priv->skip_time))
+            priv->skip_mode = SKIP_MODE_SLOW;
+          priv->ctx->skip_frame = AVDISCARD_BIDIR;
+          break;
+        case SKIP_MODE_SLOW:
+          priv->ctx->skip_frame = AVDISCARD_DEFAULT;
+          break;
+        }
+      
       /* Skip non-reference frames */
       
-      priv->ctx->skip_frame = AVDISCARD_DEFAULT;
       
       if(p->pts == BGAV_TIMESTAMP_UNDEFINED)
         {
@@ -416,48 +477,17 @@ static int decode_picture(bgav_stream_t * s)
         {
         bgav_pts_cache_push(&priv->pts_cache, p, NULL, &e);
         }
-      
-      frame_buffer = p->data;
 
+      priv->pkt.data = p->data;
       if(p->field2_offset)
-        frame_buffer_len = p->field2_offset;
+        priv->pkt.size = p->field2_offset;
       else
-        frame_buffer_len = p->data_size;
+        priv->pkt.size = p->data_size;
       }
-    /* Palette terror */
 
+    /* Palette handling */
     if(p && p->palette)
-      {
-      uint32_t * pal_i;
-      int imax;
-      imax =
-        (p->palette_size > AVPALETTE_COUNT)
-        ? AVPALETTE_COUNT : p->palette_size;
-
-      bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-               "Got palette %d entries", p->palette_size);
-      
-#if LIBAVCODEC_VERSION_MAJOR < 54
-      priv->palette.palette_changed = 1;
-      pal_i = priv->palette.palette;
-#else
-      pal_i =
-        (uint32_t*)av_packet_new_side_data(&priv->pkt, AV_PKT_DATA_PALETTE,
-                                           AVPALETTE_COUNT * 4);
-#endif
-      for(i = 0; i < imax; i++)
-        {
-        pal_i[i] =
-          ((p->palette[i].a >> 8) << 24) |
-          ((p->palette[i].r >> 8) << 16) |
-          ((p->palette[i].g >> 8) << 8) |
-          ((p->palette[i].b >> 8));
-        }
-      for(i = imax; i < AVPALETTE_COUNT; i++)
-        pal_i[i] = 0;
-      
-      bgav_packet_free_palette(p);
-      }
+      update_palette(s, p);
     
     /* Decode one frame */
     
@@ -471,12 +501,37 @@ static int decode_picture(bgav_stream_t * s)
     //    dump_frame(frame_buffer, frame_buffer_len);
 
 #if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
-    priv->pkt.data = frame_buffer;
-    priv->pkt.size = frame_buffer_len;
     bytes_used = avcodec_decode_video2(priv->ctx,
                                        priv->frame,
                                        &have_picture,
                                        &priv->pkt);
+    
+#else
+    bytes_used = avcodec_decode_video(priv->ctx,
+                                      priv->frame,
+                                      &have_picture,
+                                      priv->pkt.data,
+                                      priv->pkt.size);
+#endif
+
+    
+#ifdef DUMP_DECODE
+      bgav_dprintf("Used %d/%d bytes, got picture: %d ",
+                   bytes_used, frame_buffer_len, have_picture);
+      if(!have_picture)
+        bgav_dprintf("\n");
+      else
+        {
+        bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
+                     priv->frame->interlaced_frame,
+                     priv->frame->top_field_first,
+                     priv->frame->repeat_pict,
+                     (float)(priv->ctx->time_base.den) / (float)(priv->ctx->time_base.num)
+                     );
+      
+        bgav_dprintf("\n");
+        }
+#endif
 
     /* Ugly hack: Need to free the side data elements manually because
        ffmpeg has no public API for that */
@@ -488,40 +543,13 @@ static int decode_picture(bgav_stream_t * s)
       priv->pkt.side_data_elems = 0;
       }
 #endif
-       
-    
-#else
-    bytes_used = avcodec_decode_video(priv->ctx,
-                                      priv->frame,
-                                      &have_picture,
-                                      frame_buffer,
-                                      frame_buffer_len);
-#endif
-    
-#ifdef DUMP_DECODE
-      bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                   bytes_used, frame_buffer_len, have_picture);
-      if(!have_picture)
-        bgav_dprintf("\n");
-      else
-        {
-        bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
-                     priv->frame->interlaced_frame,
-                     priv->frame->top_field_first,
-                     priv->frame->repeat_pict,
-                     (float)(priv->ctx->time_base.den) / (float)(priv->ctx->time_base.num)
-                     );
-      
-        bgav_dprintf("\n");
-        }
-#endif
       
     /* Decode 2nd field for field pictures */
     if(p && p->field2_offset && (bytes_used > 0))
       {
-      frame_buffer = p->data + p->field2_offset;
-      frame_buffer_len = p->data_size - p->field2_offset;
-
+      priv->pkt.data = p->data + p->field2_offset;
+      priv->pkt.size = p->data_size - p->field2_offset;
+      
 #ifdef DUMP_DECODE
       bgav_dprintf("Decode (f2): out_time: %" PRId64 " len: %d\n", s->out_time,
                    frame_buffer_len);
@@ -530,21 +558,18 @@ static int decode_picture(bgav_stream_t * s)
 #endif
 
 #if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
-      priv->pkt.data = frame_buffer;
-      priv->pkt.size = frame_buffer_len;
       bytes_used = avcodec_decode_video2(priv->ctx,
                                          priv->frame,
                                          &have_picture,
                                          &priv->pkt);
 #else
-      
       bytes_used = avcodec_decode_video(priv->ctx,
                                         priv->frame,
                                         &have_picture,
-                                        frame_buffer,
-                                        frame_buffer_len);
+                                        priv->pkt.data,
+                                        priv->pkt.size);
 #endif
-
+      
 #ifdef DUMP_DECODE
       bgav_dprintf("Used %d/%d bytes, got picture: %d ",
                    bytes_used, frame_buffer_len, have_picture);
@@ -563,21 +588,26 @@ static int decode_picture(bgav_stream_t * s)
         }
 #endif
       }
-
-    
     
     if(p)
       done_data(s, p);
     
     /* If we passed no data and got no picture, we are done here */
-    if(!frame_buffer_len && !have_picture)
-      {
+    if(!priv->pkt.size && !have_picture)
       return 0;
-      }
     
     if(have_picture)
       {
+      int i;
       s->flags |= STREAM_HAVE_PICTURE; 
+
+      /* Set our internal frame */
+      for(i = 0; i < 3; i++)
+        {
+        priv->gavl_frame->planes[i]  = priv->frame->data[i];
+        priv->gavl_frame->strides[i] = priv->frame->linesize[i];
+        }
+      
       break;
       }
 
@@ -605,7 +635,8 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
   
   priv = s->data.video.decoder->priv;
   priv->skip_time = time;
-
+  priv->skip_mode = SKIP_MODE_FAST;
+  
   while(1)
     {
     if(!decode_picture(s))
@@ -618,7 +649,7 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
     fprintf(stderr, "Skipto ffmpeg %"PRId64" %"PRId64" %d\n",
             priv->picture_timestamp, time, exact);
 #endif
-
+    
     if(priv->picture_duration <= 0)
       {
       if(priv->picture_timestamp >= time)
@@ -650,7 +681,11 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
     if(f)
       {
       if(priv->put_frame)
+        {
         priv->put_frame(s, f);
+        gavl_video_frame_copy_metadata(f,
+                                       const gavl_video_frame_t * src)
+        }
       else
         {
         /* TODO: Remove this */
@@ -1128,6 +1163,8 @@ static void close_ffmpeg(bgav_stream_t * s)
   free(priv->frame);
   free(priv);
   }
+
+/* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 static codec_info_t codec_infos[] =
   {

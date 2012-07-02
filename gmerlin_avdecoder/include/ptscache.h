@@ -42,5 +42,7 @@ void bgav_pts_cache_clear(bgav_pts_cache_t * c);
 
 /* Get the smallest timestamp */
 int bgav_pts_cache_get_first(bgav_pts_cache_t * c, gavl_video_frame_t * f);
+int bgav_pts_cache_peek_first(bgav_pts_cache_t * c, gavl_video_frame_t * f);
+
 
 int64_t bgav_pts_cache_peek_last(bgav_pts_cache_t * c, int * duration);

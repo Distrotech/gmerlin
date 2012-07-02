@@ -113,6 +113,25 @@ int bgav_pts_cache_get_first(bgav_pts_cache_t * c, gavl_video_frame_t * f)
   return 1;
   }
 
+int bgav_pts_cache_peek_first(bgav_pts_cache_t * c, gavl_video_frame_t * f)
+  {
+  int i = get_min_index(c);
+  
+  if(i < 0)
+    return 0;
+  else
+    {
+    if(f)
+      {
+      f->duration = c->entries[i].duration;
+      f->timecode = c->entries[i].tc;
+      f->timestamp = c->entries[i].pts;
+      }
+    }
+  return 1;
+  }
+
+
 int64_t bgav_pts_cache_peek_last(bgav_pts_cache_t * c, int * duration)
   {
   int i = get_max_index(c);

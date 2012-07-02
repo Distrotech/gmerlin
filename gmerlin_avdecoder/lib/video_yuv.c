@@ -28,7 +28,7 @@
 #include <avdec_private.h>
 #include <codecs.h>
 
-#define PADD(size, bytes) ((((size)+bytes-1)/bytes)*bytes)
+#define PAD(size, bytes) ((((size)+bytes-1)/bytes)*bytes)
 
 typedef struct
   {
@@ -92,7 +92,7 @@ static int init_yuv2(bgav_stream_t * s)
 
   priv = s->data.video.decoder->priv;
 
-  priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
+  priv->frame->strides[0] = PAD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_yuv2;
   s->data.video.format.pixelformat = GAVL_YUVJ_422_P;
   return 1;
@@ -208,7 +208,7 @@ static int init_2vuy(bgav_stream_t * s)
   
   priv = s->data.video.decoder->priv;
 
-  priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
+  priv->frame->strides[0] = PAD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_2vuy;
   s->data.video.format.pixelformat = GAVL_UYVY;
   return 1;
@@ -240,7 +240,7 @@ static int init_VYUY(bgav_stream_t * s)
   
   priv = s->data.video.decoder->priv;
 
-  priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
+  priv->frame->strides[0] = PAD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_VYUY;
   s->data.video.format.pixelformat = GAVL_YUY2;
   return 1;
@@ -270,7 +270,7 @@ static int init_yv12(bgav_stream_t * s)
 
   priv = s->data.video.decoder->priv;
 
-  priv->frame->strides[0] = PADD(s->data.video.format.image_width, 2);
+  priv->frame->strides[0] = PAD(s->data.video.format.image_width, 2);
   priv->frame->strides[1] = priv->frame->strides[0]/2;
   priv->frame->strides[2] = priv->frame->strides[1];
   
@@ -303,7 +303,7 @@ static int init_YV12(bgav_stream_t * s)
 
   priv = s->data.video.decoder->priv;
 
-  priv->frame->strides[0] = PADD(s->data.video.format.image_width, 2);
+  priv->frame->strides[0] = PAD(s->data.video.format.image_width, 2);
   priv->frame->strides[1] = priv->frame->strides[0]/2;
   priv->frame->strides[2] = priv->frame->strides[1];
   
@@ -341,7 +341,7 @@ static int init_YVU9(bgav_stream_t * s)
   
   priv = s->data.video.decoder->priv;
 
-  priv->frame->strides[0] = PADD(s->data.video.format.image_width, 8);
+  priv->frame->strides[0] = PAD(s->data.video.format.image_width, 8);
   priv->frame->strides[1] = priv->frame->strides[0]/4;
   priv->frame->strides[2] = priv->frame->strides[1];
   
@@ -540,7 +540,7 @@ static int init_v210(bgav_stream_t * s)
 
   priv = s->data.video.decoder->priv;
 
-  priv->frame->strides[0] = (PADD(s->data.video.format.image_width, 48) * 8) / 3;
+  priv->frame->strides[0] = (PAD(s->data.video.format.image_width, 48) * 8) / 3;
   priv->decode_func = decode_v210;
   s->data.video.format.pixelformat = GAVL_YUV_422_P_16;
   return 1;
@@ -602,7 +602,7 @@ static int init_yuv4(bgav_stream_t * s)
   
   priv = s->data.video.decoder->priv;
 
-  priv->frame->strides[0] = PADD(s->data.video.format.image_width, 2) * 3;
+  priv->frame->strides[0] = PAD(s->data.video.format.image_width, 2) * 3;
   priv->decode_func = decode_yuv4;
   s->data.video.format.pixelformat = GAVL_YUV_420_P;
   return 1;
