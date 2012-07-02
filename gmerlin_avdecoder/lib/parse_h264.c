@@ -59,6 +59,8 @@ typedef struct
   int rbsp_len;
   
   int has_picture_start;
+
+  int has_aud;
   } h264_priv_t;
 
 static void get_rbsp(bgav_video_parser_t * parser, uint8_t * pos, int len)
@@ -398,8 +400,8 @@ static int handle_nal(bgav_video_parser_t * parser)
                                        &sh);
           //          bgav_h264_slice_header_dump(&priv->sps,
           //                                      &sh);
-
-          if(!priv->has_picture_start &&
+          
+          if(!priv->has_aud && !priv->has_picture_start &&
              !bgav_video_parser_set_picture_start(parser))
             return PARSER_ERROR;
 
@@ -428,12 +430,12 @@ static int handle_nal(bgav_video_parser_t * parser)
             parser->cache[parser->cache_size-1].field_pic = 1;
           
           //          }
-        priv->has_picture_start = 0;
+          priv->has_picture_start = 0;
         }
       else
         {
         /* Skip slices before the first SPS */
-        fprintf(stderr, "Skipping slice before SPS %d\n", parser->pos);
+        //        fprintf(stderr, "Skipping slice before SPS %d\n", parser->pos);
         bgav_video_parser_flush(parser, parser->pos + priv->nal_len);
         priv->state = H264_NEED_NAL_END;
         priv->has_picture_start = 0;
@@ -519,6 +521,8 @@ static int handle_nal(bgav_video_parser_t * parser)
         parser->buf.buffer[parser->pos + header_len] >> 5;
       //      fprintf(stderr, "Got access unit delimiter, pic_type: %d, cache_size: %d\n",
       //              primary_pic_type, parser->cache_size);
+      priv->has_aud = 1;
+      
       if(!priv->has_picture_start)
         {
         if(!bgav_video_parser_set_picture_start(parser))

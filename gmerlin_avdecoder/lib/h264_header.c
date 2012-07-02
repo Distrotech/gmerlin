@@ -94,7 +94,7 @@ bgav_h264_find_nal_start(const uint8_t * buffer, int len)
     return NULL;
   
   /* Get zero bytes before actual startcode */
-  while((ptr > buffer) && (*(ptr-1) == 0x00))
+  if((ptr > buffer) && (*(ptr-1) == 0x00))
     ptr--;
   
   return ptr;

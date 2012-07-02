@@ -493,9 +493,9 @@ static int decode_picture(bgav_stream_t * s)
     
 #ifdef DUMP_DECODE
     bgav_dprintf("Decode: out_time: %" PRId64 " len: %d\n", s->out_time,
-                 frame_buffer_len);
-    if(frame_buffer)
-      bgav_hexdump(frame_buffer, 16, 16);
+                 priv->pkt.size);
+    if(priv->pkt.data)
+      bgav_hexdump(priv->pkt.data, 16, 16);
 #endif
     
     //    dump_frame(frame_buffer, frame_buffer_len);
@@ -517,7 +517,7 @@ static int decode_picture(bgav_stream_t * s)
     
 #ifdef DUMP_DECODE
       bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                   bytes_used, frame_buffer_len, have_picture);
+                   bytes_used, priv->pkt.size, have_picture);
       if(!have_picture)
         bgav_dprintf("\n");
       else
@@ -552,9 +552,9 @@ static int decode_picture(bgav_stream_t * s)
       
 #ifdef DUMP_DECODE
       bgav_dprintf("Decode (f2): out_time: %" PRId64 " len: %d\n", s->out_time,
-                   frame_buffer_len);
-      if(frame_buffer)
-        bgav_hexdump(frame_buffer, 16, 16);
+                   priv->pkt.size);
+      if(priv->pkt.data)
+        bgav_hexdump(priv->pkt.data, 16, 16);
 #endif
 
 #if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
@@ -572,7 +572,7 @@ static int decode_picture(bgav_stream_t * s)
       
 #ifdef DUMP_DECODE
       bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                   bytes_used, frame_buffer_len, have_picture);
+                   bytes_used, priv->pkt.size, have_picture);
       if(!have_picture)
         bgav_dprintf("\n");
       else
@@ -683,8 +683,7 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
       if(priv->put_frame)
         {
         priv->put_frame(s, f);
-        gavl_video_frame_copy_metadata(f,
-                                       const gavl_video_frame_t * src)
+        gavl_video_frame_copy_metadata(f, priv->gavl_frame);
         }
       else
         {
