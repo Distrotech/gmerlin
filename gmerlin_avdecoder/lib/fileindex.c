@@ -40,7 +40,7 @@
 
 /* Version must be increased each time the fileformat
    changes */
-#define INDEX_VERSION 6
+#define INDEX_VERSION 7
 
 static void dump_index(bgav_stream_t * s)
   {
@@ -52,7 +52,7 @@ static void dump_index(bgav_stream_t * s)
     for(i = 0; i < s->file_index->num_entries; i++)
       {
       bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64" CT: %c ",
-                   !!(s->file_index->entries[i].flags & PACKET_FLAG_KEY),
+                   !!(s->file_index->entries[i].flags & GAVL_PACKET_KEYFRAME),
                    s->file_index->entries[i].position,
                    s->file_index->entries[i].pts,
                    s->file_index->entries[i].flags & 0xff);
@@ -88,7 +88,7 @@ static void dump_index(bgav_stream_t * s)
     for(i = 0; i < s->file_index->num_entries; i++)
       {
       bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64,
-                   !!(s->file_index->entries[i].flags & PACKET_FLAG_KEY),
+                   !!(s->file_index->entries[i].flags & GAVL_PACKET_KEYFRAME),
                    s->file_index->entries[i].position,
                    s->file_index->entries[i].pts);
       
@@ -193,7 +193,7 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
     }
   /* First frame is always a keyframe */
   if(!idx->num_entries)
-    flags |= PACKET_FLAG_KEY;
+    flags |= GAVL_PACKET_KEYFRAME;
     
   idx->entries[idx->num_entries].position = position;
   idx->entries[idx->num_entries].pts     = time;

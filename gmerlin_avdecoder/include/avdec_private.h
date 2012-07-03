@@ -209,27 +209,28 @@ dst[0] = pal.b >> 8;
 
 /* Packet */
 
-#define BGAV_CODING_TYPE_I 'I'
-#define BGAV_CODING_TYPE_P 'P'
-#define BGAV_CODING_TYPE_B 'B'
-#define BGAV_CODING_TYPE_D 'D' /* Unsupported */
+#define BGAV_CODING_TYPE_I GAVL_PACKET_TYPE_I
+#define BGAV_CODING_TYPE_P GAVL_PACKET_TYPE_P
+#define BGAV_CODING_TYPE_B GAVL_PACKET_TYPE_B
+// #define BGAV_CODING_TYPE_D 'D' /* Unsupported */
 
-#define PACKET_FLAG_KEY    (1<<8)
-#define PACKET_FLAG_SKIP   (1<<9)
-#define PACKET_FLAG_LAST   (1<<10)
+/* Put private flags into the higher bits */
+#define PACKET_FLAG_SKIP (1<<16)
 
 /* If these flags are changed, the flags of the superindex must be
    changed as well */
 
 #define PACKET_SET_CODING_TYPE(p, t) p->flags |= t
-#define PACKET_SET_KEYFRAME(p)       p->flags |= PACKET_FLAG_KEY
+#define PACKET_SET_KEYFRAME(p)       p->flags |= GAVL_PACKET_KEYFRAME
 #define PACKET_SET_SKIP(p)           p->flags |= PACKET_FLAG_SKIP
-#define PACKET_SET_LAST(p)           p->flags |= PACKET_FLAG_LAST
+#define PACKET_SET_LAST(p)           p->flags |= GAVL_PACKET_LAST
+#define PACKET_SET_REF(p)            p->flags |= GAVL_PACKET_REF
 
-#define PACKET_GET_CODING_TYPE(p)    (p->flags & 0xff)
-#define PACKET_GET_KEYFRAME(p)       (p->flags & PACKET_FLAG_KEY)
+#define PACKET_GET_CODING_TYPE(p)    (p->flags & GAVL_PACKET_TYPE_MASK)
+#define PACKET_GET_KEYFRAME(p)       (p->flags & GAVL_PACKET_KEYFRAME)
 #define PACKET_GET_SKIP(p)           (p->flags & PACKET_FLAG_SKIP)
-#define PACKET_GET_LAST(p)           (p->flags & PACKET_FLAG_LAST)
+#define PACKET_GET_LAST(p)           (p->flags & GAVL_PACKET_LAST)
+#define PACKET_GET_REF(p)            (p->flags & GAVL_PACKET_REF)
 
 struct bgav_packet_s
   {

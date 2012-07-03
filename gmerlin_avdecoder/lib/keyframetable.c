@@ -55,7 +55,7 @@ bgav_keyframe_table_t * bgav_keyframe_table_create_fi(bgav_file_index_t * fi)
 
   for(i = 0; i < fi->num_entries; i++)
     {
-    if(fi->entries[i].flags & PACKET_FLAG_KEY)
+    if(fi->entries[i].flags & GAVL_PACKET_KEYFRAME)
       {
       append_entry(ret, &allocated);
       ret->entries[ret->num_entries-1].pos = i;
@@ -78,7 +78,7 @@ bgav_keyframe_table_t * bgav_keyframe_table_create_si(bgav_superindex_t * si,
   for(i = s->first_index_position; i <= s->last_index_position; i++)
     {
     if((si->entries[i].stream_id == s->stream_id) &&
-       (si->entries[i].flags & PACKET_FLAG_KEY))
+       (si->entries[i].flags & GAVL_PACKET_KEYFRAME))
       {
       append_entry(ret, &allocated);
       ret->entries[ret->num_entries-1].pos = i;

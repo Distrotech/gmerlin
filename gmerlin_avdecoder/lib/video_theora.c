@@ -207,7 +207,7 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
 
     op.bytes = p->data_size;
     op.packet = p->data;
-    if(p->flags & PACKET_FLAG_LAST)
+    if(PACKET_GET_LAST(p))
       op.e_o_s = 1;
     
     if(!th_packet_isheader(&op))

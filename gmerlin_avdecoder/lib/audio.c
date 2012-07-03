@@ -505,11 +505,9 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   p->pts = bp->pts;
   p->duration = bp->duration;
 
-  p->flags = GAVL_PACKET_KEYFRAME;
-
-  if(bp->flags & PACKET_FLAG_LAST)
-    p->flags |= GAVL_PACKET_LAST;
+  p->flags = bp->flags & 0xFFFF0000;
   
+  p->flags |= GAVL_PACKET_KEYFRAME;
   bgav_stream_done_packet_read(s, bp);
   
   return 1;

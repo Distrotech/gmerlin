@@ -235,7 +235,7 @@ int64_t bgav_video_stream_keyframe_before(bgav_stream_t * s, int64_t time)
     while(pos >= s->first_index_position)
       {
       if((s->demuxer->si->entries[pos].stream_id == s->stream_id) &&
-         (s->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
+         (s->demuxer->si->entries[pos].flags & GAVL_PACKET_KEYFRAME) &&
          (s->demuxer->si->entries[pos].pts < time))
         {
         break;
@@ -256,11 +256,11 @@ int64_t bgav_video_stream_keyframe_before(bgav_stream_t * s, int64_t time)
 
     while(pos &&
           ((s->file_index->entries[pos].pts >= time) ||
-           !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY)))
+           !(s->file_index->entries[pos].flags & GAVL_PACKET_KEYFRAME)))
       pos--;
     
     if((s->file_index->entries[pos].pts >= time) ||
-       !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY))
+       !(s->file_index->entries[pos].flags & GAVL_PACKET_KEYFRAME))
       return BGAV_TIMESTAMP_UNDEFINED;
     return s->file_index->entries[pos].pts;
     }
@@ -282,7 +282,7 @@ int64_t bgav_video_stream_keyframe_after(bgav_stream_t * s, int64_t time)
     while(pos <= s->last_index_position)
       {
       if((s->demuxer->si->entries[pos].stream_id == s->stream_id) &&
-         (s->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
+         (s->demuxer->si->entries[pos].flags & GAVL_PACKET_KEYFRAME) &&
          (s->demuxer->si->entries[pos].pts > time))
         {
         break;
@@ -304,11 +304,11 @@ int64_t bgav_video_stream_keyframe_after(bgav_stream_t * s, int64_t time)
 
     while((pos < s->file_index->num_entries - 1) &&
           ((s->file_index->entries[pos].pts <= time) ||
-           !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY)))
+           !(s->file_index->entries[pos].flags & GAVL_PACKET_KEYFRAME)))
       pos++;
 
     if((s->file_index->entries[pos].pts <= time) ||
-       !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY))
+       !(s->file_index->entries[pos].flags & GAVL_PACKET_KEYFRAME))
       {
       return BGAV_TIMESTAMP_UNDEFINED;
       }

@@ -89,8 +89,23 @@ void bgav_packet_dump(bgav_packet_t * p)
 
   type = PACKET_GET_CODING_TYPE(p);
   if(type)
-    bgav_dprintf("T: %c ", type);
-  
+    {
+    char tc = 0;
+    switch(type)
+      {
+      case BGAV_CODING_TYPE_I:
+        tc = 'I';
+        break;
+      case BGAV_CODING_TYPE_P:
+        tc = 'P';
+        break;
+      case BGAV_CODING_TYPE_B:
+        tc = 'B';
+        break;
+      }
+    if(tc)
+      bgav_dprintf("T: %c ", tc);
+    }
   if(p->dts != GAVL_TIME_UNDEFINED)
     bgav_dprintf("dts: %"PRId64", ", p->dts);
 

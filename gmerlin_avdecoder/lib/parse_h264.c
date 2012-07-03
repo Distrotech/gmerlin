@@ -632,13 +632,13 @@ static void cleanup_h264(bgav_video_parser_t * parser)
 static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
   bgav_h264_nal_header_t nh;
-  bgav_h264_slice_header_t sh;
+  //  bgav_h264_slice_header_t sh;
   
   h264_priv_t * priv = parser->priv;
   const uint8_t * ptr =   p->data;
   const uint8_t * end = p->data + p->data_size;
 
-  fprintf(stderr, "Parse frame\n");
+  //  fprintf(stderr, "Parse frame\n");
 
   while(ptr < end)
     {
@@ -664,8 +664,18 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
     nh.unit_type = ptr[0] & 0x1f;
     ptr++;
 
-    fprintf(stderr, "Got nal unit type %d, ref_idc: %d, len %d\n",
-            nh.unit_type, nh.ref_idc, priv->nal_len - 1);
+    if((nh.unit_type == H264_NAL_NON_IDR_SLICE) ||
+       (nh.unit_type == H264_NAL_IDR_SLICE) ||
+       (nh.unit_type == H264_NAL_SLICE_PARTITION_A) ||
+       (nh.unit_type == H264_NAL_SLICE_PARTITION_B) ||
+       (nh.unit_type == H264_NAL_SLICE_PARTITION_C))
+      {
+      if(nh.ref_idc)
+        {
+        PACKET_SET_REF(p);
+        return PARSER_CONTINUE;
+        }
+      }
     ptr += (priv->nal_len - 1);
     }
   
@@ -687,7 +697,7 @@ static int parse_avc_extradata(bgav_video_parser_t * parser)
   priv->nal_size_length = (*ptr & 0x3) + 1;
   ptr++;
   
-  /* SPS */
+  /* SPS (we parse just the first one) */
   num_units = *ptr & 0x1f; ptr++;
 
   priv->nal_len = BGAV_PTR_2_16BE(ptr); ptr += 2;
@@ -710,9 +720,9 @@ static int parse_avc_extradata(bgav_video_parser_t * parser)
   bgav_h264_sps_parse(parser->s->opt,
                       &priv->sps,
                       priv->rbsp, priv->rbsp_len);
-  bgav_h264_sps_dump(&priv->sps);
+  //  bgav_h264_sps_dump(&priv->sps);
   priv->have_sps = 1;
-  
+  return 1;
   }
 
 void bgav_video_parser_init_h264(bgav_video_parser_t * parser)

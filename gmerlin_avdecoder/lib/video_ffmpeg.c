@@ -432,7 +432,8 @@ static int decode_picture(bgav_stream_t * s)
       if(priv->skip_mode == SKIP_MODE_FAST)
         {
         /* Didn't have "our" I/P-frame yet: Don't even look at this */
-        if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
+        if((PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B) &&
+           PACKET_GET_REF(p))
           {
           done_data(s, p);
           // fprintf(stderr, "Skipping frame (fast)\n");

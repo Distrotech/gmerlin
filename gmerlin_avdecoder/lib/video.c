@@ -848,26 +848,7 @@ static void copy_packet_fields(gavl_packet_t * p, bgav_packet_t * bp)
   p->field2_offset = bp->field2_offset;
   
   p->sequence_end_pos = bp->sequence_end_pos;
-  
-  /* Set flags */
-
-  p->flags = 0;
-  switch(bp->flags & 0xff)
-    {
-    case BGAV_CODING_TYPE_I:
-      p->flags |= GAVL_PACKET_TYPE_I;
-      break;
-    case BGAV_CODING_TYPE_P:
-      p->flags |= GAVL_PACKET_TYPE_P;
-      break;
-    case BGAV_CODING_TYPE_B:
-      p->flags |= GAVL_PACKET_TYPE_B;
-      break;
-    }
-
-  if(PACKET_GET_KEYFRAME(bp))
-    p->flags |= GAVL_PACKET_KEYFRAME;
-  
+  p->flags = bp->flags & 0xFFFF0000;
   }
 
 int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)

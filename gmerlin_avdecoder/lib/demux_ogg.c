@@ -1912,9 +1912,9 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           stream_priv->frame_counter++;
 
           if(priv->op.e_o_s)
-            p->flags |= PACKET_FLAG_LAST;
+            p->flags |= GAVL_PACKET_LAST;
           else
-            p->flags &= ~PACKET_FLAG_LAST;
+            p->flags &= ~GAVL_PACKET_LAST;
           
           set_packet_pos(priv, stream_priv, &page_continued, p);
           
@@ -2068,9 +2068,9 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
           /* Close this packet */
           if(priv->op.e_o_s)
-            p->flags |= PACKET_FLAG_LAST;
+            p->flags |= GAVL_PACKET_LAST;
           else
-            p->flags &= ~PACKET_FLAG_LAST;
+            p->flags &= ~GAVL_PACKET_LAST;
           
           bgav_stream_done_packet_write(s, p);
           

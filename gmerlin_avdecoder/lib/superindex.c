@@ -104,7 +104,7 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
   idx->entries[idx->num_entries].pts = timestamp;
 
   if(keyframe)
-    idx->entries[idx->num_entries].flags = PACKET_FLAG_KEY;
+    idx->entries[idx->num_entries].flags = GAVL_PACKET_KEYFRAME;
   idx->entries[idx->num_entries].duration   = duration;
 
   /* Update indices */
@@ -275,7 +275,7 @@ void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
     
     if(max_time == BGAV_TIMESTAMP_UNDEFINED)
       {
-      if(idx->entries[i].flags & PACKET_FLAG_KEY)
+      if(idx->entries[i].flags & GAVL_PACKET_KEYFRAME)
         idx->entries[i].flags |= BGAV_CODING_TYPE_I;
       else
         idx->entries[i].flags |= BGAV_CODING_TYPE_P;
@@ -283,7 +283,7 @@ void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
       }
     else if(idx->entries[i].pts > max_time)
       {
-      if(idx->entries[i].flags & PACKET_FLAG_KEY)
+      if(idx->entries[i].flags & GAVL_PACKET_KEYFRAME)
         idx->entries[i].flags |= BGAV_CODING_TYPE_I;
       else
         idx->entries[i].flags |= BGAV_CODING_TYPE_P;
@@ -345,7 +345,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
   while(i >= s->first_index_position)
     {
     if((idx->entries[i].stream_id == s->stream_id) &&
-       (idx->entries[i].flags & PACKET_FLAG_KEY))
+       (idx->entries[i].flags & GAVL_PACKET_KEYFRAME))
       {
       break;
       }
@@ -363,7 +363,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
     while(i >= s->first_index_position)
       {
       if((idx->entries[i].stream_id == s->stream_id) &&
-         (idx->entries[i].flags & PACKET_FLAG_KEY) &&
+         (idx->entries[i].flags & GAVL_PACKET_KEYFRAME) &&
          (STREAM_GET_SYNC(s) - idx->entries[i].pts >= s->data.audio.preroll))
         {
         break;
@@ -388,7 +388,7 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
     bgav_dprintf( "  No: %6d ID: %d K: %d O: %" PRId64 " T: %" PRId64 " D: %d S: %6d", 
                   i,
                   idx->entries[i].stream_id,
-                  !!(idx->entries[i].flags & PACKET_FLAG_KEY),
+                  !!(idx->entries[i].flags & GAVL_PACKET_KEYFRAME),
                   idx->entries[i].offset,
                   idx->entries[i].pts,
                   idx->entries[i].duration,

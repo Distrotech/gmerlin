@@ -1786,7 +1786,7 @@ static void duplicate_si(bgav_superindex_t * idx)
     idx->entries[2*i+1].stream_id = DV_AUDIO_ID;
     idx->entries[2*i+1].offset = idx->entries[2*i].offset;
     idx->entries[2*i+1].size   = idx->entries[2*i].size;
-    idx->entries[2*i+1].flags  = PACKET_FLAG_KEY;
+    idx->entries[2*i+1].flags  = GAVL_PACKET_KEYFRAME;
     idx->entries[2*i+1].pts = 0;
     idx->entries[2*i+1].duration = 0;
     }
