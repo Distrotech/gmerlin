@@ -70,7 +70,8 @@ int bgav_video_start(bgav_stream_t * s)
      format values and/or timecodes */
 
   if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs) ||
-     bgav_check_fourcc(s->fourcc, bgav_png_fourccs))
+     bgav_check_fourcc(s->fourcc, bgav_png_fourccs) ||
+     (s->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')))
     s->flags |= STREAM_PARSE_FRAME;
   
   if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&

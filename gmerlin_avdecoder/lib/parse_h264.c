@@ -32,6 +32,8 @@
 // #define DUMP_AVCHD_SEI
 // #define DUMP_SEI
 
+#define LOG_DOMAIN "parse_h264"
+
 /* H.264 */
 
 #define H264_NEED_NAL_START 0
@@ -61,9 +63,11 @@ typedef struct
   int has_picture_start;
 
   int has_aud;
+  int is_avc;
+  int nal_size_length;
   } h264_priv_t;
 
-static void get_rbsp(bgav_video_parser_t * parser, uint8_t * pos, int len)
+static void get_rbsp(bgav_video_parser_t * parser, const uint8_t * pos, int len)
   {
   h264_priv_t * priv = parser->priv;
   if(priv->rbsp_alloc < priv->nal_len)
@@ -394,7 +398,7 @@ static int handle_nal(bgav_video_parser_t * parser)
         //          {
           get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
                    priv->nal_len - header_len);
-                
+          
           bgav_h264_slice_header_parse(priv->rbsp, priv->rbsp_len,
                                        &priv->sps,
                                        &sh);
@@ -625,14 +629,116 @@ static void cleanup_h264(bgav_video_parser_t * parser)
   free(priv);
   }
 
+static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
+  {
+  bgav_h264_nal_header_t nh;
+  bgav_h264_slice_header_t sh;
+  
+  h264_priv_t * priv = parser->priv;
+  const uint8_t * ptr =   p->data;
+  const uint8_t * end = p->data + p->data_size;
+
+  fprintf(stderr, "Parse frame\n");
+
+  while(ptr < end)
+    {
+    switch(priv->nal_size_length)
+      {
+      case 1:
+        priv->nal_len = *ptr;
+        ptr++;
+        break;
+      case 2:
+        priv->nal_len = BGAV_PTR_2_16BE(ptr);
+        ptr += 2;
+        break;
+      case 4:
+        priv->nal_len = BGAV_PTR_2_32BE(ptr);
+        ptr += 4;
+        break;
+      default:
+        break;
+      }
+
+    nh.ref_idc   = ptr[0] >> 5;
+    nh.unit_type = ptr[0] & 0x1f;
+    ptr++;
+
+    fprintf(stderr, "Got nal unit type %d, ref_idc: %d, len %d\n",
+            nh.unit_type, nh.ref_idc, priv->nal_len - 1);
+    ptr += (priv->nal_len - 1);
+    }
+  
+  return PARSER_CONTINUE;
+  }
+
+static int parse_avc_extradata(bgav_video_parser_t * parser)
+  {
+  int num_units;
+  const uint8_t * ptr;
+  const uint8_t * end;
+  bgav_h264_nal_header_t nh;
+  h264_priv_t * priv = parser->priv;
+  
+  ptr = parser->s->ext_data;
+  end = ptr + parser->s->ext_size;
+
+  ptr += 4; // Version, profile, profile compat, level
+  priv->nal_size_length = (*ptr & 0x3) + 1;
+  ptr++;
+  
+  /* SPS */
+  num_units = *ptr & 0x1f; ptr++;
+
+  priv->nal_len = BGAV_PTR_2_16BE(ptr); ptr += 2;
+
+#if 1
+  nh.ref_idc   = ptr[0] >> 5;
+  nh.unit_type = ptr[0] & 0x1f;
+  ptr++;
+
+  if(nh.unit_type != H264_NAL_SPS)
+    {
+    bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "No SPS found");
+    }
+  
+#endif
+  
+  get_rbsp(parser, ptr, priv->nal_len - 1);
+  
+  bgav_h264_sps_parse(parser->s->opt,
+                      &priv->sps,
+                      priv->rbsp, priv->rbsp_len);
+  bgav_h264_sps_dump(&priv->sps);
+  priv->have_sps = 1;
+  
+  }
+
 void bgav_video_parser_init_h264(bgav_video_parser_t * parser)
   {
   h264_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
   parser->parse = parse_h264;
+  parser->parse_frame = parse_frame_h264;
+
   parser->cleanup = cleanup_h264;
   parser->reset = reset_h264;
+  
   if(parser->s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
     parser->s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
+
+  /* Parse avc1 extradata */
+  if(parser->s->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1'))
+    {
+    if(!parser->s->ext_size)
+      {
+      bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "avc1 stream needs extradata");
+      return;
+      }
+    parse_avc_extradata(parser);
+    }
+  
   }

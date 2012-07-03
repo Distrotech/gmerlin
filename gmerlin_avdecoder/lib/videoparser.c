@@ -65,6 +65,7 @@ static const struct
 parsers[] =
   {
     { BGAV_MK_FOURCC('H', '2', '6', '4'), bgav_video_parser_init_h264 },
+    { BGAV_MK_FOURCC('a', 'v', 'c', '1'), bgav_video_parser_init_h264 },
     { BGAV_MK_FOURCC('m', 'p', 'g', 'v'), bgav_video_parser_init_mpeg12 },
     { BGAV_MK_FOURCC('m', 'p', 'v', '1'), bgav_video_parser_init_mpeg12 },
     { BGAV_MK_FOURCC('m', 'p', 'v', '2'), bgav_video_parser_init_mpeg12 },
