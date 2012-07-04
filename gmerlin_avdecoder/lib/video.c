@@ -848,7 +848,7 @@ static void copy_packet_fields(gavl_packet_t * p, bgav_packet_t * bp)
   p->field2_offset = bp->field2_offset;
   
   p->sequence_end_pos = bp->sequence_end_pos;
-  p->flags = bp->flags & 0xFFFF0000;
+  p->flags = bp->flags & 0xFFFF;
   }
 
 int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)

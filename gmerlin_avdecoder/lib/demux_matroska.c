@@ -878,7 +878,11 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
                           p->meta_seek_info.entries[i].SeekPosition, SEEK_SET);
           
           if(bgav_mkv_cues_read(ctx->input, &p->cues, p->num_tracks))
+            {
             p->have_cues = 1;
+            if(ctx->opt->dump_indices)
+              bgav_mkv_cues_dump(&p->cues);
+            }
           bgav_input_seek(ctx->input, pos, SEEK_SET);
           }
         }
