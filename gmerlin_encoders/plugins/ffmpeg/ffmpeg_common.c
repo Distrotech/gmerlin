@@ -1596,7 +1596,8 @@ int bg_ffmpeg_write_video_packet(void * priv, gavl_packet_t * packet, int stream
   ffmpeg_priv_t * f = priv;
   ffmpeg_video_stream_t * st = f->video_streams + stream;
 
-  //  fprintf(stderr, "Write video packet: pts: %lld duration: %lld dts: %lld\n", packet->pts, packet->duration, st->dts);
+  //  fprintf(stderr, "Write video packet: ");
+  //  gavl_packet_dump(packet);
   
   if(packet->pts == GAVL_TIME_UNDEFINED)
     return 1; // Drop undecodable packet
