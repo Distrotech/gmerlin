@@ -89,20 +89,6 @@ void bgav_qt_stts_dump(int indent, qt_stts_t * c)
   bgav_diprintf(indent, "end of stts\n");
   }
 
-void bgav_qt_ctts_shift(qt_stts_t * c)
-  {
-  int i;
-  int32_t diff;
-  if(!c->entries[0].duration)
-    return;
-  
-  for(i = 0; i < c->num_entries; i++)
-    {
-    diff = c->entries[i].duration - c->entries[0].duration;
-    c->entries[i].duration = (uint32_t)diff;
-    }
-  }
-
 int64_t bgav_qt_stts_num_samples(qt_stts_t * c)
   {
   int i;

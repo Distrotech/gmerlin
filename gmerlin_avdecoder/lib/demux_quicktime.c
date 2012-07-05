@@ -484,7 +484,8 @@ static void build_index(bgav_demuxer_context_t * ctx)
         
         if(s->ctts_pos >= 0)
           pts_offset =
-            (int32_t)s->stbl->ctts.entries[s->ctts_pos].duration;
+            (int32_t)s->stbl->ctts.entries[s->ctts_pos].duration -
+            (int32_t)s->stbl->ctts.entries[0].duration;
         else
           pts_offset = 0;
         

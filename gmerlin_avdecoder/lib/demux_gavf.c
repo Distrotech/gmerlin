@@ -294,25 +294,8 @@ static int next_packet_gavf(bgav_demuxer_context_t * ctx)
   
   bp->pts = gp.pts;
   bp->duration = gp.duration;
-
-  if(gp.flags & GAVL_PACKET_KEYFRAME)
-    PACKET_SET_KEYFRAME(bp);
-
-  if(s->type == BGAV_STREAM_VIDEO)
-    {
-    switch(gp.flags & GAVL_PACKET_TYPE_MASK)
-      {
-      case GAVL_PACKET_TYPE_I:
-        PACKET_SET_CODING_TYPE(bp, BGAV_CODING_TYPE_I);
-        break;
-      case GAVL_PACKET_TYPE_P:
-        PACKET_SET_CODING_TYPE(bp, BGAV_CODING_TYPE_P);
-        break;
-      case GAVL_PACKET_TYPE_B:
-        PACKET_SET_CODING_TYPE(bp, BGAV_CODING_TYPE_B);
-        break;
-      }
-    }
+  
+  bp->flags = gp.flags;
   bgav_stream_done_packet_write(s, bp);
   return 1;
   }

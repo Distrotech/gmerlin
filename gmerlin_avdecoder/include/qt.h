@@ -153,9 +153,6 @@ void bgav_qt_stts_dump(int indent, qt_stts_t * c);
 
 int64_t bgav_qt_stts_num_samples(qt_stts_t * c);
 
-
-void bgav_qt_ctts_shift(qt_stts_t * ctts);
-
 /*
  *  Sync samples
  */
