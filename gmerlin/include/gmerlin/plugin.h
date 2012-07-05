@@ -697,6 +697,18 @@ struct bg_input_plugin_s
   
   bg_read_video_func_t read_video;
 
+  /** \brief Get the video source for a stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns 1 if a still frame can be decoded, 0 else.
+   *
+   *  This is an alternative for \ref has_still and
+   *  \ref read_video. 
+   */
+
+  gavl_video_source_t * (*get_video_source)(void * priv, int stream);
+
+  
   /** \brief Read compressed audio packet
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index (starting with 0)
@@ -2201,6 +2213,17 @@ struct bg_fv_plugin_s
   
   int (*need_restart)(void * priv);
 
+  /** \brief Connect sources
+   *  \param priv The handle returned by the create() method
+   *  \param src Video source where this filter gets it's frames from
+   *  \returns 1 The source to be passed to the subsequent filter
+   *
+   *  This can be implemented as a replacement for \ref connect_input_port,
+   *  \ref set_input_format and \ref get_output_format \ref read_video.
+   */
+  
+  gavl_video_source_t * (*connect)(void * priv, gavl_video_source_t *);
+    
   /** \brief Read a video frame from the plugin
    */
 
