@@ -566,7 +566,10 @@ struct bgav_stream_s
         } pal;
       
       gavl_video_source_t * source;
-      
+
+      /* If this is set, we will pass this to the
+         source */
+      gavl_video_frame_t * frame;
       } video;
     struct
       {

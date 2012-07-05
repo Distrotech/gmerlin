@@ -57,9 +57,70 @@ int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   return 1;
   }
 
-static gavl_source_status_t default_source_func(void * sp, gavl_video_frame_t ** frame)
+static int check_still(bgav_stream_t * s)
   {
+  if(!(s->flags & STREAM_STILL_MODE))
+    return 1;
+  if(s->flags & STREAM_HAVE_PICTURE)
+    return 1;
+  if(bgav_stream_peek_packet_read(s, 0))
+    return 1;
+  else if(s->flags & STREAM_EOF_D)
+    return 1;
   
+  return 0;
+  
+  }
+
+int bgav_video_has_still(bgav_t * bgav, int stream)
+  {
+  bgav_stream_t * s;
+  s = &bgav->tt->cur->video_streams[stream];
+  return check_still(s);
+  }
+
+static gavl_source_status_t
+read_video_nocopy(void * sp,
+                  gavl_video_frame_t ** frame)
+  {
+  bgav_stream_t * s = sp;
+  if(!check_still(s))
+    return GAVL_SOURCE_AGAIN;
+  if(!s->data.video.decoder->decoder->decode(sp, NULL))
+    return GAVL_SOURCE_EOF;
+  if(frame)
+    *frame = s->data.video.frame;
+#ifdef DUMP_TIMESTAMPS
+  bgav_dprintf("Video timestamp: %"PRId64"\n", s->data.video.frame->timestamp);
+#endif    
+  s->out_time = s->data.video.frame->timestamp + s->data.video.frame->duration;
+  s->flags &= ~STREAM_HAVE_PICTURE;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_source_status_t read_video_copy(void * sp,
+                                            gavl_video_frame_t ** frame)
+  {
+  bgav_stream_t * s = sp;
+  if(!check_still(s))
+    return GAVL_SOURCE_AGAIN;
+  
+  if(frame)
+    {
+    if(!s->data.video.decoder->decoder->decode(sp, *frame))
+      return GAVL_SOURCE_EOF;
+    s->out_time = (*frame)->timestamp + (*frame)->duration;
+    }
+  else
+    {
+    if(!s->data.video.decoder->decoder->decode(sp, NULL))
+      return GAVL_SOURCE_EOF;
+    }
+#ifdef DUMP_TIMESTAMPS
+  bgav_dprintf("Video timestamp: %"PRId64"\n", s->data.video.frame->timestamp);
+#endif    
+  s->flags &= ~STREAM_HAVE_PICTURE;
+  return GAVL_SOURCE_OK;
   }
 
 int bgav_video_start(bgav_stream_t * s)
@@ -180,12 +241,20 @@ int bgav_video_start(bgav_stream_t * s)
     if(!result)
       return 0;
 
-    if(!s->data.video.source)
+    if(s->data.video.frame)
       {
-      /* Create source through the default functions */
-      
+      s->data.video.source =
+        gavl_video_source_create(read_video_nocopy,
+                                 s, GAVL_SOURCE_SRC_ALLOC,
+                                 &s->data.video.format);
       }
-    
+    else
+      {
+      s->data.video.source =
+        gavl_video_source_create(read_video_copy,
+                                 s, 0,
+                                 &s->data.video.format);
+      }
     }
 
   if(s->codec_bitrate)
@@ -494,20 +563,6 @@ void bgav_skip_video(bgav_t * bgav, int stream,
   bgav_video_skipto(s, time, scale, exact);
   }
 
-int bgav_video_has_still(bgav_t * bgav, int stream)
-  {
-  bgav_stream_t * s;
-  s = &bgav->tt->cur->video_streams[stream];
-
-  if(s->flags & STREAM_HAVE_PICTURE)
-    return 1;
-  if(bgav_stream_peek_packet_read(s, 0))
-    return 1;
-  else if(s->flags & STREAM_EOF_D)
-    return 1;
-  
-  return 0;
-  }
 
 static void frame_table_append_frame(gavl_frame_table_t * t,
                                      int64_t time,

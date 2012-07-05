@@ -1050,6 +1050,9 @@ static int init_ffmpeg(bgav_stream_t * s)
                       priv->info->format_name);
 
   init_put_frame(s);
+
+  if(!priv->put_frame)
+    s->data.video.frame = priv->gavl_frame;
   
   return 1;
   }
