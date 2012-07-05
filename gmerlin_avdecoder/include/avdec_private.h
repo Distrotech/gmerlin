@@ -1801,6 +1801,12 @@ struct bgav_subtitle_reader_context_s
   bgav_packet_t * p;
   gavl_overlay_t  ovl;
 
+  int64_t time_offset;
+
+  /* Timestamps are scaled with out_pts = pts * scale_num / scale_den */
+  int scale_num;
+  int scale_den;
+    
   char * line;
   int line_alloc;
   

@@ -129,10 +129,12 @@ int bgav_h264_decode_nal_header(const uint8_t * in_buffer, int len,
   return pos - in_buffer + 1;
   }
 
+#if 0
 int bgav_h264_nal_header_dump(const bgav_h264_nal_header_t * header)
   {
   
   }
+#endif
 
 int bgav_h264_decode_nal_rbsp(const uint8_t * in_buffer, int len,
                               uint8_t * ret)

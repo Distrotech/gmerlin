@@ -43,7 +43,11 @@ static int probe_srt(char * line)
 
 static int init_srt(bgav_stream_t * s)
   {
+  bgav_subtitle_reader_context_t * ctx;
   s->timescale = 1000;
+  ctx = s->data.subtitle.subreader;
+  ctx->scale_num = 1;
+  ctx->scale_den = 1;
   return 1;
   }
 
@@ -53,20 +57,38 @@ static int read_srt(bgav_stream_t * s)
   int a1,a2,a3,a4,b1,b2,b3,b4;
   int i,len;
   bgav_subtitle_reader_context_t * ctx;
-
   gavl_time_t start, end;
-
+  
   ctx = s->data.subtitle.subreader;
-
+  
   /* Read lines */
   while(1)
     {
-    if(!bgav_input_read_convert_line(ctx->input, &ctx->line, &ctx->line_alloc,
-                                     &line_len))
+    if(!bgav_input_read_convert_line(ctx->input, &ctx->line,
+                                     &ctx->line_alloc, &line_len))
       return 0;
+
+    if(ctx->line[0] == '@')
+      {
+      if(!strncasecmp(ctx->line, "@OFF=", 5))
+        {
+        ctx->time_offset += (int)(atof(ctx->line+5) * 1000);
+        fprintf(stderr, "new time offset: %"PRId64"\n", ctx->time_offset);
+        }
+      else if(!strncasecmp(ctx->line, "@SCALE=", 7))
+        {
+        sscanf(ctx->line + 7, "%d:%d", &ctx->scale_num, &ctx->scale_den);
+        fprintf(stderr, "new scale factor: %d:%d\n",
+                ctx->scale_num, ctx->scale_den);
+        }
+      continue;
+      }
     
-    if ((len=sscanf (ctx->line, "%d:%d:%d%[,.:]%d --> %d:%d:%d%[,.:]%d",
-                     &a1,&a2,&a3,(char *)&i,&a4,&b1,&b2,&b3,(char *)&i,&b4)) == 10)
+    
+    else if((len=sscanf (ctx->line,
+                         "%d:%d:%d%[,.:]%d --> %d:%d:%d%[,.:]%d",
+                         &a1,&a2,&a3,(char *)&i,&a4,
+                         &b1,&b2,&b3,(char *)&i,&b4)) == 10)
       {
       break;
       }
@@ -88,9 +110,17 @@ static int read_srt(bgav_stream_t * s)
   end *= 1000;
   end += b4;
   
-  ctx->p->pts = start;
+  ctx->p->pts = start + ctx->time_offset;
   ctx->p->duration = end - start;
 
+  ctx->p->pts = gavl_time_rescale(ctx->scale_den,
+                                  ctx->scale_num,
+                                  ctx->p->pts);
+
+  ctx->p->duration = gavl_time_rescale(ctx->scale_den,
+                                       ctx->scale_num,
+                                       ctx->p->duration);
+  
   ctx->p->data_size = 0;
   
   /* Read lines until we are done */
@@ -207,8 +237,12 @@ static int read_mpsub(bgav_stream_t * s)
     
     while(isspace(*ptr) && (*ptr != '\0'))
       ptr++;
-
-    /* The following will reset last_end_time whenever we cross a "FORMAT=" line */
+    
+    /*
+     * The following will reset last_end_time whenever we
+     * cross a "FORMAT=" line
+     */
+    
     if(!strncmp(ptr, "FORMAT=", 7))
       {
       priv->last_end_time = 0;
@@ -677,8 +711,9 @@ static char const * const extensions[] =
     NULL
   };
 
-static const bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
-                                                     const bgav_options_t * opt)
+static const bgav_subtitle_reader_t *
+find_subtitle_reader(const char * filename,
+                     const bgav_options_t * opt)
   {
   int i;
   bgav_input_context_t * input;
@@ -919,7 +954,8 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
     bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
 
     titles_skipped = 0;
-    
+
+    ctx->time_offset = 0;
     if(ctx->reader->read_subtitle_text)
       {
       while(ctx->reader->read_subtitle_text(s))
