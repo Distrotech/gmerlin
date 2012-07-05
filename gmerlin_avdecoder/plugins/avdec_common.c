@@ -29,60 +29,6 @@
 #include <avdec.h>
 #include "avdec_common.h"
 
-#if 0
-static void convert_metadata(bg_metadata_t * dst,
-                             const bgav_metadata_t * m)
-  {
-  const char * str;
-  
-  str = bgav_metadata_get_author(m);
-  if(str)
-    dst->author =
-      bg_strdup(dst->author, str);
-
-  str = bgav_metadata_get_artist(m);
-  if(str)
-    dst->artist =
-      bg_strdup(dst->artist, str);
-  
-  str = bgav_metadata_get_albumartist(m);
-  if(str)
-    dst->albumartist =
-      bg_strdup(dst->albumartist, str);
-
-  str = bgav_metadata_get_album(m);
-  if(str)
-    dst->album =
-      bg_strdup(dst->album, str);
-
-  str = bgav_metadata_get_genre(m);
-  if(str)
-    dst->genre =
-      bg_strdup(dst->genre, str);
-    
-  str = bgav_metadata_get_title(m);
-  if(str)
-    dst->title =
-      bg_strdup(dst->title, str);
-    
-  str = bgav_metadata_get_copyright(m);
-  if(str)
-    dst->copyright = bg_strdup(dst->copyright, str);
-    
-  str = bgav_metadata_get_comment(m);
-  if(str)
-    dst->comment = bg_strdup(dst->comment, str);
-
-  str = bgav_metadata_get_date(m);
-  if(str)
-    dst->date = bg_strdup(dst->date, str);
-
-  dst->track =
-    bgav_metadata_get_track(m);
-  
-  }
-#endif
-
 static void log_callback(void*data, bgav_log_level_t level,
                          const char * log_domain,
                          const char * message)
@@ -163,6 +109,13 @@ int bg_avdec_read_video_packet(void * priv, int stream, gavl_packet_t * p)
   {
   avdec_priv * avdec = priv;
   return bgav_read_video_packet(avdec->dec, stream, p);
+  }
+
+gavl_video_source_t *
+bg_avdec_get_video_source(void * priv, int stream)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_get_video_source(avdec->dec, stream);
   }
 
 void bg_avdec_destroy(void * priv)

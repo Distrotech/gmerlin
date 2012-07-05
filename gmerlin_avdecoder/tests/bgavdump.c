@@ -210,6 +210,8 @@ int main(int argc, char ** argv)
   const bgav_edl_t * edl;
 
   gavl_compression_info_t ci;
+
+  gavl_video_source_t * vsrc;
   
   setlocale(LC_MESSAGES, "");
   
@@ -519,7 +521,8 @@ int main(int argc, char ** argv)
           fprintf(stderr, "Reading %d samples from audio stream %d...",
                   audio_format->samples_per_frame, i+1);
           if(bgav_read_audio(file, af, i, audio_format->samples_per_frame))
-            fprintf(stderr, "Done, PTS: %"PRId64", Samples: %d\n", af->timestamp, af->valid_samples);
+            fprintf(stderr, "Done, PTS: %"PRId64", Samples: %d\n",
+                    af->timestamp, af->valid_samples);
           else
             fprintf(stderr, "Failed\n");
           }
@@ -533,8 +536,10 @@ int main(int argc, char ** argv)
       for(i = 0; i < num_video_streams; i++)
         {
         video_format = bgav_get_video_format(file, i);
-        vf = gavl_video_frame_create(video_format);
 #if 1
+        vsrc = bgav_get_video_source(file, i);
+        gavl_video_source_set_dst(vsrc, 0, NULL);
+        
         if(sample_accurate)
           {
           if(video_seek >= 0)
@@ -546,7 +551,8 @@ int main(int argc, char ** argv)
         for(j = 0; j < frames_to_read; j++)
           {
           fprintf(stderr, "Reading frame from video stream %d...", i+1);
-          if(bgav_read_video(file, vf, i))
+          vf = NULL;
+          if(gavl_video_source_read_frame(vsrc, &vf) == GAVL_SOURCE_OK)
             {
             fprintf(stderr, "Done, timestamp: %"PRId64, vf->timestamp);
 
@@ -594,8 +600,6 @@ int main(int argc, char ** argv)
             }
           }
 #endif
-        //      gavl_video_frame_dump(vf, video_format, "frame");
-        gavl_video_frame_destroy(vf);
         }
       }
 
