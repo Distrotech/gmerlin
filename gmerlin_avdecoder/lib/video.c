@@ -57,6 +57,11 @@ int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   return 1;
   }
 
+static gavl_source_status_t default_source_func(void * sp, gavl_video_frame_t ** frame)
+  {
+  
+  }
+
 int bgav_video_start(bgav_stream_t * s)
   {
   int result;
