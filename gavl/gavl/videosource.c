@@ -311,10 +311,13 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
   gavl_video_format_t dst_fmt;
   
   s->dst_flags = dst_flags;
-  gavl_video_format_copy(&s->dst_format, dst_format);
-
-  gavl_video_format_copy(&dst_fmt, dst_format);
-
+  if(dst_format)
+    gavl_video_format_copy(&s->dst_format, dst_format);
+  else
+    gavl_video_format_copy(&s->dst_format, &s->src_format);
+  
+  gavl_video_format_copy(&dst_fmt, &s->dst_format);
+  
   dst_fmt.framerate_mode = s->src_format.framerate_mode;
   dst_fmt.timescale      = s->src_format.timescale;
   dst_fmt.frame_duration = s->src_format.frame_duration;

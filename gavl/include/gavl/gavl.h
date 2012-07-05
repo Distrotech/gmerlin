@@ -4285,10 +4285,14 @@ gavl_video_source_get_dst_format(gavl_video_source_t * s);
  *  \param dst_flags Flags
  *  \param dst_format Format in which the frames will be read
  *
+ *  If you accept the source format (as returned by
+ *  \ref gavl_video_source_get_src_format) you can pass NULL for the
+ *  dst_format.
+ *
  *  If the destination format differs from the source format,
- *  it is converted. For this, we have a \ref gavl_video_converter_t
- *  and also do simple framerate conversion which repeats/drops
- *  frames.
+ *  the frames will converted. For this, we have a
+ *  \ref gavl_video_converter_t and also do simple framerate conversion
+ *  which repeats/drops frames.
  */
   
 GAVL_PUBLIC
