@@ -57,6 +57,7 @@ audioconverter.c \
 audioformat.c \
 audioframe.c \
 audiooptions.c \
+audiosource.c \
 blend.c \
 chapterlist.c \
 colorchannel.c \

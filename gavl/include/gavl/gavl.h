@@ -4316,13 +4316,11 @@ gavl_source_status_t
 gavl_video_source_read_frame(void * s, gavl_video_frame_t ** frame);
   
 /* Called by source */ 
-#if 0
   
 GAVL_PUBLIC
 gavl_audio_source_t *
 gavl_audio_source_create(gavl_audio_source_func_t func,
-                         void * priv, int stream,
-                         int src_flags,
+                         void * priv, int src_flags,
                          const gavl_audio_format_t * src_format);
 
 GAVL_PUBLIC
@@ -4334,10 +4332,30 @@ const gavl_audio_format_t *
 gavl_audio_source_get_dst_format(gavl_audio_source_t *);
 
 GAVL_PUBLIC
-int gavl_audio_source_read_frame(void*, int stream,
-                                 gavl_audio_frame_t ** frame);
+void
+gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
+                          const gavl_audio_format_t * dst_format);
+  
+GAVL_PUBLIC
+gavl_source_status_t
+gavl_audio_source_read_frame(void*, gavl_audio_frame_t ** frame);
 
-#endif
+/* For cases where it's not immediately known, how many samples will be
+   processed */
+
+GAVL_PUBLIC
+int gavl_audio_source_read_samples(void*, gavl_audio_frame_t * frame,
+                                   int num_samples);
+
+gavl_audio_options_t * gavl_audio_source_get_options(gavl_audio_source_t * s);
+  
+GAVL_PUBLIC
+void gavl_audio_source_reset(gavl_audio_source_t * s);
+
+  
+GAVL_PUBLIC
+void gavl_audio_source_destroy(gavl_audio_source_t * s);
+  
 /**
  * @}
  */
