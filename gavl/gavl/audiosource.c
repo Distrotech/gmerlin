@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include <stdlib.h>
+#include <stdio.h>
 
 
 #include <gavl/gavl.h>
@@ -39,8 +40,9 @@ struct gavl_audio_source_s
   /* For conversion */
   gavl_audio_frame_t * in_frame;
   gavl_audio_frame_t * out_frame;
-  gavl_audio_frame_t * frame;
   gavl_audio_frame_t * dst_frame;
+
+  gavl_audio_frame_t * frame;
   
   /* Callback set by the client */
   
@@ -108,6 +110,15 @@ void gavl_audio_source_destroy(gavl_audio_source_t * s)
   if(s->dst_fp)
     gavl_audio_frame_pool_destroy(s->dst_fp);
 #endif
+
+  if(s->out_frame)
+    gavl_audio_frame_destroy(s->out_frame);
+  if(s->in_frame)
+    gavl_audio_frame_destroy(s->in_frame);
+  if(s->dst_frame)
+    gavl_audio_frame_destroy(s->dst_frame);
+  
+  
   gavl_audio_converter_destroy(s->cnv);
   free(s);
   }
@@ -174,12 +185,16 @@ static int process_input(gavl_audio_source_t * s, gavl_audio_frame_t * f)
     s->next_pts = gavl_time_rescale(s->src_format.samplerate,
                                     s->dst_format.samplerate,
                                     f->timestamp);
+
+  //  fprintf(stderr, "Process input %ld\n", f->valid_samples);
+  
   return 1;
   }
 
 static void process_output(gavl_audio_source_t * s,
                            gavl_audio_frame_t * f)
   {
+  //  fprintf(stderr, "Process output %ld %ld\n", s->next_pts, f->valid_samples);
   f->timestamp = s->next_pts;
   s->next_pts += f->valid_samples;
   }
@@ -251,7 +266,6 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
         check_out_frame(s);
         gavl_audio_convert(s->cnv, in_frame, s->out_frame);
         s->frame = s->out_frame;
-        s->frame_samples = s->frame->valid_samples;
         }
       else
         {
@@ -264,21 +278,19 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
           
           if(!process_input(s, s->frame))
             continue;
-          s->frame_samples = s->frame->valid_samples;
           }
         else
           {
           check_out_frame(s);
-          ret = s->func(s->priv, &s->frame);
+          ret = s->func(s->priv, &s->out_frame);
           if(ret != GAVL_SOURCE_OK)
             break;
+          s->frame = s->out_frame;
           if(!process_input(s, s->frame))
             continue;
-          s->frame = s->out_frame;
-          s->frame_samples = s->frame->valid_samples;
           }
         }
-      
+      s->frame_samples = s->frame->valid_samples;
       }
 
     /* Copy samples */
@@ -292,21 +304,25 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
     
     samples_copied =
       gavl_audio_frame_copy(&s->dst_format,
-                            *frame,
-                            s->frame,
-                            samples_read,
-                            s->frame_samples - s->frame->valid_samples,
-                            num_samples - samples_read,
-                            s->frame->valid_samples);
+                            *frame,                                     // dst
+                            s->frame,                                   // src
+                            samples_read,                               // dst_pos
+                            s->frame_samples - s->frame->valid_samples, // src_pos
+                            num_samples - samples_read,                 // dst_size
+                            s->frame->valid_samples);                   // src_size
     s->frame->valid_samples -= samples_copied;
     samples_read += samples_copied;
     }
-
+  
   if(samples_read)
     {
     ret = GAVL_SOURCE_OK;
+    (*frame)->valid_samples = samples_read;
     process_output(s, *frame);
     }
+  else
+    (*frame)->valid_samples = 0;
+  
   return ret;
   }
 
@@ -325,6 +341,9 @@ int gavl_audio_source_read_samples(void * sp, gavl_audio_frame_t * frame,
                                    int num_samples)
   {
   gavl_audio_source_t * s = sp;
+
+  gavl_audio_frame_mute_samples(frame, &s->dst_format, num_samples);
+
   if(read_frame_internal(s, &frame, num_samples) != GAVL_SOURCE_OK)
     return 0;
   return frame->valid_samples;
