@@ -724,6 +724,29 @@ void gavl_audio_frame_set_channels(gavl_audio_frame_t * f,
 
 /*!
   \ingroup audio_frame
+  \brief Skip samples in am audio frame
+  \param format Format
+  \param f Audio frame
+  \param num_samples Number of samples skipped
+  \returns Number of samples actually skipped
+
+  Skip samples in an audio frame. If there are samples
+  remaining, they are moved to the start of the frame.
+  If not enough samples are there to skip, valid_samples
+  will be zero after the call and the number of skipped
+  samples is returned.
+
+  Since 1.5.0
+*/
+
+
+GAVL_PUBLIC
+int gavl_audio_frame_skip(const gavl_audio_format_t * format,
+                          gavl_audio_frame_t * f, int num_samples);
+
+  
+/*!
+  \ingroup audio_frame
   \brief Plot an audio frame to an ASCII file
   \param format Format
   \param frame An audio frame
@@ -4340,6 +4363,10 @@ GAVL_PUBLIC
 gavl_source_status_t
 gavl_audio_source_read_frame(void*, gavl_audio_frame_t ** frame);
 
+GAVL_PUBLIC
+void 
+gavl_audio_source_skip(gavl_audio_source_t * s, int num_samples);
+  
 /* For cases where it's not immediately known, how many samples will be
    processed */
 

@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <config.h>
 #include <gavl.h>
@@ -356,6 +357,59 @@ void gavl_audio_frame_get_subframe(const gavl_audio_format_t * format,
     }
   dst->valid_samples = len;
   }
+
+GAVL_PUBLIC
+int gavl_audio_frame_skip(const gavl_audio_format_t * format,
+                          gavl_audio_frame_t * f,
+                          int num_samples)
+  {
+  int i;
+  int samples_left;
+  int bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
+
+  if(num_samples > f->valid_samples)
+    num_samples = f->valid_samples;
+  
+  samples_left = f->valid_samples - num_samples;
+
+  if(!samples_left)
+    {
+    f->valid_samples = 0;
+    return num_samples;
+    }
+  
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_ALL:
+      memmove(f->samples.s_8, f->samples.s_8 +
+              bytes_per_sample * num_samples * format->num_channels,
+              bytes_per_sample * samples_left * format->num_channels);
+      break;
+    case GAVL_INTERLEAVE_NONE:
+      for(i = 0; i < format->num_channels; i++)
+        memmove(f->channels.s_8[i], f->channels.s_8[i] +
+                bytes_per_sample * num_samples,
+                bytes_per_sample * samples_left);
+      break;
+    case GAVL_INTERLEAVE_2:
+      for(i = 0; i < format->num_channels/2; i++)
+        memmove(f->channels.s_8[2*i], f->channels.s_8[2*i] +
+                bytes_per_sample * num_samples * 2,
+                bytes_per_sample * samples_left * 2);
+      if(format->num_channels & 1)
+        {
+        memmove(f->channels.s_8[format->num_channels-1],
+                f->channels.s_8[format->num_channels-1] +
+                bytes_per_sample * num_samples,
+                bytes_per_sample * samples_left);
+        }
+      break;
+    }
+  f->valid_samples = samples_left;
+  f->timestamp += num_samples;
+  return num_samples;
+  }
+
 
 int gavl_audio_frames_equal(const gavl_audio_format_t * format,
                             const gavl_audio_frame_t * f1,
