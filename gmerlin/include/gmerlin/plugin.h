@@ -677,6 +677,17 @@ struct bg_input_plugin_s
 
   bg_read_audio_func_t read_audio;
 
+  /** \brief Get the audio source for a stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns The audio source for this stream
+   *
+   *  This is an alternative for \ref read_audio.
+   */
+
+  gavl_audio_source_t * (*get_audio_source)(void * priv, int stream);
+
+  
   /** \brief Check is a still image is available
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0
@@ -700,7 +711,7 @@ struct bg_input_plugin_s
   /** \brief Get the video source for a stream
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0
-   *  \returns 1 if a still frame can be decoded, 0 else.
+   *  \returns The video source for that stream
    *
    *  This is an alternative for \ref has_still and
    *  \ref read_video. 
