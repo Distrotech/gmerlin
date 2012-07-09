@@ -133,6 +133,7 @@ const bg_input_plugin_t the_plugin =
     .read_video =      bg_avdec_read_video,
     .skip_video =      bg_avdec_skip_video,
     .get_video_source = bg_avdec_get_video_source,
+    .get_audio_source = bg_avdec_get_audio_source,
 
     .read_audio_packet = bg_avdec_read_audio_packet,
     .read_video_packet = bg_avdec_read_video_packet,

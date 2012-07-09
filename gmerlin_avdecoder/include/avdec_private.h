@@ -540,6 +540,8 @@ struct bgav_stream_s
       gavl_audio_frame_t * frame;
       int frame_samples;
       
+      gavl_audio_source_t * source;
+      
       } audio;
     struct
       {

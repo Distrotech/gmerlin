@@ -47,6 +47,9 @@ bg_track_info_t * bg_avdec_get_track_info(void * priv, int track);
 gavl_video_source_t *
 bg_avdec_get_video_source(void * priv, int stream);
 
+gavl_audio_source_t *
+bg_avdec_get_audio_source(void * priv, int stream);
+
 int bg_avdec_read_video(void * priv,
                         gavl_video_frame_t * frame,
                         int stream);

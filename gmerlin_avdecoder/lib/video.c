@@ -382,6 +382,9 @@ void bgav_video_resync(bgav_stream_t * s)
   if(s->fd)
     bgav_frametype_detector_reset(s->fd);
   
+  if(s->data.video.source)
+    gavl_video_source_reset(s->data.video.source);
+  
   /* If the stream has keyframes, skip until the next one */
 
   if(!(s->flags & (STREAM_INTRA_ONLY|STREAM_STILL_MODE)))

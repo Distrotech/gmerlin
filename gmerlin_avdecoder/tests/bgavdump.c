@@ -211,6 +211,7 @@ int main(int argc, char ** argv)
 
   gavl_compression_info_t ci;
 
+  gavl_audio_source_t * asrc;
   gavl_video_source_t * vsrc;
   
   setlocale(LC_MESSAGES, "");
@@ -511,23 +512,25 @@ int main(int argc, char ** argv)
       {
       for(i = 0; i < num_audio_streams; i++)
         {
-        audio_format = bgav_get_audio_format(file, i);
-        af = gavl_audio_frame_create(audio_format);
+        asrc = bgav_get_audio_source(file, i);
+        gavl_audio_source_set_dst(asrc, 0, NULL);
+        
+        // audio_format = bgav_get_audio_format(file, i);
+        // af = gavl_audio_frame_create(audio_format);
         if(sample_accurate && (audio_seek >= 0))
           bgav_seek_audio(file, i, audio_seek);
 
         for(j = 0; j < frames_to_read; j++)
           {
-          fprintf(stderr, "Reading %d samples from audio stream %d...",
-                  audio_format->samples_per_frame, i+1);
-          if(bgav_read_audio(file, af, i, audio_format->samples_per_frame))
+          fprintf(stderr, "Reading frame from audio stream %d...", i+1);
+          
+          af = NULL;
+          if(gavl_audio_source_read_frame(asrc, &af) == GAVL_SOURCE_OK)
             fprintf(stderr, "Done, PTS: %"PRId64", Samples: %d\n",
                     af->timestamp, af->valid_samples);
           else
             fprintf(stderr, "Failed\n");
           }
-      
-        gavl_audio_frame_destroy(af);
         }
       }
 

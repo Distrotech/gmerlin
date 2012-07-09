@@ -1918,6 +1918,23 @@ int bgav_read_audio(bgav_t * bgav, gavl_audio_frame_t * frame, int stream,
                     int num_samples);
 
 /** \ingroup decode
+    \brief Return the audio source for this stream
+    \param bgav A decoder instance
+    \param stream Stream index (starting with 0)
+    \returns A audio source to get the frames from
+
+    This is an alternative to using \ref bgav_read_audio. A
+    \ref gavl_audio_source_t lets you read
+    frames with optimized buffer management and implicit format
+    conversion. 
+*/
+  
+BGAV_PUBLIC
+gavl_audio_source_t * bgav_get_audio_source(bgav_t * bgav, int stream);
+
+  
+
+/** \ingroup decode
     \brief Check, if a new subtitle is available
     \param bgav A decoder instance
     \param stream Stream index (starting with 0)

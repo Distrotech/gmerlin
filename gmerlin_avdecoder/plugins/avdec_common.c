@@ -118,6 +118,13 @@ bg_avdec_get_video_source(void * priv, int stream)
   return bgav_get_video_source(avdec->dec, stream);
   }
 
+gavl_audio_source_t *
+bg_avdec_get_audio_source(void * priv, int stream)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_get_audio_source(avdec->dec, stream);
+  }
+
 void bg_avdec_destroy(void * priv)
   {
   avdec_priv * avdec;
