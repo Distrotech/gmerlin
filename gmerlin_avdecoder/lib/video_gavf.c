@@ -29,35 +29,27 @@
 typedef struct
   {
   gavl_video_frame_t * frame;
+  bgav_packet_t * p;
   } gavf_video_t;
 
 static int decode_frame_gavf_video(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
-  bgav_packet_t * p;
   
   gavl_packet_t gp;
   gavf_video_t * priv = s->data.video.decoder->priv;
+
+  if(priv->p)
+    bgav_stream_done_packet_read(s, priv->p);
   
-  if(!(p = bgav_stream_get_packet_read(s)))
+  if(!(priv->p = bgav_stream_get_packet_read(s)))
     return 0;
 
   gavl_packet_init(&gp);
-  gp.data     = p->data;
-  gp.data_len = p->data_size;
-  gp.pts      = p->pts;
-  gp.duration = p->duration;
-
-  gavf_packet_to_video_frame(&gp, priv->frame, &s->data.video.format);
-
-  if(frame)
-    {
-    bgav_set_video_frame_from_packet(p, frame);
-
-    gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
-    }
-
-  bgav_stream_done_packet_read(s, p);
+  gp.data     = priv->p->data;
+  gp.data_len = priv->p->data_size;
   
+  gavf_packet_to_video_frame(&gp, priv->frame, &s->data.video.format);
+  bgav_set_video_frame_from_packet(priv->p, frame);
   return 1;
   }
 
@@ -80,7 +72,18 @@ static int init_gavf_video(bgav_stream_t * s)
   s->data.video.decoder->priv = priv;
 
   priv->frame = gavl_video_frame_create(NULL);
+  s->data.video.frame = priv->frame;
   return 1;
+  }
+
+static int resync_gavf(bgav_stream_t * s)
+  {
+  gavf_video_t * priv = s->data.video.decoder->priv;
+  if(priv->p)
+    {
+    bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
   }
 
 static bgav_video_decoder_t decoder =

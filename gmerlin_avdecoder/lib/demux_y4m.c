@@ -24,33 +24,24 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
 
-#include <yuv4mpeg.h>
+// #include <yuv4mpeg.h>
 
 #define LOG_DOMAIN "demux_y4m"
 
 typedef struct
   {
-  y4m_stream_info_t si;
-  y4m_frame_info_t fi;
-
-  y4m_cb_reader_t reader;
+  
   uint8_t * tmp_planes[4]; /* For YUVA4444 */
   int64_t pts;
+
+  int line_alloc;
+  char * line;
+  
+  int buf_size;
   } y4m_t;
-
-/* Read function to pass to the mjpegutils */
-
-static ssize_t read_func(void * data, void * buf, size_t len)
-  {
-  int result;
-  bgav_input_context_t * inp = data;
-  result = bgav_input_read_data(inp, (uint8_t*)buf, len);
-
-  if(result < len)
-    return len - result;
-  return 0;
-  }
 
 static int probe_y4m(bgav_input_context_t * input)
   {
@@ -77,128 +68,164 @@ static void dump_stream_header(y4m_stream_info_t * si)
   }
 #endif
 
+static const char * next_tag(const char * old)
+  {
+  while(!isspace(*old) && (*old != '\0'))
+    old++;
+  if(*old == '\0')
+    return NULL;
+
+  while(isspace(*old) && (*old != '\0'))
+    old++;
+
+  if(*old == '\0')
+    return NULL;
+  
+  return old;
+  }
+
 static int open_y4m(bgav_demuxer_context_t * ctx)
   {
-  int result;
   y4m_t * priv;
   bgav_stream_t * s;
-  y4m_ratio_t r;
-  
-  /* Tell the lib to accept new streams */
-
-  y4m_accept_extensions(1);
+  int ext_len, w, h;
+  const char * pos;
+  const char * end;
+  const char * format = NULL;
   
   /* Allocate private data */
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
-  y4m_init_stream_info(&priv->si);
-
-  /* Set up the reader */
-
-  priv->reader.read = read_func;
-  priv->reader.data = ctx->input;
-
+  
   /* Read the stream header */
 
-  if((result = y4m_read_stream_header_cb(&priv->reader,  &priv->si)) != Y4M_OK)
-    {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading stream header failed %d", result);
+  if(!bgav_input_read_line(ctx->input,
+                           &priv->line, &priv->line_alloc,
+                           0, NULL))
     return 0;
-    }
-
+  
   /* Create track table */
 
   ctx->tt = bgav_track_table_create(1);
   
   /* Set up the stream */
   s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  s->data.video.format.image_width  = y4m_si_get_width(&priv->si);
-  s->data.video.format.image_height = y4m_si_get_height(&priv->si);
-  
-  s->data.video.format.frame_width  = s->data.video.format.image_width;
-  s->data.video.format.frame_height = s->data.video.format.image_height;
 
-  r = y4m_si_get_sampleaspect(&priv->si);
-  s->data.video.format.pixel_width  = r.n;
-  s->data.video.format.pixel_height = r.d;
+  pos = next_tag(priv->line);
+
+  while(1)
+    {
+    switch(*pos)
+      {
+      case 'W':
+        s->data.video.format.image_width = atoi(pos+1);
+        s->data.video.format.frame_width  = s->data.video.format.image_width;
+        break;
+      case 'H':
+        s->data.video.format.image_height = atoi(pos+1);
+        s->data.video.format.frame_height  = s->data.video.format.image_height;
+        break;
+      case 'C':
+        format = pos+1;
+        break;
+      case 'I':
+        switch(pos[1])
+          {
+          case 'p':
+          case '?':
+            s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
+            break;
+          case 't':
+            s->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+            break;
+          case 'b':
+            s->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+            break;
+          case 'm':
+            s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
+            break;
+          }
+        break;
+      case 'F':
+        if(sscanf(pos+1, "%d:%d",
+                  &s->data.video.format.timescale,
+                  &s->data.video.format.frame_duration) < 2)
+          return 0;
+        break;
+      case 'A':
+        if(sscanf(pos+1, "%d:%d",
+                  &s->data.video.format.pixel_width,
+                  &s->data.video.format.pixel_height) < 2)
+          return 0;
+        break;
+      default:
+        break;
+      }
+    pos = next_tag(pos);
+    if(!pos)
+      break;
+    }
+
+  /* Set default values */
+  if(!s->data.video.format.timescale ||
+     !s->data.video.format.frame_duration)
+    {
+    s->data.video.format.timescale = 25; // Completely random
+    s->data.video.format.frame_duration = 1;
+    }
   
-  r = y4m_si_get_framerate(&priv->si);
-  s->data.video.format.timescale      = r.n;
-  s->data.video.format.frame_duration = r.d;
+  if(!s->data.video.format.pixel_width ||
+     !s->data.video.format.pixel_height)
+    {
+    s->data.video.format.pixel_width = 1;
+    s->data.video.format.pixel_height = 1;
+    }
+  
+  if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
+    {
+    s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
+    s->data.video.format.timescale *= 2;
+    s->data.video.format.frame_duration *= 2;
+    s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+    }
   
   s->flags |= STREAM_INTRA_ONLY;
   
-  result = y4m_si_get_interlace(&priv->si);
-  switch(result)
-    {
-    case Y4M_ILACE_NONE:
-      s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
-      break;
-    case Y4M_ILACE_TOP_FIRST:
-      s->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
-      break;
-    case Y4M_ILACE_BOTTOM_FIRST:
-      s->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
-      break;
-    case Y4M_ILACE_MIXED:
-      s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
-      s->data.video.format.timescale *= 2;
-      s->data.video.format.frame_duration *= 2;
-      s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-      break;
-    }
+  if(!format)
+    format = "420jpeg";
+
+  end = strchr(format, ' ');
+  if(end)
+    ext_len = end - format;
+  else
+    ext_len = strlen(format);
+
+  bgav_stream_set_extradata(s, (const uint8_t*)format, ext_len);
   
-  result = y4m_si_get_chroma(&priv->si);
+  w = s->data.video.format.image_width;
+  h = s->data.video.format.image_height;
+  
+  if(!strncmp(format, "420", 3))
+    priv->buf_size = w * h + (w/2) * (h/2) + (w/2) * (h/2);
 
-  switch(result)
-    {
-    case Y4M_CHROMA_420JPEG:
-      s->data.video.format.pixelformat = GAVL_YUV_420_P;
-      s->data.video.format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
-      break;
-    case Y4M_CHROMA_420MPEG2:
-      s->data.video.format.pixelformat = GAVL_YUV_420_P;
-      s->data.video.format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
-      break;
-    case Y4M_CHROMA_420PALDV:
-      s->data.video.format.pixelformat = GAVL_YUV_420_P;
-      s->data.video.format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
-      break;
-    case Y4M_CHROMA_444:
-      s->data.video.format.pixelformat = GAVL_YUV_444_P;
-      break;
-    case Y4M_CHROMA_422:
-      s->data.video.format.pixelformat = GAVL_YUV_422_P;
-      break;
-    case Y4M_CHROMA_411:
-      s->data.video.format.pixelformat = GAVL_YUV_411_P;
-      break;
-    case Y4M_CHROMA_MONO:
-      /* Monochrome isn't supported by gavl, we choose the format with the
-         smallest chroma planes to save memory */
-      s->data.video.format.pixelformat = GAVL_YUV_410_P;
-      break;
-    case Y4M_CHROMA_444ALPHA:
-      /* Must be converted to packed */
-      s->data.video.format.pixelformat = GAVL_YUVA_32;
-      priv->tmp_planes[0] = malloc(s->data.video.format.image_width *
-                                 s->data.video.format.image_height * 4);
-      
-      priv->tmp_planes[1] = priv->tmp_planes[0] +
-        s->data.video.format.image_width * s->data.video.format.image_height;
-      priv->tmp_planes[2] = priv->tmp_planes[1] +
-        s->data.video.format.image_width * s->data.video.format.image_height;
-      priv->tmp_planes[3] = priv->tmp_planes[2] +
-        s->data.video.format.image_width * s->data.video.format.image_height;
-      break;
-    }
+  else if(!strcmp(format, "411"))
+    priv->buf_size = w * h + (w/4) *  h + (w/4) *  h;
 
-  s->fourcc = BGAV_MK_FOURCC('g','a','v','l');
+  else if(!strcmp(format, "422"))
+    priv->buf_size = w * h + (w/2) *  h + (w/2) *  h;
 
-  /* Initialize frame info (will be needed for reading later on) */
-  y4m_init_frame_info(&priv->fi);
+  else if(!strcmp(format, "444"))
+    priv->buf_size = w * h +  w * h +  w * h;
 
+  else if(!strcmp(format, "444alpha"))
+    priv->buf_size = w * h +  w * h +  w * h +  w * h;
+
+  else if(!strcmp(format, "mono"))
+    priv->buf_size = w * h;
+  
+  s->fourcc = BGAV_MK_FOURCC('y','4','m',' ');
+  
   gavl_metadata_set(&ctx->tt->cur->metadata, 
                     GAVL_META_FORMAT, "yuv4mpeg");
   
@@ -278,86 +305,80 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   y4m_t * priv;
-    
+  const char * pos;
+  
   priv = ctx->priv;
   
   s = ctx->tt->cur->video_streams;
   
   p = bgav_stream_get_packet_write(s);
   p->position = ctx->input->position;
-  if(!p->video_frame)
-    {
-    p->video_frame = gavl_video_frame_create_nopad(&s->data.video.format);
-    
-    /* For monochrome format also need to clear the chroma planes */
-    gavl_video_frame_clear(p->video_frame, &s->data.video.format);
-    }
+
+  if(!bgav_input_read_line(ctx->input,
+                           &priv->line, &priv->line_alloc,
+                           0, NULL))
+    return 0;
+
+  if(strncmp(priv->line, "FRAME", 5))
+    return 0;
   
-  if(s->data.video.format.pixelformat == GAVL_YUVA_32)
-    {
-    if(y4m_read_frame_cb(&priv->reader, &priv->si,
-                         &priv->fi, priv->tmp_planes) != Y4M_OK)
-      return 0;
-    convert_yuva4444(p->video_frame->planes, priv->tmp_planes,
-                     s->data.video.format.image_width * 
-                     s->data.video.format.image_height);
-    }
-  else
-    {
-    if(y4m_read_frame_cb(&priv->reader, &priv->si,
-                         &priv->fi, p->video_frame->planes) != Y4M_OK)
-      return 0;
-    }
+  bgav_packet_alloc(p, priv->buf_size);
+
+  if(bgav_input_read_data(ctx->input, p->data, priv->buf_size) < priv->buf_size)
+    return 0;
   
   p->pts = priv->pts;
   p->video_frame->timestamp = p->pts;
 
   PACKET_SET_KEYFRAME(p);
-
-  if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
+  p->duration = s->data.video.format.frame_duration;
+  
+  pos = next_tag(priv->line);
+  while(1)
     {
-    switch(y4m_fi_get_presentation(&priv->fi))
+    switch(pos[0])
       {
-      case Y4M_PRESENT_TOP_FIRST:  /* top-field-first                 */
-        p->video_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
-        p->duration = s->data.video.format.frame_duration;
+      case 'I':
+        switch(pos[1])
+          {
+          case 't':
+            p->video_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+            p->duration = s->data.video.format.frame_duration;
+            break;
+          case 'T':
+            p->video_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+            p->duration = (s->data.video.format.frame_duration*3)/2;
+            break;
+          case 'b':
+            p->video_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+            p->duration = s->data.video.format.frame_duration;
+            break;
+          case 'B':
+            p->video_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+            p->duration = (s->data.video.format.frame_duration*3)/2;
+            break;
+          case '1':
+            p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+            p->duration = s->data.video.format.frame_duration;
+            break;
+          case '2':
+            p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+            p->duration = 2 * s->data.video.format.frame_duration;
+            break;
+          case '3':
+            p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+            p->duration = 3 * s->data.video.format.frame_duration;
+            break;
+          }
         break;
-      case Y4M_PRESENT_TOP_FIRST_RPT:  /* top-first, repeat top           */
-        p->video_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
-        p->duration = (s->data.video.format.frame_duration * 3)/2;
-        break;
-      case Y4M_PRESENT_BOTTOM_FIRST:  /* bottom-field-first              */
-        p->video_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
-        p->duration = s->data.video.format.frame_duration;
-        break;
-      case Y4M_PRESENT_BOTTOM_FIRST_RPT:  /* bottom-first, repeat bottom     */
-        p->video_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
-        p->duration = (s->data.video.format.frame_duration * 3)/2;
-        break;
-      case Y4M_PRESENT_PROG_SINGLE:  /* single progressive frame        */
-        p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
-        p->duration = s->data.video.format.frame_duration;
-        break;
-      case Y4M_PRESENT_PROG_DOUBLE:  /* progressive frame, repeat once  */
-        p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
-        p->duration = 2 * s->data.video.format.frame_duration;
-        break;
-      case Y4M_PRESENT_PROG_TRIPLE:  /* progressive frame, repeat twice */
-        p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
-        p->duration = 3 * s->data.video.format.frame_duration;
+      default:
         break;
       }
+    pos = next_tag(priv->line);
     }
-  else
-    {
-    p->duration = s->data.video.format.frame_duration;
-    }
-  p->video_frame->duration = p->duration;
-
+  
   priv->pts += p->duration;
-  
   bgav_stream_done_packet_write(s, p);
-  
   return 1;
   }
 
@@ -372,10 +393,10 @@ static void close_y4m(bgav_demuxer_context_t * ctx)
   {
   y4m_t * priv;
   priv = ctx->priv;
-  y4m_fini_stream_info(&priv->si);
-  y4m_fini_frame_info(&priv->fi);
-  if(priv->tmp_planes[0])
-    free(priv->tmp_planes[0]);
+
+  if(priv->line)
+    free(priv->line);
+  
   free(priv);
   }
 

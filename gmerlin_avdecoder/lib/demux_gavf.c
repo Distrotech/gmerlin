@@ -216,6 +216,10 @@ static int open_gavf(bgav_demuxer_context_t * ctx)
     }
   cl = gavf_get_chapter_list(priv->dec);
   ctx->tt->cur->chapter_list = gavl_chapter_list_copy(cl);
+
+  gavl_metadata_set(&ctx->tt->cur->metadata, 
+                    GAVL_META_FORMAT, "GAVF");
+
   
   return 1;
   }

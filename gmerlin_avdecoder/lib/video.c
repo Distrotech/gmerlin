@@ -243,6 +243,10 @@ int bgav_video_start(bgav_stream_t * s)
 
     if(s->data.video.frame)
       {
+      int src_flags = GAVL_SOURCE_SRC_ALLOC;
+      if(!(s->flags & STREAM_INTRA_ONLY))
+        src_flags = GAVL_SOURCE_SRC_REF;
+      
       s->data.video.source =
         gavl_video_source_create(read_video_nocopy,
                                  s, GAVL_SOURCE_SRC_ALLOC,

@@ -124,7 +124,7 @@ const bg_input_plugin_t the_plugin =
      *  The plugin must take care of the "active" fields
      *  in the stream infos to check out, which streams are to be decoded
      */
-    .start =                 bg_avdec_start,
+    .start =         bg_avdec_start,
     /* Read one audio frame (returns FALSE on EOF) */
     .read_audio =    bg_avdec_read_audio,
 
