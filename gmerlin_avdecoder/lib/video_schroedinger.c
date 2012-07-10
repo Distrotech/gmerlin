@@ -161,7 +161,10 @@ static SchroBuffer * get_data(bgav_stream_t * s)
     priv->buffer_ptr = priv->p->data;
     
     }
-  
+
+  fprintf(stderr, "Got packet\n");
+  bgav_packet_dump(priv->p);
+  bgav_hexdump(priv->p->data, 16, 16);
   size = next_startcode(priv->buffer_ptr, priv->buffer_size);
   
   if(SCHRO_PARSE_CODE_IS_PICTURE(priv->buffer_ptr[4]))
@@ -281,7 +284,7 @@ static int decode_picture(bgav_stream_t * s)
     switch (state)
       {
       case SCHRO_DECODER_FIRST_ACCESS_UNIT:
-        //        fprintf(stderr, "State: SCHRO_DECODER_FIRST_ACCESS_UNIT\n");
+        fprintf(stderr, "State: SCHRO_DECODER_FIRST_ACCESS_UNIT\n");
 
         get_format(s);
         
@@ -290,7 +293,7 @@ static int decode_picture(bgav_stream_t * s)
 
       case SCHRO_DECODER_NEED_BITS:
         /* Need more input data - stop iterating over what we have. */
-        //        fprintf(stderr, "State: SCHRO_DECODER_NEED_BITS\n");
+        fprintf(stderr, "State: SCHRO_DECODER_NEED_BITS\n");
 
         buf = get_data(s);
 #if 1
@@ -299,7 +302,7 @@ static int decode_picture(bgav_stream_t * s)
           state = schro_decoder_push(priv->dec, buf);
           if(state == SCHRO_DECODER_FIRST_ACCESS_UNIT)
             {
-            //            fprintf(stderr, "State: SCHRO_DECODER_FIRST_ACCESS_UNIT\n");
+            fprintf(stderr, "State: SCHRO_DECODER_FIRST_ACCESS_UNIT\n");
             get_format(s);
             }
           }

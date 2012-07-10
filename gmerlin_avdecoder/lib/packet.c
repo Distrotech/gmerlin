@@ -202,3 +202,14 @@ void bgav_packet_free_palette(bgav_packet_t * p)
     }
   p->palette_size = 0;
   }
+
+void bgav_packet_merge_field2(bgav_packet_t * p,
+                              const bgav_packet_t * field2)
+  {
+  bgav_packet_alloc(p, p->data_size + field2->data_size);
+  memcpy(p->data + p->data_size, field2->data, field2->data_size);
+  p->data_size += field2->data_size;
+
+  
+  
+  }

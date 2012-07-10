@@ -208,7 +208,8 @@ int bgav_video_start(bgav_stream_t * s)
     s->out_time = s->start_time;
 
     sprintf(tmp_string, "%" PRId64, s->out_time);
-    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial video timestamp: %s",
+    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+             "Got initial video timestamp: %s",
              tmp_string);
     s->flags &= ~STREAM_NEED_START_TIME;
     }

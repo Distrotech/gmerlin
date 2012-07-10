@@ -60,9 +60,9 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
   bgav_dirac_picture_header_t ph;
   int ret = PARSER_CONTINUE;
   priv = parser->priv;
-#if 0  
-  fprintf(stderr, "parse_frame_dirac %d %d\n",
-          parser->pos, parser->buf.size);
+#if 0
+  fprintf(stderr, "parse_frame_dirac %lld %lld\n",
+          p->position, p->data_size);
   bgav_hexdump(start, 16, 16);
 #endif
   while(start < end)
@@ -93,8 +93,11 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
         break;
       case DIRAC_CODE_PICTURE:
         if(!priv->have_sh)
+          {
+          fprintf(stderr, "Discarding frame before sequence header\n");
+          PACKET_SET_SKIP(p);
           return PARSER_DISCARD;
-        
+          }
         if(!bgav_dirac_picture_header_parse(&ph, start, end - start))
           return PARSER_ERROR;
         //        bgav_dirac_picture_header_dump(&ph);
@@ -118,7 +121,7 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
         if(!p->duration)
           p->duration = priv->sh.frame_duration;
         
-        return ret;        
+        return PARSER_HAVE_PACKET;
         break;
       case DIRAC_CODE_END:
         fprintf(stderr, "Dirac code end %d\n", len);

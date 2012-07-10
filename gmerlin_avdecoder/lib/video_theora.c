@@ -221,29 +221,26 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
   
   th_decode_packetin(priv->ctx, &op, NULL);
   th_decode_ycbcr_out(priv->ctx, yuv);
+
+  for(i = 0; i < 3; i++)
+    {
+    if(!i)
+      priv->frame->planes[i] =
+        yuv[i].data + priv->offset_y * yuv[i].stride + priv->offset_x;
+    else
+      priv->frame->planes[i] =
+        yuv[i].data + priv->offset_y_uv * yuv[i].stride + priv->offset_x_uv;
+    priv->frame->strides[i] = yuv[i].stride;
+    }
+  bgav_set_video_frame_from_packet(p, priv->frame);
   
   /* Copy the frame */
-
+  
   if(frame)
     {
-    for(i = 0; i < 3; i++)
-      {
-      if(!i)
-        priv->frame->planes[i] =
-          yuv[i].data + priv->offset_y * yuv[i].stride + priv->offset_x;
-      else
-        priv->frame->planes[i] =
-          yuv[i].data + priv->offset_y_uv * yuv[i].stride + priv->offset_x_uv;
-      priv->frame->strides[i] = yuv[i].stride;
-      }
-    bgav_set_video_frame_from_packet(p, priv->frame);
-    
-    if(frame)
-      {
-      gavl_video_frame_copy_metadata(frame, priv->frame);
-      gavl_video_frame_copy(&s->data.video.format,
-                            frame, priv->frame);
-      }
+    gavl_video_frame_copy_metadata(frame, priv->frame);
+    gavl_video_frame_copy(&s->data.video.format,
+                          frame, priv->frame);
     }
   bgav_stream_done_packet_read(s, p);
   return 1;
@@ -258,10 +255,12 @@ static void close_theora(bgav_stream_t * s)
   th_setup_free(priv->ts);
   th_comment_clear(&priv->tc);
   th_info_clear(&priv->ti);
-  
-  gavl_video_frame_null(priv->frame);
-  gavl_video_frame_destroy(priv->frame);
 
+  if(priv->frame)
+    {
+    gavl_video_frame_null(priv->frame);
+    gavl_video_frame_destroy(priv->frame);
+    }
   free(priv);
   }
 

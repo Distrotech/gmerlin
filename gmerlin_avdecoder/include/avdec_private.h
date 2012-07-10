@@ -215,7 +215,8 @@ dst[0] = pal.b >> 8;
 // #define BGAV_CODING_TYPE_D 'D' /* Unsupported */
 
 /* Put private flags into the higher bits */
-#define PACKET_FLAG_SKIP (1<<16)
+#define PACKET_FLAG_SKIP      (1<<16)
+#define PACKET_FLAG_FIELD_PIC (1<<17)
 
 /* If these flags are changed, the flags of the superindex must be
    changed as well */

@@ -465,6 +465,8 @@ static void append_extradata(bgav_stream_t * s, ogg_packet * op)
   BGAV_32BE_2_PTR(op->bytes, ptr); ptr+=4;
   memcpy(ptr, op->packet, op->bytes);
   s->ext_size += op->bytes + 4;
+  //  fprintf(stderr, "Append extradata %ld\n", op->bytes);
+  //  bgav_hexdump(op->packet, 16, 16);
   }
 
 /* Get the fourcc from the identification packet */
