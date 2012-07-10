@@ -174,6 +174,8 @@ read_video_simple(gavl_video_source_t * s,
     return st;
 
   gavl_video_frame_copy(&s->src_format, *frame, in_frame);
+  gavl_video_frame_copy_metadata(*frame, in_frame);
+  
   SCALE_PTS(*frame);
   return GAVL_SOURCE_OK;
   }
@@ -287,6 +289,7 @@ read_video_fps(gavl_video_source_t * s,
   if(*frame)
     {
     gavl_video_frame_copy(&s->dst_format, *frame, s->fps_frame);
+    gavl_video_frame_copy_metadata(*frame, s->fps_frame);
     return GAVL_SOURCE_OK;
     }
 
@@ -370,7 +373,7 @@ gavl_video_source_read_frame(void * sp, gavl_video_frame_t ** frame)
     gavl_video_source_reset(s);
     
     /* Skip one frame as cheaply as possible */
-    return s->func(s, NULL);
+    return s->func(s->priv, NULL);
     }
   else
     return s->read_video(s, frame);
