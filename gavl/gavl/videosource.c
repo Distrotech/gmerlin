@@ -140,7 +140,8 @@ read_video_simple(gavl_video_source_t * s,
   /* Pass from src to dst */
 
   if(!(*frame) && (s->src_flags & GAVL_SOURCE_SRC_ALLOC) &&
-     !(s->dst_flags & GAVL_SOURCE_DST_OVERWRITES))
+     (!(s->dst_flags & GAVL_SOURCE_DST_OVERWRITES) ||
+      !(s->src_flags & GAVL_SOURCE_SRC_REF)))
     direct = 1;
   
   /* Pass from dst to src (this is the legacy behavior) */

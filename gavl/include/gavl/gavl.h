@@ -4234,9 +4234,12 @@ typedef struct gavl_audio_source_s gavl_audio_source_t;
 
 #define GAVL_SOURCE_SRC_ALLOC               (1<<0)
 
+/** \brief Source might need the frames for decoding future frames */
+#define GAVL_SOURCE_SRC_REF                 (1<<1)
+
 /** \brief Destination changes frame. */
 
-#define GAVL_SOURCE_DST_OVERWRITES          (1<<1)
+#define GAVL_SOURCE_DST_OVERWRITES          (1<<0)
 
 /* Called by the source */
 
