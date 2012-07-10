@@ -91,9 +91,7 @@ typedef struct
   pthread_mutex_t mute_mutex;
   
   int send_silence;
-  
   gavl_peak_detector_t * peak_detector;
-  
   /* If the playback was interrupted due to changed parameters */
   int interrupted;
   
