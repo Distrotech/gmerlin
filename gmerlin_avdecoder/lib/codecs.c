@@ -322,6 +322,7 @@ void bgav_codecs_init(bgav_options_t * opt)
   bgav_init_video_decoders_aviraw();
   bgav_init_video_decoders_qtraw();
   bgav_init_video_decoders_yuv();
+  bgav_init_video_decoders_y4m();
   bgav_init_video_decoders_tga();
   bgav_init_video_decoders_rtjpeg();
   bgav_init_video_decoders_gavl();

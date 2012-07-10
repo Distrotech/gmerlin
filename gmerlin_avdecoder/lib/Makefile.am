@@ -172,17 +172,6 @@ dvdread_cflags  =
 dvdread_libs    =
 endif
 
-
-if HAVE_MJPEGTOOLS
-mjpegtools_cflags =  @MJPEGTOOLS_CFLAGS@
-mjpegtools_libs =    @MJPEGTOOLS_LIBS@
-mjpegtools_sources = demux_y4m.c
-else
-mjpegtools_cflags =
-mjpegtools_libs =
-mjpegtools_sources =
-endif
-
 if HAVE_SAMBA
 samba_cflags =  @SAMBA_CFLAGS@
 samba_libs =    @SAMBA_LIBS@
@@ -446,6 +435,7 @@ demux_vqa.c \
 demux_wav.c \
 demux_wavpack.c \
 demux_wve.c \
+demux_y4m.c \
 device.c \
 dirac_header.c \
 dvframe.c \
@@ -590,6 +580,7 @@ video_gavl.c \
 video_qtraw.c \
 video_aviraw.c \
 video_tga.c \
+video_y4m.c \
 video_yuv.c \
 video_rtjpeg.c \
 vorbis_comment.c \

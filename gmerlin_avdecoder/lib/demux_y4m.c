@@ -328,13 +328,12 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
     return 0;
   
   p->pts = priv->pts;
-  p->video_frame->timestamp = p->pts;
-
+  
   PACKET_SET_KEYFRAME(p);
   p->duration = s->data.video.format.frame_duration;
   
   pos = next_tag(priv->line);
-  while(1)
+  while(pos)
     {
     switch(pos[0])
       {

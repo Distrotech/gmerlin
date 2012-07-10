@@ -82,6 +82,7 @@ extern const bgav_demuxer_t bgav_demuxer_thp;
 extern const bgav_demuxer_t bgav_demuxer_r3d;
 extern const bgav_demuxer_t bgav_demuxer_matroska;
 extern const bgav_demuxer_t bgav_demuxer_gavf;
+extern const bgav_demuxer_t bgav_demuxer_y4m;
 
 #ifdef HAVE_VORBIS
 extern const bgav_demuxer_t bgav_demuxer_ogg;
@@ -97,9 +98,6 @@ extern const bgav_demuxer_t bgav_demuxer_a52;
 extern const bgav_demuxer_t bgav_demuxer_mpc;
 #endif
 
-#ifdef HAVE_MJPEGTOOLS
-extern const bgav_demuxer_t bgav_demuxer_y4m;
-#endif
 
 #ifdef HAVE_LIBAVFORMAT
 extern const bgav_demuxer_t bgav_demuxer_ffmpeg;
@@ -165,9 +163,7 @@ static const demuxer_t demuxers[] =
 #ifdef HAVE_MUSEPACK
     { &bgav_demuxer_mpc, "Musepack" },
 #endif
-#ifdef HAVE_MJPEGTOOLS
     { &bgav_demuxer_y4m, "yuv4mpeg" },
-#endif
     { &bgav_demuxer_dv, "DV" },
     { &bgav_demuxer_mxf, "MXF" },
     { &bgav_demuxer_sphere, "nist Sphere"},

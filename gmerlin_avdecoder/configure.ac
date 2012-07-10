@@ -299,12 +299,6 @@ dnl
 GMERLIN_CHECK_SPEEX
 
 dnl
-dnl Check for mjpegtools
-dnl
-
-GMERLIN_CHECK_MJPEGTOOLS
-
-dnl
 dnl Ogg
 dnl 
 
