@@ -33,6 +33,7 @@
 typedef struct
   {
   gavl_video_frame_t * frame;
+  bgav_packet_t * p;
   void (*decode_func)(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f);
   } yuv_priv_t;
 
@@ -43,7 +44,6 @@ static void init_common(bgav_stream_t * s)
   yuv_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
-  
   priv->frame = gavl_video_frame_create(NULL);
   }
 
@@ -191,10 +191,7 @@ static void decode_2vuy(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   {
   yuv_priv_t * priv;
   priv = s->data.video.decoder->priv;
-
   priv->frame->planes[0] = p->data;
-  gavl_video_frame_copy(&s->data.video.format,
-                        f, priv->frame);
   }
 
 static int init_2vuy(bgav_stream_t * s)
@@ -210,6 +207,7 @@ static int init_2vuy(bgav_stream_t * s)
 
   priv->frame->strides[0] = PAD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_2vuy;
+  s->data.video.frame = priv->frame;
   s->data.video.format.pixelformat = GAVL_UYVY;
   return 1;
   }
@@ -223,10 +221,7 @@ static void decode_VYUY(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   {
   yuv_priv_t * priv;
   priv = s->data.video.decoder->priv;
-
   priv->frame->planes[0] = p->data;
-  gavl_video_frame_copy(&s->data.video.format,
-                        f, priv->frame);
   }
 
 static int init_VYUY(bgav_stream_t * s)
@@ -242,6 +237,7 @@ static int init_VYUY(bgav_stream_t * s)
 
   priv->frame->strides[0] = PAD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_VYUY;
+  s->data.video.frame = priv->frame;
   s->data.video.format.pixelformat = GAVL_YUY2;
   return 1;
   }
@@ -256,7 +252,6 @@ static void decode_yv12(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   priv->frame->planes[0] = p->data;
   priv->frame->planes[1] = priv->frame->planes[0] + s->data.video.format.image_height * priv->frame->strides[0];
   priv->frame->planes[2] = priv->frame->planes[1] + s->data.video.format.image_height/2 * priv->frame->strides[1];
-  gavl_video_frame_copy(&s->data.video.format, f, priv->frame);
   }
 
 static int init_yv12(bgav_stream_t * s)
@@ -276,6 +271,8 @@ static int init_yv12(bgav_stream_t * s)
   
   priv->decode_func = decode_yv12;
   s->data.video.format.pixelformat = GAVL_YUV_420_P;
+  s->data.video.frame = priv->frame;
+  
   return 1;
   }
 
@@ -289,8 +286,6 @@ static void decode_YV12(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   priv->frame->planes[1] = priv->frame->planes[2] + s->data.video.format.image_height/2 * priv->frame->strides[1];
   gavl_video_frame_copy(&s->data.video.format, f, priv->frame);
   }
-
-
 
 static int init_YV12(bgav_stream_t * s)
   {
@@ -324,11 +319,7 @@ static void decode_YVU9(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   priv->frame->planes[0] = p->data;
   priv->frame->planes[2] = priv->frame->planes[0] + s->data.video.format.image_height * priv->frame->strides[0];
   priv->frame->planes[1] = priv->frame->planes[2] + (s->data.video.format.image_height)/4 * priv->frame->strides[1];
-
-  gavl_video_frame_copy(&s->data.video.format, f, priv->frame);
   }
-
-
 
 static int init_YVU9(bgav_stream_t * s)
   {
@@ -347,6 +338,7 @@ static int init_YVU9(bgav_stream_t * s)
   
   priv->decode_func = decode_YVU9;
   s->data.video.format.pixelformat = GAVL_YUV_410_P;
+  s->data.video.frame = priv->frame;
   return 1;
   }
 
@@ -614,35 +606,39 @@ static int init_yuv4(bgav_stream_t * s)
 static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   yuv_priv_t * priv;
-  bgav_packet_t * p;
   priv = s->data.video.decoder->priv;
+
+  if(priv->p)
+    bgav_stream_done_packet_read(s, priv->p);
   
   /* We assume one frame per packet */
   
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
+  priv->p = bgav_stream_get_packet_read(s);
+  if(!priv->p)
     return 0;
 
-  if(!p->data_size)
+  if(!priv->p->data_size)
     return 1; /* Libquicktime/qt4l bug */
   
-  /* Skip frame */
-  if(!f)
-    {
-    bgav_stream_done_packet_read(s, p);
-    return 1;
-    }
-
-  priv->decode_func(s, p, f);
+  priv->decode_func(s, priv->p, f);
+  bgav_set_video_frame_from_packet(priv->p, priv->frame);
 
   if(f)
-    {
-    f->timestamp = p->pts;
-    f->duration = p->duration;
-    }
-
-  bgav_stream_done_packet_read(s, p);
+    gavl_video_frame_copy_metadata(f, priv->frame);
+  
   return 1;
+  }
+
+static void resync(bgav_stream_t * s)
+  {
+  yuv_priv_t * priv;
+  priv = s->data.video.decoder->priv;
+
+  if(priv->p)
+    {
+    bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
   }
 
 /* Generic close function */
@@ -666,6 +662,7 @@ static bgav_video_decoder_t yuv2_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('y', 'u', 'v', '2'), 0x00  },
     .init =   init_yuv2,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -676,6 +673,7 @@ static bgav_video_decoder_t twovuy_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('2', 'v', 'u', 'y'), 0x00  },
     .init =   init_2vuy,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 #endif
@@ -686,6 +684,7 @@ static bgav_video_decoder_t yv12_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('y', 'v', '1', '2'), 0x00  },
     .init =   init_yv12,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -695,6 +694,7 @@ static bgav_video_decoder_t YV12_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('Y', 'V', '1', '2'), 0x00  },
     .init =   init_YV12,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -706,6 +706,7 @@ static bgav_video_decoder_t VYUY_decoder =
                             0x00 },
     .init =   init_VYUY,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -715,6 +716,7 @@ static bgav_video_decoder_t YVU9_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('Y', 'V', 'U', '9'), 0x00  },
     .init =   init_YVU9,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -724,6 +726,7 @@ static bgav_video_decoder_t v308_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('v', '3', '0', '8'), 0x00  },
     .init =   init_v308,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -733,6 +736,7 @@ static bgav_video_decoder_t v408_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('v', '4', '0', '8'), 0x00  },
     .init =   init_v408,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -742,6 +746,7 @@ static bgav_video_decoder_t v410_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('v', '4', '1', '0'), 0x00  },
     .init =   init_v410,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -751,6 +756,7 @@ static bgav_video_decoder_t v210_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('v', '2', '1', '0'), 0x00  },
     .init =   init_v210,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 
@@ -761,6 +767,7 @@ static bgav_video_decoder_t yuv4_decoder =
     .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('y', 'u', 'v', '4'), 0x00  },
     .init =   init_yuv4,
     .decode = decode,
+    .resync = resync,
     .close =  close,
   };
 

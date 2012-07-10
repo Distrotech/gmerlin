@@ -46,6 +46,7 @@ typedef struct
 
   int offset_x_uv;
   int offset_y_uv;
+
   } theora_priv_t;
   
 static int init_theora(bgav_stream_t * s)
@@ -177,6 +178,9 @@ static int init_theora(bgav_stream_t * s)
   /* Create frame */
   priv->frame = gavl_video_frame_create(NULL);
 
+  if(!priv->offset_x && !priv->offset_y)
+    s->data.video.frame = priv->frame;
+  
   gavl_metadata_set_nocpy(&s->m, GAVL_META_FORMAT,
                            bgav_sprintf("Theora (Version %d.%d.%d)",
                                         priv->ti.version_major,
@@ -224,15 +228,22 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     {
     for(i = 0; i < 3; i++)
       {
-      priv->frame->planes[i] =
-        yuv[i].data + priv->offset_y * yuv[i].stride + priv->offset_x;
+      if(!i)
+        priv->frame->planes[i] =
+          yuv[i].data + priv->offset_y * yuv[i].stride + priv->offset_x;
+      else
+        priv->frame->planes[i] =
+          yuv[i].data + priv->offset_y_uv * yuv[i].stride + priv->offset_x_uv;
       priv->frame->strides[i] = yuv[i].stride;
       }
+    bgav_set_video_frame_from_packet(p, priv->frame);
     
-    gavl_video_frame_copy(&s->data.video.format,
-                          frame, priv->frame);
-
-    bgav_set_video_frame_from_packet(p, frame);
+    if(frame)
+      {
+      gavl_video_frame_copy_metadata(frame, priv->frame);
+      gavl_video_frame_copy(&s->data.video.format,
+                            frame, priv->frame);
+      }
     }
   bgav_stream_done_packet_read(s, p);
   return 1;

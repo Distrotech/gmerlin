@@ -84,6 +84,7 @@ read_video_nocopy(void * sp,
                   gavl_video_frame_t ** frame)
   {
   bgav_stream_t * s = sp;
+  //  fprintf(stderr, "Read video nocopy\n");
   if(!check_still(s))
     return GAVL_SOURCE_AGAIN;
   if(!s->data.video.decoder->decoder->decode(sp, NULL))
@@ -284,25 +285,17 @@ const char * bgav_get_video_description(bgav_t * b, int s)
 static int bgav_video_decode(bgav_stream_t * s,
                              gavl_video_frame_t* frame)
   {
-  int result;
+  const gavl_video_format_t * fmt;
+  gavl_source_status_t result;
 
-  result = s->data.video.decoder->decoder->decode(s, frame);
-  if(!result)
-    return result;
+  fmt = gavl_video_source_get_dst_format(s->data.video.source);
+  if(!fmt->image_width)
+    gavl_video_source_set_dst(s->data.video.source, 0, NULL);
   
-  /* Set the final metadata for the frame */
-  
-  if(frame)
-    {
-#ifdef DUMP_TIMESTAMPS
-    bgav_dprintf("Video timestamp: %"PRId64"\n", frame->timestamp);
-#endif    
-    s->out_time = frame->timestamp + frame->duration;
-    }
+  result = gavl_video_source_read_frame(s->data.video.source,
+                                        frame ? &frame : NULL);
 
-  s->flags &= ~STREAM_HAVE_PICTURE;
-  
-  return result;
+  return (result == GAVL_SOURCE_OK) ? 1 : 0;
   }
 
 int bgav_read_video(bgav_t * b, gavl_video_frame_t * frame, int s)
