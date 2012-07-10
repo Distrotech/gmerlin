@@ -250,6 +250,13 @@ static void get_format(bgav_stream_t * s)
     format->aspect_ratio_numerator;
   s->data.video.format.pixel_height = 
     format->aspect_ratio_denominator;
+
+  /* Get frame rate */
+  if(!s->data.video.format.timescale)
+    {
+    s->data.video.format.timescale = format->frame_rate_numerator;
+    s->data.video.format.frame_duration = format->frame_rate_denominator;;
+    }
   
   free(format);
   
@@ -301,13 +308,13 @@ static int decode_picture(bgav_stream_t * s)
 
       case SCHRO_DECODER_NEED_FRAME:
         /* Decoder needs a frame - create one and push it in. */
-        //        fprintf(stderr, "State: SCHRO_DECODER_NEED_FRAME\n");
+        fprintf(stderr, "State: SCHRO_DECODER_NEED_FRAME\n");
         frame = schro_frame_new_and_alloc(NULL,
                                           priv->frame_format,
                                           s->data.video.format.frame_width,
                                           s->data.video.format.frame_height);
         schro_decoder_add_output_picture (priv->dec, frame);
-        //        fprintf(stderr, "Need frame %p\n", frame);
+        fprintf(stderr, "Need frame %p\n", frame);
         break;
 
       case SCHRO_DECODER_OK:
@@ -315,12 +322,13 @@ static int decode_picture(bgav_stream_t * s)
         pic_num = schro_decoder_get_picture_number(priv->dec);
 
         /* Pull a frame out of the decoder. */
-        //        fprintf(stderr, "State: SCHRO_DECODER_OK %d\n",
-        //                schro_decoder_get_picture_number(codec->dec));
+        fprintf(stderr, "State: SCHRO_DECODER_OK %d\n",
+                schro_decoder_get_picture_number(priv->dec));
         
         // if(codec->dec_delay)
         //          {
         priv->dec_frame = schro_decoder_pull(priv->dec);
+        fprintf(stderr, "Got frame %p\n", priv->dec_frame);
         
         return 1;
           //          }
