@@ -743,9 +743,9 @@ bgav_video_parser_get_packet_parse_full(void * parser1)
 #if 0
 
 bgav_packet_t *
-bgav_video_parser_get_packet_parse_full(void * parser1)
+parse_next_packet(bgav_video_parser_t * parser)
   {
-  bgav_video_parser_t * parser = parser1;
+  bgav_packet_t * p;
   
   /* Find frame start */
   if(parser->frame_start < 0)
@@ -756,9 +756,33 @@ bgav_video_parser_get_packet_parse_full(void * parser1)
   /* Find frame end */
 
   /* Parse frame */
+  
+  
+  }
+
+bgav_packet_t *
+bgav_video_parser_get_packet_parse_full(void * parser1)
+  {
+  bgav_packet_t * ret;
+  bgav_video_parser_t * parser = parser1;
+  
+  ret = parse_next_packet(parser);
+  if(!ret)
+    return NULL;
 
   /* Merge field pictures */
   
+  if(field1->flags & PACKET_FLAG_FIELD_PIC)
+    {
+    bgav_packet_t * field2;
+    field2 = parse_next_packet(parser);
+    if(!field2)
+      return NULL;
+    
+    bgav_packet_merge_field2(ret, field2);
+    bgav_packet_pool_put(parser->s->pp, field2);
+    }
+  return ret;
   }
 #endif
 

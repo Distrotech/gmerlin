@@ -290,6 +290,9 @@ void bgav_packet_free_palette(bgav_packet_t * p);
 void bgav_packet_copy_metadata(bgav_packet_t * dst,
                                const bgav_packet_t * src);
 
+void bgav_packet_merge_field2(bgav_packet_t * p,
+                              const bgav_packet_t * field2);
+
 
 // void bgav_packet_done_write(bgav_packet_t *);
 // void bgav_packet_done_read(bgav_packet_t *);

@@ -209,7 +209,4 @@ void bgav_packet_merge_field2(bgav_packet_t * p,
   bgav_packet_alloc(p, p->data_size + field2->data_size);
   memcpy(p->data + p->data_size, field2->data, field2->data_size);
   p->data_size += field2->data_size;
-
-  
-  
   }
