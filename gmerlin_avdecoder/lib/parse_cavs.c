@@ -190,11 +190,78 @@ static int parse_cavs(bgav_video_parser_t * parser)
   return PARSER_CONTINUE;
   }
 
+static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p)
+  {
+  int start_code;
+  int len;
+  bgav_cavs_picture_header_t ph;
+  const uint8_t * sc;
+  const uint8_t * ptr = p->data;
+  const uint8_t * end = p->data + p->data_size;
+  cavs_priv_t * priv = parser->priv;
+  
+  while(1)
+    {
+    sc = bgav_mpv_find_startcode(ptr, end);
+    if(!sc)
+      return PARSER_ERROR;
+    
+    start_code = bgav_cavs_get_start_code(sc);
+
+    switch(start_code)
+      {
+      case CAVS_CODE_SEQUENCE:
+        if(!priv->have_seq)
+          {
+          int timescale;
+          int frame_duration;
+          len = bgav_cavs_sequence_header_read(parser->s->opt,
+                                               &priv->seq,
+                                               ptr, end - ptr);
+          if(!len)
+            return PARSER_ERROR;
+          
+          //        bgav_cavs_sequence_header_dump(&priv->seq);
+
+          ptr += len;
+          
+          bgav_mpv_get_framerate(priv->seq.frame_rate_code, &timescale, &frame_duration);
+
+          parser->format->timescale = timescale;
+          parser->format->frame_duration = frame_duration;
+        
+          bgav_video_parser_set_framerate(parser);
+        
+          parser->format->image_width  = priv->seq.horizontal_size;
+          parser->format->image_height = priv->seq.vertical_size;
+          parser->format->frame_width  =
+            (parser->format->image_width + 15) & ~15;
+          parser->format->frame_height  =
+            (parser->format->image_height + 15) & ~15;
+      
+          priv->have_seq = 1;
+          }
+        else
+          ptr += 4;
+        break;
+      case CAVS_CODE_PICTURE_I:
+      case CAVS_CODE_PICTURE_PB:
+        len = bgav_cavs_picture_header_read(parser->s->opt,
+                                            &ph, ptr, end - ptr, &priv->seq);
+        PACKET_SET_CODING_TYPE(p, ph.coding_type);
+        /* TODO: Set picture duration */
+        return PARSER_HAVE_PACKET;
+        break;
+      }
+    
+    }
+  return PARSER_ERROR;
+  }
+
 static void cleanup_cavs(bgav_video_parser_t * parser)
   {
   free(parser->priv);
   }
-
 
 void bgav_video_parser_init_cavs(bgav_video_parser_t * parser)
   {
@@ -202,6 +269,8 @@ void bgav_video_parser_init_cavs(bgav_video_parser_t * parser)
   priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
   parser->parse = parse_cavs;
+  parser->parse_frame = parse_frame_cavs;
+
   parser->cleanup = cleanup_cavs;
   parser->reset = reset_cavs;
 

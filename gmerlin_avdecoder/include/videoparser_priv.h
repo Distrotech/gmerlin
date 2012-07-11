@@ -90,6 +90,7 @@ struct bgav_video_parser_s
   cleanup_func      cleanup;
   reset_func        reset;
   parse_frame_func  parse_frame;
+  find_frame_start_func find_frame_start;
   
   //  const bgav_options_t * opt;
   
