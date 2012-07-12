@@ -40,9 +40,9 @@
 #define H264_NEED_NAL_END   1
 #define H264_HAVE_NAL       2
 
-#define STATE_SYNC          0
-#define STATE_HAVE_HEADER   1
-#define STATE_HAVE_SLICE    2
+#define STATE_SYNC     0
+#define STATE_HEADER   1
+#define STATE_SLICE    2
 
 typedef struct
   {
@@ -655,32 +655,115 @@ static int parse_frame_avc(bgav_video_parser_t * parser, bgav_packet_t * p)
 static int find_frame_start_boundary(bgav_video_parser_t * parser, int * skip)
   {
   int header_len;
-  const uint8_t * sc =
-    bgav_h264_find_nal_start(parser->buf.buffer + parser->pos,
-                             parser->buf.size - parser->pos);
-  if(!sc)
-    return 0;
+  int found = 0;
+  bgav_h264_nal_header_t nh;
+  h264_priv_t * priv = parser->priv;
+  int new_state;
   
-  header_len = bgav_h264_decode_nal_header(sc, int len,
-                                           bgav_h264_nal_header_t * header)
+  const uint8_t * sc;
+
+  while(!found)
+    {
+    sc =
+      bgav_h264_find_nal_start(parser->buf.buffer + parser->pos,
+                               parser->buf.size - parser->pos);
+    if(!sc)
+      return 0;
+
+    parser->pos = sc - parser->buf.buffer;
   
+    header_len = bgav_h264_decode_nal_header(parser->buf.buffer + parser->pos,
+                                             parser->buf.size - parser->pos,
+                                             &nh);
+
+    if(priv->has_aud)
+      {
+      if(nh.unit_type == H264_NAL_ACCESS_UNIT_DEL)
+        {
+        *skip = header_len;
+        found = 1;
+        return 1;
+        }
+      else
+        {
+        parser->pos += header_len;
+        continue;
+        }
+      }
+    
+    switch(nh.unit_type)
+      {
+      case H264_NAL_NON_IDR_SLICE:
+      case H264_NAL_SLICE_PARTITION_A:
+      case H264_NAL_IDR_SLICE:
+        new_state = STATE_SLICE;
+        if((priv->state == STATE_SLICE) ||
+           (priv->state == STATE_SYNC))
+          {
+          priv->state = new_state;
+          return 1;
+          }
+        priv->state = new_state;
+        break;
+      case H264_NAL_SLICE_PARTITION_B:
+      case H264_NAL_SLICE_PARTITION_C:
+        new_state = STATE_SLICE;
+        break;
+      case H264_NAL_SEI:
+      case H264_NAL_SPS:
+      case H264_NAL_PPS:
+        new_state = STATE_HEADER;
+        if(priv->state == STATE_SLICE)
+          {
+          *skip = header_len;
+          priv->state = new_state;
+          return 1;
+          }
+        break;
+      case H264_NAL_ACCESS_UNIT_DEL:
+        priv->has_aud = 1;
+        found = 1;
+        break;
+      case H264_NAL_END_OF_SEQUENCE:
+      case H264_NAL_END_OF_STREAM:
+      case H264_NAL_FILLER_DATA:
+        break;
+      }
+
+    if(!found)
+      parser->pos += header_len;
+    
+    priv->state = new_state;
+    }
+
+  if(found)
+    {
+    *skip = header_len;
+    }
+  
+  return found;
   }
 
 
 static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
   bgav_h264_nal_header_t nh;
-  const uint8_t * sc;
   const uint8_t * nal_end;
   const uint8_t * nal_start;
+  const uint8_t * ptr;
+  int header_len;
+  int primary_pic_type;
+  bgav_h264_slice_header_t sh;
   
   h264_priv_t * priv = parser->priv;
   
   nal_start = p->data; // Assume that we have a startcode
+
+  nal_end = nal_start;
   
   while(nal_end < p->data + p->data_size)
     {
-    nal_end = bgav_h264_find_nal_start(nal_start + 4, d->data_size - ((nal_start + 4) - p->data));
+    nal_end = bgav_h264_find_nal_start(nal_start + 4, p->data_size - ((nal_start + 4) - p->data));
 
     if(!nal_end)
       nal_end = p->data + p->data_size;
@@ -690,7 +773,7 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
     header_len =
       bgav_h264_decode_nal_header(ptr, nal_end - ptr, &nh);
     
-    ptr = += header_len;
+    ptr += header_len;
     
     //  fprintf(stderr, "Got NAL: %d (%d bytes)\n", nh.unit_type,
     //          priv->nal_len);
@@ -820,7 +903,6 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
           parser->buf.buffer[parser->pos + header_len] >> 5;
         //      fprintf(stderr, "Got access unit delimiter, pic_type: %d, cache_size: %d\n",
         //              primary_pic_type, parser->cache_size);
-        priv->has_aud = 1;
         switch(primary_pic_type)
           {
           case 0:
