@@ -40,6 +40,10 @@
 #define H264_NEED_NAL_END   1
 #define H264_HAVE_NAL       2
 
+#define STATE_SYNC          0
+#define STATE_HAVE_HEADER   1
+#define STATE_HAVE_SLICE    2
+
 typedef struct
   {
   /* Sequence header */
@@ -113,8 +117,7 @@ static void handle_sei(bgav_video_parser_t * parser)
 #endif    
     switch(sei_type)
       {
-      case 0:
-        //        fprintf(stderr, "Got SEI buffering_period\n");
+      case 0: // buffering_period
         break;
       case 1:
         bgav_h264_decode_sei_pic_timing(ptr, priv->rbsp_len -
@@ -175,17 +178,13 @@ static void handle_sei(bgav_video_parser_t * parser)
           }
 #endif
         break;
-      case 2:
-        //        fprintf(stderr, "Got SEI pan_scan_rect\n");
+      case 2: // pan_scan_rect
         break;
-      case 3:
-        // fprintf(stderr, "Got SEI filler_payload\n");
+      case 3: // filler_payload
         break;
-      case 4:
-        // fprintf(stderr, "Got SEI user_data_registered_itu_t_t35\n");
+      case 4: // user_data_registered_itu_t_t35
         break;
-      case 5:
-        // fprintf(stderr, "Got SEI user_data_unregistered\n");
+      case 5: // user_data_unregistered
         if(!memcmp(ptr, avchd_mdpm, 20))
           {
           /* AVCHD Timecodes: Since every scene is written to a new file
@@ -270,92 +269,63 @@ static void handle_sei(bgav_video_parser_t * parser)
           return;
         parser->cache[parser->cache_size-1].recovery_point = rp.recovery_frame_cnt;
         break;
-      case 7:
-        // fprintf(stderr, "Got SEI dec_ref_pic_marking_repetition\n");
+      case 7: // dec_ref_pic_marking_repetition
         break;
-      case 8:
-        // fprintf(stderr, "Got SEI spare_pic\n");
+      case 8: // spare_pic
         break;
-      case 9:
-        // fprintf(stderr, "Got SEI scene_info\n");
+      case 9: // scene_info
         break;
-      case 10:
-        // fprintf(stderr, "Got SEI sub_seq_info\n");
+      case 10: // sub_seq_info
         break;
-      case 11:
-        // fprintf(stderr, "Got SEI sub_seq_layer_characteristics\n");
+      case 11: // sub_seq_layer_characteristics
         break;
-      case 12:
-        // fprintf(stderr, "Got SEI sub_seq_characteristics\n");
+      case 12: // sub_seq_characteristics
         break;
-      case 13:
-        // fprintf(stderr, "Got SEI full_frame_freeze\n");
+      case 13: // full_frame_freeze
         break;
-      case 14:
-        // fprintf(stderr, "Got SEI full_frame_freeze_release\n");
+      case 14: // full_frame_freeze_release
         break;
-      case 15:
-        // fprintf(stderr, "Got SEI full_frame_snapshot\n");
+      case 15: // full_frame_snapshot
         break;
-      case 16:
-        // fprintf(stderr, "Got SEI progressive_refinement_segment_start\n");
+      case 16: // progressive_refinement_segment_start
         break;
-      case 17:
-        // fprintf(stderr, "Got SEI progressive_refinement_segment_end\n");
+      case 17: // progressive_refinement_segment_end
         break;
-      case 18:
-        // fprintf(stderr, "Got SEI motion_constrained_slice_group_set\n");
+      case 18: // motion_constrained_slice_group_set
         break;
-      case 19:
-        // fprintf(stderr, "Got SEI film_grain_characteristics\n");
+      case 19: // film_grain_characteristics
         break;
-      case 20:
-        // fprintf(stderr, "Got SEI deblocking_filter_display_preference\n");
+      case 20: // deblocking_filter_display_preference
         break;
-      case 21:
-        // fprintf(stderr, "Got SEI stereo_video_info\n");
+      case 21: // stereo_video_info
         break;
-      case 22:
-        // fprintf(stderr, "Got SEI post_filter_hint\n");
+      case 22: // post_filter_hint
         break;
-      case 23:
-        // fprintf(stderr, "Got SEI tone_mapping_info\n");
+      case 23: // tone_mapping_info
         break;
-      case 24:
-        // fprintf(stderr, "Got SEI scalability_info\n"); /* specified in Annex G */
+      case 24: // scalability_info (specified in Annex G)
         break;
-      case 25:
-        // fprintf(stderr, "Got SEI sub_pic_scalable_layer\n"); /* specified in Annex G */
+      case 25: // sub_pic_scalable_layer (specified in Annex G)
         break;
-      case 26:
-        // fprintf(stderr, "Got SEI non_required_layer_rep\n"); /* specified in Annex G */
+      case 26: // non_required_layer_rep(specified in Annex G)
         break;
-      case 27:
-        // fprintf(stderr, "Got SEI priority_layer_info\n"); /* specified in Annex G */
+      case 27: // priority_layer_info(specified in Annex G)
         break;
-      case 28:
-        // fprintf(stderr, "Got SEI layers_not_present\n"); /* specified in Annex G */
+      case 28: // layers_not_present(specified in Annex G)
         break;
-      case 29:
-        // fprintf(stderr, "Got SEI layer_dependency_change\n"); /* specified in Annex G */
+      case 29: // layer_dependency_change(specified in Annex G)
         break;
-      case 30:
-        // fprintf(stderr, "Got SEI scalable_nesting\n"); /* specified in Annex G */
+      case 30: // scalable_nesting(specified in Annex G)
         break;
-      case 31:
-        // fprintf(stderr, "Got SEI base_layer_temporal_hrd\n"); /* specified in Annex G */
+      case 31: // base_layer_temporal_hrd(specified in Annex G)
         break;
-      case 32:
-        // fprintf(stderr, "Got SEI quality_layer_integrity_check\n"); /* specified in Annex G */
+      case 32: // quality_layer_integrity_check(specified in Annex G)
         break;
-      case 33:
-        // fprintf(stderr, "Got SEI redundant_pic_property\n"); /* specified in Annex G */
+      case 33: // redundant_pic_property(specified in Annex G)
         break;
-      case 34:
-        // fprintf(stderr, "Got SEI tl0_picture_index\n"); /* specified in Annex G */
+      case 34: // tl0_picture_index(specified in Annex G)
         break;
-      case 35:
-        // fprintf(stderr, "Got SEI tl_switching_point\n"); /* specified in Annex G */
+      case 35: // tl_switching_point(specified in Annex G)
         break;
 
       
@@ -629,7 +599,7 @@ static void cleanup_h264(bgav_video_parser_t * parser)
   free(priv);
   }
 
-static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_avc(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
   bgav_h264_nal_header_t nh;
   //  bgav_h264_slice_header_t sh;
@@ -682,6 +652,214 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
   return PARSER_CONTINUE;
   }
 
+static int find_frame_start_boundary(bgav_video_parser_t * parser, int * skip)
+  {
+  int header_len;
+  const uint8_t * sc =
+    bgav_h264_find_nal_start(parser->buf.buffer + parser->pos,
+                             parser->buf.size - parser->pos);
+  if(!sc)
+    return 0;
+  
+  header_len = bgav_h264_decode_nal_header(sc, int len,
+                                           bgav_h264_nal_header_t * header)
+  
+  }
+
+
+static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
+  {
+  bgav_h264_nal_header_t nh;
+  const uint8_t * sc;
+  const uint8_t * nal_end;
+  const uint8_t * nal_start;
+  
+  h264_priv_t * priv = parser->priv;
+  
+  nal_start = p->data; // Assume that we have a startcode
+  
+  while(nal_end < p->data + p->data_size)
+    {
+    nal_end = bgav_h264_find_nal_start(nal_start + 4, d->data_size - ((nal_start + 4) - p->data));
+
+    if(!nal_end)
+      nal_end = p->data + p->data_size;
+
+    ptr = nal_start;
+    
+    header_len =
+      bgav_h264_decode_nal_header(ptr, nal_end - ptr, &nh);
+    
+    ptr = += header_len;
+    
+    //  fprintf(stderr, "Got NAL: %d (%d bytes)\n", nh.unit_type,
+    //          priv->nal_len);
+    
+    switch(nh.unit_type)
+      {
+      case H264_NAL_NON_IDR_SLICE:
+      case H264_NAL_IDR_SLICE:
+      case H264_NAL_SLICE_PARTITION_A:
+#if 0
+        fprintf(stderr, "Got slice %d %d %c\n",
+                priv->have_sps, priv->has_picture_start,
+                parser->cache_size ?
+                parser->cache[parser->cache_size-1].coding_type : '?');
+#endif
+        /* Decode slice header if necessary */
+        if(!priv->have_sps)
+          {
+          PACKET_SET_SKIP(p);
+          return PARSER_HAVE_PACKET;
+          }
+
+        /* has_picture_start is also set if the sps was found, so we must check for
+           coding_type as well */
+        //        if(!priv->has_picture_start || !parser->cache[parser->cache_size-1].coding_type)
+        //          {
+        get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
+                 priv->nal_len - header_len);
+        
+        bgav_h264_slice_header_parse(priv->rbsp, priv->rbsp_len,
+                                       &priv->sps,
+                                       &sh);
+          //          bgav_h264_slice_header_dump(&priv->sps,
+          //                                      &sh);
+          
+        if(!(p->flags & GAVL_PACKET_TYPE_MASK))
+          {
+          switch(sh.slice_type)
+            {
+            case 2:
+            case 7:
+              p->flags |= BGAV_CODING_TYPE_I;
+              break;
+            case 0:
+            case 5:
+              p->flags |= BGAV_CODING_TYPE_P;
+              break;
+            case 1:
+            case 6:
+              p->flags |= BGAV_CODING_TYPE_B;
+              break;
+            default: /* Assume the worst */
+              fprintf(stderr, "Unknown slice type %d\n", sh.slice_type);
+              break;
+            }
+          }
+        if(sh.field_pic_flag)
+          p->flags |= PACKET_FLAG_FIELD_PIC;
+        break;
+      case H264_NAL_SLICE_PARTITION_B:
+      case H264_NAL_SLICE_PARTITION_C:
+        break;
+      case H264_NAL_SEI:
+        get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
+                 priv->nal_len - header_len);
+        handle_sei(parser);
+        break;
+      case H264_NAL_SPS:
+        //      fprintf(stderr, "Got SPS\n");
+        if(!priv->sps_buffer)
+          {
+          // fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
+          // bgav_hexdump(parser->buf.buffer + parser->pos,
+          //              priv->nal_len, 16);
+              
+          get_rbsp(parser,
+                   parser->buf.buffer + parser->pos + header_len,
+                   priv->nal_len - header_len);
+          bgav_h264_sps_parse(parser->s->opt,
+                              &priv->sps,
+                              priv->rbsp, priv->rbsp_len);
+          // bgav_h264_sps_dump(&priv->sps);
+              
+          priv->sps_len = priv->nal_len;
+          priv->sps_buffer = malloc(priv->sps_len);
+          memcpy(priv->sps_buffer,
+                 parser->buf.buffer + parser->pos, priv->sps_len);
+
+          parser->format->timescale = priv->sps.vui.time_scale;
+          parser->format->frame_duration = priv->sps.vui.num_units_in_tick * 2;
+          bgav_video_parser_set_framerate(parser);
+        
+          bgav_h264_sps_get_image_size(&priv->sps,
+                                       parser->format);
+          parser->s->data.video.max_ref_frames = priv->sps.num_ref_frames;
+        
+          if(!priv->sps.frame_mbs_only_flag)
+            parser->s->flags |= STREAM_FIELD_PICTURES;
+          if((priv->sps.vui.bitstream_restriction_flag) &&
+             (!priv->sps.vui.num_reorder_frames))
+            parser->s->flags &= ~STREAM_B_FRAMES;
+          }
+        priv->have_sps = 1;
+        
+        /* Also set picture start if it didn't already happen */
+        if(!priv->has_picture_start)
+          {
+          if(!bgav_video_parser_set_picture_start(parser))
+            {
+            return PARSER_ERROR;
+            }
+          priv->has_picture_start = 1;
+          }
+        break;
+      case H264_NAL_PPS:
+        //      fprintf(stderr, "Got PPS\n");
+        if(!priv->pps_buffer)
+          {
+          priv->pps_len = priv->nal_len;
+          priv->pps_buffer = malloc(priv->pps_len);
+          memcpy(priv->pps_buffer,
+                 parser->buf.buffer + parser->pos, priv->pps_len);
+          }
+        break;
+      case H264_NAL_ACCESS_UNIT_DEL:
+        primary_pic_type =
+          parser->buf.buffer[parser->pos + header_len] >> 5;
+        //      fprintf(stderr, "Got access unit delimiter, pic_type: %d, cache_size: %d\n",
+        //              primary_pic_type, parser->cache_size);
+        priv->has_aud = 1;
+        switch(primary_pic_type)
+          {
+          case 0:
+            bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_I);
+            break;
+          case 1:
+            bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_P);
+            break;
+          default: /* Assume the worst */
+            bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_B);
+            break;
+          }
+        break;
+      case H264_NAL_END_OF_SEQUENCE:
+        break;
+      case H264_NAL_END_OF_STREAM:
+        break;
+      case H264_NAL_FILLER_DATA:
+        break;
+      default:
+        fprintf(stderr, "Unknown NAL unit type %d", nh.unit_type);
+        break;
+      }
+    
+    nal_start = nal_end;
+    
+    if(!parser->s->ext_data && priv->pps_buffer && priv->sps_buffer)
+      {
+      parser->s->ext_size = priv->sps_len + priv->pps_len;
+      parser->s->ext_data = malloc(parser->s->ext_size);
+      memcpy(parser->s->ext_data, priv->sps_buffer, priv->sps_len);
+      memcpy(parser->s->ext_data + priv->sps_len, priv->pps_buffer, priv->pps_len);
+      return PARSER_CONTINUE;
+      }
+    return PARSER_CONTINUE;
+    }
+  
+  }
+
 static int parse_avc_extradata(bgav_video_parser_t * parser)
   {
   int num_units;
@@ -731,7 +909,6 @@ void bgav_video_parser_init_h264(bgav_video_parser_t * parser)
   priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
   parser->parse = parse_h264;
-  parser->parse_frame = parse_frame_h264;
 
   parser->cleanup = cleanup_h264;
   parser->reset = reset_h264;
@@ -749,6 +926,10 @@ void bgav_video_parser_init_h264(bgav_video_parser_t * parser)
       return;
       }
     parse_avc_extradata(parser);
+    parser->parse_frame = parse_frame_avc;
     }
+  else
+    parser->parse_frame = parse_frame_h264;
+  
   
   }

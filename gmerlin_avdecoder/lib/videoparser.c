@@ -742,21 +742,77 @@ bgav_video_parser_get_packet_parse_full(void * parser1)
 /* Even newer API */
 #if 0
 
-bgav_packet_t *
-parse_next_packet(bgav_video_parser_t * parser)
+static int get_input_packet(bgav_video_parser_t * parser)
   {
   bgav_packet_t * p;
-  
-  /* Find frame start */
-  if(parser->frame_start < 0)
+  p = parser->src.get_func(parser->src.data);
+  if(!p)
     {
-    
+    bgav_video_parser_set_eof(parser);
+    return 0;
+    }
+  else
+    {
+    bgav_video_parser_add_packet(parser, p);
+    bgav_packet_pool_put(parser->s->pp, p);
+    return 1;
+    }
+  
+  }
+
+static bgav_packet_t *
+parse_next_packet(bgav_video_parser_t * parser)
+  {
+  bgav_packet_t * ret;
+  int frame_start = -1;
+  int next_pos = 0;
+  
+  /* Synchronize */
+  while(!parser->have_sync)
+    {
+    if(parser->find_frame_start(parser))
+      {
+      bgav_video_parser_flush(parser, parser->pos);
+      parser->have_sync = 1;
+      break;
+      }
+    if(!get_input_packet(parser))
+      {
+      // EOF while initializing the video parser
+      return NULL;
+      }
     }
   
   /* Find frame end */
-
-  /* Parse frame */
+  while(1)
+    {
+    if(parser->find_frame_start(parser))
+      
+    if(frame_start >= 0)
+      break;
+    if(!get_input_packet(parser))
+      {
+      // EOF while initializing the video parser
+      frame_start = parser->buf.size;
+      }
+    }
   
+  /* Set up packet */
+
+  ret = bgav_packet_pool_get(parser->s->pp);
+  bgav_packet_alloc(ret, frame_start);
+  memcpy(ret->data, parser->buf.buffer, frame_start);
+  ret->data_size = frame_start;
+
+  ret->position = parser->packets[0].packet_position;
+  
+  bgav_video_parser_flush(parser, frame_start);
+  
+  /* Parse frame */
+
+  parser->parse_frame(parser, ret);
+
+  return ret;
   
   }
 

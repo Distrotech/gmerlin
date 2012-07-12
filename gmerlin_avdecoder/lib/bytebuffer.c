@@ -50,7 +50,8 @@ void bgav_bytebuffer_append_data(bgav_bytebuffer_t * b, uint8_t * data, int len,
     memset(b->buffer + b->size, 0, padding);
   }
 
-int bgav_bytebuffer_append_read(bgav_bytebuffer_t * b, bgav_input_context_t * input, int len, int padding)
+int bgav_bytebuffer_append_read(bgav_bytebuffer_t * b, bgav_input_context_t * input,
+                                int len, int padding)
   {
   int ret;
   if(b->size + len + padding > b->alloc)

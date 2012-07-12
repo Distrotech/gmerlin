@@ -87,13 +87,14 @@ const uint8_t *
 bgav_h264_find_nal_start(const uint8_t * buffer, int len)
   {
   const uint8_t * ptr;
-  
-  ptr = bgav_mpv_find_startcode(buffer, buffer + len);
 
+  /* We pass len - 1 to ensure that we can read the NAL header too */
+  ptr = bgav_mpv_find_startcode(buffer, buffer + len - 1);
+  
   if(!ptr)
     return NULL;
   
-  /* Get zero bytes before actual startcode */
+  /* Get zero byte before actual startcode */
   if((ptr > buffer) && (*(ptr-1) == 0x00))
     ptr--;
   
