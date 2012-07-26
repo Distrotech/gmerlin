@@ -62,6 +62,8 @@ int bgav_mpeg4_get_start_code(const uint8_t * data)
     return MPEG4_CODE_VO_START;
   else if(data[3] <= 0x2f)
     return MPEG4_CODE_VOL_START;
+  else if(data[3] == 0xb0)
+    return MPEG4_CODE_VOS_START;
   else if(data[3] == 0xb6)
     return MPEG4_CODE_VOP_START;
   else if(data[3] == 0xb2)

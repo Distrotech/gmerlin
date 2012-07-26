@@ -19,11 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#define MPEG4_CODE_VO_START  1
-#define MPEG4_CODE_VOL_START 2
-#define MPEG4_CODE_VOP_START 3
-#define MPEG4_CODE_USER_DATA 4
-#define MPEG4_CODE_GOV_START 5
+#define MPEG4_CODE_VOS_START  1
+#define MPEG4_CODE_VO_START   2
+#define MPEG4_CODE_VOL_START  3
+#define MPEG4_CODE_VOP_START  4
+#define MPEG4_CODE_USER_DATA  5
+#define MPEG4_CODE_GOV_START  6
 
 int bgav_mpeg4_get_start_code(const uint8_t * data);
 

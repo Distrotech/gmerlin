@@ -183,6 +183,11 @@ static int parse_vc1(bgav_video_parser_t * parser)
   return PARSER_CONTINUE;
   }
 
+static int find_frame_boundary_vc1(bgav_video_parser_t * parser, int * skip)
+  {
+  
+  }
+
 static void cleanup_vc1(bgav_video_parser_t * parser)
   {
   vc1_priv_t * priv = parser->priv;
@@ -206,5 +211,5 @@ void bgav_video_parser_init_vc1(bgav_video_parser_t * parser)
   parser->parse = parse_vc1;
   parser->cleanup = cleanup_vc1;
   parser->reset = reset_vc1;
-  
+  parser->find_frame_boundary = find_frame_boundary_vc1;
   }

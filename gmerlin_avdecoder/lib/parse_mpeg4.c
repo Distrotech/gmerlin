@@ -42,6 +42,13 @@
 #define MPEG4_HAS_VOP_HEADER              5
 #define MPEG4_HAS_USER_DATA_CODE          6
 
+#define STATE_SYNC 0
+#define STATE_VOS  1
+#define STATE_VO   2
+#define STATE_VOL  3
+#define STATE_GOV  4
+#define STATE_VOP  5
+
 typedef struct
   {
   /* Sequence header */
@@ -504,6 +511,70 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
   return PARSER_HAVE_PACKET;
   }
 
+static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)
+  {
+  mpeg4_priv_t * priv = parser->priv;
+  int new_state;
+  int code;
+  const uint8_t * sc;
+
+  while(1)
+    {
+    sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
+                                 parser->buf.buffer +
+                                 parser->buf.size - parser->pos - 1);
+    if(!sc)
+      {
+      parser->pos = parser->buf.size - 4;
+      if(parser->pos < 0)
+        parser->pos = 0;
+      return 0;
+      }
+
+    code = bgav_mpeg4_get_start_code(sc);
+    new_state = -1;
+    
+    switch(code)
+      {
+      case MPEG4_CODE_VOS_START:
+        new_state = STATE_VOS;
+        break;
+      case MPEG4_CODE_VO_START:
+        new_state = STATE_VO;
+        break;
+      case MPEG4_CODE_VOL_START:
+        new_state = STATE_VOL;
+        break;
+      case MPEG4_CODE_VOP_START:
+        new_state = STATE_VOP;
+        break;
+      case MPEG4_CODE_USER_DATA:
+        break;
+      case MPEG4_CODE_GOV_START:
+        new_state = STATE_GOV;
+        break;
+      }
+    parser->pos = sc - parser->buf.buffer;
+
+    if(new_state < 0)
+      parser->pos += 4;
+    else if((new_state < priv->state) ||
+            ((new_state == STATE_VOP) &&
+             (priv->state == STATE_VOP)))
+      {
+      priv->state = new_state;
+      *skip = 4;
+      return 1;
+      }
+    else
+      {
+      priv->state = new_state;
+      parser->pos += 4;
+      }
+    }
+  return 0;
+  }
+
 static void cleanup_mpeg4(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv = parser->priv;
@@ -530,5 +601,5 @@ void bgav_video_parser_init_mpeg4(bgav_video_parser_t * parser)
   parser->parse_frame = parse_frame_mpeg4;
   parser->cleanup = cleanup_mpeg4;
   parser->reset = reset_mpeg4;
-
+  parser->find_frame_boundary = find_frame_boundary_mpeg4;
   }

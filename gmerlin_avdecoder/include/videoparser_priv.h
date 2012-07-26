@@ -31,9 +31,35 @@ typedef void (*cleanup_func)(bgav_video_parser_t*);
 typedef void (*reset_func)(bgav_video_parser_t*);
 // typedef int (*parse_header_func)(bgav_video_parser_t*);
 
+/* Parse a frame contained in p.
+   
+   - Detect coding type, keyframe, field pcture, interlace mode,
+     repeat modes
+   - Extract a global header when it makes sense.
+
+   Return 0 on error, 1 else
+*/
+   
 typedef int (*parse_frame_func)(bgav_video_parser_t*, bgav_packet_t * p);
 
-typedef int (*find_frame_boundary_func)(bgav_video_parser_t*, int * skip);
+/*
+ *  Find a frame boundary in the bytebuffer (parser->buf)
+ *
+ *  If a frame boundary is found:
+ *  
+ *  - Set parser->pos to the byte offset of the frame start
+ *  - Set *skip to the offset *relative* to the frame start,
+ *    after which we continue searching the next frame boundary.
+ *  - Return 1
+ *
+ *  If no frame boundary is found:
+ *
+ *  - Set parser->pos to the position where we continue searching after
+ *    new data was added.
+ *  - Return 0.
+ */
+
+typedef int (*find_frame_boundary_func)(bgav_video_parser_t * p, int * skip);
 
 typedef struct
   {

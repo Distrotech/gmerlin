@@ -40,9 +40,13 @@
 #define H264_NEED_NAL_END   1
 #define H264_HAVE_NAL       2
 
-#define STATE_SYNC     0
-#define STATE_HEADER   1
-#define STATE_SLICE    2
+#define STATE_SPS             1
+#define STATE_PPS             2
+#define STATE_SEI             3
+#define STATE_SLICE_HEADER    4
+#define STATE_SLICE_PARTITION 5
+#define STATE_SYNC            100
+
 
 typedef struct
   {
@@ -655,21 +659,25 @@ static int parse_frame_avc(bgav_video_parser_t * parser, bgav_packet_t * p)
 static int find_frame_boundary_h264(bgav_video_parser_t * parser, int * skip)
   {
   int header_len;
-  int found = 0;
   bgav_h264_nal_header_t nh;
   h264_priv_t * priv = parser->priv;
   int new_state;
   
   const uint8_t * sc;
 
-  while(!found)
+  while(1)
     {
     sc =
       bgav_h264_find_nal_start(parser->buf.buffer + parser->pos,
                                parser->buf.size - parser->pos);
     if(!sc)
+      {
+      parser->pos = parser->buf.size - 5;
+      if(parser->pos < 0)
+        parser->pos = 0;
       return 0;
-
+      }
+    
     parser->pos = sc - parser->buf.buffer;
   
     header_len = bgav_h264_decode_nal_header(parser->buf.buffer + parser->pos,
@@ -681,7 +689,6 @@ static int find_frame_boundary_h264(bgav_video_parser_t * parser, int * skip)
       if(nh.unit_type == H264_NAL_ACCESS_UNIT_DEL)
         {
         *skip = header_len;
-        found = 1;
         return 1;
         }
       else
@@ -690,58 +697,69 @@ static int find_frame_boundary_h264(bgav_video_parser_t * parser, int * skip)
         continue;
         }
       }
-    
+    new_state = -1;
     switch(nh.unit_type)
       {
       case H264_NAL_NON_IDR_SLICE:
       case H264_NAL_SLICE_PARTITION_A:
       case H264_NAL_IDR_SLICE:
-        new_state = STATE_SLICE;
-        if((priv->state == STATE_SLICE) ||
-           (priv->state == STATE_SYNC))
-          {
-          priv->state = new_state;
-          return 1;
-          }
-        priv->state = new_state;
+        new_state = STATE_SLICE_HEADER;
         break;
       case H264_NAL_SLICE_PARTITION_B:
       case H264_NAL_SLICE_PARTITION_C:
-        new_state = STATE_SLICE;
+        new_state = STATE_SLICE_PARTITION;
         break;
       case H264_NAL_SEI:
+        new_state = STATE_SEI;
+        break;
       case H264_NAL_SPS:
+        new_state = STATE_SPS;
+        break;
       case H264_NAL_PPS:
-        new_state = STATE_HEADER;
-        if(priv->state == STATE_SLICE)
-          {
-          *skip = header_len;
-          priv->state = new_state;
-          return 1;
-          }
+        new_state = STATE_SPS;
         break;
       case H264_NAL_ACCESS_UNIT_DEL:
         priv->has_aud = 1;
-        found = 1;
+        *skip = header_len;
+        parser->pos = sc - parser->buf.buffer;
+        return 1;
         break;
       case H264_NAL_END_OF_SEQUENCE:
       case H264_NAL_END_OF_STREAM:
       case H264_NAL_FILLER_DATA:
         break;
       }
-
-    if(!found)
-      parser->pos += header_len;
+    parser->pos = sc - parser->buf.buffer;
     
-    priv->state = new_state;
+    if(new_state < 0)
+      {
+      parser->pos += header_len;
+      }
+    else if(new_state < priv->state)
+      {
+      *skip = header_len;
+      priv->state = new_state;
+      return 1;
+      }
+    /* We assume that multiple slices belong to different pictures
+       if they are not separated by access unit delimiters.
+       Of course this assumption is wrong, but seems to work for most
+       streams */
+    else if((priv->state == STATE_SLICE_HEADER) &&
+            (new_state == STATE_SLICE_HEADER))
+      {
+      *skip = header_len;
+      parser->pos = sc - parser->buf.buffer;
+      priv->state = new_state;
+      return 1;
+      }
+    else
+      {
+      parser->pos += header_len;
+      priv->state = new_state;
+      }
     }
-
-  if(found)
-    {
-    *skip = header_len;
-    }
-  
-  return found;
+  return 0;
   }
 
 
@@ -939,7 +957,7 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
       }
     return PARSER_CONTINUE;
     }
-  
+  return 0;
   }
 
 static int parse_avc_extradata(bgav_video_parser_t * parser)

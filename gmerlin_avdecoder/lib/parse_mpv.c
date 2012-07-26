@@ -47,9 +47,10 @@
 /* States for finding the frame boundary */
 
 #define STATE_SYNC                            0
-#define STATE_HEADER                          1
-#define STATE_PICTURE                         2
-#define STATE_SLICE                           3
+#define STATE_SEQUENCE                        1
+#define STATE_GOP                             2
+#define STATE_PICTURE                         3
+#define STATE_SLICE                           4
 
 typedef struct
   {
@@ -508,8 +509,6 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
   const uint8_t * start =   p->data;
   const uint8_t * end = p->data + p->data_size;
   
-  int ret = PARSER_CONTINUE;
-  
   while(1)
     {
     sc = bgav_mpv_find_startcode(start, end);
@@ -554,7 +553,8 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
         if(priv->have_sh && !priv->sh.mpeg2)
           {
           len =
-            bgav_mpv_sequence_extension_parse(parser->s->opt, &priv->sh.ext, start, end - start);
+            bgav_mpv_sequence_extension_parse(parser->s->opt,
+                                              &priv->sh.ext, start, end - start);
           if(!len)
             return PARSER_ERROR;
           priv->sh.mpeg2 = 1;
@@ -574,8 +574,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
         if(!parser->s->ext_data && priv->have_sh)
           {
           bgav_video_parser_extract_header(parser);
-          ret = PARSER_CONTINUE;
-
+          
           if(priv->sh.mpeg2)
             gavl_metadata_set(&parser->s->m, GAVL_META_FORMAT,
                               bgav_sprintf("MPEG-2"));
@@ -687,63 +686,79 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
   }
 
 static int find_frame_boundary_mpeg12(bgav_video_parser_t * parser, int * skip)
+
   {
   const uint8_t * sc;
   int start_code;
   mpeg12_priv_t * priv = parser->priv;
-  int found = 0;
   int new_state;
   
-  while(!found)
+  while(1)
     {
     sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
-                                 parser->buf.buffer + parser->buf.size - 1);
+                                 parser->buf.buffer + parser->buf.size - 2);
     if(!sc)
+      {
+      parser->pos = parser->buf.size - 3;
+      if(parser->pos < 0)
+        parser->pos = 0;
       return 0;
+      }
 
     start_code = bgav_mpv_get_start_code(sc);
 
-    *skip = 4;
-  
+    new_state = -1;
     switch(start_code)
       {
       case MPEG_CODE_SEQUENCE:
         /* Sequence header */
-        new_state = STATE_HEADER;
-
-        switch(priv->state)
-          {
-          case STATE_SYNC:
-            break;
-          case STATE_HEADER:
-            /* Error */
-            break;
-          case STATE_PICTURE:
-            /* Error */
-            break;
-          case STATE_SLICE:
-            /* New Picture */
-            break;
-          }
+        new_state = STATE_SEQUENCE;
         break;
       case MPEG_CODE_SEQUENCE_EXT:
+        new_state = STATE_SEQUENCE;
         break;
       case MPEG_CODE_PICTURE:
+        new_state = STATE_PICTURE;
+        break;
       case MPEG_CODE_PICTURE_EXT:
+        new_state = STATE_PICTURE;
+        break;
       case MPEG_CODE_GOP:
+        new_state = STATE_GOP;
+        break;
       case MPEG_CODE_SLICE:
+        new_state = STATE_SLICE;
+        break;
       case MPEG_CODE_END:
+        /* Sequence end is always a picture start */
+        parser->pos = sc - parser->buf.buffer + 4;
+        *skip = 0;
+        return 1;
+        break;
       case MPEG_CODE_SEQUENCE_DISPLAY_EXT:
         break;
-      
       }
-    
-    }
-  
 
-  return found;
+    parser->pos = sc - parser->buf.buffer;
+    
+    if(new_state < 0)
+      parser->pos += 4;
+    else if((new_state <= STATE_PICTURE) && (new_state < priv->state))
+      {
+      *skip = 4;
+      parser->pos = sc - parser->buf.buffer;
+      priv->state = new_state;
+      return 1;
+      }
+    else
+      {
+      parser->pos += 4;
+      priv->state = new_state;
+      }
+    }
+  return 0;
   }
-  
+
 static void cleanup_mpeg12(bgav_video_parser_t * parser)
   {
   free(parser->priv);
@@ -758,6 +773,7 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser)
   parser->parse_frame = parse_frame_mpeg12;
   parser->cleanup     = cleanup_mpeg12;
   parser->reset       = reset_mpeg12;
+  parser->find_frame_boundary = find_frame_boundary_mpeg12;
   
   if((parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '5', 'p')) ||
      (parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '4', 'p')) ||

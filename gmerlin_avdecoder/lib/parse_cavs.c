@@ -37,6 +37,11 @@
 #define CAVS_HAS_PIC_CODE                4
 #define CAVS_HAS_PIC_HEADER              5
 
+#define STATE_INIT                       0 // Nothing found yet
+#define STATE_SYNC                       1 // Need start code
+#define STATE_SEQUENCE                   2 // Got sequence header
+#define STATE_PICTURE                    3 // Got picture header
+
 typedef struct
   {
   /* Sequence header */
@@ -258,6 +263,12 @@ static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p)
   return PARSER_ERROR;
   }
 
+static int find_frame_boundary_cavs(bgav_video_parser_t * parser,
+                                    int * skip)
+  {
+  return 0;
+  }
+
 static void cleanup_cavs(bgav_video_parser_t * parser)
   {
   free(parser->priv);
@@ -273,5 +284,5 @@ void bgav_video_parser_init_cavs(bgav_video_parser_t * parser)
 
   parser->cleanup = cleanup_cavs;
   parser->reset = reset_cavs;
-
+  parser->find_frame_boundary = find_frame_boundary_cavs;
   }
