@@ -652,7 +652,7 @@ static int parse_frame_avc(bgav_video_parser_t * parser, bgav_packet_t * p)
   return PARSER_CONTINUE;
   }
 
-static int find_frame_start_boundary(bgav_video_parser_t * parser, int * skip)
+static int find_frame_boundary_h264(bgav_video_parser_t * parser, int * skip)
   {
   int header_len;
   int found = 0;
@@ -1012,6 +1012,8 @@ void bgav_video_parser_init_h264(bgav_video_parser_t * parser)
     }
   else
     parser->parse_frame = parse_frame_h264;
+
+  parser->find_frame_boundary = find_frame_boundary_h264;
   
   
   }

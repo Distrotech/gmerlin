@@ -44,6 +44,13 @@
 #define MPEG_HAS_SEQUENCE_EXT_CODE            8
 #define MPEG_HAS_SEQUENCE_DISPLAY_EXT_CODE    9
 
+/* States for finding the frame boundary */
+
+#define STATE_SYNC                            0
+#define STATE_HEADER                          1
+#define STATE_PICTURE                         2
+#define STATE_SLICE                           3
+
 typedef struct
   {
   /* Sequence header */
@@ -679,6 +686,64 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
     }
   }
 
+static int find_frame_boundary_mpeg12(bgav_video_parser_t * parser, int * skip)
+  {
+  const uint8_t * sc;
+  int start_code;
+  mpeg12_priv_t * priv = parser->priv;
+  int found = 0;
+  int new_state;
+  
+  while(!found)
+    {
+    sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
+                                 parser->buf.buffer + parser->buf.size - 1);
+    if(!sc)
+      return 0;
+
+    start_code = bgav_mpv_get_start_code(sc);
+
+    *skip = 4;
+  
+    switch(start_code)
+      {
+      case MPEG_CODE_SEQUENCE:
+        /* Sequence header */
+        new_state = STATE_HEADER;
+
+        switch(priv->state)
+          {
+          case STATE_SYNC:
+            break;
+          case STATE_HEADER:
+            /* Error */
+            break;
+          case STATE_PICTURE:
+            /* Error */
+            break;
+          case STATE_SLICE:
+            /* New Picture */
+            break;
+          }
+        break;
+      case MPEG_CODE_SEQUENCE_EXT:
+        break;
+      case MPEG_CODE_PICTURE:
+      case MPEG_CODE_PICTURE_EXT:
+      case MPEG_CODE_GOP:
+      case MPEG_CODE_SLICE:
+      case MPEG_CODE_END:
+      case MPEG_CODE_SEQUENCE_DISPLAY_EXT:
+        break;
+      
+      }
+    
+    }
+  
+
+  return found;
+  }
+  
 static void cleanup_mpeg12(bgav_video_parser_t * parser)
   {
   free(parser->priv);

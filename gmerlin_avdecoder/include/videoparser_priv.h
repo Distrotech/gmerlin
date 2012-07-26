@@ -33,7 +33,7 @@ typedef void (*reset_func)(bgav_video_parser_t*);
 
 typedef int (*parse_frame_func)(bgav_video_parser_t*, bgav_packet_t * p);
 
-typedef int (*find_frame_start_func)(bgav_video_parser_t*);
+typedef int (*find_frame_boundary_func)(bgav_video_parser_t*, int * skip);
 
 typedef struct
   {
@@ -88,7 +88,7 @@ struct bgav_video_parser_s
   cleanup_func      cleanup;
   reset_func        reset;
   parse_frame_func  parse_frame;
-  find_frame_start_func find_frame_start;
+  find_frame_boundary_func find_frame_boundary;
   
   //  const bgav_options_t * opt;
   
