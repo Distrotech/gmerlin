@@ -137,7 +137,7 @@ int64_t bgav_pts_cache_peek_last(bgav_pts_cache_t * c, int * duration)
   int i = get_max_index(c);
 
   if(i < 0)
-    return BGAV_TIMESTAMP_UNDEFINED;
+    return GAVL_TIME_UNDEFINED;
   else
     {
     *duration = c->entries[i].duration;

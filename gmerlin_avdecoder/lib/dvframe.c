@@ -666,7 +666,7 @@ void bgav_dv_dec_get_video_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
     {
     PACKET_SET_KEYFRAME(p);
     
-    if(p->pts == BGAV_TIMESTAMP_UNDEFINED)
+    if(p->pts == GAVL_TIME_UNDEFINED)
       {
       p->pts = d->video_format.frame_duration * d->frame_counter;
       p->duration = d->video_format.frame_duration;

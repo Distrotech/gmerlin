@@ -695,7 +695,7 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
     
   p = calloc(1, sizeof(*p));
   ctx->priv = p;
-  p->pts_offset = BGAV_TIMESTAMP_UNDEFINED;
+  p->pts_offset = GAVL_TIME_UNDEFINED;
 
   ctx->index_mode = INDEX_MODE_MIXED;
   
@@ -1239,7 +1239,7 @@ static int next_packet_matroska(bgav_demuxer_context_t * ctx)
           return 0;
         //        bgav_mkv_cluster_dump(&priv->cluster);
 
-        if(priv->pts_offset == BGAV_TIMESTAMP_UNDEFINED)
+        if(priv->pts_offset == GAVL_TIME_UNDEFINED)
           priv->pts_offset = priv->cluster.Timecode;
         priv->cluster_pos = pos;
         break;

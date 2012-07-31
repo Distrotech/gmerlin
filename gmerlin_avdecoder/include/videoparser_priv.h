@@ -146,6 +146,7 @@ struct bgav_video_parser_s
   int64_t timestamp;
 
   int eof;
+  int have_sync;
   
   int non_b_count;
   int last_non_b_frame;
@@ -156,6 +157,9 @@ struct bgav_video_parser_s
   bgav_packet_t * out_packet;
   bgav_packet_source_t src;
 
+  /* Packet position from which we can start decoding */
+  int64_t start_pos;
+  
   };
 
 void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser);

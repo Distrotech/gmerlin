@@ -69,7 +69,7 @@ static int parse_cavs(bgav_video_parser_t * parser)
   //  int duration;
   int start_code;
 
-  int timescale, frame_duration;
+  uint32_t timescale, frame_duration;
   
   switch(priv->state)
     {
@@ -218,8 +218,8 @@ static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p)
       case CAVS_CODE_SEQUENCE:
         if(!priv->have_seq)
           {
-          int timescale;
-          int frame_duration;
+          uint32_t timescale;
+          uint32_t frame_duration;
           len = bgav_cavs_sequence_header_read(parser->s->opt,
                                                &priv->seq,
                                                ptr, end - ptr);

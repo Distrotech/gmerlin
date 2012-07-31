@@ -422,7 +422,7 @@ static int decode_picture(bgav_stream_t * s)
       {
       /* Check what to skip */
       
-      if(p->pts == BGAV_TIMESTAMP_UNDEFINED)
+      if(p->pts == GAVL_TIME_UNDEFINED)
         {
         done_data(s, p);
         // fprintf(stderr, "Skipping frame (fast)\n");
@@ -635,7 +635,7 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
     if(priv->gavl_frame->timestamp + priv->gavl_frame->duration > time)
       break;
     }
-  priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
+  priv->skip_time = GAVL_TIME_UNDEFINED;
   priv->skip_mode = SKIP_MODE_NONE;
   s->out_time = priv->gavl_frame->timestamp;
   return 1;
@@ -797,7 +797,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   //  av_log_set_level(AV_LOG_DEBUG);
   
   priv = calloc(1, sizeof(*priv));
-  priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
+  priv->skip_time = GAVL_TIME_UNDEFINED;
 
   priv->ip_age[0] = 256*256*256*64;
   priv->ip_age[1] = 256*256*256*64;

@@ -223,15 +223,15 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
   int64_t seek_time;
   int64_t diff_time;
   int64_t sync_time;
-  int64_t out_time           = BGAV_TIMESTAMP_UNDEFINED;
+  int64_t out_time           = GAVL_TIME_UNDEFINED;
   
-  int64_t seek_time_upper    = BGAV_TIMESTAMP_UNDEFINED;
-  int64_t seek_time_lower    = BGAV_TIMESTAMP_UNDEFINED;
+  int64_t seek_time_upper    = GAVL_TIME_UNDEFINED;
+  int64_t seek_time_lower    = GAVL_TIME_UNDEFINED;
 
-  int64_t sync_time_upper    = BGAV_TIMESTAMP_UNDEFINED;
-  int64_t sync_time_lower    = BGAV_TIMESTAMP_UNDEFINED;
+  int64_t sync_time_upper    = GAVL_TIME_UNDEFINED;
+  int64_t sync_time_lower    = GAVL_TIME_UNDEFINED;
 
-  int64_t out_time_lower    = BGAV_TIMESTAMP_UNDEFINED;
+  int64_t out_time_lower    = GAVL_TIME_UNDEFINED;
   
   int64_t one_second = gavl_time_scale(scale, GAVL_TIME_SCALE);
   int final_seek = 0;
@@ -252,7 +252,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
     
     sync_time = bgav_track_sync_time(track, scale);
 
-    if(sync_time == BGAV_TIMESTAMP_UNDEFINED)
+    if(sync_time == GAVL_TIME_UNDEFINED)
       {
       b->eof = 1;
       return;
@@ -276,14 +276,14 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
 #ifdef DUMP_ITERATIVE
       //      fprintf(stderr, "Sync time too late\n");
 #endif
-      if((sync_time_upper == BGAV_TIMESTAMP_UNDEFINED) ||
+      if((sync_time_upper == GAVL_TIME_UNDEFINED) ||
          (sync_time_upper > sync_time))
         {
         seek_time_upper = seek_time;
         sync_time_upper = sync_time;
         }
       /* If we were too early before, exit here */
-      if(sync_time_lower != BGAV_TIMESTAMP_UNDEFINED)
+      if(sync_time_lower != GAVL_TIME_UNDEFINED)
         {
         seek_time = seek_time_lower;
         out_time = out_time_lower;
@@ -292,7 +292,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
         }
 #if 0
       /* If we cannot go before the target time, exit as well */
-      if((sync_time_lower == BGAV_TIMESTAMP_UNDEFINED) &&
+      if((sync_time_lower == GAVL_TIME_UNDEFINED) &&
          (sync_time == sync_time_upper))
         {
         bgav_track_resync(track);
@@ -307,7 +307,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
       continue;
       }
     /* Sync time too early, but already been there: Exit */
-    else if((sync_time_lower != BGAV_TIMESTAMP_UNDEFINED) &&
+    else if((sync_time_lower != GAVL_TIME_UNDEFINED) &&
             (sync_time == sync_time_lower))
       {
       bgav_track_resync(track);
@@ -342,7 +342,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
           break;
         
         /* Remember position and go a bit forward */
-        if((out_time_lower == BGAV_TIMESTAMP_UNDEFINED) ||
+        if((out_time_lower == GAVL_TIME_UNDEFINED) ||
            (out_time_lower < out_time))
           {
           seek_time_lower = seek_time;

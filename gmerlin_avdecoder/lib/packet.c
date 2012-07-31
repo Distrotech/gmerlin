@@ -113,6 +113,7 @@ void bgav_packet_dump(bgav_packet_t * p)
     bgav_dprintf("pts: (none), ");
   else
     bgav_dprintf("pts: %"PRId64", ", p->pts);
+  
   bgav_dprintf("Len: %d, dur: %"PRId64, p->data_size, p->duration);
 
   if(p->header_size)
@@ -121,6 +122,9 @@ void bgav_packet_dump(bgav_packet_t * p)
   if(p->sequence_end_pos)
     bgav_dprintf(", end: %d", p->sequence_end_pos);
 
+  if(PACKET_GET_SKIP(p))
+    bgav_dprintf(", skip");
+  
   if(p->tc != GAVL_TIMECODE_UNDEFINED)
     {
     bgav_dprintf(", TC: ");
@@ -161,8 +165,8 @@ void bgav_packet_swap_data(bgav_packet_t * p1, bgav_packet_t * p2)
 
 void bgav_packet_reset(bgav_packet_t * p)
   {
-  p->pts = BGAV_TIMESTAMP_UNDEFINED;
-  p->dts = BGAV_TIMESTAMP_UNDEFINED;
+  p->pts = GAVL_TIME_UNDEFINED;
+  p->dts = GAVL_TIME_UNDEFINED;
   p->tc = GAVL_TIMECODE_UNDEFINED;
   p->flags = 0;
   p->data_size = 0;

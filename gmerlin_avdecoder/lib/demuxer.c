@@ -375,7 +375,7 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->video_streams[i]);
       
       if((ctx->tt->cur->video_streams[i].flags &
-          (STREAM_B_FRAMES|STREAM_WRONG_B_TIMESTAMPS)) == STREAM_B_FRAMES)
+          (STREAM_B_FRAMES|STREAM_DTS_ONLY)) == STREAM_B_FRAMES)
         bgav_superindex_set_coding_types(ctx->si,
                                          &ctx->tt->cur->video_streams[i]);
       i++;

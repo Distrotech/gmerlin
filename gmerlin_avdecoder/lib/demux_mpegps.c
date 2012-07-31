@@ -383,7 +383,7 @@ static int select_track_mpegps(bgav_demuxer_context_t * ctx, int track)
        BGAV_MK_FOURCC('L','P','C','M'))
       {
       lpcm_t * lp = ctx->tt->cur->audio_streams[i].priv;
-      lp->out_pts = BGAV_TIMESTAMP_UNDEFINED;
+      lp->out_pts = GAVL_TIME_UNDEFINED;
       }
     }
 
@@ -547,7 +547,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
       bgav_pes_header_dump(&priv->pes_header);
 #endif
 
-      if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
+      if(priv->pes_header.pts != GAVL_TIME_UNDEFINED)
         priv->have_pts = 1;
       
       /* Private stream 1 (non MPEG audio, subpictures) */
@@ -643,7 +643,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             if(!stream->priv)
               {
               lpcm_t * lp = calloc(1, sizeof(*lp));
-              lp->out_pts = BGAV_TIMESTAMP_UNDEFINED;
+              lp->out_pts = GAVL_TIME_UNDEFINED;
               stream->priv = lp;
               stream->cleanup = cleanup_lpcm;
               }
@@ -827,7 +827,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             }
           p->data_size = priv->pes_header.payload_size;
         
-          if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
+          if(priv->pes_header.pts != GAVL_TIME_UNDEFINED)
             {
             if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET))
               {
@@ -868,9 +868,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
                 p->duration = p->data_size / (stream->data.audio.format.num_channels*3);
                 break;
               }
-            if(lp->out_pts == BGAV_TIMESTAMP_UNDEFINED)
+            if(lp->out_pts == GAVL_TIME_UNDEFINED)
               {
-              if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
+              if(priv->pes_header.pts != GAVL_TIME_UNDEFINED)
                 {
                 lp->out_pts =
                   gavl_time_rescale(90000, stream->data.audio.format.samplerate,
@@ -1330,7 +1330,7 @@ static void seek_mpegps(bgav_demuxer_context_t * ctx, int64_t time, int scale)
        BGAV_MK_FOURCC('L','P','C','M'))
       {
       lpcm_t * lp = ctx->tt->cur->audio_streams[i].priv;
-      lp->out_pts = BGAV_TIMESTAMP_UNDEFINED;
+      lp->out_pts = GAVL_TIME_UNDEFINED;
       }
     }
 

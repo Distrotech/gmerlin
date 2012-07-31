@@ -187,8 +187,8 @@ int bgav_mpv_sequence_display_extension_parse(const bgav_options_t * opt,
 
 static const struct
   {
-  int timescale;
-  int frame_duration;
+  uint32_t timescale;
+  uint32_t frame_duration;
   }
 framerates[] =
   {
@@ -211,7 +211,7 @@ framerates[] =
     {    -1,   -1 }, // reserved
   };
 
-void bgav_mpv_get_framerate(int code, int * timescale, int *frame_duration)
+void bgav_mpv_get_framerate(int code, uint32_t * timescale, uint32_t * frame_duration)
   {
   *timescale      = framerates[code].timescale;
   *frame_duration = framerates[code].frame_duration;

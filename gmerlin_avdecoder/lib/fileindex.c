@@ -832,7 +832,7 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
     fprintf(stderr, "flush_stream_simple ");
     bgav_packet_dump(p);
 #endif
-    if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
+    if(p->pts != GAVL_TIME_UNDEFINED)
       {
       bgav_file_index_append_packet(s->file_index,
                                     p->position, t, p->flags, p->tc);

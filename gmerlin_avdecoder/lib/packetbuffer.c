@@ -163,8 +163,8 @@ bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b,
     {
     if(!b->read_packet->valid || !b->read_packet->next->valid)
       return NULL; 
-    if((b->read_packet->dts != BGAV_TIMESTAMP_UNDEFINED) &&
-       (b->read_packet->next->dts != BGAV_TIMESTAMP_UNDEFINED))
+    if((b->read_packet->dts != GAVL_TIME_UNDEFINED) &&
+       (b->read_packet->next->dts != GAVL_TIME_UNDEFINED))
       b->read_packet->duration =
         b->read_packet->next->dts - b->read_packet->dts;
     else

@@ -359,7 +359,7 @@ static int init_schroedinger(bgav_stream_t * s)
   schro_init();
   
   priv = calloc(1, sizeof(*priv));
-  priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
+  priv->last_pts = GAVL_TIME_UNDEFINED;
   
   s->data.video.decoder->priv = priv;
 
@@ -441,7 +441,7 @@ static void resync_schroedinger(bgav_stream_t * s)
     }
   priv->eof = 0;
   priv->buffer_size = 0;
-  priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
+  priv->last_pts = GAVL_TIME_UNDEFINED;
   }
 
 static bgav_video_decoder_t decoder =

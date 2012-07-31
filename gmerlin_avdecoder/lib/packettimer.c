@@ -72,19 +72,27 @@ static bgav_packet_t * insert_packet(bgav_packet_timer_t * pt)
              "Packet cache full");
     return NULL;
     }
-  p = pt->src.get_func(pt->src.data);
-  if(!p)
+
+  while(1)
     {
-    pt->eof = 1;
-    return NULL;
-    }
+    p = pt->src.get_func(pt->src.data);
+    if(!p)
+      {
+      pt->eof = 1;
+      return NULL;
+      }
 #ifdef DUMP_INPUT
-  if(p)
-    {
-    bgav_dprintf("packet_timer in:  ");
-    bgav_packet_dump(p);
-    }
+    if(p)
+      {
+      bgav_dprintf("packet_timer in:  ");
+      bgav_packet_dump(p);
+      }
 #endif
+    if(!PACKET_GET_SKIP(p))
+      break;
+    bgav_packet_pool_put(pt->s->pp, p);
+    }
+
   
   if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
     {
@@ -384,10 +392,10 @@ static bgav_packet_t * insert_packet_pts_from_dts(bgav_packet_timer_t * pt)
     }
   
   /* Some demuxers output dts as pts */
-  if(p->dts == BGAV_TIMESTAMP_UNDEFINED)
+  if(p->dts == GAVL_TIME_UNDEFINED)
     {
     p->dts = p->pts;
-    p->pts = BGAV_TIMESTAMP_UNDEFINED;
+    p->pts = GAVL_TIME_UNDEFINED;
     }
 
   /* Set duration */
@@ -512,8 +520,8 @@ bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s)
   {
   bgav_packet_timer_t * ret = calloc(1, sizeof(*ret));
   ret->s = s;
-  ret->current_pts = BGAV_TIMESTAMP_UNDEFINED;
-  ret->last_b_pts = BGAV_TIMESTAMP_UNDEFINED;
+  ret->current_pts = GAVL_TIME_UNDEFINED;
+  ret->last_b_pts = GAVL_TIME_UNDEFINED;
 
   bgav_packet_source_copy(&ret->src, &s->src);
 
@@ -522,12 +530,12 @@ bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s)
   s->src.data = ret;
   
   /* Clear wrong B-timestamps flag */
-  if((ret->s->flags & STREAM_WRONG_B_TIMESTAMPS) &&
+  if((ret->s->flags & STREAM_DTS_ONLY) &&
      !(ret->s->flags & STREAM_B_FRAMES))
-    ret->s->flags &= ~STREAM_WRONG_B_TIMESTAMPS;
+    ret->s->flags &= ~STREAM_DTS_ONLY;
 
   /* Set insert and flush functions */
-  if(ret->s->flags & STREAM_WRONG_B_TIMESTAMPS)
+  if(ret->s->flags & STREAM_DTS_ONLY)
     ret->next_packet = next_packet_pts_from_dts;
   else if(ret->s->flags & STREAM_NO_DURATIONS)
     {
@@ -564,8 +572,8 @@ void bgav_packet_timer_reset(bgav_packet_timer_t * pt)
   pt->num_ip_frames_total = 0;
   
   pt->eof = 0;
-  pt->current_pts = BGAV_TIMESTAMP_UNDEFINED;
-  pt->last_b_pts = BGAV_TIMESTAMP_UNDEFINED;
+  pt->current_pts = GAVL_TIME_UNDEFINED;
+  pt->last_b_pts = GAVL_TIME_UNDEFINED;
   
   for(i = 0; i < pt->num_packets; i++)
     bgav_packet_pool_put(pt->s->pp, pt->packets[i]);

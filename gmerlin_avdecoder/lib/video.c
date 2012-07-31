@@ -180,7 +180,7 @@ int bgav_video_start(bgav_stream_t * s)
     }
   
   /* Packet timer */
-  if((s->flags & (STREAM_NO_DURATIONS|STREAM_WRONG_B_TIMESTAMPS)) &&
+  if((s->flags & (STREAM_NO_DURATIONS|STREAM_DTS_ONLY)) &&
      !s->pt)
     {
     s->pt = bgav_packet_timer_create(s);
@@ -359,7 +359,7 @@ void bgav_video_stop(bgav_stream_t * s)
 
 void bgav_video_resync(bgav_stream_t * s)
   {
-  if(s->out_time == BGAV_TIMESTAMP_UNDEFINED)
+  if(s->out_time == GAVL_TIME_UNDEFINED)
     {
     s->out_time =
       gavl_time_rescale(s->timescale,
@@ -372,7 +372,7 @@ void bgav_video_resync(bgav_stream_t * s)
   if(s->data.video.parser)
     {
     bgav_video_parser_reset(s->data.video.parser,
-                            BGAV_TIMESTAMP_UNDEFINED, s->out_time);
+                            GAVL_TIME_UNDEFINED, s->out_time);
     }
 
   if(s->pt)
@@ -485,14 +485,14 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
 #if 0
   if(s->data.video.decoder->decoder->resync)
     {
-    next_key_frame = BGAV_TIMESTAMP_UNDEFINED;
+    next_key_frame = GAVL_TIME_UNDEFINED;
     if(!exact)
       next_key_frame = bgav_video_stream_keyframe_after(s, time_scaled);
     
-    if(next_key_frame == BGAV_TIMESTAMP_UNDEFINED)
+    if(next_key_frame == GAVL_TIME_UNDEFINED)
       next_key_frame = bgav_video_stream_keyframe_before(s, time_scaled);
     
-    if((next_key_frame != BGAV_TIMESTAMP_UNDEFINED) &&
+    if((next_key_frame != GAVL_TIME_UNDEFINED) &&
        (next_key_frame > s->out_time) &&
        ((next_key_frame <= time_scaled) ||
         (!exact &&
@@ -529,7 +529,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
       
       if(!p)
         {
-        s->out_time = BGAV_TIMESTAMP_UNDEFINED;
+        s->out_time = GAVL_TIME_UNDEFINED;
         return 0;
         }
 
@@ -544,7 +544,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
       result = bgav_video_decode(s, NULL);
       if(!result)
         {
-        s->out_time = BGAV_TIMESTAMP_UNDEFINED;
+        s->out_time = GAVL_TIME_UNDEFINED;
         return 0;
         }
       }
@@ -575,7 +575,7 @@ static void frame_table_append_frame(gavl_frame_table_t * t,
                                      int64_t time,
                                      int64_t * last_time)
   {
-  if(*last_time != BGAV_TIMESTAMP_UNDEFINED)
+  if(*last_time != GAVL_TIME_UNDEFINED)
     gavl_frame_table_append_entry(t, time - *last_time);
   *last_time = time;
   }
@@ -589,7 +589,7 @@ static gavl_frame_table_t * create_frame_table_fi(bgav_stream_t * s)
   int last_non_b_index = -1;
   bgav_file_index_t * fi = s->file_index;
   
-  int64_t last_time = BGAV_TIMESTAMP_UNDEFINED;
+  int64_t last_time = GAVL_TIME_UNDEFINED;
   
   ret = gavl_frame_table_create();
   ret->offset = s->start_time;

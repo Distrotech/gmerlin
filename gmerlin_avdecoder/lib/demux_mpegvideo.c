@@ -164,7 +164,7 @@ static void resync_mpegvideo(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
 #if 0
   mpegvideo_priv_t * priv;
   priv = ctx->priv;
-  bgav_video_parser_reset(priv->parser, BGAV_TIMESTAMP_UNDEFINED, STREAM_GET_SYNC(s));
+  bgav_video_parser_reset(priv->parser, GAVL_TIME_UNDEFINED, STREAM_GET_SYNC(s));
   //  fprintf(stderr, "resync: %ld\n", s->in_time);
   priv->eof = 0;
 #endif
@@ -175,7 +175,7 @@ static int select_track_mpegvideo(bgav_demuxer_context_t * ctx, int track)
 #if 0
   mpegvideo_priv_t * priv;
   priv = ctx->priv;
-  bgav_video_parser_reset(priv->parser, BGAV_TIMESTAMP_UNDEFINED, 0);
+  bgav_video_parser_reset(priv->parser, GAVL_TIME_UNDEFINED, 0);
   priv->eof = 0;
 #endif
   return 1;

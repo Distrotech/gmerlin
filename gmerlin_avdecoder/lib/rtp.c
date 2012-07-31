@@ -1681,7 +1681,7 @@ static int process_ogg(bgav_stream_t * s,
       for(i = 0; i < num_packets; i++)
         {
         size = BGAV_PTR_2_16BE(data); data += 2;
-        start_packet_ogg(s, !i ? h->timestamp : BGAV_TIMESTAMP_UNDEFINED);
+        start_packet_ogg(s, !i ? h->timestamp : GAVL_TIME_UNDEFINED);
         append_packet_ogg(s, data, size);
         end_packet_ogg(s);
         data += size;

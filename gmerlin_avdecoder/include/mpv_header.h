@@ -40,7 +40,7 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
 int bgav_mpv_get_start_code(const uint8_t * data);
 
 
-void bgav_mpv_get_framerate(int code, int * timescale, int *frame_duration);
+void bgav_mpv_get_framerate(int code, uint32_t * timescale, uint32_t *frame_duration);
 
 /*
  *  Return values of the parse functions:

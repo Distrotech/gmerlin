@@ -46,8 +46,8 @@ int bgav_pes_header_read(bgav_input_context_t * input,
   uint32_t header;
 
   memset(ret, 0, sizeof(*ret));
-  ret->pts = BGAV_TIMESTAMP_UNDEFINED;
-  ret->dts = BGAV_TIMESTAMP_UNDEFINED;
+  ret->pts = GAVL_TIME_UNDEFINED;
+  ret->dts = GAVL_TIME_UNDEFINED;
   
   if(!bgav_input_read_32_be(input, &header))
     return 0;

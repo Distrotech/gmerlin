@@ -260,7 +260,7 @@ void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
                                       bgav_stream_t * s)
   {
   int i;
-  int64_t max_time = BGAV_TIMESTAMP_UNDEFINED;
+  int64_t max_time = GAVL_TIME_UNDEFINED;
   int last_coding_type = 0;
   int64_t last_pts = 0;
   int b_pyramid = 0;
@@ -273,7 +273,7 @@ void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
 
     num_entries++;
     
-    if(max_time == BGAV_TIMESTAMP_UNDEFINED)
+    if(max_time == GAVL_TIME_UNDEFINED)
       {
       if(idx->entries[i].flags & GAVL_PACKET_KEYFRAME)
         idx->entries[i].flags |= BGAV_CODING_TYPE_I;
@@ -409,7 +409,7 @@ merge_fileindex_audio(bgav_superindex_t * idx, bgav_stream_t * s)
   for(i = s->first_index_position; i <= s->last_index_position; i++)
     {
     if(idx->entries[i].stream_id == s->stream_id)
-      idx->entries[i].pts = BGAV_TIMESTAMP_UNDEFINED;
+      idx->entries[i].pts = GAVL_TIME_UNDEFINED;
     }
 
   /* Set pts for all packets, in which frames start */
@@ -431,7 +431,7 @@ merge_fileindex_audio(bgav_superindex_t * idx, bgav_stream_t * s)
     if(idx->entries[i].stream_id != s->stream_id)
       continue;
     
-    if(idx->entries[i].pts == BGAV_TIMESTAMP_UNDEFINED)
+    if(idx->entries[i].pts == GAVL_TIME_UNDEFINED)
       idx->entries[i].pts = pts;
     else
       pts = idx->entries[i].pts;

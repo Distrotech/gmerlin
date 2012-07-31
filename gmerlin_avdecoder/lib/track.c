@@ -649,7 +649,7 @@ static int check_sync_time(bgav_stream_t * s, int64_t * t, int scale)
 
 int64_t bgav_track_sync_time(bgav_track_t * t, int scale)
   {
-  int64_t ret = BGAV_TIMESTAMP_UNDEFINED;
+  int64_t ret = GAVL_TIME_UNDEFINED;
   bgav_stream_t * s;
   int i;
   
@@ -658,13 +658,13 @@ int64_t bgav_track_sync_time(bgav_track_t * t, int scale)
     s = &t->audio_streams[i];
 
     if(!check_sync_time(s, &ret, scale))
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
     if(!check_sync_time(s, &ret, scale))
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
     }
   return ret;
   }
@@ -689,7 +689,7 @@ static int check_out_time(bgav_stream_t * s, int64_t * t, int scale,
 
 int64_t bgav_track_out_time(bgav_track_t * t, int scale)
   {
-  int64_t ret = BGAV_TIMESTAMP_UNDEFINED;
+  int64_t ret = GAVL_TIME_UNDEFINED;
   bgav_stream_t * s;
   int i;
   
@@ -697,13 +697,13 @@ int64_t bgav_track_out_time(bgav_track_t * t, int scale)
     {
     s = &t->audio_streams[i];
     if(!check_out_time(s, &ret, scale, s->data.audio.format.samplerate))
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
     if(!check_out_time(s, &ret, scale, s->data.video.format.timescale))
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
     }
   return ret;
   }

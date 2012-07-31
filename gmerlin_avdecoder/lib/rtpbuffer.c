@@ -182,7 +182,7 @@ bgav_rtp_packet_buffer_create(const bgav_options_t * opt, int timescale)
   ret->last_seq = -1;
   ret->opt = opt;
   ret->timescale = timescale;
-  ret->last_timestamp = BGAV_TIMESTAMP_UNDEFINED;
+  ret->last_timestamp = GAVL_TIME_UNDEFINED;
   pthread_mutex_init(&ret->read_mutex, NULL);
   pthread_mutex_init(&ret->write_mutex, NULL);
   pthread_mutex_init(&ret->eof_mutex, NULL);
@@ -256,7 +256,7 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
   //    b->next_seq = p->h.sequence_number;
   
   /* Correct timestamp */
-  if((b->last_timestamp != BGAV_TIMESTAMP_UNDEFINED) &&
+  if((b->last_timestamp != GAVL_TIME_UNDEFINED) &&
      (int64_t)b->last_timestamp - (int64_t)p->h.timestamp > 0x80000000LL)
     b->timestamp_wrap = 1;
   else if(b->timestamp_wrap &&

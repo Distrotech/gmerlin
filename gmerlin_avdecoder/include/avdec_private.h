@@ -365,7 +365,7 @@ typedef enum
 #define STREAM_PARSE_FULL         (1<<1) /* Not frame aligned */
 #define STREAM_PARSE_FRAME        (1<<2) /* Frame aligned but no keyframes */
 #define STREAM_B_FRAMES           (1<<3)
-#define STREAM_WRONG_B_TIMESTAMPS (1<<4)
+#define STREAM_DTS_ONLY           (1<<4)
 #define STREAM_STILL_MODE         (1<<6)  /* Still image mode          */
 #define STREAM_STILL_SHOWN        (1<<7)  /* Still image already shown */
 #define STREAM_EOF_D              (1<<8)  /* End of file at demuxer    */
@@ -398,9 +398,9 @@ typedef enum
 #define STREAM_SET_SYNC(s, t)  (s)->sync_time = t
 #define STREAM_GET_SYNC(s)     (s)->sync_time
 
-#define STREAM_UNSET_SYNC(s)   (s)->sync_time = BGAV_TIMESTAMP_UNDEFINED
+#define STREAM_UNSET_SYNC(s)   (s)->sync_time = GAVL_TIME_UNDEFINED
 
-#define STREAM_HAS_SYNC(s)     ((s)->sync_time != BGAV_TIMESTAMP_UNDEFINED)
+#define STREAM_HAS_SYNC(s)     ((s)->sync_time != GAVL_TIME_UNDEFINED)
 
 struct bgav_stream_s
   {

@@ -210,7 +210,7 @@ void bgav_stream_clear(bgav_stream_t * s)
     s->packet = NULL;
     }
   s->in_position  = 0;
-  s->out_time = BGAV_TIMESTAMP_UNDEFINED;
+  s->out_time = GAVL_TIME_UNDEFINED;
   STREAM_UNSET_SYNC(s);
   s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
   }

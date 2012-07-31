@@ -210,7 +210,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     s->out_time = s->file_index->entries[s->index_position].pts + s->start_time;
     
     // if(s->data.video.parser)
-    //   bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, frame_time);
+    //   bgav_video_parser_reset(s->data.video.parser, GAVL_TIME_UNDEFINED, frame_time);
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
@@ -243,7 +243,7 @@ int64_t bgav_video_stream_keyframe_before(bgav_stream_t * s, int64_t time)
       pos--;
       }
     if(pos < s->first_index_position)
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
     else
       return s->demuxer->si->entries[pos].pts;
     }
@@ -261,11 +261,11 @@ int64_t bgav_video_stream_keyframe_before(bgav_stream_t * s, int64_t time)
     
     if((s->file_index->entries[pos].pts >= time) ||
        !(s->file_index->entries[pos].flags & GAVL_PACKET_KEYFRAME))
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
     return s->file_index->entries[pos].pts;
     }
   /* Stupid gcc :( */
-  return BGAV_TIMESTAMP_UNDEFINED;
+  return GAVL_TIME_UNDEFINED;
   }
 
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
@@ -290,7 +290,7 @@ int64_t bgav_video_stream_keyframe_after(bgav_stream_t * s, int64_t time)
       pos++;
       }
     if(pos > s->last_index_position)
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
     else
       return s->demuxer->si->entries[pos].pts;
     }
@@ -298,7 +298,7 @@ int64_t bgav_video_stream_keyframe_after(bgav_stream_t * s, int64_t time)
     {
     if(time >= s->duration)
       {
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
       }
     pos = file_index_seek(s->file_index, time);
 
@@ -310,11 +310,11 @@ int64_t bgav_video_stream_keyframe_after(bgav_stream_t * s, int64_t time)
     if((s->file_index->entries[pos].pts <= time) ||
        !(s->file_index->entries[pos].flags & GAVL_PACKET_KEYFRAME))
       {
-      return BGAV_TIMESTAMP_UNDEFINED;
+      return GAVL_TIME_UNDEFINED;
       }
     return s->file_index->entries[pos].pts;
     }
-  return BGAV_TIMESTAMP_UNDEFINED;
+  return GAVL_TIME_UNDEFINED;
   
   }
 
