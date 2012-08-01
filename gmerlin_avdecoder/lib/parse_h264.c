@@ -1082,8 +1082,7 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
               
           priv->sps_len = nal_end - nal_start;
           priv->sps_buffer = malloc(priv->sps_len);
-          memcpy(priv->sps_buffer,
-                 parser->buf.buffer + parser->pos, priv->sps_len);
+          memcpy(priv->sps_buffer, nal_start, priv->sps_len);
           
           handle_sps(parser);
           }
@@ -1095,7 +1094,7 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
           priv->pps_len = nal_end - nal_start;
           priv->pps_buffer = malloc(priv->pps_len);
           memcpy(priv->pps_buffer,
-                 parser->buf.buffer + parser->pos, priv->pps_len);
+                 nal_start, priv->pps_len);
           }
         break;
       case H264_NAL_SEI:
