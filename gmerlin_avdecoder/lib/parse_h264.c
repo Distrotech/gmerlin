@@ -59,9 +59,7 @@ typedef struct
   int sps_len;
   uint8_t * pps_buffer;
   int pps_len;
-
-  int have_sps;
-  
+    
   int state;
 
   int nal_len;
@@ -82,9 +80,9 @@ typedef struct
 static void get_rbsp(bgav_video_parser_t * parser, const uint8_t * pos, int len)
   {
   h264_priv_t * priv = parser->priv;
-  if(priv->rbsp_alloc < priv->nal_len)
+  if(priv->rbsp_alloc < len)
     {
-    priv->rbsp_alloc = priv->nal_len + 1024;
+    priv->rbsp_alloc = len;
     priv->rbsp = realloc(priv->rbsp, priv->rbsp_alloc);
     }
   priv->rbsp_len = bgav_h264_decode_nal_rbsp(pos, len, priv->rbsp);
@@ -368,7 +366,7 @@ static int handle_nal(bgav_video_parser_t * parser)
               parser->cache[parser->cache_size-1].coding_type : '?');
 #endif
       /* Decode slice header if necessary */
-      if(priv->have_sps)
+      if(priv->sps_len)
         {
         /* has_picture_start is also set if the sps was found, so we must check for
            coding_type as well */
@@ -476,8 +474,7 @@ static int handle_nal(bgav_video_parser_t * parser)
            (!priv->sps.vui.num_reorder_frames))
           parser->s->flags &= ~STREAM_B_FRAMES;
         }
-      priv->have_sps = 1;
-
+      
       /* Also set picture start if it didn't already happen */
       if(!priv->has_picture_start)
         {
@@ -938,6 +935,8 @@ static int find_frame_boundary_h264(bgav_video_parser_t * parser, int * skip)
       {
       if(nh.unit_type == H264_NAL_ACCESS_UNIT_DEL)
         {
+        fprintf(stderr, "Got frame boundary %d\n", parser->pos);
+        
         *skip = header_len;
         return 1;
         }
@@ -1012,6 +1011,24 @@ static int find_frame_boundary_h264(bgav_video_parser_t * parser, int * skip)
   return 0;
   }
 
+static void handle_sps(bgav_video_parser_t * parser)
+  {
+  h264_priv_t * priv = parser->priv;
+  parser->format->timescale = priv->sps.vui.time_scale;
+  parser->format->frame_duration = priv->sps.vui.num_units_in_tick * 2;
+  bgav_video_parser_set_framerate(parser);
+        
+  bgav_h264_sps_get_image_size(&priv->sps,
+                               parser->format);
+  parser->s->data.video.max_ref_frames = priv->sps.num_ref_frames;
+        
+  if(!priv->sps.frame_mbs_only_flag)
+    parser->s->flags |= STREAM_FIELD_PICTURES;
+  
+  if(!priv->sps.vui.bitstream_restriction_flag ||
+     priv->sps.vui.num_reorder_frames)
+    parser->s->flags |= STREAM_B_FRAMES;
+  }
 
 static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
@@ -1044,27 +1061,77 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
     
     ptr += header_len;
     
-    //  fprintf(stderr, "Got NAL: %d (%d bytes)\n", nh.unit_type,
-    //          priv->nal_len);
+    fprintf(stderr, "Got NAL: %d (%ld bytes)\n", nh.unit_type,
+            nal_end - nal_start);
     
     switch(nh.unit_type)
       {
+      case H264_NAL_SPS:
+        //      fprintf(stderr, "Got SPS\n");
+        if(!priv->sps_buffer)
+          {
+          // fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
+          // bgav_hexdump(parser->buf.buffer + parser->pos,
+          //              priv->nal_len, 16);
+              
+          get_rbsp(parser, ptr, nal_end - nal_start - header_len);
+          bgav_h264_sps_parse(parser->s->opt,
+                              &priv->sps,
+                              priv->rbsp, priv->rbsp_len);
+          //          bgav_h264_sps_dump(&priv->sps);
+              
+          priv->sps_len = nal_end - nal_start;
+          priv->sps_buffer = malloc(priv->sps_len);
+          memcpy(priv->sps_buffer,
+                 parser->buf.buffer + parser->pos, priv->sps_len);
+          
+          handle_sps(parser);
+          }
+        break;
+      case H264_NAL_PPS:
+        //      fprintf(stderr, "Got PPS\n");
+        if(!priv->pps_buffer)
+          {
+          priv->pps_len = nal_end - nal_start;
+          priv->pps_buffer = malloc(priv->pps_len);
+          memcpy(priv->pps_buffer,
+                 parser->buf.buffer + parser->pos, priv->pps_len);
+          }
+        break;
+      case H264_NAL_SEI:
+        get_rbsp(parser, ptr,
+                 nal_end - nal_start - header_len);
+        handle_sei_new(parser, p);
+        break;
       case H264_NAL_NON_IDR_SLICE:
       case H264_NAL_IDR_SLICE:
       case H264_NAL_SLICE_PARTITION_A:
-#if 0
-        fprintf(stderr, "Got slice %d %d %c\n",
-                priv->have_sps, priv->has_picture_start,
-                parser->cache_size ?
-                parser->cache[parser->cache_size-1].coding_type : '?');
+#if 1
+        fprintf(stderr, "Got slice\n");
 #endif
+        
+        if(!parser->s->ext_data && priv->pps_buffer && priv->sps_buffer)
+          {
+          parser->s->ext_size = priv->sps_len + priv->pps_len;
+          parser->s->ext_data = malloc(parser->s->ext_size);
+          memcpy(parser->s->ext_data, priv->sps_buffer, priv->sps_len);
+          memcpy(parser->s->ext_data + priv->sps_len, priv->pps_buffer, priv->pps_len);
+          fprintf(stderr, "Got extradata %d bytes\n", parser->s->ext_size);
+          }
+        
         /* Decode slice header if necessary */
-        if(!priv->have_sps)
+        if(!priv->sps_len || !priv->pps_len)
           {
           PACKET_SET_SKIP(p);
           return 1;
           }
 
+        /* Here we can be sure that the frame duration is already set */
+        p->duration = parser->format->frame_duration;
+        
+        if(p->flags & GAVL_PACKET_TYPE_MASK)
+          return 1;
+        
         /* has_picture_start is also set if the sps was found, so we must check for
            coding_type as well */
         //        if(!priv->has_picture_start || !parser->cache[parser->cache_size-1].coding_type)
@@ -1101,87 +1168,27 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
           }
         if(sh.field_pic_flag)
           p->flags |= PACKET_FLAG_FIELD_PIC;
+        return 1;
         break;
       case H264_NAL_SLICE_PARTITION_B:
       case H264_NAL_SLICE_PARTITION_C:
-        break;
-      case H264_NAL_SEI:
-        get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
-                 priv->nal_len - header_len);
-        handle_sei_new(parser, p);
-        break;
-      case H264_NAL_SPS:
-        //      fprintf(stderr, "Got SPS\n");
-        if(!priv->sps_buffer)
-          {
-          // fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
-          // bgav_hexdump(parser->buf.buffer + parser->pos,
-          //              priv->nal_len, 16);
-              
-          get_rbsp(parser,
-                   parser->buf.buffer + parser->pos + header_len,
-                   priv->nal_len - header_len);
-          bgav_h264_sps_parse(parser->s->opt,
-                              &priv->sps,
-                              priv->rbsp, priv->rbsp_len);
-          // bgav_h264_sps_dump(&priv->sps);
-              
-          priv->sps_len = priv->nal_len;
-          priv->sps_buffer = malloc(priv->sps_len);
-          memcpy(priv->sps_buffer,
-                 parser->buf.buffer + parser->pos, priv->sps_len);
-
-          parser->format->timescale = priv->sps.vui.time_scale;
-          parser->format->frame_duration = priv->sps.vui.num_units_in_tick * 2;
-          bgav_video_parser_set_framerate(parser);
-        
-          bgav_h264_sps_get_image_size(&priv->sps,
-                                       parser->format);
-          parser->s->data.video.max_ref_frames = priv->sps.num_ref_frames;
-        
-          if(!priv->sps.frame_mbs_only_flag)
-            parser->s->flags |= STREAM_FIELD_PICTURES;
-          if((priv->sps.vui.bitstream_restriction_flag) &&
-             (!priv->sps.vui.num_reorder_frames))
-            parser->s->flags &= ~STREAM_B_FRAMES;
-          }
-        priv->have_sps = 1;
-        
-        /* Also set picture start if it didn't already happen */
-        if(!priv->has_picture_start)
-          {
-          if(!bgav_video_parser_set_picture_start(parser))
-            {
-            return PARSER_ERROR;
-            }
-          priv->has_picture_start = 1;
-          }
-        break;
-      case H264_NAL_PPS:
-        //      fprintf(stderr, "Got PPS\n");
-        if(!priv->pps_buffer)
-          {
-          priv->pps_len = priv->nal_len;
-          priv->pps_buffer = malloc(priv->pps_len);
-          memcpy(priv->pps_buffer,
-                 parser->buf.buffer + parser->pos, priv->pps_len);
-          }
+        return 1;
         break;
       case H264_NAL_ACCESS_UNIT_DEL:
         primary_pic_type =
           parser->buf.buffer[parser->pos + header_len] >> 5;
-        //      fprintf(stderr, "Got access unit delimiter, pic_type: %d, cache_size: %d\n",
-        //              primary_pic_type, parser->cache_size);
+        fprintf(stderr, "Got access unit delimiter, pic_type: %d\n",
+                primary_pic_type);
         switch(primary_pic_type)
           {
           case 0:
-            bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_I);
+            p->flags |= BGAV_CODING_TYPE_I;
             break;
           case 1:
-            bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_P);
+            p->flags |= BGAV_CODING_TYPE_P;
             break;
           default: /* Assume the worst */
-            bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_B);
+            p->flags |= BGAV_CODING_TYPE_B;
             break;
           }
         break;
@@ -1197,16 +1204,6 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
       }
     
     nal_start = nal_end;
-    
-    if(!parser->s->ext_data && priv->pps_buffer && priv->sps_buffer)
-      {
-      parser->s->ext_size = priv->sps_len + priv->pps_len;
-      parser->s->ext_data = malloc(parser->s->ext_size);
-      memcpy(parser->s->ext_data, priv->sps_buffer, priv->sps_len);
-      memcpy(parser->s->ext_data + priv->sps_len, priv->pps_buffer, priv->pps_len);
-      return PARSER_CONTINUE;
-      }
-    return PARSER_CONTINUE;
     }
   return 0;
   }
@@ -1249,8 +1246,12 @@ static int parse_avc_extradata(bgav_video_parser_t * parser)
   bgav_h264_sps_parse(parser->s->opt,
                       &priv->sps,
                       priv->rbsp, priv->rbsp_len);
+
+  priv->sps_len = priv->nal_len;
+  priv->pps_len = 1; // HACK
+  
   //  bgav_h264_sps_dump(&priv->sps);
-  priv->have_sps = 1;
+  
   return 1;
   }
 

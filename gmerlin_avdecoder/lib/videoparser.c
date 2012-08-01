@@ -28,8 +28,8 @@
 #include <videoparser_priv.h>
 #include <utils.h>
 
-// #define DUMP_INPUT
-// #define DUMP_OUTPUT
+#define DUMP_INPUT
+#define DUMP_OUTPUT
 
 /* DIVX (maybe with B-frames) requires special attention */
 
@@ -400,42 +400,6 @@ void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser,
       SET_PTS(i);
     }
   }
-#if 0
-int bgav_video_parser_parse(bgav_video_parser_t * parser)
-  {
-  int result;
-  //  fprintf(stderr, "Parse %d\n", parser->cache_size);
-  if(parser->eof && !parser->cache_size)
-    return PARSER_EOF;
-  
-  if(bgav_video_parser_check_output(parser))
-    return PARSER_HAVE_PACKET;
-  
-  if(!parser->buf.size)
-    return PARSER_NEED_DATA;
-
-  if(parser->s->flags & STREAM_PARSE_FULL)
-    {
-    while(1)
-      {
-      result = parser->parse(parser);
-      switch(result)
-        {
-        case PARSER_NEED_DATA:
-        case PARSER_ERROR:
-          return result;
-          break;
-        case PARSER_CONTINUE:
-          if(bgav_video_parser_check_output(parser))
-            return PARSER_HAVE_PACKET;
-          break;
-        }
-      }
-    }
-  /* Never get here */
-  return PARSER_ERROR;
-  }
-#endif
 
 int bgav_video_parser_parse_frame(bgav_video_parser_t * parser,
                                   bgav_packet_t * p)
@@ -841,6 +805,7 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
       {
       bgav_video_parser_flush(parser, parser->pos);
       parser->have_sync = 1;
+      parser->pos += skip;
       break;
       }
     if(!get_input_packet(parser, force))
@@ -875,9 +840,11 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
   ret->position = parser->packets[0].packet_position;
 
   pts = parser->packets[0].pts;
+
+  fprintf(stderr, "FLUSH %d\n", parser->pos);
   
   bgav_video_parser_flush(parser, parser->pos);
-
+  
   /* set up position for next packet */
   parser->pos = skip;
   
@@ -889,7 +856,7 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
     bgav_packet_pool_put(parser->s->pp, ret);
     return NULL;
     }
-
+  
   /* If it's the first packet without skip flag set, set start position */
   if(!PACKET_GET_SKIP(ret) && (parser->start_pos < 0))
     parser->start_pos = ret->position;
@@ -904,6 +871,9 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
     parser->timestamp = gavl_time_rescale(parser->s->timescale,
                                           parser->format->timescale,
                                           pts);
+
+  fprintf(stderr, "Got packet:\n");
+  bgav_packet_dump(ret);
   
   return ret;
   }

@@ -42,8 +42,6 @@ void bgav_video_parser_destroy(bgav_video_parser_t *);
 /* Either in_pts or out_pts can (should) be undefined */
 void bgav_video_parser_reset(bgav_video_parser_t *, int64_t in_pts, int64_t out_pts);
 
-int bgav_video_parser_parse(bgav_video_parser_t * parser);
-
 int bgav_video_parser_parse_frame(bgav_video_parser_t * parser,
                                   bgav_packet_t * p);
 
