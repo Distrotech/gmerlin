@@ -785,7 +785,7 @@ handle_sei_new(bgav_video_parser_t * parser, bgav_packet_t * p)
         if(!bgav_h264_decode_sei_recovery_point(ptr,
                                                 priv->rbsp_len - (ptr - priv->rbsp), &rp))
           return;
-        parser->cache[parser->cache_size-1].recovery_point = rp.recovery_frame_cnt;
+        // parser->cache[parser->cache_size-1].recovery_point = rp.recovery_frame_cnt;
         break;
       case 7: // dec_ref_pic_marking_repetition
         break;
