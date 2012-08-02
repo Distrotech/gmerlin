@@ -31,6 +31,10 @@
 #define DUMP_INPUT
 #define DUMP_OUTPUT
 
+#define MAX_SCAN_SIZE 5000000
+
+#define LOG_DOMAIN "videoparser"
+
 /* DIVX (maybe with B-frames) requires special attention */
 
 static const uint32_t video_codecs_divx[] =
@@ -430,7 +434,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
 #ifdef DUMP_INPUT
   bgav_dprintf("Add packet ");
   bgav_packet_dump(p);
-  //  bgav_hexdump(p->data, 128, 16);
+  bgav_hexdump(p->data, 16, 16);
 #endif
   /* Update cache */
 
@@ -813,6 +817,15 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
       // EOF while initializing the video parser
       return NULL;
       }
+
+    if(parser->buf.size > MAX_SCAN_SIZE)
+      {
+      bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Didn't find a frame in the first %d bytes (misdetected codec?)",
+               parser->buf.size);
+      return NULL;
+      }
+    
     force = 1;
     }
   

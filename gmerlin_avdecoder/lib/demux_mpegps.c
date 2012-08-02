@@ -735,7 +735,6 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream->demuxer = ctx;
           }
         }
-      /* Video stream */
       else if((priv->pes_header.stream_id & 0xF0) == 0xE0)
         {
         if(priv->find_streams)
@@ -750,8 +749,15 @@ static int next_packet(bgav_demuxer_context_t * ctx,
 
           if(!bgav_input_get_fourcc(ctx->input, &fourcc))
             return 0;
+
           if(fourcc == BGAV_MK_FOURCC(0x00, 0x00, 0x01, 0xb0))
             fourcc = BGAV_MK_FOURCC('C', 'A', 'V', 'S');
+#if 1
+          // HACK for H.264 in EVO (HDDVD-) files
+          else if((priv->pes_header.stream_id == 0xe2) ||
+                  (priv->pes_header.stream_id == 0xe3))
+            fourcc = BGAV_MK_FOURCC('H', '2', '6', '4');
+#endif
           else
             fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           

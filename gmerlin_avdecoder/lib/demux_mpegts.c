@@ -1022,12 +1022,12 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
           {
           s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           s->flags |= STREAM_NEED_EXACT_COMPRESSION;
-          // fprintf(stderr, "Detected MPEG video\n");
+          //          fprintf(stderr, "Detected MPEG video\n");
           }
         else
           {
           s->fourcc = BGAV_MK_FOURCC('H', '2', '6', '4');
-          // fprintf(stderr, "Detected H.264 video\n");
+          //          fprintf(stderr, "Detected H.264 video\n");
           }
         
         }
