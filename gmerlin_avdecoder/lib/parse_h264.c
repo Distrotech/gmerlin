@@ -1130,7 +1130,7 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
           memcpy(parser->s->ext_data, sps_start, sps_end - sps_start);
           memcpy(parser->s->ext_data + (sps_end - sps_start),
                  pps_start, pps_end - pps_start);
-          fprintf(stderr, "Got extradata %d bytes\n", parser->s->ext_size);
+          //          fprintf(stderr, "Got extradata %d bytes\n", parser->s->ext_size);
           }
         
         /* Decode slice header if necessary */
@@ -1191,8 +1191,8 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
         break;
       case H264_NAL_ACCESS_UNIT_DEL:
         primary_pic_type = *ptr >> 5;
-        fprintf(stderr, "Got access unit delimiter, pic_type: %d\n",
-                primary_pic_type);
+        //        fprintf(stderr, "Got access unit delimiter, pic_type: %d\n",
+        //                primary_pic_type);
         switch(primary_pic_type)
           {
           case 0:

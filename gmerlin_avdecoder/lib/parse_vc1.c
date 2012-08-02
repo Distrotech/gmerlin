@@ -33,6 +33,11 @@
 #define VC1_NEED_END   2
 #define VC1_HAVE_END   3
 
+#define STATE_SEQUENCE    1
+#define STATE_ENTRY_POINT 2
+#define STATE_PICTURE     3
+#define STATE_SYNC        100
+
 typedef struct
   {
   int chunk_len; /* Len from one startcode to the next */
@@ -185,9 +190,89 @@ static int parse_vc1(bgav_video_parser_t * parser)
 
 static int find_frame_boundary_vc1(bgav_video_parser_t * parser, int * skip)
   {
+  const uint8_t * sc;
+  vc1_priv_t * priv = parser->priv;
+  int new_state;
   
+  while(1)
+    {
+    sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
+                                 parser->buf.buffer + parser->buf.size - 4);
+    if(!sc)
+      {
+      parser->pos = parser->buf.size - 3;
+      if(parser->pos < 0)
+        parser->pos = 0;
+      return 0;
+      }
+
+    new_state = -1;
+    switch(sc[3])
+      {
+      case VC1_CODE_SEQUENCE:
+        /* Sequence header */
+        new_state = STATE_SEQUENCE;
+        break;
+      case VC1_CODE_ENTRY_POINT:
+        new_state = STATE_ENTRY_POINT;
+        break;
+      case VC1_CODE_PICTURE:
+        new_state = STATE_PICTURE;
+        break;
+      }
+    
+    parser->pos = sc - parser->buf.buffer;
+    
+    if(new_state < 0)
+      parser->pos += 4;
+    else if((new_state == STATE_PICTURE) && (priv->state == STATE_PICTURE))
+      {
+      *skip = 4;
+      parser->pos = sc - parser->buf.buffer;
+      priv->state = new_state;
+      return 1;
+      }
+    else if((new_state <= STATE_PICTURE) && (new_state < priv->state))
+      {
+      *skip = 4;
+      parser->pos = sc - parser->buf.buffer;
+      priv->state = new_state;
+      return 1;
+      }
+    else
+      {
+      parser->pos += 4;
+      priv->state = new_state;
+      }
+    }
+  return 0;
   }
 
+static int parse_frame_vc1(bgav_video_parser_t * parser, bgav_packet_t * p)
+  {
+  const uint8_t * ptr;
+  const uint8_t * sc;
+
+  ptr = p->data;
+
+  while(ptr < p->data + p->data_size)
+    {
+    sc = bgav_mpv_find_startcode(ptr, p->data + (p->data_size - (ptr - p->data)));
+
+    switch(sc[3])
+      {
+      case VC1_CODE_SEQUENCE:
+        /* Sequence header */
+        break;
+      case VC1_CODE_ENTRY_POINT:
+        break;
+      case VC1_CODE_PICTURE:
+        break;
+      }
+    }
+  return 0;
+  }
+  
 static void cleanup_vc1(bgav_video_parser_t * parser)
   {
   vc1_priv_t * priv = parser->priv;
@@ -199,7 +284,7 @@ static void cleanup_vc1(bgav_video_parser_t * parser)
 static void reset_vc1(bgav_video_parser_t * parser)
   {
   vc1_priv_t * priv = parser->priv;
-  priv->state = VC1_NEED_START;
+  priv->state = STATE_SYNC;
   priv->has_picture_start = 0;
   }
 
@@ -209,6 +294,8 @@ void bgav_video_parser_init_vc1(bgav_video_parser_t * parser)
   priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
   parser->parse = parse_vc1;
+  parser->parse_frame = parse_frame_vc1;
+
   parser->cleanup = cleanup_vc1;
   parser->reset = reset_vc1;
   parser->find_frame_boundary = find_frame_boundary_vc1;
