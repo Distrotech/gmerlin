@@ -38,9 +38,11 @@
 #define STATE_PICTURE     3
 #define STATE_SYNC        100
 
+#define LOG_DOMAIN "parse_vc1"
+
 typedef struct
   {
-  int chunk_len; /* Len from one startcode to the next */
+  //  int chunk_len; /* Len from one startcode to the next */
 
   /* Unescaped data */
   uint8_t * buf;
@@ -54,38 +56,45 @@ typedef struct
   int state;
   } vc1_priv_t;
 
-static void unescape_data(bgav_video_parser_t * parser)
+static void unescape_data(bgav_video_parser_t * parser,
+                          const uint8_t * ptr, int len)
   {
   vc1_priv_t * priv = parser->priv;
 
-  if(priv->buf_alloc < priv->chunk_len)
+  if(priv->buf_alloc < len)
     {
-    priv->buf_alloc = priv->chunk_len + 1024;
+    priv->buf_alloc = len + 1024;
     priv->buf = realloc(priv->buf, priv->buf_alloc);
     }
   priv->buf_len =
-    bgav_vc1_unescape_buffer(parser->buf.buffer + parser->pos,
-                             priv->chunk_len, priv->buf);
+    bgav_vc1_unescape_buffer(ptr, len, priv->buf);
   }
 
-static void handle_sequence(bgav_video_parser_t * parser)
+static void handle_sequence(bgav_video_parser_t * parser,
+                            const uint8_t * ptr,
+                            const uint8_t * end)
   {
   vc1_priv_t * priv = parser->priv;
-  unescape_data(parser);
 
+  if(priv->have_sh)
+    return;
+
+  unescape_data(parser, ptr, end - ptr);
   bgav_vc1_sequence_header_read(parser->s->opt, &priv->sh, 
                                 priv->buf, priv->buf_len);
   bgav_vc1_sequence_header_dump(&priv->sh);
-
+  
   if(priv->sh.profile == PROFILE_ADVANCED)
     {
     parser->format->timescale = priv->sh.h.adv.timescale;
     parser->format->frame_duration = priv->sh.h.adv.frame_duration;
-    bgav_video_parser_set_framerate(parser);
     }
+
+  
   priv->have_sh = 1;
   }
 
+#if 0
 static void handle_picture(bgav_video_parser_t * parser)
   {
   bgav_vc1_picture_header_adv_t aph;
@@ -188,6 +197,8 @@ static int parse_vc1(bgav_video_parser_t * parser)
   return PARSER_CONTINUE;
   }
 
+#endif
+
 static int find_frame_boundary_vc1(bgav_video_parser_t * parser, int * skip)
   {
   const uint8_t * sc;
@@ -200,7 +211,7 @@ static int find_frame_boundary_vc1(bgav_video_parser_t * parser, int * skip)
                                  parser->buf.buffer + parser->buf.size - 4);
     if(!sc)
       {
-      parser->pos = parser->buf.size - 3;
+      parser->pos = parser->buf.size - 4;
       if(parser->pos < 0)
         parser->pos = 0;
       return 0;
@@ -251,24 +262,83 @@ static int find_frame_boundary_vc1(bgav_video_parser_t * parser, int * skip)
 static int parse_frame_vc1(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
   const uint8_t * ptr;
-  const uint8_t * sc;
-
+  const uint8_t * sh_start = NULL;
+  const uint8_t * chunk_start;
+  const uint8_t * chunk_end;
+  vc1_priv_t * priv = parser->priv;
+  
   ptr = p->data;
 
-  while(ptr < p->data + p->data_size)
+  chunk_start = p->data;
+  
+  while(chunk_start < p->data + p->data_size)
     {
-    sc = bgav_mpv_find_startcode(ptr, p->data + (p->data_size - (ptr - p->data)));
+    ptr = chunk_start + 4;
+    
+    chunk_end =
+      bgav_mpv_find_startcode(ptr, p->data +
+                              (p->data_size - (ptr - p->data)));
 
-    switch(sc[3])
+    if(!chunk_end)
+      chunk_end = p->data + p->data_size;
+    
+    switch(chunk_start[3])
       {
       case VC1_CODE_SEQUENCE:
         /* Sequence header */
+        sh_start = chunk_start;
+        handle_sequence(parser, chunk_start, chunk_end);
         break;
       case VC1_CODE_ENTRY_POINT:
+        if(!priv->have_sh)
+          {
+          PACKET_SET_SKIP(p);
+          return 1;
+          }
+        else if(sh_start && !parser->s->ext_data)
+          {
+          bgav_stream_set_extradata(parser->s,
+                                    sh_start, chunk_end - sh_start);
+          fprintf(stderr, "Setting extradata %d bytes\n",
+                  chunk_end - sh_start);
+          bgav_hexdump(sh_start, chunk_end - sh_start + 4, 16);
+          }
+        PACKET_SET_KEYFRAME(p);
         break;
       case VC1_CODE_PICTURE:
+        if(!priv->have_sh)
+          {
+          PACKET_SET_SKIP(p);
+          return 1;
+          }
+
+        p->duration = parser->format->frame_duration;
+        
+        if(priv->sh.profile == PROFILE_ADVANCED)
+          {
+          bgav_vc1_picture_header_adv_t aph;
+          unescape_data(parser, chunk_start, chunk_end - chunk_start);
+          bgav_vc1_picture_header_adv_read(parser->s->opt,
+                                           &aph,
+                                           priv->buf, priv->buf_len,
+                                           &priv->sh);
+          
+          bgav_vc1_picture_header_adv_dump(&aph);
+          p->flags |= aph.coding_type;
+          if(aph.coding_type == BGAV_CODING_TYPE_I)
+            PACKET_SET_KEYFRAME(p);
+          return 1;
+          }
+        else
+          {
+          bgav_log(parser->s->opt, BGAV_LOG_ERROR,
+                   LOG_DOMAIN,
+                   "Profiles other than advanced are not supported");
+          return 0;
+          }
         break;
       }
+    chunk_start = chunk_end;
     }
   return 0;
   }
@@ -293,7 +363,8 @@ void bgav_video_parser_init_vc1(bgav_video_parser_t * parser)
   vc1_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
-  parser->parse = parse_vc1;
+  priv->state = STATE_SYNC;
+  //  parser->parse = parse_vc1;
   parser->parse_frame = parse_frame_vc1;
 
   parser->cleanup = cleanup_vc1;

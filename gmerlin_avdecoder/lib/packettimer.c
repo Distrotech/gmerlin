@@ -528,12 +528,13 @@ bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s)
   s->src.get_func = get_func;
   s->src.peek_func = peek_func;
   s->src.data = ret;
-  
+
+#if 0  
   /* Clear wrong B-timestamps flag */
   if((ret->s->flags & STREAM_DTS_ONLY) &&
      !(ret->s->flags & STREAM_B_FRAMES))
     ret->s->flags &= ~STREAM_DTS_ONLY;
-
+#endif
   /* Set insert and flush functions */
   if(ret->s->flags & STREAM_DTS_ONLY)
     ret->next_packet = next_packet_pts_from_dts;

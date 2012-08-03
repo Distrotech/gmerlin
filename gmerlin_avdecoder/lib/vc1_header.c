@@ -244,10 +244,15 @@ int bgav_vc1_picture_header_adv_read(const bgav_options_t * opt,
   return 1;
   }
 
+static const char coding_types[4] =
+  {
+    0x00, 'I', 'P', 'B'
+  };
+
 void bgav_vc1_picture_header_adv_dump(bgav_vc1_picture_header_adv_t * ret)
   {
   bgav_dprintf("VC-1 picture header\n");
   bgav_dprintf("  fcm:  %d\n", ret->fcm);
-  bgav_dprintf("  type: %c\n", ret->coding_type);
+  bgav_dprintf("  type: %d [%c]\n", ret->coding_type, coding_types[ret->coding_type]);
   
   }

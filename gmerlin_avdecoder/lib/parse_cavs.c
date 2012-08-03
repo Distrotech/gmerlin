@@ -37,10 +37,9 @@
 #define CAVS_HAS_PIC_CODE                4
 #define CAVS_HAS_PIC_HEADER              5
 
-#define STATE_INIT                       0 // Nothing found yet
-#define STATE_SYNC                       1 // Need start code
-#define STATE_SEQUENCE                   2 // Got sequence header
-#define STATE_PICTURE                    3 // Got picture header
+#define STATE_SYNC                       100 // Need start code
+#define STATE_SEQUENCE                   1 // Got sequence header
+#define STATE_PICTURE                    2 // Got picture header
 
 typedef struct
   {
@@ -54,10 +53,11 @@ typedef struct
 static void reset_cavs(bgav_video_parser_t * parser)
   {
   cavs_priv_t * priv = parser->priv;
-  priv->state = CAVS_NEED_SYNC;
+  priv->state = STATE_SYNC;
   priv->has_picture_start = 0;
   }
 
+#if 0
 static int parse_cavs(bgav_video_parser_t * parser)
   {
   const uint8_t * sc;
@@ -194,6 +194,7 @@ static int parse_cavs(bgav_video_parser_t * parser)
     }
   return PARSER_CONTINUE;
   }
+#endif
 
 static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p)
   {
@@ -251,21 +252,89 @@ static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p)
         break;
       case CAVS_CODE_PICTURE_I:
       case CAVS_CODE_PICTURE_PB:
+        if(!priv->have_seq)
+          {
+          PACKET_SET_SKIP(p);
+          ptr += 4;
+          return 1;
+          }
+        
         len = bgav_cavs_picture_header_read(parser->s->opt,
                                             &ph, ptr, end - ptr, &priv->seq);
         PACKET_SET_CODING_TYPE(p, ph.coding_type);
-        /* TODO: Set picture duration */
-        return PARSER_HAVE_PACKET;
+        p->duration = parser->format->frame_duration;
+        ptr += len;
+        return 1;
+        break;
+      default:
+        ptr += 4;
         break;
       }
     
     }
-  return PARSER_ERROR;
+  return 0;
   }
 
 static int find_frame_boundary_cavs(bgav_video_parser_t * parser,
                                     int * skip)
   {
+  const uint8_t * sc;
+  cavs_priv_t * priv = parser->priv;
+  int new_state;
+  int start_code;
+  
+  while(1)
+    {
+    sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
+                                 parser->buf.buffer + parser->buf.size - 4);
+    if(!sc)
+      {
+      parser->pos = parser->buf.size - 4;
+      if(parser->pos < 0)
+        parser->pos = 0;
+      return 0;
+      }
+
+    new_state = -1;
+
+    start_code = bgav_cavs_get_start_code(sc);
+        
+    switch(start_code)
+      {
+      case CAVS_CODE_SEQUENCE:
+        /* Sequence header */
+        new_state = STATE_SEQUENCE;
+        break;
+      case CAVS_CODE_PICTURE_I:
+      case CAVS_CODE_PICTURE_PB:
+        new_state = STATE_PICTURE;
+        break;
+      }
+    
+    parser->pos = sc - parser->buf.buffer;
+    
+    if(new_state < 0)
+      parser->pos += 4;
+    else if((new_state == STATE_PICTURE) && (priv->state == STATE_PICTURE))
+      {
+      *skip = 4;
+      parser->pos = sc - parser->buf.buffer;
+      priv->state = new_state;
+      return 1;
+      }
+    else if((new_state <= STATE_PICTURE) && (new_state < priv->state))
+      {
+      *skip = 4;
+      parser->pos = sc - parser->buf.buffer;
+      priv->state = new_state;
+      return 1;
+      }
+    else
+      {
+      parser->pos += 4;
+      priv->state = new_state;
+      }
+    }
   return 0;
   }
 
@@ -278,8 +347,10 @@ void bgav_video_parser_init_cavs(bgav_video_parser_t * parser)
   {
   cavs_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
+
+  priv->state = STATE_SYNC;
   parser->priv = priv;
-  parser->parse = parse_cavs;
+  //  parser->parse = parse_cavs;
   parser->parse_frame = parse_frame_cavs;
 
   parser->cleanup = cleanup_cavs;
