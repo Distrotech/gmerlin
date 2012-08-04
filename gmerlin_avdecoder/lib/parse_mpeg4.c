@@ -42,7 +42,7 @@
 #define MPEG4_HAS_VOP_HEADER              5
 #define MPEG4_HAS_USER_DATA_CODE          6
 
-#define STATE_SYNC 0
+#define STATE_SYNC 100
 #define STATE_VOS  1
 #define STATE_VO   2
 #define STATE_VOL  3
@@ -93,14 +93,14 @@ static void set_format(bgav_video_parser_t * parser)
   parser->format.frame_height  =
     (parser->format.image_height + 15) & ~15;
 #endif
-  if(priv->vol.low_delay)
-    parser->s->flags &= ~(STREAM_B_FRAMES|STREAM_DTS_ONLY);
+  if(!priv->vol.low_delay)
+    parser->s->flags |= STREAM_B_FRAMES;
   }
 
 static void reset_mpeg4(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv = parser->priv;
-  priv->state = MPEG4_NEED_SYNC;
+  priv->state = STATE_SYNC;
   priv->has_picture_start = 0;
   priv->saved_packet->data_size = 0;
   }
@@ -522,7 +522,7 @@ static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)
     {
     sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
                                  parser->buf.buffer +
-                                 parser->buf.size - parser->pos - 1);
+                                 parser->buf.size - parser->pos - 4);
     if(!sc)
       {
       parser->pos = parser->buf.size - 4;
@@ -562,6 +562,7 @@ static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)
             ((new_state == STATE_VOP) &&
              (priv->state == STATE_VOP)))
       {
+      fprintf(stderr, "GOT BOUNDARY %d\n", parser->pos);
       priv->state = new_state;
       *skip = 4;
       return 1;
@@ -593,6 +594,8 @@ void bgav_video_parser_init_mpeg4(bgav_video_parser_t * parser)
   
   parser->priv = priv;
   priv->saved_packet = bgav_packet_create();
+
+  priv->state = STATE_SYNC;
   
   if(parser->s->ext_data)
     parse_header_mpeg4(parser);
