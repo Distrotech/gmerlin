@@ -64,13 +64,6 @@ typedef struct
 
   bgav_packet_t * saved_packet;
 
-#if 0  
-  uint8_t * saved_frame;
-  int saved_frame_alloc;
-  int saved_frame_size;
-  int saved_frame_type;
-  int saved_frame_pos;
-#endif
   int packed_b_frames;
   } mpeg4_priv_t;
 
@@ -533,6 +526,8 @@ static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)
 
     code = bgav_mpeg4_get_start_code(sc);
     new_state = -1;
+
+    fprintf(stderr, "Got code: %d\n", code);
     
     switch(code)
       {
@@ -552,6 +547,8 @@ static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)
         break;
       case MPEG4_CODE_GOV_START:
         new_state = STATE_GOV;
+        break;
+      default:
         break;
       }
     parser->pos = sc - parser->buf.buffer;

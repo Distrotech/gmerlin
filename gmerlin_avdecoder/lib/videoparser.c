@@ -800,7 +800,7 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
   {
   bgav_packet_t * ret;
   int skip = -1;
-  int64_t pts;
+  int64_t pts = 0;
   
   /* Synchronize */
   while(!parser->have_sync)
@@ -849,11 +849,17 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
   bgav_packet_alloc(ret, parser->pos);
   memcpy(ret->data, parser->buf.buffer, parser->pos);
   ret->data_size = parser->pos;
+
+  if(parser->raw)
+    {
+    ret->position = parser->raw_position;
+    }
+  else
+    {
+    ret->position = parser->packets[0].packet_position;
+    pts = parser->packets[0].pts;
+    }
   
-  ret->position = parser->packets[0].packet_position;
-
-  pts = parser->packets[0].pts;
-
   fprintf(stderr, "FLUSH %d\n", parser->pos);
   
   bgav_video_parser_flush(parser, parser->pos);
@@ -884,7 +890,7 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
     parser->timestamp = gavl_time_rescale(parser->s->timescale,
                                           parser->format->timescale,
                                           pts);
-
+  
   fprintf(stderr, "Got packet:\n");
   bgav_packet_dump(ret);
   
