@@ -151,14 +151,19 @@ int bgav_mpeg4_vol_header_read(const bgav_options_t * opt,
     return 0;
 
   ret->time_increment_bits = bgav_log2(ret->vop_time_increment_resolution - 1) + 1;
-  
+
+  if(ret->time_increment_bits < 1)
+    ret->time_increment_bits = 1;
+    
   if(ret->fixed_vop_rate)
     {
     if(!bgav_bitstream_get(&b, &ret->fixed_vop_time_increment,
                            ret->time_increment_bits))
       return 0;
     }
-  
+  else
+    ret->fixed_vop_time_increment = 1;
+    
   return len - bgav_bitstream_get_bits(&b) / 8;
   }
 
@@ -273,7 +278,7 @@ void bgav_mpeg4_vop_header_dump(bgav_mpeg4_vop_header_t * h)
   {
   bgav_dprintf("VOP header\n");
 
-  bgav_dprintf("  coding_type:      %c\n", h->coding_type);
+  bgav_dprintf("  coding_type:      %s\n", bgav_coding_type_to_string(h->coding_type));
   bgav_dprintf("  modulo_time_base: %d\n", h->modulo_time_base); 
   bgav_dprintf("  time_increment:   %d\n", h->time_increment);
   bgav_dprintf("  vop_coded:        %d\n", h->vop_coded);

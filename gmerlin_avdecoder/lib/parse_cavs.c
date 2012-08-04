@@ -236,7 +236,7 @@ static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p)
           parser->format->timescale = timescale;
           parser->format->frame_duration = frame_duration;
         
-          bgav_video_parser_set_framerate(parser);
+          // bgav_video_parser_set_framerate(parser);
         
           parser->format->image_width  = priv->seq.horizontal_size;
           parser->format->image_height = priv->seq.vertical_size;

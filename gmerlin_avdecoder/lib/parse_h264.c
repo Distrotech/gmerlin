@@ -36,10 +36,6 @@
 
 /* H.264 */
 
-#define H264_NEED_NAL_START 0
-#define H264_NEED_NAL_END   1
-#define H264_HAVE_NAL       2
-
 #define STATE_SPS             1
 #define STATE_PPS             2
 #define STATE_SEI             3
@@ -1016,7 +1012,7 @@ static void handle_sps(bgav_video_parser_t * parser)
   h264_priv_t * priv = parser->priv;
   parser->format->timescale = priv->sps.vui.time_scale;
   parser->format->frame_duration = priv->sps.vui.num_units_in_tick * 2;
-  bgav_video_parser_set_framerate(parser);
+  // bgav_video_parser_set_framerate(parser);
         
   bgav_h264_sps_get_image_size(&priv->sps,
                                parser->format);

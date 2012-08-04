@@ -1659,6 +1659,9 @@ int bgav_read_line_fd(const bgav_options_t * opt, int fd, char ** ret, int * ret
 
 int bgav_read_data_fd(const bgav_options_t * opt, int fd, uint8_t * ret, int size, int milliseconds);
 
+const char * bgav_coding_type_to_string(int type);
+
+
 /* tcp.c */
 
 int bgav_tcp_connect(const bgav_options_t * opt,

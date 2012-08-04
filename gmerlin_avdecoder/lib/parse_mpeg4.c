@@ -34,14 +34,6 @@
 
 // #define DUMP_HEADERS
 
-#define MPEG4_NEED_SYNC                   0
-#define MPEG4_NEED_STARTCODE              1
-#define MPEG4_HAS_VOL_CODE                2
-#define MPEG4_HAS_VOL_HEADER              3
-#define MPEG4_HAS_VOP_CODE                4
-#define MPEG4_HAS_VOP_HEADER              5
-#define MPEG4_HAS_USER_DATA_CODE          6
-
 #define STATE_SYNC 100
 #define STATE_VOS  1
 #define STATE_VO   2
@@ -65,17 +57,19 @@ typedef struct
   bgav_packet_t * saved_packet;
 
   int packed_b_frames;
+
+  int set_pts;
   } mpeg4_priv_t;
 
 static void set_format(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv = parser->priv;
-
+  
   if(!parser->format->timescale || !parser->format->frame_duration)
     {
     parser->format->timescale = priv->vol.vop_time_increment_resolution;
     parser->format->frame_duration = priv->vol.fixed_vop_time_increment;
-    bgav_video_parser_set_framerate(parser);
+    priv->set_pts = 1;
     }
   
 #if 0
@@ -195,6 +189,8 @@ static int parse_header_mpeg4(bgav_video_parser_t * parser)
     }
   return 0;
   }
+
+#if 0
 
 static int parse_mpeg4(bgav_video_parser_t * parser)
   {
@@ -357,6 +353,8 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
   return PARSER_CONTINUE;
   }
 
+#endif
+
 static void set_header_end(bgav_video_parser_t * parser, bgav_packet_t * p,
                            int pos)
   {
@@ -388,7 +386,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
   
   data = p->data;
   data_end = p->data + p->data_size;
-
+  
   while(!done)
     {
     data = bgav_mpv_find_startcode(data, data_end);
@@ -410,19 +408,29 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
                                               &priv->vol, data,
                                               data_end - data);
           if(!result)
-            return PARSER_ERROR;
+            return 0;
           set_format(parser);
           data += result;
 
 #ifdef DUMP_HEADERS
           bgav_mpeg4_vol_header_dump(&priv->vol);
 #endif
-
+          priv->have_vol = 1;
           }
         else
           data += 4;
         break;
       case MPEG4_CODE_VOP_START:
+
+        if(!priv->have_vol)
+          {
+          PACKET_SET_SKIP(p);
+          return 1;
+          }
+
+        if(priv->set_pts)
+          p->duration = parser->format->frame_duration;
+                
         result = bgav_mpeg4_vop_header_read(parser->s->opt,
                                             &vh, data, data_end-data,
                                             &priv->vol);
@@ -513,9 +521,11 @@ static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)
 
   while(1)
     {
+    // fprintf(stderr, "find startcode %d %d\n",
+    // parser->pos, parser->buf.size - parser->pos - 4);
+    
     sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
-                                 parser->buf.buffer +
-                                 parser->buf.size - parser->pos - 4);
+                                 parser->buf.buffer + parser->buf.size - 4);
     if(!sc)
       {
       parser->pos = parser->buf.size - 4;
@@ -526,8 +536,8 @@ static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)
 
     code = bgav_mpeg4_get_start_code(sc);
     new_state = -1;
-
-    fprintf(stderr, "Got code: %d\n", code);
+    
+    // fprintf(stderr, "Got code: %d\n", code);
     
     switch(code)
       {
@@ -559,7 +569,7 @@ static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)
             ((new_state == STATE_VOP) &&
              (priv->state == STATE_VOP)))
       {
-      fprintf(stderr, "GOT BOUNDARY %d\n", parser->pos);
+      // fprintf(stderr, "GOT BOUNDARY %d\n", parser->pos);
       priv->state = new_state;
       *skip = 4;
       return 1;
@@ -597,7 +607,7 @@ void bgav_video_parser_init_mpeg4(bgav_video_parser_t * parser)
   if(parser->s->ext_data)
     parse_header_mpeg4(parser);
   
-  parser->parse = parse_mpeg4;
+  //  parser->parse = parse_mpeg4;
   parser->parse_frame = parse_frame_mpeg4;
   parser->cleanup = cleanup_mpeg4;
   parser->reset = reset_mpeg4;

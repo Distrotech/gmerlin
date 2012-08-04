@@ -76,7 +76,7 @@ static int init_gavf_video(bgav_stream_t * s)
   return 1;
   }
 
-static int resync_gavf(bgav_stream_t * s)
+static void resync_gavf_video(bgav_stream_t * s)
   {
   gavf_video_t * priv = s->data.video.decoder->priv;
   if(priv->p)
@@ -92,6 +92,7 @@ static bgav_video_decoder_t decoder =
                              0x00 },
     .name = "GAVF video decoder",
     .init = init_gavf_video,
+    .resync = resync_gavf_video,
     .close = close_gavf_video,
     .decode = decode_frame_gavf_video
   };

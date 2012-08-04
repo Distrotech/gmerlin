@@ -26,7 +26,7 @@
 
 typedef void (*init_func)(bgav_video_parser_t*);
 
-typedef int (*parse_func)(bgav_video_parser_t*);
+// typedef int (*parse_func)(bgav_video_parser_t*);
 typedef void (*cleanup_func)(bgav_video_parser_t*);
 typedef void (*reset_func)(bgav_video_parser_t*);
 // typedef int (*parse_header_func)(bgav_video_parser_t*);
@@ -63,33 +63,6 @@ typedef int (*find_frame_boundary_func)(bgav_video_parser_t * p, int * skip);
 
 typedef struct
   {
-  int coding_type;
-  int size;
-  int duration;
-  int64_t pts;
-  int64_t position;
-  
-  int parser_start_pos;
-  /* Repeated header before keyframe */
-  int header_size; 
-  
-  int64_t in_pts;
-  
-  int skip;
-  
-  int field_pic;
-  int field2_offset;
-  int sequence_end_pos;
-  
-  gavl_timecode_t tc;
-  
-  int recovery_point;
-  
-  gavl_interlace_mode_t ilace;
-  } cache_t;
-
-typedef struct
-  {
   int64_t packet_position;
   int     parser_position;
   int     size;
@@ -109,7 +82,7 @@ struct bgav_video_parser_s
   int flags;
   int pos;
   
-  parse_func        parse;
+  //  parse_func        parse;
   //  parse_header_func parse_header;
   cleanup_func      cleanup;
   reset_func        reset;
@@ -132,10 +105,6 @@ struct bgav_video_parser_s
   
   gavl_video_format_t * format;
   
-  /* Cache */
-  cache_t cache[PARSER_CACHE_MAX];
-  int cache_size;
-
   /* Packets */
   packet_t * packets;
   int packets_alloc;
@@ -149,10 +118,7 @@ struct bgav_video_parser_s
   int have_sync;
   
   int non_b_count;
-  int last_non_b_frame;
-
-  int packet_duration;
-  //  int64_t packet_timestamp;
+  int keyframe_count;
   
   bgav_packet_t * out_packet;
   bgav_packet_source_t src;
@@ -174,17 +140,4 @@ void bgav_video_parser_init_jpeg(bgav_video_parser_t * parser);
 void bgav_video_parser_init_png(bgav_video_parser_t * parser);
 
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes);
-void bgav_video_parser_extract_header(bgav_video_parser_t * parser);
-void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type);
-void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser, int code_len);
 
-int bgav_video_parser_check_output(bgav_video_parser_t * parser);
-
-/* Notify the parser of a new picture */
-int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser);
-
-/* Notify the parser of the end of a global header */
-void bgav_video_parser_set_header_end(bgav_video_parser_t * parser);
-
-/* Set the framerate, can be called multiple times before the first picture start code */
-void bgav_video_parser_set_framerate(bgav_video_parser_t * parser);
