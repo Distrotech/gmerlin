@@ -29,7 +29,7 @@
 #include <utils.h>
 
 // #define DUMP_INPUT
-#define DUMP_OUTPUT
+// #define DUMP_OUTPUT
 
 #define MAX_SCAN_SIZE 5000000
 
