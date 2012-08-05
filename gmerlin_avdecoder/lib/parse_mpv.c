@@ -63,9 +63,11 @@ static void reset_mpeg12(bgav_video_parser_t * parser)
 static int extract_header(bgav_video_parser_t * parser, bgav_packet_t * p,
                           const uint8_t * header_end)
   {
-  int width, height;
   mpeg12_priv_t * priv = parser->priv;
-
+  
+  if(!p->header_size)
+    p->header_size = header_end - p->data;
+  
   if(priv->have_header)
     return 1;
 
@@ -104,27 +106,22 @@ static int extract_header(bgav_video_parser_t * parser, bgav_packet_t * p,
     }
 
   /* Set picture size */
-
-  width = priv->sh.horizontal_size_value;
-  height = priv->sh.vertical_size_value;
-
-  if(priv->sh.mpeg2)
-    {
-    width += priv->sh.ext.horizontal_size_ext;
-    height += priv->sh.ext.vertical_size_ext;
-    }
-
-  parser->format->frame_width  = (width + 15) & ~15;
-  parser->format->frame_height  = (height + 15) & ~15;
-
+  
   if(!parser->format->image_width)
-    parser->format->image_width = width;
-  if(!parser->format->image_height)
-    parser->format->image_height = height;
+    bgav_mpv_get_size(&priv->sh, parser->format);
+  
+  /* Special handling for D10 */
+  if(priv->d10)
+    {
+    if(parser->format->image_height == 608)
+      parser->format->image_height = 576;
+    else if(parser->format->image_height == 512)
+      parser->format->image_height = 486;
+    }
   
   /* Set pixel size */
   bgav_mpv_get_pixel_aspect(&priv->sh, parser->format);
-
+  
   /* Pixelformat */
   if(parser->format->pixelformat == GAVL_PIXELFORMAT_NONE)
     parser->format->pixelformat = bgav_mpv_get_pixelformat(&priv->sh);
@@ -153,12 +150,23 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
   int len;
   int delta_d;
   int got_sh = 0;
-
+  int got_se = 0;
   int ret = 0;
   
   const uint8_t * start =   p->data;
   const uint8_t * end = p->data + p->data_size;
   
+  /* Check for sequence end code within this frame */
+
+  if(p->data_size >= 4)
+    {
+    end = p->data + (p->data_size - 4);
+    if(BGAV_PTR_2_32BE(end) == 0x000001B7)
+      got_se = 1;
+    }
+  
+  end = p->data + p->data_size;
+                                  
   while(1)
     {
     sc = bgav_mpv_find_startcode(start, end);
@@ -186,6 +194,18 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
         else
           start += 4;
         got_sh = 1;
+
+        if(got_se)
+          {
+          if(parser->format->framerate_mode != GAVL_FRAMERATE_STILL)
+            {
+            parser->format->framerate_mode = GAVL_FRAMERATE_STILL;
+            bgav_log(parser->s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+                     "Detected still image");
+            parser->s->flags &= ~STREAM_B_FRAMES;
+            parser->s->flags |= STREAM_INTRA_ONLY;
+            }
+          }
         break;
       case MPEG_CODE_SEQUENCE_EXT:
         if(priv->have_sh && !priv->sh.mpeg2)
@@ -204,17 +224,22 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
       case MPEG_CODE_PICTURE:
         if(!priv->have_sh)
           PACKET_SET_SKIP(p);
-        else if(!extract_header(parser, p, sc))
+        else if(got_sh && !extract_header(parser, p, sc))
           return 0;
         
         len = bgav_mpv_picture_header_parse(parser->s->opt,
                                             &ph, start, end - start);
-        p->duration = parser->format->frame_duration;
+        
+        if(parser->format->framerate_mode == GAVL_FRAMERATE_STILL)
+          p->duration = -1;
+        else
+          p->duration = parser->format->frame_duration;
+          
         if(!len)
           return PARSER_ERROR;
 
         PACKET_SET_CODING_TYPE(p, ph.coding_type);
-
+        
         if(got_sh)
           {
           if(!(parser->flags & PARSER_NO_I_FRAMES) &&
@@ -222,7 +247,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
             {
             parser->flags |= PARSER_NO_I_FRAMES;
             bgav_log(parser->s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-                     "Detected Intra slice refresh");
+                     "Detected intra slice refresh");
             }
           }
         
@@ -234,24 +259,8 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
         
         start += len;
         
-        if(parser->format->pixelformat == GAVL_PIXELFORMAT_NONE)
-          {
-          parser->format->pixelformat =
-            bgav_mpv_get_pixelformat(&priv->sh);
-
-          bgav_mpv_get_size(&priv->sh,
-                            &parser->s->data.video.format);
-
-          /* Special handling for D10 */
-          if(priv->d10)
-            {
-            if(parser->format->image_height == 608)
-              parser->format->image_height = 576;
-            else if(parser->format->image_height == 512)
-              parser->format->image_height = 486;
-            }
-            
-          }
+        if(!priv->sh.mpeg2)
+          return 1;
         break;
       case MPEG_CODE_PICTURE_EXT:
         len = bgav_mpv_picture_extension_parse(parser->s->opt,
@@ -271,22 +280,27 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
             p->ilace = GAVL_INTERLACE_BOTTOM_FIRST;
             break;
           case MPEG_PICTURE_FRAME:
-            if(pe.repeat_first_field)
+
+            if(p->duration > 0)
               {
-              delta_d = 0;
-              if(priv->sh.ext.progressive_sequence)
+              if(pe.repeat_first_field)
                 {
-                if(pe.top_field_first)
-                  delta_d = parser->format->frame_duration * 2;
-                else
-                  delta_d = parser->format->frame_duration;
-                }
-              else if(pe.progressive_frame)
-                delta_d = parser->format->frame_duration / 2;
+                delta_d = 0;
+                if(priv->sh.ext.progressive_sequence)
+                  {
+                  if(pe.top_field_first)
+                    delta_d = parser->format->frame_duration * 2;
+                  else
+                    delta_d = parser->format->frame_duration;
+                  }
+                else if(pe.progressive_frame)
+                  delta_d = parser->format->frame_duration / 2;
               
-              p->duration += delta_d;
+                p->duration += delta_d;
+                }
               }
-            else if(!priv->sh.ext.progressive_sequence)
+            
+            if(!pe.repeat_first_field && !priv->sh.ext.progressive_sequence)
               {
               if(pe.progressive_frame)
                 p->ilace = GAVL_INTERLACE_NONE;
@@ -297,14 +311,14 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
               }
             break;
           }
-        
-        start += len;
+        // start += len;
+        return 1;
         break;
       case MPEG_CODE_GOP:
         {
         bgav_mpv_gop_header_t        gh;
 
-        if(priv->have_sh && !extract_header(parser, p, sc))
+        if(got_sh && !extract_header(parser, p, sc))
           return 0;
         
         len = bgav_mpv_gop_header_parse(parser->s->opt,

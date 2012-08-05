@@ -212,17 +212,6 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser,
   parser->have_sync = 0;
   }
 
-void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
-  {
-  //  fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
-  //          parser->cache_size);
-  /* Set size of last frame */
-  parser->pos = parser->buf.size;
-  //  bgav_video_parser_set_sequence_end(parser, 0);
-  parser->timestamp = GAVL_TIME_UNDEFINED;
-  parser->eof = 1;
-  }
-
 int bgav_video_parser_parse_frame(bgav_video_parser_t * parser,
                                   bgav_packet_t * p)
   {
@@ -482,7 +471,7 @@ static int get_input_packet(bgav_video_parser_t * parser, int force)
   p = parser->src.get_func(parser->src.data);
   if(!p)
     {
-    bgav_video_parser_set_eof(parser);
+    parser->eof = 1;
     return 0;
     }
   else
@@ -500,6 +489,9 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
   bgav_packet_t * ret;
   int skip = -1;
   int64_t pts = 0;
+
+  if(parser->eof)
+    return NULL;
   
   /* Synchronize */
   while(!parser->have_sync)

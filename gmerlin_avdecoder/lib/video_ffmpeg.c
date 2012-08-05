@@ -626,6 +626,7 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Got EOF while skipping");
+      s->flags &= ~STREAM_HAVE_PICTURE;
       return 0;
       }
 #if 0

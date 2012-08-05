@@ -59,8 +59,6 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
 
 int bgav_video_parser_max_ref_frames(bgav_video_parser_t * parser);
 
-void bgav_video_parser_set_eof(bgav_video_parser_t * parser);
-
 /* TODO: Implement this and remove other API */
 bgav_packet_t *
 bgav_video_parser_get_packet_parse_full(void * parser);
