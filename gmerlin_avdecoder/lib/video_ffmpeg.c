@@ -73,7 +73,7 @@
 #define LOG_DOMAIN "ffmpeg_video"
 
 // #define DUMP_DECODE
-#define DUMP_EXTRADATA
+// #define DUMP_EXTRADATA
 // #define DUMP_PACKET
 
 #define HAS_DELAY       (1<<0)
@@ -295,6 +295,7 @@ static bgav_packet_t * get_data(bgav_stream_t * s)
 #ifdef DUMP_PACKET
   fprintf(stderr, "Got packet ");
   bgav_packet_dump(ret);
+  bgav_hexdump(ret->data, 16, 16);
 #endif
   
   if((priv->flags & SWAP_FIELDS_IN) && (ret->field2_offset))

@@ -71,15 +71,21 @@ static void set_format(bgav_video_parser_t * parser)
     parser->format->frame_duration = priv->vol.fixed_vop_time_increment;
     priv->set_pts = 1;
     }
+
+  if(!parser->format->image_width)
+    {
+    parser->format->image_width  = priv->vol.video_object_layer_width;
+    parser->format->image_height = priv->vol.video_object_layer_height;
+    parser->format->frame_width  =
+      (parser->format->image_width + 15) & ~15;
+    parser->format->frame_height  =
+      (parser->format->image_height + 15) & ~15;
   
-#if 0
-  parser->format.image_width  = priv->sh.horizontal_size_value;
-  parser->format.image_height = priv->sh.vertical_size_value;
-  parser->format.frame_width  =
-    (parser->format.image_width + 15) & ~15;
-  parser->format.frame_height  =
-    (parser->format.image_height + 15) & ~15;
-#endif
+    bgav_mpeg4_get_pixel_aspect(&priv->vol,
+                                &parser->format->pixel_width,
+                                &parser->format->pixel_height);
+    }
+  
   if(!priv->vol.low_delay)
     parser->s->flags |= STREAM_B_FRAMES;
   }

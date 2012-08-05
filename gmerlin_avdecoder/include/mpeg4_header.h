@@ -76,6 +76,9 @@ typedef struct
   // if (fixed_vop_rate)
   int fixed_vop_time_increment;           // 1-16
 
+  int video_object_layer_width;           // 13
+  int video_object_layer_height;           // 13
+  
   /* Calculated */
   int time_increment_bits;
   
@@ -86,7 +89,10 @@ int bgav_mpeg4_vol_header_read(const bgav_options_t * opt,
                                const uint8_t * buffer, int len);
 
 void bgav_mpeg4_vol_header_dump(bgav_mpeg4_vol_header_t * h);
-                               
+
+void bgav_mpeg4_get_pixel_aspect(bgav_mpeg4_vol_header_t * h,
+                                 uint32_t * width, uint32_t * height);
+
 typedef struct
   {
   int coding_type;
