@@ -439,8 +439,7 @@ static int find_frame_boundary_h264(bgav_video_parser_t * parser, int * skip)
       {
       if(nh.unit_type == H264_NAL_ACCESS_UNIT_DEL)
         {
-        fprintf(stderr, "Got frame boundary %d\n", parser->pos);
-        
+        //        fprintf(stderr, "Got frame boundary %d\n", parser->pos);
         *skip = header_len;
         return 1;
         }
@@ -576,7 +575,7 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
     
     ptr += header_len;
     
-    fprintf(stderr, "Got NAL: %d\n", nh.unit_type);
+    // fprintf(stderr, "Got NAL: %d\n", nh.unit_type);
     
     switch(nh.unit_type)
       {
@@ -621,7 +620,7 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
       case H264_NAL_NON_IDR_SLICE:
       case H264_NAL_IDR_SLICE:
       case H264_NAL_SLICE_PARTITION_A:
-#if 1
+#if 0
         fprintf(stderr, "Got slice\n");
 #endif
         

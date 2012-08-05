@@ -25,8 +25,8 @@
 #include <string.h>
 #include <limits.h>
 
-// #define DUMP_WRITE
-// #define DUMP_OUT_PACKETS
+// #define DUMP_IN_PACKETS
+#define DUMP_OUT_PACKETS
 
 int bgav_stream_start(bgav_stream_t * stream)
   {
@@ -245,8 +245,8 @@ bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s)
 
 void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
   {
-#ifdef DUMP_WRITE
-  bgav_dprintf(stderr, "bgav_stream_done_packet_write ");
+#ifdef DUMP_IN_PACKETS
+  bgav_dprintf("Packet in (stream %d): ", s->stream_id);
   bgav_packet_dump(p);
 #endif
   s->in_position++;
@@ -314,7 +314,7 @@ bgav_stream_get_packet_read(bgav_stream_t * s)
         bgav_timecode_table_get_timecode(s->timecode_table,
                                          p->pts);
 #ifdef DUMP_OUT_PACKETS
-    bgav_dprintf("Got packet (stream %d): ", s->stream_id);
+    bgav_dprintf("Packet out (stream %d): ", s->stream_id);
     bgav_packet_dump(p);
 #endif
     }

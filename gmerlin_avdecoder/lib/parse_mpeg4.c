@@ -435,7 +435,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
                                             &vh, data, data_end-data,
                                             &priv->vol);
         if(!result)
-          return PARSER_ERROR;
+          return 0;
 #ifdef DUMP_HEADERS
         bgav_mpeg4_vop_header_dump(&vh);
 #endif
@@ -509,7 +509,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
         break;
       }
     }
-  return PARSER_HAVE_PACKET;
+  return 1;
   }
 
 static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)

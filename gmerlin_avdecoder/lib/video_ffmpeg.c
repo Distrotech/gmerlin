@@ -73,7 +73,7 @@
 #define LOG_DOMAIN "ffmpeg_video"
 
 // #define DUMP_DECODE
-// #define DUMP_EXTRADATA
+#define DUMP_EXTRADATA
 // #define DUMP_PACKET
 
 #define HAS_DELAY       (1<<0)

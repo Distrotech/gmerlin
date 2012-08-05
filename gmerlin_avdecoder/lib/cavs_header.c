@@ -27,12 +27,13 @@
 
 #define FRAME_I  0xb3
 #define FRAME_PB 0xb6
+#define SEQUENCE 0xb0
 
 int bgav_cavs_get_start_code(const uint8_t * data)
   {
   switch(data[3])
     {
-    case 0xb0:
+    case SEQUENCE:
       return CAVS_CODE_SEQUENCE;
       break;
     case FRAME_I:
@@ -101,14 +102,13 @@ int bgav_cavs_picture_header_read(const bgav_options_t * opt,
   {
   int sc = buffer[3];
   bgav_bitstream_t b;
-
   
-  buffer+=4;
-  len -= 4;
-
   memset(ret, 0, sizeof(*ret));
+
+  //  fprintf(stderr, "Read picture header\n");
+  //  bgav_hexdump(buffer, 16, 16);
   
-  bgav_bitstream_init(&b, buffer, len);
+  bgav_bitstream_init(&b, buffer + 4, len - 4);
 
   if(!bgav_bitstream_get(&b, &ret->bbv_delay, 16))
     return 0;
@@ -165,27 +165,34 @@ void bgav_cavs_picture_header_dump(const bgav_cavs_picture_header_t * h,
                                    const bgav_cavs_sequence_header_t * seq)
   {
   bgav_dprintf("CAVS Picture header\n");
-  bgav_dprintf("  coding_type:                %c\n", h->coding_type);
+  bgav_dprintf("  coding_type:                %s\n", bgav_coding_type_to_string(h->coding_type));
 
   bgav_dprintf("  bbv_delay:                  %d\n", h->bbv_delay);       /* I/PB, 16 */
 
-  if(h->coding_type == BGAV_CODING_TYPE_I) {
-  bgav_dprintf("  time_code_flag:             %d\n", h->time_code_flag);  /* I, 1 */
-  if(h->time_code_flag) {
-  bgav_dprintf("  time_code:                  %d\n", h->time_code);       /* I, 24 */
-  }} else {
-  bgav_dprintf("  picture_coding_type:        %d\n", h->picture_coding_type); /* PB, 2 */
-  }
+  if(h->coding_type == BGAV_CODING_TYPE_I)
+    {
+    bgav_dprintf("  time_code_flag:             %d\n", h->time_code_flag);  /* I, 1 */
+    if(h->time_code_flag)
+      {
+      bgav_dprintf("  time_code:                  %d\n", h->time_code);       /* I, 24 */
+      }
+    }
+  else
+    {
+    bgav_dprintf("  picture_coding_type:        %d\n", h->picture_coding_type); /* PB, 2 */
+    }
   bgav_dprintf("  picture_distance:           %d\n", h->picture_distance);    /* I/PB, 8 */
   bgav_dprintf("  bbv_check_times:            %d\n", h->bbv_check_times);     /* I/PB, ue */
   bgav_dprintf("  progressive_frame:          %d\n", h->progressive_frame);   /* I/PB, 1 */
-  if(!h->progressive_frame) {
-  bgav_dprintf("  picture_structure:          %d\n", h->picture_structure);
-  if(h->coding_type != BGAV_CODING_TYPE_I) {
-  bgav_dprintf("  advanced_pred_mode_disable: %d\n", h->advanced_pred_mode_disable );
-  }}
+  if(!h->progressive_frame)
+    {
+    bgav_dprintf("  picture_structure:          %d\n", h->picture_structure);
+    if(h->coding_type != BGAV_CODING_TYPE_I)
+      {
+      bgav_dprintf("  advanced_pred_mode_disable: %d\n", h->advanced_pred_mode_disable );
+      }
+    }
   bgav_dprintf("  top_field_first:            %d\n", h->top_field_first);
   bgav_dprintf("  repeat_first_field:         %d\n", h->repeat_first_field);
-  
   }
 
