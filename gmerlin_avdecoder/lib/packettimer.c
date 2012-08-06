@@ -552,11 +552,13 @@ void bgav_packet_timer_destroy(bgav_packet_timer_t * pt)
   {
   int i;
   for(i = 0; i < pt->num_packets; i++)
+    {
     bgav_packet_pool_put(pt->s->pp, pt->packets[i]);
-
+    }
   if(pt->out_packet)
+    {
     bgav_packet_pool_put(pt->s->pp, pt->out_packet);
-  
+    }
   free(pt);
   }
 

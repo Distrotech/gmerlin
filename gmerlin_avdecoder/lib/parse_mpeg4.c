@@ -385,7 +385,6 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
   const uint8_t * data;
   uint8_t * data_end;
   int sc;
-  int done = 0;
   int result;
   bgav_mpeg4_vop_header_t vh;
   int num_pictures = 0;
@@ -393,12 +392,12 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
   data = p->data;
   data_end = p->data + p->data_size;
   
-  while(!done)
+  while(1)
     {
     data = bgav_mpv_find_startcode(data, data_end);
 
     if(!data)
-      break;
+      return num_pictures;
     
     sc = bgav_mpeg4_get_start_code(data);
 
@@ -468,9 +467,8 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
             p->flags = priv->saved_packet->flags;
             SWAP(priv->saved_packet->position, p->position);
             PACKET_SET_CODING_TYPE(priv->saved_packet, vh.coding_type);
-            
             }
-          done = 1;
+          return 1;
           }
         /* save this frame for later use */
         else if(priv->packed_b_frames && (num_pictures == 1))
@@ -484,7 +482,6 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           PACKET_SET_CODING_TYPE(priv->saved_packet, vh.coding_type);
           priv->saved_packet->position = p->position;
           p->data_size -= priv->saved_packet->data_size;
-          done = 1;
           num_pictures++;
           }
         else
@@ -500,7 +497,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
           num_pictures++;
           }
         if(!priv->packed_b_frames || (num_pictures == 2))
-          done = 1;
+          return 1;
         break;
       case MPEG4_CODE_GOV_START:
         set_header_end(parser, p, data - p->data);
@@ -515,7 +512,7 @@ static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
         break;
       }
     }
-  return 1;
+  return 0;
   }
 
 static int find_frame_boundary_mpeg4(bgav_video_parser_t * parser, int * skip)

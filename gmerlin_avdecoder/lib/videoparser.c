@@ -173,7 +173,6 @@ void bgav_video_parser_destroy(bgav_video_parser_t * parser)
     free(parser->packets);
   if(parser->out_packet)
     bgav_packet_pool_put(parser->s->pp, parser->out_packet);
-    
   bgav_bytebuffer_free(&parser->buf);
   free(parser);
   }
@@ -210,28 +209,6 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser,
     parser->reset(parser);
 
   parser->have_sync = 0;
-  }
-
-int bgav_video_parser_parse_frame(bgav_video_parser_t * parser,
-                                  bgav_packet_t * p)
-  {
-  int ret;
-  if(!parser->parse_frame)
-    return PARSER_ERROR;
-
-#ifdef DUMP_INPUT
-  bgav_dprintf("Parse frame input :");
-  bgav_packet_dump(p);
-#endif
-  
-  ret = parser->parse_frame(parser, p);
-
-#ifdef DUMP_OUTPUT
-  bgav_dprintf("Parse frame output:");
-  bgav_packet_dump(p);
-#endif
-  
-  return ret;
   }
 
 void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
@@ -688,12 +665,35 @@ bgav_video_parser_peek_packet_parse_full(void * parser1, int force)
   return parser->out_packet;
   }
 
+static int parse_frame(bgav_video_parser_t * parser,
+                bgav_packet_t * p)
+  {
+  int ret;
+  if(!parser->parse_frame)
+    return 0;
+
+#ifdef DUMP_INPUT
+  bgav_dprintf("Parse frame input  [%p] ", p);
+  bgav_packet_dump(p);
+#endif
+  
+  ret = parser->parse_frame(parser, p);
+
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Parse frame output [%p] ", p);
+  bgav_packet_dump(p);
+#endif
+  
+  return ret;
+  }
+
+
 bgav_packet_t *
 bgav_video_parser_get_packet_parse_frame(void * parser1)
   {
-  int result;
   bgav_packet_t * ret;
   bgav_video_parser_t * parser = parser1;
+
   if(parser->out_packet)
     {
     ret = parser->out_packet;
@@ -701,29 +701,9 @@ bgav_video_parser_get_packet_parse_frame(void * parser1)
     return ret;
     }
 
-  while(1)
-    {
-    ret = parser->src.get_func(parser->src.data);
-    if(!ret)
-      return NULL;
-  
-    result = bgav_video_parser_parse_frame(parser, ret);
-
-    switch(result)
-      {
-      case PARSER_ERROR:
-        return NULL;
-        break;
-      case PARSER_HAVE_PACKET:
-        return ret;
-        break;
-      case PARSER_DISCARD:
-        bgav_packet_pool_put(parser->s->pp, ret);
-        continue;
-        break;
-      }
-    }
-  
+  ret = parser->src.get_func(parser->src.data);
+  if(!ret || !parse_frame(parser, ret))
+    return NULL;
   return ret;
   }
 
@@ -735,6 +715,13 @@ bgav_video_parser_peek_packet_parse_frame(void * parser1, int force)
   if(parser->out_packet)
     return parser->out_packet;
 
-  parser->out_packet = bgav_video_parser_get_packet_parse_frame(parser1);
+  if(!parser->src.peek_func(parser->src.data, force))
+    return NULL;
+  
+  parser->out_packet = parser->src.get_func(parser->src.data);
+  
+  if(!parser->out_packet || !parse_frame(parser, parser->out_packet))
+    return NULL;
+  
   return parser->out_packet;
   }
