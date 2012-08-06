@@ -415,7 +415,8 @@ static int find_frame_boundary_mpeg12(bgav_video_parser_t * parser, int * skip)
     
     if(new_state < 0)
       parser->pos += 4;
-    else if((new_state <= STATE_PICTURE) && (new_state < priv->state))
+    else if(((new_state == STATE_PICTURE) && (priv->state == STATE_PICTURE)) ||
+            (new_state < priv->state))
       {
       *skip = 4;
       parser->pos = sc - parser->buf.buffer;
@@ -441,6 +442,7 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser)
   mpeg12_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   parser->priv        = priv;
+  priv->state = STATE_SYNC;
   //  parser->parse       = parse_mpeg12;
   parser->parse_frame = parse_frame_mpeg12;
   parser->cleanup     = cleanup_mpeg12;
