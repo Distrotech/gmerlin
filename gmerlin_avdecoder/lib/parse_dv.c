@@ -40,8 +40,7 @@ static int parse_frame_dv(bgav_video_parser_t * parser, bgav_packet_t * p)
   gavl_video_format_t * fmt = &parser->s->data.video.format;
   
   PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_I);
-  PACKET_SET_KEYFRAME(p);
-
+  
   /* Extract format */
   if(!priv->have_format)
     {

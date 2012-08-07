@@ -251,12 +251,6 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
             }
           }
         
-        if(ph.coding_type == BGAV_CODING_TYPE_I)
-          PACKET_SET_KEYFRAME(p);
-        else if((ph.coding_type == BGAV_CODING_TYPE_P) &&
-                (parser->flags & PARSER_NO_I_FRAMES))
-          PACKET_SET_KEYFRAME(p);
-        
         start += len;
         
         if(!priv->sh.mpeg2)

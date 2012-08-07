@@ -299,7 +299,6 @@ static int parse_frame_vc1(bgav_video_parser_t * parser, bgav_packet_t * p)
           bgav_hexdump(sh_start, chunk_end - sh_start + 4, 16);
 #endif
           }
-        PACKET_SET_KEYFRAME(p);
         break;
       case VC1_CODE_PICTURE:
         if(!priv->have_sh)
@@ -321,8 +320,6 @@ static int parse_frame_vc1(bgav_video_parser_t * parser, bgav_packet_t * p)
           
           // bgav_vc1_picture_header_adv_dump(&aph);
           p->flags |= aph.coding_type;
-          if(aph.coding_type == BGAV_CODING_TYPE_I)
-            PACKET_SET_KEYFRAME(p);
           
           return 1;
           }

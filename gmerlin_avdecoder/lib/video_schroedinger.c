@@ -162,9 +162,9 @@ static SchroBuffer * get_data(bgav_stream_t * s)
     
     }
 
-  fprintf(stderr, "Got packet\n");
-  bgav_packet_dump(priv->p);
-  bgav_hexdump(priv->p->data, 16, 16);
+  //  fprintf(stderr, "Got packet\n");
+  //  bgav_packet_dump(priv->p);
+  //  bgav_hexdump(priv->p->data, 16, 16);
   size = next_startcode(priv->buffer_ptr, priv->buffer_size);
   
   if(SCHRO_PARSE_CODE_IS_PICTURE(priv->buffer_ptr[4]))
@@ -284,7 +284,7 @@ static int decode_picture(bgav_stream_t * s)
     switch (state)
       {
       case SCHRO_DECODER_FIRST_ACCESS_UNIT:
-        fprintf(stderr, "State: SCHRO_DECODER_FIRST_ACCESS_UNIT\n");
+        //        fprintf(stderr, "State: SCHRO_DECODER_FIRST_ACCESS_UNIT\n");
 
         get_format(s);
         
@@ -293,7 +293,7 @@ static int decode_picture(bgav_stream_t * s)
 
       case SCHRO_DECODER_NEED_BITS:
         /* Need more input data - stop iterating over what we have. */
-        fprintf(stderr, "State: SCHRO_DECODER_NEED_BITS\n");
+        //   fprintf(stderr, "State: SCHRO_DECODER_NEED_BITS\n");
 
         buf = get_data(s);
 #if 1
@@ -302,7 +302,7 @@ static int decode_picture(bgav_stream_t * s)
           state = schro_decoder_push(priv->dec, buf);
           if(state == SCHRO_DECODER_FIRST_ACCESS_UNIT)
             {
-            fprintf(stderr, "State: SCHRO_DECODER_FIRST_ACCESS_UNIT\n");
+            //            fprintf(stderr, "State: SCHRO_DECODER_FIRST_ACCESS_UNIT\n");
             get_format(s);
             }
           }
@@ -311,13 +311,13 @@ static int decode_picture(bgav_stream_t * s)
 
       case SCHRO_DECODER_NEED_FRAME:
         /* Decoder needs a frame - create one and push it in. */
-        fprintf(stderr, "State: SCHRO_DECODER_NEED_FRAME\n");
+        //        fprintf(stderr, "State: SCHRO_DECODER_NEED_FRAME\n");
         frame = schro_frame_new_and_alloc(NULL,
                                           priv->frame_format,
                                           s->data.video.format.frame_width,
                                           s->data.video.format.frame_height);
         schro_decoder_add_output_picture (priv->dec, frame);
-        fprintf(stderr, "Need frame %p\n", frame);
+        //     fprintf(stderr, "Need frame %p\n", frame);
         break;
 
       case SCHRO_DECODER_OK:
@@ -325,13 +325,13 @@ static int decode_picture(bgav_stream_t * s)
         pic_num = schro_decoder_get_picture_number(priv->dec);
 
         /* Pull a frame out of the decoder. */
-        fprintf(stderr, "State: SCHRO_DECODER_OK %d\n",
-                schro_decoder_get_picture_number(priv->dec));
+        //        fprintf(stderr, "State: SCHRO_DECODER_OK %d\n",
+        //                schro_decoder_get_picture_number(priv->dec));
         
         // if(codec->dec_delay)
         //          {
         priv->dec_frame = schro_decoder_pull(priv->dec);
-        fprintf(stderr, "Got frame %p\n", priv->dec_frame);
+        //        fprintf(stderr, "Got frame %p\n", priv->dec_frame);
         
         return 1;
           //          }
@@ -344,7 +344,7 @@ static int decode_picture(bgav_stream_t * s)
         return 0;
         break;
       case SCHRO_DECODER_ERROR:
-        fprintf(stderr, "State: SCHRO_DECODER_ERROR\n");
+        //        fprintf(stderr, "State: SCHRO_DECODER_ERROR\n");
         return 0;
         break;
       }

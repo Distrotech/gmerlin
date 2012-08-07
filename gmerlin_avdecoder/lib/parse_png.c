@@ -64,7 +64,6 @@ static int parse_frame_png(bgav_video_parser_t * parser, bgav_packet_t * p)
   png_priv_t * priv = parser->priv;
   
   PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_I);
-  PACKET_SET_KEYFRAME(p);
 
   /* Extract format */
   if(!priv->have_format)

@@ -79,22 +79,12 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
             return PARSER_ERROR;
           //          bgav_dirac_sequence_header_dump(&priv->sh);
           priv->have_sh = 1;
-
-#if 0          
-          parser->header = malloc(len);
-          memcpy(parser->header, start, len);
-          parser->header_len = len;
-          bgav_video_parser_set_framerate(parser,
-                                          priv->sh.timescale,
-                                          priv->sh.frame_duration);
-#endif
           ret = PARSER_CONTINUE;
           }
         break;
       case DIRAC_CODE_PICTURE:
         if(!priv->have_sh)
           {
-          fprintf(stderr, "Discarding frame before sequence header\n");
           PACKET_SET_SKIP(p);
           return PARSER_DISCARD;
           }
@@ -105,7 +95,6 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
         if(ph.num_refs == 0)
           {
           PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_I);
-          PACKET_SET_KEYFRAME(p);
           priv->pic_num_max = ph.pic_num;
           }
         else if((priv->pic_num_max >= 0) &&
@@ -118,7 +107,7 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
           PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_P);
           priv->pic_num_max = ph.pic_num;
           }
-        if(!p->duration)
+        if(p->duration <= 0)
           p->duration = priv->sh.frame_duration;
         
         return PARSER_HAVE_PACKET;

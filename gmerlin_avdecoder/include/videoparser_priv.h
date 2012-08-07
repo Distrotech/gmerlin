@@ -71,6 +71,7 @@ typedef struct
 
 /* MPEG-2 Intra slice refresh */
 #define PARSER_NO_I_FRAMES (1<<0)
+#define PARSER_GEN_PTS     (1<<1)
 
 struct bgav_video_parser_s
   {
