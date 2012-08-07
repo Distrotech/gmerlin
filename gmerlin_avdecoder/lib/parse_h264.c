@@ -487,21 +487,15 @@ static int find_frame_boundary_h264(bgav_video_parser_t * parser, int * skip)
       {
       parser->pos += header_len;
       }
-    else if(new_state < priv->state)
+    else if((new_state < priv->state) ||
+            /* We assume that multiple slices belong to different pictures
+               if they are not separated by access unit delimiters.
+               Of course this assumption is wrong, but seems to work for most
+               streams */
+            ((priv->state == STATE_SLICE_HEADER) &&
+             (new_state == STATE_SLICE_HEADER)))
       {
       *skip = header_len;
-      priv->state = new_state;
-      return 1;
-      }
-    /* We assume that multiple slices belong to different pictures
-       if they are not separated by access unit delimiters.
-       Of course this assumption is wrong, but seems to work for most
-       streams */
-    else if((priv->state == STATE_SLICE_HEADER) &&
-            (new_state == STATE_SLICE_HEADER))
-      {
-      *skip = header_len;
-      parser->pos = sc - parser->buf.buffer;
       priv->state = new_state;
       return 1;
       }

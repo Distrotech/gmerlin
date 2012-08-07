@@ -28,8 +28,8 @@
 #include <videoparser_priv.h>
 #include <utils.h>
 
-// #define DUMP_INPUT
-// #define DUMP_OUTPUT
+#define DUMP_INPUT
+#define DUMP_OUTPUT
 
 #define MAX_SCAN_SIZE 5000000
 
@@ -675,6 +675,7 @@ static int parse_frame(bgav_video_parser_t * parser,
 #ifdef DUMP_INPUT
   bgav_dprintf("Parse frame input  [%p] ", p);
   bgav_packet_dump(p);
+  bgav_hexdump(p->data, 16, 16);
 #endif
   
   ret = parser->parse_frame(parser, p);
@@ -682,6 +683,7 @@ static int parse_frame(bgav_video_parser_t * parser,
 #ifdef DUMP_OUTPUT
   bgav_dprintf("Parse frame output [%p] ", p);
   bgav_packet_dump(p);
+  bgav_hexdump(p->data, 16, 16);
 #endif
   
   return ret;

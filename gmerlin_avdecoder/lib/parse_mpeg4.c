@@ -65,7 +65,7 @@ static void set_format(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv = parser->priv;
   
-  if(!parser->format->timescale || !parser->format->frame_duration)
+  if(parser->s->flags & STREAM_PARSE_FULL)
     {
     parser->format->timescale = priv->vol.vop_time_increment_resolution;
     parser->format->frame_duration = priv->vol.fixed_vop_time_increment;
