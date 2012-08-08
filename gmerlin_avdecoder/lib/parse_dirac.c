@@ -50,6 +50,46 @@ static void reset_dirac(bgav_video_parser_t * parser)
   priv->pic_num_max = -1;
   }
 
+static void set_format(bgav_video_parser_t * parser)
+  {
+  dirac_priv_t * priv = parser->priv;
+
+  /* Framerate */
+  if(!parser->format->timescale || !parser->format->frame_duration)
+    {
+    parser->format->timescale = priv->sh.timescale;
+    parser->format->frame_duration = priv->sh.frame_duration;
+    }
+
+  /* Image size */
+  if(!parser->format->image_width || !parser->format->image_height)
+    {
+    parser->format->image_width  = priv->sh.width;
+    parser->format->image_height = priv->sh.height;
+
+    parser->format->frame_width  = priv->sh.width;
+    parser->format->frame_height = priv->sh.height;
+    }
+
+  /* Pixel size */
+  if(!parser->format->pixel_width || !parser->format->pixel_height)
+    {
+    parser->format->pixel_width  = priv->sh.pixel_width;
+    parser->format->pixel_height = priv->sh.pixel_height;
+    }
+
+  /* Interlacing */
+  if(priv->sh.source_sampling == 1)
+    {
+    if(priv->sh.top_first)
+      parser->format->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+    else
+      parser->format->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+    }
+  else
+      parser->format->interlace_mode = GAVL_INTERLACE_NONE;
+  }
+
 static int parse_frame_dirac(bgav_video_parser_t * parser,
                              bgav_packet_t * p)
   {
@@ -80,6 +120,7 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
           //          bgav_dirac_sequence_header_dump(&priv->sh);
           priv->have_sh = 1;
           ret = PARSER_CONTINUE;
+          set_format(parser);
           }
         break;
       case DIRAC_CODE_PICTURE:

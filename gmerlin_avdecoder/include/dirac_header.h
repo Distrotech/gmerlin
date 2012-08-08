@@ -47,6 +47,9 @@ typedef struct
   int pixel_width;
   int pixel_height;
 
+  int source_sampling; // 1 = interlaced
+  int top_first;
+  
   /*
    *  If the picture coding mode value is 1 then pictures
    *  shall correspond to fields. If it is 0 then pictures shall

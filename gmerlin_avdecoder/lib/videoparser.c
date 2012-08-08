@@ -562,6 +562,9 @@ static int parse_frame(bgav_video_parser_t * parser,
   if(ret)
     set_keyframe(parser, p);
 
+  if(PACKET_GET_SKIP(p))
+    return ret;
+  
   if(parser->flags & PARSER_GEN_PTS)
     {
     if(parser->timestamp == GAVL_TIME_UNDEFINED)
