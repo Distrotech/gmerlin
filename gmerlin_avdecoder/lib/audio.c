@@ -58,6 +58,8 @@ static gavl_source_status_t get_frame(void * sp, gavl_audio_frame_t ** frame)
     s->flags |= STREAM_EOF_C;
     return GAVL_SOURCE_EOF;
     }
+  s->data.audio.frame->timestamp = s->out_time;
+  s->out_time += s->data.audio.frame->valid_samples;
   *frame = s->data.audio.frame;
   return GAVL_SOURCE_OK;
   }
