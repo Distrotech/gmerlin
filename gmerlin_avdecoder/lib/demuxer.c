@@ -680,14 +680,14 @@ bgav_demuxer_get_packet_read(void * stream1)
   {
   bgav_stream_t * s = stream1;
   bgav_demuxer_context_t * demuxer = s->demuxer;
-
-  if(s->flags & STREAM_EOF_D)
-    return NULL;
   
   demuxer->request_stream = s;
   
   while(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
     {
+    if(s->flags & STREAM_EOF_D)
+      return NULL;
+    
     if(!bgav_demuxer_next_packet(demuxer))
       {
       s->flags |= STREAM_EOF_D;
