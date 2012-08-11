@@ -480,6 +480,7 @@ static void process_packet(bgav_video_parser_t * parser, bgav_packet_t * p, int6
 
   if(STREAM_IS_STILL(parser->s))
     {
+    // fprintf(stderr, "Still pts: %ld (timescale: %d)\n", pts_orig, parser->format->timescale);
     p->pts = gavl_time_rescale(parser->s->timescale,
                                parser->format->timescale,
                                pts_orig);
