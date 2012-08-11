@@ -366,7 +366,7 @@ typedef enum
 #define STREAM_PARSE_FRAME        (1<<2) /* Frame aligned but no keyframes */
 #define STREAM_B_FRAMES           (1<<3)
 #define STREAM_DTS_ONLY           (1<<4)
-#define STREAM_STILL_MODE         (1<<6)  /* Still image mode          */
+// #define STREAM_STILL_MODE         (1<<6)  /* Still image mode          */
 #define STREAM_STILL_SHOWN        (1<<7)  /* Still image already shown */
 #define STREAM_EOF_D              (1<<8)  /* End of file at demuxer    */
 #define STREAM_EOF_C              (1<<9)  /* End of file at codec      */
@@ -402,6 +402,15 @@ typedef enum
 
 #define STREAM_HAS_SYNC(s)     ((s)->sync_time != GAVL_TIME_UNDEFINED)
 
+#define STREAM_SET_STILL(s) \
+  s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL; \
+  s->flags |= STREAM_INTRA_ONLY;                              \
+  s->flags &= ~STREAM_B_FRAMES;
+
+#define STREAM_IS_STILL(s) \
+  (s->data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
+
+  
 struct bgav_stream_s
   {
   void * priv;
@@ -1744,6 +1753,9 @@ void bgav_video_resync(bgav_stream_t * s);
 
 int bgav_video_skipto(bgav_stream_t * stream, int64_t * t, int scale,
                       int exact);
+
+void bgav_video_set_still(bgav_stream_t * stream);
+
 
 /* subtitle.c */
 

@@ -87,8 +87,8 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
                                          const uint8_t *end )
   {
   const uint8_t * ptr;
-  /* Subtract 3 because we want to get the *whole* code */
-  int len = end - p - 3;
+  /* Subtract 2 because we want to get the *whole* code */
+  int len = end - p - 2;
 
   if(len <= 0) /* Reached end */
     return NULL;
@@ -106,7 +106,7 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
     /* Skip this zero byte */
     p = ptr+1;
 
-    len = end - p - 3;
+    len = end - p - 2;
     
     if(len <= 0) /* Reached end */
       break;
@@ -114,7 +114,7 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
   return NULL;
   }
 
-int bgav_mpv_get_start_code(const uint8_t * data)
+int bgav_mpv_get_start_code(const uint8_t * data, int get_ext)
   {
   switch(data[3])
     {
@@ -122,6 +122,8 @@ int bgav_mpv_get_start_code(const uint8_t * data)
       return MPEG_CODE_SEQUENCE;
       break;
     case 0xb5:
+      if(!get_ext)
+        return MPEG_CODE_EXTENSION;
       switch(data[4] >> 4)
         {
         case 0x01:

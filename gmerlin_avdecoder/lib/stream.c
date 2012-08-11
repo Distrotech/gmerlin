@@ -26,7 +26,7 @@
 #include <limits.h>
 
 // #define DUMP_IN_PACKETS
-#define DUMP_OUT_PACKETS
+// #define DUMP_OUT_PACKETS
 
 int bgav_stream_start(bgav_stream_t * stream)
   {

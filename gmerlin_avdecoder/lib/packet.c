@@ -171,6 +171,7 @@ void bgav_packet_reset(bgav_packet_t * p)
   p->flags = 0;
   p->data_size = 0;
   p->header_size = 0;
+  p->sequence_end_pos = 0;
   p->duration = -1;
   bgav_packet_free_palette(p);
   }

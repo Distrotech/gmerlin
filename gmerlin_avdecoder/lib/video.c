@@ -59,7 +59,7 @@ int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
 
 static int check_still(bgav_stream_t * s)
   {
-  if(!(s->flags & STREAM_STILL_MODE))
+  if(!STREAM_IS_STILL(s))
     return 1;
   if(s->flags & STREAM_HAVE_PICTURE)
     return 1;
@@ -348,7 +348,7 @@ void bgav_video_stop(bgav_stream_t * s)
     s->data.video.decoder = NULL;
     }
   /* Clear still mode flag (it will be set during reinit) */
-  s->flags &= ~(STREAM_STILL_MODE | STREAM_STILL_SHOWN  | STREAM_HAVE_PICTURE);
+  s->flags &= ~(STREAM_STILL_SHOWN  | STREAM_HAVE_PICTURE);
   
   if(s->data.video.kft)
     {
@@ -385,7 +385,7 @@ void bgav_video_resync(bgav_stream_t * s)
   
   /* If the stream has keyframes, skip until the next one */
 
-  if(!(s->flags & (STREAM_INTRA_ONLY|STREAM_STILL_MODE)))
+  if(!(s->flags & STREAM_INTRA_ONLY))
     {
     bgav_packet_t * p;
     while(1)
@@ -436,7 +436,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
   time_scaled =
     gavl_time_rescale(scale, s->data.video.format.timescale, *time);
   
-  if(s->flags & STREAM_STILL_MODE)
+  if(STREAM_IS_STILL(s))
     {
     /* Nothing to do */
     return 1;

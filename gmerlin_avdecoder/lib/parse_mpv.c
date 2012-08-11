@@ -150,7 +150,6 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
   int len;
   int delta_d;
   int got_sh = 0;
-  int got_se = 0;
   int ret = 0;
   
   const uint8_t * start =   p->data;
@@ -162,7 +161,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
     {
     end = p->data + (p->data_size - 4);
     if(BGAV_PTR_2_32BE(end) == 0x000001B7)
-      got_se = 1;
+      p->sequence_end_pos = p->data_size - 4;
     }
   
   end = p->data + p->data_size;
@@ -173,7 +172,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
     if(!sc)
       return ret;
     
-    start_code = bgav_mpv_get_start_code(sc);
+    start_code = bgav_mpv_get_start_code(sc, 1);
 
     /* Update position */
     start = sc;
@@ -195,15 +194,15 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
           start += 4;
         got_sh = 1;
 
-        if(got_se)
+        /* Sequence header and sequence end in one packet means
+           still images */
+        if(p->sequence_end_pos)
           {
-          if(parser->format->framerate_mode != GAVL_FRAMERATE_STILL)
+          if(!STREAM_IS_STILL(parser->s))
             {
-            parser->format->framerate_mode = GAVL_FRAMERATE_STILL;
-            bgav_log(parser->s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+            bgav_log(parser->s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
                      "Detected still image");
-            parser->s->flags &= ~STREAM_B_FRAMES;
-            parser->s->flags |= STREAM_INTRA_ONLY;
+            STREAM_SET_STILL(parser->s);
             }
           }
         break;
@@ -212,7 +211,8 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
           {
           len =
             bgav_mpv_sequence_extension_parse(parser->s->opt,
-                                              &priv->sh.ext, start, end - start);
+                                              &priv->sh.ext,
+                                              start, end - start);
           if(!len)
             return 0;
           priv->sh.mpeg2 = 1;
@@ -362,7 +362,7 @@ static int find_frame_boundary_mpeg12(bgav_video_parser_t * parser, int * skip)
   while(1)
     {
     sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
-                                 parser->buf.buffer + parser->buf.size - 2);
+                                 parser->buf.buffer + parser->buf.size - 1);
     if(!sc)
       {
       parser->pos = parser->buf.size - 3;
@@ -371,7 +371,7 @@ static int find_frame_boundary_mpeg12(bgav_video_parser_t * parser, int * skip)
       return 0;
       }
 
-    start_code = bgav_mpv_get_start_code(sc);
+    start_code = bgav_mpv_get_start_code(sc, 0);
 
     new_state = -1;
     switch(start_code)
@@ -380,13 +380,7 @@ static int find_frame_boundary_mpeg12(bgav_video_parser_t * parser, int * skip)
         /* Sequence header */
         new_state = STATE_SEQUENCE;
         break;
-      case MPEG_CODE_SEQUENCE_EXT:
-        new_state = STATE_SEQUENCE;
-        break;
       case MPEG_CODE_PICTURE:
-        new_state = STATE_PICTURE;
-        break;
-      case MPEG_CODE_PICTURE_EXT:
         new_state = STATE_PICTURE;
         break;
       case MPEG_CODE_GOP:
@@ -397,11 +391,12 @@ static int find_frame_boundary_mpeg12(bgav_video_parser_t * parser, int * skip)
         break;
       case MPEG_CODE_END:
         /* Sequence end is always a picture start */
-        parser->pos = sc - parser->buf.buffer + 4;
-        *skip = 0;
+        parser->pos = (sc - parser->buf.buffer) + 4;
+        new_state = STATE_SEQUENCE;
+        *skip = 4;
         return 1;
         break;
-      case MPEG_CODE_SEQUENCE_DISPLAY_EXT:
+      case MPEG_CODE_EXTENSION:
         break;
       }
 

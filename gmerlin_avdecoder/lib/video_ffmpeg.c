@@ -571,6 +571,26 @@ static int decode_picture(bgav_stream_t * s)
         }
 #endif
       }
+
+    /* If we have a sequence end code, we need to flush the decoder */
+
+    if((p->sequence_end_pos > 0) && !have_picture && (priv->flags & HAS_DELAY))
+      {
+      priv->pkt.data = NULL;
+      priv->pkt.size = 0;
+#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
+      bytes_used = avcodec_decode_video2(priv->ctx,
+                                         priv->frame,
+                                         &have_picture,
+                                         &priv->pkt);
+#else
+      bytes_used = avcodec_decode_video(priv->ctx,
+                                        priv->frame,
+                                        &have_picture,
+                                        priv->pkt.data,
+                                        priv->pkt.size);
+#endif
+      }
     
     if(p)
       done_data(s, p);

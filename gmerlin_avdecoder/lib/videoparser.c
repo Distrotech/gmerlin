@@ -152,7 +152,6 @@ bgav_video_parser_create(bgav_stream_t * s)
     {
     s->src.get_func = bgav_video_parser_get_packet_parse_full;
     s->src.peek_func = bgav_video_parser_peek_packet_parse_full;
-    s->flags |= STREAM_DTS_ONLY;
     ret->flags |= PARSER_GEN_PTS;
     }
   else if(s->flags & STREAM_PARSE_FRAME)
@@ -161,10 +160,7 @@ bgav_video_parser_create(bgav_stream_t * s)
     s->src.peek_func = bgav_video_parser_peek_packet_parse_frame;
     
     if(s->timescale && (s->timescale != ret->format->timescale))
-      {
       ret->flags |= PARSER_GEN_PTS;
-      s->flags |= STREAM_DTS_ONLY;
-      }
     }
   s->src.data = ret;
   
@@ -317,7 +313,7 @@ static int get_input_packet(bgav_video_parser_t * parser, int force)
   }
 
 static bgav_packet_t *
-parse_next_packet(bgav_video_parser_t * parser, int force)
+parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
   {
   bgav_packet_t * ret;
   int skip = -1;
@@ -364,6 +360,15 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
       parser->pos = parser->buf.size;
       break;
       }
+
+    if(parser->buf.size > MAX_SCAN_SIZE)
+      {
+      bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Didn't find a frame in the first %d bytes (misdetected codec?)",
+               parser->buf.size);
+      return NULL;
+      }
+    
     force = 1;
     }
   
@@ -417,12 +422,9 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
   /* Set the timescale */
   if(!parser->s->timescale)
     parser->s->timescale = parser->format->timescale;
-  
-  /* If we need to resync, set the timestamp */
-  if(parser->timestamp == GAVL_TIME_UNDEFINED)
-    parser->timestamp = gavl_time_rescale(parser->s->timescale,
-                                          parser->format->timescale,
-                                          pts);
+
+  if(pts_ret)
+    *pts_ret = pts;
   
   //  fprintf(stderr, "Got packet:\n");
   //  bgav_packet_dump(ret);
@@ -430,7 +432,7 @@ parse_next_packet(bgav_video_parser_t * parser, int force)
   return ret;
   }
 
-static void set_keyframe(bgav_video_parser_t * parser, bgav_packet_t * p)
+static void process_packet(bgav_video_parser_t * parser, bgav_packet_t * p, int64_t pts_orig)
   {
   /* Set keyframe flag */
   if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_I)
@@ -462,15 +464,51 @@ static void set_keyframe(bgav_video_parser_t * parser, bgav_packet_t * p)
     PACKET_SET_SKIP(p);
     return;
     }
+
+  /* Initialize stuff */
+  if(!(parser->flags & PARSER_INITIALIZED))
+    {
+    if((parser->s->flags & STREAM_B_FRAMES) && (parser->flags & PARSER_GEN_PTS))
+      parser->s->flags |= STREAM_DTS_ONLY;
+    parser->flags |= PARSER_INITIALIZED;
+    }
+  
+  /* Handle PTS */
+  
+  if(!(parser->flags & PARSER_GEN_PTS))
+    return;
+
+  if(STREAM_IS_STILL(parser->s))
+    {
+    p->pts = gavl_time_rescale(parser->s->timescale,
+                               parser->format->timescale,
+                               pts_orig);
+    p->duration = -1;
+    }
+  else
+    {
+    if(parser->timestamp == GAVL_TIME_UNDEFINED)
+      {
+      if(pts_orig != GAVL_TIME_UNDEFINED)
+        parser->timestamp = gavl_time_rescale(parser->s->timescale,
+                                              parser->format->timescale,
+                                              pts_orig);
+      else
+        parser->timestamp = 0;
+      }
+    p->pts = parser->timestamp;
+    parser->timestamp += p->duration;
+    }
   }
 
 static bgav_packet_t * get_packet_parse_full(void * parser1,
                                              int force)
   {
+  int64_t pts_orig = GAVL_TIME_UNDEFINED;
   bgav_packet_t * ret;
   bgav_video_parser_t * parser = parser1;
 
-  ret = parse_next_packet(parser, force);
+  ret = parse_next_packet(parser, force, &pts_orig);
   if(!ret)
     return NULL;
 
@@ -479,7 +517,7 @@ static bgav_packet_t * get_packet_parse_full(void * parser1,
   if(ret->flags & PACKET_FLAG_FIELD_PIC)
     {
     bgav_packet_t * field2;
-    field2 = parse_next_packet(parser, 1);
+    field2 = parse_next_packet(parser, 1, NULL);
     if(!field2)
       return NULL;
     
@@ -490,17 +528,10 @@ static bgav_packet_t * get_packet_parse_full(void * parser1,
   if(PACKET_GET_SKIP(ret))
     return ret;
 
-  set_keyframe(parser, ret);
-
+  process_packet(parser, ret, pts_orig);
+  
   if(PACKET_GET_SKIP(ret))
     return ret;
-  
-  /* Set DTS (packet timer will set PTS then) */
-  if(parser->timestamp != GAVL_TIME_UNDEFINED)
-    {
-    ret->dts = parser->timestamp;
-    parser->timestamp += ret->duration;
-    }
   
 #ifdef DUMP_OUTPUT
     bgav_dprintf("Get packet ");
@@ -524,7 +555,18 @@ bgav_video_parser_get_packet_parse_full(void * parser1)
     parser->out_packet = NULL;
     return ret;
     }
-  return get_packet_parse_full(parser1, 1);
+
+  while(1)
+    {
+    ret = get_packet_parse_full(parser1, 1);
+    if(!ret)
+      break;
+    if(!PACKET_GET_SKIP(ret))
+      break;
+    bgav_packet_pool_put(parser->s->pp, ret);
+    }
+  
+  return ret;
   }
 
 bgav_packet_t *
@@ -533,8 +575,19 @@ bgav_video_parser_peek_packet_parse_full(void * parser1, int force)
   bgav_video_parser_t * parser = parser1;
 
   if(!parser->out_packet)
-    parser->out_packet = get_packet_parse_full(parser1, force);
-  
+    {
+    while(1)
+      {
+      parser->out_packet = get_packet_parse_full(parser1, force);
+      if(!parser->out_packet)
+        break;
+      if(!PACKET_GET_SKIP(parser->out_packet))
+        break;
+      bgav_packet_pool_put(parser->s->pp, parser->out_packet);
+      parser->out_packet = NULL;
+      }
+    
+    }
   return parser->out_packet;
   }
 
@@ -560,21 +613,11 @@ static int parse_frame(bgav_video_parser_t * parser,
 #endif
 
   if(ret)
-    set_keyframe(parser, p);
-
+    process_packet(parser, p, p->pts);
+  
   if(PACKET_GET_SKIP(p))
     return ret;
   
-  if(parser->flags & PARSER_GEN_PTS)
-    {
-    if(parser->timestamp == GAVL_TIME_UNDEFINED)
-      parser->timestamp = gavl_time_rescale(parser->s->timescale,
-                                            parser->format->timescale,
-                                            p->pts);
-    p->dts = parser->timestamp;
-    p->pts = GAVL_TIME_UNDEFINED;
-    parser->timestamp += p->duration;
-    }
   return ret;
   }
 

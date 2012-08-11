@@ -29,6 +29,7 @@
 #define MPEG_CODE_SLICE                6
 #define MPEG_CODE_END                  7
 #define MPEG_CODE_SEQUENCE_DISPLAY_EXT 8
+#define MPEG_CODE_EXTENSION            9
 
 #define MPEG_PICTURE_TOP_FIELD    1
 #define MPEG_PICTURE_BOTTOM_FIELD 2
@@ -37,7 +38,7 @@
 const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
                                          const uint8_t *end );
 
-int bgav_mpv_get_start_code(const uint8_t * data);
+int bgav_mpv_get_start_code(const uint8_t * data, int get_ext);
 
 
 void bgav_mpv_get_framerate(int code, uint32_t * timescale, uint32_t *frame_duration);
