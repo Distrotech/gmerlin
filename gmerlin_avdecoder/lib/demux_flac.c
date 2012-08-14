@@ -275,39 +275,66 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
   if(!s)
     return 0;
 
-  if(!priv->has_sync)
+  if(ctx->next_packet_pos)
     {
-    pos = find_next_header(ctx, 0, &next_fh);
-    if(pos < 0)
-      return 0;
+    size = ctx->next_packet_pos - ctx->input->position;
+    if(ctx->input->position + size > ctx->input->total_bytes)
+      size = ctx->input->total_bytes - ctx->input->position;
+    }
+  else
+    {
+    if(!priv->has_sync)
+      {
+      pos = find_next_header(ctx, 0, &next_fh);
+      if(pos < 0)
+        return 0;
 
-    if(pos > 0)
-      bgav_bytebuffer_remove(&priv->buf, pos);
+      if(pos > 0)
+        bgav_bytebuffer_remove(&priv->buf, pos);
 
-    memcpy(&priv->this_fh, &next_fh, sizeof(next_fh));
+      memcpy(&priv->this_fh, &next_fh, sizeof(next_fh));
     
-    priv->has_sync = 1;
+      priv->has_sync = 1;
+      }
+  
+    /* Get next header */
+    pos = find_next_header(ctx, BGAV_FLAC_FRAMEHEADER_MIN, &next_fh);
+
+    //  if(pos < 0)
+    //  fprintf(stderr, "pos < 0!!\n");
+  
+    if(pos < 0) // EOF
+      size = priv->buf.size;
+    else
+      size = pos;
+
+    if((pos < 0) && !size)
+      return 0;
     }
   
-  /* Get next header */
-  pos = find_next_header(ctx, BGAV_FLAC_FRAMEHEADER_MIN, &next_fh);
-
-  //  if(pos < 0)
-  //  fprintf(stderr, "pos < 0!!\n");
-  
-  if(pos < 0) // EOF
-    size = priv->buf.size;
-  else
-    size = pos;
-
-  if((pos < 0) && !size)
-    return 0;
-  
   p = bgav_stream_get_packet_write(s);
-  
   bgav_packet_alloc(p, size);
 
-  memcpy(p->data, priv->buf.buffer, size);
+  if(ctx->next_packet_pos)
+    {
+    if(bgav_input_read_data(ctx->input, p->data, size) < size)
+      return 0;
+    p->position = ctx->input->position - size;
+
+    if(!bgav_flac_frame_header_read(p->data, size,
+                                    &priv->streaminfo, &priv->this_fh))
+      return 0;
+    }
+  else
+    {
+    memcpy(p->data, priv->buf.buffer, size);
+    p->position = ctx->input->position - priv->buf.size;
+  
+    bgav_bytebuffer_remove(&priv->buf, size);
+    /* Save frame header for later use */
+    memcpy(&priv->this_fh, &next_fh, sizeof(next_fh));
+    }
+  
   //  p->pts = fh.sample_number;
   
   p->duration = priv->this_fh.blocksize;
@@ -322,14 +349,7 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
   //          p->pts, priv->this_fh.sample_number);
   
   priv->pts += p->duration;
-  
   p->data_size = size;
-  p->position = ctx->input->position - priv->buf.size;
-
-  
-  bgav_bytebuffer_remove(&priv->buf, size);
-  /* Save frame header for later use */
-  memcpy(&priv->this_fh, &next_fh, sizeof(next_fh));
   
   //  memcpy(&priv->fh, &fh, sizeof(fh));
 

@@ -276,7 +276,7 @@ void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
      demuxer might have them messed up */
   if((s->action != BGAV_STREAM_PARSE) && s->file_index)
     {
-    p->position = s->index_position++;
+    p->position = s->index_position;
     }
   
   bgav_packet_buffer_append(s->packet_buffer, p);

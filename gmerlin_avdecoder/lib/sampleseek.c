@@ -140,6 +140,9 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
       s->index_position--;
     
     s->out_time = s->file_index->entries[s->index_position].pts + s->start_time;
+
+    STREAM_SET_SYNC(s, gavl_time_rescale(s->data.audio.format.samplerate, s->timescale,
+                                         s->out_time));
     sample += s->start_time;
     
     if(bgav->demuxer->demuxer->resync)
