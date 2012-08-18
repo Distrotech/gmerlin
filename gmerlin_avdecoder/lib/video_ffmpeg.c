@@ -83,6 +83,7 @@
 #define FLIP_Y          (1<<4)
 #define B_REFERENCE     (1<<5) // B-frames can be reference frames (H.264 only for now)
 #define GOT_EOS         (1<<6) // Got end of sequence
+#define NEED_FORMAT     (1<<7)
 
 /* Skip handling */
 
@@ -130,12 +131,11 @@ typedef struct
   AVPaletteControl palette;
 #endif
   
-  /* State variables */
-  int need_format;
 
   uint8_t * extradata;
   uint32_t extradata_size;
   
+  /* State variables */
   int flags;
 
 #ifdef HAVE_LIBPOSTPROC
@@ -694,7 +694,7 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       }
     }
-  else if(!priv->need_format)
+  else if(!(priv->flags & NEED_FORMAT))
     return 0; /* EOF */
   
   return 1;
@@ -1008,7 +1008,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   /* Set missing format values */
   
-  priv->need_format = 1;
+  priv->flags |= NEED_FORMAT;
   
   if(!decode_picture(s))
     {
@@ -1018,8 +1018,9 @@ static int init_ffmpeg(bgav_stream_t * s)
     }
   
   get_format(priv->ctx, &s->data.video.format);
-  priv->need_format = 0;
-    
+
+  priv->flags &= ~NEED_FORMAT;
+      
 #ifdef HAVE_LIBPOSTPROC
   init_pp(s);
 #endif
