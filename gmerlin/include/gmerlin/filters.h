@@ -290,6 +290,16 @@ int bg_video_filter_chain_set_out_format(bg_video_filter_chain_t * ch,
 int bg_video_filter_chain_read(void * priv, gavl_video_frame_t* frame,
                                int stream);
 
+/** \brief Connect using video sources
+ *  \param ch A video filter chain
+ *  \param src Video source to get frames from
+ *  \returns Video source for reading frames
+ */
+
+gavl_video_source_t *
+bg_video_filter_chain_connect(bg_video_filter_chain_t * ch,
+                              gavl_video_source_t * src);
+
 /** \brief Destroy a video filter chain
  *  \param ch A video filter chain
  */

@@ -2174,7 +2174,7 @@ struct bg_fv_plugin_s
    *  like you do it in plain gavl.
    */
   
-  gavl_video_options_t * (*get_options)(void * priv);
+  //  gavl_video_options_t * (*get_options)(void * priv);
   
   /** \brief Set input callback
    *  \param priv The handle returned by the create() method
@@ -2183,7 +2183,7 @@ struct bg_fv_plugin_s
    *  \param stream The stream argument to pass to func
    *  \param port The input port of the plugin
    */
-  
+#if 0
   void (*connect_input_port)(void * priv,
                              bg_read_video_func_t func,
                              void * data, int stream, int port);
@@ -2195,7 +2195,7 @@ struct bg_fv_plugin_s
    */
   
   void (*set_input_format)(void * priv, gavl_video_format_t * format, int port);
-  
+#endif
   /** \brief Reset
    *  \param priv The handle returned by the create() method
    *
@@ -2211,7 +2211,7 @@ struct bg_fv_plugin_s
    *  These must be called after init().
    */
   
-  void (*get_output_format)(void * priv, gavl_video_format_t * format);
+  //  void (*get_output_format)(void * priv, gavl_video_format_t * format);
   
   /** \brief Report, if the plugin must be reinitialized
    *  \param priv The handle returned by the create() method
@@ -2233,12 +2233,14 @@ struct bg_fv_plugin_s
    *  \ref set_input_format and \ref get_output_format \ref read_video.
    */
   
-  gavl_video_source_t * (*connect)(void * priv, gavl_video_source_t *);
+  gavl_video_source_t * (*connect)(void * priv,
+                                   gavl_video_source_t * src,
+                                   const gavl_video_options_t * opt);
     
   /** \brief Read a video frame from the plugin
    */
 
-  bg_read_video_func_t read_video;
+  //  bg_read_video_func_t read_video;
     
   };
 

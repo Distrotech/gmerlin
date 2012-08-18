@@ -42,6 +42,10 @@ typedef struct
   gavl_video_format_t format;
   
   int samples_per_line;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+  
   } shift_priv_t;
 
 static void * create_shift()
@@ -91,6 +95,19 @@ static void set_parameter_shift(void * priv, const char * name,
     vp->shift = val->val_i;
   }
 
+
+/* We support all 16 bit formats */
+static const gavl_pixelformat_t pixelformats[] =
+  {
+    GAVL_GRAY_16,
+    GAVL_GRAYA_32,
+    GAVL_RGB_48,
+    GAVL_RGBA_64,
+    GAVL_PIXELFORMAT_NONE,
+  };
+
+#if 0
+
 static void connect_input_port_shift(void * priv,
                                     bg_read_video_func_t func,
                                     void * data, int stream, int port)
@@ -107,22 +124,13 @@ static void connect_input_port_shift(void * priv,
   
   }
 
-/* We support all 16 bit formats */
-static gavl_pixelformat_t pixelformats[] =
-  {
-    GAVL_GRAY_16,
-    GAVL_GRAYA_32,
-    GAVL_RGB_48,
-    GAVL_RGBA_64,
-    GAVL_PIXELFORMAT_NONE,
-  };
 
-static void set_input_format_shift(void * priv, gavl_video_format_t * format, int port)
+static void set_input_format_shift(void * priv,
+                                   gavl_video_format_t * format, int port)
   {
   shift_priv_t * vp;
   int width_mult;
   vp = priv;
-
   
   if(!port)
     {
@@ -148,7 +156,8 @@ static void get_output_format_shift(void * priv, gavl_video_format_t * format)
   gavl_video_format_copy(format, &vp->format);
   }
 
-static int read_video_shift(void * priv, gavl_video_frame_t * frame, int stream)
+static int
+read_video_shift(void * priv, gavl_video_frame_t * frame, int stream)
   {
   shift_priv_t * vp;
   int i, j;
@@ -174,6 +183,83 @@ static int read_video_shift(void * priv, gavl_video_frame_t * frame, int stream)
     }
   return 1;
   }
+#endif
+
+static gavl_source_status_t read_func(void * priv,
+                                      gavl_video_frame_t ** frame)
+  {
+  gavl_source_status_t st;
+  shift_priv_t * vp;
+  gavl_video_frame_t * f = NULL;
+  int i, j;
+  uint16_t * ptr;
+  
+  vp = priv;
+  
+  if((st = gavl_video_source_read_frame(vp->in_src, &f)) != GAVL_SOURCE_OK)
+    return st;
+
+  if(vp->shift)
+    {
+    for(i = 0; i < vp->format.image_height; i++)
+      {
+      ptr = (uint16_t*)(f->planes[0] + i * f->strides[0]);
+
+      for(j = 0; j < vp->samples_per_line; j++)
+        {
+        (*ptr) <<= vp->shift;
+        ptr++;
+        }
+      }
+    }
+  *frame = f;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t *
+connect_shift(void * priv, gavl_video_source_t * src,
+              const gavl_video_options_t * opt)
+  {
+  shift_priv_t * vp;
+  int width_mult;
+
+  vp = priv;
+
+  vp->in_src = src;
+  gavl_video_format_copy(&vp->format,
+                         gavl_video_source_get_src_format(vp->in_src));
+
+  width_mult = 3;
+  vp->format.pixelformat =
+    gavl_pixelformat_get_best(vp->format.pixelformat,
+                              pixelformats,
+                              NULL);
+  //  gavl_video_format_copy(&vp->format, format);
+  
+  if(gavl_pixelformat_is_gray(vp->format.pixelformat))
+    width_mult = 1;
+  if(gavl_pixelformat_has_alpha(vp->format.pixelformat))
+    width_mult++;
+  vp->samples_per_line = vp->format.image_width * width_mult;
+
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+  
+  gavl_video_source_set_dst(vp->in_src,
+                            GAVL_SOURCE_DST_OVERWRITES,
+                            &vp->format);
+    
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, GAVL_SOURCE_SRC_ALLOC,
+                                         &vp->format);
+  return vp->out_src;
+  }
 
 const bg_fv_plugin_t the_plugin = 
   {
@@ -192,12 +278,14 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_shift,
+    // .connect_input_port = connect_input_port_shift,
     
-    .set_input_format = set_input_format_shift,
-    .get_output_format = get_output_format_shift,
+    // .set_input_format = set_input_format_shift,
+    // .get_output_format = get_output_format_shift,
 
-    .read_video = read_video_shift,
+    // .read_video = read_video_shift,
+
+    .connect = connect_shift,
     
   };
 

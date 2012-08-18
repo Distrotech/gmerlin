@@ -241,6 +241,10 @@ typedef struct
   
   const bg_parameter_info_t * parameters;
   int do_swap;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+
   } frei0r_t;
 
 static void set_parameter_instance(void * data,
@@ -326,8 +330,10 @@ static void set_parameter_frei0r(void * data,
     bg_cfg_section_set_parameter(vp->section, info, val);
   }
 
+#if 0
 static void connect_input_port_frei0r(void *priv,
-                                      bg_read_video_func_t func, void *data, int stream, int port)
+                                      bg_read_video_func_t func,
+                                      void *data, int stream, int port)
   {
   frei0r_t * vp;
   vp = (frei0r_t *)priv;
@@ -347,6 +353,7 @@ static void get_output_format_frei0r(void * priv,
   vp = (frei0r_t *)priv;
   gavl_video_format_copy(format, &vp->format);
   }
+#endif
 
 static const gavl_pixelformat_t packed32_formats[] =
   {
@@ -357,7 +364,9 @@ static const gavl_pixelformat_t packed32_formats[] =
     GAVL_PIXELFORMAT_NONE,
   };
 
-static void set_input_format_frei0r(void *priv, gavl_video_format_t *format, int port)
+#if 0
+static void set_input_format_frei0r(void *priv,
+                                    gavl_video_format_t *format, int port)
   {
   /* Set input format */
   frei0r_t * vp;
@@ -376,8 +385,11 @@ static void set_input_format_frei0r(void *priv, gavl_video_format_t *format, int
                                                       NULL);
       break;
     }
-  /* Frei0r demands image sizes to be a multiple of 8. We fake this by making a larger
-     frame */
+  /*
+   * Frei0r demands image sizes to be a multiple of 8.
+   * We fake this by making a larger
+   * frame
+   */
 
   format->frame_width  = ((format->image_width+7)/8)*8;
   format->frame_height = ((format->image_height+7)/8)*8;
@@ -412,7 +424,7 @@ static int read_video_frei0r(void *priv, gavl_video_frame_t *frame, int stream)
   {
   frei0r_t * vp;
   double time;
-  vp = (frei0r_t *)priv;
+  vp = priv;
 
   if(!vp->read_func(vp->read_data, vp->in_frame, vp->read_stream))
     return 0;
@@ -439,6 +451,97 @@ static int read_video_frei0r(void *priv, gavl_video_frame_t *frame, int stream)
   
   return 1;
   }
+#endif
+
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
+  {
+  frei0r_t * vp;
+  gavl_source_status_t st;
+  gavl_video_frame_t * f;
+  double time;
+  
+  vp = priv;
+  if((st = gavl_video_source_read_frame(vp->in_src, &f)) != GAVL_SOURCE_OK)
+    return st;
+
+  time = gavl_time_to_seconds(gavl_time_unscale(vp->format.timescale,
+                                                f->timestamp));
+
+  vp->update(vp->instance, time,
+             (const uint32_t*)f->planes[0],
+             (uint32_t*)(*frame)->planes[0]);
+
+  gavl_video_frame_copy_metadata(*frame, f);  
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t * connect_frei0r(void * priv,
+                                            gavl_video_source_t * src,
+                                            const gavl_video_options_t * opt)
+  {
+  frei0r_t * vp;
+  vp = priv;
+  
+  vp->in_src = src;
+  
+  gavl_video_format_copy(&vp->format, 
+                         gavl_video_source_get_src_format(vp->in_src));
+
+  switch(vp->plugin_info.color_model)
+    {
+    case F0R_COLOR_MODEL_BGRA8888:
+      vp->do_swap = 1;
+      /* Fall through */
+    case F0R_COLOR_MODEL_RGBA8888:
+      vp->format.pixelformat = GAVL_RGBA_32;
+      break;
+    case F0R_COLOR_MODEL_PACKED32:
+      vp->format.pixelformat =
+        gavl_pixelformat_get_best(vp->format.pixelformat,
+                                  packed32_formats,
+                                  NULL);
+      break;
+    }
+  /*
+   * Frei0r demands image sizes to be a multiple of 8.
+   * We fake this by making a larger
+   * frame
+   */
+
+  vp->format.frame_width  = ((vp->format.image_width+7)/8)*8;
+  vp->format.frame_height = ((vp->format.image_height+7)/8)*8;
+  
+  /* Fire up the plugin */
+  
+  vp->instance = vp->construct(vp->format.frame_width,
+                               vp->format.frame_height);
+  
+  /* Now, we can set parameters */
+
+  if(vp->section)
+    {
+    bg_cfg_section_apply(vp->section,
+                         vp->parameters,
+                         set_parameter_instance, vp);
+    }
+
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  return vp->out_src;
+  }
 
 static const bg_parameter_info_t * get_parameters_frei0r(void * priv)
   {
@@ -458,11 +561,15 @@ int bg_frei0r_load(bg_plugin_handle_t * ret,
   ret->plugin_nc = (bg_plugin_common_t*)vf;
   ret->plugin = ret->plugin_nc;
 
+#if 0  
   vf->set_input_format = set_input_format_frei0r;
   vf->connect_input_port = connect_input_port_frei0r;
   vf->get_output_format = get_output_format_frei0r;
   vf->read_video = read_video_frei0r;
-
+#else
+  vf->connect = connect_frei0r;
+#endif
+  
   if(info->parameters)
     {
     ret->plugin_nc->get_parameters = get_parameters_frei0r;
