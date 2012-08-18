@@ -82,6 +82,7 @@
 #define MERGE_FIELDS    (1<<3)
 #define FLIP_Y          (1<<4)
 #define B_REFERENCE     (1<<5) // B-frames can be reference frames (H.264 only for now)
+#define GOT_EOS         (1<<6) // Got end of sequence
 
 /* Skip handling */
 
@@ -345,7 +346,6 @@ static void init_pp(bgav_stream_t * s);
 
 /* Codec specific hacks */
 
-
 #if 0
 static int frame_dumped = 0;
 static void dump_frame(uint8_t * data, int len)
@@ -407,14 +407,24 @@ static int decode_picture(bgav_stream_t * s)
   
   priv = s->data.video.decoder->priv;
 
-  priv->pkt.data = NULL;
-  priv->pkt.size = 0;
+  if(priv->flags & GOT_EOS)
+    {
+    avcodec_flush_buffers(priv->ctx);
+    priv->flags &= ~GOT_EOS;
+    }
   
   while(1)
     {
+    priv->pkt.data = NULL;
+    priv->pkt.size = 0;
+    
     /* Read data */
-    p = get_data(s);
-
+    
+    if(!(priv->flags & GOT_EOS))
+      p = get_data(s);
+    else
+      p = NULL;
+    
     /* Early EOF detection */
     if(!p && !(priv->flags & HAS_DELAY))
       return 0;
@@ -466,11 +476,15 @@ static int decode_picture(bgav_stream_t * s)
         priv->pkt.size = p->field2_offset;
       else
         priv->pkt.size = p->data_size;
+      
+      /* Palette handling */
+      if(p->palette)
+        update_palette(s, p);
+      
+      /* Check for EOS */
+      if(p->sequence_end_pos > 0)
+        priv->flags |= GOT_EOS;
       }
-
-    /* Palette handling */
-    if(p && p->palette)
-      update_palette(s, p);
     
     /* Decode one frame */
     
@@ -571,33 +585,21 @@ static int decode_picture(bgav_stream_t * s)
         }
 #endif
       }
-
-    /* If we have a sequence end code, we need to flush the decoder */
-
-    if((p->sequence_end_pos > 0) && !have_picture && (priv->flags & HAS_DELAY))
-      {
-      priv->pkt.data = NULL;
-      priv->pkt.size = 0;
-#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
-      bytes_used = avcodec_decode_video2(priv->ctx,
-                                         priv->frame,
-                                         &have_picture,
-                                         &priv->pkt);
-#else
-      bytes_used = avcodec_decode_video(priv->ctx,
-                                        priv->frame,
-                                        &have_picture,
-                                        priv->pkt.data,
-                                        priv->pkt.size);
-#endif
-      }
     
     if(p)
       done_data(s, p);
     
     /* If we passed no data and got no picture, we are done here */
     if(!priv->pkt.size && !have_picture)
-      return 0;
+      {
+      if(priv->flags & GOT_EOS)
+        {
+        avcodec_flush_buffers(priv->ctx);
+        priv->flags &= ~GOT_EOS;
+        }
+      else
+        return 0;
+      }
     
     if(have_picture)
       {
