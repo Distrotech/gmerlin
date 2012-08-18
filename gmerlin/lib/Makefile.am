@@ -60,6 +60,7 @@ $(sem_sources) \
 accelerator.c \
 album.c \
 album_xml.c \
+audiofilters.c \
 bggavl.c \
 bgladspa.c \
 bgfrei0r.c \
@@ -81,7 +82,6 @@ edldec.c \
 edl_xml.c \
 encoder.c \
 fileformat.c \
-filters.c \
 formats.c \
 hexdump.c \
 language_table.c \
@@ -137,5 +137,6 @@ tree.c \
 tree_xml.c \
 urilist.c \
 utf8.c \
+videofilters.c \
 visualize.c
 
