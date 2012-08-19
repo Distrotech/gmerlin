@@ -2134,6 +2134,17 @@ struct bg_fa_plugin_s
 
   void (*get_output_format)(void * priv, gavl_audio_format_t * format);
 
+  /** \brief Connect sources
+   *  \param priv The handle returned by the create() method
+   *  \param src Video source where this filter gets it's frames from
+   *  \returns 1 The source to be passed to the subsequent filter
+   *
+   *  This can be implemented as a replacement for \ref connect_input_port,
+   *  \ref set_input_format and \ref get_output_format \ref read_video.
+   */
+  
+  gavl_audio_source_t * (*connect)(void * priv, gavl_audio_source_t *);
+  
   /** \brief Report, if the plugin must be reinitialized
    *  \param priv The handle returned by the create() method
    *  \returns 1 if the plugin must be reinitialized, 0 else

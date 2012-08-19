@@ -62,6 +62,8 @@ struct decimate_priv_s
   float scale_factors[GAVL_MAX_PLANES];
   int width_mul;
 
+  
+  
   float (*diff_block)(struct decimate_priv_s*, 
                       int width, int height);
 
@@ -187,7 +189,8 @@ static const bg_parameter_info_t * get_parameters_decimate(void * priv)
   return parameters;
   }
 
-static void set_parameter_decimate(void * priv, const char * name, const bg_parameter_value_t * val)
+static void set_parameter_decimate(void * priv, const char * name,
+                                   const bg_parameter_value_t * val)
   {
   decimate_priv_t * vp;
   vp = priv;

@@ -397,6 +397,7 @@ static void set_parameter_colormatrix(void * priv, const char * name,
     bg_colormatrix_set_rgba(vp->mat, vp->coeffs);
   }
 
+#if 0
 static void set_input_format_colormatrix(void * priv,
                                          gavl_video_format_t * format,
                                          int port)
@@ -414,7 +415,7 @@ static void set_input_format_colormatrix(void * priv,
     }
   vp->need_restart = 0;
   }
-
+#endif
 
 static gavl_source_status_t read_func(void * priv,
                                       gavl_video_frame_t ** f)
@@ -434,8 +435,39 @@ static gavl_video_source_t *
 connect_colormatrix(void * priv, gavl_video_source_t * src,
                     const gavl_video_options_t * opt)
   {
+  int flags = 0;
+  colormatrix_priv_t * vp = priv;
+
+  if(vp->force_alpha)
+    flags |= BG_COLORMATRIX_FORCE_ALPHA;
   
+  vp->in_src = src;
+  gavl_video_format_copy(&vp->format,
+                         gavl_video_source_get_src_format(vp->in_src));
+
+  bg_colormatrix_init(vp->mat, &vp->format, flags, vp->global_opt);
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    }
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  vp->need_restart = 0;
+  return vp->out_src;
   }
+
+
 
 const bg_fv_plugin_t the_plugin = 
   {

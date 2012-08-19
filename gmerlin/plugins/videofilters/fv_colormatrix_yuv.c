@@ -48,6 +48,10 @@ typedef struct
   int need_restart;
   gavl_video_options_t * global_opt;
 
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+
+  
   } colormatrix_priv_t;
 
 static int need_restart_colormatrix(void * priv)
@@ -66,11 +70,13 @@ static void * create_colormatrix()
   return ret;
   }
 
+#if 0
 static gavl_video_options_t * get_options_colormatrix(void * priv)
   {
   colormatrix_priv_t * vp = priv;
   return vp->global_opt;
   }
+#endif
 
 static void destroy_colormatrix(void * priv)
   {
@@ -78,6 +84,11 @@ static void destroy_colormatrix(void * priv)
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+
+  
   free(vp);
   }
 
@@ -150,7 +161,7 @@ static const bg_parameter_info_t parameters[] =
       .flags = BG_PARAMETER_SYNC,
     },
     {
-      .name = "r_to_u",
+      .name = "y_to_u",
       .long_name = TRS("Luminance -> Cb"),
       .type = BG_PARAMETER_SLIDER_FLOAT,
       .flags = BG_PARAMETER_SYNC,
@@ -170,7 +181,7 @@ static const bg_parameter_info_t parameters[] =
       .num_digits =  3,
     },
     {
-      .name = "b_to_u",
+      .name = "v_to_u",
       .long_name = TRS("Cr -> Cb"),
       .type = BG_PARAMETER_SLIDER_FLOAT,
       .flags = BG_PARAMETER_SYNC,
@@ -391,21 +402,7 @@ static void set_parameter_colormatrix(void * priv, const char * name,
     bg_colormatrix_set_yuva(vp->mat, vp->coeffs);
   }
 
-static void connect_input_port_colormatrix(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  colormatrix_priv_t * vp;
-  vp = priv;
-  
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  }
-
+#if 0
 static void
 set_input_format_colormatrix(void * priv,
                              gavl_video_format_t * format, int port)
@@ -424,32 +421,69 @@ set_input_format_colormatrix(void * priv,
   vp->need_restart = 0;
   }
 
-static void get_output_format_colormatrix(void * priv,
-                                          gavl_video_format_t * format)
-  {
-  colormatrix_priv_t * vp;
-  vp = priv;
-  gavl_video_format_copy(format, &vp->format);
-  }
-
 static int read_video_colormatrix(void * priv,
                                   gavl_video_frame_t * frame, int stream)
   {
   colormatrix_priv_t * vp;
   vp = priv;
-
-#if 0  
-  if(!vp->colormatrix_h && !vp->colormatrix_v)
-    {
-    return vp->read_func(vp->read_data, frame, vp->read_stream);
-    }
-#endif
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
   bg_colormatrix_process(vp->mat, frame);
   return 1;
   }
+#endif
+
+static gavl_source_status_t read_func(void * priv,
+                                      gavl_video_frame_t ** f)
+  {
+  gavl_source_status_t st;
+  colormatrix_priv_t * vp = priv;
+
+  if((st = gavl_video_source_read_frame(vp->in_src, f)) !=
+     GAVL_SOURCE_OK)
+    return st;
+
+  bg_colormatrix_process(vp->mat, *f);
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t *
+connect_colormatrix(void * priv, gavl_video_source_t * src,
+                    const gavl_video_options_t * opt)
+  {
+  int flags = 0;
+  colormatrix_priv_t * vp = priv;
+
+  if(vp->force_alpha)
+    flags |= BG_COLORMATRIX_FORCE_ALPHA;
+  
+  vp->in_src = src;
+  gavl_video_format_copy(&vp->format,
+                         gavl_video_source_get_src_format(vp->in_src));
+
+  bg_colormatrix_init(vp->mat, &vp->format, flags, vp->global_opt);
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    }
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  vp->need_restart = 0;
+  return vp->out_src;
+  }
+
 
 const const bg_fv_plugin_t the_plugin = 
   {
@@ -467,15 +501,16 @@ const const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_colormatrix,
       .priority =         1,
     },
-    
+#if 0
     .connect_input_port = connect_input_port_colormatrix,
     
     .set_input_format = set_input_format_colormatrix,
     .get_output_format = get_output_format_colormatrix,
-
-    .read_video = read_video_colormatrix,
-    .need_restart = need_restart_colormatrix,
     .get_options = get_options_colormatrix,
+    .read_video = read_video_colormatrix,
+#endif
+    .connect = connect_colormatrix,
+    .need_restart = need_restart_colormatrix,
     
   };
 
