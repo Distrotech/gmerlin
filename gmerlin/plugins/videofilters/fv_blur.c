@@ -48,13 +48,12 @@ typedef struct
   gavl_video_options_t * opt;
   gavl_video_scaler_t * scaler;
   gavl_video_options_t * global_opt;
-
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-
+  
   gavl_video_format_t format;
-  gavl_video_frame_t * frame;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+  
   } blur_priv_t;
 
 static void * create_blur()
@@ -73,15 +72,16 @@ static void * create_blur()
   return ret;
   }
 
+#if 0
 static gavl_video_options_t * get_options_blur(void * priv)
   {
   blur_priv_t * vp = priv;
   return vp->global_opt;
   }
-
+#endif
 
 static void transfer_global_options(gavl_video_options_t * opt,
-                                    gavl_video_options_t * global_opt)
+                                    const gavl_video_options_t * global_opt)
   {
   void * client_data;
   gavl_video_stop_func stop_func;
@@ -103,9 +103,13 @@ static void destroy_blur(void * priv)
   {
   blur_priv_t * vp;
   vp = priv;
-  if(vp->frame) gavl_video_frame_destroy(vp->frame);
-  if(vp->scaler) gavl_video_scaler_destroy(vp->scaler);
+  if(vp->scaler)
+    gavl_video_scaler_destroy(vp->scaler);
   gavl_video_options_destroy(vp->global_opt);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+  
   free(vp);
   }
 
@@ -332,6 +336,7 @@ static void set_parameter_blur(void * priv, const char * name,
     }
   }
 
+#if 0
 static void connect_input_port_blur(void * priv,
                                          bg_read_video_func_t func,
                                          void * data, int stream, int port)
@@ -348,7 +353,9 @@ static void connect_input_port_blur(void * priv,
   
   }
 
-static void set_input_format_blur(void * priv, gavl_video_format_t * format, int port)
+static void set_input_format_blur(void * priv,
+                                  gavl_video_format_t * format,
+                                  int port)
   {
   blur_priv_t * vp;
   vp = priv;
@@ -397,6 +404,65 @@ static int read_video_blur(void * priv, gavl_video_frame_t * frame, int stream)
   else 
     return vp->read_func(vp->read_data, frame, vp->read_stream);
   }
+#endif
+
+static gavl_source_status_t read_func(void * priv,
+                                      gavl_video_frame_t ** f)
+  {
+  gavl_source_status_t st;
+
+  blur_priv_t * vp;
+  
+  vp = priv;
+
+  if((vp->radius_h != 0.0) || (vp->radius_v != 0.0))
+    {
+    gavl_video_frame_t * in_frame = NULL;
+    if((st = gavl_video_source_read_frame(vp->in_src, &in_frame)) !=
+       GAVL_SOURCE_OK)
+      return st;
+    if(vp->changed)
+      init_scaler(vp);
+    
+    gavl_video_scaler_scale(vp->scaler, in_frame, *f);
+    gavl_video_frame_copy_metadata(*f, in_frame);
+    return GAVL_SOURCE_OK;
+    }
+  else
+    return gavl_video_source_read_frame(vp->in_src, f);
+  }
+
+static gavl_video_source_t * connect_blur(void * priv,
+                                          gavl_video_source_t * src,
+                                          const gavl_video_options_t * opt)
+  {
+  blur_priv_t * vp;
+  vp = priv;
+
+  vp->in_src = src;
+  gavl_video_format_copy(&vp->format,
+                         gavl_video_source_get_src_format(vp->in_src));
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    
+    }
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  vp->changed = 1;
+  return vp->out_src;
+  }
 
 const bg_fv_plugin_t the_plugin = 
   {
@@ -414,7 +480,9 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_blur,
       .priority =         1,
     },
-    
+
+    .connect = connect_blur,
+#if 0  
     .get_options = get_options_blur,
     .connect_input_port = connect_input_port_blur,
     
@@ -422,7 +490,7 @@ const bg_fv_plugin_t the_plugin =
     .get_output_format = get_output_format_blur,
 
     .read_video = read_video_blur,
-    
+#endif
   };
 
 /* Include this into all plugin modules exactly once

@@ -626,6 +626,7 @@ void bg_frei0r_unload(bg_plugin_handle_t * h)
   if(vp->instance)  vp->destruct(vp->instance);
   if(vp->in_frame)  gavl_video_frame_destroy(vp->in_frame);
   if(vp->out_frame) gavl_video_frame_destroy(vp->out_frame);
+  if(vp->out_src) gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 

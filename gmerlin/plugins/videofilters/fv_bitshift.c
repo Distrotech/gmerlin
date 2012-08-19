@@ -59,6 +59,8 @@ static void destroy_shift(void * priv)
   {
   shift_priv_t * vp;
   vp = priv;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 

@@ -9,8 +9,6 @@ AM_CFLAGS = \
 -DDOC_DIR=\"$(docdir)\" \
 -DDATA_DIR=\"$(pkgdatadir)\"
 
-
-
 plugin_LTLIBRARIES = \
 fv_bitshift.la \
 fv_blur.la \

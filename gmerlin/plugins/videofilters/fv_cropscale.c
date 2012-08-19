@@ -76,16 +76,10 @@ typedef struct
 
   /* */
   
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_scaler_t * scaler;
   gavl_video_format_t in_format;
   gavl_video_format_t out_format;
   
-  gavl_video_frame_t * frame;
-
   int need_reinit;
   int need_restart;
 
@@ -97,6 +91,10 @@ typedef struct
   float zoom, squeeze;
   
   chroma_out_mode_t chroma_out_mode;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+  
   } cropscale_priv_t;
 
 static void * create_cropscale()
@@ -111,20 +109,16 @@ static void * create_cropscale()
   return ret;
   }
 
-static gavl_video_options_t * get_options_cropscale(void * priv)
-  {
-  cropscale_priv_t * vp = priv;
-  return vp->global_opt;
-  }
 
 static void destroy_cropscale(void * priv)
   {
   cropscale_priv_t * vp;
   vp = priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
   gavl_video_scaler_destroy(vp->scaler);
   gavl_video_options_destroy(vp->global_opt);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+
   free(vp);
   }
 
@@ -866,24 +860,6 @@ static void set_rectangles(cropscale_priv_t * vp)
   gavl_video_options_set_rectangles(vp->opt, &in_rect, &out_rect);
   }
 
-
-
-
-static void connect_input_port_cropscale(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  cropscale_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  }
-
 static void set_out_format(cropscale_priv_t * vp)
   {
   vp->out_format.pixelformat = vp->in_format.pixelformat;
@@ -1168,8 +1144,10 @@ static void set_out_format(cropscale_priv_t * vp)
   }
 
 
-
-static void set_input_format_cropscale(void * priv, gavl_video_format_t * format, int port)
+#if 0
+static void
+set_input_format_cropscale(void * priv,
+                           gavl_video_format_t * format, int port)
   {
   cropscale_priv_t * vp;
   vp = priv;
@@ -1187,21 +1165,8 @@ static void set_input_format_cropscale(void * priv, gavl_video_format_t * format
     vp->need_reinit = 1;
     vp->need_restart = 0;
     }
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = NULL;
-    }
   }
-
-static void get_output_format_cropscale(void * priv, gavl_video_format_t * format)
-  {
-  cropscale_priv_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->out_format);
-  }
-
+#endif
 static void transfer_global_options(gavl_video_options_t * opt,
                                     gavl_video_options_t * global_opt)
   {
@@ -1219,41 +1184,46 @@ static void transfer_global_options(gavl_video_options_t * opt,
   gavl_video_options_set_stop_func(opt, stop_func, client_data);
   
   }
-                                    
 
-static int read_video_cropscale(void * priv, gavl_video_frame_t * frame, int stream)
+static void init_scaler(cropscale_priv_t * vp)
+  {
+  int conversion_flags;
+  set_rectangles(vp);
+
+  switch(vp->deinterlace)
+    {
+    case DEINTERLACE_NEVER:
+      gavl_video_options_set_deinterlace_mode(vp->opt, GAVL_DEINTERLACE_NONE);
+      break;
+    case DEINTERLACE_AUTO:
+      gavl_video_options_set_deinterlace_mode(vp->opt, GAVL_DEINTERLACE_SCALE);
+      conversion_flags = gavl_video_options_get_conversion_flags(vp->opt);
+      conversion_flags &= ~GAVL_FORCE_DEINTERLACE;
+      gavl_video_options_set_conversion_flags(vp->opt, conversion_flags);
+      break;
+    case DEINTERLACE_ALWAYS:
+      gavl_video_options_set_deinterlace_mode(vp->opt, GAVL_DEINTERLACE_SCALE);
+      conversion_flags = gavl_video_options_get_conversion_flags(vp->opt);
+      conversion_flags |= GAVL_FORCE_DEINTERLACE;
+      gavl_video_options_set_conversion_flags(vp->opt, conversion_flags);
+      break;
+    }
+  transfer_global_options(vp->opt, vp->global_opt);
+  gavl_video_scaler_init(vp->scaler, &vp->in_format, &vp->out_format);
+  vp->need_reinit = 0;
+  
+  }
+
+#if 0
+static int read_video_cropscale(void * priv,
+                                gavl_video_frame_t * frame, int stream)
   {
   cropscale_priv_t * vp;
   vp = priv;
   
   if(vp->need_reinit)
-    {
-    int conversion_flags;
-    set_rectangles(vp);
-
-    switch(vp->deinterlace)
-      {
-      case DEINTERLACE_NEVER:
-        gavl_video_options_set_deinterlace_mode(vp->opt, GAVL_DEINTERLACE_NONE);
-        break;
-      case DEINTERLACE_AUTO:
-        gavl_video_options_set_deinterlace_mode(vp->opt, GAVL_DEINTERLACE_SCALE);
-        conversion_flags = gavl_video_options_get_conversion_flags(vp->opt);
-        conversion_flags &= ~GAVL_FORCE_DEINTERLACE;
-        gavl_video_options_set_conversion_flags(vp->opt, conversion_flags);
-        break;
-      case DEINTERLACE_ALWAYS:
-        gavl_video_options_set_deinterlace_mode(vp->opt, GAVL_DEINTERLACE_SCALE);
-        conversion_flags = gavl_video_options_get_conversion_flags(vp->opt);
-        conversion_flags |= GAVL_FORCE_DEINTERLACE;
-        gavl_video_options_set_conversion_flags(vp->opt, conversion_flags);
-        break;
-      }
-    transfer_global_options(vp->opt, vp->global_opt);
-    gavl_video_scaler_init(vp->scaler, &vp->in_format, &vp->out_format);
-    vp->need_reinit = 0;
-    }
-
+    init_scaler(vp);
+  
   if(!vp->frame)
     {
     vp->frame = gavl_video_frame_create(&vp->in_format);
@@ -1270,7 +1240,73 @@ static int read_video_cropscale(void * priv, gavl_video_frame_t * frame, int str
   gavl_video_frame_copy_metadata(frame, vp->frame);
   return 1;
   }
+#endif
 
+static gavl_source_status_t read_func(void * priv, gavl_video_frame_t ** f)
+  {
+  gavl_video_frame_t * in_frame = NULL;
+  cropscale_priv_t * vp;
+  gavl_source_status_t st;
+  
+  vp = priv;
+
+  if((st = gavl_video_source_read_frame(vp->in_src, &in_frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
+  
+  if(vp->need_reinit)
+    init_scaler(vp);
+
+  if(vp->maintain_aspect)
+    gavl_video_frame_fill(*f, &vp->out_format, vp->border_color);
+  
+  gavl_video_scaler_scale(vp->scaler, in_frame, *f);
+  
+  gavl_video_frame_copy_metadata(*f, in_frame);
+  
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t *
+connect_cropscale(void * priv, gavl_video_source_t * src,
+                   const gavl_video_options_t * opt)
+  {
+  cropscale_priv_t * vp = priv;
+  const gavl_video_format_t * format;
+
+  format = gavl_video_source_get_src_format(src);
+  
+  gavl_video_format_copy(&vp->in_format, format);
+  gavl_video_format_copy(&vp->out_format, format);
+  set_framesize(vp);
+  set_out_format(vp);
+  
+  if(vp->deinterlace != DEINTERLACE_NEVER)
+    vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
+
+  vp->in_src = src;
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->in_format);
+
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    }
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->out_format);
+  
+  vp->need_reinit = 1;
+  vp->need_restart = 0;
+  return vp->out_src;
+  }
+  
 static int need_restart_cropscale(void * priv)
   {
   cropscale_priv_t * vp;
@@ -1295,6 +1331,7 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_cropscale,
       .priority =         1,
     },
+#if 0 
     .get_options = get_options_cropscale,
     
     .connect_input_port = connect_input_port_cropscale,
@@ -1303,6 +1340,9 @@ const bg_fv_plugin_t the_plugin =
     .get_output_format = get_output_format_cropscale,
 
     .read_video = read_video_cropscale,
+#endif
+    .connect = connect_cropscale,
+    
     .need_restart = need_restart_cropscale,
     
   };

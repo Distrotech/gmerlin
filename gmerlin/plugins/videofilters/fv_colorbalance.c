@@ -44,10 +44,6 @@ typedef struct colorbalance_priv_s
   bg_colormatrix_t * mat;
   float coeffs[3][4];
   
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-
   int use_matrix;
   int normalize;
   
@@ -55,9 +51,9 @@ typedef struct colorbalance_priv_s
   gavl_video_options_t * global_opt;
 
   void (*process)(struct colorbalance_priv_s *, gavl_video_frame_t*);
-  
-  int (*read_video)(struct colorbalance_priv_s *,
-                    gavl_video_frame_t * frame);
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   
   } colorbalance_priv_t;
 
@@ -103,33 +99,6 @@ static void set_coeffs(colorbalance_priv_t * vp)
   vp->coeffs[2][3] = 0.0;
   }
 
-static int read_video_fast(colorbalance_priv_t * vp,
-                           gavl_video_frame_t * frame)
-  {
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-
-  /* Do the conversion */
-
-  if((vp->gain[0] != 1.0) || (vp->gain[1] != 1.0) || (vp->gain[2] != 1.0))
-    {
-    vp->process(vp, frame);
-    }
-  
-  return 1;
-  }
-
-static int read_video_matrix(colorbalance_priv_t * vp,
-                             gavl_video_frame_t * frame)
-  {
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-  
-  if((vp->gain[0] != 1.0) || (vp->gain[1] != 1.0) || (vp->gain[2] != 1.0))
-    bg_colormatrix_process(vp->mat, frame);
-  return 1;
-  }
-
 static void * create_colorbalance()
   {
   colorbalance_priv_t * ret;
@@ -140,18 +109,16 @@ static void * create_colorbalance()
   return ret;
   }
 
-static gavl_video_options_t * get_options_colorbalance(void * priv)
-  {
-  colorbalance_priv_t * vp = priv;
-  return vp->global_opt;
-  }
-
 static void destroy_colorbalance(void * priv)
   {
   colorbalance_priv_t * vp;
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+  
   free(vp);
   }
 
@@ -255,21 +222,6 @@ static void set_parameter_colorbalance(void * priv, const char * name,
     }
   }
 
-static void connect_input_port_colorbalance(void * priv,
-                                         bg_read_video_func_t func,
-                                         void * data, int stream, int port)
-  {
-  colorbalance_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
-  }
 
 /* Processing functions */
 
@@ -288,7 +240,8 @@ static void connect_input_port_colorbalance(void * priv,
    if(tmp & 0xFFFF0000) tmp= (-tmp)>>63; \
    p=tmp;
 
-static void process_rgb24(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
+static void process_rgb24(colorbalance_priv_t * vp,
+                          gavl_video_frame_t * frame)
   {
   int i;
   float gain_norm[3];
@@ -317,7 +270,8 @@ static void process_rgb24(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
     }
   }
 
-static void process_rgb32(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
+static void process_rgb32(colorbalance_priv_t * vp,
+                          gavl_video_frame_t * frame)
   {
   int i;
   float gain_norm[3];
@@ -346,7 +300,8 @@ static void process_rgb32(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
     }
   }
 
-static void process_bgr24(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
+static void process_bgr24(colorbalance_priv_t * vp,
+                          gavl_video_frame_t * frame)
   {
   int i;
   float gain_norm[3];
@@ -375,7 +330,8 @@ static void process_bgr24(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
     }
   }
 
-static void process_bgr32(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
+static void process_bgr32(colorbalance_priv_t * vp,
+                          gavl_video_frame_t * frame)
   {
   int i;
   float gain_norm[3];
@@ -404,7 +360,8 @@ static void process_bgr32(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
     }
   }
 
-static void process_rgb48(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
+static void process_rgb48(colorbalance_priv_t * vp,
+                          gavl_video_frame_t * frame)
   {
   int i;
   float gain_norm[3];
@@ -433,7 +390,8 @@ static void process_rgb48(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
     }
   }
 
-static void process_rgb64(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
+static void process_rgb64(colorbalance_priv_t * vp,
+                          gavl_video_frame_t * frame)
   {
   int i;
   float gain_norm[3];
@@ -462,7 +420,8 @@ static void process_rgb64(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
     }
   }
 
-static void process_rgb_float(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
+static void process_rgb_float(colorbalance_priv_t * vp,
+                              gavl_video_frame_t * frame)
   {
   int i;
   float gain_norm[3];
@@ -493,7 +452,8 @@ static void process_rgb_float(colorbalance_priv_t * vp, gavl_video_frame_t * fra
     }
   }
 
-static void process_rgba_float(colorbalance_priv_t * vp, gavl_video_frame_t * frame)
+static void process_rgba_float(colorbalance_priv_t * vp,
+                               gavl_video_frame_t * frame)
   {
   int i;
   float gain_norm[3];
@@ -524,17 +484,18 @@ static void process_rgba_float(colorbalance_priv_t * vp, gavl_video_frame_t * fr
     }
   }
 
-static void set_input_format_colorbalance(void * priv, gavl_video_format_t * format, int port)
+static void process_matrix(colorbalance_priv_t * vp,
+                           gavl_video_frame_t * frame)
   {
-  colorbalance_priv_t * vp;
-  vp = priv;
+  bg_colormatrix_process(vp->mat, frame);
+  }
 
+static void
+set_input_format(colorbalance_priv_t * vp)
+  {
   vp->use_matrix = 0;
-
-  if(port)
-    return;
   
-  switch(format->pixelformat)
+  switch(vp->format.pixelformat)
     {
     case GAVL_RGB_15:
     case GAVL_BGR_15:
@@ -597,37 +558,60 @@ static void set_input_format_colorbalance(void * priv, gavl_video_format_t * for
     {
     set_coeffs(vp);
     
-    bg_colormatrix_init(vp->mat, format, 0, vp->global_opt);
+    bg_colormatrix_init(vp->mat, &vp->format, 0, vp->global_opt);
     bg_colormatrix_set_rgb(vp->mat, vp->coeffs);
-    vp->read_video = read_video_matrix;
+    vp->process = process_matrix;
     }
-  else
-    {
-    vp->read_video = read_video_fast;
-    }
-
-
+  
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Pixelformat: %s",
-         TRD(gavl_pixelformat_to_string(format->pixelformat), NULL));
-  
-  gavl_video_format_copy(&vp->format, format);
-  
+         TRD(gavl_pixelformat_to_string(vp->format.pixelformat), NULL));
   }
 
-static void get_output_format_colorbalance(void * priv, gavl_video_format_t * format)
+static gavl_source_status_t read_func(void * priv,
+                                      gavl_video_frame_t ** f)
+  {
+  gavl_source_status_t st;
+  colorbalance_priv_t * vp;
+  vp = priv;
+
+  if((st = gavl_video_source_read_frame(vp->in_src, f)) !=
+     GAVL_SOURCE_OK)
+    return st;
+
+  if((vp->gain[0] != 1.0) || (vp->gain[1] != 1.0) || (vp->gain[2] != 1.0))
+    vp->process(vp, *f);
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t *
+connect_colorbalance(void * priv, gavl_video_source_t * src,
+                     const gavl_video_options_t * opt)
   {
   colorbalance_priv_t * vp;
   vp = priv;
-  gavl_video_format_copy(format, &vp->format);
-  }
 
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
 
-static int
-read_video_colorbalance(void * priv, gavl_video_frame_t * frame, int stream)
-  {
-  colorbalance_priv_t * vp;
-  vp = priv;
-  return vp->read_video(vp, frame);
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    }
+
+  gavl_video_format_copy(&vp->format,
+                         gavl_video_source_get_src_format(vp->in_src));
+
+  set_input_format(vp);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+
+  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -646,7 +630,8 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_colorbalance,
       .priority =         1,
     },
-    
+
+#if 0    
     .connect_input_port = connect_input_port_colorbalance,
     
     .set_input_format = set_input_format_colorbalance,
@@ -654,7 +639,8 @@ const bg_fv_plugin_t the_plugin =
 
     .read_video = read_video_colorbalance,
     .get_options = get_options_colorbalance,
-    
+#endif
+    .connect = connect_colorbalance,
   };
 
 /* Include this into all plugin modules exactly once
