@@ -67,24 +67,24 @@ int gavl_audio_options_get_accel_flags(gavl_audio_options_t * opt)
   return opt->accel_flags;
   }
 
-int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt)
+int gavl_audio_options_get_conversion_flags(const gavl_audio_options_t * opt)
   {
   return opt->conversion_flags;
   }
 
-int gavl_audio_options_get_quality(gavl_audio_options_t * opt)
+int gavl_audio_options_get_quality(const gavl_audio_options_t * opt)
   {
   return opt->quality;
   }
 
 gavl_audio_dither_mode_t
-gavl_audio_options_get_dither_mode(gavl_audio_options_t * opt)
+gavl_audio_options_get_dither_mode(const gavl_audio_options_t * opt)
   {
   return opt->dither_mode;
   }
 
 gavl_resample_mode_t
-gavl_audio_options_get_resample_mode(gavl_audio_options_t * opt)
+gavl_audio_options_get_resample_mode(const gavl_audio_options_t * opt)
   {
   return opt->resample_mode;
   }
@@ -127,7 +127,7 @@ void gavl_audio_options_set_mix_matrix(gavl_audio_options_t * opt,
   opt->mix_matrix = matrix;
   }
   
-const double ** gavl_audio_options_get_mix_matrix(gavl_audio_options_t * opt)
+const double ** gavl_audio_options_get_mix_matrix(const gavl_audio_options_t * opt)
   {
   return opt->mix_matrix;
   }

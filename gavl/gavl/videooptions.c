@@ -63,7 +63,7 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt)
   gavl_init_memcpy();
   }
 
-int gavl_video_options_get_num_threads(gavl_video_options_t * opt)
+int gavl_video_options_get_num_threads(const gavl_video_options_t * opt)
   {
   return opt->num_threads;
   }
@@ -84,8 +84,9 @@ void gavl_video_options_set_run_func(gavl_video_options_t * opt,
   opt->run_data = client_data;
   }
 
-gavl_video_run_func gavl_video_options_get_run_func(gavl_video_options_t * opt,
-                                                    void ** client_data)
+gavl_video_run_func
+gavl_video_options_get_run_func(const gavl_video_options_t * opt,
+                                void ** client_data)
   {
   *client_data = opt->run_data;
   return opt->run_func;
@@ -100,8 +101,9 @@ void gavl_video_options_set_stop_func(gavl_video_options_t * opt,
   opt->stop_data = client_data;
   }
 
-gavl_video_stop_func gavl_video_options_get_stop_func(gavl_video_options_t * opt,
-                                                      void ** client_data)
+gavl_video_stop_func
+gavl_video_options_get_stop_func(const gavl_video_options_t * opt,
+                                 void ** client_data)
   {
   *client_data = opt->stop_data;
   return opt->stop_func;
@@ -121,9 +123,10 @@ void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
   opt->have_rectangles = 1;
   }
 
-void gavl_video_options_get_rectangles(gavl_video_options_t * opt,
-                                       gavl_rectangle_f_t * src_rect,
-                                       gavl_rectangle_i_t * dst_rect)
+void
+gavl_video_options_get_rectangles(const gavl_video_options_t * opt,
+                                  gavl_rectangle_f_t * src_rect,
+                                  gavl_rectangle_i_t * dst_rect)
   {
   gavl_rectangle_f_copy(src_rect, &opt->src_rect);
   gavl_rectangle_i_copy(dst_rect, &opt->dst_rect);
@@ -137,7 +140,8 @@ void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality)
   SET_INT(quality);
   }
 
-int gavl_video_options_get_quality(gavl_video_options_t * opt)
+int
+gavl_video_options_get_quality(const gavl_video_options_t * opt)
   {
   return opt->quality;
   }
@@ -159,7 +163,8 @@ void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
   SET_INT(conversion_flags);
   }
 
-int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt)
+int
+gavl_video_options_get_conversion_flags(const gavl_video_options_t * opt)
   {
   return opt->conversion_flags;
   }
@@ -171,7 +176,7 @@ void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
   }
 
 gavl_alpha_mode_t
-gavl_video_options_get_alpha_mode(gavl_video_options_t * opt)
+gavl_video_options_get_alpha_mode(const gavl_video_options_t * opt)
   {
   return opt->alpha_mode;
   }
@@ -182,7 +187,8 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
   SET_INT(scale_mode);
   }
 
-gavl_scale_mode_t  gavl_video_options_get_scale_mode(gavl_video_options_t * opt)
+gavl_scale_mode_t
+gavl_video_options_get_scale_mode(const gavl_video_options_t * opt)
   {
   return opt->scale_mode;
   }
@@ -195,7 +201,7 @@ void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
   SET_INT(scale_order);
   }
 
-int gavl_video_options_get_scale_order(gavl_video_options_t * opt)
+int gavl_video_options_get_scale_order(const gavl_video_options_t * opt)
   {
   return opt->scale_order;
   }
@@ -208,7 +214,7 @@ gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
   }
 
 gavl_deinterlace_mode_t
-gavl_video_options_get_deinterlace_mode(gavl_video_options_t * opt)
+gavl_video_options_get_deinterlace_mode(const gavl_video_options_t * opt)
   {
   return opt->deinterlace_mode;
   }
@@ -223,7 +229,7 @@ gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
   }
 
 gavl_deinterlace_drop_mode_t
-gavl_video_options_get_deinterlace_drop_mode(gavl_video_options_t * opt)
+gavl_video_options_get_deinterlace_drop_mode(const gavl_video_options_t * opt)
   {
   return opt->deinterlace_drop_mode;
   }
@@ -246,8 +252,9 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
   
   }
 
-void gavl_video_options_get_background_color(gavl_video_options_t * opt,
-                                             float * color)
+void
+gavl_video_options_get_background_color(const gavl_video_options_t * opt,
+                                        float * color)
   {
   memcpy(color, opt->background_float, 3*sizeof(*color));
   }
@@ -260,7 +267,7 @@ void gavl_video_options_set_downscale_filter(gavl_video_options_t * opt,
   }
   
 gavl_downscale_filter_t
-gavl_video_options_get_downscale_filter(gavl_video_options_t * opt)
+gavl_video_options_get_downscale_filter(const gavl_video_options_t * opt)
   {
   return opt->downscale_filter;
   }
@@ -280,7 +287,8 @@ void gavl_video_options_set_downscale_blur(gavl_video_options_t * opt,
  *  Since 1.1.0
  */
   
-float gavl_video_options_get_downscale_blur(gavl_video_options_t * opt)
+float
+gavl_video_options_get_downscale_blur(const gavl_video_options_t * opt)
   {
   return opt->downscale_blur;
   }

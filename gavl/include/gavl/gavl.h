@@ -880,7 +880,7 @@ void gavl_audio_options_set_quality(gavl_audio_options_t * opt, int quality);
  */
   
 GAVL_PUBLIC
-int gavl_audio_options_get_quality(gavl_audio_options_t * opt);
+int gavl_audio_options_get_quality(const gavl_audio_options_t * opt);
   
 /*! \ingroup audio_options
  *  \brief Set the dither mode for the converter
@@ -898,7 +898,8 @@ void gavl_audio_options_set_dither_mode(gavl_audio_options_t * opt, gavl_audio_d
  */
   
 GAVL_PUBLIC
-gavl_audio_dither_mode_t gavl_audio_options_get_dither_mode(gavl_audio_options_t * opt);
+gavl_audio_dither_mode_t
+gavl_audio_options_get_dither_mode(const gavl_audio_options_t * opt);
 
   
 /*! \ingroup audio_options
@@ -917,7 +918,8 @@ void gavl_audio_options_set_resample_mode(gavl_audio_options_t * opt, gavl_resam
  */
   
 GAVL_PUBLIC
-gavl_resample_mode_t gavl_audio_options_get_resample_mode(gavl_audio_options_t * opt);
+gavl_resample_mode_t
+gavl_audio_options_get_resample_mode(const gavl_audio_options_t * opt);
   
 /*! \ingroup audio_options
  *  \brief Set the conversion flags
@@ -936,7 +938,7 @@ void gavl_audio_options_set_conversion_flags(gavl_audio_options_t * opt,
  */
   
 GAVL_PUBLIC
-int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt);
+int gavl_audio_options_get_conversion_flags(const gavl_audio_options_t * opt);
 
 /*! \ingroup audio_options
  *  \brief Set all options to their defaults
@@ -975,7 +977,8 @@ void gavl_audio_options_set_mix_matrix(gavl_audio_options_t * opt,
  */
   
 GAVL_PUBLIC
-const double ** gavl_audio_options_get_mix_matrix(gavl_audio_options_t * opt);
+const double **
+gavl_audio_options_get_mix_matrix(const gavl_audio_options_t * opt);
   
 /*! \ingroup audio_options
  *  \brief Create an options container
@@ -2994,7 +2997,7 @@ void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
  */
 
 GAVL_PUBLIC
-void gavl_video_options_get_rectangles(gavl_video_options_t * opt,
+void gavl_video_options_get_rectangles(const gavl_video_options_t * opt,
                                        gavl_rectangle_f_t * src_rect,
                                        gavl_rectangle_i_t * dst_rect);
   
@@ -3014,7 +3017,7 @@ void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
  */
 
 GAVL_PUBLIC
-int gavl_video_options_get_quality(gavl_video_options_t * opt);
+int gavl_video_options_get_quality(const gavl_video_options_t * opt);
 
   
 /*! \ingroup video_options
@@ -3034,7 +3037,7 @@ void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
  */
 
 GAVL_PUBLIC
-int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
+int gavl_video_options_get_conversion_flags(const gavl_video_options_t * opt);
   
 /*! \ingroup video_options
  *  \brief Set the alpha mode
@@ -3053,7 +3056,7 @@ void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
  */
 
 GAVL_PUBLIC gavl_alpha_mode_t
-gavl_video_options_get_alpha_mode(gavl_video_options_t * opt);
+gavl_video_options_get_alpha_mode(const gavl_video_options_t * opt);
 
   
 /*! \ingroup video_options
@@ -3073,7 +3076,7 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
  */
   
 GAVL_PUBLIC gavl_scale_mode_t
-gavl_video_options_get_scale_mode(gavl_video_options_t * opt);
+gavl_video_options_get_scale_mode(const gavl_video_options_t * opt);
 
   
 /*! \ingroup video_options
@@ -3093,7 +3096,7 @@ void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
  */
   
 GAVL_PUBLIC
-int gavl_video_options_get_scale_order(gavl_video_options_t * opt);
+int gavl_video_options_get_scale_order(const gavl_video_options_t * opt);
 
   
 /*! \ingroup video_options
@@ -3113,7 +3116,7 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
  */
 
 GAVL_PUBLIC
-void gavl_video_options_get_background_color(gavl_video_options_t * opt,
+void gavl_video_options_get_background_color(const gavl_video_options_t * opt,
                                              float * color);
   
 /*! \ingroup video_ptions
@@ -3133,7 +3136,7 @@ void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
  */
   
 GAVL_PUBLIC gavl_deinterlace_mode_t
-gavl_video_options_get_deinterlace_mode(gavl_video_options_t * opt);
+gavl_video_options_get_deinterlace_mode(const gavl_video_options_t * opt);
 
 /*! \ingroup video_options
  *  \brief Set the deinterlace drop mode
@@ -3152,7 +3155,7 @@ void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
  */
   
 GAVL_PUBLIC gavl_deinterlace_drop_mode_t
-gavl_video_options_get_deinterlace_drop_mode(gavl_video_options_t * opt);
+gavl_video_options_get_deinterlace_drop_mode(const gavl_video_options_t * opt);
 
 /*!  \ingroup video_options
  *   \brief Set antialiasing filter for downscaling
@@ -3176,7 +3179,7 @@ void gavl_video_options_set_downscale_filter(gavl_video_options_t * opt,
  */
   
 GAVL_PUBLIC gavl_downscale_filter_t
-gavl_video_options_get_downscale_filter(gavl_video_options_t * opt);
+gavl_video_options_get_downscale_filter(const gavl_video_options_t * opt);
 
 /*!  \ingroup video_options
  *   \brief Set blur factor for downscaling
@@ -3208,7 +3211,7 @@ void gavl_video_options_set_downscale_blur(gavl_video_options_t * opt,
  */
   
 GAVL_PUBLIC
-float gavl_video_options_get_downscale_blur(gavl_video_options_t * opt);
+float gavl_video_options_get_downscale_blur(const gavl_video_options_t * opt);
 
 /*!  \ingroup video_options
  *   \brief Set number of threads
@@ -3231,7 +3234,7 @@ void gavl_video_options_set_num_threads(gavl_video_options_t * opt, int n);
  */
   
 GAVL_PUBLIC
-int gavl_video_options_get_num_threads(gavl_video_options_t * opt);
+int gavl_video_options_get_num_threads(const gavl_video_options_t * opt);
 
 /*!  \ingroup video_options
  *   \brief Set function to be passed to each thread
@@ -3257,8 +3260,9 @@ void gavl_video_options_set_run_func(gavl_video_options_t * opt,
  */
 
 GAVL_PUBLIC
-gavl_video_run_func gavl_video_options_get_run_func(gavl_video_options_t * opt,
-                                                    void ** client_data);
+gavl_video_run_func
+gavl_video_options_get_run_func(const gavl_video_options_t * opt,
+                                void ** client_data);
 
 /*!  \ingroup video_options
  *   \brief Set function to be passed to each thread
@@ -3284,8 +3288,9 @@ void gavl_video_options_set_stop_func(gavl_video_options_t * opt,
  */
 
 GAVL_PUBLIC
-gavl_video_stop_func gavl_video_options_get_stop_func(gavl_video_options_t * opt,
-                                                      void ** client_data);
+gavl_video_stop_func
+gavl_video_options_get_stop_func(const gavl_video_options_t * opt,
+                                 void ** client_data);
 
   
 /***************************************************
