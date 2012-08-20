@@ -70,6 +70,10 @@ struct decimate_priv_s
   int (*sad_func)(const uint8_t * src_1, const uint8_t * src_2, 
                   int stride_1, int stride_2, 
                   int w, int h);
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+  
   };
 
 static float diff_block_i(decimate_priv_t * vp, 
@@ -137,6 +141,10 @@ static void destroy_decimate(void * priv)
   gavl_video_frame_destroy(vp->b2);
   
   gavl_dsp_context_destroy(vp->dsp_ctx);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+  
   free(vp);
   }
 
@@ -206,21 +214,6 @@ static void set_parameter_decimate(void * priv, const char * name,
    vp->do_log = val->val_i;
   else if(!strcmp(name, "skip_max"))
    vp->skip_max = val->val_i;
-  }
-
-static void connect_input_port_decimate(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  decimate_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
   }
 
 static void reset_decimate(void * priv)
@@ -479,6 +472,20 @@ static int read_video_decimate(void * priv,
   if(vp->do_log && skipped)
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Skipped %d frames", skipped);  
   return 1;
+  }
+
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t * frame)
+  {
+  
+  }
+
+static gavl_video_source_t *
+connect_decimate(void * priv,
+                 gavl_video_source_t * src,
+                 const gavl_video_options_t * opt)
+  {
+
   }
 
 const bg_fv_plugin_t the_plugin = 
