@@ -40,6 +40,8 @@ struct decimate_priv_s
   gavl_dsp_funcs_t   * dsp_funcs;
 
   gavl_video_frame_t * frame;
+  gavl_video_frame_t * in_frame;
+
   gavl_video_format_t format;
 
   gavl_video_frame_t * b1;
@@ -61,8 +63,6 @@ struct decimate_priv_s
   int sub_v;
   float scale_factors[GAVL_MAX_PLANES];
   int width_mul;
-
-  
   
   float (*diff_block)(struct decimate_priv_s*, 
                       int width, int height);
@@ -218,192 +218,176 @@ static void set_parameter_decimate(void * priv, const char * name,
 
 static void reset_decimate(void * priv)
   {
-  decimate_priv_t * vp;
-  vp = priv;
+  decimate_priv_t * vp = priv;
   vp->have_frame = 0;
   }
 
 static void 
-set_input_format_decimate(void * priv, 
-                          gavl_video_format_t * format, int port)
+set_format(decimate_priv_t * vp, const gavl_video_format_t * format)
   {
-  decimate_priv_t * vp;
-  vp = priv;
-
-  if(!port)
+  gavl_video_format_copy(&vp->format, format);
+  vp->format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  if(vp->frame)
     {
-    gavl_video_format_copy(&vp->format, format);
-    vp->format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-    if(vp->frame)
-      {
-      gavl_video_frame_destroy(vp->frame);
-      vp->frame = NULL;
-      }
-    gavl_pixelformat_chroma_sub(vp->format.pixelformat,
-                                &vp->sub_h, &vp->sub_v);
-    vp->num_planes = 
-      gavl_pixelformat_num_planes(vp->format.pixelformat);
+    gavl_video_frame_destroy(vp->frame);
+    vp->frame = NULL;
+    }
+  gavl_pixelformat_chroma_sub(vp->format.pixelformat,
+                              &vp->sub_h, &vp->sub_v);
+  vp->num_planes = 
+    gavl_pixelformat_num_planes(vp->format.pixelformat);
 
-    vp->width_mul = 1;
-    vp->diff_block = diff_block_i;
+  vp->width_mul = 1;
+  vp->diff_block = diff_block_i;
 
-    switch(vp->format.pixelformat)
-      {
-      case GAVL_GRAY_8:
-        vp->scale_factors[0] = 1.0/(1.0*255.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        break;
-      case GAVL_GRAYA_16:
-        vp->scale_factors[0] = 1.0/(2.0*255.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        vp->width_mul = 2;
-        break;
-      case GAVL_GRAY_16:
-        vp->scale_factors[0] = 1.0/(1.0*65535.0);
-        vp->sad_func = vp->dsp_funcs->sad_16;
-        break;
-      case GAVL_GRAYA_32:
-        vp->scale_factors[0] = 1.0/(2.0*65535.0);
-        vp->sad_func = vp->dsp_funcs->sad_16;
-        vp->width_mul = 2;
-        break;
-      case GAVL_GRAY_FLOAT:
-        vp->scale_factors[0] = 1.0;
-        vp->diff_block = diff_block_f;
-        break;
-      case GAVL_GRAYA_FLOAT:
-        vp->scale_factors[0] = 1.0/2.0;
-        vp->diff_block = diff_block_f;
-        vp->width_mul = 2;
-        break;
-      case GAVL_RGB_15:
-      case GAVL_BGR_15:
-        vp->scale_factors[0] = 1.0/(3.0*255.0);
-        vp->sad_func = vp->dsp_funcs->sad_rgb15;
-        break;
-      case GAVL_RGB_16:
-      case GAVL_BGR_16:
-        vp->scale_factors[0] = 1.0/(3.0*255.0);
-        vp->sad_func = vp->dsp_funcs->sad_rgb16;
-        break;
-      case GAVL_RGB_24:
-      case GAVL_BGR_24:
-        vp->scale_factors[0] = 1.0/(3.0*255.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        vp->width_mul = 3;
-        break;
-      case GAVL_RGB_32:
-      case GAVL_BGR_32:
-        vp->scale_factors[0] = 1.0/(3.0*255.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        vp->width_mul = 4;
-        break;
-      case GAVL_RGBA_32:
-        vp->scale_factors[0] = 1.0/(4.0*255.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        vp->width_mul = 4;
-        break;
-      case GAVL_YUV_444_P:
-      case GAVL_YUV_420_P:
-      case GAVL_YUV_410_P:
-      case GAVL_YUV_411_P:
-      case GAVL_YUV_422_P:
-        vp->scale_factors[0] = 1.0/((235.0 - 16.0)*3.0);
-        vp->scale_factors[1] = 
-          (float)(vp->sub_h * vp->sub_v)/((240.0 - 16.0)*3.0);
-        vp->scale_factors[2] = 
-          (float)(vp->sub_h * vp->sub_v)/((240.0 - 16.0)*3.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        break;
-      case GAVL_YUV_444_P_16:
-      case GAVL_YUV_422_P_16:
-        vp->scale_factors[0] = 1.0/((235.0 - 16.0)*256.0*3.0);
-        vp->scale_factors[1] = 
-          (float)(vp->sub_h * vp->sub_v)/((240.0 - 16.0)*256.0*3.0);
-        vp->scale_factors[2] = 
-          (float)(vp->sub_h * vp->sub_v)/((240.0 - 16.0)*256.0*3.0);
-        vp->sad_func = vp->dsp_funcs->sad_16;
-        break;
-      case GAVL_RGB_48:
-      	vp->scale_factors[0] = 1.0/(3.0*65535.0);
-        vp->sad_func = vp->dsp_funcs->sad_16;
-        vp->width_mul = 3;
-        break;
-      case GAVL_RGBA_64:
-      	vp->scale_factors[0] = 1.0/(4.0*65535.0);
-        vp->sad_func = vp->dsp_funcs->sad_16;
-        vp->width_mul = 4;
-        break;
-      case GAVL_RGB_FLOAT:
-        vp->scale_factors[0] = 1.0/3.0;
-        vp->diff_block = diff_block_f;
-        vp->width_mul = 3;
-        break;
-      case GAVL_RGBA_FLOAT:
-        vp->scale_factors[0] = 1.0/4.0;
-        vp->diff_block = diff_block_f;
-        vp->width_mul = 4;
-        break;
-      case GAVL_YUVA_32:
-        vp->scale_factors[0] = 
-          1.0/(235.0 - 16.0 + 2.0 * (240.0 - 16.0) + 255.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        vp->width_mul = 4;
-        break;
-      case GAVL_YUVA_64:
-        vp->scale_factors[0] = 
-          1.0/((235.0 - 16.0)*256.0 + 2.0 * (240.0 - 16.0)*256.0 + 255.0*256.0);
-        vp->sad_func = vp->dsp_funcs->sad_16;
-        vp->width_mul = 4;
-        break;
-      case GAVL_YUV_FLOAT:
-        vp->scale_factors[0] = 
-          1.0/3.0;
-        vp->diff_block = diff_block_f;
-        vp->width_mul = 3;
-        break;
-      case GAVL_YUVA_FLOAT:
-        vp->scale_factors[0] = 
-          1.0/4.0;
-        vp->diff_block = diff_block_f;
-        vp->width_mul = 4;
-        break;
-      case GAVL_YUY2:
-      case GAVL_UYVY:
-        vp->scale_factors[0] = 
-          1.0/(235.0 - 16.0 + 240.0 - 16.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        vp->width_mul = 2;
-        break;
-      case GAVL_YUVJ_420_P:
-      case GAVL_YUVJ_422_P:
-      case GAVL_YUVJ_444_P:
-        vp->scale_factors[0] = 1.0/(3.0 * 255.0);
-        vp->scale_factors[1] = 
-          (float)(vp->sub_h * vp->sub_v)/(3.0 * 255.0);
-        vp->scale_factors[2] = 
-          (float)(vp->sub_h * vp->sub_v)/(3.0 * 255.0);
-        vp->sad_func = vp->dsp_funcs->sad_8;
-        break;
-      case GAVL_PIXELFORMAT_NONE:
-        break;
-      }
+  switch(vp->format.pixelformat)
+    {
+    case GAVL_GRAY_8:
+      vp->scale_factors[0] = 1.0/(1.0*255.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      break;
+    case GAVL_GRAYA_16:
+      vp->scale_factors[0] = 1.0/(2.0*255.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      vp->width_mul = 2;
+      break;
+    case GAVL_GRAY_16:
+      vp->scale_factors[0] = 1.0/(1.0*65535.0);
+      vp->sad_func = vp->dsp_funcs->sad_16;
+      break;
+    case GAVL_GRAYA_32:
+      vp->scale_factors[0] = 1.0/(2.0*65535.0);
+      vp->sad_func = vp->dsp_funcs->sad_16;
+      vp->width_mul = 2;
+      break;
+    case GAVL_GRAY_FLOAT:
+      vp->scale_factors[0] = 1.0;
+      vp->diff_block = diff_block_f;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      vp->scale_factors[0] = 1.0/2.0;
+      vp->diff_block = diff_block_f;
+      vp->width_mul = 2;
+      break;
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+      vp->scale_factors[0] = 1.0/(3.0*255.0);
+      vp->sad_func = vp->dsp_funcs->sad_rgb15;
+      break;
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+      vp->scale_factors[0] = 1.0/(3.0*255.0);
+      vp->sad_func = vp->dsp_funcs->sad_rgb16;
+      break;
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+      vp->scale_factors[0] = 1.0/(3.0*255.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      vp->width_mul = 3;
+      break;
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+      vp->scale_factors[0] = 1.0/(3.0*255.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      vp->width_mul = 4;
+      break;
+    case GAVL_RGBA_32:
+      vp->scale_factors[0] = 1.0/(4.0*255.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      vp->width_mul = 4;
+      break;
+    case GAVL_YUV_444_P:
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_410_P:
+    case GAVL_YUV_411_P:
+    case GAVL_YUV_422_P:
+      vp->scale_factors[0] = 1.0/((235.0 - 16.0)*3.0);
+      vp->scale_factors[1] = 
+        (float)(vp->sub_h * vp->sub_v)/((240.0 - 16.0)*3.0);
+      vp->scale_factors[2] = 
+        (float)(vp->sub_h * vp->sub_v)/((240.0 - 16.0)*3.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      break;
+    case GAVL_YUV_444_P_16:
+    case GAVL_YUV_422_P_16:
+      vp->scale_factors[0] = 1.0/((235.0 - 16.0)*256.0*3.0);
+      vp->scale_factors[1] = 
+        (float)(vp->sub_h * vp->sub_v)/((240.0 - 16.0)*256.0*3.0);
+      vp->scale_factors[2] = 
+        (float)(vp->sub_h * vp->sub_v)/((240.0 - 16.0)*256.0*3.0);
+      vp->sad_func = vp->dsp_funcs->sad_16;
+      break;
+    case GAVL_RGB_48:
+      vp->scale_factors[0] = 1.0/(3.0*65535.0);
+      vp->sad_func = vp->dsp_funcs->sad_16;
+      vp->width_mul = 3;
+      break;
+    case GAVL_RGBA_64:
+      vp->scale_factors[0] = 1.0/(4.0*65535.0);
+      vp->sad_func = vp->dsp_funcs->sad_16;
+      vp->width_mul = 4;
+      break;
+    case GAVL_RGB_FLOAT:
+      vp->scale_factors[0] = 1.0/3.0;
+      vp->diff_block = diff_block_f;
+      vp->width_mul = 3;
+      break;
+    case GAVL_RGBA_FLOAT:
+      vp->scale_factors[0] = 1.0/4.0;
+      vp->diff_block = diff_block_f;
+      vp->width_mul = 4;
+      break;
+    case GAVL_YUVA_32:
+      vp->scale_factors[0] = 
+        1.0/(235.0 - 16.0 + 2.0 * (240.0 - 16.0) + 255.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      vp->width_mul = 4;
+      break;
+    case GAVL_YUVA_64:
+      vp->scale_factors[0] = 
+        1.0/((235.0 - 16.0)*256.0 + 2.0 * (240.0 - 16.0)*256.0 + 255.0*256.0);
+      vp->sad_func = vp->dsp_funcs->sad_16;
+      vp->width_mul = 4;
+      break;
+    case GAVL_YUV_FLOAT:
+      vp->scale_factors[0] = 
+        1.0/3.0;
+      vp->diff_block = diff_block_f;
+      vp->width_mul = 3;
+      break;
+    case GAVL_YUVA_FLOAT:
+      vp->scale_factors[0] = 
+        1.0/4.0;
+      vp->diff_block = diff_block_f;
+      vp->width_mul = 4;
+      break;
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+      vp->scale_factors[0] = 
+        1.0/(235.0 - 16.0 + 240.0 - 16.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      vp->width_mul = 2;
+      break;
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUVJ_422_P:
+    case GAVL_YUVJ_444_P:
+      vp->scale_factors[0] = 1.0/(3.0 * 255.0);
+      vp->scale_factors[1] = 
+        (float)(vp->sub_h * vp->sub_v)/(3.0 * 255.0);
+      vp->scale_factors[2] = 
+        (float)(vp->sub_h * vp->sub_v)/(3.0 * 255.0);
+      vp->sad_func = vp->dsp_funcs->sad_8;
+      break;
+    case GAVL_PIXELFORMAT_NONE:
+      break;
     }
   vp->frame = gavl_video_frame_create(&vp->format);
   }
 
-static void get_output_format_decimate(void * priv,
-                                       gavl_video_format_t * format)
-  {
-  decimate_priv_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
-
 #define BLOCK_SIZE 16
 
-static int do_skip(decimate_priv_t * vp, gavl_video_frame_t * frame)
+static int do_skip(decimate_priv_t * vp,
+                   gavl_video_frame_t * f1, gavl_video_frame_t * f2)
   {
   int i, j, imax, jmax;
   float diff_block;
@@ -428,9 +412,9 @@ static int do_skip(decimate_priv_t * vp, gavl_video_frame_t * frame)
       rect.h = BLOCK_SIZE;
       gavl_rectangle_i_crop_to_format(&rect, &vp->format);
       gavl_video_frame_get_subframe(vp->format.pixelformat,
-                                    frame, vp->b1, &rect);
+                                    f1, vp->b1, &rect);
       gavl_video_frame_get_subframe(vp->format.pixelformat,
-                                    vp->frame, vp->b2, &rect);
+                                    f2, vp->b2, &rect);
       diff_block = vp->diff_block(vp, rect.w, rect.h);
       if(diff_block > vp->threshold_block * rect.w * rect.h)
         return 0;
@@ -442,6 +426,7 @@ static int do_skip(decimate_priv_t * vp, gavl_video_frame_t * frame)
   return 1;
   }
 
+#if 0
 static int read_video_decimate(void * priv, 
                                gavl_video_frame_t * frame, int stream)
   {
@@ -473,11 +458,56 @@ static int read_video_decimate(void * priv,
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Skipped %d frames", skipped);  
   return 1;
   }
+#endif
 
 static gavl_source_status_t
-read_func(void * priv, gavl_video_frame_t * frame)
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
+  gavl_source_status_t st;
+  decimate_priv_t * vp;
+  int skipped = 0;
+
+  vp = priv;
   
+  /* Read frame */
+  if(!vp->have_frame)
+    {
+    if((st = gavl_video_source_read_frame(vp->in_src, &vp->in_frame)) !=
+       GAVL_SOURCE_OK)
+      return st;
+    vp->have_frame = 1;
+    }
+  
+  gavl_video_frame_copy(&vp->format, vp->frame, vp->in_frame);
+  gavl_video_frame_copy_metadata(vp->frame, vp->in_frame);
+  
+  while(1)
+    {
+    vp->in_frame = NULL;
+    if((st = gavl_video_source_read_frame(vp->in_src, &vp->in_frame)) !=
+       GAVL_SOURCE_OK)
+      {
+      if(st == GAVL_SOURCE_EOF)
+        {
+        // Return last frame
+        *frame = vp->frame;
+        return GAVL_SOURCE_OK;
+        }
+      else
+        return st;
+      }
+    if((skipped >= vp->skip_max) || !do_skip(vp, vp->in_frame, vp->frame))
+      break;
+    skipped++;
+
+    vp->frame->duration += vp->in_frame->duration;
+    }
+  
+  vp->frame->duration = vp->in_frame->timestamp - vp->frame->timestamp;
+  
+  *frame = vp->frame;
+  
+  return GAVL_SOURCE_OK;
   }
 
 static gavl_video_source_t *
@@ -485,7 +515,25 @@ connect_decimate(void * priv,
                  gavl_video_source_t * src,
                  const gavl_video_options_t * opt)
   {
+  decimate_priv_t * vp = priv;
+  vp->have_frame = 0;
 
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  vp->in_src = src;
+  set_format(vp, gavl_video_source_get_src_format(vp->in_src));
+
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+  
+  gavl_video_source_set_dst(vp->in_src, GAVL_SOURCE_SRC_ALLOC, &vp->format);
+  
+  vp->format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -504,13 +552,13 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_decimate,
       .priority =         1,
     },
-    
+#if 0
     .connect_input_port = connect_input_port_decimate,
-    
     .set_input_format = set_input_format_decimate,
     .get_output_format = get_output_format_decimate,
-
     .read_video = read_video_decimate,
+#endif
+    .connect = connect_decimate,
     .reset = reset_decimate,
     
   };
