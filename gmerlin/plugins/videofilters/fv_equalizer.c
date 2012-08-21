@@ -61,10 +61,6 @@ typedef struct equalizer_priv_s
   int offset[3];
   int advance[2];
   
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-
   int chroma_width;
   int chroma_height;
   int use_matrix;
@@ -79,8 +75,11 @@ typedef struct equalizer_priv_s
                      int dststride,
                      int w, int h, float hue, float sat, int advance);
   
-  int (*read_video)(struct equalizer_priv_s *,
-                    gavl_video_frame_t * frame);
+  void (*process)(struct equalizer_priv_s *,
+                  gavl_video_frame_t * frame);
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   
   } equalizer_priv_t;
 
@@ -338,12 +337,9 @@ static void process_bcj16_C(unsigned char *dest1, int dstride,
   }
 
 
-static int read_video_fast(equalizer_priv_t * vp,
-                           gavl_video_frame_t * frame)
+static void process_fast(equalizer_priv_t * vp,
+                         gavl_video_frame_t * frame)
   {
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-
   /* Do the conversion */
 
   if((vp->contrast != 0.0) || (vp->brightness != 0.0))
@@ -378,19 +374,14 @@ static int read_video_fast(equalizer_priv_t * vp,
         }
       }
     }
-  return 1;
   }
 
-static int read_video_matrix(equalizer_priv_t * vp,
-                             gavl_video_frame_t * frame)
+static void process_matrix(equalizer_priv_t * vp,
+                           gavl_video_frame_t * frame)
   {
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-  
   if((vp->contrast != 0.0) || (vp->brightness != 0.0) ||
      (vp->hue != 0.0) || (vp->saturation != 1.0))
     bg_colormatrix_process(vp->mat, frame);
-  return 1;
   }
 
 static void * create_equalizer()
@@ -402,17 +393,15 @@ static void * create_equalizer()
   return ret;
   }
 
-static gavl_video_options_t * get_options_equalizer(void * priv)
-  {
-  equalizer_priv_t * vp = priv;
-  return vp->global_opt;
-  }
-
 static void destroy_equalizer(void * priv)
   {
   equalizer_priv_t * vp;
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+
   gavl_video_options_destroy(vp->global_opt);
   free(vp);
   }
@@ -526,36 +515,17 @@ static void set_parameter_equalizer(void * priv, const char * name,
     }
   }
 
-static void connect_input_port_equalizer(void * priv,
-                                         bg_read_video_func_t func,
-                                         void * data, int stream, int port)
-  {
-  equalizer_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
-  }
-
-
-
-static void set_input_format_equalizer(void * priv, gavl_video_format_t * format, int port)
+static void set_format(void * priv, const gavl_video_format_t * format)
   {
   int sub_h, sub_v;
   equalizer_priv_t * vp;
   vp = priv;
   
   vp->use_matrix = 0;
+
+  gavl_video_format_copy(&vp->format, format);
   
-  if(port)
-    return;
-  
-  switch(format->pixelformat)
+  switch(vp->format.pixelformat)
     {
     case GAVL_GRAY_8:
       vp->advance[0] = 1;
@@ -711,10 +681,9 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
   if(vp->use_matrix)
     {
     set_coeffs(vp);
-    
-    bg_colormatrix_init(vp->mat, format, 0, vp->global_opt);
+    bg_colormatrix_init(vp->mat, &vp->format, 0, vp->global_opt);
     bg_colormatrix_set_yuv(vp->mat, vp->coeffs);
-    vp->read_video = read_video_matrix;
+    vp->process = process_matrix;
     }
   else
     {
@@ -722,31 +691,53 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
     
     vp->chroma_width  = format->image_width / sub_h;
     vp->chroma_height = format->image_height / sub_v;
-    vp->read_video = read_video_fast;
+    vp->process = process_fast;
     }
-
-
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Pixelformat: %s",
          TRD(gavl_pixelformat_to_string(format->pixelformat), NULL));
-  
-  gavl_video_format_copy(&vp->format, format);
-  
   }
 
-static void get_output_format_equalizer(void * priv, gavl_video_format_t * format)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
+  {
+  equalizer_priv_t * vp;
+  gavl_source_status_t st;
+
+  vp = priv;
+
+  if((st = gavl_video_source_read_frame(vp->in_src, frame)) != GAVL_SOURCE_OK)
+    return st;
+  
+  vp->process(vp, *frame);
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t * connect_equalizer(void * priv, gavl_video_source_t * src,
+                                               const gavl_video_options_t * opt)
   {
   equalizer_priv_t * vp;
   vp = priv;
-  gavl_video_format_copy(format, &vp->format);
-  }
 
-
-static int
-read_video_equalizer(void * priv, gavl_video_frame_t * frame, int stream)
-  {
-  equalizer_priv_t * vp;
-  vp = priv;
-  return vp->read_video(vp, frame);
+  vp->in_src = src;
+  set_format(vp, gavl_video_source_get_src_format(vp->in_src));
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    }
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -765,7 +756,8 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_equalizer,
       .priority =         1,
     },
-    
+    .connect = connect_equalizer,
+#if 0    
     .connect_input_port = connect_input_port_equalizer,
     
     .set_input_format = set_input_format_equalizer,
@@ -773,7 +765,7 @@ const bg_fv_plugin_t the_plugin =
 
     .read_video = read_video_equalizer,
     .get_options = get_options_equalizer,
-    
+#endif    
   };
 
 /* Include this into all plugin modules exactly once
