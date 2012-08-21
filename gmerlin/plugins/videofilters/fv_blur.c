@@ -72,14 +72,6 @@ static void * create_blur()
   return ret;
   }
 
-#if 0
-static gavl_video_options_t * get_options_blur(void * priv)
-  {
-  blur_priv_t * vp = priv;
-  return vp->global_opt;
-  }
-#endif
-
 static void transfer_global_options(gavl_video_options_t * opt,
                                     const gavl_video_options_t * global_opt)
   {
@@ -453,7 +445,6 @@ static gavl_video_source_t * connect_blur(void * priv,
     {
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
     gavl_video_options_copy(vp->global_opt, opt);
-    
     }
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   

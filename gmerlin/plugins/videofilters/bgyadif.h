@@ -29,15 +29,10 @@ void bg_yadif_destroy(bg_yadif_t * d);
 
 void bg_yadif_init(bg_yadif_t * di,
                    gavl_video_format_t * format,
+                   gavl_video_format_t * out_format,
                    gavl_video_options_t * opt, int mode);
 
-void bg_yadif_get_output_format(bg_yadif_t * di,
-                                gavl_video_format_t * format);
-
-void bg_yadif_connect_input(void * priv,
-                            bg_read_video_func_t func,
-                            void * data, int stream);
-
-int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream);
+gavl_source_status_t
+bg_yadif_read(void * priv, gavl_video_frame_t ** frame, gavl_video_source_t * src);
 
 void bg_yadif_reset(bg_yadif_t * di);

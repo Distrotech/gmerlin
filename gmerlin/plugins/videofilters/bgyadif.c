@@ -56,11 +56,6 @@ struct bg_yadif_s
   int parity;
   int accel_flags;
   
-  /* Where to get data */
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-
   gavl_video_format_t in_format;
   gavl_video_format_t out_format;
   
@@ -174,6 +169,7 @@ static const gavl_pixelformat_t pixelformats[] =
 
 void bg_yadif_init(bg_yadif_t * di,
                    gavl_video_format_t * format,
+                   gavl_video_format_t * out_format,
                    gavl_video_options_t * opt, int mode)
   {
   int sub_h = 1, sub_v = 1;
@@ -198,8 +194,7 @@ void bg_yadif_init(bg_yadif_t * di,
 #ifdef HAVE_MMX
   di->mmx = 0;
 #endif
-  
-  
+ 
   switch(format->pixelformat)
     {
     case GAVL_YUV_420_P:
@@ -279,24 +274,9 @@ void bg_yadif_init(bg_yadif_t * di,
     (di->in_format.interlace_mode == GAVL_INTERLACE_BOTTOM_FIRST) ? 1 : 0;
   
   di->mode = mode;
+  gavl_video_format_copy(out_format, &di->out_format);
   }
 
-void bg_yadif_get_output_format(bg_yadif_t * di,
-                                gavl_video_format_t * format)
-  {
-  gavl_video_format_copy(format, &di->out_format);
-
-  }
-
-void bg_yadif_connect_input(void * priv,
-                            bg_read_video_func_t func,
-                            void * data, int stream)
-  {
-  bg_yadif_t * di = priv;
-  di->read_func = func;
-  di->read_data = data;
-  di->read_stream = stream;
-  }
 
 static void filter_plane(void * priv, int start, int end)
   {
@@ -328,7 +308,8 @@ static void filter_plane(void * priv, int start, int end)
       const uint8_t *cur = cur0 + y*src_stride;
       const uint8_t *next= next0 + y*src_stride;
       uint8_t *dst2= dst + y*dst_stride;
-      di->filter_line(di->mode, dst2, prev, cur, next, w, src_stride, (di->current_parity ^ di->tff),
+      di->filter_line(di->mode, dst2, prev, cur, next, w,
+                      src_stride, (di->current_parity ^ di->tff),
                       di->comp->advance);
       }
     else
@@ -423,6 +404,7 @@ static void filter_frame(bg_yadif_t * di, int parity,
     }
   }
 
+#if 0
 static int read_frame(bg_yadif_t * di)
   {
   gavl_video_frame_t * tmp;
@@ -433,54 +415,83 @@ static int read_frame(bg_yadif_t * di)
   di->next = tmp;
   return di->read_func(di->read_data, di->next, di->read_stream);
   }
+#endif
 
-int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
+gavl_source_status_t
+bg_yadif_read(void * priv, gavl_video_frame_t ** frame, gavl_video_source_t * src)
   {
+  gavl_source_status_t st;
   bg_yadif_t * di = priv;
   
   if(!di->field)
     {
     if(di->eof)
       return 0;
-   
-    if(!di->frame) /* Fill buffer */
+
+    /* Fill buffer */
+    if(!di->frame)
       {
-      di->read_func(di->read_data, di->cur, di->read_stream);
+      st = gavl_video_source_read_frame(src, &di->cur);
+      if(st != GAVL_SOURCE_OK)
+        return st;
       di->frame++;
-      di->read_func(di->read_data, di->next, di->read_stream);
-      gavl_video_frame_copy(&di->in_format, di->prev, di->next);
       }
-    else if(!read_frame(di))
+    if(di->frame == 1)
       {
-      di->eof = 1;
-      gavl_video_frame_copy(&di->in_format, di->next, di->prev);
+      st = gavl_video_source_read_frame(src, &di->next);
+      if(st != GAVL_SOURCE_OK)
+        return st;
+      gavl_video_frame_copy(&di->in_format, di->prev, di->next);
+      di->frame++;
       }
+    else
+      {
+      gavl_video_frame_t * tmp;
+      tmp = di->prev;
+
+      di->prev = di->cur;
+      di->cur = di->next;
+      di->next = tmp;
+
+      st = gavl_video_source_read_frame(src, &di->next);
+      if(st != GAVL_SOURCE_OK)
+        {
+        if(st == GAVL_SOURCE_EOF)
+          {
+          di->eof = 1;
+          gavl_video_frame_copy(&di->in_format, di->next, di->prev);
+          }
+        else
+          return st;
+        }
+      }
+    
     di->frame++;
     
     /* Output first field */
-    filter_frame(di, di->parity, frame);
+    filter_frame(di, di->parity, *frame);
 
     if(di->mode & 1)
       di->field++;
     else
       di->field = 0;
 
-    frame->timestamp = gavl_time_rescale(di->in_format.timescale,
+    (*frame)->timestamp = gavl_time_rescale(di->in_format.timescale,
                                          di->out_format.timescale,
                                          di->cur->timestamp);
-    frame->timecode = di->cur->timecode;
-    frame->duration = di->cur->duration;
+    (*frame)->timecode = di->cur->timecode;
+    (*frame)->duration = di->cur->duration;
     }
   else
     {
     /* Output second field */
-    filter_frame(di, 1 - di->parity, frame);
+    filter_frame(di, 1 - di->parity, *frame);
     
-    frame->timestamp = gavl_time_rescale(di->in_format.timescale,
+    (*frame)->timestamp = gavl_time_rescale(di->in_format.timescale,
                                          di->out_format.timescale,
                                          di->cur->timestamp) + di->cur->duration;
-    frame->timecode = di->cur->timecode;
-    frame->duration = di->cur->duration;
+    (*frame)->timecode = di->cur->timecode;
+    (*frame)->duration = di->cur->duration;
     
     di->field = 0;
     }
@@ -488,7 +499,7 @@ int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
   //  fprintf(stderr, "PTS: %ld (%f)\n", frame->timestamp, gavl_time_to_seconds(gavl_time_unscale(di->out_format.timescale,
   //                                                                                          frame->timestamp)));
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 void bg_yadif_reset(bg_yadif_t * di)
