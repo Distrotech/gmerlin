@@ -473,15 +473,6 @@ const bg_fv_plugin_t the_plugin =
     },
 
     .connect = connect_blur,
-#if 0  
-    .get_options = get_options_blur,
-    .connect_input_port = connect_input_port_blur,
-    
-    .set_input_format = set_input_format_blur,
-    .get_output_format = get_output_format_blur,
-
-    .read_video = read_video_blur,
-#endif
   };
 
 /* Include this into all plugin modules exactly once

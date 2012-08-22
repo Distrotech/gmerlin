@@ -34,21 +34,21 @@
 typedef struct
   {
   gavl_interlace_mode_t out_interlace;
-  
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
+    
   gavl_video_format_t format;
   gavl_video_format_t field_format[2];
   
-  gavl_video_frame_t * frame;
-
+  gavl_video_frame_t * frame1;
+  
   gavl_video_frame_t * src_field;
   gavl_video_frame_t * dst_field;
 
   int need_restart;
   
+  int num_frames; // 0, 1 or 2
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   
   } interlace_priv_t;
 
@@ -65,14 +65,17 @@ static void destroy_interlace(void * priv)
   {
   interlace_priv_t * vp;
   vp = priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
+  if(vp->frame1)
+    gavl_video_frame_destroy(vp->frame1);
 
   gavl_video_frame_null(vp->src_field);
   gavl_video_frame_null(vp->dst_field);
 
   gavl_video_frame_destroy(vp->src_field);
   gavl_video_frame_destroy(vp->dst_field);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   
   free(vp);
   }
@@ -130,112 +133,119 @@ static void set_parameter_interlace(void * priv, const char * name,
     }
   }
 
-static void connect_input_port_interlace(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  interlace_priv_t * vp;
-  vp = priv;
 
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
+static void copy_field(interlace_priv_t * vp,
+                       gavl_video_frame_t * src,
+                       gavl_video_frame_t * dst,
+                       int field)
+  {
+  gavl_video_frame_get_field(vp->format.pixelformat,
+                             src, vp->src_field, field);
   
+  gavl_video_frame_get_field(vp->format.pixelformat,
+                             dst, vp->dst_field, field);
+
+  gavl_video_frame_copy(&vp->field_format[field], vp->dst_field, vp->src_field);
   }
+                       
 
-static void set_input_format_interlace(void * priv,
-                                       gavl_video_format_t * format, int port)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
-  interlace_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    gavl_video_format_copy(&vp->format, format);
-    
-    vp->format.frame_duration *= 2;
-    vp->format.interlace_mode = vp->out_interlace;
-    gavl_get_field_format(&vp->format, &vp->field_format[0], 0);
-    gavl_get_field_format(&vp->format, &vp->field_format[1], 1);
-    }
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = NULL;
-    }
-  vp->need_restart = 0;
-  }
-
-static void
-get_output_format_interlace(void * priv, gavl_video_format_t * format)
-  {
-  interlace_priv_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
-
-static int read_video_interlace(void * priv,
-                                gavl_video_frame_t * frame,
-                                int stream)
-  {
-  interlace_priv_t * vp;
   int field;
-  vp = priv;
+  gavl_source_status_t st;
+  gavl_video_frame_t * frame2 = NULL;
+  interlace_priv_t * vp = priv;
 
   field = vp->out_interlace == GAVL_INTERLACE_TOP_FIRST ? 0 : 1;
-
-  if(!vp->frame)
+  
+  if(!vp->frame1)
     {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
+    vp->frame1 = gavl_video_frame_create(&vp->format);
+    gavl_video_frame_clear(vp->frame1, &vp->format);
     }
-  
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
-    return 0;
-  
+
+  if(vp->num_frames == 0)
+    {
+    if((st = gavl_video_source_read_frame(vp->in_src, &vp->frame1)) !=
+       GAVL_SOURCE_OK)
+      return st;
+    vp->num_frames++;
+    }
+  if(vp->num_frames == 1)
+    {
+    if((st = gavl_video_source_read_frame(vp->in_src, &frame2)) !=
+       GAVL_SOURCE_OK)
+      return st;
+    vp->num_frames++;
+    }
+
   /* Copy first field */
-  gavl_video_frame_get_field(vp->format.pixelformat,
-                             vp->frame,
-                             vp->src_field, field);
+  copy_field(vp, vp->frame1, *frame, field);
   
-  gavl_video_frame_get_field(vp->format.pixelformat,
-                             frame,
-                             vp->dst_field, field);
-
-  gavl_video_frame_copy(&vp->field_format[field], vp->dst_field, vp->src_field);
-
-  gavl_video_frame_copy_metadata(frame, vp->frame);
-
+  gavl_video_frame_copy_metadata(*frame, vp->frame1);
+  
   field = 1 - field;
   
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
-    {
-    /* First field is available, but not the second one: make it black */
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    return 0;
-    }
-  else
-    {
-    frame->duration += vp->frame->duration;
-    }
   /* Copy second field */
   
-  gavl_video_frame_get_field(vp->format.pixelformat,
-                             vp->frame,
-                             vp->src_field, field);
-  
-  gavl_video_frame_get_field(vp->format.pixelformat,
-                             frame,
-                             vp->dst_field, field);
-  gavl_video_frame_copy(&vp->field_format[field], vp->dst_field, vp->src_field);
-  
-  
-  return 1;
+  copy_field(vp, frame2, *frame, field);
+  (*frame)->duration += frame2->duration;
+  vp->num_frames = 0;
+  return GAVL_SOURCE_OK;
   }
+
+
+static gavl_video_source_t * connect_interlace(void * priv,
+                                               gavl_video_source_t * src,
+                                               const gavl_video_options_t * opt)
+  {
+  const gavl_video_format_t * in_format;
+
+  interlace_priv_t * vp = priv;
+
+  in_format = gavl_video_source_get_src_format(vp->in_src);
+  
+  vp->in_src = src;
+  gavl_video_format_copy(&vp->format,
+                         in_format);
+  
+  vp->format.frame_duration *= 2;
+  vp->format.interlace_mode = vp->out_interlace;
+  gavl_get_field_format(&vp->format, &vp->field_format[0], 0);
+  gavl_get_field_format(&vp->format, &vp->field_format[1], 1);
+
+  if(vp->frame1)
+    {
+    gavl_video_frame_destroy(vp->frame1);
+    vp->frame1 = NULL;
+    }
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, in_format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  vp->need_restart = 0;
+  vp->num_frames = 0;
+  return vp->out_src;
+  }
+
+static void reset_interlace(void * priv)
+  {
+  interlace_priv_t * vp = priv;
+  vp->num_frames = 0;
+  }
+
 
 const bg_fv_plugin_t the_plugin = 
   {
@@ -254,14 +264,9 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_interlace,
-    
-    .set_input_format = set_input_format_interlace,
-    .get_output_format = get_output_format_interlace,
-
-    .read_video = read_video_interlace,
+    .connect = connect_interlace,
     .need_restart = need_restart_interlace,
-    
+    .reset = reset_interlace,
   };
 
 /* Include this into all plugin modules exactly once

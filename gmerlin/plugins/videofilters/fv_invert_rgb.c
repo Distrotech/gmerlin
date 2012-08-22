@@ -50,7 +50,9 @@ typedef struct invert_priv_s
 
   gavl_video_options_t * global_opt;
   
-  
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+
   } invert_priv_t;
 
 static const float coeffs_unity[4][5] =
@@ -85,13 +87,10 @@ static void destroy_invert(void * priv)
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
-  free(vp);
-  }
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
 
-static gavl_video_options_t * get_options_invert(void * priv)
-  {
-  invert_priv_t * vp = priv;
-  return vp->global_opt;
+  free(vp);
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -198,21 +197,6 @@ static void set_parameter_invert(void * priv, const char * name,
     {
     set_coeffs(vp);
     bg_colormatrix_set_rgba(vp->mat, vp->coeffs);
-    }
-  }
-
-static void connect_input_port_invert(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  invert_priv_t * vp;
-  vp = priv;
-  
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
     }
   }
 
@@ -487,72 +471,87 @@ static void process_matrix(invert_priv_t * vp, gavl_video_frame_t * frame)
   bg_colormatrix_process(vp->mat, frame);
   }
 
-static void set_input_format_invert(void * priv, gavl_video_format_t * format, int port)
+static void set_format(invert_priv_t * vp, const gavl_video_format_t * format)
   {
-  invert_priv_t * vp;
-  vp = priv;
+  gavl_video_format_copy(&vp->format, format);
 
-  if(!port)
+  switch(vp->format.pixelformat)
     {
-    switch(format->pixelformat)
-      {
-      case GAVL_RGB_24:
-        vp->process = process_rgb24;
-        break;
-      case GAVL_RGB_32:
-        vp->process = process_rgb32;
-        break;
-      case GAVL_BGR_24:
-        vp->process = process_bgr24;
-        break;
-      case GAVL_BGR_32:
-        vp->process = process_bgr32;
-        break;
-      case GAVL_RGBA_32:
-        vp->process = process_rgba32;
-        break;
-      case GAVL_RGB_48:
-        vp->process = process_rgb48;
-        break;
-      case GAVL_RGBA_64:
-        vp->process = process_rgba64;
-        break;
-      case GAVL_RGB_FLOAT:
-        vp->process = process_rgb_float;
-        break;
-      case GAVL_RGBA_FLOAT:
-        vp->process = process_rgba_float;
-        break;
-      default:
-        vp->process = process_matrix;
-        bg_colormatrix_init(vp->mat, format, 0, vp->global_opt);
-        break;
-      }
-    
-    gavl_video_format_copy(&vp->format, format);
+    case GAVL_RGB_24:
+      vp->process = process_rgb24;
+      break;
+    case GAVL_RGB_32:
+      vp->process = process_rgb32;
+      break;
+    case GAVL_BGR_24:
+      vp->process = process_bgr24;
+      break;
+    case GAVL_BGR_32:
+      vp->process = process_bgr32;
+      break;
+    case GAVL_RGBA_32:
+      vp->process = process_rgba32;
+      break;
+    case GAVL_RGB_48:
+      vp->process = process_rgb48;
+      break;
+    case GAVL_RGBA_64:
+      vp->process = process_rgba64;
+      break;
+    case GAVL_RGB_FLOAT:
+      vp->process = process_rgb_float;
+      break;
+    case GAVL_RGBA_FLOAT:
+      vp->process = process_rgba_float;
+      break;
+    default:
+      vp->process = process_matrix;
+      bg_colormatrix_init(vp->mat, &vp->format, 0, vp->global_opt);
+      break;
     }
   }
 
-static void get_output_format_invert(void * priv, gavl_video_format_t * format)
+static gavl_source_status_t read_func(void * priv, gavl_video_frame_t ** frame)
   {
-  invert_priv_t * vp;
-  vp = priv;
-  gavl_video_format_copy(format, &vp->format);
-  }
+  gavl_source_status_t st;
+  invert_priv_t * vp = priv;
 
-static int read_video_invert(void * priv, gavl_video_frame_t * frame, int stream)
-  {
-  invert_priv_t * vp;
-  vp = priv;
-  
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
+  if((st = gavl_video_source_read_frame(vp->in_src, frame)) != GAVL_SOURCE_OK)
+    return st;
   
   if(vp->invert[0] || vp->invert[1] || vp->invert[2] || vp->invert[3])
-    vp->process(vp, frame);
-  
-  return 1;
+    vp->process(vp, *frame);
+  return GAVL_SOURCE_OK;
   }
+
+static gavl_video_source_t * connect_invert(void * priv, gavl_video_source_t * src,
+                                            const gavl_video_options_t * opt)
+  {
+  invert_priv_t * vp;
+  vp = priv;
+
+  vp->in_src = src;
+  set_format(vp, gavl_video_source_get_src_format(vp->in_src));
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    }
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  return vp->out_src;
+  }
+
 
 const bg_fv_plugin_t the_plugin = 
   {
@@ -571,14 +570,7 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_invert,
-    
-    .set_input_format = set_input_format_invert,
-    .get_output_format = get_output_format_invert,
-
-    .read_video = read_video_invert,
-    .get_options = get_options_invert,
-    
+    .connect = connect_invert,
   };
 
 /* Include this into all plugin modules exactly once

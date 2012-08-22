@@ -48,6 +48,10 @@ typedef struct
   int style;
   float strength;
   float gain[3];
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+
   } oldcolor_priv_t;
 
 #define STYLE_BW    0
@@ -110,13 +114,11 @@ static void destroy_oldcolor(void * priv)
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
-  free(vp);
-  }
 
-static gavl_video_options_t * get_options_oldcolor(void * priv)
-  {
-  oldcolor_priv_t * vp = priv;
-  return vp->global_opt;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+
+  free(vp);
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -286,57 +288,52 @@ static void set_parameter_oldcolor(void * priv, const char * name,
     }
   }
 
-static void connect_input_port_oldcolor(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
+
+static gavl_source_status_t read_func(void * priv, gavl_video_frame_t ** frame)
   {
   oldcolor_priv_t * vp;
+  gavl_source_status_t st;
   vp = priv;
+
+  if((st = gavl_video_source_read_frame(vp->in_src, frame)) != GAVL_SOURCE_OK)
+    return st;
   
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
+  bg_colormatrix_process(vp->mat, *frame);
+  return GAVL_SOURCE_OK;
   }
 
-static void set_input_format_oldcolor(void * priv, gavl_video_format_t * format, int port)
+static gavl_video_source_t * connect_oldcolor(void * priv, gavl_video_source_t * src,
+                                              const gavl_video_options_t * opt)
   {
   oldcolor_priv_t * vp;
   vp = priv;
 
-  if(!port)
-    {
-    bg_colormatrix_init(vp->mat, format, 0, vp->global_opt);
-    gavl_video_format_copy(&vp->format, format);
-    }
-  }
-
-static void get_output_format_oldcolor(void * priv, gavl_video_format_t * format)
-  {
-  oldcolor_priv_t * vp;
-  vp = priv;
-  gavl_video_format_copy(format, &vp->format);
-  }
-
-static int read_video_oldcolor(void * priv, gavl_video_frame_t * frame, int stream)
-  {
-  oldcolor_priv_t * vp;
-  vp = priv;
-
-#if 0  
-  if(!vp->oldcolor_h && !vp->oldcolor_v)
-    {
-    return vp->read_func(vp->read_data, frame, vp->read_stream);
-    }
-#endif
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
+  vp->in_src = src;
   
-  bg_colormatrix_process(vp->mat, frame);
-  return 1;
+  gavl_video_format_copy(&vp->format, gavl_video_source_get_src_format(vp->in_src));
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    }
+
+  bg_colormatrix_init(vp->mat, &vp->format, 0, vp->global_opt);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  return vp->out_src;
   }
+
 
 const bg_fv_plugin_t the_plugin = 
   {
@@ -355,14 +352,7 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_oldcolor,
-    
-    .set_input_format = set_input_format_oldcolor,
-    .get_output_format = get_output_format_oldcolor,
-
-    .read_video = read_video_oldcolor,
-    .get_options = get_options_oldcolor,
-    
+    .connect = connect_oldcolor,
   };
 
 /* Include this into all plugin modules exactly once
