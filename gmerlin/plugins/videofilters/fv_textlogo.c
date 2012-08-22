@@ -38,10 +38,6 @@
 
 typedef struct
   {
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_format_t format;
   gavl_video_format_t ovl_format;
   
@@ -53,6 +49,10 @@ typedef struct
   char * textlogo;
 
   int need_overlay;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+  
   } tc_priv_t;
 
 static void * create_textlogo()
@@ -73,6 +73,9 @@ static void destroy_textlogo(void * priv)
   
   if(vp->textlogo)
     free(vp->textlogo);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   
   free(vp);
   }
@@ -226,30 +229,11 @@ set_parameter_textlogo(void * priv, const char * name,
                                    name, val);
   }
 
-static void connect_input_port_textlogo(void * priv,
-                                        bg_read_video_func_t func,
-                                        void * data, int stream, int port)
+static void set_format(void * priv,
+                       const gavl_video_format_t * format)
   {
   tc_priv_t * vp;
   vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
-  }
-
-static void set_input_format_textlogo(void * priv,
-                                       gavl_video_format_t * format, int port)
-  {
-  tc_priv_t * vp;
-  vp = priv;
-  
-  if(port)
-    return;
   
   gavl_video_format_copy(&vp->format, format);
 
@@ -269,24 +253,17 @@ static void set_input_format_textlogo(void * priv,
 
   }
 
-static void get_output_format_textlogo(void * priv,
-                                 gavl_video_format_t * format)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
-  tc_priv_t * vp;
-  vp = priv;
+  gavl_source_status_t st;
   
-  gavl_video_format_copy(format, &vp->format);
-  }
+  tc_priv_t * vp = priv;
 
-static int read_video_textlogo(void * priv, gavl_video_frame_t * frame,
-                                int stream)
-  {
-  tc_priv_t * vp;
-  vp = priv;
+  if((st = gavl_video_source_read_frame(vp->in_src, frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
   
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-
   if(vp->need_overlay)
     {
     gavl_video_frame_clear(vp->ovl.frame, &vp->ovl_format);
@@ -299,10 +276,31 @@ static int read_video_textlogo(void * priv, gavl_video_frame_t * frame,
     vp->need_overlay = 0;
     }
   
-  
-  gavl_overlay_blend(vp->blender, frame);
+  gavl_overlay_blend(vp->blender, *frame);
 
-  return 1;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t *
+connect_textlogo(void * priv, gavl_video_source_t * src,
+                 const gavl_video_options_t * opt)
+  {
+  tc_priv_t * vp = priv;
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  vp->in_src = src;
+  set_format(vp, gavl_video_source_get_src_format(vp->in_src));
+
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -322,12 +320,7 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_textlogo,
-    
-    .set_input_format = set_input_format_textlogo,
-    .get_output_format = get_output_format_textlogo,
-
-    .read_video = read_video_textlogo,
+    .connect = connect_textlogo,
     
   };
 
