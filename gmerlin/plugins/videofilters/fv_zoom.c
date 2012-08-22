@@ -37,13 +37,8 @@ typedef struct
   float scale_h;
   float scale_v;
   
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_format_t format;
   
-  gavl_video_frame_t * frame;
   gavl_video_scaler_t * scaler;
   gavl_video_options_t * opt;
   
@@ -53,11 +48,14 @@ typedef struct
   gavl_scale_mode_t scale_mode;
   
   float bg_color[4];
-  } zs_priv_t;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+  } zoom_priv_t;
 
 static void * create_zoom()
   {
-  zs_priv_t * ret;
+  zoom_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->scaler = gavl_video_scaler_create();
   ret->opt = gavl_video_scaler_get_options(ret->scaler);
@@ -66,11 +64,11 @@ static void * create_zoom()
 
 static void destroy_zoom(void * priv)
   {
-  zs_priv_t * vp;
+  zoom_priv_t * vp;
   vp = priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
-
+  if(vp->in_src)
+    gavl_video_source_destroy(vp->in_src);
+  
   gavl_video_scaler_destroy(vp->scaler);
   
   free(vp);
@@ -172,7 +170,7 @@ static const bg_parameter_info_t * get_parameters_zoom(void * priv)
 
 static void set_parameter_zoom(void * priv, const char * name, const bg_parameter_value_t * val)
   {
-  zs_priv_t * vp;
+  zoom_priv_t * vp;
   gavl_scale_mode_t scale_mode;
   gavl_downscale_filter_t new_downscale_filter;
 
@@ -248,49 +246,9 @@ static void set_parameter_zoom(void * priv, const char * name, const bg_paramete
     }
   }
 
-static void connect_input_port_zoom(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  zs_priv_t * vp;
-  vp = priv;
 
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
-  }
 
-static void set_input_format_zoom(void * priv,
-                                gavl_video_format_t * format, int port)
-  {
-  zs_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    gavl_video_format_copy(&vp->format, format);
-
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = NULL;
-    }
-  vp->changed = 1;
-  }
-
-static void get_output_format_zoom(void * priv,
-                                 gavl_video_format_t * format)
-  {
-  zs_priv_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
-
-static void init_scaler(zs_priv_t * vp)
+static void init_scaler(zoom_priv_t * vp)
   {
   int i_tmp;
   float f_tmp;
@@ -338,35 +296,60 @@ static void init_scaler(zs_priv_t * vp)
   vp->changed = 0;
   }
 
-static int read_video_zoom(void * priv, gavl_video_frame_t * frame,
-                         int stream)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
-  zs_priv_t * vp;
+  gavl_source_status_t st;
+  zoom_priv_t * vp;
+  gavl_video_frame_t * in_frame = NULL;
   vp = priv;
 
   if((vp->scale_h == 1.0) && (vp->scale_v == 1.0))
     {
-    return vp->read_func(vp->read_data, frame, vp->read_stream);
+    return gavl_video_source_read_frame(vp->in_src, frame);
     }
-  
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    }
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
-    return 0;
 
+  if((st = gavl_video_source_read_frame(vp->in_src, &in_frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
+  
   if(vp->changed)
     init_scaler(vp);
   
-  gavl_video_frame_fill(frame, &vp->format, vp->bg_color);
+  gavl_video_frame_fill(*frame, &vp->format, vp->bg_color);
+  gavl_video_scaler_scale(vp->scaler, in_frame, *frame);
+  gavl_video_frame_copy_metadata(*frame, in_frame);
   
-  gavl_video_scaler_scale(vp->scaler, vp->frame, frame);
+  return GAVL_SOURCE_OK;
+  }
 
-  gavl_video_frame_copy_metadata(frame, vp->frame);
+static gavl_video_source_t *
+connect_zoom(void * priv, gavl_video_source_t * src, const gavl_video_options_t * opt)
+  {
+  zoom_priv_t * vp = priv;
+
+  vp->in_src = src;
+  gavl_video_format_copy(&vp->format,
+                         gavl_video_source_get_src_format(vp->in_src));
   
-  return 1;
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->opt, opt);
+    }
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  vp->changed = 1;
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -386,12 +369,7 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_zoom,
-    
-    .set_input_format = set_input_format_zoom,
-    .get_output_format = get_output_format_zoom,
-
-    .read_video = read_video_zoom,
+    .connect = connect_zoom,
     
   };
 
