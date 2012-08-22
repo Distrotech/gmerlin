@@ -38,10 +38,6 @@
 
 typedef struct
   {
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_format_t format;
   gavl_video_format_t ovl_format;
   
@@ -52,6 +48,10 @@ typedef struct
   
   int interpolate;
   gavl_timecode_t last_timecode;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+
   } tc_priv_t;
 
 static void * create_tcdisplay()
@@ -224,31 +224,18 @@ set_parameter_tcdisplay(void * priv, const char * name,
 
     }
 
-static void connect_input_port_tcdisplay(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
+static void reset_tcdisplay(void * priv)
   {
   tc_priv_t * vp;
   vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
+  vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
   }
 
-static void set_input_format_tcdisplay(void * priv,
-                                       gavl_video_format_t * format, int port)
+static void set_format(void * priv,
+                       const gavl_video_format_t * format)
   {
   tc_priv_t * vp;
   vp = priv;
-  
-  if(port)
-    return;
-
   
   gavl_video_format_copy(&vp->format, format);
 
@@ -264,32 +251,22 @@ static void set_input_format_tcdisplay(void * priv,
     gavl_video_frame_destroy(vp->ovl.frame);
   vp->ovl.frame = gavl_video_frame_create(&vp->ovl_format);
   vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
-
-
   }
 
-static void get_output_format_tcdisplay(void * priv,
-                                 gavl_video_format_t * format)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
-  tc_priv_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
-
-static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
-                                int stream)
-  {
+  gavl_source_status_t st;
   tc_priv_t * vp;
   char str[GAVL_TIMECODE_STRING_LEN];
   char * pos;
   vp = priv;
   
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-
-
-  if(frame->timecode == GAVL_TIMECODE_UNDEFINED)
+  if((st = gavl_video_source_read_frame(vp->in_src, frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
+  
+  if((*frame)->timecode == GAVL_TIMECODE_UNDEFINED)
     {
     if(vp->interpolate && (vp->last_timecode != GAVL_TIMECODE_UNDEFINED))
       {
@@ -308,9 +285,8 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
     }
   else
     {
-    vp->last_timecode = frame->timecode;
+    vp->last_timecode = (*frame)->timecode;
     }
-
   
   gavl_timecode_prettyprint(&vp->format.timecode_format,
                             vp->last_timecode, str);
@@ -320,22 +296,36 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
     *pos = '\n';
   
   //  fprintf(stderr, "Got timecode: %s\n", str);
-
   
   bg_text_renderer_render(vp->renderer, str, &vp->ovl);
   // bg_text_renderer_render(vp->renderer, "Blah", &vp->ovl);
   gavl_overlay_blend_context_set_overlay(vp->blender, &vp->ovl);
   
-  gavl_overlay_blend(vp->blender, frame);
-
-  return 1;
+  gavl_overlay_blend(vp->blender, *frame);
+  
+  return GAVL_SOURCE_OK;
   }
 
-static void reset_tcdisplay(void * priv)
+static gavl_video_source_t *
+connect_tcdisplay(void * priv, gavl_video_source_t * src,
+                  const gavl_video_options_t * opt)
   {
-  tc_priv_t * vp;
-  vp = priv;
-  vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
+  tc_priv_t * vp = priv;
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  vp->in_src = src;
+  set_format(vp, gavl_video_source_get_src_format(vp->in_src));
+
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -355,12 +345,8 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_tcdisplay,
+    .connect = connect_tcdisplay,
     
-    .set_input_format = set_input_format_tcdisplay,
-    .get_output_format = get_output_format_tcdisplay,
-
-    .read_video = read_video_tcdisplay,
     .reset      = reset_tcdisplay,
     
   };
