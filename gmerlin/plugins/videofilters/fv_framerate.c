@@ -35,14 +35,12 @@
 typedef struct
   {
   int need_restart;
-
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
   
   gavl_video_format_t format;
-
   bg_gavl_video_options_t opt;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   
   } framerate_priv_t;
 
@@ -60,6 +58,10 @@ static void destroy_framerate(void * priv)
   {
   framerate_priv_t * vp = priv;
   bg_gavl_video_options_free(&vp->opt);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+  
   free(vp);
   }
 
@@ -100,58 +102,58 @@ set_parameter_framerate(void * priv, const char * name,
     vp->need_restart = 1;
   }
 
-static void connect_input_port_framerate(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  framerate_priv_t * vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  }
-
-static void set_input_format_framerate(void * priv,
-                                         gavl_video_format_t * format,
-                                         int port)
-  {
-  framerate_priv_t * vp = priv;
-  
-  if(!port)
-    {
-    gavl_video_format_copy(&vp->format, format);
-    bg_gavl_video_options_set_framerate(&vp->opt,
-                                        format,
-                                        &vp->format);
-    gavl_video_format_copy(format, &vp->format);
-    vp->need_restart = 0;
-
-    
-    }
-  }
-
-static void get_output_format_framerate(void * priv, gavl_video_format_t * format)
-  {
-  framerate_priv_t * vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
-
 static int need_restart_framerate(void * priv)
   {
   framerate_priv_t * vp = priv;
   return vp->need_restart;
   }
 
-static int read_video_framerate(void * priv,
-                                  gavl_video_frame_t * frame, int stream)
+static gavl_source_status_t
+read_func(void * priv,
+          gavl_video_frame_t ** frame)
   {
   framerate_priv_t * vp = priv;
-  return vp->read_func(vp->read_data, frame, vp->read_stream);
+  return gavl_video_source_read_frame(vp->in_src, frame);
   }
+
+static gavl_video_source_t *
+connect_framerate(void * priv,
+                  gavl_video_source_t * src,
+                  const gavl_video_options_t * opt)
+  {
+  const gavl_video_format_t * in_format;
+  framerate_priv_t * vp = priv;
+  
+  vp->in_src = src;
+
+  in_format = gavl_video_source_get_src_format(vp->in_src);
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+
+  /* Set framerate */
+
+  gavl_video_format_copy(&vp->format,
+                         in_format);
+
+  bg_gavl_video_options_set_framerate(&vp->opt,
+                                      in_format,
+                                      &vp->format);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  return vp->out_src;
+  }
+                                          
 
 const bg_fv_plugin_t the_plugin = 
   {
@@ -169,13 +171,14 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_framerate,
       .priority =         1,
     },
-    
+
+#if 0    
     .connect_input_port = connect_input_port_framerate,
-    
     .set_input_format = set_input_format_framerate,
     .get_output_format = get_output_format_framerate,
-
     .read_video = read_video_framerate,
+#endif
+    .connect = connect_framerate,
     .need_restart = need_restart_framerate,
     
   };

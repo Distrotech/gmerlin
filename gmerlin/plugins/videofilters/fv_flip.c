@@ -42,7 +42,8 @@ typedef struct
   
   gavl_video_format_t format;
 
-  gavl_video_frame_t * frame;
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   } flip_priv_t;
 
 static void * create_flip()
@@ -56,8 +57,8 @@ static void destroy_flip(void * priv)
   {
   flip_priv_t * vp;
   vp = priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 
@@ -100,75 +101,61 @@ static void set_parameter_flip(void * priv, const char * name,
     vp->flip_v = val->val_i;
   }
 
-static void connect_input_port_flip(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
   flip_priv_t * vp;
-  vp = priv;
+  gavl_source_status_t st;
 
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
-  }
-
-static void set_input_format_flip(void * priv, gavl_video_format_t * format, int port)
-  {
-  flip_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    gavl_video_format_copy(&vp->format, format);
-
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = NULL;
-    }
-  }
-
-static void get_output_format_flip(void * priv, gavl_video_format_t * format)
-  {
-  flip_priv_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
-
-static int read_video_flip(void * priv, gavl_video_frame_t * frame, int stream)
-  {
-  flip_priv_t * vp;
+  gavl_video_frame_t * in_frame = NULL;
   vp = priv;
 
   if(!vp->flip_h && !vp->flip_v)
-    {
-    return vp->read_func(vp->read_data, frame, vp->read_stream);
-    }
+    return gavl_video_source_read_frame(vp->in_src, frame);
 
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    }
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
-    return 0;
+  if((st = gavl_video_source_read_frame(vp->in_src, &in_frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
   
   if(vp->flip_h)
     {
     if(vp->flip_v)
-      gavl_video_frame_copy_flip_xy(&vp->format, frame, vp->frame);
+      gavl_video_frame_copy_flip_xy(&vp->format, *frame, in_frame);
     else
-      gavl_video_frame_copy_flip_x(&vp->format, frame, vp->frame);
+      gavl_video_frame_copy_flip_x(&vp->format, *frame, in_frame);
     }
   else /* Flip y */
-    gavl_video_frame_copy_flip_y(&vp->format, frame, vp->frame);
+    gavl_video_frame_copy_flip_y(&vp->format, *frame, in_frame);
+  gavl_video_frame_copy_metadata(*frame, in_frame);
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t *
+connect_flip(void * priv, gavl_video_source_t * src,
+             const gavl_video_options_t * opt)
+  {
+  flip_priv_t * vp;
+  vp = priv;
+
+  vp->in_src = src;
+  gavl_video_format_copy(&vp->format,
+                         gavl_video_source_get_src_format(vp->in_src));
   
-  gavl_video_frame_copy_metadata(frame, vp->frame);
-  return 1;
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -187,14 +174,8 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_flip,
       .priority =         1,
     },
-    
-    .connect_input_port = connect_input_port_flip,
-    
-    .set_input_format = set_input_format_flip,
-    .get_output_format = get_output_format_flip,
 
-    .read_video = read_video_flip,
-    
+    .connect = connect_flip,
   };
 
 /* Include this into all plugin modules exactly once
