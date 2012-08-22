@@ -53,6 +53,10 @@ typedef struct
   int drop;
   int hours, minutes, seconds, frames;
   gavl_timecode_t first_timecode;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
+  
   } tc_priv_t;
 
 static void * create_tctweak()
@@ -66,6 +70,9 @@ static void destroy_tctweak(void * priv)
   {
   tc_priv_t * vp;
   vp = priv;
+  
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 
@@ -191,30 +198,11 @@ set_parameter_tctweak(void * priv, const char * name,
   
   }
 
-static void connect_input_port_tctweak(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
+static void
+set_format(void * priv, const gavl_video_format_t * format)
   {
   tc_priv_t * vp;
   vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
-  }
-
-static void set_input_format_tctweak(void * priv,
-                                gavl_video_format_t * format, int port)
-  {
-  tc_priv_t * vp;
-  vp = priv;
-  
-  if(port)
-    return;
   
   gavl_video_format_copy(&vp->format, format);
   
@@ -244,15 +232,6 @@ static void set_input_format_tctweak(void * priv,
     }
   }
 
-static void get_output_format_tctweak(void * priv,
-                                 gavl_video_format_t * format)
-  {
-  tc_priv_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
-
 static gavl_timecode_t do_increment(tc_priv_t * vp, gavl_timecode_t tc)
   {
   int64_t frames;
@@ -263,50 +242,52 @@ static gavl_timecode_t do_increment(tc_priv_t * vp, gavl_timecode_t tc)
                                        frames);
   }
 
-static int read_video_tctweak(void * priv, gavl_video_frame_t * frame,
-                         int stream)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
+  gavl_source_status_t st;
   tc_priv_t * vp;
   gavl_timecode_t tc;
   vp = priv;
 
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
+  if((st = gavl_video_source_read_frame(vp->in_src, frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
   
   if(!vp->format.timecode_format.int_framerate)
-    return 1;
+    return GAVL_SOURCE_OK;
   
   switch(vp->mode)
     {
     case MODE_OFF:
       break;
     case MODE_INTERPOLATE:
-      if(frame->timecode == GAVL_TIMECODE_UNDEFINED)
+      if((*frame)->timecode == GAVL_TIMECODE_UNDEFINED)
         {
         if(vp->last_timecode)
-          frame->timecode = do_increment(vp, vp->last_timecode);
+          (*frame)->timecode = do_increment(vp, vp->last_timecode);
         }
-      vp->last_timecode = frame->timecode;
+      vp->last_timecode = (*frame)->timecode;
       break;
     case MODE_REMOVE_REDUNDANT:
-      if(frame->timecode != GAVL_TIMECODE_UNDEFINED)
+      if((*frame)->timecode != GAVL_TIMECODE_UNDEFINED)
         {
         if(vp->last_timecode == GAVL_TIMECODE_UNDEFINED)
           {
-          vp->last_timecode = frame->timecode;
+          vp->last_timecode = (*frame)->timecode;
           return 1;
           }
         tc = do_increment(vp, vp->last_timecode);
-        if(tc == frame->timecode)
+        if(tc == (*frame)->timecode)
           {
-          frame->timecode = GAVL_TIMECODE_UNDEFINED;
+          (*frame)->timecode = GAVL_TIMECODE_UNDEFINED;
           }
         else
           {
           fprintf(stderr, "Non continuous timecode: ");
           gavl_timecode_dump(&vp->format.timecode_format, tc);
           fprintf(stderr, " != ");
-          gavl_timecode_dump(&vp->format.timecode_format, frame->timecode);
+          gavl_timecode_dump(&vp->format.timecode_format, (*frame)->timecode);
           fprintf(stderr, "\n");
           }
         vp->last_timecode = tc;
@@ -315,25 +296,47 @@ static int read_video_tctweak(void * priv, gavl_video_frame_t * frame,
         vp->last_timecode = do_increment(vp, vp->last_timecode);
       break;
     case MODE_REMOVE_ALL:
-      frame->timecode = GAVL_TIMECODE_UNDEFINED;
+      (*frame)->timecode = GAVL_TIMECODE_UNDEFINED;
       break;
     case MODE_ADD:
     case MODE_ADD_FIRST:
       if(vp->last_timecode == GAVL_TIMECODE_UNDEFINED)
         {
-        frame->timecode = vp->first_timecode;
-        vp->last_timecode = frame->timecode;
+        (*frame)->timecode = vp->first_timecode;
+        vp->last_timecode = (*frame)->timecode;
         }
       else if(vp->mode == MODE_ADD)
         {
-        frame->timecode = do_increment(vp, vp->last_timecode);
-        vp->last_timecode = frame->timecode;
+        (*frame)->timecode = do_increment(vp, vp->last_timecode);
+        vp->last_timecode = (*frame)->timecode;
         }
       else
-        frame->timecode = GAVL_TIMECODE_UNDEFINED;
+        (*frame)->timecode = GAVL_TIMECODE_UNDEFINED;
       break;
     }
-  return 1;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_video_source_t *
+connect_tctweak(void * priv, gavl_video_source_t * src,
+                const gavl_video_options_t * opt)
+  {
+  tc_priv_t * vp = priv;
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  vp->in_src = src;
+  set_format(vp, gavl_video_source_get_src_format(vp->in_src));
+
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 
@@ -353,12 +356,7 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_tctweak,
-    
-    .set_input_format = set_input_format_tctweak,
-    .get_output_format = get_output_format_tctweak,
-
-    .read_video = read_video_tctweak,
+    .connect = connect_tctweak,
     
   };
 

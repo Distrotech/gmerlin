@@ -69,6 +69,10 @@ static void destroy_tcdisplay(void * priv)
   vp = priv;
   bg_text_renderer_destroy(vp->renderer);
   gavl_overlay_blend_context_destroy(vp->blender);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+
   free(vp);
   }
 
