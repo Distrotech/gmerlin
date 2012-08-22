@@ -43,14 +43,8 @@
 
 typedef struct
   {
-  
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_format_t format;
   
-  gavl_video_frame_t * frame;
   gavl_image_transform_t * transform;
   gavl_video_options_t * opt;
   gavl_video_options_t * global_opt;
@@ -106,8 +100,11 @@ typedef struct
   double whirl_radius_real;
   double whirl_radius2;
   double whirl_angle_real;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   
-  } transform_t;
+  } transform_priv_t;
 
 static void transfer_global_options(gavl_video_options_t * opt,
                                     gavl_video_options_t * global_opt)
@@ -129,7 +126,7 @@ static void transfer_global_options(gavl_video_options_t * opt,
 
 static void * create_transform()
   {
-  transform_t * ret;
+  transform_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->transform = gavl_image_transform_create();
   ret->opt = gavl_image_transform_get_options(ret->transform);
@@ -137,22 +134,15 @@ static void * create_transform()
   return ret;
   }
 
-static gavl_video_options_t * get_options_transform(void * priv)
-  {
-  transform_t * vp = priv;
-  return vp->global_opt;
-  }
-
-
 static void destroy_transform(void * priv)
   {
-  transform_t * vp;
+  transform_priv_t * vp;
   vp = priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
-
+  
   gavl_image_transform_destroy(vp->transform);
   gavl_video_options_destroy(vp->global_opt);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   
   free(vp);
   }
@@ -417,7 +407,7 @@ static void
 set_parameter_transform(void * priv, const char * name,
                         const bg_parameter_value_t * val)
   {
-  transform_t * vp;
+  transform_priv_t * vp;
   gavl_scale_mode_t scale_mode;
   
   vp = priv;
@@ -616,55 +606,12 @@ set_parameter_transform(void * priv, const char * name,
     }
   }
 
-static void connect_input_port_transform(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  transform_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  }
-
-static void set_input_format_transform(void * priv,
-                                gavl_video_format_t * format, int port)
-  {
-  transform_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    gavl_video_format_copy(&vp->format, format);
-
-    if(vp->frame)
-      {
-      gavl_video_frame_destroy(vp->frame);
-      vp->frame = NULL;
-      }
-    vp->sar = (double)format->pixel_width / (double)format->pixel_height;
-    vp->changed = 1;
-    }
-  }
-
-static void get_output_format_transform(void * priv,
-                                 gavl_video_format_t * format)
-  {
-  transform_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
 
 static void transform_func_matrix(void * priv,
                                   double dst_x, double dst_y,
                                   double * src_x, double * src_y)
   {
-  transform_t * vp;
+  transform_priv_t * vp;
   vp = priv;
   *src_x = dst_x * vp->matrix[0][0] +
     dst_y * vp->matrix[0][1] +
@@ -715,7 +662,7 @@ static void matrix_invert(double src[2][3], double dst[2][3])
   dst[1][2] = (src[0][2] * src[1][0] - src[0][0] * src[1][2]) / det;
   }
 
-static void init_transform_matrix(transform_t * vp, double mat[2][3])
+static void init_transform_matrix(transform_priv_t * vp, double mat[2][3])
   {
   double mat1[2][3];
   double mat2[2][3];
@@ -741,7 +688,7 @@ static void init_transform_matrix(transform_t * vp, double mat[2][3])
   matrixmult(mat2, mat3, vp->matrix);
   }
 
-static void init_matrix_rotate(transform_t * vp)
+static void init_matrix_rotate(transform_priv_t * vp)
   {
   double mat[2][3];
   double sin_angle, cos_angle;
@@ -767,7 +714,7 @@ static void init_matrix_rotate(transform_t * vp)
   
   }
 
-static void init_matrix_affine(transform_t * vp)
+static void init_matrix_affine(transform_priv_t * vp)
   {
   double mat1[2][3];
   double mat2[2][3];
@@ -804,7 +751,7 @@ static void transform_func_matrix3(void * priv,
                                    double *newy)
   {
   double  w;
-  transform_t * vp;
+  transform_priv_t * vp;
   vp = priv;
   w = vp->matrix3[2][0] * x + vp->matrix3[2][1] * y + vp->matrix3[2][2];
   
@@ -1001,7 +948,7 @@ matrix3_invert (double mat[3][3], double inv[3][3])
 }
 
 
-static void init_perspective(transform_t * vp)
+static void init_perspective(transform_priv_t * vp)
   {
   double tl[2];
   double tr[2];
@@ -1055,7 +1002,7 @@ static void init_perspective(transform_t * vp)
   matrix3_invert(mat, vp->matrix3);
   }
 
-static void init_lens_effect(transform_t * vp)
+static void init_lens_effect(transform_priv_t * vp)
   {
   if(EQUAL(vp->lens_effect_diameter, 0.0))
     {
@@ -1083,7 +1030,7 @@ static void transform_func_lens_effect(void * priv,
                                        double *newx,
                                        double *newy)
   {
-  transform_t * vp;
+  transform_priv_t * vp;
   double distance;
   double shift;
   double x1, y1;
@@ -1111,7 +1058,7 @@ static void transform_func_lens_effect(void * priv,
     }
   }
 
-static void init_whirl(transform_t * vp)
+static void init_whirl(transform_priv_t * vp)
   {
   if(EQUAL(vp->whirl_radius, 0.0) ||
      (EQUAL(vp->whirl_angle, 0.0) &&
@@ -1140,7 +1087,7 @@ static void transform_func_whirl(void * priv,
                                  double *newx,
                                  double *newy)
   {
-  transform_t * vp;
+  transform_priv_t * vp;
   double dx, dy, d, dist, factor, sina, cosa, ang;
   vp = priv;
   
@@ -1179,7 +1126,7 @@ static void transform_func_whirl(void * priv,
   *newy = (sina * dx + cosa * dy)           + vp->whirl_center_real[1];
   }
 
-static void init_transform(transform_t * vp)
+static void init_transform(transform_priv_t * vp)
   {
   gavl_image_transform_func func;
   vp->changed = 0;
@@ -1221,37 +1168,66 @@ static void init_transform(transform_t * vp)
   
   }
 
-static int read_video_transform(void * priv, gavl_video_frame_t * frame,
-                         int stream)
-  {
-  transform_t * vp;
-  vp = priv;
 
-  //  fprintf (stderr, "vp->do_transform: %d\n", vp->do_transform);
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
+  {
+  transform_priv_t * vp;
+  gavl_source_status_t st;
+  gavl_video_frame_t * in_frame = NULL;
+  vp = priv;
 
   if(vp->changed)
     init_transform(vp);
     
   if(!vp->do_transform)
-    return vp->read_func(vp->read_data, frame, vp->read_stream);
-  
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    }
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
-    return 0;
+    return gavl_video_source_read_frame(vp->in_src, frame);
 
+  if((st = gavl_video_source_read_frame(vp->in_src, &in_frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
   
-  gavl_video_frame_fill(frame, &vp->format, vp->bg_color);
+  gavl_video_frame_fill(*frame, &vp->format, vp->bg_color);
+  gavl_image_transform_transform(vp->transform, in_frame, *frame);
+  gavl_video_frame_copy_metadata(*frame, in_frame);
   
-  gavl_image_transform_transform(vp->transform, vp->frame, frame);
-
-  gavl_video_frame_copy_metadata(frame, vp->frame);
-  
-  return 1;
+  return GAVL_SOURCE_OK;
   }
+
+static gavl_video_source_t *
+connect_transform(void * priv,
+                  gavl_video_source_t * src,
+                  const gavl_video_options_t * opt)
+  {
+  transform_priv_t * vp;
+  vp = priv;
+
+  vp->in_src = src;
+  gavl_video_format_copy(&vp->format,
+                         gavl_video_source_get_src_format(vp->in_src));
+  
+  vp->sar = (double)vp->format.pixel_width / (double)vp->format.pixel_height;
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    gavl_video_options_copy(vp->global_opt, opt);
+    }
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, 0,
+                                         &vp->format);
+  vp->changed = 1;
+  return vp->out_src;
+  }
+
 
 const bg_fv_plugin_t the_plugin = 
   {
@@ -1270,14 +1246,7 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_transform,
-    .get_options        = get_options_transform,
-    
-    .set_input_format = set_input_format_transform,
-    .get_output_format = get_output_format_transform,
-
-    .read_video = read_video_transform,
-    
+    .connect = connect_transform,
   };
 
 /* Include this into all plugin modules exactly once
