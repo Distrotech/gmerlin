@@ -57,6 +57,9 @@ typedef struct
   int noop; // Do nothing
   
   int64_t next_pts;
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   
   } swapfields_priv_t;
 
@@ -82,33 +85,23 @@ static void destroy_swapfields(void * priv)
     gavl_video_frame_destroy(vp->fields[0]);
   if(vp->fields[1])
     gavl_video_frame_destroy(vp->fields[1]);
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+  
   free(vp);
   }
 
-static void connect_input_port_swapfields(void * priv,
-                                         bg_read_video_func_t func,
-                                         void * data, int stream, int port)
+static void reset_swapfields(void * priv)
   {
-  swapfields_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
+  swapfields_priv_t * vp = priv;
+  vp->init = 1;
   }
 
-static void set_input_format_swapfields(void * priv,
-                                       gavl_video_format_t * format, int port)
+static void set_format(void * priv, const gavl_video_format_t * format)
   {
   swapfields_priv_t * vp;
   vp = priv;
-
-  if(port)
-    return;
   
   vp->framerate_mult = 1;
   vp->noop = 0;
@@ -160,18 +153,11 @@ static void set_input_format_swapfields(void * priv,
   vp->init = 1;
   }
 
-static void
-get_output_format_swapfields(void * priv, gavl_video_format_t * format)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
-  swapfields_priv_t * vp;
-  vp = priv;
-  gavl_video_format_copy(format, &vp->format);
-  }
+  gavl_source_status_t st;
 
-static int read_video_swapfields(void * priv,
-                                gavl_video_frame_t * frame,
-                                int stream)
-  {
   swapfields_priv_t * vp;
   int64_t pts;
   gavl_video_frame_t * swp;
@@ -180,7 +166,7 @@ static int read_video_swapfields(void * priv,
 
   /* Do nothing */
   if(vp->noop)
-    return vp->read_func(vp->read_data, frame, vp->read_stream);
+    return gavl_video_source_read_frame(vp->in_src, frame);
   
   if(!vp->fields[0])
     vp->fields[0] = gavl_video_frame_create(&vp->field_format[0]);
@@ -189,28 +175,31 @@ static int read_video_swapfields(void * priv,
   
   if(vp->init)
     {
-    if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-      return 0;
-
+    if((st = gavl_video_source_read_frame(vp->in_src, frame)) !=
+       GAVL_SOURCE_OK)
+      return st;
+    
     vp->last_field = vp->fields[0];
     vp->next_field = vp->fields[1];
-
+    
+    /* Save field for later use */
     gavl_video_frame_get_field(vp->format.pixelformat,
-                               frame,
+                               *frame,
                                vp->cpy_field, vp->delay_field);
     
     gavl_video_frame_copy(&vp->field_format[vp->delay_field],
                           vp->last_field, vp->cpy_field);
     vp->init = 0;
-    vp->next_pts = frame->timestamp * vp->framerate_mult +
-      (frame->duration * vp->framerate_mult) / 2;
+    vp->next_pts = (*frame)->timestamp * vp->framerate_mult +
+      ((*frame)->duration * vp->framerate_mult) / 2;
     }
 
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-
+  if((st = gavl_video_source_read_frame(vp->in_src, frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
+  
   gavl_video_frame_get_field(vp->format.pixelformat,
-                             frame,
+                             *frame,
                              vp->cpy_field, vp->delay_field);
 
   /* Save field for later use */
@@ -227,27 +216,42 @@ static int read_video_swapfields(void * priv,
   vp->last_field = swp;
   
   /* Adjust pts */
-  pts = frame->timestamp;
-  frame->timestamp = vp->next_pts;
+  pts = (*frame)->timestamp;
+  (*frame)->timestamp = vp->next_pts;
 
   vp->next_pts = pts * vp->framerate_mult +
-    (frame->duration * vp->framerate_mult) / 2;
+    ((*frame)->duration * vp->framerate_mult) / 2;
 
-  frame->duration *= vp->framerate_mult;
+  (*frame)->duration *= vp->framerate_mult;
 
   //  fprintf(stderr, "PTS: %ld duration: %ld\n",
   //          frame->timestamp, frame->duration);
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
-static void reset_swapfields(void * priv)
+static gavl_video_source_t *
+connect_swapfields(void * priv, gavl_video_source_t * src,
+                   const gavl_video_options_t * opt)
   {
-  swapfields_priv_t * vp;
-  vp = priv;
+  swapfields_priv_t * vp = priv;
   vp->init = 1;
-  }
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  vp->in_src = src;
+  set_format(vp, gavl_video_source_get_src_format(vp->in_src));
 
+  if(opt)
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+  
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
+  return vp->out_src;
+  }
 
 const bg_fv_plugin_t the_plugin = 
   {
@@ -263,14 +267,10 @@ const bg_fv_plugin_t the_plugin =
       .destroy =   destroy_swapfields,
       .priority =         1,
     },
-    
-    .connect_input_port = connect_input_port_swapfields,
-    
-    .set_input_format = set_input_format_swapfields,
-    .get_output_format = get_output_format_swapfields,
-
-    .read_video = read_video_swapfields,
     .reset = reset_swapfields,
+    
+    .connect = connect_swapfields,
+    
   };
 
 /* Include this into all plugin modules exactly once
