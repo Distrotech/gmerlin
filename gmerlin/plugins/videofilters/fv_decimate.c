@@ -491,10 +491,11 @@ connect_decimate(void * priv,
   if(opt)
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
-  gavl_video_source_set_dst(vp->in_src, GAVL_SOURCE_SRC_ALLOC, &vp->format);
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
   vp->format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
+  vp->out_src = gavl_video_source_create(read_func, vp,
+                                         GAVL_SOURCE_SRC_ALLOC, &vp->format);
   return vp->out_src;
   }
 

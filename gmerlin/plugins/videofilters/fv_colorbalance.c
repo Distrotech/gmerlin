@@ -590,6 +590,7 @@ connect_colorbalance(void * priv, gavl_video_source_t * src,
   colorbalance_priv_t * vp;
   vp = priv;
 
+  vp->in_src = src;
   
   if(vp->out_src)
     {

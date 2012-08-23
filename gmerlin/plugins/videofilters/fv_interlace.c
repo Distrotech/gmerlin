@@ -204,11 +204,10 @@ static gavl_video_source_t * connect_interlace(void * priv,
 
   interlace_priv_t * vp = priv;
 
-  in_format = gavl_video_source_get_src_format(vp->in_src);
   
   vp->in_src = src;
-  gavl_video_format_copy(&vp->format,
-                         in_format);
+  in_format = gavl_video_source_get_src_format(vp->in_src);
+  gavl_video_format_copy(&vp->format, in_format);
   
   vp->format.frame_duration *= 2;
   vp->format.interlace_mode = vp->out_interlace;

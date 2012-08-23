@@ -395,7 +395,13 @@ void bg_video_filter_chain_connect_input(bg_video_filter_chain_t * ch,
 int bg_video_filter_chain_read(void * priv, gavl_video_frame_t* frame,
                                int stream)
   {
+  const gavl_video_format_t * fmt;
   bg_video_filter_chain_t * ch = priv;
+
+  fmt = gavl_video_source_get_dst_format(ch->out_src_2);
+  if(!fmt->image_width)
+    gavl_video_source_set_dst(ch->out_src_2, 0, NULL);
+  
   return (gavl_video_source_read_frame(ch->out_src_2, &frame) == GAVL_SOURCE_OK);
   }
 

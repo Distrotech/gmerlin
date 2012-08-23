@@ -162,7 +162,7 @@ read_func(void * priv, gavl_video_frame_t ** frame)
        GAVL_SOURCE_OK)
       return st;
     
-    gavl_dsp_interpolate_video_frame(vp->ctx, &vp->format, in_frame, vp->last_frame,
+    gavl_dsp_interpolate_video_frame(vp->ctx, &vp->format, vp->last_frame, in_frame,
                                      vp->this_frame, vp->factor);
     *frame = vp->this_frame;
     gavl_video_frame_copy_metadata(*frame, in_frame);
