@@ -1346,7 +1346,6 @@ static const bg_parameter_info_t general_parameters_video[] =
  transcoding in the second pass. This enables higher quality within the given bitrate constraints but roughly doubles the video encoding time."),
     },
     BG_GAVL_PARAM_CONVERSION_QUALITY,
-    BG_GAVL_PARAM_FRAMERATE,
     BG_GAVL_PARAM_ALPHA,
     BG_GAVL_PARAM_RESAMPLE_CHROMA,
     BG_GAVL_PARAM_THREADS,

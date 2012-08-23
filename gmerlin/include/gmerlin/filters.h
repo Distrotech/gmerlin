@@ -260,14 +260,6 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
                                const gavl_video_format_t * in_format,
                                gavl_video_format_t * out_format);
 
-/** \brief Change the input format of a video filter chain
- *  \param ch An video filter chain
- *  \param in_format New input format
- */
-
-void bg_video_filter_chain_set_input_format(bg_video_filter_chain_t * ch,
-                                           const gavl_video_format_t * in_format);
-
 /** \brief Set output format of a video filter chain
  *  \param ch A video filter chain
  *  \param out_format Output format
@@ -294,6 +286,10 @@ int bg_video_filter_chain_read(void * priv, gavl_video_frame_t* frame,
  *  \param ch A video filter chain
  *  \param src Video source to get frames from
  *  \returns Video source for reading frames
+ *
+ *  This is a replacement for \ref bg_video_filter_chain_connect_input,
+ *  \ref bg_video_filter_chain_init and
+ *  \ref bg_video_filter_chain_set_out_format
  */
 
 gavl_video_source_t *

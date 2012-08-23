@@ -458,7 +458,7 @@ read_func(void * priv, gavl_video_frame_t ** frame)
   {
   frei0r_t * vp;
   gavl_source_status_t st;
-  gavl_video_frame_t * f;
+  gavl_video_frame_t * f = NULL;
   double time;
   
   vp = priv;

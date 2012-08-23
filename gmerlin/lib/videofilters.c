@@ -49,7 +49,9 @@ typedef struct
 
 struct bg_video_filter_chain_s
   {
-  gavl_video_source_t * out_src;
+  gavl_video_source_t * out_src_1; // Last Filter element
+  gavl_video_source_t * out_src_2; // Output (reading from here locks the chain)
+  gavl_video_source_t * in_src; // Legacy!!
   
   int num_filters;
   video_filter_t * filters;
@@ -263,10 +265,35 @@ bg_video_filter_chain_set_parameter(void * data, const char * name,
   return;
   }
 
+/* Legacy */
+static gavl_source_status_t
+read_func_in(void * priv, gavl_video_frame_t ** frame)
+  {
+  bg_video_filter_chain_t * ch = priv;
+  if(!ch->in_func(ch->in_data, *frame, ch->in_stream))
+    return GAVL_SOURCE_EOF;
+  return GAVL_SOURCE_OK;
+  }
+
+
 int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
                                const gavl_video_format_t * in_format,
                                gavl_video_format_t * out_format)
   {
+  ch->need_restart = 0;
+
+  if(ch->need_rebuild)
+    bg_video_filter_chain_rebuild(ch);
+
+  if(ch->in_src)
+    gavl_video_source_destroy(ch->in_src);
+
+  ch->in_src = gavl_video_source_create(read_func_in, ch, 0, in_format);
+
+  bg_video_filter_chain_connect(ch, ch->in_src);
+  gavl_video_format_copy(out_format,
+                         gavl_video_source_get_src_format(ch->out_src_1));
+  
 #if 0
   int i;
   gavl_video_options_t * opt;
@@ -356,51 +383,6 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   return ch->num_filters;
   }
 
-void bg_video_filter_chain_set_input_format(bg_video_filter_chain_t * ch,
-                                            const gavl_video_format_t * format)
-  {
-#if 0
-  int do_convert;
-  if(!ch->num_filters)
-    {
-    
-    do_convert = bg_video_converter_init(ch->cnv_out,
-                                         &ch->out_format_1,
-                                         &ch->out_format);
-    if(do_convert)
-      {
-      bg_video_converter_connect_input(ch->cnv_out,
-                                       ch->in_func,
-                                       ch->in_data,
-                                       ch->in_stream);
-      ch->read_func   = bg_video_converter_read;
-      ch->read_data   = ch->cnv_out;
-      ch->read_stream = 0;
-      }
-    }
-  else
-    {
-    video_filter_t * f = ch->filters;
-
-    do_convert =
-      bg_video_converter_init(f->cnv, format, &ch->in_format);
-
-    if(do_convert)
-      {
-      bg_video_converter_connect_input(f->cnv,
-                                       ch->in_func, ch->in_data, ch->in_stream);
-      
-      f->plugin->connect_input_port(f->handle->priv,
-                                    bg_video_converter_read,
-                                    f->cnv, 0, 0);
-      }
-    else
-      f->plugin->connect_input_port(f->handle->priv, ch->in_func, ch->in_data,
-                                    ch->in_stream, 0);
-    }
-#endif
-  }
-
 void bg_video_filter_chain_connect_input(bg_video_filter_chain_t * ch,
                                          bg_read_video_func_t func, void * priv,
                                          int stream)
@@ -413,35 +395,15 @@ void bg_video_filter_chain_connect_input(bg_video_filter_chain_t * ch,
 int bg_video_filter_chain_read(void * priv, gavl_video_frame_t* frame,
                                int stream)
   {
-  bg_video_filter_chain_t * ch;
-  int ret;
-  ch = (bg_video_filter_chain_t *)priv;
-
-  bg_video_filter_chain_lock(ch);
-  ret = ch->read_func(ch->read_data, frame, ch->read_stream);
-  bg_video_filter_chain_unlock(ch);
-  return ret;
+  bg_video_filter_chain_t * ch = priv;
+  return (gavl_video_source_read_frame(ch->out_src_2, &frame) == GAVL_SOURCE_OK);
   }
 
 int bg_video_filter_chain_set_out_format(bg_video_filter_chain_t * ch,
                                          const gavl_video_format_t * out_format)
   {
-  int do_convert;
-  do_convert = bg_video_converter_init(ch->cnv_out,
-                                       &ch->out_format_1,
-                                       out_format);
-  if(do_convert)
-    {
-    bg_video_converter_connect_input(ch->cnv_out,
-                                     ch->read_func,
-                                     ch->read_data,
-                                     ch->read_stream);
-    ch->read_func = bg_video_converter_read;
-    ch->read_data = ch->cnv_out;
-    ch->read_stream = 0;
-    }
-  gavl_video_format_copy(&ch->out_format, out_format);
-  return do_convert;
+  gavl_video_source_set_dst(ch->out_src_2, 0, out_format);
+  return 1; // Unused anyway?
   }
 
 
@@ -477,7 +439,20 @@ void bg_video_filter_chain_reset(bg_video_filter_chain_t * ch)
       ch->filters[i].plugin->reset(ch->filters[i].handle->priv);
     gavl_video_source_reset(ch->filters[i].out_src);
     }
-  gavl_video_source_reset(ch->out_src);
+  gavl_video_source_reset(ch->out_src_2);
+  }
+
+/*  */
+static gavl_source_status_t
+read_func_out(void * priv, gavl_video_frame_t ** frame)
+  {
+  gavl_source_status_t ret;
+  bg_video_filter_chain_t * ch = priv;
+  
+  bg_video_filter_chain_lock(ch);
+  ret = gavl_video_source_read_frame(ch->out_src_1, frame);
+  bg_video_filter_chain_unlock(ch);
+  return ret;
   }
 
 gavl_video_source_t *
@@ -493,6 +468,15 @@ bg_video_filter_chain_connect(bg_video_filter_chain_t * ch,
                                      src, ch->opt->opt);
     ch->filters[i].out_src = src;
     }
+  
+  ch->out_src_1 = src;
 
+  if(ch->out_src_2)
+    gavl_video_source_destroy(ch->out_src_2);
+
+  gavl_video_source_set_dst(ch->out_src_1, 0, NULL);
+  ch->out_src_2 =
+    gavl_video_source_create(read_func_out, ch, 0,
+                             gavl_video_source_get_dst_format(ch->out_src_1));
   return src;
   }
