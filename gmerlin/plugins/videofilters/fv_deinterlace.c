@@ -49,10 +49,6 @@
 
 typedef struct deinterlace_priv_s
   {
-  //  bg_read_video_func_t read_func;
-  //  void * read_data;
-  //  int read_stream;
-  
   gavl_video_format_t in_format;
   gavl_video_format_t out_format;
   

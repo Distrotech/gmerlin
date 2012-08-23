@@ -41,10 +41,6 @@
 
 typedef struct
   {
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_format_t format;
   gavl_timecode_t last_timecode;
   int mode;

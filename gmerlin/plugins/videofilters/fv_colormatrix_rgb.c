@@ -37,9 +37,6 @@ typedef struct
   {
   bg_colormatrix_t * mat;
   
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
   
   gavl_video_format_t format;
 

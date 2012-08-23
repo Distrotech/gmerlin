@@ -37,10 +37,6 @@ typedef struct
   {
   bg_colormatrix_t * mat;
   
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_format_t format;
 
   float coeffs[4][5];
@@ -402,37 +398,6 @@ static void set_parameter_colormatrix(void * priv, const char * name,
     bg_colormatrix_set_yuva(vp->mat, vp->coeffs);
   }
 
-#if 0
-static void
-set_input_format_colormatrix(void * priv,
-                             gavl_video_format_t * format, int port)
-  {
-  colormatrix_priv_t * vp;
-  int flags = 0;
-  vp = priv;
-  if(vp->force_alpha)
-    flags |= BG_COLORMATRIX_FORCE_ALPHA;
-
-  if(!port)
-    {
-    bg_colormatrix_init(vp->mat, format, flags, vp->global_opt);
-    gavl_video_format_copy(&vp->format, format);
-    }
-  vp->need_restart = 0;
-  }
-
-static int read_video_colormatrix(void * priv,
-                                  gavl_video_frame_t * frame, int stream)
-  {
-  colormatrix_priv_t * vp;
-  vp = priv;
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-  
-  bg_colormatrix_process(vp->mat, frame);
-  return 1;
-  }
-#endif
 
 static gavl_source_status_t read_func(void * priv,
                                       gavl_video_frame_t ** f)

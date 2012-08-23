@@ -47,10 +47,6 @@ struct decimate_priv_s
   gavl_video_frame_t * b1;
   gavl_video_frame_t * b2;
 
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-
   float threshold_block;
   float threshold_total;
   int do_log;
@@ -425,40 +421,6 @@ static int do_skip(decimate_priv_t * vp,
     }
   return 1;
   }
-
-#if 0
-static int read_video_decimate(void * priv, 
-                               gavl_video_frame_t * frame, int stream)
-  {
-  decimate_priv_t * vp;
-  int skipped = 0;
-  vp = priv;
-  if(!vp->have_frame)
-    {
-    if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-      return 0;
-    gavl_video_frame_copy(&vp->format, vp->frame, frame);
-    vp->have_frame = 1;
-    return 1;
-    }
-  
-  while(1)
-    {
-    if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-      return 0;
-    if((skipped >= vp->skip_max) || !do_skip(vp, frame))
-      break;
-    skipped++;
-    }
-  gavl_video_frame_copy(&vp->format, vp->frame, frame);
-  
-  /* Don't know when the next frame will come */
-  frame->duration = -1; 
-  if(vp->do_log && skipped)
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Skipped %d frames", skipped);  
-  return 1;
-  }
-#endif
 
 static gavl_source_status_t
 read_func(void * priv, gavl_video_frame_t ** frame)

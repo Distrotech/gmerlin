@@ -36,10 +36,6 @@ typedef struct
   int flip_h;
   int flip_v;
   
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_format_t format;
 
   gavl_video_source_t * in_src;

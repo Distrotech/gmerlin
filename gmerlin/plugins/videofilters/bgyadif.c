@@ -404,19 +404,6 @@ static void filter_frame(bg_yadif_t * di, int parity,
     }
   }
 
-#if 0
-static int read_frame(bg_yadif_t * di)
-  {
-  gavl_video_frame_t * tmp;
-  tmp = di->prev;
-
-  di->prev = di->cur;
-  di->cur = di->next;
-  di->next = tmp;
-  return di->read_func(di->read_data, di->next, di->read_stream);
-  }
-#endif
-
 gavl_source_status_t
 bg_yadif_read(void * priv, gavl_video_frame_t ** frame, gavl_video_source_t * src)
   {

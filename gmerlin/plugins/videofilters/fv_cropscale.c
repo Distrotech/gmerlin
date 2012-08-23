@@ -1214,34 +1214,6 @@ static void init_scaler(cropscale_priv_t * vp)
   
   }
 
-#if 0
-static int read_video_cropscale(void * priv,
-                                gavl_video_frame_t * frame, int stream)
-  {
-  cropscale_priv_t * vp;
-  vp = priv;
-  
-  if(vp->need_reinit)
-    init_scaler(vp);
-  
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->in_format);
-    }
-  
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
-    return 0;
-
-  if(vp->maintain_aspect)
-    gavl_video_frame_fill(frame, &vp->out_format, vp->border_color);
-  
-  gavl_video_scaler_scale(vp->scaler, vp->frame, frame);
-  
-  gavl_video_frame_copy_metadata(frame, vp->frame);
-  return 1;
-  }
-#endif
-
 static gavl_source_status_t read_func(void * priv, gavl_video_frame_t ** f)
   {
   gavl_video_frame_t * in_frame = NULL;

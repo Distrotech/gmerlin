@@ -35,10 +35,6 @@ typedef struct
   {
   int shift;
   
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_video_format_t format;
   
   int samples_per_line;
@@ -107,85 +103,6 @@ static const gavl_pixelformat_t pixelformats[] =
     GAVL_RGBA_64,
     GAVL_PIXELFORMAT_NONE,
   };
-
-#if 0
-
-static void connect_input_port_shift(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
-  {
-  shift_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
-  }
-
-
-static void set_input_format_shift(void * priv,
-                                   gavl_video_format_t * format, int port)
-  {
-  shift_priv_t * vp;
-  int width_mult;
-  vp = priv;
-  
-  if(!port)
-    {
-    width_mult = 3;
-    format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
-                                                    pixelformats,
-                                                    NULL);
-    gavl_video_format_copy(&vp->format, format);
-    
-    if(gavl_pixelformat_is_gray(format->pixelformat))
-      width_mult = 1;
-    if(gavl_pixelformat_has_alpha(format->pixelformat))
-      width_mult++;
-    vp->samples_per_line = format->image_width * width_mult;
-    }
-  }
-
-static void get_output_format_shift(void * priv, gavl_video_format_t * format)
-  {
-  shift_priv_t * vp;
-  vp = priv;
-  
-  gavl_video_format_copy(format, &vp->format);
-  }
-
-static int
-read_video_shift(void * priv, gavl_video_frame_t * frame, int stream)
-  {
-  shift_priv_t * vp;
-  int i, j;
-  uint16_t * ptr;
-  
-  vp = priv;
-
-  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
-    return 0;
-
-  if(vp->shift)
-    {
-    for(i = 0; i < vp->format.image_height; i++)
-      {
-      ptr = (uint16_t*)(frame->planes[0] + i * frame->strides[0]);
-
-      for(j = 0; j < vp->samples_per_line; j++)
-        {
-        (*ptr) <<= vp->shift;
-        ptr++;
-        }
-      }
-    }
-  return 1;
-  }
-#endif
 
 static gavl_source_status_t read_func(void * priv,
                                       gavl_video_frame_t ** frame)
