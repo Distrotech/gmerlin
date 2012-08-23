@@ -160,13 +160,7 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = bg_effectv_connect_input_port,
-    
-    .set_input_format = bg_effectv_set_input_format,
-    .get_output_format = bg_effectv_get_output_format,
-
-    .read_video = bg_effectv_read_video,
-    
+    .connect = bg_effectv_connect,
   };
 
 /* Include this into all plugin modules exactly once

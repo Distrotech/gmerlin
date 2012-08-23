@@ -21,21 +21,6 @@
 
 #include <gmerlin_effectv.h>
 
-void bg_effectv_connect_input_port(void * priv,
-                                   bg_read_video_func_t func,
-                                   void * data, int stream, int port)
-  {
-  bg_effectv_plugin_t * vp;
-  vp = priv;
-  
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  }
-
 static gavl_pixelformat_t agn_formats[] =
   {
     GAVL_RGB_32,
@@ -48,52 +33,6 @@ static gavl_pixelformat_t agn_formats[] =
 #endif
     GAVL_PIXELFORMAT_NONE,
   };
-
-
-void bg_effectv_set_input_format(void * priv, gavl_video_format_t * format, int port)
-  {
-  bg_effectv_plugin_t * vp;
-  vp = priv;
-  
-  if(port)
-    return;
-
-  if(vp->flags & BG_EFFECTV_COLOR_AGNOSTIC)
-    {
-    format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
-                                                    agn_formats, NULL);
-    }
-  else
-    {
-    format->pixelformat = GAVL_BGR_32;
-    }
-
-  if(vp->started)
-    {
-    vp->e->stop(vp->e);
-    vp->started = 0;
-    }
-  
-  gavl_video_format_copy(&vp->format, format);
-
-  vp->e->video_width = vp->format.image_width;
-  vp->e->video_height = vp->format.image_height;
-  vp->e->video_area = vp->format.image_width * vp->format.image_height;
-
-  vp->e->start(vp->e);
-  vp->started = 1;
-  
-  if(vp->in_frame)
-    {
-    gavl_video_frame_destroy(vp->in_frame);
-    vp->in_frame = NULL;
-    }
-  if(vp->out_frame)
-    {
-    gavl_video_frame_destroy(vp->out_frame);
-    vp->out_frame = NULL;
-    }
-  }
 
 
 void * bg_effectv_create(effectRegisterFunc * f, int flags)
@@ -115,39 +54,36 @@ void * bg_effectv_create(effectRegisterFunc * f, int flags)
 
 void bg_effectv_destroy(void*priv)
   {
-  bg_effectv_plugin_t * p;
-  p = priv;
+  bg_effectv_plugin_t * vp = priv;
   
-  if(p->e)
+  if(vp->e)
     {
-    if(p->e->stop)              p->e->stop(p->e);
-    if(p->e->priv)              free(p->e->priv);
-    if(p->e->yuv2rgb)           free(p->e->yuv2rgb);
-    if(p->e->rgb2yuv)           free(p->e->rgb2yuv);
-    if(p->e->stretching_buffer) free(p->e->stretching_buffer);
-    if(p->e->background)        free(p->e->background);
-    if(p->e->diff)              free(p->e->diff);
-    if(p->e->diff2)             free(p->e->diff2);
-    free(p->e);
+    if(vp->e->stop)              vp->e->stop(vp->e);
+    if(vp->e->priv)              free(vp->e->priv);
+    if(vp->e->yuv2rgb)           free(vp->e->yuv2rgb);
+    if(vp->e->rgb2yuv)           free(vp->e->rgb2yuv);
+    if(vp->e->stretching_buffer) free(vp->e->stretching_buffer);
+    if(vp->e->background)        free(vp->e->background);
+    if(vp->e->diff)              free(vp->e->diff);
+    if(vp->e->diff2)             free(vp->e->diff2);
+    free(vp->e);
     }
-
+  
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+  
 #ifdef WORDS_BIGENDIAN
-  if(ret->dsp_ctx)
-    gavl_dsp_context_destroy(ret->dsp_ctx);
+  if(vp->dsp_ctx)
+    gavl_dsp_context_destroy(vp->dsp_ctx);
 #endif
 
-  free(p);
+  free(vp);
   }
 
-void bg_effectv_get_output_format(void * priv, gavl_video_format_t * format)
+static gavl_source_status_t
+read_func(void * priv, gavl_video_frame_t ** frame)
   {
-  bg_effectv_plugin_t * vp;
-  vp = priv;
-  gavl_video_format_copy(format, &vp->format);
-  }
-
-int bg_effectv_read_video(void * priv, gavl_video_frame_t * frame, int stream)
-  {
+  gavl_source_status_t st;
   bg_effectv_plugin_t * vp;
   vp = priv;
 
@@ -156,40 +92,104 @@ int bg_effectv_read_video(void * priv, gavl_video_frame_t * frame, int stream)
     vp->in_frame = gavl_video_frame_create_nopad(&vp->format);
     gavl_video_frame_clear(vp->in_frame, &vp->format);
     }
-  if(!vp->read_func(vp->read_data, vp->in_frame, vp->read_stream))
-    return 0;
+
+  if((st = gavl_video_source_read_frame(vp->in_src, &vp->in_frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
 
 #ifdef WORDS_BIGENDIAN
   if(!(vp->flags & BG_EFFECTV_COLOR_AGNOSTIC))
     gavl_dsp_video_frame_swap_endian(ret->dsp_ctx,
                                      vp->in_frame, &vp->format);
 #endif
-  /* Frame not padded, good */
-  if((frame->strides[0] == vp->format.image_width * 4) &&
-     !(vp->flags & BG_EFFECTV_REUSE_OUTPUT))
+
+  if(!vp->out_frame)
     {
-    vp->e->draw(vp->e, (RGB32*)vp->in_frame->planes[0],
-                (RGB32*)frame->planes[0]);
+    vp->out_frame = gavl_video_frame_create_nopad(&vp->format);
+    gavl_video_frame_clear(vp->in_frame, &vp->format);
     }
-  else
-    {
-    if(!vp->out_frame)
-      {
-      vp->out_frame = gavl_video_frame_create_nopad(&vp->format);
-      gavl_video_frame_clear(vp->in_frame, &vp->format);
-      }
-    vp->e->draw(vp->e, (RGB32*)vp->in_frame->planes[0],
+  vp->e->draw(vp->e, (RGB32*)vp->in_frame->planes[0],
                 (RGB32*)vp->out_frame->planes[0]);
-    gavl_video_frame_copy(&vp->format, frame, vp->out_frame);
-    }
 
 #ifdef WORDS_BIGENDIAN
   if(!(vp->flags & BG_EFFECTV_COLOR_AGNOSTIC))
     gavl_dsp_video_frame_swap_endian(ret->dsp_ctx,
-                                     frame, &vp->format);
+                                     vp->out_frame, &vp->format);
 #endif
-  frame->timestamp = vp->in_frame->timestamp;
-  frame->duration = vp->in_frame->duration;
-  frame->timecode = vp->in_frame->timecode;
-  return 1;
+
+  gavl_video_frame_copy_metadata(vp->out_frame, vp->in_frame);
+  *frame = vp->out_frame;
+  return GAVL_SOURCE_OK;
+  }
+
+static void set_format(bg_effectv_plugin_t * vp, const gavl_video_format_t * format)
+  {
+  gavl_video_format_copy(&vp->format, format);
+
+  if(vp->flags & BG_EFFECTV_COLOR_AGNOSTIC)
+    {
+    vp->format.pixelformat = gavl_pixelformat_get_best(vp->format.pixelformat,
+                                                    agn_formats, NULL);
+    }
+  else
+    {
+    vp->format.pixelformat = GAVL_BGR_32;
+    }
+
+  if(vp->started)
+    {
+    vp->e->stop(vp->e);
+    vp->started = 0;
+    }
+  
+  vp->e->video_width = vp->format.image_width;
+  vp->e->video_height = vp->format.image_height;
+  vp->e->video_area = vp->format.image_width * vp->format.image_height;
+
+  vp->e->start(vp->e);
+  vp->started = 1;
+  
+  if(vp->in_frame)
+    {
+    gavl_video_frame_destroy(vp->in_frame);
+    vp->in_frame = NULL;
+    }
+  if(vp->out_frame)
+    {
+    gavl_video_frame_destroy(vp->out_frame);
+    vp->out_frame = NULL;
+    }
+  }
+
+gavl_video_source_t * bg_effectv_connect(void * priv,
+                                         gavl_video_source_t * src,
+                                         const gavl_video_options_t * opt)
+  {
+  bg_effectv_plugin_t * vp;
+  int dst_flags = 0;
+  vp = priv;
+
+  vp->in_src = src;
+  set_format(vp, gavl_video_source_get_src_format(vp->in_src));
+  
+  if(vp->out_src)
+    {
+    gavl_video_source_destroy(vp->out_src);
+    vp->out_src = NULL;
+    }
+  
+  if(opt)
+    {
+    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
+    }
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+
+  dst_flags = GAVL_SOURCE_SRC_ALLOC;
+  if(vp->flags & BG_EFFECTV_REUSE_OUTPUT)
+    dst_flags |= GAVL_SOURCE_SRC_REF;
+  
+  vp->out_src = gavl_video_source_create(read_func,
+                                         vp, dst_flags,
+                                         &vp->format);
+  return vp->out_src;
   }

@@ -35,11 +35,7 @@ typedef struct
   gavl_video_frame_t * in_frame;  /* Not padded */
   gavl_video_frame_t * out_frame; /* Not padded */
   gavl_video_format_t format;
-
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
-
+  
   int started;
 
   int flags;
@@ -47,23 +43,34 @@ typedef struct
 #ifdef WORDS_BIGENDIAN
   gavl_dsp_context_t * dsp_ctx;
 #endif
+
+  gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   } bg_effectv_plugin_t;
 
 void bg_effectv_destroy(void * priv);
 
+#if 0
 void bg_effectv_connect_input_port(void * priv,
                                    bg_read_video_func_t func,
                                    void * data, int stream, int port);
 
 void bg_effectv_set_input_format(void * priv, gavl_video_format_t * format, int port);
 
+void bg_effectv_get_output_format(void * priv, gavl_video_format_t * format);
+
+int bg_effectv_read_video(void * priv, gavl_video_frame_t * frame, int stream);
+#endif
+
+gavl_video_source_t * bg_effectv_connect(void * priv,
+                                         gavl_video_source_t *,
+                                         const gavl_video_options_t * opt);
+
+
 void * bg_effectv_create(effectRegisterFunc * f, int flags);
 
 void bg_effectv_destroy(void*priv);
 
-void bg_effectv_get_output_format(void * priv, gavl_video_format_t * format);
-
-int bg_effectv_read_video(void * priv, gavl_video_frame_t * frame, int stream);
 
 #define EFFECTV_SET_PARAM_INT(n) \
   if(!strcmp(#n, name)) \
