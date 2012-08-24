@@ -102,8 +102,6 @@ typedef struct
   double whirl_angle_real;
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
-  
   } transform_priv_t;
 
 static void transfer_global_options(gavl_video_options_t * opt,
@@ -141,9 +139,6 @@ static void destroy_transform(void * priv)
   
   gavl_image_transform_destroy(vp->transform);
   gavl_video_options_destroy(vp->global_opt);
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-  
   free(vp);
   }
 
@@ -1208,12 +1203,6 @@ connect_transform(void * priv,
   
   vp->sar = (double)vp->format.pixel_width / (double)vp->format.pixel_height;
   
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
-  
   if(opt)
     {
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
@@ -1221,11 +1210,10 @@ connect_transform(void * priv,
     }
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
-  vp->out_src = gavl_video_source_create(read_func,
-                                         vp, 0,
-                                         &vp->format);
   vp->changed = 1;
-  return vp->out_src;
+  return gavl_video_source_create(read_func,
+                                  vp, 0,
+                                  &vp->format);
   }
 
 

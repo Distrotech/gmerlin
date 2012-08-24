@@ -50,7 +50,6 @@ typedef struct
   float bg_color[4];
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
   } zoom_priv_t;
 
 static void * create_zoom()
@@ -332,11 +331,6 @@ connect_zoom(void * priv, gavl_video_source_t * src, const gavl_video_options_t 
   gavl_video_format_copy(&vp->format,
                          gavl_video_source_get_src_format(vp->in_src));
   
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
   
   if(opt)
     {
@@ -345,11 +339,10 @@ connect_zoom(void * priv, gavl_video_source_t * src, const gavl_video_options_t 
     }
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
-  vp->out_src = gavl_video_source_create(read_func,
-                                         vp, 0,
-                                         &vp->format);
   vp->changed = 1;
-  return vp->out_src;
+  return gavl_video_source_create(read_func,
+                                  vp, 0,
+                                  &vp->format);
   }
 
 const bg_fv_plugin_t the_plugin = 

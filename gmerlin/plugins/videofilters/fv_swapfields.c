@@ -55,8 +55,6 @@ typedef struct
   int64_t next_pts;
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
-  
   } swapfields_priv_t;
 
 static void * create_swapfields()
@@ -81,10 +79,6 @@ static void destroy_swapfields(void * priv)
     gavl_video_frame_destroy(vp->fields[0]);
   if(vp->fields[1])
     gavl_video_frame_destroy(vp->fields[1]);
-
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-  
   free(vp);
   }
 
@@ -232,12 +226,6 @@ connect_swapfields(void * priv, gavl_video_source_t * src,
   {
   swapfields_priv_t * vp = priv;
   vp->init = 1;
-  
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
   vp->in_src = src;
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
 
@@ -245,8 +233,7 @@ connect_swapfields(void * priv, gavl_video_source_t * src,
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
-  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
-  return vp->out_src;
+  return gavl_video_source_create(read_func, vp, 0, &vp->format);
   }
 
 const bg_fv_plugin_t the_plugin = 

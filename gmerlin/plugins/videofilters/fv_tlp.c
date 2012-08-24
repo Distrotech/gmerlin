@@ -48,8 +48,6 @@ typedef struct tlp_priv_s
   int init;
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
-
   } tlp_priv_t;
 
 static void * create_tlp()
@@ -70,10 +68,6 @@ static void destroy_tlp(void * priv)
     gavl_video_frame_destroy(vp->frames[1]);
   if(vp->ctx)
     gavl_dsp_context_destroy(vp->ctx);
-
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-
   free(vp);
   }
 
@@ -181,12 +175,6 @@ connect_tlp(void * priv, gavl_video_source_t * src,
                  const gavl_video_options_t * opt)
   {
   tlp_priv_t * vp = priv;
-  
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
   vp->in_src = src;
 
   /* */
@@ -209,11 +197,10 @@ connect_tlp(void * priv, gavl_video_source_t * src,
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
-  vp->out_src =
+  return
     gavl_video_source_create(read_func, vp,
                              GAVL_SOURCE_SRC_ALLOC |
                              GAVL_SOURCE_SRC_REF, &vp->format);
-  return vp->out_src;
   }
 
 

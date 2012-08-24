@@ -43,6 +43,9 @@ typedef struct
   gavl_audio_format_t format;
 
   bg_parameter_info_t * parameters;
+
+  gavl_audio_source_t * in_src;
+  
   } sampleformat_priv_t;
 
 static void * create_sampleformat()
@@ -70,7 +73,7 @@ static const bg_parameter_info_t parameters[] =
       .long_name = TRS("Sampleformat"),
       .type = BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
-      .val_default = { .val_str = "YUV 420 Planar" },
+      .val_default = { .val_str = "Floating point" },
     },
     { /* End of parameters */ },
   };
@@ -136,45 +139,6 @@ set_parameter_sampleformat(void * priv, const char * name,
     }
   }
 
-static void connect_input_port_sampleformat(void * priv,
-                                    bg_read_audio_func_t func,
-                                    void * data, int stream, int port)
-  {
-  sampleformat_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
-  
-  }
-
-static void set_input_format_sampleformat(void * priv,
-                                         gavl_audio_format_t * format,
-                                         int port)
-  {
-  sampleformat_priv_t * vp;
-  vp = priv;
-
-  if(!port)
-    {
-    format->sample_format = vp->sample_format;
-    gavl_audio_format_copy(&vp->format, format);
-    vp->need_restart = 0;
-    }
-  }
-
-static void get_output_format_sampleformat(void * priv, gavl_audio_format_t * format)
-  {
-  sampleformat_priv_t * vp;
-  vp = priv;
-  
-  gavl_audio_format_copy(format, &vp->format);
-  }
-
 static int need_restart_sampleformat(void * priv)
   {
   sampleformat_priv_t * vp;
@@ -182,13 +146,32 @@ static int need_restart_sampleformat(void * priv)
   return vp->need_restart;
   }
 
-static int read_audio_sampleformat(void * priv,
-                                  gavl_audio_frame_t * frame, int stream, int num_samples)
+static gavl_source_status_t read_func(void * priv,
+                                      gavl_audio_frame_t ** frame)
   {
-  sampleformat_priv_t * vp;
-  vp = priv;
+  sampleformat_priv_t * vp = priv;
+  return gavl_audio_source_read_frame(vp->in_src, frame);
+  }
+
+static gavl_audio_source_t *
+connect_sampleformat(void * priv,
+                     gavl_audio_source_t * src,
+                     const gavl_audio_options_t * opt)
+  {
+  gavl_audio_format_t format;
+  sampleformat_priv_t * vp = priv;
+  vp->in_src = src;
   
-  return vp->read_func(vp->read_data, frame, vp->read_stream, num_samples);
+  gavl_audio_format_copy(&format, gavl_audio_source_get_src_format(vp->in_src));
+  format.sample_format = vp->sample_format;
+  if(opt)
+    gavl_audio_options_copy(gavl_audio_source_get_options(vp->in_src), opt);
+
+  gavl_audio_source_set_dst(vp->in_src, 0, &format);
+
+  return gavl_audio_source_create(read_func,
+                                         vp, 0,
+                                         &format);
   }
 
 const bg_fa_plugin_t the_plugin = 
@@ -198,7 +181,7 @@ const bg_fa_plugin_t the_plugin =
       BG_LOCALE,
       .name =      "fa_sampleformat",
       .long_name = TRS("Force sampleformat"),
-      .description = TRS("This forces a sampleformat as input for the next filter. Its mainly used for testing."),
+      .description = TRS("This forces a sampleformat as input for the next filter."),
       .type =     BG_PLUGIN_FILTER_AUDIO,
       .flags =    BG_PLUGIN_FILTER_1,
       .create =   create_sampleformat,
@@ -208,12 +191,7 @@ const bg_fa_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_sampleformat,
-    
-    .set_input_format = set_input_format_sampleformat,
-    .get_output_format = get_output_format_sampleformat,
-
-    .read_audio = read_audio_sampleformat,
+    .connect = connect_sampleformat,
     .need_restart = need_restart_sampleformat,
     
   };

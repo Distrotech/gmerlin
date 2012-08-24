@@ -40,7 +40,6 @@ typedef struct
   int samples_per_line;
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
   
   } shift_priv_t;
 
@@ -55,8 +54,6 @@ static void destroy_shift(void * priv)
   {
   shift_priv_t * vp;
   vp = priv;
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 
@@ -160,13 +157,7 @@ connect_shift(void * priv, gavl_video_source_t * src,
   if(gavl_pixelformat_has_alpha(vp->format.pixelformat))
     width_mult++;
   vp->samples_per_line = vp->format.image_width * width_mult;
-
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
-
+  
   if(opt)
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
@@ -174,10 +165,9 @@ connect_shift(void * priv, gavl_video_source_t * src,
                             GAVL_SOURCE_DST_OVERWRITES,
                             &vp->format);
     
-  vp->out_src = gavl_video_source_create(read_func,
-                                         vp, GAVL_SOURCE_SRC_ALLOC,
-                                         &vp->format);
-  return vp->out_src;
+  return gavl_video_source_create(read_func,
+                                  vp, GAVL_SOURCE_SRC_ALLOC,
+                                  &vp->format);
   }
 
 const bg_fv_plugin_t the_plugin = 

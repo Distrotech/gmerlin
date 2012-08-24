@@ -79,8 +79,6 @@ typedef struct equalizer_priv_s
                   gavl_video_frame_t * frame);
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
-  
   } equalizer_priv_t;
 
 static void set_coeffs(equalizer_priv_t * vp)
@@ -398,10 +396,6 @@ static void destroy_equalizer(void * priv)
   equalizer_priv_t * vp;
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
-
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-
   gavl_video_options_destroy(vp->global_opt);
   free(vp);
   }
@@ -721,12 +715,6 @@ static gavl_video_source_t * connect_equalizer(void * priv, gavl_video_source_t 
   vp->in_src = src;
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
   
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
-  
   if(opt)
     {
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
@@ -734,10 +722,9 @@ static gavl_video_source_t * connect_equalizer(void * priv, gavl_video_source_t 
     }
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
-  vp->out_src = gavl_video_source_create(read_func,
-                                         vp, 0,
-                                         &vp->format);
-  return vp->out_src;
+  return gavl_video_source_create(read_func,
+                                  vp, 0,
+                                  &vp->format);
   }
 
 const bg_fv_plugin_t the_plugin = 

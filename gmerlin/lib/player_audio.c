@@ -182,7 +182,6 @@ static const bg_parameter_info_t parameters[] =
       .type =      BG_PARAMETER_SECTION,
     },
 #endif
-    BG_GAVL_PARAM_FORCE_SAMPLEFORMAT,
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_AUDIO_DITHER_MODE,
     BG_GAVL_PARAM_SAMPLERATE,

@@ -99,6 +99,8 @@ static void video_filter_destroy(video_filter_t * f)
   {
   if(f->handle)
     bg_plugin_unref_nolock(f->handle);
+  if(f->out_src)
+    gavl_video_source_destroy(f->out_src);
   }
 
 static void destroy_video_chain(bg_video_filter_chain_t * ch)
@@ -444,10 +446,13 @@ bg_video_filter_chain_connect(bg_video_filter_chain_t * ch,
   
   for(i = 0; i < ch->num_filters; i++)
     {
-    src =
+    if(ch->filters[i].out_src)
+      gavl_video_source_destroy(ch->filters[i].out_src);
+    
+    ch->filters[i].out_src =
       ch->filters[i].plugin->connect(ch->filters[i].handle->priv,
                                      src, ch->opt->opt);
-    ch->filters[i].out_src = src;
+    src = ch->filters[i].out_src;
     }
   
   ch->out_src_1 = src;

@@ -68,8 +68,6 @@ struct decimate_priv_s
                   int w, int h);
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
-  
   };
 
 static float diff_block_i(decimate_priv_t * vp, 
@@ -137,10 +135,6 @@ static void destroy_decimate(void * priv)
   gavl_video_frame_destroy(vp->b2);
   
   gavl_dsp_context_destroy(vp->dsp_ctx);
-
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-  
   free(vp);
   }
 
@@ -479,12 +473,6 @@ connect_decimate(void * priv,
   {
   decimate_priv_t * vp = priv;
   vp->have_frame = 0;
-
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
   vp->in_src = src;
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
 
@@ -494,9 +482,8 @@ connect_decimate(void * priv,
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
   vp->format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-  vp->out_src = gavl_video_source_create(read_func, vp,
+  return gavl_video_source_create(read_func, vp,
                                          GAVL_SOURCE_SRC_ALLOC, &vp->format);
-  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 

@@ -48,8 +48,6 @@ typedef struct
   int num_frames; // 0, 1 or 2
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
-  
   } interlace_priv_t;
 
 static void * create_interlace()
@@ -73,10 +71,6 @@ static void destroy_interlace(void * priv)
 
   gavl_video_frame_destroy(vp->src_field);
   gavl_video_frame_destroy(vp->dst_field);
-
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-  
   free(vp);
   }
 
@@ -219,24 +213,16 @@ static gavl_video_source_t * connect_interlace(void * priv,
     gavl_video_frame_destroy(vp->frame1);
     vp->frame1 = NULL;
     }
-  
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
-  
   if(opt)
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, in_format);
-  
-  vp->out_src = gavl_video_source_create(read_func,
-                                         vp, 0,
-                                         &vp->format);
   vp->need_restart = 0;
   vp->num_frames = 0;
-  return vp->out_src;
+  
+  return gavl_video_source_create(read_func,
+                                  vp, 0,
+                                  &vp->format);
   }
 
 static void reset_interlace(void * priv)

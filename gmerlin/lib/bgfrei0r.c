@@ -243,7 +243,6 @@ typedef struct
   int do_swap;
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
 
   } frei0r_t;
 
@@ -526,21 +525,14 @@ static gavl_video_source_t * connect_frei0r(void * priv,
                          set_parameter_instance, vp);
     }
 
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
-
   if(opt)
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
-  vp->out_src = gavl_video_source_create(read_func,
-                                         vp, 0,
-                                         &vp->format);
-  return vp->out_src;
+  return gavl_video_source_create(read_func,
+                                  vp, 0,
+                                  &vp->format);
   }
 
 static const bg_parameter_info_t * get_parameters_frei0r(void * priv)
@@ -626,7 +618,6 @@ void bg_frei0r_unload(bg_plugin_handle_t * h)
   if(vp->instance)  vp->destruct(vp->instance);
   if(vp->in_frame)  gavl_video_frame_destroy(vp->in_frame);
   if(vp->out_frame) gavl_video_frame_destroy(vp->out_frame);
-  if(vp->out_src) gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 

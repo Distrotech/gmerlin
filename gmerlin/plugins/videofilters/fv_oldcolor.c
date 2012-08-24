@@ -46,8 +46,6 @@ typedef struct
   float gain[3];
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
-
   } oldcolor_priv_t;
 
 #define STYLE_BW    0
@@ -110,10 +108,6 @@ static void destroy_oldcolor(void * priv)
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
-
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-
   free(vp);
   }
 
@@ -307,13 +301,6 @@ static gavl_video_source_t * connect_oldcolor(void * priv, gavl_video_source_t *
   vp->in_src = src;
   
   gavl_video_format_copy(&vp->format, gavl_video_source_get_src_format(vp->in_src));
-  
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
-  
   if(opt)
     {
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
@@ -324,10 +311,9 @@ static gavl_video_source_t * connect_oldcolor(void * priv, gavl_video_source_t *
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
-  vp->out_src = gavl_video_source_create(read_func,
-                                         vp, 0,
-                                         &vp->format);
-  return vp->out_src;
+  return gavl_video_source_create(read_func,
+                                  vp, 0,
+                                  &vp->format);
   }
 
 

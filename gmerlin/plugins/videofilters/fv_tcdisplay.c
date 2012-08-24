@@ -50,8 +50,6 @@ typedef struct
   gavl_timecode_t last_timecode;
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
-
   } tc_priv_t;
 
 static void * create_tcdisplay()
@@ -69,10 +67,6 @@ static void destroy_tcdisplay(void * priv)
   vp = priv;
   bg_text_renderer_destroy(vp->renderer);
   gavl_overlay_blend_context_destroy(vp->blender);
-
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-
   free(vp);
   }
 
@@ -315,12 +309,6 @@ connect_tcdisplay(void * priv, gavl_video_source_t * src,
                   const gavl_video_options_t * opt)
   {
   tc_priv_t * vp = priv;
-  
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
   vp->in_src = src;
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
 
@@ -328,8 +316,7 @@ connect_tcdisplay(void * priv, gavl_video_source_t * src,
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
-  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
-  return vp->out_src;
+  return gavl_video_source_create(read_func, vp, 0, &vp->format);
   }
 
 const bg_fv_plugin_t the_plugin = 

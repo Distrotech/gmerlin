@@ -53,7 +53,6 @@ typedef struct colorbalance_priv_s
   void (*process)(struct colorbalance_priv_s *, gavl_video_frame_t*);
 
   gavl_video_source_t * in_src;
-  gavl_video_source_t * out_src;
   
   } colorbalance_priv_t;
 
@@ -116,9 +115,6 @@ static void destroy_colorbalance(void * priv)
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
 
-  if(vp->out_src)
-    gavl_video_source_destroy(vp->out_src);
-  
   free(vp);
   }
 
@@ -592,12 +588,6 @@ connect_colorbalance(void * priv, gavl_video_source_t * src,
 
   vp->in_src = src;
   
-  if(vp->out_src)
-    {
-    gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
-
   if(opt)
     {
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
@@ -611,8 +601,7 @@ connect_colorbalance(void * priv, gavl_video_source_t * src,
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
 
-  vp->out_src = gavl_video_source_create(read_func, vp, 0, &vp->format);
-  return vp->out_src;
+  return gavl_video_source_create(read_func, vp, 0, &vp->format);
   }
 
 const bg_fv_plugin_t the_plugin = 

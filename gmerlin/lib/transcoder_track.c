@@ -1394,7 +1394,6 @@ static const bg_parameter_info_t general_parameters_audio[] =
       .help_string = TRS("This will enable 2 pass transcoding. In the first pass, the peak volume\
  is detected. In the second pass, the stream is transcoded with normalized volume.")
     },
-    BG_GAVL_PARAM_FORCE_SAMPLEFORMAT,
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_AUDIO_DITHER_MODE,
     BG_GAVL_PARAM_SAMPLERATE,

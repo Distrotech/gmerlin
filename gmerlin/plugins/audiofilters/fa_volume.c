@@ -40,6 +40,8 @@ typedef struct
   int read_stream;
   
   gavl_audio_format_t format;
+
+  gavl_audio_source_t * in_src;
   } volume_priv_t;
 
 static void * create_volume()
@@ -97,54 +99,40 @@ static void set_parameter_volume(void * priv, const char * name,
     }
   }
 
-static void connect_input_port_volume(void * priv,
-                                      bg_read_audio_func_t func,
-                                      void * data, int stream, int port)
+static gavl_source_status_t read_func(void * priv, gavl_audio_frame_t ** frame)
   {
+  gavl_source_status_t st;
   volume_priv_t * vp;
   vp = priv;
 
-  if(!port)
-    {
-    vp->read_func = func;
-    vp->read_data = data;
-    vp->read_stream = stream;
-    }
+  if((st = gavl_audio_source_read_frame(vp->in_src, frame)) !=
+     GAVL_SOURCE_OK)
+    return st;
+  gavl_volume_control_apply(vp->vc, *frame);
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_audio_source_t * connect_volume(void * priv,
+                                            gavl_audio_source_t * src,
+                                            const gavl_audio_options_t * opt)
+  {
+  const gavl_audio_format_t * format;
+  volume_priv_t * vp;
+  vp = priv;
+  vp->in_src = src;
+
+  format = gavl_audio_source_get_src_format(vp->in_src);
   
-  }
+  gavl_volume_control_set_format(vp->vc, format);
 
-static void set_input_format_volume(void * priv, gavl_audio_format_t * format, int port)
-  {
-  volume_priv_t * vp;
-  vp = priv;
+  if(opt)
+    gavl_audio_options_copy(gavl_audio_source_get_options(vp->in_src), opt);
 
-  if(!port)
-    {
-    gavl_audio_format_copy(&vp->format, format);
-    gavl_volume_control_set_format(vp->vc, format);
-    }
-  }
-
-static void get_output_format_volume(void * priv, gavl_audio_format_t * format)
-  {
-  volume_priv_t * vp;
-  vp = priv;
+  gavl_audio_source_set_dst(vp->in_src, 0, format);
   
-  gavl_audio_format_copy(format, &vp->format);
-  }
-
-static int read_audio_volume(void * priv, gavl_audio_frame_t * frame, int stream, int num_samples)
-  {
-  volume_priv_t * vp;
-  vp = priv;
-
-  if(vp->read_func(vp->read_data, frame, vp->read_stream, num_samples))
-    {
-    gavl_volume_control_apply(vp->vc, frame);
-    return frame->valid_samples;
-    }
-  else
-    return 0;
+  return gavl_audio_source_create(read_func,
+                                  vp, 0,
+                                  &vp->format);
   }
 
 const bg_fa_plugin_t the_plugin = 
@@ -164,13 +152,7 @@ const bg_fa_plugin_t the_plugin =
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_volume,
-    
-    .set_input_format = set_input_format_volume,
-    .get_output_format = get_output_format_volume,
-
-    .read_audio = read_audio_volume,
-    
+    .connect = connect_volume,
   };
 
 /* Include this into all plugin modules exactly once

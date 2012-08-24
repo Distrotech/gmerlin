@@ -327,7 +327,6 @@ typedef struct
   int run_adding;
 
   gavl_audio_source_t * in_src;
-  gavl_audio_source_t * out_src;
   
   bg_parameter_info_t * parameters;
 
@@ -365,11 +364,6 @@ static void cleanup_ladspa(ladspa_priv_t * lp)
       lp->desc->cleanup(lp->channels[i].Instance);
     }
   lp->num_instances = 0;
-  if(lp->out_src)
-    {
-    gavl_audio_source_destroy(lp->out_src);
-    lp->out_src = NULL;
-    }
   }
 
 /* Initialize instances, called after the input format is known */
@@ -584,11 +578,6 @@ connect_ladspa(void * priv, gavl_audio_source_t * src,
   {
   ladspa_priv_t * lp = priv;
 
-  if(lp->out_src)
-    {
-    gavl_audio_source_destroy(lp->out_src);
-    lp->out_src = NULL;
-    }
   lp->in_src = src;
   gavl_audio_format_copy(&lp->format,
                          gavl_audio_source_get_src_format(lp->in_src));
@@ -601,11 +590,9 @@ connect_ladspa(void * priv, gavl_audio_source_t * src,
   
   gavl_audio_source_set_dst(lp->in_src, 0, &lp->format);
 
-  lp->out_src = gavl_audio_source_create(read_func,
-                                         lp, 0,
-                                         &lp->format);
-  
-  return lp->out_src;
+  return gavl_audio_source_create(read_func,
+                                  lp, 0,
+                                  &lp->format);
   }
 
 int bg_ladspa_load(bg_plugin_handle_t * ret,

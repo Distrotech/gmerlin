@@ -65,17 +65,6 @@ struct bg_audio_filter_chain_s
   int need_rebuild;
   int need_restart;
 
-#if 0  
-  bg_audio_converter_t * cnv_out;
-  gavl_audio_frame_t     * frame;
-  gavl_audio_format_t    out_format_1;
-  gavl_audio_format_t    in_format_1;
-  gavl_audio_format_t    in_format_2;
-  
-  gavl_audio_format_t    in_format;  /* Input format of first filter */
-  gavl_audio_format_t    out_format; /* Output format of chain */
-#endif
-  
   pthread_mutex_t mutex;
   
   bg_read_audio_func_t in_func;
@@ -121,6 +110,8 @@ static void audio_filter_destroy(audio_filter_t * f)
   {
   if(f->handle)
     bg_plugin_unref_nolock(f->handle);
+  if(f->out_src)
+    gavl_audio_source_destroy(f->out_src);
   }
 
 static void destroy_audio_chain(bg_audio_filter_chain_t * ch)
@@ -426,19 +417,8 @@ int bg_audio_filter_chain_read(void * priv, gavl_audio_frame_t* frame,
   if(!fmt->num_channels)
     gavl_audio_source_set_dst(ch->out_src_2, 0, NULL);
   
-  return (gavl_audio_source_read_samples(ch->out_src_2,
-                                         frame, num_samples) ==
-          num_samples);
-#if 0
-  int ret;
-  bg_audio_filter_chain_t * ch;
-  ch = (bg_audio_filter_chain_t *)priv;
-  
-  bg_audio_filter_chain_lock(ch);
-  ret = ch->read_func(ch->read_data, frame, ch->read_stream, num_samples);
-  bg_audio_filter_chain_unlock(ch);
-  return ret;
-#endif
+  return gavl_audio_source_read_samples(ch->out_src_2,
+                                        frame, num_samples);
   }
 
 void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * ch)
@@ -448,7 +428,6 @@ void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * ch)
 
   if(ch->filter_string)
     free(ch->filter_string);
-
   
   destroy_audio_chain(ch);
   pthread_mutex_destroy(&ch->mutex);
@@ -488,10 +467,13 @@ bg_audio_filter_chain_connect(bg_audio_filter_chain_t * ch,
   
   for(i = 0; i < ch->num_filters; i++)
     {
-    src =
+    if(ch->filters[i].out_src)
+      gavl_audio_source_destroy(ch->filters[i].out_src);
+    
+    ch->filters[i].out_src =
       ch->filters[i].plugin->connect(ch->filters[i].handle->priv,
                                      src, ch->opt->opt);
-    ch->filters[i].out_src = src;
+    src = ch->filters[i].out_src;
     }
   
   ch->out_src_1 = src;
