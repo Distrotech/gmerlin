@@ -584,9 +584,6 @@ connect_ladspa(void * priv, gavl_audio_source_t * src,
   lp->format.interleave_mode = GAVL_INTERLEAVE_NONE;
   lp->format.sample_format = GAVL_SAMPLE_FLOAT;
   init_ladspa(lp);
-
-  if(opt)
-    gavl_audio_options_copy(gavl_audio_source_get_options(lp->in_src), opt);
   
   gavl_audio_source_set_dst(lp->in_src, 0, &lp->format);
 

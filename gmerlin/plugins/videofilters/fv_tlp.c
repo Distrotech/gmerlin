@@ -193,9 +193,6 @@ connect_tlp(void * priv, gavl_video_source_t * src,
     }
   vp->init = 1;
   
-  if(opt)
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
-  
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   return
     gavl_video_source_create(read_func, vp,

@@ -1255,10 +1255,8 @@ connect_cropscale(void * priv, gavl_video_source_t * src,
   gavl_video_source_set_dst(vp->in_src, 0, &vp->in_format);
 
   if(opt)
-    {
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
     gavl_video_options_copy(vp->global_opt, opt);
-    }
+  
   vp->need_reinit = 1;
   vp->need_restart = 0;
 

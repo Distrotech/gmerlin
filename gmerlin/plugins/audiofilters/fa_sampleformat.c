@@ -160,9 +160,6 @@ connect_sampleformat(void * priv,
   
   gavl_audio_format_copy(&format, gavl_audio_source_get_src_format(vp->in_src));
   format.sample_format = vp->sample_format;
-  if(opt)
-    gavl_audio_options_copy(gavl_audio_source_get_options(vp->in_src), opt);
-
   gavl_audio_source_set_dst(vp->in_src, 0, &format);
 
   return gavl_audio_source_create(read_func,

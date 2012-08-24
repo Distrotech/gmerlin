@@ -122,9 +122,6 @@ connect_framerate(void * priv,
 
   in_format = gavl_video_source_get_src_format(vp->in_src);
   
-  if(opt)
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
-
   /* Set framerate */
 
   gavl_video_format_copy(&vp->format,

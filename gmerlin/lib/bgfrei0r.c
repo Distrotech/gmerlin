@@ -524,9 +524,6 @@ static gavl_video_source_t * connect_frei0r(void * priv,
                          vp->parameters,
                          set_parameter_instance, vp);
     }
-
-  if(opt)
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   

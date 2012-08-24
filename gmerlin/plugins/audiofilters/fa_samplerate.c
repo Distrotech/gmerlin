@@ -42,31 +42,23 @@ typedef struct
   
   int need_restart;
 
-  bg_read_audio_func_t read_func;
-  void * read_data;
-  int read_stream;
-  
   gavl_audio_format_t format;
-
-  bg_parameter_info_t * parameters;
 
   gavl_audio_source_t * in_src;
   
-  } sampleformat_priv_t;
+  } samplerate_priv_t;
 
-static void * create_sampleformat()
+static void * create_samplerate()
   {
-  sampleformat_priv_t * ret;
+  samplerate_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
   return ret;
   }
 
-static void destroy_sampleformat(void * priv)
+static void destroy_samplerate(void * priv)
   {
-  sampleformat_priv_t * vp;
+  samplerate_priv_t * vp;
   vp = priv;
-  if(vp->parameters)
-    bg_parameter_info_destroy_array(vp->parameters);
   free(vp);
   }
 
@@ -109,12 +101,12 @@ static const bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static const bg_parameter_info_t * get_parameters_sampleformat(void * priv)
+static const bg_parameter_info_t * get_parameters_samplerate(void * priv)
   {
   return parameters;
   }
 
-static int get_samplerate(sampleformat_priv_t * vp)
+static int get_samplerate(samplerate_priv_t * vp)
   {
   if(vp->samplerate_cfg == RATE_SOURCE)
     {
@@ -134,10 +126,10 @@ static int get_samplerate(sampleformat_priv_t * vp)
   }
 
 static void
-set_parameter_sampleformat(void * priv, const char * name,
+set_parameter_samplerate(void * priv, const char * name,
                           const bg_parameter_value_t * val)
   {
-  sampleformat_priv_t * vp;
+  samplerate_priv_t * vp;
   vp = priv;
   
   if(!name)
@@ -157,40 +149,35 @@ set_parameter_sampleformat(void * priv, const char * name,
       vp->samplerate_cfg = atoi(val->val_str);
     }
   else if(!strcmp(name, "user_rate"))
-    {
-    vp->samplerate_user = atoi(val->val_str);
-    }
+    vp->samplerate_user = val->val_i;
   }
 
-static int need_restart_sampleformat(void * priv)
+static int need_restart_samplerate(void * priv)
   {
-  sampleformat_priv_t * vp = priv;
+  samplerate_priv_t * vp = priv;
   return vp->need_restart;
   }
 
 static gavl_source_status_t read_func(void * priv,
                                       gavl_audio_frame_t ** frame)
   {
-  sampleformat_priv_t * vp = priv;
+  samplerate_priv_t * vp = priv;
   return gavl_audio_source_read_frame(vp->in_src, frame);
   }
 
 static gavl_audio_source_t *
-connect_sampleformat(void * priv,
+connect_samplerate(void * priv,
                      gavl_audio_source_t * src,
                      const gavl_audio_options_t * opt)
   {
   gavl_audio_format_t format;
-  sampleformat_priv_t * vp = priv;
+  samplerate_priv_t * vp = priv;
   vp->in_src = src;
 
   vp->samplerate_current = get_samplerate(vp);
   
   gavl_audio_format_copy(&format, gavl_audio_source_get_src_format(vp->in_src));
   format.samplerate = vp->samplerate_current;
-  if(opt)
-    gavl_audio_options_copy(gavl_audio_source_get_options(vp->in_src), opt);
-  
   gavl_audio_source_set_dst(vp->in_src, 0, &format);
 
   return gavl_audio_source_create(read_func, vp, 0, &format);
@@ -201,20 +188,20 @@ const bg_fa_plugin_t the_plugin =
     .common =
     {
       BG_LOCALE,
-      .name =      "fa_sampleformat",
-      .long_name = TRS("Force sampleformat"),
-      .description = TRS("This forces a sampleformat as input for the next filter."),
+      .name =      "fa_samplerate",
+      .long_name = TRS("Force samplerate"),
+      .description = TRS("This forces a samplerate as input for the next filter."),
       .type =     BG_PLUGIN_FILTER_AUDIO,
       .flags =    BG_PLUGIN_FILTER_1,
-      .create =   create_sampleformat,
-      .destroy =   destroy_sampleformat,
-      .get_parameters =   get_parameters_sampleformat,
-      .set_parameter =    set_parameter_sampleformat,
+      .create =   create_samplerate,
+      .destroy =   destroy_samplerate,
+      .get_parameters =   get_parameters_samplerate,
+      .set_parameter =    set_parameter_samplerate,
       .priority =         1,
     },
     
-    .connect = connect_sampleformat,
-    .need_restart = need_restart_sampleformat,
+    .connect = connect_samplerate,
+    .need_restart = need_restart_samplerate,
     
   };
 

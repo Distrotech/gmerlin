@@ -302,10 +302,7 @@ static gavl_video_source_t * connect_oldcolor(void * priv, gavl_video_source_t *
   
   gavl_video_format_copy(&vp->format, gavl_video_source_get_src_format(vp->in_src));
   if(opt)
-    {
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
     gavl_video_options_copy(vp->global_opt, opt);
-    }
 
   bg_colormatrix_init(vp->mat, &vp->format, 0, vp->global_opt);
   

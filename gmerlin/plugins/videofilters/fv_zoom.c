@@ -333,10 +333,8 @@ connect_zoom(void * priv, gavl_video_source_t * src, const gavl_video_options_t 
   
   
   if(opt)
-    {
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
     gavl_video_options_copy(vp->opt, opt);
-    }
+  
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
   vp->changed = 1;

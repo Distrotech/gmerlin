@@ -213,8 +213,6 @@ static gavl_video_source_t * connect_interlace(void * priv,
     gavl_video_frame_destroy(vp->frame1);
     vp->frame1 = NULL;
     }
-  if(opt)
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, in_format);
   vp->need_restart = 0;

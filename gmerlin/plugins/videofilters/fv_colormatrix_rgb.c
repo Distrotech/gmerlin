@@ -441,10 +441,8 @@ connect_colormatrix(void * priv, gavl_video_source_t * src,
   bg_colormatrix_init(vp->mat, &vp->format, flags, vp->global_opt);
   
   if(opt)
-    {
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
     gavl_video_options_copy(vp->global_opt, opt);
-    }
+  
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
   vp->need_restart = 0;

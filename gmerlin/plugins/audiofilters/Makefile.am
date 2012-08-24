@@ -11,6 +11,7 @@ AM_CFLAGS = \
 
 
 plugin_LTLIBRARIES = \
+fa_channels.la \
 fa_sampleformat.la \
 fa_samplerate.la \
 fa_volume.la 

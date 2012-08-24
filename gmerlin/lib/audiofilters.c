@@ -66,7 +66,8 @@ struct bg_audio_filter_chain_s
   int need_restart;
 
   pthread_mutex_t mutex;
-  
+
+  /* Legacy!! */
   bg_read_audio_func_t in_func;
   void * in_data;
   int in_stream;
@@ -469,6 +470,9 @@ bg_audio_filter_chain_connect(bg_audio_filter_chain_t * ch,
     {
     if(ch->filters[i].out_src)
       gavl_audio_source_destroy(ch->filters[i].out_src);
+
+    gavl_audio_options_copy(gavl_audio_source_get_options(src),
+                            ch->opt->opt);
     
     ch->filters[i].out_src =
       ch->filters[i].plugin->connect(ch->filters[i].handle->priv,

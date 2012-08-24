@@ -158,9 +158,6 @@ connect_shift(void * priv, gavl_video_source_t * src,
     width_mult++;
   vp->samples_per_line = vp->format.image_width * width_mult;
   
-  if(opt)
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
-  
   gavl_video_source_set_dst(vp->in_src,
                             GAVL_SOURCE_DST_OVERWRITES,
                             &vp->format);

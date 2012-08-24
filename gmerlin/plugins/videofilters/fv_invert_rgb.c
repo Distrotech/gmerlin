@@ -524,10 +524,8 @@ static gavl_video_source_t * connect_invert(void * priv, gavl_video_source_t * s
   vp->in_src = src;
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
   if(opt)
-    {
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
     gavl_video_options_copy(vp->global_opt, opt);
-    }
+  
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
   return gavl_video_source_create(read_func,

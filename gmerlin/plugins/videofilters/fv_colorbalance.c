@@ -589,11 +589,8 @@ connect_colorbalance(void * priv, gavl_video_source_t * src,
   vp->in_src = src;
   
   if(opt)
-    {
-    gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
     gavl_video_options_copy(vp->global_opt, opt);
-    }
-
+  
   gavl_video_format_copy(&vp->format,
                          gavl_video_source_get_src_format(vp->in_src));
 
