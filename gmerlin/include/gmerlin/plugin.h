@@ -2093,6 +2093,7 @@ struct bg_fa_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
+#if 0  
   /** \brief Set input callback
    *  \param priv The handle returned by the create() method
    *  \param func The function to call
@@ -2100,7 +2101,6 @@ struct bg_fa_plugin_s
    *  \param stream The stream argument to pass to func
    *  \param port The input port of the plugin
    */
-  
   void (*connect_input_port)(void * priv, bg_read_audio_func_t func,
                              void * data,
                              int stream, int port);
@@ -2115,7 +2115,7 @@ struct bg_fa_plugin_s
    */
   
   void (*set_input_format)(void * priv, gavl_audio_format_t * format, int port);
-
+#endif
 
   /** \brief Reset
    *  \param priv The handle returned by the create() method
@@ -2125,6 +2125,7 @@ struct bg_fa_plugin_s
 
   void (*reset)(void * priv);
 
+#if 0  
   /** \brief Get output format
    *  \param priv The handle returned by the create() method
    *  \param format Returns the output format
@@ -2133,7 +2134,8 @@ struct bg_fa_plugin_s
    */
 
   void (*get_output_format)(void * priv, gavl_audio_format_t * format);
-
+#endif
+  
   /** \brief Connect sources
    *  \param priv The handle returned by the create() method
    *  \param src Video source where this filter gets it's frames from
@@ -2143,7 +2145,8 @@ struct bg_fa_plugin_s
    *  \ref set_input_format and \ref get_output_format \ref read_video.
    */
   
-  gavl_audio_source_t * (*connect)(void * priv, gavl_audio_source_t *);
+  gavl_audio_source_t * (*connect)(void * priv, gavl_audio_source_t *,
+                                   const gavl_audio_options_t * opt);
   
   /** \brief Report, if the plugin must be reinitialized
    *  \param priv The handle returned by the create() method
@@ -2156,11 +2159,12 @@ struct bg_fa_plugin_s
   
   int (*need_restart)(void * priv);
 
+#if 0  
   /** \brief Read audio samples from the plugin
    */
  
   bg_read_audio_func_t read_audio;
-    
+#endif
   };
 
 /** \brief Typedef for video filter plugin
@@ -2177,36 +2181,6 @@ struct bg_fv_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
-  /** \brief Get gavl options
-   *  \param priv The handle returned by the create() method
-   *  \returns Video conversion options
-   *
-   *  This optional function returns the gavl options. You can configure them
-   *  like you do it in plain gavl.
-   */
-  
-  //  gavl_video_options_t * (*get_options)(void * priv);
-  
-  /** \brief Set input callback
-   *  \param priv The handle returned by the create() method
-   *  \param func The function to call
-   *  \param data The private handle to pass to func
-   *  \param stream The stream argument to pass to func
-   *  \param port The input port of the plugin
-   */
-#if 0
-  void (*connect_input_port)(void * priv,
-                             bg_read_video_func_t func,
-                             void * data, int stream, int port);
-
-  /** \brief Set input format
-   *  \param priv The handle returned by the create() method
-   *  \param format Format
-   *  \param port The input port of the plugin
-   */
-  
-  void (*set_input_format)(void * priv, gavl_video_format_t * format, int port);
-#endif
   /** \brief Reset
    *  \param priv The handle returned by the create() method
    *
@@ -2215,15 +2189,6 @@ struct bg_fv_plugin_s
 
   void (*reset)(void * priv);
 
-  /** \brief Get output format
-   *  \param priv The handle returned by the create() method
-   *  \param format Returns the output format
-   *
-   *  These must be called after init().
-   */
-  
-  //  void (*get_output_format)(void * priv, gavl_video_format_t * format);
-  
   /** \brief Report, if the plugin must be reinitialized
    *  \param priv The handle returned by the create() method
    *  \returns 1 if the plugin must be reinitialized, 0 else
@@ -2238,7 +2203,8 @@ struct bg_fv_plugin_s
   /** \brief Connect sources
    *  \param priv The handle returned by the create() method
    *  \param src Video source where this filter gets it's frames from
-   *  \returns 1 The source to be passed to the subsequent filter
+   *  \param opt gavl Options for converting and filtering
+   *  \returns The source to be passed to the subsequent filter
    *
    *  This can be implemented as a replacement for \ref connect_input_port,
    *  \ref set_input_format and \ref get_output_format \ref read_video.

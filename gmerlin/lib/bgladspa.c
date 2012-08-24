@@ -321,15 +321,14 @@ typedef struct
   {
   LADSPA_Data * config_ports;
   gavl_audio_format_t format;
-  gavl_audio_frame_t * frame;
+  //  gavl_audio_frame_t * frame;
   const LADSPA_Descriptor * desc;
   float run_adding_gain;
   int run_adding;
-  
-  bg_read_audio_func_t read_func;
-  void * read_data;
-  int read_stream;
 
+  gavl_audio_source_t * in_src;
+  gavl_audio_source_t * out_src;
+  
   bg_parameter_info_t * parameters;
 
   /* Port maps */
@@ -366,10 +365,10 @@ static void cleanup_ladspa(ladspa_priv_t * lp)
       lp->desc->cleanup(lp->channels[i].Instance);
     }
   lp->num_instances = 0;
-  if(lp->frame)
+  if(lp->out_src)
     {
-    gavl_audio_frame_destroy(lp->frame);
-    lp->frame = NULL;
+    gavl_audio_source_destroy(lp->out_src);
+    lp->out_src = NULL;
     }
   }
 
@@ -434,48 +433,6 @@ static void init_ladspa(ladspa_priv_t * lp)
     }
   }
 
- 
-static void set_input_format_ladspa(void * priv,
-                                    gavl_audio_format_t * format, 
-                                    int port)
-  {
-  ladspa_priv_t * lp;
-  lp = (ladspa_priv_t *)priv;
-  
-  if(!port)
-    {
-    format->interleave_mode = GAVL_INTERLEAVE_NONE;
-    format->sample_format = GAVL_SAMPLE_FLOAT;
-    
-    gavl_audio_format_copy(&lp->format, format);
-    init_ladspa(lp);
-    gavl_audio_format_copy(format, &lp->format);
-    }
-  }
-
-static void connect_input_port_ladspa(void * priv,
-                                      bg_read_audio_func_t func,
-                                      void * data, int stream, 
-                                      int port)
-  {
-  ladspa_priv_t * lp;
-  lp = (ladspa_priv_t *)priv;
-  
-  if(!port)
-    {
-    lp->read_func = func;
-    lp->read_data = data;
-    lp->read_stream = stream;
-    }
-  }
-
-static void get_output_format_ladspa(void * priv,
-                                     gavl_audio_format_t * format)
-  {
-  ladspa_priv_t * lp;
-  lp = (ladspa_priv_t *)priv;
-  gavl_audio_format_copy(format, &lp->format);
-  }
 
 static void connect_input(ladspa_priv_t * lp, gavl_audio_frame_t * f)
   {
@@ -499,69 +456,54 @@ static void connect_output(ladspa_priv_t * lp, gavl_audio_frame_t * f)
     }
   }
 
-
-static int read_audio_ladspa(void * priv,
-                             gavl_audio_frame_t * frame,
-                             int stream, int num_samples)
+static gavl_source_status_t
+read_func(void * priv,
+          gavl_audio_frame_t ** frame)
   {
+  
+  
   int i;
   ladspa_priv_t * lp;
-  int ret;
+  int num_samples;
+  gavl_source_status_t st;
+  gavl_audio_frame_t * in_frame = NULL;
   lp = (ladspa_priv_t *)priv;
   
-  /* Check whether to (re)allocate the frame */
-  if(lp->frame &&
-     lp->inplace_broken &&
-     (num_samples > lp->format.samples_per_frame))
+  if(lp->inplace_broken)
     {
-    gavl_audio_frame_destroy(lp->frame);
-    lp->frame = NULL;
-    }
-  
-  if(!lp->frame && lp->inplace_broken)
-    {
-    lp->format.samples_per_frame = num_samples + 1024;
-    lp->frame = gavl_audio_frame_create(&lp->format);
-    connect_input(lp, lp->frame);
-    }
-  
-  if(!lp->inplace_broken)
-    {
-    ret =
-      lp->read_func(lp->read_data, frame, lp->read_stream, num_samples);
-    if(!ret)
-      return 0;
+    if((st = gavl_audio_source_read_frame(lp->in_src, &in_frame)) !=
+       GAVL_SOURCE_OK)
+      return st;
+    
+    if(lp->run_adding)
+      gavl_audio_frame_copy(&lp->format, *frame, in_frame,
+                            0, 0, in_frame->valid_samples,
+                            in_frame->valid_samples);
+    connect_input(lp, in_frame);
+    num_samples = in_frame->valid_samples;
 
-    connect_input(lp, frame);
+    (*frame)->valid_samples = num_samples;
+    (*frame)->timestamp = in_frame->timestamp;
     }
   else
     {
-    ret =
-      lp->read_func(lp->read_data, lp->frame, 
-                    lp->read_stream, num_samples);
-    if(!ret)
-      return 0;
-
-    if(lp->run_adding)
-      gavl_audio_frame_copy(&lp->format, frame, lp->frame,
-                            0, 0, lp->frame->valid_samples,
-                            lp->frame->valid_samples);
-    frame->timestamp = lp->frame->timestamp;
+    if((st = gavl_audio_source_read_frame(lp->in_src, frame)) !=
+       GAVL_SOURCE_OK)
+      return st;
+    num_samples = (*frame)->valid_samples;
     }
   
-  connect_output(lp, frame);
+  connect_output(lp, *frame);
   
   /* Run */
   for(i = 0; i < lp->num_instances; i++)
     {
     if(lp->run_adding)
-      lp->desc->run_adding(lp->channels[i].Instance, ret);
+      lp->desc->run_adding(lp->channels[i].Instance, num_samples);
     else
-      lp->desc->run(lp->channels[i].Instance, ret);
+      lp->desc->run(lp->channels[i].Instance, num_samples);
     }
-  
-  frame->valid_samples = ret;
-  return ret;
+  return GAVL_SOURCE_OK;
   }
 
 static void reset_ladspa(void * priv)
@@ -636,6 +578,36 @@ static void set_parameter_ladspa(void * priv, const char * name,
     }
   }
 
+static gavl_audio_source_t *
+connect_ladspa(void * priv, gavl_audio_source_t * src,
+               const gavl_audio_options_t * opt)
+  {
+  ladspa_priv_t * lp = priv;
+
+  if(lp->out_src)
+    {
+    gavl_audio_source_destroy(lp->out_src);
+    lp->out_src = NULL;
+    }
+  lp->in_src = src;
+  gavl_audio_format_copy(&lp->format,
+                         gavl_audio_source_get_src_format(lp->in_src));
+  lp->format.interleave_mode = GAVL_INTERLEAVE_NONE;
+  lp->format.sample_format = GAVL_SAMPLE_FLOAT;
+  init_ladspa(lp);
+
+  if(opt)
+    gavl_audio_options_copy(gavl_audio_source_get_options(lp->in_src), opt);
+  
+  gavl_audio_source_set_dst(lp->in_src, 0, &lp->format);
+
+  lp->out_src = gavl_audio_source_create(read_func,
+                                         lp, 0,
+                                         &lp->format);
+  
+  return lp->out_src;
+  }
+
 int bg_ladspa_load(bg_plugin_handle_t * ret,
                     const bg_plugin_info_t * info)
   {
@@ -649,13 +621,17 @@ int bg_ladspa_load(bg_plugin_handle_t * ret,
   af = calloc(1, sizeof(*af));
   ret->plugin_nc = (bg_plugin_common_t*)af;
   ret->plugin = ret->plugin_nc;
-  
+#if 0
   af->set_input_format = set_input_format_ladspa;
   af->connect_input_port = connect_input_port_ladspa;
   af->get_output_format = get_output_format_ladspa;
   af->read_audio = read_audio_ladspa;
+#endif
   af->reset      = reset_ladspa;
 
+  af->connect      = connect_ladspa;
+
+  
   if(info->parameters)
     {
     ret->plugin_nc->get_parameters = get_parameters_ladspa;

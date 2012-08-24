@@ -43,12 +43,17 @@ typedef struct
   {
   bg_plugin_handle_t * handle;
   bg_fa_plugin_t     * plugin;
-  bg_audio_converter_t * cnv;
-  int do_convert;
+  gavl_audio_source_t * out_src;
   } audio_filter_t;
 
 struct bg_audio_filter_chain_s
   {
+  gavl_audio_source_t * out_src_1; // Last Filter element
+  gavl_audio_source_t * out_src_2; // Output (reading from here locks the chain)
+  gavl_audio_source_t * in_src; // Legacy!!
+  
+  int in_samples;
+  
   int num_filters;
   audio_filter_t * filters;
   const bg_gavl_audio_options_t * opt;
@@ -74,10 +79,6 @@ struct bg_audio_filter_chain_s
   bg_read_audio_func_t in_func;
   void * in_data;
   int in_stream;
-
-  bg_read_audio_func_t read_func;
-  void * read_data;
-  int read_stream;
   
   };
 
@@ -110,7 +111,6 @@ static int audio_filter_create(audio_filter_t * f,
     return 0;
 
   f->plugin = (bg_fa_plugin_t*)(f->handle->plugin);
-  f->cnv = bg_audio_converter_create(ch->opt->opt);
   return 1;
   }
 
@@ -127,7 +127,6 @@ void bg_audio_filter_chain_unlock(bg_audio_filter_chain_t * cnv)
 
 static void audio_filter_destroy(audio_filter_t * f)
   {
-  bg_audio_converter_destroy(f->cnv);
   if(f->handle)
     bg_plugin_unref_nolock(f->handle);
   }
@@ -271,10 +270,35 @@ bg_audio_filter_chain_set_parameter(void * data, const char * name,
   return;
   }
 
+/* Legacy */
+static gavl_source_status_t
+read_func_in(void * priv, gavl_audio_frame_t ** frame)
+  {
+  bg_audio_filter_chain_t * ch = priv;
+  if(!ch->in_func(ch->in_data, *frame, ch->in_stream, ch->in_samples))
+    return GAVL_SOURCE_EOF;
+  return GAVL_SOURCE_OK;
+  }
+
 int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
                                const gavl_audio_format_t * in_format,
                                gavl_audio_format_t * out_format)
   {
+  ch->need_restart = 0;
+
+  if(ch->need_rebuild)
+    bg_audio_filter_chain_rebuild(ch);
+
+  if(ch->in_src)
+    gavl_audio_source_destroy(ch->in_src);
+
+  ch->in_src = gavl_audio_source_create(read_func_in, ch, 0, in_format);
+  ch->in_samples = in_format->samples_per_frame;
+  
+  bg_audio_filter_chain_connect(ch, ch->in_src);
+  gavl_audio_format_copy(out_format,
+                         gavl_audio_source_get_src_format(ch->out_src_1));
+#if 0
   int i;
   
   gavl_audio_format_t format_1;
@@ -362,54 +386,15 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
     gavl_audio_format_copy(&ch->out_format_1, &format_1);
   else
     gavl_audio_format_copy(&ch->out_format_1, in_format);
-  
+#endif
   return ch->num_filters;
-  }
-
-void bg_audio_filter_chain_set_input_format(bg_audio_filter_chain_t * ch,
-                                            const gavl_audio_format_t * format)
-  {
-  if(!ch->num_filters)
-    {
-    int do_convert_out;
-    
-    do_convert_out = bg_audio_converter_init(ch->cnv_out,
-                                             &ch->out_format_1,
-                                             &ch->out_format);
-    if(do_convert_out)
-      {
-      bg_audio_converter_connect_input(ch->cnv_out,
-                                       ch->in_func, ch->in_data, ch->in_stream);
-      ch->read_func   = bg_audio_converter_read;
-      ch->read_data   = ch->cnv_out;
-      ch->read_stream = 0;
-      }
-    }
-  else
-    {
-    audio_filter_t * f = ch->filters;
-
-    f->do_convert =
-      bg_audio_converter_init(f->cnv, format, &ch->in_format);
-
-    if(f->do_convert)
-      {
-      bg_audio_converter_connect_input(f->cnv,
-                                       ch->in_func, ch->in_data, ch->in_stream);
-      
-      f->plugin->connect_input_port(f->handle->priv,
-                                    bg_audio_converter_read,
-                                    f->cnv, 0, 0);
-      }
-    else
-      f->plugin->connect_input_port(f->handle->priv, ch->in_func, ch->in_data,
-                                    ch->in_stream, 0);
-    }
   }
 
 int bg_audio_filter_chain_set_out_format(bg_audio_filter_chain_t * ch,
                                          const gavl_audio_format_t * out_format)
   {
+  gavl_audio_source_set_dst(ch->out_src_2, 0, out_format);
+#if 0  
   int do_convert_out;
   
   do_convert_out = bg_audio_converter_init(ch->cnv_out,
@@ -427,6 +412,8 @@ int bg_audio_filter_chain_set_out_format(bg_audio_filter_chain_t * ch,
   gavl_audio_format_copy(&ch->out_format, out_format);
   
   return do_convert_out;
+#endif
+  return 1;
   }
 
 void bg_audio_filter_chain_connect_input(bg_audio_filter_chain_t * ch,
@@ -441,6 +428,17 @@ void bg_audio_filter_chain_connect_input(bg_audio_filter_chain_t * ch,
 int bg_audio_filter_chain_read(void * priv, gavl_audio_frame_t* frame,
                                int stream, int num_samples)
   {
+  const gavl_audio_format_t * fmt;
+  bg_audio_filter_chain_t * ch = priv;
+
+  fmt = gavl_audio_source_get_dst_format(ch->out_src_2);
+  if(!fmt->num_channels)
+    gavl_audio_source_set_dst(ch->out_src_2, 0, NULL);
+  
+  return (gavl_audio_source_read_samples(ch->out_src_2,
+                                         frame, num_samples) ==
+          num_samples);
+#if 0
   int ret;
   bg_audio_filter_chain_t * ch;
   ch = (bg_audio_filter_chain_t *)priv;
@@ -449,6 +447,7 @@ int bg_audio_filter_chain_read(void * priv, gavl_audio_frame_t* frame,
   ret = ch->read_func(ch->read_data, frame, ch->read_stream, num_samples);
   bg_audio_filter_chain_unlock(ch);
   return ret;
+#endif
   }
 
 void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * ch)
@@ -473,7 +472,46 @@ void bg_audio_filter_chain_reset(bg_audio_filter_chain_t * ch)
     {
     if(ch->filters[i].plugin->reset)
       ch->filters[i].plugin->reset(ch->filters[i].handle->priv);
-    bg_audio_converter_reset(ch->filters[i].cnv);
+    gavl_audio_source_reset(ch->filters[i].out_src);
     }
-  bg_audio_converter_reset(ch->cnv_out);
+  gavl_audio_source_reset(ch->out_src_2);
+  }
+
+static gavl_source_status_t
+read_func_out(void * priv, gavl_audio_frame_t ** frame)
+  {
+  gavl_source_status_t ret;
+  bg_audio_filter_chain_t * ch = priv;
+  
+  bg_audio_filter_chain_lock(ch);
+  ret = gavl_audio_source_read_frame(ch->out_src_1, frame);
+  bg_audio_filter_chain_unlock(ch);
+  return ret;
+  }
+
+
+gavl_audio_source_t *
+bg_audio_filter_chain_connect(bg_audio_filter_chain_t * ch,
+                              gavl_audio_source_t * src)
+  {
+  int i;
+  
+  for(i = 0; i < ch->num_filters; i++)
+    {
+    src =
+      ch->filters[i].plugin->connect(ch->filters[i].handle->priv,
+                                     src, ch->opt->opt);
+    ch->filters[i].out_src = src;
+    }
+  
+  ch->out_src_1 = src;
+
+  if(ch->out_src_2)
+    gavl_audio_source_destroy(ch->out_src_2);
+
+  gavl_audio_source_set_dst(ch->out_src_1, 0, NULL);
+  ch->out_src_2 =
+    gavl_audio_source_create(read_func_out, ch, 0,
+                             gavl_audio_source_get_dst_format(ch->out_src_1));
+  return src;
   }

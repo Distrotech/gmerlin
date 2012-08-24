@@ -903,7 +903,7 @@ matrix3_determinant(double matrix[3][3])
                    matrix[0][2] * matrix[1][1]));
 
   return determinant;
-}
+  }
 
 
 static void
@@ -945,7 +945,7 @@ matrix3_invert (double mat[3][3], double inv[3][3])
   inv[2][2] =   (mat[0][0] * mat[1][1] -
                  mat[0][1] * mat[1][0]) * det;
 
-}
+  }
 
 
 static void init_perspective(transform_priv_t * vp)

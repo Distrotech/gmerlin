@@ -123,14 +123,6 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
                                const gavl_audio_format_t * in_format,
                                gavl_audio_format_t * out_format);
 
-/** \brief Change the input format of an audio filter chain
- *  \param ch An audio filter chain
- *  \param in_format New input format
- */
-
-void bg_audio_filter_chain_set_input_format(bg_audio_filter_chain_t * ch,
-                                            const gavl_audio_format_t * in_format);
-
 /** \brief Set output format of an audio filter chain
  *  \param ch An audio filter chain
  *  \param out_format Output format
@@ -186,6 +178,21 @@ void bg_audio_filter_chain_unlock(bg_audio_filter_chain_t * ch);
  */
 
 void bg_audio_filter_chain_reset(bg_audio_filter_chain_t * ch);
+
+/** \brief Connect using audio sources
+ *  \param ch A audio filter chain
+ *  \param src Audio source to get frames from
+ *  \returns Audio source for reading frames
+ *
+ *  This is a replacement for \ref bg_audio_filter_chain_connect_input,
+ *  \ref bg_audio_filter_chain_init and
+ *  \ref bg_audio_filter_chain_set_out_format
+ */
+
+gavl_audio_source_t *
+bg_audio_filter_chain_connect(bg_audio_filter_chain_t * ch,
+                              gavl_audio_source_t * src);
+
 
 /* Video */
 

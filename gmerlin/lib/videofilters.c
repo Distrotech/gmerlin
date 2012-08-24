@@ -87,16 +87,6 @@ struct bg_video_filter_chain_s
 
 int bg_video_filter_chain_need_restart(bg_video_filter_chain_t * ch)
   {
-  gavl_video_format_t test_format;
-
-  if(!ch->need_restart)
-    {
-    gavl_video_format_copy(&test_format, &ch->in_format_1);
-    bg_gavl_video_options_set_format(ch->opt, &ch->in_format_1, &test_format);
-    if(!gavl_video_formats_equal(&test_format, &ch->in_format_2))
-      ch->need_restart = 1;
-    }
-  
   return ch->need_restart || ch->need_rebuild;
   }
 

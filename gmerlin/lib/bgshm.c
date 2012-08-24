@@ -26,7 +26,7 @@ bg_shm_t * bg_shm_alloc_write(int size)
   {
   int shm_fd = -1;
   void * addr;
-  bg_shm_t * ret;
+  bg_shm_t * ret = NULL;
 
   char name[NAME_MAX];
   int counter = 0;
