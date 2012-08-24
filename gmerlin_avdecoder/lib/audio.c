@@ -293,13 +293,7 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
 int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
                     int stream, int num_samples)
   {
-  const gavl_audio_format_t * fmt;
   bgav_stream_t * s = &b->tt->cur->audio_streams[stream];
-
-  fmt = gavl_audio_source_get_dst_format(s->data.audio.source);
-  if(!fmt->num_channels)
-    gavl_audio_source_set_dst(s->data.audio.source, 0, NULL);
-  
   return gavl_audio_source_read_samples(s->data.audio.source,
                                         frame, num_samples);
   }

@@ -286,13 +286,7 @@ const char * bgav_get_video_description(bgav_t * b, int s)
 static int bgav_video_decode(bgav_stream_t * s,
                              gavl_video_frame_t* frame)
   {
-  const gavl_video_format_t * fmt;
   gavl_source_status_t result;
-
-  fmt = gavl_video_source_get_dst_format(s->data.video.source);
-  if(!fmt->image_width)
-    gavl_video_source_set_dst(s->data.video.source, 0, NULL);
-  
   result = gavl_video_source_read_frame(s->data.video.source,
                                         frame ? &frame : NULL);
 
