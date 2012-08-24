@@ -24,6 +24,10 @@
 
 #include <gavl/gavl.h>
 
+#define FLAG_DO_CONVERT       (1<<0)
+#define FLAG_DST_SET          (1<<1)
+#define FLAG_SCALE_TIMESTAMPS (1<<2)
+
 struct gavl_video_source_s
   {
   gavl_video_format_t src_format;
@@ -35,9 +39,6 @@ struct gavl_video_source_s
   
   gavl_video_source_func_t func;
   gavl_video_converter_t * cnv;
-  int scale_timestamps;
-  
-  int do_convert;
   
   void * priv;
 
@@ -46,6 +47,8 @@ struct gavl_video_source_s
 
   int64_t fps_pts;
   int64_t fps_duration;
+
+  int flags;
   
   gavl_video_frame_t * fps_frame;
   
@@ -114,7 +117,7 @@ void gavl_video_source_destroy(gavl_video_source_t * s)
   }
 
 #define SCALE_PTS(f)                                           \
-  if(s->scale_timestamps)                                      \
+  if(s->flags & FLAG_SCALE_TIMESTAMPS)                                      \
     {                                                          \
     int64_t next_pts;                                          \
     if(s->next_pts == GAVL_TIME_UNDEFINED)                     \
@@ -267,14 +270,14 @@ read_video_fps(gavl_video_source_t * s,
   /* Now check what to do */
 
   /* Convert into output buffer */
-  if(*frame && s->do_convert && new_frame && expired)
+  if(*frame && (s->flags & FLAG_DO_CONVERT) && new_frame && expired)
     {
     gavl_video_convert(s->cnv, s->fps_frame, *frame);
     return GAVL_SOURCE_OK;
     }
 
   /* Convert into local buffer */
-  if(s->do_convert && new_frame)
+  if((s->flags & FLAG_DO_CONVERT) && new_frame)
     {
     gavl_video_frame_t * tmp_frame;
     if(!s->dst_fp)
@@ -326,11 +329,13 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
   dst_fmt.timescale      = s->src_format.timescale;
   dst_fmt.frame_duration = s->src_format.frame_duration;
     
-  s->do_convert =
-    gavl_video_converter_init(s->cnv, &s->src_format, &dst_fmt);
-  
-  s->scale_timestamps = 0;
+  if(gavl_video_converter_init(s->cnv, &s->src_format, &dst_fmt))
+    s->flags |= FLAG_DO_CONVERT;
+  else
+    s->flags &= ~FLAG_DO_CONVERT;
 
+  s->flags &= ~FLAG_SCALE_TIMESTAMPS;
+  
   convert_fps = 0;
   
   if(s->dst_format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
@@ -346,12 +351,12 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
   if(!convert_fps)
     {
     if(s->src_format.timescale != s->src_format.timescale)
-      s->scale_timestamps = 1;
+      s->flags |= FLAG_SCALE_TIMESTAMPS;
     }
   
   if(convert_fps)
     s->read_video = read_video_fps;
-  else if(s->do_convert)
+  else if(s->flags & FLAG_DO_CONVERT)
     s->read_video = read_video_cnv;
   else
     s->read_video = read_video_simple;
@@ -367,12 +372,16 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
   if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
     s->src_fp = gavl_video_frame_pool_create(NULL, &s->src_format);
   
+  s->flags |= FLAG_DST_SET;
   }
   
 gavl_source_status_t
 gavl_video_source_read_frame(void * sp, gavl_video_frame_t ** frame)
   {
   gavl_video_source_t * s = sp;
+
+  if(!(s->flags & FLAG_DST_SET))
+    gavl_video_source_set_dst(s, 0, NULL);
   
   if(!frame)
     {
