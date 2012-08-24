@@ -144,10 +144,17 @@ gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
      (s->src_format.samples_per_frame == s->src_format.samples_per_frame))
     s->passthrough = 1;
 
-  if(!s->passthrough)
+  if(s->out_frame)
     {
-    
+    gavl_audio_frame_destroy(s->out_frame);
+    s->out_frame = NULL;
     }
+  if(s->dst_frame)
+    {
+    gavl_audio_frame_destroy(s->dst_frame);
+    s->dst_frame = NULL;
+    }
+  s->frame = NULL;
   }
 
 static void check_out_frame(gavl_audio_source_t * s)

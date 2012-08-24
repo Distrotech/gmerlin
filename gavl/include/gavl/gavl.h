@@ -4382,6 +4382,7 @@ GAVL_PUBLIC
 int gavl_audio_source_read_samples(void*, gavl_audio_frame_t * frame,
                                    int num_samples);
 
+GAVL_PUBLIC
 gavl_audio_options_t * gavl_audio_source_get_options(gavl_audio_source_t * s);
   
 GAVL_PUBLIC

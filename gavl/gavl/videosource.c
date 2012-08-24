@@ -355,8 +355,15 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
     s->read_video = read_video_cnv;
   else
     s->read_video = read_video_simple;
-  
 
+  if(s->src_fp)
+    {
+    gavl_video_frame_pool_destroy(s->src_fp);
+    s->src_fp = NULL;
+    }
+  
+  gavl_video_source_reset(s);
+  
   if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
     s->src_fp = gavl_video_frame_pool_create(NULL, &s->src_format);
   
