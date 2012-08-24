@@ -1396,7 +1396,6 @@ static const bg_parameter_info_t general_parameters_audio[] =
     },
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_AUDIO_DITHER_MODE,
-    BG_GAVL_PARAM_SAMPLERATE,
     BG_GAVL_PARAM_RESAMPLE_MODE,
     BG_GAVL_PARAM_CHANNEL_SETUP,
     { /* End of parameters */ }

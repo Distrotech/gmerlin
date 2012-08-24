@@ -29,13 +29,23 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 
-#define LOG_DOMAIN "fa_sampleformat"
+#define LOG_DOMAIN "fa_samplerate"
+
+#define RATE_SOURCE -1
+#define RATE_USER   -2
 
 typedef struct
   {
-  gavl_sample_format_t sample_format;
+  int samplerate_cfg;
+  int samplerate_user;
+  int samplerate_current;
+  
   int need_restart;
 
+  bg_read_audio_func_t read_func;
+  void * read_data;
+  int read_stream;
+  
   gavl_audio_format_t format;
 
   bg_parameter_info_t * parameters;
@@ -65,52 +75,62 @@ static const bg_parameter_info_t parameters[] =
     {
       .gettext_domain = PACKAGE,
       .gettext_directory = LOCALE_DIR,
-      .name = "sampleformat",
-      .long_name = TRS("Sampleformat"),
+      .name = "samplerate",
+      .long_name = TRS("Samplerate [Hz]"),
       .type = BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
-      .val_default = { .val_str = "Floating point" },
+      .val_default = { .val_str = "source" },
+      .multi_names = (const char*[]){ "source",
+                                "48000",
+                                "44100",
+                                "32000",
+                                "24000",
+                                "22050",
+                                "user",
+                                NULL },
+      .multi_labels = (const char*[]){ TRS("From source"),
+                                 "48000",
+                                 "44100",
+                                 "32000",
+                                 "24000",
+                                 "22050",
+                                 TRS("User defined"),
+                                 NULL },
+    },
+    {
+      .name = "user_rate",
+      .long_name = TRS("User defined samplerate [Hz]"),
+      .type = BG_PARAMETER_INT,
+      .flags = BG_PARAMETER_SYNC,
+      .val_min     = { .val_i = 8000 },
+      .val_max     = { .val_i = 192000 },
+      .val_default = { .val_i = 44100 },
     },
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * create_parameters()
-  {
-  int i, index, num;
-  bg_parameter_info_t * ret;
-  gavl_sample_format_t f;
-
-  ret = bg_parameter_info_copy_array(parameters);
-
-  num = gavl_num_sample_formats();
-
-  ret->multi_names_nc  = calloc(num+1, sizeof(*ret->multi_names));
-  ret->multi_labels_nc = calloc(num+1, sizeof(*ret->multi_labels));
-  bg_parameter_info_set_const_ptrs(ret);
-  index = 0;
-  for(i = 0; i < num; i++)
-    {
-    f = gavl_get_sample_format(i);
-    if(f != GAVL_SAMPLE_NONE)
-      {
-      ret->multi_names_nc[index] = bg_strdup(NULL,
-                                          gavl_sample_format_to_string(f));
-      ret->multi_labels_nc[index] = bg_strdup(NULL,
-                                           gavl_sample_format_to_string(f));
-      index++;
-      }
-    }
-  
-  return ret;
-  }
-
 static const bg_parameter_info_t * get_parameters_sampleformat(void * priv)
   {
-  sampleformat_priv_t * vp;
-  vp = priv;
-  if(!vp->parameters)
-    vp->parameters = create_parameters();
-  return vp->parameters;
+  return parameters;
+  }
+
+static int get_samplerate(sampleformat_priv_t * vp)
+  {
+  if(vp->samplerate_cfg == RATE_SOURCE)
+    {
+    const gavl_audio_format_t * fmt;
+    if(vp->in_src)
+      {
+      fmt = gavl_audio_source_get_src_format(vp->in_src);
+      return fmt->samplerate;
+      }
+    else
+      return 0;
+    }
+  else if(vp->samplerate_cfg == RATE_USER)
+    return vp->samplerate_user;
+  else
+    return vp->samplerate_cfg;
   }
 
 static void
@@ -118,27 +138,33 @@ set_parameter_sampleformat(void * priv, const char * name,
                           const bg_parameter_value_t * val)
   {
   sampleformat_priv_t * vp;
-  gavl_sample_format_t f;
   vp = priv;
   
   if(!name)
-    return;
-  
-  if(!strcmp(name, "sampleformat"))
     {
-    f = gavl_string_to_sample_format(val->val_str);
-    if(vp->sample_format != f)
-      {
+    int current_rate = get_samplerate(vp);
+    if(!current_rate || (current_rate != vp->samplerate_current))
       vp->need_restart = 1;
-      vp->sample_format = f;
-      }
+    return;
+    }
+  if(!strcmp(name, "samplerate"))
+    {
+    if(!strcmp(val->val_str, "source"))
+      vp->samplerate_cfg = RATE_SOURCE;
+    else if(!strcmp(val->val_str, "user"))
+      vp->samplerate_cfg = RATE_USER;
+    else
+      vp->samplerate_cfg = atoi(val->val_str);
+    }
+  else if(!strcmp(name, "user_rate"))
+    {
+    vp->samplerate_user = atoi(val->val_str);
     }
   }
 
 static int need_restart_sampleformat(void * priv)
   {
-  sampleformat_priv_t * vp;
-  vp = priv;
+  sampleformat_priv_t * vp = priv;
   return vp->need_restart;
   }
 
@@ -157,17 +183,17 @@ connect_sampleformat(void * priv,
   gavl_audio_format_t format;
   sampleformat_priv_t * vp = priv;
   vp->in_src = src;
+
+  vp->samplerate_current = get_samplerate(vp);
   
   gavl_audio_format_copy(&format, gavl_audio_source_get_src_format(vp->in_src));
-  format.sample_format = vp->sample_format;
+  format.samplerate = vp->samplerate_current;
   if(opt)
     gavl_audio_options_copy(gavl_audio_source_get_options(vp->in_src), opt);
-
+  
   gavl_audio_source_set_dst(vp->in_src, 0, &format);
 
-  return gavl_audio_source_create(read_func,
-                                         vp, 0,
-                                         &format);
+  return gavl_audio_source_create(read_func, vp, 0, &format);
   }
 
 const bg_fa_plugin_t the_plugin = 
