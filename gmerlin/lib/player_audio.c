@@ -175,13 +175,6 @@ void bg_player_audio_cleanup(bg_player_t * player)
 
 static const bg_parameter_info_t parameters[] =
   {
-#if 0
-    {
-      .name =      "audio",
-      .long_name = TRS("Audio"),
-      .type =      BG_PARAMETER_SECTION,
-    },
-#endif
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_AUDIO_DITHER_MODE,
     BG_GAVL_PARAM_RESAMPLE_MODE,
