@@ -243,14 +243,14 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
         gavl_audio_frame_t * in_frame;
       
         if(s->src_flags & GAVL_SOURCE_SRC_ALLOC)
+          in_frame = NULL;
+        else
           {
           if(!s->in_frame)
             s->in_frame = gavl_audio_frame_create(&s->src_format);
           in_frame = s->in_frame;
           }
-        else
-          in_frame = NULL;
-
+        
         ret = s->func(s->priv, &in_frame);
         
         if(ret != GAVL_SOURCE_OK)
