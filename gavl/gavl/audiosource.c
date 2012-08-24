@@ -317,7 +317,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
     (*frame)->valid_samples = samples_read;
     process_output(s, *frame);
     }
-  else
+  else if(*frame)
     (*frame)->valid_samples = 0;
   
   return ret;
