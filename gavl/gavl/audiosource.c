@@ -25,6 +25,10 @@
 
 #include <gavl/gavl.h>
 
+#define FLAG_PASSTHROUGH (1<<0)
+#define FLAG_DO_CONVERT  (1<<1)
+#define FLAG_DST_SET     (1<<2)
+
 struct gavl_audio_source_s
   {
   gavl_audio_format_t src_format;
@@ -50,8 +54,8 @@ struct gavl_audio_source_s
   void * priv;
   gavl_audio_converter_t * cnv;
 
-  int passthrough;
-  int do_convert;
+  int flags;
+
   int skip_samples;
   };
 
@@ -135,14 +139,17 @@ gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
   else
     gavl_audio_format_copy(&s->dst_format, &s->src_format);
 
-  s->do_convert =
-    gavl_audio_converter_init(s->cnv,
-                              &s->src_format, &s->dst_format);
-  s->passthrough = 0;
+  if(gavl_audio_converter_init(s->cnv,
+                               &s->src_format, &s->dst_format))
+    s->flags |= FLAG_DO_CONVERT;
+  else
+    s->flags &= ~FLAG_DO_CONVERT;
   
-  if(!s->do_convert &&
+  if(!(s->flags & FLAG_DO_CONVERT) &&
      (s->src_format.samples_per_frame == s->src_format.samples_per_frame))
-    s->passthrough = 1;
+    s->flags |= FLAG_PASSTHROUGH;
+  else
+    s->flags &= ~FLAG_PASSTHROUGH;
 
   if(s->out_frame)
     {
@@ -155,6 +162,9 @@ gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
     s->dst_frame = NULL;
     }
   s->frame = NULL;
+
+  s->flags |= FLAG_DST_SET;
+
   }
 
 static void check_out_frame(gavl_audio_source_t * s)
@@ -213,6 +223,9 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
   int samples_read = 0;
   int samples_copied;
   gavl_source_status_t ret = GAVL_SOURCE_OK;
+
+  if(!(s->flags & FLAG_DST_SET))
+    gavl_audio_source_set_dst(s, 0, NULL);
   
   while(samples_read < num_samples)
     {
@@ -221,7 +234,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
     /* Check for passthrough */
     if(!s->frame || !s->frame->valid_samples)
       {
-      if(s->passthrough && !s->skip_samples)
+      if((s->flags & FLAG_PASSTHROUGH) && !s->skip_samples)
         {
         /* dst -> src */
         if((*frame && !(s->src_flags & GAVL_SOURCE_SRC_ALLOC)) ||
@@ -238,7 +251,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
         }
       
       /* Read a new frame */
-      if(s->do_convert)
+      if(s->flags & FLAG_DO_CONVERT)
         {
         gavl_audio_frame_t * in_frame;
       
@@ -263,6 +276,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
         check_out_frame(s);
         gavl_audio_convert(s->cnv, in_frame, s->out_frame);
         s->frame = s->out_frame;
+
         }
       else
         {
@@ -290,6 +304,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
       s->frame_samples = s->frame->valid_samples;
       }
 
+      
     /* Copy samples */
 
     if(!(*frame))
@@ -309,6 +324,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
                             s->frame->valid_samples);                   // src_size
     s->frame->valid_samples -= samples_copied;
     samples_read += samples_copied;
+
     }
   
   if(samples_read)
