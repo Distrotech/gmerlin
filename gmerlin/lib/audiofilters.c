@@ -65,6 +65,7 @@ struct bg_audio_filter_chain_s
   int need_rebuild;
   int need_restart;
 
+#if 0  
   bg_audio_converter_t * cnv_out;
   gavl_audio_frame_t     * frame;
   gavl_audio_format_t    out_format_1;
@@ -73,6 +74,7 @@ struct bg_audio_filter_chain_s
   
   gavl_audio_format_t    in_format;  /* Input format of first filter */
   gavl_audio_format_t    out_format; /* Output format of chain */
+#endif
   
   pthread_mutex_t mutex;
   
@@ -84,16 +86,6 @@ struct bg_audio_filter_chain_s
 
 int bg_audio_filter_chain_need_restart(bg_audio_filter_chain_t * ch)
   {
-  gavl_audio_format_t test_format;
-
-  if(!ch->need_restart)
-    {
-    gavl_audio_format_copy(&test_format, &ch->in_format_1);
-    bg_gavl_audio_options_set_format(ch->opt, &ch->in_format_1, &test_format);
-    if(!gavl_audio_formats_equal(&test_format, &ch->in_format_2))
-      ch->need_restart = 1;
-    }
-  
   return ch->need_restart || ch->need_rebuild;
   }
 
@@ -179,7 +171,6 @@ bg_audio_filter_chain_create(const bg_gavl_audio_options_t * opt,
   ret = calloc(1, sizeof(*ret));
   ret->opt = opt;
   ret->plugin_reg = plugin_reg;
-  ret->cnv_out = bg_audio_converter_create(opt->opt);
   
   pthread_mutex_init(&ret->mutex, NULL);
   return ret;
@@ -458,8 +449,7 @@ void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * ch)
   if(ch->filter_string)
     free(ch->filter_string);
 
-  bg_audio_converter_destroy(ch->cnv_out);
-
+  
   destroy_audio_chain(ch);
   pthread_mutex_destroy(&ch->mutex);
   free(ch);

@@ -64,23 +64,11 @@ struct bg_video_filter_chain_s
   
   int need_rebuild;
   int need_restart;
-
-  bg_video_converter_t * cnv_out;
-  gavl_video_frame_t   * frame;
-  gavl_video_format_t  out_format_1;
-  gavl_video_format_t  in_format_1;
-  gavl_video_format_t  in_format_2;
-
-  gavl_video_format_t  out_format; /* Final output format */
-  gavl_video_format_t  in_format;  /* Input format of first filter */
   
   bg_read_video_func_t in_func;
   void * in_data;
   int in_stream;
 
-  bg_read_video_func_t read_func;
-  void * read_data;
-  int read_stream;
   
   pthread_mutex_t mutex;
   };
@@ -160,9 +148,7 @@ bg_video_filter_chain_create(const bg_gavl_video_options_t * opt,
   ret = calloc(1, sizeof(*ret));
   ret->opt = opt;
   ret->plugin_reg = plugin_reg;
-
-  ret->cnv_out = bg_video_converter_create(opt->opt);
-
+  
   pthread_mutex_init(&ret->mutex, NULL);
   return ret;
   }
@@ -411,8 +397,7 @@ void bg_video_filter_chain_destroy(bg_video_filter_chain_t * ch)
     free(ch->filter_string);
   destroy_video_chain(ch);
   pthread_mutex_destroy(&ch->mutex);
-  bg_video_converter_destroy(ch->cnv_out);
-
+  
   free(ch);
   }
 
