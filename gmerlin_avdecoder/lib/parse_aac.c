@@ -97,6 +97,9 @@ static int parse_aac(bgav_audio_parser_t * parser)
   if(!result)
     return PARSER_NEED_DATA;
 
+  else if(result < 0) 
+    return PARSER_ERROR;
+  
   if(!parser->have_format)
     {
     parser->have_format = 1;

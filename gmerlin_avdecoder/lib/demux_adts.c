@@ -182,13 +182,14 @@ static int probe_adts(bgav_input_context_t * input)
 #ifdef HAVE_FAAD2
 #define BYTES_TO_SCAN 1024
 
-static void check_he_aac(bgav_demuxer_context_t * ctx,
-                         bgav_stream_t * s)
+static int check_he_aac(bgav_demuxer_context_t * ctx,
+                        bgav_stream_t * s)
   {
   uint8_t * buffer = NULL;
   int buffer_alloc = 0;
   int buffer_size = 0;
   aac_priv_t * priv;
+  int ret = 0;
   
   int done = 0;
   int samples = 0;
@@ -214,8 +215,8 @@ static void check_he_aac(bgav_demuxer_context_t * ctx,
                                   buffer_size,
                                   &bytes, &samples);
     if(result < 0)
-      break;
-
+      goto fail;
+    
     if(!result)
       continue;
     
@@ -236,10 +237,14 @@ static void check_he_aac(bgav_demuxer_context_t * ctx,
       break;
       }
     }
+
+  ret = 1;
+  fail:
   bgav_aac_frame_destroy(frame);
   if(buffer)
     free(buffer);
   bgav_input_seek(ctx->input, old_position, SEEK_SET);
+  return ret;
   }
 #endif
 
@@ -362,7 +367,8 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   if(ctx->input->input->seek_byte)
     {
     /* Check for HE-AAC and update sample counts */
-    check_he_aac(ctx, s);
+    if(!check_he_aac(ctx, s))
+      goto fail;
     }
 #endif
   
