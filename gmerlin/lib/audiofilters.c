@@ -411,13 +411,7 @@ void bg_audio_filter_chain_connect_input(bg_audio_filter_chain_t * ch,
 int bg_audio_filter_chain_read(void * priv, gavl_audio_frame_t* frame,
                                int stream, int num_samples)
   {
-  const gavl_audio_format_t * fmt;
   bg_audio_filter_chain_t * ch = priv;
-
-  fmt = gavl_audio_source_get_dst_format(ch->out_src_2);
-  if(!fmt->num_channels)
-    gavl_audio_source_set_dst(ch->out_src_2, 0, NULL);
-  
   return gavl_audio_source_read_samples(ch->out_src_2,
                                         frame, num_samples);
   }

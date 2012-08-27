@@ -992,9 +992,19 @@ struct bg_recorder_plugin_s
    */
   bg_read_audio_func_t read_audio;
 
+  /** \brief Get audio source
+   */
+
+  gavl_audio_source_t * (*get_audio_source)(void * priv);
+  
   /** \brief Read video frame
    */
   bg_read_video_func_t read_video;
+
+  /** \brief Get video source
+   */
+  
+  gavl_audio_source_t * (*get_video_source)(void * priv);
   
   /** \brief Close plugin
    *  \param priv The handle returned by the create() method
