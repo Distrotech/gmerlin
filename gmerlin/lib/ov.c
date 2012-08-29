@@ -312,6 +312,10 @@ void bg_ov_handle_events(bg_ov_t * ov)
     f = ov->plugin->get_frame(ov->priv);
     gavl_video_frame_copy(&ov->format,
                           f, ov->still_frame);
+
+    if(ov->flags & FLAG_EMULATE_OVL)
+      blend_overlays(ov, f);
+    
     ov->plugin->put_video(ov->priv, f);
     UNLOCK(ov);
     }

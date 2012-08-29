@@ -469,7 +469,6 @@ void * bg_player_ov_thread(void * data)
     handle_messages(s, s->frame_time);
     
     /* Display OSD */
-
     if(s->osd_id >= 0)
       {
       if(bg_osd_overlay_valid(s->osd, s->frame_time))
