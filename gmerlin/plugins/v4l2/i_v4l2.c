@@ -92,6 +92,9 @@ typedef struct
 #endif
   int strides[GAVL_MAX_PLANES];
   int num_strides;
+  
+  gavl_video_source_t * src;
+
   } v4l2_t;
 
 
@@ -454,7 +457,8 @@ static void close_v4l(void * priv)
       type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
       if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMOFF, &type))
         {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMOFF failed: %s", strerror(errno));
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "VIDIOC_STREAMOFF failed: %s", strerror(errno));
         return;
         }
       for (i = 0; i < v4l->n_buffers; ++i)
@@ -532,7 +536,8 @@ static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
 #endif
      bgv4l2_strides_match(frame, v4l->strides, v4l->num_strides))
     {
-    if (read (v4l->fd, frame->planes[0], v4l->fmt.fmt.pix.sizeimage) < v4l->fmt.fmt.pix.sizeimage)
+    if (read (v4l->fd, frame->planes[0], v4l->fmt.fmt.pix.sizeimage) <
+        v4l->fmt.fmt.pix.sizeimage)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read failed: %s", strerror(errno));
       return 0;
@@ -576,7 +581,8 @@ static int read_frame_mmap(v4l2_t * v4l, gavl_video_frame_t * frame)
       
   if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_DQBUF failed: %s", strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "VIDIOC_DQBUF failed: %s", strerror(errno));
     switch (errno)
       {
       case EAGAIN:
@@ -625,7 +631,6 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
   {
   v4l2_t * v4l;
   v4l = priv;
-
   
   for (;;)
     {
@@ -657,7 +662,7 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Select timeout");
       return 0;
       }
-
+    
     switch (v4l->io)
       {
       case BGV4L2_IO_METHOD_RW:
@@ -671,6 +676,13 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
     }
   
   return 0;
+  }
+
+static gavl_video_source_t *
+get_video_source_v4l(void * priv)
+  {
+  v4l2_t * v4l = priv;
+  
   }
 
 static void * create_v4l()

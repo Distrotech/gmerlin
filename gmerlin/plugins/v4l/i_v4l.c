@@ -299,8 +299,8 @@ static int open_v4l(void * priv,
            strerror(errno));
     goto fail;
     }  
-  v4l->mmap_buf = (uint8_t*)(mmap(0, v4l->mbuf.size, PROT_READ|PROT_WRITE,
-                                  MAP_SHARED,v4l->fd,0));
+  v4l->mmap_buf = (uint8_t*)mmap(0, v4l->mbuf.size, PROT_READ|PROT_WRITE,
+                                  MAP_SHARED,v4l->fd,0);
   if((unsigned char*)-1 == v4l->mmap_buf)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mmap failed: %s", strerror(errno));

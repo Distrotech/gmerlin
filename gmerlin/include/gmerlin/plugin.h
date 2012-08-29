@@ -912,7 +912,7 @@ struct bg_oa_plugin_s
   };
 
 /*******************************************
- * AUDIO RECORDER
+ * Recorder
  *******************************************/
 
 /** \defgroup plugin_r Recorder
@@ -1004,7 +1004,7 @@ struct bg_recorder_plugin_s
   /** \brief Get video source
    */
   
-  gavl_audio_source_t * (*get_video_source)(void * priv);
+  gavl_video_source_t * (*get_video_source)(void * priv);
   
   /** \brief Close plugin
    *  \param priv The handle returned by the create() method

@@ -736,32 +736,6 @@ fi
 AM_CONDITIONAL(HAVE_OSS, test x$have_oss = xtrue)
 
 dnl
-dnl Video4linux
-dnl
-
-AH_TEMPLATE([HAVE_V4L],
-            [Do we have v4l support?])
-
-have_v4l=false
-AC_ARG_ENABLE(v4l,
-              AC_HELP_STRING(--disable-v4l, [Disable Video4Linux (default: autodetect)]),
-              [case "${enableval}" in
-                 yes) test_v4l=true ;;
-                 no) test_v4l=false ;;
-               esac],
-	       test_v4l=true)
-
-if test x$test_v4l = xtrue; then
-AC_CHECK_HEADERS(linux/videodev.h, have_v4l=true)
-fi
-
-if test x$have_v4l = xtrue; then
-AC_DEFINE(HAVE_V4L)
-fi
-
-AM_CONDITIONAL(HAVE_V4L, test x$have_v4l = xtrue)
-
-dnl
 dnl Video4linux2
 dnl
 
@@ -1062,7 +1036,6 @@ plugins/pulseaudio/Makefile \
 plugins/subwriters/Makefile \
 plugins/image/Makefile \
 plugins/tiff/Makefile \
-plugins/v4l/Makefile \
 plugins/v4l2/Makefile \
 plugins/videofilters/Makefile \
 plugins/visualization/Makefile \
@@ -1188,17 +1161,6 @@ if test "x$have_oss" = "xtrue"; then
 echo "Yes"
 else
 if test "x$test_oss" = "xtrue"; then
-echo "Missing (Probably unsupported architecture)"
-else
-echo "Disabled"
-fi
-fi
-
-echo -n "Video4Linux:         "
-if test "x$have_v4l" = "xtrue"; then
-echo "Yes"
-else
-if test "x$test_v4l" = "xtrue"; then
 echo "Missing (Probably unsupported architecture)"
 else
 echo "Disabled"

@@ -25,12 +25,6 @@ else
 gtk_programs =
 endif
 
-if HAVE_V4L
-v4l_programs = v4ltest \
-v4ldump
-else
-v4l_programs =
-endif
 
 noinst_PROGRAMS = audioplayer1 \
 videoplayer1 \
@@ -46,7 +40,6 @@ textrenderer \
 ladspa \
 thumbnail \
 visualization \
-$(v4l_programs) \
 $(gtk_programs)
 
 bin_PROGRAMS = gmerlin_imgconvert \
@@ -132,13 +125,6 @@ chapter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 vumeter_SOURCES = vumeter.c
 vumeter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la @GTK_LIBS@
-
-
-v4ltest_SOURCES = v4ltest.c
-v4ltest_LDADD = ../lib/libgmerlin.la
-
-v4ldump_SOURCES = v4ldump.c
-v4ldump_LDADD = ../lib/libgmerlin.la
 
 visualization_SOURCES = visualization.c
 visualization_LDADD = ../lib/libgmerlin.la
