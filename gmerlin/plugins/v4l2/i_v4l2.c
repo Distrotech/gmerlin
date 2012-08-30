@@ -277,10 +277,12 @@ static int open_v4l(void * priv,
   {
   v4l2_t * v4l;
   struct v4l2_capability cap;
+  struct v4l2_streamparm param;
+  
   //  struct v4l2_cropcap cropcap;
   //  struct v4l2_crop crop;
   //  unsigned int min;
-  
+
   v4l = priv;
   gavl_timer_set(v4l->timer, 0);
   gavl_timer_start(v4l->timer);
@@ -416,6 +418,43 @@ static int open_v4l(void * priv,
 
   gavl_video_format_copy(&v4l->format, format);
   
+  /* Check framerate */
+  CLEAR(param);
+
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_PARM, &param))
+    {
+    if (EINVAL == errno)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
+             "VIDIOC_G_PARAM", v4l->device);
+      }
+    }
+
+  param.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  param.parm.capture.timeperframe.numerator   = 1;
+  param.parm.capture.timeperframe.denominator = 10;
+
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_PARM, &param))
+    {
+    if (EINVAL == errno)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
+             "VIDIOC_S_PARAM", v4l->device);
+      }
+    else
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_PARAM failed: %s",
+             strerror(errno));
+      }
+    
+    }
+
+  fprintf(stderr, "Frame time: %d:%d\n",
+          param.parm.capture.timeperframe.numerator, 
+          param.parm.capture.timeperframe.denominator);
+
+  /* Initialize capture mode */
+
   switch (v4l->io)
     {
     case BGV4L2_IO_METHOD_RW:
@@ -428,6 +467,7 @@ static int open_v4l(void * priv,
         return 0;
       break;
     }
+  
   return 1;
   }
 

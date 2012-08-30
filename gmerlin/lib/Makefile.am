@@ -83,6 +83,7 @@ edl_xml.c \
 encoder.c \
 fileformat.c \
 formats.c \
+frametimer.c \
 hexdump.c \
 language_table.c \
 lcdproc.c \

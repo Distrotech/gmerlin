@@ -14,6 +14,7 @@ edl.h \
 encoder.h \
 fileformat.h \
 filters.h \
+frametimer.h \
 keycodes.h \
 lcdproc.h \
 log.h \
