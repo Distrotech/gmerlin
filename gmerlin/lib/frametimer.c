@@ -50,7 +50,7 @@ bg_frame_timer_t * bg_frame_timer_create(float framerate,
   
   ret->timer = gavl_timer_create();
   ret->next_pts = GAVL_TIME_UNDEFINED;
-  
+  ret->last_pts = GAVL_TIME_UNDEFINED;
   ret->frame_duration = (int)(TIME_SCALE / framerate);
   return ret;
   }
@@ -77,28 +77,29 @@ void bg_frame_timer_update(bg_frame_timer_t * t,
     frame->duration = t->frame_duration;
     gavl_timer_start(t->timer);
     t->next_pts = frame->duration;
+    t->last_pts = 0;
     return;
     }
   
   frame->timestamp = t->next_pts;
   
   /*
-   * Diff > 0 -> frame too early
-   * Diff < 0 -> frame too late
+   * Diff > 0 -> frame too early: Duration should be larger
+   * Diff < 0 -> frame too late: Duration should be smaller
    */
   
   diff = t->next_pts - gavl_time_scale(TIME_SCALE, current_time);
   
   if(t->limit_fps)
     {
-    //    f->duration = 
+    
     }
   else
     {
     
     }
   t->next_pts += frame->duration;
-  
+  t->last_pts = frame->timestamp;
   }
 
 void bg_frame_timer_wait(bg_frame_timer_t * t)
