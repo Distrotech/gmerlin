@@ -28,6 +28,8 @@
 typedef struct
   {
   bg_x11_grab_window_t * win;
+
+  gavl_video_source_t * src;
   } x11_t;
 
 static void * create_x11()
@@ -87,6 +89,12 @@ static int read_frame_x11(void * priv, gavl_video_frame_t * frame, int stream)
   return bg_x11_grab_window_grab(x11->win, frame);
   }
 
+static gavl_video_source_t * get_video_source_x11(void * priv)
+  {
+  x11_t * x11 = priv;
+  return x11->src;
+  }
+
 const bg_recorder_plugin_t the_plugin =
   {
     .common =
@@ -109,6 +117,7 @@ const bg_recorder_plugin_t the_plugin =
     .open =       open_x11,
     .close =      close_x11,
     .read_video = read_frame_x11,
+    .get_video_source = get_video_source_x11,
   };
 
 /* Include this into all plugin modules exactly once
