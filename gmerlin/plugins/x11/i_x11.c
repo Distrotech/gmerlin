@@ -29,8 +29,6 @@ typedef struct
   {
   bg_x11_grab_window_t * win;
   gavl_video_source_t * src;
-  
-  gavl_video_format_t format;
   } x11_t;
 
 static void * create_x11()
@@ -77,7 +75,6 @@ static int open_x11(void * priv,
   x11_t * x11 = priv;
   if(!bg_x11_grab_window_init(x11->win, format))
     return 0;
-  gavl_video_format_copy(&x11->format, format);
   x11->src = gavl_video_source_create(bg_x11_grab_window_grab, x11->win,
                                       GAVL_SOURCE_SRC_ALLOC, format);
   return 1;
