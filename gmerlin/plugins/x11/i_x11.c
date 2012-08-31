@@ -78,6 +78,8 @@ static int open_x11(void * priv,
   if(!bg_x11_grab_window_init(x11->win, format))
     return 0;
   gavl_video_format_copy(&x11->format, format);
+  x11->src = gavl_video_source_create(bg_x11_grab_window_grab, x11->win,
+                                      GAVL_SOURCE_SRC_ALLOC, format);
   return 1;
   }
 
@@ -85,17 +87,14 @@ static void close_x11(void * priv)
   {
   x11_t * x11 = priv;
   bg_x11_grab_window_close(x11->win);
+  gavl_video_source_destroy(x11->src);
+  x11->src = NULL;
   }
 
 static int read_frame_x11(void * priv, gavl_video_frame_t * frame, int stream)
   {
   x11_t * x11 = priv;
-  gavl_video_frame_t * f = NULL;
-  if (bg_x11_grab_window_grab(x11->win, &f) != GAVL_SOURCE_OK)
-    return 0;
-  gavl_video_frame_copy(&x11->format, frame, f);
-  gavl_video_frame_copy_metadata(frame, f);
-  return 1;
+  return (gavl_video_source_read_frame(x11->src, &frame) == GAVL_SOURCE_OK);
   }
 
 static gavl_video_source_t * get_video_source_x11(void * priv)
