@@ -161,26 +161,6 @@ static const bg_parameter_info_t parameters[] =
       .type      = BG_PARAMETER_MULTI_MENU,
       .flags     = BG_PARAMETER_PLUGIN,
     },
-    {
-      .name        = "do_limit_fps",
-      .long_name   = TRS("Limit fps"),
-      .type        = BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 1 },
-      .num_digits  = 2,
-      .help_string = TRS("Limit frames per second. "
-                         "By default, the maximum possible framerate will be used."),
-    },
-    {
-      .name        = "limit_fps",
-      .long_name   = TRS("fps limit"),
-      .type        = BG_PARAMETER_FLOAT,
-      .val_min     = { .val_f = 1.0 },
-      .val_max     = { .val_f = 100.0 },
-      .val_default = { .val_f = 25.0 },
-      .num_digits  = 2,
-      .help_string = TRS("Specify the maximum framerate for input plugins, which can \
-capture images really fast"),
-    },
     { },
   };
 
@@ -247,19 +227,6 @@ bg_recorder_set_video_parameter(void * data,
     vs->input_plugin = (bg_recorder_plugin_t*)(vs->input_handle->plugin);
     if(vs->input_plugin->set_callbacks)
       vs->input_plugin->set_callbacks(vs->input_handle->priv, &rec->recorder_cb);
-    }
-  else if(!strcmp(name, "limit_fps"))
-    {
-    pthread_mutex_lock(&vs->config_mutex);
-    vs->limit_timescale      = (int)(val->val_f * 100.0);
-    vs->limit_duration = 100;
-    pthread_mutex_unlock(&vs->config_mutex);
-    }
-  else if(!strcmp(name, "do_limit_fps"))
-    {
-    pthread_mutex_lock(&vs->config_mutex);
-    vs->do_limit_fps = val->val_i;
-    pthread_mutex_unlock(&vs->config_mutex);
     }
   else if(vs->input_handle && vs->input_plugin->common.set_parameter)
     {
@@ -750,7 +717,7 @@ void * bg_recorder_video_thread(void * data)
 
 static int read_video_internal(void * data, gavl_video_frame_t * frame, int stream)
   {
-  gavl_time_t diff_time, time_after, cur_time, next_frame_time;
+  gavl_time_t time_after, cur_time;
   
   int ret;
 
@@ -758,25 +725,6 @@ static int read_video_internal(void * data, gavl_video_frame_t * frame, int stre
   bg_recorder_video_stream_t * vs = &rec->vs;
   
   /* Limit the captured framerate */
-  if(vs->frame_counter)
-    {
-    pthread_mutex_lock(&vs->config_mutex);
-
-    if(vs->do_limit_fps)
-      {
-      next_frame_time = vs->last_frame_time +
-        gavl_frames_to_time(vs->limit_timescale, vs->limit_duration, 1);
-      pthread_mutex_unlock(&vs->config_mutex);
-    
-      cur_time = gavl_timer_get(vs->timer);
-      diff_time = next_frame_time - cur_time - vs->last_capture_duration;
-    
-      if(diff_time > 0)
-        gavl_time_delay(&diff_time);
-      }
-    else
-      pthread_mutex_unlock(&vs->config_mutex);
-    }
   
   cur_time = gavl_timer_get(vs->timer);
   ret = vs->input_plugin->read_video(vs->input_handle->priv, frame, 0);

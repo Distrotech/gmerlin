@@ -28,8 +28,9 @@
 typedef struct
   {
   bg_x11_grab_window_t * win;
-
   gavl_video_source_t * src;
+  
+  gavl_video_format_t format;
   } x11_t;
 
 static void * create_x11()
@@ -74,7 +75,10 @@ static int open_x11(void * priv,
                     gavl_video_format_t * format)
   {
   x11_t * x11 = priv;
-  return bg_x11_grab_window_init(x11->win, format);
+  if(!bg_x11_grab_window_init(x11->win, format))
+    return 0;
+  gavl_video_format_copy(&x11->format, format);
+  return 1;
   }
 
 static void close_x11(void * priv)
@@ -86,7 +90,12 @@ static void close_x11(void * priv)
 static int read_frame_x11(void * priv, gavl_video_frame_t * frame, int stream)
   {
   x11_t * x11 = priv;
-  return bg_x11_grab_window_grab(x11->win, frame);
+  gavl_video_frame_t * f = NULL;
+  if (bg_x11_grab_window_grab(x11->win, &f) != GAVL_SOURCE_OK)
+    return 0;
+  gavl_video_frame_copy(&x11->format, frame, f);
+  gavl_video_frame_copy_metadata(frame, f);
+  return 1;
   }
 
 static gavl_video_source_t * get_video_source_x11(void * priv)

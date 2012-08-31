@@ -34,16 +34,13 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
-
-
 #include <config.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/frametimer.h>
 
 #include "v4l2_common.h"
-
-#define TIME_DIV 1000
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "i_v4l2"
@@ -84,7 +81,6 @@ typedef struct
 
   struct v4l2_queryctrl * controls;
   int num_controls;
-  gavl_timer_t * timer;
 
   int force_rw;
 #ifdef HAVE_V4LCONVERT
@@ -95,6 +91,8 @@ typedef struct
   
   gavl_video_source_t * src;
 
+  bg_frame_timer_t * ft;
+  
   } v4l2_t;
 
 
@@ -278,15 +276,14 @@ static int open_v4l(void * priv,
   v4l2_t * v4l;
   struct v4l2_capability cap;
   struct v4l2_streamparm param;
+  float default_fps;
   
   //  struct v4l2_cropcap cropcap;
   //  struct v4l2_crop crop;
   //  unsigned int min;
 
   v4l = priv;
-  gavl_timer_set(v4l->timer, 0);
-  gavl_timer_start(v4l->timer);
-
+  
   v4l->fd = bgv4l2_open_device(v4l->device, V4L2_CAP_VIDEO_CAPTURE,
                                &cap);
   
@@ -412,15 +409,14 @@ static int open_v4l(void * priv,
   format->image_height = v4l->fmt.fmt.pix.height;
   format->frame_width  = v4l->fmt.fmt.pix.width;
   format->frame_height = v4l->fmt.fmt.pix.height;
-  format->timescale = GAVL_TIME_SCALE / TIME_DIV;
   format->frame_duration = 0;
   format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
-
-  gavl_video_format_copy(&v4l->format, format);
   
   /* Check framerate */
   CLEAR(param);
 
+  default_fps = -1.0;
+  
   if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_PARM, &param))
     {
     if (EINVAL == errno)
@@ -429,30 +425,42 @@ static int open_v4l(void * priv,
              "VIDIOC_G_PARAM", v4l->device);
       }
     }
-
-  param.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  param.parm.capture.timeperframe.numerator   = 1;
-  param.parm.capture.timeperframe.denominator = 10;
-
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_PARM, &param))
+  else
     {
-    if (EINVAL == errno)
+    default_fps = (float)param.parm.capture.timeperframe.denominator /
+      (float)param.parm.capture.timeperframe.numerator;
+    }
+
+  if(default_fps < 0.0)
+    {
+    param.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    param.parm.capture.timeperframe.numerator   = 1;
+    param.parm.capture.timeperframe.denominator = 10;
+
+    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_PARM, &param))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
-             "VIDIOC_S_PARAM", v4l->device);
+      if (EINVAL == errno)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
+               "VIDIOC_S_PARAM", v4l->device);
+        }
+      else
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_PARAM failed: %s",
+               strerror(errno));
+        }
+    
       }
     else
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_PARAM failed: %s",
-             strerror(errno));
+      default_fps = (float)param.parm.capture.timeperframe.denominator /
+        (float)param.parm.capture.timeperframe.numerator;
       }
-    
     }
-
-  fprintf(stderr, "Frame time: %d:%d\n",
-          param.parm.capture.timeperframe.numerator, 
-          param.parm.capture.timeperframe.denominator);
-
+  
+  if(default_fps < 0.0)
+    default_fps = 10.0;
+  
   /* Initialize capture mode */
 
   switch (v4l->io)
@@ -467,6 +475,12 @@ static int open_v4l(void * priv,
         return 0;
       break;
     }
+
+  v4l->ft = bg_frame_timer_create(default_fps,
+                                  &format->timescale);
+  
+  gavl_video_format_copy(&v4l->format, format);
+  
   
   return 1;
   }
@@ -481,8 +495,6 @@ static void close_v4l(void * priv)
   if(v4l->fd < 0)
     return;
   
-  gavl_timer_stop(v4l->timer);
-
   switch (v4l->io)
     {
     case BGV4L2_IO_METHOD_RW:
@@ -538,6 +550,12 @@ static void close_v4l(void * priv)
     v4l->converter = NULL;
     }
 #endif
+
+  if(v4l->ft)
+    {
+    bg_frame_timer_destroy(v4l->ft);
+    v4l->ft = NULL;
+    }
   }
 
 static void process_image(v4l2_t * v4l, void * data,
@@ -564,7 +582,6 @@ static void process_image(v4l2_t * v4l, void * data,
 #ifdef HAVE_V4LCONVERT
     }
 #endif
-  frame->timestamp = gavl_timer_get(v4l->timer) / TIME_DIV;
   }
 
 static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
@@ -582,7 +599,6 @@ static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read failed: %s", strerror(errno));
       return 0;
       }
-    frame->timestamp = gavl_timer_get(v4l->timer) / TIME_DIV;
     return 1;
     }
 
@@ -669,7 +685,9 @@ static int read_frame_mmap(v4l2_t * v4l, gavl_video_frame_t * frame)
 
 static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
   {
+  int ret = 0;
   v4l2_t * v4l;
+  
   v4l = priv;
   
   for (;;)
@@ -702,17 +720,24 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Select timeout");
       return 0;
       }
+
+    ret = 0;
     
     switch (v4l->io)
       {
       case BGV4L2_IO_METHOD_RW:
-        return read_frame_read(v4l, frame);
+        ret = read_frame_read(v4l, frame);
         break;
         
       case BGV4L2_IO_METHOD_MMAP:
-        return read_frame_mmap(v4l, frame);
+        ret = read_frame_mmap(v4l, frame);
         break;
       }
+
+    if(ret)
+      bg_frame_timer_update(v4l->ft, frame);
+    
+    return ret;
     }
   
   return 0;
@@ -722,7 +747,7 @@ static gavl_video_source_t *
 get_video_source_v4l(void * priv)
   {
   v4l2_t * v4l = priv;
-  
+  return v4l->src;
   }
 
 static void * create_v4l()
@@ -733,7 +758,6 @@ static void * create_v4l()
   
   v4l->fd = -1;
   //  v4l->device = bg_strdup(v4l->device, "/dev/video4");
-  v4l->timer = gavl_timer_create();
   return v4l;
   }
 
@@ -742,7 +766,6 @@ static void  destroy_v4l(void * priv)
   v4l2_t * v4l;
   v4l = priv;
   close_v4l(priv);
-  gavl_timer_destroy(v4l->timer);
   
   if(v4l->parameters)
     bg_parameter_info_destroy_array(v4l->parameters);

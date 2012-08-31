@@ -48,6 +48,8 @@
 #define LOG_DOMAIN "x11grab"
 #include <gmerlin/log.h>
 
+#include <gmerlin/frametimer.h>
+
 #define MAX_CURSOR_SIZE 32
 
 static const bg_parameter_info_t parameters[] = 
@@ -81,6 +83,16 @@ static const bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_CHECKBUTTON,
       .val_default = { .val_i = 1 },
       .help_string = TRS("Disable screensaver and energy saving mode"),
+    },
+    {
+      .name =      "fps",
+      .long_name = TRS("Capture rate"),
+      .type        = BG_PARAMETER_FLOAT,
+      .val_min     = { .val_f = 1.0 },
+      .val_max     = { .val_f = 100.0 },
+      .val_default = { .val_f = 25.0 },
+      .num_digits  = 2,
+      .help_string = TRS("Specify the capture rate (in frames per second)"),
     },
     {
       .name = "x",
@@ -140,7 +152,7 @@ struct bg_x11_grab_window_s
 
   gavl_pixelformat_t pixelformat;
 
-  gavl_timer_t * timer;
+  bg_frame_timer_t * ft;
 
   XImage * image;
   gavl_video_frame_t * frame;
@@ -179,6 +191,8 @@ struct bg_x11_grab_window_s
   gavl_overlay_blend_context_t * blend;
 
   bg_x11_screensaver_t scr;
+
+  float fps;
   
   };
 
@@ -254,6 +268,10 @@ void bg_x11_grab_window_set_parameter(void * data, const char * name,
       win->cfg_flags |= DISABLE_SCREENSAVER;
     else
       win->cfg_flags &= ~DISABLE_SCREENSAVER;
+    }
+  else if(!strcmp(name, "fps"))
+    {
+    win->fps = val->val_f;
     }
   }
 
@@ -495,7 +513,6 @@ bg_x11_grab_window_t * bg_x11_grab_window_create()
   /* Initialize members */  
   ret->win = None;
 
-  ret->timer = gavl_timer_create();
   ret->blend = gavl_overlay_blend_context_create();
 
   ret->cursor_format.image_width  = MAX_CURSOR_SIZE;
@@ -523,8 +540,9 @@ void bg_x11_grab_window_destroy(bg_x11_grab_window_t * win)
   
   if(win->dpy)
     XCloseDisplay(win->dpy);
-  
-  gavl_timer_destroy(win->timer);
+
+  if(win->ft)
+    bg_frame_timer_destroy(win->ft);
   gavl_overlay_blend_context_destroy(win->blend);
   gavl_video_frame_destroy(win->cursor.frame);
   free(win);
@@ -640,12 +658,13 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
     gavl_rectangle_i_copy(&win->grab_rect, &win->win_rect);
     }
   
+  win->ft = bg_frame_timer_create(win->fps, &format->timescale);
+  
   /* Common format parameters */
   format->pixel_width = 1;
   format->pixel_height = 1;
   format->pixelformat = win->pixelformat;
   format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
-  format->timescale = 1000;
   format->frame_duration = 0;
 
   format->frame_width = format->image_width;
@@ -715,9 +734,6 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
   create_window(win);
   handle_events(win);
   
-  gavl_timer_set(win->timer, 0);
-  gavl_timer_start(win->timer);
-
   if(win->flags & DISABLE_SCREENSAVER)
     bg_x11_screensaver_disable(&win->scr);
   
@@ -726,7 +742,12 @@ int bg_x11_grab_window_init(bg_x11_grab_window_t * win,
 
 void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
   {
-  gavl_timer_stop(win->timer);
+  if(win->ft)
+    {
+    bg_frame_timer_destroy(win->ft);
+    win->ft = NULL;
+    }
+  
   bg_x11_screensaver_enable(&win->scr);
   
   if(win->use_shm)
@@ -868,18 +889,20 @@ static void draw_cursor(bg_x11_grab_window_t * win, gavl_rectangle_i_t * rect,
   win->cursor_x = win->cursor.dst_y;
   }
 
-int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
-                            gavl_video_frame_t  * frame)
+gavl_source_status_t bg_x11_grab_window_grab(void * win_p,
+                                             gavl_video_frame_t ** frame)
   {
   int crop_left = 0;
   int crop_right = 0;
   int crop_top = 0;
   int crop_bottom = 0;
-  
   gavl_rectangle_i_t rect;
+  bg_x11_grab_window_t * win = win_p;
   
   handle_events(win);
 
+  bg_frame_timer_wait(win->ft);
+  
   /* Crop */
   
   if(win->use_shm)
@@ -901,6 +924,7 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
     if(!XShmGetImage(win->dpy, win->root, win->image, rect.x, rect.y, AllPlanes))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "XShmGetImage failed");
+      return GAVL_SOURCE_EOF;
       }
     }
   else
@@ -933,12 +957,11 @@ int bg_x11_grab_window_grab(bg_x11_grab_window_t * win,
                  AllPlanes, ZPixmap, win->image,
                  crop_left, crop_top);
     }
-    
-  gavl_video_frame_copy(&win->format, frame, win->frame);
 
   if(win->flags & DRAW_CURSOR)
-    draw_cursor(win, &rect, frame);
-  
-  frame->timestamp = gavl_time_scale(win->format.timescale, gavl_timer_get(win->timer));
-  return 1;
+    draw_cursor(win, &rect, win->frame);
+
+  bg_frame_timer_update(win->ft, win->frame);
+  *frame = win->frame;
+  return GAVL_SOURCE_OK;
   }

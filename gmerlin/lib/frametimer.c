@@ -22,11 +22,12 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <gavl/gavl.h>
 #include <gmerlin/frametimer.h>
 
-#define TIME_SCALE 10000
+#define TIME_SCALE 1000
 
 struct bg_frame_timer_s
   {
@@ -41,7 +42,6 @@ struct bg_frame_timer_s
   
   gavl_time_t last_time;
   
-  int limit_fps;
   };
 
 bg_frame_timer_t * bg_frame_timer_create(float framerate,
@@ -54,6 +54,7 @@ bg_frame_timer_t * bg_frame_timer_create(float framerate,
   ret->next_pts = GAVL_TIME_UNDEFINED;
   ret->last_pts = GAVL_TIME_UNDEFINED;
   ret->frame_duration = (int)(TIME_SCALE / framerate);
+  *timescale = TIME_SCALE;
   return ret;
   }
 
@@ -68,10 +69,10 @@ void bg_frame_timer_update(bg_frame_timer_t * t,
   {
   int64_t diff;
   gavl_time_t current_time;
-
+  int64_t real_duration;
+  
   current_time = gavl_timer_get(t->timer);
-  if(t->limit_fps)
-    t->last_capture_duration = current_time - t->capture_start_time;
+  t->last_capture_duration = current_time - t->capture_start_time;
   
   if(t->next_pts == GAVL_TIME_UNDEFINED)
     {
@@ -87,32 +88,20 @@ void bg_frame_timer_update(bg_frame_timer_t * t,
   frame->timestamp = t->next_pts;
   
   /*
-   * Diff > 0 -> frame too early: Duration should be larger
-   * Diff < 0 -> frame too late: Duration should be smaller
+   * Diff > 0 -> frame too early: Duration was too large
+   * Diff < 0 -> frame too late: Duration was too small
    */
   
   diff = t->next_pts - gavl_time_scale(TIME_SCALE, current_time);
   
-  if(t->limit_fps)
-    {
-    if(diff > 0)
-      {
-      
-      }
-    }
-  else
-    {
-    int64_t real_duration =
-      gavl_time_scale(TIME_SCALE, current_time - t->last_time);
-    
-    frame->duration = real_duration + diff;
+  real_duration =
+    gavl_time_scale(TIME_SCALE, current_time - t->last_time);
+  
+  frame->duration = real_duration - diff;
 
-    if(frame->duration <= 0)
-      frame->duration = 100; // 10 ms/100 fps
-    
-    t->frame_duration = real_duration;
-    }
-
+  if(frame->duration <= 0)
+    frame->duration = TIME_SCALE / 100; // 10 ms/100 fps
+  
   t->last_time = current_time;
   t->last_pts = t->next_pts;
   t->next_pts += frame->duration;
@@ -122,12 +111,12 @@ void bg_frame_timer_wait(bg_frame_timer_t * t)
   {
   gavl_time_t cur, diff;
   
-  t->limit_fps = 1;
   if(t->next_pts == GAVL_TIME_UNDEFINED)
     return;
 
   cur = gavl_timer_get(t->timer);
-  diff = gavl_time_unscale(TIME_SCALE, t->next_pts) - cur -
+  diff =
+    gavl_time_unscale(TIME_SCALE, t->frame_duration) - (cur - t->last_time) -
     t->last_capture_duration;
   
   if(diff > 0)

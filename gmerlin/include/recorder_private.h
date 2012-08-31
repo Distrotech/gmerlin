@@ -167,12 +167,7 @@ typedef struct
   
   gavl_time_t last_frame_time;
   gavl_time_t last_capture_duration;
-
-  int do_limit_fps;
-  
-  int limit_timescale;
-  int limit_duration;
-  
+    
   int64_t frame_counter;
   
   pthread_mutex_t config_mutex;
