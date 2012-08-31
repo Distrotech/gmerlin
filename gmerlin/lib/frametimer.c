@@ -39,6 +39,8 @@ struct bg_frame_timer_s
   gavl_time_t capture_start_time;
   gavl_time_t last_capture_duration;
   
+  gavl_time_t last_time;
+  
   int limit_fps;
   };
 
@@ -78,6 +80,7 @@ void bg_frame_timer_update(bg_frame_timer_t * t,
     gavl_timer_start(t->timer);
     t->next_pts = frame->duration;
     t->last_pts = 0;
+    t->last_time = 0;
     return;
     }
   
@@ -92,14 +95,27 @@ void bg_frame_timer_update(bg_frame_timer_t * t,
   
   if(t->limit_fps)
     {
-    
+    if(diff > 0)
+      {
+      
+      }
     }
   else
     {
+    int64_t real_duration =
+      gavl_time_scale(TIME_SCALE, current_time - t->last_time);
     
+    frame->duration = real_duration + diff;
+
+    if(frame->duration <= 0)
+      frame->duration = 100; // 10 ms/100 fps
+    
+    t->frame_duration = real_duration;
     }
+
+  t->last_time = current_time;
+  t->last_pts = t->next_pts;
   t->next_pts += frame->duration;
-  t->last_pts = frame->timestamp;
   }
 
 void bg_frame_timer_wait(bg_frame_timer_t * t)
