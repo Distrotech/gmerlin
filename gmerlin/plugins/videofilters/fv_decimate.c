@@ -428,6 +428,7 @@ read_func(void * priv, gavl_video_frame_t ** frame)
   /* Read frame */
   if(!vp->have_frame)
     {
+    vp->in_frame = NULL;
     if((st = gavl_video_source_read_frame(vp->in_src, &vp->in_frame)) !=
        GAVL_SOURCE_OK)
       return st;
@@ -474,13 +475,15 @@ connect_decimate(void * priv,
   decimate_priv_t * vp = priv;
   vp->have_frame = 0;
   vp->in_src = src;
+  vp->have_frame = 0;
+  
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
   vp->format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
   return gavl_video_source_create(read_func, vp,
-                                         GAVL_SOURCE_SRC_ALLOC, &vp->format);
+                                  GAVL_SOURCE_SRC_ALLOC, &vp->format);
   }
 
 const bg_fv_plugin_t the_plugin = 

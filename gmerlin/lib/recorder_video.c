@@ -634,8 +634,6 @@ static void check_snapshot(bg_recorder_t * rec)
   vs->snapshot_counter++;
   vs->last_snapshot_time = frame_time;
   }
-                      
-
 
 void * bg_recorder_video_thread(void * data)
   {
@@ -723,8 +721,6 @@ static int read_video_internal(void * data, gavl_video_frame_t * frame, int stre
 
   bg_recorder_t * rec = data;
   bg_recorder_video_stream_t * vs = &rec->vs;
-  
-  /* Limit the captured framerate */
   
   cur_time = gavl_timer_get(vs->timer);
   ret = vs->input_plugin->read_video(vs->input_handle->priv, frame, 0);
