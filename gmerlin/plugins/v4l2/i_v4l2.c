@@ -90,7 +90,6 @@ typedef struct
   int num_strides;
   
   gavl_video_source_t * src;
-
   bg_frame_timer_t * ft;
   
   } v4l2_t;
@@ -135,15 +134,17 @@ init_mmap(v4l2_t * v4l)
       }
     else
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_REQBUFS failed: %s", strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "VIDIOC_REQBUFS failed: %s", strerror(errno));
       return 0;
       }
     }
   
   if (req.count < 2)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Insufficient buffer memory on %s",
-             v4l->device);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Insufficient buffer memory on %s",
+           v4l->device);
     return 0;
     }
   
@@ -158,8 +159,7 @@ init_mmap(v4l2_t * v4l)
   for (v4l->n_buffers = 0; v4l->n_buffers < req.count; ++v4l->n_buffers)
     {
     struct v4l2_buffer buf;
-    
-    CLEAR (buf);
+    CLEAR(buf);
     
     buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory      = V4L2_MEMORY_MMAP;
@@ -167,7 +167,8 @@ init_mmap(v4l2_t * v4l)
     
     if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QUERYBUF failed: %s", strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "VIDIOC_QUERYBUF failed: %s", strerror(errno));
       return 0;
       }
     v4l->buffers[v4l->n_buffers].length = buf.length;
@@ -185,7 +186,7 @@ init_mmap(v4l2_t * v4l)
   for (i = 0; i < v4l->n_buffers; ++i)
     {
     struct v4l2_buffer buf;
-    CLEAR (buf);
+    CLEAR(buf);
     
     buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory      = V4L2_MEMORY_MMAP;
@@ -268,223 +269,6 @@ static int get_pixelformat(int fd, uint32_t * ret)
   return 0;
   }
 
-
-static int open_v4l(void * priv,
-                    gavl_audio_format_t * audio_format,
-                    gavl_video_format_t * format)
-  {
-  v4l2_t * v4l;
-  struct v4l2_capability cap;
-  struct v4l2_streamparm param;
-  float default_fps;
-  
-  //  struct v4l2_cropcap cropcap;
-  //  struct v4l2_crop crop;
-  //  unsigned int min;
-
-  v4l = priv;
-  
-  v4l->fd = bgv4l2_open_device(v4l->device, V4L2_CAP_VIDEO_CAPTURE,
-                               &cap);
-  
-  //  create_card_parameters(v4l->fd);
-
-  if(v4l->controls)
-    {
-    free(v4l->controls);
-    v4l->controls = NULL;
-    }
-  if(v4l->fd < 0)
-    return 0;
-  
-  v4l->controls =
-    bgv4l2_create_device_controls(v4l->fd, &v4l->num_controls);
-  
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Device name: %s", cap.card);
-
-  if ((cap.capabilities & V4L2_CAP_STREAMING) && !v4l->force_rw)
-    {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");
-    v4l->io = BGV4L2_IO_METHOD_MMAP;
-    }
-  else if(cap.capabilities & V4L2_CAP_READWRITE)
-    {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying read i/o");
-    v4l->io = BGV4L2_IO_METHOD_RW;
-    }
-  
-  /* Select video input, video standard and tune here. */
-
-#if 0
-  CLEAR (cropcap);
-
-  cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-  if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_CROPCAP, &cropcap))
-    {
-    crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    crop.c = cropcap.defrect; /* reset to default */
-    
-    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_CROP, &crop))
-      {
-      switch (errno)
-        {
-        case EINVAL:
-          /* Cropping not supported. */
-          break;
-        default:
-          /* Errors ignored. */
-          break;
-        }
-      }
-    }
-  else
-    {	
-    /* Errors ignored. */
-    }
-#endif
-  
-  if(!get_pixelformat(v4l->fd, &v4l->v4l2_pixelformat))
-    {
-#ifdef HAVE_V4LCONVERT
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying v4lconvert");
-    v4l->converter = bg_v4l2_convert_create(v4l->fd,
-                                            &v4l->v4l2_pixelformat,
-                                            &format->pixelformat, v4l->width,
-                                            v4l->height);
-    if(!v4l->converter)
-      return 0;
-#else
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no supported pixelformat");
-    return 0;
-#endif
-    }
-  else
-    {
-    format->pixelformat =
-      bgv4l2_pixelformat_v4l2_2_gavl(v4l->v4l2_pixelformat);
-    }
-  
-  v4l->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s", strerror(errno));
-    return 0;
-    }
-  
-  // CLEAR (fmt);
-
-  v4l->fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  v4l->fmt.fmt.pix.width       = v4l->width; 
-  v4l->fmt.fmt.pix.height      = v4l->height;
-  v4l->fmt.fmt.pix.pixelformat = v4l->v4l2_pixelformat;
-  
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_FMT, &v4l->fmt))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_FMT failed: %s", strerror(errno));
-    return 0;
-    }
-  /* Note VIDIOC_S_FMT may change width and height. */
-
-#if 0  
-  /* Buggy driver paranoia. */
-  min = fmt.fmt.pix.width * 2;
-  if (fmt.fmt.pix.bytesperline < min)
-    fmt.fmt.pix.bytesperline = min;
-  min = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
-  if (fmt.fmt.pix.sizeimage < min)
-    fmt.fmt.pix.sizeimage = min;
-#endif
-
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s", strerror(errno));
-    return 0;
-    }
- 
-  format->pixel_width  = 1;
-  format->pixel_height = 1;
-  format->image_width  = v4l->fmt.fmt.pix.width;
-  format->image_height = v4l->fmt.fmt.pix.height;
-  format->frame_width  = v4l->fmt.fmt.pix.width;
-  format->frame_height = v4l->fmt.fmt.pix.height;
-  format->frame_duration = 0;
-  format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
-  
-  /* Check framerate */
-  CLEAR(param);
-
-  default_fps = -1.0;
-  
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_PARM, &param))
-    {
-    if (EINVAL == errno)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
-             "VIDIOC_G_PARAM", v4l->device);
-      }
-    }
-  else
-    {
-    default_fps = (float)param.parm.capture.timeperframe.denominator /
-      (float)param.parm.capture.timeperframe.numerator;
-    }
-
-  if(default_fps < 0.0)
-    {
-    param.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    param.parm.capture.timeperframe.numerator   = 1;
-    param.parm.capture.timeperframe.denominator = 10;
-
-    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_PARM, &param))
-      {
-      if (EINVAL == errno)
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
-               "VIDIOC_S_PARAM", v4l->device);
-        }
-      else
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_PARAM failed: %s",
-               strerror(errno));
-        }
-    
-      }
-    else
-      {
-      default_fps = (float)param.parm.capture.timeperframe.denominator /
-        (float)param.parm.capture.timeperframe.numerator;
-      }
-    }
-  
-  if(default_fps < 0.0)
-    default_fps = 10.0;
-  
-  /* Initialize capture mode */
-
-  switch (v4l->io)
-    {
-    case BGV4L2_IO_METHOD_RW:
-      if(!init_read (v4l))
-        return 0;
-      break;
-      
-    case BGV4L2_IO_METHOD_MMAP:
-      if(!init_mmap (v4l))
-        return 0;
-      break;
-    }
-
-  v4l->ft = bg_frame_timer_create(default_fps,
-                                  &format->timescale);
-  
-  gavl_video_format_copy(&v4l->format, format);
-  
-  
-  return 1;
-  }
-
 static void close_v4l(void * priv)
   {
   v4l2_t * v4l;
@@ -559,7 +343,7 @@ static void close_v4l(void * priv)
   }
 
 static void process_image(v4l2_t * v4l, void * data,
-                          gavl_video_frame_t * frame)
+                          gavl_video_frame_t ** frame)
   {
 #ifdef HAVE_V4LCONVERT
   if(v4l->converter)
@@ -578,30 +362,14 @@ static void process_image(v4l2_t * v4l, void * data,
                        &v4l->fmt, v4l->frame->strides);
     }
   gavl_video_frame_set_planes(v4l->frame, &v4l->format, data);
-  gavl_video_frame_copy(&v4l->format, frame, v4l->frame);
+  *frame = v4l->frame;
 #ifdef HAVE_V4LCONVERT
     }
 #endif
   }
 
-static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
+static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t ** frame)
   {
-  /* If strides match we can read directly into the frame buffer */
-  if(
-#ifdef HAVE_V4LCONVERT
-     !v4l->converter &&
-#endif
-     bgv4l2_strides_match(frame, v4l->strides, v4l->num_strides))
-    {
-    if (read (v4l->fd, frame->planes[0], v4l->fmt.fmt.pix.sizeimage) <
-        v4l->fmt.fmt.pix.sizeimage)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read failed: %s", strerror(errno));
-      return 0;
-      }
-    return 1;
-    }
-
   if(!v4l->buffers[0].start)
     v4l->buffers[0].start = malloc(v4l->fmt.fmt.pix.sizeimage);
   
@@ -626,7 +394,7 @@ static int read_frame_read(v4l2_t * v4l, gavl_video_frame_t * frame)
   return 1;
   }
 
-static int read_frame_mmap(v4l2_t * v4l, gavl_video_frame_t * frame)
+static int read_frame_mmap(v4l2_t * v4l, gavl_video_frame_t ** frame)
   {
   struct v4l2_buffer buf;
   
@@ -683,7 +451,8 @@ static int read_frame_mmap(v4l2_t * v4l, gavl_video_frame_t * frame)
   return 1;
   }
 
-static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
+static gavl_source_status_t
+read_frame_v4l(void * priv, gavl_video_frame_t ** frame)
   {
   int ret = 0;
   v4l2_t * v4l;
@@ -711,7 +480,8 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
       {
       if (EINTR == errno)
         continue;
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Select failed: %s", strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Select failed: %s",
+             strerror(errno));
       return 0;
       }
     
@@ -735,7 +505,7 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
       }
 
     if(ret)
-      bg_frame_timer_update(v4l->ft, frame);
+      bg_frame_timer_update(v4l->ft, *frame);
     
     return ret;
     }
@@ -958,6 +728,236 @@ static void set_parameter_v4l(void * priv, const char * name,
     }
   }
 
+static int open_v4l(void * priv,
+                    gavl_audio_format_t * audio_format,
+                    gavl_video_format_t * format)
+  {
+  v4l2_t * v4l;
+  struct v4l2_capability cap;
+  struct v4l2_streamparm param;
+  float default_fps;
+  
+  //  struct v4l2_cropcap cropcap;
+  //  struct v4l2_crop crop;
+  //  unsigned int min;
+
+  v4l = priv;
+  
+  v4l->fd = bgv4l2_open_device(v4l->device, V4L2_CAP_VIDEO_CAPTURE,
+                               &cap);
+  
+  //  create_card_parameters(v4l->fd);
+
+  if(v4l->controls)
+    {
+    free(v4l->controls);
+    v4l->controls = NULL;
+    }
+  if(v4l->fd < 0)
+    return 0;
+  
+  v4l->controls =
+    bgv4l2_create_device_controls(v4l->fd, &v4l->num_controls);
+  
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Device name: %s", cap.card);
+
+  if ((cap.capabilities & V4L2_CAP_STREAMING) && !v4l->force_rw)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");
+    v4l->io = BGV4L2_IO_METHOD_MMAP;
+    }
+  else if(cap.capabilities & V4L2_CAP_READWRITE)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying read i/o");
+    v4l->io = BGV4L2_IO_METHOD_RW;
+    }
+  
+  /* Select video input, video standard and tune here. */
+
+#if 0
+  CLEAR (cropcap);
+
+  cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+  if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_CROPCAP, &cropcap))
+    {
+    crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    crop.c = cropcap.defrect; /* reset to default */
+    
+    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_CROP, &crop))
+      {
+      switch (errno)
+        {
+        case EINVAL:
+          /* Cropping not supported. */
+          break;
+        default:
+          /* Errors ignored. */
+          break;
+        }
+      }
+    }
+  else
+    {	
+    /* Errors ignored. */
+    }
+#endif
+  
+  if(!get_pixelformat(v4l->fd, &v4l->v4l2_pixelformat))
+    {
+#ifdef HAVE_V4LCONVERT
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying v4lconvert");
+    v4l->converter = bg_v4l2_convert_create(v4l->fd,
+                                            &v4l->v4l2_pixelformat,
+                                            &format->pixelformat, v4l->width,
+                                            v4l->height);
+    if(!v4l->converter)
+      return 0;
+#else
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no supported pixelformat");
+    return 0;
+#endif
+    }
+  else
+    {
+    format->pixelformat =
+      bgv4l2_pixelformat_v4l2_2_gavl(v4l->v4l2_pixelformat);
+    }
+  
+  v4l->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s",
+           strerror(errno));
+    return 0;
+    }
+  
+  // CLEAR (fmt);
+
+  v4l->fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  v4l->fmt.fmt.pix.width       = v4l->width; 
+  v4l->fmt.fmt.pix.height      = v4l->height;
+  v4l->fmt.fmt.pix.pixelformat = v4l->v4l2_pixelformat;
+  
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_FMT, &v4l->fmt))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_FMT failed: %s",
+           strerror(errno));
+    return 0;
+    }
+  /* Note VIDIOC_S_FMT may change width and height. */
+
+#if 0  
+  /* Buggy driver paranoia. */
+  min = fmt.fmt.pix.width * 2;
+  if (fmt.fmt.pix.bytesperline < min)
+    fmt.fmt.pix.bytesperline = min;
+  min = fmt.fmt.pix.bytesperline * fmt.fmt.pix.height;
+  if (fmt.fmt.pix.sizeimage < min)
+    fmt.fmt.pix.sizeimage = min;
+#endif
+
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_FMT, &v4l->fmt))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s",
+           strerror(errno));
+    return 0;
+    }
+ 
+  format->pixel_width  = 1;
+  format->pixel_height = 1;
+  format->image_width  = v4l->fmt.fmt.pix.width;
+  format->image_height = v4l->fmt.fmt.pix.height;
+  format->frame_width  = v4l->fmt.fmt.pix.width;
+  format->frame_height = v4l->fmt.fmt.pix.height;
+  format->frame_duration = 0;
+  format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  
+  /* Check framerate */
+  CLEAR(param);
+
+  default_fps = -1.0;
+  
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_G_PARM, &param))
+    {
+    if (EINVAL == errno)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
+             "VIDIOC_G_PARAM", v4l->device);
+      }
+    }
+  else
+    {
+    default_fps = (float)param.parm.capture.timeperframe.denominator /
+      (float)param.parm.capture.timeperframe.numerator;
+    }
+
+  if(default_fps < 0.0)
+    {
+    param.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    param.parm.capture.timeperframe.numerator   = 1;
+    param.parm.capture.timeperframe.denominator = 10;
+
+    if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_PARM, &param))
+      {
+      if (EINVAL == errno)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
+               "VIDIOC_S_PARAM", v4l->device);
+        }
+      else
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_S_PARAM failed: %s",
+               strerror(errno));
+        }
+      }
+    else
+      {
+      default_fps = (float)param.parm.capture.timeperframe.denominator /
+        (float)param.parm.capture.timeperframe.numerator;
+      }
+    }
+  
+  if(default_fps < 0.0)
+    default_fps = 10.0;
+  
+  /* Initialize capture mode */
+
+  switch (v4l->io)
+    {
+    case BGV4L2_IO_METHOD_RW:
+      if(!init_read (v4l))
+        return 0;
+      break;
+      
+    case BGV4L2_IO_METHOD_MMAP:
+      if(!init_mmap (v4l))
+        return 0;
+      break;
+    }
+
+  v4l->ft = bg_frame_timer_create(default_fps,
+                                  &format->timescale);
+
+  v4l->src =
+    gavl_video_source_create(read_frame_v4l, v4l,
+                             GAVL_SOURCE_SRC_ALLOC, format);
+
+  
+  gavl_video_format_copy(&v4l->format, format);
+  
+  
+  return 1;
+  }
+
+
+static int read_v4l(void * priv, gavl_video_frame_t * frame, int stream)
+  {
+  v4l2_t * v4l = priv;
+  return (gavl_video_source_read_frame(v4l->src, &frame) == GAVL_SOURCE_OK);
+  }
+
 const bg_recorder_plugin_t the_plugin =
   {
     .common =
@@ -979,8 +979,8 @@ const bg_recorder_plugin_t the_plugin =
     
     .open =       open_v4l,
     .close =      close_v4l,
-    .read_video = read_frame_v4l,
-    
+    .read_video = read_v4l,
+    .get_video_source = get_video_source_v4l,
   };
 
 /* Include this into all plugin modules exactly once

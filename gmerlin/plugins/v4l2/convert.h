@@ -25,6 +25,9 @@ bg_v4l2_convert_t * bg_v4l2_convert_create(int fd, uint32_t * v4l_fmt,
                                            gavl_pixelformat_t * gavl_fmt,
                                            int width, int height);
 
-void bg_v4l2_convert_convert(bg_v4l2_convert_t *, uint8_t * data, int size, gavl_video_frame_t * frame);
+void bg_v4l2_convert_convert(bg_v4l2_convert_t *,
+                             uint8_t * data, int size,
+                             gavl_video_frame_t ** frame);
+
 void bg_v4l2_convert_destroy(bg_v4l2_convert_t *);
 

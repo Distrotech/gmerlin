@@ -121,19 +121,10 @@ bg_v4l2_convert_t * bg_v4l2_convert_create(int fd, uint32_t * v4l_fmt,
   }
 
 void bg_v4l2_convert_convert(bg_v4l2_convert_t * cnv, uint8_t * data, int size,
-                             gavl_video_frame_t * frame)
+                             gavl_video_frame_t ** frame)
   {
   int result;
   //  fprintf(stderr, "bg_v4l2_convert_convert %d\n", size);
-
-  if(bgv4l2_strides_match(frame, cnv->strides, cnv->num_strides))
-    {
-    result = v4lconvert_convert(cnv->cnv,
-                                &cnv->src_format,  /* in */
-                                &cnv->dst_format, /* in */
-                                data, size, frame->planes[0], cnv->dst_size);
-    return;
-    }
   
   if(!cnv->frame)
     cnv->frame = bgv4l2_create_frame(NULL, // Can be NULL
@@ -143,8 +134,8 @@ void bg_v4l2_convert_convert(bg_v4l2_convert_t * cnv, uint8_t * data, int size,
                               &cnv->src_format,  /* in */
                               &cnv->dst_format, /* in */
                               data, size, cnv->frame->planes[0], cnv->dst_size);
-  
-  gavl_video_frame_copy(&cnv->fmt, frame, cnv->frame);
+
+  *frame = cnv->frame;
   }
 
 void bg_v4l2_convert_destroy(bg_v4l2_convert_t * cnv)
