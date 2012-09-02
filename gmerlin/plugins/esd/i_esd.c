@@ -49,6 +49,8 @@ typedef struct
   int last_frame_size;
   
   int64_t samples_read;
+  
+  gavl_audio_source_t * src;
   } esd_t;
 
 static const bg_parameter_info_t parameters[] =
@@ -181,6 +183,11 @@ static void close_esd(void * data)
   esd_t * e = data;
   esd_close(e->esd_socket);
   gavl_audio_frame_destroy(e->f);
+  if(e->src)
+    {
+    gavl_audio_source_destroy(e->src);
+    e->src = NULL;
+    }
   }
 
 static int read_frame_esd(void * p, gavl_audio_frame_t * f, int stream,
@@ -226,6 +233,12 @@ static int read_frame_esd(void * p, gavl_audio_frame_t * f, int stream,
   return samples_read;
   }
 
+static gavl_audio_source_t * get_audio_source_esd(void * p)
+  {
+  esd_t * priv = p;
+  return priv->src;
+  }
+
 const bg_recorder_plugin_t the_plugin =
   {
     .common =
@@ -248,6 +261,7 @@ const bg_recorder_plugin_t the_plugin =
     .open =                open_esd,
     .read_audio =          read_frame_esd,
     .close =               close_esd,
+    .get_audio_source =    get_audio_source_esd,
   };
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

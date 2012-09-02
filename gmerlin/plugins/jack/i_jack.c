@@ -134,6 +134,12 @@ static int open_jack(void * data,
 
 static void close_jack(void * p)
   {
+  jack_t * priv = p;
+  if(priv->src)
+    {
+    gavl_audio_source_destroy(priv->src);
+    priv->src = NULL;
+    }
   }
 
 static int read_frame_jack(void * p, gavl_audio_frame_t * f,
@@ -178,6 +184,12 @@ static int read_frame_jack(void * p, gavl_audio_frame_t * f,
   
   //  return samples_read;
   return num_samples;
+  }
+
+static gavl_audio_source_t * get_audio_source(void * p)
+  {
+  jack_t * priv = p;
+  return priv->src;
   }
 
 const bg_recorder_plugin_t the_plugin =

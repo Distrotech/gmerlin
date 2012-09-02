@@ -95,6 +95,8 @@ typedef struct
   int bytes_per_frame;
 
   int64_t samples_read;
+
+  gavl_audio_source_t * src;
   } oss_t;
 
 static const bg_parameter_info_t *
@@ -249,6 +251,11 @@ static void close_oss(void * p)
     close(priv->fd);
     priv->fd = -1;
     }
+  if(priv->src)
+    {
+    gavl_audio_source_destroy(priv->src);
+    priv->src = NULL;
+    }
   }
 
 static int read_frame_oss(void * p, gavl_audio_frame_t * f, int stream, int num_samples)
@@ -262,6 +269,12 @@ static int read_frame_oss(void * p, gavl_audio_frame_t * f, int stream, int num_
   f->timestamp = priv->samples_read;
   priv->samples_read += f->valid_samples;
   return priv->samples_read;
+  }
+
+static gavl_audio_source_t * get_audio_source_oss(void * p)
+  {
+  oss_t * priv = p;
+  return priv->src;
   }
 
 static void destroy_oss(void * p)
@@ -291,9 +304,10 @@ const bg_recorder_plugin_t the_plugin =
       .set_parameter =  set_parameter_oss
     },
 
-    .open =          open_oss,
-    .read_audio =    read_frame_oss,
-    .close =         close_oss,
+    .open =             open_oss,
+    .read_audio =       read_frame_oss,
+    .close  =           close_oss,
+    .get_audio_source = get_audio_source_oss,
   };
 
 /* Include this into all plugin modules exactly once

@@ -38,6 +38,8 @@ typedef struct
   int num_channels;
   int bytes_per_sample;
   int samplerate;
+  
+  gavl_audio_source_t * src;
   } bg_pa_t;
 
 int bg_pa_open(bg_pa_t *, int record);

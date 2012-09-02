@@ -108,6 +108,8 @@ typedef struct
   char * user_device;
 
   int64_t samples_read;
+
+  gavl_audio_source_t * src; 
   } alsa_t;
 
 static const bg_parameter_info_t *
@@ -237,6 +239,11 @@ static void close_alsa(void * p)
     gavl_audio_frame_destroy(priv->f);
     priv->f = NULL;
     }
+  if(priv->src)
+    {
+    gavl_audio_source_destroy(priv->src);
+    priv->src = NULL;
+    }
   }
 
 
@@ -324,6 +331,12 @@ static int read_frame_alsa(void * p, gavl_audio_frame_t * f,
   return samples_read;
   }
 
+static gavl_audio_source_t * get_audio_source_alsa(void * p)
+  {
+  alsa_t * priv = p;
+  return priv->src;
+  }
+
 static void destroy_alsa(void * p)
   {
   alsa_t * priv = p;
@@ -352,9 +365,10 @@ const bg_recorder_plugin_t the_plugin =
       .set_parameter =  set_parameter_alsa,
     },
 
-    .open =          open_alsa,
-    .read_audio =    read_frame_alsa,
-    .close =         close_alsa,
+    .open =             open_alsa,
+    .get_audio_source = get_audio_source_alsa,
+    .read_audio =       read_frame_alsa,
+    .close =            close_alsa,
   };
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

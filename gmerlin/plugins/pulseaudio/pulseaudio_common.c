@@ -202,6 +202,11 @@ void bg_pa_close(void * data)
     pa_simple_free(priv->pa);
     priv->pa = NULL;
     }
+  if(priv->src)
+    {
+    gavl_audio_source_destroy(priv->src);
+    priv->src = NULL;
+    }
   }
 
 
