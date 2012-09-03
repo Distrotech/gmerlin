@@ -33,7 +33,6 @@ typedef struct
   int record;
   gavl_audio_format_t format;
   int block_align;
-  int64_t sample_count;
 
   int num_channels;
   int bytes_per_sample;

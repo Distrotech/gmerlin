@@ -113,6 +113,30 @@ get_parameters_esd(void * priv)
   return parameters;
   }
 
+static int read_samples_esd(void * p, gavl_audio_frame_t * f, int stream,
+                            int num_samples)
+  {
+  esd_t * priv = p;
+  return gavl_audio_source_read_samples(priv->src, f, num_samples);
+  }
+
+static gavl_source_status_t
+read_func_esd(void * p, gavl_audio_frame_t ** f)
+  {
+  esd_t * priv = p;
+  
+  (*f)->valid_samples = read(priv->esd_socket,
+                             (*f)->samples.s_8,
+                             ESD_BUF_SIZE);
+
+  if((*f)->valid_samples < 0)
+    return GAVL_SOURCE_EOF;
+  
+  (*f)->valid_samples /= priv->bytes_per_frame;
+  
+  return ((*f)->valid_samples ? GAVL_SOURCE_OK : GAVL_SOURCE_EOF);
+  }
+
 static int open_esd(void * data,
                     gavl_audio_format_t * format,
                     gavl_video_format_t * video_format)
@@ -160,8 +184,7 @@ static int open_esd(void * data,
   gethostname(hostname, 128);
     
   name = bg_sprintf("gmerlin@%s pid: %d", hostname, getpid());
-
-    
+  
   if(e->do_monitor)
     e->esd_socket = esd_monitor_stream(esd_format, format->samplerate,
                                        e->hostname, name);
@@ -175,6 +198,7 @@ static int open_esd(void * data,
     return 0;
     }
   e->bytes_per_frame = 4;
+  e->src = gavl_audio_source_create(read_func_esd, e, 0, format);
   return 1;
   }
 
@@ -188,49 +212,6 @@ static void close_esd(void * data)
     gavl_audio_source_destroy(e->src);
     e->src = NULL;
     }
-  }
-
-static int read_frame_esd(void * p, gavl_audio_frame_t * f, int stream,
-                           int num_samples)
-  {
-  int samples_read;
-  int samples_copied;
-  
-  esd_t * priv = p;
-  
-  samples_read = 0;
-
-  while(samples_read < num_samples)
-    {
-    if(!priv->f->valid_samples)
-      {
-      priv->f->valid_samples = read(priv->esd_socket,
-                                    priv->f->samples.s_8,
-                                    ESD_BUF_SIZE);
-      priv->f->valid_samples /= priv->bytes_per_frame;
-      priv->last_frame_size = priv->f->valid_samples;
-      }
-    
-    samples_copied =
-      gavl_audio_frame_copy(&priv->format,         /* format  */
-                            f,                     /* dst     */
-                            priv->f,               /* src     */
-                            samples_read,          /* dst_pos */
-                            priv->last_frame_size - priv->f->valid_samples, /* src_pos */
-                            num_samples - samples_read, /* dst_size */
-                            priv->f->valid_samples      /* src_size */ );
-    
-    priv->f->valid_samples -= samples_copied;
-    samples_read += samples_copied;
-    }
-
-  if(f)
-    {
-    f->valid_samples = samples_read;
-    f->timestamp = priv->samples_read;
-    }
-  priv->samples_read += samples_read;
-  return samples_read;
   }
 
 static gavl_audio_source_t * get_audio_source_esd(void * p)
@@ -259,7 +240,7 @@ const bg_recorder_plugin_t the_plugin =
     },
 
     .open =                open_esd,
-    .read_audio =          read_frame_esd,
+    .read_audio =          read_samples_esd,
     .close =               close_esd,
     .get_audio_source =    get_audio_source_esd,
   };

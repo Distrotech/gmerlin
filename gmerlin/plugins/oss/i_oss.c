@@ -84,6 +84,8 @@ typedef struct
   char * device;
   int fd;
 
+  gavl_audio_format_t format;
+  
   /* Configuration vairables */
   
   int num_channels;
@@ -92,10 +94,7 @@ typedef struct
 
   /* Runtime variables */
     
-  int bytes_per_frame;
-
-  int64_t samples_read;
-
+  int block_align;
   gavl_audio_source_t * src;
   } oss_t;
 
@@ -146,6 +145,27 @@ static void * create_oss()
   return ret;
   }
 
+static int read_samples_oss(void * p, gavl_audio_frame_t * f, int stream, int num_samples)
+  {
+  oss_t * priv = p;
+  return gavl_audio_source_read_samples(priv->src, f, num_samples);
+  }
+
+static gavl_source_status_t read_func_oss(void * p, gavl_audio_frame_t ** frame)
+  {
+  oss_t * priv = p;
+  gavl_audio_frame_t * f = *frame;
+  
+  f->valid_samples = read(priv->fd,
+                          f->samples.s_8,
+                          priv->format.samples_per_frame * priv->block_align);
+
+  if(f->valid_samples <= 0)
+    return GAVL_SOURCE_EOF;
+  f->valid_samples /= priv->block_align;
+  return GAVL_SOURCE_OK;
+  }
+
 static int open_oss(void * data,
                     gavl_audio_format_t * format,
                     gavl_video_format_t * video_format)
@@ -155,7 +175,6 @@ static int open_oss(void * data,
   oss_t * priv = data;
 
   priv->fd = -1;
-  priv->samples_read = 0;
   
   memset(format, 0, sizeof(*format));
   
@@ -234,7 +253,12 @@ static int open_oss(void * data,
     goto fail;
     }
 
-  priv->bytes_per_frame = priv->bytes_per_sample * priv->num_channels;
+  priv->block_align = priv->bytes_per_sample * priv->num_channels;
+
+  gavl_audio_format_copy(&priv->format, format);
+
+  priv->src = gavl_audio_source_create(read_func_oss, priv, 0, format);
+  
   return 1;
   fail:
   if(priv->fd != -1)
@@ -258,18 +282,6 @@ static void close_oss(void * p)
     }
   }
 
-static int read_frame_oss(void * p, gavl_audio_frame_t * f, int stream, int num_samples)
-  {
-  oss_t * priv = p;
-  
-  f->valid_samples = read(priv->fd,
-                          f->samples.s_8,
-                          num_samples * priv->bytes_per_frame);
-  f->valid_samples /= priv->bytes_per_frame;
-  f->timestamp = priv->samples_read;
-  priv->samples_read += f->valid_samples;
-  return priv->samples_read;
-  }
 
 static gavl_audio_source_t * get_audio_source_oss(void * p)
   {
@@ -305,7 +317,7 @@ const bg_recorder_plugin_t the_plugin =
     },
 
     .open =             open_oss,
-    .read_audio =       read_frame_oss,
+    .read_audio =       read_samples_oss,
     .close  =           close_oss,
     .get_audio_source = get_audio_source_oss,
   };

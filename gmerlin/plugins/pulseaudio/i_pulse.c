@@ -24,6 +24,31 @@
 
 #include <gmerlin/utils.h>
 
+static gavl_source_status_t read_func_pulse(void * p, gavl_audio_frame_t ** frame)
+  {
+  bg_pa_t * priv;
+  int error = 0;
+
+  gavl_audio_frame_t * f = *frame;
+  
+  priv = p;
+  if(pa_simple_read(priv->pa, f->samples.u_8,
+                    priv->block_align * priv->format.samples_per_frame,
+                    &error) < 0)
+    {
+    return GAVL_SOURCE_EOF;
+    }
+  f->valid_samples = priv->format.samples_per_frame;
+  return GAVL_SOURCE_OK;
+  }
+
+static int read_samples_pulse(void * p, gavl_audio_frame_t * f, int stream,
+                              int num_samples)
+  {
+  bg_pa_t * priv = p;
+  return gavl_audio_source_read_samples(priv->src, f, num_samples);
+  }
+
 static int open_pulse(void * data,
                       gavl_audio_format_t * format,
                       gavl_video_format_t * video_format)
@@ -34,33 +59,26 @@ static int open_pulse(void * data,
   // gavl_audio_format_copy(&priv->format, format);
   
   if(!bg_pa_open(priv, 1))
-    {
     return 0;
-    }
+  
   gavl_audio_format_copy(format, &priv->format);
-  priv->sample_count = 0;
+  priv->src = gavl_audio_source_create(read_func_pulse, priv, 0, format);
   return 1;
   }
 
 static void close_pulse(void * p)
   {
-  bg_pa_close(p);
+  bg_pa_t * priv = p;
+  gavl_audio_source_destroy(priv->src);
+  priv->src = NULL;
+  
+  bg_pa_close(priv);
   }
 
-static int read_frame_pulse(void * p, gavl_audio_frame_t * f,
-                            int stream,
-                            int num_samples)
+static gavl_audio_source_t * get_audio_source_pulse(void * p)
   {
-  bg_pa_t * priv;
-  int error = 0;
-  priv = p;
-  pa_simple_read(priv->pa, f->samples.u_8,
-                 priv->block_align * num_samples,
-                 &error);
-  f->valid_samples = num_samples;
-  f->timestamp = priv->sample_count;
-  priv->sample_count += num_samples;
-  return num_samples;
+  bg_pa_t * priv = p;
+  return priv->src;
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -165,7 +183,9 @@ const bg_recorder_plugin_t the_plugin =
     },
     
     .open =          open_pulse,
-    .read_audio =    read_frame_pulse,
+    .read_audio =    read_samples_pulse,
+    .get_audio_source = get_audio_source_pulse,
+
     .close =         close_pulse,
   };
 /* Include this into all plugin modules exactly once

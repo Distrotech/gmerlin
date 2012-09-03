@@ -88,6 +88,8 @@ int bg_pa_open(bg_pa_t * p, int record)
   {
   struct pa_sample_spec ss;
   pa_channel_map map;
+  //  pa_buffer_attr attr;
+  
   int error;
   char * app_name, *stream_name;
 
@@ -158,6 +160,10 @@ int bg_pa_open(bg_pa_t * p, int record)
   
   init_channel_map(&p->format, &map);
 
+  //  memset(&attr, 0, sizeof(attr));
+  //  attr.fragsize  = -1; // Let server choose
+  //  attr.maxlength = -1; // Let server choose
+  
   app_name = bg_sprintf("Gmerlin [%d]", getpid());
 
   if(record)
@@ -174,12 +180,13 @@ int bg_pa_open(bg_pa_t * p, int record)
                         stream_name,
                         &ss,
                         &map,
-                        NULL,
+                        NULL, // &attr,
                         &error);
 
   free(app_name);
   free(stream_name);
-  
+
+  // fprintf(stderr, "Fragement size: %d, maxlength: %d\n", attr.fragsize, attr.maxlength);  
 
   if(!p->pa)
     {

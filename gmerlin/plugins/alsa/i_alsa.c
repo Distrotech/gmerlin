@@ -100,10 +100,7 @@ typedef struct
   char * card;
   
   snd_pcm_t * pcm;
-
-  gavl_audio_frame_t * f;
-  int last_frame_size;
-
+  
   gavl_time_t buffer_time;
   char * user_device;
 
@@ -183,6 +180,53 @@ static void * create_alsa()
   return ret;
   }
 
+static gavl_source_status_t read_func_alsa(void * p, gavl_audio_frame_t ** frame)
+  {
+  int result = 0;
+  alsa_t * priv = p;
+
+  gavl_audio_frame_t * f = *frame;
+  
+  while(1)
+    {
+    if(priv->format.interleave_mode == GAVL_INTERLEAVE_ALL)
+      {
+      result = snd_pcm_readi(priv->pcm,
+                             f->samples.s_8,
+                             priv->format.samples_per_frame);
+      }
+    else if(priv->format.interleave_mode == GAVL_INTERLEAVE_NONE)
+      {
+      result = snd_pcm_readn(priv->pcm,
+                             (void**)(f->channels.s_8),
+                             priv->format.samples_per_frame);
+      }
+    
+    if(result > 0)
+      {
+      f->valid_samples = result;
+      return GAVL_SOURCE_OK;
+      }
+    else if(result == -EPIPE)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Dropping samples");
+      snd_pcm_drop(priv->pcm);
+      if(snd_pcm_prepare(priv->pcm) < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_prepare failed");
+        return GAVL_SOURCE_EOF;
+        }
+      snd_pcm_start(priv->pcm);
+      }
+    else
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown error");
+      break;
+      }
+    }
+  return GAVL_SOURCE_EOF;
+  }
+
 static int open_alsa(void * data,
                      gavl_audio_format_t * format,
                      gavl_video_format_t * video_format)
@@ -217,12 +261,12 @@ static int open_alsa(void * data,
     return 0;
   gavl_audio_format_copy(&priv->format, format);
 
-  priv->f = gavl_audio_frame_create(&priv->format);
-    
   if(snd_pcm_prepare(priv->pcm) < 0)
     return 0;
   snd_pcm_start(priv->pcm);
 
+  priv->src = gavl_audio_source_create(read_func_alsa, priv, 0, format);
+  
   return 1;
   }
 
@@ -234,11 +278,6 @@ static void close_alsa(void * p)
     snd_pcm_close(priv->pcm);
     priv->pcm = NULL;
     }
-  if(priv->f)
-    {
-    gavl_audio_frame_destroy(priv->f);
-    priv->f = NULL;
-    }
   if(priv->src)
     {
     gavl_audio_source_destroy(priv->src);
@@ -246,89 +285,12 @@ static void close_alsa(void * p)
     }
   }
 
-
-static int read_frame(alsa_t * priv)
-  {
-  int result = 0;
-
-  
-  while(1)
-    {
-    if(priv->format.interleave_mode == GAVL_INTERLEAVE_ALL)
-      {
-      result = snd_pcm_readi(priv->pcm,
-                             priv->f->samples.s_8,
-                             priv->format.samples_per_frame);
-      }
-    else if(priv->format.interleave_mode == GAVL_INTERLEAVE_NONE)
-      {
-      result = snd_pcm_readn(priv->pcm,
-                             (void**)(priv->f->channels.s_8),
-                             priv->format.samples_per_frame);
-      }
-    
-    if(result > 0)
-      {
-      priv->f->valid_samples = result;
-      priv->last_frame_size = result;
-      return 1;
-      }
-    else if(result == -EPIPE)
-      {
-      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Dropping samples");
-      snd_pcm_drop(priv->pcm);
-      if(snd_pcm_prepare(priv->pcm) < 0)
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_prepare failed");
-        return 0;
-        }
-      snd_pcm_start(priv->pcm);
-      }
-    else
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown error");
-      break;
-      }
-    }
-  return 0;
-  }
-
-static int read_frame_alsa(void * p, gavl_audio_frame_t * f,
+static int read_samples_alsa(void * p, gavl_audio_frame_t * f,
                            int stream,
                            int num_samples)
   {
-  int samples_read;
-  int samples_copied;
-
   alsa_t * priv = p;
-
-  samples_read = 0;
-
-  while(samples_read < num_samples)
-    {
-    if(!priv->f->valid_samples)
-      {
-      read_frame(priv);
-      }
-    samples_copied =
-      gavl_audio_frame_copy(&priv->format,                                  /* format  */
-                            f,                                              /* dst     */
-                            priv->f,                                        /* src     */
-                            samples_read,                                   /* dst_pos */
-                            priv->last_frame_size - priv->f->valid_samples, /* src_pos */
-                            num_samples - samples_read,                     /* dst_size */
-                            priv->f->valid_samples                          /* src_size */ );
-    priv->f->valid_samples -= samples_copied;
-    samples_read += samples_copied;
-    }
-
-  if(f)
-    {
-    f->valid_samples = samples_read;
-    f->timestamp = priv->samples_read;
-    }
-  priv->samples_read += samples_read;
-  return samples_read;
+  return gavl_audio_source_read_samples(priv->src, f, num_samples);
   }
 
 static gavl_audio_source_t * get_audio_source_alsa(void * p)
@@ -367,7 +329,7 @@ const bg_recorder_plugin_t the_plugin =
 
     .open =             open_alsa,
     .get_audio_source = get_audio_source_alsa,
-    .read_audio =       read_frame_alsa,
+    .read_audio =       read_samples_alsa,
     .close =            close_alsa,
   };
 /* Include this into all plugin modules exactly once

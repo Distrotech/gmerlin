@@ -36,7 +36,6 @@ static int open_pulse(void * data,
     return 0;
     }
   gavl_audio_format_copy(format, &priv->format);
-  priv->sample_count = 0;
   return 1;
   }
 
