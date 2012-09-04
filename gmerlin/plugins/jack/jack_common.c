@@ -188,8 +188,6 @@ static void connect_ports(jack_t * priv, int output)
 static void jack_shutdown (void *arg)
   {
   jack_t * priv = arg;
-  fprintf(stderr, "Jack shutdown\n");
-
   pthread_mutex_lock(&priv->running_mutex);
   priv->running = 0;
   pthread_mutex_unlock(&priv->running_mutex);

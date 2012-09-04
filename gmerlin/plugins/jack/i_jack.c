@@ -44,8 +44,8 @@ static int jack_process(jack_nframes_t nframes, void *arg)
 
   pthread_mutex_lock(&priv->active_mutex);
   
-  //  fprintf(stderr, "Write jack %d\n", f->valid_samples);
-
+  //  fprintf(stderr, "Jack Process %d\n", nframes);
+  
   /* Check if there is enough space */
   for(i = 0; i < priv->num_ports; i++)
     {
@@ -95,6 +95,55 @@ static int jack_process(jack_nframes_t nframes, void *arg)
   return 0;
   }
 
+static void close_jack(void * p)
+  {
+  jack_t * priv = p;
+  bg_jack_close_client(priv);
+  priv->client = NULL;
+  
+  if(priv->src)
+    {
+    gavl_audio_source_destroy(priv->src);
+    priv->src = NULL;
+    }
+  }
+
+static gavl_source_status_t
+read_func_jack(void * p, gavl_audio_frame_t ** frame)
+  {
+  int i;
+  
+  int samples_read, result;
+
+  gavl_audio_frame_t * f = *frame;
+  jack_t * priv = p;
+  
+  for(i = 0; i < priv->format.num_channels; i++)
+    {
+    samples_read = 0;
+    while(samples_read < priv->format.samples_per_frame)
+      {
+      result = jack_ringbuffer_read(priv->ports[i].buffer,
+                                    (char*)(f->channels.f[i] + samples_read),
+                                    (priv->format.samples_per_frame -
+                                     samples_read) * sizeof(float));
+      samples_read += result / sizeof(float);
+      
+      if(samples_read < priv->format.num_channels)
+        {
+        gavl_time_t delay_time;
+        delay_time = gavl_time_unscale(priv->format.samplerate,
+                                       priv->format.samples_per_frame -
+                                       samples_read);
+        gavl_time_delay(&delay_time);
+        }
+      }
+    }
+
+  f->valid_samples = samples_read;
+  return GAVL_SOURCE_OK;
+  }
+
 
 static int open_jack(void * data,
                      gavl_audio_format_t * format,
@@ -112,6 +161,9 @@ static int open_jack(void * data,
   priv->format.sample_format = GAVL_SAMPLE_FLOAT;
   priv->format.interleave_mode = GAVL_INTERLEAVE_NONE;
   priv->format.samples_per_frame = priv->samples_per_frame;
+
+  /* TODO: Make this configurable */
+  priv->format.num_channels = 2;
   
   /* Clear ports */
   for(i = 0; i < priv->num_ports; i++)
@@ -127,92 +179,50 @@ static int open_jack(void * data,
     }
 
   gavl_audio_format_copy(format, &priv->format);
+
+  priv->src = gavl_audio_source_create(read_func_jack, priv, 0, format);
   
   priv->samples_read = 0;
   return 1;
   }
 
-static void close_jack(void * p)
-  {
-  jack_t * priv = p;
-  if(priv->src)
-    {
-    gavl_audio_source_destroy(priv->src);
-    priv->src = NULL;
-    }
-  }
 
-static int read_frame_jack(void * p, gavl_audio_frame_t * f,
-                           int stream,
-                           int num_samples)
-  {
-  int i;
-  
-  int samples_read, result;
-  
-  jack_t * priv = p;
-
-  for(i = 0; i < priv->format.num_channels; i++)
-    {
-    samples_read = 0;
-    while(samples_read < num_samples)
-      {
-      result = jack_ringbuffer_read(priv->ports[i].buffer,
-                                    (char*)(f->channels.f[i] + samples_read),
-                                    (num_samples - samples_read) *
-                                    sizeof(float));
-      samples_read += result / sizeof(float);
-
-      if(samples_read < num_samples)
-        {
-        gavl_time_t delay_time;
-        delay_time = gavl_time_unscale(priv->format.samplerate,
-                                       num_samples - samples_read);
-        gavl_time_delay(&delay_time);
-        }
-      
-      }
-    }
-
-  if(f)
-    {
-    f->valid_samples = samples_read;
-    //    f->valid_samples = num_samples;
-    f->timestamp = priv->samples_read;
-    }
-  priv->samples_read += samples_read;
-  
-  //  return samples_read;
-  return num_samples;
-  }
-
-static gavl_audio_source_t * get_audio_source(void * p)
+static gavl_audio_source_t * get_audio_source_jack(void * p)
   {
   jack_t * priv = p;
   return priv->src;
   }
+
+static int read_samples_jack(void * p, gavl_audio_frame_t * f, int stream,
+                             int num_samples)
+  {
+  jack_t * priv = p;
+  return gavl_audio_source_read_samples(priv->src, f, num_samples);
+  }
+
 
 const bg_recorder_plugin_t the_plugin =
   {
     .common =
     {
       BG_LOCALE,
-      .name =          "i_jack",
-      .long_name =     TRS("Jack"),
-      .description =   TRS("Jack recorder"),
-      .type =          BG_PLUGIN_RECORDER_AUDIO,
-      .flags =         BG_PLUGIN_RECORDER,
-      .priority =      BG_PLUGIN_PRIORITY_MAX,
-      .create =        bg_jack_create,
-      .destroy =       bg_jack_destroy,
+      .name =           "i_jack",
+      .long_name =      TRS("Jack"),
+      .description =    TRS("Jack recorder"),
+      .type =           BG_PLUGIN_RECORDER_AUDIO,
+      .flags =          BG_PLUGIN_RECORDER,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         bg_jack_create,
+      .destroy =        bg_jack_destroy,
 
       .get_parameters = bg_jack_get_parameters,
       .set_parameter =  bg_jack_set_parameter,
     },
 
-    .open =          open_jack,
-    .read_audio =    read_frame_jack,
-    .close =         close_jack,
+    .open =             open_jack,
+    .get_audio_source = get_audio_source_jack,
+    .read_audio =       read_samples_jack,
+    .close =            close_jack,
   };
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
