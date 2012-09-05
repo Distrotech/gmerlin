@@ -53,6 +53,8 @@ typedef struct
 
   int block_align;
   int eof;
+  
+  gavl_audio_source_t * src;
   } i_mikmod_t;
 
 #ifdef dump
@@ -92,25 +94,31 @@ static void * create_mikmod()
 
   
 /* Read one audio frame (returns FALSE on EOF) */
-static int read_audio_samples_mikmod(void * data, gavl_audio_frame_t * f, int stream,
-                                     int num_samples)
+static gavl_source_status_t
+read_func_mikmod(void * data,
+                 gavl_audio_frame_t ** fp)
   {
   int result;
   i_mikmod_t * e = data;
+  gavl_audio_frame_t * f = *fp;
 
+  int num_samples =
+    e->track_info.audio_streams[0].format.samples_per_frame;
+  
   result = bg_subprocess_read_data(e->proc->stdout_fd,
-                                   f->samples.u_8, num_samples * e->block_align);
-
+                                   f->samples.u_8,
+                                   num_samples * e->block_align);
+  
   if(result < 0)
-    return 0;
-
+    return GAVL_SOURCE_EOF;
+  
   if(result < num_samples * e->block_align)
     e->eof = 1;
   
   f->valid_samples = result / e->block_align;
-  return f->valid_samples;
+  return f->valid_samples ? GAVL_SOURCE_OK : GAVL_SOURCE_EOF;
   }
-
+  
 // arg = path of mod
 static int open_mikmod(void * data, const char * arg)
   {
@@ -118,6 +126,7 @@ static int open_mikmod(void * data, const char * arg)
   char *command;
   i_mikmod_t * mik = data;
   gavl_audio_frame_t * test_frame;
+  gavl_audio_format_t * fmt;
   
   // if no mikmod installed 
   if(!bg_search_file_exec("mikmod", NULL))
@@ -130,21 +139,25 @@ static int open_mikmod(void * data, const char * arg)
   mik->track_info.duration = GAVL_TIME_UNDEFINED;
   mik->track_info.num_audio_streams = 1;
   mik->track_info.audio_streams = calloc(1, sizeof(*(mik->track_info.audio_streams)));
+
+  fmt = &mik->track_info.audio_streams[0].format;
   
-  mik->track_info.audio_streams[0].format.samplerate = mik->frequency;
+  fmt->samplerate = mik->frequency;
 
   if(mik->output == MONO8 || mik->output == MONO16)
-    mik->track_info.audio_streams[0].format.num_channels = 1;
+    fmt->num_channels = 1;
   else if(mik->output == STEREO8 || mik->output == STEREO16)
-    mik->track_info.audio_streams[0].format.num_channels = 2;
+    fmt->num_channels = 2;
 
+  gavl_set_channel_setup(fmt);
+  
   if(mik->output == MONO8 || mik->output == STEREO8)
-    mik->track_info.audio_streams[0].format.sample_format = GAVL_SAMPLE_U8;
+    fmt->sample_format = GAVL_SAMPLE_U8;
   else if(mik->output == MONO16 || mik->output == STEREO16)
-    mik->track_info.audio_streams[0].format.sample_format = GAVL_SAMPLE_S16;
+    fmt->sample_format = GAVL_SAMPLE_S16;
 
-  mik->track_info.audio_streams[0].format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  mik->track_info.audio_streams[0].format.samples_per_frame = 1024;
+  fmt->interleave_mode = GAVL_INTERLEAVE_ALL;
+  fmt->samples_per_frame = 1024;
 
   gavl_metadata_set(&mik->track_info.audio_streams[0].m,
                     GAVL_META_FORMAT, "mikmod audio");
@@ -184,14 +197,14 @@ static int open_mikmod(void * data, const char * arg)
 
   command = bg_strcat(command, " ");
   command = bg_strcat(command, arg);
-
+  
   /* Test file compatibility */
   mik->proc = bg_subprocess_create(command, 0, 1, 0);
   test_frame = gavl_audio_frame_create(&mik->track_info.audio_streams[0].format);
 
-  result = read_audio_samples_mikmod(data, test_frame, 0, 1);
-
-  if(result)
+  result = read_func_mikmod(mik, &test_frame);
+  
+  if(result == GAVL_SOURCE_OK)
     {
     bg_subprocess_kill(mik->proc, SIGKILL);
     bg_subprocess_close(mik->proc);
@@ -205,6 +218,9 @@ static int open_mikmod(void * data, const char * arg)
     }
 
   gavl_audio_frame_destroy(test_frame);
+
+  mik->src = gavl_audio_source_create(read_func_mikmod,
+                                      mik, 0, fmt);
   
   free(command);
 #ifdef dump
@@ -224,6 +240,19 @@ static bg_track_info_t * get_track_info_mikmod(void * data, int track)
   return &e->track_info;
   }
 
+static int read_samples_mikmod(void * p, gavl_audio_frame_t * f, int stream,
+                               int num_samples)
+  {
+  i_mikmod_t * priv = p;
+  return gavl_audio_source_read_samples(priv->src, f, num_samples);
+  }
+
+static gavl_audio_source_t *
+get_audio_source_mikmod(void * p, int stream)
+  {
+  i_mikmod_t * priv = p;
+  return priv->src;
+  }
 
 static void close_mikmod(void * data)
   {
@@ -235,6 +264,9 @@ static void close_mikmod(void * data)
     bg_subprocess_close(e->proc);
     e->proc = NULL;
     }
+  if(e->src)
+    gavl_audio_source_destroy(e->src);
+  
   bg_track_info_free(&e->track_info);
   }
 
@@ -253,8 +285,15 @@ static const bg_parameter_info_t parameters[] =
       .name =        "output",
       .long_name =   TRS("Output format"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char const *[]){ "mono8", "stereo8", "mono16", "stereo16", NULL },
-      .multi_labels =  (char const *[]){ TRS("Mono 8bit"), TRS("Stereo 8bit"), TRS("Mono 16bit"), TRS("Stereo 16bit"), NULL },
+      .multi_names = (char const *[]){ "mono8",
+                                       "stereo8",
+                                       "mono16",
+                                       "stereo16",
+                                       NULL },
+      .multi_labels =  (char const *[]){ TRS("Mono 8bit"),
+                                         TRS("Stereo 8bit"),
+                                         TRS("Mono 16bit"),
+                                         TRS("Stereo 16bit"), NULL },
       
       .val_default = { .val_str = "stereo16" },
     },
@@ -329,7 +368,8 @@ static void set_parameter_mikmod(void * data, const char * name,
     mikmod->use_surround = val->val_i;
   }
 
-static char const * const extensions = "it xm mod mtm  s3m stm ult far med dsm amf imf 669";
+static char const * const extensions =
+  "it xm mod mtm  s3m stm ult far med dsm amf imf 669";
 
 static const char * get_extensions(void * priv)
   {
@@ -356,8 +396,10 @@ const bg_input_plugin_t the_plugin =
     .open =              open_mikmod,
     .get_num_tracks =    get_num_tracks_mikmod,
     .get_track_info =    get_track_info_mikmod,
+
+    .get_audio_source =  get_audio_source_mikmod,
     
-    .read_audio          = read_audio_samples_mikmod,
+    .read_audio          = read_samples_mikmod,
     .close =              close_mikmod
     
   };

@@ -91,7 +91,6 @@ static int get_mtime(const char * file, time_t * ret)
   *ret = st.st_mtime;
   return 1;
   }
-  
 
 static const bg_parameter_info_t parameters_audio[] =
   {
