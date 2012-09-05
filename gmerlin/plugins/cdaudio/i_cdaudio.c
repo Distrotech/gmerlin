@@ -36,6 +36,8 @@
 
 #include <gavl/metatags.h>
 
+#define FRAME_SAMPLES 588
+
 typedef struct
   {
   bg_parameter_info_t * parameters;
@@ -43,8 +45,6 @@ typedef struct
   bg_track_info_t * track_info;
 
   void * ripper;
-  gavl_audio_frame_t * frame;
-  int last_read_samples;
 
   char disc_id[DISCID_SIZE];
 
@@ -84,7 +84,6 @@ typedef struct
   int cddb_timeout;
 #endif
   
-  
   int current_track;
   int current_sector; /* For ripping only */
       
@@ -95,11 +94,12 @@ typedef struct
   int old_seconds;
   bg_cdaudio_status_t status;
 
-  uint32_t samples_written;
-
   int paused;
     
   const char * disc_name;
+
+  gavl_audio_source_t * src;
+  
   } cdaudio_t;
 
 static void destroy_cd_data(cdaudio_t* cd)
@@ -208,6 +208,7 @@ static int open_cdaudio(void * data, const char * arg)
       cd->track_info[j].audio_streams[0].format.num_channels = 2;
       cd->track_info[j].audio_streams[0].format.sample_format = GAVL_SAMPLE_S16;
       cd->track_info[j].audio_streams[0].format.interleave_mode = GAVL_INTERLEAVE_ALL;
+      cd->track_info[j].audio_streams[0].format.samples_per_frame = FRAME_SAMPLES;
       gavl_metadata_set(&cd->track_info[j].audio_streams[0].m, GAVL_META_FORMAT,
                         "CD Audio");
       
@@ -362,6 +363,12 @@ static int set_track_cdaudio(void * data, int track)
   int i;
   cdaudio_t * cd = data;
 
+  if(cd->src)
+    {
+    gavl_audio_source_destroy(cd->src);
+    cd->src = NULL;
+    }
+  
   for(i = 0; i < cd->index->num_tracks; i++)
     {
     if(cd->index->tracks[i].is_audio && (cd->index->tracks[i].index == track))
@@ -382,30 +389,53 @@ static int set_audio_stream_cdaudio(void * priv, int stream,
   return 1;
   }
 
-static int start_cdaudio(void * priv)
+static gavl_source_status_t read_frame(void * priv, gavl_audio_frame_t ** fp)
   {
-  int i;
+  gavl_audio_frame_t * f = *fp;
   cdaudio_t * cd = priv;
 
+  if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
+    return GAVL_SOURCE_EOF;
+  
+  if(!cd->rip_initialized)
+    {
+    bg_cdaudio_rip_init(cd->ripper, cd->cdio,
+                        cd->first_sector);
+    cd->rip_initialized = 1;
+    }
+  bg_cdaudio_rip_rip(cd->ripper, f);
+  
+  f->valid_samples = FRAME_SAMPLES;
+  f->timestamp =
+    (cd->current_sector - cd->index->tracks[cd->current_track].first_sector) *
+    FRAME_SAMPLES;
+  
+  cd->current_sector++;
+  return GAVL_SOURCE_OK;
+  }
 
+static int start_cdaudio(void * priv)
+  {
+  cdaudio_t * cd = priv;
   if(!cd->cdio)
     {
     cd->cdio = bg_cdaudio_open(cd->device_name);
     if(!cd->cdio)
       return 0;
     }
+  cd->src = gavl_audio_source_create(read_frame, cd, 0,
+                                     /* Format is the same for all tracks */
+                                     &cd->track_info[0].audio_streams[0].format);
   
-    /* Rip */
-    
-  for(i = 0; i < cd->index->num_audio_tracks; i++)
-    {
-    cd->track_info[i].audio_streams[0].format.samples_per_frame =
-      588;
-    }
-    
   cd->current_sector = cd->first_sector;
-  cd->samples_written = 0;
   return 1;
+  }
+
+static gavl_audio_source_t *
+get_audio_source_cdaudio(void * priv, int stream)
+  {
+  cdaudio_t * cd = priv;
+  return cd->src;
   }
 
 static void stop_cdaudio(void * priv)
@@ -415,72 +445,17 @@ static void stop_cdaudio(void * priv)
     {
     bg_cdaudio_rip_close(cd->ripper);
     cd->rip_initialized = 0;
-    if(cd->frame)
-      {
-      gavl_audio_frame_destroy(cd->frame);
-      cd->frame = NULL;
-      }
     }
+  
   cd->cdio = NULL;
-  }
-
-static void read_frame(cdaudio_t * cd)
-  {
-  if(!cd->rip_initialized)
-    {
-    gavl_audio_format_t format;
-    bg_cdaudio_rip_init(cd->ripper, cd->cdio,
-                        cd->first_sector);
-    
-    gavl_audio_format_copy(&format,
-                           &cd->track_info[0].audio_streams[0].format);
-    format.samples_per_frame = 588;
-    cd->frame = gavl_audio_frame_create(&format);
-    cd->rip_initialized = 1;
-    }
-  bg_cdaudio_rip_rip(cd->ripper, cd->frame);
-
-  cd->frame->valid_samples = 588;
-  cd->last_read_samples = cd->frame->valid_samples;
-  cd->current_sector ++;
   }
 
 static int read_audio_cdaudio(void * priv,
                               gavl_audio_frame_t * frame, int stream,
                               int num_samples)
   {
-  int samples_read = 0, samples_copied;
   cdaudio_t * cd = priv;
-  
-  if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
-    {
-    if(frame)
-      frame->valid_samples = 0;
-    return 0;
-    }
-  while(samples_read < num_samples)
-    {
-    if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
-      break;
-    
-    if(!cd->frame || !cd->frame->valid_samples)
-      read_frame(cd);
-
-    samples_copied = gavl_audio_frame_copy(&cd->track_info[0].audio_streams[0].format,
-                                           frame,
-                                           cd->frame,
-                                           samples_read, /* out_pos */
-                                           cd->last_read_samples - cd->frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_read, /* out_size, */
-                                           cd->frame->valid_samples /* in_size */);
-    cd->frame->valid_samples -= samples_copied;
-    samples_read += samples_copied;
-    
-    }
-  if(frame)
-    frame->valid_samples = samples_read;
-  cd->samples_written += samples_read;
-  return samples_read;
+  return gavl_audio_source_read_samples(cd->src, frame, num_samples);
   }
 
 static void seek_cdaudio(void * priv, int64_t * time, int scale)
@@ -493,33 +468,25 @@ static void seek_cdaudio(void * priv, int64_t * time, int scale)
   
   if(!cd->rip_initialized)
     {
-    gavl_audio_format_t format;
     bg_cdaudio_rip_init(cd->ripper, cd->cdio,
                         cd->first_sector);
-    
-    gavl_audio_format_copy(&format,
-                           &cd->track_info[0].audio_streams[0].format);
-    format.samples_per_frame = 588;
-    cd->frame = gavl_audio_frame_create(&format);
     cd->rip_initialized = 1;
     }
   
   sample_position = gavl_time_rescale(scale, 44100, *time);
-        
+  
   cd->current_sector =
-    sample_position / 588 + cd->index->tracks[cd->current_track].first_sector;
-  samples_to_skip = sample_position % 588;
+    sample_position / FRAME_SAMPLES + cd->index->tracks[cd->current_track].first_sector;
+  samples_to_skip = sample_position % FRAME_SAMPLES;
   
   /* Seek to the point */
   
   bg_cdaudio_rip_seek(cd->ripper, cd->current_sector);
-  
-  /* Read one frame os samples (can be more than one sector) */
-  read_frame(cd);
-  
+
   /* Set skipped samples */
-  
-  cd->frame->valid_samples -= samples_to_skip;
+
+  gavl_audio_source_reset(cd->src);
+  gavl_audio_source_skip(cd->src, samples_to_skip);
   }
 
 static void close_cdaudio(void * priv)
@@ -528,8 +495,13 @@ static void close_cdaudio(void * priv)
   if(cd->cdio)
     {
     bg_cdaudio_close(cd->cdio);
+    cd->cdio = NULL;
     }
-  cd->cdio = NULL;
+  if(cd->src)
+    {
+    gavl_audio_source_destroy(cd->src);
+    cd->src = NULL;
+    }
   }
 
 /* Configuration stuff */
@@ -831,6 +803,8 @@ const bg_input_plugin_t the_plugin =
     .start =                 start_cdaudio,
     /* Read one audio frame (returns FALSE on EOF) */
     .read_audio =    read_audio_cdaudio,
+
+    .get_audio_source = get_audio_source_cdaudio,
     
     /*
      *  Do percentage seeking (can be NULL)
