@@ -68,6 +68,30 @@ static const bg_parameter_info_t parameters[] =
 
 typedef struct
   {
+  int quicktime_index;
+  int64_t pts_offset;
+    
+  quicktime_t * file; // Points to global struct
+  gavl_audio_source_t * src;
+
+  const gavl_audio_format_t * fmt;
+  } audio_stream_t;
+  
+typedef struct
+  {
+  int quicktime_index;
+  unsigned char ** rows;
+  int has_timecodes;
+  int64_t pts_offset;
+  
+  quicktime_t * file; // Points to global struct
+  gavl_video_source_t * src;
+  
+  const gavl_video_format_t * fmt;
+  } video_stream_t;
+
+typedef struct
+  {
   quicktime_t * file;
   bg_parameter_info_t * parameters;
 
@@ -76,19 +100,9 @@ typedef struct
 
   bg_track_info_t track_info;
 
-  struct
-    {
-    int quicktime_index;
-    int64_t pts_offset;
-    } * audio_streams;
+  audio_stream_t * audio_streams;
+  video_stream_t * video_streams;
   
-  struct
-    {
-    int quicktime_index;
-    unsigned char ** rows;
-    int has_timecodes;
-    int64_t pts_offset;
-    } * video_streams;
   struct
     {
     int quicktime_index;
@@ -219,7 +233,6 @@ static int open_lqt(void * data, const char * arg)
         m = &e->track_info.audio_streams[e->track_info.num_audio_streams].m;
         
         e->audio_streams[e->track_info.num_audio_streams].quicktime_index = i;
-
         e->audio_streams[e->track_info.num_audio_streams].pts_offset =
           lqt_get_audio_pts_offset(e->file, i);
         
@@ -331,16 +344,31 @@ static bg_track_info_t * get_track_info_lqt(void * data, int track)
 
 /* Read one audio frame (returns FALSE on EOF) */
 static  
+gavl_source_status_t read_audio_func(void * data, gavl_audio_frame_t ** fp)
+  {
+  gavl_audio_frame_t * f;
+  audio_stream_t * as = data;
+  
+  f = *fp;
+  
+  if(!lqt_gavl_decode_audio(as->file, as->quicktime_index,
+                            f, as->fmt->samples_per_frame))
+    {
+    return GAVL_SOURCE_EOF;
+    }
+  f->timestamp += as->pts_offset;
+  return f->valid_samples ? GAVL_SOURCE_OK : GAVL_SOURCE_EOF;
+  }
+
+static  
 int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
                           int num_samples)
   {
   i_lqt_t * e = data;
-  
-  lqt_gavl_decode_audio(e->file, e->audio_streams[stream].quicktime_index,
-                        f, num_samples);
-  if(f->valid_samples)
-    f->timestamp += e->audio_streams[stream].pts_offset;
-  return f->valid_samples;
+  audio_stream_t * as = &e->audio_streams[stream];
+  return gavl_audio_source_read_samples(as->src,
+                                        f,
+                                        num_samples);
   }
 
 
@@ -365,18 +393,27 @@ static int read_subtitle_text_lqt(void * priv,
   }
 
 /* Read one video frame (returns FALSE on EOF) */
+
+static gavl_source_status_t
+read_video_func(void * data, gavl_video_frame_t ** fp)
+  {
+  gavl_video_frame_t * f;
+  video_stream_t * vs = data;
+  f = *fp;
+  if(!lqt_gavl_decode_video(vs->file, vs->quicktime_index, f, vs->rows))
+    return GAVL_SOURCE_EOF;
+  f->timestamp += vs->pts_offset;
+  return GAVL_SOURCE_OK;
+  }
+
 static
 int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
   {
   i_lqt_t * e = data;
-  int ret = lqt_gavl_decode_video(e->file,
-                                  e->video_streams[stream].quicktime_index,
-                                  f, e->video_streams[stream].rows);
-  if(ret)
-    f->timestamp += e->video_streams[stream].pts_offset;
-  return ret;
-  }
+  video_stream_t * vs = &e->video_streams[stream];
 
+  return (gavl_video_source_read_frame(vs->src, &f) == GAVL_SOURCE_OK);
+  }
 
 static void close_lqt(void * data)
   {
@@ -390,6 +427,11 @@ static void close_lqt(void * data)
     }
   if(e->audio_streams)
     {
+    for(i = 0; i < e->track_info.num_audio_streams; i++)
+      {
+      if(e->audio_streams[i].src)
+        gavl_audio_source_destroy(e->audio_streams[i].src);
+      }
     free(e->audio_streams);
     e->audio_streams = NULL;
     }
@@ -399,6 +441,8 @@ static void close_lqt(void * data)
       {
       if(e->video_streams[i].rows)
         free(e->video_streams[i].rows);
+      if(e->video_streams[i].src)
+        gavl_video_source_destroy(e->video_streams[i].src);
       }
     free(e->video_streams);
     e->video_streams = NULL;
@@ -408,9 +452,22 @@ static void close_lqt(void * data)
 
 static void seek_lqt(void * data, gavl_time_t * time, int scale)
   {
+  int i;
   i_lqt_t * e = data;
   lqt_gavl_seek_scaled(e->file, time, scale);
+
+  for(i = 0; i < e->track_info.num_audio_streams; i++)
+    {
+    if(e->audio_streams[i].src)
+      gavl_audio_source_reset(e->audio_streams[i].src);
+    }
+  for(i = 0; i < e->track_info.num_video_streams; i++)
+    {
+    if(e->video_streams[i].src)
+      gavl_video_source_reset(e->video_streams[i].src);
+    }
   }
+
 
 static void destroy_lqt(void * data)
   {
@@ -543,17 +600,43 @@ static int start_lqt(void * data)
 
   for(i = 0; i < e->track_info.num_audio_streams; i++)
     {
+    audio_stream_t * as = &e->audio_streams[i];
     lqt_gavl_get_audio_format(e->file,
-                              e->audio_streams[i].quicktime_index,
+                              as->quicktime_index,
                               &e->track_info.audio_streams[i].format);
+    as->src =
+      gavl_audio_source_create(read_audio_func, as, 0,
+                               &e->track_info.audio_streams[i].format);
+    as->file = e->file;
+    as->fmt = &e->track_info.audio_streams[i].format;
     }
   for(i = 0; i < e->track_info.num_video_streams; i++)
     {
+    video_stream_t * vs = &e->video_streams[i];
     lqt_gavl_get_video_format(e->file,
-                              e->video_streams[i].quicktime_index,
+                              vs->quicktime_index,
                               &e->track_info.video_streams[i].format, 0);
+    vs->src =
+      gavl_video_source_create(read_video_func, vs, 0,
+                               &e->track_info.video_streams[i].format);
+    vs->file = e->file;
+    vs->fmt = &e->track_info.video_streams[i].format;
     }
   return 1;
+  }
+
+static gavl_audio_source_t *
+get_audio_source_lqt(void * data, int stream)
+  {
+  i_lqt_t * e = data;
+  return e->audio_streams[stream].src;
+  }
+
+static gavl_video_source_t *
+get_video_source_lqt(void * data, int stream)
+  {
+  i_lqt_t * e = data;
+  return e->video_streams[stream].src;
   }
 
 char const * const extensions = "mov";
@@ -587,6 +670,9 @@ const bg_input_plugin_t the_plugin =
     //    .set_audio_stream =  set_audio_stream_lqt,
     //    .set_video_stream =  set_audio_stream_lqt,
 
+    .get_audio_source = get_audio_source_lqt,
+    .get_video_source = get_video_source_lqt,
+    
     .get_audio_compression_info = get_audio_compression_info_lqt,
     .get_video_compression_info = get_video_compression_info_lqt,
 
