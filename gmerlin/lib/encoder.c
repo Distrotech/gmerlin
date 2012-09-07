@@ -1193,6 +1193,18 @@ int bg_encoder_write_video_packet(bg_encoder_t * enc,
   return ret;
   }
 
+gavl_audio_sink_t *
+bg_encoder_get_audio_sink(bg_encoder_t * enc, int stream)
+  {
+  return NULL;
+  }
+
+gavl_video_sink_t *
+bg_encoder_get_video_sink(bg_encoder_t * enc, int stream)
+  {
+  return NULL;
+  }
+
 void bg_encoder_update_metadata(bg_encoder_t * enc,
                                 const char * name,
                                 const gavl_metadata_t * m)

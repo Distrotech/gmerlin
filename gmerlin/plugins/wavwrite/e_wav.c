@@ -66,7 +66,11 @@
 
 typedef struct wav_s
   {
-  int bytes_per_sample;
+  // int bytes_per_sample;
+
+  int block_align;
+  int bits;
+
   FILE * output;
   int data_size_offset;
   gavl_audio_format_t format;
@@ -80,6 +84,8 @@ typedef struct wav_s
   int buffer_alloc;
   void (*convert_func)(struct wav_s*, uint8_t * samples, int num_samples);
   bg_encoder_callbacks_t * cb;
+  
+  gavl_audio_sink_t * sink;
   } wav_t;
 
 static int write_8(FILE * output, uint32_t val)
@@ -305,10 +311,11 @@ static void destroy_wav(void * priv)
   if(wav->output)
     fclose(wav->output);
 
+  if(wav->sink)
+    gavl_audio_sink_destroy(wav->sink);
+  
   free(wav);
   }
-
-
 
 static const bg_parameter_info_t audio_parameters[] =
   {
@@ -346,14 +353,14 @@ static const bg_parameter_info_t * get_parameters_wav(void * data)
 static int write_PCMWAVEFORMAT(wav_t * wav)
   {
   return
-    (write_32(wav->output, 16) &&                                               /* Size   */
-     write_16(wav->output, 0x0001) &&                                            /* wFormatTag */
-     write_16(wav->output, wav->format.num_channels) &&                          /* nChannels */
-     write_32(wav->output, wav->format.samplerate) &&                           /* nSamplesPerSec */
-     write_32(wav->output, wav->bytes_per_sample *
-              wav->format.num_channels * wav->format.samplerate) &&             /* nAvgBytesPerSec */
-     write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels) && /* nBlockAlign */
-     write_16(wav->output, wav->bytes_per_sample * 8));                        /* wBitsPerSample */
+    (write_32(wav->output, 16) &&     /* Size   */
+     write_16(wav->output, 0x0001) && /* wFormatTag */
+     write_16(wav->output, wav->format.num_channels) && /* nChannels */
+     write_32(wav->output, wav->format.samplerate) &&   /* nSamplesPerSec */
+     write_32(wav->output, wav->block_align *
+              wav->format.samplerate) &&                /* nAvgBytesPerSec */
+     write_16(wav->output, wav->block_align) &&         /* nBlockAlign */
+     write_16(wav->output, (wav->block_align / wav->format.num_channels) * 8)); /* wBitsPerSample */
   }
 
 const struct
@@ -403,20 +410,20 @@ static int write_WAVEFORMATEXTENSIBLE(wav_t * wav)
   uint8_t guid[16] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
                       0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 };
 
-  return(write_32(wav->output, 40) &&                                               /* Size   */
-         write_16(wav->output, 0xfffe) &&                                           /* wFormatTag */
-         write_16(wav->output, wav->format.num_channels) &&                         /* nChannels */
-         write_32(wav->output, wav->format.samplerate) &&                           /* nSamplesPerSec */
-         write_32(wav->output, wav->bytes_per_sample *
-                  wav->format.num_channels * wav->format.samplerate) &&             /* nAvgBytesPerSec */
-         write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels) && /* nBlockAlign */
-         write_16(wav->output, wav->bytes_per_sample * 8) &&                        /* wBitsPerSample */
-         write_16(wav->output, 22) &&                                               /* cbSize         */
-         write_16(wav->output, wav->bytes_per_sample * 8) &&                        /* wValidBitsPerSample */
+  return(write_32(wav->output, 40) &&                       /* Size   */
+         write_16(wav->output, 0xfffe) &&                   /* wFormatTag */
+         write_16(wav->output, wav->format.num_channels) && /* nChannels */
+         write_32(wav->output, wav->format.samplerate) &&   /* nSamplesPerSec */
+         write_32(wav->output, wav->block_align *
+                  wav->format.samplerate) &&                /* nAvgBytesPerSec */
+         write_16(wav->output, wav->block_align) &&         /* nBlockAlign */
+         write_16(wav->output, (wav->block_align / wav->format.num_channels) * 8) && /* wBitsPerSample */
+         write_16(wav->output, 22) &&                        /* cbSize         */
+         write_16(wav->output, (wav->block_align / wav->format.num_channels) * 8) && /* wValidBitsPerSample */
 
   /* Write channel mask */
 
-         write_32(wav->output, wav->channel_mask) &&            /* dwChannelMask */
+         write_32(wav->output, wav->channel_mask) &&         /* dwChannelMask */
          (fwrite(guid, 1, 16, wav->output) == 16));
     }
 
@@ -432,12 +439,9 @@ static void set_audio_parameter_wav(void * data, int stream,
     
   if(!name)
     return;
-
   
   if(!strcmp(name, "bits"))
-    {
-    wav->bytes_per_sample = atoi(v->val_str) / 8;
-    }
+    wav->bits = atoi(v->val_str);
   }
 
 static void set_parameter_wav(void * data, const char * name,
@@ -498,16 +502,12 @@ static int add_audio_stream_wav(void * data,
   return 0;
   }
 
-static int write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
-                                  int stream)
+static gavl_sink_status_t write_func_wav(void * data, gavl_audio_frame_t * frame)
   {
-  int num_samples, num_bytes;
-  wav_t * wav;
-  
-  wav = data;
-  
-  num_samples = frame->valid_samples * wav->format.num_channels;
-  num_bytes = num_samples * wav->bytes_per_sample;
+  int num_bytes;
+  wav_t * wav = data;
+
+  num_bytes = frame->valid_samples * wav->block_align;
   
   if(wav->convert_func)
     {
@@ -516,16 +516,16 @@ static int write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
       wav->buffer_alloc = num_bytes + 1024;
       wav->buffer = realloc(wav->buffer, wav->buffer_alloc);
       }
-    wav->convert_func(wav, frame->samples.u_8, num_samples);
+    wav->convert_func(wav, frame->samples.u_8, frame->valid_samples * wav->format.samples_per_frame);
     if(fwrite(wav->buffer, 1, num_bytes, wav->output) < num_bytes)
-      return 0;
+      return GAVL_SINK_ERROR;
     }
   else
     {
     if(fwrite(frame->samples.s_8, 1, num_bytes, wav->output) < num_bytes)
-      return 0;
+      return GAVL_SINK_ERROR;
     }
-  return 1;
+  return GAVL_SINK_OK;
   }
 
 static void get_audio_format_wav(void * data, int stream,
@@ -571,31 +571,36 @@ static int start_wav(void * data)
   
   /* Adjust format */
   
-  switch(wav->bytes_per_sample)
+  switch(wav->bits)
     {
-    case 1:
+    case 8:
       wav->format.sample_format = GAVL_SAMPLE_U8;
       break;
-    case 2:
+    case 16:
       wav->format.sample_format = GAVL_SAMPLE_S16;
 #ifdef WORDS_BIGENDIAN
       wav->convert_func = convert_16_be;
 #endif
       break;
-    case 3:
+    case 24:
       wav->convert_func = convert_24;
       wav->format.sample_format = GAVL_SAMPLE_S32;
       break;
-    case 4:
+    case 32:
 #ifdef WORDS_BIGENDIAN
       wav->convert_func = convert_32_be;
 #endif
       wav->format.sample_format = GAVL_SAMPLE_S32;
       break;
     }
+  
+  wav->block_align = (wav->bits / 8) * wav->format.num_channels;
+
+  wav->sink = gavl_audio_sink_create(NULL, write_func_wav, wav,
+                                     &wav->format);
+  
   return 1;
   }
-
 
 static int close_wav(void * data, int do_delete)
   {
@@ -630,8 +635,26 @@ static int close_wav(void * data, int do_delete)
 
   gavl_metadata_free(&wav->metadata);
   
+  if(wav->sink)
+    {
+    gavl_audio_sink_destroy(wav->sink);
+    wav->sink = NULL;
+    }
+  
   wav->output = NULL;
   return ret;
+  }
+
+static int write_audio_frame_wav(void * data, gavl_audio_frame_t * frame, int stream)
+  {
+  wav_t * wav = data;
+  return (gavl_audio_sink_put_frame(wav->sink, frame) == GAVL_SINK_OK);
+  }
+
+static gavl_audio_sink_t * get_audio_sink_wav(void * data, int stream)
+  {
+  wav_t * wav = data;
+  return wav->sink;
   }
 
 const bg_encoder_plugin_t the_plugin =
@@ -664,6 +687,7 @@ const bg_encoder_plugin_t the_plugin =
     .set_audio_parameter =     set_audio_parameter_wav,
 
     .get_audio_format =        get_audio_format_wav,
+    .get_audio_sink =          get_audio_sink_wav,
 
     .start =               start_wav,
     .write_audio_frame =   write_audio_frame_wav,

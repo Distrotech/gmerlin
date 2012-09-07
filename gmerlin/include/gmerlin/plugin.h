@@ -875,7 +875,7 @@ struct bg_oa_plugin_s
    */
 
   int (*start)(void * priv);
-    
+  
   /** \brief Write audio samples
    *  \param priv The handle returned by the create() method
    *  \param frame The audio frame to write.
@@ -883,6 +883,13 @@ struct bg_oa_plugin_s
   
   void (*write_audio)(void * priv, gavl_audio_frame_t* frame);
 
+  /** \brief Get audio sink
+   *  \param priv The handle returned by the create() method
+   *  \returns Audio sink
+   */
+  
+  gavl_audio_sink_t * (*get_audio_sink)(void * priv);
+  
   /** \brief Get the number of buffered audio samples
    *  \param priv The handle returned by the create() method
    *  \returns The number of buffered samples (both soft- and hardware)
@@ -1301,6 +1308,13 @@ struct bg_ov_plugin_s
   
   void (*put_still)(void * priv, gavl_video_frame_t*frame);
 
+  /** \brief Return a video sink
+   *  \param priv The handle returned by the create() method
+   *  \returns The sink for this plugin
+   */
+  
+  gavl_video_sink_t * (*get_sink)(void * priv);
+  
   /** \brief Get all events from the queue and handle them
    *  \param priv The handle returned by the create() method
    *  
@@ -1318,13 +1332,7 @@ struct bg_ov_plugin_s
    */
   
   void (*update_aspect)(void * priv, int pixel_width, int pixel_height);
-    
-  /** \brief Free a frame created with the create_frame() method.
-   *  \param priv The handle returned by the create() method
-   *  \param frame The frame to be freed
-   */
-  //  void (*destroy_frame)(void * priv, gavl_video_frame_t * frame);
-
+  
   /** \brief Free an overlay created with the create_overlay() method.
    *  \param priv The handle returned by the create() method
    *  \param id The id returned by the add_overlay_stream() method
@@ -1775,8 +1783,22 @@ struct bg_encoder_plugin_s
   
   int (*write_subtitle_overlay)(void * data, gavl_overlay_t * ovl, int stream);
 
+  /** \brief Get audio sink
+   *  \param priv The handle returned by the create() method
+   *  \returns The audio sink for this stream
+   */
+  
+  gavl_audio_sink_t * (*get_audio_sink)(void * priv, int stream);
+  
+  /** \brief Get video sink
+   *  \param priv The handle returned by the create() method
+   *  \returns The video sink for this stream
+   */
+  
+  gavl_video_sink_t * (*get_video_sink)(void * priv, int stream);
+  
   /** \brief Update metadata
-   *  \param data The data member of this bg_input_callbacks_s struct
+   *  \param priv The handle returned by the create() method
    *  \param name Name
    *  \param m Metadata
    *
@@ -1784,7 +1806,7 @@ struct bg_encoder_plugin_s
    *  Either name or m can be NULL.
    */
   
-  void (*update_metadata)(void * data, const char * name,
+  void (*update_metadata)(void * priv, const char * name,
                           const gavl_metadata_t * m);
 
   /** \brief Close encoder

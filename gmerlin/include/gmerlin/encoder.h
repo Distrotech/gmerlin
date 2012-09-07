@@ -125,6 +125,9 @@ int bg_encoder_write_audio_packet(bg_encoder_t *,
 int bg_encoder_write_video_packet(bg_encoder_t *,
                                   gavl_packet_t * p, int stream);
 
+gavl_audio_sink_t * bg_encoder_get_audio_sink(bg_encoder_t *, int stream);
+gavl_video_sink_t * bg_encoder_get_video_sink(bg_encoder_t *, int stream);
+
 /* Update metadata */
 
 void bg_encoder_update_metadata(bg_encoder_t *,
