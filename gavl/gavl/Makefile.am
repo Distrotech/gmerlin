@@ -57,6 +57,7 @@ audioconverter.c \
 audioformat.c \
 audioframe.c \
 audiooptions.c \
+audiosink.c \
 audiosource.c \
 blend.c \
 chapterlist.c \
@@ -96,6 +97,7 @@ video.c \
 videoformat.c \
 videoframe.c \
 videoframepool.c \
+videosink.c \
 videosource.c \
 videooptions.c \
 volume.c

@@ -4189,11 +4189,6 @@ void gavl_video_frame_pool_reset(gavl_video_frame_pool_t *p);
  * @{
  */
 
-/** \brief Video frame pool
- *
- * Since 1.5.0.
- */
-
 /** \brief Return value of the source function */  
 
 typedef enum
@@ -4251,7 +4246,6 @@ typedef struct gavl_audio_source_s gavl_audio_source_t;
 /** \brief Create a video source
  *  \param func Function to get the frames from
  *  \param priv Client data to pass to func
- *  \param stream Stream number to pass to func
  *  \param src_flags Flags describing the source
  *  \param src_format Native source format
  *  \returns A newly created video source
@@ -4334,10 +4328,9 @@ gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
 /** \brief Read a video frame
  *  \param s A video source 
  *  \param frame Address of a frame.
- *  \param stream Set this to zero
  *
  *  This reads one frame from the source. If *frame is NULL
- *  it will be set to an internal bufferm otherwise the data is
+ *  it will be set to an internal buffer, otherwise the data is
  *  copied to the frame you pass.
  */
 
@@ -4347,6 +4340,14 @@ gavl_source_status_t
 gavl_video_source_read_frame(void * s, gavl_video_frame_t ** frame);
   
 /* Called by source */ 
+
+/** \brief Create an audio source
+ *  \param func Function to get the frames from
+ *  \param priv Client data to pass to func
+ *  \param src_flags Flags describing the source
+ *  \param src_format Native source format
+ *  \returns A newly created audio source
+ */
   
 GAVL_PUBLIC
 gavl_audio_source_t *
@@ -4354,43 +4355,197 @@ gavl_audio_source_create(gavl_audio_source_func_t func,
                          void * priv, int src_flags,
                          const gavl_audio_format_t * src_format);
 
+/** \brief Get the native format
+ *  \param s An audio source
+ *  \returns The native audio format
+ */
+  
 GAVL_PUBLIC
 const gavl_audio_format_t *
-gavl_audio_source_get_src_format(gavl_audio_source_t *);
+gavl_audio_source_get_src_format(gavl_audio_source_t * s);
 
+/** \brief Get the output format
+ *  \param s An audio source
+ *  \returns The format in which frames will be read
+ */
+  
 GAVL_PUBLIC
 const gavl_audio_format_t *
-gavl_audio_source_get_dst_format(gavl_audio_source_t *);
+gavl_audio_source_get_dst_format(gavl_audio_source_t * s);
+
+/** \brief Set the destination mode
+ *  \param s An audio source
+ *  \param dst_flags Flags
+ *  \param dst_format Format in which the frames will be read
+ *
+ *  If you accept the source format (as returned by
+ *  \ref gavl_video_source_get_src_format) you can pass NULL for the
+ *  dst_format.
+ *
+ *  If the destination format differs from the source format,
+ *  the frames will converted. For this, we have a
+ *  \ref gavl_audio_converter_t. In addition, if the
+ *  samples_per_frame members are different, the frames will
+ *  be repackaged.
+ */
 
 GAVL_PUBLIC
 void
 gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
                           const gavl_audio_format_t * dst_format);
+
+/** \brief Read an audio frame
+ *  \param s An audio source 
+ *  \param frame Address of a frame.
+ *
+ *  This reads one frame from the source. If *frame is NULL
+ *  it will be set to an internal buffer, otherwise the data is
+ *  copied to the frame you pass.
+ */
   
 GAVL_PUBLIC
 gavl_source_status_t
 gavl_audio_source_read_frame(void*, gavl_audio_frame_t ** frame);
 
+/** \brief Skip audio samples
+ *  \param s An audio source 
+ *  \param num_samples Number of samples to skip
+ *
+ *  This skips a number of output samples. It can be used after
+ *  seeking if the sample position after a seek is no multiple of
+ *  the frame size.
+ */
+  
 GAVL_PUBLIC
 void 
 gavl_audio_source_skip(gavl_audio_source_t * s, int num_samples);
   
-/* For cases where it's not immediately known, how many samples will be
-   processed */
+/** \brief Read audio samples
+ *  \param s An audio source 
+ *  \param frame An audio frame 
+ *  \param num_samples Number of samples to read
+ *
+ *  This is for APIs, which pass the number of samples to each
+ *  read() call and the number is not known in advance.
+ */
 
 GAVL_PUBLIC
 int gavl_audio_source_read_samples(void*, gavl_audio_frame_t * frame,
                                    int num_samples);
 
+/** \brief Get coversion options of an audio source
+ *  \param s An audio source
+ *  \returns Conversion options
+ */
+  
 GAVL_PUBLIC
 gavl_audio_options_t * gavl_audio_source_get_options(gavl_audio_source_t * s);
+
+/** \brief Reset an audio source
+ *  \param s An audio source
+ *
+ *  This resets the internal state as if no frame was read yet.
+ */
   
 GAVL_PUBLIC
 void gavl_audio_source_reset(gavl_audio_source_t * s);
 
+/** \brief Destroy an audio source
+ *  \param s An audio source
+ *
+ *  Destroy an audio source including all audio frames ever
+ *  created by it.
+ */
   
 GAVL_PUBLIC
 void gavl_audio_source_destroy(gavl_audio_source_t * s);
+  
+/**
+ * @}
+ */
+
+/*! \defgroup sinks A/V sinks
+ *
+ *  This is a thin layer for a unified handling of
+ *  A/V sinks. A sink can either supply a frame where
+ *  the data could be copied or you pass a frame
+ *  allocated by yourself to the sink. Sinks don't do
+ *  format conversion. Instead you need to obtain the
+ *  format and pass this to the source where you read
+ *  data from.
+ *
+ * @{
+ */
+
+/** \brief Return status of the sink functions 
+ */
+  
+typedef enum
+  {
+    GAVL_SINK_ERROR, // Something went wrong
+    GAVL_SINK_OK,    // Frame was successfully processed
+  } gavl_sink_status_t;
+
+/** \brief Video sink 
+ */
+  
+typedef struct 
+gavl_video_sink_s gavl_video_sink_t;
+
+typedef gavl_video_frame_t *
+(*gavl_video_sink_get_func)(void *);
+
+typedef gavl_sink_status_t
+(*gavl_video_sink_put_func)(void *, gavl_video_frame_t *);
+
+GAVL_PUBLIC gavl_video_sink_t *
+gavl_video_sink_create(gavl_video_sink_get_func,
+                       gavl_video_sink_put_func,
+                       void * priv,
+                       const gavl_video_format_t * format);
+
+GAVL_PUBLIC const gavl_video_format_t *
+gavl_video_sink_get_format(gavl_video_sink_t * s);
+
+GAVL_PUBLIC gavl_video_frame_t *
+gavl_video_sink_get_frame(gavl_video_sink_t * s);
+
+GAVL_PUBLIC gavl_sink_status_t
+gavl_video_sink_put_frame(gavl_video_sink_t * s, gavl_video_frame_t *);
+
+GAVL_PUBLIC void
+gavl_video_sink_destroy(gavl_video_sink_t * s);
+
+/** \brief Audio sink 
+ */
+  
+typedef struct 
+gavl_audio_sink_s gavl_audio_sink_t;
+
+typedef gavl_audio_frame_t *
+(*gavl_audio_sink_get_func)(void *);
+
+typedef gavl_sink_status_t
+(*gavl_audio_sink_put_func)(void *, gavl_audio_frame_t *);
+
+GAVL_PUBLIC gavl_audio_sink_t *
+gavl_audio_sink_create(gavl_audio_sink_get_func,
+                       gavl_audio_sink_put_func,
+                       void * priv,
+                       const gavl_audio_format_t * format);
+
+GAVL_PUBLIC const gavl_audio_format_t *
+gavl_audio_sink_get_format(gavl_audio_sink_t * s);
+
+GAVL_PUBLIC gavl_audio_frame_t *
+gavl_audio_sink_get_frame(gavl_audio_sink_t * s);
+
+GAVL_PUBLIC gavl_sink_status_t
+gavl_audio_sink_put_frame(gavl_audio_sink_t * s, gavl_audio_frame_t *);
+
+GAVL_PUBLIC void
+gavl_audio_sink_destroy(gavl_audio_sink_t * s);
+
   
 /**
  * @}
