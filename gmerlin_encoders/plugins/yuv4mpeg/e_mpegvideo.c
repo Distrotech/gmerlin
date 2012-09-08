@@ -151,6 +151,12 @@ static int write_video_frame_mpv(void * data,
   return bg_mpv_write_video_frame(&e->mpv, frame);
   }
 
+static gavl_video_sink_t * get_video_sink_mpv(void * data, int stream)
+  {
+  e_mpv_t * e = data;
+  return bg_mpv_get_video_sink(&e->mpv);
+  }
+
 static int write_video_packet_mpv(void * data,
                                   gavl_packet_t* p,
                                   int stream)
@@ -228,6 +234,7 @@ const bg_encoder_plugin_t the_plugin =
     //    .set_video_parameter =  set_video_parameter_mpv,
 
     .get_video_format =     get_video_format_mpv,
+    .get_video_sink =     get_video_sink_mpv,
 
     .start =                start_mpv,
 

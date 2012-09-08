@@ -65,21 +65,7 @@ int bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame);
 
 int bg_mpv_close(bg_mpv_common_t * com);
 
-
-
-#if 0
-char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename);
-
-
-/* Adjust a video format into something, mpeg2enc will process without errors */
-
-void bg_mpv_adjust_framerate(gavl_video_format_t * format);
-void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
-                               int mpeg_format);
-
-int bg_mpv_get_chroma_mode(bg_mpv_common_t * com);
-#endif
-
+gavl_video_sink_t * bg_mpv_get_video_sink(bg_mpv_common_t * com);
 const char * bg_mpv_get_extension(bg_mpv_common_t * com);
 
 

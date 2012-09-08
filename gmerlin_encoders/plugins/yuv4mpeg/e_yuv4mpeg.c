@@ -90,8 +90,14 @@ static void get_video_format_y4m(void * data, int stream,
                                  gavl_video_format_t * ret)
   {
   e_y4m_t * e = data;
-
   gavl_video_format_copy(ret, &e->com.format);
+  }
+
+static gavl_video_sink_t *
+get_video_sink_y4m(void * data, int stream)
+  {
+  e_y4m_t * e = data;
+  return e->com.sink;
   }
 
 static int start_y4m(void * data)
@@ -277,6 +283,7 @@ const bg_encoder_plugin_t the_plugin =
     .set_video_parameter =  set_video_parameter_y4m,
 
     .get_video_format =     get_video_format_y4m,
+    .get_video_sink =     get_video_sink_y4m,
 
     .start =                start_y4m,
 

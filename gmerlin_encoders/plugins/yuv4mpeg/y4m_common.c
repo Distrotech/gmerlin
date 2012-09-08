@@ -80,61 +80,6 @@ void bg_y4m_set_pixelformat(bg_y4m_common_t * com)
   
   }
 
-int bg_y4m_write_header(bg_y4m_common_t * com)
-  {
-  int i, err;
-  y4m_ratio_t r;
-
-  y4m_accept_extensions(1);
-  
-  /* Set up the stream- and frame header */
-  y4m_init_stream_info(&com->si);
-  y4m_init_frame_info(&com->fi);
-
-  y4m_si_set_width(&com->si, com->format.image_width);
-  y4m_si_set_height(&com->si, com->format.image_height);
-
-  switch(com->format.interlace_mode)
-    {
-    case GAVL_INTERLACE_TOP_FIRST:
-      i = Y4M_ILACE_TOP_FIRST;
-      break;
-    case GAVL_INTERLACE_BOTTOM_FIRST:
-      i = Y4M_ILACE_BOTTOM_FIRST;
-      break;
-    case GAVL_INTERLACE_MIXED:
-      com->format.interlace_mode = GAVL_INTERLACE_NONE;
-    default: // Fall through
-      i = Y4M_ILACE_NONE;
-      break;
-    }
-  y4m_si_set_interlace(&com->si, i);
-
-  r.n = com->format.timescale;
-  r.d = com->format.frame_duration;
-  
-  y4m_si_set_framerate(&com->si, r);
-
-  r.n = com->format.pixel_width;
-  r.d = com->format.pixel_height;
-
-  y4m_si_set_sampleaspect(&com->si, r);
-  y4m_si_set_chroma(&com->si, com->chroma_mode);
-
-  /* Now, it's time to write the stream header */
-
-  err = y4m_write_stream_header(com->fd, &com->si);
-  
-  if(err != Y4M_OK)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing stream header failed: %s",
-           ((err == Y4M_ERR_SYSTEM) ? strerror(errno) : y4m_strerr(err)));
-    return 0;
-    }
-  return 1;
-
-  }
-
 static uint8_t yj_8_to_y_8[256] = 
 {
   0x10, 0x11, 0x12, 0x13, 0x13, 0x14, 0x15, 0x16, 
@@ -198,10 +143,11 @@ static void convert_yuva4444(uint8_t ** dst, uint8_t ** src,
     }
   }
 
-
-int bg_y4m_write_frame(bg_y4m_common_t * com, gavl_video_frame_t * frame)
+static gavl_sink_status_t
+y4m_write_func(void * data, gavl_video_frame_t * frame)
   {
   int result;
+  bg_y4m_common_t * com = data;
   /* Check for YUVA4444 */
   if(com->format.pixelformat == GAVL_YUVA_32)
     {
@@ -227,8 +173,72 @@ int bg_y4m_write_frame(bg_y4m_common_t * com, gavl_video_frame_t * frame)
       }
     }
   if(result != Y4M_OK)
+    return GAVL_SINK_ERROR;
+  return GAVL_SINK_OK;
+  }
+
+int bg_y4m_write_header(bg_y4m_common_t * com)
+  {
+  int i, err;
+  y4m_ratio_t r;
+
+  y4m_accept_extensions(1);
+  
+  /* Set up the stream- and frame header */
+  y4m_init_stream_info(&com->si);
+  y4m_init_frame_info(&com->fi);
+
+  y4m_si_set_width(&com->si, com->format.image_width);
+  y4m_si_set_height(&com->si, com->format.image_height);
+
+  switch(com->format.interlace_mode)
+    {
+    case GAVL_INTERLACE_TOP_FIRST:
+      i = Y4M_ILACE_TOP_FIRST;
+      break;
+    case GAVL_INTERLACE_BOTTOM_FIRST:
+      i = Y4M_ILACE_BOTTOM_FIRST;
+      break;
+    case GAVL_INTERLACE_MIXED:
+      com->format.interlace_mode = GAVL_INTERLACE_NONE;
+    default: // Fall through
+      i = Y4M_ILACE_NONE;
+      break;
+    }
+  y4m_si_set_interlace(&com->si, i);
+
+  r.n = com->format.timescale;
+  r.d = com->format.frame_duration;
+  
+  y4m_si_set_framerate(&com->si, r);
+
+  r.n = com->format.pixel_width;
+  r.d = com->format.pixel_height;
+
+  y4m_si_set_sampleaspect(&com->si, r);
+  y4m_si_set_chroma(&com->si, com->chroma_mode);
+
+  /* Now, it's time to write the stream header */
+
+  err = y4m_write_stream_header(com->fd, &com->si);
+  
+  if(err != Y4M_OK)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing stream header failed: %s",
+           ((err == Y4M_ERR_SYSTEM) ? strerror(errno) : y4m_strerr(err)));
     return 0;
+    }
+  
+  com->sink = gavl_video_sink_create(NULL, y4m_write_func, com, &com->format);
+  
   return 1;
+  }
+
+
+
+int bg_y4m_write_frame(bg_y4m_common_t * com, gavl_video_frame_t * frame)
+  {
+  return (gavl_video_sink_put_frame(com->sink, frame) == GAVL_SINK_OK);
   }
 
 void bg_y4m_cleanup(bg_y4m_common_t * com)
@@ -240,4 +250,8 @@ void bg_y4m_cleanup(bg_y4m_common_t * com)
     free(com->tmp_planes[0]);
   if(com->frame)
     gavl_video_frame_destroy(com->frame);
+  
+  if(com->sink)
+    gavl_video_sink_destroy(com->sink);
+    
   }

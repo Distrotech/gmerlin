@@ -419,6 +419,12 @@ int bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
   return bg_y4m_write_frame(&com->y4m, frame);
   }
 
+gavl_video_sink_t * bg_mpv_get_video_sink(bg_mpv_common_t * com)
+  {
+  return com->y4m.sink;
+  }
+
+
 static const uint8_t sequence_end[4] = { 0x00, 0x00, 0x01, 0xb7 };
 
 int bg_mpv_close(bg_mpv_common_t * com)

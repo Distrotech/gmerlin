@@ -89,7 +89,7 @@ void bg_mpa_set_parameter(void * data, const char * name,
   }
 
 static char * bg_mpa_make_commandline(bg_mpa_common_t * com,
-                               const char * filename)
+                                      const char * filename)
   {
   char * ret;
   char * mp2enc_path;
@@ -293,6 +293,18 @@ void bg_mpa_get_format(bg_mpa_common_t * com, gavl_audio_format_t * format)
   gavl_audio_format_copy(format, &com->format);
   }
 
+static gavl_sink_status_t
+write_audio_func(void * priv,
+                 gavl_audio_frame_t * frame)
+  {
+  bg_mpa_common_t * com = priv;
+  int bytes = 2 * com->format.num_channels * frame->valid_samples;
+  
+  if(write(com->mp2enc->stdin_fd, frame->samples.s_16, bytes) < bytes)
+    return GAVL_SINK_ERROR;
+  return GAVL_SINK_OK;
+  }
+
 int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
   {
   sigset_t newset;
@@ -327,17 +339,15 @@ int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
     if(!com->mp2enc)
       return 0;
     free(commandline);
+    com->sink = gavl_audio_sink_create(NULL, write_audio_func, com, &com->format);
     }
   return 1;
   }
 
 int bg_mpa_write_audio_frame(bg_mpa_common_t * com,
-                              gavl_audio_frame_t * frame)
+                             gavl_audio_frame_t * frame)
   {
-  int bytes = 2 * com->format.num_channels * frame->valid_samples;
-  if(write(com->mp2enc->stdin_fd, frame->samples.s_16, bytes) < bytes)
-    return 0;
-  return 1;
+  return gavl_audio_sink_put_frame(com->sink, frame) == GAVL_SINK_OK;
   }
 
 int bg_mpa_write_audio_packet(bg_mpa_common_t * com,
@@ -359,6 +369,13 @@ int bg_mpa_close(bg_mpa_common_t * com)
   if(com->out)
     fclose(com->out);
   pthread_sigmask(SIG_SETMASK, &com->oldset, NULL);
+
+  if(com->sink)
+    {
+    gavl_audio_sink_destroy(com->sink);
+    com->sink = NULL;
+    }
+
   return ret;
   }
 

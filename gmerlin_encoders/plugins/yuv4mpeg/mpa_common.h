@@ -33,6 +33,8 @@ typedef struct
   sigset_t oldset;
   const gavl_compression_info_t * ci;
   FILE * out;
+  
+  gavl_audio_sink_t * sink;
   } bg_mpa_common_t;
 
 const bg_parameter_info_t * bg_mpa_get_parameters();

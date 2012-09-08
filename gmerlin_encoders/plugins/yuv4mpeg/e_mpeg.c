@@ -329,11 +329,26 @@ static void get_audio_format_mpeg(void * data, int stream,
   bg_mpa_get_format(&e->audio_streams[stream].mpa, ret);
   }
 
+
 static void get_video_format_mpeg(void * data, int stream,
                                   gavl_video_format_t * ret)
   {
   e_mpeg_t * e = data;
   bg_mpv_get_format(&e->video_streams[stream].mpv, ret);
+  }
+
+static gavl_audio_sink_t *
+get_audio_sink_mpeg(void * data, int stream)
+  {
+  e_mpeg_t * e = data;
+  return e->audio_streams[stream].mpa.sink;
+  }
+
+static gavl_video_sink_t *
+get_video_sink_mpeg(void * data, int stream)
+  {
+  e_mpeg_t * e = data;
+  return bg_mpv_get_video_sink(&e->video_streams[stream].mpv);
   }
 
 static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
@@ -817,6 +832,9 @@ const bg_encoder_plugin_t the_plugin =
     .get_audio_format =     get_audio_format_mpeg,
     .get_video_format =     get_video_format_mpeg,
 
+    .get_audio_sink =     get_audio_sink_mpeg,
+    .get_video_sink =     get_video_sink_mpeg,
+    
     .start =                start_mpeg,
 
     .write_audio_frame = write_audio_frame_mpeg,

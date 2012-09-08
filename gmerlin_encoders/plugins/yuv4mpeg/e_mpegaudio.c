@@ -152,6 +152,13 @@ static int write_audio_frame_mpa(void * data, gavl_audio_frame_t * frame,
   return bg_mpa_write_audio_frame(&mpa->com, frame);
   }
 
+static gavl_audio_sink_t * get_audio_sink_mpa(void * data, int stream)
+  {
+  e_mpa_t * mpa;
+  mpa = data;
+  return mpa->com.sink;
+  }
+
 static int write_audio_packet_mpa(void * data, gavl_packet_t * p,
                                   int stream)
   {
@@ -222,7 +229,8 @@ const bg_encoder_plugin_t the_plugin =
     .add_audio_stream =    add_audio_stream_mpa,
     .add_audio_stream_compressed =    add_audio_stream_compressed_mpa,
     .get_audio_format =    get_audio_format_mpa,
-
+    .get_audio_sink   = get_audio_sink_mpa,
+    
     .start =               start_mpa,
     .write_audio_frame =   write_audio_frame_mpa,
     .write_audio_packet =   write_audio_packet_mpa,
