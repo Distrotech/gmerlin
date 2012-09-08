@@ -449,7 +449,7 @@ int bg_ffmpeg_add_video_stream(void * data,
 
 int bg_ffmpeg_add_text_stream(void * data,
                               const gavl_metadata_t * m,
-                              int * timescale)
+                              uint32_t * timescale)
   {
   ffmpeg_priv_t * priv;
   ffmpeg_text_stream_t * st;
@@ -608,6 +608,243 @@ int bg_ffmpeg_set_video_pass(void * data, int stream, int pass,
   return 1;
   }
 
+static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
+                       AVFrame * frame)
+  {
+  AVPacket pkt;
+
+  int bytes_encoded = 0;
+  int got_packet = 0;
+  av_init_packet(&pkt);
+
+#if ENCODE_VIDEO2
+  pkt.data = st->buffer;
+  pkt.size = st->buffer_alloc;
+  
+  if(avcodec_encode_video2(st->stream->codec, &pkt, frame, &got_packet) < 0)
+    return -1;
+  if(got_packet)
+    bytes_encoded = pkt.size;
+#else
+  bytes_encoded = avcodec_encode_video(st->stream->codec,
+                                       st->buffer, st->buffer_alloc,
+                                       frame);
+  if(bytes_encoded < 0)
+    return;
+  else if(bytes_encoded > 0)
+    got_packet = 1;
+#endif
+
+  if(got_packet)
+    {
+#if ENCODE_VIDEO // Old
+    pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
+                          st->stream->codec->time_base,
+                          st->stream->time_base) + st->pts_offset;
+    
+    if(st->stream->codec->coded_frame->key_frame)
+      pkt.flags |= PKT_FLAG_KEY;
+    pkt.data = st->buffer;
+    pkt.size = bytes_encoded;
+#else // New
+
+    if(pkt.pts != AV_NOPTS_VALUE)
+      pkt.pts= av_rescale_q(pkt.pts,
+                            st->stream->codec->time_base,
+                            st->stream->time_base) + st->pts_offset;
+    if(pkt.dts != AV_NOPTS_VALUE)
+      pkt.dts= av_rescale_q(pkt.dts,
+                            st->stream->codec->time_base,
+                            st->stream->time_base) + st->pts_offset;
+#endif
+    
+    pkt.stream_index = st->stream->index;
+
+    //    if(av_write_frame(priv->ctx, &pkt) != 0) 
+    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
+      {
+      priv->got_error = 1;
+      return 0;
+      }
+
+    /* Write stats */
+    
+    if((st->pass == 1) && st->stream->codec->stats_out && st->stats_file)
+      fprintf(st->stats_file, "%s", st->stream->codec->stats_out);
+    }
+  return bytes_encoded;
+  }
+
+static gavl_sink_status_t write_video_func(void * data,
+                                           gavl_video_frame_t * frame)
+  {
+  ffmpeg_priv_t * priv;
+  ffmpeg_video_stream_t * st;
+  
+  st = data;
+  priv = st->ffmpeg;
+  
+  if(st->stream->codec->time_base.num == 1) /* Variable */
+    st->frame->pts = frame->timestamp;
+  else
+    st->frame->pts = st->frames_written;
+  
+  st->frame->data[0]     = frame->planes[0];
+  st->frame->data[1]     = frame->planes[1];
+  st->frame->data[2]     = frame->planes[2];
+  st->frame->linesize[0] = frame->strides[0];
+  st->frame->linesize[1] = frame->strides[1];
+  st->frame->linesize[2] = frame->strides[2];
+  
+  flush_video(priv, st, st->frame);
+
+  st->frames_written++;
+  
+  if(priv->got_error)
+    return GAVL_SINK_ERROR;
+  
+  return GAVL_SINK_OK;
+  }
+
+#if ENCODE_AUDIO2
+static int flush_audio(ffmpeg_priv_t * priv,
+                       ffmpeg_audio_stream_t * st)
+  {
+  AVPacket pkt;
+  AVFrame f;
+  int got_packet;
+  
+  av_init_packet(&pkt);
+
+  pkt.data = st->buffer;
+  pkt.size = st->buffer_alloc;
+  
+  avcodec_get_frame_defaults(&f);
+  f.nb_samples = st->frame->valid_samples;
+
+  f.pts = st->samples_written;
+  
+  avcodec_fill_audio_frame(&f, st->format.num_channels, st->stream->codec->sample_fmt,
+                           st->frame->samples.u_8,
+                           st->stream->codec->frame_size * st->format.num_channels * 2, 1);
+    
+  if(avcodec_encode_audio2(st->stream->codec, &pkt,
+                           &f, &got_packet) < 0)
+    return 0;
+  
+  if(got_packet && pkt.size)
+    {
+    if(pkt.pts != AV_NOPTS_VALUE)
+      pkt.pts= av_rescale_q(pkt.pts,
+                            st->stream->codec->time_base,
+                            st->stream->time_base) + st->pts_offset;
+    
+    pkt.flags |= PKT_FLAG_KEY;
+    pkt.stream_index= st->stream->index;
+    
+    /* write the compressed frame in the media file */
+    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
+      //    if(av_write_frame(priv->ctx, &pkt) != 0)
+      {
+      priv->got_error = 1;
+      return 0;
+      }
+    }
+  
+  /* Mute frame */
+  gavl_audio_frame_mute(st->frame, &st->format);
+  st->frame->valid_samples = 0;
+  st->samples_written += st->format.samples_per_frame;
+  
+  return pkt.size;
+  }
+
+#else
+
+static int flush_audio(ffmpeg_priv_t * priv,
+                       ffmpeg_audio_stream_t * st)
+  {
+  int out_size;
+  int bytes_encoded;
+  AVPacket pkt;
+
+  if(st->stream->codec->frame_size <= 1)
+    out_size = st->stream->codec->block_align * st->frame->valid_samples;
+  else
+    out_size = st->buffer_alloc;
+
+  bytes_encoded = avcodec_encode_audio(st->stream->codec, st->buffer,
+                                       out_size,
+                                       st->frame->samples.s_16);
+  
+  if(bytes_encoded > 0)
+    {
+    av_init_packet(&pkt);
+    pkt.size = bytes_encoded;
+    
+    if(st->stream->codec->coded_frame &&
+       (st->stream->codec->coded_frame->pts != AV_NOPTS_VALUE))
+      pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
+                            st->stream->codec->time_base,
+                            st->stream->time_base)  + st->pts_offset;
+    
+    pkt.flags |= PKT_FLAG_KEY;
+    pkt.stream_index= st->stream->index;
+    pkt.data= st->buffer;
+    
+    /* write the compressed frame in the media file */
+    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
+      //    if(av_write_frame(priv->ctx, &pkt) != 0)
+      {
+      priv->got_error = 1;
+      return 0;
+      }
+    }
+  
+  /* Mute frame */
+  gavl_audio_frame_mute(st->frame, &st->format);
+  st->frame->valid_samples = 0;
+  return bytes_encoded;
+  }
+
+#endif
+
+static gavl_sink_status_t write_audio_func(void * data,
+                                           gavl_audio_frame_t * frame)
+  {
+  ffmpeg_audio_stream_t * st;
+  ffmpeg_priv_t * priv;
+  int samples_written = 0;
+  int samples_copied;
+  st = data;
+  priv = st->ffmpeg;
+  
+  while(samples_written < frame->valid_samples)
+    {
+    samples_copied =
+      gavl_audio_frame_copy(&st->format,
+                            st->frame, // dst frame
+                            frame,     // src frame
+                            st->frame->valid_samples, // dst_pos
+                            samples_written,          // src_pos,
+                            st->format.samples_per_frame - st->frame->valid_samples, // dst_size,
+                            frame->valid_samples - samples_written);
+    
+    st->frame->valid_samples += samples_copied;
+    if(st->frame->valid_samples == st->format.samples_per_frame)
+      {
+      flush_audio(priv, st);
+      
+      if(priv->got_error)
+        return GAVL_SINK_ERROR;
+      }
+    samples_written += samples_copied;
+    }
+  return GAVL_SINK_OK;
+  }
+
+
+
 static int open_audio_encoder(ffmpeg_priv_t * priv,
                               ffmpeg_audio_stream_t * st)
   {
@@ -661,6 +898,9 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
   st->buffer_alloc = 32768;
   st->buffer = malloc(st->buffer_alloc); /* Hopefully enough */
 
+  st->sink = gavl_audio_sink_create(NULL, write_audio_func, st, &st->format);
+  st->ffmpeg = priv;
+  
   st->initialized = 1;
   
   return 1;
@@ -778,9 +1018,32 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   st->buffer = malloc(st->buffer_alloc);
   
   st->frame = avcodec_alloc_frame();
+
+  st->sink = gavl_video_sink_create(NULL, write_video_func, st, &st->format);
+  st->ffmpeg = priv;
+  
   st->initialized = 1;
+
+  
   
   return 1;
+  }
+
+
+int bg_ffmpeg_write_audio_frame(void * data,
+                                gavl_audio_frame_t * frame, int stream)
+  {
+  ffmpeg_priv_t * priv;
+  priv = data;
+  return (gavl_audio_sink_put_frame(priv->audio_streams[stream].sink, frame) == GAVL_SINK_OK);
+  }
+
+int bg_ffmpeg_write_video_frame(void * data,
+                                gavl_video_frame_t * frame, int stream)
+  {
+  ffmpeg_priv_t * priv;
+  priv = data;
+  return (gavl_video_sink_put_frame(priv->video_streams[stream].sink, frame) == GAVL_SINK_OK);
   }
 
 int bg_ffmpeg_start(void * data)
@@ -883,243 +1146,21 @@ void bg_ffmpeg_get_video_format(void * data, int stream,
   
   }
 
-#if ENCODE_AUDIO2
-static int flush_audio(ffmpeg_priv_t * priv,
-                       ffmpeg_audio_stream_t * st)
-  {
-  AVPacket pkt;
-  AVFrame f;
-  int got_packet;
-  
-  av_init_packet(&pkt);
-
-  pkt.data = st->buffer;
-  pkt.size = st->buffer_alloc;
-  
-  avcodec_get_frame_defaults(&f);
-  f.nb_samples = st->frame->valid_samples;
-
-  f.pts = st->samples_written;
-  
-  avcodec_fill_audio_frame(&f, st->format.num_channels, st->stream->codec->sample_fmt,
-                           st->frame->samples.u_8,
-                           st->stream->codec->frame_size * st->format.num_channels * 2, 1);
-    
-  if(avcodec_encode_audio2(st->stream->codec, &pkt,
-                           &f, &got_packet) < 0)
-    return 0;
-  
-  if(got_packet && pkt.size)
-    {
-    if(pkt.pts != AV_NOPTS_VALUE)
-      pkt.pts= av_rescale_q(pkt.pts,
-                            st->stream->codec->time_base,
-                            st->stream->time_base) + st->pts_offset;
-    
-    pkt.flags |= PKT_FLAG_KEY;
-    pkt.stream_index= st->stream->index;
-    
-    /* write the compressed frame in the media file */
-    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
-      //    if(av_write_frame(priv->ctx, &pkt) != 0)
-      {
-      priv->got_error = 1;
-      return 0;
-      }
-    }
-  
-  /* Mute frame */
-  gavl_audio_frame_mute(st->frame, &st->format);
-  st->frame->valid_samples = 0;
-  st->samples_written += st->format.samples_per_frame;
-  
-  return pkt.size;
-  }
-
-#else
-
-static int flush_audio(ffmpeg_priv_t * priv,
-                       ffmpeg_audio_stream_t * st)
-  {
-  int out_size;
-  int bytes_encoded;
-  AVPacket pkt;
-
-  if(st->stream->codec->frame_size <= 1)
-    out_size = st->stream->codec->block_align * st->frame->valid_samples;
-  else
-    out_size = st->buffer_alloc;
-
-  bytes_encoded = avcodec_encode_audio(st->stream->codec, st->buffer,
-                                       out_size,
-                                       st->frame->samples.s_16);
-  
-  if(bytes_encoded > 0)
-    {
-    av_init_packet(&pkt);
-    pkt.size = bytes_encoded;
-    
-    if(st->stream->codec->coded_frame &&
-       (st->stream->codec->coded_frame->pts != AV_NOPTS_VALUE))
-      pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
-                            st->stream->codec->time_base,
-                            st->stream->time_base)  + st->pts_offset;
-    
-    pkt.flags |= PKT_FLAG_KEY;
-    pkt.stream_index= st->stream->index;
-    pkt.data= st->buffer;
-    
-    /* write the compressed frame in the media file */
-    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
-      //    if(av_write_frame(priv->ctx, &pkt) != 0)
-      {
-      priv->got_error = 1;
-      return 0;
-      }
-    }
-  
-  /* Mute frame */
-  gavl_audio_frame_mute(st->frame, &st->format);
-  st->frame->valid_samples = 0;
-  return bytes_encoded;
-  }
-
-#endif
-
-int bg_ffmpeg_write_audio_frame(void * data,
-                                gavl_audio_frame_t * frame, int stream)
-  {
-  ffmpeg_audio_stream_t * st;
-  ffmpeg_priv_t * priv;
-  int samples_written = 0;
-  int samples_copied;
-  priv = data;
-  st = &priv->audio_streams[stream];
-  
-  while(samples_written < frame->valid_samples)
-    {
-    samples_copied =
-      gavl_audio_frame_copy(&st->format,
-                            st->frame, // dst frame
-                            frame,     // src frame
-                            st->frame->valid_samples, // dst_pos
-                            samples_written,          // src_pos,
-                            st->format.samples_per_frame - st->frame->valid_samples, // dst_size,
-                            frame->valid_samples - samples_written);
-    
-    st->frame->valid_samples += samples_copied;
-    if(st->frame->valid_samples == st->format.samples_per_frame)
-      {
-      flush_audio(priv, st);
-      
-      if(priv->got_error)
-        return 0;
-      }
-    samples_written += samples_copied;
-    }
-  return 1;
-  }
-
-static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
-                       AVFrame * frame)
-  {
-  AVPacket pkt;
-
-  int bytes_encoded = 0;
-  int got_packet = 0;
-  av_init_packet(&pkt);
-
-#if ENCODE_VIDEO2
-  pkt.data = st->buffer;
-  pkt.size = st->buffer_alloc;
-  
-  if(avcodec_encode_video2(st->stream->codec, &pkt, frame, &got_packet) < 0)
-    return -1;
-  if(got_packet)
-    bytes_encoded = pkt.size;
-#else
-  bytes_encoded = avcodec_encode_video(st->stream->codec,
-                                       st->buffer, st->buffer_alloc,
-                                       frame);
-  if(bytes_encoded < 0)
-    return;
-  else if(bytes_encoded > 0)
-    got_packet = 1;
-#endif
-
-  if(got_packet)
-    {
-#if ENCODE_VIDEO // Old
-    pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
-                          st->stream->codec->time_base,
-                          st->stream->time_base) + st->pts_offset;
-    
-    if(st->stream->codec->coded_frame->key_frame)
-      pkt.flags |= PKT_FLAG_KEY;
-    pkt.data = st->buffer;
-    pkt.size = bytes_encoded;
-#else // New
-
-    if(pkt.pts != AV_NOPTS_VALUE)
-      pkt.pts= av_rescale_q(pkt.pts,
-                            st->stream->codec->time_base,
-                            st->stream->time_base) + st->pts_offset;
-    if(pkt.dts != AV_NOPTS_VALUE)
-      pkt.dts= av_rescale_q(pkt.dts,
-                            st->stream->codec->time_base,
-                            st->stream->time_base) + st->pts_offset;
-#endif
-    
-    pkt.stream_index = st->stream->index;
-
-    //    if(av_write_frame(priv->ctx, &pkt) != 0) 
-    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
-      {
-      priv->got_error = 1;
-      return 0;
-      }
-
-    /* Write stats */
-    
-    if((st->pass == 1) && st->stream->codec->stats_out && st->stats_file)
-      fprintf(st->stats_file, "%s", st->stream->codec->stats_out);
-    }
-  return bytes_encoded;
-  }
-               
-                
-
-int bg_ffmpeg_write_video_frame(void * data,
-                                gavl_video_frame_t * frame, int stream)
+gavl_audio_sink_t *
+bg_ffmpeg_get_audio_sink(void * data, int stream)
   {
   ffmpeg_priv_t * priv;
-  ffmpeg_video_stream_t * st;
-  
   priv = data;
-  st = &priv->video_streams[stream];
-
-  if(st->stream->codec->time_base.num == 1) /* Variable */
-    st->frame->pts = frame->timestamp;
-  else
-    st->frame->pts = st->frames_written;
-  
-  st->frame->data[0]     = frame->planes[0];
-  st->frame->data[1]     = frame->planes[1];
-  st->frame->data[2]     = frame->planes[2];
-  st->frame->linesize[0] = frame->strides[0];
-  st->frame->linesize[1] = frame->strides[1];
-  st->frame->linesize[2] = frame->strides[2];
-  
-  flush_video(priv, st, st->frame);
-
-  st->frames_written++;
-  
-  if(priv->got_error)
-    return 0;
-  
-  return 1;
+  return priv->audio_streams[stream].sink;
   }
 
+gavl_video_sink_t *
+bg_ffmpeg_get_video_sink(void * data, int stream)
+  {
+  ffmpeg_priv_t * priv;
+  priv = data;
+  return priv->video_streams[stream].sink;
+  }
 
 int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
                                   int64_t start,
@@ -1158,8 +1199,6 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
   return 1;
   }
 
-
-
 static void flush_audio_encoder(ffmpeg_priv_t * priv,
                                 ffmpeg_audio_stream_t * st)
   {
@@ -1190,6 +1229,9 @@ static int close_audio_encoder(ffmpeg_priv_t * priv,
     free(st->buffer);
   if(st->frame)
     gavl_audio_frame_destroy(st->frame);
+
+  if(st->sink)
+    gavl_audio_sink_destroy(st->sink);
   
   return 1;
   }
@@ -1241,6 +1283,9 @@ static void close_video_encoder(ffmpeg_priv_t * priv,
   
   if(st->stats_file)
     fclose(st->stats_file);
+
+  if(st->sink)
+    gavl_video_sink_destroy(st->sink);
   
   }
 

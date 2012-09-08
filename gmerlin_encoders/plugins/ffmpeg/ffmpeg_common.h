@@ -102,10 +102,14 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
                               const bg_parameter_value_t * val);
 
 enum CodecID
-bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format, const char * name);
+bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format,
+                             const char * name);
 
 enum CodecID
-bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format, const char * name);
+bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format,
+                             const char * name);
+
+typedef struct ffmpeg_priv_s ffmpeg_priv_t;
 
 typedef struct
   {
@@ -129,6 +133,9 @@ typedef struct
   
   const gavl_compression_info_t * ci;
   int64_t pts_offset;
+
+  gavl_audio_sink_t * sink;
+  ffmpeg_priv_t * ffmpeg;
   } ffmpeg_audio_stream_t;
 
 typedef struct
@@ -159,6 +166,8 @@ typedef struct
   int64_t dts;
 
   int64_t pts_offset;
+  gavl_video_sink_t * sink;
+  ffmpeg_priv_t * ffmpeg;
   } ffmpeg_video_stream_t;
 
 typedef struct
@@ -167,7 +176,7 @@ typedef struct
   int64_t pts_offset;
   } ffmpeg_text_stream_t;
 
-typedef struct
+struct ffmpeg_priv_s
   {
   int num_audio_streams;
   int num_video_streams;
@@ -193,7 +202,7 @@ typedef struct
   int need_pts_offset;
   
   bg_encoder_callbacks_t * cb;
-  } ffmpeg_priv_t;
+  };
 
 extern const bg_encoder_framerate_t
 bg_ffmpeg_mpeg_framerates[];
@@ -228,8 +237,7 @@ int bg_ffmpeg_add_video_stream(void * data,
 
 int bg_ffmpeg_add_text_stream(void * data,
                               const gavl_metadata_t * metadata,
-                              int * timescale);
-
+                              uint32_t * timescale);
 
 void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
                                    const bg_parameter_value_t * v);
@@ -250,6 +258,12 @@ void bg_ffmpeg_get_audio_format(void * data, int stream,
                                 gavl_audio_format_t*ret);
 void bg_ffmpeg_get_video_format(void * data, int stream,
                                 gavl_video_format_t*ret);
+
+gavl_audio_sink_t *
+bg_ffmpeg_get_audio_sink(void * data, int stream);
+
+gavl_video_sink_t *
+bg_ffmpeg_get_video_sink(void * data, int stream);
 
 int bg_ffmpeg_write_audio_frame(void * data,
                                 gavl_audio_frame_t * frame, int stream);

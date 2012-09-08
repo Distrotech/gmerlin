@@ -172,32 +172,6 @@ TRS("X1"), TRS("Epzs"), TRS("Full"), (char *)0} \
     .val_default = { .val_i = 0 },                                \
   }
 
-#define PARAM_LUMA_ELIM_THRESHOLD               \
-  {                                             \
-    .name =      "ff_luma_elim_threshold",          \
-    .long_name = TRS("Luma elimination threshold"),    \
-    .type =        BG_PARAMETER_SLIDER_INT,             \
-    .val_default = { .val_i =  0 },                                \
-    .val_min =     { .val_i = -99 },                                \
-    .val_max =     { .val_i =  99 },                                \
-    .help_string = TRS("Single coefficient elimination threshold for " \
-"luminance. Negative values also consider dc coefficient. -4 is " \
-"JVT recommendation") \
-  }
-    
-#define PARAM_CHROMA_ELIM_THRESHOLD               \
-  {                                             \
-    .name =      "ff_chroma_elim_threshold",          \
-    .long_name = TRS("Chroma elimination threshold"),    \
-    .type =        BG_PARAMETER_SLIDER_INT,             \
-    .val_default = { .val_i =  0 },                                \
-    .val_min =     { .val_i = -99 },                                \
-    .val_max =     { .val_i =  99 },                                \
-    .help_string = TRS("Single coefficient elimination threshold for " \
-"chrominamce. Negative values also consider dc coefficient. 7 is " \
-"JVT recommendation") \
-  }
-
 #define PARAM_STRICT_STANDARD_COMPLIANCE \
   {                                                              \
     .name = "ff_strict_std_compliance",                              \
@@ -687,26 +661,8 @@ RC buffer size") \
 
 /* Does nothing */
 /** Frame types */
-#define PARAM_INTER_THRESHOLD \
-  { \
-    .name = "ff_inter_threshold",   \
-    .long_name = TRS("Inter threshold"),   \
-    .type = BG_PARAMETER_INT,                \
-    .val_default = { .val_i = 0 },            \
-  }
 
 /** Quantizer */
-#define PARAM_QUANTIZER_NOISE_SHAPING \
-  { \
-  .name = "ff_quantizer_noise_shaping", \
-    .long_name = TRS("Quantizer noise shaping"),\
-    .type = BG_PARAMETER_SLIDER_INT, \
-    .val_default = { .val_i = 0 },\
-    .val_min =     { .val_i = 0 },\
-    .val_max =     { .val_i = 3 },\
-    .help_string = TRS("Choose quantization such that noise will be masked by "\
-"similar-frequency content in the image") \
-  }
 
 /** Motion estimation */
 #define PARAM_ME_THRESHOLD \

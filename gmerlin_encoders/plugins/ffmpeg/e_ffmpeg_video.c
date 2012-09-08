@@ -87,6 +87,7 @@ const bg_encoder_plugin_t the_plugin =
     .set_video_parameter =  bg_ffmpeg_set_video_parameter,
     
     .get_video_format =     bg_ffmpeg_get_video_format,
+    .get_video_sink =       bg_ffmpeg_get_video_sink,
 
     .start =                bg_ffmpeg_start,
     

@@ -99,7 +99,6 @@
     PARAM_QSCALE,                      \
     PARAM_QCOMPRESS,                        \
     PARAM_QBLUR,                            \
-    PARAM_QUANTIZER_NOISE_SHAPING,          \
     PARAM_TRELLIS
 
 #define ENCODE_PARAM_VIDEO_QUANTIZER_IP \
@@ -930,8 +929,6 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_INT("ff_max_b_frames",max_b_frames);
   PARAM_FLOAT("ff_b_quant_factor",b_quant_factor);
   PARAM_INT("ff_b_frame_strategy",b_frame_strategy);
-  PARAM_INT("ff_luma_elim_threshold",luma_elim_threshold);
-  PARAM_INT("ff_chroma_elim_threshold",chroma_elim_threshold);
   PARAM_INT("ff_strict_std_compliance",strict_std_compliance);
   PARAM_QP2LAMBDA("ff_b_quant_offset",b_quant_offset);
   PARAM_INT("ff_rc_min_rate",rc_min_rate);
@@ -969,8 +966,6 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_QP2LAMBDA("ff_lmax", lmax);
   PARAM_INT("ff_noise_reduction",noise_reduction);
   PARAM_INT_SCALE("ff_rc_initial_buffer_occupancy",rc_initial_buffer_occupancy,1000);
-  PARAM_INT("ff_inter_threshold",inter_threshold);
-  PARAM_INT("ff_quantizer_noise_shaping",quantizer_noise_shaping);
   PARAM_INT("ff_me_threshold",me_threshold);
   PARAM_INT("ff_mb_threshold",mb_threshold);
   PARAM_INT("ff_nsse_weight",nsse_weight);

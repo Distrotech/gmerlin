@@ -232,6 +232,9 @@ const bg_encoder_plugin_t the_plugin =
     .set_video_pass =       bg_ffmpeg_set_video_pass,
     .set_audio_parameter =  bg_ffmpeg_set_audio_parameter,
     .set_video_parameter =  bg_ffmpeg_set_video_parameter,
+
+    .get_audio_sink =     bg_ffmpeg_get_audio_sink,
+    .get_video_sink =     bg_ffmpeg_get_video_sink,
     
     .get_audio_format =     bg_ffmpeg_get_audio_format,
     .get_video_format =     bg_ffmpeg_get_video_format,
