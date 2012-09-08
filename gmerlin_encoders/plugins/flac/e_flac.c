@@ -77,6 +77,8 @@ typedef struct
   const gavl_compression_info_t * ci;
 
   int fixed_blocksize;
+
+  gavl_audio_sink_t * sink;
   } flac_t;
 
 static void * create_flac()
@@ -270,6 +272,33 @@ write_callback(const FLAC__StreamEncoder *encoder,
   return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
   }
 
+static gavl_sink_status_t write_audio_func_flac(void * data, gavl_audio_frame_t * frame)
+  {
+  gavl_sink_status_t ret = GAVL_SINK_OK;
+  flac_t * flac;
+  
+  flac = data;
+
+  bg_flac_prepare_audio_frame(&flac->com, frame);
+  
+  /* Encode */
+
+  if(!FLAC__stream_encoder_process(flac->enc, (const FLAC__int32 **) flac->com.buffer,
+                                   frame->valid_samples))
+    ret = GAVL_SINK_ERROR;
+  flac->samples_written += frame->valid_samples;
+  return ret;
+  }
+
+static int write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
+                                  int stream)
+  {
+  flac_t * flac;
+  flac = data;
+
+  return (gavl_audio_sink_put_frame(flac->sink, frame) == GAVL_SINK_OK);
+  }
+
 static int start_flac(void * data)
   {
   flac_t * flac;
@@ -306,27 +335,11 @@ static int start_flac(void * data)
     //    fprintf(stderr, "Got blocksize %d\n", flac->com.samples_per_block);
     }
   flac->data_start = -1;
+
+  flac->sink = gavl_audio_sink_create(NULL, write_audio_func_flac,
+                                      flac, &flac->format);
   
   return 1;
-  }
-
-static int write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
-                                  int stream)
-  {
-  int ret = 1;
-  flac_t * flac;
-  
-  flac = data;
-
-  bg_flac_prepare_audio_frame(&flac->com, frame);
-  
-  /* Encode */
-
-  if(!FLAC__stream_encoder_process(flac->enc, (const FLAC__int32 **) flac->com.buffer,
-                                 frame->valid_samples))
-    ret = 0;
-  flac->samples_written += frame->valid_samples;
-  return ret;
   }
 
 static void get_audio_format_flac(void * data, int stream,
@@ -335,173 +348,14 @@ static void get_audio_format_flac(void * data, int stream,
   flac_t * flac;
   flac = data;
   gavl_audio_format_copy(ret, &flac->format);
-  
   }
 
-#if 0
-
-/*
- *  Finalize seektable.
- *  It's a bit ugly but we want to encode flac files without having the slightest
- *  idea about the total number of samples.
- *  For this reason, we fire up a decoder and let it create the seektable
- *  A similar procedure is implemented in the metaflac utility, but here, things are
- *  simpler because we remembered some properties of the file we just encoded.
- */
-
-typedef struct
+static gavl_audio_sink_t * get_audio_sink_flac(void * data, int stream)
   {
-  uint64_t * seek_samples;
-  uint64_t sample_position;
-  uint64_t byte_position;
-
-  uint64_t start_position;
-  uint64_t table_position;
-  uint64_t table_size;
-  
-  FLAC__StreamMetadata    * metadata;
-
-  } seektable_client_data;
-
-static FLAC__StreamDecoderWriteStatus
-seektable_write_callback(const FLAC__StreamDecoder *decoder,
-                         const FLAC__Frame *frame,
-                         const FLAC__int32 * const buffer[],
-                         void *client_data)
-  {
-  FLAC__StreamMetadata_SeekPoint seekpoint;
-
-  seektable_client_data * cd;
-
-  cd = client_data;
-  
-  if(cd->sample_position >= cd->seek_samples[cd->table_position])
-    {
-    seekpoint.sample_number = cd->sample_position;
-    seekpoint.stream_offset = cd->byte_position - cd->start_position;
-    seekpoint.frame_samples = frame->header.blocksize;
-    FLAC__metadata_object_seektable_set_point(cd->metadata,
-                                              cd->table_position,
-                                              seekpoint);
-    cd->table_position++;
-    
-    if(cd->table_position >= cd->table_size)
-      return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    }
-
-  FLAC__stream_decoder_get_decode_position(decoder,
-                                         &cd->byte_position);
-  cd->sample_position += frame->header.blocksize;
-  
-  return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+  flac_t * flac;
+  flac = data;
+  return flac->sink;
   }
-
-static void seektable_error_callback(const FLAC__StreamDecoder *decoder,
-                                     FLAC__StreamDecoderErrorStatus status, void *client_data)
-  {
-  }
-
-static void seektable_metadata_callback(const FLAC__StreamDecoder *decoder,
-                                        const FLAC__StreamMetadata *metadata,
-                                        void *client_data)
-  {
-  
-  }
-
-static void finalize_seektable(flac_t * flac)
-  {
-  int i;
-  uint64_t index;
-  
-  FLAC__StreamDecoder       * decoder;
-  FLAC__Metadata_Chain    * chain;
-  FLAC__Metadata_Iterator * iter;
-
-  seektable_client_data cd;
-  
-  memset(&cd, 0, sizeof(cd));
-  
-  /* Read all metadata from the file and extract seektable */
-
-  chain = FLAC__metadata_chain_new();
-  FLAC__metadata_chain_read(chain, flac->filename);
-  iter = FLAC__metadata_iterator_new();
-  FLAC__metadata_iterator_init(iter, chain);
-
-  while(FLAC__metadata_iterator_get_block_type(iter) != FLAC__METADATA_TYPE_SEEKTABLE)
-    FLAC__metadata_iterator_next(iter);
-
-
-  cd.metadata = FLAC__metadata_iterator_get_block(iter);
-
-  /* Check, which seektable entries we want. */
-
-  cd.seek_samples = malloc(flac->num_seektable_entries * sizeof(*(cd.seek_samples)));
-
-  cd.table_size = flac->num_seektable_entries;
-  index = 1;
-  cd.seek_samples[0] = 0;
-
-  for(i = 1; i < flac->num_seektable_entries; i++)
-    {
-    cd.seek_samples[index] = ((i * flac->samples_written) /
-                              (flac->num_seektable_entries * flac->com.samples_per_block)) *
-      flac->com.samples_per_block;
-
-    /* Avoid duplicate entries */
-    if(cd.seek_samples[index] > cd.seek_samples[index-1])
-      {
-      index++;
-      }
-    else
-      cd.table_size--;
-    }
-
-  cd.table_position = 0;
-  
-  /* Populate the seek table */
-    
-  decoder = FLAC__stream_decoder_new();
-  FLAC__stream_decoder_set_md5_checking(decoder, false);
-  FLAC__stream_decoder_set_metadata_ignore_all(decoder);
-
-  FLAC__stream_decoder_init_file(decoder,
-                                 flac->filename,
-                                 seektable_write_callback,
-                                 seektable_metadata_callback,
-                                 seektable_error_callback,
-                                 &cd);
-  
-  FLAC__stream_decoder_process_until_end_of_metadata(decoder);
-  FLAC__stream_decoder_get_decode_position(decoder, &cd.start_position);
-
-  cd.byte_position = cd.start_position;
-  
-  FLAC__stream_decoder_process_until_end_of_stream(decoder);
-  FLAC__stream_decoder_delete(decoder);
-
-  /* Let the seektable shrink if necessary */
-  if(cd.table_size < flac->num_seektable_entries)
-    {
-    FLAC__metadata_object_seektable_resize_points(cd.metadata, cd.table_size);
-    }
-  
-  /* Write metadata back to the file */
-
-  FLAC__metadata_chain_write(chain,
-                             true, /* use_padding */
-                             true  /* preserve_file_stats */ );
-
-  /* Clean up stuff */
-
-  FLAC__metadata_iterator_delete(iter);
-  FLAC__metadata_chain_delete(chain);
-
-  free(cd.seek_samples);
-
-  }
-
-#else
 
 static void build_seek_table(flac_t * flac, FLAC__StreamMetadata * tab)
   {
@@ -586,7 +440,6 @@ static void finalize(flac_t * flac)
   FLAC__metadata_iterator_delete(iter);
   FLAC__metadata_chain_delete(chain);
   }
-#endif
 
 static int close_flac(void * data, int do_delete)
   {
@@ -627,6 +480,12 @@ static int close_flac(void * data, int do_delete)
     {
     free(flac->frame_table);
     flac->frame_table = NULL;
+    }
+
+  if(flac->sink)
+    {
+    gavl_audio_sink_destroy(flac->sink);
+    flac->sink = NULL;
     }
   
   bg_flac_free(&flac->com);
@@ -777,7 +636,7 @@ const bg_encoder_plugin_t the_plugin =
     .set_audio_parameter =     set_audio_parameter_flac,
 
     .get_audio_format =        get_audio_format_flac,
-
+    .get_audio_sink =          get_audio_sink_flac,
     .start =                   start_flac,
     
     .write_audio_frame =   write_audio_frame_flac,
