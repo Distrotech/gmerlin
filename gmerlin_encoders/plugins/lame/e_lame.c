@@ -35,9 +35,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_lame"
 
-
 #include <xing.h>
-
 
 typedef struct
   {
@@ -332,6 +330,7 @@ const bg_encoder_plugin_t the_plugin =
     .set_audio_parameter =     bg_lame_set_audio_parameter,
 
     .get_audio_format =        bg_lame_get_audio_format,
+    .get_audio_sink =        bg_lame_get_audio_sink,
     
     .write_audio_frame =    bg_lame_write_audio_frame,
     .write_audio_packet =   write_audio_packet_lame,

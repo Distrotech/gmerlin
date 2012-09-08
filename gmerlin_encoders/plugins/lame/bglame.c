@@ -163,6 +163,12 @@ void bg_lame_close(lame_common_t * com)
     free(com->output_buffer);
     com->output_buffer = NULL;
     }
+
+  if(com->sink)
+    {
+    gavl_audio_sink_destroy(com->sink);
+    com->sink = NULL;
+    }
   
   }
 
@@ -310,6 +316,47 @@ void bg_lame_open(lame_common_t * com)
   com->lame = lame_init();
   }
 
+static gavl_sink_status_t
+write_audio_func(void * data, gavl_audio_frame_t * frame)
+  {
+  gavl_sink_status_t ret = GAVL_SINK_OK;
+  int max_out_size, bytes_encoded;
+  lame_common_t * lame = data;
+  
+  max_out_size = (5 * frame->valid_samples) / 4 + 7200;
+  if(lame->output_buffer_alloc < max_out_size)
+    {
+    lame->output_buffer_alloc = max_out_size + 1024;
+    lame->output_buffer = realloc(lame->output_buffer,
+                                  lame->output_buffer_alloc);
+    }
+
+  bytes_encoded = lame_encode_buffer_float(lame->lame,
+                                           frame->channels.f[0],
+                                           (lame->format.num_channels > 1) ?
+                                           frame->channels.f[1] :
+                                           frame->channels.f[0],
+                                           frame->valid_samples,
+                                           lame->output_buffer,
+                                           lame->output_buffer_alloc);
+  
+  if((bytes_encoded > 0) &&
+     (lame->write_callback(lame->write_priv,
+                           lame->output_buffer, bytes_encoded) < bytes_encoded))
+    
+    ret = GAVL_SINK_ERROR;
+  
+  lame->samples_read += frame->valid_samples;
+
+  return ret;
+  }
+
+int bg_lame_write_audio_frame(void * data, gavl_audio_frame_t * frame, int stream)
+  {
+  lame_common_t * lame = data;
+  return (gavl_audio_sink_put_frame(lame->sink, frame) == GAVL_SINK_OK);
+  }
+
 int bg_lame_add_audio_stream(void * data,
                              const gavl_metadata_t * m,
                              const gavl_audio_format_t * format)
@@ -339,46 +386,18 @@ int bg_lame_add_audio_stream(void * data,
 
   if(lame_set_scale(lame->lame, 32767.0))
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_scale failed");
-    
   
+  lame->sink = gavl_audio_sink_create(NULL, write_audio_func, lame, &lame->format);
   //  lame_set_out_samplerate(lame->lame, lame->format.samplerate);
   
   return 0;
-
   }
 
-int bg_lame_write_audio_frame(void * data, gavl_audio_frame_t * frame, int stream)
+gavl_audio_sink_t * bg_lame_get_audio_sink(void * data, int stream)
   {
-  int ret = 1;
-  int max_out_size, bytes_encoded;
-  lame_common_t * lame = data;
-  
-  max_out_size = (5 * frame->valid_samples) / 4 + 7200;
-  if(lame->output_buffer_alloc < max_out_size)
-    {
-    lame->output_buffer_alloc = max_out_size + 1024;
-    lame->output_buffer = realloc(lame->output_buffer,
-                                  lame->output_buffer_alloc);
-    }
-
-  bytes_encoded = lame_encode_buffer_float(lame->lame,
-                                           frame->channels.f[0],
-                                           (lame->format.num_channels > 1) ?
-                                           frame->channels.f[1] :
-                                           frame->channels.f[0],
-                                           frame->valid_samples,
-                                           lame->output_buffer,
-                                           lame->output_buffer_alloc);
-  
-  if((bytes_encoded > 0) &&
-     (lame->write_callback(lame->write_priv,
-                           lame->output_buffer, bytes_encoded) < bytes_encoded))
-    
-    ret = 0;
-  
-  lame->samples_read += frame->valid_samples;
-
-  return ret;
+  lame_common_t * lame;
+  lame = data;
+  return lame->sink;
   }
 
 void bg_lame_get_audio_format(void * data, int stream,

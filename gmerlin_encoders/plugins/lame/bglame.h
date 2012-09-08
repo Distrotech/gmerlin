@@ -46,6 +46,8 @@ typedef struct
 
   int64_t samples_read;
   
+  gavl_audio_sink_t * sink;
+  
   } lame_common_t;
 
 void bg_lame_init(lame_common_t * com);
@@ -66,6 +68,8 @@ int bg_lame_write_audio_frame(void * priv,
 
 void bg_lame_get_audio_format(void * data, int stream,
                               gavl_audio_format_t * ret);
+
+gavl_audio_sink_t * bg_lame_get_audio_sink(void * data, int stream);
 
 int bg_lame_flush(lame_common_t * lame);
 
