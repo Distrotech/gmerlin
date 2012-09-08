@@ -124,6 +124,67 @@ static void setup_channel(jack_t * priv, gavl_channel_id_t id)
   
   }
 
+static gavl_sink_status_t
+write_func_jack(void * p, gavl_audio_frame_t * f)
+  {
+  int i;
+  int samples_written, result;
+  gavl_time_t delay_time;
+  jack_t * priv = p;
+  int write_space;
+  
+  //  fprintf(stderr, "Write jack %d\n", f->valid_samples);
+  
+  for(i = 0; i < priv->num_ports; i++)
+    {
+    if(!priv->ports[i].active)
+      continue;
+    
+    samples_written = 0;
+
+    while(1)
+      {
+      write_space = jack_ringbuffer_write_space(priv->ports[i].buffer);
+      if(write_space >= f->valid_samples * sizeof(float))
+        break;
+      
+      delay_time =
+        gavl_time_unscale(priv->format.samplerate,
+                          f->valid_samples - write_space / sizeof(float)) / 2;
+      gavl_time_delay(&delay_time);
+      }
+    
+    while(samples_written < f->valid_samples)
+      {
+      result =
+        jack_ringbuffer_write(priv->ports[i].buffer,
+                              (const char*)(f->channels.f[priv->ports[i].index] +
+                                            samples_written),
+                              (f->valid_samples - samples_written) *
+                              sizeof(float));
+#if 0
+      if(i)
+        fprintf(stderr, "Write %d %d %ld\n", samples_written,
+                f->valid_samples - samples_written, result);
+
+#endif
+      result /= sizeof(float);
+
+      samples_written += result;
+      
+      }
+    
+    }
+  return GAVL_SINK_OK;
+  }
+
+static void
+write_frame_jack(void * p, gavl_audio_frame_t * f)
+  {
+  jack_t * priv = p;
+  gavl_audio_sink_put_frame(priv->sink, f);
+  }
+
 static int open_jack(void * data, gavl_audio_format_t * format)
   {
   int i;
@@ -180,63 +241,29 @@ static int open_jack(void * data, gavl_audio_format_t * format)
 
   gavl_audio_format_copy(format, &priv->format);
 
+  priv->sink =
+    gavl_audio_sink_create(NULL, write_func_jack, priv,
+                           &priv->format);
+  
   return 1;
   }
 
 static void close_jack(void * p)
   {
+  jack_t * priv;
+  priv = p;
+  if(priv->sink)
+    {
+    gavl_audio_sink_destroy(priv->sink);
+    priv->sink = NULL;
+    }
   }
 
-static void write_frame_jack(void * p, gavl_audio_frame_t * f)
+static gavl_audio_sink_t * get_sink_jack(void * p)
   {
-  int i;
-  int samples_written, result;
-  gavl_time_t delay_time;
-  jack_t * priv = p;
-  int write_space;
-  
-  //  fprintf(stderr, "Write jack %d\n", f->valid_samples);
-  
-  for(i = 0; i < priv->num_ports; i++)
-    {
-    if(!priv->ports[i].active)
-      continue;
-    
-    samples_written = 0;
-
-    while(1)
-      {
-      write_space = jack_ringbuffer_write_space(priv->ports[i].buffer);
-      if(write_space >= f->valid_samples * sizeof(float))
-        break;
-      
-      delay_time = gavl_time_unscale(priv->format.samplerate,
-                                     f->valid_samples - write_space / sizeof(float)) / 2;
-      gavl_time_delay(&delay_time);
-      }
-    
-    while(samples_written < f->valid_samples)
-      {
-      result =
-        jack_ringbuffer_write(priv->ports[i].buffer,
-                              (const char*)(f->channels.f[priv->ports[i].index] +
-                                            samples_written),
-                              (f->valid_samples - samples_written) *
-                              sizeof(float));
-#if 0
-      if(i)
-        fprintf(stderr, "Write %d %d %ld\n", samples_written,
-                f->valid_samples - samples_written, result);
-
-#endif
-      result /= sizeof(float);
-
-      samples_written += result;
-      
-      }
-    
-    }
-  
+  jack_t * priv;
+  priv = p;
+  return priv->sink;
   }
 
 static int get_delay_jack(void * p)
@@ -266,6 +293,7 @@ const bg_oa_plugin_t the_plugin =
     },
 
     .open =          open_jack,
+    .get_sink =      get_sink_jack,
     .start =         bg_jack_start,
     .write_audio =   write_frame_jack,
     .stop =          bg_jack_stop,

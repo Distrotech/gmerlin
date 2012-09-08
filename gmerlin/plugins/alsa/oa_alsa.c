@@ -128,6 +128,8 @@ typedef struct
   int convert_buffer_alloc;
   
   gavl_time_t buffer_time;
+  
+  gavl_audio_sink_t * sink;
   } alsa_t;
 
 static void convert_4_to_3(alsa_t * priv, gavl_audio_frame_t * frame)
@@ -192,6 +194,56 @@ static void stop_alsa(void * data)
   alsa_t * priv = data;
   snd_pcm_drop(priv->pcm);
 
+  }
+
+static gavl_sink_status_t
+write_func_alsa(void * p, gavl_audio_frame_t * f)
+  {
+  int result = -EPIPE;
+  alsa_t * priv = p;
+
+  if(priv->convert_4_3)
+    {
+    convert_4_to_3(priv, f);
+    while(result == -EPIPE)
+      {
+      result = snd_pcm_writei(priv->pcm,
+                              priv->convert_buffer,
+                              f->valid_samples);
+
+      if(result == -EPIPE)
+        {
+        //    snd_pcm_drop(priv->pcm);
+        if(snd_pcm_prepare(priv->pcm) < 0)
+          return GAVL_SINK_ERROR;
+        }
+      }
+    }
+  else
+    {
+    while(result == -EPIPE)
+      {
+      result = snd_pcm_writei(priv->pcm,
+                              f->samples.s_8,
+                              f->valid_samples);
+
+      if(result == -EPIPE)
+        {
+        //    snd_pcm_drop(priv->pcm);
+        if(snd_pcm_prepare(priv->pcm) < 0)
+          return GAVL_SINK_ERROR;
+        }
+      }
+    }
+  
+  if(result < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "snd_pcm_write returned %s",
+           snd_strerror(result));
+    return GAVL_SINK_ERROR;
+    }
+  return GAVL_SINK_OK;
   }
 
 static int open_alsa(void * data, gavl_audio_format_t * format)
@@ -325,8 +377,25 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   
   if(!priv->pcm)
     return 0;
+
   gavl_audio_format_copy(&priv->format, format);
+  priv->sink = gavl_audio_sink_create(NULL, write_func_alsa, priv,
+                                      &priv->format);
+  
   return 1;
+  }
+
+static gavl_audio_sink_t *
+get_sink_alsa(void * p)
+  {
+  alsa_t * priv = p;
+  return priv->sink;
+  }
+
+static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
+  {
+  alsa_t * priv = p;
+  gavl_audio_sink_put_frame(priv->sink, f);
   }
 
 static void close_alsa(void * p)
@@ -340,51 +409,10 @@ static void close_alsa(void * p)
     snd_pcm_close(priv->pcm);
     priv->pcm = NULL;
     }
-  }
-
-static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
-  {
-  int result = -EPIPE;
-  alsa_t * priv = p;
-
-  if(priv->convert_4_3)
+  if(priv->sink)
     {
-    convert_4_to_3(priv, f);
-    while(result == -EPIPE)
-      {
-      result = snd_pcm_writei(priv->pcm,
-                              priv->convert_buffer,
-                              f->valid_samples);
-
-      if(result == -EPIPE)
-        {
-        //    snd_pcm_drop(priv->pcm);
-        if(snd_pcm_prepare(priv->pcm) < 0)
-          return;
-        }
-      }
-    }
-  else
-    {
-    while(result == -EPIPE)
-      {
-      result = snd_pcm_writei(priv->pcm,
-                              f->samples.s_8,
-                              f->valid_samples);
-
-      if(result == -EPIPE)
-        {
-        //    snd_pcm_drop(priv->pcm);
-        if(snd_pcm_prepare(priv->pcm) < 0)
-          return;
-        }
-      }
-    }
-  
-  
-  if(result < 0)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_write returned %s", snd_strerror(result));
+    gavl_audio_sink_destroy(priv->sink);
+    priv->sink = NULL;
     }
   }
 
@@ -482,6 +510,7 @@ const bg_oa_plugin_t the_plugin =
     },
 
     .open =          open_alsa,
+    .get_sink =      get_sink_alsa,
     .start =         start_alsa,
     .write_audio =   write_frame_alsa,
     .stop =          stop_alsa,

@@ -23,6 +23,26 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "oa_pulse"
 
+static gavl_sink_status_t
+write_func_pulse(void * p, gavl_audio_frame_t * f)
+  {
+  bg_pa_t * priv;
+  int error;
+  priv = p;
+  pa_simple_write(priv->pa,
+                  f->samples.u_8,
+                  priv->block_align * f->valid_samples,
+                  &error);
+  return GAVL_SINK_OK;
+  }
+
+static void
+write_frame_pulse(void * p, gavl_audio_frame_t * f)
+  {
+  bg_pa_t * priv = p;
+  gavl_audio_sink_put_frame(priv->sink, f);
+  }
+
 static int open_pulse(void * data,
                       gavl_audio_format_t * format)
   {
@@ -32,10 +52,13 @@ static int open_pulse(void * data,
   gavl_audio_format_copy(&priv->format, format);
   
   if(!bg_pa_open(priv, 0))
-    {
     return 0;
-    }
+  
   gavl_audio_format_copy(format, &priv->format);
+
+  priv->sink = gavl_audio_sink_create(NULL, write_func_pulse, priv,
+                                      &priv->format);
+  
   return 1;
   }
 
@@ -54,15 +77,10 @@ static void close_pulse(void * p)
   bg_pa_close(p);
   }
 
-static void write_frame_pulse(void * p, gavl_audio_frame_t * f)
+static gavl_audio_sink_t * get_sink_pulse(void * p)
   {
-  bg_pa_t * priv;
-  int error;
-  priv = p;
-  pa_simple_write(priv->pa,
-                  f->samples.u_8,
-                  priv->block_align * f->valid_samples,
-                  &error);
+  bg_pa_t * priv = p;
+  return priv->sink;
   }
 
 static int get_delay_pulse(void * p)
@@ -95,6 +113,7 @@ const bg_oa_plugin_t the_plugin =
     },
 
     .open =          open_pulse,
+    .get_sink =      get_sink_pulse,
     .start =         start_pulse,
     .write_audio =   write_frame_pulse,
     .stop =          stop_pulse,

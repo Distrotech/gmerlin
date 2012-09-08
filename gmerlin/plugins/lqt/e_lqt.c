@@ -498,7 +498,8 @@ static int start_lqt(void * data)
     video_stream_t * vs = &e->video_streams[i];
     lqt_gavl_get_video_format(e->file, i, &vs->format, 1);
     if(!vs->compressed)
-      vs->sink = gavl_video_sink_create(NULL, write_video_func_lqt, vs, &vs->format);
+      vs->sink = gavl_video_sink_create(NULL,
+                                        write_video_func_lqt, vs, &vs->format);
     }
 
   if(!(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
@@ -545,7 +546,8 @@ static int start_lqt(void * data)
          // TODO: Make LQT_WAV_ID_NONE part of the public lqt API
          (e->audio_streams[i].codec_info[0]->wav_ids[0] == -1)) 
         {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Audio codec %s cannot be written to AVI files",
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "Audio codec %s cannot be written to AVI files",
                e->audio_streams[i].codec_info[0]->name);
         return 0;
         }

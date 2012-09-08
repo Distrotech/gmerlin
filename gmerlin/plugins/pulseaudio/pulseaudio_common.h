@@ -38,7 +38,8 @@ typedef struct
   int bytes_per_sample;
   int samplerate;
   
-  gavl_audio_source_t * src;
+  gavl_audio_source_t * src; // Capture
+  gavl_audio_sink_t * sink;  // Playback
   } bg_pa_t;
 
 int bg_pa_open(bg_pa_t *, int record);

@@ -214,6 +214,11 @@ void bg_pa_close(void * data)
     gavl_audio_source_destroy(priv->src);
     priv->src = NULL;
     }
+  if(priv->sink)
+    {
+    gavl_audio_sink_destroy(priv->sink);
+    priv->sink = NULL;
+    }
   }
 
 

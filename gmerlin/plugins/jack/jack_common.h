@@ -67,6 +67,7 @@ typedef struct
   int64_t samples_read; /* For i_jack only */
 
   gavl_audio_source_t * src;
+  gavl_audio_sink_t * sink;
   } jack_t;
 
 const bg_parameter_info_t * bg_jack_get_parameters(void * p);

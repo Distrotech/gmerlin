@@ -35,9 +35,11 @@ typedef struct
   {
   int esd_socket;
   char * hostname;
-  int bytes_per_sample;
+  int block_align;
   int esd_format;
   int samplerate;
+
+  gavl_audio_sink_t * sink;
   } esd_t;
 
 static const bg_parameter_info_t parameters[] =
@@ -80,10 +82,20 @@ static void destroy_esd(void *data)
   free(e);
   }
 
+static gavl_sink_status_t
+write_func_esd(void * p, gavl_audio_frame_t * f)
+  {
+  esd_t * e = p;
+  if(write(e->esd_socket, f->channels.s_8[0],
+           f->valid_samples * e->block_align) < 0)
+    return GAVL_SINK_ERROR;
+  return GAVL_SINK_OK;
+  }
+
 static int open_esd(void * data, gavl_audio_format_t * format)
   {
   esd_t * e = data;
-  e->bytes_per_sample = 1;
+  e->block_align = 1;
 
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
     
@@ -99,7 +111,7 @@ static int open_esd(void * data, gavl_audio_format_t * format)
       format->channel_locations[0] = GAVL_CHID_FRONT_CENTER;
       break;
     default:
-      e->bytes_per_sample *= 2;
+      e->block_align *= 2;
       e->esd_format |= ESD_STEREO;
       format->num_channels = 2;
       format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
@@ -117,12 +129,19 @@ static int open_esd(void * data, gavl_audio_format_t * format)
     {
     format->sample_format = GAVL_SAMPLE_S16;
     e->esd_format |= ESD_BITS16;
-    e->bytes_per_sample *= 2;
+    e->block_align *= 2;
     }
 
   e->samplerate = format->samplerate;
   
+  e->sink = gavl_audio_sink_create(NULL, write_func_esd, e, format);
   return 1;
+  }
+
+static gavl_audio_sink_t * get_sink_esd(void * p)
+  {
+  esd_t * e = p;
+  return e->sink;
   }
 
 // static int stream_count = 0;
@@ -142,13 +161,17 @@ static int start_esd(void * p)
 static void write_esd(void * p, gavl_audio_frame_t * f)
   {
   esd_t * e = p;
-  write(e->esd_socket, f->channels.s_8[0], f->valid_samples *
-        e->bytes_per_sample);
+  gavl_audio_sink_put_frame(e->sink, f);
   }
 
 static void close_esd(void * p)
   {
-
+  esd_t * e = p;
+  if(e->sink)
+    {
+    gavl_audio_sink_destroy(e->sink);
+    e->sink = NULL;
+    }
   }
 
 static void stop_esd(void * p)
@@ -185,6 +208,7 @@ const bg_oa_plugin_t the_plugin =
     .write_audio =   write_esd,
     .stop =          stop_esd,
     .close =         close_esd,
+    .get_sink =      get_sink_esd,
   };
 
 /* Include this into all plugin modules exactly once

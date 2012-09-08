@@ -116,7 +116,7 @@ typedef struct
 
   int bytes_per_sample;
   gavl_audio_format_t format;
-
+  gavl_audio_sink_t * sink;
   } oss_t;
 
 static void * create_oss()
@@ -133,7 +133,6 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
   gavl_sample_format_t sample_format;
   gavl_sample_format_t test_format;
   int test_value;
-
   
   /* Open the devices */
   
@@ -302,6 +301,42 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
   return 0;
   }
 
+static gavl_sink_status_t
+write_func_oss(void * p, gavl_audio_frame_t * f)
+  {
+  oss_t * priv = p;
+  
+  if(write(priv->fd_front, f->channels.s_8[0], f->valid_samples *
+           priv->num_channels_front * priv->bytes_per_sample) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
+           strerror(errno));
+    return GAVL_SINK_ERROR;
+    }
+  if(priv->num_channels_rear)
+    {
+    if(write(priv->fd_rear, f->channels.s_8[2], f->valid_samples *
+             priv->num_channels_rear * priv->bytes_per_sample) < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
+             strerror(errno));
+      return GAVL_SINK_ERROR;
+      }
+    }
+
+  if(priv->num_channels_center_lfe)
+    {
+    if(write(priv->fd_center_lfe, f->channels.s_8[4], f->valid_samples *
+             priv->num_channels_center_lfe * priv->bytes_per_sample) < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
+             strerror(errno));
+      return GAVL_SINK_ERROR;
+      }
+    }
+  return GAVL_SINK_OK;
+  }
+
 static int open_oss(void * data, gavl_audio_format_t * format)
   {
   int front_channels = 0;
@@ -412,7 +447,18 @@ static int open_oss(void * data, gavl_audio_format_t * format)
       gavl_bytes_per_sample(format->sample_format);
     gavl_audio_format_copy(&priv->format, format);
     }
+
+  priv->sink =
+    gavl_audio_sink_create(NULL, write_func_oss, priv,
+                           format);
+  
   return ret;
+  }
+
+static void write_frame_oss(void * p, gavl_audio_frame_t * f)
+  {
+  oss_t * priv = p;
+  gavl_audio_sink_put_frame(priv->sink, f);
   }
 
 static void stop_oss(void * p)
@@ -438,7 +484,18 @@ static void stop_oss(void * p)
 
 static void close_oss(void * p)
   {
-  
+  oss_t * priv = p;
+  if(priv->sink)
+    {
+    gavl_audio_sink_destroy(priv->sink);
+    priv->sink = NULL;
+    }
+  }
+
+static gavl_audio_sink_t * get_sink_oss(void * p)
+  {
+  oss_t * priv = p;
+  return priv->sink;
   }
 
 static int start_oss(void * data)
@@ -450,33 +507,6 @@ static int start_oss(void * data)
     return open_devices(priv, &priv->format);
   else
     return 1;
-  }
-
-static void write_frame_oss(void * p, gavl_audio_frame_t * f)
-  {
-  oss_t * priv = p;
-
-  
-  if(write(priv->fd_front, f->channels.s_8[0], f->valid_samples *
-           priv->num_channels_front * priv->bytes_per_sample) < 0)
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
-           strerror(errno));
-     
-  if(priv->num_channels_rear)
-    {
-    if(write(priv->fd_rear, f->channels.s_8[2], f->valid_samples *
-             priv->num_channels_rear * priv->bytes_per_sample) < 0)
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
-             strerror(errno));
-    }
-
-  if(priv->num_channels_center_lfe)
-    {
-    if(write(priv->fd_center_lfe, f->channels.s_8[4], f->valid_samples *
-             priv->num_channels_center_lfe * priv->bytes_per_sample) < 0)
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write failed: %s",
-             strerror(errno));
-    }
   }
 
 static void destroy_oss(void * p)
@@ -578,6 +608,7 @@ const bg_oa_plugin_t the_plugin =
     },
 
     .open =          open_oss,
+    .get_sink =      get_sink_oss,
     .start =         start_oss,
     .write_audio =   write_frame_oss,
     .stop =          stop_oss,
