@@ -115,6 +115,7 @@ const bg_encoder_plugin_t the_plugin =
     .start =                  bg_ogg_encoder_start,
 
     .get_audio_format =        bg_ogg_encoder_get_audio_format,
+    .get_audio_sink =        bg_ogg_encoder_get_audio_sink,
     
     .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
     .write_audio_packet =   bg_ogg_encoder_write_audio_packet,

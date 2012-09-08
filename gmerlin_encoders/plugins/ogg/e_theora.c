@@ -207,6 +207,10 @@ const bg_encoder_plugin_t the_plugin =
 
     .get_audio_format =        bg_ogg_encoder_get_audio_format,
     .get_video_format =        bg_ogg_encoder_get_video_format,
+
+    .get_audio_sink =        bg_ogg_encoder_get_audio_sink,
+    .get_video_sink =        bg_ogg_encoder_get_video_sink,
+
     
     .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
     .write_video_frame =   bg_ogg_encoder_write_video_frame,

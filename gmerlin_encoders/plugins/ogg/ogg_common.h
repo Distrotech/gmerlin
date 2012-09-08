@@ -66,18 +66,23 @@ typedef struct
   void           * codec_priv;
   gavl_audio_format_t format;
   const gavl_compression_info_t * ci;
+
+  gavl_audio_sink_t * sink;
   } bg_ogg_audio_stream_t;
 
 typedef struct
   {
-    const bg_ogg_codec_t * codec;
-    void           * codec_priv;
-    gavl_video_format_t format;
-    const gavl_compression_info_t * ci;
-    
-    int pass;
-    int total_passes;
-    char * stats_file;
+  const bg_ogg_codec_t * codec;
+  void           * codec_priv;
+  gavl_video_format_t format;
+  const gavl_compression_info_t * ci;
+  
+  int pass;
+  int total_passes;
+  char * stats_file;
+
+  gavl_video_sink_t * sink;
+  
   } bg_ogg_video_stream_t;
 
 struct bg_ogg_encoder_s
@@ -144,6 +149,9 @@ int bg_ogg_encoder_start(void*);
 
 void bg_ogg_encoder_get_audio_format(void * data, int stream, gavl_audio_format_t*ret);
 void bg_ogg_encoder_get_video_format(void * data, int stream, gavl_video_format_t*ret);
+
+gavl_audio_sink_t * bg_ogg_encoder_get_audio_sink(void * data, int stream);
+gavl_video_sink_t * bg_ogg_encoder_get_video_sink(void * data, int stream);
 
 int bg_ogg_encoder_write_audio_frame(void * data, gavl_audio_frame_t*f,int stream);
 int bg_ogg_encoder_write_video_frame(void * data, gavl_video_frame_t*f,int stream);
