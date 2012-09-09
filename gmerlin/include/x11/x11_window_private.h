@@ -170,9 +170,13 @@ typedef struct
   int modality;
   } window_t;
 
-#define FLAG_IS_FULLSCREEN  (1<<0)
-#define FLAG_DO_DELETE      (1<<1)
-#define FLAG_POINTER_HIDDEN (1<<2)
+#define FLAG_IS_FULLSCREEN                  (1<<0)
+#define FLAG_DO_DELETE                      (1<<1)
+#define FLAG_POINTER_HIDDEN                 (1<<2)
+#define FLAG_AUTO_RESIZE                    (1<<3)
+#define FLAG_HAVE_SHM                       (1<<4)
+#define FLAG_DISABLE_SCREENSAVER_NORMAL     (1<<5)
+#define FLAG_DISABLE_SCREENSAVER_FULLSCREEN (1<<6)
 
 #define SET_FLAG(w, flag) w->flags |= (flag)
 #define CLEAR_FLAG(w, flag) w->flags &= ~(flag)
@@ -196,8 +200,6 @@ struct bg_x11_window_s
   Display * dpy;
   GC gc;
 
-  int is_fullscreen;
-  
   window_t normal;
   window_t fullscreen;
   window_t * current;
@@ -235,15 +237,10 @@ struct bg_x11_window_s
   int idle_counter;
   
   /* Screensaver stuff */
-  
-  int disable_screensaver_normal;
-  int disable_screensaver_fullscreen;
-  
+    
   char * display_string_parent;
   char * display_string_child;
 
-  int auto_resize;
-  
   Colormap colormap;
   Colormap sub_colormap;
   
@@ -269,7 +266,6 @@ struct bg_x11_window_s
 
   /* XShm */
   
-  int have_shm;
   int shm_completion_type;
   int wait_for_completion;
   

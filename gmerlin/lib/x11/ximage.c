@@ -46,7 +46,7 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
   
   frame = calloc(1, sizeof(*frame));
 
-  if(w->have_shm)
+  if(TEST_FLAG(w, FLAG_HAVE_SHM))
     {
     /* Create Shm Image */
     frame->x11_image = XShmCreateImage(w->dpy, w->visual,
@@ -55,7 +55,7 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
                                        w->window_format.frame_width,
                                        w->window_format.frame_height);
     if(!frame->x11_image)
-      w->have_shm = 0;
+      CLEAR_FLAG(w, FLAG_HAVE_SHM);
     else
       {
       if(!bg_x11_window_create_shm(w, &frame->shminfo,
@@ -63,8 +63,7 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
                                 frame->x11_image->bytes_per_line))
         {
         XDestroyImage(frame->x11_image);
-
-        w->have_shm = 0;
+        CLEAR_FLAG(w, FLAG_HAVE_SHM);
         }
       frame->x11_image->data = frame->shminfo.shmaddr;
 
@@ -74,7 +73,7 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
       ret->strides[0] = frame->x11_image->bytes_per_line;
       }
     }
-  if(!w->have_shm)
+  if(!TEST_FLAG(w, FLAG_HAVE_SHM))
     {
     /* Use gavl to allocate memory aligned scanlines */
     ret = gavl_video_frame_create(&w->window_format);
@@ -95,7 +94,7 @@ static void put_frame_ximage(driver_data_t * d, gavl_video_frame_t * f)
   ximage_frame_t * frame = (ximage_frame_t*)f->user_data;
   bg_x11_window_t * w = d->win;
   
-  if(w->have_shm)
+  if(TEST_FLAG(w, FLAG_HAVE_SHM))
     {
     XShmPutImage(w->dpy,            /* dpy        */
                  w->current->win, /* d          */
@@ -131,7 +130,7 @@ static void destroy_frame_ximage(driver_data_t * d, gavl_video_frame_t * f)
   bg_x11_window_t * w = d->win;
   if(frame->x11_image)
     XFree(frame->x11_image);
-  if(w->have_shm)
+  if(TEST_FLAG(w, FLAG_HAVE_SHM))
     {
     bg_x11_window_destroy_shm(w, &frame->shminfo);
     gavl_video_frame_null(f);

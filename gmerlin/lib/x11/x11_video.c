@@ -163,7 +163,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   w->video_format.frame_width = PAD(w->video_format.frame_width);
   w->video_format.frame_height = PAD(w->video_format.frame_height);
   
-  if(w->auto_resize)
+  if(TEST_FLAG(w, FLAG_AUTO_RESIZE))
     {
     bg_x11_window_resize(w,
                          (w->video_format.image_width *

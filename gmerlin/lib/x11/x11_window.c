@@ -70,10 +70,10 @@ static int check_disable_screensaver(bg_x11_window_t * w)
   if(w->current->parent != w->root)
     return 0;
   
-  if(!w->is_fullscreen)
-    return w->disable_screensaver_normal;
+  if(!TEST_FLAG(w, FLAG_IS_FULLSCREEN))
+    return !!TEST_FLAG(w, FLAG_DISABLE_SCREENSAVER_NORMAL);
   else
-    return w->disable_screensaver_fullscreen;
+    return !!TEST_FLAG(w, FLAG_DISABLE_SCREENSAVER_FULLSCREEN);
   }
 
 void bg_x11_window_ping_screensaver(bg_x11_window_t * w)
@@ -444,7 +444,8 @@ static int open_display(bg_x11_window_t * w)
 #endif
 
   /* Check for XShm */
-  w->have_shm = bg_x11_window_check_shm(w->dpy, &w->shm_completion_type);
+  if(bg_x11_window_check_shm(w->dpy, &w->shm_completion_type))
+    SET_FLAG(w, FLAG_HAVE_SHM); 
   
   return 1;
   }
@@ -533,17 +534,17 @@ void bg_x11_window_init(bg_x11_window_t * w)
     {
     //    fprintf(stderr, "Is fullscreen\n");
     
-    if(!w->is_fullscreen)
+    if(!TEST_FLAG(w, FLAG_IS_FULLSCREEN))
       send_event = 1;
     w->current = &w->fullscreen;
-    w->is_fullscreen = 1;
+    SET_FLAG(w, FLAG_IS_FULLSCREEN);
     }
   else
     {
-    if(w->is_fullscreen)
+    if(TEST_FLAG(w, FLAG_IS_FULLSCREEN))
       send_event = 0;
     w->current = &w->normal;
-    w->is_fullscreen = 0;
+    CLEAR_FLAG(w, FLAG_IS_FULLSCREEN);
     }
 
 #if 1
@@ -610,7 +611,7 @@ void bg_x11_window_embed_child(bg_x11_window_t * win,
   
   /* Define back the cursor */
   XDefineCursor(win->dpy, w->win, None);
-  win->pointer_hidden = 0;
+  CLEAR_FLAG(win, FLAG_POINTER_HIDDEN);
   
   bg_x11_window_check_embed_property(win, w);
   }
@@ -915,7 +916,7 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
   int y;
   
   /* Return early if there is nothing to do */
-  if(!!fullscreen == !!w->is_fullscreen)
+  if(!!fullscreen == !!TEST_FLAG(w, FLAG_IS_FULLSCREEN))
     return 0;
   
   /* Normal->fullscreen */
@@ -933,7 +934,8 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
     w->window_height = height;
     
     w->current = &w->fullscreen;
-    w->is_fullscreen = 1;
+
+    SET_FLAG(w, FLAG_IS_FULLSCREEN);
     w->need_fullscreen = 1;
     bg_x11_window_show(w, 1);
     
@@ -966,7 +968,7 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
     
     /* Map normal window */
     w->current = &w->normal;
-    w->is_fullscreen = 0;
+    CLEAR_FLAG(w, FLAG_IS_FULLSCREEN);
     
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
@@ -996,7 +998,8 @@ void bg_x11_window_resize(bg_x11_window_t * win,
   {
   win->normal_width = width;
   win->normal_height = height;
-  if(!win->is_fullscreen && (win->normal.parent == win->root))
+  if(!TEST_FLAG(win, FLAG_IS_FULLSCREEN) &&
+     (win->normal.parent == win->root))
     {
     win->window_width = width;
     win->window_height = height;
@@ -1244,7 +1247,10 @@ bg_x11_window_set_parameter(void * data, const char * name,
 
   if(!strcmp(name, "auto_resize"))
     {
-    win->auto_resize = val->val_i;
+    if(val->val_i)
+      SET_FLAG(win, FLAG_AUTO_RESIZE);
+    else
+      CLEAR_FLAG(win, FLAG_AUTO_RESIZE);
     }
   else if(!strcmp(name, "window_x"))
     {
@@ -1268,11 +1274,17 @@ bg_x11_window_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "disable_xscreensaver_normal"))
     {
-    win->disable_screensaver_normal = val->val_i;
+    if(val->val_i)
+      SET_FLAG(win, FLAG_DISABLE_SCREENSAVER_NORMAL);
+    else
+      CLEAR_FLAG(win, FLAG_DISABLE_SCREENSAVER_NORMAL);
     }
   else if(!strcmp(name, "disable_xscreensaver_fullscreen"))
     {
-    win->disable_screensaver_fullscreen = val->val_i;
+    if(val->val_i)
+      SET_FLAG(win, FLAG_DISABLE_SCREENSAVER_FULLSCREEN);
+    else
+      CLEAR_FLAG(win, FLAG_DISABLE_SCREENSAVER_FULLSCREEN);
     }
 #ifdef HAVE_GLX
   else if(!strcmp(name, "background_color"))

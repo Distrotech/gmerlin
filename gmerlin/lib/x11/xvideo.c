@@ -355,14 +355,14 @@ static gavl_video_frame_t * create_frame_xv(driver_data_t * d)
 
   frame = calloc(1, sizeof(*frame));
 
-  if(w->have_shm)
+  if(TEST_FLAG(w, FLAG_HAVE_SHM))
     {
     frame->xv_image =
       XvShmCreateImage(w->dpy, priv->current_port, priv->format, NULL,
                        w->video_format.frame_width,
                        w->video_format.frame_height, &frame->shminfo);
     if(!frame->xv_image)
-      w->have_shm = 0;
+      CLEAR_FLAG(w, FLAG_HAVE_SHM);
     else
       {
       if(!bg_x11_window_create_shm(w, &frame->shminfo,
@@ -370,14 +370,14 @@ static gavl_video_frame_t * create_frame_xv(driver_data_t * d)
         {
         XFree(frame->xv_image);
         frame->xv_image = NULL;
-        w->have_shm = 0;
+        CLEAR_FLAG(w, FLAG_HAVE_SHM);
         }
       else
         frame->xv_image->data = frame->shminfo.shmaddr;
       }
     }
 
-  if(!w->have_shm)
+  if(!TEST_FLAG(w, FLAG_HAVE_SHM))
     {
     ret = gavl_video_frame_create(&w->video_format);
     frame->xv_image =
@@ -438,7 +438,7 @@ static void put_frame_xv(driver_data_t * d, gavl_video_frame_t * f)
   priv = (xv_priv_t *)(d->priv);
   w = d->win;
 
-  if(w->have_shm)
+  if(TEST_FLAG(w, FLAG_HAVE_SHM))
     {
     XvShmPutImage(w->dpy,
                   priv->current_port,
@@ -481,8 +481,8 @@ static void destroy_frame_xv(driver_data_t * d, gavl_video_frame_t * f)
 
   if(frame->xv_image)
     XFree(frame->xv_image);
-
-  if(w->have_shm)
+     
+  if(TEST_FLAG(w, FLAG_HAVE_SHM))
     {
     bg_x11_window_destroy_shm(w, &frame->shminfo);
     gavl_video_frame_null(f);
