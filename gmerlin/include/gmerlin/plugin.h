@@ -888,7 +888,7 @@ struct bg_oa_plugin_s
    *  \returns Audio sink
    */
   
-  gavl_audio_sink_t * (*get_audio_sink)(void * priv);
+  gavl_audio_sink_t * (*get_sink)(void * priv);
   
   /** \brief Get the number of buffered audio samples
    *  \param priv The handle returned by the create() method

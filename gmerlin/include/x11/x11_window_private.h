@@ -170,8 +170,18 @@ typedef struct
   int modality;
   } window_t;
 
+#define FLAG_IS_FULLSCREEN  (1<<0)
+#define FLAG_DO_DELETE      (1<<1)
+#define FLAG_POINTER_HIDDEN (1<<2)
+
+#define SET_FLAG(w, flag) w->flags |= (flag)
+#define CLEAR_FLAG(w, flag) w->flags &= ~(flag)
+#define TEST_FLAG(w, flag) (w->flags & flag)
+
 struct bg_x11_window_s
   {
+  int flags;
+
   /* User settable stuff (initialized before x11_window_create) */
   
   int min_width;
@@ -199,10 +209,6 @@ struct bg_x11_window_s
   int screen;
   int window_x, window_y;
 
-  /* Event types (set by x11_window_handle_event()) */
-
-  int do_delete;
-    
   /* Fullscreen stuff */
 
   int fullscreen_mode;
@@ -227,7 +233,6 @@ struct bg_x11_window_s
   
   /* For hiding the mouse pointer */
   int idle_counter;
-  int pointer_hidden;
   
   /* Screensaver stuff */
   

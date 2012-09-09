@@ -367,19 +367,19 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   int  button_number = 0;
   window_t * cur;
   int x_src, y_src;
-  w->do_delete = 0;
+  CLEAR_FLAG(w, FLAG_DO_DELETE);
   
   if(!evt || (evt->type != MotionNotify))
     {
     w->idle_counter++;
     if(w->idle_counter >= IDLE_MAX)
       {
-      if(!w->pointer_hidden)
+      if(!TEST_FLAG(w, FLAG_POINTER_HIDDEN))
         {
         if(w->current->child == None)
           XDefineCursor(w->dpy, w->current->win, w->fullscreen_cursor);
         XFlush(w->dpy);
-        w->pointer_hidden = 1;
+        SET_FLAG(w, FLAG_POINTER_HIDDEN);
         }
       w->idle_counter = 0;
       }
@@ -439,7 +439,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         {
         if(evt->xclient.data.l[0] == w->WM_DELETE_WINDOW)
           {
-          w->do_delete = 1;
+          SET_FLAG(w, FLAG_DO_DELETE);
           return;
           }
         else if(evt->xclient.data.l[0] == w->WM_TAKE_FOCUS)
@@ -763,12 +763,12 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         }
       
       w->idle_counter = 0;
-      if(w->pointer_hidden)
+      if(TEST_FLAG(w, FLAG_POINTER_HIDDEN))
         {
         XDefineCursor(w->dpy, w->normal.win, None);
         XDefineCursor(w->dpy, w->fullscreen.win, None);
         XFlush(w->dpy);
-        w->pointer_hidden = 0;
+        CLEAR_FLAG(w, FLAG_POINTER_HIDDEN);
         }
 
       if((evt->xmotion.window == w->normal.win) ||
@@ -815,8 +815,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
         XDefineCursor(w->dpy, w->normal.win, None);
         w->idle_counter = 0;
-        w->pointer_hidden = 0;
-        
+        CLEAR_FLAG(w, FLAG_POINTER_HIDDEN);
         }
       else if(evt->xmap.window == w->fullscreen.win)
         {
@@ -830,8 +829,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
         XDefineCursor(w->dpy, w->fullscreen.win, None);
         w->idle_counter = 0;
-        w->pointer_hidden = 0;
-
+        CLEAR_FLAG(w, FLAG_POINTER_HIDDEN);
         
         //        bg_x11_window_set_fullscreen_mapped(w, &w->fullscreen);
         }
