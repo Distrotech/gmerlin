@@ -677,10 +677,10 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
          (evt->xcreatewindow.window != cur->subwin))
         {
         cur->child = evt->xcreatewindow.window;
-        fprintf(stderr, "Embed child %ld\n",
-                evt->xcreatewindow.window);
+        //        fprintf(stderr, "Embed child %ld\n",
+        //        evt->xcreatewindow.window);
         bg_x11_window_embed_child(w, cur);
-        fprintf(stderr, "Embed child done\n");
+        //        fprintf(stderr, "Embed child done\n");
         }
       break;
     case DestroyNotify:
@@ -693,12 +693,12 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
       if(evt->xdestroywindow.window == cur->child)
         {
-        fprintf(stderr, "UnEmbed child\n");
+        //        fprintf(stderr, "UnEmbed child\n");
         cur->child = None;
         cur->child_xembed = 0;
         if(cur->child_accel_map)
           bg_accelerator_map_clear(cur->child_accel_map);
-        fprintf(stderr, "Unembed child done\n");
+        //        fprintf(stderr, "Unembed child done\n");
         }
       break;
 #if 0

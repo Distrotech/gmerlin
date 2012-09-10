@@ -94,7 +94,6 @@ static void handle_osd(bg_player_video_stream_t * ctx)
         {
         bg_ov_set_overlay(ctx->ov, ctx->osd_id, NULL);
         ctx->osd_active = 0;
-        fprintf(stderr, "Clearing Overlay\n");
         }
       }
     }
