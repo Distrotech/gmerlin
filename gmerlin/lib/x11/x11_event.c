@@ -342,7 +342,7 @@ static void transform_coords(bg_x11_window_t * w,
                              int * x_ret, int * y_ret)
   {
   double coord_norm;
-  if(!w->video_open)
+  if(!TEST_FLAG(w, FLAG_VIDEO_OPEN))
     {
     *x_ret = x_raw;
     *y_ret = y_raw;
@@ -367,6 +367,13 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   int  button_number = 0;
   window_t * cur;
   int x_src, y_src;
+  int show_still = 0;
+
+  if(TEST_FLAG(w, FLAG_OVERLAY_CHANGED) &&
+     TEST_FLAG(w, FLAG_STILL_MODE))
+    show_still = 1;
+  
+  
   CLEAR_FLAG(w, FLAG_DO_DELETE);
   
   if(!evt || (evt->type != MotionNotify))
@@ -387,19 +394,20 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
   bg_x11_screensaver_ping(&w->scr);
   
-  if(w->need_focus && window_is_viewable(w->dpy, w->current->focus_child))
+  if(TEST_FLAG(w, FLAG_NEED_FOCUS) &&
+     window_is_viewable(w->dpy, w->current->focus_child))
     {
     XSetInputFocus(w->dpy, w->current->focus_child,
                    RevertToParent, w->focus_time);
-    w->need_focus = 0;
+    CLEAR_FLAG(w, FLAG_NEED_FOCUS);
     }
 
-  if(w->need_fullscreen &&
+  if(TEST_FLAG(w, FLAG_NEED_FULLSCREEN) &&
      window_is_viewable(w->dpy, w->fullscreen.win))
     {
     bg_x11_window_set_fullscreen_mapped(w, &w->fullscreen);
 
-    w->need_fullscreen = 0;
+    CLEAR_FLAG(w, FLAG_NEED_FULLSCREEN);
     }
   
   if(!evt)
@@ -407,7 +415,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
   if(evt->type == w->shm_completion_type)
     {
-    w->wait_for_completion = 0;
+    CLEAR_FLAG(w, FLAG_WAIT_FOR_COMPLETION);
     return;
     }
 
@@ -415,8 +423,8 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   switch(evt->type)
     {
     case Expose:
-      if(w->still_mode && w->still_frame)
-        bg_x11_window_put_frame_internal(w, w->still_frame);
+      if(TEST_FLAG(w, FLAG_STILL_MODE))
+        show_still = 1;
       break;
     case PropertyNotify:
       if(evt->xproperty.atom == w->_XEMBED_INFO)
@@ -450,7 +458,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                     RevertToParent, evt->xclient.data.l[1]);
           else
             {
-            w->need_focus = 1;
+            SET_FLAG(w, FLAG_NEED_FOCUS);
             w->focus_time = evt->xclient.data.l[1];
             result = 0;
             }
@@ -1012,15 +1020,19 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         }
 
     }
+
+  if(show_still)
+    bg_x11_window_put_frame_internal(w, w->still_frame);
+  
   }
 
 void bg_x11_window_handle_events(bg_x11_window_t * win, int milliseconds)
   {
   XEvent evt;
   
-  if(win->wait_for_completion)
+  if(TEST_FLAG(win, FLAG_WAIT_FOR_COMPLETION))
     {
-    while(win->wait_for_completion)
+    while(TEST_FLAG(win, FLAG_WAIT_FOR_COMPLETION))
       {
       x11_window_next_event(win, &evt, -1);
       bg_x11_window_handle_event(win, &evt);

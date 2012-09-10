@@ -107,7 +107,7 @@ static void put_frame_ximage(driver_data_t * d, gavl_video_frame_t * f)
                  w->dst_rect.w,    /* src_width  */
                  w->dst_rect.h,   /* src_height */
                  True                  /* send_event */);
-    w->wait_for_completion = 1;
+    SET_FLAG(w, FLAG_WAIT_FOR_COMPLETION);
     }
   else
     {

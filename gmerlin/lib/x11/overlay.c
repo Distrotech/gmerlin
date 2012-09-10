@@ -62,6 +62,8 @@ void bg_x11_window_set_overlay(bg_x11_window_t * w, int stream,
       break;
       }
     }
+
+  SET_FLAG(w, FLAG_OVERLAY_CHANGED);
   }
 
 gavl_overlay_t *

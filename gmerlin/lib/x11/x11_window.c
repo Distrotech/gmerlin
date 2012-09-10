@@ -936,7 +936,7 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
     w->current = &w->fullscreen;
 
     SET_FLAG(w, FLAG_IS_FULLSCREEN);
-    w->need_fullscreen = 1;
+    SET_FLAG(w, FLAG_NEED_FULLSCREEN);
     bg_x11_window_show(w, 1);
     
     if(w->callbacks && w->callbacks->set_fullscreen)
@@ -1295,7 +1295,10 @@ bg_x11_window_set_parameter(void * data, const char * name,
   
   else if(!strcmp(name, "force_hw_scale"))
     {
-    win->force_hw_scale = val->val_i;
+    if(val->val_i)
+      SET_FLAG(win, FLAG_FORCE_HW_SCALE);
+    else
+      CLEAR_FLAG(win, FLAG_FORCE_HW_SCALE);
     }
   else if(!strcmp(name, "scale_mode"))
     {
@@ -1319,7 +1322,6 @@ bg_x11_window_set_parameter(void * data, const char * name,
     opt = gavl_video_scaler_get_options(win->scaler);
     if(scale_mode != gavl_video_options_get_scale_mode(opt))
       {
-      win->scaler_options_changed = 1;
       gavl_video_options_set_scale_mode(opt, scale_mode);
       }
     }
@@ -1328,7 +1330,6 @@ bg_x11_window_set_parameter(void * data, const char * name,
     opt = gavl_video_scaler_get_options(win->scaler);
     if(val->val_i != gavl_video_options_get_scale_order(opt))
       {
-      win->scaler_options_changed = 1;
       gavl_video_options_set_scale_order(opt, val->val_i);
       }
     }
@@ -1337,7 +1338,6 @@ bg_x11_window_set_parameter(void * data, const char * name,
     opt = gavl_video_scaler_get_options(win->scaler);
     if(val->val_i != gavl_video_options_get_quality(opt))
       {
-      win->scaler_options_changed = 1;
       gavl_video_options_set_quality(opt, val->val_i);
       }
     }

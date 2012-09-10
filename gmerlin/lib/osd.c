@@ -38,6 +38,8 @@ struct bg_osd_s
   gavl_overlay_t * ovl;
   gavl_time_t duration;
   float font_size;
+
+  gavl_timer_t * timer;
   };
 
 bg_osd_t * bg_osd_create()
@@ -58,14 +60,16 @@ bg_osd_t * bg_osd_create()
 
   val.val_i = 20;
   bg_text_renderer_set_parameter(ret->renderer, "cache_size", &val);
-  
-  
+
+  ret->timer = gavl_timer_create();
+  gavl_timer_start(ret->timer);
   return ret;
   }
 
 void bg_osd_destroy(bg_osd_t * osd)
   {
   bg_text_renderer_destroy(osd->renderer);
+  gavl_timer_destroy(osd->timer);
   free(osd);
   }
 
@@ -208,15 +212,19 @@ void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
   bg_text_renderer_init(osd->renderer, format, overlay_format);
   }
 
-int bg_osd_overlay_valid(bg_osd_t * osd, gavl_time_t time)
+int bg_osd_overlay_valid(bg_osd_t * osd)
   {
+  gavl_time_t t;
+  
   if(!osd->enable || (osd->ovl->frame->timestamp < 0))
     return 0;
 
-  if(time < osd->ovl->frame->timestamp)
+  t = gavl_timer_get(osd->timer);
+  
+  if(t < osd->ovl->frame->timestamp)
     return 0;
   
-  else if(time > osd->ovl->frame->timestamp + osd->ovl->frame->duration)
+  else if(t > osd->ovl->frame->timestamp + osd->ovl->frame->duration)
     {
     osd->ovl->frame->timestamp = -1;
     return 0;
@@ -227,7 +235,7 @@ int bg_osd_overlay_valid(bg_osd_t * osd, gavl_time_t time)
 #define FLOAT_BAR_SIZE       18
 #define FLOAT_BAR_SIZE_TOTAL 20
 
-static void print_float(bg_osd_t * osd, float val, char c, gavl_time_t time)
+static void print_float(bg_osd_t * osd, float val, char c)
   {
   char _buf[FLOAT_BAR_SIZE_TOTAL+3];
   char * buf = _buf;
@@ -256,41 +264,36 @@ static void print_float(bg_osd_t * osd, float val, char c, gavl_time_t time)
   
   bg_text_renderer_render(osd->renderer, _buf, osd->ovl);
 
-  osd->ovl->frame->timestamp = time;
+  osd->ovl->frame->timestamp = gavl_timer_get(osd->timer);
   osd->ovl->frame->duration = osd->duration;
-  
   }
 
-void bg_osd_set_volume_changed(bg_osd_t * osd, float val,
-                               gavl_time_t time)
+void bg_osd_set_volume_changed(bg_osd_t * osd, float val)
   {
   if(!osd->enable)
     return;
-  print_float(osd, val, 'V', time);
+  print_float(osd, val, 'V');
   }
 
-void bg_osd_set_brightness_changed(bg_osd_t * osd, float val,
-                                   gavl_time_t time)
+void bg_osd_set_brightness_changed(bg_osd_t * osd, float val)
   {
   if(!osd->enable)
     return;
-  print_float(osd, val, 'B', time);
+  print_float(osd, val, 'B');
 
   }
 
-void bg_osd_set_contrast_changed(bg_osd_t * osd, float val,
-                                 gavl_time_t time)
+void bg_osd_set_contrast_changed(bg_osd_t * osd, float val)
   {
   if(!osd->enable)
     return;
-  print_float(osd, val, 'C', time);
+  print_float(osd, val, 'C');
   }
 
-void bg_osd_set_saturation_changed(bg_osd_t * osd, float val,
-                                   gavl_time_t time)
+void bg_osd_set_saturation_changed(bg_osd_t * osd, float val)
   {
   if(!osd->enable)
     return;
-  print_float(osd, val, 'S', time);
+  print_float(osd, val, 'S');
   }
 

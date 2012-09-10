@@ -62,24 +62,21 @@ static void brightness_callback(void * data, float val)
   {
   bg_player_t * p = data;
 
-  bg_osd_set_brightness_changed(p->video_stream.osd, val,
-                                p->video_stream.frame_time);
+  bg_osd_set_brightness_changed(p->video_stream.osd, val);
   }
 
 static void saturation_callback(void * data, float val)
   {
   bg_player_t * p = data;
 
-  bg_osd_set_saturation_changed(p->video_stream.osd, val,
-                                p->video_stream.frame_time);
+  bg_osd_set_saturation_changed(p->video_stream.osd, val);
   }
 
 static void contrast_callback(void * data, float val)
   {
   bg_player_t * p = data;
 
-  bg_osd_set_contrast_changed(p->video_stream.osd, val,
-                              p->video_stream.frame_time);
+  bg_osd_set_contrast_changed(p->video_stream.osd, val);
   }
 
 static void
@@ -99,8 +96,7 @@ handle_messages(bg_player_video_stream_t * ctx, gavl_time_t time)
         if(ctx->osd_ovl)
           bg_osd_set_volume_changed(ctx->osd,
                                     (arg_f - BG_PLAYER_VOLUME_MIN)/
-                                    (-BG_PLAYER_VOLUME_MIN),
-                                    time);
+                                    (-BG_PLAYER_VOLUME_MIN));
         break;
       default:
         break;
@@ -471,7 +467,7 @@ void * bg_player_ov_thread(void * data)
     /* Display OSD */
     if(s->osd_id >= 0)
       {
-      if(bg_osd_overlay_valid(s->osd, s->frame_time))
+      if(bg_osd_overlay_valid(s->osd))
         bg_ov_set_overlay(s->ov, s->osd_id, s->osd_ovl);
       else
         bg_ov_set_overlay(s->ov, s->osd_id, NULL);

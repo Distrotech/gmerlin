@@ -39,7 +39,7 @@ static video_driver_t const * const drivers[] =
 
 static int set_brightness(bg_x11_window_t * w)
   {
-  if(w->video_open &&
+  if(TEST_FLAG(w, FLAG_VIDEO_OPEN) &&
      w->current_driver->driver->set_brightness &&
      (w->current_driver->flags & DRIVER_FLAG_BRIGHTNESS))
     {
@@ -57,7 +57,7 @@ int bg_x11_window_set_brightness(bg_x11_window_t * w, float val)
 
 static int set_saturation(bg_x11_window_t * w)
   {
-  if(w->video_open &&
+  if(TEST_FLAG(w, FLAG_VIDEO_OPEN) &&
      w->current_driver->driver->set_saturation &&
      (w->current_driver->flags & DRIVER_FLAG_SATURATION))
     {
@@ -75,7 +75,7 @@ int bg_x11_window_set_saturation(bg_x11_window_t * w, float val)
 
 static int set_contrast(bg_x11_window_t * w)
   {
-  if(w->video_open &&
+  if(TEST_FLAG(w, FLAG_VIDEO_OPEN) &&
      w->current_driver->driver->set_contrast &&
      (w->current_driver->flags & DRIVER_FLAG_CONTRAST))
     {
@@ -147,14 +147,13 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   
   int min_penalty, min_index;
 
-  w->do_sw_scale = 0;
+  CLEAR_FLAG(w, FLAG_DO_SW_SCALE);
   w->current_driver = NULL;  
-  if(!w->drivers_initialized)
+  if(!TEST_FLAG(w, FLAG_DRIVERS_INITIALIZED))
     {
     init(w);
-    w->drivers_initialized = 1;
+    SET_FLAG(w, FLAG_DRIVERS_INITIALIZED);
     }
-  
   
   gavl_video_format_copy(&w->video_format, format);
 
@@ -188,7 +187,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
    *  Now, get the driver with the lowest penalty.
    *  Scaling would be nice as well
    */
-  force_hw_scale = w->force_hw_scale;
+  force_hw_scale = !!TEST_FLAG(w, FLAG_FORCE_HW_SCALE);
   
   while(1)
     {
@@ -260,8 +259,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   
   if(!w->current_driver->driver->can_scale)
     {
-    w->do_sw_scale = 1;
-    
+    SET_FLAG(w, FLAG_DO_SW_SCALE);
     }
 
   set_contrast(w);
@@ -276,7 +274,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
 
 gavl_video_frame_t * bg_x11_window_create_frame(bg_x11_window_t * w)
   {
-  if(!w->do_sw_scale)
+  if(!TEST_FLAG(w, FLAG_DO_SW_SCALE))
     {
     if(w->current_driver->driver->create_frame)
       return w->current_driver->driver->create_frame(w->current_driver);
@@ -289,7 +287,7 @@ gavl_video_frame_t * bg_x11_window_create_frame(bg_x11_window_t * w)
 
 void bg_x11_window_destroy_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
   {
-  if(!w->do_sw_scale)
+  if(!TEST_FLAG(w, FLAG_DO_SW_SCALE))
     {
     if(w->current_driver->driver->destroy_frame)
       w->current_driver->driver->destroy_frame(w->current_driver, f);
@@ -301,7 +299,7 @@ void bg_x11_window_destroy_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
   }
 
 #define PADD_SIZE 128
-#define PADD_IMAGE_SIZE(s) \
+#define PAD_IMAGE_SIZE(s) \
 s = ((s + PADD_SIZE - 1) / PADD_SIZE) * PADD_SIZE
 
 void bg_x11_window_set_rectangles(bg_x11_window_t * w,
@@ -312,10 +310,10 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
   gavl_rectangle_f_copy(&w->src_rect, src_rect);
   gavl_rectangle_i_copy(&w->dst_rect, dst_rect);
   
-  if(!w->video_open)
-    w->video_open = 1;
+  if(!TEST_FLAG(w, FLAG_VIDEO_OPEN))
+    SET_FLAG(w, FLAG_VIDEO_OPEN);
   
-  if(w->current_driver && w->do_sw_scale)
+  if(w->current_driver && TEST_FLAG(w, FLAG_DO_SW_SCALE))
     {
 
     if((w->window_format.image_width > w->window_format.frame_width) ||
@@ -324,8 +322,8 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
       w->window_format.frame_width = w->window_format.image_width;
       w->window_format.frame_height = w->window_format.image_height;
       
-      PADD_IMAGE_SIZE(w->window_format.frame_width);
-      PADD_IMAGE_SIZE(w->window_format.frame_height);
+      PAD_IMAGE_SIZE(w->window_format.frame_width);
+      PAD_IMAGE_SIZE(w->window_format.frame_height);
       
       if(w->window_frame)
         {
@@ -362,13 +360,12 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
   bg_x11_window_clear(w);
   }
 
-#undef PADD_IMAGE_SIZE
+#undef PAD_IMAGE_SIZE
 
 void bg_x11_window_put_frame_internal(bg_x11_window_t * w,
                                       gavl_video_frame_t * f)
   {
-  
-  if(w->do_sw_scale)
+  if(TEST_FLAG(w, FLAG_DO_SW_SCALE))
     {
     gavl_video_scaler_scale(w->scaler, f, w->window_frame);
     w->current_driver->driver->put_frame(w->current_driver,
@@ -380,13 +377,13 @@ void bg_x11_window_put_frame_internal(bg_x11_window_t * w,
 
 void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
   {
-  w->still_mode = 0;
+  CLEAR_FLAG(w, FLAG_STILL_MODE);
   bg_x11_window_put_frame_internal(w, f);
   }
 
 void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)
   {
-  w->still_mode = 1;
+  SET_FLAG(w, FLAG_STILL_MODE);
   if(!w->still_frame)
     {
     w->still_frame = bg_x11_window_create_frame(w);
@@ -422,8 +419,8 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
   if(w->current_driver->driver->close)
     w->current_driver->driver->close(w->current_driver);
   
-  w->video_open = 0;
-
+  CLEAR_FLAG(w, FLAG_VIDEO_OPEN);
+  
   XSync(w->dpy, False);
   bg_x11_window_handle_events(w, 0);
   }

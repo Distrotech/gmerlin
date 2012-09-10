@@ -454,7 +454,7 @@ static void put_frame_xv(driver_data_t * d, gavl_video_frame_t * f)
                   w->dst_rect.w,  /* dest_w */
                   w->dst_rect.h,  /* dest_h */
                   True);
-    w->wait_for_completion = 1;
+    SET_FLAG(w, FLAG_WAIT_FOR_COMPLETION);
     }
   else
     {

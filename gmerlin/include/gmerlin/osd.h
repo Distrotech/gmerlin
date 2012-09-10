@@ -34,10 +34,10 @@ void bg_osd_init(bg_osd_t*,
                  const gavl_video_format_t * format,
                  gavl_video_format_t * overlay_format);
 
-int bg_osd_overlay_valid(bg_osd_t*, gavl_time_t time);
+int bg_osd_overlay_valid(bg_osd_t*);
 
-void bg_osd_set_volume_changed(bg_osd_t*, float val, gavl_time_t time);
-void bg_osd_set_brightness_changed(bg_osd_t*, float val, gavl_time_t time);
-void bg_osd_set_contrast_changed(bg_osd_t*, float val, gavl_time_t time);
-void bg_osd_set_saturation_changed(bg_osd_t*, float val, gavl_time_t time);
+void bg_osd_set_volume_changed(bg_osd_t*, float val);
+void bg_osd_set_brightness_changed(bg_osd_t*, float val);
+void bg_osd_set_contrast_changed(bg_osd_t*, float val);
+void bg_osd_set_saturation_changed(bg_osd_t*, float val);
 

@@ -177,6 +177,15 @@ typedef struct
 #define FLAG_HAVE_SHM                       (1<<4)
 #define FLAG_DISABLE_SCREENSAVER_NORMAL     (1<<5)
 #define FLAG_DISABLE_SCREENSAVER_FULLSCREEN (1<<6)
+#define FLAG_WAIT_FOR_COMPLETION            (1<<7)
+#define FLAG_DO_SW_SCALE                    (1<<8)
+#define FLAG_VIDEO_OPEN                     (1<<9)
+#define FLAG_DRIVERS_INITIALIZED            (1<<10)
+#define FLAG_NEED_FOCUS                     (1<<11)
+#define FLAG_NEED_FULLSCREEN                (1<<12)
+#define FLAG_FORCE_HW_SCALE                 (1<<13)
+#define FLAG_STILL_MODE                     (1<<14)
+#define FLAG_OVERLAY_CHANGED                (1<<15)
 
 #define SET_FLAG(w, flag) w->flags |= (flag)
 #define CLEAR_FLAG(w, flag) w->flags &= ~(flag)
@@ -267,17 +276,13 @@ struct bg_x11_window_s
   /* XShm */
   
   int shm_completion_type;
-  int wait_for_completion;
   
   gavl_video_format_t video_format;
-  int video_open;
   
   /* Scaling stuff */
   gavl_video_format_t window_format;
   gavl_video_frame_t * window_frame;
   gavl_video_scaler_t * scaler;
-  int do_sw_scale;
-  int scaler_options_changed;
   
   gavl_rectangle_f_t src_rect;
   gavl_rectangle_i_t dst_rect;
@@ -286,15 +291,8 @@ struct bg_x11_window_s
   
   driver_data_t * current_driver;
   
-  int drivers_initialized;
-
   /* For asynchronous focus grabbing */
-  int need_focus;
   Time focus_time;
-
-  int need_fullscreen;
-  
-  int force_hw_scale;
   
   /* Overlay stuff */
   int num_overlay_streams;
@@ -313,7 +311,6 @@ struct bg_x11_window_s
   float contrast;
   
   gavl_video_frame_t * still_frame;
-  int still_mode;
 
   Pixmap icon;
   Pixmap icon_mask;
