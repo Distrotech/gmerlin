@@ -178,18 +178,9 @@ typedef struct
   /* If the playback was interrupted due to changed parameters */
   int interrupted;
 
-#if 0  
-  bg_plugin_handle_t * plugin_handle;
-  bg_ov_plugin_t     * plugin;
-  void               * priv;
-#else
   bg_ov_t * ov;
-#endif
-
   bg_ov_callbacks_t callbacks;
-  //  gavl_video_frame_t * still_frame;
   gavl_time_t frame_time;
-  //  gavl_time_t last_time; /* Last player time */
   
   int subtitle_id; /* Stream id for subtitles in the output plugin */
 
@@ -221,6 +212,9 @@ typedef struct
   /* 1 if we are currently displaying a subtitle */
   int subtitle_active;
 
+  /* 1 if we are currently displaying OSD */
+  int osd_active;
+    
   int64_t skip;
   int64_t last_frame_time;
   

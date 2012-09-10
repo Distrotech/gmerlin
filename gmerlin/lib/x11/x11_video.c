@@ -373,6 +373,8 @@ void bg_x11_window_put_frame_internal(bg_x11_window_t * w,
     }
   else
     w->current_driver->driver->put_frame(w->current_driver, f);
+
+  CLEAR_FLAG(w, FLAG_OVERLAY_CHANGED);
   }
 
 void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)

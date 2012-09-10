@@ -41,3 +41,4 @@ void bg_osd_set_brightness_changed(bg_osd_t*, float val);
 void bg_osd_set_contrast_changed(bg_osd_t*, float val);
 void bg_osd_set_saturation_changed(bg_osd_t*, float val);
 
+int bg_osd_changed(bg_osd_t * osd);

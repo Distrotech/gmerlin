@@ -367,12 +367,14 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   int  button_number = 0;
   window_t * cur;
   int x_src, y_src;
-  int show_still = 0;
+  int still_shown = 0;
 
   if(TEST_FLAG(w, FLAG_OVERLAY_CHANGED) &&
      TEST_FLAG(w, FLAG_STILL_MODE))
-    show_still = 1;
-  
+    {
+    bg_x11_window_put_frame_internal(w, w->still_frame);
+    still_shown = 1;
+    }
   
   CLEAR_FLAG(w, FLAG_DO_DELETE);
   
@@ -423,8 +425,11 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   switch(evt->type)
     {
     case Expose:
-      if(TEST_FLAG(w, FLAG_STILL_MODE))
-        show_still = 1;
+      if(TEST_FLAG(w, FLAG_STILL_MODE) && !still_shown)
+        {
+        bg_x11_window_put_frame_internal(w, w->still_frame);
+        still_shown = 1;
+        }
       break;
     case PropertyNotify:
       if(evt->xproperty.atom == w->_XEMBED_INFO)
@@ -1021,9 +1026,6 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
     }
 
-  if(show_still)
-    bg_x11_window_put_frame_internal(w, w->still_frame);
-  
   }
 
 void bg_x11_window_handle_events(bg_x11_window_t * win, int milliseconds)

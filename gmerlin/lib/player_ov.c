@@ -61,22 +61,43 @@ button_callback(void * data, int x, int y, int button, int mask)
 static void brightness_callback(void * data, float val)
   {
   bg_player_t * p = data;
-
   bg_osd_set_brightness_changed(p->video_stream.osd, val);
   }
 
 static void saturation_callback(void * data, float val)
   {
   bg_player_t * p = data;
-
   bg_osd_set_saturation_changed(p->video_stream.osd, val);
   }
 
 static void contrast_callback(void * data, float val)
   {
   bg_player_t * p = data;
-
   bg_osd_set_contrast_changed(p->video_stream.osd, val);
+  }
+
+static void handle_osd(bg_player_video_stream_t * ctx)
+  {
+  /* Display OSD */
+  if(ctx->osd_id >= 0)
+    {
+    if(bg_osd_changed(ctx->osd))
+      {
+      bg_ov_set_overlay(ctx->ov, ctx->osd_id, ctx->osd_ovl);
+      ctx->osd_active = 1;
+      return;
+      }
+
+    if(ctx->osd_active)
+      {
+      if(!bg_osd_overlay_valid(ctx->osd))
+        {
+        bg_ov_set_overlay(ctx->ov, ctx->osd_id, NULL);
+        ctx->osd_active = 0;
+        fprintf(stderr, "Clearing Overlay\n");
+        }
+      }
+    }
   }
 
 static void
@@ -303,6 +324,8 @@ void bg_player_ov_update_still(bg_player_t * p)
     handle_subtitle(p);
   
   handle_messages(s, s->frame_time);
+
+  handle_osd(s);
   
   bg_ov_put_still(s->ov, frame);
   bg_ov_handle_events(s->ov);
@@ -316,6 +339,8 @@ void bg_player_ov_cleanup(bg_player_video_stream_t * s)
     s->osd_ovl = NULL;
     }
 
+  s->osd_active = 0;
+  
   //  destroy_frame(s, s->frame);
   //  s->frame = NULL;
 
@@ -380,6 +405,7 @@ void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * s)
 
 void bg_player_ov_handle_events(bg_player_video_stream_t * s)
   {
+  handle_osd(s);
   bg_ov_handle_events(s->ov);
   handle_messages(s, s->frame_time);
   }
@@ -463,15 +489,8 @@ void * bg_player_ov_thread(void * data)
       }
     /* Handle message */
     handle_messages(s, s->frame_time);
-    
-    /* Display OSD */
-    if(s->osd_id >= 0)
-      {
-      if(bg_osd_overlay_valid(s->osd))
-        bg_ov_set_overlay(s->ov, s->osd_id, s->osd_ovl);
-      else
-        bg_ov_set_overlay(s->ov, s->osd_id, NULL);
-      }
+
+    handle_osd(s);
     
     /* Check Timing */
     bg_player_time_get(p, 1, &current_time);

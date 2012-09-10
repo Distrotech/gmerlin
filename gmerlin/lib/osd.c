@@ -38,8 +38,8 @@ struct bg_osd_s
   gavl_overlay_t * ovl;
   gavl_time_t duration;
   float font_size;
-
   gavl_timer_t * timer;
+  int changed;
   };
 
 bg_osd_t * bg_osd_create()
@@ -266,6 +266,18 @@ static void print_float(bg_osd_t * osd, float val, char c)
 
   osd->ovl->frame->timestamp = gavl_timer_get(osd->timer);
   osd->ovl->frame->duration = osd->duration;
+
+  osd->changed = 1;
+  }
+
+int bg_osd_changed(bg_osd_t * osd)
+  {
+  if(osd->changed)
+    {
+    osd->changed = 0;
+    return 1;
+    }
+  return 0;
   }
 
 void bg_osd_set_volume_changed(bg_osd_t * osd, float val)
