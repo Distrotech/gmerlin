@@ -100,7 +100,7 @@ static void handle_osd(bg_player_video_stream_t * ctx)
   }
 
 static void
-handle_messages(bg_player_video_stream_t * ctx, gavl_time_t time)
+handle_messages(bg_player_video_stream_t * ctx)
   {
   bg_msg_t * msg;
   int id;
@@ -322,11 +322,12 @@ void bg_player_ov_update_still(bg_player_t * p)
   if(DO_SUBTITLE(p->flags))
     handle_subtitle(p);
   
-  handle_messages(s, s->frame_time);
+  handle_messages(s);
 
   handle_osd(s);
-  
-  bg_ov_put_still(s->ov, frame);
+
+  frame->duration = -1;
+  bg_ov_put_frame(s->ov, frame);
   bg_ov_handle_events(s->ov);
   }
 
@@ -406,7 +407,7 @@ void bg_player_ov_handle_events(bg_player_video_stream_t * s)
   {
   handle_osd(s);
   bg_ov_handle_events(s->ov);
-  handle_messages(s, s->frame_time);
+  handle_messages(s);
   }
 
 static void wait_or_skip(bg_player_t * p, gavl_time_t diff_time)
@@ -487,7 +488,7 @@ void * bg_player_ov_thread(void * data)
       handle_subtitle(p);
       }
     /* Handle message */
-    handle_messages(s, s->frame_time);
+    handle_messages(s);
 
     handle_osd(s);
     
@@ -509,7 +510,7 @@ void * bg_player_ov_thread(void * data)
       bg_player_broadcast_time(p, s->frame_time);
       }
     
-    bg_ov_put_video(s->ov, frame);
+    bg_ov_put_frame(s->ov, frame);
     bg_ov_handle_events(s->ov);
     s->frames_written++;
     }

@@ -114,8 +114,6 @@ typedef struct
   gavl_video_format_t window_format;
   
   /* Still image stuff */
-  int do_still;
-  gavl_video_frame_t * still_frame;
   
   /* Accelerator map */
 
@@ -129,6 +127,7 @@ typedef struct
   int keep_aspect;
 
   gavl_video_frame_t * frame;
+  gavl_video_sink_t * sink;
   
   } x11_t;
 
@@ -579,11 +578,6 @@ static void * create_x11()
   priv->window_callbacks.set_fullscreen = set_fullscreen;
   
   /* For updating OSD */
-#if 0
-  priv->window_callbacks.brightness_callback = brightness_callback;
-  priv->window_callbacks.saturation_callback = saturation_callback;
-  priv->window_callbacks.contrast_callback = contrast_callback;
-#endif
   priv->window_callbacks.data = priv;
   
   return priv;
@@ -800,6 +794,33 @@ static void set_window_options_x11(void * data,
                             icon, icon_format);
   }
 
+static gavl_video_frame_t * get_frame_x11(void * data)
+  {
+  x11_t * priv = data;
+
+  if(!priv->frame)
+    priv->frame = bg_x11_window_create_frame(priv->win);
+  return priv->frame;
+  }
+
+static gavl_sink_status_t put_func_x11(void * data, gavl_video_frame_t * frame)
+  {
+  x11_t * priv = data;
+
+  /* TODO: Handle errors */
+  if(frame->duration < 0)
+    bg_x11_window_put_still(priv->win, frame);
+  else
+    bg_x11_window_put_frame(priv->win, frame);
+  
+  return GAVL_SINK_OK;
+  }
+
+static void put_frame_x11(void * data, gavl_video_frame_t * frame)
+  {
+  x11_t * priv = data;
+  gavl_video_sink_put_frame(priv->sink, frame);
+  }
 
 static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   {
@@ -817,18 +838,20 @@ static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   
   priv->keep_aspect = keep_aspect;
   priv->is_open = 1;
+
+  priv->sink = gavl_video_sink_create(get_frame_x11,
+                                      put_func_x11,
+                                      priv, format);
+  
   set_drawing_coords(priv);
   
   return result;
   }
 
-static gavl_video_frame_t * get_frame_x11(void * data)
+static gavl_video_sink_t * get_sink_x11(void * data)
   {
   x11_t * priv = data;
-
-  if(!priv->frame)
-    priv->frame = bg_x11_window_create_frame(priv->win);
-  return priv->frame;
+  return priv->sink;
   }
 
 static gavl_overlay_t * create_overlay_x11(void * data, int id)
@@ -848,7 +871,6 @@ static int
 add_overlay_stream_x11(void * data, gavl_video_format_t * format)
   {
   x11_t * priv = data;
-  /* Realloc */
   return bg_x11_window_add_overlay_stream(priv->win, format);
   }
 
@@ -856,20 +878,6 @@ static void set_overlay_x11(void * data, int stream, gavl_overlay_t * ovl)
   {
   x11_t * priv = data;
   bg_x11_window_set_overlay(priv->win, stream, ovl);
-  }
-
-
-static void put_video_x11(void * data, gavl_video_frame_t * frame)
-  {
-  x11_t * priv = data;
-  bg_x11_window_put_frame(priv->win, frame);
-  }
-
-static void put_still_x11(void * data, gavl_video_frame_t * frame)
-  {
-  x11_t * priv = data;
-  bg_x11_window_put_still(priv->win, frame);
-  
   }
 
 static void handle_events_x11(void * data)
@@ -890,6 +898,11 @@ static void close_x11(void * data)
     {
     bg_x11_window_destroy_frame(priv->win, priv->frame);
     priv->frame = NULL;
+    }
+  if(priv->sink)
+    {
+    gavl_video_sink_destroy(priv->sink);
+    priv->sink = 0;
     }
   }
 
@@ -919,40 +932,41 @@ const bg_ov_plugin_t the_plugin =
       .long_name =     TRS("X11"),
       .description =   TRS("X11 display driver with support for XVideo, XImage and OpenGL. Shared memory (XShm) is used where available."),
       .type =          BG_PLUGIN_OUTPUT_VIDEO,
-      .flags =         BG_PLUGIN_PLAYBACK | BG_PLUGIN_EMBED_WINDOW,
+      .flags =         BG_PLUGIN_PLAYBACK | BG_PLUGIN_EMBED_WINDOW | BG_PLUGIN_OV_STILL,
       .priority =      BG_PLUGIN_PRIORITY_MAX,
       .create =        create_x11,
       .destroy =       destroy_x11,
 
-      .get_parameters = get_parameters_x11,
-      .set_parameter =  set_parameter_x11,
-      .get_parameter =  get_parameter_x11
+      .get_parameters   = get_parameters_x11,
+      .set_parameter    = set_parameter_x11,
+      .get_parameter    = get_parameter_x11
     },
-    .set_callbacks =  set_callbacks_x11,
+    .set_callbacks      = set_callbacks_x11,
     
-    .set_window =         set_window_x11,
-    .get_window =         get_window_x11,
-    .set_window_options =   set_window_options_x11,
-    .set_window_title =   set_window_title_x11,
-    .open =               open_x11,
-    .get_frame =    get_frame_x11,
+    .set_window         = set_window_x11,
+    .get_window         = get_window_x11,
+    .set_window_options = set_window_options_x11,
+    .set_window_title   = set_window_title_x11,
+    .open               = open_x11,
+    .get_sink           = get_sink_x11,
+    
+    .get_frame          = get_frame_x11,
 
     .add_overlay_stream = add_overlay_stream_x11,
 
-    .create_overlay =    create_overlay_x11,
+    .create_overlay     = create_overlay_x11,
 
-    .set_overlay =        set_overlay_x11,
+    .set_overlay        = set_overlay_x11,
 
-    .put_video =          put_video_x11,
-    .put_still =          put_still_x11,
-
-    .handle_events =  handle_events_x11,
+    .put_frame          = put_frame_x11,
     
-    .destroy_overlay =   destroy_overlay_x11,
-    .close =          close_x11,
-    .update_aspect =  update_aspect_x11,
+    .handle_events      = handle_events_x11,
     
-    .show_window =    show_window_x11
+    .destroy_overlay    = destroy_overlay_x11,
+    .close              = close_x11,
+    .update_aspect      = update_aspect_x11,
+    
+    .show_window        = show_window_x11
   };
 
 /* Include this into all plugin modules exactly once

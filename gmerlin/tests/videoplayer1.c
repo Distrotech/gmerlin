@@ -200,7 +200,7 @@ int main(int argc, char ** argv)
         gavl_time_delay(&diff_time);
         }
       
-      output_plugin->put_video(output_handle->priv, output_frame);
+      output_plugin->put_frame(output_handle->priv, output_frame);
       output_plugin->handle_events(output_handle->priv);
       frames_written++;
       }
@@ -212,10 +212,11 @@ int main(int argc, char ** argv)
       if(!input_plugin->read_video(input_handle->priv, output_frame, 0))
         break;
             
-      diff_time = gavl_time_unscale(info->video_streams[0].format.timescale, output_frame->timestamp) - gavl_timer_get(timer);
+      diff_time = gavl_time_unscale(info->video_streams[0].format.timescale,
+                                    output_frame->timestamp) - gavl_timer_get(timer);
       if(diff_time > 0)
         gavl_time_delay(&diff_time);
-      output_plugin->put_video(output_handle->priv, output_frame);
+      output_plugin->put_frame(output_handle->priv, output_frame);
       frames_written++;
       }
     }

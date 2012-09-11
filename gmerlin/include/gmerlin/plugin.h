@@ -114,6 +114,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame,
 #define BG_PLUGIN_CALLBACKS       (1<<15)  //!< Plugin can be opened from callbacks
 #define BG_PLUGIN_BROADCAST       (1<<16)  //!< Plugin can broadcasts (e.g. webstreams)
 #define BG_PLUGIN_DEVPARAM        (1<<17)  //!< Plugin has pluggable devices as parameters, which must be updated regurarly
+#define BG_PLUGIN_OV_STILL        (1<<18)  //!< OV plugin supports still images
 
 #define BG_PLUGIN_UNSUPPORTED     (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
 
@@ -1292,10 +1293,11 @@ struct bg_ov_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param frame Frame to display
    *  
-   *  This is for video playback
+   *  If the frame duration is <= 0 the image is supposed to be
+   *  a still image
    */
 
-  void (*put_video)(void * priv, gavl_video_frame_t*frame);
+  void (*put_frame)(void * priv, gavl_video_frame_t*frame);
 
   /** \brief Display a still image
    *  \param priv The handle returned by the create() method
@@ -1306,7 +1308,7 @@ struct bg_ov_plugin_s
    *  is received.
    */
   
-  void (*put_still)(void * priv, gavl_video_frame_t*frame);
+  //  void (*put_still)(void * priv, gavl_video_frame_t*frame);
 
   /** \brief Return a video sink
    *  \param priv The handle returned by the create() method

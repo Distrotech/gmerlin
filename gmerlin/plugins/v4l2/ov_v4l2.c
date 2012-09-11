@@ -68,6 +68,8 @@ typedef struct
   int buffer_index;
   
   int force_rw;
+
+  gavl_video_sink_t * sink;
   
   } ov_v4l2_t;
 
@@ -232,6 +234,7 @@ static void cleanup_write(ov_v4l2_t * v4l)
   {
   if(v4l->buffers[0].f)
     gavl_video_frame_destroy(v4l->buffers[0].f);
+  
   }
 
 static int init_mmap(ov_v4l2_t * v4l)
@@ -335,13 +338,17 @@ static void cleanup_mmap(ov_v4l2_t * v4l)
     }
   }
 
-static void put_frame_write(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
+static gavl_sink_status_t put_frame_write(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
   {
   if(-1 == write(v4l->fd, frame->planes[0], v4l->fmt.fmt.pix.sizeimage))
+    {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "write failed: %s", strerror(errno));
+    return GAVL_SINK_ERROR;
+    }
+  return GAVL_SINK_OK;
   }
 
-static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
+static gavl_sink_status_t put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
   {
   struct v4l2_buffer buf;
   buffer_t * b = frame->user_data;
@@ -357,7 +364,7 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
   if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_QBUF, &buf))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_QBUF failed: %s", strerror(errno));
-    return;
+    return GAVL_SINK_ERROR;
     }
   //  fprintf(stderr, "VIDIOC_QBUF %d\n", buf.index);
 
@@ -370,12 +377,13 @@ static void put_frame_mmap(ov_v4l2_t * v4l, gavl_video_frame_t * frame)
     if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_STREAMON, &type))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_STREAMON failed: %s", strerror(errno));
-      return;
+      return GAVL_SINK_ERROR;
       }
     //    fprintf(stderr, "STREAMON\n");
     }
 
   b->queued = 1;
+  return GAVL_SINK_OK;
   }
 
 static void cleanup_v4l(ov_v4l2_t * v4l)
@@ -403,7 +411,112 @@ static void cleanup_v4l(ov_v4l2_t * v4l)
   v4l->num_queued = 0;
   close(v4l->fd);
   v4l->fd = -1;
+
+  if(v4l->sink)
+    {
+    gavl_video_sink_destroy(v4l->sink);
+    v4l->sink = NULL;
+    }
+  
   return;
+  }
+
+
+static gavl_video_frame_t * get_frame_dqbuf(ov_v4l2_t * v4l, int mode)
+  {
+  int i;
+  struct v4l2_buffer buf;
+
+  for(i = 0; i < v4l->num_buffers; i++)
+    {
+    if(!v4l->buffers[i].queued)
+      return v4l->buffers[i].f;
+    }
+
+#if 0
+
+  CLEAR(buf);
+  buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+  buf.index = v4l->buffer_index;
+  buf.memory = mode;
+  
+  if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
+    {
+    fprintf(stderr, "VIDIOC_QUERY_BUF %d done: %d, queued: %d\n",
+            buf.index,
+            !!(buf.flags & V4L2_BUF_FLAG_DONE),
+            !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
+        
+    }
+#endif
+  
+  CLEAR(buf);
+  buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+  buf.memory = mode;
+  
+  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_DQBUF failed: %s",
+           strerror(errno));
+    return NULL;
+    }
+
+  v4l->buffer_index++;
+  if(v4l->buffer_index >= v4l->num_buffers)
+    v4l->buffer_index = 0;
+  
+  //  fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
+  //          buf.index,
+  //          !!(buf.flags & V4L2_BUF_FLAG_DONE),
+  //          !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
+
+  return v4l->buffers[buf.index].f;
+  }
+
+static gavl_video_frame_t * get_frame_v4l2(void * data)
+  {
+
+  ov_v4l2_t * v4l = data;
+  
+  switch(v4l->io)
+    {
+    case BGV4L2_IO_METHOD_RW:
+      return v4l->buffers[0].f;
+      break;
+    case BGV4L2_IO_METHOD_MMAP:
+      return get_frame_dqbuf(v4l, V4L2_MEMORY_MMAP);
+      break;
+    default:
+      return NULL;
+    }
+  }
+
+
+static gavl_sink_status_t put_func_v4l2(void * data, gavl_video_frame_t * frame)
+  {
+  ov_v4l2_t * v4l = data;
+
+  //  fprintf(stderr, "Put video v4l2\n");
+  
+  switch(v4l->io)
+    {
+    case BGV4L2_IO_METHOD_RW:
+      put_frame_write(v4l, frame);
+      break;
+    case BGV4L2_IO_METHOD_MMAP:
+      put_frame_mmap(v4l, frame);
+      break;
+    default:
+      break;
+    }
+  //  fprintf(stderr, "Put video v4l2 done\n");
+  return GAVL_SINK_ERROR;
+  }
+
+static void put_frame_v4l2(void * data, gavl_video_frame_t * frame)
+  {
+  ov_v4l2_t * v4l = data;
+  gavl_video_sink_put_frame(v4l->sink, frame);
   }
 
 static int open_v4l2(void * priv,
@@ -499,97 +612,18 @@ static int open_v4l2(void * priv,
     default:
       return 0;
     }
-  return 0;
+
+  v4l->sink = gavl_video_sink_create(get_frame_v4l2,
+                                     put_func_v4l2,
+                                     v4l, format);
+  
+  return 1;
   }
 
-static gavl_video_frame_t * get_frame_dqbuf(ov_v4l2_t * v4l, int mode)
-  {
-  int i;
-  struct v4l2_buffer buf;
-
-  for(i = 0; i < v4l->num_buffers; i++)
-    {
-    if(!v4l->buffers[i].queued)
-      return v4l->buffers[i].f;
-    }
-
-#if 0
-
-  CLEAR(buf);
-  buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-  buf.index = v4l->buffer_index;
-  buf.memory = mode;
-  
-  if (0 == bgv4l2_ioctl (v4l->fd, VIDIOC_QUERYBUF, &buf))
-    {
-    fprintf(stderr, "VIDIOC_QUERY_BUF %d done: %d, queued: %d\n",
-            buf.index,
-            !!(buf.flags & V4L2_BUF_FLAG_DONE),
-            !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
-        
-    }
-#endif
-  
-  CLEAR(buf);
-  buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-  buf.memory = mode;
-  
-  if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_DQBUF, &buf))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_DQBUF failed: %s",
-           strerror(errno));
-    return NULL;
-    }
-
-  v4l->buffer_index++;
-  if(v4l->buffer_index >= v4l->num_buffers)
-    v4l->buffer_index = 0;
-  
-  //  fprintf(stderr, "VIDIOC_DQBUF %d done: %d, queued: %d\n",
-  //          buf.index,
-  //          !!(buf.flags & V4L2_BUF_FLAG_DONE),
-  //          !!(buf.flags & V4L2_BUF_FLAG_QUEUED));
-
-  return v4l->buffers[buf.index].f;
-  }
-
-static gavl_video_frame_t * get_frame_v4l2(void * data)
-  {
-
-  ov_v4l2_t * v4l = data;
-  
-  switch(v4l->io)
-    {
-    case BGV4L2_IO_METHOD_RW:
-      return v4l->buffers[0].f;
-      break;
-    case BGV4L2_IO_METHOD_MMAP:
-      return get_frame_dqbuf(v4l, V4L2_MEMORY_MMAP);
-      break;
-    default:
-      return NULL;
-    }
-  }
-
-
-static void put_video_v4l2(void * data, gavl_video_frame_t * frame)
+static gavl_video_sink_t * get_sink_v4l2(void * data)
   {
   ov_v4l2_t * v4l = data;
-
-  //  fprintf(stderr, "Put video v4l2\n");
-  
-  switch(v4l->io)
-    {
-    case BGV4L2_IO_METHOD_RW:
-      put_frame_write(v4l, frame);
-      break;
-    case BGV4L2_IO_METHOD_MMAP:
-      put_frame_mmap(v4l, frame);
-      break;
-    default:
-      return;
-    }
-  //  fprintf(stderr, "Put video v4l2 done\n");
+  return v4l->sink;
   }
 
 static void show_window_v4l2(void * data, int show)
@@ -629,13 +663,14 @@ const bg_ov_plugin_t the_plugin =
     //    .set_window_options =   set_window_options_v4l2,
     //    .set_window_title =   set_window_title_v4l2,
     .open =               open_v4l2,
+    .get_sink = get_sink_v4l2,
     .get_frame =    get_frame_v4l2,
 
     //    .add_overlay_stream = add_overlay_stream_v4l2,
     //    .create_overlay =    create_overlay_v4l2,
     //    .set_overlay =        set_overlay_v4l2,
 
-    .put_video =          put_video_v4l2,
+    .put_frame =          put_frame_v4l2,
 
     //    .handle_events =  handle_events_v4l2,
     

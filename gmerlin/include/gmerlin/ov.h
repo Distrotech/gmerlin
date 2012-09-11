@@ -45,7 +45,9 @@ void bg_ov_set_window_title(bg_ov_t * ov, const char * title);
 void bg_ov_set_callbacks(bg_ov_t * ov, bg_ov_callbacks_t * callbacks);
   
 int  bg_ov_open(bg_ov_t * ov, gavl_video_format_t * format, int keep_aspect);
-  
+
+gavl_video_sink_t * bg_ov_get_sink(bg_ov_t * ov);
+
 gavl_video_frame_t * bg_ov_get_frame(bg_ov_t * ov);
   
 int bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format);
@@ -54,9 +56,7 @@ gavl_overlay_t * bg_ov_create_overlay(bg_ov_t * ov, int id);
  
 void bg_ov_set_overlay(bg_ov_t * ov, int stream, gavl_overlay_t * ovl);
 
-void bg_ov_put_video(bg_ov_t * ov, gavl_video_frame_t*frame);
-  
-void bg_ov_put_still(bg_ov_t * ov, gavl_video_frame_t*frame);
+void bg_ov_put_frame(bg_ov_t * ov, gavl_video_frame_t*frame);
 
 void bg_ov_handle_events(bg_ov_t * ov);
 

@@ -685,7 +685,7 @@ void * bg_recorder_video_thread(void * data)
       if(vs->do_convert_monitor)
         gavl_video_convert(vs->monitor_cnv, vs->pipe_frame, monitor_frame);
       
-      vs->monitor_plugin->put_video(vs->monitor_handle->priv, monitor_frame);
+      vs->monitor_plugin->put_frame(vs->monitor_handle->priv, monitor_frame);
       }
     if(vs->monitor_plugin && vs->monitor_plugin->handle_events)
       vs->monitor_plugin->handle_events(vs->monitor_handle->priv);

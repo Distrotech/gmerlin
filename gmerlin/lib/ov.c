@@ -55,6 +55,9 @@ struct bg_ov_s
     } * ovl_str;
   int num_ovl_str;
   gavl_video_frame_t * still_frame;
+
+  gavl_video_sink_t * sink_ext;
+  gavl_video_sink_t * sink_int;
   };
 
 bg_ov_t * bg_ov_create(bg_plugin_handle_t * h)
@@ -143,26 +146,118 @@ void bg_ov_set_callbacks(bg_ov_t * ov, bg_ov_callbacks_t * callbacks)
     }
   }
 
+gavl_video_frame_t * bg_ov_get_frame(bg_ov_t * ov)
+  {
+  return gavl_video_sink_get_frame(ov->sink_ext);
+  }
+
+static gavl_video_frame_t * get_frame_func(void * priv)
+  {
+  gavl_video_frame_t * ret;
+  bg_ov_t * ov = priv;
+  LOCK(ov);
+  ret = gavl_video_sink_get_frame(ov->sink_int);
+  UNLOCK(ov);
+  return ret;
+  }
+
+
+void bg_ov_put_frame(bg_ov_t * ov, gavl_video_frame_t*frame)
+  {
+  gavl_video_sink_put_frame(ov->sink_ext, frame);
+  }
+
+static void blend_overlays(bg_ov_t * ov, gavl_video_frame_t * f)
+  {
+  int i;
+  for(i = 0; i < ov->num_ovl_str; i++)
+    {
+    if(ov->ovl_str[i].ovl)
+      {
+      //      fprintf(stderr, "Blend overlay\n");
+      gavl_overlay_blend(ov->ovl_str[i].ctx, f);
+      }
+    }
+  ov->flags &= ~FLAG_OVERLAY_CHANGED;
+  }
+
+static gavl_sink_status_t put_video(bg_ov_t * ov, gavl_video_frame_t*frame)
+  {
+  gavl_sink_status_t ret;
+
+  ov->flags &= ~FLAG_STILL_MODE;
+  
+  if(ov->flags & FLAG_EMULATE_OVL)
+    blend_overlays(ov, frame);
+  LOCK(ov);
+  ret = gavl_video_sink_put_frame(ov->sink_int, frame);
+  UNLOCK(ov);
+    
+  return ret;
+  }
+
+static gavl_sink_status_t put_still(bg_ov_t * ov, gavl_video_frame_t*frame)
+  {
+  gavl_sink_status_t ret;
+
+  ov->flags |= FLAG_STILL_MODE;
+  if(!(ov->plugin->common.flags & BG_PLUGIN_OV_STILL))
+    ov->flags |= FLAG_EMULATE_STILL;
+
+  /* Save this frame */
+
+  if(ov->flags & (FLAG_EMULATE_STILL|FLAG_EMULATE_OVL))
+    {
+    if(!ov->still_frame)
+      ov->still_frame = gavl_video_frame_create(&ov->format);
+    gavl_video_frame_copy(&ov->format, ov->still_frame, frame);
+    ov->still_frame->duration = -1;
+    }
+
+  if(ov->flags & FLAG_EMULATE_OVL)
+    blend_overlays(ov, frame);
+  
+  LOCK(ov);
+  ret = gavl_video_sink_put_frame(ov->sink_int, frame);
+  UNLOCK(ov);
+  
+  return ret;
+  }
+
+
+static gavl_sink_status_t put_frame_func(void * priv, gavl_video_frame_t*frame)
+  {
+  bg_ov_t * ov = priv;
+  if(frame->duration < 0)
+    return put_still(ov, frame);
+  else
+    return put_video(ov, frame);
+  }
+
 int  bg_ov_open(bg_ov_t * ov, gavl_video_format_t * format, int keep_aspect)
   {
   int ret;
 
   LOCK(ov);
   ret = ov->plugin->open(ov->priv, format, keep_aspect);
-  UNLOCK(ov);
-  gavl_video_format_copy(&ov->format, format);
   if(ret)
-    ov->flags = FLAG_OPEN;
+    ov->sink_int = ov->plugin->get_sink(ov->priv);
+  UNLOCK(ov);
+
+  if(!ret)
+    return ret;
+  
+  gavl_video_format_copy(&ov->format, format);
+  ov->flags = FLAG_OPEN;
+  ov->sink_ext = gavl_video_sink_create(get_frame_func,
+                                        put_frame_func, ov, format);
+  
   return ret;
   }
-  
-gavl_video_frame_t * bg_ov_get_frame(bg_ov_t * ov)
+
+gavl_video_sink_t * bg_ov_get_sink(bg_ov_t * ov)
   {
-  gavl_video_frame_t * ret;
-  LOCK(ov);
-  ret = ov->plugin->get_frame(ov->priv);
-  UNLOCK(ov);
-  return ret;
+  return ov->sink_ext;
   }
 
 int bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format)
@@ -255,57 +350,6 @@ void bg_ov_destroy_overlay(bg_ov_t * ov, int id, gavl_overlay_t * ovl)
     ov->plugin->destroy_overlay(ov->priv, id, ovl);
   }
 
-static void blend_overlays(bg_ov_t * ov, gavl_video_frame_t * f)
-  {
-  int i;
-  for(i = 0; i < ov->num_ovl_str; i++)
-    {
-    if(ov->ovl_str[i].ovl)
-      {
-      //      fprintf(stderr, "Blend overlay\n");
-      gavl_overlay_blend(ov->ovl_str[i].ctx, f);
-      }
-    }
-  ov->flags &= ~FLAG_OVERLAY_CHANGED;
-  }
-
-void bg_ov_put_video(bg_ov_t * ov, gavl_video_frame_t*frame)
-  {
-  ov->flags &= ~FLAG_STILL_MODE;
-  
-  if(ov->flags & FLAG_EMULATE_OVL)
-    blend_overlays(ov, frame);
-  LOCK(ov);
-  ov->plugin->put_video(ov->priv, frame);
-  UNLOCK(ov);
-  }
-
-void bg_ov_put_still(bg_ov_t * ov, gavl_video_frame_t*frame)
-  {
-  ov->flags |= FLAG_STILL_MODE;
-  if(!ov->plugin->put_still)
-    ov->flags |= FLAG_EMULATE_STILL;
-
-  /* Save this frame */
-
-  if(ov->flags & (FLAG_EMULATE_STILL|FLAG_EMULATE_OVL))
-    {
-    if(!ov->still_frame)
-      ov->still_frame = gavl_video_frame_create(&ov->format);
-    gavl_video_frame_copy(&ov->format, ov->still_frame, frame);
-    }
-
-  if(ov->flags & FLAG_EMULATE_OVL)
-    blend_overlays(ov, frame);
-  
-  LOCK(ov);
-  if(ov->flags & FLAG_EMULATE_STILL)
-    ov->plugin->put_video(ov->priv, frame);
-  else
-    ov->plugin->put_still(ov->priv, frame);
-  UNLOCK(ov);
-  }
-
 void bg_ov_handle_events(bg_ov_t * ov)
   {
   if(ov->flags & FLAG_STILL_MODE)
@@ -320,11 +364,8 @@ void bg_ov_handle_events(bg_ov_t * ov)
 
       if(ov->flags & FLAG_EMULATE_OVL)
         blend_overlays(ov, f);
-
-      if(ov->flags & FLAG_EMULATE_STILL)
-        ov->plugin->put_video(ov->priv, f);
-      else
-        ov->plugin->put_still(ov->priv, f);
+      
+      ov->plugin->put_frame(ov->priv, f);
       UNLOCK(ov);
       }
     }

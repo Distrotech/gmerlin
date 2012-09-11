@@ -617,7 +617,7 @@ static void * video_thread_func(void * data)
     if(v->do_ov)
       {
       pthread_mutex_lock(&v->ov_mutex);
-      v->ov_plugin->put_video(v->ov_handle->priv, out_frame);
+      v->ov_plugin->put_frame(v->ov_handle->priv, out_frame);
       frame_time = gavl_timer_get(v->timer);
       
       v->ov_plugin->handle_events(v->ov_handle->priv);

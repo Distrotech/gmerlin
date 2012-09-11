@@ -51,7 +51,7 @@ type_names[] =
     { "AudioFilter",             BG_PLUGIN_FILTER_AUDIO },
     { "VideoFilter",             BG_PLUGIN_FILTER_VIDEO },
     { "Visualization",           BG_PLUGIN_VISUALIZATION },
-    { NULL,                  BG_PLUGIN_NONE }
+    { NULL,                      BG_PLUGIN_NONE }
   };
 
 static const struct
@@ -75,23 +75,24 @@ static const struct
   }
 flag_names[] =
   {
-    { "Removable",    BG_PLUGIN_REMOVABLE      }, /* Removable media (CD, DVD etc.) */
-    { "Recorder",     BG_PLUGIN_RECORDER       }, /* Plugin can record              */
-    { "File",         BG_PLUGIN_FILE           }, /* Plugin reads/writes files      */
-    { "URL",          BG_PLUGIN_URL            }, /* Plugin reads URLs or streams   */
-    { "Playback",     BG_PLUGIN_PLAYBACK       }, /* Output plugins for playback    */
-    { "Stdin",          BG_PLUGIN_STDIN         }, /* Plugin reads from stdin */
-    { "Tuner",          BG_PLUGIN_TUNER         }, /* Plugin has tuner */
-    { "Filter1",        BG_PLUGIN_FILTER_1      }, /* Filter with one input port */
-    { "EmbedWindow",    BG_PLUGIN_EMBED_WINDOW },
+    { "Removable",      BG_PLUGIN_REMOVABLE       }, /* Removable media (CD, DVD etc.) */
+    { "Recorder",       BG_PLUGIN_RECORDER        }, /* Plugin can record              */
+    { "File",           BG_PLUGIN_FILE            }, /* Plugin reads/writes files      */
+    { "URL",            BG_PLUGIN_URL             }, /* Plugin reads URLs or streams   */
+    { "Playback",       BG_PLUGIN_PLAYBACK        }, /* Output plugins for playback    */
+    { "Stdin",          BG_PLUGIN_STDIN           }, /* Plugin reads from stdin */
+    { "Tuner",          BG_PLUGIN_TUNER           }, /* Plugin has tuner */
+    { "Filter1",        BG_PLUGIN_FILTER_1        }, /* Filter with one input port */
+    { "EmbedWindow",    BG_PLUGIN_EMBED_WINDOW    },
     { "VisualizeFrame", BG_PLUGIN_VISUALIZE_FRAME },
-    { "VisualizeGL",    BG_PLUGIN_VISUALIZE_GL },
-    { "PP",             BG_PLUGIN_PP },
-    { "Callbacks",      BG_PLUGIN_CALLBACKS },
-    { "Broadcast",      BG_PLUGIN_BROADCAST },
-    { "Devparam",       BG_PLUGIN_DEVPARAM },
-    { "Unsupported",    BG_PLUGIN_UNSUPPORTED   },
-    { NULL,    0                           },
+    { "VisualizeGL",    BG_PLUGIN_VISUALIZE_GL    },
+    { "PP",             BG_PLUGIN_PP              },
+    { "Callbacks",      BG_PLUGIN_CALLBACKS       },
+    { "Broadcast",      BG_PLUGIN_BROADCAST       },
+    { "Devparam",       BG_PLUGIN_DEVPARAM        },
+    { "OVStill",        BG_PLUGIN_OV_STILL        },
+    { "Unsupported",    BG_PLUGIN_UNSUPPORTED     },
+    { NULL,    0                                  },
   };
 
 static const char * const plugin_key            = "PLUGIN";
