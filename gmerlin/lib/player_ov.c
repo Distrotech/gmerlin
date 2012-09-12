@@ -484,17 +484,14 @@ void * bg_player_ov_thread(void * data)
     
     /* Subtitle handling */
     if(DO_SUBTITLE(p->flags))
-      {
       handle_subtitle(p);
-      }
-    /* Handle message */
+    
+    /* Handle stuff */
     handle_messages(s);
-
     handle_osd(s);
     
     /* Check Timing */
     bg_player_time_get(p, 1, &current_time);
-
     diff_time =  s->frame_time - current_time;
     
 #ifdef DUMP_TIMESTAMPS

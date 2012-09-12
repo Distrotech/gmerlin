@@ -130,6 +130,8 @@ typedef struct
   bg_stream_action_t action;
 
   int do_still;
+
+  gavl_video_source_t * src;
   } input_t;
 
 static const bg_parameter_info_t * get_parameters_input(void * priv)
@@ -166,7 +168,6 @@ static void set_parameter_input(void * priv, const char * name,
     }
   }
 
-
 static int open_input(void * priv, const char * filename)
   {
   const bg_plugin_info_t * info;
@@ -177,7 +178,6 @@ static int open_input(void * priv, const char * filename)
   const gavl_metadata_t * m;
   
   input_t * inp = priv;
-
   
   /* Check if the first file exists */
   
@@ -427,9 +427,62 @@ static int get_compression_info_input(void * priv, int stream,
   return ret;
   }
 
+static gavl_source_status_t
+read_video_func_input(void * priv, gavl_video_frame_t ** fp)
+  {
+  gavl_video_format_t format;
+  input_t * inp = priv;
+  gavl_video_frame_t * f = *fp;
+  
+  if(inp->do_still)
+    {
+    if(inp->current_frame)
+      return GAVL_SOURCE_EOF;
+    }
+  else if(inp->current_frame == inp->frame_end)
+    return GAVL_SOURCE_EOF;
+  
+  if(!inp->header_read)
+    {
+    if(!inp->do_still)
+      sprintf(inp->filename_buffer, inp->template, inp->current_frame);
+    
+    if(!inp->image_reader->read_header(inp->handle->priv,
+                                       inp->filename_buffer,
+                                       &format))
+      return GAVL_SOURCE_EOF;
+    }
+  if(!inp->image_reader->read_image(inp->handle->priv, f))
+    {
+    return GAVL_SOURCE_EOF;
+    }
+  if(f)
+    {
+    f->timestamp = (inp->current_frame - inp->frame_start) * inp->frame_duration;
+
+    if(inp->do_still)
+      f->duration = -1;
+    else
+      f->duration = inp->frame_duration;
+    }
+  inp->header_read = 0;
+  inp->current_frame++;
+  return GAVL_SOURCE_OK;
+  }
+
 static int start_input(void * priv)
   {
+  input_t * inp = priv;
+  if(inp->action == BG_STREAM_ACTION_DECODE)
+    inp->src = gavl_video_source_create(read_video_func_input, inp,
+                                        0, &inp->track_info.video_streams[0].format);
   return 1;
+  }
+
+static gavl_video_source_t * get_video_source_input(void * priv, int stream)
+  {
+  input_t * inp = priv;
+  return inp->src;
   }
 
 static int has_frame_input(void * priv, int stream)
@@ -440,42 +493,8 @@ static int has_frame_input(void * priv, int stream)
 static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
                                   int stream)
   {
-  gavl_video_format_t format;
   input_t * inp = priv;
-  
-  if(inp->do_still)
-    {
-    if(inp->current_frame)
-      return 0;
-    }
-  else if(inp->current_frame == inp->frame_end)
-    return 0;
-  
-  if(!inp->header_read)
-    {
-    if(!inp->do_still)
-      sprintf(inp->filename_buffer, inp->template, inp->current_frame);
-    
-    if(!inp->image_reader->read_header(inp->handle->priv,
-                                       inp->filename_buffer,
-                                       &format))
-      return 0;
-    }
-  if(!inp->image_reader->read_image(inp->handle->priv, f))
-    {
-    return 0;
-    }
-  if(f)
-    {
-    f->timestamp = (inp->current_frame - inp->frame_start) * inp->frame_duration;
-
-    if(!inp->do_still)
-      f->duration = inp->frame_duration;
-    }
-  inp->header_read = 0;
-  inp->current_frame++;
-  
-  return 1;
+  return gavl_video_source_read_frame(inp->src, &f) == GAVL_SOURCE_OK;
   }
 
 static int read_video_packet_input(void * priv, int stream, gavl_packet_t* p)
@@ -577,6 +596,12 @@ static void close_input(void * priv)
     bg_plugin_unref(inp->handle);
   inp->handle = NULL;
   inp->image_reader = NULL;
+
+  if(inp->src)
+    {
+    gavl_video_source_destroy(inp->src);
+    inp->src = NULL;
+    }
   }
 
 static void destroy_input(void* priv)
@@ -616,6 +641,8 @@ static const bg_input_plugin_t input_plugin =
      *  in the stream infos to check out, which streams are to be decoded
      */
     .start =                 start_input,
+
+    .get_video_source = get_video_source_input,
     /* Read one video frame (returns FALSE on EOF) */
     .read_video =      read_video_frame_input,
     .read_video_packet = read_video_packet_input,
@@ -801,6 +828,8 @@ typedef struct
   bg_iw_callbacks_t iw_callbacks;
   
   const gavl_compression_info_t * ci;
+
+  gavl_video_sink_t * sink;
   
   } encoder_t;
 
@@ -822,7 +851,7 @@ create_encoder_parameters(bg_plugin_registry_t * plugin_reg)
 
 static const bg_parameter_info_t * get_parameters_encoder(void * priv)
   {
-  encoder_t * enc = (encoder_t *)priv;
+  encoder_t * enc = priv;
   
   if(!enc->parameters)
     enc->parameters = create_encoder_parameters(enc->plugin_reg);
@@ -834,8 +863,7 @@ static void set_parameter_encoder(void * priv, const char * name,
   {
   const bg_plugin_info_t * info;
   
-  encoder_t * e;
-  e = (encoder_t *)priv;
+  encoder_t * e = priv;
   
   if(!name)
     {
@@ -901,9 +929,7 @@ static int open_encoder(void * data, const char * filename,
                         const gavl_metadata_t * metadata,
                         const gavl_chapter_list_t * chapter_list)
   {
-  encoder_t * e;
-  
-  e = (encoder_t *)data;
+  encoder_t * e = data;
   
   e->frame_counter = e->frame_offset;
   e->filename_base = bg_strdup(e->filename_base, filename);
@@ -935,11 +961,45 @@ static int write_frame_header(encoder_t * e)
   return ret;
   }
 
+static gavl_sink_status_t
+write_video_func_encoder(void * data, gavl_video_frame_t * frame)
+  {
+  int ret = 1;
+  encoder_t * e = data;
+
+  if(!e->have_header)
+    ret = write_frame_header(e);
+  if(ret)
+    ret = e->image_writer->write_image(e->plugin_handle->priv, frame);
+  
+  e->have_header = 0;
+  
+  return ret ? GAVL_SINK_OK : GAVL_SINK_ERROR;
+  }
+
+static int
+write_video_frame_encoder(void * data, gavl_video_frame_t * frame,
+                          int stream)
+  {
+  encoder_t * e = data;
+  return (gavl_video_sink_put_frame(e->sink, frame) == GAVL_SINK_OK);
+  }
+
 static int start_encoder(void * data)
   {
-  encoder_t * e;
-  e = (encoder_t *)data;
+  encoder_t * e = data;
+
+  if(e->have_header)
+    e->sink = gavl_video_sink_create(NULL, write_video_func_encoder,
+                                     e, &e->format);
+  
   return (e->have_header || e->ci) ? 1 : 0;
+  }
+
+static gavl_video_sink_t * get_video_sink_encoder(void * priv, int stream)
+  {
+  encoder_t * e = priv;
+  return e->sink;
   }
 
 static int writes_compressed_video(void * priv,
@@ -981,8 +1041,7 @@ add_video_stream_compressed_encoder(void * data,
                                     const gavl_video_format_t * format,
                                     const gavl_compression_info_t * info)
   {
-  encoder_t * e;
-  e = (encoder_t *)data;
+  encoder_t * e = data;
   e->ci = info;
   create_mask(e, gavl_compression_get_extension(e->ci->id, NULL));
   return 0;
@@ -991,28 +1050,8 @@ add_video_stream_compressed_encoder(void * data,
 static void get_video_format_encoder(void * data, int stream,
                                      gavl_video_format_t * format)
   {
-  encoder_t * e;
-
-  e = (encoder_t *)data;
+  encoder_t * e = data;
   gavl_video_format_copy(format, &e->format);
-  }
-
-static int
-write_video_frame_encoder(void * data, gavl_video_frame_t * frame,
-                          int stream)
-  {
-  int ret = 1;
-  encoder_t * e;
-
-  e = (encoder_t *)data;
-
-  if(!e->have_header)
-    ret = write_frame_header(e);
-  if(ret)
-    ret = e->image_writer->write_image(e->plugin_handle->priv, frame);
-  
-  e->have_header = 0;
-  return ret;
   }
 
 static int write_video_packet_encoder(void * data, gavl_packet_t * packet,
@@ -1071,13 +1110,19 @@ static int close_encoder(void * data, int do_delete)
     bg_plugin_unref(e->plugin_handle);
     e->plugin_handle = NULL;
     }
+
+  if(e->sink)
+    {
+    gavl_video_sink_destroy(e->sink);
+    e->sink = NULL;
+    }
+  
   return 1;
   }
 
 static void destroy_encoder(void * data)
   {
-  encoder_t * e;
-  e = (encoder_t *)data;
+  encoder_t * e = data;
   close_encoder(data, 0);
 
   if(e->parameters)
@@ -1126,6 +1171,8 @@ const bg_encoder_plugin_t encoder_plugin =
     .get_video_format =  get_video_format_encoder,
 
     .start =             start_encoder,
+
+    .get_video_sink =    get_video_sink_encoder,
     
     .write_video_frame = write_video_frame_encoder,
     .write_video_packet = write_video_packet_encoder,
