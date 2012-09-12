@@ -45,8 +45,10 @@ typedef struct
   const bg_parameter_info_t * parameters;
 
   const gavl_metadata_t * m;
-
   const gavl_compression_info_t * ci;
+  
+  gavl_audio_sink_t * sink_int;
+  gavl_audio_sink_t * sink_ext;
   
   } audio_stream_t;
 
@@ -72,6 +74,9 @@ typedef struct
 
   //  int64_t last_timestamp;
   const gavl_compression_info_t * ci;
+
+  gavl_video_sink_t * sink_int;
+  gavl_video_sink_t * sink_ext;
   
   } video_stream_t;
 
@@ -736,7 +741,42 @@ static int start_subtitle_overlay(bg_encoder_t * enc, int stream)
   
   return 1;
   }
-     
+
+/* Write frame */
+static gavl_sink_status_t write_audio_func(void * priv,
+                                           gavl_audio_frame_t * frame)
+  {
+  gavl_sink_status_t ret;
+  audio_stream_t * s = priv;
+  
+  bg_plugin_lock(s->h);
+  ret = gavl_audio_sink_put_frame(s->sink_int, frame);
+  bg_plugin_unlock(s->h);
+  return ret;
+  }
+  
+
+static gavl_sink_status_t
+write_video_func(void * priv,
+                 gavl_video_frame_t * frame)
+  {
+  gavl_sink_status_t ret;
+  video_stream_t * s = priv;
+#if 0
+  fprintf(stderr, "Write video frame %"PRId64"\n", frame->timestamp);
+
+  if(frame->timestamp < s->last_timestamp)
+    {
+    fprintf(stderr, "Error: %"PRId64" < %"PRId64"\n",
+            frame->timestamp, s->last_timestamp);
+    }
+  s->last_timestamp = frame->timestamp;
+#endif
+  bg_plugin_lock(s->h);
+  ret = gavl_video_sink_put_frame(s->sink_int, frame);
+  bg_plugin_unlock(s->h);
+  return ret;
+  }
      
 /* Start encoding */
 int bg_encoder_start(bg_encoder_t * enc)
@@ -785,11 +825,45 @@ int bg_encoder_start(bg_encoder_t * enc)
     if(plugin->start && !plugin->start(enc->plugins[i]->priv))
       return 0;
     }
+
+  /* Get sinks */
+
+  for(i = 0; i < enc->num_audio_streams; i++)
+    {
+    audio_stream_t * as = &enc->audio_streams[i];
+    as->sink_int =
+      as->plugin->get_audio_sink(as->priv, as->out_index);
+    as->sink_ext =
+      gavl_audio_sink_create(NULL, write_audio_func, as,
+                             gavl_audio_sink_get_format(as->sink_int));
+    }
+
   
+  for(i = 0; i < enc->num_video_streams; i++)
+    {
+    video_stream_t * vs = &enc->video_streams[i];
+    vs->sink_int =
+      vs->plugin->get_video_sink(vs->priv, vs->out_index);
+    vs->sink_ext =
+      gavl_video_sink_create(NULL, write_video_func, vs,
+                             gavl_video_sink_get_format(vs->sink_int));
+    }
   return 1;
   }
 
+int bg_encoder_write_audio_frame(bg_encoder_t * enc, gavl_audio_frame_t * f,
+                                 int stream)
+  {
+  audio_stream_t * as = &enc->audio_streams[stream];
+  return (gavl_audio_sink_put_frame(as->sink_ext, f) == GAVL_SINK_OK);
+  }
 
+int bg_encoder_write_video_frame(bg_encoder_t * enc, gavl_video_frame_t * f,
+                                 int stream)
+  {
+  video_stream_t * vs = &enc->video_streams[stream];
+  return (gavl_video_sink_put_frame(vs->sink_ext, f) == GAVL_SINK_OK);
+  }
 
 /* Add streams */
 
@@ -994,7 +1068,7 @@ void bg_encoder_get_audio_format(bg_encoder_t * enc,
                                  gavl_audio_format_t*ret)
   {
   audio_stream_t * s = &enc->audio_streams[stream];
-  s->plugin->get_audio_format(s->priv, s->out_index, ret);
+  gavl_audio_format_copy(ret, gavl_audio_sink_get_format(s->sink_ext));
   }
 
 void bg_encoder_get_video_format(bg_encoder_t * enc,
@@ -1002,7 +1076,7 @@ void bg_encoder_get_video_format(bg_encoder_t * enc,
                                  gavl_video_format_t*ret)
   {
   video_stream_t * s = &enc->video_streams[stream];
-  s->plugin->get_video_format(s->priv, s->out_index, ret);
+  gavl_video_format_copy(ret, gavl_video_sink_get_format(s->sink_ext));
   }
 
 void bg_encoder_get_subtitle_overlay_format(bg_encoder_t * enc,
@@ -1019,43 +1093,6 @@ void bg_encoder_get_subtitle_text_timescale(bg_encoder_t * enc,
   {
   subtitle_text_stream_t * s = &enc->subtitle_text_streams[stream];
   *ret = s->timescale;
-  }
-
-/* Write frame */
-int bg_encoder_write_audio_frame(bg_encoder_t * enc,
-                                 gavl_audio_frame_t * frame,
-                                 int stream)
-  {
-  int ret;
-  audio_stream_t * s = &enc->audio_streams[stream];
-
-  bg_plugin_lock(s->h);
-  ret = s->plugin->write_audio_frame(s->priv, frame, s->out_index);
-  bg_plugin_unlock(s->h);
-  return ret;
-  }
-  
-
-int bg_encoder_write_video_frame(bg_encoder_t * enc,
-                                 gavl_video_frame_t * frame,
-                                 int stream)
-  {
-  int ret;
-  video_stream_t * s = &enc->video_streams[stream];
-#if 0  
-  fprintf(stderr, "Write video frame %"PRId64"\n", frame->timestamp);
-
-  if(frame->timestamp < s->last_timestamp)
-    {
-    fprintf(stderr, "Error: %"PRId64" < %"PRId64"\n",
-            frame->timestamp, s->last_timestamp);
-    }
-  s->last_timestamp = frame->timestamp;
-#endif
-  bg_plugin_lock(s->h);
-  ret = s->plugin->write_video_frame(s->priv, frame, s->out_index);
-  bg_plugin_unlock(s->h);
-  return ret;
   }
 
 int bg_encoder_write_subtitle_text(bg_encoder_t * enc,

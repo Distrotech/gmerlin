@@ -102,6 +102,8 @@ void bg_encoder_get_subtitle_overlay_format(bg_encoder_t *, int stream,
 void bg_encoder_get_subtitle_text_timescale(bg_encoder_t *, int stream,
                                             uint32_t * ret);
 
+gavl_audio_sink_t * bg_encoder_get_audio_sink(bg_encoder_t *, int stream);
+gavl_video_sink_t * bg_encoder_get_video_sink(bg_encoder_t *, int stream);
 
 /* Start encoding */
 int bg_encoder_start(bg_encoder_t *);
