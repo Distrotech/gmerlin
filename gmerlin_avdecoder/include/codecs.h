@@ -28,6 +28,11 @@ void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt);
 void bgav_init_audio_decoders_vorbis();
 #endif
 
+#ifdef HAVE_OPUS
+void bgav_init_audio_decoders_opus();
+#endif
+
+
 #ifdef HAVE_LIBA52
 void bgav_init_audio_decoders_a52();
 #endif

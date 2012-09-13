@@ -25,6 +25,16 @@ vorbis_libs =
 vorbis_sources =
 endif
 
+if HAVE_OPUS
+opus_cflags = @OPUS_CFLAGS@
+opus_libs =   @OPUS_LIBS@
+opus_sources = parse_opus.c audio_opus.c
+else
+opus_cflags =
+opus_libs =
+opus_sources =
+endif
+
 if HAVE_LIBA52
 a52_cflags = @LIBA52_CFLAGS@
 a52_libs =   @LIBA52_LIBS@
@@ -278,6 +288,7 @@ libgmerlin_avdec_la_LDFLAGS=-export-dynamic -version-info @LTVERSION_CURRENT@:@L
 libgmerlin_avdec_la_LIBADD= \
 @GMERLIN_DEP_LIBS@ \
 $(vorbis_libs) \
+$(opus_libs) \
 $(ogg_libs) \
 $(win32_libs) \
 $(png_libs) \
@@ -313,6 +324,7 @@ AM_CFLAGS = \
 @LIBBGAV_CFLAGS@ \
 @OPT_CFLAGS@ \
 $(vorbis_cflags) \
+$(opus_cflags) \
 $(ogg_cflags) \
 $(mad_cflags) \
 $(png_cflags) \
@@ -337,6 +349,7 @@ $(vdpau_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
 $(vorbis_sources) \
+$(opus_sources) \
 $(ogg_sources) \
 $(faad2_sources) \
 $(png_sources) \

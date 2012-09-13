@@ -311,6 +311,13 @@ dnl
 GMERLIN_CHECK_VORBIS
 
 dnl
+dnl Opus
+dnl
+
+GMERLIN_CHECK_OPUS
+
+
+dnl
 dnl libtiff
 dnl
 
@@ -788,6 +795,16 @@ echo "Disabled"
 else
 echo "Missing (Go to http://www.dtek.chalmers.se/groups/dvd/downloads.shtml)"
 fi
+
+echo -n "libopus:                "
+if test "x$have_opus" = "xtrue"; then
+echo "Found (CFLAGS=$OPUS_CFLAGS LIBS=$OPUS_LIBS)"
+elif test "x$test_opus" = "xfalse"; then
+echo "Disabled"
+else
+echo "Missing (Go to http://www.opus-codec.org)"
+fi
+
 
 echo ""
 echo "=== Other features: ============================"

@@ -46,19 +46,6 @@ typedef struct
   int need_format;
   } a52_priv;
 
-#if 0
-static void resync_a52(bgav_stream_t * s)
-  {
-  a52_priv * priv;
-  priv = s->data.audio.decoder->priv;
-
-  priv->packet = NULL;
-  priv->packet_ptr = NULL;
-  priv->bytes_in_buffer = 0;
-  do_resync(s);
-  }
-#endif
-
 static int decode_frame_a52(bgav_stream_t * s)
   {
   int flags;
@@ -117,8 +104,6 @@ static int decode_frame_a52(bgav_stream_t * s)
 
   if(frame_bytes < p->data_size)
     return 0;
-
-
   
   a52_frame(priv->state, p->data, &flags, &level, 0.0);
   if(!s->opt->audio_dynrange)
@@ -166,8 +151,7 @@ static int init_a52(bgav_stream_t * s)
   //  a52_header_dump(&priv->header);
     
   /* Get format */
-
-
+  
   priv->state = a52_init(0);
   priv->samples = a52_samples(priv->state);
   memset(priv->samples, 0, 256*6*sizeof(*priv->samples));

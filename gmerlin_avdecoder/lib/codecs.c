@@ -278,7 +278,12 @@ void bgav_codecs_init(bgav_options_t * opt)
 #ifdef HAVE_FLAC
   bgav_init_audio_decoders_flac();
 #endif
- 
+
+#ifdef HAVE_OPUS
+  bgav_init_audio_decoders_opus();
+#endif
+
+  
   
 #ifdef HAVE_XADLL
 
