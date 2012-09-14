@@ -25,10 +25,46 @@
 #include <avdec_private.h>
 #include <parser.h>
 #include <audioparser_priv.h>
+#include <opus_header.h>
+
+static int get_format(bgav_audio_parser_t * parser)
+  {
+  int ret = 0;
+  bgav_opus_header_t h;
+  bgav_input_context_t * input_mem;
+
+  fprintf(stderr, "Ext data:\n");
+  bgav_hexdump(parser->s->ext_data, parser->s->ext_size, 16);
+  
+  input_mem = bgav_input_open_memory(parser->s->ext_data,
+                                     parser->s->ext_size,
+                                     parser->s->opt);
+  
+  if(!bgav_opus_header_read(input_mem, &h))
+    goto fail;
+
+  bgav_opus_set_channel_setup(&h, &parser->s->data.audio.format);
+  //  bgav_opus_header_dump(&h);
+  
+  ret = 1;
+  fail:
+    
+  bgav_input_close(input_mem);
+  bgav_input_destroy(input_mem);
+  return ret;
+  }
 
 static int parse_frame_opus(bgav_audio_parser_t * parser, bgav_packet_t * p)
   {
   int nb_frames = opus_packet_get_nb_frames(p->data, p->data_size);
+
+  if(!parser->have_format)
+    {
+    if(!get_format(parser))
+      return 0;
+    parser->have_format = 1;
+    }
+
   if (nb_frames < 1)
     p->duration = nb_frames;
   else

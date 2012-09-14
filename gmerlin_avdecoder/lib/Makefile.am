@@ -489,6 +489,7 @@ mms.c \
 mxf.c \
 nanosoft.c \
 options.c \
+opus_header.c \
 os.c \
 os_inet_aton.c \
 packetbuffer.c \
