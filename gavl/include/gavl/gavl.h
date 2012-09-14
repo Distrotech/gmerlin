@@ -4237,6 +4237,12 @@ typedef struct gavl_audio_source_s gavl_audio_source_t;
 /** \brief Source might need the frames for decoding future frames */
 #define GAVL_SOURCE_SRC_REF                 (1<<1)
 
+/** \brief Samples per frame is just an upper bound.
+    Frames can have smaller sizes also. The last frame is always
+    allowed to have fewer samples, even if this flag is not set */
+#define GAVL_SOURCE_SRC_FRAMESIZE_MAX       (1<<2)
+
+  
 /** \brief Destination changes frame. */
 
 #define GAVL_SOURCE_DST_OVERWRITES          (1<<0)
