@@ -446,12 +446,15 @@ static int init_vorbis(bgav_stream_t * s)
   // #endif  
   s->data.audio.format.sample_format   = GAVL_SAMPLE_FLOAT;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
-  s->data.audio.format.samples_per_frame = 1024;
+  s->data.audio.format.samples_per_frame = 2048;
 
   /* Set up audio format from the vorbis header overriding previous values */
   s->data.audio.format.samplerate = priv->dec_vi.rate;
   s->data.audio.format.num_channels = priv->dec_vi.channels;
 
+  /* Samples per frame is just the maximum */
+  s->src_flags |= GAVL_SOURCE_SRC_FRAMESIZE_MAX;
+  
   /* Vorbis 5.1 mapping */
   
   bgav_vorbis_set_channel_setup(&s->data.audio.format);

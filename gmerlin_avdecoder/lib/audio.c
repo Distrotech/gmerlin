@@ -168,7 +168,7 @@ int bgav_audio_start(bgav_stream_t * s)
                           s->container_bitrate);
   
   s->data.audio.source =
-    gavl_audio_source_create(get_frame, s, GAVL_SOURCE_SRC_ALLOC,
+    gavl_audio_source_create(get_frame, s, GAVL_SOURCE_SRC_ALLOC | s->src_flags,
                              &s->data.audio.format);
   
   return 1;

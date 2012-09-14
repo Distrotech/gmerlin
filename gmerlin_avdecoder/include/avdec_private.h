@@ -489,6 +489,9 @@ struct bgav_stream_s
 
   int flags;
 
+  /* Passed to gavl_[audio|video]_source_create() */
+  int src_flags;
+  
   /*
    *  Timestamp of the first frame in *output* timescale
    *  must be set by bgav_start()

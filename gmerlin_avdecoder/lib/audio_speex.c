@@ -80,8 +80,9 @@ static int init_speex(bgav_stream_t * s)
   gavl_set_channel_setup(&s->data.audio.format);
 
   speex_decoder_ctl(priv->dec_state, SPEEX_GET_FRAME_SIZE, &priv->frame_size);
-  s->data.audio.format.samples_per_frame = priv->frame_size * priv->header->frames_per_packet;
-
+  s->data.audio.format.samples_per_frame =
+    priv->frame_size * priv->header->frames_per_packet;
+  
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
 
   /* Set stereo callback */

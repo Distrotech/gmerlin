@@ -107,6 +107,14 @@ static int init_opus(bgav_stream_t * s)
                                     priv->h.chtab.coupled_count,
                                     priv->h.chtab.map,
                                     &err);
+
+  if(!priv->dec)
+    {
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "opus_multistream_decoder_create failed: %s",
+             opus_strerror(err));
+    goto fail;
+    }
   
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   s->data.audio.format.samples_per_frame = MAX_FRAME_SIZE;
@@ -116,7 +124,19 @@ static int init_opus(bgav_stream_t * s)
     bgav_opus_set_channel_setup(&priv->h,
                                 &s->data.audio.format);
 
+  /* Samples per frame is just the maximum */
+  s->src_flags |= GAVL_SOURCE_SRC_FRAMESIZE_MAX;
+    
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
+
+  /* Apply Gain */
+
+  err = opus_multistream_decoder_ctl(priv->dec, OPUS_SET_GAIN(priv->h.output_gain));
+  if(err != OPUS_OK)
+    {
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "OPUS_SET_GAIN failed: %s",
+             opus_strerror(err));
+    }
   
   ret = 1;
   fail:
@@ -132,7 +152,13 @@ static void close_opus(bgav_stream_t * s)
   opus_t * priv;
   priv = s->data.audio.decoder->priv;
 
-  
+  if(priv->dec)
+    opus_multistream_decoder_destroy(priv->dec);
+
+  if(priv->frame)
+    gavl_audio_frame_destroy(priv->frame);
+
+  free(priv);
   }
 
 static void resync_opus(bgav_stream_t * s)
