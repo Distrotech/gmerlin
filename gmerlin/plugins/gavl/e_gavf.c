@@ -87,6 +87,9 @@ static void bg_gavf_destroy(void * data)
     free(f->video_streams);
   if(f->text_streams)
     free(f->text_streams);
+
+  if(f->enc)
+    gavf_close(f->enc);
   
   free(f);
   }

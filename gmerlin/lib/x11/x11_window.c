@@ -788,19 +788,6 @@ static int create_window(bg_x11_window_t * w,
     set_fullscreen(w, w->fullscreen.win);
     XSetWMProtocols(w->dpy, w->fullscreen.win, wm_protocols, 2);
     w->fullscreen.toplevel = w->fullscreen.win;
-
-#if 0
-    w->fullscreen.focus_child =
-      XCreateWindow(w->dpy, w->fullscreen.win,
-                    0, 0,
-                    width, height,
-                    0,
-                    0,
-                    InputOnly,
-                    vi->visual,
-                    attr_flags_input_only,
-                    &attr);
-#endif
     w->fullscreen.focus_child = XCreateSimpleWindow(w->dpy,
                                                     w->fullscreen.win,
                                                     -1, -1, 1, 1, 0,
