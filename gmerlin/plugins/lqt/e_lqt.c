@@ -178,7 +178,8 @@ static int open_lqt(void * data, const char * filename,
   {
   e_lqt_t * e = data;
 
-  e->filename = bg_filename_ensure_extension(filename, get_extension(e->file_type));
+  e->filename =
+    bg_filename_ensure_extension(filename, get_extension(e->file_type));
 
   if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
     return 0;
@@ -300,9 +301,9 @@ static audio_stream_t * append_audio_stream(e_lqt_t * e)
 
   ret = &e->audio_streams[e->num_audio_streams];
   ret->index = e->num_audio_streams;
-  ret->e = e;
   
   memset(ret, 0, sizeof(*ret));
+  ret->e = e;
   e->num_audio_streams++;
   return ret;
   }
@@ -316,9 +317,9 @@ static video_stream_t * append_video_stream(e_lqt_t * e)
 
   ret = &e->video_streams[e->num_video_streams];
   ret->index = e->num_video_streams;
-  ret->e = e;
   
   memset(ret, 0, sizeof(*ret));
+  ret->e = e;
   e->num_video_streams++;
   return ret;
   }
@@ -432,7 +433,20 @@ static void get_video_format_lqt(void * data, int stream,
   gavl_video_format_copy(ret, &e->video_streams[stream].format);
   }
 
-static gavl_sink_status_t write_audio_func_lqt(void * data, gavl_audio_frame_t* frame)
+static gavl_video_sink_t * get_video_sink_lqt(void * data, int stream)
+  {
+  e_lqt_t * e = data;
+  return e->video_streams[stream].sink;
+  }
+
+static gavl_audio_sink_t * get_audio_sink_lqt(void * data, int stream)
+  {
+  e_lqt_t * e = data;
+  return e->audio_streams[stream].sink;
+  }
+
+static gavl_sink_status_t
+write_audio_func_lqt(void * data, gavl_audio_frame_t* frame)
   {
   gavl_time_t test_time;
   audio_stream_t * as = data;
@@ -451,7 +465,10 @@ static gavl_sink_status_t write_audio_func_lqt(void * data, gavl_audio_frame_t* 
                               frame->valid_samples, as->index) ? GAVL_SINK_OK : GAVL_SINK_ERROR;
   }
 
-static gavl_sink_status_t write_video_func_lqt(void * data, gavl_video_frame_t* frame)
+
+
+static gavl_sink_status_t
+write_video_func_lqt(void * data, gavl_video_frame_t* frame)
   {
   gavl_time_t test_time;
   video_stream_t * vs = data;
@@ -1084,6 +1101,9 @@ like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and t
     .get_audio_format =     get_audio_format_lqt,
     .get_video_format =     get_video_format_lqt,
 
+    .get_audio_sink =     get_audio_sink_lqt,
+    .get_video_sink =     get_video_sink_lqt,
+    
     .start =                start_lqt,
     
     .write_audio_frame =    write_audio_frame_lqt,

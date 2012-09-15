@@ -522,10 +522,11 @@ static void put_frame_v4l2(void * data, gavl_video_frame_t * frame)
 static int open_v4l2(void * priv,
                     gavl_video_format_t * format, int keep_aspect)
   {
+  int ret = 0;
   struct v4l2_capability cap;
   gavl_pixelformat_t * pixelformats;
-  
   ov_v4l2_t * v4l = priv;
+  
   
   if(v4l->fd >= 0)
     {
@@ -605,19 +606,19 @@ static int open_v4l2(void * priv,
   switch(v4l->io)
     {
     case BGV4L2_IO_METHOD_RW:
-      return init_write(v4l);
+      ret = init_write(v4l);
       break;
     case BGV4L2_IO_METHOD_MMAP:
-      return init_mmap(v4l);
+      ret = init_mmap(v4l);
     default:
       return 0;
     }
 
-  v4l->sink = gavl_video_sink_create(get_frame_v4l2,
-                                     put_func_v4l2,
-                                     v4l, format);
-  
-  return 1;
+  if(ret)
+    v4l->sink = gavl_video_sink_create(get_frame_v4l2,
+                                       put_func_v4l2,
+                                       v4l, format);
+  return ret;
   }
 
 static gavl_video_sink_t * get_sink_v4l2(void * data)
