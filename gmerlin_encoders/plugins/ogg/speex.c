@@ -83,55 +83,6 @@ typedef struct
   
   } speex_t;
 
-/* Comment building stuff (ripped from speexenc.c) */
-
-#define readint(buf, base) (((buf[base+3]<<24)&0xff000000)| \
-                           ((buf[base+2]<<16)&0xff0000)| \
-                           ((buf[base+1]<<8)&0xff00)| \
-                            (buf[base]&0xff))
-#define writeint(buf, base, val) do{ buf[base+3]=((val)>>24)&0xff; \
-                                     buf[base+2]=((val)>>16)&0xff; \
-                                     buf[base+1]=((val)>>8)&0xff; \
-                                     buf[base]=(val)&0xff; \
-                                 }while(0)
-static void comment_init(char **comments, int* length, char *vendor_string)
-{
-  int vendor_length=strlen(vendor_string);
-  int user_comment_list_length=0;
-  int len=4+vendor_length+4;
-  char *p=malloc(len);
-  if(p==NULL){
-  }
-  writeint(p, 0, vendor_length);
-  memcpy(p+4, vendor_string, vendor_length);
-  writeint(p, 4+vendor_length, user_comment_list_length);
-  *length=len;
-  *comments=p;
-}
-static void comment_add(char **comments, int* length,
-                        const char *tag, const char *val)
-{
-  char* p=*comments;
-  int vendor_length=readint(p, 0);
-  int user_comment_list_length=readint(p, 4+vendor_length);
-  int tag_len=(tag?strlen(tag):0);
-  int val_len=strlen(val);
-  int len=(*length)+4+tag_len+val_len;
-
-  p=realloc(p, len);
-  if(p==NULL){
-  }
-
-  writeint(p, *length, tag_len+val_len);      /* length of comment */
-  if(tag) memcpy(p+*length+4, tag, tag_len);  /* comment */
-  memcpy(p+*length+4+tag_len, val, val_len);  /* comment */
-  writeint(p, 4+vendor_length, user_comment_list_length+1);
-
-  *comments=p;
-  *length=len;
-}
-#undef readint
-#undef writeint
 
 static void * create_speex(bg_ogg_encoder_t * output, long serialno)
   {
@@ -278,57 +229,17 @@ static void set_parameter_speex(void * data, const char * name,
   
   }
 
-static void build_comment(char ** comments,
-                          int * comments_len,
-                          const gavl_metadata_t * metadata)
-  {
-  char * tmp_string;
-  char * version;
-  const char * val;
-  
-  speex_lib_ctl(SPEEX_LIB_GET_VERSION_STRING, &version);
-    
-  tmp_string = bg_sprintf("Encoded with Speex %s", version);
-  comment_init(comments, comments_len, tmp_string);
-  free(tmp_string);
-    
-  if((val = gavl_metadata_get(metadata, GAVL_META_ARTIST)))
-    comment_add(comments, comments_len, "ARTIST=", val);
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_TITLE)))
-    comment_add(comments, comments_len, "TITLE=", val);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_ALBUM)))
-    comment_add(comments, comments_len, "ALBUM=", val);
-    
-  if((val = gavl_metadata_get(metadata, GAVL_META_GENRE)))
-    comment_add(comments, comments_len, "GENRE=", val);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_DATE)))
-    comment_add(comments, comments_len, "DATE=", val);
-  else if((val = gavl_metadata_get(metadata, GAVL_META_YEAR)))
-    comment_add(comments, comments_len, "DATE=", val);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_COPYRIGHT)))
-    comment_add(comments, comments_len, "COPYRIGHT=", val);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_TRACKNUMBER)))
-    comment_add(comments, comments_len, "TRACKNUMBER=", val);
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_COMMENT)))
-    comment_add(comments, comments_len, NULL, val);
-  }
-
 static int init_speex(void * data, gavl_audio_format_t * format,
                       gavl_metadata_t * metadata)
   {
   float quality_f;
-  char *comments = NULL;
-  int comments_length = 0;
   const SpeexMode *mode=NULL;
   SpeexHeader header;
   ogg_packet op;
   int dummy;
+
+  char * vendor_string;
+  char * version;
   
   speex_t * speex = data;
 
@@ -422,7 +333,7 @@ static int init_speex(void * data, gavl_audio_format_t * format,
     
   /* Build comment (comments are UTF-8, good for us :-) */
 
-  build_comment(&comments, &comments_length, metadata);
+  //  build_comment(&comments, &comments_length, metadata);
 
   /* Build header */
   op.packet = (unsigned char *)speex_header_to_packet(&header, &dummy);
@@ -439,13 +350,19 @@ static int init_speex(void * data, gavl_audio_format_t * format,
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Got no Speex ID page");
 
   /* Build comment */
-  op.packet = (unsigned char *)comments;
-  op.bytes = comments_length;
+
+  speex_lib_ctl(SPEEX_LIB_GET_VERSION_STRING, &version);
+  vendor_string = bg_sprintf("Encoded with Speex %s", version);
+
+  bg_ogg_create_comment_packet(NULL, 0, vendor_string, metadata, &op);
+  
   op.b_o_s = 0;
   op.e_o_s = 0;
   op.granulepos = 0;
   op.packetno = 1;
   ogg_stream_packetin(&speex->enc_os, &op);
+
+  bg_ogg_free_comment_packet(&op);
   
   return 1;
   }

@@ -27,6 +27,14 @@ speex_plugins =
 speex_sources =
 endif
 
+if HAVE_OPUS
+opus_plugins = e_opus.la
+opus_sources = opus.c
+else
+opus_plugins =
+opus_sources =
+endif
+
 if HAVE_FLAC
 flac_plugins = e_flacogg.la
 flac_sources = flac.c
@@ -40,6 +48,7 @@ gmerlin_plugin_LTLIBRARIES = \
 e_vorbis.la \
 $(theoraenc_plugins) \
 $(speex_plugins) \
+$(opus_plugins) \
 $(flac_plugins) \
 $(shout_plugins)
 
@@ -65,5 +74,10 @@ b_ogg_la_LIBADD = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_encoders.la 
 e_speex_la_CFLAGS = @SPEEX_CFLAGS@ $(AM_CFLAGS)
 e_speex_la_SOURCES = e_speex.c speex.c ogg_common.c
 e_speex_la_LIBADD = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_encoders.la @SPEEX_LIBS@ @OGG_LIBS@ 
+
+e_opus_la_CFLAGS = @OPUS_CFLAGS@ $(AM_CFLAGS)
+e_opus_la_SOURCES = e_opus.c opus.c ogg_common.c
+e_opus_la_LIBADD = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_encoders.la @OPUS_LIBS@ @OGG_LIBS@ 
+
 
 noinst_HEADERS = ogg_common.h

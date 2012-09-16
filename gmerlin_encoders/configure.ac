@@ -88,6 +88,12 @@ dnl
 GMERLIN_CHECK_SPEEX
 
 dnl
+dnl OPUS
+dnl
+
+GMERLIN_CHECK_OPUS
+
+dnl
 dnl FLAC
 dnl
 
@@ -211,6 +217,14 @@ else
 echo "Missing (Go to: http://www.speex.org/)"
 fi
 
+echo -n "opus:       "
+if test "x$have_opus" = "xtrue"; then
+echo "Found (CFLAGS=$OPUS_CFLAGS LIBS=$OPUS_LIBS)"
+else
+echo "Missing (Go to: http://www.opus-codec.org/)"
+fi
+
+
 echo -n "lame:       "
 if test "x$have_lame" = "xtrue"; then
 echo "Found (CFLAGS=$LAME_CFLAGS LIBS=$LAME_LIBS)"
@@ -245,7 +259,6 @@ echo "Found (CFLAGS=$SHOUT_CFLAGS LIBS=$SHOUT_LIBS)"
 else
 echo "Missing (Go to: http://icecast.org/)"
 fi
-
 
 echo
 echo "If you installed a library but it was not detected, check the file INSTALL"
