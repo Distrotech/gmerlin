@@ -445,6 +445,20 @@ void gavl_set_channel_setup(gavl_audio_format_t * format);
 GAVL_PUBLIC
 int gavl_bytes_per_sample(gavl_sample_format_t format);
 
+/*!
+  \ingroup audio_format
+  \brief Get the nearest samplerate out of a list of supported rates
+  \param in_rate Source samplerate
+  \param supported Array of supported samplerates (0 terminated)
+  \returns The nearest supported samplerate
+
+  Since 1.5.0
+*/
+ 
+GAVL_PUBLIC
+int gavl_nearest_samplerate(int in_rate, const int * supported);
+
+  
 /** \defgroup audio_frame Audio frame
  * \ingroup audio
  *
@@ -4241,7 +4255,6 @@ typedef struct gavl_audio_source_s gavl_audio_source_t;
     Frames can have smaller sizes also. The last frame is always
     allowed to have fewer samples, even if this flag is not set */
 #define GAVL_SOURCE_SRC_FRAMESIZE_MAX       (1<<2)
-
   
 /** \brief Destination changes frame. */
 

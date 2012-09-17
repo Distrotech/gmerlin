@@ -1911,3 +1911,40 @@ AC_DEFINE([HAVE_SHOUT])
 fi
 
 ])
+
+dnl
+dnl Check for opus codec
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_OPUS],[
+
+AH_TEMPLATE([HAVE_OPUS],
+            [Do we have libopus installed?])
+
+have_theora="false"
+
+OPUS_REQUIRED="1.0.0"
+
+AC_ARG_ENABLE(opus,
+[AC_HELP_STRING([--disable-opus],[Disable opus (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_opus=true ;;
+   no)  test_opus=false ;;
+esac],[test_opus=true])
+
+if test x$test_opus = xtrue; then
+
+PKG_CHECK_MODULES(OPUS, opus, have_opus="true", have_opus="false")
+fi
+
+AC_SUBST(OPUS_REQUIRED)
+AC_SUBST(OPUS_LIBS)
+AC_SUBST(OPUS_CFLAGS)
+
+AM_CONDITIONAL(HAVE_OPUS, test x$have_opus = xtrue)
+
+if test "x$have_opus" = "xtrue"; then
+AC_DEFINE([HAVE_OPUS])
+fi
+
+])

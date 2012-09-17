@@ -426,3 +426,24 @@ int gavl_audio_formats_equal(const gavl_audio_format_t * format_1,
   {
   return !memcmp(format_1, format_2, sizeof(*format_1));
   }
+
+int gavl_nearest_samplerate(int in_rate, const int * supported)
+  {
+  int index = 0, min_index, min_diff = 0, diff;
+  
+  while(supported[index] >= 0)
+    {
+    if(in_rate == supported[index])
+      return supported[index];
+
+    diff = abs(in_rate - supported[index]);
+    
+    if(!index || diff < min_diff)
+      {
+      min_index = index;
+      min_diff = diff;
+      }
+    index++;
+    }
+  return supported[min_index];
+  }
