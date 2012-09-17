@@ -172,3 +172,4 @@ void bg_ogg_create_comment_packet(uint8_t * prefix,
 
 void bg_ogg_free_comment_packet(ogg_packet * op);
 
+void bg_ogg_set_vorbis_channel_setup(gavl_audio_format_t * format);

@@ -342,6 +342,7 @@ static int init_vorbis(void * data,
 
   vorbis->format->interleave_mode = GAVL_INTERLEAVE_NONE;
   vorbis->format->sample_format = GAVL_SAMPLE_FLOAT;
+  bg_ogg_set_vorbis_channel_setup(vorbis->format);
   
   vorbis_info_init(&vorbis->enc_vi);
 

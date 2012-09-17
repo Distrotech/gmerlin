@@ -45,37 +45,10 @@ static const int samplerates[] =
     /* MPEG-1 */
     32000,
     44100,
-    48000
+    48000,
+    /* End */
+    0
   };
-
-static int get_samplerate(int in_rate)
-  {
-  int i;
-  int diff;
-  int min_diff = 1000000;
-  int min_i = -1;
-  
-  for(i = 0; i < sizeof(samplerates)/sizeof(samplerates[0]); i++)
-    {
-    if(samplerates[i] == in_rate)
-      return in_rate;
-    else
-      {
-      diff = abs(in_rate - samplerates[i]);
-      if(diff < min_diff)
-        {
-        min_diff = diff;
-        min_i = i;
-        }
-      }
-    }
-  if(min_i >= 0)
-    {
-    return samplerates[min_i];
-    }
-  else
-    return 44100;
-  }
 
 /* Find the correct bitrate */
 
@@ -370,7 +343,8 @@ int bg_lame_add_audio_stream(void * data,
 
   lame->format.sample_format = GAVL_SAMPLE_FLOAT;
   lame->format.interleave_mode = GAVL_INTERLEAVE_NONE;
-  lame->format.samplerate = get_samplerate(lame->format.samplerate);
+  lame->format.samplerate = gavl_nearest_samplerate(lame->format.samplerate,
+                                                    samplerates);
   
   if(lame->format.num_channels > 2)
     {

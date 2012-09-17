@@ -62,7 +62,7 @@ typedef struct
   } opus_header_t;
 
 static void setup_header(opus_header_t * h, gavl_audio_format_t * format);
-static void header_to_packet(opus_header_t * h, ogg_packet * op);
+static uint8_t * header_to_packet(opus_header_t * h, int * len);
 
 typedef struct
   {
@@ -258,6 +258,12 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   int err;
   opus_t * opus = data;
 
+  /* Adjust format */
+
+  bg_ogg_set_vorbis_channel_setup(format);
+  format->interleave_mode = GAVL_INTERLEAVE_ALL;
+  format->sample_format = GAVL_SAMPLE_FLOAT;
+  
   /* Setup header */
 
   setup_header(&opus->h, format);
@@ -297,6 +303,8 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   opus_multistream_encoder_ctl(opus->enc, OPUS_SET_PACKET_LOSS_PERC(opus->loss_perc));
   opus_multistream_encoder_ctl(opus->enc, OPUS_SET_BANDWIDTH(opus->bandwidth));
   opus_multistream_encoder_ctl(opus->enc, OPUS_SET_MAX_BANDWIDTH(opus->max_bandwidth));
+
+  /* Output header */
   
   
   return 1;
@@ -350,10 +358,19 @@ const bg_ogg_codec_t bg_opus_codec =
 
 static void setup_header(opus_header_t * h, gavl_audio_format_t * format)
   {
+  h->version = 1;
+  h->channel_count = format->num_channels;
+  h->pre_skip = 0;
+  h->samplerate = format->samplerate;
+  h->output_gain = 0;
   
+  switch(format->num_channels)
+    {
+    
+    }
   }
 
-static void header_to_packet(opus_header_t * h, ogg_packet * op)
+static uint8_t * header_to_packet(opus_header_t * h, int * len)
   {
   
   }
