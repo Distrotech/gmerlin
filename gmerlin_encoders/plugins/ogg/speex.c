@@ -226,7 +226,6 @@ static void set_parameter_speex(void * data, const char * name,
     {
     speex->nframes = v->val_i;
     }
-  
   }
 
 static int init_speex(void * data, gavl_audio_format_t * format,
@@ -392,12 +391,14 @@ static int encode_frame(speex_t * speex, int eof)
       block_align = speex->format->num_channels *
         gavl_bytes_per_sample(speex->format->sample_format);
       
-      memset(speex->frame->samples.u_8 + speex->frame->valid_samples * block_align,
-             0,
-             (speex->format->samples_per_frame - speex->frame->valid_samples) * block_align);
+      memset(speex->frame->samples.u_8 +
+             speex->frame->valid_samples * block_align,
+             0, (speex->format->samples_per_frame -
+                 speex->frame->valid_samples) * block_align);
 
       if(speex->format->num_channels == 2)
-        speex_encode_stereo_int(speex->frame->samples.s_16, speex->format->samples_per_frame,
+        speex_encode_stereo_int(speex->frame->samples.s_16,
+                                speex->format->samples_per_frame,
                                 &speex->bits);
 
       speex_encode_int(speex->enc, speex->frame->samples.s_16, &speex->bits);
@@ -416,13 +417,14 @@ static int encode_frame(speex_t * speex, int eof)
   if(speex->frames_encoded && !(speex->frames_encoded % speex->nframes))
     {
     /* Flush page */
-    op.bytes  = speex_bits_write(&speex->bits, (char*)speex->buffer, BUFFER_SIZE);
+    op.bytes  = speex_bits_write(&speex->bits, (char*)speex->buffer,
+                                 BUFFER_SIZE);
     op.packet = speex->buffer;
     op.b_o_s  = 0;
     op.e_o_s  = eof;
 
     if(!eof)    
-      op.granulepos = (speex->frames_encoded)*speex->format->samples_per_frame -
+      op.granulepos = speex->frames_encoded*speex->format->samples_per_frame -
         speex->lookahead;
     else
       op.granulepos = speex->samples_read - speex->lookahead;
@@ -439,7 +441,8 @@ static int encode_frame(speex_t * speex, int eof)
   if(speex->frame->valid_samples == speex->format->samples_per_frame)
     {
     if(speex->format->num_channels == 2)
-      speex_encode_stereo_int(speex->frame->samples.s_16, speex->format->samples_per_frame,
+      speex_encode_stereo_int(speex->frame->samples.s_16,
+                              speex->format->samples_per_frame,
                               &speex->bits);
     
     speex_encode_int(speex->enc, speex->frame->samples.s_16, &speex->bits);

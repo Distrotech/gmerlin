@@ -83,12 +83,17 @@ typedef struct
   int bandwidth;
   int max_bandwidth;
   int bitrate;
-  int frame_duration; // in 100 us
+  int frame_size; // in 100 us
   
   /* Encoder */
-
+  
   OpusMSEncoder * enc;
   opus_header_t h;
+  opus_int32 lookahead;
+  gavl_audio_frame_t * frame;
+  gavl_audio_format_t * format;
+
+  int64_t samples_read;
   
   } opus_t;
 
@@ -139,6 +144,28 @@ static const bg_parameter_info_t parameters[] =
       .val_min =     { .val_i = 0  },
       .val_max =     { .val_i = 10 },
       .val_default = { .val_i = 10 },
+    },
+    {
+      .name =        "frame_size",
+      .long_name =   TRS("Frame size (ms)"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      /* Multiplied by 10 */
+      .val_default = { .val_str = "200" },
+      .multi_names =  (char const *[]){ "25",
+                                        "50",
+                                        "100",
+                                        "200",
+                                        "400",
+                                        "600",
+                                        NULL },
+      .multi_labels = (char const *[]){ "2.5",
+                                        "5",
+                                        "10",
+                                        "20",
+                                        "40",
+                                        "60",
+                                        NULL },
+      .help_string = TRS("Smaller framesizes achieve lower latency but less quality at a given bitrate. Sizes greater than 20ms are only interesting at fairly low bitrates. ")
     },
     {
       .name =        "dtx",
@@ -252,6 +279,10 @@ static void set_parameter_opus(void * data, const char * name,
     {
     opus->loss_perc = v->val_i; 
     }
+  else if(!strcmp(name, "frame_size"))
+    {
+    opus->frame_size = atoi(v->val_str); 
+    }
   
   }
 
@@ -268,6 +299,11 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   /* Setup header (also adjusts format) */
 
   setup_header(&opus->h, format);
+
+  format->samples_per_frame =
+    (format->samplerate * opus->frame_size) / 10000;
+
+  fprintf(stderr, "Samples per frame: %d\n", format->samples_per_frame);
   
   /* Create encoder */
 
@@ -296,14 +332,38 @@ static int init_opus(void * data, gavl_audio_format_t * format,
       opus_multistream_encoder_ctl(opus->enc, OPUS_SET_VBR_CONSTRAINT(0));
       break;
     }
+  
+  opus_multistream_encoder_ctl(opus->enc,
+                               OPUS_SET_BITRATE(opus->bitrate));
+  opus_multistream_encoder_ctl(opus->enc,
+                               OPUS_SET_COMPLEXITY(opus->complexity));
+  opus_multistream_encoder_ctl(opus->enc,
+                               OPUS_SET_DTX(opus->dtx));
+  opus_multistream_encoder_ctl(opus->enc,
+                               OPUS_SET_INBAND_FEC(opus->fec));
+  opus_multistream_encoder_ctl(opus->enc,
+                               OPUS_SET_PACKET_LOSS_PERC(opus->loss_perc));
+  opus_multistream_encoder_ctl(opus->enc,
+                               OPUS_SET_BANDWIDTH(opus->bandwidth));
+  opus_multistream_encoder_ctl(opus->enc,
+                               OPUS_SET_MAX_BANDWIDTH(opus->max_bandwidth));
 
-  opus_multistream_encoder_ctl(opus->enc, OPUS_SET_BITRATE(opus->bitrate));
-  opus_multistream_encoder_ctl(opus->enc, OPUS_SET_COMPLEXITY(opus->complexity));
-  opus_multistream_encoder_ctl(opus->enc, OPUS_SET_DTX(opus->dtx));
-  opus_multistream_encoder_ctl(opus->enc, OPUS_SET_INBAND_FEC(opus->fec));
-  opus_multistream_encoder_ctl(opus->enc, OPUS_SET_PACKET_LOSS_PERC(opus->loss_perc));
-  opus_multistream_encoder_ctl(opus->enc, OPUS_SET_BANDWIDTH(opus->bandwidth));
-  opus_multistream_encoder_ctl(opus->enc, OPUS_SET_MAX_BANDWIDTH(opus->max_bandwidth));
+  /* Get preskip */
+
+  err = opus_multistream_encoder_ctl(opus->enc,
+                                     OPUS_GET_LOOKAHEAD(&opus->lookahead));
+  if(err != OPUS_OK)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "OPUS_GET_LOOKAHEAD failed: %s\n",
+           opus_strerror(err));
+    return 0; 
+    }
+
+  opus->h.pre_skip = (opus->lookahead * 48000) / format->samplerate;
+
+  /* Save format and create frame */
+  opus->format = format;
+  opus->frame = gavl_audio_frame_create(opus->format);
   
   /* Output header */
   op.packet = header;
@@ -330,8 +390,7 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   ogg_stream_packetin(&opus->enc_os, &op);
 
   bg_ogg_free_comment_packet(&op);
-
-  
+ 
   return 1;
   }
 
@@ -344,11 +403,41 @@ static int flush_header_pages_opus(void*data)
   return 1;
   }
 
+static int flush_frame(opus_t * opus, int eof)
+  {
+  
+  }
+
 static int write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
   {
-  opus_t * opus = data;
-
+  int result = 1;
+  int samples_read = 0;
+  int samples_copied;
   
+  opus_t * opus = data;
+  fprintf(stderr, "write_audio %d\n", frame->valid_samples);
+
+
+  while(samples_read < frame->valid_samples)
+    {
+    samples_copied =
+      gavl_audio_frame_copy(opus->format,
+                            opus->frame,
+                            frame,
+                            opus->frame->valid_samples, /* dst_pos */
+                            samples_read,                /* src_pos */
+                            opus->format->samples_per_frame -
+                            opus->frame->valid_samples, /* dst_size */
+                            frame->valid_samples - samples_read /* src_size */ );
+    opus->frame->valid_samples += samples_copied;
+    samples_read += samples_copied;
+    result = flush_frame(opus, 0);
+    if(!result)
+      break;
+    }
+  
+  opus->samples_read += frame->valid_samples;
+  return result;
   }
 
 static int close_opus(void * data)
@@ -396,8 +485,13 @@ static void setup_header(opus_header_t * h, gavl_audio_format_t * format)
   {
   int rate;
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
-  format->sample_format = GAVL_SAMPLE_FLOAT;
 
+  if(gavl_bytes_per_sample(format->sample_format) >= 4)
+    format->sample_format = GAVL_SAMPLE_FLOAT;
+  else
+    format->sample_format = GAVL_SAMPLE_S16;
+    
+  
   rate = gavl_nearest_samplerate(format->samplerate, samplerates);
   if(rate != format->samplerate)
     {
