@@ -83,6 +83,7 @@ typedef struct
   int bandwidth;
   int max_bandwidth;
   int bitrate;
+  int frame_duration; // in 100 us
   
   /* Encoder */
 
@@ -346,6 +347,7 @@ static int flush_header_pages_opus(void*data)
 static int write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
   {
   opus_t * opus = data;
+
   
   }
 
