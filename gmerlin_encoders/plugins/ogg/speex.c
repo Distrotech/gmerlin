@@ -350,7 +350,7 @@ static int init_speex(void * data, gavl_audio_format_t * format,
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Got no Speex ID page");
 
   /* Build comment */
-
+  
   speex_lib_ctl(SPEEX_LIB_GET_VERSION_STRING, &version);
   vendor_string = bg_sprintf("Encoded with Speex %s", version);
 

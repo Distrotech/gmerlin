@@ -61,8 +61,10 @@ typedef struct
     } chtab; // Channel mapping table
   } opus_header_t;
 
+#define MAX_HEADER_LEN (8+1+1+2+4+2+1+1+1+256)
+
 static void setup_header(opus_header_t * h, gavl_audio_format_t * format);
-static uint8_t * header_to_packet(opus_header_t * h, int * len);
+static int header_to_packet(opus_header_t * h, uint8_t * ret);
 
 typedef struct
   {
@@ -256,15 +258,13 @@ static int init_opus(void * data, gavl_audio_format_t * format,
                      gavl_metadata_t * metadata)
   {
   int err;
+  ogg_packet op;
+
   opus_t * opus = data;
 
-  /* Adjust format */
-
-  bg_ogg_set_vorbis_channel_setup(format);
-  format->interleave_mode = GAVL_INTERLEAVE_ALL;
-  format->sample_format = GAVL_SAMPLE_FLOAT;
+  uint8_t header[MAX_HEADER_LEN];
   
-  /* Setup header */
+  /* Setup header (also adjusts format) */
 
   setup_header(&opus->h, format);
   
@@ -303,9 +303,33 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   opus_multistream_encoder_ctl(opus->enc, OPUS_SET_PACKET_LOSS_PERC(opus->loss_perc));
   opus_multistream_encoder_ctl(opus->enc, OPUS_SET_BANDWIDTH(opus->bandwidth));
   opus_multistream_encoder_ctl(opus->enc, OPUS_SET_MAX_BANDWIDTH(opus->max_bandwidth));
-
-  /* Output header */
   
+  /* Output header */
+  op.packet = header;
+  op.bytes = header_to_packet(&opus->h, header);
+  op.b_o_s = 1;
+  op.e_o_s = 0;
+  op.granulepos = 0;
+  op.packetno = 0;
+
+  /* And stream them out */
+  ogg_stream_packetin(&opus->enc_os,&op);
+  if(!bg_ogg_flush_page(&opus->enc_os, opus->output, 1))
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Got no Opus header page");
+
+  /* Build comment */
+  
+  bg_ogg_create_comment_packet((uint8_t*)"OpusTags", 8,
+                               opus_get_version_string(), metadata, &op);
+  
+  op.b_o_s = 0;
+  op.e_o_s = 0;
+  op.granulepos = 0;
+  op.packetno = 1;
+  ogg_stream_packetin(&opus->enc_os, &op);
+
+  bg_ogg_free_comment_packet(&op);
+
   
   return 1;
   }
@@ -313,6 +337,10 @@ static int init_opus(void * data, gavl_audio_format_t * format,
 static int flush_header_pages_opus(void*data)
   {
   opus_t * opus = data;
+  opus = data;
+  if(bg_ogg_flush(&opus->enc_os, opus->output, 1) <= 0)
+    return 0;
+  return 1;
   }
 
 static int write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
@@ -332,6 +360,7 @@ static int close_opus(void * data)
 
   opus_multistream_encoder_destroy(opus->enc);
   free(opus);
+  return 1;
   }
 
 const bg_ogg_codec_t bg_opus_codec =
@@ -356,21 +385,151 @@ const bg_ogg_codec_t bg_opus_codec =
 
 /* Header stuff */
 
+static const int samplerates[] =
+  {
+    8000, 12000, 16000, 24000, 48000, 0
+  };
+
 static void setup_header(opus_header_t * h, gavl_audio_format_t * format)
   {
+  int rate;
+  format->interleave_mode = GAVL_INTERLEAVE_ALL;
+  format->sample_format = GAVL_SAMPLE_FLOAT;
+
+  rate = gavl_nearest_samplerate(format->samplerate, samplerates);
+  if(rate != format->samplerate)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Resampling from %d to %d",
+           format->samplerate, rate);
+    format->samplerate = rate;
+    }
+  
   h->version = 1;
   h->channel_count = format->num_channels;
   h->pre_skip = 0;
   h->samplerate = format->samplerate;
   h->output_gain = 0;
   
+  if(format->channel_locations[0] == GAVL_CHID_AUX)
+    {
+    int i;
+    h->channel_mapping = 255;
+    h->chtab.stream_count = format->num_channels;
+    h->chtab.coupled_count = 0;
+    for(i = 0; i < format->num_channels; i++)
+      h->chtab.map[i] = i;
+    return;
+    }
+  
+  bg_ogg_set_vorbis_channel_setup(format);
   switch(format->num_channels)
     {
-    
+    case 1:
+      h->channel_mapping = 0;
+      h->chtab.stream_count = 1;
+      h->chtab.coupled_count = 0;
+      h->chtab.map[0] = 0;
+      break;
+    case 2:
+      h->channel_mapping = 0;
+      h->chtab.stream_count = 1;
+      h->chtab.coupled_count = 1;
+      h->chtab.map[0] = 0;
+      h->chtab.map[1] = 1;
+      break;
+    case 3: // Left, Center, Right
+      h->channel_mapping = 1;
+      h->chtab.stream_count = 2;
+      h->chtab.coupled_count = 1;
+      h->chtab.map[0] = 0;
+      h->chtab.map[1] = 2;
+      h->chtab.map[2] = 1;
+      break;
+    case 4: // Left, Right, Rear left, Rear right
+      h->channel_mapping = 1;
+      h->chtab.stream_count = 2;
+      h->chtab.coupled_count = 2;
+      h->chtab.map[0] = 0;
+      h->chtab.map[1] = 1;
+      h->chtab.map[2] = 2;
+      h->chtab.map[3] = 3;
+      break;
+    case 5: // Left, Center, Right, Rear left, Rear right
+      h->channel_mapping = 1;
+      h->chtab.stream_count = 3;
+      h->chtab.coupled_count = 2;
+      h->chtab.map[0] = 0;
+      h->chtab.map[1] = 4;
+      h->chtab.map[2] = 1;
+      h->chtab.map[3] = 2;
+      h->chtab.map[4] = 3;
+      break;
+    case 6: // Left, Center, Right, Rear left, Rear right, LFE
+      h->channel_mapping = 1;
+      h->chtab.stream_count = 4;
+      h->chtab.coupled_count = 2;
+      h->chtab.map[0] = 0;
+      h->chtab.map[1] = 4;
+      h->chtab.map[2] = 1;
+      h->chtab.map[3] = 2;
+      h->chtab.map[4] = 3;
+      h->chtab.map[5] = 5;
+      break;
+    case 7: // Left, Center, Right, Side left, Side right, Rear Center, LFE
+      h->channel_mapping = 1;
+      h->chtab.stream_count = 5;
+      h->chtab.coupled_count = 2;
+      h->chtab.map[0] = 0;
+      h->chtab.map[1] = 4;
+      h->chtab.map[2] = 1;
+      h->chtab.map[3] = 2;
+      h->chtab.map[4] = 3;
+      h->chtab.map[5] = 5;
+      h->chtab.map[6] = 6;
+      break;
+    case 8: // Left, Center, Right, Side left, Side right, Rear left, Rear right, LFE
+      h->channel_mapping = 1;
+      h->chtab.stream_count = 5;
+      h->chtab.coupled_count = 2;
+      h->chtab.map[0] = 0;
+      h->chtab.map[1] = 6;
+      h->chtab.map[2] = 1;
+      h->chtab.map[3] = 2;
+      h->chtab.map[4] = 3;
+      h->chtab.map[5] = 4;
+      h->chtab.map[6] = 5;
+      h->chtab.map[7] = 7;
+      break;
     }
   }
 
-static uint8_t * header_to_packet(opus_header_t * h, int * len)
+#define write32(buf, base, val) \
+  buf[base+3]=((val)>>24)&0xff;  \
+  buf[base+2]=((val)>>16)&0xff;  \
+  buf[base+1]=((val)>>8)&0xff;   \
+  buf[base]=(val)&0xff;
+
+#define write16(buf, base, val) \
+  buf[base+1]=((val)>>8)&0xff;   \
+  buf[base]=(val)&0xff;
+
+
+static int header_to_packet(opus_header_t * h, uint8_t * ret)
   {
+  int len = 0;
   
+  memcpy(ret, "OpusHead", 8);        len+=8;
+  ret[len] = h->version;             len++;
+  ret[len] = h->channel_count;       len++;
+  write16(ret, len, h->pre_skip);    len+=2;
+  write32(ret, len, h->samplerate);  len+=4;
+  write16(ret, len, h->output_gain); len+=2;
+  ret[len] = h->channel_mapping;     len++;
+  if(h->channel_mapping != 0)
+    {
+    ret[len] = h->chtab.stream_count; len++;
+    ret[len] = h->chtab.coupled_count; len++;
+    memcpy(ret + len, h->chtab.map, h->channel_count); len += h->channel_count;
+    }
+  return len;
   }
