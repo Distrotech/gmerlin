@@ -347,6 +347,9 @@ void bg_recorder_audio_finalize_encode(bg_recorder_t * rec)
   as->do_convert_enc = gavl_audio_converter_init(as->enc_cnv, &as->pipe_format,
                                                  &as->enc_format);
 
+  as->enc_format.samples_per_frame =
+    (as->pipe_format.samples_per_frame * as->enc_format.samplerate) / as->pipe_format.samplerate + 10;
+  
   if(as->do_convert_enc)
     as->enc_frame = gavl_audio_frame_create(&as->enc_format);
 
