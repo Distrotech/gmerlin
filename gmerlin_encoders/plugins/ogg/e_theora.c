@@ -43,6 +43,10 @@ extern const bg_ogg_codec_t bg_speex_codec;
 extern const bg_ogg_codec_t bg_flacogg_codec;
 #endif
 
+#ifdef HAVE_OPUS
+extern const bg_ogg_codec_t bg_opus_codec;
+#endif
+
 static bg_ogg_codec_t const * const audio_codecs[] =
   {
     &bg_vorbis_codec,
@@ -51,6 +55,9 @@ static bg_ogg_codec_t const * const audio_codecs[] =
 #endif
 #ifdef HAVE_FLAC
     &bg_flacogg_codec,
+#endif
+#ifdef HAVE_OPUS
+    &bg_opus_codec,
 #endif
     NULL,
   };

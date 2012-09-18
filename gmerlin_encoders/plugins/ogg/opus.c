@@ -544,8 +544,6 @@ const bg_ogg_codec_t bg_opus_codec =
     
     .init_audio =     init_opus,
     
-    //  int (*init_video)(void*, gavl_video_format_t * format);
-  
     .flush_header_pages = flush_header_pages_opus,
     
     .encode_audio = write_audio_frame_opus,
