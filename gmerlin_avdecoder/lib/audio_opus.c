@@ -98,6 +98,8 @@ static int init_opus(bgav_stream_t * s)
   if(!bgav_opus_header_read(input_mem, &priv->h))
     goto fail;
 
+  //  bgav_opus_header_dump(&priv->h);
+  
   err = 0;
   
   priv->dec =

@@ -32,9 +32,6 @@ static int get_format(bgav_audio_parser_t * parser)
   int ret = 0;
   bgav_opus_header_t h;
   bgav_input_context_t * input_mem;
-
-  fprintf(stderr, "Ext data:\n");
-  bgav_hexdump(parser->s->ext_data, parser->s->ext_size, 16);
   
   input_mem = bgav_input_open_memory(parser->s->ext_data,
                                      parser->s->ext_size,
