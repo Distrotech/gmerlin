@@ -94,6 +94,13 @@ typedef struct
   gavl_audio_format_t * format;
 
   int64_t samples_read;
+
+  uint8_t * enc_buffer;
+  int enc_buffer_size;
+
+  int64_t granulepos;
+  int granulepos_inc;
+  int64_t packetcounter;
   
   } opus_t;
 
@@ -361,6 +368,8 @@ static int init_opus(void * data, gavl_audio_format_t * format,
 
   opus->h.pre_skip = (opus->lookahead * 48000) / format->samplerate;
 
+  opus->granulepos_inc = (format->samples_per_frame * 48000) / format->samplerate;
+  
   /* Save format and create frame */
   opus->format = format;
   opus->frame = gavl_audio_frame_create(opus->format);
@@ -371,7 +380,7 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   op.b_o_s = 1;
   op.e_o_s = 0;
   op.granulepos = 0;
-  op.packetno = 0;
+  op.packetno = opus->packetcounter++;
 
   /* And stream them out */
   ogg_stream_packetin(&opus->enc_os,&op);
@@ -386,11 +395,17 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   op.b_o_s = 0;
   op.e_o_s = 0;
   op.granulepos = 0;
-  op.packetno = 1;
+  op.packetno = opus->packetcounter++;
   ogg_stream_packetin(&opus->enc_os, &op);
 
   bg_ogg_free_comment_packet(&op);
- 
+
+  /* Allocate encoder buffer */
+
+  // Size taken from opusenc.c
+  opus->enc_buffer_size = opus->h.chtab.stream_count * (1275*3+7); 
+  opus->enc_buffer = malloc(opus->enc_buffer_size);
+  
   return 1;
   }
 
@@ -405,7 +420,62 @@ static int flush_header_pages_opus(void*data)
 
 static int flush_frame(opus_t * opus, int eof)
   {
+  ogg_packet op;
+  int result;
+
+  if(!opus->frame->valid_samples)
+    return 1;
   
+  if(opus->frame->valid_samples < opus->format->samples_per_frame)
+    {
+    int block_align = opus->format->num_channels *
+      gavl_bytes_per_sample(opus->format->sample_format);
+    
+    memset(opus->frame->samples.s_8 +
+           block_align * opus->frame->valid_samples, 0,
+           (opus->format->samples_per_frame - opus->frame->valid_samples) *
+           block_align);
+    }
+
+  if(opus->format->sample_format == GAVL_SAMPLE_FLOAT)
+    {
+    result = opus_multistream_encode_float(opus->enc,
+                                           opus->frame->samples.f,
+                                           opus->format->samples_per_frame,
+                                           opus->enc_buffer,
+                                           opus->enc_buffer_size);
+    }
+  else
+    {
+    result = opus_multistream_encode(opus->enc,
+                                     opus->frame->samples.s_16,
+                                     opus->format->samples_per_frame,
+                                     opus->enc_buffer,
+                                     opus->enc_buffer_size);
+    }
+
+  opus->frame->valid_samples = 0;
+
+  if(result < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding failed: %s", opus_strerror(result));
+    return 0;
+    }
+
+  /* Create packet */
+  memset(&op, 0, sizeof(op));
+  op.bytes = result;
+  op.packet = opus->enc_buffer;
+  op.e_o_s = eof;
+  op.packetno = opus->packetcounter++;
+  op.granulepos = opus->granulepos - opus->h.pre_skip;
+  opus->granulepos += opus->granulepos_inc;
+
+  ogg_stream_packetin(&opus->enc_os, &op);
+  
+  if(bg_ogg_flush(&opus->enc_os, opus->output, eof) < 0)
+    return 0;
+  return 1;
   }
 
 static int write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
@@ -442,16 +512,18 @@ static int write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
 
 static int close_opus(void * data)
   {
+  int result;
   opus_t * opus = data;
 
   /* Flush */
-
+  result = flush_frame(opus, 1);
+  
   /* Cleanup */
   ogg_stream_clear(&opus->enc_os);
 
   opus_multistream_encoder_destroy(opus->enc);
   free(opus);
-  return 1;
+  return result;
   }
 
 const bg_ogg_codec_t bg_opus_codec =
