@@ -28,6 +28,7 @@
 
 #define STREAM_ID 0
 
+#define LOG_DOMAIN "wav"
 
 /* WAV demuxer */
 
@@ -169,6 +170,12 @@ static int open_wav(bgav_demuxer_context_t * ctx)
 
   /* Packet size will be at least 1024 bytes */
 
+  if(!s->data.audio.block_align)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "BlockAlign is zero");
+    goto fail;
+    }
+  
   priv->packet_size = ((1024 + s->data.audio.block_align - 1) / 
                        s->data.audio.block_align) * s->data.audio.block_align;
 

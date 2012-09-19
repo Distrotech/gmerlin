@@ -247,7 +247,7 @@ int bgav_video_start(bgav_stream_t * s)
       {
       int src_flags = GAVL_SOURCE_SRC_ALLOC | s->src_flags;
       if(!(s->flags & STREAM_INTRA_ONLY))
-        src_flags = GAVL_SOURCE_SRC_REF;
+        src_flags |= GAVL_SOURCE_SRC_REF;
       
       s->data.video.source =
         gavl_video_source_create(read_video_nocopy,
