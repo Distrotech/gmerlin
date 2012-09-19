@@ -41,7 +41,7 @@ static int get_format(bgav_audio_parser_t * parser)
     goto fail;
 
   bgav_opus_set_channel_setup(&h, &parser->s->data.audio.format);
-  //  bgav_opus_header_dump(&h);
+  bgav_opus_header_dump(&h);
   
   ret = 1;
   fail:
