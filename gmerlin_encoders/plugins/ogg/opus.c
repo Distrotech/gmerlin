@@ -100,6 +100,8 @@ typedef struct
 
   int64_t granulepos;
   int64_t packetcounter;
+
+  int to_skip;
   
   } opus_t;
 
@@ -420,7 +422,7 @@ static int flush_frame(opus_t * opus, int eof)
 
   //  fprintf(stderr, "Flush frame %d %d\n", opus->frame->valid_samples,
   //          opus->format->samples_per_frame);
-          
+  
   if(opus->frame->valid_samples)
     {
     
@@ -451,17 +453,16 @@ static int flush_frame(opus_t * opus, int eof)
                                        opus->enc_buffer,
                                        opus->enc_buffer_size);
       }
-
-    opus->granulepos += (opus->frame->valid_samples * 48000) / opus->format->samplerate;
     
-    opus->frame->valid_samples = 0;
-
     if(result < 0)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding failed: %s", opus_strerror(result));
       return 0;
       }
 
+    opus->granulepos += (opus->frame->valid_samples * 48000) / opus->format->samplerate;
+    opus->frame->valid_samples = 0;
+    
     /* Create packet */
     memset(&op, 0, sizeof(op));
     op.bytes = result;
@@ -485,6 +486,28 @@ static int write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
   int samples_copied;
   
   opus_t * opus = data;
+
+  /* Handle lookahead */
+  while(opus->lookahead)
+    {
+    gavl_audio_frame_mute(opus->frame, opus->format);
+
+    opus->frame->valid_samples = opus->lookahead;
+    if(opus->frame->valid_samples > opus->format->samples_per_frame)
+      opus->frame->valid_samples = opus->format->samples_per_frame;
+
+    samples_copied = opus->frame->valid_samples;
+    
+    if(opus->frame->valid_samples == opus->format->samples_per_frame)
+      {
+      result = flush_frame(opus, 0);
+      if(!result)
+        break;
+      }
+
+    opus->lookahead -= samples_copied;
+    }
+  
   // fprintf(stderr, "write_audio %d\n", frame->valid_samples);
   while(samples_read < frame->valid_samples)
     {
