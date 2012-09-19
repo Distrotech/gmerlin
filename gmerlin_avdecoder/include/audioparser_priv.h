@@ -62,9 +62,6 @@ struct bgav_audio_parser_s
   /* Raw byte offset of the start of the parser buffer */
   int64_t raw_position;
   
-  /* Timescales */
-  int in_scale;
-
   int have_format;
   
   /* Packets */
