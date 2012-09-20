@@ -361,7 +361,7 @@ int gavl_audio_source_read_samples(void * sp, gavl_audio_frame_t * frame,
   }
 
 void 
-gavl_audio_source_skip(gavl_audio_source_t * s, int num_samples)
+gavl_audio_source_skip_src(gavl_audio_source_t * s, int num_samples)
   {
   s->skip_samples += num_samples;
   }

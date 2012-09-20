@@ -4426,18 +4426,18 @@ GAVL_PUBLIC
 gavl_source_status_t
 gavl_audio_source_read_frame(void*, gavl_audio_frame_t ** frame);
 
-/** \brief Skip audio samples
+/** \brief Skip audio samples at the input
  *  \param s An audio source 
  *  \param num_samples Number of samples to skip
  *
- *  This skips a number of output samples. It can be used after
+ *  This skips a number of input samples. It can be used after
  *  seeking if the sample position after a seek is no multiple of
  *  the frame size.
  */
   
 GAVL_PUBLIC
 void 
-gavl_audio_source_skip(gavl_audio_source_t * s, int num_samples);
+gavl_audio_source_skip_src(gavl_audio_source_t * s, int num_samples);
   
 /** \brief Read audio samples
  *  \param s An audio source 
