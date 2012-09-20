@@ -84,16 +84,7 @@ void bgav_audio_parser_destroy(bgav_audio_parser_t *);
 void bgav_audio_parser_reset(bgav_audio_parser_t *,
                              int64_t in_pts, int64_t out_pts);
 
-int bgav_audio_parser_parse(bgav_audio_parser_t * parser);
-
-int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
-                                  bgav_packet_t * p);
-
-void bgav_audio_parser_add_packet(bgav_audio_parser_t * parser,
-                                  bgav_packet_t * p);
 
 void bgav_audio_parser_add_data(bgav_audio_parser_t * parser,
                                 uint8_t * data, int len, int64_t position);
 
-void bgav_audio_parser_get_packet(bgav_audio_parser_t * parser,
-                                  bgav_packet_t * p);

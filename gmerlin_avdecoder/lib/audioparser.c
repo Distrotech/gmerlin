@@ -82,153 +82,65 @@ static void set_eof(bgav_audio_parser_t * parser)
     parser->frame_bytes = parser->buf.size;
   }
 
-
-/* */
-
-static bgav_packet_t *
-get_packet_parse_full(void * parser1)
+static int check_output(bgav_audio_parser_t * parser)
   {
-  int result;
-  bgav_packet_t * ret;
-  bgav_audio_parser_t * parser = parser1;
-  bgav_packet_t * p;
-  
-  if(parser->out_packet)
-    {
-    ret = parser->out_packet;
-    parser->out_packet = NULL;
-    return ret;
-    }
-  
-  while(1)
-    {
-    result = bgav_audio_parser_parse(parser);
-
-    switch(result)
-      {
-      case PARSER_EOF:
-        return NULL;
-      case PARSER_NEED_DATA:
-        p = parser->src.get_func(parser->src.data);
-        if(!p)
-          {
-          set_eof(parser);
-          continue;
-          }
-        else
-          {
-          bgav_audio_parser_add_packet(parser, p);
-          bgav_packet_pool_put(parser->s->pp, p);
-          }
-        break;
-      case PARSER_HAVE_PACKET:
-        ret = bgav_packet_pool_get(parser->s->pp);
-        bgav_audio_parser_get_packet(parser, ret);
-        return ret;
-        break;
-      case PARSER_ERROR:
-        return NULL;
-      }
-    }
-  return NULL;
+  if(parser->frame_bytes &&
+     (parser->buf.size >= parser->frame_bytes))
+    return 1;
+  return 0;
   }
 
-static bgav_packet_t *
-peek_packet_parse_full(void * parser1, int force)
+static int do_parse(bgav_audio_parser_t * parser)
   {
   int result;
-  bgav_packet_t * p;
-  bgav_audio_parser_t * parser = parser1;
-
-  if(parser->out_packet)
-    return parser->out_packet;
-
-  while(1)
-    {
-    result = bgav_audio_parser_parse(parser);
+  
+  if(check_output(parser))
+    return PARSER_HAVE_PACKET;
+  else if(parser->eof)
+    return PARSER_EOF;
     
-    switch(result)
-      {
-      case PARSER_EOF:
-        return NULL;
-      case PARSER_NEED_DATA:
-        if(!parser->src.peek_func(parser->src.data, force))
-          {
-          if(force)
-            {
-            set_eof(parser);
-            continue;
-            }
-          else
-            return NULL;
-          }
-        else
-          {
-          p = parser->src.get_func(parser->src.data);
-          bgav_audio_parser_add_packet(parser, p);
-          bgav_packet_pool_put(parser->s->pp, p);
-          }
-        break;
-      case PARSER_HAVE_PACKET:
-        parser->out_packet = bgav_packet_pool_get(parser->s->pp);
-        bgav_audio_parser_get_packet(parser, parser->out_packet);
-        return parser->out_packet;
-        break;
-      case PARSER_ERROR:
-        return NULL;
-      }
+  result = parser->parse(parser);
+  switch(result)
+    {
+    case PARSER_HAVE_FORMAT:
+    case PARSER_NEED_DATA:
+      return result;
+      break;
+    case PARSER_HAVE_FRAME:
+      if(check_output(parser))
+        return PARSER_HAVE_PACKET;
+      /* Check if we have enough data */
+      break;
     }
-  return NULL;
+  return PARSER_NEED_DATA;
   }
 
-static bgav_packet_t *
-get_packet_parse_frame(void * parser1)
-  {
-  bgav_packet_t * ret;
-  bgav_audio_parser_t * parser = parser1;
-  if(parser->out_packet)
-    {
-    ret = parser->out_packet;
-    parser->out_packet = NULL;
-    return ret;
-    }
-  ret = parser->src.get_func(parser->src.data);
-  if(!ret)
-    return NULL;
 
-  if(ret->duration < 0)
-    {
-    bgav_audio_parser_parse_frame(parser, ret);
-    }
-  return ret;
-  }
-
-static bgav_packet_t *
-peek_packet_parse_frame(void * parser1, int force)
+static void add_packet(bgav_audio_parser_t * parser, bgav_packet_t * p)
   {
-  bgav_audio_parser_t * parser = parser1;
+#ifdef DUMP_INPUT  
+  bgav_dprintf("Add packet ");
+  bgav_packet_dump(p);
+#endif
+  /* Update cache */
   
-  if(parser->out_packet)
-    return parser->out_packet;
-
-  if(!parser->src.peek_func(parser->src.data, force))
-    return NULL;
-
-  parser->out_packet =
-    parser->src.get_func(parser->src.data);
-
-  if(parser->out_packet->duration < 0)
+  if(parser->num_packets >= parser->packets_alloc)
     {
-    if(bgav_audio_parser_parse_frame(parser, parser->out_packet) ==
-       PARSER_ERROR)
-      return 0;
+    parser->packets_alloc = parser->num_packets + 10;
+    parser->packets       = realloc(parser->packets,
+                                    parser->packets_alloc *
+                                    sizeof(*parser->packets));
     }
-  return parser->out_packet;
+  parser->packets[parser->num_packets].packet_position = p->position;
+  parser->packets[parser->num_packets].parser_position = parser->buf.size;
+  parser->packets[parser->num_packets].size = p->data_size;
+  parser->packets[parser->num_packets].pts  = p->pts;
+  parser->num_packets++;
+  bgav_bytebuffer_append_data(&parser->buf, p->data, p->data_size, 0);
+
   }
 
-/* */
-
-int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
+static int parse_frame(bgav_audio_parser_t * parser,
                                   bgav_packet_t * p)
   {
   if(!parser->parse_frame)
@@ -278,6 +190,191 @@ int bgav_audio_parser_parse_frame(bgav_audio_parser_t * parser,
 
   return PARSER_HAVE_PACKET;
   }
+
+static void get_out_packet(bgav_audio_parser_t * parser,
+                    bgav_packet_t * p)
+  {
+  bgav_packet_alloc(p, parser->frame_bytes);
+  memcpy(p->data, parser->buf.buffer, parser->frame_bytes);
+  p->data_size = parser->frame_bytes;
+  bgav_packet_pad(p);
+  bgav_audio_parser_flush(parser, parser->frame_bytes);
+
+  if(parser->timestamp == GAVL_TIME_UNDEFINED)
+    {
+    if(parser->frame_pts != GAVL_TIME_UNDEFINED)
+      parser->timestamp = parser->frame_pts;
+    else
+      parser->timestamp = 0;
+    }
+  p->pts = parser->timestamp;
+  parser->timestamp += parser->frame_samples;
+  
+  p->duration = parser->frame_samples;
+  
+  p->dts = GAVL_TIME_UNDEFINED;
+
+  p->flags = 0;
+  
+  PACKET_SET_KEYFRAME(p);
+
+  p->position = parser->frame_position;
+  
+  //  fprintf(stderr, "Get packet %c %ld\n", c->coding_type, p->pts);
+
+  /* Clear frame bytes */
+  parser->frame_bytes = 0;
+  
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Get packet ");
+  bgav_packet_dump(p);
+#endif
+
+  }
+
+
+/* */
+
+static bgav_packet_t *
+get_packet_parse_full(void * parser1)
+  {
+  int result;
+  bgav_packet_t * ret;
+  bgav_audio_parser_t * parser = parser1;
+  bgav_packet_t * p;
+  
+  if(parser->out_packet)
+    {
+    ret = parser->out_packet;
+    parser->out_packet = NULL;
+    return ret;
+    }
+  
+  while(1)
+    {
+    result = do_parse(parser);
+
+    switch(result)
+      {
+      case PARSER_EOF:
+        return NULL;
+      case PARSER_NEED_DATA:
+        p = parser->src.get_func(parser->src.data);
+        if(!p)
+          {
+          set_eof(parser);
+          continue;
+          }
+        else
+          {
+          add_packet(parser, p);
+          bgav_packet_pool_put(parser->s->pp, p);
+          }
+        break;
+      case PARSER_HAVE_PACKET:
+        ret = bgav_packet_pool_get(parser->s->pp);
+        get_out_packet(parser, ret);
+        return ret;
+        break;
+      case PARSER_ERROR:
+        return NULL;
+      }
+    }
+  return NULL;
+  }
+
+static bgav_packet_t *
+peek_packet_parse_full(void * parser1, int force)
+  {
+  int result;
+  bgav_packet_t * p;
+  bgav_audio_parser_t * parser = parser1;
+
+  if(parser->out_packet)
+    return parser->out_packet;
+
+  while(1)
+    {
+    result = do_parse(parser);
+    
+    switch(result)
+      {
+      case PARSER_EOF:
+        return NULL;
+      case PARSER_NEED_DATA:
+        if(!parser->src.peek_func(parser->src.data, force))
+          {
+          if(force)
+            {
+            set_eof(parser);
+            continue;
+            }
+          else
+            return NULL;
+          }
+        else
+          {
+          p = parser->src.get_func(parser->src.data);
+          add_packet(parser, p);
+          bgav_packet_pool_put(parser->s->pp, p);
+          }
+        break;
+      case PARSER_HAVE_PACKET:
+        parser->out_packet = bgav_packet_pool_get(parser->s->pp);
+        get_out_packet(parser, parser->out_packet);
+        return parser->out_packet;
+        break;
+      case PARSER_ERROR:
+        return NULL;
+      }
+    }
+  return NULL;
+  }
+
+static bgav_packet_t *
+get_packet_parse_frame(void * parser1)
+  {
+  bgav_packet_t * ret;
+  bgav_audio_parser_t * parser = parser1;
+  if(parser->out_packet)
+    {
+    ret = parser->out_packet;
+    parser->out_packet = NULL;
+    return ret;
+    }
+  ret = parser->src.get_func(parser->src.data);
+  if(!ret)
+    return NULL;
+
+  if(ret->duration < 0)
+    parse_frame(parser, ret);
+  
+  return ret;
+  }
+
+static bgav_packet_t *
+peek_packet_parse_frame(void * parser1, int force)
+  {
+  bgav_audio_parser_t * parser = parser1;
+  
+  if(parser->out_packet)
+    return parser->out_packet;
+
+  if(!parser->src.peek_func(parser->src.data, force))
+    return NULL;
+
+  parser->out_packet =
+    parser->src.get_func(parser->src.data);
+
+  if(parser->out_packet->duration < 0)
+    {
+    if(parse_frame(parser, parser->out_packet) == PARSER_ERROR)
+      return 0;
+    }
+  return parser->out_packet;
+  }
+
+/* */
 
 bgav_audio_parser_t * bgav_audio_parser_create(bgav_stream_t * s)
   {
@@ -363,63 +460,7 @@ void bgav_audio_parser_reset(bgav_audio_parser_t * parser,
     parser->timestamp = GAVL_TIME_UNDEFINED;
   }
 
-static int check_output(bgav_audio_parser_t * parser)
-  {
-  if(parser->frame_bytes &&
-     (parser->buf.size >= parser->frame_bytes))
-    return 1;
-  return 0;
-  }
 
-int bgav_audio_parser_parse(bgav_audio_parser_t * parser)
-  {
-  int result;
-  
-  if(check_output(parser))
-    return PARSER_HAVE_PACKET;
-  else if(parser->eof)
-    return PARSER_EOF;
-    
-  result = parser->parse(parser);
-  switch(result)
-    {
-    case PARSER_HAVE_FORMAT:
-    case PARSER_NEED_DATA:
-      return result;
-      break;
-    case PARSER_HAVE_FRAME:
-      if(check_output(parser))
-        return PARSER_HAVE_PACKET;
-      /* Check if we have enough data */
-      break;
-    }
-  return PARSER_NEED_DATA;
-  }
-
-void bgav_audio_parser_add_packet(bgav_audio_parser_t * parser,
-                                  bgav_packet_t * p)
-  {
-#ifdef DUMP_INPUT  
-  bgav_dprintf("Add packet ");
-  bgav_packet_dump(p);
-#endif
-  /* Update cache */
-  
-  if(parser->num_packets >= parser->packets_alloc)
-    {
-    parser->packets_alloc = parser->num_packets + 10;
-    parser->packets       = realloc(parser->packets,
-                                    parser->packets_alloc *
-                                    sizeof(*parser->packets));
-    }
-  parser->packets[parser->num_packets].packet_position = p->position;
-  parser->packets[parser->num_packets].parser_position = parser->buf.size;
-  parser->packets[parser->num_packets].size = p->data_size;
-  parser->packets[parser->num_packets].pts  = p->pts;
-  parser->num_packets++;
-  bgav_bytebuffer_append_data(&parser->buf, p->data, p->data_size, 0);
-
-  }
 
 void bgav_audio_parser_add_data(bgav_audio_parser_t * parser,
                                 uint8_t * data, int len, int64_t position)
@@ -430,46 +471,6 @@ void bgav_audio_parser_add_data(bgav_audio_parser_t * parser,
     parser->raw_position = position;
   }
 
-void bgav_audio_parser_get_packet(bgav_audio_parser_t * parser,
-                                  bgav_packet_t * p)
-  {
-  bgav_packet_alloc(p, parser->frame_bytes);
-  memcpy(p->data, parser->buf.buffer, parser->frame_bytes);
-  p->data_size = parser->frame_bytes;
-  bgav_packet_pad(p);
-  bgav_audio_parser_flush(parser, parser->frame_bytes);
-
-  if(parser->timestamp == GAVL_TIME_UNDEFINED)
-    {
-    if(parser->frame_pts != GAVL_TIME_UNDEFINED)
-      parser->timestamp = parser->frame_pts;
-    else
-      parser->timestamp = 0;
-    }
-  p->pts = parser->timestamp;
-  parser->timestamp += parser->frame_samples;
-  
-  p->duration = parser->frame_samples;
-  
-  p->dts = GAVL_TIME_UNDEFINED;
-
-  p->flags = 0;
-  
-  PACKET_SET_KEYFRAME(p);
-
-  p->position = parser->frame_position;
-  
-  //  fprintf(stderr, "Get packet %c %ld\n", c->coding_type, p->pts);
-
-  /* Clear frame bytes */
-  parser->frame_bytes = 0;
-  
-#ifdef DUMP_OUTPUT
-  bgav_dprintf("Get packet ");
-  bgav_packet_dump(p);
-#endif
-
-  }
 
 
 void bgav_audio_parser_flush(bgav_audio_parser_t * parser, int bytes)
