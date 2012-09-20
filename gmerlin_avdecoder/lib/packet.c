@@ -165,8 +165,10 @@ void bgav_packet_swap_data(bgav_packet_t * p1, bgav_packet_t * p2)
 
 void bgav_packet_reset(bgav_packet_t * p)
   {
-  p->pts = GAVL_TIME_UNDEFINED;
-  p->dts = GAVL_TIME_UNDEFINED;
+  p->pts     = GAVL_TIME_UNDEFINED;
+  p->dts     = GAVL_TIME_UNDEFINED;
+  p->end_pts = GAVL_TIME_UNDEFINED;
+
   p->tc = GAVL_TIMECODE_UNDEFINED;
   p->flags = 0;
   p->data_size = 0;

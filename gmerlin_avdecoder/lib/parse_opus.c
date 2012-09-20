@@ -66,7 +66,7 @@ static int parse_frame_opus(bgav_audio_parser_t * parser, bgav_packet_t * p)
     p->duration = nb_frames;
   else
     p->duration = opus_packet_get_samples_per_frame(p->data, 48000) * nb_frames;
-
+  
   return 1;
   }
 

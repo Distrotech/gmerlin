@@ -36,6 +36,7 @@
    - Flac
    - OGM video (Typically some divx variant)
    - OGM Text subtitles
+   - Opus
 */
 
 
@@ -2085,14 +2086,18 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           p = bgav_stream_get_packet_write(s);
           set_packet_pos(priv, stream_priv, &page_continued, p);
           PACKET_SET_KEYFRAME(p);
-          // s->packet->pts = stream_priv->prev_granulepos;
-          
+                    
           bgav_packet_alloc(p, priv->op.bytes);
           memcpy(p->data, priv->op.packet, priv->op.bytes);
           p->data_size = priv->op.bytes;
           
           // fprintf(stderr, "priv->op.granulepos: %ld\n", priv->op.granulepos);
 
+          if(priv->op.granulepos >= 0)
+            p->end_pts = priv->op.granulepos;
+          else
+            p->end_pts = GAVL_TIME_UNDEFINED;
+          
           /* Check whether to close this packet */
 
           /* Close this packet */
@@ -2134,13 +2139,16 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           //  bgav_hexdump(p->data, 16, 16);
           
           if(stream_priv->prev_granulepos >= 0)
-            {
             p->pts = stream_priv->prev_granulepos;
-            }
           
           if((s->action == BGAV_STREAM_PARSE) && (priv->op.granulepos > 0))
             s->duration = priv->op.granulepos;
 
+          if(priv->op.granulepos >= 0)
+            p->end_pts = priv->op.granulepos;
+          else
+            p->end_pts = GAVL_TIME_UNDEFINED;
+          
           set_packet_pos(priv, stream_priv, &page_continued, p);
           bgav_stream_done_packet_write(s, p);
           break;

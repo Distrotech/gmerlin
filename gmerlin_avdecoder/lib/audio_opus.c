@@ -68,6 +68,9 @@ static int decode_frame_opus(bgav_stream_t * s)
     goto fail;
 
   priv->frame->valid_samples = result;
+
+  if(priv->frame->valid_samples > p->duration)
+    priv->frame->valid_samples = p->duration;
   
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->frame);

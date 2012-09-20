@@ -256,6 +256,9 @@ struct bgav_packet_s
   
   int64_t pts; /* In stream timescale tics */
   int64_t dts; /* In stream timescale tics */
+
+  int64_t end_pts; /* For Ogg demuxer: Store the granulepos here so that
+                      subsequent stages can obtain the true duration */
   
   int64_t duration;
   //  bgav_stream_t * stream; /* The stream this packet belongs to */
