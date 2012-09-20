@@ -240,6 +240,7 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 
 #define GAVF_EXT_CI_GLOBAL_HEADER    0
 #define GAVF_EXT_CI_BITRATE          1
+#define GAVF_EXT_CI_PRE_SKIP         2
 
 /* Packet */
 

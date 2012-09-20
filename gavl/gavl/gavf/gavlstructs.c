@@ -351,6 +351,10 @@ int gavf_read_compression_info(gavf_io_t * io,
         if(!gavf_io_read_int32v(io, &ci->bitrate))
           return 0;
         break;
+      case GAVF_EXT_CI_PRE_SKIP:
+        if(!gavf_io_read_uint32v(io, &ci->pre_skip))
+          return 0;
+        break;
       }
     }
   
@@ -404,6 +408,14 @@ int gavf_write_compression_info(gavf_io_t * io,
     buf.len = 0;
     if(!gavf_io_write_int32v(&bufio, ci->bitrate) ||
        !gavf_extension_write(io, GAVF_EXT_CI_BITRATE,
+                             buf.len, buf.buf))
+      return 0;
+    }
+  if(ci->pre_skip)
+    {
+    buf.len = 0;
+    if(!gavf_io_write_uint32v(&bufio, ci->pre_skip) ||
+       !gavf_extension_write(io, GAVF_EXT_CI_PRE_SKIP,
                              buf.len, buf.buf))
       return 0;
     }

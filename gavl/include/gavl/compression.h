@@ -79,6 +79,7 @@ typedef enum
     GAVL_CODEC_ID_AAC,       //!< AAC as stored in quicktime/mp4
     GAVL_CODEC_ID_VORBIS,    //!< Vorbis (segmented extradata and packets)
     GAVL_CODEC_ID_FLAC,      //!< Flac (extradata contain a file header without comment and seektable)
+    GAVL_CODEC_ID_OPUS,      //!< Opus
     
     /* Video */
     GAVL_CODEC_ID_JPEG = 0x10000, //!< JPEG image
@@ -114,8 +115,9 @@ typedef struct
   uint8_t * global_header; //!< Global header
   uint32_t global_header_len;   //!< Length of global header
   
-  int bitrate;             //!< Needed by some codecs, negative values mean VBR
-  int palette_size;        //!< Size of the embedded palette for image codecs
+  int32_t bitrate;             //!< Needed by some codecs, negative values mean VBR
+  int palette_size;             //!< Size of the embedded palette for image codecs
+  uint32_t pre_skip;            //!< Samples to skip at the start
   } gavl_compression_info_t;
 
 /** \brief Free all dynamically allocated memory of a compression info
