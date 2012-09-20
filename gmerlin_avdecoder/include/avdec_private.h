@@ -556,6 +556,16 @@ struct bgav_stream_s
          can honour it when seeking. */
       
       int preroll;
+
+      /*
+       *  Number of *samples* which must be discarded at the start
+       *  of the stream (used for opus). pre_skip also needs to be subtracted from
+       *  the timestamps of the decoded frames, but *not* from the timestamps of
+       *  compressed packets
+       */
+      
+      int pre_skip;
+
       bgav_audio_parser_t * parser;
 
       gavl_audio_frame_t * frame;
