@@ -469,7 +469,7 @@ static int flush_frame(opus_t * opus, int eof)
     op.packet = opus->enc_buffer;
     op.e_o_s = eof;
     op.packetno = opus->packetcounter++;
-    op.granulepos = opus->granulepos - opus->h.pre_skip;
+    op.granulepos = opus->granulepos;
     
     ogg_stream_packetin(&opus->enc_os, &op);
     }
