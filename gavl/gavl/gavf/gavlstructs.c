@@ -384,6 +384,9 @@ int gavf_write_compression_info(gavf_io_t * io,
 
   if(ci->bitrate)
     num_extensions++;
+
+  if(ci->pre_skip)
+    num_extensions++;
   
   /* Write extensions */
   if(!gavf_io_write_uint32v(io, num_extensions))
