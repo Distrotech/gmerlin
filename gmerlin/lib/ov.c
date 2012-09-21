@@ -87,6 +87,8 @@ void bg_ov_destroy(bg_ov_t * ov)
     UNLOCK(ov);
     }
   bg_plugin_unref(ov->h);
+  if(ov->sink_ext)
+    gavl_video_sink_destroy(ov->sink_ext);
   free(ov);
   }
 
@@ -249,6 +251,7 @@ int  bg_ov_open(bg_ov_t * ov, gavl_video_format_t * format, int keep_aspect)
   
   gavl_video_format_copy(&ov->format, format);
   ov->flags = FLAG_OPEN;
+  
   ov->sink_ext = gavl_video_sink_create(get_frame_func,
                                         put_frame_func, ov, format);
   
@@ -410,6 +413,12 @@ void bg_ov_close(bg_ov_t * ov)
     free(ov->ovl_str);
     ov->ovl_str = NULL;
     ov->num_ovl_str = 0;
+    }
+
+  if(ov->sink_ext)
+    {
+    gavl_video_sink_destroy(ov->sink_ext);
+    ov->sink_ext = NULL;
     }
   }
 

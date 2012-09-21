@@ -1391,7 +1391,7 @@ static void unload_plugin(bg_plugin_handle_t * h)
   
   if(h->location) free(h->location);
 
-#if 0
+#if 1
   // Some few libs (e.g. the OpenGL lib shipped with NVidia)
   // seem to install pthread cleanup handlers, which point to library
   // functions. dlclosing libraries causes programs to crash
