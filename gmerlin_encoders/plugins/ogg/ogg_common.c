@@ -156,7 +156,9 @@ int bg_ogg_flush(ogg_stream_state * os, bg_ogg_encoder_t * output, int force)
   return ret;
   }
 
-int bg_ogg_encoder_add_audio_stream(void * data, const gavl_audio_format_t * format)
+int bg_ogg_encoder_add_audio_stream(void * data,
+                                    const gavl_metadata_t * m,
+                                    const gavl_audio_format_t * format)
   {
   bg_ogg_encoder_t * e = data;
   e->audio_streams =
@@ -164,11 +166,14 @@ int bg_ogg_encoder_add_audio_stream(void * data, const gavl_audio_format_t * for
   memset(e->audio_streams + e->num_audio_streams, 0, sizeof(*e->audio_streams));
   gavl_audio_format_copy(&e->audio_streams[e->num_audio_streams].format,
                          format);
+  e->audio_streams[e->num_audio_streams].m = m;
   e->num_audio_streams++;
   return e->num_audio_streams-1;
   }
 
-int bg_ogg_encoder_add_video_stream(void * data, const gavl_video_format_t * format)
+int bg_ogg_encoder_add_video_stream(void * data,
+                                    const gavl_metadata_t * m,
+                                    const gavl_video_format_t * format)
   {
   bg_ogg_encoder_t * e = data;
   e->video_streams =
@@ -176,11 +181,14 @@ int bg_ogg_encoder_add_video_stream(void * data, const gavl_video_format_t * for
   memset(e->video_streams + e->num_video_streams, 0, sizeof(*e->video_streams));
   gavl_video_format_copy(&e->video_streams[e->num_video_streams].format,
                          format);
+  e->video_streams[e->num_video_streams].m = m;
+
   e->num_video_streams++;
   return e->num_video_streams-1;
   }
 
 int bg_ogg_encoder_add_audio_stream_compressed(void * data,
+                                               const gavl_metadata_t * m,
                                                const gavl_audio_format_t * format,
                                                const gavl_compression_info_t * ci)
   {
@@ -191,11 +199,13 @@ int bg_ogg_encoder_add_audio_stream_compressed(void * data,
   gavl_audio_format_copy(&e->audio_streams[e->num_audio_streams].format,
                          format);
   e->audio_streams[e->num_audio_streams].ci = ci;
+  e->audio_streams[e->num_audio_streams].m = m;
   e->num_audio_streams++;
   return e->num_audio_streams-1;
   }
 
 int bg_ogg_encoder_add_video_stream_compressed(void * data,
+                                               const gavl_metadata_t * m,
                                                const gavl_video_format_t * format,
                                                const gavl_compression_info_t * ci)
   {
@@ -205,6 +215,7 @@ int bg_ogg_encoder_add_video_stream_compressed(void * data,
   memset(e->video_streams + e->num_video_streams, 0, sizeof(*e->video_streams));
   gavl_video_format_copy(&e->video_streams[e->num_video_streams].format,
                          format);
+  e->video_streams[e->num_video_streams].m = m;
   e->video_streams[e->num_video_streams].ci = ci;
   e->num_video_streams++;
   return e->num_video_streams-1;
@@ -276,10 +287,10 @@ static int start_audio(bg_ogg_encoder_t * e, int stream)
 
   if(s->ci)
     result =
-      s->codec->init_audio_compressed(s->codec_priv, &s->format, s->ci, &e->metadata);
+      s->codec->init_audio_compressed(s->codec_priv, &s->format, s->ci, &e->metadata, s->m);
   else
     {
-    result = s->codec->init_audio(s->codec_priv, &s->format, &e->metadata);
+    result = s->codec->init_audio(s->codec_priv, &s->format, &e->metadata, s->m);
     if(result)
       s->sink = gavl_audio_sink_create(NULL, write_audio_func, s, &s->format);
     }
@@ -295,7 +306,7 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
     if(!s->codec->init_video_compressed(s->codec_priv,
                                         &s->format,
                                         s->ci,
-                                        &e->metadata))
+                                        &e->metadata, s->m))
       return 0;
     
     }
@@ -303,7 +314,7 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
     {
     if(!s->codec->init_video(s->codec_priv,
                              &s->format,
-                             &e->metadata))
+                             &e->metadata, s->m))
       return 0;
     
     if(s->pass)

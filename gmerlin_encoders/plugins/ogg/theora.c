@@ -357,7 +357,8 @@ static uint8_t * create_comment_packet(th_comment * comment, int * len1)
 static int init_compressed_theora(void * data,
                                   gavl_video_format_t * format,
                                   const gavl_compression_info_t * ci,
-                                  gavl_metadata_t * metadata)
+                                  gavl_metadata_t * metadata,
+                                  const gavl_metadata_t * stream_metadata)
   {
   ogg_packet packet;
   
@@ -434,7 +435,8 @@ static int init_compressed_theora(void * data,
   }
 
 static int init_theora(void * data, gavl_video_format_t * format,
-                       gavl_metadata_t * metadata)
+                       gavl_metadata_t * metadata,
+                       const gavl_metadata_t * stream_metadata)
   {
   int sub_h, sub_v;
   int arg_i1, arg_i2;

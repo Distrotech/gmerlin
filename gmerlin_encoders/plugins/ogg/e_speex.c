@@ -46,7 +46,7 @@ static int add_audio_stream_speex(void * data,
                                   const gavl_audio_format_t * format)
   {
   int ret;
-  ret = bg_ogg_encoder_add_audio_stream(data, format);
+  ret = bg_ogg_encoder_add_audio_stream(data, m, format);
   bg_ogg_encoder_init_audio_stream(data, ret, &bg_speex_codec);
   return ret;
   }

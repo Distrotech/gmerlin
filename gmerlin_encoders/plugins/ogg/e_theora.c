@@ -78,7 +78,7 @@ static int add_audio_stream_theora(void * data,
                                    const gavl_audio_format_t * format)
   {
   int ret;
-  ret = bg_ogg_encoder_add_audio_stream(data, format);
+  ret = bg_ogg_encoder_add_audio_stream(data, m, format);
   return ret;
   }
 
@@ -88,7 +88,7 @@ static int add_audio_stream_compressed_theora(void * data,
                                               const gavl_compression_info_t * ci)
   {
   int ret;
-  ret = bg_ogg_encoder_add_audio_stream_compressed(data, format, ci);
+  ret = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
   if(ci->id == GAVL_CODEC_ID_VORBIS)
     bg_ogg_encoder_init_audio_stream(data, ret, &bg_vorbis_codec);
   return ret;
@@ -99,7 +99,7 @@ static int add_video_stream_theora(void * data,
                                    const gavl_video_format_t * format)
   {
   int ret;
-  ret = bg_ogg_encoder_add_video_stream(data, format);
+  ret = bg_ogg_encoder_add_video_stream(data, m, format);
   bg_ogg_encoder_init_video_stream(data, ret, &bg_theora_codec);
   return ret;
   }
@@ -111,7 +111,7 @@ add_video_stream_compressed_theora(void * data,
                                    const gavl_compression_info_t * ci)
   {
   int ret;
-  ret = bg_ogg_encoder_add_video_stream_compressed(data, format, ci);
+  ret = bg_ogg_encoder_add_video_stream_compressed(data, m, format, ci);
   bg_ogg_encoder_init_video_stream(data, ret, &bg_theora_codec);
   return ret;
   }

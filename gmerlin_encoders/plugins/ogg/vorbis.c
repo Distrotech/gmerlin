@@ -253,7 +253,8 @@ static uint8_t * create_comment_packet(vorbis_comment * comment, int * len1)
 
 static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
                                   const gavl_compression_info_t * ci,
-                                  gavl_metadata_t * metadata)
+                                  gavl_metadata_t * global_metadata,
+                                  const gavl_metadata_t * stream_metadata)
   {
   ogg_packet packet;
   uint8_t * ptr;
@@ -290,13 +291,13 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   /* Build comment (comments are UTF-8, good for us :-) */
   len = PTR_2_32BE(ptr); ptr += 4;
   
-  build_comment(&vorbis->enc_vc, metadata);
+  build_comment(&vorbis->enc_vc, global_metadata);
   
   /* Copy the vendor id */
   vendor_len = PTR_2_32LE(ptr + 7);
   vorbis->enc_vc.vendor = calloc(1, vendor_len + 1);
   memcpy(vorbis->enc_vc.vendor, ptr + 11, vendor_len);
-  fprintf(stderr, "Got vendor %s\n", vorbis->enc_vc.vendor);
+  // fprintf(stderr, "Got vendor %s\n", vorbis->enc_vc.vendor);
   
   comment_packet = create_comment_packet(&vorbis->enc_vc, &comment_len);
   packet.packet = comment_packet;
@@ -324,7 +325,8 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
 
 static int init_vorbis(void * data,
                        gavl_audio_format_t * format,
-                       gavl_metadata_t * metadata)
+                       gavl_metadata_t * metadata,
+                       const gavl_metadata_t * stream_metadata)
   {
   ogg_packet header_main;
   ogg_packet header_comments;
@@ -576,18 +578,16 @@ static int close_vorbis(void * data)
 
 const bg_ogg_codec_t bg_vorbis_codec =
   {
-    .name =      "vorbis",
+    .name      = "vorbis",
     .long_name = TRS("Vorbis encoder"),
-    .create = create_vorbis,
+    .create    = create_vorbis,
 
     .get_parameters = get_parameters_vorbis,
     .set_parameter =  set_parameter_vorbis,
     
-    .init_audio =     init_vorbis,
-    .init_audio_compressed =     init_compressed_vorbis,
+    .init_audio            = init_vorbis,
+    .init_audio_compressed = init_compressed_vorbis,
     
-    //  int (*init_video)(void*, gavl_video_format_t * format);
-  
     .flush_header_pages = flush_header_pages_vorbis,
     
     .encode_audio = write_audio_frame_vorbis,

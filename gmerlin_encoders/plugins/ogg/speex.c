@@ -229,7 +229,8 @@ static void set_parameter_speex(void * data, const char * name,
   }
 
 static int init_speex(void * data, gavl_audio_format_t * format,
-                      gavl_metadata_t * metadata)
+                      gavl_metadata_t * metadata,
+                      const gavl_metadata_t * stream_metadata)
   {
   float quality_f;
   const SpeexMode *mode=NULL;
