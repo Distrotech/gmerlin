@@ -418,6 +418,8 @@ static int init_compressed_opus(void * data, gavl_audio_format_t * format,
   const char * vendor;
   opus_t * opus = data;
   
+  ogg_stream_init(&opus->enc_os, opus->serialno);
+  
   memset(&op, 0, sizeof(op));
 
   op.packet = ci->global_header;
