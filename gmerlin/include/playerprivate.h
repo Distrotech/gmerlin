@@ -124,6 +124,9 @@ typedef struct
   int eof;
 
   bg_player_thread_t * th;
+
+  gavl_audio_sink_t * sink_out;
+  gavl_audio_sink_t * sink_intern;
   
   } bg_player_audio_stream_t;
 
@@ -484,6 +487,11 @@ void bg_player_oa_set_plugin(bg_player_t * player,
 
 void bg_player_oa_set_volume(bg_player_audio_stream_t * ctx,
                              float volume);
+
+void bg_player_peak_callback(void * priv, int num_samples,
+                             const double * min,
+                             const double * max,
+                             const double * abs);
 
 
 /*

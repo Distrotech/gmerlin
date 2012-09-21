@@ -29,7 +29,7 @@
 #define LOG_DOMAIN "player.audio_output"
 
 #define CHECK_PEAK(id, pos) \
-   index = gavl_channel_index(&s->fifo_format, id); \
+   index = gavl_channel_index(fmt, id); \
    if(index >= 0) \
      { \
      if(d.peak_out[pos] < peak[index]) \
@@ -37,7 +37,7 @@
      }
 
 #define CHECK_PEAK_2(id) \
-   index = gavl_channel_index(&s->fifo_format, id); \
+   index = gavl_channel_index(fmt, id); \
    if(index >= 0) \
      { \
      if(d.peak_out[0] < peak[index]) \
@@ -62,27 +62,23 @@ static void msg_peak(bg_msg_t * msg,
   bg_msg_set_arg_float(msg, 2, d->peak_out[1]);
   }
 
-static void do_peak(bg_player_t * p, gavl_audio_frame_t * frame)
+void bg_player_peak_callback(void * priv, int num_samples,
+                             const double * min,
+                             const double * max,
+                             const double * peak)
   {
   peak_data_t d;
-  int index;
+  bg_player_t * p = priv;
   bg_player_audio_stream_t * s;
-  double peak[GAVL_MAX_CHANNELS];
-
+  const gavl_audio_format_t * fmt;
+  int index;
   s = &p->audio_stream;
   
+  fmt = gavl_peak_detector_get_format(s->peak_detector);
+
   d.peak_out[0] = 0.0;
   d.peak_out[1] = 0.0;
-  d.num_samples = frame->valid_samples;
-  
-  gavl_peak_detector_reset(s->peak_detector);
-  gavl_peak_detector_update(s->peak_detector,
-                            frame);
-
-  gavl_peak_detector_get_peaks(s->peak_detector,
-                               NULL,
-                               NULL,
-                               peak);
+  d.num_samples = num_samples;
   
   /* Collect channels and merge into 2 */
   CHECK_PEAK(GAVL_CHID_FRONT_LEFT, 0);
@@ -102,6 +98,9 @@ static void do_peak(bg_player_t * p, gavl_audio_frame_t * frame)
 
   /* Broadcast */
   bg_msg_queue_list_send(p->message_queues, msg_peak, &d);
+
+  /* Reset */
+  gavl_peak_detector_reset(s->peak_detector);
   }
 
 /* Audio output thread */
@@ -139,7 +138,7 @@ static void process_frame(bg_player_t * p, gavl_audio_frame_t * frame)
       bg_visualizer_update(p->visualizer, frame);
     
     if(DO_PEAK(p->flags))
-      do_peak(p, frame);
+      gavl_peak_detector_update(s->peak_detector, frame);
     
     if(do_mute)
       {
@@ -157,16 +156,6 @@ static void process_frame(bg_player_t * p, gavl_audio_frame_t * frame)
     }
   
   }
-
-#if 0
-static void read_audio_callback(void * priv,
-                                gavl_audio_frame_t* frame,
-                                int stream,
-                                int num_samples)
-  {
-  
-  }
-#endif
 
 void * bg_player_oa_thread(void * data)
   {

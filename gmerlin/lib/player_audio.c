@@ -29,7 +29,8 @@
 #include <gmerlin/player.h>
 #include <playerprivate.h>
 
-void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
+void bg_player_audio_create(bg_player_t * p,
+                            bg_plugin_registry_t * plugin_reg)
   {
   bg_player_audio_stream_t * s = &p->audio_stream;
   
@@ -45,7 +46,9 @@ void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
 
   s->volume = gavl_volume_control_create();
   s->peak_detector = gavl_peak_detector_create();
-  
+  gavl_peak_detector_set_callbacks(s->peak_detector, NULL,
+                                   bg_player_peak_callback, p);
+    
   pthread_mutex_init(&s->volume_mutex,NULL);
   pthread_mutex_init(&s->config_mutex,NULL);
   pthread_mutex_init(&s->time_mutex,NULL);

@@ -48,9 +48,9 @@
  */
 
 #ifdef PKGBIN_DIR
-# define PKGBIN_PATH PKGBIN_DIR"/"
+#define PKGBIN_PATH PKGBIN_DIR"/"
 #else
-# define PKGBIN_PATH ""
+#define PKGBIN_PATH ""
 #endif
 
 struct bg_visualizer_s

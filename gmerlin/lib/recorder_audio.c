@@ -210,9 +210,9 @@ bg_recorder_set_audio_filter_parameter(void * data,
   bg_audio_filter_chain_unlock(as->fc);
   }
 
+
 void * bg_recorder_audio_thread(void * data)
   {
-  double peaks[2]; /* Doesn't work for > 2 channels!! */
   gavl_time_t idle_time = GAVL_TIME_SCALE / 100; // 10 ms
   bg_recorder_t * rec = data;
   bg_recorder_audio_stream_t * as = &rec->as;
@@ -235,16 +235,18 @@ void * bg_recorder_audio_thread(void * data)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read failed (device unplugged?)");
       bg_recorder_audio_set_eof(as, 1);
-      continue; // Need to go to bg_player_thread_check to stop the thread cleanly
+      // Need to go to bg_player_thread_check to stop the thread cleanly
+      continue; 
       }
     /* Peak detection */    
     gavl_peak_detector_update(as->pd, as->pipe_frame);
+#if 0
     gavl_peak_detector_get_peaks(as->pd, NULL, NULL, peaks);
     if(as->pipe_format.num_channels == 1)
       peaks[1] = peaks[0];
     bg_recorder_msg_audiolevel(rec, peaks, as->pipe_frame->valid_samples);
     gavl_peak_detector_reset(as->pd);   	
-
+#endif
     /* Encoding */
     if(as->flags & STREAM_ENCODE_OPEN)
       {
@@ -265,6 +267,30 @@ void * bg_recorder_audio_thread(void * data)
     }
   return NULL;
 
+  }
+
+static void peaks_callback(void * priv,
+                           int samples,
+                           const double * min,
+                           const double * max,
+                           const double * abs)
+  {
+  const gavl_audio_format_t * fmt;
+  double peaks[2]; /* Doesn't work for > 2 channels!! */
+  bg_recorder_t * rec = priv;
+  bg_recorder_audio_stream_t * as = &rec->as;
+
+  fmt = gavl_peak_detector_get_format(as->pd);
+  
+  peaks[0] = abs[0];
+  
+  if(fmt->num_channels == 1)
+    peaks[1] = abs[0];
+  else
+    peaks[1] = abs[1];
+
+  bg_recorder_msg_audiolevel(rec, peaks, samples);
+  gavl_peak_detector_reset(as->pd);
   }
 
 int bg_recorder_audio_init(bg_recorder_t * rec)
@@ -299,7 +325,8 @@ int bg_recorder_audio_init(bg_recorder_t * rec)
   /* Set up peak detection */
 
   gavl_peak_detector_set_format(as->pd, &as->pipe_format);
-
+  gavl_peak_detector_set_callbacks(as->pd, NULL, peaks_callback, rec);
+  
   /* Create frame(s) */
   
   as->pipe_frame = gavl_audio_frame_create(&as->pipe_format);
