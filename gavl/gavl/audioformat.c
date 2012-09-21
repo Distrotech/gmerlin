@@ -23,6 +23,7 @@
 #include <string.h>
 #include <math.h>
 #include <gavl/gavl.h>
+#include <stdlib.h>
 
 static const struct
   {

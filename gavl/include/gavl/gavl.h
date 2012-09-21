@@ -1274,105 +1274,6 @@ GAVL_PUBLIC
 void gavl_volume_control_apply(gavl_volume_control_t *ctrl,
                                gavl_audio_frame_t * frame);
 
-/** \defgroup peak_detection Peak detector
-    \ingroup audio
-    \brief Detect peaks in the volume for steering normalizers and
-      dynamic range compressors
-
-    While normalizers and dynamic range controls are out of the scope
-    of gavl, some low-level functionality can be provided
-*/
- 
-/*! \ingroup peak_detection
- *  \brief Opaque structure for peak detector
- *
- * You don't want to know what's inside.
- */
-
-typedef struct gavl_peak_detector_s gavl_peak_detector_t;
-  
-/* Create / destroy */
-
-/*! \ingroup peak_detection
- *  \brief Create peak detector
- *  \returns A newly allocated peak detector
- */
-  
-GAVL_PUBLIC
-gavl_peak_detector_t * gavl_peak_detector_create();
-
-/*! \ingroup peak_detection
- *  \brief Destroys a peak detector and frees all associated memory
- *  \param pd A peak detector
- */
-
-GAVL_PUBLIC
-void gavl_peak_detector_destroy(gavl_peak_detector_t *pd);
-
-/*! \ingroup peak_detection
- *  \brief Set format for a peak detector
- *  \param pd A peak detector
- *  \param format The format subsequent frames will be passed with
- *
- * This function can be called multiple times with one instance. It also
- * calls \ref gavl_peak_detector_reset.
- */
-
-GAVL_PUBLIC
-void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
-                                   const gavl_audio_format_t * format);
-
-/*! \ingroup peak_detection
- *  \brief Feed the peak detector with a new frame
- *  \param pd A peak detector
- *  \param frame An audio frame
- */
-  
-GAVL_PUBLIC
-void gavl_peak_detector_update(gavl_peak_detector_t *pd,
-                              gavl_audio_frame_t * frame);
-  
-/*! \ingroup peak_detection
- *  \brief Get the peak volume across all channels
- *  \param pd A peak detector
- *  \param min Returns minimum amplitude
- *  \param max Returns maximum amplitude
- *  \param abs Returns maximum absolute amplitude
- *
- *  The returned amplitudes are normalized such that the
- *  minimum amplitude corresponds to -1.0, the maximum amplitude
- *  corresponds to 1.0.
- */
-  
-GAVL_PUBLIC
-void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
-                                 double * min, double * max,
-                                 double * abs);
-
-/*! \ingroup peak_detection
- *  \brief Get the peak volume for all channels separate
- *  \param pd A peak detector
- *  \param min Returns minimum amplitude
- *  \param max Returns maximum amplitude
- *  \param abs Returns maximum absolute amplitude
- *
- *  The returned amplitudes are normalized such that the
- *  minimum amplitude corresponds to -1.0, the maximum amplitude
- *  corresponds to 1.0.
- */
-  
-GAVL_PUBLIC
-void gavl_peak_detector_get_peaks(gavl_peak_detector_t * pd,
-                                  double * min, double * max,
-                                  double * abs);
-  
-/*! \ingroup peak_detection
- *  \brief Reset a peak detector
- *  \param pd A peak detector
- */
-  
-GAVL_PUBLIC
-void gavl_peak_detector_reset(gavl_peak_detector_t * pd);
   
 /** \defgroup video Video
  *
@@ -4505,36 +4406,6 @@ typedef enum
     GAVL_SINK_OK,    // Frame was successfully processed
   } gavl_sink_status_t;
 
-/** \brief Video sink 
- */
-  
-typedef struct 
-gavl_video_sink_s gavl_video_sink_t;
-
-typedef gavl_video_frame_t *
-(*gavl_video_sink_get_func)(void *);
-
-typedef gavl_sink_status_t
-(*gavl_video_sink_put_func)(void *, gavl_video_frame_t *);
-
-GAVL_PUBLIC gavl_video_sink_t *
-gavl_video_sink_create(gavl_video_sink_get_func,
-                       gavl_video_sink_put_func,
-                       void * priv,
-                       const gavl_video_format_t * format);
-
-GAVL_PUBLIC const gavl_video_format_t *
-gavl_video_sink_get_format(gavl_video_sink_t * s);
-
-GAVL_PUBLIC gavl_video_frame_t *
-gavl_video_sink_get_frame(gavl_video_sink_t * s);
-
-GAVL_PUBLIC gavl_sink_status_t
-gavl_video_sink_put_frame(gavl_video_sink_t * s, gavl_video_frame_t *);
-
-GAVL_PUBLIC void
-gavl_video_sink_destroy(gavl_video_sink_t * s);
-
 /** \brief Audio sink 
  */
   
@@ -4566,10 +4437,263 @@ GAVL_PUBLIC void
 gavl_audio_sink_destroy(gavl_audio_sink_t * s);
 
   
+/** \brief Video sink 
+ */
+  
+typedef struct 
+gavl_video_sink_s gavl_video_sink_t;
+
+typedef gavl_video_frame_t *
+(*gavl_video_sink_get_func)(void *);
+
+typedef gavl_sink_status_t
+(*gavl_video_sink_put_func)(void *, gavl_video_frame_t *);
+
+GAVL_PUBLIC gavl_video_sink_t *
+gavl_video_sink_create(gavl_video_sink_get_func,
+                       gavl_video_sink_put_func,
+                       void * priv,
+                       const gavl_video_format_t * format);
+
+GAVL_PUBLIC const gavl_video_format_t *
+gavl_video_sink_get_format(gavl_video_sink_t * s);
+
+GAVL_PUBLIC gavl_video_frame_t *
+gavl_video_sink_get_frame(gavl_video_sink_t * s);
+
+GAVL_PUBLIC gavl_sink_status_t
+gavl_video_sink_put_frame(gavl_video_sink_t * s, gavl_video_frame_t *);
+
+GAVL_PUBLIC void
+gavl_video_sink_destroy(gavl_video_sink_t * s);
+  
 /**
  * @}
  */
 
+
+/*! \defgroup connectors A/V connectors
+ *
+ *  Connectors link one source and one or more sinks. They 
+ *  do all buffer handling and format conversion.
+ *
+ * @{
+ */
+
+typedef struct gavl_audio_connector_s gavl_audio_connector_t;
+typedef struct gavl_video_connector_s gavl_video_connector_t;
+
+typedef void
+(*gavl_audio_connector_process_func)(void * priv,
+                                     gavl_audio_frame_t * frame);
+
+typedef void
+(*gavl_video_connector_process_func)(void * priv,
+                                     gavl_video_frame_t * frame);
+  
+GAVL_PUBLIC gavl_audio_connector_t *
+gavl_audio_connector_create(gavl_audio_source_t * src);
+
+GAVL_PUBLIC void
+gavl_audio_connector_destroy(gavl_audio_connector_t * c);
+
+GAVL_PUBLIC void
+gavl_audio_connector_connect(gavl_audio_connector_t * c,
+                             gavl_audio_sink_t * sink);
+
+GAVL_PUBLIC void
+gavl_audio_connector_set_process_func(gavl_audio_connector_t * c,
+                                      gavl_audio_connector_process_func func,
+                                      void * priv);
+
+GAVL_PUBLIC int
+gavl_audio_connector_process(gavl_audio_connector_t * c);
+
+GAVL_PUBLIC void
+gavl_audio_connector_start(gavl_audio_connector_t * c);
+
+/* */
+  
+GAVL_PUBLIC gavl_video_connector_t *
+gavl_video_connector_create(gavl_video_source_t * src);
+
+GAVL_PUBLIC void
+gavl_video_connector_destroy(gavl_video_connector_t * c);
+
+
+GAVL_PUBLIC void
+gavl_video_connector_connect(gavl_video_connector_t * c,
+                             gavl_audio_sink_t * sink);
+
+
+GAVL_PUBLIC void
+gavl_video_connector_set_process_func(gavl_video_connector_t * c,
+                                      gavl_video_connector_process_func,
+                                      void * priv);
+
+GAVL_PUBLIC int
+gavl_video_connector_process(gavl_audio_connector_t * c);
+
+GAVL_PUBLIC void
+gavl_video_connector_start(gavl_audio_connector_t * c);
+
+  
+/**
+ * @}
+ */
+
+/** \defgroup peak_detection Peak detector
+ *  \ingroup audio
+ *  \brief Detect peaks in the volume for steering normalizers and
+ *    dynamic range compressors
+ *   While normalizers and dynamic range controls are out of the scope
+ *   of gavl, some low-level functionality can be provided
+ *
+ * @{
+ */
+ 
+/*! \brief Opaque structure for peak detector
+ *
+ * You don't want to know what's inside.
+ */
+
+typedef struct gavl_peak_detector_s gavl_peak_detector_t;
+  
+/* Create / destroy */
+
+/*! \brief Callback for getting the peaks across all channels
+ *  \param priv Client data
+ *  \param min Minimum value (scaled betwen -1.0 and 1.0)
+ *  \param min Maximum value (scaled betwen -1.0 and 1.0)
+ *  \param abs Absolute value (scaled betwen 0.0 and 1.0)
+ *
+ *  Since 1.5.0
+ */
+
+typedef void (*gavl_update_peak_callback)(void * priv,
+                                          double min, double max, double abs);
+
+/*! \brief Callback for getting the peaks for all channels separately
+ *  \param priv Client data
+ *  \param min Minimum value (scaled betwen -1.0 and 1.0)
+ *  \param min Maximum value (scaled betwen -1.0 and 1.0)
+ *  \param abs Absolute value (scaled betwen 0.0 and 1.0)
+ *
+ *  Since 1.5.0
+ */
+ 
+typedef void (*gavl_update_peaks_callback)(void * priv,
+                                           const double * min,
+                                           const double * max,
+                                           const double * abs);
+
+/*! \brief Create peak detector
+ *  \returns A newly allocated peak detector
+ */
+  
+GAVL_PUBLIC
+gavl_peak_detector_t * gavl_peak_detector_create();
+
+/*! \brief Set callbacks
+ *  \param pd A peak detector
+ *  \param peak_callback Callback for overall peaks or NULL
+ *  \param peaks_callback Callback for per channel peaks or NULL
+ *  \param priv Client data passed to the callbacks
+ *
+ *  Since 1.5.0
+ */
+  
+GAVL_PUBLIC
+void gavl_peak_detector_set_callbacks(gavl_peak_detector_t * pd,
+                                      gavl_update_peak_callback peak_callback,
+                                      gavl_update_peaks_callback peaks_callback,
+                                      void * priv);
+
+  
+/*! \brief Destroys a peak detector and frees all associated memory
+ *  \param pd A peak detector
+ */
+
+GAVL_PUBLIC
+void gavl_peak_detector_destroy(gavl_peak_detector_t *pd);
+
+/*! \brief Set format for a peak detector
+ *  \param pd A peak detector
+ *  \param format The format subsequent frames will be passed with
+ *
+ * This function can be called multiple times with one instance. It also
+ * calls \ref gavl_peak_detector_reset.
+ */
+
+GAVL_PUBLIC
+void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
+                                   const gavl_audio_format_t * format);
+
+/*! \brief Feed the peak detector with a new frame
+ *  \param pd A peak detector
+ *  \param frame An audio frame
+ */
+  
+GAVL_PUBLIC
+void gavl_peak_detector_update(gavl_peak_detector_t *pd,
+                               gavl_audio_frame_t * frame);
+
+/*! \brief Get the audio sink
+ *  \param pd A peak detector
+ *  \returns An audio sink
+ *
+ *  Use the returned sink for passing audio frames as an alternative to
+ *  \ref gavl_peak_detector_update
+ *
+ *  Since 1.5.0
+ */
+  
+GAVL_PUBLIC
+gavl_audio_sink_t * gavl_peak_detector_get_sink(gavl_peak_detector_t *pd);
+  
+/*! \brief Get the peak volume across all channels
+ *  \param pd A peak detector
+ *  \param min Returns minimum amplitude
+ *  \param max Returns maximum amplitude
+ *  \param abs Returns maximum absolute amplitude
+ *
+ *  The returned amplitudes are normalized such that the
+ *  minimum amplitude corresponds to -1.0, the maximum amplitude
+ *  corresponds to 1.0.
+ */
+  
+GAVL_PUBLIC
+void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
+                                 double * min, double * max,
+                                 double * abs);
+
+/*! \brief Get the peak volume for all channels separate
+ *  \param pd A peak detector
+ *  \param min Returns minimum amplitude
+ *  \param max Returns maximum amplitude
+ *  \param abs Returns maximum absolute amplitude
+ *
+ *  The returned amplitudes are normalized such that the
+ *  minimum amplitude corresponds to -1.0, the maximum amplitude
+ *  corresponds to 1.0.
+ */
+  
+GAVL_PUBLIC
+void gavl_peak_detector_get_peaks(gavl_peak_detector_t * pd,
+                                  double * min, double * max,
+                                  double * abs);
+  
+/*! \brief Reset a peak detector
+ *  \param pd A peak detector
+ */
+  
+GAVL_PUBLIC
+void gavl_peak_detector_reset(gavl_peak_detector_t * pd);
+
+/**
+ * @}
+ */
+  
   
 #ifdef __cplusplus
 }

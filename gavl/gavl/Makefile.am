@@ -53,6 +53,7 @@ lib_LTLIBRARIES= libgavl.la
 libgavl_la_SOURCES = \
 absdiff.c \
 arith128.c \
+audioconnector.c \
 audioconverter.c \
 audioformat.c \
 audioframe.c \

@@ -38,6 +38,13 @@ struct gavl_peak_detector_s
   void (*update_channel)(gavl_peak_detector_t*,void*,int num, int offset,
                          int advance, int channel);
   void (*update)(gavl_peak_detector_t*, gavl_audio_frame_t*);
+
+  gavl_audio_sink_t * sink;
+
+  /* Callbacks */
+  gavl_update_peak_callback peak_callback;
+  gavl_update_peaks_callback peaks_callback;
+  void * callback_priv;
   };
 
 static void update_none(gavl_peak_detector_t*pd, gavl_audio_frame_t*f)
@@ -203,9 +210,35 @@ gavl_peak_detector_t * gavl_peak_detector_create()
 
 void gavl_peak_detector_destroy(gavl_peak_detector_t *pd)
   {
+  if(pd->sink)
+    gavl_audio_sink_destroy(pd->sink);
   free(pd);
   }
 
+static gavl_sink_status_t put_frame_func(void * priv,
+                                         gavl_audio_frame_t * frame)
+  {
+  int i;
+  gavl_peak_detector_t *pd = priv;
+  pd->update(pd, frame);
+
+  for(i = 0; i < pd->format.num_channels; i++)
+    {
+    pd->abs_d[i] = (pd->max_d[i] > fabs(pd->min_d[i])) ? 
+      pd->max_d[i] : fabs(pd->min_d[i]);
+    }
+
+  if(pd->peaks_callback)
+    pd->peaks_callback(pd->callback_priv, pd->min_d, pd->max_d, pd->abs_d);
+  if(pd->peak_callback)
+    {
+    double min, max, abs;
+    gavl_peak_detector_get_peak(pd, &min, &max, &abs);
+    pd->peak_callback(pd->callback_priv, min, max, abs);
+    }
+  
+  return GAVL_SINK_OK;
+  }
 
 void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
                                    const gavl_audio_format_t * format)
@@ -250,20 +283,20 @@ void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
       break;
     }
   gavl_peak_detector_reset(pd);
+
+  if(pd->sink)
+    gavl_audio_sink_destroy(pd->sink);
+  
+  pd->sink = gavl_audio_sink_create(NULL, put_frame_func, pd, format);
   }
 
 void gavl_peak_detector_update(gavl_peak_detector_t *pd,
                                gavl_audio_frame_t * frame)
   {
-  int i;
-  pd->update(pd, frame);
-
-  for(i = 0; i < pd->format.num_channels; i++)
-    {
-    pd->abs_d[i] = (pd->max_d[i] > fabs(pd->min_d[i])) ? 
-      pd->max_d[i] : fabs(pd->min_d[i]);
-    }
+  gavl_audio_sink_put_frame(pd->sink, frame);
   }
+
+
 
 void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
                                  double * min, double * max,
@@ -342,4 +375,21 @@ void gavl_peak_detector_reset(gavl_peak_detector_t * pd)
     pd->max_d[i] = 0.0;
     pd->abs_d[i] = 0.0;
     }
+  }
+
+GAVL_PUBLIC
+gavl_audio_sink_t * gavl_peak_detector_get_sink(gavl_peak_detector_t *pd)
+  {
+  return pd->sink;
+  }
+
+GAVL_PUBLIC
+void gavl_peak_detector_set_callbacks(gavl_peak_detector_t * pd,
+                                      gavl_update_peak_callback peak_callback,
+                                      gavl_update_peaks_callback peaks_callback,
+                                      void * priv)
+  {
+  pd->peak_callback = peak_callback;
+  pd->peaks_callback = peaks_callback;
+  pd->callback_priv = priv;
   }

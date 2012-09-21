@@ -81,6 +81,7 @@ compression_ids[] =
     { GAVL_CODEC_ID_AAC,       NULL,       "AAC",          FLAG_CFS },
     { GAVL_CODEC_ID_VORBIS,    NULL,       "Vorbis"       },
     { GAVL_CODEC_ID_FLAC,      NULL,       "Flac"         },
+    { GAVL_CODEC_ID_OPUS,      NULL,       "Opus"         },
     
     /* Video */
     { GAVL_CODEC_ID_JPEG,      "jpg",      "JPEG image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
