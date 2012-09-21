@@ -59,6 +59,13 @@ static void audio_stream_2_xml(xmlNodePtr parent,
     section_2_xml(s->encoder_section, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
+
+  if(s->m.num_tags)
+    {
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"METADATA", NULL);
+    bg_metadata_2_xml(node, &s->m);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
   }
 
 static void video_stream_2_xml(xmlNodePtr parent,
@@ -86,6 +93,13 @@ static void video_stream_2_xml(xmlNodePtr parent,
     section_2_xml(s->encoder_section, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
+  if(s->m.num_tags)
+    {
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"METADATA", NULL);
+    bg_metadata_2_xml(node, &s->m);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
+
   }
 
 static void subtitle_text_stream_2_xml(xmlNodePtr parent,
@@ -121,6 +135,12 @@ static void subtitle_text_stream_2_xml(xmlNodePtr parent,
     section_2_xml(s->encoder_section_overlay, node);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
+  if(s->m.num_tags)
+    {
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"METADATA", NULL);
+    bg_metadata_2_xml(node, &s->m);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
   }
 
 static void subtitle_overlay_stream_2_xml(xmlNodePtr parent,
@@ -142,6 +162,12 @@ static void subtitle_overlay_stream_2_xml(xmlNodePtr parent,
     {
     node = xmlNewTextChild(parent, NULL, (xmlChar*)"ENCODER", NULL);
     section_2_xml(s->encoder_section, node);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
+  if(s->m.num_tags)
+    {
+    node = xmlNewTextChild(parent, NULL, (xmlChar*)"METADATA", NULL);
+    bg_metadata_2_xml(node, &s->m);
     xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
   
@@ -414,6 +440,10 @@ static void xml_2_audio(bg_transcoder_track_audio_t * s,
       {
       s->encoder_section = xml_2_section(xml_doc, node);
       }
+    else if(!BG_XML_STRCMP(node->name, "METADATA"))
+      {
+      bg_xml_2_metadata(xml_doc, node, &s->m);
+      }
     node = node->next;
     }
   }
@@ -451,6 +481,10 @@ static void xml_2_video(bg_transcoder_track_video_t * s,
     else if(!BG_XML_STRCMP(node->name, "ENCODER"))
       {
       s->encoder_section = xml_2_section(xml_doc, node);
+      }
+    else if(!BG_XML_STRCMP(node->name, "METADATA"))
+      {
+      bg_xml_2_metadata(xml_doc, node, &s->m);
       }
     node = node->next;
     }
@@ -501,6 +535,10 @@ static void xml_2_subtitle_text(bg_transcoder_track_subtitle_text_t * s,
       {
       s->encoder_section_overlay = xml_2_section(xml_doc, node);
       }
+    else if(!BG_XML_STRCMP(node->name, "METADATA"))
+      {
+      bg_xml_2_metadata(xml_doc, node, &s->m);
+      }
     node = node->next;
     }
   }
@@ -539,6 +577,10 @@ static void xml_2_subtitle_overlay(bg_transcoder_track_subtitle_overlay_t * s,
     else if(!BG_XML_STRCMP(node->name, "ENCODER"))
       {
       s->encoder_section = xml_2_section(xml_doc, node);
+      }
+    else if(!BG_XML_STRCMP(node->name, "METADATA"))
+      {
+      bg_xml_2_metadata(xml_doc, node, &s->m);
       }
     
     node = node->next;

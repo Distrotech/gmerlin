@@ -49,6 +49,12 @@ tags[] =
     { "comment",   GAVL_META_COMMENT     },
     { "author",    GAVL_META_AUTHOR      },
     { "copyright", GAVL_META_COPYRIGHT   },
+    { "software",  GAVL_META_SOFTWARE    },
+    { "format",    GAVL_META_FORMAT      },
+    { "creator",   GAVL_META_CREATOR     },
+    { "label",     GAVL_META_LABEL       },
+    { "bitrate",   GAVL_META_BITRATE     },
+    { "device",    GAVL_META_DEVICE      },
     { /* End */ }
   };
 

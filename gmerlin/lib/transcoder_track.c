@@ -103,6 +103,7 @@ static void create_sections(bg_transcoder_track_t * t,
       if(tag)
         bg_cfg_section_set_parameter_string(t->audio_streams[i].general_section,
                                             "in_language", tag);
+      gavl_metadata_copy(&t->audio_streams[i].m, &track_info->audio_streams[i].m);
       }
     }
 
@@ -117,6 +118,7 @@ static void create_sections(bg_transcoder_track_t * t,
       {
       t->video_streams[i].general_section = bg_cfg_section_copy(general_section);
       t->video_streams[i].filter_section = bg_cfg_section_copy(filter_section);
+      gavl_metadata_copy(&t->video_streams[i].m, &track_info->video_streams[i].m);
       }
     }
 
@@ -140,6 +142,7 @@ static void create_sections(bg_transcoder_track_t * t,
         bg_cfg_section_set_parameter_string(t->subtitle_text_streams[i].general_section,
                                             "in_language",
                                             tag);
+      gavl_metadata_copy(&t->subtitle_text_streams[i].m, &track_info->subtitle_streams[i].m);
       }
     }
 
@@ -158,6 +161,7 @@ static void create_sections(bg_transcoder_track_t * t,
       if(tag)
         bg_cfg_section_set_parameter_string(t->subtitle_overlay_streams[i].general_section,
                                             "in_language", tag);
+      gavl_metadata_copy(&t->subtitle_overlay_streams[i].m, &track_info->subtitle_streams[in_index].m);
       }
     }
   
@@ -1242,6 +1246,7 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
     
     if(t->audio_streams[i].label) free(t->audio_streams[i].label);
     bg_parameter_info_destroy_array(t->audio_streams[i].filter_parameters);
+    gavl_metadata_free(&t->audio_streams[i].m);
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
@@ -1255,6 +1260,7 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
     
     if(t->video_streams[i].label) free(t->video_streams[i].label);
     bg_parameter_info_destroy_array(t->video_streams[i].filter_parameters);
+    gavl_metadata_free(&t->video_streams[i].m);
     }
   for(i = 0; i < t->num_subtitle_text_streams; i++)
     {
@@ -1272,6 +1278,7 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
 
     
     if(t->subtitle_text_streams[i].label) free(t->subtitle_text_streams[i].label);
+    gavl_metadata_free(&t->subtitle_text_streams[i].m);
     }
   for(i = 0; i < t->num_subtitle_overlay_streams; i++)
     {
@@ -1283,6 +1290,7 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
     if(t->subtitle_overlay_streams[i].general_parameters)
       bg_parameter_info_destroy_array(t->subtitle_overlay_streams[i].general_parameters);
     if(t->subtitle_overlay_streams[i].label) free(t->subtitle_overlay_streams[i].label);
+    gavl_metadata_free(&t->subtitle_overlay_streams[i].m);
     }
   
   

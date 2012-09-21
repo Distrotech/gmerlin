@@ -811,6 +811,7 @@ static void init_audio_stream(audio_stream_t * ret,
                               int in_index, bg_plugin_registry_t * plugin_reg)
   {
   ret->com.type = STREAM_TYPE_AUDIO;
+  gavl_metadata_copy(&ret->com.m, &s->m);
   /* Default options */
 
   ret->volume_control = gavl_volume_control_create();
@@ -866,7 +867,7 @@ static void init_video_stream(video_stream_t * ret,
                               int in_index, bg_plugin_registry_t * plugin_reg)
   {
   ret->com.type = STREAM_TYPE_VIDEO;
-
+  gavl_metadata_copy(&ret->com.m, &s->m);
   /* Default options */
   bg_gavl_video_options_init(&ret->options);
   
@@ -916,7 +917,7 @@ static void init_subtitle_overlay_stream(subtitle_stream_t * ret,
                                          bg_transcoder_track_subtitle_overlay_t * s)
   {
   ret->com.type = STREAM_TYPE_SUBTITLE_OVERLAY;
-  
+  gavl_metadata_copy(&ret->com.m, &s->m);  
   /* Apply parameters */
   
   bg_cfg_section_apply(s->general_section,
@@ -936,7 +937,7 @@ static void init_subtitle_text_stream(subtitle_text_stream_t * ret,
                                       bg_transcoder_track_subtitle_text_t * s)
   {
   ret->com.com.type = STREAM_TYPE_SUBTITLE_TEXT;
-  
+  gavl_metadata_copy(&ret->com.com.m, &s->m);
   /* Apply parameters */
   
   bg_cfg_section_apply(s->general_section,

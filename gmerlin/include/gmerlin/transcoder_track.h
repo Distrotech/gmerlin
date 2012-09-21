@@ -38,6 +38,8 @@ typedef struct
   bg_cfg_section_t * encoder_section;
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * filter_section;
+
+  gavl_metadata_t m;
   } bg_transcoder_track_audio_t;
 
 typedef struct
@@ -51,6 +53,7 @@ typedef struct
 
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * filter_section;
+  gavl_metadata_t m;
   } bg_transcoder_track_video_t;
 
 typedef struct
@@ -64,7 +67,7 @@ typedef struct
 
   bg_cfg_section_t * encoder_section_text;
   bg_cfg_section_t * encoder_section_overlay;
-  
+  gavl_metadata_t m;
   } bg_transcoder_track_subtitle_text_t;
 
 typedef struct
@@ -76,6 +79,7 @@ typedef struct
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * encoder_section;
   
+  gavl_metadata_t m;
   } bg_transcoder_track_subtitle_overlay_t;
 
 
