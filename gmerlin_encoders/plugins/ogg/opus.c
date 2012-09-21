@@ -478,7 +478,7 @@ static int flush_frame(opus_t * opus, int eof)
   //  fprintf(stderr, "Flush frame %d %d\n", opus->frame->valid_samples,
   //          opus->format->samples_per_frame);
   
-  if(opus->frame->valid_samples)
+  if(opus->frame && opus->frame->valid_samples)
     {
     
     if(opus->frame->valid_samples < opus->format->samples_per_frame)
@@ -616,8 +616,7 @@ static int close_opus(void * data)
   opus_t * opus = data;
 
   /* Flush */
-  if(opus->frame)
-    result = flush_frame(opus, 1);
+  result = flush_frame(opus, 1);
   
   /* Cleanup */
   ogg_stream_clear(&opus->enc_os);
