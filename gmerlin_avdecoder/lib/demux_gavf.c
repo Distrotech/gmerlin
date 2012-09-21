@@ -145,6 +145,7 @@ static int init_track(bgav_track_t * track,
         bgav_stream_set_extradata(s, ph->streams[i].ci.global_header,
                                   ph->streams[i].ci.global_header_len);
         s->container_bitrate = ph->streams[i].ci.bitrate;
+        s->data.audio.pre_skip = ph->streams[i].ci.pre_skip;
         break;
       case GAVF_STREAM_TEXT:
         s = bgav_track_add_subtitle_stream(track, opt, 1, "UTF-8");

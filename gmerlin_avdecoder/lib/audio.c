@@ -427,6 +427,13 @@ static uint32_t flac_fourccs[] =
     0x00
   };
 
+static uint32_t opus_fourccs[] =
+  {
+    BGAV_MK_FOURCC('O','P','U','S'),
+    0x00
+  };
+
+
 int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info)
   {
@@ -464,6 +471,12 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
   else if(bgav_check_fourcc(s->fourcc, flac_fourccs))
     {
     id = GAVL_CODEC_ID_FLAC;
+    need_bitrate = 0;
+    need_header = 1;
+    }
+  else if(bgav_check_fourcc(s->fourcc, opus_fourccs))
+    {
+    id = GAVL_CODEC_ID_OPUS;
     need_bitrate = 0;
     need_header = 1;
     }
