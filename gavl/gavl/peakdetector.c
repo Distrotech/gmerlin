@@ -229,15 +229,23 @@ static gavl_sink_status_t put_frame_func(void * priv,
     }
 
   if(pd->peaks_callback)
-    pd->peaks_callback(pd->callback_priv, pd->min_d, pd->max_d, pd->abs_d);
+    pd->peaks_callback(pd->callback_priv, frame->valid_samples,
+                       pd->min_d, pd->max_d, pd->abs_d);
   if(pd->peak_callback)
     {
     double min, max, abs;
     gavl_peak_detector_get_peak(pd, &min, &max, &abs);
-    pd->peak_callback(pd->callback_priv, min, max, abs);
+    pd->peak_callback(pd->callback_priv, frame->valid_samples,
+                      min, max, abs);
     }
   
   return GAVL_SINK_OK;
+  }
+
+const gavl_audio_format_t *
+gavl_peak_detector_get_format(gavl_peak_detector_t * pd)
+  {
+  return &pd->format;
   }
 
 void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,

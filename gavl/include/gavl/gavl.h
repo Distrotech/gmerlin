@@ -4563,6 +4563,7 @@ typedef struct gavl_peak_detector_s gavl_peak_detector_t;
 
 /*! \brief Callback for getting the peaks across all channels
  *  \param priv Client data
+ *  \param samples Number of samples of last update call
  *  \param min Minimum value (scaled betwen -1.0 and 1.0)
  *  \param min Maximum value (scaled betwen -1.0 and 1.0)
  *  \param abs Absolute value (scaled betwen 0.0 and 1.0)
@@ -4571,10 +4572,12 @@ typedef struct gavl_peak_detector_s gavl_peak_detector_t;
  */
 
 typedef void (*gavl_update_peak_callback)(void * priv,
+                                          int samples,
                                           double min, double max, double abs);
 
 /*! \brief Callback for getting the peaks for all channels separately
  *  \param priv Client data
+ *  \param samples Number of samples of last update call
  *  \param min Minimum value (scaled betwen -1.0 and 1.0)
  *  \param min Maximum value (scaled betwen -1.0 and 1.0)
  *  \param abs Absolute value (scaled betwen 0.0 and 1.0)
@@ -4583,6 +4586,7 @@ typedef void (*gavl_update_peak_callback)(void * priv,
  */
  
 typedef void (*gavl_update_peaks_callback)(void * priv,
+                                           int samples,
                                            const double * min,
                                            const double * max,
                                            const double * abs);
@@ -4629,6 +4633,17 @@ GAVL_PUBLIC
 void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
                                    const gavl_audio_format_t * format);
 
+/*! \brief Get format
+ *  \param pd A peak detector
+ *  \returns The internal format
+ *
+ *  Since 1.5.0
+ */
+  
+GAVL_PUBLIC const gavl_audio_format_t *
+gavl_peak_detector_get_format(gavl_peak_detector_t * pd);
+
+  
 /*! \brief Feed the peak detector with a new frame
  *  \param pd A peak detector
  *  \param frame An audio frame
