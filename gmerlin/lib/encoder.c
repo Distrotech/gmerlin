@@ -344,6 +344,19 @@ void bg_encoder_destroy(bg_encoder_t * enc, int do_delete)
     encoder->close(enc->plugins[i]->priv, do_delete);
     bg_plugin_unref(enc->plugins[i]);
     }
+
+  for(i = 0; i < enc->num_audio_streams; i++)
+    {
+    if(enc->audio_streams[i].sink_ext)
+      gavl_audio_sink_destroy(enc->audio_streams[i].sink_ext);
+    }
+
+  for(i = 0; i < enc->num_video_streams; i++)
+    {
+    if(enc->video_streams[i].sink_ext)
+      gavl_video_sink_destroy(enc->video_streams[i].sink_ext);
+    }
+  
   if(enc->plugins)
     free(enc->plugins);
   
@@ -831,22 +844,30 @@ int bg_encoder_start(bg_encoder_t * enc)
   for(i = 0; i < enc->num_audio_streams; i++)
     {
     audio_stream_t * as = &enc->audio_streams[i];
-    as->sink_int =
-      as->plugin->get_audio_sink(as->priv, as->out_index);
-    as->sink_ext =
-      gavl_audio_sink_create(NULL, write_audio_func, as,
-                             gavl_audio_sink_get_format(as->sink_int));
+
+    if(!as->ci)
+      {
+      as->sink_int =
+        as->plugin->get_audio_sink(as->priv, as->out_index);
+      as->sink_ext =
+        gavl_audio_sink_create(NULL, write_audio_func, as,
+                               gavl_audio_sink_get_format(as->sink_int));
+      }
     }
 
   
   for(i = 0; i < enc->num_video_streams; i++)
     {
     video_stream_t * vs = &enc->video_streams[i];
-    vs->sink_int =
-      vs->plugin->get_video_sink(vs->priv, vs->out_index);
-    vs->sink_ext =
-      gavl_video_sink_create(NULL, write_video_func, vs,
-                             gavl_video_sink_get_format(vs->sink_int));
+
+    if(!vs->ci)
+      {
+      vs->sink_int =
+        vs->plugin->get_video_sink(vs->priv, vs->out_index);
+      vs->sink_ext =
+        gavl_video_sink_create(NULL, write_video_func, vs,
+                               gavl_video_sink_get_format(vs->sink_int));
+      }
     }
   return 1;
   }

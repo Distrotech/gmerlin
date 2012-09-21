@@ -3132,11 +3132,14 @@ static void close_input(bg_transcoder_t * t)
   if(t->pp_only)
     return;
   
-  if(t->in_plugin->stop)
-    t->in_plugin->stop(t->in_handle->priv);
-
-  t->in_plugin->close(t->in_handle->priv);
-  bg_plugin_unref(t->in_handle);
+  if(t->in_plugin)
+    {
+    if(t->in_plugin->stop)
+      t->in_plugin->stop(t->in_handle->priv);
+    t->in_plugin->close(t->in_handle->priv);
+    }
+  if(t->in_handle)
+    bg_plugin_unref(t->in_handle);
   t->in_handle = NULL;
   }
 

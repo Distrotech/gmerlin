@@ -471,7 +471,7 @@ void * bg_player_ov_thread(void * data)
         }
       continue;
       }
-    
+
     /* Get frame time */
 
     s->frame_time =

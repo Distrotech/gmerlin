@@ -486,7 +486,7 @@ static void seek_cdaudio(void * priv, int64_t * time, int scale)
   /* Set skipped samples */
 
   gavl_audio_source_reset(cd->src);
-  gavl_audio_source_skip(cd->src, samples_to_skip);
+  gavl_audio_source_skip_src(cd->src, samples_to_skip);
   }
 
 static void close_cdaudio(void * priv)

@@ -551,6 +551,7 @@ static int start_wav(void * data)
   
   /* Build channel mask and adjust channel locations */
   wav->channel_mask = format_2_channel_mask(&wav->format);
+  wav->block_align = (wav->bits / 8) * wav->format.num_channels;
   
   if(wav->format.num_channels <= 2)
     {
@@ -594,8 +595,6 @@ static int start_wav(void * data)
       break;
     }
   
-  wav->block_align = (wav->bits / 8) * wav->format.num_channels;
-
   wav->sink = gavl_audio_sink_create(NULL, write_func_wav, wav,
                                      &wav->format);
   
