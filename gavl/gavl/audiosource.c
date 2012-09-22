@@ -25,9 +25,10 @@
 
 #include <gavl/gavl.h>
 
-#define FLAG_PASSTHROUGH (1<<0)
-#define FLAG_DO_CONVERT  (1<<1)
-#define FLAG_DST_SET     (1<<2)
+#define FLAG_PASSTHROUGH      (1<<0)
+#define FLAG_PASSTHROUGH_INIT (1<<1)
+#define FLAG_DO_CONVERT       (1<<2)
+#define FLAG_DST_SET          (1<<3)
 
 struct gavl_audio_source_s
   {
@@ -41,6 +42,11 @@ struct gavl_audio_source_s
   /* Samples in the frame from which we buffer */
   int frame_samples;
 
+  /*
+   *  Samples in the output frame from the last incomplete call
+   */
+  int incomplete_samples;
+  
   /* For conversion */
   gavl_audio_frame_t * in_frame;
   gavl_audio_frame_t * out_frame;
@@ -98,6 +104,12 @@ void gavl_audio_source_reset(gavl_audio_source_t * s)
   if(s->frame)
     s->frame->valid_samples = 0;
   s->skip_samples = 0;
+
+  if(s->flags & FLAG_PASSTHROUGH_INIT)
+    s->flags |= FLAG_PASSTHROUGH;
+
+  s->incomplete_samples = 0;
+  
 #if 0
   if(s->src_fp)
     gavl_audio_frame_pool_reset(s->src_fp);
@@ -148,10 +160,10 @@ gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
   if(!(s->flags & FLAG_DO_CONVERT) &&
      (s->src_format.samples_per_frame == s->src_format.samples_per_frame) &&
      !(s->src_flags & GAVL_SOURCE_SRC_FRAMESIZE_MAX))
-    s->flags |= FLAG_PASSTHROUGH;
+    s->flags |= (FLAG_PASSTHROUGH | FLAG_PASSTHROUGH_INIT);
   else
-    s->flags &= ~FLAG_PASSTHROUGH;
-
+    s->flags &= ~(FLAG_PASSTHROUGH | FLAG_PASSTHROUGH_INIT);
+  
   if(s->out_frame)
     {
     gavl_audio_frame_destroy(s->out_frame);
@@ -221,23 +233,23 @@ static gavl_source_status_t
 read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
   {
   gavl_audio_source_t * s = sp;
-  int samples_read = 0;
+  int samples_read = s->incomplete_samples;
   int samples_copied;
   gavl_source_status_t ret = GAVL_SOURCE_OK;
 
+  s->incomplete_samples = 0;
+  
   if(!(s->flags & FLAG_DST_SET))
     gavl_audio_source_set_dst(s, 0, NULL);
   
   while(samples_read < num_samples)
     {
     /* Read new frame if neccesary */
-
-    /* Check for passthrough */
     if(!s->frame || !s->frame->valid_samples)
       {
-      if((s->flags & FLAG_PASSTHROUGH) && !s->skip_samples)
+      /* Check for passthrough */
+      if(s->flags & FLAG_PASSTHROUGH)
         {
-        /* dst -> src */
         if((*frame && !(s->src_flags & GAVL_SOURCE_SRC_ALLOC)) ||
            (!(*frame) && (s->src_flags & GAVL_SOURCE_SRC_ALLOC)))
           {
@@ -251,7 +263,6 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
           }
         }
       
-      /* Read a new frame */
       if(s->flags & FLAG_DO_CONVERT)
         {
         gavl_audio_frame_t * in_frame;
@@ -305,15 +316,15 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
       s->frame_samples = s->frame->valid_samples;
       }
 
-      
-    /* Copy samples */
-
+    /* Make sure we have a frame to write to */
     if(!(*frame))
       {
       if(!s->dst_frame)
         s->dst_frame = gavl_audio_frame_create(&s->dst_format);
       *frame = s->dst_frame;
       }
+    
+    /* Copy samples */
     
     samples_copied =
       gavl_audio_frame_copy(&s->dst_format,
@@ -325,7 +336,12 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
                             s->frame->valid_samples);                   // src_size
     s->frame->valid_samples -= samples_copied;
     samples_read += samples_copied;
-
+    }
+  
+  if(ret == GAVL_SOURCE_AGAIN)
+    {
+    s->incomplete_samples = samples_read;
+    return GAVL_SOURCE_AGAIN;
     }
   
   if(samples_read)
@@ -355,6 +371,7 @@ int gavl_audio_source_read_samples(void * sp, gavl_audio_frame_t * frame,
                                    int num_samples)
   {
   gavl_audio_source_t * s = sp;
+  s->flags &= ~FLAG_PASSTHROUGH;
   if(read_frame_internal(s, &frame, num_samples) != GAVL_SOURCE_OK)
     return 0;
   return frame->valid_samples;
@@ -364,4 +381,5 @@ void
 gavl_audio_source_skip_src(gavl_audio_source_t * s, int num_samples)
   {
   s->skip_samples += num_samples;
+  s->flags &= ~FLAG_PASSTHROUGH;
   }

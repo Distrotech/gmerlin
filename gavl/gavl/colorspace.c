@@ -74,7 +74,8 @@ const pixelformat_tab_t pixelformat_tab[] =
     { GAVL_PIXELFORMAT_NONE, "Undefined" }
   };
 
-static const int num_pixelformats = sizeof(pixelformat_tab)/sizeof(pixelformat_tab_t);
+static const int num_pixelformats =
+  sizeof(pixelformat_tab)/sizeof(pixelformat_tab_t);
 
 int gavl_pixelformat_num_planes(gavl_pixelformat_t csp)
   {

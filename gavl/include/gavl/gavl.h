@@ -4317,10 +4317,15 @@ gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
 /** \brief Read an audio frame
  *  \param s An audio source 
  *  \param frame Address of a frame.
+ *  \returns The status
  *
  *  This reads one frame from the source. If *frame is NULL
  *  it will be set to an internal buffer, otherwise the data is
  *  copied to the frame you pass.
+ *
+ *  If the return value is \ref GAVL_SOURCE_AGAIN, you might
+ *  have an imcomplete frame. In this case you must call
+ *  this function again with exactly the same frame argument.
  */
   
 GAVL_PUBLIC
@@ -4494,6 +4499,9 @@ typedef void
 GAVL_PUBLIC gavl_audio_connector_t *
 gavl_audio_connector_create(gavl_audio_source_t * src);
 
+GAVL_PUBLIC gavl_audio_options_t *
+gavl_audio_connector_get_options(gavl_audio_connector_t * c);
+  
 GAVL_PUBLIC void
 gavl_audio_connector_destroy(gavl_audio_connector_t * c);
 
@@ -4517,6 +4525,9 @@ gavl_audio_connector_start(gavl_audio_connector_t * c);
 GAVL_PUBLIC gavl_video_connector_t *
 gavl_video_connector_create(gavl_video_source_t * src);
 
+GAVL_PUBLIC gavl_video_options_t *
+gavl_video_connector_get_options(gavl_video_connector_t * c);
+  
 GAVL_PUBLIC void
 gavl_video_connector_destroy(gavl_video_connector_t * c);
 

@@ -129,8 +129,4 @@ void gavl_samplerate_converter_destroy(gavl_samplerate_converter_t * s);
 
 void gavl_audio_dither_context_destroy(gavl_audio_dither_context_t * s);
 
-/* Utility function */
-
-int gavl_bytes_per_sample(gavl_sample_format_t format);
-
 
