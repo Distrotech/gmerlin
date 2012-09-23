@@ -52,6 +52,9 @@ struct gavl_audio_source_s
   gavl_audio_frame_t * out_frame;
   gavl_audio_frame_t * dst_frame;
 
+  /* For buffering */
+  gavl_audio_frame_t * buffer_frame;
+  
   gavl_audio_frame_t * frame;
   
   /* Callback set by the client */
@@ -102,7 +105,7 @@ void gavl_audio_source_reset(gavl_audio_source_t * s)
   {
   s->next_pts = GAVL_TIME_UNDEFINED;
   if(s->frame)
-    s->frame->valid_samples = 0;
+    s->frame = NULL;
   s->skip_samples = 0;
 
   if(s->flags & FLAG_PASSTHROUGH_INIT)
@@ -133,6 +136,8 @@ void gavl_audio_source_destroy(gavl_audio_source_t * s)
     gavl_audio_frame_destroy(s->in_frame);
   if(s->dst_frame)
     gavl_audio_frame_destroy(s->dst_frame);
+  if(s->buffer_frame)
+    gavl_audio_frame_destroy(s->buffer_frame);
   
   
   gavl_audio_converter_destroy(s->cnv);
@@ -174,6 +179,12 @@ gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
     gavl_audio_frame_destroy(s->dst_frame);
     s->dst_frame = NULL;
     }
+  if(s->buffer_frame)
+    {
+    gavl_audio_frame_destroy(s->buffer_frame);
+    s->buffer_frame = NULL;
+    }
+
   s->frame = NULL;
 
   s->flags |= FLAG_DST_SET;
@@ -236,7 +247,8 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
   int samples_read = s->incomplete_samples;
   int samples_copied;
   gavl_source_status_t ret = GAVL_SOURCE_OK;
-
+  int eat_all = 0;
+  
   s->incomplete_samples = 0;
   
   if(!(s->flags & FLAG_DST_SET))
@@ -288,7 +300,6 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
         check_out_frame(s);
         gavl_audio_convert(s->cnv, in_frame, s->out_frame);
         s->frame = s->out_frame;
-
         }
       else
         {
@@ -301,6 +312,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
           
           if(!process_input(s, s->frame))
             continue;
+          eat_all = 1;
           }
         else
           {
@@ -349,6 +361,25 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
     ret = GAVL_SOURCE_OK;
     (*frame)->valid_samples = samples_read;
     process_output(s, *frame);
+
+    /* Buffer samples for next time (we need to eat up all samples in this call) */
+    if(eat_all && s->frame->valid_samples)
+      {
+      if(!s->buffer_frame)
+        s->buffer_frame = gavl_audio_frame_create(&s->src_format);
+      
+      s->buffer_frame->valid_samples = 
+        gavl_audio_frame_copy(&s->src_format,
+                              s->buffer_frame,                            // dst
+                              s->frame,                                   // src
+                              0,                                          // dst_pos
+                              s->frame_samples - s->frame->valid_samples, // src_pos
+                              s->src_format.samples_per_frame,           // dst_size
+                              s->frame->valid_samples);                   // src_size
+      
+      s->frame = s->buffer_frame;
+      s->frame_samples = s->frame->valid_samples;
+      }
     }
   else if(*frame)
     (*frame)->valid_samples = 0;

@@ -95,6 +95,7 @@ transform.c \
 transform_context.c \
 transform_table.c \
 video.c \
+videoconnector.c \
 videoformat.c \
 videoframe.c \
 videoframepool.c \

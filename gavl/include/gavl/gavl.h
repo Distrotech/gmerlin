@@ -4520,6 +4520,10 @@ gavl_audio_connector_process(gavl_audio_connector_t * c);
 GAVL_PUBLIC void
 gavl_audio_connector_start(gavl_audio_connector_t * c);
 
+GAVL_PUBLIC
+void gavl_audio_connector_reset(gavl_audio_connector_t * c);
+
+  
 /* */
   
 GAVL_PUBLIC gavl_video_connector_t *
@@ -4534,7 +4538,7 @@ gavl_video_connector_destroy(gavl_video_connector_t * c);
 
 GAVL_PUBLIC void
 gavl_video_connector_connect(gavl_video_connector_t * c,
-                             gavl_audio_sink_t * sink);
+                             gavl_video_sink_t * sink);
 
 
 GAVL_PUBLIC void
@@ -4543,10 +4547,13 @@ gavl_video_connector_set_process_func(gavl_video_connector_t * c,
                                       void * priv);
 
 GAVL_PUBLIC int
-gavl_video_connector_process(gavl_audio_connector_t * c);
+gavl_video_connector_process(gavl_video_connector_t * c);
 
 GAVL_PUBLIC void
-gavl_video_connector_start(gavl_audio_connector_t * c);
+gavl_video_connector_start(gavl_video_connector_t * c);
+
+GAVL_PUBLIC
+void gavl_video_connector_reset(gavl_video_connector_t * c);
 
   
 /**

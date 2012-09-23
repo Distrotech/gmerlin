@@ -204,11 +204,9 @@ static int add_context_deinterlace(gavl_video_converter_t * cnv,
   return 1;
   }
 
-
 int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
   {
   int csp_then_scale = 0;
-  gavl_video_convert_context_t * tmp_ctx;
   gavl_pixelformat_t tmp_csp = GAVL_PIXELFORMAT_NONE;
   
   int do_csp = 0;
@@ -461,6 +459,18 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
 
   /* Now, create temporary frames for the contexts */
 
+  cnv->have_frames = 0;
+  
+  return cnv->num_contexts;
+  }
+
+static void alloc_frames(gavl_video_converter_t * cnv)
+  {
+  gavl_video_convert_context_t * tmp_ctx;
+
+  if(cnv->have_frames)
+    return;
+
   tmp_ctx = cnv->first_context;
   while(tmp_ctx && tmp_ctx->next)
     {
@@ -468,11 +478,11 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
       gavl_video_frame_create(&tmp_ctx->output_format);
     gavl_video_frame_clear(tmp_ctx->output_frame, &tmp_ctx->output_format);
     
-    
     tmp_ctx->next->input_frame = tmp_ctx->output_frame;
     tmp_ctx = tmp_ctx->next;
     }
-  return cnv->num_contexts;
+
+  cnv->have_frames = 1;
   }
 
 int gavl_video_converter_init(gavl_video_converter_t * cnv,
@@ -500,6 +510,8 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
                         gavl_video_frame_t * output_frame)
   {
   gavl_video_convert_context_t * tmp_ctx;
+
+  alloc_frames(cnv);
   
   cnv->first_context->input_frame = input_frame;
   cnv->last_context->output_frame = output_frame;

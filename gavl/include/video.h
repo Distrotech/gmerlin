@@ -105,6 +105,8 @@ struct gavl_video_converter_s
   gavl_video_convert_context_t * first_context;
   gavl_video_convert_context_t * last_context;
   int num_contexts;
+
+  int have_frames;
   };
 
 

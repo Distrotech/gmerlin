@@ -25,66 +25,66 @@
 
 
 #include <gavl/gavl.h>
-#include <audio.h>
+#include <video.h>
 
 typedef struct
   {
-  gavl_audio_frame_t * sink_frame;
-  gavl_audio_frame_t * in_frame;
+  gavl_video_frame_t * sink_frame;
+  gavl_video_frame_t * in_frame;
   
-  gavl_audio_sink_t * sink;
-  gavl_audio_source_t * src;
+  gavl_video_sink_t * sink;
+  gavl_video_source_t * src;
 
-  const gavl_audio_format_t * fmt;
+  const gavl_video_format_t * fmt;
   
   int * penalties;
-  gavl_audio_connector_t * c;
+  gavl_video_connector_t * c;
   } sink_t;
 
-struct gavl_audio_connector_s
+struct gavl_video_connector_s
   {
-  gavl_audio_source_t * src;
-  const gavl_audio_format_t * fmt;
-  gavl_audio_frame_t * in_frame;
+  gavl_video_source_t * src;
+  const gavl_video_format_t * fmt;
+  gavl_video_frame_t * in_frame;
   
   sink_t * sinks;
   int num_sinks;
   int sinks_alloc;
 
-  gavl_audio_connector_process_func process_func;
+  gavl_video_connector_process_func process_func;
   void * process_priv;
   
-  gavl_audio_options_t opt;
+  gavl_video_options_t opt;
 
   int have_in_frame;
   gavl_source_status_t src_st;
   };
 
-gavl_audio_connector_t *
-gavl_audio_connector_create(gavl_audio_source_t * src)
+gavl_video_connector_t *
+gavl_video_connector_create(gavl_video_source_t * src)
   {
-  gavl_audio_connector_t * ret = calloc(1, sizeof(*ret));
+  gavl_video_connector_t * ret = calloc(1, sizeof(*ret));
   ret->src = src;
   
-  ret->fmt = gavl_audio_source_get_src_format(ret->src);
-  gavl_audio_options_set_defaults(&ret->opt);
+  ret->fmt = gavl_video_source_get_src_format(ret->src);
+  gavl_video_options_set_defaults(&ret->opt);
   return ret;
   }
 
-gavl_audio_options_t *
-gavl_audio_connector_get_options(gavl_audio_connector_t * c)
+gavl_video_options_t *
+gavl_video_connector_get_options(gavl_video_connector_t * c)
   {
   return &c->opt;
   }
   
-void gavl_audio_connector_destroy(gavl_audio_connector_t * c)
+void gavl_video_connector_destroy(gavl_video_connector_t * c)
   {
   int i;
 
   for(i = 0; i < c->num_sinks; i++)
     {
     if(c->sinks[i].src)
-      gavl_audio_source_destroy(c->sinks[i].src);
+      gavl_video_source_destroy(c->sinks[i].src);
     }
   
   if(c->sinks)
@@ -92,8 +92,8 @@ void gavl_audio_connector_destroy(gavl_audio_connector_t * c)
   free(c);
   }
 
-void gavl_audio_connector_connect(gavl_audio_connector_t * c,
-                                  gavl_audio_sink_t * sink)
+void gavl_video_connector_connect(gavl_video_connector_t * c,
+                                  gavl_video_sink_t * sink)
   {
   sink_t * s;
   if(c->num_sinks + 1 > c->sinks_alloc)
@@ -107,21 +107,21 @@ void gavl_audio_connector_connect(gavl_audio_connector_t * c,
 
   s->sink = sink;
   s->c = c;
-  s->fmt = gavl_audio_sink_get_format(s->sink);
+  s->fmt = gavl_video_sink_get_format(s->sink);
 
   c->num_sinks++;
   }
 
 void
-gavl_audio_connector_set_process_func(gavl_audio_connector_t * c,
-                                      gavl_audio_connector_process_func func,
+gavl_video_connector_set_process_func(gavl_video_connector_t * c,
+                                      gavl_video_connector_process_func func,
                                       void * priv)
   {
   c->process_func = func;
   c->process_priv = priv;
   }
 
-static gavl_source_status_t read_func(void * priv, gavl_audio_frame_t ** frame)
+static gavl_source_status_t read_func(void * priv, gavl_video_frame_t ** frame)
   {
   sink_t * s = priv;
 
@@ -146,9 +146,9 @@ static int flush_src(sink_t * s)
   while(1)
     {
     if(!s->sink_frame)
-      s->sink_frame = gavl_audio_sink_get_frame(s->sink);
+      s->sink_frame = gavl_video_sink_get_frame(s->sink);
     
-    src_st = gavl_audio_source_read_frame(s->src, &s->sink_frame);
+    src_st = gavl_video_source_read_frame(s->src, &s->sink_frame);
     
     switch(src_st)
       {
@@ -161,7 +161,7 @@ static int flush_src(sink_t * s)
         break;
       }
     
-    sink_st = gavl_audio_sink_put_frame(s->sink, s->sink_frame);
+    sink_st = gavl_video_sink_put_frame(s->sink, s->sink_frame);
     s->sink_frame = NULL;
     if(sink_st != GAVL_SINK_OK)
       return 0;
@@ -169,7 +169,7 @@ static int flush_src(sink_t * s)
   return 1;
   }
 
-void gavl_audio_connector_reset(gavl_audio_connector_t * c)
+void gavl_video_connector_reset(gavl_video_connector_t * c)
   {
   int i;
   c->in_frame = NULL;
@@ -178,11 +178,11 @@ void gavl_audio_connector_reset(gavl_audio_connector_t * c)
   for(i = 0; i < c->num_sinks; i++)
     {
     if(c->sinks[i].src)
-      gavl_audio_source_reset(c->sinks[i].src);
+      gavl_video_source_reset(c->sinks[i].src);
     }
   }
 
-int gavl_audio_connector_process(gavl_audio_connector_t * c)
+int gavl_video_connector_process(gavl_video_connector_t * c)
   {
   int i;
   sink_t * s;
@@ -199,7 +199,7 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
       if(!s->src)
         {
         /* Passthrough */
-        s->sink_frame = gavl_audio_sink_get_frame(s->sink);
+        s->sink_frame = gavl_video_sink_get_frame(s->sink);
         if(!c->in_frame)
           c->in_frame = s->sink_frame;
         }
@@ -209,7 +209,7 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
   
   /* Get input frame */
 
-  c->src_st = gavl_audio_source_read_frame(c->src, &c->in_frame);
+  c->src_st = gavl_video_source_read_frame(c->src, &c->in_frame);
 
   switch(c->src_st)
     {
@@ -239,24 +239,15 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
       {
       /* Passthrough */
       if(!s->sink_frame)
-        sink_st = gavl_audio_sink_put_frame(s->sink, c->in_frame);
+        sink_st = gavl_video_sink_put_frame(s->sink, c->in_frame);
       else
         {
         if(s->sink_frame != c->in_frame)
           {
-          s->sink_frame->valid_samples =
-            gavl_audio_frame_copy(s->fmt,
-                                  s->sink_frame,               // dst
-                                  c->in_frame,                 // src
-                                  0,                           // dst_pos
-                                  0,                           // src_pos
-                                  s->fmt->samples_per_frame,   // dst_size
-                                  c->in_frame->valid_samples); // src_size
-
-          /* This breaks when more metadata come */
-          s->sink_frame->timestamp = c->in_frame->timestamp;
+          gavl_video_frame_copy(s->fmt, s->sink_frame, c->in_frame);
+          gavl_video_frame_copy_metadata(s->sink_frame, c->in_frame);
           }
-        sink_st = gavl_audio_sink_put_frame(s->sink, s->sink_frame);
+        sink_st = gavl_video_sink_put_frame(s->sink, s->sink_frame);
         }
       }
     else
@@ -273,18 +264,18 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
   }
 
 #if 0
-static int get_penalty(gavl_audio_converter_t * cnv,
-                       const gavl_audio_format_t * src_fmt,
-                       const gavl_audio_format_t * dst_fmt)
+static int get_penalty(gavl_video_converter_t * cnv,
+                       const gavl_video_format_t * src_fmt,
+                       const gavl_video_format_t * dst_fmt)
   {
   return 0;
   }
 #endif
 
-void gavl_audio_connector_start(gavl_audio_connector_t * c)
+void gavl_video_connector_start(gavl_video_connector_t * c)
   {
   int i;
-  gavl_audio_converter_t * cnv;
+  gavl_video_converter_t * cnv;
   sink_t * s;
 
   /* Handle trivial case early */
@@ -292,25 +283,26 @@ void gavl_audio_connector_start(gavl_audio_connector_t * c)
     return;
   else if(c->num_sinks == 1) 
     {
-    gavl_audio_source_set_dst(c->src, 0, c->sinks->fmt);
+    gavl_video_source_set_dst(c->src, 0, c->sinks->fmt);
     return;
     }
   else
-    gavl_audio_source_set_dst(c->src, 0, NULL);
+    gavl_video_source_set_dst(c->src, 0, NULL);
   
-  cnv = gavl_audio_converter_create();
-  gavl_audio_options_copy(gavl_audio_converter_get_options(cnv), &c->opt);
+  cnv = gavl_video_converter_create();
+  gavl_video_options_copy(gavl_video_converter_get_options(cnv), &c->opt);
   
   for(i = 0; i < c->num_sinks; i++)
     {
     s = c->sinks + i;
-    if((c->fmt->samples_per_frame != c->fmt->samples_per_frame) ||
-       gavl_audio_converter_init(cnv, c->fmt, s->fmt))
+    if((c->fmt->timescale != s->fmt->timescale) ||
+       (c->fmt->framerate_mode != s->fmt->framerate_mode) ||
+       gavl_video_converter_init(cnv, c->fmt, s->fmt))
       {
-      s->src = gavl_audio_source_create(read_func, s, GAVL_SOURCE_SRC_ALLOC, c->fmt);
-      gavl_audio_options_copy(gavl_audio_source_get_options(s->src), &c->opt);
-      gavl_audio_source_set_dst(s->src, 0, s->fmt);
+      s->src = gavl_video_source_create(read_func, s, GAVL_SOURCE_SRC_ALLOC, c->fmt);
+      gavl_video_options_copy(gavl_video_source_get_options(s->src), &c->opt);
+      gavl_video_source_set_dst(s->src, 0, s->fmt);
       }
     }
-  gavl_audio_converter_destroy(cnv);
+  gavl_video_converter_destroy(cnv);
   }

@@ -430,7 +430,7 @@ int gavl_audio_formats_equal(const gavl_audio_format_t * format_1,
 
 int gavl_nearest_samplerate(int in_rate, const int * supported)
   {
-  int index = 0, min_index, min_diff = 0, diff;
+  int index = 0, min_index = 0, min_diff = 0, diff;
   
   while(supported[index] >= 0)
     {
