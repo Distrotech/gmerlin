@@ -227,6 +227,9 @@ int gavl_video_connector_process(gavl_video_connector_t * c)
         }
       return 0;
     }
+
+  if(c->process_func)
+    c->process_func(c->process_priv, c->in_frame);
   
   /* Flush sinks */
 
@@ -305,4 +308,10 @@ void gavl_video_connector_start(gavl_video_connector_t * c)
       }
     }
   gavl_video_converter_destroy(cnv);
+  }
+
+const gavl_video_format_t * 
+gavl_video_connector_get_process_format(gavl_video_connector_t * c)
+  {
+  return gavl_video_source_get_dst_format(c->src);
   }

@@ -227,6 +227,9 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
         }
       return 0;
     }
+
+  if(c->process_func)
+    c->process_func(c->process_priv, c->in_frame);
   
   /* Flush sinks */
 
@@ -313,4 +316,10 @@ void gavl_audio_connector_start(gavl_audio_connector_t * c)
       }
     }
   gavl_audio_converter_destroy(cnv);
+  }
+
+const gavl_audio_format_t * 
+gavl_audio_connector_get_process_format(gavl_audio_connector_t * c)
+  {
+  return gavl_audio_source_get_dst_format(c->src);
   }

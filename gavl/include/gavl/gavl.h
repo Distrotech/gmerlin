@@ -4330,7 +4330,7 @@ gavl_audio_source_set_dst(gavl_audio_source_t * s, int dst_flags,
   
 GAVL_PUBLIC
 gavl_source_status_t
-gavl_audio_source_read_frame(void*, gavl_audio_frame_t ** frame);
+gavl_audio_source_read_frame(void*s, gavl_audio_frame_t ** frame);
 
 /** \brief Skip audio samples at the input
  *  \param s An audio source 
@@ -4355,7 +4355,7 @@ gavl_audio_source_skip_src(gavl_audio_source_t * s, int num_samples);
  */
 
 GAVL_PUBLIC
-int gavl_audio_source_read_samples(void*, gavl_audio_frame_t * frame,
+int gavl_audio_source_read_samples(void*s, gavl_audio_frame_t * frame,
                                    int num_samples);
 
 /** \brief Get coversion options of an audio source
@@ -4407,67 +4407,169 @@ void gavl_audio_source_destroy(gavl_audio_source_t * s);
   
 typedef enum
   {
-    GAVL_SINK_ERROR, // Something went wrong
-    GAVL_SINK_OK,    // Frame was successfully processed
+    GAVL_SINK_ERROR, //!< Something went wrong
+    GAVL_SINK_OK,    //!< Frame was successfully processed
   } gavl_sink_status_t;
 
-/** \brief Audio sink 
+/** \brief Audio sink
+ *
+ *  You don't want to know what's inside
  */
-  
+
 typedef struct 
 gavl_audio_sink_s gavl_audio_sink_t;
 
+/** \brief Prototype for getting a frame buffer
+ *  \param priv Private data
+ *  \returns An audio frame where to copy the data
+ *
+ *  Sinks can use this to pass specially allocated buffers
+ *  (e.g. shared or mmaped memory) to the client
+ */
+
 typedef gavl_audio_frame_t *
-(*gavl_audio_sink_get_func)(void *);
+(*gavl_audio_sink_get_func)(void * priv);
 
+/** \brief Prototype for putting a frame
+ *  \param priv Private data
+ *  \param f An audio frame
+ *  \returns \ref GAVL_SINK_ERROR if an error happened, \ref GAVL_SINK_OK else.
+ */
+  
 typedef gavl_sink_status_t
-(*gavl_audio_sink_put_func)(void *, gavl_audio_frame_t *);
+(*gavl_audio_sink_put_func)(void * priv, gavl_audio_frame_t * f);
 
+/** \brief Create an audio sink
+ *  \param get_func Function for getting a frame buffer or NULL
+ *  \param put_func Function for outputting a frame
+ *  \param priv Client data to pass to get_func and put_func
+ *  \param format Format in which we accept the data
+ *  \returns A newly created audio sink
+ */
+  
 GAVL_PUBLIC gavl_audio_sink_t *
-gavl_audio_sink_create(gavl_audio_sink_get_func,
-                       gavl_audio_sink_put_func,
+gavl_audio_sink_create(gavl_audio_sink_get_func get_func,
+                       gavl_audio_sink_put_func put_func,
                        void * priv,
                        const gavl_audio_format_t * format);
 
+/** \brief Get the format
+ *  \param s An audio sink
+ *  \returns format in which the sink accepts data
+ */
+  
 GAVL_PUBLIC const gavl_audio_format_t *
 gavl_audio_sink_get_format(gavl_audio_sink_t * s);
 
+/** \brief Get a buffer for a frame
+ *  \param s An audio sink
+ *  \returns A frame buffer
+ *
+ *  This function must be called before
+ *  \ref gavl_audio_sink_put_frame. If it returns non-NULL, the same
+ *  frame must be passed to the next call to \ref gavl_audio_sink_put_frame.
+ */
+  
 GAVL_PUBLIC gavl_audio_frame_t *
 gavl_audio_sink_get_frame(gavl_audio_sink_t * s);
 
-GAVL_PUBLIC gavl_sink_status_t
-gavl_audio_sink_put_frame(gavl_audio_sink_t * s, gavl_audio_frame_t *);
+/** \brief Output a frame
+ *  \param s An audio sink
+ *  \param f Frame
+ *  \returns \ref GAVL_SINK_ERROR if an error happened, \ref GAVL_SINK_OK else.
+ *
+ *  The frame must be the same as returned by the preceeding call to
+ *  \ref gavl_audio_sink_get_frame if it was not NULL.
+ */
 
+GAVL_PUBLIC gavl_sink_status_t
+gavl_audio_sink_put_frame(gavl_audio_sink_t * s, gavl_audio_frame_t * f);
+
+/** \brief Destroy an audio sink
+ *  \param s An audio sink
+ */
+  
 GAVL_PUBLIC void
 gavl_audio_sink_destroy(gavl_audio_sink_t * s);
 
   
-/** \brief Video sink 
+/** \brief Video sink
+ *
+ *  You don't want to know what's inside
  */
   
 typedef struct 
 gavl_video_sink_s gavl_video_sink_t;
 
+/** \brief Prototype for getting a frame buffer
+ *  \param priv Private data
+ *  \returns A video frame where to copy the data
+ *
+ *  Sinks can use this to pass specially allocated buffers
+ *  (e.g. shared or mmaped memory) to the client
+ */
+
 typedef gavl_video_frame_t *
-(*gavl_video_sink_get_func)(void *);
+(*gavl_video_sink_get_func)(void * priv);
+
+/** \brief Prototype for putting a frame
+ *  \param priv Private data
+ *  \param f A video frame
+ *  \returns \ref GAVL_SINK_ERROR if an error happened, \ref GAVL_SINK_OK else.
+ */
 
 typedef gavl_sink_status_t
-(*gavl_video_sink_put_func)(void *, gavl_video_frame_t *);
+(*gavl_video_sink_put_func)(void * priv, gavl_video_frame_t * f);
 
+/** \brief Create a video sink
+ *  \param get_func Function for getting a frame buffer or NULL
+ *  \param put_func Function for outputting a frame
+ *  \param priv Client data to pass to get_func and put_func
+ *  \param format Format in which we accept the data
+ *  \returns A newly created video sink
+ */
+  
 GAVL_PUBLIC gavl_video_sink_t *
-gavl_video_sink_create(gavl_video_sink_get_func,
-                       gavl_video_sink_put_func,
+gavl_video_sink_create(gavl_video_sink_get_func get_func,
+                       gavl_video_sink_put_func put_func,
                        void * priv,
                        const gavl_video_format_t * format);
+
+/** \brief Get the format
+ *  \param s A video sink
+ *  \returns format in which the sink accepts data
+ */
 
 GAVL_PUBLIC const gavl_video_format_t *
 gavl_video_sink_get_format(gavl_video_sink_t * s);
 
+/** \brief Get a buffer for a frame
+ *  \param s A video sink
+ *  \returns A frame buffer
+ *
+ *  This function must be called before
+ *  \ref gavl_video_sink_put_frame. If it returns non-NULL, the same
+ *  frame must be passed to the next call to \ref gavl_video_sink_put_frame.
+ */
+  
 GAVL_PUBLIC gavl_video_frame_t *
 gavl_video_sink_get_frame(gavl_video_sink_t * s);
 
+/** \brief Output a frame
+ *  \param s A video sink
+ *  \param f Frame
+ *  \returns \ref GAVL_SINK_ERROR if an error happened, \ref GAVL_SINK_OK else.
+ *
+ *  The frame must be the same as returned by the preceeding call to
+ *  \ref gavl_video_sink_get_frame if it was not NULL.
+ */
+
 GAVL_PUBLIC gavl_sink_status_t
-gavl_video_sink_put_frame(gavl_video_sink_t * s, gavl_video_frame_t *);
+gavl_video_sink_put_frame(gavl_video_sink_t * s, gavl_video_frame_t * f);
+
+/** \brief Destroy a video sink
+ *  \param s A video sink
+ */
 
 GAVL_PUBLIC void
 gavl_video_sink_destroy(gavl_video_sink_t * s);
@@ -4485,73 +4587,218 @@ gavl_video_sink_destroy(gavl_video_sink_t * s);
  * @{
  */
 
+/*! \brief Opaque structure for the audio connector
+ *
+ * You don't want to know what's inside.
+ */
+  
 typedef struct gavl_audio_connector_s gavl_audio_connector_t;
+
+/*! \brief Opaque structure for the audio connector
+ *
+ * You don't want to know what's inside.
+ */
+
 typedef struct gavl_video_connector_s gavl_video_connector_t;
 
+/*! \brief Callback for processing an audio frame
+ *  \param priv Client data
+ *  \param frame Frame
+ *
+ *  This function is called whenever a frame was read from the source.
+ *  Use \ref gavl_audio_connector_set_process_func to set this callback.
+ *  The format of the frame can be obtained with
+ *  \ref gavl_audio_connector_get_process_format after
+ *  \ref gavl_audio_connector_start was called.
+ */
+  
 typedef void
 (*gavl_audio_connector_process_func)(void * priv,
                                      gavl_audio_frame_t * frame);
 
+/*! \brief Callback for processing a video frame
+ *  \param priv Client data
+ *  \param frame Frame
+ *
+ *  This function is called whenever a frame was read from the source.
+ *  Use \ref gavl_video_connector_set_process_func to set this callback.
+ *  The format of the frame can be obtained with
+ *  \ref gavl_video_connector_get_process_format
+ *  after \ref gavl_video_connector_start was called.
+ */
+
 typedef void
 (*gavl_video_connector_process_func)(void * priv,
                                      gavl_video_frame_t * frame);
+
+/*! \brief Create an audio connector
+ *  \param src Source
+ *  \returns A newly created audio connector
+ */
   
 GAVL_PUBLIC gavl_audio_connector_t *
 gavl_audio_connector_create(gavl_audio_source_t * src);
 
+/*! \brief Get conversion options
+ *  \param c An audio connector
+ *  \returns Conversion options
+ *
+ *  These options will be used for all internal format conversions.
+ */
+  
 GAVL_PUBLIC gavl_audio_options_t *
 gavl_audio_connector_get_options(gavl_audio_connector_t * c);
+
+/*! \brief Destroy an audio connector
+ *  \param c An audio connector
+ */
   
 GAVL_PUBLIC void
 gavl_audio_connector_destroy(gavl_audio_connector_t * c);
 
+/*! \brief Connect a sink
+ *  \param c An audio connector
+ *  \param sink An audio sink
+ */
+  
 GAVL_PUBLIC void
 gavl_audio_connector_connect(gavl_audio_connector_t * c,
                              gavl_audio_sink_t * sink);
 
+/*! \brief Set process callback
+ *  \param c An audio connector
+ *  \param func Process callback
+ *  \param priv Client data to be passed to func
+ */
+  
 GAVL_PUBLIC void
 gavl_audio_connector_set_process_func(gavl_audio_connector_t * c,
                                       gavl_audio_connector_process_func func,
                                       void * priv);
 
-GAVL_PUBLIC int
-gavl_audio_connector_process(gavl_audio_connector_t * c);
+/*! \brief Start an audio connector
+ *  \param c An audio connector
+ *
+ *  Call this function after connecting all sinks and before
+ *  calling \ref gavl_audio_connector_process.
+ */
 
 GAVL_PUBLIC void
 gavl_audio_connector_start(gavl_audio_connector_t * c);
+
+/*! \brief Get process format
+ *  \param c An audio connector
+ *  \returns The intermediate format of the frames passed to the process callback
+ */
+  
+GAVL_PUBLIC const gavl_audio_format_t * 
+gavl_audio_connector_get_process_format(gavl_audio_connector_t * c);
+
+/*! \brief Process one frame
+ *  \param c An audio connector
+ *  \returns 0 if a sink reported an error, 1 else
+ *
+ *  Read one frame from the source and pass it to all sinks.
+ *  The sinks might output zero or more frames depending on the
+ *  conversions.
+ */
+  
+GAVL_PUBLIC int
+gavl_audio_connector_process(gavl_audio_connector_t * c);
+
+/*! \brief Reset an audio connector
+ *  \param c An audio connector
+ *
+ *  Reset the audio connector.
+ */
 
 GAVL_PUBLIC
 void gavl_audio_connector_reset(gavl_audio_connector_t * c);
 
   
 /* */
+
+/*! \brief Create a video connector
+ *  \param src Source
+ *  \returns A newly created video connector
+ */
   
 GAVL_PUBLIC gavl_video_connector_t *
 gavl_video_connector_create(gavl_video_source_t * src);
 
+/*! \brief Get conversion options
+ *  \param c A video connector
+ *  \returns Conversion options
+ *
+ *  These options will be used for all internal format conversions.
+ */
+  
 GAVL_PUBLIC gavl_video_options_t *
 gavl_video_connector_get_options(gavl_video_connector_t * c);
+
+/*! \brief Destroy a video connector
+ *  \param c A video connector
+ */
   
 GAVL_PUBLIC void
 gavl_video_connector_destroy(gavl_video_connector_t * c);
 
+/*! \brief Connect a sink
+ *  \param c A video connector
+ *  \param sink A video sink
+ */
 
 GAVL_PUBLIC void
 gavl_video_connector_connect(gavl_video_connector_t * c,
                              gavl_video_sink_t * sink);
 
+/*! \brief Set process callback
+ *  \param c A video connector
+ *  \param func Process callback
+ *  \param priv Client data to be passed to func
+ */
 
 GAVL_PUBLIC void
 gavl_video_connector_set_process_func(gavl_video_connector_t * c,
-                                      gavl_video_connector_process_func,
+                                      gavl_video_connector_process_func func,
                                       void * priv);
 
-GAVL_PUBLIC int
-gavl_video_connector_process(gavl_video_connector_t * c);
+/*! \brief Start a video connector
+ *  \param c A video connector
+ *
+ *  Call this function after connecting all sinks and before
+ *  calling \ref gavl_video_connector_process.
+ */
 
 GAVL_PUBLIC void
 gavl_video_connector_start(gavl_video_connector_t * c);
 
+/*! \brief Get process format
+ *  \param c A video connector
+ *  \returns The intermediate format of the frames passed to the process callback
+ */
+
+GAVL_PUBLIC const gavl_video_format_t * 
+gavl_video_connector_get_process_format(gavl_video_connector_t * c);
+
+/*! \brief Process one frame
+ *  \param c A video connector
+ *  \returns 0 if a sink reported an error, 1 else
+ *
+ *  Read one frame from the source and pass it to all sinks.
+ *  The sinks might output zero or more frames depending on the
+ *  conversions.
+ */
+  
+GAVL_PUBLIC int
+gavl_video_connector_process(gavl_video_connector_t * c);
+
+/*! \brief Reset a video connector
+ *  \param c A video connector
+ *
+ *  Reset the video connector.
+ */
+  
 GAVL_PUBLIC
 void gavl_video_connector_reset(gavl_video_connector_t * c);
 
