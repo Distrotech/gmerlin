@@ -41,7 +41,7 @@ typedef struct
 static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
   {
   ximage_frame_t * frame;
-  gavl_video_frame_t * ret;
+  gavl_video_frame_t * ret = NULL;
   bg_x11_window_t * w = d->win;
   
   frame = calloc(1, sizeof(*frame));
@@ -55,7 +55,11 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
                                        w->window_format.frame_width,
                                        w->window_format.frame_height);
     if(!frame->x11_image)
+      {
       CLEAR_FLAG(w, FLAG_HAVE_SHM);
+      free(frame);
+      frame = NULL;
+      }
     else
       {
       if(!bg_x11_window_create_shm(w, &frame->shminfo,
@@ -67,13 +71,13 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
         }
       frame->x11_image->data = frame->shminfo.shmaddr;
 
-      ret = calloc(1, sizeof(*ret));
-
+      ret = gavl_video_frame_create(NULL);
       ret->planes[0] = (uint8_t*)(frame->x11_image->data);
       ret->strides[0] = frame->x11_image->bytes_per_line;
       }
     }
-  if(!TEST_FLAG(w, FLAG_HAVE_SHM))
+  
+  if(!ret)
     {
     /* Use gavl to allocate memory aligned scanlines */
     ret = gavl_video_frame_create(&w->window_format);

@@ -24,6 +24,8 @@
 
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
+#include <gavl/connectors.h>
+
 #include <gmerlin/parameter.h>
 #include <gmerlin/streaminfo.h>
 #include <gmerlin/accelerator.h>

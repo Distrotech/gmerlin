@@ -34,6 +34,9 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/ov.h>
 
+#include <gavl/peakdetector.h>
+
+
 #include <player_thread.h>
 
 /* Each thread get it's private context */

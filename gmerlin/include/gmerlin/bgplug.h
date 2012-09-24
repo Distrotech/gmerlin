@@ -1,5 +1,7 @@
 
 #include <gavl/gavf.h>
+#include <gavl/connectors.h>
+
 #include <gmerlin/parameter.h>
 
 /* Reader */
@@ -23,12 +25,4 @@ int bg_plug_start_write(bg_plug_t * p);
 
 
 /* Optimized audio/video I/O */
-
-gavl_video_frame_t *
-bg_plug_writer_get_video_frame(bg_plug_t *p, int stream);
-int bg_plug_writer_write_video_frame(bg_plug_t *p, int stream);
-
-gavl_audio_frame_t *
-bg_plug_writer_get_audio_frame(bg_plug_t *p, int stream);
-int bg_plug_writer_write_audio_frame(bg_plug_t *p, int stream);
 

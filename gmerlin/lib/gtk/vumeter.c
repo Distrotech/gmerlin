@@ -34,6 +34,8 @@
 
 #include <gmerlin/utils.h>
 
+#include <gavl/peakdetector.h>
+
 /* Some constants */
 
 #define TIC_LENGTH    7

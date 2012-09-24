@@ -25,6 +25,8 @@
 
 #include <player_thread.h>
 
+#include <gavl/peakdetector.h>
+
 #define NUM_THREADS 2
 
 #define STREAM_ACTIVE             (1<<0)

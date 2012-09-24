@@ -22,6 +22,7 @@
 #include <gmerlin/parameter.h>
 #include <gmerlin/accelerator.h>
 #include <gavl/gavl.h>
+#include <gavl/connectors.h>
 
 /* Min- Max values for Hue, Saturation, Brightness and Contrast */
 
@@ -184,5 +185,7 @@ bg_x11_grab_window_t * bg_x11_grab_window_create();
 void bg_x11_grab_window_destroy(bg_x11_grab_window_t *);
 
 int bg_x11_grab_window_init(bg_x11_grab_window_t *, gavl_video_format_t * format);
-gavl_source_status_t bg_x11_grab_window_grab(void *, gavl_video_frame_t ** frame);
+gavl_source_status_t
+bg_x11_grab_window_grab(void *, gavl_video_frame_t ** frame);
+
 void bg_x11_grab_window_close(bg_x11_grab_window_t * win);

@@ -482,9 +482,13 @@ bg_visualizer_slave_create(int argc, char ** argv)
   if(!strncmp(plugin_module, "vis_lv_", 7))
     {
     if(ret->ov_handle)
-      ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_FRAME, ret->window_id);
+      ret->vis_handle =
+        load_plugin_lv(plugin_module,
+                       BG_PLUGIN_VISUALIZE_FRAME, ret->window_id);
     else
-      ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_GL, ret->window_id);
+      ret->vis_handle =
+        load_plugin_lv(plugin_module,
+                       BG_PLUGIN_VISUALIZE_GL, ret->window_id);
     ret->vis_api = BG_PLUGIN_API_LV;
     }
   else

@@ -39,6 +39,9 @@ typedef struct
   int buffer_size;
   int num_buffers;
   int buffer_index;
+
+  gavl_audio_source_t * src;
+  gavl_audio_sink_t   * sink;
   } audio_stream_t;
 
 typedef struct
@@ -50,6 +53,9 @@ typedef struct
   int buffer_size;
   int num_buffers;
   int buffer_index;
+
+  gavl_video_source_t * src;
+  gavl_video_sink_t   * sink;
   } video_stream_t;
 
 typedef struct
@@ -101,7 +107,33 @@ bg_plug_t * bg_plug_create_writer(void)
 
 void bg_plug_reader_destroy(bg_plug_t * p)
   {
+  int i;
   gavf_close(p->g);
+
+  if(p->audio_streams)
+    {
+    for(i = 0; i < p->num_audio_streams; i++)
+      {
+      audio_stream_t * s = p->audio_streams + i;
+      if(s->src)
+        gavl_audio_source_destroy(s->src);
+      if(s->sink)
+        gavl_audio_sink_destroy(s->sink);
+      }
+    }
+  if(p->video_streams)
+    {
+    for(i = 0; i < p->num_video_streams; i++)
+      {
+      video_stream_t * s = p->video_streams + i;
+      if(s->src)
+        gavl_video_source_destroy(s->src);
+      if(s->sink)
+        gavl_video_sink_destroy(s->sink);
+      }
+    
+    }
+  
   free(p);
   }
 
@@ -358,42 +390,69 @@ gavf_t * bg_plug_reader_get_gavf(bg_plug_t * p)
 
 /* Optimized audio/video I/O */
 
-gavl_video_frame_t *
-bg_plug_writer_get_video_frame(bg_plug_t *p, int stream)
+static gavl_video_frame_t *
+get_video_frame_func(void * priv)
   {
-  video_stream_t * vs = &p->video_streams[stream];
-
+  video_stream_t * vs = priv;
+  
   if(vs->shm)
     {
     if(!vs->f)
       vs->f = gavl_video_frame_create(NULL);
     gavl_video_frame_set_planes(vs->f, &vs->h->format.video,
-                                vs->shm->addr + vs->buffer_index * vs->buffer_size);
+                                vs->shm->addr +
+                                vs->buffer_index * vs->buffer_size);
     }
   else
     {
     if(!vs->f)
       vs->f = gavl_video_frame_create_nopad(&vs->h->format.video);
     }
-  
   return vs->f;
   }
 
-int bg_plug_writer_write_video_frame(bg_plug_t *p, int stream)
+static gavl_sink_status_t
+put_video_frame_func(void * priv, gavl_video_frame_t * f)
   {
-  video_stream_t * vs = &p->video_streams[stream];
-    
-  return 0;
+  
   }
 
-gavl_audio_frame_t *
-bg_plug_writer_get_audio_frame(bg_plug_t *p, int stream)
+static gavl_source_status_t
+read_video_frame_func(void * priv, gavl_video_frame_t ** f)
   {
-  return NULL;
+  
   }
 
-int bg_plug_writer_write_audio_frame(bg_plug_t *p, int stream)
+static gavl_audio_frame_t *
+get_audio_frame_func(void * priv)
   {
-  return 0;
+  audio_stream_t * vs = priv;
+  
+  if(vs->shm)
+    {
+    if(!vs->f)
+      vs->f = gavl_audio_frame_create(NULL);
+    gavl_audio_frame_set_channels(vs->f, &vs->h->format.audio,
+                                vs->shm->addr +
+                                vs->buffer_index * vs->buffer_size);
+    }
+  else
+    {
+    //    if(!vs->f)
+      //      vs->f = gavl_audio_frame_create_nopad(&vs->h->format.audio);
+    }
+  return vs->f;
+  }
+
+static gavl_sink_status_t
+put_audio_frame_func(void * priv, gavl_audio_frame_t * f)
+  {
+  
+  }
+
+static gavl_source_status_t
+read_audio_frame_func(void * priv, gavl_audio_frame_t ** f)
+  {
+  
   }
 

@@ -48,6 +48,7 @@
 #include <gmerlin/subprocess.h>
 
 #include <gavl/metatags.h>
+#include <gavl/peakdetector.h>
 
 
 // #define DUMP_VIDEO_TIMESTAMPS
