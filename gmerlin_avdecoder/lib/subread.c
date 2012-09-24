@@ -875,9 +875,14 @@ void bgav_subtitle_reader_destroy(bgav_stream_t * s)
   {
   bgav_subtitle_reader_context_t * ctx;
   ctx = s->data.subtitle.subreader;
-  if(ctx->info) free(ctx->info);
-  if(ctx->filename) free(ctx->filename);
-  if(ctx->p) bgav_packet_destroy(ctx->p);
+  if(ctx->info)
+    free(ctx->info);
+  if(ctx->filename)
+    free(ctx->filename);
+  if(ctx->p)
+    bgav_packet_destroy(ctx->p);
+  if(ctx->line)
+    free(ctx->line);
   if(ctx->input)
     bgav_input_destroy(ctx->input);
   free(ctx);
