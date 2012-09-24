@@ -30,6 +30,7 @@
 #include <gavl/compression.h>
 #include <gavl/metadata.h>
 #include <gavl/chapterlist.h>
+#include <gavl/connectors.h>
 
 #include "bgavdefs.h" // This is ugly, but works
 
