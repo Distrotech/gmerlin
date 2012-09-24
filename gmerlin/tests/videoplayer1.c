@@ -32,7 +32,23 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 
-static char * output_plugin_name = "ov_x11";
+typedef struct
+  {
+  gavl_timer_t * timer;
+  const gavl_video_format_t * fmt;
+  } process_data_t;
+
+static void process_frame(void * priv, gavl_video_frame_t * frame)
+  {
+  gavl_time_t diff_time;
+  process_data_t * d = priv;
+  
+  diff_time = gavl_time_unscale(d->fmt->timescale, frame->timestamp) - gavl_timer_get(d->timer);
+
+  if(diff_time > 0)
+    gavl_time_delay(&diff_time);
+  
+  }
 
 int main(int argc, char ** argv)
   {
@@ -41,18 +57,14 @@ int main(int argc, char ** argv)
   bg_ov_plugin_t * output_plugin;
   const bg_plugin_info_t * plugin_info;
   bg_track_info_t * info;
-  int do_convert;
   char * tmp_path;
-
-
-  gavl_timer_t * timer;
-  int64_t frames_written;
-  gavl_time_t diff_time;
-
+  
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
   bg_plugin_registry_t * plugin_reg;
 
+  gavl_video_connector_t * conn;
+  
   /* Plugin handles */
   
   bg_plugin_handle_t * input_handle = NULL;
@@ -61,16 +73,9 @@ int main(int argc, char ** argv)
   /* Output format */
   
   gavl_video_format_t video_format;
-
-  /* Frames */
   
-  gavl_video_frame_t * input_frame = NULL;
-  gavl_video_frame_t * output_frame = NULL;
-
-  /* Converter */
-
-  gavl_video_converter_t * video_converter;
-
+  process_data_t d;
+  
   bg_log_set_verbose(BG_LOG_DEBUG|BG_LOG_WARNING|BG_LOG_ERROR|BG_LOG_INFO);
   if(argc == 1)
     {
@@ -103,11 +108,15 @@ int main(int argc, char ** argv)
   input_plugin = (bg_input_plugin_t*)(input_handle->plugin);
 
   /* Load output plugin */
-    
-  plugin_info = bg_plugin_find_by_name(plugin_reg, output_plugin_name);
+
+  plugin_info =
+    bg_plugin_registry_get_default(plugin_reg,
+                                   BG_PLUGIN_OUTPUT_VIDEO,
+                                   BG_PLUGIN_PLAYBACK);
+  
   if(!plugin_info)
     {
-    fprintf(stderr, "Output plugin %s not found\n", output_plugin_name);
+    fprintf(stderr, "Output plugin not found\n");
     return -1;
     }
   output_handle = bg_plugin_load(plugin_reg, plugin_info);
@@ -135,9 +144,8 @@ int main(int argc, char ** argv)
   
   /* Get video format */
 
-  memcpy(&video_format, &info->video_streams[0].format,
-         sizeof(gavl_video_format_t));
-
+  gavl_video_format_copy(&video_format, &info->video_streams[0].format);
+  
   /* Initialize output plugin */
     
   if(!output_plugin->open(output_handle->priv, &video_format, 1))
@@ -149,85 +157,35 @@ int main(int argc, char ** argv)
   output_plugin->show_window(output_handle->priv, 1);
   output_plugin->set_window_title(output_handle->priv, "Video output");
   
-  /* Initialize video converter */
+  /* Initialize video connector */
 
-  video_converter = gavl_video_converter_create();
-
+  conn =
+    gavl_video_connector_create(input_plugin->get_video_source(input_handle->priv, 0));
   
-  do_convert = gavl_video_converter_init(video_converter,
-                                         &info->video_streams[0].format,
-                                         &video_format);
-  
-  if(do_convert)
-    fprintf(stderr, "Doing Video Conversion\n");
-  else
-    fprintf(stderr, "No Video conversion\n");
+  gavl_video_connector_connect(conn,
+                               output_plugin->get_sink(output_handle->priv));
 
-  fprintf(stderr, "Input format:\n");
-  gavl_video_format_dump(&info->video_streams[0].format);
-  fprintf(stderr, "Output format:\n");
-  gavl_video_format_dump(&video_format);
-  
-  /* Allocate frames */
-
-  if(do_convert)
-    input_frame = gavl_video_frame_create(&info->video_streams[0].format);
+  gavl_video_connector_start(conn);
   
   /* Allocate timer */
 
-  timer = gavl_timer_create();
+  d.timer = gavl_timer_create();
+  d.fmt = gavl_video_connector_get_process_format(conn);
+
+  gavl_video_connector_set_process_func(conn, process_frame, &d);
   
   /* Playback until we are done */
 
-  frames_written = 0;
-
-  gavl_timer_start(timer);
+  gavl_timer_start(d.timer);
   
-  if(do_convert)
+  while(gavl_video_connector_process(conn))
     {
-    while(1)
-      {
-      output_frame = output_plugin->get_frame(output_handle->priv);
-      
-      if(!input_plugin->read_video(input_handle->priv, input_frame, 0))
-        break;
-      gavl_video_convert(video_converter, input_frame, output_frame);
-            
-      diff_time = gavl_time_unscale(info->video_streams[0].format.timescale, output_frame->timestamp) - gavl_timer_get(timer);
-
-      if(diff_time > 0)
-        {
-        gavl_time_delay(&diff_time);
-        }
-      
-      output_plugin->put_frame(output_handle->priv, output_frame);
+    if(output_plugin->handle_events)
       output_plugin->handle_events(output_handle->priv);
-      frames_written++;
-      }
     }
-  else
-    {
-    while(1)
-      {
-      if(!input_plugin->read_video(input_handle->priv, output_frame, 0))
-        break;
-            
-      diff_time = gavl_time_unscale(info->video_streams[0].format.timescale,
-                                    output_frame->timestamp) - gavl_timer_get(timer);
-      if(diff_time > 0)
-        gavl_time_delay(&diff_time);
-      output_plugin->put_frame(output_handle->priv, output_frame);
-      frames_written++;
-      }
-    }
-  
-  /* Clean up */
-
-  gavl_video_converter_destroy(video_converter);
-
-  if(do_convert)
-    gavl_video_frame_destroy(input_frame);
     
+  /* Clean up */
+  
   if(input_plugin->stop)
     input_plugin->stop(input_handle->priv);
 
@@ -240,7 +198,8 @@ int main(int argc, char ** argv)
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
   
-  gavl_timer_destroy(timer);
-    
+  gavl_timer_destroy(d.timer);
+  gavl_video_connector_destroy(conn);
+  
   return 0;
   }

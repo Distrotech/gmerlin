@@ -30,28 +30,15 @@
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/utils.h>
 
-#if 0
-static void dump_format(gavl_audio_format_t * format)
-  {
-  fprintf(stderr, "Channels: %d\nSamplerate: %d\nSamples per frame: %d\nSample format: %s\nInterleave Mode: %s\nChannel Setup: %s\n",
-          format->num_channels,
-          format->samplerate,
-          format->samples_per_frame,
-          gavl_sample_format_to_string(format->sample_format),
-          gavl_interleave_mode_to_string(format->interleave_mode),
-          gavl_channel_setup_to_string(format->channel_setup));
-  
-  }
-
-#endif
-
 int main(int argc, char ** argv)
   {
   bg_track_info_t * info;
   char * tmp_path;
   const bg_plugin_info_t * plugin_info;
   bg_cfg_section_t * cfg_section;
-  int do_convert;
+  
+  gavl_audio_connector_t * conn;
+  
   bg_plugin_registry_t * plugin_reg;
   bg_cfg_registry_t    * cfg_reg;
   
@@ -66,15 +53,6 @@ int main(int argc, char ** argv)
   /* Output format */
   
   gavl_audio_format_t audio_format;
-
-  /* Frames */
-  
-  gavl_audio_frame_t * input_frame;
-  gavl_audio_frame_t * output_frame = NULL;
-
-  /* Converter */
-
-  gavl_audio_converter_t * audio_converter;
   
   if(argc == 1)
     fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
@@ -92,21 +70,24 @@ int main(int argc, char ** argv)
 
   /* Load input plugin */
 
-  plugin_info = bg_plugin_find_by_name(plugin_reg,
-                                       "i_avdec");
-  if(!plugin_info)
-    {
-    fprintf(stderr, "Input plugin not found\n");
+  if(!bg_input_plugin_load(plugin_reg,
+                           argv[1],
+                           NULL, // const bg_plugin_info_t * info,
+                           &input_handle, // bg_plugin_handle_t ** ret,
+                           NULL, // bg_input_callbacks_t * callbacks,
+                           0 // int prefer_edl
+                           ))
     return -1;
-    }
-  input_handle = bg_plugin_load(plugin_reg, plugin_info);
+  
   input_plugin = (bg_input_plugin_t*)(input_handle->plugin);
-
+  
   /* Load output plugin */
   
-  plugin_info = bg_plugin_registry_get_default(plugin_reg,
-                                               BG_PLUGIN_OUTPUT_AUDIO, BG_PLUGIN_PLAYBACK);
-
+  plugin_info =
+    bg_plugin_registry_get_default(plugin_reg,
+                                   BG_PLUGIN_OUTPUT_AUDIO,
+                                   BG_PLUGIN_PLAYBACK);
+  
   if(!plugin_info)
     {
     fprintf(stderr, "Output plugin not found\n");
@@ -114,15 +95,7 @@ int main(int argc, char ** argv)
     }
   output_handle = bg_plugin_load(plugin_reg, plugin_info);
   output_plugin = (bg_oa_plugin_t*)(output_handle->plugin);
-    
-  /* Open the input */
   
-  if(!input_plugin->open(input_handle->priv, argv[1]))
-    {
-    fprintf(stderr, "Cannot open %s\n", argv[1]);
-    return -1;
-    }
-
   /* Select the first track */
   
   if(input_plugin->set_track)
@@ -142,8 +115,11 @@ int main(int argc, char ** argv)
                                  BG_STREAM_ACTION_DECODE);
   
   /* Start playback */
-  if(input_plugin->start)
-    input_plugin->start(input_handle->priv);
+  if(input_plugin->start && !input_plugin->start(input_handle->priv))
+    {
+    fprintf(stderr, "Starting %s failed\n", argv[1]);
+    return -1;
+    }
   
   /* Get audio format */
 
@@ -153,65 +129,20 @@ int main(int argc, char ** argv)
   
   output_plugin->open(output_handle->priv, &audio_format);
 
-  /* Initialize audio converter */
+  /* Create connector */
+  conn =
+    gavl_audio_connector_create(input_plugin->get_audio_source(input_handle->priv, 0));
 
-  audio_converter = gavl_audio_converter_create();
+  gavl_audio_connector_connect(conn,
+                               output_plugin->get_sink(output_handle->priv));
 
-
-  fprintf(stderr, "gavl_audio_converter_init...");
+  gavl_audio_connector_start(conn);
   
-  do_convert = gavl_audio_converter_init(audio_converter,
-                                         &info->audio_streams[0].format,
-                                         &audio_format);
-  fprintf(stderr, "done\n");
-  
-  /* Dump formats */
-
-  /*
-  
-  fprintf(stderr, "Input format:\n");
-  dump_format(&info->audio_streams[0].format);
-  fprintf(stderr, "Output format:\n");
-  dump_format(&audio_format);
-  
-  */
-  
-  /* Allocate frames */
-
-  info->audio_streams[0].format.samples_per_frame = audio_format.samples_per_frame;
-  
-  input_frame = gavl_audio_frame_create(&info->audio_streams[0].format);
-
-  if(do_convert)
-    output_frame = gavl_audio_frame_create(&audio_format);
-  
-  /* Playback until we are done */
-
-  
-  while(1)
-    {
-    //    fprintf(stderr, "Read audio %d\n", audio_format.samples_per_frame);
-    if(!input_plugin->read_audio(input_handle->priv,
-                                 input_frame, 0,
-                                 audio_format.samples_per_frame))
-      break;
-    
-    if(do_convert)
-      {
-      gavl_audio_convert(audio_converter, input_frame, output_frame);
-      output_plugin->write_audio(output_handle->priv, output_frame);
-      }
-    else
-      output_plugin->write_audio(output_handle->priv, input_frame);
-    }
+  while(gavl_audio_connector_process(conn))
+    ;
   
   /* Clean up */
-
-  gavl_audio_converter_destroy(audio_converter);
-  gavl_audio_frame_destroy(input_frame);
-  if(output_frame)
-    gavl_audio_frame_destroy(output_frame);
-
+  
   if(input_plugin->stop)
     input_plugin->stop(input_handle->priv);
 
@@ -223,7 +154,8 @@ int main(int argc, char ** argv)
     
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
-  
+
+  gavl_audio_connector_destroy(conn);
   
   return 0;
   }
