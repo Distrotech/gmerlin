@@ -28,6 +28,7 @@
 #define GAVL_CONNECTORS_H_INCLUDED
 
 #include <gavl/gavl.h>
+#include <gavl/compression.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +44,7 @@ extern "C" {
  */
 
 /*! \defgroup sources A/V sources
+ *  \ingroup pipelines
  *
  *  A/V sources are elements, which can be used to
  *  conveniently pass audio or video frames from one
@@ -76,10 +78,9 @@ typedef enum
     GAVL_SOURCE_AGAIN = 2, //!< No frame available right now, might try later
   } gavl_source_status_t;
 
-/** \brief Prototype for onbtaining one audio frame
+/** \brief Prototype for obtaining one audio frame
  *  \param priv Client data
  *  \param frame Where to store the frame
- *  \param stream Stream number to read from (usually zero)
  *
  *  If *frame is non-null, the data will be copied there,
  *  otherwise the address of an internally allocated frame is returned
@@ -88,10 +89,9 @@ typedef enum
 typedef gavl_source_status_t
 (*gavl_audio_source_func_t)(void * priv, gavl_audio_frame_t ** frame);
 
-/** \brief Prototype for onbtaining one video frame
+/** \brief Prototype for obtaining one video frame
  *  \param priv Client data
  *  \param frame Where to store the frame
- *  \param stream Stream number to read from (usually zero)
  *
  *  If *frame is non-null, the data will be copied there,
  *  otherwise the address of an internally allocated frame is returned.
@@ -100,24 +100,52 @@ typedef gavl_source_status_t
 typedef gavl_source_status_t
 (*gavl_video_source_func_t)(void * priv, gavl_video_frame_t ** frame);
 
-/** \brief Forward declaration of the video source */
+/** \brief Prototype for obtaining one packet
+ *  \param priv Client data
+ *  \param frame Where to store the packet
+ *
+ *  If *packet is non-null, the data will be copied there,
+ *  otherwise the address of an internally allocated packet is returned.
+ */
+  
+typedef gavl_source_status_t
+(*gavl_packet_source_func_t)(void * priv, gavl_packet_t ** p);
+
+  
+/** \brief Forward declaration of the video source
+ *
+ *  You don't want to know what's inside
+ */
   
 typedef struct gavl_video_source_s gavl_video_source_t;
 
-/** \brief Forward declaration of the audio source */
+/** \brief Forward declaration of the audio source
+ *
+ *  You don't want to know what's inside
+ */
   
 typedef struct gavl_audio_source_s gavl_audio_source_t;
 
-/** \brief Source provides a pointer to an internal structure */
+/** \brief Forward declaration of the packet source
+ *
+ *  You don't want to know what's inside
+ */
+
+typedef struct gavl_packet_source_s gavl_packet_source_t;
+  
+/** \brief Source provides a pointer to an internal structure
+ */
 
 #define GAVL_SOURCE_SRC_ALLOC               (1<<0)
 
 /** \brief Source might need the frames for decoding future frames */
+
 #define GAVL_SOURCE_SRC_REF                 (1<<1)
 
 /** \brief Samples per frame is just an upper bound.
     Frames can have smaller sizes also. The last frame is always
     allowed to have fewer samples, even if this flag is not set */
+
 #define GAVL_SOURCE_SRC_FRAMESIZE_MAX       (1<<2)
   
 /** \brief Destination changes frame. */
@@ -183,7 +211,7 @@ gavl_video_source_get_src_format(gavl_video_source_t * s);
  *  \param s A video source
  *  \returns The video format in which frames are read
  */
-  
+
 GAVL_PUBLIC
 const gavl_video_format_t *
 gavl_video_source_get_dst_format(gavl_video_source_t * s);
@@ -347,12 +375,72 @@ void gavl_audio_source_reset(gavl_audio_source_t * s);
   
 GAVL_PUBLIC
 void gavl_audio_source_destroy(gavl_audio_source_t * s);
+
+
+/* Packet source */
+
+/** \brief Create a packet source
+ *  \param func Callback for reading one frame
+ *  \param priv Client data to be passed to func
+ *  \param src_flags Flags
+ *  \param ci Compression info for audio and video sreams, NULL else
+ *  \param afmt Format of the audio stream or NULL
+ *  \param vfmt Format of the video stream or NULL
+ */
+
+GAVL_PUBLIC
+gavl_packet_source_t *
+gavl_packet_source_create(gavl_packet_source_func_t func,
+                          void * priv, int src_flags,
+                          const gavl_compression_info_t * ci,
+                          const gavl_audio_format_t * afmt,
+                          const gavl_video_format_t * vfmt);
+
+/** \brief Get the compression info
+ *  \param s A packet source
+ *  \returns The compression info or NULL
+ */
   
+GAVL_PUBLIC const gavl_compression_info_t *
+gavl_packet_source_get_ci(gavl_packet_source_t * s);
+
+/** \brief Get the audio format
+ *  \param s A packet source
+ *  \returns The audio format or NULL
+ */
+ 
+GAVL_PUBLIC const gavl_audio_format_t *
+gavl_packet_source_get_audio_format(gavl_packet_source_t * s);
+
+/** \brief Get the video format
+ *  \param s A packet source
+ *  \returns The video format or NULL
+ */
+
+GAVL_PUBLIC const gavl_video_format_t *
+gavl_packet_source_get_video_format(gavl_packet_source_t * s);
+
+/** \brief Read one packet
+ *  \param s A packet source
+ *  \returns The status
+ */
+  
+GAVL_PUBLIC gavl_source_status_t
+gavl_packet_source_read_packet(void*s, gavl_packet_t ** p);
+
+/** \brief Destroy a packet source
+ *  \param s A packet source
+ */
+
+GAVL_PUBLIC void
+gavl_packet_source_destroy(gavl_packet_source_t * s);
+
 /**
  * @}
  */
 
 /*! \defgroup sinks A/V sinks
+ *  \ingroup pipelines
  *
  *  This is a thin layer for a unified handling of
  *  A/V sinks. A sink can either supply a frame where
@@ -536,6 +624,79 @@ gavl_video_sink_put_frame(gavl_video_sink_t * s, gavl_video_frame_t * f);
 
 GAVL_PUBLIC void
 gavl_video_sink_destroy(gavl_video_sink_t * s);
+
+
+/** \brief Packet sink
+ *
+ *  You don't want to know what's inside
+ */
+  
+typedef struct 
+gavl_packet_sink_s gavl_packet_sink_t;
+
+/** \brief Prototype for getting a packet buffer
+ *  \param priv Private data
+ *  \returns A packet where to copy the data
+ *
+ *  Sinks can use this to pass specially allocated buffers
+ *  (e.g. shared or mmaped memory) to the client
+ */
+
+typedef gavl_packet_t *
+(*gavl_packet_sink_get_func)(void * priv);
+
+/** \brief Prototype for putting a frame
+ *  \param priv Private data
+ *  \param p A packet
+ *  \returns \ref GAVL_SINK_ERROR if an error happened, \ref GAVL_SINK_OK else.
+ */
+
+typedef gavl_sink_status_t
+(*gavl_packet_sink_put_func)(void * priv, gavl_packet_t * p);
+
+/** \brief Create a packet sink
+ *  \param get_func Function for getting a packet buffer or NULL
+ *  \param put_func Function for outputting a packet
+ *  \param priv Client data to pass to get_func and put_func
+ *  \returns A newly created packet sink
+ */
+  
+GAVL_PUBLIC gavl_packet_sink_t *
+gavl_packet_sink_create(gavl_packet_sink_get_func get_func,
+                        gavl_packet_sink_put_func put_func,
+                        void * priv);
+
+/** \brief Get a buffer for a packet
+ *  \param s A packet sink
+ *  \returns A packet buffer
+ *
+ *  This function must be called before
+ *  \ref gavl_packet_sink_put_packet. If it returns non-NULL, the same
+ *  frame must be passed to the next call to \ref gavl_packet_sink_put_packet.
+ */
+  
+GAVL_PUBLIC gavl_packet_t *
+gavl_packet_sink_get_packet(gavl_packet_sink_t * s);
+
+/** \brief Output a frame
+ *  \param s A video sink
+ *  \param f Frame
+ *  \returns \ref GAVL_SINK_ERROR if an error happened, \ref GAVL_SINK_OK else.
+ *
+ *  The frame must be the same as returned by the preceeding call to
+ *  \ref gavl_video_sink_get_frame if it was not NULL.
+ */
+
+GAVL_PUBLIC gavl_sink_status_t
+gavl_packet_sink_put_packet(gavl_packet_sink_t * s, gavl_packet_t * p);
+
+/** \brief Destroy a packet sink
+ *  \param s A packet sink
+ */
+
+GAVL_PUBLIC void
+gavl_packet_sink_destroy(gavl_packet_sink_t * s);
+ 
   
 /**
  * @}
@@ -543,6 +704,7 @@ gavl_video_sink_destroy(gavl_video_sink_t * s);
 
 
 /*! \defgroup connectors A/V connectors
+ *  \ingroup pipelines
  *
  *  Connectors link one source and one or more sinks. They 
  *  do all buffer handling and format conversion.
@@ -564,6 +726,13 @@ typedef struct gavl_audio_connector_s gavl_audio_connector_t;
 
 typedef struct gavl_video_connector_s gavl_video_connector_t;
 
+/*! \brief Opaque structure for the packet connector
+ *
+ * You don't want to know what's inside.
+ */
+
+typedef struct gavl_packet_connector_s gavl_packet_connector_t;
+  
 /*! \brief Callback for processing an audio frame
  *  \param priv Client data
  *  \param frame Frame
@@ -594,6 +763,18 @@ typedef void
 (*gavl_video_connector_process_func)(void * priv,
                                      gavl_video_frame_t * frame);
 
+/*! \brief Callback for processing a packet
+ *  \param priv Client data
+ *  \param packet Packet
+ *
+ *  This function is called whenever a packet was read from the source.
+ *  Use \ref gavl_packet_connector_set_process_func to set this callback.
+ */
+
+typedef void
+(*gavl_packet_connector_process_func)(void * priv,
+                                      gavl_packet_t * p);
+  
 /*! \brief Create an audio connector
  *  \param src Source
  *  \returns A newly created audio connector
@@ -765,6 +946,52 @@ gavl_video_connector_process(gavl_video_connector_t * c);
 GAVL_PUBLIC
 void gavl_video_connector_reset(gavl_video_connector_t * c);
 
+/* */
+
+/*! \brief Create a packet connector
+ *  \param src Source
+ *  \returns A newly created packet connector
+ */
+  
+GAVL_PUBLIC gavl_packet_connector_t *
+gavl_packet_connector_create(gavl_packet_source_t * src);
+
+/*! \brief Destroy a packet connector
+ *  \param c A packet connector
+ */
+  
+GAVL_PUBLIC void
+gavl_packet_connector_destroy(gavl_packet_connector_t * c);
+
+/*! \brief Connect a sink
+ *  \param c A packet connector
+ *  \param sink A packet sink
+ */
+
+GAVL_PUBLIC void
+gavl_packet_connector_connect(gavl_packet_connector_t * c,
+                              gavl_packet_sink_t * sink);
+
+/*! \brief Set process callback
+ *  \param c A packet connector
+ *  \param func Process callback
+ *  \param priv Client data to be passed to func
+ */
+
+GAVL_PUBLIC void
+gavl_packet_connector_set_process_func(gavl_packet_connector_t * c,
+                                       gavl_packet_connector_process_func func,
+                                       void * priv);
+
+/*! \brief Process one packet
+ *  \param c A packet connector
+ *  \returns 0 if a sink reported an error, 1 else
+ *
+ *  Read one packet from the source and pass it to all sinks.
+ */
+  
+GAVL_PUBLIC int
+gavl_packet_connector_process(gavl_packet_connector_t * c);
   
 /**
  * @}

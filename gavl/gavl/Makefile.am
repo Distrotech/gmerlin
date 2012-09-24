@@ -78,6 +78,9 @@ memalign.c \
 memcpy.c \
 metadata.c \
 mix.c \
+packetconnector.c \
+packetsink.c \
+packetsource.c \
 peakdetector.c \
 psnr.c \
 rectangle.c \
