@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 
-#include <gavl/gavl.h>
+#include <gavl/connectors.h>
 
 #define FLAG_DO_CONVERT       (1<<0)
 #define FLAG_DST_SET          (1<<1)

@@ -23,8 +23,7 @@
 #include <math.h>
 #include <string.h>
 
-
-#include <gavl.h>
+#include <gavl/peakdetector.h>
 
 struct gavl_peak_detector_s
   {

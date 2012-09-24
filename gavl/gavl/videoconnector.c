@@ -24,7 +24,7 @@
 #include <string.h>
 
 
-#include <gavl/gavl.h>
+#include <gavl/connectors.h>
 #include <video.h>
 
 typedef struct

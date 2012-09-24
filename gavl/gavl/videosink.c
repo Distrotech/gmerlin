@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <stdlib.h>
-#include <gavl/gavl.h>
+#include <gavl/connectors.h>
 
 struct gavl_video_sink_s
   {

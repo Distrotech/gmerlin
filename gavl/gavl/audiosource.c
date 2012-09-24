@@ -22,8 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
-#include <gavl/gavl.h>
+#include <gavl/connectors.h>
 
 #define FLAG_PASSTHROUGH      (1<<0)
 #define FLAG_PASSTHROUGH_INIT (1<<1)
