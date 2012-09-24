@@ -259,6 +259,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
     /* Read new frame if neccesary */
     if(!s->frame || !s->frame->valid_samples)
       {
+      eat_all = 0;
       /* Check for passthrough */
       if(s->flags & FLAG_PASSTHROUGH)
         {
