@@ -397,123 +397,126 @@ static void decode_s_32_swap(bgav_stream_t * s)
 
 static float
 float32_be_read (unsigned char *cptr)
-{       int             exponent, mantissa, negative ;
-        float   fvalue ;
+  {       int             exponent, mantissa, negative ;
+  float   fvalue ;
 
-        negative = cptr [0] & 0x80 ;
-        exponent = ((cptr [0] & 0x7F) << 1) | ((cptr [1] & 0x80) ? 1 : 0) ;
-        mantissa = ((cptr [1] & 0x7F) << 16) | (cptr [2] << 8) | (cptr [3]) ;
+  negative = cptr [0] & 0x80 ;
+  exponent = ((cptr [0] & 0x7F) << 1) | ((cptr [1] & 0x80) ? 1 : 0) ;
+  mantissa = ((cptr [1] & 0x7F) << 16) | (cptr [2] << 8) | (cptr [3]) ;
 
-        if (! (exponent || mantissa))
-                return 0.0 ;
+  if (! (exponent || mantissa))
+    return 0.0 ;
 
-        mantissa |= 0x800000 ;
-        exponent = exponent ? exponent - 127 : 0 ;
+  mantissa |= 0x800000 ;
+  exponent = exponent ? exponent - 127 : 0 ;
 
-        fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
+  fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
 
-        if (negative)
-                fvalue *= -1 ;
+  if (negative)
+    fvalue *= -1 ;
 
-        if (exponent > 0)
-                fvalue *= (1 << exponent) ;
-        else if (exponent < 0)
-                fvalue /= (1 << abs (exponent)) ;
+  if (exponent > 0)
+    fvalue *= (1 << exponent) ;
+  else if (exponent < 0)
+    fvalue /= (1 << abs (exponent)) ;
 
-        return fvalue ;
-} /* float32_be_read */
+  return fvalue ;
+  } /* float32_be_read */
 
 static float
 float32_le_read (unsigned char *cptr)
-{       int             exponent, mantissa, negative ;
-        float   fvalue ;
+  {
+  int             exponent, mantissa, negative ;
+  float   fvalue ;
 
-        negative = cptr [3] & 0x80 ;
-        exponent = ((cptr [3] & 0x7F) << 1) | ((cptr [2] & 0x80) ? 1 : 0) ;
-        mantissa = ((cptr [2] & 0x7F) << 16) | (cptr [1] << 8) | (cptr [0]) ;
+  negative = cptr [3] & 0x80 ;
+  exponent = ((cptr [3] & 0x7F) << 1) | ((cptr [2] & 0x80) ? 1 : 0) ;
+  mantissa = ((cptr [2] & 0x7F) << 16) | (cptr [1] << 8) | (cptr [0]) ;
 
-        if (! (exponent || mantissa))
-                return 0.0 ;
+  if (! (exponent || mantissa))
+    return 0.0 ;
 
-        mantissa |= 0x800000 ;
-        exponent = exponent ? exponent - 127 : 0 ;
+  mantissa |= 0x800000 ;
+  exponent = exponent ? exponent - 127 : 0 ;
 
-        fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
+  fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
 
-        if (negative)
-                fvalue *= -1 ;
+  if (negative)
+    fvalue *= -1 ;
 
-        if (exponent > 0)
-                fvalue *= (1 << exponent) ;
-        else if (exponent < 0)
-                fvalue /= (1 << abs (exponent)) ;
+  if (exponent > 0)
+    fvalue *= (1 << exponent) ;
+  else if (exponent < 0)
+    fvalue /= (1 << abs (exponent)) ;
 
-        return fvalue ;
-} /* float32_le_read */
+  return fvalue ;
+  } /* float32_le_read */
 
 static double
 double64_be_read (unsigned char *cptr)
-{       int             exponent, negative ;
-        double  dvalue ;
+  {
+  int             exponent, negative ;
+  double  dvalue ;
 
-        negative = (cptr [0] & 0x80) ? 1 : 0 ;
-        exponent = ((cptr [0] & 0x7F) << 4) | ((cptr [1] >> 4) & 0xF) ;
+  negative = (cptr [0] & 0x80) ? 1 : 0 ;
+  exponent = ((cptr [0] & 0x7F) << 4) | ((cptr [1] >> 4) & 0xF) ;
 
-        /* Might not have a 64 bit long, so load the mantissa into a double. */
-        dvalue = (((cptr [1] & 0xF) << 24) | (cptr [2] << 16) | (cptr [3] << 8) | cptr [4]) ;
-        dvalue += ((cptr [5] << 16) | (cptr [6] << 8) | cptr [7]) / ((double) 0x1000000) ;
+  /* Might not have a 64 bit long, so load the mantissa into a double. */
+  dvalue = (((cptr [1] & 0xF) << 24) | (cptr [2] << 16) | (cptr [3] << 8) | cptr [4]) ;
+  dvalue += ((cptr [5] << 16) | (cptr [6] << 8) | cptr [7]) / ((double) 0x1000000) ;
 
-        if (exponent == 0 && dvalue == 0.0)
-                return 0.0 ;
+  if (exponent == 0 && dvalue == 0.0)
+    return 0.0 ;
 
-        dvalue += 0x10000000 ;
+  dvalue += 0x10000000 ;
 
-        exponent = exponent - 0x3FF ;
+  exponent = exponent - 0x3FF ;
 
-        dvalue = dvalue / ((double) 0x10000000) ;
+  dvalue = dvalue / ((double) 0x10000000) ;
 
-        if (negative)
-                dvalue *= -1 ;
+  if (negative)
+    dvalue *= -1 ;
 
-        if (exponent > 0)
-                dvalue *= (1 << exponent) ;
-        else if (exponent < 0)
-                dvalue /= (1 << abs (exponent)) ;
+  if (exponent > 0)
+    dvalue *= (1 << exponent) ;
+  else if (exponent < 0)
+    dvalue /= (1 << abs (exponent)) ;
 
-        return dvalue ;
-} /* double64_be_read */
+  return dvalue ;
+  } /* double64_be_read */
 
 static double
 double64_le_read (unsigned char *cptr)
-{       int             exponent, negative ;
-        double  dvalue ;
+  {
+  int             exponent, negative ;
+  double  dvalue ;
 
-        negative = (cptr [7] & 0x80) ? 1 : 0 ;
-        exponent = ((cptr [7] & 0x7F) << 4) | ((cptr [6] >> 4) & 0xF) ;
+  negative = (cptr [7] & 0x80) ? 1 : 0 ;
+  exponent = ((cptr [7] & 0x7F) << 4) | ((cptr [6] >> 4) & 0xF) ;
 
-        /* Might not have a 64 bit long, so load the mantissa into a double. */
-        dvalue = (((cptr [6] & 0xF) << 24) | (cptr [5] << 16) | (cptr [4] << 8) | cptr [3]) ;
-        dvalue += ((cptr [2] << 16) | (cptr [1] << 8) | cptr [0]) / ((double) 0x1000000) ;
+  /* Might not have a 64 bit long, so load the mantissa into a double. */
+  dvalue = (((cptr [6] & 0xF) << 24) | (cptr [5] << 16) | (cptr [4] << 8) | cptr [3]) ;
+  dvalue += ((cptr [2] << 16) | (cptr [1] << 8) | cptr [0]) / ((double) 0x1000000) ;
 
-        if (exponent == 0 && dvalue == 0.0)
-                return 0.0 ;
+  if (exponent == 0 && dvalue == 0.0)
+    return 0.0 ;
 
-        dvalue += 0x10000000 ;
+  dvalue += 0x10000000 ;
 
-        exponent = exponent - 0x3FF ;
+  exponent = exponent - 0x3FF ;
 
-        dvalue = dvalue / ((double) 0x10000000) ;
+  dvalue = dvalue / ((double) 0x10000000) ;
 
-        if (negative)
-                dvalue *= -1 ;
+  if (negative)
+    dvalue *= -1 ;
 
-        if (exponent > 0)
-                dvalue *= (1 << exponent) ;
-        else if (exponent < 0)
-                dvalue /= (1 << abs (exponent)) ;
+  if (exponent > 0)
+    dvalue *= (1 << exponent) ;
+  else if (exponent < 0)
+    dvalue /= (1 << abs (exponent)) ;
 
-        return dvalue ;
-} /* double64_le_read */
+  return dvalue ;
+  } /* double64_le_read */
 
 /* Corrsponding decoding functions */
 
@@ -1227,7 +1230,8 @@ static int init_pcm(bgav_stream_t * s)
   
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
   if(!priv->block_align)
-    priv->block_align = s->data.audio.format.num_channels * ((s->data.audio.bits_per_sample+7)/8);
+    priv->block_align = s->data.audio.format.num_channels *
+      ((s->data.audio.bits_per_sample+7)/8);
   
   return 1;
   }
@@ -1245,7 +1249,8 @@ static int decode_frame_pcm(bgav_stream_t * s)
   
   priv->decode_func(s);
 
-  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format,
+                             s->data.audio.frame, priv->frame);
   
   if(!priv->bytes_in_packet)
     {

@@ -94,6 +94,7 @@ static int open_dv(bgav_demuxer_context_t * ctx)
   bgav_dv_dec_init_video(priv->d, vs);
   vs->stream_id = VIDEO_ID;
   vs->flags |= STREAM_INTRA_ONLY;
+  vs->max_packet_size = priv->frame_size;
   
   /* Set duration */
 

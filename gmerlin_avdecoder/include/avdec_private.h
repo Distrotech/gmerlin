@@ -416,6 +416,9 @@ typedef enum
   
 struct bgav_stream_s
   {
+  uint32_t max_packet_size; // 0 if unknown
+  uint32_t max_packet_size_tmp; // Incremented during parsing
+  
   void * priv;
 
   int initialized; /* Mostly means, that the format is valid */
@@ -1220,7 +1223,9 @@ struct bgav_file_index_s
   /* Infos stored to speed up loading */
   uint32_t stream_id;
   uint32_t fourcc;
-
+  
+  uint32_t max_packet_size;
+  
   /* Video infos stored by the format tracker */
 
   uint32_t interlace_mode;

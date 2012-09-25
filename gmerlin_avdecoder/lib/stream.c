@@ -196,6 +196,12 @@ void bgav_stream_dump(bgav_stream_t * s)
 
   bgav_dprintf("  Timescale:         %d\n", s->timescale);
   bgav_dprintf("  Duration:          %"PRId64"\n", s->duration);
+  bgav_dprintf("  MaxPacketSize:     ");
+  if(s->max_packet_size)
+    bgav_dprintf("%"PRId64"\n", s->max_packet_size);
+  else
+    bgav_dprintf("Unknown\n");
+  
   // bgav_dprintf("  Private data:      %p\n", s->priv);
   bgav_dprintf("  Codec header:      %d bytes\n", s->ext_size);
   }
@@ -317,6 +323,9 @@ bgav_stream_get_packet_read(bgav_stream_t * s)
     bgav_dprintf("Packet out (stream %d): ", s->stream_id);
     bgav_packet_dump(p);
 #endif
+
+    if(s->max_packet_size_tmp < p->data_size)
+      s->max_packet_size_tmp = p->data_size;
     }
   return p;
   }

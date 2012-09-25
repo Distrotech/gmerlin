@@ -40,7 +40,7 @@
 
 /* Version must be increased each time the fileformat
    changes */
-#define INDEX_VERSION 7
+#define INDEX_VERSION 8
 
 static void dump_index(bgav_stream_t * s)
   {
@@ -126,6 +126,8 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Audio stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->data.audio.format.samplerate,
                    s->start_time);
+      bgav_dprintf("   Maximum packet size: %d\n",
+                   b->tt->tracks[i].audio_streams[j].max_packet_size);
       bgav_dprintf("   Duration: %"PRId64", entries: %d\n",
                    b->tt->tracks[i].audio_streams[j].duration,
                    s->file_index->num_entries);
@@ -140,6 +142,8 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Video stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->data.video.format.timescale,
                    s->start_time);
+      bgav_dprintf("   Maximum packet size: %d\n",
+                   b->tt->tracks[i].video_streams[j].max_packet_size);
       bgav_dprintf("   Interlace mode: %s\n",
                    gavl_interlace_mode_to_string(s->data.video.format.interlace_mode));
       bgav_dprintf("   Framerate mode: %s\n",
@@ -160,6 +164,8 @@ void bgav_file_index_dump(bgav_t * b)
       bgav_dprintf("   Subtitle stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->timescale,
                    s->start_time);
+      bgav_dprintf("   Maximum packet size: %d\n",
+                   b->tt->tracks[i].subtitle_streams[j].max_packet_size);
       bgav_dprintf("   Duration: %"PRId64"\n", b->tt->tracks[i].subtitle_streams[j].duration);
       dump_index(&b->tt->tracks[i].subtitle_streams[j]);
       }
@@ -224,10 +230,11 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
  * - Tracks consising of
  *    - Number of streams (32)
  *    - Stream entries consisting of
- *        - Stream ID (32)
- *        - StreamType (32)
- *        - Fourcc     (32)
- *        - Timescale (32)
+ *        - Stream ID     (32)
+ *        - StreamType    (32)
+ *        - Fourcc        (32)
+ *        - MaxPacketSize (32)
+ *        - Timescale     (32)
  *        if(StreamType == BGAV_STREAM_VIDEO)
  *          - InterlaceMode (32)
  *          - FramerateMode (32)
@@ -432,6 +439,7 @@ file_index_write_stream(FILE * output,
   write_32(output, s->stream_id);
   write_32(output, s->type);
   write_32(output, s->fourcc);
+  write_32(output, s->max_packet_size);
   
   switch(s->type)
     {
@@ -609,13 +617,16 @@ int bgav_read_file_index(bgav_t * b)
           }
         
         /* Fourcc */
-        if(!bgav_input_read_32_be(input, &s->fourcc))
+        if(!bgav_input_read_32_be(input, &s->fourcc) ||
+           !bgav_input_read_32_be(input, &s->max_packet_size))
           goto fail;
         s->stream_id = stream_id;
         }
       else
         {
         bgav_input_skip(input, 8); /* Stream type + fourcc */
+        if(!bgav_input_read_32_be(input, &s->max_packet_size))
+          goto fail;
         }
       s->file_index = file_index_read_stream(input, s);
       if(!s->file_index)
@@ -841,12 +852,20 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
       }
     bgav_stream_done_packet_read(s, p);
     }
+
+  if(force) // EOF
+    {
+    if(!s->max_packet_size)
+      s->max_packet_size = s->max_packet_size_tmp;
+    }
   }
 
 static int build_file_index_simple(bgav_t * b)
   {
   int j;
   int64_t old_position;
+  bgav_stream_t * s;
+
   old_position = b->input->position;
   
   while(1)
@@ -866,13 +885,20 @@ static int build_file_index_simple(bgav_t * b)
     }
 
   for(j = 0; j < b->tt->cur->num_audio_streams; j++)
-    flush_stream_simple(&b->tt->cur->audio_streams[j], 1);
+    {
+    s = &b->tt->cur->audio_streams[j];
+    flush_stream_simple(s, 1);
+    }
   for(j = 0; j < b->tt->cur->num_video_streams; j++)
-    flush_stream_simple(&b->tt->cur->video_streams[j], 1);
+    {
+    s = &b->tt->cur->video_streams[j];
+    flush_stream_simple(s, 1);
+    }
   for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
     {
-    if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
-      flush_stream_simple(&b->tt->cur->subtitle_streams[j], 1);
+    s = &b->tt->cur->subtitle_streams[j];
+    if(!s->data.subtitle.subreader)
+      flush_stream_simple(s, 1);
     }
   bgav_input_seek(b->input, old_position, SEEK_SET);
   return 1;

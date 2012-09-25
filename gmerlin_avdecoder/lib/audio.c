@@ -242,59 +242,6 @@ int bgav_get_audio_bitrate(bgav_t * bgav, int stream)
     return 0;
   }
 
-#if 0
-static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
-                      int num_samples)
-  {
-  int samples_decoded = 0;
-  int samples_copied;
-  if(s->flags & STREAM_EOF_C)
-    {
-    if(frame)
-      frame->valid_samples = 0;
-    return 0;
-    }
-  while(samples_decoded < num_samples)
-    {
-    if(!s->data.audio.frame->valid_samples)
-      {
-      if(!s->data.audio.decoder->decoder->decode_frame(s))
-        {
-        s->flags |= STREAM_EOF_C;
-        break;
-        }
-      s->data.audio.frame_samples = s->data.audio.frame->valid_samples;
-      }
-    samples_copied =
-      gavl_audio_frame_copy(&s->data.audio.format,
-                            frame,
-                            s->data.audio.frame,
-                            samples_decoded, /* out_pos */
-                            s->data.audio.frame_samples -
-                            s->data.audio.frame->valid_samples,  /* in_pos */
-                            num_samples - samples_decoded, /* out_size, */
-                            s->data.audio.frame->valid_samples /* in_size */);
-
-    //    fprintf(stderr, "Copied %d samples\n", samples_copied);
-    
-    s->data.audio.frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-
-  if(frame)
-    {
-    frame->timestamp = s->out_time;
-    frame->valid_samples = samples_decoded;
-    }
-  s->out_time += samples_decoded;
-  //  fprintf(stderr, "Decode audio: %d / %d, time: %ld\n",
-  //          num_samples, samples_decoded, s->out_time);
-  return samples_decoded;
-  
-  }
-#endif
-
-
 int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
                     int stream, int num_samples)
   {
@@ -518,6 +465,9 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     info->bitrate = s->codec_bitrate;
   else if(s->container_bitrate)
     info->bitrate = s->container_bitrate;
+
+  info->max_packet_size = s->max_packet_size;
+
   return 1;
   }
 

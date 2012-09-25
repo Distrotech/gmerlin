@@ -897,6 +897,8 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   if(s->flags & STREAM_FIELD_PICTURES)
     info->flags |= GAVL_COMPRESSION_HAS_FIELD_PICTURES;
   
+  info->max_packet_size = s->max_packet_size;
+  
   return 1;
   }
 

@@ -352,7 +352,8 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
     {
     if(ctx->tt->cur->audio_streams[i].last_index_position < 0)
       {
-      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Removing audio stream %d (no packets found)", i+1);
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Removing audio stream %d (no packets found)", i+1);
       bgav_track_remove_audio_stream(ctx->tt->cur, i);
       }
     else
@@ -367,7 +368,8 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
     {
     if(ctx->tt->cur->video_streams[i].last_index_position < 0)
       {
-      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Removing video stream %d (no packets found)", i+1);
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Removing video stream %d (no packets found)", i+1);
       bgav_track_remove_video_stream(ctx->tt->cur, i);
       }
     else
