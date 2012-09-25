@@ -1226,6 +1226,9 @@ static int init_pcm(bgav_stream_t * s)
     }
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.samples_per_frame = FRAME_SAMPLES;
+  /* Samples per frame is just the maximum */
+  s->src_flags |= GAVL_SOURCE_SRC_FRAMESIZE_MAX;
+  
   gavl_set_channel_setup(&s->data.audio.format);
   
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
