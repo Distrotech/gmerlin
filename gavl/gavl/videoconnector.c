@@ -222,7 +222,7 @@ int gavl_video_connector_process(gavl_video_connector_t * c)
       for(i = 0; i < c->num_sinks; i++)
         {
         s = c->sinks + i;
-        if(s->sink && !flush_src(s))
+        if(s->src && !flush_src(s))
           return 0;
         }
       return 0;
