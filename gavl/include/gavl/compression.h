@@ -118,6 +118,8 @@ typedef struct
   int32_t bitrate;             //!< Needed by some codecs, negative values mean VBR
   int palette_size;             //!< Size of the embedded palette for image codecs
   uint32_t pre_skip;            //!< Samples to skip at the start
+
+  uint32_t max_packet_size;     //!< Maximum packet size or 0 if unknown
   } gavl_compression_info_t;
 
 /** \brief Free all dynamically allocated memory of a compression info

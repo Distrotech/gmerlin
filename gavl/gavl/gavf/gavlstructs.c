@@ -369,13 +369,12 @@ int gavf_write_compression_info(gavf_io_t * io,
   uint8_t data[MAX_EXT_SIZE_CI];
   gavf_buffer_t buf;
   gavf_io_t bufio;
-
   
-  /* Read mandatory stuff */
+  /* Write mandatory stuff */
   if(!gavf_io_write_uint32v(io, ci->flags) ||
      !gavf_io_write_uint32v(io, ci->id))
     return 0;
-
+  
   /* Count extensions */
   num_extensions = 0;
 
@@ -387,6 +386,9 @@ int gavf_write_compression_info(gavf_io_t * io,
 
   if(ci->pre_skip)
     num_extensions++;
+
+  if(ci->max_packet_size && (ci->id != GAVL_CODEC_ID_NONE))
+    num_extensions++;
   
   /* Write extensions */
   if(!gavf_io_write_uint32v(io, num_extensions))
@@ -395,7 +397,7 @@ int gavf_write_compression_info(gavf_io_t * io,
   if(!num_extensions)
     return 1;
 
-  gavf_buffer_init_static(&buf, data, MAX_EXT_SIZE_AF);
+  gavf_buffer_init_static(&buf, data, MAX_EXT_SIZE_CI);
   gavf_io_init_buf_write(&bufio, &buf);
   
   if(ci->global_header_len)
@@ -419,6 +421,15 @@ int gavf_write_compression_info(gavf_io_t * io,
     buf.len = 0;
     if(!gavf_io_write_uint32v(&bufio, ci->pre_skip) ||
        !gavf_extension_write(io, GAVF_EXT_CI_PRE_SKIP,
+                             buf.len, buf.buf))
+      return 0;
+    }
+
+  if(ci->max_packet_size && (ci->id != GAVL_CODEC_ID_NONE))
+    {
+    buf.len = 0;
+    if(!gavf_io_write_uint32v(&bufio, ci->max_packet_size) ||
+       !gavf_extension_write(io, GAVF_EXT_CI_MAX_PACKET_SIZE,
                              buf.len, buf.buf))
       return 0;
     }

@@ -93,6 +93,12 @@ static void gavf_stream_init_audio(gavf_stream_t * s)
       sample_size * s->h->format.audio.num_channels;
   else
     s->flags |= STREAM_FLAG_HAS_DURATION;
+
+  if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+    s->h->ci.max_packet_size =
+      gavl_bytes_per_sample(s->h->format.audio.sample_format) *
+      s->h->format.audio.num_channels *
+      s->h->format.audio.samples_per_frame;
   }
 
 static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
@@ -116,16 +122,18 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
      (s->h->ci.id == GAVL_CODEC_ID_NONE))
     s->flags |= STREAM_FLAG_HAS_INTERLACE;
   
-  
   if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-    s->image_size = gavl_video_format_get_image_size(&s->h->format.video);
+    s->h->ci.max_packet_size =
+      gavl_video_format_get_image_size(&s->h->format.video);
   }
 
 static void gavf_stream_init_text(gavf_stream_t * s)
   {
   s->timescale = s->h->format.text.timescale;
-  s->flags |= (STREAM_FLAG_HAS_PTS | STREAM_FLAG_HAS_DURATION);
-  s->discontinuous = 1;
+  s->flags |=
+    (STREAM_FLAG_HAS_PTS |
+     STREAM_FLAG_HAS_DURATION |
+     STREAM_FLAG_DISCONTINUOUS);
   }
 
 static void init_streams(gavf_t * g)
@@ -437,7 +445,7 @@ const int64_t * gavf_seek(gavf_t * g, int64_t time, int scale)
   while(!done)
     {
     /* Find next continuous stream */
-    while(g->streams[stream].discontinuous)
+    while(g->streams[stream].flags & STREAM_FLAG_DISCONTINUOUS)
       {
       stream++;
       if(stream >= g->ph.num_streams)
@@ -570,7 +578,7 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
             (g->ph.streams[i].ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES))
       g->sync_pts[i] = GAVL_TIME_UNDEFINED;
 
-    else if((g->streams[i].discontinuous) &&
+    else if((g->streams[i].flags & STREAM_FLAG_DISCONTINUOUS) &&
             (g->streams[i].next_sync_pts == GAVL_TIME_UNDEFINED))
       g->sync_pts[i] = 0;
     else
@@ -702,7 +710,7 @@ static int get_min_pts_stream(gavf_t * g, int flush_all,
       }
     else
       {
-      if((!g->streams[i].discontinuous) &&
+      if(!(g->streams[i].flags & STREAM_FLAG_DISCONTINUOUS) &&
          !flush_all)
         {
         /* Some streams without packets: stop here */
@@ -814,7 +822,7 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
     {
     gavl_packet_t p;
     gavl_packet_init(&p);
-    p.data_len = s->image_size;
+    p.data_len = s->h->ci.max_packet_size;
     p.data = frame->planes[0];
     video_frame_2_pkt(frame, &p);
 
@@ -823,7 +831,7 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
   else
     {
     gavl_packet_reset(&g->write_pkt);
-    gavl_packet_alloc(&g->write_pkt, s->image_size);
+    gavl_packet_alloc(&g->write_pkt, s->h->ci.max_packet_size);
     if(!g->write_vframe)
       g->write_vframe = gavl_video_frame_create(NULL);
     g->write_vframe->strides[0] = 0;
@@ -831,7 +839,7 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
 
     gavl_video_frame_copy(&s->h->format.video, g->write_vframe, frame);
     video_frame_2_pkt(frame, &g->write_pkt);
-    g->write_pkt.data_len = s->image_size;
+    g->write_pkt.data_len = s->h->ci.max_packet_size;
     return gavf_write_packet(g, stream, &g->write_pkt);
     }
   }

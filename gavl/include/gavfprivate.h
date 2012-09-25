@@ -139,6 +139,7 @@ void gavf_packet_buffer_destroy(gavf_packet_buffer_t *);
 #define STREAM_FLAG_HAS_PTS       (1<<0)
 #define STREAM_FLAG_HAS_INTERLACE (1<<1)
 #define STREAM_FLAG_HAS_DURATION  (1<<2)
+#define STREAM_FLAG_DISCONTINUOUS (1<<3)
 
 typedef struct
   {
@@ -156,13 +157,7 @@ typedef struct
   int64_t next_pts;
  
   gavf_packet_buffer_t * pb;
-
-  /* Video stuff */
-  int image_size;
-
-  /* True for subtitle streams */
-  int discontinuous;
-
+  
   /* Save the last global header so we can kick it out when the same one
      comes again */
   gavf_buffer_t last_global_header;
@@ -241,6 +236,7 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 #define GAVF_EXT_CI_GLOBAL_HEADER    0
 #define GAVF_EXT_CI_BITRATE          1
 #define GAVF_EXT_CI_PRE_SKIP         2
+#define GAVF_EXT_CI_MAX_PACKET_SIZE  3
 
 /* Packet */
 
