@@ -32,7 +32,6 @@ typedef struct
 
 typedef struct
   {
-  gavl_audio_frame_t * f;
   gavf_stream_header_t * h;
   bg_shm_t * shm;
 
@@ -40,27 +39,32 @@ typedef struct
   int num_buffers;
   int buffer_index;
 
+  gavl_packet_source_t * src;
+  gavl_packet_sink_t * sink;
+  
+  } stream_common_t;
+
+typedef struct
+  {
+  stream_common_t com; // Must be first
+
+  gavl_audio_frame_t * f;
   gavl_audio_source_t * src;
   gavl_audio_sink_t   * sink;
   } audio_stream_t;
 
 typedef struct
   {
-  gavl_video_frame_t * f;
-  gavf_stream_header_t * h;
-  bg_shm_t * shm;
+  stream_common_t com; // Must be first
   
-  int buffer_size;
-  int num_buffers;
-  int buffer_index;
-
+  gavl_video_frame_t * f;
   gavl_video_source_t * src;
   gavl_video_sink_t   * sink;
   } video_stream_t;
 
 typedef struct
   {
-  gavf_stream_header_t * h;
+  stream_common_t com; // Must be first
   } text_stream_t;
 
 struct bg_plug_s
@@ -188,25 +192,42 @@ static void init_streams(bg_plug_t * p)
     switch(p->ph->streams[i].type)
       {
       case GAVF_STREAM_AUDIO:
-        p->audio_streams[audio_idx].h = p->ph->streams + i;
+        p->audio_streams[audio_idx].com.h = p->ph->streams + i;
         audio_idx++;
         break;
       case GAVF_STREAM_VIDEO:
-        p->video_streams[video_idx].h = p->ph->streams + i;
+        p->video_streams[video_idx].com.h = p->ph->streams + i;
         video_idx++;
         break;
       case GAVF_STREAM_TEXT:
-        p->text_streams[text_idx].h = p->ph->streams + i;
+        p->text_streams[text_idx].com.h = p->ph->streams + i;
         text_idx++;
         break;
       }
     }
   }
 
+static void init_shm_read(stream_common_t * s)
+  {
+  const char * shm_name;
+
+  if((shm_name = gavl_metadata_get(&s->h->m, META_SHM_ID)) &&
+     gavl_metadata_get_int(&s->h->m, META_SHM_SIZE, &s->buffer_size) &&
+     gavl_metadata_get_int(&s->h->m, META_SHM_NUM, &s->num_buffers))
+    {
+    /* Create shared memory handle */
+    s->shm = bg_shm_alloc_read(shm_name, s->buffer_size * s->num_buffers);
+    
+    /* Clear metadata tags */
+    gavl_metadata_set(&s->h->m, META_SHM_ID, NULL);
+    gavl_metadata_set(&s->h->m, META_SHM_SIZE, NULL);
+    gavl_metadata_set(&s->h->m, META_SHM_NUM, NULL);
+    }
+  }
+
 static int init_read(bg_plug_t * p)
   {
   int i; 
-  const char * shm_name;
   audio_stream_t * as;
   video_stream_t * vs;
   
@@ -215,39 +236,34 @@ static int init_read(bg_plug_t * p)
   for(i = 0; i < p->num_audio_streams; i++)
     {
     as = &p->audio_streams[i];
-
-    if((shm_name = gavl_metadata_get(&as->h->m, META_SHM_ID)) &&
-       gavl_metadata_get_int(&as->h->m, META_SHM_SIZE, &as->buffer_size) &&
-       gavl_metadata_get_int(&as->h->m, META_SHM_NUM, &as->num_buffers))
-      {
-      /* Create shared memory handle */
-      as->shm = bg_shm_alloc_read(shm_name, as->buffer_size * as->num_buffers);
-      
-      /* Clear metadata tags */
-      gavl_metadata_set(&as->h->m, META_SHM_ID, NULL);
-      gavl_metadata_set(&as->h->m, META_SHM_SIZE, NULL);
-      gavl_metadata_set(&as->h->m, META_SHM_NUM, NULL);
-      }
+    init_shm_read(&as->com);
     }
 
   for(i = 0; i < p->num_video_streams; i++)
     {
     vs = &p->video_streams[i];
+    init_shm_read(&vs->com);
+    }
+  return 1;
+  }
 
-    if((shm_name = gavl_metadata_get(&vs->h->m, META_SHM_ID)) &&
-       gavl_metadata_get_int(&vs->h->m, META_SHM_SIZE, &vs->buffer_size) &&
-       gavl_metadata_get_int(&vs->h->m, META_SHM_NUM, &vs->num_buffers))
-      {
-      /* Create shared memory handle */
-      vs->shm = bg_shm_alloc_read(shm_name, vs->buffer_size * vs->num_buffers);
-      
-      /* Clear metadata tags */
-      gavl_metadata_set(&vs->h->m, META_SHM_ID, NULL);
-      gavl_metadata_set(&vs->h->m, META_SHM_SIZE, NULL);
-      gavl_metadata_set(&vs->h->m, META_SHM_NUM, NULL);
-      }
-
+static int init_shm_write(stream_common_t * s)
+  {
+  if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+    {
+    const gavl_audio_format_t * fmt =  &s->h->format.audio;
     
+    s->buffer_size = gavl_bytes_per_sample(fmt->sample_format) *
+      fmt->num_channels * fmt->samples_per_frame;
+    s->num_buffers = NUM_BUFFERS;
+    s->shm = bg_shm_alloc_write(s->buffer_size * s->num_buffers);
+    
+    if(!s->shm)
+      return 0;
+        
+    gavl_metadata_set(&s->h->m, META_SHM_ID, s->shm->name);
+    gavl_metadata_set_int(&s->h->m, META_SHM_SIZE, s->buffer_size);
+    gavl_metadata_set_int(&s->h->m, META_SHM_NUM, s->num_buffers);
     }
   return 1;
   }
@@ -266,50 +282,17 @@ int bg_plug_start_write(bg_plug_t * p)
     for(i = 0; i < p->num_audio_streams; i++)
       {
       as = &p->audio_streams[i];
-      if(as->h->ci.id == GAVL_CODEC_ID_NONE)
-        {
-        const gavl_audio_format_t * fmt = 
-          &as->h->format.audio;
-        
-        as->buffer_size =
-          gavl_bytes_per_sample(fmt->sample_format) *
-          fmt->num_channels * fmt->samples_per_frame;
-        as->num_buffers = NUM_BUFFERS;
-        as->shm = bg_shm_alloc_write(as->buffer_size * as->num_buffers);
-        
-        if(!as->shm)
-          return 0;
-        
-        gavl_metadata_set(&as->h->m, META_SHM_ID, as->shm->name);
-        gavl_metadata_set_int(&as->h->m, META_SHM_SIZE, as->buffer_size);
-        gavl_metadata_set_int(&as->h->m, META_SHM_NUM, as->num_buffers);
-        }
+      if(!init_shm_write(&as->com))
+        return 0;
       }
     for(i = 0; i < p->num_video_streams; i++)
       {
       vs = &p->video_streams[i];
-      if(vs->h->ci.id == GAVL_CODEC_ID_NONE)
-        {
-        const gavl_video_format_t * fmt = 
-          &vs->h->format.video;
-        vs->buffer_size = gavl_video_format_get_image_size(fmt);
-        vs->num_buffers = NUM_BUFFERS;
-        vs->shm = bg_shm_alloc_write(vs->buffer_size * vs->num_buffers);
-
-        if(!vs->shm)
-          return 0;
-        
-        gavl_metadata_set(&vs->h->m, META_SHM_ID, vs->shm->name);
-        gavl_metadata_set_int(&vs->h->m, META_SHM_SIZE, vs->buffer_size);
-        gavl_metadata_set_int(&vs->h->m, META_SHM_NUM, vs->num_buffers);
-        }
-      
+      if(!init_shm_write(&vs->com))
+        return 0;
       }
-    
     }
-  
   return 1;
-  
   }
 
 int bg_plug_open(bg_plug_t * p, const char * location)
@@ -390,23 +373,26 @@ gavf_t * bg_plug_reader_get_gavf(bg_plug_t * p)
 
 /* Optimized audio/video I/O */
 
+/* Video */
+
 static gavl_video_frame_t *
 get_video_frame_func(void * priv)
   {
   video_stream_t * vs = priv;
   
-  if(vs->shm)
+  if(vs->com.shm)
     {
     if(!vs->f)
       vs->f = gavl_video_frame_create(NULL);
-    gavl_video_frame_set_planes(vs->f, &vs->h->format.video,
-                                vs->shm->addr +
-                                vs->buffer_index * vs->buffer_size);
+
+    gavl_video_frame_set_planes(vs->f, &vs->com.h->format.video,
+                                vs->com.shm->addr +
+                                vs->com.buffer_index * vs->com.buffer_size);
     }
   else
     {
     if(!vs->f)
-      vs->f = gavl_video_frame_create_nopad(&vs->h->format.video);
+      vs->f = gavl_video_frame_create_nopad(&vs->com.h->format.video);
     }
   return vs->f;
   }
@@ -423,25 +409,27 @@ read_video_frame_func(void * priv, gavl_video_frame_t ** f)
   
   }
 
+/* Audio */
+
 static gavl_audio_frame_t *
 get_audio_frame_func(void * priv)
   {
-  audio_stream_t * vs = priv;
+  audio_stream_t * as = priv;
   
-  if(vs->shm)
+  if(as->com.shm)
     {
-    if(!vs->f)
-      vs->f = gavl_audio_frame_create(NULL);
-    gavl_audio_frame_set_channels(vs->f, &vs->h->format.audio,
-                                vs->shm->addr +
-                                vs->buffer_index * vs->buffer_size);
+    if(!as->f)
+      as->f = gavl_audio_frame_create(NULL);
+    gavl_audio_frame_set_channels(as->f, &as->com.h->format.audio,
+                                as->com.shm->addr +
+                                as->com.buffer_index * as->com.buffer_size);
     }
   else
     {
     //    if(!vs->f)
       //      vs->f = gavl_audio_frame_create_nopad(&vs->h->format.audio);
     }
-  return vs->f;
+  return as->f;
   }
 
 static gavl_sink_status_t
@@ -456,3 +444,20 @@ read_audio_frame_func(void * priv, gavl_audio_frame_t ** f)
   
   }
 
+/* Packet */
+
+
+static gavl_packet_t * get_packet_func(void * priv)
+  {
+  
+  }
+
+static gavl_sink_status_t put_packet_func(void * priv, gavl_packet_t * p)
+  {
+  
+  }
+
+static gavl_source_status_t read_packet_func(void * priv, gavl_packet_t ** p)
+  {
+  
+  }
