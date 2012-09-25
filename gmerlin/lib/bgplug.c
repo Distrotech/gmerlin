@@ -72,7 +72,8 @@ struct bg_plug_s
   int wr;
   gavf_t * g;
   gavf_io_t * io;
-
+  gavf_program_header_t * ph;
+  
   int num_audio_streams;
   audio_stream_t * audio_streams;
 
@@ -84,13 +85,13 @@ struct bg_plug_s
   
   int is_local;  
   
-  gavf_program_header_t * ph;
   };
 
 static bg_plug_t * create_common()
   {
   bg_plug_t * ret = calloc(1, sizeof(*ret));
   ret->g = gavf_create();
+  ret->ph = gavf_get_program_header(ret->g);
   return ret;
   }
   
@@ -109,7 +110,17 @@ bg_plug_t * bg_plug_create_writer(void)
   return ret;
   }
 
-void bg_plug_reader_destroy(bg_plug_t * p)
+static void free_stream_common(stream_common_t * s)
+  {
+  if(s->src)
+    gavl_packet_source_destroy(s->src);
+  if(s->sink)
+    gavl_packet_sink_destroy(s->sink);
+  if(s->shm)
+    bg_shm_free(s->shm);
+  }
+
+void bg_plug_destroy(bg_plug_t * p)
   {
   int i;
   gavf_close(p->g);
@@ -119,6 +130,7 @@ void bg_plug_reader_destroy(bg_plug_t * p)
     for(i = 0; i < p->num_audio_streams; i++)
       {
       audio_stream_t * s = p->audio_streams + i;
+      free_stream_common(&s->com);
       if(s->src)
         gavl_audio_source_destroy(s->src);
       if(s->sink)
@@ -130,12 +142,20 @@ void bg_plug_reader_destroy(bg_plug_t * p)
     for(i = 0; i < p->num_video_streams; i++)
       {
       video_stream_t * s = p->video_streams + i;
+      free_stream_common(&s->com);
       if(s->src)
         gavl_video_source_destroy(s->src);
       if(s->sink)
         gavl_video_sink_destroy(s->sink);
       }
-    
+    }
+  if(p->text_streams)
+    {
+    for(i = 0; i < p->num_video_streams; i++)
+      {
+      text_stream_t * s = p->text_streams + i;
+      free_stream_common(&s->com);
+      }
     }
   
   free(p);
@@ -362,6 +382,9 @@ int bg_plug_open(bg_plug_t * p, const char * location)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "gavf_open_read failed");
     return 0;
     }
+
+  if(!init_read(p))
+    return 0;
   
   return 1;
   }
