@@ -94,6 +94,10 @@ bg_shm_t * bg_shm_alloc_read(const char * name, int size)
            "mmap failed: %s", strerror(errno));
     goto fail;
     }
+
+  if(shm_unlink(name) == -1)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "shm_unlink failed: %s", strerror(errno));
   
   ret = calloc(1, sizeof(*ret));
   ret->addr = addr;
