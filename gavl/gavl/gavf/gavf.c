@@ -796,8 +796,9 @@ int gavf_write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   return 0;
   }
 
-static void video_frame_2_pkt(const gavl_video_frame_t * frame,
-                              gavl_packet_t * pkt)
+
+void gavf_video_frame_to_packet_metadata(const gavl_video_frame_t * frame,
+                                         gavl_packet_t * pkt)
   {
   pkt->pts = frame->timestamp;
   pkt->duration = frame->duration;
@@ -824,7 +825,8 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
     gavl_packet_init(&p);
     p.data_len = s->h->ci.max_packet_size;
     p.data = frame->planes[0];
-    video_frame_2_pkt(frame, &p);
+
+    gavf_video_frame_to_packet_metadata(frame, &p);
 
     return gavf_write_packet(g, stream, &p);
     }
@@ -838,7 +840,7 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
     gavl_video_frame_set_planes(g->write_vframe, &s->h->format.video, g->write_pkt.data);
 
     gavl_video_frame_copy(&s->h->format.video, g->write_vframe, frame);
-    video_frame_2_pkt(frame, &g->write_pkt);
+    gavf_video_frame_to_packet_metadata(frame, &g->write_pkt);
     g->write_pkt.data_len = s->h->ci.max_packet_size;
     return gavf_write_packet(g, stream, &g->write_pkt);
     }
@@ -856,8 +858,8 @@ void gavf_packet_to_video_frame(gavl_packet_t * p, gavl_video_frame_t * frame,
   gavl_video_frame_set_planes(frame, format, p->data);
   }
 
-static void audio_frame_2_pkt(const gavl_audio_frame_t * frame,
-                              gavl_packet_t * pkt)
+void gavf_audio_frame_to_packet_metadata(const gavl_audio_frame_t * frame,
+                                         gavl_packet_t * pkt)
   {
   pkt->pts = frame->timestamp;
   pkt->duration = frame->valid_samples;
@@ -882,7 +884,7 @@ int gavf_write_audio_frame(gavf_t * g, int stream, gavl_audio_frame_t * frame)
     gavl_packet_init(&p);
     p.data_len = frame->valid_samples * s->block_align ;
     p.data = frame->samples.u_8;
-    audio_frame_2_pkt(frame, &p);
+    gavf_audio_frame_to_packet_metadata(frame, &p);
     
     return gavf_write_packet(g, stream, &p);
     }
@@ -905,7 +907,7 @@ int gavf_write_audio_frame(gavf_t * g, int stream, gavl_audio_frame_t * frame)
                           0,
                           frame->valid_samples,
                           g->write_aframe->valid_samples);
-    audio_frame_2_pkt(frame, &g->write_pkt);
+    gavf_audio_frame_to_packet_metadata(frame, &g->write_pkt);
     g->write_pkt.data_len = frame->valid_samples * s->block_align;
     return gavf_write_packet(g, stream, &g->write_pkt);
     }

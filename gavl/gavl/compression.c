@@ -256,6 +256,23 @@ void gavl_packet_copy(gavl_packet_t * dst,
   memcpy(dst->data, src->data, src->data_len);
   }
 
+void gavl_packet_copy_metadata(gavl_packet_t * dst,
+                               const gavl_packet_t * src)
+  {
+  int data_alloc_save;
+  int data_len_save;
+  uint8_t * data_save;
+  
+  data_alloc_save = dst->data_alloc;
+  data_len_save   = dst->data_len;
+  data_save       = dst->data;
+
+  memcpy(dst, src, sizeof(*src));
+
+  dst->data_alloc = data_alloc_save;
+  dst->data_len   = data_len_save;
+  dst->data       = data_save;
+  }
 
 void gavl_packet_dump(const gavl_packet_t * p)
   {

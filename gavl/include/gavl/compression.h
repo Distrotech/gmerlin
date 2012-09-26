@@ -275,6 +275,21 @@ GAVL_PUBLIC
 void gavl_packet_copy(gavl_packet_t * dst,
                       const gavl_packet_t * src);
 
+/** \brief Copy metadata of a packet
+ *  \param dst Destination
+ *  \param src Source
+ *
+ *  Like \ref gavl_packet_copy but leaves the
+ *  payload of dst untouched.
+ *
+ *  Since 1.5.0
+ */
+  
+GAVL_PUBLIC
+void gavl_packet_copy_metadata(gavl_packet_t * dst,
+                               const gavl_packet_t * src);
+
+  
 /** \brief Reset a packet
  *  \param p Destination
  *

@@ -158,6 +158,16 @@ GAVL_PUBLIC
 void gavf_packet_to_audio_frame(gavl_packet_t * p, gavl_audio_frame_t * frame,
                                 const gavl_audio_format_t * format);
 
+/* These copy *only* the metadata */
+GAVL_PUBLIC
+void gavf_video_frame_to_packet_metadata(const gavl_video_frame_t * frame,
+                                         gavl_packet_t * p);
+
+GAVL_PUBLIC
+void gavf_audio_frame_to_packet_metadata(const gavl_audio_frame_t * frame,
+                                         gavl_packet_t * p);
+
+
 /* Write support */
 
 GAVL_PUBLIC
