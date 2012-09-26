@@ -679,6 +679,10 @@ const gavf_stream_header_t * bg_plug_next_packet_header(bg_plug_t * p)
   {
   int i;
   const gavf_packet_header_t * ph = gavf_packet_read_header(p->g);
+
+  if(!ph)
+    return NULL;
+
   for(i = 0; i < p->ph->num_streams; i++)
     {
     if(ph->stream_id == p->ph->streams[i].id)
