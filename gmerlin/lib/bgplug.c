@@ -44,6 +44,8 @@ typedef struct
   bg_plug_t * plug;
   gavl_packet_t p_shm;
   gavl_packet_t p_real;
+
+  int index; // Index inside the program header
   
   } stream_common_t;
 
@@ -119,11 +121,14 @@ static void free_stream_common(stream_common_t * s)
     gavl_packet_source_destroy(s->src);
   if(s->sink)
     gavl_packet_sink_destroy(s->sink);
+
+  if(s->shm)
+    gavl_packet_free(&s->p_shm);
+  else
+    gavl_packet_free(&s->p_real);
+  
   if(s->shm)
     bg_shm_free(s->shm);
-
-  gavl_packet_free(&s->p_shm);
-  gavl_packet_free(&s->p_real);
   
   }
 
@@ -137,11 +142,18 @@ void bg_plug_destroy(bg_plug_t * p)
     for(i = 0; i < p->num_audio_streams; i++)
       {
       audio_stream_t * s = p->audio_streams + i;
-      free_stream_common(&s->com);
       if(s->src)
         gavl_audio_source_destroy(s->src);
       if(s->sink)
         gavl_audio_sink_destroy(s->sink);
+
+      if(s->f)
+        {
+        if(s->com.shm)
+          gavl_audio_frame_null(s->f);
+        gavl_audio_frame_destroy(s->f);
+        }
+      free_stream_common(&s->com);
       }
     }
   if(p->video_streams)
@@ -149,11 +161,19 @@ void bg_plug_destroy(bg_plug_t * p)
     for(i = 0; i < p->num_video_streams; i++)
       {
       video_stream_t * s = p->video_streams + i;
-      free_stream_common(&s->com);
       if(s->src)
         gavl_video_source_destroy(s->src);
       if(s->sink)
         gavl_video_sink_destroy(s->sink);
+
+      if(s->f)
+        {
+        if(s->com.shm)
+          gavl_video_frame_null(s->f);
+        gavl_video_frame_destroy(s->f);
+        }
+      
+      free_stream_common(&s->com);
       }
     }
   if(p->text_streams)
@@ -171,13 +191,13 @@ void bg_plug_destroy(bg_plug_t * p)
 const bg_parameter_info_t *
 bg_plug_get_input_parameters(bg_plug_t * p)
   {
-
+  return NULL;
   }
 
 const bg_parameter_info_t *
 bg_plug_get_output_parameters(bg_plug_t * p)
   {
-  
+  return NULL;
   }
 
 void bg_plug_set_parameter(void * data, const char * name,
@@ -228,16 +248,30 @@ static void init_streams(bg_plug_t * p)
     switch(p->ph->streams[i].type)
       {
       case GAVF_STREAM_AUDIO:
-        p->audio_streams[audio_idx].com.h = p->ph->streams + i;
+        {
+        audio_stream_t * s = p->audio_streams + audio_idx;
+        s->com.h = p->ph->streams + i;
+        s->com.index = i;
+        
         audio_idx++;
+        }
         break;
       case GAVF_STREAM_VIDEO:
-        p->video_streams[video_idx].com.h = p->ph->streams + i;
+        {
+        video_stream_t * s = p->video_streams + video_idx;
+        s->com.h = p->ph->streams + i;
+        s->com.index = i;
+        
         video_idx++;
+        }
         break;
       case GAVF_STREAM_TEXT:
-        p->text_streams[text_idx].com.h = p->ph->streams + i;
+        {
+        text_stream_t * s = p->text_streams + text_idx;
+        s->com.h = p->ph->streams + i;
+        s->com.index = i;
         text_idx++;
+        }
         break;
       }
     }
@@ -290,8 +324,6 @@ read_video_frame_func_shm(void * priv, gavl_video_frame_t ** f)
   if((st = read_shm_packet(&s->com)) != GAVL_SOURCE_OK)
     return st;
 
-  if(!s->f)
-    s->f = gavl_video_frame_create(NULL);
   gavf_packet_to_video_frame(&s->com.p_real, s->f,
                              &s->com.h->format.video);
   *f = s->f;
@@ -305,8 +337,6 @@ read_video_frame_func(void * priv, gavl_video_frame_t ** f)
   if(!gavf_packet_read_packet(s->com.plug->g, &s->com.p_real))
     return GAVL_SOURCE_EOF;
 
-  if(!s->f)
-    s->f = gavl_video_frame_create(NULL);
   gavf_packet_to_video_frame(&s->com.p_real, s->f,
                              &s->com.h->format.video);
   *f = s->f;
@@ -322,10 +352,20 @@ read_audio_frame_func_shm(void * priv, gavl_audio_frame_t ** f)
   if((st = read_shm_packet(&s->com)) != GAVL_SOURCE_OK)
     return st;
 
-  if(!s->f)
-    s->f = gavl_audio_frame_create(NULL);
   gavf_packet_to_audio_frame(&s->com.p_real, s->f,
                              &s->com.h->format.audio);
+
+  /* The frame pointers might be wrong in the shm case when
+     valid_samples is smaller than samples_per_frame */
+
+  if(s->f->valid_samples < s->com.h->format.audio.samples_per_frame)
+    {
+    int valid_samples_save = s->f->valid_samples;
+    s->f->valid_samples = s->com.h->format.audio.samples_per_frame;
+    gavl_audio_frame_set_channels(s->f, &s->com.h->format.audio, s->com.p_real.data);
+    s->f->valid_samples = valid_samples_save;
+    }
+  
   *f = s->f;
   return GAVL_SOURCE_OK;
 
@@ -337,8 +377,6 @@ read_audio_frame_func(void * priv, gavl_audio_frame_t ** f)
   audio_stream_t * s = priv;
   if(!gavf_packet_read_packet(s->com.plug->g, &s->com.p_real))
     return GAVL_SOURCE_EOF;
-  if(!s->f)
-    s->f = gavl_audio_frame_create(NULL);
   gavf_packet_to_audio_frame(&s->com.p_real, s->f,
                              &s->com.h->format.audio);
   *f = s->f;
@@ -384,15 +422,21 @@ static int init_read(bg_plug_t * p)
     if(s->com.h->ci.id == GAVL_CODEC_ID_NONE)
       {
       if(s->com.shm)
+        {
         s->src =
           gavl_audio_source_create(read_audio_frame_func_shm, s,
                                    GAVL_SOURCE_SRC_ALLOC,
                                    &s->com.h->format.audio);
+        s->f = gavl_audio_frame_create(NULL);
+        }
       else
+        {
         s->src =
           gavl_audio_source_create(read_audio_frame_func, s,
                                    GAVL_SOURCE_SRC_ALLOC,
                                    &s->com.h->format.audio);
+        s->f = gavl_audio_frame_create(&s->com.h->format.audio);
+        }
       }
     else
       {
@@ -419,15 +463,21 @@ static int init_read(bg_plug_t * p)
     if(s->com.h->ci.id == GAVL_CODEC_ID_NONE)
       {
       if(s->com.shm)
+        {
         s->src =
           gavl_video_source_create(read_video_frame_func_shm, s,
                                    GAVL_SOURCE_SRC_ALLOC,
                                    &s->com.h->format.video);
+        s->f = gavl_video_frame_create(NULL);
+        }
       else
+        {
         s->src =
           gavl_video_source_create(read_video_frame_func, s,
                                    GAVL_SOURCE_SRC_ALLOC,
                                    &s->com.h->format.video);
+        s->f = gavl_video_frame_create(&s->com.h->format.video);
+        }
       }
     else
       {
@@ -467,6 +517,159 @@ static int init_read(bg_plug_t * p)
 
 /* Write support */
 
+static void prepare_packet_shm(stream_common_t * s)
+  {
+  s->p_real.data =
+    s->shm->addr +
+    s->buffer_index * s->h->ci.max_packet_size;
+  s->p_real.data_alloc =
+    s->h->ci.max_packet_size;
+  }
+
+static int write_packet_shm(stream_common_t * s)
+  {
+  shm_info_t si;
+  int result;
+  
+  si.buffer_number = s->buffer_index;
+  si.buffer_len    = s->p_real.data_len;
+
+  gavl_packet_alloc(&s->p_shm, sizeof(si));
+  memcpy(s->p_shm.data, &s->p_shm, sizeof(si));
+  s->p_shm.data_len = sizeof(si);
+  gavl_packet_copy_metadata(&s->p_shm, &s->p_real);
+  result = gavf_write_packet(s->plug->g, s->index, &s->p_shm);
+
+  s->buffer_index++;
+  if(s->buffer_index == NUM_BUFFERS)
+    s->buffer_index = 0;
+  return result;
+  }
+
+/* Video */
+
+static gavl_video_frame_t *
+get_video_frame_func_shm(void * priv)
+  {
+  video_stream_t * vs = priv;
+  prepare_packet_shm(&vs->com);
+  gavl_video_frame_set_planes(vs->f, &vs->com.h->format.video,
+                              vs->com.p_real.data);
+  return vs->f;
+  }
+
+static gavl_sink_status_t
+put_video_frame_func_shm(void * priv, gavl_video_frame_t * f)
+  {
+  video_stream_t * vs = priv;
+  gavf_video_frame_to_packet_metadata(f, &vs->com.p_real);
+  if(!write_packet_shm(&vs->com))
+    return GAVL_SINK_ERROR;
+  else
+    return GAVL_SINK_OK;
+  }
+
+static gavl_video_frame_t *
+get_video_frame_func(void * priv)
+  {
+  video_stream_t * vs = priv;
+  return vs->f;
+  }
+
+static gavl_sink_status_t
+put_video_frame_func(void * priv, gavl_video_frame_t * f)
+  {
+  video_stream_t * vs = priv;
+  if(!gavf_write_video_frame(vs->com.plug->g, vs->com.index, f))
+    return GAVL_SINK_ERROR;
+  else
+    return GAVL_SINK_OK;
+  }
+
+
+/* Audio */
+
+static gavl_audio_frame_t *
+get_audio_frame_func_shm(void * priv)
+  {
+  audio_stream_t * as = priv;
+  if(!as->f)
+    as->f = gavl_audio_frame_create(NULL);
+  prepare_packet_shm(&as->com);
+  as->f->valid_samples = as->com.h->format.audio.samples_per_frame;
+  gavl_audio_frame_set_channels(as->f, &as->com.h->format.audio,
+                                as->com.p_real.data);
+  return as->f;
+  }
+
+static gavl_sink_status_t
+put_audio_frame_func_shm(void * priv, gavl_audio_frame_t * f)
+  {
+  audio_stream_t * as = priv;
+  gavf_audio_frame_to_packet_metadata(f, &as->com.p_real);
+  if(!write_packet_shm(&as->com))
+    return GAVL_SINK_ERROR;
+  else
+    return GAVL_SINK_OK;
+  }
+
+static gavl_audio_frame_t *
+get_audio_frame_func(void * priv)
+  {
+  audio_stream_t * as = priv;
+  return as->f;
+  }
+
+static gavl_sink_status_t
+put_audio_frame_func(void * priv, gavl_audio_frame_t * f)
+  {
+  audio_stream_t * as = priv;
+  if(!gavf_write_audio_frame(as->com.plug->g, as->com.index, f))
+    return GAVL_SINK_ERROR;
+  else
+    return GAVL_SINK_OK;
+  }
+
+/* Packet */
+
+static gavl_packet_t * get_packet_func_shm(void * priv)
+  {
+  stream_common_t * s = priv;
+  prepare_packet_shm(s);
+  return &s->p_real;
+  }
+
+static gavl_sink_status_t put_packet_func_shm(void * priv, gavl_packet_t * p)
+  {
+  stream_common_t * s = priv;
+  if(!write_packet_shm(s))
+    return GAVL_SINK_ERROR;
+  else
+    return GAVL_SINK_OK;
+  }
+
+static gavl_sink_status_t put_packet_func(void * priv, gavl_packet_t * p)
+  {
+  stream_common_t * s = priv;
+  if(!gavf_write_packet(s->plug->g, s->index, p))
+    return GAVL_SINK_ERROR;
+  else
+    return GAVL_SINK_OK;
+  }
+
+static void create_packet_sink(stream_common_t * s)
+  {
+  if(s->shm)
+    s->sink = gavl_packet_sink_create(get_packet_func_shm,
+                                      put_packet_func_shm,
+                                      s);
+  else
+    s->sink = gavl_packet_sink_create(NULL,
+                                      put_packet_func,
+                                      s);
+  }
+
+
 static int init_shm_write(stream_common_t * s)
   {
   if(s->h->ci.max_packet_size > SHM_THRESHOLD)
@@ -483,31 +686,86 @@ static int init_shm_write(stream_common_t * s)
   return 1;
   }
 
-int bg_plug_start_write(bg_plug_t * p)
+
+static int init_write(bg_plug_t * p)
   {
   int i;
-  audio_stream_t * as;
-  video_stream_t * vs;
-  
   init_streams(p);
 
   /* Create shared memory instances */
-  if(p->is_local)
+  for(i = 0; i < p->num_audio_streams; i++)
     {
-    for(i = 0; i < p->num_audio_streams; i++)
+    audio_stream_t * s;
+    s = &p->audio_streams[i];
+    if(p->is_local && !init_shm_write(&s->com))
+      return 0;
+
+    if(s->com.h->ci.id == GAVL_CODEC_ID_NONE)
       {
-      as = &p->audio_streams[i];
-      if(!init_shm_write(&as->com))
-        return 0;
+      if(s->com.shm)
+        {
+        s->sink = gavl_audio_sink_create(get_audio_frame_func_shm,
+                                         put_audio_frame_func_shm,
+                                         s, &s->com.h->format.audio);
+        s->f = gavl_audio_frame_create(NULL);
+        }
+      else
+        {
+        s->sink = gavl_audio_sink_create(get_audio_frame_func,
+                                         put_audio_frame_func,
+                                         s, &s->com.h->format.audio);
+        s->f = gavl_audio_frame_create(&s->com.h->format.audio);
+        }
       }
-    for(i = 0; i < p->num_video_streams; i++)
-      {
-      vs = &p->video_streams[i];
-      if(!init_shm_write(&vs->com))
-        return 0;
-      }
+    else
+      create_packet_sink(&s->com);
     }
+  for(i = 0; i < p->num_video_streams; i++)
+    {
+    video_stream_t * s;
+    s = &p->video_streams[i];
+    if(p->is_local && !init_shm_write(&s->com))
+      return 0;
+
+    if(s->com.h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      if(s->com.shm)
+        {
+        s->sink = gavl_video_sink_create(get_video_frame_func_shm,
+                                         put_video_frame_func_shm,
+                                         s, &s->com.h->format.video);
+        s->f = gavl_video_frame_create(NULL);
+        }
+      else
+        {
+        s->sink = gavl_video_sink_create(get_video_frame_func,
+                                         put_video_frame_func,
+                                         s, &s->com.h->format.video);
+        s->f = gavl_video_frame_create(&s->com.h->format.video);
+        }
+      }
+    else
+      create_packet_sink(&s->com);
+    }
+  for(i = 0; i < p->num_text_streams; i++)
+    {
+    text_stream_t * s;
+    s = &p->text_streams[i];
+    if(p->is_local && !init_shm_write(&s->com))
+      return 0;
+    
+    create_packet_sink(&s->com);
+    }
+
   return 1;
+  }
+
+int bg_plug_start(bg_plug_t * p)
+  {
+  if(p->wr)
+    return init_write(p);
+  else
+    return init_read(p);
   }
 
 int bg_plug_open(bg_plug_t * p, const char * location)
@@ -566,7 +824,7 @@ int bg_plug_open(bg_plug_t * p, const char * location)
     
     }
 
-  if(p->io)
+  if(!p->io)
     return 0;
 
   if(p->wr)
@@ -589,91 +847,6 @@ gavf_t * bg_plug_reader_get_gavf(bg_plug_t * p)
   return p->g;
   }
 
-/* Optimized audio/video I/O */
-
-/* Video */
-
-static gavl_video_frame_t *
-get_video_frame_func(void * priv)
-  {
-  video_stream_t * vs = priv;
-  
-  if(vs->com.shm)
-    {
-    if(!vs->f)
-      vs->f = gavl_video_frame_create(NULL);
-
-    gavl_video_frame_set_planes(vs->f, &vs->com.h->format.video,
-                                vs->com.shm->addr +
-                                vs->com.buffer_index * vs->com.h->ci.max_packet_size);
-    }
-  else
-    {
-    if(!vs->f)
-      vs->f = gavl_video_frame_create_nopad(&vs->com.h->format.video);
-    }
-  return vs->f;
-  }
-
-static gavl_sink_status_t
-put_video_frame_func(void * priv, gavl_video_frame_t * f)
-  {
-  video_stream_t * vs = priv;
-  
-  if(vs->com.shm)
-    {
-    vs->com.buffer_index++;
-    if(vs->com.buffer_index == NUM_BUFFERS)
-      vs->com.buffer_index = 0;
-    }
-  else
-    {
-    
-    }
-  }
-
-
-/* Audio */
-
-static gavl_audio_frame_t *
-get_audio_frame_func(void * priv)
-  {
-  audio_stream_t * as = priv;
-  
-  if(as->com.shm)
-    {
-    if(!as->f)
-      as->f = gavl_audio_frame_create(NULL);
-    gavl_audio_frame_set_channels(as->f, &as->com.h->format.audio,
-                                as->com.shm->addr +
-                                as->com.buffer_index * as->com.h->ci.max_packet_size);
-    }
-  else
-    {
-    //    if(!vs->f)
-      //      vs->f = gavl_audio_frame_create_nopad(&vs->h->format.audio);
-    }
-  return as->f;
-  }
-
-static gavl_sink_status_t
-put_audio_frame_func(void * priv, gavl_audio_frame_t * f)
-  {
-  
-  }
-
-/* Packet */
-
-
-static gavl_packet_t * get_packet_func(void * priv)
-  {
-  
-  }
-
-static gavl_sink_status_t put_packet_func(void * priv, gavl_packet_t * p)
-  {
-  
-  }
 
 const gavf_stream_header_t * bg_plug_next_packet_header(bg_plug_t * p)
   {

@@ -27,7 +27,8 @@ int bg_plug_open(bg_plug_t *, const char * location);
 
 gavf_t * bg_plug_reader_get_gavf(bg_plug_t *);
 
-int bg_plug_start_write(bg_plug_t * p);
+/* Needs to be called before any I/O is done */
+int bg_plug_start(bg_plug_t * p);
 
 /* Return the header of the stream the next packet belongs to */
 const gavf_stream_header_t * bg_plug_next_packet_header(bg_plug_t * p);
