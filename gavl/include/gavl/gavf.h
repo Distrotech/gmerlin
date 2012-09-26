@@ -36,7 +36,7 @@ GAVL_PUBLIC
 void gavf_io_flush(gavf_io_t *);
 
 GAVL_PUBLIC
-gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek);
+gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek, int close);
 
 /* Stream information */
 

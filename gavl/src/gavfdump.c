@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
     return 0;
     }
 
-  io = gavf_io_create_file(f, 0, 1);
+  io = gavf_io_create_file(f, 0, 1, 1);
   
   if(!gavf_open_read(dec, io))
     {
@@ -76,7 +76,6 @@ int main(int argc, char ** argv)
 
   /* Cleanup */
 
-  fclose(f);
   gavf_close(dec);
   gavl_packet_free(&p);
   return 0;

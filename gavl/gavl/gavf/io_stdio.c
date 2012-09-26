@@ -38,8 +38,13 @@ static void flush_file(void * priv)
   fflush((FILE*)priv);
   }
 
+static void close_file(void * priv)
+  {
+  fclose((FILE*)priv);
+  }
+
 GAVL_PUBLIC
-gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek)
+gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek, int close)
   {
   gavf_read_func rf;
   gavf_write_func wf;
@@ -63,5 +68,5 @@ gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek)
   else
     sf = NULL;
 
-  return gavf_io_create(rf, wf, sf, NULL, ff, f);
+  return gavf_io_create(rf, wf, sf, close ? close_file : NULL, ff, f);
   }
