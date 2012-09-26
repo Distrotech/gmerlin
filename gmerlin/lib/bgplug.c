@@ -1,14 +1,29 @@
+/*****************************************************************
+ * gmerlin - a general purpose multimedia framework and applications
+ *
+ * Copyright (c) 2001 - 2012 Members of the Gmerlin project
+ * gmerlin-general@lists.sourceforge.net
+ * http://gmerlin.sourceforge.net
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * *****************************************************************/
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 
 #include <bgshm.h>
 
@@ -287,7 +302,8 @@ static void init_shm_read(stream_common_t * s)
      gavl_metadata_get_int(&s->h->m, META_SHM_NUM, &s->num_buffers))
     {
     /* Create shared memory handle */
-    s->shm = bg_shm_alloc_read(shm_name, s->h->ci.max_packet_size * s->num_buffers);
+    s->shm = bg_shm_alloc_read(shm_name,
+                               s->h->ci.max_packet_size * s->num_buffers);
     
     /* Clear metadata tags */
     gavl_metadata_set(&s->h->m, META_SHM_ID, NULL);
@@ -362,7 +378,8 @@ read_audio_frame_func_shm(void * priv, gavl_audio_frame_t ** f)
     {
     int valid_samples_save = s->f->valid_samples;
     s->f->valid_samples = s->com.h->format.audio.samples_per_frame;
-    gavl_audio_frame_set_channels(s->f, &s->com.h->format.audio, s->com.p_real.data);
+    gavl_audio_frame_set_channels(s->f, &s->com.h->format.audio,
+                                  s->com.p_real.data);
     s->f->valid_samples = valid_samples_save;
     }
   
@@ -443,12 +460,14 @@ static int init_read(bg_plug_t * p)
       if(s->com.shm)
         s->com.src =
           gavl_packet_source_create(read_packet_func_shm, s,
-                                    GAVL_SOURCE_SRC_ALLOC, &s->com.h->ci,
+                                    GAVL_SOURCE_SRC_ALLOC,
+                                    &s->com.h->ci,
                                     &s->com.h->format.audio, NULL);
       else
         s->com.src =
           gavl_packet_source_create(read_packet_func, s,
-                                    GAVL_SOURCE_SRC_ALLOC, &s->com.h->ci,
+                                    GAVL_SOURCE_SRC_ALLOC,
+                                    &s->com.h->ci,
                                     &s->com.h->format.audio, NULL);
       }
     
@@ -768,68 +787,21 @@ int bg_plug_start(bg_plug_t * p)
     return init_read(p);
   }
 
-int bg_plug_open(bg_plug_t * p, const char * location)
+int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
+                 const gavl_metadata_t * m,
+                 const gavl_chapter_list_t * cl)
   {
-  if(!strcmp(location, "-"))
-    {
-    struct stat st;
-    int fd;
-    FILE * f;
-    
-    /* Stdin/stdout */
-    if(p->wr)
-      f = stdout;
-    else
-      f = stdin;
-    
-    fd = fileno(f);
-
-    if(isatty(fd))
-      {
-      if(p->wr)
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Not writing to a TTY");
-      else
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Not reading from a TTY");
-      return 0;
-      }
-    
-    if(fstat(fd, &st))
-      {
-      if(p->wr)
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat stdout");
-      else
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat stdin");
-      return 0;
-      }
-    if(S_ISFIFO(st.st_mode))
-      {
-      /* Pipe: Use local connection */
-      p->is_local = 1;
-      }
-    p->io = gavf_io_create_file(f, p->wr, 0);
-    }
-  else if(!strncmp(location, "tcp://", 6))
-    {
-    /* Remote TCP socket */
-    
-    }
-  else if(!strncmp(location, "unix://", 7))
-    {
-    /* Local UNIX domain socket */
-    
-    }
-  else
-    {
-    /* Regular file */
-    
-    }
-
-  if(!p->io)
-    return 0;
-
-  if(p->wr)
-    return 1;
+  p->io = io;
   
+  if(p->wr)
+    {
+    if(!gavf_open_write(p->g, p->io, m, cl))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "gavf_open_write failed");
+      return 0;
+      }
+    return 1;
+    }
   if(!gavf_open_read(p->g, p->io))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "gavf_open_read failed");
@@ -842,7 +814,7 @@ int bg_plug_open(bg_plug_t * p, const char * location)
   return 1;
   }
 
-gavf_t * bg_plug_reader_get_gavf(bg_plug_t * p)
+gavf_t * bg_plug_get_gavf(bg_plug_t * p)
   {
   return p->g;
   }

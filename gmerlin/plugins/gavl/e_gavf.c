@@ -198,7 +198,7 @@ bg_gavf_open(void * data, const char * filename,
   if(!(f->output = fopen(f->filename, "wb")))
     return 0;
 
-  f->io = gavf_io_create_file(f->output, 1, 1);
+  f->io = gavf_io_create_file(f->output, 1, 1, 1);
 
   if(!gavf_open_write(f->enc, f->io, metadata, chapter_list))
     return 0;
@@ -397,7 +397,6 @@ bg_gavf_close(void * data, int do_delete)
   bg_gavf_t * f = data;
   gavf_close(f->enc);
   gavf_io_destroy(f->io);
-  fclose(f->output);
   return 1;
   }
 

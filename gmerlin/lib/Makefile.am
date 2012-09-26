@@ -65,6 +65,7 @@ bggavl.c \
 bgladspa.c \
 bgfrei0r.c \
 bgplug.c \
+bgplug_io.c \
 bgshm.c \
 bgxml.c \
 cfg_item.c \

@@ -224,7 +224,8 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
       }
     else
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting failed: %s", strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting failed: %s",
+             strerror(errno));
       return -1;
       }
     }

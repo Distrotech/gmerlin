@@ -1,3 +1,23 @@
+/*****************************************************************
+ * gmerlin - a general purpose multimedia framework and applications
+ *
+ * Copyright (c) 2001 - 2012 Members of the Gmerlin project
+ * gmerlin-general@lists.sourceforge.net
+ * http://gmerlin.sourceforge.net
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * *****************************************************************/
 
 #include <gavl/gavf.h>
 #include <gavl/connectors.h>
@@ -23,9 +43,11 @@ bg_plug_get_output_parameters(bg_plug_t * p);
 void bg_plug_set_parameter(void * data, const char * name,
                            const bg_parameter_value_t * val);
 
-int bg_plug_open(bg_plug_t *, const char * location);
+int bg_plug_open(bg_plug_t *, gavf_io_t * io,
+                 const gavl_metadata_t * m,
+                 const gavl_chapter_list_t * cl);
 
-gavf_t * bg_plug_reader_get_gavf(bg_plug_t *);
+gavf_t * bg_plug_get_gavf(bg_plug_t*);
 
 /* Needs to be called before any I/O is done */
 int bg_plug_start(bg_plug_t * p);
@@ -45,3 +67,11 @@ int bg_plug_get_stream_sink(bg_plug_t * p, const gavf_stream_header_t *,
                             gavl_packet_sink_t ** ps);
 
 
+
+/* Called by bg_plug_open */
+
+gavf_io_t * bg_plug_open_location(const char * location,
+                                  int wr, int * local);
+
+gavf_io_t * bg_plug_open_socket(int fd,
+                                int wr, int * local);
