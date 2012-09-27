@@ -991,6 +991,7 @@ gmerlin.spec \
 gmerlin.pc \
 gmerlin-gtk.pc \
 apps/Makefile \
+apps/gavftools/Makefile \
 apps/plugincfg/Makefile \
 apps/player/Makefile \
 apps/alsamixer/Makefile \

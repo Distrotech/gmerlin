@@ -63,6 +63,7 @@ endif
 SUBDIRS = $(player_subdirs) \
 cmdlineplayer \
 cmdlinerecorder \
+gavftools \
 $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
 $(nmjedit_subdirs) \
