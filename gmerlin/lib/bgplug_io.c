@@ -106,14 +106,42 @@ static void close_pipe(void * priv)
   bg_subprocess_close(sp);
   }
 
-static gavf_io_t * open_pipe(const char * command, int wr)
+static gavf_io_t * open_pipe(const char * location, int wr)
   {
-  bg_subprocess_t * sp =
-    bg_subprocess_create(command,
-                         wr ? 1 : 0, // Do stdin
-                         wr ? 0 : 1, // Do stdout
-                         0);         // Do stderr
+  const char * pos;
+  bg_subprocess_t * sp;
+  
+  pos = location;
 
+  if(!wr && (*pos == '|'))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read pipes must start with '<'");
+    return NULL;
+    }
+  else if(wr && (*pos == '<'))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write pipes must start with '|'");
+    return NULL;
+    }
+  
+  pos++;
+  while(isspace(*pos) && (*pos != '\0'))
+    pos++;
+
+  if(pos == '\0')
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid pipe: %s", location);
+    return NULL;
+    }
+  
+  sp = bg_subprocess_create(pos,
+                            wr ? 1 : 0, // Do stdin
+                            wr ? 0 : 1, // Do stdout
+                            0);         // Do stderr
+  
+  if(!sp)
+    return NULL;
+  
   return gavf_io_create(wr ? NULL : read_pipe,
                         wr ? write_pipe : NULL,
                         NULL, // seek
@@ -265,50 +293,21 @@ gavf_io_t * bg_plug_open_location(const char * location,
   *do_shm = 0;
   
   if(!strcmp(location, "-"))
-    {
     return open_dash(wr, do_shm);
-    }
   else if(!strncmp(location, "tcp://", 6))
-    {
     return open_tcp(location, wr);
-    }
   else if(!strncmp(location, "unix://", 7))
     {
     *do_shm = 1;
     /* Local UNIX domain socket */
     return open_unix(location, wr);
     }
-  else if(location[0] == '|')
+  else if((location[0] == '|') ||
+          (location[0] == '<'))
     {
-    const char * pos;
-    /* Pipe (write) */
-    if(!wr)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read pipes must start with '<'");
-      return NULL;
-      }
-    pos = location + 1;
-    while(isspace(*pos) && (*pos != '\0'))
-      pos++;
-
+    /* Pipe */
     *do_shm = 1;
-    return open_pipe(pos, wr);
-    }
-  else if(location[0] == '<')
-    {
-    const char * pos;
-    /* Pipe (read) */
-    if(wr)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Write pipes must start with '|'");
-      return NULL;
-      }
-    pos = location + 1;
-    while(isspace(*pos) && (*pos != '\0'))
-      pos++;
-
-    *do_shm = 1;
-    return open_pipe(pos, wr);
+    return open_pipe(location, wr);
     }
   else
     {
