@@ -1322,14 +1322,13 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
     a = bg_media_tree_append_album(t, parent);
   else
     a = parent;
-    
+  
   if(parent)
     bg_album_set_expanded(parent, 1);
   
   bg_album_open(a);
   bg_album_set_expanded(a, 1);
-
-
+  
   if(subdirs_to_subalbums || !depth)
     {
     pos1 = strrchr(directory, '/');
@@ -1372,6 +1371,8 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
       add_directory(t, a, filename, recursive, subdirs_to_subalbums,
                     watch,
                     plugin, prefer_edl, depth + 1);
+      //      if(t->change_callback)
+      //        t->change_callback(t, t->change_callback_data);
       }
     else if(S_ISREG(stat_buf.st_mode))
       {
@@ -1386,9 +1387,13 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
                                     NULL,
                                     0);
       }
-    if(t->change_callback)
-      t->change_callback(t, t->change_callback_data);
+    //    if(t->change_callback)
+    //      t->change_callback(t, t->change_callback_data);
     }
+
+  if(t->change_callback)
+    t->change_callback(t, t->change_callback_data);
+
   closedir(dir);
   bg_album_sort_entries(a);
   bg_album_sort_children(a);
