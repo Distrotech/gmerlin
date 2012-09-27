@@ -18,7 +18,6 @@ typedef int64_t (*gavf_seek_func)(void * priv, int64_t pos, int whence);
 typedef void (*gavf_close_func)(void * priv);
 typedef void (*gavf_flush_func)(void * priv);
 
-
 typedef struct gavl_io_s gavf_io_t;
 
 GAVL_PUBLIC
@@ -94,7 +93,8 @@ GAVL_PUBLIC
 void gavf_options_set_flags(gavf_options_t *, int flags);
 
 GAVL_PUBLIC
-void gavf_options_set_sync_distance(gavf_options_t *, gavl_time_t sync_distance);
+void gavf_options_set_sync_distance(gavf_options_t *,
+                                    gavl_time_t sync_distance);
 
 
 /* General functions */
@@ -176,7 +176,7 @@ int gavf_open_write(gavf_t * g, gavf_io_t * io,
                     const gavl_chapter_list_t * cl);
 
 /*
- *  Return value: >= 0 is the stream ID passed to gavf_write_packet()
+ *  Return value: >= 0 is the stream index passed to gavf_write_packet()
  *  < 0 means error
  */
 
