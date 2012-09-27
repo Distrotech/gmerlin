@@ -836,6 +836,26 @@ const gavf_stream_header_t * bg_plug_next_packet_header(bg_plug_t * p)
   return NULL;
   }
 
+/* Utility functions */
+
+const gavf_stream_header_t *
+bg_plug_header_from_index(bg_plug_t * p, int index)
+  {
+  return &p->ph->streams[index];
+  }
+
+const gavf_stream_header_t *
+bg_plug_header_from_id(bg_plug_t * p, uint32_t id)
+  {
+  int i;
+  for(i = 0; i < p->ph->num_streams; i++)
+    {
+    if(p->ph->streams[i].id == id)
+      return &p->ph->streams[i];
+    }
+  return NULL;
+  }
+
 /* Get stream sources */
 
 int bg_plug_get_stream_source(bg_plug_t * p,
@@ -845,48 +865,66 @@ int bg_plug_get_stream_source(bg_plug_t * p,
                               gavl_packet_source_t ** ps)
   {
   int i;
-  switch(h->type)
+
+  if(h->type == GAVF_STREAM_AUDIO)
     {
-    case GAVF_STREAM_AUDIO:
-      for(i = 0; i < p->num_audio_streams; i++)
+    /* Check audio */
+    for(i = 0; i < p->num_audio_streams; i++)
+      {
+      if(p->audio_streams[i].com.h->id == h->id)
         {
-        if(p->audio_streams[i].com.h->id == h->id)
+        if(p->audio_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
           {
-          if(p->audio_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
+          if(as)
             *as = p->audio_streams[i].src;
-          else
+          }
+        else
+          {
+          if(ps)
             *ps = p->audio_streams[i].com.src;
-          return 1;
           }
+        return 1;
         }
-      break;
-    case GAVF_STREAM_VIDEO:
-      for(i = 0; i < p->num_video_streams; i++)
+      }
+    }
+  
+  if(h->type == GAVF_STREAM_AUDIO)
+    {
+    /* Check video */
+    for(i = 0; i < p->num_video_streams; i++)
+      {
+      if(p->video_streams[i].com.h->id == h->id)
         {
-        if(p->video_streams[i].com.h->id == h->id)
+        if(p->video_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
           {
-          if(p->video_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
+          if(vs)
             *vs = p->video_streams[i].src;
-          else
-            *ps = p->video_streams[i].com.src;
-          return 1;
           }
-        }
-      break;
-    case GAVF_STREAM_TEXT:
-      for(i = 0; i < p->num_text_streams; i++)
-        {
-        if(p->text_streams[i].com.h->id == h->id)
+        else
           {
-          *ps = p->text_streams[i].com.src;
-          return 1;
+          if(ps)
+            *ps = p->video_streams[i].com.src;
           }
+        return 1;
         }
-      break;
+      }
+    }
+  
+  if(h->type == GAVF_STREAM_TEXT)
+    {
+    /* Check text */
+
+    for(i = 0; i < p->num_text_streams; i++)
+      {
+      if(p->text_streams[i].com.h->id == h->id)
+        {
+        *ps = p->text_streams[i].com.src;
+        return 1;
+        }
+      }
     }
   return 0;
   }
-
 
 int bg_plug_get_stream_sink(bg_plug_t * p,
                             const gavf_stream_header_t * h,
@@ -895,46 +933,48 @@ int bg_plug_get_stream_sink(bg_plug_t * p,
                             gavl_packet_sink_t ** ps)
   {
   int i;
-  switch(h->type)
+  for(i = 0; i < p->num_audio_streams; i++)
     {
-    case GAVF_STREAM_AUDIO:
-      for(i = 0; i < p->num_audio_streams; i++)
+    if(p->audio_streams[i].com.h->id == h->id)
+      {
+      if(p->audio_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
         {
-        if(p->audio_streams[i].com.h->id == h->id)
-          {
-          if(p->audio_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
-            *as = p->audio_streams[i].sink;
-          else
-            *ps = p->audio_streams[i].com.sink;
-          return 1;
-          }
+        if(as)
+          *as = p->audio_streams[i].sink;
         }
-      break;
-    case GAVF_STREAM_VIDEO:
-      for(i = 0; i < p->num_video_streams; i++)
+      else
         {
-        if(p->video_streams[i].com.h->id == h->id)
-          {
-          if(p->video_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
-            *vs = p->video_streams[i].sink;
-          else
-            *ps = p->video_streams[i].com.sink;
-          return 1;
-          }
+        if(ps)
+          *ps = p->audio_streams[i].com.sink;
         }
-      break;
-    case GAVF_STREAM_TEXT:
-      for(i = 0; i < p->num_text_streams; i++)
+      return 1;
+      }
+    }
+  for(i = 0; i < p->num_video_streams; i++)
+    {
+    if(p->video_streams[i].com.h->id == h->id)
+      {
+      if(p->video_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
         {
-        if(p->text_streams[i].com.h->id == h->id)
-          {
-          *ps = p->text_streams[i].com.sink;
-          return 1;
-          }
+        if(vs)
+          *vs = p->video_streams[i].sink;
         }
-      break;
+      else
+        {
+        if(ps)
+          *ps = p->video_streams[i].com.sink;
+        }
+      return 1;
+      }
+    }
+  for(i = 0; i < p->num_text_streams; i++)
+    {
+    if(p->text_streams[i].com.h->id == h->id)
+      {
+      if(ps)
+        *ps = p->text_streams[i].com.sink;
+      return 1;
+      }
     }
   return 0;
   }
-
-

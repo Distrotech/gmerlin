@@ -55,18 +55,24 @@ int bg_plug_start(bg_plug_t * p);
 /* Return the header of the stream the next packet belongs to */
 const gavf_stream_header_t * bg_plug_next_packet_header(bg_plug_t * p);
 
-int bg_plug_get_stream_source(bg_plug_t * p, const gavf_stream_header_t *,
+int bg_plug_get_stream_source(bg_plug_t * p,
+                              const gavf_stream_header_t * h,
                               gavl_audio_source_t ** as,
                               gavl_video_source_t ** vs,
                               gavl_packet_source_t ** ps);
 
 
-int bg_plug_get_stream_sink(bg_plug_t * p, const gavf_stream_header_t *,
+int bg_plug_get_stream_sink(bg_plug_t * p,
+                            const gavf_stream_header_t * h,
                             gavl_audio_sink_t ** as,
                             gavl_video_sink_t ** vs,
                             gavl_packet_sink_t ** ps);
 
+const gavf_stream_header_t *
+bg_plug_header_from_index(bg_plug_t * p, int index);
 
+const gavf_stream_header_t *
+bg_plug_header_from_id(bg_plug_t * p, uint32_t id);
 
 /* Called by bg_plug_open */
 
