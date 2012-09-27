@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -235,12 +236,27 @@ static gavf_io_t * open_unix(const char * addr, int wr)
 
 /* File */
 
-static gavf_io_t * open_file(const char * file, int wr)
+static gavf_io_t * open_file(const char * file, int wr, int * do_shm)
   {
-  FILE * f = fopen(file, (wr ? "w" : "r"));
+  FILE * f;
+  int can_seek = 0;
+  struct stat st;
+  
+  if(stat(file, &st))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot stat %s: %s", file, strerror(errno));
+    }
+
+  if(S_ISFIFO(st.st_mode)) /* Pipe: Use local connection */
+    *do_shm = 1;
+  else if(S_ISREG(st.st_mode))
+    can_seek = 1;
+  
+  f = fopen(file, (wr ? "w" : "r"));
   if(!f)
     return NULL;
-  return gavf_io_create_file(f, wr, 1, 1);
+  return gavf_io_create_file(f, wr, can_seek, 1);
   }
 
 gavf_io_t * bg_plug_open_location(const char * location,
@@ -258,6 +274,7 @@ gavf_io_t * bg_plug_open_location(const char * location,
     }
   else if(!strncmp(location, "unix://", 7))
     {
+    *do_shm = 1;
     /* Local UNIX domain socket */
     return open_unix(location, wr);
     }
@@ -296,7 +313,7 @@ gavf_io_t * bg_plug_open_location(const char * location,
   else
     {
     /* Regular file */
-    return open_file(location, wr);
+    return open_file(location, wr, do_shm);
     }
   return NULL;
   }
