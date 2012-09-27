@@ -385,8 +385,11 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   /* And stream them out */
   ogg_stream_packetin(&opus->enc_os,&op);
   if(!bg_ogg_flush_page(&opus->enc_os, opus->output, 1))
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Got no Opus header page");
-
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no Opus header page");
+    return 0;
+    }
+  
   /* Build comment */
   
   bg_ogg_create_comment_packet((uint8_t*)"OpusTags", 8,
