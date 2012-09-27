@@ -6,13 +6,17 @@ AM_CFLAGS = \
 -DDOC_DIR=\"$(docdir)\" \
 -DDATA_DIR=\"$(pkgdatadir)\"
 
-AM_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
+noinst_LTLIBRARIES = \
+libgavftools.la
 
-LDADD = $(top_builddir)/lib/libgmerlin.la -ldl
+libgavftools_la_SOURCES = gavftools.c
+
+noinst_HEADERS = gavftools.h
 
 INCLUDES = -I$(top_srcdir)/include
 
 # dist_man_MANS = gmerlin-record.1
 
 bin_PROGRAMS = gavf-record
-
+gavf_record_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
+gavf_record_LDADD = libgavftools.la $(top_builddir)/lib/libgmerlin.la -ldl 

@@ -21,13 +21,7 @@
 
 #include <string.h>
 
-#include <config.h>
-#include <gmerlin/pluginregistry.h>
-#include <gmerlin/utils.h>
-#include <gmerlin/cmdline.h>
-#include <gmerlin/log.h>
-#include <gmerlin/translation.h>
-#include <gmerlin/bgplug.h>
+#include "gavftools.h"
 
 #include <gavl/metatags.h>
 
@@ -37,8 +31,9 @@
 
 /* Global stuff */
 
-static bg_plugin_registry_t * plugin_reg;
+
 static bg_plug_t * out_plug;
+
 static bg_cfg_section_t * audio_section;
 static bg_cfg_section_t * video_section;
 
@@ -307,21 +302,11 @@ const bg_cmdline_app_data_t app_data =
 
 int main(int argc, char ** argv)
   {
-  char * tmp_path;
-  bg_cfg_section_t * cfg_section;
-  bg_cfg_registry_t * cfg_reg;
+  gavftools_init_registries();
   
   out_plug = bg_plug_create_writer();
   
   /* Create plugin regsitry */
-  cfg_reg = bg_cfg_registry_create();
-  tmp_path =  bg_search_file_read("generic", "config.xml");
-  bg_cfg_registry_load(cfg_reg, tmp_path);
-  if(tmp_path)
-    free(tmp_path);
-  
-  cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
-  plugin_reg = bg_plugin_registry_create(cfg_section);
   
   /* Initialize streams */
   recorder_stream_init(&as, GAVF_STREAM_AUDIO);
