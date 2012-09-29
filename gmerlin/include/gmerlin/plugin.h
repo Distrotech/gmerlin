@@ -690,7 +690,6 @@ struct bg_input_plugin_s
 
   gavl_audio_source_t * (*get_audio_source)(void * priv, int stream);
 
-  
   /** \brief Check is a still image is available
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0
@@ -710,7 +709,7 @@ struct bg_input_plugin_s
    */
   
   bg_read_video_func_t read_video;
-
+  
   /** \brief Get the video source for a stream
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0
@@ -721,7 +720,6 @@ struct bg_input_plugin_s
    */
 
   gavl_video_source_t * (*get_video_source)(void * priv, int stream);
-
   
   /** \brief Read compressed audio packet
    *  \param priv The handle returned by the create() method
@@ -746,6 +744,26 @@ struct bg_input_plugin_s
    */
 
   int (*read_video_packet)(void * priv, int stream, gavl_packet_t * p);
+
+    /** \brief Get the packet source for an audio stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns The packet source for this stream
+   *
+   *  This is an alternative for \ref read_audio_packet
+   */
+
+  gavl_packet_source_t * (*get_audio_packet_source)(void * priv, int stream);
+
+  /** \brief Get the packet source for a video stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns The packet source for this stream
+   *
+   *  This is an alternative for \ref read_video_packet
+   */
+
+  gavl_packet_source_t * (*get_video_packet_source)(void * priv, int stream);
 
   
   /** \brief Skip frames in a video stream
@@ -806,6 +824,16 @@ struct bg_input_plugin_s
                             char ** text, int * text_alloc,
                             int64_t * start_time,
                             int64_t * duration, int stream);
+
+  /** \brief Get the packet source for a text subtitle stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns The packet source for this stream
+   *
+   *  This is an alternative for \ref read_subtitle_text
+   */
+
+  gavl_packet_source_t * (*get_subtitle_packet_source)(void * priv, int stream);
   
   /** \brief Seek within a media track
    *  \param priv The handle returned by the create() method
@@ -1794,12 +1822,34 @@ struct bg_encoder_plugin_s
   
   gavl_audio_sink_t * (*get_audio_sink)(void * priv, int stream);
   
+  /** \brief Get audio packet sink
+   *  \param priv The handle returned by the create() method
+   *  \returns The audio sink for this stream
+   */
+  
+  gavl_packet_sink_t * (*get_audio_packet_sink)(void * priv, int stream);
+  
   /** \brief Get video sink
    *  \param priv The handle returned by the create() method
-   *  \returns The video sink for this stream
+   *  \returns The packet sink for this stream
    */
   
   gavl_video_sink_t * (*get_video_sink)(void * priv, int stream);
+
+  /** \brief Get video sink
+   *  \param priv The handle returned by the create() method
+   *  \returns The packet sink for this stream
+   */
+  
+  gavl_packet_sink_t * (*get_video_packet_sink)(void * priv, int stream);
+
+  /** \brief Get text subtitle sink
+   *  \param priv The handle returned by the create() method
+   *  \returns The packet sink for this stream
+   */
+  
+  gavl_packet_sink_t * (*get_subtitle_text_sink)(void * priv, int stream);
+
   
   /** \brief Update metadata
    *  \param priv The handle returned by the create() method
