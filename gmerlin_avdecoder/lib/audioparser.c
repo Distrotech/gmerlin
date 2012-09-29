@@ -141,7 +141,7 @@ static void add_packet(bgav_audio_parser_t * parser, bgav_packet_t * p)
   }
 
 static int parse_frame(bgav_audio_parser_t * parser,
-                                  bgav_packet_t * p)
+                       bgav_packet_t * p)
   {
   if(!parser->parse_frame)
     return PARSER_ERROR;
@@ -201,7 +201,7 @@ static int parse_frame(bgav_audio_parser_t * parser,
   }
 
 static void get_out_packet(bgav_audio_parser_t * parser,
-                    bgav_packet_t * p)
+                           bgav_packet_t * p)
   {
   bgav_packet_alloc(p, parser->frame_bytes);
   memcpy(p->data, parser->buf.buffer, parser->frame_bytes);

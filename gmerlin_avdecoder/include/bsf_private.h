@@ -21,6 +21,9 @@
 
 struct bgav_bsf_s
   {
+  /* Where to get packets */
+  bgav_packet_source_t src;
+  
   void (*cleanup)(bgav_bsf_t*);
   void (*filter)(bgav_bsf_t*, bgav_packet_t * in, bgav_packet_t * out);
   bgav_stream_t * s;
@@ -28,6 +31,11 @@ struct bgav_bsf_s
 
   uint8_t * ext_data;
   int ext_size;
+
+  uint8_t * ext_data_orig;
+  int ext_size_orig;
+  
+  bgav_packet_t * out_packet;
   };
 
 void bgav_bsf_init_avcC(bgav_bsf_t*);

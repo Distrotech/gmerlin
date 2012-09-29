@@ -26,3 +26,9 @@ const uint8_t * bgav_bsf_get_header(bgav_bsf_t * bsf, int * size);
 void bgav_bsf_run(bgav_bsf_t * bsf, bgav_packet_t * in, bgav_packet_t * out);
 
 void bgav_bsf_destroy(bgav_bsf_t * bsf);
+
+bgav_packet_t *
+bgav_bsf_get_packet(void * bsf);
+
+bgav_packet_t *
+bgav_bsf_peek_packet(void * bsf, int force);

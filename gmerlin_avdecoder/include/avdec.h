@@ -1567,6 +1567,20 @@ BGAV_PUBLIC
 int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p);
 
 /** \ingroup readraw
+ *  \brief Get a packet source for an audio stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns The packet source
+ *
+ *  Use this as an alternative for \ref bgav_read_audio_packet
+ */
+
+BGAV_PUBLIC
+gavl_packet_source_t *
+bgav_get_audio_packet_source(bgav_t * bgav, int stream);
+
+  
+/** \ingroup readraw
  *  \brief Read compressed video packet
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
@@ -1580,8 +1594,33 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p);
 BGAV_PUBLIC
 int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p);
 
-  
+/** \ingroup readraw
+ *  \brief Get a packet source for a video stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns The packet source
+ *
+ *  Use this as an alternative for \ref bgav_read_video_packet
+ */
 
+BGAV_PUBLIC
+gavl_packet_source_t *
+bgav_get_video_packet_source(bgav_t * bgav, int stream);
+
+/** \ingroup readraw
+ *  \brief Get a packet source for a text subtitle stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns The packet source
+ *
+ *  Use this as an alternative for \ref bgav_read_subtitle_text
+ */
+
+BGAV_PUBLIC
+gavl_packet_source_t *
+bgav_get_subtitle_packet_source(bgav_t * bgav, int stream);
+
+  
 /** \ingroup streams
  * \brief Select mode for an audio stream
  * \param bgav A decoder instance

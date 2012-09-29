@@ -217,3 +217,21 @@ void bgav_packet_merge_field2(bgav_packet_t * p,
   memcpy(p->data + p->data_size, field2->data, field2->data_size);
   p->data_size += field2->data_size;
   }
+
+void bgav_packet_2_gavl(bgav_packet_t * src,
+                        gavl_packet_t * dst)
+  {
+  dst->pts      = src->pts;
+  dst->duration = src->duration;
+
+  dst->header_size      = src->header_size;
+  dst->field2_offset    = src->field2_offset;
+  dst->sequence_end_pos = src->sequence_end_pos;
+
+  dst->flags    = src->flags & 0xFFFF;
+
+  dst->data = src->data;
+  dst->data_len = src->data_size;
+  dst->data_alloc = src->data_alloc;
+  
+  }

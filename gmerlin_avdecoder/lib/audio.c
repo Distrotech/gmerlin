@@ -168,11 +168,21 @@ int bgav_audio_start(bgav_stream_t * s)
   else if(s->container_bitrate)
     gavl_metadata_set_int(&s->m, GAVL_META_BITRATE,
                           s->container_bitrate);
-  
-  s->data.audio.source =
-    gavl_audio_source_create(get_frame, s, GAVL_SOURCE_SRC_ALLOC | s->src_flags,
-                             &s->data.audio.format);
 
+  if(s->action == BGAV_STREAM_DECODE)
+    s->data.audio.source =
+      gavl_audio_source_create(get_frame, s,
+                               GAVL_SOURCE_SRC_ALLOC | s->src_flags,
+                               &s->data.audio.format);
+#if 1
+  if(s->action == BGAV_STREAM_READRAW)
+    s->psrc =
+      gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
+                                s, GAVL_SOURCE_SRC_ALLOC,
+                                &s->ci, &s->data.audio.format,
+                                NULL);
+#endif
+  
   if(s->data.audio.pre_skip)
     gavl_audio_source_skip_src(s->data.audio.source, s->data.audio.pre_skip);
   
@@ -389,9 +399,17 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
   gavl_codec_id_t id = GAVL_CODEC_ID_NONE;
   bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
 
-  bgav_track_get_compression(bgav->tt->cur);
-  
   memset(info, 0, sizeof(*info));
+
+  if(s->flags & STREAM_GOT_CI)
+    {
+    gavl_compression_info_copy(info, &s->ci);
+    return 1;
+    }
+  else if(s->flags & STREAM_GOT_NO_CI)
+    return 0;
+
+  bgav_track_get_compression(bgav->tt->cur);
   
   if(bgav_check_fourcc(s->fourcc, alaw_fourccs))
     id = GAVL_CODEC_ID_ALAW;
@@ -433,6 +451,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Cannot output compressed audio stream %d: Unsupported codec",
              stream+1);
+    s->flags |= STREAM_GOT_NO_CI;
     return 0;
     }
   if(need_header && !s->ext_size)
@@ -440,6 +459,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Cannot output compressed audio stream %d: Global header missing",
              stream+1);
+    s->flags |= STREAM_GOT_NO_CI;
     return 0;
     }
   if(need_bitrate && !s->container_bitrate && !s->codec_bitrate)
@@ -447,6 +467,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Cannot output compressed audio stream %d: No bitrate specified",
              stream+1);
+    s->flags |= STREAM_GOT_NO_CI;
     return 0;
     }
   info->id = id;
@@ -467,15 +488,24 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     info->bitrate = s->container_bitrate;
 
   info->max_packet_size = s->max_packet_size;
-
+  
+  gavl_compression_info_copy(&s->ci, info);
+  
+  s->flags |= STREAM_GOT_CI;
   return 1;
   }
 
 int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
-  bgav_packet_t * bp;
   bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
 
+  return (gavl_packet_source_read_packet(s->psrc, &p) == GAVL_SOURCE_OK);
+
+#if 0 // Old version
+  
+  bgav_packet_t * bp;
+
+  
   bp = bgav_stream_get_packet_read(s);
   if(!bp)
     return 0;
@@ -483,15 +513,12 @@ int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   gavl_packet_alloc(p, bp->data_size);
   memcpy(p->data, bp->data, bp->data_size);
   p->data_len = bp->data_size;
-  p->pts = bp->pts;
-  p->duration = bp->duration;
 
-  p->flags = bp->flags & 0xFFFF0000;
-  
-  p->flags |= GAVL_PACKET_KEYFRAME;
+  bgav_packet_2_gavl(bp, p);
   bgav_stream_done_packet_read(s, bp);
   
   return 1;
+#endif
   }
 
 BGAV_PUBLIC

@@ -595,7 +595,8 @@ void bgav_track_calc_duration(bgav_track_t * t)
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
-    if(t->video_streams[i].data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
+    if(t->video_streams[i].data.video.format.framerate_mode ==
+       GAVL_FRAMERATE_STILL)
       continue;
     test_duration =
       gavl_time_unscale(t->video_streams[i].data.video.format.timescale,
@@ -795,7 +796,6 @@ void bgav_track_get_compression(bgav_track_t * t)
   {
   int i;
   bgav_stream_t * s;
-  bgav_packet_t * p;
 
   if(t->flags & TRACK_HAS_COMPRESSION)
     return;
@@ -823,7 +823,7 @@ void bgav_track_get_compression(bgav_track_t * t)
     {
     s = &t->video_streams[i];
     bgav_stream_start(s);
-    p = bgav_stream_peek_packet_read(s, 1);
+    bgav_stream_peek_packet_read(s, 1);
     }
   
   /* Set all streams back to mute mode */

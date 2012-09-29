@@ -28,33 +28,16 @@
 #include <bsf_private.h>
 // #include <utils.h>
 
-static const struct
+typedef struct
   {
   uint32_t fourcc;
   void (*init_func)(bgav_bsf_t*);
-  }
-parsers[] =
+  } filter_t;
+
+static const filter_t filters[] =
   {
     { BGAV_MK_FOURCC('a', 'v', 'c', '1'), bgav_bsf_init_avcC },
   };
-
-bgav_bsf_t * bgav_bsf_create(bgav_stream_t * s)
-  {
-  bgav_bsf_t * ret;
-  int i;
-  
-  for(i = 0; i < sizeof(parsers)/sizeof(parsers[0]); i++)
-    {
-    if(s->fourcc == parsers[i].fourcc)
-      {
-      ret = calloc(1, sizeof(*ret));
-      ret->s = s;
-      parsers[i].init_func(ret);
-      return ret;
-      }
-    }
-  return NULL;
-  }
 
 void bgav_bsf_run(bgav_bsf_t * bsf, bgav_packet_t * in, bgav_packet_t * out)
   {
@@ -69,10 +52,114 @@ void bgav_bsf_run(bgav_bsf_t * bsf, bgav_packet_t * in, bgav_packet_t * out)
   bsf->filter(bsf, in, out);
   }
 
+bgav_packet_t *
+bgav_bsf_get_packet(void * bsf_p)
+  {
+  bgav_packet_t * in_packet;
+  bgav_packet_t * ret;
+  
+  bgav_bsf_t * bsf = bsf_p;
+
+  if(bsf->out_packet)
+    {
+    ret = bsf->out_packet;
+    bsf->out_packet = NULL;
+    return ret;
+    }
+  in_packet = bsf->src.get_func(bsf->src.data);
+  if(!in_packet)
+    return NULL;
+
+  ret = bgav_packet_pool_get(bsf->s->pp);
+  bgav_bsf_run(bsf, in_packet, ret);
+
+  bgav_packet_pool_put(bsf->s->pp, in_packet);
+  return ret;
+  }
+
+bgav_packet_t *
+bgav_bsf_peek_packet(void * bsf_p, int force)
+  {
+  bgav_bsf_t * bsf = bsf_p;
+  bgav_packet_t * in_packet;
+
+  if(bsf->out_packet)
+    return bsf->out_packet;
+
+  in_packet = bsf->src.peek_func(bsf->src.data, force);
+  if(!in_packet)
+    return NULL;
+
+  /* We are eating up this packet so we need to remove it from the
+     packet buffer */
+  in_packet = bsf->src.get_func(bsf->src.data);
+
+  if(!in_packet)
+    return NULL; // Impossible but who knows?
+  
+  bsf->out_packet = bgav_packet_pool_get(bsf->s->pp);
+  bgav_bsf_run(bsf, in_packet, bsf->out_packet);
+  bgav_packet_pool_put(bsf->s->pp, in_packet);
+
+  return bsf->out_packet;
+  }
+
+bgav_bsf_t * bgav_bsf_create(bgav_stream_t * s)
+  {
+  const filter_t * f = NULL;
+  bgav_bsf_t * ret;
+  int i;
+  
+  for(i = 0; i < sizeof(filters)/sizeof(filters[0]); i++)
+    {
+    if(s->fourcc == filters[i].fourcc)
+      {
+      f = &filters[i];
+      break;
+      }
+    }
+  if(!f)
+    return NULL;
+
+  ret = calloc(1, sizeof(*ret));
+  ret->s = s;
+  bgav_packet_source_copy(&ret->src, &s->src);
+  
+  s->src.get_func = bgav_bsf_get_packet;
+  s->src.peek_func = bgav_bsf_peek_packet;
+  s->src.data = ret;
+  
+  filters[i].init_func(ret);
+
+  if(ret->ext_data)
+    {
+    ret->ext_data_orig = s->ext_data;
+    ret->ext_size_orig = s->ext_size;
+
+    s->ext_data = ret->ext_data;
+    s->ext_size = ret->ext_size;
+    }
+  
+
+  return ret;
+  }
+
 void bgav_bsf_destroy(bgav_bsf_t * bsf)
   {
   if(bsf->cleanup)
     bsf->cleanup(bsf);
+
+  /* Restore extradata */
+  if(bsf->ext_data_orig)
+    {
+    bsf->s->ext_data = bsf->ext_data_orig;
+    bsf->s->ext_size = bsf->ext_size_orig;
+    }
+
+  /* Warning: This breaks when the bsf is *not* the last element
+     in the processing chain */
+  bgav_packet_source_copy(&bsf->s->src, &bsf->src);
+  
   if(bsf->ext_data)
     free(bsf->ext_data);
   free(bsf);
@@ -83,4 +170,3 @@ const uint8_t * bgav_bsf_get_header(bgav_bsf_t * bsf, int * size)
   *size = bsf->ext_size;
   return bsf->ext_data;
   }
-  

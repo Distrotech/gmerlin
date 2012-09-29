@@ -314,6 +314,9 @@ void bgav_packet_get_text_subtitle(bgav_packet_t * p,
                                    gavl_time_t * start,
                                    gavl_time_t * duration);
 
+void bgav_packet_2_gavl(bgav_packet_t * src,
+                        gavl_packet_t * dst);
+
 
 /* packetbuffer.c */
 
@@ -391,6 +394,10 @@ typedef enum
 #define STREAM_NO_DURATIONS       (1<<18)
 #define STREAM_HAS_DTS            (1<<19)
 #define STREAM_B_PYRAMID          (1<<20)
+
+#define STREAM_GOT_CI             (1<<21) // Compression info present
+#define STREAM_GOT_NO_CI          (1<<22) // Compression info tested but not present
+#define STREAM_DISCONT            (1<<23) // Stream is discontinuous
 
 
 /* Stream could not get exact compression info from the
@@ -528,11 +535,20 @@ struct bgav_stream_s
   bgav_packet_pool_t * pp;  /* Where to put consumed
                                packets for later use */
 
+  bgav_packet_t * out_packet_b;
+  gavl_packet_t out_packet_g;
+  
+  gavl_packet_source_t * psrc; /* Output packets for the public API */
+  
+  
   /* Correct timestamps from broken containers */
   bgav_packet_timer_t * pt;
   
   /* Detect frametypes from broken containers */
   bgav_frametype_detector_t * fd; 
+
+  /* Compression info */
+  gavl_compression_info_t ci;
   
   union
     {
@@ -637,10 +653,24 @@ void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
 void bgav_stream_set_extradata(bgav_stream_t * s, const uint8_t * data, int len);
 
+/* Read for a packet source */
+gavl_source_status_t
+bgav_stream_read_packet_func(void * sp, gavl_packet_t ** p);
 
 /* Top level packet functions */
 bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s);
 void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p);
+
+/* Callbacks for packet sources */
+
+gavl_source_status_t
+bgav_stream_read_func_continuous(bgav_stream_t * s, gavl_packet_t ** p);
+
+/* Read one packet from a discontinuous (e.g. subtitle-) stream */
+
+gavl_source_status_t
+bgav_stream_read_func_discontinuous(bgav_stream_t * s, gavl_packet_t ** p);
+
 
 /* TODO */
 bgav_packet_t * bgav_stream_get_packet_read(bgav_stream_t * s);

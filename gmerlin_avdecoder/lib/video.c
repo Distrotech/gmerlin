@@ -144,7 +144,6 @@ int bgav_video_start(bgav_stream_t * s)
   if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
      !s->data.video.parser)
     {
-    
     s->data.video.parser = bgav_video_parser_create(s);
     if(!s->data.video.parser)
       {
@@ -192,6 +191,18 @@ int bgav_video_start(bgav_stream_t * s)
       return 0;
       }
     s->index_mode = INDEX_MODE_SIMPLE;
+    }
+
+  if((s->action == BGAV_STREAM_READRAW) &&
+     (s->flags & STREAM_FILTER_PACKETS))
+    {
+    s->bsf = bgav_bsf_create(s);
+    if(!bgav_stream_peek_packet_read(s, 1))
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "EOF while initializing bitstream filter");
+      return 0;
+      }
     }
   
   if(s->flags & STREAM_NEED_START_TIME)
@@ -242,7 +253,7 @@ int bgav_video_start(bgav_stream_t * s)
     result = dec->init(s);
     if(!result)
       return 0;
-
+    
     if(s->data.video.frame)
       {
       int src_flags = GAVL_SOURCE_SRC_ALLOC | s->src_flags;
@@ -262,6 +273,15 @@ int bgav_video_start(bgav_stream_t * s)
                                  &s->data.video.format);
       }
     }
+  else if(s->action == BGAV_STREAM_READRAW)
+    {
+    s->psrc =
+      gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
+                                s,
+                                GAVL_SOURCE_SRC_ALLOC,
+                                &s->ci,
+                                NULL, &s->data.video.format);
+    }
 
   if(s->codec_bitrate)
     gavl_metadata_set_int(&s->m, GAVL_META_BITRATE,
@@ -274,6 +294,10 @@ int bgav_video_start(bgav_stream_t * s)
     s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
   if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
     s->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
+
+  if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
+    s->flags = STREAM_DISCONT;
+
   return 1;
   }
 
@@ -309,6 +333,12 @@ void bgav_video_dump(bgav_stream_t * s)
 
 void bgav_video_stop(bgav_stream_t * s)
   {
+  if(s->bsf)
+    {
+    bgav_bsf_destroy(s->bsf);
+    s->bsf = NULL;
+    }
+
   if(s->data.video.parser)
     {
     bgav_video_parser_destroy(s->data.video.parser);
@@ -801,10 +831,19 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   gavl_codec_id_t id;
   bgav_stream_t * s = &bgav->tt->cur->video_streams[stream];
   int need_bitrate = 0;
-  
-  bgav_track_get_compression(bgav->tt->cur);
+  bgav_bsf_t * bsf = NULL;
   
   memset(info, 0, sizeof(*info));
+
+  if(s->flags & STREAM_GOT_CI)
+    {
+    gavl_compression_info_copy(info, &s->ci);
+    return 1;
+    }
+  else if(s->flags & STREAM_GOT_NO_CI)
+    return 0;
+
+  bgav_track_get_compression(bgav->tt->cur);
   
   if(bgav_check_fourcc(s->fourcc, bgav_png_fourccs))
     id = GAVL_CODEC_ID_PNG;
@@ -841,33 +880,26 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   else if(bgav_video_is_divx4(s->fourcc))
     id = GAVL_CODEC_ID_MPEG4_ASP;
   else
+    {
+    s->flags |= STREAM_GOT_NO_CI;
     return 0;
-
+    }
   if(gavl_compression_need_pixelformat(id) &&
      s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
     {
     bgav_log(&bgav->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Video compression format needs pixelformat for compressed output");
+    s->flags |= STREAM_GOT_NO_CI;
     return 0;
     }
   
   info->id = id;
 
-  if(s->flags & STREAM_FILTER_PACKETS)
-    {
-    const uint8_t * header;
-    int header_size;
-    s->bsf = bgav_bsf_create(s);
-    header = bgav_bsf_get_header(s->bsf, &header_size);
-
-    if(header)
-      {
-      info->global_header = malloc(header_size);
-      memcpy(info->global_header, header, header_size);
-      info->global_header_len = header_size;
-      }
-    }
-  else if(s->ext_size)
+  /* Create the filtered extradata */
+  if((s->flags & STREAM_FILTER_PACKETS) && !s->bsf)
+    bsf = bgav_bsf_create(s);
+  
+  if(s->ext_size)
     {
     info->global_header = malloc(s->ext_size);
     memcpy(info->global_header, s->ext_data, s->ext_size);
@@ -878,6 +910,10 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
                                     &info->global_header_len);
     }
 
+  /* Restore everything */
+  if(bsf)
+    bgav_bsf_destroy(bsf);
+  
   if(s->codec_bitrate)
     info->bitrate = s->codec_bitrate;
   else if(s->container_bitrate)
@@ -887,6 +923,7 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     {
     bgav_log(&bgav->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Video compression format needs bitrate for compressed output");
+    s->flags |= STREAM_GOT_NO_CI;
     return 0;
     }
   
@@ -898,60 +935,34 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     info->flags |= GAVL_COMPRESSION_HAS_FIELD_PICTURES;
   
   info->max_packet_size = s->max_packet_size;
+
+  gavl_compression_info_copy(&s->ci, info);
+  s->flags |= STREAM_GOT_CI;
   
   return 1;
   }
 
-static void copy_packet_fields(gavl_packet_t * p, bgav_packet_t * bp)
-  {
-  p->pts = bp->pts;
-  p->duration = bp->duration;
-
-  p->header_size   = bp->header_size;
-  p->field2_offset = bp->field2_offset;
-  
-  p->sequence_end_pos = bp->sequence_end_pos;
-  p->flags = bp->flags & 0xFFFF;
-  }
 
 int bgav_read_video_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
-  bgav_packet_t * bp;
   bgav_stream_t * s = &bgav->tt->cur->video_streams[stream];
+  
+  return (gavl_packet_source_read_packet(s->psrc, &p) == GAVL_SOURCE_OK);
+#if 0
+  bgav_packet_t * bp;
   
   bp = bgav_stream_get_packet_read(s);
   if(!bp)
     return 0;
-
-  //  fprintf(stderr, "bgav_read_video_packet\n");
-  //  bgav_packet_dump(bp);
   
-  if(s->flags & STREAM_FILTER_PACKETS)
-    {
-    bgav_packet_t tmp_packet;
-    memset(&tmp_packet, 0, sizeof(tmp_packet));
+  gavl_packet_alloc(p, bp->data_size);
+  memcpy(p->data, bp->data, bp->data_size);
+  p->data_len = bp->data_size;
 
-    tmp_packet.data = p->data;
-    tmp_packet.data_alloc = p->data_alloc;
-    bgav_bsf_run(s->bsf, bp, &tmp_packet);
+  bgav_packet_2_gavl(bp, p);
 
-    p->data = tmp_packet.data;
-    p->data_alloc = tmp_packet.data_alloc;
-    p->data_len  = tmp_packet.data_size;
-
-    copy_packet_fields(p, &tmp_packet);
-    }
-  else
-    {
-    gavl_packet_alloc(p, bp->data_size);
-    memcpy(p->data, bp->data, bp->data_size);
-    p->data_len = bp->data_size;
-
-    copy_packet_fields(p, bp);
-    }
-  
   bgav_stream_done_packet_read(s, bp);
-  
+#endif
   return 1;
   }
 

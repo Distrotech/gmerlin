@@ -289,6 +289,8 @@ void bgav_stop(bgav_t * b)
 static void set_stream_demuxer(bgav_stream_t * s,
                                bgav_demuxer_context_t * demuxer)
   {
+  /* TODO: Handle subreaders */
+
   s->demuxer = demuxer;
   s->src.data = s;
   s->src.get_func = bgav_demuxer_get_packet_read;

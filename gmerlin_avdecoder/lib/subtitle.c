@@ -124,10 +124,11 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   else
     return 0; /* Never get here */
   
-  /* Convert packet to subtitle */
   if(!p)
     return 0;
 
+  /* Convert packet to subtitle */
+  
   if(s->data.subtitle.cnv)
     {
     if(!bgav_convert_string_realloc(s->data.subtitle.cnv,
@@ -243,6 +244,7 @@ int bgav_subtitle_start(bgav_stream_t * s)
       s->data.subtitle.cnv =
         bgav_charset_converter_create(s->opt, s->opt->default_subtitle_encoding,
                                       "UTF-8");
+    s->flags |= STREAM_DISCONT;
     }
   else
     {

@@ -40,7 +40,8 @@ int bgav_video_parser_supported(uint32_t fourcc);
 void bgav_video_parser_destroy(bgav_video_parser_t *);
 
 /* Either in_pts or out_pts can (should) be undefined */
-void bgav_video_parser_reset(bgav_video_parser_t *, int64_t in_pts, int64_t out_pts);
+void bgav_video_parser_reset(bgav_video_parser_t *,
+                             int64_t in_pts, int64_t out_pts);
 
 void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p);
