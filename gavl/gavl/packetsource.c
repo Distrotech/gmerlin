@@ -114,23 +114,28 @@ gavl_packet_source_read_packet(void*sp, gavl_packet_t ** p)
   gavl_packet_t *p_dst;
   
   gavl_packet_source_t * s = sp;
-  
+
+  gavl_packet_reset(&s->p);
+
+  /* Decide source */
   if(s->src_flags & GAVL_SOURCE_SRC_ALLOC)
     p_src = NULL;
   else
     p_src = &s->p;
-
+  
+  /* Decide destination */
   if(*p)
     p_dst = *p;
   else
     p_dst = &s->p;
 
-  gavl_packet_reset(p_src);
+  /* Get packet */
   st = s->func(s->priv, &p_src);
 
   if(st != GAVL_SOURCE_OK)
     return st;
 
+  /* Memcpy (if necessary) */
   if(p_src != p_dst)
     gavl_packet_copy(p_dst, p_src);
   
