@@ -102,7 +102,7 @@ static int do_convert(bgav_charset_converter_t * cnv,
             ((uint8_t)in_string[1] == 0xff))
       cnv->cd = iconv_open(cnv->out_charset, "UTF-16BE");
     /* UTF-8 */
-    else if(!strcmp(cnv->out_charset, "UTF-8"))
+    else if(!strcmp(cnv->out_charset, BGAV_UTF8))
       {
       if(*ret_alloc < len+1)
         {
@@ -117,7 +117,7 @@ static int do_convert(bgav_charset_converter_t * cnv,
       }
     else
       {
-      cnv->cd = iconv_open(cnv->out_charset, "UTF-8");
+      cnv->cd = iconv_open(cnv->out_charset, BGAV_UTF8);
       }
     }
   
@@ -315,7 +315,7 @@ void bgav_input_detect_charset(bgav_input_context_t * ctx)
         return;
         }
       }
-    ctx->charset = bgav_strdup("UTF-8");
+    ctx->charset = bgav_strdup(BGAV_UTF8);
     bgav_input_seek(ctx, old_position, SEEK_SET);
     if(line) free(line);
     return;

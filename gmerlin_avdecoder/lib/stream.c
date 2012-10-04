@@ -391,10 +391,8 @@ bgav_stream_read_packet_func(void * sp, gavl_packet_t ** p)
   return GAVL_SOURCE_OK;
   }
 
-
-
-
-void bgav_stream_set_extradata(bgav_stream_t * s, const uint8_t * data, int len)
+void bgav_stream_set_extradata(bgav_stream_t * s,
+                               const uint8_t * data, int len)
   {
   if(len <= 0)
     return;

@@ -301,7 +301,7 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
       }
     for(j = 0; j < track->num_subtitle_streams; j++)
       {
-      if(track->subtitle_streams[j].data.subtitle.subreader)
+      if(track->subtitle_streams[j].flags & STREAM_SUBREADER)
         continue;
       
       s = &track->subtitle_streams[j];
@@ -1033,7 +1033,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       {
       for(i = 0; i < track->num_subtitle_streams; i++)
         {
-        if(track->subtitle_streams[i].data.subtitle.subreader)
+        if(track->subtitle_streams[i].flags & STREAM_SUBREADER)
           continue;
         ogg_stream = track->subtitle_streams[i].priv;
         if(ogg_stream->header_packets_read < ogg_stream->header_packets_needed)
@@ -1521,7 +1521,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
         }
       for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
         {
-        if(ctx->tt->tracks[i].subtitle_streams[j].data.subtitle.subreader)
+        if(ctx->tt->tracks[i].subtitle_streams[j].flags & STREAM_SUBREADER)
           continue;
     
         stream_priv =
@@ -2241,7 +2241,7 @@ static void reset_track(bgav_track_t * track, int bos)
   
   for(i = 0; i < track->num_subtitle_streams; i++)
     {
-    if(track->subtitle_streams[i].data.subtitle.subreader)
+    if(track->subtitle_streams[i].flags & STREAM_SUBREADER)
       continue;
     stream_priv = track->subtitle_streams[i].priv;
     ogg_stream_reset(&stream_priv->os);
@@ -2268,7 +2268,7 @@ static void resync_ogg(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
       ogg_stream_reset(&stream_priv->os);
       break;
     case BGAV_STREAM_SUBTITLE_TEXT:
-      if(!s->data.subtitle.subreader)
+      if(!(s->flags & STREAM_SUBREADER))
         ogg_stream_reset(&stream_priv->os);
       break;
     case BGAV_STREAM_SUBTITLE_OVERLAY:
@@ -2403,7 +2403,7 @@ static void init_track(bgav_track_t * track)
   
   for(i = 0; i < track->num_subtitle_streams; i++)
     {
-    if(track->subtitle_streams[i].data.subtitle.subreader)
+    if(track->subtitle_streams[i].flags & STREAM_SUBREADER)
       continue;
     stream_priv = track->subtitle_streams[i].priv;
     ogg_stream_reset(&stream_priv->os);

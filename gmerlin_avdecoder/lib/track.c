@@ -83,13 +83,19 @@ static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
   if(!r)
     bgav_stream_create_packet_buffer(ret);
   else
+    {
     ret->data.subtitle.subreader = r;
-  
+    ret->flags |= STREAM_SUBREADER;
+    }
   if(text)
     {
     ret->type = BGAV_STREAM_SUBTITLE_TEXT;
     if(charset)
-      ret->data.subtitle.charset = bgav_strdup(charset);
+      ret->data.subtitle.charset =
+        bgav_strdup(charset);
+    else
+      ret->data.subtitle.charset =
+        bgav_strdup(ret->opt->default_subtitle_encoding);
     }
   else
     ret->type = BGAV_STREAM_SUBTITLE_OVERLAY;
@@ -124,6 +130,7 @@ bgav_track_attach_subtitle_reader(bgav_track_t * t,
                             NULL, r);
   if(r->info)
     gavl_metadata_set(&ret->m, GAVL_META_LABEL, r->info);
+  r->s = ret;
   return ret;
   }
 

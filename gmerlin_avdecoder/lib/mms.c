@@ -422,7 +422,7 @@ bgav_mms_t * bgav_mms_open(const bgav_options_t * opt,
   bgav_mms_t * ret = NULL;
 
   ascii_2_utf16 = bgav_charset_converter_create(opt, "ASCII", "UTF-16LE");
-  utf16_2_utf8  = bgav_charset_converter_create(opt, "UTF-16LE", "UTF-8");
+  utf16_2_utf8  = bgav_charset_converter_create(opt, "UTF-16LE", BGAV_UTF8);
   
   
   if(!bgav_url_split(url,

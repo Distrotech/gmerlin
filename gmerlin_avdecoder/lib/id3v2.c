@@ -255,21 +255,21 @@ static char ** read_string_list(const bgav_options_t * opt,
     {
     case ENCODING_LATIN1:
       bytes_per_char = 1;
-      cnv = bgav_charset_converter_create(opt, "LATIN1", "UTF-8");
+      cnv = bgav_charset_converter_create(opt, "LATIN1", BGAV_UTF8);
       pos = ((char*)data) + 1;
       break;
     case ENCODING_UTF16_BOM:
       bytes_per_char = 2;
 
       if((data[1] == 0xFF) && (data[2] == 0xFE))
-        cnv = bgav_charset_converter_create(opt, "UTF16LE", "UTF-8");
+        cnv = bgav_charset_converter_create(opt, "UTF16LE", BGAV_UTF8);
       else if((data[2] == 0xFF) && (data[1] == 0xFE))
-        cnv = bgav_charset_converter_create(opt, "UTF16BE", "UTF-8");
+        cnv = bgav_charset_converter_create(opt, "UTF16BE", BGAV_UTF8);
       pos = ((char*)data) + 3;
       break;
     case ENCODING_UTF16_BE:
       bytes_per_char = 2;
-      cnv = bgav_charset_converter_create(opt, "UTF16BE", "UTF-8");
+      cnv = bgav_charset_converter_create(opt, "UTF16BE", BGAV_UTF8);
       pos = ((char*)data) + 1;
       break;
     case ENCODING_UTF8:
@@ -628,21 +628,21 @@ static char * get_comment(const bgav_options_t * opt,
     {
     case ENCODING_LATIN1:
       bytes_per_char = 1;
-      cnv = bgav_charset_converter_create(opt, "LATIN1", "UTF-8");
+      cnv = bgav_charset_converter_create(opt, "LATIN1", BGAV_UTF8);
       pos = frame->data + 4;
       break;
     case ENCODING_UTF16_BOM:
       bytes_per_char = 2;
 
       if((frame->data[4] == 0xFF) && (frame->data[5] == 0xFE))
-        cnv = bgav_charset_converter_create(opt, "UTF16LE", "UTF-8");
+        cnv = bgav_charset_converter_create(opt, "UTF16LE", BGAV_UTF8);
       else if((frame->data[5] == 0xFF) && (frame->data[4] == 0xFE))
-        cnv = bgav_charset_converter_create(opt, "UTF16BE", "UTF-8");
+        cnv = bgav_charset_converter_create(opt, "UTF16BE", BGAV_UTF8);
       pos = frame->data + 6;
       break;
     case ENCODING_UTF16_BE:
       bytes_per_char = 2;
-      cnv = bgav_charset_converter_create(opt, "UTF16BE", "UTF-8");
+      cnv = bgav_charset_converter_create(opt, "UTF16BE", BGAV_UTF8);
       pos = frame->data + 4;
       break;
     case ENCODING_UTF8:

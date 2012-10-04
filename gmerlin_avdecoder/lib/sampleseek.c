@@ -334,7 +334,7 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
 
   s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
 
-  if(s->data.subtitle.subreader)
+  if(s->flags & STREAM_SUBREADER)
     {
     bgav_subtitle_reader_seek(s, time, s->timescale);
     return;

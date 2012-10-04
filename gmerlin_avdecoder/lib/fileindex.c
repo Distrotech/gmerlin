@@ -533,7 +533,7 @@ static void set_has_file_index(bgav_t * b)
       {
       s = &b->tt->tracks[i].subtitle_streams[j];
 
-      if(!s->data.subtitle.subreader)
+      if(!(s->flags & STREAM_SUBREADER))
         {
         update_duration(s, s->timescale,
                         &b->tt->tracks[i].duration);
@@ -879,7 +879,7 @@ static int build_file_index_simple(bgav_t * b)
       flush_stream_simple(&b->tt->cur->video_streams[j], 0);
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
       {
-      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+      if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
         flush_stream_simple(&b->tt->cur->subtitle_streams[j], 0);
       }
     }
@@ -897,7 +897,7 @@ static int build_file_index_simple(bgav_t * b)
   for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
     {
     s = &b->tt->cur->subtitle_streams[j];
-    if(!s->data.subtitle.subreader)
+    if(!(s->flags & STREAM_SUBREADER))
       flush_stream_simple(s, 1);
     }
   bgav_input_seek(b->input, old_position, SEEK_SET);
@@ -943,7 +943,7 @@ static int build_file_index_mixed(bgav_t * b)
       }
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
       {
-      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+      if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
         {
         switch(b->tt->cur->subtitle_streams[j].index_mode)
           {
@@ -983,7 +983,7 @@ static int build_file_index_mixed(bgav_t * b)
     }
   for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
     {
-    if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+    if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
       {
       switch(b->tt->cur->subtitle_streams[j].index_mode)
         {
@@ -1019,7 +1019,7 @@ static int bgav_build_file_index_parseall(bgav_t * b)
       }
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
       {
-      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+      if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
         {
         b->tt->cur->subtitle_streams[j].file_index = bgav_file_index_create();
         bgav_set_subtitle_stream(b, j, BGAV_STREAM_PARSE);
@@ -1051,7 +1051,7 @@ static int bgav_build_file_index_parseall(bgav_t * b)
       bgav_set_video_stream(b, j, BGAV_STREAM_MUTE);
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
       {
-      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+      if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
         {
         bgav_set_subtitle_stream(b, j, BGAV_STREAM_MUTE);
         }

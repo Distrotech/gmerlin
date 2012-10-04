@@ -148,7 +148,7 @@ static int init_track(bgav_track_t * track,
         s->data.audio.pre_skip = ph->streams[i].ci.pre_skip;
         break;
       case GAVF_STREAM_TEXT:
-        s = bgav_track_add_subtitle_stream(track, opt, 1, "UTF-8");
+        s = bgav_track_add_subtitle_stream(track, opt, 1, BGAV_UTF8);
         s->timescale = ph->streams[i].format.text.timescale;
         break;
       }

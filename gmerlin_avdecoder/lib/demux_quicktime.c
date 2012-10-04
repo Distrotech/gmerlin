@@ -646,7 +646,7 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
   moov = &priv->moov;
 
   if(!moov->udta.have_ilst)
-    cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", "UTF-8");
+    cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", BGAV_UTF8);
     
   
   SET_UDTA_STRING(GAVL_META_ARTIST,    ART);
@@ -886,7 +886,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
     charset = bgav_qt_get_charset(trak->mdia.mdhd.language);
 
   if(charset)
-    cnv = bgav_charset_converter_create(ctx->opt, charset, "UTF-8");
+    cnv = bgav_charset_converter_create(ctx->opt, charset, BGAV_UTF8);
   else
     {
     cnv = NULL;

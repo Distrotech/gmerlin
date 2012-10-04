@@ -917,7 +917,7 @@ static char * decode_eit_string(const bgav_options_t * opt,
     return NULL;
     }
 
-  cnv = bgav_charset_converter_create(opt, charset, "UTF-8");
+  cnv = bgav_charset_converter_create(opt, charset, BGAV_UTF8);
   ret = bgav_convert_string(cnv, (char*)pos, len, NULL);
   bgav_charset_converter_destroy(cnv);
   return ret;

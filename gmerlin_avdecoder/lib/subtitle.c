@@ -72,7 +72,7 @@ int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
   else
     return 0;
   
-  if(s->data.subtitle.subreader)
+  if(s->flags & STREAM_SUBREADER)
     {
     return bgav_subtitle_reader_read_overlay(s, ovl);
     }
@@ -112,17 +112,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   else
     return 0;
   
-  if(s->packet_buffer)
-    {
-    p = bgav_stream_get_packet_read(s);
-    // bgav_packet_get_text_subtitle(p, ret, ret_alloc, start_time, duration);
-    }
-  else if(s->data.subtitle.subreader)
-    {
-    p = bgav_subtitle_reader_read_text(s);
-    }
-  else
-    return 0; /* Never get here */
+  p = bgav_stream_get_packet_read(s);
   
   if(!p)
     return 0;
@@ -153,8 +143,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   
   remove_cr(*ret);
     
-  if(s->packet_buffer)
-    bgav_stream_done_packet_read(s, p);
+  bgav_stream_done_packet_read(s, p);
   
   return 1;
   }
@@ -164,7 +153,11 @@ int bgav_has_subtitle(bgav_t * b, int stream)
   bgav_stream_t * s = &b->tt->cur->subtitle_streams[stream];
   int force;
   
-  if(s->packet_buffer)
+  if(s->flags & STREAM_SUBREADER)
+    {
+    return 1;
+    }
+  else
     {
     if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
       {
@@ -196,18 +189,6 @@ int bgav_has_subtitle(bgav_t * b, int stream)
         return 0;
       }
     }
-  else if(s->data.subtitle.subreader)
-    {
-    if(bgav_subtitle_reader_has_subtitle(s))
-      return 1;
-    else
-      {
-      s->flags |= STREAM_EOF_C;
-      return 1;
-      }
-    }
-  else
-    return 0;
   }
 
 
@@ -215,7 +196,9 @@ void bgav_subtitle_dump(bgav_stream_t * s)
   {
   if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
     {
-    bgav_dprintf( "  Character set:     %s\n", s->data.subtitle.charset);
+    bgav_dprintf( "  Character set:     %s\n",
+                  (s->data.subtitle.charset ? s->data.subtitle.charset :
+                   BGAV_UTF8));
     }
   bgav_dprintf( "  Format:\n");
   gavl_video_format_dump(&s->data.subtitle.format);
@@ -236,14 +219,14 @@ int bgav_subtitle_start(bgav_stream_t * s)
     
     if(s->data.subtitle.charset)
       {
-      if(strcmp(s->data.subtitle.charset, "UTF-8"))
+      if(strcmp(s->data.subtitle.charset, BGAV_UTF8))
         s->data.subtitle.cnv =
-          bgav_charset_converter_create(s->opt, s->data.subtitle.charset, "UTF-8");
+          bgav_charset_converter_create(s->opt, s->data.subtitle.charset, BGAV_UTF8);
       }
-    else if(strcmp(s->opt->default_subtitle_encoding, "UTF-8"))
+    else if(strcmp(s->opt->default_subtitle_encoding, BGAV_UTF8))
       s->data.subtitle.cnv =
         bgav_charset_converter_create(s->opt, s->opt->default_subtitle_encoding,
-                                      "UTF-8");
+                                      BGAV_UTF8);
     s->flags |= STREAM_DISCONT;
     }
   else

@@ -89,7 +89,7 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
     if(track->subtitle_streams[j].action == BGAV_STREAM_MUTE)
       continue;
     seek_time = time;
-    if(!track->subtitle_streams[j].data.subtitle.subreader)
+    if(!(track->subtitle_streams[j].flags & STREAM_SUBREADER))
       bgav_superindex_seek(ctx->si, &track->subtitle_streams[j],
                            &seek_time, scale);
     }
@@ -435,8 +435,8 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
   /* Let the subtitle readers seek */
   for(i = 0; i < track->num_subtitle_streams; i++)
     {
-    if(track->subtitle_streams[i].data.subtitle.subreader &&
-       track->subtitle_streams[i].action != BGAV_STREAM_MUTE)
+    if((track->subtitle_streams[i].flags & STREAM_SUBREADER) &&
+       (track->subtitle_streams[i].action != BGAV_STREAM_MUTE))
       {
       /* Clear EOF state */
       track->subtitle_streams[i].flags &= ~(STREAM_EOF_C|STREAM_EOF_D);

@@ -143,7 +143,9 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
     //    p->icy_bytes = p->icy_metaint;
     /* Then, we'll also need a charset converter */
 
-    p->charset_cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", "UTF-8");
+    p->charset_cnv = bgav_charset_converter_create(ctx->opt,
+                                                   "ISO-8859-1",
+                                                   BGAV_UTF8);
     }
 
   /* Get Metadata */

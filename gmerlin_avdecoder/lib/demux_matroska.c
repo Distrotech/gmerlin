@@ -519,7 +519,7 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
   if(!strcmp(track->CodecID, "S_TEXT/UTF8"))
     {
     // fprintf(stderr, "UTF-8 subtitles\n");
-    s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 1, "UTF-8");
+    s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 1, BGAV_UTF8);
     gavl_metadata_set(&s->m, GAVL_META_FORMAT, "SRT");
 
     }

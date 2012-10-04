@@ -51,7 +51,7 @@ static int init_srt(bgav_stream_t * s)
   return 1;
   }
 
-static int read_srt(bgav_stream_t * s)
+static int read_srt(bgav_stream_t * s, bgav_packet_t * p)
   {
   int lines_read, line_len;
   int a1,a2,a3,a4,b1,b2,b3,b4;
@@ -110,18 +110,18 @@ static int read_srt(bgav_stream_t * s)
   end *= 1000;
   end += b4;
   
-  ctx->p->pts = start + ctx->time_offset;
-  ctx->p->duration = end - start;
+  p->pts = start + ctx->time_offset;
+  p->duration = end - start;
 
-  ctx->p->pts = gavl_time_rescale(ctx->scale_den,
+  p->pts = gavl_time_rescale(ctx->scale_den,
+                             ctx->scale_num,
+                             p->pts);
+
+  p->duration = gavl_time_rescale(ctx->scale_den,
                                   ctx->scale_num,
-                                  ctx->p->pts);
-
-  ctx->p->duration = gavl_time_rescale(ctx->scale_den,
-                                       ctx->scale_num,
-                                       ctx->p->duration);
+                                  p->duration);
   
-  ctx->p->data_size = 0;
+  p->data_size = 0;
   
   /* Read lines until we are done */
 
@@ -141,21 +141,22 @@ static int read_srt(bgav_stream_t * s)
       /* Zero terminate */
       if(lines_read)
         {
-        ctx->p->data[ctx->p->data_size] = '\0';
-        ctx->p->data_size++;
+        p->data[p->data_size] = '\0';
+        // Terminator doesn't count for data size
+        // p->data_size++;
         }
       return 1;
       }
     if(lines_read)
       {
-      ctx->p->data[ctx->p->data_size] = '\n';
-      ctx->p->data_size++;
+      p->data[p->data_size] = '\n';
+      p->data_size++;
       }
     
     lines_read++;
-    bgav_packet_alloc(ctx->p, ctx->p->data_size + line_len + 2);
-    memcpy(ctx->p->data + ctx->p->data_size, ctx->line, line_len);
-    ctx->p->data_size += line_len;
+    bgav_packet_alloc(p, p->data_size + line_len + 2);
+    memcpy(p->data + p->data_size, ctx->line, line_len);
+    p->data_size += line_len;
     }
   
   return 0;
@@ -177,7 +178,8 @@ static int probe_mpsub(char * line)
   while(isspace(*line) && (*line != '\0'))
     line++;
   
-  if(!strncmp(line, "FORMAT=TIME", 11) || (sscanf(line, "FORMAT=%f", &f) == 1))
+  if(!strncmp(line, "FORMAT=TIME", 11) ||
+     (sscanf(line, "FORMAT=%f", &f) == 1))
     return 1;
   return 0;
   }
@@ -194,7 +196,8 @@ static int init_mpsub(bgav_stream_t * s)
   s->timescale = GAVL_TIME_SCALE;
   while(1)
     {
-    if(!bgav_input_read_line(ctx->input, &ctx->line, &ctx->line_alloc, 0, &line_len))
+    if(!bgav_input_read_line(ctx->input, &ctx->line,
+                             &ctx->line_alloc, 0, &line_len))
       return 0;
 
     ptr = ctx->line;
@@ -214,7 +217,7 @@ static int init_mpsub(bgav_stream_t * s)
   return 0;
   }
 
-static int read_mpsub(bgav_stream_t * s)
+static int read_mpsub(bgav_stream_t * s, bgav_packet_t * p)
   {
   int i1, i2;
   double d1, d2;
@@ -230,7 +233,8 @@ static int read_mpsub(bgav_stream_t * s)
     
   while(1)
     {
-    if(!bgav_input_read_line(ctx->input, &ctx->line, &ctx->line_alloc, 0, &line_len))
+    if(!bgav_input_read_line(ctx->input, &ctx->line,
+                             &ctx->line_alloc, 0, &line_len))
       return 0;
 
     ptr = ctx->line;
@@ -268,13 +272,13 @@ static int read_mpsub(bgav_stream_t * s)
 
   /* Set times */
 
-  ctx->p->pts = priv->last_end_time + t1;
-  ctx->p->duration  = t2;
+  p->pts = priv->last_end_time + t1;
+  p->duration  = t2;
   
-  priv->last_end_time = ctx->p->pts + ctx->p->duration;
+  priv->last_end_time = p->pts + p->duration;
   
   /* Read the actual stuff */
-  ctx->p->data_size = 0;
+  p->data_size = 0;
   
   /* Read lines until we are done */
 
@@ -295,21 +299,22 @@ static int read_mpsub(bgav_stream_t * s)
       /* Zero terminate */
       if(lines_read)
         {
-        ctx->p->data[ctx->p->data_size] = '\0';
-        ctx->p->data_size++;
+        // Terminator doesn't count to data size
+        p->data[p->data_size] = '\0';
+        //        p->data_size++;
         }
       return 1;
       }
     if(lines_read)
       {
-      ctx->p->data[ctx->p->data_size] = '\n';
-      ctx->p->data_size++;
+      p->data[p->data_size] = '\n';
+      p->data_size++;
       }
     
     lines_read++;
-    bgav_packet_alloc(ctx->p, ctx->p->data_size + line_len + 2);
-    memcpy(ctx->p->data + ctx->p->data_size, ctx->line, line_len);
-    ctx->p->data_size += line_len;
+    bgav_packet_alloc(p, p->data_size + line_len + 2);
+    memcpy(p->data + p->data_size, ctx->line, line_len);
+    p->data_size += line_len;
     }
   return 0;
   }
@@ -823,7 +828,6 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     new->filename = bgav_strdup(glob_buf.gl_pathv[i]);
     new->input    = bgav_input_create(input_ctx->opt);
     new->reader   = r;
-    new->p = bgav_packet_create();
 
     name = glob_buf.gl_pathv[i] + base_len;
     
@@ -879,48 +883,11 @@ void bgav_subtitle_reader_destroy(bgav_stream_t * s)
     free(ctx->info);
   if(ctx->filename)
     free(ctx->filename);
-  if(ctx->p)
-    bgav_packet_destroy(ctx->p);
   if(ctx->line)
     free(ctx->line);
   if(ctx->input)
     bgav_input_destroy(ctx->input);
   free(ctx);
-  
-  }
-
-int bgav_subtitle_reader_has_subtitle(bgav_stream_t * s)
-  {
-  bgav_subtitle_reader_context_t * ctx;
-  ctx = s->data.subtitle.subreader;
-
-  if(!ctx->has_subtitle)
-    {
-    if(ctx->reader->read_subtitle_text &&
-       ctx->reader->read_subtitle_text(s))
-      ctx->has_subtitle = 1;
-    else if(ctx->reader->read_subtitle_overlay &&
-            ctx->reader->read_subtitle_overlay(s))
-      ctx->has_subtitle = 1;
-    }
-  return ctx->has_subtitle;
-  }
-
-bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t * s)
-  {
-  bgav_subtitle_reader_context_t * ctx;
-  ctx = s->data.subtitle.subreader;
-
-  if(!ctx->has_subtitle && ctx->reader->read_subtitle_text(s))
-    ctx->has_subtitle = 1;
-
-  if(ctx->has_subtitle)
-    {
-    ctx->has_subtitle = 0;
-    return s->data.subtitle.subreader->p;
-    }
-  else
-    return NULL;
   }
 
 int bgav_subtitle_reader_start(bgav_stream_t * s)
@@ -932,7 +899,7 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
 
   bgav_input_detect_charset(ctx->input);
   if(ctx->input->charset) /* We'll do charset conversion by the input */
-    s->data.subtitle.charset = bgav_strdup("UTF-8");
+    s->data.subtitle.charset = bgav_strdup(BGAV_UTF8);
   
   if(ctx->reader->init && !ctx->reader->init(s))
     return 0;
@@ -947,7 +914,6 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
 void bgav_subtitle_reader_seek(bgav_stream_t * s,
                                int64_t time1, int scale)
   {
-  int titles_skipped;
   bgav_subtitle_reader_context_t * ctx;
   int64_t time = gavl_time_rescale(scale, s->timescale, time1);
   
@@ -959,19 +925,17 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
   else if(ctx->input->input->seek_byte)
     {
     bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
-
-    titles_skipped = 0;
-
+    
     ctx->time_offset = 0;
     if(ctx->reader->read_subtitle_text)
       {
-      while(ctx->reader->read_subtitle_text(s))
+      if(!ctx->out_packet)
+        ctx->out_packet = bgav_packet_pool_get(s->pp);
+      
+      while(ctx->reader->read_subtitle_text(s, ctx->out_packet))
         {
-        if(ctx->p->pts + ctx->p->duration < time)
-          {
-          titles_skipped++;
+        if(ctx->out_packet->pts + ctx->out_packet->duration < time)
           continue;
-          }
         else
           break;
         }
@@ -981,10 +945,7 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
       while(ctx->reader->read_subtitle_overlay(s))
         {
         if(ctx->ovl.frame->timestamp + ctx->ovl.frame->duration < time)
-          {
-          titles_skipped++;
           continue;
-          }
         else
           break;
         }
@@ -1021,4 +982,68 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t * s, gavl_overlay_t * ovl)
     }
   else
     return 0;
+  }
+
+#if 0
+bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t * s)
+  {
+  bgav_subtitle_reader_context_t * ctx;
+  ctx = s->data.subtitle.subreader;
+
+  if(!ctx->has_subtitle && ctx->reader->read_subtitle_text(s))
+    ctx->has_subtitle = 1;
+
+  if(ctx->has_subtitle)
+    {
+    ctx->has_subtitle = 0;
+    return s->data.subtitle.subreader->p;
+    }
+  else
+    return NULL;
+  }
+#endif
+
+/* Generic functions */
+
+bgav_packet_t *
+bgav_subtitle_reader_read_text_packet(void * subreader)
+  {
+  bgav_subtitle_reader_context_t * ctx = subreader;
+
+  bgav_packet_t * ret;
+  if(ctx->out_packet)
+    {
+    ret = ctx->out_packet;
+    ctx->out_packet = NULL;
+    return ret;
+    }
+  ret = bgav_packet_pool_get(ctx->s->pp);
+  
+  if(ctx->reader->read_subtitle_text(ctx->s, ret))
+    return ret;
+  else
+    {
+    bgav_packet_pool_put(ctx->s->pp, ret);
+    return NULL;
+    }
+  
+  }
+
+bgav_packet_t *
+bgav_subtitle_reader_peek_text_packet(void * subreader, int force)
+  {
+  bgav_subtitle_reader_context_t * ctx = subreader;
+
+  if(!ctx->out_packet)
+    {
+    ctx->out_packet = bgav_packet_pool_get(ctx->s->pp);
+    
+    if(!ctx->reader->read_subtitle_text(ctx->s, ctx->out_packet))
+      {
+      bgav_packet_pool_put(ctx->s->pp, ctx->out_packet);
+      ctx->out_packet = NULL;
+      }
+    }
+  
+  return ctx->out_packet;
   }
