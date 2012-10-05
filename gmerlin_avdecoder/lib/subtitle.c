@@ -102,7 +102,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
 
   pp = &p;
   
-  if(!gavl_packet_source_read_packet(&s->psrc, &pp) != GAVL_SOURCE_OK)
+  if(gavl_packet_source_read_packet(s->psrc, &pp) != GAVL_SOURCE_OK)
     return 0;
 
   *ret = (char*)p.data;
