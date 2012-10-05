@@ -25,6 +25,7 @@
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
 
+#define PACKET_PADDING 16
 
 static void hexdump(const uint8_t * data, int len, int linebreak)
   {
@@ -210,11 +211,12 @@ void gavl_compression_info_copy(gavl_compression_info_t * dst,
 
 void gavl_packet_alloc(gavl_packet_t * p, int len)
   {
-  if(len > p->data_alloc)
+  if(len + PACKET_PADDING > p->data_alloc)
     {
-    p->data_alloc = len + 1024;
+    p->data_alloc = len + PACKET_PADDING + 1024;
     p->data = realloc(p->data, p->data_alloc);
     }
+  memset(p->data + len, 0, PACKET_PADDING);
   }
 
 void gavl_packet_free(gavl_packet_t * p)
