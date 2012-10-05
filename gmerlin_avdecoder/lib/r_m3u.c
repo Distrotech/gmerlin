@@ -106,7 +106,7 @@ static char * strip_spaces(char * buffer)
 static int parse_m3u(bgav_redirector_context_t * r)
   {
   char * buffer = NULL;
-  int buffer_alloc = 0;
+  uint32_t buffer_alloc = 0;
   char * pos;
 
   while(1)

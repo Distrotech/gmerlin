@@ -159,7 +159,7 @@ bgav_cue_read(bgav_input_context_t * audio_file)
   {
   bgav_cue_t * ret = NULL;
   char * line = NULL;
-  int line_alloc = 0;
+  uint32_t line_alloc = 0;
   const char * pos;
   char * rest;
   cue_track_t * cur = NULL;

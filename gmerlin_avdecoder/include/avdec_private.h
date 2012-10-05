@@ -299,22 +299,6 @@ void bgav_packet_copy_metadata(bgav_packet_t * dst,
 void bgav_packet_merge_field2(bgav_packet_t * p,
                               const bgav_packet_t * field2);
 
-
-// void bgav_packet_done_write(bgav_packet_t *);
-// void bgav_packet_done_read(bgav_packet_t *);
-
-void bgav_packet_set_text_subtitle(bgav_packet_t * p,
-                                   const char * text,
-                                   int len,
-                                   int64_t start,
-                                   int64_t duration);
-
-void bgav_packet_get_text_subtitle(bgav_packet_t * p,
-                                   char ** text,
-                                   int * text_alloc,
-                                   gavl_time_t * start,
-                                   gavl_time_t * duration);
-
 void bgav_packet_2_gavl(bgav_packet_t * src,
                         gavl_packet_t * dst);
 
@@ -629,8 +613,8 @@ struct bgav_stream_s
       {
       /* Video format for overlays */
       gavl_video_format_t format;
-      /* Characterset converter for text subtitles */
-      bgav_charset_converter_t * cnv;
+      /* Converter for text subtitles */
+      bgav_subtitle_converter_t * cnv;
 
       bgav_subtitle_overlay_decoder_context_t * decoder;
       bgav_subtitle_reader_context_t * subreader;
@@ -1067,13 +1051,14 @@ int bgav_input_get_double_64_le(bgav_input_context_t * ctx, double * ret);
  */
 
 int bgav_input_read_line(bgav_input_context_t*,
-                         char ** buffer, int * buffer_alloc, int buffer_offset, int * len);
+                         char ** buffer, uint32_t * buffer_alloc,
+                         int buffer_offset, uint32_t * len);
 
 void bgav_input_detect_charset(bgav_input_context_t*);
 
 int bgav_input_read_convert_line(bgav_input_context_t*,
-                                 char ** buffer, int * buffer_alloc,
-                                 int * len);
+                                 char ** buffer, uint32_t * buffer_alloc,
+                                 uint32_t * len);
 
 int bgav_input_read_sector(bgav_input_context_t*, uint8_t*);
 
@@ -1757,19 +1742,20 @@ void bgav_charset_converter_destroy(bgav_charset_converter_t *);
 
 char * bgav_convert_string(bgav_charset_converter_t *,
                            const char * in_string, int in_len,
-                           int * out_len);
+                           uint32_t * out_len);
 
 int bgav_convert_string_realloc(bgav_charset_converter_t * cnv,
                                 const char * str, int len,
-                                int * out_len,
-                                char ** ret, int * ret_alloc);
+                                uint32_t * out_len,
+                                char ** ret, uint32_t * ret_alloc);
 
 /* subtitleconverter.c */
 /* Subtitle converter (converts character sets and removes \r */
 
 
 bgav_subtitle_converter_t * bgav_subtitle_converter_create(bgav_stream_t * s);
-void bgav_subtitle_converter_destroy(bgav_subtitle_converter_t*);
+void bgav_subtitle_converter_destroy(bgav_subtitle_converter_t* cnv);
+void bgav_subtitle_converter_reset(bgav_subtitle_converter_t * cnv);
 
 
 /* audio.c */
@@ -1898,7 +1884,7 @@ struct bgav_subtitle_reader_context_s
   int scale_den;
     
   char * line;
-  int line_alloc;
+  uint32_t line_alloc;
   
   /* 1 if the packet or overlay contains a not yet read
      subtitle */

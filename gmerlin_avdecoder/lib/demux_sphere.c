@@ -124,7 +124,7 @@ static int find_num(const char * buf)
 static int sphere_header_read(bgav_input_context_t * input, sphere_header_t * ret)
   {
   char * buffer = NULL;
-  int buffer_alloc = 0;
+  uint32_t buffer_alloc = 0;
 
   memset(ret, 0, sizeof(*ret));
     

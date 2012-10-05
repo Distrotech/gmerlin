@@ -577,6 +577,7 @@ stream.c \
 subovl_dvd.c \
 subread.c \
 subtitle.c \
+subtitleconverter.c \
 superindex.c \
 targa.c \
 tcp.c \

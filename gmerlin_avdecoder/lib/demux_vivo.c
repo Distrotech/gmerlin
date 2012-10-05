@@ -202,7 +202,7 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
   int result = 0;
   int record_type;
     
-  int buffer_alloc = 0;
+  uint32_t buffer_alloc = 0;
   
   /* First, read the main stuff */
 

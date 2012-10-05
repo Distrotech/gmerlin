@@ -80,6 +80,7 @@ static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
 
   ret = &t->subtitle_streams[t->num_subtitle_streams-1];
   bgav_stream_init(ret, opt);
+  ret->flags |= STREAM_DISCONT;
   if(!r)
     bgav_stream_create_packet_buffer(ret);
   else

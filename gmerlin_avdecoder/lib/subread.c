@@ -53,7 +53,8 @@ static int init_srt(bgav_stream_t * s)
 
 static int read_srt(bgav_stream_t * s, bgav_packet_t * p)
   {
-  int lines_read, line_len;
+  int lines_read;
+  uint32_t line_len;
   int a1,a2,a3,a4,b1,b2,b3,b4;
   int i,len;
   bgav_subtitle_reader_context_t * ctx;
@@ -186,7 +187,7 @@ static int probe_mpsub(char * line)
 
 static int init_mpsub(bgav_stream_t * s)
   {
-  int line_len;
+  uint32_t line_len;
   double framerate;
   char * ptr;
   bgav_subtitle_reader_context_t * ctx;
@@ -223,7 +224,8 @@ static int read_mpsub(bgav_stream_t * s, bgav_packet_t * p)
   double d1, d2;
   gavl_time_t t1 = 0, t2 = 0;
   
-  int line_len, lines_read;
+  uint32_t line_len;
+  int lines_read;
   bgav_subtitle_reader_context_t * ctx;
   mpsub_priv_t * priv;
   char * ptr;
@@ -726,8 +728,8 @@ find_subtitle_reader(const char * filename,
   const bgav_subtitle_reader_t* ret = NULL;
   
   char * line = NULL;
-  int line_alloc = 0;
-  int line_len;
+  uint32_t line_alloc = 0;
+  uint32_t line_len;
   /* 1. Check if we have a supported extension */
   extension = strrchr(filename, '.');
   if(!extension)

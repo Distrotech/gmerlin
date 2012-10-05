@@ -263,7 +263,7 @@ int bgav_file_index_read_header(const char * filename,
   int ret = 0;
   uint64_t file_time;
   char * line = NULL;
-  int line_alloc = 0;
+  uint32_t line_alloc = 0;
   uint32_t ntracks;
   struct stat stat_buf;
   int sig_len;

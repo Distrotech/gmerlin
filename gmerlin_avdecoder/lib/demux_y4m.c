@@ -37,7 +37,7 @@ typedef struct
   uint8_t * tmp_planes[4]; /* For YUVA4444 */
   int64_t pts;
 
-  int line_alloc;
+  uint32_t line_alloc;
   char * line;
   
   int buf_size;

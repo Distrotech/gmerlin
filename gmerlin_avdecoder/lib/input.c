@@ -32,8 +32,8 @@
 #define ALLOC_SIZE    128
 #define MAX_REDIRECTIONS 5
 
-static void add_char_16(char ** buffer, int * buffer_alloc,
-                       int pos, uint16_t c)
+static void add_char_16(char ** buffer, uint32_t * buffer_alloc,
+                        int pos, uint16_t c)
   {
   uint16_t * ptr;
   if(pos + 2 > *buffer_alloc)
@@ -49,8 +49,8 @@ static void add_char_16(char ** buffer, int * buffer_alloc,
 static int
 read_line_utf16(bgav_input_context_t * ctx,
                 int (*read_char)(bgav_input_context_t*,uint16_t*),
-                char ** buffer, int * buffer_alloc, int buffer_offset,
-                int * ret_len)
+                char ** buffer, uint32_t * buffer_alloc, int buffer_offset,
+                uint32_t * ret_len)
   {
   uint16_t c;
   int pos = buffer_offset;
@@ -83,7 +83,7 @@ read_line_utf16(bgav_input_context_t * ctx,
   return ctx->position - old_pos;
   }
 
-static void add_char(char ** buffer, int * buffer_alloc,
+static void add_char(char ** buffer, uint32_t * buffer_alloc,
                      int pos, char c)
   {
   if(pos + 1 > *buffer_alloc)
@@ -96,8 +96,8 @@ static void add_char(char ** buffer, int * buffer_alloc,
   }
 
 int bgav_input_read_line(bgav_input_context_t* input,
-                         char ** buffer, int * buffer_alloc,
-                         int buffer_offset, int * len)
+                         char ** buffer, uint32_t * buffer_alloc,
+                         int buffer_offset, uint32_t * len)
   {
   char c;
   int pos = buffer_offset;
@@ -137,12 +137,14 @@ int bgav_input_read_line(bgav_input_context_t* input,
   }
 
 int bgav_input_read_convert_line(bgav_input_context_t * input,
-                                 char ** buffer, int * buffer_alloc,
-                                 int * len)
+                                 char ** buffer,
+                                 uint32_t * buffer_alloc,
+                                 uint32_t * len)
   {
-  int line_alloc = 0;
+  uint32_t line_alloc = 0;
   char * line = NULL;
-  int in_len, out_len;
+  uint32_t in_len;
+  uint32_t out_len;
   int64_t old_pos = input->position;
   
   if(!input->charset || !strcmp(input->charset, BGAV_UTF8))

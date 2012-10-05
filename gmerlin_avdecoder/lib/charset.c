@@ -78,8 +78,8 @@ char * bgav_convert_string(bgav_charset_converter_t *,
 #define BYTES_INCREMENT 10
 
 static int do_convert(bgav_charset_converter_t * cnv,
-                      char * in_string, int len, int * out_len,
-                      char ** ret, int * ret_alloc)
+                      char * in_string, int len, uint32_t * out_len,
+                      char ** ret, uint32_t * ret_alloc)
   {
   
   char *inbuf;
@@ -182,11 +182,11 @@ static int do_convert(bgav_charset_converter_t * cnv,
 
 char * bgav_convert_string(bgav_charset_converter_t * cnv,
                            const char * str, int len,
-                           int * out_len)
+                           uint32_t * out_len)
   {
   int result;
   char * ret = NULL;
-  int ret_alloc = 0;
+  uint32_t ret_alloc = 0;
   char * tmp_string;
 
   if(len < 0)
@@ -209,8 +209,8 @@ char * bgav_convert_string(bgav_charset_converter_t * cnv,
 
 int bgav_convert_string_realloc(bgav_charset_converter_t * cnv,
                                 const char * str, int len,
-                                int * out_len,
-                                char ** ret, int * ret_alloc)
+                                uint32_t * out_len,
+                                char ** ret, uint32_t * ret_alloc)
   {
   int result;
   char * tmp_string;
@@ -276,7 +276,7 @@ static int utf8_validate(const uint8_t * str)
 void bgav_input_detect_charset(bgav_input_context_t * ctx)
   {
   char * line = NULL;
-  int line_alloc = 0;
+  uint32_t line_alloc = 0;
   
   int64_t old_position;
   uint8_t first_bytes[2];

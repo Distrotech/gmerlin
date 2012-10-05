@@ -79,31 +79,14 @@ int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
   return s->data.subtitle.decoder->decoder->decode(s, ovl);
   }
 
-static void remove_cr(char * str)
-  {
-  char * dst;
-  int i;
-  int len = strlen(str);
-  dst = str;
-  
-  for(i = 0; i <= len; i++)
-    {
-    if(str[i] != '\r')
-      {
-      *dst = str[i];
-      dst++;
-      }
-    }
-  }
-
 int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
                             int64_t * start_time, int64_t * duration,
                             int stream)
   {
-  int out_len;
-  bgav_packet_t * p = NULL;
   bgav_stream_t * s = &b->tt->cur->subtitle_streams[stream];
-
+  gavl_packet_t p;
+  gavl_packet_t * pp;
+  
   if(bgav_has_subtitle(b, stream))
     {
     if(s->flags & STREAM_EOF_C)
@@ -111,39 +94,22 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
     }
   else
     return 0;
+
+  gavl_packet_init(&p);
   
-  p = bgav_stream_get_packet_read(s);
+  p.data = (uint8_t*)(*ret);
+  p.data_alloc = *ret_alloc;
+
+  pp = &p;
   
-  if(!p)
+  if(!gavl_packet_source_read_packet(&s->psrc, &pp) != GAVL_SOURCE_OK)
     return 0;
 
-  /* Convert packet to subtitle */
+  *ret = (char*)p.data;
+  *ret_alloc = p.data_alloc;
   
-  if(s->data.subtitle.cnv)
-    {
-    if(!bgav_convert_string_realloc(s->data.subtitle.cnv,
-                                    (const char *)p->data, p->data_size,
-                                    &out_len,
-                                    ret, ret_alloc))
-      return 0;
-    }
-  else
-    {
-    if(*ret_alloc < p->data_size+1)
-      {
-      *ret_alloc = p->data_size + 128;
-      *ret = realloc(*ret, *ret_alloc);
-      }
-    memcpy(*ret, p->data, p->data_size);
-    (*ret)[p->data_size] = '\0';
-    }
-  
-  *start_time = p->pts;
-  *duration   = p->duration;
-  
-  remove_cr(*ret);
-    
-  bgav_stream_done_packet_read(s, p);
+  *start_time = p.pts;
+  *duration   = p.duration;
   
   return 1;
   }
@@ -217,17 +183,14 @@ int bgav_subtitle_start(bgav_stream_t * s)
       if(!bgav_subtitle_reader_start(s))
         return 0;
     
-    if(s->data.subtitle.charset)
-      {
-      if(strcmp(s->data.subtitle.charset, BGAV_UTF8))
-        s->data.subtitle.cnv =
-          bgav_charset_converter_create(s->opt, s->data.subtitle.charset, BGAV_UTF8);
-      }
-    else if(strcmp(s->opt->default_subtitle_encoding, BGAV_UTF8))
-      s->data.subtitle.cnv =
-        bgav_charset_converter_create(s->opt, s->opt->default_subtitle_encoding,
-                                      BGAV_UTF8);
-    s->flags |= STREAM_DISCONT;
+    s->data.subtitle.cnv =
+      bgav_subtitle_converter_create(s);
+
+    s->psrc =
+      gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
+                                s,
+                                GAVL_SOURCE_SRC_ALLOC,
+                                NULL, NULL, NULL);
     }
   else
     {
@@ -266,13 +229,8 @@ void bgav_subtitle_stop(bgav_stream_t * s)
   {
   if(s->data.subtitle.cnv)
     {
-    bgav_charset_converter_destroy(s->data.subtitle.cnv);
+    bgav_subtitle_converter_destroy(s->data.subtitle.cnv);
     s->data.subtitle.cnv = NULL;
-    }
-  if(s->data.subtitle.charset)
-    {
-    free(s->data.subtitle.charset);
-    s->data.subtitle.charset = NULL;
     }
   if(s->data.subtitle.subreader)
     {
@@ -296,6 +254,9 @@ void bgav_subtitle_resync(bgav_stream_t * s)
   if(s->data.subtitle.decoder &&
      s->data.subtitle.decoder->decoder->resync)
     s->data.subtitle.decoder->decoder->resync(s);
+
+  if(s->data.subtitle.cnv)
+    bgav_subtitle_converter_reset(s->data.subtitle.cnv);
   }
 
 int bgav_subtitle_skipto(bgav_stream_t * s, int64_t * time, int scale)

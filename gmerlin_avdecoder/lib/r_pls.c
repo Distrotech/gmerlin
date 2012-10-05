@@ -53,7 +53,7 @@ static int probe_pls(bgav_input_context_t * input)
 static int parse_pls(bgav_redirector_context_t * r)
   {
   char * buffer = NULL;
-  int buffer_alloc = 0;
+  uint32_t buffer_alloc = 0;
   int index;
   char * pos;
   int ret = 0;

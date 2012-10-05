@@ -409,7 +409,7 @@ bgav_mms_t * bgav_mms_open(const bgav_options_t * opt,
   char guid[37];
   char * buf;
   char * utf16;
-  int len_out;
+  uint32_t len_out;
   uint8_t * pos;
   uint32_t i_tmp;
   int server_version_len;

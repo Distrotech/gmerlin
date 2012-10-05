@@ -50,7 +50,7 @@ static void add_url(bgav_redirector_context_t * r)
 static int parse_rtsptext(bgav_redirector_context_t * r)
   {
   char * buffer = NULL;
-  int buffer_alloc = 0;
+  uint32_t buffer_alloc = 0;
   char * pos;
   
   if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, NULL))

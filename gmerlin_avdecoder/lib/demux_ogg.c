@@ -1800,7 +1800,7 @@ static int is_data_packet(ogg_t * op, bgav_stream_t * s, ogg_packet * p)
 
 static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   {
-  int len_bytes, i;
+  int i;
   int64_t iframes;
   int64_t pframes;
   int serialno;
@@ -1809,7 +1809,6 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   int64_t granulepos;
   stream_priv_t * stream_priv = NULL;
   ogg_t * priv = ctx->priv;
-  int subtitle_duration;
   int page_continued;
 
   int ret = 0;
@@ -1996,6 +1995,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           bgav_stream_done_packet_write(s, p);
           break;
         case FOURCC_OGM_VIDEO:
+          {
+          int len_bytes;
           if(stream_priv->do_sync)
             {
             /* Didn't get page yet */
@@ -2053,6 +2054,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         
           set_packet_pos(priv, stream_priv, &page_continued, p);
           bgav_stream_done_packet_write(s, p);
+          }
           break;
         case FOURCC_VORBIS:
           /* Resync if necessary */
@@ -2153,15 +2155,16 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           bgav_stream_done_packet_write(s, p);
           break;
         case FOURCC_OGM_TEXT:
+          {
+          int len_bytes;
+          int subtitle_duration;
+          int len;
+          char * pos;
           if(priv->op.packet[0] & 0x01) /* Header is already read -> skip it */
-            {
             break;
-            }
           if(!(priv->op.packet[0] & 0x08))
-            {
             break;
-            }
-        
+          
           len_bytes =
             (priv->op.packet[0] >> 6) |
             ((priv->op.packet[0] & 0x02) << 1);
@@ -2176,15 +2179,23 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             break;
         
           p = bgav_stream_get_packet_write(s);
+          p->pts = granulepos;
+          p->duration = subtitle_duration;
+
+          pos = (char*)(priv->op.packet + 1 + len_bytes);
+          len = strlen(pos);
+          bgav_packet_alloc(p, len);
+          memcpy(p->data, pos, len);
+          p->data_size = len;
+          PACKET_SET_KEYFRAME(p);
           
-          bgav_packet_set_text_subtitle(p, (char*)(priv->op.packet + 1 + len_bytes),
-                                        -1, granulepos, subtitle_duration);
           set_packet_pos(priv, stream_priv, &page_continued, p);
 
           if(s->action == BGAV_STREAM_PARSE)
             s->duration = granulepos + subtitle_duration;
         
           bgav_stream_done_packet_write(s, p);
+          }
           break;
         }
       if(stream_priv)

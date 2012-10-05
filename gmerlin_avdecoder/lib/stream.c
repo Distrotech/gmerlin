@@ -146,6 +146,12 @@ void bgav_stream_free(bgav_stream_t * s)
      s->data.subtitle.subreader)
     bgav_subtitle_reader_destroy(s);
 
+  if((s->type == BGAV_STREAM_SUBTITLE_TEXT) &&
+     s->data.subtitle.charset)
+    {
+    free(s->data.subtitle.charset);
+    }
+  
   if(s->type == BGAV_STREAM_VIDEO)
     {
     if(s->data.video.pal.entries)

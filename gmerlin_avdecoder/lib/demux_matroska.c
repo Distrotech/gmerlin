@@ -526,12 +526,13 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
   else if(!strcmp(track->CodecID, "S_VOBSUB"))
     {
     char * line = NULL;
-    int line_alloc = 0;
+    uint32_t line_alloc = 0;
     uint32_t * pal = NULL;
     bgav_input_context_t * input_mem;
     
-    input_mem = bgav_input_open_memory(track->CodecPrivate, track->CodecPrivateLen,
-                                       ctx->opt);
+    input_mem =
+      bgav_input_open_memory(track->CodecPrivate, track->CodecPrivateLen,
+                             ctx->opt);
     
     /* Get the palette from the codec data */
     while(bgav_input_read_line(input_mem, &line, &line_alloc, 0, NULL))
@@ -864,7 +865,8 @@ static int open_matroska(bgav_demuxer_context_t * ctx)
         // fprintf(stderr, "Found index at %"PRId64"\n",
         //         p->meta_seek_info.entries[i].SeekPosition);
 
-        if(p->segment_start + p->meta_seek_info.entries[i].SeekPosition > ctx->input->total_bytes)
+        if(p->segment_start + p->meta_seek_info.entries[i].SeekPosition >
+           ctx->input->total_bytes)
           {
           bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                    "Didn't find cues (truncated file?)");

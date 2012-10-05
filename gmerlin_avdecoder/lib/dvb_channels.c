@@ -227,7 +227,7 @@ bgav_dvb_channels_load(const bgav_options_t * opt,
   int is_open = 0;
   
   char * line = NULL;
-  int line_alloc = 0;
+  uint32_t line_alloc = 0;
   char ** entries;
   
   bgav_dvb_channel_info_t * ret = NULL;
