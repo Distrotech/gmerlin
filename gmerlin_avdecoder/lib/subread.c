@@ -896,6 +896,7 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
   {
   bgav_subtitle_reader_context_t * ctx;
   ctx = s->data.subtitle.subreader;
+  ctx->s = s;
   if(!bgav_input_open(ctx->input, ctx->filename))
     return 0;
 
