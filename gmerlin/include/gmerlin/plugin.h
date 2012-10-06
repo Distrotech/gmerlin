@@ -1849,7 +1849,6 @@ struct bg_encoder_plugin_s
    */
   
   gavl_packet_sink_t * (*get_subtitle_text_sink)(void * priv, int stream);
-
   
   /** \brief Update metadata
    *  \param priv The handle returned by the create() method

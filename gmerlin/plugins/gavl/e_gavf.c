@@ -368,7 +368,7 @@ bg_gavf_write_video_frame(void * data,
   }
 
 static int
-bg_gavf_write_subtitle_text(void * data,const char * text,
+bg_gavf_write_subtitle_text(void * data, const char * text,
                             int64_t start,
                             int64_t duration, int stream)
   {
