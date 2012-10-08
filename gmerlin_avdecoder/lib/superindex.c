@@ -393,10 +393,8 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
                   idx->entries[i].pts,
                   idx->entries[i].duration,
                   idx->entries[i].size);
-    if(idx->entries[i].flags & 0xff)
-      bgav_dprintf(" PT: %c\n", idx->entries[i].flags & 0xff);
-    else
-      bgav_dprintf("\n");
+    bgav_dprintf(" PT: %s\n",
+                 bgav_coding_type_to_string(idx->entries[i].flags));
     }
   }
 

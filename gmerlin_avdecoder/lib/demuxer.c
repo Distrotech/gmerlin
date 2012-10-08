@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-// #define DUMP_SUPERINDEX    
+// #define DUMP_SUPERINDEX
 #include <avdec_private.h>
 #include <parser.h>
 
@@ -479,9 +479,10 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
         return 0;
         }
       }
-#ifdef DUMP_SUPERINDEX    
-    bgav_superindex_dump(ctx->si);
-#endif
+    //#ifdef DUMP_SUPERINDEX
+    if(ctx->opt->dump_indices)
+      bgav_superindex_dump(ctx->si);
+    // #endif
     }
   return 1;
   }

@@ -63,32 +63,14 @@ void bgav_packet_pad(bgav_packet_t * p)
 
 void bgav_packet_dump(bgav_packet_t * p)
   {
-  int type;
   
   bgav_dprintf("pos: %"PRId64", K: %d, ", p->position, !!PACKET_GET_KEYFRAME(p));
 
   if(p->field2_offset)
     bgav_dprintf("f2: %d, ", p->field2_offset);
-
-  type = PACKET_GET_CODING_TYPE(p);
-  if(type)
-    {
-    char tc = 0;
-    switch(type)
-      {
-      case BGAV_CODING_TYPE_I:
-        tc = 'I';
-        break;
-      case BGAV_CODING_TYPE_P:
-        tc = 'P';
-        break;
-      case BGAV_CODING_TYPE_B:
-        tc = 'B';
-        break;
-      }
-    if(tc)
-      bgav_dprintf("T: %c ", tc);
-    }
+  
+  bgav_dprintf("T: %s ", bgav_coding_type_to_string(p->flags));
+  
   if(p->dts != GAVL_TIME_UNDEFINED)
     bgav_dprintf("dts: %"PRId64", ", p->dts);
 
