@@ -1125,45 +1125,42 @@ get_subtitle_text_parameters_lqt(void * priv)
   return subtitle_text_parameters;
   }
 
+#define CNV_COLOR(c) (int)(c * 65535.0 + 0.5)
+
 static void
 set_subtitle_text_parameter_lqt(void * priv, int stream,
                                 const char * name,
                                 const bg_parameter_value_t * val)
   {
   e_lqt_t * e = priv;
+  subtitle_text_stream_t * ts;
   
   if(!name)
     return;
+
+  ts = &e->subtitle_text_streams[stream];
   
   if(!strcmp(name, "box_top"))
-    e->subtitle_text_streams[stream].text_box[0] = val->val_i;
+    ts->text_box[0] = val->val_i;
   else if(!strcmp(name, "box_left"))
-    e->subtitle_text_streams[stream].text_box[1] = val->val_i;
+    ts->text_box[1] = val->val_i;
   else if(!strcmp(name, "box_bottom"))
-    e->subtitle_text_streams[stream].text_box[2] = val->val_i;
+    ts->text_box[2] = val->val_i;
   else if(!strcmp(name, "box_right"))
-    e->subtitle_text_streams[stream].text_box[3] = val->val_i;
+    ts->text_box[3] = val->val_i;
   else if(!strcmp(name, "fg_color"))
     {
-    e->subtitle_text_streams[stream].fg_color[0] =
-      (int)(val->val_color[0] * 65535.0 + 0.5);
-    e->subtitle_text_streams[stream].fg_color[1] =
-      (int)(val->val_color[1] * 65535.0 + 0.5);
-    e->subtitle_text_streams[stream].fg_color[2] =
-      (int)(val->val_color[2] * 65535.0 + 0.5);
-    e->subtitle_text_streams[stream].fg_color[3] =
-      (int)(val->val_color[3] * 65535.0 + 0.5);
+    ts->fg_color[0] = CNV_COLOR(val->val_color[0]);
+    ts->fg_color[1] = CNV_COLOR(val->val_color[1]);
+    ts->fg_color[2] = CNV_COLOR(val->val_color[2]);
+    ts->fg_color[3] = CNV_COLOR(val->val_color[3]);
     }
   else if(!strcmp(name, "bg_color"))
     {
-    e->subtitle_text_streams[stream].bg_color[0] =
-      (int)(val->val_color[0] * 65535.0 + 0.5);
-    e->subtitle_text_streams[stream].bg_color[1] =
-      (int)(val->val_color[1] * 65535.0 + 0.5);
-    e->subtitle_text_streams[stream].bg_color[2] =
-      (int)(val->val_color[2] * 65535.0 + 0.5);
-    e->subtitle_text_streams[stream].bg_color[3] =
-      (int)(val->val_color[3] * 65535.0 + 0.5);
+    ts->bg_color[0] = CNV_COLOR(val->val_color[0]);
+    ts->bg_color[1] = CNV_COLOR(val->val_color[1]);
+    ts->bg_color[2] = CNV_COLOR(val->val_color[2]);
+    ts->bg_color[3] = CNV_COLOR(val->val_color[3]);
     }
   }
 
