@@ -783,17 +783,10 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
   else
     pkt.dts = pkt.pts;
   
-  //  pkt.duration = av_rescale_q(packet->duration,
-  //                              st->stream->codec->time_base,
-  //                              st->stream->time_base);
-  
-  
   if(packet->flags & GAVL_PACKET_KEYFRAME)  
     pkt.flags |= PKT_FLAG_KEY;
   
   pkt.stream_index= st->stream->index;
-
-  //  fprintf(stderr, "Video dts: %lld, pts: %lld\n", pkt.dts, pkt.pts);
   
   /* write the compressed frame in the media file */
   if(av_interleaved_write_frame(f->ctx, &pkt) != 0)
@@ -801,7 +794,6 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
     f->got_error = 1;
     return GAVL_SINK_ERROR;
     }
-  //  fprintf(stderr, "Write video packet done\n");
 
   return GAVL_SINK_OK;
   }
@@ -825,9 +817,11 @@ static int flush_audio(ffmpeg_priv_t * priv,
 
   f.pts = st->samples_written;
   
-  avcodec_fill_audio_frame(&f, st->format.num_channels, st->stream->codec->sample_fmt,
+  avcodec_fill_audio_frame(&f, st->format.num_channels,
+                           st->stream->codec->sample_fmt,
                            st->frame->samples.u_8,
-                           st->stream->codec->frame_size * st->format.num_channels * 2, 1);
+                           st->stream->codec->frame_size *
+                           st->format.num_channels * 2, 1);
     
   if(avcodec_encode_audio2(st->stream->codec, &pkt,
                            &f, &got_packet) < 0)
@@ -845,7 +839,6 @@ static int flush_audio(ffmpeg_priv_t * priv,
     
     /* write the compressed frame in the media file */
     if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
-      //    if(av_write_frame(priv->ctx, &pkt) != 0)
       {
       priv->got_error = 1;
       return 0;
@@ -895,7 +888,6 @@ static int flush_audio(ffmpeg_priv_t * priv,
     
     /* write the compressed frame in the media file */
     if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
-      //    if(av_write_frame(priv->ctx, &pkt) != 0)
       {
       priv->got_error = 1;
       return 0;
@@ -968,9 +960,6 @@ write_audio_packet_func(void * data, gavl_packet_t * packet)
   pkt.dts = pkt.pts;
   pkt.flags |= PKT_FLAG_KEY;
   pkt.stream_index= st->stream->index;
-
-  //  fprintf(stderr, "write audio packet: %lld %lld %lld\n", pkt.pts, pkt.dts, packet->pts);
-  //  gavl_packet_dump(packet);
   
   /* write the compressed frame in the media file */
   if(av_interleaved_write_frame(f->ctx, &pkt) != 0)
