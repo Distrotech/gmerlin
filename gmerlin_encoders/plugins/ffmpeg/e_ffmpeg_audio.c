@@ -113,6 +113,7 @@ const bg_encoder_plugin_t the_plugin =
     
     .get_audio_format =     bg_ffmpeg_get_audio_format,
     .get_audio_sink =       bg_ffmpeg_get_audio_sink,
+    .get_audio_packet_sink =       bg_ffmpeg_get_audio_packet_sink,
 
     .start =                bg_ffmpeg_start,
     

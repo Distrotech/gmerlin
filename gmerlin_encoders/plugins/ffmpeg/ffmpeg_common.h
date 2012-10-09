@@ -132,9 +132,10 @@ typedef struct
 #endif
   
   const gavl_compression_info_t * ci;
-  int64_t pts_offset;
 
   gavl_audio_sink_t * sink;
+  gavl_packet_sink_t * psink;
+
   ffmpeg_priv_t * ffmpeg;
   } ffmpeg_audio_stream_t;
 
@@ -165,15 +166,17 @@ typedef struct
   
   int64_t dts;
 
-  int64_t pts_offset;
   gavl_video_sink_t * sink;
+  gavl_packet_sink_t * psink;
+  
   ffmpeg_priv_t * ffmpeg;
   } ffmpeg_video_stream_t;
 
 typedef struct
   {
   AVStream * stream;
-  int64_t pts_offset;
+  gavl_packet_sink_t * psink;
+  ffmpeg_priv_t * ffmpeg;
   } ffmpeg_text_stream_t;
 
 struct ffmpeg_priv_s
@@ -264,6 +267,15 @@ bg_ffmpeg_get_audio_sink(void * data, int stream);
 
 gavl_video_sink_t *
 bg_ffmpeg_get_video_sink(void * data, int stream);
+
+gavl_packet_sink_t *
+bg_ffmpeg_get_audio_packet_sink(void * data, int stream);
+
+gavl_packet_sink_t *
+bg_ffmpeg_get_video_packet_sink(void * data, int stream);
+
+gavl_packet_sink_t *
+bg_ffmpeg_get_text_packet_sink(void * data, int stream);
 
 int bg_ffmpeg_write_audio_frame(void * data,
                                 gavl_audio_frame_t * frame, int stream);
