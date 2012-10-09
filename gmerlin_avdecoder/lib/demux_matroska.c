@@ -217,9 +217,9 @@ static void init_mpeg(bgav_stream_t * s)
 static const codec_info_t video_codecs[] =
   {
     { "V_MS/VFW/FOURCC", 0x00,                            init_vfw, 0 },
-    { "V_MPEG4/ISO/SP",  BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
-    { "V_MPEG4/ISO/ASP", BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
-    { "V_MPEG4/ISO/AP",  BGAV_MK_FOURCC('m','p','4','v'), NULL,     0 },
+    { "V_MPEG4/ISO/SP",  BGAV_MK_FOURCC('m','p','4','v'), init_mpeg, 0 },
+    { "V_MPEG4/ISO/ASP", BGAV_MK_FOURCC('m','p','4','v'), init_mpeg, 0 },
+    { "V_MPEG4/ISO/AP",  BGAV_MK_FOURCC('m','p','4','v'), init_mpeg, 0 },
     { "V_MPEG4/MS/V1",   BGAV_MK_FOURCC('M','P','G','4'), NULL,     0 },
     { "V_MPEG4/MS/V2",   BGAV_MK_FOURCC('M','P','4','2'), NULL,     0 },
     { "V_MPEG4/MS/V3",   BGAV_MK_FOURCC('M','P','4','3'), NULL,     0 },
