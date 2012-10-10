@@ -4,6 +4,7 @@
 #include <gavl/chapterlist.h>
 #include <gavl/metadata.h>
 #include <gavl/gavldefs.h>
+#include <gavl/connectors.h>
 
 #include <stdio.h>
 
@@ -197,6 +198,10 @@ int gavf_add_text_stream(gavf_t * g,
                          uint32_t timescale,
                          const gavl_metadata_t * m);
 
+/* Call this after adding all streams and before writing the first packet */
+GAVL_PUBLIC
+int gavf_start(gavf_t * g);
+
 GAVL_PUBLIC
 int gavf_write_packet(gavf_t *, int stream, const gavl_packet_t * p);
 
@@ -209,3 +214,11 @@ int gavf_write_audio_frame(gavf_t *, int stream, gavl_audio_frame_t * frame);
 GAVL_PUBLIC
 int gavf_update_metadata(gavf_t *, gavl_metadata_t * m);
 
+GAVL_PUBLIC gavl_packet_sink_t *
+gavf_get_packet_sink(gavf_t *, int stream);
+
+GAVL_PUBLIC gavl_audio_sink_t *
+gavf_get_audio_sink(gavf_t *, int stream);
+
+GAVL_PUBLIC gavl_video_sink_t *
+gavf_get_video_sink(gavf_t *, int stream);

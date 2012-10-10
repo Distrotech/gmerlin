@@ -21,6 +21,7 @@ struct gavf_s
   gavl_chapter_list_t * cl;
   
   gavf_packet_header_t  pkthdr;
+  int have_pkt_header;
   
   gavf_stream_t * streams;
 
@@ -74,9 +75,108 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
   return 1;
   }
 
+/* Connector callbacks */
+
+static gavl_source_status_t
+read_audio_func(void * priv, gavl_audio_frame_t ** frame)
+  {
+  gavl_packet_t * pp;
+  gavl_source_status_t st;
+  gavf_stream_t * s = priv;
+  
+  pp = &s->p;
+  
+  if((st = gavl_packet_source_read_packet(s->psrc, &pp)) != GAVL_SOURCE_OK)
+    return st;
+
+  if(!s->aframe)
+    s->aframe = gavl_audio_frame_create(NULL);
+
+  gavf_packet_to_audio_frame(pp, s->aframe, &s->h->format.audio);
+  *frame = s->aframe;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_source_status_t
+read_video_func(void * priv, gavl_video_frame_t ** frame)
+  {
+  gavl_packet_t * pp;
+  gavl_source_status_t st;
+  gavf_stream_t * s = priv;
+  pp = &s->p;
+
+  if((st = gavl_packet_source_read_packet(s->psrc, &pp)) != GAVL_SOURCE_OK)
+    return st;
+
+  if(!s->vframe)
+    s->vframe = gavl_video_frame_create(NULL);
+  
+  gavf_packet_to_video_frame(pp, s->vframe, &s->h->format.video);
+  *frame = s->vframe;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_source_status_t
+read_packet_func(void * priv, gavl_packet_t ** p)
+  {
+  gavf_stream_t * s = priv;
+
+  if(!s->g->have_pkt_header && !gavf_packet_read_header(s->g))
+    return GAVL_SOURCE_EOF;
+
+  if(s->g->pkthdr.stream_id != s->h->id)
+    return GAVL_SOURCE_AGAIN;
+  
+  s->g->have_pkt_header = 0;
+  
+  gavf_buffer_reset(&s->g->pkt_buf);
+  
+  if(!gavf_io_read_buffer(s->g->io, &s->g->pkt_buf) ||
+     !gavf_read_gavl_packet(&s->g->pkt_io, s, *p, s->g->pkt_buf.len))
+    return GAVL_SOURCE_EOF;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_sink_status_t
+put_audio_func(void * priv, gavl_audio_frame_t * frame)
+  {
+  
+  }
+
+static gavl_video_frame_t *
+get_video_frame_func(void * priv)
+  {
+  gavf_stream_t * s = priv;
+  gavl_packet_reset(&s->p);
+  gavl_packet_alloc(&s->p, s->h->ci.max_packet_size);
+
+  if(!s->vframe)
+    s->vframe = gavl_video_frame_create(NULL);
+  s->vframe->strides[0] = 0;
+  gavl_video_frame_set_planes(s->vframe,
+                              &s->h->format.video, s->p.data);
+  return s->vframe;
+  }
+
+static gavl_sink_status_t
+put_video_func(void * priv, gavl_video_frame_t * frame)
+  {
+  gavf_stream_t * s = priv;
+  gavf_video_frame_to_packet_metadata(frame, &s->p);
+  return gavl_packet_sink_put_packet(s->psink, &s->p);
+  }
+
+static gavl_sink_status_t
+put_packet_func(void * priv, gavl_packet_t * p)
+  {
+  gavf_stream_t * s = priv;
+  return gavf_write_packet(s->g, (int)(s - s->g->streams), p) ?
+    GAVL_SINK_OK : GAVL_SINK_ERROR;
+  }
+
 /* Streams */
 
-static void gavf_stream_init_audio(gavf_stream_t * s)
+static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
   {
   int sample_size;
   s->timescale = s->h->format.audio.samplerate;
@@ -99,6 +199,40 @@ static void gavf_stream_init_audio(gavf_stream_t * s)
       gavl_bytes_per_sample(s->h->format.audio.sample_format) *
       s->h->format.audio.num_channels *
       s->h->format.audio.samples_per_frame;
+
+  if(g->wr)
+    {
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      /* Create audio sink */
+      s->asink = gavl_audio_sink_create(NULL, put_audio_func, s,
+                                        &s->h->format.audio);
+      }
+    else
+      {
+      /* Create packet sink */
+      s->psink = gavl_packet_sink_create(NULL, put_packet_func, s);
+      }
+    }
+  else
+    {
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      /* Create audio source */
+      s->asrc = gavl_audio_source_create(read_audio_func, s,
+                                         GAVL_SOURCE_SRC_ALLOC,
+                                         &s->h->format.audio);
+      }
+    else
+      {
+      /* Create packet source */
+      s->psrc = gavl_packet_source_create(read_packet_func, s, 0,
+                                          &s->h->ci, &s->h->format.audio,
+                                          NULL);
+      }
+    }
+  
+
   }
 
 static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
@@ -125,15 +259,51 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
   if(s->h->ci.id == GAVL_CODEC_ID_NONE)
     s->h->ci.max_packet_size =
       gavl_video_format_get_image_size(&s->h->format.video);
+
+
+  if(g->wr)
+    {
+    /* Create video sink */
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      s->vsink = gavl_video_sink_create(get_video_frame_func,
+                                        put_video_func, s,
+                                        &s->h->format.video);
+    /* Create packet sink */
+    s->psink = gavl_packet_sink_create(NULL, put_packet_func, s);
+    }
+  else
+    {
+    /* Create video source */
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      s->vsrc = gavl_video_source_create(read_video_func, s,
+                                         GAVL_SOURCE_SRC_ALLOC,
+                                         &s->h->format.video);
+    /* Create packet source */
+    s->psrc = gavl_packet_source_create(read_packet_func, s, 0,
+                                        &s->h->ci, NULL,
+                                        &s->h->format.video);
+    }
   }
 
-static void gavf_stream_init_text(gavf_stream_t * s)
+static void gavf_stream_init_text(gavf_t * g, gavf_stream_t * s)
   {
   s->timescale = s->h->format.text.timescale;
   s->flags |=
     (STREAM_FLAG_HAS_PTS |
      STREAM_FLAG_HAS_DURATION |
      STREAM_FLAG_DISCONTINUOUS);
+
+  if(g->wr)
+    {
+    /* Create packet sink */
+    s->psink = gavl_packet_sink_create(NULL, put_packet_func, s);
+    }
+  else
+    {
+    /* Create packet source */
+    s->psrc = gavl_packet_source_create(read_packet_func, s, 0,
+                                        NULL, NULL, NULL);
+    }
   }
 
 static void init_streams(gavf_t * g)
@@ -153,17 +323,18 @@ static void init_streams(gavf_t * g)
     g->streams[i].last_sync_pts = GAVL_TIME_UNDEFINED;
     
     g->streams[i].h = &g->ph.streams[i];
-
+    g->streams[i].g = g;
+    
     switch(g->streams[i].h->type)
       {
       case GAVF_STREAM_AUDIO:
-        gavf_stream_init_audio(&g->streams[i]);
+        gavf_stream_init_audio(g, &g->streams[i]);
         break;
       case GAVF_STREAM_VIDEO:
         gavf_stream_init_video(g, &g->streams[i]);
         break;
       case GAVF_STREAM_TEXT:
-        gavf_stream_init_text(&g->streams[i]);
+        gavf_stream_init_text(g, &g->streams[i]);
         break;
       }
     if(g->wr)
@@ -189,7 +360,33 @@ static void init_streams(gavf_t * g)
 static void gavf_stream_free(gavf_stream_t * s)
   {
   gavf_buffer_free(&s->last_global_header);
+  if(s->asrc)
+    gavl_audio_source_destroy(s->asrc);
+  if(s->vsrc)
+    gavl_video_source_destroy(s->vsrc);
+  if(s->psrc)
+    gavl_packet_source_destroy(s->psrc);
+
+  if(s->asink)
+    gavl_audio_sink_destroy(s->asink);
+  if(s->vsink)
+    gavl_video_sink_destroy(s->vsink);
+  if(s->psink)
+    gavl_packet_sink_destroy(s->psink);
+
+  if(s->aframe)
+    {
+    gavl_audio_frame_null(s->aframe);
+    gavl_audio_frame_destroy(s->aframe);
+    }
+  if(s->vframe)
+    {
+    gavl_video_frame_null(s->vframe);
+    gavl_video_frame_destroy(s->vframe);
+    }
+  gavl_packet_free(&s->p);
   }
+
 
 gavf_t * gavf_create()
   {
@@ -327,7 +524,9 @@ int gavf_reset(gavf_t * g)
     else
       return 0;
     }
-
+  
+  g->have_pkt_header = 0;
+  
   if(!read_sync_header(g))
     return 0;
   return 1;
@@ -358,6 +557,7 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
       /* Got new packet */
       if(!gavf_io_read_uint32v(g->io, &g->pkthdr.stream_id))
         return 0;
+      g->have_pkt_header = 1;
       return &g->pkthdr;
       }
     else
@@ -390,6 +590,8 @@ int gavf_packet_read_packet(gavf_t * g, gavl_packet_t * p)
   {
   int i;
   gavf_stream_t * s = NULL;
+
+  g->have_pkt_header = 0;
   for(i = 0; i < g->ph.num_streams; i++)
     {
     if(g->pkthdr.stream_id == g->streams[i].h->id)
@@ -530,9 +732,9 @@ int gavf_add_text_stream(gavf_t * g,
   return gavf_program_header_add_text_stream(&g->ph, timescale, m);
   }
 
-static int start_encoding(gavf_t * g)
+int gavf_start(gavf_t * g)
   {
-  if(g->streams)
+  if(!g->wr || g->streams)
     return 1;
   
   g->sync_distance = g->opt.sync_distance;
@@ -690,14 +892,17 @@ static int get_min_pts_stream(gavf_t * g, int flush_all,
   int min_index;
   gavl_time_t min_time;
   gavl_time_t test_time;
+  gavf_stream_t * s;
   
   min_index = -1;
   min_time = GAVL_TIME_UNDEFINED;
     
   for(i = 0; i < g->ph.num_streams; i++)
     {
+    s = &g->streams[i];
+    
     test_time =
-      gavf_packet_buffer_get_min_pts(g->streams[i].pb);
+      gavf_packet_buffer_get_min_pts(s->pb);
 
     if(test_time != GAVL_TIME_UNDEFINED)
       {
@@ -710,7 +915,7 @@ static int get_min_pts_stream(gavf_t * g, int flush_all,
       }
     else
       {
-      if(!(g->streams[i].flags & STREAM_FLAG_DISCONTINUOUS) &&
+      if(!(s->flags & STREAM_FLAG_DISCONTINUOUS) &&
          !flush_all)
         {
         /* Some streams without packets: stop here */
@@ -754,7 +959,7 @@ int gavf_write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   gavl_time_t min_time;
   int min_index;
   
-  if(!start_encoding(g))
+  if(!gavf_start(g))
     return 0;
   
   s = &g->streams[stream];
@@ -806,11 +1011,12 @@ void gavf_video_frame_to_packet_metadata(const gavl_video_frame_t * frame,
   pkt->interlace_mode = frame->interlace_mode;
   }
 
-int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
+int gavf_write_video_frame(gavf_t * g,
+                           int stream, gavl_video_frame_t * frame)
   {
   gavf_stream_t * s;
 
-  if(!start_encoding(g))
+  if(!gavf_start(g))
     return 0;
 
   s = &g->streams[stream];
@@ -837,7 +1043,8 @@ int gavf_write_video_frame(gavf_t * g, int stream, gavl_video_frame_t * frame)
     if(!g->write_vframe)
       g->write_vframe = gavl_video_frame_create(NULL);
     g->write_vframe->strides[0] = 0;
-    gavl_video_frame_set_planes(g->write_vframe, &s->h->format.video, g->write_pkt.data);
+    gavl_video_frame_set_planes(g->write_vframe,
+                                &s->h->format.video, g->write_pkt.data);
 
     gavl_video_frame_copy(&s->h->format.video, g->write_vframe, frame);
     gavf_video_frame_to_packet_metadata(frame, &g->write_pkt);
@@ -869,7 +1076,7 @@ int gavf_write_audio_frame(gavf_t * g, int stream, gavl_audio_frame_t * frame)
   {
   gavf_stream_t * s;
 
-  if(!start_encoding(g))
+  if(!gavf_start(g))
     return 0;
 
   s = &g->streams[stream];
@@ -1011,4 +1218,22 @@ void gavf_close(gavf_t * g)
   gavf_buffer_free(&g->pkt_buf);
   
   free(g);
+  }
+
+gavl_packet_sink_t *
+gavf_get_packet_sink(gavf_t * g, int stream)
+  {
+  return g->streams[stream].psink;
+  }
+
+gavl_audio_sink_t *
+gavf_get_audio_sink(gavf_t * g, int stream)
+  {
+  return g->streams[stream].asink;
+  }
+
+gavl_video_sink_t *
+gavf_get_video_sink(gavf_t * g, int stream)
+  {
+  return g->streams[stream].vsink;
   }

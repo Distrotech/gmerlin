@@ -1,3 +1,4 @@
+
 #include "gavf.h"
 
 /* Buffer */
@@ -162,6 +163,23 @@ typedef struct
      comes again */
   gavf_buffer_t last_global_header;
   int block_align;
+
+  gavl_packet_source_t * psrc;
+  gavl_packet_sink_t * psink;
+
+  gavl_audio_source_t * asrc;
+  gavl_audio_sink_t * asink;
+  
+  gavl_video_source_t * vsrc;
+  gavl_video_sink_t * vsink;
+
+  gavf_t * g;
+
+  /* For reading uncompressed audio and video */
+  gavl_packet_t p;
+  gavl_audio_frame_t * aframe;
+  gavl_video_frame_t * vframe;
+  
   } gavf_stream_t;
 
 /* Formats */
@@ -174,8 +192,11 @@ int gavf_write_video_format(gavf_io_t * io, const gavl_video_format_t * format);
 
 /* Compression info */
 
-int gavf_read_compression_info(gavf_io_t * io, gavl_compression_info_t * ci);
-int gavf_write_compression_info(gavf_io_t * io, const gavl_compression_info_t * ci);
+int gavf_read_compression_info(gavf_io_t * io,
+                               gavl_compression_info_t * ci);
+
+int gavf_write_compression_info(gavf_io_t * io,
+                                const gavl_compression_info_t * ci);
 
 /* Metadata */
 

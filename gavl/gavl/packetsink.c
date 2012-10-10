@@ -52,7 +52,7 @@ gavl_packet_sink_get_packet(gavl_packet_sink_t * s)
 gavl_sink_status_t
 gavl_packet_sink_put_packet(gavl_packet_sink_t * s, gavl_packet_t * p)
   {
-  return s->put_func(s, p);
+  return s->put_func(s->priv, p);
   }
 
 void
