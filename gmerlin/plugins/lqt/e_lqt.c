@@ -396,6 +396,7 @@ static int add_subtitle_text_stream_lqt(void * data,
   
   s->timescale = *timescale;
   s->index = e->num_subtitle_text_streams;
+  s->e = e;
   
   e->num_subtitle_text_streams++;
   return s->index;

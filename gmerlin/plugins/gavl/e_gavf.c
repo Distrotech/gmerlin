@@ -40,17 +40,23 @@ typedef struct
     {
     gavl_audio_format_t format;
     int index;
+    gavl_audio_sink_t * sink;
+    gavl_packet_sink_t * psink;
     } * audio_streams;
   
   struct
     {
     gavl_video_format_t format;
     int index;
+    gavl_video_sink_t * sink;
+    gavl_packet_sink_t * psink;
+
     } * video_streams;
 
   struct
     {
     int index;
+    gavl_packet_sink_t * psink;
     } * text_streams;
 
   int flags;
@@ -318,7 +324,8 @@ bg_gavf_add_video_stream_compressed(void * data,
   gavl_video_format_copy(&f->video_streams[f->num_video_streams].format,
                          format);
   f->video_streams[f->num_video_streams].index =
-    gavf_add_video_stream(f->enc, info, &f->video_streams[f->num_video_streams].format, m);
+    gavf_add_video_stream(f->enc, info,
+                          &f->video_streams[f->num_video_streams].format, m);
 
   f->num_video_streams++;
   return f->num_video_streams-1;
@@ -326,7 +333,9 @@ bg_gavf_add_video_stream_compressed(void * data,
 
 static int bg_gavf_start(void * data)
   {
-  return 1;
+  bg_gavf_t * priv;
+  priv = data;
+  return gavf_start(priv->enc);
   }
 
 static void
@@ -349,6 +358,7 @@ bg_gavf_get_video_format(void * data, int stream,
   gavl_video_format_copy(ret, &priv->video_streams[stream].format);
   }
 
+/* LEGACY */
 static int
 bg_gavf_write_audio_frame(void * data,
                           gavl_audio_frame_t * frame, int stream)
@@ -358,6 +368,7 @@ bg_gavf_write_audio_frame(void * data,
                                 frame);
   }
 
+/* LEGACY */
 static int
 bg_gavf_write_video_frame(void * data,
                           gavl_video_frame_t * frame, int stream)
@@ -400,6 +411,7 @@ bg_gavf_close(void * data, int do_delete)
   return 1;
   }
 
+/* LEGACY */
 static int
 bg_gavf_write_audio_packet(void * data, gavl_packet_t * packet,
                            int stream)
@@ -409,6 +421,7 @@ bg_gavf_write_audio_packet(void * data, gavl_packet_t * packet,
                            packet);
   }
 
+/* LEGACY */
 static int
 bg_gavf_write_video_packet(void * data, gavl_packet_t * packet,
                            int stream)
@@ -417,6 +430,40 @@ bg_gavf_write_video_packet(void * data, gavl_packet_t * packet,
   return gavf_write_packet(f->enc, f->video_streams[stream].index,
                            packet);
   }
+
+static gavl_audio_sink_t * bg_gavf_get_audio_sink(void * data, int stream)
+  {
+  bg_gavf_t * f = data;
+  return gavf_get_audio_sink(f->enc, f->audio_streams[stream].index);
+  }
+
+static gavl_video_sink_t * bg_gavf_get_video_sink(void * data, int stream)
+  {
+  bg_gavf_t * f = data;
+  return gavf_get_video_sink(f->enc, f->video_streams[stream].index);
+  }
+
+static gavl_packet_sink_t *
+bg_gavf_get_audio_packet_sink(void * data, int stream)
+  {
+  bg_gavf_t * f = data;
+  return gavf_get_packet_sink(f->enc, f->audio_streams[stream].index);
+  }
+
+static gavl_packet_sink_t *
+bg_gavf_get_video_packet_sink(void * data, int stream)
+  {
+  bg_gavf_t * f = data;
+  return gavf_get_packet_sink(f->enc, f->video_streams[stream].index);
+  }
+
+static gavl_packet_sink_t *
+bg_gavf_get_text_sink(void * data, int stream)
+  {
+  bg_gavf_t * f = data;
+  return gavf_get_packet_sink(f->enc, f->text_streams[stream].index);
+  }
+
 
 const bg_encoder_plugin_t the_plugin =
   {
@@ -464,6 +511,12 @@ const bg_encoder_plugin_t the_plugin =
     .get_video_format =     bg_gavf_get_video_format,
 
     .start =                bg_gavf_start,
+
+    .get_audio_sink =        bg_gavf_get_audio_sink,
+    .get_video_sink =        bg_gavf_get_video_sink,
+    .get_audio_packet_sink = bg_gavf_get_audio_packet_sink,
+    .get_video_packet_sink = bg_gavf_get_video_packet_sink,
+    .get_subtitle_text_sink = bg_gavf_get_text_sink,
     
     .write_audio_frame =    bg_gavf_write_audio_frame,
     .write_video_frame =    bg_gavf_write_video_frame,

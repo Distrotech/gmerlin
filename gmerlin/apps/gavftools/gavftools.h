@@ -31,3 +31,31 @@ extern bg_plugin_registry_t * plugin_reg;
 extern bg_cfg_registry_t * cfg_reg;
 
 void gavftools_init_registries();
+
+/* Program */
+
+typedef struct bg_program_s bg_program_t;
+
+bg_program_t * bg_program_create();
+void bg_program_destroy(bg_program_t *);
+
+void bg_program_add_audio_stream(bg_program_t *,
+                                 gavl_audio_source_t * asrc,
+                                 gavl_packet_source_t * psrc);
+
+void bg_program_add_video_stream(bg_program_t *,
+                                 gavl_video_source_t * vsrc,
+                                 gavl_packet_source_t * psrc);
+
+void bg_program_add_text_stream(bg_program_t *,
+                                gavl_packet_source_t * psrc);
+
+int bg_program_num_audio_streams(bg_program_t *);
+int bg_program_num_video_streams(bg_program_t *);
+int bg_program_num_text_streams(bg_program_t *);
+
+/* So one iteration */
+int bg_program_process(bg_program_t *);
+
+void bg_program_connect_src_plug(bg_program_t *, bg_plug_t * p);
+void bg_program_connect_sink_plug(bg_program_t *, bg_plug_t * p);

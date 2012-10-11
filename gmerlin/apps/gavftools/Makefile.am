@@ -9,7 +9,9 @@ AM_CFLAGS = \
 noinst_LTLIBRARIES = \
 libgavftools.la
 
-libgavftools_la_SOURCES = gavftools.c
+libgavftools_la_SOURCES = \
+gavftools.c \
+program.c
 
 noinst_HEADERS = gavftools.h
 
