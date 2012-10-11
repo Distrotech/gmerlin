@@ -41,14 +41,18 @@ void bg_program_destroy(bg_program_t *);
 
 void bg_program_add_audio_stream(bg_program_t *,
                                  gavl_audio_source_t * asrc,
-                                 gavl_packet_source_t * psrc);
+                                 gavl_packet_source_t * psrc,
+                                 const gavl_metadata_t * m);
 
 void bg_program_add_video_stream(bg_program_t *,
                                  gavl_video_source_t * vsrc,
-                                 gavl_packet_source_t * psrc);
+                                 gavl_packet_source_t * psrc,
+                                 const gavl_metadata_t * m);
 
 void bg_program_add_text_stream(bg_program_t *,
-                                gavl_packet_source_t * psrc);
+                                gavl_packet_source_t * psrc,
+                                uint32_t timescale,
+                                const gavl_metadata_t * m);
 
 int bg_program_num_audio_streams(bg_program_t *);
 int bg_program_num_video_streams(bg_program_t *);
@@ -58,4 +62,4 @@ int bg_program_num_text_streams(bg_program_t *);
 int bg_program_process(bg_program_t *);
 
 void bg_program_connect_src_plug(bg_program_t *, bg_plug_t * p);
-void bg_program_connect_sink_plug(bg_program_t *, bg_plug_t * p);
+void bg_program_connect_dst_plug(bg_program_t *, bg_plug_t * p);
