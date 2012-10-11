@@ -200,6 +200,12 @@ void gavl_compression_info_dump(const gavl_compression_info_t * info)
 void gavl_compression_info_copy(gavl_compression_info_t * dst,
                                 const gavl_compression_info_t * src)
   {
+  if(!src)
+    {
+    memset(dst, 0, sizeof(*dst));
+    return;
+    }
+  
   memcpy(dst, src, sizeof(*dst));
   if(src->global_header)
     {

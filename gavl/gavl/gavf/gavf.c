@@ -761,11 +761,9 @@ int gavf_add_audio_stream(gavf_t * g,
 
 int gavf_add_video_stream(gavf_t * g,
                           const gavl_compression_info_t * ci,
-                          gavl_video_format_t * format,
+                          const gavl_video_format_t * format,
                           const gavl_metadata_t * m)
   {
-  if(ci->id == GAVL_CODEC_ID_NONE)
-    gavl_video_format_set_frame_size(format, 0, 0);
   return gavf_program_header_add_video_stream(&g->ph, ci, format, m);
   }
 

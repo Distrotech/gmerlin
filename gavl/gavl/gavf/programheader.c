@@ -119,6 +119,8 @@ int gavf_program_header_add_video_stream(gavf_program_header_t * ph,
 
   gavl_compression_info_copy(&h->ci, ci);
   gavl_video_format_copy(&h->format.video, format);
+  if(h->ci.id == GAVL_CODEC_ID_NONE)
+    gavl_video_format_set_frame_size(&h->format.video, 0, 0);
 
   return ph->num_streams-1;
   }

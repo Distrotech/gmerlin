@@ -190,7 +190,7 @@ int gavf_add_audio_stream(gavf_t * g,
 GAVL_PUBLIC
 int gavf_add_video_stream(gavf_t * g,
                           const gavl_compression_info_t * ci,
-                          gavl_video_format_t * format,
+                          const gavl_video_format_t * format,
                           const gavl_metadata_t * m);
 
 GAVL_PUBLIC
