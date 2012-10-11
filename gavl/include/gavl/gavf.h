@@ -222,3 +222,12 @@ gavf_get_audio_sink(gavf_t *, int stream);
 
 GAVL_PUBLIC gavl_video_sink_t *
 gavf_get_video_sink(gavf_t *, int stream);
+
+GAVL_PUBLIC gavl_packet_source_t *
+gavf_get_packet_source(gavf_t *, int stream);
+
+GAVL_PUBLIC gavl_audio_source_t *
+gavf_get_audio_source(gavf_t *, int stream);
+
+GAVL_PUBLIC gavl_video_source_t *
+gavf_get_video_source(gavf_t *, int stream);
