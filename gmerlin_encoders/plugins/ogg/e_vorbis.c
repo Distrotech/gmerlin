@@ -110,16 +110,17 @@ const bg_encoder_plugin_t the_plugin =
     .add_audio_stream =        add_audio_stream_vorbis,
     .add_audio_stream_compressed =        add_audio_stream_compressed_vorbis,
     
-    .set_audio_parameter =     bg_ogg_encoder_set_audio_parameter,
+    .set_audio_parameter =   bg_ogg_encoder_set_audio_parameter,
 
-    .start =                  bg_ogg_encoder_start,
+    .start =                 bg_ogg_encoder_start,
 
-    .get_audio_format =        bg_ogg_encoder_get_audio_format,
+    .get_audio_format =      bg_ogg_encoder_get_audio_format,
     .get_audio_sink =        bg_ogg_encoder_get_audio_sink,
+    .get_audio_packet_sink = bg_ogg_encoder_get_audio_packet_sink,
     
-    .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
-    .write_audio_packet =   bg_ogg_encoder_write_audio_packet,
-    .close =               bg_ogg_encoder_close,
+    .write_audio_frame =     bg_ogg_encoder_write_audio_frame,
+    .write_audio_packet =    bg_ogg_encoder_write_audio_packet,
+    .close =                 bg_ogg_encoder_close,
   };
 
 /* Include this into all plugin modules exactly once

@@ -142,10 +142,9 @@ static int writes_compressed_video_mpv(void * priv,
   return 0;
   }
 
-
 static int write_video_frame_mpv(void * data,
-                                  gavl_video_frame_t* frame,
-                                  int stream)
+                                 gavl_video_frame_t* frame,
+                                 int stream)
   {
   e_mpv_t * e = data;
   return bg_mpv_write_video_frame(&e->mpv, frame);

@@ -82,10 +82,11 @@ static int add_audio_stream_theora(void * data,
   return ret;
   }
 
-static int add_audio_stream_compressed_theora(void * data,
-                                              const gavl_metadata_t * m,
-                                              const gavl_audio_format_t * format,
-                                              const gavl_compression_info_t * ci)
+static int
+add_audio_stream_compressed_theora(void * data,
+                                   const gavl_metadata_t * m,
+                                   const gavl_audio_format_t * format,
+                                   const gavl_compression_info_t * ci)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
@@ -94,9 +95,10 @@ static int add_audio_stream_compressed_theora(void * data,
   return ret;
   }
 
-static int add_video_stream_theora(void * data,
-                                   const gavl_metadata_t * m,
-                                   const gavl_video_format_t * format)
+static int
+add_video_stream_theora(void * data,
+                        const gavl_metadata_t * m,
+                        const gavl_video_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_video_stream(data, m, format);
@@ -117,8 +119,9 @@ add_video_stream_compressed_theora(void * data,
   }
 
 
-static void set_audio_parameter_theora(void * data, int stream,
-                                       const char * name, const bg_parameter_value_t * val)
+static void
+set_audio_parameter_theora(void * data, int stream,
+                           const char * name, const bg_parameter_value_t * val)
   {
   int i;
   if(!name)
@@ -215,9 +218,12 @@ const bg_encoder_plugin_t the_plugin =
     .get_audio_format =        bg_ogg_encoder_get_audio_format,
     .get_video_format =        bg_ogg_encoder_get_video_format,
 
+    
     .get_audio_sink =        bg_ogg_encoder_get_audio_sink,
     .get_video_sink =        bg_ogg_encoder_get_video_sink,
 
+    .get_audio_packet_sink =        bg_ogg_encoder_get_audio_packet_sink,
+    .get_video_packet_sink =        bg_ogg_encoder_get_video_packet_sink,
     
     .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
     .write_video_frame =   bg_ogg_encoder_write_video_frame,

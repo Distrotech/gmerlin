@@ -72,6 +72,8 @@ typedef struct
   const gavl_compression_info_t * ci;
 
   gavl_audio_sink_t * sink;
+  gavl_packet_sink_t * psink;
+
   const gavl_metadata_t * m;
   } bg_ogg_audio_stream_t;
 
@@ -87,6 +89,8 @@ typedef struct
   char * stats_file;
 
   gavl_video_sink_t * sink;
+  gavl_packet_sink_t * psink;
+
   const gavl_metadata_t * m;
   } bg_ogg_video_stream_t;
 
@@ -134,39 +138,63 @@ int bg_ogg_encoder_add_audio_stream(void*, const gavl_metadata_t * m,
 int bg_ogg_encoder_add_video_stream(void*, const gavl_metadata_t * m,
                                     const gavl_video_format_t * format);
 
-int bg_ogg_encoder_add_audio_stream_compressed(void*, const gavl_metadata_t * m,
-                                               const gavl_audio_format_t * format,
-                                               const gavl_compression_info_t * ci);
+int
+bg_ogg_encoder_add_audio_stream_compressed(void*, const gavl_metadata_t * m,
+                                           const gavl_audio_format_t * format,
+                                           const gavl_compression_info_t * ci);
 
-int bg_ogg_encoder_add_video_stream_compressed(void*, const gavl_metadata_t * m,
-                                               const gavl_video_format_t * format,
-                                               const gavl_compression_info_t * ci);
+int
+bg_ogg_encoder_add_video_stream_compressed(void*, const gavl_metadata_t * m,
+                                           const gavl_video_format_t * format,
+                                           const gavl_compression_info_t * ci);
 
-void bg_ogg_encoder_init_audio_stream(void*, int stream, const bg_ogg_codec_t * codec);
+void
+bg_ogg_encoder_init_audio_stream(void*, int stream, const bg_ogg_codec_t * codec);
 void bg_ogg_encoder_init_video_stream(void*, int stream, const bg_ogg_codec_t * codec);
 
 void bg_ogg_encoder_set_audio_parameter(void*, int stream,
-                                        const char * name, const bg_parameter_value_t * val);
+                                        const char * name,
+                                        const bg_parameter_value_t * val);
+
 void bg_ogg_encoder_set_video_parameter(void*, int stream,
-                                        const char * name, const bg_parameter_value_t * val);
+                                        const char * name,
+                                        const bg_parameter_value_t * val);
 
 int bg_ogg_encoder_set_video_pass(void*, int stream,
-                                  int pass, int total_passes, const char * stats_file);
+                                  int pass, int total_passes,
+                                  const char * stats_file);
 
 
 int bg_ogg_encoder_start(void*);
 
-void bg_ogg_encoder_get_audio_format(void * data, int stream, gavl_audio_format_t*ret);
-void bg_ogg_encoder_get_video_format(void * data, int stream, gavl_video_format_t*ret);
+void bg_ogg_encoder_get_audio_format(void * data, int stream,
+                                     gavl_audio_format_t*ret);
+void bg_ogg_encoder_get_video_format(void * data, int stream,
+                                     gavl_video_format_t*ret);
 
-gavl_audio_sink_t * bg_ogg_encoder_get_audio_sink(void * data, int stream);
-gavl_video_sink_t * bg_ogg_encoder_get_video_sink(void * data, int stream);
+gavl_audio_sink_t *
+bg_ogg_encoder_get_audio_sink(void * data, int stream);
 
-int bg_ogg_encoder_write_audio_frame(void * data, gavl_audio_frame_t*f,int stream);
-int bg_ogg_encoder_write_video_frame(void * data, gavl_video_frame_t*f,int stream);
+gavl_packet_sink_t *
+bg_ogg_encoder_get_audio_packet_sink(void * data, int stream);
 
-int bg_ogg_encoder_write_audio_packet(void * data, gavl_packet_t*p,int stream);
-int bg_ogg_encoder_write_video_packet(void * data, gavl_packet_t*p,int stream);
+gavl_video_sink_t *
+bg_ogg_encoder_get_video_sink(void * data, int stream);
+
+gavl_packet_sink_t *
+bg_ogg_encoder_get_video_packet_sink(void * data, int stream);
+
+int bg_ogg_encoder_write_audio_frame(void * data,
+                                     gavl_audio_frame_t*f,int stream);
+
+int bg_ogg_encoder_write_video_frame(void * data,
+                                     gavl_video_frame_t*f,int stream);
+
+int bg_ogg_encoder_write_audio_packet(void * data,
+                                      gavl_packet_t*p,int stream);
+
+int bg_ogg_encoder_write_video_packet(void * data,
+                                      gavl_packet_t*p,int stream);
 
 int bg_ogg_encoder_close(void * data, int do_delete);
 

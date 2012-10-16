@@ -70,10 +70,11 @@ static int writes_compressed_audio_opus(void* data,
     return 0;
   }
 
-static int add_audio_stream_compressed_opus(void * data,
-                                              const gavl_metadata_t * m,
-                                              const gavl_audio_format_t * format,
-                                              const gavl_compression_info_t * ci)
+static int
+add_audio_stream_compressed_opus(void * data,
+                                 const gavl_metadata_t * m,
+                                 const gavl_audio_format_t * format,
+                                 const gavl_compression_info_t * ci)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
@@ -118,6 +119,7 @@ const bg_encoder_plugin_t the_plugin =
 
     .get_audio_format =        bg_ogg_encoder_get_audio_format,
     .get_audio_sink =        bg_ogg_encoder_get_audio_sink,
+    .get_audio_packet_sink = bg_ogg_encoder_get_audio_packet_sink,
     
     .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
     .write_audio_packet =   bg_ogg_encoder_write_audio_packet,

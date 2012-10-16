@@ -54,6 +54,8 @@ typedef struct
   bg_encoder_callbacks_t * cb;
 
   const gavl_compression_info_t * ci;
+  gavl_packet_sink_t * psink;
+  
   bg_xing_t * xing;
   uint32_t xing_pos;
   
@@ -192,8 +194,9 @@ static int open_lame(void * data,
   return ret;
   }
 
-static int writes_compressed_audio_lame(void * data, const gavl_audio_format_t * format,
-                                       const gavl_compression_info_t * ci)
+static int
+writes_compressed_audio_lame(void * data, const gavl_audio_format_t * format,
+                             const gavl_compression_info_t * ci)
   {
   if(ci->id == GAVL_CODEC_ID_MP3)
     return 1;
@@ -201,20 +204,8 @@ static int writes_compressed_audio_lame(void * data, const gavl_audio_format_t *
     return 0;
   }
 
-static int
-add_audio_stream_compressed_lame(void * data,
-                                 const gavl_metadata_t * m,
-                                 const gavl_audio_format_t * format,
-                                 const gavl_compression_info_t * ci)
-  {
-  lame_priv_t * lame;
-  
-  lame = data;
-  lame->ci = ci;
-  return 0;
-  }
-
-static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
+static gavl_sink_status_t
+write_audio_packet_func_lame(void * data, gavl_packet_t * p)
   {
   lame_priv_t * lame;
   
@@ -227,16 +218,46 @@ static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
     lame->xing_pos = ftell(lame->output);
     
     if(!bg_xing_write(lame->xing, lame->output))
-      return 0;
+      return GAVL_SINK_ERROR;
     }
 
   if(lame->xing)
     bg_xing_update(lame->xing, p->data_len);
   
   if(fwrite(p->data, 1, p->data_len, lame->output) < p->data_len)
-    return 0;
-  return 1;
+    return GAVL_SINK_ERROR;
+  return GAVL_SINK_OK;
   }
+
+static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
+  {
+  lame_priv_t * lame = data;
+  return gavl_packet_sink_put_packet(lame->psink, p) == GAVL_SINK_OK;
+  }
+
+static gavl_packet_sink_t *
+get_packet_sink_lame(void * data, int stream)
+  {
+  lame_priv_t * lame = data;
+  return lame->psink;
+  }
+
+static int
+add_audio_stream_compressed_lame(void * data,
+                                 const gavl_metadata_t * m,
+                                 const gavl_audio_format_t * format,
+                                 const gavl_compression_info_t * ci)
+  {
+  lame_priv_t * lame;
+  
+  lame = data;
+  lame->ci = ci;
+  lame->psink = gavl_packet_sink_create(NULL, write_audio_packet_func_lame,
+                                        lame);
+  
+  return 0;
+  }
+
 
 static int close_lame(void * data, int do_delete)
   {
@@ -296,6 +317,9 @@ static int close_lame(void * data, int do_delete)
     lame->filename = NULL;
     }
 
+  if(lame->psink)
+    gavl_packet_sink_destroy(lame->psink);
+  
   return 1;
   }
 
@@ -331,6 +355,8 @@ const bg_encoder_plugin_t the_plugin =
 
     .get_audio_format =        bg_lame_get_audio_format,
     .get_audio_sink =        bg_lame_get_audio_sink,
+
+    .get_audio_packet_sink =        get_packet_sink_lame,
     
     .write_audio_frame =    bg_lame_write_audio_frame,
     .write_audio_packet =   write_audio_packet_lame,

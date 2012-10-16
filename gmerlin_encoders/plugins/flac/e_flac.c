@@ -79,6 +79,7 @@ typedef struct
   int fixed_blocksize;
 
   gavl_audio_sink_t * sink;
+  gavl_packet_sink_t * psink;
   } flac_t;
 
 static void * create_flac()
@@ -272,7 +273,8 @@ write_callback(const FLAC__StreamEncoder *encoder,
   return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
   }
 
-static gavl_sink_status_t write_audio_func_flac(void * data, gavl_audio_frame_t * frame)
+static gavl_sink_status_t
+write_audio_func_flac(void * data, gavl_audio_frame_t * frame)
   {
   gavl_sink_status_t ret = GAVL_SINK_OK;
   flac_t * flac;
@@ -290,13 +292,70 @@ static gavl_sink_status_t write_audio_func_flac(void * data, gavl_audio_frame_t 
   return ret;
   }
 
+static gavl_sink_status_t
+write_audio_packet_func_flac(void * priv, gavl_packet_t * packet)
+  {
+  flac_t * flac = priv;
+
+  // fprintf(stderr, "%ld %ld\n", packet->duration, flac->samples_written);
+  
+  if(packet->data_len < 6)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Packet data too small: %d",
+           packet->data_len);
+    return GAVL_SINK_ERROR;
+    }
+  
+  if(!flac->samples_written)
+    {
+    flac->fixed_blocksize = !(packet->data[1] & 0x01); // bit 15
+    flac->si.min_blocksize = packet->duration;
+    flac->si.max_blocksize = packet->duration;
+    }
+  else if(!flac->fixed_blocksize)
+    {
+    if(packet->duration < flac->si.min_blocksize)
+      flac->si.min_blocksize = packet->duration;
+    if(packet->duration > flac->si.max_blocksize)
+      flac->si.max_blocksize = packet->duration;
+    }
+  
+  if(!flac->si.min_framesize || (packet->data_len < flac->si.min_framesize))
+    flac->si.min_framesize = packet->data_len;
+  if(packet->data_len > flac->si.max_framesize)
+    flac->si.max_framesize = packet->data_len;
+
+  if(flac->data_start < 0)
+    flac->data_start = flac->bytes_written;
+  
+  append_packet(flac, packet->duration);
+  flac->samples_written += packet->duration;
+
+  flac->si.total_samples = flac->samples_written;
+
+  if(fwrite(packet->data, 1, packet->data_len, flac->out) == packet->data_len)
+    {
+    flac->bytes_written += packet->data_len;
+    return GAVL_SINK_OK;
+    }
+  else
+    return GAVL_SINK_ERROR;
+  }
+
+
 static int write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
                                   int stream)
   {
   flac_t * flac;
   flac = data;
-
   return (gavl_audio_sink_put_frame(flac->sink, frame) == GAVL_SINK_OK);
+  }
+
+static int
+write_audio_packet_flac(void * priv, gavl_packet_t * packet, int stream)
+  {
+  flac_t * flac = priv;
+  return (gavl_packet_sink_put_packet(flac->psink, packet) == GAVL_SINK_OK);
   }
 
 static int start_flac(void * data)
@@ -336,8 +395,12 @@ static int start_flac(void * data)
     }
   flac->data_start = -1;
 
-  flac->sink = gavl_audio_sink_create(NULL, write_audio_func_flac,
-                                      flac, &flac->format);
+  if(flac->ci)
+    flac->psink = gavl_packet_sink_create(NULL, write_audio_packet_func_flac,
+                                          flac);
+  else
+    flac->sink = gavl_audio_sink_create(NULL, write_audio_func_flac,
+                                        flac, &flac->format);
   
   return 1;
   }
@@ -487,6 +550,11 @@ static int close_flac(void * data, int do_delete)
     gavl_audio_sink_destroy(flac->sink);
     flac->sink = NULL;
     }
+  if(flac->psink)
+    {
+    gavl_packet_sink_destroy(flac->psink);
+    flac->psink = NULL;
+    }
   
   bg_flac_free(&flac->com);
   return 1;
@@ -552,54 +620,6 @@ add_audio_stream_compressed_flac(void * priv,
   return 0;
   }
 
-static int write_audio_packet_flac(void * priv, gavl_packet_t * packet, int stream)
-  {
-  flac_t * flac = priv;
-
-  // fprintf(stderr, "%ld %ld\n", packet->duration, flac->samples_written);
-  
-  if(packet->data_len < 6)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Packet data too small: %d",
-           packet->data_len);
-    return 0;
-    }
-  
-  if(!flac->samples_written)
-    {
-    flac->fixed_blocksize = !(packet->data[1] & 0x01); // bit 15
-    flac->si.min_blocksize = packet->duration;
-    flac->si.max_blocksize = packet->duration;
-    }
-  else if(!flac->fixed_blocksize)
-    {
-    if(packet->duration < flac->si.min_blocksize)
-      flac->si.min_blocksize = packet->duration;
-    if(packet->duration > flac->si.max_blocksize)
-      flac->si.max_blocksize = packet->duration;
-    }
-  
-  if(!flac->si.min_framesize || (packet->data_len < flac->si.min_framesize))
-    flac->si.min_framesize = packet->data_len;
-  if(packet->data_len > flac->si.max_framesize)
-    flac->si.max_framesize = packet->data_len;
-
-  if(flac->data_start < 0)
-    flac->data_start = flac->bytes_written;
-  
-  append_packet(flac, packet->duration);
-  flac->samples_written += packet->duration;
-
-  flac->si.total_samples = flac->samples_written;
-
-  if(fwrite(packet->data, 1, packet->data_len, flac->out) == packet->data_len)
-    {
-    flac->bytes_written += packet->data_len;
-    return 1;
-    }
-  else
-    return 0;
-  }
 
 const bg_encoder_plugin_t the_plugin =
   {
