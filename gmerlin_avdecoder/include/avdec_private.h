@@ -1692,7 +1692,10 @@ char * bgav_search_file_read(const bgav_options_t * opt,
                              const char * directory, const char * file);
 
 int bgav_match_regexp(const char * str, const char * regexp);
-  
+
+char * bgav_escape_string(char * old_string, const char * escape_chars);
+
+
 
 /* Check if file exist and is readable */
 
@@ -1702,9 +1705,11 @@ int bgav_check_file_read(const char * filename);
 
 /* Read a single line from a filedescriptor */
 
-int bgav_read_line_fd(const bgav_options_t * opt, int fd, char ** ret, int * ret_alloc, int milliseconds);
+int bgav_read_line_fd(const bgav_options_t * opt, int fd,
+                      char ** ret, int * ret_alloc, int milliseconds);
 
-int bgav_read_data_fd(const bgav_options_t * opt, int fd, uint8_t * ret, int size, int milliseconds);
+int bgav_read_data_fd(const bgav_options_t * opt, int fd,
+                      uint8_t * ret, int size, int milliseconds);
 
 const char * bgav_coding_type_to_string(int type);
 
@@ -1869,6 +1874,8 @@ struct bgav_subtitle_reader_context_s
   {
   bgav_input_context_t * input;
   const bgav_subtitle_reader_t * reader;
+  char * charset;
+  
   bgav_stream_t * s;
   bgav_packet_t * out_packet;
   

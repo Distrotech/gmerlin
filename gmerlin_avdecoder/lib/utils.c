@@ -654,3 +654,74 @@ const char * bgav_coding_type_to_string(int type)
   {
   return coding_type_strings[type & GAVL_PACKET_TYPE_MASK];
   }
+
+char * bgav_escape_string(char * old_string, const char * escape_chars)
+  {
+  char escape_seq[3];
+  char * new_string = NULL;
+  int i, done;
+
+  const char * start;
+  const char * end;
+  const char * pos;
+  
+  int escape_len = strlen(escape_chars);
+  
+  /* 1st round: Check if the string can be passed unchanged */
+
+  done = 1;
+  for(i = 0; i < escape_len; i++)
+    {
+    if(index(old_string, escape_chars[i]))
+      {
+      done = 0;
+      break;
+      }
+    }
+  if(done)
+    return old_string;
+
+  /* 2nd round: Escape characters */
+
+  escape_seq[0] = '\\';
+  escape_seq[2] = '\0';
+  
+  start = old_string;
+  end = start;
+
+  done = 0;
+
+  while(1)
+    {
+    /* Copy unescaped stuff */
+    while(!index(escape_chars, *end) && (*end != '\0'))
+      end++;
+
+    if(end - start)
+      {
+      new_string = bgav_strncat(new_string, start, end);
+      start = end;
+      }
+
+    if(*end == '\0')
+      {
+      free(old_string);
+      return new_string;
+      }
+    /* Escape stuff */
+
+    while((pos = index(escape_chars, *start)))
+      {
+      escape_seq[1] = *pos;
+      new_string = bgav_strncat(new_string, escape_seq, NULL);
+      start++;
+      }
+    end = start;
+    if(*end == '\0')
+      {
+      free(old_string);
+      return new_string;
+      }
+    }
+  return NULL; // Never get here
+  }

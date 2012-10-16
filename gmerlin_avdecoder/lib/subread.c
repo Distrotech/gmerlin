@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <glob.h>
+#include <errno.h>
 
 #include <avdec_private.h>
 
@@ -720,7 +721,8 @@ static char const * const extensions[] =
 
 static const bgav_subtitle_reader_t *
 find_subtitle_reader(const char * filename,
-                     const bgav_options_t * opt)
+                     const bgav_options_t * opt,
+                     char ** charset)
   {
   int i;
   bgav_input_context_t * input;
@@ -758,8 +760,7 @@ find_subtitle_reader(const char * filename,
   while(bgav_input_read_convert_line(input, &line, &line_alloc, &line_len))
     {
     i = 0;
-
-        
+    
     while(subtitle_readers[i].name)
       {
       if(subtitle_readers[i].probe(line))
@@ -772,6 +773,12 @@ find_subtitle_reader(const char * filename,
     if(ret)
       break;
     }
+
+  if(ret && input->charset)
+    *charset = bgav_strdup(input->charset);
+  else
+    *charset = NULL;
+  
   bgav_input_destroy(input);
   free(line);
   
@@ -780,17 +787,28 @@ find_subtitle_reader(const char * filename,
 
 extern bgav_input_t bgav_input_file;
 
+static int glob_errfunc(const char *epath, int eerrno)
+  {
+  fprintf(stderr, "glob error: Cannot access %s: %s\n",
+          epath, strerror(errno));
+  return 0;
+  }
+
+
+
 bgav_subtitle_reader_context_t *
 bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   {
-  char *pattern, *pos, *name;
+  char * pattern, * pos, * name;
+  char * charset;
   const bgav_subtitle_reader_t * r;
   bgav_subtitle_reader_context_t * ret = NULL;
   bgav_subtitle_reader_context_t * end = NULL;
-  bgav_subtitle_reader_context_t *new;
+  bgav_subtitle_reader_context_t * new;
   glob_t glob_buf;
   int i;
   int base_len;
+  int result;
   
   /* Check if input is a regular file */
   if((input_ctx->input != &bgav_input_file) || !input_ctx->filename)
@@ -811,9 +829,22 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   pos[0] = '*';
   pos[1] = '\0';
 
-  if(glob(pattern, 0, NULL, &glob_buf))
-    return NULL;
+  //  fprintf(stderr, "Unescaped pattern: %s\n", pattern);
 
+  pattern = bgav_escape_string(pattern, "[]?");
+
+  //  fprintf(stderr, "Escaped pattern: %s\n", pattern);
+  
+  memset(&glob_buf, 0, sizeof(glob_buf));
+  
+  if((result = glob(pattern, 0,
+                    glob_errfunc,
+                    // NULL,
+                    &glob_buf)))
+    {
+    // fprintf(stderr, "glob returned %d\n", result);
+    return NULL;
+    }
   free(pattern);
   
   for(i = 0; i < glob_buf.gl_pathc; i++)
@@ -822,7 +853,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
       continue;
     //    fprintf(stderr, "Found %s\n", glob_buf.gl_pathv[i]);
 
-    r = find_subtitle_reader(glob_buf.gl_pathv[i], input_ctx->opt);
+    r = find_subtitle_reader(glob_buf.gl_pathv[i], input_ctx->opt, &charset);
     if(!r)
       continue;
     
@@ -830,7 +861,8 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     new->filename = bgav_strdup(glob_buf.gl_pathv[i]);
     new->input    = bgav_input_create(input_ctx->opt);
     new->reader   = r;
-
+    new->charset  = charset;
+    
     name = glob_buf.gl_pathv[i] + base_len;
     
     while(!isalnum(*name) && (*name != '\0'))
@@ -885,6 +917,8 @@ void bgav_subtitle_reader_destroy(bgav_stream_t * s)
     free(ctx->info);
   if(ctx->filename)
     free(ctx->filename);
+  if(ctx->charset)
+    free(ctx->charset);
   if(ctx->line)
     free(ctx->line);
   if(ctx->input)
@@ -901,9 +935,15 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
     return 0;
 
   bgav_input_detect_charset(ctx->input);
+#if 0 // Moved to add_subtitle_stream (track.c)
   if(ctx->input->charset) /* We'll do charset conversion by the input */
+    {
+    if(s->data.subtitle.charset)
+      free(s->data.subtitle.charset);
+    
     s->data.subtitle.charset = bgav_strdup(BGAV_UTF8);
-  
+    }
+#endif
   if(ctx->reader->init && !ctx->reader->init(s))
     return 0;
 

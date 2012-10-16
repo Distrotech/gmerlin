@@ -94,6 +94,10 @@ static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
     if(charset)
       ret->data.subtitle.charset =
         bgav_strdup(charset);
+    else if(r && r->charset) // Reader knows about charset and will do the
+                             // conversion.
+
+      ret->data.subtitle.charset = bgav_strdup(BGAV_UTF8);
     else
       ret->data.subtitle.charset =
         bgav_strdup(ret->opt->default_subtitle_encoding);
