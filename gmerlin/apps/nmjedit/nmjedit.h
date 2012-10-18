@@ -47,6 +47,16 @@
   if(!strcasecmp(azColName[i], col) && argv[i]) \
     ret->val = strtoll(argv[i], NULL, 10);
 
+typedef struct
+  {
+  int64_t * val;
+  int val_alloc;
+  int num_val;
+  } bg_nmj_append_int_t;
+
+int bg_nmj_append_int_callback(void * data, int argc, char **argv, char **azColName);
+
+
 int
 bg_sqlite_exec(sqlite3 * db,                              /* An open database */
                const char *sql,                           /* SQL to be evaluated */
@@ -92,7 +102,7 @@ int64_t bg_nmj_get_next_id(sqlite3 * db, const char * table);
 int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
                           const char * in_file,
                           const char * out_file,
-                          int thumb_size);
+                          int thumb_size, int force_scale);
 
 int64_t bg_nmj_get_group(sqlite3 * db, const char * table, char * str);
 
@@ -228,6 +238,10 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
                      sqlite3 * db, bg_nmj_album_t *, bg_nmj_song_t * song);
 int bg_nmj_album_delete(sqlite3 * db, int64_t album_id, bg_nmj_song_t * song);
 
+void bg_nmj_album_update_cover(bg_plugin_registry_t * plugin_reg,
+                               sqlite3 * db, bg_nmj_album_t * album);
+
+
 int64_t bg_nmj_album_lookup(sqlite3 * db,
                             int64_t artist, const char * title);
 
@@ -249,3 +263,5 @@ int bg_nmj_add_album(sqlite3 * db, const char * album);
 
 void bg_nmj_cleanup(sqlite3 * db);
 void bg_nmj_create_new();
+
+void bg_nmj_update_album_covers(bg_plugin_registry_t * plugin_reg, sqlite3 * db);

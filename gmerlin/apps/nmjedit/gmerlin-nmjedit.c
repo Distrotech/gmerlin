@@ -45,6 +45,8 @@ int num_add_albums = 0;
 int list_dirs = 0;
 int do_create = 0;
 
+int update_covers = 0;
+
 static void opt_add(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
@@ -91,6 +93,11 @@ static void opt_del(void * data, int * argc, char *** _argv, int arg)
 static void opt_list_dirs(void * data, int * argc, char *** _argv, int arg)
   {
   list_dirs = 1;
+  }
+
+static void opt_update_covers(void * data, int * argc, char *** _argv, int arg)
+  {
+  update_covers = 1;
   }
 
 static void opt_create(void * data, int * argc, char *** _argv, int arg)
@@ -156,6 +163,11 @@ static bg_cmdline_arg_t global_options[] =
       .arg =         "-create",
       .help_string = "Create new and empty database",
       .callback =    opt_create,
+    },
+    {
+      .arg =         "-update-covers",
+      .help_string = "Update album covers",
+      .callback =    opt_update_covers,
     },
     { /* End */ },
   };
@@ -259,6 +271,10 @@ int main(int argc, char ** argv)
     }
   
   bg_nmj_cleanup(db);
+
+  /* Update covers */
+  if(update_covers)
+    bg_nmj_update_album_covers(plugin_reg, db);
   
   /* Close sql connection */
   sqlite3_close(db);

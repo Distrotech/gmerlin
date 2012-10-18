@@ -70,18 +70,10 @@ static int string_callback(void * data, int argc, char **argv, char **azColName)
   return 0;
   }
 
-typedef struct
-  {
-  int64_t * val;
-  int val_alloc;
-  int num_val;
-  } append_int_t;
-
-static int
-append_int_callback(void * data, int argc, char **argv, char **azColName)
+int bg_nmj_append_int_callback(void * data, int argc, char **argv, char **azColName)
   {
   int64_t ret;
-  append_int_t * val = data;
+  bg_nmj_append_int_t * val = data;
   if(argv[0])
     {
     ret = strtoll(argv[0], NULL, 10);
@@ -237,12 +229,12 @@ int64_t bg_nmj_get_group(sqlite3 * db, const char * table, char * str)
   int result;
   int first = toupper(str[0]);
   
-  append_int_t tab;
+  bg_nmj_append_int_t tab;
   memset(&tab, 0, sizeof(tab));
 
   sql =
     sqlite3_mprintf("select ID from %s;", table);
-  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
   sqlite3_free(sql);
 
   for(i = 0; i < tab.num_val; i++)
@@ -302,7 +294,7 @@ int64_t bg_nmj_album_lookup(sqlite3 * db,
   {
   int i;
   int64_t ret = -1;
-  append_int_t tab;
+  bg_nmj_append_int_t tab;
   char * sql;
   int result;
   
@@ -311,7 +303,7 @@ int64_t bg_nmj_album_lookup(sqlite3 * db,
   sql =
     sqlite3_mprintf("select ID from SONG_ALBUMS where TITLE = %Q;",
                     title);
-  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
   sqlite3_free(sql);
   
   if(!result)
@@ -465,7 +457,7 @@ static int add_directory(bg_plugin_registry_t * plugin_reg,
 static int update_directory(bg_plugin_registry_t * plugin_reg,
                             sqlite3 * db, bg_nmj_dir_t * dir, int type)
   {
-  append_int_t tab;
+  bg_nmj_append_int_t tab;
   char * sql;
   int result;
   int i;
@@ -482,16 +474,20 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
   extensions = make_extensions(type);
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Updating %s", dir->directory);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scanning files");
   
   files = bg_nmj_file_scan(dir->directory, extensions, &size, &num);
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scanned %d files", num);
     
   /* 1. Query all files in the database and check if they changed or were deleted */
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Getting songs from database");
+  
   sql =
     sqlite3_mprintf("select ID from SONGS where SCAN_DIRS_ID = %"PRId64";",
                     dir->id);
-  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
   sqlite3_free(sql);
   
   if(!result)
@@ -521,6 +517,7 @@ static int update_directory(bg_plugin_registry_t * plugin_reg,
     else if(file->time != bg_nmj_string_to_time(song.create_time))
       {
       /* File changed, will be re-added later */
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "File %s changed", song.path);
       bg_nmj_song_delete(db, &song);
       }
     /* Remove from array */
@@ -587,7 +584,7 @@ int bg_nmj_remove_directory(sqlite3 * db, const char * directory)
   bg_nmj_dir_t dir;
   char * sql;
   int result;
-  append_int_t tab;
+  bg_nmj_append_int_t tab;
   bg_nmj_song_t song;
   int ret = 0;
   int i;
@@ -605,7 +602,7 @@ int bg_nmj_remove_directory(sqlite3 * db, const char * directory)
   /* Loop through all songs and remove them */
   sql =
     sqlite3_mprintf("select ID from SONGS where SCAN_DIRS_ID = %"PRId64";", dir.id);
-  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
   sqlite3_free(sql);
   if(!result)
     goto fail;
@@ -640,7 +637,7 @@ int bg_nmj_remove_directory(sqlite3 * db, const char * directory)
 int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
                           const char * in_file,
                           const char * out_file,
-                          int thumb_size)
+                          int thumb_size, int force_scale)
   {
   int ret = 0;
   /* Formats */
@@ -658,28 +655,108 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
   bg_image_writer_plugin_t * output_plugin;
   bg_plugin_handle_t * output_handle = NULL;
   const bg_plugin_info_t * plugin_info;
-  
+  const char * extension;
+  uint8_t * file_buf = NULL;
+  int file_len;
+
+  extension = strrchr(in_file, '.');
+  if(!extension)
+    return 0;
+  extension++;
+
   input_frame = bg_plugin_registry_load_image(plugin_reg,
                                               in_file,
                                               &input_format, NULL);
-
-  gavl_video_format_copy(&output_format, &input_format);
-
-  /* Scale the image to square pixels */
-  output_format.image_width *= output_format.pixel_width;
-  output_format.image_height *= output_format.pixel_height;
   
-  if(output_format.image_width > input_format.image_height)
+  /* Return early for copying */
+  if(!force_scale &&
+     bg_string_match(extension, "jpg jpeg") &&
+     (input_format.image_width <= thumb_size) &&
+     (input_format.image_height <= thumb_size))
     {
-    output_format.image_height = (thumb_size * output_format.image_height) /
-      output_format.image_width;
-    output_format.image_width = thumb_size;
+    file_buf = bg_read_file(in_file, &file_len);
+    if(!file_buf || !bg_write_file(out_file, file_buf, file_len))
+      goto end;
+    else
+      {
+      ret = 1;
+      goto end;
+      }
     }
+  
+  gavl_video_format_copy(&output_format, &input_format);
+  
+  if(force_scale)
+    {
+    /* Scale the image to square pixels */
+    output_format.image_width *= output_format.pixel_width;
+    output_format.image_height *= output_format.pixel_height;
+  
+    if(output_format.image_width > input_format.image_height)
+      {
+      output_format.image_height = (thumb_size * output_format.image_height) /
+        output_format.image_width;
+      output_format.image_width = thumb_size;
+      }
+    else
+      {
+      output_format.image_width      = (thumb_size * output_format.image_width) /
+        output_format.image_height;
+      output_format.image_height = thumb_size;
+      }
+    }
+  /* Scale to max size */
   else
     {
-    output_format.image_width      = (thumb_size * output_format.image_width) /
-      output_format.image_height;
-    output_format.image_height = thumb_size;
+    double w, h;
+    double x;
+    double par = (double)(output_format.pixel_width) / (double)(output_format.pixel_height);
+    
+    /* Enlarge vertically */
+    if(par > 1.0)
+      {
+      w = (double)(output_format.image_width);
+      h = (double)(output_format.image_height) / par;
+      }
+    /* Enlarge horizontally */
+    else
+      {
+      w = (double)(output_format.image_width) * par;
+      h = (double)(output_format.image_height);
+      }
+    
+    if(w > h)
+      {
+      if(w > (double)thumb_size)
+        {
+        output_format.image_width = thumb_size;
+        x = (double)thumb_size * h/w;
+        output_format.image_height = (int)(x+0.5);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Downscaling image %s to %dx%d",
+               in_file, output_format.image_width, output_format.image_height);
+        }
+      else
+        {
+        output_format.image_width = (int)(w+0.5);
+        output_format.image_height = (int)(h+0.5);
+        }
+      }
+    else
+      {
+      if(h > (double)thumb_size)
+        {
+        output_format.image_height = thumb_size;
+        x = (double)thumb_size * w / h;
+        output_format.image_width = (int)(x+0.5);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Downscaling image %s to %dx%d",
+               in_file, output_format.image_width, output_format.image_height);
+        }
+      else
+        {
+        output_format.image_width = (int)(w+0.5);
+        output_format.image_height = (int)(h+0.5);
+        }
+      }
     }
 
   output_format.pixel_width = 1;
@@ -695,7 +772,7 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
   if(!plugin_info)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin for %s", out_file);
-    goto fail;
+    goto end;
     }
 
   output_handle = bg_plugin_load(plugin_reg, plugin_info);
@@ -703,7 +780,7 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
   if(!output_handle)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", plugin_info->long_name);
-    goto fail;
+    goto end;
     }
   
   output_plugin = (bg_image_writer_plugin_t*)output_handle->plugin;
@@ -712,7 +789,7 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
                                   out_file, &output_format, NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image header failed");
-    return 0;
+    goto end;
     }
 
   /* Initialize video converter */
@@ -727,7 +804,7 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
                                    output_frame))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image failed");
-      goto fail;
+      goto end;
       }
     }
   else
@@ -736,13 +813,15 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
                                    input_frame))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image failed");
-      goto fail;
+      goto end;
       }
     }
   
   ret = 1;
-  fail:
+  end:
 
+  if(file_buf)
+    free(file_buf);
   if(input_frame)
     gavl_video_frame_destroy(input_frame);
   if(output_frame)
@@ -756,7 +835,7 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
 
 void bg_nmj_list_dirs(sqlite3 * db)
   {
-  append_int_t tab;
+  bg_nmj_append_int_t tab;
   bg_nmj_dir_t dir;
   int i;
   char * sql;
@@ -766,7 +845,7 @@ void bg_nmj_list_dirs(sqlite3 * db)
 
   sql =
     sqlite3_mprintf("select ID from SCAN_DIRS;");
-  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
   sqlite3_free(sql);
 
   if(!result)
@@ -787,7 +866,7 @@ void bg_nmj_list_dirs(sqlite3 * db)
 
 char * bg_nmj_find_dir(sqlite3 * db, const char * path)
   {
-  append_int_t tab;
+  bg_nmj_append_int_t tab;
   char * sql;
   int result;
   char * dir;
@@ -796,7 +875,7 @@ char * bg_nmj_find_dir(sqlite3 * db, const char * path)
   memset(&tab, 0, sizeof(tab));
   sql =
     sqlite3_mprintf("select * from SCAN_DIRS;");
-  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
   sqlite3_free(sql);
 
   if(!result)
@@ -832,7 +911,7 @@ void bg_nmj_cleanup(sqlite3 * db)
   {
   int i;
   int64_t count;
-  append_int_t tab;
+  bg_nmj_append_int_t tab;
   char * tmp_string;
   char * sql;
   int result;
@@ -842,7 +921,7 @@ void bg_nmj_cleanup(sqlite3 * db)
   /* Check for empty music genres */
   sql =
     sqlite3_mprintf("select ID from SONG_GENRES;");
-  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
   sqlite3_free(sql);
   if(!result)
     return;
@@ -865,7 +944,7 @@ void bg_nmj_cleanup(sqlite3 * db)
 
       sql = sqlite3_mprintf("DELETE FROM SONG_GENRES WHERE ID = %"PRId64";",
                             tab.val[i]);
-      result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+      result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
       sqlite3_free(sql);
       if(!result)
         return;
@@ -877,7 +956,7 @@ void bg_nmj_cleanup(sqlite3 * db)
   tab.num_val = 0;
   sql =
     sqlite3_mprintf("select ID from SONG_PERSONS;");
-  result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
   sqlite3_free(sql);
   if(!result)
     return;
@@ -900,14 +979,50 @@ void bg_nmj_cleanup(sqlite3 * db)
 
       sql = sqlite3_mprintf("DELETE FROM SONG_PERSONS WHERE ID = %"PRId64";",
                             tab.val[i]);
-      result = bg_sqlite_exec(db, sql, append_int_callback, &tab);
+      result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
       sqlite3_free(sql);
       if(!result)
         return;
 
       }
     }
+
+  if(tab.val)
+    free(tab.val);
+  }
+
+void bg_nmj_update_album_covers(bg_plugin_registry_t * plugin_reg, sqlite3 * db)
+  {
+  bg_nmj_append_int_t tab;
+  char * sql;
+  int result;
+  int i;
+  bg_nmj_album_t album;
   
-  /* Rebuild album groups */
-    
+  memset(&tab, 0, sizeof(tab));
+
+  /* Update album covers */
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Updating covers");
+  
+  tab.num_val = 0;
+  sql =
+    sqlite3_mprintf("select ID from SONG_ALBUMS;");
+  result = bg_sqlite_exec(db, sql, bg_nmj_append_int_callback, &tab);
+  sqlite3_free(sql);
+  if(!result)
+    return;
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    bg_nmj_album_init(&album);
+    album.id = tab.val[i];
+    bg_nmj_album_query(db, &album);
+    bg_nmj_album_update_cover(plugin_reg, db, &album);
+    bg_nmj_album_free(&album);
+    }
+  
+  if(tab.val)
+    free(tab.val);
+  
   }
