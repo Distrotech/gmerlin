@@ -168,7 +168,7 @@ endif
 
 if HAVE_CDIO
 cdio_cflags =  @CDIO_CFLAGS@
-cdio_libs =    @CDIO_LIBS@
+cdio_libs =    @CDIO_LIBS@ @LIBUDF_LIBS@
 else
 cdio_cflags =
 cdio_libs =

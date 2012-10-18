@@ -563,7 +563,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
   int i, done;
   track_priv_t * ogg_track;
   stream_priv_t * ogg_stream;
-  bgav_stream_t * s;
+  bgav_stream_t * s = NULL;
   int serialno;
   ogg_t * priv;
   ogm_header_t ogm_header;

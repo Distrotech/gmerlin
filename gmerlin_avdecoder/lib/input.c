@@ -26,6 +26,10 @@
 
 #include <avdec_private.h>
 
+#ifdef HAVE_LIBUDF
+#include <cdio/udf.h>
+#endif
+
 #define LOG_DOMAIN "input"
 
 #define GET_LINE_SIZE 8
@@ -689,6 +693,53 @@ static void init_buffering(bgav_input_context_t * ctx)
     }
   }
 
+static int is_dvd_iso(const char * path)
+  {
+#ifdef HAVE_LIBUDF
+  int ret = 0;
+  const char * pos;
+  udf_t *udf = NULL;
+  udf_dirent_t *udf_root_dir = NULL;
+  
+  /* Check .iso extension */
+  pos = strrchr(path, '.');
+  if(!pos || strcasecmp(pos, ".iso"))
+    return 0;
+
+  /* Open UDF structure and check for a video_ts directory */
+  if(!(udf = udf_open(path)))
+    return 0;
+
+  udf_root_dir = udf_get_root(udf, true, 0);
+  if(!udf_root_dir)
+    goto fail;
+  
+  while(1)
+    {
+    if(udf_is_dir(udf_root_dir) &&
+       !strcasecmp(udf_get_filename(udf_root_dir), "VIDEO_TS"))
+      {
+      ret = 1;
+      break;
+      }
+    
+    udf_root_dir = udf_readdir(udf_root_dir);
+    if(!udf_root_dir)
+      break;
+    }
+  
+  fail:
+
+  if(udf)
+    udf_close(udf);
+  if(udf_root_dir)
+    udf_dirent_free(udf_root_dir);
+  return ret;
+#else
+  return 0;
+#endif
+  }
+
 static int input_open(bgav_input_context_t * ctx,
                       const char *url, char ** redir)
   {
@@ -763,14 +814,17 @@ static int input_open(bgav_input_context_t * ctx,
           *tmp_pos = '\0';
         }
       }
-    else
+    if(!ctx->input && is_dvd_iso(url))
+      {
+      ctx->input = &bgav_input_dvd;
+      }
 #endif
-      if(!strcmp(url, "-"))
-        ctx->input = &bgav_input_stdin;
-
+    if(!ctx->input && !strcmp(url, "-"))
+      ctx->input = &bgav_input_stdin;
+    
     if(!ctx->input)
       ctx->input = &bgav_input_file;
-
+    
     }
  
   if(!ctx->input->open(ctx, tmp_url, redir))

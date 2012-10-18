@@ -1309,7 +1309,7 @@ AC_DEFUN([GMERLIN_CHECK_CDIO],[
 AH_TEMPLATE([HAVE_CDIO], [ libcdio found ])
 
 have_cdio="false"
-CDIO_REQUIRED="0.76"
+CDIO_REQUIRED="0.79"
 
 AC_ARG_ENABLE(libcdio,
 [AC_HELP_STRING([--disable-libcdio],[Disable libcdio (default: autodetect)])],
@@ -1328,6 +1328,45 @@ AC_SUBST(CDIO_REQUIRED)
 if test "x$have_cdio" = "xtrue"; then
 AC_DEFINE([HAVE_CDIO])
 fi
+
+])
+
+dnl
+dnl libudf
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LIBUDF],[
+
+AH_TEMPLATE([HAVE_LIBUDF], [ libudf found ])
+
+AC_MSG_CHECKING([for libudf])
+if test "x$have_cdio" = "xtrue"; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+CFLAGS=$CDIO_CFLAGS
+LIBS=$CDIO_LIBS
+
+AC_CHECK_LIB(udf, udf_open, have_libudf=true, have_libudf=false)
+
+if test "x$have_libudf" = "xtrue"; then
+AC_DEFINE([HAVE_LIBUDF])
+LIBUDF_LIBS="-ludf"
+AC_MSG_RESULT([Found])
+else
+LIBUDF_LIBS=""
+AC_MSG_RESULT([Not found])
+fi
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+else
+AC_MSG_RESULT([Not found (libcdio missing)])
+fi
+
+AC_SUBST(LIBUDF_LIBS)
 
 ])
 

@@ -390,6 +390,12 @@ dnl
 GMERLIN_CHECK_CDIO
 
 dnl
+dnl libudf support
+dnl
+
+GMERLIN_CHECK_LIBUDF
+
+dnl
 dnl Linux DVB support
 dnl 
 
@@ -768,6 +774,16 @@ echo "Disabled"
 else
 echo "Missing (Go to http://www.gnu.org/software/libcdio/)"
 fi
+
+echo -n "libudf:                 "
+if test "x$have_libudf" = "xtrue"; then
+echo "Found (CFLAGS=$CDIO_CFLAGS LIBS=$LIBUDF_LIBS)"
+elif test "x$test_cdio" = "xfalse"; then
+echo "Disabled"
+else
+echo "Missing (Go to http://www.gnu.org/software/libcdio/)"
+fi
+
 
 echo -n "mjpegtools:             "
 if test "x$have_mjpegtools" = "xtrue"; then
