@@ -75,22 +75,27 @@ static bgav_packet_t * next_packet(bgav_subtitle_converter_t * cnv,
     return NULL;
 
   in_packet = cnv->src.get_func(cnv->src.data);
-    
+  
   /* Make sure we have a '\0' at the end */
 
-  pos = (char*)&in_packet->data[in_packet->data_size-1];
-  in_len = in_packet->data_size;
-
-  while(*pos == '\0')
+  if(in_packet->data_size > 0)
     {
-    pos--;
-    in_len--;
+    pos = (char*)&in_packet->data[in_packet->data_size-1];
+    in_len = in_packet->data_size;
+
+    while(*pos == '\0')
+      {
+      pos--;
+      in_len--;
+
+      if(in_len < 0)
+        break;
+      }
 
     if(in_len < 0)
-      break;
+      in_len = 0;
     }
-
-  if(in_len < 0)
+  else
     in_len = 0;
   
   if(cnv->cnv && in_len)
