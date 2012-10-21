@@ -404,7 +404,7 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
 static void check_interleave(bgav_demuxer_context_t * ctx)
   {
   int i;
-  bgav_stream_t ** streams;
+  bgav_stream_t ** streams = NULL;
   int index, num_streams;
 
   num_streams =
@@ -433,7 +433,7 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   /* One stream always means non-interleaved */
   else if(num_streams <= 1)
     {
-    ctx->demux_mode = DEMUX_MODE_SI_I;
+    ctx->demux_mode = DEMUX_MODE_SI_NI;
     }
   else
     {
@@ -527,15 +527,24 @@ int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx)
   
   if(!stream) /* Skip unused stream */
     {
-    
     //    bgav_input_skip_dump(ctx->input,
     //                         ctx->si->entries[ctx->si->current_position].size);
     
+#if 0
+    fprintf(stderr, "Skip unused %d\n",
+            ctx->si->entries[ctx->si->current_position].stream_id);
+#endif
     ctx->si->current_position++;
     return 1;
     }
-  
-  if((ctx->flags & BGAV_DEMUXER_SI_SEEKING) && (stream->index_position > ctx->si->current_position))
+#if 0
+  if(stream->type == BGAV_STREAM_SUBTITLE_TEXT)
+    {
+    fprintf(stderr, "Got subtitle packet\n");
+    }
+#endif
+  if((ctx->flags & BGAV_DEMUXER_SI_SEEKING) &&
+     (stream->index_position > ctx->si->current_position))
     {
     ctx->si->current_position++;
     return 1;
@@ -545,6 +554,8 @@ int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx)
 
   if(ctx->si->entries[ctx->si->current_position].offset > ctx->input->position)
     {
+    // fprintf(stderr, "Skipping %ld bytes\n",
+    //            ctx->si->entries[ctx->si->current_position].offset - ctx->input->position);
     bgav_input_skip(ctx->input,
                     ctx->si->entries[ctx->si->current_position].offset - ctx->input->position);
     }

@@ -244,8 +244,7 @@ void bgav_stream_clear(bgav_stream_t * s)
   STREAM_UNSET_SYNC(s);
   s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
 
-  
-  
+  s->index_position  = -1;
   }
 
 int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)
@@ -279,6 +278,11 @@ bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s)
 void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
   {
 #ifdef DUMP_IN_PACKETS
+  if(s->type == BGAV_STREAM_SUBTITLE)
+    {
+    bgav_dprintf("Packet in (stream %d): ", s->stream_id);
+    bgav_packet_dump(p);
+    }
   bgav_dprintf("Packet in (stream %d): ", s->stream_id);
   bgav_packet_dump(p);
 #endif

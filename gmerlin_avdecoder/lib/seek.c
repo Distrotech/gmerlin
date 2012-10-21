@@ -39,6 +39,22 @@ static void skip_to(bgav_t * b, bgav_track_t * track, int64_t * time, int scale)
 
 /* Seek functions with superindex */
 
+static void get_start_end(bgav_stream_t * s, int num,
+                          int32_t * start_packet, int32_t * end_packet)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    {
+    if(s[i].action == BGAV_STREAM_MUTE)
+      continue;
+    
+    if(*start_packet > s[i].index_position)
+      *start_packet = s[i].index_position;
+    if(*end_packet < s[i].index_position)
+      *end_packet = s[i].index_position;
+    }
+  }
+
 static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
                     int64_t time, int scale)
   {
@@ -51,14 +67,6 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
   
   track = ctx->tt->cur;
   bgav_track_clear(track);
-  
-  /* Set the packet indices of the streams to -1 */
-  for(j = 0; j < track->num_audio_streams; j++)
-    track->audio_streams[j].index_position = -1;
-  for(j = 0; j < track->num_video_streams; j++)
-    track->video_streams[j].index_position = -1;
-  for(j = 0; j < track->num_subtitle_streams; j++)
-    track->subtitle_streams[j].index_position = -1;
   
   /* Seek the start chunks indices of all streams */
   
@@ -100,30 +108,18 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
     {
     start_packet = 0x7FFFFFFF;
     end_packet   = 0x0;
-    
-    for(j = 0; j < track->num_audio_streams; j++)
-      {
-      if(track->audio_streams[j].action == BGAV_STREAM_MUTE)
-        continue;
-      
-      if(start_packet > track->audio_streams[j].index_position)
-        start_packet = track->audio_streams[j].index_position;
-      if(end_packet < track->audio_streams[j].index_position)
-        end_packet = track->audio_streams[j].index_position;
-      }
-    for(j = 0; j < track->num_video_streams; j++)
-      {
-      if(track->video_streams[j].action == BGAV_STREAM_MUTE)
-        continue;
-      if(start_packet > track->video_streams[j].index_position)
-        start_packet = track->video_streams[j].index_position;
-      if(end_packet < track->video_streams[j].index_position)
-        end_packet = track->video_streams[j].index_position;
-      }
+
+    get_start_end(track->audio_streams, track->num_audio_streams,
+                  &start_packet, &end_packet);
+    get_start_end(track->video_streams, track->num_video_streams,
+                  &start_packet, &end_packet);
+    //    get_start_end(track->subtitle_streams, track->num_subtitle_streams,
+    //                  &start_packet, &end_packet);
     
     /* Do the seek */
     ctx->si->current_position = start_packet;
-    bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
+    bgav_input_seek(ctx->input,
+                    ctx->si->entries[ctx->si->current_position].offset,
                     SEEK_SET);
 
     ctx->flags |= BGAV_DEMUXER_SI_SEEKING;
