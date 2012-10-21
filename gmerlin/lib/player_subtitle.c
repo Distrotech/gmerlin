@@ -185,6 +185,7 @@ int bg_player_has_subtitle(bg_player_t * p)
   ret= p->input_plugin->has_subtitle(p->input_priv,
                                      p->current_subtitle_stream);
   bg_plugin_unlock(p->input_handle);
+  //  fprintf(stderr, "bg_player_has_subtitle %d\n", ret); 
   return ret;
   }
 

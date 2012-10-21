@@ -323,6 +323,8 @@ struct subtitle_stream_s
 
   int64_t time_offset;
   int64_t time_offset_scaled;
+
+  int64_t subtitle_start_unscaled;
   };
 
 typedef struct
@@ -1377,6 +1379,8 @@ static void correct_subtitle_timestamp(subtitle_stream_t * s,
                              *start);
   *duration = gavl_time_rescale(s->in_format.timescale, s->out_format.timescale,
                                 *duration);
+  s->subtitle_start_unscaled = gavl_time_unscale(s->out_format.timescale,
+                                                 *start);
   }
 
 static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
@@ -1405,7 +1409,7 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
       s->eof = 1;
       return 0;
       }
-
+    
     correct_subtitle_timestamp(&st->com, &st->subtitle_start,
                                &st->subtitle_duration, t);
     
@@ -1447,8 +1451,9 @@ static int decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
                                                     &s->subtitle_duration,
                                                     s->com.com.in_index);
   
-  if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
-                 (gavl_time_unscale(s->com.in_format.timescale, s->subtitle_start) >= t->end_time)))
+  if(!result ||
+     ((t->end_time != GAVL_TIME_UNDEFINED) &&
+      (gavl_time_unscale(s->com.in_format.timescale, s->subtitle_start) >= t->end_time)))
     {
     s->com.eof = 1;
     return 0;
@@ -1708,7 +1713,9 @@ static int subtitle_iteration(bg_transcoder_t * t)
         }
       else if(st->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
         {
-        st->com.has_current = decode_subtitle_overlay((subtitle_stream_t*)st, t, &st->com.ovl1);
+        st->com.has_current =
+          decode_subtitle_overlay((subtitle_stream_t*)st, t, &st->com.ovl1);
+        
         if(st->com.has_current && st->com.do_convert)
           {
           gavl_video_convert(st->com.cnv, st->com.ovl1.frame, st->com.ovl2.frame);
@@ -1718,13 +1725,21 @@ static int subtitle_iteration(bg_transcoder_t * t)
           }
         }
       }
-
+    
     /* Check for encoding */
     if(st->com.has_current)
       {
       vs = &t->video_streams[st->com.video_stream];
-      if(!vs->com.do_encode || (st->subtitle_start - vs->com.time < SUBTITLE_TIME_OFFSET))
+      if((!vs->com.do_encode && !vs->com.do_copy) ||
+         (st->com.subtitle_start_unscaled - vs->com.time < SUBTITLE_TIME_OFFSET))
         {
+#if 0
+        fprintf(stderr, "Encode subtitle %ld %ld %ld\n",
+                st->com.subtitle_start_unscaled,
+                vs->com.time,
+                st->com.subtitle_start_unscaled -
+                vs->com.time);
+#endif
         if(st->com.com.action == STREAM_ACTION_TRANSCODE)
           {
           ret =
@@ -1792,7 +1807,8 @@ static int subtitle_iteration(bg_transcoder_t * t)
     if(ss->has_current)
       {
       vs = &t->video_streams[ss->video_stream];
-      if(!vs->com.do_encode || (ss->ovl1.frame->timestamp - vs->com.time < SUBTITLE_TIME_OFFSET))
+      if(!vs->com.do_encode || (ss->subtitle_start_unscaled - vs->com.time <
+                                SUBTITLE_TIME_OFFSET))
         {
         ret = bg_encoder_write_subtitle_overlay(t->enc,
                                                 &ss->ovl1,

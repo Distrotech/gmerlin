@@ -246,7 +246,8 @@ static void handle_subtitle(bg_player_t * p)
   {
   bg_player_video_stream_t * s = &p->video_stream;
   gavl_overlay_t * swp;
-  
+
+  //fprintf(stderr, "handle_subtitle\n");
   /* Check if subtitle expired */
   if(s->subtitle_active &&
      overlay_is_expired(s->ss->current_subtitle, s->frame_time))
@@ -269,13 +270,19 @@ static void handle_subtitle(bg_player_t * p)
      bg_player_has_subtitle(p) && !s->ss->eof)
     {
     if(!bg_player_read_subtitle(p, s->ss->current_subtitle))
+      {
       s->ss->eof = 1;
+      fprintf(stderr, "Subtitle EOF");
+      }
     }
   if((s->ss->next_subtitle->frame->timestamp == GAVL_TIME_UNDEFINED) &&
      bg_player_has_subtitle(p) && !s->ss->eof)
     {
     if(!bg_player_read_subtitle(p, s->ss->next_subtitle))
+      {
       s->ss->eof = 1;
+      fprintf(stderr, "Subtitle EOF");
+      }
     }
   
   /* Check if the current subtitle became valid */

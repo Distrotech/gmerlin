@@ -112,11 +112,12 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
   int result;
   int64_t id;
   int64_t group_id;
+  int is_new = 0;
   
   if(a->id < 0)
     {
     char * artist;
-    
+    is_new = 1;
     a->id = bg_nmj_get_next_id(db, "SONG_ALBUMS");
     a->title = bg_strdup(a->title, song->album);
     a->search_title = bg_nmj_make_search_string(a->title);
@@ -190,9 +191,6 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
       if(!result)
         return result;
       }
-    
-    /* Check for Cover */
-    bg_nmj_album_update_cover(plugin_reg, db, a);
     }
   else
     {
@@ -239,6 +237,11 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
   sqlite3_free(sql);
   if(!result)
     return result;
+
+  /* Check for Cover */
+  if(is_new)
+    bg_nmj_album_update_cover(plugin_reg, db, a);
+  
   return 1;
   }
 
