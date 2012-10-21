@@ -1807,8 +1807,9 @@ static int subtitle_iteration(bg_transcoder_t * t)
     if(ss->has_current)
       {
       vs = &t->video_streams[ss->video_stream];
-      if(!vs->com.do_encode || (ss->subtitle_start_unscaled - vs->com.time <
-                                SUBTITLE_TIME_OFFSET))
+      if((!vs->com.do_encode && !vs->com.do_copy) ||
+         (ss->subtitle_start_unscaled - vs->com.time <
+          SUBTITLE_TIME_OFFSET))
         {
         ret = bg_encoder_write_subtitle_overlay(t->enc,
                                                 &ss->ovl1,
