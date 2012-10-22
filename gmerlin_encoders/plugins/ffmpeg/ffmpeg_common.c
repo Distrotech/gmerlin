@@ -467,11 +467,11 @@ write_text_packet_func(void * data, gavl_packet_t * p)
   
   pkt.data     = p->data;
   pkt.size     = p->data_len + 1; // Let's hope the packet got padded!!!
- 
+  
   pkt.pts= av_rescale_q(p->pts,
                         st->stream->codec->time_base,
                         st->stream->time_base);
-
+  
   pkt.duration= av_rescale_q(p->duration,
                              st->stream->codec->time_base,
                              st->stream->time_base);
@@ -1283,15 +1283,19 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
   ffmpeg_priv_t * priv;
   ffmpeg_text_stream_t * st;
   int ret;
+  int len;
   
   priv = data;
   st = &priv->text_streams[stream];
 
   gavl_packet_init(&pkt);
-  
-  pkt.data     = (uint8_t*)bg_strdup(NULL, text);
-  pkt.data_len = strlen(text)+1;
 
+  len = strlen(text);
+
+  gavl_packet_alloc(&pkt, len);
+  memcpy(pkt.data, text, len);
+  pkt.data_len = len;
+  
   pkt.pts      = start;
   pkt.duration = duration;
 
