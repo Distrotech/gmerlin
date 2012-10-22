@@ -113,8 +113,6 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
                   &start_packet, &end_packet);
     get_start_end(track->video_streams, track->num_video_streams,
                   &start_packet, &end_packet);
-    //    get_start_end(track->subtitle_streams, track->num_subtitle_streams,
-    //                  &start_packet, &end_packet);
     
     /* Do the seek */
     ctx->si->current_position = start_packet;

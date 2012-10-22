@@ -634,7 +634,7 @@ static int decode_picture(bgav_stream_t * s)
   return 1;
   }
 
-static int skipto_ffmpeg(bgav_stream_t * s, int64_t time, int exact)
+static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
   {
   ffmpeg_video_priv * priv;
   
@@ -2192,9 +2192,6 @@ static void get_format(AVCodecContext * ctx, gavl_video_format_t * format)
   
   if(ctx->codec_id == CODEC_ID_DVVIDEO)
     {
-    if(format->pixelformat == GAVL_YUV_420_P)
-      format->chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
-
     if(format->interlace_mode == GAVL_INTERLACE_UNKNOWN)
       format->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
 
@@ -2238,11 +2235,26 @@ static void get_format(AVCodecContext * ctx, gavl_video_format_t * format)
       format->pixel_height = ctx->width;
       format->image_width = ctx->width;
       }
-    if(((ctx->codec_id == CODEC_ID_MPEG4) ||
-        (ctx->codec_id == CODEC_ID_H264)) &&
-       (format->pixelformat == GAVL_YUV_420_P))
-      format->chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
     }
+
+  if(format->pixelformat == GAVL_YUV_420_P)
+    {
+    switch(ctx->chroma_sample_location)
+      {
+      case AVCHROMA_LOC_LEFT:
+        format->chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+        break;
+      case AVCHROMA_LOC_TOPLEFT:
+        format->chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+        break;
+      case AVCHROMA_LOC_CENTER:
+      case AVCHROMA_LOC_UNSPECIFIED:
+      default: // There are more in the enum but unused
+        format->chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+        break;
+      }
+    }
+
   
   if(!format->timescale)
     {

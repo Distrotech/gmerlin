@@ -137,7 +137,7 @@ struct bgav_video_decoder_s
   /* Skip to a specified time. Only needed for
      decoders which are not synchronous
      (not one packet in, one frame out) */
-  int (*skipto)(bgav_stream_t*, int64_t dest, int exact);
+  int (*skipto)(bgav_stream_t*, int64_t dest);
   
   bgav_video_decoder_t * next;
   };

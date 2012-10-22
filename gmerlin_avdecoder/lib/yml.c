@@ -65,7 +65,7 @@ typedef struct
   char * buffer;
   char * buffer_ptr;
   int buffer_size;
-  int buffer_alloc;
+  uint32_t buffer_alloc;
   //  int eof;
   } parser_t;
 

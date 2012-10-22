@@ -542,7 +542,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
   
   if(s->data.video.decoder->decoder->skipto)
     {
-    if(!s->data.video.decoder->decoder->skipto(s, time_scaled, exact))
+    if(!s->data.video.decoder->decoder->skipto(s, time_scaled))
       return 0;
     }
   else
