@@ -460,6 +460,12 @@ static void set_parameter_vorbis(void * data, const char * name,
     }
   }
 
+static int flush_packet(vorbis_t * vorbis, ogg_packet * op)
+  {
+  ogg_stream_packetin(&vorbis->enc_os,op);
+  return 1;
+  }
+
 static int flush_data(vorbis_t * vorbis, int force)
   {
   int result;
@@ -480,14 +486,14 @@ static int flush_data(vorbis_t * vorbis, int force)
         {
         /* Add packet to bitstream */
         ogg_stream_packetin(&vorbis->enc_os,&op);
-        
+        flush_packet(vorbis, &op);
         }
       }
     else
       {
       vorbis_analysis(&vorbis->enc_vb, &op);
       /* Add packet to bitstream */
-      ogg_stream_packetin(&vorbis->enc_os,&op);
+      flush_packet(vorbis, &op);
       }
     }
   /* Flush pages if any */
