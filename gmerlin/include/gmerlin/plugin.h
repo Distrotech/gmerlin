@@ -2423,8 +2423,103 @@ struct bg_visualization_plugin_s
   
   };
 
+/** \brief Audio encoder plugin
+ *
+ *  Transform audio frames into compressed packets
+ */
 
+struct bg_codec_plugin_s
+  {
+  bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
+  /** \brief Connect audio encoder
+   *  \param priv The handle returned by the create() method
+   *  \param ci Compression info (must be freed by the caller)
+   *  \param fmt Format of the source
+   *  \returns An audio sink for sending uncompressed frames
+   */
+  
+  gavl_audio_sink_t * (*open_encode_audio)(void * priv,
+                                           gavl_compression_info_t * ci,
+                                           const gavl_audio_format_t * fmt,
+                                           const gavl_metadata_t * m);
+  
+  /** \brief Connect video encoder
+   *  \param priv The handle returned by the create() method
+   *  \param ci Compression info (must be freed by the caller)
+   *  \param fmt Format of the source
+   *  \returns A video sink for sending uncompressed frames
+   */
+  
+  gavl_video_sink_t * (*open_encode_video)(void * priv,
+                                           gavl_compression_info_t * ci,
+                                           const gavl_video_format_t * fmt,
+                                           const gavl_metadata_t * m);
+
+  /** \brief Set a packet sink
+   *  \param priv The handle returned by the create() method
+   *  \param sink A sink where the encoder can send completed packets
+   */
+  
+  void (*set_packet_sink)(void * priv, gavl_packet_sink_t * s);
+  
+  /** \brief Connect audio decoder
+   *  \param priv The handle returned by the create() method
+   *  \param sink Source where get the packets
+   *  \fmt Format from the container (possibly incomplete)
+   *  \returns An audio source for reading uncompressed frames
+   */
+  
+  gavl_audio_source_t * (*connect_decode_audio)(void * priv,
+                                                gavl_packet_source_t * src,
+                                                const gavl_audio_format_t * fmt,
+                                                const gavl_metadata_t * m);
+
+  /** \brief Connect video decoder
+   *  \param priv The handle returned by the create() method
+   *  \param sink Source where get the packets
+   *  \fmt Format from the container (possibly incomplete)
+   *  \returns A video source for reading uncompressed frames
+   */
+  
+  gavl_video_source_t * (*connect_decode_video)(void * priv,
+                                                gavl_packet_source_t * src,
+                                                const gavl_video_format_t * fmt,
+                                                const gavl_metadata_t * m);
+
+  /** \brief Get output metadata
+   *  \param priv The handle returned by the create() method
+   *  \returns metadata for the en-/decoded stream
+   */
+  
+  const gavl_metadata_t * (*get_metadata)(void * priv);
+  
+  /** \brief Reset a decoder
+   *  \param priv The handle returned by the create() method
+   *
+   *  Call this after seeking
+   */
+  
+  void (*reset)(void * priv);
+
+  /** \brief Skip to a time
+   *  \param priv The handle returned by the create() method
+   *  \param t Time to skip to
+   *  \returns Actual time of the next frame/sample
+   */
+
+  int64_t (*skip)(void * priv, int64_t t);
+
+  /** \brief Flush an encoder
+   *  \param priv The handle returned by the create() method
+   *
+   *  Call this at the end of encoding to flush the encoder
+   */
+
+  void (*flush)(void * priv);
+
+  };
+  
 /**
  *  @}
  */
