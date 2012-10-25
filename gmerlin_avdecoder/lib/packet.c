@@ -198,5 +198,20 @@ void bgav_packet_2_gavl(bgav_packet_t * src,
   dst->data = src->data;
   dst->data_len = src->data_size;
   dst->data_alloc = src->data_alloc;
-  
+  dst->interlace_mode = src->ilace;
+  dst->timecode = src->tc;
+  }
+
+void bgav_packet_from_gavl(gavl_packet_t * src,
+                           bgav_packet_t * dst)
+  {
+  dst->pts      = src->pts;
+  dst->duration = src->duration;
+  dst->flags    = src->flags;
+
+  dst->header_size      = src->header_size;
+  dst->field2_offset    = src->field2_offset;
+  dst->sequence_end_pos = src->sequence_end_pos;
+  dst->ilace = src->interlace_mode;
+  dst->tc = src->timecode;
   }

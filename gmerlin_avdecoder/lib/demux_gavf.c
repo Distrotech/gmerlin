@@ -58,50 +58,6 @@ static int64_t seek_func(void * priv, int64_t pos, int whence)
   return ctx->position;
   }
 
-static const struct
-  {
-  gavl_codec_id_t id;
-  uint32_t fourcc;
-  }
-fourccs[] =
-  {
-    { GAVL_CODEC_ID_NONE,      BGAV_MK_FOURCC('g','a','v','f') },
-    /* Audio */
-    { GAVL_CODEC_ID_ALAW,      BGAV_MK_FOURCC('a','l','a','w') }, 
-    { GAVL_CODEC_ID_ULAW,      BGAV_MK_FOURCC('u','l','a','w') }, 
-    { GAVL_CODEC_ID_MP2,       BGAV_MK_FOURCC('.','m','p','2') }, 
-    { GAVL_CODEC_ID_MP3,       BGAV_MK_FOURCC('.','m','p','3') }, 
-    { GAVL_CODEC_ID_AC3,       BGAV_MK_FOURCC('.','a','c','3') }, 
-    { GAVL_CODEC_ID_AAC,       BGAV_MK_FOURCC('m','p','4','a') }, 
-    { GAVL_CODEC_ID_VORBIS,    BGAV_MK_FOURCC('V','B','I','S') }, 
-    { GAVL_CODEC_ID_FLAC,      BGAV_MK_FOURCC('F','L','A','C') }, 
-    
-    /* Video */
-    { GAVL_CODEC_ID_JPEG,      BGAV_MK_FOURCC('j','p','e','g') }, 
-    { GAVL_CODEC_ID_PNG,       BGAV_MK_FOURCC('p','n','g',' ') }, 
-    { GAVL_CODEC_ID_TIFF,      BGAV_MK_FOURCC('t','i','f','f') }, 
-    { GAVL_CODEC_ID_TGA,       BGAV_MK_FOURCC('t','g','a',' ') }, 
-    { GAVL_CODEC_ID_MPEG1,     BGAV_MK_FOURCC('m','p','v','1') }, 
-    { GAVL_CODEC_ID_MPEG2,     BGAV_MK_FOURCC('m','p','v','2') },
-    { GAVL_CODEC_ID_MPEG4_ASP, BGAV_MK_FOURCC('m','p','4','v') },
-    { GAVL_CODEC_ID_H264,      BGAV_MK_FOURCC('H','2','6','4') },
-    { GAVL_CODEC_ID_THEORA,    BGAV_MK_FOURCC('T','H','R','A') },
-    { GAVL_CODEC_ID_DIRAC,     BGAV_MK_FOURCC('d','r','a','c') },
-    { GAVL_CODEC_ID_DV,        BGAV_MK_FOURCC('D','V',' ',' '),},
-    { /* End */                                                },
-  };
-
-static uint32_t get_fourcc(gavl_codec_id_t id)
-  {
-  int i = 0;
-  while(fourccs[i].fourcc)
-    {
-    if(fourccs[i].id == id)
-      return fourccs[i].fourcc;
-    i++;
-    }
-  return 0;
-  }
 
 static int init_track(bgav_track_t * track,
                       gavf_t * dec,
@@ -109,6 +65,9 @@ static int init_track(bgav_track_t * track,
   {
   int i;
   bgav_stream_t * s;
+  const gavl_audio_format_t * afmt;
+  const gavl_video_format_t * vfmt;
+
   const int64_t * pts;
 
   const gavf_program_header_t * ph;
@@ -120,32 +79,18 @@ static int init_track(bgav_track_t * track,
   for(i = 0; i < ph->num_streams; i++)
     {
     s = NULL;
+    afmt = NULL;
+    vfmt = NULL;
+    
     switch(ph->streams[i].type)
       {
       case GAVF_STREAM_AUDIO:
         s = bgav_track_add_audio_stream(track, opt);
-        gavl_audio_format_copy(&s->data.audio.format, &ph->streams[i].format.audio);
-        s->fourcc = get_fourcc(ph->streams[i].ci.id);
-
-        bgav_stream_set_extradata(s, ph->streams[i].ci.global_header,
-                                  ph->streams[i].ci.global_header_len);
-        s->container_bitrate = ph->streams[i].ci.bitrate;
+        afmt = &ph->streams[i].format.audio;
         break;
       case GAVF_STREAM_VIDEO:
         s = bgav_track_add_video_stream(track, opt);
-        gavl_video_format_copy(&s->data.video.format, &ph->streams[i].format.video);
-        
-        s->fourcc = get_fourcc(ph->streams[i].ci.id);
-
-        if(!(ph->streams[i].ci.id & GAVL_COMPRESSION_HAS_P_FRAMES))
-          s->flags |= STREAM_INTRA_ONLY;
-        if(ph->streams[i].ci.id & GAVL_COMPRESSION_HAS_B_FRAMES)
-          s->flags |= STREAM_B_FRAMES;
-
-        bgav_stream_set_extradata(s, ph->streams[i].ci.global_header,
-                                  ph->streams[i].ci.global_header_len);
-        s->container_bitrate = ph->streams[i].ci.bitrate;
-        s->data.audio.pre_skip = ph->streams[i].ci.pre_skip;
+        vfmt = &ph->streams[i].format.video;
         break;
       case GAVF_STREAM_TEXT:
         s = bgav_track_add_subtitle_stream(track, opt, 1, BGAV_UTF8);
@@ -153,6 +98,10 @@ static int init_track(bgav_track_t * track,
         break;
       }
 
+    bgav_stream_set_from_gavl(s, &ph->streams[i].ci,
+                              afmt, vfmt,
+                              &ph->streams[i].m);
+    
     pts = gavf_first_pts(dec);
     if(pts)
       {
@@ -165,7 +114,6 @@ static int init_track(bgav_track_t * track,
         }
       }
     s->stream_id = ph->streams[i].id;
-    gavl_metadata_copy(&s->m, &ph->streams[i].m);
     }
   
   return 1;
@@ -192,13 +140,14 @@ static int open_gavf(bgav_demuxer_context_t * ctx)
     flags |= GAVF_OPT_FLAG_DUMP_INDICES;
   gavf_options_set_flags(opt, flags);
 
-  priv->io = gavf_io_create(read_func,
-                      NULL,
-                      (ctx->input->input->seek_byte ? seek_func : 0),
-                      NULL,
-                      NULL,
-                      ctx->input);
-
+  priv->io =
+    gavf_io_create(read_func,
+                   NULL,
+                   ctx->input->input->seek_byte ? seek_func : 0,
+                   NULL,
+                   NULL,
+                   ctx->input);
+  
   if(!gavf_open_read(priv->dec, priv->io))
     return 0;
   
@@ -294,13 +243,10 @@ static int next_packet_gavf(bgav_demuxer_context_t * ctx)
 
   bp->data       = gp.data;
   bp->data_alloc = gp.data_alloc;
-
   bp->data_size = gp.data_len;
+
+  bgav_packet_from_gavl(&gp, bp);
   
-  bp->pts = gp.pts;
-  bp->duration = gp.duration;
-  
-  bp->flags = gp.flags;
   bgav_stream_done_packet_write(s, bp);
   return 1;
   }

@@ -113,22 +113,20 @@ redcode_ycbcr2rgb(int ** planes, int width,
 
 /* Decode function */
 
-static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
+static gavl_source_status_t decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   openjpeg_priv_t * priv;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   opj_cio_t *cio;
-
+  gavl_source_status_t st;
+  
   priv = s->data.video.decoder->priv;
 
   if(!(s->flags & STREAM_HAVE_PICTURE))
     {
-    p = bgav_stream_get_packet_read(s);
-    if(!p)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+      return st;
     }
-  else
-    p = NULL;
   
   if(f || priv->need_format)
     {

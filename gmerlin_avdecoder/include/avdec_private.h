@@ -106,7 +106,7 @@ struct bgav_audio_decoder_s
   const uint32_t * fourccs;
   const char * name;
   int (*init)(bgav_stream_t*);
-  int (*decode_frame)(bgav_stream_t*);
+  gavl_source_status_t (*decode_frame)(bgav_stream_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
   bgav_audio_decoder_t * next;
@@ -127,9 +127,8 @@ struct bgav_video_decoder_s
    *  If this function is NULL, the codec must create a
    *  video source for the stream
    */
-  int (*decode)(bgav_stream_t*, gavl_video_frame_t*);
+  gavl_source_status_t (*decode)(bgav_stream_t*, gavl_video_frame_t*);
   
-
   void (*close)(bgav_stream_t*);
   
   void (*resync)(bgav_stream_t*); // Call after seeking
@@ -154,7 +153,7 @@ struct bgav_subtitle_overlay_decoder_s
    *  Decodes one frame. If frame is NULL;
    *  the frame is skipped
    */
-  int (*decode)(bgav_stream_t*, gavl_overlay_t*);
+  gavl_source_status_t (*decode)(bgav_stream_t*, gavl_overlay_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
   void (*parse)(bgav_stream_t*);
@@ -302,6 +301,8 @@ void bgav_packet_merge_field2(bgav_packet_t * p,
 void bgav_packet_2_gavl(bgav_packet_t * src,
                         gavl_packet_t * dst);
 
+void bgav_packet_from_gavl(gavl_packet_t * src,
+                           bgav_packet_t * dst);
 
 /* packetbuffer.c */
 
@@ -638,6 +639,12 @@ void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt);
 void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
 void bgav_stream_set_extradata(bgav_stream_t * s, const uint8_t * data, int len);
+void bgav_stream_set_from_gavl(bgav_stream_t * s,
+                               const gavl_compression_info_t * ci,
+                               const gavl_audio_format_t * afmt,
+                               const gavl_video_format_t * vfmt,
+                               const gavl_metadata_t * m);
+
 
 /* Read for a packet source */
 gavl_source_status_t
@@ -659,8 +666,11 @@ bgav_stream_read_func_discontinuous(bgav_stream_t * s, gavl_packet_t ** p);
 
 
 /* TODO */
-bgav_packet_t * bgav_stream_get_packet_read(bgav_stream_t * s);
-bgav_packet_t * bgav_stream_peek_packet_read(bgav_stream_t * s, int force);
+gavl_source_status_t
+bgav_stream_get_packet_read(bgav_stream_t * s, bgav_packet_t ** ret);
+gavl_source_status_t
+bgav_stream_peek_packet_read(bgav_stream_t * s, bgav_packet_t ** ret, int force);
+
 void bgav_stream_done_packet_read(bgav_stream_t * s, bgav_packet_t * p);
 
 
@@ -1694,6 +1704,8 @@ char * bgav_search_file_read(const bgav_options_t * opt,
 int bgav_match_regexp(const char * str, const char * regexp);
 
 char * bgav_escape_string(char * old_string, const char * escape_chars);
+
+uint32_t bgav_compression_id_2_fourcc(gavl_codec_id_t id);
 
 
 

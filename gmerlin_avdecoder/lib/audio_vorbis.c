@@ -69,31 +69,31 @@ static char * get_default_vorbis_header(bgav_stream_t * stream, int *len);
 
 /* Put raw streams into the sync engine */
 
-static int read_data(bgav_stream_t * s)
+static gavl_source_status_t read_data(bgav_stream_t * s)
   {
+  gavl_source_status_t st;
   char * buffer;
   bgav_packet_t * p;
   vorbis_audio_priv * priv;
+  
   priv = s->data.audio.decoder->priv;
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    {
-    return 0;
-    }
+  
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
   
   buffer = ogg_sync_buffer(&priv->dec_oy, p->data_size);
   memcpy(buffer, p->data, p->data_size);
   ogg_sync_wrote(&priv->dec_oy, p->data_size);
   bgav_stream_done_packet_read(s, p);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
-static int next_page(bgav_stream_t * s)
+static gavl_source_status_t next_page(bgav_stream_t * s)
   {
+  gavl_source_status_t st;
   int result = 0;
   vorbis_audio_priv * priv;
   priv = s->data.audio.decoder->priv;
-
   
   while(result < 1)
     {
@@ -101,8 +101,8 @@ static int next_page(bgav_stream_t * s)
     
     if(result == 0)
       {
-      if(!read_data(s))
-        return 0;
+      if((st = read_data(s)) != GAVL_SOURCE_OK)
+        return st;
       }
     else
       {
@@ -116,11 +116,12 @@ static int next_page(bgav_stream_t * s)
       }
 
     }
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
-static int next_packet(bgav_stream_t * s)
+static gavl_source_status_t next_packet(bgav_stream_t * s)
   {
+  gavl_source_status_t st;
   int result = 0;
   vorbis_audio_priv * priv;
   
@@ -128,34 +129,50 @@ static int next_packet(bgav_stream_t * s)
   
   if(s->fourcc == BGAV_VORBIS)
     {
-    if(priv->p)
+    bgav_packet_t * dummy = NULL;
+    
+    if(!priv->dec_op.bytes)
       {
-      bgav_stream_done_packet_read(s, priv->p);
-      priv->p = NULL;
-      }
-    priv->p = bgav_stream_get_packet_read(s);
-    if(!priv->p)
-      return 0;
+      if(priv->p)
+        {
+        bgav_stream_done_packet_read(s, priv->p);
+        priv->p = NULL;
+        }
+      if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+        return st;
 #ifdef DUMP_PACKET
-    bgav_dprintf("vorbis: Got packet: %p ", priv->p);
-    bgav_packet_dump(priv->p);
-    if(priv->p->data_size == 30)
-      {
-      bgav_hexdump(priv->p->data, priv->p->data_size, 16);
-      }
+      bgav_dprintf("vorbis: Got packet: %p ", priv->p);
+      bgav_packet_dump(priv->p);
+      if(priv->p->data_size == 30)
+        {
+        bgav_hexdump(priv->p->data, priv->p->data_size, 16);
+        }
 #endif    
     
-    memset(&priv->dec_op, 0, sizeof(priv->dec_op));
-    priv->dec_op.bytes  = priv->p->data_size;
-    priv->dec_op.packet = priv->p->data;
+      memset(&priv->dec_op, 0, sizeof(priv->dec_op));
+      priv->dec_op.bytes  = priv->p->data_size;
+      priv->dec_op.packet = priv->p->data;
     
-    priv->dec_op.granulepos = priv->p->pts + priv->p->duration;
+      priv->dec_op.granulepos = priv->p->pts + priv->p->duration;
     
-    priv->dec_op.packetno = priv->packetno;
-    priv->packetno++;
-    
-    if(!bgav_stream_peek_packet_read(s, 1))
-      priv->dec_op.e_o_s = 1;
+      priv->dec_op.packetno = priv->packetno++;
+      priv->dec_op.e_o_s = 0;
+      priv->packetno++;
+      }
+
+    st = bgav_stream_peek_packet_read(s, &dummy, 1);
+
+    switch(st)
+      {
+      case GAVL_SOURCE_AGAIN:
+        return GAVL_SOURCE_AGAIN;
+        break;
+      case GAVL_SOURCE_EOF:
+        priv->dec_op.e_o_s = 1;
+      case GAVL_SOURCE_OK: // Fall through
+        return GAVL_SOURCE_OK;
+        break;
+      }
     }
   else
     {
@@ -165,12 +182,12 @@ static int next_packet(bgav_stream_t * s)
       
       if(result == 0)
         {
-        if(!next_page(s))
-          return 0;
+        if((st = next_page(s)) != GAVL_SOURCE_OK)
+          return st;
         }
       }
     }
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 
@@ -473,11 +490,12 @@ static int init_vorbis(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_frame_vorbis(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
   float ** channels;
   int i;
+  gavl_source_status_t st;
   int samples_decoded = 0;
   
   priv = s->data.audio.decoder->priv;
@@ -494,9 +512,9 @@ static int decode_frame_vorbis(bgav_stream_t * s)
     
     // fprintf(stderr, "decode_frame_vorbis\n");
     
-    if(!next_packet(s))
-      return 0;
-
+    if((st = next_packet(s)) != GAVL_SOURCE_OK)
+      return st;
+    
     if(vorbis_synthesis(&priv->dec_vb, &priv->dec_op) == 0)
       {
       vorbis_synthesis_blockin(&priv->dec_vd,
@@ -515,7 +533,7 @@ static int decode_frame_vorbis(bgav_stream_t * s)
   s->data.audio.frame->valid_samples = samples_decoded;
   vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void resync_vorbis(bgav_stream_t * s)
@@ -559,6 +577,7 @@ static void resync_vorbis(bgav_stream_t * s)
     bgav_packet_t * p;
     int samples_decoded;
     float ** channels;
+    gavl_source_status_t st;
     
     if(!next_packet(s))
       return;
@@ -577,8 +596,8 @@ static void resync_vorbis(bgav_stream_t * s)
     vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
     
     /* Synchronize output time to the next packet */
-    p = bgav_stream_peek_packet_read(s, 1);
-    if(p)
+    p = NULL;
+    if((st = bgav_stream_peek_packet_read(s, &p, 1)) == GAVL_SOURCE_OK)
       {
       s->out_time = p->pts;
       //      fprintf(stderr, "Vorbis resync PTS: %"PRId64"\n", p->pts);

@@ -43,18 +43,18 @@ typedef struct
   bgav_opus_header_t h;
   } opus_t;
 
-static int decode_frame_opus(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_opus(bgav_stream_t * s)
   {
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   opus_t * priv;
   int result;
-  int ret = 0;
+  gavl_source_status_t st;
+  gavl_source_status_t ret = GAVL_SOURCE_EOF;
   
   priv = s->data.audio.decoder->priv;
   
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    return 0;
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
 
   result =
     opus_multistream_decode_float(priv->dec,
@@ -75,9 +75,8 @@ static int decode_frame_opus(bgav_stream_t * s)
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->frame);
   
-
-  ret = 1;
-
+  ret = GAVL_SOURCE_OK;
+  
   fail:
   
   bgav_stream_done_packet_read(s, p);

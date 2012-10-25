@@ -39,20 +39,18 @@ typedef struct
   int need_header;
   } png_priv_t;
 
-static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
+static gavl_source_status_t
+decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   char * error_msg = NULL;
   png_priv_t * priv;
   bgav_packet_t * p = NULL;
+  gavl_source_status_t st;
   
   priv = s->data.video.decoder->priv;
-  
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    {
-    bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "EOF");
-    return 0;
-    }
+
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
   
   if(!bgav_png_reader_read_header(priv->png_reader,
                                   p->data, p->data_size,
@@ -66,7 +64,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     else
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading png header failed");
     
-    return 0;
+    return GAVL_SOURCE_EOF;
     }
   
   /* We decode only if we have a frame */
@@ -76,15 +74,15 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
        !bgav_png_reader_read_header(priv->png_reader,
                                     p->data, p->data_size,
                                     &s->data.video.format, NULL))
-      return 0;
+      return GAVL_SOURCE_EOF;
     if(!bgav_png_reader_read_image(priv->png_reader, frame))
-      return 0;
+      return GAVL_SOURCE_EOF;
     priv->have_header = 0;
 
     bgav_set_video_frame_from_packet(p, frame);
     }
   bgav_stream_done_packet_read(s, p);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static int init_png(bgav_stream_t * s)

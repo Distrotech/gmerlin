@@ -574,6 +574,7 @@ sampleseek.c \
 seek.c \
 sdp.c \
 stream.c \
+streamdecoder.c \
 subovl_dvd.c \
 subread.c \
 subtitle.c \

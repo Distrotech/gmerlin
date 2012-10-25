@@ -705,7 +705,8 @@ static AVCodec * find_decoder(enum CodecID id, bgav_stream_t * s)
   {
   AVCodec * ret = NULL;
 
-  if(s->opt->vdpau && (id == CODEC_ID_H264) && (s->fourcc != BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
+  if(s->opt->vdpau && (id == CODEC_ID_H264) &&
+     (s->fourcc != BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
      s->ext_size)
     ret = avcodec_find_decoder_by_name("h264_vdpau");
   

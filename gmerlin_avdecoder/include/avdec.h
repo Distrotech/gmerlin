@@ -2289,6 +2289,128 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time);
 BGAV_PUBLIC
 void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time);
 
+/** \defgroup codec Standalone stream decoders
+ *
+ *  The standalone decoders can be used for the
+ *  decompression of elemtary A/V streams (bypassing the
+ *  demultiplexer stage). They obtain compressed packets
+ *  via a \ref gavl_packet_source_t and provide a
+ *  \ref gavl_audio_source_t or \ref gavl_video_source_t for
+ *  reading the uncompressed frames.
+ *
+ *  @{
+ */
+
+/** \brief Forward declaration for a stream decoder
+ *
+ * You don't want to know, what's inside here
+ */
+  
+typedef struct bgav_stream_decoder_s bgav_stream_decoder_t;
+
+/** \brief Create a stream decoder
+ *  \returns A newly allocated stream decoder
+ */
+  
+bgav_stream_decoder_t * bgav_stream_decoder_create();
+
+/** \brief Get options for a stream decoder
+ *  \param dec A stream decoder
+ *  \returns Options for decoding the stream
+ */
+
+bgav_options_t *
+bgav_stream_decoder_get_options(bgav_stream_decoder_t * dec);
+
+/** \brief Connect an audio stream decoder
+ *  \param dec A stream decoder
+ *  \param src Packet source
+ *  \param ci Compression info
+ *  \param fmt Format (possibly incomplete)
+ *  \param m Stream metadata
+ *  \returns Source for reading the uncompressed frames
+ *
+ *  You can call either \ref bgav_stream_decoder_connect_audio or
+ *  \ref bgav_stream_decoder_connect_video for a decoder instance,
+ *  not both.
+ *
+ *  The updated audio format can be ontained by calling
+ *  \ref gavl_audio_source_get_src_format with the returned source.
+ */
+  
+gavl_audio_source_t *
+bgav_stream_decoder_connect_audio(bgav_stream_decoder_t * dec,
+                                  gavl_packet_source_t * src,
+                                  const gavl_compression_info_t * ci,
+                                  const gavl_audio_format_t * fmt,
+                                  const gavl_metadata_t * m);
+  
+/** \brief Connect a video stream decoder
+ *  \param dec A stream decoder
+ *  \param src Packet source
+ *  \param ci Compression info
+ *  \param fmt Format (possibly incomplete)
+ *  \param m Stream metadata
+ *  \returns Source for reading the uncompressed frames
+ *
+ *  You can call either \ref bgav_stream_decoder_connect_audio or
+ *  \ref bgav_stream_decoder_connect_video for a decoder instance,
+ *  not both.
+ *
+ *  The updated video format can be ontained by calling
+ *  \ref gavl_video_source_get_src_format with the returned source.
+ */
+
+gavl_video_source_t *
+bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
+                                  gavl_packet_source_t * src,
+                                  const gavl_compression_info_t * ci,
+                                  const gavl_video_format_t * fmt,
+                                  const gavl_metadata_t * m);
+
+/** \brief Get updated metadata from a stream decoder
+ *  \param dec A stream decoder
+ *  \returns Updated metadata
+ *
+ *  This returns (possibly changed) metadata of the stream.
+ */
+
+const gavl_metadata_t *
+bgav_stream_decoder_get_metadata(bgav_stream_decoder_t * dec);
+
+/** \brief Skip to a specified time
+ *  \param dec A stream decoder
+ *  \param t Time to skip to
+ *  \returns True time skipped
+ *
+ *  This skips to a certain time in the stream. For audio stream
+ *  the time is scaled by the samplerate. For video streams it is
+ *  in timescale unit of the video format.
+ */
+
+int64_t
+bgav_stream_decoder_skip(bgav_stream_decoder_t * dec, int64_t t);
+
+/** \brief Reset a stream decoder
+ *  \param dec A stream decoder
+ *
+ *  Reset the decoder to a state as if no packet was read so far.
+ */
+
+void
+bgav_stream_decoder_reset(bgav_stream_decoder_t * dec);
+
+/** \brief Destroy a stream decoder
+ *  \param dec A stream decoder
+ */
+
+void
+bgav_stream_decoder_destroy(bgav_stream_decoder_t * dec);
+  
+/**
+ *  @}
+ */
+  
 
 /***************************************************
  * Debugging functions

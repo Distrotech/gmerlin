@@ -114,14 +114,17 @@ static TIFF* open_tiff_mem(char *mode, tiff_t* p)
 
 
 
-static int read_header_tiff(bgav_stream_t * s,
-                            gavl_video_format_t * format)
+static gavl_source_status_t
+read_header_tiff(bgav_stream_t * s,
+                 gavl_video_format_t * format)
   {
+  gavl_source_status_t st;
   tiff_t *p = s->data.video.decoder->priv;
 
-  p->packet = bgav_stream_get_packet_read(s);
-  if(!p->packet)
-    return 0;
+  p->packet = NULL;
+
+  if((st = bgav_stream_get_packet_read(s, &p->packet)) != GAVL_SOURCE_OK)
+    return st;
   
   //  tiff_read_mem(priv, filename);
   
@@ -157,7 +160,7 @@ static int read_header_tiff(bgav_stream_t * s,
       format->pixelformat = GAVL_RGB_24;
       }
     }
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 #define GET_RGBA(fp, rp)  \
@@ -259,8 +262,10 @@ static int init_tiff(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
+static gavl_source_status_t
+decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
+  gavl_source_status_t st;
   tiff_t * priv;
   priv = s->data.video.decoder->priv;
 
@@ -269,19 +274,19 @@ static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   if(frame)
     {
-    if(!priv->packet && !read_header_tiff(s, NULL))
-      return 0;
+    if(!priv->packet &&
+       ((st = read_header_tiff(s, NULL)) != GAVL_SOURCE_OK))
+      return st;
     read_image_tiff(s, frame);
     }
   else
     {
-    priv->packet = bgav_stream_get_packet_read(s);
-    if(!priv->packet)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &priv->packet)) != GAVL_SOURCE_OK)
+      return st;
     bgav_stream_done_packet_read(s, priv->packet);
     priv->packet = NULL;
     }
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_tiff(bgav_stream_t * s)

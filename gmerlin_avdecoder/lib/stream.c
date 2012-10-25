@@ -412,3 +412,32 @@ void bgav_stream_set_extradata(bgav_stream_t * s,
   memcpy(s->ext_data, data, len);
   memset(s->ext_data + len, 0, 16);
   }
+
+void bgav_stream_set_from_gavl(bgav_stream_t * s,
+                               const gavl_compression_info_t * ci,
+                               const gavl_audio_format_t * afmt,
+                               const gavl_video_format_t * vfmt,
+                               const gavl_metadata_t * m)
+  {
+  if(afmt)
+    {
+    gavl_audio_format_copy(&s->data.audio.format, afmt);
+    s->data.audio.pre_skip = ci->pre_skip;
+    }
+  else if(vfmt)
+    {
+    gavl_video_format_copy(&s->data.video.format, vfmt);
+
+    if(!(ci->id & GAVL_COMPRESSION_HAS_P_FRAMES))
+      s->flags |= STREAM_INTRA_ONLY;
+    if(ci->id & GAVL_COMPRESSION_HAS_B_FRAMES)
+      s->flags |= STREAM_B_FRAMES;
+    }
+  
+  s->fourcc = bgav_compression_id_2_fourcc(ci->id);
+  bgav_stream_set_extradata(s, ci->global_header,
+                            ci->global_header_len);
+  s->container_bitrate = ci->bitrate;
+  gavl_metadata_copy(&s->m, m);
+  }
+                         

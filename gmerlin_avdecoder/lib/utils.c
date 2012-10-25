@@ -725,3 +725,48 @@ char * bgav_escape_string(char * old_string, const char * escape_chars)
     }
   return NULL; // Never get here
   }
+
+static const struct
+  {
+  gavl_codec_id_t id;
+  uint32_t fourcc;
+  }
+fourccs[] =
+  {
+    { GAVL_CODEC_ID_NONE,      BGAV_MK_FOURCC('g','a','v','f') },
+    /* Audio */
+    { GAVL_CODEC_ID_ALAW,      BGAV_MK_FOURCC('a','l','a','w') }, 
+    { GAVL_CODEC_ID_ULAW,      BGAV_MK_FOURCC('u','l','a','w') }, 
+    { GAVL_CODEC_ID_MP2,       BGAV_MK_FOURCC('.','m','p','2') }, 
+    { GAVL_CODEC_ID_MP3,       BGAV_MK_FOURCC('.','m','p','3') }, 
+    { GAVL_CODEC_ID_AC3,       BGAV_MK_FOURCC('.','a','c','3') }, 
+    { GAVL_CODEC_ID_AAC,       BGAV_MK_FOURCC('m','p','4','a') }, 
+    { GAVL_CODEC_ID_VORBIS,    BGAV_MK_FOURCC('V','B','I','S') }, 
+    { GAVL_CODEC_ID_FLAC,      BGAV_MK_FOURCC('F','L','A','C') }, 
+    
+    /* Video */
+    { GAVL_CODEC_ID_JPEG,      BGAV_MK_FOURCC('j','p','e','g') }, 
+    { GAVL_CODEC_ID_PNG,       BGAV_MK_FOURCC('p','n','g',' ') }, 
+    { GAVL_CODEC_ID_TIFF,      BGAV_MK_FOURCC('t','i','f','f') }, 
+    { GAVL_CODEC_ID_TGA,       BGAV_MK_FOURCC('t','g','a',' ') }, 
+    { GAVL_CODEC_ID_MPEG1,     BGAV_MK_FOURCC('m','p','v','1') }, 
+    { GAVL_CODEC_ID_MPEG2,     BGAV_MK_FOURCC('m','p','v','2') },
+    { GAVL_CODEC_ID_MPEG4_ASP, BGAV_MK_FOURCC('m','p','4','v') },
+    { GAVL_CODEC_ID_H264,      BGAV_MK_FOURCC('H','2','6','4') },
+    { GAVL_CODEC_ID_THEORA,    BGAV_MK_FOURCC('T','H','R','A') },
+    { GAVL_CODEC_ID_DIRAC,     BGAV_MK_FOURCC('d','r','a','c') },
+    { GAVL_CODEC_ID_DV,        BGAV_MK_FOURCC('D','V',' ',' '),},
+    { /* End */                                                },
+  };
+
+uint32_t bgav_compression_id_2_fourcc(gavl_codec_id_t id)
+  {
+  int i = 0;
+  while(fourccs[i].fourcc)
+    {
+    if(fourccs[i].id == id)
+      return fourccs[i].fourcc;
+    i++;
+    }
+  return 0;
+  }

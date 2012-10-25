@@ -42,17 +42,17 @@ typedef struct
   
   } faad_priv_t;
 
-static int get_data(bgav_stream_t * s)
+static gavl_source_status_t get_data(bgav_stream_t * s)
   {
+  gavl_source_status_t st;
   faad_priv_t * priv;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   
   priv = s->data.audio.decoder->priv;
-  
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    return 0;
 
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
+  
   //  fprintf(stderr, "get_packet_read %ld\n", p->position);
   
   /* If we know the number of samples (i.e. when the packet comes
@@ -67,20 +67,21 @@ static int get_data(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_frame_faad2(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_faad2(bgav_stream_t * s)
   {
+  gavl_source_status_t st;
   faacDecFrameInfo frame_info;
   faad_priv_t * priv;
-  int parse = (s->action == BGAV_STREAM_PARSE);
     
   priv = s->data.audio.decoder->priv;
 
   memset(&frame_info, 0, sizeof(&frame_info));
   
   if(priv->buf.size < FAAD_MIN_STREAMSIZE)
-    if(parse || !get_data(s))
-      return 0;
-  
+    {
+    if((st = get_data(s)) != GAVL_SOURCE_OK)
+      return st;
+    }
   while(1)
     {
 #ifdef DUMP_DECODE
@@ -105,8 +106,8 @@ static int decode_frame_faad2(bgav_stream_t * s)
       {
       if(frame_info.error == 14) /* Too little data */
         {
-        if(parse || !get_data(s))
-          return 0;
+        if((st = get_data(s)) != GAVL_SOURCE_OK)
+          return st;
         }
       else
         {
@@ -114,8 +115,8 @@ static int decode_frame_faad2(bgav_stream_t * s)
                  "faacDecDecode failed %s",
                  faacDecGetErrorMessage(frame_info.error));
         bgav_bytebuffer_flush(&priv->buf);
-        if(parse || !get_data(s))
-          return 0;
+        if((st = get_data(s)) != GAVL_SOURCE_OK)
+          return st;
         //    priv->data_size = 0;
         //    priv->frame->valid_samples = 0;
         // return 0; /* Recatching the stream is doomed to failure, so we end here */
@@ -167,7 +168,7 @@ static int decode_frame_faad2(bgav_stream_t * s)
     }
 
     
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static int init_faad2(bgav_stream_t * s)
@@ -186,7 +187,7 @@ static int init_faad2(bgav_stream_t * s)
   
   if(!s->ext_size)
     {
-    if(!get_data(s))
+    if(get_data(s) != GAVL_SOURCE_OK)
       return 0;
 
     result = faacDecInit(priv->dec, priv->buf.buffer,
@@ -235,12 +236,9 @@ static int init_faad2(bgav_stream_t * s)
   // cfg->outputFormat = FAAD_FMT_16BIT;
   faacDecSetConfiguration(priv->dec, cfg);
 
-  if(s->action != BGAV_STREAM_PARSE)
-    {
-    /* Decode a first frame to get the channel setup and the description */
-    if(!decode_frame_faad2(s))
-      return 0;
-    }
+  /* Decode a first frame to get the channel setup and the description */
+  if(decode_frame_faad2(s) != GAVL_SOURCE_OK)
+    return 0;
   return 1;
   }
 
