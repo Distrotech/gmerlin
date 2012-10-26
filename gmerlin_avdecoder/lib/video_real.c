@@ -41,7 +41,8 @@
 char * bgav_dll_path_real = NULL;
 
 static int init_real(bgav_stream_t * s);
-static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f);
+static gavl_source_status_t 
+decode_real(bgav_stream_t * s, gavl_video_frame_t * f);
 static void close_real(bgav_stream_t * s);
 static void resync_real(bgav_stream_t * s);
 
@@ -305,23 +306,22 @@ typedef struct dp_hdr_s {
     uint32_t chunktab;  // offset to chunk offset array
 } dp_hdr_t;
 
-static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
+static gavl_source_status_t 
+decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   real_priv_t * priv;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   unsigned int transform_out[5];
   transform_in_t transform_in;
   uint32_t * extra;
   dp_hdr_t* dp_hdr;
   char * dp_data;
+  gavl_source_status_t st;
 
   priv = s->data.video.decoder->priv;
-  
-  p = bgav_stream_get_packet_read(s);
 
-  
-  if(!p)
-    return 0;
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;  
     
   dp_hdr = (dp_hdr_t*)(p->data);
   extra = (uint32_t*)(((char*)(p->data))+dp_hdr->chunktab);
@@ -347,7 +347,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
     }
   bgav_stream_done_packet_read(s, p);
   
-  return 1;  
+  return GAVL_SOURCE_OK;  
   };
 
 static void close_real(bgav_stream_t * s)

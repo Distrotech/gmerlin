@@ -169,11 +169,12 @@ static int init_format(bgav_stream_t * s)
   return 1;
   }
 
-
-static int fill_buffer(bgav_stream_t * s)
+static gavl_source_status_t fill_buffer(bgav_stream_t * s)
   {
   ffmpeg_audio_priv * priv;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
+  gavl_source_status_t st;
+ 
   priv= s->data.audio.decoder->priv;
 
   /* Read data if necessary */
@@ -182,9 +183,8 @@ static int fill_buffer(bgav_stream_t * s)
       (priv->buf.size < s->data.audio.block_align)))
     {
     /* Get packet */
-    p = bgav_stream_get_packet_read(s);
-    if(!p)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+      return st;
 #ifdef DUMP_PACKET
     bgav_dprintf("Got packet\n");
     bgav_packet_dump(p);
@@ -192,7 +192,7 @@ static int fill_buffer(bgav_stream_t * s)
     bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
     bgav_stream_done_packet_read(s, p);
     }
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 /*
@@ -200,17 +200,18 @@ static int fill_buffer(bgav_stream_t * s)
  */
 
 #ifndef DECODE_AUDIO4
-static int decode_frame_ffmpeg(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
   {
   int bytes_used;
+  gavl_source_status_t st;
 
   ffmpeg_audio_priv * priv;
   int frame_size;
   
   priv= s->data.audio.decoder->priv;
 
-  if(!fill_buffer(s))
-    return 0;
+  if((st = fill_buffer(s)) != GAVL_SOURCE_OK)
+    return st;
 
   frame_size = priv->frame_alloc;
   
@@ -293,7 +294,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   /* No Samples decoded, get next packet */
 
   if(frame_size < 0)
-    return 1;
+    return GAVL_SOURCE_OK;
 
   /* Sometimes, frame_size is terribly wrong */
 
@@ -312,7 +313,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->frame);
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 #else
 
@@ -320,10 +321,10 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
  *  New version
  */
 
-static int decode_frame_ffmpeg(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
   {
   int bytes_used;
-
+  gavl_source_status_t st;
   ffmpeg_audio_priv * priv;
   AVFrame f;
   int got_frame;
@@ -332,12 +333,19 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
 
   while(1)
     {
-    if(!fill_buffer(s))
+    st = fill_buffer(s);
+    switch(st)
       {
-      if(!(priv->ctx->codec->capabilities & CODEC_CAP_DELAY))
-        return 0;
+      case GAVL_SOURCE_AGAIN:
+        return st;
+        break;
+      case GAVL_SOURCE_EOF:
+        if(!(priv->ctx->codec->capabilities & CODEC_CAP_DELAY))
+          return st;
+      case GAVL_SOURCE_OK: // Fall through
+        break;
       }
-      
+
 #ifdef DUMP_DECODE
     bgav_dprintf("decode_audio Size: %d\n",
                  priv->buf.size);
@@ -357,11 +365,11 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
     if(bytes_used < 0)
       {
       /* Error */
-      return 0;
+      return GAVL_SOURCE_EOF;
       }
 
     if(!priv->buf.size && !got_frame)
-      return 0; // EOF
+      return GAVL_SOURCE_EOF;
     
     /* Advance packet buffer */
     
@@ -374,7 +382,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
     /* Only codecs with delay are allowed to eat
        packets without outputting audio */
     if(!(priv->ctx->codec->capabilities & CODEC_CAP_DELAY))
-      return 0;
+      return GAVL_SOURCE_EOF;
     }
   
   
@@ -383,8 +391,8 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
     /* Detect if we need the format */
     if(!priv->sample_size && !init_format(s))
       {
-      fprintf(stderr, "Init format failed\n");
-      return 0;
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Init format failed");
+      return GAVL_SOURCE_EOF;
       }
     
     /* Allocate or enlarge frame */
@@ -414,7 +422,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   /* No Samples decoded, get next packet */
 
   if(!got_frame)
-    return 1;
+    return GAVL_SOURCE_AGAIN;
   
 #ifdef DUMP_DECODE
   bgav_dprintf("Got %d samples\n", priv->frame->valid_samples);
@@ -423,7 +431,7 @@ static int decode_frame_ffmpeg(bgav_stream_t * s)
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->frame);
   
-  return 1;
+  return ;
   }
 
 

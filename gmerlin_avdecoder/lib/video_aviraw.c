@@ -140,12 +140,12 @@ static void close_aviraw(bgav_stream_t * s)
   free(priv);
   }
 
-static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
+static gavl_source_status_t decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   int i;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   aviraw_t * priv;
-  
+  gavl_source_status_t st;
 
   uint8_t * src;
   uint8_t * dst;
@@ -154,13 +154,10 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
 
   while(1)
     {
-    p = bgav_stream_get_packet_read(s);
-    if(!p)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+      return st;
     if(!p->data_size)
-      {
       bgav_stream_done_packet_read(s, p);
-      }
     else
       break;
     }
@@ -174,7 +171,7 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Palette size changed %d -> %d",
                priv->pal_size, p->palette_size);
-      return 0;
+      return GAVL_SOURCE_EOF;
       }
     if(!priv->pal)
       priv->pal = malloc(p->palette_size * sizeof(priv->pal));
@@ -199,7 +196,7 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
   
   bgav_stream_done_packet_read(s, p);
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static int init_aviraw(bgav_stream_t * s)

@@ -39,7 +39,7 @@
 // #define DUMP_EXTRADATA
 
 static int init_real(bgav_stream_t * s);
-static int decode_frame_real(bgav_stream_t * s);
+static gavl_source_status_t decode_frame_real(bgav_stream_t * s);
 static void close_real(bgav_stream_t * s);
 static void resync_real(bgav_stream_t * s);
 // static void skip_real(bgav_stream_t * s,int);
@@ -340,27 +340,22 @@ static unsigned char sipr_swaps[38][2]={
     {77,80} };
 #endif
 
-static int fill_buffer(bgav_stream_t * s)
+static gavl_source_status_t fill_buffer(bgav_stream_t * s)
   {
   real_priv_t * priv;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
+  gavl_source_status_t st;
 
-#if 1 /* Reordering made by the demuxer */
   priv = s->data.audio.decoder->priv;
-  p = bgav_stream_get_packet_read(s);
 
-  if(!p)
-    {
-    return 0;
-    }
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
 
   if(p->data_size > priv->read_buffer_alloc)
     {
-
     priv->read_buffer_alloc = p->data_size;
     priv->read_buffer = realloc(priv->read_buffer, priv->read_buffer_alloc);
     }
-
 
   memcpy(priv->read_buffer, p->data, p->data_size);
   bgav_stream_done_packet_read(s, p);
@@ -368,104 +363,19 @@ static int fill_buffer(bgav_stream_t * s)
   priv->read_buffer_size = p->data_size;
   priv->read_buffer_ptr  = priv->read_buffer;
   
-#else
-  int sps=((short*)(s->ext_data))[0];
-  int w=s->data.audio.block_align; // 5
-  int h=((short*)(s->ext_data))[1];
-  int cfs=((short*)(s->ext_data))[3];
-  priv = s->data.audio.decoder->priv;
-
-  p = bgav_stream_get_packet_read(s);
-
-  if(!p)
-    {
-    return 0;
-    }
-  if(p->data_size > priv->read_buffer_alloc)
-    {
-    priv->read_buffer_alloc = p->data_size;
-    priv->read_buffer = realloc(priv->read_buffer, priv->read_buffer_alloc);
-    }
-  priv->read_buffer_size = p->data_size;
-  priv->read_buffer_ptr  = priv->read_buffer;
-
-  
-  /* Now, read and descramble the stuff */
-
-  if((s->fourcc == BGAV_MK_FOURCC('1','4','_','4')) ||
-     (s->fourcc == BGAV_MK_FOURCC('d','n','e','t')))
-    {
-    memcpy(priv->read_buffer, p->data, p->data_size);
-    }
-  else if(s->fourcc == BGAV_MK_FOURCC('2','8','_','8'))
-    {
-    int i,j, idx = 0;
-    for (j = 0; j < h; j++)
-      {
-      for (i = 0; i < h/2; i++)
-        {
-        memcpy(priv->read_buffer+i*2*w+j*cfs, p->data + idx * cfs, cfs);
-        idx++;
-        }
-      }
-    }
-  else if(!sps)
-    {
-    // 'sipr' way
-    int j,n;
-    int bs=h*w*2/96; // nibbles per subpacket
-    unsigned char *ptr;
-
-    memcpy(priv->read_buffer, p->data, p->data_size);
-    ptr = priv->read_buffer;
-    for(n=0;n<38;n++)
-      {
-      int i=bs*sipr_swaps[n][0];
-      int o=bs*sipr_swaps[n][1];
-      // swap nibbles of block 'i' with 'o'      TODO: optimize
-      for(j=0;j<bs;j++)
-        {
-        int x=(i&1) ? (ptr[(i>>1)]>>4) : (ptr[(i>>1)]&15);
-        int y=(o&1) ? (ptr[(o>>1)]>>4) : (ptr[(o>>1)]&15);
-        if(o&1) ptr[(o>>1)]=(ptr[(o>>1)]&0x0F)|(x<<4);
-        else  ptr[(o>>1)]=(ptr[(o>>1)]&0xF0)|x;
-        if(i&1) ptr[(i>>1)]=(ptr[(i>>1)]&0x0F)|(y<<4);
-        else  ptr[(i>>1)]=(ptr[(i>>1)]&0xF0)|y;
-        ++i;++o;
-        }
-      }
-    }
-  else
-    {
-    // 'cook' way
-    int x,y,idx=0;
-    w/=sps;
-    for(y=0;y<h;y++)
-      for(x=0;x<w;x++)
-        {
-        memcpy(priv->read_buffer+sps*(h*x+((h+1)/2)*(y&1)+(y>>1)),
-               p->data + idx * sps, sps);
-        idx++;
-        }
-    }
-  bgav_stream_done_packet_read(s, p);
-
-#endif
   return 1;
   }
 
-static int decode_frame_real(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_real(bgav_stream_t * s)
   {
   unsigned int len;
-
+  gavl_source_status_t st;
   real_priv_t * priv;
   priv = s->data.audio.decoder->priv;
   if(!priv->read_buffer_size)
     {
-    if(!fill_buffer(s))
-      {
-      return 0;
-      }
+    if((st = fill_buffer(s)) != GAVL_SOURCE_OK)
+      return st;
     }
   /* Call the decoder */
 
@@ -483,7 +393,7 @@ static int decode_frame_real(bgav_stream_t * s)
 
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
 
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_real(bgav_stream_t * s)

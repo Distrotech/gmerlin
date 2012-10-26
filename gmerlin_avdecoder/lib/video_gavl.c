@@ -22,27 +22,31 @@
 #include <avdec_private.h>
 #include <codecs.h>
 
+/* This should be removed at some point */
+
 static int init_gavl(bgav_stream_t * s)
   {
   s->flags |= STREAM_INTRA_ONLY;
   return 1;
   }
 
-static int decode_gavl(bgav_stream_t * s, gavl_video_frame_t * frame)
+static gavl_source_status_t decode_gavl(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
+  gavl_source_status_t st;
+ 
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
+  if(!p->video_frame)
+    return GAVL_SOURCE_EOF;
 
-  p = bgav_stream_get_packet_read(s);
-  if(!p || !(p->video_frame))
-    return 0;
-  
   if(frame)
     {
     gavl_video_frame_copy(&s->data.video.format, frame, p->video_frame);
     gavl_video_frame_copy_metadata(frame, p->video_frame);
     }
   bgav_stream_done_packet_read(s, p);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_gavl(bgav_stream_t * s)

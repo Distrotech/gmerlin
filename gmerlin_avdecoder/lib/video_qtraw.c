@@ -375,26 +375,25 @@ static int init_qtraw(bgav_stream_t * s)
   return 0;
   }
 
-static int decode_qtraw(bgav_stream_t * s, gavl_video_frame_t * f)
+static gavl_source_status_t decode_qtraw(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   int i;
   raw_priv_t * priv;
   uint8_t * src, *dst;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
+  gavl_source_status_t st;
 
   priv = s->data.video.decoder->priv;
   
   /* We assume one frame per packet */
-  
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    return 0;
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
 
   /* Skip frame */
   if(!f)
     {
     bgav_stream_done_packet_read(s, p);
-    return 1;
+    return GAVL_SOURCE_OK;
     }
   src = p->data;
   dst = f->planes[0];
@@ -409,7 +408,7 @@ static int decode_qtraw(bgav_stream_t * s, gavl_video_frame_t * f)
     bgav_set_video_frame_from_packet(p, f);
     }
   bgav_stream_done_packet_read(s, p);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_qtraw(bgav_stream_t * s)

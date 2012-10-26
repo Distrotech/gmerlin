@@ -407,16 +407,18 @@ static int init_xadll(bgav_stream_t * s)
   return 0;
   }
 
-static int decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
+static gavl_source_status_t 
+decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   int ret;
   bgav_packet_t * p;
   xanim_priv_t * priv;
+  gavl_source_status_t st;
 
   priv = s->data.video.decoder->priv;
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    return 0;
+ 
+  if((st = gavl_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
     
   priv->frame = frame;
   ret = priv->dec_func((uint8_t*)s, p->data, p->data_size, &priv->decinfo);
@@ -428,7 +430,7 @@ static int decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
     }
 
   bgav_stream_done_packet_read(s, p);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_xadll(bgav_stream_t * s)

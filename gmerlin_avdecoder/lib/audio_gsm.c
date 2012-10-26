@@ -101,17 +101,17 @@ static void close_gsm(bgav_stream_t * s)
   free(priv);
   }
 
-static int decode_frame_gsm(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_gsm(bgav_stream_t * s)
   {
+  gavl_source_status_t st;
   gsm_priv * priv;
 
   priv = s->data.audio.decoder->priv;
   
   if(!priv->packet)
     {
-    priv->packet = bgav_stream_get_packet_read(s);
-    if(!priv->packet)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &priv->packet)) != GAVL_SOURCE_OK)
+      return st;
     priv->packet_ptr = priv->packet->data;
     }
   else if(priv->packet_ptr - priv->packet->data + // Data already decoded
@@ -119,9 +119,8 @@ static int decode_frame_gsm(bgav_stream_t * s)
           > priv->packet->data_size)
     {
     bgav_stream_done_packet_read(s, priv->packet);
-    priv->packet = bgav_stream_get_packet_read(s);
-    if(!priv->packet)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &priv->packet)) != GAVL_SOURCE_OK)
+      return st;
     priv->packet_ptr = priv->packet->data;
     }
   gsm_decode(priv->gsm_state, priv->packet_ptr, priv->frame->samples.s_16);
@@ -141,7 +140,7 @@ static int decode_frame_gsm(bgav_stream_t * s)
 
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void resync_gsm(bgav_stream_t * s)

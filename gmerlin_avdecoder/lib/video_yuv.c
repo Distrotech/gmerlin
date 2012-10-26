@@ -603,22 +603,24 @@ static int init_yuv4(bgav_stream_t * s)
 
 /* Generic decode function */
 
-static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
+static gavl_source_status_t decode(bgav_stream_t * s, gavl_video_frame_t * f)
   {
+  gavl_source_status_t st;
   yuv_priv_t * priv;
   priv = s->data.video.decoder->priv;
 
   if(priv->p)
+    {
     bgav_stream_done_packet_read(s, priv->p);
-  
+    priv->p = NULL;
+    }
   /* We assume one frame per packet */
-  
-  priv->p = bgav_stream_get_packet_read(s);
-  if(!priv->p)
-    return 0;
+
+  if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+    return st;
 
   if(!priv->p->data_size)
-    return 1; /* Libquicktime/qt4l bug */
+    return GAVL_SOURCE_OK; /* Libquicktime/qt4l bug */
   
   priv->decode_func(s, priv->p, f);
   bgav_set_video_frame_from_packet(priv->p, priv->frame);
@@ -626,7 +628,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   if(f)
     gavl_video_frame_copy_metadata(f, priv->frame);
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void resync(bgav_stream_t * s)

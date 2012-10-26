@@ -282,16 +282,17 @@ vdpau_get_format(struct AVCodecContext *s, const enum PixelFormat *fmt)
 
 static codec_info_t * lookup_codec(bgav_stream_t * s);
 
-
-static bgav_packet_t * get_data(bgav_stream_t * s)
+static gavl_source_status_t 
+get_data(bgav_stream_t * s, bgav_packet_t ** ret_p)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
   bgav_packet_t * ret;
+  gavl_source_status_t st;
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
   
-  ret = bgav_stream_get_packet_read(s);
-  
-  if(!ret)
-    return NULL;
+  if((st = bgav_stream_get_packet_read(s, ret_p)) != GAVL_SOURCE_OK)
+    return st;
+
+  ret = *ret_p;
 
 #ifdef DUMP_PACKET
   fprintf(stderr, "Got packet ");
@@ -321,13 +322,13 @@ static bgav_packet_t * get_data(bgav_stream_t * s)
     bgav_packet_copy_metadata(priv->p, ret);
     priv->p->data_size = ret->data_size;
     bgav_stream_done_packet_read(s, ret);
-    ret = priv->p;
+    *ret_p = priv->p;
     }
   
   if(priv->flags & MERGE_FIELDS)
     ret->field2_offset = 0;
   
-  return ret;
+  return GAVL_SOURCE_OK;
   }
 
 static void done_data(bgav_stream_t * s, bgav_packet_t * p)
@@ -397,13 +398,14 @@ static void update_palette(bgav_stream_t * s, bgav_packet_t * p)
 
   }
 
-static int decode_picture(bgav_stream_t * s)
+static gavl_source_status_t decode_picture(bgav_stream_t * s)
   {
   int bytes_used;
   ffmpeg_video_priv * priv;
   bgav_pts_cache_entry_t * e;
   int have_picture = 0;
   bgav_packet_t * p;
+  gavl_source_status_t st;
   
   priv = s->data.video.decoder->priv;
 
@@ -419,15 +421,30 @@ static int decode_picture(bgav_stream_t * s)
     priv->pkt.size = 0;
     
     /* Read data */
-    
+    p = NULL;
+ 
     if(!(priv->flags & GOT_EOS))
-      p = get_data(s);
+      {
+      st = get_data(s, &p);
+
+      switch(st)
+        {
+        case GAVL_SOURCE_EOF:
+          p = NULL;
+          break;
+        case GAVL_SOURCE_AGAIN:
+          return st;
+          break;
+        case GAVL_SOURCE_OK:
+          break;
+        }
+      }
     else
       p = NULL;
     
     /* Early EOF detection */
     if(!p && !(priv->flags & HAS_DELAY))
-      return 0;
+      return GAVL_SOURCE_EOF;
 
     if(p) /* Got packet */
       {
@@ -598,7 +615,7 @@ static int decode_picture(bgav_stream_t * s)
         priv->flags &= ~GOT_EOS;
         }
       else
-        return 0;
+        return GAVL_SOURCE_EOF;
       }
     
     if(have_picture)
@@ -631,7 +648,7 @@ static int decode_picture(bgav_stream_t * s)
 
     }
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
@@ -644,7 +661,7 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
   
   while(1)
     {
-    if(!decode_picture(s))
+    if(decode_picture(s) != GAVL_SOURCE_OK)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Got EOF while skipping");
@@ -665,16 +682,20 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
   return 1;
   }
 
-static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
+static gavl_source_status_t 
+decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   {
+  gavl_source_status_t st;
   ffmpeg_video_priv * priv;
   /* We get the DV format info ourselfes, since the values
      ffmpeg returns are not reliable */
   priv = s->data.video.decoder->priv;
   
   if(!(s->flags & STREAM_HAVE_PICTURE))
-    decode_picture(s);
-  
+    {
+    if((st = decode_picture(s)) != GAVL_SOURCE_OK)
+      return st;
+    }
   if(s->flags & STREAM_HAVE_PICTURE)
     {
     if(f)
@@ -695,9 +716,9 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
       }
     }
   else if(!(priv->flags & NEED_FORMAT))
-    return 0; /* EOF */
+    return GAVL_SOURCE_EOF; /* EOF */
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 #ifdef HAVE_VDPAU
@@ -1011,7 +1032,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   priv->flags |= NEED_FORMAT;
   
-  if(!decode_picture(s))
+  if(decode_picture(s) != GAVL_SOURCE_OK)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Could not get initial frame");

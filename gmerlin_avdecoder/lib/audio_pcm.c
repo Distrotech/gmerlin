@@ -783,19 +783,14 @@ static void decode_alaw(bgav_stream_t * s)
   priv->frame->valid_samples = num_samples;
   }
 
-static int get_packet(bgav_stream_t * s)
+static gavl_source_status_t get_packet(bgav_stream_t * s)
   {
   pcm_t * priv;
+  gavl_source_status_t st;
   priv = s->data.audio.decoder->priv;
 
-  priv->p = bgav_stream_get_packet_read(s);
-
-  /* EOF */
-  
-  if(!priv->p)
-    {
-    return 0;
-    }
+  if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+    return st;
 
 #ifdef DUMP_PACKETS
   bgav_packet_dump(priv->p);
@@ -1239,14 +1234,15 @@ static int init_pcm(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_frame_pcm(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_pcm(bgav_stream_t * s)
   {
   pcm_t * priv;
+  gavl_source_status_t st;
   
   priv = s->data.audio.decoder->priv;
 
-  if(!priv->p && !get_packet(s))     
-    return 0;
+  if(!priv->p && ((st = get_packet(s)) != GAVL_SOURCE_OK))
+    return st;
 
   /* Decode stuff */
   
@@ -1260,7 +1256,7 @@ static int decode_frame_pcm(bgav_stream_t * s)
     bgav_stream_done_packet_read(s, priv->p);
     priv->p = NULL;
     }
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_pcm(bgav_stream_t * s)

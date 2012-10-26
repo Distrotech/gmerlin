@@ -32,8 +32,9 @@ typedef struct
   bgav_packet_t * p;
   } gavf_audio_t;
 
-static int decode_frame_gavf_audio(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_gavf_audio(bgav_stream_t * s)
   {
+  gavl_source_status_t st;
   gavl_packet_t p;
   gavf_audio_t * priv = s->data.audio.decoder->priv;
 
@@ -43,8 +44,8 @@ static int decode_frame_gavf_audio(bgav_stream_t * s)
     priv->p = NULL;
     }
   
-  if(!(priv->p = bgav_stream_get_packet_read(s)))
-    return 0;
+  if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+    return st;
 
   gavl_packet_init(&p);
   p.data     = priv->p->data;
@@ -56,7 +57,7 @@ static int decode_frame_gavf_audio(bgav_stream_t * s)
   
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_gavf_audio(bgav_stream_t * s)

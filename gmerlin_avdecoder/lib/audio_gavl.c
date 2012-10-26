@@ -30,9 +30,11 @@ typedef struct
   bgav_packet_t * p;
   } gavl_t;
 
-static int decode_frame_gavl(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
+  gavl_source_status_t st;
+
   priv = s->data.audio.decoder->priv;
 
   if(priv->p)
@@ -40,12 +42,12 @@ static int decode_frame_gavl(bgav_stream_t * s)
     bgav_stream_done_packet_read(s, priv->p);
     priv->p = NULL;
     }
-  priv->p = bgav_stream_get_packet_read(s);
-  if(!priv->p || !priv->p->audio_frame)
-    return 0;
+ 
+  if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+    return st;  
   
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->p->audio_frame);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static int init_gavl(bgav_stream_t * s)
@@ -61,8 +63,9 @@ static int init_gavl(bgav_stream_t * s)
   /* Need to get the first packet because the dv avi decoder
      won't know the format before */
 #if 1
-  priv->p = bgav_stream_get_packet_read(s);
-  if(!priv->p || !priv->p->audio_frame)
+  if(bgav_stream_get_packet_read(s, &priv->p) != GAVL_SOURCE_OK)
+    return 0;
+  if(!priv->p->audio_frame)
     return 0;
 #endif
 

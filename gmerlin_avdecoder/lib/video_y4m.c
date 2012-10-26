@@ -138,19 +138,22 @@ static void decode_yuva(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
 
 /* Generic decode function */
 
-static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
+static gavl_source_status_t decode(bgav_stream_t * s, gavl_video_frame_t * f)
   {
+  gavl_source_status_t st;
   yuv_priv_t * priv;
   priv = s->data.video.decoder->priv;
   
   /* We assume one frame per packet */
 
   if(priv->p)
+    {
     bgav_stream_done_packet_read(s, priv->p);
+    priv->p = NULL;
+    }
   
-  priv->p = bgav_stream_get_packet_read(s);
-  if(!priv->p)
-    return 0;
+  if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+    return st;
   
   if(priv->decode_func)
     {
@@ -159,7 +162,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       {
       bgav_stream_done_packet_read(s, priv->p);
       priv->p = NULL;
-      return 1;
+      return GAVL_SOURCE_OK;
       }
     priv->decode_func(s, priv->p, f);
     bgav_set_video_frame_from_packet(priv->p, f);
@@ -172,7 +175,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     bgav_set_video_frame_from_packet(priv->p, priv->frame);
     }
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void resync(bgav_stream_t * s)

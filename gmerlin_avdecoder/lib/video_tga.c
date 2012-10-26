@@ -118,8 +118,9 @@ static int set_palette(bgav_stream_t * s, bgav_packet_t * p)
   return 1;
   }
 
-static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
+static gavl_source_status_t decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
+  gavl_source_status_t st;
   int result;
   tga_priv_t * priv;
   
@@ -129,14 +130,12 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   if(!(s->flags & STREAM_HAVE_PICTURE))
     {
     /* Decode a frame */
-    
-    priv->p = bgav_stream_get_packet_read(s);
-    if(!priv->p)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+      return st;
 
     /* Set palette */
     if(priv->p->palette_size && !set_palette(s, priv->p))
-      return 0;
+      return GAVL_SOURCE_EOF;
     
     result = tga_read_from_memory(&priv->tga, priv->p->data,
                                   priv->p->data_size,
@@ -147,7 +146,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
                "tga_read_from_memory failed: %s (%d bytes)",
               tga_error(result), priv->p->data_size);
       //      dump_packet(p->data, p->data_size);
-      return 0;
+      return GAVL_SOURCE_EOF;
       }
 
     s->flags |= STREAM_HAVE_PICTURE;
@@ -182,7 +181,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Cannot detect image type: %d", priv->tga.image_type);
-      return 0;
+      return GAVL_SOURCE_EOF;
       }
     priv->frame = gavl_video_frame_create(NULL);
     return 1;
@@ -199,7 +198,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
           {
           tga_free_buffers(&priv->tga);
           memset(&priv->tga, 0, sizeof(priv->tga));
-          return 0;
+          return GAVL_SOURCE_EOF;
           }
         break;
       default:
@@ -248,7 +247,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   tga_free_buffers(&priv->tga);
   memset(&priv->tga, 0, sizeof(priv->tga));
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static int init_tga(bgav_stream_t * s)

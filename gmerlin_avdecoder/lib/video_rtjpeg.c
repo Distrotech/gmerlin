@@ -58,23 +58,23 @@ static int init_rtjpeg(bgav_stream_t * s)
   return 1;
   }
   
-static int decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
+static gavl_source_status_t decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   rtjpeg_priv_t * priv;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
+  gavl_source_status_t st;
   priv = s->data.video.decoder->priv;
 
   /* We assume one frame per packet */
-  
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    return 0;
+   
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
 
   /* Skip frame */
   if(!f)
     {
     bgav_stream_done_packet_read(s, p);
-    return 1;
+    return GAVL_SOURCE_OK;
     }
 
   RTjpeg_decompress(priv->rtjpeg, p->data, priv->frame->planes);  
@@ -85,7 +85,7 @@ static int decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   bgav_set_video_frame_from_packet(p, f);
 
   bgav_stream_done_packet_read(s, p);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 

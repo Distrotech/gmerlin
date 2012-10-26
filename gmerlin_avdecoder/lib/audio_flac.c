@@ -80,13 +80,12 @@ read_callback(const FLAC__StreamDecoder *decoder,
       memcpy(&buffer[bytes_read], priv->header_ptr, bytes_to_copy);
       bytes_read += bytes_to_copy;
       priv->header_ptr += bytes_to_copy;
-
       }
     
     if(!priv->p)
       {
-      priv->p = bgav_stream_get_packet_read(s);
-      if(!priv->p)
+      gavl_source_status_t st;
+      if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
         break;
       priv->data_ptr = priv->p->data;
       }
@@ -283,13 +282,17 @@ static int init_flac(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_frame_flac(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_flac(bgav_stream_t * s)
   {
   flac_priv_t * priv;
+  gavl_source_status_t st;
   priv = s->data.audio.decoder->priv;
 
   priv->frame->valid_samples = 0;
   
+  if((st = gavl_stream_peek_packet_read(s, NULL, 1)) != GAVL_SOURCE_OK)
+    return st; 
+
   /* Decode another frame */
   while(1)
     {
@@ -297,14 +300,15 @@ static int decode_frame_flac(bgav_stream_t * s)
 
     if(FLAC__stream_decoder_get_state(priv->dec) ==
        FLAC__STREAM_DECODER_END_OF_STREAM)
-      return 0;
+      return GAVL_SOURCE_EOF;
     if(priv->frame->valid_samples)
       {
-      gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
-      return 1;
+      gavl_audio_frame_copy_ptrs(&s->data.audio.format, 
+                                 s->data.audio.frame, priv->frame);
+      return GAVL_SOURCE_OK;
       }
     }
-  return 0;
+  return GAVL_SOURCE_EOF;
   }
 
 static void close_flac(bgav_stream_t * s)

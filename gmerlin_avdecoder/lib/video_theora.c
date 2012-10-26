@@ -191,21 +191,21 @@ static int init_theora(bgav_stream_t * s)
 
 // static int64_t frame_counter = 0;
 
-static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
+static gavl_source_status_t 
+decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   int i;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   ogg_packet op;
-  
+  gavl_source_status_t st;  
   th_ycbcr_buffer yuv;
   theora_priv_t * priv;
   priv = s->data.video.decoder->priv;
   
   while(1)
     {
-    p = bgav_stream_get_packet_read(s);
-    if(!p)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+      return st;
 
     memset(&op, 0, sizeof(op));
 
@@ -236,14 +236,14 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
   
   /* Copy the frame */
   
-  if(frame)
+  if(!priv->offset_x && !priv->offset_y && frame)
     {
     gavl_video_frame_copy_metadata(frame, priv->frame);
     gavl_video_frame_copy(&s->data.video.format,
                           frame, priv->frame);
     }
   bgav_stream_done_packet_read(s, p);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_theora(bgav_stream_t * s)

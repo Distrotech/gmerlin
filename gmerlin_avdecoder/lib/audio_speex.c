@@ -102,16 +102,17 @@ static int init_speex(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_frame_speex(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_speex(bgav_stream_t * s)
   {
   int i;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   speex_priv_t * priv;
+  gavl_source_status_t st;
+
   priv = s->data.audio.decoder->priv;
 
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    return 0;
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
 
   speex_bits_read_from(&priv->bits, (char*)p->data, p->data_size);
   
@@ -141,7 +142,7 @@ static int decode_frame_speex(bgav_stream_t * s)
   priv->frame->valid_samples = priv->frame_size * priv->header->frames_per_packet;
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 

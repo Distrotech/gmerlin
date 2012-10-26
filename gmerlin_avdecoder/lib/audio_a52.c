@@ -46,23 +46,24 @@ typedef struct
   int need_format;
   } a52_priv;
 
-static int decode_frame_a52(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_a52(bgav_stream_t * s)
   {
   int flags;
   int sample_rate;
   int bit_rate;
   int i, j;
   int frame_bytes;
-  bgav_packet_t * p;
+  gavl_source_status_t st;
+
+  bgav_packet_t * p = NULL;
   
   sample_t level = 1.0;
   
   a52_priv * priv;
   priv = s->data.audio.decoder->priv;
-
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
-    return 0;
+  
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+    return st;
 
 #ifdef DUMP_PACKET
   bgav_dprintf("a52 packet: ");
@@ -75,7 +76,7 @@ static int decode_frame_a52(bgav_stream_t * s)
     bgav_a52_header_t h;
     
     if(!bgav_a52_header_read(&h, p->data))
-      return 0;
+      return GAVL_SOURCE_EOF;
 
     //    bgav_a52_header_dump(&h);
 
@@ -100,10 +101,10 @@ static int decode_frame_a52(bgav_stream_t * s)
                              &sample_rate, &bit_rate);
 
   if(!frame_bytes)
-    return 0;
+    return GAVL_SOURCE_EOF;
 
   if(frame_bytes < p->data_size)
-    return 0;
+    return GAVL_SOURCE_EOF;
   
   a52_frame(priv->state, p->data, &flags, &level, 0.0);
   if(!s->opt->audio_dynrange)
@@ -139,7 +140,7 @@ static int decode_frame_a52(bgav_stream_t * s)
 
   bgav_stream_done_packet_read(s, p);
 
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static int init_a52(bgav_stream_t * s)

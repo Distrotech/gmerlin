@@ -129,8 +129,10 @@ buffer_free (SchroBuffer *buf, void *priv)
   free (priv);
   }
 
-static SchroBuffer * get_data(bgav_stream_t * s)
+static gavl_source_status_t 
+get_data(bgav_stream_t * s, SchroBuffer ** ret_p)
   {
+  gavl_source_status_t st;
   schroedinger_priv_t* priv;
   SchroBuffer * ret;
   int size;
@@ -138,24 +140,29 @@ static SchroBuffer * get_data(bgav_stream_t * s)
   priv = s->data.video.decoder->priv;
   
   if(priv->eof)
-    return NULL;
+    return GAVL_SOURCE_EOF;
   
   if(priv->buffer_size < 13)
     {
     if(priv->p)
+      {
       bgav_stream_done_packet_read(s, priv->p);
+      priv->p = NULL;
+      }
     while(1)
       {
-      priv->p = bgav_stream_get_packet_read(s);
-      if(!priv->p || !(priv->p->flags & PACKET_FLAG_SKIP))
+      if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+        {
+        if(st == GAVL_SOURCE_EOF)
+          {
+          schro_decoder_push_end_of_stream(priv->dec);
+          priv->eof = 1;
+          }
+        return st;
+        }
+      if(!(priv->p->flags & PACKET_FLAG_SKIP))
         break;
       bgav_stream_done_packet_read(s, priv->p);
-      }
-    if(!priv->p)
-      {
-      priv->eof = 1;
-      schro_decoder_push_end_of_stream(priv->dec);
-      return NULL;
       }
     priv->buffer_size = priv->p->data_size;
     priv->buffer_ptr = priv->p->data;
@@ -201,8 +208,9 @@ static SchroBuffer * get_data(bgav_stream_t * s)
   
   priv->buffer_size -= size;
   priv->buffer_ptr += size;
-  
-  return ret;
+  *ret_p = ret;
+    
+  return GAVL_SOURCE_OK;
   }
 
 /* Get format */
@@ -268,13 +276,14 @@ static void get_format(bgav_stream_t * s)
 
 /* Decode */
 
-static int decode_picture(bgav_stream_t * s)
+static gavl_source_status_t decode_picture(bgav_stream_t * s)
   {
   uint32_t pic_num;
   int state;
   SchroBuffer * buf = NULL;
   SchroFrame * frame = NULL;
   schroedinger_priv_t* priv;
+  gavl_source_status_t st;
   priv = s->data.video.decoder->priv;
 
   while(1)
@@ -295,9 +304,9 @@ static int decode_picture(bgav_stream_t * s)
         /* Need more input data - stop iterating over what we have. */
         //   fprintf(stderr, "State: SCHRO_DECODER_NEED_BITS\n");
 
-        buf = get_data(s);
+        st = get_data(s, &buf);
 #if 1
-        if(buf)
+        if(st == GAVL_SOURCE_OK)
           {
           state = schro_decoder_push(priv->dec, buf);
           if(state == SCHRO_DECODER_FIRST_ACCESS_UNIT)
@@ -333,7 +342,7 @@ static int decode_picture(bgav_stream_t * s)
         priv->dec_frame = schro_decoder_pull(priv->dec);
         //        fprintf(stderr, "Got frame %p\n", priv->dec_frame);
         
-        return 1;
+        return GAVL_SOURCE_OK;
           //          }
         break;
       case SCHRO_DECODER_EOS:
@@ -341,15 +350,15 @@ static int decode_picture(bgav_stream_t * s)
         // p_schro_params->eos_pulled = 1;
         //        schro_decoder_reset (decoder);
         //        outer = 0;
-        return 0;
+        return GAVL_SOURCE_EOF;
         break;
       case SCHRO_DECODER_ERROR:
         //        fprintf(stderr, "State: SCHRO_DECODER_ERROR\n");
-        return 0;
+        return GAVL_SOURCE_EOF;
         break;
       }
     }
-  return 0;
+  return GAVL_SOURCE_EOF;
   }
 
 static int init_schroedinger(bgav_stream_t * s)
@@ -367,7 +376,7 @@ static int init_schroedinger(bgav_stream_t * s)
 
   priv->frame = gavl_video_frame_create(NULL);
 
-  if(!decode_picture(s)) /* Get format */
+  if(decode_picture(s) != GAVL_SOURCE_OK) /* Get format */
     return 0;
 
   gavl_metadata_set(&s->m, GAVL_META_FORMAT,
@@ -377,13 +386,15 @@ static int init_schroedinger(bgav_stream_t * s)
 
 // static int64_t frame_counter = 0;
 
-static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
+static gavl_source_status_t 
+decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
+  gavl_source_status_t st;
   schroedinger_priv_t * priv;
   priv = s->data.video.decoder->priv;
 
-  if(!priv->dec_frame && !decode_picture(s))
-    return 0;
+  if(!priv->dec_frame && ((st = decode_picture(s)) != GAVL_SOURCE_OK))
+    return st;
 
   /* Copy frame */
 
@@ -408,7 +419,7 @@ static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
   schro_frame_unref(priv->dec_frame);
   priv->dec_frame = NULL;
   
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void close_schroedinger(bgav_stream_t * s)

@@ -91,7 +91,7 @@ static void resync_dts(bgav_stream_t * s)
 
   }
 
-static int decode_frame_dts(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_dts(bgav_stream_t * s)
   {
   int flags;
   int sample_rate;
@@ -102,20 +102,23 @@ static int decode_frame_dts(bgav_stream_t * s)
   int k;
 #endif
   int dummy;
+  gavl_source_status_t st;
+
   sample_t level = 1.0;
-  
+ 
   dts_priv * priv;
   priv = s->data.audio.decoder->priv;
 
   if(!priv->blocks_left)
     {
     if(priv->packet)
+      {
       bgav_stream_done_packet_read(s, priv->packet);
-    
-    priv->packet = bgav_stream_get_packet_read(s);
+      priv->packet = NULL;
+      }
 
-    if(!priv->packet)
-      return 0;
+    if((st = bgav_stream_get_packet_read(s, &priv->packet)) != GAVL_SOURCE_OK)
+      return st;
     
     /* Now, decode this */
 
@@ -123,10 +126,10 @@ static int decode_frame_dts(bgav_stream_t * s)
                                &sample_rate, &bit_rate, &dummy);
     
     if(!frame_bytes)
-      return 0;
+      return GAVL_SOURCE_EOF;
     
     if(priv->packet->data_size < frame_bytes)
-      return 0;
+      return GAVL_SOURCE_EOF;
 
     if(priv->need_format)
       {
@@ -177,7 +180,7 @@ static int decode_frame_dts(bgav_stream_t * s)
   
   priv->frame->valid_samples = BLOCK_SAMPLES;
   s->data.audio.frame->valid_samples = BLOCK_SAMPLES;
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 
@@ -196,7 +199,7 @@ static int init_dts(bgav_stream_t * s)
   /* Get format */
 
   priv->need_format = 1;
-  if(!decode_frame_dts(s))
+  if(decode_frame_dts(s) != GAVL_SOURCE_OK)
     return 0;
   priv->need_format = 0;
   

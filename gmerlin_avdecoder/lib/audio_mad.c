@@ -58,37 +58,42 @@ typedef struct
                   we'll mute it. */
   } mad_priv_t;
 
-static int get_data(bgav_stream_t * s)
+static gavl_source_status_t get_data(bgav_stream_t * s)
   {
-  bgav_packet_t * p;
+  gavl_source_status_t st;
+  bgav_packet_t * p = NULL;
   mad_priv_t * priv;
   
   priv = s->data.audio.decoder->priv;
-  
-  p = bgav_stream_get_packet_read(s);
-  if(!p)
+
+  st = bgav_stream_get_packet_read(s, &p);
+
+  switch(st)
     {
-    if(!priv->eof)
-      {
-      /* Append zeros to the end so we can decode the very last
-         frame */
-      if(!priv->buf.size)
+    case GAVL_SOURCE_AGAIN:
+      return st;
+      break;
+    case GAVL_SOURCE_EOF:
+      if(!priv->eof)
         {
+        /* Append zeros to the end so we can decode the very last
+           frame */
+        if(!priv->buf.size)
+          {
+          priv->eof = 1;
+          return GAVL_SOURCE_EOF;
+          }
+        priv->partial = 1;
         priv->eof = 1;
-        return 0;
         }
-      priv->partial = 1;
-      priv->eof = 1;
-      return 1;
-      }
-    else
-      return 0;
+      break;
+    case GAVL_SOURCE_OK:
+      bgav_bytebuffer_append(&priv->buf, p, MAD_BUFFER_GUARD);
+      bgav_stream_done_packet_read(s, p);
+      break;
     }
 
-  bgav_bytebuffer_append(&priv->buf, p, MAD_BUFFER_GUARD);
-  
-  bgav_stream_done_packet_read(s, p);
-  return 1;
+  return GAVL_SOURCE_OK;
   }
 
 static void get_format(bgav_stream_t * s)
@@ -154,15 +159,17 @@ static void get_format(bgav_stream_t * s)
   priv->audio_frame = gavl_audio_frame_create(&s->data.audio.format);
   }
 
-static int decode_frame_mad(bgav_stream_t * s)
+static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
   int i, j, done;
+  gavl_source_status_t st;
   priv = s->data.audio.decoder->priv;
   
   /* Check if we need new data */
-  if((priv->buf.size <= MAD_BUFFER_GUARD) && !get_data(s))
-    return 0;
+  if((priv->buf.size <= MAD_BUFFER_GUARD) && 
+     ((st = get_data(s)) != GAVL_SOURCE_OK))
+    return st;
 
   if(priv->partial)
     mad_stream_buffer(&priv->stream, priv->buf.buffer,
@@ -184,8 +191,9 @@ static int decode_frame_mad(bgav_stream_t * s)
           done = 1;
           break;
           }
-        if(!get_data(s))
-          return 0;
+        
+        if((st = get_data(s)) != GAVL_SOURCE_OK)
+          return st;
         
         mad_stream_buffer(&priv->stream, priv->buf.buffer,
                           priv->buf.size);
@@ -226,8 +234,9 @@ static int decode_frame_mad(bgav_stream_t * s)
           priv->stream.this_frame - priv->stream.buffer,
           priv->stream.next_frame - priv->stream.this_frame);
 #endif
-  bgav_bytebuffer_remove(&priv->buf, priv->stream.next_frame - priv->stream.buffer);
-  return 1;
+  bgav_bytebuffer_remove(&priv->buf, 
+                         priv->stream.next_frame - priv->stream.buffer);
+  return GAVL_SOURCE_OK;
   }
 
 static int init_mad(bgav_stream_t * s)
