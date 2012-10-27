@@ -84,10 +84,12 @@ typedef struct bgav_video_format_tracker_s bgav_video_format_tracker_t;
 #include <frametype.h>
 
 /* subsequent calls of read() or peek() will return the next packet */
-typedef bgav_packet_t * (*bgav_get_packet_callback)(void * data);
+typedef gavl_source_status_t
+(*bgav_get_packet_callback)(void * data, bgav_packet_t ** ret);
 
 /* Subsequent calls of read() or peek() will return the same packet */
-typedef bgav_packet_t * (*bgav_peek_packet_callback)(void * data, int force);
+typedef gavl_source_status_t
+(*bgav_peek_packet_callback)(void * data, bgav_packet_t ** ret, int force);
 
 typedef struct
   {
@@ -1437,23 +1439,22 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
 void bgav_demuxer_create_buffers(bgav_demuxer_context_t * demuxer);
 void bgav_demuxer_destroy(bgav_demuxer_context_t * demuxer);
 
-bgav_packet_t *
-bgav_demuxer_get_packet_read(void * stream);
+gavl_source_status_t
+bgav_demuxer_get_packet_read(void * stream, bgav_packet_t **);
 
-bgav_packet_t *
-bgav_demuxer_peek_packet_read(void * stream, int force);
+gavl_source_status_t
+bgav_demuxer_peek_packet_read(void * stream, bgav_packet_t **,
+                              int force);
 
 /* Generic get/peek functions */
-
-
-
+#if 0
 bgav_packet_t *
 bgav_demuxer_peek_packet_read_generic(bgav_demuxer_context_t * demuxer,
                                       bgav_stream_t * s, int force);
 bgav_packet_t *
 bgav_demuxer_get_packet_read_generic(bgav_demuxer_context_t * demuxer,
                                      bgav_stream_t * s);
-
+#endif
 void
 bgav_demuxer_seek(bgav_demuxer_context_t * demuxer,
                   int64_t time, int scale);
@@ -1938,7 +1939,6 @@ struct bgav_subtitle_reader_s
 bgav_subtitle_reader_context_t *
 bgav_subtitle_reader_open(bgav_input_context_t * input_ctx);
 
-
 int bgav_subtitle_reader_start(bgav_stream_t *);
 
 void bgav_subtitle_reader_stop(bgav_stream_t *);
@@ -1952,11 +1952,21 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t *, gavl_overlay_t * ovl);
 
 /* Packet source functions */
 
+gavl_source_status_t
+bgav_subtitle_reader_read_text_packet(void * subreader,
+                                      bgav_packet_t ** p);
+
+gavl_source_status_t
+bgav_subtitle_reader_peek_text_packet(void * subreader,
+                                      bgav_packet_t ** p, int force);
+
+#if 0
 bgav_packet_t *
 bgav_subtitle_reader_read_text_packet(void * subreader);
 
 bgav_packet_t *
 bgav_subtitle_reader_peek_text_packet(void * subreader, int force);
+#endif
 
 /* log.c */
 

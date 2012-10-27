@@ -132,7 +132,7 @@ int bgav_has_subtitle(bgav_t * b, int stream)
       else
         force = 0;
       
-      if(bgav_stream_peek_packet_read(s, force))
+      if(bgav_stream_peek_packet_read(s, NULL, force))
         return 1;
       else
         {

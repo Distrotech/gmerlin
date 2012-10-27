@@ -75,7 +75,12 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
   {
   bgav_packet_t * p;
   dvdsub_t * priv;
+  gavl_source_status_t st;
+  
   priv = s->data.subtitle.decoder->priv;
+
+  if(s->flags & STREAM_EOF_C)
+    return 1;
   
   /* Check if we have enough data */
 
@@ -85,18 +90,20 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
     if(priv->packet_size && (priv->buffer_size >= priv->packet_size))
       return 1;
     
-    if(!bgav_stream_peek_packet_read(s, 0))
+    if((st = bgav_stream_peek_packet_read(s, NULL, 0)) != GAVL_SOURCE_OK)
       {
       /* Signal EOF */
-      if(s->flags & STREAM_EOF_D)
+      if(st == GAVL_SOURCE_EOF)
         {
         s->flags |= STREAM_EOF_C;
         return 1;
         }
       return 0;
       }
-    p = bgav_stream_get_packet_read(s);
 
+    p = NULL;
+    bgav_stream_get_packet_read(s, &p);
+    
     //    bgav_packet_dump(p);
     //    bgav_hexdump(p->data, p->data_size >= 16 ? 16 : p->data_size , 16);
     
@@ -193,7 +200,7 @@ static void decode_field(uint8_t * ptr, int len,
     }
   }
 
-static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
+static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   {
   uint8_t * ptr;
   uint8_t cmd;
@@ -208,14 +215,17 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   uint32_t * ifo_palette;
   
   uint32_t local_palette[4];
+
+  if(s->flags & STREAM_EOF_C)
+    return GAVL_SOURCE_EOF;
   
   priv = s->data.subtitle.decoder->priv;
 
   ifo_palette = (uint32_t*)(s->ext_data);
   
   if(!has_subtitle_dvdsub(s))
-    return 0;
-
+    return GAVL_SOURCE_AGAIN;
+  
   /* Data size */
   ctrl_offset = BGAV_PTR_2_16BE(priv->buffer+2);
   ctrl_start = ctrl_offset;

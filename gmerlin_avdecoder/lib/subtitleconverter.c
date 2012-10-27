@@ -63,18 +63,23 @@ static void remove_cr(char * str, uint32_t * len_p)
     memset(str + *len_p, 0, len - *len_p);
   }
 
-static bgav_packet_t * next_packet(bgav_subtitle_converter_t * cnv,
-                                   int force)
+
+static gavl_source_status_t
+next_packet(bgav_subtitle_converter_t * cnv,
+            bgav_packet_t ** ret_p, int force)
   {
-  bgav_packet_t * ret;
+  gavl_source_status_t st;
   bgav_packet_t * in_packet;
   char * pos;
   int in_len;
+  bgav_packet_t * ret;
   
-  if(!force && !cnv->src.peek_func(cnv->src.data, 0))
-    return NULL;
-
-  in_packet = cnv->src.get_func(cnv->src.data);
+  if(!force && ((st = cnv->src.peek_func(cnv->src.data, NULL, 0)) != GAVL_SOURCE_OK))
+    return st;
+  
+  in_packet = NULL;
+  if((st = cnv->src.get_func(cnv->src.data, &in_packet)) != GAVL_SOURCE_OK)
+    return st;
   
   /* Make sure we have a '\0' at the end */
 
@@ -111,7 +116,7 @@ static bgav_packet_t * next_packet(bgav_subtitle_converter_t * cnv,
       {
       bgav_packet_pool_put(cnv->s->pp, in_packet);
       bgav_packet_pool_put(cnv->s->pp, ret);
-      return NULL;
+      return GAVL_SOURCE_EOF;
       }
     
     bgav_packet_copy_metadata(ret, in_packet);
@@ -127,32 +132,45 @@ static bgav_packet_t * next_packet(bgav_subtitle_converter_t * cnv,
   remove_cr((char*)ret->data, &ret->data_size);
   
   PACKET_SET_KEYFRAME(ret);
-  return ret;
+
+  if(ret_p)
+    *ret_p = ret;
+  
+  return GAVL_SOURCE_OK;
   }
 
-static bgav_packet_t * get_packet(void * priv)
+static gavl_source_status_t get_packet(void * priv, bgav_packet_t ** ret)
   {
   bgav_subtitle_converter_t * cnv = priv;
-  bgav_packet_t * ret;
+  
+  if(cnv->out_packet)
+    {
+    *ret = cnv->out_packet;
+    cnv->out_packet = NULL;
+    return GAVL_SOURCE_OK;
+    }
+  return next_packet(cnv, ret, 1);
+  }
+
+static gavl_source_status_t peek_packet(void * priv, bgav_packet_t ** ret,
+                                        int force)
+  {
+  gavl_source_status_t st;
+  bgav_subtitle_converter_t * cnv = priv;
 
   if(cnv->out_packet)
     {
-    ret = cnv->out_packet;
-    cnv->out_packet = NULL;
-    return ret;
+    if(ret)
+      *ret = cnv->out_packet;
+    return GAVL_SOURCE_OK;
     }
-  return next_packet(cnv, 1);
-  }
 
-static bgav_packet_t * peek_packet(void * priv, int force)
-  {
-  bgav_subtitle_converter_t * cnv = priv;
+  if((st = next_packet(cnv, &cnv->out_packet, force)) != GAVL_SOURCE_OK)
+    return st;
 
-  if(cnv->out_packet)
-    return cnv->out_packet;
-  
-  cnv->out_packet = next_packet(cnv, force);
-  return cnv->out_packet;
+  if(ret)
+    *ret = cnv->out_packet;
+  return GAVL_SOURCE_OK;
   }
 
 bgav_subtitle_converter_t *

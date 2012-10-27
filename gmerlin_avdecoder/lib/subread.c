@@ -1048,32 +1048,37 @@ bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t * s)
 
 /* Generic functions */
 
-bgav_packet_t *
-bgav_subtitle_reader_read_text_packet(void * subreader)
+gavl_source_status_t
+bgav_subtitle_reader_read_text_packet(void * subreader,
+                                      bgav_packet_t ** p)
   {
   bgav_subtitle_reader_context_t * ctx = subreader;
 
   bgav_packet_t * ret;
   if(ctx->out_packet)
     {
-    ret = ctx->out_packet;
+    *p = ctx->out_packet;
     ctx->out_packet = NULL;
-    return ret;
+    return GAVL_SOURCE_OK;
     }
   ret = bgav_packet_pool_get(ctx->s->pp);
   
   if(ctx->reader->read_subtitle_text(ctx->s, ret))
-    return ret;
+    {
+    *p = ret;
+    return GAVL_SOURCE_OK;
+    }
   else
     {
     bgav_packet_pool_put(ctx->s->pp, ret);
-    return NULL;
+    return  GAVL_SOURCE_EOF;
     }
   
   }
 
-bgav_packet_t *
-bgav_subtitle_reader_peek_text_packet(void * subreader, int force)
+gavl_source_status_t
+bgav_subtitle_reader_peek_text_packet(void * subreader,
+                                      bgav_packet_t ** p, int force)
   {
   bgav_subtitle_reader_context_t * ctx = subreader;
 
@@ -1085,8 +1090,12 @@ bgav_subtitle_reader_peek_text_packet(void * subreader, int force)
       {
       bgav_packet_pool_put(ctx->s->pp, ctx->out_packet);
       ctx->out_packet = NULL;
+      return GAVL_SOURCE_EOF;
       }
     }
+
+  if(p)
+    *p = ctx->out_packet;
   
-  return ctx->out_packet;
+  return GAVL_SOURCE_OK;
   }

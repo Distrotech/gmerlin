@@ -87,7 +87,7 @@ int bgav_audio_start(bgav_stream_t * s)
     
     /* Start the parser */
     
-    if(!bgav_stream_peek_packet_read(s, 1))
+    if(bgav_stream_peek_packet_read(s, NULL, 1) != GAVL_SOURCE_OK)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while initializing audio parser");
@@ -99,10 +99,10 @@ int bgav_audio_start(bgav_stream_t * s)
 
   if(s->flags & STREAM_NEED_START_TIME)
     {
-    bgav_packet_t * p;
+    bgav_packet_t * p = NULL;
     char tmp_string[128];
-    p = bgav_stream_peek_packet_read(s, 1);
-    if(!p)
+    
+    if(bgav_stream_peek_packet_read(s, &p, 1) != GAVL_SOURCE_OK)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while getting start time");

@@ -52,56 +52,63 @@ void bgav_bsf_run(bgav_bsf_t * bsf, bgav_packet_t * in, bgav_packet_t * out)
   bsf->filter(bsf, in, out);
   }
 
-bgav_packet_t *
-bgav_bsf_get_packet(void * bsf_p)
+gavl_source_status_t
+bgav_bsf_get_packet(void * bsf_p, bgav_packet_t ** ret)
   {
   bgav_packet_t * in_packet;
-  bgav_packet_t * ret;
-  
+  gavl_source_status_t st;
   bgav_bsf_t * bsf = bsf_p;
 
   if(bsf->out_packet)
     {
-    ret = bsf->out_packet;
+    *ret = bsf->out_packet;
     bsf->out_packet = NULL;
-    return ret;
+    return GAVL_SOURCE_OK;
     }
-  in_packet = bsf->src.get_func(bsf->src.data);
-  if(!in_packet)
-    return NULL;
 
-  ret = bgav_packet_pool_get(bsf->s->pp);
-  bgav_bsf_run(bsf, in_packet, ret);
+  in_packet = NULL;
+  if((st = bsf->src.get_func(bsf->src.data, &in_packet)) != GAVL_SOURCE_OK)
+    return st;
+  
+  *ret = bgav_packet_pool_get(bsf->s->pp);
+  bgav_bsf_run(bsf, in_packet, *ret);
 
   bgav_packet_pool_put(bsf->s->pp, in_packet);
-  return ret;
+  return GAVL_SOURCE_OK;
   }
 
-bgav_packet_t *
-bgav_bsf_peek_packet(void * bsf_p, int force)
+gavl_source_status_t
+bgav_bsf_peek_packet(void * bsf_p, bgav_packet_t ** ret, int force)
   {
+  gavl_source_status_t st;
   bgav_bsf_t * bsf = bsf_p;
   bgav_packet_t * in_packet;
 
   if(bsf->out_packet)
-    return bsf->out_packet;
+    {
+    if(*ret)
+      *ret = bsf->out_packet;
+    return GAVL_SOURCE_OK;
+    }
 
-  in_packet = bsf->src.peek_func(bsf->src.data, force);
-  if(!in_packet)
-    return NULL;
-
+  if((st = bsf->src.peek_func(bsf->src.data, &in_packet, force)) !=
+     GAVL_SOURCE_OK)
+    return st;
+  
   /* We are eating up this packet so we need to remove it from the
      packet buffer */
-  in_packet = bsf->src.get_func(bsf->src.data);
-
+  bsf->src.get_func(bsf->src.data, &in_packet);
+  
   if(!in_packet)
-    return NULL; // Impossible but who knows?
+    return GAVL_SOURCE_EOF; // Impossible but who knows?
   
   bsf->out_packet = bgav_packet_pool_get(bsf->s->pp);
   bgav_bsf_run(bsf, in_packet, bsf->out_packet);
   bgav_packet_pool_put(bsf->s->pp, in_packet);
 
-  return bsf->out_packet;
+  if(ret)
+    *ret = bsf->out_packet;
+  return GAVL_SOURCE_OK;
   }
 
 bgav_bsf_t * bgav_bsf_create(bgav_stream_t * s)

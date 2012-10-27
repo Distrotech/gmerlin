@@ -63,7 +63,7 @@ static int check_still(bgav_stream_t * s)
     return 1;
   if(s->flags & STREAM_HAVE_PICTURE)
     return 1;
-  if(bgav_stream_peek_packet_read(s, 0))
+  if(bgav_stream_peek_packet_read(s, NULL, 0) == GAVL_SOURCE_OK)
     return 1;
   else if(s->flags & STREAM_EOF_D)
     return 1;
@@ -158,7 +158,7 @@ int bgav_video_start(bgav_stream_t * s)
       }
     
     /* Get the first packet to garantuee that the parser is fully initialized */
-    if(!bgav_stream_peek_packet_read(s, 1))
+    if(bgav_stream_peek_packet_read(s, NULL, 1) != GAVL_SOURCE_OK)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while initializing video parser");
@@ -170,7 +170,7 @@ int bgav_video_start(bgav_stream_t * s)
   if((s->flags & STREAM_NEED_FRAMETYPES) && !s->fd)
     {
     s->fd = bgav_frametype_detector_create(s);
-    if(!bgav_stream_peek_packet_read(s, 1))
+    if(bgav_stream_peek_packet_read(s, NULL, 1) != GAVL_SOURCE_OK)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while initializing frametype detector");
@@ -184,7 +184,7 @@ int bgav_video_start(bgav_stream_t * s)
     {
     s->pt = bgav_packet_timer_create(s);
 
-    if(!bgav_stream_peek_packet_read(s, 1))
+    if(!bgav_stream_peek_packet_read(s, NULL, 1))
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while initializing packet timer");
@@ -197,7 +197,7 @@ int bgav_video_start(bgav_stream_t * s)
      (s->flags & STREAM_FILTER_PACKETS))
     {
     s->bsf = bgav_bsf_create(s);
-    if(!bgav_stream_peek_packet_read(s, 1))
+    if(bgav_stream_peek_packet_read(s, NULL, 1) != GAVL_SOURCE_OK)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while initializing bitstream filter");
@@ -207,10 +207,10 @@ int bgav_video_start(bgav_stream_t * s)
   
   if(s->flags & STREAM_NEED_START_TIME)
     {
-    bgav_packet_t * p;
+    bgav_packet_t * p = NULL;
     char tmp_string[128];
-    p = bgav_stream_peek_packet_read(s, 1);
-    if(!p)
+    
+    if(bgav_stream_peek_packet_read(s, &p, 1) != GAVL_SOURCE_OK)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "EOF while getting start time");
@@ -412,12 +412,12 @@ void bgav_video_resync(bgav_stream_t * s)
   if(!(s->flags & STREAM_INTRA_ONLY))
     {
     bgav_packet_t * p;
+    gavl_source_status_t st;
     while(1)
       {
       /* Skip pictures until we have the next keyframe */
-      p = bgav_stream_peek_packet_read(s, 1);
-
-      if(!p)
+      p = NULL;
+      if((st = bgav_stream_peek_packet_read(s, &p, 1)) != GAVL_SOURCE_OK)
         return;
 
       if(PACKET_GET_KEYFRAME(p))
@@ -427,7 +427,8 @@ void bgav_video_resync(bgav_stream_t * s)
         }
       /* Skip this packet */
       bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Skipping packet while waiting for keyframe");
-      p = bgav_stream_get_packet_read(s);
+      p = NULL;
+      bgav_stream_get_packet_read(s, &p);
       bgav_stream_done_packet_read(s, p);
       }
     }
@@ -453,7 +454,8 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
                       int exact)
   {
   bgav_packet_t * p; 
-  //  gavl_time_t stream_time;
+  gavl_source_status_t st;
+  
   int result;
   int64_t time_scaled;
   
@@ -488,9 +490,8 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
     {
     while(1)
       {
-      p = bgav_stream_peek_packet_read(s, 1);
-
-      if(!p)
+      p = NULL;
+      if((st = bgav_stream_peek_packet_read(s, &p, 1)) != GAVL_SOURCE_OK)
         return 0;
       
       if(p->pts + p->duration > time_scaled)
@@ -498,7 +499,8 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
         s->out_time = p->pts;
         return 1;
         }
-      p = bgav_stream_get_packet_read(s);
+      p = NULL;
+      bgav_stream_get_packet_read(s, &p);
       bgav_stream_done_packet_read(s, p);
       }
     *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
@@ -549,14 +551,13 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
     {
     while(1)
       {
-      p = bgav_stream_peek_packet_read(s, 1);
-      
-      if(!p)
+      p = NULL;
+      if(bgav_stream_peek_packet_read(s, &p, 1) != GAVL_SOURCE_OK)
         {
         s->out_time = GAVL_TIME_UNDEFINED;
         return 0;
         }
-
+      
       //      fprintf(stderr, "Peek packet: %ld %ld %ld\n",
       //              p->pts, p->duration, time_scaled);
       

@@ -431,7 +431,7 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->frame);
   
-  return ;
+  return GAVL_SOURCE_OK;
   }
 
 

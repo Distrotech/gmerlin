@@ -832,9 +832,10 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
   bgav_packet_t * p;
   int64_t t;
 
-  while(bgav_stream_peek_packet_read(s, force))
+  while(bgav_stream_peek_packet_read(s, NULL, force) == GAVL_SOURCE_OK)
     {
-    p = bgav_stream_get_packet_read(s);
+    p = NULL;
+    bgav_stream_get_packet_read(s, &p);
     
     t = p->pts - s->start_time;
     // fprintf(stderr, "flush_stream_simple ");

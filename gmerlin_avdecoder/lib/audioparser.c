@@ -244,19 +244,19 @@ static void get_out_packet(bgav_audio_parser_t * parser,
 
 /* */
 
-static bgav_packet_t *
-get_packet_parse_full(void * parser1)
+static gavl_source_status_t
+get_packet_parse_full(void * parser1, bgav_packet_t ** ret)
   {
+  gavl_source_status_t st;
   int result;
-  bgav_packet_t * ret;
   bgav_audio_parser_t * parser = parser1;
   bgav_packet_t * p;
   
   if(parser->out_packet)
     {
-    ret = parser->out_packet;
+    *ret = parser->out_packet;
     parser->out_packet = NULL;
-    return ret;
+    return GAVL_SOURCE_OK;
     }
   
   while(1)
@@ -266,42 +266,53 @@ get_packet_parse_full(void * parser1)
     switch(result)
       {
       case PARSER_EOF:
-        return NULL;
+        return GAVL_SOURCE_EOF;
       case PARSER_NEED_DATA:
-        p = parser->src.get_func(parser->src.data);
-        if(!p)
+        p = NULL;
+        st = parser->src.get_func(parser->src.data, &p);
+
+        switch(st)
           {
-          set_eof(parser);
-          continue;
-          }
-        else
-          {
-          add_packet(parser, p);
-          bgav_packet_pool_put(parser->s->pp, p);
+          case GAVL_SOURCE_OK:
+            add_packet(parser, p);
+            bgav_packet_pool_put(parser->s->pp, p);
+            break;
+          case GAVL_SOURCE_EOF:
+            set_eof(parser);
+            continue;
+            break;
+          case GAVL_SOURCE_AGAIN:
+            return st;
+            break;
           }
         break;
       case PARSER_HAVE_PACKET:
-        ret = bgav_packet_pool_get(parser->s->pp);
-        get_out_packet(parser, ret);
-        return ret;
+        *ret = bgav_packet_pool_get(parser->s->pp);
+        get_out_packet(parser, *ret);
+        return GAVL_SOURCE_OK;
         break;
       case PARSER_ERROR:
-        return NULL;
+        return GAVL_SOURCE_EOF;
       }
     }
-  return NULL;
+  return GAVL_SOURCE_EOF;
   }
 
-static bgav_packet_t *
-peek_packet_parse_full(void * parser1, int force)
+static gavl_source_status_t
+peek_packet_parse_full(void * parser1, bgav_packet_t ** ret, int force)
   {
   int result;
   bgav_packet_t * p;
+  gavl_source_status_t st;
+  
   bgav_audio_parser_t * parser = parser1;
 
   if(parser->out_packet)
-    return parser->out_packet;
-
+    {
+    if(ret)
+      *ret = parser->out_packet;
+    return GAVL_SOURCE_OK;
+    }
   while(1)
     {
     result = do_parse(parser);
@@ -309,78 +320,95 @@ peek_packet_parse_full(void * parser1, int force)
     switch(result)
       {
       case PARSER_EOF:
-        return NULL;
+        return GAVL_SOURCE_EOF;
+        break;
       case PARSER_NEED_DATA:
-        if(!parser->src.peek_func(parser->src.data, force))
+        st = parser->src.peek_func(parser->src.data, NULL, force);
+        switch(st)
           {
-          if(force)
-            {
+          case GAVL_SOURCE_EOF:
             set_eof(parser);
             continue;
+            break;
+          case GAVL_SOURCE_OK:
+            {
+            p = NULL;
+            parser->src.get_func(parser->src.data, &p);
+            add_packet(parser, p);
+            bgav_packet_pool_put(parser->s->pp, p);
             }
-          else
-            return NULL;
-          }
-        else
-          {
-          p = parser->src.get_func(parser->src.data);
-          add_packet(parser, p);
-          bgav_packet_pool_put(parser->s->pp, p);
+            break;
+          case GAVL_SOURCE_AGAIN:
+            return st;
+            break;
           }
         break;
       case PARSER_HAVE_PACKET:
         parser->out_packet = bgav_packet_pool_get(parser->s->pp);
         get_out_packet(parser, parser->out_packet);
-        return parser->out_packet;
+        if(ret)
+          *ret = parser->out_packet;
+        return GAVL_SOURCE_OK;
         break;
       case PARSER_ERROR:
-        return NULL;
+        return GAVL_SOURCE_EOF;
       }
     }
-  return NULL;
+
+  /* Never get here */
+  return GAVL_SOURCE_EOF;
   }
 
-static bgav_packet_t *
-get_packet_parse_frame(void * parser1)
+static gavl_source_status_t
+get_packet_parse_frame(void * parser1, bgav_packet_t ** ret)
   {
-  bgav_packet_t * ret;
+  gavl_source_status_t st;
   bgav_audio_parser_t * parser = parser1;
   if(parser->out_packet)
     {
-    ret = parser->out_packet;
+    *ret = parser->out_packet;
     parser->out_packet = NULL;
-    return ret;
+    return GAVL_SOURCE_OK;
     }
-  ret = parser->src.get_func(parser->src.data);
-  if(!ret)
-    return NULL;
 
-  if(ret->duration < 0)
-    parse_frame(parser, ret);
+  if((st = parser->src.get_func(parser->src.data, ret)) != GAVL_SOURCE_OK)
+    return st;
   
-  return ret;
+  if((*ret)->duration < 0)
+    parse_frame(parser, *ret);
+  
+  return GAVL_SOURCE_OK;
   }
 
-static bgav_packet_t *
-peek_packet_parse_frame(void * parser1, int force)
+static gavl_source_status_t
+peek_packet_parse_frame(void * parser1, bgav_packet_t ** ret,
+                        int force)
   {
+  gavl_source_status_t st;
   bgav_audio_parser_t * parser = parser1;
   
   if(parser->out_packet)
-    return parser->out_packet;
-
-  if(!parser->src.peek_func(parser->src.data, force))
-    return NULL;
-
-  parser->out_packet =
-    parser->src.get_func(parser->src.data);
-
+    {
+    if(ret)
+      *ret = parser->out_packet;
+    return GAVL_SOURCE_OK;
+    }
+  
+  if((st =
+      parser->src.peek_func(parser->src.data,
+                            &parser->out_packet, force)) != GAVL_SOURCE_OK)
+    return st;
+  
+  parser->src.get_func(parser->src.data, &parser->out_packet);
+  
   if(parser->out_packet->duration < 0)
     {
     if(parse_frame(parser, parser->out_packet) == PARSER_ERROR)
       return 0;
     }
-  return parser->out_packet;
+  if(ret)
+    *ret = parser->out_packet;
+  return GAVL_SOURCE_OK;
   }
 
 /* */

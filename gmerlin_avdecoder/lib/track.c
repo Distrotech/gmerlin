@@ -828,13 +828,13 @@ void bgav_track_get_compression(bgav_track_t * t)
     {
     s = &t->audio_streams[i];
     bgav_stream_start(s);
-    bgav_stream_peek_packet_read(s, 1);
+    bgav_stream_peek_packet_read(s, NULL, 1);
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
     bgav_stream_start(s);
-    bgav_stream_peek_packet_read(s, 1);
+    bgav_stream_peek_packet_read(s, NULL, 1);
     }
   
   /* Set all streams back to mute mode */

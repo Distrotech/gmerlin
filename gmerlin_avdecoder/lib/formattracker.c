@@ -123,40 +123,49 @@ static void set_eof(bgav_video_format_tracker_t * ft)
   ft->eof = 1;
   }
 
-static bgav_packet_t * peek_func(void * ft1, int force)
+static gavl_source_status_t
+peek_func(void * ft1, bgav_packet_t ** ret, int force)
   {
-  bgav_packet_t * ret;
+  gavl_source_status_t st;
   bgav_video_format_tracker_t * ft = ft1;
-  ret = ft->src.peek_func(ft->src.data, force);
-  if(!ret && force)
+  
+  st = ft->src.peek_func(ft->src.data, ret, force);
+  
+  if(st == GAVL_SOURCE_EOF)
     set_eof(ft);
-  return ret;
+  return st;
   }
 
-static bgav_packet_t * get_func(void * ft1)
+static gavl_source_status_t
+get_func(void * ft1, bgav_packet_t ** ret)
   {
-  bgav_packet_t * ret;
+  gavl_source_status_t st;
   bgav_video_format_tracker_t * ft = ft1;
 
-  ret = ft->src.get_func(ft->src.data);
-  if(!ret)
+  st = ft->src.get_func(ft->src.data, ret);
+
+  if(st == GAVL_SOURCE_EOF)
     {
     set_eof(ft);
-    return NULL;
+    return st;
     }
-  /* Check what we have */
 
+  if(st != GAVL_SOURCE_OK)
+    return st;
+  
+  /* Check what we have */
+  
   if(ft->do_track & TRACK_FRAMERATE)
     {
     if((ft->last_frame_duration >= 0) &&
-       (ret->duration != ft->last_frame_duration))
+       ((*ret)->duration != ft->last_frame_duration))
       ft->fps_mode = GAVL_FRAMERATE_VARIABLE;
-    ft->last_frame_duration = ret->duration;
+    ft->last_frame_duration = (*ret)->duration;
     }
-
+  
   if(ft->do_track & TRACK_INTERLACING)
     {
-    switch(ret->ilace)
+    switch((*ret)->ilace)
       {
       case GAVL_INTERLACE_NONE:
         ft->have_progressive = 1;
@@ -171,7 +180,7 @@ static bgav_packet_t * get_func(void * ft1)
         break;
       }
     }
-  return ret;
+  return GAVL_SOURCE_OK;
   }
 
 bgav_video_format_tracker_t *

@@ -689,8 +689,8 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   return ret;
   }
 
-bgav_packet_t *
-bgav_demuxer_get_packet_read(void * stream1)
+gavl_source_status_t
+bgav_demuxer_get_packet_read(void * stream1, bgav_packet_t ** ret)
   {
   bgav_stream_t * s = stream1;
   bgav_demuxer_context_t * demuxer = s->demuxer;
@@ -700,45 +700,51 @@ bgav_demuxer_get_packet_read(void * stream1)
   while(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
     {
     if(s->flags & STREAM_EOF_D)
-      return NULL;
+      return GAVL_SOURCE_EOF;
     
     if(!bgav_demuxer_next_packet(demuxer))
       {
       s->flags |= STREAM_EOF_D;
-      return NULL;
+      return GAVL_SOURCE_EOF;
       }
     }
   
   demuxer->request_stream = NULL;
-  return bgav_packet_buffer_get_packet_read(s->packet_buffer);
+  *ret = bgav_packet_buffer_get_packet_read(s->packet_buffer);
+  return GAVL_SOURCE_OK;
   }
 
-bgav_packet_t *
-bgav_demuxer_peek_packet_read(void * stream1, int force)
+gavl_source_status_t
+bgav_demuxer_peek_packet_read(void * stream1, bgav_packet_t ** ret,
+                              int force)
   {
-  bgav_packet_t * ret;
+  bgav_packet_t * p;
+  
   bgav_stream_t * s = stream1;
   bgav_demuxer_context_t * demuxer = s->demuxer;
   
   if(demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ)
     force = 1;
 
-  ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer);
+  p = bgav_packet_buffer_peek_packet_read(s->packet_buffer);
 
   if(ret)
-    return ret;
-
+    *ret = p;
+  
   if(!force)
-    return NULL;
-
+    return GAVL_SOURCE_AGAIN;
+  
   demuxer->request_stream = s;
   while(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
     {
     if(!bgav_demuxer_next_packet(demuxer))
-      return NULL;
+      return GAVL_SOURCE_EOF;
     }
   demuxer->request_stream = NULL;
-  return bgav_packet_buffer_peek_packet_read(s->packet_buffer);
+
+  if(ret)
+    *ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer);
+  return GAVL_SOURCE_OK;
   }
 
 void bgav_formats_dump()

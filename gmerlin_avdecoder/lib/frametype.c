@@ -38,7 +38,7 @@ struct bgav_frametype_detector_s
   bgav_stream_t * s;
   };
 
-static int set_packet_type(bgav_frametype_detector_t * fd,
+static void set_packet_type(bgav_frametype_detector_t * fd,
                            bgav_packet_t * p)
   {
   int coding_type;
@@ -58,7 +58,6 @@ static int set_packet_type(bgav_frametype_detector_t * fd,
     fd->max_pts = p->pts;
     }
   PACKET_SET_CODING_TYPE(p, coding_type);
-  return coding_type;
   }
 
 static int put_packet(bgav_frametype_detector_t * fd,
@@ -95,8 +94,9 @@ static int resync(bgav_frametype_detector_t * fd)
   /* Skip all frames until the first keyframe */
   while(1)
     {
-    p = fd->src.get_func(fd->src.data);
-    if(!p)
+    p = NULL;
+
+    if(fd->src.get_func(fd->src.data, &p) != GAVL_SOURCE_OK)
       return 0;
     if(PACKET_GET_KEYFRAME(p))
       break;
@@ -110,81 +110,93 @@ static int resync(bgav_frametype_detector_t * fd)
 
 static int initialize(bgav_frametype_detector_t * fd)
   {
-  int type;
-  bgav_packet_t * p;
+  bgav_packet_t * p = NULL;
   
   resync(fd);
 
   while(fd->num_packets < 3)
     {
-    p = fd->src.get_func(fd->src.data);
-    if(!p)
+    p = NULL;
+    
+    if(fd->src.get_func(fd->src.data, &p) != GAVL_SOURCE_OK)
       return 0;
-    type = set_packet_type(fd, p);
+    set_packet_type(fd, p);
     put_packet(fd, p);
     
-    if(type == BGAV_CODING_TYPE_B)
+    if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
       {
       fd->s->flags |= STREAM_B_FRAMES;
       break;
       }
     }
   
-  fd->s->flags &= ~STREAM_NEED_FRAMETYPES;
+  //  fd->s->flags &= ~STREAM_NEED_FRAMETYPES;
   fd->initialized = 1;
   return 1;
   }
 
-static bgav_packet_t * peek_func(void * pt1, int force)
+static gavl_source_status_t peek_func(void * pt1, bgav_packet_t ** ret,
+                                      int force)
   {
+  gavl_source_status_t st;
   bgav_packet_t * p;
   bgav_frametype_detector_t * fd = pt1;
   
   if(!fd->initialized)
     {
     if(!force)
-      return NULL;
+      return GAVL_SOURCE_AGAIN;
     
     if(!initialize(fd))
-      return NULL;
+      return GAVL_SOURCE_EOF;
     }
   
   if(fd->num_packets)
-    return fd->packets[0];
-
+    {
+    if(ret)
+      *ret = fd->packets[0];
+    return GAVL_SOURCE_OK;
+    }
+  
   if(!force)
-    return NULL;
-
-  p = fd->src.get_func(fd->src.data);
-  if(!p)
-    return NULL;
+    return GAVL_SOURCE_AGAIN;
+  
+  p = NULL;
+  
+  if((st = fd->src.get_func(fd->src.data, &p)) != GAVL_SOURCE_OK)
+    return st;
+  
   set_packet_type(fd, p);
   put_packet(fd, p);
-  return fd->packets[0];
+
+  if(ret)
+    *ret = fd->packets[0];
+  return GAVL_SOURCE_OK;
   }
 
-static bgav_packet_t * get_func(void * pt1)
+static gavl_source_status_t
+get_func(void * pt1, bgav_packet_t ** ret)
   {
   bgav_packet_t * p;
-  bgav_packet_t * ret;
-
+  gavl_source_status_t st;
   bgav_frametype_detector_t * fd = pt1;
 
   if(!fd->initialized)
     {
     if(!initialize(fd))
-      return 0;
+      return GAVL_SOURCE_EOF;
     }
-
-  while(!(ret = get_packet(fd)))
+  
+  while(!(*ret = get_packet(fd)))
     {
-    p = fd->src.get_func(fd->src.data);
-    if(!p)
-      return NULL;
+    p = NULL;
+
+    if((st = fd->src.get_func(fd->src.data, &p)) != GAVL_SOURCE_OK)
+      return st;
     set_packet_type(fd, p);
     put_packet(fd, p);
     }
-  return ret;
+  return GAVL_SOURCE_OK;
   }
 
 bgav_frametype_detector_t *

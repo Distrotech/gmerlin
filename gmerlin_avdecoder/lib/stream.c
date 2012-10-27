@@ -339,32 +339,36 @@ int bgav_stream_get_index(bgav_stream_t * s)
   return -1;
   }
 
-bgav_packet_t *
-bgav_stream_get_packet_read(bgav_stream_t * s)
+gavl_source_status_t
+bgav_stream_get_packet_read(bgav_stream_t * s, bgav_packet_t ** ret)
   {
-  bgav_packet_t * p;
-  p = s->src.get_func(s->src.data);
-  if(p)
-    {
-    if(s->timecode_table)
-      p->tc =
-        bgav_timecode_table_get_timecode(s->timecode_table,
-                                         p->pts);
-#ifdef DUMP_OUT_PACKETS
-    bgav_dprintf("Packet out (stream %d): ", s->stream_id);
-    bgav_packet_dump(p);
-#endif
+  bgav_packet_t * p = NULL;
+  gavl_source_status_t st;
 
-    if(s->max_packet_size_tmp < p->data_size)
-      s->max_packet_size_tmp = p->data_size;
-    }
-  return p;
+  if((st = s->src.get_func(s->src.data, &p)) != GAVL_SOURCE_OK)
+    return st;
+  
+  if(s->timecode_table)
+    p->tc =
+      bgav_timecode_table_get_timecode(s->timecode_table,
+                                       p->pts);
+#ifdef DUMP_OUT_PACKETS
+  bgav_dprintf("Packet out (stream %d): ", s->stream_id);
+  bgav_packet_dump(p);
+#endif
+  
+  if(s->max_packet_size_tmp < p->data_size)
+    s->max_packet_size_tmp = p->data_size;
+  
+  *ret = p;
+  return GAVL_SOURCE_OK;
   }
 
-bgav_packet_t *
-bgav_stream_peek_packet_read(bgav_stream_t * s, int force)
+gavl_source_status_t
+bgav_stream_peek_packet_read(bgav_stream_t * s, bgav_packet_t ** p,
+                             int force)
   {
-  return s->src.peek_func(s->src.data, force);
+  return s->src.peek_func(s->src.data, p, force);
   }
 
 void bgav_stream_done_packet_read(bgav_stream_t * s, bgav_packet_t * p)
@@ -377,6 +381,7 @@ void bgav_stream_done_packet_read(bgav_stream_t * s, bgav_packet_t * p)
 gavl_source_status_t
 bgav_stream_read_packet_func(void * sp, gavl_packet_t ** p)
   {
+  gavl_source_status_t st;
   bgav_stream_t * s = sp;
   
   if(s->out_packet_b)
@@ -388,14 +393,13 @@ bgav_stream_read_packet_func(void * sp, gavl_packet_t ** p)
   if(s->flags & STREAM_DISCONT)
     {
     /* Check if we have a packet at all */
-    if(!bgav_stream_peek_packet_read(s, 0))
-      return GAVL_SOURCE_AGAIN;
+    if((st = bgav_stream_peek_packet_read(s, NULL, 0)) != GAVL_SOURCE_OK)
+      return st;
     }
-  
-  s->out_packet_b = bgav_stream_get_packet_read(s);
-  if(!s->out_packet_b)
-    return GAVL_SOURCE_EOF;
 
+  if((st = bgav_stream_get_packet_read(s, &s->out_packet_b)) != GAVL_SOURCE_OK)
+    return st;
+  
   bgav_packet_2_gavl(s->out_packet_b, &s->out_packet_g);
   *p = &s->out_packet_g;
   return GAVL_SOURCE_OK;

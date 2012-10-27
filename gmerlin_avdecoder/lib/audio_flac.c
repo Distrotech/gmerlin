@@ -290,7 +290,7 @@ static gavl_source_status_t decode_frame_flac(bgav_stream_t * s)
 
   priv->frame->valid_samples = 0;
   
-  if((st = gavl_stream_peek_packet_read(s, NULL, 1)) != GAVL_SOURCE_OK)
+  if((st = bgav_stream_peek_packet_read(s, NULL, 1)) != GAVL_SOURCE_OK)
     return st; 
 
   /* Decode another frame */
