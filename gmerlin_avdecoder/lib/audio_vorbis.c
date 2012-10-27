@@ -129,8 +129,6 @@ static gavl_source_status_t next_packet(bgav_stream_t * s)
   
   if(s->fourcc == BGAV_VORBIS)
     {
-    bgav_packet_t * dummy = NULL;
-    
     if(!priv->dec_op.bytes)
       {
       if(priv->p)
@@ -160,7 +158,7 @@ static gavl_source_status_t next_packet(bgav_stream_t * s)
       priv->packetno++;
       }
 
-    st = bgav_stream_peek_packet_read(s, &dummy, 1);
+    st = bgav_stream_peek_packet_read(s, NULL, 1);
 
     switch(st)
       {
