@@ -43,13 +43,9 @@ struct bgav_packet_timer_s
   
   bgav_packet_t * out_packet;
   
-  int num_b_frames;
   int num_ip_frames;
-
-  int num_b_frames_total;
-  int num_ip_frames_total;
   
-  int (*next_packet)(bgav_packet_timer_t *);
+  gavl_source_status_t (*next_packet)(bgav_packet_timer_t *, int force);
   
   int64_t current_pts;
   int64_t last_b_pts; // For detecting B-Pyramid
@@ -61,7 +57,7 @@ struct bgav_packet_timer_s
 #define IS_IP(idx) (PACKET_GET_CODING_TYPE(pt->packets[idx]) != BGAV_CODING_TYPE_B)
 
 static gavl_source_status_t
-insert_packet(bgav_packet_timer_t * pt, bgav_packet_t ** ret)
+insert_packet(bgav_packet_timer_t * pt, bgav_packet_t ** ret, int force)
   {
   gavl_source_status_t st;
   bgav_packet_t * p;
@@ -75,6 +71,13 @@ insert_packet(bgav_packet_timer_t * pt, bgav_packet_t ** ret)
   while(1)
     {
     p = NULL;
+
+    if(!force)
+      {
+      if(pt->src.peek_func(pt->src.data, &p, 0) == GAVL_SOURCE_AGAIN)
+        return GAVL_SOURCE_AGAIN;
+      }
+    
     if((st = pt->src.get_func(pt->src.data, &p)) != GAVL_SOURCE_OK)
       {
       if(st == GAVL_SOURCE_EOF)
@@ -92,17 +95,11 @@ insert_packet(bgav_packet_timer_t * pt, bgav_packet_t ** ret)
   
   if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
     {
-    if(pt->num_ip_frames_total < 2)
+    if(pt->num_ip_frames < 2)
       PACKET_SET_SKIP(p);
-    
-    pt->num_b_frames++;
-    pt->num_b_frames_total++;
     }
   else
-    {
     pt->num_ip_frames++;
-    pt->num_ip_frames_total++;
-    }
   
   p->duration = -1;
   
@@ -126,10 +123,6 @@ static bgav_packet_t * remove_packet(bgav_packet_timer_t * pt)
   bgav_packet_dump(ret);
 #endif
 
-  if(PACKET_GET_CODING_TYPE(ret) == BGAV_CODING_TYPE_B)
-    pt->num_b_frames--;
-  else
-    pt->num_ip_frames--;
   return ret;
   }
 
@@ -156,18 +149,23 @@ static int set_duration_from_dts(bgav_packet_timer_t * pt, int index)
   return 1;
   }
 
-static int
-next_packet_duration_from_dts(bgav_packet_timer_t * pt)
+static gavl_source_status_t
+next_packet_duration_from_dts(bgav_packet_timer_t * pt, int force)
   {
+  gavl_source_status_t st = GAVL_SOURCE_OK;
   if(pt->num_packets &&
      ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0])))
     return 1;
   
   while(pt->num_packets < 2)
     {
-    if(insert_packet(pt, NULL) != GAVL_SOURCE_OK)
+    st = insert_packet(pt, NULL, force);
+    if(st == GAVL_SOURCE_AGAIN)
+      return GAVL_SOURCE_AGAIN;
+    else if(st != GAVL_SOURCE_OK)
       break;
     }
+  
   if(!pt->num_packets)
     return GAVL_SOURCE_EOF;
   set_duration_from_dts(pt, 0);
@@ -179,13 +177,13 @@ next_packet_duration_from_dts(bgav_packet_timer_t * pt)
  */
 
 static gavl_source_status_t
-insert_packet_duration_from_pts(bgav_packet_timer_t * pt, bgav_packet_t ** ret)
+insert_packet_duration_from_pts(bgav_packet_timer_t * pt, bgav_packet_t ** ret, int force)
   {
   bgav_packet_t * p;
   gavl_source_status_t st;
   p = NULL;
 
-  if((st = insert_packet(pt, &p)) != GAVL_SOURCE_OK)
+  if((st = insert_packet(pt, &p, force)) != GAVL_SOURCE_OK)
     return st;
   
   /* Detect B-Pyramid */
@@ -209,29 +207,39 @@ insert_packet_duration_from_pts(bgav_packet_timer_t * pt, bgav_packet_t ** ret)
   return GAVL_SOURCE_OK;
   }
 
-static int get_next_ip_duration_from_pts(bgav_packet_timer_t * pt,
-                                         int index)
+static gavl_source_status_t get_next_ip_duration_from_pts(bgav_packet_timer_t * pt,
+                                                          int index, int * ret, int force)
   {
   int i;
   bgav_packet_t * p;
+  gavl_source_status_t st;
+  
   for(i = index + 1; i < pt->num_packets; i++)
     {
     if(IS_IP(i))
-      return i;
+      {
+      *ret = i;
+      return GAVL_SOURCE_OK;
+      }
     }
 
   // Read packets until this B-frame sequence is finished
   while(1)
     {
     p = NULL;
-    if(insert_packet_duration_from_pts(pt, &p) != GAVL_SOURCE_OK)
-      return -1;
-    
+    if((st = insert_packet_duration_from_pts(pt, &p, force)) != GAVL_SOURCE_OK)
+      {
+      *ret = -1;
+      return st;
+      }
     if(PACKET_GET_CODING_TYPE(p) != BGAV_CODING_TYPE_B)
-      return pt->num_packets-1;
+      {
+      *ret = pt->num_packets-1;
+      return GAVL_SOURCE_OK;
+      }
     }
   
-  return -1;
+  //  return GAVL_SOURCE_EOF; // Never get here
   }
 
 
@@ -299,29 +307,35 @@ flush_duration_from_pts(bgav_packet_timer_t * pt,
     }
   }
 
-static int
-next_packet_duration_from_pts(bgav_packet_timer_t * pt)
+static gavl_source_status_t
+next_packet_duration_from_pts(bgav_packet_timer_t * pt, int force)
   {
   int ip1, ip2, ip3;
   int next;
+  gavl_source_status_t st = GAVL_SOURCE_OK;
   
   if(pt->num_packets &&
      ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0])))
-    return 1;
-  
-  ip1 = get_next_ip_duration_from_pts(pt, -1);
-  if(ip1 < 0)
+    return GAVL_SOURCE_OK;
+
+  if((st = get_next_ip_duration_from_pts(pt, -1, &ip1, force)) != GAVL_SOURCE_OK)
     goto flush;
+    
   if(ip1 > 0)
     {
     fprintf(stderr, "BUUUG");
-    return 0;
+    return GAVL_SOURCE_EOF;
     }
-  
-  ip2 = get_next_ip_duration_from_pts(pt, ip1);
+
+  if((st = get_next_ip_duration_from_pts(pt, ip1, &ip2, force)) != GAVL_SOURCE_OK)
+    goto flush;
+
   if(ip2 < 1)
     goto flush;
-  ip3 = get_next_ip_duration_from_pts(pt, ip2);
+
+  if((st = get_next_ip_duration_from_pts(pt, ip2, &ip3, force)) != GAVL_SOURCE_OK)
+    goto flush;
+
   if(ip3 < 2)
     goto flush;
   
@@ -359,12 +373,13 @@ next_packet_duration_from_pts(bgav_packet_timer_t * pt)
     /* Flush B-frame sequence */
     flush_duration_from_pts(pt, 1, ip2, 0, ip2);
     }
-  return 1;
+  return GAVL_SOURCE_OK;
   flush:
 
-  flush_duration_from_pts(pt, 0, pt->num_packets,
-                          0, pt->num_packets);
-  return 1;
+  if(st == GAVL_SOURCE_EOF)
+    flush_duration_from_pts(pt, 0, pt->num_packets,
+                            0, pt->num_packets);
+  return st;
   }
 
 /*
@@ -383,12 +398,12 @@ static void set_pts_from_dts(bgav_packet_timer_t * pt,
 
 static gavl_source_status_t
 insert_packet_pts_from_dts(bgav_packet_timer_t * pt,
-                           bgav_packet_t ** ret)
+                           bgav_packet_t ** ret, int force)
   {
   gavl_source_status_t st;
   bgav_packet_t * p = NULL;
 
-  st = insert_packet(pt, &p);
+  st = insert_packet(pt, &p, force);
   
   if(st == GAVL_SOURCE_EOF)
     {
@@ -416,32 +431,35 @@ insert_packet_pts_from_dts(bgav_packet_timer_t * pt,
   return GAVL_SOURCE_OK;
   }
 
-static int
-next_packet_pts_from_dts(bgav_packet_timer_t * pt)
+static gavl_source_status_t
+next_packet_pts_from_dts(bgav_packet_timer_t * pt, int force)
   {
   int i;
+  gavl_source_status_t st = GAVL_SOURCE_OK;
   
   if(pt->num_packets &&
      ((pt->packets[0]->pts != GAVL_TIME_UNDEFINED) ||
       PACKET_GET_SKIP(pt->packets[0])))
-    return 1;
+    return GAVL_SOURCE_OK;
   
   while(pt->num_packets < 2)
     {
-    if(insert_packet_pts_from_dts(pt, NULL) != GAVL_SOURCE_OK)
+    if((st = insert_packet_pts_from_dts(pt, NULL, force)) != GAVL_SOURCE_OK)
       break;
     }
 
   if(!pt->num_packets)
-    return 0;
-
+    return st;
+  else if((pt->num_packets < 2) && (st == GAVL_SOURCE_AGAIN))
+    return st;
+  
   if(PACKET_GET_CODING_TYPE(pt->packets[0]) != BGAV_CODING_TYPE_B)
     {
     /* Last packet (non B) */
     if(pt->num_packets == 1)
       {
       set_pts_from_dts(pt, pt->packets[0]);
-      return 1;
+      return GAVL_SOURCE_OK;
       }
     else
       {
@@ -449,25 +467,27 @@ next_packet_pts_from_dts(bgav_packet_timer_t * pt)
       if(PACKET_GET_CODING_TYPE(pt->packets[1]) != BGAV_CODING_TYPE_B)
         {
         set_pts_from_dts(pt, pt->packets[0]);
-        return 1;
+        return GAVL_SOURCE_OK;
         }
       /* IB, PB -> go to the end of the B-frame
          sequence to get the pts of the non-B frame */
       else
         {
-        gavl_source_status_t st;
         bgav_packet_t * p;
         while(1)
           {
           p = NULL;
           /* Get packets until the next non B-frame */
           
-          if((st = insert_packet_pts_from_dts(pt, &p)) != GAVL_SOURCE_OK)
+          if((st = insert_packet_pts_from_dts(pt, &p, force)) != GAVL_SOURCE_OK)
             {
+            if(st == GAVL_SOURCE_AGAIN)
+              return st;
+            
             if(pt->eof)
               break;
             else
-              return 0; // Cache full
+              return GAVL_SOURCE_EOF; // Cache full
             }
           if(PACKET_GET_CODING_TYPE(p) != BGAV_CODING_TYPE_B)
             break;
@@ -482,11 +502,11 @@ next_packet_pts_from_dts(bgav_packet_timer_t * pt)
             set_pts_from_dts(pt, pt->packets[i]);
           }
         set_pts_from_dts(pt, pt->packets[0]);
-        return 1;
+        return GAVL_SOURCE_OK;
         }
       }
     }
-  return 0;
+  return GAVL_SOURCE_EOF;
   }
 
 /*
@@ -496,6 +516,7 @@ next_packet_pts_from_dts(bgav_packet_timer_t * pt)
 static gavl_source_status_t peek_func(void * pt1, bgav_packet_t ** ret,
                                       int force)
   {
+  gavl_source_status_t st;
   bgav_packet_timer_t * pt = pt1;
 
   if(pt->out_packet)
@@ -507,8 +528,8 @@ static gavl_source_status_t peek_func(void * pt1, bgav_packet_t ** ret,
   if(!pt->num_packets && pt->eof)
     return GAVL_SOURCE_EOF;
   
-  if(!pt->next_packet(pt))
-    return GAVL_SOURCE_EOF;
+  if((st = pt->next_packet(pt, force)) != GAVL_SOURCE_OK)
+    return st;
   
   pt->out_packet = remove_packet(pt);
   if(ret)
@@ -530,7 +551,7 @@ static gavl_source_status_t get_func(void * pt1, bgav_packet_t ** p)
   if(!pt->num_packets && pt->eof)
     return GAVL_SOURCE_EOF;
   
-  if(!pt->next_packet(pt))
+  if(!pt->next_packet(pt, 1))
     return GAVL_SOURCE_EOF;
   *p = remove_packet(pt);
   return GAVL_SOURCE_OK;
@@ -549,13 +570,7 @@ bgav_packet_timer_t * bgav_packet_timer_create(bgav_stream_t * s)
   s->src.peek_func = peek_func;
   s->src.data = ret;
 
-#if 0  
-  /* Clear wrong B-timestamps flag */
-  if((ret->s->flags & STREAM_DTS_ONLY) &&
-     !(ret->s->flags & STREAM_B_FRAMES))
-    ret->s->flags &= ~STREAM_DTS_ONLY;
-#endif
-  /* Set insert and flush functions */
+  /* Set functions */
   if(ret->s->flags & STREAM_DTS_ONLY)
     ret->next_packet = next_packet_pts_from_dts;
   else if(ret->s->flags & STREAM_NO_DURATIONS)
@@ -589,10 +604,7 @@ void bgav_packet_timer_reset(bgav_packet_timer_t * pt)
   //  fprintf(stderr, "bgav_packet_timer_reset %d\n",
   //          pt->num_packets);
   
-  pt->num_b_frames = 0;
   pt->num_ip_frames = 0;
-  pt->num_b_frames_total = 0;
-  pt->num_ip_frames_total = 0;
   
   pt->eof = 0;
   pt->current_pts = GAVL_TIME_UNDEFINED;

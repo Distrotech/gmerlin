@@ -396,7 +396,7 @@ peek_packet_parse_frame(void * parser1, bgav_packet_t ** ret,
   
   if((st =
       parser->src.peek_func(parser->src.data,
-                            &parser->out_packet, force)) != GAVL_SOURCE_OK)
+                            NULL, force)) != GAVL_SOURCE_OK)
     return st;
   
   parser->src.get_func(parser->src.data, &parser->out_packet);
@@ -404,7 +404,7 @@ peek_packet_parse_frame(void * parser1, bgav_packet_t ** ret,
   if(parser->out_packet->duration < 0)
     {
     if(parse_frame(parser, parser->out_packet) == PARSER_ERROR)
-      return 0;
+      return GAVL_SOURCE_EOF;
     }
   if(ret)
     *ret = parser->out_packet;

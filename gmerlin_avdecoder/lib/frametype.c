@@ -159,8 +159,10 @@ static gavl_source_status_t peek_func(void * pt1, bgav_packet_t ** ret,
     }
   
   if(!force)
-    return GAVL_SOURCE_AGAIN;
-  
+    {
+    if((st = fd->src.peek_func(fd->src.data, &p, 0)) != GAVL_SOURCE_OK)
+      return st;
+    }
   p = NULL;
   
   if((st = fd->src.get_func(fd->src.data, &p)) != GAVL_SOURCE_OK)

@@ -33,6 +33,12 @@ int main(int argc, char ** argv)
   bgav_t * b;
   bgav_options_t * opt;
 
+  if(argc < 2)
+    {
+    fprintf(stderr, "Usage: %s <file>\n", argv[0]);
+    return -1;
+    }
+  
   b = bgav_create();
   opt = bgav_get_options(b);
   bgav_options_set_sample_accurate(opt, 1);

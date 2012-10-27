@@ -728,8 +728,12 @@ bgav_demuxer_peek_packet_read(void * stream1, bgav_packet_t ** ret,
 
   p = bgav_packet_buffer_peek_packet_read(s->packet_buffer);
 
-  if(ret)
-    *ret = p;
+  if(p)
+    {
+    if(ret)
+      *ret = p;
+    return GAVL_SOURCE_OK;
+    }
   
   if(!force)
     return GAVL_SOURCE_AGAIN;

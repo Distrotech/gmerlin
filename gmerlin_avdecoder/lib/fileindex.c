@@ -51,11 +51,11 @@ static void dump_index(bgav_stream_t * s)
     {
     for(i = 0; i < s->file_index->num_entries; i++)
       {
-      bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64" CT: %c ",
+      bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64" CT: %s ",
                    !!(s->file_index->entries[i].flags & GAVL_PACKET_KEYFRAME),
                    s->file_index->entries[i].position,
                    s->file_index->entries[i].pts,
-                   s->file_index->entries[i].flags & 0xff);
+                   bgav_coding_type_to_string(s->file_index->entries[i].flags));
       
       if(i < s->file_index->num_entries-1)
         bgav_dprintf("posdiff: %"PRId64,
@@ -831,17 +831,16 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
   {
   bgav_packet_t * p;
   int64_t t;
-
+  
   while(bgav_stream_peek_packet_read(s, NULL, force) == GAVL_SOURCE_OK)
     {
     p = NULL;
     bgav_stream_get_packet_read(s, &p);
     
     t = p->pts - s->start_time;
-    // fprintf(stderr, "flush_stream_simple ");
     
-#if 0
-    fprintf(stderr, "flush_stream_simple ");
+#if 1
+    fprintf(stderr, "flush_stream_simple ID: %d Force: %d ", s->stream_id, force);
     bgav_packet_dump(p);
 #endif
     if(p->pts != GAVL_TIME_UNDEFINED)

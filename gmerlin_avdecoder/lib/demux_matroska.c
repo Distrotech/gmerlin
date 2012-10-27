@@ -521,7 +521,6 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
     // fprintf(stderr, "UTF-8 subtitles\n");
     s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 1, BGAV_UTF8);
     gavl_metadata_set(&s->m, GAVL_META_FORMAT, "SRT");
-
     }
   else if(!strcmp(track->CodecID, "S_VOBSUB"))
     {
@@ -611,7 +610,7 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
     return 1;
   
   init_stream_common(m, s, track, NULL);
-  
+  s->index_mode = INDEX_MODE_SIMPLE;
   return 1;
   }
 
