@@ -31,7 +31,7 @@ bgav_packet_t * bgav_packet_create()
   return ret;
   }
 
-void bgav_packet_destroy(bgav_packet_t * p)
+void bgav_packet_free(bgav_packet_t * p)
   {
   if(p->data)
     free(p->data);
@@ -40,6 +40,13 @@ void bgav_packet_destroy(bgav_packet_t * p)
   if(p->video_frame)
     gavl_video_frame_destroy(p->video_frame);
   
+  bgav_packet_free_palette(p);
+  memset(p, 0, sizeof(*p));
+  }
+
+void bgav_packet_destroy(bgav_packet_t * p)
+  {
+  bgav_packet_free(p);
   free(p);
   }
 
@@ -63,7 +70,6 @@ void bgav_packet_pad(bgav_packet_t * p)
 
 void bgav_packet_dump(bgav_packet_t * p)
   {
-  
   bgav_dprintf("pos: %"PRId64", K: %d, ", p->position, !!PACKET_GET_KEYFRAME(p));
 
   if(p->field2_offset)
@@ -152,6 +158,25 @@ void bgav_packet_copy_metadata(bgav_packet_t * dst,
   dst->flags    = src->flags;
   dst->tc       = src->tc;
   }
+
+void bgav_packet_copy(bgav_packet_t * dst,
+                      const bgav_packet_t * src)
+  {
+  uint32_t data_alloc;
+  uint8_t * data;
+
+  data_alloc = dst->data_alloc;
+  data = dst->data;
+
+  memcpy(dst, src, sizeof(*dst));
+
+  dst->data = data;
+  dst->data_alloc = data_alloc;
+
+  bgav_packet_alloc(dst, src->data_size);
+  memcpy(dst->data, src->data, src->data_size);
+  }
+
 
 void bgav_packet_source_copy(bgav_packet_source_t * dst,
                              const bgav_packet_source_t * src)

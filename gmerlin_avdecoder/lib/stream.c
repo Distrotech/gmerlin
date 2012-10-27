@@ -110,6 +110,11 @@ void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
   stream->packet_buffer = bgav_packet_buffer_create(stream->pp);
   }
 
+void bgav_stream_create_packet_pool(bgav_stream_t * stream)
+  {
+  stream->pp = bgav_packet_pool_create();
+  }
+
 void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   {
   memset(stream, 0, sizeof(*stream));
@@ -120,7 +125,6 @@ void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   stream->last_index_position = -1; 
   stream->index_position = -1;
   stream->opt = opt;
-  stream->pp = bgav_packet_pool_create();
   }
 
 void bgav_stream_free(bgav_stream_t * s)
@@ -258,7 +262,7 @@ int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)
       return bgav_audio_skipto(s, time, scale);
       break;
     case BGAV_STREAM_VIDEO:
-      return bgav_video_skipto(s, time, scale, 1);
+      return bgav_video_skipto(s, time, scale);
       break;
     case BGAV_STREAM_SUBTITLE_TEXT:
     case BGAV_STREAM_SUBTITLE_OVERLAY:
@@ -368,7 +372,10 @@ bgav_stream_peek_packet_read(bgav_stream_t * s, bgav_packet_t ** p,
 
 void bgav_stream_done_packet_read(bgav_stream_t * s, bgav_packet_t * p)
   {
-  bgav_packet_pool_put(s->pp, p);
+  /* If no packet pool is there, we assume the packet will be
+     freed somewhere else */
+  if(s->pp)
+    bgav_packet_pool_put(s->pp, p);
   }
 
 /* Read one packet from an A/V stream */

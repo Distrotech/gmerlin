@@ -40,6 +40,8 @@ bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt)
   
   bgav_stream_init(ret, opt);
   bgav_stream_create_packet_buffer(ret);
+  bgav_stream_create_packet_pool(ret);
+
   // ret->data.audio.bits_per_sample = 16;
   ret->type = BGAV_STREAM_AUDIO;
   ret->track = t;
@@ -58,6 +60,7 @@ bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
   ret = &t->video_streams[t->num_video_streams-1];
   bgav_stream_init(ret, opt);
   bgav_stream_create_packet_buffer(ret);
+  bgav_stream_create_packet_pool(ret);
   ret->type = BGAV_STREAM_VIDEO;
   ret->opt = opt;
   ret->track = t;
@@ -80,6 +83,8 @@ static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
 
   ret = &t->subtitle_streams[t->num_subtitle_streams-1];
   bgav_stream_init(ret, opt);
+  bgav_stream_create_packet_pool(ret);
+
   ret->flags |= STREAM_DISCONT;
   if(!r)
     bgav_stream_create_packet_buffer(ret);

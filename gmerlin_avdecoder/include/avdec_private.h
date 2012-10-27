@@ -283,7 +283,10 @@ struct bgav_packet_s
 /* packet.c */
 
 bgav_packet_t * bgav_packet_create();
+
 void bgav_packet_destroy(bgav_packet_t*);
+void bgav_packet_free(bgav_packet_t*);
+
 void bgav_packet_alloc(bgav_packet_t*, int size);
 void bgav_packet_dump(bgav_packet_t*);
 void bgav_packet_dump_data(bgav_packet_t * p, int bytes);
@@ -296,6 +299,9 @@ void bgav_packet_alloc_palette(bgav_packet_t * p, int size);
 void bgav_packet_free_palette(bgav_packet_t * p);
 void bgav_packet_copy_metadata(bgav_packet_t * dst,
                                const bgav_packet_t * src);
+
+void bgav_packet_copy(bgav_packet_t * dst,
+                      const bgav_packet_t * src);
 
 void bgav_packet_merge_field2(bgav_packet_t * p,
                               const bgav_packet_t * field2);
@@ -637,6 +643,7 @@ struct bgav_stream_s
 int bgav_stream_start(bgav_stream_t * stream);
 void bgav_stream_stop(bgav_stream_t * stream);
 void bgav_stream_create_packet_buffer(bgav_stream_t * stream);
+void bgav_stream_create_packet_pool(bgav_stream_t * stream);
 void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt);
 void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
@@ -1817,8 +1824,7 @@ void bgav_video_stop(bgav_stream_t * s);
 void bgav_video_resync(bgav_stream_t * s);
 // void bgav_video_clear(bgav_stream_t * s);
 
-int bgav_video_skipto(bgav_stream_t * stream, int64_t * t, int scale,
-                      int exact);
+int bgav_video_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 
 void bgav_video_set_still(bgav_stream_t * stream);
 

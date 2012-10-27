@@ -450,8 +450,7 @@ void bgav_video_resync(bgav_stream_t * s)
       we'll call
 */
 
-int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
-                      int exact)
+int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   {
   bgav_packet_t * p; 
   gavl_source_status_t st;
@@ -469,19 +468,16 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
     }
   else if(s->out_time > time_scaled)
     {
-    if(exact)
-      {
-      char tmp_string1[128];
-      char tmp_string2[128];
-      char tmp_string3[128];
-      sprintf(tmp_string1, "%" PRId64, s->out_time);
-      sprintf(tmp_string2, "%" PRId64, time_scaled);
-      sprintf(tmp_string3, "%" PRId64, time_scaled - s->out_time);
-      
-      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-               "Cannot skip backwards: Stream time: %s skip time: %s difference: %s",
-               tmp_string1, tmp_string2, tmp_string3);
-      }
+    char tmp_string1[128];
+    char tmp_string2[128];
+    char tmp_string3[128];
+    sprintf(tmp_string1, "%" PRId64, s->out_time);
+    sprintf(tmp_string2, "%" PRId64, time_scaled);
+    sprintf(tmp_string3, "%" PRId64, time_scaled - s->out_time);
+    
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Cannot skip backwards: Stream time: %s skip time: %s difference: %s",
+             tmp_string1, tmp_string2, tmp_string3);
     return 1;
     }
   
@@ -506,41 +502,6 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale,
     *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
     return 1;
     }
-
-  /* Fast path: Skip to next keyframe */
-#if 0
-  if(s->data.video.decoder->decoder->resync)
-    {
-    next_key_frame = GAVL_TIME_UNDEFINED;
-    if(!exact)
-      next_key_frame = bgav_video_stream_keyframe_after(s, time_scaled);
-    
-    if(next_key_frame == GAVL_TIME_UNDEFINED)
-      next_key_frame = bgav_video_stream_keyframe_before(s, time_scaled);
-    
-    if((next_key_frame != GAVL_TIME_UNDEFINED) &&
-       (next_key_frame > s->out_time) &&
-       ((next_key_frame <= time_scaled) ||
-        (!exact &&
-         (gavl_time_unscale(s->data.video.format.timescale, next_key_frame - time_scaled) <
-          GAVL_TIME_SCALE/5))))
-      {
-      while(1)
-        {
-        p = bgav_stream_peek_packet_read(s, 1);
-        
-        if(p->pts >= next_key_frame)
-          break;
-
-        // fprintf(stderr, "Skipping to next keyframe %ld %ld\n", p->pts, next_key_frame);
-        
-        p = bgav_stream_get_packet_read(s);
-        bgav_stream_done_packet_read(s, p);
-        }
-      s->data.video.decoder->decoder->resync(s);
-      }
-    }
-#endif
   
   if(s->data.video.decoder->decoder->skipto)
     {
@@ -586,7 +547,7 @@ void bgav_skip_video(bgav_t * bgav, int stream,
   {
   bgav_stream_t * s;
   s = &bgav->tt->cur->video_streams[stream];
-  bgav_video_skipto(s, time, scale, exact);
+  bgav_video_skipto(s, time, scale);
   }
 
 gavl_video_source_t * bgav_get_video_source(bgav_t * bgav, int stream)

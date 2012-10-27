@@ -419,10 +419,10 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
     priv->frame->valid_samples = f.nb_samples;
     }
   
-  /* No Samples decoded, get next packet */
+  /* No Samples decoded, nothing more to do */
 
   if(!got_frame)
-    return GAVL_SOURCE_AGAIN;
+    return GAVL_SOURCE_EOF;
   
 #ifdef DUMP_DECODE
   bgav_dprintf("Got %d samples\n", priv->frame->valid_samples);

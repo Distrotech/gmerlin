@@ -25,6 +25,8 @@
 #include <string.h>
 #include <limits.h>
 
+#define LOG_DOMAIN "streamdecoder"
+
 struct bgav_stream_decoder_s
   {
   bgav_options_t opt;
@@ -52,29 +54,61 @@ bgav_stream_decoder_get_options(bgav_stream_decoder_t * dec)
   return &dec->opt;
   }
 
-static bgav_packet_t * get_func(void * priv)
+static void packet_from_gavl(gavl_packet_t * src,
+                             bgav_packet_t * dst)
   {
-  gavl_source_status_t st;
-  gavl_packet_t * gp = NULL;
-  
-  bgav_stream_decoder_t * dec = priv;
-
-  
-  
+  bgav_packet_from_gavl(src, dst);
+  dst->data = src->data;
+  dst->data_size = src->data_len; 
   }
+                             
 
-static bgav_packet_t * peek_func(void * priv, int force)
+static gavl_source_status_t get_func(void * priv, bgav_packet_t ** ret)
   {
   gavl_source_status_t st;
   gavl_packet_t * gp = NULL;
   
   bgav_stream_decoder_t * dec = priv;
 
-  if((st = gavl_packet_source_read_packet(dec->src, &gp)) != GAVL_SOURCE_OK)
+  if(dec->out_packet)
     {
-    
+    if(ret)
+      *ret = dec->out_packet;
+    dec->out_packet = NULL;
+    return GAVL_SOURCE_OK;
     }
   
+  if((st = gavl_packet_source_read_packet(dec->src, &gp)) != GAVL_SOURCE_OK)
+    return st;
+
+  packet_from_gavl(gp, &dec->p);
+  *ret = &dec->p;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_source_status_t peek_func(void * priv, bgav_packet_t ** ret, int force)
+  {
+  gavl_source_status_t st;
+  gavl_packet_t * gp = NULL;
+  
+  bgav_stream_decoder_t * dec = priv;
+
+  if(dec->out_packet)
+    {
+    if(ret)
+      *ret = dec->out_packet;
+    return GAVL_SOURCE_OK;
+    }
+  
+  if((st = gavl_packet_source_read_packet(dec->src, &gp)) != GAVL_SOURCE_OK)
+    return st;
+  
+  packet_from_gavl(gp, &dec->p);
+  dec->out_packet = &dec->p;
+
+  if(ret)
+    *ret = dec->out_packet;
+  return GAVL_SOURCE_OK;
   }
 
 static int init_common(bgav_stream_decoder_t * dec,
@@ -87,7 +121,7 @@ static int init_common(bgav_stream_decoder_t * dec,
 
   dec->s.src.data = dec;
   dec->s.src.get_func = get_func;
-  dec->s.src.peek_func = get_func;
+  dec->s.src.peek_func = peek_func;
   
   return bgav_stream_start(&dec->s);
   }
@@ -129,21 +163,55 @@ bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
 const gavl_metadata_t *
 bgav_stream_decoder_get_metadata(bgav_stream_decoder_t * dec)
   {
-
+  return &dec->s.m;
   }
 
 
 int64_t
 bgav_stream_decoder_skip(bgav_stream_decoder_t * dec, int64_t t)
   {
+  int scale;
+  switch(dec->s.type)
+    {
+    case BGAV_STREAM_AUDIO:
+      scale = dec->s.data.audio.format.samplerate;
+      break;
+    case BGAV_STREAM_VIDEO:
+      scale = dec->s.data.video.format.timescale;
+      break;
+    default:
+      return GAVL_TIME_UNDEFINED;
+      break;
+    }
 
+  bgav_stream_skipto(&dec->s, &t, scale);
+  return t;
   }
 
 
 void
 bgav_stream_decoder_reset(bgav_stream_decoder_t * dec)
   {
-  
+  bgav_packet_t * p = NULL;
+  dec->s.out_time = GAVL_TIME_UNDEFINED;
+
+  if(bgav_stream_get_packet_read(&dec->s, &p) != GAVL_SOURCE_OK)
+    {
+    bgav_log(&dec->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot get packet after reset");
+    return;
+    }
+  STREAM_SET_SYNC(&dec->s, p->pts);
+  switch(dec->s.type)
+    {
+    case BGAV_STREAM_AUDIO:
+      bgav_audio_resync(&dec->s);
+      break;
+    case BGAV_STREAM_VIDEO:
+      bgav_video_resync(&dec->s);
+      break;
+    default:
+      break;
+    }
   }
 
 

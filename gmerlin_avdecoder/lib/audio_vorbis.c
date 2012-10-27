@@ -54,7 +54,7 @@ typedef struct
   vorbis_block     dec_vb; /* local working space for packet->PCM decode */
   int stream_initialized;
 
-  bgav_packet_t * p;
+  bgav_packet_t p;
   uint8_t * packet_ptr;
   int64_t packetno;
   } vorbis_audio_priv;
@@ -131,33 +131,31 @@ static gavl_source_status_t next_packet(bgav_stream_t * s)
     {
     if(!priv->dec_op.bytes)
       {
-      if(priv->p)
-        {
-        bgav_stream_done_packet_read(s, priv->p);
-        priv->p = NULL;
-        }
-      if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+      bgav_packet_t * p = NULL;
+      if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
         return st;
 #ifdef DUMP_PACKET
-      bgav_dprintf("vorbis: Got packet: %p ", priv->p);
-      bgav_packet_dump(priv->p);
-      if(priv->p->data_size == 30)
-        {
-        bgav_hexdump(priv->p->data, priv->p->data_size, 16);
-        }
+      bgav_dprintf("vorbis: Got packet: %p ", p);
+      bgav_packet_dump(p);
 #endif    
+      bgav_packet_reset(&priv->p);
+      bgav_packet_copy(&priv->p, p);
     
       memset(&priv->dec_op, 0, sizeof(priv->dec_op));
-      priv->dec_op.bytes  = priv->p->data_size;
-      priv->dec_op.packet = priv->p->data;
+      priv->dec_op.bytes  = priv->p.data_size;
+      priv->dec_op.packet = priv->p.data;
     
-      priv->dec_op.granulepos = priv->p->pts + priv->p->duration;
+      priv->dec_op.granulepos = priv->p.pts + priv->p.duration;
     
       priv->dec_op.packetno = priv->packetno++;
       priv->dec_op.e_o_s = 0;
       priv->packetno++;
+
+      bgav_stream_done_packet_read(s, p);
+
       }
 
+    
     st = bgav_stream_peek_packet_read(s, NULL, 1);
 
     switch(st)
@@ -518,6 +516,8 @@ static gavl_source_status_t decode_frame_vorbis(bgav_stream_t * s)
       vorbis_synthesis_blockin(&priv->dec_vd,
                                &priv->dec_vb);
       }
+    /* Reset bytes so we know that we ate this packet */
+    priv->dec_op.bytes = 0;
     }
   
 #ifdef DUMP_OUTPUT
@@ -538,13 +538,7 @@ static void resync_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
   priv = s->data.audio.decoder->priv;
-
-  if(priv->p)
-    {
-    bgav_stream_done_packet_read(s, priv->p);
-    priv->p = NULL;
-    }
-  
+  priv->dec_op.bytes = 0;
   if(s->fourcc == BGAV_VORBIS)
     {
     priv->packetno = 0;
@@ -615,6 +609,8 @@ static void close_vorbis(bgav_stream_t * s)
   vorbis_dsp_clear(&priv->dec_vd);
   vorbis_comment_clear(&priv->dec_vc);
   vorbis_info_clear(&priv->dec_vi);
+
+  bgav_packet_free(&priv->p);
   
   free(priv);
   }
