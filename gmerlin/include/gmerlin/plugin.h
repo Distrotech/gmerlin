@@ -118,6 +118,11 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame,
 #define BG_PLUGIN_DEVPARAM        (1<<17)  //!< Plugin has pluggable devices as parameters, which must be updated regurarly
 #define BG_PLUGIN_OV_STILL        (1<<18)  //!< OV plugin supports still images
 
+#define BG_PLUGIN_AUDIO_COMPRESSOR   (1<<19)  //!< Plugin compresses audio
+#define BG_PLUGIN_VIDEO_COMPRESSOR   (1<<20)  //!< Plugin compresses video
+#define BG_PLUGIN_AUDIO_DECOMPRESSOR (1<<21)  //!< Plugin decompresses audio
+#define BG_PLUGIN_VIDEO_DECOMPRESSOR (1<<22)  //!< Plugin decompresses video
+
 #define BG_PLUGIN_UNSUPPORTED     (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
 
 
@@ -195,6 +200,7 @@ typedef enum
     BG_PLUGIN_FILTER_VIDEO               = (1<<14), //!< Video filter
     BG_PLUGIN_VISUALIZATION              = (1<<15), //!< Visualization
     BG_PLUGIN_AV_RECORDER                = (1<<16),  //!< Audio/Video recorder
+    BG_PLUGIN_CODEC                      = (1<<17),  //!< Audio/Video (de)compressor
   } bg_plugin_type_t;
 
 /** \ingroup plugin
@@ -2472,6 +2478,7 @@ struct bg_codec_plugin_s
   
   gavl_audio_source_t * (*connect_decode_audio)(void * priv,
                                                 gavl_packet_source_t * src,
+                                                const gavl_compression_info_t * ci,
                                                 const gavl_audio_format_t * fmt,
                                                 const gavl_metadata_t * m);
 
@@ -2484,6 +2491,7 @@ struct bg_codec_plugin_s
   
   gavl_video_source_t * (*connect_decode_video)(void * priv,
                                                 gavl_packet_source_t * src,
+                                                const gavl_compression_info_t * ci,
                                                 const gavl_video_format_t * fmt,
                                                 const gavl_metadata_t * m);
 

@@ -44,13 +44,14 @@ type_names[] =
     { "EncoderVideo",            BG_PLUGIN_ENCODER_VIDEO },
     { "EncoderSubtitleText",     BG_PLUGIN_ENCODER_SUBTITLE_TEXT },
     { "EncoderSubtitleOverlay",  BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY },
-    { "Encoder",                 BG_PLUGIN_ENCODER },
-    { "EncoderPP",               BG_PLUGIN_ENCODER_PP },
-    { "ImageReader",             BG_PLUGIN_IMAGE_READER },
-    { "ImageWriter",             BG_PLUGIN_IMAGE_WRITER },
-    { "AudioFilter",             BG_PLUGIN_FILTER_AUDIO },
-    { "VideoFilter",             BG_PLUGIN_FILTER_VIDEO },
+    { "Encoder",                 BG_PLUGIN_ENCODER       },
+    { "EncoderPP",               BG_PLUGIN_ENCODER_PP    },
+    { "ImageReader",             BG_PLUGIN_IMAGE_READER  },
+    { "ImageWriter",             BG_PLUGIN_IMAGE_WRITER  },
+    { "AudioFilter",             BG_PLUGIN_FILTER_AUDIO  },
+    { "VideoFilter",             BG_PLUGIN_FILTER_VIDEO  },
     { "Visualization",           BG_PLUGIN_VISUALIZATION },
+    { "Codec",                   BG_PLUGIN_CODEC         },
     { NULL,                      BG_PLUGIN_NONE }
   };
 
@@ -91,6 +92,10 @@ flag_names[] =
     { "Broadcast",      BG_PLUGIN_BROADCAST       },
     { "Devparam",       BG_PLUGIN_DEVPARAM        },
     { "OVStill",        BG_PLUGIN_OV_STILL        },
+    { "AudioCompressor",         BG_PLUGIN_AUDIO_COMPRESSOR },
+    { "VideoCompressor",         BG_PLUGIN_VIDEO_COMPRESSOR },
+    { "AudioDecompressor",       BG_PLUGIN_AUDIO_DECOMPRESSOR },
+    { "VideoDecompressor",       BG_PLUGIN_VIDEO_DECOMPRESSOR },
     { "Unsupported",    BG_PLUGIN_UNSUPPORTED     },
     { NULL,    0                                  },
   };
