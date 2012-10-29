@@ -67,42 +67,45 @@ struct
   {
   gavl_codec_id_t id;
   const char * extension;
-  const char * name;
+  const char * short_name; // Has no spaces
+  const char * long_name;
   int flags;
   int sample_size;
   }
 compression_ids[] =
   {
     /* Audio */
-    { GAVL_CODEC_ID_ALAW,      NULL,       "alaw",         0,       1 },
-    { GAVL_CODEC_ID_ULAW,      NULL,       "ulaw",         0,       1 },
-    { GAVL_CODEC_ID_MP2,       "mp2",      "MPEG layer 2", FLAG_CFS },
-    { GAVL_CODEC_ID_MP3,       "mp3",      "MPEG layer 3", FLAG_CFS },
-    { GAVL_CODEC_ID_AC3,       "ac3",      "AC3",          FLAG_CFS },
-    { GAVL_CODEC_ID_AAC,       NULL,       "AAC",          FLAG_CFS },
-    { GAVL_CODEC_ID_VORBIS,    NULL,       "Vorbis"       },
-    { GAVL_CODEC_ID_FLAC,      NULL,       "Flac"         },
-    { GAVL_CODEC_ID_OPUS,      NULL,       "Opus"         },
+    { GAVL_CODEC_ID_ALAW,      NULL,       "alaw",   "alaw",         0,       1 },
+    { GAVL_CODEC_ID_ULAW,      NULL,       "ulaw",   "ulaw",         0,       1 },
+    { GAVL_CODEC_ID_MP2,       "mp2",      "mp2",    "MPEG layer 3", FLAG_CFS },
+    { GAVL_CODEC_ID_MP3,       "mp3",      "mp3",    "MPEG layer 3", FLAG_CFS },
+    { GAVL_CODEC_ID_AC3,       "ac3",      "ac3",    "AC3",          FLAG_CFS },
+    { GAVL_CODEC_ID_AAC,       NULL,       "aac",    "AAC",          FLAG_CFS },
+    { GAVL_CODEC_ID_VORBIS,    NULL,       "vorbis", "Vorbis"       },
+    { GAVL_CODEC_ID_FLAC,      NULL,       "flac",   "Flac"         },
+    { GAVL_CODEC_ID_OPUS,      NULL,       "opus",   "Opus"         },
     
     /* Video */
-    { GAVL_CODEC_ID_JPEG,      "jpg",      "JPEG image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_PNG,       "png",      "PNG image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_TIFF,      "tif",      "TIFF image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_TGA,       "tga",      "TGA image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_MPEG1,     "mpv",      "MPEG-1"       },
-    { GAVL_CODEC_ID_MPEG2,     "mpv",      "MPEG-2",      FLAG_NEEDS_PIXELFORMAT },
-    { GAVL_CODEC_ID_MPEG4_ASP, "m4v",      "MPEG-4 ASP"   },
-    { GAVL_CODEC_ID_H264,      "h264",     "H.264"        },
-    { GAVL_CODEC_ID_THEORA,    NULL,       "Theora"       },
-    { GAVL_CODEC_ID_DIRAC,     NULL,       "Dirac"        },
-    { GAVL_CODEC_ID_DV,        "dv",       "DV",          FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_JPEG,      "jpg",      "jpeg",   "JPEG image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_PNG,       "png",      "png",    "PNG image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_TIFF,      "tif",      "tiff",   "TIFF image",  FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_TGA,       "tga",      "tga",    "TGA image",   FLAG_SEPARATE | FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_MPEG1,     "mpv",      "mpeg1",  "MPEG-1"       },
+    { GAVL_CODEC_ID_MPEG2,     "mpv",      "mpeg2",  "MPEG-2",      FLAG_NEEDS_PIXELFORMAT },
+    { GAVL_CODEC_ID_MPEG4_ASP, "m4v",      "mpeg4",  "MPEG-4 ASP"   },
+    { GAVL_CODEC_ID_H264,      "h264",     "h264",   "H.264"        },
+    { GAVL_CODEC_ID_THEORA,    NULL,       "theora", "Theora"       },
+    { GAVL_CODEC_ID_DIRAC,     NULL,       "dirac",  "Dirac"        },
+    { GAVL_CODEC_ID_DV,        "dv",       "dv",     "DV",          FLAG_NEEDS_PIXELFORMAT },
     
   };
+
+#define NUM_CODEC_IDS (sizeof(compression_ids)/sizeof(compression_ids[0]))
 
 const char * gavl_compression_get_extension(gavl_codec_id_t id, int * separate)
   {
   int i;
-  for(i = 0; i < sizeof(compression_ids)/sizeof(compression_ids[0]); i++)
+  for(i = 0; i < NUM_CODEC_IDS; i++)
     {
     if(compression_ids[i].id == id)
       {
@@ -117,7 +120,7 @@ const char * gavl_compression_get_extension(gavl_codec_id_t id, int * separate)
 int gavl_compression_get_sample_size(gavl_codec_id_t id)
   {
   int i;
-  for(i = 0; i < sizeof(compression_ids)/sizeof(compression_ids[0]); i++)
+  for(i = 0; i < NUM_CODEC_IDS; i++)
     {
     if(compression_ids[i].id == id)
       {
@@ -130,7 +133,7 @@ int gavl_compression_get_sample_size(gavl_codec_id_t id)
 int gavl_compression_need_pixelformat(gavl_codec_id_t id)
   {
   int i;
-  for(i = 0; i < sizeof(compression_ids)/sizeof(compression_ids[0]); i++)
+  for(i = 0; i < NUM_CODEC_IDS; i++)
     {
     if(compression_ids[i].id == id)
       return !!(compression_ids[i].flags & FLAG_NEEDS_PIXELFORMAT);
@@ -141,7 +144,7 @@ int gavl_compression_need_pixelformat(gavl_codec_id_t id)
 int gavl_compression_constant_frame_samples(gavl_codec_id_t id)
   {
   int i;
-  for(i = 0; i < sizeof(compression_ids)/sizeof(compression_ids[0]); i++)
+  for(i = 0; i < NUM_CODEC_IDS; i++)
     {
     if(compression_ids[i].id == id)
       return !!(compression_ids[i].flags & FLAG_CFS);
@@ -150,24 +153,49 @@ int gavl_compression_constant_frame_samples(gavl_codec_id_t id)
   }
 
 
-static const char *
-get_name(gavl_codec_id_t id)
+const char *
+gavl_compression_get_long_name(gavl_codec_id_t id)
   {
   int i;
-  for(i = 0; i < sizeof(compression_ids)/sizeof(compression_ids[0]); i++)
+  for(i = 0; i < NUM_CODEC_IDS; i++)
     {
     if(compression_ids[i].id == id)
-      {
-      return compression_ids[i].name;
-      }
+      return compression_ids[i].long_name;
     }
   return NULL;
+  }
+
+const char *
+gavl_compression_get_short_name(gavl_codec_id_t id)
+  {
+  int i;
+  for(i = 0; i < NUM_CODEC_IDS; i++)
+    {
+    if(compression_ids[i].id == id)
+      return compression_ids[i].short_name;
+    }
+  return NULL;
+  
+  }
+
+gavl_codec_id_t 
+gavl_compression_from_short_name(const char * name)
+  {
+  int i;
+  for(i = 0; i < NUM_CODEC_IDS; i++)
+    {
+    if(!strcmp(compression_ids[i].short_name, name))
+      return compression_ids[i].id;
+    }
+  return GAVL_CODEC_ID_NONE;
   }
 
 void gavl_compression_info_dump(const gavl_compression_info_t * info)
   {
   fprintf(stderr, "Compression info\n");
-  fprintf(stderr, "  Codec:        %s\n", get_name(info->id));
+  fprintf(stderr, "  Codec:        %s [%s]\n",
+          gavl_compression_get_long_name(info->id),
+          gavl_compression_get_short_name(info->id));
   fprintf(stderr, "  Bitrate:      %d bps\n", info->bitrate);
 
   if(info->id >= 0x10000)

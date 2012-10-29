@@ -195,7 +195,32 @@ int gavl_compression_constant_frame_samples(gavl_codec_id_t id);
 
 GAVL_PUBLIC
 int gavl_compression_get_sample_size(gavl_codec_id_t id);
+
+/** \brief Return the long name of the compression 
+ *  \param id A codec ID
+ *  \returns The long name or NULL
+ */
   
+GAVL_PUBLIC const char *
+gavl_compression_get_long_name(gavl_codec_id_t id);
+
+/** \brief Return the short name of the compression 
+ *  \param id A codec ID
+ *  \returns The short name or NULL
+ */
+
+GAVL_PUBLIC const char *
+gavl_compression_get_short_name(gavl_codec_id_t id);
+
+/** \brief Get a compression from the short name
+ *  \param A short name
+ *  \returns The codec ID (or GAVL_CODEC_ID_NONE)
+ */
+
+GAVL_PUBLIC gavl_codec_id_t 
+gavl_compression_from_short_name(const char * name);
+
+
 #define GAVL_PACKET_TYPE_I    0x01      //!< Packet is an I-frame
 #define GAVL_PACKET_TYPE_P    0x02      //!< Packet is a P-frame
 #define GAVL_PACKET_TYPE_B    0x03      //!< Packet is a B-frame
