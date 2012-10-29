@@ -417,7 +417,7 @@ decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   priv = s->data.video.decoder->priv;
  
-  if((st = gavl_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
+  if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
     
   priv->frame = frame;
