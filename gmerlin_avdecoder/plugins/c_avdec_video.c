@@ -61,7 +61,7 @@ static const bg_parameter_info_t parameters[] =
 
 static const bg_parameter_info_t * get_parameters(void * priv)
   {
-  return NULL;
+  return parameters;
   }
 
 const bg_codec_plugin_t the_plugin =
