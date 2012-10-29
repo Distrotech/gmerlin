@@ -101,6 +101,7 @@ const char * bg_avdec_get_disc_name(void * priv);
 void
 bg_avdec_set_parameter(void * p, const char * name,
                        const bg_parameter_value_t * val);
+
 int bg_avdec_get_num_tracks(void * p);
 
 int bg_avdec_set_track(void * priv, int track);
@@ -123,37 +124,4 @@ int bg_avdec_read_video_packet(void * priv, int stream, gavl_packet_t * p);
 
 bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
 
-/* Commonly used parameters */
-
-#define PARAM_DYNRANGE \
-  {                    \
-  .name = "audio_dynrange",    \
-  .long_name = TRS("Dynamic range control"),         \
-  .type = BG_PARAMETER_CHECKBUTTON,           \
-  .val_default = { .val_i = 1 },              \
-  .help_string = TRS("Enable dynamic range control for codecs, which support this (currently only A52 and DTS).") \
-  }
-
-#define PARAM_PP_LEVEL \
-  {                    \
-  .name = "video_postprocessing_level",    \
-  .long_name = TRS("Postprocessing level"),         \
-  .opt = "pp", \
-  .type = BG_PARAMETER_SLIDER_FLOAT,           \
-  .val_default = { .val_f = 0.2 },              \
-  .val_min =     { .val_f = 0.0 },              \
-  .val_max = { .val_f = 1.0 },              \
-  .num_digits = 2,                           \
-  .help_string = TRS("Set postprocessing (to remove compression artifacts). 0 means no postprocessing, 1 means maximum postprocessing.") \
-  }
-
-#define PARAM_THREADS \
-  {                    \
-  .name = "threads",    \
-  .long_name = TRS("Number of decoding threads"),         \
-  .type = BG_PARAMETER_INT,           \
-  .val_default = { .val_i = 1 },              \
-  .val_min =     { .val_i = 1 },              \
-  .val_max = { .val_i = 1024 },              \
-  .help_string = TRS("Set the number of threads used by Video codecs") \
-  }
+#include "options.h"

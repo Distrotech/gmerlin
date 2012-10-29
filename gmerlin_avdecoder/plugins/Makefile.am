@@ -32,20 +32,28 @@ AM_LDFLAGS = -avoid-version -module @GMERLIN_PLUGIN_LDFLAGS@
 # AM_LDFLAGS = -avoid-version -module
 gmerlin_plugin_LTLIBRARIES = \
 i_avdec.la \
+c_avdec_audio.la \
+c_avdec_video.la \
 $(cdio_modules) \
 $(dvdread_modules) \
 $(dvb_modules)
 
-noinst_HEADERS = avdec_common.h
+noinst_HEADERS = avdec_common.h codec_common.h options.h
 
-i_avdec_la_SOURCES = i_avdec.c avdec_common.c
+i_avdec_la_SOURCES = i_avdec.c avdec_common.c options.c
 i_avdec_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
 
-i_vcd_la_SOURCES = i_vcd.c avdec_common.c
+i_vcd_la_SOURCES = i_vcd.c avdec_common.c options.c
 i_vcd_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
 
-i_dvd_la_SOURCES = i_dvd.c avdec_common.c
+i_dvd_la_SOURCES = i_dvd.c avdec_common.c options.c
 i_dvd_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
 
-i_dvb_la_SOURCES = i_dvb.c avdec_common.c
+i_dvb_la_SOURCES = i_dvb.c avdec_common.c options.c
 i_dvb_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
+
+c_avdec_audio_la_SOURCES = c_avdec_audio.c codec_common.c options.c
+c_avdec_audio_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
+
+c_avdec_video_la_SOURCES = c_avdec_video.c codec_common.c options.c
+c_avdec_video_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@

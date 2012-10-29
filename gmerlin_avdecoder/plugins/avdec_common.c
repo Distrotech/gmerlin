@@ -67,9 +67,8 @@ void * bg_avdec_create()
 
 void bg_avdec_close(void * priv)
   {
-  avdec_priv * avdec;
+  avdec_priv * avdec = priv;
   int i;
-  avdec = (avdec_priv*)(priv);
   if(avdec->dec)
     {
     bgav_close(avdec->dec);
@@ -127,9 +126,8 @@ bg_avdec_get_audio_source(void * priv, int stream)
 
 void bg_avdec_destroy(void * priv)
   {
-  avdec_priv * avdec;
+  avdec_priv * avdec = priv;
   bg_avdec_close(priv);
-  avdec = (avdec_priv*)(priv);
 
   if(avdec->dec)
     {
@@ -146,8 +144,7 @@ void bg_avdec_destroy(void * priv)
 
 bg_track_info_t * bg_avdec_get_track_info(void * priv, int track)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   if((track < 0) || (track >= avdec->num_tracks))
     return NULL;
   return &(avdec->track_info[track]);
@@ -155,8 +152,7 @@ bg_track_info_t * bg_avdec_get_track_info(void * priv, int track)
 
 const bg_edl_t * bg_avdec_get_edl(void * priv)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   return avdec->edl;
   }
 
@@ -164,16 +160,14 @@ int bg_avdec_read_video(void * priv,
                             gavl_video_frame_t * frame,
                             int stream)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   return bgav_read_video(avdec->dec, frame, stream);
   }
 
 void bg_avdec_skip_video(void * priv, int stream, int64_t * time,
                          int scale, int exact)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   bgav_skip_video(avdec->dec, stream, time, scale, exact);
   }
 
@@ -190,23 +184,20 @@ int bg_avdec_read_audio(void * priv,
                             int stream,
                             int num_samples)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   return bgav_read_audio(avdec->dec, frame, stream, num_samples);
   }
 
 int bg_avdec_has_subtitle(void * priv, int stream)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   return bgav_has_subtitle(avdec->dec, stream);
   }
 
 int bg_avdec_read_subtitle_overlay(void * priv,
                                    gavl_overlay_t * ovl, int stream)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   return bgav_read_subtitle_overlay(avdec->dec, ovl, stream);
   }
   
@@ -216,9 +207,7 @@ int bg_avdec_read_subtitle_text(void * priv,
                                 int64_t * duration,
                                 int stream)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
-  
+  avdec_priv * avdec = priv;
   return bgav_read_subtitle_text(avdec->dec, text, text_alloc,
                                  start_time, duration, stream);
   }
@@ -245,8 +234,7 @@ int bg_avdec_set_audio_stream(void * priv,
                                   bg_stream_action_t action)
   {
   bgav_stream_action_t act;
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   act = get_stream_action(action);
   return bgav_set_audio_stream(avdec->dec, stream, act);
   }
@@ -255,9 +243,8 @@ int bg_avdec_set_video_stream(void * priv,
                               int stream,
                               bg_stream_action_t action)
   {
-  avdec_priv * avdec;
+  avdec_priv * avdec = priv;
   bgav_stream_action_t  act;
-  avdec = (avdec_priv*)(priv);
   act = get_stream_action(action);
 
   return bgav_set_video_stream(avdec->dec, stream, act);
@@ -267,9 +254,8 @@ int bg_avdec_set_subtitle_stream(void * priv,
                               int stream,
                               bg_stream_action_t action)
   {
-  avdec_priv * avdec;
   bgav_stream_action_t  act;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   act = get_stream_action(action);
 
   return bgav_set_subtitle_stream(avdec->dec, stream, act);
@@ -278,9 +264,8 @@ int bg_avdec_set_subtitle_stream(void * priv,
 int bg_avdec_start(void * priv)
   {
   int i;
-  avdec_priv * avdec;
   const gavl_video_format_t * format;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   
   if(!bgav_start(avdec->dec))
     {
@@ -331,8 +316,7 @@ int bg_avdec_start(void * priv)
 
 void bg_avdec_seek(void * priv, int64_t * t, int scale)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   bgav_seek_scaled(avdec->dec, t, scale);
   }
 
@@ -409,142 +393,13 @@ void
 bg_avdec_set_parameter(void * p, const char * name,
                        const bg_parameter_value_t * val)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(p);
-  if(!name)
-    return;
-  else if(!strcmp(name, "connect_timeout"))
-    {
-    /* Set parameters */
-  
-    bgav_options_set_connect_timeout(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "read_timeout"))
-    {
-    bgav_options_set_read_timeout(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "network_buffer_size"))
-    {
-    bgav_options_set_network_buffer_size(avdec->opt, val->val_i * 1024);
-    }
-  else if(!strcmp(name, "network_bandwidth"))
-    {
-    bgav_options_set_network_bandwidth(avdec->opt, atoi(val->val_str));
-    }
-  else if(!strcmp(name, "http_shoutcast_metadata"))
-    {
-    bgav_options_set_http_shoutcast_metadata(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "http_use_proxy"))
-    {
-    bgav_options_set_http_use_proxy(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "http_proxy_host"))
-    {
-    bgav_options_set_http_proxy_host(avdec->opt, val->val_str);
-    }
-  else if(!strcmp(name, "http_proxy_port"))
-    {
-    bgav_options_set_http_proxy_port(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "http_proxy_auth"))
-    {
-    bgav_options_set_http_proxy_auth(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "http_proxy_user"))
-    {
-    bgav_options_set_http_proxy_user(avdec->opt, val->val_str);
-    }
-  else if(!strcmp(name, "http_proxy_pass"))
-    {
-    bgav_options_set_http_proxy_pass(avdec->opt, val->val_str);
-    }
-  else if(!strcmp(name, "rtp_try_tcp"))
-    {
-    bgav_options_set_rtp_try_tcp(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "rtp_port_base"))
-    {
-    bgav_options_set_rtp_port_base(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "ftp_anonymous_password"))
-    {
-    bgav_options_set_ftp_anonymous_password(avdec->opt, val->val_str);
-    }
-  else if(!strcmp(name, "ftp_anonymous"))
-    {
-    bgav_options_set_ftp_anonymous(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "default_subtitle_encoding"))
-    {
-    bgav_options_set_default_subtitle_encoding(avdec->opt, val->val_str);
-    }
-#if 0
-  else if(!strcmp(name, "dvd_chapters_as_tracks"))
-    {
-    bgav_options_set_dvd_chapters_as_tracks(avdec->opt, val->val_i);
-    }
-#endif
-  else if(!strcmp(name, "audio_dynrange"))
-    {
-    bgav_options_set_audio_dynrange(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "seek_subtitles"))
-    {
-    if(!strcmp(val->val_str, "video"))
-      bgav_options_set_seek_subtitles(avdec->opt, 1);
-    else if(!strcmp(val->val_str, "always"))
-      bgav_options_set_seek_subtitles(avdec->opt, 2);
-    else
-      bgav_options_set_seek_subtitles(avdec->opt, 0);
-    }
-  else if(!strcmp(name, "video_postprocessing_level"))
-    {
-    bgav_options_set_postprocessing_level(avdec->opt, val->val_f);
-    }
-  else if(!strcmp(name, "dvb_channels_file"))
-    {
-    bgav_options_set_dvb_channels_file(avdec->opt, val->val_str);
-    }
-  else if(!strcmp(name, "sample_accuracy"))
-    {
-    if(!strcmp(val->val_str, "never"))
-      bgav_options_set_sample_accurate(avdec->opt, 0);
-    else if(!strcmp(val->val_str, "always"))
-      bgav_options_set_sample_accurate(avdec->opt, 1);
-    else if(!strcmp(val->val_str, "when_necessary"))
-      bgav_options_set_sample_accurate(avdec->opt, 2);
-    }
-  else if(!strcmp(name, "cache_size"))
-    {
-    bgav_options_set_cache_size(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "cache_time"))
-    {
-    bgav_options_set_cache_time(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "dv_datetime"))
-    {
-    bgav_options_set_dv_datetime(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "shrink"))
-    {
-    bgav_options_set_shrink(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "vdpau"))
-    {
-    bgav_options_set_vdpau(avdec->opt, val->val_i);
-    }
-  else if(!strcmp(name, "threads"))
-    {
-    bgav_options_set_threads(avdec->opt, val->val_i);
-    }
+  avdec_priv * avdec = p;
+  bg_avdec_option_set_parameter(avdec->opt, name, val);
   }
 
 int bg_avdec_get_num_tracks(void * p)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(p);
+  avdec_priv * avdec = p;
   return avdec->num_tracks;
   }
 
@@ -553,8 +408,7 @@ int bg_avdec_get_num_tracks(void * p)
 int bg_avdec_set_track(void * priv, int track)
   {
   int i;
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   
   if(!bgav_select_track(avdec->dec, track))
     return 0;
@@ -576,8 +430,7 @@ int bg_avdec_set_track(void * priv, int track)
 
 gavl_frame_table_t * bg_avdec_get_frame_table(void * priv, int stream)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   return bgav_get_frame_table(avdec->dec, stream);
   }
 
@@ -601,8 +454,7 @@ void bg_avdec_set_callbacks(void * priv,
                             bg_input_callbacks_t * callbacks)
   {
   bgav_options_t * opt;
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   avdec->bg_callbacks = callbacks;
 
   if(!callbacks)
@@ -657,8 +509,7 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
 
 const char * bg_avdec_get_disc_name(void * priv)
   {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
   if(avdec->dec)
     return bgav_get_disc_name(avdec->dec);
   return NULL;

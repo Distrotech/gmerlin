@@ -19,30 +19,60 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <config.h>
+#include <gmerlin/parameter.h>
+
+#include <gmerlin/translation.h>
+#include <gmerlin/utils.h>
+
+#include <avdec.h>
+
 #include "codec_common.h"
+
 
 void * bg_avdec_codec_create()
   {
-
+  bg_avdec_codec_t * ret = calloc(1, sizeof(*ret));
+  ret->dec = bgav_stream_decoder_create();
+  ret->opt = bgav_stream_decoder_get_options(ret->dec);
+  return ret;
   }
 
 void bg_avdec_codec_destroy(void * priv)
   {
-  
+  bg_avdec_codec_t * c = priv;
+  if(c->dec)
+    bgav_stream_decoder_destroy(c->dec);
+  if(c->compressions)
+    free(c->compressions);
+  free(c);
   }
 
 const gavl_metadata_t * bg_avdec_codec_get_metadata(void * priv)
   {
-
+  bg_avdec_codec_t * c = priv;
+  return bgav_stream_decoder_get_metadata(c->dec);
   }
   
 void bg_avdec_codec_reset(void * priv)
   {
-
+  bg_avdec_codec_t * c = priv;
+  bgav_stream_decoder_reset(c->dec);
   }
 
 void bg_avdec_codec_set_parameter(void * priv, const char * name,
                                   const bg_parameter_value_t * val)
   {
-  
+  bg_avdec_codec_t * c = priv;
+  bg_avdec_option_set_parameter(c->opt, name, val);
+  }
+
+int64_t bg_avdec_codec_skip(void * priv, int64_t t)
+  {
+  bg_avdec_codec_t * c = priv;
+  return bgav_stream_decoder_skip(c->dec, t);
   }

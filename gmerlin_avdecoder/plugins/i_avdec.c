@@ -66,10 +66,8 @@ static int open_callbacks_avdec(void * priv,
                                 void * cb_priv, const char * filename, const char * mimetype,
                                 int64_t total_bytes)
   {
-  avdec_priv * avdec;
   bgav_options_t * opt;
-  
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
 
   avdec->dec = bgav_create();
   opt = bgav_get_options(avdec->dec);
@@ -84,10 +82,8 @@ static int open_callbacks_avdec(void * priv,
 
 static int open_avdec(void * priv, const char * location)
   {
-  avdec_priv * avdec;
   bgav_options_t * opt;
-  
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
 
   avdec->dec = bgav_create();
   opt = bgav_get_options(avdec->dec);
@@ -115,23 +111,7 @@ static const bg_parameter_info_t parameters[] =
       .long_name =  TRS("Video options"),
       .type =       BG_PARAMETER_SECTION
     },
-    PARAM_PP_LEVEL,
-    {
-      .name      =  "shrink",
-      .long_name =  TRS("Shrink factor"),
-      .type      =  BG_PARAMETER_SLIDER_INT,
-      .val_min     = { .val_i = 0 },
-      .val_max     = { .val_i = 3 },
-      .val_default = { .val_i = 0 },
-      .help_string = TRS("This enables downscaling of images while decoding. Currently only supported for JPEG-2000."),
-    },
-    {
-      .name      =  "vdpau",
-      .long_name =  TRS("Use vdpau"),
-      .type      =  BG_PARAMETER_CHECKBUTTON,
-      .help_string = TRS("Use VDPAU"),
-      .val_default = { .val_i = 1 },
-    },
+    PARAM_VIDEO_GENERIC,
     {
       .name =       "network_options",
       .long_name =  TRS("Network options"),

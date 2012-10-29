@@ -19,15 +19,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include "options.h"
+
 typedef struct
   {
-  bgav_stream_decoder_t * s;
+  bgav_stream_decoder_t * dec;
   gavl_codec_id_t * compressions;
+  bgav_options_t * opt;
   } bg_avdec_codec_t;
 
 void * bg_avdec_codec_create();
 void bg_avdec_codec_destroy(void *);
 const gavl_metadata_t * bg_avdec_codec_get_metadata(void *);
 void bg_avdec_codec_reset(void*);
+int64_t bg_avdec_codec_skip(void*, int64_t t);
 
 void bg_avdec_codec_set_parameter(void *, const char * name, const bg_parameter_value_t * val);
+

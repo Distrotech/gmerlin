@@ -36,9 +36,8 @@
 
 static int open_vcd(void * priv, const char * location)
   {
-  avdec_priv * avdec;
   bgav_options_t * opt;
-  avdec = (avdec_priv*)(priv);
+  avdec_priv * avdec = priv;
 
   avdec->dec = bgav_create();
   opt = bgav_get_options(avdec->dec);
