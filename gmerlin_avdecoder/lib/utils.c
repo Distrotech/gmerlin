@@ -743,6 +743,7 @@ fourccs[] =
     { GAVL_CODEC_ID_AAC,       BGAV_MK_FOURCC('m','p','4','a') }, 
     { GAVL_CODEC_ID_VORBIS,    BGAV_MK_FOURCC('V','B','I','S') }, 
     { GAVL_CODEC_ID_FLAC,      BGAV_MK_FOURCC('F','L','A','C') }, 
+    { GAVL_CODEC_ID_OPUS,      BGAV_MK_FOURCC('O','P','U','S') }, 
     
     /* Video */
     { GAVL_CODEC_ID_JPEG,      BGAV_MK_FOURCC('j','p','e','g') }, 

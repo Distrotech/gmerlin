@@ -36,7 +36,7 @@ static const gavl_codec_id_t * get_compressions(void * priv)
   {
   bg_avdec_codec_t * c = priv;
   if(!c->compressions)
-    c->compressions = bgav_supported_audio_compressions();
+    c->compressions = bgav_supported_video_compressions();
   return c->compressions;
   }
 

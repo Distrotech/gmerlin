@@ -2312,6 +2312,7 @@ typedef struct bgav_stream_decoder_s bgav_stream_decoder_t;
  *  \returns A newly allocated stream decoder
  */
   
+BGAV_PUBLIC
 bgav_stream_decoder_t * bgav_stream_decoder_create();
 
 /** \brief Get options for a stream decoder
@@ -2319,7 +2320,7 @@ bgav_stream_decoder_t * bgav_stream_decoder_create();
  *  \returns Options for decoding the stream
  */
 
-bgav_options_t *
+BGAV_PUBLIC bgav_options_t *
 bgav_stream_decoder_get_options(bgav_stream_decoder_t * dec);
 
 /** \brief Connect an audio stream decoder
@@ -2338,7 +2339,7 @@ bgav_stream_decoder_get_options(bgav_stream_decoder_t * dec);
  *  \ref gavl_audio_source_get_src_format with the returned source.
  */
   
-gavl_audio_source_t *
+BGAV_PUBLIC gavl_audio_source_t *
 bgav_stream_decoder_connect_audio(bgav_stream_decoder_t * dec,
                                   gavl_packet_source_t * src,
                                   const gavl_compression_info_t * ci,
@@ -2361,7 +2362,7 @@ bgav_stream_decoder_connect_audio(bgav_stream_decoder_t * dec,
  *  \ref gavl_video_source_get_src_format with the returned source.
  */
 
-gavl_video_source_t *
+BGAV_PUBLIC gavl_video_source_t *
 bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
                                   gavl_packet_source_t * src,
                                   const gavl_compression_info_t * ci,
@@ -2375,7 +2376,7 @@ bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
  *  This returns (possibly changed) metadata of the stream.
  */
 
-const gavl_metadata_t *
+BGAV_PUBLIC const gavl_metadata_t *
 bgav_stream_decoder_get_metadata(bgav_stream_decoder_t * dec);
 
 /** \brief Skip to a specified time
@@ -2388,7 +2389,7 @@ bgav_stream_decoder_get_metadata(bgav_stream_decoder_t * dec);
  *  in timescale unit of the video format.
  */
 
-int64_t
+BGAV_PUBLIC int64_t
 bgav_stream_decoder_skip(bgav_stream_decoder_t * dec, int64_t t);
 
 /** \brief Reset a stream decoder
@@ -2397,14 +2398,14 @@ bgav_stream_decoder_skip(bgav_stream_decoder_t * dec, int64_t t);
  *  Reset the decoder to a state as if no packet was read so far.
  */
 
-void
+BGAV_PUBLIC void
 bgav_stream_decoder_reset(bgav_stream_decoder_t * dec);
 
 /** \brief Destroy a stream decoder
  *  \param dec A stream decoder
  */
 
-void
+BGAV_PUBLIC void
 bgav_stream_decoder_destroy(bgav_stream_decoder_t * dec);
 
 /** \brief Get supported audio compressions
@@ -2416,7 +2417,8 @@ bgav_stream_decoder_destroy(bgav_stream_decoder_t * dec);
  */
 
   
-gavl_codec_id_t * bgav_supported_audio_compressions();
+BGAV_PUBLIC gavl_codec_id_t *
+bgav_supported_audio_compressions();
 
 /** \brief Get supported video compressions
  *  \returns The supported video compressions
@@ -2426,6 +2428,7 @@ gavl_codec_id_t * bgav_supported_audio_compressions();
  *  the caller.
  */
 
+BGAV_PUBLIC
 gavl_codec_id_t * bgav_supported_video_compressions();
 
   
