@@ -202,7 +202,7 @@ int bgav_subtitle_start(bgav_stream_t * s)
         return 1;
       }
     
-    dec = bgav_find_subtitle_overlay_decoder(s);
+    dec = bgav_find_subtitle_overlay_decoder(s->fourcc);
     if(!dec)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,

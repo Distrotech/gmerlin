@@ -234,7 +234,7 @@ int bgav_video_start(bgav_stream_t * s)
   
   if(s->action == BGAV_STREAM_DECODE)
     {
-    dec = bgav_find_video_decoder(s);
+    dec = bgav_find_video_decoder(s->fourcc);
     if(!dec)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,

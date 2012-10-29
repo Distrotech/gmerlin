@@ -2406,6 +2406,28 @@ bgav_stream_decoder_reset(bgav_stream_decoder_t * dec);
 
 void
 bgav_stream_decoder_destroy(bgav_stream_decoder_t * dec);
+
+/** \brief Get supported audio compressions
+ *  \returns The supported audio compressions
+ *
+ *  Compressions are returned as an array terminated with
+ *  GAVL_CODEC_ID_NONE. The returned array must be free()d by
+ *  the caller.
+ */
+
+  
+gavl_codec_id_t * bgav_supported_audio_compressions();
+
+/** \brief Get supported video compressions
+ *  \returns The supported video compressions
+ *
+ *  Compressions are returned as an array terminated with
+ *  GAVL_CODEC_ID_NONE. The returned array must be free()d by
+ *  the caller.
+ */
+
+gavl_codec_id_t * bgav_supported_video_compressions();
+
   
 /**
  *  @}

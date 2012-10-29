@@ -459,7 +459,7 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
   while(i < track->num_audio_streams)
     {
     s = &track->audio_streams[i];
-    if(!bgav_find_audio_decoder(s))
+    if(!bgav_find_audio_decoder(s->fourcc))
       {
       bgav_track_remove_audio_stream(track, i);
 
@@ -502,7 +502,7 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
   while(i < track->num_video_streams)
     {
     s = &track->video_streams[i];
-    if(!bgav_find_video_decoder(s))
+    if(!bgav_find_video_decoder(s->fourcc))
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "No video decoder found for fourcc %c%c%c%c (0x%08x)",

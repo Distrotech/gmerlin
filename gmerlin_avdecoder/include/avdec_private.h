@@ -1845,9 +1845,9 @@ int bgav_subtitle_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 
 void bgav_codecs_init(bgav_options_t * opt);
 
-bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t*);
-bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t*);
-bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream_t*);
+bgav_audio_decoder_t * bgav_find_audio_decoder(uint32_t fourcc);
+bgav_video_decoder_t * bgav_find_video_decoder(uint32_t fourcc);
+bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(uint32_t fourcc);
 
 void bgav_audio_decoder_register(bgav_audio_decoder_t * dec);
 void bgav_video_decoder_register(bgav_video_decoder_t * dec);

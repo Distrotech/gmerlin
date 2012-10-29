@@ -389,7 +389,7 @@ void bgav_subtitle_overlay_decoder_register(bgav_subtitle_overlay_decoder_t * de
   
   }
 
-bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
+bgav_audio_decoder_t * bgav_find_audio_decoder(uint32_t fourcc)
   {
   bgav_audio_decoder_t * cur;
   int i;
@@ -404,7 +404,7 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
     i = 0;
     while(cur->fourccs[i])
       {
-      if(cur->fourccs[i] == s->fourcc)
+      if(cur->fourccs[i] == fourcc)
         {
         codecs_unlock();
         return cur;
@@ -418,7 +418,7 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
   return NULL;
   }
 
-bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
+bgav_video_decoder_t * bgav_find_video_decoder(uint32_t fourcc)
   {
   bgav_video_decoder_t * cur;
   int i;
@@ -434,7 +434,7 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
     i = 0;
     while(cur->fourccs[i])
       {
-      if(cur->fourccs[i] == s->fourcc)
+      if(cur->fourccs[i] == fourcc)
         {
         codecs_unlock();
         return cur;
@@ -448,7 +448,7 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
   return NULL;
   }
 
-bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream_t * s)
+bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(uint32_t fourcc)
   {
   bgav_subtitle_overlay_decoder_t * cur;
   int i;
@@ -464,7 +464,7 @@ bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream
     i = 0;
     while(cur->fourccs[i])
       {
-      if(cur->fourccs[i] == s->fourcc)
+      if(cur->fourccs[i] == fourcc)
         {
         codecs_unlock();
         return cur;
@@ -476,6 +476,62 @@ bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream
     }
   codecs_unlock();
   return NULL;
+  }
+
+gavl_codec_id_t * bgav_supported_audio_compressions()
+  {
+  int i, num;
+  gavl_codec_id_t id;
+  uint32_t fourcc;
+  gavl_codec_id_t * ret;
+  int ret_num;
+  
+  bgav_codecs_init(NULL);
+
+  num = gavl_num_compressions();
+  ret = calloc(num, sizeof(*ret));
+
+  ret_num = 0;
+  
+  for(i = 0; i < num; i++)
+    {
+    id = gavl_get_compression(i);
+    fourcc = bgav_compression_id_2_fourcc(id);
+    if(bgav_find_audio_decoder(fourcc))
+      {
+      ret[ret_num] = id;
+      ret_num++;
+      }
+    }
+  ret[ret_num] = GAVL_CODEC_ID_NONE;
+  return ret;
+  }
+
+gavl_codec_id_t * bgav_supported_video_compressions()
+  {
+  int i, num;
+  gavl_codec_id_t id;
+  uint32_t fourcc;
+  gavl_codec_id_t * ret;
+  int ret_num;
+  bgav_codecs_init(NULL);
+  num = gavl_num_compressions();
+  ret = calloc(num, sizeof(*ret));
+
+  ret_num = 0;
+  
+  for(i = 0; i < num; i++)
+    {
+    id = gavl_get_compression(i);
+    fourcc = bgav_compression_id_2_fourcc(id);
+    if(bgav_find_video_decoder(fourcc))
+      {
+      ret[ret_num] = id;
+      ret_num++;
+      }
+    }
+  ret[ret_num] = GAVL_CODEC_ID_NONE;
+  return ret;
   }
 
 
