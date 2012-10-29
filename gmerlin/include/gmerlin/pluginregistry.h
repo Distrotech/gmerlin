@@ -86,6 +86,7 @@ struct bg_plugin_info_s
   char * mimetypes;       //!< Mimetypes, this plugin can handle
   char * extensions;      //!< Extensions, this plugin can handle
   char * protocols;       //!< Network protocols, this plugin can handle
+  gavl_codec_id_t * compressions; //!< Compressions, this plugin can handle
 
   char * description;     //!< Description of what the plugin does
 
@@ -104,6 +105,7 @@ struct bg_plugin_info_s
   bg_plugin_info_t * next; //!< Used for chaining, never touch this
 
   bg_parameter_info_t * parameters; //!< Parameters, which can be passed to the plugin
+
   
   int max_audio_streams; //!< For encoders: Maximum number of audio streams (-1 means infinite)
   int max_video_streams; //!< For encoders: Maximum number of video streams (-1 means infinite)
@@ -275,6 +277,19 @@ bg_plugin_find_by_name(bg_plugin_registry_t * reg, const char * name);
 const bg_plugin_info_t *
 bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
                            const char * filename, int type_mask);
+
+/** \ingroup plugin_registry
+ *  \brief Find a plugin by the compression ID
+ *  \param reg A plugin registry
+ *  \param typemask Mask of plugin types to be returned
+ *  \param flagmask Mask of plugin flags to be returned
+ *  \returns A plugin info or NULL
+ */
+
+const bg_plugin_info_t *
+bg_plugin_find_by_compression(bg_plugin_registry_t * reg,
+                              gavl_codec_id_t id,
+                              int typemask, int flagmask);
 
 
 /** \ingroup plugin_registry

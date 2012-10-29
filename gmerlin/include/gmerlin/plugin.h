@@ -2429,15 +2429,30 @@ struct bg_visualization_plugin_s
   
   };
 
-/** \brief Audio encoder plugin
+/** \ingroup plugin_codec
+ *  \brief typedef for codec plugin
  *
- *  Transform audio frames into compressed packets
+ */
+
+typedef struct bg_codec_plugin_s bg_codec_plugin_t;
+
+
+/** \brief Codec plugin
+ *
+ *  Transform audio frames into compressed packets or back
  */
 
 struct bg_codec_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
+  /** \brief Get supported compressions
+   *  \param priv The handle returned by the create() method
+   *  \returns A list of compressions terminated with GAVL_COMPRESSION_NONE
+   */
+  
+  const gavl_codec_id_t * (*get_compressions)(void * priv);
+  
   /** \brief Connect audio encoder
    *  \param priv The handle returned by the create() method
    *  \param ci Compression info (must be freed by the caller)

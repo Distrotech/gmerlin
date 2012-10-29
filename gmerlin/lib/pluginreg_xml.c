@@ -108,6 +108,7 @@ static const char * const long_name_key         = "LONG_NAME";
 static const char * const description_key       = "DESCRIPTION";
 static const char * const mimetypes_key         = "MIMETYPES";
 static const char * const extensions_key        = "EXTENSIONS";
+static const char * const compressions_key      = "COMPRESSIONS";
 static const char * const protocols_key         = "PROTOCOLS";
 static const char * const module_filename_key   = "MODULE_FILENAME";
 static const char * const module_time_key       = "MODULE_TIME";
@@ -259,6 +260,27 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     else if(!BG_XML_STRCMP(cur->name, protocols_key))
       {
       ret->protocols = bg_strdup(ret->protocols, tmp_string);
+      }
+    else if(!BG_XML_STRCMP(cur->name, compressions_key))
+      {
+      int num;
+      int index;
+      char ** comp_list;
+
+      comp_list = bg_strbreak(tmp_string, ' ');
+
+      num = 0;
+
+      while(comp_list[num])
+        num++;
+      ret->compressions = calloc(num+1, sizeof(*ret->compressions));
+
+      while(comp_list[index])
+        {
+        ret->compressions[index] = gavl_compression_from_short_name(comp_list[index]);
+        index++;
+        }
+      bg_strbreak_free(comp_list);
       }
     else if(!BG_XML_STRCMP(cur->name, module_filename_key))
       {
@@ -454,6 +476,23 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)protocols_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->protocols));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+  if(info->compressions)
+    {
+    int index = 0;
+    char * tmp_string = NULL;
+
+    while(info->compressions[index] != GAVL_CODEC_ID_NONE)
+      {
+      if(index)
+        tmp_string = bg_strcat(tmp_string, " ");
+      tmp_string = bg_strcat(tmp_string, gavl_compression_get_short_name(info->compressions[index]));
+      }
+    
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)protocols_key, NULL);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(tmp_string));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    free(tmp_string);
     }
   if(info->mimetypes)
     {

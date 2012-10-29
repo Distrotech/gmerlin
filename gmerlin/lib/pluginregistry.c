@@ -141,6 +141,8 @@ void bg_plugin_info_destroy(bg_plugin_info_t * info)
     bg_device_info_destroy(info->devices);
   if(info->cmp_name)
     free(info->cmp_name);
+  if(info->compressions)
+    free(info->compressions);
   
   if(info->parameters)
     bg_parameter_info_destroy_array(info->parameters);
@@ -322,8 +324,6 @@ const bg_plugin_info_t * bg_plugin_find_by_protocol(bg_plugin_registry_t * reg,
   return NULL;
   }
 
-
-
 const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
                                                     const char * filename,
                                                     int typemask)
@@ -368,6 +368,45 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
     }
   return ret;
   }
+
+const bg_plugin_info_t * bg_plugin_find_by_compression(bg_plugin_registry_t * reg,
+                                                       gavl_codec_id_t id,
+                                                       int typemask, int flagmask)
+  {
+  int i;
+  bg_plugin_info_t * info, *ret = NULL;
+  int max_priority = BG_PLUGIN_PRIORITY_MIN - 1;
+
+  info = reg->entries;
+  
+  while(info)
+    {
+    if(!(info->type & typemask) ||
+       !(info->flags & flagmask) ||
+       !info->compressions)
+      {
+      info = info->next;
+      continue;
+      }
+
+    while(info->compressions[i] != GAVL_CODEC_ID_NONE)
+      {
+      if(info->compressions[i] == id)
+        {
+        if(max_priority < info->priority)
+          {
+          max_priority = info->priority;
+          ret = info;
+          }
+        }
+      i++;
+      }
+    
+    info = info->next;
+    }
+  return ret;
+  }
+
 
 static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
                                            bg_plugin_info_t * info)
@@ -608,6 +647,24 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
     iw = (bg_image_writer_plugin_t*)plugin;
     new_info->extensions = bg_strdup(new_info->extensions,
                                      iw->extensions);
+    }
+  if(plugin->type & BG_PLUGIN_CODEC)
+    {
+    bg_codec_plugin_t  * p;
+    p = (bg_codec_plugin_t*)plugin;
+
+    if(p->get_compressions)
+      {
+      int num = 0;
+      const gavl_codec_id_t * compressions;
+
+      compressions = p->get_compressions(plugin_priv);
+      
+      while(compressions[num])
+        num++;
+      new_info->compressions = calloc(num+1, sizeof(*new_info->compressions));
+      memcpy(new_info->compressions, compressions, num * sizeof(*new_info->compressions));
+      }
     }
   
   if(plugin->find_devices)
