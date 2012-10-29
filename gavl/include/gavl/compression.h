@@ -220,7 +220,28 @@ gavl_compression_get_short_name(gavl_codec_id_t id);
 GAVL_PUBLIC gavl_codec_id_t 
 gavl_compression_from_short_name(const char * name);
 
+/** \brief Get the number of compression formats
+ *  \returns The number of supported compresion formats
+ *
+ *  Use this with \ref gavl_get_compression to enumerate all
+ *  compression formats
+ */
+  
+GAVL_PUBLIC
+int gavl_num_compressions();
 
+/** \brief Get a compression format for a specified index
+ *  \param index Index (starting with 0)
+ *  \returns The compression format
+ *
+ *  Use this with \ref gavl_num_compressions to enumerate all
+ *  compression formats
+ */
+  
+GAVL_PUBLIC
+gavl_codec_id_t gavl_get_compression(int index);
+
+  
 #define GAVL_PACKET_TYPE_I    0x01      //!< Packet is an I-frame
 #define GAVL_PACKET_TYPE_P    0x02      //!< Packet is a P-frame
 #define GAVL_PACKET_TYPE_B    0x03      //!< Packet is a B-frame

@@ -190,6 +190,17 @@ gavl_compression_from_short_name(const char * name)
   return GAVL_CODEC_ID_NONE;
   }
 
+int gavl_num_compressions()
+  {
+  return NUM_CODEC_IDS;
+  }
+
+gavl_codec_id_t gavl_get_compression(int index)
+  {
+  return compression_ids[index].id;
+  }
+
+
 void gavl_compression_info_dump(const gavl_compression_info_t * info)
   {
   fprintf(stderr, "Compression info\n");
