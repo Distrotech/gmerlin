@@ -41,6 +41,8 @@ typedef struct
   bg_gtk_plugin_widget_single_t * audio_recorder_plugins;
   bg_gtk_plugin_widget_single_t * video_recorder_plugins;
 
+  bg_gtk_plugin_widget_multi_t  * decompressor_plugins;
+  
   bg_gtk_plugin_widget_single_t * audio_encoder_plugins;
   bg_gtk_plugin_widget_single_t * video_encoder_plugins;
   bg_gtk_plugin_widget_single_t * subtitle_text_encoder_plugins;
@@ -253,7 +255,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
-  
+    
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
 
@@ -261,6 +263,9 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                        TR("Gmerlin Plugin Configurator"));
   
   notebook = gtk_notebook_new();
+
+  gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook), GTK_POS_LEFT);
+
   
   ret->input_plugins =
     bg_gtk_plugin_widget_multi_create(reg,
@@ -429,6 +434,22 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            bg_gtk_plugin_widget_multi_get_widget(ret->visualizations),
+                           label);
+
+
+  /* Decompressors */
+
+  ret->decompressor_plugins =
+    bg_gtk_plugin_widget_multi_create(reg,
+                                      BG_PLUGIN_CODEC,
+                                      BG_PLUGIN_AUDIO_DECOMPRESSOR|
+                                      BG_PLUGIN_VIDEO_DECOMPRESSOR);
+  
+  label = gtk_label_new(TR("Decompressors"));
+  gtk_widget_show(label);
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->decompressor_plugins),
                            label);
 
   

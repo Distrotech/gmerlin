@@ -264,21 +264,21 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     else if(!BG_XML_STRCMP(cur->name, compressions_key))
       {
       int num;
-      int index;
       char ** comp_list;
 
       comp_list = bg_strbreak(tmp_string, ' ');
 
       num = 0;
-
       while(comp_list[num])
         num++;
       ret->compressions = calloc(num+1, sizeof(*ret->compressions));
 
-      while(comp_list[index])
+      num = 0;
+      
+      while(comp_list[num])
         {
-        ret->compressions[index] = gavl_compression_from_short_name(comp_list[index]);
-        index++;
+        ret->compressions[num] = gavl_compression_from_short_name(comp_list[num]);
+        num++;
         }
       bg_strbreak_free(comp_list);
       }
@@ -487,9 +487,10 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
       if(index)
         tmp_string = bg_strcat(tmp_string, " ");
       tmp_string = bg_strcat(tmp_string, gavl_compression_get_short_name(info->compressions[index]));
+      index++;
       }
     
-    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)protocols_key, NULL);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)compressions_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(tmp_string));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     free(tmp_string);
