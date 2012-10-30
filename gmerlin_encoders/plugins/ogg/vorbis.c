@@ -373,17 +373,6 @@ static int init_vorbis(void * data,
       break;
     }
   
-#if 0  
-  /* Turn off management entirely (if it was turned on). */
-  if(!vorbis->max_bitrate && !vorbis->min_bitrate && !vorbis->managed)
-    {
-    vorbis_encode_ctl(&vorbis->enc_vi, OV_ECTL_RATEMANAGE2_SET, NULL);
-    vorbis->managed = 0;
-    }
-
-  vorbis_encode_setup_init(&vorbis->enc_vi);
-#endif
-  
   vorbis_analysis_init(&vorbis->enc_vd,&vorbis->enc_vi);
   vorbis_block_init(&vorbis->enc_vd,&vorbis->enc_vb);
 
