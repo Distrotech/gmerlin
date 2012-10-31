@@ -165,6 +165,9 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   int i, j, done;
   gavl_source_status_t st;
   priv = s->data.audio.decoder->priv;
+
+  if(priv->eof)
+    return GAVL_SOURCE_EOF;
   
   /* Check if we need new data */
   if((priv->buf.size <= MAD_BUFFER_GUARD) && 
