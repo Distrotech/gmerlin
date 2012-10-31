@@ -311,6 +311,12 @@ static const gavl_pixelformat_t supported_pixelformats[] =
 (p)[2] = ((num)>>16) & 0xff; \
 (p)[3] = ((num)>>24) & 0xff
 
+#define INT32BE_2_PTR(num, p) \
+(p)[3] = (num) & 0xff; \
+(p)[2] = ((num)>>8) & 0xff; \
+(p)[1] = ((num)>>16) & 0xff; \
+(p)[0] = ((num)>>24) & 0xff
+
 
 #define WRITE_STRING(s, p) string_len = strlen(s); \
   INT32LE_2_PTR(string_len, p); p += 4; \
@@ -436,11 +442,12 @@ static int init_compressed_theora(void * data,
 
 static int init_theora(void * data, gavl_video_format_t * format,
                        gavl_metadata_t * metadata,
-                       const gavl_metadata_t * stream_metadata)
+                       const gavl_metadata_t * stream_metadata,
+                       gavl_compression_info_t * ci)
   {
   int sub_h, sub_v;
   int arg_i1, arg_i2;
-  
+  uint8_t * ptr;
   ogg_packet op;
   int header_packets;
   
@@ -511,7 +518,7 @@ static int init_theora(void * data, gavl_video_format_t * format,
     }
   /* Build comment (comments are UTF-8, good for us :-) */
 
-  build_comment(&theora->tc, metadata);
+  // build_comment(&theora->tc, metadata);
 
   /* Call encode CTLs */
   
@@ -545,10 +552,23 @@ static int init_theora(void * data, gavl_video_format_t * format,
   
   /* Encode initial packets */
 
-  header_packets = 0;
+  ci->id = GAVL_CODEC_ID_THEORA;
   
+  header_packets = 0;
+
+  /* Build global header */
   while(th_encode_flushheader(theora->ts, &theora->tc, &op) > 0)
     {
+    ci->global_header = realloc(ci->global_header, 
+                                ci->global_header_len + 4 + op.bytes);
+
+    ptr = ci->global_header + ci->global_header_len;
+
+    INT32BE_2_PTR(op.bytes, ptr); ptr += 4;
+    memcpy(ptr, op.packet, op.bytes);
+    ci->global_header_len += 4 + op.bytes;
+
+#if 0    
     ogg_stream_packetin(&theora->os,&op);
 
     if(!header_packets)
@@ -560,6 +580,7 @@ static int init_theora(void * data, gavl_video_format_t * format,
         return 0;
         }
       }
+#endif
     header_packets++;
     }
   
