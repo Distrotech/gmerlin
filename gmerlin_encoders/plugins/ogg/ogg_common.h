@@ -36,11 +36,13 @@ typedef struct
 
   int (*init_audio)(void*, gavl_audio_format_t * format,
                     gavl_metadata_t * global_metadata,
-                    const gavl_metadata_t * stream_metadata);
+                    const gavl_metadata_t * stream_metadata,
+                    gavl_compression_info_t * ci_ret);
 
   int (*init_video)(void*, gavl_video_format_t * format,
                     gavl_metadata_t * global_metadata,
-                    const gavl_metadata_t * stream_metadata);
+                    const gavl_metadata_t * stream_metadata,
+                    gavl_compression_info_t * ci_ret);
 
   int (*init_audio_compressed)(void*, gavl_audio_format_t * format,
                                const gavl_compression_info_t * ci,

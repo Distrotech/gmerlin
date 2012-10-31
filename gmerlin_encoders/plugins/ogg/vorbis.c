@@ -196,6 +196,12 @@ static void build_comment(vorbis_comment * vc, gavl_metadata_t * metadata)
    (*(p+2) << 8) |    \
    *(p+3))
 
+#define INT_32BE_2_PTR(num, p) \
+  (p)[0] = ((num)>>24) & 0xff; \
+  (p)[1] = ((num)>>16) & 0xff; \
+  (p)[2] = ((num)>>8) & 0xff;  \
+  (p)[3] = (num) & 0xff;
+
 #define PTR_2_32LE(p) \
   ((*(p+3) << 24) |     \
    (*(p+2) << 16) |   \
@@ -203,10 +209,10 @@ static void build_comment(vorbis_comment * vc, gavl_metadata_t * metadata)
    *(p))
 
 #define INT32LE_2_PTR(num, p) \
-(p)[0] = (num) & 0xff; \
-(p)[1] = ((num)>>8) & 0xff; \
-(p)[2] = ((num)>>16) & 0xff; \
-(p)[3] = ((num)>>24) & 0xff
+  (p)[0] = (num) & 0xff;                        \
+  (p)[1] = ((num)>>8) & 0xff;                \
+  (p)[2] = ((num)>>16) & 0xff;            \
+  (p)[3] = ((num)>>24) & 0xff
 
 
 #define WRITE_STRING(s, p) string_len = strlen(s); \
@@ -326,7 +332,8 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
 static int init_vorbis(void * data,
                        gavl_audio_format_t * format,
                        gavl_metadata_t * metadata,
-                       const gavl_metadata_t * stream_metadata)
+                       const gavl_metadata_t * stream_metadata,
+                       gavl_compression_info_t * ci_ret)
   {
   ogg_packet header_main;
   ogg_packet header_comments;
@@ -334,7 +341,8 @@ static int init_vorbis(void * data,
   //  struct ovectl_ratemanage2_arg ai;
 
   vorbis_t * vorbis = data;
-
+  uint8_t * ptr;
+  
   vorbis->format = format;
   vorbis->frame = gavl_audio_frame_create(NULL);
   
@@ -393,6 +401,26 @@ static int init_vorbis(void * data,
   ogg_stream_packetin(&vorbis->enc_os,&header_comments);
   ogg_stream_packetin(&vorbis->enc_os,&header_codebooks);
 
+  ci_ret->global_header_len =
+    header_main.bytes + header_comments.bytes + header_codebooks.bytes + 12;
+  
+  ci_ret->global_header = malloc(ci_ret->global_header_len);
+  ptr = ci_ret->global_header;
+
+  INT32LE_2_PTR(header_main.bytes, ptr); ptr += 4;
+  memcpy(ptr, header_main.packet, header_main.bytes);
+  ptr += header_main.bytes;
+
+  INT32LE_2_PTR(header_comments.bytes, ptr); ptr += 4;
+  memcpy(ptr, header_comments.packet, header_comments.bytes);
+  ptr += header_comments.bytes;
+
+  INT32LE_2_PTR(header_codebooks.bytes, ptr); ptr += 4;
+  memcpy(ptr, header_codebooks.packet, header_codebooks.bytes);
+  ptr += header_codebooks.bytes;
+
+  ci_ret->id = GAVL_CODEC_ID_VORBIS;
+  
   return 1;
   }
 

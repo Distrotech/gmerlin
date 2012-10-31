@@ -307,8 +307,11 @@ write_video_packet_func(void * data,
 
 static int start_audio(bg_ogg_encoder_t * e, int stream)
   {
+  gavl_compression_info_t ci;
   bg_ogg_audio_stream_t * s = &e->audio_streams[stream];
 
+  memset(&ci, 0, sizeof(ci));
+  
   if(s->ci)
     {
     if(!s->codec->init_audio_compressed(s->codec_priv,
@@ -320,17 +323,31 @@ static int start_audio(bg_ogg_encoder_t * e, int stream)
   else
     {
     if(!s->codec->init_audio(s->codec_priv,
-                             &s->format, &e->metadata, s->m))
+                             &s->format, &e->metadata, s->m, &ci))
       return 0;
+
+    if(ci.id != GAVL_CODEC_ID_NONE)
+      {
+      if(!s->codec->init_audio_compressed(s->codec_priv,
+                                          &s->format, &ci, &e->metadata, s->m))
+        {
+        gavl_compression_info_free(&ci);
+        return 0;
+        }
+      }
     s->sink = gavl_audio_sink_create(NULL, write_audio_func, s, &s->format);
     }
+  gavl_compression_info_free(&ci);
   return 1;
   }
 
 static int start_video(bg_ogg_encoder_t * e, int stream)
   {
-  bg_ogg_video_stream_t * s = &e->video_streams[stream];
+  gavl_compression_info_t ci;
 
+  bg_ogg_video_stream_t * s = &e->video_streams[stream];
+  
+  memset(&ci, 0, sizeof(ci));
   if(s->ci)
     {
     if(!s->codec->init_video_compressed(s->codec_priv,
@@ -344,7 +361,7 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
     {
     if(!s->codec->init_video(s->codec_priv,
                              &s->format,
-                             &e->metadata, s->m))
+                             &e->metadata, s->m, &ci))
       return 0;
     
     if(s->pass)
@@ -359,10 +376,20 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
                                      s->stats_file))
           return 0;
       }
-
+    if(ci.id != GAVL_CODEC_ID_NONE)
+      {
+      if(!s->codec->init_video_compressed(s->codec_priv,
+                                          &s->format, &ci, &e->metadata, s->m))
+        {
+        gavl_compression_info_free(&ci);
+        return 0;
+        }
+      }
+    
     s->sink = gavl_video_sink_create(NULL, write_video_func, s, &s->format);
     }
   
+  gavl_compression_info_free(&ci);
   return 1;
   }
 
