@@ -45,7 +45,6 @@ typedef struct
   FILE * out;
   
   gavl_audio_format_t format;
-  FLAC__StreamEncoder * enc;
 
   /* Metadata stuff */
   
@@ -156,8 +155,7 @@ static int open_flac(void * data, const char * filename,
   
   flac = data;
 
-  /* Create encoder instance */
-  flac->enc = FLAC__stream_encoder_new();
+  bg_flac_init(&flac->com);
   
   flac->filename = bg_filename_ensure_extension(filename, "flac");
 
@@ -190,7 +188,7 @@ static int open_flac(void * data, const char * filename,
   
   /* Insert metadata */
     
-  FLAC__stream_encoder_set_metadata(flac->enc, flac->metadata, flac->num_metadata);
+  FLAC__stream_encoder_set_metadata(flac->com.enc, flac->metadata, flac->num_metadata);
   return result;
   }
 
@@ -281,13 +279,7 @@ write_audio_func_flac(void * data, gavl_audio_frame_t * frame)
   
   flac = data;
 
-  bg_flac_prepare_audio_frame(&flac->com, frame);
-  
-  /* Encode */
-
-  if(!FLAC__stream_encoder_process(flac->enc, (const FLAC__int32 **) flac->com.buffer,
-                                   frame->valid_samples))
-    ret = GAVL_SINK_ERROR;
+  bg_flac_encode_audio_frame(&flac->com, frame);
   flac->samples_written += frame->valid_samples;
   return ret;
   }
@@ -363,36 +355,17 @@ static int start_flac(void * data)
   flac_t * flac;
   flac = data;
 
-  bg_flac_init_stream_encoder(&flac->com, flac->enc);
-  
-  if(FLAC__stream_encoder_init_stream(flac->enc,
-                                      write_callback,
-                                      NULL, // Seek
-                                      NULL, // Tell
-                                      metadata_callback, // Metadata
-                                      flac) != FLAC__STREAM_ENCODER_OK)
-    {
-    if(errno)
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing encoder failed: %s",
-             strerror(errno));
-    else
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing encoder failed");
+  if(!bg_flac_init_stream_encoder(&flac->com))
     return 0;
-    }
-
+  
   /* At this point the flac encoder wrote the header, close it here */
   if(flac->ci)
     {
-    FLAC__stream_encoder_finish(flac->enc);
-    FLAC__stream_encoder_delete(flac->enc);
-    flac->enc = NULL;
+    //    FLAC__stream_encoder_finish(flac->enc);
+    //    FLAC__stream_encoder_delete(flac->enc);
+    //    flac->enc = NULL;
     }
-  else
-    {
-    flac->com.samples_per_block =
-      FLAC__stream_encoder_get_blocksize(flac->enc);
-    //    fprintf(stderr, "Got blocksize %d\n", flac->com.samples_per_block);
-    }
+  
   flac->data_start = -1;
 
   if(flac->ci)
@@ -513,13 +486,15 @@ static int close_flac(void * data, int do_delete)
     {
     FLAC__metadata_object_seektable_template_sort(flac->seektable, 1);
     }
+  bg_flac_free(&flac->com);
+#if 0
   if(flac->enc)
     {
     FLAC__stream_encoder_finish(flac->enc);
     FLAC__stream_encoder_delete(flac->enc);
     flac->enc = NULL;
     }
-
+#endif
   if(flac->out)
     {
     fclose(flac->out);

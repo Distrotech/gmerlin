@@ -25,6 +25,7 @@
 #include <FLAC/stream_encoder.h> /* Flac in Ogg */
 #include <FLAC/metadata.h>
 
+#define BG_FLAC_HEADER_SIZE (4+38)
 
 typedef struct
   {
@@ -46,17 +47,36 @@ typedef struct
   gavl_audio_format_t *format;
 
   FLAC__StreamMetadata * vorbis_comment;
+  FLAC__StreamEncoder * enc;
+
+  /* Needs to be set by the client */
+  gavl_packet_sink_t * psink;
+
+  FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__StreamEncoder *encoder,
+                                                   const FLAC__byte buffer[],
+                                                   size_t bytes,
+                                                   void *data);
+  void * write_callback_priv;
+
+  uint8_t header[BG_FLAC_HEADER_SIZE];
+  int header_size;
+  int64_t pts;
   } bg_flac_t;
+
+
+void bg_flac_init(bg_flac_t * flac);
+
 
 const bg_parameter_info_t * bg_flac_get_parameters(void * data);
   
 void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);
 
-void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc);
+int bg_flac_init_stream_encoder(bg_flac_t * flac);
 
 void bg_flac_init_metadata(bg_flac_t * flac,
                            const gavl_metadata_t * metadata);
 
-void bg_flac_prepare_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame);
+int bg_flac_encode_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame);
+
 void bg_flac_free(bg_flac_t * flac);
 

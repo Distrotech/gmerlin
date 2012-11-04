@@ -43,10 +43,10 @@ static const bg_parameter_info_t * get_audio_parameters_vorbis(void * data)
 static int add_audio_stream_vorbis(void * data, const gavl_metadata_t *m,
                                    const gavl_audio_format_t * format)
   {
-  int ret;
-  ret = bg_ogg_encoder_add_audio_stream(data, m, format);
-  bg_ogg_encoder_init_audio_stream(data, ret, &bg_vorbis_codec);
-  return ret;
+  bg_ogg_stream_t * s;
+  s = bg_ogg_encoder_add_audio_stream(data, m, format);
+  bg_ogg_encoder_init_stream(data, s, &bg_vorbis_codec);
+  return s->index;
   }
 
 static int
@@ -73,10 +73,10 @@ static int add_audio_stream_compressed_vorbis(void * data,
                                               const gavl_audio_format_t * format,
                                               const gavl_compression_info_t * ci)
   {
-  int ret;
-  ret = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
-  bg_ogg_encoder_init_audio_stream(data, ret, &bg_vorbis_codec);
-  return ret;
+  bg_ogg_stream_t * s;
+  s = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
+  bg_ogg_encoder_init_stream(data, s, &bg_vorbis_codec);
+  return s->index;
   }
 
 
@@ -93,10 +93,6 @@ const bg_encoder_plugin_t the_plugin =
       .priority =        5,
       .create =            bg_ogg_encoder_create,
       .destroy =           bg_ogg_encoder_destroy,
-#if 0
-      .get_parameters =    get_parameters_vorbis,
-      .set_parameter =     set_parameter_vorbis,
-#endif
     },
     .max_audio_streams =   1,
     .max_video_streams =   0,

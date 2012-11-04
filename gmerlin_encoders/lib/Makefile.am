@@ -19,7 +19,8 @@ noinst_LTLIBRARIES = libgmerlin_encoders.la $(flac_libs) $(shout_libs)
 
 libgmerlin_encoders_la_SOURCES = \
 id3v1.c \
-id3v2.c
+id3v2.c \
+vorbiscomment.c
 
 libbgflac_la_CFLAGS  = @FLAC_CFLAGS@
 libbgflac_la_SOURCES = bgflac.c

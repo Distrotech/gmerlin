@@ -46,14 +46,12 @@ typedef struct
   {
   /* Ogg vorbis stuff */
     
-  ogg_stream_state enc_os;
   //  ogg_page enc_og;
   vorbis_info enc_vi;
   vorbis_comment enc_vc;
   vorbis_dsp_state enc_vd;
   vorbis_block enc_vb;
 
-  long serialno;
   bg_ogg_encoder_t * output;
   
   /* Options */
@@ -73,15 +71,16 @@ typedef struct
   
   gavl_audio_format_t * format;
   gavl_audio_frame_t * frame;
+
+  bg_ogg_stream_t * s;
   
   } vorbis_t;
 
-static void * create_vorbis(bg_ogg_encoder_t * output, long serialno)
+static void * create_vorbis(bg_ogg_stream_t * s)
   {
   vorbis_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->serialno = serialno;
-  ret->output = output;
+  ret->s = s;
   return ret;
   }
 
@@ -272,7 +271,6 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   int comment_len;
   
   vorbis->format = format;
-  ogg_stream_init(&vorbis->enc_os, vorbis->serialno);
 
   memset(&packet, 0, sizeof(packet));
   
@@ -284,11 +282,10 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   packet.packet = ptr;
   packet.bytes  = len;
   packet.b_o_s = 1;
-  
-  ogg_stream_packetin(&vorbis->enc_os,&packet);
-  if(!bg_ogg_flush_page(&vorbis->enc_os, vorbis->output, 1))
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Vorbis ID page");
 
+  if(!bg_ogg_stream_write_header_packet(vorbis->s, &packet))
+    return 0;
+  
   ptr += len;
   
   /* Comment is more complicated: We need to copy the vendor field from the
@@ -310,7 +307,8 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   packet.bytes  = comment_len;
   packet.b_o_s = 0;
 
-  ogg_stream_packetin(&vorbis->enc_os,&packet);
+  if(!bg_ogg_stream_write_header_packet(vorbis->s, &packet))
+    return 0;
   
   free(comment_packet);
 
@@ -325,7 +323,8 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   packet.packet = ptr;
   packet.bytes  = len;
   
-  ogg_stream_packetin(&vorbis->enc_os,&packet);
+  if(!bg_ogg_stream_write_header_packet(vorbis->s, &packet))
+    return 0;
   return 1;
   }
 
@@ -384,8 +383,6 @@ static int init_vorbis(void * data,
   vorbis_analysis_init(&vorbis->enc_vd,&vorbis->enc_vi);
   vorbis_block_init(&vorbis->enc_vd,&vorbis->enc_vb);
 
-  ogg_stream_init(&vorbis->enc_os, vorbis->serialno);
-
   /* Build comment (comments are UTF-8, good for us :-) */
   build_comment(&vorbis->enc_vc, metadata);
   
@@ -394,13 +391,7 @@ static int init_vorbis(void * data,
                             &header_main,&header_comments,&header_codebooks);
   
   /* And stream them out */
-  ogg_stream_packetin(&vorbis->enc_os,&header_main);
-  if(!bg_ogg_flush_page(&vorbis->enc_os, vorbis->output, 1))
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Vorbis ID page");
   
-  ogg_stream_packetin(&vorbis->enc_os,&header_comments);
-  ogg_stream_packetin(&vorbis->enc_os,&header_codebooks);
-
   ci_ret->global_header_len =
     header_main.bytes + header_comments.bytes + header_codebooks.bytes + 12;
   
@@ -422,16 +413,6 @@ static int init_vorbis(void * data,
   ci_ret->id = GAVL_CODEC_ID_VORBIS;
   
   return 1;
-  }
-
-static int flush_header_pages_vorbis(void*data)
-  {
-  vorbis_t * vorbis;
-  vorbis = data;
-  if(bg_ogg_flush(&vorbis->enc_os, vorbis->output, 1) < 0)
-    return 0;
-  else
-    return 1;
   }
 
 static void set_parameter_vorbis(void * data, const char * name,
@@ -479,13 +460,24 @@ static void set_parameter_vorbis(void * data, const char * name,
 
 static int flush_packet(vorbis_t * vorbis, ogg_packet * op)
   {
-  ogg_stream_packetin(&vorbis->enc_os,op);
+  bg_ogg_stream_t * s;
+  gavl_packet_t gp;
+  gavl_packet_init(&gp);
+
+  
+  
+  s = vorbis->s;
+  
+  gp.data = op->packet;
+  gp.data_len = op->bytes;
+  //  gp->pts = 
+  
+  //  ogg_stream_packetin(&vorbis->enc_os,op);
   return 1;
   }
 
 static int flush_data(vorbis_t * vorbis, int force)
   {
-  int result;
   ogg_packet op;
   memset(&op, 0, sizeof(op));
   /* While we can get enough data from the library to analyse, one
@@ -502,20 +494,21 @@ static int flush_data(vorbis_t * vorbis, int force)
       while(vorbis_bitrate_flushpacket(&vorbis->enc_vd, &op))
         {
         /* Add packet to bitstream */
-        ogg_stream_packetin(&vorbis->enc_os,&op);
-        flush_packet(vorbis, &op);
+        if(!flush_packet(vorbis, &op))
+          return 0;
         }
       }
     else
       {
       vorbis_analysis(&vorbis->enc_vb, &op);
       /* Add packet to bitstream */
-      flush_packet(vorbis, &op);
+      if(!flush_packet(vorbis, &op))
+        return 0;
       }
     }
   /* Flush pages if any */
-  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, force)) <= 0)
-    return result;
+  //  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, force)) <= 0)
+  //    return result;
   return 1;
   }
 
@@ -548,7 +541,6 @@ static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
 static int write_packet_vorbis(void * data, gavl_packet_t * packet)
   {
   ogg_packet op;
-  int result;
   
   vorbis_t * vorbis = data;
   
@@ -560,11 +552,10 @@ static int write_packet_vorbis(void * data, gavl_packet_t * packet)
   if(packet->flags & GAVL_PACKET_LAST)
     op.e_o_s = 1;
   
-
-  ogg_stream_packetin(&vorbis->enc_os,&op);
+  ogg_stream_packetin(&vorbis->s->os, &op);
   
   /* Flush pages if any */
-  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, 0)) < 0)
+  if(bg_ogg_stream_flush(vorbis->s, 0) < 0)
     return 0;
   return 1;
   }
@@ -584,7 +575,6 @@ static int close_vorbis(void * data)
       ret = 0;
     }
   
-  ogg_stream_clear(&vorbis->enc_os);
   vorbis_block_clear(&vorbis->enc_vb);
   vorbis_dsp_clear(&vorbis->enc_vd);
   vorbis_comment_clear(&vorbis->enc_vc);
@@ -610,8 +600,6 @@ const bg_ogg_codec_t bg_vorbis_codec =
     
     .init_audio            = init_vorbis,
     .init_audio_compressed = init_compressed_vorbis,
-    
-    .flush_header_pages = flush_header_pages_vorbis,
     
     .encode_audio = write_audio_frame_vorbis,
     .write_packet = write_packet_vorbis,

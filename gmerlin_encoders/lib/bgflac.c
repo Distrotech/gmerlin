@@ -27,8 +27,10 @@
 #include <gavl/metatags.h>
 
 #include <config.h>
-
 #include <bgflac.h>
+
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "flacenc"
 
 /* Copy functions */
 
@@ -84,117 +86,6 @@ static void do_shift(int32_t * dst[], int num_channels, int num_samples,
     }
   }
 
-/*
- *  These compression parameters correspond to the
- *  the options -0 through -8 of the flac commandline
- *  encoder
- */
-#if 0
-static struct
-  {
-  int blocksize;                    // -b
-  int max_lpc_order;                // -l
-  int min_residual_partition_order; // -r min,max
-  int max_residual_partition_order;
-  int do_mid_side;                     // -m
-  int loose_mid_side;               // -M
-  int do_exhaustive_model_search;   // -e
-  }
-clevels[] =
-  {
-    {
-      /* 0 */
-      .blocksize =                    1152, // -b
-      .max_lpc_order =                0,    // -l
-      .min_residual_partition_order = 2,    // -r min,max
-      .max_residual_partition_order = 2,
-      .do_mid_side =                  0,    // -m
-      .loose_mid_side =               0,    // -M
-      .do_exhaustive_model_search =   0,    // -e
-    },
-    {
-      /* 1 */
-      .blocksize =                    1152, // -b
-      .max_lpc_order =                0,    // -l
-      .min_residual_partition_order = 2,    // -r min,max
-      .max_residual_partition_order = 2,
-      .do_mid_side =                  1,    // -m
-      .loose_mid_side =               1,    // -M
-      .do_exhaustive_model_search =   0,    // -e
-    },
-    {
-      /* 2 */
-      .blocksize =                    1152, // -b
-      .max_lpc_order =                0,    // -l
-      .min_residual_partition_order = 0,    // -r min,max
-      .max_residual_partition_order = 3,
-      .do_mid_side =                  1,    // -m
-      .loose_mid_side =               0,    // -M
-      .do_exhaustive_model_search =   0,    // -e
-    },
-    {
-      /* 3 */
-      .blocksize =                    4608, // -b
-      .max_lpc_order =                6,    // -l
-      .min_residual_partition_order = 3,    // -r min,max
-      .max_residual_partition_order = 3,
-      .do_mid_side =                  0,    // -m
-      .loose_mid_side =               0,    // -M
-      .do_exhaustive_model_search =   0,    // -e
-    },
-    {
-      /* 4 */
-      .blocksize =                    4608, // -b
-      .max_lpc_order =                8,    // -l
-      .min_residual_partition_order = 3,    // -r min,max
-      .max_residual_partition_order = 3,
-      .do_mid_side =                  1,    // -m
-      .loose_mid_side =               1,    // -M
-      .do_exhaustive_model_search =   0,    // -e
-    },
-    {
-      /* 5 */
-      .blocksize =                    4608, // -b
-      .max_lpc_order =                8,    // -l
-      .min_residual_partition_order = 3,    // -r min,max
-      .max_residual_partition_order = 3,
-      .do_mid_side =                  1,    // -m
-      .loose_mid_side =               0,    // -M
-      .do_exhaustive_model_search =   0,    // -e
-    },
-    {
-      /* 6 */
-      .blocksize =                    4608, // -b
-      .max_lpc_order =                8,    // -l
-      .min_residual_partition_order = 0,    // -r min,max
-      .max_residual_partition_order = 4,
-      .do_mid_side =                  1,    // -m
-      .loose_mid_side =               0,    // -M
-      .do_exhaustive_model_search =   0,    // -e
-    },
-    {
-      /* 7 */
-      .blocksize =                    4608, // -b
-      .max_lpc_order =                8,    // -l
-      .min_residual_partition_order = 0,    // -r min,max
-      .max_residual_partition_order = 6,
-      .do_mid_side =                  1,    // -m
-      .loose_mid_side =               0,    // -M
-      .do_exhaustive_model_search =   1,    // -e
-    },
-    {
-      /* 8 */
-      .blocksize =                    4608, // -b
-      .max_lpc_order =                12,   // -l
-      .min_residual_partition_order = 0,    // -r min,max
-      .max_residual_partition_order = 6,
-      .do_mid_side =                  1,    // -m
-      .loose_mid_side =               0,    // -M
-      .do_exhaustive_model_search =   1,    // -e
-    }
-  };
-#endif
-
 static const bg_parameter_info_t audio_parameters[] =
   {
     {
@@ -222,7 +113,8 @@ const bg_parameter_info_t * bg_flac_get_parameters(void * data)
   return audio_parameters;
   }
 
-void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
+void bg_flac_set_parameter(void * data, const char * name,
+                           const bg_parameter_value_t * val)
   {
   bg_flac_t * flac;
   flac = data;
@@ -243,7 +135,61 @@ void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_va
   //  fprintf(stderr, "set_audio_parameter_flac %s\n", name);
   }
 
-void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc)
+static void metadata_callback(const FLAC__StreamEncoder *encoder,
+                              const FLAC__StreamMetadata *metadata,
+                              void *client_data)
+  {
+  if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
+    {
+    
+    }
+     
+  }
+
+static FLAC__StreamEncoderWriteStatus
+write_callback(const FLAC__StreamEncoder *encoder,
+               const FLAC__byte buffer[],
+               size_t bytes,
+               unsigned samples,
+               unsigned current_frame,
+               void *data)
+  {
+  bg_flac_t * flac = data;
+
+  /* Compressed packet */
+  if(samples)
+    {
+    gavl_packet_t gp;
+    gavl_packet_init(&gp);
+    gp.data_len = bytes;
+    gp.data = (uint8_t*)buffer;
+    gp.duration = samples;
+    gp.pts = flac->pts;
+    flac->pts += samples;
+
+    if(gavl_packet_sink_put_packet(flac->psink, &gp) != GAVL_SINK_OK)
+      return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+    else
+      return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+    }
+  
+  if(flac->header_size < BG_FLAC_HEADER_SIZE)
+    {
+    memcpy(flac->header + flac->header_size, buffer, bytes);
+    flac->header_size+=bytes;
+
+    if(flac->header_size == BG_FLAC_HEADER_SIZE)
+      {
+      /* TODO: Extract codec header */
+      }
+    }
+
+  if(flac->write_callback)
+    return flac->write_callback(encoder, buffer, bytes, data);
+  return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+  }
+
+int bg_flac_init_stream_encoder(bg_flac_t * flac)
   {
   /* Common initialization */
   flac->format->interleave_mode = GAVL_INTERLEAVE_NONE;
@@ -279,19 +225,33 @@ void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc)
 
   /* Set compression parameters from presets */
   
-  FLAC__stream_encoder_set_sample_rate(enc, flac->format->samplerate);
-  FLAC__stream_encoder_set_channels(enc, flac->format->num_channels);
+  FLAC__stream_encoder_set_sample_rate(flac->enc, flac->format->samplerate);
+  FLAC__stream_encoder_set_channels(flac->enc, flac->format->num_channels);
 
   /* */
-  FLAC__stream_encoder_set_compression_level(enc, flac->clevel);
+  FLAC__stream_encoder_set_compression_level(flac->enc, flac->clevel);
   
-  FLAC__stream_encoder_set_bits_per_sample(enc, flac->bits_per_sample);
+  FLAC__stream_encoder_set_bits_per_sample(flac->enc, flac->bits_per_sample);
 
+  /* Initialize */
+
+  if(FLAC__stream_encoder_init_stream(flac->enc,
+                                      write_callback,
+                                      NULL,
+                                      NULL,
+                                      metadata_callback,
+                                      flac) != FLAC__STREAM_ENCODER_OK)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "FLAC__stream_encoder_init_stream failed");
+    return 0;
+    }
   
-  
+  flac->samples_per_block =
+    FLAC__stream_encoder_get_blocksize(flac->enc);
+  return 1;
   }
 
-void bg_flac_prepare_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame)
+int bg_flac_encode_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame)
   {
   int i;
   /* Reallocate sample buffer */
@@ -310,7 +270,13 @@ void bg_flac_prepare_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame)
   if(flac->shift_bits)
     do_shift(flac->buffer, flac->format->num_channels,
              frame->valid_samples, flac->divisor);
-  
+
+  if(!FLAC__stream_encoder_process(flac->enc,
+                                   (const FLAC__int32 **) flac->buffer,
+                                   frame->valid_samples))
+    return 0;
+
+  return 1;
   }
 
 void bg_flac_free(bg_flac_t * flac)
@@ -330,6 +296,10 @@ void bg_flac_free(bg_flac_t * flac)
     FLAC__metadata_object_delete(flac->vorbis_comment);
     flac->vorbis_comment = NULL;
     }
+
+  FLAC__stream_encoder_finish(flac->enc);
+  FLAC__stream_encoder_delete(flac->enc);
+  
   }
 
 /* Metadata -> vorbis comment */
@@ -398,3 +368,12 @@ void bg_flac_init_metadata(bg_flac_t * flac, const gavl_metadata_t * m)
   STR_COMMENT(GAVL_META_TRACKNUMBER, "TRACKNUMBER");
   STR_COMMENT(GAVL_META_COMMENT, "COMMENT");
   }
+
+
+void bg_flac_init(bg_flac_t * flac)
+  {
+  flac->enc = FLAC__stream_encoder_new();
+
+  
+  }
+

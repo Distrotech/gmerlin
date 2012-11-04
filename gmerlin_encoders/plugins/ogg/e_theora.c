@@ -77,9 +77,9 @@ static int add_audio_stream_theora(void * data,
                                    const gavl_metadata_t * m,
                                    const gavl_audio_format_t * format)
   {
-  int ret;
-  ret = bg_ogg_encoder_add_audio_stream(data, m, format);
-  return ret;
+  bg_ogg_stream_t * s;
+  s = bg_ogg_encoder_add_audio_stream(data, m, format);
+  return s->index;
   }
 
 static int
@@ -88,11 +88,16 @@ add_audio_stream_compressed_theora(void * data,
                                    const gavl_audio_format_t * format,
                                    const gavl_compression_info_t * ci)
   {
-  int ret;
-  ret = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
+  bg_ogg_stream_t * s;
+  
+  s = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
+  
   if(ci->id == GAVL_CODEC_ID_VORBIS)
-    bg_ogg_encoder_init_audio_stream(data, ret, &bg_vorbis_codec);
-  return ret;
+    bg_ogg_encoder_init_stream(data, s, &bg_vorbis_codec);
+  else if(ci->id == GAVL_CODEC_ID_OPUS)
+    bg_ogg_encoder_init_stream(data, s, &bg_opus_codec);
+  
+  return s->index;
   }
 
 static int
@@ -100,10 +105,10 @@ add_video_stream_theora(void * data,
                         const gavl_metadata_t * m,
                         const gavl_video_format_t * format)
   {
-  int ret;
-  ret = bg_ogg_encoder_add_video_stream(data, m, format);
-  bg_ogg_encoder_init_video_stream(data, ret, &bg_theora_codec);
-  return ret;
+  bg_ogg_stream_t * s;
+  s = bg_ogg_encoder_add_video_stream(data, m, format);
+  bg_ogg_encoder_init_stream(data, s, &bg_theora_codec);
+  return s->index;
   }
 
 static int
@@ -112,10 +117,10 @@ add_video_stream_compressed_theora(void * data,
                                    const gavl_video_format_t * format,
                                    const gavl_compression_info_t * ci)
   {
-  int ret;
-  ret = bg_ogg_encoder_add_video_stream_compressed(data, m, format, ci);
-  bg_ogg_encoder_init_video_stream(data, ret, &bg_theora_codec);
-  return ret;
+  bg_ogg_stream_t * s;
+  s = bg_ogg_encoder_add_video_stream_compressed(data, m, format, ci);
+  bg_ogg_encoder_init_stream(data, s, &bg_theora_codec);
+  return s->index;
   }
 
 
@@ -124,6 +129,8 @@ set_audio_parameter_theora(void * data, int stream,
                            const char * name, const bg_parameter_value_t * val)
   {
   int i;
+  bg_ogg_encoder_t * enc = data;
+  
   if(!name)
     return;
   if(!strcmp(name, "codec"))
@@ -134,7 +141,7 @@ set_audio_parameter_theora(void * data, int stream,
       {
       if(!strcmp(audio_codecs[i]->name, val->val_str))
         {
-        bg_ogg_encoder_init_audio_stream(data, stream, audio_codecs[i]);
+        bg_ogg_encoder_init_stream(data, enc->audio_streams + stream, audio_codecs[i]);
         break;
         }
       i++;
