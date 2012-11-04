@@ -22,12 +22,15 @@
 #include <stdlib.h>
 #include <gavl/connectors.h>
 
+#define FLAG_GET_CALLED (1<<0)
+
 struct gavl_video_sink_s
   {
   gavl_video_sink_get_func get_func;
   gavl_video_sink_put_func put_func;
   void * priv;
   gavl_video_format_t format;
+  int flags;
   };
 
 gavl_video_sink_t *
@@ -54,6 +57,7 @@ gavl_video_sink_get_format(gavl_video_sink_t * s)
 gavl_video_frame_t *
 gavl_video_sink_get_frame(gavl_video_sink_t * s)
   {
+  s->flags |= FLAG_GET_CALLED;
   if(s->get_func)
     return s->get_func(s->priv);
   else
@@ -64,7 +68,18 @@ gavl_sink_status_t
 gavl_video_sink_put_frame(gavl_video_sink_t * s,
                           gavl_video_frame_t * f)
   {
-  return s->put_func(s->priv, f);
+  gavl_video_frame_t * df;
+
+  if(!(s->flags & FLAG_GET_CALLED) &&
+     s->get_func &&
+     (df = s->get_func(s->priv)))
+    {
+    gavl_video_frame_copy(&s->format, df, f);
+    gavl_video_frame_copy_metadata(df, f);
+    return s->put_func(s->priv, df);
+    }
+  else
+    return s->put_func(s->priv, f);
   }
 
 void

@@ -22,11 +22,15 @@
 #include <stdlib.h>
 #include <gavl/connectors.h>
 
+#define FLAG_GET_CALLED (1<<0)
+
+
 struct gavl_packet_sink_s
   {
   gavl_packet_sink_get_func get_func;
   gavl_packet_sink_put_func put_func;
   void * priv;
+  int flags;
   };
   
 gavl_packet_sink_t *
@@ -46,13 +50,24 @@ gavl_packet_sink_create(gavl_packet_sink_get_func get_func,
 gavl_packet_t *
 gavl_packet_sink_get_packet(gavl_packet_sink_t * s)
   {
+  s->flags |= FLAG_GET_CALLED;
   return s->get_func ? s->get_func(s->priv) : NULL;
   }
 
 gavl_sink_status_t
 gavl_packet_sink_put_packet(gavl_packet_sink_t * s, gavl_packet_t * p)
   {
-  return s->put_func(s->priv, p);
+  gavl_packet_t * dp;
+
+  if(!(s->flags & FLAG_GET_CALLED) &&
+     s->get_func &&
+     (dp = s->get_func(s->priv)))
+    {
+    gavl_packet_copy(dp, p);
+    return s->put_func(s->priv, dp);
+    }
+  else  
+    return s->put_func(s->priv, p);
   }
 
 void

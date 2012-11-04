@@ -22,13 +22,18 @@
 #include <stdlib.h>
 #include <gavl/connectors.h>
 
+#define FLAG_GET_CALLED (1<<0)
+
 struct gavl_audio_sink_s
   {
   gavl_audio_sink_get_func get_func;
   gavl_audio_sink_put_func put_func;
   void * priv;
   gavl_audio_format_t format;
+
+  int flags;
   };
+
 
 gavl_audio_sink_t *
 gavl_audio_sink_create(gavl_audio_sink_get_func get_func,
@@ -54,6 +59,7 @@ gavl_audio_sink_get_format(gavl_audio_sink_t * s)
 gavl_audio_frame_t *
 gavl_audio_sink_get_frame(gavl_audio_sink_t * s)
   {
+  s->flags |= FLAG_GET_CALLED;
   if(s->get_func)
     return s->get_func(s->priv);
   else
@@ -64,7 +70,24 @@ gavl_sink_status_t
 gavl_audio_sink_put_frame(gavl_audio_sink_t * s,
                           gavl_audio_frame_t * f)
   {
-  return s->put_func(s->priv, f);
+  gavl_audio_frame_t * df;
+  
+  if(!(s->flags & FLAG_GET_CALLED) &&
+     s->get_func &&
+     (df = s->get_func(s->priv)))
+    {
+    df->valid_samples =
+      gavl_audio_frame_copy(&s->format, df, f,
+                            0, 0,
+                            s->format.samples_per_frame,
+                            f->valid_samples);
+    df->timestamp = f->timestamp;
+    return s->put_func(s->priv, df);
+    }
+  else
+    {
+    return s->put_func(s->priv, f);
+    }
   }
 
 void
