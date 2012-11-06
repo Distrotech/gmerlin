@@ -7,6 +7,7 @@ gavl.h \
 gavltime.h \
 gavl_version.h \
 gavldsp.h \
+numptr.h \
 timecode.h \
 gavldefs.h \
 metadata.h \
