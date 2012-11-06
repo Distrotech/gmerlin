@@ -40,8 +40,10 @@ struct bg_flac_s
   int bits_per_sample;
   int shift_bits;
   int divisor;
-  int samples_per_block;
-    
+  //  int samples_per_block;
+
+  int fixed_blocksize;
+  
   void (*copy_frame)(int32_t * dst[], gavl_audio_frame_t * src,
                      int num_channels);
 
@@ -56,9 +58,13 @@ struct bg_flac_s
   FLAC__StreamEncoder * enc;
 
   /* Needs to be set by the client */
-  gavl_packet_sink_t * psink;
+  gavl_packet_sink_t * psink_out;
 
-  int (*streaminfo_callback)(void * data, const uint8_t * si, int len);
+  /* Created and exported */
+  gavl_packet_sink_t * psink_in;
+  gavl_audio_sink_t * asink_in;
+  
+  int (*streaminfo_callback)(void * data, uint8_t * si, int len);
   
   FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__StreamEncoder *encoder,
                                                    const FLAC__byte buffer[],
@@ -69,6 +75,8 @@ struct bg_flac_s
   int64_t pts;
   
   gavl_compression_info_t ci;
+
+  FLAC__StreamMetadata_StreamInfo si;
   };
 
 
@@ -181,14 +189,11 @@ static void metadata_callback(const FLAC__StreamEncoder *enc,
   {
   bg_flac_t * flac = client_data;
   
-  if(m->type == FLAC__METADATA_TYPE_STREAMINFO)
+  if((m->type == FLAC__METADATA_TYPE_STREAMINFO) && flac->streaminfo_callback)
     {
     const FLAC__StreamMetadata_StreamInfo * si;
     uint8_t * ptr;
     uint32_t i;
-
-    if(!flac->streaminfo_callback)
-      return;
     
     /* Re-write stream info */
 
@@ -264,7 +269,7 @@ write_callback(const FLAC__StreamEncoder *encoder,
     gp.pts = flac->pts;
     flac->pts += samples;
 
-    if(gavl_packet_sink_put_packet(flac->psink, &gp) != GAVL_SINK_OK)
+    if(gavl_packet_sink_put_packet(flac->psink_out, &gp) != GAVL_SINK_OK)
       return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
     else
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
@@ -277,27 +282,120 @@ write_callback(const FLAC__StreamEncoder *encoder,
   }
 
 void bg_flac_set_callbacks(bg_flac_t * flac,
-                           int (*streaminfo_callback)(void*, const uint8_t *, int),
+                           int (*streaminfo_callback)(void*, uint8_t *, int),
                            void * priv)
   {
   flac->streaminfo_callback = streaminfo_callback;
   flac->callback_priv = priv;
   }
 
+static gavl_sink_status_t
+write_audio_packet_func_flac(void * priv, gavl_packet_t * packet)
+  {
+  bg_flac_t * flac = priv;
+  
+  // fprintf(stderr, "%ld %ld\n", packet->duration, flac->samples_written);
+  
+  if(packet->data_len < 6)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Packet data too small: %d",
+           packet->data_len);
+    return GAVL_SINK_ERROR;
+    }
+  
+  if(!flac->si.total_samples)
+    {
+    flac->fixed_blocksize = !(packet->data[1] & 0x01); // bit 15
+    flac->si.min_blocksize = packet->duration;
+    flac->si.max_blocksize = packet->duration;
+    }
+  else if(!flac->fixed_blocksize)
+    {
+    if(packet->duration < flac->si.min_blocksize)
+      flac->si.min_blocksize = packet->duration;
+    if(packet->duration > flac->si.max_blocksize)
+      flac->si.max_blocksize = packet->duration;
+    }
+  
+  if(!flac->si.min_framesize || (packet->data_len < flac->si.min_framesize))
+    flac->si.min_framesize = packet->data_len;
+  if(packet->data_len > flac->si.max_framesize)
+    flac->si.max_framesize = packet->data_len;
+  
+  flac->si.total_samples += packet->duration;
+  
+  return gavl_packet_sink_put_packet(flac->psink_out, packet);
+  }
 
-int bg_flac_start(bg_flac_t * flac,
-                  gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
-                  gavl_metadata_t * stream_metadata)
+
+int bg_flac_start_compressed(bg_flac_t * flac,
+                             gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
+                             gavl_metadata_t * stream_metadata)
+  {
+  uint16_t i_tmp;
+  uint8_t * ptr;
+  
+  flac->format = fmt;
+  gavl_compression_info_copy(&flac->ci, ci);
+
+  ptr = flac->ci.global_header
+    + 8  // Signature + metadata header
+    + 10 // min/max frame/blocksize
+    + 2; // upper 16 bit of 20 samplerate bits
+
+  // |4|3|5|4|
+  i_tmp = ptr[0];
+  i_tmp <<= 8;
+  i_tmp |= ptr[1];
+  
+  flac->si.sample_rate = flac->format->samplerate;
+  flac->si.channels = flac->format->num_channels;
+  flac->si.bits_per_sample = ((i_tmp >> 4) & 0x1f)+1;
+  flac->si.total_samples = 0;
+  
+  memcpy(flac->si.md5sum, flac->ci.global_header + 42 - 16, 16);
+  flac->psink_in = gavl_packet_sink_create(NULL, write_audio_packet_func_flac, flac);
+  return 1;
+  }
+
+static gavl_sink_status_t
+encode_audio_func(void * priv, gavl_audio_frame_t * frame)
+  {
+  int i;
+  bg_flac_t * flac = priv;
+  
+  /* Reallocate sample buffer */
+  if(flac->buffer_alloc < frame->valid_samples)
+    {
+    flac->buffer_alloc = frame->valid_samples + 10;
+    for(i = 0; i < flac->format->num_channels; i++)
+      flac->buffer[i] = realloc(flac->buffer[i], flac->buffer_alloc *
+                                sizeof(flac->buffer[0][0]));
+    }
+
+  /* Copy and shift */
+
+  flac->copy_frame(flac->buffer, frame, flac->format->num_channels);
+
+  if(flac->shift_bits)
+    do_shift(flac->buffer, flac->format->num_channels,
+             frame->valid_samples, flac->divisor);
+
+  if(!FLAC__stream_encoder_process(flac->enc,
+                                   (const FLAC__int32 **) flac->buffer,
+                                   frame->valid_samples))
+    return 0;
+
+  return 1;
+  }
+
+
+
+int bg_flac_start_uncompressed(bg_flac_t * flac,
+                               gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
+                               gavl_metadata_t * stream_metadata)
   {
   flac->format = fmt;
-  if(ci)
-    {
-    gavl_compression_info_copy(&flac->ci, ci);
-
-    
-
-    return 1;
-    }
   
   /* Common initialization */
   flac->format->interleave_mode = GAVL_INTERLEAVE_NONE;
@@ -343,6 +441,8 @@ int bg_flac_start(bg_flac_t * flac,
 
   /* Initialize */
 
+  flac->ci.id = GAVL_CODEC_ID_FLAC;
+  
   if(FLAC__stream_encoder_init_stream(flac->enc,
                                       write_callback,
                                       NULL,
@@ -354,42 +454,23 @@ int bg_flac_start(bg_flac_t * flac,
     return 0;
     }
   
-  flac->samples_per_block =
-    FLAC__stream_encoder_get_blocksize(flac->enc);
+  //  flac->samples_per_block =
+  //    FLAC__stream_encoder_get_blocksize(flac->enc);
+  gavl_metadata_set(stream_metadata, GAVL_META_SOFTWARE, FLAC__VENDOR_STRING);
+  
+  gavl_compression_info_copy(ci, &flac->ci);
+  flac->asink_in = gavl_audio_sink_create(NULL, encode_audio_func, flac, flac->format);
+  
   return 1;
   }
 
-int bg_flac_encode_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame)
-  {
-  int i;
-  /* Reallocate sample buffer */
-  if(flac->buffer_alloc < frame->valid_samples)
-    {
-    flac->buffer_alloc = frame->valid_samples + 10;
-    for(i = 0; i < flac->format->num_channels; i++)
-      flac->buffer[i] = realloc(flac->buffer[i], flac->buffer_alloc *
-                                sizeof(flac->buffer[0][0]));
-    }
-
-  /* Copy and shift */
-
-  flac->copy_frame(flac->buffer, frame, flac->format->num_channels);
-
-  if(flac->shift_bits)
-    do_shift(flac->buffer, flac->format->num_channels,
-             frame->valid_samples, flac->divisor);
-
-  if(!FLAC__stream_encoder_process(flac->enc,
-                                   (const FLAC__int32 **) flac->buffer,
-                                   frame->valid_samples))
-    return 0;
-
-  return 1;
-  }
 
 void bg_flac_free(bg_flac_t * flac)
   {
   int i;
+  
+  FLAC__stream_encoder_finish(flac->enc);
+  FLAC__stream_encoder_delete(flac->enc);
 
   if(flac->buffer[0])
     {
@@ -399,10 +480,12 @@ void bg_flac_free(bg_flac_t * flac)
       flac->buffer[i] = NULL;
       }
     }
-
-  FLAC__stream_encoder_finish(flac->enc);
-  FLAC__stream_encoder_delete(flac->enc);
   
+  if(flac->psink_in)
+    gavl_packet_sink_destroy(flac->psink_in);
+  if(flac->asink_in)
+    gavl_audio_sink_destroy(flac->asink_in);
+  free(flac);
   }
 
 /* Metadata -> vorbis comment */
@@ -454,3 +537,17 @@ bg_flac_t * bg_flac_create()
   return flac;
   }
 
+void bg_flac_set_sink(bg_flac_t * flac, gavl_packet_sink_t * psink)
+  {
+  flac->psink_out = psink;
+  }
+
+gavl_audio_sink_t * bg_flac_get_audio_sink(bg_flac_t * flac)
+  {
+  return flac->asink_in;
+  }
+
+gavl_packet_sink_t * bg_flac_get_packet_sink(bg_flac_t * flac)
+  {
+  return flac->psink_in;
+  }

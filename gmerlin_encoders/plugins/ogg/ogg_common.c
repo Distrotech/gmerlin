@@ -716,10 +716,12 @@ static void append_tag(uint8_t ** buf_p, int * len_p, const char * tag,
   (*num_entries)++;
   }
 
-void bg_ogg_create_comment_packet(uint8_t * prefix,
-                                  int prefix_len,
-                                  const char * vendor_string,
-                                  const gavl_metadata_t * metadata, ogg_packet * op)
+void
+bg_ogg_create_comment_packet(uint8_t * prefix,
+                             int prefix_len,
+                             const char * vendor_string,
+                             const gavl_metadata_t * metadata,
+                             ogg_packet * op)
   {
   uint8_t * buf;
   int len;

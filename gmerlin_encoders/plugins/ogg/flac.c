@@ -61,7 +61,7 @@ typedef struct
   int write_error;
   } flacogg_t;
 
-static int streaminfo_callback(void * data, const uint8_t * si, int len)
+static int streaminfo_callback(void * data, uint8_t * si, int len)
   {
   ogg_packet op;
   flacogg_t * flacogg;
@@ -168,11 +168,11 @@ static void set_parameter_flacogg(void * data, const char * name,
 
 static int init_flacogg(void * data, gavl_audio_format_t * format,
                         gavl_metadata_t * metadata,
-                        const gavl_metadata_t * stream_metadata,
+                        gavl_metadata_t * stream_metadata,
                         gavl_compression_info_t * ci)
   {
   flacogg_t * flacogg = data;
-  return bg_flac_start(flacogg->enc, format, ci, stream_metadata);
+  return bg_flac_start_uncompressed(flacogg->enc, format, ci, stream_metadata);
   }
 
 static int write_audio_frame_flacogg(void * data, gavl_audio_frame_t * frame)
