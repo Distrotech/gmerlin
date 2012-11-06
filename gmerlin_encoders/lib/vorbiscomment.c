@@ -25,6 +25,7 @@
 #include <gavl/gavl.h>
 #include <gavl/metadata.h>
 #include <gavl/metatags.h>
+#include <gavl/numptr.h>
 
 #include <vorbiscomment.h>
 
@@ -77,18 +78,16 @@ int bg_vorbis_comment_bytes(const gavl_metadata_t * m_stream,
       }
     i++;
     }
+
+  if((str = gavl_metadata_get(m_global, GAVL_META_DATE)) ||
+     (str = gavl_metadata_get(m_global, GAVL_META_YEAR)))
+    ret += 4 + 5 + strlen(str);
   
   if(framing)
     ret++;
 
   return ret;
   }
-
-#define INT32LE_2_PTR(num, p) \
-  (p)[0] = (num) & 0xff;                        \
-  (p)[1] = ((num)>>8) & 0xff;                \
-  (p)[2] = ((num)>>16) & 0xff;            \
-  (p)[3] = ((num)>>24) & 0xff
 
 int bg_vorbis_comment_write(uint8_t * buf,
                             const gavl_metadata_t * m_stream,
@@ -116,7 +115,7 @@ int bg_vorbis_comment_write(uint8_t * buf,
     }
 
   len1 = strlen(str);
-  INT32LE_2_PTR(len1, ptr); ptr += 4;
+  GAVL_32LE_2_PTR(len1, ptr); ptr += 4;
   memcpy(ptr, str, len1); ptr += len1;  
 
   num_tags_pos = ptr;
@@ -132,7 +131,7 @@ int bg_vorbis_comment_write(uint8_t * buf,
       
       len_total = len1 + 1 + len2;
 
-      INT32LE_2_PTR(len_total, ptr); ptr += 4;
+      GAVL_32LE_2_PTR(len_total, ptr); ptr += 4;
       memcpy(ptr, tags[i].vorbis_name, len1); ptr += len1;
       *ptr = '='; ptr++;
       memcpy(ptr, str, len2); ptr += len2;
@@ -141,7 +140,21 @@ int bg_vorbis_comment_write(uint8_t * buf,
       }
     i++;
     }
-  INT32LE_2_PTR(num_tags, num_tags_pos);
+
+  /* Date needs special attention */
+  if((str = gavl_metadata_get(m_global, GAVL_META_DATE)) ||
+     (str = gavl_metadata_get(m_global, GAVL_META_YEAR)))
+    {
+    len1 = 5; // DATE=
+    len2 = strlen(str);
+    len_total = len1 + len2;
+    GAVL_32LE_2_PTR(len_total, ptr); ptr += 4;
+    memcpy(ptr, "DATE=", len1); ptr += len1;
+    memcpy(ptr, str, len2); ptr += len2;
+    num_tags++;
+    }
+  
+  GAVL_32LE_2_PTR(num_tags, num_tags_pos);
 
   if(framing)
     {

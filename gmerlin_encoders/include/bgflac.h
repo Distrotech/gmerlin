@@ -27,56 +27,26 @@
 
 #define BG_FLAC_HEADER_SIZE (4+38)
 
-typedef struct
-  {
-  int clevel; /* Compression level 0..8 */
-
-  int bits_per_sample;
-  int shift_bits;
-  int divisor;
-  int samples_per_block;
-    
-  void (*copy_frame)(int32_t * dst[], gavl_audio_frame_t * src,
-                     int num_channels);
-
-  /* Buffer */
-    
-  int32_t * buffer[GAVL_MAX_CHANNELS];
-  int buffer_alloc; /* In samples */
-  
-  gavl_audio_format_t *format;
-
-  FLAC__StreamMetadata * vorbis_comment;
-  FLAC__StreamEncoder * enc;
-
-  /* Needs to be set by the client */
-  gavl_packet_sink_t * psink;
-
-  FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__StreamEncoder *encoder,
-                                                   const FLAC__byte buffer[],
-                                                   size_t bytes,
-                                                   void *data);
-  void * write_callback_priv;
-
-  uint8_t header[BG_FLAC_HEADER_SIZE];
-  int header_size;
-  int64_t pts;
-  } bg_flac_t;
+typedef struct bg_flac_s bg_flac_t;
 
 
-void bg_flac_init(bg_flac_t * flac);
+bg_flac_t * bg_flac_create();
 
-
-const bg_parameter_info_t * bg_flac_get_parameters(void * data);
+const bg_parameter_info_t * bg_flac_get_parameters(void);
   
 void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);
 
-int bg_flac_init_stream_encoder(bg_flac_t * flac);
+int bg_flac_start(bg_flac_t * flac,
+                  gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
+                  gavl_metadata_t * stream_metadata);
 
-void bg_flac_init_metadata(bg_flac_t * flac,
-                           const gavl_metadata_t * metadata);
+gavl_audio_sink_t * bg_flac_get_audio_sink(bg_flac_t * flac);
+gavl_packet_sink_t * bg_flac_get_packet_sink(bg_flac_t * flac);
 
 int bg_flac_encode_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame);
 
 void bg_flac_free(bg_flac_t * flac);
 
+void bg_flac_set_callbacks(bg_flac_t * flac,
+                           int (*streaminfo_callback)(void*, const uint8_t *, int),
+                           void * priv);

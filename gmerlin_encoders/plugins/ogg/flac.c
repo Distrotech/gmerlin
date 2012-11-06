@@ -42,10 +42,8 @@
 
 typedef struct
   {
-  bg_flac_t com;
+  bg_flac_t * enc;
   bg_ogg_stream_t * s;
-  
-  FLAC__StreamMetadata * vorbis_comment;
   
   int header_written;
     
@@ -63,7 +61,43 @@ typedef struct
   int write_error;
   } flacogg_t;
 
+static int streaminfo_callback(void * data, const uint8_t * si, int len)
+  {
+  ogg_packet op;
+  flacogg_t * flacogg;
+  uint8_t header_bytes[] =
+    {
+      0x7f,
+      0x46, 0x4C, 0x41, 0x43, // FLAC
+      0x01, 0x00, // Major, minor version
+      0x00, 0x01, // Number of other header packets (Big Endian)
+    };
 
+  
+  flacogg = data;
+
+  if(flacogg->header_written)
+    return 1;
+
+  flacogg->header_written = 1;
+  
+  memset(&op, 0, sizeof(op));
+  
+  op.bytes  = len + 9;
+  op.packet = malloc(op.bytes);
+  
+  memcpy(op.packet, header_bytes, 9);
+  memcpy(op.packet+9, si, len);
+
+  if(!bg_ogg_stream_write_header_packet(flacogg->s, &op))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Flac ID page");
+    return 0;
+    }
+  return 1;
+  }
+
+#if 0
 static FLAC__StreamEncoderWriteStatus
 write_callback(const FLAC__StreamEncoder *encoder,
                const FLAC__byte buffer[],
@@ -74,28 +108,7 @@ write_callback(const FLAC__StreamEncoder *encoder,
   flacogg_t * flacogg;
   flacogg = data;
   
-  if(!flacogg->header_written)
-    {
-    /* Flush header */
-    if(flacogg->com.header_size == BG_FLAC_HEADER_SIZE)
-      {
-      op.bytes  = flacogg->com.header_size;
-      op.packet = flacogg->com.header;
-      op.b_o_s  = 1;
-      op.e_o_s  = 0;
-      op.packetno = 0;
-      op.granulepos = 0;
-
-      if(!bg_ogg_stream_write_header_packet(flacogg->s, &op))
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Flac ID page");
-        return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-        }
-      
-      flacogg->header_written = 1;
-      }
-    }
-  else if((buffer[0] & 0x7f) == 0x04) /* Vorbis comment */
+  if((buffer[0] & 0x7f) == 0x04) /* Vorbis comment */
     {
     if(flacogg->frame_alloc < bytes)
       {
@@ -118,27 +131,17 @@ write_callback(const FLAC__StreamEncoder *encoder,
   
   return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
   }
-
-static void metadata_callback(const FLAC__StreamEncoder *encoder,
-                              const FLAC__StreamMetadata *metadata,
-                              void *client_data)
-  {
-  }
+#endif
 
 static void * create_flacogg(bg_ogg_stream_t * s)
   {
-#if 0
-  uint8_t header_bytes[] =
-    {
-      0x7f,
-      0x46, 0x4C, 0x41, 0x43, // FLAC
-      0x01, 0x00, // Major, minor version
-      0x00, 0x01, // Number of other header packets (Big Endian)
-    };
-#endif  
   flacogg_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->s = s;
+  ret->enc = bg_flac_create();
+
+  bg_flac_set_callbacks(ret->enc, streaminfo_callback, ret);
+  
   //  ret->output = output;
   
   /* We already can set the first bytes */
@@ -149,7 +152,7 @@ static void * create_flacogg(bg_ogg_stream_t * s)
 
 static const bg_parameter_info_t * get_parameters_flacogg()
   {
-  return bg_flac_get_parameters(NULL);
+  return bg_flac_get_parameters();
   }
 
 static void set_parameter_flacogg(void * data, const char * name,
@@ -160,7 +163,7 @@ static void set_parameter_flacogg(void * data, const char * name,
   
   if(!name)
     return;
-  bg_flac_set_parameter(&flacogg->com, name, v);
+  bg_flac_set_parameter(flacogg->enc, name, v);
   }
 
 static int init_flacogg(void * data, gavl_audio_format_t * format,
@@ -169,22 +172,13 @@ static int init_flacogg(void * data, gavl_audio_format_t * format,
                         gavl_compression_info_t * ci)
   {
   flacogg_t * flacogg = data;
-
-  flacogg->com.format = format;
-  
-  
-  bg_flac_init_metadata(&flacogg->com, metadata);
-  FLAC__stream_encoder_set_metadata(flacogg->com.enc, &flacogg->com.vorbis_comment, 1);
-
-  flacogg->com.write_callback = write_callback;
-  
-  return bg_flac_init_stream_encoder(&flacogg->com);
+  return bg_flac_start(flacogg->enc, format, ci, stream_metadata);
   }
 
 static int write_audio_frame_flacogg(void * data, gavl_audio_frame_t * frame)
   {
   flacogg_t * flacogg = data;
-  return bg_flac_encode_audio_frame(&flacogg->com, frame);
+  return bg_flac_encode_audio_frame(flacogg->enc, frame);
   }
 
 static int close_flacogg(void * data)

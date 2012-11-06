@@ -259,9 +259,10 @@ static bg_ogg_stream_t * append_stream(bg_ogg_encoder_t * e,
   return ret;
   }
 
-bg_ogg_stream_t * bg_ogg_encoder_add_audio_stream(void * data,
-                                                  const gavl_metadata_t * m,
-                                                  const gavl_audio_format_t * format)
+bg_ogg_stream_t *
+bg_ogg_encoder_add_audio_stream(void * data,
+                                const gavl_metadata_t * m,
+                                const gavl_audio_format_t * format)
   {
   bg_ogg_stream_t * s;
   bg_ogg_encoder_t * e = data;
@@ -274,9 +275,10 @@ bg_ogg_stream_t * bg_ogg_encoder_add_audio_stream(void * data,
   return s;
   }
 
-bg_ogg_stream_t *  bg_ogg_encoder_add_video_stream(void * data,
-                                                   const gavl_metadata_t * m,
-                                                   const gavl_video_format_t * format)
+bg_ogg_stream_t *
+bg_ogg_encoder_add_video_stream(void * data,
+                                const gavl_metadata_t * m,
+                                const gavl_video_format_t * format)
   {
   bg_ogg_stream_t * s;
   bg_ogg_encoder_t * e = data;
@@ -288,10 +290,11 @@ bg_ogg_stream_t *  bg_ogg_encoder_add_video_stream(void * data,
   return s;
   }
 
-bg_ogg_stream_t *  bg_ogg_encoder_add_audio_stream_compressed(void * data,
-                                                              const gavl_metadata_t * m,
-                                                              const gavl_audio_format_t * format,
-                                                              const gavl_compression_info_t * ci)
+bg_ogg_stream_t *
+bg_ogg_encoder_add_audio_stream_compressed(void * data,
+                                           const gavl_metadata_t * m,
+                                           const gavl_audio_format_t * format,
+                                           const gavl_compression_info_t * ci)
   {
   bg_ogg_stream_t * s;
   s = bg_ogg_encoder_add_audio_stream(data, m, format);
@@ -299,10 +302,11 @@ bg_ogg_stream_t *  bg_ogg_encoder_add_audio_stream_compressed(void * data,
   return s;
   }
 
-bg_ogg_stream_t * bg_ogg_encoder_add_video_stream_compressed(void * data,
-                                                             const gavl_metadata_t * m,
-                                                             const gavl_video_format_t * format,
-                                                             const gavl_compression_info_t * ci)
+bg_ogg_stream_t *
+bg_ogg_encoder_add_video_stream_compressed(void * data,
+                                           const gavl_metadata_t * m,
+                                           const gavl_video_format_t * format,
+                                           const gavl_compression_info_t * ci)
   {
   bg_ogg_stream_t * s;
   s = bg_ogg_encoder_add_video_stream(data, m, format);
@@ -323,7 +327,8 @@ bg_ogg_encoder_set_audio_parameter(void * data, int stream,
                                    const bg_parameter_value_t * val)
   {
   bg_ogg_encoder_t * e = data;
-  e->audio_streams[stream].codec->set_parameter(e->audio_streams[stream].codec_priv, name, val);
+  bg_ogg_stream_t * s = &e->audio_streams[stream];
+  s->codec->set_parameter(s->codec_priv, name, val);
   }
 
 void bg_ogg_encoder_set_video_parameter(void * data, int stream,
@@ -331,7 +336,8 @@ void bg_ogg_encoder_set_video_parameter(void * data, int stream,
                                         const bg_parameter_value_t * val)
   {
   bg_ogg_encoder_t * e = data;
-  e->video_streams[stream].codec->set_parameter(e->video_streams[stream].codec_priv, name, val);
+  bg_ogg_stream_t * s = &e->video_streams[stream];
+  s->codec->set_parameter(s->codec_priv, name, val);
   }
 
 int bg_ogg_encoder_set_video_pass(void * data, int stream,

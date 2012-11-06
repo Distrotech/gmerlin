@@ -25,12 +25,52 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/translation.h>
 #include <gavl/metatags.h>
+#include <gavl/numptr.h>
 
 #include <config.h>
 #include <bgflac.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "flacenc"
+
+struct bg_flac_s
+  {
+  int clevel; /* Compression level 0..8 */
+
+  int bits_per_sample;
+  int shift_bits;
+  int divisor;
+  int samples_per_block;
+    
+  void (*copy_frame)(int32_t * dst[], gavl_audio_frame_t * src,
+                     int num_channels);
+
+  /* Buffer */
+    
+  int32_t * buffer[GAVL_MAX_CHANNELS];
+  int buffer_alloc; /* In samples */
+  
+  gavl_audio_format_t *format;
+
+  //  FLAC__StreamMetadata * vorbis_comment;
+  FLAC__StreamEncoder * enc;
+
+  /* Needs to be set by the client */
+  gavl_packet_sink_t * psink;
+
+  int (*streaminfo_callback)(void * data, const uint8_t * si, int len);
+  
+  FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__StreamEncoder *encoder,
+                                                   const FLAC__byte buffer[],
+                                                   size_t bytes,
+                                                   void *data);
+  void * callback_priv;
+
+  int64_t pts;
+  
+  gavl_compression_info_t ci;
+  };
+
 
 /* Copy functions */
 
@@ -108,7 +148,7 @@ static const bg_parameter_info_t audio_parameters[] =
     { /* End of parameters */ }
   };
 
-const bg_parameter_info_t * bg_flac_get_parameters(void * data)
+const bg_parameter_info_t * bg_flac_get_parameters()
   {
   return audio_parameters;
   }
@@ -135,13 +175,55 @@ void bg_flac_set_parameter(void * data, const char * name,
   //  fprintf(stderr, "set_audio_parameter_flac %s\n", name);
   }
 
-static void metadata_callback(const FLAC__StreamEncoder *encoder,
-                              const FLAC__StreamMetadata *metadata,
+static void metadata_callback(const FLAC__StreamEncoder *enc,
+                              const FLAC__StreamMetadata *m,
                               void *client_data)
   {
-  if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
+  bg_flac_t * flac = client_data;
+  
+  if(m->type == FLAC__METADATA_TYPE_STREAMINFO)
     {
+    const FLAC__StreamMetadata_StreamInfo * si;
+    uint8_t * ptr;
+    uint32_t i;
+
+    if(!flac->streaminfo_callback)
+      return;
     
+    /* Re-write stream info */
+
+    si = &m->data.stream_info;
+    ptr = flac->ci.global_header + 8; // Signature + metadata header
+    
+    GAVL_16BE_2_PTR(si->min_blocksize, ptr); ptr += 2;
+    GAVL_16BE_2_PTR(si->max_blocksize, ptr); ptr += 2;
+    GAVL_24BE_2_PTR(si->min_framesize, ptr); ptr += 3;
+    GAVL_24BE_2_PTR(si->max_framesize, ptr); ptr += 3;
+
+    i = si->sample_rate >> 4;
+    GAVL_16BE_2_PTR(i, ptr); ptr += 2;
+
+    i = si->sample_rate & 0x0f;   // Samplerate (lower 4 bits)
+
+    i <<= 3;                      // Channels
+    i |= (si->channels-1) & 0x7;
+
+    i <<= 5;                      // Bits
+    i |= (si->bits_per_sample-1) & 0x1f;
+
+    i <<= 4;                      // Total samples
+    i |= (si->total_samples >> 32) & 0xf;
+
+    GAVL_16BE_2_PTR(i, ptr); ptr += 2;
+
+    i = (si->total_samples) & 0xffffffff;
+    GAVL_32BE_2_PTR(i, ptr); ptr += 4;
+    
+    memcpy(ptr, si->md5sum, 16); ptr += 16;
+    
+    flac->streaminfo_callback(flac->callback_priv,
+                              flac->ci.global_header,
+                              flac->ci.global_header_len);
     }
      
   }
@@ -156,6 +238,21 @@ write_callback(const FLAC__StreamEncoder *encoder,
   {
   bg_flac_t * flac = data;
 
+  if(flac->ci.global_header_len < BG_FLAC_HEADER_SIZE)
+    {
+    memcpy(flac->ci.global_header + flac->ci.global_header_len, buffer, bytes);
+    flac->ci.global_header_len += bytes;
+    
+    if(flac->ci.global_header_len == BG_FLAC_HEADER_SIZE)
+      {
+      /* Extract codec header */
+      if(flac->streaminfo_callback)
+        flac->streaminfo_callback(flac->callback_priv,
+                                  flac->ci.global_header,
+                                  flac->ci.global_header_len);
+      }
+    }
+  
   /* Compressed packet */
   if(samples)
     {
@@ -173,24 +270,35 @@ write_callback(const FLAC__StreamEncoder *encoder,
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
   
-  if(flac->header_size < BG_FLAC_HEADER_SIZE)
-    {
-    memcpy(flac->header + flac->header_size, buffer, bytes);
-    flac->header_size+=bytes;
-
-    if(flac->header_size == BG_FLAC_HEADER_SIZE)
-      {
-      /* TODO: Extract codec header */
-      }
-    }
 
   if(flac->write_callback)
     return flac->write_callback(encoder, buffer, bytes, data);
   return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
   }
 
-int bg_flac_init_stream_encoder(bg_flac_t * flac)
+void bg_flac_set_callbacks(bg_flac_t * flac,
+                           int (*streaminfo_callback)(void*, const uint8_t *, int),
+                           void * priv)
   {
+  flac->streaminfo_callback = streaminfo_callback;
+  flac->callback_priv = priv;
+  }
+
+
+int bg_flac_start(bg_flac_t * flac,
+                  gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
+                  gavl_metadata_t * stream_metadata)
+  {
+  flac->format = fmt;
+  if(ci)
+    {
+    gavl_compression_info_copy(&flac->ci, ci);
+
+    
+
+    return 1;
+    }
+  
   /* Common initialization */
   flac->format->interleave_mode = GAVL_INTERLEAVE_NONE;
   
@@ -291,11 +399,6 @@ void bg_flac_free(bg_flac_t * flac)
       flac->buffer[i] = NULL;
       }
     }
-  if(flac->vorbis_comment)
-    {
-    FLAC__metadata_object_delete(flac->vorbis_comment);
-    flac->vorbis_comment = NULL;
-    }
 
   FLAC__stream_encoder_finish(flac->enc);
   FLAC__stream_encoder_delete(flac->enc);
@@ -342,38 +445,12 @@ void bg_flac_free(bg_flac_t * flac)
     free(entry.entry); \
     }
 
-void bg_flac_init_metadata(bg_flac_t * flac, const gavl_metadata_t * m)
+bg_flac_t * bg_flac_create()
   {
-  FLAC__StreamMetadata_VorbisComment_Entry entry;
-  const char * val;
-  int num_comments = 0;
-  int year;
-  
-  flac->vorbis_comment =
-    FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
-  STR_COMMENT(GAVL_META_ARTIST, "ARTIST");
-  STR_COMMENT(GAVL_META_TITLE, "TITLE");
-  STR_COMMENT(GAVL_META_ALBUM, "ALBUM");
-  STR_COMMENT(GAVL_META_ALBUMARTIST, "ALBUM ARTIST");
-  STR_COMMENT(GAVL_META_ALBUMARTIST, "ALBUMARTIST");
-  STR_COMMENT(GAVL_META_GENRE, "GENRE");
-
-  /* TODO: Get year */
-  year = bg_metadata_get_year(m);
-  if(year > 0)
-    {
-    INT_COMMENT(year, "DATE");
-    }
-  STR_COMMENT(GAVL_META_COPYRIGHT, "COPYRIGHT");
-  STR_COMMENT(GAVL_META_TRACKNUMBER, "TRACKNUMBER");
-  STR_COMMENT(GAVL_META_COMMENT, "COMMENT");
-  }
-
-
-void bg_flac_init(bg_flac_t * flac)
-  {
+  bg_flac_t * flac = calloc(1, sizeof(*flac));
   flac->enc = FLAC__stream_encoder_new();
-
-  
+  flac->ci.id = GAVL_CODEC_ID_FLAC;
+  flac->ci.global_header = malloc(BG_FLAC_HEADER_SIZE);
+  return flac;
   }
 
