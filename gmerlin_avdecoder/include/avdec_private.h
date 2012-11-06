@@ -30,6 +30,7 @@
 #include <os.h>
 #include <gavl/metatags.h>
 #include <gavl/compression.h>
+#include <gavl/numptr.h>
 
 #define PACKET_PADDING 32
 
@@ -1559,108 +1560,25 @@ int bgav_init(bgav_t * b);
 
 /* ptr -> integer */
 
-#define BGAV_PTR_2_16LE(p) \
-((*(p+1) << 8) | \
-*(p))
-
-#define BGAV_PTR_2_24LE(p) \
-((*(p+2) << 16) | \
-(*(p+1) << 8) | \
-*(p))
-
-#define BGAV_PTR_2_32LE(p) \
-((*(p+3) << 24) | \
-(*(p+2) << 16) | \
-(*(p+1) << 8) | \
-*(p))
-
-#define BGAV_PTR_2_64LE(p) \
-(((uint64_t)(*(p+7)) << 56) | \
-((uint64_t)(*(p+6)) << 48) | \
-((uint64_t)(*(p+5)) << 40) | \
-((uint64_t)(*(p+4)) << 32) | \
-((uint64_t)(*(p+3)) << 24) | \
-((uint64_t)(*(p+2)) << 16) | \
-((uint64_t)(*(p+1)) << 8) | \
-*(p))
-
-#define BGAV_PTR_2_16BE(p) \
-((*(p) << 8) | \
-*(p+1))
-
-#define BGAV_PTR_2_32BE(p) \
-((*(p) << 24) | \
-(*(p+1) << 16) | \
-(*(p+2) << 8) | \
-*(p+3))
-
-#define BGAV_PTR_2_24BE(p) \
-((*(p) << 16) | \
-(*(p+1) << 8) | \
-(*(p+2)))
-
-#define BGAV_PTR_2_64BE(p) \
-(((uint64_t)p[0] << 56) | \
-((uint64_t)p[1] << 48) | \
-((uint64_t)p[2] << 40) | \
-((uint64_t)p[3] << 32) | \
-((uint64_t)p[4] << 24) | \
-((uint64_t)p[5] << 16) | \
-((uint64_t)p[6] << 8) | \
-(p)[7])
-
+#define BGAV_PTR_2_16LE(p) GAVL_PTR_2_16LE(p) 
+#define BGAV_PTR_2_24LE(p) GAVL_PTR_2_24LE(p)
+#define BGAV_PTR_2_32LE(p) GAVL_PTR_2_32LE(p)
+#define BGAV_PTR_2_64LE(p) GAVL_PTR_2_64LE(p)
+#define BGAV_PTR_2_16BE(p) GAVL_PTR_2_16BE(p) 
+#define BGAV_PTR_2_32BE(p) GAVL_PTR_2_32BE(p) 
+#define BGAV_PTR_2_24BE(p) GAVL_PTR_2_24BE(p)
+#define BGAV_PTR_2_64BE(p) GAVL_PTR_2_64BE(p)
 
 /* integer -> ptr */
 
-#define BGAV_16LE_2_PTR(i, p) \
-(p)[0] = (i) & 0xff; \
-(p)[1] = ((i)>>8) & 0xff
-
-#define BGAV_24LE_2_PTR(i, p) \
-(p)[0] = (i) & 0xff; \
-(p)[1] = ((i)>>8) & 0xff; \
-(p)[2] = ((i)>>16) & 0xff;
-
-#define BGAV_32LE_2_PTR(i, p) \
-(p)[0] = (i) & 0xff; \
-(p)[1] = ((i)>>8) & 0xff; \
-(p)[2] = ((i)>>16) & 0xff; \
-(p)[3] = ((i)>>24) & 0xff
-
-#define BGAV_64LE_2_PTR(i, p) \
-(p)[0] = (i) & 0xff; \
-(p)[1] = ((i)>>8) & 0xff; \
-(p)[2] = ((i)>>16) & 0xff; \
-(p)[3] = ((i)>>24) & 0xff; \
-(p)[4] = ((i)>>32) & 0xff; \
-(p)[5] = ((i)>>40) & 0xff; \
-(p)[6] = ((i)>>48) & 0xff; \
-(p)[7] = ((i)>>56) & 0xff
-
-#define BGAV_16BE_2_PTR(i, p) \
-(p)[1] = (i) & 0xff; \
-(p)[0] = ((i)>>8) & 0xff
-
-#define BGAV_32BE_2_PTR(i, p) \
-(p)[3] = (i) & 0xff; \
-(p)[2] = ((i)>>8) & 0xff; \
-(p)[1] = ((i)>>16) & 0xff; \
-(p)[0] = ((i)>>24) & 0xff;
-
-#define BGAV_24BE_2_PTR(i, p) \
-(p)[2] = (i) & 0xff; \
-(p)[1] = ((i)>>8) & 0xff; \
-(p)[0] = ((i)>>16) & 0xff;
-
-#define BGAV_64BE_2_PTR(i, p) \
-(p)[7] = (i) & 0xff; \
-(p)[6] = ((i)>>8) & 0xff; \
-(p)[5] = ((i)>>16) & 0xff; \
-(p)[4] = ((i)>>24) & 0xff; \
-(p)[3] = ((i)>>32) & 0xff; \
-(p)[2] = ((i)>>40) & 0xff; \
-(p)[1] = ((i)>>48) & 0xff; \
-(p)[0] = ((i)>>56) & 0xff
+#define BGAV_16LE_2_PTR(i, p) GAVL_16LE_2_PTR(i, p) 
+#define BGAV_24LE_2_PTR(i, p) GAVL_24LE_2_PTR(i, p) 
+#define BGAV_32LE_2_PTR(i, p) GAVL_32LE_2_PTR(i, p)
+#define BGAV_64LE_2_PTR(i, p) GAVL_64LE_2_PTR(i, p) 
+#define BGAV_16BE_2_PTR(i, p) GAVL_16BE_2_PTR(i, p) 
+#define BGAV_32BE_2_PTR(i, p) GAVL_32BE_2_PTR(i, p) 
+#define BGAV_24BE_2_PTR(i, p) GAVL_24BE_2_PTR(i, p) 
+#define BGAV_64BE_2_PTR(i, p) GAVL_64BE_2_PTR(i, p) 
 
 #define BGAV_PTR_2_FOURCC(p) BGAV_PTR_2_32BE(p)
 
