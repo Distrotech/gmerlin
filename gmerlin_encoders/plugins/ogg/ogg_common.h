@@ -36,7 +36,7 @@ typedef struct
   void (*set_parameter)(void*, const char * name, const bg_parameter_value_t * v);
 
   int (*init_audio)(void*, gavl_audio_format_t * format,
-                    gavl_metadata_t * global_metadata,
+                    const gavl_metadata_t * global_metadata,
                     gavl_metadata_t * stream_metadata,
                     gavl_compression_info_t * ci_ret);
 
@@ -60,10 +60,9 @@ typedef struct
   
   int (*flush_header_pages)(void*);
   
-  int (*encode_audio)(void*, gavl_audio_frame_t*f);
-  int (*encode_video)(void*, gavl_video_frame_t*f);
-
-  int (*write_packet)(void*, gavl_packet_t*p);
+  gavl_sink_status_t (*encode_audio)(void*, gavl_audio_frame_t*f);
+  gavl_sink_status_t (*encode_video)(void*, gavl_video_frame_t*f);
+  gavl_sink_status_t (*write_packet)(void*, gavl_packet_t*p);
   
   int (*close)(void*);
   } bg_ogg_codec_t;
@@ -82,9 +81,10 @@ struct bg_ogg_stream_s
   gavl_audio_sink_t * asink;
   gavl_video_sink_t * vsink;
 
-  gavl_packet_sink_t * psink;
-
-  const gavl_metadata_t * m;
+  gavl_packet_sink_t * psink_in;
+  gavl_packet_sink_t * psink_out;
+  
+  gavl_metadata_t m;
   ogg_stream_state os;
   
   /* 2-pass stuff */
@@ -110,7 +110,6 @@ int bg_ogg_stream_write_header_packet(bg_ogg_stream_t * s, ogg_packet * p);
 
 int bg_ogg_stream_write_gavl_packet(bg_ogg_stream_t * s, gavl_packet_t * p);
 
-int bg_ogg_stream_flush_page(bg_ogg_stream_t * s, int force);
 int bg_ogg_stream_flush(bg_ogg_stream_t * s, int force);
 
 void bg_ogg_packet_to_gavl(bg_ogg_stream_t * s, ogg_packet * src, gavl_packet_t * dst);

@@ -48,7 +48,7 @@ add_audio_stream_flacogg(void * data,
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, metadata, format);
-  bg_ogg_encoder_init_audio_stream(data, ret, &bg_flacogg_codec);
+  bg_ogg_encoder_init_stream(data, ret, &bg_flacogg_codec);
   return ret;
   }
 

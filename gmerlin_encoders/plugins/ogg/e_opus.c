@@ -47,7 +47,7 @@ static int add_audio_stream_opus(void * data,
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, m, format);
-  bg_ogg_encoder_init_audio_stream(data, ret, &bg_opus_codec);
+  bg_ogg_encoder_init_stream(data, ret, &bg_opus_codec);
   return ret;
   }
 
@@ -78,7 +78,7 @@ add_audio_stream_compressed_opus(void * data,
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
-  bg_ogg_encoder_init_audio_stream(data, ret, &bg_opus_codec);
+  bg_ogg_encoder_init_stream(data, ret, &bg_opus_codec);
   return ret;
   }
 

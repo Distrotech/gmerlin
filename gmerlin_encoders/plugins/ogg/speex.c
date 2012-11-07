@@ -55,7 +55,8 @@ typedef struct
   
   long serialno;
   bg_ogg_encoder_t * output;
-  
+
+  bg_ogg_stream_t * s;
   
   int64_t samples_read;
   
@@ -84,12 +85,11 @@ typedef struct
   } speex_t;
 
 
-static void * create_speex(bg_ogg_encoder_t * output, long serialno)
+static void * create_speex(bg_ogg_stream_t * s)
   {
   speex_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->serialno = serialno;
-  ret->output = output;
+  ret->s = s;
   ret->frame = gavl_audio_frame_create(NULL);
   return ret;
   }
@@ -229,8 +229,8 @@ static void set_parameter_speex(void * data, const char * name,
   }
 
 static int init_speex(void * data, gavl_audio_format_t * format,
-                      gavl_metadata_t * metadata,
-                      const gavl_metadata_t * stream_metadata,
+                      const gavl_metadata_t * metadata,
+                      gavl_metadata_t * stream_metadata,
                       gavl_compression_info_t * ci)
   {
   float quality_f;
@@ -347,7 +347,7 @@ static int init_speex(void * data, gavl_audio_format_t * format,
   /* And stream them out */
   ogg_stream_packetin(&speex->enc_os,&op);
   free(op.packet);
-  if(!bg_ogg_flush_page(&speex->enc_os, speex->output, 1))
+  if(!bg_ogg_stream_flush(speex->s, 1))
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Got no Speex ID page");
 
   /* Build comment */
@@ -367,16 +367,6 @@ static int init_speex(void * data, gavl_audio_format_t * format,
   
   return 1;
   }
-
-static int flush_header_pages_speex(void*data)
-  {
-  speex_t * speex;
-  speex = data;
-  if(bg_ogg_flush(&speex->enc_os, speex->output, 1) <= 0)
-    return 0;
-  return 1;
-  }
-
 
 static int encode_frame(speex_t * speex, int eof)
   {
@@ -454,7 +444,7 @@ static int encode_frame(speex_t * speex, int eof)
   return 1;
   }
 
-static int write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
+static gavl_sink_status_t write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
   {
   int result = 1;
   int samples_read = 0;
@@ -481,7 +471,7 @@ static int write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
     }
   
   speex->samples_read += frame->valid_samples;
-  return result;
+  return result ? GAVL_SINK_OK : GAVL_SINK_ERROR;
   }
 
 static int close_speex(void * data)
@@ -516,8 +506,6 @@ const bg_ogg_codec_t bg_speex_codec =
     .init_audio =     init_speex,
     
     //  int (*init_video)(void*, gavl_video_format_t * format);
-  
-    .flush_header_pages = flush_header_pages_speex,
     
     .encode_audio = write_audio_frame_speex,
     .close = close_speex,

@@ -149,7 +149,7 @@ static const bg_parameter_info_t * get_parameters_vorbis()
   return parameters;
   }
 
-static void build_comment(vorbis_comment * vc, gavl_metadata_t * metadata)
+static void build_comment(vorbis_comment * vc, const gavl_metadata_t * metadata)
   {
   const char * val;
   
@@ -330,8 +330,8 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
 
 static int init_vorbis(void * data,
                        gavl_audio_format_t * format,
-                       gavl_metadata_t * metadata,
-                       const gavl_metadata_t * stream_metadata,
+                       const gavl_metadata_t * metadata,
+                       gavl_metadata_t * stream_metadata,
                        gavl_compression_info_t * ci_ret)
   {
   ogg_packet header_main;
@@ -512,7 +512,7 @@ static int flush_data(vorbis_t * vorbis, int force)
   return 1;
   }
 
-static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
+static gavl_sink_status_t write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
   {
   int i;
   vorbis_t * vorbis;
@@ -532,12 +532,13 @@ static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
                         0, 0, frame->valid_samples, frame->valid_samples);
   vorbis_analysis_wrote(&vorbis->enc_vd, frame->valid_samples);
   if(flush_data(vorbis, 0) < 0)
-    return 0;
+    return GAVL_SINK_ERROR;
 
   vorbis->samples_read += frame->valid_samples;
-  return 1;
+  return GAVL_SINK_OK;
   }
 
+#if 0
 static int write_packet_vorbis(void * data, gavl_packet_t * packet)
   {
   ogg_packet op;
@@ -559,6 +560,7 @@ static int write_packet_vorbis(void * data, gavl_packet_t * packet)
     return 0;
   return 1;
   }
+#endif
 
 static int close_vorbis(void * data)
   {
@@ -602,7 +604,7 @@ const bg_ogg_codec_t bg_vorbis_codec =
     .init_audio_compressed = init_compressed_vorbis,
     
     .encode_audio = write_audio_frame_vorbis,
-    .write_packet = write_packet_vorbis,
+    //    .write_packet = write_packet_vorbis,
     
     .close = close_vorbis,
   };

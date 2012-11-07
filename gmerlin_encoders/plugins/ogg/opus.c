@@ -69,10 +69,8 @@ static int header_to_packet(opus_header_t * h, uint8_t * ret);
 typedef struct
   {
   /* Common stuff */
-  ogg_stream_state enc_os;
-  bg_ogg_encoder_t * output;
-  long serialno;
-
+  bg_ogg_stream_t * s;
+  
   /* Config */
   int application;
   int bitrate_mode;
@@ -98,19 +96,17 @@ typedef struct
   uint8_t * enc_buffer;
   int enc_buffer_size;
 
-  int64_t granulepos;
-  int64_t packetcounter;
+  int64_t pts;
 
   int to_skip;
   
   } opus_t;
 
-static void * create_opus(bg_ogg_encoder_t * output, long serialno)
+static void * create_opus(bg_ogg_stream_t * s)
   {
   opus_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->serialno = serialno;
-  ret->output = output;
+  ret->s = s;
   return ret;
   }
 
@@ -295,16 +291,14 @@ static void set_parameter_opus(void * data, const char * name,
   }
 
 static int init_opus(void * data, gavl_audio_format_t * format,
-                     gavl_metadata_t * metadata,
-                     const gavl_metadata_t * stream_metadata)
+                     const gavl_metadata_t * metadata,
+                     gavl_metadata_t * stream_metadata,
+                     gavl_compression_info_t * ci)
   {
   int err;
-  ogg_packet op;
   opus_t * opus = data;
-  uint8_t header[MAX_HEADER_LEN];
+  //  uint8_t header[MAX_HEADER_LEN];
 
-  ogg_stream_init(&opus->enc_os, opus->serialno);
-  
   /* Setup header (also adjusts format) */
 
   setup_header(&opus->h, format);
@@ -373,6 +367,15 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   opus->frame = gavl_audio_frame_create(opus->format);
   
   /* Output header */
+
+  ci->global_header = malloc(MAX_HEADER_LEN);
+  ci->global_header_len = header_to_packet(&opus->h, ci->global_header);
+  ci->id = GAVL_CODEC_ID_OPUS;
+  
+  gavl_metadata_set(stream_metadata, GAVL_META_SOFTWARE,
+                    opus_get_version_string());
+  
+#if 0  
   memset(&op, 0, sizeof(op));
   
   op.packet = header;
@@ -380,17 +383,17 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   op.b_o_s = 1;
   op.e_o_s = 0;
   op.granulepos = 0;
-  op.packetno = opus->packetcounter++;
 
   /* And stream them out */
-  ogg_stream_packetin(&opus->enc_os,&op);
-  if(!bg_ogg_flush_page(&opus->enc_os, opus->output, 1))
+
+  if(!bg_ogg_stream_write_header_packet(opus->s, &op))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no Opus header page");
     return 0;
     }
   
   /* Build comment */
+
   
   bg_ogg_create_comment_packet((uint8_t*)"OpusTags", 8,
                                opus_get_version_string(), metadata, &op);
@@ -398,11 +401,12 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   op.b_o_s = 0;
   op.e_o_s = 0;
   op.granulepos = 0;
-  op.packetno = opus->packetcounter++;
-  ogg_stream_packetin(&opus->enc_os, &op);
 
+  if(!bg_ogg_stream_write_header_packet(opus->s, &op))
+    return 0;
+  
   bg_ogg_free_comment_packet(&op);
-
+#endif
   /* Allocate encoder buffer */
 
   // Size taken from opusenc.c
@@ -421,8 +425,6 @@ static int init_compressed_opus(void * data, gavl_audio_format_t * format,
   const char * vendor;
   opus_t * opus = data;
   
-  ogg_stream_init(&opus->enc_os, opus->serialno);
-  
   memset(&op, 0, sizeof(op));
 
   op.packet = ci->global_header;
@@ -430,15 +432,15 @@ static int init_compressed_opus(void * data, gavl_audio_format_t * format,
   op.b_o_s = 1;
   op.e_o_s = 0;
   op.granulepos = 0;
-  op.packetno = opus->packetcounter++;
   
   /* And stream them out */
-  ogg_stream_packetin(&opus->enc_os,&op);
-  if(!bg_ogg_flush_page(&opus->enc_os, opus->output, 1))
+
+  if(!bg_ogg_stream_write_header_packet(opus->s, &op))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no Opus header page");
     return 0;
     }
+  
   /* Build comment */
 
   vendor = gavl_metadata_get(stream_metadata, GAVL_META_SOFTWARE);
@@ -456,26 +458,19 @@ static int init_compressed_opus(void * data, gavl_audio_format_t * format,
   op.b_o_s = 0;
   op.e_o_s = 0;
   op.granulepos = 0;
-  op.packetno = opus->packetcounter++;
-  ogg_stream_packetin(&opus->enc_os, &op);
-
+  
+  if(!bg_ogg_stream_write_header_packet(opus->s, &op))
+    return 0;
+  
   bg_ogg_free_comment_packet(&op);
   
   return 1;
   }
 
-static int flush_header_pages_opus(void*data)
-  {
-  opus_t * opus = data;
-  opus = data;
-  if(bg_ogg_flush(&opus->enc_os, opus->output, 1) <= 0)
-    return 0;
-  return 1;
-  }
 
 static int flush_frame(opus_t * opus, int eof)
   {
-  ogg_packet op;
+  gavl_packet_t gp;
   int result;
 
   //  fprintf(stderr, "Flush frame %d %d\n", opus->frame->valid_samples,
@@ -517,23 +512,20 @@ static int flush_frame(opus_t * opus, int eof)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding failed: %s", opus_strerror(result));
       return 0;
       }
-
-    opus->granulepos += (opus->frame->valid_samples * 48000) / opus->format->samplerate;
-    opus->frame->valid_samples = 0;
     
     /* Create packet */
-    memset(&op, 0, sizeof(op));
-    op.bytes = result;
-    op.packet = opus->enc_buffer;
-    op.e_o_s = eof;
-    op.packetno = opus->packetcounter++;
-    op.granulepos = opus->granulepos;
-    
-    ogg_stream_packetin(&opus->enc_os, &op);
+    gavl_packet_init(&gp);
+    gp.data = opus->enc_buffer;
+    gp.data_len = result;
+    if(eof)
+      gp.flags |= GAVL_PACKET_LAST;
+
+    gp.duration = (opus->frame->valid_samples * 48000) / opus->format->samplerate;
+    gp.pts = opus->pts;
+    opus->pts += gp.duration;
+    gavl_packet_sink_put_packet(opus->s->psink_out, &gp);
+    opus->frame->valid_samples = 0;
     }
-  
-  if(bg_ogg_flush(&opus->enc_os, opus->output, eof) < 0)
-    return 0;
   return 1;
   }
 
@@ -593,6 +585,7 @@ static int write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
   return result;
   }
 
+#if 0
 static int write_audio_packet_opus(void * data, gavl_packet_t * packet)
   {
   ogg_packet op;
@@ -612,6 +605,7 @@ static int write_audio_packet_opus(void * data, gavl_packet_t * packet)
     return 0;
   return 1;
   }
+#endif
 
 static int close_opus(void * data)
   {
@@ -621,9 +615,6 @@ static int close_opus(void * data)
   /* Flush */
   result = flush_frame(opus, 1);
   
-  /* Cleanup */
-  ogg_stream_clear(&opus->enc_os);
-
   if(opus->frame)
     gavl_audio_frame_destroy(opus->frame);
   if(opus->enc_buffer)
@@ -646,10 +637,8 @@ const bg_ogg_codec_t bg_opus_codec =
     .init_audio  =     init_opus,
     .init_audio_compressed =     init_compressed_opus,
     
-    .flush_header_pages = flush_header_pages_opus,
-    
     .encode_audio = write_audio_frame_opus,
-    .write_packet = write_audio_packet_opus,
+    //    .write_packet = write_audio_packet_opus,
 
     .close = close_opus,
   };

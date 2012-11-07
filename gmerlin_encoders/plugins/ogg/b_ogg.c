@@ -102,7 +102,7 @@ static void set_audio_parameter_b_ogg(void * data, int stream,
       {
       if(!strcmp(audio_codecs[i]->name, val->val_str))
         {
-        bg_ogg_encoder_init_audio_stream(data, stream, audio_codecs[i]);
+        bg_ogg_encoder_init_stream(data, stream, audio_codecs[i]);
         break;
         }
       i++;
