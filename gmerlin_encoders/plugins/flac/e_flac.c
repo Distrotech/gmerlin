@@ -60,8 +60,6 @@ typedef struct
   int64_t samples_written;
 
   bg_encoder_callbacks_t * cb;
-
-  FLAC__StreamMetadata_StreamInfo si;
   
   int64_t data_start;
   int64_t seektable_start;
@@ -84,8 +82,8 @@ typedef struct
   gavl_packet_sink_t * psink_int;
   gavl_packet_sink_t * psink_ext;
   
-  gavl_metadata_t * m_stream;
-  gavl_metadata_t * m_global;
+  gavl_metadata_t m_stream;
+  const gavl_metadata_t * m_global;
   
   } flac_t;
 
@@ -97,16 +95,13 @@ static int write_data(flac_t * f, const uint8_t * data, int len)
   return 1;
   }
 
-static int write_comment(const gavl_metadata_t * m_stream,
-                         const gavl_metadata_t * m_global,
-                         flac_t * f,
-                         int last)
+static int write_comment(flac_t * f, int last)
   {
   int ret = 0;
   uint8_t * buf;
   uint8_t * ptr;
   
-  int len = bg_vorbis_comment_bytes(m_stream, m_global, 0);
+  int len = bg_vorbis_comment_bytes(&f->m_stream, f->m_global, 0);
   
   buf = malloc(4 + len);
   ptr = buf;
@@ -117,8 +112,9 @@ static int write_comment(const gavl_metadata_t * m_stream,
   ptr++;
 
   GAVL_24BE_2_PTR(len, ptr); ptr += 3;
-  bg_vorbis_comment_write(ptr, m_stream, m_global, 0);
+  bg_vorbis_comment_write(ptr, &f->m_stream, f->m_global, 0);
   write_data(f, buf, len+4);
+  free(buf);
   return ret;
   }
 
@@ -148,9 +144,9 @@ static int write_seektable(FLAC__StreamMetadata_SeekPoint * index,
   for(i = 0; i < len; i++)
     {
     ptr = buf;
-    GAVL_64BE_2_PTR(index[i].sample_number, buf); ptr += 8;
-    GAVL_64BE_2_PTR(index[i].stream_offset, buf); ptr += 8;
-    GAVL_16BE_2_PTR(index[i].frame_samples, buf); ptr += 2;
+    GAVL_64BE_2_PTR(index[i].sample_number, ptr); ptr += 8;
+    GAVL_64BE_2_PTR(index[i].stream_offset, ptr); ptr += 8;
+    GAVL_16BE_2_PTR(index[i].frame_samples, ptr); ptr += 2;
     write_data(f, buf, 18);
     }
   
@@ -222,7 +218,7 @@ static void set_parameter_flac(void * data,
     flac->num_seektable_entries = v->val_i;
   }
 
-static int streaminfo_callback(void * data, const uint8_t * si, int len)
+static int streaminfo_callback(void * data, uint8_t * si, int len)
   {
   int first;
   flac_t * flac = data;
@@ -232,21 +228,30 @@ static int streaminfo_callback(void * data, const uint8_t * si, int len)
   else
     first = 1;
 
+  fprintf(stderr, "streaminfo_callback %d\n", first);
+  bg_hexdump(si, len, 16);
+  
   if(first)
     {
+    /* Set or clear the "last metadata packet" flag */
+
+    if(flac->use_seektable || flac->use_vorbis_comment)
+      si[4] &= 0x7f;
+    else
+      si[4] |= 0x80;
+    
     /* Write stream info */
     if(!write_data(flac, si, len))
       return 0;
 
     if(flac->use_vorbis_comment)
       {
-      write_comment(flac->m_stream,
-                    flac->m_global,
-                    flac,
+      write_comment(flac,
                     !flac->use_seektable);
       }
     if(flac->use_seektable)
       {
+      flac->seektable_start = flac->bytes_written;
       write_seektable(flac->seektable,
                       flac->num_seektable_entries,
                       flac, 1);
@@ -290,6 +295,8 @@ static int open_flac(void * data, const char * filename,
     for(i = 0; i < flac->num_seektable_entries; i++)
       flac->seektable[i].sample_number = 0xFFFFFFFFFFFFFFFFLL;
     }
+
+  flac->m_global = m;
   
   return result;
   }
@@ -304,6 +311,8 @@ static int add_audio_stream_flac(void * data,
   /* Copy and adjust format */
   
   gavl_audio_format_copy(&flac->format, format);
+  gavl_metadata_copy(&flac->m_stream, m);
+  
   return 0;
   }
 
@@ -320,29 +329,13 @@ static void append_packet(flac_t * f, int samples)
   f->frame_table[f->frame_table_len].frame_samples = samples;
   f->frame_table[f->frame_table_len].stream_offset = f->bytes_written - f->data_start;
   f->frame_table_len++;
+
+  fprintf(stderr, "Append packet %ld %d -> %ld\n", f->samples_written, samples,
+          f->samples_written + samples);
+  
   f->samples_written += samples;
-  }
-
-#if 0
-static gavl_sink_status_t put_packet_int(void * data, gavl_packet_t * p)
-  {
-  flac_t * flac;
-  flac = data;
-
-  /* Check if we got a real frame */
-  if(flac->data_start < 0)
-    flac->data_start = flac->bytes_written;
   
-  append_packet(flac, p->duration);
-  
-  if(fwrite(p->data, 1, p->data_len, flac->out) == p->data_len)
-    {
-    flac->bytes_written += p->data_len;
-    return GAVL_SINK_OK;
-    }
-  return GAVL_SINK_ERROR;
   }
-#endif
 
 static gavl_sink_status_t
 write_audio_packet_func_flac(void * priv, gavl_packet_t * packet)
@@ -354,11 +347,8 @@ write_audio_packet_func_flac(void * priv, gavl_packet_t * packet)
   
   append_packet(flac, packet->duration);
   
-  if(fwrite(packet->data, 1, packet->data_len, flac->out) == packet->data_len)
-    {
-    flac->bytes_written += packet->data_len;
+  if(write_data(flac, packet->data, packet->data_len))
     return GAVL_SINK_OK;
-    }
   else
     return GAVL_SINK_ERROR;
   }
@@ -386,19 +376,20 @@ static int start_flac(void * data)
   if(flac->compressed)
     {
     if(!bg_flac_start_compressed(flac->enc, &flac->format, &flac->ci,
-                                 flac->m_stream))
+                                 &flac->m_stream))
       return 0;
     flac->psink_ext = bg_flac_get_packet_sink(flac->enc);
     }
   else
     {
     if(!bg_flac_start_uncompressed(flac->enc, &flac->format, &flac->ci,
-                                   flac->m_stream))
+                                   &flac->m_stream))
       return 0;
     flac->sink = bg_flac_get_audio_sink(flac->enc);
     }
 
-  flac->psink_int = gavl_packet_sink_create(NULL, write_audio_packet_func_flac, flac);
+  flac->psink_int =
+    gavl_packet_sink_create(NULL, write_audio_packet_func_flac, flac);
   bg_flac_set_sink(flac->enc, flac->psink_int);
 
   flac->data_start = -1;
@@ -467,11 +458,14 @@ static void finalize(flac_t * flac)
   
   /* Update stream info */
   
-  
   /* Seek table */
   if(flac->seektable) // Build seek table
     {
     build_seek_table(flac);
+    fseek(flac->out, flac->seektable_start, SEEK_SET);
+    write_seektable(flac->seektable,
+                    flac->num_seektable_entries,
+                    flac, 1);
     }
   }
 
@@ -480,6 +474,14 @@ static int close_flac(void * data, int do_delete)
   flac_t * flac;
   flac = data;
 
+  /* Flush and free the codec */
+  if(flac->enc)
+    {
+    bg_flac_free(flac->enc);
+    flac->enc = NULL;
+    }
+
+  /* Finalize output file */
   if(flac->out)
     {
     if(do_delete)
@@ -496,11 +498,6 @@ static int close_flac(void * data, int do_delete)
       }
     }
 
-  if(flac->enc)
-    {
-    bg_flac_free(flac->enc);
-    flac->enc = NULL;
-    }
   free(flac->filename);
   flac->filename = NULL;
   
@@ -517,9 +514,12 @@ static int close_flac(void * data, int do_delete)
     }
   if(flac->psink_int)
     {
-    gavl_packet_sink_destroy(flac->psink_ext);
-    flac->psink_ext = NULL;
+    gavl_packet_sink_destroy(flac->psink_int);
+    flac->psink_int = NULL;
     }
+
+  gavl_metadata_free(&flac->m_stream);
+  
   return 1;
   }
 
@@ -557,30 +557,11 @@ add_audio_stream_compressed_flac(void * priv,
                                  const gavl_audio_format_t * format,
                                  const gavl_compression_info_t * info)
   {
-  uint16_t i_tmp;
-  uint8_t * ptr;
   flac_t * flac = priv;
-
   gavl_compression_info_copy(&flac->ci, info);
-  flac->compressed = 1;
-  
   gavl_audio_format_copy(&flac->format, format);
-  
-  ptr = flac->ci.global_header
-    + 8  // Signature + metadata header
-    + 10 // min/max frame/blocksize
-    + 2; // upper 16 bit of 20 samplerate bits
-
-  // |4|3|5|4|
-  i_tmp = ptr[0];
-  i_tmp <<= 8;
-  i_tmp |= ptr[1];
-  
-  flac->si.sample_rate = format->samplerate;
-  flac->si.channels = format->num_channels;
-  flac->si.bits_per_sample = ((i_tmp >> 4) & 0x1f)+1;
-  
-  memcpy(flac->si.md5sum, flac->ci.global_header + 42 - 16, 16);
+  gavl_metadata_copy(&flac->m_stream, m);
+  flac->compressed = 1;
   return 0;
   }
 

@@ -65,13 +65,8 @@ struct bg_flac_s
   gavl_audio_sink_t * asink_in;
   
   int (*streaminfo_callback)(void * data, uint8_t * si, int len);
-  
-  FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__StreamEncoder *encoder,
-                                                   const FLAC__byte buffer[],
-                                                   size_t bytes,
-                                                   void *data);
   void * callback_priv;
-
+  
   int64_t pts;
   
   gavl_compression_info_t ci;
@@ -245,6 +240,9 @@ write_callback(const FLAC__StreamEncoder *encoder,
 
   if(flac->ci.global_header_len < BG_FLAC_HEADER_SIZE)
     {
+    //    fprintf(stderr, "write callback: %d %ld\n", flac->ci.global_header_len,
+    //            bytes);
+    
     memcpy(flac->ci.global_header + flac->ci.global_header_len, buffer, bytes);
     flac->ci.global_header_len += bytes;
     
@@ -274,10 +272,6 @@ write_callback(const FLAC__StreamEncoder *encoder,
     else
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
-  
-
-  if(flac->write_callback)
-    return flac->write_callback(encoder, buffer, bytes, data);
   return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
   }
 
@@ -355,6 +349,13 @@ int bg_flac_start_compressed(bg_flac_t * flac,
   
   memcpy(flac->si.md5sum, flac->ci.global_header + 42 - 16, 16);
   flac->psink_in = gavl_packet_sink_create(NULL, write_audio_packet_func_flac, flac);
+
+  if(flac->streaminfo_callback)
+    flac->streaminfo_callback(flac->callback_priv,
+                              flac->ci.global_header,
+                              flac->ci.global_header_len);
+
+
   return 1;
   }
 
@@ -388,8 +389,6 @@ encode_audio_func(void * priv, gavl_audio_frame_t * frame)
 
   return 1;
   }
-
-
 
 int bg_flac_start_uncompressed(bg_flac_t * flac,
                                gavl_audio_format_t * fmt, gavl_compression_info_t * ci,

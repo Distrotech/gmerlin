@@ -98,7 +98,7 @@ int bg_vorbis_comment_write(uint8_t * buf,
   int len2;
   int len_total;
   uint8_t * ptr;
-  int num_tags;
+  int num_tags = 0;
   uint8_t * num_tags_pos;
   int i = 0;
   const char * str;
