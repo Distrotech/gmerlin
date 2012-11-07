@@ -329,24 +329,26 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
     {
     memcpy(p->data, priv->buf.buffer, size);
     p->position = ctx->input->position - priv->buf.size;
-  
     bgav_bytebuffer_remove(&priv->buf, size);
-    /* Save frame header for later use */
-    memcpy(&priv->this_fh, &next_fh, sizeof(next_fh));
     }
   
   //  p->pts = fh.sample_number;
   
   p->duration = priv->this_fh.blocksize;
   p->pts = priv->pts;
+
+  //  fprintf(stderr, "Duration: %ld ", p->duration);
   
   if(priv->streaminfo.total_samples &&
      (p->pts < priv->streaminfo.total_samples) &&
      (p->pts + p->duration > priv->streaminfo.total_samples))
+    {
     p->duration = priv->streaminfo.total_samples - p->pts;
+    }
+  // fprintf(stderr, "Packet pts %ld sn: %ld dur: %ld pos: %ld\n",
+  // p->pts, priv->this_fh.sample_number, p->duration, p->position);
 
-  //  fprintf(stderr, "Packet pts %ld %ld\n",
-  //          p->pts, priv->this_fh.sample_number);
+  //  fprintf(stderr, "%ld\n", p->duration);
   
   priv->pts += p->duration;
   p->data_size = size;
@@ -356,6 +358,12 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
 //  bgav_packet_dump(p);
   
   bgav_stream_done_packet_write(s, p);
+
+  if(!ctx->next_packet_pos)
+    {
+    /* Save frame header for later use */
+    memcpy(&priv->this_fh, &next_fh, sizeof(next_fh));
+    }
   
   return 1;
   }

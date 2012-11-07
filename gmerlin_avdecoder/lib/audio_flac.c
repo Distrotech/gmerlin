@@ -105,7 +105,8 @@ read_callback(const FLAC__StreamDecoder *decoder,
       bgav_stream_done_packet_read(s, priv->p);
       priv->p = NULL;
       }
-    
+    if(bytes_read) // This ensures we read at most one packet
+      break;
     }
   *bytes = bytes_read;
   if(!bytes_read)
@@ -296,11 +297,15 @@ static gavl_source_status_t decode_frame_flac(bgav_stream_t * s)
   /* Decode another frame */
   while(1)
     {
+    priv->frame->valid_samples = 0;
     FLAC__stream_decoder_process_single(priv->dec);
 
     if(FLAC__stream_decoder_get_state(priv->dec) ==
        FLAC__STREAM_DECODER_END_OF_STREAM)
+      {
+      fprintf(stderr, "Detected EOF: %d\n", priv->frame->valid_samples);
       return GAVL_SOURCE_EOF;
+      }
     if(priv->frame->valid_samples)
       {
       gavl_audio_frame_copy_ptrs(&s->data.audio.format, 
