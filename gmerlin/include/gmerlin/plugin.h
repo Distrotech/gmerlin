@@ -2457,6 +2457,7 @@ struct bg_codec_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param ci Compression info (must be freed by the caller)
    *  \param fmt Format of the source
+   *  \param m Stream metadata (might get changed by the call)
    *  \returns An audio sink for sending uncompressed frames
    */
   
@@ -2469,6 +2470,7 @@ struct bg_codec_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param ci Compression info (must be freed by the caller)
    *  \param fmt Format of the source
+   *  \param m Stream metadata (might get changed by the call)
    *  \returns A video sink for sending uncompressed frames
    */
   
@@ -2487,7 +2489,8 @@ struct bg_codec_plugin_s
   /** \brief Connect audio decoder
    *  \param priv The handle returned by the create() method
    *  \param sink Source where get the packets
-   *  \fmt Format from the container (possibly incomplete)
+   *  \param fmt Format from the container (possibly incomplete)
+   *  \param m Stream metadata (might get changed by the call)
    *  \returns An audio source for reading uncompressed frames
    */
   
@@ -2500,7 +2503,8 @@ struct bg_codec_plugin_s
   /** \brief Connect video decoder
    *  \param priv The handle returned by the create() method
    *  \param sink Source where get the packets
-   *  \fmt Format from the container (possibly incomplete)
+   *  \param fmt Format from the container (possibly incomplete)
+   *  \param m Stream metadata (might get changed by the call)
    *  \returns A video source for reading uncompressed frames
    */
   
@@ -2509,13 +2513,6 @@ struct bg_codec_plugin_s
                                                 const gavl_compression_info_t * ci,
                                                 const gavl_video_format_t * fmt,
                                                 gavl_metadata_t * m);
-
-  /** \brief Get output metadata
-   *  \param priv The handle returned by the create() method
-   *  \returns metadata for the en-/decoded stream
-   */
-  
-  const gavl_metadata_t * (*get_metadata)(void * priv);
   
   /** \brief Reset a decoder
    *  \param priv The handle returned by the create() method
