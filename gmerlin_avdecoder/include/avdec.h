@@ -2328,7 +2328,7 @@ bgav_stream_decoder_get_options(bgav_stream_decoder_t * dec);
  *  \param src Packet source
  *  \param ci Compression info
  *  \param fmt Format (possibly incomplete)
- *  \param m Stream metadata
+ *  \param m Stream metadata (might get changed)
  *  \returns Source for reading the uncompressed frames
  *
  *  You can call either \ref bgav_stream_decoder_connect_audio or
@@ -2344,14 +2344,14 @@ bgav_stream_decoder_connect_audio(bgav_stream_decoder_t * dec,
                                   gavl_packet_source_t * src,
                                   const gavl_compression_info_t * ci,
                                   const gavl_audio_format_t * fmt,
-                                  const gavl_metadata_t * m);
+                                  gavl_metadata_t * m);
   
 /** \brief Connect a video stream decoder
  *  \param dec A stream decoder
  *  \param src Packet source
  *  \param ci Compression info
  *  \param fmt Format (possibly incomplete)
- *  \param m Stream metadata
+ *  \param m Stream metadata (might get changed)
  *  \returns Source for reading the uncompressed frames
  *
  *  You can call either \ref bgav_stream_decoder_connect_audio or
@@ -2367,17 +2367,7 @@ bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
                                   gavl_packet_source_t * src,
                                   const gavl_compression_info_t * ci,
                                   const gavl_video_format_t * fmt,
-                                  const gavl_metadata_t * m);
-
-/** \brief Get updated metadata from a stream decoder
- *  \param dec A stream decoder
- *  \returns Updated metadata
- *
- *  This returns (possibly changed) metadata of the stream.
- */
-
-BGAV_PUBLIC const gavl_metadata_t *
-bgav_stream_decoder_get_metadata(bgav_stream_decoder_t * dec);
+                                  gavl_metadata_t * m);
 
 /** \brief Skip to a specified time
  *  \param dec A stream decoder

@@ -45,7 +45,7 @@ connect_decode_video(void * priv,
                      gavl_packet_source_t * src,
                      const gavl_compression_info_t * ci,
                      const gavl_video_format_t * fmt,
-                     const gavl_metadata_t * m)
+                     gavl_metadata_t * m)
   {
   bg_avdec_codec_t * c = priv;
   return bgav_stream_decoder_connect_video(c->dec, src, ci,
@@ -82,7 +82,6 @@ const bg_codec_plugin_t the_plugin =
     },
     .get_compressions     = get_compressions,
     .connect_decode_video = connect_decode_video,
-    .get_metadata         = bg_avdec_codec_get_metadata,
     .reset                = bg_avdec_codec_reset,
     .skip                 = bg_avdec_codec_skip,
     

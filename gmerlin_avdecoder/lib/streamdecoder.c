@@ -114,7 +114,7 @@ static gavl_source_status_t peek_func(void * priv, bgav_packet_t ** ret, int for
 static int init_common(bgav_stream_decoder_t * dec,
                        gavl_packet_source_t * src,
                        const gavl_compression_info_t * ci,
-                       const gavl_metadata_t * m)
+                       gavl_metadata_t * m)
   {
   dec->s.action = BGAV_STREAM_DECODE;
   dec->src = src;
@@ -131,13 +131,15 @@ bgav_stream_decoder_connect_audio(bgav_stream_decoder_t * dec,
                                   gavl_packet_source_t * src,
                                   const gavl_compression_info_t * ci,
                                   const gavl_audio_format_t * fmt,
-                                  const gavl_metadata_t * m)
+                                  gavl_metadata_t * m)
   {
   dec->s.type = BGAV_STREAM_AUDIO;
   bgav_stream_set_from_gavl(&dec->s, ci, fmt, NULL, m);
 
   if(!init_common(dec, src, ci, m))
     return NULL;
+
+  gavl_metadata_copy(m, &dec->s.m);
   
   return dec->s.data.audio.source;
   }
@@ -147,7 +149,7 @@ bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
                                   gavl_packet_source_t * src,
                                   const gavl_compression_info_t * ci,
                                   const gavl_video_format_t * fmt,
-                                  const gavl_metadata_t * m)
+                                  gavl_metadata_t * m)
   {
   dec->s.type = BGAV_STREAM_VIDEO;
   bgav_stream_set_from_gavl(&dec->s, ci, NULL, fmt, m);
@@ -155,17 +157,10 @@ bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
   if(!init_common(dec, src, ci, m))
     return NULL;
 
+  gavl_metadata_copy(m, &dec->s.m);
   
   return dec->s.data.video.source;
   }
-
-
-const gavl_metadata_t *
-bgav_stream_decoder_get_metadata(bgav_stream_decoder_t * dec)
-  {
-  return &dec->s.m;
-  }
-
 
 int64_t
 bgav_stream_decoder_skip(bgav_stream_decoder_t * dec, int64_t t)

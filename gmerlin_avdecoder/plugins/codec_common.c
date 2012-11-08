@@ -52,11 +52,6 @@ void bg_avdec_codec_destroy(void * priv)
   free(c);
   }
 
-const gavl_metadata_t * bg_avdec_codec_get_metadata(void * priv)
-  {
-  bg_avdec_codec_t * c = priv;
-  return bgav_stream_decoder_get_metadata(c->dec);
-  }
   
 void bg_avdec_codec_reset(void * priv)
   {

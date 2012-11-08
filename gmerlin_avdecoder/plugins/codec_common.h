@@ -30,7 +30,6 @@ typedef struct
 
 void * bg_avdec_codec_create();
 void bg_avdec_codec_destroy(void *);
-const gavl_metadata_t * bg_avdec_codec_get_metadata(void *);
 void bg_avdec_codec_reset(void*);
 int64_t bg_avdec_codec_skip(void*, int64_t t);
 

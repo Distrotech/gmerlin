@@ -45,7 +45,7 @@ connect_decode_audio(void * priv,
                      gavl_packet_source_t * src,
                      const gavl_compression_info_t * ci,
                      const gavl_audio_format_t * fmt,
-                     const gavl_metadata_t * m)
+                     gavl_metadata_t * m)
   {
   bg_avdec_codec_t * c = priv;
   return bgav_stream_decoder_connect_audio(c->dec, src, ci,
@@ -81,7 +81,6 @@ const bg_codec_plugin_t the_plugin =
     },
     .get_compressions     = get_compressions,
     .connect_decode_audio = connect_decode_audio,
-    .get_metadata         = bg_avdec_codec_get_metadata,
     .reset                = bg_avdec_codec_reset,
     .skip                 = bg_avdec_codec_skip,
     
