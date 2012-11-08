@@ -167,7 +167,7 @@ static void set_parameter_flacogg(void * data, const char * name,
   }
 
 static int init_flacogg(void * data, gavl_audio_format_t * format,
-                        gavl_metadata_t * metadata,
+                        const gavl_metadata_t * metadata,
                         gavl_metadata_t * stream_metadata,
                         gavl_compression_info_t * ci)
   {

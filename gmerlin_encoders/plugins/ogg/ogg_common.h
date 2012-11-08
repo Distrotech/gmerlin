@@ -115,28 +115,6 @@ int bg_ogg_stream_flush(bg_ogg_stream_t * s, int force);
 void bg_ogg_packet_to_gavl(bg_ogg_stream_t * s, ogg_packet * src, gavl_packet_t * dst);
 void bg_ogg_packet_from_gavl(bg_ogg_stream_t * s, gavl_packet_t * src, ogg_packet * dst);
 
-#if 0
-typedef struct
-  {
-  const bg_ogg_codec_t * codec;
-  void           * codec_priv;
-  gavl_video_format_t format;
-  const gavl_compression_info_t * ci;
-  
-  int pass;
-  int total_passes;
-  char * stats_file;
-
-  gavl_video_sink_t * sink;
-  gavl_packet_sink_t * psink;
-
-  const gavl_metadata_t * m;
-  ogg_stream_state enc_os;
-  long serialno;
-  
-  } bg_ogg_video_stream_t;
-#endif
-
 struct bg_ogg_encoder_s
   {
   int num_audio_streams;
