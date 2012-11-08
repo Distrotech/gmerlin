@@ -45,7 +45,7 @@ typedef struct
   gavl_audio_frame_t * frame;
   } speex_priv_t;
 
-static SpeexStereoState __stereo = SPEEX_STEREO_STATE_INIT;
+static const SpeexStereoState __stereo = SPEEX_STEREO_STATE_INIT;
 
 static int init_speex(bgav_stream_t * s)
   {
