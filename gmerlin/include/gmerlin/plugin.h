@@ -2463,7 +2463,7 @@ struct bg_codec_plugin_s
   gavl_audio_sink_t * (*open_encode_audio)(void * priv,
                                            gavl_compression_info_t * ci,
                                            const gavl_audio_format_t * fmt,
-                                           const gavl_metadata_t * m);
+                                           gavl_metadata_t * m);
   
   /** \brief Connect video encoder
    *  \param priv The handle returned by the create() method
@@ -2475,7 +2475,7 @@ struct bg_codec_plugin_s
   gavl_video_sink_t * (*open_encode_video)(void * priv,
                                            gavl_compression_info_t * ci,
                                            const gavl_video_format_t * fmt,
-                                           const gavl_metadata_t * m);
+                                           gavl_metadata_t * m);
 
   /** \brief Set a packet sink
    *  \param priv The handle returned by the create() method
@@ -2495,7 +2495,7 @@ struct bg_codec_plugin_s
                                                 gavl_packet_source_t * src,
                                                 const gavl_compression_info_t * ci,
                                                 const gavl_audio_format_t * fmt,
-                                                const gavl_metadata_t * m);
+                                                gavl_metadata_t * m);
 
   /** \brief Connect video decoder
    *  \param priv The handle returned by the create() method
@@ -2508,7 +2508,7 @@ struct bg_codec_plugin_s
                                                 gavl_packet_source_t * src,
                                                 const gavl_compression_info_t * ci,
                                                 const gavl_video_format_t * fmt,
-                                                const gavl_metadata_t * m);
+                                                gavl_metadata_t * m);
 
   /** \brief Get output metadata
    *  \param priv The handle returned by the create() method
@@ -2532,6 +2532,16 @@ struct bg_codec_plugin_s
    */
 
   int64_t (*skip)(void * priv, int64_t t);
+
+  /** \brief Set pass for an encoder
+   *  \param priv The handle returned by the create() method
+   *  \param pass Number of this pass (starting with 1)
+   *  \param total_passes Number of total passes
+   *  \param stats_file Name of a file, which can be used for multipass statistics
+   *  \returns 0 if multipass transcoding is not supported and can be ommitted, 1 else
+   */
+  int (*set_pass)(void * priv, int pass, int total_passes,
+                  const char * stats_file);
 
   /** \brief Flush an encoder
    *  \param priv The handle returned by the create() method
