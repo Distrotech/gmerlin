@@ -51,13 +51,6 @@
 
 typedef struct
   {
-  ogg_stream_state enc_os;
-  
-  long serialno;
-  bg_ogg_encoder_t * output;
-
-  bg_ogg_stream_t * s;
-  
   int64_t samples_read;
   
   gavl_audio_format_t * format;
@@ -81,15 +74,17 @@ typedef struct
   int frames_encoded;
 
   uint8_t buffer[BUFFER_SIZE];
+
+  gavl_packet_sink_t * psink;
+  SpeexHeader header;
   
   } speex_t;
 
 
-static void * create_speex(bg_ogg_stream_t * s)
+static void * create_speex()
   {
   speex_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->s = s;
   ret->frame = gavl_audio_frame_create(NULL);
   return ret;
   }
@@ -228,6 +223,18 @@ static void set_parameter_speex(void * data, const char * name,
     }
   }
 
+static int init_compressed_speex(bg_ogg_stream_t * s)
+  {
+  ogg_packet op;
+  memset(&op, 0, sizeof(op));
+  op.packet = (unsigned char *)s->ci.global_header;
+  op.bytes = s->ci.global_header_len;
+  if(!bg_ogg_stream_write_header_packet(s, &op))
+    return 0;
+
+  return 1;
+  }
+
 static int init_speex(void * data, gavl_audio_format_t * format,
                       const gavl_metadata_t * metadata,
                       gavl_metadata_t * stream_metadata,
@@ -235,9 +242,7 @@ static int init_speex(void * data, gavl_audio_format_t * format,
   {
   float quality_f;
   const SpeexMode *mode=NULL;
-  SpeexHeader header;
-  ogg_packet op;
-  int dummy;
+  int header_len;
 
   char * vendor_string;
   char * version;
@@ -275,7 +280,7 @@ static int init_speex(void * data, gavl_audio_format_t * format,
     }
 
   /* Setup header and mode */
-    
+  
   mode = speex_lib_get_mode(speex->modeID);
   
   speex_init_header(&header, speex->format->samplerate, 1, mode);
@@ -285,7 +290,6 @@ static int init_speex(void * data, gavl_audio_format_t * format,
 
   /* Initialize encoder structs */
   
-  ogg_stream_init(&speex->enc_os, speex->serialno);
   speex->enc = speex_encoder_init(mode);
   speex_bits_init(&speex->bits);
   
@@ -303,31 +307,19 @@ static int init_speex(void * data, gavl_audio_format_t * format,
     speex_encoder_ctl(speex->enc, SPEEX_SET_QUALITY, &speex->quality);
 
   if(speex->bitrate)
-    {
     speex_encoder_ctl(speex->enc, SPEEX_SET_BITRATE, &speex->bitrate);
-    }
   if(speex->vbr)
-    {
     speex_encoder_ctl(speex->enc, SPEEX_SET_VBR, &speex->vbr);
-    }
   else if(speex->vad)
-    {
     speex_encoder_ctl(speex->enc, SPEEX_SET_VAD, &speex->vad);
-    }
-
   if(speex->dtx)
-    {
     speex_encoder_ctl(speex->enc, SPEEX_SET_VAD, &speex->dtx);
-    }
   if(speex->abr_bitrate)
-    {
     speex_encoder_ctl(speex->enc, SPEEX_SET_ABR, &speex->abr_bitrate);
-    }
-
+  
   speex_encoder_ctl(speex->enc, SPEEX_GET_FRAME_SIZE, &speex->format->samples_per_frame);
   speex_encoder_ctl(speex->enc, SPEEX_GET_LOOKAHEAD,  &speex->lookahead);
-
-
+  
   /* Allocate temporary frame */
 
   speex->frame = gavl_audio_frame_create(speex->format);
@@ -337,14 +329,15 @@ static int init_speex(void * data, gavl_audio_format_t * format,
   //  build_comment(&comments, &comments_length, metadata);
 
   /* Build header */
-  op.packet = (unsigned char *)speex_header_to_packet(&header, &dummy);
-  op.bytes = dummy;
-  op.b_o_s = 1;
-  op.e_o_s = 0;
-  op.granulepos = 0;
-  op.packetno = 0;
+
+  ci->global_header = (unsigned char *)speex_header_to_packet(&header, &header_len);
+  ci->global_header_len = header_len;
+  
   
   /* And stream them out */
+
+  
+
   ogg_stream_packetin(&speex->enc_os,&op);
   free(op.packet);
   if(!bg_ogg_stream_flush(speex->s, 1))

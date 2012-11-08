@@ -24,6 +24,7 @@
 
 #include <config.h>
 
+#include <gavl/numptr.h>
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
@@ -72,15 +73,16 @@ typedef struct
   gavl_audio_format_t * format;
   gavl_audio_frame_t * frame;
 
-  bg_ogg_stream_t * s;
+  gavl_packet_sink_t * psink;
+
+  int64_t pts;
   
   } vorbis_t;
 
-static void * create_vorbis(bg_ogg_stream_t * s)
+static void * create_vorbis()
   {
   vorbis_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->s = s;
   return ret;
   }
 
@@ -207,15 +209,8 @@ static void build_comment(vorbis_comment * vc, const gavl_metadata_t * metadata)
    (*(p+1) << 8) |    \
    *(p))
 
-#define INT32LE_2_PTR(num, p) \
-  (p)[0] = (num) & 0xff;                        \
-  (p)[1] = ((num)>>8) & 0xff;                \
-  (p)[2] = ((num)>>16) & 0xff;            \
-  (p)[3] = ((num)>>24) & 0xff
-
-
 #define WRITE_STRING(s, p) string_len = strlen(s); \
-  INT32LE_2_PTR(string_len, p); p += 4; \
+  GAVL_32LE_2_PTR(string_len, p); p += 4; \
   memcpy(p, s, string_len); \
   p+=string_len;
 
@@ -244,7 +239,7 @@ static uint8_t * create_comment_packet(vorbis_comment * comment, int * len1)
   /* Vendor length + vendor */
   WRITE_STRING(comment->vendor, ptr);
 
-  INT32LE_2_PTR(comment->comments, ptr); ptr += 4;
+  GAVL_32LE_2_PTR(comment->comments, ptr); ptr += 4;
 
   for(i = 0; i < comment->comments; i++)
     {
@@ -256,26 +251,21 @@ static uint8_t * create_comment_packet(vorbis_comment * comment, int * len1)
   return ret;
   }
 
-static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
-                                  const gavl_compression_info_t * ci,
-                                  gavl_metadata_t * global_metadata,
-                                  const gavl_metadata_t * stream_metadata)
+static int init_compressed_vorbis(bg_ogg_stream_t * s)
   {
   ogg_packet packet;
   uint8_t * ptr;
   uint32_t len;
-  vorbis_t * vorbis = data;
   uint32_t vendor_len;
 
   uint8_t * comment_packet;
   int comment_len;
+  vorbis_t * vorbis = s->codec_priv;
   
-  vorbis->format = format;
-
   memset(&packet, 0, sizeof(packet));
   
   /* Write ID packet */
-  ptr = ci->global_header;
+  ptr = s->ci.global_header;
   
   len = PTR_2_32BE(ptr); ptr += 4;
 
@@ -283,7 +273,7 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   packet.bytes  = len;
   packet.b_o_s = 1;
 
-  if(!bg_ogg_stream_write_header_packet(vorbis->s, &packet))
+  if(!bg_ogg_stream_write_header_packet(s, &packet))
     return 0;
   
   ptr += len;
@@ -294,7 +284,7 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   /* Build comment (comments are UTF-8, good for us :-) */
   len = PTR_2_32BE(ptr); ptr += 4;
   
-  build_comment(&vorbis->enc_vc, global_metadata);
+  build_comment(&vorbis->enc_vc, s->m_global);
   
   /* Copy the vendor id */
   vendor_len = PTR_2_32LE(ptr + 7);
@@ -307,7 +297,7 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   packet.bytes  = comment_len;
   packet.b_o_s = 0;
 
-  if(!bg_ogg_stream_write_header_packet(vorbis->s, &packet))
+  if(!bg_ogg_stream_write_header_packet(s, &packet))
     return 0;
   
   free(comment_packet);
@@ -323,154 +313,23 @@ static int init_compressed_vorbis(void * data, gavl_audio_format_t * format,
   packet.packet = ptr;
   packet.bytes  = len;
   
-  if(!bg_ogg_stream_write_header_packet(vorbis->s, &packet))
+  if(!bg_ogg_stream_write_header_packet(s, &packet))
     return 0;
   return 1;
   }
 
-static int init_vorbis(void * data,
-                       gavl_audio_format_t * format,
-                       const gavl_metadata_t * metadata,
-                       gavl_metadata_t * stream_metadata,
-                       gavl_compression_info_t * ci_ret)
+static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
   {
-  ogg_packet header_main;
-  ogg_packet header_comments;
-  ogg_packet header_codebooks;
-  //  struct ovectl_ratemanage2_arg ai;
-
   vorbis_t * vorbis = data;
-  uint8_t * ptr;
-  
-  vorbis->format = format;
-  vorbis->frame = gavl_audio_frame_create(NULL);
-  
-  vorbis->managed = 0;
-  
-  /* Adjust the format */
-
-  vorbis->format->interleave_mode = GAVL_INTERLEAVE_NONE;
-  vorbis->format->sample_format = GAVL_SAMPLE_FLOAT;
-  bg_ogg_set_vorbis_channel_setup(vorbis->format);
-  
-  vorbis_info_init(&vorbis->enc_vi);
-
-  /* VBR Initialization */
-
-  switch(vorbis->bitrate_mode)
-    {
-    case BITRATE_MODE_VBR:
-      vorbis_encode_init_vbr(&vorbis->enc_vi, vorbis->format->num_channels,
-                              vorbis->format->samplerate, vorbis->quality);
-      break;
-    case BITRATE_MODE_VBR_BITRATE:
-      vorbis_encode_setup_managed(&vorbis->enc_vi,
-                                  vorbis->format->num_channels,
-                                  vorbis->format->samplerate,-1,128000,-1);
-      vorbis_encode_ctl(&vorbis->enc_vi,OV_ECTL_RATEMANAGE2_SET,NULL);
-      vorbis_encode_setup_init(&vorbis->enc_vi);
-      break;
-    case BITRATE_MODE_MANAGED:
-      vorbis_encode_init(&vorbis->enc_vi, vorbis->format->num_channels,
-                         vorbis->format->samplerate,
-                         vorbis->max_bitrate>0 ? vorbis->max_bitrate : -1,
-                         vorbis->nominal_bitrate,
-                         vorbis->min_bitrate>0 ? vorbis->min_bitrate : -1);
-      vorbis->managed = 1;
-      break;
-    }
-  
-  vorbis_analysis_init(&vorbis->enc_vd,&vorbis->enc_vi);
-  vorbis_block_init(&vorbis->enc_vd,&vorbis->enc_vb);
-
-  /* Build comment (comments are UTF-8, good for us :-) */
-  build_comment(&vorbis->enc_vc, metadata);
-  
-  /* Build the packets */
-  vorbis_analysis_headerout(&vorbis->enc_vd,&vorbis->enc_vc,
-                            &header_main,&header_comments,&header_codebooks);
-  
-  /* And stream them out */
-  
-  ci_ret->global_header_len =
-    header_main.bytes + header_comments.bytes + header_codebooks.bytes + 12;
-  
-  ci_ret->global_header = malloc(ci_ret->global_header_len);
-  ptr = ci_ret->global_header;
-
-  INT32LE_2_PTR(header_main.bytes, ptr); ptr += 4;
-  memcpy(ptr, header_main.packet, header_main.bytes);
-  ptr += header_main.bytes;
-
-  INT32LE_2_PTR(header_comments.bytes, ptr); ptr += 4;
-  memcpy(ptr, header_comments.packet, header_comments.bytes);
-  ptr += header_comments.bytes;
-
-  INT32LE_2_PTR(header_codebooks.bytes, ptr); ptr += 4;
-  memcpy(ptr, header_codebooks.packet, header_codebooks.bytes);
-  ptr += header_codebooks.bytes;
-
-  ci_ret->id = GAVL_CODEC_ID_VORBIS;
-  
-  return 1;
-  }
-
-static void set_parameter_vorbis(void * data, const char * name,
-                                 const bg_parameter_value_t * v)
-  {
-  vorbis_t * vorbis;
-  vorbis = data;
-  
-  if(!name)
-    {
-    return;
-    }
-  else if(!strcmp(name, "nominal_bitrate"))
-    {
-    vorbis->nominal_bitrate = v->val_i * 1000;
-    if(vorbis->nominal_bitrate < 0)
-      vorbis->nominal_bitrate = -1;
-    }
-  else if(!strcmp(name, "min_bitrate"))
-    {
-    vorbis->min_bitrate = v->val_i * 1000;
-    if(vorbis->min_bitrate < 0)
-      vorbis->min_bitrate = -1;
-    }
-  else if(!strcmp(name, "max_bitrate"))
-    {
-    vorbis->max_bitrate = v->val_i * 1000;
-    if(vorbis->max_bitrate < 0)
-      vorbis->max_bitrate = -1;
-    }
-  else if(!strcmp(name, "quality"))
-    {
-    vorbis->quality = v->val_f * 0.1;
-    }
-  else if(!strcmp(name, "bitrate_mode"))
-    {
-    if(!strcmp(v->val_str, "vbr"))
-      vorbis->bitrate_mode = BITRATE_MODE_VBR;
-    else if(!strcmp(v->val_str, "vbr_bitrate"))
-      vorbis->bitrate_mode = BITRATE_MODE_VBR_BITRATE;
-    else if(!strcmp(v->val_str, "managed"))
-      vorbis->bitrate_mode = BITRATE_MODE_MANAGED;
-    }
+  vorbis->psink = psink;
   }
 
 static int flush_packet(vorbis_t * vorbis, ogg_packet * op)
   {
-  bg_ogg_stream_t * s;
   gavl_packet_t gp;
   gavl_packet_init(&gp);
 
-  
-  
-  s = vorbis->s;
-  
-  gp.data = op->packet;
-  gp.data_len = op->bytes;
-  //  gp->pts = 
+  bg_ogg_packet_to_gavl(op, &gp, &vorbis->pts);
   
   //  ogg_stream_packetin(&vorbis->enc_os,op);
   return 1;
@@ -538,6 +397,143 @@ static gavl_sink_status_t write_audio_frame_vorbis(void * data, gavl_audio_frame
   return GAVL_SINK_OK;
   }
 
+
+static gavl_audio_sink_t * init_vorbis(void * data,
+                                       gavl_audio_format_t * format,
+                                       gavl_metadata_t * stream_metadata,
+                                       gavl_compression_info_t * ci_ret)
+  {
+  ogg_packet header_main;
+  ogg_packet header_comments;
+  ogg_packet header_codebooks;
+  //  struct ovectl_ratemanage2_arg ai;
+
+  vorbis_t * vorbis = data;
+  uint8_t * ptr;
+  char * vendor;
+  int vendor_len;
+  
+  vorbis->format = format;
+  vorbis->frame = gavl_audio_frame_create(NULL);
+  
+  vorbis->managed = 0;
+  
+  /* Adjust the format */
+
+  vorbis->format->interleave_mode = GAVL_INTERLEAVE_NONE;
+  vorbis->format->sample_format = GAVL_SAMPLE_FLOAT;
+  bg_ogg_set_vorbis_channel_setup(vorbis->format);
+  
+  vorbis_info_init(&vorbis->enc_vi);
+
+  /* VBR Initialization */
+
+  switch(vorbis->bitrate_mode)
+    {
+    case BITRATE_MODE_VBR:
+      vorbis_encode_init_vbr(&vorbis->enc_vi, vorbis->format->num_channels,
+                              vorbis->format->samplerate, vorbis->quality);
+      break;
+    case BITRATE_MODE_VBR_BITRATE:
+      vorbis_encode_setup_managed(&vorbis->enc_vi,
+                                  vorbis->format->num_channels,
+                                  vorbis->format->samplerate,-1,128000,-1);
+      vorbis_encode_ctl(&vorbis->enc_vi,OV_ECTL_RATEMANAGE2_SET,NULL);
+      vorbis_encode_setup_init(&vorbis->enc_vi);
+      break;
+    case BITRATE_MODE_MANAGED:
+      vorbis_encode_init(&vorbis->enc_vi, vorbis->format->num_channels,
+                         vorbis->format->samplerate,
+                         vorbis->max_bitrate>0 ? vorbis->max_bitrate : -1,
+                         vorbis->nominal_bitrate,
+                         vorbis->min_bitrate>0 ? vorbis->min_bitrate : -1);
+      vorbis->managed = 1;
+      break;
+    }
+  
+  vorbis_analysis_init(&vorbis->enc_vd,&vorbis->enc_vi);
+  vorbis_block_init(&vorbis->enc_vd,&vorbis->enc_vb);
+  
+  /* Build the packets */
+  vorbis_analysis_headerout(&vorbis->enc_vd,&vorbis->enc_vc,
+                            &header_main,&header_comments,&header_codebooks);
+
+  /* Extract vendor ID */
+  ptr = header_comments.packet + 7;
+  vendor_len = PTR_2_32LE(ptr); ptr += 4;
+  vendor = calloc(1, vendor_len + 1);
+  memcpy(vendor, ptr, vendor_len);
+  gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE, vendor);
+  
+  /* And stream them out */
+  
+  ci_ret->global_header_len =
+    header_main.bytes + header_comments.bytes + header_codebooks.bytes + 12;
+  
+  ci_ret->global_header = malloc(ci_ret->global_header_len);
+  ptr = ci_ret->global_header;
+
+  GAVL_32LE_2_PTR(header_main.bytes, ptr); ptr += 4;
+  memcpy(ptr, header_main.packet, header_main.bytes);
+  ptr += header_main.bytes;
+
+  GAVL_32LE_2_PTR(header_comments.bytes, ptr); ptr += 4;
+  memcpy(ptr, header_comments.packet, header_comments.bytes);
+  ptr += header_comments.bytes;
+
+  GAVL_32LE_2_PTR(header_codebooks.bytes, ptr); ptr += 4;
+  memcpy(ptr, header_codebooks.packet, header_codebooks.bytes);
+  ptr += header_codebooks.bytes;
+  
+  ci_ret->id = GAVL_CODEC_ID_VORBIS;
+  return gavl_audio_sink_create(NULL, write_audio_frame_vorbis, vorbis, vorbis->format);
+  }
+
+static void set_parameter_vorbis(void * data, const char * name,
+                                 const bg_parameter_value_t * v)
+  {
+  vorbis_t * vorbis;
+  vorbis = data;
+  
+  if(!name)
+    {
+    return;
+    }
+  else if(!strcmp(name, "nominal_bitrate"))
+    {
+    vorbis->nominal_bitrate = v->val_i * 1000;
+    if(vorbis->nominal_bitrate < 0)
+      vorbis->nominal_bitrate = -1;
+    }
+  else if(!strcmp(name, "min_bitrate"))
+    {
+    vorbis->min_bitrate = v->val_i * 1000;
+    if(vorbis->min_bitrate < 0)
+      vorbis->min_bitrate = -1;
+    }
+  else if(!strcmp(name, "max_bitrate"))
+    {
+    vorbis->max_bitrate = v->val_i * 1000;
+    if(vorbis->max_bitrate < 0)
+      vorbis->max_bitrate = -1;
+    }
+  else if(!strcmp(name, "quality"))
+    {
+    vorbis->quality = v->val_f * 0.1;
+    }
+  else if(!strcmp(name, "bitrate_mode"))
+    {
+    if(!strcmp(v->val_str, "vbr"))
+      vorbis->bitrate_mode = BITRATE_MODE_VBR;
+    else if(!strcmp(v->val_str, "vbr_bitrate"))
+      vorbis->bitrate_mode = BITRATE_MODE_VBR_BITRATE;
+    else if(!strcmp(v->val_str, "managed"))
+      vorbis->bitrate_mode = BITRATE_MODE_MANAGED;
+    }
+  }
+
+
+
 #if 0
 static int write_packet_vorbis(void * data, gavl_packet_t * packet)
   {
@@ -603,8 +599,9 @@ const bg_ogg_codec_t bg_vorbis_codec =
     .init_audio            = init_vorbis,
     .init_audio_compressed = init_compressed_vorbis,
     
-    .encode_audio = write_audio_frame_vorbis,
+    //    .encode_audio = write_audio_frame_vorbis,
     //    .write_packet = write_packet_vorbis,
     
     .close = close_vorbis,
+    .set_packet_sink = set_packet_sink,
   };

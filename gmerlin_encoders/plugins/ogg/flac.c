@@ -73,6 +73,8 @@ static int streaminfo_callback(void * data, uint8_t * si, int len)
       0x00, 0x01, // Number of other header packets (Big Endian)
     };
 
+  /* Not the last metadata packet */
+  si[4] &= 0x7f;
   
   flacogg = data;
 
@@ -88,12 +90,16 @@ static int streaminfo_callback(void * data, uint8_t * si, int len)
   
   memcpy(op.packet, header_bytes, 9);
   memcpy(op.packet+9, si, len);
-
+  
   if(!bg_ogg_stream_write_header_packet(flacogg->s, &op))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Flac ID page");
     return 0;
     }
+
+  /* Write vorbis comment */
+  
+  
   return 1;
   }
 
