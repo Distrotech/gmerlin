@@ -80,6 +80,7 @@ typedef enum
     GAVL_CODEC_ID_VORBIS,    //!< Vorbis (segmented extradata and packets)
     GAVL_CODEC_ID_FLAC,      //!< Flac (extradata contain a file header without comment and seektable)
     GAVL_CODEC_ID_OPUS,      //!< Opus
+    GAVL_CODEC_ID_SPEEX,     //!< Speex
     
     /* Video */
     GAVL_CODEC_ID_JPEG = 0x10000, //!< JPEG image
