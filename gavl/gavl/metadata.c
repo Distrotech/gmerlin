@@ -21,6 +21,7 @@
 
 #include <config.h>
 #include <gavl/metadata.h>
+#include <gavl/metatags.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -361,4 +362,44 @@ gavl_metadata_equal(const gavl_metadata_t * m1,
       return 0;
     }
   return 1;
+  }
+
+static const char * compression_fields[] =
+  {
+    GAVL_META_SOFTWARE,
+    GAVL_META_FORMAT,
+    GAVL_META_BITRATE,
+    GAVL_META_AUDIO_BITS,
+    GAVL_META_VIDEO_BPP,
+    GAVL_META_VENDOR,
+    NULL,
+  };
+
+static void
+delete_fields(gavl_metadata_t * m, const char * fields[])
+  {
+  int i, j;
+
+  i = 0;
+  while(i < m->num_tags)
+    {
+    j = 0;
+
+    while(fields[j])
+      {
+      if(!strcmp(fields[j], m->tags[i].key))
+        {
+        gavl_metadata_set(m, fields[j], NULL);
+        break;
+        }
+      j++;
+      }
+    i++;
+    }
+  }
+
+void
+gavl_metadata_delete_compression_fields(gavl_metadata_t * m)
+  {
+  delete_fields(m, compression_fields);
   }

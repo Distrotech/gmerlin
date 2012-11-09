@@ -322,6 +322,19 @@ GAVL_PUBLIC int
 gavl_metadata_equal(const gavl_metadata_t * m1,
                     const gavl_metadata_t * m2);
 
+/** \brief Clear fields, which are related to the compression
+ *  \arg m Metadata
+ *
+ *  This deletes fields, which are related to the compression of the
+ *  stream (e.g. bitrate, codec etc.). Use this before transcoding
+ *  the stream in another format to suppress bogus values in the output
+ *  stream
+ */
+
+GAVL_PUBLIC void
+gavl_metadata_delete_compression_fields(gavl_metadata_t * m);
+
+  
 /**
  * @}
  */
