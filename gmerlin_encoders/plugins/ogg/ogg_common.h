@@ -224,10 +224,12 @@ bg_parameter_info_t *
 bg_ogg_encoder_get_audio_parameters(bg_ogg_encoder_t * e,
                                     bg_ogg_codec_t const * const * audio_codecs);
 
-void bg_ogg_create_comment_packet(uint8_t * prefix,
-                                  int prefix_len,
-                                  const char * vendor_string,
-                                  const gavl_metadata_t * m, ogg_packet * op);
+void
+bg_ogg_create_comment_packet(const uint8_t * prefix,
+                             int prefix_len,
+                             const gavl_metadata_t * m_stream,
+                             const gavl_metadata_t * m_global,
+                             int framing, ogg_packet * op);
 
 void bg_ogg_free_comment_packet(ogg_packet * op);
 

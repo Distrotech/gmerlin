@@ -151,46 +151,7 @@ static const bg_parameter_info_t * get_parameters_vorbis()
   return parameters;
   }
 
-static void build_comment(vorbis_comment * vc, const gavl_metadata_t * metadata)
-  {
-  const char * val;
-  
-  vorbis_comment_init(vc);
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_ARTIST)))
-    vorbis_comment_add_tag(vc, "ARTIST", val);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_ALBUMARTIST)))
-    {
-    vorbis_comment_add_tag(vc, "ALBUMARTIST", val);
-    vorbis_comment_add_tag(vc, "ALBUM ARTIST", val);
-    }
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_TITLE)))
-    vorbis_comment_add_tag(vc, "TITLE", val);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_ALBUM)))
-    vorbis_comment_add_tag(vc, "ALBUM", val);
-    
-  if((val = gavl_metadata_get(metadata, GAVL_META_GENRE)))
-    vorbis_comment_add_tag(vc, "GENRE", val);
-
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_DATE)))
-    vorbis_comment_add_tag(vc, "DATE", val);
-  else if((val = gavl_metadata_get(metadata, GAVL_META_YEAR)))
-    vorbis_comment_add_tag(vc, "DATE", val);
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_COPYRIGHT)))
-    vorbis_comment_add_tag(vc, "COPYRIGHT", val);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_TRACKNUMBER)))
-    vorbis_comment_add_tag(vc, "TRACKNUMBER", val);
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_COMMENT)))
-    vorbis_comment_add(vc, val);
-  }
-
+#if 0
 #define PTR_2_32BE(p) \
   ((*(p) << 24) |     \
    (*(p+1) << 16) |   \
@@ -213,102 +174,49 @@ static void build_comment(vorbis_comment * vc, const gavl_metadata_t * metadata)
   GAVL_32LE_2_PTR(string_len, p); p += 4; \
   memcpy(p, s, string_len); \
   p+=string_len;
+#endif
 
 static const uint8_t comment_header[7] = { 0x03, 'v', 'o', 'r', 'b', 'i', 's' };
-
-static uint8_t * create_comment_packet(vorbis_comment * comment, int * len1)
-  {
-  int i;
-  uint8_t * ret, * ptr;
-  int string_len;
-  // comment_header + Vendor length + num_user_comments + framing bit
-  int len = 7 + 4 + 4 + 1 + strlen(comment->vendor); 
-  
-  for(i = 0; i < comment->comments; i++)
-    {
-    len += 4 + strlen(comment->user_comments[i]);
-    }
-  
-  ret = malloc(len);
-  ptr = ret;
-
-  /* Comment header */
-  memcpy(ptr, comment_header, 7);
-  ptr += 7;
-  
-  /* Vendor length + vendor */
-  WRITE_STRING(comment->vendor, ptr);
-
-  GAVL_32LE_2_PTR(comment->comments, ptr); ptr += 4;
-
-  for(i = 0; i < comment->comments; i++)
-    {
-    WRITE_STRING(comment->user_comments[i], ptr);
-    }
-  *ptr = 0x01;
-  
-  *len1 = len;
-  return ret;
-  }
 
 static int init_compressed_vorbis(bg_ogg_stream_t * s)
   {
   ogg_packet packet;
   uint8_t * ptr;
   uint32_t len;
-  uint32_t vendor_len;
 
-  uint8_t * comment_packet;
-  int comment_len;
-  vorbis_t * vorbis = s->codec_priv;
   
   memset(&packet, 0, sizeof(packet));
   
   /* Write ID packet */
   ptr = s->ci.global_header;
   
-  len = PTR_2_32BE(ptr); ptr += 4;
+  len = GAVL_PTR_2_32BE(ptr); ptr += 4;
 
   packet.packet = ptr;
   packet.bytes  = len;
-  packet.b_o_s = 1;
 
   if(!bg_ogg_stream_write_header_packet(s, &packet))
     return 0;
   
   ptr += len;
   
-  /* Comment is more complicated: We need to copy the vendor field from the
-     original stream, because it didn't get compressed by our libvorbis */
+  /* Skip comment from codec header */
 
-  /* Build comment (comments are UTF-8, good for us :-) */
-  len = PTR_2_32BE(ptr); ptr += 4;
-  
-  build_comment(&vorbis->enc_vc, s->m_global);
-  
-  /* Copy the vendor id */
-  vendor_len = PTR_2_32LE(ptr + 7);
-  vorbis->enc_vc.vendor = calloc(1, vendor_len + 1);
-  memcpy(vorbis->enc_vc.vendor, ptr + 11, vendor_len);
-  // fprintf(stderr, "Got vendor %s\n", vorbis->enc_vc.vendor);
-  
-  comment_packet = create_comment_packet(&vorbis->enc_vc, &comment_len);
-  packet.packet = comment_packet;
-  packet.bytes  = comment_len;
-  packet.b_o_s = 0;
+  len = GAVL_PTR_2_32BE(ptr); ptr += 4;
+  ptr += len;
+
+  /* Build comment packet */
+
+  bg_ogg_create_comment_packet(comment_header, 7,
+                               &s->m_stream, s->m_global, 1, &packet);
 
   if(!bg_ogg_stream_write_header_packet(s, &packet))
     return 0;
-  
-  free(comment_packet);
 
-  free(vorbis->enc_vc.vendor);
-  vorbis->enc_vc.vendor = NULL;
-  
-  ptr += len;
+  bg_ogg_free_comment_packet(&packet);
   
   /* Codepages */
-  len = PTR_2_32BE(ptr); ptr += 4;
+  len = GAVL_PTR_2_32BE(ptr); ptr += 4;
   
   packet.packet = ptr;
   packet.bytes  = len;
@@ -460,7 +368,7 @@ static gavl_audio_sink_t * init_vorbis(void * data,
 
   /* Extract vendor ID */
   ptr = header_comments.packet + 7;
-  vendor_len = PTR_2_32LE(ptr); ptr += 4;
+  vendor_len = GAVL_PTR_2_32LE(ptr); ptr += 4;
   vendor = calloc(1, vendor_len + 1);
   memcpy(vendor, ptr, vendor_len);
   gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE, vendor);

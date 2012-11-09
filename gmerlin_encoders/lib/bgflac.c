@@ -323,7 +323,8 @@ write_audio_packet_func_flac(void * priv, gavl_packet_t * packet)
 
 
 int bg_flac_start_compressed(bg_flac_t * flac,
-                             gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
+                             gavl_audio_format_t * fmt,
+                             gavl_compression_info_t * ci,
                              gavl_metadata_t * stream_metadata)
   {
   uint16_t i_tmp;
@@ -391,7 +392,8 @@ encode_audio_func(void * priv, gavl_audio_frame_t * frame)
   }
 
 int bg_flac_start_uncompressed(bg_flac_t * flac,
-                               gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
+                               gavl_audio_format_t * fmt,
+                               gavl_compression_info_t * ci,
                                gavl_metadata_t * stream_metadata)
   {
   flac->format = fmt;
@@ -458,8 +460,8 @@ int bg_flac_start_uncompressed(bg_flac_t * flac,
   gavl_metadata_set(stream_metadata, GAVL_META_SOFTWARE, FLAC__VENDOR_STRING);
   
   gavl_compression_info_copy(ci, &flac->ci);
-  flac->asink_in = gavl_audio_sink_create(NULL, encode_audio_func, flac, flac->format);
-  
+  flac->asink_in =
+    gavl_audio_sink_create(NULL, encode_audio_func, flac, flac->format);
   return 1;
   }
 

@@ -68,9 +68,6 @@ static int header_to_packet(opus_header_t * h, uint8_t * ret);
 
 typedef struct
   {
-  /* Common stuff */
-  bg_ogg_stream_t * s;
-  
   /* Config */
   int application;
   int bitrate_mode;
@@ -99,14 +96,15 @@ typedef struct
   int64_t pts;
 
   int to_skip;
+
+  gavl_packet_sink_t * psink;
   
   } opus_t;
 
-static void * create_opus(bg_ogg_stream_t * s)
+static void * create_opus()
   {
   opus_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->s = s;
   return ret;
   }
 
@@ -225,6 +223,12 @@ static const bg_parameter_info_t * get_parameters_opus()
   return parameters;
   }
 
+static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
+  {
+  opus_t * opus = data;
+  opus->psink = psink;
+  }
+
 static void set_parameter_opus(void * data, const char * name,
                                const bg_parameter_value_t * v)
   {
@@ -290,10 +294,128 @@ static void set_parameter_opus(void * data, const char * name,
   
   }
 
-static int init_opus(void * data, gavl_audio_format_t * format,
-                     const gavl_metadata_t * metadata,
-                     gavl_metadata_t * stream_metadata,
-                     gavl_compression_info_t * ci)
+static int flush_frame(opus_t * opus, int eof)
+  {
+  gavl_packet_t gp;
+  int result;
+
+  //  fprintf(stderr, "Flush frame %d %d\n", opus->frame->valid_samples,
+  //          opus->format->samples_per_frame);
+  
+  if(opus->frame && opus->frame->valid_samples)
+    {
+    
+    if(opus->frame->valid_samples < opus->format->samples_per_frame)
+      {
+      int block_align = opus->format->num_channels *
+        gavl_bytes_per_sample(opus->format->sample_format);
+    
+      memset(opus->frame->samples.s_8 +
+             block_align * opus->frame->valid_samples, 0,
+             (opus->format->samples_per_frame - opus->frame->valid_samples) *
+             block_align);
+      }
+
+    if(opus->format->sample_format == GAVL_SAMPLE_FLOAT)
+      {
+      result = opus_multistream_encode_float(opus->enc,
+                                             opus->frame->samples.f,
+                                             opus->format->samples_per_frame,
+                                             opus->enc_buffer,
+                                             opus->enc_buffer_size);
+      }
+    else
+      {
+      result = opus_multistream_encode(opus->enc,
+                                       opus->frame->samples.s_16,
+                                       opus->format->samples_per_frame,
+                                       opus->enc_buffer,
+                                       opus->enc_buffer_size);
+      }
+    
+    if(result < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding failed: %s", opus_strerror(result));
+      return 0;
+      }
+    
+    /* Create packet */
+    gavl_packet_init(&gp);
+    gp.data = opus->enc_buffer;
+    gp.data_len = result;
+    if(eof)
+      gp.flags |= GAVL_PACKET_LAST;
+
+    gp.duration = (opus->frame->valid_samples * 48000) / opus->format->samplerate;
+    gp.pts = opus->pts;
+    opus->pts += gp.duration;
+    gavl_packet_sink_put_packet(opus->psink, &gp);
+    opus->frame->valid_samples = 0;
+    }
+  return 1;
+  }
+
+static gavl_sink_status_t
+write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
+  {
+  int result = 1;
+  int samples_read = 0;
+  int samples_copied;
+  
+  opus_t * opus = data;
+
+  /* Handle lookahead */
+  while(opus->lookahead)
+    {
+    gavl_audio_frame_mute(opus->frame, opus->format);
+
+    opus->frame->valid_samples = opus->lookahead;
+    if(opus->frame->valid_samples > opus->format->samples_per_frame)
+      opus->frame->valid_samples = opus->format->samples_per_frame;
+
+    samples_copied = opus->frame->valid_samples;
+    
+    if(opus->frame->valid_samples == opus->format->samples_per_frame)
+      {
+      result = flush_frame(opus, 0);
+      if(!result)
+        break;
+      }
+    opus->lookahead -= samples_copied;
+    }
+  
+  // fprintf(stderr, "write_audio %d\n", frame->valid_samples);
+  while(samples_read < frame->valid_samples)
+    {
+    samples_copied =
+      gavl_audio_frame_copy(opus->format,
+                            opus->frame,
+                            frame,
+                            opus->frame->valid_samples, /* dst_pos */
+                            samples_read,                /* src_pos */
+                            opus->format->samples_per_frame -
+                            opus->frame->valid_samples, /* dst_size */
+                            frame->valid_samples - samples_read /* src_size */ );
+    opus->frame->valid_samples += samples_copied;
+    samples_read += samples_copied;
+
+    if(opus->frame->valid_samples == opus->format->samples_per_frame)
+      {
+      result = flush_frame(opus, 0);
+      if(!result)
+        break;
+      }
+    }
+  
+  opus->samples_read += frame->valid_samples;
+  return result ? GAVL_SINK_OK : GAVL_SINK_ERROR; 
+  }
+
+
+static gavl_audio_sink_t *
+init_opus(void * data, gavl_audio_format_t * format,
+          gavl_metadata_t * stream_metadata,
+          gavl_compression_info_t * ci)
   {
   int err;
   opus_t * opus = data;
@@ -375,67 +497,30 @@ static int init_opus(void * data, gavl_audio_format_t * format,
   gavl_metadata_set(stream_metadata, GAVL_META_SOFTWARE,
                     opus_get_version_string());
   
-#if 0  
-  memset(&op, 0, sizeof(op));
-  
-  op.packet = header;
-  op.bytes = header_to_packet(&opus->h, header);
-  op.b_o_s = 1;
-  op.e_o_s = 0;
-  op.granulepos = 0;
-
-  /* And stream them out */
-
-  if(!bg_ogg_stream_write_header_packet(opus->s, &op))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no Opus header page");
-    return 0;
-    }
-  
-  /* Build comment */
-
-  
-  bg_ogg_create_comment_packet((uint8_t*)"OpusTags", 8,
-                               opus_get_version_string(), metadata, &op);
-  
-  op.b_o_s = 0;
-  op.e_o_s = 0;
-  op.granulepos = 0;
-
-  if(!bg_ogg_stream_write_header_packet(opus->s, &op))
-    return 0;
-  
-  bg_ogg_free_comment_packet(&op);
-#endif
   /* Allocate encoder buffer */
 
   // Size taken from opusenc.c
   opus->enc_buffer_size = opus->h.chtab.stream_count * (1275*3+7); 
   opus->enc_buffer = malloc(opus->enc_buffer_size);
   
-  return 1;
+  return gavl_audio_sink_create(NULL, write_audio_frame_opus, opus,
+                                opus->format);
   }
 
-static int init_compressed_opus(void * data, gavl_audio_format_t * format,
-                                const gavl_compression_info_t * ci,
-                                gavl_metadata_t * metadata,
-                                const gavl_metadata_t * stream_metadata)
+static int init_compressed_opus(bg_ogg_stream_t * s)
   {
   ogg_packet op;
   const char * vendor;
-  opus_t * opus = data;
+  //  opus_t * opus = data;
   
   memset(&op, 0, sizeof(op));
 
-  op.packet = ci->global_header;
-  op.bytes = ci->global_header_len;
-  op.b_o_s = 1;
-  op.e_o_s = 0;
-  op.granulepos = 0;
+  op.packet = s->ci.global_header;
+  op.bytes = s->ci.global_header_len;
   
   /* And stream them out */
 
-  if(!bg_ogg_stream_write_header_packet(opus->s, &op))
+  if(!bg_ogg_stream_write_header_packet(s, &op))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no Opus header page");
     return 0;
@@ -443,7 +528,7 @@ static int init_compressed_opus(void * data, gavl_audio_format_t * format,
   
   /* Build comment */
 
-  vendor = gavl_metadata_get(stream_metadata, GAVL_META_SOFTWARE);
+  vendor = gavl_metadata_get(&s->m_stream, GAVL_META_SOFTWARE);
 
   if(!vendor)
     {
@@ -453,13 +538,13 @@ static int init_compressed_opus(void * data, gavl_audio_format_t * format,
     }
   
   bg_ogg_create_comment_packet((uint8_t*)"OpusTags", 8,
-                               vendor, metadata, &op);
+                               &s->m_stream, s->m_global, 0, &op);
   
   op.b_o_s = 0;
   op.e_o_s = 0;
   op.granulepos = 0;
   
-  if(!bg_ogg_stream_write_header_packet(opus->s, &op))
+  if(!bg_ogg_stream_write_header_packet(s, &op))
     return 0;
   
   bg_ogg_free_comment_packet(&op);
@@ -467,123 +552,6 @@ static int init_compressed_opus(void * data, gavl_audio_format_t * format,
   return 1;
   }
 
-
-static int flush_frame(opus_t * opus, int eof)
-  {
-  gavl_packet_t gp;
-  int result;
-
-  //  fprintf(stderr, "Flush frame %d %d\n", opus->frame->valid_samples,
-  //          opus->format->samples_per_frame);
-  
-  if(opus->frame && opus->frame->valid_samples)
-    {
-    
-    if(opus->frame->valid_samples < opus->format->samples_per_frame)
-      {
-      int block_align = opus->format->num_channels *
-        gavl_bytes_per_sample(opus->format->sample_format);
-    
-      memset(opus->frame->samples.s_8 +
-             block_align * opus->frame->valid_samples, 0,
-             (opus->format->samples_per_frame - opus->frame->valid_samples) *
-             block_align);
-      }
-
-    if(opus->format->sample_format == GAVL_SAMPLE_FLOAT)
-      {
-      result = opus_multistream_encode_float(opus->enc,
-                                             opus->frame->samples.f,
-                                             opus->format->samples_per_frame,
-                                             opus->enc_buffer,
-                                             opus->enc_buffer_size);
-      }
-    else
-      {
-      result = opus_multistream_encode(opus->enc,
-                                       opus->frame->samples.s_16,
-                                       opus->format->samples_per_frame,
-                                       opus->enc_buffer,
-                                       opus->enc_buffer_size);
-      }
-    
-    if(result < 0)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding failed: %s", opus_strerror(result));
-      return 0;
-      }
-    
-    /* Create packet */
-    gavl_packet_init(&gp);
-    gp.data = opus->enc_buffer;
-    gp.data_len = result;
-    if(eof)
-      gp.flags |= GAVL_PACKET_LAST;
-
-    gp.duration = (opus->frame->valid_samples * 48000) / opus->format->samplerate;
-    gp.pts = opus->pts;
-    opus->pts += gp.duration;
-    gavl_packet_sink_put_packet(opus->s->psink_out, &gp);
-    opus->frame->valid_samples = 0;
-    }
-  return 1;
-  }
-
-static int write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
-  {
-  int result = 1;
-  int samples_read = 0;
-  int samples_copied;
-  
-  opus_t * opus = data;
-
-  /* Handle lookahead */
-  while(opus->lookahead)
-    {
-    gavl_audio_frame_mute(opus->frame, opus->format);
-
-    opus->frame->valid_samples = opus->lookahead;
-    if(opus->frame->valid_samples > opus->format->samples_per_frame)
-      opus->frame->valid_samples = opus->format->samples_per_frame;
-
-    samples_copied = opus->frame->valid_samples;
-    
-    if(opus->frame->valid_samples == opus->format->samples_per_frame)
-      {
-      result = flush_frame(opus, 0);
-      if(!result)
-        break;
-      }
-
-    opus->lookahead -= samples_copied;
-    }
-  
-  // fprintf(stderr, "write_audio %d\n", frame->valid_samples);
-  while(samples_read < frame->valid_samples)
-    {
-    samples_copied =
-      gavl_audio_frame_copy(opus->format,
-                            opus->frame,
-                            frame,
-                            opus->frame->valid_samples, /* dst_pos */
-                            samples_read,                /* src_pos */
-                            opus->format->samples_per_frame -
-                            opus->frame->valid_samples, /* dst_size */
-                            frame->valid_samples - samples_read /* src_size */ );
-    opus->frame->valid_samples += samples_copied;
-    samples_read += samples_copied;
-
-    if(opus->frame->valid_samples == opus->format->samples_per_frame)
-      {
-      result = flush_frame(opus, 0);
-      if(!result)
-        break;
-      }
-    }
-  
-  opus->samples_read += frame->valid_samples;
-  return result;
-  }
 
 #if 0
 static int write_audio_packet_opus(void * data, gavl_packet_t * packet)
@@ -636,8 +604,8 @@ const bg_ogg_codec_t bg_opus_codec =
     
     .init_audio  =     init_opus,
     .init_audio_compressed =     init_compressed_opus,
+    .set_packet_sink = set_packet_sink,
     
-    .encode_audio = write_audio_frame_opus,
     //    .write_packet = write_audio_packet_opus,
 
     .close = close_opus,

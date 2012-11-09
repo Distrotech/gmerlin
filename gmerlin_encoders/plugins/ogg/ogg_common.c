@@ -36,8 +36,10 @@
 
 #include <gavl/metatags.h>
 
-
 #include "ogg_common.h"
+
+#include <vorbiscomment.h>
+
 
 #define LOG_DOMAIN "ogg"
 
@@ -678,114 +680,25 @@ bg_ogg_encoder_get_audio_parameters(bg_ogg_encoder_t * e,
 
 /* Comment building stuff */
 
-#define writeint(buf, base, val) \
-  buf[base+3]=((val)>>24)&0xff;  \
-  buf[base+2]=((val)>>16)&0xff;  \
-  buf[base+1]=((val)>>8)&0xff;   \
-  buf[base]=(val)&0xff;
-
-static void append_tag(uint8_t ** buf_p, int * len_p, const char * tag,
-                       const char * val, int * num_entries)
-  {
-  int tag_len, val_len;
-  int len = *len_p;
-  uint8_t * buf = *buf_p;
-
-  if(tag)
-    tag_len = strlen(tag);
-  else
-    tag_len = 0;
-  
-  val_len = strlen(val);
-
-  buf = realloc(buf, len + 4 + tag_len + val_len);
-
-  writeint(buf, len, tag_len + val_len); len += 4;
-
-  if(tag_len)
-    {
-    memcpy(buf + len, tag, tag_len);
-    len += tag_len;
-    }
-
-  memcpy(buf + len, val, val_len);
-  len += val_len;
-
-  *buf_p = buf;
-  *len_p = len;
-  (*num_entries)++;
-  }
-
 void
-bg_ogg_create_comment_packet(uint8_t * prefix,
+bg_ogg_create_comment_packet(const uint8_t * prefix,
                              int prefix_len,
-                             const char * vendor_string,
-                             const gavl_metadata_t * metadata,
-                             ogg_packet * op)
+                             const gavl_metadata_t * m_stream,
+                             const gavl_metadata_t * m_global,
+                             int framing, ogg_packet * op)
   {
-  uint8_t * buf;
   int len;
-  int pos = 0;
-  int num_entries_pos;
-  int num_entries = 0;
-  const char * val;
-  int vendor_len = strlen(vendor_string);
 
   /* Write mandatory fields */
-  len = prefix_len + 4 + vendor_len + 4;
-  buf = malloc(len);
-
-  if(prefix_len)
-    {
-    memcpy(buf, prefix, prefix_len);
-    pos += prefix_len;
-    }
-
-  writeint(buf, pos, vendor_len); pos += 4;
-  memcpy(buf + pos, vendor_string, vendor_len); pos += vendor_len;
-  
-  num_entries_pos = pos;
-
-  writeint(buf, num_entries_pos, num_entries); pos += 4;
-
-  /* Write tags */
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_ARTIST)))
-    append_tag(&buf, &len, "ARTIST=", val, &num_entries);
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_TITLE)))
-    append_tag(&buf, &len, "TITLE=", val, &num_entries);
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_ALBUM)))
-    append_tag(&buf, &len, "ALBUM=", val, &num_entries);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_ALBUMARTIST)))
-    {
-    append_tag(&buf, &len, "ALBUMARTIST=", val, &num_entries);
-    append_tag(&buf, &len, "ALBUM ARTIST=", val, &num_entries);
-    }
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_GENRE)))
-    append_tag(&buf, &len, "GENRE=", val, &num_entries);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_DATE)))
-    append_tag(&buf, &len, "DATE=", val, &num_entries);
-  else if((val = gavl_metadata_get(metadata, GAVL_META_YEAR)))
-    append_tag(&buf, &len, "DATE=", val, &num_entries);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_COPYRIGHT)))
-    append_tag(&buf, &len, "COPYRIGHT=", val, &num_entries);
-
-  if((val = gavl_metadata_get(metadata, GAVL_META_TRACKNUMBER)))
-    append_tag(&buf, &len, "TRACKNUMBER=", val, &num_entries);
-  
-  if((val = gavl_metadata_get(metadata, GAVL_META_COMMENT)))
-    append_tag(&buf, &len, NULL, val, &num_entries);
-  
-  writeint(buf, num_entries_pos, num_entries);
-  
-  op->packet = buf;
+  len = prefix_len + bg_vorbis_comment_bytes(m_stream, m_global, framing);
+  op->packet = malloc(len);
   op->bytes = len;
+  
+  if(prefix_len)
+    memcpy(op->packet, prefix, prefix_len);
+
+  bg_vorbis_comment_write(op->packet + prefix_len,
+                          m_stream, m_global, framing);
   }
 
 void bg_ogg_free_comment_packet(ogg_packet * op)

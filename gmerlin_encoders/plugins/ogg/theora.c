@@ -26,6 +26,7 @@
 #include <config.h>
 
 #include <gavl/metatags.h>
+#include <gavl/numptr.h>
 
 
 #include <gmerlin/translation.h>
@@ -53,17 +54,11 @@ typedef struct
   {
   /* Ogg theora stuff */
     
-  ogg_stream_state os;
-  
   th_info        ti;
   th_comment     tc;
   th_enc_ctx   * ts;
   
-  long serialno;
-  bg_ogg_encoder_t * output;
-
   gavl_video_format_t * format;
-  int have_packet;
   int cbr;
   int max_keyframe_interval;
   
@@ -87,15 +82,21 @@ typedef struct
   
   int frames_since_keyframe;
   int64_t last_keyframe;
-  int compressed;
+
+  gavl_packet_sink_t * psink;
   } theora_t;
 
-static void * create_theora(bg_ogg_encoder_t * output, long serialno)
+static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
+  {
+  theora_t * theora = data;
+  theora->psink = psink;
+  }
+
+
+static void * create_theora()
   {
   theora_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->serialno = serialno;
-  ret->output = output;
   th_info_init(&ret->ti);
   
   return ret;
@@ -224,64 +225,6 @@ static void set_parameter_theora(void * data, const char * name,
   }
 
 
-static void build_comment(th_comment * vc, gavl_metadata_t * metadata)
-  {
-  char * val;
-  
-  th_comment_init(vc);
-  
-  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_ARTIST))))
-    {
-    th_comment_add_tag(vc, "ARTIST", val);
-    free(val);
-    }
-  
-  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_TITLE))))
-    {
-    th_comment_add_tag(vc, "TITLE", val);
-    free(val);
-    }
-  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_ALBUM))))
-    {
-    th_comment_add_tag(vc, "ALBUM", val);
-    free(val);
-    }
-  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_GENRE))))
-    {
-    th_comment_add_tag(vc, "GENRE", val);
-    free(val);
-    }
-
-  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_DATE))))
-    {
-    th_comment_add_tag(vc, "DATE", val);
-    free(val);
-    }
-
-  else if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_YEAR))))
-    {
-    th_comment_add_tag(vc, "DATE", val);
-    free(val);
-    }
-  
-  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_COPYRIGHT))))
-    {
-    th_comment_add_tag(vc, "COPYRIGHT", val);
-    free(val);
-    }
-
-  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_TRACKNUMBER))))
-    {
-    th_comment_add_tag(vc, "TRACK", val);
-    free(val);
-    }
-
-  if((val = bg_strdup(NULL, gavl_metadata_get(metadata, GAVL_META_COMMENT))))
-    {
-    th_comment_add(vc, val);
-    free(val);
-    }
-  }
 
 static const gavl_pixelformat_t supported_pixelformats[] =
   {
@@ -325,125 +268,172 @@ static const gavl_pixelformat_t supported_pixelformats[] =
 
 static const uint8_t comment_header[7] = { 0x81, 't', 'h', 'e', 'o', 'r', 'a' };
 
-static uint8_t * create_comment_packet(th_comment * comment, int * len1)
-  {
-  int i;
-  uint8_t * ret, * ptr;
-  int string_len;
-  // comment_header + Vendor length + num_user_comments
-  int len = 7 + 4 + 4 + strlen(comment->vendor); 
-  
-  for(i = 0; i < comment->comments; i++)
-    {
-    len += 4 + strlen(comment->user_comments[i]);
-    }
-  
-  ret = malloc(len);
-  ptr = ret;
-
-  /* Comment header */
-  memcpy(ptr, comment_header, 7);
-  ptr += 7;
-  
-  /* Vendor length + vendor */
-  WRITE_STRING(comment->vendor, ptr);
-
-  INT32LE_2_PTR(comment->comments, ptr); ptr += 4;
-
-  for(i = 0; i < comment->comments; i++)
-    {
-    WRITE_STRING(comment->user_comments[i], ptr);
-    }
-  
-  *len1 = len;
-  return ret;
-  }
-
-
-static int init_compressed_theora(void * data,
-                                  gavl_video_format_t * format,
-                                  const gavl_compression_info_t * ci,
-                                  gavl_metadata_t * metadata,
-                                  const gavl_metadata_t * stream_metadata)
+static int init_compressed_theora(bg_ogg_stream_t * s)
   {
   ogg_packet packet;
   
-  theora_t * theora = data;
   uint8_t * ptr;
   uint32_t len;
-  uint8_t * comment_packet;
-  int comment_len;
-  int vendor_len;
-
-  theora->format = format;
-  theora->compressed = 1;
-  ogg_stream_init(&theora->os, theora->serialno);
-
+  
+  theora_t * theora = s->codec_priv;
+  
   memset(&packet, 0, sizeof(packet));
 
   /* Write ID packet */
-  ptr = ci->global_header;
+  ptr = s->ci.global_header;
   
   len = PTR_2_32BE(ptr); ptr += 4;
 
   packet.packet = ptr;
   packet.bytes  = len;
-  packet.b_o_s = 1;
 
   theora->ti.keyframe_granule_shift = 
     (char) ((ptr[40] & 0x03) << 3);
 
   theora->ti.keyframe_granule_shift |=
     (ptr[41] & 0xe0) >> 5;
-  
-  ogg_stream_packetin(&theora->os,&packet);
-  if(!bg_ogg_flush_page(&theora->os, theora->output, 1))
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no theora ID page");
-  ptr += len;
 
-  /* Build comment (comments are UTF-8, good for us :-) */
-  len = PTR_2_32BE(ptr); ptr += 4;
-  
-  build_comment(&theora->tc, metadata);
-  
-  /* Copy the vendor id */
-  vendor_len = PTR_2_32LE(ptr + 7);
-  theora->tc.vendor = calloc(1, vendor_len + 1);
-  memcpy(theora->tc.vendor, ptr + 11, vendor_len);
-  fprintf(stderr, "Got vendor %s\n", theora->tc.vendor);
-  
-  comment_packet = create_comment_packet(&theora->tc, &comment_len);
-  packet.packet = comment_packet;
-  packet.bytes  = comment_len;
-  packet.b_o_s = 0;
-
-  ogg_stream_packetin(&theora->os,&packet);
-  
-  free(comment_packet);
-
-  free(theora->tc.vendor);
-  theora->tc.vendor = NULL;
+  if(!bg_ogg_stream_write_header_packet(s, &packet))
+    return 0;
   
   ptr += len;
 
+  /* Skip comment from codec header */
+
+  len = GAVL_PTR_2_32BE(ptr); ptr += 4;
+  ptr += len;
+
+  /* Build comment packet */
+
+  bg_ogg_create_comment_packet(comment_header, 7,
+                               &s->m_stream, s->m_global, 1, &packet);
+
+  if(!bg_ogg_stream_write_header_packet(s, &packet))
+    return 0;
+
+  bg_ogg_free_comment_packet(&packet);
+  
   /* Codepages */
   len = PTR_2_32BE(ptr); ptr += 4;
   
   packet.packet = ptr;
   packet.bytes  = len;
-  
-  ogg_stream_packetin(&theora->os,&packet);
 
+  if(!bg_ogg_stream_write_header_packet(s, &packet))
+    return 0;
+  
   theora->frames_since_keyframe = -1;
 
   return 1;
   
   }
 
-static int init_theora(void * data, gavl_video_format_t * format,
-                       gavl_metadata_t * metadata,
-                       const gavl_metadata_t * stream_metadata,
-                       gavl_compression_info_t * ci)
+static gavl_sink_status_t write_video_frame_theora(void * data, gavl_video_frame_t * frame)
+  {
+  theora_t * theora;
+  int result;
+  int i;
+  ogg_packet op;
+  gavl_packet_t gp;
+  int64_t frame_index;
+  
+  theora = data;
+  
+  for(i = 0; i < 3; i++)
+    {
+    theora->buf[i].stride = frame->strides[i];
+    theora->buf[i].data   = frame->planes[i];
+    }
+
+#ifdef THEORA_1_1
+  if(theora->pass == 2)
+    {
+    /* Input pass data */
+    int ret;
+    
+    while(theora->stats_ptr - theora->stats_buf < theora->stats_size)
+      {
+      
+      ret = th_encode_ctl(theora->ts,
+                          TH_ENCCTL_2PASS_IN,
+                          theora->stats_ptr,
+                          theora->stats_size -
+                          (theora->stats_ptr - theora->stats_buf));
+
+      if(ret < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "passing 2 pass data failed");
+        return GAVL_SINK_ERROR;
+        }
+      else if(!ret)
+        break;
+      else
+        {
+        theora->stats_ptr += ret;
+        }
+      }
+    }
+#endif
+  
+  result = th_encode_ycbcr_in(theora->ts, theora->buf);
+
+#ifdef THEORA_1_1
+  /* Output pass data */
+  if(theora->pass == 1)
+    {
+    int ret;
+    char * buf;
+    ret = th_encode_ctl(theora->ts,
+                        TH_ENCCTL_2PASS_OUT,
+                        &buf, sizeof(buf));
+    if(ret < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "getting 2 pass data failed");
+      return GAVL_SINK_ERROR;
+      }
+    fwrite(buf, 1, ret, theora->stats_file);
+    }
+#endif
+
+  /* Output packet */
+  
+  if(!th_encode_packetout(theora->ts, 0, &op))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Theora encoder produced no packet");
+    return GAVL_SINK_ERROR;
+    }
+  
+  gavl_packet_init(&gp);
+  bg_ogg_packet_to_gavl(&op, &gp, NULL);
+
+  frame_index = op.granulepos >> theora->ti.keyframe_granule_shift;
+  frame_index +=
+    op.granulepos-(frame_index << theora->ti.keyframe_granule_shift);
+  
+  gp.pts = gavl_frames_to_time(theora->format->timescale,
+                               theora->format->frame_duration,
+                               frame_index);
+
+  if(!(op.packet[0] & 0x40)) // Keyframe
+    gp.flags |= GAVL_PACKET_TYPE_I | GAVL_PACKET_KEYFRAME;
+  else
+    gp.flags |= GAVL_PACKET_TYPE_P;
+  
+#if 0
+  fprintf(stderr, "Encoding granulepos: %lld %lld / %d\n",
+          op.granulepos,
+          op.granulepos >> theora->ti.keyframe_granule_shift,
+          op.granulepos & ((1<<theora->ti.keyframe_granule_shift)-1));
+#endif
+  return gavl_packet_sink_put_packet(theora->psink, &gp);
+  }
+
+
+static gavl_video_sink_t *
+init_theora(void * data, gavl_video_format_t * format,
+            gavl_metadata_t * stream_metadata,
+            gavl_compression_info_t * ci)
   {
   int sub_h, sub_v;
   int arg_i1, arg_i2;
@@ -508,8 +498,6 @@ static int init_theora(void * data, gavl_video_format_t * format,
       return 0;
     }
   
-  ogg_stream_init(&theora->os, theora->serialno);
-
   /* Initialize encoder */
   if(!(theora->ts = th_encode_alloc(&theora->ti)))
     {
@@ -564,23 +552,22 @@ static int init_theora(void * data, gavl_video_format_t * format,
 
     ptr = ci->global_header + ci->global_header_len;
 
-    INT32BE_2_PTR(op.bytes, ptr); ptr += 4;
+    GAVL_32BE_2_PTR(op.bytes, ptr); ptr += 4;
     memcpy(ptr, op.packet, op.bytes);
     ci->global_header_len += 4 + op.bytes;
 
-#if 0    
-    ogg_stream_packetin(&theora->os,&op);
-
-    if(!header_packets)
+    if(header_packets == 1)
       {
-      /* And stream them out */
-      if(!bg_ogg_flush_page(&theora->os, theora->output, 1))
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Theora ID page");
-        return 0;
-        }
+      char * vendor;
+      int vendor_len;
+      
+      /* Extract vendor ID */
+      ptr = op.packet + 7;
+      vendor_len = GAVL_PTR_2_32LE(ptr); ptr += 4;
+      vendor = calloc(1, vendor_len + 1);
+      memcpy(vendor, ptr, vendor_len);
+      gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE, vendor);
       }
-#endif
     header_packets++;
     }
   
@@ -600,7 +587,7 @@ static int init_theora(void * data, gavl_video_format_t * format,
   theora->buf[2].width  = theora->format->frame_width  / sub_h;
   theora->buf[2].height = theora->format->frame_height / sub_v;
   
-  return 1;
+  return gavl_video_sink_create(NULL, write_video_frame_theora, theora, theora->format);
   }
 
 #ifdef THEORA_1_1
@@ -666,108 +653,10 @@ static int set_video_pass_theora(void * data, int pass, int total_passes,
   }
 #endif
 
-static int flush_header_pages_theora(void*data)
-  {
-  theora_t * theora = data;
-  if(bg_ogg_flush(&theora->os, theora->output, 1) <= 0)
-    return 0;
-  return 1;
-  }
 
 
-static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
-  {
-  theora_t * theora;
-  int result;
-  int i;
-  ogg_packet op;
-  
-  theora = data;
-  
-  if(theora->have_packet)
-    {
-    if(!th_encode_packetout(theora->ts, 0, &op))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Theora encoder produced no packet");
-      return 0;
-      }
+
 #if 0
-    fprintf(stderr, "Encoding granulepos: %lld %lld / %d\n",
-            op.granulepos,
-            op.granulepos >> theora->ti.keyframe_granule_shift,
-            op.granulepos & ((1<<theora->ti.keyframe_granule_shift)-1));
-#endif    
-    ogg_stream_packetin(&theora->os,&op);
-    if(bg_ogg_flush(&theora->os, theora->output, 0) < 0)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Writing theora packet failed");
-      return 0;
-      }
-    theora->have_packet = 0;
-    }
- 
-  for(i = 0; i < 3; i++)
-    {
-    theora->buf[i].stride = frame->strides[i];
-    theora->buf[i].data   = frame->planes[i];
-    }
-
-#ifdef THEORA_1_1
-  if(theora->pass == 2)
-    {
-    /* Input pass data */
-    int ret;
-    
-    while(theora->stats_ptr - theora->stats_buf < theora->stats_size)
-      {
-      
-      ret = th_encode_ctl(theora->ts,
-                          TH_ENCCTL_2PASS_IN,
-                          theora->stats_ptr,
-                          theora->stats_size -
-                          (theora->stats_ptr - theora->stats_buf));
-
-      if(ret < 0)
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "passing 2 pass data failed");
-        return 0;
-        }
-      else if(!ret)
-        break;
-      else
-        {
-        theora->stats_ptr += ret;
-        }
-      }
-    }
-#endif
-  
-  result = th_encode_ycbcr_in(theora->ts, theora->buf);
-
-#ifdef THEORA_1_1
-  /* Output pass data */
-  if(theora->pass == 1)
-    {
-    int ret;
-    char * buf;
-    ret = th_encode_ctl(theora->ts,
-                        TH_ENCCTL_2PASS_OUT,
-                        &buf, sizeof(buf));
-    if(ret < 0)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "getting 2 pass data failed");
-      return 0;
-      }
-    fwrite(buf, 1, ret, theora->stats_file);
-    }
-#endif
-  
-  theora->have_packet = 1;
-  return 1;
-  }
-
 static int write_packet_theora(void * data, gavl_packet_t * packet)
   {
   ogg_packet op;
@@ -818,61 +707,45 @@ static int write_packet_theora(void * data, gavl_packet_t * packet)
   return 1;
   }
 
+#endif
+
+static void convert_packet(bg_ogg_stream_t * s, gavl_packet_t * src, ogg_packet * dst)
+  {
+  theora_t * theora;
+  theora = s->codec_priv;
+
+  if(theora->frames_since_keyframe < 0)
+    {
+    if(!(src->flags & GAVL_PACKET_KEYFRAME))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "First packet isn't a keyframe");
+      return;
+      }
+    theora->frames_since_keyframe = 0;
+    theora->last_keyframe = src->pts / theora->format->frame_duration + 1;
+    }
+  else if(src->flags & GAVL_PACKET_KEYFRAME)
+    {
+    theora->last_keyframe += theora->frames_since_keyframe + 1;
+    theora->frames_since_keyframe = 0;
+    }
+  else
+    {
+    theora->frames_since_keyframe++;
+    }
+  
+  dst->granulepos =
+    (theora->last_keyframe << theora->ti.keyframe_granule_shift) +
+    theora->frames_since_keyframe;
+  }
+
+
 static int close_theora(void * data)
   {
   int ret = 1;
   theora_t * theora;
-  ogg_packet op;
   theora = data;
-
-  if(theora->have_packet)
-    {
-    if(!th_encode_packetout(theora->ts, 1, &op))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Theora encoder produced no packet");
-      ret = 0;
-      }
-
-    if(ret)
-      {
-      ogg_stream_packetin(&theora->os,&op);
-      if(bg_ogg_flush(&theora->os, theora->output, 1) <= 0)
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing packet failed");
-        ret = 0;
-        }
-      }
-    theora->have_packet = 0;
-
-#ifdef THEORA_1_1
-    /* Output pass data */
-    if(theora->pass == 1)
-      {
-      int ret;
-      char * buf;
-      ret = th_encode_ctl(theora->ts,
-                          TH_ENCCTL_2PASS_OUT,
-                          &buf, sizeof(buf));
-
-      if(ret < 0)
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "getting 2 pass data failed");
-        return 0;
-        }
-      fseek(theora->stats_file, 0, SEEK_SET);
-      fwrite(buf, 1, ret, theora->stats_file);
-      }
-#endif
-    
-    }
-  else if(theora->compressed)
-    {
-    if(bg_ogg_flush(&theora->os, theora->output, 1) <= 0)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing packet failed");
-      ret = 0;
-      }
-    }
   
 #ifdef THEORA_1_1
   if(theora->stats_file)
@@ -881,7 +754,6 @@ static int close_theora(void * data)
     free(theora->stats_buf);
 #endif
   
-  ogg_stream_clear(&theora->os);
   th_comment_clear(&theora->tc);
   th_info_clear(&theora->ti);
   th_encode_free(theora->ts);
@@ -903,10 +775,9 @@ const bg_ogg_codec_t bg_theora_codec =
 #endif    
     .init_video =     init_theora,
     .init_video_compressed =     init_compressed_theora,
+
+    .set_packet_sink = set_packet_sink,
     
-    .flush_header_pages = flush_header_pages_theora,
-    
-    .encode_video = write_video_frame_theora,
-    .write_packet = write_packet_theora,
+    .convert_packet = convert_packet,
     .close = close_theora,
   };

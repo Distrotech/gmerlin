@@ -43,7 +43,6 @@
 typedef struct
   {
   bg_flac_t * enc;
-  bg_ogg_stream_t * s;
   
   int header_written;
     
@@ -61,10 +60,9 @@ typedef struct
   int write_error;
   } flacogg_t;
 
-static int streaminfo_callback(void * data, uint8_t * si, int len)
+static int init_compressed_flacogg(bg_ogg_stream_t * s)
   {
   ogg_packet op;
-  flacogg_t * flacogg;
   uint8_t header_bytes[] =
     {
       0x7f,
@@ -72,36 +70,29 @@ static int streaminfo_callback(void * data, uint8_t * si, int len)
       0x01, 0x00, // Major, minor version
       0x00, 0x01, // Number of other header packets (Big Endian)
     };
-
-  /* Not the last metadata packet */
-  si[4] &= 0x7f;
-  
-  flacogg = data;
-
-  if(flacogg->header_written)
-    return 1;
-
-  flacogg->header_written = 1;
   
   memset(&op, 0, sizeof(op));
   
-  op.bytes  = len + 9;
-  op.packet = malloc(op.bytes);
-  
+  /* Not the last metadata packet */
+  s->ci.global_header[4] &= 0x7f;
+
   memcpy(op.packet, header_bytes, 9);
-  memcpy(op.packet+9, si, len);
+  memcpy(op.packet+9, s->ci.global_header,
+         s->ci.global_header_len);
+
+  op.bytes  = s->ci.global_header_len + 9;
   
-  if(!bg_ogg_stream_write_header_packet(flacogg->s, &op))
+  if(!bg_ogg_stream_write_header_packet(s, &op))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Flac ID page");
     return 0;
     }
 
-  /* Write vorbis comment */
-  
+  /* Vorbis comment */
   
   return 1;
   }
+
 
 #if 0
 static FLAC__StreamEncoderWriteStatus
@@ -139,14 +130,11 @@ write_callback(const FLAC__StreamEncoder *encoder,
   }
 #endif
 
-static void * create_flacogg(bg_ogg_stream_t * s)
+static void * create_flacogg()
   {
   flacogg_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->s = s;
   ret->enc = bg_flac_create();
-
-  bg_flac_set_callbacks(ret->enc, streaminfo_callback, ret);
   
   //  ret->output = output;
   
@@ -172,20 +160,17 @@ static void set_parameter_flacogg(void * data, const char * name,
   bg_flac_set_parameter(flacogg->enc, name, v);
   }
 
-static int init_flacogg(void * data, gavl_audio_format_t * format,
-                        const gavl_metadata_t * metadata,
-                        gavl_metadata_t * stream_metadata,
-                        gavl_compression_info_t * ci)
+static gavl_audio_sink_t *
+init_flacogg(void * data, gavl_audio_format_t * format,
+             gavl_metadata_t * stream_metadata,
+             gavl_compression_info_t * ci)
   {
   flacogg_t * flacogg = data;
-  return bg_flac_start_uncompressed(flacogg->enc, format, ci, stream_metadata);
+  if(!bg_flac_start_uncompressed(flacogg->enc, format, ci, stream_metadata))
+    return 0;
+  return bg_flac_get_audio_sink(flacogg->enc);
   }
 
-static int write_audio_frame_flacogg(void * data, gavl_audio_frame_t * frame)
-  {
-  flacogg_t * flacogg = data;
-  return bg_flac_encode_audio_frame(flacogg->enc, frame);
-  }
 
 static int close_flacogg(void * data)
   {
@@ -194,24 +179,7 @@ static int close_flacogg(void * data)
   flacogg_t * flacogg;
   flacogg = data;
 
-#if 0  
-  if(flacogg->enc)
-    {
-
-    /* Flush data */
-    if(write_callback(NULL,
-                      buf,
-                      0,
-                      0,
-                      0,
-                      flacogg) == FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR)
-      ret = 0;
-    
-    flacogg->enc = NULL;
-    }
-  
-  ogg_stream_clear(&flacogg->os);
-#endif
+  bg_flac_free(flacogg->enc);
   
   if(flacogg->frame)
     {
@@ -233,7 +201,7 @@ const bg_ogg_codec_t bg_flacogg_codec =
     .set_parameter =  set_parameter_flacogg,
     
     .init_audio =     init_flacogg,
+    .init_audio_compressed = init_compressed_flacogg,
     
-    .encode_audio = write_audio_frame_flacogg,
     .close = close_flacogg,
   };
