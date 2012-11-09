@@ -75,7 +75,6 @@ struct bg_ogg_stream_s
   gavl_packet_sink_t * psink_in;
   gavl_packet_sink_t * psink_out;
   
-  gavl_metadata_t m;
   ogg_stream_state os;
 
   int compressed;

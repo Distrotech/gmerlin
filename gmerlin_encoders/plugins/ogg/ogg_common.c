@@ -53,9 +53,10 @@ void * bg_ogg_encoder_create()
 static void free_stream(bg_ogg_stream_t * s)
   {
   gavl_compression_info_free(&s->ci);
-  gavl_metadata_free(&s->m);
+  gavl_metadata_free(&s->m_stream);
   if(s->stats_file)
     free(s->stats_file);
+  gavl_packet_free(&s->last_packet);
   }
 
 void bg_ogg_encoder_destroy(void * data)
@@ -65,18 +66,20 @@ void bg_ogg_encoder_destroy(void * data)
   if(e->write_callback_data)
     bg_ogg_encoder_close(e, 1);
   
-  for(i = 0; i < e->num_audio_streams; i++)
-    free_stream(&e->audio_streams[i]);
-
-  for(i = 0; i < e->num_video_streams; i++)
-    free_stream(&e->video_streams[i]);
-
   if(e->audio_streams)
+    {
+    for(i = 0; i < e->num_audio_streams; i++)
+      free_stream(&e->audio_streams[i]);
     free(e->audio_streams);
+    }
 
   if(e->video_streams)
+    {
+    for(i = 0; i < e->num_video_streams; i++)
+      free_stream(&e->video_streams[i]);
     free(e->video_streams);
-
+    }
+  
   if(e->filename)
     free(e->filename);
   
@@ -150,8 +153,13 @@ static int bg_ogg_stream_flush_page(bg_ogg_stream_t * s, int force)
   
   if(result)
     {
-    if((s->enc->write_callback(s->enc->write_callback_data,og.header,og.header_len) < og.header_len) ||
-       (s->enc->write_callback(s->enc->write_callback_data,og.body,og.body_len) < og.body_len))
+    fprintf(stderr, "Writing page %d %d %d\n", ogg_page_serialno(&og),
+            og.header_len, og.body_len);
+
+    if((s->enc->write_callback(s->enc->write_callback_data,
+                               og.header,og.header_len) < og.header_len) ||
+       (s->enc->write_callback(s->enc->write_callback_data,
+                               og.body,og.body_len) < og.body_len))
       return -1;
     else
       return 1;
@@ -179,31 +187,6 @@ int bg_ogg_stream_write_header_packet(bg_ogg_stream_t * s, ogg_packet * p)
   s->num_headers++;
   return 1;
   }
-
-
-#if 0
-int bg_ogg_flush_page(ogg_stream_state * os,
-                      bg_ogg_encoder_t * output, int force)
-  {
-  int result;
-  ogg_page og;
-  memset(&og, 0, sizeof(og));
-  if(force)
-    result = ogg_stream_flush(os,&og);
-  else
-    result = ogg_stream_pageout(os,&og);
-  
-  if(result)
-    {
-    if((output->write_callback(output->write_callback_data,og.header,og.header_len) < og.header_len) ||
-       (output->write_callback(output->write_callback_data,og.body,og.body_len) < og.body_len))
-      return -1;
-    else
-      return 1;
-    }
-  return 0;
-  }
-#endif
 
 int bg_ogg_stream_flush(bg_ogg_stream_t * s, int force)
   {
@@ -251,16 +234,40 @@ void bg_ogg_packet_from_gavl(bg_ogg_stream_t * s, gavl_packet_t * src,
 
 static gavl_sink_status_t write_gavl_packet(void * data, gavl_packet_t * p)
   {
-  ogg_packet op;
   bg_ogg_stream_t * s = data;
-  memset(&op, 0, sizeof(op));
-  bg_ogg_packet_from_gavl(s, p, &op);
 
-  op.packetno = s->packetno++;
-  ogg_stream_packetin(&s->os, &op);
-  /* Flush pages if any */
-  if(bg_ogg_stream_flush(s, 0) < 0)
-    return 0;
+  /* Flush the last packet */
+  if(s->last_packet.data_len)
+    {
+    ogg_packet op;
+    memset(&op, 0, sizeof(op));
+    bg_ogg_packet_from_gavl(s, &s->last_packet, &op);
+    op.packetno = s->packetno++;
+    ogg_stream_packetin(&s->os, &op);
+    /* Flush pages if any */
+    if(bg_ogg_stream_flush(s, 0) < 0)
+      return GAVL_SINK_ERROR;
+    }
+  /* Save this packet */
+  gavl_packet_copy(&s->last_packet, p);
+  return GAVL_SINK_OK;
+  }
+
+static int flush_stream(bg_ogg_stream_t * s)
+  {
+  /* Flush the last packet */
+  if(s->last_packet.data_len)
+    {
+    ogg_packet op;
+    memset(&op, 0, sizeof(op));
+    bg_ogg_packet_from_gavl(s, &s->last_packet, &op);
+    op.packetno = s->packetno++;
+    op.e_o_s = 1;
+    ogg_stream_packetin(&s->os, &op);
+    /* Flush pages if any */
+    if(bg_ogg_stream_flush(s, 1) < 0)
+      return 0;
+    }
   return 1;
   }
 
@@ -276,12 +283,20 @@ static bg_ogg_stream_t * append_stream(bg_ogg_encoder_t * e,
   streams = realloc(streams, (num_streams+1)*sizeof(*streams));
 
   ret = streams + num_streams;
-
+  ret->index = num_streams;
+  
   memset(ret, 0, sizeof(*ret));
   ogg_stream_init(&ret->os, e->serialno++);
   
-  gavl_metadata_copy(&ret->m, m);
+  gavl_metadata_copy(&ret->m_stream, m);
   ret->enc = e;
+  ret->index = num_streams;
+  ret->m_global = &e->metadata;
+  
+  num_streams++;
+  
+  *num_streams_p = num_streams;
+  *streams_p = streams;
   return ret;
   }
 
@@ -295,10 +310,8 @@ bg_ogg_encoder_add_audio_stream(void * data,
 
   s = append_stream(e, &e->audio_streams, &e->num_audio_streams, m);
   
-  gavl_audio_format_copy(&e->audio_streams[e->num_audio_streams].afmt,
-                         format);
+  gavl_audio_format_copy(&s->afmt, format);
   gavl_metadata_copy(&s->m_stream, m);
-  s->index = e->num_audio_streams++;
   return s;
   }
 
@@ -311,11 +324,9 @@ bg_ogg_encoder_add_video_stream(void * data,
   bg_ogg_encoder_t * e = data;
   s = append_stream(e, &e->video_streams, &e->num_video_streams, m);
 
-  gavl_video_format_copy(&e->video_streams[e->num_video_streams].vfmt,
+  gavl_video_format_copy(&s->vfmt,
                          format);
   gavl_metadata_copy(&s->m_stream, m);
-  
-  s->index = e->num_video_streams++;
   return s;
   }
 
@@ -378,11 +389,11 @@ int bg_ogg_encoder_set_video_pass(void * data, int stream,
                                   const char * stats_file)
   {
   bg_ogg_encoder_t * e = data;
+  bg_ogg_stream_t * s = &e->video_streams[stream];
 
-  e->video_streams[stream].pass = pass;
-  e->video_streams[stream].total_passes = total_passes;
-  e->video_streams[stream].stats_file =
-    bg_strdup(e->video_streams[stream].stats_file, stats_file);
+  s->pass = pass;
+  s->total_passes = total_passes;
+  s->stats_file = bg_strdup(s->stats_file, stats_file);
   return 1;
   }
 
@@ -408,7 +419,7 @@ static int start_audio(bg_ogg_encoder_t * e, int stream)
   else
     {
     if(!(s->asink = s->codec->init_audio(s->codec_priv,
-                                         &s->afmt, &s->m, &s->ci)))
+                                         &s->afmt, &s->m_stream, &s->ci)))
       return 0;
     
     if(s->ci.id != GAVL_CODEC_ID_NONE)
@@ -424,11 +435,8 @@ static int start_audio(bg_ogg_encoder_t * e, int stream)
 
 static int start_video(bg_ogg_encoder_t * e, int stream)
   {
-  gavl_compression_info_t ci;
-
   bg_ogg_stream_t * s = &e->video_streams[stream];
   
-  memset(&ci, 0, sizeof(ci));
   if(s->compressed)
     {
     if(!s->codec->init_video_compressed(s))
@@ -438,7 +446,7 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
     {
     if(!(s->vsink = s->codec->init_video(s->codec_priv,
                                          &s->vfmt,
-                                         &s->m, &ci)))
+                                         &s->m_stream, &s->ci)))
       return 0;
     
     if(s->pass)
@@ -455,10 +463,7 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
       }
     
     if(!s->codec->init_video_compressed(s))
-      {
-      gavl_compression_info_free(&ci);
       return 0;
-      }
     }
 
   s->psink_out = gavl_packet_sink_create(NULL, write_gavl_packet, s);
@@ -488,13 +493,13 @@ int bg_ogg_encoder_start(void * data)
     {
     bg_ogg_stream_t * s = &e->video_streams[i];
     if(bg_ogg_stream_flush(s, 1) < 0)
-      return 1;
+      return 0;
     }
   for(i = 0; i < e->num_audio_streams; i++)
     {
     bg_ogg_stream_t * s = &e->audio_streams[i];
     if(bg_ogg_stream_flush(s, 1) < 0)
-      return 1;
+      return 0;
     }
   
   return 1;
@@ -584,44 +589,48 @@ int bg_ogg_encoder_close(void * data, int do_delete)
   
   for(i = 0; i < e->num_audio_streams; i++)
     {
-    if(!e->audio_streams[i].codec->close(e->audio_streams[i].codec_priv))
+    bg_ogg_stream_t * s = &e->audio_streams[i];
+    
+    if(!s->codec->close(e->audio_streams[i].codec_priv))
       {
       ret = 0;
       break;
       }
 
-    ogg_stream_clear(&e->audio_streams[i].os);
-        
-    if(e->audio_streams[i].asink)
+    flush_stream(s);
+    ogg_stream_clear(&s->os);
+    
+    if(s->asink)
       {
-      gavl_audio_sink_destroy(e->audio_streams[i].asink);
-      e->audio_streams[i].asink = NULL;
+      gavl_audio_sink_destroy(s->asink);
+      s->asink = NULL;
       }
-    if(e->audio_streams[i].psink_in)
+    if(s->psink_in)
       {
-      gavl_packet_sink_destroy(e->audio_streams[i].psink_in);
-      e->audio_streams[i].psink_in = NULL;
+      gavl_packet_sink_destroy(s->psink_in);
+      s->psink_in = NULL;
       }
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
-    if(!e->video_streams[i].codec->close(e->video_streams[i].codec_priv))
+    bg_ogg_stream_t * s = &e->video_streams[i];
+    if(!s->codec->close(s->codec_priv))
       {
       ret = 0;
       break;
       }
-    
-    ogg_stream_clear(&e->video_streams[i].os);
+    flush_stream(s);
+    ogg_stream_clear(&s->os);
 
-    if(e->video_streams[i].vsink)
+    if(s->vsink)
       {
-      gavl_video_sink_destroy(e->video_streams[i].vsink);
-      e->video_streams[i].vsink = NULL;
+      gavl_video_sink_destroy(s->vsink);
+      s->vsink = NULL;
       }
-    if(e->video_streams[i].psink_in)
+    if(s->psink_in)
       {
-      gavl_packet_sink_destroy(e->video_streams[i].psink_in);
-      e->video_streams[i].psink_in = NULL;
+      gavl_packet_sink_destroy(s->psink_in);
+      s->psink_in = NULL;
       }
     }
   

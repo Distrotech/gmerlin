@@ -238,9 +238,8 @@ static int flush_packet(vorbis_t * vorbis, ogg_packet * op)
   gavl_packet_init(&gp);
 
   bg_ogg_packet_to_gavl(op, &gp, &vorbis->pts);
-  
-  //  ogg_stream_packetin(&vorbis->enc_os,op);
-  return 1;
+
+  return gavl_packet_sink_put_packet(vorbis->psink, &gp) ? 1 : 0;
   }
 
 static int flush_data(vorbis_t * vorbis, int force)
@@ -279,7 +278,8 @@ static int flush_data(vorbis_t * vorbis, int force)
   return 1;
   }
 
-static gavl_sink_status_t write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
+static gavl_sink_status_t
+write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
   {
   int i;
   vorbis_t * vorbis;
@@ -372,7 +372,7 @@ static gavl_audio_sink_t * init_vorbis(void * data,
   vendor = calloc(1, vendor_len + 1);
   memcpy(vendor, ptr, vendor_len);
   gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE, vendor);
-  
+  // fprintf(stderr, "Got vendor: %s\n", vendor);
   /* And stream them out */
   
   ci_ret->global_header_len =
@@ -381,15 +381,15 @@ static gavl_audio_sink_t * init_vorbis(void * data,
   ci_ret->global_header = malloc(ci_ret->global_header_len);
   ptr = ci_ret->global_header;
 
-  GAVL_32LE_2_PTR(header_main.bytes, ptr); ptr += 4;
+  GAVL_32BE_2_PTR(header_main.bytes, ptr); ptr += 4;
   memcpy(ptr, header_main.packet, header_main.bytes);
   ptr += header_main.bytes;
 
-  GAVL_32LE_2_PTR(header_comments.bytes, ptr); ptr += 4;
+  GAVL_32BE_2_PTR(header_comments.bytes, ptr); ptr += 4;
   memcpy(ptr, header_comments.packet, header_comments.bytes);
   ptr += header_comments.bytes;
 
-  GAVL_32LE_2_PTR(header_codebooks.bytes, ptr); ptr += 4;
+  GAVL_32BE_2_PTR(header_codebooks.bytes, ptr); ptr += 4;
   memcpy(ptr, header_codebooks.packet, header_codebooks.bytes);
   ptr += header_codebooks.bytes;
   
@@ -439,32 +439,6 @@ static void set_parameter_vorbis(void * data, const char * name,
       vorbis->bitrate_mode = BITRATE_MODE_MANAGED;
     }
   }
-
-
-
-#if 0
-static int write_packet_vorbis(void * data, gavl_packet_t * packet)
-  {
-  ogg_packet op;
-  
-  vorbis_t * vorbis = data;
-  
-  memset(&op, 0, sizeof(op));
-
-  op.packet = packet->data;
-  op.bytes = packet->data_len;
-  op.granulepos = packet->pts + packet->duration;
-  if(packet->flags & GAVL_PACKET_LAST)
-    op.e_o_s = 1;
-  
-  ogg_stream_packetin(&vorbis->s->os, &op);
-  
-  /* Flush pages if any */
-  if(bg_ogg_stream_flush(vorbis->s, 0) < 0)
-    return 0;
-  return 1;
-  }
-#endif
 
 static int close_vorbis(void * data)
   {

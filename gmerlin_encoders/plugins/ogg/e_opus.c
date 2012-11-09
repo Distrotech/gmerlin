@@ -45,10 +45,10 @@ static int add_audio_stream_opus(void * data,
                                   const gavl_metadata_t * m,
                                   const gavl_audio_format_t * format)
   {
-  int ret;
+  bg_ogg_stream_t * ret;
   ret = bg_ogg_encoder_add_audio_stream(data, m, format);
   bg_ogg_encoder_init_stream(data, ret, &bg_opus_codec);
-  return ret;
+  return ret->index;
   }
 
 static int
@@ -76,10 +76,10 @@ add_audio_stream_compressed_opus(void * data,
                                  const gavl_audio_format_t * format,
                                  const gavl_compression_info_t * ci)
   {
-  int ret;
+  bg_ogg_stream_t * ret;
   ret = bg_ogg_encoder_add_audio_stream_compressed(data, m, format, ci);
   bg_ogg_encoder_init_stream(data, ret, &bg_opus_codec);
-  return ret;
+  return ret->index;
   }
 
 const bg_encoder_plugin_t the_plugin =

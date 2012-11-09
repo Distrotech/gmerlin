@@ -73,19 +73,19 @@ static int add_audio_stream_b_ogg(void * data,
                                   const gavl_metadata_t * m,
                                   const gavl_audio_format_t * format)
   {
-  int ret;
+  bg_ogg_stream_t * ret;
   ret = bg_ogg_encoder_add_audio_stream(data, m, format);
-  return ret;
+  return ret->index;
   }
 
 static int add_video_stream_b_ogg(void * data,
                                   const gavl_metadata_t * m,
                                   const gavl_video_format_t * format)
   {
-  int ret;
+  bg_ogg_stream_t * ret;
   ret = bg_ogg_encoder_add_video_stream(data, m, format);
-  bg_ogg_encoder_init_video_stream(data, ret, &bg_theora_codec);
-  return ret;
+  bg_ogg_encoder_init_stream(data, ret, &bg_theora_codec);
+  return ret->index;
   }
 
 static void set_audio_parameter_b_ogg(void * data, int stream,
@@ -102,7 +102,10 @@ static void set_audio_parameter_b_ogg(void * data, int stream,
       {
       if(!strcmp(audio_codecs[i]->name, val->val_str))
         {
-        bg_ogg_encoder_init_stream(data, stream, audio_codecs[i]);
+        bg_ogg_encoder_t * e = data;
+        bg_ogg_encoder_init_stream(data,
+                                   &e->audio_streams[stream],
+                                   audio_codecs[i]);
         break;
         }
       i++;

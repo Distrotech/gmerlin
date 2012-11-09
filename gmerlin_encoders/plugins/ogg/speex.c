@@ -233,7 +233,12 @@ static int init_compressed_speex(bg_ogg_stream_t * s)
   if(!bg_ogg_stream_write_header_packet(s, &op))
     return 0;
   
-  bg_ogg_create_comment_packet(NULL, 0, &s->m, s->m_global, 0, &op);
+  bg_ogg_create_comment_packet(NULL, 0, &s->m_stream, s->m_global, 0, &op);
+
+  if(!bg_ogg_stream_write_header_packet(s, &op))
+    return 0;
+  
+  bg_ogg_free_comment_packet(&op);
   return 1;
   }
 

@@ -46,10 +46,10 @@ add_audio_stream_flacogg(void * data,
                          const gavl_metadata_t * metadata,
                          const gavl_audio_format_t * format)
   {
-  int ret;
+  bg_ogg_stream_t * ret;
   ret = bg_ogg_encoder_add_audio_stream(data, metadata, format);
   bg_ogg_encoder_init_stream(data, ret, &bg_flacogg_codec);
-  return ret;
+  return ret->index;
   }
 
 static int

@@ -328,7 +328,8 @@ static int init_compressed_theora(bg_ogg_stream_t * s)
   
   }
 
-static gavl_sink_status_t write_video_frame_theora(void * data, gavl_video_frame_t * frame)
+static gavl_sink_status_t
+write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   {
   theora_t * theora;
   int result;
@@ -567,6 +568,7 @@ init_theora(void * data, gavl_video_format_t * format,
       vendor = calloc(1, vendor_len + 1);
       memcpy(vendor, ptr, vendor_len);
       gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE, vendor);
+      fprintf(stderr, "Got vendor: %s\n", vendor);
       }
     header_packets++;
     }
