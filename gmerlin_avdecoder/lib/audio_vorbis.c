@@ -506,7 +506,7 @@ static gavl_source_status_t decode_frame_vorbis(bgav_stream_t * s)
     if(samples_decoded > 0)
       break;
     
-    // fprintf(stderr, "decode_frame_vorbis\n");
+    //    fprintf(stderr, "decode_frame_vorbis %ld\n", priv->dec_op.granulepos);
     
     if((st = next_packet(s)) != GAVL_SOURCE_OK)
       return st;
@@ -520,16 +520,20 @@ static gavl_source_status_t decode_frame_vorbis(bgav_stream_t * s)
     priv->dec_op.bytes = 0;
     }
   
-#ifdef DUMP_OUTPUT
-  bgav_dprintf("Vorbis samples decoded: %d\n",
-               samples_decoded);
-#endif
-  
   for(i = 0; i < s->data.audio.format.num_channels; i++)
     s->data.audio.frame->channels.f[i] = channels[i];
   
-  s->data.audio.frame->valid_samples = samples_decoded;
   vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
+  s->data.audio.frame->valid_samples = samples_decoded;
+
+  /* This can happen for the last packet */
+  if(priv->dec_op.e_o_s && (s->data.audio.frame->valid_samples > priv->p.duration))
+    s->data.audio.frame->valid_samples = priv->p.duration;
+
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Vorbis samples decoded: %d\n",
+               s->data.audio.frame->valid_samples);
+#endif
   
   return GAVL_SOURCE_OK;
   }

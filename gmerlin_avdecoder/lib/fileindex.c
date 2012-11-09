@@ -839,7 +839,7 @@ static void flush_stream_simple(bgav_stream_t * s, int force)
     
     t = p->pts - s->start_time;
     
-#if 1
+#if 0
     fprintf(stderr, "flush_stream_simple ID: %d Force: %d ", s->stream_id, force);
     bgav_packet_dump(p);
 #endif
