@@ -137,9 +137,13 @@ static gavl_source_status_t decode_frame_speex(bgav_stream_t * s)
     {
     priv->frame->samples.f[i] /= 32768.0;
     }
-  bgav_stream_done_packet_read(s, p);
 
   priv->frame->valid_samples = priv->frame_size * priv->header->frames_per_packet;
+  if(priv->frame->valid_samples > p->duration)
+    priv->frame->valid_samples = p->duration;
+  
+  bgav_stream_done_packet_read(s, p);
+  
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
   
   return GAVL_SOURCE_OK;

@@ -106,6 +106,9 @@ void bgav_packet_dump(bgav_packet_t * p)
     bgav_dprintf(", il: t");
   else if(p->ilace == GAVL_INTERLACE_BOTTOM_FIRST)
     bgav_dprintf(", il: b");
+
+  if(p->end_pts != GAVL_TIME_UNDEFINED)
+    bgav_dprintf(" end_pts: %"PRId64", ", p->end_pts);
   
   bgav_dprintf("\n");
   //  bgav_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);

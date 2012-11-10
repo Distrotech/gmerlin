@@ -396,7 +396,15 @@ int main(int argc, char ** argv)
 
   if(!filename)
     {
-    fprintf(stderr, "Filename missing");
+    fprintf(stderr, "Usage: %s [options] filename", argv[0]);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "-apos <sample>  Audio position\n");
+    fprintf(stderr, "-vpos <time>    Video time\n");
+    fprintf(stderr, "-sa             Sample accurate\n");
+    fprintf(stderr, "-as <stream>    Select audio stream\n");
+    fprintf(stderr, "-vs <stream>    Select video stream\n");
+    fprintf(stderr, "-t <track>      Select track\n");
+    fprintf(stderr, "-v <level>      Verbosity level\n");
     return 1;
     }
 

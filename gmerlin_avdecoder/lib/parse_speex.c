@@ -38,6 +38,11 @@ static int parse_frame_speex(bgav_audio_parser_t * parser, bgav_packet_t * p)
   {
   speex_priv_t * priv = parser->priv;
   p->duration = priv->packet_samples;
+
+  /* lookahead is subtracted from the granulepos by the encoder */
+
+  if(p->end_pts != GAVL_TIME_UNDEFINED)
+    p->end_pts += parser->s->data.audio.pre_skip;
   return 1;
   }
 
@@ -83,10 +88,17 @@ void bgav_audio_parser_init_speex(bgav_audio_parser_t * parser)
     }
   
   speex_decoder_ctl(dec_state, SPEEX_GET_FRAME_SIZE, &frame_size);
+  speex_decoder_ctl(dec_state, SPEEX_GET_LOOKAHEAD,
+                    &parser->s->data.audio.pre_skip);
+
   priv->packet_samples = header->frames_per_packet * frame_size;
 
   parser->s->data.audio.format.samplerate = header->rate;
   parser->s->timescale = header->rate;
+
+  parser->s->data.audio.format.num_channels = header->nb_channels;
+  gavl_set_channel_setup(&parser->s->data.audio.format);
+
   
   speex_decoder_destroy(dec_state);
   free(header);

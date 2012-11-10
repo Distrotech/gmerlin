@@ -28,9 +28,6 @@
 
 #define LOG_DOMAIN "audio"
 
-#define DUMP_INPUT
-#define DUMP_OUTPUT
-
 int bgav_num_audio_streams(bgav_t * bgav, int track)
   {
   return bgav->tt->tracks[track].num_audio_streams;
@@ -183,7 +180,7 @@ int bgav_audio_start(bgav_stream_t * s)
                                 NULL);
 #endif
   
-  if(s->data.audio.pre_skip)
+  if(s->data.audio.pre_skip && s->data.audio.source)
     gavl_audio_source_skip_src(s->data.audio.source, s->data.audio.pre_skip);
   
   return 1;
@@ -264,6 +261,7 @@ void bgav_audio_dump(bgav_stream_t * s)
   {
   bgav_dprintf("  Bits per sample:   %d\n", s->data.audio.bits_per_sample);
   bgav_dprintf("  Block align:       %d\n", s->data.audio.block_align);
+  bgav_dprintf("  Pre skip:          %d\n", s->data.audio.pre_skip);
   bgav_dprintf("Format:\n");
   gavl_audio_format_dump(&s->data.audio.format);
   }
@@ -390,6 +388,12 @@ static uint32_t opus_fourccs[] =
     0x00
   };
 
+static uint32_t speex_fourccs[] =
+  {
+    BGAV_MK_FOURCC('S','P','E','X'),
+    0x00
+  };
+
 
 int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * info)
@@ -424,6 +428,12 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
   else if(bgav_check_fourcc(s->fourcc, aac_fourccs))
     {
     id = GAVL_CODEC_ID_AAC;
+    need_header = 1;
+    need_bitrate = 0;
+    }
+  else if(bgav_check_fourcc(s->fourcc, speex_fourccs))
+    {
+    id = GAVL_CODEC_ID_SPEEX;
     need_header = 1;
     need_bitrate = 0;
     }
@@ -488,6 +498,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     info->bitrate = s->container_bitrate;
 
   info->max_packet_size = s->max_packet_size;
+  info->pre_skip = s->data.audio.pre_skip;
   
   gavl_compression_info_copy(&s->ci, info);
   
