@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <stdlib.h>
+
+
 #include <avdec_private.h>
 #include <parser.h>
 #include <audioparser_priv.h>
@@ -28,20 +31,19 @@
 
 typedef struct
   {
-  void *dec_state;
-  SpeexHeader *header;
-  int frame_size;
+  int packet_samples;
   } speex_priv_t;
 
 static int parse_frame_speex(bgav_audio_parser_t * parser, bgav_packet_t * p)
   {
-
-  
+  speex_priv_t * priv = parser->priv;
+  p->duration = priv->packet_samples;
+  return 1;
   }
 
 static void cleanup_speex(bgav_audio_parser_t * parser)
   {
-
+  free(parser->priv);
   }
 
 static void reset_speex(bgav_audio_parser_t * parser)
@@ -51,10 +53,42 @@ static void reset_speex(bgav_audio_parser_t * parser)
 
 void bgav_audio_parser_init_speex(bgav_audio_parser_t * parser)
   {
+  void *dec_state;
+  SpeexHeader *header;
+  speex_priv_t * priv;
+  int frame_size;
   
+  priv = calloc(1, sizeof(*priv));
+  parser->priv = priv;
 
+  /* Set functions */
   
-  parser->parse_frame = parse_frame_opus;
-  parser->cleanup = cleanup_opus;
-  parser->reset = reset_opus;
+  parser->parse_frame = parse_frame_speex;
+  parser->cleanup = cleanup_speex;
+  parser->reset = reset_speex;
+  
+  /* Get samples per packet */
+  header = speex_packet_to_header((char*)parser->s->ext_data,
+                                  parser->s->ext_size);
+
+  if(!header)
+    return;
+  
+  dec_state = speex_decoder_init(speex_mode_list[header->mode]);
+
+  if(!dec_state)
+    {
+    free(header);
+    return;
+    }
+  
+  speex_decoder_ctl(dec_state, SPEEX_GET_FRAME_SIZE, &frame_size);
+  priv->packet_samples = header->frames_per_packet * frame_size;
+
+  parser->s->data.audio.format.samplerate = header->rate;
+  parser->s->timescale = header->rate;
+  
+  speex_decoder_destroy(dec_state);
+  free(header);
+  
   }

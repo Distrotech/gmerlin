@@ -777,8 +777,11 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s = bgav_track_add_audio_stream(track, ctx->opt);
         init_stream(s, serialno, FOURCC_SPEEX, ogg_stream);
         
-        s->flags |= STREAM_NO_DURATIONS;
-
+        // s->flags |= STREAM_NO_DURATIONS;
+        
+        s->flags |= STREAM_PARSE_FRAME;
+        s->index_mode = INDEX_MODE_SIMPLE;
+        
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
 

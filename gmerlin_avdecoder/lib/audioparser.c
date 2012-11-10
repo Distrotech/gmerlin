@@ -59,6 +59,9 @@ parsers[] =
 #ifdef HAVE_OPUS
     { BGAV_MK_FOURCC('O','P','U','S'), bgav_audio_parser_init_opus },
 #endif
+#ifdef HAVE_SPEEX
+    { BGAV_MK_FOURCC('S','P','E','X'), bgav_audio_parser_init_speex },
+#endif
   };
 
 int bgav_audio_parser_supported(uint32_t fourcc)

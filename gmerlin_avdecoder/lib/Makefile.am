@@ -216,7 +216,7 @@ endif
 if HAVE_SPEEX
 speex_cflags  = @SPEEX_CFLAGS@
 speex_libs    = @SPEEX_LIBS@
-speex_sources = audio_speex.c
+speex_sources = audio_speex.c parse_speex.c
 else
 speex_cflags  =
 speex_libs    =
