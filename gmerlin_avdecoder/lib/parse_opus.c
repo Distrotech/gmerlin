@@ -60,12 +60,8 @@ static int parse_frame_opus(bgav_audio_parser_t * parser, bgav_packet_t * p)
   int nb_frames = opus_packet_get_nb_frames(p->data, p->data_size);
 
   if(!parser->have_format)
-    {
-    if(!get_format(parser))
-      return 0;
-    parser->have_format = 1;
-    }
-
+    return 0;
+  
   if (nb_frames < 1)
     p->duration = nb_frames;
   else
@@ -86,6 +82,9 @@ static void reset_opus(bgav_audio_parser_t * parser)
 
 void bgav_audio_parser_init_opus(bgav_audio_parser_t * parser)
   {
+  if(get_format(parser))
+    parser->have_format = 1;
+  
   parser->parse_frame = parse_frame_opus;
   parser->cleanup = cleanup_opus;
   parser->reset = reset_opus;
