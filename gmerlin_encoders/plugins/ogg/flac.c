@@ -32,10 +32,14 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "oggflac"
 
+#include <gavl/numptr.h>
+
+
 #include <ogg/ogg.h>
 #include "ogg_common.h"
 
 #include <bgflac.h>
+#include <vorbiscomment.h>
 
 /* Way too large but save */
 #define BUFFER_SIZE (MAX_BYTES_PER_FRAME*10)
@@ -58,11 +62,15 @@ typedef struct
   int frame_samples;
 
   int write_error;
+
   } flacogg_t;
 
 static int init_compressed_flacogg(bg_ogg_stream_t * s)
   {
   ogg_packet op;
+  int len;
+  uint8_t * ptr;
+  
   uint8_t header_bytes[] =
     {
       0x7f,
@@ -76,6 +84,8 @@ static int init_compressed_flacogg(bg_ogg_stream_t * s)
   /* Not the last metadata packet */
   s->ci.global_header[4] &= 0x7f;
 
+  op.packet = malloc(9 + s->ci.global_header_len);
+  
   memcpy(op.packet, header_bytes, 9);
   memcpy(op.packet+9, s->ci.global_header,
          s->ci.global_header_len);
@@ -85,11 +95,34 @@ static int init_compressed_flacogg(bg_ogg_stream_t * s)
   if(!bg_ogg_stream_write_header_packet(s, &op))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Flac ID page");
+    free(op.packet);
+    return 0;
+    }
+  
+  free(op.packet);
+  
+  /* Vorbis comment */
+  len = bg_vorbis_comment_bytes(&s->m_stream, s->m_global, 0);
+
+  op.packet = malloc(4 + len);
+  ptr = op.packet;
+  
+  ptr[0] = 0x84;
+  ptr++;
+
+  GAVL_24BE_2_PTR(len, ptr); ptr += 3;
+  bg_vorbis_comment_write(ptr, &s->m_stream, s->m_global, 0);
+  op.bytes = len + 4;
+  
+  if(!bg_ogg_stream_write_header_packet(s, &op))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Flac ID page");
+    free(op.packet);
     return 0;
     }
 
-  /* Vorbis comment */
   
+  free(op.packet);
   return 1;
   }
 
@@ -166,9 +199,13 @@ init_flacogg(void * data, gavl_audio_format_t * format,
              gavl_compression_info_t * ci)
   {
   flacogg_t * flacogg = data;
-  if(!bg_flac_start_uncompressed(flacogg->enc, format, ci, stream_metadata))
-    return 0;
-  return bg_flac_get_audio_sink(flacogg->enc);
+  return bg_flac_start_uncompressed(flacogg->enc, format, ci, stream_metadata);
+  }
+
+static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
+  {
+  flacogg_t * flacogg = data;
+  bg_flac_set_sink(flacogg->enc, psink);
   }
 
 
@@ -202,6 +239,6 @@ const bg_ogg_codec_t bg_flacogg_codec =
     
     .init_audio =     init_flacogg,
     .init_audio_compressed = init_compressed_flacogg,
-    
+    .set_packet_sink = set_packet_sink,
     .close = close_flacogg,
   };

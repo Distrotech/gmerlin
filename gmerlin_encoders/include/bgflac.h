@@ -36,13 +36,15 @@ const bg_parameter_info_t * bg_flac_get_parameters(void);
   
 void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);
 
-int bg_flac_start_compressed(bg_flac_t * flac,
-                             gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
-                             gavl_metadata_t * stream_metadata);
+gavl_packet_sink_t *
+bg_flac_start_compressed(bg_flac_t * flac,
+                         gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
+                         gavl_metadata_t * stream_metadata);
 
-int bg_flac_start_uncompressed(bg_flac_t * flac,
-                               gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
-                               gavl_metadata_t * stream_metadata);
+gavl_audio_sink_t *
+bg_flac_start_uncompressed(bg_flac_t * flac,
+                           gavl_audio_format_t * fmt, gavl_compression_info_t * ci,
+                           gavl_metadata_t * stream_metadata);
 
 #if 0
 int bg_flac_start(bg_flac_t * flac,
@@ -50,8 +52,8 @@ int bg_flac_start(bg_flac_t * flac,
                   gavl_metadata_t * stream_metadata);
 #endif
 
-gavl_audio_sink_t * bg_flac_get_audio_sink(bg_flac_t * flac);
-gavl_packet_sink_t * bg_flac_get_packet_sink(bg_flac_t * flac);
+// gavl_audio_sink_t * bg_flac_get_audio_sink(bg_flac_t * flac);
+// gavl_packet_sink_t * bg_flac_get_packet_sink(bg_flac_t * flac);
 
 // int bg_flac_encode_audio_frame(bg_flac_t * flac, gavl_audio_frame_t * frame);
 

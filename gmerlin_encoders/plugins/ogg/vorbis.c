@@ -394,7 +394,8 @@ static gavl_audio_sink_t * init_vorbis(void * data,
   ptr += header_codebooks.bytes;
   
   ci_ret->id = GAVL_CODEC_ID_VORBIS;
-  return gavl_audio_sink_create(NULL, write_audio_frame_vorbis, vorbis, vorbis->format);
+  return gavl_audio_sink_create(NULL, write_audio_frame_vorbis,
+                                vorbis, vorbis->format);
   }
 
 static void set_parameter_vorbis(void * data, const char * name,
@@ -466,8 +467,6 @@ static int close_vorbis(void * data)
   free(vorbis);
   return ret;
   }
-
-
 
 const bg_ogg_codec_t bg_vorbis_codec =
   {

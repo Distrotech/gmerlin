@@ -153,8 +153,8 @@ static int bg_ogg_stream_flush_page(bg_ogg_stream_t * s, int force)
   
   if(result)
     {
-    fprintf(stderr, "Writing page %d %d %d\n", ogg_page_serialno(&og),
-            og.header_len, og.body_len);
+    //    fprintf(stderr, "Writing page %d %d %d\n", ogg_page_serialno(&og),
+    //            og.header_len, og.body_len);
 
     if((s->enc->write_callback(s->enc->write_callback_data,
                                og.header,og.header_len) < og.header_len) ||
@@ -312,6 +312,7 @@ bg_ogg_encoder_add_audio_stream(void * data,
   
   gavl_audio_format_copy(&s->afmt, format);
   gavl_metadata_copy(&s->m_stream, m);
+  gavl_metadata_delete_compression_fields(&s->m_stream);
   return s;
   }
 
@@ -327,6 +328,7 @@ bg_ogg_encoder_add_video_stream(void * data,
   gavl_video_format_copy(&s->vfmt,
                          format);
   gavl_metadata_copy(&s->m_stream, m);
+  gavl_metadata_delete_compression_fields(&s->m_stream);
   return s;
   }
 

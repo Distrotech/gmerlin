@@ -51,8 +51,6 @@
 
 typedef struct
   {
-  int64_t samples_read;
-  
   gavl_audio_format_t * format;
   gavl_audio_frame_t * frame;
 
@@ -70,7 +68,8 @@ typedef struct
   void * enc;
   SpeexBits bits;
   int lookahead;
-
+  int lookahead_start;
+  
   int frames_encoded;
 
   uint8_t buffer[BUFFER_SIZE];
@@ -79,6 +78,7 @@ typedef struct
   SpeexHeader header;
   
   int64_t pts;
+  int64_t duration;
   } speex_t;
 
 
@@ -86,7 +86,6 @@ static void * create_speex()
   {
   speex_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->frame = gavl_audio_frame_create(NULL);
   return ret;
   }
 
@@ -242,91 +241,114 @@ static int init_compressed_speex(bg_ogg_stream_t * s)
   return 1;
   }
 
-static int encode_frame(speex_t * speex, int eof)
+static int flush_packet(speex_t * speex)
   {
-  int block_align;
-  ogg_packet op;
+  gavl_packet_t p;
+  gavl_packet_init(&p);
 
-  /* Mute last frame */
+  //  fprintf(stderr, "Flush packet\n");
   
-  if(eof)
-    {
-    /* Mute rest of last frame and encode it */
-    if(speex->frame->valid_samples)
-      {
-      block_align = speex->format->num_channels *
-        gavl_bytes_per_sample(speex->format->sample_format);
-      
-      memset(speex->frame->samples.u_8 +
-             speex->frame->valid_samples * block_align,
-             0, (speex->format->samples_per_frame -
-                 speex->frame->valid_samples) * block_align);
+  /* Flush packet */
+  p.data_len  = speex_bits_write(&speex->bits, (char*)speex->buffer,
+                                 BUFFER_SIZE);
+  p.data = speex->buffer;
 
-      if(speex->format->num_channels == 2)
-        speex_encode_stereo_int(speex->frame->samples.s_16,
-                                speex->format->samples_per_frame,
-                                &speex->bits);
+  p.pts = speex->pts;
+  p.duration = speex->duration;
 
-      speex_encode_int(speex->enc, speex->frame->samples.s_16, &speex->bits);
-      speex->frames_encoded++;
-      }
-
-    /* Insert zero frames to fill last packet */
-
-    while(!speex->frames_encoded || (speex->frames_encoded % speex->nframes))
-      {
-      speex_bits_pack(&speex->bits, 15, 5);
-      speex->frames_encoded++;
-      }
-    }
+  speex->pts += speex->duration;
+  speex->duration = 0;
   
-  if(speex->frames_encoded && !(speex->frames_encoded % speex->nframes))
-    {
-    gavl_packet_t p;
-    gavl_packet_init(&p);
-    
-    /* Flush packet */
-    p.data_len  = speex_bits_write(&speex->bits, (char*)speex->buffer,
-                                   BUFFER_SIZE);
-    p.data = speex->buffer;
-    
-    if(!eof)    
-      op.granulepos = speex->frames_encoded*speex->format->samples_per_frame -
-        speex->lookahead;
-    else
-      op.granulepos = speex->samples_read - speex->lookahead;
+  if(gavl_packet_sink_put_packet(speex->psink, &p) != GAVL_SINK_OK)
+    return 0;
+  speex_bits_reset(&speex->bits);
+  
+  //  fprintf(stderr, "Flush packet done\n");
+  return 1;
+  }
 
-    if(gavl_packet_sink_put_packet(speex->psink, &p) != GAVL_SINK_OK)
+static int encode_frame(speex_t * speex)
+  {
+  //  fprintf(stderr, "Encode frame\n");
+
+  if(speex->format->num_channels == 2)
+    speex_encode_stereo_int(speex->frame->samples.s_16,
+                            speex->format->samples_per_frame,
+                            &speex->bits);
+  
+  speex_encode_int(speex->enc, speex->frame->samples.s_16, &speex->bits);
+  
+  speex->duration += speex->frame->valid_samples;
+  
+  gavl_audio_frame_mute(speex->frame, speex->format);
+  speex->frame->valid_samples = 0;
+  
+  speex->frames_encoded++;
+
+  if(speex->frames_encoded == speex->nframes)
+    {
+    if(!flush_packet(speex))
       return 0;
-    
-    speex_bits_reset(&speex->bits);
+    speex->frames_encoded = 0;
     }
-  if(eof)
-    return 1;
+  //  fprintf(stderr, "Encode frame done\n");
 
-  if(speex->frame->valid_samples == speex->format->samples_per_frame)
+  return 1;
+  }
+
+static int flush(speex_t * speex)
+  {
+  if(!speex->frame->valid_samples)
+    return 1;
+  
+  if(!encode_frame(speex))
+    return 0;
+
+  if(!speex->frames_encoded)
+    return 1;
+  
+  while(speex->frames_encoded < speex->nframes)
     {
-    if(speex->format->num_channels == 2)
-      speex_encode_stereo_int(speex->frame->samples.s_16,
-                              speex->format->samples_per_frame,
-                              &speex->bits);
-    
-    speex_encode_int(speex->enc, speex->frame->samples.s_16, &speex->bits);
-    speex->frame->valid_samples = 0;
+    speex_bits_pack(&speex->bits, 15, 5);
     speex->frames_encoded++;
     }
+
+  if(!flush_packet(speex))
+    return 0;
+  
   return 1;
+  }
+
+static void convert_packet(bg_ogg_stream_t * s, gavl_packet_t * src, ogg_packet * dst)
+  {
+  speex_t * speex = s->codec_priv;
+  dst->granulepos -= speex->lookahead;
   }
 
 static gavl_sink_status_t
 write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
   {
-  int result = 1;
   int samples_read = 0;
   int samples_copied;
-  speex_t * speex;
-  speex = data;
+  speex_t * speex = data;
 
+  /* Insert lookahead samples at the beginning */
+  while(speex->lookahead_start)
+    {
+
+    speex->frame->valid_samples = speex->lookahead_start;
+    if(speex->frame->valid_samples > speex->format->samples_per_frame)
+      speex->frame->valid_samples = speex->format->samples_per_frame;
+
+    speex->lookahead_start -= speex->frame->valid_samples;
+    
+    if(speex->frame->valid_samples == speex->format->samples_per_frame)
+      {
+      if(!encode_frame(speex))
+        return GAVL_SINK_ERROR;
+      }
+    }
+  
   while(samples_read < frame->valid_samples)
     {
     samples_copied =
@@ -340,13 +362,14 @@ write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
                             frame->valid_samples - samples_read /* src_size */ );
     speex->frame->valid_samples += samples_copied;
     samples_read += samples_copied;
-    result = encode_frame(speex, 0);
-    if(!result)
-      break;
+
+    if(speex->frame->valid_samples == speex->format->samples_per_frame)
+      {
+      if(!encode_frame(speex))
+        return GAVL_SINK_ERROR;
+      }
     }
-  
-  speex->samples_read += frame->valid_samples;
-  return result ? GAVL_SINK_OK : GAVL_SINK_ERROR;
+  return GAVL_SINK_OK;
   }
 
 
@@ -438,25 +461,27 @@ static gavl_audio_sink_t * init_speex(void * data,
                     &speex->format->samples_per_frame);
   speex_encoder_ctl(speex->enc, SPEEX_GET_LOOKAHEAD,
                     &speex->lookahead);
+
+  speex->lookahead_start = speex->lookahead;
   
   /* Allocate temporary frame */
 
   speex->frame = gavl_audio_frame_create(speex->format);
-    
-  /* Build comment (comments are UTF-8, good for us :-) */
-
-  //  build_comment(&comments, &comments_length, metadata);
-
+  gavl_audio_frame_mute(speex->frame, speex->format);
+  
   /* Build header */
 
   ci->global_header = (unsigned char *)speex_header_to_packet(&speex->header,
                                                               &header_len);
   ci->global_header_len = header_len;
+  ci->id = GAVL_CODEC_ID_SPEEX;
   
-  /* Build comment */
+  bg_hexdump(ci->global_header, ci->global_header_len, 16); 
+  
+  /* Extract vendor string */
   
   speex_lib_ctl(SPEEX_LIB_GET_VERSION_STRING, &version);
-  vendor_string = bg_sprintf("Encoded with Speex %s", version);
+  vendor_string = bg_sprintf("Speex %s", version);
   gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE,
                           vendor_string);
   
@@ -470,15 +495,13 @@ static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
   speex->psink = psink;
   }
 
-
-
 static int close_speex(void * data)
   {
   int ret = 1;
   speex_t * speex;
   speex = data;
 
-  if(!encode_frame(speex, 1))
+  if(!flush(speex))
     ret = 0;
   
   gavl_audio_frame_destroy(speex->frame);
@@ -505,7 +528,8 @@ const bg_ogg_codec_t bg_speex_codec =
 
     .init_audio_compressed = init_compressed_speex,
     .set_packet_sink = set_packet_sink,
-    
+
+    .convert_packet = convert_packet,
     
     .close = close_speex,
   };

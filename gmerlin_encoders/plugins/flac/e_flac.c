@@ -375,19 +375,17 @@ static int start_flac(void * data)
 
   if(flac->compressed)
     {
-    if(!bg_flac_start_compressed(flac->enc, &flac->format, &flac->ci,
-                                 &flac->m_stream))
+    if(!(flac->psink_ext = bg_flac_start_compressed(flac->enc, &flac->format, &flac->ci,
+                                                    &flac->m_stream)))
       return 0;
-    flac->psink_ext = bg_flac_get_packet_sink(flac->enc);
     }
   else
     {
-    if(!bg_flac_start_uncompressed(flac->enc, &flac->format, &flac->ci,
-                                   &flac->m_stream))
+    if(!(flac->sink = bg_flac_start_uncompressed(flac->enc, &flac->format, &flac->ci,
+                                                 &flac->m_stream)))
       return 0;
-    flac->sink = bg_flac_get_audio_sink(flac->enc);
     }
-
+  
   flac->psink_int =
     gavl_packet_sink_create(NULL, write_audio_packet_func_flac, flac);
   bg_flac_set_sink(flac->enc, flac->psink_int);
@@ -516,6 +514,16 @@ static int close_flac(void * data, int do_delete)
     {
     gavl_packet_sink_destroy(flac->psink_int);
     flac->psink_int = NULL;
+    }
+  if(flac->psink_ext)
+    {
+    gavl_packet_sink_destroy(flac->psink_ext);
+    flac->psink_ext = NULL;
+    }
+  if(flac->sink)
+    {
+    gavl_audio_sink_destroy(flac->sink);
+    flac->sink = NULL;
     }
 
   gavl_metadata_free(&flac->m_stream);
