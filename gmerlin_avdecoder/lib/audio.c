@@ -105,14 +105,15 @@ int bgav_audio_start(bgav_stream_t * s)
                "EOF while getting start time");
       }
     s->start_time = p->pts;
-    s->out_time = s->start_time;
-
-    sprintf(tmp_string, "%" PRId64, s->out_time);
+    sprintf(tmp_string, "%" PRId64, s->start_time);
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
              tmp_string);
-    s->flags &= ~STREAM_NEED_START_TIME;
-    }
+    } /* Else */
+  //  else if(s->data.audio.pre_skip > 0)
+  //    s->start_time = -s->data.audio.pre_skip;
 
+  s->out_time = s->start_time;
+  
   if(!s->timescale && s->data.audio.format.samplerate)
     s->timescale = s->data.audio.format.samplerate;
   
@@ -148,7 +149,7 @@ int bgav_audio_start(bgav_stream_t * s)
     if(!s->timescale)
       s->timescale = s->data.audio.format.samplerate;
 
-    s->out_time -= s->data.audio.pre_skip;
+    //    s->out_time -= s->data.audio.pre_skip;
     }
 
   if(s->data.audio.bits_per_sample)
@@ -180,8 +181,8 @@ int bgav_audio_start(bgav_stream_t * s)
                                 NULL);
 #endif
   
-  if(s->data.audio.pre_skip && s->data.audio.source)
-    gavl_audio_source_skip_src(s->data.audio.source, s->data.audio.pre_skip);
+  //  if(s->data.audio.pre_skip && s->data.audio.source)
+  //    gavl_audio_source_skip_src(s->data.audio.source, s->data.audio.pre_skip);
   
   return 1;
   }
@@ -281,9 +282,19 @@ void bgav_audio_resync(bgav_stream_t * s)
   
   if(s->data.audio.parser)
     {
+    bgav_packet_t * p = NULL;
     bgav_audio_parser_reset(s->data.audio.parser,
                             GAVL_TIME_UNDEFINED, s->out_time);
+
+    if(bgav_stream_peek_packet_read(s, &p, 1) != GAVL_SOURCE_OK)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "EOF while resyncing");
+      }
+    s->out_time = p->pts;
     }
+
+  
   if(s->data.audio.decoder &&
      s->data.audio.decoder->decoder->resync)
     s->data.audio.decoder->decoder->resync(s);

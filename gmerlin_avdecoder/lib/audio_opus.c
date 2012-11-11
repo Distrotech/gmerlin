@@ -36,6 +36,8 @@
 
 #define MAX_FRAME_SIZE (960*6)
 
+// #define USE_FLOAT
+
 typedef struct
   {
   OpusMSDecoder *dec;
@@ -56,6 +58,7 @@ static gavl_source_status_t decode_frame_opus(bgav_stream_t * s)
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
 
+#ifdef USE_FLOAT  
   result =
     opus_multistream_decode_float(priv->dec,
                                   p->data,
@@ -63,7 +66,16 @@ static gavl_source_status_t decode_frame_opus(bgav_stream_t * s)
                                   priv->frame->samples.f,
                                   MAX_FRAME_SIZE,
                                   0); 
-
+#else
+  result =
+    opus_multistream_decode(priv->dec,
+                            p->data,
+                            p->data_size,
+                            priv->frame->samples.s_16,
+                            MAX_FRAME_SIZE,
+                            0); 
+#endif
+  
   if(result <= 0)
     goto fail;
 
@@ -119,11 +131,14 @@ static int init_opus(bgav_stream_t * s)
              opus_strerror(err));
     goto fail;
     }
-  
+#ifdef USE_FLOAT
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+#else
+  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+#endif
   s->data.audio.format.samples_per_frame = MAX_FRAME_SIZE;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  s->data.audio.preroll = 3840;
+  s->data.audio.preroll = MAX_FRAME_SIZE;
   
   if(s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
     bgav_opus_set_channel_setup(&priv->h,

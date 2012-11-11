@@ -157,6 +157,10 @@ static int test_audio(const char * filename)
             bgav_audio_start_time(b, audio_stream));
     goto fail;
     }
+
+  if(samples_to_skip)
+    fprintf(stderr, "Skipping %"PRId64" samples\n", samples_to_skip);
+  
   while(samples_to_skip)
     {
     samples_to_read = SAMPLES_TO_READ;

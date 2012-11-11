@@ -32,6 +32,7 @@
 typedef struct
   {
   int packet_samples;
+  int64_t pts_offset;
   } speex_priv_t;
 
 static int parse_frame_speex(bgav_audio_parser_t * parser, bgav_packet_t * p)
@@ -39,6 +40,9 @@ static int parse_frame_speex(bgav_audio_parser_t * parser, bgav_packet_t * p)
   speex_priv_t * priv = parser->priv;
   p->duration = priv->packet_samples;
 
+  parser->timestamp += priv->pts_offset;
+  priv->pts_offset = 0;
+  
   /* lookahead is subtracted from the granulepos by the encoder */
 
   if(p->end_pts != GAVL_TIME_UNDEFINED)
@@ -90,7 +94,7 @@ void bgav_audio_parser_init_speex(bgav_audio_parser_t * parser)
   speex_decoder_ctl(dec_state, SPEEX_GET_FRAME_SIZE, &frame_size);
   speex_decoder_ctl(dec_state, SPEEX_GET_LOOKAHEAD,
                     &parser->s->data.audio.pre_skip);
-
+  
   priv->packet_samples = header->frames_per_packet * frame_size;
 
   parser->s->data.audio.format.samplerate = header->rate;
@@ -99,6 +103,7 @@ void bgav_audio_parser_init_speex(bgav_audio_parser_t * parser)
   parser->s->data.audio.format.num_channels = header->nb_channels;
   gavl_set_channel_setup(&parser->s->data.audio.format);
 
+  priv->pts_offset = -parser->s->data.audio.pre_skip;
   
   speex_decoder_destroy(dec_state);
   free(header);

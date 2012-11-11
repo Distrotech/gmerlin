@@ -222,9 +222,9 @@ int bgav_video_start(bgav_stream_t * s)
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
              "Got initial video timestamp: %s",
              tmp_string);
-    s->flags &= ~STREAM_NEED_START_TIME;
     }
-
+  
+  
   if((s->action == BGAV_STREAM_PARSE) &&
      ((s->data.video.format.framerate_mode == GAVL_FRAMERATE_VARIABLE) ||
       (s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)))

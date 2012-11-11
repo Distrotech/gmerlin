@@ -163,7 +163,7 @@ static int parse_frame(bgav_audio_parser_t * parser,
     else
       parser->timestamp = 0;
     }
-
+  
   if((parser->s->action != BGAV_STREAM_PARSE) &&
      parser->s->file_index)
     {
@@ -176,7 +176,8 @@ static int parse_frame(bgav_audio_parser_t * parser,
       p->duration =
         parser->s->file_index->entries[p->position+1].pts -
         parser->s->file_index->entries[p->position].pts;
-        
+    
+    parser->timestamp = parser->s->file_index->entries[p->position].pts + parser->s->start_time;
     }
   else
     {
@@ -498,6 +499,9 @@ void bgav_audio_parser_reset(bgav_audio_parser_t * parser,
                                           in_pts);
   else
     parser->timestamp = GAVL_TIME_UNDEFINED;
+
+  if(parser->reset)
+    parser->reset(parser);
   }
 
 
