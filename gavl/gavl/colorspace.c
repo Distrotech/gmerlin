@@ -31,51 +31,52 @@
 typedef struct
   {
   gavl_pixelformat_t pixelformat;
-  char * name;
+  const char * name;
+  const char * short_name;
   } pixelformat_tab_t;
 
 const pixelformat_tab_t pixelformat_tab[] =
   {
-    { GAVL_GRAY_8,  "8 bpp gray" },
-    { GAVL_GRAY_16, "16 bpp gray" },
-    { GAVL_GRAY_FLOAT, "Float gray" },
-    { GAVL_GRAYA_16,  "16 bpp gray + alpha" },
-    { GAVL_GRAYA_32, "32 bpp gray + alpha" },
-    { GAVL_GRAYA_FLOAT, "Float gray + alpha" },
-    { GAVL_RGB_15, "15 bpp RGB" },
-    { GAVL_BGR_15, "15 bpp BGR" },
-    { GAVL_RGB_16, "16 bpp RGB" },
-    { GAVL_BGR_16, "16 bpp BGR" },
-    { GAVL_RGB_24, "24 bpp RGB" },
-    { GAVL_BGR_24, "24 bpp BGR" },
-    { GAVL_RGB_32, "32 bpp RGB" },
-    { GAVL_BGR_32, "32 bpp BGR" },
-    { GAVL_RGBA_32, "32 bpp RGBA" },
-    { GAVL_RGB_48, "48 bpp RGB" },
-    { GAVL_RGBA_64, "64 bpp RGBA" },
-    { GAVL_RGB_FLOAT, "Float RGB" },
-    { GAVL_RGBA_FLOAT, "Float RGBA" },
-    { GAVL_YUY2, "YUV 422 (YUY2)" },
-    { GAVL_UYVY, "YUV 422 (UYVY)" },
-    { GAVL_YUVA_32, "YUVA 4444 (8 bit)" },
-    { GAVL_YUVA_64, "YUVA 4444 (16 bit)" },
-    { GAVL_YUVA_FLOAT, "YUVA 4444 (float)" },
-    { GAVL_YUV_FLOAT, "YUV 444 (float)" },
-    { GAVL_YUV_420_P, "YUV 420 Planar" },
-    { GAVL_YUV_410_P, "YUV 410 Planar" },
-    { GAVL_YUV_411_P, "YUV 411 Planar" },
-    { GAVL_YUV_422_P, "YUV 422 Planar" },
-    { GAVL_YUV_422_P_16, "YUV 422 Planar (16 bit)" },
-    { GAVL_YUV_444_P, "YUV 444 Planar" },
-    { GAVL_YUV_444_P_16, "YUV 444 Planar (16 bit)" },
-    { GAVL_YUVJ_420_P, "YUVJ 420 Planar" },
-    { GAVL_YUVJ_422_P, "YUVJ 422 Planar" },
-    { GAVL_YUVJ_444_P, "YUVJ 444 Planar" },
-    { GAVL_PIXELFORMAT_NONE, "Undefined" }
+    { GAVL_GRAY_8,  "8 bpp gray",                   "gray8"     },
+    { GAVL_GRAY_16, "16 bpp gray",                  "gray16"    },
+    { GAVL_GRAY_FLOAT, "Float gray",                "grayf"     },
+    { GAVL_GRAYA_16,  "16 bpp gray + alpha",        "graya16"   },
+    { GAVL_GRAYA_32, "32 bpp gray + alpha",         "graya32"   },
+    { GAVL_GRAYA_FLOAT, "Float gray + alpha",       "grayaf"    },
+    { GAVL_RGB_15, "15 bpp RGB",                    "rgb15",    },
+    { GAVL_BGR_15, "15 bpp BGR",                    "bgr15"     },
+    { GAVL_RGB_16, "16 bpp RGB",                    "rgb16"     },
+    { GAVL_BGR_16, "16 bpp BGR",                    "bgr16"     },
+    { GAVL_RGB_24, "24 bpp RGB",                    "rgb24"     },
+    { GAVL_BGR_24, "24 bpp BGR",                    "bgr24"     },
+    { GAVL_RGB_32, "32 bpp RGB",                    "rgb32"     },
+    { GAVL_BGR_32, "32 bpp BGR",                    "bgr32"     },
+    { GAVL_RGBA_32, "32 bpp RGBA",                  "rgba32"    },
+    { GAVL_RGB_48, "48 bpp RGB",                    "rgb48"     },
+    { GAVL_RGBA_64, "64 bpp RGBA",                  "rgba64"    },
+    { GAVL_RGB_FLOAT, "Float RGB",                  "rgbf"      },
+    { GAVL_RGBA_FLOAT, "Float RGBA",                "rgbaf"     },
+    { GAVL_YUY2, "YUV 422 (YUY2)",                  "yuy2"      },
+    { GAVL_UYVY, "YUV 422 (UYVY)",                  "uyvy"      },
+    { GAVL_YUVA_32, "YUVA 4444 (8 bit)",            "yuva32"    },
+    { GAVL_YUVA_64, "YUVA 4444 (16 bit)",           "yuva64"    },
+    { GAVL_YUVA_FLOAT, "YUVA 4444 (float)",         "yuvaf"     },
+    { GAVL_YUV_FLOAT, "YUV 444 (float)",            "yuv444pf"  },
+    { GAVL_YUV_420_P, "YUV 420 Planar",             "yuv420p8"  },
+    { GAVL_YUV_410_P, "YUV 410 Planar",             "yuv410p8"  },
+    { GAVL_YUV_411_P, "YUV 411 Planar",             "yuv411p8"  },
+    { GAVL_YUV_422_P, "YUV 422 Planar",             "yuv422p8"  },
+    { GAVL_YUV_422_P_16, "YUV 422 Planar (16 bit)", "yuv422p16" },
+    { GAVL_YUV_444_P, "YUV 444 Planar",             "yuv444p8"  },
+    { GAVL_YUV_444_P_16, "YUV 444 Planar (16 bit)", "yuv444p16" },
+    { GAVL_YUVJ_420_P, "YUVJ 420 Planar",           "yuvj420p8" },
+    { GAVL_YUVJ_422_P, "YUVJ 422 Planar",           "yuvj422p8" },
+    { GAVL_YUVJ_444_P, "YUVJ 444 Planar",           "yuvj444p8" },
+    { GAVL_PIXELFORMAT_NONE, "Undefined",           "none"      }
   };
 
 static const int num_pixelformats =
-  sizeof(pixelformat_tab)/sizeof(pixelformat_tab_t);
+  sizeof(pixelformat_tab)/sizeof(pixelformat_tab[0]);
 
 int gavl_pixelformat_num_planes(gavl_pixelformat_t csp)
   {
@@ -212,12 +213,34 @@ const char * gavl_pixelformat_to_string(gavl_pixelformat_t pixelformat)
   return NULL;
   }
 
+const char * gavl_pixelformat_to_short_string(gavl_pixelformat_t pixelformat)
+  {
+  int i;
+  for(i = 0; i < num_pixelformats; i++)
+    {
+    if(pixelformat_tab[i].pixelformat == pixelformat)
+      return pixelformat_tab[i].short_name;
+    }
+  return NULL;
+  }
+
 gavl_pixelformat_t gavl_string_to_pixelformat(const char * name)
   {
   int i;
   for(i = 0; i < num_pixelformats; i++)
     {
     if(!strcmp(pixelformat_tab[i].name, name))
+      return pixelformat_tab[i].pixelformat;
+    }
+  return GAVL_PIXELFORMAT_NONE;
+  }
+
+gavl_pixelformat_t gavl_short_string_to_pixelformat(const char * name)
+  {
+  int i;
+  for(i = 0; i < num_pixelformats; i++)
+    {
+    if(!strcmp(pixelformat_tab[i].short_name, name))
       return pixelformat_tab[i].pixelformat;
     }
   return GAVL_PIXELFORMAT_NONE;
@@ -5133,3 +5156,62 @@ void gavl_pixelformat_get_offset(gavl_pixelformat_t pixelformat,
 
   }
 
+
+GAVL_PUBLIC
+int gavl_pixelformat_num_channels(gavl_pixelformat_t pixelformat)
+  {
+  int ret = gavl_pixelformat_is_gray(pixelformat) ? 1 : 3;
+  if(gavl_pixelformat_has_alpha(pixelformat))
+    ret++;
+  return ret;
+  }
+
+
+
+GAVL_PUBLIC gavl_color_channel_t
+gavl_pixelformat_get_channel(gavl_pixelformat_t pixelformat, int index)
+  {
+  int num = gavl_pixelformat_num_channels(pixelformat);
+  if((index < 0) || (index >= num))
+    return GAVL_CCH_NONE;
+  
+  if(gavl_pixelformat_has_alpha(pixelformat) &&
+     (index == num-1))
+    return GAVL_CCH_ALPHA;
+  
+  if(gavl_pixelformat_is_gray(pixelformat))
+    {
+    return GAVL_CCH_Y;
+    }
+  else if(gavl_pixelformat_is_rgb(pixelformat))
+    {
+    switch(index)
+      {
+      case 0:
+        return GAVL_CCH_RED;
+        break;
+      case 1:
+        return GAVL_CCH_GREEN;
+        break;
+      case 2:
+        return GAVL_CCH_BLUE;
+        break;
+      }
+    }
+  else if(gavl_pixelformat_is_yuv(pixelformat))
+    {
+    switch(index)
+      {
+      case 0:
+        return GAVL_CCH_Y;
+        break;
+      case 1:
+        return GAVL_CCH_CB;
+        break;
+      case 2:
+        return GAVL_CCH_CR;
+        break;
+      }
+    }
+  return GAVL_CCH_NONE;
+  }

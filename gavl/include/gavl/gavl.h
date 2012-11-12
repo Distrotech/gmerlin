@@ -1823,13 +1823,14 @@ typedef enum
 
 typedef enum
   {
-    GAVL_CCH_RED,    //!< Red
-    GAVL_CCH_GREEN,  //!< Green
-    GAVL_CCH_BLUE,   //!< Blue
-    GAVL_CCH_Y,      //!< Luminance (also grayscale)
-    GAVL_CCH_CB,     //!< Chrominance blue (aka U)
-    GAVL_CCH_CR,     //!< Chrominance red (aka V)
-    GAVL_CCH_ALPHA,  //!< Transparency (or, to be more precise opacity)
+    GAVL_CCH_NONE = 0, //!< None/undefined
+    GAVL_CCH_RED,      //!< Red
+    GAVL_CCH_GREEN,    //!< Green
+    GAVL_CCH_BLUE,     //!< Blue
+    GAVL_CCH_Y,        //!< Luminance (also grayscale)
+    GAVL_CCH_CB,       //!< Chrominance blue (aka U)
+    GAVL_CCH_CR,       //!< Chrominance red (aka V)
+    GAVL_CCH_ALPHA,    //!< Transparency (or, to be more precise opacity)
   } gavl_color_channel_t;
   
 /*
@@ -1884,6 +1885,27 @@ typedef enum
  */
 
 #define  gavl_pixelformat_is_planar(fmt) ((fmt) & GAVL_PIXFMT_PLANAR)
+
+
+/*! \ingroup video_format
+ * \brief Get the number of channels
+ * \param pixelformat A pixelformat
+ * \returns The number of color channels
+ */
+  
+GAVL_PUBLIC
+int gavl_pixelformat_num_channels(gavl_pixelformat_t pixelformat);
+
+/*! \ingroup video_format
+ * \brief Get the color channel
+ * \param pixelformat A pixelformat
+ * \param index Index (starting with 0)
+ * \returns The color channel for this index
+ */
+  
+GAVL_PUBLIC gavl_color_channel_t
+gavl_pixelformat_get_channel(gavl_pixelformat_t pixelformat, int index);
+
 
 /*! \ingroup video_format
  * \brief Get the number of planes
@@ -1981,6 +2003,19 @@ GAVL_PUBLIC
 const char * gavl_pixelformat_to_string(gavl_pixelformat_t pixelformat);
 
 /*! \ingroup video_format
+ * \brief Translate a pixelformat into a short string
+ * \param pixelformat A pixelformat
+ * \returns A string describing the pixelformat
+ *
+ *  Short strings are guaranteed to contain no spaces and are more suitable for
+ *  commandline arguments.
+ */
+
+GAVL_PUBLIC
+const char * gavl_pixelformat_to_short_string(gavl_pixelformat_t pixelformat);
+
+  
+/*! \ingroup video_format
  * \brief Translate a pixelformat name into a pixelformat
  * \param name A string describing the pixelformat (returnd by \ref gavl_pixelformat_to_string)
  * \returns The pixelformat or GAVL_PIXELFORMAT_NONE if no match.
@@ -1989,6 +2024,16 @@ const char * gavl_pixelformat_to_string(gavl_pixelformat_t pixelformat);
 GAVL_PUBLIC
 gavl_pixelformat_t gavl_string_to_pixelformat(const char * name);
 
+/*! \ingroup video_format
+ * \brief Translate a short pixelformat name into a pixelformat
+ * \param name A string describing the pixelformat (returnd by \ref gavl_pixelformat_to_short_string)
+ * \returns The pixelformat or GAVL_PIXELFORMAT_NONE if no match.
+ */
+
+GAVL_PUBLIC
+gavl_pixelformat_t gavl_short_string_to_pixelformat(const char * name);
+
+  
 /*! \ingroup video_format
  * \brief Get total number of supported pixelformats
  * \returns total number of supported pixelformats

@@ -7,6 +7,7 @@ buffer.c        \
 fileindex.c     \
 gavf.c          \
 gavfoptions.c   \
+gavi.c          \
 gavlstructs.c   \
 io.c            \
 io_stdio.c      \

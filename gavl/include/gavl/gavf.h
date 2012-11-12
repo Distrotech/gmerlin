@@ -231,3 +231,26 @@ gavf_get_audio_source(gavf_t *, int stream);
 
 GAVL_PUBLIC gavl_video_source_t *
 gavf_get_video_source(gavf_t *, int stream);
+
+
+/* Ultra simple image format */
+
+GAVL_PUBLIC
+int gavl_image_write_header(gavf_io_t * io,
+                            const gavl_metadata_t * m,
+                            const gavl_video_format_t * v);
+
+GAVL_PUBLIC
+int gavl_image_write_image(gavf_io_t * io,
+                           const gavl_video_format_t * v,
+                           gavl_video_frame_t * frame);
+
+GAVL_PUBLIC
+int gavl_image_read_header(gavf_io_t * io,
+                           gavl_metadata_t * m,
+                           gavl_video_format_t * v);
+
+GAVL_PUBLIC
+int gavl_image_read_image(gavf_io_t * io,
+                          gavl_video_format_t * v,
+                          gavl_video_frame_t * f);
