@@ -34,6 +34,8 @@
 
 #define LOG_DOMAIN "speex"
 
+// #define USE_FLOAT
+
 typedef struct
   {
   SpeexBits bits;
@@ -74,7 +76,12 @@ static int init_speex(bgav_stream_t * s)
   
   /* Set up format */
 
+#ifdef USE_FLOAT
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+#else
+  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+#endif
+  
   s->data.audio.format.num_channels = priv->header->nb_channels;
   s->data.audio.format.samplerate = priv->header->rate;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
@@ -119,25 +126,39 @@ static gavl_source_status_t decode_frame_speex(bgav_stream_t * s)
   
   for(i = 0; i < priv->header->frames_per_packet; i++)
     {
+#ifdef USE_FLOAT
     speex_decode(priv->dec_state, &priv->bits,
                  priv->frame->samples.f +
                  i * priv->frame_size * s->data.audio.format.num_channels);
+#else
+    speex_decode_int(priv->dec_state, &priv->bits,
+                     priv->frame->samples.s_16 +
+                     i * priv->frame_size * s->data.audio.format.num_channels);
+#endif    
     if(s->data.audio.format.num_channels > 1)
       {
+#ifdef USE_FLOAT
       speex_decode_stereo(priv->frame->samples.f +
                           i * priv->frame_size * s->data.audio.format.num_channels,
                           priv->frame_size, &priv->stereo);
+#else
+      speex_decode_stereo_int(priv->frame->samples.s_16 +
+                              i * priv->frame_size * s->data.audio.format.num_channels,
+                              priv->frame_size, &priv->stereo);
+#endif    
       }
     }
   
   /* Speex output is scaled like int16_t */
   
+#ifdef USE_FLOAT
   for(i = 0;
       i < priv->frame_size * priv->header->frames_per_packet * s->data.audio.format.num_channels;
       i++)
     {
     priv->frame->samples.f[i] /= 32768.0;
     }
+#endif    
 
   priv->frame->valid_samples = priv->frame_size * priv->header->frames_per_packet;
   if(priv->frame->valid_samples > p->duration)

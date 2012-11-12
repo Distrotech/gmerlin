@@ -40,13 +40,14 @@ static int parse_frame_speex(bgav_audio_parser_t * parser, bgav_packet_t * p)
   speex_priv_t * priv = parser->priv;
   p->duration = priv->packet_samples;
 
-  parser->timestamp += priv->pts_offset;
-  priv->pts_offset = 0;
+  if(p->pts == 0)
+    parser->timestamp += priv->pts_offset;
+  //  priv->pts_offset = 0;
   
   /* lookahead is subtracted from the granulepos by the encoder */
 
-  if(p->end_pts != GAVL_TIME_UNDEFINED)
-    p->end_pts += parser->s->data.audio.pre_skip;
+  //  if(p->end_pts != GAVL_TIME_UNDEFINED)
+  //    p->end_pts += parser->s->data.audio.pre_skip;
   return 1;
   }
 
