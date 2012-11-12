@@ -29,17 +29,18 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/pluginfuncs.h>
 
-#include <gavl/gavldsp.h>
+// #include <gavl/gavldsp.h>
+#include <gavl/gavf.h>
 
-#include <gmerlin/serialize.h>
-#include <gmerlin/fileformat.h>
+// #include <gmerlin/serialize.h>
+// #include <gmerlin/fileformat.h>
 
 
 typedef struct
   {
   gavl_video_format_t format;
-  bg_f_io_t io;
   bg_iw_callbacks_t * cb;
+  gavf_io_t * io;
   
   } gavl_t;
 
@@ -49,7 +50,6 @@ static void * create_gavl()
   {
   gavl_t * ret;
   ret = calloc(1, sizeof(*ret));
-
   return ret;
   }
 
@@ -62,47 +62,49 @@ static void set_callbacks_gavl(void * data, bg_iw_callbacks_t * cb)
 static void destroy_gavl(void* priv)
   {
   gavl_t * gavl = priv;
-
   free(gavl);
   }
-
 
 static int write_header_gavl(void * priv, const char * filename,
                              gavl_video_format_t * format,
                              const gavl_metadata_t * metadata)
   {
-  bg_f_signature_t sig;
+  FILE * f;
   char * real_filename;
   gavl_t * gavl = priv;
   
   real_filename = bg_filename_ensure_extension(filename, "gavi");
-
+  
   if(!bg_iw_cb_create_output_file(gavl->cb, real_filename))
     {
     free(real_filename);
     return 0;
     }
-  
-  if(!bg_f_io_open_stdio_write(&gavl->io, real_filename))
-    return 0;
-  free(real_filename);
-  
-  sig.type = SIG_TYPE_IMAGE;
-  if(!bg_f_signature_write(&gavl->io, &sig))
+
+  f = fopen(real_filename, "w");
+  if(!f)
     return 0;
 
-  if(!bg_f_video_format_write(&gavl->io, format))
+  gavl->io = gavf_io_create_file(f, 1, 1, 1);
+  if(!gavl->io)
     return 0;
+  free(real_filename);
+
   gavl_video_format_copy(&gavl->format, format);
-  return 1;
+  return gavl_image_write_header(gavl->io, metadata, format);
   }
 
 static int write_image_gavl(void * priv, gavl_video_frame_t * frame)
   {
+  int result;
   gavl_t * gavl = priv;
-  if(!bg_f_video_frame_write(&gavl->io, &gavl->format, frame))
-    return 0;
-  bg_f_io_close(&gavl->io);
+
+  result = gavl_image_write_image(gavl->io,
+                                  &gavl->format,
+                                  frame);
+
+  gavf_io_destroy(gavl->io);
+  gavl->io = NULL;
   return 1;
   }
 

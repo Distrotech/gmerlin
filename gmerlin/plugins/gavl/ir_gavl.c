@@ -26,67 +26,43 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
+#include <gavl/gavf.h>
 
-#include <gavl/gavldsp.h>
-
-#include <gmerlin/serialize.h>
-#include <gmerlin/fileformat.h>
 
 typedef struct
   {
   gavl_video_format_t format;
-  bg_f_io_t io;
-  int big_endian;
-  gavl_dsp_context_t * ctx;
+  gavf_io_t * io;
+  gavl_metadata_t m;
   } gavl_t;
 
 static void * create_gavl()
   {
   gavl_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->ctx = gavl_dsp_context_create();
   return ret;
   }
 
 static void destroy_gavl(void* priv)
   {
   gavl_t * gavl = priv;
-  gavl_dsp_context_destroy(gavl->ctx);
   free(gavl);
   }
 
 static int read_header_gavl(void * priv, const char * filename,
                             gavl_video_format_t * format)
   {
-  bg_f_chunk_t ch;
-  bg_f_signature_t sig;
-  
+  FILE * f;
   gavl_t * gavl = priv;
 
-  if(!bg_f_io_open_stdio_read(&gavl->io, filename))
+  f = fopen(filename, "r");
+  if(!f)
     return 0;
+  gavl->io = gavf_io_create_file(f, 0, 1, 1);
 
-  /* Read signature */
-  if(!bg_f_chunk_read(&gavl->io, &ch)) 
-    return 0;
-
-  if(ch.type != CHUNK_TYPE_SIGNATURE)
-    return 0;
-  
-  if(!bg_f_signature_read(&gavl->io, &ch, &sig)) 
-    return 0;
-
-  if(sig.type != SIG_TYPE_IMAGE)
-    return 0;
-  
-  /* Read format */
-  if(!bg_f_chunk_read(&gavl->io, &ch)) 
-    return 0;
-  
-  if(ch.type != CHUNK_TYPE_VIDEO_FORMAT)
-    return 0;
-
-  if(!bg_f_video_format_read(&gavl->io, &ch, format, &gavl->big_endian))
+  if(!gavl_image_read_header(gavl->io,
+                             &gavl->m,
+                             format))
     return 0;
   
   gavl_video_format_copy(&gavl->format, format);
@@ -96,23 +72,15 @@ static int read_header_gavl(void * priv, const char * filename,
 
 static int read_image_gavl(void * priv, gavl_video_frame_t * frame)
   {
-  bg_f_chunk_t ch;
+  int result = 1;
   gavl_t * gavl = priv;
-  
-  /* Read frame */
-  if(!bg_f_chunk_read(&gavl->io, &ch)) 
-    return 0;
 
-  if(ch.type != CHUNK_TYPE_VIDEO_FRAME)
-    return 0;
-  
-  if(!bg_f_video_frame_read(&gavl->io, &ch, &gavl->format,
-                            frame, gavl->big_endian, gavl->ctx))
-    return 0;
-  
-  bg_f_io_close(&gavl->io);
-  
-  return 1;
+  if(frame)
+    result = gavl_image_read_image(gavl->io,
+                                   &gavl->format,
+                                   frame);
+  gavf_io_destroy(gavl->io);
+  return result;
   }
 
 const bg_image_reader_plugin_t the_plugin =

@@ -725,6 +725,7 @@ static int compression_info_gavl_2_lqt(const gavl_compression_info_t * gci,
     case GAVL_CODEC_ID_VORBIS:    //!< Vorbis (segmented extradata and packets)
     case GAVL_CODEC_ID_FLAC:      //!< FLAC
     case GAVL_CODEC_ID_OPUS:      //!< Opus
+    case GAVL_CODEC_ID_SPEEX:      //!< Opus
       break;
     
     /* Video */

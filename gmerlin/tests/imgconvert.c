@@ -40,6 +40,8 @@ bg_parameter_info_t conversion_parameters[] =
 bg_cfg_section_t * conversion_section = NULL;
 bg_gavl_video_options_t vopt;
 
+gavl_pixelformat_t force_pixelformat = GAVL_PIXELFORMAT_NONE;
+
 static void set_video_parameter(void * data, const char * name,
                                 const bg_parameter_value_t * v)
   {
@@ -73,6 +75,31 @@ static void opt_video_options(void * data, int * argc, char *** argv, int arg)
   bg_cmdline_remove_arg(argc, argv, arg);
   }
 
+static void opt_pfmt(void * data, int * argc, char *** argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -pfmt requires an argument\n");
+    exit(-1);
+    }
+  force_pixelformat = gavl_short_string_to_pixelformat((*argv)[arg]);
+
+  if(force_pixelformat == GAVL_PIXELFORMAT_NONE)
+    {
+    int i, num;
+    fprintf(stderr, "Invalid pixelformat, allowed values are\n");
+    num = gavl_num_pixelformats();
+    for(i = 0; i < num; i++)
+      {
+      fprintf(stderr, "%s\n",
+              gavl_pixelformat_to_short_string(gavl_get_pixelformat(i)));
+      }
+    exit(-1);
+    }
+
+  bg_cmdline_remove_arg(argc, argv, arg);
+  }
+
 //static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 static bg_cmdline_arg_t global_options[] =
@@ -83,6 +110,12 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Conversion options",
       .callback =    opt_video_options,
       .parameters =  conversion_parameters,
+    },
+    {
+      .arg =         "-pfmt",
+      .help_arg =    "<format>",
+      .help_string = "Force pixelformat",
+      .callback =    opt_pfmt,
     },
     { /* End of options */ }
   };
@@ -183,6 +216,9 @@ int main(int argc, char ** argv)
   
   gavl_video_format_copy(&out_format, &in_format);
 
+  if(force_pixelformat != GAVL_PIXELFORMAT_NONE)
+    out_format.pixelformat = force_pixelformat;
+  
   bg_gavl_video_options_set_format(&vopt, &in_format, &out_format);
   
   output_plugin->write_header(output_handle->priv, files[1], &out_format, &metadata);

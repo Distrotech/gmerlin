@@ -467,7 +467,8 @@ bg_deserialize_audio_frame(gavl_dsp_context_t * ctx,
   return 1;
   }
 
-static int write_plane(const uint8_t * plane, int stride, int bytes_per_line, int height,
+static int write_plane(const uint8_t * plane, int stride,
+                       int bytes_per_line, int height,
                        bg_serialize_write_callback_t cb, void * cb_data)
   {
   int i;
@@ -494,14 +495,17 @@ bg_serialize_video_frame(const gavl_video_format_t * format,
 
   if(num_planes == 1)
     {
-    bytes_per_line = gavl_pixelformat_bytes_per_pixel(format->pixelformat) * format->image_width;
+    bytes_per_line =
+      gavl_pixelformat_bytes_per_pixel(format->pixelformat) *
+      format->image_width;
     return write_plane(frame->planes[0], frame->strides[0], bytes_per_line,
                        format->image_height, cb, cb_data);
     }
   else
     {
     int h = format->image_height;
-    bytes_per_line = format->image_width * gavl_pixelformat_bytes_per_component(format->pixelformat);
+    bytes_per_line = format->image_width *
+      gavl_pixelformat_bytes_per_component(format->pixelformat);
     gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
 
     for(i = 0; i < num_planes; i++)
@@ -522,7 +526,8 @@ bg_serialize_video_frame(const gavl_video_format_t * format,
 
 /* */
 
-static int read_plane(uint8_t * plane, int stride, int bytes_per_line, int height,
+static int read_plane(uint8_t * plane, int stride, int bytes_per_line,
+                      int height,
                       bg_serialize_read_callback_t cb, void * cb_data)
   {
   int i;
@@ -552,14 +557,17 @@ bg_deserialize_video_frame(gavl_dsp_context_t * ctx,
 
   if(num_planes == 1)
     {
-    bytes_per_line = gavl_pixelformat_bytes_per_pixel(format->pixelformat) * format->image_width;
+    bytes_per_line =
+      gavl_pixelformat_bytes_per_pixel(format->pixelformat) *
+      format->image_width;
     return read_plane(frame->planes[0], frame->strides[0], bytes_per_line,
                        format->image_height, cb, cb_data);
     }
   else
     {
     int h = format->image_height;
-    bytes_per_line = format->image_width * gavl_pixelformat_bytes_per_component(format->pixelformat);
+    bytes_per_line = format->image_width *
+      gavl_pixelformat_bytes_per_component(format->pixelformat);
     gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
 
     for(i = 0; i < num_planes; i++)

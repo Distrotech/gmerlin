@@ -46,6 +46,7 @@ bin_PROGRAMS = gmerlin_imgconvert \
 album2m3u \
 album2pls \
 gmerlin_imgdiff \
+gmerlin_imgsplit \
 gmerlin_psnr \
 gmerlin_ssim \
 gmerlin_vanalyze \
@@ -84,6 +85,10 @@ thumbnail_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_imgconvert_SOURCES = imgconvert.c
 gmerlin_imgconvert_LDADD = ../lib/libgmerlin.la -ldl
+
+gmerlin_imgsplit_SOURCES = gmerlin_imgsplit.c
+gmerlin_imgsplit_LDADD = ../lib/libgmerlin.la -ldl
+
 
 gmerlin_psnr_SOURCES = gmerlin_psnr.c
 gmerlin_psnr_LDADD = ../lib/libgmerlin.la -ldl

@@ -23,35 +23,62 @@
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/utils.h>
 
+static struct
+  {
+  gavl_color_channel_t ch;
+  char c;
+  }
+channel_names[] =
+  {
+    { GAVL_CCH_RED,   'r' },
+    { GAVL_CCH_GREEN, 'g' },
+    { GAVL_CCH_BLUE,  'b' },
+    { GAVL_CCH_Y,     'y' },
+    { GAVL_CCH_CB,    'u' },
+    { GAVL_CCH_CR,    'v' },
+    { GAVL_CCH_ALPHA, 'a' },
+  };
+
+static char get_channel_name(gavl_color_channel_t ch)
+  {
+  int i;
+  for(i = 0; i < sizeof(channel_names)/sizeof(channel_names[0]); i++)
+    {
+    if(ch == channel_names[i].ch)
+      return channel_names[i].c;
+    }
+  return 0x00;
+  }
+
 int main(int argc, char ** argv)
   {
-    
+  int num_channels;
+  gavl_color_channel_t ch;
+  int i;
+  
   gavl_video_format_t format_1;
   gavl_video_format_t format_2;
 
   gavl_video_frame_t * frame_1;
   gavl_video_frame_t * frame_2;
-  gavl_video_frame_t * frame_3;
-  
+  gavl_metadata_t m;
+
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
   bg_plugin_registry_t * plugin_reg;
   char * tmp_path;
-
-  gavl_metadata_t m;
+  char * filename;
   
   memset(&format_1, 0, sizeof(format_1));
   memset(&format_2, 0, sizeof(format_2));
   memset(&m, 0, sizeof(m));
-  
+
   if(argc < 4)
     {
-    fprintf(stderr, "Usage: %s <image1> <image2> <output>\n", argv[0]);
+    fprintf(stderr, "Usage: %s <image1> <output_prefix> <output_extension>\n", argv[0]);
     return -1;
     }
-  
-  /* Create registries */
-  
+
   cfg_reg = bg_cfg_registry_create();
   tmp_path =  bg_search_file_read("generic", "config.xml");
   bg_cfg_registry_load(cfg_reg, tmp_path);
@@ -68,37 +95,38 @@ int main(int argc, char ** argv)
     fprintf(stderr, "Cannot open %s\n", argv[1]);
     return -1;
     }
+
+  num_channels = gavl_pixelformat_num_channels(format_1.pixelformat);
   
-  frame_2 =
-    bg_plugin_registry_load_image(plugin_reg, argv[2], &format_2, NULL);
-  if(!frame_2)
+  for(i = 0; i < num_channels; i++)
     {
-    fprintf(stderr, "Cannot open %s\n", argv[2]);
-    return -1;
+    ch = gavl_pixelformat_get_channel(format_1.pixelformat, i);
+
+    if(!gavl_get_color_channel_format(&format_1, &format_2, ch))
+      {
+      fprintf(stderr, "Invalid channel\n");
+      return -1;
+      }
+
+    frame_2 = gavl_video_frame_create(&format_2);
+    
+    if(!gavl_video_frame_extract_channel(&format_1, ch, frame_1, frame_2))
+      {
+      fprintf(stderr, "Cannot extract channel\n");
+      return -1;
+      }
+
+    filename = bg_sprintf("%s_%c.%s", argv[2], get_channel_name(ch), argv[3]);
+    
+    bg_plugin_registry_save_image(plugin_reg,
+                                  filename,
+                                  frame_2,
+                                  &format_2, &m);
+    
+    fprintf(stderr, "Saved %s\n", filename);
+    
+    gavl_video_frame_destroy(frame_2);
+    free(filename);
     }
-
-  if((format_1.image_width != format_2.image_width) ||
-     (format_1.image_height != format_2.image_height) ||
-     (format_1.pixelformat != format_2.pixelformat))
-    {
-    fprintf(stderr, "Format mismatch\n");
-    return -1;
-    }
-  
-  fprintf(stderr, "Format:\n\n");
-  gavl_video_format_dump(&format_1);
-
-  frame_3 = gavl_video_frame_create(&format_1);
-  
-  gavl_video_frame_absdiff(frame_3,
-                           frame_1,
-                           frame_2,
-                           &format_1);
-
-  bg_plugin_registry_save_image(plugin_reg,
-                                argv[3],
-                                frame_3,
-                                &format_1, &m);
-
   return 0;
   }
