@@ -85,6 +85,8 @@ void bg_ogg_encoder_destroy(void * data)
   
   if(e->audio_parameters)
     bg_parameter_info_destroy_array(e->audio_parameters);
+  if(e->video_parameters)
+    bg_parameter_info_destroy_array(e->video_parameters);
   
   free(e);
   }
@@ -643,50 +645,66 @@ int bg_ogg_encoder_close(void * data, int do_delete)
   return ret;
   }
 
-static const bg_parameter_info_t audio_parameters[] =
+static const bg_parameter_info_t codec_parameters[] =
   {
     {
       .name =      "codec",
       .long_name = TRS("Codec"),
       .type =      BG_PARAMETER_MULTI_MENU,
-      .val_default = { .val_str = "vorbis" },
     },
     { /* End of parameters */ }
   };
+
+static bg_parameter_info_t *
+create_codec_parameters(bg_ogg_codec_t const * const * codecs)
+  {
+  int num_codecs;
+  int i;
+  bg_parameter_info_t * ret = 0;
+
+  num_codecs = 0;
+  while(codecs[num_codecs])
+    num_codecs++;
+    
+  ret = bg_parameter_info_copy_array(codec_parameters);
+  ret[0].multi_names_nc =
+    calloc(num_codecs+1, sizeof(*ret[0].multi_names));
+  ret[0].multi_labels_nc =
+    calloc(num_codecs+1, sizeof(*ret[0].multi_labels));
+  ret[0].multi_parameters_nc =
+    calloc(num_codecs+1, sizeof(*ret[0].multi_parameters));
+  for(i = 0; i < num_codecs; i++)
+    {
+    ret[0].multi_names_nc[i]  =
+      bg_strdup(NULL, codecs[i]->name);
+    ret[0].multi_labels_nc[i] =
+      bg_strdup(NULL, codecs[i]->long_name);
+      
+    if(codecs[i]->get_parameters)
+      ret[0].multi_parameters_nc[i] =
+        bg_parameter_info_copy_array(codecs[i]->get_parameters());
+    }
+  bg_parameter_info_set_const_ptrs(&ret[0]);
+  return ret;
+  }
+  
 
 bg_parameter_info_t *
 bg_ogg_encoder_get_audio_parameters(bg_ogg_encoder_t * e,
                                     bg_ogg_codec_t const * const * audio_codecs)
   {
-  int num_audio_codecs;
-  int i;
   if(!e->audio_parameters)
-    {
-    num_audio_codecs = 0;
-    while(audio_codecs[num_audio_codecs])
-      num_audio_codecs++;
-    
-    e->audio_parameters = bg_parameter_info_copy_array(audio_parameters);
-    e->audio_parameters[0].multi_names_nc =
-      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_names));
-    e->audio_parameters[0].multi_labels_nc =
-      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_labels));
-    e->audio_parameters[0].multi_parameters_nc =
-      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_parameters));
-    for(i = 0; i < num_audio_codecs; i++)
-      {
-      e->audio_parameters[0].multi_names_nc[i]  =
-        bg_strdup(NULL, audio_codecs[i]->name);
-      e->audio_parameters[0].multi_labels_nc[i] =
-        bg_strdup(NULL, audio_codecs[i]->long_name);
-      
-      if(audio_codecs[i]->get_parameters)
-        e->audio_parameters[0].multi_parameters_nc[i] =
-          bg_parameter_info_copy_array(audio_codecs[i]->get_parameters());
-      }
-    bg_parameter_info_set_const_ptrs(&e->audio_parameters[0]);
-    }
+    e->audio_parameters = create_codec_parameters(audio_codecs);
   return e->audio_parameters;
+  }
+
+bg_parameter_info_t *
+bg_ogg_encoder_get_video_parameters(bg_ogg_encoder_t * e,
+                                    bg_ogg_codec_t const * const * video_codecs)
+  {
+  if(!e->video_parameters)
+    e->video_parameters = create_codec_parameters(video_codecs);
+  return e->video_parameters;
   }
 
 /* Comment building stuff */

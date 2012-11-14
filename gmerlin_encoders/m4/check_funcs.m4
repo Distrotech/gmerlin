@@ -360,6 +360,11 @@ AC_SUBST(SCHROEDINGER_CFLAGS)
 
 AM_CONDITIONAL(HAVE_SCHROEDINGER, test x$have_schroedinger = xtrue)
 
+OLD_CFLAGS=$CFLAGS
+CFLAGS=$SCHROEDINGER_CFLAGS
+AC_CHECK_HEADERS(schroedinger/schroversion.h)
+CFLAGS=$OLD_CFLAGS
+
 if test "x$have_schroedinger" = "xtrue"; then
 AC_DEFINE([HAVE_SCHROEDINGER])
 fi

@@ -126,6 +126,7 @@ struct bg_ogg_encoder_s
   char * filename;
   
   bg_parameter_info_t * audio_parameters;
+  bg_parameter_info_t * video_parameters;
 
   bg_encoder_callbacks_t * cb;
 
@@ -222,6 +223,11 @@ int bg_ogg_encoder_close(void * data, int do_delete);
 bg_parameter_info_t *
 bg_ogg_encoder_get_audio_parameters(bg_ogg_encoder_t * e,
                                     bg_ogg_codec_t const * const * audio_codecs);
+
+bg_parameter_info_t *
+bg_ogg_encoder_get_video_parameters(bg_ogg_encoder_t * e,
+                                    bg_ogg_codec_t const * const * video_codecs);
+
 
 void
 bg_ogg_create_comment_packet(const uint8_t * prefix,

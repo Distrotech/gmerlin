@@ -136,6 +136,21 @@ dnl
 GMERLIN_CHECK_SHOUT
 
 dnl
+dnl schroedinger
+dnl
+
+GMERLIN_CHECK_SCHROEDINGER
+
+
+dnl
+dnl Check if we have at least one video encoder
+dnl available
+dnl 
+
+AM_CONDITIONAL(HAVE_OGG_VIDEO,
+               test "x$have_theora" = "xtrue" -o "x$have_schroedinger" = "xtrue")
+
+dnl
 dnl CFLAGS
 dnl
 
@@ -182,42 +197,42 @@ AC_OUTPUT
 echo ""
 echo "=== Libraries: ================================="
 
-echo -n "flac:       "
+echo -n "flac:         "
 if test "x$have_flac" = "xtrue"; then
 echo "Found (CFLAGS=$FLAC_CFLAGS LIBS=$FLAC_LIBS)"
 else
 echo "Missing (Go to: http://flac.sourceforge.net/)"
 fi
 
-echo -n "ogg:        "
+echo -n "ogg:          "
 if test "x$have_ogg" = "xtrue"; then
 echo "Found (CFLAGS=$OGG_CFLAGS LIBS=$OGG_LIBS)"
 else
 echo "Missing (Go to: http://www.xiph.org/)"
 fi
 
-echo -n "vorbis:     "
+echo -n "vorbis:       "
 if test "x$have_vorbis" = "xtrue"; then
 echo "Found (CFLAGS=$VORBIS_CFLAGS LIBS=$VORBIS_LIBS)"
 else
 echo "Missing (Go to: http://www.vorbis.com/)"
 fi
 
-echo -n "theoraenc:  "
+echo -n "theoraenc:    "
 if test "x$have_theoraenc" = "xtrue"; then
 echo "Found (CFLAGS=$THEORAENC_CFLAGS LIBS=$THEORAENC_LIBS)"
 else
 echo "Missing (Go to: http://www.theora.org/)"
 fi
 
-echo -n "speex:      "
+echo -n "speex:        "
 if test "x$have_speex" = "xtrue"; then
 echo "Found (CFLAGS=$SPEEX_CFLAGS LIBS=$SPEEX_LIBS)"
 else
 echo "Missing (Go to: http://www.speex.org/)"
 fi
 
-echo -n "opus:       "
+echo -n "opus:         "
 if test "x$have_opus" = "xtrue"; then
 echo "Found (CFLAGS=$OPUS_CFLAGS LIBS=$OPUS_LIBS)"
 else
@@ -225,39 +240,46 @@ echo "Missing (Go to: http://www.opus-codec.org/)"
 fi
 
 
-echo -n "lame:       "
+echo -n "lame:         "
 if test "x$have_lame" = "xtrue"; then
 echo "Found (CFLAGS=$LAME_CFLAGS LIBS=$LAME_LIBS)"
 else
 echo "Missing (Go to: http://www.mp3dev.org/)"
 fi
 
-echo -n "faac:       "
+echo -n "faac:         "
 if test "x$have_faac" = "xtrue"; then
 echo "Found (CFLAGS=$FAAC_CFLAGS LIBS=$FAAC_LIBS)"
 else
 echo "Missing (Go to: http://www.audiocoding.com/)"
 fi
 
-echo -n "mjpegtools: "
+echo -n "mjpegtools:   "
 if test "x$have_mjpegtools" = "xtrue"; then
 echo "Found (CFLAGS=$MJPEGTOOLS_CFLAGS LIBS=$MJPEGTOOLS_LIBS)"
 else
 echo "Missing (Go to: http://mjpeg.sourceforge.net/)"
 fi
 
-echo -n "ffmpeg:     "
+echo -n "ffmpeg:       "
 if test "x$have_avformat" = "xtrue"; then
 echo "Found (CFLAGS=$AVFORMAT_CFLAGS LIBS=$AVFORMAT_LIBS)"
 else
 echo "Missing (Go to: http://ffmpeg.org/)"
 fi
 
-echo -n "libshout:   "
+echo -n "libshout:     "
 if test "x$have_shout" = "xtrue"; then
 echo "Found (CFLAGS=$SHOUT_CFLAGS LIBS=$SHOUT_LIBS)"
 else
 echo "Missing (Go to: http://icecast.org/)"
+fi
+
+echo -n "schroedinger: "
+if test "x$have_schroedinger" = "xtrue"; then
+echo "Found (CFLAGS=$SCHROEDINGER_CFLAGS LIBS=$SCHROEDINGER_LIBS)"
+else
+echo "Missing (Go to: http://diracvideo.org/)"
 fi
 
 echo

@@ -6,6 +6,7 @@ AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
 if HAVE_THEORAENC
 theoraenc_plugins = e_theora.la
+theora_sources = theora.c
 
 if HAVE_SHOUT
 shout_plugins = b_ogg.la
@@ -16,7 +17,7 @@ endif
 
 else
 theoraenc_plugins =
-shout_plugins =
+theora_sources = 
 endif
 
 if HAVE_SPEEX
@@ -26,6 +27,13 @@ else
 speex_plugins =
 speex_sources =
 endif
+
+if HAVE_SCHROEDINGER
+schroedinger_sources = schroedinger.c
+else
+schroedinger_plugins =
+endif
+
 
 if HAVE_OPUS
 opus_plugins = e_opus.la
@@ -44,13 +52,20 @@ flac_plugins =
 flac_sources =
 endif
 
+if HAVE_OGG_VIDEO
+oggvideo_plugins = e_oggvideo.la
+else
+oggvideo_plugins =
+endif
+
 gmerlin_plugin_LTLIBRARIES = \
 e_vorbis.la \
 $(theoraenc_plugins) \
 $(speex_plugins) \
 $(opus_plugins) \
 $(flac_plugins) \
-$(shout_plugins)
+$(shout_plugins) \
+$(oggvideo_plugins)
 
 
 AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
@@ -63,7 +78,14 @@ e_flacogg_la_CFLAGS = @OGG_CFLAGS@ @FLAC_CFLAGS@ $(AM_CFLAGS)
 e_flacogg_la_SOURCES = e_flacogg.c flac.c ogg_common.c
 e_flacogg_la_LIBADD = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_encoders.la $(bgflac_libs) @OGG_LIBS@
 
-e_theora_la_CFLAGS = @THEORAENC_CFLAGS@ @VORBIS_CFLAGS@ @SPEEX_CFLAGS@ @FLAC_CFLAGS@ @OPUS_CFLAGS@ $(AM_CFLAGS) $(AM_CFLAGS)
+e_theora_la_CFLAGS = \
+@THEORAENC_CFLAGS@ \
+@VORBIS_CFLAGS@ \
+@SPEEX_CFLAGS@ \
+@FLAC_CFLAGS@ \
+@OPUS_CFLAGS@ \
+$(AM_CFLAGS)
+
 e_theora_la_SOURCES = \
 e_theora.c \
 vorbis.c \
@@ -75,7 +97,46 @@ ogg_common.c
 
 e_theora_la_LIBADD = \
 @GMERLIN_DEP_LIBS@ \
-$(top_builddir)/lib/libgmerlin_encoders.la @VORBISENC_LIBS@ @VORBIS_LIBS@ @THEORAENC_LIBS@ @THEORADEC_LIBS@ @SPEEX_LIBS@@OPUS_LIBS@ $(bgflac_libs)
+$(top_builddir)/lib/libgmerlin_encoders.la \
+@VORBISENC_LIBS@ \
+@VORBIS_LIBS@ \
+@THEORAENC_LIBS@ \
+@THEORADEC_LIBS@ \
+@SPEEX_LIBS@ \
+@OPUS_LIBS@ \
+$(bgflac_libs)
+
+e_oggvideo_la_CFLAGS = \
+@THEORAENC_CFLAGS@ \
+@VORBIS_CFLAGS@ \
+@SPEEX_CFLAGS@ \
+@FLAC_CFLAGS@ \
+@OPUS_CFLAGS@ \
+@SCHROEDINGER_CFLAGS@ \
+$(AM_CFLAGS)
+
+e_oggvideo_la_SOURCES = \
+e_oggvideo.c \
+vorbis.c \
+$(speex_sources) \
+$(flac_sources) \
+$(opus_sources) \
+$(theora_sources) \
+$(schroedinger_sources) \
+ogg_common.c
+
+e_oggvideo_la_LIBADD = \
+@GMERLIN_DEP_LIBS@ \
+$(top_builddir)/lib/libgmerlin_encoders.la \
+@VORBISENC_LIBS@ \
+@VORBIS_LIBS@ \
+@THEORAENC_LIBS@ \
+@THEORADEC_LIBS@ \
+@SPEEX_LIBS@ \
+@OPUS_LIBS@ \
+@SCHROEDINGER_LIBS@ \
+$(bgflac_libs)
+
 
 b_ogg_la_CFLAGS = @THEORAENC_CFLAGS@ @THEORADEC_LIBS@ @VORBIS_CFLAGS@ @SPEEX_CFLAGS@  $(AM_CFLAGS)
 b_ogg_la_SOURCES = b_ogg.c vorbis.c $(speex_sources) theora.c ogg_common.c
