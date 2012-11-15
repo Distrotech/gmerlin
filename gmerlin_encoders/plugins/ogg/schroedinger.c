@@ -51,6 +51,8 @@
 typedef struct
   {
   gavl_packet_sink_t * psink;
+  SchroEncoder * enc;
+  SchroFrameFormat  frame_format;
   } schro_t;
 
 static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
@@ -63,6 +65,7 @@ static void * create_schro()
   {
   schro_t * ret;
   ret = calloc(1, sizeof(*ret));
+  ret->enc = schro_encoder_new();
   return ret;
   }
 
@@ -73,362 +76,445 @@ static const bg_parameter_info_t parameters[] =
       .long_name =   TRS("Rate control"),
       .type =        BG_PARAMETER_SECTION,
     },
-    { 
-      .name =        "enc_rate_control",
-      .long_name =   TRS("Rate control"),
-      .type =        BG_PARAMETER_STRINGLIST,
-#if SCHRO_CHECK_VERSION(1,0,9)
-      .val_default = { .val_str = "Constant quality" },
-#else
-      .val_default = { .val_str = "Constant noise threshold" },
-#endif
-      .multi_names = (const char *[]){ TRS("Constant noise threshold"),
-                                 TRS("Constant bitrate"),
-                                 TRS("Low delay"), 
-                                 TRS("Lossless"),
-                                 TRS("Constant lambda"),
-                                 TRS("Constant error"),
-#if SCHRO_CHECK_VERSION(1,0,6)
-                                 TRS("Constant quality"),
-#endif
-                                        (char *)0 },
+    {
+    .name = "schro_rate_control",
+    .long_name = TRS("Rate control"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
+    {
+      "constant_noise_threshold",
+      "constant_bitrate",
+      "low_delay",
+      "lossless",
+      "constant_lambda",
+      "constant_error",
+      "constant_quality",
+      NULL
+      },
+    .multi_labels = (const char*[])
+    {
+      TRS("Constant noise threshold"),
+      TRS("Constant bitrate"),
+      TRS("Low delay"),
+      TRS("Lossless"),
+      TRS("Constant lambda"),
+      TRS("Constant error"),
+      TRS("Constant quality"),
+      NULL
+      },
+    .val_default = { .val_str = "constant_quality" },
     },
     {
-      .name = "enc_bitrate",
-      .long_name = TRS("Bitrate"),
-      .type = BG_PARAMETER_INT,
-      .val_default = { .val_i =   13824000 },
-    },
-#if 0 /* Not used */
-    {
-      .name = "enc_min_bitrate",
-      .long_name = TRS("Minimum bitrate"),
-      .type = BG_PARAMETER_INT,
-      .val_default = { .val_i =   13824000 },
+    .name = "schro_bitrate",
+    .long_name = TRS("Bitrate"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 2147483647 },
+    .val_default = { .val_i = 0 },
     },
     {
-      .name = "enc_max_bitrate",
-      .long_name = TRS("Maximum bitrate"),
-      .type = BG_PARAMETER_INT,
-      .val_default = { .val_i =   13824000 },
-    },
-#endif
-    {
-      .name      = "enc_buffer_size",
-      .long_name = TRS("Buffer size"),
-      .type = BG_PARAMETER_INT,
-      .val_default = { .val_i =          0 },
+    .name = "schro_max_bitrate",
+    .long_name = TRS("Max bitrate"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 2147483647 },
+    .val_default = { .val_i = 13824000 },
     },
     {
-      .name      = "enc_buffer_level",
-      .long_name = TRS("Buffer level"),
-      .type = BG_PARAMETER_INT,
-      .val_default = { .val_i =          0 },
+    .name = "schro_min_bitrate",
+    .long_name = TRS("Min bitrate"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 2147483647 },
+    .val_default = { .val_i = 13824000 },
     },
     {
-      .name      = "enc_noise_threshold",
-      .long_name = TRS("Noise Threshold"),
-      .type = BG_PARAMETER_FLOAT,
-      .val_default = { .val_f =       25.0 },
-      .val_min     = { .val_f =          0 },
-      .val_max     = { .val_f =      100.0 },
-      .num_digits  = 2,
+    .name = "schro_buffer_size",
+    .long_name = TRS("Buffer size"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 2147483647 },
+    .val_default = { .val_i = 0 },
     },
-#if SCHRO_CHECK_VERSION(1,0,6)
     {
-      .name      = "enc_quality",
-      .long_name = TRS("Quality"),
-      .type = BG_PARAMETER_FLOAT,
-#if SCHRO_CHECK_VERSION(1,0,9)
-      .val_default = { .val_f =        5.0 },
-#else
-      .val_default = { .val_f =        7.0 },
-#endif
-      .val_min     = { .val_f =        0.0 },
-      .val_max     = { .val_f =       10.0 },
-      .num_digits  = 2,
+    .name = "schro_buffer_level",
+    .long_name = TRS("Buffer level"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 2147483647 },
+    .val_default = { .val_i = 0 },
     },
-#endif
-#if SCHRO_CHECK_VERSION(1,0,9)
     {
-      .name =        "enc_enable_rdo_cbr",
-      .long_name =   TRS("rdo cbr"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     1 },
+    .name = "schro_quality",
+    .long_name = TRS("Quality"),
+    .type = BG_PARAMETER_SLIDER_FLOAT,
+    .val_min = { .val_f = 0.000000 },
+    .val_max = { .val_f = 10.000000 },
+    .val_default = { .val_f = 5.000000 },
+    .num_digits = 2,
     },
-#endif
+    {
+    .name = "schro_noise_threshold",
+    .long_name = TRS("Noise threshold"),
+    .type = BG_PARAMETER_SLIDER_FLOAT,
+    .val_min = { .val_f = 0.000000 },
+    .val_max = { .val_f = 100.000000 },
+    .val_default = { .val_f = 25.000000 },
+    .num_digits = 2,
+    },
+    {
+    .name = "schro_enable_rdo_cbr",
+    .long_name = TRS("Enable rdo cbr"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 },
+    },
+    {
+    .name = "schro_noise_threshold",
+    .long_name = TRS("Noise threshold"),
+    .type = BG_PARAMETER_SLIDER_FLOAT,
+    .val_min = { .val_f = 0.000000 },
+    .val_max = { .val_f = 100.000000 },
+    .val_default = { .val_f = 25.000000 },
+    .num_digits = 2,
+    },
     { 
       .name =        "enc_frame_types",
       .long_name =   TRS("Frame types"),
       .type =        BG_PARAMETER_SECTION,
     },
     {
-      .name = "enc_gop_structure",
-      .long_name = TRS("GOP Stucture"),
-      .type = BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "Adaptive" },
-      .multi_names = (const char *[]){ TRS("Adaptive"),
-                                        TRS("Intra only"),
-                                        TRS("Backref"), 
-                                        TRS("Chained backref"),
-                                        TRS("Biref"),
-                                        TRS("Chained biref"),
-                                        (char *)0 },
+    .name = "schro_gop_structure",
+    .long_name = TRS("Gop structure"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
+    {
+      "adaptive",
+      "intra_only",
+      "backref",
+      "chained_backref",
+      "biref",
+      "chained_biref",
+      NULL
+      },
+    .multi_labels = (const char*[])
+    {
+      TRS("Adaptive"),
+      TRS("Intra only"),
+      TRS("Backref"),
+      TRS("Chained backref"),
+      TRS("Biref"),
+      TRS("Chained biref"),
+      NULL
+      },
+    .val_default = { .val_str = "adaptive" },
     },
     {
-      .name = "enc_au_distance",
-      .long_name = TRS("GOP size"),
-      .type = BG_PARAMETER_INT,
-      .val_default = { .val_i = 30 },
+    .name = "schro_au_distance",
+    .long_name = TRS("Au distance"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 1 },
+    .val_max = { .val_i = 2147483647 },
+    .val_default = { .val_i = 120 },
     },
-#if SCHRO_CHECK_VERSION(1,0,6)
     {
-      .name      = "enc_open_gop",
-      .long_name = TRS("Open GOPs"),
-      .type = BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 1 },
-      .help_string = TRS("Choose whether GOPs should be open or closed. Closed GOPs improve seeking accuracy for buggy decoders, open GOPs have a slightly better compression"),
+    .name = "schro_open_gop",
+    .long_name = TRS("Open gop"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 },
     },
-#endif
     { 
       .name =        "enc_me",
       .long_name =   TRS("Motion estimation"),
       .type =        BG_PARAMETER_SECTION,
     },
     {
-      .name =        "enc_mv_precision",
-      .long_name =   TRS("MV Precision"),
-      .type =        BG_PARAMETER_INT,
-      .val_default = { .val_i =     0 },
-      .val_min     = { .val_i =     3 },
-      .val_max     = { .val_i =     0 },
+    .name = "schro_mv_precision",
+    .long_name = TRS("Mv precision"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 3 },
+    .val_default = { .val_i = 0 },
     },
     {
-      .name =        "enc_motion_block_size",
-      .long_name =   TRS("Block size"),
-      .type =        BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "Automatic" },
-      .multi_names = (const char *[]){ TRS("Automatic"),
-                                        TRS("Small"),
-                                        TRS("Medium"),
-                                        TRS("Large"),
-                                        (char *)0 },
-      
+    .name = "schro_motion_block_size",
+    .long_name = TRS("Motion block size"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
+    {
+      "automatic",
+      "small",
+      "medium",
+      "large",
+      NULL
+      },
+    .multi_labels = (const char*[])
+    {
+      TRS("Automatic"),
+      TRS("Small"),
+      TRS("Medium"),
+      TRS("Large"),
+      NULL
+      },
+    .val_default = { .val_str = "automatic" },
     },
     {
-      .name =        "enc_motion_block_overlap",
-      .long_name =   TRS("Block overlap"),
-      .type =        BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "Automatic" },
-      .multi_names = (const char *[]){ TRS("Automatic"),
-                                        TRS("None"),
-                                        TRS("Partial"),
-                                        TRS("Full"),
-                                        (char *)0 },
-    },
-#if SCHRO_CHECK_VERSION(1,0,9)
+    .name = "schro_motion_block_overlap",
+    .long_name = TRS("Motion block overlap"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
     {
-      .name =        "enc_enable_chroma_me",
-      .long_name =   TRS("Enable chroma ME"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     0 },
-    },
-#endif
-
-#if SCHRO_CHECK_VERSION(1,0,6)
+      "automatic",
+      "none",
+      "partial",
+      "full",
+      NULL
+      },
+    .multi_labels = (const char*[])
     {
-      .name      = "enc_enable_global_motion",
-      .long_name = TRS("Enable GMC"),
-      .type = BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 0 },
-      .help_string = TRS("Enable global motion estimation"),
+      TRS("Automatic"),
+      TRS("None"),
+      TRS("Partial"),
+      TRS("Full"),
+      NULL
+      },
+    .val_default = { .val_str = "automatic" },
     },
     {
-      .name      = "enc_enable_phasecorr_estimation",
-      .long_name = TRS("Enable phasecorrelation estimation"),
-      .type = BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 0 },
-    },
-#endif
-#if SCHRO_CHECK_VERSION(1,0,9)
-    {
-      .name =        "enc_enable_hierarchical_estimation",
-      .long_name =   TRS("Hierarchical estimation"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     1 },
+    .name = "schro_enable_chroma_me",
+    .long_name = TRS("Enable chroma me"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 0 },
     },
     {
-      .name =        "enc_enable_phasecorr_estimation",
-      .long_name =   TRS("Phasecorr estimation"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     0 },
-      .val_min     = { .val_i =     0 },
-      .val_max     = { .val_i =     1 },
+    .name = "schro_enable_global_motion",
+    .long_name = TRS("Enable global motion"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 0 },
     },
     {
-      .name =        "enc_enable_bigblock_estimation",
-      .long_name =   TRS("Bigblock estimation"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     1 },
-      .val_min     = { .val_i =     0 },
-      .val_max     = { .val_i =     1 },
+    .name = "schro_enable_phasecorr_estimation",
+    .long_name = TRS("Enable phasecorr estimation"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 0 },
     },
     {
-      .name =        "enc_enable_global_motion",
-      .long_name =   TRS("Global motion estimation"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     0 },
-      .val_min     = { .val_i =     0 },
-      .val_max     = { .val_i =     1 },
+    .name = "schro_enable_hierarchical_estimation",
+    .long_name = TRS("Enable hierarchical estimation"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 },
     },
     {
-      .name =        "enc_enable_deep_estimation",
-      .long_name =   TRS("Deep estimation"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     1 },
-      .val_min     = { .val_i =     0 },
-      .val_max     = { .val_i =     1 },
+    .name = "schro_enable_zero_estimation",
+    .long_name = TRS("Enable zero estimation"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 0 },
     },
     {
-      .name =        "enc_enable_scene_change_detection",
-      .long_name =   TRS("Scene change detection"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     1 },
-      .val_min     = { .val_i =     0 },
-      .val_max     = { .val_i =     1 },
+    .name = "schro_enable_bigblock_estimation",
+    .long_name = TRS("Enable bigblock estimation"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 },
     },
-#endif
+    {
+    .name = "schro_enable_scene_change_detection",
+    .long_name = TRS("Enable scene change detection"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 },
+    },
+    {
+    .name = "schro_enable_deep_estimation",
+    .long_name = TRS("Enable deep estimation"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 },
+    },
     { 
       .name =        "enc_wavelets",
       .long_name =   TRS("Wavelets"),
       .type =        BG_PARAMETER_SECTION,
     },
     {
-      .name = "enc_intra_wavelet",
-      .long_name = TRS("Intra wavelet"),
-      .type = BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "Deslauriers-Debuc (9,3)" },
-      .multi_names = (const char *[]){ TRS("Deslauriers-Debuc (9,3)"),
-                                        TRS("LeGall (5,3)"),
-                                        TRS("Deslauriers-Debuc (13,5)"),
-                                        TRS("Haar (no shift)"),
-                                        TRS("Haar (single shift)"),
-                                        TRS("Fidelity"),
-                                        TRS("Daubechies (9,7)"),
-                                        (char *)0 },
+    .name = "schro_intra_wavelet",
+    .long_name = TRS("Intra wavelet"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
+    {
+      "desl_dubuc_9_7",
+      "le_gall_5_3",
+      "desl_dubuc_13_7",
+      "haar_0",
+      "haar_1",
+      "fidelity",
+      "daub_9_7",
+      NULL
+      },
+    .multi_labels = (const char*[])
+    {
+      TRS("Desl dubuc 9 7"),
+      TRS("Le gall 5 3"),
+      TRS("Desl dubuc 13 7"),
+      TRS("Haar 0"),
+      TRS("Haar 1"),
+      TRS("Fidelity"),
+      TRS("Daub 9 7"),
+      NULL
+      },
+    .val_default = { .val_str = "desl_dubuc_9_7" },
     },
     {
-      .name = "enc_inter_wavelet",
-      .long_name = TRS("Inter wavelet"),
-      .type = BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "LeGall (5,3)" },
-      .multi_names = (const char *[]){ TRS("Deslauriers-Debuc (9,3)"),
-                                        TRS("LeGall (5,3)"),
-                                        TRS("Deslauriers-Debuc (13,5)"),
-                                        TRS("Haar (no shift)"),
-                                        TRS("Haar (single shift)"),
-                                        TRS("Fidelity"),
-                                        TRS("Daubechies (9,7)"),
-                                        (char *)0 },
+    .name = "schro_inter_wavelet",
+    .long_name = TRS("Inter wavelet"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
+    {
+      "desl_dubuc_9_7",
+      "le_gall_5_3",
+      "desl_dubuc_13_7",
+      "haar_0",
+      "haar_1",
+      "fidelity",
+      "daub_9_7",
+      NULL
+      },
+    .multi_labels = (const char*[])
+    {
+      TRS("Desl dubuc 9 7"),
+      TRS("Le gall 5 3"),
+      TRS("Desl dubuc 13 7"),
+      TRS("Haar 0"),
+      TRS("Haar 1"),
+      TRS("Fidelity"),
+      TRS("Daub 9 7"),
+      NULL
+      },
+    .val_default = { .val_str = "desl_dubuc_9_7" },
     },
+   
     { 
       .name =        "enc_filter",
       .long_name =   TRS("Filter"),
       .type =        BG_PARAMETER_SECTION,
     },
     {
-      .name = "enc_filtering",
-      .long_name = TRS("Filter"),
-      .type = BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "None" },
-      .multi_names = (const char *[]){ TRS("None"),
-                                        TRS("Center weighted median"),
-                                        TRS("Gaussian"),
-                                        TRS("Add noise"),
-                                        TRS("Adaptive Gaussian"),
-                                        (char *)0 },
+    .name = "schro_filtering",
+    .long_name = TRS("Filtering"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
+    {
+      "none",
+      "center_weighted_median",
+      "gaussian",
+      "add_noise",
+      "adaptive_gaussian",
+      NULL
+      },
+    .multi_labels = (const char*[])
+    {
+      TRS("None"),
+      TRS("Center weighted median"),
+      TRS("Gaussian"),
+      TRS("Add noise"),
+      TRS("Adaptive gaussian"),
+      NULL
+      },
+    .val_default = { .val_str = "none" },
     },
     {
-      .name = "enc_filter_value",
-      .long_name = TRS("Filter value"),
-      .type = BG_PARAMETER_FLOAT,
-      .val_default = { .val_f = 5.0 },
-      .val_min =     { .val_f = 0.0 },
-      .val_max =     { .val_f = 100.0 },
+    .name = "schro_filter_value",
+    .long_name = TRS("Filter value"),
+    .type = BG_PARAMETER_SLIDER_FLOAT,
+    .val_min = { .val_f = 0.000000 },
+    .val_max = { .val_f = 100.000000 },
+    .val_default = { .val_f = 5.000000 },
+    .num_digits = 2,
     },
-#if SCHRO_CHECK_VERSION(1,0,6)
     { 
       .name =        "enc_misc",
       .long_name =   TRS("Misc"),
       .type =        BG_PARAMETER_SECTION,
     },
-#if SCHRO_CHECK_VERSION(1,0,9)
     {
-      .name = "enc_force_profile",
-      .long_name = TRS("Force profile"),
-      .type = BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "Auto" },
-      .multi_names = (const char *[]){ TRS("Auto"),
-                                        TRS("VC-2 low delay"),
-                                        TRS("VC-2 simple"),
-                                        TRS("VC-2 main"),
-                                        TRS("Main"),
-                                        (char *)0 },
+    .name = "schro_force_profile",
+    .long_name = TRS("Force profile"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
+    {
+      "auto",
+      "vc2_low_delay",
+      "vc2_simple",
+      "vc2_main",
+      "main",
+      NULL
+      },
+    .multi_labels = (const char*[])
+    {
+      TRS("Auto"),
+      TRS("Vc2 low delay"),
+      TRS("Vc2 simple"),
+      TRS("Vc2 main"),
+      TRS("Main"),
+      NULL
+      },
+    .val_default = { .val_str = "auto" },
     },
     {
-      .name = "enc_codeblock_size",
-      .long_name = TRS("Codeblock size"),
-      .type = BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "Auto" },
-      .multi_names = (const char *[]){ TRS("Auto"),
-                                        TRS("Small"),
-                                        TRS("Medium"),
-                                        TRS("Large"),
-                                        TRS("Full"),
-                                        (char *)0 },
-    },
-#endif
+    .name = "schro_codeblock_size",
+    .long_name = TRS("Codeblock size"),
+    .type = BG_PARAMETER_STRINGLIST,
+    .multi_names = (const char*[])
     {
-      .name      = "enc_enable_multiquant",
-      .long_name = TRS("Enable multiquant"),
-      .type = BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 1 },
-    },
+      "automatic",
+      "small",
+      "medium",
+      "large",
+      "full",
+      NULL
+      },
+    .multi_labels = (const char*[])
     {
-      .name      = "enc_enable_dc_multiquant",
-      .long_name = TRS("Enable DC multiquant"),
-      .type = BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i = 0 },
-    },
-#if SCHRO_CHECK_VERSION(1,0,9)
-    {
-      .name =        "enc_enable_noarith",
-      .long_name =   TRS("Disable arithmetic coding"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .val_default = { .val_i =     0 },
+      TRS("Automatic"),
+      TRS("Small"),
+      TRS("Medium"),
+      TRS("Large"),
+      TRS("Full"),
+      NULL
+      },
+    .val_default = { .val_str = "automatic" },
     },
     {
-      .name =        "enc_downsample_levels",
-      .long_name =   TRS("Downsample levels"),
-      .type =        BG_PARAMETER_INT,
-      .val_default = { .val_i =     5 },
-      .val_min     = { .val_i =     2 },
-      .val_max     = { .val_i =     8 },
+    .name = "schro_enable_multiquant",
+    .long_name = TRS("Enable multiquant"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 0 },
     },
     {
-      .name =        "enc_transform_depth",
-      .long_name =   TRS("Transform depth"),
-      .type =        BG_PARAMETER_INT,
-      .val_default = { .val_i =     3 },
-      .val_min     = { .val_i =     0 },
-      .val_max     = { .val_i =     6 },
+    .name = "schro_enable_dc_multiquant",
+    .long_name = TRS("Enable dc multiquant"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 0 },
     },
-#endif
-
-
-#endif
+    {
+    .name = "schro_enable_noarith",
+    .long_name = TRS("Enable noarith"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 0 },
+    },
+    {
+    .name = "schro_downsample_levels",
+    .long_name = TRS("Downsample levels"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 2 },
+    .val_max = { .val_i = 8 },
+    .val_default = { .val_i = 5 },
+    },
+    {
+    .name = "schro_transform_depth",
+    .long_name = TRS("Transform depth"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 6 },
+    .val_default = { .val_i = 3 },
+    },
     { /* End of parameters */ }
-
   };
 
 static const bg_parameter_info_t * get_parameters_schro()
@@ -439,14 +525,207 @@ static const bg_parameter_info_t * get_parameters_schro()
 static void set_parameter_schro(void * data, const char * name,
                                 const bg_parameter_value_t * v)
   {
+  int i;
+  schro_t * s = data;
+  double val = 0.0;
+  const bg_parameter_info_t * info = NULL;
+
+  if(!name)
+    return;
   
+  if(strncmp(name, "schro_", 6))
+    return;
+
+  i = 0;
+  while(parameters[i].name)
+    {
+    if(!strcmp(parameters[i].name, name))
+      {
+      info = &parameters[i];
+      break;
+      }
+    i++;
+    }
+
+  if(!info)
+    return;
+
+  switch(info->type)
+    {
+    case BG_PARAMETER_CHECKBUTTON:
+    case BG_PARAMETER_INT:
+      val = (double)v->val_i;
+      break;
+    case BG_PARAMETER_FLOAT:
+    case BG_PARAMETER_SLIDER_FLOAT:
+      val = v->val_f;
+      break;
+    case BG_PARAMETER_STRINGLIST:
+      {
+      int j = 0, found = -1;
+      while(info->multi_names[j])
+        {
+        if(!strcmp(v->val_str, info->multi_names[j]))
+          {
+          found = j;
+          break;
+          }
+        j++;
+        }
+      if(found >= 0)
+        val = (double)(found);
+      else
+        return;
+      }
+      break;
+    default:
+      return;
+      break;
+    }
+
+  schro_encoder_setting_set_double(s->enc, name + 6, val);
   }
+
+typedef struct
+  {
+  gavl_pixelformat_t pixelformat;
+  SchroChromaFormat chroma_format;
+  SchroFrameFormat  frame_format;
+  SchroSignalRange  signal_range;
+  int bits;
+  } pixel_format_t;
+
+
+static const pixel_format_t
+pixel_format_map[] =
+  {
+    { GAVL_YUV_420_P, SCHRO_CHROMA_420, SCHRO_FRAME_FORMAT_U8_420, SCHRO_SIGNAL_RANGE_8BIT_VIDEO, 8 },
+    { GAVL_YUV_422_P, SCHRO_CHROMA_422, SCHRO_FRAME_FORMAT_U8_422, SCHRO_SIGNAL_RANGE_8BIT_VIDEO, 8 },
+    { GAVL_YUV_444_P, SCHRO_CHROMA_444, SCHRO_FRAME_FORMAT_U8_444, SCHRO_SIGNAL_RANGE_8BIT_VIDEO, 8 },
+    { GAVL_YUVJ_420_P, SCHRO_CHROMA_420, SCHRO_FRAME_FORMAT_U8_420, SCHRO_SIGNAL_RANGE_8BIT_FULL, 8 },
+    { GAVL_YUVJ_422_P, SCHRO_CHROMA_422, SCHRO_FRAME_FORMAT_U8_422, SCHRO_SIGNAL_RANGE_8BIT_FULL, 8 },
+    { GAVL_YUVJ_444_P, SCHRO_CHROMA_444, SCHRO_FRAME_FORMAT_U8_444, SCHRO_SIGNAL_RANGE_8BIT_FULL, 8 },
+  };
+
+static const int num_pixel_formats = sizeof(pixel_format_map)/sizeof(pixel_format_map[0]);
+
+
+static int get_best_pixelformat(gavl_pixelformat_t * pfmt)
+  {
+  int i;
+  gavl_pixelformat_t * supported;
+
+  supported = malloc((num_pixel_formats+1) * sizeof(*supported));
+
+  for(i = 0; i < num_pixel_formats; i++)
+    supported[i] = pixel_format_map[i].pixelformat;
+  supported[num_pixel_formats] = GAVL_PIXELFORMAT_NONE;
+
+  *pfmt = gavl_pixelformat_get_best(*pfmt, supported, NULL);
+  free(supported);
+
+  for(i = 0; i < num_pixel_formats; i++)
+    {
+    if(pixel_format_map[i].pixelformat == *pfmt)
+      return i;
+    }
+  return -1; // Never happens
+  }
+
+static SchroBuffer *pull_buffer(schro_t * s, int * presentation_frame)
+  {
+  SchroStateEnum  state;
+
+  while(1)
+    {
+    state = schro_encoder_wait(s->enc);
+
+    switch(state)
+      {
+      case SCHRO_STATE_HAVE_BUFFER:
+      case SCHRO_STATE_END_OF_STREAM:
+        return schro_encoder_pull(s->enc, presentation_frame);
+        break;
+      case SCHRO_STATE_NEED_FRAME:
+        return NULL;
+      case SCHRO_STATE_AGAIN:
+        break;
+      }
+    }
+  }
+
 
 static gavl_video_sink_t *
 init_schro(void * data, gavl_video_format_t * format,
-            gavl_metadata_t * stream_metadata,
-            gavl_compression_info_t * ci)
+           gavl_metadata_t * stream_metadata,
+           gavl_compression_info_t * ci)
   {
+  int idx;
+  schro_t * s = data;
+  SchroVideoFormat * fmt;
+  SchroBuffer * buf;
+  
+  idx = get_best_pixelformat(&format->pixelformat);
+  
+  fmt = schro_encoder_get_video_format(s->enc);
+  fmt->width = format->image_width;
+  fmt->height = format->image_height;
+  fmt->clean_width = format->image_width;
+  fmt->clean_height = format->image_height;
+  fmt->left_offset = 0;
+  fmt->top_offset = 0;
+
+  fmt->frame_rate_numerator   = format->timescale;
+  fmt->frame_rate_denominator = format->frame_duration;
+
+  fmt->aspect_ratio_numerator   = format->pixel_width;  
+  fmt->aspect_ratio_denominator = format->pixel_height;
+
+  schro_video_format_set_std_signal_range(fmt, pixel_format_map[idx].signal_range);
+  fmt->chroma_format = pixel_format_map[idx].chroma_format;
+  s->frame_format = pixel_format_map[idx].frame_format;
+
+  switch(format->interlace_mode)
+    {
+    case GAVL_INTERLACE_NONE:
+      fmt->interlaced = 0;
+      fmt->top_field_first = 0;
+      break;
+    case GAVL_INTERLACE_TOP_FIRST:
+    case GAVL_INTERLACE_MIXED_TOP:
+      fmt->interlaced = 0;
+      fmt->top_field_first = 1;
+      break;
+    case GAVL_INTERLACE_MIXED_BOTTOM:
+    case GAVL_INTERLACE_BOTTOM_FIRST:
+      fmt->interlaced = 1;
+      fmt->top_field_first = 0;
+      break;
+    case GAVL_INTERLACE_MIXED:
+    case GAVL_INTERLACE_UNKNOWN:
+      break;
+    }
+  
+  schro_encoder_set_video_format(s->enc, fmt);
+  schro_encoder_start(s->enc);
+  
+  ci->id = GAVL_CODEC_ID_DIRAC;
+
+  /* Try to get the sequence header */
+  buf = schro_encoder_encode_sequence_header(s->enc);
+
+  ci->global_header_len = buf->length;
+  ci->global_header = malloc(buf->length);
+  memcpy(ci->global_header, buf->data, buf->length);
+  
+  if(!buf)
+    fprintf(stderr, "Got no sequence header\n");
+  else
+    {
+    fprintf(stderr, "Got sequence header\n");
+    bg_hexdump(buf->data, buf->length, 16);
+    }
+  
   return NULL;
   }
 
@@ -462,6 +741,10 @@ static void convert_packet(bg_ogg_stream_t * s, gavl_packet_t * src, ogg_packet 
 
 static int close_schro(void * data)
   {
+  schro_t * s = data;
+  
+  schro_encoder_free(s->enc);
+  free(s);
   return 0;
   }
 
