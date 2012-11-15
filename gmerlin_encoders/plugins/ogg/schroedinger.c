@@ -717,6 +717,7 @@ init_schro(void * data, gavl_video_format_t * format,
   ci->global_header_len = buf->length;
   ci->global_header = malloc(buf->length);
   memcpy(ci->global_header, buf->data, buf->length);
+  schro_buffer_unref(buf);
   
   if(!buf)
     fprintf(stderr, "Got no sequence header\n");
