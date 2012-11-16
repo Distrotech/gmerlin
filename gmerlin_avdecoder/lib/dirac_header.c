@@ -374,7 +374,7 @@ int bgav_dirac_sequence_header_parse(bgav_dirac_sequence_header_t * ret,
 
   /* Set default video format. Values might be overridden later. */
   
-  if((ret->base_video_format > 0) && 
+  if((ret->base_video_format >= 0) && 
      (ret->base_video_format <= 20))
     {
     ret->width  = video_formats[ret->base_video_format].width;
