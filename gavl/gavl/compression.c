@@ -322,6 +322,14 @@ void gavl_packet_copy_metadata(gavl_packet_t * dst,
   dst->data       = data_save;
   }
 
+static const char * coding_type_strings[4] =
+  {
+  "?",
+  "I",
+  "P",
+  "B"
+  };
+
 void gavl_packet_dump(const gavl_packet_t * p)
   {
   fprintf(stderr, "Packet: sz: %d ", p->data_len);
@@ -333,9 +341,11 @@ void gavl_packet_dump(const gavl_packet_t * p)
 
   fprintf(stderr, "dur: %"PRId64, p->duration);
 
-  fprintf(stderr, " head: %d, f2: %d\n",
+  fprintf(stderr, " head: %d, f2: %d",
           p->header_size, p->field2_offset);
-  
+
+  fprintf(stderr, " type: %s\n", coding_type_strings[p->flags & GAVL_PACKET_TYPE_MASK]);
+          
   hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16);
   
   }
