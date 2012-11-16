@@ -53,6 +53,13 @@ typedef struct
   gavl_packet_sink_t * psink;
   SchroEncoder * enc;
   SchroFrameFormat  frame_format;
+  
+  gavl_video_frame_t * gavl_frame;
+  gavl_video_format_t * gavl_format;
+
+  uint32_t pic_num_max;
+  
+  gavl_packet_t pkt;
   } schro_t;
 
 static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
@@ -64,8 +71,12 @@ static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
 static void * create_schro()
   {
   schro_t * ret;
+
+  schro_init();
+
   ret = calloc(1, sizeof(*ret));
   ret->enc = schro_encoder_new();
+  ret->gavl_frame = gavl_video_frame_create(NULL);
   return ret;
   }
 
@@ -632,28 +643,132 @@ static int get_best_pixelformat(gavl_pixelformat_t * pfmt)
   return -1; // Never happens
   }
 
-static SchroBuffer *pull_buffer(schro_t * s, int * presentation_frame)
+static gavl_sink_status_t flush_data(schro_t * s)
   {
   SchroStateEnum  state;
-
+  SchroBuffer * buf;
+  int presentation_frame;
+  gavl_sink_status_t st;
+  
   while(1)
     {
+    //    fprintf(stderr, "Flush data\n");
+    
     state = schro_encoder_wait(s->enc);
 
     switch(state)
       {
       case SCHRO_STATE_HAVE_BUFFER:
+        {
+        int parse_code;
+
+        buf = schro_encoder_pull(s->enc, &presentation_frame);
+        
+        parse_code = buf->data[4];
+
+        if(SCHRO_PARSE_CODE_IS_PICTURE(parse_code))
+          {
+          uint32_t pic_num;
+          gavl_packet_t * out_pkt;
+          gavl_packet_t pkt;
+          
+          if(s->pkt.data_len) // Have data already
+            {
+            gavl_packet_alloc(&s->pkt, s->pkt.data_len + buf->length);
+            memcpy(s->pkt.data + s->pkt.data_len, buf->data, buf->length);
+            s->pkt.data_len += buf->length;
+            out_pkt = &s->pkt;
+            }
+          else
+            {
+            gavl_packet_init(&pkt);
+            pkt.data_len = buf->length;
+            pkt.data = buf->data;
+            out_pkt = &pkt;
+            }
+          
+          pic_num = GAVL_PTR_2_32BE(buf->data + 13);
+          
+          if(SCHRO_PARSE_CODE_IS_INTRA(parse_code))
+            {
+            out_pkt->flags |= GAVL_PACKET_KEYFRAME;
+            out_pkt->flags |= GAVL_PACKET_TYPE_I;
+            s->pic_num_max = pic_num;
+            }
+          else if(pic_num < s->pic_num_max)
+            out_pkt->flags |= GAVL_PACKET_TYPE_B;
+          else
+            {
+            out_pkt->flags |= GAVL_PACKET_TYPE_P;
+            s->pic_num_max = pic_num;
+            }
+
+          /* TODO: Implement PTS cache so we can support VFR */
+          out_pkt->pts = (int64_t)pic_num * s->gavl_format->frame_duration;
+          out_pkt->duration = s->gavl_format->frame_duration;
+          
+          fprintf(stderr, "Got picture\n");
+          
+          gavl_packet_dump(out_pkt);
+          
+          if((st = gavl_packet_sink_put_packet(s->psink, out_pkt)) != GAVL_SINK_OK)
+            return st;
+          
+          gavl_packet_reset(&s->pkt);
+          }
+        else
+          {
+          gavl_packet_alloc(&s->pkt, s->pkt.data_len + buf->length);
+          memcpy(s->pkt.data + s->pkt.data_len, buf->data, buf->length);
+          s->pkt.data_len += buf->length;
+          if(SCHRO_PARSE_CODE_IS_SEQ_HEADER(parse_code))
+            s->pkt.header_size = s->pkt.data_len;
+          }
+        schro_buffer_unref(buf);
+        }
+        break;
       case SCHRO_STATE_END_OF_STREAM:
-        return schro_encoder_pull(s->enc, presentation_frame);
+        buf = schro_encoder_pull(s->enc, &presentation_frame);
+        fprintf(stderr, "Got EOS %d bytes\n", buf->length);
         break;
       case SCHRO_STATE_NEED_FRAME:
-        return NULL;
+        //      fprintf(stderr, "Need frame\n");
+        return GAVL_SINK_OK;
+        break;
       case SCHRO_STATE_AGAIN:
         break;
       }
     }
+  return GAVL_SINK_OK;
   }
 
+static gavl_video_frame_t * get_frame(void * data)
+  {
+  int i;
+  schro_t * s = data;
+  SchroFrame * frame;
+  frame = schro_frame_new_and_alloc(NULL,
+                                    s->frame_format,
+                                    s->gavl_format->image_width,
+                                    s->gavl_format->image_height);
+
+  for(i = 0; i < 3; i++)
+    {
+    s->gavl_frame->planes[i]    = frame->components[i].data;
+    s->gavl_frame->strides[i] = frame->components[i].stride;
+    }
+  s->gavl_frame->user_data = frame;
+  return s->gavl_frame;
+  }
+
+static gavl_sink_status_t put_frame(void * data, gavl_video_frame_t * f)
+  {
+  schro_t * s = data;
+  // fprintf(stderr, "Put frame %ld\n", f->timestamp);
+  schro_encoder_push_frame(s->enc, f->user_data);
+  f->user_data = NULL;
+  return flush_data(s);
+  }
 
 static gavl_video_sink_t *
 init_schro(void * data, gavl_video_format_t * format,
@@ -718,7 +833,26 @@ init_schro(void * data, gavl_video_format_t * format,
   ci->global_header = malloc(buf->length);
   memcpy(ci->global_header, buf->data, buf->length);
   schro_buffer_unref(buf);
+
+  s->gavl_format = format;
+
+  if(flush_data(s) != GAVL_SINK_OK)
+    return NULL;
+
+#ifdef HAVE_SCHROEDINGER_SCHROVERSION_H
+  gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE,
+                          bg_sprintf("libschroedinger-%d.%d.%d",
+                          SCHRO_VERSION_MAJOR,
+                          SCHRO_VERSION_MINOR,
+                                     SCHRO_VERSION_MICRO));
+#else
+  gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE,
+                          bg_sprintf("libschroedinger"));
+#endif
   
+  return  gavl_video_sink_create(get_frame, put_frame, s, format);
+  
+#if 0  
   if(!buf)
     fprintf(stderr, "Got no sequence header\n");
   else
@@ -726,13 +860,12 @@ init_schro(void * data, gavl_video_format_t * format,
     fprintf(stderr, "Got sequence header\n");
     bg_hexdump(buf->data, buf->length, 16);
     }
-  
-  return NULL;
+#endif
   }
 
 static int init_compressed_schro(bg_ogg_stream_t * s)
   {
-  return 0;
+  return 1;
   }
 
 static void convert_packet(bg_ogg_stream_t * s, gavl_packet_t * src, ogg_packet * dst)

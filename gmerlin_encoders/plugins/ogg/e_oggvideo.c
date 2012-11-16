@@ -203,8 +203,8 @@ open_oggvideo(void * data, const char * file,
   }
 
 static int writes_compressed_audio_oggvideo(void* data,
-                                   const gavl_audio_format_t * format,
-                                   const gavl_compression_info_t * ci)
+                                            const gavl_audio_format_t * format,
+                                            const gavl_compression_info_t * ci)
   {
   if(ci->id == GAVL_CODEC_ID_VORBIS)
     return 1;
@@ -213,8 +213,8 @@ static int writes_compressed_audio_oggvideo(void* data,
   }
 
 static int writes_compressed_video_oggvideo(void * data,
-                                   const gavl_video_format_t * format,
-                                   const gavl_compression_info_t * ci)
+                                            const gavl_video_format_t * format,
+                                            const gavl_compression_info_t * ci)
   {
   if(ci->id == GAVL_CODEC_ID_THEORA)
     return 1;
