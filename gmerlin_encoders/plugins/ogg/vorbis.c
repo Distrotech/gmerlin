@@ -307,9 +307,9 @@ write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
 
 
 static gavl_audio_sink_t * init_vorbis(void * data,
+                                       gavl_compression_info_t * ci_ret,
                                        gavl_audio_format_t * format,
-                                       gavl_metadata_t * stream_metadata,
-                                       gavl_compression_info_t * ci_ret)
+                                       gavl_metadata_t * stream_metadata)
   {
   ogg_packet header_main;
   ogg_packet header_comments;

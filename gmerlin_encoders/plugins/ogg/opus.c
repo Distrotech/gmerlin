@@ -32,7 +32,6 @@
 
 #include <gavl/metatags.h>
 
-#include <ogg/ogg.h>
 #include "ogg_common.h"
 
 #include <opus.h>
@@ -413,9 +412,9 @@ write_audio_frame_opus(void * data, gavl_audio_frame_t * frame)
 
 
 static gavl_audio_sink_t *
-init_opus(void * data, gavl_audio_format_t * format,
-          gavl_metadata_t * stream_metadata,
-          gavl_compression_info_t * ci)
+init_opus(void * data, gavl_compression_info_t * ci,
+          gavl_audio_format_t * format,
+          gavl_metadata_t * stream_metadata)
   {
   int err;
   opus_t * opus = data;

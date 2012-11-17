@@ -24,8 +24,6 @@
 #include <string.h>
 #include <errno.h>
 
-#include <ogg/ogg.h>
-
 #include <config.h>
 
 #include <gmerlin/translation.h>
@@ -422,8 +420,8 @@ static int start_audio(bg_ogg_encoder_t * e, int stream)
     }
   else
     {
-    if(!(s->asink = s->codec->init_audio(s->codec_priv,
-                                         &s->afmt, &s->m_stream, &s->ci)))
+    if(!(s->asink = s->codec->init_audio(s->codec_priv, &s->ci,
+                                         &s->afmt, &s->m_stream)))
       return 0;
     
     if(s->ci.id != GAVL_CODEC_ID_NONE)
@@ -448,9 +446,9 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
     }
   else
     {
-    if(!(s->vsink = s->codec->init_video(s->codec_priv,
+    if(!(s->vsink = s->codec->init_video(s->codec_priv, &s->ci,
                                          &s->vfmt,
-                                         &s->m_stream, &s->ci)))
+                                         &s->m_stream)))
       return 0;
     
     if(s->pass)

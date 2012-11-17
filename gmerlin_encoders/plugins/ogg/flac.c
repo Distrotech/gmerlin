@@ -35,7 +35,6 @@
 #include <gavl/numptr.h>
 
 
-#include <ogg/ogg.h>
 #include "ogg_common.h"
 
 #include <bgflac.h>
@@ -194,9 +193,9 @@ static void set_parameter_flacogg(void * data, const char * name,
   }
 
 static gavl_audio_sink_t *
-init_flacogg(void * data, gavl_audio_format_t * format,
-             gavl_metadata_t * stream_metadata,
-             gavl_compression_info_t * ci)
+init_flacogg(void * data, gavl_compression_info_t * ci,
+             gavl_audio_format_t * format,
+             gavl_metadata_t * stream_metadata)
   {
   flacogg_t * flacogg = data;
   return bg_flac_start_uncompressed(flacogg->enc, format, ci, stream_metadata);

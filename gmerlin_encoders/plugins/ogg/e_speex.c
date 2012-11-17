@@ -30,7 +30,6 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
-#include <ogg/ogg.h>
 #include "ogg_common.h"
 
 extern const bg_ogg_codec_t bg_speex_codec;

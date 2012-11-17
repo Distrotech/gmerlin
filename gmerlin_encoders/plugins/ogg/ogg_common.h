@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <ogg/ogg.h>
+
 /* Generic struct for a codec. Here, we'll implement
    encoders for vorbis, theora, speex and flac */
 
@@ -38,13 +40,13 @@ typedef struct
   const bg_parameter_info_t * (*get_parameters)();
   void (*set_parameter)(void*, const char * name, const bg_parameter_value_t * v);
 
-  gavl_audio_sink_t * (*init_audio)(void*, gavl_audio_format_t * format,
-                                    gavl_metadata_t * stream_metadata,
-                                    gavl_compression_info_t * ci_ret);
+  gavl_audio_sink_t * (*init_audio)(void*, gavl_compression_info_t * ci_ret,
+                                    gavl_audio_format_t * format,
+                                    gavl_metadata_t * stream_metadata);
 
-  gavl_video_sink_t * (*init_video)(void*, gavl_video_format_t * format,
-                                    gavl_metadata_t * stream_metadata,
-                                    gavl_compression_info_t * ci_ret);
+  gavl_video_sink_t * (*init_video)(void*, gavl_compression_info_t * ci_ret,
+                                    gavl_video_format_t * format,
+                                    gavl_metadata_t * stream_metadata);
 
   int (*init_audio_compressed)(bg_ogg_stream_t * s);
   int (*init_video_compressed)(bg_ogg_stream_t * s);

@@ -28,7 +28,6 @@
 #include <gavl/metatags.h>
 #include <gavl/numptr.h>
 
-
 #include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/pluginfuncs.h>
@@ -432,9 +431,9 @@ write_video_frame_theora(void * data, gavl_video_frame_t * frame)
 
 
 static gavl_video_sink_t *
-init_theora(void * data, gavl_video_format_t * format,
-            gavl_metadata_t * stream_metadata,
-            gavl_compression_info_t * ci)
+init_theora(void * data, gavl_compression_info_t * ci,
+            gavl_video_format_t * format,
+            gavl_metadata_t * stream_metadata)
   {
   int sub_h, sub_v;
   int arg_i1, arg_i2;

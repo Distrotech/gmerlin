@@ -38,7 +38,6 @@
 #include <speex/speex_stereo.h>
 #include <speex/speex_callbacks.h>
 
-#include <ogg/ogg.h>
 #include "ogg_common.h"
 
 /* Newer speex version (1.1.x) don't have this */
@@ -298,7 +297,7 @@ static int encode_frame(speex_t * speex)
 
 static int flush(speex_t * speex)
   {
-  if(!speex->frame->valid_samples)
+  if(!speex->frame || !speex->frame->valid_samples)
     return 1;
   
   if(!encode_frame(speex))
@@ -374,9 +373,9 @@ write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
 
 
 static gavl_audio_sink_t * init_speex(void * data,
+                                      gavl_compression_info_t * ci,
                                       gavl_audio_format_t * format,
-                                      gavl_metadata_t * stream_metadata,
-                                      gavl_compression_info_t * ci)
+                                      gavl_metadata_t * stream_metadata)
   {
   float quality_f;
   const SpeexMode *mode=NULL;
@@ -503,9 +502,12 @@ static int close_speex(void * data)
 
   if(!flush(speex))
     ret = 0;
-  
-  gavl_audio_frame_destroy(speex->frame);
-  speex_encoder_destroy(speex->enc);
+
+  if(speex->frame)
+    gavl_audio_frame_destroy(speex->frame);
+
+  if(speex->enc)
+    speex_encoder_destroy(speex->enc);
   speex_bits_destroy(&speex->bits);
   
   free(speex);

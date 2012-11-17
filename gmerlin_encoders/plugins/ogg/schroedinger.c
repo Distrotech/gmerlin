@@ -44,7 +44,6 @@
 #define SCHRO_CHECK_VERSION(a,b,c) 0
 #endif
 
-#include <ogg/ogg.h>
 #include "ogg_common.h"
 
 
@@ -67,6 +66,8 @@ typedef struct
   
   int64_t decode_frame_number;
   int distance_from_sync;
+
+  int started;
   
   } schro_t;
 
@@ -782,9 +783,9 @@ static gavl_sink_status_t put_frame(void * data, gavl_video_frame_t * f)
   }
 
 static gavl_video_sink_t *
-init_schro(void * data, gavl_video_format_t * format,
-           gavl_metadata_t * stream_metadata,
-           gavl_compression_info_t * ci)
+init_schro(void * data, gavl_compression_info_t * ci,
+           gavl_video_format_t * format,
+           gavl_metadata_t * stream_metadata)
   {
   int idx;
   schro_t * s = data;
@@ -877,6 +878,8 @@ init_schro(void * data, gavl_video_format_t * format,
     bg_hexdump(buf->data, buf->length, 16);
     }
 #endif
+
+  s->started = 1;
   }
 
 static int init_compressed_schro(bg_ogg_stream_t * s)
@@ -944,14 +947,16 @@ static int close_schro(void * data)
   int ret = 1;
   schro_t * s = data;
 
-  fprintf(stderr, "close_schro\n");
+  //   fprintf(stderr, "close_schro\n");
   
   /* Flush stuff */
-  schro_encoder_end_of_stream(s->enc);
-
-  if(flush_data(s) != GAVL_SINK_OK)
-    ret = 0;
   
+  if(s->started)
+    {
+    schro_encoder_end_of_stream(s->enc);
+    if(flush_data(s) != GAVL_SINK_OK)
+      ret = 0;
+    }
   schro_encoder_free(s->enc);
   free(s);
   return ret;

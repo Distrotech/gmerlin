@@ -228,7 +228,7 @@ const bg_encoder_plugin_t the_plugin =
     {
       BG_LOCALE,
       .name =            "e_oggvideo",       /* Unique short name */
-      .long_name =       TRS("Oggvideo encoder"),
+      .long_name =       TRS("Ogg A/V encoder"),
       .description =     TRS("Generic encoder for Ogg A/V files."),
       .type =            BG_PLUGIN_ENCODER,
       .flags =           BG_PLUGIN_FILE,
