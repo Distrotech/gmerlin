@@ -60,6 +60,14 @@ typedef struct
   uint32_t pic_num_max;
   
   gavl_packet_t pkt;
+
+  bg_encoder_framerate_t fr;
+
+  /* Granulepos calculation, used only for Ogg streams */
+  
+  int64_t decode_frame_number;
+  int distance_from_sync;
+  
   } schro_t;
 
 static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
@@ -525,6 +533,7 @@ static const bg_parameter_info_t parameters[] =
     .val_max = { .val_i = 6 },
     .val_default = { .val_i = 3 },
     },
+    BG_ENCODER_FRAMERATE_PARAMS,
     { /* End of parameters */ }
   };
 
@@ -543,10 +552,12 @@ static void set_parameter_schro(void * data, const char * name,
 
   if(!name)
     return;
-  
-  if(strncmp(name, "schro_", 6))
-    return;
 
+  else if(bg_encoder_set_framerate_parameter(&s->fr, name, v))
+    return;
+  else if(strncmp(name, "schro_", 6))
+    return;
+  
   i = 0;
   while(parameters[i].name)
     {
@@ -703,12 +714,10 @@ static gavl_sink_status_t flush_data(schro_t * s)
             s->pic_num_max = pic_num;
             }
 
-          /* TODO: Implement PTS cache so we can support VFR */
           out_pkt->pts = (int64_t)pic_num * s->gavl_format->frame_duration;
           out_pkt->duration = s->gavl_format->frame_duration;
           
           fprintf(stderr, "Got picture\n");
-          
           gavl_packet_dump(out_pkt);
           
           if((st = gavl_packet_sink_put_packet(s->psink, out_pkt)) != GAVL_SINK_OK)
@@ -730,6 +739,8 @@ static gavl_sink_status_t flush_data(schro_t * s)
       case SCHRO_STATE_END_OF_STREAM:
         buf = schro_encoder_pull(s->enc, &presentation_frame);
         fprintf(stderr, "Got EOS %d bytes\n", buf->length);
+        schro_buffer_unref(buf);
+        return GAVL_SINK_OK;
         break;
       case SCHRO_STATE_NEED_FRAME:
         //      fprintf(stderr, "Need frame\n");
@@ -780,6 +791,8 @@ init_schro(void * data, gavl_video_format_t * format,
   SchroVideoFormat * fmt;
   SchroBuffer * buf;
   
+  bg_encoder_set_framerate(&s->fr, format);
+  
   idx = get_best_pixelformat(&format->pixelformat);
   
   fmt = schro_encoder_get_video_format(s->enc);
@@ -826,6 +839,9 @@ init_schro(void * data, gavl_video_format_t * format,
   
   ci->id = GAVL_CODEC_ID_DIRAC;
 
+  /* TODO: Figure out the true values. Currently we assume the worst */
+  ci->flags = GAVL_COMPRESSION_HAS_P_FRAMES | GAVL_COMPRESSION_HAS_B_FRAMES;
+    
   /* Try to get the sequence header */
   buf = schro_encoder_encode_sequence_header(s->enc);
 
@@ -865,21 +881,80 @@ init_schro(void * data, gavl_video_format_t * format,
 
 static int init_compressed_schro(bg_ogg_stream_t * s)
   {
+  ogg_packet packet;
+  schro_t * sch = s->codec_priv;
+
+  memset(&packet, 0, sizeof(packet));
+
+  /*
+   *  Copy the sequence header verbatim.
+   *  According to the mapping spec, we SHOULD inset
+   *  an EOS unit after that, but noone else seems to
+   *  do that either.
+   */
+  
+  packet.packet = s->ci.global_header;
+  packet.bytes  = s->ci.global_header_len;
+
+  if(!bg_ogg_stream_write_header_packet(s, &packet))
+    return 0;
+
+  sch->decode_frame_number = -1;
+
+  /* Flush stream after each packet as
+     mandated by the Dirac mapping specification */  
+  s->flags |= STREAM_FORCE_FLUSH;
   return 1;
   }
 
 static void convert_packet(bg_ogg_stream_t * s, gavl_packet_t * src, ogg_packet * dst)
   {
+  int64_t granulepos_hi;
+  int64_t granulepos_low;
+
+  int64_t pt, dt, dist, delay;
   
+  int64_t presentation_frame_number;
+  schro_t * sch = s->codec_priv;
+  
+  /* Convert the granulepos */
+  
+  presentation_frame_number = src->pts / sch->gavl_format->frame_duration;
+
+  if(src->flags & GAVL_PACKET_KEYFRAME)
+    sch->distance_from_sync = 0;
+  else
+    sch->distance_from_sync++;
+
+  pt = presentation_frame_number * 2;
+  dt = sch->decode_frame_number * 2;
+  delay = pt - dt;
+  dist = sch->distance_from_sync;
+
+  granulepos_hi = ((pt - delay)<<9) | ((dist>>8));
+  granulepos_low = (delay << 9) | (dist & 0xff);
+  
+  dst->granulepos = (granulepos_hi << 22) | (granulepos_low);
+  
+  sch->decode_frame_number++;
   }
 
 static int close_schro(void * data)
   {
+  int ret = 1;
   schro_t * s = data;
+
+  fprintf(stderr, "close_schro\n");
+  
+  /* Flush stuff */
+  schro_encoder_end_of_stream(s->enc);
+
+  if(flush_data(s) != GAVL_SINK_OK)
+    ret = 0;
   
   schro_encoder_free(s->enc);
   free(s);
-  return 0;
+  return ret;
   }
 
 const bg_ogg_codec_t bg_schroedinger_codec =

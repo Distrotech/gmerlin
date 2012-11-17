@@ -460,10 +460,7 @@ init_theora(void * data, gavl_video_format_t * format,
   theora->ti.aspect_denominator = format->pixel_height;
 
   format->interlace_mode = GAVL_INTERLACE_NONE;
-
     
-  // format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
-  
   format->frame_width  = theora->ti.frame_width;
   format->frame_height = theora->ti.frame_height;
   
@@ -542,6 +539,7 @@ init_theora(void * data, gavl_video_format_t * format,
   /* Encode initial packets */
 
   ci->id = GAVL_CODEC_ID_THEORA;
+  ci->flags = GAVL_COMPRESSION_HAS_P_FRAMES;
   
   header_packets = 0;
 

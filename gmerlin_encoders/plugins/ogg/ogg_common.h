@@ -25,6 +25,9 @@
 typedef struct bg_ogg_encoder_s bg_ogg_encoder_t;
 typedef struct bg_ogg_stream_s bg_ogg_stream_t;
 
+#define STREAM_FORCE_FLUSH (1<<0)
+#define STREAM_COMPRESSED  (1<<1)
+
 typedef struct
   {
   char * name;
@@ -77,7 +80,7 @@ struct bg_ogg_stream_s
   
   ogg_stream_state os;
 
-  int compressed;
+  int flags;
   
   /* 2-pass stuff */
   int pass;

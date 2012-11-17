@@ -148,7 +148,7 @@ static int bg_ogg_stream_flush_page(bg_ogg_stream_t * s, int force)
   int result;
   ogg_page og;
   memset(&og, 0, sizeof(og));
-  if(force)
+  if(force || (s->flags & STREAM_FORCE_FLUSH))
     result = ogg_stream_flush(&s->os,&og);
   else
     result = ogg_stream_pageout(&s->os,&og);
@@ -344,7 +344,7 @@ bg_ogg_encoder_add_audio_stream_compressed(void * data,
   s = bg_ogg_encoder_add_audio_stream(data, m, format);
   gavl_metadata_copy(&s->m_stream, m);
   gavl_compression_info_copy(&s->ci, ci);
-  s->compressed = 1;
+  s->flags |= STREAM_COMPRESSED;
   return s;
   }
 
@@ -358,7 +358,7 @@ bg_ogg_encoder_add_video_stream_compressed(void * data,
   s = bg_ogg_encoder_add_video_stream(data, m, format);
   gavl_metadata_copy(&s->m_stream, m);
   gavl_compression_info_copy(&s->ci, ci);
-  s->compressed = 1;
+  s->flags |= STREAM_COMPRESSED;
   return s;
   }
 
@@ -415,7 +415,7 @@ static int start_audio(bg_ogg_encoder_t * e, int stream)
   {
   bg_ogg_stream_t * s = &e->audio_streams[stream];
 
-  if(s->compressed)
+  if(s->flags & STREAM_COMPRESSED)
     {
     if(!s->codec->init_audio_compressed(s))
       return 0;
@@ -441,7 +441,7 @@ static int start_video(bg_ogg_encoder_t * e, int stream)
   {
   bg_ogg_stream_t * s = &e->video_streams[stream];
   
-  if(s->compressed)
+  if(s->flags & STREAM_COMPRESSED)
     {
     if(!s->codec->init_video_compressed(s))
       return 0;
