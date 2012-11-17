@@ -40,6 +40,8 @@
 #include <gmerlin/singlepic.h>
 #include <gmerlin/mediafiledevice.h>
 
+#include <gavfenc.h>
+
 #include <gmerlin/translation.h>
 
 #include <gmerlin/log.h>
@@ -94,6 +96,12 @@ meta_plugins[] =
       bg_ovl2text_info,
       bg_ovl2text_get,
       bg_ovl2text_create,
+    },
+    {
+      bg_gavfenc_name,
+      bg_gavfenc_info,
+      bg_gavfenc_get,
+      bg_gavfenc_create,
     },
     { /* End */ }
   };

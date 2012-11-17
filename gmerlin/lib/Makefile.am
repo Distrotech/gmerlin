@@ -85,6 +85,7 @@ encoder.c \
 fileformat.c \
 formats.c \
 frametimer.c \
+gavfenc.c \
 hexdump.c \
 language_table.c \
 lcdproc.c \

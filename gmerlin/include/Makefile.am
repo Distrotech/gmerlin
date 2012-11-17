@@ -14,6 +14,7 @@ bgladspa.h \
 bgshm.h \
 float_cast.h \
 frei0r.h \
+gavfenc.h \
 ladspa.h \
 language_table.h \
 md5.h \
