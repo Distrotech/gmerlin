@@ -178,8 +178,8 @@ static int init_theora(bgav_stream_t * s)
   /* Create frame */
   priv->frame = gavl_video_frame_create(NULL);
 
-  if(!priv->offset_x && !priv->offset_y)
-    s->data.video.frame = priv->frame;
+  //  if(!priv->offset_x && !priv->offset_y)
+  s->data.video.frame = priv->frame;
   
   gavl_metadata_set_nocpy(&s->m, GAVL_META_FORMAT,
                            bgav_sprintf("Theora (Version %d.%d.%d)",
@@ -235,13 +235,15 @@ decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
   bgav_set_video_frame_from_packet(p, priv->frame);
   
   /* Copy the frame */
-  
+#if 0  
   if(!priv->offset_x && !priv->offset_y && frame)
     {
     gavl_video_frame_copy_metadata(frame, priv->frame);
     gavl_video_frame_copy(&s->data.video.format,
                           frame, priv->frame);
     }
+#endif
+  
   bgav_stream_done_packet_read(s, p);
   return GAVL_SOURCE_OK;
   }
