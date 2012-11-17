@@ -94,6 +94,8 @@ parsers[] =
     { BGAV_MK_FOURCC('d', 'r', 'a', 'c'), bgav_video_parser_init_dirac },
     { BGAV_MK_FOURCC('m', 'j', 'p', 'a'), bgav_video_parser_init_mjpa },
     { BGAV_MK_FOURCC('j', 'p', 'e', 'g'), bgav_video_parser_init_jpeg },
+    { BGAV_MK_FOURCC('B', 'B', 'C', 'D'), bgav_video_parser_init_dirac },
+    
   };
 
 int bgav_video_parser_supported(uint32_t fourcc)
@@ -559,9 +561,10 @@ static int parse_frame(bgav_video_parser_t * parser,
 
   if(ret)
     process_packet(parser, p, p->pts);
-  
-  if(PACKET_GET_SKIP(p))
-    return ret;
+
+  // Unneccesary?
+  //  if(PACKET_GET_SKIP(p))
+  //    return ret;
   
   return ret;
   }

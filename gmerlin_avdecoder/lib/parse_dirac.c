@@ -36,6 +36,10 @@ typedef struct
   bgav_dirac_sequence_header_t sh;
   int have_sh;
   int64_t pic_num_max;
+
+  int64_t pic_num_first;
+  int64_t pts_first;
+  
   } dirac_priv_t;
 
 static void cleanup_dirac(bgav_video_parser_t * parser)
@@ -114,6 +118,9 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
       case DIRAC_CODE_SEQUENCE:
         if(!priv->have_sh)
           {
+          if(!parser->s->ext_data)
+            bgav_stream_set_extradata(parser->s, start, len);
+          
           if(!bgav_dirac_sequence_header_parse(&priv->sh,
                                                start, end - start))
             return PARSER_ERROR;
@@ -133,6 +140,17 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
           return PARSER_ERROR;
         //        bgav_dirac_picture_header_dump(&ph);
 
+        if(priv->pic_num_first < 0)
+          {
+          priv->pic_num_first = ph.pic_num;
+          priv->pts_first = p->pts;
+          }
+
+        /* Generate true timestamp from picture counter */
+        p->pts = (ph.pic_num - priv->pic_num_first) *
+          parser->s->data.video.format.frame_duration + priv->pts_first;
+        p->duration = parser->s->data.video.format.frame_duration;
+        
         if(ph.num_refs == 0)
           {
           PACKET_SET_CODING_TYPE(p, BGAV_CODING_TYPE_I);
@@ -151,7 +169,7 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
         if(p->duration <= 0)
           p->duration = priv->sh.frame_duration;
         
-        return PARSER_HAVE_PACKET;
+        return 1;
         break;
       case DIRAC_CODE_END:
         fprintf(stderr, "Dirac code end %d\n", len);
@@ -168,6 +186,23 @@ void bgav_video_parser_init_dirac(bgav_video_parser_t * parser)
   dirac_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   parser->priv        = priv;
+
+  if(parser->s->ext_data)
+    {
+    if(bgav_dirac_sequence_header_parse(&priv->sh,
+                                        parser->s->ext_data,
+                                        parser->s->ext_size))
+      {
+      priv->have_sh = 1;
+      set_format(parser);
+      fprintf(stderr, "Got sequence header:\n");
+      bgav_dirac_sequence_header_dump(&priv->sh);
+      }
+    }
+
+  priv->pic_num_first = -1;
+  priv->pts_first = GAVL_TIME_UNDEFINED;
+  
   priv->pic_num_max = -1;
   //  parser->parse       = parse_dirac;
   parser->parse_frame = parse_frame_dirac;

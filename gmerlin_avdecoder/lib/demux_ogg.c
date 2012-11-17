@@ -734,9 +734,14 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
           dirac_header.timescale      = 24;
           dirac_header.frame_duration =  1;
           }
+
+        s->flags |= STREAM_PARSE_FRAME;
+        
         s->data.video.format.timescale = dirac_header.timescale;
         s->data.video.format.frame_duration = dirac_header.frame_duration;
 
+        bgav_stream_set_extradata(s, priv->op.packet, priv->op.bytes);
+        
         if(dirac_header.picture_coding_mode == 1)
           ogg_stream->interlaced_coding = 1;
         
@@ -1746,7 +1751,7 @@ static int is_data_packet(ogg_t * op, bgav_stream_t * s, ogg_packet * p)
       len -= next;
 
       if(!len)
-        return 1;
+        return 0;
       
       code = bgav_dirac_get_code(ptr, len, &next);
       if(code != DIRAC_CODE_END)
