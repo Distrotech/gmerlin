@@ -32,7 +32,8 @@ typedef struct
   bgav_packet_t * p;
   } gavf_video_t;
 
-static gavl_source_status_t decode_frame_gavf_video(bgav_stream_t * s, gavl_video_frame_t * frame)
+static gavl_source_status_t
+decode_frame_gavf_video(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   gavl_source_status_t st;  
   gavl_packet_t gp;
@@ -51,7 +52,7 @@ static gavl_source_status_t decode_frame_gavf_video(bgav_stream_t * s, gavl_vide
   gp.data_len = priv->p->data_size;
   
   gavf_packet_to_video_frame(&gp, priv->frame, &s->data.video.format);
-  bgav_set_video_frame_from_packet(priv->p, frame);
+  bgav_set_video_frame_from_packet(priv->p, priv->frame);
   return GAVL_SOURCE_OK;
   }
 
