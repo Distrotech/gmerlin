@@ -453,12 +453,8 @@ bg_gavf_add_audio_stream_compressed(void * data,
   {
   audio_stream_t * s;
   bg_gavf_t * f = data;
-
   s = append_audio_stream(f, m, format);
   gavl_compression_info_copy(&s->com.ci, info);
-  
-  f->audio_streams[f->num_audio_streams].com.index =
-    gavf_add_audio_stream(f->enc, info, format, m);
   return f->num_audio_streams-1;
   }
 
@@ -663,6 +659,7 @@ bg_gavf_close(void * data, int do_delete)
     text_stream_t * s = priv->text_streams + i;
     free_stream_common(&s->com);
     }
+  
   priv->num_audio_streams = 0;
   priv->num_video_streams = 0;
   priv->num_text_streams = 0;
