@@ -283,7 +283,7 @@ void gavl_packet_reset(gavl_packet_t * p)
   
   p->data_alloc = data_alloc_save;
   p->data       = data_save;
-  
+  p->timecode   = GAVL_TIMECODE_UNDEFINED;
   }
 
 void gavl_packet_copy(gavl_packet_t * dst,

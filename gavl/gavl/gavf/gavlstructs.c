@@ -212,6 +212,14 @@ int gavf_read_video_format(gavf_io_t * io, gavl_video_format_t * format)
            !gavf_io_read_uint32v(io, &format->frame_height))
           return 0;
         break;
+      case GAVF_EXT_VF_TC_RATE:
+        if(!gavf_io_read_uint32v(io, &format->timecode_format.int_framerate))
+          return 0;
+        break;
+      case GAVF_EXT_VF_TC_FLAGS:
+        if(!gavf_io_read_uint32v(io, &format->timecode_format.flags))
+          return 0;
+        break;
       default:
         /* Skip */
         gavf_io_skip(io, eh.len);
@@ -262,6 +270,13 @@ int gavf_write_video_format(gavf_io_t * io, const gavl_video_format_t * format)
      (format->frame_width != format->frame_height))
     num_extensions++;
 
+  if(format->timecode_format.int_framerate)
+    {
+    num_extensions++;
+    if(format->timecode_format.flags)
+      num_extensions++;
+    }
+  
   /* Write extensions */
 
   if(!gavf_io_write_uint32v(io, num_extensions))
@@ -311,6 +326,25 @@ int gavf_write_video_format(gavf_io_t * io, const gavl_video_format_t * format)
                              buf.len, buf.buf))
       return 0;
     }
+
+  if(format->timecode_format.int_framerate)
+    {
+    buf.len = 0;
+    if(!gavf_io_write_uint32v(&bufio, format->timecode_format.int_framerate) ||
+       !gavf_extension_write(io, GAVF_EXT_VF_TC_RATE,
+                             buf.len, buf.buf))
+      return 0;
+    
+    if(format->timecode_format.flags)
+      {
+      buf.len = 0;
+      if(!gavf_io_write_uint32v(&bufio, format->timecode_format.flags) ||
+         !gavf_extension_write(io, GAVF_EXT_VF_TC_FLAGS,
+                               buf.len, buf.buf))
+        return 0;
+      }
+    }
+
   
   return 1;
   }
@@ -545,6 +579,14 @@ int gavf_read_gavl_packet(gavf_io_t * io,
           if(!gavf_io_read_uint32v(io, &p->header_size))
             return 0;
           break;
+        case GAVF_EXT_PK_SEQ_END:
+          if(!gavf_io_read_uint32v(io, &p->sequence_end_pos))
+            return 0;
+          break;
+        case GAVF_EXT_PK_TIMECODE:
+          if(!gavf_io_read_uint64f(io, &p->timecode))
+            return 0;
+          break;
         default:
           /* Skip */
           gavf_io_skip(io, eh.len);
@@ -601,6 +643,7 @@ int gavf_write_gavl_packet(gavf_io_t * io,
   header_size      = p->header_size;
   data_ptr         = p->data;
   
+  
   /* Check if we can remove redundant headers */
   if(header_size)
     {
@@ -633,6 +676,13 @@ int gavf_write_gavl_packet(gavf_io_t * io,
 
   if(header_size)
     num_extensions++;
+
+  if(sequence_end_pos)
+    num_extensions++;
+
+  if(p->timecode != GAVL_TIMECODE_UNDEFINED)
+    num_extensions++;
+    
   
   /* Flags */
 
@@ -697,6 +747,25 @@ int gavf_write_gavl_packet(gavf_io_t * io,
                                buf.len, buf.buf))
         return 0;
       }
+    if(sequence_end_pos)
+      {
+      buf.len = 0;
+      if(!gavf_io_write_uint32v(&bufio, sequence_end_pos) ||
+         !gavf_extension_write(io, GAVF_EXT_PK_SEQ_END,
+                               buf.len, buf.buf))
+        return 0;
+      }
+
+    if(p->timecode != GAVL_TIMECODE_UNDEFINED)
+      {
+      buf.len = 0;
+      if(!gavf_io_write_uint64f(&bufio, p->timecode) ||
+         !gavf_extension_write(io, GAVF_EXT_PK_TIMECODE,
+                               buf.len, buf.buf))
+        return 0;
+      
+      }
+
     }
   
   /* Payload */

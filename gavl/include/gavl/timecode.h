@@ -58,8 +58,8 @@ typedef uint64_t gavl_timecode_t; //!< Typedef for timecodes
   
 typedef struct
   {
-  int int_framerate; //!< Integer framerate. A value of zero signals, that no timecodes are available.
-  int flags;         //!< Zero or more of the flags defined above
+  uint32_t int_framerate; //!< Integer framerate. A value of zero signals, that no timecodes are available.
+  uint32_t flags;         //!< Zero or more of the flags defined above
   } gavl_timecode_format_t;
 
 /*!

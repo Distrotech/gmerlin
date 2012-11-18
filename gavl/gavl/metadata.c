@@ -378,6 +378,7 @@ static const char * compression_fields[] =
 static void
 delete_fields(gavl_metadata_t * m, const char * fields[])
   {
+  int found;
   int i, j;
 
   i = 0;
@@ -385,16 +386,20 @@ delete_fields(gavl_metadata_t * m, const char * fields[])
     {
     j = 0;
 
+    found = 0;
+    
     while(fields[j])
       {
       if(!strcmp(fields[j], m->tags[i].key))
         {
         gavl_metadata_set(m, fields[j], NULL);
+        found = 1;
         break;
         }
       j++;
       }
-    i++;
+    if(!found)
+      i++;
     }
   }
 

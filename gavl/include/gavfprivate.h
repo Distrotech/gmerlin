@@ -251,6 +251,8 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 #define GAVF_EXT_VF_PIXEL_ASPECT    1
 #define GAVF_EXT_VF_INTERLACE       2
 #define GAVF_EXT_VF_FRAME_SIZE      3
+#define GAVF_EXT_VF_TC_RATE         4
+#define GAVF_EXT_VF_TC_FLAGS        5
 
 /* Compresson info */
 
@@ -264,6 +266,7 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 #define GAVF_EXT_PK_DURATION         0
 #define GAVF_EXT_PK_HEADER_SIZE      1
 #define GAVF_EXT_PK_SEQ_END          2
+#define GAVF_EXT_PK_TIMECODE         3
 
 /* File index */
 
