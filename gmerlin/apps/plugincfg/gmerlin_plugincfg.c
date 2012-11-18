@@ -42,6 +42,9 @@ typedef struct
   bg_gtk_plugin_widget_single_t * video_recorder_plugins;
 
   bg_gtk_plugin_widget_multi_t  * decompressor_plugins;
+
+  bg_gtk_plugin_widget_single_t * audio_compressor_plugins;
+  bg_gtk_plugin_widget_single_t * video_compressor_plugins;
   
   bg_gtk_plugin_widget_single_t * audio_encoder_plugins;
   bg_gtk_plugin_widget_single_t * video_encoder_plugins;
@@ -294,6 +297,16 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                        BG_PLUGIN_PLAYBACK);
   bg_gtk_plugin_widget_single_set_change_callback(ret->video_output_plugins, set_video_output, ret);
 
+  ret->audio_compressor_plugins =
+    bg_gtk_plugin_widget_single_create(TR("Audio"), reg,
+                                       BG_PLUGIN_CODEC,
+                                       BG_PLUGIN_AUDIO_COMPRESSOR);
+  
+  ret->video_compressor_plugins =
+    bg_gtk_plugin_widget_single_create("Video", reg,
+                                       BG_PLUGIN_CODEC,
+                                       BG_PLUGIN_VIDEO_COMPRESSOR);
+  
   
   ret->audio_recorder_plugins =
     bg_gtk_plugin_widget_single_create("Audio", reg,
@@ -436,7 +449,30 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                            bg_gtk_plugin_widget_multi_get_widget(ret->visualizations),
                            label);
 
+  /* Compressors */
+  
+  table = gtk_table_new(1, 1, 0);
+  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
+  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+  row = 0;
+  num_columns = 0;
 
+  bg_gtk_plugin_widget_single_attach(ret->audio_compressor_plugins,
+                                     table,
+                                     &row, &num_columns);
+  bg_gtk_plugin_widget_single_attach(ret->video_compressor_plugins,
+                                     table,
+                                     &row, &num_columns);
+
+  gtk_widget_show(table);
+  
+  label = gtk_label_new(TR("Compressors"));
+  gtk_widget_show(label);
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           table, label);
+  
   /* Decompressors */
 
   ret->decompressor_plugins =

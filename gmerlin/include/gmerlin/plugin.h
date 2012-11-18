@@ -2463,7 +2463,7 @@ struct bg_codec_plugin_s
   
   gavl_audio_sink_t * (*open_encode_audio)(void * priv,
                                            gavl_compression_info_t * ci,
-                                           const gavl_audio_format_t * fmt,
+                                           gavl_audio_format_t * fmt,
                                            gavl_metadata_t * m);
   
   /** \brief Connect video encoder
@@ -2476,7 +2476,7 @@ struct bg_codec_plugin_s
   
   gavl_video_sink_t * (*open_encode_video)(void * priv,
                                            gavl_compression_info_t * ci,
-                                           const gavl_video_format_t * fmt,
+                                           gavl_video_format_t * fmt,
                                            gavl_metadata_t * m);
 
   /** \brief Set a packet sink
@@ -2539,15 +2539,7 @@ struct bg_codec_plugin_s
    */
   int (*set_pass)(void * priv, int pass, int total_passes,
                   const char * stats_file);
-
-  /** \brief Flush an encoder
-   *  \param priv The handle returned by the create() method
-   *
-   *  Call this at the end of encoding to flush the encoder
-   */
-
-  void (*flush)(void * priv);
-
+  
   };
   
 /**

@@ -9,7 +9,7 @@ AM_CFLAGS = \
 -DDOC_DIR=\"$(docdir)\" \
 -DDATA_DIR=\"$(pkgdatadir)\"
 
-plugin_LTLIBRARIES = ir_gavl.la iw_gavl.la e_gavf.la
+plugin_LTLIBRARIES = ir_gavl.la iw_gavl.la
 
 ir_gavl_la_SOURCES = ir_gavl.c
 ir_gavl_la_LIBADD = @GMERLIN_DEP_LIBS@ @MODULE_LIBADD@
@@ -17,5 +17,3 @@ ir_gavl_la_LIBADD = @GMERLIN_DEP_LIBS@ @MODULE_LIBADD@
 iw_gavl_la_SOURCES = iw_gavl.c
 iw_gavl_la_LIBADD = @GMERLIN_DEP_LIBS@ @MODULE_LIBADD@
 
-e_gavf_la_SOURCES = e_gavf.c
-e_gavf_la_LIBADD = @GMERLIN_DEP_LIBS@ @MODULE_LIBADD@
