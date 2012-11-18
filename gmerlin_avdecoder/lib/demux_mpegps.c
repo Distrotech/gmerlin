@@ -729,7 +729,6 @@ static int next_packet(bgav_demuxer_context_t * ctx,
 
           init_stream(stream, BGAV_MK_FOURCC('m', 'p', 'g', 'a'),
                       priv->pes_header.stream_id);
-          stream->flags |= STREAM_NEED_EXACT_COMPRESSION;
           /* Hack: This is set by the core later. We must set it here,
              because we buffer packets during initialization */
           stream->demuxer = ctx;
@@ -766,8 +765,6 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           init_stream(stream, fourcc,
                       priv->pes_header.stream_id);
 
-          if(fourcc == BGAV_MK_FOURCC('m', 'p', 'g', 'v'))
-            stream->flags |= STREAM_NEED_EXACT_COMPRESSION;
           /* Hack: This is set by the core later. We must set it here,
              because we buffer packets during initialization */
           stream->demuxer = ctx;

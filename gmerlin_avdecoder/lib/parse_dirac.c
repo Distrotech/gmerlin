@@ -195,8 +195,8 @@ void bgav_video_parser_init_dirac(bgav_video_parser_t * parser)
       {
       priv->have_sh = 1;
       set_format(parser);
-      fprintf(stderr, "Got sequence header:\n");
-      bgav_dirac_sequence_header_dump(&priv->sh);
+      //      fprintf(stderr, "Got sequence header:\n");
+      //      bgav_dirac_sequence_header_dump(&priv->sh);
       }
     }
 

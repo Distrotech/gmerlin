@@ -726,7 +726,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         if(!bgav_dirac_sequence_header_parse(&dirac_header, 
                                              priv->op.packet, priv->op.bytes))
           return 0;
-        bgav_dirac_sequence_header_dump(&dirac_header);
+        // bgav_dirac_sequence_header_dump(&dirac_header);
         if(!dirac_header.timescale || !dirac_header.frame_duration)
           {
           bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,

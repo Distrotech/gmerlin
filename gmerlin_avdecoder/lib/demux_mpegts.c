@@ -1021,8 +1021,6 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
             (priv->ptr[3] == 0xb8))) //  GOP 
           {
           s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
-          s->flags |= STREAM_NEED_EXACT_COMPRESSION;
-          //          fprintf(stderr, "Detected MPEG video\n");
           }
         else
           {
@@ -1037,7 +1035,6 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         s = bgav_track_add_audio_stream(&ctx->tt->tracks[0], ctx->opt);
         s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'a');
         s->index_mode = INDEX_MODE_SIMPLE;
-        s->flags |= STREAM_NEED_EXACT_COMPRESSION;
         }
       else
         {
