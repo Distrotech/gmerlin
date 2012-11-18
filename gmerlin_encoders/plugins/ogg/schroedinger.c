@@ -718,8 +718,8 @@ static gavl_sink_status_t flush_data(schro_t * s)
           out_pkt->pts = (int64_t)pic_num * s->gavl_format->frame_duration;
           out_pkt->duration = s->gavl_format->frame_duration;
           
-          fprintf(stderr, "Got picture\n");
-          gavl_packet_dump(out_pkt);
+          //          fprintf(stderr, "Got picture\n");
+          //          gavl_packet_dump(out_pkt);
           
           if((st = gavl_packet_sink_put_packet(s->psink, out_pkt)) != GAVL_SINK_OK)
             return st;
@@ -739,7 +739,7 @@ static gavl_sink_status_t flush_data(schro_t * s)
         break;
       case SCHRO_STATE_END_OF_STREAM:
         buf = schro_encoder_pull(s->enc, &presentation_frame);
-        fprintf(stderr, "Got EOS %d bytes\n", buf->length);
+        //        fprintf(stderr, "Got EOS %d bytes\n", buf->length);
         schro_buffer_unref(buf);
         return GAVL_SINK_OK;
         break;

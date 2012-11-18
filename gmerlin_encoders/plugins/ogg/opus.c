@@ -142,7 +142,7 @@ static const bg_parameter_info_t parameters[] =
       .name =      "complexity",
       .long_name = TRS("Encoding complexity"),
       .type =      BG_PARAMETER_SLIDER_INT,
-      .val_min =     { .val_i = 0  },
+      .val_min =     { .val_i = 1  },
       .val_max =     { .val_i = 10 },
       .val_default = { .val_i = 10 },
     },
@@ -192,6 +192,7 @@ static const bg_parameter_info_t parameters[] =
                                         TRS("Full (20 kHz)"),
                                         NULL },
     },
+#if 0 // Request not implemented
     {
       .name =        "max_bandwidth",
       .long_name =   TRS("Maximum bandwidth"),
@@ -205,6 +206,7 @@ static const bg_parameter_info_t parameters[] =
                                         TRS("Full (20 kHz)"),
                                         NULL },
     },
+#endif
     {
       .name =      "loss_perc",
       .long_name = TRS("Loss percentage"),
@@ -455,28 +457,56 @@ init_opus(void * data, gavl_compression_info_t * ci,
       break;
     }
   
-  opus_multistream_encoder_ctl(opus->enc,
-                               OPUS_SET_BITRATE(opus->bitrate));
-  opus_multistream_encoder_ctl(opus->enc,
-                               OPUS_SET_COMPLEXITY(opus->complexity));
-  opus_multistream_encoder_ctl(opus->enc,
-                               OPUS_SET_DTX(opus->dtx));
-  opus_multistream_encoder_ctl(opus->enc,
-                               OPUS_SET_INBAND_FEC(opus->fec));
-  opus_multistream_encoder_ctl(opus->enc,
-                               OPUS_SET_PACKET_LOSS_PERC(opus->loss_perc));
-  opus_multistream_encoder_ctl(opus->enc,
-                               OPUS_SET_BANDWIDTH(opus->bandwidth));
-  opus_multistream_encoder_ctl(opus->enc,
-                               OPUS_SET_MAX_BANDWIDTH(opus->max_bandwidth));
-
+  if((err = opus_multistream_encoder_ctl(opus->enc,
+                                         OPUS_SET_BITRATE(opus->bitrate))) != OPUS_OK)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Setting bitrate failed: %s",
+           opus_strerror(err));
+    }
+  
+  if((err = opus_multistream_encoder_ctl(opus->enc,
+                                         OPUS_SET_COMPLEXITY(opus->complexity))) != OPUS_OK)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Setting complexity failed: %s",
+           opus_strerror(err));
+    }
+  if((err = opus_multistream_encoder_ctl(opus->enc,
+                                         OPUS_SET_DTX(opus->dtx))) != OPUS_OK)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Setting dtx failed: %s",
+           opus_strerror(err));
+    }
+  if((err = opus_multistream_encoder_ctl(opus->enc,
+                                         OPUS_SET_INBAND_FEC(opus->fec))) != OPUS_OK)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Setting fec failed: %s",
+           opus_strerror(err));
+    }
+  if((err = opus_multistream_encoder_ctl(opus->enc,
+                                         OPUS_SET_PACKET_LOSS_PERC(opus->loss_perc))) != OPUS_OK)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Setting loss percentage failed: %s",
+           opus_strerror(err));
+    }
+  if((err = opus_multistream_encoder_ctl(opus->enc,
+                                         OPUS_SET_BANDWIDTH(opus->bandwidth))) != OPUS_OK)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Setting bandwidth failed: %s",
+           opus_strerror(err));
+    }
+  if((err = opus_multistream_encoder_ctl(opus->enc,
+                                         OPUS_SET_MAX_BANDWIDTH(opus->max_bandwidth))) != OPUS_OK)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Setting max bandwidth failed: %s",
+           opus_strerror(err));
+    }
   /* Get preskip */
 
   err = opus_multistream_encoder_ctl(opus->enc,
                                      OPUS_GET_LOOKAHEAD(&opus->lookahead));
   if(err != OPUS_OK)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "OPUS_GET_LOOKAHEAD failed: %s\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "OPUS_GET_LOOKAHEAD failed: %s",
            opus_strerror(err));
     return 0; 
     }
