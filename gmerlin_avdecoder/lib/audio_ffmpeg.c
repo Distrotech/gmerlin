@@ -781,12 +781,13 @@ static codec_info_t codec_infos[] =
       CODEC_ID_VMDAUDIO,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'M', 'D', 'A'),
                     0x00 } },
+#if LIBAVCODEC_VERSION_MAJOR == 53
     /*     CODEC_ID_SONIC, */
     { "FFmpeg Sonic decoder", "Sonic", CODEC_ID_SONIC,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2048), 0x00 },
       -1 },
-    
     /*     CODEC_ID_SONIC_LS, */
+#endif
     /*     CODEC_ID_FLAC, */
     /*     CODEC_ID_MP3ADU, */
 #if 1 // Sounds disgusting

@@ -296,8 +296,10 @@ static audio_codec_map_t audio_codecs[] =
     { CODEC_ID_MACE3, BGAV_MK_FOURCC('M', 'A', 'C', '3') },
     { CODEC_ID_MACE6, BGAV_MK_FOURCC('M', 'A', 'C', '6') },
     { CODEC_ID_VMDAUDIO, BGAV_MK_FOURCC('V', 'M', 'D', 'A')},
+#if LIBAVCODEC_VERSION_MAJOR == 53
     { CODEC_ID_SONIC, BGAV_WAVID_2_FOURCC(0x2048) },
     //    { CODEC_ID_SONIC_LS, },
+#endif
     //    { CODEC_ID_FLAC, },
     { CODEC_ID_MP3ADU, BGAV_MK_FOURCC('r', 'm', 'p', '3') },
     { CODEC_ID_MP3ON4, BGAV_MK_FOURCC('m', '4', 'a', 29) },
