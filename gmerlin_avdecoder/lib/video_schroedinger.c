@@ -331,7 +331,7 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
 
       case SCHRO_DECODER_OK:
 
-        pic_num = schro_decoder_get_picture_number(priv->dec);
+        // pic_num = schro_decoder_get_picture_number(priv->dec);
 
         /* Pull a frame out of the decoder. */
         //        fprintf(stderr, "State: SCHRO_DECODER_OK %d\n",
@@ -375,7 +375,8 @@ static int init_schroedinger(bgav_stream_t * s)
   priv->dec = schro_decoder_new();
 
   priv->frame = gavl_video_frame_create(NULL);
-
+  s->data.video.frame = priv->frame;
+  
   if(decode_picture(s) != GAVL_SOURCE_OK) /* Get format */
     return 0;
 
@@ -411,7 +412,7 @@ decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
     gavl_video_frame_copy(&s->data.video.format,
                           frame, priv->frame);
     
-    bgav_pts_cache_get_first(&priv->pc, frame);
+    bgav_pts_cache_get_first(&priv->pc, priv->frame);
     }
   else
     bgav_pts_cache_get_first(&priv->pc, NULL);
