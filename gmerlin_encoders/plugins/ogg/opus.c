@@ -237,7 +237,8 @@ static void set_parameter_opus(void * data, const char * name,
   
   if(!name)
     return;
-  else if(!strcmp(name, "application"))
+  
+  if(!strcmp(name, "application"))
     {
     if(!strcmp(v->val_str, "audio"))
       opus->application = OPUS_APPLICATION_AUDIO;
@@ -421,7 +422,6 @@ init_opus(void * data, gavl_compression_info_t * ci,
   int err;
   opus_t * opus = data;
   //  uint8_t header[MAX_HEADER_LEN];
-
   /* Setup header (also adjusts format) */
 
   setup_header(&opus->h, format);

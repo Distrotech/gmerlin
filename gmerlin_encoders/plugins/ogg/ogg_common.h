@@ -37,7 +37,7 @@ typedef struct
   
   void * (*create)(void);
   
-  const bg_parameter_info_t * (*get_parameters)();
+  const bg_parameter_info_t * (*get_parameters)(void);
   void (*set_parameter)(void*, const char * name, const bg_parameter_value_t * v);
 
   gavl_audio_sink_t * (*init_audio)(void*, gavl_compression_info_t * ci_ret,
@@ -142,7 +142,7 @@ struct bg_ogg_encoder_s
   
   };
 
-void * bg_ogg_encoder_create();
+void * bg_ogg_encoder_create(void);
 
 void bg_ogg_encoder_set_callbacks(void *, bg_encoder_callbacks_t * cb);
 

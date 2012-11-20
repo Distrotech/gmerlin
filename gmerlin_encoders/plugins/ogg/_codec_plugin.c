@@ -45,13 +45,13 @@ static void destroy_codec(void * priv)
 static const bg_parameter_info_t * get_parameters(void * priv)
   {
   stream_codec_t * c = priv;
-  return c->codec->get_parameters(c->priv);
+  return c->codec->get_parameters();
   }
 
 static void set_parameter(void * priv, const char * name, const bg_parameter_value_t * val)
   {
   stream_codec_t * c = priv;
-  c->codec->get_parameters(c->priv, name, val);
+  c->codec->set_parameter(c->priv, name, val);
   }
 
 #ifdef IS_AUDIO
