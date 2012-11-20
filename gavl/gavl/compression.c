@@ -278,12 +278,9 @@ void gavl_packet_reset(gavl_packet_t * p)
 
   data_alloc_save = p->data_alloc;
   data_save       = p->data;
-
-  memset(p, 0, sizeof(*p));
-  
+  gavl_packet_init(p);
   p->data_alloc = data_alloc_save;
   p->data       = data_save;
-  p->timecode   = GAVL_TIMECODE_UNDEFINED;
   }
 
 void gavl_packet_copy(gavl_packet_t * dst,
@@ -353,4 +350,5 @@ void gavl_packet_dump(const gavl_packet_t * p)
 void gavl_packet_init(gavl_packet_t * p)
   {
   memset(p, 0, sizeof(*p));
+  p->timecode   = GAVL_TIMECODE_UNDEFINED;
   }
