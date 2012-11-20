@@ -275,6 +275,9 @@ static void set_codec_parameter(bg_gavf_t * f, stream_common_t * s, const char *
       s->plugin = NULL;
       }
 
+    if(val->val_str && !strcmp(val->val_str, "none"))
+      return;
+    
     if(val->val_str && !s->plugin)
       {
       const bg_plugin_info_t * info;
