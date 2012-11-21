@@ -51,6 +51,8 @@ typedef struct
 
   bgav_pts_cache_t pc;
   
+  int header_sent;
+  
   } schroedinger_priv_t;
 
 /* Pixelformat stuff */
@@ -142,6 +144,7 @@ get_data(bgav_stream_t * s, SchroBuffer ** ret_p)
   if(priv->eof)
     return GAVL_SOURCE_EOF;
   
+  
   if(priv->buffer_size < 13)
     {
     if(priv->p)
@@ -149,24 +152,33 @@ get_data(bgav_stream_t * s, SchroBuffer ** ret_p)
       bgav_stream_done_packet_read(s, priv->p);
       priv->p = NULL;
       }
-    while(1)
+
+    if(!priv->header_sent)
       {
-      if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
-        {
-        if(st == GAVL_SOURCE_EOF)
-          {
-          schro_decoder_push_end_of_stream(priv->dec);
-          priv->eof = 1;
-          }
-        return st;
-        }
-      if(!(priv->p->flags & PACKET_FLAG_SKIP))
-        break;
-      bgav_stream_done_packet_read(s, priv->p);
+      priv->buffer_size = s->ext_size;
+      priv->buffer_ptr  = s->ext_data;
+      priv->header_sent = 1;
       }
-    priv->buffer_size = priv->p->data_size;
-    priv->buffer_ptr = priv->p->data;
-    
+    else
+      {
+      while(1)
+        {
+        if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
+          {
+          if(st == GAVL_SOURCE_EOF)
+            {
+            schro_decoder_push_end_of_stream(priv->dec);
+            priv->eof = 1;
+            }
+          return st;
+          }
+        if(!(priv->p->flags & PACKET_FLAG_SKIP))
+          break;
+        bgav_stream_done_packet_read(s, priv->p);
+        }
+      priv->buffer_size = priv->p->data_size;
+      priv->buffer_ptr = priv->p->data;
+      }
     }
 
   //  fprintf(stderr, "Got packet\n");
@@ -278,7 +290,6 @@ static void get_format(bgav_stream_t * s)
 
 static gavl_source_status_t decode_picture(bgav_stream_t * s)
   {
-  uint32_t pic_num;
   int state;
   SchroBuffer * buf = NULL;
   SchroFrame * frame = NULL;
@@ -302,7 +313,7 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
 
       case SCHRO_DECODER_NEED_BITS:
         /* Need more input data - stop iterating over what we have. */
-        //   fprintf(stderr, "State: SCHRO_DECODER_NEED_BITS\n");
+        //        fprintf(stderr, "State: SCHRO_DECODER_NEED_BITS\n");
 
         st = get_data(s, &buf);
 #if 1
@@ -382,6 +393,10 @@ static int init_schroedinger(bgav_stream_t * s)
 
   gavl_metadata_set(&s->m, GAVL_META_FORMAT,
                     "Dirac");
+
+  if(!s->ext_data)
+    priv->header_sent = 1;
+  
   return 1;
   }
 
@@ -399,8 +414,10 @@ decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   /* Copy frame */
 
-  if(frame)
-    {
+  //  fprintf(stderr, "Decode schroedinger %p\n", frame);
+  
+  //  if(frame)
+  //    {
     priv->frame->planes[0] = priv->dec_frame->components[0].data;
     priv->frame->planes[1] = priv->dec_frame->components[1].data;
     priv->frame->planes[2] = priv->dec_frame->components[2].data;
@@ -409,13 +426,13 @@ decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
     priv->frame->strides[1] = priv->dec_frame->components[1].stride;
     priv->frame->strides[2] = priv->dec_frame->components[2].stride;
     
-    gavl_video_frame_copy(&s->data.video.format,
-                          frame, priv->frame);
+    //    gavl_video_frame_copy(&s->data.video.format,
+    //                          frame, priv->frame);
     
     bgav_pts_cache_get_first(&priv->pc, priv->frame);
-    }
-  else
-    bgav_pts_cache_get_first(&priv->pc, NULL);
+    //    }
+    //  else
+    //    bgav_pts_cache_get_first(&priv->pc, NULL);
   
   schro_frame_unref(priv->dec_frame);
   priv->dec_frame = NULL;
