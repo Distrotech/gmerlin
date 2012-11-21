@@ -629,55 +629,18 @@ int gavf_write_gavl_packet(gavf_io_t * io,
   gavf_buffer_t buf;
   gavf_io_t bufio;
 
-  uint32_t data_len;
-  uint32_t sequence_end_pos;
-  uint32_t field2_offset;
-  uint32_t header_size;
   uint32_t flags;
   
-  const uint8_t * data_ptr;
-
-  data_len         = p->data_len;
-  sequence_end_pos = p->sequence_end_pos;
-  field2_offset    = p->field2_offset;
-  header_size      = p->header_size;
-  data_ptr         = p->data;
-  
-  
-  /* Check if we can remove redundant headers */
-  if(header_size)
-    {
-    if((header_size == s->last_global_header.len) &&
-       !memcmp(p->data, s->last_global_header.buf, header_size))
-      {
-      data_len -= header_size;
-      if(field2_offset)
-        field2_offset -= header_size;
-      if(sequence_end_pos)
-        sequence_end_pos -= header_size;
-      data_ptr += header_size;
-      header_size = 0;
-      }
-    else // Remember this header to check later if it can be removed
-      {
-      gavf_buffer_alloc(&s->last_global_header,
-                        header_size);
-      memcpy(s->last_global_header.buf,
-             data_ptr, header_size);
-      s->last_global_header.len = header_size;
-      }
-    }
-
   /* Count extensions */
   num_extensions = 0;
   
   if(s->packet_duration && (p->duration < s->packet_duration))
     num_extensions++;
 
-  if(header_size)
+  if(p->header_size)
     num_extensions++;
 
-  if(sequence_end_pos)
+  if(p->sequence_end_pos)
     num_extensions++;
 
   if(p->timecode != GAVL_TIMECODE_UNDEFINED)
@@ -739,18 +702,18 @@ int gavf_write_gavl_packet(gavf_io_t * io,
         return 0;
       }
 
-    if(header_size)
+    if(p->header_size)
       {
       buf.len = 0;
-      if(!gavf_io_write_uint32v(&bufio, header_size) ||
+      if(!gavf_io_write_uint32v(&bufio, p->header_size) ||
          !gavf_extension_write(io, GAVF_EXT_PK_HEADER_SIZE,
                                buf.len, buf.buf))
         return 0;
       }
-    if(sequence_end_pos)
+    if(p->sequence_end_pos)
       {
       buf.len = 0;
-      if(!gavf_io_write_uint32v(&bufio, sequence_end_pos) ||
+      if(!gavf_io_write_uint32v(&bufio, p->sequence_end_pos) ||
          !gavf_extension_write(io, GAVF_EXT_PK_SEQ_END,
                                buf.len, buf.buf))
         return 0;
@@ -769,7 +732,7 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     }
   
   /* Payload */
-  if(gavf_io_write_data(io, data_ptr, data_len) < data_len)
+  if(gavf_io_write_data(io, p->data, p->data_len) < p->data_len)
     return 0;
   return 1;
   }

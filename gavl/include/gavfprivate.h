@@ -159,9 +159,6 @@ typedef struct
  
   gavf_packet_buffer_t * pb;
   
-  /* Save the last global header so we can kick it out when the same one
-     comes again */
-  gavf_buffer_t last_global_header;
   int block_align;
 
   gavl_packet_source_t * psrc;
