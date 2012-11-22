@@ -513,9 +513,15 @@ int gavf_write_metadata(gavf_io_t * io, const gavl_metadata_t * m)
 
 int gavf_read_gavl_packet(gavf_io_t * io,
                           gavf_stream_t * s,
-                          gavl_packet_t * p, int len)
+                          gavl_packet_t * p)
   {
-  uint64_t start_pos = io->position;
+  uint64_t start_pos;
+  uint32_t len;
+  
+  if(!gavf_io_read_uint32v(io, &len))
+    return 0;
+  
+  start_pos = io->position;
 
   gavl_packet_reset(p);
   
@@ -619,9 +625,9 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   return 1;
   }
 
-int gavf_write_gavl_packet(gavf_io_t * io,
-                           gavf_stream_t * s,
-                           const gavl_packet_t * p)
+int gavf_write_gavl_packet_header(gavf_io_t * io,
+                                  gavf_stream_t * s,
+                                  const gavl_packet_t * p)
   {
   uint32_t num_extensions;
 
@@ -732,8 +738,8 @@ int gavf_write_gavl_packet(gavf_io_t * io,
     }
   
   /* Payload */
-  if(gavf_io_write_data(io, p->data, p->data_len) < p->data_len)
-    return 0;
+  //  if(gavf_io_write_data(io, p->data, p->data_len) < p->data_len)
+  //    return 0;
   return 1;
   }
 

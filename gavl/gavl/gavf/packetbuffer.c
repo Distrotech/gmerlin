@@ -34,6 +34,7 @@ gavl_packet_t * gavf_packet_buffer_get_write(gavf_packet_buffer_t * b)
     b->packets_alloc+=INCREMENT;
     }
   ret = b->packets[b->num_packets];
+  gavl_packet_reset(ret);
   b->num_packets++;
   return ret;
   }
@@ -53,6 +54,13 @@ gavl_packet_t * gavf_packet_buffer_get_read(gavf_packet_buffer_t * b)
   b->packets[b->num_packets] = ret;
   
   return ret;
+  }
+
+gavl_packet_t * gavf_packet_buffer_peek_read(gavf_packet_buffer_t * b)
+  {
+  if(!b->num_packets)
+    return NULL;
+  return b->packets[0];
   }
 
 gavl_time_t gavf_packet_buffer_get_min_pts(gavf_packet_buffer_t * b)

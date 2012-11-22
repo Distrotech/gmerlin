@@ -92,6 +92,12 @@ add_stream(gavf_program_header_t * ph, const gavl_metadata_t * m)
   gavl_metadata_copy(&ret->m, m);
 
   ret->id = ph->num_streams;
+
+  /* Initialize footer */
+  ret->foot.duration_min = GAVL_TIME_UNDEFINED;
+  ret->foot.duration_max = GAVL_TIME_UNDEFINED;
+  ret->foot.pts_start    = GAVL_TIME_UNDEFINED;
+  ret->foot.pts_end      = GAVL_TIME_UNDEFINED;
   return ret;
   }
 

@@ -130,6 +130,8 @@ gavf_packet_buffer_t * gavf_packet_buffer_create(int timescale);
 
 gavl_packet_t * gavf_packet_buffer_get_write(gavf_packet_buffer_t *);
 gavl_packet_t * gavf_packet_buffer_get_read(gavf_packet_buffer_t *);
+gavl_packet_t * gavf_packet_buffer_peek_read(gavf_packet_buffer_t * b);
+
 
 gavl_time_t gavf_packet_buffer_get_min_pts(gavf_packet_buffer_t * b);
 
@@ -153,10 +155,13 @@ typedef struct
   int packet_duration;
 
   int64_t last_sync_pts; // PTS of the last snyc header
-  int64_t next_sync_pts; // PTS of the next sync header (for streams without B-frames)
-  
+
+  // PTS of the next sync header (for streams without B-frames)
+  int64_t next_sync_pts; 
+
+  // Next PTS (for streams with implicit PTS)
   int64_t next_pts;
- 
+  
   gavf_packet_buffer_t * pb;
   
   int block_align;
@@ -173,9 +178,10 @@ typedef struct
   gavf_t * g;
 
   /* For reading uncompressed audio and video */
-  gavl_packet_t p;
   gavl_audio_frame_t * aframe;
   gavl_video_frame_t * vframe;
+  
+  gavl_packet_t * p; // For sink
   
   } gavf_stream_t;
 
@@ -203,12 +209,11 @@ int gavf_write_metadata(gavf_io_t * io, const gavl_metadata_t * ci);
 /* Packet */
 int gavf_read_gavl_packet(gavf_io_t * io,
                           gavf_stream_t * s,
-                          gavl_packet_t * p, int len);
+                          gavl_packet_t * p);
 
-int gavf_write_gavl_packet(gavf_io_t * io,
-                           gavf_stream_t * s,
-                           const gavl_packet_t * p);
-
+int gavf_write_gavl_packet_header(gavf_io_t * io,
+                                  gavf_stream_t * s,
+                                  const gavl_packet_t * p);
 
 /* Options */
 

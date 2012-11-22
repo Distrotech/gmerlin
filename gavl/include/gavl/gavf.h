@@ -46,6 +46,16 @@ gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek, int close);
 
 typedef struct
   {
+  uint32_t size_min;
+  uint32_t size_max;
+  int64_t  duration_min;
+  int64_t  duration_max;
+  int64_t  pts_start;
+  int64_t  pts_end;
+  } gavf_stream_footer_t;
+
+typedef struct
+  {
   uint32_t type;
   uint32_t id;
   
@@ -64,7 +74,7 @@ typedef struct
     } format;
 
   gavl_metadata_t m;
-  
+  gavf_stream_footer_t foot;
   } gavf_stream_header_t;
 
 typedef struct
@@ -84,6 +94,7 @@ typedef struct
 #define GAVF_OPT_FLAG_SYNC_INDEX   (1<<0)
 #define GAVF_OPT_FLAG_PACKET_INDEX (1<<1)
 #define GAVF_OPT_FLAG_INTERLEAVE   (1<<2)
+#define GAVF_OPT_BUFFER_READ       (1<<3)
 
 #define GAVF_OPT_FLAG_DUMP_HEADERS (1<<3)
 #define GAVF_OPT_FLAG_DUMP_INDICES (1<<4)
@@ -202,8 +213,8 @@ int gavf_add_text_stream(gavf_t * g,
 GAVL_PUBLIC
 int gavf_start(gavf_t * g);
 
-GAVL_PUBLIC
-int gavf_write_packet(gavf_t *, int stream, const gavl_packet_t * p);
+// GAVL_PUBLIC
+// int gavf_write_packet(gavf_t *, int stream, const gavl_packet_t * p);
 
 GAVL_PUBLIC
 int gavf_write_video_frame(gavf_t *, int stream, gavl_video_frame_t * frame);

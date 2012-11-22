@@ -32,7 +32,7 @@ struct gavf_s
   gavf_io_t pkt_io;
   gavf_buffer_t pkt_buf;
   
-  uint64_t sync_pos;
+  uint64_t first_sync_pos;
   
   int wr;
   
@@ -80,19 +80,17 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 static gavl_source_status_t
 read_audio_func(void * priv, gavl_audio_frame_t ** frame)
   {
-  gavl_packet_t * pp;
+  gavl_packet_t * p = NULL;
   gavl_source_status_t st;
   gavf_stream_t * s = priv;
   
-  pp = &s->p;
-  
-  if((st = gavl_packet_source_read_packet(s->psrc, &pp)) != GAVL_SOURCE_OK)
+  if((st = gavl_packet_source_read_packet(s->psrc, &p)) != GAVL_SOURCE_OK)
     return st;
 
   if(!s->aframe)
     s->aframe = gavl_audio_frame_create(NULL);
 
-  gavf_packet_to_audio_frame(pp, s->aframe, &s->h->format.audio);
+  gavf_packet_to_audio_frame(p, s->aframe, &s->h->format.audio);
   *frame = s->aframe;
   return GAVL_SOURCE_OK;
   }
@@ -100,18 +98,17 @@ read_audio_func(void * priv, gavl_audio_frame_t ** frame)
 static gavl_source_status_t
 read_video_func(void * priv, gavl_video_frame_t ** frame)
   {
-  gavl_packet_t * pp;
+  gavl_packet_t * p = NULL;
   gavl_source_status_t st;
   gavf_stream_t * s = priv;
-  pp = &s->p;
 
-  if((st = gavl_packet_source_read_packet(s->psrc, &pp)) != GAVL_SOURCE_OK)
+  if((st = gavl_packet_source_read_packet(s->psrc, &p)) != GAVL_SOURCE_OK)
     return st;
 
   if(!s->vframe)
     s->vframe = gavl_video_frame_create(NULL);
   
-  gavf_packet_to_video_frame(pp, s->vframe, &s->h->format.video);
+  gavf_packet_to_video_frame(p, s->vframe, &s->h->format.video);
   *frame = s->vframe;
   return GAVL_SOURCE_OK;
   }
@@ -131,8 +128,7 @@ read_packet_func(void * priv, gavl_packet_t ** p)
   
   gavf_buffer_reset(&s->g->pkt_buf);
   
-  if(!gavf_io_read_buffer(s->g->io, &s->g->pkt_buf) ||
-     !gavf_read_gavl_packet(&s->g->pkt_io, s, *p, s->g->pkt_buf.len))
+  if(!gavf_read_gavl_packet(s->g->io, s, *p))
     return GAVL_SOURCE_EOF;
   return GAVL_SOURCE_OK;
   }
@@ -141,15 +137,19 @@ static gavl_audio_frame_t *
 get_audio_frame_func(void * priv)
   {
   gavf_stream_t * s = priv;
-  gavl_packet_reset(&s->p);
-  gavl_packet_alloc(&s->p, s->h->ci.max_packet_size);
+
+  s->p = gavl_packet_sink_get_packet(s->psink);
+  
+  gavl_packet_reset(s->p);
+  gavl_packet_alloc(s->p, s->h->ci.max_packet_size);
+
   if(!s->aframe)
     s->aframe = gavl_audio_frame_create(NULL);
-
+  
   s->aframe->valid_samples = s->h->format.audio.samples_per_frame;
   
   gavl_audio_frame_set_channels(s->aframe,
-                                &s->h->format.audio, s->p.data);
+                                &s->h->format.audio, s->p->data);
   s->aframe->valid_samples = 0;
   return s->aframe;
   }
@@ -164,9 +164,11 @@ put_audio_func(void * priv, gavl_audio_frame_t * frame)
   
   if(frame->valid_samples == s->h->format.audio.samples_per_frame)
     {
-    gavf_audio_frame_to_packet_metadata(s->aframe, &s->p);
-    s->p.data_len = s->h->ci.max_packet_size;
-    return gavl_packet_sink_put_packet(s->psink, &s->p);
+    gavf_audio_frame_to_packet_metadata(s->aframe, s->p);
+    s->p->data_len = s->h->ci.max_packet_size;
+    st = gavl_packet_sink_put_packet(s->psink, s->p);
+    s->p = NULL;
+    return st;
     }
  
   /* Incomplete (hopefully last) frame */
@@ -202,32 +204,419 @@ static gavl_video_frame_t *
 get_video_frame_func(void * priv)
   {
   gavf_stream_t * s = priv;
-  gavl_packet_reset(&s->p);
-  gavl_packet_alloc(&s->p, s->h->ci.max_packet_size);
+
+  s->p = gavl_packet_sink_get_packet(s->psink);
+  
+  gavl_packet_reset(s->p);
+  gavl_packet_alloc(s->p, s->h->ci.max_packet_size);
 
   if(!s->vframe)
     s->vframe = gavl_video_frame_create(NULL);
   s->vframe->strides[0] = 0;
   gavl_video_frame_set_planes(s->vframe,
-                              &s->h->format.video, s->p.data);
+                              &s->h->format.video, s->p->data);
   return s->vframe;
   }
 
 static gavl_sink_status_t
 put_video_func(void * priv, gavl_video_frame_t * frame)
   {
+  gavl_sink_status_t st;
   gavf_stream_t * s = priv;
-  gavf_video_frame_to_packet_metadata(frame, &s->p);
-  s->p.data_len = s->h->ci.max_packet_size;
-  return gavl_packet_sink_put_packet(s->psink, &s->p);
+  gavf_video_frame_to_packet_metadata(frame, s->p);
+  s->p->data_len = s->h->ci.max_packet_size;
+  st = gavl_packet_sink_put_packet(s->psink, s->p);
+  s->p = NULL;
+  return st;
+  }
+
+/*
+ */
+
+#if 0
+
+static int get_min_pts_stream(gavf_t * g, int flush_all,
+                              gavl_time_t * min_time_p)
+  {
+  int i;
+  int min_index;
+  gavl_time_t min_time;
+  gavl_time_t test_time;
+  gavf_stream_t * s;
+  
+  min_index = -1;
+  min_time = GAVL_TIME_UNDEFINED;
+    
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    s = &g->streams[i];
+    
+    test_time =
+      gavf_packet_buffer_get_min_pts(s->pb);
+
+    if(test_time != GAVL_TIME_UNDEFINED)
+      {
+      if((min_time == GAVL_TIME_UNDEFINED) ||
+         (test_time < min_time))
+        {
+        min_time = test_time;
+        min_index = i;
+        }
+      }
+    else
+      {
+      if(!(s->flags & STREAM_FLAG_DISCONTINUOUS) &&
+         !flush_all)
+        {
+        /* Some streams without packets: stop here */
+        return -1;
+        }
+      }
+    }
+
+  *min_time_p = min_time;
+  return min_index;
+  }
+
+static int flush_packets(gavf_t * g, int flush_all)
+  {
+  gavl_packet_t * p;
+  gavl_time_t min_time;
+  int min_index;
+
+  if(!g->streams)
+    return 1;
+  
+  while(1)
+    {
+    min_index = get_min_pts_stream(g, flush_all, &min_time);
+    if(min_index < 0)
+      return 1;
+    
+    p = gavf_packet_buffer_get_read(g->streams[min_index].pb);
+    
+    if(!write_packet(g, min_index, p))
+      return 0;
+    }
+  return 1;
+  }
+
+static int gavf_write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
+  {
+  gavf_stream_t * s;
+  gavl_packet_t * p1;
+  gavl_time_t min_time;
+  int min_index;
+  
+  s = &g->streams[stream];
+  
+  if(s->next_sync_pts == GAVL_TIME_UNDEFINED)
+    s->next_sync_pts = p->pts;
+
+  /* Decide whether to write a sync header */
+  
+  switch(g->encoding_mode)
+    {
+    case ENC_STARTING:
+      /* Buffer packet */
+      p1 = gavf_packet_buffer_get_write(s->pb);
+      gavl_packet_copy(p1, p);
+
+      /* Check if we are done */
+      min_index = get_min_pts_stream(g, 0, &min_time);
+      if(min_index >= 0)
+        {
+        g->encoding_mode = g->final_encoding_mode;
+        if(g->final_encoding_mode == ENC_SYNCHRONOUS)
+          return flush_packets(g, 1);
+        else
+          return flush_packets(g, 0);
+        }
+      else
+        return 1;
+      break;
+    case ENC_SYNCHRONOUS:
+      return write_packet(g, stream, p);
+      break;
+    case ENC_INTERLEAVE:
+      p1 = gavf_packet_buffer_get_write(s->pb);
+      gavl_packet_copy(p1, p);
+      return flush_packets(g, 0);
+      break;
+    }
+  return 0;
+  }
+#endif
+
+static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
+  {
+  int i;
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    if(i == stream)
+      g->sync_pts[i] = p->pts;
+    else if((stream >= 0) &&
+            (g->ph.streams[i].ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES))
+      g->sync_pts[i] = GAVL_TIME_UNDEFINED;
+
+    else if((g->streams[i].flags & STREAM_FLAG_DISCONTINUOUS) &&
+            (g->streams[i].next_sync_pts == GAVL_TIME_UNDEFINED))
+      g->sync_pts[i] = 0;
+    else
+      g->sync_pts[i] = g->streams[i].next_sync_pts;
+    
+    }
+
+  /* Update sync index */
+  if(g->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX)
+    {
+    gavf_sync_index_add(&g->si, g->io->position,
+                        g->sync_pts);
+    }
+
+  /* If that's the first sync header, update file index */
+
+  if(!g->first_sync_pos)
+    {
+    gavf_file_index_add(&g->fi, GAVF_TAG_SYNC_HEADER, g->io->position);
+    g->first_sync_pos = g->io->position;
+    }
+  /* Write the sync header */
+  if(gavf_io_write_data(g->io, (uint8_t*)GAVF_TAG_SYNC_HEADER, 8) < 8)
+    return 0;
+
+  fprintf(stderr, "Write sync header\n");
+  
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    fprintf(stderr, "PTS[%d]: %ld\n", i, g->sync_pts[i]);
+    if(!gavf_io_write_int64v(g->io, g->sync_pts[i]))
+      return 0;
+    }
+
+  /* Update last sync pts */
+
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
+      g->streams[i].last_sync_pts = g->sync_pts[i];
+    }
+  gavf_io_flush(g->io);
+  return 1;
+  }
+
+
+static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
+  {
+  int write_sync = 0;
+  gavf_stream_t * s = &g->streams[stream];
+  
+  /* Decide whether to write a sync header */
+  if(!g->first_sync_pos)
+    write_sync = 1;
+  else if(g->sync_distance)
+    {
+    if(gavl_time_unscale(s->timescale, p->pts) - g->last_sync_time >
+       g->sync_distance)
+      write_sync = 1;
+    }
+  else
+    {
+    if((g->ph.streams[stream].type == GAVF_STREAM_VIDEO) &&
+       (g->ph.streams[stream].ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES) &&
+       (p->flags & GAVL_PACKET_KEYFRAME))
+      write_sync = 1;
+    }
+
+  if(write_sync)
+    {
+    if(!write_sync_header(g, stream, p))
+      return 0;
+    }
+  
+  // If a stream has B-frames, this won't be correct
+  // for the next sync timestamp (it will be taken from the
+  // packet pts in write_sync_header)
+  // It will, however, be correct to get the duration
+  
+  if(s->next_sync_pts < p->pts + p->duration)
+    s->next_sync_pts = p->pts + p->duration;
+
+  /* Update packet index */
+  
+  if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
+    {
+    gavf_packet_index_add(&g->pi,
+                          s->h->id, p->flags, g->io->position,
+                          p->pts);
+    }
+  
+  if((gavf_io_write_data(g->io,
+                         (const uint8_t*)GAVF_TAG_PACKET_HEADER, 1) < 1) ||
+     (!gavf_io_write_uint32v(g->io, s->h->id)))
+    return 0;
+
+  gavf_buffer_reset(&g->pkt_buf);
+
+  if(!gavf_write_gavl_packet_header(&g->pkt_io, s, p) ||
+     !gavf_io_write_uint32v(g->io, g->pkt_buf.len + p->data_len) ||
+     (gavf_io_write_data(g->io, g->pkt_buf.buf, g->pkt_buf.len) < g->pkt_buf.len) ||
+     (gavf_io_write_data(g->io, p->data, p->data_len) < p->data_len))
+    return 0;
+  
+  gavf_io_flush(g->io);
+  
+  return 1;
+  }
+
+
+/*
+ *  Flush packets. s is the stream of the last packet written.
+ *  If s is NULL, flush all streams
+ */
+
+static gavl_sink_status_t flush_packets(gavf_t * g, gavf_stream_t * s)
+  {
+  int i;
+  gavl_packet_t * p;
+  int min_index;
+  gavl_time_t min_time;
+  gavl_time_t test_time;
+  gavf_stream_t * ws;
+  gavl_sink_status_t st;
+  
+  if(!g->first_sync_pos)
+    {
+    for(i = 0; i < g->ph.num_streams; i++)
+      {
+      if(!(g->streams[i].flags & STREAM_FLAG_DISCONTINUOUS) &&
+         (g->streams[i].h->foot.pts_start == GAVL_TIME_UNDEFINED))
+        return GAVL_SINK_OK;
+      }
+    }
+
+  /* Flush as many packets as possible */
+  while(1)
+    {
+    /*
+     *  1. Find stream we need to output now
+     */
+
+    min_index = -1;
+    min_time = GAVL_TIME_UNDEFINED;
+    for(i = 0; i < g->ph.num_streams; i++)
+      {
+      ws = &g->streams[i];
+      
+      test_time =
+        gavf_packet_buffer_get_min_pts(ws->pb);
+      
+      if(test_time != GAVL_TIME_UNDEFINED)
+        {
+        if((min_time == GAVL_TIME_UNDEFINED) ||
+           (test_time < min_time))
+          {
+          min_time = test_time;
+          min_index = i;
+          }
+        }
+      else
+        {
+        if(!(ws->flags & STREAM_FLAG_DISCONTINUOUS) &&
+           s && (g->encoding_mode == ENC_INTERLEAVE))
+          {
+          /* Some streams without packets: stop here */
+          return GAVL_SINK_OK;
+          }
+        }
+      }
+
+    /*
+     *  2. Exit if we are done
+     */
+    if(min_index < 0)
+      return GAVL_SINK_OK;
+
+    /*
+     *  3. Output packet
+     */
+
+    ws = &g->streams[min_index];
+    p = gavf_packet_buffer_get_read(ws->pb);
+
+    if((st = write_packet(g, min_index, p)) != GAVL_SINK_OK)
+      return st;
+    
+    /*
+     *  4. If we have B-frames, output the complete Mini-GOP
+     */
+    
+    if(ws->h->type == GAVF_STREAM_VIDEO)
+      {
+      while(1)
+        {
+        p = gavf_packet_buffer_peek_read(ws->pb);
+        if(p && ((p->flags & GAVL_PACKET_TYPE_MASK) == GAVL_PACKET_TYPE_B))
+          {
+          if((st = write_packet(g, min_index, p)) != GAVL_SINK_OK)
+            return st;
+          }
+        }
+      }
+
+    /* Continue */
+    
+    }
+  
   }
 
 static gavl_sink_status_t
 put_packet_func(void * priv, gavl_packet_t * p)
   {
   gavf_stream_t * s = priv;
-  return gavf_write_packet(s->g, (int)(s - s->g->streams), p) ?
-    GAVL_SINK_OK : GAVL_SINK_ERROR;
+
+  /* Update footer */
+
+  /* Fist packet */
+  if(s->h->foot.pts_start == GAVL_TIME_UNDEFINED)
+    {
+    s->h->foot.pts_start    = p->pts;
+    s->h->foot.pts_end      = p->pts + p->duration;
+    s->h->foot.duration_min = p->duration;
+    s->h->foot.duration_max = p->duration;
+    s->h->foot.size_min     = p->data_len;
+    s->h->foot.size_max     = p->data_len;
+    }
+  /* Subsequent packets */
+  else
+    {
+    if(s->h->foot.duration_min > p->duration)
+      s->h->foot.duration_min = p->duration;
+    
+    if(s->h->foot.duration_max < p->duration)
+      s->h->foot.duration_max = p->duration;
+
+    if(s->h->foot.size_min > p->data_len)
+      s->h->foot.size_min = p->data_len;
+
+    if(s->h->foot.size_max > p->data_len)
+      s->h->foot.size_max = p->data_len;
+    
+    if(s->h->foot.pts_end < p->pts + p->duration)
+      s->h->foot.pts_end = p->pts + p->duration;
+    }
+
+  return flush_packets(s->g, s);
+  
+  // return gavf_write_packet(s->g, (int)(s - s->g->streams), p) ?
+  //    GAVL_SINK_OK : GAVL_SINK_ERROR;
+  }
+
+static gavl_packet_t *
+get_packet_func(void * priv)
+  {
+  gavf_stream_t * s = priv;
+  return gavf_packet_buffer_get_write(s->pb);
   }
 
 /* Streams */
@@ -263,7 +652,8 @@ static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
                                         put_audio_func, s,
                                         &s->h->format.audio);
     /* Create packet sink */
-    s->psink = gavl_packet_sink_create(NULL, put_packet_func, s);
+    s->psink = gavl_packet_sink_create(get_packet_func,
+                                       put_packet_func, s);
     }
   else
     {
@@ -313,7 +703,8 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
                                         put_video_func, s,
                                         &s->h->format.video);
     /* Create packet sink */
-    s->psink = gavl_packet_sink_create(NULL, put_packet_func, s);
+    s->psink = gavl_packet_sink_create(get_packet_func,
+                                       put_packet_func, s);
     }
   else
     {
@@ -340,7 +731,7 @@ static void gavf_stream_init_text(gavf_t * g, gavf_stream_t * s)
   if(g->wr)
     {
     /* Create packet sink */
-    s->psink = gavl_packet_sink_create(NULL, put_packet_func, s);
+    s->psink = gavl_packet_sink_create(get_packet_func, put_packet_func, s);
     }
   else
     {
@@ -381,12 +772,8 @@ static void init_streams(gavf_t * g)
         gavf_stream_init_text(g, &g->streams[i]);
         break;
       }
-    if(g->wr)
-      {
-      g->streams[i].pb =
-        gavf_packet_buffer_create(g->streams[i].timescale);
-
-      }
+    g->streams[i].pb =
+      gavf_packet_buffer_create(g->streams[i].timescale);
     }
   }
 
@@ -405,7 +792,9 @@ static void gavf_stream_free(gavf_stream_t * s)
     gavl_video_sink_destroy(s->vsink);
   if(s->psink)
     gavl_packet_sink_destroy(s->psink);
-
+  if(s->pb)
+    gavf_packet_buffer_destroy(s->pb);
+  
   if(s->aframe)
     {
     gavl_audio_frame_null(s->aframe);
@@ -416,7 +805,6 @@ static void gavf_stream_free(gavf_stream_t * s)
     gavl_video_frame_null(s->vframe);
     gavl_video_frame_destroy(s->vframe);
     }
-  gavl_packet_free(&s->p);
   }
 
 
@@ -443,7 +831,7 @@ static int handle_chunk(gavf_t * g, char * sig)
     }
   else if(!strncmp(sig, GAVF_TAG_SYNC_HEADER, 8))
     {
-    g->sync_pos = g->io->position;
+    g->first_sync_pos = g->io->position;
     }  
   else if(!strncmp(sig, GAVF_TAG_SYNC_INDEX, 8))
     {
@@ -543,7 +931,7 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
       if(!handle_chunk(g, sig))
         return 0;
       }
-    if(g->sync_pos > 0)
+    if(g->first_sync_pos > 0)
       break;
     }
 
@@ -554,10 +942,10 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
 
 int gavf_reset(gavf_t * g)
   {
-  if(g->sync_pos != g->io->position)
+  if(g->first_sync_pos != g->io->position)
     {
     if(g->io->seek_func)
-      gavf_io_seek(g->io, g->sync_pos, SEEK_SET);
+      gavf_io_seek(g->io, g->first_sync_pos, SEEK_SET);
     else
       return 0;
     }
@@ -643,8 +1031,7 @@ int gavf_packet_read_packet(gavf_t * g, gavl_packet_t * p)
   
   gavf_buffer_reset(&g->pkt_buf);
   
-  if(!gavf_io_read_buffer(g->io, &g->pkt_buf) ||
-     !gavf_read_gavl_packet(&g->pkt_io, s, p, g->pkt_buf.len))
+  if(!gavf_read_gavl_packet(g->io, s, p))
     return 0;
   return 1;
   }
@@ -804,238 +1191,6 @@ int gavf_start(gavf_t * g)
   return 1;
   }
 
-static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
-  {
-  int i;
-  for(i = 0; i < g->ph.num_streams; i++)
-    {
-    if(i == stream)
-      g->sync_pts[i] = p->pts;
-    else if((stream >= 0) &&
-            (g->ph.streams[i].ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES))
-      g->sync_pts[i] = GAVL_TIME_UNDEFINED;
-
-    else if((g->streams[i].flags & STREAM_FLAG_DISCONTINUOUS) &&
-            (g->streams[i].next_sync_pts == GAVL_TIME_UNDEFINED))
-      g->sync_pts[i] = 0;
-    else
-      g->sync_pts[i] = g->streams[i].next_sync_pts;
-    
-    }
-
-  /* Update sync index */
-  if(g->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX)
-    {
-    gavf_sync_index_add(&g->si, g->io->position,
-                        g->sync_pts);
-    }
-
-  /* If that's the first sync header, update file index */
-
-  if(!g->sync_pos)
-    {
-    gavf_file_index_add(&g->fi, GAVF_TAG_SYNC_HEADER, g->io->position);
-    g->sync_pos = g->io->position;
-    }
-  /* Write the sync header */
-  if(gavf_io_write_data(g->io, (uint8_t*)GAVF_TAG_SYNC_HEADER, 8) < 8)
-    return 0;
-
-  fprintf(stderr, "Write sync header\n");
-  
-  for(i = 0; i < g->ph.num_streams; i++)
-    {
-    fprintf(stderr, "PTS[%d]: %ld\n", i, g->sync_pts[i]);
-    if(!gavf_io_write_int64v(g->io, g->sync_pts[i]))
-      return 0;
-    }
-
-  /* Update last sync pts */
-
-  for(i = 0; i < g->ph.num_streams; i++)
-    {
-    if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
-      g->streams[i].last_sync_pts = g->sync_pts[i];
-    }
-  gavf_io_flush(g->io);
-  return 1;
-  }
-
-static int write_packet(gavf_t * g, int stream,
-                        const gavl_packet_t * p)
-  {
-  int write_sync = 0;
-  gavf_stream_t * s = &g->streams[stream];
-  
-  /* Decide whether to write a sync header */
-  if(!g->sync_pos)
-    write_sync = 1;
-  else if(g->sync_distance)
-    {
-    if(gavl_time_unscale(s->timescale, p->pts) - g->last_sync_time >
-       g->sync_distance)
-      write_sync = 1;
-    }
-  else
-    {
-    if((g->ph.streams[stream].type == GAVF_STREAM_VIDEO) &&
-       (g->ph.streams[stream].ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES) &&
-       (p->flags & GAVL_PACKET_KEYFRAME))
-      write_sync = 1;
-    }
-
-  if(write_sync)
-    {
-    if(!write_sync_header(g, stream, p))
-      return 0;
-    }
-  
-  // If a stream has B-frames, this won't be correct
-  // for the next sync timestamp (it will be taken from the
-  // packet pts in write_sync_header)
-  // It will, however, be correct to get the duration
-  
-  if(s->next_sync_pts < p->pts + p->duration)
-    s->next_sync_pts = p->pts + p->duration;
-
-  /* Update packet index */
-  
-  if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
-    {
-    gavf_packet_index_add(&g->pi,
-                          s->h->id, p->flags, g->io->position,
-                          p->pts);
-    }
-  
-  if((gavf_io_write_data(g->io,
-                         (const uint8_t*)GAVF_TAG_PACKET_HEADER, 1) < 1) ||
-     (!gavf_io_write_uint32v(g->io, s->h->id)))
-    return 0;
-
-  gavf_buffer_reset(&g->pkt_buf);
-
-  if(!gavf_write_gavl_packet(&g->pkt_io, s, p) ||
-     !gavf_io_write_buffer(g->io, &g->pkt_buf))
-    return 0;
-
-  gavf_io_flush(g->io);
-  
-  return 1;
-  }
-
-static int get_min_pts_stream(gavf_t * g, int flush_all,
-                              gavl_time_t * min_time_p)
-  {
-  int i;
-  int min_index;
-  gavl_time_t min_time;
-  gavl_time_t test_time;
-  gavf_stream_t * s;
-  
-  min_index = -1;
-  min_time = GAVL_TIME_UNDEFINED;
-    
-  for(i = 0; i < g->ph.num_streams; i++)
-    {
-    s = &g->streams[i];
-    
-    test_time =
-      gavf_packet_buffer_get_min_pts(s->pb);
-
-    if(test_time != GAVL_TIME_UNDEFINED)
-      {
-      if((min_time == GAVL_TIME_UNDEFINED) ||
-         (test_time < min_time))
-        {
-        min_time = test_time;
-        min_index = i;
-        }
-      }
-    else
-      {
-      if(!(s->flags & STREAM_FLAG_DISCONTINUOUS) &&
-         !flush_all)
-        {
-        /* Some streams without packets: stop here */
-        return -1;
-        }
-      }
-    }
-
-  *min_time_p = min_time;
-  return min_index;
-  }
-
-static int flush_packets(gavf_t * g, int flush_all)
-  {
-  gavl_packet_t * p;
-  gavl_time_t min_time;
-  int min_index;
-
-  if(!g->streams)
-    return 1;
-  
-  while(1)
-    {
-    min_index = get_min_pts_stream(g, flush_all, &min_time);
-    if(min_index < 0)
-      return 1;
-    
-    p = gavf_packet_buffer_get_read(g->streams[min_index].pb);
-    
-    if(!write_packet(g, min_index, p))
-      return 0;
-    }
-  return 1;
-  }
-
-
-int gavf_write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
-  {
-  gavf_stream_t * s;
-  gavl_packet_t * p1;
-  gavl_time_t min_time;
-  int min_index;
-  
-  s = &g->streams[stream];
-  
-  if(s->next_sync_pts == GAVL_TIME_UNDEFINED)
-    s->next_sync_pts = p->pts;
-
-  /* Decide whether to write a sync header */
-  
-  switch(g->encoding_mode)
-    {
-    case ENC_STARTING:
-      /* Buffer packet */
-      p1 = gavf_packet_buffer_get_write(s->pb);
-      gavl_packet_copy(p1, p);
-
-      /* Check if we are done */
-      min_index = get_min_pts_stream(g, 0, &min_time);
-      if(min_index >= 0)
-        {
-        g->encoding_mode = g->final_encoding_mode;
-        if(g->final_encoding_mode == ENC_SYNCHRONOUS)
-          return flush_packets(g, 1);
-        else
-          return flush_packets(g, 0);
-        }
-      else
-        return 1;
-      break;
-    case ENC_SYNCHRONOUS:
-      return write_packet(g, stream, p);
-      break;
-    case ENC_INTERLEAVE:
-      p1 = gavf_packet_buffer_get_write(s->pb);
-      gavl_packet_copy(p1, p);
-      return flush_packets(g, 0);
-      break;
-    }
-  return 0;
-  }
-
 
 void gavf_video_frame_to_packet_metadata(const gavl_video_frame_t * frame,
                                          gavl_packet_t * pkt)
@@ -1119,7 +1274,7 @@ void gavf_close(gavf_t * g)
     if(g->streams)
       {
       /* Flush packets if any */
-      flush_packets(g, 1);
+      flush_packets(g, NULL);
     
       /* Append final sync header */
       write_sync_header(g, -1, NULL);
