@@ -161,6 +161,8 @@ typedef struct
 
   // Next PTS (for streams with implicit PTS)
   int64_t next_pts;
+
+  int packets_since_sync;
   
   gavf_packet_buffer_t * pb;
   
