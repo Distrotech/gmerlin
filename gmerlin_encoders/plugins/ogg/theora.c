@@ -83,6 +83,8 @@ typedef struct
   int64_t last_keyframe;
 
   gavl_packet_sink_t * psink;
+  int64_t pts;
+  
   } theora_t;
 
 static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
@@ -335,7 +337,7 @@ write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   int i;
   ogg_packet op;
   gavl_packet_t gp;
-  int64_t frame_index;
+  //  int64_t frame_index;
   
   theora = data;
   
@@ -406,15 +408,12 @@ write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   
   gavl_packet_init(&gp);
   bg_ogg_packet_to_gavl(&op, &gp, NULL);
-
-  frame_index = op.granulepos >> theora->ti.keyframe_granule_shift;
-  frame_index +=
-    op.granulepos-(frame_index << theora->ti.keyframe_granule_shift);
   
-  gp.pts = gavl_frames_to_time(theora->format->timescale,
-                               theora->format->frame_duration,
-                               frame_index);
+  gp.pts      = theora->pts;
+  gp.duration = theora->format->frame_duration;
 
+  theora->pts += theora->format->frame_duration;
+  
   if(!(op.packet[0] & 0x40)) // Keyframe
     gp.flags |= GAVL_PACKET_TYPE_I | GAVL_PACKET_KEYFRAME;
   else

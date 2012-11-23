@@ -244,6 +244,12 @@ write_callback(const FLAC__StreamEncoder *encoder,
     
     if(flac->ci.global_header_len == BG_FLAC_HEADER_SIZE)
       {
+      /*
+       *  Last metadata packet. By default libflac will emit a vorbis_comment
+       *  with just the vendor_string after that.
+       */
+      flac->ci.global_header[4] |= 0x80;
+      
       /* Extract codec header */
       if(flac->streaminfo_callback)
         flac->streaminfo_callback(flac->callback_priv,

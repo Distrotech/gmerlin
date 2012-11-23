@@ -522,6 +522,10 @@ init_opus(void * data, gavl_compression_info_t * ci,
   ci->global_header = malloc(MAX_HEADER_LEN);
   ci->global_header_len = header_to_packet(&opus->h, ci->global_header);
   ci->id = GAVL_CODEC_ID_OPUS;
+  ci->pre_skip = opus->h.pre_skip;
+
+  opus->pts = -((int64_t)ci->pre_skip);
+  
   
   gavl_metadata_set(stream_metadata, GAVL_META_SOFTWARE,
                     opus_get_version_string());
@@ -580,29 +584,6 @@ static int init_compressed_opus(bg_ogg_stream_t * s)
   
   return 1;
   }
-
-
-#if 0
-static int write_audio_packet_opus(void * data, gavl_packet_t * packet)
-  {
-  ogg_packet op;
-  int result;
-  opus_t * opus = data;
-  
-  memset(&op, 0, sizeof(op));
-  op.packet = packet->data;
-  op.bytes = packet->data_len;
-  op.granulepos = packet->pts + packet->duration;
-  if(packet->flags & GAVL_PACKET_LAST)
-    op.e_o_s = 1;
-  ogg_stream_packetin(&opus->enc_os,&op);
-  
-  /* Flush pages if any */
-  if((result = bg_ogg_flush(&opus->enc_os, opus->output, 0)) < 0)
-    return 0;
-  return 1;
-  }
-#endif
 
 static int close_opus(void * data)
   {

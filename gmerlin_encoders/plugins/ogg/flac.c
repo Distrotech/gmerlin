@@ -106,7 +106,7 @@ static int init_compressed_flacogg(bg_ogg_stream_t * s)
   op.packet = malloc(4 + len);
   ptr = op.packet;
   
-  ptr[0] = 0x84;
+  ptr[0] = 0x84; // Last metadata packet
   ptr++;
 
   GAVL_24BE_2_PTR(len, ptr); ptr += 3;
@@ -119,60 +119,16 @@ static int init_compressed_flacogg(bg_ogg_stream_t * s)
     free(op.packet);
     return 0;
     }
-
   
   free(op.packet);
   return 1;
   }
-
-
-#if 0
-static FLAC__StreamEncoderWriteStatus
-write_callback(const FLAC__StreamEncoder *encoder,
-               const FLAC__byte buffer[],
-               size_t bytes,
-               void *data)
-  {
-  ogg_packet op;
-  flacogg_t * flacogg;
-  flacogg = data;
-  
-  if((buffer[0] & 0x7f) == 0x04) /* Vorbis comment */
-    {
-    if(flacogg->frame_alloc < bytes)
-      {
-      flacogg->frame_alloc = bytes + 1024;
-      flacogg->frame = realloc(flacogg->frame, flacogg->frame_alloc);
-      }
-    memcpy(flacogg->frame, buffer, bytes);
-    
-    op.bytes  = bytes;
-    op.packet = flacogg->frame;
-    op.b_o_s  = 0;
-    op.e_o_s  = 0;
-    op.packetno = 1;
-    op.granulepos = 0;
-    /* Page will be flushed later */
-
-    if(!bg_ogg_stream_write_header_packet(flacogg->s, &op))
-      return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-    }
-  
-  return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
-  }
-#endif
 
 static void * create_flacogg()
   {
   flacogg_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->enc = bg_flac_create();
-  
-  //  ret->output = output;
-  
-  /* We already can set the first bytes */
-  //  memcpy(ret->header, header_bytes, 9);
-  //  ret->header_size = 9;
   return ret;
   }
 
@@ -186,9 +142,6 @@ static void set_parameter_flacogg(void * data, const char * name,
   {
   flacogg_t * flacogg;
   flacogg = data;
-  
-  if(!name)
-    return;
   bg_flac_set_parameter(flacogg->enc, name, v);
   }
 

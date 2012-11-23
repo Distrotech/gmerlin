@@ -866,8 +866,7 @@ init_schro(void * data, gavl_compression_info_t * ci,
   gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE,
                           bg_sprintf("libschroedinger"));
 #endif
-  
-  return  gavl_video_sink_create(get_frame, put_frame, s, format);
+  s->started = 1;
   
 #if 0  
   if(!buf)
@@ -878,8 +877,8 @@ init_schro(void * data, gavl_compression_info_t * ci,
     bg_hexdump(buf->data, buf->length, 16);
     }
 #endif
-
-  s->started = 1;
+  
+  return  gavl_video_sink_create(get_frame, put_frame, s, format);
   }
 
 static int init_compressed_schro(bg_ogg_stream_t * s)
