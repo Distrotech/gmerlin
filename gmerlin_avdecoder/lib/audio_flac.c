@@ -223,6 +223,8 @@ static int init_flac(bgav_stream_t * s)
              "FLAC decoder needs 42 bytes extradata");
     return 0;
     }
+
+  // bgav_hexdump(s->ext_data, s->ext_size, 16); 
   
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;

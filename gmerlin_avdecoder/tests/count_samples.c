@@ -35,15 +35,18 @@ int main(int argc, char ** argv)
   bgav_options_t * opt;
   
   int64_t count;
+  int64_t first_pts = GAVL_TIME_UNDEFINED;
+  
   int i;
   
   const gavl_audio_format_t * format;
   gavl_audio_frame_t * frame;
+  int skip_neg = 1;
   
   if(argc == 1)
     {
     fprintf(stderr,
-            "Usage: count_samples [-s] [-as stream] [-t track] <location>\n");
+            "Usage: count_samples [-s] [-as stream] [-t track] [-n] <location>\n");
     return 0;
     }
   file = bgav_create();
@@ -55,6 +58,11 @@ int main(int argc, char ** argv)
     if(!strcmp(argv[arg_index], "-s"))
       {
       sample_accurate = 1;
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-n"))
+      {
+      skip_neg = 0;
       arg_index++;
       }
     else if(!strcmp(argv[arg_index], "-as"))
@@ -139,12 +147,30 @@ int main(int argc, char ** argv)
   
   while(bgav_read_audio(file, frame, stream, format->samples_per_frame))
     {
+    if(first_pts == GAVL_TIME_UNDEFINED)
+      first_pts = frame->timestamp;
     count += frame->valid_samples;
     }
 
-  fprintf(stderr, "Track %d stream %d contains %"PRId64" samples\n",
-          track+1, stream+1, count);
-
+  if(skip_neg)
+    {
+    if(first_pts < 0)
+      fprintf(stderr,
+              "Track %d stream %d contains %"PRId64" samples (skipped %"PRId64" below zero)\n",
+              track+1, stream+1, count + first_pts, -first_pts);
+    else
+      fprintf(stderr, "Track %d stream %d contains %"PRId64" samples\n",
+              track+1, stream+1, count);
+    }
+  else
+    {
+    if(first_pts < 0)
+      fprintf(stderr, "Track %d stream %d contains %"PRId64" samples (%"PRId64" below zero)\n",
+              track+1, stream+1, count, -first_pts);
+    else
+      fprintf(stderr, "Track %d stream %d contains %"PRId64" samples\n",
+              track+1, stream+1, count);
+    }
   bgav_close(file);
   gavl_audio_frame_destroy(frame);
   return 0;
