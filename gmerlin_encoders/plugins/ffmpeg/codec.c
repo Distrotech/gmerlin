@@ -285,10 +285,8 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
 
   /* Set format for codec */
 
-  /* Will be cleared later if we don't write compressed
-     packets */
   ctx->avctx->sample_rate = fmt->samplerate;
-
+  
   /* TODO: Channel setup */
   ctx->avctx->channels    = fmt->num_channels;
 

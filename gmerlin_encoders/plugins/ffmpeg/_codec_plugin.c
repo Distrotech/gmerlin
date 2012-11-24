@@ -29,7 +29,7 @@ static void * create_codec()
   stream_codec_t * ret = calloc(1, sizeof(*ret));
 
   ret->codec = bg_ffmpeg_codec_create(
-#if IS_AUDIO
+#ifdef IS_AUDIO
                                       CODEC_TYPE_AUDIO,
 #else
                                       CODEC_TYPE_VIDEO,

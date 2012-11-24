@@ -10,7 +10,8 @@ e_ffmpeg_video.la \
 e_ffmpeg_audio.la \
 e_ffmpeg.la \
 c_ffmpeg_mpeg4.la \
-c_ffmpeg_x264.la
+c_ffmpeg_x264.la \
+c_ffmpeg_mp2.la
 
 common_sources = ffmpeg_common.c codecs.c codec.c
 
@@ -29,5 +30,7 @@ c_ffmpeg_mpeg4_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
 c_ffmpeg_x264_la_SOURCES = c_ffmpeg_x264.c codecs.c codec.c ffmpeg_common.c
 c_ffmpeg_x264_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
 
+c_ffmpeg_mp2_la_SOURCES = c_ffmpeg_mp2.c codecs.c codec.c ffmpeg_common.c
+c_ffmpeg_mp2_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
 
 noinst_HEADERS = ffmpeg_common.h params.h
